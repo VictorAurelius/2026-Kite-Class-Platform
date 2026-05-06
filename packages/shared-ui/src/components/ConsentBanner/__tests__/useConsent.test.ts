@@ -9,7 +9,9 @@ import { renderHook, act } from '@testing-library/react';
 import { useConsent } from '../useConsent';
 import {
   DEFAULT_STORAGE_KEY,
+  VISITOR_ID_STORAGE_KEY,
   clearConsent,
+  getOrCreateVisitorId,
   readConsent,
   validate,
   writeConsent,
@@ -78,20 +80,55 @@ describe('storage adapter', () => {
     expect(validate('string')).toBeNull();
     expect(validate(42)).toBeNull();
   });
+
+  describe('getOrCreateVisitorId', () => {
+    it('generates and persists a UUID v4 on first call', () => {
+      const id = getOrCreateVisitorId();
+      expect(id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+      );
+      expect(window.localStorage.getItem(VISITOR_ID_STORAGE_KEY)).toBe(id);
+    });
+
+    it('returns the same id on subsequent calls', () => {
+      const a = getOrCreateVisitorId();
+      const b = getOrCreateVisitorId();
+      expect(b).toBe(a);
+    });
+
+    it('regenerates when stored value is malformed', () => {
+      window.localStorage.setItem(VISITOR_ID_STORAGE_KEY, 'not-a-uuid');
+      const id = getOrCreateVisitorId();
+      expect(id).not.toBe('not-a-uuid');
+      expect(id).toMatch(/^[0-9a-f-]{36}$/);
+    });
+
+    it('honors a custom storage key', () => {
+      const id = getOrCreateVisitorId('custom.visitor.key');
+      expect(window.localStorage.getItem('custom.visitor.key')).toBe(id);
+      expect(window.localStorage.getItem(VISITOR_ID_STORAGE_KEY)).toBeNull();
+    });
+  });
 });
 
 describe('useConsent hook', () => {
+  // Stub fetch globally so API sync doesn't error in tests not asserting it.
   beforeEach(() => {
     window.localStorage.clear();
     vi.useRealTimers();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve({ ok: true, json: async () => ({}) } as Response)),
+    );
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   it('hydrates with null state when no consent stored', () => {
-    const { result } = renderHook(() => useConsent());
+    const { result } = renderHook(() => useConsent({ syncToServer: false }));
     expect(result.current.hydrated).toBe(true);
     expect(result.current.state).toBeNull();
     expect(result.current.analytics).toBe(false);
@@ -103,7 +140,7 @@ describe('useConsent hook', () => {
       categories: { essential: true, analytics: true, marketing: false },
     });
     writeConsent(stored);
-    const { result } = renderHook(() => useConsent());
+    const { result } = renderHook(() => useConsent({ syncToServer: false }));
     expect(result.current.state).not.toBeNull();
     expect(result.current.analytics).toBe(true);
     expect(result.current.marketing).toBe(false);
@@ -115,13 +152,13 @@ describe('useConsent hook', () => {
       expiresAt: Date.now() - TWELVE_MONTHS_MS, // already expired
     });
     writeConsent(expired);
-    const { result } = renderHook(() => useConsent());
+    const { result } = renderHook(() => useConsent({ syncToServer: false }));
     expect(result.current.state).toBeNull();
     expect(window.localStorage.getItem(DEFAULT_STORAGE_KEY)).toBeNull();
   });
 
   it('give() persists analytics + marketing', () => {
-    const { result } = renderHook(() => useConsent());
+    const { result } = renderHook(() => useConsent({ syncToServer: false }));
     act(() => {
       result.current.give({ analytics: true, marketing: true });
     });
@@ -131,7 +168,7 @@ describe('useConsent hook', () => {
   });
 
   it('reject() persists analytics=false + marketing=false', () => {
-    const { result } = renderHook(() => useConsent());
+    const { result } = renderHook(() => useConsent({ syncToServer: false }));
     act(() => {
       result.current.reject();
     });
@@ -141,7 +178,7 @@ describe('useConsent hook', () => {
   });
 
   it('revoke() clears state and storage', () => {
-    const { result } = renderHook(() => useConsent());
+    const { result } = renderHook(() => useConsent({ syncToServer: false }));
     act(() => {
       result.current.give({ analytics: true });
     });
@@ -154,7 +191,7 @@ describe('useConsent hook', () => {
   });
 
   it('expiresAt is set ~12 months from timestamp', () => {
-    const { result } = renderHook(() => useConsent());
+    const { result } = renderHook(() => useConsent({ syncToServer: false }));
     act(() => {
       result.current.give({ analytics: true });
     });
@@ -163,12 +200,109 @@ describe('useConsent hook', () => {
   });
 
   it('isolates per storageKey', () => {
-    const { result: first } = renderHook(() => useConsent('test.key.a'));
-    const { result: second } = renderHook(() => useConsent('test.key.b'));
+    const { result: first } = renderHook(() =>
+      useConsent({ storageKey: 'test.key.a', syncToServer: false }),
+    );
+    const { result: second } = renderHook(() =>
+      useConsent({ storageKey: 'test.key.b', syncToServer: false }),
+    );
     act(() => {
       first.current.give({ analytics: true });
     });
     expect(first.current.analytics).toBe(true);
     expect(second.current.analytics).toBe(false);
+  });
+
+  it('hydrates a stable visitorId (UUID v4)', () => {
+    const { result, rerender } = renderHook(() =>
+      useConsent({ syncToServer: false, visitorIdKey: 'test.visitor' }),
+    );
+    expect(result.current.visitorId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    );
+    const first = result.current.visitorId;
+    rerender();
+    expect(result.current.visitorId).toBe(first);
+  });
+
+  it('give() triggers API record call when syncToServer=true', async () => {
+    const fetchMock = vi.fn((..._args: unknown[]) =>
+      Promise.resolve({ ok: true, json: async () => ({}) } as Response),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const { result } = renderHook(() =>
+      useConsent({ syncToServer: true, visitorIdKey: 'test.api.visitor' }),
+    );
+    await act(async () => {
+      result.current.give({ analytics: true, marketing: false });
+      // Allow microtasks (the fetch call) to resolve.
+      await Promise.resolve();
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toContain('/api/v1/consent/record');
+    expect((init as RequestInit).method).toBe('POST');
+    const body = JSON.parse((init as RequestInit).body as string);
+    expect(body.analyticsConsented).toBe(true);
+    expect(body.marketingConsented).toBe(false);
+    expect(body.essentialConsented).toBe(true);
+    expect(body.visitorId).toMatch(/^[0-9a-f-]+$/);
+  });
+
+  it('reject() triggers API record call when syncToServer=true', async () => {
+    const fetchMock = vi.fn((..._args: unknown[]) =>
+      Promise.resolve({ ok: true, json: async () => ({}) } as Response),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const { result } = renderHook(() =>
+      useConsent({ syncToServer: true, visitorIdKey: 'test.api.visitor.b' }),
+    );
+    await act(async () => {
+      result.current.reject();
+      await Promise.resolve();
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse((fetchMock.mock.calls[0]![1] as RequestInit).body as string);
+    expect(body.analyticsConsented).toBe(false);
+    expect(body.marketingConsented).toBe(false);
+  });
+
+  it('revoke() triggers API revoke call when syncToServer=true', async () => {
+    const fetchMock = vi.fn((..._args: unknown[]) =>
+      Promise.resolve({ ok: true, json: async () => ({}) } as Response),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const { result } = renderHook(() =>
+      useConsent({ syncToServer: true, visitorIdKey: 'test.api.visitor.c' }),
+    );
+    await act(async () => {
+      result.current.give({ analytics: true });
+      await Promise.resolve();
+    });
+    fetchMock.mockClear();
+    await act(async () => {
+      result.current.revoke();
+      await Promise.resolve();
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toMatch(/\/api\/v1\/consent\/[0-9a-f-]+\/revoke$/);
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('API failure does not throw (LocalStorage primary stays intact)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.reject(new Error('network down'))),
+    );
+    const { result } = renderHook(() =>
+      useConsent({ syncToServer: true, visitorIdKey: 'test.api.visitor.d' }),
+    );
+    await act(async () => {
+      result.current.give({ analytics: true });
+      await Promise.resolve();
+    });
+    expect(result.current.analytics).toBe(true);
+    expect(result.current.state?.categories.analytics).toBe(true);
   });
 });

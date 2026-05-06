@@ -12,16 +12,27 @@
  *
  * SSR contract: returns `state: null` on server; hydrates on first client effect.
  * Consumers should branch on `state === null` to know "not yet hydrated OR not consented."
+ *
+ * GAP-353b Wave 25 — also syncs to server-side API (best-effort, non-fatal).
+ * LocalStorage stays the primary truth for offline/cross-tab; API is the cross-device
+ * audit trail per BR-PDPL-CONSENT-003.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ConsentState, PartialCategories } from './types';
 import {
   DEFAULT_STORAGE_KEY,
+  VISITOR_ID_STORAGE_KEY,
   clearConsent,
+  getOrCreateVisitorId,
   readConsent,
   writeConsent,
 } from './storage';
+import {
+  buildPayload,
+  recordConsent as apiRecordConsent,
+  revokeConsent as apiRevokeConsent,
+} from './api';
 
 const TWELVE_MONTHS_MS = 365 * 24 * 60 * 60 * 1000;
 
@@ -34,6 +45,8 @@ export type UseConsentResult = {
   analytics: boolean;
   /** Convenience: marketing opt-in. */
   marketing: boolean;
+  /** Pseudonymous visitor id (UUID v4). `null` until hydrated. */
+  visitorId: string | null;
   /** Persist a partial category opt-in map. Missing keys default to `false`. */
   give: (categories: PartialCategories) => void;
   /** Reject all non-essential categories. */
@@ -42,9 +55,31 @@ export type UseConsentResult = {
   revoke: () => void;
 };
 
-export function useConsent(storageKey: string = DEFAULT_STORAGE_KEY): UseConsentResult {
+export type UseConsentOptions = {
+  /** LocalStorage key for the consent state. Defaults to `kite.consent.v1`. */
+  storageKey?: string;
+  /** LocalStorage key for the visitor id. Defaults to `kite_visitor_id`. */
+  visitorIdKey?: string;
+  /** Toggle server-side API sync (default `true`). Set `false` for unit tests / offline contexts. */
+  syncToServer?: boolean;
+};
+
+export function useConsent(
+  optionsOrStorageKey: string | UseConsentOptions = DEFAULT_STORAGE_KEY,
+): UseConsentResult {
+  const opts: UseConsentOptions =
+    typeof optionsOrStorageKey === 'string'
+      ? { storageKey: optionsOrStorageKey }
+      : optionsOrStorageKey;
+  const storageKey = opts.storageKey ?? DEFAULT_STORAGE_KEY;
+  const visitorIdKey = opts.visitorIdKey ?? VISITOR_ID_STORAGE_KEY;
+  const syncToServer = opts.syncToServer ?? true;
+
   const [state, setState] = useState<ConsentState | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [visitorId, setVisitorId] = useState<string | null>(null);
+  // Track in-flight server calls so unit tests can await them via the public surface.
+  const inFlight = useRef(0);
 
   // Hydrate on mount (client only). Drop expired records.
   useEffect(() => {
@@ -56,8 +91,26 @@ export function useConsent(storageKey: string = DEFAULT_STORAGE_KEY): UseConsent
       clearConsent(storageKey);
       setState(null);
     }
+    setVisitorId(getOrCreateVisitorId(visitorIdKey));
     setHydrated(true);
-  }, [storageKey]);
+  }, [storageKey, visitorIdKey]);
+
+  const syncRecord = useCallback(
+    (next: ConsentState) => {
+      if (!syncToServer) return;
+      const id = visitorId ?? getOrCreateVisitorId(visitorIdKey);
+      inFlight.current += 1;
+      // Best-effort: API failures must NOT throw to the caller (LocalStorage primary).
+      apiRecordConsent(buildPayload(id, next.categories))
+        .catch(() => {
+          /* swallowed — non-fatal */
+        })
+        .finally(() => {
+          inFlight.current -= 1;
+        });
+    },
+    [syncToServer, visitorId, visitorIdKey],
+  );
 
   const give = useCallback(
     (categories: PartialCategories) => {
@@ -74,8 +127,9 @@ export function useConsent(storageKey: string = DEFAULT_STORAGE_KEY): UseConsent
       };
       writeConsent(next, storageKey);
       setState(next);
+      syncRecord(next);
     },
-    [storageKey],
+    [storageKey, syncRecord],
   );
 
   const reject = useCallback(() => {
@@ -92,18 +146,31 @@ export function useConsent(storageKey: string = DEFAULT_STORAGE_KEY): UseConsent
     };
     writeConsent(next, storageKey);
     setState(next);
-  }, [storageKey]);
+    syncRecord(next);
+  }, [storageKey, syncRecord]);
 
   const revoke = useCallback(() => {
     clearConsent(storageKey);
     setState(null);
-  }, [storageKey]);
+    if (syncToServer) {
+      const id = visitorId ?? getOrCreateVisitorId(visitorIdKey);
+      inFlight.current += 1;
+      apiRevokeConsent(id)
+        .catch(() => {
+          /* swallowed — non-fatal */
+        })
+        .finally(() => {
+          inFlight.current -= 1;
+        });
+    }
+  }, [storageKey, syncToServer, visitorId, visitorIdKey]);
 
   return {
     state,
     hydrated,
     analytics: state?.categories.analytics === true,
     marketing: state?.categories.marketing === true,
+    visitorId,
     give,
     reject,
     revoke,

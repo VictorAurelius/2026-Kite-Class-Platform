@@ -1,6 +1,6 @@
 # GAP-353b: Server-side Consent API + Audit-log link (PDPL Phase 2)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Wave 25 Bucket A 2026-05-06 (8/11 AC fully verified; 3 deepening items routed to follow-up [`GAP-353b-followup-multi-device-and-audit-chain.md`](./GAP-353b-followup-multi-device-and-audit-chain.md))
 **Priority:** 🟠 P1 (PDPL Phase 2 — LocalStorage MVP from Wave 23 covers Art 11+13 read; server-side audit trail enriches but doesn't block legal compliance)
 **Domain:** Backend / Compliance / Frontend integration
 **Found:** 2026-05-06 (Wave 23 closure follow-up)
@@ -69,17 +69,17 @@ CREATE INDEX idx_consent_record_expires ON consent_record(expires_at);
 
 ## Acceptance Criteria
 
-- [ ] Flyway migration shipped (`Vxx__create_consent_record.sql`)
-- [ ] `consent_record` entity + repository + service in chosen module
-- [ ] 3 REST endpoints implemented + Bean Validation
-- [ ] OpenAPI spec updated
-- [ ] `useConsent` hook extended with API sync
-- [ ] visitor_id generation + LocalStorage persistence
-- [ ] Multi-device sync verified (same visitor_id + cross-browser test)
-- [ ] DR-03 retention cron job
-- [ ] Audit-log entries on consent write/revoke
-- [ ] Unit tests + IT (TestContainers Postgres)
-- [ ] BR-PDPL-CONSENT-003 implementation footer cross-link in `documents/01-business/kitehub/marketing/rules.md`
+- [x] Flyway migration shipped — `kitehub/kitehub-subscription/src/main/resources/db/migration/V25__create_consent_record.sql`
+- [x] `consent_record` entity + repository + service — `com.kitehub.subscription.consent.{entity,repository,service}.*`
+- [x] 3 REST endpoints implemented + Bean Validation — `ConsentController` (`POST /record`, `GET /{visitorId}`, `POST /{visitorId}/revoke`)
+- [x] OpenAPI spec updated — `@Tag` + `@Operation` annotations on `ConsentController` (springdoc auto-publishes)
+- [x] `useConsent` hook extended with API sync — `packages/shared-ui/src/components/ConsentBanner/useConsent.ts` (best-effort, LocalStorage primary)
+- [x] visitor_id generation + LocalStorage persistence — `getOrCreateVisitorId()` in `storage.ts` + `kite_visitor_id` LocalStorage key
+- [ ] Multi-device sync verified (same visitor_id + cross-browser test) — see follow-up [`GAP-353b-followup-multi-device-and-audit-chain.md`](./GAP-353b-followup-multi-device-and-audit-chain.md). Contract verified via unit/IT; live cross-browser Playwright run requires infra not available solo-dev mode.
+- [x] DR-03 retention cron job — `ConsentRetentionCron` (daily 03:00, 36-month cutoff)
+- [ ] Audit-log entries on consent write/revoke — currently SLF4J INFO only; hash-chain audit table routed to follow-up gap (pattern reuse from `ChildProtectionAuditServiceImpl` requires adaptation for pseudonymous visitor scope)
+- [ ] Unit tests + IT (TestContainers Postgres) — Unit tests + IT shipped (`ConsentServiceImplTest`, `ConsentControllerTest`, `ConsentControllerIT`) using existing project H2 convention; TestContainers adoption decision routed to follow-up gap
+- [x] BR-PDPL-CONSENT-003 implementation footer cross-link — added to `documents/01-business/kitehub/marketing/rules.md` BR-PDPL-CONSENT-003 entry; api-contract.md created
 
 ## Related
 
@@ -96,4 +96,16 @@ CREATE INDEX idx_consent_record_expires ON consent_record(expires_at);
 
 ## Log
 
-- **2026-05-06:** Filed at Wave 23 closure per wave plan §7 Closure Protocol. Server-side audit trail Phase 2 enhancement; LocalStorage MVP from Wave 23 BC suffices for PDPL Art 11+13 read.
+- **2026-05-06 (Wave 25 Bucket A):** Status flipped from OPEN → PARTIAL. Shipped: V25 Flyway
+  migration + `consent` package (entity / repository / service / controller / DTOs / cron)
+  + FE `api.ts` wrapper + `getOrCreateVisitorId` + `useConsent` API sync (best-effort
+  LocalStorage-primary) + `api-contract.md` + BR-PDPL-CONSENT-003 implementation footer.
+  Verification: `cd kitehub && ./mvnw -pl kitehub-subscription -am clean verify` →
+  384/384 tests green; `pnpm -F @kite/shared-ui test` → 47/47; `pnpm -F @kite/shared-ui type-check` clean.
+  Three AC items kept open and routed to follow-up
+  [`GAP-353b-followup-multi-device-and-audit-chain.md`](./GAP-353b-followup-multi-device-and-audit-chain.md):
+  cross-browser Playwright sync verification, hash-chain audit table, TestContainers Postgres
+  IT migration. Per `gap-done-discipline.md` §3, parent stays PARTIAL until follow-up lands.
+- **2026-05-06:** Filed at Wave 23 closure per wave plan §7 Closure Protocol. Server-side
+  audit trail Phase 2 enhancement; LocalStorage MVP from Wave 23 BC suffices for PDPL
+  Art 11+13 read.

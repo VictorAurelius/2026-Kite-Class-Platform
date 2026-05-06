@@ -13,6 +13,12 @@ import type { ConsentState, ConsentCategory } from './types';
 
 export const DEFAULT_STORAGE_KEY = 'kite.consent.v1';
 
+/**
+ * LocalStorage key for the pseudonymous visitor identifier.
+ * Used by the GAP-353b server-side consent API to correlate cross-device records.
+ */
+export const VISITOR_ID_STORAGE_KEY = 'kite_visitor_id';
+
 const VALID_CATEGORIES: ReadonlyArray<ConsentCategory> = [
   'essential',
   'analytics',
@@ -68,6 +74,68 @@ export function clearConsent(storageKey: string = DEFAULT_STORAGE_KEY): void {
   } catch {
     // ignore
   }
+}
+
+/**
+ * Read or generate the pseudonymous visitor id (UUID v4) from LocalStorage.
+ *
+ * SSR-safe: returns a fresh UUID without persisting on the server. Subsequent
+ * client-side calls then return the persisted value once the hook hydrates.
+ *
+ * Falls back to a random `Math.random`-based UUID when `crypto.randomUUID` is
+ * unavailable (older browsers / non-secure contexts).
+ */
+export function getOrCreateVisitorId(
+  storageKey: string = VISITOR_ID_STORAGE_KEY,
+): string {
+  if (typeof window === 'undefined') {
+    return generateUuid();
+  }
+  let stored: string | null = null;
+  try {
+    stored = window.localStorage.getItem(storageKey);
+  } catch {
+    return generateUuid();
+  }
+  if (stored && isValidUuid(stored)) {
+    return stored;
+  }
+  const fresh = generateUuid();
+  try {
+    window.localStorage.setItem(storageKey, fresh);
+  } catch {
+    // Quota / disabled storage — return ephemeral value.
+  }
+  return fresh;
+}
+
+function generateUuid(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // RFC 4122 v4 fallback (low-entropy but acceptable for pseudonymous id).
+  const hex = '0123456789abcdef';
+  let out = '';
+  for (let i = 0; i < 36; i++) {
+    if (i === 8 || i === 13 || i === 18 || i === 23) {
+      out += '-';
+      continue;
+    }
+    if (i === 14) {
+      out += '4';
+      continue;
+    }
+    if (i === 19) {
+      out += hex[8 + Math.floor(Math.random() * 4)];
+      continue;
+    }
+    out += hex[Math.floor(Math.random() * 16)];
+  }
+  return out;
+}
+
+function isValidUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
 /**

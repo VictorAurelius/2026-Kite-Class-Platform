@@ -47,7 +47,11 @@ Per `business-logic-review.md` v1.0.0 §2 (5-attribute mandate). Implements PDPL
 - **Reviewer:** Same as 001 — @nguyenvankiet (acting Legal scout + Compliance + Product Owner, solo-dev, 2026-05-06). Formal legal counsel review queued via **GAP-182 Phase 2** + **GAP-156**. Tax-advisor review NOT required (consent records không phải tax records).
 - **Compliance check:** **Compliant** — PDPL 2023 Art 6 (proportionate retention) + Art 23 (minimum legal retention service-data) + Consumer Protection Law 2023 Art 12 (24mo dispute window covered). Tax law (Luật Quản lý Thuế 2019) Considered — not triggered (consent records ≠ financial records).
 - **Review cadence:** **Annual** + event-driven. **Next review:** 2027-05-06 OR within 30 days of: PDPL amendment changing Art 6 retention principle, Consumer Protection Law amendment changing dispute window, Decree 13/2023 retention-specific implementing-decree publication.
-- **Code reference:** `packages/shared-ui/src/components/ConsentBanner/storage.ts` (LocalStorage TTL helper) + future server-side endpoint `POST /api/v1/consent/record` (Phase 2 — GAP-353b).
+- **Code reference:** `packages/shared-ui/src/components/ConsentBanner/storage.ts` (LocalStorage TTL helper) + server-side endpoint `POST /api/v1/consent/record` (Phase 2 shipped Wave 25 Bucket A — GAP-353b).
+- **Implementation (Phase 2 — Wave 25 Bucket A):**
+  - Backend: `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/consent/controller/ConsentController.java` (3 endpoints) + `consent/service/ConsentServiceImpl.java` (idempotent upsert) + `consent/cron/ConsentRetentionCron.java` (DR-03 36-month purge, daily 03:00) + Flyway `V25__create_consent_record.sql`.
+  - Frontend: `packages/shared-ui/src/components/ConsentBanner/api.ts` (best-effort fetch wrappers) + `useConsent.ts` (LocalStorage primary + server-side audit trail).
+  - API contract: [`./api-contract.md`](./api-contract.md).
 
 ---
 
@@ -84,10 +88,10 @@ Per `business-logic-review.md` v1.0.0 §2 (5-attribute mandate). Implements PDPL
 
 ## 4. Out-of-scope (tracked separately)
 
-- **Server-side consent API** (`POST /api/v1/consent/record`, `GET /api/v1/consent/{userId}`) — Phase 2, follow-up gap **GAP-353b** filed at Wave 23 closure (~12h)
+- ~~**Server-side consent API** — Phase 2, follow-up gap GAP-353b~~ ✅ SHIPPED Wave 25 Bucket A (3 endpoints `/api/v1/consent/record|{visitorId}|{visitorId}/revoke`; DR-03 36-month purge cron). See [`api-contract.md`](./api-contract.md).
 - **DSAR self-service intake form** — PDPL Art 14 right-to-access; không mandate self-service per Art 14 reading; manual email-based DSAR sufficient cho MVP. Follow-up gap **GAP-353c** (~6h)
 - **DPIA documentation** — Decree 13/2023/NĐ-CP Art 24-30 mandates DPIA cho orgs processing >100k PII subjects; MVP solo-dev <<100k → defer. Follow-up gap **GAP-353d** (~4h)
-- **use-cases.md + api-contract.md** for marketing domain — chỉ rules.md required Wave 23 vì 3 deferrals trên là follow-up gaps; pre-commit hook may warn on missing trio, intentional partial.
+- **use-cases.md** for marketing domain — Phase 2 of trio (Wave 25 ships api-contract.md alongside Phase 2 server endpoints; use-cases.md still deferred until DSAR ships per GAP-353c).
 
 ---
 
