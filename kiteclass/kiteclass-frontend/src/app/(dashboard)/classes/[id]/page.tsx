@@ -154,7 +154,10 @@ export default function ClassDetailPage({
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold">{classData.name}</h1>
+              {/* Wave 30 Bucket B — kc-pro-v2 typography tokens. */}
+              <h1 className="text-3xl font-semibold tracking-tight">
+                {classData.name}
+              </h1>
               <StatusBadge
                 status={statusLabels[classData.status]}
                 variant={statusVariants[classData.status]}

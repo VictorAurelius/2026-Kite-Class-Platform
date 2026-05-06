@@ -90,7 +90,10 @@ export default function CourseDetailPage({
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold">{course.name}</h1>
+              {/* Wave 30 Bucket B — kc-pro-v2 typography tokens. */}
+              <h1 className="text-3xl font-semibold tracking-tight">
+                {course.name}
+              </h1>
               <StatusBadge
                 status={statusLabels[course.status]}
                 variant={statusVariants[course.status]}

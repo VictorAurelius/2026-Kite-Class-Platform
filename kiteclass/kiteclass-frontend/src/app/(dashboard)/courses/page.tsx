@@ -43,11 +43,13 @@ export default function CoursesPage() {
 
   return (
     <DashboardLayout>
+      {/* Wave 30 Bucket B — kiteclass-pro-v2 token application: refined header
+          spacing + tracking-tight title per design system tokens. */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Khóa học</h1>
-            <p className="text-muted-foreground">
+        <div className="flex items-center justify-between gap-4 border-b pb-4">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-semibold tracking-tight">Khóa học</h1>
+            <p className="text-sm text-muted-foreground">
               Quản lý danh sách khóa học của trung tâm
             </p>
           </div>
