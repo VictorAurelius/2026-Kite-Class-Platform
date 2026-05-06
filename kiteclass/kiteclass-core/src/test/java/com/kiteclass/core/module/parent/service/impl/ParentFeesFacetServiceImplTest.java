@@ -119,6 +119,8 @@ class ParentFeesFacetServiceImplTest {
                 .thenReturn(true);
         when(consentService.checkConsent(PARENT_ID, CHILD_ID, "fees"))
                 .thenReturn(true);
+        when(consentService.getConsentVersion(PARENT_ID, CHILD_ID)).thenReturn(1);
+        when(consentService.getRequiredVersion()).thenReturn(1);
         Invoice invoice = sampleInvoice(InvoiceStatus.SENT);
         when(invoiceRepository.findByStudentIdAndDueDateRange(eq(CHILD_ID), eq(FROM), eq(TO), any()))
                 .thenReturn(new PageImpl<>(List.of(invoice)));
@@ -141,6 +143,8 @@ class ParentFeesFacetServiceImplTest {
                 .thenReturn(true);
         when(consentService.checkConsent(PARENT_ID, CHILD_ID, "fees"))
                 .thenReturn(true);
+        when(consentService.getConsentVersion(PARENT_ID, CHILD_ID)).thenReturn(1);
+        when(consentService.getRequiredVersion()).thenReturn(1);
         Invoice invoice = sampleInvoice(null);
         when(invoiceRepository.findByStudentIdAndDueDateRange(eq(CHILD_ID), eq(FROM), eq(TO), any()))
                 .thenReturn(new PageImpl<>(List.of(invoice)));
@@ -165,6 +169,8 @@ class ParentFeesFacetServiceImplTest {
                 .thenReturn(true);
         when(consentService.checkConsent(PARENT_ID, CHILD_ID, "fees"))
                 .thenReturn(true);
+        when(consentService.getConsentVersion(PARENT_ID, CHILD_ID)).thenReturn(1);
+        when(consentService.getRequiredVersion()).thenReturn(1);
         when(invoiceRepository.findByStudentIdAndDueDateRange(
                 eq(CHILD_ID), eq(FROM), eq(TO), any()))
                 .thenReturn(new PageImpl<>(List.of(sampleInvoice(InvoiceStatus.SENT))));
@@ -186,6 +192,8 @@ class ParentFeesFacetServiceImplTest {
                 .thenReturn(true);
         when(consentService.checkConsent(PARENT_ID, CHILD_ID, "fees"))
                 .thenReturn(true);
+        when(consentService.getConsentVersion(PARENT_ID, CHILD_ID)).thenReturn(1);
+        when(consentService.getRequiredVersion()).thenReturn(1);
         when(invoiceRepository.findByStudentIdAndDueDateRange(
                 eq(CHILD_ID), eq(FROM), eq(TO), any()))
                 .thenReturn(new PageImpl<>(List.of()));
@@ -196,6 +204,29 @@ class ParentFeesFacetServiceImplTest {
         assertThat(page.getContent()).isEmpty();
         assertThat(page.getTotalElements()).isZero();
         verify(auditLogService, times(1)).logRead(PARENT_ID, CHILD_ID, ParentFacet.FEES);
+    }
+
+    /**
+     * BR-PARENT-PORTAL-015 (Wave 24 GAP-361 v1.5) — fees facet must also
+     * enforce re-consent gate when stored version below required.
+     */
+    @Test
+    @DisplayName("BR-PARENT-PORTAL-015: stale consent version → 403 RECONSENT_REQUIRED, no DB read")
+    void consentStale_throwsReconsentRequired() {
+        when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
+                .thenReturn(true);
+        when(consentService.checkConsent(PARENT_ID, CHILD_ID, "fees")).thenReturn(true);
+        when(consentService.getConsentVersion(PARENT_ID, CHILD_ID)).thenReturn(1);
+        when(consentService.getRequiredVersion()).thenReturn(2);
+
+        assertThatThrownBy(() -> service.getFeesForChild(
+                PARENT_ID, CHILD_ID, FROM, TO, PageRequest.of(0, 10)))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("code", "RECONSENT_REQUIRED")
+                .hasFieldOrPropertyWithValue("status", HttpStatus.FORBIDDEN);
+
+        verify(invoiceRepository, never()).findByStudentIdAndDueDateRange(any(), any(), any(), any());
+        verify(auditLogService, never()).logRead(any(), any(), any());
     }
 
     private Invoice sampleInvoice(InvoiceStatus status) {

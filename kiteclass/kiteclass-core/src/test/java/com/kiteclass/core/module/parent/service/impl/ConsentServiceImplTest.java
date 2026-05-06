@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -45,7 +46,7 @@ class ConsentServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new ConsentServiceImpl(linkRepository);
+        service = new ConsentServiceImpl(linkRepository, 1);
     }
 
     private ParentStudentLink linkWith(Long childId, ParentalConsent consent) {
@@ -273,6 +274,76 @@ class ConsentServiceImplTest {
 
             assertThat(next.version()).isEqualTo(2);
             assertThat(next.fields()).containsEntry("fees", true);
+        }
+    }
+
+    /**
+     * Wave 24 — GAP-361 Phase 1C v1.5 — re-consent flow tests.
+     */
+    @Nested
+    @DisplayName("getRequiredVersion + bulkBumpVersion")
+    class ReConsent {
+
+        @Test
+        @DisplayName("getRequiredVersion: returns the configured value")
+        void getRequiredVersion_returnsConfig() {
+            // default constructor uses 1
+            assertThat(service.getRequiredVersion()).isEqualTo(1);
+
+            // explicit higher version
+            ConsentServiceImpl s2 = new ConsentServiceImpl(linkRepository, 5);
+            assertThat(s2.getRequiredVersion()).isEqualTo(5);
+        }
+
+        @Test
+        @DisplayName("getRequiredVersion: clamps invalid (≤0) values to 1")
+        void getRequiredVersion_clampsInvalid() {
+            ConsentServiceImpl s = new ConsentServiceImpl(linkRepository, 0);
+            assertThat(s.getRequiredVersion()).isEqualTo(1);
+            ConsentServiceImpl s2 = new ConsentServiceImpl(linkRepository, -3);
+            assertThat(s2.getRequiredVersion()).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("bulkBumpVersion: null instanceId → 400 BAD_REQUEST")
+        void bulkBumpVersion_nullInstanceId_throws400() {
+            assertThatThrownBy(() -> service.bulkBumpVersion(null, 2, "test"))
+                    .isInstanceOf(BusinessException.class)
+                    .hasFieldOrPropertyWithValue("status", HttpStatus.BAD_REQUEST);
+        }
+
+        @Test
+        @DisplayName("bulkBumpVersion: newVersion < 1 → 400 BAD_REQUEST")
+        void bulkBumpVersion_invalidVersion_throws400() {
+            UUID tenant = UUID.randomUUID();
+            assertThatThrownBy(() -> service.bulkBumpVersion(tenant, 0, "test"))
+                    .isInstanceOf(BusinessException.class)
+                    .hasFieldOrPropertyWithValue("status", HttpStatus.BAD_REQUEST);
+            assertThatThrownBy(() -> service.bulkBumpVersion(tenant, -1, "test"))
+                    .isInstanceOf(BusinessException.class)
+                    .hasFieldOrPropertyWithValue("status", HttpStatus.BAD_REQUEST);
+        }
+
+        @Test
+        @DisplayName("bulkBumpVersion: returns count from repository")
+        void bulkBumpVersion_returnsCount() {
+            UUID tenant = UUID.randomUUID();
+            when(linkRepository.bulkBumpConsentVersion(tenant, 2)).thenReturn(7);
+
+            int updated = service.bulkBumpVersion(tenant, 2, "Privacy policy v2");
+
+            assertThat(updated).isEqualTo(7);
+        }
+
+        @Test
+        @DisplayName("bulkBumpVersion: 0 rows updated when all already at or above target")
+        void bulkBumpVersion_idempotent_zeroCount() {
+            UUID tenant = UUID.randomUUID();
+            when(linkRepository.bulkBumpConsentVersion(tenant, 1)).thenReturn(0);
+
+            int updated = service.bulkBumpVersion(tenant, 1, "no-op");
+
+            assertThat(updated).isZero();
         }
     }
 }

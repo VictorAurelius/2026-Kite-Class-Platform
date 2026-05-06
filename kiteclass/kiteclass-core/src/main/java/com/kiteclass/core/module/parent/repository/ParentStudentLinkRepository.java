@@ -2,11 +2,13 @@ package com.kiteclass.core.module.parent.repository;
 
 import com.kiteclass.core.module.parent.entity.ParentStudentLink;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Data-access for {@link ParentStudentLink}.
@@ -67,4 +69,29 @@ public interface ParentStudentLinkRepository extends JpaRepository<ParentStudent
               AND p.deleted = false
             """)
     List<ParentStudentLink> findByStudentIdWithParent(@Param("studentId") Long studentId);
+
+    /**
+     * Bulk-updates the JSONB {@code parental_consent.version} field on every
+     * non-deleted link in the given tenant whose current version is strictly
+     * less than {@code newVersion}. Idempotent — links already at or above
+     * the target version are left untouched. Implemented as a native UPDATE
+     * with PostgreSQL {@code jsonb_set} so the operation is a single
+     * round-trip regardless of row count.
+     *
+     * @param instanceId tenant UUID
+     * @param newVersion new version to bump records up to
+     * @return number of rows updated
+     * @since 2.24.0 (Wave 24 — GAP-361 Phase 1C v1.5 — re-consent flow)
+     */
+    @Modifying
+    @Query(value = """
+            UPDATE parent_student_links
+               SET parental_consent = jsonb_set(parental_consent, '{version}',
+                                                to_jsonb(:newVersion::int), true)
+             WHERE instance_id = :instanceId
+               AND deleted = false
+               AND COALESCE((parental_consent ->> 'version')::int, 1) < :newVersion
+            """, nativeQuery = true)
+    int bulkBumpConsentVersion(@Param("instanceId") UUID instanceId,
+                               @Param("newVersion") int newVersion);
 }

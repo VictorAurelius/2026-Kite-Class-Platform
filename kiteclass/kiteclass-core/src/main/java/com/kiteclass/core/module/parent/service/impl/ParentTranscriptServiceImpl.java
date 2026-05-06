@@ -5,6 +5,7 @@ import com.kiteclass.core.module.grade.entity.Transcript;
 import com.kiteclass.core.module.grade.repository.TranscriptRepository;
 import com.kiteclass.core.module.parent.dto.TranscriptResponse;
 import com.kiteclass.core.module.parent.repository.ParentStudentLinkRepository;
+import com.kiteclass.core.module.parent.service.ConsentService;
 import com.kiteclass.core.module.parent.service.ParentTranscriptService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,8 +42,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ParentTranscriptServiceImpl implements ParentTranscriptService {
 
+    /**
+     * BR-PARENT-PORTAL-014 — facet name used for the per-field consent
+     * lookup. Exposed as a constant so the matching FE settings page +
+     * tests reference one symbol.
+     */
+    public static final String CONSENT_FIELD_TRANSCRIPT = "transcript";
+
     private final ParentStudentLinkRepository linkRepository;
     private final TranscriptRepository transcriptRepository;
+    private final ConsentService consentService;
 
     @Override
     @Transactional(readOnly = true)
@@ -61,6 +70,24 @@ public class ParentTranscriptServiceImpl implements ParentTranscriptService {
         if (!linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(parentId, childId)) {
             log.warn("Parent {} attempted transcript read for unlinked child {} — denied", parentId, childId);
             throw new BusinessException("PARENT_NOT_LINKED", HttpStatus.FORBIDDEN);
+        }
+
+        // BR-PARENT-PORTAL-014 — PDPL Decree 13/2023 Art 16 granular consent
+        // gate (uniform across all 5 facets per Wave 24 GAP-361 v1.5).
+        if (!consentService.checkConsent(parentId, childId, CONSENT_FIELD_TRANSCRIPT)) {
+            log.warn("Parent {} attempted transcript read for child {} without consent — denied",
+                    parentId, childId);
+            throw new BusinessException("PARENT_CONSENT_REQUIRED", HttpStatus.FORBIDDEN);
+        }
+
+        // BR-PARENT-PORTAL-015 — re-consent gate. If the parent's stored
+        // consent version is below the current required policy version, the
+        // facet returns 403 RECONSENT_REQUIRED (FE prompts re-confirmation).
+        if (consentService.getConsentVersion(parentId, childId)
+                < consentService.getRequiredVersion()) {
+            log.warn("Parent {} consent version stale for child {} — re-consent required",
+                    parentId, childId);
+            throw new BusinessException("RECONSENT_REQUIRED", HttpStatus.FORBIDDEN);
         }
 
         List<Transcript> transcripts =

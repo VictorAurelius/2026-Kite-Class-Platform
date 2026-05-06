@@ -20,6 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -61,6 +63,7 @@ import static org.mockito.Mockito.when;
  * @since 2.18.1 (Wave 18b2 — GAP-321b Phase 1B foundation)
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("Parent facet audit-log fan-in")
 class ParentReadAuditLogIntegrationTest {
 
@@ -84,11 +87,22 @@ class ParentReadAuditLogIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        attendanceService = new ParentAttendanceFacetServiceImpl(linkRepository, attendanceRepo, auditLogService);
+        attendanceService = new ParentAttendanceFacetServiceImpl(
+                linkRepository, attendanceRepo, auditLogService, consentService);
         feesService = new ParentFeesFacetServiceImpl(
                 linkRepository, invoiceRepo, auditLogService, consentService);
-        conductService = new ParentConductFacetServiceImpl(linkRepository, incidentRepo, auditLogService);
-        notificationsService = new ParentNotificationsFacetServiceImpl(linkRepository, auditLogService);
+        conductService = new ParentConductFacetServiceImpl(
+                linkRepository, incidentRepo, auditLogService, consentService);
+        notificationsService = new ParentNotificationsFacetServiceImpl(
+                linkRepository, auditLogService, consentService);
+
+        // Wave 24 GAP-361 v1.5 — happy-path consent defaults so the existing
+        // audit fan-in tests don't have to stub per-test. The "consent missing"
+        // tests in per-facet test classes prove the gate fires correctly.
+        when(consentService.checkConsent(eq(PARENT_ID), eq(CHILD_ID), any(String.class)))
+                .thenReturn(true);
+        when(consentService.getConsentVersion(eq(PARENT_ID), eq(CHILD_ID))).thenReturn(1);
+        when(consentService.getRequiredVersion()).thenReturn(1);
     }
 
     @Test

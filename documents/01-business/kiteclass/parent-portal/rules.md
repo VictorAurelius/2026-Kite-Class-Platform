@@ -410,3 +410,63 @@ All three:
 ### 14.5 Log
 
 - **2026-05-05** Phase 1C v1 shipped — Wave 19 Bucket C (GAP-321c v1): PDPL granular consent JSONB column on `parent_student_links` + ConsentService gate (checkConsent / getConsent / getConsentVersion / bumpConsent) + ParentConsentController GET/PUT settings endpoints + ParentComplaintController POST `/complaints` v1 with scope guard + V56 migration (additive JSONB + complaint queue table) + 3 new BR rules (BR-PARENT-PORTAL-011..013) with 5-attribute frontmatter. Fees facet wired end-to-end with consent gate (BR-PARENT-PORTAL-011 — `PARENT_CONSENT_REQUIRED` 403 when consent missing); 4 remaining facets + 3 write actions + i18n + UI honestly deferred via GAP-321c follow-up. Bucket ships PARTIAL not DONE — fees gated end-to-end, complaint write v1 capturing data, consent settings endpoints live; remaining write actions + multi-facet gate + UI to follow. Reviewer: @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev). Compliance: Compliant; formal legal counsel review queued via GAP-321c follow-up. Cadence: Annual + event-driven on Decree 13/2023 amendment.
+
+---
+
+## 15. K-12 LEGAL Phase 1C v1.5 — uniform consent gate × 5 facets + re-consent flow (Wave 24 Bucket C — GAP-361)
+
+**Phase:** 1C v1.5 — extends §14 v1 by (a) wiring the per-field consent gate uniformly across all 5 parent-side facets (transcript / attendance / fees / conduct / notifications) and (b) adding a re-consent flow (admin bulk-bump endpoint + middleware version check on every facet impl).
+**Last-Reviewed:** 2026-05-06
+**Reviewer-Approver:** @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev, 2026-05-06). Formal legal counsel review queued — GAP-361 follow-up.
+**Source:** PDPL Decree 13/2023 (Nghị định 13/2023/NĐ-CP) Art 16 K2 d — when scope of personal-data processing changes, parental consent must be re-obtained; Wave 19 Bucket C closure deferral list (GAP-361 §B + §C).
+**Compliance:** **Compliant** — Art 16 K2 d operationalized via stored consent version + required-policy version + admin bulk-bump tooling.
+**Review-Cadence:** Annual + event-driven on Decree 13/2023 implementing-decree publication. **Next review:** 2027-05-06.
+
+### 15.1 Phase 1C v1.5 Rules
+
+| ID | Rule | Detail | Phase |
+|----|------|--------|-------|
+| BR-PARENT-PORTAL-014 | Uniform consent gate across all 5 facets | The PDPL granular consent gate (BR-PARENT-PORTAL-011) MUST be applied uniformly across ALL 5 parent-side facet endpoints (transcript / attendance / fees / conduct / notifications). Each facet impl calls `ConsentService.checkConsent(parentId, childId, "<facetName>")` AFTER the existing scope guard (`existsByParentIdAndStudentIdAndDeletedFalse`) and BEFORE returning data. Default-deny: missing key in the JSONB `parental_consent.fields` map → 403 `PARENT_CONSENT_REQUIRED`. The exact field-name strings are exposed as `public static final String CONSENT_FIELD_*` constants on each facet impl so the FE settings page + tests reference one symbol per facet. | 1C v1.5 |
+| BR-PARENT-PORTAL-015 | Re-consent on policy version bump | Every facet impl MUST verify `ConsentService.getConsentVersion(parentId, childId) >= ConsentService.getRequiredVersion()` AFTER `checkConsent` and BEFORE returning data. If the stored version is strictly below the required policy version → 403 `RECONSENT_REQUIRED` (FE prompts re-confirmation). The required-policy version is read from configuration key `kite.parent.consent.required-version` (default `1`). Admin bumps the version via the bulk-bump endpoint (BR-PARENT-PORTAL-016) when the privacy policy is amended (e.g., a new facet is added). PDPL Decree 13/2023 Art 16 K2 d operationalization. | 1C v1.5 |
+| BR-PARENT-PORTAL-016 | Admin bulk-bump authorization | The `POST /api/v1/admin/parent/consent/bulk-bump` endpoint requires `ADMIN`, `PRINCIPAL`, or `OWNER` role (per `@PreAuthorize("hasAnyRole('ADMIN','PRINCIPAL','OWNER')")`). Tenant scope is enforced via `TenantContext` — the bump always targets the active tenant, never cross-tenant. The endpoint is idempotent — links already at or above the requested version are left untouched (handled by the SQL `WHERE COALESCE((parental_consent ->> 'version')::int, 1) < :newVersion` clause). | 1C v1.5 |
+
+**Source (5-attribute frontmatter applied):**
+- **Source:** PDPL Decree 13/2023 Art 16 K2 d (statute citation — re-consent obligation when scope changes); Wave 19 Bucket C closure deferral list (GAP-361 §B + §C); Luật Giáo dục 2019 Đ.83 K2 (uniform parent right-to-information across all facets per Đ.83 K2 "đầy đủ thông tin").
+- **Rationale:** Why uniform gate (not selective)? Granting consent for `fees` ≠ granting for `transcript` per Art 16 minimization — but the GATE itself must apply to every facet so an attacker cannot bypass via a less-defended facet. Why version-based re-consent (not time-based)? PDPL Art 16 K2 d triggers on scope change (new facet, new processing purpose), not calendar time — version bump captures the scope-change semantics. Why admin RBAC for bulk-bump (not OWNER-only)? PRINCIPAL is the school role responsible for privacy-policy decisions in K-12 deployments; ADMIN handles the platform-side rollout. Why default required-version `1` (not zero)? Matches V56 migration's seeded version — Wave 19 v1 records start at version 1 + required-version 1, so existing parents are not unnecessarily re-prompted.
+- **Reviewer:** @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev, 2026-05-06). Formal legal counsel review queued — GAP-361 follow-up.
+- **Compliance check:** **Compliant** — PDPL Decree 13/2023 Art 16 K2 d (re-consent on scope change, operationalized via version bump); Luật Giáo dục 2019 Đ.83 K2 (uniform "đầy đủ thông tin" parent right satisfied via uniform gate across all 5 facets); Luật Trẻ em 2016 Đ.21 (children's privacy — uniform gate prevents bypass-via-weaker-facet).
+- **Review cadence:** Annual + event-driven on Decree 13/2023 implementing-decree publication OR PDPL Art 16 amendment.
+
+### 15.2 Phase 1C v1.5 API surface
+
+```
+POST /api/v1/admin/parent/consent/bulk-bump   body: {newVersion, reason, effectiveAt}
+                                              ← admin-only; bumps every link in
+                                                active tenant whose version is
+                                                strictly below newVersion
+```
+
+Response shape: `{bumpedCount, newVersion, effectiveAt}`.
+
+The 5 facet endpoints (`/api/v1/parent/children/{id}/{transcript|attendance|fees|conduct|notifications}`) gain two additional 403 paths:
+- `PARENT_CONSENT_REQUIRED` — per-field consent missing
+- `RECONSENT_REQUIRED` — stored version below required policy version
+
+### 15.3 Configuration keys
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `kite.parent.consent.required-version` | `1` | Current required policy version (BR-PARENT-PORTAL-015). Bumped via admin endpoint when privacy policy changes; values < 1 are clamped to 1 by `ConsentServiceImpl`. |
+
+### 15.4 Out of Phase 1C v1.5 scope
+
+| Item | Where | Why deferred |
+|------|-------|--------------|
+| 3 remaining write actions (conduct-confirm, meeting RSVP, absence-excuse) | **GAP-361 §A** | Depends GAP-338 (meeting entity) + GAP-339 (full complaint workflow) + MinIO encrypted bucket |
+| FE re-consent modal UX | **GAP-361 §C continuation** | FE consumer ships separately |
+| Settings page UI (`/parent/privacy`) | **GAP-361 §E** | This bucket ships endpoints; FE consumer ships separately |
+| i18n EN + zh-CN catalogs | **GAP-361 §D** | International tenant signup feature-flag |
+
+### 15.5 Log
+
+- **2026-05-06** Phase 1C v1.5 shipped — Wave 24 Bucket C (GAP-361 §B + §C): consent gate wired uniformly across 4 remaining facets (transcript / attendance / conduct / notifications) — Fees facet (Wave 19 v1) extended with re-consent version check. ConsentService extended with `getRequiredVersion()` + `bulkBumpVersion(instanceId, newVersion, reason)`. New ParentConsentAdminController (`POST /api/v1/admin/parent/consent/bulk-bump`) gated by `@PreAuthorize("hasAnyRole('ADMIN','PRINCIPAL','OWNER')")`. New native SQL repository method `bulkBumpConsentVersion` using PostgreSQL `jsonb_set` for single-round-trip bulk update. 3 new BR rules (BR-PARENT-PORTAL-014..016) with 5-attribute frontmatter. 2 new properties keys (`PARENT_CONSENT_REQUIRED`, `RECONSENT_REQUIRED`, `PARENT_CONSENT_BULK_BUMP_OK`) in en + vi. New tests: 4 facet `consentMissing_throws403` + 4 facet `consentStale_throwsReconsentRequired` + `ConsentServiceImplTest.bulkBumpVersion_*` + `ParentConsentAdminControllerTest.bulkBump_*`. Bucket ships PARTIAL not DONE — gate + re-consent backbone live; remaining write actions + FE modal + settings UI + i18n tracked in GAP-361 §A/§D/§E. Reviewer: @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev). Compliance: Compliant — PDPL Decree 13/2023 Art 16 K2 d. Cadence: Annual + event-driven on Decree 13/2023 amendment.

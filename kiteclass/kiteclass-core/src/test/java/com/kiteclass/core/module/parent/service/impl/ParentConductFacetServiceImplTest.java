@@ -11,6 +11,7 @@ import com.kiteclass.core.module.parent.audit.ParentFacet;
 import com.kiteclass.core.module.parent.audit.ParentReadAuditLogService;
 import com.kiteclass.core.module.parent.dto.ParentConductFacetResponse;
 import com.kiteclass.core.module.parent.repository.ParentStudentLinkRepository;
+import com.kiteclass.core.module.parent.service.ConsentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -58,6 +59,7 @@ class ParentConductFacetServiceImplTest {
     @Mock private ParentStudentLinkRepository linkRepository;
     @Mock private IncidentRepository incidentRepository;
     @Mock private ParentReadAuditLogService auditLogService;
+    @Mock private ConsentService consentService;
 
     private ParentConductFacetServiceImpl service;
 
@@ -67,7 +69,7 @@ class ParentConductFacetServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new ParentConductFacetServiceImpl(
-                linkRepository, incidentRepository, auditLogService);
+                linkRepository, incidentRepository, auditLogService, consentService);
     }
 
     @Test
@@ -124,6 +126,9 @@ class ParentConductFacetServiceImplTest {
     void linkedParent_returnsVisibleIncidents_auditEmitted() {
         when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
                 .thenReturn(true);
+        when(consentService.checkConsent(PARENT_ID, CHILD_ID, "conduct")).thenReturn(true);
+        when(consentService.getConsentVersion(PARENT_ID, CHILD_ID)).thenReturn(1);
+        when(consentService.getRequiredVersion()).thenReturn(1);
         when(incidentRepository.findVisibleForParentList(eq(CHILD_ID), any()))
                 .thenReturn(List.of(
                         sample(7L, IncidentSeverity.MEDIUM,
@@ -163,6 +168,9 @@ class ParentConductFacetServiceImplTest {
     void staffOnlyIncidentEquivalent_notExposedToParent() {
         when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
                 .thenReturn(true);
+        when(consentService.checkConsent(PARENT_ID, CHILD_ID, "conduct")).thenReturn(true);
+        when(consentService.getConsentVersion(PARENT_ID, CHILD_ID)).thenReturn(1);
+        when(consentService.getRequiredVersion()).thenReturn(1);
 
         // Repository contract: when called with {PARENT_VISIBLE, PUBLIC} the
         // JPQL filter excludes the STAFF_ONLY row by clause. We simulate the
@@ -213,6 +221,9 @@ class ParentConductFacetServiceImplTest {
     void linkedParent_noVisibleRows_emptyListButAuditEmitted() {
         when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
                 .thenReturn(true);
+        when(consentService.checkConsent(PARENT_ID, CHILD_ID, "conduct")).thenReturn(true);
+        when(consentService.getConsentVersion(PARENT_ID, CHILD_ID)).thenReturn(1);
+        when(consentService.getRequiredVersion()).thenReturn(1);
         when(incidentRepository.findVisibleForParentList(eq(CHILD_ID), any()))
                 .thenReturn(List.of());
 
@@ -221,6 +232,48 @@ class ParentConductFacetServiceImplTest {
 
         assertThat(result).isEmpty();
         verify(auditLogService, times(1)).logRead(PARENT_ID, CHILD_ID, ParentFacet.CONDUCT);
+    }
+
+    /**
+     * BR-PARENT-PORTAL-014 (Wave 24 GAP-361 v1.5) — missing consent →
+     * 403 PARENT_CONSENT_REQUIRED, no DB read, no audit row.
+     */
+    @Test
+    @DisplayName("BR-PARENT-PORTAL-014: linked but no consent → 403 PARENT_CONSENT_REQUIRED")
+    void consentMissing_throws403() {
+        when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
+                .thenReturn(true);
+        when(consentService.checkConsent(PARENT_ID, CHILD_ID, "conduct")).thenReturn(false);
+
+        assertThatThrownBy(() -> service.getConductForChild(PARENT_ID, CHILD_ID, "HK1-2025-2026"))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("code", "PARENT_CONSENT_REQUIRED")
+                .hasFieldOrPropertyWithValue("status", HttpStatus.FORBIDDEN);
+
+        verifyNoInteractions(incidentRepository);
+        verify(auditLogService, never()).logRead(any(), any(), any());
+    }
+
+    /**
+     * BR-PARENT-PORTAL-015 (Wave 24 GAP-361 v1.5) — stale version →
+     * 403 RECONSENT_REQUIRED.
+     */
+    @Test
+    @DisplayName("BR-PARENT-PORTAL-015: stale consent version → 403 RECONSENT_REQUIRED")
+    void consentStale_throwsReconsentRequired() {
+        when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
+                .thenReturn(true);
+        when(consentService.checkConsent(PARENT_ID, CHILD_ID, "conduct")).thenReturn(true);
+        when(consentService.getConsentVersion(PARENT_ID, CHILD_ID)).thenReturn(1);
+        when(consentService.getRequiredVersion()).thenReturn(2);
+
+        assertThatThrownBy(() -> service.getConductForChild(PARENT_ID, CHILD_ID, "HK1-2025-2026"))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("code", "RECONSENT_REQUIRED")
+                .hasFieldOrPropertyWithValue("status", HttpStatus.FORBIDDEN);
+
+        verifyNoInteractions(incidentRepository);
+        verify(auditLogService, never()).logRead(any(), any(), any());
     }
 
     private static Incident sample(Long id,

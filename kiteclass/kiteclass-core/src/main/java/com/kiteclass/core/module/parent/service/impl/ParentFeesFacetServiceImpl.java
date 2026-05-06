@@ -85,6 +85,18 @@ public class ParentFeesFacetServiceImpl implements ParentFeesFacetService {
                     "PARENT_CONSENT_REQUIRED", HttpStatus.FORBIDDEN);
         }
 
+        // BR-PARENT-PORTAL-015 (Wave 24 GAP-361 v1.5) — re-consent gate.
+        // If the parent's stored consent version is below the current
+        // required policy version, the facet returns 403 RECONSENT_REQUIRED
+        // (FE prompts re-confirmation). Idempotent for parents already at
+        // the required version.
+        if (consentService.getConsentVersion(parentId, childId)
+                < consentService.getRequiredVersion()) {
+            log.warn("Parent {} consent version stale for child {} — re-consent required",
+                    parentId, childId);
+            throw new BusinessException("RECONSENT_REQUIRED", HttpStatus.FORBIDDEN);
+        }
+
         // BR-PARENT-FACET-FEES-002 — date-range narrowing + EntityGraph
         // (items + adjustments prefetched in single round-trip).
         Page<Invoice> page = invoiceRepository
