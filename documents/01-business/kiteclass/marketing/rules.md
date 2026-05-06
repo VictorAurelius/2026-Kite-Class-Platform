@@ -1,8 +1,19 @@
 # Marketing — Business Rules
 
-**Domain:** KiteClass Core
-**Version:** 1.0
-**Updated:** 2026-03-24
+**Domain:** KiteClass Core (tenant marketing surfaces — landing, contact, leads) + cross-link tới canonical KH marketing rules cho PDPL consent
+**Version:** 1.1 (2026-05-06: cross-link BR-PDPL-CONSENT-* tới canonical KH file; existing BR-MKT-001..024 unchanged)
+**Updated:** 2026-05-06
+**Last verified:** 2026-05-06
+
+---
+
+## 0. PDPL Consent Banner Rules — see canonical KH file
+
+`BR-PDPL-CONSENT-001` cho tới `BR-PDPL-CONSENT-004` (Cookie consent banner mandatory + granular toggles + 36-month consent retention + revocation flow) là **cross-product canonical** ở [`documents/01-business/kitehub/marketing/rules.md`](../../kitehub/marketing/rules.md). Cả KH platform marketing surfaces lẫn KC tenant public marketing surfaces apply những rules đó (cùng PDPL 2023 + Decree 13/2023/NĐ-CP legal mandate; cùng `<ConsentBanner>` shared component ở `packages/shared-ui/`).
+
+KC tenant-specific marketing rules (contact / lead / landing customization) vẫn duy trì trong file này (`BR-MKT-001..024` bên dưới) vì những rule này scope tenant-bound (per-tenant landing config, per-tenant lead pipeline) không apply cho KH platform marketing.
+
+KC public marketing routes apply BR-PDPL-CONSENT-*: `/`, `/catalog`, `/about`, `/contact` (per `kite.consent.banner.public-routes` in canonical file). Banner mounts tại `kiteclass-frontend/src/app/(public)/layout.tsx` (Bucket BC owns wiring).
 
 ---
 

@@ -7,14 +7,15 @@
 ```
 documents/01-business/          ← TẤT CẢ business logic ở đây
 ├── README.md                   ← File này (index + quy tắc)
-├── kitehub/                    ← KiteHub platform (7 domains × 3 layers = 21 files)
+├── kitehub/                    ← KiteHub platform (8 domains × 3 layers expected; some 🟡 PARTIAL)
 │   ├── trial-lifecycle/        ← rules.md + use-cases.md + api-contract.md
 │   ├── subscription-billing/
 │   ├── email-lifecycle/
 │   ├── instance-provisioning/
 │   ├── domain-management/
 │   ├── data-retention/
-│   └── ai-branding/
+│   ├── ai-branding/
+│   └── marketing/              ← Wave 23 (rules.md only — use-cases/api-contract → GAP-353b/c)
 └── kiteclass/                  ← KiteClass core (13 domains × 3 layers = 39 files)
     ├── student-enrollment/     ← rules.md + use-cases.md + api-contract.md
     ├── course-class/
@@ -76,7 +77,7 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
 
 ### 5. Index — Documents hiện có
 
-#### KiteHub (7 domains × 3 layers = 21 files ✅)
+#### KiteHub (8 domains; 7 complete + 1 🟡 PARTIAL)
 | Domain | rules | use-cases | api-contract | Last Verified |
 |--------|-------|-----------|-------------|---------------|
 | trial-lifecycle | ✅ | ✅ | ✅ | 2026-03-24 |
@@ -86,6 +87,7 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
 | domain-management | ✅ | ✅ | ✅ | 2026-03-24 |
 | data-retention | ✅ | ✅ | ✅ | 2026-03-24 |
 | ai-branding | ✅ | ✅ | ✅ | 2026-03-24 |
+| marketing | ✅ | ⏳ → GAP-353b | ⏳ → GAP-353b | 2026-05-06 (Wave 23 Bucket A — PDPL consent canonical) |
 
 #### KiteClass (13 domains × 3 layers = 39 files ✅)
 | Domain | rules | use-cases | api-contract | Last Verified |
