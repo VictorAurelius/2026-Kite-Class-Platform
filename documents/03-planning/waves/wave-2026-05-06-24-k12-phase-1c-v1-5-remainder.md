@@ -1,6 +1,6 @@
 ---
 title: Wave 24 — K-12 Phase 1C v1.5 Remainder (independent sub-tasks across 3 gaps)
-status: draft
+status: complete
 created: 2026-05-06
 updated: 2026-05-06
 waves: [24]
@@ -262,3 +262,4 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ## 8. Log
 
 - **2026-05-06** (draft): Plan created. 3-bucket parallel covering 8 independent sub-tasks across GAP-359/360/361. Skip dependency-blocked work (359.2 pen test, 359.3 + 361.A depend GAP-339, 360.2 depends GAP-063b/058) and FE-heavy work (360.3 + 361.E + 359.4 → Wave 25). Wall-clock estimate ~35-50 phút parallel. State-Check Evidence verifies 17 cited symbols + 9 to-be-created.
+- **2026-05-06** (complete): Wave SHIPPED — 4 PRs merged. **#824 Bucket A GAP-359 v1.5** (V57 retention migration + Incident.retentionUntil + RetentionLifecycleService cron 2am + AuditChainVerificationCron cron 2:30am + Micrometer chain.break counter + audit-chain-break-runbook + BR-CHILD-PROTECT-008/009 5-attribute; 41 tests pass). **#825 Bucket B GAP-360 v1.5** (SubjectGradeService state machine DRAFT→REVIEWED→PUBLISHED + IllegalGradeTransitionException + bulk-publish endpoint max 500 ids + SubjectGradeAllPublishedListener Outbox event routing key `kiteclass.k12.grades.all-published` + api-contract.md filled 4 endpoints + BR-GRADEBOOK-006/007/008 5-attribute; 19 tests pass; ArchUnit deferred — workspace dep missing). **#826 Bucket C GAP-361 v1.5** (consent gate × 4 facets transcript/attendance/conduct/notifications + 5/5 facets check version stale → RECONSENT_REQUIRED + ConsentService.bulkBumpVersion + ParentConsentAdminController bulk-bump endpoint @PreAuthorize + BR-PARENT-PORTAL-014/015/016 5-attribute; 107 tests pass). **MVP Plan 2026** (PR #827) shipped parallel — phased rollout P1+P2 → P3 → K-12 với 3-phase structure + 224 gap classification. **Conflict resolution:** Bucket C messages.properties + messages_vi.properties had 6-line additive conflict với Bucket A's retention keys; resolved additively (kept both blocks). Status flips: GAP-359 + GAP-360 + GAP-361 stay 🟡 PARTIAL (sub-tasks 359.2/3/4/6 + 360.2/3 + 361.A/D/E remain). Wall-clock ~75 min wave + ~20 min closure work + ~10 min conflict resolution.
