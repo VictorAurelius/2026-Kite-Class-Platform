@@ -49,8 +49,39 @@
       </div>
     </div>
 
-    <!-- Grade history -->
-    <div class="section-heading"><h2>Lịch sử điểm</h2><span style="font-size:var(--text-sm);color:hsl(var(--muted-foreground))">15 cột</span></div>
+    <!-- Grade history with TT 22/2021 weighting tooltip (GAP-363 polish — info-icon makes weighting discoverable) -->
+    <div class="section-heading">
+      <h2>Lịch sử điểm</h2>
+      <div style="display:flex;align-items:center;gap:8px;font-size:var(--text-sm);color:hsl(var(--muted-foreground))">
+        <span>15 cột</span>
+        <button
+          type="button"
+          class="icon-btn"
+          aria-label="Xem cách tính điểm theo Thông tư 22/2021"
+          aria-expanded="false"
+          aria-controls="weight-tooltip"
+          onclick="(function(b){var t=document.getElementById('weight-tooltip');var open=t.hidden;t.hidden=!open;b.setAttribute('aria-expanded',String(open));})(this)"
+          style="min-width:32px;min-height:32px;color:hsl(var(--primary));border:1px solid hsl(var(--primary)/0.3);border-radius:50%;background:hsl(var(--primary)/0.08)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Inline tooltip (toggled by info-icon above; tap-to-dismiss friendly) -->
+    <div id="weight-tooltip" hidden role="region" aria-label="Cách tính điểm theo Thông tư 22/2021" style="margin: -4px 16px 12px; padding: 12px 14px; background: hsl(var(--primary)/0.06); border-left: 3px solid hsl(var(--primary)); border-radius: 8px; font-size: var(--text-xs); line-height: 1.6; color: hsl(var(--foreground))">
+      <div style="font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+        <span>Thông tư 22/2021/TT-BGDĐT</span>
+        <span style="font-size:11px;color:hsl(var(--muted-foreground))">Tap để đóng</span>
+      </div>
+      <ul style="margin: 0; padding-left: 18px; line-height: 1.7">
+        <li><strong>Hệ số 1:</strong> Kiểm tra miệng, kiểm tra 15 phút, bài tập về nhà</li>
+        <li><strong>Hệ số 2:</strong> Kiểm tra 1 tiết (kiểm tra giữa kỳ)</li>
+        <li><strong>Hệ số 3:</strong> Thi học kỳ (cuối kỳ)</li>
+      </ul>
+      <div style="margin-top:8px;font-size:11px;color:hsl(var(--muted-foreground))">
+        Điểm trung bình môn = (Tổng điểm × hệ số) ÷ tổng hệ số
+      </div>
+    </div>
 
     <ul class="timeline" aria-label="Lịch sử điểm Toán nâng cao theo thứ tự thời gian">
       <li>
@@ -83,13 +114,10 @@
       </li>
     </ul>
 
-    <!-- Weighting note -->
-    <div class="card" style="margin: 16px;">
-      <div style="font-weight:600;font-size:var(--text-sm);margin-bottom:6px">Cách tính điểm môn</div>
-      <div style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));line-height:1.5">
-        Điểm trung bình môn = (Tổng điểm × hệ số) ÷ tổng hệ số.<br/>
-        Theo Thông tư 22/2021/TT-BGDĐT: Hệ số 1 cho miệng + 15 phút + bài tập, Hệ số 2 cho kiểm tra 1 tiết, Hệ số 3 cho thi học kỳ.
-      </div>
+    <!-- Weighting note removed — moved to info-icon tooltip in section-heading above (GAP-363 polish) -->
+    <div style="margin: 16px; padding: 10px 14px; background: hsl(var(--muted)/0.4); border-radius: 8px; font-size: var(--text-xs); color: hsl(var(--muted-foreground)); display:flex; align-items:center; gap:8px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      Bấm icon <em>i</em> ở trên để xem cách tính điểm theo Thông tư 22/2021.
     </div>
 
     <div style="height:24px"></div>
