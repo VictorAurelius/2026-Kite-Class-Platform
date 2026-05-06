@@ -34,5 +34,23 @@ export type {
   PartialCategories,
 } from './components/ConsentBanner';
 
+// G6 Invoice Detail — Track 2 Wave 27 Bucket B (GAP-273 1/12)
+export {
+  InvoiceDetail,
+  formatVNCurrency,
+  formatVNTax,
+} from './components/G6-invoice-detail';
+export type {
+  InvoiceData,
+  InvoiceDetailProps,
+  InvoiceDiscount,
+  InvoiceLineItem,
+  InvoiceState,
+  InvoiceStatus,
+  InvoiceStudent,
+  InvoiceTaxBreakdown,
+  InvoiceTenant,
+} from './components/G6-invoice-detail';
+
 // Phase 1 stub — kept for back-compat consumers reading version.
 export const SHARED_UI_VERSION = '0.2.0';
