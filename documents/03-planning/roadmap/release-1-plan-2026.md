@@ -5,6 +5,7 @@ created: 2026-05-06
 updated: 2026-05-06
 phases: [1-beta, 1.5-paid, 2, 3]
 release: 1
+semver_target: v1.0.0
 ---
 
 # Release Lần 1 Plan 2026 — Phased Rollout (Option β — Soft Beta + Iterate)
@@ -92,12 +93,18 @@ Lý do: Production FE hiện tại pre-kit (older inconsistent design); UI kits 
 
 **Total timeline:** ~25-34 calendar weeks ≈ **6-8 tháng** từ 2026-05-06 → ~2026-11/12 full K-12 GA.
 
-| Milestone | Calendar week | Release |
-|---|---|---|
-| **Phase 1 BETA launch** (invite-only, free) | Week 9-12 | Release Lần 1 (beta) |
-| **Phase 1.5 PAID launch** (public paid) | Week 13-18 | **🎯 Release Lần 1 (PRODUCTION)** |
-| **Phase 2 P3 add** | Week 17-24 | Release 2 |
-| **Phase 3 K-12 GA** | Week 25-34 | Release 3 |
+| Milestone | Calendar week | Release | Semver tag |
+|---|---|---|---|
+| **Phase 1 BETA launch** (invite-only, free) | Week 9-12 | Release Lần 1 (beta) | `v0.9.0-beta` |
+| Beta iterations | Week 9-12 | Beta patches | `v0.9.x-beta` |
+| Release candidate | Week 13-17 | RC | `v1.0.0-rc` |
+| **Phase 1.5 PAID launch** (public paid) | Week 13-18 | **🎯 Release Lần 1 (PRODUCTION)** | **`v1.0.0`** |
+| Patches post-launch | Week 18+ | Hotfixes | `v1.0.x` |
+| Minor adds | Week 19+ | Within P1+P2 | `v1.1.0+` |
+| **Phase 2 P3 add** | Week 17-24 | Release 2 | `v2.0.0` |
+| **Phase 3 K-12 GA** | Week 25-34 | Release 3 | `v3.0.0` |
+
+**Versioning policy:** [`versioning-policy.md`](versioning-policy.md) — semver conventions + release process + sub-version threads (Track 2, AI Branding, K-12 Stages, PDPL maturity).
 
 ---
 
