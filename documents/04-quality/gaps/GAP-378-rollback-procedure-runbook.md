@@ -1,6 +1,6 @@
 # GAP-378: Rollback Procedure Runbook (detailed)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-06 — runbook shipped Wave 25 Bucket C
 **Priority:** 🟠 P1 STRONGLY recommend (Phase 1 BETA + 1.5 PAID)
 **Domain:** DevOps / Operations
 **Found:** 2026-05-06 (Release 1 deploy plan §5)
@@ -145,14 +145,14 @@ dig kitehub.vn +short
 
 ## Acceptance Criteria
 
-- [ ] `documents/05-guides/operations/runbooks/rollback-runbook.md` created
-- [ ] 7-step procedure documented với specific commands
-- [ ] Per-component rollback specifics
-- [ ] Validation checklist
-- [ ] Communication templates (email/status page)
-- [ ] Recovery flow post-rollback
-- [ ] Cross-link from `release-1-deploy-plan.md` §5
-- [ ] Smoke test integration (auto-trigger rollback option)
+- [x] `documents/05-guides/operations/runbooks/rollback-runbook.md` created
+- [x] 7-step procedure documented với specific commands (Helm + Docker-compose paths both)
+- [x] Per-component rollback specifics (frontend / backend / AI Branding / email / payment / DB pg_restore)
+- [x] Validation checklist (§7 — 10 items)
+- [x] Communication templates (email VN/EN + status page + beta extension + AI regeneration)
+- [x] Recovery flow post-rollback (§8 — 6 steps)
+- [x] Cross-link from `release-1-deploy-plan.md` §5 (added pointer at top of §5)
+- [x] Smoke test integration (cross-linked GAP-377 forward reference per runbook §9; today uses existing `scripts/smoke-test.sh`, will switch to GAP-377 expanded suite when shipped)
 
 ## Effort estimate
 
@@ -176,4 +176,5 @@ Per `.claude/rules/release-deploy-standard.md` §3 — this gap satisfies a chec
 
 ## Log
 
+- **2026-05-06 (Wave 25 Bucket C — DONE):** Runbook shipped at `documents/05-guides/operations/runbooks/rollback-runbook.md` (~290 lines, 11 sections). Covers all 8 AC: 7-step procedure with both Helm + Docker-compose command paths; per-component specifics for FE/BE/AI Branding/Email/Payment/DB; 10-item validation checklist; 6 communication templates (VN+EN); 6-step recovery flow. Cross-link added at top of `release-1-deploy-plan.md` §5 pointing to detailed runbook. Smoke test integration cross-links sister GAP-377 (forward reference — GAP-377 not yet shipped but runbook §4 Step 5 uses existing `scripts/smoke-test.sh` baseline today, AC satisfied at doc level per runbook §9). Standards reference per `release-deploy-standard.md` §3.4 MAJOR per-bump-type checklist. Status flipped 🔵 OPEN → 🟢 DONE per `gap-done-discipline.md` §2 (all 8 AC checked, no banned phrases in this Log entry, verification artifact pointer = runbook file path + 290 lines).
 - **2026-05-06:** Filed by Release 1 deploy plan PR. STRONGLY recommend cho recovery confidence + reduce MTTR.

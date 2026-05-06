@@ -318,6 +318,8 @@ Tất cả tests §2.4 PLUS:
 
 ## 5. Rollback procedure (per GAP-378)
 
+> 📖 **Detailed runbook:** [`documents/05-guides/operations/runbooks/rollback-runbook.md`](../../05-guides/operations/runbooks/rollback-runbook.md) — full per-component specifics, communication templates (VN/EN), validation checklist, pg_restore recovery path. The summary below is the TL;DR; the runbook is the source of truth for execution under incident pressure.
+
 ### 5.1 Rollback triggers
 
 Initiate rollback IF any of:
