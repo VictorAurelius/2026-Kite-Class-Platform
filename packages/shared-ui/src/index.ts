@@ -9,6 +9,7 @@
  *
  * Phase 2 (Wave 27, GAP-273): G2/G5/G6/G7 component port — Track 2 Phase 2.
  * Phase 3 (Wave 28, GAP-273): G3/G4/G8/G10 + D1 component port — Track 2 Phase 3.
+ * Phase 3 (Wave 29, GAP-273): G1/G9/G11/G12 component port — Track 2 Phase 3 final.
  *
  * See:
  * - documents/02-architecture/adr/ADR-024-shared-ui-lib-strategy.md
@@ -123,6 +124,16 @@ export type {
   PaymentTimelineStep,
   TimelineEvent,
 } from './components/G10-payment-timeline';
+
+// G1 BulkImportDropzone — drag-drop CSV/Excel student import (Wave 29 Bucket A, GAP-273)
+export { BulkImportDropzone, parseCSV, validateRow } from './components/G1-bulk-import-dropzone';
+export type {
+  BulkImportDropzoneProps,
+  ImportJobStatus,
+  ImportRow,
+  ImportError,
+  JobProgress,
+} from './components/G1-bulk-import-dropzone';
 
 // Phase 1 stub — kept for back-compat consumers reading version.
 export const SHARED_UI_VERSION = '0.2.0';
