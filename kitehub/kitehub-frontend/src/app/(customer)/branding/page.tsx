@@ -1,8 +1,32 @@
 'use client';
 
+/**
+ * Branding Hub Page — Wave 31 Bucket C (KH pro v2 port)
+ *
+ * Ports the `kitehub-pro-v2` branding hub design (`branding-hub-{default,
+ * dark,loading,quota-empty}.html`) into production. Integrates G11
+ * ThemePreview from `@kite/shared-ui` (Wave 29 Bucket C output).
+ *
+ * Scope (Wave 31 Bucket C):
+ *   - Theme customization section (G11 ThemePreview integration).
+ *   - Quota counter widget per `ai-branding-guidelines.md` §4.3.
+ *   - Template gallery preview (6 cards — kit `branding-hub-default.html`).
+ *   - Wizard CTA placeholder linking `/branding/wizard` (Wave 32 owns the
+ *     route + 6-step Direction C wizard internals).
+ *
+ * Out of scope (Wave 32):
+ *   - Wizard internals (welcome, audience, tone, template, preview-approve).
+ *   - Enterprise Advanced Mode toggle.
+ *   - Quality Gate widget.
+ *
+ * Mock data is acceptable per Wave 31 brief; real wiring tracked as
+ * follow-up against `useAssets` + a new `useBrandingQuota` hook.
+ */
+
 import { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { ThemePreview } from '@kite/shared-ui';
 import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
 import { useAssets } from '@/hooks/use-branding';
@@ -10,15 +34,80 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
-import { Sparkles, Image as ImageIcon, Grid3x3, ArrowRight, Palette, LayoutGrid } from 'lucide-react';
+import {
+  Sparkles,
+  Image as ImageIcon,
+  Grid3x3,
+  ArrowRight,
+  Palette,
+  LayoutGrid,
+  TrendingUp,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
-// GAP-236 Sub-PR B — lazy-load the recent-assets preview grid. The page
-// status cards always render with stat counts; the asset thumbnails section
-// is below-the-fold and only present when `hasAssets`.
+// GAP-236 Sub-PR B — lazy-load the recent-assets preview grid (below the fold).
 const RecentAssetsGrid = dynamic(() => import('./RecentAssetsGrid'), {
   ssr: false,
 });
+
+// Mock quota data — wave 31 scope is FE port; real wiring tracked as
+// follow-up. PRO tier defaults per `ai-branding-guidelines.md` §4.3.
+const MOCK_QUOTA = { used: 3, limit: 10, tier: 'PRO' } as const;
+
+// Mock theme palette — wave 31 scope. Live theme will come from the
+// branding job preview state once wizard internals land (Wave 32).
+const MOCK_THEME = {
+  primary: '#2563eb',
+  secondary: '#06b6d4',
+  background: '#ffffff',
+  foreground: '#0f172a',
+} as const;
+
+// Template gallery — mirrors kit `branding-hub-default.html` 6 cards.
+const TEMPLATE_GALLERY = [
+  {
+    id: 'sky-wave',
+    title: 'Bầu trời xanh',
+    hint: 'Chuyên nghiệp · Trung tâm Anh ngữ',
+    gradient: 'linear-gradient(135deg, #2563eb, #06b6d4)',
+    label: 'Sky · Wave',
+  },
+  {
+    id: 'warm-glow',
+    title: 'Ấm áp Vàng',
+    hint: 'Thân thiện · Mầm non · Tiểu học',
+    gradient: 'linear-gradient(135deg, #ea580c, #f59e0b)',
+    label: 'Warm · Glow',
+  },
+  {
+    id: 'fresh-leaf',
+    title: 'Tươi mát',
+    hint: 'Năng động · Trung tâm Toán',
+    gradient: 'linear-gradient(135deg, #16a34a, #65a30d)',
+    label: 'Fresh · Leaf',
+  },
+  {
+    id: 'modern-pop',
+    title: 'Hiện đại',
+    hint: 'Sang trọng · Luyện thi THPTQG',
+    gradient: 'linear-gradient(135deg, #7c3aed, #ec4899)',
+    label: 'Modern · Pop',
+  },
+  {
+    id: 'minimal-slate',
+    title: 'Tối giản',
+    hint: 'Chuyên nghiệp · Cao cấp',
+    gradient: 'linear-gradient(135deg, #0f172a, #475569)',
+    label: 'Minimal · Slate',
+  },
+  {
+    id: 'joyful-sun',
+    title: 'Vui tươi',
+    hint: 'Thân thiện · IELTS · TOEIC',
+    gradient: 'linear-gradient(135deg, #be185d, #f59e0b)',
+    label: 'Joyful · Sun',
+  },
+] as const;
 
 export default function BrandingDashboardPage() {
   const router = useRouter();
@@ -28,7 +117,6 @@ export default function BrandingDashboardPage() {
   const instanceId = instances?.[0]?.id;
   const { data: assets, isLoading: assetsLoading } = useAssets(instanceId);
 
-  // Show success toast if redirected from wizard
   useEffect(() => {
     if (searchParams.get('success') === 'true') {
       toast.success('Branding đã được xuất bản thành công!');
@@ -46,19 +134,23 @@ export default function BrandingDashboardPage() {
   const hasAssets = assets && assets.length > 0;
   const recentAssets = assets?.slice(0, 6) || [];
 
+  const quotaPct = Math.min(100, Math.round((MOCK_QUOTA.used / MOCK_QUOTA.limit) * 100));
+  const quotaRemaining = Math.max(0, MOCK_QUOTA.limit - MOCK_QUOTA.used);
+  const quotaEmpty = quotaRemaining === 0;
+
   return (
     <div className="space-y-6">
-      {/* Page Header */}
+      {/* Hero header — matches kit-pro-v2 page-header */}
       <div className="rounded-2xl bg-gradient-to-r from-purple-500/10 via-primary/5 to-accent/10 border p-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <div className="rounded-xl bg-purple-500/10 p-3 text-purple-600">
               <Palette className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">AI Branding</h1>
+              <h1 className="text-2xl font-bold">Thương hiệu AI</h1>
               <p className="text-muted-foreground">
-                Quản lý và tạo bộ nhận diện thương hiệu với AI
+                Tạo brand cho trung tâm bằng AI · template-first · không cần prompt
               </p>
             </div>
           </div>
@@ -67,15 +159,78 @@ export default function BrandingDashboardPage() {
               <LayoutGrid className="w-4 h-4 mr-2" />
               Template Gallery
             </Button>
-            <Button onClick={() => router.push('/branding/wizard')}>
-              <Sparkles className="w-4 h-4 mr-2" />
-              Tạo Branding mới
-            </Button>
+            {/* Wizard CTA — placeholder href; Wave 32 owns the wizard route. */}
+            <a href="/branding/wizard" aria-label="Tạo lại brand bằng AI">
+              <Button disabled={quotaEmpty}>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Tạo lại brand
+              </Button>
+            </a>
           </div>
         </div>
       </div>
 
-      {/* Status Card */}
+      {/* Quota counter widget — visible regenerate counter per ai-branding-guidelines.md §4.3 */}
+      <Card className="shadow-soft">
+        <CardContent className="p-5">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wide">
+                Quota làm lại brand · gói {MOCK_QUOTA.tier}
+              </div>
+              <div className="text-xl font-bold mt-1">
+                {quotaRemaining} / {MOCK_QUOTA.limit} lượt còn lại trong tháng này
+              </div>
+            </div>
+            <div className="flex-1 max-w-md min-w-[200px]">
+              <div
+                className="h-2 rounded-full bg-muted overflow-hidden"
+                role="progressbar"
+                aria-valuenow={quotaPct}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Tiến độ quota làm lại brand"
+              >
+                <div
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${100 - quotaPct}%` }}
+                />
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Reset 28/04/2026 · nâng cấp PREMIUM để có 30 lượt
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push('/billing')}
+            >
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Nâng cấp PREMIUM
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Theme customization section — G11 ThemePreview from @kite/shared-ui */}
+      <Card className="shadow-soft">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <div className="rounded-lg bg-primary/10 p-2 text-primary">
+              <Palette className="h-4 w-4" />
+            </div>
+            Tuỳ biến theme · Live preview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            Live preview WCAG AA — đổi màu primary/foreground để xem độ tương phản trước khi áp dụng.
+          </p>
+          <ThemePreview brandColors={MOCK_THEME} initialMode="light" lang="vi" />
+        </CardContent>
+      </Card>
+
+      {/* Branding status (existing functionality) */}
       <Card className="shadow-soft">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -106,7 +261,47 @@ export default function BrandingDashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Recent Assets */}
+      {/* Template gallery preview — 6 cards from kit-pro-v2 */}
+      <Card className="shadow-soft">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>6 template AI gợi ý</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              Phù hợp với <strong>Trung tâm tiếng Anh</strong> · giọng <strong>Thân thiện</strong>
+            </p>
+          </div>
+          <Button variant="ghost" onClick={() => router.push('/branding/templates')}>
+            Xem tất cả
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {TEMPLATE_GALLERY.map((tpl) => (
+              <article
+                key={tpl.id}
+                className="rounded-xl border overflow-hidden hover:shadow-md transition-shadow"
+              >
+                <div
+                  className="h-32 flex items-center justify-center text-white font-semibold"
+                  style={{ background: tpl.gradient }}
+                >
+                  {tpl.label}
+                </div>
+                <div className="p-3">
+                  <div className="font-semibold text-sm">{tpl.title}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{tpl.hint}</div>
+                </div>
+              </article>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground text-center mt-3">
+            ✓ Template-first routing · ~80% request không cần AI compute · phản hồi trong &lt;1 giây
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Recent Assets / Empty state (existing functionality) */}
       {hasAssets ? (
         <Card className="shadow-soft">
           <CardHeader className="flex flex-row items-center justify-between">
@@ -126,10 +321,12 @@ export default function BrandingDashboardPage() {
           title="Chưa có tài nguyên Branding"
           description="Bắt đầu tạo bộ nhận diện thương hiệu với AI ngay bây giờ"
           action={
-            <Button onClick={() => router.push('/branding/wizard')}>
-              <Sparkles className="w-4 h-4 mr-2" />
-              Tạo Branding đầu tiên
-            </Button>
+            <a href="/branding/wizard">
+              <Button>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Bắt đầu wizard
+              </Button>
+            </a>
           }
         />
       )}
@@ -146,9 +343,7 @@ interface StatCardProps {
 function StatCard({ label, value, icon }: StatCardProps) {
   return (
     <div className="flex items-center gap-4">
-      <div className="p-3 bg-muted/50 rounded-xl">
-        {icon}
-      </div>
+      <div className="p-3 bg-muted/50 rounded-xl">{icon}</div>
       <div>
         <p className="text-2xl font-bold">{value}</p>
         <p className="text-sm text-muted-foreground">{label}</p>
@@ -156,4 +351,3 @@ function StatCard({ label, value, icon }: StatCardProps) {
     </div>
   );
 }
-
