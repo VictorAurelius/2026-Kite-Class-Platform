@@ -73,7 +73,7 @@ Add ArchUnit test or Checkstyle rule banning `new ValidationException(String)` /
 
 ## Acceptance Criteria
 
-- [ ] All 43 source files migrated to new error-code ctor
+- [ ] All 43 source files migrated to new error-code ctor (2/43 done — attendance Phase 1a partial 2026-05-06)
 - [ ] ~150 new error-code keys added to `messages.properties` + `messages_vi.properties` (mirrored, vi translations provided)
 - [ ] mvn `./mvnw -pl kiteclass-core clean verify -Dcheckstyle.skip=true` green
 - [ ] `ClassMapper.java` recurrenceRule mapping resolved (ignore or add to DTO)
@@ -103,4 +103,5 @@ Add ArchUnit test or Checkstyle rule banning `new ValidationException(String)` /
 
 ## Log
 
+- **2026-05-06 (Wave 23 wait window — Phase 1a partial)** Coordinator-only PR shipped (no agent). Phase 1a slice = 2 attendance ctor sites with `(Object) id` cast (keys `ATTENDANCE_PERIOD_NOT_FOUND` already exist in messages.properties + messages_vi.properties — no new keys needed) + 1 unused payload var in ChildProtectionAuditServiceImplTest line 85. Childprotection migration (16 ctor sites in 4 files: VettingController + IncidentService + VettingServiceImpl + MinIOVettingDocumentStorageImpl) DEFERRED to Phase 1 wave-pack agent — needs ~20 new error-code design + ~40 messages.properties entries (en+vi) + test updates that match message text. Status remains 🔵 OPEN; Phase 1 wave-pack post-Wave-23 close.
 - **2026-05-05** Filed during Wave 19 wait window after IDE diagnostics surfaced ~30 warnings. State-check expanded scope from IDE-flagged 6 files → full 43. Filed instead of fixed because heavy overlap with active Bucket A (childprotection — 4 files, 23 call sites). Per agent-tool guidance "do not duplicate this agent's work — avoid working with the same files." Migration deferred to post-Wave-19 wave-pack.
