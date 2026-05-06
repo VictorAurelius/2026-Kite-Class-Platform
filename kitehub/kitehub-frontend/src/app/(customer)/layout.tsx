@@ -5,11 +5,25 @@ import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuthStore } from '@/stores/auth-store';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import {
+  CommandPalette,
+  KH_DASHBOARD_COMMANDS,
+  useCommandPalette,
+} from '@/_shared/dashboard-foundation';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const [isHydrated, setIsHydrated] = useState(false);
+
+  // Wave 31 Bucket A — ⌘K command palette wired at customer-layout level so
+  // every (customer) page can trigger it via Cmd/Ctrl+K. Foundation
+  // primitive imported from `_shared/dashboard-foundation` (Decision B —
+  // duplicated from KC Wave 30; see `_shared/dashboard-foundation/types.ts`).
+  // Root `<ThemeProvider>` (next-themes) already mounted in app/layout.tsx,
+  // so dashboard-foundation's `useDashboardTheme()` hook works without an
+  // additional wrapper here.
+  const palette = useCommandPalette();
 
   // Wait for zustand to hydrate from localStorage
   useEffect(() => {
@@ -31,5 +45,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <DashboardLayout>{children}</DashboardLayout>;
+  return (
+    <>
+      <DashboardLayout>{children}</DashboardLayout>
+      <CommandPalette
+        open={palette.open}
+        onOpenChange={palette.setOpen}
+        commands={KH_DASHBOARD_COMMANDS}
+        placeholder="Tìm trang, lệnh, hoặc gõ ⌘K..."
+      />
+    </>
+  );
 }
