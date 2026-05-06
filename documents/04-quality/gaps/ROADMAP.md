@@ -22,6 +22,44 @@
 
 ### 🚀 Next Action (signpost for new session)
 
+**Wave 30 SHIPPED 2026-05-06 (Phase 4 kit port start — KC pro v2 production port — 4 page-cluster buckets + plan + closure, 6 PRs + Wave 31 plan side-PR).** **First Phase 4 kit shipped**; first `@kite/shared-ui` production consumer at dashboard scope. **Outcomes:** PR #871 Bucket A KC foundation primitives (21 tests; ThemeProvider next-themes wrapper + ⌘K Radix Dialog palette + KPICard + Sparkline pure SVG + canvas confetti vanilla; NO new deps; scope adjustment `(dashboard)/page.tsx`→`/overview/page.tsx` per Next.js route-group conflict với `(public)/page.tsx`). PR #872 Bucket B classes+courses (13 new tests / 643 total; DragDropList HTML5 DnD primitive; G4 ClassScheduleManager integration smoke). PR #873 Bucket C students+teachers (8 tests; G12 BulkActionsBar wired với 4 actions + destructive Xóa via D1 ConfirmDialog identity; G1 BulkImportDropzone tab switcher trong `/students/new` — presentational stub, real CSV parse → follow-up). PR #874 Bucket D billing+settings+branding (10 new tests / 640 total; G6 InvoiceDetail + formatVNCurrency trong billing detail; G10 PaymentStatusTimeline; G11 ThemePreview tab trong settings; branding gateway CTA → `/branding/wizard` placeholder; small follow-up: `PaymentTimelineState` không export via shared-ui barrel — locally derived). All 4 PRs squash-merged after coordinator-resolved 2 `_shared/dashboard-foundation/types.ts` conflicts (B + D both stubbed local fallback when A hadn't pushed; A canonical accepted via `git checkout origin/main -- path` explicit override since rebase theirs/ours semantics inverted). Final KC frontend: **682 tests pass / 206 skipped / 0 failures** + build clean. **GAP-266 stays 🟡 PARTIAL** (foundation + 4 clusters shipped; remaining visual regression baseline GAP-266b + E2E test GAP-266c + bundle size verify GAP-266d + drag-drop persistence). 66th consecutive 0-clarification streak (4 agents 0-clarif). Wall-clock ~10-17 min/agent parallel (Bucket D heaviest at 17min — 4 shared-ui integrations + 4 page modifications) + ~15 min coordinator merge resolution + ~10 min closure. **Side-PR #870 same session:** Wave 31 plan PIPELINED-drafted during Wave 30 Bucket A in-flight (3rd consecutive `wave-pack-planner` §Step 5.5 application — pattern stable across waves 28→29, 29→30, 30→31; codify as DEFAULT not optional). Counts: 167 → **167 OPEN** (no GAPs filed/closed; follow-ups 266b/c/d to file as needed).
+
+### Release Plan Progress (per `feedback_wave_closure_release_progress_report.md`)
+
+**Current Phase:** 🟢 **Phase 1 BETA ACTIVE** (P1 prospects + P2 SaaS owners; v0.9.0-beta target).
+
+**Phase 1 BETA milestone status (per `release-1-plan-2026.md` §3 + §9):**
+
+| Cluster | Status | Notes |
+|---|---|---|
+| **PDPL Phase 2 compliance** | ✅ **DONE** (Waves 23-26) | Cookie consent + DSAR + DPIA + DPO + MPS A05 + audit chain — closes PDPL hard-deadline 2026-07-01 |
+| **Track 2 shared component lib** | ✅ **DONE** (Waves 27-29) | 12/12 G* + D1 ConfirmDialog + ConsentBanner shipped to `@kite/shared-ui`. ~265+ tests baseline. Domain-milestone audit deferred (Storybook + visual regression pending). |
+| **Track 2 Phase 4 kit ports** | 🟡 **1 of 7 SHIPPED** (Wave 30) | KC pro v2 ✅ DONE; KH pro v2 (GAP-270) Wave 31 ready (plan #870); ai-branding-wizard (GAP-272) Wave 32 standalone (28 screens, ⭐ 115.6/128); teacher (GAP-268) tier P3; K-12 trio (GAP-267/269/271) deferred Phase 3 per CLAUDE.md decision-context |
+| **Phase 1 BETA P0 BLOCKING deploy** | ⏳ **OPEN** | GAP-369 DNS + GAP-370 email + GAP-372 beta tenant + GAP-376 production data seed — all P0 BLOCKING; not yet started |
+| **Phase 1 BETA P1 STRONGLY** | ⏳ **OPEN** | GAP-371 CDN + GAP-373 status page + GAP-374 tag-CI + GAP-377 smoke test (✅ Wave 26 DONE) + GAP-378 rollback (✅ Wave 25 DONE) + GAP-379 secrets + GAP-380 staging — 5 of 7 OPEN |
+| **K-12 LEGAL Phase 1B/1C** | 🟡 PARTIAL (Waves 18-19, 23-24) | Phase 1A+1B+1C v1 shipped; counsel review queued (Phase 3 trigger gate) |
+
+**PDPL deadline countdown:** **2026-07-01** (~7-8 tuần from 2026-05-06).
+
+**Phase 1 BETA launch trigger gate** (per `release-1-plan-2026.md` §11.1):
+- ✅ 12/12 G* shipped (Wave 27-29)
+- 🟡 1 of 7 Track 2 kit ports shipped (Wave 30); ~6 kits remaining (with K-12 trio deferred Phase 3)
+- ⏳ Production deploy infra (DNS/CDN/email/secrets/staging/tag-CI)
+- ⏳ 10-20 invite-only beta tenants
+- ⏳ Quality audit /100 ≥80 baseline
+- ⏳ 0 P0 incidents 2 tuần post-launch
+
+**Estimated remaining đến Phase 1 BETA launch:** **~5-8 tuần** (4 kit-port waves Wave 31-34 + 1-2 deploy-cluster waves + 1 beta-tenant onboarding wave). Aligns với `release-1-plan-2026.md` Phase 1 BETA window 9-12 tuần (currently in week 1-2).
+
+**Recommended next pick:**
+- **Option α:** Wave 31 KH pro v2 port (plan PR #870 ready) — continues kit port momentum, validates cross-app shared-ui pattern (KC ✅ → KH 2nd consumer)
+- **Option β:** Phase 1 BETA P0 deploy cluster (GAP-369 DNS + GAP-370 email + GAP-372 beta tenant + GAP-376 prod seed) — critical path for actual BETA launch; agents prepare runbooks/scripts/terraform, user executes credentials
+- **Option γ:** Wave 32 ai-branding-wizard (GAP-272, 28 screens) standalone — highest-quality kit, complex 6-step + Enterprise Advanced + Quality Gate widget
+
+Khuyến nghị α nếu muốn drumbeat momentum + validate cross-app pattern; β nếu sắp launch cần deploy artifacts trước.
+
+---
+
 **Wave 29 SHIPPED 2026-05-06 (Track 2 Phase 3 final — port last 4 G* G1/G9/G11/G12 — 4 buckets + plan + closure, 6 PRs).** **Closes G* portion of GAP-273 (12/12 G* shipped post-Wave-29).** All 7 Phase 4 kit ports (GAP-266..272) unblocked from G* dependency standpoint. **Outcomes:** PR #867 Bucket A G1 BulkImportDropzone (31 tests = 11 component + 20 utils; CSV parse with UTF-8 BOM + VN names + quoted fields; phone `0\d{9,10}` + dd/mm/yyyy validation; root-container drag handlers fix; 6th synthetic `'error'` state for upload failures). PR #864 Bucket B G9 InstanceLifecycleStatus (28 tests = 12 component + 16 utils; state machine matches `ai-branding-guidelines.md` §6 verbatim — 6-state union with frozen TRANSITION_GRAPH adjacency map + STATE_VISUAL lookup map per design-patterns.md §3.3 no-switch-cascades; FAILED→GENERATING retry path explicitly tested). PR #865 Bucket C G11 ThemePreview (23 tests = 13 component + 10 utils; W3C WCAG 2.1 luminance formula verbatim; suggestFix deterministic AA-compliant; **reflexive coverage red→green cycle asserted** — component renders ITS OWN failing input + warns + auto-fixes on demo surface). PR #866 Bucket D G12 BulkActionsBar (15 tests; sticky `top|bottom|none` configurable; cross-component re-use D1 ConfirmDialog with identity preserved via re-export `G12.ConfirmDialog === D1.ConfirmDialog`; closed enum `BulkAction = 'EXPORT_CSV'|'ARCHIVE'|'ASSIGN'|'DELETE'` for TS exhaustiveness). All 4 PRs squash-merged after coordinator-resolved 2 additive `index.ts` conflicts (C + D after A+B merged first). Final shared-ui state: **~265+ tests** (241 from Bucket A merge baseline + Wave 29 net) + type-check clean. **GAP-273 stays 🟡 PARTIAL** — G* portion 12/12 done but Storybook/demo route + production ≥105/128 verification + visual regression baseline + D2..D10 dialogs (only D1 shipped Wave 28) remain. 65th consecutive 0-clarification streak (4 agents 0-clarif). Wall-clock ~7-11 min/agent parallel + ~12 min coordinator merge resolution (cleaner than Wave 28's ~25min — no new deps + no worktree contamination) + ~10 min closure. **Side-PR #868 same session:** Wave 30 plan PIPELINED-drafted during Wave 29 Bucket A in-flight (second formal `wave-pack-planner` §Step 5.5 application — pipeline pattern stable across 2 consecutive waves). Counts: 167 → **167 OPEN** (no GAPs filed/closed). **Recommended next pick:** **Wave 30 Phase 4 kit port start** (GAP-266 KC pro v2 — 4 page-cluster buckets, plan PR #868 ready; first production consumer of `@kite/shared-ui` at dashboard scope, validates adoption pattern). HOẶC **Phase 1 BETA P0 deploy cluster** (GAP-369 DNS + GAP-370 email + GAP-373 status page + GAP-379 secrets — critical path for actual BETA launch).
 
 ---

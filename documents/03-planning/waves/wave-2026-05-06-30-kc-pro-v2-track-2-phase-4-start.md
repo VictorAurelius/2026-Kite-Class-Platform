@@ -1,6 +1,6 @@
 ---
 title: Wave 30 — Phase 4 kit port start — GAP-266 KC pro v2 (4 page-cluster buckets)
-status: draft
+status: complete
 created: 2026-05-06
 updated: 2026-05-06
 waves: [30]
