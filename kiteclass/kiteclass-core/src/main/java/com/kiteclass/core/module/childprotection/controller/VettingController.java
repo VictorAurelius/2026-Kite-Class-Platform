@@ -173,10 +173,10 @@ public class VettingController {
         requireSafeguardingOfficer(roles);
 
         if (file == null || file.isEmpty()) {
-            throw new ValidationException("VETTING_DOC_EMPTY");
+            throw new ValidationException("VETTING_DOC_EMPTY", new Object[0]);
         }
         if (file.getSize() > MAX_DOCUMENT_BYTES) {
-            throw new ValidationException("VETTING_DOC_TOO_LARGE");
+            throw new ValidationException("VETTING_DOC_TOO_LARGE", new Object[0]);
         }
 
         // Verify vetting record exists (404 surfaces if not).
@@ -184,7 +184,7 @@ public class VettingController {
 
         String filename = file.getOriginalFilename();
         if (filename == null || filename.isBlank()) {
-            throw new ValidationException("VETTING_DOC_FILENAME_REQUIRED");
+            throw new ValidationException("VETTING_DOC_FILENAME_REQUIRED", new Object[0]);
         }
 
         byte[] bytes;

@@ -91,13 +91,13 @@ public class IncidentService {
     ) {
         validateTitle(title);
         if (severity == null) {
-            throw new ValidationException("Severity is required");
+            throw new ValidationException("INCIDENT_SEVERITY_REQUIRED", new Object[0]);
         }
         if (category == null) {
-            throw new ValidationException("Category is required");
+            throw new ValidationException("INCIDENT_CATEGORY_REQUIRED", new Object[0]);
         }
         if (reporterUserId == null) {
-            throw new ValidationException("Reporter user id is required");
+            throw new ValidationException("INCIDENT_REPORTER_REQUIRED", new Object[0]);
         }
 
         Incident incident = Incident.builder()
@@ -143,7 +143,7 @@ public class IncidentService {
     @Transactional(readOnly = true)
     public Incident findById(Long id) {
         return incidentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("Incident not found: id=" + id));
+                .orElseThrow(() -> new EntityNotFoundException("INCIDENT_NOT_FOUND", (Object) id));
     }
 
     /**
@@ -169,7 +169,7 @@ public class IncidentService {
      */
     public Incident updateStatus(Long id, IncidentStatus newStatus) {
         if (newStatus == null) {
-            throw new ValidationException("Status is required");
+            throw new ValidationException("INCIDENT_STATUS_REQUIRED", new Object[0]);
         }
         Incident incident = findById(id);
         IncidentStatus previous = incident.getStatus();
@@ -185,7 +185,7 @@ public class IncidentService {
      */
     public Incident assignOfficer(Long id, Long officerUserId) {
         if (officerUserId == null) {
-            throw new ValidationException("Officer user id is required");
+            throw new ValidationException("INCIDENT_OFFICER_REQUIRED", new Object[0]);
         }
         Incident incident = findById(id);
         incident.setAssignedOfficerUserId(officerUserId);
@@ -209,11 +209,10 @@ public class IncidentService {
 
     private static void validateTitle(String title) {
         if (title == null || title.isBlank()) {
-            throw new ValidationException("Title is required");
+            throw new ValidationException("INCIDENT_TITLE_REQUIRED", new Object[0]);
         }
         if (title.length() > MAX_TITLE_LENGTH) {
-            throw new ValidationException(
-                    "Title too long (max " + MAX_TITLE_LENGTH + " chars, got " + title.length() + ")");
+            throw new ValidationException("INCIDENT_TITLE_TOO_LONG", MAX_TITLE_LENGTH, title.length());
         }
     }
 }

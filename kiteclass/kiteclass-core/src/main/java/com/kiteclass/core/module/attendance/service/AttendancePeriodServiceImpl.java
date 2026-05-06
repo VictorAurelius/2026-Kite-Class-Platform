@@ -52,7 +52,7 @@ public class AttendancePeriodServiceImpl implements AttendancePeriodService {
     public AttendancePeriodResponse findById(Long id) {
         AttendancePeriod entity = repository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "ATTENDANCE_PERIOD_NOT_FOUND", id));
+                        "ATTENDANCE_PERIOD_NOT_FOUND", (Object) id));
         return toResponse(entity);
     }
 
@@ -137,7 +137,7 @@ public class AttendancePeriodServiceImpl implements AttendancePeriodService {
 
         AttendancePeriod existing = repository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "ATTENDANCE_PERIOD_NOT_FOUND", id));
+                        "ATTENDANCE_PERIOD_NOT_FOUND", (Object) id));
 
         if (!request.getVersion().equals(existing.getVersion())) {
             throw new OptimisticLockingFailureException(

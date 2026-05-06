@@ -82,8 +82,6 @@ class ChildProtectionAuditServiceImplTest {
     @Test
     @DisplayName("identical payload + identical prev_hash → identical content_hash (deterministic)")
     void identicalInputsProduceIdenticalHash() {
-        Map<String, Object> payload = Map.of("k1", "v1", "k2", "v2");
-
         // Same payload, but inserted in different orders
         Map<String, Object> insertOrderA = new HashMap<>();
         insertOrderA.put("k1", "v1");

@@ -39,6 +39,7 @@ public interface ClassMapper {
     @Mapping(target = "startedAt", ignore = true)
     @Mapping(target = "completedAt", ignore = true)
     @Mapping(target = "cancelledAt", ignore = true)
+    @Mapping(target = "recurrenceRule", ignore = true)
     Class toEntity(CreateClassRequest request);
 
     /**
