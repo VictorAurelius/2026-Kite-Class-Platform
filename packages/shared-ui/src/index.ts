@@ -152,5 +152,13 @@ export type {
   ContrastWarning,
 } from './components/G11-theme-preview';
 
+// G12 BulkActionsBar — sticky multi-select toolbar (consumes D1 ConfirmDialog) (Wave 29 Bucket D, GAP-273)
+export { BulkActionsBar } from './components/G12-bulk-actions-bar';
+export type {
+  BulkActionsBarProps,
+  BulkAction,
+  SelectedCount,
+} from './components/G12-bulk-actions-bar';
+
 // Phase 1 stub — kept for back-compat consumers reading version.
 export const SHARED_UI_VERSION = '0.2.0';
