@@ -16,6 +16,10 @@
 
 ---
 
+> **Extends Tier-1** [`S-student.md`](../S-student.md) **with P5 K-12 school tenant-context overrides.** This doc preserves P5-specific journey variations (12-15 môn period-based schedule, GVCN homeroom primary contact, formal MOET artifacts học bạ + bằng tốt nghiệp + sổ điểm, conduct grade hạnh kiểm formal process, multi-fee structure HP+bán trú+đồng phục+BHYT+BHTN+quỹ PH); for canonical cross-tenant persona AC see Tier-1 doc. P5 child protection LEGAL ACs (7/23) are non-negotiable for K-12 student-facing GA per Luật Trẻ em 2016 + PDPL Art 16 + child-protection-policy.md.
+
+---
+
 ## 0. Context
 
 ### Persona scale (within tenant — see [`../P5-k12-school.md`](../P5-k12-school.md) §0 cho tenant-level)

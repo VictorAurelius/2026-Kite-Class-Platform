@@ -14,6 +14,10 @@
 
 ---
 
+> **Extends Tier-1** [`S-student.md`](../S-student.md) **with P2 small-center tenant-context overrides.** This doc preserves P2-specific journey variations (1-3 môn scope, Zalo-primary parent comm, parent-only setup cho tiểu học, no formal MOET artifacts); for canonical persona AC see Tier-1 doc. AC-FIN-001 wording in this doc is the **canonical anchor** — Tier-1 S-student.md preserves verbatim from line 118 here to maintain calibration consistency.
+
+---
+
 ## 0. Context
 
 ### Persona profile

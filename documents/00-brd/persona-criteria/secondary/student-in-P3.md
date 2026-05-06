@@ -14,6 +14,10 @@
 
 ---
 
+> **Extends Tier-1** [`S-student.md`](../S-student.md) **with P3 medium-center tenant-context overrides.** This doc preserves P3-specific journey variations (2-5 môn unified UX, multi-teacher gradebook, parent daily-digest option, multi-class enrollment + transfer); for canonical persona AC see Tier-1 doc.
+
+---
+
 ## 0. Context
 
 ### Persona profile
