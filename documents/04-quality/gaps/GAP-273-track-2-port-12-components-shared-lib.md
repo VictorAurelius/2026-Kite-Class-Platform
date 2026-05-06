@@ -79,3 +79,4 @@ Port all 12 components to React/Next.js as shared library.
 
 - **2026-04-29:** Filed after user accepted Round 3 quality. Shared lib decision (Option A/B/C) deferred to wave kickoff.
 - **2026-04-30:** Layer 3 (詳細設計) blocker resolved — **ADR-024 PROPOSED** picks **Option A (pnpm workspace package `@kite/shared-ui`)**. Per `design-layer-coverage.md` §2.4 4-layer check applied to this gap. ADR ships separately for user review → ACCEPTED → wave-pack kickoff. Phase 1 (workspace bootstrap, ~1-2h) becomes prerequisite to Phases 2-5 (component port wave-pack, 3 buckets × 4 components each).
+- **2026-05-06** — Bucket A: G2 Attendance Roster ported via Wave 27 PR. 1/12 G* components shipped. Status stays PARTIAL.
