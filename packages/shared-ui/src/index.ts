@@ -117,6 +117,14 @@ export type {
   StreakInfo,
 } from './components/G8-attendance-calendar';
 
+// G9 InstanceLifecycleStatus — 6-state AI Branding lifecycle (Wave 29 Bucket B, GAP-273)
+export { InstanceLifecycleStatus, validTransition } from './components/G9-instance-lifecycle';
+export type {
+  InstanceLifecycleStatusProps,
+  InstanceLifecycleState,
+  LifecycleEvent,
+} from './components/G9-instance-lifecycle';
+
 // G10 PaymentStatusTimeline — VN currency steps (re-uses G6 formatVNCurrency) (Wave 28 Bucket D, GAP-273)
 export { PaymentStatusTimeline } from './components/G10-payment-timeline';
 export type {
