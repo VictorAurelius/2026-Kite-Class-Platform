@@ -1,13 +1,35 @@
 /**
- * Invoice detail page with payment history.
+ * Invoice detail page — KC pro v2 token-styled detail with G6 + G10 integration.
+ *
+ * Wave 30 Bucket D — wires `@kite/shared-ui` G6 `InvoiceDetail` (preview panel
+ * mirrors VN tax-invoice format per Nghị định 123/2020/NĐ-CP) + G10
+ * `PaymentStatusTimeline` (lifecycle steps from received payments). Preserves
+ * the existing controls (Pay / Apply late fee / Cancel) that depend on the
+ * authoritative KC `Invoice` type.
  *
  * @author KiteClass Team
- * @since 1.0.0
+ * @since 1.0.0 — G6/G10 integration Wave 30 (GAP-266)
  */
 
 'use client';
 
+import { useMemo } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import { CreditCard, XCircle, AlertTriangle, AlertCircle } from 'lucide-react';
+import {
+  InvoiceDetail,
+  PaymentStatusTimeline,
+  formatVNCurrency,
+  type InvoiceData,
+  type InvoiceState,
+  type PaymentStatusTimelineProps,
+  type TimelineEvent,
+} from '@kite/shared-ui';
+
+// Derive the state-bucket type from G10 props (G10's PaymentTimelineState is
+// not directly exported via the package barrel; we reach it through Props).
+type PaymentTimelineState = PaymentStatusTimelineProps['state'];
 import { DashboardLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,9 +42,139 @@ import {
   useCancelInvoice,
 } from '@/hooks/use-invoices';
 import { useInvoicePayments } from '@/hooks/use-payments';
-import { formatCurrency, formatDate } from '@/lib/utils';
-import { CreditCard, XCircle, AlertTriangle, AlertCircle } from 'lucide-react';
-import Link from 'next/link';
+import { formatDate } from '@/lib/utils';
+import type { Invoice, InvoiceItem } from '@/types/invoice';
+import { InvoiceStatus as KCInvoiceStatus, InvoiceAdjustmentType } from '@/types/invoice';
+import type { Payment } from '@/types/payment';
+import { PaymentStatus } from '@/types/payment';
+
+/** Map KC `Invoice` (backend DTO) → shared-ui G6 `InvoiceData`. */
+function toG6Invoice(invoice: Invoice): InvoiceData {
+  const items = invoice.items.map((item: InvoiceItem) => ({
+    title: item.description,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice,
+    lineTotal: item.amount,
+  }));
+
+  const discounts = invoice.adjustments
+    .filter((adj) => adj.type === InvoiceAdjustmentType.DISCOUNT || adj.type === InvoiceAdjustmentType.WAIVER)
+    .map((adj) => ({ label: adj.description, amount: Math.abs(adj.amount) }));
+
+  // Late fees + penalties surface as destructive line items (per G6 spec).
+  const lateFeeItems = invoice.adjustments
+    .filter((adj) => adj.type === InvoiceAdjustmentType.LATE_FEE || adj.type === InvoiceAdjustmentType.PENALTY)
+    .map((adj) => ({
+      title: adj.description,
+      quantity: 1,
+      unitPrice: adj.amount,
+      lineTotal: adj.amount,
+      intent: 'destructive' as const,
+    }));
+
+  const status: InvoiceData['status'] =
+    invoice.status === KCInvoiceStatus.PAID
+      ? 'PAID'
+      : invoice.status === KCInvoiceStatus.OVERDUE
+      ? 'OVERDUE'
+      : invoice.status === KCInvoiceStatus.CANCELLED
+      ? 'VOID'
+      : invoice.amountPaid > 0 && invoice.balanceDue > 0
+      ? 'PARTIAL_PAID'
+      : 'PENDING_PAYMENT';
+
+  return {
+    number: invoice.invoiceNumber,
+    status,
+    issueDate: new Date(invoice.issueDate),
+    dueDate: new Date(invoice.dueDate),
+    paidDate: invoice.paidAt ? new Date(invoice.paidAt) : undefined,
+    items: [...items, ...lateFeeItems],
+    discounts,
+    subtotal: invoice.subtotal,
+    total: invoice.total,
+    balance: invoice.balanceDue,
+    student: {
+      fullName: `Học viên #${invoice.studentId}`,
+      className: `Lớp #${invoice.classId}`,
+    },
+    tenant: {
+      // Tenant identity comes from BrandingProvider context elsewhere; for the
+      // detail page we render a neutral placeholder until §7 closure wires it.
+      name: 'Trung tâm KiteClass',
+      address: 'Địa chỉ tổ chức',
+    },
+  };
+}
+
+/** Map KC payments → G10 timeline events + state derivation. */
+function toG10Timeline(invoice: Invoice, payments: Payment[] | undefined): {
+  state: PaymentTimelineState;
+  events: TimelineEvent[];
+} {
+  const events: TimelineEvent[] = [
+    {
+      step: 'CREATED',
+      at: new Date(invoice.issueDate),
+      note: 'Hóa đơn được tạo',
+      actor: 'Hệ thống',
+    },
+    {
+      step: 'PAYMENT_PENDING',
+      at: new Date(invoice.issueDate),
+      note: `Hạn thanh toán ${formatDate(invoice.dueDate)}`,
+      actor: 'Hệ thống',
+    },
+  ];
+
+  const sortedPayments = (payments ?? [])
+    .slice()
+    .sort((a, b) => new Date(a.initiatedAt).getTime() - new Date(b.initiatedAt).getTime());
+
+  for (const p of sortedPayments) {
+    if (p.paymentStatus === PaymentStatus.COMPLETED && p.completedAt) {
+      events.push({
+        step: 'PAYMENT_RECEIVED',
+        at: new Date(p.completedAt),
+        note: `Phiếu thu ${p.paymentNumber}`,
+        actor: p.paymentMethod,
+        amount: p.amount,
+      });
+    } else if (p.paymentStatus === PaymentStatus.FAILED) {
+      events.push({
+        step: 'FAILED',
+        at: new Date(p.completedAt ?? p.initiatedAt),
+        note: p.failureReason ?? 'Thanh toán thất bại',
+        actor: p.paymentMethod,
+        status: 'failed',
+      });
+    } else if (p.paymentStatus === PaymentStatus.REFUNDED) {
+      events.push({
+        step: 'REFUNDED',
+        at: new Date(p.completedAt ?? p.initiatedAt),
+        note: 'Đã hoàn tiền',
+        amount: p.amount,
+      });
+    }
+  }
+
+  if (invoice.status === KCInvoiceStatus.PAID && invoice.paidAt) {
+    events.push({
+      step: 'COMPLETED',
+      at: new Date(invoice.paidAt),
+      note: 'Đã thanh toán đủ',
+      actor: 'Hệ thống',
+    });
+  }
+
+  let state: PaymentTimelineState = 'pending';
+  if (invoice.status === KCInvoiceStatus.PAID) state = 'paid';
+  else if (invoice.status === KCInvoiceStatus.OVERDUE) state = 'overdue';
+  else if (invoice.amountPaid > 0 && invoice.balanceDue > 0) state = 'partial-paid';
+  else if (sortedPayments.some((p) => p.paymentStatus === PaymentStatus.REFUNDED)) state = 'refunded';
+
+  return { state, events };
+}
 
 export default function InvoiceDetailPage() {
   const params = useParams();
@@ -32,135 +184,172 @@ export default function InvoiceDetailPage() {
   const applyLateFeesMutation = useApplyLateFees(id);
   const cancelMutation = useCancelInvoice(id);
 
-  if (isLoading) return (
-    <DashboardLayout>
-      <div className="flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" aria-label="Đang tải" />
-      </div>
-    </DashboardLayout>
+  // Map KC types → G6/G10 props (memo so empty arrays don't churn).
+  const g6Invoice = useMemo(() => (invoice ? toG6Invoice(invoice) : null), [invoice]);
+  const timeline = useMemo<Pick<PaymentStatusTimelineProps, 'state' | 'events'> | null>(
+    () => (invoice ? toG10Timeline(invoice, payments) : null),
+    [invoice, payments],
   );
 
-  if (error || !invoice) return (
-    <DashboardLayout>
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <AlertCircle className="mb-4 h-12 w-12 text-destructive" />
-        <h2 className="mb-2 text-xl font-semibold">Không tìm thấy hóa đơn</h2>
-        <p className="mb-4 text-muted-foreground">Hóa đơn không tồn tại hoặc không thể tải dữ liệu.</p>
-        <Link href="/billing">
-          <Button variant="outline">Quay lại danh sách hóa đơn</Button>
-        </Link>
-      </div>
-    </DashboardLayout>
-  );
+  if (isLoading)
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center py-12">
+          <div
+            className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"
+            aria-label="Đang tải"
+          />
+        </div>
+      </DashboardLayout>
+    );
+
+  if (error || !invoice)
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <AlertCircle className="mb-4 h-12 w-12 text-destructive" />
+          <h2 className="mb-2 text-xl font-semibold">Không tìm thấy hóa đơn</h2>
+          <p className="mb-4 text-muted-foreground">Hóa đơn không tồn tại hoặc không thể tải dữ liệu.</p>
+          <Link href="/billing">
+            <Button variant="outline">Quay lại danh sách hóa đơn</Button>
+          </Link>
+        </div>
+      </DashboardLayout>
+    );
+
+  const g6State: InvoiceState =
+    g6Invoice?.status === 'PAID'
+      ? 'paid'
+      : g6Invoice?.status === 'OVERDUE'
+      ? 'overdue'
+      : g6Invoice?.status === 'PENDING_PAYMENT' || g6Invoice?.status === 'PARTIAL_PAID'
+      ? 'pending'
+      : 'default';
 
   return (
     <DashboardLayout>
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">
-            Hóa đơn {invoice.invoiceNumber}
-          </h1>
-          <div className="mt-2">
-            <InvoiceStatusBadge status={invoice.status} />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Hóa đơn {invoice.invoiceNumber}
+            </h1>
+            <div className="mt-2">
+              <InvoiceStatusBadge status={invoice.status} />
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {invoice.status === KCInvoiceStatus.PENDING && invoice.balanceDue > 0 && (
+              <Link href={`/billing/${id}/pay`}>
+                <Button>
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Thanh toán
+                </Button>
+              </Link>
+            )}
+            {invoice.status === KCInvoiceStatus.PENDING && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => applyLateFeesMutation.mutate()}
+                  disabled={applyLateFeesMutation.isPending}
+                >
+                  <AlertTriangle className="mr-2 h-4 w-4" />
+                  Tính phí trễ
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => cancelMutation.mutate()}
+                  disabled={cancelMutation.isPending}
+                >
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Hủy hóa đơn
+                </Button>
+              </>
+            )}
           </div>
         </div>
-        <div className="flex gap-2">
-          {invoice.status === 'PENDING' && invoice.balanceDue > 0 && (
-            <Link href={`/billing/${id}/pay`}>
-              <Button>
-                <CreditCard className="mr-2 h-4 w-4" />
-                Thanh toán
-              </Button>
-            </Link>
-          )}
-          {invoice.status === 'PENDING' && (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => applyLateFeesMutation.mutate()}
-                disabled={applyLateFeesMutation.isPending}
-              >
-                <AlertTriangle className="mr-2 h-4 w-4" />
-                Tính phí trễ
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => cancelMutation.mutate()}
-                disabled={cancelMutation.isPending}
-              >
-                <XCircle className="mr-2 h-4 w-4" />
-                Hủy hóa đơn
-              </Button>
-            </>
-          )}
+
+        {/* Owner-facing financial summary tiles (pro v2 token-style). */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card className="rounded-xl shadow-sm">
+            <CardHeader>
+              <CardTitle>Thông tin hóa đơn</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Ngày phát hành:</span>
+                <span>{formatDate(invoice.issueDate)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Hạn thanh toán:</span>
+                <span>{formatDate(invoice.dueDate)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Kỳ học:</span>
+                <span>
+                  {formatDate(invoice.periodStart)} - {formatDate(invoice.periodEnd)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Học viên:</span>
+                <span>#{invoice.studentId}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-xl shadow-sm">
+            <CardHeader>
+              <CardTitle>Tổng quan thanh toán</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Tổng cộng:</span>
+                <span className="font-medium">{formatVNCurrency(invoice.subtotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Giảm giá:</span>
+                <span className="text-green-600">-{formatVNCurrency(invoice.discount)}</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between text-lg font-bold">
+                <span>Tổng tiền:</span>
+                <span>{formatVNCurrency(invoice.total)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Đã thanh toán:</span>
+                <span>{formatVNCurrency(invoice.amountPaid)}</span>
+              </div>
+              <div className="flex justify-between text-lg font-bold text-destructive">
+                <span>Còn lại:</span>
+                <span>{formatVNCurrency(invoice.balanceDue)}</span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* G10 PaymentStatusTimeline — lifecycle visualization */}
+        {timeline && (
+          <section data-testid="invoice-payment-timeline" aria-label="Lịch sử thanh toán">
+            <PaymentStatusTimeline
+              invoiceNumber={invoice.invoiceNumber}
+              state={timeline.state}
+              events={timeline.events}
+              totalAmount={invoice.total}
+            />
+          </section>
+        )}
+
+        {/* G6 InvoiceDetail — VN tax-invoice rendering (preview/print) */}
+        {g6Invoice && (
+          <section data-testid="invoice-detail-g6" aria-label="Chi tiết hóa đơn (định dạng in)">
+            <InvoiceDetail invoice={g6Invoice} state={g6State} />
+          </section>
+        )}
+
+        {/* Items + Adjustments + Payment History — lazy-loaded panels */}
+        <DynamicInvoiceDetailPanels invoice={invoice} payments={payments} />
       </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Thông tin hóa đơn</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Ngày phát hành:</span>
-              <span>{formatDate(invoice.issueDate)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Hạn thanh toán:</span>
-              <span>{formatDate(invoice.dueDate)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Kỳ học:</span>
-              <span>
-                {formatDate(invoice.periodStart)} - {formatDate(invoice.periodEnd)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Học viên:</span>
-              <span>#{invoice.studentId}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Tổng quan thanh toán</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Tổng cộng:</span>
-              <span className="font-medium">
-                {formatCurrency(invoice.subtotal)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Giảm giá:</span>
-              <span className="text-green-600">
-                -{formatCurrency(invoice.discount)}
-              </span>
-            </div>
-            <Separator />
-            <div className="flex justify-between text-lg font-bold">
-              <span>Tổng tiền:</span>
-              <span>{formatCurrency(invoice.total)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Đã thanh toán:</span>
-              <span>{formatCurrency(invoice.amountPaid)}</span>
-            </div>
-            <div className="flex justify-between text-lg font-bold text-destructive">
-              <span>Còn lại:</span>
-              <span>{formatCurrency(invoice.balanceDue)}</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Items + Adjustments + Payment History — lazy-loaded below the fold */}
-      <DynamicInvoiceDetailPanels invoice={invoice} payments={payments} />
-    </div>
     </DashboardLayout>
   );
 }
