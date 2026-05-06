@@ -6,7 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { User, Building2, Lock, Save } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { User, Building2, Lock, Save, Bell, Globe } from 'lucide-react';
 import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 
@@ -44,6 +52,27 @@ export function AccountTab({ user, phone, organizationName }: AccountTabProps) {
     newPassword: '',
     confirmPassword: '',
   });
+
+  // Notification + locale preferences (Wave 31 Bucket D — KH pro v2 port).
+  // Persisted client-side only for now; backend endpoint to wire up tracked
+  // separately when notification-prefs API ships.
+  const [prefsForm, setPrefsForm] = useState({
+    emailNotifications: true,
+    trialReminders: true,
+    productUpdates: false,
+    locale: 'vi' as 'vi' | 'en',
+  });
+  const [isPrefsSaving, setIsPrefsSaving] = useState(false);
+
+  const handlePrefsSave = async () => {
+    setIsPrefsSaving(true);
+    try {
+      // TODO: wire to backend when /api/users/{id}/preferences ships.
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    } finally {
+      setIsPrefsSaving(false);
+    }
+  };
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,6 +210,122 @@ export function AccountTab({ user, phone, organizationName }: AccountTabProps) {
       </Card>
 
       <Separator />
+
+      {/* Notification & Locale Preferences (Wave 31 Bucket D) */}
+      <Card data-testid="prefs-section">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Bell className="h-5 w-5 text-primary" />
+            <CardTitle>Thông báo & Ngôn ngữ</CardTitle>
+          </div>
+          <CardDescription>
+            Quản lý email thông báo và ngôn ngữ giao diện
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="space-y-1 min-w-0">
+                <Label htmlFor="emailNotifications" className="text-sm font-medium">
+                  Email thông báo chung
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Nhận email về sự kiện quan trọng của phiên bản
+                </p>
+              </div>
+              <Switch
+                id="emailNotifications"
+                checked={prefsForm.emailNotifications}
+                onCheckedChange={(checked) =>
+                  setPrefsForm({ ...prefsForm, emailNotifications: checked })
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-4">
+              <div className="space-y-1 min-w-0">
+                <Label htmlFor="trialReminders" className="text-sm font-medium">
+                  Nhắc hết hạn trial
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Thông báo khi trial gần hết hạn (3, 1 ngày trước)
+                </p>
+              </div>
+              <Switch
+                id="trialReminders"
+                checked={prefsForm.trialReminders}
+                onCheckedChange={(checked) =>
+                  setPrefsForm({ ...prefsForm, trialReminders: checked })
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-4">
+              <div className="space-y-1 min-w-0">
+                <Label htmlFor="productUpdates" className="text-sm font-medium">
+                  Tin tức sản phẩm
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Cập nhật tính năng mới và mẹo sử dụng KiteClass
+                </p>
+              </div>
+              <Switch
+                id="productUpdates"
+                checked={prefsForm.productUpdates}
+                onCheckedChange={(checked) =>
+                  setPrefsForm({ ...prefsForm, productUpdates: checked })
+                }
+              />
+            </div>
+
+            <Separator />
+
+            <div className="flex items-center justify-between gap-4">
+              <div className="space-y-1 min-w-0">
+                <Label htmlFor="locale" className="text-sm font-medium flex items-center gap-1.5">
+                  <Globe className="h-3.5 w-3.5" />
+                  Ngôn ngữ giao diện
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Chọn ngôn ngữ hiển thị trong KiteHub
+                </p>
+              </div>
+              <Select
+                value={prefsForm.locale}
+                onValueChange={(value: 'vi' | 'en') =>
+                  setPrefsForm({ ...prefsForm, locale: value })
+                }
+              >
+                <SelectTrigger id="locale" className="w-[160px]" data-testid="locale-select">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="vi">Tiếng Việt</SelectItem>
+                  <SelectItem value="en">English</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button
+                type="button"
+                onClick={handlePrefsSave}
+                disabled={isPrefsSaving}
+                data-testid="prefs-save"
+              >
+                {isPrefsSaving ? (
+                  'Đang lưu...'
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Lưu cài đặt
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Password Section */}
       <Card>

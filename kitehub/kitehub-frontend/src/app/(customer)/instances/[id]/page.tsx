@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils';
 import { Building2, ExternalLink, CreditCard, Palette, ArrowLeft, Info, Clock } from 'lucide-react';
 import { getTenantUrl, getTenantDisplayUrl } from '@/lib/tenant-url';
+import { InstanceLifecycleStatus } from '@kite/shared-ui';
+import { useInstanceLifecycle } from '../_lifecycle-mock';
 
 export default function InstanceDetailPage({
   params,
@@ -23,6 +25,12 @@ export default function InstanceDetailPage({
   const { data: trialStatus } = useTrialStatus(
     instance?.isOnTrial ? instance.id : undefined
   );
+
+  // G9 InstanceLifecycleStatus — Wave 31 Bucket D. Backend
+  // /api/instances/{id}/status polling endpoint not yet shipped — using
+  // client-side mock until kitehub-branding lands the controller.
+  const { state: lifecycleState, events: lifecycleEvents } =
+    useInstanceLifecycle(id);
 
   if (isLoading) {
     return (
@@ -118,6 +126,31 @@ export default function InstanceDetailPage({
           </Card>
         )}
       </div>
+
+      {/* G9 InstanceLifecycleStatus — full lifecycle timeline */}
+      <Card className="shadow-soft" data-testid="g9-timeline">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <div className="rounded-lg bg-primary/10 p-2 text-primary">
+              <Clock className="h-4 w-4" />
+            </div>
+            Vòng đời thương hiệu AI
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <InstanceLifecycleStatus
+            instanceId={instance.id}
+            instanceName={instance.organizationName}
+            state={lifecycleState}
+            events={lifecycleEvents}
+            liveUrl={
+              lifecycleState === 'DEPLOYED'
+                ? getTenantDisplayUrl(instance.subdomain)
+                : undefined
+            }
+          />
+        </CardContent>
+      </Card>
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-3">
