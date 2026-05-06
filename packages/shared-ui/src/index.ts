@@ -45,6 +45,14 @@ export type {
   StudentRecord,
 } from './components/G2-attendance-roster';
 
+// G5 PaymentMethodSelector — VN multi-gateway picker (Wave 27 Bucket C, GAP-273)
+export { PaymentMethodSelector } from './components/G5-payment-method-selector';
+export type {
+  PaymentMethod,
+  PaymentMethodOption,
+  PaymentMethodSelectorProps,
+} from './components/G5-payment-method-selector';
+
 // G6 Invoice Detail — VN tax + currency (Wave 27 Bucket B, GAP-273)
 export {
   InvoiceDetail,
