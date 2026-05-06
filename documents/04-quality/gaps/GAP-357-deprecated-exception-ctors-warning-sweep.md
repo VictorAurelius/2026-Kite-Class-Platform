@@ -1,6 +1,6 @@
 # GAP-357: Deprecated exception-ctor migration + IDE warning sweep (kiteclass-core)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 2 housekeeping shipped 2026-05-06 (1 MapStruct unmapped + 4 unused imports). Phase 1 (43-file deprecated-ctor migration) still OPEN, eligible post-Wave-23 as wave-pack (~17 module PRs parallel).
 **Priority:** 🟡 P3 (tech-debt — non-blocking; future-risk when deprecated ctors removed)
 **Domain:** Backend / Tech-debt
 **Found:** 2026-05-05 (IDE diagnostics during Wave 19 wait window)
@@ -76,10 +76,10 @@ Add ArchUnit test or Checkstyle rule banning `new ValidationException(String)` /
 - [ ] All 43 source files migrated to new error-code ctor
 - [ ] ~150 new error-code keys added to `messages.properties` + `messages_vi.properties` (mirrored, vi translations provided)
 - [ ] mvn `./mvnw -pl kiteclass-core clean verify -Dcheckstyle.skip=true` green
-- [ ] `ClassMapper.java` recurrenceRule mapping resolved (ignore or add to DTO)
-- [ ] 4 unused imports removed
-- [ ] LSP/IDE clean: 0 deprecated-ctor warnings on touched files
-- [ ] Business docs updated for any user-visible error codes
+- [x] `ClassMapper.java` recurrenceRule mapping resolved — `@Mapping(target = "recurrenceRule", ignore = true)` (Phase 2 — Wave 23 wait window 2026-05-06)
+- [x] 4 unused imports removed — IncidentServiceTest (`BeforeEach`), ClassRecurrenceServiceTest (`anyLong`), ParentTranscriptServiceTest (`EntityNotFoundException`), NotificationPreferenceServiceTest (`eq`) (Phase 2 — Wave 23 wait window 2026-05-06)
+- [ ] LSP/IDE clean: 0 deprecated-ctor warnings on touched files (Phase 1 still pending — 43 files)
+- [ ] Business docs updated for any user-visible error codes (Phase 1 dependency)
 
 ## Out-of-scope
 
@@ -103,4 +103,5 @@ Add ArchUnit test or Checkstyle rule banning `new ValidationException(String)` /
 
 ## Log
 
+- **2026-05-06 (Wave 23 wait window)** Phase 2 housekeeping shipped. ClassMapper.java `recurrenceRule` ignore mapping added; 4 unused imports removed (IncidentServiceTest BeforeEach, ClassRecurrenceServiceTest anyLong, ParentTranscriptServiceTest EntityNotFoundException, NotificationPreferenceServiceTest eq). `mvnw test-compile` clean both kiteclass-core + kitehub-subscription. Status 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 PARTIAL exit ramp; Phase 1 (43-file migration + ~150 message keys + ArchUnit lock-in) still OPEN, eligible post-Wave-23 as parallel wave-pack across ~17 modules.
 - **2026-05-05** Filed during Wave 19 wait window after IDE diagnostics surfaced ~30 warnings. State-check expanded scope from IDE-flagged 6 files → full 43. Filed instead of fixed because heavy overlap with active Bucket A (childprotection — 4 files, 23 call sites). Per agent-tool guidance "do not duplicate this agent's work — avoid working with the same files." Migration deferred to post-Wave-19 wave-pack.

@@ -7,7 +7,6 @@ import com.kiteclass.core.module.childprotection.enums.IncidentCategory;
 import com.kiteclass.core.module.childprotection.enums.IncidentSeverity;
 import com.kiteclass.core.module.childprotection.enums.IncidentStatus;
 import com.kiteclass.core.module.childprotection.repository.IncidentRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
