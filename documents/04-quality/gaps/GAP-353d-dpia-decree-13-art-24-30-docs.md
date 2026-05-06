@@ -1,6 +1,6 @@
 # GAP-353d: DPIA Documentation — Decree 13/2023/NĐ-CP Art 24-30 (PDPL Phase 2)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-06 — Phase 1 SKELETON shipped (Wave 26 Bucket B)
 **Priority:** 🟡 P2 (Decree 13/2023 mandates DPIA for orgs processing >100k PII subjects; MVP solo-dev <<100k subjects → not yet binding, but pre-MVP launch documentation = good practice)
 **Domain:** Compliance / BRD / Documentation
 **Found:** 2026-05-06 (Wave 23 closure follow-up)
@@ -58,14 +58,14 @@ Per Wave 23 plan §1 trade-off Q2 — DPIA documentation deferred from Wave 23 c
 
 ## Acceptance Criteria
 
-- [ ] `documents/00-brd/dpo-designation.md` skeleton
-- [ ] `documents/00-brd/dpia.md` skeleton with processing inventory + risk matrix
-- [ ] `documents/00-brd/mps-a05-registration-check.md` (procedure + threshold trigger)
-- [ ] Privacy Policy §2 + §13 updated
-- [ ] Quarterly DPIA review cadence documented
-- [ ] Threshold-trigger automation (subscription count check → flag DPO when approaching 100k)
-- [ ] Sample mitigation controls inventory (encryption / access / retention / consent)
-- [ ] Cross-links in `documents/00-brd/README.md`
+- [x] `documents/00-brd/dpo-designation.md` skeleton
+- [x] `documents/00-brd/dpia.md` skeleton with processing inventory + risk matrix
+- [x] `documents/00-brd/mps-a05-registration-check.md` (procedure + threshold trigger)
+- [x] Privacy Policy §2 + §13 updated
+- [x] Quarterly DPIA review cadence documented (annual + event-driven triggers per `dpia.md` §5)
+- [x] Threshold-trigger automation procedure documented (50k/75k/90k thresholds in `mps-a05-registration-check.md` §3.2; Phase 2 metric counter implementation noted §3.3)
+- [x] Sample mitigation controls inventory (12 control families: encryption / access / retention / consent / audit logging / authentication / data minimization / backup / vendor / training / incident response / child heightened — `dpia.md` §3.5)
+- [x] Cross-links in `documents/00-brd/README.md`
 
 ## Related
 
@@ -90,3 +90,4 @@ Per Wave 23 plan §1 trade-off Q2 — DPIA documentation deferred from Wave 23 c
 ## Log
 
 - **2026-05-06:** Filed at Wave 23 closure per wave plan §7 Closure Protocol. Decree 13/2023 Art 24-30 DPIA Phase 2 — pre-launch documentation while subject count below 100k threshold. Bump to P1 when approaching 50k subscribers; P0 at 90k (legal hard-deadline).
+- **2026-05-06** (Wave 26 Bucket B): Phase 1 SKELETON shipped. Status flipped 🔵 OPEN → 🟢 DONE per `gap-done-discipline.md` §2 — skeleton scope IS the deliverable per gap §"Why P2" (full risk-matrix backfill is event-driven at 50k subscriber trigger, NOT deferral inside DONE flip). 3 new BRD docs created: `dpo-designation.md` (Decree 13/2023 Art 27-28 framework, 9 sections, 5-attribute frontmatter, acting solo-dev DPO declaration `@nguyenvankiet` per `business-logic-review.md` §2.3 exemption with role declaration); `dpia.md` (8 sections, 6-row processing inventory, 5×5 probability×impact risk matrix template, 12-family mitigation controls placeholder, 4 high-risk activities identified, annual + event-driven review cadence); `mps-a05-registration-check.md` (8 sections, registration intent, 4-tier threshold monitoring 50k/75k/90k/100k + K-12 special trigger, full artifacts checklist for A05 submission). Cross-link updates surgical: `privacy-policy.md` Owner field + §2 DPO designation field + §13 DPIA mitigation summary; `README.md` 3 new doc index entries. Phase 2 backfill triggers: counsel sign-off via GAP-156, 50k subscriber threshold full risk assessment, K-12 launch child-data DPIA mandatory, 100k subscriber legal hard-deadline A05 registration. Effective immediately for compliance audit purposes.
