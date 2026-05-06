@@ -1,6 +1,6 @@
 # GAP-353: PDPL 2023 Cookie / Consent Banner — KH + KC Marketing Kits
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Wave 23 SHIPPED 2026-05-06 (Layers 1+2+3+5 + GAP-368 production legal pages); Phase 2 follow-ups GAP-353b (server consent API) + GAP-353c (DSAR self-service intake) + GAP-353d (DPIA Decree 13/2023 Art 24-30 docs).
 **Priority:** 🔴 P0 (legal mandate — Personal Data Protection Law 2023 effective 2026-07-01; blocks GA for marketing surfaces)
 **Domain:** Compliance / Frontend / Design System
 **Found:** 2026-05-05 (simulation-gap-finder — Persona: Platform Admin × Stage: Discovery × Category: C6 Compliance)

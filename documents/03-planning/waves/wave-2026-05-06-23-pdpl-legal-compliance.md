@@ -1,6 +1,6 @@
 ---
 title: Wave 23 — PDPL 2023 Legal Compliance (consent banner + production legal pages + marketing rules)
-status: draft
+status: complete
 created: 2026-05-06
 updated: 2026-05-06
 waves: [23]
@@ -261,3 +261,4 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ## 8. Log
 
 - **2026-05-06** (draft): Plan created. 4-bucket scope-optimized after simulation-gap-finder cluster pass: GAP-353 (3 layers) + GAP-368 NEW (production legal pages — hard dependency for banner UX defensibility). Defer 3 Phase 2 follow-ups (GAP-353b server API, GAP-353c DSAR form, GAP-353d DPIA docs) — file at closure. Bucket BC merged single-agent (component + integration); B→C dependency real. Wall-clock estimate ~45-60min parallel. Token cost estimate ~1.2-1.5M (4 agents × 300-400k).
+- **2026-05-06** (complete): Wave SHIPPED — 4 PRs merged. **#821 Bucket F GAP-368 🟢 DONE** (6 production legal pages × KH+KC + cookie-policy.md BRD + 14 ACs ticked, both builds ✅). **#819 Bucket BC GAP-353 L2+3** (ConsentBanner React in `packages/shared-ui/` + production integration both `(public)/layout.tsx`; 27 tests; both pnpm builds ✅; 3 ACs ticked). **#816 Bucket A GAP-353 L1** (4 BR-PDPL-CONSENT-* full 5-attribute in canonical kitehub/marketing/rules.md + KC cross-link). **#818 Bucket E GAP-353 L5** (consent-banner.html mockup 110/128 + dossier 14 G14 entries × KC+KH + GAP-274/275/350 AC updates). One conflict resolution (Bucket A rebase merged BC's Log entry + AC ticks additively). 3 follow-up gaps filed at closure: GAP-353b (server consent API + audit-log link, ~12-16h, P1), GAP-353c (DSAR self-service intake form, ~6-8h, P2), GAP-353d (DPIA Decree 13/2023 Art 24-30 docs, ~4-6h, P2). GAP-353 status flip 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3. Wall-clock ~80min total (longest bucket BC ~12min, F ~16min, A ~5min, E ~7min, plus closure work + conflict resolution). 57th consecutive 0-clarification streak (53→57 wave-pack run).
