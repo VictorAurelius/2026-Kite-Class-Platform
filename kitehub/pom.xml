@@ -35,6 +35,8 @@
         <commons-beanutils.version>1.11.0</commons-beanutils.version>
         <commons-compress.version>1.28.0</commons-compress.version>
         <poi.version>5.5.1</poi.version>
+        <!-- GAP-114: structured JSON logging via LogstashEncoder (Spring Boot 3.5.x compatible) -->
+        <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
     </properties>
 
     <modules>
@@ -107,6 +109,13 @@
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi-ooxml</artifactId>
                 <version>${poi.version}</version>
+            </dependency>
+
+            <!-- GAP-114: structured JSON logging — used by per-service logback-spring.xml -->
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash-logback-encoder.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

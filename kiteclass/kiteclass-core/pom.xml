@@ -36,6 +36,8 @@
         <poi.version>5.5.1</poi.version>
         <!-- Wave 5 ADR-019: document generation stack. openhtmltopdf-pdfbox 1.0.x pulls Apache PDFBox 2.0.x transitively. -->
         <openhtmltopdf.version>1.0.10</openhtmltopdf.version>
+        <!-- GAP-114: structured JSON logging via LogstashEncoder (Spring Boot 3.5.x compatible) -->
+        <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
     </properties>
 
     <dependencyManagement>
@@ -146,6 +148,13 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
+        <!-- GAP-114: structured JSON logging encoder; consumed by logback-spring.xml -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>${logstash-logback-encoder.version}</version>
         </dependency>
 
         <!-- Resilience (Circuit Breaker + Bulkhead + Retry) per ADR-008 -->
