@@ -1,16 +1,21 @@
 ---
-title: MVP Launch Plan 2026 — Phased Rollout (P1+P2 → P3 → K-12)
+title: Release Lần 1 Plan 2026 — Phased Rollout (Beta → Paid → P3 → K-12)
 status: active
 created: 2026-05-06
 updated: 2026-05-06
-phases: [1, 2, 3]
+phases: [1-beta, 1.5-paid, 2, 3]
+release: 1
 ---
 
-# MVP Launch Plan 2026 — Phased Rollout
+# Release Lần 1 Plan 2026 — Phased Rollout (Option β — Soft Beta + Iterate)
 
-**Trạng thái:** ACTIVE — chốt 2026-05-06 sau session Wave 22+23+24 + user decision context.
+**Trạng thái:** ACTIVE — chốt 2026-05-06 sau Wave 24 closure + production-ready simulation.
 
-**Mục tiêu:** Ship Kite SaaS platform tới production với 3 phases tuần tự, tối ưu time-to-revenue + rủi ro pháp lý kiểm soát được.
+**Định nghĩa "Release Lần 1":** Phase 1 BETA + Phase 1.5 PAID gộp lại = **Release Lần 1** = first deployable, production-grade SaaS launch tới public paid market. Phase 2 (P3 add) + Phase 3 (K-12) là các releases sau (Release 2, Release 3 — name TBD).
+
+**Mục tiêu Release Lần 1:** Ship Kite SaaS tới production paid launch via **soft beta first** (invite-only, free), sau đó iterate close BLOCKING gaps → public paid launch. Tối ưu learning-loop + giảm rủi ro pháp lý + có time refine từ beta feedback.
+
+**Decision update 2026-05-06 (Option β confirmed):** Production-ready simulation revealed 5 BLOCKING gaps + 4 STRONGLY recommend gaps không cover trong original Phase 1 scope. Thay vì extend Phase 1 (Option α: 12-16 weeks), chia làm **Phase 1 BETA** (9-12 weeks invite-only) + **Phase 1.5 PAID** (+4-6 weeks close BLOCKING) → Release Lần 1 production paid launch. Tổng Release 1 timeline tăng ~3-4 tuần so với Option α nhưng giảm rủi ro launch failure đáng kể.
 
 ---
 
@@ -42,27 +47,36 @@ User đã chốt 2026-05-06:
 
 | Constraint | Hard date | Status |
 |---|---|---|
-| **PDPL 2023 effective date** | 2026-07-01 | ~8 tuần countdown; Phase 1 ✅ shipped Wave 23; Phase 2 (GAP-353b/c/d) trong Phase 1 MVP |
+| **PDPL 2023 effective date** | 2026-07-01 | ~8 tuần countdown; Phase 1 ✅ shipped Wave 23; Phase 2 (GAP-353b/c/d) trong Phase 1 BETA |
 | **K-12 school year start** (nếu launch K-12) | 2026-08 niên khóa mới | Phase 3 dependent |
 | **Marketing/funding deadline** | None reported | Không pressure cụ thể |
 
-### 1.5 Track 2 (production rebuild theo UI kit specs) — **MVP-CRITICAL**
+### 1.5 Track 2 (production rebuild theo UI kit specs) — **Release-1-CRITICAL**
 
-User confirmed 2026-05-06 (Option α): **Full Track 2 Phase 1 = 8 ports** ship trong MVP Phase 1.
+User confirmed 2026-05-06 (Option α): **Full Track 2 Phase 1 = 8 ports** ship trong Release Lần 1 Phase 1 BETA.
 
 Lý do: Production FE hiện tại pre-kit (older inconsistent design); UI kits Round 2/3 = canon design spec. Marketing screenshots dùng kit polished; không port = brand mismatch first impression.
 
 ---
 
-## 2. Phase Structure
+## 2. Phase Structure (Option β — Soft Beta + Iterate)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Phase 1 (9-12 calendar weeks)                                │
-│ Target: P1 (solo teacher) + P2 (small center ≤50 HS)         │
-│ Scope: ~50-60 gaps + 8 Track 2 ports                         │
-│ "v1 pending" disclaimer OK on legal surfaces                 │
-│ Soft launch — paid tenants accepted, no K-12                 │
+│ Phase 1 BETA (9-12 calendar weeks)                           │
+│ Target: P1 + P2 — INVITE-ONLY, 10-20 trusted tenants         │
+│ Free during beta period                                       │
+│ Disclaimer: "Beta — not for production-critical use"         │
+│ Scope: ~50-60 gaps + 8 Track 2 ports (original Phase 1)      │
+│ NO payment processing, NO public signup                       │
+│ Goal: real-world feedback loop + bug discovery               │
+├─────────────────────────────────────────────────────────────┤
+│ Phase 1.5 PAID (+4-6 calendar weeks)                         │
+│ Target: PUBLIC PAID LAUNCH P1 + P2                           │
+│ Close 5 BLOCKING + 4 STRONGLY recommend gaps                  │
+│ Scope: ~12 gaps (payment + refund/AUP/DSAR/RTBF + pen test + │
+│        deploy runbook + monitoring dashboards + SLO)          │
+│ Trigger: Beta feedback stabilized + tenants happy            │
 ├─────────────────────────────────────────────────────────────┤
 │ Phase 2 (+4-6 calendar weeks)                                │
 │ Target: + P3 (medium center 50-200 HS)                       │
@@ -76,29 +90,46 @@ Lý do: Production FE hiện tại pre-kit (older inconsistent design); UI kits 
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Total MVP timeline:** ~21-30 calendar weeks ≈ **5-7 tháng** từ 2026-05-06 → ~2026-10/11 GA.
+**Total timeline:** ~25-34 calendar weeks ≈ **6-8 tháng** từ 2026-05-06 → ~2026-11/12 full K-12 GA.
+
+| Milestone | Calendar week | Release |
+|---|---|---|
+| **Phase 1 BETA launch** (invite-only, free) | Week 9-12 | Release Lần 1 (beta) |
+| **Phase 1.5 PAID launch** (public paid) | Week 13-18 | **🎯 Release Lần 1 (PRODUCTION)** |
+| **Phase 2 P3 add** | Week 17-24 | Release 2 |
+| **Phase 3 K-12 GA** | Week 25-34 | Release 3 |
 
 ---
 
-## 3. Phase 1 — P1 + P2 Soft Launch (9-12 tuần)
+## 3. Phase 1 BETA — P1 + P2 Invite-Only (9-12 tuần)
+
+### 3.0 Beta launch model
+
+- **Invite-only:** 10-20 trusted tenants (dạy thêm + trung tâm nhỏ; user-curated list)
+- **Free during beta:** không charge payment trong beta period
+- **Beta disclaimer trên signup + dashboard banner:**
+  > "Kite is currently in BETA. Features may change, occasional issues expected. Free during beta period (~4-6 weeks). Your feedback shapes the production launch."
+- **No public signup** — disable signup form on public marketing pages; replace với "Request Beta Access" form (collect email + contact, manual approval)
+- **No payment processor required** trong beta (defer to Phase 1.5)
+- **Goal:** real-world feedback loop, bug discovery, UX validation, performance baseline với real data
 
 ### 3.1 Target users
 
 - **P1 — Solo teacher** (giáo viên dạy thêm 1-1, dạy nhóm nhỏ <10 HS)
 - **P2 — Small center owner** (chủ trung tâm nhỏ, ≤50 HS, ≤5 GV)
 
-### 3.2 Gap clusters (target ~50-60 gaps)
+### 3.3 Gap clusters (target ~50-60 gaps)
 
-#### Cluster 3.2.1 — PDPL Phase 2 (close legal compliance loop) [3 gaps]
+#### Cluster 3.3.1 — PDPL Phase 2 (close legal compliance loop) [3 gaps]
 - **GAP-353b** server consent API + audit-log link (~12-16h, P1)
 - **GAP-353c** DSAR self-service intake form (~6-8h, P2)
 - **GAP-353d** DPIA Decree 13/2023 Art 24-30 docs (~4-6h, P2)
 
 **Wave-pack candidate:** GAP-353b + GAP-353c sequential bucket — same `kitehub-subscription` module sub-package isolation.
 
-**Hard deadline:** PDPL effective 2026-07-01 → ship trước hoặc shortly after acceptable since LocalStorage MVP shipped Wave 23 covers Art 11+13.
+**Hard deadline:** PDPL effective 2026-07-01 → ship trước hoặc shortly after acceptable since LocalStorage Phase 1 shipped Wave 23 covers Art 11+13.
 
-#### Cluster 3.2.2 — Critical infra / Observability [8-10 gaps]
+#### Cluster 3.3.2 — Critical infra / Observability [8-10 gaps]
 
 Backend infrastructure cho production-grade ops:
 - **GAP-114** structured JSON logging
@@ -109,12 +140,12 @@ Backend infrastructure cho production-grade ops:
 - **GAP-144** alertmanager production receivers (PARTIAL)
 - **GAP-145** Loki tracing stack
 - **GAP-117** restore drill test (PARTIAL — quarterly cadence)
-- **GAP-204** npm security backlog (PARTIAL — pre-MVP fixes)
+- **GAP-204** npm security backlog (PARTIAL — pre-Release-1 fixes)
 - **GAP-218** PDF font missing runbook
 
-**Why MVP:** production launch không có tracing + logs + alerts = blind ops. Nếu incident xảy ra, không debug được + không recover được.
+**Why Release-1:** production launch không có tracing + logs + alerts = blind ops. Nếu incident xảy ra, không debug được + không recover được.
 
-#### Cluster 3.2.3 — Trial → Paid flow + billing [4-5 gaps]
+#### Cluster 3.3.3 — Trial → Paid flow + billing [4-5 gaps]
 
 - **GAP-192** trial-to-paid zero-downtime migration (PARTIAL)
 - **GAP-260** gateway tier multiplier enforcement
@@ -122,18 +153,18 @@ Backend infrastructure cho production-grade ops:
 - **GAP-185** billing terms VAT TCT compliance (PARTIAL)
 - **GAP-108** payment-invoice config externalization
 
-**Why MVP:** không có trial→paid migration = không có revenue path. Rate limit + tier enforcement = không có monetization control.
+**Why Release-1:** không có trial→paid migration = không có revenue path. Rate limit + tier enforcement = không có monetization control.
 
-#### Cluster 3.2.4 — Bulk import + onboarding [3-4 gaps]
+#### Cluster 3.3.4 — Bulk import + onboarding [3-4 gaps]
 
 - **GAP-137** bulk import frontend UI missing
 - **GAP-325** parent-student bulk import link (P2 setup)
 - **GAP-287** branding wizard skip default (P1+P2 fast onboarding)
 - **GAP-288** onboarding tour solo teacher (P1 first-time setup)
 
-**Why MVP:** P2 small center onboarding cần bulk import HS/GV cho first-time setup. P1 cần onboarding tour.
+**Why Release-1:** P2 small center onboarding cần bulk import HS/GV cho first-time setup. P1 cần onboarding tour.
 
-#### Cluster 3.2.5 — Track 2 ports (8 ports — Full α) [8 gaps]
+#### Cluster 3.3.5 — Track 2 ports (8 ports — Full α) [8 gaps]
 
 Per user decision Option α 2026-05-06:
 
@@ -154,50 +185,50 @@ Total Track 2 raw: ~12-15 tuần FE work. Parallel-agent leverage ~2.5× (FE les
 
 **Strategy:** ship GAP-273 (shared lib) FIRST — week 1-2; then 4-5 ports parallel/wave; final 3-4 ports parallel/wave.
 
-#### Cluster 3.2.6 — UI Kits polish (close Wave 22 follow-ups) [4 gaps]
+#### Cluster 3.3.6 — UI Kits polish (close Wave 22 follow-ups) [4 gaps]
 
 - **GAP-363b** kiteclass-student external re-audit + delta-to-≥105 (~10-15h)
 - **GAP-364b** kitehub-admin cross-screen polish (~23h)
 - **GAP-366** frontend-standards.md kit-as-source-of-truth
 - **GAP-367** quality/kit-production-parity skill
 
-**Why MVP:** Track 2 ports (cluster 5) cần parity-checked vs kit. GAP-366/367 là enforcement framework. GAP-363b/364b polish kits trước khi port.
+**Why Release-1:** Track 2 ports (cluster 5) cần parity-checked vs kit. GAP-366/367 là enforcement framework. GAP-363b/364b polish kits trước khi port.
 
-#### Cluster 3.2.7 — Tech-debt critical [3-4 gaps]
+#### Cluster 3.3.7 — Tech-debt critical [3-4 gaps]
 
 - **GAP-357** deprecated ctor migration Phase 1 (PARTIAL — 17 modules remaining)
-- **GAP-204** npm security (PARTIAL — pre-MVP CVE sweep)
+- **GAP-204** npm security (PARTIAL — pre-Release-1 CVE sweep)
 - **GAP-261** Werror flipday (compile warnings → errors)
 - **GAP-245** CI enforce IDE warnings (PARTIAL)
 
-**Why MVP:** code quality baseline trước production scale-out. Tech-debt accrues fast post-MVP.
+**Why Release-1:** code quality baseline trước production scale-out. Tech-debt accrues fast post-Release-1.
 
-#### Cluster 3.2.8 — Persona reviews + business correctness [3 gaps]
+#### Cluster 3.3.8 — Persona reviews + business correctness [3 gaps]
 
 - **GAP-049** business logic correctness review (PARTIAL — Phase 2 audit 45 rules.md files)
 - **GAP-050** persona-based business review (PARTIAL)
 - **GAP-156** business rules compliance audit (PARTIAL)
 
-**Why MVP:** existing 5-attribute review framework shipped (Wave Business Correctness 2026-04-29); Phase 2 = run audit on existing 45 rules.md files. Quarterly cadence post-MVP.
+**Why Release-1:** existing 5-attribute review framework shipped (Wave Business Correctness 2026-04-29); Phase 2 = run audit on existing 45 rules.md files. Quarterly cadence post-Release-1.
 
-#### Cluster 3.2.9 — KiteHub control + admin [4-5 gaps]
+#### Cluster 3.3.9 — KiteHub control + admin [4-5 gaps]
 
 - **GAP-067** KiteHub instance control plane
 - **GAP-068** KiteHub admin branding console
 - **GAP-040** support impersonation tools
 - **GAP-066** KiteHub unified reports dashboard
 
-**Why MVP:** KH admin needs visibility/control khi paid tenants signup. Without these, support impossible.
+**Why Release-1:** KH admin needs visibility/control khi paid tenants signup. Without these, support impossible.
 
-#### Cluster 3.2.10 — AI Branding minimum (subset of GAP-225 cluster) [4-5 gaps]
+#### Cluster 3.3.10 — AI Branding minimum (subset of GAP-225 cluster) [4-5 gaps]
 
-Wave 23 already shipped ConsentBanner + GAP-368 legal pages. AI Branding minimum cho MVP:
+Wave 23 already shipped ConsentBanner + GAP-368 legal pages. AI Branding minimum cho Release Lần 1:
 - **GAP-014** wave mock include AI branding (PARTIAL)
 - **GAP-220** branding version snapshot JSONB (PARTIAL)
 - **GAP-215** branding service cacheable
 - **GAP-272** AI Branding wizard v2 port — WAIT: this is Phase 2 if AI Branding Phase 1 minimal
 
-Decision: AI Branding Phase 1 MVP = **basic branding (logo upload + color theme picker)** without full AI generation. Defer GAP-003 (multi-tier image), GAP-004 (template-based image), GAP-006 (Gemma upgrade) to Phase 2.
+Decision: AI Branding Phase 1 BETA = **basic branding (logo upload + color theme picker)** without full AI generation. Defer GAP-003 (multi-tier image), GAP-004 (template-based image), GAP-006 (Gemma upgrade) to Phase 2.
 
 ### 3.3 Phase 1 critical path
 
@@ -205,22 +236,22 @@ Decision: AI Branding Phase 1 MVP = **basic branding (logo upload + color theme 
 Week 1-2:
   ├─ GAP-273 components shared lib (BLOCKING for all FE ports)
   ├─ GAP-353b PDPL server consent API (PARTIAL deadline 2026-07-01)
-  ├─ Cluster 3.2.2 Critical infra (parallel BE wave-pack)
-  └─ Cluster 3.2.7 Tech-debt critical
+  ├─ Cluster 3.3.2 Critical infra (parallel BE wave-pack)
+  └─ Cluster 3.3.7 Tech-debt critical
 
 Week 3-5:
   ├─ Track 2 ports wave-pack 1: GAP-274 + GAP-275 + GAP-276 + GAP-277 (4 parallel FE)
-  ├─ Cluster 3.2.3 Trial→Paid + billing (BE wave-pack)
-  └─ Cluster 3.2.6 UI Kits polish (GAP-363b/364b/366/367)
+  ├─ Cluster 3.3.3 Trial→Paid + billing (BE wave-pack)
+  └─ Cluster 3.3.6 UI Kits polish (GAP-363b/364b/366/367)
 
 Week 6-8:
   ├─ Track 2 ports wave-pack 2: GAP-266 + GAP-268 + GAP-270 + GAP-280 (4 parallel FE)
-  ├─ Cluster 3.2.4 Bulk import + onboarding
-  └─ Cluster 3.2.9 KiteHub control + admin
+  ├─ Cluster 3.3.4 Bulk import + onboarding
+  └─ Cluster 3.3.9 KiteHub control + admin
 
 Week 9-10:
-  ├─ Cluster 3.2.10 AI Branding minimum
-  ├─ Cluster 3.2.8 Persona reviews + business correctness Phase 2
+  ├─ Cluster 3.3.10 AI Branding minimum
+  ├─ Cluster 3.3.8 Persona reviews + business correctness Phase 2
   └─ Wave 35-37 FE polish + integration testing
 
 Week 11-12:
@@ -244,7 +275,75 @@ Week 11-12:
 
 ---
 
-## 4. Phase 2 — P3 Medium-Center Add-On (+4-6 tuần)
+### 3.6 Phase 1 BETA deliverables (success criteria → trigger Phase 1.5)
+
+Trigger để move Phase 1.5 (close BLOCKING gaps → public paid launch):
+- [ ] 8 Track 2 ports shipped — production FE matches kit canon
+- [ ] Production observability: logs aggregated + traces + alerts + restore drill
+- [ ] 10-20 invite-only beta tenants signed up + onboarded
+- [ ] **Beta period 4-6 weeks completed** với:
+  - 0 P0 incidents 2 weeks running
+  - User feedback collected (qualitative interviews + bug reports)
+  - Performance baseline measured (P95 latency, error rates)
+  - Quality audit /100 ≥ 80
+- [ ] No K-12 tenants accepted (P5 defer Phase 3)
+- [ ] PDPL Phase 1 + Phase 2 ✅ shipped (banner + legal pages + server API)
+- [ ] AI Branding minimum: logo upload + color theme picker functional
+
+---
+
+## 4. Phase 1.5 PAID — Close BLOCKING gaps → Public Paid Launch (+4-6 tuần)
+
+### 4.1 Trigger conditions
+
+Phase 1.5 START khi đủ:
+1. ✅ Phase 1 BETA deliverables met (§3.6)
+2. ✅ Beta tenants stable (no critical bugs unresolved)
+3. ✅ Decision to scale to public paid market (user confirms)
+
+### 4.2 BLOCKING gaps cluster (~5-7 gaps)
+
+Phải close cho public paid launch — legal/financial/security exposure if missing:
+
+| Gap | Scope | Effort | Why BLOCKING |
+|---|---|---|---|
+| **GAP-NEW-payment-processor-init** | VNPay/MoMo init flow integration (sandbox + production keys + checkout webhook) | ~1 tuần | Không có thì không thu tiền được |
+| **GAP-183 close** | Refund / dispute resolution policy (PARTIAL → DONE) | ~3 ngày | Paid tenants có quyền refund; không có policy = legal exposure |
+| **GAP-181 close** | Acceptable Use Policy (PARTIAL → DONE) | ~2 ngày | Must-have với ToS cho paid market |
+| **GAP-353c close** | DSAR self-service intake form (P2 defer → Phase 1.5 promote) | ~6-8h | PDPL Art 14 mandate; manual email-based ban đầu OK nhưng risky public scale |
+| **GAP-073 close** | Account deletion / RTBF endpoint + UI (post-Release-1 defer → Phase 1.5 promote) | ~1 tuần | PDPL Art 14 erasure right; user yêu cầu xóa account = vi phạm nếu không có |
+| **GAP-185 close** | VAT eInvoice TT 78/2021 NĐ 123/2020 production-ready | ~3-5 ngày | Tax compliance cho paid invoices |
+
+### 4.3 STRONGLY recommend cluster (~4-5 gaps)
+
+Should close cho production-grade launch — non-blocking nhưng risk visible:
+
+| Gap | Scope | Effort | Why |
+|---|---|---|---|
+| **GAP-NEW-pen-test-light** | OWASP top 10 audit + security headers (CSP/HSTS/X-Frame-Options/CSRF config) + secrets management review | ~1 tuần | Standard SaaS security baseline |
+| **GAP-NEW-deploy-runbook** | Production deploy runbook + go-live checklist + Oracle Cloud activation | ~3-5 ngày | Need clear procedure cho production deploy |
+| **GAP-NEW-monitoring-dashboards** | Grafana setup + alerts wired tới on-call channel + dashboard creation | ~3-5 ngày | Production launch không có dashboard = blind ops |
+| **GAP-135 close** | API P95 latency SLO definitions (PARTIAL → DONE) | ~2 ngày | Need explicit SLOs cho monitoring + ops escalation |
+
+### 4.4 Phase 1.5 deliverables (trigger Phase 2)
+
+- [ ] All 5-7 BLOCKING gaps closed
+- [ ] All 4-5 STRONGLY recommend gaps closed
+- [ ] Public signup form re-enabled trên marketing pages
+- [ ] Payment processor live (VNPay/MoMo)
+- [ ] First 5-10 paid tenants signed up + onboarded successfully
+- [ ] Refund flow tested end-to-end
+- [ ] Account deletion flow tested
+- [ ] DSAR intake form functional + ticketing
+- [ ] Pen test report committed
+- [ ] Production monitoring dashboards live
+- [ ] SLO targets documented + alerts wired
+- [ ] Quality audit /100 ≥ 85 (higher bar than Phase 1 BETA)
+- [ ] No P0 incidents 4 weeks running
+
+---
+
+## 5. Phase 2 — P3 Medium-Center Add-On (+4-6 tuần)
 
 ### 4.1 Target users
 
@@ -304,7 +403,7 @@ Phase 2 **start counsel engagement search** (parallel với code work):
 
 ---
 
-## 5. Phase 3 — K-12 Schools (post-counsel, ~8-12 tuần)
+## 6. Phase 3 — K-12 Schools (post-counsel, ~8-12 tuần)
 
 ### 5.1 Trigger conditions
 
@@ -376,7 +475,7 @@ ETA: 6-10 tuần sau Phase 2 starts counsel engagement.
 
 ---
 
-## 6. Post-MVP defer list (~80 gaps explicit defer)
+## 7. Post-Release-1 defer list (~80 gaps explicit defer)
 
 Sau khi 3 phases ship, các gaps này tracked trong backlog nhưng KHÔNG block GA:
 
@@ -453,7 +552,7 @@ Sau khi 3 phases ship, các gaps này tracked trong backlog nhưng KHÔNG block 
 
 ---
 
-## 7. Forever-defer / out-of-scope (~25 gaps)
+## 8. Forever-defer / out-of-scope (~25 gaps)
 
 Gaps explicit KHÔNG ship trong any phase v1.0; revisit post-GA hoặc skip:
 
@@ -476,7 +575,7 @@ Gaps explicit KHÔNG ship trong any phase v1.0; revisit post-GA hoặc skip:
 
 ---
 
-## 8. Stop-doing list rationale
+## 9. Stop-doing list rationale
 
 Why explicit defer (không phải "later" — actually KHÔNG ship pre-GA):
 
@@ -490,7 +589,7 @@ Why explicit defer (không phải "later" — actually KHÔNG ship pre-GA):
 
 ---
 
-## 9. Wave roadmap Phase 1 (next 3-4 waves outline)
+## 10. Wave roadmap Phase 1 + 1.5 (next 6-8 waves outline)
 
 ### Wave 25 (current + 1) — PDPL Phase 2 + Critical infra start
 - **Bucket A:** GAP-353b server consent API + audit-log link
@@ -526,24 +625,43 @@ Why explicit defer (không phải "later" — actually KHÔNG ship pre-GA):
 - **Bucket C:** GAP-357 Phase 1b (~5-7 modules deprecated ctor migration)
 - Wall-clock: ~45 min
 
-### Wave 30+ — Phase 1 stabilization + E2E + deploy
+### Wave 30+ — Phase 1 BETA stabilization + invite + measure
 - Playwright E2E suite
-- Production deploy infra (DNS, CI/CD, monitoring)
-- 5-10 beta tenant onboarding
+- Production deploy infra (DNS, CI/CD, monitoring) — minimum viable
+- 10-20 invite-only beta tenants onboarding
+- Beta feedback collection (interviews, bug tracking)
 - Quality audit /100 baseline ≥80
-- Phase 1 SOFT LAUNCH
+- Phase 1 BETA SOFT LAUNCH 🚀
+- 4-6 tuần beta period running
 
-**Wave 25-30 estimated: 5-6 calendar weeks at sustained 5/7 active days cadence.** Plus ~3-4 weeks Track 2 ports waves (parallel với BE waves) = **9-12 calendar weeks Phase 1 total**.
+**Wave 25-30 estimated: 9-12 calendar weeks Phase 1 BETA total.**
+
+### Wave 31-34 — Phase 1.5 BLOCKING + STRONGLY recommend gaps
+- Wave 31: payment processor init (VNPay/MoMo) + GAP-185 close eInvoice
+- Wave 32: GAP-183 + GAP-181 close (refund + AUP) + GAP-353c DSAR + GAP-073 RTBF
+- Wave 33: pen-test light + security headers + GAP-135 SLO
+- Wave 34: deploy runbook + monitoring dashboards activation + paid launch prep
+
+### Wave 35 — Phase 1.5 PUBLIC PAID LAUNCH
+- Public signup re-enabled
+- Payment processor live
+- Quality audit /100 ≥85 + 0 P0 incidents 4 weeks
+- Phase 1.5 PAID LAUNCH 🚀
+
+**Wave 31-35 estimated: 4-6 calendar weeks Phase 1.5 total.**
+
+**Combined Phase 1 + Phase 1.5: 13-18 calendar weeks → public paid launch.**
 
 ---
 
-## 10. Tracking + reviews
+## 11. Tracking + reviews
 
-### 10.1 Per-phase milestones
+### 11.1 Per-phase milestones
 
 | Phase | Milestone gates | Review cadence |
 |---|---|---|
-| **Phase 1** | Quality audit /100 ≥80 + 5 beta tenants live + 0 P0 incidents 2 tuần | Weekly + post-wave audit |
+| **Phase 1 BETA** | 8 Track 2 ports + observability + 10-20 invite tenants live + 0 P0 incidents 2 tuần + Quality audit /100 ≥80 | Weekly + post-wave audit |
+| **Phase 1.5 PAID** | 5 BLOCKING + 4 STRONGLY-recommend gaps closed + payment live + 5-10 paid tenants + Quality audit /100 ≥85 + 0 P0 incidents 4 tuần | Weekly |
 | **Phase 2** | Counsel engagement started + P3 commission engine prod | Weekly + counsel-engagement check |
 | **Phase 3** | Counsel sign-off + MPS A05 + DPIA + K-12 LEGAL trio prod-grade | Weekly + legal review per surface |
 
@@ -556,12 +674,12 @@ Why explicit defer (không phải "later" — actually KHÔNG ship pre-GA):
 ### 10.3 Scope creep handling
 
 - Mọi simulation-gap-finder run trong Phase 1: file gaps as P3 unless directly blocking MVP
-- Audit findings: split into "block Phase 1 launch" vs "post-MVP" — prefer post-MVP unless P0 LEGAL/security
+- Audit findings: split into "block Phase 1 launch" vs "post-Release-1" — prefer post-Release-1 unless P0 LEGAL/security
 - User-flagged misses: pipeline qua `incident-to-rule-pipeline.md` — apply scope discipline
 
 ---
 
-## 11. Open items / clarifications
+## 12. Open items / clarifications
 
 Items chưa quyết định, cần user xác nhận khi gặp:
 
@@ -573,16 +691,28 @@ Items chưa quyết định, cần user xác nhận khi gặp:
 
 ---
 
-## 12. Log
+## 13. Log
 
-- **2026-05-06:** Plan created. User confirmed:
+- **2026-05-06 (initial):** Plan created. User confirmed:
   - Solo dev mode + no counsel engaged
   - Risk tolerance Moderate ("v1 pending" OK non-K-12)
   - Track 2 Option α (full 8 ports Phase 1)
 - 3-phase rollout: P1+P2 (9-12 tuần) → P3 (+4-6 tuần) → K-12 post-counsel (+8-12 tuần)
-- Total MVP timeline 5-7 tháng calendar
-- ~50-60 gaps Phase 1 critical + 8 Track 2 ports + ~25 P3 Phase 2 + ~30 K-12 Phase 3 + ~80 post-MVP defer + ~25 forever-defer
+- Total Release Lần 1 timeline 5-7 tháng calendar
+- ~50-60 gaps Phase 1 critical + 8 Track 2 ports + ~25 P3 Phase 2 + ~30 K-12 Phase 3 + ~80 post-Release-1 defer + ~25 forever-defer
 - Wave 25-30 Phase 1 outline drafted
+
+- **2026-05-06 (revised — Option β):** Production-ready simulation revealed 5 BLOCKING + 4 STRONGLY recommend gaps không cover Phase 1 (payment processor, refund/AUP, DSAR/RTBF, pen-test light, deploy runbook, monitoring dashboards, SLO). User chose **Option β — Soft Beta + Iterate** thay vì Option α extend Phase 1.
+- Plan revised với **Phase 1.5 PAID** insertion giữa Phase 1 BETA và Phase 2:
+  - Phase 1 BETA = invite-only 10-20 trusted tenants free; 9-12 tuần
+  - Phase 1.5 PAID = close BLOCKING gaps → public paid launch; +4-6 tuần
+  - Combined Phase 1 + 1.5 = 13-18 calendar weeks → public paid launch
+  - Total Release Lần 1 timeline 6-8 tháng calendar (was 5-7)
+- Wave 25-30 vẫn cho Phase 1 BETA; Wave 31-35 mới cho Phase 1.5 PAID
+- Beta launch model documented (§3.0): invite-only signup form replaces public signup, free during beta, beta disclaimer trên dashboard, no payment processor required
+- BLOCKING + STRONGLY recommend gaps documented in §4.2 + §4.3 với effort estimates
+- Phase 1 + 1.5 success criteria split rõ (§3.6 + §4.4)
+- User feedback: "release lần 1 mang tính chất là 1 MVP ổn định để deploy thôi nên option B là hợp lý nhỉ"
 
 ---
 
