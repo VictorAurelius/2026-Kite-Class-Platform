@@ -1,6 +1,6 @@
 ---
 title: Wave 28 — Track 2 Phase 3 — port 4 G* + D1 ConfirmDialog (G3 + G4 + G8 + G10 + D1)
-status: draft
+status: complete
 created: 2026-05-06
 updated: 2026-05-06
 waves: [28]
@@ -215,3 +215,4 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ## 8. Log
 
 - **2026-05-06 (draft):** Plan created post-Wave-27-ship. State-check verified all 4 G* + D1 source paths + Radix availability + Wave 27 ConsentBanner/G* reference patterns. Teacher-unblock allocation chosen over KH-pro-heavy. 5-bucket wave (within `feedback_parallel_agent_strategy.md` rule #9 max-cap). Round 3 spec format guidance baked into agent briefings. D1 NEW workspace dep (`@radix-ui/react-dialog`) — Bucket E sole package.json toucher. D1 callsite migration explicitly deferred to follow-up gap (zero conflict surface for D1 bucket).
+- **2026-05-06 (complete):** Wave SHIPPED. 5 PRs (#856 G3 / #857 G4 / #858 G8 / #859 D1 / #860 G10) squash-merged after coordinator-resolved 4 additive `index.ts` conflicts. Final shared-ui state: 210/210 tests (108 baseline + 102 new = G3 35 + G4 20 + G8 27 + G10 10 + D1 10) + type-check clean. Wall-clock 7-13 min/agent parallel; coordinator merge resolution ~25 min. Token cost ~1.7M agents + coordinator. 2 agents (D + E) flagged worktree absolute-path contamination — recurrence per `feedback_worktree_absolute_path_contamination.md`; main worktree had leakage from concurrent writes; coordinator stashed clean pre-merges. 64th consecutive 0-clarification streak. Notable: Bucket A correctly followed spec authoritative over briefing typo (1 decimal max vs briefing's .25 step) — same pattern as Wave 27 Bucket C. Bucket D proved cross-component re-use working (`G10.formatVNCurrency === G6.formatVNCurrency` identity preserved). Bucket E shipped FIRST shared-ui Radix-based component + first new workspace dep since Phase 1 bootstrap. **Side activities same session:** `post-wave-audit-mandate.md` v1.1.0 (PR #861) — Domain-Milestone Audit Cadence + audit-gate detector. Wave 29 plan PR #855 PIPELINED-drafted during agents (first formal §Step 5.5 application). 4 follow-ups carry to Wave 29: D1 callsite migration, shared-ui CI workflow, cross-app smoke test demo, visual regression baseline. **Audit deferral:** wave qualifies for `track-2-shared-ui` domain milestone defer per new v1.1.0 §2.4 — closure trailer `AUDIT_DEFER_DOMAIN_MILESTONE: track-2-shared-ui — milestone Wave 29 closes Track 2 Phase 3`. GAP-273 stays 🟡 PARTIAL (8/12 G* + 1 D*; G1/G9/G11/G12 → Wave 29).
