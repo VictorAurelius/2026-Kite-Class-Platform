@@ -86,6 +86,16 @@ if [ -d "$LOCK_DIR" ]; then
   find "$LOCK_DIR" -name 'session-*.lock' -mmin +240 -delete 2>/dev/null || true
 fi
 
+# Worktree husks under .claude/worktrees/ — agent-scratch ephemeral per
+# `agent-background-spawn-default.md`; closure protocol mandates prune
+# (post-wave-cleanup.md). Count for hint emission.
+WT_HUSK_COUNT=0
+if [ -d ".claude/worktrees" ]; then
+  WT_HUSK_COUNT="$(git worktree list 2>/dev/null \
+    | awk '$1 ~ /\/\.claude\/worktrees\// {print}' \
+    | wc -l | tr -d ' ')"
+fi
+
 # Blocker gaps — parse ROADMAP "GA Blockers" table (column 2 only, preserve table order)
 # GAP-224: regex bumped to handle sub-IDs (GAP-222a/b/c); column-2 extraction skips
 # prose cross-refs (e.g. "BLOCKS GAP-006"); awk dedup preserves table order vs sort -u.
@@ -173,6 +183,7 @@ MCP servers:       $MCP_CONNECTED/$MCP_TOTAL connected${MCP_FAILED:+ (FAILED: $M
 Wave hiện tại:     ${CURRENT_WAVE:-<chưa rõ — check ROADMAP.md thủ công>}
 Gaps blocker:      ${BLOCKERS:-<none>}
 Session locks:     $ACTIVE_LOCKS  [$LOCK_LIST]
+Worktree husks:    $WT_HUSK_COUNT (.claude/worktrees/agent-*)$([ "$WT_HUSK_COUNT" -ge 3 ] && echo "  ⚠️  ≥3 → run: bash scripts/prune-merged-worktrees.sh --dry-run")
 
 Merges gần đây (3 ngày):
 $(echo "${RECENT_MERGES:-<none>}" | tr '§' '\n' | sed 's/^/  · /')
