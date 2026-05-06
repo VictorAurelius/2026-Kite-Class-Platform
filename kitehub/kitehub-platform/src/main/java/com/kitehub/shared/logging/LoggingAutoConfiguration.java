@@ -25,7 +25,10 @@ public class LoggingAutoConfiguration {
 
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-    @ConditionalOnClass(name = "jakarta.servlet.Filter")
+    @ConditionalOnClass(name = {
+        "jakarta.servlet.Filter",
+        "org.springframework.security.core.context.SecurityContextHolder"
+    })
     static class ServletConfig {
 
         @Bean
