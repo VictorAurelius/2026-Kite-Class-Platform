@@ -8,11 +8,7 @@
  * cookie/consent UI for KH + KC public marketing surfaces.
  *
  * Phase 2 (Wave 27, GAP-273): G2/G5/G6/G7 component port — Track 2 Phase 2.
- *
- * Phase 2 (Wave 28 Bucket D, GAP-273): G10 PaymentStatusTimeline — first
- * cross-component re-use of a shared util (G6 `formatVNCurrency`).
- *
- * Future phases: remaining G1/G3/G4/G8/G9/G11/G12 + D1..D10 components per Track 2 wave-pack.
+ * Phase 3 (Wave 28, GAP-273): G3/G4/G8/G10 + D1 component port — Track 2 Phase 3.
  *
  * See:
  * - documents/02-architecture/adr/ADR-024-shared-ui-lib-strategy.md
@@ -49,6 +45,26 @@ export type {
   StudentRecord,
 } from './components/G2-attendance-roster';
 
+// G3 GradebookEntryGrid — VN 10pt scale + Excel paste (Wave 28 Bucket A, GAP-273)
+export { GradebookEntryGrid, validateGrade, parseExcelPaste } from './components/G3-gradebook-entry-grid';
+export type {
+  GradebookEntryGridProps,
+  GradebookSession,
+  GradebookCell,
+  GradebookCellStatus,
+  GradeWeight,
+} from './components/G3-gradebook-entry-grid';
+
+// G4 ClassScheduleManager — recurring rules + conflict detection (Wave 28 Bucket B, GAP-273)
+export { ClassScheduleManager, detectConflicts } from './components/G4-class-schedule-manager';
+export type {
+  ClassScheduleManagerProps,
+  RecurrenceRule,
+  WeekDay,
+  ScheduleSlot,
+  ConflictWarning,
+} from './components/G4-class-schedule-manager';
+
 // G5 PaymentMethodSelector — VN multi-gateway picker (Wave 27 Bucket C, GAP-273)
 export { PaymentMethodSelector } from './components/G5-payment-method-selector';
 export type {
@@ -84,16 +100,21 @@ export type {
   ParentInviteProps,
 } from './components/G7-parent-invite';
 
-// G10 PaymentStatusTimeline — payment lifecycle visualisation (Wave 28 Bucket D, GAP-273).
-// First cross-component re-use of a shared util: identity-preserved import of
-// G6 `formatVNCurrency` (no copy-paste drift).
+// G8 AttendanceCalendar — teacher month-view + 30-day streak (Wave 28 Bucket C, GAP-273)
+export { AttendanceCalendar, calculateStreak } from './components/G8-attendance-calendar';
+export type {
+  AttendanceCalendarProps,
+  AttendanceDayStatus,
+  MonthCalendarData,
+  StreakInfo,
+} from './components/G8-attendance-calendar';
+
+// G10 PaymentStatusTimeline — VN currency steps (re-uses G6 formatVNCurrency) (Wave 28 Bucket D, GAP-273)
 export { PaymentStatusTimeline } from './components/G10-payment-timeline';
 export type {
   PaymentStatusTimelineProps,
-  PaymentTimelineState,
   PaymentTimelineStep,
   TimelineEvent,
-  TimelineEventStatus,
 } from './components/G10-payment-timeline';
 
 // Phase 1 stub — kept for back-compat consumers reading version.
