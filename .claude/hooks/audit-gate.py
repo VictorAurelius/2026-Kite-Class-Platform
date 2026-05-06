@@ -432,6 +432,66 @@ def has_audit_override(pr: str, info: dict) -> tuple[bool, str]:
     return False, ""
 
 
+# Domain registry per post-wave-audit-mandate.md §2.4.1
+DOMAIN_REGISTRY = {
+    "track-2-shared-ui": ["packages/shared-ui/"],
+    "phase-4-kit-ports": ["kiteclass/kiteclass-frontend/", "kitehub/kitehub-frontend/"],
+    "release-deploy-artifacts": ["infrastructure/", "helm/", "terraform-aws/", "terraform-oracle/"],
+    "meta-governance": [".claude/rules/", ".claude/skills/"],
+    # backend-domain-* keys are dynamic — accepted with prefix match
+}
+
+
+def has_domain_milestone_defer(pr: str, files: list[str]) -> tuple[bool, str, str]:
+    """Check AUDIT_DEFER_DOMAIN_MILESTONE trailer per post-wave-audit-mandate.md §2.4.
+
+    Returns (deferred, domain_key, error_msg). If trailer present but domain
+    invalid OR diff touches outside domain → returns (False, key, error).
+    Else (True, key, "") = silent pass (audit deferred to milestone).
+    """
+    body = gh_run(["pr", "view", pr, "--json", "body", "--jq", ".body"]) or ""
+    match = re.search(r"AUDIT_DEFER_DOMAIN_MILESTONE:\s*([\w-]+)\s*(?:—|--)?\s*(.+?)(?:\n|$)", body)
+    if not match:
+        return False, "", ""
+    domain_key = match.group(1).strip()
+    # Accept backend-domain-* prefix
+    valid_keys = list(DOMAIN_REGISTRY.keys()) + [k for k in [domain_key] if k.startswith("backend-domain-")]
+    if domain_key not in valid_keys:
+        return False, domain_key, f"AUDIT_DEFER_DOMAIN_MILESTONE: unknown domain key '{domain_key}'. Valid: {sorted(DOMAIN_REGISTRY.keys())} or backend-domain-*"
+    # Validate diff stays within domain path scope
+    if domain_key.startswith("backend-domain-"):
+        # Backend domain accepts kiteclass-core/kitehub/* — broad
+        path_scopes = ["kiteclass/", "kitehub/"]
+    else:
+        path_scopes = DOMAIN_REGISTRY[domain_key]
+    # Allowlist: docs/governance changes always OK alongside domain work
+    docs_allow = ("documents/", ".claude/", "README", "CLAUDE.md", "MEMORY.md", ".github/")
+    out_of_scope = []
+    for f in files:
+        if any(f.startswith(s) for s in path_scopes):
+            continue
+        if any(f.startswith(s) for s in docs_allow):
+            continue
+        out_of_scope.append(f)
+    if out_of_scope:
+        return False, domain_key, f"AUDIT_DEFER_DOMAIN_MILESTONE: '{domain_key}' but diff touches {len(out_of_scope)} file(s) outside domain scope (first 3: {out_of_scope[:3]}). Either remove out-of-scope changes or run audit per §2.1."
+    return True, domain_key, ""
+
+
+def has_domain_milestone_audit(pr: str) -> tuple[bool, str]:
+    """Check DOMAIN_MILESTONE_AUDIT trailer (milestone wave audit reports).
+    Returns (present_and_valid, reason)."""
+    body = gh_run(["pr", "view", pr, "--json", "body", "--jq", ".body"]) or ""
+    match = re.search(r"DOMAIN_MILESTONE_AUDIT:\s*([\w-]+)\s+(.+?)(?:\n|$)", body)
+    if not match:
+        return False, ""
+    domain_key = match.group(1).strip()
+    reports = [p.strip() for p in match.group(2).split(",") if p.strip()]
+    if not reports:
+        return False, f"DOMAIN_MILESTONE_AUDIT '{domain_key}' but no audit report paths listed"
+    return True, f"{domain_key}: {len(reports)} reports"
+
+
 def check_gap_doc_drift(pr: str, info: dict, files: list[str]) -> list[str]:
     """Detect PRs that reference GAP-XXX in title/body without touching the gap file.
 
@@ -630,6 +690,13 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
     if missing_audits and not docs_only:
         overridden, override_reason = has_audit_override(pr, info)
 
+    # Check AUDIT_DEFER_DOMAIN_MILESTONE per post-wave-audit-mandate.md §2.4 (v1.1.0)
+    domain_deferred, domain_key, domain_err = (False, "", "")
+    if missing_audits and not docs_only and not overridden:
+        domain_deferred, domain_key, domain_err = has_domain_milestone_defer(pr, files)
+    # Check DOMAIN_MILESTONE_AUDIT (milestone wave running deferred audit)
+    milestone_audit_ok, milestone_reason = has_domain_milestone_audit(pr)
+
     lines = [f"PR #{pr} merged — {len(violations)} violation(s) detected:"]
     for v in violations:
         lines.append(f"  - {v}")
@@ -637,6 +704,12 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
         lines.append("  (docs-only PR — audit/CI checks skipped)")
     if overridden:
         lines.append(f"  ⚠️  AUDIT_OVERRIDE present: {override_reason}")
+    if domain_deferred:
+        lines.append(f"  ℹ️  AUDIT_DEFER_DOMAIN_MILESTONE: '{domain_key}' — audit deferred to milestone wave (per post-wave-audit-mandate.md §2.4)")
+    if domain_err:
+        lines.append(f"  ❌ AUDIT_DEFER_DOMAIN_MILESTONE invalid: {domain_err}")
+    if milestone_audit_ok:
+        lines.append(f"  ✅ DOMAIN_MILESTONE_AUDIT present: {milestone_reason}")
     lines.append(f"\nCompliance: {log['compliance_score']}. Log: documents/03-planning/pr-logs/PR-{pr}.json")
     lines.append("Run: ./scripts/pr-compliance-check.sh " + pr)
 
@@ -648,9 +721,13 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
     if ci_status == "failure" and not docs_only:
         should_block = True
         block_reasons.append("CI failure")
-    if missing_audits and not docs_only and not overridden:
+    if missing_audits and not docs_only and not overridden and not domain_deferred:
         should_block = True
         block_reasons.append(f"missing audits: {', '.join(a['audit'] for a in missing_audits)}")
+    # Domain-deferral with INVALID trailer (typo or out-of-scope diff) → BLOCK
+    if domain_err:
+        should_block = True
+        block_reasons.append(domain_err)
     if ui_kits_blocked:
         should_block = True
         block_reasons.append("UI kits integration smoke test missing (GAP-265)")
