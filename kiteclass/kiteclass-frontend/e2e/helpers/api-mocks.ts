@@ -217,11 +217,47 @@ export async function setupApiMocks(page: Page) {
     }
   });
 
-  // Classes API (nested under courses)
+  // Classes API — list under course (GET returns paginated classes, POST creates)
   await page.route('**/api/v1/courses/*/classes*', async (route) => {
     const method = route.request().method();
 
-    if (method === 'POST') {
+    if (method === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            content: [
+              {
+                id: 1,
+                courseId: 1,
+                name: 'Lớp Tiếng Anh Buổi Sáng',
+                classCode: 'ENG-B1-SANG',
+                description: 'Lớp học buổi sáng',
+                schedule: 'Thứ 2, 4, 6: 08:00-10:00',
+                locationType: 'IN_PERSON',
+                locationDetail: 'Phòng A101',
+                startDate: '2026-03-01',
+                endDate: '2026-06-30',
+                maxStudents: 30,
+                currentEnrolled: 15,
+                status: 'SCHEDULED',
+                startedAt: null,
+                completedAt: null,
+                cancelledAt: null,
+                createdAt: '2026-01-01T00:00:00Z',
+                updatedAt: '2026-01-01T00:00:00Z',
+              },
+            ],
+            totalElements: 1,
+            totalPages: 1,
+            size: 20,
+            number: 0,
+          },
+        }),
+      });
+    } else if (method === 'POST') {
       const postData = route.request().postDataJSON();
       await route.fulfill({
         status: 201,
@@ -239,5 +275,151 @@ export async function setupApiMocks(page: Page) {
         }),
       });
     }
+  });
+
+  // Classes API — individual class detail (GET, PATCH, DELETE + lifecycle sub-routes)
+  await page.route(/\/api\/v1\/classes\/(\d+)(\/.*)?$/, async (route) => {
+    const method = route.request().method();
+    const url = route.request().url();
+    const classIdMatch = url.match(/\/classes\/(\d+)/);
+    const classId = parseInt(classIdMatch?.[1] || '0');
+
+    // 404 for non-existent class
+    if (classId === 99999) {
+      await route.fulfill({
+        status: 404,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: false,
+          error: 'CLASS_NOT_FOUND',
+          message: 'Không tìm thấy lớp học',
+        }),
+      });
+      return;
+    }
+
+    // Sessions sub-route
+    if (method === 'GET' && url.includes('/sessions')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: [
+            {
+              id: 1,
+              classId,
+              sessionNumber: 1,
+              topic: 'Giới thiệu khoá học',
+              scheduledDate: '2026-03-03',
+              startTime: '08:00',
+              endTime: '10:00',
+              status: 'SCHEDULED',
+              notes: null,
+              createdAt: '2026-01-01T00:00:00Z',
+              updatedAt: '2026-01-01T00:00:00Z',
+            },
+          ],
+        }),
+      });
+      return;
+    }
+
+    // Lifecycle mutations
+    if (method === 'POST' && url.includes('/start')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            id: classId,
+            status: 'IN_PROGRESS',
+            startedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        }),
+      });
+      return;
+    }
+
+    if (method === 'POST' && url.includes('/complete')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            id: classId,
+            status: 'COMPLETED',
+            completedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        }),
+      });
+      return;
+    }
+
+    if (method === 'POST' && url.includes('/cancel')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            id: classId,
+            status: 'CANCELLED',
+            cancelledAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        }),
+      });
+      return;
+    }
+
+    if (method === 'POST' && url.includes('/generate-code')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            classId,
+            classCode: 'ENG-2026-001',
+            expiresAt: null,
+          },
+        }),
+      });
+      return;
+    }
+
+    // Default: GET /classes/:id — return SCHEDULED class
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: {
+          id: classId,
+          courseId: 1,
+          name: 'Lớp Tiếng Anh Buổi Sáng',
+          classCode: 'ENG-B1-SANG',
+          description: 'Lớp học buổi sáng',
+          schedule: 'Thứ 2, 4, 6: 08:00-10:00',
+          locationType: 'IN_PERSON',
+          locationDetail: 'Phòng A101',
+          startDate: '2026-03-01',
+          endDate: '2026-06-30',
+          maxStudents: 30,
+          currentEnrolled: 15,
+          status: 'SCHEDULED',
+          startedAt: null,
+          completedAt: null,
+          cancelledAt: null,
+          createdAt: '2026-01-01T00:00:00Z',
+          updatedAt: '2026-01-01T00:00:00Z',
+        },
+      }),
+    });
   });
 }
