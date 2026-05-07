@@ -43,9 +43,19 @@
 |---|---|---|---|
 | **A** User-action prereqs (signup AWS/domain/CF/SES/Instatus) | User | 1-2 ngày real-world | Ready to start NOW with existing `release-1-deploy-runbook.md` Phase 1 §1.1-1.5 — đã có high-level checklist 5 phần; chi tiết 1.3-1.5 đã có runbook (Wave 38) |
 | **B** Wave 39 (4 buckets dev-stack/E2E fix) | Background agents (parallel via wave-pack) | ~45-60 min wall-clock | Buckets: GAP-419 P0 gateway + GAP-418 P1 KH Dockerfile + GAP-420 P1 KC selectors + GAP-417 P2 setup.sh JWT_SECRET (đã giảm 6→4 do GAP-421/422 fix Wave-39-eve) |
-| **C** GAP-394 4 detailed runbooks (AWS walkthrough · domain registrar VN comparison · password manager policy · superadmin first-login) | Foreground agent (sequential docs work) | ~3-6h | Bổ sung detail cho Phase 1 §1.1+1.2 + 2 phần mới chưa có (password manager + superadmin) |
+| **C** Phase 1 VN docs cluster: GAP-394 (4 runbooks) + GAP-423 (SES VN overlay) + GAP-424 (Statuspage VN overlay) = **6 docs total** | Foreground agent (sequential docs work) | ~5h | GAP-394 fills 4 missing (AWS walkthrough · domain registrar VN comparison · password manager · superadmin first-login). GAP-423/424 fill VN coverage gap on existing EN runbooks (SES 0.99% VI / Statuspage 15% VI). |
 
-**A có thể start ngay** với `release-1-deploy-runbook.md` Phase 1 — không phải đợi C ship. C sẽ giúp user khi gặp KYC pitfalls + cần password manager structure + Phase 7 superadmin onboarding.
+**Stream A coverage status (per Stream A audit 2026-05-07 evening):**
+
+| Phase 1.x | Doc | VI status | Verdict |
+|---|---|---|---|
+| 1.1 Domain | `domain-management.md` + ADR-018 | Mixed (architectural) | ⚠️ Cần signup walkthrough → GAP-394 |
+| 1.2 AWS account | ❌ Không tồn tại | — | ❌ → GAP-394 |
+| 1.3 Cloudflare | ✅ `cloudflare-setup.md` (496 dòng) | ✅ Vietnamese đầy đủ | ✅ **Sẵn sàng** |
+| 1.4 SES email | `email-ses-setup-runbook.md` (304 dòng) | ❌ 3/304 VI = effectively EN | ⚠️ → GAP-423 |
+| 1.5 Statuspage | `incident-comms-runbook.md` (205 dòng) | ⚠️ 31/205 VI mixed | ⚠️ → GAP-424 |
+
+**A có thể start NGAY với 1.3 Cloudflare** (đủ VI). Các phần còn lại signup được nếu user OK đọc EN — VN overlay là to-have, không hard-blocking.
 
 **Recommended new session flow:**
 1. `/start-session` → đọc summary này
