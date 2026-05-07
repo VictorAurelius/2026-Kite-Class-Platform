@@ -1,6 +1,6 @@
 # GAP-379: Secrets Management — AWS Secrets Manager + Rotation Policy
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1 STRONGLY recommend (Phase 1 BETA + 1.5 PAID — security baseline)
 **Domain:** Security / DevOps
 **Found:** 2026-05-06 (Release 1 deploy plan)
@@ -126,3 +126,4 @@ Per `.claude/rules/release-deploy-standard.md` §3 — this gap satisfies a chec
 ## Log
 
 - **2026-05-06:** Filed by Release 1 deploy plan PR. Phase 1 BETA strongly recommend — security baseline cho production launch.
+- **2026-05-07:** Wave 33 Bucket D shipped (PR #897 — `secrets-management-runbook.md` + `.env.production.template` với `[REQUIRED]`/`[OPTIONAL]`/`[USER_INPUT]` markers grouped by service; `.gitignore` updated to exclude `.env.production` + `.env.staging` while allowing template). Status 🔵 OPEN → 🟡 PARTIAL — runbook + template + IAM policy templates + rotation policy docs shipped (DB password 90d / JWT 180d / vendor cadence), **AWS Secrets Manager provisioning + IAM policy apply = user-executed steps**. Terraform IaC integration tracked Wave 34+.

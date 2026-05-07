@@ -1,6 +1,6 @@
 # GAP-369: Production DNS + Domain Setup (kitehub.vn + kiteclass.vn)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🔴 P0 BLOCKING (Phase 1 BETA + Phase 1.5 PAID launch)
 **Domain:** Infrastructure / DevOps
 **Found:** 2026-05-06 (Release 1 deploy plan)
@@ -67,3 +67,4 @@ Per `.claude/rules/release-deploy-standard.md` §3 — this gap satisfies a chec
 ## Log
 
 - **2026-05-06:** Filed by Release 1 deploy plan PR. BLOCKING cho Phase 1 BETA launch — không có domain = không có public URL.
+- **2026-05-07:** Wave 33 Bucket D shipped (PR #897 — `dns-setup-runbook.md` + `ssl-cert-setup.sh` + `check-dns-propagation.sh` + `.env.production.template`). Status 🔵 OPEN → 🟡 PARTIAL — runbook + scripts shipped, **domain registration + DNS records configuration = user-executed steps** per gap-done-discipline.md §3 PARTIAL exit ramp. User executes per runbook when ready to deploy.

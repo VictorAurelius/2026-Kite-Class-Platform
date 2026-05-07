@@ -1,6 +1,6 @@
 # GAP-372: Beta Tenant Invite Mechanism — Request Beta Access Form + Manual Approval Flow
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🔴 P0 BLOCKING (Phase 1 BETA invite-only model requires this)
 **Domain:** Frontend / Backend / DevOps
 **Found:** 2026-05-06 (Release 1 deploy plan)
@@ -88,3 +88,4 @@ Per `.claude/rules/release-deploy-standard.md` §3 — this gap satisfies a chec
 ## Log
 
 - **2026-05-06:** Filed by Release 1 deploy plan PR. BLOCKING cho Phase 1 BETA — invite-only model cannot work without this mechanism.
+- **2026-05-07:** Wave 33 Bucket C shipped (PR #898 — `BetaAccessRequest` entity + `BetaAccessRequestStatus` enum + repository + service with state machine + 24h UUID token + Outbox event + 6 REST endpoints + V28 migration + 3 FE pages (request-beta-access / beta-signup / admin/beta-requests) + 5 components/forms + 21 BE tests + 10 FE tests + admin scan extension via coordinator-applied fix). Status 🔵 OPEN → 🟡 PARTIAL — code shipped, **email delivery depends on GAP-370 production SES active**; tenant provisioning wire-up after `completeBetaSignup` deferred follow-up; public `/register` disable toggle deferred follow-up.

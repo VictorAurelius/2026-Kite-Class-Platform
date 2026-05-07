@@ -1,6 +1,6 @@
 ---
 title: Wave 33 — Phase 1 BETA deploy cluster — P0 BLOCKING (seed + email + beta invite + DNS/secrets)
-status: draft
+status: complete
 created: 2026-05-06
 updated: 2026-05-07
 waves: [33]
@@ -209,4 +209,5 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ## 8. Log
 
 - **2026-05-07 (optimized):** Plan compacted §3 Scope per bucket (bullet schema replacing prose) + §State-Check Evidence streamlined (verification command column dropped, redundant rows merged). Net saving ~36 lines (253→217). Strategy B+C from coordinator session 2026-05-07 wave-plan optimization analysis. Sections §1/§2/§5/§6/§7 unchanged (Strategy A — shared `_CONVENTIONS.md` extraction — deferred to post-Wave-32-rework retro per `wave-pack-planner` skill update plan).
+- **2026-05-07 (complete):** All 4 buckets shipped — A #895 (ProductionSeedRunner + V27), B #896 (beta email templates + SES runbook + EmailType enum extension), C #898 (BetaAccessRequest BE entity + 24h UUID token + Outbox + 3 FE pages + 21 BE + 10 FE tests; coordinator-applied admin scan fix on agent branch + force-push), D #897 (DNS runbook + secrets runbook + 2 bash scripts + .env.production.template). 5 GAPs flipped 🔵 OPEN → 🟡 PARTIAL: GAP-376/370/372/369/379 — production execution / SES domain verification / domain registration / Secrets Manager provisioning all user-executed steps per `gap-done-discipline.md` §3 PARTIAL exit ramp. CI fix incident: PR #898 first run failed Admin Service test (UnsatisfiedDependencyException — BetaAccessRequestRepository not in admin @EnableJpaRepositories scan); 1-file 7-line mechanical fix per `feedback_admin_scan_packages_after_module_add.md` recurrence + `feedback_coordinator_ci_fix_pattern.md` force-push pattern. CI 2nd run: 1 transient Docker registry 502 → rerun → 3rd run xanh. Multi-domain wave (BE + FE + Docs) — NO domain-milestone deferral; audit suite must run ≤3 ngày per `post-wave-audit-mandate.md` §2.1.
 - **2026-05-06 (draft):** Wave 33 plan drafted PIPELINED trong khi Wave 32 4 agents in-flight (5th consecutive `wave-pack-planner` §Step 5.5 pipelined application — waves 28→29, 29→30, 30→31, 31→32, 32→33). State-check findings: `SESEmailService.java` + 13 email templates đã tồn tại (Wave 18a partial work on GAP-370) → Bucket B chỉ extends không rewrite. `seed-data.sh` local dev script tồn tại → Bucket A tạo production variant khác biệt. V26 = latest migration → A=V27, C=V28 pre-assigned. `BetaAccessRequest` + beta FE routes đều absent → Bucket C greenfield. GAP-379 scoped down (docs + template only; Terraform integration → Wave 34). Multi-domain wave → NO domain-milestone audit deferral. Spawn timing: AFTER Wave 32 closure + `/clear` recommended.

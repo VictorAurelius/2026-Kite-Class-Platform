@@ -1,6 +1,6 @@
 # GAP-370: Email Transactional Infrastructure (SendGrid / SES / Mailgun)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🔴 P0 BLOCKING (Phase 1 BETA — required cho email verification + invite emails + password reset)
 **Domain:** Infrastructure / DevOps
 **Found:** 2026-05-06 (Release 1 deploy plan)
@@ -96,3 +96,4 @@ Per `.claude/rules/release-deploy-standard.md` §3 — this gap satisfies a chec
 ## Log
 
 - **2026-05-06:** Filed by Release 1 deploy plan PR. BLOCKING cho Phase 1 BETA — beta invite emails + email verification cannot ship without this.
+- **2026-05-07:** Wave 33 Bucket B shipped (PR #896 — beta-invite.html + beta-request-confirmation.html templates + EmailType enum + SES bounce/complaint/rate-limit config + `email-ses-setup-runbook.md` + 8 new tests). Status 🔵 OPEN → 🟡 PARTIAL — templates + config + runbook shipped on top of existing Wave 18a SES infrastructure, **AWS SES sandbox→production approval + DKIM/SPF/DMARC verification = user-executed steps** per runbook. Beta-invite email delivery effective when GAP-379 + production SES landed.
