@@ -158,3 +158,211 @@ resource "aws_iam_role_policy" "github_plan_state_access" {
     ]
   })
 }
+
+# =============================================================================
+# GitHub OIDC — Deploy role (deploy-staging.yml + deploy-production.yml)
+# =============================================================================
+# Per GAP-436: write-capable role for SSM RunCommand on EC2 + Secrets Manager
+# read + ECR pull (login). Scoped trust to main branch + version tags only.
+
+resource "aws_iam_role" "github_deploy" {
+  name = "${var.project_name}-github-deploy"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Federated = aws_iam_openid_connect_provider.github.arn }
+      Action    = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+        StringLike = {
+          # Allow main branch + version tags + GitHub Environments (staging/production)
+          "token.actions.githubusercontent.com:sub" = [
+            "repo:${var.github_repo}:ref:refs/heads/main",
+            "repo:${var.github_repo}:ref:refs/tags/v*",
+            "repo:${var.github_repo}:environment:staging",
+            "repo:${var.github_repo}:environment:production",
+          ]
+        }
+      }
+    }]
+  })
+
+  tags = { Name = "${var.project_name}-github-deploy" }
+}
+
+resource "aws_iam_role_policy" "github_deploy_inline" {
+  name = "${var.project_name}-github-deploy-inline"
+  role = aws_iam_role.github_deploy.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      # ECR pull (login + image read) — needed by amazon-ecr-login action
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:BatchGetImage",
+          "ecr:GetDownloadUrlForLayer",
+        ]
+        Resource = "*"
+      },
+      # SSM RunCommand on instances tagged Project=kitehub
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:SendCommand",
+          "ssm:GetCommandInvocation",
+          "ssm:ListCommandInvocations",
+          "ssm:DescribeInstanceInformation",
+        ]
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "aws:ResourceTag/Project" = var.project_name
+          }
+        }
+      },
+      # SSM document access (AWS-RunShellScript is most common)
+      {
+        Effect = "Allow"
+        Action = "ssm:SendCommand"
+        Resource = [
+          "arn:aws:ssm:${var.aws_region}::document/AWS-RunShellScript",
+        ]
+      },
+      # Secrets Manager read — staging + prod secret prefixes
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret",
+        ]
+        Resource = [
+          "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:kite/staging/*",
+          "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:kite/prod/*",
+        ]
+      },
+    ]
+  })
+}
+
+# =============================================================================
+# GitHub OIDC — ECR Push role (docker-build-push.yml)
+# =============================================================================
+# Per GAP-436: ECR push permission for tag builds. Trust scoped to main + tags.
+
+resource "aws_iam_role" "github_ecr_push" {
+  name = "${var.project_name}-github-ecr-push"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Federated = aws_iam_openid_connect_provider.github.arn }
+      Action    = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+        StringLike = {
+          "token.actions.githubusercontent.com:sub" = [
+            "repo:${var.github_repo}:ref:refs/heads/main",
+            "repo:${var.github_repo}:ref:refs/tags/v*",
+          ]
+        }
+      }
+    }]
+  })
+
+  tags = { Name = "${var.project_name}-github-ecr-push" }
+}
+
+resource "aws_iam_role_policy" "github_ecr_push_inline" {
+  name = "${var.project_name}-github-ecr-push-inline"
+  role = aws_iam_role.github_ecr_push.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "ecr:GetAuthorizationToken"
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:BatchGetImage",
+          "ecr:CompleteLayerUpload",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:InitiateLayerUpload",
+          "ecr:PutImage",
+          "ecr:UploadLayerPart",
+          "ecr:DescribeRepositories",
+          "ecr:DescribeImages",
+        ]
+        # All ECR repos in account (created by ecr.tf at Phase 2.3 — currently 0)
+        Resource = "arn:aws:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/${var.project_name}-*"
+      },
+    ]
+  })
+}
+
+# =============================================================================
+# GitHub OIDC — Restore Drill role (restore-drill.yml)
+# =============================================================================
+# Per GAP-436: read-only S3 backup bucket for monthly restore drill workflow.
+# Trust scoped to main branch + workflow_dispatch only (manual trigger).
+
+resource "aws_iam_role" "github_restore_drill" {
+  name = "${var.project_name}-github-restore-drill"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Federated = aws_iam_openid_connect_provider.github.arn }
+      Action    = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+        StringLike = {
+          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:ref:refs/heads/main"
+        }
+      }
+    }]
+  })
+
+  tags = { Name = "${var.project_name}-github-restore-drill" }
+}
+
+resource "aws_iam_role_policy" "github_restore_drill_inline" {
+  name = "${var.project_name}-github-restore-drill-inline"
+  role = aws_iam_role.github_restore_drill.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      # Read-only S3 access on backups bucket (created by s3.tf at Phase 2.3)
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:ListBucket",
+        ]
+        Resource = [
+          "arn:aws:s3:::${var.project_name}-backups-${data.aws_caller_identity.current.account_id}",
+          "arn:aws:s3:::${var.project_name}-backups-${data.aws_caller_identity.current.account_id}/*",
+        ]
+      },
+    ]
+  })
+}
