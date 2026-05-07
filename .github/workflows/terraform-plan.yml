@@ -1,0 +1,163 @@
+name: Terraform Plan
+
+# Runs `terraform fmt -check` + `terraform validate` + `terraform plan` on PRs
+# touching `infrastructure/terraform-aws/**`. Posts plan output as PR comment.
+# Uses GitHub OIDC for AWS auth (no static keys per security best practice).
+#
+# References:
+#   - GAP-397 acceptance criteria
+#   - .claude/rules/release-deploy-standard.md §9 — agent ships workflow, human runs apply
+#   - infrastructure/terraform-aws/iam.tf — IAM role `${project_name}-github-terraform-plan`
+
+on:
+  pull_request:
+    paths:
+      - 'infrastructure/terraform-aws/**'
+      - '.github/workflows/terraform-plan.yml'
+
+permissions:
+  id-token: write       # OIDC token for AWS STS AssumeRoleWithWebIdentity
+  contents: read        # Checkout
+  pull-requests: write  # Post plan comment
+
+env:
+  TF_VERSION: '1.7.5'
+  TF_WORKING_DIR: 'infrastructure/terraform-aws'
+  AWS_REGION: 'ap-southeast-1'
+
+jobs:
+  plan:
+    name: terraform-plan
+    runs-on: ubuntu-latest
+    # Skip if AWS_TERRAFORM_PLAN_ROLE_ARN secret not configured (initial bring-up phase)
+    # Once AWS account ready + role exists, secret is set and plan runs.
+    if: ${{ github.repository == 'VictorAurelius/2026-Kite-Class-Platform' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: true
+
+      - name: Terraform fmt check
+        id: fmt
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: Configure AWS credentials (OIDC)
+        id: aws_auth
+        # Skip if role ARN secret not set — fmt+validate still run below
+        if: ${{ vars.AWS_TERRAFORM_PLAN_ROLE_ARN != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_TERRAFORM_PLAN_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: github-terraform-plan-${{ github.run_id }}
+
+      - name: Terraform init (no backend if AWS not configured)
+        id: init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          if [ -n "${{ vars.AWS_TERRAFORM_PLAN_ROLE_ARN }}" ]; then
+            terraform init -input=false
+          else
+            echo "AWS_TERRAFORM_PLAN_ROLE_ARN not set — running init without backend (validation-only mode)"
+            terraform init -backend=false -input=false
+          fi
+
+      - name: Terraform validate
+        id: validate
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform validate -no-color
+
+      - name: Terraform plan
+        id: plan
+        if: ${{ vars.AWS_TERRAFORM_PLAN_ROLE_ARN != '' }}
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          set +e
+          terraform plan -no-color -input=false -out=tfplan 2>&1 | tee plan-output.txt
+          echo "exitcode=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Comment plan on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          FMT_OUTCOME: ${{ steps.fmt.outcome }}
+          VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
+          PLAN_OUTCOME: ${{ steps.plan.outcome }}
+          AWS_CONFIGURED: ${{ vars.AWS_TERRAFORM_PLAN_ROLE_ARN != '' }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const fmtIcon = process.env.FMT_OUTCOME === 'success' ? '✅' : '❌';
+            const validateIcon = process.env.VALIDATE_OUTCOME === 'success' ? '✅' : '❌';
+
+            let planSection = '';
+            if (process.env.AWS_CONFIGURED === 'true') {
+              const planIcon = process.env.PLAN_OUTCOME === 'success' ? '✅' : '❌';
+              const planFile = path.join('${{ env.TF_WORKING_DIR }}', 'plan-output.txt');
+              let planOutput = 'Plan output not captured.';
+              if (fs.existsSync(planFile)) {
+                planOutput = fs.readFileSync(planFile, 'utf8');
+                // Trim to last ~50KB to avoid GitHub comment limit (65536 chars)
+                if (planOutput.length > 50000) {
+                  planOutput = '... (truncated to last 50KB) ...\n' + planOutput.slice(-50000);
+                }
+              }
+              planSection = `### ${planIcon} Terraform Plan\n\n<details><summary>Show plan output</summary>\n\n\`\`\`\n${planOutput}\n\`\`\`\n\n</details>\n`;
+            } else {
+              planSection = `### ⏸️ Terraform Plan — skipped\n\n\`AWS_TERRAFORM_PLAN_ROLE_ARN\` repo variable not configured. Plan will run after AWS account + IAM OIDC role provisioned (per GAP-394 + GAP-397 §Acceptance).\n`;
+            }
+
+            const body = `## Terraform Plan Report\n\n` +
+              `Working directory: \`${{ env.TF_WORKING_DIR }}\`\n` +
+              `Region: \`${{ env.AWS_REGION }}\`\n\n` +
+              `| Step | Status |\n` +
+              `|------|--------|\n` +
+              `| fmt -check | ${fmtIcon} ${process.env.FMT_OUTCOME} |\n` +
+              `| validate | ${validateIcon} ${process.env.VALIDATE_OUTCOME} |\n\n` +
+              planSection +
+              `\n---\n*Per [GAP-397](../../documents/04-quality/gaps/GAP-397-terraform-plan-ci-pr-validation.md): plan-only, no apply (per GAP-381 Phase 2 BANNED for agent).*`;
+
+            // Find existing comment to update (avoid spam)
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('## Terraform Plan Report')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      - name: Fail job if fmt or validate failed
+        if: ${{ steps.fmt.outcome != 'success' || steps.validate.outcome != 'success' }}
+        run: |
+          echo "fmt: ${{ steps.fmt.outcome }}"
+          echo "validate: ${{ steps.validate.outcome }}"
+          exit 1

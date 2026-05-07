@@ -73,6 +73,26 @@ resource "aws_s3_bucket_public_access_block" "state" {
   restrict_public_buckets = true
 }
 
+# Lifecycle: expire old non-current state versions after 90 days (cost hygiene)
+resource "aws_s3_bucket_lifecycle_configuration" "state" {
+  bucket     = aws_s3_bucket.terraform_state.id
+  depends_on = [aws_s3_bucket_versioning.state]
+
+  rule {
+    id     = "expire-old-state-versions"
+    status = "Enabled"
+    filter {}
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 90
+    }
+  }
+}
+
 # --- DynamoDB Table for State Locking ---
 
 resource "aws_dynamodb_table" "terraform_locks" {

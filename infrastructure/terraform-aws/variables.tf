@@ -1,15 +1,20 @@
 # =============================================================================
-# Variables
+# Variables — Phase 1 BETA (Architecture B)
 # =============================================================================
 
 variable "aws_region" {
-  description = "AWS region"
+  description = "AWS region (Singapore per ADR-025)"
   type        = string
   default     = "ap-southeast-1"
+
+  validation {
+    condition     = var.aws_region == "ap-southeast-1"
+    error_message = "Phase 1 BETA pin region to ap-southeast-1 per ADR-025. Update validation if migrating region (Phase 3)."
+  }
 }
 
 variable "environment" {
-  description = "Environment name (production, staging)"
+  description = "Environment name (production, staging, beta)"
   type        = string
   default     = "production"
 }
@@ -20,6 +25,12 @@ variable "project_name" {
   default     = "kitehub"
 }
 
+variable "domain_name" {
+  description = "Primary platform domain (used for ALB cert hint + Route53 if managed here)"
+  type        = string
+  default     = "kiteclass.com"
+}
+
 # --- VPC ---
 variable "vpc_cidr" {
   description = "VPC CIDR block"
@@ -27,91 +38,85 @@ variable "vpc_cidr" {
   default     = "10.0.0.0/16"
 }
 
-# --- EKS ---
-variable "eks_cluster_version" {
-  description = "Kubernetes version"
-  type        = string
-  default     = "1.29"
-}
-
-variable "eks_node_instance_type" {
-  description = "EC2 instance type for EKS nodes"
-  type        = string
-  default     = "t3.medium"
-}
-
-variable "eks_node_min_size" {
-  description = "Minimum number of EKS nodes"
-  type        = number
-  default     = 2
-}
-
-variable "eks_node_max_size" {
-  description = "Maximum number of EKS nodes"
-  type        = number
-  default     = 5
-}
-
-variable "eks_node_desired_size" {
-  description = "Desired number of EKS nodes"
-  type        = number
-  default     = 2
-}
-
-# --- RDS ---
-variable "rds_instance_class" {
-  description = "RDS instance class"
-  type        = string
-  default     = "db.t3.medium"
-}
-
-variable "rds_allocated_storage" {
-  description = "RDS storage in GB"
-  type        = number
-  default     = 50
-}
-
-variable "rds_multi_az" {
-  description = "Enable Multi-AZ for RDS"
-  type        = bool
-  default     = true
-}
-
-variable "rds_db_name" {
-  description = "Database name"
-  type        = string
-  default     = "kitehub"
-}
-
-# --- ElastiCache ---
-variable "redis_node_type" {
-  description = "ElastiCache node type"
-  type        = string
-  default     = "cache.t3.micro"
-}
-
-# --- Domain ---
-variable "domain_name" {
-  description = "Domain name for the platform"
-  type        = string
-  default     = "kiteclass.com"
-}
-
-# --- S3 Backup / Replication (GAP-118) ---
-variable "s3_replica_region" {
-  description = "AWS region for S3 cross-region replica bucket (DR target)"
-  type        = string
-  default     = "us-east-1"
-}
-
-variable "s3_object_lock_enabled" {
-  description = "Enable S3 Object Lock (compliance mode) on assets bucket. Requires bucket created with object_lock_enabled=true OR an AWS support request to enable on existing bucket."
+variable "enable_nat_gateway" {
+  description = "Provision NAT Gateway for private subnets. Phase 1 BETA = false (cost savings ~$32/mo); private subnets reach internet via VPC endpoints OR EC2 in public subnets only."
   type        = bool
   default     = false
 }
 
-variable "s3_object_lock_retention_days" {
-  description = "Default retention days for objects under Object Lock COMPLIANCE mode"
+# --- EC2 (Architecture B: 2 instances replace EKS) ---
+variable "kh_backend_instance_type" {
+  description = "EC2 instance type for KiteHub backend cluster (6 services). Phase 1 default t3.micro (free tier 12mo)."
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "kc_app_instance_type" {
+  description = "EC2 instance type for KiteClass core + frontends. Phase 1 default t3.micro (free tier)."
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "ec2_key_pair_name" {
+  description = "EC2 key pair name for SSH access (must exist in AWS account before apply). Set to null to skip SSH (use SSM instead)."
+  type        = string
+  default     = null
+}
+
+# --- RDS ---
+variable "rds_instance_class" {
+  description = "RDS instance class. Phase 1 default db.t3.micro (free tier 12mo)."
+  type        = string
+  default     = "db.t3.micro"
+}
+
+variable "rds_allocated_storage" {
+  description = "RDS storage in GB (free tier covers 20GB)"
   type        = number
-  default     = 365
+  default     = 20
+}
+
+variable "rds_multi_az" {
+  description = "Multi-AZ for RDS. Phase 1 BETA = false (single AZ cost savings)."
+  type        = bool
+  default     = false
+}
+
+variable "rds_db_name" {
+  description = "Initial database name"
+  type        = string
+  default     = "kitehub"
+}
+
+variable "rds_engine_version" {
+  description = "PostgreSQL engine version"
+  type        = string
+  default     = "15"
+}
+
+# --- ALB ---
+variable "enable_alb" {
+  description = "Provision Application Load Balancer in front of EC2. Default true; set false if Cloudflare proxy connects directly to EC2 public IP."
+  type        = bool
+  default     = true
+}
+
+variable "alb_acm_certificate_arn" {
+  description = "ACM certificate ARN for ALB HTTPS listener. Set after cert validation in ACM console; null to skip HTTPS listener (HTTP-only for initial bring-up)."
+  type        = string
+  default     = null
+}
+
+# --- Route53 (optional — Cloudflare DNS is primary per ADR-018) ---
+variable "manage_route53_zone" {
+  description = "Create Route53 hosted zone for domain_name. Default false (Cloudflare DNS is primary)."
+  type        = bool
+  default     = false
+}
+
+# --- GitHub OIDC (for terraform-plan CI workflow per GAP-397) ---
+variable "github_repo" {
+  description = "GitHub repo in 'owner/name' format for OIDC trust policy."
+  type        = string
+  default     = "VictorAurelius/2026-Kite-Class-Platform"
 }
