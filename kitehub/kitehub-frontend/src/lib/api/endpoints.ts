@@ -49,6 +49,20 @@ export const endpoints = {
     applyTemplate: (id: string) => `${API_BASE}/branding/templates/${id}/apply`,
   },
 
+  // Wave 34 — AI Branding Wizard v1 endpoints (GAP-272 cluster).
+  // Schema source-of-truth: documents/01-business/kitehub/ai-branding/api-contract.md
+  brandingV1: {
+    slugAvailability: '/api/v1/branding/slug-availability',
+    regenerateQuota: '/api/v1/branding/regenerate-quota',
+    jobById: (jobId: string) => `/api/v1/branding/jobs/${jobId}`,
+    jobRegenerate: (jobId: string) => `/api/v1/branding/jobs/${jobId}/regenerate`,
+    jobDeployStream: (jobId: string) => `/api/v1/branding/jobs/${jobId}/deploy-stream`,
+    jobQualityScore: (jobId: string) => `/api/v1/branding/jobs/${jobId}/quality-score`,
+    jobPreview: (jobId: string) => `/api/v1/branding/jobs/${jobId}/preview`,
+    instanceLifecycleEvents: (instanceId: string) =>
+      `/api/v1/branding/instances/${instanceId}/lifecycle/events`,
+  },
+
   // Email
   email: {
     send: `${API_BASE}/emails/send`,

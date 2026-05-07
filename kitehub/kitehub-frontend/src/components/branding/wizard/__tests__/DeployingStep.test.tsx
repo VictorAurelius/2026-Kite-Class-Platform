@@ -1,6 +1,25 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import {
+  render as rtlRender,
+  screen,
+  type RenderOptions,
+} from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactElement, ReactNode } from 'react';
 import { DeployingStep, type DeployingLogEntry } from '../DeployingStep';
+
+// Wave 34 Bucket D: DeployingStep nests LifecycleInline → useLifecycleEvents
+// (react-query). Wrap in QueryClientProvider so the provider exists.
+function render(ui: ReactElement, options?: RenderOptions) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
+  const Wrapper = ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  );
+  Wrapper.displayName = 'TestQueryClientWrapper';
+  return rtlRender(ui, { wrapper: Wrapper, ...options });
+}
 
 const SAMPLE_LOGS: DeployingLogEntry[] = [
   {

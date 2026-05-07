@@ -1,6 +1,26 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import {
+  render as rtlRender,
+  screen,
+  fireEvent,
+  type RenderOptions,
+} from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactElement, ReactNode } from 'react';
 import { LifecycleInline } from '../LifecycleInline';
+
+// Wave 34 Bucket D: LifecycleInline now consumes `useLifecycleEvents` via
+// react-query. Wrap renders in a fresh QueryClient so the provider exists.
+function render(ui: ReactElement, options?: RenderOptions) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
+  const Wrapper = ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  );
+  Wrapper.displayName = 'TestQueryClientWrapper';
+  return rtlRender(ui, { wrapper: Wrapper, ...options });
+}
 
 const ALL_5_STATES = [
   'NOT_STARTED',

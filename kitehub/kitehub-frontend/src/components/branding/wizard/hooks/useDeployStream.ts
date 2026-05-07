@@ -1,0 +1,114 @@
+/**
+ * useDeployStream — Wave 34 SSE deploy progress stream (GAP-272e).
+ *
+ * Schema: GET `/api/v1/branding/jobs/{jobId}/deploy-stream`
+ * (text/event-stream) per `api-contract.md` Wave 34.
+ *
+ * Event names per contract: log / progress / state-change / complete /
+ * error / heartbeat. Per `ai-branding-guidelines.md` §3.3 heavy AI tasks
+ * are async — this hook is the only acceptable consumer for live
+ * progress in the wizard (no polling fallback in v1).
+ *
+ * Replaces Wave 32 inline log-fixture in `DeployingStep` callers. The
+ * hook unwraps each SSE event into `{ name, data }` so callers can
+ * branch by event name. Heartbeats are filtered out before reaching
+ * the consumer (kept as a no-op).
+ */
+
+import { useEffect, useState } from 'react';
+import { endpoints } from '@/lib/api/endpoints';
+import type {
+  DeployStreamEvent,
+  DeployStreamEventName,
+} from './types';
+
+const EVENT_NAMES: readonly DeployStreamEventName[] = [
+  'log',
+  'progress',
+  'state-change',
+  'complete',
+  'error',
+  'heartbeat',
+] as const;
+
+export interface UseDeployStreamOptions {
+  /** When false the hook does NOT open an EventSource (default true). */
+  enabled?: boolean;
+}
+
+export interface UseDeployStreamResult {
+  events: DeployStreamEvent[];
+  /** Latest non-heartbeat event, useful for branching. */
+  latestEvent: DeployStreamEvent | undefined;
+  /** Stream open state — false once `complete` or `error` arrives. */
+  isStreaming: boolean;
+}
+
+export function useDeployStream(
+  jobId: string | undefined,
+  options: UseDeployStreamOptions = {}
+): UseDeployStreamResult {
+  const { enabled = true } = options;
+  const [events, setEvents] = useState<DeployStreamEvent[]>([]);
+  const [isStreaming, setIsStreaming] = useState(false);
+
+  useEffect(() => {
+    if (!enabled || !jobId) return;
+    if (typeof window === 'undefined' || typeof window.EventSource === 'undefined') {
+      // SSR or jsdom without EventSource polyfill — bail silently.
+      return;
+    }
+
+    const url = endpoints.brandingV1.jobDeployStream(jobId);
+    const source = new window.EventSource(url, { withCredentials: true });
+    setIsStreaming(true);
+
+    const handlers: Array<{ name: DeployStreamEventName; fn: (e: MessageEvent) => void }> = [];
+
+    for (const name of EVENT_NAMES) {
+      const fn = (e: MessageEvent) => {
+        let data: unknown = null;
+        try {
+          data = e.data ? JSON.parse(e.data) : null;
+        } catch {
+          data = e.data;
+        }
+        if (name === 'heartbeat') {
+          return; // keepalive — drop
+        }
+        const event: DeployStreamEvent = { name, data };
+        setEvents((prev) => [...prev, event]);
+        if (name === 'complete' || name === 'error') {
+          setIsStreaming(false);
+          source.close();
+        }
+      };
+      source.addEventListener(name, fn as EventListener);
+      handlers.push({ name, fn });
+    }
+
+    const onError = () => {
+      // Network drop — close and surface as an `error` event to the consumer.
+      setIsStreaming(false);
+      setEvents((prev) => [
+        ...prev,
+        { name: 'error', data: { errorCode: 'STREAM_DISCONNECTED', retryable: true } },
+      ]);
+      source.close();
+    };
+    source.addEventListener('error', onError);
+
+    return () => {
+      for (const { name, fn } of handlers) {
+        source.removeEventListener(name, fn as EventListener);
+      }
+      source.removeEventListener('error', onError);
+      source.close();
+      setIsStreaming(false);
+    };
+  }, [enabled, jobId]);
+
+  const latestEvent = events.length > 0 ? events[events.length - 1] : undefined;
+
+  return { events, latestEvent, isStreaming };
+}
