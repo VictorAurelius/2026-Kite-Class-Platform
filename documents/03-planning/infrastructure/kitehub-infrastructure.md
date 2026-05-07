@@ -6,9 +6,10 @@
 **Purpose:** Define infrastructure architecture for KiteHub platform services
 **Status:** Design phase (before implementation)
 
-> **Note (2026-03-19):** Production deployment đã chuyển sang **Oracle Cloud Always Free** (primary) với **AWS làm backup**.
-> Chi tiết: [kitehub-oracle-cloud-deployment.md](kitehub-oracle-cloud-deployment.md)
-> Tài liệu này giữ nguyên thiết kế Kubernetes/AWS gốc cho reference và backup option.
+> **Note (2026-05-07 update):** Production deployment locked **AWS Singapore Free Tier Architecture B** per [ADR-025](../../02-architecture/adr/ADR-025-aws-singapore-free-tier-architecture.md). Oracle Cloud path từ 2026-03-19 archived (signup reject rate ~50% VN). Phase 1 BETA = single EC2 + docker-compose; Phase 1.5+ = EKS migration per [`documents/05-guides/deploy/aws-architecture-sizing-matrix.md`](../../05-guides/deploy/aws-architecture-sizing-matrix.md).
+> Single-source deploy sequence: [`release-1-deploy-runbook.md`](../roadmap/release-1-deploy-runbook.md)
+> Oracle artifacts archived: [`documents/07-archived/oracle-deploy-2026/`](../../07-archived/oracle-deploy-2026/)
+> Tài liệu này giữ nguyên thiết kế Kubernetes/AWS gốc — relevant lại cho Phase 1.5+ EKS migration.
 
 ---
 

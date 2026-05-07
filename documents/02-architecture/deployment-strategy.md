@@ -147,7 +147,8 @@ Docs cụ thể theo task:
 
 | Task | Doc | Type |
 |------|-----|:----:|
-| **Deploy to Oracle Cloud** | [`03-planning/infrastructure/kitehub-oracle-cloud-deployment.md`](../03-planning/infrastructure/kitehub-oracle-cloud-deployment.md) | Plan |
+| **Deploy AWS Singapore (Architecture B per ADR-025)** | [`03-planning/roadmap/release-1-deploy-runbook.md`](../03-planning/roadmap/release-1-deploy-runbook.md) | Runbook (Phase 0-9) |
+| ~~Deploy to Oracle Cloud~~ (archived 2026-05-07 per ADR-025) | [`07-archived/oracle-deploy-2026/`](../07-archived/oracle-deploy-2026/) | Archived |
 | **Deploy KiteClass Docker** | [`03-planning/implementation/kiteclass-docker-deployment.md`](../03-planning/implementation/kiteclass-docker-deployment.md) | Plan |
 | **Standard deploy procedure** | [`05-guides/operations/runbooks/deployment-procedures.md`](../05-guides/operations/runbooks/deployment-procedures.md) | Runbook |
 | **Pre-deploy gate** | [`05-guides/deploy/deploy-go-nogo-checklist.md`](../05-guides/deploy/deploy-go-nogo-checklist.md) | Checklist |
