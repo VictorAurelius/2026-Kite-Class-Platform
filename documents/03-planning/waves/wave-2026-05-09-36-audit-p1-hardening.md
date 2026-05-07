@@ -1,10 +1,10 @@
 ---
 title: Wave 36 — Audit P1 Hardening (5 P1 clusters from 2026-05-07 audit)
-status: draft
+status: active
 created: 2026-05-07
 updated: 2026-05-07
 waves: [36]
-gaps: [GAP-388, GAP-389, GAP-390, GAP-391, GAP-393]
+gaps: [GAP-387, GAP-388, GAP-389, GAP-390, GAP-391, GAP-393]
 ---
 
 # Wave 36 — Audit P1 Hardening
@@ -13,7 +13,14 @@ gaps: [GAP-388, GAP-389, GAP-390, GAP-391, GAP-393]
 **Trigger:** Wave 35 P0 sprint shipped (Quality 73→80); Phase 1 BETA deployed; remaining audit findings consolidated thành P1 hardening sprint.
 **Estimated wall-clock:** ~20h dev parallel, longest-bucket Bucket C ops (~5h). With 4 background agents Opus medium effort → ~45-60min wall-clock.
 
-**Prerequisite:** Wave 35 SHIPPED + audit re-run confirms Quality ≥80 + 0 P0 BLOCKERS.
+**Prerequisite:** Wave 35 SHIPPED ✅ + audit re-run 2026-05-07 confirms Quality 80/100 ✅ (vừa đủ trigger gate) + 0 NEW P0 BLOCKERS as scope-active.
+
+**P0 status post-audit-2026-05-07:** 3 P0 surfaced từ Ops Readiness audit (53/100 F):
+- 🔴 NEW P0 — `BetaAccessService.recordHoneypotRejection()` dead-wire (0 callsite, Bean Validation rejects ConstraintViolation at MVC trước khi reach service) → **absorbed into Bucket A 388-A**, GAP-387 flipped 🟢→🟡 PARTIAL pending Bucket A re-close
+- 🔴 CARRY P0 — GAP-144 AlertManager production receivers PARTIAL (pre-existing, không block Phase 1 BETA invite-only)
+- 🔴 CARRY P0 — `scripts/backup-production.sh` missing → **already Bucket C scope (389-A)**
+
+Effectively 0 P0 NEW blocker outside Wave 36 scope.
 
 ---
 
@@ -60,11 +67,11 @@ Disjoint check: A=subscription, B+D=branding (different services trong module), 
 | 4 | D | GAP-393 perf | 🟠 P1 | `kitehub-branding/.../service/RegenerateQuotaService.java` + `DeployStreamController.java` + Caffeine config | parallel |
 | 5 | E | GAP-391 UI | 🟠 P1 | `kitehub-frontend/.../RegenerateCounter.tsx` + `useRegenerateQuota` hook + `documents/00-brd/i18n-strategy.md` (NEW doc deferral) | parallel |
 
-### Bucket A — Security P1 cluster (GAP-388)
+### Bucket A — Security P1 cluster (GAP-388 + GAP-387 wire-up)
 
-3 sub-issues bundled:
+3 sub-issues bundled (388-A absorbs GAP-387 honeypot dead-wire fix):
 
-- **388-A Honeypot logging:** explicit controller check + Micrometer counter `beta.honeypot.rejections.total` + audit log entry với `email`+`IP`
+- **388-A Honeypot logging + GAP-387 wire-up:** explicit controller check + Micrometer counter `beta.honeypot.rejections.total` + audit log entry với `email`+`IP`. **Context:** 2026-05-07 ops audit found `BetaAccessService.recordHoneypotRejection()` line 181 có 0 callsite — Bean Validation reject `ConstraintViolation` ở MVC layer trước khi reach service, làm `BetaHoneypotSpike` alert là dead rule. **Fix:** thêm controller-level `@ExceptionHandler(ConstraintViolationException.class)` kiểm honeypot field name → invoke `recordHoneypotRejection()` trước khi return 4xx. Closes GAP-387 PARTIAL (flipped 🟢→🟡 sau audit, sẽ re-flip 🟢 DONE trong PR Bucket A)
 - **388-B Token 2FA (preferred over S/MIME, 2h):** email contains 6-digit claim code; signup page exchanges claim code for full UUID server-side
 - **388-C Per-email rate limit:** Redis key `beta:request:rate:{email_hash}` TTL 24h; idempotent dedupe + 429 + audit log on 2nd attempt different IP
 
@@ -73,7 +80,7 @@ Files (RELATIVE):
 - `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/beta/service/BetaAccessService.java`
 - `kitehub/kitehub-subscription/src/main/resources/templates/beta-invite.html` (Thymeleaf — replace `${inviteUrl}` plaintext UUID với 6-digit claim code logic)
 - New endpoint `POST /api/v1/auth/beta-signup/exchange-claim-code` để swap claim code → UUID
-- Tests: 6 new (honeypot logged + counter, 2FA happy/wrong code, rate-limit 1st OK / 2nd 429)
+- Tests: 7 new (honeypot logged + counter increments via synthetic ConstraintViolation trigger [GAP-387 regression guard], 2FA happy/wrong code, rate-limit 1st OK / 2nd 429)
 
 ### Bucket B — API P1 cluster (GAP-390)
 
@@ -183,3 +190,4 @@ Per `feedback_parallel_agent_strategy.md`:
 ## 8. Log
 
 - **2026-05-07** (draft): Plan created post-audit-cluster (PR #913). Wave 36 prerequisite Wave 35 complete. Pairs trong cùng plan PR với Wave 35.
+- **2026-05-07** (active, post-audit re-run): Audit suite 7 specialists chạy parallel sau Wave 35 SHIPPED. Aggregate scores: Quality 80/100 B (+7), Security 84/100 B (+12), Performance 71/100 C (+13), Business Logic 82/100 B− (+4), API Contract 71/100 C (−1 inventory expand), Ops Readiness 53/100 F (+3, 1 NEW P0), UI 99/128 A+ (+2). Phase 1 BETA trigger gate Quality ≥80 ✅ vừa đủ. NEW P0 GAP-387 honeypot dead-wire absorbed vào Bucket A 388-A (controller `@ExceptionHandler` + GAP-387 status flip 🟢→🟡→🟢 trong cùng PR). Carry-over P0 GAP-144 AlertManager + backup script — backup script đã trong Bucket C scope; AlertManager không block Phase 1 BETA invite-only. Plan flipped status: draft → active. Reports: `documents/04-quality/audits/{quality,security,performance,business-logic,api-contract,ops-readiness,ui}/2026-05-07-post-wave-35.md`. Spawning 5 background agents.
