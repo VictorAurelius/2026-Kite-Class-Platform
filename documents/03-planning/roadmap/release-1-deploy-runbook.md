@@ -33,16 +33,18 @@ updated: 2026-05-07
 
 ---
 
-## Phase 0 — Plan refresh (BLOCKING; agent-scope, ~30 min)
+## Phase 0 — Plan refresh (✅ DONE 2026-05-07)
 
-⚠️ **Trước khi user chạy bất kỳ step nào**, plan tổng phải refresh:
+- [x] **0.1** Update `release-1-deploy-plan.md` §1.1 (Oracle → AWS Singapore Architecture B)
+- [x] **0.2** Update `release-1-deploy-plan.md` §2.2 deploy steps (terraform-oracle → terraform-aws + ECR + Helm-skip per Architecture B)
+- [x] **0.3** Update §2.4 smoke test references → align với Wave 26 `scripts/smoke-test.sh` + Wave 37 E2E specs + Wave 37 OWASP baseline
+- [x] **0.4** Cross-link ADR-025 (AWS Singapore) + ADR-026 (Ollama defer) + ADR-027 (Statuspage) trong §1
+- [x] **0.5** Archive `kitehub-oracle-cloud-deployment.md` → `documents/07-archived/oracle-deploy-2026/`
+- [x] **0.6** Cross-link runbook này vào ROADMAP §🚀 Next Action
 
-- [ ] **0.1** Update `release-1-deploy-plan.md` §1.1 (Oracle → AWS Singapore Architecture B)
-- [ ] **0.2** Update `release-1-deploy-plan.md` §2.2 deploy steps (terraform-oracle → terraform-aws + ECR + Helm-skip per Architecture B)
-- [ ] **0.3** Update §2.4 smoke test references → align với Wave 26 `scripts/smoke-test.sh` + Wave 37 E2E specs + Wave 37 OWASP baseline
-- [ ] **0.4** Cross-link ADR-025 (AWS Singapore) + ADR-026 (Ollama defer) + ADR-027 (Statuspage) trong §1
-- [ ] **0.5** Archive `kitehub-oracle-cloud-deployment.md` → `documents/07-archived/`
-- [ ] **0.6** Cross-link runbook này vào ROADMAP §🚀 Next Action
+**Sub-task 0.5 expanded:** updated `documents/02-architecture/deployment-strategy.md` + `documents/03-planning/README.md` + `documents/03-planning/infrastructure/kitehub-infrastructure.md` cross-refs to point to runbook + archived Oracle path.
+
+**Phase 1 user-actions UNBLOCKED.**
 
 ---
 

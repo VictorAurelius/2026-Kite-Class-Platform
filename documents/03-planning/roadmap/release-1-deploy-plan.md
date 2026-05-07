@@ -2,7 +2,7 @@
 title: Release Lần 1 Deploy Plan — v0.9.0-beta + v1.0.0 (Phase 1 BETA + Phase 1.5 PAID)
 status: active
 created: 2026-05-06
-updated: 2026-05-06
+updated: 2026-05-07
 parent: release-1-plan-2026.md
 versioning: versioning-policy.md
 target_versions: [v0.9.0-beta, v1.0.0-rc, v1.0.0]
@@ -20,48 +20,60 @@ target_versions: [v0.9.0-beta, v1.0.0-rc, v1.0.0]
 
 ## 1. Architecture summary
 
-### 1.1 Dual-cloud strategy (per `kitehub-oracle-cloud-deployment.md`)
+> **Cloud platform locked AWS Singapore Free Tier per [ADR-025](../../02-architecture/adr/ADR-025-aws-singapore-free-tier-architecture.md) (ACCEPTED 2026-05-07).** Oracle Cloud Always Free path abandoned do signup reject rate ~50% VN. Phase 1 BETA = Architecture B (single EC2 + docker-compose) per Wave 38 Bucket D staging activation. Ollama AI inference deferred Phase 2 per [ADR-026](../../02-architecture/adr/ADR-026-ollama-defer-phase-2.md). Status page vendor = Instatus per [ADR-027](../../02-architecture/adr/ADR-027-statuspage-vendor-instatus.md).
+
+### 1.1 Architecture B — AWS Singapore single-EC2 (Phase 1 BETA)
 
 ```
-┌─────────────────────────────────────────────────────┐
-│           KiteHub Platform (control plane)           │
-│  PRIMARY: Oracle Cloud Always Free ($0/tháng)       │
-│  ├── KiteHub services: Spring Boot + Next.js        │
-│  ├── PostgreSQL self-hosted on VM                   │
-│  ├── Redis self-hosted on VM                        │
-│  ├── Ollama AI llama3.1:8b                          │
-│  └── Nginx reverse proxy + SSL                      │
-│                                                     │
-│  BACKUP: AWS ($338/tháng)                           │
-│  ├── EKS + RDS + ElastiCache (Terraform/Helm)       │
-│  └── Activate khi Oracle fail / capacity issue       │
-├─────────────────────────────────────────────────────┤
-│        KiteClass Instances (per-tenant)              │
-│  AWS (không đổi)                                    │
-│  ├── Per-tenant databases (RDS multi-tenant)        │
-│  ├── S3 storage (per-tenant prefix)                 │
-│  └── CloudFront CDN                                 │
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│  AWS Region: ap-southeast-1 (Singapore)                  │
+│  Account: AWS Activate Founders Pack ($1k credit ~13.9mo)│
+│                                                          │
+│  Single EC2 t3.large (8GB RAM) + docker-compose          │
+│  ├── 9 services (KH 6 + KC core + 2 frontends)           │
+│  ├── PostgreSQL on RDS db.t3.micro (Free Tier 12 mo)     │
+│  ├── Redis ElastiCache cache.t3.micro                    │
+│  ├── Nginx reverse proxy + Let's Encrypt SSL             │
+│  └── No Ollama (OpenAI/Anthropic API per ADR-026)        │
+│                                                          │
+│  Edge / Frontend                                         │
+│  ├── Cloudflare proxy (Free) — DDoS + CDN + SSL          │
+│  ├── Route53 + ALB DNS                                   │
+│  └── ECR ap-southeast-1 (9 repos kite/<service>)         │
+│                                                          │
+│  Storage / Email / Status                                │
+│  ├── S3 (per-tenant prefix) + Glacier cold tier         │
+│  ├── SES ap-southeast-1 (transactional email)            │
+│  └── Instatus (Free) — status.kitehub.vn                 │
+└──────────────────────────────────────────────────────────┘
 ```
+
+**Phase 1.5+ migration path:** EKS + RDS Multi-AZ documented in [`infrastructure/terraform-aws/`](../../../infrastructure/terraform-aws/) + `documents/05-guides/deploy/aws-architecture-sizing-matrix.md` (Wave 37 Bucket E). Trigger = ≥5 tenants live + Phase 1.5 PAID promotion.
 
 ### 1.2 Environments
 
 | Env | Purpose | Cloud | Status |
 |---|---|---|---|
 | **dev** | Local development | WSL2 + docker-compose | ✅ active (Wave 24 cadence) |
-| **staging** | Pre-prod test | AWS EKS staging | ⚠️ terraform exists; activation status TBD |
-| **production** | Live tenants | Oracle Cloud (primary) + AWS (backup) | ❌ not activated |
+| **staging** | Pre-prod E2E gate | AWS Singapore EC2 (Architecture B) | 🟡 PARTIAL (Wave 38 Bucket D — `staging.tf` + `deploy-staging.yml` ready; `enable_staging=false` default; user runs `terraform apply` to activate) |
+| **production** | Live tenants | AWS Singapore (Architecture B) | ❌ not activated — pending Phase 1 user-actions per `release-1-deploy-runbook.md` |
 
 ### 1.3 Existing artifacts
 
-- ✅ `infrastructure/terraform-oracle/` — Oracle Cloud terraform (compute, network, variables, main, outputs)
-- ✅ `infrastructure/terraform-aws/` — AWS terraform (EKS + RDS + ElastiCache + VPC + DNS + S3+ECR + secrets)
-- ✅ `infrastructure/helm/` — Kubernetes Helm charts cho services
-- ✅ `.github/workflows/deploy-staging.yml` — staging deploy workflow
+- ✅ `infrastructure/terraform-aws/` — AWS Singapore Architecture B (Wave 37 Bucket A: VPC + EC2 + RDS + ElastiCache + ECR 9 repos + Secrets Manager + IAM OIDC + ALB)
+- ✅ `infrastructure/terraform-aws/staging.tf` — staging EC2 (Wave 38 Bucket D — gated `enable_staging`)
+- ✅ `infrastructure/helm/` — Kubernetes Helm charts (deferred Phase 1.5+ EKS migration; not used Phase 1 BETA)
+- ✅ `.github/workflows/deploy-staging.yml` — staging deploy (Wave 38 Bucket D rewrite — SSM into EC2 + docker-compose)
 - ✅ `.github/workflows/deploy-production.yml` — production deploy workflow (manual `workflow_dispatch` với confirm `DEPLOY`)
+- ✅ `.github/workflows/release-tag.yml` — tag-based release (Wave 38 Bucket A — validate-tag + generate-changelog + GitHub Release)
+- ✅ `.github/workflows/docker-build-push.yml` — 9 services × multi-arch + Trivy + SBOM/Cosign (Wave 37 Bucket B)
+- ✅ `.github/workflows/e2e-pre-release.yml` — 3 beta-funnel specs + visual regression scaffold (Wave 37 Bucket C)
+- ✅ `.github/workflows/zap-baseline.yml` — OWASP baseline scan workflow_dispatch (Wave 37 Bucket C)
+- ✅ `documents/05-guides/deploy/{aws-architecture-sizing-matrix,cloudflare-setup,dns-setup-runbook,secrets-management-runbook,staging-activation-runbook,aws-cost-monitoring,email-ses-setup-runbook}.md`
+- ✅ `documents/05-guides/operations/{incident-comms-runbook,runbooks/rollback-runbook,runbooks/deployment-procedures}.md`
 - ✅ `documents/05-guides/deploy/deploy-go-nogo-checklist.md` — generic go-nogo checklist (2026-04-16)
-- ✅ `documents/05-guides/operations/runbooks/deployment-procedures.md` — generic runbook
-- ✅ `documents/03-planning/infrastructure/{kitehub-oracle-cloud-deployment,monitoring-observability,kitehub-infrastructure,kitehub-database-provisioning,local-prod-separation-plan}.md`
+- ✅ `documents/03-planning/roadmap/release-1-deploy-runbook.md` — Phase 0-9 ordered single-source sequence (Wave 38 closure 2026-05-07)
+- ✅ Oracle Cloud artifacts archived `documents/07-archived/oracle-deploy-2026/`
 
 ---
 
@@ -94,16 +106,19 @@ target_versions: [v0.9.0-beta, v1.0.0-rc, v1.0.0]
 - [ ] Footer build info: `v0.9.0-beta+build.YYYYMMDD.HHMM`
 - [ ] Beta-only feature flags configured
 
-**Infrastructure:**
-- [ ] Oracle Cloud VM provisioned (1× 4 OCPU + 24 GB RAM Always Free ARM A1.Flex)
-- [ ] DNS configured: `beta.kitehub.vn` + `beta.kiteclass.vn` (per **GAP-369**)
-- [ ] SSL certs Let's Encrypt activated
-- [ ] Cloudflare proxy configured (per **GAP-371**)
-- [ ] Email transactional setup (per **GAP-370** — SendGrid/SES decision)
-- [ ] PostgreSQL self-hosted on Oracle VM operational
-- [ ] Redis self-hosted operational
-- [ ] Ollama llama3.1:8b loaded
-- [ ] Nginx reverse proxy với SSL configured
+**Infrastructure (Architecture B — AWS Singapore per ADR-025):**
+- [ ] AWS account + Activate Founders Pack approved ($1k credit)
+- [ ] Terraform bootstrap state backend (S3 + DynamoDB lock) applied
+- [ ] Production Terraform applied: VPC + EC2 t3.large + RDS db.t3.micro + ElastiCache + ECR 9 repos + Secrets Manager + ALB
+- [ ] DNS configured: `kitehub.vn` + `kiteclass.vn` (per **GAP-369**) via Cloudflare → ALB
+- [ ] SSL certs Let's Encrypt + Cloudflare Full (strict) activated
+- [ ] Cloudflare proxy configured + headers verified (per **GAP-371** — Wave 38 Bucket B `cloudflare-setup.md` + `verify-cdn-headers.sh`)
+- [ ] SES production access approved + domain verified DKIM/SPF/DMARC (per **GAP-370** — Wave 33 Bucket B `email-ses-setup-runbook.md`)
+- [ ] Secrets Manager populated `kite/prod/*` (per **GAP-379** — Wave 33 Bucket D template)
+- [ ] PostgreSQL RDS reachable + Flyway migrations applied
+- [ ] Redis ElastiCache reachable
+- [ ] AI inference: OpenAI/Anthropic API keys configured (Ollama deferred Phase 2 per ADR-026)
+- [ ] Docker images pushed ECR (9 services × multi-arch) per **Wave 37 Bucket B `docker-build-push.yml`**
 
 **Observability:**
 - [ ] Loki log aggregation pipeline live (per GAP-115)
@@ -118,48 +133,56 @@ target_versions: [v0.9.0-beta, v1.0.0-rc, v1.0.0]
 - [ ] FAQ minimal (per cluster 6 in `release-1-plan-2026.md` §3.3)
 - [ ] Status page minimum (per **GAP-373**)
 
-### 2.2 Deploy steps (BETA)
+### 2.2 Deploy steps (BETA — Architecture B AWS Singapore)
+
+> **Canonical sequence:** [`release-1-deploy-runbook.md`](release-1-deploy-runbook.md) Phase 0-9 — single-source ordered checklist với per-step ownership (user vs agent). Block dưới đây là TL;DR; runbook là source of truth cho execution.
 
 ```bash
-# 1. Tag release
-git tag -s v0.9.0-beta -m "Release v0.9.0-beta — Phase 1 BETA invite-only launch"
-git push origin v0.9.0-beta
+# 1. Bootstrap Terraform state backend (one-time)
+cd infrastructure/terraform-aws/bootstrap
+terraform init && terraform plan -out=bootstrap.tfplan && terraform apply bootstrap.tfplan
+# → S3 bucket + DynamoDB lock created; copy outputs vào backend.tf
 
-# 2. Build production Docker images
-docker buildx build -t kiteclass-core:v0.9.0-beta -f kiteclass/kiteclass-core/Dockerfile .
-docker buildx build -t kitehub-frontend:v0.9.0-beta -f kitehub/kitehub-frontend/Dockerfile .
-# ... rest of services
-
-# 3. Push to ECR (or Oracle Container Registry)
-docker push <registry>/kiteclass-core:v0.9.0-beta
-# ... rest
-
-# 4. Apply Oracle Cloud terraform (if first deploy)
-cd infrastructure/terraform-oracle
+# 2. Apply production Terraform (one-time)
+cd infrastructure/terraform-aws
 terraform plan -out=tfplan
 terraform apply tfplan
+# → VPC + EC2 + RDS + ElastiCache + ECR 9 repos + Secrets Manager + ALB + Route53 zone
 
-# 5. Provision VM + install dependencies (Docker, PostgreSQL, Redis, Ollama, Nginx)
-# Per Oracle Cloud deployment doc steps
+# 3. Populate Secrets Manager (manual via AWS Console or aws-cli)
+# kite/prod/{db/password,jwt/secret,encryption/master-key,internal-api/secret,openai/api-key,...}
 
-# 6. Pull + run services on Oracle VM
-ssh ubuntu@<oracle-vm-ip>
-docker-compose -f /opt/kite/docker-compose.beta.yml up -d
+# 4. Tag release → CI builds + pushes ECR (Wave 37 Bucket B + Wave 38 Bucket A)
+git tag -s v0.9.0-beta -m "Release v0.9.0-beta — Phase 1 BETA invite-only launch"
+git push origin v0.9.0-beta
+# → docker-build-push.yml fires: 9 services × 2 archs + Trivy + SBOM/Cosign + push ECR
+# → release-tag.yml fires: validate + generate-changelog + GitHub Release prerelease=true
 
-# 7. Run Flyway migrations
-docker exec kiteclass-core java -jar app.jar --spring.profiles.active=migrate
+# 5. Trigger production deploy workflow (manual gate)
+gh workflow run deploy-production.yml -f confirm=DEPLOY -f tag=v0.9.0-beta
 
-# 8. Seed initial data (per GAP-376)
-docker exec kiteclass-core java -jar app.jar --command=seed-beta
+# 6. SSM into EC2 → docker compose pull && docker compose up -d
+aws ssm start-session --target i-<id> --region ap-southeast-1
+sudo -u kite docker compose -f /opt/kite/docker-compose.prod.yml pull
+sudo -u kite docker compose -f /opt/kite/docker-compose.prod.yml up -d
 
-# 9. Verify smoke tests (per GAP-377)
-./scripts/smoke-test.sh https://beta.kitehub.vn https://beta.kiteclass.vn
+# 7. Flyway migrations apply auto via Spring Boot start (verify logs)
 
-# 10. Activate Cloudflare proxy
-# Manual step: enable proxy on DNS records
+# 8. Seed initial data (Wave 33 GAP-376 ProductionSeedRunner)
+sudo -u kite docker exec kiteclass-core java -jar app.jar --command=seed-production
 
-# 11. Send invite emails to 10-20 trusted beta tenants
-# Via beta admin tooling
+# 9. DNS cutover Cloudflare → ALB
+# Cloudflare Console: A record kitehub.vn + kiteclass.vn → ALB DNS (proxied orange-cloud)
+
+# 10. Verify smoke tests (Wave 26 GAP-377 — 18 assertions)
+./scripts/smoke-test.sh https://kitehub.vn https://kiteclass.vn
+
+# 11. Trigger E2E pre-release Playwright + OWASP ZAP (Wave 37 Bucket C)
+gh workflow run e2e-pre-release.yml
+gh workflow run zap-baseline.yml
+
+# 12. Send invite emails to 10-20 trusted beta tenants
+# Via admin endpoint /admin/beta-requests (Wave 33 Bucket C BetaAccessRequest flow)
 ```
 
 ### 2.3 Beta invite mechanism flow (per GAP-372)
@@ -179,7 +202,13 @@ docker exec kiteclass-core java -jar app.jar --command=seed-beta
 
 ### 2.4 BETA smoke tests (post-deploy)
 
-> **Automated** post-deploy via `scripts/smoke-test.sh <KH-url> <KC-url>` (GAP-377 / Wave 26 Bucket C extension on GAP-089 baseline). Wired into `.github/workflows/deploy-staging.yml` → "Post-deploy smoke test" step. 18 assertions covering health, legal pages, login/register, KH `/api/health`, ConsentBanner mount, KC public APIs, error handling, gateway routing. Manual checklist below tracks the supersets the script does not yet cover.
+> **Automated** post-deploy via `scripts/smoke-test.sh <KH-url> <KC-url>` (Wave 26 GAP-377). 18 assertions covering health, legal pages, login/register, KH `/api/health`, ConsentBanner mount, KC public APIs, error handling, gateway routing.
+>
+> **E2E gate** via `.github/workflows/e2e-pre-release.yml` (Wave 37 Bucket C — GAP-403/404/406): 3 beta-funnel Playwright specs (`request-flow.spec.ts`, `admin-approve.spec.ts`, `signup-with-claim-code.spec.ts`) + visual regression scaffold + trace upload artifact.
+>
+> **Security baseline** via `.github/workflows/zap-baseline.yml` (Wave 37 Bucket C — GAP-405) workflow_dispatch — OWASP top 10 baseline scan with manual review.
+>
+> Manual checklist below tracks supersets the automation does not yet cover.
 
 - [ ] Public marketing pages load: `/` `/blog` `/pricing` `/legal/privacy` `/legal/terms` `/legal/cookies` `/legal/dmca`
 - [ ] Beta access form submits successfully
@@ -439,15 +468,27 @@ Tag conventions:
 ## 9. Cross-references
 
 - Parent: [`release-1-plan-2026.md`](release-1-plan-2026.md) — phase structure + gap clusters
+- **Ordered runbook (Phase 0-9):** [`release-1-deploy-runbook.md`](release-1-deploy-runbook.md) — single-source ordered sequence
 - Versioning: [`versioning-policy.md`](versioning-policy.md) — semver convention + release process
-- Architecture: [`infrastructure/kitehub-oracle-cloud-deployment.md`](../infrastructure/kitehub-oracle-cloud-deployment.md)
+- ADR-025: [AWS Singapore Free Tier Architecture](../../02-architecture/adr/ADR-025-aws-singapore-free-tier-architecture.md) — cloud platform decision
+- ADR-026: [Ollama defer Phase 2](../../02-architecture/adr/ADR-026-ollama-defer-phase-2.md) — AI inference strategy
+- ADR-027: [Statuspage vendor Instatus](../../02-architecture/adr/ADR-027-statuspage-vendor-instatus.md) — status page decision
+- Sizing matrix: [`documents/05-guides/deploy/aws-architecture-sizing-matrix.md`](../../05-guides/deploy/aws-architecture-sizing-matrix.md)
+- Cloudflare setup: [`documents/05-guides/deploy/cloudflare-setup.md`](../../05-guides/deploy/cloudflare-setup.md)
+- DNS runbook: [`documents/05-guides/deploy/dns-setup-runbook.md`](../../05-guides/deploy/dns-setup-runbook.md)
+- Secrets runbook: [`documents/05-guides/deploy/secrets-management-runbook.md`](../../05-guides/deploy/secrets-management-runbook.md)
+- Staging activation: [`documents/05-guides/deploy/staging-activation-runbook.md`](../../05-guides/deploy/staging-activation-runbook.md)
+- Email SES setup: [`documents/05-guides/deploy/email-ses-setup-runbook.md`](../../05-guides/deploy/email-ses-setup-runbook.md)
+- Incident comms: [`documents/05-guides/operations/incident-comms-runbook.md`](../../05-guides/operations/incident-comms-runbook.md)
+- Rollback runbook: [`documents/05-guides/operations/runbooks/rollback-runbook.md`](../../05-guides/operations/runbooks/rollback-runbook.md)
 - Generic checklist: [`documents/05-guides/deploy/deploy-go-nogo-checklist.md`](../../05-guides/deploy/deploy-go-nogo-checklist.md)
-- Generic runbook: [`documents/05-guides/operations/runbooks/deployment-procedures.md`](../../05-guides/operations/runbooks/deployment-procedures.md)
-- Existing workflows: `.github/workflows/deploy-{staging,production}.yml`
+- Existing workflows: `.github/workflows/{deploy-staging,deploy-production,docker-build-push,release-tag,e2e-pre-release,zap-baseline}.yml`
+- Archived (Oracle path superseded by ADR-025): [`documents/07-archived/oracle-deploy-2026/`](../../07-archived/oracle-deploy-2026/)
 - Memory: `feedback_release_1_first_session_priority.md`
 
 ---
 
 ## 10. Log
 
+- **2026-05-07 (Phase 0 plan refresh):** Updated post Wave 38 + PR #947 runbook merge. Cloud platform locked AWS Singapore Architecture B per ADR-025 (Oracle Cloud path archived). §1.1 rewritten dual-cloud → single-EC2 + docker-compose Architecture B. §1.2 environments updated (staging Architecture B Wave 38 Bucket D, production AWS Singapore). §1.3 artifacts list refreshed (Wave 37/38 Terraform AWS + 9 ECR repos + Wave 33/38 runbooks + workflows release-tag/docker-build-push/e2e-pre-release/zap-baseline). §2.1 Infrastructure checklist rewritten Architecture B context. §2.2 deploy steps rewritten 12-step sequence (terraform-aws + ECR + SSM + smoke + E2E + ZAP) replacing Oracle terraform-oracle path. §2.4 smoke test section extended với Wave 37 E2E + OWASP refs. §9 cross-references rebuilt với ADR-025/026/027 + 6 runbook links + archived Oracle pointer. Closes Phase 0 of `release-1-deploy-runbook.md` (sub-tasks 0.1-0.4, 0.6). Sub-task 0.5 (git mv Oracle doc → 07-archived) shipped same PR. Phase 1 user-actions unblocked.
 - **2026-05-06:** Plan created. Aggregates infrastructure base (terraform Oracle + AWS, Helm, workflows, generic checklists/runbooks) into version-specific deploy plan cho v0.9.0-beta + v1.0.0. Filed 12 BLOCKING/STRONGLY recommend gaps (GAP-369..380) inline. Phase 1 BETA deploy steps documented + Phase 1.5 PAID delta documented. Go-live runbook §4 + rollback procedure §5 (high-level; detailed rollback runbook → GAP-378). Open items §8 require user decisions (email vendor, DNS registrar, payment processor primary).

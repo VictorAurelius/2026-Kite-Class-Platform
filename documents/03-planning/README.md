@@ -20,7 +20,7 @@ Active planning artifacts. Work that is upcoming, in-flight, or recently shipped
 | [`prs/`](prs/) | Master PR index + per-service lists | `00-master-pr-index.md` |
 | [`api/`](api/) | API contract planning | `api-contracts-overview.md` |
 | [`database/`](database/) | DB design + migration plans | `database-design.md`, `database-migration-plan.md` |
-| [`infrastructure/`](infrastructure/) | Infra provisioning plans | `kitehub-oracle-cloud-deployment.md` |
+| [`infrastructure/`](infrastructure/) | Infra provisioning plans | `kitehub-infrastructure.md`, `monitoring-observability.md` (Oracle path archived 2026-05-07 per ADR-025) |
 | [`implementation/`](implementation/) | Detailed per-service implementation plans | `core-service-implementation.md`, `frontend-plan.md` |
 | [`quality/`](quality/) | Quality improvement plans (pre-audit era) | `code-review-pr-plan-COMPLETED.md` |
 | [`testing/`](testing/) | Test strategy docs | `integration-testing-strategy.md`, `local-e2e-roadmap.md` |
