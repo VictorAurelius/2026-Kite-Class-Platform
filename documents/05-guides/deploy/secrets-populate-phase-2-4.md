@@ -17,6 +17,27 @@ phase: 2.4
 
 ---
 
+## Helper script (recommended fast path)
+
+`scripts/populate-secrets.sh` automates the 7-secret populate flow below: 4 random-generated, 2 user-prompted (OpenAI + Anthropic, hidden via `read -r -s`), 1 fixed (`kitehub-prod`). Idempotent — safe to re-run. Never echoes secret values.
+
+```bash
+# 1. Preview without touching AWS
+bash scripts/populate-secrets.sh --dry-run
+
+# 2. Populate non-interactively (random + fixed secrets only)
+bash scripts/populate-secrets.sh --yes
+
+# 3. Full interactive run (per-secret confirm + prompts for OpenAI/Anthropic keys)
+bash scripts/populate-secrets.sh
+```
+
+**Important — Tier 3 mutation, human-only:** the script issues `aws secretsmanager create-secret` + `put-secret-value` (Tier 3 per [`agent-aws-access.md`](../../../.claude/rules/agent-aws-access.md) §4.1). **Agents must NOT invoke this script** — execute as a human operator. Pre-flight verifies AWS account `906286017800` and region `ap-southeast-1` before any mutation.
+
+For the 5 non-overlapping secrets the runbook below also covers (Resend / RabbitMQ / SES SMTP / Cloudflare / `kite/prod/ses-smtp-credentials` deprecation), follow the manual steps below — those values come from external dashboards or have pivoted scope per Stream A.
+
+---
+
 ## What Phase 2.3 created
 
 Per `infrastructure/terraform-aws/secrets.tf`, Phase 2.3 apply tạo:
@@ -34,8 +55,8 @@ Per `infrastructure/terraform-aws/secrets.tf`, Phase 2.3 apply tạo:
 | Secret name | Description | Source |
 |---|---|---|
 | `kite/prod/ses-smtp-credentials` | SES SMTP user/pass — **N/A** if using Resend pivot | Resend API key (Stream A pivot) |
-| `kite/prod/ai-openai-api-key` | OpenAI API key | platform.openai.com |
-| `kite/prod/ai-anthropic-api-key` | Anthropic API key | console.anthropic.com |
+| `kite/prod/ai-openai-api-key` | OpenAI API key | **DEFERRED Phase 2** (per ADR-026 Ollama defer) — leave placeholder |
+| `kite/prod/ai-anthropic-api-key` | Anthropic API key | **DEFERRED Phase 2** (per ADR-026 Ollama defer) — leave placeholder |
 | `kite/prod/cloudflare-api-token` | Cloudflare API token (deferred Phase 2 — pivoted to Vercel) | dash.cloudflare.com (defer) |
 | `kite/prod/rabbitmq-default-creds` | RabbitMQ user/password | `random_password` or manual |
 
@@ -94,23 +115,18 @@ aws secretsmanager create-secret \
 
 Note: this should be added to `secrets.tf` for IaC parity (follow-up gap).
 
-### 2. Populate AI provider keys
+### 2. Populate AI provider keys — **SKIPPED Phase 1 BETA**
+
+Per ADR-026 (Ollama defer Phase 2) + user decision 2026-05-07: AI provider integration deferred entirely. Placeholders left in Secrets Manager; populate when AI feature reactivated Phase 2:
 
 ```bash
-# OpenAI (https://platform.openai.com/api-keys)
-read -s -p "Enter OpenAI API key (sk-...): " OPENAI_KEY; echo
-aws secretsmanager put-secret-value \
-  --secret-id kite/prod/ai-openai-api-key \
-  --secret-string "${OPENAI_KEY}"
-
-# Anthropic (https://console.anthropic.com/settings/keys)
-read -s -p "Enter Anthropic API key (sk-ant-...): " ANTHROPIC_KEY; echo
-aws secretsmanager put-secret-value \
-  --secret-id kite/prod/ai-anthropic-api-key \
-  --secret-string "${ANTHROPIC_KEY}"
+# Phase 2+ only (when AI reactivated):
+# read -s -p "Enter OpenAI API key (sk-...): " OPENAI_KEY; echo
+# aws secretsmanager put-secret-value \
+#   --secret-id kite/prod/ai-openai-api-key \
+#   --secret-string "${OPENAI_KEY}"
+# (Anthropic similar)
 ```
-
-Per ADR-026: AI keys mainly for fallback Phase 1 BETA; primary = local Ollama defer Phase 2.
 
 ### 3. Populate RabbitMQ credentials
 
@@ -203,15 +219,11 @@ EC2 user-data scripts (Phase 3 image deploy) sẽ:
 
 ---
 
-## Helper script
+## Helper script (shipped — see top of doc)
 
-`scripts/populate-secrets.sh` (companion file, optional):
-- Prompts user for each placeholder value
-- Validates format (e.g., OpenAI keys start `sk-`)
-- Posts to AWS Secrets Manager
-- Outputs verification report
+`scripts/populate-secrets.sh` is the canonical fast-path automation for 5 ASCII secrets (Phase 1 BETA scope; AI keys deferred Phase 2 per ADR-026): `kite/prod/db/password`, `kite/prod/jwt/secret`, `kite/prod/encryption/master-key`, `kite/prod/internal-api/secret`, `kite/prod/ses/configuration-set`. See "Helper script (recommended fast path)" section near the top of this doc.
 
-→ TODO: ship script in follow-up PR khi user xong manual populate Phase 1.
+The runbook procedure above remains the source of truth for the 5 secrets the script does not cover (Resend pivot, RabbitMQ JSON creds, SES SMTP deprecation, Cloudflare deferral) — those require manual flow because values originate outside this repo or pivoted scope.
 
 ---
 
