@@ -1,6 +1,6 @@
 # GAP-415: Phase 2 EKS Migration Plan
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 2026-05-07 (plan shipped; EKS Terraform module + Helm audit + dress-rehearsal deferred Phase 1.5 mid-cycle)
 **Priority:** 🟡 P2
 **Domain:** Infrastructure / Future planning
 **Found:** 2026-05-07 (Wave 37 — Layer 5)
@@ -26,11 +26,15 @@ NOTE: Architecture C trong GAP-411 sizing matrix là target post-migration.
 
 ## Acceptance Criteria
 
-- [ ] `phase-2-eks-migration.md` plan exists với 5 sections
-- [ ] EKS Terraform module reviewed (separate from Phase 1 module)
-- [ ] Helm charts cho 8 services + frontends provisioned (some exist, audit gap)
-- [ ] Cutover dress-rehearsal staging (Phase 1.5 mid-cycle)
-- [ ] Rollback runbook (DNS revert)
+- [x] `phase-2-eks-migration.md` plan exists với 5 sections (actual: 7 sections — trigger / pre-migration / cutover / cost / rollback / decommission / acceptance)
+- [ ] EKS Terraform module reviewed (separate from Phase 1 module) — **design spec §2.2; module creation post-trigger Phase 1.5 PAID full**
+- [ ] Helm charts cho 8 services + frontends provisioned (some exist, audit gap) — **audit deferred §2.1; follow-up gap if missing post-state-check**
+- [ ] Cutover dress-rehearsal staging (Phase 1.5 mid-cycle) — **deferred Phase 1.5 mid-cycle activity per §3.1**
+- [x] Rollback runbook (DNS revert) (§5)
+
+## Log
+
+- **2026-05-07** — PARTIAL. Migration plan `documents/03-planning/roadmap/phase-2-eks-migration.md` shipped với trigger gates + pre-migration checklist + blue-green cutover sequence + cost projection + DNS rollback runbook + Phase 1 decommission steps. Terraform module + Helm audit + dress-rehearsal deferred Phase 1.5 mid-cycle. Wave 37 Bucket E.
 
 ## Related
 

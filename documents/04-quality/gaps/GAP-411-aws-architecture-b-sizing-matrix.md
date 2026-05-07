@@ -1,6 +1,6 @@
 # GAP-411: AWS Architecture B Sizing + Phase Progression Matrix
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07 (Wave 37 Bucket E PR — sizing matrix shipped)
 **Priority:** 🔴 P0 v0.9.0-beta
 **Domain:** Infrastructure / Cost
 **Found:** 2026-05-07 (Wave 37 — Layer 5 AWS cost)
@@ -29,15 +29,20 @@ Cost driver breakdown 89% EC2 — optimization knobs:
 
 ## Acceptance Criteria
 
-- [ ] `documents/05-guides/deploy/aws-architecture-sizing-matrix.md` exists
-- [ ] Sizing matrix per phase documented
-- [ ] Cost projection 3-year (Phase 1 → Phase 2)
-- [ ] Optimization roadmap (RI, Spot, autoscaling)
-- [ ] Hidden cost section (egress, NAT, CloudWatch ingest)
+- [x] `documents/05-guides/deploy/aws-architecture-sizing-matrix.md` exists
+- [x] Sizing matrix per phase documented
+- [x] Cost projection 3-year (Phase 1 → Phase 2)
+- [x] Optimization roadmap (RI, Spot, autoscaling)
+- [x] Hidden cost section (egress, NAT, CloudWatch ingest)
 
 ## Related
 
 - ADR-025 AWS Singapore
+- ADR-026 Ollama defer Phase 2
 - GAP-395 (Terraform stack matches Architecture B)
 - GAP-412 (AWS Activate credit application — neutralize Yr1 cost)
 - `release-deploy-standard.md` §3
+
+## Log
+
+- **2026-05-07** — DONE. Sizing matrix shipped at `documents/05-guides/deploy/aws-architecture-sizing-matrix.md` (13 sections, 5-phase progression, hidden cost line items, optimization roadmap). Wave 37 Bucket E.

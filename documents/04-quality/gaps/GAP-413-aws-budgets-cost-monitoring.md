@@ -1,6 +1,6 @@
 # GAP-413: AWS Budgets Cost Monitoring + Alerting
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 2026-05-07 (policy doc + runbook shipped; Terraform provisioning tracked GAP-395 Bucket A)
 **Priority:** 🟠 P1
 **Domain:** Infrastructure / Cost / FinOps
 **Found:** 2026-05-07 (Wave 37 — Layer 5)
@@ -26,14 +26,19 @@ ECR cleanup policy: `lifecycle_policy.json` auto-delete untagged + old version i
 
 ## Acceptance Criteria
 
-- [ ] 3 AWS Budgets alarms provisioned (Terraform via GAP-395)
-- [ ] Email recipient: vannkite@outlook.com + on-call rotation
-- [ ] Tag policy enforced via Terraform `default_tags`
-- [ ] ECR lifecycle policy (delete untagged + >7d old)
-- [ ] Document `documents/05-guides/deploy/aws-cost-monitoring.md` (runbook on alarm)
+- [ ] 3 AWS Budgets alarms provisioned (Terraform via GAP-395) — **tracked GAP-395 Bucket A — Terraform implementation**
+- [x] Email recipient: vannkite@outlook.com (on-call rotation N/A solo-dev)
+- [ ] Tag policy enforced via Terraform `default_tags` — **spec ready §3, Terraform impl GAP-395**
+- [ ] ECR lifecycle policy (delete untagged + >7d old) — **spec ready §4, Terraform impl GAP-395**
+- [x] Document `documents/05-guides/deploy/aws-cost-monitoring.md` (runbook on alarm)
 
 ## Related
 
 - GAP-411 (sizing matrix — $80 threshold matches B+buffer)
 - GAP-412 (Activate credit — depletion alarm dependency)
 - GAP-414 (right-sizing review monthly)
+- GAP-395 (Terraform Bucket A — provisions alarms + Tag policy + ECR lifecycle)
+
+## Log
+
+- **2026-05-07** — PARTIAL. Cost monitoring policy doc + 3-alarm spec + runbook + Tag policy + ECR lifecycle policy shipped (Wave 37 Bucket E). Terraform provisioning deferred GAP-395 Bucket A — same wave parallel agent. Status flips DONE post-Bucket-A merge + alarm test trigger.
