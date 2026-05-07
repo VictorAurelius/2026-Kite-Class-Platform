@@ -55,8 +55,8 @@ Per `infrastructure/terraform-aws/secrets.tf`, Phase 2.3 apply tạo:
 | Secret name | Description | Source |
 |---|---|---|
 | `kite/prod/ses-smtp-credentials` | SES SMTP user/pass — **N/A** if using Resend pivot | Resend API key (Stream A pivot) |
-| `kite/prod/ai-openai-api-key` | OpenAI API key | platform.openai.com |
-| `kite/prod/ai-anthropic-api-key` | Anthropic API key | console.anthropic.com |
+| `kite/prod/ai-openai-api-key` | OpenAI API key | **DEFERRED Phase 2** (per ADR-026 Ollama defer) — leave placeholder |
+| `kite/prod/ai-anthropic-api-key` | Anthropic API key | **DEFERRED Phase 2** (per ADR-026 Ollama defer) — leave placeholder |
 | `kite/prod/cloudflare-api-token` | Cloudflare API token (deferred Phase 2 — pivoted to Vercel) | dash.cloudflare.com (defer) |
 | `kite/prod/rabbitmq-default-creds` | RabbitMQ user/password | `random_password` or manual |
 
@@ -115,23 +115,18 @@ aws secretsmanager create-secret \
 
 Note: this should be added to `secrets.tf` for IaC parity (follow-up gap).
 
-### 2. Populate AI provider keys
+### 2. Populate AI provider keys — **SKIPPED Phase 1 BETA**
+
+Per ADR-026 (Ollama defer Phase 2) + user decision 2026-05-07: AI provider integration deferred entirely. Placeholders left in Secrets Manager; populate when AI feature reactivated Phase 2:
 
 ```bash
-# OpenAI (https://platform.openai.com/api-keys)
-read -s -p "Enter OpenAI API key (sk-...): " OPENAI_KEY; echo
-aws secretsmanager put-secret-value \
-  --secret-id kite/prod/ai-openai-api-key \
-  --secret-string "${OPENAI_KEY}"
-
-# Anthropic (https://console.anthropic.com/settings/keys)
-read -s -p "Enter Anthropic API key (sk-ant-...): " ANTHROPIC_KEY; echo
-aws secretsmanager put-secret-value \
-  --secret-id kite/prod/ai-anthropic-api-key \
-  --secret-string "${ANTHROPIC_KEY}"
+# Phase 2+ only (when AI reactivated):
+# read -s -p "Enter OpenAI API key (sk-...): " OPENAI_KEY; echo
+# aws secretsmanager put-secret-value \
+#   --secret-id kite/prod/ai-openai-api-key \
+#   --secret-string "${OPENAI_KEY}"
+# (Anthropic similar)
 ```
-
-Per ADR-026: AI keys mainly for fallback Phase 1 BETA; primary = local Ollama defer Phase 2.
 
 ### 3. Populate RabbitMQ credentials
 
@@ -226,7 +221,7 @@ EC2 user-data scripts (Phase 3 image deploy) sẽ:
 
 ## Helper script (shipped — see top of doc)
 
-`scripts/populate-secrets.sh` is the canonical fast-path automation for the 7 ASCII secrets created by Phase 2.3 (`kite/prod/db/password`, `kite/prod/jwt/secret`, `kite/prod/encryption/master-key`, `kite/prod/internal-api/secret`, `kite/prod/openai/api-key`, `kite/prod/anthropic/api-key`, `kite/prod/ses/configuration-set`). See "Helper script (recommended fast path)" section near the top of this doc.
+`scripts/populate-secrets.sh` is the canonical fast-path automation for 5 ASCII secrets (Phase 1 BETA scope; AI keys deferred Phase 2 per ADR-026): `kite/prod/db/password`, `kite/prod/jwt/secret`, `kite/prod/encryption/master-key`, `kite/prod/internal-api/secret`, `kite/prod/ses/configuration-set`. See "Helper script (recommended fast path)" section near the top of this doc.
 
 The runbook procedure above remains the source of truth for the 5 secrets the script does not cover (Resend pivot, RabbitMQ JSON creds, SES SMTP deprecation, Cloudflare deferral) — those require manual flow because values originate outside this repo or pivoted scope.
 

@@ -24,14 +24,16 @@
 #   - Authenticated as account 906286017800 (`aws sts get-caller-identity`)
 #   - Region ap-southeast-1
 #
-# What gets populated (7 secrets):
+# What gets populated (5 secrets):
 #   1. kite/prod/db/password           — openssl rand -base64 32 (auto-generated)
 #   2. kite/prod/jwt/secret            — openssl rand -base64 64 (auto-generated)
 #   3. kite/prod/encryption/master-key — openssl rand -base64 32 (auto-generated)
 #   4. kite/prod/internal-api/secret   — openssl rand -base64 32 (auto-generated)
-#   5. kite/prod/openai/api-key        — prompted (read -r -s)
-#   6. kite/prod/anthropic/api-key     — prompted (read -r -s)
-#   7. kite/prod/ses/configuration-set — fixed value: kitehub-prod
+#   5. kite/prod/ses/configuration-set — fixed value: kitehub-prod
+#
+# Note (Phase 1 BETA): OpenAI/Anthropic API keys NOT populated by this script.
+# AI provider integration deferred per ADR-026 (Ollama defer Phase 2). When
+# AI keys needed, populate manually via AWS Console or extend this script.
 #
 # Idempotent: re-runs safe. If a secret already has a populated value (per
 # `describe-secret` LastChangedDate), prints `[SKIP]` and moves on.
@@ -347,14 +349,12 @@ main() {
   preflight
 
   echo
-  log_info "Will process 7 secrets:"
+  log_info "Will process 5 secrets (AI keys deferred Phase 2 per ADR-026):"
   echo "  1. kite/prod/db/password           (random 32-byte)"
   echo "  2. kite/prod/jwt/secret            (random 64-byte)"
   echo "  3. kite/prod/encryption/master-key (random 32-byte)"
   echo "  4. kite/prod/internal-api/secret   (random 32-byte)"
-  echo "  5. kite/prod/openai/api-key        (user prompt)"
-  echo "  6. kite/prod/anthropic/api-key     (user prompt)"
-  echo "  7. kite/prod/ses/configuration-set (fixed: kitehub-prod)"
+  echo "  5. kite/prod/ses/configuration-set (fixed: kitehub-prod)"
 
   if ! confirm $'\nProceed?'; then
     log_warn "Aborted by user"
@@ -365,9 +365,6 @@ main() {
   handle_random "kite/prod/jwt/secret"            64 "JWT signing secret"
   handle_random "kite/prod/encryption/master-key" 32 "Application encryption master key"
   handle_random "kite/prod/internal-api/secret"   32 "Internal service-to-service auth secret"
-
-  handle_prompt "kite/prod/openai/api-key"    "OPENAI_API_KEY"    "OpenAI API key (sk-...)"
-  handle_prompt "kite/prod/anthropic/api-key" "ANTHROPIC_API_KEY" "Anthropic API key (sk-ant-...)"
 
   handle_fixed  "kite/prod/ses/configuration-set" "kitehub-prod" "SES configuration set name"
 
