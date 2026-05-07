@@ -67,6 +67,7 @@ Prometheus + Micrometer are already wired (`management.endpoints.web.exposure.in
 
 ## Log
 
+- **2026-05-08 — Wave 41 Bucket F:** Dashboard catalog runbook shipped at `documents/05-guides/operations/runbooks/monitoring-dashboards.md` — catalogs all 5 baseline Grafana dashboards (api-latency / http-traffic / jvm-heap-gc / infra-pools / logs-overview) + 4-step alert→dashboard→runbook triage workflow tying `ApiLatencyP95High*` + `ApiLatencyP99Critical*` alerts to API Latency dashboard for on-call consumption. AC #4 (Grafana dashboard JSON committed) was already checked Wave perf-D; this bucket adds operator-facing runbook so SLO observability is actionable. Status remains 🟡 PARTIAL — AC #5 (PR template SLO declaration) + AC #6 (remaining ~13 controllers) are separate follow-ups.
 - 2026-04-26 — Wave perf-D Agent D: SLO instrumentation suite shipped.
   - 16 controllers tagged class-level `@Timed(value="http.server.requests", percentiles={0.5,0.95,0.99}, extraTags={"slo","tier-X","controller","..."})`:
     - kitehub-subscription (5): Auth=tier-c, Instance=tier-b, Payment=tier-c, Subscription=tier-b, Domain=tier-c

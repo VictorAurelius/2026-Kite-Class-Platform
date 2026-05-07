@@ -1,0 +1,26 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.dashboards.enabled }}
+---
+# GAP-115 Phase 1 — Logs Overview Grafana dashboard ConfigMap.
+#
+# Loaded by the Grafana sidecar discovery (kube-prometheus-stack) via the
+# `grafana_dashboard` label. Body sourced from
+# infrastructure/helm/kitehub/dashboards/logs-overview.json so the same JSON
+# is reusable outside Helm (e.g., uploaded directly to Grafana Cloud).
+#
+# NOTE: panels target a Loki datasource (uid: $DS_LOKI). Loki/Promtail stack
+# itself is Phase 2 (see GAP-115 §"Proposed Fix" Option A). Until Loki ships,
+# panels render "No data" — dashboard provisioned now so the on-call runbook
+# (documents/05-guides/operations/runbooks/monitoring-dashboards.md) can
+# reference stable dashboard URLs.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kitehub-dashboard-logs-overview
+  labels:
+    app: kitehub
+    release: {{ .Release.Name }}
+    {{ .Values.monitoring.dashboards.label.key }}: {{ .Values.monitoring.dashboards.label.value | quote }}
+data:
+  logs-overview.json: |-
+{{ .Files.Get "dashboards/logs-overview.json" | indent 4 }}
+{{- end }}
