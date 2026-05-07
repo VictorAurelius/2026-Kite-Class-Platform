@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 class BetaAccessServiceTest {
 
     private BetaAccessRequestRepository repository;
+    private SubscriptionOutboxRepository outboxRepo;
     private SubscriptionEventEmitter eventEmitter;
     private BetaAccessService service;
 
@@ -45,7 +46,7 @@ class BetaAccessServiceTest {
     void setUp() {
         repository = mock(BetaAccessRequestRepository.class);
         // Real emitter against a mock outbox repo so we can assert outbox writes.
-        SubscriptionOutboxRepository outboxRepo = mock(SubscriptionOutboxRepository.class);
+        outboxRepo = mock(SubscriptionOutboxRepository.class);
         eventEmitter = new SubscriptionEventEmitter(outboxRepo);
         service = new BetaAccessService(repository, eventEmitter);
         when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -59,12 +60,22 @@ class BetaAccessServiceTest {
                 .thenReturn(Optional.empty());
 
         BetaRequestDto dto = new BetaRequestDto(
-                "new@x.com", "New", "New Org", "P2_CENTER_OWNER", null, "");
+                "new@x.com", "New", "New Org", "P2_CENTER_OWNER", null, "", true);
         BetaAccessRequest result = service.submitRequest(dto);
 
         assertThat(result.getStatus()).isEqualTo(BetaAccessRequestStatus.PENDING);
         assertThat(result.getEmail()).isEqualTo("new@x.com");
+        // GAP-385: consent fields persisted on insert.
+        assertThat(result.isConsentGiven()).isTrue();
+        assertThat(result.getConsentAt()).isNotNull();
         verify(repository).save(any(BetaAccessRequest.class));
+        // GAP-385: consent-given audit event emitted via outbox (no direct rabbit).
+        ArgumentCaptor<com.kitehub.subscription.outbox.SubscriptionOutboxEvent> captor =
+                ArgumentCaptor.forClass(com.kitehub.subscription.outbox.SubscriptionOutboxEvent.class);
+        verify(outboxRepo).save(captor.capture());
+        assertThat(captor.getValue().getEventType()).isEqualTo("beta.consent.given");
+        assertThat(captor.getValue().getTopic()).isEqualTo("audit.beta.consent");
+        assertThat(captor.getValue().getPayload()).contains("\"email\":\"new@x.com\"");
     }
 
     @Test
@@ -81,7 +92,7 @@ class BetaAccessServiceTest {
                 .thenReturn(Optional.of(existing));
 
         BetaRequestDto dto = new BetaRequestDto(
-                "dup@x.com", "Dup", "DO", "P1_SOLO_TEACHER", null, "");
+                "dup@x.com", "Dup", "DO", "P1_SOLO_TEACHER", null, "", true);
         BetaAccessRequest result = service.submitRequest(dto);
 
         assertThat(result.getId()).isEqualTo(42L);

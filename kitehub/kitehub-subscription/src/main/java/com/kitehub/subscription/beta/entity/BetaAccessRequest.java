@@ -97,6 +97,23 @@ public class BetaAccessRequest {
     @Column(name = "rejection_reason", columnDefinition = "TEXT")
     private String rejectionReason;
 
+    /**
+     * PDPL 2023 Art 11 — explicit consent indicator (Wave 35 GAP-385).
+     * MUST be {@code true} for inserts created post-Wave 35; backfilled rows
+     * retain {@code FALSE} per V32 migration default.
+     */
+    @Column(name = "consent_given", nullable = false)
+    @Builder.Default
+    private boolean consentGiven = false;
+
+    /**
+     * PDPL 2023 Art 16 — consent evidence timestamp (Wave 35 GAP-385). Set by
+     * service to {@code OffsetDateTime.now()} on insert; backfilled rows
+     * receive {@code created_at} per V32 migration.
+     */
+    @Column(name = "consent_at", nullable = false)
+    private OffsetDateTime consentAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 

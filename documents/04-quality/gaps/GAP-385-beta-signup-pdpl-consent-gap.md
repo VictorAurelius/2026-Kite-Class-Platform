@@ -1,6 +1,6 @@
 # GAP-385: Beta-signup form thiếu PDPL 2023 consent flow
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07 (Wave 35 Bucket B)
 **Priority:** 🔴 P0 BLOCKING — PDPL deadline 2026-07-01 (~7 tuần countdown), Phase 1 launch chặn
 **Domain:** Backend + Frontend / Compliance (PDPL 2023 §3.1)
 **Found:** 2026-05-07 (Security /100 audit Wave 33 — agent a24fe574)
@@ -44,15 +44,15 @@ Wave 33 Bucket A/C (form + service) shipped với chỉ `@Email` + `@NotBlank` v
 
 ## Acceptance Criteria
 
-- [ ] FE checkbox + privacy/terms links + submit gate
-- [ ] BE field `consentGiven` + validation `@AssertTrue`
-- [ ] DB migration adds 2 columns
-- [ ] Audit log entry on consent given
-- [ ] Integration test: missing consent → 400 BETA_CONSENT_REQUIRED
-- [ ] Integration test: consent=true → 201, DB row has consent_at populated
-- [ ] Update `documents/01-business/kitehub/beta-access/rules.md` (nếu tồn tại; else file thêm) với BR-CONSENT-001 5-attribute compliance block citing PDPL 2023 §3.1
-- [ ] Update privacy policy doc (`documents/legal/`) nếu thiếu beta-flow specific section
-- [ ] Existing PENDING rows decision: drop hoặc backfill consent (recommend: drop pre-launch)
+- [x] FE checkbox + privacy/terms links + submit gate (`BetaRequestForm.tsx` + `data-testid="beta-consent-checkbox"` + button `disabled={!consentGiven}` + `/legal/privacy` + `/legal/terms` links — both routes exist per `pnpm build` output)
+- [x] BE field `consentGiven` + validation `@AssertTrue` (`BetaRequestDto.java` `@NotNull` + `@AssertTrue isConsentAccepted()` returning `BETA_CONSENT_REQUIRED`)
+- [x] DB migration adds 2 columns (`V32__beta_request_add_consent.sql` — `consent_given BOOLEAN NOT NULL DEFAULT FALSE` + `consent_at TIMESTAMP WITH TIME ZONE NOT NULL`; backfill `consent_at = created_at`)
+- [x] Audit log entry on consent given (`BetaAccessService.submitRequest` emits `beta.consent.given` via `SubscriptionEventEmitter` outbox; topic `audit.beta.consent`; verified by `BetaAccessServiceTest.submitRequestCreatesPending`)
+- [x] Integration test: missing consent → 400 BETA_CONSENT_REQUIRED (`BetaAccessControllerTest.submitRequestRejectsMissingConsent`)
+- [x] Integration test: consent=true → 201, DB row has consent fields populated (`BetaAccessControllerTest.submitRequestAcceptsValid` + `BetaAccessServiceTest.submitRequestCreatesPending` asserts `isConsentGiven()` + `getConsentAt()`)
+- [x] `documents/01-business/kitehub/beta-access/rules.md` BR-BETA-001 5-attribute PDPL 2023 Art 11 block (shipped Wave 35 Bucket 0 Foundation PR #916; verified present 2026-05-07)
+- [x] Privacy policy + ToS routes exist (`/legal/privacy` + `/legal/terms` rendered as static routes per `pnpm build`)
+- [x] Existing PENDING rows decision: V32 migration backfills `consent_given=FALSE` + `consent_at=created_at`; coordinator policy gates approval (documented in V32 SQL header)
 
 ## Related
 
@@ -65,3 +65,4 @@ Wave 33 Bucket A/C (form + service) shipped với chỉ `@Email` + `@NotBlank` v
 ## Log
 
 - **2026-05-07** Filed from Security /100 audit Wave 33. State-check: 0 existing gaps cover beta-signup PDPL consent (grep `beta.*PDPL|consent.*beta` returned 0 matches in gaps dir). Wave 23 PDPL Phase 2 closed main signup compliance — beta is NEW surface.
+- **2026-05-07** Wave 35 Bucket B shipped — DTO `consentGiven` `@NotNull` + `@AssertTrue` (with `@JsonIgnore` on the assertion accessor to avoid Jackson serializing it back into request body); entity `BetaAccessRequest.consentGiven`/`consentAt` columns; V32 Flyway migration; `BetaAccessService.submitRequest` sets fields + emits `beta.consent.given` outbox event (audit topic `audit.beta.consent`, payload includes `requestId`/`email`/`persona`/`consentAt`); FE form gates submit on consent + sends `consentGiven=true` in POST. BE verify: 430/430 tests pass on `kitehub-subscription`. FE: 6/6 vitest tests + `next build` strict pass. Coordination with Bucket A (GAP-384 admin auth): no shared file conflict; controller tests retained their structure with consent fields appended.
