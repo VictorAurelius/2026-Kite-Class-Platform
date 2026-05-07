@@ -1,6 +1,8 @@
 # =============================================================================
-# VPC + Subnets + NAT Gateway
+# VPC + Subnets + (optional) NAT Gateway
 # =============================================================================
+# Phase 1 BETA: 2 public subnets (single AZ acceptable since rds_multi_az=false,
+# but VPC subnet-group requires ≥2 AZs — we provision 2 AZs but place EC2 in AZ-a only).
 
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
@@ -10,7 +12,7 @@ resource "aws_vpc" "main" {
   tags = { Name = "${var.project_name}-vpc" }
 }
 
-# Public subnets (for ALB, NAT Gateway)
+# Public subnets (for ALB, EC2 instances Phase 1, NAT Gateway if enabled)
 resource "aws_subnet" "public" {
   count                   = 2
   vpc_id                  = aws_vpc.main.id
@@ -18,25 +20,17 @@ resource "aws_subnet" "public" {
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
 
-  tags = {
-    Name                                          = "${var.project_name}-public-${count.index}"
-    "kubernetes.io/role/elb"                      = "1"
-    "kubernetes.io/cluster/${var.project_name}-eks" = "shared"
-  }
+  tags = { Name = "${var.project_name}-public-${count.index}" }
 }
 
-# Private subnets (for EKS nodes, RDS, ElastiCache)
+# Private subnets (for RDS — required minimum 2 AZ for db_subnet_group)
 resource "aws_subnet" "private" {
   count             = 2
   vpc_id            = aws_vpc.main.id
   cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index + 10)
   availability_zone = data.aws_availability_zones.available.names[count.index]
 
-  tags = {
-    Name                                          = "${var.project_name}-private-${count.index}"
-    "kubernetes.io/role/internal-elb"             = "1"
-    "kubernetes.io/cluster/${var.project_name}-eks" = "shared"
-  }
+  tags = { Name = "${var.project_name}-private-${count.index}" }
 }
 
 # Internet Gateway
@@ -45,15 +39,16 @@ resource "aws_internet_gateway" "main" {
   tags   = { Name = "${var.project_name}-igw" }
 }
 
-# Elastic IP for NAT Gateway
+# NAT Gateway (optional — disabled by default Phase 1 for cost savings)
 resource "aws_eip" "nat" {
+  count  = var.enable_nat_gateway ? 1 : 0
   domain = "vpc"
   tags   = { Name = "${var.project_name}-nat-eip" }
 }
 
-# NAT Gateway
 resource "aws_nat_gateway" "main" {
-  allocation_id = aws_eip.nat.id
+  count         = var.enable_nat_gateway ? 1 : 0
+  allocation_id = aws_eip.nat[0].id
   subnet_id     = aws_subnet.public[0].id
   tags          = { Name = "${var.project_name}-nat" }
 
@@ -72,10 +67,15 @@ resource "aws_route_table" "public" {
 
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.main.id
+
+  dynamic "route" {
+    for_each = var.enable_nat_gateway ? [1] : []
+    content {
+      cidr_block     = "0.0.0.0/0"
+      nat_gateway_id = aws_nat_gateway.main[0].id
+    }
   }
+
   tags = { Name = "${var.project_name}-private-rt" }
 }
 
