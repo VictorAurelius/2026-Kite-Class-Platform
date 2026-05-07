@@ -1,6 +1,6 @@
 # GAP-384: Beta admin endpoints (`/api/v1/admin/beta-requests/*/approve|reject`) thiếu @PreAuthorize
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-08 (Wave 35 Bucket A)
 **Priority:** 🔴 P0 BLOCKING — Phase 1 launch chặn cho đến khi resolved
 **Domain:** Backend / Security
 **Found:** 2026-05-07 (Security /100 audit Wave 33 — agent a24fe574)
@@ -29,12 +29,12 @@ Recommend Option A cho tốc độ + isolation.
 
 ## Acceptance Criteria
 
-- [ ] Add `@PreAuthorize("hasRole('PLATFORM_ADMIN')")` trên `BetaAccessController.listRequests` + `approve` + `reject`
-- [ ] Enable `@EnableMethodSecurity` trong kitehub-subscription Spring config
-- [ ] Integration test: unauth POST to `/admin/beta-requests/1/approve` → 401/403
-- [ ] Integration test: PLATFORM_ADMIN role → 200
-- [ ] Update controller javadoc: "Guarded at controller level via @PreAuthorize" (replace gateway-only assertion)
-- [ ] Update `documents/01-business/kitehub/beta-access/api-contract.md` (nếu tồn tại) với auth requirement
+- [x] Add `@PreAuthorize("hasRole('PLATFORM_ADMIN')")` trên `BetaAccessController.listRequests` + `approve` + `reject`
+- [x] Enable `@EnableMethodSecurity` trong kitehub-subscription Spring config
+- [x] Integration test: unauth POST to `/admin/beta-requests/1/approve` → 401/403
+- [x] Integration test: PLATFORM_ADMIN role → 200
+- [x] Update controller javadoc: "Guarded at controller level via @PreAuthorize" (replace gateway-only assertion)
+- [x] Update `documents/01-business/kitehub/beta-access/api-contract.md` (nếu tồn tại) với auth requirement — verified: file documents `Bearer + role PLATFORM_ADMIN` + `@PreAuthorize` cross-ref + 401/403 error codes for all 3 admin endpoints (lines 124/146/163)
 
 ## Related
 
@@ -45,4 +45,5 @@ Recommend Option A cho tốc độ + isolation.
 
 ## Log
 
+- **2026-05-08** (Wave 35 Bucket A — PR pending) Closed by adding `spring-boot-starter-security` to `kitehub-subscription`, new `SecurityConfig` (`@EnableMethodSecurity`, `@EnableWebSecurity`, profile-aware filter chains, `XUserRolesHeaderFilter` translating gateway-forwarded `X-User-Id` + `X-User-Roles` headers into Spring authorities, `HttpStatusEntryPoint(401)` for anonymous-on-protected paths), `@PreAuthorize("hasRole('PLATFORM_ADMIN')")` on `BetaAccessController#listRequests/approve/reject`, controller javadoc updated, `GlobalExceptionHandler` extended with explicit `AuthorizationDeniedException`/`AuthenticationException` mappings (so 403/401 don't fall through to the catch-all 500). Tests rewritten to `@WebMvcTest + @Import(SecurityConfig.class)` with `@WithMockUser(roles="PLATFORM_ADMIN")` + `@WithAnonymousUser` covering 401 (anon list), 401 (anon approve), 403 (TENANT_USER reject) plus PLATFORM_ADMIN happy-paths. `InstanceApiContractTest` extended `@Import(SecurityConfig.class)` so existing `/api/platform/instances/**` permitAll path stays green. Verification artifact: `mvn -pl kitehub-subscription verify` → 431 tests, 0 failures.
 - **2026-05-07** Filed from Security /100 audit Wave 33. State-check: 0 existing gaps cover this finding (grep `PreAuthorize|admin.*beta` returned 5 unrelated files). Confirmed hardcoded path mismatch via `BetaAccessController.java:120-148` read.

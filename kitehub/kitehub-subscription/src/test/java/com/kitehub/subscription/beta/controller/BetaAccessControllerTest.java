@@ -8,16 +8,22 @@ import com.kitehub.subscription.beta.dto.BetaTokenValidationResponse;
 import com.kitehub.subscription.beta.entity.BetaAccessRequest;
 import com.kitehub.subscription.beta.entity.BetaAccessRequestStatus;
 import com.kitehub.subscription.beta.service.BetaAccessService;
+import com.kitehub.subscription.config.SecurityConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -26,35 +32,48 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * MockMvc tests for {@link BetaAccessController} (GAP-372 Wave 33 Bucket C).
+ * MockMvc tests for {@link BetaAccessController} (GAP-372 Wave 33 Bucket C; GAP-384 Wave 35 Bucket A).
  *
- * <p>Per {@code feedback_webmvctest_mock_reset.md}: explicit {@code Mockito.reset()}
+ * <p>Uses {@code @WebMvcTest} + {@code @Import(SecurityConfig.class)} so that
+ * {@code @EnableMethodSecurity} engages and {@code @PreAuthorize("hasRole('PLATFORM_ADMIN')")}
+ * actually fires on the admin endpoints. Per
+ * {@code feedback_webmvctest_mock_reset.md}: explicit {@code Mockito.reset()}
  * in {@code @BeforeEach} guards against mock-state leak across methods.</p>
  */
+@WebMvcTest(controllers = BetaAccessController.class)
+@Import(SecurityConfig.class)
 @DisplayName("BetaAccessController")
 class BetaAccessControllerTest {
 
-    private final BetaAccessService service = Mockito.mock(BetaAccessService.class);
-    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+    @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper mapper;
+
+    @MockitoBean
+    private BetaAccessService service;
+
+    /** Required because the application enables JPA auditing — slice context resolves auditing beans. */
+    @MockitoBean
+    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @BeforeEach
     void setUp() {
         Mockito.reset(service);
-        BetaAccessController controller = new BetaAccessController(service);
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(mapper);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller)
-                .setMessageConverters(converter)
-                .build();
     }
 
+    // ── Public endpoints (no auth required) ───────────────────────────
+
     @Test
+    @WithAnonymousUser
     @DisplayName("POST /api/v1/auth/request-beta-access — 201 on valid payload")
     void submitRequestAcceptsValid() throws Exception {
         BetaRequestDto dto = new BetaRequestDto(
@@ -73,6 +92,7 @@ class BetaAccessControllerTest {
         when(service.submitRequest(any())).thenReturn(saved);
 
         mockMvc.perform(post("/api/v1/auth/request-beta-access")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
@@ -81,6 +101,7 @@ class BetaAccessControllerTest {
     }
 
     @Test
+    @WithAnonymousUser
     @DisplayName("POST /request-beta-access — 400 when honeypot non-empty")
     void submitRequestRejectsHoneypot() throws Exception {
         BetaRequestDto dto = new BetaRequestDto(
@@ -88,12 +109,14 @@ class BetaAccessControllerTest {
                 "P1_SOLO_TEACHER", null, "i-am-a-bot");
 
         mockMvc.perform(post("/api/v1/auth/request-beta-access")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
+    @WithAnonymousUser
     @DisplayName("POST /request-beta-access — 400 when persona invalid")
     void submitRequestRejectsBadPersona() throws Exception {
         BetaRequestDto dto = new BetaRequestDto(
@@ -101,66 +124,14 @@ class BetaAccessControllerTest {
                 "BADPERSONA", null, "");
 
         mockMvc.perform(post("/api/v1/auth/request-beta-access")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("POST /admin/beta-requests/{id}/approve — 200 on PENDING transition")
-    void approvePromotesPendingToApproved() throws Exception {
-        BetaApproveCommand cmd = new BetaApproveCommand("coord-001");
-        BetaAccessRequest approved = BetaAccessRequest.builder()
-                .id(7L)
-                .email("inv@example.com")
-                .name("Inv")
-                .orgName("Inv Org")
-                .persona("P2_CENTER_OWNER")
-                .status(BetaAccessRequestStatus.APPROVED)
-                .approverId("coord-001")
-                .approvedAt(OffsetDateTime.now())
-                .inviteToken(UUID.randomUUID())
-                .inviteTokenExpiry(OffsetDateTime.now().plusHours(24))
-                .createdAt(OffsetDateTime.now())
-                .updatedAt(OffsetDateTime.now())
-                .build();
-        when(service.approveRequest(eq(7L), any())).thenReturn(approved);
-
-        mockMvc.perform(post("/api/v1/admin/beta-requests/7/approve")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(cmd)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("APPROVED"));
-    }
-
-    @Test
-    @DisplayName("POST /admin/beta-requests/{id}/reject — 200 with rejection reason")
-    void rejectMarksRejected() throws Exception {
-        BetaRejectCommand cmd = new BetaRejectCommand("coord-002", "Out of geography");
-        BetaAccessRequest rejected = BetaAccessRequest.builder()
-                .id(9L)
-                .email("nope@example.com")
-                .name("Nope")
-                .orgName("Nope Inc")
-                .persona("P1_SOLO_TEACHER")
-                .status(BetaAccessRequestStatus.REJECTED)
-                .approverId("coord-002")
-                .rejectedAt(OffsetDateTime.now())
-                .rejectionReason("Out of geography")
-                .createdAt(OffsetDateTime.now())
-                .updatedAt(OffsetDateTime.now())
-                .build();
-        when(service.rejectRequest(eq(9L), any())).thenReturn(rejected);
-
-        mockMvc.perform(post("/api/v1/admin/beta-requests/9/reject")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(cmd)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("REJECTED"))
-                .andExpect(jsonPath("$.rejectionReason").value("Out of geography"));
-    }
-
-    @Test
+    @WithAnonymousUser
     @DisplayName("GET /auth/beta-signup/validate — 200 valid + 404 invalid")
     void validateTokenSurfacesErrorCode() throws Exception {
         UUID validToken = UUID.randomUUID();
@@ -183,8 +154,69 @@ class BetaAccessControllerTest {
                 .andExpect(jsonPath("$.errorCode").value("TOKEN_EXPIRED"));
     }
 
+    // ── Admin endpoints — happy path (PLATFORM_ADMIN role) ────────────
+
     @Test
-    @DisplayName("GET /admin/beta-requests — paginated by status")
+    @WithMockUser(roles = "PLATFORM_ADMIN")
+    @DisplayName("POST /admin/beta-requests/{id}/approve — 200 on PENDING transition (PLATFORM_ADMIN)")
+    void approvePromotesPendingToApproved() throws Exception {
+        BetaApproveCommand cmd = new BetaApproveCommand("coord-001");
+        BetaAccessRequest approved = BetaAccessRequest.builder()
+                .id(7L)
+                .email("inv@example.com")
+                .name("Inv")
+                .orgName("Inv Org")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.APPROVED)
+                .approverId("coord-001")
+                .approvedAt(OffsetDateTime.now())
+                .inviteToken(UUID.randomUUID())
+                .inviteTokenExpiry(OffsetDateTime.now().plusHours(24))
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build();
+        when(service.approveRequest(eq(7L), any())).thenReturn(approved);
+
+        mockMvc.perform(post("/api/v1/admin/beta-requests/7/approve")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(cmd)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("APPROVED"));
+    }
+
+    @Test
+    @WithMockUser(roles = "PLATFORM_ADMIN")
+    @DisplayName("POST /admin/beta-requests/{id}/reject — 200 with rejection reason (PLATFORM_ADMIN)")
+    void rejectMarksRejected() throws Exception {
+        BetaRejectCommand cmd = new BetaRejectCommand("coord-002", "Out of geography");
+        BetaAccessRequest rejected = BetaAccessRequest.builder()
+                .id(9L)
+                .email("nope@example.com")
+                .name("Nope")
+                .orgName("Nope Inc")
+                .persona("P1_SOLO_TEACHER")
+                .status(BetaAccessRequestStatus.REJECTED)
+                .approverId("coord-002")
+                .rejectedAt(OffsetDateTime.now())
+                .rejectionReason("Out of geography")
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build();
+        when(service.rejectRequest(eq(9L), any())).thenReturn(rejected);
+
+        mockMvc.perform(post("/api/v1/admin/beta-requests/9/reject")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(cmd)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("REJECTED"))
+                .andExpect(jsonPath("$.rejectionReason").value("Out of geography"));
+    }
+
+    @Test
+    @WithMockUser(roles = "PLATFORM_ADMIN")
+    @DisplayName("GET /admin/beta-requests — paginated by status (PLATFORM_ADMIN)")
     void listsByStatus() throws Exception {
         BetaAccessRequest a = BetaAccessRequest.builder()
                 .id(1L).email("a@x.com").name("A").orgName("AO")
@@ -198,5 +230,39 @@ class BetaAccessControllerTest {
         mockMvc.perform(get("/api/v1/admin/beta-requests").param("status", "PENDING"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].email").value("a@x.com"));
+    }
+
+    // ── Admin endpoints — auth guard (GAP-384 Wave 35 Bucket A) ───────
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("GAP-384 — unauthenticated GET /admin/beta-requests → 401")
+    void unauthenticatedListReturns401() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/beta-requests").param("status", "PENDING"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("GAP-384 — unauthenticated POST /admin/beta-requests/{id}/approve → 401")
+    void unauthenticatedApproveReturns401() throws Exception {
+        BetaApproveCommand cmd = new BetaApproveCommand("coord-001");
+        mockMvc.perform(post("/api/v1/admin/beta-requests/7/approve")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(cmd)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "TENANT_USER")
+    @DisplayName("GAP-384 — wrong role (TENANT_USER) on POST /admin/beta-requests/{id}/reject → 403")
+    void wrongRoleRejectReturns403() throws Exception {
+        BetaRejectCommand cmd = new BetaRejectCommand("coord-002", "Out of geography");
+        mockMvc.perform(post("/api/v1/admin/beta-requests/9/reject")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(cmd)))
+                .andExpect(status().isForbidden());
     }
 }

@@ -4,6 +4,9 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -127,6 +130,46 @@ public class GlobalExceptionHandler {
             "An unexpected error occurred"
         );
         problemDetail.setTitle("Internal Server Error");
+        return problemDetail;
+    }
+
+    /**
+     * Handle Spring Security authorization failures from {@code @PreAuthorize}.
+     *
+     * <p>Without this handler the catch-all {@link #handleGenericException} would map
+     * {@link AuthorizationDeniedException} to HTTP 500 — masking forbidden access as
+     * an internal error. GAP-384 (Wave 35) added {@code @PreAuthorize} guards on the
+     * beta admin endpoints, which raise this exception when the caller's role does
+     * not include {@code PLATFORM_ADMIN}.</p>
+     *
+     * @param ex Authorization failure
+     * @return 403 ProblemDetail
+     */
+    @ExceptionHandler({AuthorizationDeniedException.class, AccessDeniedException.class})
+    public ProblemDetail handleAuthorizationDenied(Exception ex) {
+        log.warn("Forbidden: {}", ex.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.FORBIDDEN,
+            "Access denied"
+        );
+        problemDetail.setTitle("Forbidden");
+        return problemDetail;
+    }
+
+    /**
+     * Handle Spring Security authentication failures (anonymous access to protected endpoint).
+     *
+     * @param ex Authentication failure
+     * @return 401 ProblemDetail
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ProblemDetail handleAuthentication(AuthenticationException ex) {
+        log.warn("Unauthorized: {}", ex.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.UNAUTHORIZED,
+            "Authentication required"
+        );
+        problemDetail.setTitle("Unauthorized");
         return problemDetail;
     }
 }
