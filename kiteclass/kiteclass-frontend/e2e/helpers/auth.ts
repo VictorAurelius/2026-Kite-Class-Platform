@@ -103,8 +103,12 @@ export async function login(
   // Navigate to login page
   await page.goto('/login');
 
-  // Wait for login form to be visible
-  await expect(page.getByText('Welcome back')).toBeVisible();
+  // Wait for login form to be visible.
+  // Heading is Vietnamese per CLAUDE.md communication language rule;
+  // accept either VN or EN copy in case of A/B variants.
+  await expect(
+    page.getByRole('heading', { name: /(Chào mừng trở lại|Welcome back)/i }),
+  ).toBeVisible({ timeout: 10000 });
 
   // Fill in credentials
   await page.fill('input[name="email"]', credentials.email);
