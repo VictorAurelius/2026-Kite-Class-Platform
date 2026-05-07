@@ -1,6 +1,7 @@
 package com.kitehub.subscription.beta.service;
 
 import com.kitehub.subscription.beta.dto.BetaApproveCommand;
+import com.kitehub.subscription.beta.dto.BetaClaimCodeExchangeResponse;
 import com.kitehub.subscription.beta.dto.BetaRejectCommand;
 import com.kitehub.subscription.beta.dto.BetaRequestDto;
 import com.kitehub.subscription.beta.dto.BetaSignupCommand;
@@ -334,5 +335,146 @@ class BetaAccessServiceTest {
 
         double count = meterRegistry.counter("beta_honeypot_rejections_total").count();
         assertThat(count).isEqualTo(2.0);
+    }
+
+    // ── GAP-388 Wave 36 Bucket A — security cluster ──────────────────────
+
+    @Test
+    @DisplayName("GAP-388 388-A — recordHoneypotRejection(email, ip) increments counter + accepts audit context")
+    void recordHoneypotRejectionWithAuditContext() {
+        service.recordHoneypotRejection("bot@spam.tld", "203.0.113.7");
+
+        double count = meterRegistry.counter("beta_honeypot_rejections_total").count();
+        assertThat(count).isEqualTo(1.0);
+    }
+
+    @Test
+    @DisplayName("GAP-388 388-B — approveRequest emits a 6-digit numeric claimCode + clears it on signup")
+    void approveRequestEmitsClaimCodeClearedOnSignup() {
+        // approve transition
+        BetaAccessRequest pending = BetaAccessRequest.builder()
+                .id(501L).email("b@x.com").name("B").orgName("BO")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.PENDING)
+                .createdAt(OffsetDateTime.now()).updatedAt(OffsetDateTime.now())
+                .build();
+        when(repository.findById(501L)).thenReturn(Optional.of(pending));
+        when(repository.findByClaimCode(any())).thenReturn(Optional.empty());
+
+        BetaAccessRequest approved = service.approveRequest(501L, new BetaApproveCommand("coord-z"));
+
+        assertThat(approved.getClaimCode())
+                .as("claim code populated post-approve")
+                .isNotNull()
+                .hasSize(6)
+                .matches("[0-9]{6}");
+        assertThat(approved.getInviteToken()).isNotNull();
+        UUID issued = approved.getInviteToken();
+
+        // signup completion clears both
+        when(repository.findByInviteToken(issued)).thenReturn(Optional.of(approved));
+        BetaAccessRequest signed = service.completeBetaSignup(
+                new com.kitehub.subscription.beta.dto.BetaSignupCommand(issued, "p@ssword12", "abc-tenant"));
+        assertThat(signed.getClaimCode()).as("claim code cleared post-signup").isNull();
+        assertThat(signed.getInviteToken()).isNull();
+    }
+
+    @Test
+    @DisplayName("GAP-388 388-B — exchangeClaimCode returns invite_token + pre-fill on APPROVED + valid")
+    void exchangeClaimCodeHappyPath() {
+        UUID token = UUID.randomUUID();
+        BetaAccessRequest approved = BetaAccessRequest.builder()
+                .id(601L).email("ok@x.com").name("Ok").orgName("OkOrg")
+                .persona("P1_SOLO_TEACHER")
+                .status(BetaAccessRequestStatus.APPROVED)
+                .inviteToken(token)
+                .inviteTokenExpiry(OffsetDateTime.now().plusHours(12))
+                .claimCode("123456")
+                .build();
+        when(repository.findByClaimCode("123456")).thenReturn(Optional.of(approved));
+
+        BetaClaimCodeExchangeResponse resp = service.exchangeClaimCode("123456");
+
+        assertThat(resp.valid()).isTrue();
+        assertThat(resp.inviteToken()).isEqualTo(token);
+        assertThat(resp.email()).isEqualTo("ok@x.com");
+        assertThat(resp.errorCode()).isNull();
+    }
+
+    @Test
+    @DisplayName("GAP-388 388-B — exchangeClaimCode returns CODE_NOT_FOUND on unknown / wrong code")
+    void exchangeClaimCodeWrongCode() {
+        when(repository.findByClaimCode(any())).thenReturn(Optional.empty());
+
+        BetaClaimCodeExchangeResponse resp = service.exchangeClaimCode("999999");
+
+        assertThat(resp.valid()).isFalse();
+        assertThat(resp.errorCode()).isEqualTo("CODE_NOT_FOUND");
+        assertThat(resp.inviteToken()).isNull();
+    }
+
+    @Test
+    @DisplayName("GAP-388 388-B — exchangeClaimCode returns CODE_EXPIRED when token TTL elapsed")
+    void exchangeClaimCodeExpired() {
+        BetaAccessRequest expired = BetaAccessRequest.builder()
+                .id(602L).email("exp@x.com").name("Exp").orgName("ExpOrg")
+                .persona("P1_SOLO_TEACHER")
+                .status(BetaAccessRequestStatus.APPROVED)
+                .inviteToken(UUID.randomUUID())
+                .inviteTokenExpiry(OffsetDateTime.now().minusMinutes(1))
+                .claimCode("000111")
+                .build();
+        when(repository.findByClaimCode("000111")).thenReturn(Optional.of(expired));
+
+        BetaClaimCodeExchangeResponse resp = service.exchangeClaimCode("000111");
+
+        assertThat(resp.valid()).isFalse();
+        assertThat(resp.errorCode()).isEqualTo("CODE_EXPIRED");
+    }
+
+    @Test
+    @DisplayName("GAP-388 388-C — submitRequest(dto, ip) accepts first IP and rejects 2nd from different IP")
+    void submitRequestPerEmailRateLimitRejects() {
+        when(repository.findFirstByEmailAndStatusOrderByCreatedAtDesc(
+                eq("rl@x.com"), eq(BetaAccessRequestStatus.PENDING)))
+                .thenReturn(Optional.empty());
+        BetaRequestDto dto = new BetaRequestDto(
+                "rl@x.com", "RL", "RLO", "P2_CENTER_OWNER", null, "", true);
+
+        // 1st attempt — succeeds + caches IP
+        BetaAccessRequest first = service.submitRequest(dto, "203.0.113.1");
+        assertThat(first.getStatus()).isEqualTo(BetaAccessRequestStatus.PENDING);
+
+        // 2nd attempt from a different IP within window — rejected with 429-style exception
+        assertThatThrownBy(() -> service.submitRequest(dto, "198.51.100.9"))
+                .isInstanceOf(com.kitehub.subscription.beta.service.BetaRateLimitExceededException.class);
+
+        double rateLimitCount = meterRegistry.counter("beta_rate_limit_rejections_total").count();
+        assertThat(rateLimitCount).isEqualTo(1.0);
+    }
+
+    @Test
+    @DisplayName("GAP-388 388-C — submitRequest(dto, ip) allows 2nd attempt from SAME IP (idempotent return)")
+    void submitRequestPerEmailRateLimitAllowsSameIp() {
+        BetaAccessRequest existing = BetaAccessRequest.builder()
+                .id(701L).email("same@x.com").name("Same").orgName("SO")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.PENDING)
+                .build();
+        // First call: no existing PENDING → creates one. Subsequent: returns existing.
+        when(repository.findFirstByEmailAndStatusOrderByCreatedAtDesc(
+                eq("same@x.com"), eq(BetaAccessRequestStatus.PENDING)))
+                .thenReturn(Optional.empty(), Optional.of(existing));
+
+        BetaRequestDto dto = new BetaRequestDto(
+                "same@x.com", "Same", "SO", "P2_CENTER_OWNER", null, "", true);
+
+        BetaAccessRequest a = service.submitRequest(dto, "203.0.113.5");
+        BetaAccessRequest b = service.submitRequest(dto, "203.0.113.5");
+        assertThat(a).isNotNull();
+        assertThat(b).isNotNull();
+        // Same IP → no rate-limit rejection counter increment.
+        double rateLimitCount = meterRegistry.counter("beta_rate_limit_rejections_total").count();
+        assertThat(rateLimitCount).isEqualTo(0.0);
     }
 }

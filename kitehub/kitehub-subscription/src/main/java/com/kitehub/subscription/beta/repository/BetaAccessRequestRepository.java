@@ -28,6 +28,9 @@ public interface BetaAccessRequestRepository extends JpaRepository<BetaAccessReq
     /** Token validation lookup at signup time. */
     Optional<BetaAccessRequest> findByInviteToken(UUID inviteToken);
 
+    /** Claim-code → invite_token exchange (GAP-388 Wave 36 Bucket A 2FA). */
+    Optional<BetaAccessRequest> findByClaimCode(String claimCode);
+
     /** Duplicate-submission guard: only one PENDING request per email at a time. */
     Optional<BetaAccessRequest> findFirstByEmailAndStatusOrderByCreatedAtDesc(String email, BetaAccessRequestStatus status);
 }

@@ -1,6 +1,8 @@
 package com.kitehub.subscription.beta.controller;
 
 import com.kitehub.subscription.beta.dto.BetaApproveCommand;
+import com.kitehub.subscription.beta.dto.BetaClaimCodeExchangeCommand;
+import com.kitehub.subscription.beta.dto.BetaClaimCodeExchangeResponse;
 import com.kitehub.subscription.beta.dto.BetaRejectCommand;
 import com.kitehub.subscription.beta.dto.BetaRequestDto;
 import com.kitehub.subscription.beta.dto.BetaRequestPage;
@@ -10,15 +12,20 @@ import com.kitehub.subscription.beta.dto.BetaTokenValidationResponse;
 import com.kitehub.subscription.beta.entity.BetaAccessRequest;
 import com.kitehub.subscription.beta.entity.BetaAccessRequestStatus;
 import com.kitehub.subscription.beta.service.BetaAccessService;
+import com.kitehub.subscription.beta.service.BetaRateLimitExceededException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -63,11 +71,25 @@ public class BetaAccessController {
     // ── Public endpoints ──────────────────────────────────────────────
 
     @Operation(summary = "Submit a beta access request",
-               description = "Public unauthenticated endpoint. Honeypot field MUST be empty. Rate-limit per IP enforced at gateway.")
+               description = "Public unauthenticated endpoint. Honeypot field MUST be empty. Rate-limit per IP enforced at gateway + per-email 24h rate limit (GAP-388 388-C).")
     @PostMapping("/api/v1/auth/request-beta-access")
-    public ResponseEntity<BetaRequestResponse> submitRequest(@Valid @RequestBody BetaRequestDto dto) {
-        BetaAccessRequest saved = service.submitRequest(dto);
+    public ResponseEntity<BetaRequestResponse> submitRequest(
+            @Valid @RequestBody BetaRequestDto dto,
+            HttpServletRequest request) {
+        BetaAccessRequest saved = service.submitRequest(dto, resolveClientIp(request));
         return ResponseEntity.status(HttpStatus.CREATED).body(BetaRequestResponse.from(saved));
+    }
+
+    @Operation(summary = "Exchange a 6-digit claim code for the invite token (GAP-388 388-B 2FA)",
+               description = "Public unauthenticated endpoint. Submits the claim code from the invite email and returns the underlying invite_token UUID + pre-fill data.")
+    @PostMapping("/api/v1/auth/beta-signup/exchange-claim-code")
+    public ResponseEntity<BetaClaimCodeExchangeResponse> exchangeClaimCode(
+            @Valid @RequestBody BetaClaimCodeExchangeCommand cmd) {
+        BetaClaimCodeExchangeResponse resp = service.exchangeClaimCode(cmd.claimCode());
+        if (!resp.valid()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(resp);
+        }
+        return ResponseEntity.ok(resp);
     }
 
     @Operation(summary = "Validate an invite token (signup pre-fill)",
@@ -153,5 +175,87 @@ public class BetaAccessController {
             log.warn("Reject invalid state: {}", ex.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
+    }
+
+    // ── Exception handlers (controller-scoped — take precedence over GlobalExceptionHandler) ─
+
+    /**
+     * Bean-Validation handler that wires the honeypot detection into
+     * {@link BetaAccessService#recordHoneypotRejection(String, String)}
+     * (GAP-388 388-A — closes GAP-387 dead-wire).
+     *
+     * <p>Spring's {@code @Valid @RequestBody} raises
+     * {@link MethodArgumentNotValidException} when {@code BetaRequestDto.honeypot}
+     * violates {@code @Size(max = 0)}. The global handler maps this to a generic
+     * 400 — but we need the side-effect of incrementing
+     * {@code beta_honeypot_rejections_total} so the {@code BetaHoneypotSpike}
+     * alert rule has data to fire on.</p>
+     *
+     * <p>Only the {@code BetaRequestDto} surface ({@code POST /request-beta-access})
+     * is in scope — other validation failures fall through to the global 400
+     * handler unchanged (still surfaced as 400 from this method).</p>
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ProblemDetail> handleValidationException(
+            MethodArgumentNotValidException ex,
+            HttpServletRequest request) {
+        List<String> violatedFields = ex.getBindingResult().getFieldErrors().stream()
+                .map(fe -> fe.getField())
+                .toList();
+        boolean honeypotTripped = violatedFields.contains("honeypot");
+        if (honeypotTripped) {
+            String email = extractTargetField(ex, "email");
+            service.recordHoneypotRejection(email, resolveClientIp(request));
+        }
+        StringBuilder errors = new StringBuilder();
+        ex.getBindingResult().getFieldErrors().forEach(fe ->
+            errors.append(fe.getField()).append(": ").append(fe.getDefaultMessage()).append("; "));
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, errors.toString());
+        pd.setTitle("Validation Error");
+        return ResponseEntity.badRequest().body(pd);
+    }
+
+    /**
+     * Maps {@link BetaRateLimitExceededException} to HTTP 429 (GAP-388 388-C).
+     */
+    @ExceptionHandler(BetaRateLimitExceededException.class)
+    public ResponseEntity<ProblemDetail> handleRateLimit(BetaRateLimitExceededException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
+        pd.setTitle("Too Many Requests");
+        pd.setProperty("errorCode", "BETA_EMAIL_RATE_LIMIT");
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(pd);
+    }
+
+    /**
+     * Resolve the originating client IP. Honors X-Forwarded-For (gateway
+     * forwards the chain) and falls back to {@code remoteAddr}.
+     */
+    private static String resolveClientIp(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            // First entry is the closest-to-client IP.
+            int comma = forwarded.indexOf(',');
+            return (comma > 0 ? forwarded.substring(0, comma) : forwarded).trim();
+        }
+        return request.getRemoteAddr();
+    }
+
+    /**
+     * Pull the raw value of a field on the rejected payload from the binding
+     * result so the audit log can record the attempted email even when the
+     * payload failed validation. Returns {@code null} if not bound.
+     */
+    private static String extractTargetField(MethodArgumentNotValidException ex, String fieldName) {
+        Object target = ex.getBindingResult().getTarget();
+        if (target instanceof BetaRequestDto dto) {
+            return switch (fieldName) {
+                case "email" -> dto.email();
+                default -> null;
+            };
+        }
+        return null;
     }
 }

@@ -85,6 +85,14 @@ public class BetaAccessRequest {
     @Column(name = "invite_sent_at")
     private OffsetDateTime inviteSentAt;
 
+    /**
+     * Short-lived 6-digit numeric claim code (GAP-388 Wave 36 Bucket A 2FA).
+     * Emailed to invitee instead of the raw {@code invite_token} UUID.
+     * Single-use; cleared together with {@code invite_token} on SIGNED_UP.
+     */
+    @Column(name = "claim_code", length = 6)
+    private String claimCode;
+
     @Column(name = "approver_id", length = 100)
     private String approverId;
 

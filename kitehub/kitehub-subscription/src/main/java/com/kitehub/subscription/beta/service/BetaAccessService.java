@@ -1,6 +1,9 @@
 package com.kitehub.subscription.beta.service;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.kitehub.subscription.beta.dto.BetaApproveCommand;
+import com.kitehub.subscription.beta.dto.BetaClaimCodeExchangeResponse;
 import com.kitehub.subscription.beta.dto.BetaRejectCommand;
 import com.kitehub.subscription.beta.dto.BetaRequestDto;
 import com.kitehub.subscription.beta.dto.BetaSignupCommand;
@@ -17,6 +20,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -67,9 +72,31 @@ public class BetaAccessService {
     static final String METRIC_REJECTIONS = "beta_signup_rejections_total";
     static final String METRIC_HONEYPOT_REJECTIONS = "beta_honeypot_rejections_total";
 
+    /** Per-email rate-limit rejection counter (GAP-388 Wave 36 Bucket A 388-C). */
+    static final String METRIC_RATE_LIMIT_REJECTIONS = "beta_rate_limit_rejections_total";
+
+    /** Per-email rate-limit window — 1 request per 24h per email. */
+    static final Duration EMAIL_RATE_LIMIT_WINDOW = Duration.ofHours(24L);
+
+    private static final SecureRandom CLAIM_CODE_RNG = new SecureRandom();
+
     private final BetaAccessRequestRepository repository;
     private final SubscriptionEventEmitter eventEmitter;
     private final MeterRegistry meterRegistry;
+
+    /**
+     * Per-email rate-limit cache (GAP-388 Wave 36 Bucket A 388-C).
+     *
+     * <p>Caffeine in-memory cache mirrors {@link com.kitehub.subscription.config.CacheConfig}
+     * pattern. Key = email (lower-cased); value = first-IP that hit the limit;
+     * TTL = 24h per {@link #EMAIL_RATE_LIMIT_WINDOW}. Multi-pod coherence is a
+     * follow-up gap (Redis migration mirrors GAP-132 — see service-class
+     * javadoc + GAP-388 §388-C Log).</p>
+     */
+    private final Cache<String, String> emailRateLimitCache = Caffeine.newBuilder()
+            .expireAfterWrite(EMAIL_RATE_LIMIT_WINDOW)
+            .maximumSize(100_000)
+            .build();
 
     public BetaAccessService(BetaAccessRequestRepository repository,
                              SubscriptionEventEmitter eventEmitter,
@@ -113,6 +140,12 @@ public class BetaAccessService {
                 .register(meterRegistry);
     }
 
+    private Counter rateLimitCounter() {
+        return Counter.builder(METRIC_RATE_LIMIT_REJECTIONS)
+                .description("Total beta access requests rejected by per-email 24h rate limit (GAP-388)")
+                .register(meterRegistry);
+    }
+
     /** Defensive null/blank handling so unknown personas roll up under "unknown". */
     private static String normalizePersona(String persona) {
         return (persona == null || persona.isBlank()) ? "unknown" : persona;
@@ -124,9 +157,35 @@ public class BetaAccessService {
      * <p>Idempotency: a duplicate submit from the same email while an existing
      * PENDING row is open returns the existing row instead of creating a second
      * one (avoids inbox spam from honest mistakes; coordinator only sees one).</p>
+     *
+     * <p>Per-email rate limit (GAP-388 Wave 36 Bucket A 388-C): if a different
+     * IP attempts the same email within 24h, throws
+     * {@link BetaRateLimitExceededException} (mapped to HTTP 429 by controller).
+     * Defends against bots cycling many unique emails through one IP.</p>
      */
     @Transactional
     public BetaAccessRequest submitRequest(BetaRequestDto dto) {
+        return submitRequest(dto, null);
+    }
+
+    /**
+     * Submit overload that accepts the originating IP for the per-email rate
+     * limit. Controller passes the trusted IP (X-Forwarded-For chain resolved
+     * upstream); tests may pass {@code null} to skip the IP-based audit log.
+     */
+    @Transactional
+    public BetaAccessRequest submitRequest(BetaRequestDto dto, String ipAddress) {
+        // 388-C: per-email 24h rate limit — reject 2nd attempt from different IP.
+        String emailKey = dto.email().toLowerCase();
+        String firstIp = emailRateLimitCache.getIfPresent(emailKey);
+        if (firstIp != null && ipAddress != null && !firstIp.equals(ipAddress)) {
+            rateLimitCounter().increment();
+            log.warn("Beta access request rate-limited: email={} firstIp={} attemptIp={}",
+                    dto.email(), firstIp, ipAddress);
+            throw new BetaRateLimitExceededException(
+                    "Email " + dto.email() + " rate-limited (24h window)");
+        }
+
         Optional<BetaAccessRequest> existingPending = repository
                 .findFirstByEmailAndStatusOrderByCreatedAtDesc(dto.email(), BetaAccessRequestStatus.PENDING);
         if (existingPending.isPresent()) {
@@ -162,11 +221,17 @@ public class BetaAccessService {
         );
         eventEmitter.emit((UUID) null, EVENT_TYPE_CONSENT_GIVEN, TOPIC_CONSENT_GIVEN, consentPayload);
 
+        // 388-C: register the email/IP pair so subsequent same-email/different-IP
+        // attempts trip the rate limit. Tests pass ipAddress=null and skip this.
+        if (ipAddress != null) {
+            emailRateLimitCache.put(emailKey, ipAddress);
+        }
+
         return saved;
     }
 
     /**
-     * Record a honeypot anti-bot rejection (GAP-387 funnel observability).
+     * Record a honeypot anti-bot rejection (GAP-387 funnel observability + GAP-388 388-A wire-up).
      *
      * <p>Bean Validation rejects honeypot-populated submissions before they
      * reach {@link #submitRequest(BetaRequestDto)} (see {@code BetaRequestDto}
@@ -179,8 +244,68 @@ public class BetaAccessService {
      * surface is owned by the service layer.</p>
      */
     public void recordHoneypotRejection() {
+        recordHoneypotRejection(null, null);
+    }
+
+    /**
+     * Record a honeypot rejection with audit context (GAP-388 388-A).
+     *
+     * <p>Wired from {@code BetaAccessController.handleValidationException} when
+     * the {@code honeypot} field violates {@code @Size(max = 0)}. Captures the
+     * attempted email + originating IP for post-incident triage / alert
+     * investigation. Email and IP may be {@code null} when the controller
+     * cannot extract them from the rejected payload.</p>
+     */
+    public void recordHoneypotRejection(String email, String ipAddress) {
         honeypotCounter().increment();
-        log.warn("Beta access request rejected: honeypot field populated (likely bot)");
+        log.warn("Beta access request rejected: honeypot field populated (likely bot) email={} ip={}",
+                email == null ? "<unknown>" : email,
+                ipAddress == null ? "<unknown>" : ipAddress);
+    }
+
+    /**
+     * Exchange a 6-digit claim code for the underlying {@code invite_token}
+     * UUID + pre-fill (GAP-388 388-B 2FA).
+     *
+     * <p>The signup form submits the code emailed to the invitee. Server
+     * resolves the corresponding row and returns the UUID + pre-fill data.
+     * Same lifecycle gating as {@link #validateToken(UUID)}: only APPROVED +
+     * not-expired + not-already-signed-up rows succeed.</p>
+     */
+    public BetaClaimCodeExchangeResponse exchangeClaimCode(String claimCode) {
+        Optional<BetaAccessRequest> opt = repository.findByClaimCode(claimCode);
+        if (opt.isEmpty()) {
+            return BetaClaimCodeExchangeResponse.invalid("CODE_NOT_FOUND");
+        }
+        BetaAccessRequest entity = opt.get();
+        if (entity.getStatus() == BetaAccessRequestStatus.SIGNED_UP) {
+            return BetaClaimCodeExchangeResponse.invalid("ALREADY_USED");
+        }
+        if (entity.getStatus() != BetaAccessRequestStatus.APPROVED) {
+            return BetaClaimCodeExchangeResponse.invalid("CODE_NOT_FOUND");
+        }
+        if (entity.isTokenExpired()) {
+            return BetaClaimCodeExchangeResponse.invalid("CODE_EXPIRED");
+        }
+        return BetaClaimCodeExchangeResponse.ok(
+                entity.getInviteToken(),
+                entity.getEmail(), entity.getName(), entity.getOrgName(), entity.getPersona());
+    }
+
+    /**
+     * Generate a fresh 6-digit numeric claim code, retrying on uniqueness
+     * collision (cardinality 10^6 — collisions only matter at high concurrent
+     * APPROVED population which is bounded by the manual coordinator step).
+     */
+    private String generateUniqueClaimCode() {
+        for (int attempt = 0; attempt < 5; attempt++) {
+            String candidate = String.format("%06d", CLAIM_CODE_RNG.nextInt(1_000_000));
+            if (repository.findByClaimCode(candidate).isEmpty()) {
+                return candidate;
+            }
+        }
+        // 5 collisions in a row is astronomically unlikely; surface as state.
+        throw new IllegalStateException("Could not generate unique beta claim code after 5 attempts");
     }
 
     /** Paginated coordinator listing, default ordered by createdAt desc. */
@@ -210,19 +335,26 @@ public class BetaAccessService {
         entity.setInviteToken(UUID.randomUUID());
         entity.setInviteTokenExpiry(now.plusHours(INVITE_TOKEN_TTL_HOURS));
         entity.setInviteSentAt(now);
+        // GAP-388 388-B: emit a 6-digit claim code instead of leaking the UUID
+        // in the email body. Email shows the code; signup page exchanges it.
+        entity.setClaimCode(generateUniqueClaimCode());
 
         BetaAccessRequest saved = repository.save(entity);
 
         // Outbox publish — consumed by kitehub-email to deliver invite link.
         // No direct rabbitTemplate.send (design-patterns.md §3.5).
+        // Payload now includes claimCode (the user-facing 2FA code); inviteUrl on
+        // the email side should NO LONGER include the UUID — it points to the
+        // signup page that prompts for the code (GAP-388 388-B).
         String payload = String.format(
-                "{\"requestId\":%d,\"email\":\"%s\",\"name\":\"%s\",\"orgName\":\"%s\",\"persona\":\"%s\",\"token\":\"%s\",\"expiresAt\":\"%s\"}",
+                "{\"requestId\":%d,\"email\":\"%s\",\"name\":\"%s\",\"orgName\":\"%s\",\"persona\":\"%s\",\"token\":\"%s\",\"claimCode\":\"%s\",\"expiresAt\":\"%s\"}",
                 saved.getId(),
                 SubscriptionEventEmitter.escape(saved.getEmail()),
                 SubscriptionEventEmitter.escape(saved.getName()),
                 SubscriptionEventEmitter.escape(saved.getOrgName()),
                 SubscriptionEventEmitter.escape(saved.getPersona()),
                 saved.getInviteToken(),
+                saved.getClaimCode(),
                 saved.getInviteTokenExpiry()
         );
         eventEmitter.emit((UUID) null, EVENT_TYPE_INVITE_SENT, TOPIC_INVITE_SENT, payload);
@@ -307,6 +439,7 @@ public class BetaAccessService {
         entity.setStatus(BetaAccessRequestStatus.SIGNED_UP);
         entity.setInviteToken(null);
         entity.setInviteTokenExpiry(null);
+        entity.setClaimCode(null);
         BetaAccessRequest saved = repository.save(entity);
         log.info("Beta signup completed: id={} email={}", saved.getId(), saved.getEmail());
         return saved;

@@ -1,6 +1,6 @@
 # GAP-387: Beta-signup/approval/rejection metric counters missing
 
-**Status:** 🟢 DONE 2026-05-07 (Wave 35 Bucket D)
+**Status:** 🟢 DONE 2026-05-07 (Wave 35 Bucket D scaffold + Wave 36 Bucket A controller wire-up)
 **Priority:** 🔴 P0 — operator blind to beta flow health post-launch (no funnel observability)
 **Domain:** Backend / Observability
 **Found:** 2026-05-07 (Ops Readiness /100 audit Wave 33 — agent a0737b3f)
@@ -76,3 +76,4 @@ Alert rules trong `infrastructure/helm/.../alerts.yaml` (or wherever defined):
 
 - **2026-05-07** Filed from Ops Readiness /100 audit Wave 33. State-check: 0 existing gaps cover beta metric counters (grep `beta_signup|beta.*metric|metric.*beta` returned 0 matches). Verified absence via `BetaAccessService` code read — chỉ có `log.info(...)` cho approve/reject/submit, no Counter.
 - **2026-05-07** Wave 35 Bucket D shipped (this PR). 4 counters added — `beta_signup_requests_total{persona}`, `beta_signup_approvals_total{persona}`, `beta_signup_rejections_total{persona}`, `beta_honeypot_rejections_total` (no persona tag — pre-validation). 2 alerts mirrored across docker prometheus + helm prometheusrule (`BetaSignupRateAnomaly` + `BetaHoneypotSpike`) with paired runbook stubs. 4 new unit tests added; full module test suite 432/432 PASS. Verification artifact: `python3 scripts/check-alert-runbook-url.py` → all 58 alerts have runbook_url. Honeypot counter wire-up from controller @ExceptionHandler is Bucket A scope (out of bucket D); `recordHoneypotRejection()` exposed as public service method ready for caller integration.
+- **2026-05-07** Wave 36 Bucket A — closes the controller wire-up gap. `BetaAccessController.handleValidationException(MethodArgumentNotValidException)` now detects `honeypot` field violations + invokes `service.recordHoneypotRejection(email, ip)` BEFORE returning 400 → `beta_honeypot_rejections_total` actually increments + `BetaHoneypotSpike` alert rule has data. Audit log captures email + originating IP (X-Forwarded-For aware). Regression guard: `BetaAccessControllerTest.submitRequestRejectsHoneypot` verifies `Mockito.verify(service).recordHoneypotRejection(eq("spam@example.com"), anyString())`. Verification artifact: this PR's `mvn -pl kitehub-subscription verify -P strict-warnings` BUILD SUCCESS.
