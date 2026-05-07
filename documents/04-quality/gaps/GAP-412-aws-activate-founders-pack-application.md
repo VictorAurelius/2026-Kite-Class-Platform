@@ -1,6 +1,6 @@
 # GAP-412: AWS Activate Founders Pack Application ($1k credit)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 2026-05-07 (policy + pitch deck shipped; submission + approval = human action post-deploy per GAP-381 Phase 2 BANNED-for-agent)
 **Priority:** 🔴 P0 v0.9.0-beta
 **Domain:** Infrastructure / Cost / Business
 **Found:** 2026-05-07 (Wave 37 — Layer 5)
@@ -28,14 +28,20 @@ Document credit usage policy:
 
 ## Acceptance Criteria
 
-- [ ] Application submitted (screenshot confirmation)
-- [ ] Pitch deck draft `documents/00-brd/kite-pitch-deck.md` (1-page minimum)
-- [ ] Credit approval received → balance reflected billing dashboard
-- [ ] Document `documents/05-guides/deploy/aws-activate-credit-policy.md` (usage rules)
-- [ ] Budget alarm wired (GAP-413 dependency)
+- [ ] Application submitted (screenshot confirmation) — **deferred: human action post-deploy per GAP-381**
+- [x] Pitch deck draft `documents/00-brd/kite-pitch-deck.md` (1-page minimum)
+- [ ] Credit approval received → balance reflected billing dashboard — **deferred: human action post-submission**
+- [x] Document `documents/05-guides/deploy/aws-activate-credit-policy.md` (usage rules)
+- [ ] Budget alarm wired (GAP-413 dependency) — **tracked separately GAP-413 + GAP-395 Terraform**
 
 ## Related
 
 - GAP-411 (sizing matrix — credit cover Phase 1+1.5 early)
 - GAP-413 (AWS Budgets alarm for credit depletion)
+- GAP-381 (agent deploy role boundaries — human submits Activate)
+- GAP-394 (account prep — provides AWS account ID)
 - ADR-025 AWS Singapore decision
+
+## Log
+
+- **2026-05-07** — PARTIAL. Pitch deck + credit allocation policy shipped (Wave 37 Bucket E). Application submission + approval = human action post-deploy per GAP-381 Phase 2 BANNED-for-agent. Follow-up: track submission + approval evidence in next monthly cost report (per `documents/04-quality/cost-reports/2026-06-template.md`).
