@@ -274,14 +274,19 @@ jobs:
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push to ECR (multi-arch amd64+arm64)
+      - name: Build and push to ECR (amd64 — Phase 1 BETA single-arch)
         id: build_push
         uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           push: true
-          platforms: linux/amd64,linux/arm64
+          # Phase 1 BETA: amd64-only (Architecture B EC2 t3.medium = amd64 per ADR-025).
+          # arm64 deferred Phase 2+ when Graviton migration considered. Reason: 7 Java
+          # services use maven:*-eclipse-temurin-*-alpine base which lacks arm64 manifest
+          # on Docker Hub → multi-arch build fails. To restore arm64: switch base images
+          # to non-alpine variants OR use eclipse-temurin:*-jdk-alpine (arm64-supported).
+          platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.service }}
