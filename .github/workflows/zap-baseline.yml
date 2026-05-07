@@ -1,0 +1,57 @@
+name: OWASP ZAP Baseline Scan
+
+# GAP-406 — automated security baseline scan against staging URL.
+# Phase 1: workflow_dispatch only (manual trigger). Future: weekly schedule.
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'Target URL to scan (override default staging)'
+        required: false
+        default: ''
+  # Phase 2 (deferred): weekly automated scan
+  # schedule:
+  #   - cron: '0 2 * * 1'  # Monday 02:00 UTC
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: zap-baseline-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  zap-scan:
+    name: ZAP Baseline Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TARGET_URL: ${{ inputs.target_url || vars.STAGING_URL || 'https://staging.kite.vn' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Print scan target
+        run: echo "::notice::Scanning ${TARGET_URL}"
+
+      - name: Run ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: ${{ env.TARGET_URL }}
+          # Allow PASSIVE scan only — no active attacks (baseline mode)
+          cmd_options: '-a -j -m 5 -T 20'
+          allow_issue_writing: false
+          fail_action: false
+
+      - name: Upload ZAP report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-baseline-report
+          path: |
+            report_html.html
+            report_json.json
+            report_md.md
+          retention-days: 30
