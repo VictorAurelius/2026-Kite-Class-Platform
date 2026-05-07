@@ -38,6 +38,15 @@ aws:
     # Credentials from environment or IAM role
     access-key: ${AWS_ACCESS_KEY_ID:}
     secret-key: ${AWS_SECRET_ACCESS_KEY:}
+    # Bounce + complaint feedback loops (SNS topics — see email-ses-setup-runbook.md §Bounce/Complaint)
+    bounce:
+      topic-arn: ${AWS_SES_BOUNCE_TOPIC_ARN:}        # e.g. arn:aws:sns:ap-southeast-1:123456789012:ses-bounces
+    complaint:
+      topic-arn: ${AWS_SES_COMPLAINT_TOPIC_ARN:}     # e.g. arn:aws:sns:ap-southeast-1:123456789012:ses-complaints
+    # Application-side sending rate caps (must be ≤ SES account quota)
+    rate:
+      max-per-second: ${AWS_SES_RATE_MAX_PER_SECOND:10}
+      max-per-day: ${AWS_SES_RATE_MAX_PER_DAY:50000}
 
 # KiteHub email service — tenant branding propagation (GAP-021 Wave 4)
 kitehub:

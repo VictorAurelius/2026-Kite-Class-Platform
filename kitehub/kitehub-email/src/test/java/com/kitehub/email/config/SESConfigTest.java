@@ -103,6 +103,54 @@ class SESConfigTest {
     }
 
     @Test
+    @DisplayName("Should load bounce/complaint/rate properties (Wave 33 GAP-370)")
+    void shouldLoadBounceComplaintRateProperties() {
+        contextRunner
+            .withPropertyValues(
+                "aws.ses.region=ap-southeast-1",
+                "aws.ses.from-email=test@localhost",
+                "aws.ses.from-name=Test",
+                "aws.ses.mock-mode=true",
+                "aws.ses.bounce.topic-arn=arn:aws:sns:ap-southeast-1:123456789012:ses-bounces",
+                "aws.ses.complaint.topic-arn=arn:aws:sns:ap-southeast-1:123456789012:ses-complaints",
+                "aws.ses.rate.max-per-second=14",
+                "aws.ses.rate.max-per-day=50000"
+            )
+            .run(context -> {
+                SESConfig.SESProperties props = context.getBean(SESConfig.SESProperties.class);
+
+                assertThat(props.getBounce().getTopicArn())
+                    .isEqualTo("arn:aws:sns:ap-southeast-1:123456789012:ses-bounces");
+                assertThat(props.getComplaint().getTopicArn())
+                    .isEqualTo("arn:aws:sns:ap-southeast-1:123456789012:ses-complaints");
+                assertThat(props.getRate().getMaxPerSecond()).isEqualTo(14);
+                assertThat(props.getRate().getMaxPerDay()).isEqualTo(50000);
+            });
+    }
+
+    @Test
+    @DisplayName("Should default rate.max-per-second=10 + max-per-day=50000 when not specified")
+    void shouldDefaultRateProperties() {
+        contextRunner
+            .withPropertyValues(
+                "aws.ses.region=ap-southeast-1",
+                "aws.ses.from-email=test@localhost",
+                "aws.ses.from-name=Test",
+                "aws.ses.mock-mode=true"
+                // bounce/complaint/rate intentionally omitted
+            )
+            .run(context -> {
+                SESConfig.SESProperties props = context.getBean(SESConfig.SESProperties.class);
+
+                // Defaults preserve safe production-warmup values
+                assertThat(props.getRate().getMaxPerSecond()).isEqualTo(10);
+                assertThat(props.getRate().getMaxPerDay()).isEqualTo(50_000);
+                assertThat(props.getBounce().getTopicArn()).isNull();
+                assertThat(props.getComplaint().getTopicArn()).isNull();
+            });
+    }
+
+    @Test
     @DisplayName("Should load SESProperties correctly")
     void shouldLoadSESPropertiesCorrectly() {
         contextRunner

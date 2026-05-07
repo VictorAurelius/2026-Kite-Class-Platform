@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="|Đã nhận yêu cầu beta - ${branding?.displayName ?: 'KiteClass'}|">Đã nhận yêu cầu beta</title>
+    <style th:inline="text">
+        :root {
+            --brand-primary: [[${branding?.primaryColor ?: '#667eea'}]];
+            --brand-secondary: [[${branding?.secondaryColor ?: '#764ba2'}]];
+            --brand-accent: [[${branding?.accentColor ?: '#10B981'}]];
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header img.logo {
+            max-height: 60px;
+            margin-bottom: 12px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .info-box {
+            background: #EEF2FF;
+            border-left: 4px solid var(--brand-primary);
+            padding: 12px 16px;
+            margin-top: 16px;
+            border-radius: 4px;
+        }
+        .disclaimer {
+            background: #FEF3C7;
+            border-left: 4px solid #F59E0B;
+            padding: 12px 16px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #78350F;
+            border-radius: 4px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img class="logo" th:if="${branding?.logoUrl}" th:src="${branding.logoUrl}" alt="Logo"/>
+        <h1 th:text="|Đã nhận yêu cầu beta của ${orgName}!|">Đã nhận yêu cầu beta!</h1>
+    </div>
+
+    <div class="content">
+        <p>Xin chào <strong th:text="${orgName}">Tổ chức</strong>,</p>
+
+        <p th:text="|Cảm ơn ${orgName} đã đăng ký quan tâm chương trình beta của ${branding?.displayName ?: 'KiteClass'}.|">
+            Cảm ơn bạn đã đăng ký.
+        </p>
+
+        <p>Chúng tôi đã ghi nhận yêu cầu của bạn và đội ngũ sẽ xem xét trong thời gian sớm nhất.</p>
+
+        <div class="info-box">
+            <p style="margin: 0;">
+                <strong>Thời gian xử lý dự kiến:</strong>
+                <span th:text="${expectedReviewTime} ?: '3-5 ngày làm việc'">3-5 ngày làm việc</span>
+            </p>
+            <p style="margin: 8px 0 0 0; font-size: 13px; color: #4B5563;">
+                Bạn sẽ nhận được email tiếp theo khi yêu cầu được duyệt — kèm liên kết hoàn tất đăng ký.
+            </p>
+        </div>
+
+        <h3>Thông tin yêu cầu</h3>
+        <ul>
+            <li><strong>Tổ chức:</strong> <span th:text="${orgName}">Tổ chức</span></li>
+            <li th:if="${persona}"><strong>Loại tổ chức:</strong> <span th:text="${persona}">Persona</span></li>
+            <li th:if="${requestedAt}"><strong>Đăng ký lúc:</strong> <span th:text="${requestedAt}">Time</span></li>
+        </ul>
+
+        <div class="disclaimer">
+            <strong>Lưu ý chương trình beta (v1 pending counsel review):</strong>
+            Đây là chương trình beta giới hạn — không phải mọi yêu cầu đều được duyệt. Chúng tôi ưu tiên các tổ chức phù hợp với target persona của Phase 1.
+        </div>
+
+        <p style="margin-top: 24px;">
+            Nếu bạn có câu hỏi, vui lòng liên hệ
+            <a th:href="|mailto:${branding?.contactEmail ?: 'support@kiteclass.com'}|"
+               th:text="${branding?.contactEmail ?: 'support@kiteclass.com'}">support@kiteclass.com</a>.
+        </p>
+
+        <p><strong th:text="|Đội ngũ ${branding?.displayName ?: 'KiteClass'}|">Đội ngũ KiteClass</strong></p>
+    </div>
+
+    <div class="footer">
+        <p th:text="|© 2026 ${branding?.displayName ?: 'KiteClass'}. All rights reserved.|">© 2026 KiteClass.</p>
+        <p>Email này được gửi tự động, vui lòng không trả lời.</p>
+    </div>
+</body>
+</html>

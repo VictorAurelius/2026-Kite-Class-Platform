@@ -61,5 +61,57 @@ public class SESConfig {
         private boolean mockMode;
         private String accessKey;
         private String secretKey;
+
+        /**
+         * Bounce-handling config — SNS topic that receives bounce notifications
+         * from SES, consumed by the email service to mark addresses as
+         * undeliverable. See {@code email-ses-setup-runbook.md} §Bounce/Complaint.
+         *
+         * @since Wave 33 Bucket B (GAP-370)
+         */
+        private Bounce bounce = new Bounce();
+
+        /**
+         * Complaint-handling config — SNS topic for spam complaints.
+         *
+         * @since Wave 33 Bucket B (GAP-370)
+         */
+        private Complaint complaint = new Complaint();
+
+        /**
+         * SES sending-rate caps used by the application-side limiter (in
+         * addition to SES account-level limits).
+         *
+         * @since Wave 33 Bucket B (GAP-370)
+         */
+        private Rate rate = new Rate();
+
+        @Data
+        public static class Bounce {
+            /** SNS topic ARN that SES publishes bounce notifications to. */
+            private String topicArn;
+        }
+
+        @Data
+        public static class Complaint {
+            /** SNS topic ARN that SES publishes complaint notifications to. */
+            private String topicArn;
+        }
+
+        @Data
+        public static class Rate {
+            /**
+             * Application-side cap on emails/second. Must be ≤ the SES account
+             * sending rate. Default 10/s — safe for a freshly-out-of-sandbox
+             * account.
+             */
+            private int maxPerSecond = 10;
+
+            /**
+             * Daily cap on total emails. Default 50_000/day — matches the
+             * baseline production tier; runbook covers warmup schedule.
+             */
+            private int maxPerDay = 50_000;
+        }
     }
 }
