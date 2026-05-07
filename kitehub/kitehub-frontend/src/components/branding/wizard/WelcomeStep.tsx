@@ -14,52 +14,20 @@
  *   - conflict    : taken — alternative suggestions shown, click pill to adopt
  *   - available   : confirmed available — Continue enabled
  *
- * Mock note (rework §3.1): the slug-availability backend endpoint does NOT
- * yet exist (state-check 2026-05-07: no `/branding/.../slug-availability`
- * route in `kitehub-frontend/src/lib/api/endpoints.ts` and no Java handler
- * under `kitehub-subscription/src/main/java/`). We use a deterministic
- * client-side stub set so the UI sub-states are demonstrable, but flag the
- * follow-up gap for the real backend wiring.
- *
- *   TODO(GAP-272i): wire to real `/api/v1/branding/slug-availability?slug=...`
- *   endpoint when the backend handler ships. Replace `checkSlugStub` below
- *   with `apiClient.get(...)` per existing patterns in `use-branding.ts`.
+ * Wave 34 Bucket D (GAP-272i): real `/api/v1/branding/slug-availability`
+ * endpoint shipped Bucket A. WelcomeStep consumes via `useSlugAvailability`
+ * hook → `apiClient.get()`. MSW handler in tests (`brandingHandlers`)
+ * matches the contract; production calls hit the live backend.
  */
 
 import { useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { WizardCard, WizardStepHeader, type WizardState, type WizardAction } from './wizard-shared';
+import { useSlugAvailability } from './hooks';
 
 // Debounce window for slug validation (ms). Matches kit's "validating" sub-state expectation.
 const DEBOUNCE_MS = 600;
-
-// TODO(GAP-272i): replace with real `/api/v1/branding/slug-availability` call.
-// This stub is deterministic (no random) so tests can rely on specific slugs.
-// Production rule: NEVER use this in shipped code without the TODO + gap link.
-const SLUG_STUB_TAKEN = ['toan-master', 'edu-center', 'kite-demo'];
-const SLUG_STUB_SUGGESTIONS_BY_BASE: Record<string, string[]> = {
-  'toan-master': ['toan-master-2026', 'toan-master-edu', 'tt-toan-master', 'toan-master-vn'],
-};
-
-interface SlugCheckResult {
-  available: boolean;
-  suggestions: string[];
-}
-
-async function checkSlugStub(slug: string): Promise<SlugCheckResult> {
-  // Simulate a small network round-trip so the "validating" sub-state is observable.
-  await new Promise((resolve) => setTimeout(resolve, 200));
-  if (SLUG_STUB_TAKEN.includes(slug)) {
-    return {
-      available: false,
-      suggestions:
-        SLUG_STUB_SUGGESTIONS_BY_BASE[slug] ??
-        [`${slug}-2026`, `${slug}-edu`, `tt-${slug}`, `${slug}-vn`],
-    };
-  }
-  return { available: true, suggestions: [] };
-}
 
 const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
 const SLUG_MIN_LENGTH = 3;
@@ -72,6 +40,7 @@ export interface WelcomeStepProps {
 
 export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps) {
   const { tenantName, slug, slugStatus, conflictSuggestions } = wizardState;
+  const { checkSlug } = useSlugAvailability();
 
   // Track active in-flight slug to discard stale responses.
   const activeSlugRef = useRef<string>('');
@@ -95,7 +64,7 @@ export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps)
 
     const timer = window.setTimeout(async () => {
       try {
-        const result = await checkSlugStub(target);
+        const result = await checkSlug(target);
         if (activeSlugRef.current !== target) return; // stale
         if (result.available) {
           dispatch({ type: 'SET_SLUG_STATUS', status: 'available' });
@@ -107,8 +76,7 @@ export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps)
           });
         }
       } catch {
-        // On error, keep user in default state (do not block) — production
-        // version (GAP-272i) will surface a retry CTA.
+        // On error, keep user in default state (do not block).
         if (activeSlugRef.current === target) {
           dispatch({ type: 'SET_SLUG_STATUS', status: 'default' });
         }
@@ -116,7 +84,7 @@ export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps)
     }, DEBOUNCE_MS);
 
     return () => window.clearTimeout(timer);
-  }, [slug, slugSyntaxValid, dispatch]);
+  }, [slug, slugSyntaxValid, dispatch, checkSlug]);
 
   const handleAdoptSuggestion = (suggestion: string) => {
     dispatch({ type: 'SET_SLUG', slug: suggestion });

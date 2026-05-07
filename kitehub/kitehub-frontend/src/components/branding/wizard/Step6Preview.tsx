@@ -31,6 +31,7 @@ import { Button } from '@/components/ui/button';
 import { ResourceToggle, type ApprovableResource } from './ResourceToggle';
 import { TEMPLATES } from './TemplateGrid';
 import type { Step6PreviewProps } from './wizard-shared';
+import { usePreview, usePreviewBrandColors } from './hooks';
 
 // ---------------------------------------------------------------------------
 // Brand-colour derivation
@@ -50,90 +51,10 @@ const FALLBACK_BRAND: BrandColours = {
   foreground: '#0F172A',
 };
 
-// Per-template colour hints — derived from the SVG palettes in TemplateGrid.
-// These ship as a TRANSITIONAL bridge until the backend generate endpoint
-// returns real `theme.json` colours.
-// TODO(GAP-272k): replace with real brand colours from the generate endpoint
-// (the backend should return `theme.json` or its colour subset on
-// /branding/jobs/:id when status === DEPLOYED or REGENERATING).
-const TEMPLATE_COLOURS: Record<string, BrandColours> = {
-  'template-t1-navy-focus': {
-    primary: '#0F1E3D',
-    secondary: '#F59E0B',
-    background: '#FFFFFF',
-    foreground: '#0F172A',
-  },
-  'template-t2-score-board': {
-    primary: '#1E40AF',
-    secondary: '#F59E0B',
-    background: '#FFFFFF',
-    foreground: '#0F172A',
-  },
-  'template-t3-coach-card': {
-    primary: '#1E40AF',
-    secondary: '#F59E0B',
-    background: '#F8FAFC',
-    foreground: '#0F172A',
-  },
-  'template-t4-result-stripes': {
-    primary: '#0F1E3D',
-    secondary: '#F59E0B',
-    background: '#FFFFFF',
-    foreground: '#0F172A',
-  },
-  'template-t5-schedule-grid': {
-    primary: '#1E40AF',
-    secondary: '#10B981',
-    background: '#FFFFFF',
-    foreground: '#0F172A',
-  },
-  'template-t6-roadmap-vertical': {
-    primary: '#0F1E3D',
-    secondary: '#F59E0B',
-    background: '#0F1E3D',
-    foreground: '#FFFFFF',
-  },
-};
-
-// ---------------------------------------------------------------------------
-// Mock preview URL (TODO replace with backend render endpoint)
-// ---------------------------------------------------------------------------
-
-/**
- * Build a `data:` URI showing a tiny mock tenant page so the iframe has
- * something visible until the real preview endpoint lands.
- *
- * TODO(GAP-272j): swap to `${endpoints.branding.jobAssets(jobId)}/preview`
- * (or equivalent backend render route) once the backend ships an HTML
- * preview endpoint we can iframe.
- */
-function buildMockPreviewUrl(brand: BrandColours, tenantName: string) {
-  const safeName = tenantName.replace(/</g, '&lt;') || 'Toán Master';
-  const html = `<!doctype html>
-<html lang="vi"><head><meta charset="utf-8"/><title>${safeName}</title>
-<style>
-  body { margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; color: ${brand.foreground}; background: ${brand.background}; }
-  .nav { padding: 12px 20px; background: ${brand.primary}; color: white; display: flex; justify-content: space-between; align-items: center; }
-  .nav .cta { background: ${brand.secondary}; color: ${brand.primary}; padding: 6px 12px; border-radius: 4px; font-weight: 700; font-size: 12px; }
-  .hero { padding: 24px 20px; }
-  .hero h1 { font-size: 22px; margin: 0 0 8px; }
-  .hero p { font-size: 13px; color: #475569; margin: 0; }
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 20px 20px; }
-  .stat { background: #F1F5F9; padding: 12px; border-radius: 6px; text-align: center; }
-  .stat .num { font-size: 22px; font-weight: 800; color: ${brand.primary}; }
-  .stat .lbl { font-size: 11px; color: #475569; }
-</style></head>
-<body>
-  <div class="nav"><strong>${safeName}</strong><span class="cta">Đăng ký test</span></div>
-  <div class="hero"><h1>Vào trường chuyên cùng ${safeName}</h1><p>98% học viên đã đỗ năm 2025 · 240 thí sinh.</p></div>
-  <div class="stats">
-    <div class="stat"><div class="num">98%</div><div class="lbl">đỗ chuyên</div></div>
-    <div class="stat"><div class="num">9.2</div><div class="lbl">điểm TB</div></div>
-    <div class="stat"><div class="num">240</div><div class="lbl">học viên</div></div>
-  </div>
-</body></html>`;
-  return `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
-}
+// Wave 34 (GAP-272k): brand colours sourced from
+// `BrandingJobResponse.brandColors` via `usePreviewBrandColors` hook.
+// The legacy per-template hint map was removed — the v1
+// `/api/v1/branding/jobs/{jobId}` endpoint is the single source of truth.
 
 // ---------------------------------------------------------------------------
 // Resource catalogue rendered in the approve stack
@@ -201,32 +122,37 @@ export function Step6Preview({
   onDeploy = () => {},
   onBack = () => {},
 }: Step6PreviewLocalProps) {
-  // Live brand colours derived from the selected template (or override for
-  // tests / Storybook). NOT a hardcoded MOCK_BRAND constant — see
-  // TODO(GAP-272k) above.
-  const brandColors = useMemo(() => {
+  // Wave 34 (GAP-272k): brand colours sourced from real backend job via
+  // `usePreviewBrandColors`. Falls back to FALLBACK_BRAND while the v1
+  // job is still loading or returns no colors.
+  const { brandColors: jobBrandColors } = usePreviewBrandColors(
+    wizardState.jobId ?? undefined,
+  );
+
+  const brandColors = useMemo<BrandColours>(() => {
     if (brandColorsOverride) return brandColorsOverride;
-    if (
-      wizardState.templateId &&
-      TEMPLATE_COLOURS[wizardState.templateId]
-    ) {
-      return TEMPLATE_COLOURS[wizardState.templateId];
+    if (jobBrandColors) {
+      return {
+        primary: jobBrandColors.primary,
+        secondary: jobBrandColors.secondary,
+        background: jobBrandColors.background ?? FALLBACK_BRAND.background,
+        foreground: jobBrandColors.neutral ?? FALLBACK_BRAND.foreground,
+      };
     }
     return FALLBACK_BRAND;
-  }, [brandColorsOverride, wizardState.templateId]);
+  }, [brandColorsOverride, jobBrandColors]);
 
   const selectedTemplate = useMemo(
     () => TEMPLATES.find((t) => t.id === wizardState.templateId) ?? null,
     [wizardState.templateId],
   );
 
-  const previewUrl = useMemo(() => {
-    if (previewUrlOverride) return previewUrlOverride;
-    return buildMockPreviewUrl(
-      brandColors ?? FALLBACK_BRAND,
-      wizardState.tenantName,
-    );
-  }, [brandColors, previewUrlOverride, wizardState.tenantName]);
+  // Wave 34 (GAP-272j): real preview iframe URL sourced from
+  // `usePreview(jobId)` → backend HTML render endpoint. Tests can pass
+  // `previewUrl` override; absence yields undefined while jobId is null
+  // so the iframe renders nothing rather than a stale data: URI.
+  const hookedPreviewUrl = usePreview(wizardState.jobId ?? undefined);
+  const previewUrl = previewUrlOverride ?? hookedPreviewUrl ?? '';
 
   const approvedCount = wizardState.approvedResources.length;
   const totalResources = RESOURCES.length;

@@ -4,7 +4,12 @@ import { useThemeGeneration } from '../use-theme-generation';
 import type { LogoAnalysis } from '@/types/branding';
 import type { ThemeConfig } from '@/types/theme';
 
-// Mock fetch globally
+// Mock fetch globally.
+// Wave 34 Bucket D activated MSW (`server.listen()` patches global.fetch
+// during `beforeAll` in `src/test/setup.ts`). Re-assign `global.fetch`
+// to a fresh `vi.fn()` per test below in `beforeEach` so this test's
+// fine-grained `mockResolvedValueOnce` / `mockRejectedValueOnce` calls
+// keep working independently of MSW.
 global.fetch = vi.fn();
 
 describe('useThemeGeneration', () => {
@@ -122,7 +127,11 @@ describe('useThemeGeneration', () => {
   };
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    // Re-install vi.fn() each test so MSW's interceptor (installed once
+    // in `beforeAll` via setup.ts) does not steal the fetch slot for
+    // unhandled routes. MSW's `onUnhandledRequest: 'bypass'` would
+    // otherwise let the request hit the real network.
+    global.fetch = vi.fn();
   });
 
   afterEach(() => {

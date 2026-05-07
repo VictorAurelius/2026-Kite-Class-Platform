@@ -8,16 +8,15 @@
  * `useInstanceLifecycle(instanceId)` — NOT hardcoded buildMockEvents() (that
  * was the v1 violation flagged in 2026-05-07 audit).
  *
- * Today the hook implementation lives at
- * `kitehub-frontend/src/app/(customer)/instances/_lifecycle-mock.ts` and
- * polls a deterministic mock until the backend `/api/instances/{id}/status`
- * endpoint ships. When that endpoint lands the hook body swaps to a real
- * `useQuery` with `refetchInterval` — call-sites here remain unchanged.
+ * Wave 34 Bucket D (GAP-272l): real backend lifecycle event timeline.
  *
- * // TODO(GAP-272l): wire `useInstanceLifecycle` to real
- * //   `InstanceLifecycleService` when the backend `/api/instances/{id}/status`
- * //   polling endpoint ships. Hook signature stays the same; only the body
- * //   swaps. Tracked alongside Wave 32 closure follow-ups.
+ * The current-state pill is still derived from
+ * `useInstanceLifecycle()` (a deterministic helper kept until backend
+ * exposes `/api/instances/{id}/status`); the timeline below the pill
+ * is now sourced from
+ * `GET /api/v1/branding/instances/{instanceId}/lifecycle/events`
+ * via `useLifecycleEvents` so the wizard's deploying view shows the
+ * real audit trail.
  *
  * Per `ai-branding-guidelines.md` §6 the 5 lifecycle states this wrapper
  * must render in the wizard context:
@@ -33,12 +32,18 @@
 'use client';
 
 import type React from 'react';
+import { useMemo } from 'react';
 import { InstanceLifecycleStatus } from '@kite/shared-ui';
 import {
   useInstanceLifecycle,
   mockLifecycleEvents,
 } from '@/app/(customer)/instances/_lifecycle-mock';
-import type { InstanceLifecycleState } from '@kite/shared-ui';
+import type {
+  InstanceLifecycleState,
+  LifecycleEvent,
+} from '@kite/shared-ui';
+import { useLifecycleEvents } from './hooks';
+import type { WizardLifecycleEvent } from './hooks';
 
 export interface LifecycleInlineProps {
   /**
@@ -70,16 +75,48 @@ export interface LifecycleInlineProps {
   stateOverride?: InstanceLifecycleState;
 }
 
+/**
+ * Map Wave 34 wire `WizardLifecycleEvent` → G9 `LifecycleEvent` shape
+ * (legacy 4-field tuple `{ from, to, timestamp, reason }`).
+ */
+function adaptWireEvents(events: readonly WizardLifecycleEvent[]): LifecycleEvent[] {
+  const adapted: LifecycleEvent[] = [];
+  for (const e of events) {
+    if (e.type !== 'state-change' || !e.fromState || !e.toState) continue;
+    adapted.push({
+      from: e.fromState as InstanceLifecycleState,
+      to: e.toState as InstanceLifecycleState,
+      timestamp: e.ts,
+      reason:
+        typeof e.metadata?.reason === 'string'
+          ? (e.metadata.reason as string)
+          : undefined,
+    });
+  }
+  // Backend returns newest-first; G9 timeline expects chronological order.
+  return adapted.reverse();
+}
+
 export function LifecycleInline(props: LifecycleInlineProps): React.ReactElement {
   const { instanceId, instanceName, liveUrl, onRetry, stateOverride } = props;
 
-  // Service hook — single source of truth per `ai-branding-guidelines.md` §6.
-  // TODO(GAP-272l): hook body swaps to real `useQuery` when backend
-  //   `/api/instances/{id}/status` polling endpoint ships.
-  const { state: hookState, events: hookEvents } = useInstanceLifecycle(instanceId);
+  // Current-state pill — until backend exposes a status endpoint we keep
+  // the deterministic helper.
+  const { state: hookState } = useInstanceLifecycle(instanceId);
+
+  // Wave 34 (GAP-272l): real backend timeline via v1 events endpoint.
+  // Falls back to the legacy mock helper while no instanceId or while
+  // the query is loading so the component is still demoable mid-wizard.
+  const eventsQuery = useLifecycleEvents(instanceId);
 
   const state = stateOverride ?? hookState;
-  const events = stateOverride ? mockLifecycleEvents(state) : hookEvents;
+
+  const events = useMemo<LifecycleEvent[]>(() => {
+    if (eventsQuery.data?.events && eventsQuery.data.events.length > 0) {
+      return adaptWireEvents(eventsQuery.data.events);
+    }
+    return mockLifecycleEvents(state);
+  }, [eventsQuery.data, state]);
 
   return (
     <div className="max-w-2xl mx-auto" data-testid="lifecycle-inline" data-state={state}>

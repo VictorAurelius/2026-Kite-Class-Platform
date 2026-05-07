@@ -14,7 +14,28 @@
  * 10. Step6Preview deploy disabled until all 4 resources approved.
  */
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import {
+  render,
+  render as rtlRender,
+  screen,
+  fireEvent,
+  type RenderOptions,
+} from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactElement, ReactNode } from 'react';
+
+// Wave 34 Bucket D: Step6Preview now consumes useBrandingJobV1 via
+// react-query. Wrap that subset of tests with a fresh QueryClient.
+function renderWithQuery(ui: ReactElement, options?: RenderOptions) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
+  const Wrapper = ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  );
+  Wrapper.displayName = 'TestQueryClientWrapper';
+  return rtlRender(ui, { wrapper: Wrapper, ...options });
+}
 
 // Stub Bucket D's `useBrandingTier` hook so TemplateStep tests don't need a
 // React Query provider. `tierOverride` short-circuits the real hook in
@@ -277,28 +298,32 @@ describe('TemplateStep custom-prompt gating (§2.1)', () => {
 // ---------------------------------------------------------------------------
 
 describe('Step6Preview iframe + G11 ThemePreview', () => {
-  it('renders iframe with a valid src', () => {
-    render(
+  it('renders iframe with a valid v1 preview src (Wave 34 GAP-272j)', () => {
+    renderWithQuery(
       <Step6Preview
         wizardState={makeState({
           tenantName: 'Toán Master',
           slug: 'toan-master',
           templateId: 'template-t2-score-board',
+          jobId: 'job-abc-123',
         })}
         dispatch={vi.fn()}
       />,
     );
     const iframe = screen.getByTestId('step6-preview-iframe') as HTMLIFrameElement;
     expect(iframe).toBeInTheDocument();
-    expect(iframe.src).toBeTruthy();
-    expect(iframe.src.startsWith('data:text/html')).toBe(true);
+    // Wave 34: real backend route, NOT data: URI.
+    expect(iframe.getAttribute('src')).toBe(
+      '/api/v1/branding/jobs/job-abc-123/preview',
+    );
   });
 
-  it('renders G11 ThemePreview with live colours derived from selected template', () => {
-    render(
+  it('renders G11 ThemePreview with brand colours (fallback while job loads)', () => {
+    renderWithQuery(
       <Step6Preview
         wizardState={makeState({
-          templateId: 'template-t6-roadmap-vertical', // dark-bg template
+          templateId: 'template-t6-roadmap-vertical',
+          jobId: 'job-abc-123',
         })}
         dispatch={vi.fn()}
       />,
@@ -308,7 +333,7 @@ describe('Step6Preview iframe + G11 ThemePreview', () => {
 
   it('uses brandColors override when provided (test-friendly hook)', () => {
     const dispatch = vi.fn();
-    render(
+    renderWithQuery(
       <Step6Preview
         wizardState={makeState()}
         dispatch={dispatch}
@@ -324,7 +349,7 @@ describe('Step6Preview iframe + G11 ThemePreview', () => {
   });
 
   it('disables deploy button until all 4 resources approved (§4.2)', () => {
-    const { rerender } = render(
+    const { rerender } = renderWithQuery(
       <Step6Preview
         wizardState={makeState({
           templateId: 'template-t2-score-board',
