@@ -103,3 +103,14 @@ output "next_steps" {
          role-to-assume: ${aws_iam_role.github_terraform_plan.arn}
   EOT
 }
+
+# --- Audit / Observability (GAP-437) ---
+output "cloudtrail_log_bucket" {
+  description = "S3 bucket holding CloudTrail audit logs"
+  value       = aws_s3_bucket.cloudtrail_logs.bucket
+}
+
+output "cloudtrail_arn" {
+  description = "CloudTrail trail ARN — for CloudWatch metric filter integration (Phase 2)"
+  value       = aws_cloudtrail.main.arn
+}
