@@ -1,6 +1,6 @@
 ---
 title: Wave 38 — Phase 1 BETA P1 STRONGLY cluster (CDN + status page + tag-CI + staging activation)
-status: draft
+status: complete
 created: 2026-05-07
 updated: 2026-05-07
 waves: [38]
@@ -175,3 +175,4 @@ Per `feedback_parallel_agent_strategy.md` + `agent-background-spawn-default.md`:
 ## 8. Log
 
 - **2026-05-07** (draft): Plan created post-Wave-37 closure (PR #941). 4 P1 STRONGLY remaining gaps clustered: GAP-371 CDN + GAP-373 status page + GAP-374 tag-CI + GAP-380 staging (Architecture B re-scope from EKS to EC2 + docker-compose Phase 1; Phase 2 EKS migration deferred per Wave 37 GAP-415). Cross-layer scope NO (pure infra/devops/runbook). Estimated wall-clock 15-25 min với 4 background agents (D heaviest ~25 min Terraform + workflow rewrite + fixtures script + runbook).
+- **2026-05-07** (SHIPPED): All 4 buckets merged. PRs: #943 (A) + #945 (B) + #944 (C) + #946 (D). Status flips: 0 DONE / 4 PARTIAL — all deferred user-action (Cloudflare account, Statuspage signup, Notification channel, terraform apply + first deploy). Side-PR #947 release-1-deploy-runbook DRAFT (Phase 0-9 ordered sequence post user re-trace request). 3 coordinator-applied iterations: (1) Bucket B salvaged Sonnet thrash (615 LOC files intact pre-crash), (2) Bucket C wrote 3 docs directly after Sonnet thrash 2x, (3) Bucket D salvaged Opus 529 overloaded + post-fix terraform heredoc-ternary syntax error. Audit strategy: AUDIT_DEFER_DOMAIN_MILESTONE: release-deploy-artifacts — same domain as Wave 37 (per `post-wave-audit-mandate.md` §2.4); milestone = Phase 1 BETA launch wave. 74th consecutive 0-clarif streak. Wall-clock parallel ~12 min longest agent + ~15 min coordinator iterations + ~10 min closure.
