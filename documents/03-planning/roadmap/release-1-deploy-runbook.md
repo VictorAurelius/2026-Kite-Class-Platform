@@ -146,6 +146,12 @@ updated: 2026-05-07
 
 ## Phase 4 — Staging E2E gate (user trigger; agent run + monitor)
 
+> **Quy ước local vs CI/ECR (per GAP-425 Option E):**
+> - **Iteration code dev**: build local qua `bash kitehub/scripts/up.sh --profile beta-funnel --rebuild` (cycle ~2-5 min, không cần network). `--rebuild` tự bật `--force-recreate` để tránh footgun container chạy image cũ (GAP-425).
+> - **Visual smoke local**: build local + `--force-recreate` để catch source-vs-image drift (root cause GAP-425 + GAP-426 surfaced 2026-05-07).
+> - **Phase 4 staging gate (PHẢI dùng)**: pull CI-built image từ ECR qua `bash kitehub/scripts/up.sh --profile beta-funnel --pull-from-ecr v0.9.0-staging.X`. Đây là production parity test — image bit-for-bit identical với prod deploy. Trivy CVE scan + SBOM + Cosign sign chỉ wired ở CI.
+> - **Phase 7 prod (BẮT BUỘC)**: chỉ deploy CI tag-driven image. Locally-built BANNED trong production.
+
 ### 4.1 Staging Terraform
 - [ ] **4.1.1** Edit `infrastructure/terraform-aws/staging.tf` (Wave 38 Bucket D) — set `enable_staging=true`
 - [ ] **4.1.2** `terraform plan -out=staging.tfplan && terraform apply staging.tfplan`
