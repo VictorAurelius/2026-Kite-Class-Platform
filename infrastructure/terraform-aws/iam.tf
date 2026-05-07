@@ -308,8 +308,17 @@ resource "aws_iam_role_policy" "github_ecr_push_inline" {
           "ecr:DescribeRepositories",
           "ecr:DescribeImages",
         ]
-        # All ECR repos in account (created by ecr.tf at Phase 2.3 — currently 0)
-        Resource = "arn:aws:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/${var.project_name}-*"
+        # All ECR repos under kite/ namespace (per ecr.tf locals.ecr_services).
+        # Repo naming convention: kite/<service> (CLAUDE.md Docker Naming) — e.g.
+        # kite/kitehub-subscription, kite/kiteclass-gateway. Wildcard pattern
+        # `repository/${var.project_name}-*` (project_name="kitehub") would expand
+        # to `repository/kitehub-*` which does NOT match `repository/kite/...`.
+        # Phase 3 first OIDC trigger 2026-05-07 (run #25527705091, retry #25528087813)
+        # failed all 8 Push to ECR jobs with 403 Forbidden on HEAD blob check —
+        # confirmed via API call missing BatchCheckLayerAvailability permission for
+        # actual ARN format. Fix: scope to `repository/kite/*` (least-privilege,
+        # matches all 10 ECR repos).
+        Resource = "arn:aws:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/kite/*"
       },
     ]
   })
