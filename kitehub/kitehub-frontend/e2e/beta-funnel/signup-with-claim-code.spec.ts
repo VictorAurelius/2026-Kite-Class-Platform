@@ -14,21 +14,24 @@ const CLAIM_CODE = 'CLAIM-TEST-XYZ-12345';
 
 test.describe('Beta Funnel — Signup with claim code', () => {
   test.beforeEach(async ({ page }) => {
-    // Mock claim code validation
-    await page.route('**/api/v1/beta-access/claim/validate*', (route) => {
+    // Mock claim-code/token validation.
+    // Endpoint: GET /api/v1/auth/beta-signup/validate?token=... per src/lib/api/endpoints.ts
+    await page.route('**/api/v1/auth/beta-signup/validate*', (route) => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
           valid: true,
           email: 'admin@abc.vn',
-          organizationName: 'Trung tâm ABC',
+          name: 'Nguyễn Quản Lý',
+          orgName: 'Trung tâm ABC',
+          persona: 'P2_CENTER_OWNER',
         }),
       });
     });
 
-    // Mock signup endpoint
-    await page.route('**/api/v1/beta-access/signup', (route) => {
+    // Mock complete-signup endpoint
+    await page.route('**/api/v1/auth/beta-signup', (route) => {
       route.fulfill({
         status: 201,
         contentType: 'application/json',
@@ -44,60 +47,39 @@ test.describe('Beta Funnel — Signup with claim code', () => {
   test('visitor với valid claim code có thể signup', async ({ page }) => {
     await page.goto(`/beta-signup?token=${CLAIM_CODE}`);
 
-    // Page heading
+    // Page heading "Hoàn tất đăng ký Beta"
     await expect(
-      page.getByRole('heading').first(),
+      page.getByRole('heading', { level: 1 }),
     ).toBeVisible({ timeout: 10000 });
 
-    // Pre-filled email visible (from claim code validation)
+    // Pre-filled email visible after token validation succeeds
     await expect(page.getByText(/admin@abc\.vn/i).first()).toBeVisible({
       timeout: 10000,
     });
 
-    // Fill password
-    const passwordInputs = page.locator('input[type="password"]');
-    const count = await passwordInputs.count();
-    if (count >= 1) {
-      await passwordInputs.first().fill('TestPassword123!');
-    }
-    if (count >= 2) {
-      await passwordInputs.nth(1).fill('TestPassword123!');
-    }
+    // Fill subdomain (3-50 chars, lowercase + numbers + dash)
+    await page.getByLabel('Subdomain').fill('abc-test');
 
-    // Accept PDPL consent (Wave 35)
-    const consents = page.getByRole('checkbox');
-    const consentCount = await consents.count();
-    for (let i = 0; i < consentCount; i++) {
-      await consents.nth(i).check();
-    }
+    // Fill password (min 8 chars per BetaSignupForm validation)
+    await page.getByLabel('Mật khẩu').fill('TestPassword123!');
 
     // Submit signup
-    const submit = page
-      .getByRole('button', { name: /(đăng ký|signup|create|tạo)/i })
-      .first();
-    await submit.click();
+    await page.getByRole('button', { name: /hoàn tất đăng ký/i }).click();
 
-    // Verify redirect to dashboard OR success state
-    await page.waitForURL(/(dashboard|signup-success|abc-test)/, {
-      timeout: 10000,
-    }).catch(() => {
-      // Fallback — accept success message in-page
-    });
-
+    // Verify success — form replaced by role="status" block "Tạo tài khoản thành công"
     await expect(
-      page
-        .getByText(/(dashboard|chào mừng|welcome|signup.*success)/i)
-        .first(),
+      page.getByText(/(tạo tài khoản thành công|thành công)/i).first(),
     ).toBeVisible({ timeout: 10000 });
   });
 
   test('invalid claim code shows error', async ({ page }) => {
-    // Override mock with invalid response
-    await page.route('**/api/v1/beta-access/claim/validate*', (route) => {
+    // Override mock with invalid response — must unroute before re-routing
+    await page.unroute('**/api/v1/auth/beta-signup/validate*');
+    await page.route('**/api/v1/auth/beta-signup/validate*', (route) => {
       route.fulfill({
         status: 400,
         contentType: 'application/json',
-        body: JSON.stringify({ valid: false, error: 'INVALID_CLAIM_CODE' }),
+        body: JSON.stringify({ valid: false, errorCode: 'TOKEN_NOT_FOUND' }),
       });
     });
 
@@ -105,7 +87,7 @@ test.describe('Beta Funnel — Signup with claim code', () => {
 
     await expect(
       page
-        .getByText(/(invalid|không hợp lệ|hết hạn|expired|error)/i)
+        .getByText(/(không hợp lệ|hết hạn|đã được sử dụng)/i)
         .first(),
     ).toBeVisible({ timeout: 10000 });
   });
