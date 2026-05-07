@@ -105,13 +105,14 @@ Per `feedback_parallel_agent_strategy.md` + `agent-background-spawn-default.md`:
 
 ## 7. Closure Protocol
 
-Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wave_history_append_required.md` + `post-wave-cleanup.md`:
+Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wave_history_append_required.md` + `post-wave-cleanup.md` + `feedback_wave_closure_release_progress_report.md`:
 - Each bucket PR updates affected GAP file Log + status
 - ROADMAP §🚀 Next Action updated in closure PR
 - Wave plan frontmatter `status: complete` flip in closure PR
 - `wave-history.jsonl` append in closure PR (Rule 15 enforcement)
 - Sub-gaps filed for any deferral; PARTIAL exit-ramp per `gap-done-discipline.md` §3
 - Run `bash scripts/prune-merged-worktrees.sh --yes` to prune worktree husks + merged branches per `post-wave-cleanup.md` (after all bucket PRs merged, before drafting closure PR)
+- **`## Release Plan Progress` section in closure PR body** — per `feedback_wave_closure_release_progress_report.md` rules #1-6: current Phase + milestone progress + wave contribution + trigger gates + estimated remaining wall-clock + **Waves Remaining table** (3 rows: strict-min v0.9.0-beta / practical v0.9.0-beta / v1.0.0 PROD with explicit wave numbers + GAP IDs + PR #s)
 
 ---
 
