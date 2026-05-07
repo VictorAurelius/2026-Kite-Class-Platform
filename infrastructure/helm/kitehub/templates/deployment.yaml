@@ -113,6 +113,18 @@ spec:
             limits:
               cpu: {{ $svc.resources.limits.cpu }}
               memory: {{ $svc.resources.limits.memory }}
+          # GAP-431 — startupProbe protects against Flyway migration cold-start delay
+          # (15-45s typical). Window = failureThreshold × periodSeconds = 30 × 5s = 150s.
+          # While startupProbe is failing, liveness/readiness probes are disabled, so a
+          # slow Spring Boot + Flyway boot cannot trigger restart loops on first deploy.
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ $svc.port }}
+            initialDelaySeconds: 30
+            failureThreshold: 30
+            periodSeconds: 5
+            timeoutSeconds: 3
           livenessProbe:
             httpGet:
               path: /actuator/health
