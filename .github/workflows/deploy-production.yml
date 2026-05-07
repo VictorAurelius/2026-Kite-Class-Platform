@@ -54,6 +54,17 @@ jobs:
       - name: Configure kubectl
         run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
 
+      - name: Pre-deploy RDS snapshot (GAP-389-A)
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+          RDS_INSTANCE_ID: ${{ secrets.RDS_INSTANCE_ID || 'kite-rds-prod' }}
+          PUSHGATEWAY_URL: ${{ secrets.PUSHGATEWAY_URL || '' }}
+        run: |
+          chmod +x ./scripts/backup-production.sh
+          SNAPSHOT_ID=$(./scripts/backup-production.sh)
+          echo "PRE_DEPLOY_SNAPSHOT=${SNAPSHOT_ID}" >> "$GITHUB_ENV"
+          echo "Snapshot for rollback reference: ${SNAPSHOT_ID}"
+
       - name: Deploy with Helm
         env:
           REGISTRY: ${{ steps.ecr-login.outputs.registry }}

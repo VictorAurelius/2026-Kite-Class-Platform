@@ -161,3 +161,75 @@ Per [`.claude/rules/business-logic-review.md`](../../../.claude/rules/business-l
 - Helm: `infrastructure/helm/kitehub/values.yaml` → `branding.qualityGate.passThreshold: 70`
 - Deployment: `infrastructure/helm/kitehub/templates/deployment.yaml` → env `QUALITY_GATE_PASS_THRESHOLD`
 - Tests: `kitehub-branding/src/test/.../QualityScoreAggregatorThresholdTest.java` covers (a) custom threshold 80 → score 75 = FAIL / score 85 = PASS; (b) default fallback 70 when no override.
+
+---
+
+## BR-LIFE-001..006 — Lifecycle State Machine (5-attribute compliance blocks)
+
+Per [`.claude/rules/business-logic-review.md`](../../../../.claude/rules/business-logic-review.md) v1.0.0 §2 — every business rule MUST document Source, Rationale, Reviewer, Compliance check, Review cadence. The 6 BR-LIFE rules share a single state-machine concern; each is documented below with the 5 attributes. Closes Wave 34 Business Logic /100 audit Finding #2 (GAP-389-C, Wave 36 Bucket C).
+
+### BR-LIFE-001 — Six-state lifecycle
+
+- **Value:** `NOT_STARTED → INITIALIZING → GENERATING → DEPLOYED ⇄ REGENERATING; * → FAILED → INITIALIZING (retry)`
+- **Source:** `ai-branding-guidelines.md` §6 + ADR-004 (Lifecycle State Machine). State graph derived from operational AI provisioning patterns (provisioning → generating → live → re-generating, with explicit failed branch).
+- **Rationale:** 6 states is the minimal sufficient set — fewer collapses (e.g. merging INITIALIZING + GENERATING) loses the ability to distinguish infrastructure-prepared vs AI-output-ready, which different downstream consumers (cache warmer vs FE polling) need. More states (e.g. separate FAILED_QUOTA / FAILED_AI / FAILED_INFRA) would be over-engineering at v1 — failure reason is captured in the FAILED state's `reason` field.
+- **Reviewer:** @nguyenvankiet (acting Tech Lead, solo-dev, 2026-05-07). Pure domain logic, no legal/PDPL/MoET trigger; review when adding/removing states.
+- **Compliance check:** **N/A** — internal state machine, no PII/financial/regulated data exposed.
+- **Review cadence:** **Quarterly** + event-driven on state-add PR (any change to `FrontendInstanceStatus` enum). **Next review:** 2026-08-07.
+- **Code reference:** `kitehub/kitehub-branding/src/main/java/.../module/instance/entity/FrontendInstanceStatus.java`
+
+### BR-LIFE-002 — Allowed transitions per state
+
+- **Value:** Each enum value declares `Set<FrontendInstanceStatus> allowedTransitions()`; `canTransitionTo` enforces; invalid → `IllegalStateException`.
+- **Source:** `ai-branding-guidelines.md` §6 + design-patterns.md §3.3 (status switch cascade BANNED — must use State Pattern enforcement).
+- **Rationale:** Encoding allowed transitions ON the enum value (not in caller code) prevents the "switch statement scattered across services" anti-pattern. Throwing `IllegalStateException` (not silent skip) catches integration bugs at first observable failure rather than producing inconsistent state silently.
+- **Reviewer:** @nguyenvankiet (acting Tech Lead, solo-dev, 2026-05-07). Pure domain enforcement; no compliance/PDPL impact.
+- **Compliance check:** **N/A** — internal contract; failures surface as 5xx not user-data exposure.
+- **Review cadence:** **Quarterly** + event-driven on transition matrix change. **Next review:** 2026-08-07.
+- **Code reference:** `FrontendInstanceStatus.canTransitionTo()`
+
+### BR-LIFE-003 — Single authority
+
+- **Value:** `InstanceLifecycleService` is the only writer; controllers MUST delegate via semantic methods (`initiate`, `markInfrastructureReady`, `markBrandingCompleted`, `rebrand`, `markFailed`, `retry`).
+- **Source:** `ai-branding-guidelines.md` §6 + ADR-004 (single-authority pattern for state machines).
+- **Rationale:** A single writer is the precondition for outbox-event integrity (BR-LIFE-004) and audit-log completeness. If 2+ writers exist, ordering becomes implementation-dependent and outbox events can be missed. Semantic method names (vs raw `setStatus`) document intent and prevent invalid transitions at compile time (callers can't construct a `markBrandingCompleted` from `NOT_STARTED`).
+- **Reviewer:** @nguyenvankiet (acting Tech Lead, solo-dev, 2026-05-07). Internal pattern; no regulated impact.
+- **Compliance check:** **N/A** — architectural rule.
+- **Review cadence:** **Annual** (stable pattern, no expected drift). **Next review:** 2027-05-07.
+- **Code reference:** `kitehub/kitehub-branding/src/main/java/.../module/instance/service/InstanceLifecycleService.java`
+
+### BR-LIFE-004 — Outbox event per transition
+
+- **Value:** Every state change writes outbox row in same JPA txn (`OutboxEventWriter`); event types: `instance.{initializing,generating,deployed,regenerating,failed}`.
+- **Source:** ADR-007 (Outbox Pattern) + design-patterns.md §3.5 (Outbox bypass policy).
+- **Rationale:** Outbox + same-txn write guarantees that lifecycle changes published to consumers (cache invalidation, FE notifications, downstream analytics) match the persisted state — no state-event drift even on broker outage. Per design-patterns.md §3.5 Exception list, lifecycle is NOT eligible for direct-publish exception A (no fast-path requirement); outbox is mandatory.
+- **Reviewer:** @nguyenvankiet (acting Tech Lead, solo-dev, 2026-05-07). Internal reliability pattern.
+- **Compliance check:** **Considered** — event payloads include `instanceId` (UUID) and `tenantId` (UUID); no PII (no email/name/phone in lifecycle events). Reviewed against PDPL Art 23: tenantId pseudonym does not constitute personal data per Decree 13/2023/NĐ-CP Art 2.
+- **Review cadence:** **Quarterly** + event-driven on payload schema change (new field or sensitive-attribute addition). **Next review:** 2026-08-07.
+- **Code reference:** Outbox writes at every `InstanceLifecycleService.mark*()` callsite; consumer side per ADR-007.
+
+### BR-LIFE-005 — Max retries
+
+- **Value:** `MAX_RETRIES = 3` consecutive failures before retry path is blocked; tracked in `FrontendInstance.retryCount`.
+- **Source:** `ai-branding-guidelines.md` §6 + empirical observation Wave 4 baseline (no production data — informed gut). To be re-baselined post-Phase-1 launch with real failure-mode data.
+- **Rationale:** 3 retries balances (a) tolerance for transient AI provider failures (Ollama/OpenAI 5xx, network blips — typically 1-2 retries succeed) vs (b) preventing runaway compute cost when a tenant request is permanently broken (e.g. impossible logo + brand combination triggers repeated AI rejection). 3 chosen as 2× expected transient-failure window; tunable per tier post-launch.
+- **Reviewer:** @nguyenvankiet (acting Product Owner + Tech Lead, solo-dev, 2026-05-07). Operational threshold; full Product review queued post-Phase-1 launch with real failure-rate data (Q3 2026).
+- **Compliance check:** **N/A** — operational tuning, no PDPL/Consumer-Protection trigger (tenant sees "provisioning failed, please retry" — no advertised SLA tied to retry count).
+- **Review cadence:** **Quarterly** + event-driven on (a) retry-rate >5% MoM, (b) tier-specific override request. **Next review:** 2026-08-07.
+- **Code reference:** `InstanceLifecycleService.MAX_RETRIES` (static final; consider externalization to config in future PR).
+
+### BR-LIFE-006 — Branding version monotonic
+
+- **Value:** Increments on every successful `markBrandingCompleted` (DEPLOYED transition); drives ETag (BR-PKG-002) and FE cache invalidation.
+- **Source:** ADR-009 (Composite Branding Package) + ai-branding-guidelines.md §7.1 (composite API + ETag scheme).
+- **Rationale:** Monotonic version (vs timestamp or random hash) enables three downstream guarantees: (1) ETag comparison is strict-ordering — FE knows v5 is newer than v4 without parsing; (2) cache eviction is idempotent — out-of-order outbox event delivery still converges to latest version; (3) audit trail preserves rebranding history. Increments only on successful DEPLOYED — failed regenerations don't bump version (FE cache stays valid).
+- **Reviewer:** @nguyenvankiet (acting Tech Lead, solo-dev, 2026-05-07). Internal cache contract.
+- **Compliance check:** **N/A** — version number is opaque integer, not personal data.
+- **Review cadence:** **Annual** (stable — change requires ETag scheme rev). **Next review:** 2027-05-07.
+- **Code reference:** `FrontendInstance.brandingVersion` field; bumped in `InstanceLifecycleService.markBrandingCompleted()`.
+
+---
+
+## BR-QUALITY-001 — Compliance block status
+
+The `BR-QUALITY-001` 5-attribute compliance block is documented above (see "BR-QUALITY-001 — Quality Gate Pass Threshold (5-attribute compliance block)" section, landed via GAP-386 on 2026-05-08). GAP-389-C (Wave 36 Bucket C, 2026-05-07) re-verifies the block matches `business-logic-review.md` v1.0.0 §2 — verdict: **COMPLIANT** (all 5 attributes present: Source, Rationale, Reviewer, Compliance check, Review cadence including next-review date 2026-08-08). No new block needed; entry counted toward Wave 36 Bucket C compliance tally as 7th of 7 (BR-LIFE-001..006 + BR-QUALITY-001).
