@@ -12,9 +12,12 @@
  *   5. Template  — grid + Enterprise custom-prompt (Bucket C)
  *   6. Preview   — per-resource approve + quality gate + deploy (Bucket C+D)
  *
- * Bucket A (this PR) ships the SHELL + Steps 1-2. Steps 3-6 render placeholder
- * cards until Bucket B/C/D land — see `wizard-shared.tsx` for the prop type
- * stubs they will implement.
+ * Bucket A shipped Steps 1-2 (#883). Buckets B (#889 audience+tone), C (#888
+ * template), and C+D (#890 preview / quality gate / deploy) shipped the
+ * remaining step components. This file is the orchestrator wire that replaced
+ * the Bucket A placeholders with real `dynamic()` imports — Phase B of the
+ * locked Post-Wave-32 sequence (see project memory
+ * `project_post_wave_32_sequence_plan.md`).
  *
  * Bundle-size strategy (preserved from Wave GAP-236 Sub-PR B): each step is
  * loaded via `next/dynamic` so only the active step's chunk is shipped.
@@ -54,6 +57,40 @@ const LogoStep = dynamic(
   { ssr: false, loading: stepLoading }
 );
 
+// Bucket B — Audience + Tone (Wave 32 rework B). Their `onNext(selected)` is
+// adapted by this orchestrator (see currentStep === 3/4 below) so SET_AUDIENCE /
+// SET_TONE dispatch happens here, not inside the step.
+const AudienceStep = dynamic(
+  () =>
+    import('@/components/branding/wizard/AudienceStep').then((m) => ({
+      default: m.AudienceStep,
+    })),
+  { ssr: false, loading: stepLoading }
+);
+const ToneStep = dynamic(
+  () =>
+    import('@/components/branding/wizard/ToneStep').then((m) => ({
+      default: m.ToneStep,
+    })),
+  { ssr: false, loading: stepLoading }
+);
+
+// Bucket C — Template grid + Step 6 preview/approve.
+const TemplateStep = dynamic(
+  () =>
+    import('@/components/branding/wizard/TemplateStep').then((m) => ({
+      default: m.TemplateStep,
+    })),
+  { ssr: false, loading: stepLoading }
+);
+const Step6Preview = dynamic(
+  () =>
+    import('@/components/branding/wizard/Step6Preview').then((m) => ({
+      default: m.Step6Preview,
+    })),
+  { ssr: false, loading: stepLoading }
+);
+
 export default function BrandingWizardPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
@@ -81,6 +118,29 @@ export default function BrandingWizardPage() {
   const handleBack = useMemo(
     () => () => dispatch({ type: 'PREV_STEP' }),
     [dispatch]
+  );
+
+  // Bucket B step components emit the selected id as the onNext payload —
+  // adapt to the orchestrator's "dispatch SET_* then advance" contract here
+  // instead of changing Bucket B's local signature post-merge.
+  const handleAudienceNext = useMemo(
+    () => (audience: string) => {
+      dispatch({ type: 'SET_AUDIENCE', audience });
+      dispatch({ type: 'NEXT_STEP' });
+    },
+    [dispatch]
+  );
+  const handleToneNext = useMemo(
+    () => (tone: string) => {
+      dispatch({ type: 'SET_TONE', tone });
+      dispatch({ type: 'NEXT_STEP' });
+    },
+    [dispatch]
+  );
+
+  const handleDeploy = useMemo(
+    () => () => router.push('/branding'),
+    [router]
   );
 
   if (instancesError || loadingTimedOut) {
@@ -155,63 +215,40 @@ export default function BrandingWizardPage() {
         )}
 
         {currentStep === 3 && (
-          <BucketPlaceholder bucket="B" stepLabel="Đối tượng" onBack={handleBack} />
-        )}
-
-        {currentStep === 4 && (
-          <BucketPlaceholder bucket="B" stepLabel="Phong cách" onBack={handleBack} />
-        )}
-
-        {currentStep === 5 && (
-          <BucketPlaceholder bucket="C" stepLabel="Mẫu thiết kế" onBack={handleBack} />
-        )}
-
-        {currentStep === 6 && (
-          <BucketPlaceholder
-            bucket="C/D"
-            stepLabel="Phê duyệt"
+          <AudienceStep
+            wizardState={state}
+            onNext={handleAudienceNext}
             onBack={handleBack}
           />
         )}
-      </div>
-    </div>
-  );
-}
 
-/**
- * BucketPlaceholder — temporary card shown for steps 3-6 until Bucket B/C/D
- * agents land. Once those PRs merge, the orchestrator will replace each
- * placeholder with the real `dynamic()` import of the corresponding step
- * component (props contracts are already declared in `wizard-shared.tsx`).
- *
- * This is NOT a cross-bucket scope leak (rework §3.2): we render a generic
- * placeholder, NOT a stub of the future component.
- */
-function BucketPlaceholder({
-  bucket,
-  stepLabel,
-  onBack,
-}: {
-  bucket: 'B' | 'C' | 'C/D';
-  stepLabel: string;
-  onBack: () => void;
-}) {
-  return (
-    <div
-      data-testid={`wizard-bucket-placeholder-${bucket}`}
-      className="max-w-2xl mx-auto rounded-lg border border-dashed border-muted-foreground/40 p-8 text-center"
-    >
-      <Sparkles className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
-      <h2 className="text-lg font-semibold mb-1">
-        Bước &ldquo;{stepLabel}&rdquo; — Bucket {bucket} chưa shipped
-      </h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        Phần này sẽ có khi bucket {bucket} của Wave 32 hoàn tất.
-      </p>
-      <Button variant="ghost" onClick={onBack}>
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Quay lại bước trước
-      </Button>
+        {currentStep === 4 && (
+          <ToneStep
+            wizardState={state}
+            onNext={handleToneNext}
+            onBack={handleBack}
+          />
+        )}
+
+        {currentStep === 5 && (
+          <TemplateStep
+            wizardState={state}
+            dispatch={dispatch}
+            instanceId={instanceId}
+            onNext={handleNext}
+            onBack={handleBack}
+          />
+        )}
+
+        {currentStep === 6 && (
+          <Step6Preview
+            wizardState={state}
+            dispatch={dispatch}
+            onBack={handleBack}
+            onDeploy={handleDeploy}
+          />
+        )}
+      </div>
     </div>
   );
 }

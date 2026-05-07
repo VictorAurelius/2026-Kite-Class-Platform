@@ -1,6 +1,6 @@
 ---
 title: Wave 32 REWORK — AI Branding Wizard v2 (post-audit hardening, Opus model)
-status: draft
+status: complete
 created: 2026-05-07
 updated: 2026-05-07
 waves: [32]
@@ -272,3 +272,4 @@ Same as original plan §7 + extras:
 ## 9. Log
 
 - **2026-05-07 (draft):** Plan REWORK created sau audit Wave 32 v1 PRs (#883/884/885) phát hiện scaffold-as-DONE pattern + AI Branding rules vi phạm + tests không chạy local. Per `incident-to-rule-pipeline.md` 5-stage applied. Original plan §1-§7 vẫn binding; rework adds §3 Anti-patterns + §3.4-3.7 verification gates + Opus model mandate + Bucket B explicit re-spawn. Reviewer: @nguyenvankiet (solo-dev — execution incident response, not rule change). Closes Wave 32 v1 audit findings.
+- **2026-05-07 (complete):** All 4 buckets shipped Opus rework (#888 Bucket C TemplateStep + #889 Bucket B audience+tone + #890 Bucket D Step 6 sub-states / QualityGate / Lifecycle / Settings + #892 Wave 32 letter collision recovery + GAP-272h tech debt). 4/4 verification gates passed (mock count = 0 hard mocks, 11 documented `// TODO(GAP-272x)` deferrals; 0 cross-bucket scope leak; tests run local before push). Phase B closure PR (this commit) wires orchestrator `(customer)/branding/wizard/page.tsx` — replaces 4 `BucketPlaceholder` blocks với real `dynamic()` imports + adapter callbacks (`handleAudienceNext` / `handleToneNext` dispatch SET_AUDIENCE/SET_TONE then NEXT_STEP because Bucket B's local `onNext(selected: string)` signature drifted from Bucket A's stub `onNext: () => void`). Final test count 67/67 wizard tests + tsc clean + `pnpm build` clean. Worktree prune deferred to post-Phase-A merge per `post-wave-cleanup.md` §2 (Phase A meta-update agent in-flight). GAP-272 stays 🟡 PARTIAL — sub-letters 272c-l (8 P1 + 1 P0 backend endpoints + MSW infra) tracked for Wave 34 backend cluster per locked Post-Wave-32 sequence (project memory). Status flips draft → complete.
