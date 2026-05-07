@@ -1,6 +1,6 @@
 ---
 title: Wave 40 — Audit milestone cho cụm release-deploy-artifacts (sau Wave 33+34+37+38+39)
-status: draft
+status: complete
 created: 2026-05-08
 updated: 2026-05-08
 waves: [40]
@@ -221,3 +221,5 @@ Tối ưu hơn: nếu RAM cho phép, spawn 7 ngăn cùng lúc → ~2.5h longest 
 ## 9. Log
 
 - **2026-05-08** (draft): Plan tạo. Cụm `release-deploy-artifacts` (Wave 33+34+37+38+39) đã đến milestone audit theo `post-wave-audit-mandate.md` §2.4. Mục tiêu: 7-8 specialist audits song song + foreground persona-review → ~3-4h tổng. Phase 1 BETA cổng nâng cấp gate Quality ≥80 + Security ≥80. Wave 39 closure đã trigger AUDIT_DEFER trailer; Wave 40 đóng nó qua DOMAIN_MILESTONE_AUDIT trailer.
+
+- **2026-05-08** (complete): Wave 40 SHIPPED. 7/7 audits done + closure. PRs #971 plan, #972 D (Performance 75 C +4), #973 B (Quality 86 B+ +6 ✅PASS), #974 C (Security 87 B +3 ✅PASS), #975 E (Ops Readiness 60 D +7), #976 F (API Contract 72 C+ +1), #977 G (Business Logic 68 C -14 recalibration), #978 A (UI 111.3 A+ +14.3). **2 cổng critical Quality + Security đều PASS Phase 7 ≥80** — production deploy unblocked từ formal gate view. 5 gaps mới: GAP-427 (F API drift), GAP-428 (A UI prospect public pages), GAP-429 (A UI transient state UX) — note: GAP-427 number collision giữa A+F resolve qua rename A's →429. 7 P0/P1 mới từ D/E/F/G cho Wave 41 cluster. H persona-review deferred (Cat 11 unchanged 4/10 per gap-152 charter, không block Phase 1 BETA invite-only). 76th consecutive 0-clarif streak (1 G respawn Haiku narrow scope sau autocompact thrash). Wall-clock ~1h longest path (A 13min) + ~5min closure. **DOMAIN_MILESTONE_AUDIT trailer applied** trong closure commit per `post-wave-audit-mandate.md` §3 detector → đóng AUDIT_DEFER tag của Wave 33+34+37+38+39.
