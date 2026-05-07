@@ -8,7 +8,7 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-06)
+## 🎯 Current Status Snapshot (2026-05-07)
 
 ### 🟢 RELEASE LẦN 1 PHASE 1 BETA ACTIVE — đọc trước
 
@@ -27,7 +27,7 @@
 1. **Wave 34 spawn** — plan merged 2026-05-07 (#899). First wave thực sự áp dụng `contract-first-for-cross-layer.md` v1.0.0. Plan tại `documents/03-planning/waves/wave-2026-05-07-34-ai-branding-backend-cluster.md`. **Spawn Bucket 0 Foundation FIRST** (sequential merge — api-contract.md UPDATE + KH-frontend MSW infra), THEN A∥B∥C parallel (BE Bộ 1/2/lifecycle), THEN D last (FE refactor inline mocks → MSW). Opus 4.7 full effort (HIGH stake). 5 agents across 3 spawn batches.
 2. **Post-Wave-33 audit suite** ≤3 ngày deadline (Wave 33 multi-domain BE+FE+Docs, NO milestone deferral per `post-wave-audit-mandate.md` §2.1) — API Contract /100 (BetaAccessController 6 endpoints) + UI /128 (3 FE pages: request-beta-access / beta-signup / admin/beta-requests) + Security /100 (V28 entity + auth flows + Outbox pattern).
 3. **GAP-382** Meta-P1 admin scan drift build-time detector — `scripts/check-admin-scan-coverage.sh` + `kitehub-admin-ci.yml` wire. ~30 min. Force multiplier per `meta-gap-priority.md` §3 — prevents recurrence #4 of admin scan drift pattern (Consent Wave 25 + Dsar Wave 26 + Beta Wave 33).
-4. **GAP-383** worktree-prune script bug — file follow-up gap if not yet filed (script bails on detached-HEAD worktree, blocks closure cleanup).
+4. ~~**GAP-383** worktree-prune script bug~~ — ✅ **DONE 2026-05-07** (PR #903): script now detects detached-HEAD lines, prunes when commit is in `origin/main` ancestry, otherwise preserves with stderr warn. Path-dedup added. Self-tested on 3-variant fixture.
 
 ---
 
