@@ -1,5 +1,5 @@
 /**
- * Tests for BetaRequestForm (GAP-372 Wave 33).
+ * Tests for BetaRequestForm (GAP-372 Wave 33 + Wave 35 GAP-385 PDPL consent).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@/test/test-utils';
@@ -22,6 +22,7 @@ describe('BetaRequestForm', () => {
     expect(screen.getByLabelText(/Họ và tên/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Tên tổ chức/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Vai trò/i)).toBeInTheDocument();
+    expect(screen.getByTestId('beta-consent-checkbox')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Gửi yêu cầu beta/i })).toBeInTheDocument();
   });
 
@@ -36,11 +37,10 @@ describe('BetaRequestForm', () => {
   it('shows validation error when email is empty', async () => {
     render(<BetaRequestForm />);
     const form = screen.getByRole('form', { name: /beta-request-form/i });
-    // Use form.requestSubmit() to bypass HTML5 validation prevention?
-    // Instead, supply only invalid email and trigger submit.
     fireEvent.change(screen.getByLabelText(/Họ và tên/i), { target: { value: 'X' } });
     fireEvent.change(screen.getByLabelText(/Tên tổ chức/i), { target: { value: 'Y' } });
     fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: 'not-an-email' } });
+    fireEvent.click(screen.getByTestId('beta-consent-checkbox'));
     fireEvent.submit(form);
 
     await waitFor(() => {
@@ -49,13 +49,44 @@ describe('BetaRequestForm', () => {
     expect(apiClient.post).not.toHaveBeenCalled();
   });
 
-  it('submits with valid data + shows success state', async () => {
+  // GAP-385 — PDPL 2023 Art 11 consent enforcement
+  it('disables submit button until consent checkbox is checked', () => {
+    render(<BetaRequestForm />);
+    const submit = screen.getByTestId('beta-submit') as HTMLButtonElement;
+    expect(submit).toBeDisabled();
+
+    fireEvent.click(screen.getByTestId('beta-consent-checkbox'));
+    expect(submit).not.toBeDisabled();
+  });
+
+  // GAP-385 — defense in depth: even if button enabled bypassed, validate() catches
+  it('blocks submit + shows consent error when checkbox unchecked', async () => {
     render(<BetaRequestForm />);
     fireEvent.change(screen.getByLabelText(/Email/i), {
       target: { value: 'owner@example.com' },
     });
     fireEvent.change(screen.getByLabelText(/Họ và tên/i), { target: { value: 'Owner' } });
     fireEvent.change(screen.getByLabelText(/Tên tổ chức/i), { target: { value: 'ABC' } });
+    // consent NOT checked
+    const form = screen.getByRole('form', { name: /beta-request-form/i });
+    fireEvent.submit(form);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        /đồng ý.*Chính sách.*Điều khoản/i,
+      );
+    });
+    expect(apiClient.post).not.toHaveBeenCalled();
+  });
+
+  it('submits with valid data + consent + sends consentGiven=true', async () => {
+    render(<BetaRequestForm />);
+    fireEvent.change(screen.getByLabelText(/Email/i), {
+      target: { value: 'owner@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/Họ và tên/i), { target: { value: 'Owner' } });
+    fireEvent.change(screen.getByLabelText(/Tên tổ chức/i), { target: { value: 'ABC' } });
+    fireEvent.click(screen.getByTestId('beta-consent-checkbox'));
 
     const form = screen.getByRole('form', { name: /beta-request-form/i });
     fireEvent.submit(form);
@@ -69,6 +100,7 @@ describe('BetaRequestForm', () => {
           orgName: 'ABC',
           persona: 'P2_CENTER_OWNER',
           honeypot: '',
+          consentGiven: true,
         }),
       );
     });

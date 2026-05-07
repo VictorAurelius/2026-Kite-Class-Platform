@@ -53,6 +53,12 @@ public class BetaAccessService {
     /** Outbox topic / routing key for kitehub-email consumer. */
     static final String TOPIC_INVITE_SENT = "email.beta.invite";
 
+    /** Outbox event type for PDPL consent-given audit log (Wave 35 GAP-385). */
+    static final String EVENT_TYPE_CONSENT_GIVEN = "beta.consent.given";
+
+    /** Outbox topic / routing key for audit consumer (Wave 35 GAP-385). */
+    static final String TOPIC_CONSENT_GIVEN = "audit.beta.consent";
+
     private final BetaAccessRequestRepository repository;
     private final SubscriptionEventEmitter eventEmitter;
 
@@ -78,6 +84,7 @@ public class BetaAccessService {
             return existingPending.get();
         }
 
+        OffsetDateTime now = OffsetDateTime.now();
         BetaAccessRequest entity = BetaAccessRequest.builder()
                 .email(dto.email())
                 .name(dto.name())
@@ -85,10 +92,24 @@ public class BetaAccessService {
                 .persona(dto.persona())
                 .referralSource(dto.referralSource())
                 .status(BetaAccessRequestStatus.PENDING)
+                .consentGiven(Boolean.TRUE.equals(dto.consentGiven()))
+                .consentAt(now)
                 .build();
         BetaAccessRequest saved = repository.save(entity);
         log.info("Beta access request submitted: id={} email={} persona={}",
                 saved.getId(), saved.getEmail(), saved.getPersona());
+
+        // PDPL 2023 Art 16 — emit consent-evidence audit event via outbox
+        // (no direct rabbitTemplate.send per design-patterns.md §3.5).
+        String consentPayload = String.format(
+                "{\"requestId\":%d,\"email\":\"%s\",\"persona\":\"%s\",\"consentAt\":\"%s\"}",
+                saved.getId(),
+                SubscriptionEventEmitter.escape(saved.getEmail()),
+                SubscriptionEventEmitter.escape(saved.getPersona()),
+                saved.getConsentAt()
+        );
+        eventEmitter.emit((UUID) null, EVENT_TYPE_CONSENT_GIVEN, TOPIC_CONSENT_GIVEN, consentPayload);
+
         return saved;
     }
 

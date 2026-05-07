@@ -5,6 +5,11 @@
  * approves → invite email với signup token. Includes anti-spam honeypot
  * (hidden text field expected to remain empty).
  *
+ * Wave 35 GAP-385: thêm PDPL 2023 Art 11 explicit consent checkbox. Submit
+ * button DISABLED đến khi user check consent. `consentGiven=true` send trong
+ * POST body — server reject với HTTP 400 + error `BETA_CONSENT_REQUIRED` nếu
+ * thiếu hoặc false.
+ *
  * @since Wave 33 — GAP-372
  */
 'use client';
@@ -26,6 +31,7 @@ export default function BetaRequestForm({ onSuccess }: BetaRequestFormProps) {
   const [persona, setPersona] = useState<BetaPersona>('P2_CENTER_OWNER');
   const [referralSource, setReferralSource] = useState('');
   const [honeypot, setHoneypot] = useState('');
+  const [consentGiven, setConsentGiven] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +42,9 @@ export default function BetaRequestForm({ onSuccess }: BetaRequestFormProps) {
     }
     if (!name.trim()) return 'Vui lòng nhập họ tên.';
     if (!orgName.trim()) return 'Vui lòng nhập tên tổ chức.';
+    if (!consentGiven) {
+      return 'Vui lòng đồng ý với Chính sách Quyền riêng tư và Điều khoản Sử dụng.';
+    }
     return null;
   };
 
@@ -56,6 +65,7 @@ export default function BetaRequestForm({ onSuccess }: BetaRequestFormProps) {
         persona,
         referralSource: referralSource || null,
         honeypot,
+        consentGiven,
       });
       setSubmitted(true);
       onSuccess?.();
@@ -177,9 +187,34 @@ export default function BetaRequestForm({ onSuccess }: BetaRequestFormProps) {
         data-testid="beta-honeypot"
       />
 
+      {/* PDPL 2023 Art 11 — explicit consent (Wave 35 GAP-385) */}
+      <div className="flex items-start gap-2 rounded-xl border bg-muted/30 p-3 text-sm">
+        <input
+          id="beta-consent"
+          type="checkbox"
+          checked={consentGiven}
+          onChange={(e) => setConsentGiven(e.target.checked)}
+          className="mt-1 h-4 w-4"
+          required
+          data-testid="beta-consent-checkbox"
+        />
+        <label htmlFor="beta-consent" className="leading-snug">
+          Tôi đồng ý cho Kite xử lý dữ liệu cá nhân của tôi theo{' '}
+          <a href="/legal/privacy" className="underline" target="_blank" rel="noopener noreferrer">
+            Chính sách Quyền riêng tư
+          </a>{' '}
+          và{' '}
+          <a href="/legal/terms" className="underline" target="_blank" rel="noopener noreferrer">
+            Điều khoản Sử dụng
+          </a>{' '}
+          (PDPL 2023).
+        </label>
+      </div>
+
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || !consentGiven}
+        data-testid="beta-submit"
         className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60"
       >
         {loading ? 'Đang gửi...' : 'Gửi yêu cầu beta'}

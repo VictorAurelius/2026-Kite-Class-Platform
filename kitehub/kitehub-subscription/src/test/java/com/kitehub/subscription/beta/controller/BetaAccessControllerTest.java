@@ -59,7 +59,7 @@ class BetaAccessControllerTest {
     void submitRequestAcceptsValid() throws Exception {
         BetaRequestDto dto = new BetaRequestDto(
                 "owner@example.com", "Owner Name", "ABC Center",
-                "P2_CENTER_OWNER", "Friend referral", "");
+                "P2_CENTER_OWNER", "Friend referral", "", true);
         BetaAccessRequest saved = BetaAccessRequest.builder()
                 .id(1L)
                 .email(dto.email())
@@ -67,6 +67,8 @@ class BetaAccessControllerTest {
                 .orgName(dto.orgName())
                 .persona(dto.persona())
                 .status(BetaAccessRequestStatus.PENDING)
+                .consentGiven(true)
+                .consentAt(OffsetDateTime.now())
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())
                 .build();
@@ -85,7 +87,7 @@ class BetaAccessControllerTest {
     void submitRequestRejectsHoneypot() throws Exception {
         BetaRequestDto dto = new BetaRequestDto(
                 "spam@example.com", "Bot", "Spam Inc",
-                "P1_SOLO_TEACHER", null, "i-am-a-bot");
+                "P1_SOLO_TEACHER", null, "i-am-a-bot", true);
 
         mockMvc.perform(post("/api/v1/auth/request-beta-access")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -98,7 +100,36 @@ class BetaAccessControllerTest {
     void submitRequestRejectsBadPersona() throws Exception {
         BetaRequestDto dto = new BetaRequestDto(
                 "x@y.com", "X", "Y",
-                "BADPERSONA", null, "");
+                "BADPERSONA", null, "", true);
+
+        mockMvc.perform(post("/api/v1/auth/request-beta-access")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    // GAP-385 (Wave 35 Bucket B) — PDPL 2023 Art 11 consent enforcement.
+
+    @Test
+    @DisplayName("POST /request-beta-access — 400 BETA_CONSENT_REQUIRED when consent missing (null)")
+    void submitRequestRejectsMissingConsent() throws Exception {
+        // Send the JSON without the consentGiven field — Jackson maps to null,
+        // @NotNull triggers BETA_CONSENT_REQUIRED.
+        String body = "{\"email\":\"x@y.com\",\"name\":\"X\",\"orgName\":\"Y\","
+                + "\"persona\":\"P2_CENTER_OWNER\",\"referralSource\":null,\"honeypot\":\"\"}";
+
+        mockMvc.perform(post("/api/v1/auth/request-beta-access")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("POST /request-beta-access — 400 BETA_CONSENT_REQUIRED when consent=false")
+    void submitRequestRejectsFalseConsent() throws Exception {
+        BetaRequestDto dto = new BetaRequestDto(
+                "x@y.com", "X", "Y",
+                "P2_CENTER_OWNER", null, "", false);
 
         mockMvc.perform(post("/api/v1/auth/request-beta-access")
                         .contentType(MediaType.APPLICATION_JSON)
