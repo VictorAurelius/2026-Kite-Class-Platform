@@ -16,8 +16,17 @@ test.describe('Beta Funnel — Admin approve', () => {
     await clearBrowserStorage(page);
     await setupMockAuth(page, 'ADMIN');
 
-    // Mock list endpoint — return one PENDING request
+    // Mock list endpoint — return one PENDING request.
+    // FE shape per src/app/(admin)/admin/beta-requests/page.tsx BetaRequest interface:
+    // id (number), email, name, orgName, persona, referralSource, status, createdAt, ...
+    let pendingState: 'PENDING' | 'APPROVED' = 'PENDING';
     await page.route('**/api/v1/admin/beta-requests*', (route) => {
+      const url = route.request().url();
+      // Approve action handled by separate route below; skip here
+      if (url.includes('/approve') || url.includes('/reject')) {
+        route.continue();
+        return;
+      }
       if (route.request().method() === 'GET') {
         route.fulfill({
           status: 200,
@@ -25,13 +34,21 @@ test.describe('Beta Funnel — Admin approve', () => {
           body: JSON.stringify({
             content: [
               {
-                id: 'req-test-001',
-                organizationName: 'Trung tâm ABC',
+                id: 1,
                 email: 'admin@abc.vn',
-                status: 'PENDING',
-                submittedAt: '2026-05-07T10:00:00Z',
+                name: 'Nguyễn Quản Lý',
+                orgName: 'Trung tâm ABC',
+                persona: 'P2_CENTER_OWNER',
+                referralSource: null,
+                status: pendingState,
+                createdAt: '2026-05-07T10:00:00Z',
+                approvedAt: pendingState === 'APPROVED' ? '2026-05-07T10:30:00Z' : null,
+                rejectedAt: null,
+                rejectionReason: null,
               },
             ],
+            page: 0,
+            size: 50,
             totalElements: 1,
             totalPages: 1,
           }),
@@ -41,13 +58,14 @@ test.describe('Beta Funnel — Admin approve', () => {
       }
     });
 
-    // Mock approve endpoint — return claim code
+    // Mock approve endpoint — flip state so subsequent list refresh shows APPROVED
     await page.route('**/api/v1/admin/beta-requests/*/approve', (route) => {
+      pendingState = 'APPROVED';
       route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          id: 'req-test-001',
+          id: 1,
           status: 'APPROVED',
           claimCode: 'CLAIM-TEST-XYZ-12345',
           approvedAt: new Date().toISOString(),
@@ -59,31 +77,24 @@ test.describe('Beta Funnel — Admin approve', () => {
   test('admin sees pending request và approve thành công', async ({ page }) => {
     await page.goto('/admin/beta-requests');
 
-    // Page heading visible
+    // Page heading "Yêu cầu Beta"
     await expect(
-      page.getByRole('heading').filter({ hasText: /(beta|request)/i }).first(),
+      page.getByRole('heading', { name: /yêu cầu beta/i }).first(),
     ).toBeVisible({ timeout: 10000 });
 
-    // Pending request row visible
+    // Pending request row visible (orgName cell)
     await expect(page.getByText('Trung tâm ABC').first()).toBeVisible({
       timeout: 10000,
     });
 
-    // Approve button — auto-confirm window.confirm/prompt if any
-    page.on('dialog', (dialog) => {
-      void dialog.accept('Approved by E2E test');
-    });
+    // Click "Duyệt" (approve) button — only visible when status PENDING
+    await page.getByRole('button', { name: 'Duyệt' }).first().click();
 
-    const approveBtn = page
-      .getByRole('button', { name: /(approve|duyệt|chấp thuận)/i })
-      .first();
-    await approveBtn.click();
-
-    // Verify success — claim code visible OR success toast
+    // After approve, fetchData() refreshes list → row's action cell renders
+    // STATUS_LABEL[APPROVED] = "Đã duyệt". Scope to table tbody to avoid the
+    // status-filter <option> in dropdown (text matches but element is hidden).
     await expect(
-      page
-        .getByText(/(approved|đã duyệt|thành công|claim code|CLAIM-)/i)
-        .first(),
+      page.getByTestId('beta-requests-table').locator('tbody').getByText(/đã duyệt/i),
     ).toBeVisible({ timeout: 10000 });
   });
 });

@@ -12,8 +12,9 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Beta Funnel — Request flow', () => {
   test.beforeEach(async ({ page }) => {
-    // Mock the POST endpoint so test does not depend on backend availability
-    await page.route('**/api/v1/beta-access/request', (route) => {
+    // Mock the POST endpoint so test does not depend on backend availability.
+    // Endpoint: POST /api/v1/auth/request-beta-access (per src/lib/api/endpoints.ts)
+    await page.route('**/api/v1/auth/request-beta-access', (route) => {
       route.fulfill({
         status: 201,
         contentType: 'application/json',
@@ -29,59 +30,34 @@ test.describe('Beta Funnel — Request flow', () => {
   test('visitor có thể submit request beta access form', async ({ page }) => {
     await page.goto('/request-beta-access');
 
-    // Form heading visible
+    // Form heading visible (h1 "Đăng ký dùng thử Beta")
     const heading = page.getByRole('heading', { level: 1 });
     await expect(heading).toBeVisible({ timeout: 10000 });
 
-    // Fill required fields — try common selectors; fallback to label
-    const orgInput = page
-      .getByLabel(/(tổ chức|trung tâm|tên trường|organization)/i)
-      .or(page.locator('input[name="organizationName"]'))
-      .first();
-    const emailInput = page
-      .getByLabel(/email/i)
-      .or(page.locator('input[type="email"]'))
-      .first();
+    // Fill required fields per BetaRequestForm component
+    await page.getByLabel('Email').fill('owner@test-center.vn');
+    await page.getByLabel('Họ và tên').fill('Nguyễn Test');
+    await page.getByLabel('Tên tổ chức / trung tâm').fill('Trung tâm Anh ngữ Test');
 
-    if (await orgInput.isVisible().catch(() => false)) {
-      await orgInput.fill('Trung tâm Anh ngữ Test');
-    }
-    if (await emailInput.isVisible().catch(() => false)) {
-      await emailInput.fill('owner@test-center.vn');
-    }
-
-    // Consent checkbox (PDPL benchmark)
-    const consent = page
-      .getByRole('checkbox')
-      .or(page.locator('input[type="checkbox"]'))
-      .first();
-    if (await consent.isVisible().catch(() => false)) {
-      await consent.check();
-    }
+    // PDPL consent checkbox required to enable submit (Wave 35 GAP-385)
+    await page.getByTestId('beta-consent-checkbox').check();
 
     // Submit
-    const submit = page
-      .getByRole('button', { name: /(gửi|submit|đăng ký|request)/i })
-      .first();
-    await submit.click();
+    await page.getByTestId('beta-submit').click();
 
-    // Verify success indicator: either redirect to confirmation OR success message
+    // Verify success: form replaced by role="status" with heading "Đã nhận yêu cầu beta"
     await expect(
-      page.getByText(/(thành công|đã gửi|submitted|received|cảm ơn|thank)/i).first(),
+      page.getByText(/(đã nhận|thành công|submitted|received)/i).first(),
     ).toBeVisible({ timeout: 10000 });
   });
 
   test('form rejects empty submission', async ({ page }) => {
     await page.goto('/request-beta-access');
 
-    const submit = page
-      .getByRole('button', { name: /(gửi|submit|đăng ký|request)/i })
-      .first();
-
-    // Click submit without filling — HTML5 validation OR custom error must surface
-    await submit.click();
-
-    // Stay on same page (URL unchanged) is acceptable signal of validation block
+    // Submit button must be disabled until PDPL consent checked (Wave 35 GAP-385).
+    // Disabled state IS the rejection of empty submission.
+    const submit = page.getByTestId('beta-submit');
+    await expect(submit).toBeDisabled();
     await expect(page).toHaveURL(/request-beta-access/, { timeout: 5000 });
   });
 });
