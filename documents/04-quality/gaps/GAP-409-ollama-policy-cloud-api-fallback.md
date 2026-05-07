@@ -1,6 +1,6 @@
 # GAP-409: Ollama Stop Policy + Cloud API Fallback (Dev)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07 (Wave 37 Bucket D PR pending)
 **Priority:** 🟡 P2
 **Domain:** DevOps / AI / Local dev
 **Found:** 2026-05-07 (Wave 37 — Layer 4)
@@ -23,10 +23,14 @@ Ollama 9B model (Gemma 4 / Llama 3.1 8B) tốn 6-12 GB RAM. Khi không test AI B
 
 ## Acceptance Criteria
 
-- [ ] `documents/05-guides/dev/ollama-stop-policy.md` exists
-- [ ] `application-dev.yml` documents `ai.provider` swap
-- [ ] OpenAI dev key cost cap documented ($5/mo)
-- [ ] Optional: idle-30min auto-stop script
+- [x] `documents/05-guides/dev/ollama-stop-policy.md` shipped — bối cảnh + when-to-run matrix + manual start/stop + cloud fallback config + $5/mo cap + auto-stop placeholder + trade-off
+- [x] Cloud fallback documented — `AI_PROVIDER=openai|anthropic` env var swap path (Strategy via `AIClient`); reference `application-dev.yml`
+- [x] OpenAI dev key cost cap $5/mo documented + Anthropic $5 monthly credit fallback
+- [x] Auto-stop idle-30min — placeholder bash script in doc (manual stop là Phase 1 standard, auto-stop opt-in)
+
+## Log
+
+- **2026-05-07 (Wave 37 Bucket D):** Shipped. Cross-link với Bucket E ADR-026 (Ollama defer Phase 2) — Phase 1 default = cloud, Ollama opt-in qua `--profile branding-only` (GAP-407). Auto-stop script là placeholder; full implementation tùy nhu cầu.
 
 ## Related
 
