@@ -24,7 +24,37 @@
 
 **Recommended next pick (priority order per `feedback_release_1_first_session_priority.md`):**
 
-0. **Wave 36 SHIPPED 2026-05-07** — 5 P1 clusters DONE + audit re-run validated Phase 1 BETA Quality trigger gate. PRs A→B→C→D→E sequential merged: #933 Bucket A (GAP-388 security cluster + GAP-387 honeypot dead-wire absorbed via @ExceptionHandler controller-scoped wire-up + 6-digit claim code 2FA + V33 + Caffeine rate-limit), #930 Bucket B (GAP-390 API polish — tenantId via MDC + 4 SSE event assertions + UUID examples), #929 Bucket C (GAP-389 ops — scripts/backup-production.sh NEW + smoke-test extend + 7 BR-LIFE/QUALITY 5-attribute compliance blocks), #932 Bucket D (GAP-393 perf — Caffeine quota cache + SSE backpressure cap + idempotency cache; coordinator rebase conflict resolved on `DeployStreamControllerTest.java` additive merge B+D), #931 Bucket E (GAP-391 UI — RegenerateCounter quota refresh regression test + i18n-strategy.md NEW). 6 GAPs flipped DONE per `gap-done-discipline.md` §2. **Audit aggregate post-Wave-35 (re-run 7 specialists):** Quality 80/100 B (+7) ✅ Phase 1 trigger gate, Security 84/100 B (+12), Performance 71/100 C (+13), Business Logic 82/100 B− (+4), API Contract 71/100 C (-1 inventory), Ops Readiness 53/100 F (+3), UI 99/128 A+ (+2). 1 NEW P0 (GAP-387 honeypot dead-wire) bundled into Bucket A. 72nd consecutive 0-clarif streak. ~90min wall-clock.
+⭐ **0. Operational session 2026-05-07 (evening — WSL kite-dev migration)** — User chuyển dev env sang WSL distro `kite-dev` để có 28GB RAM cap; environment validated end-to-end. **4 PRs shipped:**
+- **#958** `rule(agent-action-bias) v1.0.0` — new MANDATORY rule: agent does work itself, prefer command over UI. Triggered by Docker Desktop WSL Integration UI-loop incident in same session. Memory `feedback_agent_action_bias.md` paired auto-load.
+- **#917** `gap(394) Phase 1 BETA account-prep checklist` — filed via merge-conflict-resolved rebase (was stale from morning).
+- **#959** `gaps(421/422)` — filed + fixed same PR per `agent-action-bias.md`: GAP-421 `down.sh --profile` flag (symmetric với up.sh) + GAP-422 94 `.sh`/`.py` exec-bit restoration on main (mode 100644→100755). Both 🟢 DONE.
+- **#960** `chore(pnpm)` — approve build scripts (msw + sharp + unrs-resolver) + generate `mockServiceWorker.js` cho cả 2 FE.
+
+**Environment validated:**
+- Docker Desktop WSL Integration: enabled qua `settings-store.json` + jq + taskkill.exe + cmd.exe restart (commit-path, không UI walkthrough)
+- Stack `infra-only` profile up time: ~17s healthy (postgres 5433 · redis 6380 · rabbitmq 15673 · minio 9100/9191 · mailhog 8025) · stack RAM 335MB / 27GB host
+- pnpm workspace install: 787 packages (4.3s); 3 build scripts approved + ran successfully
+- MSW worker generated cho cả 2 FE (md5 ba3d7ace... identical, 9120 bytes); convention-committed
+- GitHub MCP: ✓ Connected (re-added qua `claude mcp add github`)
+
+**🚨 NEXT — 3-stream parallel strategy (recommended for new session):**
+
+| Stream | Owner | Time | Status |
+|---|---|---|---|
+| **A** User-action prereqs (signup AWS/domain/CF/SES/Instatus) | User | 1-2 ngày real-world | Ready to start NOW with existing `release-1-deploy-runbook.md` Phase 1 §1.1-1.5 — đã có high-level checklist 5 phần; chi tiết 1.3-1.5 đã có runbook (Wave 38) |
+| **B** Wave 39 (4 buckets dev-stack/E2E fix) | Background agents (parallel via wave-pack) | ~45-60 min wall-clock | Buckets: GAP-419 P0 gateway + GAP-418 P1 KH Dockerfile + GAP-420 P1 KC selectors + GAP-417 P2 setup.sh JWT_SECRET (đã giảm 6→4 do GAP-421/422 fix Wave-39-eve) |
+| **C** GAP-394 4 detailed runbooks (AWS walkthrough · domain registrar VN comparison · password manager policy · superadmin first-login) | Foreground agent (sequential docs work) | ~3-6h | Bổ sung detail cho Phase 1 §1.1+1.2 + 2 phần mới chưa có (password manager + superadmin) |
+
+**A có thể start ngay** với `release-1-deploy-runbook.md` Phase 1 — không phải đợi C ship. C sẽ giúp user khi gặp KYC pitfalls + cần password manager structure + Phase 7 superadmin onboarding.
+
+**Recommended new session flow:**
+1. `/start-session` → đọc summary này
+2. Confirm A status với user (đã signup AWS chưa? domain registered?)
+3. Spawn Wave 39 background (4 parallel agents per `agent-background-spawn-default.md`)
+4. Foreground viết GAP-394 4 runbook docs sequential trong khi B chạy
+5. Closure: merge B PRs (each independent) + ship C as single PR
+
+0a. **Wave 36 SHIPPED 2026-05-07** — 5 P1 clusters DONE + audit re-run validated Phase 1 BETA Quality trigger gate. PRs A→B→C→D→E sequential merged: #933 Bucket A (GAP-388 security cluster + GAP-387 honeypot dead-wire absorbed via @ExceptionHandler controller-scoped wire-up + 6-digit claim code 2FA + V33 + Caffeine rate-limit), #930 Bucket B (GAP-390 API polish — tenantId via MDC + 4 SSE event assertions + UUID examples), #929 Bucket C (GAP-389 ops — scripts/backup-production.sh NEW + smoke-test extend + 7 BR-LIFE/QUALITY 5-attribute compliance blocks), #932 Bucket D (GAP-393 perf — Caffeine quota cache + SSE backpressure cap + idempotency cache; coordinator rebase conflict resolved on `DeployStreamControllerTest.java` additive merge B+D), #931 Bucket E (GAP-391 UI — RegenerateCounter quota refresh regression test + i18n-strategy.md NEW). 6 GAPs flipped DONE per `gap-done-discipline.md` §2. **Audit aggregate post-Wave-35 (re-run 7 specialists):** Quality 80/100 B (+7) ✅ Phase 1 trigger gate, Security 84/100 B (+12), Performance 71/100 C (+13), Business Logic 82/100 B− (+4), API Contract 71/100 C (-1 inventory), Ops Readiness 53/100 F (+3), UI 99/128 A+ (+2). 1 NEW P0 (GAP-387 honeypot dead-wire) bundled into Bucket A. 72nd consecutive 0-clarif streak. ~90min wall-clock.
 
 1. **Wave 35 SHIPPED 2026-05-07** — 5 P0 BLOCKERS Phase 1 launch DONE: GAP-384 admin auth (#922) + GAP-385 PDPL consent (#921) + GAP-386 quality threshold (#919) + GAP-387 beta metrics (#920) + GAP-392 N+1 + V31 indexes (#918). Bucket 0 Foundation #916 cross-layer api-contract per `contract-first-for-cross-layer.md` v1.0.0. Side PRs same session: **#923 refactor Oracle→AWS Singapore Free Tier** (ADR-025 ACCEPTED — Phase 1 BETA cloud platform locked AWS) + **#924 CI path-filter fix** (kitehub-ci.yml scoped to backend modules, no longer fires on docs/FE PRs). 71st consecutive 0-clarif streak. ~95min wall-clock. **Audit re-run pending** per Wave 35 plan §7 closure protocol — verify Quality ≥80, Security ≥80, Phase 1 trigger gate progression.
 
@@ -36,7 +66,7 @@
 
 4a. **🟡 Operational session 2026-05-07 (post-Wave-38)** — 6 PRs shipped after Wave 38 closure (#947 runbook DRAFT, #949 Phase 0 plan refresh, #950 KH beta-funnel E2E specs reconciled 5/5 pass, #951 dev-stack admin S3+RabbitMQ config fixes, #952 follow-up gaps GAP-417/418/419 filed, #953 KC E2E login helper VN heading + GAP-420 filed). Validated mocked E2E both frontends; surfaced 4 dev-stack gaps cold-setup blockers. **Phase 4.5 staging E2E gate scope confirmed:** KH `beta-funnel/` 5/5 ✅ + KC `critical-journeys/` 4/8 sample (post-helper-fix) → 13 selector failures pending GAP-420. Total gate target post-fix-cluster = 22/22.
 
-4b. **🚨 RECOMMENDED Wave 39 candidate cluster** (6 disjoint dev-stack/E2E gaps — 4 from 2026-05-07 morning + 2 added evening WSL kite-dev validation): **Bucket A GAP-419 P0 BLOCKING** (gateway 3-KeyResolver disambiguation — add `@Primary`; ~10 min) · **Bucket B GAP-418 P1** (kitehub-frontend Dockerfile context align repo-root; ~15 min) · **Bucket C GAP-420 P1** (KC critical-journeys 13 selector fixes — wave-pack 3 sub-buckets dashboard/class/course; ~30-45 min) · **Bucket D GAP-422 P1** (94 *.sh/*.py exec-bit restoration on main — `chmod +x` + commit; affects fresh-clone workflow + WSL migrations; ~5 min) · **Bucket E GAP-417 P2** (setup.sh JWT_SECRET unquoted; ~5 min) · **Bucket F GAP-421 P2** (kitehub/scripts/down.sh missing `--profile` flag — symmetric to up.sh; ~10 min). All independent. Estimated wave-pack ~45-60 min wall-clock parallel. Closes dev-stack readiness for native local validation BEFORE staging deploy.
+4b. **🚨 RECOMMENDED Wave 39 candidate cluster** (4 disjoint dev-stack/E2E gaps — GAP-421/422 đã DONE Wave-39-eve session #959): **Bucket A GAP-419 P0 BLOCKING** (gateway 3-KeyResolver disambiguation — add `@Primary`; ~10 min) · **Bucket B GAP-418 P1** (kitehub-frontend Dockerfile context align repo-root; ~15 min) · **Bucket C GAP-420 P1** (KC critical-journeys 13 selector fixes — wave-pack 3 sub-buckets dashboard/class/course; ~30-45 min) · **Bucket D GAP-417 P2** (setup.sh JWT_SECRET unquoted; ~5 min). All independent. Estimated wave-pack ~45-60 min wall-clock parallel. Closes dev-stack readiness for native local validation BEFORE staging deploy. **Eligibility ✅** per `wave-pack-planner` (≥3 disjoint).
 
 5. **GAP-272o** P1 — wizard orchestrator wires `useDeployStream` + `useRegenerateQuota` vào DeployingStep + RegenerateCounter. Filed Wave 34 closure 2026-05-07. (Parallel-track: agent có thể pick up trong khi user chạy Phase 1.)
 4. ~~**Wave 34**~~ — ✅ **SHIPPED 2026-05-07** (5 buckets, PRs #905/#906/#907/#908/#910). 8 sub-letters: 5 DONE + 3 PARTIAL. 2 new follow-ups (GAP-272n shape, GAP-272o wiring). First contract-first wave validation per rule §7.2 — predicted ≤2 sub-gap follow-ups vs Wave 32 v1's 8; actual = 2. ✅ Rule effective.
