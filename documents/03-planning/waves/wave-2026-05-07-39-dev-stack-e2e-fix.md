@@ -1,6 +1,6 @@
 ---
 title: Wave 39 — Dev-stack readiness + KC critical-journeys E2E reconciliation
-status: draft
+status: complete
 created: 2026-05-07
 updated: 2026-05-07
 waves: [39]
@@ -171,3 +171,4 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ## 8. Log
 
 - **2026-05-07** (draft): Plan created. State-check found GAP-417 already DONE (drop from candidate buckets); GAP-418/419 PARTIAL with fixes landed Wave-39-eve, just need real-stack boot verification to flip DONE; GAP-420 OPEN remains the only fresh-work cluster (3 sub-buckets per gap §"Proposed Fix"). Reorganized §4b roadmap "4 buckets" into actually-disjoint 4 buckets: 3× GAP-420 sub-buckets + 1× combined GAP-418/419 verify. Cross-layer = NO; Bucket 0 Foundation skipped per `contract-first-for-cross-layer.md`. AUDIT_DEFER_DOMAIN_MILESTONE applies (release-deploy-artifacts cluster).
+- **2026-05-07** (complete): Wave 39 SHIPPED. 5 PRs merged (#963 plan, #964 D dev-stack verify, #965 C course-to-class-flow, #966 Stream C 6 docs, #967 A dashboard-nav, #968 B class-lifecycle). 4/4 buckets DONE: GAP-417 ✅ (already DONE Wave-39-eve), GAP-418 ✅, GAP-419 ✅, GAP-420 ✅ (17/17 tests pass A 8/8 + B 6/6 + C 3/3). Stream C 6 docs: 4 GAP-394 account-prep runbooks + GAP-423 SES VN overlay 15.72% density + GAP-424 Statuspage VN overlay 30.02% density. 1 rebase conflict resolved (api-mocks.ts Bucket C → take HEAD superset from Bucket B). 1 follow-up gap filed: GAP-425 (cold rebuild BE images stale — surfaced from "visual lần 1" cold-rebuild test, P2). 75th consecutive 0-clarification streak (4 buckets + Stream C foreground). Wall-clock ~1h plan-to-merge for Stream B + ~45min foreground Stream C in parallel. Audit deferral: AUDIT_DEFER_DOMAIN_MILESTONE: release-deploy-artifacts cluster (per `post-wave-audit-mandate.md` §2.4 — milestone = Phase 1 BETA launch wave).
