@@ -1,10 +1,10 @@
 ---
 title: Wave 41 — Fix-cluster post Wave 40 audit milestone
-status: draft
+status: complete
 created: 2026-05-08
 updated: 2026-05-08
 waves: [41]
-gaps: [GAP-272o, GAP-430, GAP-431, GAP-432, GAP-433, GAP-117, GAP-115, GAP-135, GAP-204]
+gaps: [GAP-272o, GAP-430, GAP-431, GAP-432, GAP-433, GAP-115, GAP-135]
 audit_cluster: release-deploy-artifacts
 ---
 
@@ -149,3 +149,4 @@ Tối ưu: nếu 6 ngăn cùng đợt 1: longest path C 3h → tổng ~3.5h. Opt
 ## 9. Log
 
 - **2026-05-08** (draft): Plan tạo từ Wave 40 audit findings handoff. 6 ngăn parallel + G optional. Cổng Phase 1 BETA Quality + Security đã PASS Wave 40 (86 + 87) — Wave 41 đóng các P0/P1 còn lại để clean handoff sang Phase 7 deploy. GAP-117 restore drill tách Wave 42 (cần staging up). Pen-test light A6 defer Wave 42 live-staging. Stake tier MEDIUM — không block hard nếu 1-2 ngăn slip.
+- **2026-05-08** (complete): SHIPPED — 6 ngăn A-F merged sequential A→B→D→E→F→C. Wall-clock thực tế ~15min (vs 3.5h estimate — agents Sonnet/Opus rất nhanh trên scope đã tinh chỉnh). PR list: A #983 (GAP-430 PARTIAL, promtool test → GAP-435), B #981 (GAP-431 PARTIAL, helm cluster self-test → follow-up), C #985 (GAP-432 PARTIAL, ⚠️ breaking API Page envelope cho `/api/platform/instances` + `/api/platform/payments`, JMH benchmark deferred), D #986 (GAP-272o **DONE** 6/6 AC, SSE E2E EventSource polyfill → follow-up), E #982 (GAP-433 PARTIAL Phase 1 — 42/52 files thực tế vs 21 estimate, broader scope, Phase 2 → GAP-156), F #984 (GAP-115/135 PARTIAL Phase 1, Loki backend → GAP-434). G optional (GAP-204 npm CVE) defer Wave 42. Worktree contamination recurrence ở 4/6 agents (A/C/E/F) — pattern lặp lại của `feedback_worktree_absolute_path_contamination.md` cần meta-review. Cleanup script ran clean. AUDIT_DEFER per `post-wave-audit-mandate.md` §2.4 — domain-milestone trailer applied per bucket; release-deploy-artifacts cluster milestone vẫn là Phase 1 BETA launch wave.
