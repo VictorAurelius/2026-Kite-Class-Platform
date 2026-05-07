@@ -123,8 +123,9 @@ Out-of-cadence reviews triggered by: production incident referencing a decision,
 | [022](ADR-022-alertmanager-secret-strategy.md) | Alertmanager Secret Strategy — External Secrets Operator + AWS Secrets Manager | ACCEPTED | 2026-04-28 |
 | [023](ADR-023-gateway-key-resolver-strategy.md) | Gateway Rate-Limit Key Resolver Strategy — IP / Tenant / API Key | ACCEPTED | 2026-04-28 |
 | [024](ADR-024-shared-ui-lib-strategy.md) | Shared UI Library Strategy — pnpm Workspace Package (`@kite/shared-ui`) | ACCEPTED | 2026-04-30 |
+| [025](ADR-025-aws-only-deploy-phase-1-free-tier.md) | AWS-only Deploy for Phase 1 BETA (Free Tier, Singapore region) — supersede Oracle Cloud primary | ACCEPTED | 2026-05-07 |
 
-Next free ID: **ADR-025**.
+Next free ID: **ADR-026**.
 
 ---
 
