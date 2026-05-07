@@ -17,6 +17,27 @@ phase: 2.4
 
 ---
 
+## Helper script (recommended fast path)
+
+`scripts/populate-secrets.sh` automates the 7-secret populate flow below: 4 random-generated, 2 user-prompted (OpenAI + Anthropic, hidden via `read -r -s`), 1 fixed (`kitehub-prod`). Idempotent — safe to re-run. Never echoes secret values.
+
+```bash
+# 1. Preview without touching AWS
+bash scripts/populate-secrets.sh --dry-run
+
+# 2. Populate non-interactively (random + fixed secrets only)
+bash scripts/populate-secrets.sh --yes
+
+# 3. Full interactive run (per-secret confirm + prompts for OpenAI/Anthropic keys)
+bash scripts/populate-secrets.sh
+```
+
+**Important — Tier 3 mutation, human-only:** the script issues `aws secretsmanager create-secret` + `put-secret-value` (Tier 3 per [`agent-aws-access.md`](../../../.claude/rules/agent-aws-access.md) §4.1). **Agents must NOT invoke this script** — execute as a human operator. Pre-flight verifies AWS account `906286017800` and region `ap-southeast-1` before any mutation.
+
+For the 5 non-overlapping secrets the runbook below also covers (Resend / RabbitMQ / SES SMTP / Cloudflare / `kite/prod/ses-smtp-credentials` deprecation), follow the manual steps below — those values come from external dashboards or have pivoted scope per Stream A.
+
+---
+
 ## What Phase 2.3 created
 
 Per `infrastructure/terraform-aws/secrets.tf`, Phase 2.3 apply tạo:
@@ -203,15 +224,11 @@ EC2 user-data scripts (Phase 3 image deploy) sẽ:
 
 ---
 
-## Helper script
+## Helper script (shipped — see top of doc)
 
-`scripts/populate-secrets.sh` (companion file, optional):
-- Prompts user for each placeholder value
-- Validates format (e.g., OpenAI keys start `sk-`)
-- Posts to AWS Secrets Manager
-- Outputs verification report
+`scripts/populate-secrets.sh` is the canonical fast-path automation for the 7 ASCII secrets created by Phase 2.3 (`kite/prod/db/password`, `kite/prod/jwt/secret`, `kite/prod/encryption/master-key`, `kite/prod/internal-api/secret`, `kite/prod/openai/api-key`, `kite/prod/anthropic/api-key`, `kite/prod/ses/configuration-set`). See "Helper script (recommended fast path)" section near the top of this doc.
 
-→ TODO: ship script in follow-up PR khi user xong manual populate Phase 1.
+The runbook procedure above remains the source of truth for the 5 secrets the script does not cover (Resend pivot, RabbitMQ JSON creds, SES SMTP deprecation, Cloudflare deferral) — those require manual flow because values originate outside this repo or pivoted scope.
 
 ---
 
