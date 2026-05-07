@@ -2,8 +2,8 @@
 
 **Priority:** 🟠 MANDATORY — bounds blast radius for agent AWS interactions
 **Version:** 1.0.0
-**Created:** 2026-05-08
-**Last-Reviewed:** 2026-05-08
+**Created:** 2026-05-07
+**Last-Reviewed:** 2026-05-07
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (allowlist + log requirement + self-test) per §6.5; new constraint, no constraint loosening; paired same-PR with first audit artifact `documents/04-quality/audits/aws-verification/2026-05-08-phase-2-3-post-apply.md`)
 **Applies to:** Every Claude session that issues `aws` CLI commands, `curl` against AWS-hosted endpoints, or terraform actions affecting AWS account 906286017800. Scope includes Bash tool invocations + sub-agents.
 
