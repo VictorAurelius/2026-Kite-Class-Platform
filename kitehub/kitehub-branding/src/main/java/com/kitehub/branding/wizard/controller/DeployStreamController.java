@@ -6,7 +6,6 @@ import com.kitehub.branding.repository.BrandingJobRepository;
 import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -46,7 +45,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/branding/jobs")
-@RequiredArgsConstructor
 @Tag(name = "AI Branding Wizard SSE", description = "Live deploy progress stream")
 @Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
         extraTags = {"slo", "tier-c", "controller", "branding-deploy-stream"})
@@ -54,10 +52,31 @@ public class DeployStreamController {
 
     private static final long SSE_TIMEOUT_MS = 10 * 60 * 1000L; // 10 min
 
-    /** All active emitters per jobId — multiple subscribers per job allowed. */
+    /**
+     * Wave 36 GAP-393-B — backpressure cap on concurrent subscribers per job.
+     * Defends against a single misbehaving client opening unbounded streams.
+     * Configurable via {@code kitehub.branding.deploy-stream.max-emitters-per-job}.
+     */
+    private final int maxEmittersPerJob;
+
+    /** All active emitters per jobId — multiple subscribers per job allowed up to {@link #maxEmittersPerJob}. */
     private final Map<UUID, List<EmitterEntry>> emitters = new ConcurrentHashMap<>();
 
     private final BrandingJobRepository brandingJobRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public DeployStreamController(
+            BrandingJobRepository brandingJobRepository,
+            @org.springframework.beans.factory.annotation.Value(
+                    "${kitehub.branding.deploy-stream.max-emitters-per-job:20}") int maxEmittersPerJob) {
+        this.brandingJobRepository = brandingJobRepository;
+        this.maxEmittersPerJob = maxEmittersPerJob;
+    }
+
+    /** Test seam — preserve no-arg-equivalent constructor for unit tests. */
+    public DeployStreamController(BrandingJobRepository brandingJobRepository) {
+        this(brandingJobRepository, 20);
+    }
 
     @GetMapping(value = "/{jobId}/deploy-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter stream(
@@ -84,7 +103,25 @@ public class DeployStreamController {
 
         BrandingJob job = jobOpt.get();
         EmitterEntry entry = new EmitterEntry(emitter, job.getStatus());
-        emitters.computeIfAbsent(jobId, k -> new CopyOnWriteArrayList<>()).add(entry);
+        List<EmitterEntry> bucket = emitters.computeIfAbsent(jobId, k -> new CopyOnWriteArrayList<>());
+
+        // Wave 36 GAP-393-B — backpressure cap. Reject when over per-job limit.
+        if (bucket.size() >= maxEmittersPerJob) {
+            log.warn("SSE backpressure: job={} already has {} emitters (max={}), rejecting subscriber",
+                    jobId, bucket.size(), maxEmittersPerJob);
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("error")
+                        .data(Map.of("errorCode", "TOO_MANY_SUBSCRIBERS",
+                                "message", "subscriber cap reached for this job",
+                                "retryable", true)));
+                emitter.complete();
+            } catch (IOException ex) {
+                safeComplete(emitter, ex);
+            }
+            return emitter;
+        }
+        bucket.add(entry);
 
         emitter.onCompletion(() -> removeEmitter(jobId, entry));
         emitter.onTimeout(() -> removeEmitter(jobId, entry));
@@ -144,9 +181,17 @@ public class DeployStreamController {
                     if (job.getStatus() == JobStatus.COMPLETED || job.getStatus() == JobStatus.FAILED) {
                         emitTerminal(e.emitter, job);
                         e.emitter.complete();
+                        removeEmitter(jobId, e);
                     }
-                } catch (IOException ex) {
-                    e.emitter.completeWithError(ex);
+                } catch (IOException | IllegalStateException ex) {
+                    // Wave 36 GAP-393-B — backpressure: client gone, send buffer full,
+                    // or emitter already completed. Previously called completeWithError
+                    // but left entry in registry, causing dead emitters to pile up +
+                    // every poller cycle to keep tripping the same exception.
+                    log.warn("SSE poller send-failure for job={}, removing emitter: {}",
+                            jobId, ex.getMessage());
+                    safeComplete(e.emitter, ex);
+                    removeEmitter(jobId, e);
                 }
             }
         }
@@ -156,14 +201,28 @@ public class DeployStreamController {
     @Scheduled(fixedDelayString = "${kitehub.branding.deploy-stream.heartbeat-ms:30000}")
     public void heartbeat() {
         if (emitters.isEmpty()) return;
-        for (List<EmitterEntry> list : emitters.values()) {
-            for (EmitterEntry e : list) {
+        for (Map.Entry<UUID, List<EmitterEntry>> entry : emitters.entrySet()) {
+            UUID jobId = entry.getKey();
+            for (EmitterEntry e : entry.getValue()) {
                 try {
                     e.emitter.send(SseEmitter.event().name("heartbeat").data(new HashMap<>()));
-                } catch (IOException ex) {
-                    e.emitter.completeWithError(ex);
+                } catch (IOException | IllegalStateException ex) {
+                    // Wave 36 GAP-393-B — same cleanup pattern as poller.
+                    log.warn("SSE heartbeat send-failure for job={}, removing emitter: {}",
+                            jobId, ex.getMessage());
+                    safeComplete(e.emitter, ex);
+                    removeEmitter(jobId, e);
                 }
             }
+        }
+    }
+
+    /** Wave 36 GAP-393-B — never let completeWithError throw twice. */
+    private static void safeComplete(SseEmitter emitter, Throwable cause) {
+        try {
+            emitter.completeWithError(cause);
+        } catch (Exception ignored) {
+            // Already completed elsewhere — nothing to do.
         }
     }
 

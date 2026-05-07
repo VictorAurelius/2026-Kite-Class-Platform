@@ -24,7 +24,9 @@ class CacheConfigTest {
         assertThat(manager.getCacheNames())
                 .containsExactlyInAnyOrder(
                         CacheConfig.BRANDING_TEMPLATE_CACHE,
-                        CacheConfig.BRANDING_RATE_LIMIT_CACHE);
+                        CacheConfig.BRANDING_RATE_LIMIT_CACHE,
+                        CacheConfig.REGENERATE_QUOTA_CACHE,
+                        CacheConfig.REGENERATE_IDEMPOTENCY_CACHE);
     }
 
     @Test

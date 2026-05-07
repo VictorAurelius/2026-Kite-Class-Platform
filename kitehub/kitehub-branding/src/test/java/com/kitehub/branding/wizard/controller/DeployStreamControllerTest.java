@@ -201,6 +201,52 @@ class DeployStreamControllerTest {
         }
     }
 
+    // -----------------------------------------------------------------------
+    // GAP-393-B (Wave 36 Bucket D): SSE backpressure + cleanup tests
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Wave 36 GAP-393-B — backpressure cap rejects subscriber over per-job limit")
+    void backpressureCap() {
+        UUID jobId = UUID.randomUUID();
+        BrandingJob job = makeJob(jobId, JobStatus.PROCESSING);
+        when(jobRepo.findById(jobId)).thenReturn(Optional.of(job));
+
+        // Construct controller with cap=2 so we can exhaust it deterministically.
+        DeployStreamController capped = new DeployStreamController(jobRepo, 2);
+
+        SseEmitter ok1 = capped.stream(jobId, null, null);
+        SseEmitter ok2 = capped.stream(jobId, null, null);
+        SseEmitter rejected = capped.stream(jobId, null, null);
+
+        assertThat(ok1).isNotNull();
+        assertThat(ok2).isNotNull();
+        assertThat(rejected).isNotNull();
+        // Rejected subscriber must NOT inflate the registry — only the 2 accepted entries remain.
+        assertThat(capped.activeEmitterCount(jobId)).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("Wave 36 GAP-393-B — IOException during heartbeat removes emitter (no leak)")
+    void heartbeatIOExceptionEvictsEmitter() {
+        UUID jobId = UUID.randomUUID();
+        BrandingJob job = makeJob(jobId, JobStatus.PROCESSING);
+        when(jobRepo.findById(jobId)).thenReturn(Optional.of(job));
+
+        // Register a real emitter via the controller, then close its underlying
+        // server so heartbeat send() throws IOException → cleanup path fires.
+        SseEmitter live = controller.stream(jobId, null, null);
+        assertThat(controller.activeEmitterCount(jobId)).isEqualTo(1);
+
+        // Force the emitter into a state where send() will throw on next call.
+        live.complete();
+
+        controller.heartbeat();
+
+        // Bug-fix verification (Wave 36 GAP-393-B): dead emitter must NOT linger.
+        assertThat(controller.activeEmitterCount(jobId)).isZero();
+    }
+
     private BrandingJob makeJob(UUID id, JobStatus status) {
         BrandingJob job = new BrandingJob();
         job.setId(id);

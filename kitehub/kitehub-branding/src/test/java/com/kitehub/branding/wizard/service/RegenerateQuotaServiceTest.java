@@ -21,6 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @DisplayName("RegenerateQuotaService")
@@ -148,6 +151,51 @@ class RegenerateQuotaServiceTest {
         BrandingJob result = service.regenerate(jobId, instanceId, "usr-1", "FREE", "key-1");
 
         assertThat(result).isSameAs(existing);
+    }
+
+    @Test
+    @DisplayName("Wave 36 GAP-393-D — idempotent replay served from local Caffeine cache (1 DB query saved)")
+    void idempotencyCacheServesReplay() {
+        UUID instanceId = UUID.randomUUID();
+        UUID jobId = UUID.randomUUID();
+        BrandingJob job = makeJob(jobId, instanceId, JobStatus.COMPLETED);
+        when(jobRepo.findByIdAndInstanceId(jobId, instanceId)).thenReturn(Optional.of(job));
+        when(usageRepo.findByUserIdAndWindowStart(any(), any())).thenReturn(Optional.empty());
+        when(usageRepo.findByUserIdAndIdempotencyKey(any(), any())).thenReturn(Optional.empty());
+        when(usageRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(jobRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(jobRepo.findById(jobId)).thenReturn(Optional.of(job));
+
+        // First call seeds the local idempotency cache.
+        BrandingJob first = service.regenerate(jobId, instanceId, "usr-1", "PRO", "key-cache");
+        assertThat(first).isNotNull();
+        assertThat(service.idempotencyCacheSize()).isEqualTo(1L);
+
+        // Second call hits the cache → no usageRepo.findByUserIdAndIdempotencyKey
+        // beyond the first (cache short-circuits before the DB lookup).
+        BrandingJob second = service.regenerate(jobId, instanceId, "usr-1", "PRO", "key-cache");
+        assertThat(second).isSameAs(job);
+        // Only the first regenerate call should have queried the idempotency table by key.
+        verify(usageRepo, times(1)).findByUserIdAndIdempotencyKey(any(), any());
+    }
+
+    @Test
+    @DisplayName("Wave 36 GAP-393-D — null idempotencyKey skips cache (no NPE)")
+    void idempotencyCacheSkippedWhenKeyNull() {
+        UUID instanceId = UUID.randomUUID();
+        UUID jobId = UUID.randomUUID();
+        BrandingJob job = makeJob(jobId, instanceId, JobStatus.COMPLETED);
+        when(jobRepo.findByIdAndInstanceId(jobId, instanceId)).thenReturn(Optional.of(job));
+        when(usageRepo.findByUserIdAndWindowStart(any(), any())).thenReturn(Optional.empty());
+        when(usageRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(jobRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        BrandingJob result = service.regenerate(jobId, instanceId, "usr-1", "PRO", null);
+
+        assertThat(result.getStatus()).isEqualTo(JobStatus.PROCESSING);
+        // Cache untouched — null key is the explicit "no idempotency" signal.
+        assertThat(service.idempotencyCacheSize()).isZero();
+        verify(usageRepo, never()).findByUserIdAndIdempotencyKey(any(), any());
     }
 
     private BrandingJob makeJob(UUID id, UUID instanceId, JobStatus status) {

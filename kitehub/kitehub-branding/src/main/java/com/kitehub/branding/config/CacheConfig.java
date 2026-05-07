@@ -39,6 +39,25 @@ public class CacheConfig {
     /** Cache for per-tenant AI rate-limit counters (short TTL, hot path). */
     public static final String BRANDING_RATE_LIMIT_CACHE = "brandingRateLimit";
 
+    /**
+     * Cache for per-user regenerate-quota lookups (Wave 36 GAP-393-A).
+     *
+     * <p>Wizard fetches quota multiple times per session (Step 5 template select +
+     * Step 6 preview). Lookup hits {@code BrandingRegenerateUsageRepository}. With
+     * 5-minute TTL the second + subsequent reads in a wizard session are cache
+     * hits. Eviction on {@code recordUsage} ensures stale-after-consume is not
+     * served.
+     */
+    public static final String REGENERATE_QUOTA_CACHE = "regenerateQuota";
+
+    /**
+     * Cache for idempotency-hash → job lookups (Wave 36 GAP-393-D).
+     *
+     * <p>Saves the 2-query latency on idempotent regenerate replays
+     * (idempotency check + job fetch) within the 10-minute window.
+     */
+    public static final String REGENERATE_IDEMPOTENCY_CACHE = "regenerateIdempotency";
+
     private final long templateTtlSeconds;
     private final long rateLimitTtlSeconds;
 
@@ -55,10 +74,17 @@ public class CacheConfig {
         // would require a dedicated CaffeineCacheManager subclass. For baseline GAP-132 we
         // accept single-TTL configuration — the rate-limit cache evicts naturally sooner
         // because it is touched far more frequently than the template gallery cache.
+        // Wave 36 (GAP-393): regenerate caches added; their effective TTLs are bounded
+        // by max(templateTtlSeconds, rateLimitTtlSeconds) — sufficient for the 5-10min
+        // in-session windows the wizard relies on.
         long maxTtl = Math.max(templateTtlSeconds, rateLimitTtlSeconds);
 
         CaffeineCacheManager manager = new CaffeineCacheManager();
-        manager.setCacheNames(List.of(BRANDING_TEMPLATE_CACHE, BRANDING_RATE_LIMIT_CACHE));
+        manager.setCacheNames(List.of(
+                BRANDING_TEMPLATE_CACHE,
+                BRANDING_RATE_LIMIT_CACHE,
+                REGENERATE_QUOTA_CACHE,
+                REGENERATE_IDEMPOTENCY_CACHE));
         manager.setCaffeine(Caffeine.newBuilder()
                 .expireAfterWrite(maxTtl, TimeUnit.SECONDS)
                 .maximumSize(5_000));
