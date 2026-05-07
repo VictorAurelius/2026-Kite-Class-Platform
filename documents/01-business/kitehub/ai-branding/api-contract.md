@@ -304,6 +304,226 @@ All write endpoints delegate to `InstanceLifecycleService` (BR-LIFE-003); state-
 
 ---
 
+# Wave 34 — AI Branding Wizard endpoints
+
+> **Source-of-truth (when shipped):** Future `BrandingWizardController` + `BrandingJobController` in `kitehub/kitehub-branding/src/main/java/com/kite/hub/branding/controller/`. These endpoints back the FE wizard refactor (Wave 34 Bucket D) and replace inline mocks (`MOCK_TAKEN_SLUGS`, `STUB_JOB_ID`, `TEMPLATE_TO_COLORS`) shipped in Wave 32 v1. Bucket 0 (this PR) ships the contract; Buckets A/B/C implement controllers + DTOs matching the schemas below; Bucket D consumes via MSW handlers (`kitehub-frontend/src/test/msw/handlers/branding.ts`).
+>
+> **Error envelope (project convention):** all error responses follow `{ "error": "<CODE>", "message": "<human-readable>", ...optional context }`. Error codes are SCREAMING_SNAKE_CASE matching the v1 endpoints above (`AI_RATE_LIMIT_EXCEEDED`, `AI_INPUT_TOO_LONG`, etc.).
+
+## GET /api/v1/branding/slug-availability
+**Use case:** Wizard step "choose tenant slug"; replaces Wave 32 v1 inline `MOCK_TAKEN_SLUGS` (sub-GAP-272i)
+**Auth:** Bearer token
+**Request params:** `?slug={slug}` (required; 3–63 chars, lowercase alphanumeric + hyphens, no leading/trailing hyphen)
+**Response 200:**
+```json
+{
+  "available": false,
+  "suggestions": ["abc-school-2", "abc-school-vn", "abc-school-edu"]
+}
+```
+- `available` — `true` nếu slug chưa tồn tại trong `frontend_instances` và pass reserved-words filter
+- `suggestions` — 0..5 alternates khi `available=false`; rỗng `[]` khi `available=true`
+**Errors:**
+- 400: `{ "error": "INVALID_SLUG_FORMAT", "message": "...", "slug": "..." }`
+- 401: unauthenticated
+
+---
+
+## GET /api/v1/branding/regenerate-quota
+**Use case:** Wizard preview screen + dashboard regenerate counter; replaces Wave 32 v1 inline tier-quota logic (sub-GAP-272d)
+**Auth:** Bearer token
+**Headers:** `X-Subscription-Tier: FREE|PRO|PREMIUM|ENTERPRISE` (gateway-injected)
+**Response 200:**
+```json
+{
+  "tier": "PRO",
+  "used": 4,
+  "limit": 10,
+  "resetAt": "2026-05-08T00:00:00Z"
+}
+```
+- `tier` — current subscription tier
+- `used` — số regenerate đã consume trong current window
+- `limit` — tier cap per `ai-branding-guidelines.md` §4.3 (FREE=3, PRO=10, PREMIUM=30, ENTERPRISE=−1 = unlimited)
+- `resetAt` — ISO-8601 UTC khi quota reset (daily window). Khi `limit=-1`, `resetAt` = `null`.
+**Errors:**
+- 401: unauthenticated
+- 403: tier not recognized → fallback to FREE per `AIInputCapService` fail-safe convention
+
+---
+
+## POST /api/v1/branding/jobs/{jobId}/regenerate
+**Use case:** User clicks "Regenerate" sau preview; replaces Wave 32 v1 inline regenerate stub (sub-GAP-272d)
+**Auth:** Bearer token
+**Headers:** `Idempotency-Key: <uuid>` (required — same key returns same job within 10 min window)
+**Request:** empty body
+**Response 200:** Updated `BrandingJob` (xem schema GET `/api/v1/branding/jobs/{jobId}` bên dưới)
+- Server consumes 1 quota (atomic) trước khi enqueue
+- Returns the existing job updated với `status=REGENERATING`, `regenerateCount++`
+**Errors:**
+- 400: `{ "error": "MISSING_IDEMPOTENCY_KEY", "message": "..." }`
+- 401: unauthenticated
+- 403: `{ "error": "AI_REGENERATE_QUOTA_EXCEEDED", "tier": "FREE", "used": 3, "limit": 3, "resetAt": "..." }` — quota cap hit (per `ai-branding-guidelines.md` §4.3)
+- 404: `{ "error": "JOB_NOT_FOUND", "jobId": "..." }`
+- 409: `{ "error": "INVALID_JOB_STATE", "currentStatus": "GENERATING", "message": "regenerate only allowed from DEPLOYED" }` — state-machine reject per BR-LIFE-002
+
+---
+
+## GET /api/v1/branding/jobs/{jobId}/deploy-stream
+**Use case:** Live wizard "deploy" step UI streams progress; replaces Wave 32 v1 inline simulated progress (sub-GAP-272e)
+**Auth:** Bearer token
+**Content-Type:** `text/event-stream` (SSE)
+**Response 200:** SSE stream — events terminated by `\n\n`, heartbeat ~30s.
+
+Event types (line `event: <name>` followed by `data: <json>`):
+
+| Event | Payload | Emitted when |
+|---|---|---|
+| `log` | `{ "ts": "ISO8601", "level": "INFO\|WARN\|ERROR", "message": "..." }` | Each step log line |
+| `progress` | `{ "step": "ANALYZE\|PLAN\|GENERATE\|REVIEW\|DEPLOY", "percent": 0-100 }` | Per-step progress tick |
+| `state-change` | `{ "from": "GENERATING", "to": "DEPLOYED", "ts": "ISO8601" }` | Lifecycle state transition (BR-LIFE-002) |
+| `complete` | `{ "jobId": "...", "finalStatus": "DEPLOYED", "ts": "ISO8601" }` | Stream terminates successfully |
+| `error` | `{ "errorCode": "...", "message": "...", "retryable": true }` | Stream terminates with error |
+| `heartbeat` | `{}` | Every ~30s while idle (proxy keepalive) |
+
+Stream closes after `complete` or `error`. FE reconnect via `Last-Event-ID` header optional (server-side cursor not yet implemented; v1 = full replay on reconnect).
+
+**Errors (initial response):**
+- 401: unauthenticated
+- 404: job not found
+- 409: job already in terminal state (FAILED/DEPLOYED + no active stream) — FE should fetch GET `/api/v1/branding/jobs/{jobId}` instead
+
+---
+
+## GET /api/v1/branding/jobs/{jobId}/quality-score
+**Use case:** Wizard preview screen displays quality breakdown before user approves DEPLOY; replaces Wave 32 v1 inline placeholder (sub-GAP-272c). Tied to `InstanceQualityReviewer.review()` per `ai-branding-guidelines.md` §5.
+**Auth:** Bearer token
+**Response 200:**
+```json
+{
+  "jobId": "job-abc-123",
+  "score": 82,
+  "passed": true,
+  "threshold": 70,
+  "subscores": {
+    "contrast": 90,
+    "brokenLinks": 100,
+    "cssVarsApplied": 85,
+    "visualRegression": 75,
+    "logoPlacement": 80
+  },
+  "issues": [
+    { "severity": "WARN", "check": "visualRegression", "message": "..." }
+  ],
+  "computedAt": "2026-05-07T10:23:00Z"
+}
+```
+- `score` — composite 0–100 (weighted average of subscores)
+- `passed` — `score >= threshold` (default 70 per §5)
+- `subscores` — 5 dimensions per `ai-branding-guidelines.md` §5; each 0–100
+- `issues` — array of severity-tagged findings; empty `[]` khi all subscores ≥ threshold
+**Errors:**
+- 401: unauthenticated
+- 404: job not found
+- 409: `{ "error": "QUALITY_SCORE_NOT_READY", "currentStatus": "GENERATING", "message": "score available only after REVIEW step completes" }`
+
+---
+
+## GET /api/v1/branding/jobs/{jobId}/preview
+**Use case:** iframe-safe HTML preview rendered trong wizard preview step; replaces Wave 32 v1 inline placeholder (sub-GAP-272j)
+**Auth:** Bearer token (passed via `Authorization` header — preview is per-user, not public)
+**Content-Type:** `text/html; charset=utf-8`
+**Response Headers:**
+- `X-Frame-Options: SAMEORIGIN`
+- `Content-Security-Policy: default-src 'self'; img-src 'self' https://cdn.kiteclass.vn data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'self'`
+- `Cache-Control: private, max-age=60`
+**Response 200:** Standalone HTML document — fully rendered with brand colors, logo, sample copy. Safe to embed via `<iframe sandbox="allow-same-origin">`.
+**Errors:**
+- 401: unauthenticated
+- 404: job not found
+- 409: preview not yet available (job still in `INITIALIZING`/`GENERATING` early phase) — body = HTML 503-style placeholder; status 200 maintained for iframe-friendly UX. Distinct from 404.
+
+---
+
+## GET /api/v1/branding/instances/{instanceId}/lifecycle/events
+**Use case:** Admin/Ops debug timeline for instance + dashboard recent-activity feed; replaces Wave 32 v1 inline simulated events (sub-GAP-272l)
+**Auth:** Bearer token (admin scope for cross-tenant; tenant scope for own instance)
+**Request params:** `?since=ISO8601` (optional — default: last 30 days), `?limit=N` (optional, default 50, max 200), `?cursor=<opaque>` (optional pagination)
+**Response 200:**
+```json
+{
+  "instanceId": 12345,
+  "events": [
+    {
+      "id": "evt-2026-0507-001",
+      "ts": "2026-05-07T10:00:00Z",
+      "type": "state-change",
+      "fromState": "INITIALIZING",
+      "toState": "GENERATING",
+      "actor": { "kind": "system", "id": "saga:provisioning" },
+      "metadata": { "brandingVersion": 1 }
+    },
+    {
+      "id": "evt-2026-0507-002",
+      "ts": "2026-05-07T10:05:00Z",
+      "type": "regenerate-requested",
+      "actor": { "kind": "user", "id": "usr-9f2e8d" },
+      "metadata": { "regenerateCount": 2 }
+    }
+  ],
+  "nextCursor": null
+}
+```
+- Events sorted descending by `ts` (newest first)
+- `type` ∈ `state-change | regenerate-requested | quality-score-computed | deploy-completed | failed | manual-override`
+- `actor.kind` ∈ `user | system | admin`
+- `nextCursor` — pass back as `?cursor=` for next page; `null` khi no more events
+**Errors:**
+- 401: unauthenticated
+- 403: tenant scope mismatch
+- 404: instance not found
+
+---
+
+## GET /api/v1/branding/jobs/{jobId}
+**Use case:** FE polls khi không dùng SSE; also returned by POST `/regenerate`. New endpoint Wave 34 — replaces Wave 32 v1 inline `STUB_JOB_ID` patterns and adds `brandColors` field (sub-GAP-272k).
+**Auth:** Bearer token
+**Response 200:** `BrandingJob` schema:
+```json
+{
+  "jobId": "job-abc-123",
+  "instanceId": 12345,
+  "tenantId": "kitehub-tenant-uuid",
+  "status": "DEPLOYED",
+  "regenerateCount": 1,
+  "brandingVersion": 2,
+  "createdAt": "2026-05-07T09:00:00Z",
+  "updatedAt": "2026-05-07T10:05:00Z",
+  "brandColors": {
+    "primary": "#1a73e8",
+    "secondary": "#fbbc04",
+    "accent": "#10B981",
+    "neutral": "#1f2937",
+    "background": "#ffffff",
+    "source": "TEMPLATE"
+  },
+  "templateId": "tpl-edu-modern-001",
+  "audience": "K-12",
+  "tone": "FRIENDLY",
+  "previewUrl": "/api/v1/branding/jobs/job-abc-123/preview"
+}
+```
+- `status` ∈ `INITIALIZING | GENERATING | REVIEWING | DEPLOYED | REGENERATING | FAILED` (per `ai-branding-guidelines.md` §6 lifecycle state machine)
+- **`brandColors`** (NEW Wave 34, sub-GAP-272k):
+  - `primary`, `secondary`, `accent`, `neutral`, `background` — hex strings (`#RRGGBB`); validated via `ThemeColor` value object per `design-patterns.md` §3.2
+  - `source` ∈ `TEMPLATE | AI_ANALYSIS | USER_OVERRIDE` — surfaces which path produced the colors (Resource Classification per `ai-branding-guidelines.md` §1)
+- `previewUrl` — relative path; FE composes full URL với gateway base
+**Errors:**
+- 401: unauthenticated
+- 404: `{ "error": "JOB_NOT_FOUND", "jobId": "..." }`
+
+---
+
 ## Approval endpoints (TBD — UC-AIB-10)
 
 > **Note:** `RebrandApprovalService` exists (Wave 3 Sub-PR 3.5, GAP-070) but REST controller chưa được landed. Khi landed sẽ thêm vào doc:
