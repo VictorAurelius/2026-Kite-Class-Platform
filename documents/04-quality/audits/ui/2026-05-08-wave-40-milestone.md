@@ -18,7 +18,7 @@
 | Total kits audited | 7 active kits |
 | Total screens scored | 125 screens |
 | Screens below 105/128 | 7 screens (see §Findings) |
-| New gaps filed | 2 (GAP-427, GAP-428) |
+| New gaps filed | 2 (GAP-429, GAP-428) |
 | Delta vs previous full-kit | +14.3 pts (+14.6%) |
 
 ---
@@ -54,9 +54,9 @@
 
 **Gap filing per `audit-to-gap-pipeline.md` §3:**
 - All 7 below-105 screens are loading/empty/error states — a pattern (Motion/Interaction + Content/Copy dimensions are systematically weaker in transient states)
-- Filed GAP-427 for the lowest screen (`reports-loading.html` = 100) as representative P1
+- Filed GAP-429 for the lowest screen (`reports-loading.html` = 100) as representative P1
 - Filed GAP-428 for the Prospects persona coverage gap (public marketing pages have no kit)
-- The remaining 5 below-105 screens (102/128 each) are filed under GAP-427's umbrella as sub-items since they share the same root cause (transient-state UX pattern weakness) — P2 priority
+- The remaining 5 below-105 screens (102/128 each) are filed under GAP-429's umbrella as sub-items since they share the same root cause (transient-state UX pattern weakness) — P2 priority
 
 ---
 
@@ -112,7 +112,7 @@ Note: Layer 3+4 partial coverage is pre-existing state tracked in `dossier/16-de
 ## Findings Summary
 
 ### P1 — File Gap
-- **GAP-427** (`kiteclass-teacher/screens/reports-loading.html` = 100/128) — loading skeleton pattern weakness; also covers `kiteclass-teacher/attendance-empty.html`, `reports-empty.html`, `kitehub-pro-v2/branding-hub-loading.html`, `billing-loading.html`, `dashboard-error.html`, `kiteclass-pro-v2/dashboard-error.html` as umbrella
+- **GAP-429** (`kiteclass-teacher/screens/reports-loading.html` = 100/128) — loading skeleton pattern weakness; also covers `kiteclass-teacher/attendance-empty.html`, `reports-empty.html`, `kitehub-pro-v2/branding-hub-loading.html`, `billing-loading.html`, `dashboard-error.html`, `kiteclass-pro-v2/dashboard-error.html` as umbrella
 - **GAP-428** (Prospects persona public pages have no kit — `(public)/pricing/` and `(public)/catalog/`) — coverage gap, not a score issue
 
 ### P3 — Track for next cycle

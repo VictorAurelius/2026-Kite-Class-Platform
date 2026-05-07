@@ -1,4 +1,4 @@
-# GAP-427: Transient-State UX Skeleton Pattern — Loading/Empty/Error States Below 105/128
+# GAP-429: Transient-State UX Skeleton Pattern — Loading/Empty/Error States Below 105/128
 
 **Status:** 🔵 OPEN
 **Priority:** 🟠 P1
