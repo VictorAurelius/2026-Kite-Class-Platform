@@ -66,7 +66,7 @@ resource "aws_security_group" "staging_ec2" {
   count       = var.enable_staging ? 1 : 0
   name_prefix = "${var.project_name}-staging-ec2-"
   vpc_id      = aws_vpc.main.id
-  description = "Staging EC2 ingress — Cloudflare proxy on 80/443; SSM for shell access"
+  description = "Staging EC2 ingress - Cloudflare proxy on 80/443; SSM for shell access"
 
   # Public-but-no-real-data per GAP-380 brainstorm — Cloudflare proxy fronts everything.
   # Real auth + staging banner block accidental access.
@@ -111,7 +111,7 @@ resource "aws_security_group" "staging_rds" {
   count       = var.enable_staging ? 1 : 0
   name_prefix = "${var.project_name}-staging-rds-"
   vpc_id      = aws_vpc.main.id
-  description = "Staging RDS — 5432 from staging EC2 SG only"
+  description = "Staging RDS - 5432 from staging EC2 SG only"
 
   ingress {
     from_port       = 5432

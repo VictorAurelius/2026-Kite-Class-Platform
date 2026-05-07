@@ -80,7 +80,7 @@ resource "aws_security_group" "ec2_app" {
 resource "aws_security_group" "rds" {
   name_prefix = "${var.project_name}-rds-"
   vpc_id      = aws_vpc.main.id
-  description = "RDS PostgreSQL — 5432 from EC2 app SG only"
+  description = "RDS PostgreSQL - 5432 from EC2 app SG only"
 
   ingress {
     from_port       = 5432
