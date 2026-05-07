@@ -24,7 +24,9 @@
 
 **Recommended next pick (priority order per `feedback_release_1_first_session_priority.md`):**
 
-1. **Post-Wave-33 + Wave-34 audit suite** ≤3 ngày deadline (Wave 33 multi-domain BE+FE+Docs hạn 2026-05-10; Wave 34 AI Branding domain hạn 2026-05-10) — API Contract /100 (BetaAccessController 6 + Wave 34 7 wizard endpoints) + UI /128 (3 Beta FE pages + wizard refactor) + Security /100 (V28 + V29 + V30 migrations + Outbox + lifecycle service + AuditLog persistence) + Quality /100 refresh.
+0. **Audit cluster Wave 32+33+34 SHIPPED 2026-05-07** — **7 audits parallel** (UI 97/128 A+, Business Logic 78/100 C+, API Contract 72/100 C, Security 72/100 C+ delta -13, Ops Readiness 50/100 F delta -2, **Performance 58/100 F delta -5**, Quality /100 = 73/100 C delta -5). **10 gaps filed: GAP-384..393 (5 P0 BLOCKING + 5 P1 clusters).** Phase 1 trigger gate Quality ≥80 → 🔴 fails by 7 pts (Quality score sẽ tệ hơn sau khi factor Perf 4/10 thay vì assumed 6/10 → ~71/100). **Mới: GAP-392 P0 N+1 trong `SlugAvailabilityService.findAll()` — production-critical, FE keystroke → full table scan.** Path to ≥80: resolve 5 P0 (~15h) + select P1 hardening (~5h) = ~20h dev across 1-2 wave-packs. **Cross-cutting F2:** 4 Tier 1 personas blocked trên cùng 3 features (GAP-286/287/290) → Wave 18 unlocks 4 personas đồng thời, separate track.
+
+1. **Resolve 5 P0 BLOCKERS (next wave-pack candidate)** — GAP-384 admin auth (1h) + GAP-385 PDPL consent (3h) + GAP-386 quality threshold externalize (2h) + GAP-387 beta metric counters (3h) + **GAP-392 N+1 slug findAll() (2h)**. 5 disjoint scope → wave-pack candidate (parallel agents). ETA ~15h dev + audit re-run.
 2. **GAP-272o** P1 — wizard orchestrator wires `useDeployStream` + `useRegenerateQuota` vào DeployingStep + RegenerateCounter (UX-visible: deploy progress + quota counter currently static). Filed Wave 34 closure 2026-05-07.
 3. **Phase 1 BETA P1 cluster** — GAP-371 CDN Cloudflare + GAP-373 status page + GAP-374 tag-CI automation + GAP-380 staging environment. Prepare wave-pack candidate.
 4. ~~**Wave 34**~~ — ✅ **SHIPPED 2026-05-07** (5 buckets, PRs #905/#906/#907/#908/#910). 8 sub-letters: 5 DONE + 3 PARTIAL. 2 new follow-ups (GAP-272n shape, GAP-272o wiring). First contract-first wave validation per rule §7.2 — predicted ≤2 sub-gap follow-ups vs Wave 32 v1's 8; actual = 2. ✅ Rule effective.
@@ -65,10 +67,10 @@
 **Phase 1 BETA launch trigger gate** (per `release-1-plan-2026.md` §11.1):
 - ✅ 12/12 G* shipped (Wave 27-29)
 - 🟡 3 of 7 Track 2 kit ports shipped (Waves 30-31, ai-branding wizard Wave 32+34); ~4 kits remaining (with K-12 trio deferred Phase 3 — effective ~1 critical: teacher GAP-268 P3)
-- ⏳ Production deploy infra (DNS/CDN/email/secrets/staging/tag-CI)
+- 🔴 Production deploy infra — Wave 33 PARTIAL; **4 NEW P0 from audit (GAP-384/385/386/387) BLOCKING**
 - ⏳ 10-20 invite-only beta tenants
-- ⏳ Quality audit /100 ≥80 baseline
-- ⏳ 0 P0 incidents 2 tuần post-launch
+- 🔴 Quality audit /100 ≥80 baseline — **2026-05-07 audit weighted avg ~74** (UI 76% + Business 78% + API 72% + Security 72% + Ops 50%)
+- 🔴 0 P0 incidents 2 tuần — **4 NEW P0s phát hiện 2026-05-07 (admin auth, PDPL consent, quality threshold, beta metrics)**
 
 **Estimated remaining đến Phase 1 BETA launch:** **~5-8 tuần** (4 kit-port waves Wave 31-34 + 1-2 deploy-cluster waves + 1 beta-tenant onboarding wave). Aligns với `release-1-plan-2026.md` Phase 1 BETA window 9-12 tuần (currently in week 1-2).
 

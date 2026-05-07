@@ -61,10 +61,12 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 | Output Type | Review Standard | Process | Reviewer | Current Status |
 |-------------|----------------|---------|----------|:--------------:|
 | **Code** | two-stage-code-review (Stage 1+2+2.5) | Pre-merge | Peer + CI + pattern check | ✅ DONE |
-| **UI screens** | ui-review /128 per-screen | After FE PR | Auditor | ✅ DONE |
-| **Quality audit reports** | quality-audit 10 categories /100 | Periodic | Auditor | ✅ DONE |
-| **Ops readiness** | ops-readiness-audit skill /100 | Post-wave + quarterly | Auditor | ✅ REFRESHED (2026-04-25, 52/100 — Sub-PR 5.6a #530; baseline 2026-04-19 was 49/100) |
-| **Performance baseline** | performance-audit skill /100 | Post-wave + quarterly | Auditor | ✅ REFRESHED (2026-04-25, 63/100 — Sub-PR 5.6a #530; baseline 2026-04-19 was 58/100) |
+| **UI screens** | ui-review /128 per-screen | After FE PR | Auditor | ✅ REFRESHED (2026-05-07, 97/128 A+ — Wave 32 rework + Wave 34 wizard, PR #913; +8 vs Wave 31 baseline 89/128) |
+| **Quality audit reports** | quality-audit 11 categories /110→/100 | Periodic | Auditor | ✅ REFRESHED (2026-05-07, 73/100 C — post-wave 32/33/34 checkpoint, PR #913; delta -5 vs 2026-04-25 baseline 78) |
+| **Ops readiness** | ops-readiness-audit skill /100 | Post-wave + quarterly | Auditor | ✅ REFRESHED (2026-05-07, 50/100 F — Wave 33 BETA deploy, PR #913; delta -2 vs 2026-04-25 baseline 52) |
+| **Performance baseline** | performance-audit skill /100 | Post-wave + quarterly | Auditor | ✅ REFRESHED (2026-05-07, 58/100 F — Wave 33+34 static-analysis mode per GAP-244 dev-stack constraint, PR #913; delta -5 vs 2026-04-25 baseline 63; **P0 N+1 in SlugAvailabilityService.findAll() filed as GAP-392**) |
+| **Security baseline** | security-audit skill /100 | Post-wave + quarterly | Auditor | ✅ REFRESHED (2026-05-07, 72/100 C+ — Wave 33 BETA deploy cluster, PR #913; delta -13 vs 2026-04-25 baseline 85; new admin surface shipped without guards regress to OWASP A01) |
+| **Business logic implementation** | business-logic-audit skill /100 | Post-wave + quarterly | Auditor | ✅ REFRESHED (2026-05-07, 78/100 C+ — Wave 34 AI Branding cluster, PR #913; new baseline; BR-LIFE/QUALITY thiếu 5-attr blocks per `business-logic-review.md` v1.0.0) |
 | **Business docs implementation match** (code ↔ rules.md sync) | Living Docs rule (3-layer) | Same PR as code change | PR reviewer | ✅ DONE |
 | **Business logic CORRECTNESS** (giá trị rule đúng thị trường + law) | BRD + stakeholder sign-off + compliance | Before launch + quarterly | Product + Business + Legal | ⚠️ PARTIAL — rule shipped 2026-04-29 (`.claude/rules/business-logic-review.md` Phase 1 of GAP-049, Wave Business Correctness Agent B); audit + stakeholder sign-offs → GAP-156 |
 | **PRs** | check-pr skill | Pre-merge | Reviewer | ✅ DONE |
@@ -82,7 +84,7 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 | **Generated PDFs/Excel** | QA checklist + visual regression | Before delivery | QA | ⚠️ PLANNED (GAP-047) |
 | **Database migrations** | migration-review-checklist skill | Pre-merge | DBA + peer | ✅ DONE |
 | **Scripts (bash/Python)** | script-review-checklist skill | Pre-merge | Peer | ✅ DONE |
-| **API contracts** | api-contract-audit skill + schema validation | Pre-merge + runtime | Consumer/producer | ⚠️ PARTIAL (audit skill exists, no consumer-driven contract tests yet) |
+| **API contracts** | api-contract-audit skill + schema validation | Pre-merge + runtime | Consumer/producer | ✅ REFRESHED (2026-05-07, 72/100 C — Wave 34 7 endpoints, PR #913; new baseline post Wave 34 Bucket 0 contract-first foundation; consumer-driven contract tests still missing → ⚠️ PARTIAL on tests dimension) |
 | **Screenshots** | Manual + automated audit | Capture time | Auditor | ⚠️ PARTIAL (ui-review skill) |
 | **Logs format** | Log standard doc | Audit period | SRE | ✅ DONE (2026-04-20, GAP-175 — `.claude/rules/logs-format-standard.md`; implementation tracked GAP-114/115/116 Wave 7) |
 | **README freshness** | `scripts/check-readme-freshness.sh` (`**Last Updated:**` date check, 30d WARN / 90d FAIL, exempt via `<!-- readme-freshness-exempt: <reason> -->`) | Pre-merge (CI) | CI + reviewer | ✅ DONE (2026-04-28, GAP-255 — script + 5 self-test fixtures + CI job `readme-freshness`; baseline 4 PASS / 42 WARN / 0 FAIL across 46 READMEs) |
