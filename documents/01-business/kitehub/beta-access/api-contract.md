@@ -1,0 +1,203 @@
+# Beta Access — API Contract
+
+**Domain:** Beta tenant invite mechanism (Wave 33 — GAP-372 + Wave 35 PDPL consent — GAP-385)
+**Source-of-truth controller:** `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/beta/controller/BetaAccessController.java`
+**Last verified:** 2026-05-08 (Wave 35 Bucket 0 Foundation)
+
+This contract is the cross-layer source-of-truth consumed by:
+- BE Bucket B (GAP-385) — `BetaRequestDto` + `BetaAccessRequest` entity + V32 migration
+- FE Bucket B (GAP-385) — `BetaRequestForm.tsx` consent checkbox
+- BE Bucket A (GAP-384) — `@PreAuthorize` admin guards on `/admin/beta-requests/*`
+- BE Bucket D (GAP-387) — Micrometer counters wrapping these endpoints
+
+---
+
+## Endpoints
+
+### POST /api/v1/auth/request-beta-access
+
+**Use case:** UC-BETA-001 — Submit beta access request (PDPL consent required)
+**Auth:** Public (unauthenticated). Honeypot field MUST be empty. Rate-limit per IP enforced at gateway.
+
+**Request body (`BetaRequestDto`):**
+```json
+{
+  "email": "owner@example.edu.vn",
+  "name": "Nguyễn Văn A",
+  "orgName": "Trung tâm Anh ngữ ABC",
+  "persona": "P2_CENTER_OWNER",
+  "referralSource": "google",
+  "honeypot": "",
+  "consentGiven": true
+}
+```
+
+**Field constraints:**
+
+| Field | Type | Required | Validation |
+|-------|------|----------|------------|
+| `email` | string | yes | RFC-5321, ≤320 chars, `@Email` |
+| `name` | string | yes | ≤200 chars, non-blank |
+| `orgName` | string | yes | ≤200 chars, non-blank |
+| `persona` | enum | yes | `P1_SOLO_TEACHER` \| `P2_CENTER_OWNER` (Wave 35 Phase 1 BETA scope) |
+| `referralSource` | string | optional | ≤500 chars |
+| `honeypot` | string | yes (empty) | MUST equal `""` (anti-bot trap) |
+| `consentGiven` | boolean | yes | MUST be `true` (PDPL Art 11 — explicit consent) |
+
+**Response 201 Created (`BetaRequestResponse`):**
+```json
+{
+  "id": 12345,
+  "email": "owner@example.edu.vn",
+  "name": "Nguyễn Văn A",
+  "orgName": "Trung tâm Anh ngữ ABC",
+  "persona": "P2_CENTER_OWNER",
+  "referralSource": "google",
+  "status": "PENDING",
+  "createdAt": "2026-05-08T10:23:00Z",
+  "approvedAt": null,
+  "rejectedAt": null,
+  "rejectionReason": null
+}
+```
+
+**Errors:**
+
+| HTTP | Error code | Trigger |
+|------|------------|---------|
+| 400 | `BETA_CONSENT_REQUIRED` | `consentGiven` is `false`, `null`, or missing — PDPL 2023 violation |
+| 400 | `BETA_INVALID_EMAIL` | `email` fails `@Email` validation |
+| 400 | `BETA_INVALID_PERSONA` | `persona` not in allowed enum |
+| 400 | `BETA_HONEYPOT_FILLED` | `honeypot` non-empty (silently rejected by service; surface only in tests) |
+| 409 | `BETA_DUPLICATE_EMAIL` | Active PENDING/APPROVED request exists for the email |
+| 429 | `RATE_LIMITED` | Per-IP rate limit at gateway exceeded |
+
+**Audit log:** A successful 201 emits `beta.consent.given` event via outbox (Bucket B wires this; consumed by audit/analytics).
+
+---
+
+### GET /api/v1/auth/beta-signup/validate
+
+**Use case:** UC-BETA-002 — Validate invite token (signup pre-fill)
+**Auth:** Public unauthenticated.
+
+**Query params:** `?token=<UUID>`
+
+**Response 200 OK (token valid):**
+```json
+{
+  "valid": true,
+  "email": "owner@example.edu.vn",
+  "name": "Nguyễn Văn A",
+  "persona": "P2_CENTER_OWNER",
+  "expiresAt": "2026-05-09T10:23:00Z"
+}
+```
+
+**Response 404 Not Found (invalid/expired):** `{ "valid": false }`
+
+---
+
+### POST /api/v1/auth/beta-signup
+
+**Use case:** UC-BETA-003 — Complete beta signup with invite token
+**Auth:** Public unauthenticated; token-redemption.
+
+**Request body (`BetaSignupCommand`):**
+```json
+{
+  "token": "uuid-v4",
+  "password": "...",
+  "acceptTos": true
+}
+```
+
+**Response 200 OK:** `BetaRequestResponse` (status flipped to `SIGNED_UP`).
+
+**Errors:** `404` invalid token; `409` already signed up.
+
+---
+
+### GET /api/v1/admin/beta-requests
+
+**Use case:** UC-BETA-004 — Coordinator listing
+**Auth:** **Bearer + role `PLATFORM_ADMIN`** (Bucket A — GAP-384 ships `@PreAuthorize`)
+
+**Query params:** `?status=PENDING&page=0&size=20`
+
+**Response 200 OK (`BetaRequestPage`):**
+```json
+{
+  "content": [ /* BetaRequestResponse[] */ ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 42,
+  "totalPages": 3
+}
+```
+
+**Errors:** `401` unauthenticated; `403` non-admin authenticated user.
+
+---
+
+### POST /api/v1/admin/beta-requests/{id}/approve
+
+**Use case:** UC-BETA-005 — Coordinator approves a pending request
+**Auth:** **Bearer + role `PLATFORM_ADMIN`** (Bucket A)
+
+**Request body (`BetaApproveCommand`):**
+```json
+{ "noteToRequester": "Welcome to the Phase 1 BETA cohort" }
+```
+
+**Response 200 OK:** `BetaRequestResponse` (status `APPROVED`, invite token issued, `+24h` expiry).
+**Side effects:** Invite-sent event published via outbox (existing Wave 33 emitter).
+
+**Errors:** `401`/`403` auth; `404` not found; `409` not in PENDING state.
+
+---
+
+### POST /api/v1/admin/beta-requests/{id}/reject
+
+**Use case:** UC-BETA-006 — Coordinator rejects a pending request
+**Auth:** **Bearer + role `PLATFORM_ADMIN`** (Bucket A)
+
+**Request body (`BetaRejectCommand`):**
+```json
+{ "rejectionReason": "Out of Phase 1 scope (K-12)" }
+```
+
+**Response 200 OK:** `BetaRequestResponse` (status `REJECTED`).
+
+**Errors:** `401`/`403`; `404` not found; `409` not in PENDING state.
+
+---
+
+## Status enum (`BetaAccessRequestStatus`)
+
+| Value | Meaning |
+|-------|---------|
+| `PENDING` | Submitted, awaiting coordinator review |
+| `APPROVED` | Coordinator approved, invite token issued, awaiting signup |
+| `REJECTED` | Coordinator rejected (terminal) |
+| `SIGNED_UP` | Token redeemed, tenant provisioning kicked off (terminal) |
+| `EXPIRED` | Approved but token not redeemed within 24h |
+
+---
+
+## PDPL 2023 consent specifics (Bucket B scope)
+
+- `consentGiven=true` is mandatory at submit time. Server-side validation MUST reject `false`/`null`/missing with `BETA_CONSENT_REQUIRED`.
+- Persisted column: `consent_given BOOLEAN NOT NULL` + `consent_at TIMESTAMP WITH TIME ZONE NOT NULL` (set to `now()` at insert).
+- The FE form MUST display a labeled checkbox linked to `/legal/privacy` and `/legal/terms` (or current placeholders) and MUST disable the submit button until checked.
+- Audit log entry `beta.consent.given` is emitted via the existing per-module outbox emitter (Wave 33 pattern) on the same transaction as the insert.
+
+---
+
+## Related
+
+- BR-BETA-001..003: `documents/01-business/kitehub/beta-access/rules.md`
+- UC-BETA-001..006: `documents/01-business/kitehub/beta-access/use-cases.md`
+- Source DTOs: `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/beta/dto/`
+- Wave 35 plan: `documents/03-planning/waves/wave-2026-05-08-35-audit-p0-blockers-sprint.md`
+- Cross-layer rule: `.claude/rules/contract-first-for-cross-layer.md`
