@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.subscription.beta.dto.BetaApproveCommand;
 import com.kitehub.subscription.beta.dto.BetaRejectCommand;
 import com.kitehub.subscription.beta.dto.BetaRequestDto;
-import com.kitehub.subscription.beta.dto.BetaSignupCommand;
 import com.kitehub.subscription.beta.dto.BetaTokenValidationResponse;
 import com.kitehub.subscription.beta.entity.BetaAccessRequest;
 import com.kitehub.subscription.beta.entity.BetaAccessRequestStatus;
