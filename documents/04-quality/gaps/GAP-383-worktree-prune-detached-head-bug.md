@@ -1,6 +1,6 @@
 # GAP-383: prune-merged-worktrees.sh bails on detached-HEAD worktree
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07
 **Priority:** 🟡 P2 (cleanup tooling — recurrence-class but low blast radius)
 **Domain:** DevOps / scripts
 **Found:** 2026-05-07 (Wave 33 closure cleanup attempt)
@@ -57,11 +57,11 @@ Plus add deduplication: detached-HEAD entries can show same commit multiple time
 
 ## Acceptance Criteria
 
-- [ ] Script handles detached-HEAD worktree: prune if commit in `origin/main` ancestry, skip otherwise (don't bail)
-- [ ] Self-test: synthetic fixture with detached-HEAD worktree at commit-in-main → script prunes; at commit-not-in-main → script skips with message
-- [ ] Run on current main: prune `.claude/worktrees/fix-883` + `fix-bucket-d-2` (both detached at `cbf7385e` which is in main)
-- [ ] Existing branch-named husks still pruned correctly (regression check on synthetic feat/foo branch already merged)
-- [ ] Script exit code 0 on success, 1 on real failures only (not on "nothing to do")
+- [x] Script handles detached-HEAD worktree: prune if commit in `origin/main` ancestry, skip otherwise (don't bail)
+- [x] Self-test: synthetic fixture with detached-HEAD worktree at commit-in-main → script prunes; at commit-not-in-main → script skips with message
+- [x] Run on current main: pruned `.claude/worktrees/fix-883` + `fix-bucket-d-2` (manual workaround pre-fix on 2026-05-07; post-fix script verified on `/tmp/gap383-test` fixture covers same case)
+- [x] Existing branch-named husks still pruned correctly (regression check: fixture `merged-feat` branch + `branch-merged` worktree both pruned cleanly)
+- [x] Script exit code 0 on success, 1 on real failures only (verified `EXIT=0` on fixture run)
 
 ## Out of scope
 
@@ -77,3 +77,4 @@ Plus add deduplication: detached-HEAD entries can show same commit multiple time
 ## Log
 
 - **2026-05-07:** Filed at Wave 33 closure retro. Bug surfaced when `scripts/prune-merged-worktrees.sh --yes` bailed on `fix-883` detached-HEAD worktree. Closure PR #900 deferred prune; husks tracked manually for next-session cleanup.
+- **2026-05-07 (fix shipped):** Script updated to detect detached-HEAD lines in `git worktree list` output, treat empty `WT_BRANCH` as sentinel for "no branch to delete", and prune the worktree only if `git merge-base --is-ancestor $commit origin/main` succeeds. Otherwise the entry is preserved and a warning printed to stderr. Path-dedup added to handle repeated entries some git versions emit. Verified on `/tmp/gap383-test` fixture with three worktree variants (branch-merged / detached-in-main / detached-not-in-main): `EXIT=0`, prune count 2, skip count 1 with warning. Real-repo run earlier today (manual detached-HEAD removal then full prune) confirmed root scenario.
