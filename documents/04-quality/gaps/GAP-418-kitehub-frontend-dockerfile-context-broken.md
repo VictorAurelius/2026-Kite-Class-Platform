@@ -1,6 +1,6 @@
 # GAP-418: kitehub-frontend Dockerfile build context mismatch
 
-**Status:** 🟡 PARTIAL — fix applied; full `up.sh --profile beta-funnel` E2E verify chờ next dev-stack session
+**Status:** 🟢 DONE 2026-05-07
 **Priority:** 🟠 P1 (BLOCKING — `up.sh --profile beta-funnel` cold setup fails; CI `docker-build-push.yml` may also fail when frontend image rebuild needed)
 **Domain:** DevOps / Docker
 **Found:** 2026-05-07 (Option B' real-backend E2E session)
@@ -65,10 +65,10 @@ Same fix likely needed for `kiteclass-frontend` block (also has `context: ../kit
 ## Acceptance Criteria
 
 - [x] `docker-compose.kitehub.yml` `kitehub-frontend` context aligns with Dockerfile
-- [ ] `docker rmi kitehub-frontend:latest && docker-compose build kitehub-frontend` succeeds — verified by CI `docker-build-push.yml` on PR (compose path filter triggers); local cold-build E2E queued next dev-stack session
-- [ ] `bash scripts/up.sh --profile beta-funnel` no longer fails on frontend build step — chained with GAP-419 verification, queued next dev-stack session
+- [x] `docker rmi kitehub-frontend:latest && docker-compose build kitehub-frontend` succeeds — cold rebuild verified Wave 39 Bucket D: build completed in ~79s, image `kitehub-frontend:latest` (214e599e) built without `/kitehub/kitehub-frontend: not found` error
+- [x] `bash scripts/up.sh --profile beta-funnel` no longer fails on frontend build step — `kitehub-frontend` came up healthy (0.0.0.0:3001->3001/tcp) after cold start; verified Wave 39 Bucket D session
 - [x] `kiteclass-frontend` checked similarly (had same issue, fixed inline)
-- [ ] CI `docker-build-push.yml` still passes (Wave 37 GAP-398..402 unbroken) — verified on PR
+- [x] CI `docker-build-push.yml` still passes (Wave 37 GAP-398..402 unbroken) — verified on PR #951
 
 ## Related
 
@@ -79,4 +79,5 @@ Same fix likely needed for `kiteclass-frontend` block (also has `context: ../kit
 
 ## Log
 
+- **2026-05-07** DONE — Wave 39 Bucket D cold-boot verification passed. Evidence: (1) cold rebuild `docker rmi kitehub-frontend:latest && docker-compose build kitehub-frontend` completed successfully in ~79s with no `/kitehub/kitehub-frontend: not found` error (image sha 214e599e5abe); (2) `bash kitehub/scripts/up.sh --profile beta-funnel` produced `kitehub-frontend: Up 31 seconds (healthy)` at 0.0.0.0:3001; (3) `kiteclass-frontend` equally healthy. All 5 ACs now checked. Note: postgres data volume had stale password (separate pre-existing issue); fixed inline via `ALTER USER kitehub PASSWORD '...'` — not related to GAP-418 scope.
 - **2026-05-07** PARTIAL — fix applied in dev-stack cluster PR. Both `kitehub-frontend` (line 657) and `kiteclass-frontend` (line 690) compose entries now use `context: ..` (repo root) + `dockerfile: <subdir>/Dockerfile` to match the Wave 37 PR #936 root-context Dockerfile refactor. `docker-compose -f docker-compose.kitehub.yml config --quiet` validates cleanly. Full local `docker-compose build kitehub-frontend` end-to-end + `up.sh --profile beta-funnel` chained with GAP-419 — both queued for next dev-stack session to flip DONE.
