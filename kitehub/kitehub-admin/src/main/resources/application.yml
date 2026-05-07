@@ -75,6 +75,18 @@ management:
     health:
       show-details: always
 
+# Storage config required by BackupStorageService bean (pulled from kitehub-subscription
+# via @ComponentScan; without this block, S3Config@ConfigurationProperties("storage.s3")
+# resolves to null and S3Client construction fails with "region must not be null").
+# Wave 36 GAP-389 added BackupStorageService dependency; admin needs same defaults.
+storage:
+  s3:
+    access-key: ${S3_ACCESS_KEY:minioadmin}
+    secret-key: ${S3_SECRET_KEY:minioadmin}
+    region: ${S3_REGION:us-east-1}
+    bucket: ${S3_BACKUP_BUCKET:kite-backups}
+    endpoint: ${S3_ENDPOINT:http://localhost:9000}
+
 logging:
   level:
     com.kitehub.admin: DEBUG

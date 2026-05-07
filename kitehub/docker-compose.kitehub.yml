@@ -499,6 +499,10 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?required}
       SPRING_REDIS_HOST: kite-redis
       SPRING_REDIS_PORT: 6379
+      SPRING_RABBITMQ_HOST: kite-rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-kitehub}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
       # Security secrets (shared with subscription service)
       ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:?ENCRYPTION_MASTER_KEY is required - run ./scripts/setup.sh}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required - run ./scripts/setup.sh}
@@ -508,6 +512,8 @@ services:
       kite-postgres:
         condition: service_healthy
       kite-redis:
+        condition: service_healthy
+      kite-rabbitmq:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
