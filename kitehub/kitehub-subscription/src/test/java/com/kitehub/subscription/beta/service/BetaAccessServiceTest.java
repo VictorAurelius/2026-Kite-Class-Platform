@@ -283,7 +283,7 @@ class BetaAccessServiceTest {
                 .thenReturn(Optional.empty());
 
         BetaRequestDto dto = new BetaRequestDto(
-                "metric@x.com", "Metric", "MO", "P2_CENTER_OWNER", null, "");
+                "metric@x.com", "Metric", "MO", "P2_CENTER_OWNER", null, "", true);
         service.submitRequest(dto);
 
         double count = meterRegistry.counter(
