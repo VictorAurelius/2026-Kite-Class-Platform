@@ -31,8 +31,11 @@ infrastructure/logs/run-*/
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
 !.env.example
 !.env.docker.example
+!.env.production.template
 
 # Encryption keys
 *.key
