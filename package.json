@@ -24,6 +24,11 @@
       "minimatch": "^10.2.4",
       "rollup": "^4.59.0",
       "postcss": "^8.5.12"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "msw",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }
