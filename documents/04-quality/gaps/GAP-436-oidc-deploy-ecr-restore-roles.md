@@ -1,6 +1,6 @@
 # GAP-436: OIDC roles for deploy + ECR push + restore drill workflows
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1+2+3 DONE 2026-05-08; Phase 4 (remove static keys) deferred until OIDC verified by first workflow trigger
 **Priority:** 🟠 P1 (BLOCKING Phase 2.3+ workflows that write to AWS)
 **Domain:** DevOps / Security
 **Found:** 2026-05-08 (Phase 2.2 OIDC scope split)
@@ -97,3 +97,4 @@ After all workflows green via OIDC, remove `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACC
 ## Log
 
 - **2026-05-08:** GAP filed during Phase 2.2 scope split. Plan role only shipped this session; deploy/ECR/restore-drill roles deferred to this gap.
+- **2026-05-08:** Phase 1+2+3 DONE. Added 3 IAM roles to `iam.tf` (`github_deploy` + `github_ecr_push` + `github_restore_drill`) with scoped trust + least-privilege policies. Targeted `terraform apply` clean (6 resources). 3 GitHub Secrets set: `AWS_DEPLOY_ROLE_ARN`, `AWS_ECR_PUSH_ROLE_ARN`, `AWS_RESTORE_DRILL_ROLE_ARN`. Workflow secret-name disambiguation: `docker-build-push.yml` migrated `AWS_ROLE_ARN` → `AWS_ECR_PUSH_ROLE_ARN`; `deploy-production.yml` migrated `AWS_ROLE_ARN` → `AWS_DEPLOY_ROLE_ARN`. Phase 4 (remove static `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` GH Secrets) deferred until first workflow trigger via OIDC verified — file follow-up GAP at that point or close inline.
