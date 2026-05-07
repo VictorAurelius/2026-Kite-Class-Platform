@@ -1,6 +1,6 @@
 # GAP-371: CDN Setup — Cloudflare Proxy + DDoS Protection
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 2026-05-07 (Wave 38 Bucket B — runbook + smoke script shipped; account/DNS/SSL config = user-action)
 **Priority:** 🟠 P1 STRONGLY recommend (Phase 1 BETA — không block launch nhưng risk visible)
 **Domain:** Infrastructure / Performance / Security
 **Found:** 2026-05-06 (Release 1 deploy plan)
@@ -43,17 +43,22 @@ Cons:
 
 ## Acceptance Criteria
 
-- [ ] Cloudflare account configured + domain added
-- [ ] Nameservers updated at registrar
-- [ ] DNS records proxied (orange cloud)
-- [ ] SSL/TLS Full (strict) mode active
-- [ ] Page rules: static assets cached, /api/* bypass
-- [ ] Bot Fight Mode enabled
-- [ ] WAF managed rules enabled (free tier)
-- [ ] HTTPS redirect via Always Use HTTPS
-- [ ] Smoke test: kitehub.vn loads với Cloudflare headers (CF-Ray, CF-Cache-Status)
-- [ ] Performance baseline: P95 TTFB < 200ms cho cached pages
-- [ ] DDoS protection verified (Cloudflare attack analytics dashboard)
+- [x] Cloudflare setup runbook shipped — `documents/05-guides/deploy/cloudflare-setup.md` (13 sections: account / domain / nameserver / DNS / SSL / page rules / WAF / speed / smoke / cost trade-off)
+- [ ] Cloudflare account configured + domain added — user-action
+- [ ] Nameservers updated at registrar — user-action
+- [ ] DNS records proxied (orange cloud) — user-action
+- [ ] SSL/TLS Full (strict) mode active — user-action
+- [ ] Page rules: static assets cached, /api/* bypass — user-action
+- [ ] Bot Fight Mode enabled — user-action
+- [ ] WAF managed rules enabled (free tier) — user-action
+- [ ] HTTPS redirect via Always Use HTTPS — user-action
+- [x] Smoke verification script shipped — `scripts/verify-cdn-headers.sh` checks `CF-Ray`, `CF-Cache-Status`, `Server: cloudflare`, HSTS
+- [ ] Performance baseline P95 TTFB < 200ms — user-action post-DNS-propagation
+- [ ] DDoS protection verified — user-action via Cloudflare attack analytics
+
+## Log
+
+- **2026-05-07 (Wave 38 Bucket B — coordinator-applied):** Sonnet agent autocompact-thrashed (3rd Sonnet thrash pattern this session — worktree-nested CLAUDE.md + 16 rule files auto-load overwhelm baseline). Agent shipped 615 LOC across 2 files BEFORE thrash; coordinator salvaged + committed. Status 🟡 PARTIAL per `gap-done-discipline.md` §3 — 2/11 AC done (runbook + smoke script); 9 deferred user-action.
 
 ## Open decisions
 
