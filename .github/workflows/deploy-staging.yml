@@ -1,4 +1,20 @@
-name: Deploy to Staging
+name: Deploy to Staging (Architecture B — EC2 + docker-compose)
+
+# =============================================================================
+# Architecture B revision (Wave 38 Bucket D / GAP-380)
+# =============================================================================
+# Replaces previous EKS+helm-based deploy. Phase 1 BETA staging = single t3.micro
+# EC2 host running combined KH+KC docker-compose stack (per ADR-025).
+#
+# Phase 2 EKS migration (per Wave 37 GAP-415) will swap this workflow back to a
+# helm-based path; trigger gate documented in
+# `documents/05-guides/deploy/staging-activation-runbook.md` §"Phase 2 EKS gate".
+#
+# Deploy mechanism:
+#   1. ECR pull credentials via OIDC (no static AWS keys)
+#   2. AWS SSM send-command → docker login + docker-compose pull + up -d
+#   3. Smoke test against staging public URL
+# =============================================================================
 
 on:
   push:
@@ -6,7 +22,14 @@ on:
     paths:
       - 'kitehub/**'
       - 'kiteclass/**'
-      - 'infrastructure/helm/**'
+      - 'docker-compose.staging.yml'
+      - '.github/workflows/deploy-staging.yml'
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy (default: staging-<sha>)'
+        required: false
+        default: ''
 
 permissions:
   id-token: write
@@ -14,12 +37,12 @@ permissions:
 
 env:
   AWS_REGION: ap-southeast-1
-  EKS_CLUSTER: kitehub-eks
-  HELM_NAMESPACE: kitehub
+  STAGING_KH_URL: https://staging.kitehub.vn
+  STAGING_KC_URL: https://staging.kiteclass.vn
 
 jobs:
   deploy:
-    name: Deploy to Staging
+    name: Deploy to Staging EC2
     runs-on: ubuntu-latest
     environment: staging
 
@@ -29,60 +52,101 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to ECR
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push images
+      - name: Resolve image tag
+        id: tag
+        run: |
+          if [ -n "${{ github.event.inputs.image_tag }}" ]; then
+            echo "tag=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=staging-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build and push images to ECR
         env:
           REGISTRY: ${{ steps.ecr-login.outputs.registry }}
-          TAG: staging-${{ github.sha }}
+          TAG: ${{ steps.tag.outputs.tag }}
         run: |
           for service in kitehub-subscription kitehub-gateway kitehub-branding kitehub-admin kitehub-email kitehub-frontend; do
             echo "Building $service..."
-            docker build -t $REGISTRY/kitehub/$service:$TAG \
-              -f kitehub/$service/Dockerfile kitehub/
-            docker push $REGISTRY/kitehub/$service:$TAG
+            docker build -t "$REGISTRY/kitehub/$service:$TAG" \
+              -f "kitehub/$service/Dockerfile" kitehub/
+            docker push "$REGISTRY/kitehub/$service:$TAG"
+          done
+          for service in kiteclass-core kiteclass-frontend; do
+            echo "Building $service..."
+            docker build -t "$REGISTRY/kiteclass/$service:$TAG" \
+              -f "kiteclass/$service/Dockerfile" kiteclass/
+            docker push "$REGISTRY/kiteclass/$service:$TAG"
           done
 
-      - name: Configure kubectl
-        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
-
-      - name: Deploy with Helm
+      - name: Deploy via SSM run-command (docker-compose pull + up)
         env:
           REGISTRY: ${{ steps.ecr-login.outputs.registry }}
-          TAG: staging-${{ github.sha }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          STAGING_INSTANCE_ID: ${{ secrets.STAGING_INSTANCE_ID }}
         run: |
-          helm upgrade --install kitehub ./infrastructure/helm/kitehub \
-            --namespace ${{ env.HELM_NAMESPACE }} --create-namespace \
-            --set global.image.registry=$REGISTRY/kitehub \
-            --set global.image.tag=$TAG \
-            --set global.database.host=${{ secrets.RDS_ENDPOINT }} \
-            --set global.redis.host=${{ secrets.REDIS_ENDPOINT }} \
-            --wait --timeout 5m
+          # SSM send-command runs the bootstrap-script on the staging EC2 host.
+          # Host has /etc/ecr-login.sh (cloud-init) + docker-compose v2 plugin.
+          COMMAND_ID=$(aws ssm send-command \
+            --region "$AWS_REGION" \
+            --instance-ids "$STAGING_INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy staging tag=$TAG" \
+            --timeout-seconds 600 \
+            --parameters "commands=[\
+              'set -euo pipefail',\
+              'cd /opt/kite-staging',\
+              '/etc/ecr-login.sh',\
+              'export REGISTRY=$REGISTRY',\
+              'export TAG=$TAG',\
+              'docker compose -f docker-compose.staging.yml pull',\
+              'docker compose -f docker-compose.staging.yml up -d --remove-orphans',\
+              'docker system prune -f --filter until=24h'\
+            ]" \
+            --query "Command.CommandId" --output text)
+          echo "SSM CommandId=$COMMAND_ID"
 
-      - name: Smoke test (gateway health quick-check)
-        run: |
-          GATEWAY_URL=$(kubectl -n ${{ env.HELM_NAMESPACE }} get svc kitehub-gateway -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-          curl -sf "http://$GATEWAY_URL:9000/actuator/health" || exit 1
-          echo "Staging deployment healthy"
+          # Poll until command completes
+          for _ in $(seq 1 30); do
+            sleep 10
+            STATUS=$(aws ssm get-command-invocation \
+              --region "$AWS_REGION" \
+              --command-id "$COMMAND_ID" \
+              --instance-id "$STAGING_INSTANCE_ID" \
+              --query "Status" --output text 2>/dev/null || echo "InProgress")
+            echo "Status: $STATUS"
+            case "$STATUS" in
+              Success) echo "Deploy succeeded"; exit 0 ;;
+              Failed|Cancelled|TimedOut)
+                aws ssm get-command-invocation \
+                  --region "$AWS_REGION" \
+                  --command-id "$COMMAND_ID" \
+                  --instance-id "$STAGING_INSTANCE_ID" \
+                  --query "StandardErrorContent" --output text
+                exit 1
+                ;;
+            esac
+          done
+          echo "Deploy timed out after 5 minutes"
+          exit 1
 
-      # GAP-377 (Wave 26 Bucket C) — full post-deploy smoke suite (16+ assertions
-      # across health/legal/auth/API/ConsentBanner/error-handling/gateway routing).
-      # On failure: log + exit 1. Auto-rollback wiring deferred — track follow-up
-      # in `release-1-deploy-plan.md` §3.3 / GAP-378 rollback runbook.
+      - name: Wait for stack readiness
+        run: sleep 30
+
       - name: Post-deploy smoke test (GAP-377)
         run: |
-          KH_URL="${{ vars.STAGING_KH_URL }}"
-          KC_URL="${{ vars.STAGING_KC_URL }}"
-          KH_URL="${KH_URL:-https://staging.kitehub.vn}"
-          KC_URL="${KC_URL:-https://staging.kiteclass.vn}"
+          KH_URL="${{ vars.STAGING_KH_URL || env.STAGING_KH_URL }}"
+          KC_URL="${{ vars.STAGING_KC_URL || env.STAGING_KC_URL }}"
           echo "Running smoke suite against KH=$KH_URL  KC=$KC_URL"
           ./scripts/smoke-test.sh "$KH_URL" "$KC_URL"
 
       - name: Notify
         if: always()
-        run: echo "Staging deploy ${{ job.status }} - ${{ github.sha }}"
+        run: echo "Staging deploy ${{ job.status }} - tag=${{ steps.tag.outputs.tag }}"
