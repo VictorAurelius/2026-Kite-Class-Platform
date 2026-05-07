@@ -13,6 +13,8 @@ import com.kitehub.subscription.repository.InstanceRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -328,16 +330,21 @@ public class InstanceService {
     }
 
     /**
-     * List all instances.
+     * List instances (non-deleted), paginated.
      *
-     * @return list of all instance responses
+     * <p><strong>GAP-432 (Wave 41 Bucket C):</strong> the prior implementation
+     * called {@code instanceRepository.findAll()} and filtered deleted rows in
+     * Java — full-table scan plus client-side filter. Now uses the indexed
+     * {@link InstanceRepository#findByDeletedFalse(Pageable)} query. Callers
+     * MUST supply a {@link Pageable} (controller defaults to size 50, max 200).</p>
+     *
+     * @param pageable page request (size, page, sort)
+     * @return page of instance responses
      */
     @Transactional(readOnly = true)
-    public List<InstanceResponse> listAllInstances() {
-        return instanceRepository.findAll().stream()
-            .filter(i -> !i.isDeleted())
-            .map(this::toResponse)
-            .collect(Collectors.toList());
+    public Page<InstanceResponse> listAllInstances(Pageable pageable) {
+        return instanceRepository.findByDeletedFalse(pageable)
+            .map(this::toResponse);
     }
 
     /**

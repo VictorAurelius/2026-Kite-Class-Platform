@@ -3,13 +3,17 @@ package com.kitehub.subscription.repository;
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.MigrationPhase;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,144 +26,76 @@ import java.util.UUID;
 @Repository
 public interface InstanceRepository extends JpaRepository<Instance, UUID> {
 
-    /**
-     * Find instance by subdomain (not deleted).
-     *
-     * @param subdomain subdomain to search
-     * @return Optional containing instance if found
-     */
     Optional<Instance> findBySubdomainAndDeletedFalse(String subdomain);
 
-    /**
-     * Find all instances by owner ID (not deleted).
-     *
-     * @param ownerId owner UUID
-     * @return list of instances
-     */
     List<Instance> findByOwnerIdAndDeletedFalse(UUID ownerId);
 
-    /**
-     * Find all instances by status (not deleted).
-     *
-     * @param status instance status
-     * @return list of instances
-     */
     List<Instance> findByStatusAndDeletedFalse(InstanceStatus status);
 
-    /**
-     * Find expired trial instances.
-     *
-     * @param now current timestamp
-     * @return list of instances with expired trials
-     */
     @Query("SELECT i FROM Instance i WHERE i.status = 'TRIAL' " +
            "AND i.trialExpiresAt < :now AND i.deleted = false")
     List<Instance> findExpiredTrials(@Param("now") LocalDateTime now);
 
-    /**
-     * Find expired subscriptions.
-     *
-     * @param now current timestamp
-     * @return list of instances with expired subscriptions
-     */
     @Query("SELECT i FROM Instance i WHERE i.status = 'ACTIVE' " +
            "AND i.subscriptionExpiresAt < :now AND i.deleted = false")
     List<Instance> findExpiredSubscriptions(@Param("now") LocalDateTime now);
 
-    /**
-     * Check if subdomain exists (not deleted).
-     *
-     * @param subdomain subdomain to check
-     * @return true if exists, false otherwise
-     */
     boolean existsBySubdomainAndDeletedFalse(String subdomain);
 
-    /**
-     * Count instances by owner ID (not deleted).
-     *
-     * @param ownerId owner UUID
-     * @return count of instances
-     */
     long countByOwnerIdAndDeletedFalse(UUID ownerId);
 
-    /**
-     * Check if contact email exists (not deleted).
-     *
-     * @param contactEmail email to check
-     * @return true if exists, false otherwise
-     */
     boolean existsByContactEmailAndDeletedFalse(String contactEmail);
 
-    /**
-     * Check if owner has ever started a trial (regardless of deletion status).
-     *
-     * @param ownerId owner UUID
-     * @return true if owner has any instance with trial started
-     */
     boolean existsByOwnerIdAndTrialStartedAtIsNotNull(UUID ownerId);
 
-    /**
-     * Check if contact email has ever started a trial (regardless of deletion status).
-     * Used by registerInstance() which doesn't have ownerId yet.
-     *
-     * @param contactEmail email to check
-     * @return true if email has any instance with trial started
-     */
     boolean existsByContactEmailAndTrialStartedAtIsNotNull(String contactEmail);
 
-    /**
-     * Find suspended instances that were updated before a given timestamp.
-     * Useful for finding instances that have been suspended longer than the retention period.
-     *
-     * @param status instance status (typically SUSPENDED)
-     * @param before timestamp threshold
-     * @return list of matching instances
-     */
     List<Instance> findByStatusAndDeletedFalseAndUpdatedAtBefore(
         InstanceStatus status, LocalDateTime before);
 
-    /**
-     * Find instances by status updated before a given timestamp (regardless of deleted flag).
-     * Used for purge eligibility: status=DELETED, updated more than 30 days ago.
-     *
-     * @param status instance status
-     * @param before timestamp threshold
-     * @return list of matching instances
-     */
     @Query("SELECT i FROM Instance i WHERE i.status = :status AND i.updatedAt < :before")
     List<Instance> findByStatusAndUpdatedAtBefore(
         @Param("status") InstanceStatus status, @Param("before") LocalDateTime before);
 
-    // =========================================================
-    // SAAS-16: Custom domain methods
-    // =========================================================
-
-    /**
-     * Check if a custom domain is already in use (not deleted).
-     *
-     * @param customDomain domain to check
-     * @return true if in use, false otherwise
-     */
     boolean existsByCustomDomainAndDeletedFalse(String customDomain);
 
-    /**
-     * Find instance by custom domain (not deleted).
-     *
-     * @param customDomain custom domain to search
-     * @return Optional containing instance if found
-     */
     Optional<Instance> findByCustomDomainAndDeletedFalse(String customDomain);
 
+    List<Instance> findByMigrationPhase(MigrationPhase phase);
+
     // =========================================================
-    // GAP-192 Phase 4b-i: async migration worker support
+    // GAP-432 Wave 41 Bucket C: bounded analytics + listing queries
+    // (replace prior unbounded findAll() callsites in AnalyticsService
+    //  + InstanceService.listAllInstances).
     // =========================================================
 
     /**
-     * Find all instances currently stuck in the given {@link MigrationPhase}.
-     * Used by {@code MigrationScheduler} to drain PAYMENT_CAPTURED into MIGRATING.
-     *
-     * @param phase migration phase to filter on
-     * @return list of matching instances (may be empty)
+     * Page through non-deleted instances. DB-side soft-delete filter eliminates
+     * the need to load every row into memory.
      */
-    List<Instance> findByMigrationPhase(MigrationPhase phase);
+    Page<Instance> findByDeletedFalse(Pageable pageable);
+
+    /** Count non-deleted instances. Replaces full-table fetch + size(). */
+    long countByDeletedFalse();
+
+    /**
+     * Count non-deleted instances created strictly after the given timestamp.
+     * Backs the "new signups last N days" dashboard widget.
+     */
+    long countByDeletedFalseAndCreatedAtAfter(LocalDateTime since);
+
+    /** DB-side aggregation: status -> count for non-deleted instances. */
+    @Query("SELECT i.status, COUNT(i) FROM Instance i WHERE i.deleted = false GROUP BY i.status")
+    List<Object[]> countGroupByStatus();
+
+    /** Convenience: status name -> count map (for dashboard DTO). */
+    default Map<String, Long> countInstancesByStatus() {
+        Map<String, Long> result = new HashMap<>();
+        for (Object[] row : countGroupByStatus()) {
+            InstanceStatus status = (InstanceStatus) row[0];
+            Long count = ((Number) row[1]).longValue();
+            result.put(status.name(), count);
+        }
+        return result;
+    }
 }

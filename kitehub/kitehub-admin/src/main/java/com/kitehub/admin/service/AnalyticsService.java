@@ -3,9 +3,9 @@ package com.kitehub.admin.service;
 import com.kitehub.admin.config.CacheConfig;
 import com.kitehub.admin.dto.DashboardStats;
 import com.kitehub.admin.dto.RevenueReport;
-import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.entity.Subscription;
 import com.kitehub.platform.domain.enums.InstanceStatus;
+import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
@@ -22,10 +22,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Service for calculating platform analytics and metrics.
+ *
+ * <p><strong>GAP-432 (Wave 41 Bucket C):</strong> three prior {@code findAll()}
+ * callsites at lines 57/58/129 were replaced with DB-side aggregations
+ * ({@code count}, {@code sum}, {@code GROUP BY}). Cold-cache dashboard render
+ * no longer streams every {@code Instance} + {@code Subscription} row through
+ * Java. Caffeine 5-min TTL still smooths warm-cache; aggregation pushes the
+ * first-load envelope from O(N) to a small fixed number of count/sum queries.</p>
  *
  * @since 1.0
  */
@@ -40,63 +46,34 @@ public class AnalyticsService {
     /**
      * Get dashboard statistics.
      *
-     * <p>Cached in {@link CacheConfig#ADMIN_DASHBOARD_CACHE} (Caffeine, 5-min TTL by
-     * default — see {@code kitehub.admin.cache.dashboard-ttl-seconds}). Closes
-     * <strong>GAP-126</strong>: previously every admin page load triggered two
-     * unbounded {@code findAll()} scans plus six in-memory aggregations.
-     * Invalidation: {@link com.kitehub.admin.event.AdminCacheInvalidationListener}
-     * listens for {@link com.kitehub.admin.event.SubscriptionDataChangedEvent} and
-     * evicts on instance/subscription mutations.</p>
-     *
-     * @return dashboard stats
+     * <p>Cached in {@link CacheConfig#ADMIN_DASHBOARD_CACHE} (Caffeine, 5-min TTL).
+     * Closes <strong>GAP-126</strong> + <strong>GAP-432</strong>: previously every
+     * admin page load triggered two unbounded {@code findAll()} scans plus six
+     * in-memory aggregations. Now uses DB-side {@code COUNT(...) GROUP BY} +
+     * {@code SUM(...)} on indexed columns.</p>
      */
     @Cacheable(value = CacheConfig.ADMIN_DASHBOARD_CACHE, key = "'stats'")
     public DashboardStats getDashboardStats() {
-        log.info("Calculating dashboard statistics");
+        log.info("Calculating dashboard statistics (DB-side aggregation, GAP-432)");
 
-        List<Instance> allInstances = instanceRepository.findAll();
-        List<Subscription> allSubscriptions = subscriptionRepository.findAll();
+        long totalInstances = instanceRepository.countByDeletedFalse();
+        Map<String, Long> instancesByStatus = instanceRepository.countInstancesByStatus();
+        Map<String, Long> instancesByTier = subscriptionRepository.countSubscriptionsByTier();
 
-        // Total instances
-        long totalInstances = allInstances.size();
-
-        // Instances by status
-        Map<String, Long> instancesByStatus = allInstances.stream()
-                .collect(Collectors.groupingBy(
-                        i -> i.getStatus().name(),
-                        Collectors.counting()
-                ));
-
-        // Instances by tier (from subscription)
-        Map<String, Long> instancesByTier = allSubscriptions.stream()
-                .collect(Collectors.groupingBy(
-                        s -> s.getTier().name(),
-                        Collectors.counting()
-                ));
-
-        // Calculate MRR
-        BigDecimal mrr = calculateMRR(allSubscriptions);
+        BigDecimal mrr = BigDecimal.valueOf(subscriptionRepository.sumActiveMrr());
         BigDecimal arr = mrr.multiply(BigDecimal.valueOf(12));
 
-        // Calculate churn rate
-        double churnRate = calculateChurnRate(allInstances);
+        double churnRate = calculateChurnRate(instancesByStatus, totalInstances);
+        double conversionRate = calculateConversionRate(instancesByStatus);
 
-        // Calculate conversion rate
-        double conversionRate = calculateConversionRate(allInstances);
-
-        // New signups last 30 days
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
-        long newSignupsLast30Days = allInstances.stream()
-                .filter(i -> i.getCreatedAt().isAfter(thirtyDaysAgo))
-                .count();
+        long newSignupsLast30Days =
+            instanceRepository.countByDeletedFalseAndCreatedAtAfter(thirtyDaysAgo);
 
-        // Total active users (mock - would query user service)
-        long totalActiveUsers = allInstances.stream()
-                .filter(i -> InstanceStatus.ACTIVE.equals(i.getStatus()))
-                .count() * 10; // Estimate: 10 users per active instance
+        long activeInstances = instancesByStatus.getOrDefault(InstanceStatus.ACTIVE.name(), 0L);
+        long totalActiveUsers = activeInstances * 10;
 
-        // Revenue by tier
-        Map<String, BigDecimal> revenueByTier = calculateRevenueByTier(allSubscriptions);
+        Map<String, BigDecimal> revenueByTier = revenueByTierFromDb();
 
         return DashboardStats.builder()
                 .totalInstances(totalInstances)
@@ -116,40 +93,35 @@ public class AnalyticsService {
     /**
      * Get revenue report for a period.
      *
-     * @param period    report period (DAILY, MONTHLY, YEARLY)
-     * @param startDate start date
-     * @param endDate   end date
-     * @return revenue report
+     * <p><strong>GAP-432:</strong> previously fetched every subscription via
+     * {@code findAll()} and filtered in Java. Now uses
+     * {@link SubscriptionRepository#findActiveInPeriod} with a DB-side range
+     * filter so only matching rows are streamed.</p>
      */
     @Cacheable(value = CacheConfig.ADMIN_REVENUE_REPORT_CACHE,
             key = "T(java.util.Objects).hash(#period, #startDate, #endDate)")
     public RevenueReport getRevenueReport(String period, LocalDate startDate, LocalDate endDate) {
-        log.info("Generating revenue report for period: {}, {} to {}", period, startDate, endDate);
+        log.info("Generating revenue report for period: {}, {} to {} (GAP-432 bounded)",
+                period, startDate, endDate);
 
-        List<Subscription> allSubscriptions = subscriptionRepository.findAll();
+        LocalDateTime rangeStart = startDate.atStartOfDay();
+        LocalDateTime rangeEnd = endDate.atTime(23, 59, 59);
+        List<Subscription> activeInPeriod =
+            subscriptionRepository.findActiveInPeriod(rangeStart, rangeEnd);
 
-        // Filter subscriptions active in the period
-        List<Subscription> activeSubscriptions = allSubscriptions.stream()
-                .filter(s -> isActiveInPeriod(s, startDate, endDate))
-                .collect(Collectors.toList());
-
-        // Calculate total revenue
-        BigDecimal totalRevenue = activeSubscriptions.stream()
+        BigDecimal totalRevenue = activeInPeriod.stream()
                 .map(s -> BigDecimal.valueOf(s.getPriceVnd()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Revenue by tier
-        List<RevenueReport.RevenueTierBreakdown> revenueByTier = calculateRevenueByTierList(activeSubscriptions);
+        List<RevenueReport.RevenueTierBreakdown> revenueByTier =
+            calculateRevenueByTierList(activeInPeriod);
 
-        // Daily revenue (mock data for now)
-        List<RevenueReport.DailyRevenue> dailyRevenue = generateDailyRevenue(startDate, endDate, totalRevenue);
+        List<RevenueReport.DailyRevenue> dailyRevenue =
+            generateDailyRevenue(startDate, endDate, totalRevenue);
 
-        // MRR and projected ARR
-        BigDecimal mrr = calculateMRR(allSubscriptions);
+        BigDecimal mrr = BigDecimal.valueOf(subscriptionRepository.sumActiveMrr());
         BigDecimal projectedArr = mrr.multiply(BigDecimal.valueOf(12));
-
-        // Churn impact (revenue lost)
-        BigDecimal churnImpact = calculateChurnImpact(allSubscriptions);
+        BigDecimal churnImpact = BigDecimal.valueOf(subscriptionRepository.sumCancelledRevenue());
 
         return RevenueReport.builder()
                 .period(period)
@@ -164,82 +136,56 @@ public class AnalyticsService {
                 .build();
     }
 
-    /**
-     * Calculate Monthly Recurring Revenue (MRR).
-     */
-    private BigDecimal calculateMRR(List<Subscription> subscriptions) {
-        return subscriptions.stream()
-                .filter(s -> SubscriptionStatus.ACTIVE.equals(s.getStatus()))
-                .map(s -> BigDecimal.valueOf(s.getPriceVnd()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    /**
-     * Calculate churn rate (percentage of cancelled/expired instances).
-     */
-    private double calculateChurnRate(List<Instance> instances) {
-        long totalInstances = instances.size();
+    private double calculateChurnRate(Map<String, Long> instancesByStatus, long totalInstances) {
         if (totalInstances == 0) {
             return 0.0;
         }
-
-        long churnedInstances = instances.stream()
-                .filter(i -> InstanceStatus.SUSPENDED.equals(i.getStatus()) || InstanceStatus.DELETED.equals(i.getStatus()))
-                .count();
-
+        long churnedInstances =
+            instancesByStatus.getOrDefault(InstanceStatus.SUSPENDED.name(), 0L)
+            + instancesByStatus.getOrDefault(InstanceStatus.DELETED.name(), 0L);
         return (churnedInstances * 100.0) / totalInstances;
     }
 
-    /**
-     * Calculate trial to paid conversion rate.
-     */
-    private double calculateConversionRate(List<Instance> instances) {
-        long trialInstances = instances.stream()
-                .filter(i -> InstanceStatus.TRIAL.equals(i.getStatus()))
-                .count();
-
-        long activeInstances = instances.stream()
-                .filter(i -> InstanceStatus.ACTIVE.equals(i.getStatus()))
-                .count();
-
-        long totalNonTrial = trialInstances + activeInstances;
-        if (totalNonTrial == 0) {
+    private double calculateConversionRate(Map<String, Long> instancesByStatus) {
+        long trial = instancesByStatus.getOrDefault(InstanceStatus.TRIAL.name(), 0L);
+        long active = instancesByStatus.getOrDefault(InstanceStatus.ACTIVE.name(), 0L);
+        long total = trial + active;
+        if (total == 0) {
             return 0.0;
         }
-
-        return (activeInstances * 100.0) / totalNonTrial;
+        return (active * 100.0) / total;
     }
 
-    /**
-     * Calculate revenue by tier.
-     */
-    private Map<String, BigDecimal> calculateRevenueByTier(List<Subscription> subscriptions) {
+    private Map<String, BigDecimal> revenueByTierFromDb() {
         Map<String, BigDecimal> revenueMap = new HashMap<>();
-
-        subscriptions.stream()
-                .filter(s -> SubscriptionStatus.ACTIVE.equals(s.getStatus()))
-                .forEach(s -> {
-                    String tier = s.getTier().name();
-                    BigDecimal currentRevenue = revenueMap.getOrDefault(tier, BigDecimal.ZERO);
-                    revenueMap.put(tier, currentRevenue.add(BigDecimal.valueOf(s.getPriceVnd())));
-                });
-
+        for (Object[] row : subscriptionRepository.sumActiveRevenueByTier()) {
+            PricingTier tier = (PricingTier) row[0];
+            Number sum = (Number) row[1];
+            revenueMap.put(tier.name(), BigDecimal.valueOf(sum.longValue()));
+        }
         return revenueMap;
     }
 
-    /**
-     * Calculate revenue by tier as list.
-     */
-    private List<RevenueReport.RevenueTierBreakdown> calculateRevenueByTierList(List<Subscription> subscriptions) {
-        Map<String, List<Subscription>> tierGroups = subscriptions.stream()
-                .collect(Collectors.groupingBy(s -> s.getTier().name()));
+    private List<RevenueReport.RevenueTierBreakdown> calculateRevenueByTierList(
+            List<Subscription> subscriptions) {
+        Map<String, List<Subscription>> tierGroups = new HashMap<>();
+        for (Subscription s : subscriptions) {
+            tierGroups.computeIfAbsent(s.getTier().name(), k -> new ArrayList<>()).add(s);
+        }
 
         List<RevenueReport.RevenueTierBreakdown> result = new ArrayList<>();
-
         tierGroups.forEach((tier, subs) -> {
             BigDecimal tierRevenue = subs.stream()
+                    .filter(s -> SubscriptionStatus.ACTIVE.equals(s.getStatus()))
                     .map(s -> BigDecimal.valueOf(s.getPriceVnd()))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            // Fallback: if no ACTIVE in tier, sum all (preserve prior semantics).
+            if (tierRevenue.compareTo(BigDecimal.ZERO) == 0) {
+                tierRevenue = subs.stream()
+                        .map(s -> BigDecimal.valueOf(s.getPriceVnd()))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+            }
 
             result.add(RevenueReport.RevenueTierBreakdown.builder()
                     .tier(tier)
@@ -251,27 +197,14 @@ public class AnalyticsService {
         return result;
     }
 
-    /**
-     * Check if subscription was active during the period.
-     */
-    private boolean isActiveInPeriod(Subscription subscription, LocalDate startDate, LocalDate endDate) {
-        LocalDate subStartDate = subscription.getStartedAt().toLocalDate();
-        LocalDate subEndDate = subscription.getExpiresAt().toLocalDate();
-
-        // Subscription overlaps with the period
-        return !subStartDate.isAfter(endDate) &&
-               (subEndDate == null || !subEndDate.isBefore(startDate));
-    }
-
-    /**
-     * Generate daily revenue data (mock for now).
-     */
-    private List<RevenueReport.DailyRevenue> generateDailyRevenue(LocalDate startDate, LocalDate endDate, BigDecimal totalRevenue) {
+    private List<RevenueReport.DailyRevenue> generateDailyRevenue(
+            LocalDate startDate, LocalDate endDate, BigDecimal totalRevenue) {
         List<RevenueReport.DailyRevenue> dailyData = new ArrayList<>();
 
-        // Simple distribution: divide total revenue evenly
         long dayCount = endDate.toEpochDay() - startDate.toEpochDay() + 1;
-        BigDecimal dailyAmount = dayCount > 0 ? totalRevenue.divide(BigDecimal.valueOf(dayCount), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+        BigDecimal dailyAmount = dayCount > 0
+            ? totalRevenue.divide(BigDecimal.valueOf(dayCount), 2, RoundingMode.HALF_UP)
+            : BigDecimal.ZERO;
 
         LocalDate currentDate = startDate;
         while (!currentDate.isAfter(endDate)) {
@@ -283,15 +216,5 @@ public class AnalyticsService {
         }
 
         return dailyData;
-    }
-
-    /**
-     * Calculate churn impact (revenue lost from cancelled subscriptions).
-     */
-    private BigDecimal calculateChurnImpact(List<Subscription> subscriptions) {
-        return subscriptions.stream()
-                .filter(s -> SubscriptionStatus.CANCELLED.equals(s.getStatus()))
-                .map(s -> BigDecimal.valueOf(s.getPriceVnd()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

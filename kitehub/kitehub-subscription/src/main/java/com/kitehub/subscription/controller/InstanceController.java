@@ -15,6 +15,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -50,14 +54,33 @@ public class InstanceController {
      * @param request create instance request
      * @return created instance response
      */
+    /** Default page size for the instance admin list (GAP-432). */
+    private static final int DEFAULT_PAGE_SIZE = 50;
+    /** Hard cap on page size to prevent re-introducing unbounded scans. */
+    private static final int MAX_PAGE_SIZE = 200;
+
     /**
-     * List all instances.
+     * List instances (non-deleted), paginated.
      *
-     * @return list of all instance responses
+     * <p><strong>GAP-432:</strong> previously returned a flat
+     * {@code List<InstanceResponse>} backed by {@code findAll()}. Now returns
+     * a {@link Page} envelope with explicit {@code page} + {@code size} bounds
+     * (default 50, capped at 200).</p>
+     *
+     * @param page Zero-based page index (default 0)
+     * @param size Page size (default 50, capped at 200)
+     * @return page of instance responses
      */
     @GetMapping
-    public ResponseEntity<List<InstanceResponse>> listInstances() {
-        List<InstanceResponse> responses = instanceService.listAllInstances();
+    public ResponseEntity<Page<InstanceResponse>> listInstances(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "" + DEFAULT_PAGE_SIZE) int size
+    ) {
+        int safePage = Math.max(0, page);
+        int safeSize = Math.min(Math.max(1, size), MAX_PAGE_SIZE);
+        Pageable pageable = PageRequest.of(safePage, safeSize,
+            Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<InstanceResponse> responses = instanceService.listAllInstances(pageable);
         return ResponseEntity.ok(responses);
     }
 

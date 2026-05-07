@@ -1,6 +1,6 @@
 # GAP-432: 3 service `findAll()` không bounded — performance cliff post-launch
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 2026-05-07 — code refactor + tests DONE; JMH benchmark + Performance audit re-score deferred to Wave 41 closure audit
 **Priority:** 🟠 P1 (Phase 1 BETA — cold-cache full-table scan; risk leo thang khi tenant count tăng)
 **Domain:** Backend / Performance
 **Found:** 2026-05-08 Wave 40 audit milestone (Bucket D Performance, PR #972)
@@ -46,11 +46,11 @@ Page<Payment> findByStatusAndCreatedAfter(Status status, Instant since, Pageable
 
 ## Acceptance Criteria
 
-- [ ] AnalyticsService 3 callsites refactored sang DB-side aggregation queries
-- [ ] PaymentService:121 + InstanceService:337 thêm Pageable + filter
-- [ ] Unit tests cover new query methods (existing test coverage maintain)
-- [ ] Performance test (JMH hoặc inline benchmark): cold-cache scenario <100ms cho dashboard stats với 1k instance fixture
-- [ ] Audit re-score Performance /100 ≥80 (current 75 +5)
+- [x] AnalyticsService 3 callsites refactored sang DB-side aggregation queries (`countByDeletedFalse`, `countInstancesByStatus`, `countSubscriptionsByTier`, `sumActiveMrr`, `sumActiveRevenueByTier`, `sumCancelledRevenue`, `findActiveInPeriod` — all WHERE-clause bounded)
+- [x] PaymentService:121 + InstanceService:337 thêm Pageable + filter (`findAllNotDeleted(Pageable)`, `findByStatusNotDeleted`, `findByDeletedFalse(Pageable)`); controllers expose `page`/`size` query params (default 50, capped at 200)
+- [x] Unit tests cover new query methods (existing test coverage maintain) — `AnalyticsServiceTest` rewritten với GAP-432 invariant `verify(repo, never()).findAll()`; new `PaymentServiceBoundedQueryTest` (3 tests) + `InstanceServiceBoundedListTest` (2 tests); `AnalyticsServiceCachingTest` updated to bounded path; `InstanceApiContractTest` updated to Page envelope. 29/29 tests pass với `mvn verify -P strict-warnings`
+- [ ] Performance test (JMH hoặc inline benchmark): cold-cache scenario <100ms cho dashboard stats với 1k instance fixture — **deferred Phase 2** (requires JMH harness + 1k row fixture; tracked as follow-up)
+- [ ] Audit re-score Performance /100 ≥80 (current 75 +5) — pending Wave 41 closure audit cycle
 
 ## Related
 
@@ -65,4 +65,5 @@ Page<Payment> findByStatusAndCreatedAfter(Status status, Instant since, Pageable
 
 ## Log
 
+- **2026-05-07** Wave 41 Bucket C shipped (this PR): all 5 unbounded `findAll()` callsites refactored to bounded DB-side queries. 3 callsites trong `AnalyticsService` (lines 57/58/129) → `countByDeletedFalse` + `countInstancesByStatus` + `countSubscriptionsByTier` + `sumActiveMrr` + `sumActiveRevenueByTier` + `findActiveInPeriod`; `PaymentService:121` + `InstanceService:337` → `Pageable`-driven paged queries (default size 50, hard cap 200); controllers exposed `page`/`size` query params. Tests pass: `mvn -pl kitehub-subscription,kitehub-admin verify -P strict-warnings` 29/29 green; new tests + caching test updated to assert `verify(repo, never()).findAll()` invariant. Status PARTIAL not DONE: AC items 4 (JMH benchmark) + 5 (audit re-score) deferred to Wave 41 closure audit cycle per `gap-done-discipline.md` §3. **API contract change:** `GET /api/platform/instances` and `GET /api/platform/payments` now return `Page<...>` envelope (`{content, totalElements, ...}`) instead of bare array — admin FE may need adapter.
 - **2026-05-08** Filed during Wave 40 closure handoff. Audit Bucket D Performance bundle 3 P1 callsite vào 1 gap để Wave 41 fix-cluster có 1 ngăn refactor.

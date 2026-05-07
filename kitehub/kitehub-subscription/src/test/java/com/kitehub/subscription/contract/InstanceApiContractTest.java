@@ -16,6 +16,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -149,29 +152,32 @@ class InstanceApiContractTest {
     class ListInstances {
 
         @Test
-        @DisplayName("Response schema: returns array of instance objects")
-        void responseSchema_returnsArray() throws Exception {
-            when(instanceService.listAllInstances())
-                    .thenReturn(List.of(sampleResponse()));
+        @DisplayName("Response schema: returns paged envelope with content array (GAP-432)")
+        void responseSchema_returnsPagedEnvelope() throws Exception {
+            Page<InstanceResponse> page = new PageImpl<>(List.of(sampleResponse()));
+            when(instanceService.listAllInstances(any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get("/api/platform/instances"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$[0].id").isString())
-                    .andExpect(jsonPath("$[0].subdomain").isString())
-                    .andExpect(jsonPath("$[0].status").isString())
-                    .andExpect(jsonPath("$[0].tier").isString());
+                    .andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.content[0].id").isString())
+                    .andExpect(jsonPath("$.content[0].subdomain").isString())
+                    .andExpect(jsonPath("$.content[0].status").isString())
+                    .andExpect(jsonPath("$.content[0].tier").isString())
+                    .andExpect(jsonPath("$.totalElements").isNumber());
         }
 
         @Test
-        @DisplayName("Response schema: empty array when no instances")
-        void responseSchema_emptyArray() throws Exception {
-            when(instanceService.listAllInstances()).thenReturn(List.of());
+        @DisplayName("Response schema: empty paged envelope when no instances (GAP-432)")
+        void responseSchema_emptyEnvelope() throws Exception {
+            when(instanceService.listAllInstances(any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of()));
 
             mockMvc.perform(get("/api/platform/instances"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$").isEmpty());
+                    .andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.content").isEmpty())
+                    .andExpect(jsonPath("$.totalElements").value(0));
         }
     }
 
