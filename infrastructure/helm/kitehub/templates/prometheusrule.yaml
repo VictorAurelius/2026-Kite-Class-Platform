@@ -254,11 +254,20 @@ spec:
             description: "Certificate for {{ "{{ $labels.instance }}" }} expires in {{ "{{ $value | humanizeDuration }}" }}. Renew before expiry — every tenant fronted by this cert will fail TLS handshakes once it lapses."
             runbook_url: "/documents/05-guides/operations/runbooks/cert-expiry-imminent.md"
 
-        # METRIC PENDING — depends on `kite_backup_last_success_timestamp_seconds` pushgateway
-        # gauge from the backup cron (see GAP-117 backup runbook + GAP-118 versioning workflow).
+        # METRIC LIVE — `kite_backup_last_success_timestamp_seconds` (gauge) is emitted by
+        # `scripts/backup-production.sh` via Pushgateway after each successful pre-deploy
+        # RDS snapshot (GAP-430 Wave 41 Bucket A — fix for metric-name mismatch where the
+        # script previously emitted only `kite_backup_snapshots_total`, leaving this alert
+        # silent for ~all of Wave 33-40). See GAP-117 backup runbook + GAP-118 versioning
+        # workflow for cadence sources.
         # Threshold 90000s = 25h (1h grace beyond the 24h scheduled cadence).
+        # `absent()` arm fires if the gauge series itself disappears (script never ran or
+        # Pushgateway lost the series), preventing a different silent-failure mode.
         - alert: BackupJobFailure
-          expr: time() - kite_backup_last_success_timestamp_seconds > 90000
+          expr: |
+            (time() - max(kite_backup_last_success_timestamp_seconds) > 90000)
+            or
+            absent(kite_backup_last_success_timestamp_seconds)
           for: 5m
           labels:
             severity: critical
