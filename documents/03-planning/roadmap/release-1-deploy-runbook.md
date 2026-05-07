@@ -168,6 +168,8 @@ updated: 2026-05-07
 
 ## Phase 3 — Image push (CI auto + user trigger ad-hoc test tag)
 
+> **Detailed runbook:** [`documents/05-guides/deploy/phase-3-image-push.md`](../../05-guides/deploy/phase-3-image-push.md) — pre-flight checklist (Variables + OIDC roles + 10 ECR repos), trigger sequence, monitor, verification (ECR images / Trivy / Cosign / SBOM), failure modes (F1-F4), post-success actions.
+
 - [ ] **3.1** User tag ad-hoc test: `git tag v0.9.0-beta-staging.1 && git push origin v0.9.0-beta-staging.1`
 - [ ] **3.2** `docker-build-push.yml` (Wave 37 Bucket B) auto-fires:
   - 9 services × 2 archs = 18 builds
