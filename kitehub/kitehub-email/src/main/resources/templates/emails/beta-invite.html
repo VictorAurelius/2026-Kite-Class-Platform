@@ -93,14 +93,28 @@
             Cảm ơn bạn đã đăng ký.
         </p>
 
-        <p>Chúng tôi vui mừng thông báo yêu cầu của bạn đã được duyệt. Vui lòng hoàn tất đăng ký bằng cách bấm nút bên dưới:</p>
+        <p>Chúng tôi vui mừng thông báo yêu cầu của bạn đã được duyệt. Vui lòng hoàn tất đăng ký theo các bước sau:</p>
+
+        <ol>
+            <li>Bấm nút bên dưới để mở trang đăng ký.</li>
+            <li>Nhập <strong>mã 6 chữ số</strong> hiển thị bên dưới để xác minh email (bảo mật 2FA).</li>
+            <li>Hoàn tất thông tin đăng ký.</li>
+        </ol>
 
         <p style="text-align: center;">
-            <a th:href="${inviteUrl}" class="button">Hoàn tất đăng ký</a>
+            <a th:href="${inviteUrl}" class="button">Mở trang đăng ký</a>
+        </p>
+
+        <!-- GAP-388 Wave 36 Bucket A 388-B: 6-digit claim code replaces raw UUID
+             leak in href/email body. Email forwarding/screenshot no longer hands
+             the attacker a usable token without also knowing the code surface. -->
+        <p style="text-align: center; margin-top: 20px;">
+            Mã xác minh:
+            <strong style="display: inline-block; padding: 8px 16px; background: #F3F4F6; border-radius: 6px; letter-spacing: 6px; font-family: 'Courier New', monospace; font-size: 22px;"
+                    th:text="${claimCode}">000000</strong>
         </p>
 
         <p class="meta">
-            Mã mời: <code th:text="${inviteToken}">TOKEN</code><br/>
             Hết hạn: <strong th:text="${expiryDate}">2026-05-31</strong>
         </p>
 

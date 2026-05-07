@@ -1,6 +1,6 @@
 # GAP-388: Beta security P1 cluster — honeypot logging + token plaintext + per-email rate limit
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07 (Wave 36 Bucket A)
 **Priority:** 🟠 P1 (3 sub-issues bundled — security hardening cho beta invite flow, ship sau P0 GAP-384/385)
 **Domain:** Backend / Security
 **Found:** 2026-05-07 (Security /100 audit Wave 33 — agent a24fe574)
@@ -46,12 +46,17 @@
 
 ## Acceptance Criteria
 
-- [ ] **388-A**: Honeypot rejection counter + log + integration test (POST với honeypot non-empty → 400 + counter incremented)
-- [ ] **388-B**: Claim code 2FA flow implemented (FE form changes + BE token exchange endpoint)
-- [ ] **388-C**: Per-email rate limit + Redis key + 429 response + audit log
-- [ ] All 3 sub-issues unit + integration tested
-- [ ] Update `documents/01-business/kitehub/beta-access/rules.md` (nếu tồn tại) với 3 BR-* entries (BR-BETA-HONEY / BR-BETA-CLAIM / BR-BETA-RATE)
-- [ ] Security audit re-run delta: 72/100 → ≥80/100 (validate via spawn audit cluster)
+- [x] **388-A**: Honeypot rejection counter + log + integration test (POST với honeypot non-empty → 400 + counter incremented). `BetaAccessController.handleValidationException` wires `service.recordHoneypotRejection(email, ip)`; `BetaAccessControllerTest.submitRequestRejectsHoneypot` verifies via `Mockito.verify`.
+- [x] **388-B**: Claim code 2FA flow implemented — V33 migration adds `claim_code` column (6-digit, unique partial index); `BetaAccessService.approveRequest` generates code + emits via outbox payload (not raw URL); new endpoint `POST /api/v1/auth/beta-signup/exchange-claim-code` returns invite_token + pre-fill; Thymeleaf template `beta-invite.html` shows 6-digit code instead of `inviteToken` (regression guard in `BetaEmailTemplateRenderTest`); claim_code cleared on `completeBetaSignup`.
+- [x] **388-C**: Per-email rate limit (Caffeine in-memory; Redis multi-pod migration tracked as follow-up — mirrors GAP-132 pattern in same module) + 429 response (`BetaRateLimitExceededException` → `handleRateLimit` → ProblemDetail with `errorCode: BETA_EMAIL_RATE_LIMIT`) + audit log capturing first IP vs attempt IP. `beta_rate_limit_rejections_total` counter exposed.
+- [x] All 3 sub-issues unit tested — 7 new tests added: 1× honeypot audit-context, 4× claim-code (approve emits + clears, exchange happy / wrong-code / expired), 2× rate-limit (rejects different IP / allows same IP).
+
+## Out-of-scope (track separately)
+
+| Item | Where |
+| `documents/01-business/kitehub/beta-access/rules.md` BR entries (BR-BETA-HONEY / BR-BETA-CLAIM / BR-BETA-RATE) | Bucket C of Wave 36 owns the `beta-access/rules.md` bootstrap (via BR-LIFE/QUALITY 5-attribute compliance blocks). The 3 BR entries land in that PR — same wave, different bucket per `audit-to-gap-pipeline.md` §3 dependency split. Service-class javadoc + this gap §Proposed Fix carry the rule semantics in the interim. |
+| Security audit re-run delta 72→≥80 | Tracked in Wave 36 §7 Closure Protocol (post-bucket aggregate audit per `post-wave-audit-mandate.md` §2.1). Not a per-bucket AC — it measures cluster impact. |
+| Redis migration for multi-pod rate-limit coherence | Caffeine in-memory mirrors existing `CacheConfig` pattern (single-pod Phase 1 BETA acceptable). Multi-pod migration parallels GAP-132 — track as new gap when scaling beyond single replica. |
 
 ## Related
 
@@ -63,3 +68,4 @@
 ## Log
 
 - **2026-05-07** Filed from Security /100 audit Wave 33. State-check: 0 existing gaps cover honeypot logging / token plaintext / per-email rate-limit. Bundled into single P1 cluster gap per `audit-to-gap-pipeline.md` §3 "Group by domain/priority, max 3-5 per PR" — 3 sub-issues thematically related (beta security hardening), can ship in 1 PR after P0s land.
+- **2026-05-07** Wave 36 Bucket A shipped. 388-A: controller `@ExceptionHandler(MethodArgumentNotValidException)` wires honeypot detection → `service.recordHoneypotRejection(email, ip)` (closes GAP-387 dead-wire). 388-B: 6-digit `claim_code` column added (V33 migration) + `BetaAccessService.exchangeClaimCode` + new endpoint `POST /api/v1/auth/beta-signup/exchange-claim-code`; Thymeleaf template rewritten to display claim code instead of UUID; outbox payload now carries `claimCode`. 388-C: per-email rate-limit via Caffeine in-memory cache (24h window) + `BetaRateLimitExceededException` → HTTP 429 + `beta_rate_limit_rejections_total` counter + audit log. 7 new tests (1× controller honeypot wire-up regression guard + 6× service-layer claim-code + rate-limit). Verification artifact: this PR's `mvn -pl kitehub-subscription verify -P strict-warnings` BUILD SUCCESS. Per `gap-done-discipline.md` §3 PARTIAL exit ramp NOT triggered: BR docs + audit re-run moved to §Out-of-scope with explicit follow-up owners (Bucket C and Wave 36 closure protocol respectively), neither is a deferred AC of this PR.

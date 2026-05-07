@@ -47,26 +47,29 @@ class BetaEmailTemplateRenderTest {
     }
 
     @Test
-    @DisplayName("beta-invite renders orgName, inviteToken, inviteUrl, expiryDate + CTA + disclaimer")
+    @DisplayName("beta-invite renders orgName, claimCode, inviteUrl, expiryDate + CTA + disclaimer (GAP-388 388-B)")
     void betaInviteRenders() {
         Map<String, Object> vars = new HashMap<>();
         vars.put("orgName", "Trung tâm Anh ngữ Sao Mai");
-        vars.put("inviteToken", "abc-123-def-456");
-        vars.put("inviteUrl", "https://kitehub.vn/auth/beta-signup?token=abc-123-def-456");
+        vars.put("claimCode", "428193");
+        // inviteUrl now points to the signup page (no UUID in href per GAP-388 388-B).
+        vars.put("inviteUrl", "https://kitehub.vn/auth/beta-signup");
         vars.put("expiryDate", "2026-05-31");
 
         String html = engine.process("emails/beta-invite", buildContext(vars));
 
         // Variables substituted
         assertThat(html).contains("Trung tâm Anh ngữ Sao Mai");
-        assertThat(html).contains("abc-123-def-456");
-        assertThat(html).contains("https://kitehub.vn/auth/beta-signup?token=abc-123-def-456");
+        assertThat(html).contains("428193"); // GAP-388 388-B: claim code, NOT raw UUID
+        assertThat(html).contains("https://kitehub.vn/auth/beta-signup");
         assertThat(html).contains("2026-05-31");
 
         // Required UX elements
-        assertThat(html).contains("Hoàn tất đăng ký"); // CTA per wave plan
+        assertThat(html).contains("Mở trang đăng ký"); // CTA — links to signup, not direct token URL
         assertThat(html).containsIgnoringCase("beta"); // beta disclaimer
         assertThat(html).contains("v1 pending counsel review"); // CLAUDE.md decision context disclaimer
+        // GAP-388 388-B regression guard: raw UUID-shaped tokens MUST NOT appear in the body.
+        assertThat(html).doesNotContain("abc-123-def-456");
     }
 
     @Test

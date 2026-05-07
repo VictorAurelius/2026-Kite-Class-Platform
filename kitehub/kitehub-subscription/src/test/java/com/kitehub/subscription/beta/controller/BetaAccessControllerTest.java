@@ -91,7 +91,8 @@ class BetaAccessControllerTest {
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())
                 .build();
-        when(service.submitRequest(any())).thenReturn(saved);
+        // Controller now calls the (dto, ip) overload — stub that signature.
+        when(service.submitRequest(any(), any())).thenReturn(saved);
 
         mockMvc.perform(post("/api/v1/auth/request-beta-access")
                         .with(csrf())
@@ -104,7 +105,7 @@ class BetaAccessControllerTest {
 
     @Test
     @WithAnonymousUser
-    @DisplayName("POST /request-beta-access — 400 when honeypot non-empty")
+    @DisplayName("POST /request-beta-access — 400 when honeypot non-empty + service.recordHoneypotRejection() invoked (GAP-387 wire-up)")
     void submitRequestRejectsHoneypot() throws Exception {
         BetaRequestDto dto = new BetaRequestDto(
                 "spam@example.com", "Bot", "Spam Inc",
@@ -115,6 +116,13 @@ class BetaAccessControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest());
+
+        // GAP-388 388-A / GAP-387 — verify the controller-level @ExceptionHandler
+        // wires the honeypot violation into recordHoneypotRejection so the
+        // beta_honeypot_rejections_total counter actually increments + the
+        // BetaHoneypotSpike alert rule has data to fire on.
+        Mockito.verify(service, Mockito.times(1))
+                .recordHoneypotRejection(eq("spam@example.com"), Mockito.anyString());
     }
 
     @Test
