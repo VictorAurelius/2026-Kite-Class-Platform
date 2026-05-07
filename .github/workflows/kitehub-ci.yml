@@ -162,6 +162,12 @@ jobs:
         working-directory: kitehub
         run: chmod +x mvnw
 
+      # GAP-382: build-time detector for admin scan drift (recurrence #4 prevention).
+      # Fails BEFORE mvn verify when subscription adds entity/repository package
+      # without updating KiteHubAdminApplication. See feedback_admin_scan_packages_after_module_add.md.
+      - name: Admin scan coverage (drift detector — GAP-382)
+        run: bash scripts/check-admin-scan-coverage.sh
+
       # GAP-241/242/243 closed 2026-04-27: AdminControllerTest now passes (V11 SQL fixed,
       # S3 mock + RabbitTemplate @MockBean wired in @DynamicPropertySource). Run full
       # admin suite (23 tests) without exclusions.

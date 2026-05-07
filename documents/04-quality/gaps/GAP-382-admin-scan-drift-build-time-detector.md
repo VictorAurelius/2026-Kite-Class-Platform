@@ -1,6 +1,6 @@
 # GAP-382: Admin scan drift — build-time detector
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07
 **Priority:** 🟠 P1 (meta — force multiplier per `meta-gap-priority.md` §3 Meta-P1)
 **Domain:** DevOps / Build / Backend
 **Found:** 2026-05-07 (Wave 33 Bucket C closure — 3rd recurrence)
@@ -52,11 +52,11 @@ The pattern repeats because:
 
 ## Acceptance Criteria
 
-- [ ] `scripts/check-admin-scan-coverage.sh` shipped — exit 0 on current main, exit 1 with diff message on synthetic missing-package fixture
-- [ ] CI wiring: new step in `kitehub-admin-ci.yml` runs the script BEFORE `mvn verify` (fail fast)
-- [ ] Self-test: temporarily revert `BetaAccessRequest` package from admin scan → script exits 1 + lists `com.kitehub.subscription.beta.repository`
-- [ ] Memory `feedback_admin_scan_packages_after_module_add.md` updated to point to detector (not just manual reminder)
-- [ ] Recurrence #4 prevented — next entity-package PR fails CI BEFORE admin module test, not at admin's `@SpringBootTest`
+- [x] `scripts/check-admin-scan-coverage.sh` shipped — exit 0 on current main, exit 1 with diff message on synthetic missing-package fixture
+- [x] CI wiring: new step in `kitehub-ci.yml` `test-admin` job runs the script BEFORE `mvn verify` (fail fast)
+- [x] Self-test: temporarily revert `BetaAccessRequest` package from admin scan → script exits 1 + lists `com.kitehub.subscription.beta.repository`
+- [x] Memory `feedback_admin_scan_packages_after_module_add.md` updated to point to detector (not just manual reminder)
+- [x] Recurrence #4 prevented — next entity-package PR fails CI BEFORE admin module test, not at admin's `@SpringBootTest`
 
 ## Out of scope (track separately)
 
@@ -75,3 +75,4 @@ The pattern repeats because:
 ## Log
 
 - **2026-05-07:** Filed at Wave 33 closure (PR #900 retro). Triggered by 3rd recurrence of admin scan drift pattern (Beta package after Consent + Dsar precedents). Memory-as-enforcement insufficient — needs build-time detector per `incident-to-rule-pipeline.md` Stage 3.
+- **2026-05-07 (closure):** Shipped `scripts/check-admin-scan-coverage.sh` (bash + grep awk + prefix-match coverage) wired into `.github/workflows/kitehub-ci.yml` `test-admin` job before `mvn verify`. Memory `feedback_admin_scan_packages_after_module_add.md` updated to point at detector. Self-test (current main): positive case `✅ Admin scan coverage OK (entity packages: 7, repository packages: 7)` exit 0. Negative case (revert `com.kitehub.subscription.beta.repository` + `com.kitehub.subscription.beta.entity` from `KiteHubAdminApplication`): exit 1 + lists exactly the two missing packages with hint pointing to memory file. ShellCheck clean; YAML valid. Per `gap-done-discipline.md` §2 — every AC verified, no banned phrases, recurrence #4 onwards now caught at CI before admin `@SpringBootTest`.
