@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,9 +41,11 @@ import java.util.UUID;
  *   <li>{@code POST /api/v1/admin/beta-requests/{id}/reject} — coordinator</li>
  * </ul>
  *
- * <p>Admin endpoints expect a coordinator role guarded at the gateway / Spring
- * Security configuration level (out of scope for this controller; mirrors how
- * {@code DsarController} keeps the security config separate).</p>
+ * <p>Admin endpoints are guarded at the controller via {@code @PreAuthorize("hasRole('PLATFORM_ADMIN')")}
+ * (closes GAP-384, Wave 35). Authentication comes from the gateway-forwarded
+ * {@code X-User-Id} + {@code X-User-Roles} headers translated into Spring
+ * {@code SecurityContext} authorities by
+ * {@link com.kitehub.subscription.config.SecurityConfig.XUserRolesHeaderFilter}.</p>
  *
  * @since Wave 33 — GAP-372
  */
@@ -98,6 +101,7 @@ public class BetaAccessController {
 
     @Operation(summary = "List beta access requests by status (coordinator)",
                description = "Coordinator-only. Defaults to PENDING-first ordering by createdAt desc.")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     @GetMapping("/api/v1/admin/beta-requests")
     public ResponseEntity<BetaRequestPage> listRequests(
             @RequestParam(defaultValue = "PENDING") BetaAccessRequestStatus status,
@@ -118,6 +122,7 @@ public class BetaAccessController {
 
     @Operation(summary = "Approve a beta access request (coordinator)",
                description = "Issues invite token, +24h expiry, publishes invite-sent event via Outbox.")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     @PostMapping("/api/v1/admin/beta-requests/{id}/approve")
     public ResponseEntity<BetaRequestResponse> approve(
             @PathVariable Long id,
@@ -134,6 +139,7 @@ public class BetaAccessController {
     }
 
     @Operation(summary = "Reject a beta access request (coordinator)")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     @PostMapping("/api/v1/admin/beta-requests/{id}/reject")
     public ResponseEntity<BetaRequestResponse> reject(
             @PathVariable Long id,
