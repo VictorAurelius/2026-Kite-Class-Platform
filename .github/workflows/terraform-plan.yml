@@ -59,12 +59,15 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: github-terraform-plan-${{ github.run_id }}
 
-      - name: Terraform init (no backend if AWS not configured)
+      - name: Terraform init (partial backend config — bucket from GitHub Variable)
         id: init
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
-          if [ -n "${{ vars.AWS_TERRAFORM_PLAN_ROLE_ARN }}" ]; then
-            terraform init -input=false
+          if [ -n "${{ vars.AWS_TERRAFORM_PLAN_ROLE_ARN }}" ] && [ -n "${{ vars.TERRAFORM_STATE_BUCKET }}" ]; then
+            terraform init -input=false -backend-config="bucket=${{ vars.TERRAFORM_STATE_BUCKET }}"
+          elif [ -n "${{ vars.AWS_TERRAFORM_PLAN_ROLE_ARN }}" ]; then
+            echo "TERRAFORM_STATE_BUCKET not set — falling back to validation-only mode"
+            terraform init -backend=false -input=false
           else
             echo "AWS_TERRAFORM_PLAN_ROLE_ARN not set — running init without backend (validation-only mode)"
             terraform init -backend=false -input=false
