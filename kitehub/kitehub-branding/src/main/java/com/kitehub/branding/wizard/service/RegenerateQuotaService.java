@@ -1,5 +1,7 @@
 package com.kitehub.branding.wizard.service;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.domain.enums.JobStatus;
 import com.kitehub.branding.repository.BrandingJobRepository;
@@ -9,6 +11,8 @@ import com.kitehub.branding.wizard.repository.BrandingRegenerateUsageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +23,7 @@ import java.time.ZoneOffset;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Regenerate-quota service for the AI Branding wizard (Wave 34 sub-GAP-272d).
@@ -51,6 +56,21 @@ public class RegenerateQuotaService {
     private final BrandingJobRepository brandingJobRepository;
     private final Clock clock;
 
+    /**
+     * Local idempotency-hash cache (Wave 36 GAP-393-D).
+     *
+     * <p>Saves the 2-query latency on idempotent regenerate replays: first the
+     * {@code findByUserIdAndIdempotencyKey} usage lookup, then {@code findById}
+     * for the job. With this cache, replays within 10 minutes return the cached
+     * job UUID without hitting the DB. Local-only on purpose — idempotency is
+     * an in-session concern and the DB row remains the source of truth on cold
+     * start.
+     */
+    private final Cache<String, UUID> idempotencyCache = Caffeine.newBuilder()
+            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .maximumSize(10_000)
+            .build();
+
     /** Resolve the tier cap. Unknown tier → FREE (fail-safe). */
     int limitFor(String tier) {
         if (tier == null) return freeLimit;
@@ -65,7 +85,13 @@ public class RegenerateQuotaService {
     /**
      * Read the user's current quota state. Lazy — does not create a row if the
      * user has never regenerated today.
+     *
+     * <p>Wave 36 GAP-393-A: cached in {@link com.kitehub.branding.config.CacheConfig#REGENERATE_QUOTA_CACHE}
+     * keyed by {@code userId + '_' + tier}. Wizard fetches this multiple times per
+     * session (template select, preview, deploy). Eviction occurs in
+     * {@link #regenerate} when usage is recorded.
      */
+    @Cacheable(value = "regenerateQuota", key = "#userId + '_' + #tier", unless = "#result == null")
     public RegenerateQuotaResponse getQuota(String userId, String tier) {
         int limit = limitFor(tier);
         LocalDateTime windowStart = todayStart();
@@ -85,11 +111,27 @@ public class RegenerateQuotaService {
      * @throws IllegalStateException  when the job is not in a regen-eligible state
      */
     @Transactional
+    @CacheEvict(value = "regenerateQuota", key = "#userId + '_' + #tier")
     public BrandingJob regenerate(
             UUID jobId, UUID instanceId, String userId, String tier, String idempotencyKey) {
 
-        // Idempotent replay: same (user, key) pair within window returns same job.
+        // Wave 36 GAP-393-D — idempotent replay: try local Caffeine cache first
+        // (saves the 2 DB queries: usage lookup + job fetch). DB remains the
+        // source of truth; cache miss falls through to the original 2-query path.
         if (idempotencyKey != null) {
+            String cacheKey = userId + ":" + idempotencyKey;
+            UUID cachedJobId = idempotencyCache.getIfPresent(cacheKey);
+            if (cachedJobId != null) {
+                BrandingJob cachedHit = brandingJobRepository.findById(cachedJobId).orElse(null);
+                if (cachedHit != null) {
+                    log.debug("Idempotent regenerate cache-hit for user={} key={}",
+                            userId, idempotencyKey);
+                    return cachedHit;
+                }
+                // Cached UUID points to a missing job — invalidate + fall through.
+                idempotencyCache.invalidate(cacheKey);
+            }
+
             Optional<BrandingRegenerateUsage> replay = usageRepository
                     .findByUserIdAndIdempotencyKey(userId, idempotencyKey);
             if (replay.isPresent() && replay.get().getJobId() != null) {
@@ -97,6 +139,7 @@ public class RegenerateQuotaService {
                         .findById(replay.get().getJobId())
                         .orElse(null);
                 if (existing != null) {
+                    idempotencyCache.put(cacheKey, existing.getId());
                     log.debug("Idempotent regenerate replay for user={} key={}",
                             userId, idempotencyKey);
                     return existing;
@@ -141,7 +184,22 @@ public class RegenerateQuotaService {
 
         job.setStatus(JobStatus.PROCESSING);
         job.setProgress(0);
-        return brandingJobRepository.save(job);
+        BrandingJob saved = brandingJobRepository.save(job);
+
+        // Wave 36 GAP-393-D — seed idempotency cache so a same-key replay
+        // within the 10-minute window is served without DB hits.
+        if (idempotencyKey != null) {
+            idempotencyCache.put(userId + ":" + idempotencyKey, saved.getId());
+        }
+        return saved;
+    }
+
+    /**
+     * Test seam — exposes idempotency cache size for assertions.
+     * Visible for tests only.
+     */
+    long idempotencyCacheSize() {
+        return idempotencyCache.estimatedSize();
     }
 
     private boolean isRegenEligible(JobStatus status) {

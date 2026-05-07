@@ -59,6 +59,13 @@ kitehub:
       # GAP-132 (Wave 9.5-B) — seed TTLs for branding Caffeine caches.
       template-ttl-seconds: ${BRANDING_TEMPLATE_CACHE_TTL_SECONDS:300}
       rate-limit-ttl-seconds: ${BRANDING_RATE_LIMIT_CACHE_TTL_SECONDS:900}
+    deploy-stream:
+      # Wave 36 GAP-393-B — SSE backpressure: cap concurrent subscribers per job.
+      # Defends against a single misbehaving client opening unbounded streams.
+      max-emitters-per-job: ${BRANDING_DEPLOY_STREAM_MAX_EMITTERS:20}
+      # Poller + heartbeat intervals (existing fields surfaced for visibility).
+      poll-ms: ${BRANDING_DEPLOY_STREAM_POLL_MS:2000}
+      heartbeat-ms: ${BRANDING_DEPLOY_STREAM_HEARTBEAT_MS:30000}
 
 # GAP-386 / BR-QUALITY-001 — AI Branding quality gate pass threshold.
 # 12-factor §III "Store config in environment" externalization. Default 70/100
