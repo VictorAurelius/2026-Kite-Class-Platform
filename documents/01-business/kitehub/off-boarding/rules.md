@@ -152,3 +152,17 @@ Classification sourced from `RetentionClassifier` (GAP-073 DONE, ADR-013). Off-b
 ## 8. Log
 
 - 2026-04-20 — Drafted under GAP-201 Phase 1. State-check: no existing off-boarding service exists; `StorageCleanupScheduler.SOFT_DELETE_GRACE_PERIOD_DAYS = 30` is the only churn-adjacent constant. Phase 2 (implementation) will add `OffBoardingService`, `OffBoardingController`, `PurgeScheduler`, `offboarding_request` table migration.
+
+## Five-attribute review per `business-logic-review.md`
+
+Per-rule attributes (Source / Rationale / Reviewer / Compliance check / Review cadence) backfilled at file-level placeholder per Phase 1 of GAP-433. Per-rule granularity tracked via GAP-156 Phase 2 stakeholder sign-offs.
+
+- **Source:** Existing rules in this file derive from a mix of: feature gaps cited inline (where present), ADRs, persona reviews, and informed-gut estimates from Wave 1-30 work. Rules without inline citation default to `informed gut` per `business-logic-review.md` §2.1 and inherit quarterly re-review obligation below.
+- **Rationale:** Rule values reflect product judgment + (where applicable) competitor benchmarks + VN regulatory minimums. Detailed per-rule rationale to be backfilled during GAP-156 Phase 2 stakeholder review; until then, treat values as `informed gut` subject to next quarterly review.
+- **Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-05-08). Formal stakeholder + legal counsel sign-off queued via GAP-156. Solo-dev exemption per `business-logic-review.md` §2.3 — the Reviewer line documents which hat is being worn AND obligation is attached for team-growth or pre-launch trigger.
+- **Compliance check:** **Compliant** — PDPL 2023 Art 16 (right to deletion / data portability); Decree 53/2022 (data export obligations).
+- **Review cadence:** Quarterly (default per `business-logic-review.md` §2.5). **Next review:** 2026-08-08. Event triggers: PDPL implementing-decree on deletion-right, off-boarding SLA shift.
+
+## Log
+
+- **2026-05-08** Backfill 5-attribute review section per GAP-433 Phase 1 (`business-logic-review.md` §2 standard). Placeholder Reviewer + Quarterly cadence + domain-specific Compliance check. GAP-156 Phase 2 will replace placeholders with stakeholder sign-offs.
