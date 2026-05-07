@@ -1,6 +1,6 @@
 # GAP-431: thiếu `startupProbe` trong Helm deployment templates
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — template edits shipped Wave 41 Bucket B; helm lint + live cold-deploy self-test deferred (helm CLI + k8s cluster unavailable in solo-dev WSL env)
 **Priority:** 🟠 P1 (Phase 1 BETA — restart loop risk on cold deploy với Flyway migration startup ~15-45s)
 **Domain:** DevOps / Helm
 **Found:** 2026-05-08 Wave 40 audit milestone (Bucket E Ops Readiness, PR #975)
@@ -33,11 +33,11 @@ Tổng `30 × 5s = 150s` window cho Flyway + Spring init — đủ headroom (Wav
 
 ## Acceptance Criteria
 
-- [ ] `startupProbe` thêm vào 6 Helm templates (kitehub-{admin,branding,email,gateway,subscription} + kiteclass-core)
-- [ ] `helm lint` clean
-- [ ] `helm template` render expected `startupProbe` block
-- [ ] Self-test trên local k8s (kind/minikube) hoặc staging — fresh DB cold deploy không restart loop
-- [ ] Cross-link runbook `documents/05-guides/operations/runbooks/startup-probe-tuning.md` (mới)
+- [x] `startupProbe` thêm vào tất cả deployment templates — `infrastructure/helm/kitehub/templates/deployment.yaml` (range loop renders 6 deployments: gateway/subscription/branding/admin/email/frontend) + `infrastructure/helm/kiteclass-instance/templates/deployment.yaml` (kiteclass-core). State-check `find infrastructure/helm -name deployment.yaml -type f` returned exactly 2 chart files; both edited.
+- [ ] `helm lint` clean — **deferred to staging CI** (helm CLI not installed in solo-dev WSL; verified template diff only adds well-formed yaml block matching Kubernetes startupProbe schema)
+- [ ] `helm template` render expected `startupProbe` block — **deferred to staging CI** (same blocker; template edits indent-aligned with existing livenessProbe/readinessProbe pattern at containers[0] scope)
+- [ ] Self-test trên local k8s (kind/minikube) hoặc staging — fresh DB cold deploy không restart loop — **deferred to GAP-431b** (requires staging cluster + Flyway-laden cold-start; tracked separately)
+- [ ] Cross-link runbook `documents/05-guides/operations/runbooks/startup-probe-tuning.md` (mới) — **deferred to GAP-431b** (out-of-scope for template edit; tuning playbook batched with self-test verification)
 
 ## Related
 
@@ -51,4 +51,5 @@ Tổng `30 × 5s = 150s` window cho Flyway + Spring init — đủ headroom (Wav
 
 ## Log
 
+- **2026-05-08** Wave 41 Bucket B shipped template edits — added `startupProbe` block (initialDelaySeconds=30, failureThreshold=30, periodSeconds=5, timeoutSeconds=3 → 150s headroom for Flyway+Spring init) to both Helm chart deployment templates with inline GAP-431 javadoc comment explaining the Kubernetes 1.16+ probe model (startup gates liveness/readiness during boot). State-check `find infrastructure/helm -name deployment.yaml -type f` returned 2 paths (kitehub + kiteclass-instance); 2/2 edited. Status flipped to 🟡 PARTIAL per `gap-done-discipline.md` §3 — helm-lint + helm-template render verification + live cold-deploy self-test require helm CLI + k8s cluster, both unavailable in solo-dev WSL env. Follow-up GAP-431b to track staging-CI verification + runbook authoring (paired so deferred work doesn't fall off radar).
 - **2026-05-08** Filed during Wave 40 closure handoff. Audit Bucket E phát hiện regression Phase 1 BETA pre-launch.
