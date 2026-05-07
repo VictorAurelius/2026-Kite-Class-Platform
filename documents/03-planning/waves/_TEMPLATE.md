@@ -34,13 +34,31 @@ Disjoint check: confirm no two buckets touch the same package / file.
 
 ---
 
-## 3. Scope (per bucket)
+## 3. Scope (compact schema — Strategy B+C proven Wave 33)
+
+**Stake tier (per `wave-pack-planner/SKILL.md` §Step 4.6):** <HIGH | MEDIUM | LOW> → model: <Opus 4.7 full | Opus medium | Sonnet/Haiku>
+**Cross-layer? (per `wave-pack-planner/SKILL.md` §Step 4.5):** <YES → Bucket 0 Foundation required per `contract-first-for-cross-layer.md` | NO → skip foundation>
+
+| # | Bucket | Gap(s) | Priority | Files (glob) | Spawn order |
+|:-:|--------|--------|:--------:|--------------|:-----------:|
+| 0 | **Foundation** | (contract + mock infra — only if cross-layer=YES) | 🟠 P1 | `documents/01-business/{domain}/api-contract.md` + `{frontend}/src/test/msw/handlers/{domain}.ts` | MERGE FIRST |
+| 1 | **A** | GAP-XXX | <prio> | `path/to/area/` | parallel after Bucket 0 |
+| 2 | **B** | GAP-YYY | <prio> | `path/to/other/` | parallel after Bucket 0 |
+
+### Bucket 0 — Foundation (Contract + Mock Infrastructure) — only if cross-layer=YES
+
+Per `.claude/rules/contract-first-for-cross-layer.md` v1.0.0:
+- Files: `documents/01-business/{domain}/api-contract.md` (CREATE/UPDATE) + `{frontend}/src/test/msw/handlers/{domain}.ts` setup
+- Acceptance: api-contract.md exists + lists all endpoints consumed by FE+BE buckets; MSW handlers consumable
+- Spawn order: MERGE FIRST trước khi spawn FE+BE buckets parallel
 
 ### Bucket A — <one-line>
 
-- Files: `path/to/area/`
+- Files: `path/to/area/` (RELATIVE paths only per `feedback_worktree_absolute_path_contamination.md`)
 - Tests: which test files added/modified
 - Acceptance: bucket-level AC subset of gap AC
+- (Cross-layer FE bucket): "Endpoint consumption tuân thủ schema trong `documents/01-business/{domain}/api-contract.md`"
+- (Cross-layer BE bucket): "Controller signature + DTO match `documents/01-business/{domain}/api-contract.md` schema"
 
 ### Bucket B — ...
 
@@ -57,6 +75,7 @@ Every code-symbol-shaped reference (in backticks) used in §3 Scope must appear 
 | `V42__add_bar.sql` | Migration | `ls kiteclass-core/src/main/resources/db/migration/V42*` | 1 file | ✅ exists |
 | `<NewWidget>` | FE component | `grep -rn "NewWidget" kiteclass-frontend/src` | 0 matches | 🆕 to-be-created (Bucket B) |
 | `kite.foo.threshold` | Config key | `grep -rn "kite.foo.threshold" kiteclass-core/src/main/resources` | 0 matches | 🆕 to-be-created (Bucket A) |
+| `documents/01-business/{domain}/api-contract.md` | API contract doc (cross-layer only) | `ls documents/01-business/{domain}/api-contract.md` | <result> | ✅ exists / 🆕 to-be-created (Bucket 0 Foundation) — only if cross-layer=YES |
 
 Banned shortcuts (mirror §2.5):
 - `| head` truncation on grep/find

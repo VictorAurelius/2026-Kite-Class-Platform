@@ -76,6 +76,39 @@ After commits, report back:
 6. PR URL (`gh pr create --base main --title "feat({SCOPE}): {GAP_ID} — ..."`)
 7. CI green confirmation
 8. Note: do NOT flip {GAP_ID} Status to DONE — coordinator handles per gap-done-discipline.md
+
+## PR body — MANDATORY sections
+Per Wave 32 rework brief §3.4 + §3.5 (codified in `wave-pack-planner/SKILL.md` §Step 4.6 model-agnostic gates), every PR body PHẢI có 2 sections sau (BLOCK merge nếu thiếu):
+
+### §"Local verification (pre-push)"
+Paste literal command output:
+```
+$ pnpm exec tsc --noEmit          # OR: mvn test -pl {MODULE}
+<output showing PASS / 0 errors>
+
+$ pnpm test --run <changed-files>  # OR: mvn verify
+Test Files  N passed (N)
+Tests  M passed (M)
+
+$ pnpm build                       # FE only
+✓ Compiled successfully
+```
+
+### §"AC Coverage"
+Table mapping mỗi AC line trong gap → file/test/verification evidence:
+
+| AC | Status | Evidence |
+|----|:-:|---|
+| <AC line từ gap> | ✅ | `path/to/file.ts:42` + test name |
+| <AC line khác> | ✅ | `path/to/test.spec.ts` |
+
+Status values: ✅ DONE, 🟡 PARTIAL (with `// TODO(GAP-XXX)` + follow-up gap link), ❌ NOT DONE (block merge).
+
+**Anti-pattern signals (auto-reject by reviewer):**
+- §"Local verification" missing OR shows skipped tests without plan-level deferral
+- §"AC Coverage" table absent OR has "TBD" entries
+- Mock-as-implementation without `// TODO(GAP-XXX)` + filed follow-up gap (per `gap-done-discipline.md` §2)
+- CWD verification missed (worktree-isolated agents): paste `pwd | grep -F "/agent-"` confirming you're inside the assigned worktree, NOT main repo (per `feedback_worktree_absolute_path_contamination.md`)
 ```
 
 ## Required placeholders

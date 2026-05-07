@@ -172,6 +172,12 @@ After commits, report back:
 - **Cleanup/dead-code:** → `p3-cleanup-agent.md`
 - **Single-doc work** (1 gap, no cluster): probably overkill to use wave-pack pattern at all — see `SKILL.md` §"When NOT to use"
 
+## PR body — MANDATORY sections
+
+Per Wave 32 rework brief §3.4 + §3.5: every PR body PHẢI có §"Local verification (pre-push)" with literal command output paste + §"AC Coverage" table (mapping mỗi AC line → file/test/verification evidence). Worktree-isolated agents PHẢI paste `pwd | grep -F "/agent-"` confirming CWD inside assigned worktree.
+
+Full spec + reject signals: see `feature-tdd-agent.md` §"PR body — MANDATORY sections" (canonical).
+
 ## Reference
 
 - Methodology: [`../../SKILL.md`](../../SKILL.md) Step 3

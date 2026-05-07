@@ -95,6 +95,12 @@ After commits, report back:
 - Gap is "fix flaky test" → that IS a code change to test infra, use `feature-tdd-agent.md`
 - E2E-only scope without unit baseline → flag to coordinator first; usually wrong layer
 
+## PR body — MANDATORY sections
+
+Per Wave 32 rework brief §3.4 + §3.5: every PR body PHẢI có §"Local verification (pre-push)" with literal command output paste + §"AC Coverage" table (mapping mỗi AC line → file/test/verification evidence). Worktree-isolated agents PHẢI paste `pwd | grep -F "/agent-"` confirming CWD inside assigned worktree.
+
+Full spec + reject signals: see `feature-tdd-agent.md` §"PR body — MANDATORY sections" (canonical).
+
 ## Reference
 
 - Methodology: [`../../SKILL.md`](../../SKILL.md) Step 3

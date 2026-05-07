@@ -32,14 +32,32 @@ Fields:
 **Wave date:** {YYYY-MM-DD} (kicked off {YYYY-MM-DD HH:MM})
 **Cluster theme:** {1-2 sentence theme description}
 **Strategy reference:** {link to memory or earlier wave + rationale}
+**Stake tier (per SKILL.md §Step 4.6):** {HIGH | MEDIUM | LOW} → model tier: {Opus 4.7 full | Opus medium | Sonnet/Haiku}
+**Cross-layer? (per SKILL.md §Step 4.5):** {YES → Bucket 0 Foundation required | NO → skip foundation}
 
-## Scope
+## Scope (compact §3 schema — Strategy B+C proven Wave 33)
 
-| # | Gap | Title | Priority | Agent | Disjoint files |
-|:-:|-----|-------|:--------:|:-----:|----------------|
-| 1 | **{GAP-XXX}** | {gap title} | {🔴 P0 / 🟠 P1 / 🟡 P2 / 🟢 P3} | A | {file paths or globs} |
-| 2 | **{GAP-YYY}** | {gap title} | {priority} | B | {file paths or globs} |
-| 3 | **{GAP-ZZZ}** | {gap title} | {priority} | C | {file paths or globs} |
+Only one row per bucket. Gap details live in their gap files. Strategy:
+- B (compact): one row per bucket, files glob-only
+- C (cross-layer): if cross-layer=YES, Bucket 0 Foundation row FIRST per `contract-first-for-cross-layer.md`
+
+| # | Bucket | Gap(s) | Priority | Files (glob) | Spawn order |
+|:-:|--------|--------|:--------:|--------------|:-----------:|
+| 0 | **Foundation** | (contract + mock infra) | 🟠 P1 | `documents/01-business/{domain}/api-contract.md` + `{frontend}/src/test/msw/handlers/{domain}.ts` | **MERGE FIRST** |
+| 1 | **A** | {GAP-XXX} | {priority} | {file glob} | parallel after Bucket 0 |
+| 2 | **B** | {GAP-YYY} | {priority} | {file glob} | parallel after Bucket 0 |
+| 3 | **C** | {GAP-ZZZ} | {priority} | {file glob} | parallel after Bucket 0 |
+
+**Cross-layer foundation bucket pattern** (skip if cross-layer=NO):
+
+### Bucket 0 — Foundation (Contract + Mock Infrastructure)
+
+- **Files:** `documents/01-business/{domain}/api-contract.md` (CREATE/UPDATE)
+  - List mọi endpoint mà FE+BE buckets trong wave consume
+  - Mỗi endpoint: method + path + request/response schema + error codes
+- **Mock infra (nếu wave dùng MSW handlers):** `{frontend}/src/test/msw/handlers/{domain}.ts` setup
+- **Acceptance:** api-contract.md tồn tại + list đủ endpoints; MSW handlers consumable
+- **Spawn order:** MERGE FIRST trước FE+BE buckets
 
 ## Deferred (next wave)
 
