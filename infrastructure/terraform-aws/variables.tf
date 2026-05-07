@@ -114,6 +114,25 @@ variable "manage_route53_zone" {
   default     = false
 }
 
+# --- Staging (per GAP-380 / Wave 38 Bucket D — Architecture B: EC2 + docker-compose) ---
+variable "enable_staging" {
+  description = "Provision staging environment (single t3.micro EC2 + db.t3.micro RDS + S3 + Route53). Default false; set true for always-on staging. Tear down via enable_staging=false to save cost."
+  type        = bool
+  default     = false
+}
+
+variable "staging_instance_type" {
+  description = "EC2 instance type for staging combined KH+KC docker-compose stack. Phase 1 default t3.micro (free tier 12mo)."
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "staging_rds_instance_class" {
+  description = "RDS instance class for staging. Phase 1 default db.t3.micro (~$13/mo since prod consumes free tier)."
+  type        = string
+  default     = "db.t3.micro"
+}
+
 # --- GitHub OIDC (for terraform-plan CI workflow per GAP-397) ---
 variable "github_repo" {
   description = "GitHub repo in 'owner/name' format for OIDC trust policy."
