@@ -75,6 +75,10 @@ spec:
                 secretKeyRef:
                   name: kitehub-secrets
                   key: openai-api-key
+            # GAP-386 / BR-QUALITY-001 — externalized quality-gate threshold.
+            # Defaults to chart values.yaml branding.qualityGate.passThreshold (70).
+            - name: QUALITY_GATE_PASS_THRESHOLD
+              value: "{{ $.Values.branding.qualityGate.passThreshold | default 70 }}"
             {{- end }}
             {{- if eq $name "email" }}
             # AWS SES configuration for email service
