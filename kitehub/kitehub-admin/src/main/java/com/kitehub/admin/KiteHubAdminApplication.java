@@ -31,7 +31,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "com.kitehub.subscription.consent.repository",
         // Wave 26 Bucket A (GAP-353c): DsarService is auto-scanned via @ComponentScan;
         // its repository must be JPA-enabled here too.
-        "com.kitehub.subscription.dsar.repository"
+        "com.kitehub.subscription.dsar.repository",
+        // Wave 33 Bucket C (GAP-372): BetaAccessService auto-scanned via @ComponentScan;
+        // repository must be JPA-enabled here per feedback_admin_scan_packages_after_module_add.md.
+        "com.kitehub.subscription.beta.repository"
 })
 @EntityScan(basePackages = {
         // GAP-240: include all subscription entity packages — must mirror subscription's
@@ -46,7 +49,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         // Wave 25 Bucket A (GAP-353b): ConsentRecord entity.
         "com.kitehub.subscription.consent.entity",
         // Wave 26 Bucket A (GAP-353c): DsarTicket entity.
-        "com.kitehub.subscription.dsar.entity"
+        "com.kitehub.subscription.dsar.entity",
+        // Wave 33 Bucket C (GAP-372): BetaAccessRequest entity.
+        "com.kitehub.subscription.beta.entity"
 })
 public class KiteHubAdminApplication {
 

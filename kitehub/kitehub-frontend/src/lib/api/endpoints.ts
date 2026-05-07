@@ -84,5 +84,16 @@ export const endpoints = {
     resendVerification: '/api/auth/resend-verification',
     profile: '/api/auth/profile',
     changePassword: '/api/auth/change-password',
+    // GAP-372 Wave 33 — Phase 1 BETA invite mechanism
+    requestBetaAccess: '/api/v1/auth/request-beta-access',
+    validateBetaToken: '/api/v1/auth/beta-signup/validate',
+    completeBetaSignup: '/api/v1/auth/beta-signup',
+  },
+
+  // Admin coordinator endpoints (GAP-372 Wave 33)
+  betaRequests: {
+    list: '/api/v1/admin/beta-requests',
+    approve: (id: number) => `/api/v1/admin/beta-requests/${id}/approve`,
+    reject: (id: number) => `/api/v1/admin/beta-requests/${id}/reject`,
   },
 } as const;
