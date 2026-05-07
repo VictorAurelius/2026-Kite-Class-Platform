@@ -41,17 +41,43 @@ public record BrandingJobResponse(
 ) {
 
     /**
-     * Map a {@link BrandingJob} entity to the v1 response DTO.
+     * Map a {@link BrandingJob} entity to the v1 response DTO (legacy overload).
+     *
+     * <p>Equivalent to calling {@link #from(BrandingJob, BrandColours, String)} with a
+     * {@code null} tenantId. Kept for callers that have not yet been migrated to
+     * resolve the tenant from the request scope (see GAP-390-A).</p>
      *
      * @param job persisted job (must not be null)
      * @param brandColors derived colours (sub-GAP-272k); may not be null
      * @return populated response DTO
      */
     public static BrandingJobResponse from(BrandingJob job, BrandColours brandColors) {
+        return from(job, brandColors, null);
+    }
+
+    /**
+     * Map a {@link BrandingJob} entity to the v1 response DTO.
+     *
+     * <p>Per GAP-390-A, the {@code tenantId} field is sourced from the calling
+     * controller (typically resolved from MDC {@code tenantId} populated by the
+     * gateway tenant filter) until the job entity carries its own column. The
+     * {@link com.kitehub.branding.lifecycle.InstanceLifecycleService} keyed on
+     * {@code instanceId} does not currently expose a tenant field, and there is
+     * no {@code FrontendInstance} read model in this module — passing the request
+     * scoped tenantId keeps the wire-format honest while the persistent join is
+     * tracked separately.</p>
+     *
+     * @param job persisted job (must not be null)
+     * @param brandColors derived colours (sub-GAP-272k); may not be null
+     * @param tenantId tenant identifier resolved by the controller (nullable when
+     *                 the request lacks a tenant context — e.g. system jobs)
+     * @return populated response DTO
+     */
+    public static BrandingJobResponse from(BrandingJob job, BrandColours brandColors, String tenantId) {
         return new BrandingJobResponse(
                 job.getId(),
                 job.getInstanceId(),
-                null, // tenantId not yet available on BrandingJob entity — populated post-Bucket C lifecycle wiring
+                tenantId,
                 mapStatus(job),
                 job.getRetryCount(), // proxy until BrandingRegenerateUsage entity (Bucket A) is wired
                 1, // v0 default; brandingVersion comes from FrontendInstance after Bucket C

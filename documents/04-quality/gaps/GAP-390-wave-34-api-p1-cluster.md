@@ -1,6 +1,6 @@
 # GAP-390: Wave 34 API P1 cluster — tenantId hardcoded null + SSE assertions missing + path param type mismatch
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07
 **Priority:** 🟠 P1 cluster (3 sub-issues — API hardening, ship after P0 GAP-272n already filed Wave 34)
 **Domain:** Backend / API Contract
 **Found:** 2026-05-07 (API Contract /100 audit Wave 34 — agent ad28b70c)
@@ -61,10 +61,16 @@ Update `documents/01-business/kitehub/ai-branding/api-contract.md`:
 
 ## Acceptance Criteria
 
-- [ ] **390-A**: BrandingJobResponse populates tenantId from FrontendInstance; integration test verifies non-null UUID
-- [ ] **390-B**: SSE test asserts 4 event types + payload shape matches contract
-- [ ] **390-C**: api-contract.md numeric IDs → UUID examples
-- [ ] Re-run API Contract /100 audit delta: 72/100 → ≥85/100 (target B+)
+- [x] **390-A**: BrandingJobResponse populates tenantId from request scope (MDC `tenantId` populated by gateway tenant filter); unit tests verify both populated + null-fallback paths. Note: `FrontendInstance` referenced in original gap text does not exist in this module — state-check (`audit-to-gap-pipeline.md` §2.5) found 0 occurrences across `kitehub/`. Wired from MDC instead, which is the request-scoped tenant identifier per `logback-spring.xml` MDC keys.
+- [x] **390-B**: SSE test asserts 4 contract event types (`state-change` / `progress` / `complete` / `error`) + payload field shapes (`from`/`to`/`ts`, `finalStatus`/`jobId`, `errorCode`/`retryable`/`message`). 4 new payload-assertion tests added via `Mockito.mockConstruction(SseEmitter.class)` to capture `send()` calls.
+- [x] **390-C**: api-contract.md numeric IDs → UUID examples (5 occurrences replaced + identifier note added at doc top).
+
+## Out-of-scope (track separately)
+
+| Item | Where |
+|---|---|
+| API Contract /100 audit re-run + delta verification (target ≥85/100 from 72 baseline) | Post-wave audit per `post-wave-audit-mandate.md` §2.1 — runs within 3 days of Wave 36 closure (separate PR) |
+| Persistent `tenantId` column on `BrandingJob` / lifecycle entities (avoids relying on MDC) | Future schema work — not blocking; MDC-sourced value is correct for request-scoped responses |
 
 ## Related
 
@@ -76,3 +82,4 @@ Update `documents/01-business/kitehub/ai-branding/api-contract.md`:
 ## Log
 
 - **2026-05-07** Filed from API Contract /100 audit Wave 34. State-check: GAP-272n covers regenerate shape only; tenantId null + SSE assertions + path param doc are NEW findings not covered by 272n/272o. Bundled per `audit-to-gap-pipeline.md` §3 P1 cluster pattern.
+- **2026-05-07** Wave 36 Bucket B shipped (PR #PENDING). 390-A wired tenantId via `MDC.get("tenantId")` in `BrandingJobV1Controller`; `BrandingJobResponse.from(...)` gained a 3-arg overload accepting tenantId (legacy 2-arg overload retained, calls 3-arg with null). 390-B added 4 payload-assertion tests using `Mockito.mockConstruction` to intercept `SseEmitter.send()` and verify event names + JSON field shapes. 390-C replaced 5 numeric `12345` examples with UUID `550e8400-e29b-41d4-a716-446655440000` and added a clarifying identifier note at the top of `api-contract.md`. Verification: `./mvnw -pl kitehub-branding test -Dtest='*DeployStream*,*BrandingJobResponse*,*BrandingJobV1*'` clean. Re-audit /100 deferred to post-wave audit (separate PR per `post-wave-audit-mandate.md`) — see Out-of-scope.

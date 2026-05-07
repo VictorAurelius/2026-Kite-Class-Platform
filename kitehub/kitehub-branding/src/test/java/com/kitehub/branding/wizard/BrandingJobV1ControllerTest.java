@@ -6,12 +6,14 @@ import com.kitehub.branding.domain.enums.JobStatus;
 import com.kitehub.branding.repository.BrandingJobRepository;
 import com.kitehub.branding.wizard.dto.BrandingJobResponse;
 import com.kitehub.branding.wizard.quality.BrandColoursDeriver;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -53,6 +55,37 @@ class BrandingJobV1ControllerTest {
         job.setQueuedAt(LocalDateTime.now());
         job.setCreatedAt(LocalDateTime.now());
         job.setUpdatedAt(LocalDateTime.now());
+    }
+
+    @AfterEach
+    void clearMdc() {
+        MDC.clear();
+    }
+
+    @Test
+    @DisplayName("GAP-390-A: tenantId populated from MDC when request carries tenant context")
+    void tenantIdSourcedFromMdc() {
+        String tenantId = "550e8400-e29b-41d4-a716-446655440000";
+        MDC.put("tenantId", tenantId);
+        when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
+
+        ResponseEntity<?> response = controller.getJob(jobId);
+
+        BrandingJobResponse body = (BrandingJobResponse) response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.tenantId()).isEqualTo(tenantId);
+    }
+
+    @Test
+    @DisplayName("GAP-390-A: tenantId is null when MDC has no tenant context (system jobs)")
+    void tenantIdNullWhenMdcEmpty() {
+        when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
+
+        ResponseEntity<?> response = controller.getJob(jobId);
+
+        BrandingJobResponse body = (BrandingJobResponse) response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.tenantId()).isNull();
     }
 
     @Test
