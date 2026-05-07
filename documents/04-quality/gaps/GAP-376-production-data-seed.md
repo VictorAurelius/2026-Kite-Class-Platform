@@ -1,6 +1,6 @@
 # GAP-376: Production Data Seed (Admin User + System Config)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🔴 P0 BLOCKING (Phase 1 BETA — first deploy fails without seed data)
 **Domain:** Backend / DevOps
 **Found:** 2026-05-06 (Release 1 deploy plan)
@@ -126,3 +126,4 @@ Per `.claude/rules/release-deploy-standard.md` §3 — this gap satisfies a chec
 ## Log
 
 - **2026-05-06:** Filed by Release 1 deploy plan PR. BLOCKING cho Phase 1 BETA first deploy.
+- **2026-05-07:** Wave 33 Bucket A shipped (PR #895 — `ProductionSeedRunner` Spring Boot ApplicationRunner + `SeedProperties` @ConfigurationProperties + `SystemConfigSeedDao` + V27 idempotent INSERT-ON-CONFLICT-DO-NOTHING + `scripts/seed-production.sh` wrapper với --dry-run mode + 14 new tests, 407/407 module pass). Status 🔵 OPEN → 🟡 PARTIAL — runner + migration + script shipped, **production execution = user-executed step** (run `scripts/seed-production.sh` với `SEED_ADMIN_PASSWORD` env on first deploy). Seeds `admin@kitehub.vn` PLATFORM_ADMIN + system_config baseline (default_tier=FREE, currency=VND, locale=vi) + platform tenant id=0; NO demo content (separate optional script).
