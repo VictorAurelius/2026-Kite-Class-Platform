@@ -1,6 +1,8 @@
 # GAP-436: OIDC roles for deploy + ECR push + restore drill workflows
 
-**Status:** 🟡 PARTIAL — Phase 1+2+3 DONE 2026-05-08; Phase 4 (remove static keys) deferred until OIDC verified by first workflow trigger
+**Status:**
+- Phase 1+2+3: 🟢 DONE 2026-05-07 (PR #993)
+- Phase 4: 🟡 PARTIAL — checklist ready (Wave 42 Bucket E); execute after Phase 3 first push verified
 **Priority:** 🟠 P1 (BLOCKING Phase 2.3+ workflows that write to AWS)
 **Domain:** DevOps / Security
 **Found:** 2026-05-08 (Phase 2.2 OIDC scope split)
@@ -77,6 +79,49 @@ Recommend (b) — least-privilege.
 
 After all workflows green via OIDC, remove `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` GitHub Secrets (set 2026-05-07 for `ci-deploy` user). Track in Phase 4 of this gap.
 
+## Phase 4 — Remove static credentials (deferred until first OIDC trigger verified)
+
+### Trigger condition
+
+First successful Phase 3 image push (per Bucket D runbook `documents/05-guides/deploy/phase-3-image-push.md`). Verified by:
+- `aws ecr describe-images --repository-name <repo>` showing pushed image (timestamp matches first push)
+- CI workflow logs showing OIDC `AssumeRoleWithWebIdentity` succeeded (no static-key fallback path taken)
+
+### Checklist
+
+- [ ] Phase 3 first push succeeded with OIDC (cite PR/run URL when applicable)
+- [ ] All 3 GitHub Actions workflows confirmed using OIDC, not static keys — grep workflows for `aws-actions/configure-aws-credentials@v4` configured with `role-to-assume`, NOT `aws-access-key-id`:
+  - [ ] `.github/workflows/terraform-plan.yml`
+  - [ ] `.github/workflows/docker-build-push.yml`
+  - [ ] `.github/workflows/deploy-staging.yml`
+- [ ] Bash audit: `gh api repos/VictorAurelius/2026-Kite-Class-Platform/actions/secrets --jq '.secrets[].name'` — verify list contains `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` to remove
+- [ ] Remove via:
+  - [ ] `gh secret delete AWS_ACCESS_KEY_ID`
+  - [ ] `gh secret delete AWS_SECRET_ACCESS_KEY`
+- [ ] In AWS IAM, deactivate then delete the access key associated with the user that issued the static creds (if standalone IAM user `ci-deploy` existed) — `aws iam list-access-keys --user-name ci-deploy` → `update-access-key --status Inactive` → `delete-access-key`
+- [ ] Trigger one `workflow_dispatch` on each of 3 workflows to verify OIDC-only path works:
+  - [ ] `gh workflow run terraform-plan.yml`
+  - [ ] `gh workflow run docker-build-push.yml`
+  - [ ] `gh workflow run deploy-staging.yml`
+- [ ] Update GAP-436 Status to 🟢 DONE (per `.claude/rules/gap-done-discipline.md` §2 — all AC checked)
+
+### Risk + Mitigation
+
+**Risk:** If OIDC trust policy has bug (wrong subject claim, wrong audience, wrong repo ref), removal breaks CI for all 3 workflows simultaneously.
+
+**Mitigation:**
+- Keep removed access keys in user's password manager for 7 days post-removal as rollback (do NOT keep in repo, GitHub Secrets, or AWS Secrets Manager)
+- Trigger workflow_dispatch BEFORE deletion to confirm OIDC path works without static-key fallback
+- If OIDC fails: re-add via `gh secret set AWS_ACCESS_KEY_ID < /tmp/key-backup` from password manager
+
+### Cross-references
+
+- `.claude/rules/admin-merge-discipline.md` — DO NOT `--admin` merge the static-creds removal PR before workflow_dispatch verify completes
+- `.claude/rules/agent-aws-access.md` Tier 3 — `aws iam delete-access-key` + `gh secret delete` are mutation commands → user executes manually, agent does NOT run
+- `.claude/rules/terraform-apply-retry-reconfirm.md` — workflow_dispatch verification per `terraform-plan.yml` is read-only (plan), no apply retry concern
+- Bucket D Phase 3 runbook: `documents/05-guides/deploy/phase-3-image-push.md`
+- Phase 1+2+3 ship PR: #993
+
 ## Acceptance Criteria
 
 - [ ] 3 IAM roles defined in `iam.tf` with scoped trust + least-privilege policies
@@ -96,5 +141,6 @@ After all workflows green via OIDC, remove `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACC
 
 ## Log
 
+- **2026-05-07** Phase 4 checklist added (Wave 42 Bucket E). Status remains PARTIAL until Phase 3 first OIDC trigger verified.
 - **2026-05-08:** GAP filed during Phase 2.2 scope split. Plan role only shipped this session; deploy/ECR/restore-drill roles deferred to this gap.
 - **2026-05-08:** Phase 1+2+3 DONE. Added 3 IAM roles to `iam.tf` (`github_deploy` + `github_ecr_push` + `github_restore_drill`) with scoped trust + least-privilege policies. Targeted `terraform apply` clean (6 resources). 3 GitHub Secrets set: `AWS_DEPLOY_ROLE_ARN`, `AWS_ECR_PUSH_ROLE_ARN`, `AWS_RESTORE_DRILL_ROLE_ARN`. Workflow secret-name disambiguation: `docker-build-push.yml` migrated `AWS_ROLE_ARN` → `AWS_ECR_PUSH_ROLE_ARN`; `deploy-production.yml` migrated `AWS_ROLE_ARN` → `AWS_DEPLOY_ROLE_ARN`. Phase 4 (remove static `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` GH Secrets) deferred until first workflow trigger via OIDC verified — file follow-up GAP at that point or close inline.
