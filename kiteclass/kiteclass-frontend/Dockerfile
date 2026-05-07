@@ -1,7 +1,8 @@
 # Build context: repo root (per ADR-024 pnpm workspace).
 # Dockerfile path: kiteclass/kiteclass-frontend/Dockerfile
 FROM node:20-alpine AS base
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Pin pnpm@9 — pnpm@11 requires Node 22.5+ (node:sqlite builtin); we run Node 20.
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 FROM base AS deps
 RUN apk add --no-cache libc6-compat

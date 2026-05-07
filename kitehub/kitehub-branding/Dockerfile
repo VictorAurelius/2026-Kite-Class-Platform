@@ -1,47 +1,60 @@
-# KiteHub Branding Service
-# Extends kitehub-base for fast builds with cached dependencies
+# KiteHub Branding Service — Production Image (CI build)
+# Self-contained multi-stage build for ECR push.
 # Build context: kitehub/ (parent directory)
 
 # ============================================================================
-# BUILD STAGE - Uses base image with cached dependencies
+# BUILD STAGE
 # ============================================================================
-FROM kitehub-base:latest AS builder
+FROM maven:3.9-eclipse-temurin-17-alpine AS builder
 WORKDIR /build
 
-# Copy source code for this module and its dependencies
+# Copy parent + ALL sibling module pom stubs first (parent <modules> validation).
+COPY pom.xml ./
+COPY kitehub-platform/pom.xml ./kitehub-platform/
+COPY kitehub-subscription/pom.xml ./kitehub-subscription/
+COPY kitehub-branding/pom.xml ./kitehub-branding/
+COPY kitehub-email/pom.xml ./kitehub-email/
+COPY kitehub-admin/pom.xml ./kitehub-admin/
+COPY kitehub-gateway/pom.xml ./kitehub-gateway/
+
+RUN mvn -B -pl kitehub-branding -am dependency:go-offline || true
+
 COPY kitehub-platform/src ./kitehub-platform/src
 COPY kitehub-branding/src ./kitehub-branding/src
 
-# Build only this module and dependencies (fast - deps already cached)
-RUN mvn clean package -pl kitehub-branding -am -DskipTests -B
+RUN mvn -B clean package -pl kitehub-branding -am -DskipTests
 
 # ============================================================================
-# RUNTIME STAGE - Minimal JRE image
+# RUNTIME STAGE
 # ============================================================================
 FROM eclipse-temurin:17-jre-alpine AS runtime
 WORKDIR /app
 
-# Install curl for healthcheck
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION=dev
+
+LABEL org.opencontainers.image.title="kitehub-branding" \
+      org.opencontainers.image.description="KiteHub AI Branding Service" \
+      org.opencontainers.image.source="https://github.com/VictorAurelius/2026-Kite-Class-Platform" \
+      org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.vendor="Kite Platform"
+
 RUN apk add --no-cache curl
 
-# Create non-root user for security
 RUN addgroup --system --gid 1001 spring && \
     adduser --system --uid 1001 spring
 
-# Copy JAR from builder
 COPY --from=builder /build/kitehub-branding/target/*.jar app.jar
-
-# Set ownership
 RUN chown -R spring:spring /app
 
 USER spring
-
 EXPOSE 8080
 
-# Health check using Spring Actuator
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
-
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
