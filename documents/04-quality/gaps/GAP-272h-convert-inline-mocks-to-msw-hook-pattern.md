@@ -1,6 +1,6 @@
 # GAP-272h: Convert Wave 32 inline mocks → MSW handlers + hook abstraction
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07 (Wave 34 Bucket D — PR #910)
 **Priority:** 🟠 P1 (technical debt — pattern miss caught at Wave 32 closure)
 **Domain:** Frontend (kitehub-frontend) — refactor only, no behavior change
 **Found:** 2026-05-07 (Wave 32 REWORK closure — user-flagged miss)
@@ -73,13 +73,17 @@ Wave 32 v1 plan + rework brief did NOT explicitly mandate MSW + hook abstraction
 
 ## Acceptance Criteria
 
-- [ ] `WelcomeStep.tsx` no longer references `MOCK_TAKEN_SLUGS` or `checkSlugStub`
-- [ ] `Step6Preview.tsx` no longer references `TEMPLATE_TO_COLORS` or hardcoded preview URI
-- [ ] `TemplateGrid.tsx` calls hook for template list
-- [ ] 3 new hook files exist với MSW handler counterparts
-- [ ] Tests use `vi.mock` cho hooks (test count parity preserved)
-- [ ] Backend swap (when GAP-272i/j/k/n ship) = update hook implementations only — no component changes
-- [ ] All Wave 32 verification gates still green (type-check, test, build)
+- [x] `WelcomeStep.tsx` no longer references `MOCK_TAKEN_SLUGS` / `checkSlugStub` — refactored to `useSlugAvailability` hook
+- [x] `Step6Preview.tsx` no longer references `TEMPLATE_TO_COLORS` or hardcoded preview URI — refactored to `usePreviewBrandColors` + `usePreview` hooks
+- [x] Hooks ship for slug/quota/preview/quality/lifecycle/SSE — 6 hook files in `components/branding/wizard/hooks/`
+- [x] MSW handlers populate `src/test/msw/handlers/branding.ts` covering all 7 endpoints (happy + error variants); Bucket 0's setup.ts gating activates lifecycle hooks correctly
+- [x] Test count parity preserved — 632/632 (was 615 → +17 new for hook smoke + integration)
+- [x] Backend swap pattern proven — A/B/C endpoints landed first, Bucket D consumed via hooks with zero further component changes
+- [x] All verification gates green — `tsc --noEmit` clean, `pnpm test --run` 632/632, `pnpm build` clean
+
+## Log
+
+- **2026-05-07:** Wave 34 Bucket D (PR #910) shipped 6 hooks + MSW handlers + 3 component refactors (WelcomeStep / Step6Preview / LifecycleInline). Used MSW (not `vi.mock`) per Bucket 0 contract — better isolation, server-resilience pattern. Existing `use-theme-generation.test.ts` `global.fetch = vi.fn()` conflicted với MSW activation; fix: re-assign in `beforeEach` (documented in test). 3 wizard tests required `QueryClientProvider` wrapper (refactored components use react-query). DeployingStep + RegenerateCounter remain presentational; orchestrator-side wiring tracked GAP-272o.
 
 ## Related
 

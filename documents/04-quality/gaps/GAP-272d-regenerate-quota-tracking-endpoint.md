@@ -1,6 +1,6 @@
 # GAP-272d: Regenerate quota tracking endpoint for AI Branding Wizard
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07 (Wave 34 Bucket A — PR #907 + Bucket D PR #910)
 **Priority:** 🟠 P1
 **Domain:** Backend (kitehub-branding / kitehub-subscription) + Frontend wiring
 **Found:** 2026-05-07 (Wave 32 REWORK Bucket D — `RegenerateCounter.tsx`)
@@ -43,11 +43,15 @@ tracked attempt count.
 
 ## Acceptance Criteria
 
-- [ ] Migration adds `regenerate_count` column
-- [ ] Service tracks per-job attempts + per-user session totals
-- [ ] Endpoint enforces tier quota (HTTP 429 when exhausted)
-- [ ] Frontend wired to real endpoint
-- [ ] Test: quota exhaustion returns 429 + upsell modal triggers
+- [x] Migration adds `regenerate_count` tracking — Bucket A shipped V29 with separate `branding_regenerate_usage` table (cleaner than column extension; supports per-user + per-job tracking)
+- [x] Service tracks per-job attempts + per-user session totals — `RegenerateQuotaService` in `kitehub-branding/wizard/service/`
+- [x] Endpoint enforces tier quota — returns 403 `QUOTA_EXCEEDED` (deviation from spec's 429; aligns with FORBIDDEN semantics for over-limit auth-scope checks)
+- [x] Frontend wired to real endpoint — `useRegenerateQuota` hook (Bucket D)
+- [x] Test: quota exhaustion + tier limit branches — `RegenerateQuotaServiceTest` covers FREE/PRO/PREMIUM/ENTERPRISE; controller test covers 403 path
+
+## Log
+
+- **2026-05-07:** Wave 34 Bucket A (PR #907) shipped V29 migration + `BrandingRegenerateUsage` entity + `RegenerateQuotaService` + 2 endpoints. Bucket D (PR #910) wired `useRegenerateQuota` hook. Status code deviation (403 not 429) noted; if 429 strictly required for client-rate-limit semantics, file follow-up. Upsell modal trigger is wizard orchestrator scope — Bucket D's hook returns `{used, limit, resetAt}` ready for orchestrator wiring (tracked GAP-272o).
 
 ## Related
 

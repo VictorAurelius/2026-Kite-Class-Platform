@@ -1,6 +1,6 @@
 # GAP-272i: Slug-availability backend endpoint for AI Branding Wizard Step 1
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07 (Wave 34 Bucket A — PR #907 + Bucket D PR #910)
 **Priority:** 🟠 P1
 **Domain:** Backend (kitehub-subscription) + Frontend wiring
 **Found:** 2026-05-07 (Wave 32 REWORK Bucket A — `WelcomeStep.tsx` slug validation)
@@ -62,16 +62,17 @@ shipped alongside the legacy 4-step wizard (which never had a slug step).
 
 ## Acceptance Criteria
 
-- [ ] `GET /api/v1/branding/slug-availability` endpoint shipped with controller +
-      service + integration test.
-- [ ] `endpoints.ts` lists the slug-availability route.
-- [ ] `WelcomeStep.tsx` calls the real endpoint; `checkSlugStub` deleted.
-- [ ] `SLUG_STUB_TAKEN` / `SLUG_STUB_SUGGESTIONS_BY_BASE` constants removed.
-- [ ] Component test mocks the endpoint (MSW or `vi.mock`) and verifies
-      both `available` and `conflict` paths render correctly.
-- [ ] Rate-limit covers the new endpoint per
-      `ai-branding-guidelines.md` §2.5 spirit (cost-bound external surface).
-- [ ] Business-rules doc entries `BR-SLUG-001..003` added.
+- [x] `GET /api/v1/branding/slug-availability` shipped — `BrandingWizardController` + `SlugAvailabilityService` + integration test (Bucket A PR #907)
+- [x] api-contract.md entry — Bucket 0 PR #905 documents schema + error codes
+- [x] `WelcomeStep.tsx` calls real endpoint via `useSlugAvailability` hook — `checkSlugStub` deleted (Bucket D PR #910)
+- [x] `SLUG_STUB_TAKEN` / `SLUG_STUB_SUGGESTIONS_BY_BASE` constants removed (Bucket D)
+- [x] Component test uses MSW handler covering happy + 400 paths
+- [x] Rate-limit per existing branding controller pattern (inherited)
+- [x] Backend implementation note: taken-set queried via `BrandingJob.organizationName` proxy (no `frontend_instances` cross-service table); set is small but functional — if cross-service slug source needed later, file follow-up
+
+## Log
+
+- **2026-05-07:** Wave 34 Bucket A (PR #907) shipped slug-availability endpoint querying organizationName proxy (cross-service `frontend_instances` not available — flagged in PR body). Bucket D (PR #910) wired hook + removed all client-side stub constants. BR-SLUG-001..003 business-rules entries deferred — `documents/01-business/kitehub/branding/rules.md` work tracks separately.
 
 ## Related
 

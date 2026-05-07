@@ -1,6 +1,6 @@
 ---
 title: Wave 34 — AI Branding Wizard Backend Cluster (contract-first foundation + 7 endpoints + lifecycle service + FE refactor)
-status: draft
+status: complete
 created: 2026-05-07
 updated: 2026-05-07
 waves: [34]
@@ -242,4 +242,5 @@ Wave 34 = first wave thực sự áp dụng rule. Closure PR §"Self-test valida
 
 ## 9. Log
 
+- **2026-05-07 (SHIPPED):** All 5 buckets merged: PR #905 (Bucket 0), #907 (A), #906 (B), #908 (C), #910 (D). Self-test §7.2 of `contract-first-for-cross-layer.md` rule: predicted ≤2 sub-gap follow-ups vs Wave 32 v1's 8 — actual = 2 new (GAP-272n shape mismatch P2, GAP-272o orchestrator wiring P1). Rule effectiveness confirmed. 5 sub-letters DONE (272d/h/i/j/l), 3 PARTIAL (272c/e/k). Side-tasks same session: GAP-382 admin scan drift detector PR #909 + GAP-383 worktree-prune detached-HEAD PR #903. Wall-clock ~52min total (Bucket 0 6min + A∥B∥C 11min longest + D 19.5min + coordinator overhead). All buckets Opus 4.7 full effort — zero scaffold-as-DONE, zero CI fail on first push.
 - **2026-05-07 (draft):** Plan drafted PIPELINED trong khi Wave 33 Bucket C agent in-flight + Bucket A/B/D đã merge. 6th consecutive `wave-pack-planner` §Step 5.5 pipelined application (waves 28→29, 29→30, 30→31, 31→32, 32→33, 33→34). **First wave thực sự áp dụng `contract-first-for-cross-layer.md` v1.0.0** — Bucket 0 Foundation pattern locked; rule §7.2 forward-looking self-test → real validation post-closure. State-check confirmed: api-contract.md AI Branding exists (UPDATE not CREATE), KH-frontend MSW absent (Bucket 0 creates), AIBrandingController has 4 legacy endpoints (Wave 34 ships NEW BrandingWizardController separate file — no shared edit). 8 sub-letters c-l mapped to 5 buckets (0/A/B/C/D); GAP-272f+272g testing follow-ups deferred. Stake HIGH → Opus 4.7 full effort mandate per `feedback_opus_rework_validation.md`. Spawn pattern non-standard: 0 → (A∥B∥C) → D with 3 sequential spawn batches (not 5 parallel single batch) per contract-first rule mandate. Reviewer: @nguyenvankiet (solo-dev — wave plan PR follows `feedback_wave_plan_through_pr.md`, not direct push).
