@@ -9,8 +9,9 @@
 
 import type { HttpHandler } from 'msw';
 
+import { betaAccessHandlers } from './beta-access';
 import { brandingHandlers } from './branding';
 
-export const handlers: HttpHandler[] = [...brandingHandlers];
+export const handlers: HttpHandler[] = [...brandingHandlers, ...betaAccessHandlers];
 
-export { brandingHandlers };
+export { betaAccessHandlers, brandingHandlers };
