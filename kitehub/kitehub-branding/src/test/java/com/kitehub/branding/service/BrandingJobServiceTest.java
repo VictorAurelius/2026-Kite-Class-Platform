@@ -4,6 +4,10 @@ import com.kitehub.branding.config.RabbitMQConfig;
 import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.domain.enums.JobStatus;
 import com.kitehub.branding.dto.BrandingJobMessage;
+import com.kitehub.branding.lifecycle.InstanceLifecycleService;
+import com.kitehub.branding.lifecycle.LifecycleState;
+import com.kitehub.branding.lifecycle.entity.BrandingInstanceState;
+import com.kitehub.branding.lifecycle.repository.BrandingInstanceStateRepository;
 import com.kitehub.branding.outbox.BrandingEventEmitter;
 import com.kitehub.branding.repository.BrandingJobRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +39,12 @@ class BrandingJobServiceTest {
 
     @Mock
     private BrandingEventEmitter outboxEmitter;
+
+    @Mock
+    private InstanceLifecycleService lifecycleService;
+
+    @Mock
+    private BrandingInstanceStateRepository instanceStateRepository;
 
     @InjectMocks
     private BrandingJobService jobService;
@@ -155,6 +165,81 @@ class BrandingJobServiceTest {
         verify(jobRepository).save(argThat(savedJob ->
             savedJob.getStatus() == JobStatus.CANCELLED
         ));
+    }
+
+    @Test
+    void testCreateJob_RoutesLifecycleTransitionThroughService() {
+        BrandingJob savedJob = new BrandingJob();
+        savedJob.setId(UUID.randomUUID());
+        savedJob.setInstanceId(instanceId);
+        savedJob.setStatus(JobStatus.QUEUED);
+
+        when(jobRepository.save(any(BrandingJob.class))).thenReturn(savedJob);
+        when(instanceStateRepository.findById(instanceId)).thenReturn(Optional.empty());
+
+        jobService.createJob(instanceId, organizationName, language, logoUrl);
+
+        // §6 hinge — instance transitions through service, NOT direct setState.
+        verify(lifecycleService).transition(
+            eq(instanceId), eq(LifecycleState.INITIALIZING), any(), any());
+    }
+
+    @Test
+    void testCreateJob_OnDeployedInstanceTransitionsToRegenerating() {
+        BrandingJob savedJob = new BrandingJob();
+        savedJob.setId(UUID.randomUUID());
+        savedJob.setInstanceId(instanceId);
+        savedJob.setStatus(JobStatus.QUEUED);
+
+        BrandingInstanceState deployed = BrandingInstanceState.builder()
+            .instanceId(instanceId).state(LifecycleState.DEPLOYED)
+            .brandingVersion(1).regenerateCount(0).build();
+
+        when(jobRepository.save(any(BrandingJob.class))).thenReturn(savedJob);
+        when(instanceStateRepository.findById(instanceId)).thenReturn(Optional.of(deployed));
+
+        jobService.createJob(instanceId, organizationName, language, logoUrl);
+
+        verify(lifecycleService).transition(
+            eq(instanceId), eq(LifecycleState.REGENERATING), any(), any());
+    }
+
+    @Test
+    void testUpdateJobProgress_ProcessingDrivesGenerating() {
+        UUID jobId = UUID.randomUUID();
+        BrandingJob job = new BrandingJob();
+        job.setId(jobId);
+        job.setInstanceId(instanceId);
+        job.setStatus(JobStatus.QUEUED);
+        job.setProgress(0);
+
+        when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
+        when(jobRepository.save(any(BrandingJob.class))).thenReturn(job);
+        when(instanceStateRepository.findById(instanceId)).thenReturn(Optional.empty());
+
+        jobService.updateJobProgress(jobId, JobStatus.PROCESSING, 50, "Generating");
+
+        verify(lifecycleService).transition(
+            eq(instanceId), eq(LifecycleState.GENERATING), any(), any());
+    }
+
+    @Test
+    void testMarkJobFailedDrivesFailedTransition() {
+        UUID jobId = UUID.randomUUID();
+        BrandingJob job = new BrandingJob();
+        job.setId(jobId);
+        job.setInstanceId(instanceId);
+        job.setStatus(JobStatus.PROCESSING);
+        job.setRetryCount(0);
+
+        when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
+        when(jobRepository.save(any(BrandingJob.class))).thenReturn(job);
+        when(instanceStateRepository.findById(instanceId)).thenReturn(Optional.empty());
+
+        jobService.markJobFailed(jobId, "OpenAI API error");
+
+        verify(lifecycleService).transition(
+            eq(instanceId), eq(LifecycleState.FAILED), any(), any());
     }
 
     @Test
