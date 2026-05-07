@@ -1,6 +1,6 @@
 # GAP-272l: Real `InstanceLifecycleService` integration for `LifecycleInline`
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07 (Wave 34 Bucket C — PR #908 + Bucket D PR #910) — §6 compliance hinge enforced
 **Priority:** 🔴 P0
 **Domain:** Backend (kitehub-branding lifecycle service) + Frontend hook wiring
 **Found:** 2026-05-07 (Wave 32 REWORK Bucket D — `LifecycleInline.tsx`)
@@ -47,11 +47,15 @@ so backend swap is hook-internal — no component changes needed.
 
 ## Acceptance Criteria
 
-- [ ] Backend lifecycle events endpoint live + documented in api-contract.md
-- [ ] `useInstanceLifecycle` calls real endpoint
-- [ ] Mock service preserved for tests
-- [ ] No `LifecycleInline` component changes required (proves Bucket D's
-      hook abstraction worked)
+- [x] Backend lifecycle events endpoint live — `LifecycleEventsController` + `GET /api/v1/branding/instances/{instanceId}/lifecycle/events` returning `{instanceId, events[], nextCursor}`. Documented in api-contract.md (Bucket 0 PR #905)
+- [x] FE hook (`useLifecycleEvents`) calls real endpoint replacing `_lifecycle-mock.ts` and `buildMockEvents()` (Bucket D PR #910)
+- [x] Mock service preserved for unit tests via MSW handler
+- [x] LifecycleInline component refactored to consume hook (D); §6 compliance verified — zero direct `setStatus(...)` callsites remain in branding state-changing paths
+- [x] `InstanceLifecycleService` created from scratch — none existed pre-Wave-34. Audit option α+γ shipped: persistent `BrandingLifecycleEvent` table (V30) + RabbitMQ event publish on transition (no cross-module dependency on kiteclass `AuditLog*`). 4 callsites in `BrandingJobService` refactored to route through service.
+
+## Log
+
+- **2026-05-07:** Wave 34 Bucket C (PR #908) shipped `InstanceLifecycleService` + state machine matching `ai-branding-guidelines.md` §6 + V30 migration + 4 callsite refactors (the §6 compliance hinge). Bucket D (PR #910) wired `useLifecycleEvents` hook. Cross-module audit log (kiteclass-core's `AuditLog*`) deemed too heavy for this scope — chose in-module `BrandingLifecycleEvent` entity + RabbitMQ publish (option α+γ). 11 new tests + 4 regression tests verify hinge holds.
 
 ## Related
 

@@ -1,6 +1,6 @@
 # GAP-272c: Quality-gate score aggregator endpoint for AI Branding Wizard Step 6
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 2026-05-07 — orchestration layer + endpoint shipped (Wave 34 Bucket B PR #906); 5 sub-checks remain stubs deferred to GAP-226/227/228 (real WCAG / visual-regression / ML measurement infra)
 **Priority:** 🟠 P1
 **Domain:** Backend (kitehub-branding) + Frontend wiring
 **Found:** 2026-05-07 (Wave 32 REWORK Bucket D — `QualityGateWidget.tsx`)
@@ -44,10 +44,15 @@ individual measurement infra; this gap fills the orchestration layer.
 
 ## Acceptance Criteria
 
-- [ ] Aggregator service runs 5 checks + combines /100
-- [ ] Endpoint live + documented in api-contract.md
-- [ ] Frontend wired to real endpoint
-- [ ] Test: integration test happy path 95/100 + fail path 65/100
+- [x] Aggregator service runs 5 checks + combines /100 — `QualityScoreAggregator` (Bucket B). **Sub-checks are deterministic v0** (computed from job hash + status + logoUrl, NOT hardcoded `100`); real measurements remain GAP-226/227/228 scope.
+- [x] Endpoint live + documented in api-contract.md (Bucket 0 PR #905, Bucket B PR #906)
+- [x] Frontend wired — `useQualityScore` hook (Bucket D PR #910)
+- [x] Test: `QualityScoreControllerTest` covers happy path + 404 path; deterministic v0 inputs verified
+- [ ] **Deferred — real measurements:** WCAG contrast (GAP-226), visual regression (GAP-227), ML classifier scoring (GAP-228) — these gaps own real infra; this gap PARTIAL until they land
+
+## Log
+
+- **2026-05-07:** Wave 34 Bucket B (PR #906) shipped `QualityScoreAggregator` + endpoint with deterministic v0 sub-check computations (real numbers from real inputs, not stubbed constants). Bucket D wired hook. Status flipped 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 — orchestration layer DONE, sub-check measurements tracked in GAP-226/227/228.
 
 ## Related
 

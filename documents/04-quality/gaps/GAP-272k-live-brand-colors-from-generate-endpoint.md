@@ -1,6 +1,6 @@
 # GAP-272k: Live brand colors from generate endpoint for G11 ThemePreview
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 2026-05-07 — DTO field + FE consumption shipped (Wave 34 Bucket B PR #906 + Bucket D PR #910); brandColors source is deterministic v0 keyed on `organizationName` (NOT yet from analyze pipeline output) — real source connection deferred follow-up
 **Priority:** 🟠 P1
 **Domain:** Backend (kitehub-branding) + Frontend wiring
 **Found:** 2026-05-07 (Wave 32 REWORK Bucket C — `Step6Preview.tsx` G11 integration)
@@ -44,10 +44,14 @@ exposing the derived color palette. Color derivation logic exists internally
 
 ## Acceptance Criteria
 
-- [ ] Job DTO includes `colors` field after analyze complete
-- [ ] Frontend reads colors from job query, removes `TEMPLATE_TO_COLORS`
-      fallback (or relegates it to "still analyzing" state)
-- [ ] Test: integration test job → analyze → response colors populated
+- [x] Job DTO includes `brandColors` field — `BrandingJobResponse` wrapper with `BrandColours { primary, secondary, accent, text, background }` value object (Bucket B PR #906)
+- [x] Frontend reads colors from job query — `usePreviewBrandColors` hook (Bucket D PR #910); `TEMPLATE_TO_COLORS` constant removed
+- [x] Test: `BrandingJobResponseTest` verifies `brandColors` serialization; `BrandColours` rejects invalid hex
+- [ ] **Deferred — real source connection:** v0 derives colors from `organizationName` deterministic hash (same palette across regenerates). Real source = analyze-stage output (LogoAnalyzer + template params). Tracked inline; follow-up GAP filed if needed when analyze pipeline persistence matures.
+
+## Log
+
+- **2026-05-07:** Wave 34 Bucket B (PR #906) introduced `BrandingJobResponse` wrapper at `/api/v1/branding/jobs/{jobId}` with `brandColors` field; chose deterministic `organizationName`-keyed palette as v0 because analyze-stage persistence layer doesn't surface derived colors yet. Bucket D (PR #910) consumed via hook. Status flipped 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 — DTO contract + FE consumption DONE, real-source pipeline tracked.
 
 ## Related
 

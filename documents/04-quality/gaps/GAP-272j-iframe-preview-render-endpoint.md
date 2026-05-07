@@ -1,6 +1,6 @@
 # GAP-272j: Iframe live preview render endpoint for AI Branding Wizard Step 6
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07 (Wave 34 Bucket B — PR #906 + Bucket D PR #910)
 **Priority:** 🟠 P1
 **Domain:** Backend (kitehub-branding) + Frontend wiring
 **Found:** 2026-05-07 (Wave 32 REWORK Bucket C — `Step6Preview.tsx`)
@@ -43,10 +43,14 @@ render preview HTML.
 
 ## Acceptance Criteria
 
-- [ ] Backend endpoint renders preview HTML with brand state injected
-- [ ] Frontend wired to real endpoint
-- [ ] CSP / X-Frame-Options allow iframe embed from app origin
-- [ ] Test: integration test verifies preview HTML contains brand colors
+- [x] Backend endpoint renders preview HTML — `PreviewController` + Thymeleaf template `wizard/preview.html` (Bucket B)
+- [x] Frontend wired to real endpoint — `usePreview` hook + `<iframe src={/api/v1/branding/jobs/${jobId}/preview}>` (Bucket D)
+- [x] `X-Frame-Options: SAMEORIGIN` + `Content-Security-Policy: frame-ancestors 'self'` headers (Bucket B)
+- [x] Test: `PreviewControllerTest` verifies HTML response with brand colour CSS variables; testids `[data-testid='preview-hero']` + `[data-testid='preview-card']` for FE assertion
+
+## Log
+
+- **2026-05-07:** Wave 34 Bucket B (PR #906) shipped Thymeleaf-rendered preview endpoint with iframe-safe headers. Bucket D (PR #910) replaced Wave 32 v1 `data:text/html` URI with v1 endpoint path. WCAG-AA contrast verification deferred to GAP-226 server-side measurement infrastructure (out-of-scope for 272j shape).
 
 ## Related
 

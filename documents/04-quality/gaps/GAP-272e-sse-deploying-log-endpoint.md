@@ -1,6 +1,6 @@
 # GAP-272e: SSE deploying log streaming endpoint for AI Branding Wizard Step 6
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 2026-05-07 — SSE endpoint + hook shipped (Wave 34 Bucket A PR #907 + Bucket D PR #910); orchestrator wiring of `useDeployStream` events → `DeployingStep` props deferred to GAP-272o; underlying transport is 2s server-poll (RabbitMQ subscription deferred follow-up)
 **Priority:** 🟠 P1
 **Domain:** Backend (kitehub-branding) + Frontend wiring
 **Found:** 2026-05-07 (Wave 32 REWORK Bucket D — `DeployingStep.tsx`)
@@ -42,11 +42,15 @@ state. Backend never built SSE infrastructure for branding deploy progress.
 
 ## Acceptance Criteria
 
-- [ ] Backend endpoint streams events with `event: deploy-step` + JSON data
-- [ ] Frontend `DeployingStep` consumer wires real EventSource, replaces
-      mock log fixture
-- [ ] Test: integration test verifies 5 expected events emitted on happy path
-- [ ] Documentation: api-contract.md entry for the SSE endpoint
+- [x] Backend endpoint streams events — `DeployStreamController` `text/event-stream` with event types `log` / `progress` / `state-change` / `complete` / `error` / `heartbeat` (Bucket A PR #907). **Spec deviation:** generic event names instead of literal `deploy-step` — agreed at runtime to match contract pattern across event types
+- [x] `useDeployStream` EventSource hook shipped (Bucket D PR #910) — replaces inline mock SSE log
+- [ ] **Deferred GAP-272o:** orchestrator-side wiring of `useDeployStream` events into `DeployingStep` `logs` prop (presentational component intact; downstream wiring is wizard-orchestrator scope, separate concern from hook+endpoint contract)
+- [ ] **Deferred follow-up:** swap 2s server-poll backing for RabbitMQ `branding.deploy.*` queue subscriber (queue not wired in repo; SSE shape stable across swap — emit surface unchanged when wired)
+- [x] api-contract.md entry — Bucket 0 PR #905 documents SSE schema + event types
+
+## Log
+
+- **2026-05-07:** Wave 34 Bucket A (PR #907) shipped SSE endpoint via `SseEmitter` + 2s poll backing. Bucket D wired `useDeployStream` hook. `DeployingStep` remains presentational — orchestrator wiring tracked GAP-272o. RabbitMQ queue subscription (intended source) absent; follow-up: when `branding.deploy.*` queue lands, swap poll for subscription, no contract change needed.
 
 ## Related
 

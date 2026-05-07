@@ -56,17 +56,19 @@ Wave 32 v1 plan §7 pre-named planned letters (b–g). Wave 32 REWORK closure 20
 | Letter | Topic | Priority | Source | Status |
 |--------|-------|:--------:|--------|--------|
 | 272b | audience/tone/template persistence | — | Plan §7 | **Not filed** — Bucket B confirmed inline persistence via existing `BrandingGenerationRequest.targetAudience` |
-| 272c | quality-gate score aggregator endpoint | 🟠 P1 | Plan §7 + Bucket D | 🔵 OPEN |
-| 272d | regenerate quota tracking endpoint | 🟠 P1 | Plan §7 + Bucket D | 🔵 OPEN |
-| 272e | SSE deploying log streaming endpoint | 🟠 P1 | Plan §7 + Bucket D | 🔵 OPEN |
+| 272c | quality-gate score aggregator endpoint | 🟠 P1 | Plan §7 + Bucket D | 🟡 PARTIAL (Wave 34 PR #906 — orchestration done; sub-checks tracked GAP-226/227/228) |
+| 272d | regenerate quota tracking endpoint | 🟠 P1 | Plan §7 + Bucket D | 🟢 DONE (Wave 34 PR #907+#910) |
+| 272e | SSE deploying log streaming endpoint | 🟠 P1 | Plan §7 + Bucket D | 🟡 PARTIAL (Wave 34 PR #907+#910 — endpoint+hook done; orchestrator wiring → 272o; queue→poll swap deferred) |
 | 272f | Wave 32 visual regression baseline | 🟡 P2 | Plan §7 | 🔵 OPEN |
 | 272g | E2E test welcome→deploy happy path | 🟡 P2 | Plan §7 | 🔵 OPEN |
-| 272h | Convert Wave 32 inline mocks → MSW + hook pattern | 🟠 P1 | Closure audit (user-flagged) | 🔵 OPEN |
-| 272i | Slug-availability backend endpoint | 🟠 P1 | Bucket A | 🔵 OPEN |
-| 272j | Iframe live preview render endpoint | 🟠 P1 | Bucket C | 🔵 OPEN |
-| 272k | Live brand colors from generate endpoint | 🟠 P1 | Bucket C | 🔵 OPEN |
-| 272l | Real `InstanceLifecycleService` integration (§6 compliance) | 🔴 P0 | Bucket D | 🔵 OPEN |
+| 272h | Convert Wave 32 inline mocks → MSW + hook pattern | 🟠 P1 | Closure audit (user-flagged) | 🟢 DONE (Wave 34 PR #910) |
+| 272i | Slug-availability backend endpoint | 🟠 P1 | Bucket A | 🟢 DONE (Wave 34 PR #907+#910) |
+| 272j | Iframe live preview render endpoint | 🟠 P1 | Bucket C | 🟢 DONE (Wave 34 PR #906+#910) |
+| 272k | Live brand colors from generate endpoint | 🟠 P1 | Bucket C | 🟡 PARTIAL (Wave 34 PR #906+#910 — DTO+FE done; real source from analyze pipeline deferred) |
+| 272l | Real `InstanceLifecycleService` integration (§6 compliance) | 🔴 P0 | Bucket D | 🟢 DONE (Wave 34 PR #908+#910) |
 | 272m | Server-side persistence for Advanced Mode | 🟡 P2 | Bucket D | 🔵 OPEN |
+| 272n | Align `POST /regenerate` response on wrapper DTO | 🟡 P2 | Wave 34 closure | 🔵 OPEN (filed 2026-05-07) |
+| 272o | Wizard orchestrator wires deploy-stream + regenerate-quota | 🟠 P1 | Wave 34 closure | 🔵 OPEN (filed 2026-05-07) |
 
 **Cluster recommendation:** GAP-272c/d/e/i/j/k (6 backend endpoints, all P1) + GAP-272l (P0 §6 compliance) → "AI Branding wizard backend cluster" Wave 34 candidate. Pre-cluster requirement: api-contract.md update first per `feedback_fe_first_endpoint_proliferation.md` (post-rework retro memory).
 
@@ -78,5 +80,6 @@ Wave 32 v1 plan §7 pre-named planned letters (b–g). Wave 32 REWORK closure 20
 
 ## Log
 
+- **2026-05-07** (Wave 34 backend cluster shipped — closes 5 sub-letters DONE + 3 PARTIAL + 2 new follow-ups): Wave 34 5 buckets shipped (PRs #905/#906/#907/#908/#910). **DONE:** 272d/h/i/j/l. **PARTIAL:** 272c (sub-check measurements deferred to GAP-226/227/228), 272e (orchestrator wiring → 272o; queue swap deferred), 272k (real-source from analyze pipeline deferred). **NEW follow-ups filed:** 272n (response shape mismatch), 272o (orchestrator wiring). Self-test §7.2 of `contract-first-for-cross-layer.md`: predicted ≤2 follow-ups vs Wave 32 v1's 8 — actual = 2 new. ✅ Rule effectiveness confirmed. Parent stays 🟡 PARTIAL until 272f/g (test deliverables) + 272m (Advanced Mode persistence) + 272n/o close.
 - **2026-05-07** (REWORK shipped + sub-letters reconciled): Wave 32 REWORK 4/4 buckets shipped (PRs #887/#889/#888/#890). 11 sub-letter gaps filed: 272c/d/e/f/g (planned in v1 §7) + 272h/i/j/k/l/m (new findings). 272b not needed (Bucket B confirmed inline). User-flagged miss caught Step 2 duplicate check skip during initial gap filing — recovered via PR (this commit). Status: 🟡 PARTIAL post-rework (FE complete, 7 backend endpoints + tech debt + 2 test deliverables tracked in sub-letters).
 - **2026-04-29:** Filed after user accepted Round 3 quality. HIGHEST-scoring kit Round 2 (115.6 ⭐⭐).
