@@ -24,30 +24,38 @@
 
 **Recommended next pick (priority order per `feedback_release_1_first_session_priority.md`):**
 
-🚨 **NEW SESSION START HERE — Wave 41 fix-cluster READY TO SPAWN**
+✅ **Wave 41 SHIPPED 2026-05-08** — fix-cluster post Wave 40 audit. 6 buckets A-F merged sequential. PRs #983 (A) #981 (B) #985 (C) #986 (D) #982 (E) #984 (F). 1 DONE (D GAP-272o 6/6 AC) + 5 PARTIAL với follow-ups tracked. Wall-clock ~30min vs 3.5h estimate (7× faster). 77th 0-clarif streak. ⚠️ Bucket C BREAKING API (Page envelope) — admin FE adapter check pre-Phase-7 needed.
 
-Plan đã pre-draft: [`documents/03-planning/waves/wave-2026-05-08-41-fix-cluster-post-audit-milestone.md`](documents/03-planning/waves/wave-2026-05-08-41-fix-cluster-post-audit-milestone.md)
+🚨 **NEW SESSION START HERE — Stream A user actions + Wave 42 candidates**
 
-**6 ngăn parallel (~3.5-4h tổng) — đóng P0/P1 từ Wave 40 audit:**
+**Stream A — User-action (BLOCKING Phase 1 BETA launch):**
 
-| Ngăn | Gap | Priority | Effort |
-|------|-----|----------|--------|
-| A | [GAP-430](GAP-430-backup-alert-metric-mismatch.md) BackupJobFailure metric mismatch | 🔴 P0 | ~1.5h |
-| B | [GAP-431](GAP-431-helm-startupprobe-missing.md) Helm startupProbe missing | 🟠 P1 | ~1.5h |
-| C | [GAP-432](GAP-432-unbounded-findall-services.md) 3× unbounded findAll services | 🟠 P1 | ~3h (longest) |
-| D | [GAP-272o](GAP-272o-orchestrator-wiring-deploying-regenerate.md) wizard orchestrator wiring | 🟠 P1 | ~1.5h |
-| E | [GAP-433](GAP-433-rules-md-5-attr-coverage-backfill.md) rules.md 5-attr backfill | 🟠 P1 | ~3h |
-| F | GAP-115/135 monitoring Grafana dashboards | 🟠 P1 | ~3h |
-| G optional | GAP-204 npm CVE sweep + Trivy exception | 🟡 P2 | ~1.5h |
+| Phase | Action | Status |
+|---|---|---|
+| 1.1 | Domain registrar signup | Ready (per Wave 39 GAP-394 runbook) |
+| 1.2 | AWS Singapore account + IAM + access key + MFA + Budgets ladder (low/medium/high) | Ready (per Wave 39 GAP-394 runbook) |
+| 1.3 | Cloudflare nameservers + SSL + WAF (GAP-371) | Ready (per `cloudflare-setup.md` 13 sections) |
+| 1.4 | SES production access + DKIM + bounce/complaint (GAP-370) | Ready (per VN-overlay) |
+| 1.5 | Instatus signup + DNS + smoke (GAP-373) | Ready (per Wave 38 ADR-027) |
+| Bonus | Terraform apply staging (GAP-380 Wave 38 #946 PARTIAL) | Pending Stream A 1.1-1.3 |
 
-**Pre-conditions trước khi spawn:**
-1. Đọc plan §3 Phạm vi + §4 State-Check Evidence
-2. Verify state-check theo §4 (đã pre-filled — skip nếu không có thay đổi từ 2026-05-08)
-3. Spawn 6 ngăn `run_in_background: true` + `isolation: worktree`
-4. RELATIVE paths trong agent prompt
-5. Coordinator merge sequential A → B → D → E → F → C (C cuối vì largest)
+**Stream B — Wave 42 fix-cluster candidates (~3-4h estimated, đợi staging up):**
 
-**KHÔNG block:** Stream A user actions song song (Phase 1.1-1.5 signup AWS/domain/CF/SES/Instatus). Wave 41 = code-prereq, không depend Stream A. Wave 42 (live-staging) sẽ depend.
+| Gap | Priority | Note |
+|-----|----------|------|
+| GAP-117 restore drill | 🟠 P1 | Cần staging up — defer until Stream A complete |
+| GAP-204 npm CVE sweep + Trivy exception | 🟡 P2 | Wave 41 G optional skipped |
+| GAP-435 promtool alert-rule unit test | 🟡 P2 | Wave 41 Bucket A follow-up |
+| GAP-434 Loki/Promtail backend stack Phase 2 | 🟠 P1 | Wave 41 Bucket F follow-up, ~6-8h |
+| GAP-272e SSE E2E EventSource polyfill | 🟡 P2 | Wave 41 Bucket D follow-up |
+| Bucket C breaking API Page envelope — admin FE adapter check | 🟠 P1 | Pre-Phase-7 verify kitehub-admin consumers |
+
+**Pre-conditions before Wave 42 plan:**
+1. Stream A status snapshot (domain registered? AWS account active? CF nameservers propagated?)
+2. State-check Wave 41 follow-up gaps (GAP-435/434/272e) AC clean
+3. Wave 42 stake tier: HIGH-stake (live-staging touch) — apply contract-first if cross-layer
+
+**Wave 42 vs Stream A:** Stream A (user-action) BLOCKS Wave 42 live-staging tests. Stream A có thể parallel với code-only follow-up gaps (GAP-435/272e/204) nếu muốn ship chúng trong Wave 41b sub-PR.
 
 ---
 
