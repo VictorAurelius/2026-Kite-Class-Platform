@@ -1,0 +1,161 @@
+name: Release on Tag
+
+# GAP-374 — Wave 38 Bucket A.
+# Triggered by `git push origin vX.Y.Z` matching the semver pattern below.
+#
+# Scope split with `docker-build-push.yml`:
+#   - docker-build-push.yml owns multi-arch ECR push + Trivy + Cosign on `tags: 'v*.*.*'`
+#     (already lands on Wave 37; do NOT duplicate here).
+#   - This workflow owns: tag validation + changelog generation + GitHub Release creation
+#     + notify hook (deferred).
+#
+# Refs:
+#   - documents/03-planning/roadmap/versioning-policy.md §6 + §9 + §14
+#   - .claude/rules/release-deploy-standard.md §3 (PRE-RELEASE / PATCH / MINOR / MAJOR)
+#   - GAP-374 acceptance criteria
+
+on:
+  push:
+    tags:
+      # Matches v0.9.0-beta, v0.9.0-beta.1, v1.0.0-rc.1, v1.0.0, v1.0.1, v2.0.0, etc.
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+permissions:
+  contents: write   # GitHub Release creation
+  pull-requests: read
+
+concurrency:
+  group: release-tag-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ==========================================================================
+  # Job 1: Validate tag format + extract version + classify pre-release
+  # ==========================================================================
+  validate-tag:
+    name: Validate tag
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract.outputs.version }}
+      is_prerelease: ${{ steps.extract.outputs.is_prerelease }}
+      previous_tag: ${{ steps.extract.outputs.previous_tag }}
+    steps:
+      - name: Checkout (full history for tag walk)
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Extract version + classify
+        id: extract
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/}"
+          # Pre-release if tag contains "-alpha", "-beta", "-rc"
+          if [[ "$VERSION" =~ -(alpha|beta|rc) ]]; then
+            IS_PRE="true"
+          else
+            IS_PRE="false"
+          fi
+
+          # Find previous semver tag (descending sort, exclude current).
+          PREV_TAG=$(git tag --sort=-v:refname --list 'v[0-9]*.[0-9]*.[0-9]*' \
+            | grep -vxF "$VERSION" \
+            | head -n 1 || true)
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "is_prerelease=$IS_PRE" >> "$GITHUB_OUTPUT"
+          echo "previous_tag=$PREV_TAG" >> "$GITHUB_OUTPUT"
+
+          echo "Released: $VERSION (pre-release: $IS_PRE)"
+          echo "Previous tag: ${PREV_TAG:-<none — first release>}"
+
+  # ==========================================================================
+  # Job 2: Generate changelog + create GitHub Release
+  # ==========================================================================
+  release:
+    name: Generate changelog + GitHub Release
+    runs-on: ubuntu-latest
+    needs: validate-tag
+    steps:
+      - name: Checkout (full history for changelog walk)
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          chmod +x ./scripts/generate-changelog.sh
+          # Pipe to a file so we can attach as Release body.
+          ./scripts/generate-changelog.sh \
+            "${{ needs.validate-tag.outputs.version }}" \
+            "${{ needs.validate-tag.outputs.previous_tag }}" \
+            > /tmp/changelog.md
+
+          echo "--- Generated changelog ---"
+          cat /tmp/changelog.md
+          echo "---"
+
+          # Save path for next step.
+          echo "path=/tmp/changelog.md" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.validate-tag.outputs.version }}
+          IS_PRE: ${{ needs.validate-tag.outputs.is_prerelease }}
+        run: |
+          PRERELEASE_FLAG=""
+          if [[ "$IS_PRE" == "true" ]]; then
+            PRERELEASE_FLAG="--prerelease"
+            echo "Marking as pre-release"
+          fi
+
+          # Idempotent: if release already exists (manual re-run), update body.
+          if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $VERSION exists — updating body"
+            gh release edit "$VERSION" \
+              --repo "$GITHUB_REPOSITORY" \
+              --notes-file /tmp/changelog.md \
+              $PRERELEASE_FLAG
+          else
+            echo "Creating release $VERSION"
+            gh release create "$VERSION" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Release $VERSION" \
+              --notes-file /tmp/changelog.md \
+              $PRERELEASE_FLAG
+          fi
+
+      - name: Upload changelog artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog-${{ needs.validate-tag.outputs.version }}
+          path: /tmp/changelog.md
+          retention-days: 90
+
+  # ==========================================================================
+  # Job 3: Notify (DEFERRED — channel decision pending; emits log only for now)
+  # ==========================================================================
+  # Open decision per GAP-374: channel selection (Slack / Discord / email).
+  # Tracked as PARTIAL closure of GAP-374 — see follow-up gap.
+  notify:
+    name: Notify (deferred — channel TBD)
+    runs-on: ubuntu-latest
+    needs: [validate-tag, release]
+    if: always()
+    steps:
+      - name: Log release status (placeholder for future channel hook)
+        env:
+          VERSION: ${{ needs.validate-tag.outputs.version }}
+          IS_PRE: ${{ needs.validate-tag.outputs.is_prerelease }}
+          RELEASE_RESULT: ${{ needs.release.result }}
+        run: |
+          echo "=== Release Notification ==="
+          echo "Version:     $VERSION"
+          echo "Pre-release: $IS_PRE"
+          echo "Release job: $RELEASE_RESULT"
+          echo ""
+          echo "Channel hook (Slack/Discord/email) deferred per GAP-374 §Open decisions."
+          echo "Replace this step with vendor action when channel is decided."

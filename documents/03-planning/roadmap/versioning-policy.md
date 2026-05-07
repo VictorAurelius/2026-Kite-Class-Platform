@@ -171,6 +171,21 @@ Per release tag:
 - [ ] Tag patch: `vX.Y.Z+1`
 - [ ] Skip changelog if doc-only; update if user-facing
 
+### 6.4 Automated release pipeline (CI)
+
+Khi `git push origin vX.Y.Z[-PRERELEASE]` chạy, hai workflow song song fire trên cùng tag:
+
+| Workflow | Owns | Triggered by |
+|---|---|---|
+| `.github/workflows/docker-build-push.yml` | Multi-arch ECR push (amd64 + arm64), Trivy scan, Syft SBOM, Cosign keyless sign | Tag pattern `v*.*.*` (Wave 37 Bucket B) |
+| `.github/workflows/release-tag.yml` | Tag validation, conventional-commit changelog generation, GitHub Release creation, pre-release classification | Tag pattern `v[0-9]+.[0-9]+.[0-9]+*` (Wave 38 Bucket A — GAP-374) |
+
+Scope split là intentional — image push đã được Wave 37 hardening cover; `release-tag.yml` chỉ thêm changelog + GitHub Release layer. Cả hai workflow tự xử lý concurrency group riêng để cùng tag không deadlock.
+
+Notification channel (Slack / Discord / email) còn open — workflow log placeholder, tracked via follow-up gap.
+
+Self-test cho changelog parser: `bash scripts/generate-changelog.sh --self-test`.
+
 ---
 
 ## 7. Sub-component versioning

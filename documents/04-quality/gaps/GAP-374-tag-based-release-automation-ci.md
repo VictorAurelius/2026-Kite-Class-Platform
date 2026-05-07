@@ -1,6 +1,6 @@
 # GAP-374: Tag-based Release Automation CI Workflow
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — workflow + changelog generator shipped Wave 38 Bucket A; notification channel + live tag end-to-end test deferred to follow-up GAP-NEW (post-Phase-1-BETA when first real `v0.9.0-beta` tag fires)
 **Priority:** 🟠 P1 STRONGLY recommend (Phase 1 BETA + 1.5 PAID)
 **Domain:** DevOps / CI/CD
 **Found:** 2026-05-06 (Release 1 deploy plan; per `versioning-policy.md` §14)
@@ -75,16 +75,16 @@ jobs:
 
 ## Acceptance Criteria
 
-- [ ] Workflow file created `.github/workflows/release-tag.yml`
-- [ ] Tag pattern matches: `v0.9.0-beta`, `v0.9.0-beta.1`, `v1.0.0-rc.1`, `v1.0.0`, `v1.0.1`, `v2.0.0`, etc.
-- [ ] Multi-arch Docker build (amd64 + arm64)
-- [ ] Push to ECR + Docker Hub (if applicable) với version + latest tags
-- [ ] Changelog generation from conventional commits since previous tag
-- [ ] GitHub Release created với changelog body
-- [ ] Pre-release tags marked correctly
-- [ ] Deploy notification (decide channel)
-- [ ] Self-test: push test tag, verify workflow runs end-to-end
-- [ ] `versioning-policy.md` §6 Release process updated với automated steps
+- [x] Workflow file created `.github/workflows/release-tag.yml`
+- [x] Tag pattern matches: `v0.9.0-beta`, `v0.9.0-beta.1`, `v1.0.0-rc.1`, `v1.0.0`, `v1.0.1`, `v2.0.0`, etc.
+- [x] Multi-arch Docker build (amd64 + arm64) — delegated to existing `docker-build-push.yml` which already triggers on `tags: 'v*.*.*'` (Wave 37 Bucket B). Scope split documented in `versioning-policy.md` §6.4.
+- [x] Push to ECR (ap-southeast-1) với version + latest tags — delegated to `docker-build-push.yml` (no Docker Hub per ADR-025).
+- [x] Changelog generation from conventional commits since previous tag — `scripts/generate-changelog.sh` (bash + awk classifier covering feat / fix / docs / refactor / perf / style / build / ci / sec / revert / breaking-change marker)
+- [x] GitHub Release created với changelog body — idempotent (`gh release edit` if exists, else `gh release create`)
+- [x] Pre-release tags marked correctly — regex `-(alpha|beta|rc)` → `--prerelease` flag
+- [ ] Deploy notification (decide channel) — **DEFERRED** to follow-up gap. Workflow ships placeholder `notify` job logging release state; channel selection (Slack / Discord / email) still open per §Open decisions.
+- [ ] Self-test: push test tag, verify workflow runs end-to-end — **DEFERRED**. Synthetic-fixture self-test of changelog parser shipped (`bash scripts/generate-changelog.sh --self-test` PASS, classifies 10 conventional commits into 7 sections). Live end-to-end requires actual tag push — first real `v0.9.0-beta` tag will exercise the pipeline; test coverage at that point.
+- [x] `versioning-policy.md` §6 Release process updated với automated steps — added §6.4 Automated release pipeline (CI) cross-referencing both workflows.
 
 ## Open decisions
 
@@ -116,4 +116,5 @@ Per `.claude/rules/release-deploy-standard.md` §3 — this gap satisfies a chec
 
 ## Log
 
+- **2026-05-07** (Wave 38 Bucket A): PARTIAL. Shipped `.github/workflows/release-tag.yml` + `scripts/generate-changelog.sh` (with `--self-test`) + `versioning-policy.md` §6.4 cross-link. Image push intentionally delegated to existing `docker-build-push.yml` (Wave 37 Bucket B already covers `tags: 'v*.*.*'` trigger với Trivy + SBOM + Cosign) — scope split documented. Deferred: (a) notification channel selection (Slack / Discord / email TBD), (b) live end-to-end test against real tag push (requires actual `v0.9.0-beta` tag — first BETA tag will exercise pipeline). Both deferrals tracked under follow-up gap to be filed alongside Wave 38 closure. Per `gap-done-discipline.md` §3 PARTIAL exit ramp — 2 of 10 AC items unchecked → status remains PARTIAL.
 - **2026-05-06:** Filed by Release 1 deploy plan PR. Per versioning-policy §14 open item. STRONGLY recommend Phase 1 BETA — manual tag deploy works but automation prevents drift + ensures consistent release artifacts.
