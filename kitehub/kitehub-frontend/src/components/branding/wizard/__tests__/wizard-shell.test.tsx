@@ -1,0 +1,266 @@
+/**
+ * Wave 32 Bucket A — Wizard shell + Step 1-2 tests.
+ *
+ * Coverage targets (per plan §3 Bucket A "Tests ≥6"):
+ *  1. wizardReducer — step transitions
+ *  2. wizardReducer — slug actions invalidate prior validation result
+ *  3. wizardReducer — APPROVE_RESOURCE / UNAPPROVE_RESOURCE / RESET_APPROVALS (Bucket C compliance)
+ *  4. wizardReducer — SET_TEMPLATE clears prior approvals
+ *  5. StepIndicator — renders 6 labelled steps with correct aria-current
+ *  6. WelcomeStep — slug 'available' enables Continue; conflict shows suggestions
+ *  7. WelcomeStep — clicking a suggestion adopts it via SET_SLUG
+ *  8. LogoStep — fork toggle dispatches SET_LOGO with aiLogo flag
+ *  9. LogoStep — invalid file size emits error banner, never dispatches
+ */
+
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import {
+  wizardReducer,
+  INITIAL_WIZARD_STATE,
+  type WizardState,
+} from '../wizard-shared';
+import { StepIndicator } from '../StepIndicator';
+import { WelcomeStep } from '../WelcomeStep';
+import { LogoStep } from '../LogoStep';
+
+// Mock the upload hook so LogoStep tests don't hit the network
+vi.mock('@/hooks/use-branding', () => ({
+  useUploadAsset: () => ({
+    mutateAsync: vi.fn().mockResolvedValue({ url: 'https://cdn.test/logo.png' }),
+    isPending: false,
+  }),
+}));
+
+// Stub sonner toast so LogoStep tests don't depend on the real provider
+vi.mock('sonner', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+describe('wizardReducer — step transitions', () => {
+  it('NEXT_STEP / PREV_STEP cap at boundaries 1..6', () => {
+    let s: WizardState = INITIAL_WIZARD_STATE;
+    expect(s.currentStep).toBe(1);
+
+    s = wizardReducer(s, { type: 'PREV_STEP' });
+    expect(s.currentStep).toBe(1);
+
+    for (let i = 0; i < 7; i++) {
+      s = wizardReducer(s, { type: 'NEXT_STEP' });
+    }
+    expect(s.currentStep).toBe(6);
+
+    s = wizardReducer(s, { type: 'GO_TO_STEP', step: 3 });
+    expect(s.currentStep).toBe(3);
+  });
+});
+
+describe('wizardReducer — slug lifecycle', () => {
+  it('SET_SLUG clears prior status + suggestions', () => {
+    const prior: WizardState = {
+      ...INITIAL_WIZARD_STATE,
+      slug: 'old',
+      slugStatus: 'conflict',
+      conflictSuggestions: ['old-1', 'old-2'],
+    };
+    const next = wizardReducer(prior, { type: 'SET_SLUG', slug: 'new-slug' });
+    expect(next.slug).toBe('new-slug');
+    expect(next.slugStatus).toBe('default');
+    expect(next.conflictSuggestions).toEqual([]);
+  });
+
+  it('SET_SLUG_STATUS persists status + suggestions when provided', () => {
+    const next = wizardReducer(INITIAL_WIZARD_STATE, {
+      type: 'SET_SLUG_STATUS',
+      status: 'conflict',
+      suggestions: ['a', 'b'],
+    });
+    expect(next.slugStatus).toBe('conflict');
+    expect(next.conflictSuggestions).toEqual(['a', 'b']);
+  });
+});
+
+describe('wizardReducer — approvedResources (Bucket C compliance)', () => {
+  it('APPROVE / UNAPPROVE / RESET_APPROVALS round-trip', () => {
+    let s: WizardState = INITIAL_WIZARD_STATE;
+    s = wizardReducer(s, { type: 'APPROVE_RESOURCE', resource: 'logo' });
+    s = wizardReducer(s, { type: 'APPROVE_RESOURCE', resource: 'colors' });
+    s = wizardReducer(s, { type: 'APPROVE_RESOURCE', resource: 'logo' }); // dedup
+    expect(s.approvedResources).toEqual(['logo', 'colors']);
+
+    s = wizardReducer(s, { type: 'UNAPPROVE_RESOURCE', resource: 'logo' });
+    expect(s.approvedResources).toEqual(['colors']);
+
+    s = wizardReducer(s, { type: 'RESET_APPROVALS' });
+    expect(s.approvedResources).toEqual([]);
+  });
+
+  it('SET_TEMPLATE clears any prior approvals (avoids cross-template stale state)', () => {
+    const prior: WizardState = {
+      ...INITIAL_WIZARD_STATE,
+      approvedResources: ['logo', 'colors'],
+    };
+    const next = wizardReducer(prior, {
+      type: 'SET_TEMPLATE',
+      templateId: 'tpl-2',
+      jobId: 'job-2',
+    });
+    expect(next.templateId).toBe('tpl-2');
+    expect(next.jobId).toBe('job-2');
+    expect(next.approvedResources).toEqual([]);
+  });
+});
+
+describe('StepIndicator', () => {
+  it('renders all 6 steps and marks currentStep as aria-current="step"', () => {
+    render(<StepIndicator currentStep={3} />);
+
+    const labels = ['Chào mừng', 'Logo', 'Đối tượng', 'Phong cách', 'Mẫu thiết kế', 'Phê duyệt'];
+    for (const label of labels) {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
+
+    const current = screen.getByLabelText(/Bước 3: Đối tượng \(đang làm\)/);
+    expect(current).toHaveAttribute('aria-current', 'step');
+
+    const completed = screen.getByLabelText(/Bước 1: Chào mừng \(đã xong\)/);
+    expect(completed).not.toHaveAttribute('aria-current');
+  });
+});
+
+describe('WelcomeStep — slug validation', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('available slug enables the Continue button', async () => {
+    let state: WizardState = {
+      ...INITIAL_WIZARD_STATE,
+      tenantName: 'Trung tâm Toán Master',
+      slug: 'unique-slug',
+    };
+    const dispatch = vi.fn((action) => {
+      state = wizardReducer(state, action);
+    });
+    const onNext = vi.fn();
+
+    const { rerender } = render(
+      <WelcomeStep wizardState={state} dispatch={dispatch} onNext={onNext} />
+    );
+
+    // Drive the debounce + stub round-trip
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(900);
+    });
+
+    // After validation, dispatch should have flipped status to 'available'
+    expect(state.slugStatus).toBe('available');
+
+    rerender(<WelcomeStep wizardState={state} dispatch={dispatch} onNext={onNext} />);
+
+    const cta = screen.getByTestId('wizard-step1-continue');
+    expect(cta).not.toBeDisabled();
+    fireEvent.click(cta);
+    expect(onNext).toHaveBeenCalledTimes(1);
+  });
+
+  it('conflict slug shows suggestions; clicking one dispatches SET_SLUG', async () => {
+    let state: WizardState = {
+      ...INITIAL_WIZARD_STATE,
+      tenantName: 'Trung tâm Toán Master',
+      slug: 'toan-master', // SLUG_STUB_TAKEN
+    };
+    const dispatch = vi.fn((action) => {
+      state = wizardReducer(state, action);
+    });
+
+    const { rerender } = render(
+      <WelcomeStep wizardState={state} dispatch={dispatch} onNext={vi.fn()} />
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(900);
+    });
+
+    expect(state.slugStatus).toBe('conflict');
+    expect(state.conflictSuggestions.length).toBeGreaterThan(0);
+
+    rerender(<WelcomeStep wizardState={state} dispatch={dispatch} onNext={vi.fn()} />);
+
+    const suggestion = screen.getByRole('button', { name: 'toan-master-2026' });
+    fireEvent.click(suggestion);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: 'SET_SLUG',
+      slug: 'toan-master-2026',
+    });
+
+    // Continue is disabled while in conflict state (no name typed elsewhere
+    // can flip it without an 'available' slug)
+    rerender(<WelcomeStep wizardState={state} dispatch={dispatch} onNext={vi.fn()} />);
+    expect(screen.getByTestId('wizard-step1-continue')).toBeDisabled();
+  });
+});
+
+describe('LogoStep — fork + validation', () => {
+  it('switching to AI-generate fork dispatches SET_LOGO with aiLogo=true', () => {
+    let state: WizardState = INITIAL_WIZARD_STATE;
+    const dispatch = vi.fn((action) => {
+      state = wizardReducer(state, action);
+    });
+
+    render(
+      <LogoStep
+        wizardState={state}
+        dispatch={dispatch}
+        instanceId="inst-1"
+        onNext={vi.fn()}
+        onBack={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('wizard-logo-fork-ai'));
+    expect(dispatch).toHaveBeenCalledWith({
+      type: 'SET_LOGO',
+      url: '',
+      aiLogo: true,
+    });
+
+    expect(screen.getByTestId('wizard-logo-skip')).toBeInTheDocument();
+    expect(screen.getByTestId('wizard-step2-continue')).not.toBeDisabled();
+  });
+
+  it('rejects oversized files via error banner without dispatching', async () => {
+    const state: WizardState = INITIAL_WIZARD_STATE;
+    const dispatch = vi.fn();
+
+    render(
+      <LogoStep
+        wizardState={state}
+        dispatch={dispatch}
+        instanceId="inst-1"
+        onNext={vi.fn()}
+        onBack={vi.fn()}
+      />
+    );
+
+    const input = screen.getByTestId('wizard-logo-file-input') as HTMLInputElement;
+    const oversized = new File(['x'.repeat(3 * 1024 * 1024)], 'big.png', {
+      type: 'image/png',
+    });
+    Object.defineProperty(input, 'files', { value: [oversized] });
+    fireEvent.change(input);
+
+    const banner = await screen.findByTestId('wizard-logo-error');
+    expect(banner).toHaveTextContent(/2MB/);
+    // No SET_LOGO/SET_LOGO/CLEAR_LOGO from validation reject path
+    expect(dispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'SET_LOGO' })
+    );
+  });
+});

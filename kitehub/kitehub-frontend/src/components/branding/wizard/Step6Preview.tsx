@@ -28,9 +28,9 @@ import { useMemo } from 'react';
 import { ArrowLeft, Rocket, Smartphone, Tablet, Monitor, Info } from 'lucide-react';
 import { ThemePreview } from '@kite/shared-ui';
 import { Button } from '@/components/ui/button';
-import { ResourceToggle } from './ResourceToggle';
+import { ResourceToggle, type ApprovableResource } from './ResourceToggle';
 import { TEMPLATES } from './TemplateGrid';
-import type { Step6PreviewProps, ApprovableResource } from './wizard-shared';
+import type { Step6PreviewProps } from './wizard-shared';
 
 // ---------------------------------------------------------------------------
 // Brand-colour derivation
@@ -176,14 +176,31 @@ const RESOURCES: ReadonlyArray<ResourceItem> = [
 // Step6Preview
 // ---------------------------------------------------------------------------
 
+/**
+ * Test/Storybook-friendly extension of Bucket A's canonical `Step6PreviewProps`.
+ * Adds optional `brandColors` + `previewUrl` overrides used by tests and Bucket
+ * D's QualityGate harness when wiring deterministic snapshots.
+ *
+ * `onBack` + `onDeploy` are mandatory in A's contract — this component keeps
+ * them optional locally by `Partial`-ing them so the test file can render
+ * without supplying them while production callers still satisfy the
+ * orchestrator contract via destructure defaults below.
+ */
+export type Step6PreviewLocalProps = Omit<Step6PreviewProps, 'onBack' | 'onDeploy'> & {
+  brandColors?: BrandColours;
+  previewUrl?: string;
+  onBack?: () => void;
+  onDeploy?: () => void;
+};
+
 export function Step6Preview({
   wizardState,
   dispatch,
   brandColors: brandColorsOverride,
   previewUrl: previewUrlOverride,
-  onDeploy,
-  onBack,
-}: Step6PreviewProps) {
+  onDeploy = () => {},
+  onBack = () => {},
+}: Step6PreviewLocalProps) {
   // Live brand colours derived from the selected template (or override for
   // tests / Storybook). NOT a hardcoded MOCK_BRAND constant — see
   // TODO(GAP-272k) above.

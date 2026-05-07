@@ -16,6 +16,20 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 
+// Stub Bucket D's `useBrandingTier` hook so TemplateStep tests don't need a
+// React Query provider. `tierOverride` short-circuits the real hook in
+// production code, but the hook is still INVOKED per React rules — keeping
+// it inert via mock avoids touching `useActiveSubscription`.
+vi.mock('@/hooks/use-branding-tier', () => ({
+  useBrandingTier: () => ({
+    tier: 'FREE' as const,
+    regenerateQuota: 3,
+    advancedModeEnabled: false,
+    canUseCustomPrompt: false,
+    isLoading: false,
+  }),
+}));
+
 import { TemplateGrid, filterTemplates, TEMPLATES } from '../TemplateGrid';
 import { TemplateFullscreen } from '../TemplateFullscreen';
 import { TemplateStep } from '../TemplateStep';
@@ -222,23 +236,22 @@ describe('TemplateStep custom-prompt gating (§2.1)', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('dispatches SET_CUSTOM_PROMPT when textarea changes (Enterprise only)', () => {
-    const dispatch = vi.fn();
+  it('updates customPrompt textarea value when changed (Enterprise only, local state)', () => {
+    // Note: post-rework `customPrompt` is LOCAL component state (not in
+    // WizardState — Bucket A's canonical reducer does not own this field).
+    // We therefore assert visible textarea value rather than a dispatch call.
     render(
       <TemplateStep
         wizardState={makeState()}
-        dispatch={dispatch}
+        dispatch={vi.fn()}
         tierOverride="ENTERPRISE"
         onNext={vi.fn()}
         onBack={vi.fn()}
       />,
     );
-    const ta = screen.getByTestId('custom-prompt-textarea');
+    const ta = screen.getByTestId('custom-prompt-textarea') as HTMLTextAreaElement;
     fireEvent.change(ta, { target: { value: 'banner ấm áp' } });
-    expect(dispatch).toHaveBeenCalledWith({
-      type: 'SET_CUSTOM_PROMPT',
-      payload: 'banner ấm áp',
-    });
+    expect(ta.value).toBe('banner ấm áp');
   });
 
   it('TemplateStep filters templates using wizardState.audience + tone', () => {
@@ -355,7 +368,7 @@ describe('ResourceToggle (§4.2 reducer-controlled state)', () => {
     fireEvent.click(screen.getByTestId('resource-toggle-switch-logo'));
     expect(dispatch).toHaveBeenCalledWith({
       type: 'APPROVE_RESOURCE',
-      payload: 'logo',
+      resource: 'logo',
     });
   });
 
@@ -373,7 +386,7 @@ describe('ResourceToggle (§4.2 reducer-controlled state)', () => {
     fireEvent.click(screen.getByTestId('resource-toggle-switch-banner'));
     expect(dispatch).toHaveBeenCalledWith({
       type: 'UNAPPROVE_RESOURCE',
-      payload: 'banner',
+      resource: 'banner',
     });
   });
 
@@ -414,7 +427,7 @@ describe('wizardReducer per-resource approve actions', () => {
   it('APPROVE_RESOURCE adds id to approvedResources', () => {
     const next = wizardReducer(INITIAL_WIZARD_STATE, {
       type: 'APPROVE_RESOURCE',
-      payload: 'logo',
+      resource: 'logo',
     });
     expect(next.approvedResources).toEqual(['logo']);
   });
@@ -422,11 +435,11 @@ describe('wizardReducer per-resource approve actions', () => {
   it('APPROVE_RESOURCE is idempotent (no duplicate)', () => {
     const once = wizardReducer(INITIAL_WIZARD_STATE, {
       type: 'APPROVE_RESOURCE',
-      payload: 'logo',
+      resource: 'logo',
     });
     const twice = wizardReducer(once, {
       type: 'APPROVE_RESOURCE',
-      payload: 'logo',
+      resource: 'logo',
     });
     expect(twice.approvedResources).toEqual(['logo']);
   });
@@ -434,11 +447,11 @@ describe('wizardReducer per-resource approve actions', () => {
   it('UNAPPROVE_RESOURCE removes id', () => {
     const start = wizardReducer(INITIAL_WIZARD_STATE, {
       type: 'APPROVE_RESOURCE',
-      payload: 'banner',
+      resource: 'banner',
     });
     const after = wizardReducer(start, {
       type: 'UNAPPROVE_RESOURCE',
-      payload: 'banner',
+      resource: 'banner',
     });
     expect(after.approvedResources).toEqual([]);
   });

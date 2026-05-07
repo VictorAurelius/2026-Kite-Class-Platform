@@ -12,10 +12,17 @@
 // ---------------------------------------------------------------------------
 
 import { Switch } from '@/components/ui/switch';
-import type { ApprovableResource, WizardAction } from './wizard-shared';
+import type { WizardAction } from './wizard-shared';
+
+/**
+ * Local approvable-resource alias — Bucket A's canonical wizard-shared does
+ * not export this type; it accepts plain `string` for `APPROVE_RESOURCE.resource`.
+ * We constrain to the 4 well-known IDs here for type safety on Step 6's stack.
+ */
+export type ApprovableResource = 'logo' | 'colors' | 'banner' | 'hero';
 
 export interface ResourceToggleProps {
-  /** Resource identifier — drives which APPROVE_RESOURCE payload fires. */
+  /** Resource identifier — drives which APPROVE_RESOURCE action fires. */
   resource: ApprovableResource;
   /** User-visible title (e.g. "Logo", "Bảng màu"). */
   title: string;
@@ -51,7 +58,7 @@ export function ResourceToggle({
   function handleToggle(next: boolean) {
     dispatch({
       type: next ? 'APPROVE_RESOURCE' : 'UNAPPROVE_RESOURCE',
-      payload: resource,
+      resource,
     });
   }
 

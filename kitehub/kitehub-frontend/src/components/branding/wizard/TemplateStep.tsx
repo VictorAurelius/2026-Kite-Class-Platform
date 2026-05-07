@@ -31,11 +31,12 @@ import { Button } from '@/components/ui/button';
 import { TemplateGrid, TEMPLATES, type TemplateDescriptor } from './TemplateGrid';
 import { TemplateFullscreen } from './TemplateFullscreen';
 import {
-  useBrandingTierStub,
   WizardCard,
   WizardStepHeader,
   type TemplateStepProps,
 } from './wizard-shared';
+import { useBrandingTier, type BrandingTierInfo } from '@/hooks/use-branding-tier';
+import type { PricingTier } from '@/types/subscription';
 
 // ---------------------------------------------------------------------------
 // CustomPromptInput — Enterprise Advanced Mode opt-in.
@@ -131,18 +132,81 @@ function CustomPromptInput({
 // TemplateStep
 // ---------------------------------------------------------------------------
 
+/**
+ * Local props extension — Bucket A's canonical `TemplateStepProps` does not
+ * include `tierOverride`, but tests + Storybook need to drive tier deterministically.
+ * Production callers omit `tierOverride` and the component falls back to D's
+ * `useBrandingTier()` hook (which subscribes to the active subscription).
+ *
+ * The legacy stub also accepted a sentinel "PRO" string; that label maps to
+ * the canonical `BASIC` tier from `PricingTier`. We accept "PRO" only for
+ * test compatibility and normalize it inline.
+ */
+type TierOverrideValue = PricingTier | 'PRO';
+
+export interface TemplateStepLocalProps extends TemplateStepProps {
+  tierOverride?: TierOverrideValue;
+  /** Optional instance ID for `useBrandingTier`; tests omit it. */
+  instanceId?: string;
+}
+
+/**
+ * Per-tier estimated-token cap label (matches `ai-branding-guidelines.md`
+ * §2.5 + `AIInputCapConfig` defaults). Keyed on canonical `PricingTier`.
+ */
+const TIER_CAP_LABEL: Record<PricingTier, string> = {
+  FREE: '2.000',
+  BASIC: '4.000',
+  PREMIUM: '8.000',
+  ENTERPRISE: '16.000',
+};
+
+/** Synthesize a {@link BrandingTierInfo} from a forced tier (test-only path). */
+function synthesizeTierInfo(forced: PricingTier): BrandingTierInfo {
+  const isEnterprise = forced === 'ENTERPRISE';
+  const quota: Record<PricingTier, number> = {
+    FREE: 3,
+    BASIC: 10,
+    PREMIUM: 30,
+    ENTERPRISE: -1,
+  };
+  return {
+    tier: forced,
+    regenerateQuota: quota[forced],
+    advancedModeEnabled: isEnterprise,
+    canUseCustomPrompt: isEnterprise,
+    isLoading: false,
+  };
+}
+
+/** Normalize the legacy "PRO" sentinel to canonical `BASIC`. */
+function normalizeTierOverride(v: TierOverrideValue | undefined): PricingTier | undefined {
+  if (v === undefined) return undefined;
+  return v === 'PRO' ? 'BASIC' : v;
+}
+
 export function TemplateStep({
   wizardState,
   dispatch,
   tierOverride,
+  instanceId,
   onNext,
   onBack,
-}: TemplateStepProps) {
-  // TODO(GAP-272m): swap `useBrandingTierStub` for Bucket D's
-  // `useBrandingTier(instanceId)` once that hook lands.
-  const tierInfo = useBrandingTierStub(tierOverride ?? 'FREE');
+}: TemplateStepLocalProps) {
+  // When `tierOverride` is provided (tests / Storybook), short-circuit the
+  // subscription hook so the component never touches React Query in tests.
+  // Production path: `useBrandingTier(instanceId)` — Bucket D's canonical hook.
+  const overrideTier = normalizeTierOverride(tierOverride);
+  const realTierInfo = useBrandingTier(instanceId);
+  const tierInfo: BrandingTierInfo =
+    overrideTier !== undefined ? synthesizeTierInfo(overrideTier) : realTierInfo;
 
   const [fullscreen, setFullscreen] = useState<TemplateDescriptor | null>(null);
+  // §2.4 Enterprise Advanced Mode — `customPrompt` is intentionally LOCAL
+  // (not persisted in WizardState). It only matters for the active step;
+  // navigating away clears it, which is fine because the prompt is a
+  // generation hint, not a user-saved preference.
+  const [customPrompt, setCustomPrompt] = useState('');
 
   // Derive the selected template descriptor from state (supports tests
   // re-rendering with a pre-populated state).
@@ -152,24 +216,25 @@ export function TemplateStep({
   );
 
   function handleSelect(t: TemplateDescriptor) {
-    dispatch({ type: 'SET_TEMPLATE_ID', payload: t.id });
+    // A's reducer requires both `templateId` + `jobId` on SET_TEMPLATE.
+    // Bucket C does not yet have a jobId at template-pick time — backend
+    // returns one when generation kicks off in Step 6. Pass an empty string
+    // here as a sentinel; Step 6's generate handler MUST overwrite this with
+    // the real jobId via another SET_TEMPLATE dispatch (or a follow-up
+    // `SET_JOB_ID` action when added in a later wave).
+    dispatch({ type: 'SET_TEMPLATE', templateId: t.id, jobId: '' });
   }
 
   function handleFullscreenConfirm(t: TemplateDescriptor) {
-    dispatch({ type: 'SET_TEMPLATE_ID', payload: t.id });
+    dispatch({ type: 'SET_TEMPLATE', templateId: t.id, jobId: '' });
     setFullscreen(null);
   }
 
   function handleCustomPromptChange(next: string) {
-    dispatch({ type: 'SET_CUSTOM_PROMPT', payload: next });
+    setCustomPrompt(next);
   }
 
-  const tierCapLabel: Record<typeof tierInfo.tier, string> = {
-    FREE: '2.000',
-    PRO: '4.000',
-    PREMIUM: '8.000',
-    ENTERPRISE: '16.000',
-  };
+  const tierCapLabel = TIER_CAP_LABEL;
 
   return (
     <div className="space-y-6">
@@ -196,7 +261,7 @@ export function TemplateStep({
       {/* §2.1 enforcement — render IFF Enterprise. */}
       {tierInfo.canUseCustomPrompt && (
         <CustomPromptInput
-          value={wizardState.customPrompt}
+          value={customPrompt}
           onChange={handleCustomPromptChange}
           tierLabel={tierInfo.tier}
           capLabel={tierCapLabel[tierInfo.tier]}

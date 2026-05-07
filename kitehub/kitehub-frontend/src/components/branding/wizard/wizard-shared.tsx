@@ -1,38 +1,70 @@
 'use client';
 
+/**
+ * Wave 32 Bucket A — Wizard shared types, state machine, and primitives.
+ *
+ * This module is the SINGLE SOURCE OF TRUTH for the Wave 32 AI Branding Wizard v2
+ * (Direction C 6-step refactor) per:
+ *   - documents/03-planning/waves/wave-2026-05-06-32-ai-branding-wizard-v2.md §3 Bucket A
+ *   - documents/03-planning/waves/wave-2026-05-07-32-ai-branding-wizard-v2-rework.md §4
+ *   - .claude/rules/ai-branding-guidelines.md §4 (wizard pattern + per-resource approve)
+ *
+ * What lives here:
+ *   1. WizardState + WizardAction types — the FULL state including
+ *      `approvedResources: string[]` (rework §4 mandate — Bucket C consumes via
+ *      APPROVE_RESOURCE / UNAPPROVE_RESOURCE actions, NOT local useState).
+ *   2. wizardReducer — pure reducer covering all transitions.
+ *   3. useWizardReducer — convenience hook returning [state, dispatch].
+ *   4. WizardCard / WizardStepHeader — common visual primitives matching kit
+ *      `.wiz-card` + `.wiz-eyebrow/title/subtitle` patterns.
+ *   5. Type stubs for downstream Bucket B/C/D step components — they consume
+ *      these props but Bucket A does NOT render their components (anti-cross-bucket
+ *      leak per rework §3.2).
+ */
+
 import { useReducer } from 'react';
 import { Card } from '@/components/ui/card';
 
 // ---------------------------------------------------------------------------
-// WizardState — shared state for the 6-step AI Branding Wizard v2.
-//
-// NOTE (Wave 32 REWORK Bucket C): defined LOCALLY in this file as a
-// transitional measure while Bucket A's wizard-shared lands. Once Bucket A
-// merges, the orchestrator + step components import the canonical export
-// from there. The shape mirrors the Bucket A contract per the rework plan
-// §4 and adds `approvedResources: string[]` to satisfy
-// `ai-branding-guidelines.md` §4.2 — per-resource approve state lives in
-// the reducer, not local component state.
+// Step / slug types
 // ---------------------------------------------------------------------------
 
 export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6;
 
 /**
- * One of the four Step-6 brand resources the user can approve / un-approve
- * individually before deploy.
+ * Slug validation status (Step 1):
+ *   - default: untouched / cleared
+ *   - validating: debounced API call in flight
+ *   - conflict: server returned 409 — `conflictSuggestions` populated
+ *   - available: server confirmed available — Continue button enables
  */
-export type ApprovableResource = 'logo' | 'colors' | 'banner' | 'hero';
+export type SlugStatus = 'default' | 'validating' | 'conflict' | 'available';
+
+// ---------------------------------------------------------------------------
+// WizardState — shared state for the 6-step AI Branding Wizard v2
+// ---------------------------------------------------------------------------
 
 export interface WizardState {
   /** Active step (1-indexed). */
   currentStep: WizardStep;
-  /** Center name entered in Step 1. */
+  /** Center name entered in Step 1 (display-only — slug is the routing key). */
   tenantName: string;
-  /** Slug chosen / validated in Step 1. */
+  /** Slug chosen/validated in Step 1 (kebab-case). */
   slug: string;
-  /** Logo URL after a successful upload (Step 2). `null` if skipped. */
+  /** Validation lifecycle for `slug` (Step 1). */
+  slugStatus: SlugStatus;
+  /** Server-suggested alternative slugs when `slugStatus === 'conflict'`. */
+  conflictSuggestions: string[];
+  /**
+   * Logo URL after a successful upload (Step 2).
+   * `null` means the user skipped or hasn't uploaded yet.
+   */
   logoUrl: string | null;
-  /** Whether the user explicitly chose the AI-generated logo path. */
+  /**
+   * Whether the user explicitly chose the "AI-generated logo" path.
+   * When true the upload drop-zone is hidden and FULL_AI classification
+   * is used for the logo resource per ai-branding-guidelines.md §1.
+   */
   aiLogo: boolean;
   /** Audience preset selected in Step 3. */
   audience: string | null;
@@ -40,55 +72,57 @@ export interface WizardState {
   tone: string | null;
   /** Template ID selected in Step 5. */
   templateId: string | null;
-  /** Custom prompt entered in Step 5 (Enterprise Advanced Mode only). */
-  customPrompt: string;
-  /** Branding job ID returned from the backend — set when generate starts. */
+  /** Branding job ID returned from the backend — set when generate starts (Step 5→6). */
   jobId: string | null;
   /**
-   * IDs of resources the user has approved at Step 6. Reducer-controlled
-   * per `ai-branding-guidelines.md` §4.2 (per-resource approve before commit).
+   * Per-resource approval flags (Step 6) — implements `ai-branding-guidelines.md`
+   * §4.2 "User approve từng resource (logo, colors, banner, hero) riêng lẻ".
+   *
+   * MUST be persisted in WizardState (NOT local component useState) — Bucket C
+   * `Step6Preview`/`ResourceToggle` dispatch APPROVE_RESOURCE/UNAPPROVE_RESOURCE
+   * to mutate this array.
    */
-  approvedResources: ApprovableResource[];
+  approvedResources: string[];
 }
 
 export const INITIAL_WIZARD_STATE: WizardState = {
   currentStep: 1,
   tenantName: '',
   slug: '',
+  slugStatus: 'default',
+  conflictSuggestions: [],
   logoUrl: null,
   aiLogo: false,
   audience: null,
   tone: null,
   templateId: null,
-  customPrompt: '',
   jobId: null,
   approvedResources: [],
 };
 
 // ---------------------------------------------------------------------------
-// WizardAction — union of all state mutations.
+// WizardAction — union of all state mutations
 // ---------------------------------------------------------------------------
 
 export type WizardAction =
   | { type: 'NEXT_STEP' }
   | { type: 'PREV_STEP' }
-  | { type: 'GO_TO_STEP'; payload: WizardStep }
-  | { type: 'SET_TENANT_NAME'; payload: string }
-  | { type: 'SET_SLUG'; payload: string }
-  | { type: 'SET_LOGO_URL'; payload: string | null }
-  | { type: 'SET_AI_LOGO'; payload: boolean }
-  | { type: 'SET_AUDIENCE'; payload: string }
-  | { type: 'SET_TONE'; payload: string }
-  | { type: 'SET_TEMPLATE_ID'; payload: string }
-  | { type: 'SET_CUSTOM_PROMPT'; payload: string }
-  | { type: 'SET_JOB_ID'; payload: string }
-  | { type: 'APPROVE_RESOURCE'; payload: ApprovableResource }
-  | { type: 'UNAPPROVE_RESOURCE'; payload: ApprovableResource }
+  | { type: 'GO_TO_STEP'; step: WizardStep }
+  | { type: 'SET_TENANT_NAME'; tenantName: string }
+  | { type: 'SET_SLUG'; slug: string }
+  | { type: 'SET_SLUG_STATUS'; status: SlugStatus; suggestions?: string[] }
+  | { type: 'SET_LOGO'; url: string; aiLogo: boolean }
+  | { type: 'CLEAR_LOGO' }
+  | { type: 'SET_AUDIENCE'; audience: string }
+  | { type: 'SET_TONE'; tone: string }
+  | { type: 'SET_TEMPLATE'; templateId: string; jobId: string }
+  | { type: 'APPROVE_RESOURCE'; resource: string }
+  | { type: 'UNAPPROVE_RESOURCE'; resource: string }
   | { type: 'RESET_APPROVALS' }
   | { type: 'RESET' };
 
 // ---------------------------------------------------------------------------
-// wizardReducer
+// wizardReducer — pure transition function
 // ---------------------------------------------------------------------------
 
 export function wizardReducer(state: WizardState, action: WizardAction): WizardState {
@@ -102,48 +136,64 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
       return { ...state, currentStep: (state.currentStep - 1) as WizardStep };
 
     case 'GO_TO_STEP':
-      return { ...state, currentStep: action.payload };
+      return { ...state, currentStep: action.step };
 
     case 'SET_TENANT_NAME':
-      return { ...state, tenantName: action.payload };
+      return { ...state, tenantName: action.tenantName };
 
     case 'SET_SLUG':
-      return { ...state, slug: action.payload };
-
-    case 'SET_LOGO_URL':
-      return { ...state, logoUrl: action.payload };
-
-    case 'SET_AI_LOGO':
-      return { ...state, aiLogo: action.payload };
-
-    case 'SET_AUDIENCE':
-      return { ...state, audience: action.payload };
-
-    case 'SET_TONE':
-      return { ...state, tone: action.payload };
-
-    case 'SET_TEMPLATE_ID':
-      return { ...state, templateId: action.payload };
-
-    case 'SET_CUSTOM_PROMPT':
-      return { ...state, customPrompt: action.payload };
-
-    case 'SET_JOB_ID':
-      return { ...state, jobId: action.payload };
-
-    case 'APPROVE_RESOURCE':
-      if (state.approvedResources.includes(action.payload)) return state;
+      // New slug input invalidates previous validation result
       return {
         ...state,
-        approvedResources: [...state.approvedResources, action.payload],
+        slug: action.slug,
+        slugStatus: 'default',
+        conflictSuggestions: [],
       };
+
+    case 'SET_SLUG_STATUS':
+      return {
+        ...state,
+        slugStatus: action.status,
+        conflictSuggestions: action.suggestions ?? [],
+      };
+
+    case 'SET_LOGO':
+      return {
+        ...state,
+        logoUrl: action.url,
+        aiLogo: action.aiLogo,
+      };
+
+    case 'CLEAR_LOGO':
+      return { ...state, logoUrl: null, aiLogo: false };
+
+    case 'SET_AUDIENCE':
+      return { ...state, audience: action.audience };
+
+    case 'SET_TONE':
+      return { ...state, tone: action.tone };
+
+    case 'SET_TEMPLATE':
+      return {
+        ...state,
+        templateId: action.templateId,
+        jobId: action.jobId,
+        // New template selection invalidates previous approvals
+        approvedResources: [],
+      };
+
+    case 'APPROVE_RESOURCE': {
+      if (state.approvedResources.includes(action.resource)) return state;
+      return {
+        ...state,
+        approvedResources: [...state.approvedResources, action.resource],
+      };
+    }
 
     case 'UNAPPROVE_RESOURCE':
       return {
         ...state,
-        approvedResources: state.approvedResources.filter(
-          (r) => r !== action.payload,
-        ),
+        approvedResources: state.approvedResources.filter((r) => r !== action.resource),
       };
 
     case 'RESET_APPROVALS':
@@ -157,12 +207,16 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
   }
 }
 
+// ---------------------------------------------------------------------------
+// useWizardReducer — convenience hook for consumers
+// ---------------------------------------------------------------------------
+
 export function useWizardReducer() {
   return useReducer(wizardReducer, INITIAL_WIZARD_STATE);
 }
 
 // ---------------------------------------------------------------------------
-// WizardCard — consistent card wrapper matching the spec's `.wiz-card` style.
+// WizardCard — consistent card wrapper matching the spec's `.wiz-card` style
 // ---------------------------------------------------------------------------
 
 interface WizardCardProps {
@@ -172,14 +226,14 @@ interface WizardCardProps {
 
 export function WizardCard({ children, className = '' }: WizardCardProps) {
   return (
-    <Card className={`p-6 md:p-8 max-w-3xl w-full mx-auto ${className}`}>
+    <Card className={`p-6 md:p-8 max-w-2xl w-full mx-auto ${className}`}>
       {children}
     </Card>
   );
 }
 
 // ---------------------------------------------------------------------------
-// WizardStepHeader — eyebrow + title + subtitle matching the spec HTML pattern.
+// WizardStepHeader — eyebrow + title + subtitle matching the kit pattern
 // ---------------------------------------------------------------------------
 
 interface WizardStepHeaderProps {
@@ -201,52 +255,35 @@ export function WizardStepHeader({ eyebrow, title, subtitle }: WizardStepHeaderP
 }
 
 // ---------------------------------------------------------------------------
-// useBrandingTier — local stub matching Bucket D's hook signature.
+// Type stubs for downstream buckets (Bucket B/C/D)
 //
-// Bucket D ships the canonical `kitehub-frontend/src/hooks/use-branding-tier.ts`
-// hook in parallel. Until that lands we expose a stub here so this bucket's
-// imports stay resolved. Once Bucket D merges, callers switch the import to
-// `@/hooks/use-branding-tier` (sed-replace; no API surface change).
-//
-// TODO(GAP-272m): replace with real `useActiveSubscription(instanceId)` call
-// from Bucket D once the canonical hook lands.
+// Bucket A exports ONLY the prop contracts so wizard/page.tsx can describe
+// the orchestrator's API surface without rendering placeholder components.
+// Per rework §3.2 — anti-cross-bucket scope leak — Bucket A MUST NOT ship
+// `AudienceStep` / `ToneStep` / `TemplateStep` / `Step6Preview` components.
 // ---------------------------------------------------------------------------
 
-export type BrandingTier = 'FREE' | 'PRO' | 'PREMIUM' | 'ENTERPRISE';
-
-export interface BrandingTierInfo {
-  tier: BrandingTier;
-  /** Per `ai-branding-guidelines.md` §4.3 regenerate quotas. */
-  regenerateQuota: number;
-  advancedModeEnabled: boolean;
-  /** Per `ai-branding-guidelines.md` §2.1 free-form prompt only on Enterprise. */
-  canUseCustomPrompt: boolean;
+export interface AudienceStepProps {
+  /** Wizard state (read-only for the step component). */
+  wizardState: WizardState;
+  /** Dispatch — step components dispatch actions back to the orchestrator. */
+  dispatch: React.Dispatch<WizardAction>;
+  /** Advance handler — the orchestrator decides what NEXT_STEP means. */
+  onNext: () => void;
+  /** Back handler. */
+  onBack: () => void;
 }
 
-export function useBrandingTierStub(initialTier: BrandingTier = 'FREE'): BrandingTierInfo {
-  const tierToQuota: Record<BrandingTier, number> = {
-    FREE: 3,
-    PRO: 10,
-    PREMIUM: 30,
-    ENTERPRISE: -1, // unlimited
-  };
-  return {
-    tier: initialTier,
-    regenerateQuota: tierToQuota[initialTier],
-    advancedModeEnabled: initialTier === 'ENTERPRISE',
-    canUseCustomPrompt: initialTier === 'ENTERPRISE',
-  };
+export interface ToneStepProps {
+  wizardState: WizardState;
+  dispatch: React.Dispatch<WizardAction>;
+  onNext: () => void;
+  onBack: () => void;
 }
-
-// ---------------------------------------------------------------------------
-// Step props contracts — exported for cross-bucket consumers.
-// ---------------------------------------------------------------------------
 
 export interface TemplateStepProps {
   wizardState: WizardState;
   dispatch: React.Dispatch<WizardAction>;
-  /** Override tier for tests / Storybook. Default: FREE. */
-  tierOverride?: BrandingTier;
   onNext: () => void;
   onBack: () => void;
 }
@@ -254,15 +291,7 @@ export interface TemplateStepProps {
 export interface Step6PreviewProps {
   wizardState: WizardState;
   dispatch: React.Dispatch<WizardAction>;
-  /** Brand colours derived from the chosen template + brand state. */
-  brandColors?: {
-    primary: string;
-    secondary: string;
-    background: string;
-    foreground: string;
-  };
-  /** Mock-or-real preview URL the iframe loads (data: URI for v1). */
-  previewUrl?: string;
-  onDeploy?: () => void;
-  onBack?: () => void;
+  onBack: () => void;
+  /** Called when the user clicks "Triển khai" with all required resources approved. */
+  onDeploy: () => void;
 }

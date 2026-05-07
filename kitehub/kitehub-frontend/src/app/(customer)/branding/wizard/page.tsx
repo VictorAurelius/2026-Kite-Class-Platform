@@ -1,36 +1,56 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+/**
+ * Wave 32 Bucket A — AI Branding Wizard v2 orchestrator (Direction C 6-step refactor).
+ *
+ * Replaces the legacy 4-step wizard (Upload → Analyze → Generate → Review) with
+ * the Direction C 6-step flow per `ai-branding-guidelines.md` §4.1:
+ *   1. Welcome   — tenant name + slug validation
+ *   2. Logo      — upload OR AI-generate fork
+ *   3. Audience  — 4 VN audience cards   (Bucket B)
+ *   4. Tone      — 4 tone cards          (Bucket B)
+ *   5. Template  — grid + Enterprise custom-prompt (Bucket C)
+ *   6. Preview   — per-resource approve + quality gate + deploy (Bucket C+D)
+ *
+ * Bucket A (this PR) ships the SHELL + Steps 1-2. Steps 3-6 render placeholder
+ * cards until Bucket B/C/D land — see `wizard-shared.tsx` for the prop type
+ * stubs they will implement.
+ *
+ * Bundle-size strategy (preserved from Wave GAP-236 Sub-PR B): each step is
+ * loaded via `next/dynamic` so only the active step's chunk is shipped.
+ *
+ * State: a single useReducer in this orchestrator owns ALL wizard state per
+ * `wizard-shared.tsx`. Step components dispatch — they do NOT keep their own
+ * shadow copies of canonical fields (rework §3.1 anti-pattern guard).
+ */
+
+import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
-import { useBrandingJob, useAnalyzeLogo, useCreateBrandingJob } from '@/hooks/use-branding';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Sparkles, Check } from 'lucide-react';
-import { toast } from 'sonner';
-import type { LogoAnalysis } from '@/types/branding';
+import { ArrowLeft, Sparkles } from 'lucide-react';
+import { StepIndicator } from '@/components/branding/wizard/StepIndicator';
+import { useWizardReducer, type WizardStep } from '@/components/branding/wizard/wizard-shared';
 
-// GAP-236 Sub-PR B — lazy-load wizard step components. Only the active step
-// renders at a time, so we ship its chunk on demand instead of bundling
-// upload + analyze + generate + review all up-front.
 const stepLoading = () => <LoadingSpinner className="my-12" />;
-const UploadStep = dynamic(
-  () => import('@/components/branding/UploadStep').then((m) => ({ default: m.UploadStep })),
+
+// Bucket A — Welcome + Logo
+const WelcomeStep = dynamic(
+  () =>
+    import('@/components/branding/wizard/WelcomeStep').then((m) => ({
+      default: m.WelcomeStep,
+    })),
   { ssr: false, loading: stepLoading }
 );
-const AnalyzeStep = dynamic(
-  () => import('@/components/branding/AnalyzeStep').then((m) => ({ default: m.AnalyzeStep })),
-  { ssr: false, loading: stepLoading }
-);
-const GenerateStep = dynamic(
-  () => import('@/components/branding/GenerateStep').then((m) => ({ default: m.GenerateStep })),
-  { ssr: false, loading: stepLoading }
-);
-const ReviewStep = dynamic(
-  () => import('@/components/branding/ReviewStep').then((m) => ({ default: m.ReviewStep })),
+const LogoStep = dynamic(
+  () =>
+    import('@/components/branding/wizard/LogoStep').then((m) => ({
+      default: m.LogoStep,
+    })),
   { ssr: false, loading: stepLoading }
 );
 
@@ -41,16 +61,9 @@ export default function BrandingWizardPage() {
   const instanceId = instances?.[0]?.id;
 
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
-  const [step, setStep] = useState(1);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [analysis, setAnalysis] = useState<LogoAnalysis | null>(null);
-  const [jobId, setJobId] = useState<string | null>(null);
+  const [state, dispatch] = useWizardReducer();
 
-  const analyzeMutation = useAnalyzeLogo();
-  const createJobMutation = useCreateBrandingJob();
-  const { data: job } = useBrandingJob(jobId ?? undefined);
-
-  // Timeout for initial loading state
+  // Timeout for initial loading state (preserved from legacy)
   useEffect(() => {
     if (!instanceId && !instancesError) {
       const timer = setTimeout(() => setLoadingTimedOut(true), 10000);
@@ -59,45 +72,16 @@ export default function BrandingWizardPage() {
     return undefined;
   }, [instanceId, instancesError]);
 
-  // Auto-redirect when job completes
-  useEffect(() => {
-    if (job?.status === 'COMPLETED') {
-      toast.success('Branding đã được tạo thành công!');
-      setTimeout(() => setStep(4), 1000);
-    } else if (job?.status === 'FAILED') {
-      toast.error('Tạo branding thất bại. Vui lòng thử lại.');
-    }
-  }, [job?.status]);
+  const currentStep: WizardStep = state.currentStep;
 
-  const handleUploadComplete = async (url: string) => {
-    setLogoUrl(url);
-    try {
-      const result = await analyzeMutation.mutateAsync(url);
-      setAnalysis(result);
-      setStep(2);
-    } catch {
-      toast.error('Phân tích logo thất bại. Vui lòng thử lại.');
-    }
-  };
-
-  const handleAnalysisConfirm = async (customizedAnalysis: LogoAnalysis) => {
-    setAnalysis(customizedAnalysis);
-    try {
-      const job = await createJobMutation.mutateAsync({
-        instanceId: instanceId!,
-        logoUrl: logoUrl!,
-        analysis: customizedAnalysis,
-      });
-      setJobId(job.id);
-      setStep(3);
-    } catch {
-      toast.error('Khởi tạo job thất bại. Vui lòng thử lại.');
-    }
-  };
-
-  const handlePublish = () => {
-    router.push('/branding?success=true');
-  };
+  const handleNext = useMemo(
+    () => () => dispatch({ type: 'NEXT_STEP' }),
+    [dispatch]
+  );
+  const handleBack = useMemo(
+    () => () => dispatch({ type: 'PREV_STEP' }),
+    [dispatch]
+  );
 
   if (instancesError || loadingTimedOut) {
     return (
@@ -109,9 +93,7 @@ export default function BrandingWizardPage() {
             ? 'Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.'
             : 'Kết nối mất quá lâu. Vui lòng kiểm tra kết nối mạng và thử lại.'
         }
-        action={
-          <Button onClick={() => window.location.reload()}>Thử lại</Button>
-        }
+        action={<Button onClick={() => window.location.reload()}>Thử lại</Button>}
       />
     );
   }
@@ -151,33 +133,44 @@ export default function BrandingWizardPage() {
         </div>
       </div>
 
-      <BrandingStepIndicator currentStep={step} />
+      <StepIndicator currentStep={currentStep} />
 
       <div className="mt-2">
-        {step === 1 && (
-          <UploadStep
+        {currentStep === 1 && (
+          <WelcomeStep
+            wizardState={state}
+            dispatch={dispatch}
+            onNext={handleNext}
+          />
+        )}
+
+        {currentStep === 2 && (
+          <LogoStep
+            wizardState={state}
+            dispatch={dispatch}
             instanceId={instanceId}
-            onUploadComplete={handleUploadComplete}
+            onNext={handleNext}
+            onBack={handleBack}
           />
         )}
 
-        {step === 2 && analysis && (
-          <AnalyzeStep
-            analysis={analysis}
-            onConfirm={handleAnalysisConfirm}
-            onBack={() => setStep(1)}
-          />
+        {currentStep === 3 && (
+          <BucketPlaceholder bucket="B" stepLabel="Đối tượng" onBack={handleBack} />
         )}
 
-        {step === 3 && jobId && (
-          <GenerateStep job={job} />
+        {currentStep === 4 && (
+          <BucketPlaceholder bucket="B" stepLabel="Phong cách" onBack={handleBack} />
         )}
 
-        {step === 4 && jobId && (
-          <ReviewStep
-            jobId={jobId}
-            analysis={analysis}
-            onPublish={handlePublish}
+        {currentStep === 5 && (
+          <BucketPlaceholder bucket="C" stepLabel="Mẫu thiết kế" onBack={handleBack} />
+        )}
+
+        {currentStep === 6 && (
+          <BucketPlaceholder
+            bucket="C/D"
+            stepLabel="Phê duyệt"
+            onBack={handleBack}
           />
         )}
       </div>
@@ -185,53 +178,40 @@ export default function BrandingWizardPage() {
   );
 }
 
-// Custom Step Indicator for Branding Wizard
-function BrandingStepIndicator({ currentStep }: { currentStep: number }) {
-  const steps = [
-    { number: 1, label: 'Tải Logo' },
-    { number: 2, label: 'Phân Tích' },
-    { number: 3, label: 'Tạo' },
-    { number: 4, label: 'Xem Trước' },
-  ];
-
+/**
+ * BucketPlaceholder — temporary card shown for steps 3-6 until Bucket B/C/D
+ * agents land. Once those PRs merge, the orchestrator will replace each
+ * placeholder with the real `dynamic()` import of the corresponding step
+ * component (props contracts are already declared in `wizard-shared.tsx`).
+ *
+ * This is NOT a cross-bucket scope leak (rework §3.2): we render a generic
+ * placeholder, NOT a stub of the future component.
+ */
+function BucketPlaceholder({
+  bucket,
+  stepLabel,
+  onBack,
+}: {
+  bucket: 'B' | 'C' | 'C/D';
+  stepLabel: string;
+  onBack: () => void;
+}) {
   return (
-    <div className="flex items-center justify-center">
-      {steps.map((step, idx) => (
-        <div key={step.number} className="flex items-center">
-          {/* Step Circle */}
-          <div className="flex flex-col items-center">
-            <div
-              className={`
-                w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all
-                ${step.number < currentStep
-                  ? 'bg-primary text-primary-foreground'
-                  : step.number === currentStep
-                  ? 'bg-primary text-primary-foreground ring-4 ring-primary/20'
-                  : 'bg-muted text-muted-foreground'}
-              `}
-            >
-              {step.number < currentStep ? (
-                <Check className="w-5 h-5" />
-              ) : (
-                step.number
-              )}
-            </div>
-            <p className={`text-sm mt-2 font-medium ${step.number <= currentStep ? 'text-foreground' : 'text-muted-foreground'}`}>
-              {step.label}
-            </p>
-          </div>
-
-          {/* Connector Line */}
-          {idx < steps.length - 1 && (
-            <div
-              className={`
-                h-0.5 w-16 md:w-24 mx-2 md:mx-4 mb-6 transition-colors
-                ${step.number < currentStep ? 'bg-primary' : 'bg-muted'}
-              `}
-            />
-          )}
-        </div>
-      ))}
+    <div
+      data-testid={`wizard-bucket-placeholder-${bucket}`}
+      className="max-w-2xl mx-auto rounded-lg border border-dashed border-muted-foreground/40 p-8 text-center"
+    >
+      <Sparkles className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+      <h2 className="text-lg font-semibold mb-1">
+        Bước &ldquo;{stepLabel}&rdquo; — Bucket {bucket} chưa shipped
+      </h2>
+      <p className="text-sm text-muted-foreground mb-4">
+        Phần này sẽ có khi bucket {bucket} của Wave 32 hoàn tất.
+      </p>
+      <Button variant="ghost" onClick={onBack}>
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Quay lại bước trước
+      </Button>
     </div>
   );
 }
