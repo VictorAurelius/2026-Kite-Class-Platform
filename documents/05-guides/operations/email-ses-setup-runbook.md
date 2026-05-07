@@ -11,6 +11,109 @@
 
 ---
 
+## §0 Hướng Dẫn Nhanh (Vietnamese)
+
+**Bối cảnh:** Phase 1 BETA cần SES gửi email transactional (welcome, MFA recovery, billing receipts). AWS SES mặc định ở **chế độ Sandbox** (chỉ gửi tới địa chỉ verified, giới hạn 200 email/24h). Phải submit request để mở **Production access** (gửi tự do tới mọi địa chỉ, ~50k email/24h Free Tier).
+
+**6 bước tóm tắt** (cross-link xuống section EN bên dưới):
+
+| # | Bước | Thời gian | Chi tiết EN |
+|---|------|----------|-------------|
+| 1 | Đăng ký domain identity `kitehub.vn` trong SES Console (region `ap-southeast-1`) → SES sinh DKIM CNAME records | ~5 phút | §3 "Sender domain verification" |
+| 2 | Add 3 DKIM CNAME records vào Cloudflare DNS (TTL 300s) → đợi propagation 5-30 phút → SES auto-verify "verified" | ~10 phút + đợi | §3.2 "DKIM CNAME records" |
+| 3 | Add SPF TXT (`v=spf1 include:amazonses.com -all`) + DMARC TXT (`v=DMARC1; p=none; rua=mailto:dmarc@kitehub.vn`) vào Cloudflare DNS | ~5 phút | §3.3 "SPF + DMARC" |
+| 4 | Submit production access request qua AWS Support Center → Service quota increase → SES sending limits → từ Sandbox sang Production | ~5 phút submit + đợi 24-48h approval | §4 "Sandbox → Production access request" |
+| 5 | Sau khi approve: verify production limits (50k/day default) trong SES → "Account dashboard" | ~2 phút | §4.4 "Verify production approval" |
+| 6 | Configure SNS topic cho bounce + complaint feedback loops → wire vào `kitehub-email` service | ~10 phút | §5 "Bounce + complaint feedback loops" |
+
+**Tổng thời gian:** ~30 phút thao tác + ~24-48h đợi approval AWS Support.
+
+### KYC pitfalls cho user VN
+
+- **Timezone:** AWS SES dùng UTC mặc định. VN user thấy "approved at 2026-05-08 09:00 UTC" → giờ VN = 16:00 (GMT+7). Đặt notification rule expect ~1-2 ngày calendar.
+- **Use case description:** Form yêu cầu mô tả use case bằng English. Solo dev VN viết tiếng Anh ngắn gọn, vd: *"Transactional emails for B2B SaaS education platform — welcome emails to verified school owners, password resets, MFA recovery codes. Audience opt-in via signup. Volume estimate: 1k emails/day Phase 1 BETA, scaling to 10k/day Phase 2."* (~40-60 từ đủ).
+- **Bounce rate cam kết:** Form hỏi "What is your plan to handle bounces?". Trả lời ngắn: "Configured SNS topic for bounce/complaint feedback. Auto-suppress addresses after 1 hard bounce. Daily review of CloudWatch metrics" (cross-link `kitehub-email` config).
+- **Sender reputation:** Phase 1 BETA volume thấp → reputation chưa đủ build. AWS có thể cấp limit thấp hơn (1k-5k/day). OK cho BETA. Phase 1.5 PAID xin tăng limit lên 50k.
+- **Reject reasons phổ biến:**
+  - *"Insufficient sending history"* → reply ticket: nêu rõ Phase 1 BETA + volume estimate + opt-in proof
+  - *"Bounce handling unclear"* → quote SNS topic ARN + dashboard URL
+  - *"Use case too generic"* → re-submit với specifics (vd: "MFA recovery TOTP token email — mandatory per OWASP V2 auth")
+  - *"Domain ownership not verified"* → check DKIM CNAME records propagated (re-run §3.2)
+
+### Region warning
+
+⚠️ **SES region MUST match `ap-southeast-1`** per ADR-025. SES domain identity phải tạo trong CÙNG region với app stack. Nếu lỡ verify domain ở `us-east-1` → re-do trong `ap-southeast-1` (DKIM keys khác nhau giữa region).
+
+### Cross-link tiếng Việt
+
+- Phần thực hiện chi tiết EN: §1 → §6 bên dưới
+- Cloudflare DNS records add bằng tiếng Việt: `documents/05-guides/vietnamese/cloudflare-setup.md`
+- AWS account prep prerequisite: `documents/05-guides/account-prep/01-aws-account-creation.md`
+- Domain prerequisite: `documents/05-guides/account-prep/02-domain-registrar.md`
+- Superadmin first-login consumer: `documents/05-guides/account-prep/04-kitehub-superadmin-first-login.md` §2.2
+
+### Thuật ngữ tiếng Việt
+
+| Thuật ngữ EN | Tương đương Việt | Ghi chú |
+|--------------|-----------------|---------|
+| Sandbox | Chế độ thử nghiệm | Default mode khi mở SES; chỉ gửi tới verified address |
+| Production access | Cấp quyền sản xuất | Sau khi AWS review request, gửi tự do |
+| Sender reputation | Uy tín người gửi | Tính dựa trên bounce rate + complaint rate |
+| Bounce rate | Tỉ lệ thư gửi không đến | Hard bounce (không tồn tại) + soft bounce (mailbox đầy) |
+| Complaint rate | Tỉ lệ người nhận đánh dấu spam | Mục tiêu <0.1% |
+| Suppression list | Danh sách chặn | Địa chỉ hard bounce tự động cho vào — không gửi lại được |
+| DKIM | Chữ ký số xác thực domain | DomainKeys Identified Mail — verify email không bị forge |
+| SPF | Bản ghi cho phép gửi | Sender Policy Framework — khai báo IP/domain được gửi từ domain |
+| DMARC | Chính sách + báo cáo xác thực | Tổng hợp DKIM + SPF + policy what-to-do-when-fail |
+| SNS topic | Chủ đề SNS | AWS Simple Notification Service — pub-sub queue |
+| Warmup | Hâm nóng tài khoản | Tăng dần volume để build reputation; tránh spam flag |
+| Throttling | Giới hạn tốc độ gửi | AWS limit gửi 14 email/giây Phase 1, scaling Phase 2 |
+
+### Hỏi đáp thường gặp (Vietnamese FAQ)
+
+**H1: Tôi có thể skip SES sandbox và dùng provider khác (Resend, SendGrid, Postmark) không?**
+Có thể, nhưng mất tích hợp AWS native (CloudWatch metrics, IAM permissions, VPC endpoint). Phase 1 BETA recommend SES vì cost ($0 cho 62k email/tháng nếu chạy trong EC2 cùng region) + đã có ADR-025 lock AWS. Provider khác cân nhắc Phase 2.
+
+**H2: Tại sao phải dùng `ap-southeast-1` mà không dùng region khác rẻ hơn?**
+Latency: VN user đến Singapore ~30ms vs `us-east-1` ~250ms. Free tier limit giống nhau giữa region. Compliance VN PDPL 2023 yêu cầu data localization khi xử lý dữ liệu cá nhân — Singapore là ASEAN nên acceptable; `us-east-1` cần DPA bổ sung.
+
+**H3: Bounce rate trong Phase 1 BETA bao nhiêu là ổn?**
+Mục tiêu <2%. AWS cảnh báo ở 5%, khoá account ở 10%. Soft bounce (mailbox full) tha thứ; hard bounce (does not exist) bị suppression. Phase 1 BETA volume nhỏ, chỉ cần monitor weekly.
+
+**H4: DMARC policy nên là `none` hay `quarantine` hay `reject`?**
+Phase 1 BETA bắt đầu `p=none` (chỉ collect report, không block). Sau 30 ngày review report → chuyển sang `p=quarantine` (suspicious đi vào spam). Phase 2 stable → `p=reject` (block hoàn toàn email forge from-address). Đừng vội nhảy thẳng `reject` — nếu config sai SPF/DKIM, email hợp lệ cũng bị reject.
+
+**H5: AWS SES có hỗ trợ tiếng Việt trong subject + body không?**
+Có — SES hỗ trợ UTF-8 đầy đủ cho subject và body. Đảm bảo template email set `Content-Type: text/html; charset=UTF-8` + subject MIME-encode RFC 2047 (vd `=?UTF-8?B?Q2jDoG8gbeG7q25n?=` cho "Chào mừng"). Spring Boot `JavaMailSender` xử lý automatic; KHÔNG cần manual encode.
+
+**H6: Email từ SES có bị gateway VN (Viettel, VNPT, FPT mail) đánh spam không?**
+Phụ thuộc vào: (1) DKIM/SPF/DMARC đầy đủ, (2) sender reputation chưa bị flag, (3) content có spam-trigger words không. Phase 1 BETA volume thấp + transactional → ít rủi ro. Nếu user phản ánh email vào spam → kiểm tra `mail-tester.com` score (mục tiêu ≥9/10).
+
+**H7: Có cần dedicated IP không?**
+Không cho Phase 1. AWS SES shared IP pool có reputation tốt sẵn. Dedicated IP ($25/month) chỉ cần khi volume >100k email/tháng + cần fully-control reputation. Phase 2 cân nhắc.
+
+**H8: Tôi nên test SES setup như thế nào trước khi go production?**
+1. Verify domain xong, vẫn ở Sandbox → verify thêm 2-3 địa chỉ email cá nhân (Sandbox cho phép gửi tới verified address).
+2. Send test email qua AWS Console → verify nhận trong inbox + check Spam folder.
+3. Inspect raw email source → verify DKIM-Signature header có + valid.
+4. Run `mail-tester.com`: gửi 1 email tới địa chỉ random họ cho → score ≥9/10.
+5. Submit production access request sau khi 4 bước trên pass.
+
+### Lưu ý vận hành sau khi production access cấp
+
+- **Theo dõi reputation hàng ngày** trong tuần đầu: AWS SES Console → "Reputation" tab. Nếu bounce rate >5% hoặc complaint rate >0.1% → AWS sẽ tạm khoá account, phải mở ticket giải trình.
+- **Suppression list:** sau mỗi hard bounce (mailbox does not exist), SES tự động cho địa chỉ vào suppression list global. Phải xoá khỏi suppression list trước khi gửi lại — KHÔNG retry blind.
+- **Warmup lịch:** Phase 1 BETA volume thấp tự nhiên warmup. Nếu tăng đột ngột >10× volume trong 1 ngày → AWS có thể flag spam. Kế hoạch: tăng dần 2× mỗi 3 ngày.
+- **Email template TestSuite:** trước khi gửi production, dùng `aws ses send-email` với địa chỉ test chính bản thân để verify rendering, header (DKIM-Signature, From, Reply-To, List-Unsubscribe).
+- **Compliance VN:** mọi marketing email phải có `List-Unsubscribe` header (Luật Quảng cáo VN 2012 + Decree 91/2020/NĐ-CP về thư điện tử rác). Transactional email (welcome, password reset, MFA) miễn requirement này nhưng vẫn nên include cho consistency.
+- **Backup provider:** nếu AWS SES gặp incident regional → fallback Resend.com hoặc SendGrid trong 30 phút (Phase 2 prep). Phase 1 BETA chấp nhận single-provider risk vì volume thấp.
+- **Cron giám sát:** kế hoạch Phase 2 thêm cron `kitehub-platform` mỗi 6h kiểm tra SES sending stats + alert qua Slack/email nếu bounce rate spike.
+- **Kiểm tra DKIM định kỳ:** mỗi 90 ngày verify DKIM CNAME records vẫn còn trong Cloudflare DNS. Cloudflare đôi khi xóa record cũ khi user dọn dẹp — KHÔNG xóa CNAME bắt đầu bằng `<selector>._domainkey.kitehub.vn`.
+- **Region failover:** nếu Phase 2 mở thêm region (vd `us-east-1` cho user US), phải verify domain identity riêng trong region đó. Mỗi region có DKIM keys khác nhau — cần thêm CNAME records vào Cloudflare.
+- **Quota tracking:** Phase 1 free tier 62k email/tháng (2k/ngày trung bình). Nếu vượt phải xin tăng quota qua Support Center. Tracking: AWS Cost Explorer filter Service = "Simple Email Service".
+
+---
+
 ## 1. Overview
 
 KiteHub email transactional pipeline sử dụng AWS SES vì cost-effective + tích hợp sẵn AWS infra. Bài runbook này cover toàn bộ steps từ sandbox → production:
