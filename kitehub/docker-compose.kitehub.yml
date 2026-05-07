@@ -654,8 +654,13 @@ services:
 
   kitehub-frontend:
     build:
-      context: ./kitehub-frontend
-      dockerfile: Dockerfile
+      # GAP-418: Dockerfile expects repo-root context (Wave 37 PR #936 refactor for
+      # multi-arch + ECR push CI). Compose context updated to match — without this,
+      # `docker-compose build kitehub-frontend` fails with "/kitehub/kitehub-frontend
+      # not found" because the relative subdir context can't see repo-level files
+      # like pnpm-workspace.yaml + packages/shared-ui.
+      context: ..
+      dockerfile: kitehub/kitehub-frontend/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: http://localhost:9000
         NEXT_PUBLIC_KITECLASS_URL_PATTERN: http://localhost:3000?tenant={subdomain}
@@ -687,8 +692,10 @@ services:
 
   kiteclass-frontend:
     build:
-      context: ../kiteclass/kiteclass-frontend
-      dockerfile: Dockerfile
+      # GAP-418: same fix as kitehub-frontend above — Dockerfile copies use
+      # repo-root paths (/app/kiteclass/kiteclass-frontend/...).
+      context: ..
+      dockerfile: kiteclass/kiteclass-frontend/Dockerfile
     image: kiteclass-frontend:latest
     container_name: kiteclass-frontend
     profiles: ["kc-only", "full"]

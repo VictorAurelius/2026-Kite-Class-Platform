@@ -32,9 +32,13 @@ if [ -f "$ENV_FILE" ]; then
 else
   echo -e "${GREEN}[1/4]${NC} Generating .env file with secure random values..."
 
+  # GAP-417: openssl rand -base64 wraps at 64 chars with embedded \n; the newline
+  # gets written into .env as a line break, causing docker-compose to parse the
+  # remainder as a new variable name with invalid chars (e.g. "FqXo/qnAZaqwQ").
+  # Strip newlines + chars that conflict with shell parsing on the env-var path.
   DEV_PASSWORD=$(openssl rand -base64 16 | tr -dc 'a-zA-Z0-9' | head -c 20)
-  ENCRYPTION_KEY=$(openssl rand -base64 32)
-  JWT_SECRET=$(openssl rand -base64 64)
+  ENCRYPTION_KEY=$(openssl rand -base64 32 | tr -d '\n=/+')
+  JWT_SECRET=$(openssl rand -base64 64 | tr -d '\n=/+')
   INTERNAL_SECRET=$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | head -c 32)
 
   cat > "$ENV_FILE" <<EOF

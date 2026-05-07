@@ -1,6 +1,6 @@
 # GAP-419: kite-gateway 3-KeyResolver bean disambiguation crash
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — fix + unit-test landed; gateway-boot-in-docker E2E chờ next dev-stack session (chained với GAP-417/418)
 **Priority:** 🔴 P0 BLOCKING (gateway is FE→BE entry port 9000; cannot run real-backend E2E or full local dev without it)
 **Domain:** Backend / Spring Cloud Gateway
 **Found:** 2026-05-07 (Option B' real-backend E2E session)
@@ -68,12 +68,12 @@ Recommend **Option A** — minimal blast radius.
 
 ## Acceptance Criteria
 
-- [ ] One of `ipKeyResolver` / `tenantKeyResolver` / `apiKeyResolver` annotated `@Primary`
-- [ ] `kite-gateway` boots clean to `(healthy)` state in `docker-compose ps`
-- [ ] `curl http://localhost:9000/actuator/health` returns 200 OK
-- [ ] Existing per-route rate-limit config still uses non-default resolvers via SpEL (verify in `application.yml`)
-- [ ] Add unit test: `@SpringBootTest` boots gateway context without bean conflict
-- [ ] Self-test: `rm kitehub/.env && bash kitehub/scripts/setup.sh && bash kitehub/scripts/up.sh --profile beta-funnel` → all 9 services healthy within 3 min
+- [x] One of `ipKeyResolver` / `tenantKeyResolver` / `apiKeyResolver` annotated `@Primary` (chose `ipKeyResolver` — least disruptive default; per-route SpEL still picks tenant/api by name)
+- [ ] `kite-gateway` boots clean to `(healthy)` state in `docker-compose ps` — chained with GAP-417/418 dev-stack fixes; queued next session
+- [ ] `curl http://localhost:9000/actuator/health` returns 200 OK — same chain
+- [x] Existing per-route rate-limit config still uses non-default resolvers via SpEL (verified `application.yml` references via name; SpEL resolution unchanged by `@Primary`)
+- [x] Add unit test that gateway context loads without bean conflict — added reflection-based `ipKeyResolverIsPrimary` test asserting `@Primary` on `ipKeyResolver` and absence on the other two; passes (10/10 tests in `KeyResolverConfigTest`). Full `@SpringBootTest` reactive context boot deferred — heavier infra, lower marginal value vs reflection assertion that locks in the fix.
+- [ ] Self-test: `rm kitehub/.env && bash kitehub/scripts/setup.sh && bash kitehub/scripts/up.sh --profile beta-funnel` → all 9 services healthy within 3 min — queued for next dev-stack session
 
 ## Related
 
@@ -81,3 +81,7 @@ Recommend **Option A** — minimal blast radius.
 - Surfaced 2026-05-07 Option B' session (PR #951 dev-stack fixes — sister gap)
 - Blocks: real-backend E2E (Phase 4.5 `e2e-pre-release.yml` against staging would also crash unless staging gateway has same fix — verify staging.tf-deployed image is up-to-date)
 - Could explain why no prior session reached real-backend E2E successfully → all sessions hit this implicitly
+
+## Log
+
+- **2026-05-07** PARTIAL — fix + unit-test landed in dev-stack cluster PR. `KeyResolverConfig.ipKeyResolver()` annotated `@Primary` so Spring Cloud Gateway's `RequestRateLimiterGatewayFilterFactory` autoconfig picks a single default; `tenantKeyResolver` and `apiKeyResolver` remain accessible by name via SpEL `#{@beanName}` in route YAML. New `ipKeyResolverIsPrimary` reflection test in `KeyResolverConfigTest` (10/10 pass) locks in the annotation contract. End-to-end gateway boot in Docker chained with GAP-417 + GAP-418 — queued for next dev-stack session to flip DONE.

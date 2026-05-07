@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import org.springframework.context.annotation.Primary;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import reactor.test.StepVerifier;
@@ -145,6 +146,24 @@ class KeyResolverConfigTest {
         StepVerifier.create(resolver.resolve(exchange))
                 .expectNext("apikey:anon")
                 .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("ipKeyResolver — annotated @Primary so Spring Cloud Gateway autoconfig picks it (GAP-419)")
+    void ipKeyResolverIsPrimary() throws NoSuchMethodException {
+        // Spring Cloud Gateway's RequestRateLimiterGatewayFilterFactory autoconfig requires
+        // a single KeyResolver bean. We declare three (ip/tenant/apiKey) — without @Primary
+        // on the default, the gateway crashes at startup with NoUniqueBeanDefinitionException.
+        // tenantKeyResolver and apiKeyResolver remain accessible by name via SpEL in routes.
+        assertThat(KeyResolverConfig.class.getMethod("ipKeyResolver").isAnnotationPresent(Primary.class))
+                .as("ipKeyResolver must be @Primary to satisfy SCG autoconfig single-bean requirement")
+                .isTrue();
+        assertThat(KeyResolverConfig.class.getMethod("tenantKeyResolver").isAnnotationPresent(Primary.class))
+                .as("tenantKeyResolver must NOT be @Primary (only one default allowed)")
+                .isFalse();
+        assertThat(KeyResolverConfig.class.getMethod("apiKeyResolver").isAnnotationPresent(Primary.class))
+                .as("apiKeyResolver must NOT be @Primary (only one default allowed)")
+                .isFalse();
     }
 
     @Test
