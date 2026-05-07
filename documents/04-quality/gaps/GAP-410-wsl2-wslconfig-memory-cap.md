@@ -1,6 +1,6 @@
 # GAP-410: WSL2 .wslconfig Template (Memory Cap)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07 (Wave 37 Bucket D PR pending)
 **Priority:** 🟡 P2
 **Domain:** DevOps / WSL2 / Local dev
 **Found:** 2026-05-07 (Wave 37 — Layer 4)
@@ -28,10 +28,14 @@ User copy → `%USERPROFILE%\.wslconfig` → `wsl --shutdown` → restart WSL2.
 
 ## Acceptance Criteria
 
-- [ ] `documents/05-guides/dev/wsl2-config.md` documents recommended values
-- [ ] `.wslconfig.example` template file ở repo root (gitignored production OK)
-- [ ] Trade-off table: 16GB cap (baseline) / 24GB cap (recommended) / 28GB cap (heavy dev) / no cap (default)
-- [ ] Document Windows 11 OOM Killer behavior khi WSL2 OOM
+- [x] `documents/05-guides/dev/wsl2-config.md` shipped — full field reference + apply steps + verify commands + stack-up calculation
+- [x] `.wslconfig.example` template ở repo root — sane default 24GB cap + commented optional fields
+- [x] Trade-off matrix 5 rows: 8GB (16GB host) / 24GB (32GB recommended) / 28GB (32GB heavy) / 32-48GB (64+GB) / unset (default)
+- [x] Windows 11 OOM Killer behavior documented — symptoms + 3-step fix path
+
+## Log
+
+- **2026-05-07 (Wave 37 Bucket D):** Shipped. Doc + example template ở repo root. Cross-link với GAP-407 profiles + GAP-408 JVM cap để show stack-up calculation (host 32GB → WSL 24GB cap → JVM cap 5×512MB → fits comfortable).
 
 ## Related
 

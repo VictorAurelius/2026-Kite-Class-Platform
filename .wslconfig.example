@@ -1,0 +1,19 @@
+# WSL2 configuration template — Wave 37 GAP-410
+# Copy this file to %USERPROFILE%\.wslconfig (Windows)
+# Then run: wsl --shutdown   (and re-open WSL)
+#
+# Reference: documents/05-guides/dev/wsl2-config.md
+# Trade-off matrix (host RAM → recommended cap):
+#   16 GB host → memory=8GB     (single-service dev)
+#   32 GB host → memory=24GB    (full stack + IDE + browser) ← default below
+#   32 GB host → memory=28GB    (heavy: full + AI local; risky if Teams/Slack open)
+#   64+ GB host → memory=32-48GB (nhiều worktree parallel)
+
+[wsl2]
+memory=24GB
+processors=8
+swap=8GB
+swapFile=C:\\temp\\wsl2-swap.vhdx
+localhostForwarding=true
+nestedVirtualization=false
+# pageReporting=true   # Uncomment on Windows 11 22H2+ for idle-memory reclaim

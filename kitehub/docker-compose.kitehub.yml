@@ -8,6 +8,7 @@ services:
   kite-postgres:
     image: postgres:15-alpine
     container_name: kite-postgres
+    profiles: ["infra-only", "branding-only", "branding-only-no-ai", "beta-funnel", "kc-only", "full"]
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-kitehub}
       POSTGRES_USER: ${POSTGRES_USER:-kitehub}
@@ -35,6 +36,7 @@ services:
   kite-redis:
     image: redis:7-alpine
     container_name: kite-redis
+    profiles: ["infra-only", "branding-only", "branding-only-no-ai", "beta-funnel", "kc-only", "full"]
     ports:
       - "6380:6379"
     healthcheck:
@@ -55,6 +57,7 @@ services:
   kite-rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: kite-rabbitmq
+    profiles: ["infra-only", "branding-only", "branding-only-no-ai", "beta-funnel", "kc-only", "full"]
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-kitehub}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
@@ -79,6 +82,7 @@ services:
   kite-minio:
     image: minio/minio:latest
     container_name: kite-minio
+    profiles: ["infra-only", "branding-only", "branding-only-no-ai", "beta-funnel", "kc-only", "full"]
     command: server /data --console-address ":9091"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-kitehub}
@@ -106,6 +110,7 @@ services:
   kite-mailhog:
     image: mailhog/mailhog:latest
     container_name: kite-mailhog
+    profiles: ["infra-only", "branding-only", "branding-only-no-ai", "beta-funnel", "full"]
     ports:
       - "1025:1025"   # SMTP
       - "8025:8025"   # Web UI
@@ -122,6 +127,7 @@ services:
   kite-minio-setup:
     image: minio/mc:latest
     container_name: kite-minio-setup
+    profiles: ["infra-only", "branding-only", "branding-only-no-ai", "beta-funnel", "kc-only", "full"]
     depends_on:
       kite-minio:
         condition: service_healthy
@@ -260,8 +266,7 @@ services:
       start_period: 10s
     networks:
       - kite-network
-    profiles:
-      - ai-local
+    profiles: ["ai-local", "branding-only"]
     deploy:
       resources:
         limits:
@@ -287,8 +292,7 @@ services:
       "
     networks:
       - kite-network
-    profiles:
-      - ai-local
+    profiles: ["ai-local", "branding-only"]
     deploy:
       resources:
         limits:
@@ -328,9 +332,11 @@ services:
       dockerfile: kitehub-subscription/Dockerfile
     image: kitehub-subscription:latest
     container_name: kitehub-subscription
+    profiles: ["beta-funnel", "full"]
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
+      JAVA_TOOL_OPTIONS: ${SUBSCRIPTION_JAVA_OPTS:--Xmx512m -Xms256m -XX:MaxMetaspaceSize=192m -XX:MaxRAMPercentage=60}
       SPRING_DATASOURCE_URL: jdbc:postgresql://kite-postgres:5432/${POSTGRES_DB:-kitehub}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-kitehub}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?required}
@@ -380,9 +386,11 @@ services:
       dockerfile: kitehub-branding/Dockerfile
     image: kitehub-branding:latest
     container_name: kitehub-branding
+    profiles: ["branding-only", "branding-only-no-ai", "full"]
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
+      JAVA_TOOL_OPTIONS: ${BRANDING_JAVA_OPTS:--Xmx768m -Xms384m -XX:MaxMetaspaceSize=192m -XX:MaxRAMPercentage=60}
       DATABASE_URL: jdbc:postgresql://kite-postgres:5432/${POSTGRES_DB:-kitehub}
       DATABASE_USERNAME: ${POSTGRES_USER:-kitehub}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?required}
@@ -438,9 +446,11 @@ services:
       dockerfile: kitehub-email/Dockerfile
     image: kitehub-email:latest
     container_name: kitehub-email
+    profiles: ["beta-funnel", "full"]
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
+      JAVA_TOOL_OPTIONS: ${EMAIL_JAVA_OPTS:--Xmx512m -Xms256m -XX:MaxMetaspaceSize=192m -XX:MaxRAMPercentage=60}
       SPRING_RABBITMQ_HOST: kite-rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-kitehub}
@@ -479,9 +489,11 @@ services:
       dockerfile: kitehub-admin/Dockerfile
     image: kitehub-admin:latest
     container_name: kitehub-admin
+    profiles: ["beta-funnel", "full"]
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
+      JAVA_TOOL_OPTIONS: ${ADMIN_JAVA_OPTS:--Xmx512m -Xms256m -XX:MaxMetaspaceSize=192m -XX:MaxRAMPercentage=60}
       SPRING_DATASOURCE_URL: jdbc:postgresql://kite-postgres:5432/${POSTGRES_DB:-kitehub}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-kitehub}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?required}
@@ -520,8 +532,10 @@ services:
       dockerfile: kitehub-gateway/Dockerfile
     image: kite-gateway:latest
     container_name: kite-gateway
+    profiles: ["branding-only", "branding-only-no-ai", "beta-funnel", "kc-only", "full"]
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      JAVA_TOOL_OPTIONS: ${GATEWAY_JAVA_OPTS:--Xmx384m -Xms192m -XX:MaxMetaspaceSize=128m -XX:MaxRAMPercentage=60}
       DATABASE_URL: jdbc:postgresql://kite-postgres:5432/${POSTGRES_DB:-kitehub}
       DATABASE_USERNAME: ${POSTGRES_USER:-kitehub}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?required}
@@ -542,14 +556,19 @@ services:
         condition: service_healthy
       kitehub-subscription:
         condition: service_healthy
+        required: false
       kitehub-branding:
         condition: service_healthy
+        required: false
       kitehub-email:
         condition: service_healthy
+        required: false
       kitehub-admin:
         condition: service_healthy
+        required: false
       kiteclass-core:
         condition: service_healthy
+        required: false
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/actuator/health"]
       interval: 15s
@@ -577,8 +596,10 @@ services:
       dockerfile: Dockerfile
     image: kiteclass-core:latest
     container_name: kiteclass-core
+    profiles: ["kc-only", "full"]
     environment:
       SERVER_PORT: 8080
+      JAVA_TOOL_OPTIONS: ${KITECLASS_CORE_JAVA_OPTS:--Xmx768m -Xms384m -XX:MaxMetaspaceSize=192m -XX:MaxRAMPercentage=60}
       SPRING_DATASOURCE_URL: jdbc:postgresql://kite-postgres:5432/kiteclass_shared
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-kitehub}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?required}
@@ -634,6 +655,7 @@ services:
         NEXT_PUBLIC_KITECLASS_URL_PATTERN: http://localhost:3000?tenant={subdomain}
     image: kitehub-frontend:latest
     container_name: kitehub-frontend
+    profiles: ["branding-only", "branding-only-no-ai", "beta-funnel", "full"]
     environment:
       NODE_ENV: production
       PORT: 3001
@@ -663,6 +685,7 @@ services:
       dockerfile: Dockerfile
     image: kiteclass-frontend:latest
     container_name: kiteclass-frontend
+    profiles: ["kc-only", "full"]
     environment:
       NODE_ENV: production
       PORT: 3000

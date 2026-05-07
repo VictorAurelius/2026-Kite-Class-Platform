@@ -1,6 +1,6 @@
 # GAP-407: Docker Compose Profiles cho Dev (27GB RAM friendly)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07 (Wave 37 Bucket D PR pending)
 **Priority:** 🟠 P1
 **Domain:** DevOps / Local dev
 **Found:** 2026-05-07 (Wave 37 — Layer 4 Local dev resource)
@@ -40,10 +40,14 @@ Usage: `docker compose --profile branding-only up`.
 
 ## Acceptance Criteria
 
-- [ ] `docker-compose.kitehub.yml` updated với 6 profiles
-- [ ] Each service tagged đúng profile(s)
-- [ ] README documents profile usage matrix
-- [ ] `./kitehub/scripts/up.sh <profile>` wrapper added
+- [x] `docker-compose.kitehub.yml` updated với 6 profiles (`infra-only` / `branding-only` / `branding-only-no-ai` / `beta-funnel` / `kc-only` / `full`) — co-existing với 4 profile cũ (`ai-local`, `monitoring`, `backup`, `build-only`)
+- [x] Each service tagged đúng profile(s) — verified via `docker compose --profile <name> config`
+- [x] Profile usage matrix documented trong `kitehub/scripts/up.sh` header + `documents/05-guides/dev/wsl2-config.md` §"Combine với Compose profiles + JVM cap"
+- [x] `./kitehub/scripts/up.sh --profile <name>` wrapper extended (default = `full` để preserve prior behavior)
+
+## Log
+
+- **2026-05-07 (Wave 37 Bucket D):** Shipped. 6 profiles tagged on 13 services (4 infra + 5 KH BE + 1 KC BE + 2 FE + Ollama overlay). `up.sh` defaults to `full` profile khi không pass `--profile`, set `KITE_COMPOSE_PROFILE` env để override. Verified: `docker compose --profile infra-only config` returns 5 services + 1 setup; `--profile full` returns 13 services. Coordinator-applied sau 2 lần Sonnet agent autocompact-thrash.
 
 ## Related
 
