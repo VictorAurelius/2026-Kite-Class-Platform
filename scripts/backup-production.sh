@@ -4,8 +4,9 @@
 # =========================================================================
 # Wraps `aws rds create-db-snapshot` for production database, idempotent +
 # timestamp-tagged so it is safe to re-run from CI gate or manual coordinator
-# invocation. Emits a Prometheus-text counter line so an external scrape (e.g.
-# pushgateway) can record successful pre-deploy backups.
+# invocation. Emits Prometheus-text metric lines (counter + gauge) so an
+# external scrape (e.g. pushgateway) can record successful pre-deploy backups
+# AND drive the `BackupJobFailure` alert.
 #
 # Usage:
 #   ./scripts/backup-production.sh [--dry-run]
@@ -14,7 +15,7 @@
 #   AWS_REGION            — default: ap-southeast-1
 #   RDS_INSTANCE_ID       — default: kite-rds-prod
 #   SNAPSHOT_PREFIX       — default: kite-prod-pre-deploy
-#   PUSHGATEWAY_URL       — optional; if set, counter pushed via curl
+#   PUSHGATEWAY_URL       — optional; if set, metrics pushed via curl
 #   BACKUP_WAIT_TIMEOUT   — default: 1200 (20 min)
 #
 # Exit codes:
@@ -29,9 +30,10 @@
 #   - logs-format-standard.md (structured key=value lines for SRE parsing)
 #
 # References:
-#   - GAP-389 Wave 33 Ops P1 cluster
+#   - GAP-389 Wave 33 Ops P1 cluster (initial alert + script)
+#   - GAP-430 Wave 41 Bucket A (this fix — alert/metric name alignment)
 #   - .github/workflows/deploy-production.yml — pre-deploy CI gate
-#   - documents/05-guides/deploy/backup-runbook.md — operator runbook
+#   - documents/05-guides/operations/runbooks/backup-job-failure.md — runbook
 # =========================================================================
 
 set -euo pipefail
@@ -108,6 +110,7 @@ create_snapshot() {
         log_info "    --region $AWS_REGION"
         log_info "DRY-RUN — would wait until snapshot available (timeout ${BACKUP_WAIT_TIMEOUT}s)"
         log_info "DRY-RUN — would emit counter kite_backup_snapshots_total{type=\"pre_deploy\"} +1"
+        log_info "DRY-RUN — would emit gauge kite_backup_last_success_timestamp_seconds{type=\"pre_deploy\"} = \$(date +%s)"
         echo "$snapshot_id"
         return 0
     fi
@@ -135,32 +138,52 @@ create_snapshot() {
 }
 
 # ─── Metric emission ──────────────────────────────────────────────────
+#
+# Emits TWO metrics so observability is coherent (GAP-430 Wave 41 Bucket A):
+#   1. `kite_backup_snapshots_total` (counter) — historical record of how many
+#      successful pre-deploy snapshots have been taken.
+#   2. `kite_backup_last_success_timestamp_seconds` (gauge) — wall-clock time of
+#      most recent success. THIS is what the `BackupJobFailure` alert watches
+#      (PromQL: `time() - kite_backup_last_success_timestamp_seconds > 90000`),
+#      so emitting it from this script is what makes the alert actually fire.
+#
+# Both are pushed in the same Pushgateway request so alert + counter stay in
+# lockstep. Without the gauge, the alert was silent for any failure (Wave 40
+# audit Bucket E P0 finding).
 
-emit_counter() {
+emit_metrics() {
     local snapshot_id="$1"
 
-    # Prometheus exposition format — one increment per successful pre-deploy snapshot.
-    local metric="kite_backup_snapshots_total{type=\"pre_deploy\",region=\"${AWS_REGION}\",instance=\"${RDS_INSTANCE_ID}\"} 1"
-    local timestamp_ms
-    timestamp_ms=$(date +%s%3N 2>/dev/null || date +%s)000
+    # Counter — one increment per successful pre-deploy snapshot.
+    local counter_metric="kite_backup_snapshots_total{type=\"pre_deploy\",region=\"${AWS_REGION}\",instance=\"${RDS_INSTANCE_ID}\"} 1"
 
-    log_info "Metric: $metric (snapshot=$snapshot_id ts=$timestamp_ms)"
+    # Gauge — wall-clock seconds at success. Watched by `BackupJobFailure` alert.
+    local now_seconds
+    now_seconds=$(date +%s)
+    local gauge_metric="kite_backup_last_success_timestamp_seconds{type=\"pre_deploy\",region=\"${AWS_REGION}\",instance=\"${RDS_INSTANCE_ID}\"} ${now_seconds}"
+
+    log_info "Metric (counter): $counter_metric (snapshot=$snapshot_id)"
+    log_info "Metric (gauge):   $gauge_metric"
 
     if [ -n "$PUSHGATEWAY_URL" ] && [ "$DRY_RUN" != "true" ]; then
         if command -v curl >/dev/null 2>&1; then
             local job_url="${PUSHGATEWAY_URL%/}/metrics/job/backup-production/instance/${RDS_INSTANCE_ID}"
-            if printf "%s\n" "# TYPE kite_backup_snapshots_total counter" "$metric" \
+            if printf "%s\n" \
+                    "# TYPE kite_backup_snapshots_total counter" \
+                    "$counter_metric" \
+                    "# TYPE kite_backup_last_success_timestamp_seconds gauge" \
+                    "$gauge_metric" \
                     | curl --max-time 10 --silent --show-error \
                         --data-binary @- "$job_url" >/dev/null; then
-                log_info "Pushed to gateway: $job_url"
+                log_info "Pushed counter + gauge to gateway: $job_url"
             else
-                log_warn "Push to $job_url failed (non-fatal)"
+                log_warn "Push to $job_url failed (non-fatal) — alert may stay stale"
             fi
         else
-            log_warn "curl unavailable — counter logged only (no push)"
+            log_warn "curl unavailable — metrics logged only (no push)"
         fi
     elif [ -z "$PUSHGATEWAY_URL" ]; then
-        log_info "PUSHGATEWAY_URL unset — counter logged only (scraper may tail logs)"
+        log_info "PUSHGATEWAY_URL unset — metrics logged only (scraper may tail logs)"
     fi
 }
 
@@ -175,7 +198,7 @@ main() {
     preflight
     local snapshot_id
     snapshot_id=$(create_snapshot)
-    emit_counter "$snapshot_id" >&2
+    emit_metrics "$snapshot_id" >&2
 
     echo "═══════════════════════════════════════════════════════════════" >&2
     log_info "DONE — snapshot=$snapshot_id"

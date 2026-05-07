@@ -2,15 +2,31 @@
 
 **Alert:** `BackupJobFailure`
 **Severity:** critical
-**Last updated:** 2026-04-28
+**Last updated:** 2026-05-08 (GAP-430 Wave 41 Bucket A — alert/metric alignment)
 
 ## What does this alert mean?
 
-The scheduled `pg_dump` (or equivalent) backup job for `kite-postgres` exited non-zero, OR the produced artifact is missing/empty in the backup destination (S3/MinIO). Detection happens via the metric `kite_backup_last_success_timestamp_seconds` — if `(time() - this metric) > 26h` (allowing 24h schedule + 2h grace), the alert fires. **Every hour without a healthy backup increases the data-loss window** in the event of a Postgres disk corruption, accidental DROP, or region failure. Recovery RTO/RPO targets are documented in the platform DR runbook (GAP-119 land), and this alert is the canary that those targets are actually being met.
+The scheduled pre-deploy RDS snapshot (or equivalent backup job) for the production database has not reported a successful run within the expected window, OR the success-marker metric is missing entirely.
 
-## Note
+Detection uses the gauge `kite_backup_last_success_timestamp_seconds` emitted by `scripts/backup-production.sh` (via Pushgateway) at the end of every successful snapshot. Two arms fire this alert:
 
-> If the metric `kite_backup_last_success_timestamp_seconds` is not yet emitted by the backup CronJob/script, the alert ships in `kitehub-platform-alerts` group as **metric-pending** — instrument the script to push to Prometheus PushGateway after each run, OR have a sidecar emit the file mtime of the latest object in S3.
+1. `time() - max(kite_backup_last_success_timestamp_seconds) > 90000` — last success was >25h ago (24h cadence + 1h grace).
+2. `absent(kite_backup_last_success_timestamp_seconds)` — the gauge series itself disappeared (script never ran, Pushgateway lost the series, or scraper config drifted).
+
+Both arms are intentional. The `absent()` arm exists because Wave 40 audit (Bucket E) found the previous PromQL only watched the gauge value, but the script never emitted that gauge — so the alert was silent for the entire Wave 33-40 window. GAP-430 fixed both sides: script now emits the gauge AND a counter (`kite_backup_snapshots_total`), and the alert checks for either staleness or disappearance.
+
+**Every hour without a healthy backup increases the data-loss window** in the event of a Postgres disk corruption, accidental DROP, or region failure. Recovery RTO/RPO targets are documented in the platform DR runbook (GAP-119), and this alert is the canary that those targets are actually being met.
+
+## Metric contract (post GAP-430)
+
+| Metric | Type | Emitter | Watched by |
+|---|---|---|---|
+| `kite_backup_last_success_timestamp_seconds` | gauge (unix seconds) | `scripts/backup-production.sh` → Pushgateway | `BackupJobFailure` alert |
+| `kite_backup_snapshots_total` | counter | `scripts/backup-production.sh` → Pushgateway | dashboards, retention reporting |
+
+Labels on both: `type="pre_deploy"`, `region`, `instance`. Job label = `backup-production`.
+
+If you are migrating an older CronJob (Helm `kitehub-backup` chart) to use the same metric contract, mirror the emit block in `scripts/backup-production.sh` (`emit_metrics` function) so all backup paths converge on the same series.
 
 ## Immediate checks (0-5 min)
 
