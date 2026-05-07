@@ -151,17 +151,22 @@ export async function login(
  * @param page - Playwright page object
  */
 export async function logout(page: Page) {
-  // Click on user avatar button (shows "KC")
-  const userMenu = page.getByRole('button', { name: 'KC' });
+  // Click on user avatar button — Avatar with AvatarFallback "KC" wrapped in a ghost button.
+  // Scoped to the banner landmark (<header> element) to avoid false matches from sidebar buttons.
+  const userMenu = page.getByRole('banner').getByRole('button').filter({ hasText: 'KC' });
   await userMenu.click();
 
-  // Click logout menu item
-  const logoutButton = page.getByRole('menuitem', { name: /logout/i });
+  // Click logout menu item — actual VN text "Đăng xuất" rendered as DropdownMenuItem.
+  // DropdownMenuItem renders as role="menuitem"; accept VN or EN copy.
+  const logoutButton = page.getByRole('menuitem', { name: /đăng xuất|logout/i });
   await logoutButton.click();
 
   // Wait for redirect to login page
   await page.waitForURL('/login', { timeout: 5000 });
-  await expect(page.getByText('Welcome back')).toBeVisible();
+  // Login heading is VN-first: "Chào mừng trở lại"; accept EN "Welcome back" for A/B resilience.
+  await expect(
+    page.getByRole('heading', { name: /(Chào mừng trở lại|Welcome back)/i })
+  ).toBeVisible();
 }
 
 /**
