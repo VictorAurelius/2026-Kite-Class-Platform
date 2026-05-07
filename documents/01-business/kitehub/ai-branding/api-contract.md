@@ -1,5 +1,11 @@
 # AI Branding — API Contract
 
+> **Note on identifiers:** Path params `instanceId` / `jobId` and any `id` field
+> exposed in responses are UUID v4 strings (e.g.
+> `550e8400-e29b-41d4-a716-446655440000`), not numeric. Earlier revisions of
+> this document used numeric placeholders for illustration; all examples are
+> now aligned to the actual wire format (GAP-390-C).
+
 ## POST /api/platform/branding/ai/analyze-logo
 **Use case:** UC-AIB-01
 **Auth:** Bearer token
@@ -146,7 +152,7 @@ All write endpoints delegate to `InstanceLifecycleService` (BR-LIFE-003); state-
   "success": true,
   "message": "...",
   "data": {
-    "id": 12345,
+    "id": "550e8400-e29b-41d4-a716-446655440000",
     "tenantId": "...",
     "slug": "...",
     "frontendUrl": "https://...",
@@ -241,7 +247,7 @@ All write endpoints delegate to `InstanceLifecycleService` (BR-LIFE-003); state-
 **Response 200:**
 ```json
 {
-  "instanceId": 12345,
+  "instanceId": "550e8400-e29b-41d4-a716-446655440000",
   "tenantId": "kitehub-tenant-uuid",
   "slug": "abc-school",
   "frontendUrl": "https://abc-school.kiteclass.vn",
@@ -297,7 +303,7 @@ All write endpoints delegate to `InstanceLifecycleService` (BR-LIFE-003); state-
 ```json
 {
   "success": true,
-  "message": "branding-package cache evicted for instance 12345",
+  "message": "branding-package cache evicted for instance 550e8400-e29b-41d4-a716-446655440000",
   "data": "evicted"
 }
 ```
@@ -452,7 +458,7 @@ Stream closes after `complete` or `error`. FE reconnect via `Last-Event-ID` head
 **Response 200:**
 ```json
 {
-  "instanceId": 12345,
+  "instanceId": "550e8400-e29b-41d4-a716-446655440000",
   "events": [
     {
       "id": "evt-2026-0507-001",
@@ -492,7 +498,7 @@ Stream closes after `complete` or `error`. FE reconnect via `Last-Event-ID` head
 ```json
 {
   "jobId": "job-abc-123",
-  "instanceId": 12345,
+  "instanceId": "550e8400-e29b-41d4-a716-446655440000",
   "tenantId": "kitehub-tenant-uuid",
   "status": "DEPLOYED",
   "regenerateCount": 1,

@@ -9,6 +9,7 @@ import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,7 +59,10 @@ public class BrandingJobV1Controller {
         }
         BrandingJob job = jobOpt.get();
         BrandColours colours = coloursDeriver.derive(job);
-        BrandingJobResponse response = BrandingJobResponse.from(job, colours);
+        // GAP-390-A: resolve tenantId from request-scoped MDC (populated by gateway tenant filter
+        // per logback-spring.xml MDC keys). Falls back to null when request lacks tenant context.
+        String tenantId = MDC.get("tenantId");
+        BrandingJobResponse response = BrandingJobResponse.from(job, colours, tenantId);
         log.debug("v1 job lookup: {} status={} brandColors.source={}",
                 jobId, response.status(), colours.source());
         return ResponseEntity.ok(response);
