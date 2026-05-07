@@ -60,6 +60,13 @@ kitehub:
       template-ttl-seconds: ${BRANDING_TEMPLATE_CACHE_TTL_SECONDS:300}
       rate-limit-ttl-seconds: ${BRANDING_RATE_LIMIT_CACHE_TTL_SECONDS:900}
 
+# GAP-386 / BR-QUALITY-001 — AI Branding quality gate pass threshold.
+# 12-factor §III "Store config in environment" externalization. Default 70/100
+# matches scaffold v0 baseline (per ai-branding-guidelines.md §5). Tier-specific
+# overrides expected post-deployment via Helm + env var QUALITY_GATE_PASS_THRESHOLD.
+quality-gate:
+  pass-threshold: ${QUALITY_GATE_PASS_THRESHOLD:70}
+
 server:
   port: 8083
 

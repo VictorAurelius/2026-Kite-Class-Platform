@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -40,6 +41,9 @@ class QualityScoreControllerTest {
     @BeforeEach
     void setUp() {
         // Inject the real aggregator — score logic is part of contract verification.
+        // GAP-386: aggregator's `threshold` field is @Value-injected in production;
+        // unit tests bootstrapping without Spring must seed the default explicitly.
+        ReflectionTestUtils.setField(aggregator, "threshold", 70);
         controller = new QualityScoreController(jobRepository, aggregator);
 
         jobId = UUID.randomUUID();

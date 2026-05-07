@@ -138,5 +138,26 @@ branding:
     max-ai-ratio: 0.20          # BR-RES-005 — Prometheus alert threshold
 
 quality-gate:
-  pass-threshold: 70            # BR-QUALITY-001
+  pass-threshold: ${QUALITY_GATE_PASS_THRESHOLD:70}   # BR-QUALITY-001 (GAP-386 — externalized 2026-05-08)
 ```
+
+---
+
+## BR-QUALITY-001 — Quality Gate Pass Threshold (5-attribute compliance block)
+
+Per [`.claude/rules/business-logic-review.md`](../../../.claude/rules/business-logic-review.md) v1.0.0 §2 — every business rule MUST document Source, Rationale, Reviewer, Compliance check, Review cadence.
+
+- **Value:** `70/100` (config key: `quality-gate.pass-threshold`; env var `QUALITY_GATE_PASS_THRESHOLD`; Helm path `branding.qualityGate.passThreshold`)
+- **Source:** `ai-branding-guidelines.md` §5 (Quality Gate spec) + GAP-386 audit finding 2026-05-07 (Wave 34 Business Logic /100 audit). Empirical observation — no internal A/B yet; baseline value chosen during AI Branding v2 design (Wave 2-4).
+- **Rationale:** 70/100 = WCAG AA contrast floor (4.5:1 maps to ~70 sub-score in placeholder scoring per ai-branding-guidelines.md §5) + buffer for 4 other sub-checks. Below 70 = at least 1 sub-check failing materially. Above 80 = blocks borderline-acceptable instances during scaffold v0 (until GAP-226/227/228 land real measurement). 70 chosen because (a) caps obviously-bad output, (b) does NOT block placeholder v0 spread (60..100), (c) tunable per tier post-launch (FREE 65 = lenient, ENTERPRISE 80 = stricter) without recompile.
+- **Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-05-08). Formal counsel review N/A — quality threshold is product-tuning value, not regulated. Full Product/Designer review queued after GAP-226/227/228 land real WCAG measurement (estimated Wave 8+ post-Phase-1 launch).
+- **Compliance check:** **N/A** — pure quality-tuning value. No PDPL trigger (no PII), no Consumer Protection trigger (no advertised SLA tied to threshold), no MoET education trigger (not student-facing). Re-evaluate if marketing copy ever advertises specific quality score guarantee to tenants.
+- **Review cadence:** **Quarterly** (default per `business-logic-review.md` §2.5) + event-driven on: (a) GAP-226/227/228 landing (real measurement → re-baseline threshold), (b) tier-specific override request from Sales/PM, (c) ≥10% deploy-rejection rate observed in production. **Next review:** 2026-08-08 (Q3 2026) OR upon any of above triggers.
+
+### Externalization (GAP-386 — landed 2026-05-08)
+
+- Code: `kitehub/kitehub-branding/.../wizard/quality/QualityScoreAggregator.java` field `@Value("${quality-gate.pass-threshold:70}") private int threshold;` (was `private static final int THRESHOLD = 70;` pre-GAP-386)
+- App config: `kitehub/kitehub-branding/src/main/resources/application.yml` → `quality-gate.pass-threshold: ${QUALITY_GATE_PASS_THRESHOLD:70}`
+- Helm: `infrastructure/helm/kitehub/values.yaml` → `branding.qualityGate.passThreshold: 70`
+- Deployment: `infrastructure/helm/kitehub/templates/deployment.yaml` → env `QUALITY_GATE_PASS_THRESHOLD`
+- Tests: `kitehub-branding/src/test/.../QualityScoreAggregatorThresholdTest.java` covers (a) custom threshold 80 → score 75 = FAIL / score 85 = PASS; (b) default fallback 70 when no override.

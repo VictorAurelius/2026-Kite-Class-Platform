@@ -3,6 +3,7 @@ package com.kitehub.branding.wizard.quality;
 import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.domain.enums.JobStatus;
 import com.kitehub.branding.wizard.quality.dto.QualityScoreResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -30,7 +31,19 @@ import java.util.Map;
 @Component
 public class QualityScoreAggregator {
 
-    private static final int THRESHOLD = 70;
+    /**
+     * Quality gate pass threshold (0..100). Externalized per BR-QUALITY-001
+     * (see {@code documents/01-business/kitehub/ai-branding/rules.md}) and
+     * 12-factor §III "Store config in environment". Default 70 retains
+     * pre-GAP-386 behaviour when override absent.
+     *
+     * <p>Tier-specific overrides (FREE 65 / ENT 80 etc.) achieved via
+     * Helm {@code branding.qualityGate.passThreshold} → env var
+     * {@code QUALITY_GATE_PASS_THRESHOLD} → Spring property
+     * {@code quality-gate.pass-threshold}.</p>
+     */
+    @Value("${quality-gate.pass-threshold:70}")
+    private int threshold;
 
     /** Equal weights — Wave 35+ will tune once real measurement lands. */
     private static final Map<String, Double> WEIGHTS = Map.of(
@@ -68,15 +81,15 @@ public class QualityScoreAggregator {
         subscores.put("visualRegression", visualRegression);
         subscores.put("logoPlacement", logoPlacement);
 
-        if (contrast < THRESHOLD) {
+        if (contrast < threshold) {
             issues.add(new QualityScoreResponse.Issue("WARN", "contrast",
                     "Contrast sub-score below threshold (placeholder v0 — GAP-226 will land real WCAG measurement)"));
         }
-        if (visualRegression < THRESHOLD) {
+        if (visualRegression < threshold) {
             issues.add(new QualityScoreResponse.Issue("WARN", "visualRegression",
                     "Visual regression placeholder below threshold (GAP-227 deferral)"));
         }
-        if (logoPlacement < THRESHOLD) {
+        if (logoPlacement < threshold) {
             issues.add(new QualityScoreResponse.Issue("ERROR", "logoPlacement",
                     "Logo missing — uploaded logoUrl is null"));
         }
@@ -92,8 +105,8 @@ public class QualityScoreAggregator {
         return new QualityScoreResponse(
                 job.getId().toString(),
                 composite,
-                composite >= THRESHOLD,
-                THRESHOLD,
+                composite >= threshold,
+                threshold,
                 subscores,
                 issues,
                 Instant.now()
@@ -102,5 +115,22 @@ public class QualityScoreAggregator {
 
     private static int clamp(int v) {
         return Math.max(0, Math.min(100, v));
+    }
+
+    /**
+     * Test-only seam: override the externalized threshold for unit tests
+     * where Spring context is not bootstrapped (e.g. plain
+     * {@link org.junit.jupiter.api.Test} with new instance). Production
+     * paths rely on {@link Value @Value} field-injection.
+     *
+     * @param threshold pass threshold 0..100
+     */
+    void setThreshold(int threshold) {
+        this.threshold = threshold;
+    }
+
+    /** Test-only accessor — see {@link #setThreshold(int)}. */
+    int getThreshold() {
+        return threshold;
     }
 }

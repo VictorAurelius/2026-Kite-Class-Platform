@@ -66,6 +66,11 @@ branding:
   resources:
     requests: { cpu: 250m, memory: 512Mi }
     limits:   { cpu: 500m, memory: 1Gi }
+  # GAP-386 / BR-QUALITY-001 — AI Branding quality gate pass threshold (0..100).
+  # Default 70 matches kitehub-branding application.yml + ai-branding-guidelines.md §5.
+  # Override per environment / tier (e.g. FREE 65 / ENT 80) without rebuild.
+  qualityGate:
+    passThreshold: 70
 
 admin:
   replicas: 1
