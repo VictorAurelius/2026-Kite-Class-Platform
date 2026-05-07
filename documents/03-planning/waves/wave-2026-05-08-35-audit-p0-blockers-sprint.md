@@ -1,10 +1,10 @@
 ---
 title: Wave 35 — Audit P0 Blockers Sprint (5 P0 from 2026-05-07 audit cluster)
-status: draft
+status: complete
 created: 2026-05-07
 updated: 2026-05-07
 waves: [35]
-gaps: [GAP-384, GAP-385, GAP-386, GAP-387, GAP-392]
+gaps: [GAP-384, GAP-385, GAP-386, GAP-387, GAP-392, GAP-393]
 ---
 
 # Wave 35 — Audit P0 Blockers Sprint
@@ -194,3 +194,4 @@ Per `feedback_parallel_agent_strategy.md` + `agent-background-spawn-default.md` 
 ## 8. Log
 
 - **2026-05-07** (draft): Plan created post-audit-cluster (PR #913). Pairs với Wave 36 plan (P1 hardening) trong cùng plan PR. Spawn ETA: next session early (per `feedback_token_quota_spawn_timing.md` spawn EARLY).
+- **2026-05-07** (SHIPPED + complete): All 5 P0 BLOCKERS DONE in single session ~95min wall-clock. PRs: #916 Bucket 0 + #922 A + #921 B + #919 C + #920 D + #918 E. Side PRs: #923 refactor Oracle→AWS Singapore (ADR-025) + #924 CI path-filter fix. 1 rebase conflict (Bucket D BetaAccessService constants — additive resolve). 1 worktree contamination during Bucket C (recovered cleanly per `feedback_session_resume_cross_contamination.md`). Cross-layer wave (GAP-385) validated `contract-first-for-cross-layer.md` v1.0.0 self-test §7.2 again: 0 ad-hoc sub-gap follow-ups. GAP-393 stays 🟡 PARTIAL (status index portion shipped here; 393-A/B/D scheduled Wave 36 Bucket D). Compliance posture flipped: Oracle (VN data localization) → AWS Singapore (compliance debt accepted Phase 1 invite-only). 71st consecutive 0-clarification streak. Counts: 169 → 168 OPEN.
