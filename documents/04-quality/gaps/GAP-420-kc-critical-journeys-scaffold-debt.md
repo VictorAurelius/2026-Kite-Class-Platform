@@ -1,6 +1,6 @@
 # GAP-420: KC critical-journeys E2E specs scaffold-as-DONE — UI selector drift
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07
 **Priority:** 🟠 P1 (Phase 4.5 staging E2E gate cannot enforce — KC half of 22-test gate at 0/17 → 4/8 after 1 helper fix)
 **Domain:** Frontend / E2E test
 **Found:** 2026-05-07 (Option B' E2E full-coverage scope review session)
@@ -82,3 +82,14 @@ Wave-pack Phase 1 — 3 buckets parallel (1 spec file each), per `feedback_paral
 ## Estimated effort
 
 ~30-45 min wave-pack (3 buckets parallel @ 10-15 min each + 5-10 min coordinator merge). Could pair with running KC dev backend infra to validate against real-backend (post GAP-419 gateway fix).
+
+## Log
+
+- **2026-05-07** 🟢 DONE — Wave 39 wave-pack 3 sub-buckets all shipped + verified locally:
+  - **Sub-A** PR #967: `dashboard-navigation.spec.ts` 8/8 pass (Bucket A — sidebar href selectors, header banner scoping, escape-to-close-dropdown, `/login` waitForURL, exact placeholder strings, `.first()` for duplicate links).
+  - **Sub-B** PR #968: `class-lifecycle.spec.ts` 6/6 pass (Bucket B — cancel UI is inline `<Card>` not dialog, sessions render as divs not table, full `/api/v1/classes/:id` mock with sub-routes, login-before-stateful-mock-override fix, sessions sub-route explicit handler).
+  - **Sub-C** PR #965: `course-to-class-flow.spec.ts` 3/3 pass (Bucket C — Radix `ConfirmDialog` interaction replaces `dialog` event handler, VN-EN parallel regex `/bản nháp|draft/i` `/đã xuất bản|published/i`, redirect to `/courses/:courseId` not `/classes`, `locationDetail` field name, stateful publish/archive Sets in api-mocks).
+  - Total: **17/17 tests pass**, all 3 specs validated locally on `pnpm dev` (port 4700) before push, spec headers updated `// Validated locally 2026-05-07 against <sha>`.
+  - Coordinator-resolved 1 rebase conflict on `e2e/helpers/api-mocks.ts` Bucket C vs Bucket B (HEAD superset accepted — Bucket B's lifecycle field schema covers Bucket C's tests without regression).
+  - Verification artifact: 5 PRs squash-merged → main; CI green KiteClass Frontend CI per PR.
+  - Out-of-scope (deferred to follow-up): `data-testid` attribute additions on highest-drift-risk components (AC line 4) → tracked future gap if drift recurs.
