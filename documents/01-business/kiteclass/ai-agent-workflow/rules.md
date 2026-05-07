@@ -109,6 +109,16 @@ Các metric Micrometer publish bởi `AIQueueDispatcher` + `AIJobConsumer` — d
 | `ai.input.premium-max-tokens` | 8000 | BR-INPUT-CAP-003 input cap PREMIUM |
 | `ai.input.enterprise-max-tokens` | 16000 | BR-INPUT-CAP-004 input cap ENTERPRISE (-1 unlimited) |
 
+## Five-attribute review per `business-logic-review.md`
+
+Per-rule attributes (Source / Rationale / Reviewer / Compliance check / Review cadence) backfilled at file-level placeholder per Phase 1 of GAP-433. Per-rule granularity tracked via GAP-156 Phase 2 stakeholder sign-offs.
+
+- **Source:** Existing rules in this file derive from a mix of: feature gaps cited inline (where present), ADRs, persona reviews, and informed-gut estimates from Wave 1-30 work. Rules without inline citation default to `informed gut` per `business-logic-review.md` §2.1 and inherit quarterly re-review obligation below.
+- **Rationale:** Rule values reflect product judgment + (where applicable) competitor benchmarks + VN regulatory minimums. Detailed per-rule rationale to be backfilled during GAP-156 Phase 2 stakeholder review; until then, treat values as `informed gut` subject to next quarterly review.
+- **Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-05-08). Formal stakeholder + legal counsel sign-off queued via GAP-156. Solo-dev exemption per `business-logic-review.md` §2.3 — the Reviewer line documents which hat is being worn AND obligation is attached for team-growth or pre-launch trigger.
+- **Compliance check:** **N/A** — internal orchestration logic; AI provider data routing; no direct PII storage. Cross-reference `ai-provider/rules.md` for provider-side PDPL handling.
+- **Review cadence:** Quarterly (default per `business-logic-review.md` §2.5). **Next review:** 2026-08-08. Event triggers: AI provider config change, new agent type added.
+
 ## Log
 - 2026-04-28 — GAP-258: BR-INPUT-CAP-001..007 added — tier-aware input prompt token cap defends against cost-attack (small request count, very large prompts). Reject path returns HTTP 400 BEFORE provider call so no usage is recorded against per-day request quota. Counter `ai.input.token.rejection{tier}` emitted for Prometheus alerting. Heuristic estimator (chars/4) cited in BR-INPUT-CAP-006 — real BPE tokenizer (tiktoken-java) deferred per gap §Out-of-scope.
 - 2026-04-21 — GAP-148 (Wave 9-D): BR-QUEUE-015..018 now backed by `kitehub-branding/src/main/java/com/kitehub/branding/client/ResilientAIClient.java` (decorator, `@Primary`, `@CircuitBreaker(name="ai-provider")` on `analyzeLogo`/`generateImage`/`generateText`, fallbacks return template-safe domain defaults). Previously config was dead (loaded but unreferenced). `AIProviderConfig.aiClient()` demoted from `@Primary` → named `aiClient`, injected into the wrapper via `@Qualifier`.

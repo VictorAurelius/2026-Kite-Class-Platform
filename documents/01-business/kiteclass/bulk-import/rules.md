@@ -84,6 +84,16 @@ No domain-level feature flag today — `StudentBulkImportService.MAX_ROWS` + `CH
 - **security-foundation** — X-Tenant-Id header required (BR-BI-040)
 - **audit** — `student_bulk_import_jobs` table powers admin history UI
 
+## Five-attribute review per `business-logic-review.md`
+
+Per-rule attributes (Source / Rationale / Reviewer / Compliance check / Review cadence) backfilled at file-level placeholder per Phase 1 of GAP-433. Per-rule granularity tracked via GAP-156 Phase 2 stakeholder sign-offs.
+
+- **Source:** Existing rules in this file derive from a mix of: feature gaps cited inline (where present), ADRs, persona reviews, and informed-gut estimates from Wave 1-30 work. Rules without inline citation default to `informed gut` per `business-logic-review.md` §2.1 and inherit quarterly re-review obligation below.
+- **Rationale:** Rule values reflect product judgment + (where applicable) competitor benchmarks + VN regulatory minimums. Detailed per-rule rationale to be backfilled during GAP-156 Phase 2 stakeholder review; until then, treat values as `informed gut` subject to next quarterly review.
+- **Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-05-08). Formal stakeholder + legal counsel sign-off queued via GAP-156. Solo-dev exemption per `business-logic-review.md` §2.3 — the Reviewer line documents which hat is being worn AND obligation is attached for team-growth or pre-launch trigger.
+- **Compliance check:** **Considered** — PDPL 2023 Art 11 (consent for student/parent data import); Luật Giáo dục 2019 (student record handling).
+- **Review cadence:** Quarterly (default per `business-logic-review.md` §2.5). **Next review:** 2026-08-08. Event triggers: PDPL implementing-decree, MoET data-import regulation update.
+
 ## Log
 - 2026-04-21 — GAP-109: 3-layer docs created capturing shipped Wave 1 behavior. No code change.
 - 2026-04-14 — Feature delivered via GAP-051 (PR #332) + in-file duplicate fix (PR #338); docs never backfilled until today.

@@ -76,6 +76,16 @@
 | `document.generation.pdf.font.family` | `DejaVuSans` (added in 5.1) | Vietnamese-safe font registered into OpenHTMLtoPDF font resolver; loaded from `resources/fonts/` |
 | `document.generation.cache.branding.ttl-seconds` | inherited from `branding-package` cache (Spring Cache + Redis, 1h TTL) | Per-tenant branding read; branding lookups go through `BrandingService` which reads from `TenantContext`-scoped `Branding` entity. Wave 3's `CachingBrandingPackageProxy` covers the published-package path; settings-level reads use the existing Redis cache config. No new TTL knob needed in 5.5. |
 
+## Five-attribute review per `business-logic-review.md`
+
+Per-rule attributes (Source / Rationale / Reviewer / Compliance check / Review cadence) backfilled at file-level placeholder per Phase 1 of GAP-433. Per-rule granularity tracked via GAP-156 Phase 2 stakeholder sign-offs.
+
+- **Source:** Existing rules in this file derive from a mix of: feature gaps cited inline (where present), ADRs, persona reviews, and informed-gut estimates from Wave 1-30 work. Rules without inline citation default to `informed gut` per `business-logic-review.md` §2.1 and inherit quarterly re-review obligation below.
+- **Rationale:** Rule values reflect product judgment + (where applicable) competitor benchmarks + VN regulatory minimums. Detailed per-rule rationale to be backfilled during GAP-156 Phase 2 stakeholder review; until then, treat values as `informed gut` subject to next quarterly review.
+- **Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-05-08). Formal stakeholder + legal counsel sign-off queued via GAP-156. Solo-dev exemption per `business-logic-review.md` §2.3 — the Reviewer line documents which hat is being worn AND obligation is attached for team-growth or pre-launch trigger.
+- **Compliance check:** **Considered** — Luật Giao dịch điện tử 2023 (e-signed certificates/transcripts); Nghị định 123/2020/NĐ-CP for e-invoices.
+- **Review cadence:** Quarterly (default per `business-logic-review.md` §2.5). **Next review:** 2026-08-08. Event triggers: E-transaction law amendment, e-invoice regulation update.
+
 ## Log
 
 - 2026-04-25 — Sub-PR 5.5 SHIPPED. Added BR-DOC-012..016 covering branding-injection pipeline, auth role matrix, RFC-5987 filename encoding, caller-override precedence, and graceful fallbacks. Status header bumped to "Sub-PR 5.5 SHIPPED". Branding cache config-key entry collapsed to point at the existing Wave 3 cache (no new knob).

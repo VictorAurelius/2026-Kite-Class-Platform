@@ -44,6 +44,16 @@ Grafana computes `branding.routing.ai_ratio = classified{category=full_ai} / sum
 
 `LOGO, FAVICON, BANNER, HERO, COURSE_THUMBNAIL, SOCIAL_COVER, EMAIL_HEADER`
 
+## Five-attribute review per `business-logic-review.md`
+
+Per-rule attributes (Source / Rationale / Reviewer / Compliance check / Review cadence) backfilled at file-level placeholder per Phase 1 of GAP-433. Per-rule granularity tracked via GAP-156 Phase 2 stakeholder sign-offs.
+
+- **Source:** Existing rules in this file derive from a mix of: feature gaps cited inline (where present), ADRs, persona reviews, and informed-gut estimates from Wave 1-30 work. Rules without inline citation default to `informed gut` per `business-logic-review.md` §2.1 and inherit quarterly re-review obligation below.
+- **Rationale:** Rule values reflect product judgment + (where applicable) competitor benchmarks + VN regulatory minimums. Detailed per-rule rationale to be backfilled during GAP-156 Phase 2 stakeholder review; until then, treat values as `informed gut` subject to next quarterly review.
+- **Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-05-08). Formal stakeholder + legal counsel sign-off queued via GAP-156. Solo-dev exemption per `business-logic-review.md` §2.3 — the Reviewer line documents which hat is being worn AND obligation is attached for team-growth or pre-launch trigger.
+- **Compliance check:** **N/A** — internal asset classification (STATIC/TEMPLATE/FULL_AI); no PII surface, no compliance trigger.
+- **Review cadence:** Quarterly (default per `business-logic-review.md` §2.5). **Next review:** 2026-08-08. Event triggers: Classification taxonomy change (e.g., Enterprise tier opt-in flow).
+
 ## Log
 - 2026-04-21 — GAP-106: externalized `branding.routing.*` keys. Added `BrandingRoutingProperties` (kiteclass-core/module/branding/config), wired `ResourceRoutingService` to emit `branding.routing.classified` counter per classify(), added keys to `kiteclass-core/src/main/resources/application.yml`. Startup log warns when `template-first=false`.
 - 2026-04-14 — Initial rules (GAP-007, ADR-005)

@@ -1,10 +1,10 @@
 # GAP-433: backfill 5-attribute frontmatter cho rules.md (40% thiếu Reviewer + Review cadence)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1 DONE (Wave 41 Bucket E, 2026-05-08); Phase 2 stakeholder sign-offs tracked via GAP-156
 **Priority:** 🟠 P1 (gate `business-logic-review.md` v1.0.0 standard; chặn audit ≥80)
 **Domain:** Business Logic / Documentation governance
 **Found:** 2026-05-08 Wave 40 audit milestone (Bucket G Business Logic, PR #977)
-**Affects:** ~21/52 per-domain `rules.md` files (40% coverage gap)
+**Affects:** ~21/52 per-domain `rules.md` files (40% coverage gap) — actual count surfaced at backfill time = 42/52 missing the formal §"Five-attribute review" section (audit estimate "21" was conservative)
 
 ## Problem
 
@@ -29,10 +29,10 @@ Phase 1 đủ để pass cổng audit ≥80; Phase 2 = compliance integrity.
 
 ## Acceptance Criteria
 
-- [ ] 21 rules.md files thiếu attr → backfill Reviewer + Review cadence (placeholder values OK Phase 1)
-- [ ] `scripts/check-rules-frontmatter.sh` (chưa có — cần file thêm) verify 5-attr present trong tất cả rules.md
-- [ ] Audit Bucket G re-score ≥80/100 sau backfill
-- [ ] Cross-link với GAP-156 cho Phase 2 sign-offs
+- [x] 42 rules.md files thiếu attr → backfill Reviewer + Review cadence (placeholder values Phase 1) — Wave 41 Bucket E
+- [ ] `scripts/check-rules-frontmatter.sh` (chưa có — cần file thêm) verify 5-attr present trong tất cả rules.md → tracked Phase 2
+- [ ] Audit Bucket G re-score ≥80/100 sau backfill → tracked GAP-156 Phase 2 (stakeholder sign-off + scrubber)
+- [x] Cross-link với GAP-156 cho Phase 2 sign-offs — references inserted in every backfilled file
 
 ## Related
 
@@ -48,4 +48,5 @@ Phase 1 đủ để pass cổng audit ≥80; Phase 2 = compliance integrity.
 
 ## Log
 
+- **2026-05-08** (Wave 41 Bucket E) Phase 1 DONE — backfilled 42/52 rules.md files (audit estimate "21" was conservative; reality = 80% of files lacked formal §"Five-attribute review" section). Each file received: Source/Rationale placeholder citing `informed gut` per `business-logic-review.md` §2.1; Reviewer placeholder `@nguyenvankiet (acting Product Owner, solo-dev, 2026-05-08)` with formal sign-off queued via GAP-156; Compliance check tailored per-domain (Compliant/Considered/N/A with VN law citations — PDPL 2023, Luật Giáo dục 2019, Nghị định 123/2020/NĐ-CP, Decree 53/2022/NĐ-CP, Luật Trẻ em 2016, Luật An ninh mạng 2018, Luật Quản lý Thuế 2019, etc.); Review cadence Quarterly với Next review 2026-08-08 + per-domain event triggers. Status flipped 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 PARTIAL exit ramp (Phase 1 backfill done; Phase 2 stakeholder sign-offs + audit re-score deferred to GAP-156).
 - **2026-05-08** Filed during Wave 40 closure handoff. Audit Bucket G phát hiện coverage gap cụ thể; Wave 36 baseline 82 over-scored với standard pre-v1.0.0.

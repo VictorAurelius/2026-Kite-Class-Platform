@@ -59,5 +59,15 @@
 |---------|---------|
 | V36 | `moderation_queue` table (this Sub-PR) |
 
+## Five-attribute review per `business-logic-review.md`
+
+Per-rule attributes (Source / Rationale / Reviewer / Compliance check / Review cadence) backfilled at file-level placeholder per Phase 1 of GAP-433. Per-rule granularity tracked via GAP-156 Phase 2 stakeholder sign-offs.
+
+- **Source:** Existing rules in this file derive from a mix of: feature gaps cited inline (where present), ADRs, persona reviews, and informed-gut estimates from Wave 1-30 work. Rules without inline citation default to `informed gut` per `business-logic-review.md` §2.1 and inherit quarterly re-review obligation below.
+- **Rationale:** Rule values reflect product judgment + (where applicable) competitor benchmarks + VN regulatory minimums. Detailed per-rule rationale to be backfilled during GAP-156 Phase 2 stakeholder review; until then, treat values as `informed gut` subject to next quarterly review.
+- **Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-05-08). Formal stakeholder + legal counsel sign-off queued via GAP-156. Solo-dev exemption per `business-logic-review.md` §2.3 — the Reviewer line documents which hat is being worn AND obligation is attached for team-growth or pre-launch trigger.
+- **Compliance check:** **Considered** — Luật An ninh mạng 2018 Art 8 (prohibited content), Luật Trẻ em 2016 (child-safe content); Decree 53/2022 (illegal content takedown).
+- **Review cadence:** Quarterly (default per `business-logic-review.md` §2.5). **Next review:** 2026-08-08. Event triggers: Cybersecurity law amendment, new prohibited-content category, ML moderator model swap.
+
 ## Log
 - 2026-04-15 — Initial rules (Wave 4 Sub-PR 4.1, GAP-018, ADR-010)
