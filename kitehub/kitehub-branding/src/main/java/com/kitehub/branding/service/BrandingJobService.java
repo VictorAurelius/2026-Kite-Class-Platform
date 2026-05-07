@@ -4,6 +4,10 @@ import com.kitehub.branding.config.RabbitMQConfig;
 import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.domain.enums.JobStatus;
 import com.kitehub.branding.dto.BrandingJobMessage;
+import com.kitehub.branding.lifecycle.InstanceLifecycleService;
+import com.kitehub.branding.lifecycle.LifecycleState;
+import com.kitehub.branding.lifecycle.entity.BrandingInstanceState;
+import com.kitehub.branding.lifecycle.repository.BrandingInstanceStateRepository;
 import com.kitehub.branding.outbox.BrandingEventEmitter;
 import com.kitehub.branding.repository.BrandingJobRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -29,6 +35,8 @@ public class BrandingJobService {
 
     private final BrandingJobRepository jobRepository;
     private final BrandingEventEmitter outboxEmitter;
+    private final InstanceLifecycleService lifecycleService;
+    private final BrandingInstanceStateRepository instanceStateRepository;
 
     /**
      * Create and queue a new branding job.
@@ -56,6 +64,16 @@ public class BrandingJobService {
         job.setQueuedAt(LocalDateTime.now());
 
         job = jobRepository.save(job);
+
+        // §6 lifecycle compliance hinge — drive instance lifecycle via service.
+        // First job: NOT_STARTED → INITIALIZING. Subsequent on a DEPLOYED instance:
+        // DEPLOYED → REGENERATING. FAILED → INITIALIZING (retry path) handled identically.
+        LifecycleState target = resolveCreateTarget(instanceId);
+        Map<String, Object> meta = new HashMap<>();
+        meta.put("jobId", job.getId());
+        meta.put("organizationName", organizationName);
+        lifecycleService.transition(
+            instanceId, target, InstanceLifecycleService.Actor.system("branding-job-service"), meta);
 
         BrandingJobMessage message = new BrandingJobMessage(
                 job.getId(),
@@ -111,6 +129,7 @@ public class BrandingJobService {
     @Transactional
     public void updateJobProgress(UUID jobId, JobStatus status, int progress, String currentStep) {
         jobRepository.findById(jobId).ifPresent(job -> {
+            JobStatus previous = job.getStatus();
             job.setStatus(status);
             job.setProgress(progress);
             job.setCurrentStep(currentStep);
@@ -124,6 +143,19 @@ public class BrandingJobService {
             }
 
             jobRepository.save(job);
+
+            // §6 compliance hinge — only the service mutates lifecycle.
+            // QUEUED → PROCESSING: instance INITIALIZING/REGENERATING → GENERATING.
+            // PROCESSING → COMPLETED: instance GENERATING → DEPLOYED.
+            if (previous != status) {
+                if (status == JobStatus.PROCESSING) {
+                    transitionInstance(job.getInstanceId(), LifecycleState.GENERATING,
+                        Map.of("jobId", jobId, "step", currentStep));
+                } else if (status == JobStatus.COMPLETED) {
+                    transitionInstance(job.getInstanceId(), LifecycleState.DEPLOYED,
+                        Map.of("jobId", jobId));
+                }
+            }
             log.debug("Job {} updated: status={}, progress={}%", jobId, status, progress);
         });
     }
@@ -142,8 +174,56 @@ public class BrandingJobService {
             job.setCompletedAt(LocalDateTime.now());
             job.setRetryCount(job.getRetryCount() + 1);
             jobRepository.save(job);
+
+            // §6 compliance hinge — failure path drives instance to FAILED.
+            transitionInstance(job.getInstanceId(), LifecycleState.FAILED,
+                Map.of("jobId", jobId, "reason", errorMessage == null ? "unknown" : errorMessage));
+
             log.error("Job {} failed: {}", jobId, errorMessage);
         });
+    }
+
+    /**
+     * Resolve the correct target lifecycle state when a new job is created
+     * for an instance, based on its current lifecycle state.
+     */
+    private LifecycleState resolveCreateTarget(UUID instanceId) {
+        BrandingInstanceState current = instanceStateRepository.findById(instanceId).orElse(null);
+        if (current == null || current.getState() == LifecycleState.NOT_STARTED) {
+            return LifecycleState.INITIALIZING;
+        }
+        if (current.getState() == LifecycleState.DEPLOYED) {
+            return LifecycleState.REGENERATING;
+        }
+        if (current.getState() == LifecycleState.FAILED) {
+            return LifecycleState.INITIALIZING; // retry
+        }
+        // INITIALIZING / GENERATING / REGENERATING already in flight: re-emit INITIALIZING is invalid.
+        // Treat duplicate create as no-op for lifecycle (job row still saved separately).
+        return current.getState();
+    }
+
+    /**
+     * Wrap lifecycle transition; tolerate idempotent same-state calls so the
+     * job row commit is not aborted by a stale lifecycle write.
+     */
+    private void transitionInstance(UUID instanceId, LifecycleState target,
+                                    Map<String, Object> metadata) {
+        try {
+            BrandingInstanceState current = instanceStateRepository.findById(instanceId).orElse(null);
+            if (current != null && current.getState() == target) {
+                return;
+            }
+            lifecycleService.transition(
+                instanceId, target,
+                InstanceLifecycleService.Actor.system("branding-job-service"),
+                metadata);
+        } catch (IllegalStateException ex) {
+            // Log + swallow — invalid transition typically means a duplicate consumer
+            // delivery or out-of-order event; do not break the job-row write.
+            log.warn("Skipping lifecycle transition instance={} target={}: {}",
+                instanceId, target, ex.getMessage());
+        }
     }
 
     /**
