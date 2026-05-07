@@ -26,20 +26,52 @@
 
 ✅ **Wave 41 SHIPPED 2026-05-08** — fix-cluster post Wave 40 audit. 6 buckets A-F merged sequential. PRs #983 (A) #981 (B) #985 (C) #986 (D) #982 (E) #984 (F). 1 DONE (D GAP-272o 6/6 AC) + 5 PARTIAL với follow-ups tracked. Wall-clock ~30min vs 3.5h estimate (7× faster). 77th 0-clarif streak. ⚠️ Bucket C BREAKING API (Page envelope) — admin FE adapter check pre-Phase-7 needed.
 
-🚨 **NEW SESSION START HERE — Stream A user actions + Wave 42 candidates**
+✅ **Phase 2.1+2.2+2.3 DONE 2026-05-07** — AWS Singapore production infrastructure live. PRs #989 (closed superseded) → #990 (partial backend) → #991 (OIDC plan role) → #992 (CloudTrail GAP-437 Phase 1) → #993 (3 OIDC roles GAP-436 Phase 1+2+3) → #994 (Phase 2.3 71 resources + dashboard GAP-437 Phase 2) → #995 (agent-aws-access rule + first audit artifact GAP-438 Phase 1+3) → #996 (Wave 42 plan).
+
+**Account 906286017800** state: ~94 AWS resources, $30/mo Year 1 (Free Tier 12mo). Outputs:
+- ALB DNS: `kitehub-alb-224105328.ap-southeast-1.elb.amazonaws.com` (502 — backend chưa deploy)
+- EC2 KH: `i-0b65c3947d36cae61` (13.212.99.40)
+- EC2 KC: `i-04f65503ace7febe4` (47.128.15.254)
+- RDS: `kitehub-postgres.c3awuqw4ugex.ap-southeast-1.rds.amazonaws.com:5432`
+- ECR: `906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/{10 repos, all empty}`
+- 8 Secrets Manager (3 auto-populated rds/jwt/encryption; 5 placeholders)
+- CloudTrail trail `kitehub-main` (multi-region, IsLogging=true)
+- CloudWatch dashboard `kitehub-phase-1-overview`
+
+**Stream A pivots:**
+- Frontend hosting: Cloudflare Pages → **Vercel** (`kitehub.vercel.app` + `kiteclass.vercel.app` HTTP 200)
+- Email: AWS SES → **Resend** (`RESEND_API_KEY` in GH Secret)
+- Status page: Atlassian Statuspage → **Better Stack** (`kite-platform.betteruptime.com`)
+
+🚨 **NEW SESSION START HERE — Wave 42 spawn READY + Phase 3 user-action**
+
+**Top priority — Wave 42 spawn (plan đã merge #996, ready to spawn 5 background agents):**
+
+Plan: `documents/03-planning/waves/wave-2026-05-08-42-aws-deploy-followups.md`
+
+5 buckets parallel (~65min wall-clock estimate):
+| Bucket | Scope | Files |
+|---|---|---|
+| B | GAP-438 Phase 2 — skill `aws-smoke-test` + `scripts/smoke-aws-phase-N.sh` | `.claude/skills/devops/aws-smoke-test/` + `scripts/smoke-aws-phase-N.sh` |
+| C | Phase 2.4 helper — `scripts/populate-secrets.sh` | `scripts/populate-secrets.sh` |
+| D | Phase 3 prep runbook | `documents/05-guides/deploy/phase-3-image-push.md` (new) |
+| E | GAP-436 Phase 4 — static-key removal checklist | `documents/04-quality/gaps/GAP-436-...md` (update) |
+| F | GAP-438 Phase 4 — memory entry | `feedback_agent_aws_readonly_logging.md` |
+
+**⚠️ Pre-spawn check:** verify PR #997 (memory→rules migration) state first. Memory entries Wave 42 references may have migrated to `.claude/rules/`. If migration done: update Wave 42 plan §3 references; if migration in-flight: wait + re-plan.
 
 **Stream A — User-action (BLOCKING Phase 1 BETA launch):**
 
-| Phase | Action | Status |
-|---|---|---|
-| 1.1 | Domain registrar signup | Ready (per Wave 39 GAP-394 runbook) |
-| 1.2 | AWS Singapore account + IAM + access key + MFA + Budgets ladder (low/medium/high) | Ready (per Wave 39 GAP-394 runbook) |
-| 1.3 | Cloudflare nameservers + SSL + WAF (GAP-371) | Ready (per `cloudflare-setup.md` 13 sections) |
-| 1.4 | SES production access + DKIM + bounce/complaint (GAP-370) | Ready (per VN-overlay) |
-| 1.5 | Instatus signup + DNS + smoke (GAP-373) | Ready (per Wave 38 ADR-027) |
-| Bonus | Terraform apply staging (GAP-380 Wave 38 #946 PARTIAL) | Pending Stream A 1.1-1.3 |
+✅ Phase 1.1-1.5 substantially complete via pivots (Vercel + Resend + Better Stack live). Domain registration (1.1) skipped — using free `*.vercel.app` subdomain Phase 1; defer custom domain Phase 2.
 
-**Stream B — Wave 42 fix-cluster candidates (~3-4h estimated, đợi staging up):**
+**Phase 3 image push (user-action, ~10min):**
+1. `gh variable set AWS_CONFIGURED --body true` (gates `docker-build-push.yml` ECR push job)
+2. `git tag v0.9.0-staging.1 && git push origin v0.9.0-staging.1`
+3. CI workflow auto-runs build 9 services + push to ECR
+4. SSM session vào EC2 → `docker compose pull && docker compose up -d`
+5. Verify ALB → 200 OK
+
+**Stream B — Wave 43 candidates (post Wave 42):**
 
 | Gap | Priority | Note |
 |-----|----------|------|
@@ -49,13 +81,25 @@
 | GAP-434 Loki/Promtail backend stack Phase 2 | 🟠 P1 | Wave 41 Bucket F follow-up, ~6-8h |
 | GAP-272e SSE E2E EventSource polyfill | 🟡 P2 | Wave 41 Bucket D follow-up |
 | Bucket C breaking API Page envelope — admin FE adapter check | 🟠 P1 | Pre-Phase-7 verify kitehub-admin consumers |
+| ALB ACM cert + HTTPS listener | 🟠 P1 | Currently HTTP-only; Phase 4 staging gate cần HTTPS |
+| EC2 user-data deploy script | 🟠 P1 | After Phase 3 image push: SSM run-command auto pull + compose up |
+| GAP-156 rules.md Phase 2 stakeholder sign-offs | 🟡 P2 | After GAP-433 Phase 1 backfill |
 
-**Pre-conditions before Wave 42 plan:**
-1. Stream A status snapshot (domain registered? AWS account active? CF nameservers propagated?)
-2. State-check Wave 41 follow-up gaps (GAP-435/434/272e) AC clean
-3. Wave 42 stake tier: HIGH-stake (live-staging touch) — apply contract-first if cross-layer
+**Pre-conditions before Wave 43 plan:**
+1. Wave 42 closure complete (5 buckets B-F merged + closure PR)
+2. PR #997 memory→rules migration merged
+3. Phase 3 first image push verified (validates OIDC end-to-end)
+4. State-check Wave 42 follow-up gaps AC clean
 
-**Wave 42 vs Stream A:** Stream A (user-action) BLOCKS Wave 42 live-staging tests. Stream A có thể parallel với code-only follow-up gaps (GAP-435/272e/204) nếu muốn ship chúng trong Wave 41b sub-PR.
+**Saved memories session 2026-05-07** (auto-load each session):
+- `feedback_aws_sg_description_ascii_only.md` — em-dash trap
+- `feedback_terraform_partial_backend_public_repo.md` — partial config pattern (public repo)
+- `feedback_aws_observability_first.md` — CloudTrail before infra
+- `feedback_terraform_targeted_apply_phases.md` — phased rollout
+- `feedback_terraform_apply_retry_reconfirm.md` — re-confirm each retry
+- `feedback_session_currentdate_check.md` — dates from `currentDate` not filenames
+
+→ Migration to `.claude/rules/` in flight via PR #997 (5/6 entries become git-tracked rules).
 
 ---
 
