@@ -1,4 +1,4 @@
-# GAP-272d: SSE deploying log streaming endpoint for AI Branding Wizard Step 6
+# GAP-272e: SSE deploying log streaming endpoint for AI Branding Wizard Step 6
 
 **Status:** 🔵 OPEN
 **Priority:** 🟠 P1
