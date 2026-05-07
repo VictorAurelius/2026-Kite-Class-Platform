@@ -38,7 +38,7 @@ sudo systemctl enable --now ssh.service
 sudo systemctl status ssh                   # verify active
 ```
 
-Write the SSH override (use `install` to avoid heredoc-into-sudo password collision — see §10 lesson):
+Write the SSH override (use `install` to avoid heredoc-into-sudo password collision — see §11 lesson):
 
 ```bash
 cat > /tmp/99-kite-local.conf <<'EOF'
@@ -482,9 +482,171 @@ Open **Termius** (or Termux) → tap `kite-dev` → connected. Tailscale runs si
 
 ---
 
-## 5. Common Ops Workflows (the use cases that motivated SSH-direct)
+## 5. Windows 11 Client Setup (reuse mobile key)
 
-### 5.1 Watch a CI workflow until terminal
+**Use case:** SSH from a Windows 11 laptop (Command Prompt, PowerShell, or Windows Terminal) to the WSL2 dev machine, **reusing the `kite_dev` ed25519 key already provisioned for the Termux/Android client (§4)**. No second keygen, no extra public key on WSL2 — same key works from both clients, so revocation is one entry to delete.
+
+**Pre-requisites:** §4 fully done (Termux key generated + `~/.ssh/kite_dev.pub` installed on WSL2 + Tailscale signed in to the same identity on phone). Keep the phone handy to copy the private key from Termux to Windows over Tailscale.
+
+### 5.1 Install Tailscale on Windows 11
+
+Same identity provider as host + Termux (Google / Microsoft / GitHub / Apple). Required because client + host are on different networks (per §2.4 and §4 logic).
+
+```powershell
+# PowerShell — direct download (winget --silent has been unreliable per §11 lesson 3)
+$tmp = "$env:TEMP\tailscale-setup.exe"
+Invoke-WebRequest -Uri 'https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe' `
+  -OutFile $tmp -UseBasicParsing
+Start-Process $tmp -Verb RunAs        # UAC prompt → Yes → click Install
+```
+
+After GUI install + sign-in, verify from any shell:
+
+```powershell
+& 'C:\Program Files\Tailscale\tailscale.exe' status      # should list kite-wsl2 = Connected
+& 'C:\Program Files\Tailscale\tailscale.exe' ping kite-wsl2
+```
+
+**Settings → Run unattended → ON** (Tailscale auto-resumes after Windows wake; equivalent to Always-on VPN on Android per §4.1 step 4).
+
+### 5.2 Copy the mobile key from Termux to Windows
+
+The Termux private key `~/.ssh/kite_dev` was created in §4.3 / migration script 02 and lives only on the phone. To reuse it on Windows, transfer over the Tailscale-only path — file never touches public internet.
+
+**Option A — recommended: Termux sshd → Windows scp pull (Tailscale-only path)**
+
+On the **phone (Termux)**, start sshd one-time:
+
+```bash
+# Termux — set a password first (sshd refuses passwordless accounts)
+passwd                                    # set a temp password (you'll disable sshd after copy)
+sshd                                      # starts on default port 8022
+hostname -I                               # phone's Tailscale IP — note this (100.x.y.z)
+whoami                                    # Termux username, usually "u0_aXXX" — note this
+```
+
+On **Windows 11 (Command Prompt or PowerShell)** — built-in OpenSSH client:
+
+```cmd
+mkdir %USERPROFILE%\.ssh 2>nul
+scp -P 8022 <termux-user>@<phone-tailscale-ip>:~/.ssh/kite_dev      %USERPROFILE%\.ssh\kite_dev
+scp -P 8022 <termux-user>@<phone-tailscale-ip>:~/.ssh/kite_dev.pub  %USERPROFILE%\.ssh\kite_dev.pub
+```
+
+Enter the Termux password when prompted (each scp). After copy, **stop Termux sshd + clear password**:
+
+```bash
+# Termux
+pkill sshd
+passwd -d $(whoami)                       # remove the temp password (optional but tidy)
+```
+
+**Option B — fallback: cat + paste via secure note app**
+
+If Tailscale-only scp doesn't work (Termux sshd misbehaves on some ROMs):
+
+```bash
+# Termux
+cat ~/.ssh/kite_dev      # paste into Windows %USERPROFILE%\.ssh\kite_dev    (LF endings!)
+cat ~/.ssh/kite_dev.pub  # paste into Windows %USERPROFILE%\.ssh\kite_dev.pub
+```
+
+⚠️ **Critical: preserve LF line endings.** Windows clipboard / Notepad converts LF → CRLF, which breaks the OpenSSH key parser silently. Use VS Code or Notepad++ → **Edit → EOL Conversion → Unix (LF)** before save. Verify:
+
+```cmd
+findstr /R "BEGIN OPENSSH" %USERPROFILE%\.ssh\kite_dev
+:: must print: -----BEGIN OPENSSH PRIVATE KEY-----
+```
+
+If the line ends with `\r\n` (CRLF), `ssh -i kite_dev` will fail with `Load key: error in libcrypto`.
+
+### 5.3 Lock private-key ACL (Windows OpenSSH refuses keys readable by others)
+
+```powershell
+icacls "$env:USERPROFILE\.ssh\kite_dev" /inheritance:r /grant:r "$($env:USERNAME):(R)"
+icacls "$env:USERPROFILE\.ssh\kite_dev"
+# Expected output: only your user has (R), no Authenticated Users / Everyone
+```
+
+Without this lock, `ssh kite` errors with:
+
+```
+Permissions for 'C:\Users\<you>\.ssh\kite_dev' are too open.
+This private key will be ignored.
+```
+
+### 5.4 SSH config on Windows
+
+Edit `%USERPROFILE%\.ssh\config` (create if missing):
+
+```
+Host kite
+  HostName 100.69.110.122
+  Port 2222
+  User nguyenvankiet
+  IdentityFile ~/.ssh/kite_dev
+  ServerAliveInterval 60
+  ServerAliveCountMax 3
+```
+
+Same `Host kite` alias as phone (per §4.5). The `~` expands correctly on Windows 11 OpenSSH (resolves to `%USERPROFILE%`).
+
+### 5.5 Test from Windows
+
+```cmd
+ssh kite "echo ok && hostname && whoami"
+```
+
+Expected: prints `ok`, the WSL2 hostname, and your WSL username. Common failures:
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Permission denied (publickey)` | CRLF in private key, OR ACL too open, OR pubkey not yet on WSL2 | Re-do §5.2 with LF-preserving editor; re-run §5.3 icacls; verify `cat ~/.ssh/authorized_keys` on WSL2 contains the same `kite_dev.pub` |
+| `Connection timed out` | Tailscale not active OR not signed-in | Verify §5.1 — `tailscale status` must show `kite-wsl2` Connected |
+| `Could not resolve hostname` | Using LAN IP (`172.x.x.x`) from off-network | Use Tailscale IP (`100.x.y.z`) per §4.5 / §11 lesson 4 |
+| `Load key ... error in libcrypto` | CRLF line endings | §5.2 LF-preservation step |
+
+### 5.6 mosh on Windows (optional)
+
+Stock Windows OpenSSH does not ship `mosh`. Three paths:
+
+| Path | Setup | When to pick |
+|---|---|---|
+| **mosh via WSL on the client** | `wsl --install`, then in WSL: `apt install -y mosh-client`; run `mosh kite` from WSL shell | Client already has WSL or you'll install it |
+| **mosh-for-windows port** | Download from https://mosh.org/#getting (community Windows binary) | Native cmd usage without WSL |
+| **Plain ssh** | Already works after §5.5 | Laptop on stable Wi-Fi/Ethernet — mosh's main value (UDP survival across mobile network roams + screen-off) doesn't apply to laptops |
+
+For a non-mobile Windows client on stable Wi-Fi/Ethernet, plain `ssh kite` is sufficient. The 3-layer Tailscale + mosh + tmux stack from §3.4 collapses to **Tailscale + tmux** on a laptop — tmux still survives Windows reboot's WSL shutdown? No (§3.4 survives matrix). It survives `ssh` disconnect, which is what laptops actually hit (lid close → Wi-Fi pause → SSH timeout).
+
+### 5.7 Daily flow
+
+```cmd
+ssh kite
+```
+
+Inside WSL2, the `~/.bashrc` snippet from §2.1 / migration script 02 auto-attaches tmux session `claude`. Detach with `Ctrl+B D`; reconnect with the same `ssh kite` — same session, same scrollback.
+
+**Force-takeover** (kick a stuck phone session):
+
+```cmd
+ssh kite -t tmux attach -d -t claude
+```
+
+The `-t` allocates a TTY so tmux renders correctly; `-d` detaches all other clients first.
+
+### 5.8 Windows-specific gotchas
+
+1. **CRLF line endings in private key** — see §5.2; this is the #1 silent failure mode on Windows. Always use a LF-preserving editor for the paste fallback.
+2. **`%USERPROFILE%` vs `~` in `IdentityFile`** — both work in Windows 11 OpenSSH; `~` is portable and matches the phone's `~/.ssh/config` entry from §4.5.
+3. **Windows Defender Firewall on the client** — outbound SSH (port 2222) is allowed by default; inbound is irrelevant since the client initiates the connection. No firewall rule needed on the client.
+4. **Windows Terminal vs Command Prompt** — both work; Windows Terminal renders tmux colors better (256-color out of the box). PowerShell users: same `ssh kite` command, same config file.
+5. **Reusing the key revokes from both at once** — if the phone is lost, removing `kite_dev.pub` from `~/.ssh/authorized_keys` on WSL2 disables BOTH the phone and the laptop. Decide if that's the intent before reusing; if you want independent revocation, generate a separate `kite_dev_laptop` key on Windows (§2.2 procedure) and add its `.pub` as a second entry on WSL2.
+
+---
+
+## 6. Common Ops Workflows (the use cases that motivated SSH-direct)
+
+### 6.1 Watch a CI workflow until terminal
 
 ```bash
 # Pane 2 — block until terminal, no chat overhead
@@ -496,7 +658,7 @@ until gh pr checks 737 --json conclusion --jq '.[].conclusion' | grep -qE 'succe
 done && echo "DONE"
 ```
 
-### 5.2 Local Docker build with live progress
+### 6.2 Local Docker build with live progress
 
 ```bash
 # Pane 1 — direct foreground; you see every layer
@@ -512,7 +674,7 @@ docker logs kc-fe-smoke
 docker stop kc-fe-smoke
 ```
 
-### 5.3 Docker stack (use project scripts per CLAUDE.md)
+### 6.3 Docker stack (use project scripts per CLAUDE.md)
 
 ```bash
 # NEVER run docker-compose directly — use scripts
@@ -522,7 +684,7 @@ cd kitehub
 ./scripts/down.sh
 ```
 
-### 5.4 Maven test loop on a single service
+### 6.4 Maven test loop on a single service
 
 ```bash
 cd kitehub/kitehub-admin
@@ -531,7 +693,7 @@ mvn test -Dtest=AdminControllerTest#testGetRevenue
 mvn -pl kitehub/kitehub-admin -P strict-warnings test
 ```
 
-### 5.5 Tail a long-running log
+### 6.5 Tail a long-running log
 
 ```bash
 # Pane 2 — keeps streaming, Ctrl+C to stop
@@ -540,7 +702,7 @@ docker logs -f --tail 50 kite-postgres 2>&1 | grep --line-buffered -E "ERROR|FAT
 
 ---
 
-## 6. Hybrid with Claude Code
+## 7. Hybrid with Claude Code
 
 SSH-direct và Claude Code không đối nghịch — bổ trợ nhau:
 
@@ -560,7 +722,7 @@ Decision rule: **anything that's a `for/while/until` loop or "watch this thing f
 
 ---
 
-## 7. Security Checklist
+## 8. Security Checklist
 
 - [x] `PasswordAuthentication no` — key-only (set in §2.1)
 - [x] `PermitRootLogin no` — never root
@@ -575,7 +737,7 @@ Decision rule: **anything that's a `for/while/until` loop or "watch this thing f
 
 ---
 
-## 8. Troubleshooting
+## 9. Troubleshooting
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
@@ -588,7 +750,7 @@ Decision rule: **anything that's a `for/while/until` loop or "watch this thing f
 
 ---
 
-## 9. Related
+## 10. Related
 
 - `remote-control-setup.md` — Claude Code mobile remote (alternative path, no SSH needed)
 - `wsl2-fresh-setup.md` — clean-room WSL2 setup (this guide assumes that's done)
@@ -597,7 +759,7 @@ Decision rule: **anything that's a `for/while/until` loop or "watch this thing f
 
 ---
 
-## 10. Lessons learned (during 2026-05-04 setup)
+## 11. Lessons learned (during 2026-05-04 setup)
 
 Pitfalls discovered while actually following this guide end-to-end. Documented inline in the relevant sections, repeated here for searchability:
 
@@ -611,8 +773,9 @@ Pitfalls discovered while actually following this guide end-to-end. Documented i
 
 ---
 
-## 11. Log
+## 12. Log
 
+- **2026-05-07 (Windows 11 client)** — Added §5 "Windows 11 Client Setup (reuse mobile key)" covering Tailscale install on Windows, copying the existing `kite_dev` ed25519 key from Termux to Windows over Tailscale-only scp (Option A) or LF-preserving paste (Option B), Windows ACL lock via `icacls`, `~/.ssh/config` entry mirroring §4.5 phone config, mosh-on-Windows options (WSL/native port/skip), daily flow, and 5 Windows-specific gotchas. Renumbered §5–§11 → §6–§12. Updated cross-reference in §2.1 from "§10 lesson" → "§11 lesson" to track renumbering. Triggered by user request 2026-05-07: "thêm setup instructions for Windows 11 client + reuse mobile key" — avoid second keygen so revocation stays one-entry on WSL2 `authorized_keys`.
 - **2026-05-04 (mosh layer)** — Added §3.4 "Mosh layer — survives mobile network drops + screen-off (CRITICAL for mobile)". Triggered by Wave 17 incident: 3/4 background agents killed silently when mobile SSH session disconnected (root cause = SIGHUP cascade, not runtime limit). Documents the 3-layer Tailscale + mosh + tmux stack as 2026 trending pattern for mobile dev. Includes setup, survives matrix, multi-session reconnect, force-takeover, 4 gotchas. References memory `feedback_agent_kill_root_cause.md`.
 - **2026-05-04 (extended)** — Updated after end-to-end Android setup completed: §2.1 ssh.socket drop-in (CRITICAL — fix the silent footgun); §2.3 actual Task Scheduler PowerShell that worked (replacing the bullet-point abstract); §2.4 expanded with direct-download Tailscale install path (winget --silent failed silently); new §4 Android Phone Setup (Tailscale Always-on, Termux key gen flow, Termius host config gotchas, battery optimization caveat); new §10 Lessons learned section codifying 7 pitfalls discovered during real setup. Renumbered §5-§10 accordingly.
 - **2026-05-04** — Created during GAP-284 closure. Motivated by hotfix session where ops-heavy verification (Docker builds, CI polls, smoke tests) burned ~25-30 min of Claude-session friction that SSH-direct + tmux would have collapsed to ~5 min. Solo-dev mode; no formal review needed.
