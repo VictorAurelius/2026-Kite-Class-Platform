@@ -11,10 +11,15 @@
 FROM maven:3.9-eclipse-temurin-17-alpine AS builder
 WORKDIR /build
 
-# Copy parent + module poms first (better layer caching)
+# Copy parent + ALL sibling module pom stubs first (required for parent pom <modules> validation).
+# Source for non-target modules is NOT copied — `mvn -pl <target> -am` only builds target + transitive deps.
 COPY pom.xml ./
 COPY kitehub-platform/pom.xml ./kitehub-platform/
 COPY kitehub-subscription/pom.xml ./kitehub-subscription/
+COPY kitehub-branding/pom.xml ./kitehub-branding/
+COPY kitehub-email/pom.xml ./kitehub-email/
+COPY kitehub-admin/pom.xml ./kitehub-admin/
+COPY kitehub-gateway/pom.xml ./kitehub-gateway/
 
 # Pre-download deps (cached layer when source changes)
 RUN mvn -B -pl kitehub-subscription -am dependency:go-offline || true
