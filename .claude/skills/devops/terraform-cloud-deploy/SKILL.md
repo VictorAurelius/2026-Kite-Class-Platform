@@ -88,3 +88,28 @@ infrastructure/
     ├── kitehub/
     └── kiteclass-template/
 ```
+
+---
+
+---
+
+## Phase 1 BETA AWS Gotchas (post Phase 2.3 apply, 2026-05-08)
+
+Lessons khi apply 71 resources Architecture B trên AWS Singapore (account 906286017800). Detailed reference: [`reference/phase-1-aws-gotchas.md`](reference/phase-1-aws-gotchas.md).
+
+Quick index:
+- **G1** SG description ASCII-only — em-dash fail apply
+- **G2** Public-repo partial backend config — `-backend-config=` + GitHub Variable
+- **G3** CloudTrail BEFORE Phase 2.3 — audit baseline first
+- **G4** Phased apply via `-target=` — split state/IAM/audit/infra
+- **G5** `count` resource `[0]` indexing — required even for count=1
+- **G6** GitHub Variables vs Secrets — non-secret config goes to Variables
+- **G7** Resume after partial fail — fix file + re-run preserves state (BUT re-confirm with user, see `feedback_terraform_apply_retry_reconfirm.md`)
+- **G8** OIDC role secret name disambiguation — least-privilege per workflow
+
+Memory cross-refs (auto-loaded each session):
+- `feedback_aws_sg_description_ascii_only.md`
+- `feedback_terraform_partial_backend_public_repo.md`
+- `feedback_aws_observability_first.md`
+- `feedback_terraform_targeted_apply_phases.md`
+- `feedback_terraform_apply_retry_reconfirm.md`

@@ -63,27 +63,62 @@ updated: 2026-05-07
 - [ ] **1.2.4** Khi approved: $1k credit ghi vào billing dashboard (~13.9 tháng cover Architecture B)
 - [ ] **1.2.5** Setup AWS Budgets 3 alarms (Wave 37 Bucket E `documents/05-guides/deploy/aws-cost-monitoring.md`)
 
-### 1.3 Cloudflare setup
-- [ ] **1.3.1** Tạo Cloudflare account Free tier
-- [ ] **1.3.2** Add domain `kitehub.vn` + `kiteclass.vn`
-- [ ] **1.3.3** Cloudflare emit nameservers — copy
-- [ ] **1.3.4** Update nameservers tại VN registrar (DNS migration thường 2-24h propagate)
-- [ ] **1.3.5** Verify DNS migrated qua `dig +short NS kitehub.vn` → trả về Cloudflare NS
-- [ ] **1.3.6** Configure SSL/TLS Full (strict), Bot Fight Mode, Always Use HTTPS, Auto Minify, Brotli (per Wave 38 Bucket B `cloudflare-setup.md`)
+### 1.3 Frontend hosting + DNS
 
-### 1.4 SES production access
-- [ ] **1.4.1** AWS Console → SES → Region ap-southeast-1
-- [ ] **1.4.2** Verify domain `kitehub.vn` (DKIM + SPF + DMARC records via Cloudflare DNS)
-- [ ] **1.4.3** Submit SES production access request (sandbox → production) — usually 24-48h
-- [ ] **1.4.4** Configure verified sender `noreply@kitehub.vn`
-- [ ] **1.4.5** Set up bounce + complaint topic SNS (per Wave 33 Bucket B email runbook)
+> **🔄 PIVOT 2026-05-07 (Stream A):** Cloudflare Pages → **Vercel free tier**. Lý do: Cloudflare Pages + Next.js 15 SSR yêu cầu `@opennextjs/cloudflare` adapter ~1-2h setup + risk monorepo + pnpm workspace + `@kite/shared-ui`; Vercel là Next.js-native (0 adapter, 0 config, monorepo-aware). Trade-off: defer Cloudflare DNS proxy/CDN benefits tới Phase 2 khi promote production. Reference: `release-1-deploy-session-2026-05-07.md`.
 
-### 1.5 Statuspage signup
-- [ ] **1.5.1** Tạo Instatus account Free tier (per Wave 38 Bucket C ADR-027)
-- [ ] **1.5.2** Define 5 components: KH-API, KC-API, Marketing, Auth, Email (+ 6th AI Branding optional)
-- [ ] **1.5.3** Configure custom domain `status.kitehub.vn` → Cloudflare CNAME tới Instatus
-- [ ] **1.5.4** Configure incident severity levels per Wave 38 Bucket C `incident-comms-runbook.md` §3
-- [ ] **1.5.5** Test: tạo incident sample → resolve → verify subscriber email
+**Option A — Vercel (Phase 1 BETA, currently active 2026-05-07):**
+- [x] **1.3.A.1** Vercel signup qua GitHub OAuth
+- [x] **1.3.A.2** Import project `kiteclass` từ repo, root dir `kiteclass/kiteclass-frontend`
+- [x] **1.3.A.3** Import project `kitehub` từ repo, root dir `kitehub/kitehub-frontend`
+- [x] **1.3.A.4** Override Install Command: `cd ../.. && pnpm install --frozen-lockfile`; Node 20.x
+- [x] **1.3.A.5** Production URLs claimed: `kiteclass.vercel.app` + `kitehub.vercel.app`
+- [ ] **1.3.A.6** (defer Phase 2) Add `NEXT_PUBLIC_API_BASE_URL` env var pointing to ALB DNS sau Phase 2.3 apply
+
+**Option B — Cloudflare proxy + custom domain (Phase 2+ when needed):**
+- [ ] **1.3.B.1** Tạo Cloudflare account Free tier
+- [ ] **1.3.B.2** Add domain `kitehub.vn` + `kiteclass.vn`
+- [ ] **1.3.B.3** Cloudflare emit nameservers — copy
+- [ ] **1.3.B.4** Update nameservers tại VN registrar (DNS migration thường 2-24h propagate)
+- [ ] **1.3.B.5** Verify DNS migrated qua `dig +short NS kitehub.vn` → trả về Cloudflare NS
+- [ ] **1.3.B.6** Configure SSL/TLS Full (strict), Bot Fight Mode, Always Use HTTPS, Auto Minify, Brotli (per Wave 38 Bucket B `cloudflare-setup.md`)
+- [ ] **1.3.B.7** CNAME `app.kitehub.vn` → `kitehub.vercel.app` (proxy through Cloudflare)
+
+### 1.4 Email transactional
+
+> **🔄 PIVOT 2026-05-07 (Stream A):** AWS SES → **Resend free tier**. Lý do: SES production access request 24-48h delay + DKIM/SPF/DMARC record setup phức tạp khi chưa có domain; Resend signup ngay qua GitHub OAuth + sandbox sender `onboarding@resend.dev` đủ Phase 1 BETA invite-only. Trade-off: domain verification defer tới khi có custom domain (Phase 2). Reference: `release-1-deploy-session-2026-05-07.md`.
+
+**Option A — Resend (Phase 1 BETA, currently active 2026-05-07):**
+- [x] **1.4.A.1** Resend signup qua GitHub OAuth
+- [x] **1.4.A.2** Tạo API key `kite-platform-dev` → store GitHub Secret `RESEND_API_KEY`
+- [x] **1.4.A.3** Sandbox sender `onboarding@resend.dev` — đủ Phase 1 BETA invite test
+- [ ] **1.4.A.4** (defer Phase 2) Domain verification khi có custom domain → real sender `noreply@kitehub.vn`
+- [ ] **1.4.A.5** (sau Phase 2.3) Sao chép `RESEND_API_KEY` từ GH Secret sang AWS Secrets Manager (Phase 2.4) để BE service đọc
+
+**Option B — AWS SES (Phase 2+ khi có domain):**
+- [ ] **1.4.B.1** AWS Console → SES → Region ap-southeast-1
+- [ ] **1.4.B.2** Verify domain `kitehub.vn` (DKIM + SPF + DMARC records via Cloudflare DNS)
+- [ ] **1.4.B.3** Submit SES production access request (sandbox → production) — usually 24-48h
+- [ ] **1.4.B.4** Configure verified sender `noreply@kitehub.vn`
+- [ ] **1.4.B.5** Set up bounce + complaint topic SNS (per Wave 33 Bucket B email runbook)
+
+### 1.5 Status page
+
+> **🔄 PIVOT 2026-05-07 (Stream A):** Instatus → **Better Stack Free tier**. Lý do: UptimeRobot (đề xuất ban đầu trong Wave 38) đã đổi pricing — free tier không còn cấp public status page; Instatus cũng cần custom domain config. Better Stack free tier (10 monitors, 3-min checks, public status page miễn phí) đáp ứng đủ. Reference: `release-1-deploy-session-2026-05-07.md`.
+
+**Option A — Better Stack (Phase 1 BETA, currently active 2026-05-07):**
+- [x] **1.5.A.1** Better Stack signup qua GitHub OAuth
+- [x] **1.5.A.2** Add 2 monitors: `kiteclass.vercel.app` + `kitehub.vercel.app` (3-min interval)
+- [x] **1.5.A.3** Public status page live: `https://kite-platform.betteruptime.com/`
+- [ ] **1.5.A.4** (sau Phase 2.3) Add 3 monitors cho ALB endpoints (KH-API + KC-API + Auth)
+- [ ] **1.5.A.5** (defer Phase 2) Custom domain `status.kitehub.vn` → Better Stack CNAME khi có domain
+
+**Option B — Instatus (Phase 2+ alternative, per Wave 38 Bucket C ADR-027):**
+- [ ] **1.5.B.1** Tạo Instatus account Free tier
+- [ ] **1.5.B.2** Define 5 components: KH-API, KC-API, Marketing, Auth, Email (+ 6th AI Branding optional)
+- [ ] **1.5.B.3** Configure custom domain `status.kitehub.vn` → Cloudflare CNAME tới Instatus
+- [ ] **1.5.B.4** Configure incident severity levels per Wave 38 Bucket C `incident-comms-runbook.md` §3
+- [ ] **1.5.B.5** Test: tạo incident sample → resolve → verify subscriber email
 
 ---
 
