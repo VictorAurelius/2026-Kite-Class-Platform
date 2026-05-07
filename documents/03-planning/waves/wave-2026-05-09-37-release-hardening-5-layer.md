@@ -1,6 +1,6 @@
 ---
 title: Wave 37 — Release-Hardening 5-layer (22 GAP-NEW Phase 1 BETA deploy readiness)
-status: draft
+status: complete
 created: 2026-05-07
 updated: 2026-05-07
 waves: [37]
@@ -216,3 +216,4 @@ Per `feedback_parallel_agent_strategy.md` + `agent-background-spawn-default.md`:
 ## 8. Log
 
 - **2026-05-07** (draft): Plan created post-Wave-36 closure (PR #934). 22 GAP-NEW filed (GAP-395..416) chia 5 layer per Architecture B + AWS Activate strategy chốt 2026-05-07. Cross-layer scope NO (pure infra/devops). Pairs trong cùng plan PR với 22 gap files. Estimated wall-clock 60-90 min với 5 background agents.
+- **2026-05-07** (SHIPPED): All 5 buckets merged sequential A→B→C→D→E. PRs: #938 (A) + #936 (B) + #937 (C) + #940 (D) + #939 (E). Status flips: 8 GAP → 🟢 DONE (395/396/397/403/404/407/409/410/411/416), 14 GAP → 🟡 PARTIAL (production execution + staging baselines + human-action items per gap-done-discipline.md §3 PARTIAL exit ramp). Coordinator-applied 3 mechanical fixes: (1) Bucket B 5 KH Dockerfile parent `<modules>` resolution via COPY all sibling pom stubs, (2) Bucket B 2 frontend Dockerfile pnpm@9 pin (Node 20 incompat với pnpm@latest=11 require node:sqlite Node 22.5+), (3) Bucket D direct ship sau 2× Sonnet agent autocompact-thrash (LOW-stakes scope nhẹ). Audit strategy: AUDIT_DEFER_DOMAIN_MILESTONE: release-deploy-artifacts — milestone Phase 1 BETA launch wave (post-deploy AWS apply + smoke + signoff) per post-wave-audit-mandate.md §2.4. 73rd consecutive 0-clarif streak. Wall-clock parallel ~12 min longest agent + ~10 min coordinator CI fix iterations + ~10 min closure.
