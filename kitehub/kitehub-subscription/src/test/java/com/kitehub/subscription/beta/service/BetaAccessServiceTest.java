@@ -10,6 +10,8 @@ import com.kitehub.subscription.beta.entity.BetaAccessRequestStatus;
 import com.kitehub.subscription.beta.repository.BetaAccessRequestRepository;
 import com.kitehub.subscription.outbox.SubscriptionOutboxRepository;
 import com.kitehub.subscription.service.migration.SubscriptionEventEmitter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,6 +42,7 @@ class BetaAccessServiceTest {
     private BetaAccessRequestRepository repository;
     private SubscriptionOutboxRepository outboxRepo;
     private SubscriptionEventEmitter eventEmitter;
+    private MeterRegistry meterRegistry;
     private BetaAccessService service;
 
     @BeforeEach
@@ -48,7 +51,8 @@ class BetaAccessServiceTest {
         // Real emitter against a mock outbox repo so we can assert outbox writes.
         outboxRepo = mock(SubscriptionOutboxRepository.class);
         eventEmitter = new SubscriptionEventEmitter(outboxRepo);
-        service = new BetaAccessService(repository, eventEmitter);
+        meterRegistry = new SimpleMeterRegistry();
+        service = new BetaAccessService(repository, eventEmitter, meterRegistry);
         when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
     }
 
@@ -111,7 +115,7 @@ class BetaAccessServiceTest {
         when(repository.findById(5L)).thenReturn(Optional.of(pending));
         SubscriptionOutboxRepository outboxRepo = mock(SubscriptionOutboxRepository.class);
         SubscriptionEventEmitter spyEmitter = new SubscriptionEventEmitter(outboxRepo);
-        BetaAccessService localService = new BetaAccessService(repository, spyEmitter);
+        BetaAccessService localService = new BetaAccessService(repository, spyEmitter, meterRegistry);
 
         BetaAccessRequest approved = localService.approveRequest(5L, new BetaApproveCommand("coord-1"));
 
@@ -267,5 +271,68 @@ class BetaAccessServiceTest {
         assertThatThrownBy(() -> service.completeBetaSignup(
                 new BetaSignupCommand(token, "password123!", "abc-school")))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    // ── GAP-387: Micrometer counter tests ───────────────────────────────
+
+    @Test
+    @DisplayName("submitRequest increments beta_signup_requests_total{persona} counter")
+    void submitRequestIncrementsSignupCounter() {
+        when(repository.findFirstByEmailAndStatusOrderByCreatedAtDesc(
+                eq("metric@x.com"), eq(BetaAccessRequestStatus.PENDING)))
+                .thenReturn(Optional.empty());
+
+        BetaRequestDto dto = new BetaRequestDto(
+                "metric@x.com", "Metric", "MO", "P2_CENTER_OWNER", null, "");
+        service.submitRequest(dto);
+
+        double count = meterRegistry.counter(
+                "beta_signup_requests_total", "persona", "P2_CENTER_OWNER").count();
+        assertThat(count).isEqualTo(1.0);
+    }
+
+    @Test
+    @DisplayName("approveRequest increments beta_signup_approvals_total{persona} counter")
+    void approveRequestIncrementsApprovalCounter() {
+        BetaAccessRequest pending = BetaAccessRequest.builder()
+                .id(101L).email("a@x.com").name("A").orgName("AO")
+                .persona("P1_SOLO_TEACHER")
+                .status(BetaAccessRequestStatus.PENDING)
+                .createdAt(OffsetDateTime.now()).updatedAt(OffsetDateTime.now())
+                .build();
+        when(repository.findById(101L)).thenReturn(Optional.of(pending));
+
+        service.approveRequest(101L, new BetaApproveCommand("coord-x"));
+
+        double count = meterRegistry.counter(
+                "beta_signup_approvals_total", "persona", "P1_SOLO_TEACHER").count();
+        assertThat(count).isEqualTo(1.0);
+    }
+
+    @Test
+    @DisplayName("rejectRequest increments beta_signup_rejections_total{persona} counter")
+    void rejectRequestIncrementsRejectionCounter() {
+        BetaAccessRequest pending = BetaAccessRequest.builder()
+                .id(102L).email("r@x.com").name("R").orgName("RO")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.PENDING)
+                .build();
+        when(repository.findById(102L)).thenReturn(Optional.of(pending));
+
+        service.rejectRequest(102L, new BetaRejectCommand("coord-y", "out of scope"));
+
+        double count = meterRegistry.counter(
+                "beta_signup_rejections_total", "persona", "P2_CENTER_OWNER").count();
+        assertThat(count).isEqualTo(1.0);
+    }
+
+    @Test
+    @DisplayName("recordHoneypotRejection increments beta_honeypot_rejections_total counter")
+    void recordHoneypotRejectionIncrementsCounter() {
+        service.recordHoneypotRejection();
+        service.recordHoneypotRejection();
+
+        double count = meterRegistry.counter("beta_honeypot_rejections_total").count();
+        assertThat(count).isEqualTo(2.0);
     }
 }

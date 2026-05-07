@@ -372,4 +372,27 @@ spec:
             summary: "Rate-limit 429 rate >5 req/s"
             description: "429 response rate is {{ "{{ $value }}" }} req/s over 5 minutes — either a single tenant abusing API OR rate-limit thresholds too tight for legitimate traffic. Cross-check by tenantId before throttling tweaks."
             runbook_url: "/documents/05-guides/operations/runbooks/rate-limit-breach-spike.md"
+
+        # GAP-387 — beta tenant funnel observability (Wave 35 Bucket D).
+        # Counters emitted from `BetaAccessService` per submitRequest / approveRequest /
+        # rejectRequest / recordHoneypotRejection. See runbooks for triage steps.
+        - alert: BetaSignupRateAnomaly
+          expr: sum(rate(beta_signup_requests_total[5m])) > 0.83
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Beta signup rate anomaly >50/min sustained"
+            description: "Beta signup submission rate is {{ "{{ $value }}" }} req/s over 5 minutes — possible marketing spike, bot ring, or PR-driven surge. Cross-check beta_honeypot_rejections_total + persona breakdown before acting."
+            runbook_url: "/documents/05-guides/operations/runbooks/beta-signup-rate-anomaly.md"
+
+        - alert: BetaHoneypotSpike
+          expr: sum(rate(beta_honeypot_rejections_total[1h])) > 0.0028
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Beta honeypot rejection rate >10/hour"
+            description: "Honeypot anti-bot trap fired at {{ "{{ $value }}" }} req/s over the last hour — bot scanning or distributed botnet probing the public beta-signup endpoint. Tighten gateway rate-limit or rotate honeypot field name."
+            runbook_url: "/documents/05-guides/operations/runbooks/beta-honeypot-spike.md"
 {{- end }}

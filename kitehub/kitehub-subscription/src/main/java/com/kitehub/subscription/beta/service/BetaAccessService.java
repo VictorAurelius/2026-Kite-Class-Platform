@@ -9,6 +9,8 @@ import com.kitehub.subscription.beta.entity.BetaAccessRequest;
 import com.kitehub.subscription.beta.entity.BetaAccessRequestStatus;
 import com.kitehub.subscription.beta.repository.BetaAccessRequestRepository;
 import com.kitehub.subscription.service.migration.SubscriptionEventEmitter;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -59,12 +61,61 @@ public class BetaAccessService {
     /** Outbox topic / routing key for audit consumer (Wave 35 GAP-385). */
     static final String TOPIC_CONSENT_GIVEN = "audit.beta.consent";
 
+    /** Counter name prefix for beta funnel metrics (GAP-387). */
+    static final String METRIC_SIGNUP_REQUESTS = "beta_signup_requests_total";
+    static final String METRIC_APPROVALS = "beta_signup_approvals_total";
+    static final String METRIC_REJECTIONS = "beta_signup_rejections_total";
+    static final String METRIC_HONEYPOT_REJECTIONS = "beta_honeypot_rejections_total";
+
     private final BetaAccessRequestRepository repository;
     private final SubscriptionEventEmitter eventEmitter;
+    private final MeterRegistry meterRegistry;
 
-    public BetaAccessService(BetaAccessRequestRepository repository, SubscriptionEventEmitter eventEmitter) {
+    public BetaAccessService(BetaAccessRequestRepository repository,
+                             SubscriptionEventEmitter eventEmitter,
+                             MeterRegistry meterRegistry) {
         this.repository = repository;
         this.eventEmitter = eventEmitter;
+        this.meterRegistry = meterRegistry;
+    }
+
+    /**
+     * Resolve a {@link Counter} for the beta funnel events (GAP-387).
+     *
+     * <p>Counters are created lazily per-persona-tag because Bean Validation
+     * enforces the persona vocabulary ({@code P1_SOLO_TEACHER} /
+     * {@code P2_CENTER_OWNER}) — the dimension cardinality is bounded.</p>
+     */
+    private Counter signupCounter(String persona) {
+        return Counter.builder(METRIC_SIGNUP_REQUESTS)
+                .description("Total beta access requests submitted, tagged by persona")
+                .tag("persona", normalizePersona(persona))
+                .register(meterRegistry);
+    }
+
+    private Counter approvalCounter(String persona) {
+        return Counter.builder(METRIC_APPROVALS)
+                .description("Total beta access requests approved by coordinator, tagged by persona")
+                .tag("persona", normalizePersona(persona))
+                .register(meterRegistry);
+    }
+
+    private Counter rejectionCounter(String persona) {
+        return Counter.builder(METRIC_REJECTIONS)
+                .description("Total beta access requests rejected by coordinator, tagged by persona")
+                .tag("persona", normalizePersona(persona))
+                .register(meterRegistry);
+    }
+
+    private Counter honeypotCounter() {
+        return Counter.builder(METRIC_HONEYPOT_REJECTIONS)
+                .description("Total beta signup submissions silently rejected by honeypot anti-bot trap")
+                .register(meterRegistry);
+    }
+
+    /** Defensive null/blank handling so unknown personas roll up under "unknown". */
+    private static String normalizePersona(String persona) {
+        return (persona == null || persona.isBlank()) ? "unknown" : persona;
     }
 
     /**
@@ -96,6 +147,7 @@ public class BetaAccessService {
                 .consentAt(now)
                 .build();
         BetaAccessRequest saved = repository.save(entity);
+        signupCounter(saved.getPersona()).increment();
         log.info("Beta access request submitted: id={} email={} persona={}",
                 saved.getId(), saved.getEmail(), saved.getPersona());
 
@@ -111,6 +163,24 @@ public class BetaAccessService {
         eventEmitter.emit((UUID) null, EVENT_TYPE_CONSENT_GIVEN, TOPIC_CONSENT_GIVEN, consentPayload);
 
         return saved;
+    }
+
+    /**
+     * Record a honeypot anti-bot rejection (GAP-387 funnel observability).
+     *
+     * <p>Bean Validation rejects honeypot-populated submissions before they
+     * reach {@link #submitRequest(BetaRequestDto)} (see {@code BetaRequestDto}
+     * {@code @Size(max = 0)}). The controller / exception handler can call this
+     * method when it observes the validation failure to keep the bot-detection
+     * counter visible in {@code /actuator/prometheus}.</p>
+     *
+     * <p>Wire-up from controller / @ExceptionHandler is tracked as part of the
+     * same wave (Bucket A scope); the counter is exposed here so the metric
+     * surface is owned by the service layer.</p>
+     */
+    public void recordHoneypotRejection() {
+        honeypotCounter().increment();
+        log.warn("Beta access request rejected: honeypot field populated (likely bot)");
     }
 
     /** Paginated coordinator listing, default ordered by createdAt desc. */
@@ -157,6 +227,7 @@ public class BetaAccessService {
         );
         eventEmitter.emit((UUID) null, EVENT_TYPE_INVITE_SENT, TOPIC_INVITE_SENT, payload);
 
+        approvalCounter(saved.getPersona()).increment();
         log.info("Beta access request approved: id={} email={} approver={}",
                 saved.getId(), saved.getEmail(), cmd.approverId());
         return saved;
@@ -178,6 +249,7 @@ public class BetaAccessService {
         entity.setRejectedAt(OffsetDateTime.now());
         entity.setRejectionReason(cmd.rejectionReason());
         BetaAccessRequest saved = repository.save(entity);
+        rejectionCounter(saved.getPersona()).increment();
         log.info("Beta access request rejected: id={} email={} approver={}",
                 saved.getId(), saved.getEmail(), cmd.approverId());
         return saved;
