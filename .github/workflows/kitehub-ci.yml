@@ -2,11 +2,26 @@ name: KiteHub Platform CI/CD
 
 on:
   # Solo-dev mode (2026-04-24): post-merge push:main trigger removed to save resources.
+  # Path-filter scoped to BACKEND services 2026-05-07 — exclude kitehub-frontend/** which
+  # has its own kitehub-frontend-ci.yml. Previously `kitehub/**` matched FE changes and
+  # fired 6 backend tests unnecessarily (~40min CI time per FE-only PR).
   pull_request:
     branches:
       - main
     paths:
-      - 'kitehub/**'
+      - 'kitehub/kitehub-admin/**'
+      - 'kitehub/kitehub-base/**'
+      - 'kitehub/kitehub-branding/**'
+      - 'kitehub/kitehub-email/**'
+      - 'kitehub/kitehub-gateway/**'
+      - 'kitehub/kitehub-platform/**'
+      - 'kitehub/kitehub-subscription/**'
+      - 'kitehub/pom.xml'
+      - 'kitehub/mvnw'
+      - 'kitehub/mvnw.cmd'
+      - 'kitehub/.mvn/**'
+      - 'kitehub/docker/**'
+      - 'kitehub/docker-compose*.yml'
       - '.github/workflows/kitehub-ci.yml'
 
 permissions:
