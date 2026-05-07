@@ -2,6 +2,10 @@
   "permissions": {
     "allow": [
       "*",
+      "Write(.claude/session-locks/**)",
+      "Edit(.claude/session-locks/**)",
+      "Bash(touch .claude/session-locks/*)",
+      "Bash(rm .claude/session-locks/*)",
       "Bash(mkdir -p .claude/skills/quality/skill-conventions-check/data/fixtures)",
       "Bash(rtk ls *)",
       "Bash(mkdir -p .claude/session-locks/archived/2026-04-29)",
