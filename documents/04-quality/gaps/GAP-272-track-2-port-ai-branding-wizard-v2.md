@@ -49,10 +49,34 @@ Port 28 wizard screens covering 6-step provisioning + Enterprise Advanced Mode +
 - Existing AI Branding governance: GAP-223 (audit-gate + skill + matrix), GAP-006 (Gemma 4 9B migration deferred)
 - Sister gap: GAP-270 (kitehub-pro-v2 entry route to wizard)
 
+## Sub-letters (Wave 32 + REWORK follow-ups)
+
+Wave 32 v1 plan §7 pre-named planned letters (b–g). Wave 32 REWORK closure 2026-05-07 reconciled with planned letters + added new findings (h–m). Status as of 2026-05-07:
+
+| Letter | Topic | Priority | Source | Status |
+|--------|-------|:--------:|--------|--------|
+| 272b | audience/tone/template persistence | — | Plan §7 | **Not filed** — Bucket B confirmed inline persistence via existing `BrandingGenerationRequest.targetAudience` |
+| 272c | quality-gate score aggregator endpoint | 🟠 P1 | Plan §7 + Bucket D | 🔵 OPEN |
+| 272d | regenerate quota tracking endpoint | 🟠 P1 | Plan §7 + Bucket D | 🔵 OPEN |
+| 272e | SSE deploying log streaming endpoint | 🟠 P1 | Plan §7 + Bucket D | 🔵 OPEN |
+| 272f | Wave 32 visual regression baseline | 🟡 P2 | Plan §7 | 🔵 OPEN |
+| 272g | E2E test welcome→deploy happy path | 🟡 P2 | Plan §7 | 🔵 OPEN |
+| 272h | Convert Wave 32 inline mocks → MSW + hook pattern | 🟠 P1 | Closure audit (user-flagged) | 🔵 OPEN |
+| 272i | Slug-availability backend endpoint | 🟠 P1 | Bucket A | 🔵 OPEN |
+| 272j | Iframe live preview render endpoint | 🟠 P1 | Bucket C | 🔵 OPEN |
+| 272k | Live brand colors from generate endpoint | 🟠 P1 | Bucket C | 🔵 OPEN |
+| 272l | Real `InstanceLifecycleService` integration (§6 compliance) | 🔴 P0 | Bucket D | 🔵 OPEN |
+| 272m | Server-side persistence for Advanced Mode | 🟡 P2 | Bucket D | 🔵 OPEN |
+
+**Cluster recommendation:** GAP-272c/d/e/i/j/k (6 backend endpoints, all P1) + GAP-272l (P0 §6 compliance) → "AI Branding wizard backend cluster" Wave 34 candidate. Pre-cluster requirement: api-contract.md update first per `feedback_fe_first_endpoint_proliferation.md` (post-rework retro memory).
+
+**Tech debt cluster:** GAP-272h refactor → can ship as part of Wave 34 Bucket 0 (foundation) or sandwich into Wave 33 if BE work already in flight.
+
 ## Effort estimate
 
 ~1-2 weeks. Wave-pack candidate when sliced into wizard-flow / quality-gate / enterprise-mode.
 
 ## Log
 
+- **2026-05-07** (REWORK shipped + sub-letters reconciled): Wave 32 REWORK 4/4 buckets shipped (PRs #887/#889/#888/#890). 11 sub-letter gaps filed: 272c/d/e/f/g (planned in v1 §7) + 272h/i/j/k/l/m (new findings). 272b not needed (Bucket B confirmed inline). User-flagged miss caught Step 2 duplicate check skip during initial gap filing — recovered via PR (this commit). Status: 🟡 PARTIAL post-rework (FE complete, 7 backend endpoints + tech debt + 2 test deliverables tracked in sub-letters).
 - **2026-04-29:** Filed after user accepted Round 3 quality. HIGHEST-scoring kit Round 2 (115.6 ⭐⭐).
