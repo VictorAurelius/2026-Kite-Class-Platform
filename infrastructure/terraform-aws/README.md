@@ -27,18 +27,20 @@ NAT Gateway disabled by default (~$32/mo saving).
 cd bootstrap
 terraform init
 terraform apply
-# Note the state_bucket_name output
+# Note the state_bucket_name output (e.g. kitehub-terraform-state-906286017800)
 
-# 2. Update backend.tf with bucket name from step 1
+# 2. Configure backend partial config (PUBLIC-REPO-SAFE PATTERN)
 cd ..
-# Edit backend.tf: replace <ACCOUNT_ID> with the bucket name's account-id portion
+cp backend.config.example backend.config
+# Edit backend.config → set: bucket = "<state_bucket_name from step 1>"
+# backend.config is gitignored — keeps account ID out of public repo
 
 # 3. Configure variables
 cp terraform.tfvars.example terraform.tfvars
 # Edit if needed (defaults are Phase 1 BETA Architecture B)
 
 # 4. Initialize backend (migrates state to S3)
-terraform init
+terraform init -backend-config=backend.config
 
 # 5. Validate + plan (no apply!)
 terraform fmt -check
@@ -96,7 +98,7 @@ Region pinned to `ap-southeast-1` via `var.aws_region` validation block. Migrati
 1. Update validation in `variables.tf`
 2. Update region in `backend.tf`
 3. Re-run `bootstrap/` in new region
-4. Migrate state with `terraform init -migrate-state`
+4. Migrate state with `terraform init -backend-config=backend.config -migrate-state`
 5. New ADR superseding ADR-025
 
 ## Compliance

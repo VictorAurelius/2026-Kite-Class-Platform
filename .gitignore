@@ -47,6 +47,9 @@ infrastructure/terraform-aws/*.tfstate
 infrastructure/terraform-aws/*.tfstate.backup
 infrastructure/terraform-aws/*.tfvars
 !infrastructure/terraform-aws/*.tfvars.example
+# Backend partial config — contains AWS account ID via bucket name (public-repo-safe pattern)
+infrastructure/terraform-aws/backend.config
+!infrastructure/terraform-aws/backend.config.example
 # .terraform.lock.hcl should be committed (pins provider versions like package-lock.json)
 infrastructure/terraform-aws/bootstrap/.terraform/
 infrastructure/terraform-aws/bootstrap/*.tfstate

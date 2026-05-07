@@ -137,10 +137,12 @@ output "dynamodb_table_name" {
 output "next_steps" {
   description = "Instructions after bootstrap"
   value       = <<-EOT
-    Bootstrap complete! Next steps:
-    1. Copy bucket name: ${aws_s3_bucket.terraform_state.bucket}
-    2. Edit ../main.tf → uncomment backend "s3" block → update bucket name
-    3. Run: cd .. && terraform init
-    4. Confirm state migration when prompted
+    Bootstrap complete! Next steps (partial-config pattern, public-repo-safe):
+    1. cd .. (into infrastructure/terraform-aws/)
+    2. cp backend.config.example backend.config
+    3. Edit backend.config → set: bucket = "${aws_s3_bucket.terraform_state.bucket}"
+    4. Run: terraform init -backend-config=backend.config
+    5. Confirm state migration if prompted
+    Note: backend.config is gitignored — contains account ID via bucket name.
   EOT
 }

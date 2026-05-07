@@ -1,0 +1,15 @@
+# =============================================================================
+# Terraform backend partial config — TEMPLATE
+# =============================================================================
+# Usage:
+#   1. cp backend.config.example backend.config
+#   2. Edit backend.config → set actual bucket name from bootstrap output
+#   3. terraform init -backend-config=backend.config
+#
+# `backend.config` is gitignored — it contains AWS account ID via bucket name.
+# This file (`.example`) is committed as documentation/template only.
+# =============================================================================
+
+# Bucket created by `bootstrap/` module. Format: kitehub-terraform-state-<ACCOUNT_ID>
+# Get exact value: cd bootstrap && terraform output state_bucket_name
+bucket = "kitehub-terraform-state-XXXXXXXXXXXX"
