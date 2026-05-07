@@ -61,6 +61,7 @@
 | **Phase 1 BETA P0 BLOCKING deploy** | 🟡 **PARTIAL** (Wave 33 SHIPPED 2026-05-07) | GAP-369 DNS runbook + GAP-370 email templates + GAP-372 beta-invite flow + GAP-376 production seed runner — **code/runbook/scripts shipped**; user-executed steps remaining (domain registration, SES production approval, AWS Secrets Manager provisioning, first-deploy seed execution) |
 | **Phase 1 BETA P1 STRONGLY** | 🟡 **PARTIAL** (Wave 33 SHIPPED secrets template) | GAP-371 CDN + GAP-373 status page + GAP-374 tag-CI + GAP-377 smoke test (✅ Wave 26 DONE) + GAP-378 rollback (✅ Wave 25 DONE) + GAP-379 secrets template (🟡 PARTIAL Wave 33) + GAP-380 staging — Wave 33 closes 1 more (379); 4 of 7 still OPEN (371/373/374/380) |
 | **K-12 LEGAL Phase 1B/1C** | 🟡 PARTIAL (Waves 18-19, 23-24) | Phase 1A+1B+1C v1 shipped; counsel review queued (Phase 3 trigger gate) |
+| **Cloud strategy: Oracle → AWS switch** | ✅ **DONE** (ADR-025 ACCEPTED 2026-05-07) | Oracle Cloud Always Free signup fail (reject rate ~50% VN); switched Phase 1 BETA to AWS Singapore Free Tier thuần. Oracle artifacts archived `documents/07-archived/oracle-deploy-2026/`. Compliance debt accepted Phase 1 invite-only; Phase 3 trigger gate = counsel review OR migrate VN cloud. Follow-up: AWS terraform completeness audit (EKS vs ECS Fargate; 2GB RAM partitioning) |
 
 **PDPL deadline countdown:** **2026-07-01** (~7-8 tuần from 2026-05-07).
 

@@ -292,11 +292,10 @@ Index đầy đủ: `.claude/skills/_README-skills-index.md`
 │   ├── 06-diagrams/       # PlantUML + rendered PNG
 │   ├── 07-archived/       # Old docs, research
 │   └── 08-thesis/         # Graduation project refs
-├── infrastructure/        # DevOps
+├── infrastructure/        # DevOps (Phase 1 BETA = AWS Singapore Free Tier per ADR-025)
 │   ├── helm/              # Kubernetes Helm charts
 │   ├── k8s/               # K8s manifests
-│   ├── terraform-aws/     # AWS infrastructure
-│   └── terraform-oracle/  # Oracle Cloud
+│   └── terraform-aws/     # AWS infrastructure (primary — `ap-southeast-1`)
 ├── kiteclass/             # KiteClass (core + gateway + frontend)
 ├── kitehub/               # KiteHub (6 services + gateway + frontend)
 └── scripts/               # Root CI/QA scripts
