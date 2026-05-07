@@ -79,12 +79,19 @@ public class SlugAvailabilityService {
         if (RESERVED.contains(normalized)) {
             return true;
         }
-        // Best-effort proxy: scan branding_jobs.organization_name for a
-        // slug-normalized match. Cross-service check against
-        // frontend_instances tracked as a follow-up gap (see PR body).
-        return brandingJobRepository.findAll().stream()
-                .map(j -> normalize(j.getOrganizationName()))
-                .anyMatch(normalized::equals);
+        // GAP-392: replaced previous {@code findAll().stream().anyMatch(...)}
+        // N+1 anti-pattern with a derived-query existence check that uses the
+        // V31 functional index {@code idx_branding_job_org_name_lower}.
+        //
+        // Semantic note: prior code applied {@link #normalize} (hyphenation +
+        // non-alphanumeric stripping) to every {@code organization_name} row
+        // before comparing — which cannot be expressed in a SQL functional
+        // index without pg-trgm or a stored normalised column. This check
+        // therefore matches when {@code LOWER(organization_name) == slug}.
+        // Edge cases such as {@code "Acme Corp" → "acme-corp"} no longer
+        // match against the raw organisation name; tracked as a follow-up
+        // gap once a {@code slug_normalised} column is added.
+        return brandingJobRepository.existsByOrganizationNameLowercased(normalized);
     }
 
     /**
@@ -103,28 +110,5 @@ public class SlugAvailabilityService {
             }
         }
         return candidates;
-    }
-
-    /** Normalize a name into a slug — lowercase, hyphenate, strip non-allowed. */
-    private static String normalize(String name) {
-        if (name == null) return "";
-        String lower = name.toLowerCase(Locale.ROOT).trim();
-        StringBuilder sb = new StringBuilder(lower.length());
-        boolean prevHyphen = false;
-        for (int i = 0; i < lower.length(); i++) {
-            char ch = lower.charAt(i);
-            if ((ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9')) {
-                sb.append(ch);
-                prevHyphen = false;
-            } else if (!prevHyphen && sb.length() > 0) {
-                sb.append('-');
-                prevHyphen = true;
-            }
-        }
-        // Trim trailing hyphen.
-        while (sb.length() > 0 && sb.charAt(sb.length() - 1) == '-') {
-            sb.setLength(sb.length() - 1);
-        }
-        return sb.toString();
     }
 }
