@@ -24,6 +24,33 @@
 
 **Recommended next pick (priority order per `feedback_release_1_first_session_priority.md`):**
 
+🚨 **NEW SESSION START HERE — Wave 41 fix-cluster READY TO SPAWN**
+
+Plan đã pre-draft: [`documents/03-planning/waves/wave-2026-05-08-41-fix-cluster-post-audit-milestone.md`](documents/03-planning/waves/wave-2026-05-08-41-fix-cluster-post-audit-milestone.md)
+
+**6 ngăn parallel (~3.5-4h tổng) — đóng P0/P1 từ Wave 40 audit:**
+
+| Ngăn | Gap | Priority | Effort |
+|------|-----|----------|--------|
+| A | [GAP-430](GAP-430-backup-alert-metric-mismatch.md) BackupJobFailure metric mismatch | 🔴 P0 | ~1.5h |
+| B | [GAP-431](GAP-431-helm-startupprobe-missing.md) Helm startupProbe missing | 🟠 P1 | ~1.5h |
+| C | [GAP-432](GAP-432-unbounded-findall-services.md) 3× unbounded findAll services | 🟠 P1 | ~3h (longest) |
+| D | [GAP-272o](GAP-272o-orchestrator-wiring-deploying-regenerate.md) wizard orchestrator wiring | 🟠 P1 | ~1.5h |
+| E | [GAP-433](GAP-433-rules-md-5-attr-coverage-backfill.md) rules.md 5-attr backfill | 🟠 P1 | ~3h |
+| F | GAP-115/135 monitoring Grafana dashboards | 🟠 P1 | ~3h |
+| G optional | GAP-204 npm CVE sweep + Trivy exception | 🟡 P2 | ~1.5h |
+
+**Pre-conditions trước khi spawn:**
+1. Đọc plan §3 Phạm vi + §4 State-Check Evidence
+2. Verify state-check theo §4 (đã pre-filled — skip nếu không có thay đổi từ 2026-05-08)
+3. Spawn 6 ngăn `run_in_background: true` + `isolation: worktree`
+4. RELATIVE paths trong agent prompt
+5. Coordinator merge sequential A → B → D → E → F → C (C cuối vì largest)
+
+**KHÔNG block:** Stream A user actions song song (Phase 1.1-1.5 signup AWS/domain/CF/SES/Instatus). Wave 41 = code-prereq, không depend Stream A. Wave 42 (live-staging) sẽ depend.
+
+---
+
 ⭐ **0. Wave 40 SHIPPED 2026-05-08** — Audit milestone cụm `release-deploy-artifacts` (đóng AUDIT_DEFER tag của Wave 33+34+37+38+39 theo `post-wave-audit-mandate.md` §2.4). **7 audits song song**: A UI 111.3/128 A+ +14.3 (#978), B Quality 86 B+ +6 ✅**PASS**(#973), C Security 87 B +3 ✅**PASS**(#974), D Performance 75 C +4 (#972), E Ops 60 D +7 (#975), F API Contract 72 C+ +1 (#976), G Business Logic 68 C -14 recalibration (#977). **2 cổng critical Quality + Security PASS Phase 7 ≥80** — production deploy unblocked từ formal gate view. 5 gaps mới + 9 P0/P1 surfaced cho Wave 41 cluster: GAP-427 (F API drift exchange-claim-code), GAP-428 (A UI prospect public pages), GAP-429 (A UI transient state UX), 3 P1 Performance (Analytics/Payment/Instance findAll unbounded), 1 P0 Ops (BackupJobFailure metric mismatch), 1 P1 Ops (startupProbe), 3 P1 BL (rules.md 5-attr coverage). 76th 0-clarif streak. ~65min wall-clock parallel + ~5min closure. **DOMAIN_MILESTONE_AUDIT trailer applied**. **Recommended next:** Wave 41 fix-cluster (Performance P1s + Ops P0 + GAP-272o + GAP-115/135 monitoring; ~6-10h ~5-7 ngăn parallel) HOẶC Stream A user actions (đang chạy song song).
 
 ⭐ **0a. Wave 39 SHIPPED 2026-05-07** — Dev-stack readiness + KC critical-journeys E2E reconciliation. 5 PRs merged (#963 plan, #964 D dev-stack verify, #965 C course-to-class-flow, #966 Stream C 6 docs, #967 A dashboard-nav, #968 B class-lifecycle). 4/4 Stream B buckets DONE: GAP-417 ✅ (Wave-39-eve), GAP-418 ✅, GAP-419 ✅, GAP-420 ✅ (17/17 tests pass A 8/8 + B 6/6 + C 3/3). Stream C 6 docs DONE: 4 GAP-394 account-prep runbooks (`documents/05-guides/account-prep/`) + GAP-423 SES VN overlay 0.99% → 15.72% density + GAP-424 Statuspage VN overlay 15.1% → 30.02% density + Instatus signup walkthrough 7-step VI. **3-stream parallel strategy validated** (Stream A user real-world + Stream B 4 bg agents wave-pack 65min + Stream C foreground docs 45min — orthogonal scope, 0 collision). 1 follow-up gap filed: **GAP-425** (cold rebuild BE images stale — surfaced "visual lần 1" cold-rebuild test post-closure: stale 6-week kitehub-subscription:latest with pre-GAP-242 V11 SQL syntax error → crash loop. P2). 75th consecutive 0-clarif streak. **Recommended next pick:** **Wave 40 audit-suite refresh + Phase 1 BETA prep** (per `post-wave-audit-mandate.md` §2.4 — release-deploy-artifacts cluster milestone audit suite still pending; Wave 33+34+37+38+39 multi-domain). HOẶC continue Stream A user actions (Cloudflare 1.3 đã sẵn sàng VN). HOẶC **GAP-272o** orchestrator wiring (P1, parallel-track during user Phase 1).
