@@ -98,6 +98,12 @@ After commits, report back:
 - Migration removal (drop column, drop table) → never P3, always feature-tdd
 - Config key removal → never P3 (downstream services may consume), always feature-tdd
 
+## PR body — MANDATORY sections
+
+Per Wave 32 rework brief §3.4 + §3.5: every PR body PHẢI có §"Local verification (pre-push)" with literal command output paste + §"AC Coverage" table (mapping mỗi AC line → file/test/verification evidence). Worktree-isolated agents PHẢI paste `pwd | grep -F "/agent-"` confirming CWD inside assigned worktree.
+
+Full spec + reject signals: see `feature-tdd-agent.md` §"PR body — MANDATORY sections" (canonical).
+
 ## Reference
 
 - Methodology: [`../../SKILL.md`](../../SKILL.md) Step 3

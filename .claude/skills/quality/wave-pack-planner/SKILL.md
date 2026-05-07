@@ -63,6 +63,49 @@ Tạo `documents/03-planning/waves/wave-{date}-{theme}.md` theo template `refere
 
 ROADMAP entry: thêm cluster vào §"Active wave queue", mark IN_PROGRESS.
 
+### Step 4.5 — Cross-layer check (api-contract first) — BẮT BUỘC
+
+Per `.claude/rules/contract-first-for-cross-layer.md` v1.0.0 — wave plan có FE+BE scope (cross-layer) PHẢI có Bucket 0 Foundation ship `documents/01-business/{domain}/api-contract.md` TRƯỚC khi spawn FE bucket.
+
+**Decision flow:**
+
+1. Wave có cross-layer scope? Check rule §2 definition:
+   - ≥1 bucket touch `*-frontend/**` AND ≥1 bucket touch `*-core/**` → CROSS-LAYER
+   - Single bucket touch CẢ FE+BE → CROSS-LAYER
+   - FE bucket consume API mà BE bucket cùng wave tạo → CROSS-LAYER
+   - FE bucket dùng mock/fixture cho endpoint chưa tồn tại → CROSS-LAYER (contract violation)
+2. Nếu CROSS-LAYER:
+   - `ls documents/01-business/{domain}/api-contract.md` — tồn tại + đủ endpoint? Skip foundation. Thiếu/missing → add Bucket 0 Foundation vào §3 Scope FIRST
+   - §4 State-Check Evidence: thêm row cho api-contract.md
+   - FE bucket AC: "Endpoint consumption tuân thủ schema trong api-contract.md (Bucket 0 ship trước)"
+   - BE bucket AC: "Controller signature + DTO match api-contract.md schema"
+3. Spawn order: Bucket 0 merge FIRST → THEN FE+BE buckets parallel
+
+**Anti-pattern signal:** wave plan có FE bucket + BE bucket nhưng KHÔNG có Bucket 0 Foundation row trong §3 Scope → STOP, add Bucket 0 hoặc justify exception qua commit trailer `CONTRACT_FIRST_OVERRIDE: <reason>`.
+
+**Worked example:** Wave 32 v1 violated rule (no Bucket 0) → 8 sub-gap follow-up (GAP-272c/d/e/h/i/j/k/l). Wave 34 (Phase D) sẽ satisfy rule (Bucket 0 Foundation ships api-contract + MSW infra first).
+
+Memory: `feedback_fe_first_endpoint_proliferation.md` (auto-loaded).
+
+### Step 4.6 — Quality calibration (model tier per stake)
+
+Per `feedback_sonnet_parallel_agent_crash.md` + `feedback_opus_rework_validation.md` — classify wave stake → pick model tier cho parallel agents. Document choice trong wave plan §1 Brainstorm.
+
+**Stake matrix:**
+
+| Wave stake | Model tier | Rationale |
+|---|---|---|
+| **HIGH** — Phase 1 BETA blocking, AI Branding feature, payment/lifecycle/security, multi-file refactor với strict compliance gates | **Opus 4.7 full effort** | Sonnet crashes mid-stream + skip verification trên multi-file refactor (Wave 32 v1 = 0/3 ship clean) |
+| **MEDIUM** — FE component ports theo established patterns, doc-heavy, single-file additions | **Opus medium effort** (experiment first) | Measure wall-clock + audit findings vs full Opus baseline; adopt as default chỉ khi ship-clean parity |
+| **LOW** — typo fix, doc sync, dep bump, cleanup | **Sonnet/Haiku OK** | Single-file low-complexity work; no compliance-gate burden |
+
+**Model-agnostic gates (mandatory regardless of tier):**
+- §3.4 Verification gate: PR body paste output `pnpm test --run <new-file>` + `mvn test -pl <module>` xanh
+- §3.5 AC Coverage table: PR body có table mapping mỗi AC line → file/test/verification
+- §5.5 Anti-pattern grep: PR body confirm grep checks (e.g. no `console.log`, no `TODO`, no scaffold strings)
+
+**Anti-pattern signal:** wave plan §1 Brainstorm không document model tier choice → reviewer hỏi "stake assessment?" trước approve. Default fallback: Opus 4.7 full effort (safer than under-spec).
+
 ### Step 5 — Spawn agents (1 message, multiple Agent calls)
 
 **BẮT BUỘC** single message với N Agent tool uses parallel. KHÔNG sequential spawn (mất parallel benefit).
@@ -144,8 +187,13 @@ Nếu output diverge → script bug, fix trước khi dùng skill cho wave mới
 - Skill: `workflow/quality-plan/SKILL.md` (alternative planning skill)
 - Skill: `workflow/gap-to-pr-converter.md` (single-gap-to-PR; this skill = N-gap-to-wave)
 - Rule: `.claude/rules/post-wave-audit-mandate.md` §4 (post-wave audit cadence)
+- Rule: `.claude/rules/contract-first-for-cross-layer.md` (Step 4.5 reference)
+- Memory: `feedback_fe_first_endpoint_proliferation.md` (Step 4.5 motivation)
+- Memory: `feedback_sonnet_parallel_agent_crash.md` (Step 4.6 motivation)
+- Memory: `feedback_opus_rework_validation.md` (Step 4.6 working solution)
 
 ## Log
 
+- **2026-05-07 (v1.2):** Added §Step 4.5 Cross-layer check (api-contract first) per new `.claude/rules/contract-first-for-cross-layer.md` v1.0.0 + §Step 4.6 Quality calibration (model tier per stake) per `feedback_sonnet_parallel_agent_crash.md` + `feedback_opus_rework_validation.md`. Wave 32 v1 (Sonnet 4.6, no contract foundation) → 0/3 ship clean + 8 sub-gap follow-up; Wave 32 rework (Opus 4.7 + verification gates) → 4/4 ship clean. Both lessons codify into skill steps. Reviewer: @nguyenvankiet (solo-dev MINOR — additive workflow guidance, no constraint loosening).
 - **2026-05-06 (v1.1):** Added §Step 5.5 — Pipeline next wave plan (during agent wait). Codifies pattern user requested after Wave 27 retro: coordinator drafts Wave N+1 plan PR while Wave N agents run background → 0 dead-time between waves (~20-30% saving per 2-wave block). Paired with memory `feedback_pipelined_wave_planning.md` (auto-loaded). Reviewer: @nguyenvankiet (solo-dev MINOR — additive workflow guidance, no constraint loosening).
 - **2026-04-28 (v1.0):** Skill created. Codifies methodology demonstrated by Wave Observability 2026-04-28 (3 gaps GAP-121/143/144 closed in ~75 min wall-clock = ~5x speedup vs serial). Wave Obs lessons-learned (worktree cross-contamination Phase 2b, values.yaml shared-section soft-merge) captured in §Gotchas. Day 2 deliverable per "Option C hybrid" strategy (execute then codify) decided in 2026-04-28 morning session. Reviewer: @nguyenvankiet (solo-dev MINOR, new skill paired with check-skill-conventions PASS + self-test green).

@@ -79,6 +79,12 @@ After commits, report back:
 - Gap requires test backfill → use `test-only-agent.md`
 - Gap mixes docs + code (e.g. ADR + helm chart) → split into 2 sub-gaps OR use `feature-tdd-agent.md` (treat docs as side artifact)
 
+## PR body — MANDATORY sections
+
+Per Wave 32 rework brief §3.4 + §3.5: every PR body PHẢI có §"Local verification (pre-push)" with literal command output paste + §"AC Coverage" table (mapping mỗi AC line → file/test/verification evidence). Worktree-isolated agents PHẢI paste `pwd | grep -F "/agent-"` confirming CWD inside assigned worktree.
+
+Full spec + reject signals: see `feature-tdd-agent.md` §"PR body — MANDATORY sections" (canonical).
+
 ## Reference
 
 - Methodology: [`../../SKILL.md`](../../SKILL.md) Step 3
