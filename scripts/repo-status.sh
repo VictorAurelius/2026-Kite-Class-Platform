@@ -74,11 +74,33 @@ check_ci() {
     local latest_total=0
     local seen_workflows=""
 
+    # Build set of active workflow names from .github/workflows/*.yml so we can
+    # skip orphan runs from renamed/deleted workflows. Without this, a workflow
+    # rename (e.g. "Build and Push KiteClass Docker Images" → "Build and Push
+    # Kite Docker Images" in PR #936) leaves stale failed runs that flag CI as
+    # RED indefinitely even though the renamed workflow has been green for days.
+    local active_names=""
+    local repo_root
+    repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || repo_root="."
+    if [ -d "$repo_root/.github/workflows" ]; then
+        while IFS= read -r wf; do
+            local wfname
+            wfname=$(grep -m1 '^name:' "$wf" 2>/dev/null \
+                | sed -e 's/^name:[[:space:]]*//' -e 's/^["'\'']//' -e 's/["'\'']$//')
+            [ -n "$wfname" ] && active_names="${active_names}|${wfname}|"
+        done < <(find "$repo_root/.github/workflows" -maxdepth 1 -name '*.yml' -type f 2>/dev/null)
+    fi
+
     while IFS=$'\t' read -r name conclusion created; do
         # GAP-205 Stage D: skip "Dependabot Updates" failures from CI health count.
         # These are pnpm transitive limitation failures (known upstream issue,
         # not actionable). See memory feedback_dependabot_pnpm_transitive.md.
         if [ "$name" = "Dependabot Updates" ] && [ "$conclusion" = "failure" ]; then
+            continue
+        fi
+
+        # Skip orphan runs (workflow renamed/deleted, no current .yml file with this name)
+        if [ -n "$active_names" ] && ! echo "$active_names" | grep -qF "|$name|"; then
             continue
         fi
 
@@ -130,9 +152,21 @@ check_ci() {
     # Count stale failed runs in history (all failed runs on main)
     # GAP-205 Stage D: exclude "Dependabot Updates" failures (pnpm transitive
     # limitation, not actionable). See ci-cleanup.yml auto-prunes these.
+    # Also exclude orphan-workflow failures (renamed/deleted workflows, see
+    # active_names above) so failed-history doesn't count obsolete runs.
     local failed_run_count=0
-    failed_run_count=$(gh run list --branch main --limit 30 --json conclusion,name \
-        --jq '[.[] | select(.conclusion=="failure" and .name!="Dependabot Updates")] | length' 2>/dev/null) || true
+    local failed_runs_raw
+    failed_runs_raw=$(gh run list --branch main --limit 30 --json conclusion,name \
+        --jq '.[] | select(.conclusion=="failure" and .name!="Dependabot Updates") | .name' 2>/dev/null) || true
+    if [ -n "$failed_runs_raw" ]; then
+        while IFS= read -r fname; do
+            [ -z "$fname" ] && continue
+            if [ -n "$active_names" ] && ! echo "$active_names" | grep -qF "|$fname|"; then
+                continue
+            fi
+            failed_run_count=$((failed_run_count + 1))
+        done <<< "$failed_runs_raw"
+    fi
 
     echo "ci_status=$ci_status"
     echo "ci_failures=$ci_failures"
