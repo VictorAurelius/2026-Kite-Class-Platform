@@ -1,6 +1,6 @@
 # GAP-417: setup.sh JWT_SECRET unquoted breaks .env parse
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07
 **Priority:** 🟡 P2 (dev-friction; first-time-setup blocker until manual fix)
 **Domain:** DevOps / Local dev tooling
 **Found:** 2026-05-07 (Option B' real-backend E2E session)
@@ -67,12 +67,16 @@ Test on fresh machine: `rm .env && setup.sh && up.sh --profile infra-only` → m
 
 ## Acceptance Criteria
 
-- [ ] `kitehub/scripts/setup.sh` JWT_SECRET + ENCRYPTION_MASTER_KEY commands strip `\n`
-- [ ] `.env` file parses cleanly (no multi-line values)
-- [ ] Self-test: `rm kitehub/.env && bash kitehub/scripts/setup.sh && grep -c '^[A-Z_]*=' kitehub/.env` returns expected var count (no orphan continuation lines)
-- [ ] Add comment in setup.sh referencing this gap
+- [x] `kitehub/scripts/setup.sh` JWT_SECRET + ENCRYPTION_MASTER_KEY commands strip `\n`
+- [x] `.env` file parses cleanly (no multi-line values)
+- [x] Self-test: `rm kitehub/.env && bash kitehub/scripts/setup.sh && grep -c '^[A-Z_]*=' kitehub/.env` returns expected var count (no orphan continuation lines)
+- [x] Add comment in setup.sh referencing this gap
 
 ## Related
 
 - Surfaced 2026-05-07 Option B' session (PR #951 dev-stack fixes)
 - Workaround applied manually session 2026-05-07: `JWT_NEW=$(openssl rand -base64 64 | tr -d '\n=/+'); sed -i "s|^JWT_SECRET=.*|JWT_SECRET=${JWT_NEW}|" .env`
+
+## Log
+
+- **2026-05-07** DONE — fix shipped in dev-stack cluster PR. `setup.sh:36-39` adds `tr -d '\n=/+'` to ENCRYPTION_KEY + JWT_SECRET; gap-referencing comment added explaining the openssl base64 wrap behavior. Self-test verified inline: synthesized `.env` parses cleanly with `grep -c '^[A-Z_]*='` returning expected var count (no orphan continuation lines from embedded newlines).

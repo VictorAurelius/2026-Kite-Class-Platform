@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import reactor.core.publisher.Mono;
 
 /**
@@ -43,7 +44,14 @@ public class KeyResolverConfig {
     /**
      * Rate limit by client IP address.
      * Used for anonymous routes (auth/register, public) where no tenant context exists.
+     *
+     * <p>Marked {@code @Primary} (GAP-419) so Spring Cloud Gateway's
+     * {@code RequestRateLimiterGatewayFilterFactory} autoconfig — which expects a single
+     * {@code KeyResolver} bean — picks this as the default. Routes that want
+     * {@code tenantKeyResolver} or {@code apiKeyResolver} reference them by name via SpEL
+     * (e.g. {@code key-resolver: "#{@tenantKeyResolver}"}) in {@code application.yml}.</p>
      */
+    @Primary
     @Bean
     public KeyResolver ipKeyResolver() {
         return exchange -> {
