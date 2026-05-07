@@ -14,24 +14,36 @@
 //     state (NOT MOCK_BRAND — v1 audit-caught violation).
 //   - Footer summary (X/4 resources approved · quality score) + deploy CTA.
 //
+// Wave 41 Bucket D (GAP-272o) — orchestrator wiring of `useDeployStream`
+// + `useRegenerateQuota` into `DeployingStep` + `RegenerateCounter`. When
+// the user clicks the Deploy CTA this component switches into a deploying
+// sub-state and renders `<DeployingStep>` driven by the real SSE stream.
+// On `complete` the parent's `onDeploy()` callback fires (router push).
+//
 // What this component does NOT own (per rework plan §3 Bucket C boundaries):
 //   - `<QualityGateWidget>` — Bucket D ships and slots in via state-driven
 //     render branches (this file renders a SCAFFOLD placeholder marked with
 //     TODO(GAP-272o) so the layout remains correct).
-//   - `<RegenerateCounter>` — Bucket D, same scaffold pattern.
-//   - QGate-fail / regenerate / deploying sub-states — Bucket D adds them
-//     via the WizardState reducer's currentStep + jobId combos; THIS step
-//     ships the preview-default state only.
 // ---------------------------------------------------------------------------
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Rocket, Smartphone, Tablet, Monitor, Info } from 'lucide-react';
 import { ThemePreview } from '@kite/shared-ui';
 import { Button } from '@/components/ui/button';
 import { ResourceToggle, type ApprovableResource } from './ResourceToggle';
 import { TEMPLATES } from './TemplateGrid';
+import { DeployingStep, type DeployingLogEntry } from './DeployingStep';
+import { RegenerateCounter } from './RegenerateCounter';
 import type { Step6PreviewProps } from './wizard-shared';
-import { usePreview, usePreviewBrandColors } from './hooks';
+import type { PricingTier } from '@/types/subscription';
+import {
+  usePreview,
+  usePreviewBrandColors,
+  useDeployStream,
+  useRegenerateQuota,
+  type DeployStreamEvent,
+  type RegenerateQuotaResponse,
+} from './hooks';
 
 // ---------------------------------------------------------------------------
 // Brand-colour derivation
@@ -50,6 +62,63 @@ const FALLBACK_BRAND: BrandColours = {
   background: '#FFFFFF',
   foreground: '#0F172A',
 };
+
+// ---------------------------------------------------------------------------
+// Wave 41 Bucket D (GAP-272o) — orchestrator wiring helpers.
+// ---------------------------------------------------------------------------
+
+function mapHookTier(tier: RegenerateQuotaResponse['tier'] | undefined): PricingTier {
+  if (!tier) return 'FREE';
+  // Wave 34 contract still emits 'PRO' for legacy callers; map to BASIC
+  // (the `RegenerateCounter` PricingTier vocabulary).
+  if (tier === 'PRO') return 'BASIC';
+  return tier;
+}
+
+function eventsToLogEntries(events: readonly DeployStreamEvent[]): DeployingLogEntry[] {
+  const out: DeployingLogEntry[] = [];
+  for (const ev of events) {
+    if (ev.name === 'heartbeat') continue;
+    const data = (ev.data ?? {}) as {
+      message?: string;
+      timestamp?: string;
+      ts?: string;
+      level?: DeployingLogEntry['level'];
+      percent?: number;
+      toState?: string;
+      errorCode?: string;
+    };
+    const timestamp = data.timestamp ?? data.ts ?? new Date().toISOString();
+    let message = '';
+    let level: DeployingLogEntry['level'] = 'info';
+    switch (ev.name) {
+      case 'log':
+        message = data.message ?? '';
+        level = data.level ?? 'info';
+        break;
+      case 'progress':
+        message = `Tiến trình ${data.percent ?? 0}%`;
+        level = 'pending';
+        break;
+      case 'state-change':
+        message = `Trạng thái: ${data.toState ?? '?'}`;
+        level = 'info';
+        break;
+      case 'complete':
+        message = data.message ?? 'Triển khai hoàn tất';
+        level = 'success';
+        break;
+      case 'error':
+        message = data.message ?? `Lỗi triển khai (${data.errorCode ?? 'UNKNOWN'})`;
+        level = 'error';
+        break;
+      default:
+        continue;
+    }
+    if (message) out.push({ timestamp, message, level });
+  }
+  return out;
+}
 
 // Wave 34 (GAP-272k): brand colours sourced from
 // `BrandingJobResponse.brandColors` via `usePreviewBrandColors` hook.
@@ -157,6 +226,82 @@ export function Step6Preview({
   const approvedCount = wizardState.approvedResources.length;
   const totalResources = RESOURCES.length;
   const allApproved = approvedCount === totalResources;
+
+  // -------------------------------------------------------------------------
+  // Wave 41 Bucket D (GAP-272o) — orchestrator wiring
+  // -------------------------------------------------------------------------
+
+  const [isDeploying, setIsDeploying] = useState(false);
+  const [upsellModalOpen, setUpsellModalOpen] = useState(false);
+
+  const { quota, regenerate } = useRegenerateQuota();
+  const quotaTier = mapHookTier(quota.data?.tier);
+  const quotaLimit = quota.data?.limit ?? 3;
+  const quotaUsed = quota.data?.used ?? 0;
+  const quotaExceeded =
+    quota.data !== undefined &&
+    quota.data.limit !== -1 &&
+    quota.data.used >= quota.data.limit;
+
+  const deployStream = useDeployStream(wizardState.jobId ?? undefined, {
+    enabled: isDeploying && Boolean(wizardState.jobId),
+  });
+
+  const deployLogs = useMemo<DeployingLogEntry[]>(
+    () => eventsToLogEntries(deployStream.events),
+    [deployStream.events],
+  );
+
+  // Auto-trigger upsell modal when quota exhausted on non-ENTERPRISE tier
+  // (per `ai-branding-guidelines.md` §4.3 + AC item 4).
+  useEffect(() => {
+    if (quotaExceeded && quotaTier !== 'ENTERPRISE' && !upsellModalOpen) {
+      setUpsellModalOpen(true);
+    }
+  }, [quotaExceeded, quotaTier, upsellModalOpen]);
+
+  // Forward SSE `complete` to parent — propagates wizard exit.
+  useEffect(() => {
+    if (!isDeploying) return;
+    const latest = deployStream.latestEvent;
+    if (latest?.name === 'complete') {
+      onDeploy();
+    }
+  }, [isDeploying, deployStream.latestEvent, onDeploy]);
+
+  const handleDeployClick = () => {
+    if (!allApproved) return;
+    setIsDeploying(true);
+  };
+
+  const handleRegenerateClick = () => {
+    if (!wizardState.jobId) return;
+    if (quotaExceeded && quotaTier !== 'ENTERPRISE') {
+      setUpsellModalOpen(true);
+      return;
+    }
+    regenerate.mutate({ jobId: wizardState.jobId });
+  };
+
+  const handleUpgradeClick = () => {
+    // TODO(GAP-272r): route to /billing/upgrade when subscription page lands.
+    setUpsellModalOpen(false);
+  };
+
+  // -------------------------------------------------------------------------
+  // Deploying sub-state render branch
+  // -------------------------------------------------------------------------
+
+  if (isDeploying) {
+    return (
+      <DeployingStep
+        logs={deployLogs}
+        instanceId={
+          typeof wizardState.jobId === 'string' ? wizardState.jobId : undefined
+        }
+      />
+    );
+  }
 
   return (
     <div className="space-y-6" data-testid="step6-preview">
@@ -283,15 +428,19 @@ export function Step6Preview({
             </div>
           </div>
 
-          {/* Regenerate counter scaffold — Bucket D fills in. */}
-          <div
-            className="rounded-lg border bg-slate-50 p-3"
-            data-testid="step6-regenerate-counter-scaffold"
-          >
-            <p className="text-xs text-muted-foreground">
-              {/* TODO(GAP-272p): Bucket D's RegenerateCounter renders here. */}
-              Tạo lại — quota theo tier (FREE 3 / PRO 10 / PREMIUM 30 / ENT ∞).
-            </p>
+          {/* Wave 41 Bucket D (GAP-272o): real RegenerateCounter wired to
+              `useRegenerateQuota` hook + tier mapping. */}
+          <div data-testid="step6-regenerate-counter-wired">
+            <RegenerateCounter
+              tier={quotaTier}
+              regenerateQuota={quotaLimit}
+              regeneratesUsed={quotaUsed}
+              upsellModalOpen={upsellModalOpen}
+              onRegenerate={handleRegenerateClick}
+              onUpgradeClick={handleUpgradeClick}
+              onContinueWithCurrent={() => setUpsellModalOpen(false)}
+              onUpsellModalOpenChange={setUpsellModalOpen}
+            />
           </div>
         </div>
       </div>
@@ -306,7 +455,7 @@ export function Step6Preview({
         </p>
         <Button
           type="button"
-          onClick={onDeploy}
+          onClick={handleDeployClick}
           disabled={!allApproved}
           data-testid="step6-deploy-button"
         >
