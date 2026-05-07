@@ -4,7 +4,6 @@ import com.kitehub.admin.config.CacheConfig;
 import com.kitehub.admin.dto.DashboardStats;
 import com.kitehub.admin.dto.RevenueReport;
 import com.kitehub.admin.event.SubscriptionDataChangedEvent;
-import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.entity.Subscription;
 import com.kitehub.platform.domain.enums.BillingCycle;
 import com.kitehub.platform.domain.enums.InstanceStatus;
@@ -24,17 +23,22 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Verifies GAP-126 cache behavior: dashboard + revenue stats are cached, and
- * data-change events evict admin caches.
+ * Verifies GAP-126 cache behavior + GAP-432 bounded query path:
+ * dashboard + revenue stats are cached, and data-change events evict admin
+ * caches. Asserts cache hits trigger zero additional repository calls along
+ * the bounded aggregation path (replacing the old findAll()-based path).
  *
  * <p>Uses a focused Spring context (only cache infrastructure + AnalyticsService +
  * CacheInvalidationListener) so we don't drag in JPA/Testcontainers.</p>
@@ -72,44 +76,49 @@ class AnalyticsServiceCachingTest {
     @Autowired
     private ApplicationEventPublisher eventPublisher;
 
-    private List<Instance> instances;
-    private List<Subscription> subscriptions;
+    private List<Subscription> activeInPeriodFixture;
 
     @BeforeEach
     void setUp() {
         cacheManager.getCache(CacheConfig.ADMIN_DASHBOARD_CACHE).clear();
         cacheManager.getCache(CacheConfig.ADMIN_REVENUE_REPORT_CACHE).clear();
 
-        Instance i1 = new Instance();
-        i1.setId(UUID.randomUUID());
-        i1.setOrganizationName("Org");
-        i1.setSubdomain("org");
-        i1.setStatus(InstanceStatus.ACTIVE);
-        i1.setCreatedAt(LocalDateTime.now().minusDays(5));
-        instances = List.of(i1);
-
         Subscription s1 = new Subscription();
         s1.setId(UUID.randomUUID());
-        s1.setInstanceId(i1.getId());
+        s1.setInstanceId(UUID.randomUUID());
         s1.setTier(PricingTier.BASIC);
         s1.setBillingCycle(BillingCycle.MONTHLY);
         s1.setPriceVnd(500_000L);
         s1.setStatus(SubscriptionStatus.ACTIVE);
         s1.setStartedAt(LocalDateTime.now().minusDays(30));
         s1.setExpiresAt(LocalDateTime.now().plusDays(30));
-        subscriptions = List.of(s1);
+        activeInPeriodFixture = List.of(s1);
 
-        when(instanceRepository.findAll()).thenReturn(instances);
-        when(subscriptionRepository.findAll()).thenReturn(subscriptions);
+        // GAP-432 bounded-query stubs (replace prior findAll() stubs).
+        when(instanceRepository.countByDeletedFalse()).thenReturn(1L);
+        Map<String, Long> statusCounts = new HashMap<>();
+        statusCounts.put(InstanceStatus.ACTIVE.name(), 1L);
+        when(instanceRepository.countInstancesByStatus()).thenReturn(statusCounts);
+        when(instanceRepository.countByDeletedFalseAndCreatedAtAfter(any(LocalDateTime.class)))
+            .thenReturn(1L);
+
+        Map<String, Long> tierCounts = new HashMap<>();
+        tierCounts.put(PricingTier.BASIC.name(), 1L);
+        when(subscriptionRepository.countSubscriptionsByTier()).thenReturn(tierCounts);
+        when(subscriptionRepository.sumActiveMrr()).thenReturn(500_000L);
+        when(subscriptionRepository.sumCancelledRevenue()).thenReturn(0L);
+        java.util.List<Object[]> tierRevenue = new java.util.ArrayList<>();
+        tierRevenue.add(new Object[] { PricingTier.BASIC, 500_000L });
+        when(subscriptionRepository.sumActiveRevenueByTier()).thenReturn(tierRevenue);
+        when(subscriptionRepository.findActiveInPeriod(any(LocalDateTime.class), any(LocalDateTime.class)))
+            .thenReturn(activeInPeriodFixture);
     }
 
     @Test
     void dashboardStats_secondCall_servedFromCache() {
         // GAP-126 §AC — "<5 SQL queries per dashboard request" on cache-hit path.
-        // We don't need datasource-proxy here: the cache hit means ZERO underlying
-        // repository calls, which is strictly fewer than 5 SQL queries. We assert
-        // the strongest form: the second call invokes the repos zero additional
-        // times beyond the first cold call.
+        // GAP-432: bounded path now uses count + group-by + sum (3 instance + 3 sub
+        // calls cold; zero on warm). We assert cache hit = zero re-invocations.
         DashboardStats first = analyticsService.getDashboardStats();
         DashboardStats second = analyticsService.getDashboardStats();
 
@@ -117,8 +126,13 @@ class AnalyticsServiceCachingTest {
         assertThat(second).isNotNull();
         assertThat(second).isSameAs(first); // cached object reference
 
-        verify(instanceRepository, times(1)).findAll();
-        verify(subscriptionRepository, times(1)).findAll();
+        // Cold call: each bounded method invoked exactly once.
+        verify(instanceRepository, times(1)).countByDeletedFalse();
+        verify(instanceRepository, times(1)).countInstancesByStatus();
+        verify(subscriptionRepository, times(1)).sumActiveMrr();
+        // Legacy unbounded path must never run.
+        verify(instanceRepository, times(0)).findAll();
+        verify(subscriptionRepository, times(0)).findAll();
     }
 
     @Test
@@ -130,7 +144,9 @@ class AnalyticsServiceCachingTest {
         RevenueReport second = analyticsService.getRevenueReport("MONTHLY", start, end);
 
         assertThat(second).isSameAs(first);
-        verify(subscriptionRepository, times(1)).findAll();
+        verify(subscriptionRepository, times(1))
+            .findActiveInPeriod(any(LocalDateTime.class), any(LocalDateTime.class));
+        verify(subscriptionRepository, times(0)).findAll();
     }
 
     @Test
@@ -140,8 +156,10 @@ class AnalyticsServiceCachingTest {
         analyticsService.getRevenueReport(
                 "MONTHLY", LocalDate.now().minusDays(7), LocalDate.now());
 
-        verify(instanceRepository, times(1)).findAll();
-        verify(subscriptionRepository, times(2)).findAll();
+        verify(instanceRepository, times(1)).countByDeletedFalse();
+        verify(subscriptionRepository, times(2)).sumActiveMrr(); // dashboard + revenue
+        verify(subscriptionRepository, times(1))
+            .findActiveInPeriod(any(LocalDateTime.class), any(LocalDateTime.class));
 
         // Fire event — listener evicts both caches
         eventPublisher.publishEvent(
@@ -152,7 +170,11 @@ class AnalyticsServiceCachingTest {
         analyticsService.getRevenueReport(
                 "MONTHLY", LocalDate.now().minusDays(7), LocalDate.now());
 
-        verify(instanceRepository, times(2)).findAll();
-        verify(subscriptionRepository, times(4)).findAll();
+        verify(instanceRepository, times(2)).countByDeletedFalse();
+        verify(subscriptionRepository, times(4)).sumActiveMrr();
+        verify(subscriptionRepository, times(2))
+            .findActiveInPeriod(any(LocalDateTime.class), any(LocalDateTime.class));
+        verify(instanceRepository, times(0)).findAll();
+        verify(subscriptionRepository, times(0)).findAll();
     }
 }

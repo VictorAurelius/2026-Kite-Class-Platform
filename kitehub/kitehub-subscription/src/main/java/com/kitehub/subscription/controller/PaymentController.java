@@ -8,6 +8,10 @@ import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,17 +59,35 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /** Default page size for the admin payment list (GAP-432). */
+    private static final int DEFAULT_PAGE_SIZE = 50;
+    /** Hard cap on page size to prevent clients re-introducing unbounded scans. */
+    private static final int MAX_PAGE_SIZE = 200;
+
     /**
-     * Get all payments with optional filters.
+     * Get all payments with optional filters, paginated.
+     *
+     * <p><strong>GAP-432:</strong> previously this endpoint called
+     * {@code paymentRepository.findAll()} under the hood. The endpoint now
+     * accepts {@code page} + {@code size} query parameters and returns a
+     * {@link Page} envelope so the response is bounded.</p>
      *
      * @param status Payment status filter (optional)
-     * @return List of payment responses
+     * @param page   Zero-based page index (default 0)
+     * @param size   Page size (default 50, capped at 200)
+     * @return Page of payment responses
      */
     @GetMapping
-    public ResponseEntity<List<PaymentResponse>> getAllPayments(
-        @RequestParam(required = false) PaymentStatus status
+    public ResponseEntity<Page<PaymentResponse>> getAllPayments(
+        @RequestParam(required = false) PaymentStatus status,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "" + DEFAULT_PAGE_SIZE) int size
     ) {
-        List<PaymentResponse> responses = paymentService.getAllPayments(status);
+        int safePage = Math.max(0, page);
+        int safeSize = Math.min(Math.max(1, size), MAX_PAGE_SIZE);
+        Pageable pageable = PageRequest.of(safePage, safeSize,
+            Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<PaymentResponse> responses = paymentService.getAllPayments(status, pageable);
         return ResponseEntity.ok(responses);
     }
 

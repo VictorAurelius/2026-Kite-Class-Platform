@@ -9,6 +9,8 @@ import com.kitehub.subscription.repository.PaymentRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -106,24 +108,28 @@ public class PaymentService {
     }
 
     /**
-     * Get all payments with optional filters.
+     * Get all payments with optional status filter, paginated.
      *
-     * @param status Payment status filter (optional)
-     * @return List of payment responses
+     * <p><strong>GAP-432 (Wave 41 Bucket C):</strong> the prior implementation
+     * called {@code paymentRepository.findAll()} when no status was supplied,
+     * which scans the full payments table. Payments grow unbounded with usage,
+     * so this was a future performance cliff. Now every call MUST supply a
+     * {@link Pageable} (controller defaults to size 50). DB-side soft-delete
+     * filter is also pushed into the WHERE clause via the new
+     * {@link PaymentRepository#findAllNotDeleted}/
+     * {@link PaymentRepository#findByStatusNotDeleted} repository methods.</p>
+     *
+     * @param status   Payment status filter (optional, may be {@code null})
+     * @param pageable Page request (size, page, sort) — required, never null
+     * @return Page of payment responses (preserves total counts + paging metadata)
      */
     @Transactional(readOnly = true)
-    public List<PaymentResponse> getAllPayments(PaymentStatus status) {
-        List<Payment> payments;
+    public Page<PaymentResponse> getAllPayments(PaymentStatus status, Pageable pageable) {
+        Page<Payment> payments = (status != null)
+            ? paymentRepository.findByStatusNotDeleted(status, pageable)
+            : paymentRepository.findAllNotDeleted(pageable);
 
-        if (status != null) {
-            payments = paymentRepository.findByStatus(status);
-        } else {
-            payments = paymentRepository.findAll();
-        }
-
-        return payments.stream()
-            .map(PaymentResponse::fromEntity)
-            .toList();
+        return payments.map(PaymentResponse::fromEntity);
     }
 
     /**
