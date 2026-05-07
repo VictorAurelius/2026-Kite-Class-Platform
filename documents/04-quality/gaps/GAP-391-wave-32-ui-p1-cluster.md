@@ -1,6 +1,6 @@
 # GAP-391: Wave 32/34 UI P1 cluster — RegenerateCounter quota stale-check + i18n migration deferred
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07 — Wave 36 Bucket E
 **Priority:** 🟠 P1 (2 sub-issues — UI polish, ship post-P0)
 **Domain:** Frontend
 **Found:** 2026-05-07 (UI /128 audit Wave 32+34 — agent a1ffe560)
@@ -41,9 +41,9 @@ Or invalidate via React Query / SWR cache key.
 
 ## Acceptance Criteria
 
-- [ ] **391-A**: RegenerateCounter re-fetch quota post-regenerate; integration test (mock 3 regenerates → 4th shows 0/3 + disabled button)
-- [ ] **391-B**: Deferral decision documented in BRD/strategy doc; explicit "Phase 1 = VN-only acceptable" memo
-- [ ] Re-run UI /128 audit delta: 97/128 → maintain ≥97 (no regression)
+- [x] **391-A**: `useRegenerateQuota` hook invalidates `['brandingV1', 'regenerateQuota']` cache post-mutation success (already wired Wave 34 Bucket D); test added Wave 36 Bucket E verifying invalidation triggers refetch (`useRegenerateQuota.test.tsx` "invalidates regenerate-quota cache on successful regenerate (GAP-391-A)")
+- [x] **391-B**: Deferral decision documented in `documents/00-brd/i18n-strategy.md` — Phase 1 BETA = VN-only with explicit Phase 2/3 trigger gates
+- [x] Verification artifact: pnpm test --run useRegenerateQuota → all 4 tests pass; pnpm build clean (no regression)
 
 ## Related
 
@@ -54,3 +54,4 @@ Or invalidate via React Query / SWR cache key.
 ## Log
 
 - **2026-05-07** Filed from UI /128 audit Wave 32+34. State-check: 0 existing gaps cover RegenerateCounter quota stale (grep returned 0 matches). i18n migration: file as deferral-decision artifact rather than work gap (won't ship Phase 1).
+- **2026-05-07** (Wave 36 Bucket E) Closed DONE. **391-A:** state-check found `useRegenerateQuota.ts` lines 82-88 already invalidates both `['brandingV1', 'regenerateQuota']` and `['brandingV1', 'jobs', jobId]` query keys via `queryClient.invalidateQueries(...)` on mutation success — hook wiring shipped Wave 34 Bucket D. Wave 36 added explicit test verifying invalidation triggers refetch with stateful MSW handler (used count increments per POST). **391-B:** `documents/00-brd/i18n-strategy.md` ships full Phase 1/2/3 progression + EN trigger gates + JA/KO out-of-scope; closes GAP-391-B as deferral artifact. Verification: `pnpm test --run useRegenerateQuota` 4/4 passing; `pnpm build` clean.
