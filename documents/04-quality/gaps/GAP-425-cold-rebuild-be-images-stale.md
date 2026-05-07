@@ -1,6 +1,6 @@
 # GAP-425: Cold rebuild script chỉ rebuild FE images — BE images stale
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-07
 **Priority:** 🟡 P2 (dev-friction; first-time-cold-setup blocker — Phase 1 BETA prep)
 **Domain:** DevOps / Local dev tooling
 **Found:** 2026-05-07 Wave 39 closure session — "visual lần 1" cold rebuild test
@@ -52,7 +52,7 @@ bash scripts/up.sh --profile beta-funnel
 
 ## Proposed Fix
 
-**Option A (recommended):** Add `--rebuild` flag to `up.sh` invoking `build-all.sh` first.
+**Option A (recommended):** Add `--rebuild` flag to `up.sh` invoking `build-all.sh` first. **PLUS** auto-set `--force-recreate` khi `--rebuild` fires — vì build mới mà không recreate container = compose vẫn dùng container cũ với image SHA cũ (root cause GAP-425 surfaced 2026-05-07: rebuild xong vẫn thấy V11 broken vì container chạy image cũ 6 tuần SHA `9e95bc3d7db8` thay vì `:latest` mới).
 
 ```bash
 # kitehub/scripts/up.sh
@@ -80,14 +80,26 @@ bash scripts/up.sh --profile beta-funnel  # uses cached images
 
 **Option D (docs-only):** Update `kitehub/QUICK_START.md` + `documents/05-guides/account-prep/04-kitehub-superadmin-first-login.md` §pre-conditions để mention `build-all.sh` BEFORE first `up.sh`.
 
-Recommend Option A + D combined.
+**Option E (production parity — added 2026-05-07):** Add `--pull-from-ecr TAG` flag để pull pre-built CI images từ ECR thay vì build local. Use case: Phase 4 staging E2E gate cần image production-parity (bit-for-bit identical với prod deploy). Local rebuild ≠ ECR build (cache khác, JDK khác, multi-arch khác). Per khuyến nghị "khi nào local vs CI":
+
+| Use case | Cách | Lý do |
+|----------|------|-------|
+| Iteration code dev | Local `--rebuild` | Cycle 2-5 min, không cần network |
+| Visual smoke local | Local `--rebuild --force-recreate` | Catch source-vs-image drift (GAP-425) |
+| Phase 4 staging gate | `--pull-from-ecr v0.9.0-staging.X` | Production parity, Trivy/SBOM/Cosign verified |
+| Phase 7 prod | CI tag-driven only | Locally-built BANNED in prod |
+
+Recommend **Option A + Option E + Option D combined** — A cho dev iteration, E cho staging-parity, D cho onboarding clarity.
 
 ## Acceptance Criteria
 
-- [ ] `kitehub/scripts/up.sh` accepts `--rebuild` flag → triggers `build-all.sh` before docker-compose up
-- [ ] Self-test: `rm kitehub/.env && rm kitehub/local volumes && bash setup.sh && bash up.sh --profile beta-funnel --rebuild` → all 10 services healthy within 15 min on first try (cold path with image rebuild)
-- [ ] `kitehub/QUICK_START.md` updates first-time setup section reference `--rebuild` flag
-- [ ] `documents/05-guides/account-prep/04-kitehub-superadmin-first-login.md` §1 pre-conditions add line "BE images fresh: run `bash scripts/build-all.sh` if first deploy or pull-main since last build"
+- [x] `kitehub/scripts/up.sh` accepts `--rebuild` flag → triggers `build-all.sh` before docker-compose up
+- [x] `kitehub/scripts/up.sh` accepts `--force-recreate` flag (auto-on khi --rebuild)
+- [x] `kitehub/scripts/up.sh` accepts `--pull-from-ecr TAG` flag — pull CI image từ ECR (Option E)
+- [x] Self-test inline: setup.sh sau khi gen .env verify ENCRYPTION_MASTER_KEY decode = 32 bytes (GAP-426 paired)
+- [ ] `kitehub/QUICK_START.md` updates first-time setup section reference `--rebuild --force-recreate` (defer — out-of-scope this PR)
+- [ ] `documents/05-guides/account-prep/04-kitehub-superadmin-first-login.md` §1 pre-conditions cross-link (defer — Phase 4 release-1-deploy-runbook.md update covers more critical path)
+- [x] `release-1-deploy-runbook.md` Phase 4 — local-vs-CI guidance added
 
 ## Related
 

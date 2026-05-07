@@ -13,6 +13,7 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 GREEN="\033[0;32m"
 YELLOW="\033[1;33m"
+RED="\033[0;31m"
 NC="\033[0m"
 
 echo ""
@@ -32,13 +33,13 @@ if [ -f "$ENV_FILE" ]; then
 else
   echo -e "${GREEN}[1/4]${NC} Generating .env file with secure random values..."
 
-  # GAP-417: openssl rand -base64 wraps at 64 chars with embedded \n; the newline
-  # gets written into .env as a line break, causing docker-compose to parse the
-  # remainder as a new variable name with invalid chars (e.g. "FqXo/qnAZaqwQ").
-  # Strip newlines + chars that conflict with shell parsing on the env-var path.
+  # GAP-417 + GAP-426: openssl rand -base64 wraps at 64 chars with embedded \n.
+  # GAP-417 stripped \n=/+ which corrupted base64 (= is padding, /+ are valid
+  # base64 chars). EncryptionService strict 32-byte decode then crashed.
+  # Fix per GAP-426: strip newline only; quote in env template for shell safety.
   DEV_PASSWORD=$(openssl rand -base64 16 | tr -dc 'a-zA-Z0-9' | head -c 20)
-  ENCRYPTION_KEY=$(openssl rand -base64 32 | tr -d '\n=/+')
-  JWT_SECRET=$(openssl rand -base64 64 | tr -d '\n=/+')
+  ENCRYPTION_KEY=$(openssl rand -base64 32 | tr -d '\n')
+  JWT_SECRET=$(openssl rand -base64 64 | tr -d '\n')
   INTERNAL_SECRET=$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | head -c 32)
 
   cat > "$ENV_FILE" <<EOF
@@ -60,16 +61,24 @@ RABBITMQ_PASSWORD=${DEV_PASSWORD}
 MINIO_ROOT_USER=kitehub
 MINIO_ROOT_PASSWORD=${DEV_PASSWORD}
 
-# --- Security ---
-ENCRYPTION_MASTER_KEY=${ENCRYPTION_KEY}
-JWT_SECRET=${JWT_SECRET}
-INTERNAL_API_SECRET=${INTERNAL_SECRET}
+# --- Security --- (quoted per GAP-426 to protect base64 +/= chars from shell parsing)
+ENCRYPTION_MASTER_KEY="${ENCRYPTION_KEY}"
+JWT_SECRET="${JWT_SECRET}"
+INTERNAL_API_SECRET="${INTERNAL_SECRET}"
 
 # --- OpenAI (mock mode for local dev) ---
 OPENAI_API_KEY=sk-mock-key
 EOF
 
   echo "       .env file created with unique passwords."
+
+  # GAP-426 self-test: verify ENCRYPTION_MASTER_KEY decodes to exactly 32 bytes.
+  KEY_VAL=$(grep '^ENCRYPTION_MASTER_KEY=' "$ENV_FILE" | sed 's/^[^=]*=//; s/^"//; s/"$//')
+  KEY_BYTES=$(printf '%s' "$KEY_VAL" | base64 -d 2>/dev/null | wc -c)
+  if [ "$KEY_BYTES" != "32" ]; then
+    echo -e "${RED}[FAIL]${NC} ENCRYPTION_MASTER_KEY base64 decode = $KEY_BYTES bytes, expected 32. (GAP-426)"
+    exit 1
+  fi
 fi
 
 # ============================================================
