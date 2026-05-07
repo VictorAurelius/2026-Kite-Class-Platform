@@ -20,7 +20,7 @@ terraform {
   backend "s3" {
     # NOTE: Replace <ACCOUNT_ID> with actual AWS account ID after bootstrap apply.
     # Bootstrap output `state_bucket_name` provides the exact value.
-    bucket         = "kitehub-terraform-state-<ACCOUNT_ID>"
+    bucket         = "kitehub-terraform-state-906286017800"
     key            = "phase-1-beta/terraform.tfstate"
     region         = "ap-southeast-1"
     dynamodb_table = "kitehub-terraform-locks"
