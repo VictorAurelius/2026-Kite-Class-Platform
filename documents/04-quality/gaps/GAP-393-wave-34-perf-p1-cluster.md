@@ -1,6 +1,6 @@
 # GAP-393: Wave 34 Performance P1 cluster — quota cache + SSE backpressure + status index + idempotency cache
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (393-C status index DONE Wave 35 Bucket E; 393-A / 393-B / 393-D scheduled Wave 36 Bucket D)
 **Priority:** 🟠 P1 cluster (4 sub-issues — performance hardening; ship sau P0 GAP-392)
 **Domain:** Backend / Performance
 **Found:** 2026-05-07 (Performance /100 audit Wave 34 — agent abeb4c4b)
@@ -79,7 +79,7 @@ public BrandingJob regenerate(...) {
 
 - [ ] **393-A**: Quota cache + invalidation; integration test: 2nd `getQuota()` within TTL → 0 DB queries
 - [ ] **393-B**: SSE emitter timeout + IOException cleanup + bounded executor; integration test: slow consumer → no heap leak
-- [ ] **393-C**: V31 index migration + `EXPLAIN ANALYZE` confirms index hit on `findByStatus`
+- [x] **393-C**: V31 index migration shipped via Wave 35 Bucket E (`V31__index_branding_job_organization_name_and_status.sql` adds `idx_branding_job_status`). `EXPLAIN ANALYZE` verification deferred until GAP-244 dev-stack lands; remaining 393-A / 393-B / 393-D scheduled Wave 36 Bucket D per plan footer.
 - [ ] **393-D**: Idempotency local cache; integration test: replay → 1 DB query thay vì 2
 - [ ] Re-run Performance /100 audit delta: 58/100 → ≥70/100
 
@@ -93,3 +93,4 @@ public BrandingJob regenerate(...) {
 ## Log
 
 - **2026-05-07** Filed from Performance /100 audit Wave 34. State-check: 0 existing gaps cover quota cache / SSE backpressure / status index / idempotency cache (grep returned 0 matches). Bundled per `audit-to-gap-pipeline.md` §3 P1 cluster pattern.
+- **2026-05-07** 393-C status-index portion shipped via Wave 35 Bucket E alongside GAP-392 (`idx_branding_job_status` added in `V31__index_branding_job_organization_name_and_status.sql`). Status flipped 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 — remaining 393-A (quota cache), 393-B (SSE backpressure), 393-D (idempotency cache) scheduled Wave 36 Bucket D per Wave 35 plan footer.
