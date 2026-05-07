@@ -11,8 +11,10 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { http, HttpResponse } from 'msw';
 import type { ReactNode } from 'react';
 import { useRegenerateQuota } from '../useRegenerateQuota';
+import { server } from '@/test/msw/server';
 
 function makeWrapper() {
   const client = new QueryClient({
@@ -50,6 +52,52 @@ describe('useRegenerateQuota', () => {
     await waitFor(() => expect(result.current.regenerate.isSuccess).toBe(true));
     expect(result.current.regenerate.data?.jobId).toBe('job-abc-123');
     expect(result.current.regenerate.data?.status).toBe('REGENERATING');
+  });
+
+  // GAP-391-A: post-regenerate cache invalidation triggers refetch with
+  // updated quota. Without invalidation the FE would show stale "3/3"
+  // remaining for ~1-2 seconds before server reject (UX miss).
+  it('invalidates regenerate-quota cache on successful regenerate (GAP-391-A)', async () => {
+    let usedCount = 0;
+    server.use(
+      http.get('*/api/v1/branding/regenerate-quota', () =>
+        HttpResponse.json({
+          tier: 'FREE',
+          used: usedCount,
+          limit: 3,
+          resetAt: '2026-05-08T00:00:00Z',
+        })
+      ),
+      http.post('*/api/v1/branding/jobs/:jobId/regenerate', ({ params }) => {
+        usedCount += 1;
+        const { jobId } = params as { jobId: string };
+        return HttpResponse.json({
+          jobId,
+          instanceId: 1,
+          status: 'REGENERATING',
+          regenerateCount: usedCount,
+          brandingVersion: usedCount,
+          createdAt: '2026-05-07T09:00:00Z',
+          updatedAt: new Date().toISOString(),
+        });
+      })
+    );
+
+    const { result } = renderHook(() => useRegenerateQuota(), {
+      wrapper: makeWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.quota.isSuccess).toBe(true));
+    expect(result.current.quota.data?.used).toBe(0);
+
+    await act(async () => {
+      await result.current.regenerate.mutateAsync({ jobId: 'job-fresh' });
+    });
+
+    // After mutation success, hook invalidates ['brandingV1', 'regenerateQuota']
+    // → react-query refetches → fresh value (used=1) appears.
+    await waitFor(() => expect(result.current.quota.data?.used).toBe(1));
+    expect(result.current.quota.data?.limit).toBe(3);
   });
 
   it('quota-exceeded job id surfaces 403 as mutation error', async () => {
