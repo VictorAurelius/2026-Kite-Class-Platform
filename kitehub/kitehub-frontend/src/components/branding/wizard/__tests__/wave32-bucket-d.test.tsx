@@ -298,7 +298,7 @@ describe('Settings Advanced page — non-Enterprise user', () => {
   it('shows upgrade prompt for FREE tier user', async () => {
     // Lazy import after mock is configured
     const { default: SettingsBrandingAdvancedPage } = await import(
-      '../../../../../../app/(customer)/settings/branding/advanced/page'
+      '../../../../app/(customer)/settings/branding/advanced/page'
     );
     render(<SettingsBrandingAdvancedPage />);
 
