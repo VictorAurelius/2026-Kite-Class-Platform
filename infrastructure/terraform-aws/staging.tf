@@ -321,22 +321,18 @@ output "staging_ssm_command" {
   value       = var.enable_staging ? "aws ssm start-session --target ${aws_instance.staging[0].id} --region ${var.aws_region}" : ""
 }
 
+locals {
+  staging_next_steps_template = var.enable_staging ? format(
+    "Staging environment provisioned. Next steps:\n  1. SSM into staging EC2:\n     aws ssm start-session --target %s --region %s\n  2. Configure docker-compose.staging.yml + ECR pull:\n     /etc/ecr-login.sh && docker compose -f docker-compose.staging.yml up -d\n  3. Apply Flyway migrations:\n     psql %s (use kitehub_staging user)\n  4. Seed synthetic fixtures:\n     bash scripts/seed-staging-fixtures.sh\n  5. Update Cloudflare DNS (proxied):\n     staging.kitehub.vn  A  %s\n     staging.kiteclass.vn A  %s\n  6. Run smoke test:\n     ./scripts/smoke-test.sh https://staging.kitehub.vn https://staging.kiteclass.vn",
+    try(aws_instance.staging[0].id, ""),
+    var.aws_region,
+    try(aws_db_instance.staging[0].endpoint, ""),
+    try(aws_instance.staging[0].public_ip, ""),
+    try(aws_instance.staging[0].public_ip, "")
+  ) : "Staging disabled — set enable_staging=true to provision."
+}
+
 output "staging_next_steps" {
   description = "Post-apply staging activation steps."
-  value = var.enable_staging ? <<-EOT
-    Staging environment provisioned. Next steps:
-      1. SSM into staging EC2:
-         aws ssm start-session --target ${aws_instance.staging[0].id} --region ${var.aws_region}
-      2. Configure docker-compose.staging.yml + ECR pull:
-         /etc/ecr-login.sh && docker compose -f docker-compose.staging.yml up -d
-      3. Apply Flyway migrations:
-         psql ${aws_db_instance.staging[0].endpoint} (use kitehub_staging user)
-      4. Seed synthetic fixtures:
-         bash scripts/seed-staging-fixtures.sh
-      5. Update Cloudflare DNS:
-         staging.kitehub.vn  A  ${aws_instance.staging[0].public_ip}  (proxied)
-         staging.kiteclass.vn A  ${aws_instance.staging[0].public_ip}  (proxied)
-      6. Run smoke test:
-         ./scripts/smoke-test.sh https://staging.kitehub.vn https://staging.kiteclass.vn
-  EOT : "Staging disabled — set enable_staging=true to provision."
+  value       = local.staging_next_steps_template
 }
