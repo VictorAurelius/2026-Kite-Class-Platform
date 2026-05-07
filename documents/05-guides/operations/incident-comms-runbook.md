@@ -7,6 +7,174 @@
 
 ---
 
+## §0 Hướng Dẫn Nhanh (Vietnamese)
+
+**Bối cảnh:** Phase 1 BETA cần status page public (`status.kitehub.vn`) để thông báo downtime cho 10-20 tenant invite-only. Vendor đã chốt theo ADR-027 = **Instatus** (Free tier $0/tháng cho 1 page + 5 component, public unlimited).
+
+**6 bước quy trình incident** (cross-link xuống section EN bên dưới):
+
+| # | Bước | Thời gian | Ai làm | Chi tiết EN |
+|---|------|----------|--------|-------------|
+| 1 | **Detect** — phát hiện sự cố qua alert (Cloudflare alert / CloudWatch / user report) | <5 phút | Trực ca / on-call | §4 Step 1 |
+| 2 | **Triage** — đánh giá severity (P0/P1/P2/P3 per §3) + tác động phạm vi tenant | 5-10 phút | Trực ca | §4 Step 2 |
+| 3 | **Post Initial** — đăng incident lên Instatus với severity + impact + ETA điều tra | <10 phút (P0/P1) | Trực ca | §4 Step 3 |
+| 4 | **Update Cadence** — cập nhật mỗi 30 phút (P0) / 60 phút (P1) / 4 giờ (P2) | Tuỳ severity | Trực ca | §4 Step 4 |
+| 5 | **Resolve** — sau khi fix verified, đăng "Resolved" với root-cause summary | <15 phút | Trực ca | §4 Step 5 |
+| 6 | **Post-mortem** — viết RCA trong 5 ngày làm việc theo `post-mortem-template.md` | 1-3h | Incident commander | §4 Step 6 |
+
+### Severity nhanh
+
+- **P0** = sản xuất hoàn toàn down hoặc data loss → page on-call ngay + Instatus "Major outage" + tenant email blast
+- **P1** = phần lớn tenant ảnh hưởng → on-call notify + Instatus "Partial outage" + tenant in-app banner
+- **P2** = ảnh hưởng nhỏ hoặc 1 component / 1 tenant → ticket trong working hours + Instatus "Degraded performance"
+- **P3** = cosmetic / minor / không user-facing → ticket bình thường, không cần Instatus
+
+---
+
+## §0.1 Instatus Signup Walkthrough (Vietnamese)
+
+Đây là phần thực sự thiếu trong runbook gốc — Wave 38 chỉ checklist 5 dòng. Walkthrough đầy đủ:
+
+### Bước 1 — Tạo Instatus account (~5 phút)
+
+1. Mở [instatus.com](https://instatus.com) → Sign up.
+2. Email: dùng `ops-admin@kitehub.vn` hoặc tài khoản admin chung. KHÔNG dùng email cá nhân (sau khi team mở rộng cần shared access).
+3. Password: ≥16 chars, lưu vào Bitwarden vault `Kite-Production / 3rd-party / Instatus`.
+4. Verify email → login dashboard.
+5. Free tier: 1 page + 5 component + unlimited public visitor. Đủ cho Phase 1 BETA. Phase 2 cân nhắc Starter $20/tháng (custom CSS + private page).
+6. Enable 2FA TOTP qua Bitwarden.
+
+### Bước 2 — Tạo status page mới (~10 phút)
+
+1. Dashboard → "Create new status page" → "From scratch".
+2. Page name: **KiteHub & KiteClass Status**.
+3. URL slug: `kitehub-kiteclass` (sẽ thành `kitehub-kiteclass.instatus.com` ban đầu, custom domain ở §Bước 3).
+4. Logo: upload SVG `kite-mark.svg` (từ `assets/` repo).
+5. Brand colors: primary `#2563eb` (KiteHub blue), background `#ffffff`.
+6. Timezone: **(UTC+07:00) Asia/Ho_Chi_Minh** — quan trọng cho timestamp incident hiển thị giờ VN.
+7. Language: **English** (Instatus chưa hỗ trợ Vietnamese UI; subscriber email có thể custom Vietnamese template trong Bước 5).
+8. Save.
+
+### Bước 3 — Custom domain `status.kitehub.vn` (~15 phút)
+
+1. Instatus dashboard → Settings → Custom domain → "Add domain".
+2. Nhập `status.kitehub.vn`.
+3. Instatus cấp CNAME target (vd: `kitehub-kiteclass.instatus.com`).
+4. Mở Cloudflare DNS dashboard → `kitehub.vn` zone → Add record:
+   - Type: `CNAME`
+   - Name: `status`
+   - Target: `<từ Instatus>` (vd `kitehub-kiteclass.instatus.com`)
+   - Proxy status: **DNS only** (gray cloud — Instatus tự handle SSL, KHÔNG proxy qua Cloudflare orange-cloud)
+   - TTL: Auto
+5. Save record. Đợi propagation 5-10 phút.
+6. Quay về Instatus → Verify domain → click "Check DNS".
+7. SSL cert auto-provisioned trong 5-15 phút (Let's Encrypt qua Instatus).
+8. Verify: mở browser `https://status.kitehub.vn` → load OK với SSL valid.
+
+### Bước 4 — Define 5 components (~5 phút)
+
+Components = các phần dịch vụ user thấy. Map theo persona:
+
+1. Dashboard → Components → "Add component" × 5:
+
+| # | Component name | Description (EN) |
+|---|---------------|-------------------|
+| 1 | KiteHub API (Marketing + Admin) | Public marketing site + admin dashboard backend |
+| 2 | KiteClass API (Tenant App) | Multi-tenant education platform backend |
+| 3 | Email Delivery | Transactional emails (welcome, MFA recovery, billing) |
+| 4 | Authentication | Login, MFA, session management |
+| 5 | AI Branding | AI-generated branding assets pipeline |
+
+2. Order: drag-drop theo priority hiển thị (KiteClass first vì user-facing nhiều nhất).
+3. "Show on status page": ✅ ON cho cả 5.
+4. "Showcase": ✅ ON (component hiển thị trên homepage status page).
+
+### Bước 5 — Configure subscriber notifications (~10 phút)
+
+1. Dashboard → Notifications → Email subscribers → "Allow email subscriptions": ✅ ON.
+2. Custom email template (nếu Instatus paid; Free tier dùng default):
+   - Subject Vietnamese: "KiteHub Status: {{incident.name}}"
+   - Body intro Vietnamese: "Xin chào, chúng tôi đang xử lý sự cố {{severity}} ảnh hưởng đến {{components}}."
+3. RSS feed: ✅ ON (auto-enable; không cần config).
+4. Webhook (optional Phase 2): để integrate với Slack / Discord khi team mở rộng.
+5. Test: subscribe email cá nhân → tạo test incident (Bước 6) → verify nhận email trong <2 phút.
+
+### Bước 6 — Test incident flow (~10 phút)
+
+1. Dashboard → Incidents → "Create new incident".
+2. Title: **[TEST] Database connection slow**.
+3. Severity: **Investigating** (lowest level — không trigger major alert).
+4. Affected components: KiteClass API.
+5. Message: "We are investigating slow DB queries impacting class list page. ETA 30 min."
+6. Click "Create".
+7. Verify:
+   - Status page `https://status.kitehub.vn` show banner orange "Investigating"
+   - Email subscriber nhận trong <2 phút
+   - RSS feed updated
+8. Update incident: click "Update" → status "Identified" → message "Root cause: connection pool exhausted. Scaling up."
+9. Resolve: click "Resolve" → message "Connection pool scaled. All queries normal latency."
+10. Status page banner clear → component status "Operational" green.
+11. Delete test incident (Settings → "Delete incident") để không pollute history.
+
+### Bước 7 — Pitfalls VN
+
+- **Timezone:** Instatus default UTC. Phải đổi sang `Asia/Ho_Chi_Minh` trong Bước 2 §6 — nếu quên, timestamps incident hiển thị giờ UTC = user VN thấy "incident posted at 03:00" nhầm tưởng đêm khuya.
+- **Payment method:** Instatus accept Visa/MasterCard quốc tế. VN debit Vietcombank đôi khi reject — fallback Visa credit Techcombank/VPBank.
+- **Custom domain SSL:** nếu Cloudflare orange-cloud (proxy ON) → SSL fail vì Instatus tự issue cert qua Let's Encrypt. PHẢI để DNS only (gray cloud).
+- **Email subscriber rate limit:** Instatus free tier giới hạn 100 subscriber. Phase 1 BETA 10-20 tenant đủ; Phase 2 cần upgrade Starter $20/tháng cho 1k subscriber.
+- **Status badge embed:** copy badge HTML từ Instatus → embed vào KiteHub marketing site footer + KiteClass tenant dashboard footer (Phase 2).
+- **History retention:** Instatus free giữ history 90 ngày. Phase 2 paid → 1 năm. Export incident JSON định kỳ nếu cần audit dài hạn.
+- **Compliance VN PDPL:** subscriber email là dữ liệu cá nhân → khai báo trong privacy policy (đã có Wave 23 PDPL). Cho phép unsubscribe trong mỗi email (Instatus auto-include footer).
+
+### Cross-link tiếng Việt
+
+- Phần thực hiện chi tiết EN: §1 → §6 bên dưới
+- Cloudflare DNS records add: `documents/05-guides/vietnamese/cloudflare-setup.md`
+- Domain prerequisite: `documents/05-guides/account-prep/02-domain-registrar.md`
+- Password manager: `documents/05-guides/account-prep/03-password-manager.md`
+- Vendor decision: `documents/02-architecture/adr/ADR-027-statuspage-vendor.md`
+- Phase 1 deploy runbook: `documents/03-planning/roadmap/release-1-deploy-runbook.md` Phase 1 §1.5
+
+### Hỏi đáp thường gặp (Vietnamese FAQ)
+
+**H1: Tại sao chọn Instatus mà không chọn StatusPage.io (Atlassian)?**
+StatusPage.io tối thiểu $29/tháng cho 1 page. Instatus Free $0/tháng đủ Phase 1 BETA. Phase 2 nếu cần SLA enforcement / SAML SSO / advanced analytics → cân nhắc StatusPage.io paid hoặc Instatus Pro $50/tháng. Quyết định chốt theo ADR-027.
+
+**H2: Self-host Cachet hoặc Statping được không?**
+Có, nhưng tốn ~5h setup + 2h/tháng maintenance + thêm 1 server. Không tiết kiệm so với Instatus Free $0/tháng. Self-host chỉ có ý nghĩa Phase 3 khi compliance yêu cầu data localization VN.
+
+**H3: Status page có cần 24/7 monitoring riêng không?**
+Có. Cloudflare Health Check (free) ping endpoint chính mỗi phút → trigger alert nếu fail 3 lần liên tiếp. Alert đến Slack/email → người trực ca update Instatus thủ công. Phase 2 cân nhắc auto-update qua Instatus webhook API.
+
+**H4: Khi nào nên đăng incident vs để yên?**
+Quy tắc: nếu ≥1 user gửi support ticket / Slack ping / email với cùng vấn đề → POST incident ngay (dù chưa biết root-cause). Im lặng = giảm trust nhanh hơn admit vấn đề. Phase 1 BETA invite-only → admit thoải mái, đỡ áp lực.
+
+**H5: Severity sai sau khi đăng có chỉnh được không?**
+Có, edit incident → đổi severity. Nhưng làm subscriber receive duplicate email. Cân nhắc kỹ trước khi đăng. Quy tắc: nghi ngờ → severity cao hơn (P1 thay vì P2), downgrade dễ hơn upgrade.
+
+**H6: Post-mortem template ở đâu?**
+File `documents/05-guides/operations/post-mortem-template.md` (Wave 38 ship). Sao chép template cho mỗi P0/P1 trong vòng 5 ngày làm việc sau resolve. P2/P3 tuỳ chọn (không bắt buộc).
+
+### Thuật ngữ tiếng Việt
+
+| Thuật ngữ EN | Tương đương Việt | Ghi chú |
+|--------------|-----------------|---------|
+| Incident | Sự cố | Mọi event ảnh hưởng dịch vụ public-facing |
+| Severity | Mức độ nghiêm trọng | P0/P1/P2/P3 theo §3 |
+| Triage | Phân loại đầu | Đánh giá severity + scope ảnh hưởng đầu tiên |
+| Detect | Phát hiện | Bước 1 — alert hoặc user report |
+| Root cause | Nguyên nhân gốc | Lý do thật sự gây sự cố, viết trong post-mortem |
+| Post-mortem | Báo cáo sau sự cố | Tài liệu RCA viết 5 ngày sau resolve |
+| Subscriber | Người đăng ký nhận thông báo | Email subscriber qua status page |
+| Component | Thành phần dịch vụ | 5 phần dịch vụ user thấy (KH-API, KC-API, Email, Auth, AI Branding) |
+| Update cadence | Tần suất cập nhật | 30/60/240 phút theo P0/P1/P2 |
+| Operational | Hoạt động bình thường | Trạng thái xanh trên status page |
+| Degraded | Suy giảm hiệu năng | Vẫn chạy nhưng chậm/lỗi rải rác |
+| Major outage | Mất dịch vụ nghiêm trọng | P0 — full down |
+| Resolved | Đã khắc phục | Sau khi fix verified và monitor 30 phút stable |
+
+---
+
 ## 1. Bối cảnh + Scope
 
 Phase 1 BETA invite-only (10-20 tenants) cần official incident communication channel để:
