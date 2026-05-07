@@ -1,6 +1,6 @@
 ---
 title: Wave 36 — Audit P1 Hardening (5 P1 clusters from 2026-05-07 audit)
-status: active
+status: complete
 created: 2026-05-07
 updated: 2026-05-07
 waves: [36]
@@ -190,4 +190,6 @@ Per `feedback_parallel_agent_strategy.md`:
 ## 8. Log
 
 - **2026-05-07** (draft): Plan created post-audit-cluster (PR #913). Wave 36 prerequisite Wave 35 complete. Pairs trong cùng plan PR với Wave 35.
+- **2026-05-07 (complete) — SHIPPED:** 5 PRs A→B→C→D→E sequential merged: #933 Bucket A (GAP-387 + GAP-388 DONE, 7 tests, mvn 444+33/444+33), #930 Bucket B (GAP-390 DONE, 4 SSE assertions + 2 tenantId tests, mvn 231/231), #929 Bucket C (GAP-389 DONE, backup-production.sh NEW + smoke extend + 7 BR-LIFE/QUALITY 5-attr blocks, shellcheck clean), #932 Bucket D (GAP-393 DONE, Caffeine quota cache + SSE backpressure cap=20 + idempotency cache, 4 tests + 1 expanded, mvn 229/229; coordinator rebase conflict resolved on `DeployStreamControllerTest.java` additive merge — kept HEAD's 4 SSE tests + appended Bucket D's 2 backpressure tests; force-push + CI rerun green per `admin-merge-discipline.md` §2), #931 Bucket E (GAP-391 DONE, RegenerateCounter quota refresh regression test + i18n-strategy.md NEW 120 lines VN, pnpm test 4/4 + build clean). All 6 gap files flipped per `gap-done-discipline.md` §2 (no banned phrases, AC checked, verification artifacts cited). Worktree prune executed 5 husks + 5 branches. 72nd consecutive 0-clarification streak (5 agents + 1 retry agent E Opus after Sonnet thrashed autocompact). Wall-clock ~50min parallel (longest Bucket A 14min) + ~10min coordinator merge cycle + Bucket D conflict resolve ~5min + closure ~10min ≈ 75min total.
+
 - **2026-05-07** (active, post-audit re-run): Audit suite 7 specialists chạy parallel sau Wave 35 SHIPPED. Aggregate scores: Quality 80/100 B (+7), Security 84/100 B (+12), Performance 71/100 C (+13), Business Logic 82/100 B− (+4), API Contract 71/100 C (−1 inventory expand), Ops Readiness 53/100 F (+3, 1 NEW P0), UI 99/128 A+ (+2). Phase 1 BETA trigger gate Quality ≥80 ✅ vừa đủ. NEW P0 GAP-387 honeypot dead-wire absorbed vào Bucket A 388-A (controller `@ExceptionHandler` + GAP-387 status flip 🟢→🟡→🟢 trong cùng PR). Carry-over P0 GAP-144 AlertManager + backup script — backup script đã trong Bucket C scope; AlertManager không block Phase 1 BETA invite-only. Plan flipped status: draft → active. Reports: `documents/04-quality/audits/{quality,security,performance,business-logic,api-contract,ops-readiness,ui}/2026-05-07-post-wave-35.md`. Spawning 5 background agents.
