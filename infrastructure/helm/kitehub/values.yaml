@@ -154,11 +154,17 @@ monitoring:
   prometheusRule:
     enabled: true
 
-  # GAP-135 + GAP-143 — Grafana dashboard ConfigMaps.
+  # GAP-135 + GAP-143 + GAP-115 — Grafana dashboard ConfigMaps.
   # When dashboards.enabled=true the chart packages baseline dashboards
-  # (api-latency, jvm-heap-gc, http-traffic, infra-pools) as ConfigMaps
-  # labelled `grafana_dashboard=1` so Grafana sidecar auto-imports them.
-  # Requires monitoring.grafana.enabled=true (sets the sidecar via subchart).
+  # (api-latency, jvm-heap-gc, http-traffic, infra-pools, logs-overview)
+  # as ConfigMaps labelled `grafana_dashboard=1` so Grafana sidecar
+  # auto-imports them. Requires monitoring.grafana.enabled=true (sets the
+  # sidecar via subchart).
+  #
+  # logs-overview (GAP-115 Phase 1) targets a Loki datasource (uid $DS_LOKI).
+  # The Loki/Promtail stack itself ships Phase 2 — until then logs panels
+  # render "No data" but dashboard URL is stable for the on-call runbook
+  # (documents/05-guides/operations/runbooks/monitoring-dashboards.md).
   dashboards:
     enabled: false
     label:

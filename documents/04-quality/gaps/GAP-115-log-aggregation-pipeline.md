@@ -1,6 +1,6 @@
 # GAP-115: Log Aggregation Pipeline (ELK/Loki)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1 (Grafana skeleton dashboard + on-call runbook) shipped Wave 41 Bucket F 2026-05-08; Phase 2 (Loki/Promtail backend stack) tracked in [GAP-434](GAP-434-loki-promtail-stack-phase2.md)
 **Priority:** 🟠 P1
 **Domain:** DevOps / Observability
 **Found:** 2026-04-19 (ops-readiness audit — baseline)
@@ -37,12 +37,13 @@ Log aggregation chưa được infrastructure team build. Thiếu shared logging
 
 ## Acceptance Criteria
 
-- [ ] Log aggregation stack deploy vào staging + prod
-- [ ] Logs từ 6+ services aggregated + searchable
-- [ ] Query example: `{service="kitehub-subscription"} | tenantId="abc-123"` → hiển thị mọi log entries của tenant
-- [ ] Retention policy configured
-- [ ] Cost baseline documented
-- [ ] Runbook: "How to query logs" trong `documents/05-guides/operations/`
+- [ ] Log aggregation stack deploy vào staging + prod — Phase 2 (GAP-434)
+- [ ] Logs từ 6+ services aggregated + searchable — Phase 2 (GAP-434)
+- [ ] Query example: `{service="kitehub-subscription"} | tenantId="abc-123"` → hiển thị mọi log entries của tenant — Phase 2 (GAP-434)
+- [ ] Retention policy configured — Phase 2 (GAP-434)
+- [ ] Cost baseline documented — Phase 2 (GAP-434)
+- [x] Runbook: "How to query logs" trong `documents/05-guides/operations/` — Phase 1 shipped Wave 41 Bucket F 2026-05-08 at `documents/05-guides/operations/runbooks/monitoring-dashboards.md` (catalog + on-call workflow + LogQL example queries)
+- [x] Grafana skeleton dashboard provisioned — `infrastructure/helm/kitehub/dashboards/logs-overview.json` (Phase 1; renders "No data" until Phase 2 Loki backend ships)
 
 ## Related
 
@@ -52,4 +53,5 @@ Log aggregation chưa được infrastructure team build. Thiếu shared logging
 
 ## Log
 
+- **2026-05-08 — Wave 41 Bucket F:** Phase 1 shipped — Grafana skeleton dashboard `infrastructure/helm/kitehub/dashboards/logs-overview.json` (Loki datasource, 4 panels: log volume / error rate / per-service ERROR count last 5m / recent ERROR log lines tenant-scoped) + ConfigMap template `templates/dashboard-logs-overview.yaml` (auto-loaded via Grafana sidecar discovery) + on-call runbook `documents/05-guides/operations/runbooks/monitoring-dashboards.md` cataloging all 5 baseline dashboards (api-latency / http-traffic / jvm-heap-gc / infra-pools / logs-overview) with alert→dashboard→runbook 4-step triage workflow + forward-looking LogQL example queries. Phase 2 (Loki/Promtail backend stack + S3 retention + smoke test) tracked in **GAP-434**. Helm template renders verified via `helm template --show-only templates/dashboard-logs-overview.yaml`. JSON validated via `jq .`. Status flipped 🔵 OPEN → 🟡 PARTIAL.
 - 2026-04-19 — Discovered in ops-readiness baseline audit
