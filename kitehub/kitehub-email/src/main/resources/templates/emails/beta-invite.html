@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="|Lời mời beta - ${branding?.displayName ?: 'KiteClass'}|">Lời mời beta</title>
+    <style th:inline="text">
+        :root {
+            --brand-primary: [[${branding?.primaryColor ?: '#667eea'}]];
+            --brand-secondary: [[${branding?.secondaryColor ?: '#764ba2'}]];
+            --brand-accent: [[${branding?.accentColor ?: '#10B981'}]];
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header img.logo {
+            max-height: 60px;
+            margin-bottom: 12px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: var(--brand-primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .beta-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: var(--brand-accent);
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .disclaimer {
+            background: #FEF3C7;
+            border-left: 4px solid #F59E0B;
+            padding: 12px 16px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #78350F;
+            border-radius: 4px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+        .meta {
+            font-size: 13px;
+            color: #6B7280;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img class="logo" th:if="${branding?.logoUrl}" th:src="${branding.logoUrl}" alt="Logo"/>
+        <span class="beta-badge">Beta Program</span>
+        <h1 th:text="|Bạn được mời tham gia beta ${branding?.displayName ?: 'KiteClass'}!|">Bạn được mời tham gia beta!</h1>
+    </div>
+
+    <div class="content">
+        <p>Xin chào <strong th:text="${orgName}">Tổ chức</strong>,</p>
+
+        <p th:text="|Cảm ơn ${orgName} đã đăng ký quan tâm đến chương trình beta của ${branding?.displayName ?: 'KiteClass'}.|">
+            Cảm ơn bạn đã đăng ký.
+        </p>
+
+        <p>Chúng tôi vui mừng thông báo yêu cầu của bạn đã được duyệt. Vui lòng hoàn tất đăng ký bằng cách bấm nút bên dưới:</p>
+
+        <p style="text-align: center;">
+            <a th:href="${inviteUrl}" class="button">Hoàn tất đăng ký</a>
+        </p>
+
+        <p class="meta">
+            Mã mời: <code th:text="${inviteToken}">TOKEN</code><br/>
+            Hết hạn: <strong th:text="${expiryDate}">2026-05-31</strong>
+        </p>
+
+        <div class="disclaimer">
+            <strong>Lưu ý chương trình beta (v1 pending counsel review):</strong>
+            Đây là phiên bản beta — một số tính năng có thể thay đổi, dữ liệu beta có thể được reset trước khi ra mắt chính thức.
+            Nếu bạn có phản hồi, vui lòng liên hệ
+            <a th:href="|mailto:${branding?.contactEmail ?: 'support@kiteclass.com'}|"
+               th:text="${branding?.contactEmail ?: 'support@kiteclass.com'}">support@kiteclass.com</a>.
+        </div>
+
+        <p style="margin-top: 24px;">
+            Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email — không có hành động nào được thực thi.
+        </p>
+
+        <p><strong th:text="|Đội ngũ ${branding?.displayName ?: 'KiteClass'}|">Đội ngũ KiteClass</strong></p>
+    </div>
+
+    <div class="footer">
+        <p th:text="|© 2026 ${branding?.displayName ?: 'KiteClass'}. All rights reserved.|">© 2026 KiteClass.</p>
+        <p>Email này được gửi tự động, vui lòng không trả lời.</p>
+    </div>
+</body>
+</html>
