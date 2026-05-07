@@ -1,6 +1,6 @@
 # GAP-399: ECR Region Pin `us-east-1` → `ap-southeast-1`
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Wave 37 Bucket B
 **Priority:** 🔴 P0 v0.9.0-beta
 **Domain:** Docker / AWS region
 **Found:** 2026-05-07 (Wave 37 audit — `docker-build-push.yml` line 43)
@@ -30,10 +30,14 @@ Update IAM OIDC role region trust policy. Bootstrap region-specific ECR repos vi
 
 ## Acceptance Criteria
 
-- [ ] All `AWS_REGION` references = `ap-southeast-1`
-- [ ] ECR repo names follow `kite/<service>` convention (consistent với Docker naming convention CLAUDE.md)
-- [ ] Workflow YAML validated
-- [ ] First successful push verified ECR Singapore via `aws ecr describe-images --region ap-southeast-1`
+- [x] All `AWS_REGION` references = `ap-southeast-1` (env block line 41)
+- [x] ECR repo names follow `kite/<service>` convention (matches Bucket A Terraform naming)
+- [x] Workflow YAML validated (`python3 -c "import yaml; yaml.safe_load(...)"` → OK)
+- [ ] First successful push verified ECR Singapore — deferred to first push post Bucket A merge (AWS OIDC role + ECR repos provisioned)
+
+## Log
+
+- **2026-05-07** (Wave 37 Bucket B): `AWS_REGION` flipped `us-east-1` → `ap-southeast-1`; ECR env block expanded to 9 services per `kite/<service>` convention; matrix uses ECR repo per service. Final criterion (live ECR push verification) deferred to post-Bucket-A merge when AWS_ROLE_ARN secret + ECR repos exist.
 
 ## Related
 

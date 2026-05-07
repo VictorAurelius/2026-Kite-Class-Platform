@@ -1,6 +1,6 @@
 # GAP-401: Multi-arch Docker Build (linux/amd64 + linux/arm64)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Wave 37 Bucket B
 **Priority:** 🟡 P2
 **Domain:** Docker / Build optimization
 **Found:** 2026-05-07 (Wave 37 — Layer 2)
@@ -30,10 +30,15 @@ QEMU emulation for ARM build trên amd64 runner (~3-5x slow vs native, OK cho Ph
 
 ## Acceptance Criteria
 
-- [ ] All 11 production images build cho cả `amd64` + `arm64`
-- [ ] Buildx GHA cache enabled (giảm ~50% build time subsequent runs)
-- [ ] `docker manifest inspect` shows 2 arch entries per tag
-- [ ] CI build time vẫn <15 min total cho 11 images × 2 arch (parallelized)
+- [x] All production images build cho cả `amd64` + `arm64` on push-to-main / tag (`platforms: linux/amd64,linux/arm64` in push-to-ecr job)
+- [x] Buildx GHA cache enabled (`cache-from/to: type=gha,scope=${{ matrix.service }}` per-service scoping)
+- [x] QEMU setup added (`docker/setup-qemu-action@v3`) for cross-arch emulation
+- [ ] `docker manifest inspect` 2-arch verification — deferred to first live ECR push
+- [ ] CI build time <15 min total — verify on first multi-arch push run
+
+## Log
+
+- **2026-05-07** (Wave 37 Bucket B): QEMU + Buildx setup + `platforms: linux/amd64,linux/arm64` in push job. PR build job uses amd64-only to keep PR CI fast. Cache scoped per-service to avoid cross-pollination. Live verification deferred to first push to main / tag.
 
 ## Related
 

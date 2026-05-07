@@ -1,6 +1,6 @@
 # GAP-402: SBOM + Image Signing (Cosign Supply Chain Security)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Wave 37 Bucket B
 **Priority:** 🟡 P2
 **Domain:** Security / Supply chain
 **Found:** 2026-05-07 (Wave 37 — Layer 2)
@@ -30,10 +30,15 @@ Production images không có SBOM (Software Bill of Materials) hoặc cryptograp
 
 ## Acceptance Criteria
 
-- [ ] SBOM CycloneDX JSON generated cho mỗi image
-- [ ] Cosign keyless signature attached (verify với `cosign tree <image>`)
-- [ ] Pre-deploy verification step trong runbook (manual Phase 1, automated Phase 2+)
-- [ ] SBOM uploaded artifact GitHub Actions (retention 90 ngày)
+- [x] SBOM CycloneDX JSON generated per image (`anchore/sbom-action@v0`, `format: cyclonedx-json`, output `sbom-${{ matrix.service }}.cdx.json`)
+- [x] Cosign keyless signature step (`sigstore/cosign-installer@v3` + `cosign sign --yes` with OIDC token from `id-token: write` permission)
+- [x] SBOM attached as Cosign attestation (`cosign attest --predicate ... --type cyclonedx`)
+- [x] SBOM uploaded as GitHub Actions artifact (`upload-artifact: true`, `upload-artifact-retention: 90`)
+- [ ] Pre-deploy `cosign verify` step in runbook — deferred to GAP-403 deploy runbook (Bucket C scope)
+
+## Log
+
+- **2026-05-07** (Wave 37 Bucket B): Cosign installer + sign + attest steps added in push-to-ecr job; Syft SBOM generation as CycloneDX with 90-day artifact retention. `id-token: write` + `attestations: write` permissions added. Pre-deploy verify step deferred to deploy runbook (Bucket C).
 
 ## Related
 

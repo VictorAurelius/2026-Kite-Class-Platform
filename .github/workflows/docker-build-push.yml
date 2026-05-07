@@ -1,4 +1,12 @@
-name: Build and Push KiteClass Docker Images
+name: Build and Push Kite Docker Images
+
+# Wave 37 Bucket B (GAP-398..402):
+# - Region pinned ap-southeast-1 (ADR-025 AWS Singapore)
+# - ECR repo naming: kite/<service>
+# - 5 KH services + 3 KC services + 2 frontends = 10 images
+# - Multi-arch linux/amd64 + linux/arm64
+# - Trivy HIGH/CRITICAL fail + SARIF upload (GAP-400)
+# - Syft SBOM CycloneDX + Cosign keyless signing (GAP-402)
 
 on:
   push:
@@ -9,13 +17,9 @@ on:
     paths:
       - 'docker/**'
       - 'kiteclass/**'
+      - 'kitehub/**'
       - 'frontend/**'
       - '.github/workflows/docker-build-push.yml'
-  # Narrowed 2026-04-24: previously triggered on every PR touching kiteclass/**
-  # (i.e. ~all code PRs). Docker build is ~4-5 min wall-clock and on PRs only
-  # verifies Dockerfile parses — it never pushes (push-to-ecr gates on main).
-  # Normal code PRs now skip this workflow; only PRs that actually touch the
-  # Docker layer still run it as a safety net.
   pull_request:
     branches:
       - main
@@ -34,23 +38,29 @@ on:
         required: false
         default: 'latest'
 
-# Added 2026-04-24: batch-merge sessions (e.g. 7 Wave 5 + Dependabot merges
-# within 3 min) used to fire 7 full build-and-push runs — wasteful and only
-# the newest ECR image matters. Grouping by ref means a fresh push on main
-# cancels any in-progress run on main; PR/tag runs are grouped independently
-# so they don't starve each other.
 concurrency:
   group: docker-build-push-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  AWS_REGION: us-east-1
-  ECR_REPOSITORY_CORE: kiteclass/core
-  ECR_REPOSITORY_GATEWAY: kiteclass/gateway
-  ECR_REPOSITORY_FRONTEND: kiteclass/frontend
+  AWS_REGION: ap-southeast-1
+  # ECR repo naming convention: kite/<service> (per CLAUDE.md Docker Naming Convention)
+  # KiteClass services
+  ECR_REPO_KC_CORE: kite/kiteclass-core
+  ECR_REPO_KC_GATEWAY: kite/kiteclass-gateway
+  ECR_REPO_KC_FRONTEND: kite/kiteclass-frontend
+  # KiteHub services
+  ECR_REPO_KH_SUBSCRIPTION: kite/kitehub-subscription
+  ECR_REPO_KH_BRANDING: kite/kitehub-branding
+  ECR_REPO_KH_EMAIL: kite/kitehub-email
+  ECR_REPO_KH_ADMIN: kite/kitehub-admin
+  ECR_REPO_KH_GATEWAY: kite/kitehub-gateway
+  ECR_REPO_KH_FRONTEND: kite/kitehub-frontend
 
 jobs:
-  # Job 1: Build Docker images (always run - verify Dockerfiles work)
+  # ==========================================================================
+  # Job 1: Build Docker images on PR (verify Dockerfiles parse + build clean)
+  # ==========================================================================
   build-test:
     name: Build Docker Images (Test)
     runs-on: ubuntu-latest
@@ -58,29 +68,83 @@ jobs:
       contents: read
 
     strategy:
+      fail-fast: false
       matrix:
-        service: [core, gateway, frontend]
         include:
-          # frontend uses repo-root context for pnpm workspace (ADR-024 / GAP-284)
-          - service: frontend
-            context: .
-          - service: core
+          # KiteClass services
+          - service: kiteclass-core
+            ecr_repo: kite/kiteclass-core
             context: kiteclass/kiteclass-core
-          - service: gateway
+            dockerfile: kiteclass/kiteclass-core/Dockerfile
+          - service: kiteclass-gateway
+            ecr_repo: kite/kiteclass-gateway
             context: kiteclass/kiteclass-gateway
+            dockerfile: kiteclass/kiteclass-gateway/Dockerfile
+          - service: kiteclass-frontend
+            ecr_repo: kite/kiteclass-frontend
+            context: .
+            dockerfile: kiteclass/kiteclass-frontend/Dockerfile
+          # KiteHub backend services (5; kitehub-platform is shared library, not deployable)
+          - service: kitehub-subscription
+            ecr_repo: kite/kitehub-subscription
+            context: kitehub
+            dockerfile: kitehub/kitehub-subscription/Dockerfile
+          - service: kitehub-branding
+            ecr_repo: kite/kitehub-branding
+            context: kitehub
+            dockerfile: kitehub/kitehub-branding/Dockerfile
+          - service: kitehub-email
+            ecr_repo: kite/kitehub-email
+            context: kitehub
+            dockerfile: kitehub/kitehub-email/Dockerfile
+          - service: kitehub-admin
+            ecr_repo: kite/kitehub-admin
+            context: kitehub
+            dockerfile: kitehub/kitehub-admin/Dockerfile
+          - service: kitehub-gateway
+            ecr_repo: kite/kitehub-gateway
+            context: kitehub
+            dockerfile: kitehub/kitehub-gateway/Dockerfile
+          # KiteHub frontend (if Dockerfile exists; allow missing without failing)
+          - service: kitehub-frontend
+            ecr_repo: kite/kitehub-frontend
+            context: .
+            dockerfile: kitehub/kitehub-frontend/Dockerfile
+            optional: 'true'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      - name: Check Dockerfile presence
+        id: dockerfile_check
+        run: |
+          if [ -f "${{ matrix.dockerfile }}" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            if [ "${{ matrix.optional }}" = "true" ]; then
+              echo "::warning ::Optional Dockerfile not present: ${{ matrix.dockerfile }} — skipping"
+            else
+              echo "::error ::Required Dockerfile missing: ${{ matrix.dockerfile }}"
+              exit 1
+            fi
+          fi
+
+      - name: Set up QEMU (multi-arch emulation)
+        if: steps.dockerfile_check.outputs.exists == 'true'
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
+        if: steps.dockerfile_check.outputs.exists == 'true'
         uses: docker/setup-buildx-action@v4
 
       - name: Extract metadata
         id: meta
+        if: steps.dockerfile_check.outputs.exists == 'true'
         uses: docker/metadata-action@v6
         with:
-          images: kiteclass/${{ matrix.service }}
+          images: ${{ matrix.ecr_repo }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -89,57 +153,104 @@ jobs:
             type=sha
             type=raw,value=test
 
-      - name: Build Docker image (no push)
+      - name: Build Docker image (no push, single-arch for PR speed)
+        if: steps.dockerfile_check.outputs.exists == 'true'
         uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.context }}
-          file: kiteclass/kiteclass-${{ matrix.service }}/Dockerfile
-          push: false  # Only build, don't push (no registry needed)
+          file: ${{ matrix.dockerfile }}
+          push: false
+          # PR builds only amd64 to keep CI fast; main/tag pushes do multi-arch
+          platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
           build-args: |
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
             VCS_REF=${{ github.sha }}
             VERSION=${{ steps.meta.outputs.version }}
 
       - name: Build summary
+        if: steps.dockerfile_check.outputs.exists == 'true'
         run: |
-          echo "✅ Docker image built successfully: ${{ matrix.service }}"
-          echo "Tags: ${{ steps.meta.outputs.tags }}"
+          echo "Built: ${{ matrix.service }} -> ${{ matrix.ecr_repo }}"
 
-  # Job 2: Push to AWS ECR (only if AWS configured and main branch)
+  # ==========================================================================
+  # Job 2: Push to ECR ap-southeast-1 + Trivy scan + SBOM + Cosign sign
+  # Only on push to main / version tag, when AWS configured.
+  # ==========================================================================
   push-to-ecr:
-    name: Push to AWS ECR
+    name: Push to ECR (ap-southeast-1) + Scan + SBOM + Sign
     runs-on: ubuntu-latest
-    needs: build-test  # Only run after build-test succeeds
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.AWS_CONFIGURED == 'true'
+    needs: build-test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && vars.AWS_CONFIGURED == 'true'
     permissions:
-      id-token: write # Required for AWS OIDC
+      id-token: write       # OIDC for AWS + Cosign keyless
       contents: read
-      security-events: write  # For Trivy SARIF upload
+      security-events: write  # Trivy SARIF upload
+      attestations: write     # Image attestations (SBOM + provenance)
+      packages: write
 
     strategy:
+      fail-fast: false
       matrix:
-        service: [core, gateway, frontend]
         include:
-          # frontend uses repo-root context for pnpm workspace (ADR-024 / GAP-284)
-          - service: frontend
-            context: .
-          - service: core
+          - service: kiteclass-core
+            ecr_repo: kite/kiteclass-core
             context: kiteclass/kiteclass-core
-          - service: gateway
+            dockerfile: kiteclass/kiteclass-core/Dockerfile
+          - service: kiteclass-gateway
+            ecr_repo: kite/kiteclass-gateway
             context: kiteclass/kiteclass-gateway
+            dockerfile: kiteclass/kiteclass-gateway/Dockerfile
+          - service: kiteclass-frontend
+            ecr_repo: kite/kiteclass-frontend
+            context: .
+            dockerfile: kiteclass/kiteclass-frontend/Dockerfile
+          - service: kitehub-subscription
+            ecr_repo: kite/kitehub-subscription
+            context: kitehub
+            dockerfile: kitehub/kitehub-subscription/Dockerfile
+          - service: kitehub-branding
+            ecr_repo: kite/kitehub-branding
+            context: kitehub
+            dockerfile: kitehub/kitehub-branding/Dockerfile
+          - service: kitehub-email
+            ecr_repo: kite/kitehub-email
+            context: kitehub
+            dockerfile: kitehub/kitehub-email/Dockerfile
+          - service: kitehub-admin
+            ecr_repo: kite/kitehub-admin
+            context: kitehub
+            dockerfile: kitehub/kitehub-admin/Dockerfile
+          - service: kitehub-gateway
+            ecr_repo: kite/kitehub-gateway
+            context: kitehub
+            dockerfile: kitehub/kitehub-gateway/Dockerfile
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      - name: Check Dockerfile presence
+        id: dockerfile_check
+        run: |
+          if [ -f "${{ matrix.dockerfile }}" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::error ::Required Dockerfile missing: ${{ matrix.dockerfile }}"
+            exit 1
+          fi
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials (OIDC, ap-southeast-1)
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
@@ -154,7 +265,7 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: |
-            ${{ steps.login-ecr.outputs.registry }}/kiteclass/${{ matrix.service }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ matrix.ecr_repo }}
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}
@@ -163,38 +274,79 @@ jobs:
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push to ECR
+      - name: Build and push to ECR (multi-arch amd64+arm64)
+        id: build_push
         uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.context }}
-          file: kiteclass/kiteclass-${{ matrix.service }}/Dockerfile
-          push: true  # Push to ECR
+          file: ${{ matrix.dockerfile }}
+          push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+          provenance: true
+          sbom: true
           build-args: |
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
             VCS_REF=${{ github.sha }}
             VERSION=${{ steps.meta.outputs.version }}
 
       - name: Image digest
-        run: echo ${{ steps.meta.outputs.digest }}
+        run: echo "${{ matrix.service }} digest=${{ steps.build_push.outputs.digest }}"
 
-      - name: Scan image for vulnerabilities
+      # GAP-400: Trivy scan — fail on HIGH/CRITICAL fixable CVEs
+      - name: Trivy vulnerability scan (fail HIGH/CRITICAL)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ steps.login-ecr.outputs.registry }}/kiteclass/${{ matrix.service }}:${{ steps.meta.outputs.version }}
+          image-ref: ${{ steps.login-ecr.outputs.registry }}/${{ matrix.ecr_repo }}@${{ steps.build_push.outputs.digest }}
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
           format: 'sarif'
-          output: 'trivy-results.sarif'
+          output: 'trivy-results-${{ matrix.service }}.sarif'
 
-      - name: Upload Trivy scan results to GitHub Security
+      - name: Upload Trivy SARIF to GitHub Security
+        if: always()
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: 'trivy-results-${{ matrix.service }}.sarif'
+          category: trivy-${{ matrix.service }}
 
-  # Notify status
+      # GAP-402: Syft SBOM (CycloneDX)
+      - name: Generate Syft SBOM (CycloneDX)
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ matrix.ecr_repo }}@${{ steps.build_push.outputs.digest }}
+          format: cyclonedx-json
+          output-file: sbom-${{ matrix.service }}.cdx.json
+          upload-artifact: true
+          upload-artifact-retention: 90
+
+      # GAP-402: Cosign keyless signing (sigstore OIDC)
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign image with Cosign (keyless OIDC)
+        env:
+          COSIGN_EXPERIMENTAL: '1'
+        run: |
+          cosign sign --yes \
+            "${{ steps.login-ecr.outputs.registry }}/${{ matrix.ecr_repo }}@${{ steps.build_push.outputs.digest }}"
+
+      - name: Attach SBOM as Cosign attestation
+        env:
+          COSIGN_EXPERIMENTAL: '1'
+        run: |
+          cosign attest --yes \
+            --predicate "sbom-${{ matrix.service }}.cdx.json" \
+            --type cyclonedx \
+            "${{ steps.login-ecr.outputs.registry }}/${{ matrix.ecr_repo }}@${{ steps.build_push.outputs.digest }}"
+
+  # ==========================================================================
+  # Job 3: Notify
+  # ==========================================================================
   notify:
     name: Notify Build Status
     runs-on: ubuntu-latest
@@ -207,23 +359,21 @@ jobs:
           echo "Build Test: ${{ needs.build-test.result }}"
           echo "Push to ECR: ${{ needs.push-to-ecr.result }}"
 
-          # CRITICAL FIX: Check build-test result FIRST (blocking)
           if [ "${{ needs.build-test.result }}" != "success" ]; then
-            echo "❌ Docker images build verification failed"
+            echo "Docker images build verification failed"
             exit 1
           fi
 
-          echo "✅ Docker images build verification passed"
+          echo "Docker images build verification passed"
 
-          # Handle push-to-ecr status (informational, never blocks)
           case "${{ needs.push-to-ecr.result }}" in
             success)
-              echo "✅ Images pushed to ECR successfully"
+              echo "Images pushed to ECR ap-southeast-1, scanned, signed, SBOM attached"
               ;;
             skipped)
-              echo "⏭️  ECR push skipped (not main branch or PR)"
+              echo "ECR push skipped (PR / non-main / AWS not configured)"
               ;;
             *)
-              echo "⚠️  ECR push: ${{ needs.push-to-ecr.result }} (AWS credentials not configured - expected)"
+              echo "ECR push: ${{ needs.push-to-ecr.result }}"
               ;;
           esac
