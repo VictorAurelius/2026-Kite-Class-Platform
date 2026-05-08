@@ -1,5 +1,6 @@
 package com.kitehub.subscription.dsar.service;
 
+import com.kitehub.subscription.client.EmailServiceClient;
 import com.kitehub.subscription.dsar.dto.DsarRequest;
 import com.kitehub.subscription.dsar.entity.DsarRightType;
 import com.kitehub.subscription.dsar.entity.DsarStatus;
@@ -18,6 +19,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,17 +29,21 @@ import static org.mockito.Mockito.when;
  * Unit tests for {@link DsarServiceImpl}.
  *
  * @since Wave 26 Bucket A — GAP-353c
+ * @since Wave 48 Bucket A — GAP-353c-followup-dpo-email-notification (email tests)
  */
 @DisplayName("DsarServiceImpl")
 class DsarServiceImplTest {
 
+    private static final String DPO_EMAIL = "dpo@kitehub.vn";
+
     private final DsarTicketRepository repository = Mockito.mock(DsarTicketRepository.class);
+    private final EmailServiceClient emailServiceClient = Mockito.mock(EmailServiceClient.class);
     private DsarServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        Mockito.reset(repository);
-        service = new DsarServiceImpl(repository);
+        Mockito.reset(repository, emailServiceClient);
+        service = new DsarServiceImpl(repository, emailServiceClient, DPO_EMAIL);
     }
 
     private DsarRequest sampleRequest() {
@@ -51,9 +58,7 @@ class DsarServiceImplTest {
                 .build();
     }
 
-    @Test
-    @DisplayName("submitRequest persists ticket with PENDING status + 20-day SLA")
-    void submitRequestPersistsPendingTicket() {
+    private void stubRepositorySave() {
         when(repository.save(any(DsarTicket.class))).thenAnswer(inv -> {
             DsarTicket t = inv.getArgument(0);
             // Simulate JPA @PrePersist effects (cannot call package-private onCreate from this package).
@@ -74,6 +79,12 @@ class DsarServiceImplTest {
             t.setId(1L);
             return t;
         });
+    }
+
+    @Test
+    @DisplayName("submitRequest persists ticket with PENDING status + 20-day SLA")
+    void submitRequestPersistsPendingTicket() {
+        stubRepositorySave();
 
         DsarTicket saved = service.submitRequest(sampleRequest());
 
@@ -98,6 +109,12 @@ class DsarServiceImplTest {
         assertThatThrownBy(() -> service.submitRequest(bot))
                 .isInstanceOf(IllegalArgumentException.class);
         verify(repository, never()).save(any(DsarTicket.class));
+        verify(emailServiceClient, never()).sendDsarNewTicketDpoEmail(
+                any(UUID.class), any(String.class), any(String.class),
+                any(String.class), any(OffsetDateTime.class));
+        verify(emailServiceClient, never()).sendDsarAcknowledgementEmail(
+                any(UUID.class), any(String.class), any(String.class),
+                any(String.class), any(OffsetDateTime.class));
     }
 
     @Test
@@ -133,5 +150,56 @@ class DsarServiceImplTest {
         Optional<DsarTicket> result = service.getTicket(uuid);
 
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("submitRequest dispatches DPO email with correct payload")
+    void submitRequestDispatchesDpoEmail() {
+        stubRepositorySave();
+
+        DsarTicket saved = service.submitRequest(sampleRequest());
+
+        verify(emailServiceClient).sendDsarNewTicketDpoEmail(
+                eq(saved.getTicketUuid()),
+                eq(DPO_EMAIL),
+                eq(DsarRightType.ACCESS.name()),
+                eq("subject@example.com"),
+                eq(saved.getSlaDeadline()));
+    }
+
+    @Test
+    @DisplayName("submitRequest dispatches requester acknowledgement email with correct payload")
+    void submitRequestDispatchesRequesterAcknowledgement() {
+        stubRepositorySave();
+
+        DsarTicket saved = service.submitRequest(sampleRequest());
+
+        verify(emailServiceClient).sendDsarAcknowledgementEmail(
+                eq(saved.getTicketUuid()),
+                eq("subject@example.com"),
+                eq("Nguyen Test"),
+                eq(DsarRightType.ACCESS.name()),
+                eq(saved.getSlaDeadline()));
+    }
+
+    @Test
+    @DisplayName("submitRequest persists ticket even when email dispatch throws")
+    void submitRequestEmailFailureDoesNotRollbackTicket() {
+        stubRepositorySave();
+        doThrow(new RuntimeException("RabbitMQ down")).when(emailServiceClient)
+                .sendDsarNewTicketDpoEmail(any(UUID.class), any(String.class),
+                        any(String.class), any(String.class), any(OffsetDateTime.class));
+
+        DsarTicket saved = service.submitRequest(sampleRequest());
+
+        // Ticket persisted despite DPO email failure.
+        assertThat(saved.getTicketUuid()).isNotNull();
+        assertThat(saved.getStatus()).isEqualTo(DsarStatus.PENDING);
+        verify(repository).save(any(DsarTicket.class));
+        // Requester acknowledgement still attempted (independent try/catch).
+        verify(emailServiceClient).sendDsarAcknowledgementEmail(
+                eq(saved.getTicketUuid()), eq("subject@example.com"),
+                eq("Nguyen Test"), eq(DsarRightType.ACCESS.name()),
+                eq(saved.getSlaDeadline()));
     }
 }

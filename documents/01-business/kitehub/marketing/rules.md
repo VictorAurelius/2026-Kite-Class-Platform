@@ -131,6 +131,18 @@ Per `business-logic-review.md` v1.0.0 §2 (5-attribute mandate). Implements PDPL
 
 ---
 
+#### BR-PDPL-DSAR-006: DPO email notification address
+
+- **Value:** `dpo@kitehub.vn` (config key: `kitehub.dsar.dpo-email`, override-able per environment via Spring `@Value` placeholder). Used as the recipient address for the `dsar-new-ticket-dpo` push email dispatched by `DsarServiceImpl#notifyDpo` whenever a DSAR ticket is created. Companion to BR-PDPL-DSAR-001..005 (the value lives in `kitehub-subscription` config; templated email lives in `kitehub-email`).
+- **Source:** **VN law / regulation** — PDPL 2023 **Article 9** (DPO designation requirement) + Decree 13/2023/NĐ-CP **Article 26** (DPO contact reachability for data subject communications). **Industry standard** — `dpo@` subdomain prefix per GDPR Art 37 implementation precedent + ISO/IEC 27701 §6.3.1 (single canonical DPO inbox for triage simplicity). **Operational rationale** — solo-dev mode shares this inbox with on-call rotation; production should override per-environment to a distribution list.
+- **Rationale:** Why a single canonical inbox (vs per-rightType routing): triage simplicity dominates in low-volume phase; `dpo@kitehub.vn` is the standard contact published in Privacy Policy §"Exercising Rights". Why subdomain prefix `dpo@` (vs `legal@` / `privacy@` / personal admin email): standardizes across PDPL/GDPR/SOC2 contexts so reviewers immediately recognize the role; personal admin emails leak ops responsibility when staff turn over. Why config-driven (vs hard-coded `dpo@kitehub.vn`): allow staging/prod separation without code change; allow an enterprise customer-segregated rollout to override per-tenant in future.
+- **Reviewer:** @nguyenvankiet (acting Compliance scout, solo-dev, 2026-05-09). Formal legal counsel review queued — **GAP-156** acceptance criteria item.
+- **Compliance check:** **Compliant** — PDPL 2023 Art 9 (DPO designation), Decree 13/2023/NĐ-CP Art 26 (DPO contact reachability). Email address itself doesn't trigger additional regulated areas; PII rules apply downstream when DPO replies to the requester.
+- **Review cadence:** **Annual** + event-driven on regulator amendment OR DPO-role change. **Next review:** 2027-05-09 OR within 30 days of any PDPL implementing-decree publication that affects DPO contact requirements.
+- **Code reference:** `kitehub-subscription/src/main/java/com/kitehub/subscription/dsar/service/DsarServiceImpl.java` (constructor `@Value` injection) + `kitehub-subscription/src/main/java/com/kitehub/subscription/client/EmailServiceClient.java#sendDsarNewTicketDpoEmail` (recipient parameter) + `kitehub-email/src/main/resources/templates/emails/dsar-new-ticket-dpo.html` (template).
+
+---
+
 ## 2. Config Keys
 
 | Key | Default | Description |
@@ -141,6 +153,7 @@ Per `business-logic-review.md` v1.0.0 §2 (5-attribute mandate). Implements PDPL
 | `kite.consent.record.retention-months` | `36` | Consent record retention (BR-PDPL-CONSENT-003) |
 | `kite.consent.banner.expiry-months` | `12` | Re-prompt cadence default (BR-PDPL-CONSENT-004) |
 | `kite.consent.banner.storage-key` | `kite.consent.v1` | Versioned LocalStorage key (BR-PDPL-CONSENT-003 + 004) |
+| `kitehub.dsar.dpo-email` | `dpo@kitehub.vn` | DPO inbox cho DSAR push notification (BR-PDPL-DSAR-006) |
 
 ---
 
@@ -161,5 +174,6 @@ Per `business-logic-review.md` v1.0.0 §2 (5-attribute mandate). Implements PDPL
 
 ## 5. Log
 
+- **2026-05-09** — Wave 48 Bucket A (GAP-353c-followup-dpo-email-notification). Added `BR-PDPL-DSAR-006` (DPO email notification address) with full 5-attribute review per `business-logic-review.md` v1.0.0. Source: PDPL 2023 Art 9 + Decree 13/2023/NĐ-CP Art 26 (DPO designation + contact reachability) + GDPR Art 37 + ISO/IEC 27701 §6.3.1 (industry-standard `dpo@` subdomain prefix). Updated §2 Config Keys table with `kitehub.dsar.dpo-email`. Reviewer: @nguyenvankiet (acting Compliance scout, solo-dev). Legal counsel formal review queued GAP-156. Closes GAP-353c-followup-dpo-email-notification → 🟢 DONE; cascade closes GAP-353c parent 🟡 PARTIAL → 🟢 DONE per `gap-done-discipline.md` §2.
 - **2026-05-06** — Wave 26 Bucket A (GAP-353c). Added 5 `BR-PDPL-DSAR-001..005` rules với full 5-attribute review per `business-logic-review.md` v1.0.0 covering: 6 PDPL Art 14 right enumeration, 20-day Decree 13/2023 Art 19 SLA, identity verification via national_id_last4 + DPO callback, 36-month retention (sister to BR-PDPL-CONSENT-003 + DR-03), honeypot anti-spam. Updated §4 Out-of-scope to flip GAP-353c from deferred → shipped. Reviewer: @nguyenvankiet (acting Compliance scout + Product Owner + Tech Lead, solo-dev). Legal counsel formal review queued GAP-182 Phase 2 + GAP-156.
 - **2026-05-06** — Initial rules. Wave 23 Bucket A. Created file kèm 4 BR-PDPL-CONSENT-* rules với full 5-attribute review per `business-logic-review.md` v1.0.0. Source: PDPL 2023 Articles 11-13, Decree 13/2023/NĐ-CP Articles 13/17/18, Consumer Protection Law 2023 Art 12, GDPR precedent (non-binding). Reviewer: @nguyenvankiet (acting Compliance scout + Product Owner, solo-dev). Legal counsel formal review queued GAP-182 Phase 2 + GAP-156. Closes Wave 23 Bucket A AC item "kitehub/marketing/rules.md created with BR-PDPL-CONSENT-001..004 5-attribute".
