@@ -151,6 +151,9 @@ services:
     environment:
       JAVA_OPTS: "-Xmx256m -Xms128m -XX:+UseSerialGC"
       SPRING_PROFILES_ACTIVE: production
+      # Force gateway to listen on 8080 to match ALB target group port
+      # (application.yml default = ${SERVER_PORT:9000} = 9000 if env unset).
+      SERVER_PORT: 8080
     ports:
       - "8080:8080"  # ALB target group kh_backend points here
     depends_on:
