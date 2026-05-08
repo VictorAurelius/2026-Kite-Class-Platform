@@ -160,6 +160,95 @@ resource "aws_iam_role_policy" "github_plan_state_access" {
 }
 
 # =============================================================================
+# GitHub OIDC — Apply role (terraform-apply.yml workflow_dispatch)
+# =============================================================================
+# Per release-deploy-standard.md §9 (revised) + GAP-449: workflow_dispatch +
+# confirm input + human-click = permitted; OIDC ephemeral creds preferred over
+# local admin key. Trust scoped to GitHub Environment 'production' for stricter
+# review-gate vs the read-only plan role.
+
+resource "aws_iam_role" "github_terraform_apply" {
+  name = "${var.project_name}-github-terraform-apply"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Federated = aws_iam_openid_connect_provider.github.arn }
+      Action    = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+        StringLike = {
+          # Restrict to GitHub Environment 'production' for stricter gate
+          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:environment:production"
+        }
+      }
+    }]
+  })
+
+  tags = { Name = "${var.project_name}-github-terraform-apply" }
+}
+
+resource "aws_iam_role_policy_attachment" "github_apply_poweruser" {
+  role       = aws_iam_role.github_terraform_apply.name
+  policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"
+}
+
+# IAM management perms (terraform manages IAM resources — PowerUserAccess excludes IAM)
+resource "aws_iam_role_policy" "github_apply_iam_management" {
+  name = "${var.project_name}-github-apply-iam"
+  role = aws_iam_role.github_terraform_apply.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:UpdateRole",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:AttachRolePolicy", "iam:DetachRolePolicy", "iam:ListAttachedRolePolicies",
+        "iam:CreatePolicy", "iam:DeletePolicy", "iam:GetPolicy", "iam:ListPolicies",
+        "iam:CreatePolicyVersion", "iam:DeletePolicyVersion", "iam:ListPolicyVersions",
+        "iam:GetPolicyVersion",
+        "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:GetRolePolicy", "iam:ListRolePolicies",
+        "iam:PassRole", "iam:TagRole", "iam:UntagRole",
+        "iam:CreateInstanceProfile", "iam:DeleteInstanceProfile", "iam:GetInstanceProfile",
+        "iam:AddRoleToInstanceProfile", "iam:RemoveRoleFromInstanceProfile",
+        "iam:CreateOpenIDConnectProvider", "iam:DeleteOpenIDConnectProvider",
+        "iam:GetOpenIDConnectProvider", "iam:UpdateOpenIDConnectProviderThumbprint",
+        "iam:TagOpenIDConnectProvider"
+      ]
+      Resource = "*"
+    }]
+  })
+}
+
+# State backend access (S3 + DynamoDB) — same shape as plan role
+resource "aws_iam_role_policy" "github_apply_state_access" {
+  name = "${var.project_name}-github-apply-state"
+  role = aws_iam_role.github_terraform_apply.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = ["s3:GetObject", "s3:PutObject", "s3:ListBucket"]
+        Resource = [
+          "arn:aws:s3:::${var.project_name}-terraform-state-${data.aws_caller_identity.current.account_id}",
+          "arn:aws:s3:::${var.project_name}-terraform-state-${data.aws_caller_identity.current.account_id}/*",
+        ]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:DeleteItem"]
+        Resource = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project_name}-terraform-locks"
+      },
+    ]
+  })
+}
+
+# =============================================================================
 # GitHub OIDC — Deploy role (deploy-staging.yml + deploy-production.yml)
 # =============================================================================
 # Per GAP-436: write-capable role for SSM RunCommand on EC2 + Secrets Manager

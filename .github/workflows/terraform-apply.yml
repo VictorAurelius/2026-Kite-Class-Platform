@@ -1,0 +1,113 @@
+name: Terraform Apply
+
+# workflow_dispatch only — NO push/PR triggers (per release-deploy-standard.md §9 revised).
+# User-triggered, confirm-input gated, OIDC ephemeral creds.
+#
+# References:
+#   - GAP-449 acceptance criteria
+#   - .claude/rules/release-deploy-standard.md §9 — agent ships workflow, human runs apply
+#   - .claude/rules/agent-aws-access.md — apply via documented terraform workflow OK
+#   - infrastructure/terraform-aws/iam.tf — IAM role `${project_name}-github-terraform-apply`
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Git ref (branch/tag) to apply — default main'
+        required: false
+        type: string
+        default: 'main'
+      confirm:
+        description: "Type APPLY verbatim to confirm"
+        required: true
+        type: string
+      dry_run:
+        description: 'Plan only mode — true = plan, false = apply'
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  id-token: write       # OIDC token for AWS STS AssumeRoleWithWebIdentity
+  contents: read        # Checkout
+
+env:
+  TF_VERSION: '1.7.5'
+  TF_WORKING_DIR: 'infrastructure/terraform-aws'
+  AWS_REGION: 'ap-southeast-1'
+
+jobs:
+  validate:
+    name: Validate inputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm intent
+        if: ${{ github.event.inputs.confirm != 'APPLY' }}
+        run: |
+          echo "::error ::Confirm input must be 'APPLY' verbatim. Got: '${{ github.event.inputs.confirm }}'"
+          exit 1
+
+      - name: Echo run summary
+        run: |
+          echo "Ref:     ${{ github.event.inputs.version }}"
+          echo "Confirm: ${{ github.event.inputs.confirm }}"
+          echo "Dry run: ${{ github.event.inputs.dry_run }}"
+
+  apply:
+    name: terraform-apply
+    runs-on: ubuntu-latest
+    needs: validate
+    environment: production  # GitHub Environment ref (protection rules optional)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: true
+
+      - name: Terraform fmt check
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform fmt -check -recursive
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_TERRAFORM_APPLY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: github-terraform-apply-${{ github.run_id }}
+
+      - name: Terraform init (partial backend)
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init -input=false -backend-config="bucket=${{ vars.TERRAFORM_STATE_BUCKET }}"
+
+      - name: Terraform validate
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform validate -no-color
+
+      - name: Terraform plan
+        id: plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          terraform plan -no-color -input=false -out=tfplan 2>&1 | tee plan-output.txt
+
+      - name: Upload plan output
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-${{ github.run_id }}
+          path: ${{ env.TF_WORKING_DIR }}/plan-output.txt
+          retention-days: 30
+
+      - name: Terraform apply (only if dry_run=false)
+        if: ${{ github.event.inputs.dry_run == 'false' }}
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform apply -input=false tfplan
+
+      - name: Dry-run summary
+        if: ${{ github.event.inputs.dry_run == 'true' }}
+        run: |
+          echo "::notice ::dry_run=true — terraform plan completed; apply step skipped. Review plan-output.txt artifact."

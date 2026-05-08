@@ -76,6 +76,11 @@ output "github_terraform_plan_role_arn" {
   value       = aws_iam_role.github_terraform_plan.arn
 }
 
+output "github_terraform_apply_role_arn" {
+  value       = aws_iam_role.github_terraform_apply.arn
+  description = "ARN of OIDC role assumed by terraform-apply workflow_dispatch. Set as GitHub Variable AWS_TERRAFORM_APPLY_ROLE_ARN post-bootstrap."
+}
+
 # --- Convenience ---
 output "ssm_kh_backend_command" {
   description = "Command to open SSM session to KH backend EC2"
