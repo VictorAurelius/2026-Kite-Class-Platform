@@ -1,11 +1,13 @@
 # Build context: repo root (per ADR-024 pnpm workspace).
 # Dockerfile path: kiteclass/kiteclass-frontend/Dockerfile
-FROM node:20-alpine AS base
-# Pin pnpm@9 — pnpm@11 requires Node 22.5+ (node:sqlite builtin); we run Node 20.
+# GAP-442: Node 22 LTS on Debian trixie-slim — replaces alpine 3.23 to clear gnutls
+# CVE-2026-33845 + the 11 npm-in-base CVE pile (tar / minimatch / cross-spawn / glob).
+# pnpm@9 supports Node 18-22+; pin retained for behavior parity with Node 20-alpine baseline.
+FROM node:22-trixie-slim AS base
 RUN corepack enable && corepack prepare pnpm@9 --activate
 
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
+# libc6-compat is alpine-specific (musl→glibc shim); not needed on Debian trixie (glibc native).
 WORKDIR /app
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY packages/shared-ui ./packages/shared-ui
@@ -19,12 +21,12 @@ COPY kiteclass/kiteclass-frontend ./kiteclass/kiteclass-frontend
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm --filter kiteclass-frontend build
 
-FROM node:20-alpine AS runner
+FROM node:22-trixie-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 --gid nodejs --no-create-home --shell /usr/sbin/nologin nextjs
 
 # Next standalone with monorepo: outputFileTracingRoot=repo root means
 # the standalone bundle preserves workspace structure under /app.
@@ -32,7 +34,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/kiteclass/kiteclass-frontend/.nex
 COPY --from=builder --chown=nextjs:nodejs /app/kiteclass/kiteclass-frontend/.next/static ./kiteclass/kiteclass-frontend/.next/static
 COPY --from=builder /app/kiteclass/kiteclass-frontend/public ./kiteclass/kiteclass-frontend/public
 
-RUN rm -rf /var/cache/apk/* /tmp/*
+RUN rm -rf /var/lib/apt/lists/* /tmp/*
 
 USER nextjs
 EXPOSE 3000

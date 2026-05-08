@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM maven:3.9-eclipse-temurin-21-alpine AS builder
+FROM maven:3.9-eclipse-temurin-21-noble AS builder
 
 WORKDIR /app
 
@@ -19,7 +19,8 @@ RUN test "$(jar tf target/*.jar | grep -cE 'fonts/DejaVuSans(-Bold)?\.ttf$')" -e
     || (echo "FAIL: DejaVuSans TTF (regular + bold) missing from app.jar — see GAP-218 runbook" >&2 && exit 1)
 
 # Stage 2: Runtime
-FROM eclipse-temurin:21-jre-alpine
+# GAP-442: Debian noble (Ubuntu 24.04) — replaces alpine 3.23 to clear gnutls CVE-2026-33845.
+FROM eclipse-temurin:21-jre-noble
 
 # Build arguments for version tracking
 ARG BUILD_TAG="dev"
@@ -38,6 +39,9 @@ LABEL com.kiteclass.pr-number="${PR_NUMBER}"
 LABEL com.kiteclass.branch="${BRANCH}"
 
 WORKDIR /app
+
+# wget for HEALTHCHECK (alpine had busybox-wget by default; noble doesn't)
+RUN apt-get update && apt-get install -y --no-install-recommends wget && rm -rf /var/lib/apt/lists/*
 
 # Copy jar from builder
 COPY --from=builder /app/target/*.jar app.jar
