@@ -46,15 +46,15 @@ variable "enable_nat_gateway" {
 
 # --- EC2 (Architecture B: 2 instances replace EKS) ---
 variable "kh_backend_instance_type" {
-  description = "EC2 instance type for KiteHub backend cluster (6 services). Phase 1 BETA: m7i-flex.large 8GB ($59/mo, covered ~3.4mo by $200 credits) — t3.micro 1GB caused OOM on Java service cold-start storm during Phase 7 deploy 2026-05-08."
+  description = "EC2 instance type for KiteHub backend cluster (5 KH services + redis + rabbitmq + gateway). Phase 1 BETA: t3.medium 4GB (~$30/mo) — right-sized 2026-05-08 per GAP-447. Compose budget ~3.2GB peak (docker-compose.production.yml §13-19) → 800MB headroom. Previously m7i-flex.large 8GB (PR #1031) was over-correction after t3.micro 1GB OOM cascade #1031; t3.medium per GAP-411 sizing matrix is the right shape. OOM safety net: CloudWatch MemoryUtilization >85% alarm + JVM heap tune → t3.large → m7i-flex.large rollback escalation."
   type        = string
-  default     = "m7i-flex.large"
+  default     = "t3.medium"
 }
 
 variable "kc_app_instance_type" {
-  description = "EC2 instance type for KiteClass core + frontends. Phase 1 default t3.micro (free tier)."
+  description = "EC2 instance type for KiteClass app stack (kiteclass-core + gateway + redis + rabbitmq; frontend on Vercel post-2026-05-07 pivot). Phase 1 BETA: t3.medium 4GB (~$30/mo) — right-sized 2026-05-08 per GAP-447. Compose budget ~2.5GB peak (docker-compose.kc.yml §13-18) → t3.small 2GB insufficient (under 2.5GB peak); t3.medium gives 1.5GB headroom. GAP-411 stale t3.small sizing was based on pre-Vercel-pivot plan (KC frontend ON kc-app)."
   type        = string
-  default     = "t3.micro"
+  default     = "t3.medium"
 }
 
 variable "ec2_key_pair_name" {

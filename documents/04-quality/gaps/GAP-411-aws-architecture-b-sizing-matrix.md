@@ -43,6 +43,44 @@ Cost driver breakdown 89% EC2 — optimization knobs:
 - GAP-412 (AWS Activate credit application — neutralize Yr1 cost)
 - `release-deploy-standard.md` §3
 
+## Post-Vercel Pivot Update (2026-05-08)
+
+Following 2026-05-07 Vercel pivot for KC frontend, sizing matrix Phase 1 BETA row is amended:
+
+### kh-backend revision
+
+- **Before (PR #1031):** m7i-flex.large 8GB ($60/mo) — emergency over-correction after Phase 7 t3.micro 1GB OOM cascade.
+- **After (Wave 43 Bucket B / GAP-447):** t3.medium 4GB ($30/mo) — matches GAP-411 original sizing.
+- **Evidence:** `docker-compose.production.yml` §13-19 RAM partitioning chốt 5 KH services + redis + rabbitmq + gateway = ~3.2GB peak → 800MB headroom on t3.medium 4GB.
+- OOM #1031 root cause = sizing matrix stale enforce (deployed t3.micro 1GB instead of charted t3.medium 4GB), not insufficient memory at t3.medium. Right-size restores GAP-411's intent.
+
+### kc-app revision (post-Vercel pivot)
+
+- **Before (GAP-411 original):** t3.small 2GB — assumed KC frontend (Next.js) ON kc-app.
+- **After (Vercel pivot 2026-05-07 + GAP-447):** t3.medium 4GB ($30/mo) — KC frontend lives on Vercel; kc-app = backend-only stack.
+- **Evidence:** `docker-compose.kc.yml` §13-18 RAM partitioning chốt kiteclass-core + gateway + redis + rabbitmq = ~2.5GB peak. t3.small 2GB insufficient (under peak); t3.medium 4GB gives 1.5GB headroom.
+- Rationale: Vercel removes Next.js footprint from EC2, but Java backend + broker still need ≥2.5GB. Sizing matrix kept t3.small from pre-pivot plan and is now stale.
+
+### OOM safety net (BẮT BUỘC trước khi downsize)
+
+- CloudWatch alarm `MemoryUtilization > 85%` per EC2 → SNS topic `kitehub-memory-alerts` → email `vannkite@outlook.com` (`infrastructure/terraform-aws/cloudwatch.tf`).
+- Pre-requisite: CloudWatch agent install + start on EC2 (cloud-init installs the package; runtime config via SSM run-command per `documents/05-guides/deploy/right-size-stress-test.md`).
+- Rollback escalation (per GAP-447): JVM heap tune → t3.large 8GB (same family) → m7i-flex.large 8GB revert.
+
+### Combined cost saving
+
+- Right-size only: $120 → $60/mo EC2 (-$60/mo).
+- Combined với GAP-446 EventBridge stop/start (~58% downtime): EC2 ~$25/mo (vs $120/mo current).
+
+### Sizing matrix Phase 1 BETA row update
+
+| Phase | Tenants | Architecture | $/mo Yr1 | Trigger gate |
+|---|---|---|---|---|
+| Phase 1 BETA invite (revised) | 5-10 | B-revised: 2× t3.medium 4GB EC2 + RDS db.t3.micro free + Vercel KC FE | **$60** EC2 + $0 RDS = **$60** | Quality ≥80 + 5 tenants live |
+
+Cross-reference: `documents/05-guides/deploy/aws-architecture-sizing-matrix.md` should be updated in same PR (sizing matrix row + Vercel pivot footnote) — tracked in GAP-447 follow-up if not landed inline.
+
 ## Log
 
+- **2026-05-08** — Post-Vercel pivot update appended (GAP-447 / Wave 43 Bucket B). kh-backend revert m7i-flex.large → t3.medium per original matrix; kc-app revise t3.small → t3.medium per post-Vercel backend-only stack reality. OOM safety net shipped via `infrastructure/terraform-aws/cloudwatch.tf`. Status remains 🟢 DONE — sizing matrix doc itself is intact; this update reflects post-pivot reality + emergency over-correction reversal.
 - **2026-05-07** — DONE. Sizing matrix shipped at `documents/05-guides/deploy/aws-architecture-sizing-matrix.md` (13 sections, 5-phase progression, hidden cost line items, optimization roadmap). Wave 37 Bucket E.
