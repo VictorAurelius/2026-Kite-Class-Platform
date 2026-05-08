@@ -177,9 +177,10 @@ Sau Wave 45 closure, 4 PRs bổ sung shipped để handle parallel-spawned tasks
 **Next session priorities:**
 
 1. **Phase 7 T-7 prep window** (per GAP-444 sub-tasks 7.1.1-7.1.7): create `docker-compose.production.yml` + fix `deploy-production.yml` + EC2 bootstrap + first deploy SSM exec test + smoke test + first invite tenant signup
-2. **GAP-440** Spring Boot 3.5.14 → latest dep bump (clears 4-5 of 6 Java CVE classes)
+2. **GAP-440** Spring Boot 3.5.14 → latest dep bump (clears 4-5 of 6 Java CVE classes) — **BLOCKED 2026-05-08 by GAP-451**: Wave 46 Bucket A pre-flight confirmed Maven Central has no newer 3.5.x patch yet. Await upstream Spring Boot 3.5.15+ release (monitor weekly).
 3. **GAP-442** alpine 3.23 → 3.24 base image bump (clears CVE-2026-33845 gnutls)
 4. **GAP-441** per-service pom override hygiene (parent pom dependencyManagement)
+5. **GAP-451** Spring Boot 3.5.x no newer patch — monitoring upstream; unblocks GAP-440 when 3.5.15+ ships
 
 After GAP-440/441/442 trio + Phase 7 prep → tag `v0.9.0-beta` (production launch) with strict Trivy gate naturally passing.
 

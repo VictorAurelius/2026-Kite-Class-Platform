@@ -52,3 +52,4 @@ Spring Boot version pinned at parent pom 3.5.14. Latest Spring Boot 3.5.x patche
 ## Log
 
 - **2026-05-08** Filed during Phase 3 staging.5 retro. CRITICAL-only staging gate unblocks Phase 1 BETA; this gap closes before v1.0.0-rc.
+- **2026-05-08** Wave 46 Bucket A (kitehub side) attempted but BLOCKED at pre-flight: Maven Central authoritative version list shows `3.5.14` IS the latest 3.5.x patch — no newer 3.5.15+ exists to bump to (verified via `maven-metadata.xml` + directory listing). Status remains 🔵 OPEN; blocking concern tracked in GAP-451 (await upstream Spring Boot 3.5.15 release). Bucket A PR #TBD ships the GAP-451 file + this Log entry only — no code changes. Bucket B (kiteclass) likely faces identical blocker; coordinator to verify.
