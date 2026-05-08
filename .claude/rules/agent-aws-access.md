@@ -1,9 +1,9 @@
 # Agent AWS Access — read-only allowlist + mandatory logging
 
 **Priority:** 🟠 MANDATORY — bounds blast radius for agent AWS interactions
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-07
-**Last-Reviewed:** 2026-05-07
+**Last-Reviewed:** 2026-05-08
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (allowlist + log requirement + self-test) per §6.5; new constraint, no constraint loosening; paired same-PR with first audit artifact `documents/04-quality/audits/aws-verification/2026-05-08-phase-2-3-post-apply.md`)
 **Applies to:** Every Claude session that issues `aws` CLI commands, `curl` against AWS-hosted endpoints, or terraform actions affecting AWS account 906286017800. Scope includes Bash tool invocations + sub-agents.
 
@@ -103,12 +103,21 @@ Agent does NOT run these. User runs manually OR via documented terraform workflo
 - `aws rds create-db-snapshot` (cost + may include secrets)
 - `aws cloudtrail stop-logging` (audit blind spot)
 
-### 4.3 Banned terraform actions
+### 4.3 Banned terraform actions (agent-initiated only)
 
-- `terraform apply` without prior explicit user confirmation per `feedback_terraform_apply_retry_reconfirm.md`
-- `terraform destroy` ALWAYS user-only (mass deletion)
-- `terraform import` (state mutation)
-- `terraform state rm/mv/push` (state surgery)
+Per `release-deploy-standard.md` §9 (revised v1.0.1, 2026-05-08), the bans below scope to **AGENT-INITIATED apply only**. **User-triggered `workflow_dispatch` + confirm input "APPLY" verbatim + human-click is permitted** — preserves human cognitive checkpoint via confirm-input gate while delivering ephemeral OIDC security advantages over local admin-key apply (industry standard Atlantis/TF Cloud pattern). See `release-deploy-standard.md` §9 matrix for the 3-case distinction.
+
+Agent-initiated bans (unchanged from v1.0.0):
+
+- `terraform apply` autonomously by agent — BANNED per `feedback_terraform_apply_retry_reconfirm.md`
+- `terraform destroy` ALWAYS user-only (mass deletion) — agent never runs
+- `terraform import` (state mutation) — banned
+- `terraform state rm/mv/push` (state surgery) — banned
+
+User-triggered (allowed, document inline when invoked):
+
+- `workflow_dispatch` apply via `.github/workflows/terraform-apply.yml` — human-click + confirm input + ephemeral OIDC creds (per Wave 44 GAP-449)
+- One-time local `terraform apply` for chicken-and-egg bootstrap — admin key required, rotate immediately after
 
 `terraform plan` is Tier 1 (read-only).
 `terraform init` Tier 1 (no AWS state mutation, just provider download).
@@ -257,4 +266,5 @@ Future: `audit-gate.py` AUDIT_RULES rule scanning Bash invocations for Tier 3 pa
 
 ## 11. Log
 
+- **2026-05-08 (v1.0.1):** PATCH — §4.3 reframed "Banned terraform actions" → "Banned terraform actions (agent-initiated only)" + lead-in clarifying scope = AGENT-INITIATED apply per `release-deploy-standard.md` §9 (revised v1.0.1 same wave). Existing BAN clauses preserved verbatim; added "User-triggered (allowed)" sub-section listing workflow_dispatch + chicken-and-egg bootstrap as carve-outs. No constraint loosening for agent-initiated cases. Cross-link aligned với Wave 44 Bucket A. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — clarification of existing rule scope, paired with `release-deploy-standard.md` §9 revision in same wave). Closes Wave 44 Bucket A part of GAP-449 Phase 1.
 - **2026-05-08 (v1.0.0):** Rule created in response to user-flagged retro after Phase 2.3 apply session ("lệnh check có vẻ là lệnh tự do, cần bổ sung workflow cho agent aws theo chuẩn đã đề cập chưa? báo cáo chi tiết như này có lưu logs tại repo không?"). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged) → Classify ✓ (no existing rule covers; `release-deploy-standard.md` §9 high-level only) → Rule+Enforce ✓ (this file + first audit artifact `2026-05-08-phase-2-3-post-apply.md` + folder README + `output-review-mandate.md` §3 row update — all paired same-PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§7 worked example on the originating session — 5/6 commands Tier 1 OK, logging requirement violated and now remediated) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — new constraint, no loosening). Phase 2 (skill + script) + Phase 4 (memory) deferred to follow-up per GAP-438.
