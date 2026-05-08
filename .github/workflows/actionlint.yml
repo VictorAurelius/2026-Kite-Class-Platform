@@ -1,0 +1,34 @@
+name: actionlint
+
+# Static lint for GitHub Actions workflows.
+# Catches: YAML syntax errors, step input type errors, secret/var refs to
+# undefined names, expression syntax bugs, shell script issues in run: blocks.
+#
+# Per .claude/rules/release-fix-retry-budget.md §7.5 — local self-test
+# infrastructure (Tier 1 of preflight). Runs on every PR touching workflows.
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    name: Lint GitHub Actions workflows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run actionlint
+        uses: raven-actions/actionlint@v2
+        with:
+          # Show all problems regardless of severity
+          fail-on-error: 'true'
+          # Use action's own bundled actionlint binary
+          flags: '-color'
