@@ -1,0 +1,88 @@
+# Minimal compose — Phase 7 smoke test (1 service + 1 infra)
+#
+# Purpose: verify infra chain end-to-end (ECR pull + secrets + RDS connect +
+# Spring Boot Flyway + ALB target group health) with MINIMUM RAM footprint
+# trên t3.medium 4GB. After this passes, scale up incrementally.
+#
+# Stack:
+#   redis (256MB cap) — Spring Data Redis dependency
+#   kitehub-subscription (256MB heap) — minimal KH service for smoke
+#   kitehub-gateway (256MB heap) — exposes 8080 for ALB target group health
+#
+# RAM budget:
+#   redis            ~150MB
+#   kitehub-subs     ~512MB peak (256 heap + 256 native)
+#   kitehub-gateway  ~512MB peak
+#   OS + Docker      ~512MB
+#   Total            ~1.7GB → 2.3GB headroom on 4GB t3.medium
+#
+# Skipped (Phase 7 polish):
+#   rabbitmq (only kitehub-email needs it)
+#   kitehub-{branding, admin, email} (added incrementally after smoke OK)
+#
+# Run: same as full compose, just different file
+#   sudo KITE_VERSION=0.9.0-beta-staging.8 \
+#     docker compose -f /opt/kite-prod/docker-compose.minimal.yml up -d
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: kite-redis
+    restart: unless-stopped
+    networks: [kite-net]
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  kitehub-subscription:
+    image: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/kitehub-subscription:${KITE_VERSION}
+    container_name: kitehub-subscription
+    restart: unless-stopped
+    networks: [kite-net]
+    env_file: [/etc/kite/.env]
+    environment:
+      JAVA_OPTS: "-Xmx256m -Xms128m -XX:+UseSerialGC"
+      SPRING_PROFILES_ACTIVE: production
+    depends_on:
+      redis: { condition: service_healthy }
+    deploy:
+      resources:
+        limits:
+          memory: 640M
+
+  kitehub-gateway:
+    image: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/kitehub-gateway:${KITE_VERSION}
+    container_name: kitehub-gateway
+    restart: unless-stopped
+    networks: [kite-net]
+    env_file: [/etc/kite/.env]
+    environment:
+      JAVA_OPTS: "-Xmx256m -Xms128m -XX:+UseSerialGC"
+      SPRING_PROFILES_ACTIVE: production
+    ports:
+      - "8080:8080"
+    depends_on:
+      kitehub-subscription: { condition: service_started }
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          memory: 640M
+
+networks:
+  kite-net:
+    name: kite-net
+    driver: bridge
