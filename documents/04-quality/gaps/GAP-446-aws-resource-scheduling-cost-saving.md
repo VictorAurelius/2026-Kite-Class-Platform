@@ -1,6 +1,6 @@
 # GAP-446: AWS Resource Scheduling for Cost-Saving Phase 1 BETA
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Wave 43 Bucket A terraform shipped; awaiting `terraform apply` (human-only per `release-deploy-standard.md` §9) + post-apply verification
 **Priority:** 🔴 P0 (blocks $200 credit longevity Phase 1 BETA)
 **Domain:** Infrastructure / Cost / FinOps
 **Found:** 2026-05-08 (post Phase 7 deploy session — user-flagged "ALB/EC2/RDS chạy liên tục là không cần thiết")
@@ -73,14 +73,14 @@ Total burn: $157 → **~$45-55/mo** → $200 credit kéo **3.5-4 tháng** (đủ
 
 ## Acceptance Criteria
 
-- [ ] `infrastructure/terraform-aws/scheduler.tf` shipped — EventBridge Scheduler resources định nghĩa
-- [ ] IAM policy bổ sung quyền `scheduler:*` + `ec2:Stop/StartInstances` + `rds:Stop/StartDBInstance` cho scheduler role
-- [ ] Tag-based targeting `Environment=production` + `Phase=1-beta`
-- [ ] Schedule áp dụng đúng timezone Asia/Ho_Chi_Minh
-- [ ] Override mechanism: terraform variable `enable_cost_scheduling = true|false` (default true Phase 1, override khi promote production)
-- [ ] Verification post-apply: `aws scheduler list-schedules` returns 4 schedules; `aws ec2 describe-instances` show transition `running → stopped` đúng giờ
-- [ ] Documentation: `documents/05-guides/deploy/aws-cost-scheduling.md` runbook (manual override + emergency-on)
-- [ ] Verification artifact: `documents/04-quality/audits/aws-verification/2026-05-08-wave-43-scheduler.md` per `agent-aws-access.md` §5
+- [x] `infrastructure/terraform-aws/scheduler.tf` shipped — EventBridge Scheduler resources định nghĩa (Wave 43 Bucket A)
+- [x] IAM role `scheduler_executor` với `ec2:Start/StopInstances` (tag-scoped Project=Kite + Phase=1-beta) + `rds:Start/StopDBInstance` (resource-scoped to `kitehub-postgres`)
+- [x] Tag-based targeting `Project=Kite` + `Phase=1-beta` (matches `default_tags` trong `main.tf`)
+- [x] Schedule áp dụng đúng timezone `Asia/Ho_Chi_Minh` (8 schedules: 4 stop/start × EC2/RDS)
+- [x] Override mechanism: `var.enable_cost_scheduling` (default `true` Phase 1; `terraform apply -var=enable_cost_scheduling=false` để disable)
+- [x] Documentation: `documents/05-guides/deploy/aws-cost-scheduling.md` runbook (manual override + disable + monitoring + rollback)
+- [ ] Verification post-apply: `aws scheduler list-schedules` returns 8 schedules; CloudTrail event capture stop/start transitions đúng giờ — **deferred to post-merge `terraform apply` by human per `release-deploy-standard.md` §9 (agent banned from apply)**
+- [ ] Verification artifact: `documents/04-quality/audits/aws-verification/2026-05-08-wave-43-scheduler.md` per `agent-aws-access.md` §5 — **deferred to post-apply session**
 
 ## Related
 
@@ -95,3 +95,4 @@ Total burn: $157 → **~$45-55/mo** → $200 credit kéo **3.5-4 tháng** (đủ
 ## Log
 
 - **2026-05-08** — OPEN. Filed sau user-flagged miss "ALB/EC2/RDS chạy liên tục không cần thiết, $200 credit cháy nhanh". State-check phát hiện kc-app vẫn `running` mâu thuẫn GAP-445 (chỉ docker compose down, instance không stop) → kc-app stopped 2026-05-08T08:11Z explicit user approval. Wave 43 Bucket A.
+- **2026-05-08** — 🟡 PARTIAL: Wave 43 Bucket A shipped `infrastructure/terraform-aws/scheduler.tf` (8 schedules: 4× stop + 4× start, EC2 + RDS) + `var.enable_cost_scheduling` toggle + IAM `scheduler_executor` role với tag-scoped EC2 + resource-scoped RDS permissions + runbook `documents/05-guides/deploy/aws-cost-scheduling.md`. Per `release-deploy-standard.md` §9 + `agent-aws-access.md` §4, `terraform apply` human-only post-merge → AC items 7+8 (post-apply verification + audit artifact) intentionally unchecked, gap stays PARTIAL until human applies + verifies. Per `gap-done-discipline.md` §3 PARTIAL exit ramp.

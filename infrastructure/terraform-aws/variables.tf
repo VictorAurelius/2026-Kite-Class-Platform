@@ -133,6 +133,13 @@ variable "staging_rds_instance_class" {
   default     = "db.t3.micro"
 }
 
+# --- Cost-saving scheduler (per GAP-446 / Wave 43 Bucket A) ---
+variable "enable_cost_scheduling" {
+  description = "Provision EventBridge Scheduler to stop/start EC2 + RDS off-hours (Asia/Ho_Chi_Minh). Phase 1 BETA solo-dev mode = true (saves ~$70/mo). Set false when promoting to GA / 24/7 paying tenants."
+  type        = bool
+  default     = true
+}
+
 # --- GitHub OIDC (for terraform-plan CI workflow per GAP-397) ---
 variable "github_repo" {
   description = "GitHub repo in 'owner/name' format for OIDC trust policy."
