@@ -1,91 +1,196 @@
-name: Deploy to Production
+name: Deploy to Production (Architecture B — EC2 + docker-compose)
+
+# =============================================================================
+# Architecture B per ADR-025 (rewritten from legacy EKS+Helm pattern):
+# - kh-backend EC2 (i-...) runs 5 KH services + redis + rabbitmq
+# - kc-app EC2 (deferred Phase 7 polish) — KC stack via Vercel until then
+# - Trigger: workflow_dispatch (user-initiated; release-deploy-standard.md §9
+#   "Deploy execution = SKIP — human executes critical commands")
+# - Mechanism: AWS SSM send-command on EC2 → calls scripts/deploy-prod.sh
+# - Idempotent: deploy-prod.sh handles ECR login + secrets + compose pull/up
+# =============================================================================
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Image tag to deploy (e.g., v1.0.0)'
+        description: 'Image tag to deploy (e.g., v0.9.0-beta-staging.8)'
         required: true
         type: string
+        default: 'v0.9.0-beta-staging.8'
       confirm:
-        description: 'Type DEPLOY to confirm'
+        description: 'Type DEPLOY to confirm production deploy'
         required: true
         type: string
 
 permissions:
-  id-token: write
+  id-token: write     # OIDC for AWS
   contents: read
 
 env:
   AWS_REGION: ap-southeast-1
-  EKS_CLUSTER: kitehub-eks
-  HELM_NAMESPACE: kitehub
+  DEPLOY_INSTANCE_ID_KH: i-0b65c3947d36cae61   # kh-backend EC2 (Phase 2.3 output)
+  COMPOSE_FILE: /opt/kite-prod/docker-compose.production.yml
+  ALB_DNS: kitehub-alb-224105328.ap-southeast-1.elb.amazonaws.com
 
 jobs:
   validate:
-    name: Validate
+    name: Validate inputs
     runs-on: ubuntu-latest
     steps:
-      - name: Confirm deployment
+      - name: Confirm deploy intent
         if: ${{ github.event.inputs.confirm != 'DEPLOY' }}
         run: |
-          echo "Deployment not confirmed. Type 'DEPLOY' to proceed."
+          echo "::error ::Confirm input must be 'DEPLOY' verbatim. Got: '${{ github.event.inputs.confirm }}'"
           exit 1
+      - name: Validate version format
+        run: |
+          if [[ ! "${{ github.event.inputs.version }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.]+)?$ ]]; then
+            echo "::error ::Invalid version format. Expected v0.9.0-beta-staging.8 or v1.0.0 etc."
+            exit 1
+          fi
+          echo "Version OK: ${{ github.event.inputs.version }}"
 
-  deploy:
-    name: Deploy to Production
+  preflight:
+    name: Preflight (ECR image exists)
     runs-on: ubuntu-latest
     needs: validate
-    environment: production
+    steps:
+      - uses: actions/checkout@v6
+      - name: Configure AWS (OIDC ECR pull role for read-only describe)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Verify image tag exists in ECR
+        run: |
+          TAG="${{ github.event.inputs.version }}"
+          for service in kitehub-subscription kitehub-gateway kitehub-branding kitehub-admin kitehub-email; do
+            echo "Checking kite/${service}:${TAG}..."
+            aws ecr describe-images \
+              --repository-name "kite/${service}" \
+              --image-ids imageTag="${TAG}" \
+              --region "${AWS_REGION}" \
+              --output json > /dev/null
+          done
+          echo "All 5 KH service images verified in ECR ✅"
 
+  deploy:
+    name: Deploy to kh-backend via SSM
+    runs-on: ubuntu-latest
+    needs: preflight
+    environment: production
     steps:
       - uses: actions/checkout@v6
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to ECR
-        id: ecr-login
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Configure kubectl
-        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
-
-      - name: Pre-deploy RDS snapshot (GAP-389-A)
+      - name: Send deploy command via SSM
+        id: ssm
         env:
-          AWS_REGION: ${{ env.AWS_REGION }}
-          RDS_INSTANCE_ID: ${{ secrets.RDS_INSTANCE_ID || 'kite-rds-prod' }}
-          PUSHGATEWAY_URL: ${{ secrets.PUSHGATEWAY_URL || '' }}
+          KITE_VERSION: ${{ github.event.inputs.version }}
+          INSTANCE_ID: ${{ env.DEPLOY_INSTANCE_ID_KH }}
         run: |
-          chmod +x ./scripts/backup-production.sh
-          SNAPSHOT_ID=$(./scripts/backup-production.sh)
-          echo "PRE_DEPLOY_SNAPSHOT=${SNAPSHOT_ID}" >> "$GITHUB_ENV"
-          echo "Snapshot for rollback reference: ${SNAPSHOT_ID}"
+          echo "Deploying ${KITE_VERSION} to ${INSTANCE_ID}..."
 
-      - name: Deploy with Helm
+          # SSM run-command: call existing deploy-prod.sh on EC2.
+          # EC2 has /etc/ecr-login.sh from terraform user_data + scripts/
+          # synced to /opt/kite-prod via deploy-prod.sh's git pull logic.
+          COMMAND_ID=$(aws ssm send-command \
+            --region "${AWS_REGION}" \
+            --instance-ids "${INSTANCE_ID}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy production ${KITE_VERSION}" \
+            --timeout-seconds 600 \
+            --parameters "{
+              \"commands\": [
+                \"set -euo pipefail\",
+                \"export KITE_VERSION='${KITE_VERSION}'\",
+                \"export KITE_REPO_URL='https://github.com/${{ github.repository }}.git'\",
+                \"if [ ! -d /opt/kite-prod/.git ]; then sudo mkdir -p /opt/kite-prod && sudo chown ec2-user:ec2-user /opt/kite-prod && cd /opt/kite-prod && git clone --depth 1 \\\"\\$KITE_REPO_URL\\\" .; else cd /opt/kite-prod && git fetch --depth 1 origin main && git reset --hard origin/main; fi\",
+                \"sudo KITE_VERSION=\\\"\\$KITE_VERSION\\\" KITE_REPO_URL=\\\"\\$KITE_REPO_URL\\\" bash /opt/kite-prod/scripts/deploy-prod.sh 2>&1 | tail -100\"
+              ]
+            }" \
+            --query "Command.CommandId" --output text)
+
+          echo "command_id=${COMMAND_ID}" >> "$GITHUB_OUTPUT"
+          echo "SSM CommandId: ${COMMAND_ID}"
+
+      - name: Poll SSM command status (up to 8 min)
+        id: poll
         env:
-          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
-          TAG: ${{ github.event.inputs.version }}
+          INSTANCE_ID: ${{ env.DEPLOY_INSTANCE_ID_KH }}
+          COMMAND_ID: ${{ steps.ssm.outputs.command_id }}
         run: |
-          helm upgrade --install kitehub ./infrastructure/helm/kitehub \
-            --namespace ${{ env.HELM_NAMESPACE }} \
-            --set global.image.registry=$REGISTRY/kitehub \
-            --set global.image.tag=$TAG \
-            --set global.database.host=${{ secrets.RDS_ENDPOINT }} \
-            --set global.redis.host=${{ secrets.REDIS_ENDPOINT }} \
-            --wait --timeout 10m
+          for attempt in $(seq 1 48); do
+            sleep 10
+            STATUS=$(aws ssm get-command-invocation \
+              --region "${AWS_REGION}" \
+              --command-id "${COMMAND_ID}" \
+              --instance-id "${INSTANCE_ID}" \
+              --query "Status" --output text 2>/dev/null || echo "InProgress")
+            echo "Attempt ${attempt}/48: Status=${STATUS}"
+            case "$STATUS" in
+              Success)
+                echo "::notice ::Deploy succeeded on ${INSTANCE_ID}"
+                aws ssm get-command-invocation \
+                  --region "${AWS_REGION}" \
+                  --command-id "${COMMAND_ID}" \
+                  --instance-id "${INSTANCE_ID}" \
+                  --query "StandardOutputContent" --output text | tail -50
+                exit 0
+                ;;
+              Failed|Cancelled|TimedOut)
+                echo "::error ::Deploy failed with status ${STATUS}"
+                aws ssm get-command-invocation \
+                  --region "${AWS_REGION}" \
+                  --command-id "${COMMAND_ID}" \
+                  --instance-id "${INSTANCE_ID}" \
+                  --query "StandardErrorContent" --output text
+                exit 1
+                ;;
+            esac
+          done
+          echo "::error ::Deploy timed out after 8 min"
+          exit 1
 
-      - name: Verify deployment
+      - name: Wait for ALB target group health
         run: |
-          kubectl -n ${{ env.HELM_NAMESPACE }} rollout status deployment/kitehub-gateway --timeout=300s
-          kubectl -n ${{ env.HELM_NAMESPACE }} rollout status deployment/kitehub-subscription --timeout=300s
-          echo "Production deployment verified"
+          echo "Waiting 90s for kh-backend target group health check (2× healthy)..."
+          sleep 90
 
-      - name: Rollback on failure
-        if: failure()
+      - name: Smoke test (gateway through ALB)
         run: |
-          echo "Deployment failed - rolling back"
-          helm rollback kitehub 0 -n ${{ env.HELM_NAMESPACE }}
+          echo "Health check via ALB..."
+          for attempt in 1 2 3; do
+            if curl -fsS -o /dev/null -w "HTTP %{http_code} (attempt ${attempt})\n" \
+                 "http://${{ env.ALB_DNS }}/actuator/health"; then
+              echo "::notice ::Production deploy ${{ github.event.inputs.version }} healthy ✅"
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "::error ::ALB health check failed after 3 attempts"
+          exit 1
+
+  notify:
+    name: Notify deploy outcome
+    runs-on: ubuntu-latest
+    needs: [validate, preflight, deploy]
+    if: always()
+    steps:
+      - name: Summary
+        run: |
+          echo "Validate:  ${{ needs.validate.result }}"
+          echo "Preflight: ${{ needs.preflight.result }}"
+          echo "Deploy:    ${{ needs.deploy.result }}"
+          echo "Version:   ${{ github.event.inputs.version }}"
+          if [[ "${{ needs.deploy.result }}" == "success" ]]; then
+            echo "::notice ::🎉 Production deploy ${{ github.event.inputs.version }} SUCCESS"
+          else
+            echo "::error ::Deploy did not complete cleanly. Check job logs above."
+          fi
