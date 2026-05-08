@@ -28,7 +28,12 @@
 
 set -euo pipefail
 
+# Strip leading "v" prefix — Docker metadata-action `type=semver,pattern={{version}}`
+# emits ECR tags WITHOUT v (e.g., `0.9.0-beta-staging.8`, not `v0.9.0-beta-staging.8`).
+# User passes `KITE_VERSION=v0.9.0-beta-staging.8` for git tag UX consistency;
+# we normalize to the no-v form for docker compose pull.
 KITE_VERSION="${KITE_VERSION:-v0.9.0-beta-staging.8}"
+KITE_VERSION="${KITE_VERSION#v}"
 DEPLOY_DIR="/opt/kite-prod"
 COMPOSE_FILE="${DEPLOY_DIR}/docker-compose.production.yml"
 LOG="/var/log/kite-deploy.log"
@@ -63,7 +68,14 @@ if [[ ! -d "$DEPLOY_DIR/.git" ]]; then
 else
   log "Updating repo..."
   cd "$DEPLOY_DIR"
-  git fetch --depth 1 origin main && git reset --hard origin/main || log "WARN: git pull failed, using existing artifacts"
+  # Bootstrap clone via SSM ran as root, so .git ownership is root.
+  # deploy-prod.sh runs as ec2-user via sudo; git refuses cross-uid ops without
+  # explicit safe.directory. Marking trusted for both root + ec2-user contexts.
+  sudo git config --global --add safe.directory "$DEPLOY_DIR" 2>/dev/null || true
+  git config --global --add safe.directory "$DEPLOY_DIR" 2>/dev/null || true
+  sudo git -C "$DEPLOY_DIR" fetch --depth 1 origin main \
+    && sudo git -C "$DEPLOY_DIR" reset --hard origin/main \
+    || log "WARN: git pull failed, using existing artifacts"
 fi
 
 if [[ ! -f "$COMPOSE_FILE" ]]; then
