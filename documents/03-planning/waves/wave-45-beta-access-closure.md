@@ -1,6 +1,6 @@
 ---
 title: Wave 45 — Beta Access Closure (GAP-372 + GAP-370)
-status: draft
+status: complete
 created: 2026-05-08
 updated: 2026-05-08
 waves: [45]
@@ -164,4 +164,5 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 
 ## 8. Log
 
-- **2026-05-08 (draft):** Plan created. Wave 45 = GAP-372 closure (3 follow-ups) + GAP-370 closure (SES smoke test + runbook verify). Cross-layer YES, Bucket 0 light (api-contract no drift expected). Stake MEDIUM, Opus medium effort. Estimated 30-45min wall-clock, longest bucket ~25min (Bucket A BE wire-up).
+- **2026-05-08 (draft):** Plan created.
+- **2026-05-08 (complete):** Wave SHIPPED. PRs merged sequential A→B→C: #1051 (Bucket A BE tenant wire-up — wired `AuthService.registerFromBetaInvite` into `BetaAccessController.completeBetaSignup` with conflict-rollback), #1052 (Bucket B FE register disable — BetaInviteOnlyNotice card pattern KH+KC, coordinator-applied finalization sau agent terminated mid-build), #1050 (Bucket C SES smoke test profile-gated + Wave 45 runbook verify). Bucket 0 Foundation skipped (api-contract.md no drift). All 3 PRs merged với `ADMIN_MERGE_OVERRIDE: Vercel rate-limit external 24h block` trailer per `admin-merge-discipline.md` §2 (Vercel rate-limited 24h = qualified override). GAP-372 → 🟢 DONE (10/10 ACs); GAP-370 → 🟡 PARTIAL (code complete, AWS SES production approval = user-executed). Wall-clock ~75min spawn → close (vs 30-45min plan estimate; +30min coordinator-applied Bucket B finalization + cleanup recovery from premature prune incident). 81st 0-clarification streak. Wave 45 = GAP-372 closure (3 follow-ups) + GAP-370 closure (SES smoke test + runbook verify). Cross-layer YES, Bucket 0 light (api-contract no drift expected). Stake MEDIUM, Opus medium effort. Estimated 30-45min wall-clock, longest bucket ~25min (Bucket A BE wire-up).

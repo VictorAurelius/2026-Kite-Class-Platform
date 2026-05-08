@@ -12,21 +12,48 @@
 
 ### 🚀 Next Action (signpost cho new session)
 
-**Phase 1 BETA cost-discipline + terraform-apply workflow:** ✅ INFRA COMPLETE 2026-05-08 (Wave 43+44 bootstrap applied).
+**Phase 1 BETA Beta Access closure:** ✅ CODE COMPLETE 2026-05-08 (Wave 45 — GAP-372 DONE + GAP-370 PARTIAL pending AWS user-action).
 
 **Pending user actions (separate from session work):**
 1. ❗ **Deactivate `solo-dev-admin` access key** (exposed earlier in chat 2026-05-08; AKID prefix `AKIA…MMUZ`) — IAM Console → Make Inactive (24-48h verify) → Delete
 2. ⚠️ **Rotate `kite-readonly-wsl` key** (also exposed in chat, lower-severity ReadOnly; AKID prefix `AKIA…E7SO`) — non-urgent
 3. **CWAgent install** trên kh_backend via SSM Run Command — `right-size-stress-test.md` §1; alarm sẽ transitions từ INSUFFICIENT_DATA → active monitoring
 4. **GAP-450 drift fix** separate session — `terraform import random_password` + verify state align
+5. **AWS SES sandbox→production approval** (GAP-370 closure) — follow `documents/05-guides/operations/email-ses-setup-runbook.md`; DKIM/SPF/DMARC verification; out-of-sandbox approval ticket; verify domain reputation pre-launch
 
-**Wave 45+ candidates (Phase 1 BETA progression per `release-1-plan-2026.md` §3):**
-- E2E activation (per Wave 30+ scope) — bật `if: false` trong frontend-ci.yml + KH/KC frontend e2e
-- Beta tenant invite mechanism (GAP-372)
+**Wave 46+ candidates (Phase 1 BETA progression per `release-1-plan-2026.md` §3):**
+- **Wave 46 plan ready PR #1053** — E2E CI activation Phase A trial flag flip (recon found specs route-mocked)
 - DSAR + RTBF Phase 2 (GAP-353c + GAP-073)
 - Custom domain procurement Phase 2 (GAP-369b deferred from Wave 43)
+- Deployment naming rule + cleanup PRs (drift incident detected Wave 45 Bucket C — operations/ vs deploy/ folder)
 
 **Strategic gates Phase 1 → Phase 1.5:** Quality audit /100 ≥80 (current 86 ✅) + 5 beta tenants live + 0 P0 incidents 2 tuần
+
+---
+
+### ⭐ Wave 45 SHIPPED 2026-05-08 — Beta Access Closure (GAP-372 + GAP-370)
+
+**Trigger:** Wave 45 candidate selection — close 2 P0 BLOCKING gaps remaining cho Phase 1 BETA invite-only model. Wave 33 đã ship 90% GAP-372/370; Wave 45 closure scope = 3 follow-up items.
+
+**4 PRs merged sequential** (~75min wall-clock vs 30-45min plan estimate; +30min coordinator-applied Bucket B finalization):
+- **#1049** plan
+- **#1051** Bucket A — `BetaAccessController.completeBetaSignup` wired vào `AuthService.registerFromBetaInvite` với conflict-rollback (SIGNED_UP → APPROVED + fresh 24h token); 3 new tests; +229/-5 LOC
+- **#1052** Bucket B — Public `/register` disabled cả 2 frontends (BetaInviteOnlyNotice card pattern); coordinator-applied finalization sau agent terminated mid-build "Builds still running"
+- **#1050** Bucket C — `SesIntegrationSmokeTest.java` profile-gated `@EnabledIfSystemProperty("aws-ses-real")` + `email-ses-setup-runbook.md` Wave 45 verification table all 7 steps ✅
+
+**Bucket 0 Foundation skipped** (api-contract.md no drift — Wave 33+35 endpoints unchanged).
+
+**Merge override:** All 3 với `ADMIN_MERGE_OVERRIDE: Vercel rate-limit external 24h block` per `admin-merge-discipline.md` §2 (Vercel build-rate-limit = qualified external transient).
+
+**Gap status changes:**
+- **GAP-372 → 🟢 DONE** (10/10 ACs satisfied); AWS SES production approval = user-executed (out-of-band)
+- **GAP-370 → 🟡 PARTIAL** (code complete, AWS SES sandbox→production approval pending user-executed action)
+
+**Incidents flagged:**
+- Premature `prune-merged-worktrees.sh --yes` ran mid-wave (Agent 1 deployment-naming-rule still in flight) — violated `post-wave-cleanup.md` §2 anti-pattern. No work lost (agent was sandbox-blocked from Write/Bash before prune); rule reaffirms "DO NOT prune until ALL bucket PRs merged + no in-flight non-bucket agents".
+- Drift detected: `email-ses-setup-runbook.md` actual path `documents/05-guides/operations/` while plan referenced `deploy/`. Triggers deployment-naming-convention rule + cleanup PRs (sister tasks parallel to closure).
+
+**81st consecutive 0-clarification streak.** Stake MEDIUM, Opus medium effort.
 
 ---
 

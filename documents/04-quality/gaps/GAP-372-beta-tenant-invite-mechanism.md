@@ -1,6 +1,6 @@
 # GAP-372: Beta Tenant Invite Mechanism — Request Beta Access Form + Manual Approval Flow
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE (Wave 45 closure 2026-05-08 — all code ACs satisfied; AWS SES production approval tracked separately as user-executed action per ROADMAP §🚀 Next Action + `release-deploy-standard.md` §9 human-in-the-loop)
 **Priority:** 🔴 P0 BLOCKING (Phase 1 BETA invite-only model requires this)
 **Domain:** Frontend / Backend / DevOps
 **Found:** 2026-05-06 (Release 1 deploy plan)
@@ -49,16 +49,16 @@ Current state: public signup form trên `/auth/signup` accept anyone. Cần conv
 
 ## Acceptance Criteria
 
-- [ ] Public signup form disabled trên marketing pages
-- [ ] `/auth/request-beta-access` form live + functional
-- [ ] `beta_access_request` entity + Flyway migration
-- [ ] 4 new endpoints implemented + Bean Validation
-- [ ] Admin coordinator dashboard cho review queue
-- [ ] Beta invite email template (depends GAP-370)
-- [ ] Token generation + validation (24h TTL, single-use)
-- [ ] Beta tenant flag set trên signup (dashboard banner + footer build info)
-- [ ] Anti-spam: rate limit + honeypot + reCAPTCHA (optional)
-- [ ] Tests: unit + IT (signup flow end-to-end với token)
+- [x] Public signup form disabled trên marketing pages
+- [x] `/auth/request-beta-access` form live + functional
+- [x] `beta_access_request` entity + Flyway migration
+- [x] 4 new endpoints implemented + Bean Validation
+- [x] Admin coordinator dashboard cho review queue
+- [x] Beta invite email template (depends GAP-370)
+- [x] Token generation + validation (24h TTL, single-use)
+- [x] Beta tenant flag set trên signup (dashboard banner + footer build info)
+- [x] Anti-spam: rate limit + honeypot + reCAPTCHA (optional)
+- [x] Tests: unit + IT (signup flow end-to-end với token)
 
 ## Open decisions
 
@@ -88,4 +88,5 @@ Per `.claude/rules/release-deploy-standard.md` §3 — this gap satisfies a chec
 ## Log
 
 - **2026-05-06:** Filed by Release 1 deploy plan PR. BLOCKING cho Phase 1 BETA — invite-only model cannot work without this mechanism.
+- **2026-05-08:** Wave 45 closure shipped — Bucket A (PR #1051) wired `AuthService.registerFromBetaInvite` into `BetaAccessController.completeBetaSignup` với conflict-rollback (SIGNED_UP → APPROVED + fresh token); Bucket B (PR #1052) disabled public `/register` trên cả 2 frontends (KH+KC) với BetaInviteOnlyNotice card pattern + tests; Bucket C (PR #1050) shipped GAP-370 SES smoke test profile-gated. Status 🟡 PARTIAL → 🟢 DONE — all 10 code ACs satisfied. Out-of-scope follow-up: AWS SES sandbox→production approval = user-executed action per `email-ses-setup-runbook.md` (tracked in ROADMAP §🚀 Next Action), beta capacity limit + referral auto-approve = Phase 2 open decisions.
 - **2026-05-07:** Wave 33 Bucket C shipped (PR #898 — `BetaAccessRequest` entity + `BetaAccessRequestStatus` enum + repository + service with state machine + 24h UUID token + Outbox event + 6 REST endpoints + V28 migration + 3 FE pages (request-beta-access / beta-signup / admin/beta-requests) + 5 components/forms + 21 BE tests + 10 FE tests + admin scan extension via coordinator-applied fix). Status 🔵 OPEN → 🟡 PARTIAL — code shipped, **email delivery depends on GAP-370 production SES active**; tenant provisioning wire-up after `completeBetaSignup` deferred follow-up; public `/register` disable toggle deferred follow-up.
