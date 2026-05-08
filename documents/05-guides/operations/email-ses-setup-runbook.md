@@ -8,6 +8,25 @@
 - `documents/05-guides/operations/dns-setup-runbook.md` (Bucket D — TXT records)
 - `kitehub/kitehub-email/src/main/resources/application.yml` (`aws.ses.*` keys)
 - `.claude/rules/release-deploy-standard.md` §3.4 (MAJOR release email checklist)
+- `kitehub/kitehub-email/src/test/java/com/kitehub/email/integration/SesIntegrationSmokeTest.java` (Wave 45 — profile-gated smoke test)
+
+---
+
+## Wave 45 Verification (2026-05-08)
+
+Each step below was re-verified during Wave 45 closure (GAP-370). Original runbook shipped Wave 33; no breaking drift detected — config keys, SES region, sandbox→production flow, and CLI commands still match `kitehub-email` v1.0 wiring.
+
+| Step | Status | Notes |
+|------|--------|-------|
+| 1. Domain verification (§3) | ✅ verified accurate | `verify-domain-identity` + Easy DKIM still standard; CLI flags unchanged 2026-05-08 |
+| 2. DKIM CNAME records (§3.2) | ✅ verified accurate | 3 CNAMEs `<token>._domainkey.kitehub.vn` pattern; Cloudflare DNS host model assumed (per `dns-setup-runbook.md`) |
+| 3. SPF + DMARC TXT (§3.2) | ✅ verified accurate | Phase 1 BETA uses `p=quarantine` (per §0 H4 — Phase 2 stable can promote `p=reject`) |
+| 4. Sandbox → production request (§4) | ✅ verified accurate | AWS form fields stable; `H1-H8` Vietnamese FAQ section covers VN-specific KYC pitfalls |
+| 5. Production approval verification (§4.2) | ✅ verified accurate | Default 50k/day + 14/s post-approval still current AWS tier baseline |
+| 6. Bounce/complaint SNS topics (§5) | ✅ verified accurate | `set-identity-notification-topic` API still standard; SQS subscription remains the solo-dev recommended path |
+| 7. App config + smoke test (§7) | ✅ verified — runbook smoke (`curl`) + new code-side smoke `SesIntegrationSmokeTest` | Wave 45 added profile-gated JUnit smoke test (skipped by default; manual run via `-Daws-ses-real=true`); cross-link in §7 |
+
+**No drift found.** AWS SES production approval remains a user-executed step (per `release-deploy-standard.md` §9 "Deploy execution = ⚠️ HUMAN-IN-THE-LOOP"); agent role is limited to runbook authorship + smoke-test scaffolding.
 
 ---
 
@@ -334,6 +353,22 @@ Alert thresholds (per `monitoring-runbook.md` future scope):
 ---
 
 ## 7. Smoke test (post-setup verification)
+
+Two complementary smoke paths:
+
+1. **HTTP curl smoke (below)** — exercises `kitehub-email` service end-to-end (controller → Thymeleaf render → SES). Use after stack is deployed to staging/prod.
+2. **JUnit code-side smoke** — `kitehub/kitehub-email/src/test/java/com/kitehub/email/integration/SesIntegrationSmokeTest.java` (Wave 45 GAP-370). Profile-gated, skipped by default; sends one minimal SES email + asserts `MessageId`. Use to verify credentials + FROM-domain identity + production access without spinning up the full service:
+
+   ```bash
+   cd kitehub
+   ./mvnw -pl kitehub-email verify \
+       -Daws-ses-real=true \
+       -Dses.smoke.recipient=verified@example.com \
+       -Dses.smoke.from=noreply@kitehub.vn \
+       -Dses.smoke.region=ap-southeast-1
+   ```
+
+   Uses default AWS credential chain (env vars / IAM role / SSO profile). Default `mvn verify` skips this test (no system property set).
 
 ```bash
 # Set production credentials
