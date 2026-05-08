@@ -254,6 +254,39 @@ CVE-2026-XXXXX
 
 Plus follow-up gap referencing `agent-aws-access.md` Tier 3 review process.
 
+### F5. Multi-arch build fails — base image manifest missing arch
+
+**Symptom:** Workflow log: `ERROR: failed to solve: <base-image>: failed to resolve source metadata for docker.io/library/<image>: no match for platform in manifest: not found`. Build stage fails before Push to ECR. OIDC AssumeRole + ECR login already succeeded.
+
+**Worked example (2026-05-07 first OIDC trigger, run #25527705091):** 7 Java services failed because `maven:3.9-eclipse-temurin-{17,21}-alpine` (Docker Hub) only publishes amd64 manifest, no arm64. Workflow declared `platforms: linux/amd64,linux/arm64` → buildx tried to pull arm64 variant → not found.
+
+**Root cause check (2 commands):**
+
+```bash
+# 1. List declared platforms in workflow push step
+grep -nE "^[[:space:]]+platforms:" .github/workflows/docker-build-push.yml
+
+# 2. For each base image (FROM line), verify Docker Hub manifest supports declared archs
+docker buildx imagetools inspect maven:3.9-eclipse-temurin-17-alpine 2>&1 | grep Platform
+# If output lacks "linux/arm64" line → image incompatible with multi-arch
+```
+
+**Fix options:**
+
+| Option | Pro | Con |
+|---|---|---|
+| **A. Drop arm64 (single-arch)** | 1-line workflow change; matches Phase 1 BETA EC2 t3.medium = amd64 per ADR-025 | Mất arm64 path khi cần Graviton migration Phase 2+ |
+| **B. Switch base image** to non-alpine variant (e.g., `maven:3.9-eclipse-temurin-17` without `-alpine`) | Giữ multi-arch | 7 Dockerfile sửa; image size +50MB; runtime stage cũng phải đổi |
+| **C. Use multi-arch alpine variant** (e.g., `eclipse-temurin:17-jdk-alpine` — bare JDK without maven wrapper) | Multi-arch + alpine size | Phải tự install Maven; ~1 line `RUN apk add maven` |
+
+Recommend **A** cho Phase 1 BETA. Restore arm64 ở Phase 2+ Graviton timeline.
+
+**Pre-flight prevention (manual gotcha — formal CI check deferred per `incident-to-rule-pipeline.md` premature-rule guard):**
+
+Trước khi merge PR thay đổi `platforms:` trong `docker-build-push.yml` HOẶC thêm/đổi base image trong bất kỳ Dockerfile, chạy `docker buildx imagetools inspect <base>` cho mọi base image trong matrix. Verify từng image có manifest cho mọi platform được declare. Frequency: gần như 0 (1-time issue 2026-05-07; arm64 hiện disabled). Escalate sang CI script + rule formal nếu 2nd recurrence.
+
+---
+
 ### F4. Cosign sign fails (OIDC token expiry)
 
 **Symptom:** Workflow log shows `error signing image: getting signer: getting Fulcio signer: ...` near end of run.
