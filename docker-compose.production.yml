@@ -43,12 +43,18 @@ services:
     restart: unless-stopped
     networks:
       - kite-net
-    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD:-}
+    # No --requirepass: empty REDIS_PASSWORD env caused parse error
+    # ('redis-server --requirepass ' missing value → redis exits unhealthy).
+    # Phase 1 BETA: redis on internal Docker network only, not exposed to ALB
+    # or public — auth not required at this scope. Add password Phase 7 polish
+    # when KH services include AUTH command in their redis client config.
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
-      retries: 3
+      retries: 5
+      start_period: 15s
     deploy:
       resources:
         limits:
