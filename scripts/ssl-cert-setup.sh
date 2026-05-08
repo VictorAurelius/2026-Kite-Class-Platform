@@ -24,7 +24,7 @@
 #   - Let's Encrypt: https://letsencrypt.org/getting-started/
 #   - certbot docs: https://eff-certbot.readthedocs.io/
 #   - Project rule: .claude/rules/release-deploy-standard.md §3.1 Security
-#   - Sister runbook: documents/05-guides/operations/dns-setup-runbook.md §2.4
+#   - Sister runbook: documents/05-guides/deploy/dns-setup-runbook.md §2.4
 
 set -euo pipefail
 

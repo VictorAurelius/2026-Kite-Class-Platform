@@ -41,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * does NOT exercise Thymeleaf rendering or branding enrichment — those
  * are covered by the in-process unit tests in {@code service/}.</p>
  *
- * <p>See {@code documents/05-guides/operations/email-ses-setup-runbook.md}
+ * <p>See {@code documents/05-guides/deploy/email-ses-setup-runbook.md}
  * §7 for the surrounding setup runbook this test verifies.</p>
  *
  * @since Wave 45 Bucket C (GAP-370 closure)

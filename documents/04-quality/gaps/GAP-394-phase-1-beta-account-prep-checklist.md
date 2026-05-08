@@ -69,7 +69,7 @@ Mỗi runbook:
 ## Related
 
 - `documents/05-guides/operations/secrets-management-runbook.md` — assumes AWS account ready
-- `documents/05-guides/operations/email-ses-setup-runbook.md` — assumes AWS account ready
+- `documents/05-guides/deploy/email-ses-setup-runbook.md` — assumes AWS account ready
 - `documents/05-guides/vietnamese/huong-dan-deploy-oracle-cloud.md` Bước 1 — Oracle account already covered
 - GAP-369 DNS setup — domain registrar gap fills upstream prerequisite
 - GAP-376 production-data-seed — superadmin first-login runbook fills downstream consumer

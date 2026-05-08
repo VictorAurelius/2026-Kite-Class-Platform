@@ -18,7 +18,7 @@
 #
 # References:
 #   - DNS propagation: https://www.whatsmydns.net
-#   - Sister runbook: documents/05-guides/operations/dns-setup-runbook.md §2.5
+#   - Sister runbook: documents/05-guides/deploy/dns-setup-runbook.md §2.5
 
 set -euo pipefail
 

@@ -64,7 +64,7 @@ Rule conflates "agent autonomy" với "any CI apply". `workflow_dispatch` + conf
 
 ### Phase 3 — Bootstrap runbook (Bucket C)
 
-**Create** `documents/05-guides/deploy/terraform-apply-bootstrap.md`:
+**Create** `documents/05-guides/deploy/terraform-apply-bootstrap-runbook.md`:
 - One-time chicken-and-egg bootstrap: provision new IAM role qua local apply (admin key)
 - Sau bootstrap: GitHub Variable `AWS_TERRAFORM_APPLY_ROLE_ARN` set → `gh workflow run terraform-apply.yml`
 - Verify post-bootstrap: workflow_dispatch tested với dry_run=true trước khi real apply
@@ -76,7 +76,7 @@ Rule conflates "agent autonomy" với "any CI apply". `workflow_dispatch` + conf
 - [ ] **Phase 1 (Bucket A):** `release-deploy-standard.md` §9 revised distinguishing 3 cases; `agent-aws-access.md` §4.3 cross-link updated
 - [ ] **Phase 2 (Bucket B):** `.github/workflows/terraform-apply.yml` shipped với confirm-input gate + OIDC + dry_run mode
 - [ ] **Phase 2 (Bucket B):** `infrastructure/terraform-aws/iam.tf` thêm `github_terraform_apply` role với PowerUserAccess + IAM perms + state access; output ARN
-- [ ] **Phase 3 (Bucket C):** `documents/05-guides/deploy/terraform-apply-bootstrap.md` runbook chi tiết step-by-step
+- [ ] **Phase 3 (Bucket C):** `documents/05-guides/deploy/terraform-apply-bootstrap-runbook.md` runbook chi tiết step-by-step
 - [ ] **Self-test §6.5 Enforcement Parity:** rule revision + workflow + runbook ship cùng PR (Wave 44 closure PR)
 - [ ] **Bootstrap (post-merge user action):** local `terraform apply` lần 1 → provision IAM apply role + Wave 43 changes (scheduler + right-size + cloudwatch) cùng lúc
 - [ ] **Verify (post-bootstrap):** GitHub Variable `AWS_TERRAFORM_APPLY_ROLE_ARN` set → `gh workflow run terraform-apply.yml -f confirm=APPLY -f dry_run=true` returns plan; `dry_run=false` applies clean

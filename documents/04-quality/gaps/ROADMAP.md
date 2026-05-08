@@ -19,7 +19,7 @@
 2. ✅ **Rotate `kite-readonly-wsl` key** — DONE 2026-05-08 via `scripts/rotate-iam-access-key.sh`; new AKID `AKIA…SVMD`, old `AKIA…E7SO` deleted. Audit: `documents/04-quality/audits/aws-verification/2026-05-08-key-rotation-readonly-wsl.md`
 3. **CWAgent install** trên kh_backend via SSM Run Command — `right-size-stress-test.md` §1; alarm sẽ transitions từ INSUFFICIENT_DATA → active monitoring
 4. **GAP-450 drift fix** separate session — `terraform import random_password` + verify state align
-5. **AWS SES sandbox→production approval** (GAP-370 closure) — follow `documents/05-guides/operations/email-ses-setup-runbook.md`; DKIM/SPF/DMARC verification; out-of-sandbox approval ticket; verify domain reputation pre-launch
+5. **AWS SES sandbox→production approval** (GAP-370 closure) — follow `documents/05-guides/deploy/email-ses-setup-runbook.md`; DKIM/SPF/DMARC verification; out-of-sandbox approval ticket; verify domain reputation pre-launch
 
 **Wave 46 SHIPPED 2026-05-08** — Java deps bump cluster (GAP-440 + GAP-442). 3 buckets parallel ~75min:
 - **#1059** plan
@@ -31,7 +31,7 @@ CVE delta: 21 HIGH alerts → ~10 expected post-Trivy-rescan (12 npm-in-base + g
 
 **Wave 47+ candidates (Phase 1 BETA progression per `release-1-plan-2026.md` §3):**
 - **Wave 47 ready to spawn** — plan at `documents/03-planning/waves/wave-47-e2e-activation.md` (renamed from Wave 46 due to number collision); single-bucket Phase A trial flag flip (recon found E2E specs route-mocked, no stack-in-CI needed)
-- **Deployment-naming cleanup PR** — rule shipped PR #1055; cleanup pending để relocate 4-6 drift candidates: `operations/email-ses-setup-runbook.md` → `deploy/`, `operations/dns-setup-runbook.md` → `deploy/`, `operations/secrets-management-runbook.md` split, `deploy/terraform-apply-bootstrap.md` rename + suffix, archive `kiteclass-docker-deployment.md` (pre-ADR-025), consolidate SES runbook overlap
+- ✅ **Deployment-naming cleanup PR** — rule shipped PR #1055; cleanup PR shipped 2026-05-09 (3 file moves + 14 link updates: `operations/email-ses-setup-runbook.md` → `deploy/`, `operations/dns-setup-runbook.md` → `deploy/`, `deploy/terraform-apply-bootstrap.md` → `terraform-apply-bootstrap-runbook.md`). `secrets-management-runbook.md` split deferred to GAP-452 (P2, substantive editorial). `kiteclass-docker-deployment.md` already absent.
 - DSAR + RTBF Phase 2 (GAP-353c + GAP-073)
 - Custom domain procurement Phase 2 (GAP-369b deferred from Wave 43)
 - GAP-451 await Spring Boot 3.5.15+ upstream (weekly check; if delayed >4 weeks, fall back per-CVE `<dependencyManagement>` overrides)
@@ -119,7 +119,7 @@ Sau Wave 45 closure, 4 PRs bổ sung shipped để handle parallel-spawned tasks
 
 **79th 0-clarification streak.** Stake MEDIUM, Opus medium effort.
 
-**Post-merge user actions (Wave 44 → Wave 43 close):** see `documents/05-guides/deploy/terraform-apply-bootstrap.md` — one-time bootstrap apply → set GitHub Variable → workflow dry_run test → real apply → 2× verification artifacts → flip GAP-446/447 → rotate admin key.
+**Post-merge user actions (Wave 44 → Wave 43 close):** see `documents/05-guides/deploy/terraform-apply-bootstrap-runbook.md` — one-time bootstrap apply → set GitHub Variable → workflow dry_run test → real apply → 2× verification artifacts → flip GAP-446/447 → rotate admin key.
 
 ---
 

@@ -229,8 +229,8 @@ Audit log entry: insert vào `audit_log` với reason "MFA reset by DB direct qu
 - `01-aws-account-creation.md` — AWS pre-conditions
 - `02-domain-registrar.md` — domain pre-conditions
 - `03-password-manager.md` — vault entry destination
-- `documents/05-guides/operations/email-ses-setup-runbook.md` — SES production access
-- `documents/05-guides/operations/dns-setup-runbook.md` — DNS records pre-conditions
+- `documents/05-guides/deploy/email-ses-setup-runbook.md` — SES production access
+- `documents/05-guides/deploy/dns-setup-runbook.md` — DNS records pre-conditions
 - `documents/05-guides/vietnamese/cloudflare-setup.md` — Cloudflare Email Routing setup `superadmin@kitehub.vn`
 - Wave 33 GAP-376 `production-data-seed` — seed script implementation
 - Wave 26 GAP-377 `smoke-test.sh` — post-deploy verify

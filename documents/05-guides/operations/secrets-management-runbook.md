@@ -345,7 +345,7 @@ Vault self-hosted alternative: $0 software cost + ~$30/mo Oracle VM = $30/mo + m
 
 ## 11. Related
 
-- `documents/05-guides/operations/dns-setup-runbook.md` (sister runbook)
+- `documents/05-guides/deploy/dns-setup-runbook.md` (sister runbook)
 - `documents/03-planning/roadmap/release-1-deploy-plan.md` (parent)
 - `infrastructure/terraform-aws/secrets.tf` (existing IaC)
 - `.env.production.template` (env vars consumed at boot)
