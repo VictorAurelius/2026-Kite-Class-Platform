@@ -52,9 +52,9 @@ gaps: [GAP-376, GAP-370, GAP-372, GAP-369, GAP-379]
 | Bucket | Scope | Owner | Effort | Disjoint? |
 |--------|-------|-------|--------|-----------|
 | A | GAP-376 Production seed runner — Spring Boot `CommandLineRunner` + `V27__seed_admin_system_config.sql` + `scripts/seed-production.sh` | bg-agent | ~18-22 min | ✅ `kitehub-subscription/src/main/java/*/seed/` + `V27` + `scripts/seed-production.sh` |
-| B | GAP-370 Email beta templates + SES production config runbook | bg-agent | ~12-15 min | ✅ `kitehub-email/src/main/resources/templates/emails/beta-*.html` + `kitehub-email/src/main/resources/application.yml` SES section + `documents/05-guides/operations/email-ses-setup-runbook.md` |
+| B | GAP-370 Email beta templates + SES production config runbook | bg-agent | ~12-15 min | ✅ `kitehub-email/src/main/resources/templates/emails/beta-*.html` + `kitehub-email/src/main/resources/application.yml` SES section + `documents/05-guides/deploy/email-ses-setup-runbook.md` |
 | C | GAP-372 Beta tenant invite flow (BE entity + FE 3 pages) | bg-agent | ~25-30 min | ✅ `kitehub-subscription/*/beta/` + `V28` + `kitehub-frontend/(auth)/request-beta-access/` + `(auth)/beta-signup/` + `(admin)/admin/beta-requests/` |
-| D | GAP-369 DNS runbook + GAP-379 Secrets template | bg-agent | ~15-18 min | ✅ `documents/05-guides/operations/dns-setup-runbook.md` + `secrets-management-runbook.md` + `scripts/ssl-cert-setup.sh` + `scripts/check-dns-propagation.sh` + `.env.production.template` |
+| D | GAP-369 DNS runbook + GAP-379 Secrets template | bg-agent | ~15-18 min | ✅ `documents/05-guides/deploy/dns-setup-runbook.md` + `secrets-management-runbook.md` + `scripts/ssl-cert-setup.sh` + `scripts/check-dns-propagation.sh` + `.env.production.template` |
 
 **Disjoint check:** Mỗi bucket touch độc lập (paths overlap = none). Shared edits: `KiteHubSubscriptionApplication.java` (Bucket C only — `@EntityScan` cho `beta` package; A dùng `@Component` không cần). Migration version: A=V27, C=V28 — coordinator merge A trước C.
 
@@ -84,7 +84,7 @@ gaps: [GAP-376, GAP-370, GAP-372, GAP-369, GAP-379]
 - **Files+:**
   - `kitehub-email/src/main/resources/templates/emails/beta-invite.html` — Thymeleaf: org name, invite token link, expiry date, CTA "Hoàn tất đăng ký", beta disclaimer
   - `.../emails/beta-request-confirmation.html` — Thymeleaf: "Đã nhận yêu cầu beta" + expected review time + contact
-  - `documents/05-guides/operations/email-ses-setup-runbook.md` — sandbox→production approval, DKIM/SPF TXT, sending limits, bounce/complaint SNS, warmup schedule
+  - `documents/05-guides/deploy/email-ses-setup-runbook.md` — sandbox→production approval, DKIM/SPF TXT, sending limits, bounce/complaint SNS, warmup schedule
 - **Files~:** `kitehub-email/src/main/resources/application.yml` — bounce/complaint config + rate limit properties
 - **EmailType enum:** add `BETA_INVITE` + `BETA_REQUEST_CONFIRM` (or create enum if absent)
 - **Tests ≥3:** template Thymeleaf rendering (variables + link), `EmailType` enum completeness, SES config properties load
@@ -117,7 +117,7 @@ gaps: [GAP-376, GAP-370, GAP-372, GAP-369, GAP-379]
 - **Spec:** GAP-369 (P0 BLOCKING) + GAP-379 (P1 STRONGLY-recommend; scope cut: docs+template only, Terraform → Wave 34)
 - **State-check:** `terraform-aws/` ✅ exists (agent reads VPC/security-group + region); DNS/secrets runbooks ❌
 - **Files+:**
-  - `documents/05-guides/operations/dns-setup-runbook.md` — registrar (Nhân Hòa/Cloudflare), A/AAAA + MX + TXT (SPF/DKIM/DMARC), subdomain (beta.kitehub.vn → prod cutover), Cloudflare proxy, Let's Encrypt certbot. `[USER_INPUT_REQUIRED]` markers cho IP + domain
+  - `documents/05-guides/deploy/dns-setup-runbook.md` — registrar (Nhân Hòa/Cloudflare), A/AAAA + MX + TXT (SPF/DKIM/DMARC), subdomain (beta.kitehub.vn → prod cutover), Cloudflare proxy, Let's Encrypt certbot. `[USER_INPUT_REQUIRED]` markers cho IP + domain
   - `documents/05-guides/operations/secrets-management-runbook.md` — AWS Secrets Manager: create secrets, IAM policy EKS workload identity, rotation (DB password / JWT / API keys). Tiered: Wave 33 manual; Wave 34 Terraform
   - `scripts/ssl-cert-setup.sh` — certbot install + request cert + cron renewal + webhook notify
   - `scripts/check-dns-propagation.sh` — verify A/MX/TXT/CNAME propagated; exit 0 if all pass

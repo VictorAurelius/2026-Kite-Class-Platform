@@ -10,7 +10,7 @@
 
 ## Problem
 
-`documents/05-guides/operations/email-ses-setup-runbook.md` (304 dòng, Wave 33 Bucket B) đầy đủ technical nhưng **chỉ 3/304 dòng có Vietnamese diacritic** = effectively 100% English. Solo dev VN-first phải đọc EN khi muốn:
+`documents/05-guides/deploy/email-ses-setup-runbook.md` (304 dòng, Wave 33 Bucket B) đầy đủ technical nhưng **chỉ 3/304 dòng có Vietnamese diacritic** = effectively 100% English. Solo dev VN-first phải đọc EN khi muốn:
 
 1. Verify domain `kitehub.vn` (DKIM + SPF + DMARC records via Cloudflare DNS)
 2. Submit SES production access request (sandbox → production, usually 24-48h)
@@ -19,10 +19,10 @@
 State-check (per `audit-to-gap-pipeline.md` §2.5) 2026-05-07:
 ```bash
 $ grep -c "[àáảãạăâèéẹêìíịòóỏôơùúụừứửữựỳýỹỵđ]" \
-    documents/05-guides/operations/email-ses-setup-runbook.md
+    documents/05-guides/deploy/email-ses-setup-runbook.md
 3                          # 3/304 lines = 0.99% Vietnamese density
 
-$ grep -nE "^#{1,3} " documents/05-guides/operations/email-ses-setup-runbook.md
+$ grep -nE "^#{1,3} " documents/05-guides/deploy/email-ses-setup-runbook.md
 1:# AWS SES Production Setup Runbook
 14:## 1. Overview
 30:## 2. Prerequisites

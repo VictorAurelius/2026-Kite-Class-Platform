@@ -5,7 +5,7 @@
 **Last reviewed:** 2026-05-07
 **Cross-refs:**
 - `documents/04-quality/gaps/GAP-370-email-transactional-infrastructure.md`
-- `documents/05-guides/operations/dns-setup-runbook.md` (Bucket D — TXT records)
+- `documents/05-guides/deploy/dns-setup-runbook.md` (Bucket D — TXT records)
 - `kitehub/kitehub-email/src/main/resources/application.yml` (`aws.ses.*` keys)
 - `.claude/rules/release-deploy-standard.md` §3.4 (MAJOR release email checklist)
 - `kitehub/kitehub-email/src/test/java/com/kitehub/email/integration/SesIntegrationSmokeTest.java` (Wave 45 — profile-gated smoke test)

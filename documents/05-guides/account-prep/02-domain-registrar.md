@@ -146,7 +146,7 @@ Sau khi xong:
 
 ## 7. Cross-link
 
-- `documents/05-guides/operations/dns-setup-runbook.md` §2.1 — domain step assumed done
+- `documents/05-guides/deploy/dns-setup-runbook.md` §2.1 — domain step assumed done
 - `documents/05-guides/vietnamese/cloudflare-setup.md` — Cloudflare full walkthrough (496 dòng)
 - `01-aws-account-creation.md` — domain → SES domain identity (verify ownership qua TXT record)
 - `03-password-manager.md` — vault entries cho registrar + Cloudflare credentials
