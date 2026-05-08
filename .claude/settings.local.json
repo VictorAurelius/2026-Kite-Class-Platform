@@ -2,6 +2,13 @@
   "permissions": {
     "allow": [
       "*",
+      "Edit(.claude/rules/**)",
+      "Write(.claude/rules/**)",
+      "Edit(.claude/skills/**)",
+      "Write(.claude/skills/**)",
+      "Edit(.claude/worktrees/**)",
+      "Write(.claude/worktrees/**)",
+      "Bash(touch *)",
       "Write(.claude/session-locks/**)",
       "Edit(.claude/session-locks/**)",
       "Bash(touch .claude/session-locks/*)",
@@ -12,7 +19,9 @@
       "Bash(cat)",
       "Bash(cat /tmp/lock-summary.txt)",
       "Bash(mv .claude/session-locks/session-20260429-022520-NguyenVanKiet.lock .claude/session-locks/archived/2026-04-29/)",
-      "Bash(rm /tmp/lock-summary.txt)"
+      "Bash(rm /tmp/lock-summary.txt)",
+      "Bash(mkdir -p .claude/session-locks)",
+      "Bash(touch \".claude/session-locks/session-$\\(date +%Y%m%d-%H%M%S\\)-$\\(hostname\\).lock\")"
     ],
     "defaultMode": "bypassPermissions"
   },

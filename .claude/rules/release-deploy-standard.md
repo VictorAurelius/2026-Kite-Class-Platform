@@ -1,10 +1,10 @@
 # Release Deploy Standard — Generic deploy artifact + process baseline
 
 **Priority:** 🔴 CRITICAL — every production release must satisfy this standard
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-06
-**Last-Reviewed:** 2026-05-06
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — new rule with built-in enforcement; per `rule-change-process.md` §5 self-approve allowed; new constraint, no constraint loosening)
+**Last-Reviewed:** 2026-05-08
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; §9 clarification distinguishing 3 apply cases (auto-apply / agent-apply / workflow_dispatch-apply) — preserves all existing BAN clauses, adds explicit carve-out for human-triggered workflow_dispatch with confirm-input gate; no constraint loosening for actual-banned cases)
 **Applies to:** Every git tag matching `v[0-9]+.[0-9]+.[0-9]+*` (per `versioning-policy.md`); every production deploy; every pre-release (alpha/beta/rc) shipping to invite tenants
 
 ---
@@ -210,7 +210,10 @@ Per ADR-015 + GAP-381 evaluation, Claude Code subagents trong this project:
 | Phase | Agent role | Reason |
 |---|---|---|
 | **Deploy preparation** | ✅ ADOPT — generate runbooks, file gaps, write plans, generate Helm values, generate smoke test scripts | Already proven via wave-pack pattern; high productivity |
-| **Deploy execution** | ❌ SKIP — human executes critical commands (terraform apply, kubectl apply, dns cutover) | Production blast radius too high; audit trail requires human accountability per `output-review-mandate.md` |
+| **Deploy execution — auto-apply on git push** | ❌ AUTONOMOUS BANNED | Removes "look at plan + think" cognitive checkpoint; production blast radius too high to gate on CI alone |
+| **Deploy execution — agent-spawned `terraform apply`/`kubectl apply` autonomously** | ❌ AGENT-INITIATED BANNED | Agent autonomy violates accountability mandate per `output-review-mandate.md`; ADR-015 defers AWS Agent Plugins Q3 2026 |
+| **Deploy execution — human-triggered `workflow_dispatch` + confirm input + narrow OIDC role** | ✅ ALLOWED | Human-clicks-button + types "APPLY" verbatim = explicit cognitive checkpoint preserved + audit trail GitHub Actions + ephemeral OIDC creds (better security than static admin key on laptop); industry standard pattern (Atlantis, Terraform Cloud) |
+| **Deploy execution — local `terraform apply` with admin key** | ⚠️ ALLOWED for one-time bootstrap (chicken-and-egg provisioning of OIDC apply role) — rotate admin key immediately after | Necessary first-apply path; subsequent applies must use workflow_dispatch per row above |
 | **Post-deploy verification** | ✅ ADOPT — agent runs smoke test scripts, parses logs, suggests fixes, updates status page | Read-only observation safe; speeds debugging |
 | **Rollback decision** | ⚠️ HUMAN-IN-THE-LOOP — agent can flag issues but human decides rollback trigger | Rollback decision requires judgment; agent can WARN only |
 
@@ -292,4 +295,5 @@ If unsure: default to apply per-bump-type checklist; skipping requires override 
 
 ## 13. Log
 
+- **2026-05-08 (v1.0.1):** PATCH — §9 matrix "Deploy execution" row replaced single ❌ SKIP cell với 4-case distinction (auto-apply BANNED / agent-apply BANNED / human-triggered workflow_dispatch ALLOWED / one-time local bootstrap ALLOWED for chicken-and-egg). Triggered by Wave 43 closure user-flagged miss "tại sao cần rule terraform apply human-only" — surfaced rule conflated 3 cases, banning workflow_dispatch + confirm-input pattern that's industry standard (Atlantis/TF Cloud). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user retro post Wave 43 closure) → Classify ✓ (existing §9 didn't distinguish autonomy vs human-trigger) → Rule+Enforce ✓ (this entry + paired same-PR Bucket B `terraform-apply.yml` + IAM apply role + Bucket C bootstrap runbook per `rule-change-process.md` §6.5) → Self-Test ✓ (worked example: Wave 43 GAP-446/447 PARTIAL state would be unblocked by workflow_dispatch carve-out without violating rule spirit) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — clarification only, no constraint loosening for actual-banned cases; auto-apply BAN preserved, agent-apply BAN preserved, only adds explicit carve-out for human-triggered workflow_dispatch). Closes Wave 44 Bucket A via GAP-449 Phase 1.
 - **2026-05-06 (v1.0.0):** Rule created in response to user feedback "tạo nhiều gaps thay vì rule chung". Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged ad-hoc gap pattern instead of codified standard) → Classify ✓ (no existing rule covers production deploy standard) → Rule+Enforce ✓ (this file + paired same-PR `quality/release-deploy/SKILL.md` + GAP-381 + cross-link updates from 12 gaps + `output-review-mandate.md` §3 row) → Self-Test ✓ (§11 worked example on Release 1 v1.0.0) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new rule with built-in enforcement, no constraint loosening). Standards explicitly grounded: AWS Well-Architected + Twelve-Factor + DORA + OWASP + NIST + CNCF + VN PDPL + VN Cybersecurity Law. Meta-lesson §11 acknowledges this author's prior state-check miss + free-form generation issues; corrective references shipped.
