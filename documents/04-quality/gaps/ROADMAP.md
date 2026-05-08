@@ -8,7 +8,28 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-07)
+## 🎯 Current Status Snapshot (2026-05-08)
+
+### ⭐ Wave 43 SHIPPED 2026-05-08 — Cost discipline cluster
+
+**Trigger:** User-flagged "ALB/EC2/RDS chạy liên tục lãng phí, $200 credit cháy 1.3 tháng".
+
+**4 PRs + plan PR merged sequential** (~6-8min agent work, 4× faster than 30min estimate):
+- **#1035** plan + GAP-448 Vercel `ignoreCommand` inline (2× vercel.json — Vercel quota saved validated post-merge via #1036/1037/1038 SUCCESS=Skipped)
+- **#1036** Bucket A GAP-446 EventBridge Scheduler stop/start EC2+RDS (8 schedules Asia/Ho_Chi_Minh, IAM scoped tag-based + ARN, `enable_cost_scheduling` toggle, 270 LOC) — 🟡 PARTIAL (terraform shipped, CI apply pending)
+- **#1038** Bucket B GAP-447 right-size m7i-flex.large → t3.medium + CloudWatch memory alarm + stress-test runbook + GAP-411 post-Vercel matrix update — 🟡 PARTIAL
+- **#1037** Bucket C admin sweep — **GAP-373 → 🟢 DONE** Better Stack evidence, GAP-369 Phase 2 rescope, GAP-377/378 verified DONE Wave 25/26 (Wave 42 different layer), GAP-413 Log update
+- **#1039** bonus — Java unchecked varargs warning fix `BetaAccessServiceTest:467`
+
+**Pre-spawn cost saving:** kc-app instance stopped 2026-05-08T08:11Z (-$60/mo started immediately, mâu thuẫn GAP-445 fixed).
+
+**Combined burn rate impact:** $157/mo → ~$45-55/mo target (post-CI-apply), **$200 credit 1.3 tháng → 3.5-4 tháng** (đủ Phase 1 BETA 9-12 tuần).
+
+**Post-merge user actions pending:** terraform apply both stacks → §3 verify commands per `aws-cost-scheduling.md` + stress test per `right-size-stress-test.md` → file 2× verification artifacts → flip GAP-446/447 to DONE.
+
+**78th 0-clarification streak.** Stake MEDIUM, Opus medium effort. 0 CI fails. 0 scope creep. State-check `audit-to-gap-pipeline.md` §2.5/§2.6 caught 2 cost leaks pre-spawn (kc-app running mâu thuẫn GAP-445 + dual m7i-flex.large over-provision).
+
+---
 
 ### 🟢 RELEASE LẦN 1 PHASE 1 BETA ACTIVE — đọc trước
 
