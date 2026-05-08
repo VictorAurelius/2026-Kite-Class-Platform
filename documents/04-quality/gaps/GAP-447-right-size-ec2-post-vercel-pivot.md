@@ -1,6 +1,6 @@
 # GAP-447: Right-size EC2 m7i-flex.large → t3.medium (post-Vercel pivot)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — terraform shipped Wave 43 Bucket B; CI apply + 1h stress test post-merge (per `documents/05-guides/deploy/right-size-stress-test.md`)
 **Priority:** 🔴 P0 (50% cost saving on EC2 alone)
 **Domain:** Infrastructure / Cost / FinOps
 **Found:** 2026-05-08 (Wave 43 cost-discipline state-check)
@@ -87,4 +87,5 @@ Right-size + stop/start = combined saving:
 
 ## Log
 
+- **2026-05-08** — PARTIAL (Wave 43 Bucket B). Terraform changes shipped: `infrastructure/terraform-aws/variables.tf` defaults `kh_backend_instance_type` + `kc_app_instance_type` flipped m7i-flex.large → t3.medium with rationale citing compose budgets + GAP-411. New `infrastructure/terraform-aws/cloudwatch.tf` ships SNS topic `kitehub-memory-alerts` (email `vannkite@outlook.com`) + 2 `MemoryUtilization > 85%` alarms (5min × 2 datapoints). GAP-411 sizing matrix updated in this PR with Post-Vercel Pivot Update section. Runbook `documents/05-guides/deploy/right-size-stress-test.md` covers Phase 0-5 (prereqs → CloudWatch agent install → sequential apply kh-backend then kc-app → 1h stress test → rollback escalation). Remaining ACs (CI apply + stress test + verification artifact) deferred to post-merge per `gap-done-discipline.md` §3 PARTIAL exit ramp; closure when stress-test report saved.
 - **2026-05-08** — OPEN. Filed sau Wave 43 state-check phát hiện 2 instances cùng m7i-flex.large 8GB không cần thiết. Compose budgets evidence: KH 3.2GB peak / KC 2.5GB peak, t3.medium 4GB đủ + headroom. Wave 43 Bucket B với OOM safety net.
