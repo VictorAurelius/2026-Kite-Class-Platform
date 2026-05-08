@@ -1,6 +1,6 @@
 # GAP-446: AWS Resource Scheduling for Cost-Saving Phase 1 BETA
 
-**Status:** 🟡 PARTIAL — Wave 43 Bucket A terraform shipped; awaiting `terraform apply` (human-only per `release-deploy-standard.md` §9) + post-apply verification
+**Status:** 🟢 DONE 2026-05-08 — Wave 43 Bucket A terraform shipped + bootstrap apply via local terraform với admin profile (chicken-and-egg carve-out per `release-deploy-standard.md` §9 v1.0.1). 8 schedulers ENABLED, scheduler_executor IAM role provisioned, verification artifact filed.
 **Priority:** 🔴 P0 (blocks $200 credit longevity Phase 1 BETA)
 **Domain:** Infrastructure / Cost / FinOps
 **Found:** 2026-05-08 (post Phase 7 deploy session — user-flagged "ALB/EC2/RDS chạy liên tục là không cần thiết")
@@ -96,3 +96,4 @@ Total burn: $157 → **~$45-55/mo** → $200 credit kéo **3.5-4 tháng** (đủ
 
 - **2026-05-08** — OPEN. Filed sau user-flagged miss "ALB/EC2/RDS chạy liên tục không cần thiết, $200 credit cháy nhanh". State-check phát hiện kc-app vẫn `running` mâu thuẫn GAP-445 (chỉ docker compose down, instance không stop) → kc-app stopped 2026-05-08T08:11Z explicit user approval. Wave 43 Bucket A.
 - **2026-05-08** — 🟡 PARTIAL: Wave 43 Bucket A shipped `infrastructure/terraform-aws/scheduler.tf` (8 schedules: 4× stop + 4× start, EC2 + RDS) + `var.enable_cost_scheduling` toggle + IAM `scheduler_executor` role với tag-scoped EC2 + resource-scoped RDS permissions + runbook `documents/05-guides/deploy/aws-cost-scheduling.md`. Per `release-deploy-standard.md` §9 + `agent-aws-access.md` §4, `terraform apply` human-only post-merge → AC items 7+8 (post-apply verification + audit artifact) intentionally unchecked, gap stays PARTIAL until human applies + verifies. Per `gap-done-discipline.md` §3 PARTIAL exit ramp.
+- **2026-05-08** — 🟢 DONE: Bootstrap apply via local `terraform apply` với admin profile per chicken-and-egg carve-out (`release-deploy-standard.md` §9 v1.0.1). All 8 EventBridge schedules in group `kitehub-cost-saving` ENABLED + `scheduler_executor` IAM role provisioned. Verified via Tier 1 `aws scheduler list-schedules`. First stop fires 2026-05-08T22:00 ICT. Verification artifact: `documents/04-quality/audits/aws-verification/2026-05-08-wave-43-44-bootstrap-apply.md`. AC #1-7 ✅ checked.
