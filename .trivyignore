@@ -1,0 +1,74 @@
+# Trivy ignore file — Phase 1 BETA documented exceptions
+#
+# Per .claude/rules/release-deploy-standard.md §3.1 PRE-RELEASE:
+#   "Trivy zero HIGH/CRITICAL recommended không mandatory cho *-staging.* tags"
+#
+# Per Trivy best practice (https://trivy.dev/docs/v0.70/configuration/filtering/):
+#   - Each entry has explicit rationale + expiry + tracking gap
+#   - NO blanket suppression — each CVE evaluated individually
+#   - Re-evaluate at expiry; bump dep OR re-document
+#
+# All 6 entries below = Java JAR transitive deps from Spring Boot 3.5.14.
+# Tracking gap: GAP-440 (Spring Boot dep bump 3.5.14 → latest 3.5.x — fixes
+# Tomcat + Jackson; Tika + Commons BeanUtils need explicit dep override).
+#
+# Phase 1 BETA risk acceptance: invite-only ~10-20 tenants, network-isolated
+# ALB ingress, no public crawler/scanner exposure for the patch window.
+
+# === Tomcat embed (Spring Boot transitive, ETA fix Spring Boot 3.5.16+) ===
+# CVE-2026-34483: Information disclosure due to improper encoding
+# Affects: org.apache.tomcat.embed:tomcat-embed-core 10.1.53
+# Fix: Tomcat 10.1.55+ (Spring Boot bump pulls in)
+# Risk acceptance: BETA invite-only; no path-traversal exploit applicable
+# Expiry: 2026-06-07 (30 days)
+CVE-2026-34483
+
+# CVE-2026-34486: Missing Encryption of Sensitive Data
+# Affects: org.apache.tomcat.embed:tomcat-embed-core 10.1.53
+# Fix: Tomcat 10.1.55+
+# Risk acceptance: TLS terminated at ALB; in-cluster traffic isolated
+# Expiry: 2026-06-07
+CVE-2026-34486
+
+# CVE-2026-34487: Information disclosure via sensitive data in log file
+# Affects: org.apache.tomcat.embed:tomcat-embed-core 10.1.53
+# Fix: Tomcat 10.1.55+
+# Risk acceptance: BETA log access restricted to ops; no log-mining surface
+# Expiry: 2026-06-07
+CVE-2026-34487
+
+# === Jackson Core (Spring Boot transitive, ETA fix Spring Boot 3.5.16+) ===
+# GHSA-72hv-8253-57qq: Number Length Constraint Bypass in Async Parser
+# Affects: com.fasterxml.jackson.core:jackson-core 2.19.4
+# Fix: jackson-core 2.20+
+# Risk acceptance: BETA invite-only; no untrusted JSON ingestion (all FE
+# traffic via gateway with size limits per kitehub.gateway routes config)
+# Expiry: 2026-06-07
+GHSA-72hv-8253-57qq
+
+# === Apache Tika (kitehub-platform document parser) ===
+# CVE-2025-66516: tika-parser-pdf-module CRITICAL
+# Affects: org.apache.tika:tika-core 2.9.2
+# Fix: tika 2.9.4 OR 3.0.0 (kitehub-platform pom.xml needs explicit override)
+# Risk acceptance: BETA tika usage = AI Branding logo metadata only; no
+# untrusted PDF upload from public surface (admin-only consent flow per
+# ai-branding-guidelines.md §2.5 input cap)
+# Expiry: 2026-06-07
+CVE-2025-66516
+
+# === Apache Commons BeanUtils ===
+# CVE-2025-48734: PropertyUtilsBean does not suppress class-property access
+# Affects: commons-beanutils:commons-beanutils 1.9.4
+# Fix: commons-beanutils 1.10.0+ (transitive — likely from spring-data or
+# velocity dep; needs explicit pin)
+# Risk acceptance: BETA invite-only; bean property access constrained by
+# Spring Boot strict deserialization defaults
+# Expiry: 2026-06-07
+CVE-2025-48734
+
+# === Notes ===
+# 5 warning-severity CVEs (CVE-2024-25710, CVE-2024-26308, CVE-2025-31672,
+# CVE-2025-48924, CVE-2026-34500) are MEDIUM/LOW — not fail-gating.
+#
+# Re-evaluate this file at expiry 2026-06-07. Spring Boot bump GAP-440
+# expected to clear 4-5 of 6 entries automatically.
