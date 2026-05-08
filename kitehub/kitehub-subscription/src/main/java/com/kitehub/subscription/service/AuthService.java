@@ -152,6 +152,79 @@ public class AuthService {
     }
 
     /**
+     * Register a tenant after a beta-invite token has been redeemed
+     * (GAP-372 closure follow-up #1, Wave 45 Bucket A).
+     *
+     * <p>This entry point bypasses captcha — the invitee has already proven
+     * identity by redeeming a single-use {@code beta_access_request.invite_token}
+     * (24h TTL, server-issued). It also short-circuits the standard email
+     * verification flow, since the email used was already pre-verified by
+     * the operator who approved the beta request.</p>
+     *
+     * <p>Existing-email / existing-subdomain conflicts still throw
+     * {@link IllegalArgumentException} so the caller can roll the beta request
+     * back to APPROVED and let the invitee retry.</p>
+     *
+     * @param organizationName tenant org display name (from {@code beta_access_request.org_name})
+     * @param subdomain requested tenant subdomain (from {@code BetaSignupCommand.subdomain})
+     * @param ownerEmail tenant-owner email (from {@code beta_access_request.email})
+     * @param ownerPassword tenant-owner password (from {@code BetaSignupCommand.ownerPassword})
+     * @return registration response with tokens + provisioned trial instance
+     */
+    @Transactional
+    public RegisterResponse registerFromBetaInvite(String organizationName,
+                                                   String subdomain,
+                                                   String ownerEmail,
+                                                   String ownerPassword) {
+        log.info("Beta-invite registration: subdomain={} email={}", subdomain, ownerEmail);
+
+        if (userRepository.existsByEmail(ownerEmail)) {
+            throw new IllegalArgumentException("Email already registered");
+        }
+        if (instanceRepository.existsBySubdomainAndDeletedFalse(subdomain)) {
+            throw new IllegalArgumentException("Subdomain already exists");
+        }
+
+        // Beta invitees are pre-verified by the operator who approved the request,
+        // so we provision the trial instance immediately without an email round-trip.
+        User user = User.builder()
+                .email(ownerEmail)
+                .name(organizationName)
+                .passwordHash(passwordEncoder.encode(ownerPassword))
+                .role("OWNER")
+                .emailVerified(true)
+                .verificationToken(null)
+                .tokenExpiresAt(null)
+                .build();
+        user = userRepository.save(user);
+
+        CreateInstanceRequest instanceRequest = new CreateInstanceRequest();
+        instanceRequest.setSubdomain(subdomain);
+        instanceRequest.setOrganizationName(organizationName);
+        instanceRequest.setOwnerId(user.getId());
+        instanceRequest.setContactEmail(ownerEmail);
+        instanceRequest.setTier(PricingTier.FREE);
+        InstanceResponse instance = instanceService.createTrialInstance(instanceRequest);
+
+        String accessToken = generateAccessToken(user.getId(), user.getEmail(), user.getRole());
+        String refreshToken = generateRefreshToken(user.getId());
+
+        log.info("Beta-invite registered user: {} instance: {}", user.getId(), instance.getId());
+
+        return RegisterResponse.builder()
+                .user(RegisterResponse.UserInfo.builder()
+                        .id(user.getId())
+                        .email(user.getEmail())
+                        .name(user.getName())
+                        .role(user.getRole())
+                        .build())
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .instance(instance)
+                .build();
+    }
+
+    /**
      * Verify email and activate instance (provision DB).
      *
      * @param token Verification token from email link

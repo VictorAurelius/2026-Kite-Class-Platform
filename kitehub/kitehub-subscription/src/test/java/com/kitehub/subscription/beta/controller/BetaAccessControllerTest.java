@@ -4,11 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.subscription.beta.dto.BetaApproveCommand;
 import com.kitehub.subscription.beta.dto.BetaRejectCommand;
 import com.kitehub.subscription.beta.dto.BetaRequestDto;
+import com.kitehub.subscription.beta.dto.BetaSignupCommand;
 import com.kitehub.subscription.beta.dto.BetaTokenValidationResponse;
 import com.kitehub.subscription.beta.entity.BetaAccessRequest;
 import com.kitehub.subscription.beta.entity.BetaAccessRequestStatus;
 import com.kitehub.subscription.beta.service.BetaAccessService;
 import com.kitehub.subscription.config.SecurityConfig;
+import com.kitehub.subscription.dto.InstanceResponse;
+import com.kitehub.subscription.dto.RegisterResponse;
+import com.kitehub.subscription.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -61,13 +65,16 @@ class BetaAccessControllerTest {
     @MockitoBean
     private BetaAccessService service;
 
+    @MockitoBean
+    private AuthService authService;
+
     /** Required because the application enables JPA auditing — slice context resolves auditing beans. */
     @MockitoBean
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @BeforeEach
     void setUp() {
-        Mockito.reset(service);
+        Mockito.reset(service, authService);
     }
 
     // ── Public endpoints (no auth required) ───────────────────────────
@@ -191,6 +198,95 @@ class BetaAccessControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.valid").value(false))
                 .andExpect(jsonPath("$.errorCode").value("TOKEN_EXPIRED"));
+    }
+
+    // ── Beta signup tenant wire-up (GAP-372 closure follow-up #1, Wave 45 Bucket A) ─
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("POST /auth/beta-signup — happy path: completeBetaSignup → registerFromBetaInvite both invoked, 200")
+    void completeBetaSignupProvisionsTenant() throws Exception {
+        UUID token = UUID.randomUUID();
+        BetaSignupCommand cmd = new BetaSignupCommand(token, "owner-pass-12345", "abc-school");
+        BetaAccessRequest signedUp = BetaAccessRequest.builder()
+                .id(42L)
+                .email("invitee@example.com")
+                .name("Invitee")
+                .orgName("ABC School")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.SIGNED_UP)
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build();
+        when(service.completeBetaSignup(any(BetaSignupCommand.class))).thenReturn(signedUp);
+        when(authService.registerFromBetaInvite(eq("ABC School"), eq("abc-school"),
+                eq("invitee@example.com"), eq("owner-pass-12345")))
+                .thenReturn(RegisterResponse.builder()
+                        .accessToken("at").refreshToken("rt")
+                        .instance(InstanceResponse.builder().subdomain("abc-school").build())
+                        .build());
+
+        mockMvc.perform(post("/api/v1/auth/beta-signup")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(cmd)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("invitee@example.com"))
+                .andExpect(jsonPath("$.status").value("SIGNED_UP"));
+
+        Mockito.verify(authService, Mockito.times(1))
+                .registerFromBetaInvite("ABC School", "abc-school",
+                        "invitee@example.com", "owner-pass-12345");
+        Mockito.verify(service, Mockito.never()).rollbackSignup(Mockito.anyLong());
+    }
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("POST /auth/beta-signup — registration conflict (subdomain taken) → rollbackSignup + 409")
+    void completeBetaSignupRollsBackOnConflict() throws Exception {
+        UUID token = UUID.randomUUID();
+        BetaSignupCommand cmd = new BetaSignupCommand(token, "owner-pass-12345", "taken-subdomain");
+        BetaAccessRequest signedUp = BetaAccessRequest.builder()
+                .id(99L)
+                .email("invitee@example.com")
+                .name("Invitee")
+                .orgName("ABC School")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.SIGNED_UP)
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build();
+        when(service.completeBetaSignup(any(BetaSignupCommand.class))).thenReturn(signedUp);
+        when(authService.registerFromBetaInvite(any(), any(), any(), any()))
+                .thenThrow(new IllegalArgumentException("Subdomain already exists"));
+
+        mockMvc.perform(post("/api/v1/auth/beta-signup")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(cmd)))
+                .andExpect(status().isConflict());
+
+        Mockito.verify(service, Mockito.times(1)).rollbackSignup(99L);
+    }
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("POST /auth/beta-signup — invalid token → 404 + registerFromBetaInvite NOT invoked + no rollback")
+    void completeBetaSignupRejectsInvalidToken() throws Exception {
+        UUID token = UUID.randomUUID();
+        BetaSignupCommand cmd = new BetaSignupCommand(token, "owner-pass-12345", "abc-school");
+        when(service.completeBetaSignup(any(BetaSignupCommand.class)))
+                .thenThrow(new IllegalArgumentException("Invalid invite token"));
+
+        mockMvc.perform(post("/api/v1/auth/beta-signup")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(cmd)))
+                .andExpect(status().isNotFound());
+
+        Mockito.verify(authService, Mockito.never())
+                .registerFromBetaInvite(any(), any(), any(), any());
+        Mockito.verify(service, Mockito.never()).rollbackSignup(Mockito.anyLong());
     }
 
     // ── Admin endpoints — happy path (PLATFORM_ADMIN role) ────────────

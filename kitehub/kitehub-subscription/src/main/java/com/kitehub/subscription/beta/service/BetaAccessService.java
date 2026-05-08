@@ -449,4 +449,32 @@ public class BetaAccessService {
     public Optional<BetaAccessRequest> getById(Long id) {
         return repository.findById(id);
     }
+
+    /**
+     * Rollback a SIGNED_UP transition back to APPROVED — used when downstream
+     * registration provisioning fails after {@link #completeBetaSignup} returned
+     * success (GAP-372 closure follow-up #1, Wave 45 Bucket A). Re-issues a
+     * fresh invite token with a new 24h expiry so the invitee can retry.
+     *
+     * <p>This is intentionally a separate transactional method so the outer
+     * controller can call it from a {@code catch} block without nesting it
+     * inside the registration transaction.</p>
+     *
+     * @param id beta access request id returned from {@link #completeBetaSignup}
+     */
+    @Transactional
+    public void rollbackSignup(Long id) {
+        BetaAccessRequest entity = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Beta access request not found: " + id));
+        if (entity.getStatus() != BetaAccessRequestStatus.SIGNED_UP) {
+            log.warn("rollbackSignup skipped — request {} is in state {} (expected SIGNED_UP)",
+                    id, entity.getStatus());
+            return;
+        }
+        entity.setStatus(BetaAccessRequestStatus.APPROVED);
+        entity.setInviteToken(UUID.randomUUID());
+        entity.setInviteTokenExpiry(OffsetDateTime.now().plusHours(INVITE_TOKEN_TTL_HOURS));
+        repository.save(entity);
+        log.warn("Beta signup rolled back to APPROVED: id={} email={}", id, entity.getEmail());
+    }
 }
