@@ -32,6 +32,7 @@ Per `incident-to-rule-pipeline.md` premature-rule guard: 1st recurrence = no for
 6. **Workflow `if:` condition coverage** — verify conditions don't silently skip required jobs (e.g., `vars.AWS_CONFIGURED == 'true'` requires var actually set)
 7. **GitHub Variables + Secrets pre-flight** — verify required `vars.*` and `secrets.*` referenced by workflow exist on repo
 8. **Dockerfile `FROM` reachability** — pull-test each base image to confirm registry availability + manifest
+9. **Post-push verify step requirements vs tag class** — verify Release-dependent steps (anchore/sbom-action, sigstore/cosign-installer, `gh release create`) have tag-class `if:` guards; staging.* / rc.* tags lack Release object → 403 at runtime (added 2026-05-08 from Phase 3 staging.7 SBOM 403 incident)
 
 ## Quick usage
 

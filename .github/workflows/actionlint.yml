@@ -1,0 +1,40 @@
+name: actionlint
+
+# Static lint for GitHub Actions workflows.
+# Catches: YAML syntax errors, step input type errors, secret/var refs to
+# undefined names, expression syntax bugs, shell script issues in run: blocks.
+#
+# Per .claude/rules/release-fix-retry-budget.md §7.5 — local self-test
+# infrastructure (Tier 1 of preflight). Runs on every PR touching workflows.
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    name: Lint GitHub Actions workflows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Download actionlint binary
+        run: |
+          bash <(curl -sSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          ./actionlint --version
+      - name: Run actionlint on .github/workflows/** (warn-only — see GAP-443)
+        # WARN-only mode: existing workflows have legacy SC2086 / SC2129 / SC1072
+        # / SC1073 / `if: false` issues. actionlint runs for visibility but
+        # doesn't block until GAP-443 cleanup PR ships. After cleanup, flip
+        # this step to fail-on-error.
+        # Per release-fix-retry-budget.md §4: don't add blocking gate when
+        # legacy debt exists; ship informational gate first, then tighten.
+        continue-on-error: true
+        run: ./actionlint -color
