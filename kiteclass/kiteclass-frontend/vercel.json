@@ -1,0 +1,4 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- :/kiteclass/kiteclass-frontend :/packages/shared-ui :/pnpm-lock.yaml :/package.json && exit 0 || exit 1"
+}

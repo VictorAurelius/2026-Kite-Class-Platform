@@ -4,7 +4,7 @@ status: draft
 created: 2026-05-08
 updated: 2026-05-08
 waves: [43]
-gaps: [GAP-446, GAP-447, GAP-411, GAP-373, GAP-369, GAP-377, GAP-378, GAP-413]
+gaps: [GAP-446, GAP-447, GAP-448, GAP-411, GAP-373, GAP-369, GAP-377, GAP-378, GAP-413]
 audit_cluster: release-deploy-artifacts
 ---
 
@@ -160,3 +160,4 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ## 9. Log
 
 - **2026-05-08** (draft): Plan created sau user-flagged miss "ALB/EC2/RDS chạy liên tục lãng phí". State-check phát hiện 2 cost leaks: (1) kc-app vẫn running mâu thuẫn GAP-445 — stopped explicit user approval 2026-05-08T08:11Z; (2) cả 2 EC2 m7i-flex.large 8GB over-provisioned vs compose budget 3.2GB/2.5GB. 3 buckets parallel, ~30min wall-clock estimate. MEDIUM stake tier, Opus medium effort.
+- **2026-05-08** (in-progress): Inline fix GAP-448 added — Vercel `ignoreCommand` shipped trong plan PR (2× `vercel.json` cho kiteclass + kitehub FE). User-flagged khi check CI #1035 thấy Vercel build trigger trên docs-only PR — spirit-violation với CI Trigger Policy 2026-04-24. Fix nhỏ (~10 LOC) ship cùng plan PR thay vì Wave 43 Bucket C để có hiệu quả ngay từ commit tiếp theo.
