@@ -46,9 +46,9 @@ variable "enable_nat_gateway" {
 
 # --- EC2 (Architecture B: 2 instances replace EKS) ---
 variable "kh_backend_instance_type" {
-  description = "EC2 instance type for KiteHub backend cluster (6 services). Phase 1 default t3.micro (free tier 12mo)."
+  description = "EC2 instance type for KiteHub backend cluster (6 services). Phase 1 BETA: m7i-flex.large 8GB ($59/mo, covered ~3.4mo by $200 credits) — t3.micro 1GB caused OOM on Java service cold-start storm during Phase 7 deploy 2026-05-08."
   type        = string
-  default     = "t3.micro"
+  default     = "m7i-flex.large"
 }
 
 variable "kc_app_instance_type" {

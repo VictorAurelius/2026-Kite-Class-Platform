@@ -20,8 +20,8 @@ vpc_cidr           = "10.0.0.0/16"
 enable_nat_gateway = false # Phase 1 BETA cost saving (~$32/mo)
 
 # --- EC2 (Architecture B 2-instance topology) ---
-kh_backend_instance_type = "t3.micro" # Free tier 750h/mo (covers 1 instance 24/7)
-kc_app_instance_type     = "t3.micro" # Free tier
+kh_backend_instance_type = "m7i-flex.large" # 8GB RAM, $59/mo. Required for 5 KH Java services (Phase 7 retro 2026-05-08 — t3.micro 1GB caused OOM). Covered ~3.4mo by $200 credits.
+kc_app_instance_type     = "t3.micro"       # Free tier 750h/mo. KC stack defer Phase 7 polish; consider terminate to save $8/mo if Vercel stays as KC frontend.
 ec2_key_pair_name        = null       # Use SSM Session Manager instead of SSH
 
 # --- RDS ---
