@@ -22,12 +22,25 @@
 5. **AWS SES sandbox→production approval** (GAP-370 closure) — follow `documents/05-guides/operations/email-ses-setup-runbook.md`; DKIM/SPF/DMARC verification; out-of-sandbox approval ticket; verify domain reputation pre-launch
 
 **Wave 46+ candidates (Phase 1 BETA progression per `release-1-plan-2026.md` §3):**
-- **Wave 46 plan ready PR #1053** — E2E CI activation Phase A trial flag flip (recon found specs route-mocked)
+- **Wave 46 ready to spawn** — plan merged PR #1053; single-bucket Phase A trial flag flip (recon found E2E specs route-mocked, no stack-in-CI needed)
+- **Deployment-naming cleanup PR** — rule shipped PR #1055; cleanup pending để relocate 4-6 drift candidates: `operations/email-ses-setup-runbook.md` → `deploy/`, `operations/dns-setup-runbook.md` → `deploy/`, `operations/secrets-management-runbook.md` split, `deploy/terraform-apply-bootstrap.md` rename + suffix, archive `kiteclass-docker-deployment.md` (pre-ADR-025), consolidate SES runbook overlap
 - DSAR + RTBF Phase 2 (GAP-353c + GAP-073)
 - Custom domain procurement Phase 2 (GAP-369b deferred from Wave 43)
-- Deployment naming rule + cleanup PRs (drift incident detected Wave 45 Bucket C — operations/ vs deploy/ folder)
+- Dep-bump cluster (GAP-440 Spring Boot + GAP-441 pom hygiene + GAP-442 alpine 3.23→3.24) — root-cause fix cho Trivy CVE backlog (Wave 45 PR #1056 đã pivot gate Phase 1 BETA exemption)
 
 **Strategic gates Phase 1 → Phase 1.5:** Quality audit /100 ≥80 (current 86 ✅) + 5 beta tenants live + 0 P0 incidents 2 tuần
+
+---
+
+### ⭐ Post-Wave-45 addendum 2026-05-08 — meta-rule + 2 CI fix PRs
+
+Sau Wave 45 closure, 4 PRs bổ sung shipped để handle parallel-spawned tasks + recurring CI fail:
+- **#1053** Wave 46 plan (E2E CI activation Phase A trial flag flip)
+- **#1055** New rule `.claude/rules/deployment-naming-convention.md` v1.0.0 — incident-driven từ Wave 45 Bucket C drift (`email-ses-setup-runbook.md` actual path `operations/` vs plan-referenced `deploy/`)
+- **#1056** Fix Trivy gate — extend staging.* exit-code 0 exemption to `main` push during Phase 1 BETA per `release-fix-retry-budget.md` §4 row 5; production gate intact cho v[0-9]+.* tags
+- **#1057** Fix deprecated `DefaultCredentialsProvider.create()` → `.builder().build()` trong `SesIntegrationSmokeTest.java`
+
+**Recurring CI fail loop broken:** post-Wave-45 closure 8 ECR push fails (run 25550657363) = recurrence của Phase 3 staging.1-7 saga. PR #1056 pivot ("remove the gate") thay vì patch (would have been 5+ retries). Won't re-trigger trên future main pushes during Phase 1 BETA.
 
 ---
 
