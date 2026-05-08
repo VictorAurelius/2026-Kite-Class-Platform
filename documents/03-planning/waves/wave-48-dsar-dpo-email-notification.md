@@ -1,10 +1,11 @@
 ---
 title: Wave 48 — DSAR DPO Email Notification (GAP-353c-followup PARTIAL → DONE)
-status: draft
+status: complete
+outcome: shipped
 created: 2026-05-09
 updated: 2026-05-09
 waves: [48]
-gaps: [GAP-353c-followup-dpo-email-notification]
+gaps: [GAP-353c-followup-dpo-email-notification, GAP-353c]
 ---
 
 # Wave 48 — DSAR DPO Email Notification
@@ -164,5 +165,32 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ---
 
 ## 8. Log
+
+- **2026-05-09 (closure — SHIPPED):** Wave 48 Bucket A SHIPPED in **~9min wall-clock** (vs 60-90min estimate; speedup 7-10×). PR **#1074** merged 2026-05-09 với `--admin` (Vercel rate-limit override per `admin-merge-discipline.md` §3 + ROADMAP precedent — all substantive CI green). 8 files changed, +528/-23 LOC.
+
+  **Outcome:**
+  - `EmailServiceClient` extended với 2 methods (`sendDsarNewTicketDpoEmail` + `sendDsarAcknowledgementEmail`) re-using outbox-first `dispatchEmail` precedent (line 595, `design-patterns.md` §3.5.1 Exception A)
+  - 2 Thymeleaf templates created (`dsar-new-ticket-dpo.html` + `dsar-acknowledgement-requester.html`) — Vietnamese-first, DPO ops-alert + requester reassuring tone
+  - `DsarServiceImpl.notifyDpo` wires both dispatches trong independent try/catch envelopes; audit log line preserved (defense in depth per AC line 41)
+  - 3 unit tests added (dispatch verifications + resilience test for email-failure-doesn't-rollback-ticket); `DsarServiceImplTest`: 7 tests pass (4 original + 3 new)
+  - `BR-PDPL-DSAR-006` (dpo-email config) added to `documents/01-business/kitehub/marketing/rules.md` với full 5-attribute review per `business-logic-review.md` §2
+  - GAP-353c-followup-dpo-email-notification: 🔵 OPEN → 🟢 DONE (all 6 AC ticked)
+  - **Cascade closure:** GAP-353c parent 🟡 PARTIAL → 🟢 DONE per `gap-done-discipline.md` §2 — all 11/11 AC verified, last unchecked AC ("Email notification flow") satisfied by Wave 48
+  
+  **CI verification (PR #1074):**
+  - Test KiteHub Subscription Service: PASS 1m0s ✅ (verifies agent's local mvn verify reproducible on CI runner)
+  - Test KiteHub Email Service: PASS 58s ✅
+  - Test KiteHub Admin/Branding/Gateway/Platform/Results: ALL PASS ✅
+  - Code Quality + Secret Scanning: PASS ✅
+  - Local mvn verify -P strict-warnings: BUILD SUCCESS, 455 tests, 0 failures
+  - Vercel × 2: rate-limited 24h (environmental — kitehub-email templates aren't deployed via Vercel; ROADMAP precedent applies)
+  
+  **Discipline wins:**
+  - Pre-flight verify confirmed plan §4 State-Check Evidence symbols still absent on main (no race condition with Wave 47 closure PR)
+  - Pattern reuse via `dispatchEmail` outbox precedent — zero new infra, just compose existing primitives
+  - 5-attribute business rule review for `BR-PDPL-DSAR-006` per `business-logic-review.md` §2 mandate
+  - Cascade closure surfaced cleanly via `gap-done-discipline.md` §2 (last AC item check)
+  
+  Coordinator closure: ROADMAP §🚀 Next Action updated; `wave-history.jsonl` appended (outcome=shipped); worktree pruned.
 
 - **2026-05-09 (draft):** Plan created. Wave 48 = single-bucket DSAR DPO email integration. Recon Wave 47 spawn-time (2026-05-09) phát hiện `EmailServiceClient` đã tồn tại trong `kitehub-subscription` (precedent `SubscriptionExpirationChecker`) → blocker note "kitehub-email API not exposed cross-module" từ GAP-353c-followup filing date 2026-05-06 nay STALE. Wave 48 reduces gap effort estimate 2-4h → 60-90min. Stake LOW (precedent reuse), Opus medium effort. Closes GAP-353c-followup → 🟢 DONE; cascade closes GAP-353c parent 🟡 PARTIAL → 🟢 DONE per `gap-done-discipline.md` §2 (last AC item satisfied).

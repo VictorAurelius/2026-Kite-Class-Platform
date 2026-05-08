@@ -12,9 +12,9 @@
 
 ### 🚀 Next Action (signpost cho new session)
 
-**Wave 47 CLOSED 2026-05-09 — Phase A DEFERRED to Phase B (GAP-453):** Pre-flight verify aborted before flag flip; agent disproved 4 plan recon points (scope mismatch full e2e/ folder vs critical subset / route-mock incomplete in 2/3 spec files / `fullyParallel:true` not false / KC workflow `|| true` + `continue-on-error:true` makes flip semantically advisory). **Scope-correction note:** Wave 47 plan frontmatter listed `[GAP-403, GAP-404, GAP-420]` but those cover TAG-TIME pre-release E2E gate (workflow `e2e-pre-release.yml`, DONE Wave 37 2026-05-07) — Wave 47 actual scope was PR-TIME E2E gate activation in `frontend-ci.yml`/`kitehub-frontend-ci.yml`. **GAP-453 P1** now scopes that PR-time activation work với 3 Phase B options (B.1 docker-compose-in-CI / B.2 narrow subset scripts / B.3 MSW migration) — recommend B.2 as smallest reversible step.
+**Wave 48 SHIPPED 2026-05-09** — DSAR DPO Email Notification (PR #1074, ~9min wall-clock vs 60-90min estimate, 8.3× speedup). Pattern reuse via `EmailServiceClient.dispatchEmail` outbox-first precedent: +2 methods in client + 2 Thymeleaf templates + `DsarServiceImpl.notifyDpo` wiring + 3 unit tests + `BR-PDPL-DSAR-006` 5-attribute review. **Cascade closure:** GAP-353c-followup-dpo-email-notification 🔵 OPEN → 🟢 DONE; GAP-353c parent 🟡 PARTIAL → 🟢 DONE per `gap-done-discipline.md` §2 (all 11/11 AC verified). mvn verify SUCCESS 455 tests; CI Test KiteHub Subscription Service 1m0s PASS.
 
-**Wave 48 ready to spawn 2026-05-09** — plan merged PR #1071; close GAP-353c-followup-dpo-email-notification (DSAR DPO email integration via existing `EmailServiceClient`; cascade closes GAP-353c parent 🟡 PARTIAL → 🟢 DONE). Single bucket, ~60-90min Opus medium effort. Recon discovered blocker note ("kitehub-email API not exposed") was STALE since 2026-05-06; client + outbox-first pattern shipped via `SubscriptionExpirationChecker` precedent.
+**Wave 47 CLOSED 2026-05-09 — Phase A DEFERRED to Phase B (GAP-453):** Pre-flight verify aborted before flag flip; agent disproved 4 plan recon points (scope mismatch full e2e/ folder vs critical subset / route-mock incomplete in 2/3 spec files / `fullyParallel:true` not false / KC workflow `|| true` + `continue-on-error:true` makes flip semantically advisory). **Scope-correction note:** Wave 47 plan frontmatter listed `[GAP-403, GAP-404, GAP-420]` but those cover TAG-TIME pre-release E2E gate (workflow `e2e-pre-release.yml`, DONE Wave 37 2026-05-07) — Wave 47 actual scope was PR-TIME E2E gate activation in `frontend-ci.yml`/`kitehub-frontend-ci.yml`. **GAP-453 P1** now scopes that PR-time activation work với 3 Phase B options (B.1 docker-compose-in-CI / B.2 narrow subset scripts / B.3 MSW migration) — recommend B.2 as smallest reversible step.
 
 **Phase 1 BETA Beta Access closure:** ✅ CODE COMPLETE 2026-05-08 (Wave 45 — GAP-372 DONE + GAP-370 PARTIAL pending AWS user-action).
 
@@ -33,10 +33,10 @@
 
 CVE delta: 21 HIGH alerts → ~10 expected post-Trivy-rescan (12 npm-in-base + gnutls cleared by Bucket C; 9 Java CVE blocked GAP-451 await upstream).
 
-**Wave 48+ candidates (Phase 1 BETA progression per `release-1-plan-2026.md` §3):**
+**Wave 49+ candidates (Phase 1 BETA progression per `release-1-plan-2026.md` §3):**
+- ✅ **Wave 48 SHIPPED** — DSAR DPO email integration (PR #1074); GAP-353c + GAP-353c-followup both 🟢 DONE; 8.3× speedup vs estimate via precedent reuse
 - ✅ **Wave 47 CLOSED** — Phase A trial deferred to Phase B (GAP-453 P1 filed); plan executed but pre-flight aborted; closure log details in `documents/03-planning/waves/wave-47-e2e-activation.md` §8
-- **Wave 48 ready to spawn** — plan at `documents/03-planning/waves/wave-48-dsar-dpo-email-notification.md` (PR #1071 merged 2026-05-09); single-bucket DSAR DPO email integration; closes GAP-353c-followup + cascade-closes GAP-353c parent
-- **GAP-453 (Phase B E2E)** — P1, awaiting Phase B option choice (B.2 narrow subset recommended); blocks GAP-403/404/420 closure
+- **GAP-453 (Phase B E2E)** — P1, awaiting Phase B option choice (B.2 narrow subset recommended); blocks GAP-403/404/420 closure (NB: GAP-403/404/420 cover TAG-TIME pre-release E2E, already DONE Wave 37; GAP-453 covers PR-TIME activation, distinct scope)
 - ✅ **Deployment-naming cleanup PR** — rule shipped PR #1055; cleanup PR shipped 2026-05-08 (3 file moves + 14 link updates: `operations/email-ses-setup-runbook.md` → `deploy/`, `operations/dns-setup-runbook.md` → `deploy/`, `deploy/terraform-apply-bootstrap.md` → `terraform-apply-bootstrap-runbook.md`). `secrets-management-runbook.md` split deferred to GAP-452 (P2, substantive editorial). `kiteclass-docker-deployment.md` already absent.
 - DSAR + RTBF Phase 2 (GAP-353c + GAP-073)
 - Custom domain procurement Phase 2 (GAP-369b deferred from Wave 43)
