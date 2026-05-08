@@ -66,9 +66,23 @@ CVE-2025-66516
 # Expiry: 2026-06-07
 CVE-2025-48734
 
+# === Alpine OS base image (gnutls — affects all 10 service images) ===
+# CVE-2026-33845: gnutls vulnerability CRITICAL
+# Affects: alpine 3.23 base image (all Java + Node services share this base)
+# Fix: alpine 3.24+ (eclipse-temurin:*-jre-alpine + node:*-alpine bump)
+# Risk acceptance: BETA invite-only; TLS terminated at ALB (gnutls in-image
+# only used for outbound TLS to AWS APIs which validates certs server-side);
+# in-cluster mTLS bypass not exposed
+# Expiry: 2026-06-07
+# Tracked: GAP-442 alpine 3.23 → 3.24 base image bump (10 Dockerfiles)
+CVE-2026-33845
+
 # === Notes ===
 # 5 warning-severity CVEs (CVE-2024-25710, CVE-2024-26308, CVE-2025-31672,
 # CVE-2025-48924, CVE-2026-34500) are MEDIUM/LOW — not fail-gating.
+# CVE-2026-33846 + CVE-2026-3833 (gnutls HIGH) — covered by CRITICAL-only
+# staging gate (release-deploy-standard.md §3.1); production v1.0.0+ tag
+# requires alpine bump to clear (GAP-442).
 #
-# Re-evaluate this file at expiry 2026-06-07. Spring Boot bump GAP-440
-# expected to clear 4-5 of 6 entries automatically.
+# Re-evaluate this file at expiry 2026-06-07. Spring Boot bump (GAP-440) +
+# alpine bump (GAP-442) expected to clear 6 of 7 entries automatically.
