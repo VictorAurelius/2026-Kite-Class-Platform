@@ -53,34 +53,17 @@ jobs:
           fi
           echo "Version OK: ${{ github.event.inputs.version }}"
 
-  preflight:
-    name: Preflight (ECR image exists)
-    runs-on: ubuntu-latest
-    needs: validate
-    steps:
-      - uses: actions/checkout@v6
-      - name: Configure AWS (OIDC ECR pull role for read-only describe)
-        uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-      - name: Verify image tag exists in ECR
-        run: |
-          TAG="${{ github.event.inputs.version }}"
-          for service in kitehub-subscription kitehub-gateway kitehub-branding kitehub-admin kitehub-email; do
-            echo "Checking kite/${service}:${TAG}..."
-            aws ecr describe-images \
-              --repository-name "kite/${service}" \
-              --image-ids imageTag="${TAG}" \
-              --region "${AWS_REGION}" \
-              --output json > /dev/null
-          done
-          echo "All 5 KH service images verified in ECR ✅"
+  # Preflight (ECR DescribeImages) removed — kitehub-github-deploy role has
+  # only ECR pull perms (BatchCheckLayer/BatchGetImage), not DescribeImages.
+  # Adding DescribeImages requires terraform iam.tf change + apply.
+  # `docker compose pull` on EC2 will verify image existence at deploy time
+  # (uses BatchGetImage which IS in role policy). If image missing → SSM
+  # command fails with non-zero exit; workflow surfaces error.
 
   deploy:
     name: Deploy to kh-backend via SSM
     runs-on: ubuntu-latest
-    needs: preflight
+    needs: validate
     environment: production
     steps:
       - uses: actions/checkout@v6
@@ -182,13 +165,12 @@ jobs:
   notify:
     name: Notify deploy outcome
     runs-on: ubuntu-latest
-    needs: [validate, preflight, deploy]
+    needs: [validate, deploy]
     if: always()
     steps:
       - name: Summary
         run: |
           echo "Validate:  ${{ needs.validate.result }}"
-          echo "Preflight: ${{ needs.preflight.result }}"
           echo "Deploy:    ${{ needs.deploy.result }}"
           echo "Version:   ${{ github.event.inputs.version }}"
           if [[ "${{ needs.deploy.result }}" == "success" ]]; then
