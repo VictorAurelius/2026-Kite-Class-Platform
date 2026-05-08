@@ -25,10 +25,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Run actionlint
-        uses: raven-actions/actionlint@v2
-        with:
-          # Show all problems regardless of severity
-          fail-on-error: 'true'
-          # Use action's own bundled actionlint binary
-          flags: '-color'
+      - name: Download actionlint binary
+        run: |
+          bash <(curl -sSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          ./actionlint --version
+      - name: Run actionlint on .github/workflows/**
+        run: ./actionlint -color
+        # Pinned actionlint binary version emitted on prior step.
+        # Avoids raven-actions/actionlint@v2 npm install issue with our
+        # pnpm workspace (workspace:* refs in package.json confuse npm).
