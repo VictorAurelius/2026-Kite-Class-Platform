@@ -464,7 +464,8 @@ class BetaAccessServiceTest {
         // First call: no existing PENDING → creates one. Subsequent: returns existing.
         when(repository.findFirstByEmailAndStatusOrderByCreatedAtDesc(
                 eq("same@x.com"), eq(BetaAccessRequestStatus.PENDING)))
-                .thenReturn(Optional.empty(), Optional.of(existing));
+                .thenReturn(Optional.empty())
+                .thenReturn(Optional.of(existing));
 
         BetaRequestDto dto = new BetaRequestDto(
                 "same@x.com", "Same", "SO", "P2_CENTER_OWNER", null, "", true);
