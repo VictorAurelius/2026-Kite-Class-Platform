@@ -42,3 +42,4 @@ ECR cleanup policy: `lifecycle_policy.json` auto-delete untagged + old version i
 ## Log
 
 - **2026-05-07** — PARTIAL. Cost monitoring policy doc + 3-alarm spec + runbook + Tag policy + ECR lifecycle policy shipped (Wave 37 Bucket E). Terraform provisioning deferred GAP-395 Bucket A — same wave parallel agent. Status flips DONE post-Bucket-A merge + alarm test trigger.
+- **2026-05-08 (Wave 43 Bucket C — admin sweep)** — Note: GAP-446 (EventBridge stop/start scheduler) + GAP-447 (right-size compute) shipping concurrent in Wave 43 Buckets A/B reduce projected burn rate from $80/mo policy threshold to **$45-55/mo target** per `wave-2026-05-08-43-cost-discipline.md` §3. AWS Budgets alarm provisioning still tracked GAP-395 Bucket A (Terraform implementation). No scope change to this gap; status remains 🟡 PARTIAL pending Terraform apply + alarm test trigger. Combined Wave 43 cost-discipline outcome will be verified against §3 alarm 1 ($80 monthly) once GAP-395 lands.
