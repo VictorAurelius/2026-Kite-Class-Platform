@@ -1,0 +1,173 @@
+# Production deploy compose — Phase 1 BETA invite-only (Architecture B per ADR-025)
+#
+# Scope: 5 KH backend services + redis + rabbitmq self-hosted, deployed to
+# kh-backend EC2 (i-0b65c3947d36cae61). Postgres = RDS external. S3 = AWS
+# external. Email = Resend external (RESEND_API_KEY in env).
+#
+# KC stack (kiteclass-core + gateway + frontend) deferred to Phase 7 polish
+# wave per GAP-444. Vercel still serves KC frontend at kiteclass.vercel.app.
+#
+# Image refs: pinned to ${KITE_VERSION} env var (set by deploy-prod.sh).
+# ECR namespace: kite/<service> per CLAUDE.md Docker Naming Convention.
+#
+# RAM partitioning per ADR-025 §"Negative consequences" t3.medium 4GB:
+#   redis    256MB cap
+#   rabbitmq 256MB cap
+#   gateway  256MB heap (-Xmx256m)
+#   each KH service 384MB heap (5×384 = 1.92GB)
+#   OS + Docker  ~512MB
+#   Total ~3.2GB → headroom ~800MB
+#
+# Run on EC2: bash scripts/deploy-prod.sh
+
+version: '3.8'
+
+x-kh-service-defaults: &kh-service-defaults
+  restart: unless-stopped
+  networks:
+    - kite-net
+  env_file:
+    - /etc/kite/.env
+  logging:
+    driver: awslogs
+    options:
+      awslogs-region: ap-southeast-1
+      awslogs-group: /aws/ec2/kite-prod
+      awslogs-create-group: 'true'
+
+services:
+  # --- Self-hosted infrastructure ---
+  redis:
+    image: redis:7-alpine
+    container_name: kite-redis
+    restart: unless-stopped
+    networks:
+      - kite-net
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD:-}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 320M
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: kite-rabbitmq
+    restart: unless-stopped
+    networks:
+      - kite-net
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 320M
+
+  # --- KH backend services ---
+  kitehub-subscription:
+    <<: *kh-service-defaults
+    image: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/kitehub-subscription:${KITE_VERSION}
+    container_name: kitehub-subscription
+    environment:
+      JAVA_OPTS: "-Xmx384m -Xms192m -XX:+UseSerialGC"
+      SPRING_PROFILES_ACTIVE: production
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 480M
+
+  kitehub-branding:
+    <<: *kh-service-defaults
+    image: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/kitehub-branding:${KITE_VERSION}
+    container_name: kitehub-branding
+    environment:
+      JAVA_OPTS: "-Xmx384m -Xms192m -XX:+UseSerialGC"
+      SPRING_PROFILES_ACTIVE: production
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 480M
+
+  kitehub-email:
+    <<: *kh-service-defaults
+    image: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/kitehub-email:${KITE_VERSION}
+    container_name: kitehub-email
+    environment:
+      JAVA_OPTS: "-Xmx256m -Xms128m -XX:+UseSerialGC"
+      SPRING_PROFILES_ACTIVE: production
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 320M
+
+  kitehub-admin:
+    <<: *kh-service-defaults
+    image: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/kitehub-admin:${KITE_VERSION}
+    container_name: kitehub-admin
+    environment:
+      JAVA_OPTS: "-Xmx384m -Xms192m -XX:+UseSerialGC"
+      SPRING_PROFILES_ACTIVE: production
+    depends_on:
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 480M
+
+  kitehub-gateway:
+    <<: *kh-service-defaults
+    image: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/kitehub-gateway:${KITE_VERSION}
+    container_name: kitehub-gateway
+    environment:
+      JAVA_OPTS: "-Xmx256m -Xms128m -XX:+UseSerialGC"
+      SPRING_PROFILES_ACTIVE: production
+    ports:
+      - "8080:8080"  # ALB target group kh_backend points here
+    depends_on:
+      kitehub-subscription:
+        condition: service_started
+      kitehub-branding:
+        condition: service_started
+      kitehub-admin:
+        condition: service_started
+      kitehub-email:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 320M
+
+networks:
+  kite-net:
+    name: kite-net
+    driver: bridge
