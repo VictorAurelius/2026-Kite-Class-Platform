@@ -23,7 +23,7 @@ resource "aws_sns_topic" "memory_alerts" {
 
   tags = {
     Name    = "${var.project_name}-memory-alerts"
-    Purpose = "OOM safety net for right-sized EC2 (GAP-447)"
+    Purpose = "OOM safety net for right-sized EC2 GAP-447"
   }
 }
 
