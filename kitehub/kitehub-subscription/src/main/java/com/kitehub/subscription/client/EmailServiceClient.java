@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -529,6 +530,96 @@ public class EmailServiceClient {
             dispatchEmail(instanceId, "subscription-created", request);
         } catch (Exception e) {
             log.error("Failed to send subscription created email to {}", to, e);
+        }
+    }
+
+    /**
+     * Send DSAR new-ticket alert to DPO inbox (PDPL Art 14 push notification).
+     *
+     * <p>Per `business-logic-review.md` BR-PDPL-DSAR-006 (config key
+     * `kitehub.dsar.dpo-email`) and BR-PDPL-DSAR-002 (20-day SLA from Decree
+     * 13/2023/NĐ-CP Art 19). Outbox-first via {@link #publishToQueue} per
+     * `design-patterns.md` §3.5.1 Exception A — outbox is the reliability net.</p>
+     *
+     * @param ticketUuid DSAR ticket UUID
+     * @param dpoEmail DPO recipient email (from `kitehub.dsar.dpo-email` config)
+     * @param rightType DSAR right type (ACCESS/RECTIFICATION/ERASURE/PORTABILITY/RESTRICT/OBJECT)
+     * @param requesterEmail Requester email (logged for ops triage)
+     * @param slaDeadline 20-day SLA deadline per BR-PDPL-DSAR-002
+     */
+    public void sendDsarNewTicketDpoEmail(UUID ticketUuid, String dpoEmail, String rightType,
+                                          String requesterEmail, OffsetDateTime slaDeadline) {
+        if (alreadySentToday(null, "dsar-new-ticket-dpo", dpoEmail)) {
+            log.info("Email already sent today: dsar-new-ticket-dpo to {}", dpoEmail);
+            return;
+        }
+
+        log.info("Sending DSAR new-ticket alert to DPO {}: ticket={} rightType={}",
+            dpoEmail, ticketUuid, rightType);
+
+        try {
+            EmailRequest request = EmailRequest.builder()
+                .to(dpoEmail)
+                .subject(String.format("[DSAR] Yêu cầu mới (%s) - SLA hạn %s",
+                    rightType, slaDeadline))
+                .templateName("dsar-new-ticket-dpo")
+                .variables(Map.of(
+                    "ticketUuid", ticketUuid.toString(),
+                    "rightType", rightType,
+                    "requesterEmail", requesterEmail,
+                    "slaDeadline", slaDeadline.toString(),
+                    "dpoQueueUrl", "https://kitehub.vn/admin/dsar"
+                ))
+                .build();
+
+            dispatchEmail(null, "dsar-new-ticket-dpo", request);
+        } catch (Exception e) {
+            log.error("Failed to send DSAR DPO alert to {}", dpoEmail, e);
+        }
+    }
+
+    /**
+     * Send DSAR acknowledgement to requester (PDPL Art 14 ticket confirmation).
+     *
+     * <p>Per BR-PDPL-DSAR-002 (20-day SLA) + BR-PDPL-DSAR-003 (identity verification flow).
+     * Outbox-first via {@link #publishToQueue} per `design-patterns.md` §3.5.1
+     * Exception A — outbox is the reliability net.</p>
+     *
+     * @param ticketUuid DSAR ticket UUID (also serves as status check token)
+     * @param requesterEmail Requester recipient email
+     * @param requesterName Requester full name
+     * @param rightType DSAR right type
+     * @param slaDeadline 20-day SLA deadline
+     */
+    public void sendDsarAcknowledgementEmail(UUID ticketUuid, String requesterEmail,
+                                             String requesterName, String rightType,
+                                             OffsetDateTime slaDeadline) {
+        if (alreadySentToday(null, "dsar-acknowledgement-requester", requesterEmail)) {
+            log.info("Email already sent today: dsar-acknowledgement-requester to {}", requesterEmail);
+            return;
+        }
+
+        log.info("Sending DSAR acknowledgement to {}: ticket={} rightType={}",
+            requesterEmail, ticketUuid, rightType);
+
+        try {
+            EmailRequest request = EmailRequest.builder()
+                .to(requesterEmail)
+                .subject(String.format("Xác nhận yêu cầu DSAR - Mã ticket %s", ticketUuid))
+                .templateName("dsar-acknowledgement-requester")
+                .variables(Map.of(
+                    "ticketUuid", ticketUuid.toString(),
+                    "requesterName", requesterName,
+                    "rightType", rightType,
+                    "slaDeadline", slaDeadline.toString(),
+                    "statusCheckUrl",
+                        String.format("https://kitehub.vn/legal/data-rights/status?id=%s", ticketUuid)
+                ))
+                .build();
+
+            dispatchEmail(null, "dsar-acknowledgement-requester", request);
+        } catch (Exception e) {
+            log.error("Failed to send DSAR acknowledgement to {}", requesterEmail, e);
         }
     }
 

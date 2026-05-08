@@ -1,6 +1,6 @@
 # GAP-353c-followup-dpo-email-notification: DSAR DPO email notification flow
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-09 (Wave 48 Bucket A)
 **Priority:** 🟡 P2 (DSAR ticket persists + structured log emits regardless; missing only proactive DPO email)
 **Domain:** Backend (kitehub-subscription ↔ kitehub-email integration)
 **Found:** 2026-05-06 (Wave 26 Bucket A GAP-353c PARTIAL exit-ramp)
@@ -33,12 +33,12 @@ When `kitehub-email` exposes an async dispatch API (REST or RabbitMQ event):
 
 ## Acceptance Criteria
 
-- [ ] `EmailServiceClient` injected into `DsarServiceImpl`
-- [ ] DPO email template `dsar-new-ticket-dpo` rendered + dispatched on submit
-- [ ] Requester acknowledgement email rendered + dispatched on submit
-- [ ] Email dispatch failure does not block ticket persistence (outbox or try/catch envelope)
-- [ ] Unit test verifies email client invoked with correct payload
-- [ ] `notifyDpo` log line preserved as audit fallback (defense in depth)
+- [x] `EmailServiceClient` injected into `DsarServiceImpl`
+- [x] DPO email template `dsar-new-ticket-dpo` rendered + dispatched on submit
+- [x] Requester acknowledgement email rendered + dispatched on submit
+- [x] Email dispatch failure does not block ticket persistence (outbox or try/catch envelope)
+- [x] Unit test verifies email client invoked with correct payload
+- [x] `notifyDpo` log line preserved as audit fallback (defense in depth)
 
 ## Related
 
@@ -52,4 +52,5 @@ When `kitehub-email` exposes an async dispatch API (REST or RabbitMQ event):
 
 ## Log
 
+- **2026-05-09 (Wave 48 Bucket A shipped):** `EmailServiceClient` extended with `sendDsarNewTicketDpoEmail` + `sendDsarAcknowledgementEmail` (re-using `dispatchEmail` outbox-first pipeline per `design-patterns.md` §3.5.1 Exception A — outbox is the reliability net via `EmailServiceClient.publishToQueue` line 595). 2 Thymeleaf templates created: `dsar-new-ticket-dpo.html` (DPO ops alert with ticket fields + admin queue CTA) + `dsar-acknowledgement-requester.html` (requester confirmation with 20-day SLA reassurance + status check link). `DsarServiceImpl.notifyDpo` now wires both dispatches inside try/catch envelopes; ticket transaction commits before notification step + failure does NOT roll back ticket. Audit log line preserved verbatim as defense-in-depth fallback. `DsarServiceImplTest` extended with 3 new tests (`submitRequestDispatchesDpoEmail`, `submitRequestDispatchesRequesterAcknowledgement`, `submitRequestEmailFailureDoesNotRollbackTicket`) — all 7 DsarServiceImplTest tests pass + `mvn -pl kitehub-subscription verify -P strict-warnings` BUILD SUCCESS (455 tests total, 0 failures). `BR-PDPL-DSAR-006` (DPO email notification address `dpo@kitehub.vn`, config key `kitehub.dsar.dpo-email`) added to `documents/01-business/kitehub/marketing/rules.md` with full 5-attribute review per `business-logic-review.md` v1.0.0. Cascade: GAP-353c parent flips 🟡 PARTIAL → 🟢 DONE per `gap-done-discipline.md` §2 (last unchecked AC item satisfied — all 11 ACs verified).
 - **2026-05-06:** Filed as PARTIAL exit-ramp deferral from GAP-353c Wave 26 Bucket A per `gap-done-discipline.md` §3.

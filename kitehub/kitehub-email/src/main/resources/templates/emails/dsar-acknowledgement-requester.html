@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Xác nhận yêu cầu DSAR</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #F9FAFB;
+        }
+        .header {
+            background: #3B82F6;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .info {
+            background: #EFF6FF;
+            border-left: 4px solid #3B82F6;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        table.fields {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table.fields th, table.fields td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #E5E7EB;
+            vertical-align: top;
+        }
+        table.fields th {
+            background: #F3F4F6;
+            color: #374151;
+            font-weight: 600;
+            width: 35%;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #3B82F6;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+        .timeline-note {
+            background: #F0FDF4;
+            border-left: 4px solid #10B981;
+            padding: 12px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #064E3B;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Xác nhận yêu cầu DSAR</h1>
+    </div>
+
+    <div class="content">
+        <p>Xin chào <strong th:text="${requesterName}">Anh/Chị</strong>,</p>
+
+        <div class="info">
+            <p>Chúng tôi đã nhận được yêu cầu thực hiện quyền dữ liệu cá nhân (Data Subject Access Request)
+            của bạn theo PDPL 2023 Art 14. Cảm ơn bạn đã liên hệ với KiteHub.</p>
+        </div>
+
+        <p>Thông tin ticket của bạn:</p>
+
+        <table class="fields">
+            <tr>
+                <th>Mã ticket</th>
+                <td><code th:text="${ticketUuid}">UUID</code></td>
+            </tr>
+            <tr>
+                <th>Loại quyền</th>
+                <td><strong th:text="${rightType}">RIGHT_TYPE</strong></td>
+            </tr>
+            <tr>
+                <th>Hạn phản hồi</th>
+                <td th:text="${slaDeadline}">YYYY-MM-DDTHH:MM:SS</td>
+            </tr>
+        </table>
+
+        <div class="timeline-note">
+            <strong>Cam kết phản hồi:</strong> Đội ngũ Data Protection Officer (DPO) của KiteHub sẽ xem xét và phản hồi yêu cầu của bạn
+            <strong>trong vòng 20 ngày làm việc</strong> theo Nghị định 13/2023/NĐ-CP Điều 19. Trong trường hợp phức tạp,
+            chúng tôi có thể cần thêm tối đa 10 ngày và sẽ thông báo cho bạn trước khi quá hạn.
+        </div>
+
+        <p>Bạn có thể kiểm tra trạng thái xử lý ticket bất cứ lúc nào:</p>
+
+        <p>
+            <a th:href="${statusCheckUrl}" class="button">Kiểm tra trạng thái ticket</a>
+        </p>
+
+        <p style="margin-top: 30px; color: #6B7280; font-size: 13px;">
+            <strong>Lưu ý:</strong> Đối với các quyền có tác động cao (truy cập / xoá / chuyển dữ liệu),
+            DPO có thể liên hệ với bạn qua email hoặc điện thoại để xác minh danh tính trước khi xử lý.
+            Vui lòng giữ mã ticket trên để tham chiếu.
+        </p>
+
+        <p style="margin-top: 30px;">Trân trọng,<br/><strong>Đội ngũ Bảo vệ Dữ liệu KiteHub</strong></p>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2026 KiteHub. All rights reserved.</p>
+        <p>Email tự động — nếu bạn không gửi yêu cầu này, vui lòng bỏ qua hoặc liên hệ với DPO.</p>
+    </div>
+</body>
+</html>
