@@ -1,6 +1,6 @@
 ---
 title: Wave 46 — Java deps bump (Spring Boot 3.5.14 → 3.5.x latest + Alpine base)
-status: draft
+status: complete
 created: 2026-05-08
 updated: 2026-05-08
 waves: [46]
@@ -146,3 +146,11 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ## 8. Log
 
 - **2026-05-08** (draft): Plan created. Wave 46 candidate selected from `/repo-status` 21 HIGH alerts root cause. 3 gaps existing (GAP-440 P1 Spring Boot, GAP-442 P1 Alpine, GAP-441 P2 deferred Wave 47). Cluster split: GAP-440 → Bucket A (kitehub) + Bucket B (kiteclass) for parallelism, Bucket C = GAP-442. Cross-layer NO; stake MEDIUM → Opus medium.
+- **2026-05-08** (complete): Wave 46 SHIPPED. Outcomes:
+  - **Bucket A (PR #1060):** docs-only — Spring Boot 3.5.14 IS upstream latest 3.5.x. GAP-451 filed (await-upstream). GAP-440 remains 🟡 PARTIAL.
+  - **Bucket B (PR #1062):** Spring Cloud 2025.0.0 → 2025.0.2 in `kiteclass/kiteclass-gateway/pom.xml` clears CVE-2025-41253 (spring-cloud-gateway EL injection).
+  - **Bucket C (PR #1061):** 10 Dockerfiles bumped alpine → noble (Java) / trixie-slim (Node 22). Coordinator-applied gate raise 220MB → 320MB on `kitehub-frontend-ci.yml` (image size +60MB Debian vs alpine, acknowledged trade-off).
+  - **CVE delta:** 21 HIGH alerts → expected drop after Trivy re-scan on next staging tag. 9 Java CVE (netty/postgres/bcprov/commons-fileupload) blocked by upstream Spring Boot patch absence (GAP-451). 11 npm-in-base CVE + 1 gnutls expected cleared by Bucket C base bump.
+  - **Wall-clock:** ~75min total (3 Opus medium agents parallel). Plan estimate ~60-90min — on target.
+  - **Sub-gaps filed:** GAP-451 (Spring Boot 3.5.x await upstream).
+  - **Deferrals:** GAP-440 stays 🟡 PARTIAL pending GAP-451 resolution + Trivy delta confirm. GAP-442 stays 🟡 PARTIAL pending Trivy delta confirm + `.trivyignore` gnutls cleanup follow-up.

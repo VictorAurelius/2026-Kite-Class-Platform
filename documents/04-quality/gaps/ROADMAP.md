@@ -21,12 +21,21 @@
 4. **GAP-450 drift fix** separate session — `terraform import random_password` + verify state align
 5. **AWS SES sandbox→production approval** (GAP-370 closure) — follow `documents/05-guides/operations/email-ses-setup-runbook.md`; DKIM/SPF/DMARC verification; out-of-sandbox approval ticket; verify domain reputation pre-launch
 
-**Wave 46+ candidates (Phase 1 BETA progression per `release-1-plan-2026.md` §3):**
-- **Wave 46 ready to spawn** — plan merged PR #1053; single-bucket Phase A trial flag flip (recon found E2E specs route-mocked, no stack-in-CI needed)
+**Wave 46 SHIPPED 2026-05-08** — Java deps bump cluster (GAP-440 + GAP-442). 3 buckets parallel ~75min:
+- **#1059** plan
+- **#1060** Bucket A docs-only — Spring Boot 3.5.14 IS upstream latest 3.5.x; GAP-451 filed (await-upstream)
+- **#1062** Bucket B — Spring Cloud 2025.0.0 → 2025.0.2 in kiteclass-gateway (clears CVE-2025-41253 EL injection)
+- **#1061** Bucket C — 10 Dockerfiles bumped alpine → noble (Java) / trixie-slim (Node 22); coordinator-applied gate raise 220MB → 320MB (Debian +60MB vs alpine, acknowledged trade-off)
+
+CVE delta: 21 HIGH alerts → ~10 expected post-Trivy-rescan (12 npm-in-base + gnutls cleared by Bucket C; 9 Java CVE blocked GAP-451 await upstream).
+
+**Wave 47+ candidates (Phase 1 BETA progression per `release-1-plan-2026.md` §3):**
+- **Wave 47 ready to spawn** — plan at `documents/03-planning/waves/wave-47-e2e-activation.md` (renamed from Wave 46 due to number collision); single-bucket Phase A trial flag flip (recon found E2E specs route-mocked, no stack-in-CI needed)
 - **Deployment-naming cleanup PR** — rule shipped PR #1055; cleanup pending để relocate 4-6 drift candidates: `operations/email-ses-setup-runbook.md` → `deploy/`, `operations/dns-setup-runbook.md` → `deploy/`, `operations/secrets-management-runbook.md` split, `deploy/terraform-apply-bootstrap.md` rename + suffix, archive `kiteclass-docker-deployment.md` (pre-ADR-025), consolidate SES runbook overlap
 - DSAR + RTBF Phase 2 (GAP-353c + GAP-073)
 - Custom domain procurement Phase 2 (GAP-369b deferred from Wave 43)
-- Dep-bump cluster (GAP-440 Spring Boot + GAP-441 pom hygiene + GAP-442 alpine 3.23→3.24) — root-cause fix cho Trivy CVE backlog (Wave 45 PR #1056 đã pivot gate Phase 1 BETA exemption)
+- GAP-451 await Spring Boot 3.5.15+ upstream (weekly check; if delayed >4 weeks, fall back per-CVE `<dependencyManagement>` overrides)
+- GAP-441 P2 centralized pom override hygiene (originally deferred Wave 47; revisit after GAP-451 resolution)
 
 **Strategic gates Phase 1 → Phase 1.5:** Quality audit /100 ≥80 (current 86 ✅) + 5 beta tenants live + 0 P0 incidents 2 tuần
 
@@ -35,7 +44,7 @@
 ### ⭐ Post-Wave-45 addendum 2026-05-08 — meta-rule + 2 CI fix PRs
 
 Sau Wave 45 closure, 4 PRs bổ sung shipped để handle parallel-spawned tasks + recurring CI fail:
-- **#1053** Wave 46 plan (E2E CI activation Phase A trial flag flip)
+- **#1053** Wave 47 plan (E2E CI activation Phase A trial flag flip — renamed from Wave 46 in collision recovery 2026-05-08)
 - **#1055** New rule `.claude/rules/deployment-naming-convention.md` v1.0.0 — incident-driven từ Wave 45 Bucket C drift (`email-ses-setup-runbook.md` actual path `operations/` vs plan-referenced `deploy/`)
 - **#1056** Fix Trivy gate — extend staging.* exit-code 0 exemption to `main` push during Phase 1 BETA per `release-fix-retry-budget.md` §4 row 5; production gate intact cho v[0-9]+.* tags
 - **#1057** Fix deprecated `DefaultCredentialsProvider.create()` → `.builder().build()` trong `SesIntegrationSmokeTest.java`

@@ -1,16 +1,16 @@
 ---
-title: Wave 46 — E2E CI Activation (Phase A trial flag flip)
+title: Wave 47 — E2E CI Activation (Phase A trial flag flip)
 status: draft
 created: 2026-05-08
 updated: 2026-05-08
-waves: [46]
+waves: [47]
 gaps: [GAP-403, GAP-404, GAP-420]
 ---
 
-# Wave 46 — E2E CI Activation (Phase A trial flag flip)
+# Wave 47 — E2E CI Activation (Phase A trial flag flip)
 
 **Goal:** Bật E2E CI gate cho cả KH+KC frontends bằng cách flip `if: false` → `if: true` trong 2 workflows; verify route-mock setup hoạt động trong GHA runner mà KHÔNG cần stack-in-CI.
-**Trigger:** Wave 46 candidate selection 2026-05-08 sau Wave 45 spawn; Explore agent recon ngày 2026-05-08 phát hiện E2E specs cả 2 frontends đã route-mocked qua Playwright `page.route()` — không thực sự cần backend stack despite comment.
+**Trigger:** Wave 47 candidate selection 2026-05-08 sau Wave 45 spawn; Explore agent recon ngày 2026-05-08 phát hiện E2E specs cả 2 frontends đã route-mocked qua Playwright `page.route()` — không thực sự cần backend stack despite comment.
 **Estimated wall-clock:** ~30-45min (Phase A trial); fallback Phase B docker-compose +1-2h chỉ khi Phase A fail.
 
 ---
@@ -135,4 +135,4 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 
 ## 8. Log
 
-- **2026-05-08 (draft):** Plan created. Wave 46 = single-bucket Phase A trial flag flip in 2 workflows. Recon Explore agent 2026-05-08 phát hiện specs đã route-mocked → trial-first thay vì full Option A docker-compose-in-CI ngay. Stake LOW (mechanical, reversible), Opus medium effort. Phase B fallback (docker-compose) chỉ trigger nếu Phase A fail với specific failure mode.
+- **2026-05-08 (draft):** Plan created. Wave 47 = single-bucket (renamed from Wave 46 due to number collision; java-deps-bump took Wave 46 slot) Phase A trial flag flip in 2 workflows. Recon Explore agent 2026-05-08 phát hiện specs đã route-mocked → trial-first thay vì full Option A docker-compose-in-CI ngay. Stake LOW (mechanical, reversible), Opus medium effort. Phase B fallback (docker-compose) chỉ trigger nếu Phase A fail với specific failure mode.
