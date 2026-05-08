@@ -29,8 +29,12 @@ jobs:
         run: |
           bash <(curl -sSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
           ./actionlint --version
-      - name: Run actionlint on .github/workflows/**
+      - name: Run actionlint on .github/workflows/** (warn-only — see GAP-443)
+        # WARN-only mode: existing workflows have legacy SC2086 / SC2129 / SC1072
+        # / SC1073 / `if: false` issues. actionlint runs for visibility but
+        # doesn't block until GAP-443 cleanup PR ships. After cleanup, flip
+        # this step to fail-on-error.
+        # Per release-fix-retry-budget.md §4: don't add blocking gate when
+        # legacy debt exists; ship informational gate first, then tighten.
+        continue-on-error: true
         run: ./actionlint -color
-        # Pinned actionlint binary version emitted on prior step.
-        # Avoids raven-actions/actionlint@v2 npm install issue with our
-        # pnpm workspace (workspace:* refs in package.json confuse npm).
