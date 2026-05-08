@@ -327,15 +327,33 @@ jobs:
           output: 'trivy-results-${{ matrix.service }}.sarif'
           trivyignores: '.trivyignore'
 
+      # Post-push verification artifacts (SARIF / SBOM / Cosign):
+      # - staging.* tags  → SKIP entirely. Image push to ECR is the Phase 3 goal;
+      #                     verification artifacts defer to production v1.0.0+ tag.
+      # - main + v[0-9]+.*→ Full SARIF upload + SBOM (artifact only, NO release
+      #                     asset attachment until release-tag.yml creates Release)
+      #                     + Cosign keyless sign + SBOM attestation.
+      #
+      # Rationale per release-fix-retry-budget.md §4 (workflow gate over-spec'd
+      # for pre-release tags — observed 5+ retries on Phase 3 staging.1-7):
+      # SBOM + Cosign + SARIF require GitHub Release to exist (created by
+      # release-tag.yml on production tags only) OR per-step continue-on-error
+      # tolerance. For Phase 1 BETA staging, simplest = skip until production.
+      #
+      # Production hardening (v1.0.0+ launch):
+      # - release-tag.yml fires first → creates GitHub Release shell
+      # - docker-build-push.yml then attaches SBOMs/signs to that Release
+      # - Trivy SARIF gates production strictly (exit-code 1)
       - name: Upload Trivy SARIF to GitHub Security
-        if: always()
+        if: ${{ always() && !contains(github.ref, '-staging.') }}
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-results-${{ matrix.service }}.sarif'
           category: trivy-${{ matrix.service }}
 
-      # GAP-402: Syft SBOM (CycloneDX)
+      # GAP-402: Syft SBOM (CycloneDX) — production tags only
       - name: Generate Syft SBOM (CycloneDX)
+        if: ${{ !contains(github.ref, '-staging.') }}
         uses: anchore/sbom-action@v0
         with:
           image: ${{ steps.login-ecr.outputs.registry }}/${{ matrix.ecr_repo }}@${{ steps.build_push.outputs.digest }}
@@ -343,12 +361,16 @@ jobs:
           output-file: sbom-${{ matrix.service }}.cdx.json
           upload-artifact: true
           upload-artifact-retention: 90
+          # Don't attach to release until Release object exists (release-tag.yml)
+          upload-release-assets: false
 
-      # GAP-402: Cosign keyless signing (sigstore OIDC)
+      # GAP-402: Cosign keyless signing — production tags only
       - name: Install Cosign
+        if: ${{ !contains(github.ref, '-staging.') }}
         uses: sigstore/cosign-installer@v3
 
       - name: Sign image with Cosign (keyless OIDC)
+        if: ${{ !contains(github.ref, '-staging.') }}
         env:
           COSIGN_EXPERIMENTAL: '1'
         run: |
@@ -356,6 +378,7 @@ jobs:
             "${{ steps.login-ecr.outputs.registry }}/${{ matrix.ecr_repo }}@${{ steps.build_push.outputs.digest }}"
 
       - name: Attach SBOM as Cosign attestation
+        if: ${{ !contains(github.ref, '-staging.') }}
         env:
           COSIGN_EXPERIMENTAL: '1'
         run: |
