@@ -1,10 +1,13 @@
 ---
 title: Wave 47 — E2E CI Activation (Phase A trial flag flip)
-status: draft
+status: complete
+outcome: phase-a-deferred-to-phase-b
 created: 2026-05-08
-updated: 2026-05-08
+updated: 2026-05-09
 waves: [47]
-gaps: [GAP-403, GAP-404, GAP-420]
+gaps: []
+followups: [GAP-453]
+scope_correction: 2026-05-09 — original frontmatter listed [GAP-403, GAP-404, GAP-420] but those gaps cover TAG-TIME pre-release E2E (workflow `e2e-pre-release.yml`, DONE Wave 37). Wave 47 actual scope was PR-TIME E2E gates in `frontend-ci.yml`/`kitehub-frontend-ci.yml`. That work is now scoped under GAP-453.
 ---
 
 # Wave 47 — E2E CI Activation (Phase A trial flag flip)
@@ -134,5 +137,21 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ---
 
 ## 8. Log
+
+- **2026-05-09 (closure — Phase A DEFERRED to Phase B):** Wave 47 Bucket A agent ran pre-flight verify per plan §3 §4 → ABORT before any flag flip. Local verify on 2026-05-09 disproved plan recon at 4 points:
+  1. **Scope mismatch** — plan §1.3 expected `pnpm test:e2e` (KC) + `pnpm test:e2e:ci` (KH) to run narrow critical-journeys/beta-funnel subsets; reality is they run ENTIRE `e2e/` folder (KC: 625 tests × 5 browser projects; KH: timeouts at 5min). Most specs depend on real backend.
+  2. **Within KC critical-journeys:** chromium-only 11/17 pass (plan expected 17/17). 6 failures = `expect(page).toHaveURL('/dashboard')` after login form submit; login flow not route-mocked — only 2 `page.route` hits in entire `critical-journeys/` folder, all in `class-lifecycle.spec.ts`.
+  3. **`fullyParallel` config error** — plan §4 row claimed KC `playwright.config.ts:14 fullyParallel:false`; reality is `fullyParallel: true` (line 9). 5 browser projects compound test count.
+  4. **KC workflow has `|| true` + `continue-on-error: true`** (`frontend-ci.yml:117-118`) — flipping `if: false` would only add a non-blocking advisory step, semantically misleading vs the "activate gate" intent.
+
+  **Outcome:**
+  - PR #1072 created for the trial branch + closed without merge (per task spec §5 path)
+  - Sub-gap GAP-453 filed (P1, 🔵 OPEN) with 3 Phase B options (B.1 docker-compose-in-CI / B.2 narrow subset / B.3 MSW migration); recommendation B.2 as smallest reversible step
+  - **Scope-correction (coordinator-applied 2026-05-09):** original plan frontmatter `gaps: [GAP-403, GAP-404, GAP-420]` was misleading — those gaps cover TAG-TIME pre-release E2E (workflow `e2e-pre-release.yml`, DONE Wave 37 2026-05-07) and remain 🟢 DONE for their actual scope. Wave 47 actual scope was PR-TIME E2E gate activation in `frontend-ci.yml`/`kitehub-frontend-ci.yml`. Frontmatter `gaps:` corrected to empty + `followups: [GAP-453]` cited; GAP-453 IS the gap that scopes the PR-time activation work.
+  - No workflow YAML touched on main; KC + KH E2E gates in `frontend-ci.yml`/`kitehub-frontend-ci.yml` remain `if: false`
+  - Frontmatter `status: complete` + `outcome: phase-a-deferred-to-phase-b` — trial CONCLUDED with negative verdict; not partial-execution. Plan-recon-was-wrong is a complete trial outcome.
+  - Agent kỷ luật tốt — surfaced ambiguity (4 plan recon errors documented in GAP-453) thay vì ép sai fix; matches `release-fix-retry-budget.md` §3 spirit (STOP at first signal, document, defer to redesign rather than patch).
+
+  Coordinator closure: GAP-453 cherry-picked from worktree to main via closure PR; ROADMAP §🚀 Next Action updated; `wave-history.jsonl` appended (outcome=partial-deferred); worktree pruned.
 
 - **2026-05-08 (draft):** Plan created. Wave 47 = single-bucket (renamed from Wave 46 due to number collision; java-deps-bump took Wave 46 slot) Phase A trial flag flip in 2 workflows. Recon Explore agent 2026-05-08 phát hiện specs đã route-mocked → trial-first thay vì full Option A docker-compose-in-CI ngay. Stake LOW (mechanical, reversible), Opus medium effort. Phase B fallback (docker-compose) chỉ trigger nếu Phase A fail với specific failure mode.
