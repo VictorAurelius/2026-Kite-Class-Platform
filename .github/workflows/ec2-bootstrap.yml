@@ -1,0 +1,95 @@
+name: EC2 Bootstrap (one-time, /opt/kite-prod git clone)
+
+# One-time bootstrap to install git+jq + clone repo to /opt/kite-prod on
+# kh-backend EC2. After this runs, deploy-production.yml can use the
+# bootstrap-once pattern (CI sends 1-line SSM call to deploy-prod.sh).
+#
+# Trigger: workflow_dispatch (manual). Idempotent — safe to re-run.
+#
+# Per .claude/rules/agent-aws-access.md §4.1: ssm:SendCommand is Tier 3
+# mutation. Trigger via CI workflow_dispatch = human-initiated + audit
+# trail in GitHub Actions log = compliant.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type BOOTSTRAP to confirm'
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-southeast-1
+  INSTANCE_ID: i-0b65c3947d36cae61
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Confirm
+        if: ${{ github.event.inputs.confirm != 'BOOTSTRAP' }}
+        run: |
+          echo "::error ::Confirm must be 'BOOTSTRAP'. Got: '${{ github.event.inputs.confirm }}'"
+          exit 1
+
+      - name: Configure AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Send bootstrap command via SSM
+        id: ssm
+        run: |
+          CMD_ID=$(aws ssm send-command \
+            --region "${AWS_REGION}" \
+            --instance-ids "${INSTANCE_ID}" \
+            --document-name AWS-RunShellScript \
+            --comment "EC2 bootstrap /opt/kite-prod clone" \
+            --timeout-seconds 300 \
+            --parameters commands="sudo dnf install -y git jq && sudo mkdir -p /opt/kite-prod && sudo chown ec2-user:ec2-user /opt/kite-prod && cd /opt/kite-prod && (git rev-parse --git-dir > /dev/null 2>&1 && git fetch origin main && git reset --hard origin/main || git clone --depth 1 https://github.com/${{ github.repository }}.git .) && ls -la /opt/kite-prod/scripts/ && echo Bootstrap-complete" \
+            --query "Command.CommandId" --output text)
+          echo "command_id=${CMD_ID}" >> "$GITHUB_OUTPUT"
+          echo "SSM CommandId: ${CMD_ID}"
+
+      - name: Poll SSM command (up to 5 min)
+        env:
+          CMD_ID: ${{ steps.ssm.outputs.command_id }}
+        run: |
+          for i in $(seq 1 30); do
+            sleep 10
+            STATUS=$(aws ssm get-command-invocation \
+              --region "${AWS_REGION}" \
+              --command-id "${CMD_ID}" \
+              --instance-id "${INSTANCE_ID}" \
+              --query "Status" --output text 2>/dev/null || echo "InProgress")
+            echo "Poll ${i}/30: ${STATUS}"
+            case "$STATUS" in
+              Success)
+                echo "::group::Stdout"
+                aws ssm get-command-invocation \
+                  --region "${AWS_REGION}" \
+                  --command-id "${CMD_ID}" \
+                  --instance-id "${INSTANCE_ID}" \
+                  --query "StandardOutputContent" --output text
+                echo "::endgroup::"
+                exit 0
+                ;;
+              Failed|Cancelled|TimedOut)
+                echo "::error ::Bootstrap ${STATUS}"
+                aws ssm get-command-invocation \
+                  --region "${AWS_REGION}" \
+                  --command-id "${CMD_ID}" \
+                  --instance-id "${INSTANCE_ID}" \
+                  --query "StandardErrorContent" --output text
+                exit 1
+                ;;
+            esac
+          done
+          echo "::error ::Bootstrap timed out"
+          exit 1
