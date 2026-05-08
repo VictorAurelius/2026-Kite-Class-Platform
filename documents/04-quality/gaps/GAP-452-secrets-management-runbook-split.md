@@ -3,7 +3,7 @@
 **Status:** 🔵 OPEN
 **Priority:** 🟡 P2
 **Domain:** Documentation / Governance
-**Found:** 2026-05-09 (deployment-naming cleanup PR — partial deferral)
+**Found:** 2026-05-08 (deployment-naming cleanup PR — partial deferral)
 **Affects:** `documents/05-guides/operations/secrets-management-runbook.md` (single 362-line file covering both lifecycle phases)
 
 ## Problem
@@ -30,7 +30,7 @@ Today, anyone provisioning secrets first-time has to read past rotation/audit se
 
 ## Root Cause
 
-Original runbook (Wave 33 Bucket B closure GAP-379) shipped before `deployment-naming-convention.md` rule existed (2026-05-08). Rule §8 added explicit edge-case guidance for split. Cleanup PR 2026-05-09 deferred this split to follow-up because substantive editorial scope > simple file relocation.
+Original runbook (Wave 33 Bucket B closure GAP-379) shipped before `deployment-naming-convention.md` rule existed (2026-05-08). Rule §8 added explicit edge-case guidance for split. Cleanup PR 2026-05-08 deferred this split to follow-up because substantive editorial scope > simple file relocation.
 
 ## Proposed Fix
 
@@ -91,10 +91,10 @@ Each reference re-routed to the appropriate sister: deploy (if context is initia
 ## Related
 
 - Rule: `.claude/rules/deployment-naming-convention.md` §8 edge case (split mandate)
-- Parent cleanup PR: 2026-05-09 cleanup batch (deferred this scope)
+- Parent cleanup PR: 2026-05-08 cleanup batch (deferred this scope)
 - Original runbook: GAP-379 Wave 33 Bucket B closure
 - Sister rule: `.claude/rules/release-deploy-standard.md` §3.1 Secrets management
 
 ## Log
 
-- **2026-05-09:** Filed by deployment-naming cleanup PR — Phase 1-3 of cleanup batch shipped (3 file moves + 14 link updates). Secrets-management split deferred here due to editorial scope. Tagged P2 (governance hygiene, not blocking Phase 1 BETA).
+- **2026-05-08:** Filed by deployment-naming cleanup PR — Phase 1-3 of cleanup batch shipped (3 file moves + 14 link updates). Secrets-management split deferred here due to editorial scope. Tagged P2 (governance hygiene, not blocking Phase 1 BETA).

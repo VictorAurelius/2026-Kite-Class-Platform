@@ -3,7 +3,7 @@
 **Priority:** 🟠 MANDATORY — deployment artifact placement governance
 **Version:** 1.0.1
 **Created:** 2026-05-08
-**Last-Reviewed:** 2026-05-09
+**Last-Reviewed:** 2026-05-08
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; cleanup-status sync only, no constraint change; existing misplaced runbooks ungrandfathered as cleanup PR shipped)
 **Applies to:** Every artifact under `documents/05-guides/{deploy,operations,account-prep,setup}/**`, `infrastructure/**`, `documents/03-planning/roadmap/*deploy*`, `.github/workflows/{*deploy*,*terraform*,docker-build-push}.yml`, deployment scripts under `scripts/`, runbook files anywhere
 
@@ -45,7 +45,7 @@ Example applications:
 - `email-ses-setup-runbook.md` — one-time pre-deploy SES domain verification + sandbox→production approval → **`deploy/`** (currently in `operations/` — drift)
 - `dns-setup-runbook.md` — one-time domain procurement + DNS records → **`deploy/`** (or `account-prep/` if procurement-only)
 - `secrets-management-runbook.md` — depends on content: initial seeding = `deploy/`, rotation cadence = `operations/`. Split if covers both.
-- `terraform-apply-bootstrap-runbook.md` — one-time chicken-and-egg admin apply → **`deploy/`** ✅ (renamed from `terraform-apply-bootstrap.md` per §3 suffix requirement, cleanup PR 2026-05-09)
+- `terraform-apply-bootstrap-runbook.md` — one-time chicken-and-egg admin apply → **`deploy/`** ✅ (renamed from `terraform-apply-bootstrap.md` per §3 suffix requirement, cleanup PR 2026-05-08)
 - `prometheus-alert-X-runbook.md` — per-alert response → **`operations/runbooks/`** ✅
 - `restore-procedure.md` — recurring DR drill → **`operations/`** (currently in `deploy/` — verify)
 
@@ -128,14 +128,14 @@ Example applications:
 
 **Verdict:** correct folder = `documents/05-guides/deploy/`. Current `operations/` placement is **drift**.
 
-**Cleanup scope** (✅ DONE 2026-05-09 cleanup PR):
+**Cleanup scope** (✅ DONE 2026-05-08 cleanup PR):
 - Moved `documents/05-guides/operations/email-ses-setup-runbook.md` → `documents/05-guides/deploy/email-ses-setup-runbook.md`
 - Updated internal links across GAP-370/372/394/423/449, Wave 45 plan §3 Bucket C, release-1-deploy-plan.md, ROADMAP, account-prep/01/02/04, scripts/ssl-cert-setup.sh, scripts/check-dns-propagation.sh, kitehub-email Java sources/tests, sister runbook cross-links — 14 files swept clean.
 
 **Other drift candidates** (post-cleanup state):
-- ✅ `operations/dns-setup-runbook.md` → `deploy/dns-setup-runbook.md` (cleanup PR 2026-05-09)
+- ✅ `operations/dns-setup-runbook.md` → `deploy/dns-setup-runbook.md` (cleanup PR 2026-05-08)
 - ⏳ `operations/secrets-management-runbook.md` — split deferred to GAP-452 (substantive editorial: extract §3 Provisioning into new `deploy/secrets-seeding-runbook.md`, current file renamed to `operations/secrets-rotation-runbook.md`). File covers both seeding (§3 + §4) and rotation (§5+) — left as-is pending split.
-- ✅ `deploy/terraform-apply-bootstrap.md` → `deploy/terraform-apply-bootstrap-runbook.md` (cleanup PR 2026-05-09)
+- ✅ `deploy/terraform-apply-bootstrap.md` → `deploy/terraform-apply-bootstrap-runbook.md` (cleanup PR 2026-05-08)
 
 **Self-test verdict:** rule fires correctly + identifies all 4 drift candidates surfaced by parallel agents. ✅
 
@@ -213,5 +213,5 @@ Trailer logged in quarterly retro. Pattern frequency >5% triggers meta-review of
 
 ## 10. Log
 
-- **2026-05-09 (v1.0.1):** PATCH — sync §6 Cleanup scope from "to do" → "✅ DONE" reflecting cleanup PR shipped 2026-05-09. 3 file relocations applied: (a) `operations/email-ses-setup-runbook.md` → `deploy/`, (b) `operations/dns-setup-runbook.md` → `deploy/`, (c) `deploy/terraform-apply-bootstrap.md` → `deploy/terraform-apply-bootstrap-runbook.md` (suffix). 14 files swept for link updates (4 GAP files, 2 wave plans, ROADMAP, 3 account-prep guides, 1 sister runbook, 2 scripts, 1 Java test). Secrets-management split deferred to follow-up gap (substantive editorial scope). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — status sync, no constraint change). Validates rule §7.5 grandfathering clause: "existing misplaced runbooks grandfathered until cleanup PR ships" — cleanup shipped, ungrandfathering complete.
+- **2026-05-08 (v1.0.1):** PATCH — sync §6 Cleanup scope from "to do" → "✅ DONE" reflecting cleanup PR shipped 2026-05-08. 3 file relocations applied: (a) `operations/email-ses-setup-runbook.md` → `deploy/`, (b) `operations/dns-setup-runbook.md` → `deploy/`, (c) `deploy/terraform-apply-bootstrap.md` → `deploy/terraform-apply-bootstrap-runbook.md` (suffix). 14 files swept for link updates (4 GAP files, 2 wave plans, ROADMAP, 3 account-prep guides, 1 sister runbook, 2 scripts, 1 Java test). Secrets-management split deferred to follow-up gap (substantive editorial scope). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — status sync, no constraint change). Validates rule §7.5 grandfathering clause: "existing misplaced runbooks grandfathered until cleanup PR ships" — cleanup shipped, ungrandfathering complete.
 - **2026-05-08 (v1.0.0):** Rule created. Triggered by Wave 45 Bucket C drift incident — `email-ses-setup-runbook.md` actual `operations/` vs plan-referenced `deploy/`. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (Bucket C agent flagged) → Classify ✓ (no existing rule covers deployment artifact placement; `docs-folder-structure.md` generic doesn't specialize) → Rule+Enforce ✓ (this file + reviewer-checklist §7.1 paired same PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§6 worked example identifies 4 drift candidates surfaced by parallel agents) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — new constraint, no loosening; existing misplaced runbooks grandfathered until cleanup PR ships separately). Cleanup scope identified §6 — sister cleanup PR(s) to follow per `audit-to-gap-pipeline.md` Step 2.5 state-check on each relocation. Phase 2 detection automation deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 days.

@@ -31,7 +31,7 @@ CVE delta: 21 HIGH alerts → ~10 expected post-Trivy-rescan (12 npm-in-base + g
 
 **Wave 47+ candidates (Phase 1 BETA progression per `release-1-plan-2026.md` §3):**
 - **Wave 47 ready to spawn** — plan at `documents/03-planning/waves/wave-47-e2e-activation.md` (renamed from Wave 46 due to number collision); single-bucket Phase A trial flag flip (recon found E2E specs route-mocked, no stack-in-CI needed)
-- ✅ **Deployment-naming cleanup PR** — rule shipped PR #1055; cleanup PR shipped 2026-05-09 (3 file moves + 14 link updates: `operations/email-ses-setup-runbook.md` → `deploy/`, `operations/dns-setup-runbook.md` → `deploy/`, `deploy/terraform-apply-bootstrap.md` → `terraform-apply-bootstrap-runbook.md`). `secrets-management-runbook.md` split deferred to GAP-452 (P2, substantive editorial). `kiteclass-docker-deployment.md` already absent.
+- ✅ **Deployment-naming cleanup PR** — rule shipped PR #1055; cleanup PR shipped 2026-05-08 (3 file moves + 14 link updates: `operations/email-ses-setup-runbook.md` → `deploy/`, `operations/dns-setup-runbook.md` → `deploy/`, `deploy/terraform-apply-bootstrap.md` → `terraform-apply-bootstrap-runbook.md`). `secrets-management-runbook.md` split deferred to GAP-452 (P2, substantive editorial). `kiteclass-docker-deployment.md` already absent.
 - DSAR + RTBF Phase 2 (GAP-353c + GAP-073)
 - Custom domain procurement Phase 2 (GAP-369b deferred from Wave 43)
 - GAP-451 await Spring Boot 3.5.15+ upstream (weekly check; if delayed >4 weeks, fall back per-CVE `<dependencyManagement>` overrides)
