@@ -205,11 +205,11 @@ jobs:
         run: |
           IMAGE_SIZE=$(docker image inspect kitehub-frontend:${{ github.sha }} --format='{{.Size}}' | awk '{print $1/1024/1024}')
           echo "Image size: ${IMAGE_SIZE} MB"
-          # 220MB limit — raised from 200MB 2026-04-24 after next.js 15.5.15 + axios
-          # + vite bumps pushed standalone image to ~206MB. Headroom for future patches.
-          # Revisit if image grows past 230MB (then optimize via multi-stage + prune).
-          if (( $(echo "$IMAGE_SIZE > 220" | bc -l) )); then
-            echo "❌ Image size exceeds 220MB limit"
+          # 320MB limit — raised from 220MB 2026-05-08 (Wave 46 Bucket C):
+          # Node base bumped node:20-alpine → node:22-trixie-slim to clear CVE-2026-33845
+          # (gnutls in alpine 3.23) + 11 npm-in-base CVE. Debian adds ~60MB; revisit at 340MB.
+          if (( $(echo "$IMAGE_SIZE > 320" | bc -l) )); then
+            echo "❌ Image size exceeds 320MB limit"
             exit 1
           fi
           echo "✅ Image size within limits"
