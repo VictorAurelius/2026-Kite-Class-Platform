@@ -68,7 +68,7 @@ class SesIntegrationSmokeTest {
 
         try (SesClient ses = SesClient.builder()
                 .region(Region.of(region))
-                .credentialsProvider(DefaultCredentialsProvider.create())
+                .credentialsProvider(DefaultCredentialsProvider.builder().build())
                 .build()) {
 
             SendEmailRequest request = SendEmailRequest.builder()
