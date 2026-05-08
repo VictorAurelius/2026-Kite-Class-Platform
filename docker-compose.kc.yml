@@ -1,0 +1,112 @@
+# KC stack production compose — Phase 1 BETA per ADR-025
+#
+# Deploys to kc-app EC2 (i-04f65503ace7febe4) m7i-flex.large 8GB.
+# Frontend served by Vercel (kiteclass.vercel.app) — KC stack here =
+# backend services only.
+#
+# Stack:
+#   redis (256MB cap) — KC session/cache
+#   rabbitmq (256MB cap) — KC events
+#   kiteclass-core: 8081 internal — business logic
+#   kiteclass-gateway: 8080 internal → host 3000 (ALB target group kc_app:3000)
+#
+# RAM budget m7i-flex.large 8GB:
+#   redis ~150MB, rabbitmq ~512MB
+#   kiteclass-core ~768MB peak (384 heap + native)
+#   kiteclass-gateway ~512MB peak
+#   OS + Docker ~512MB
+#   Total ~2.5GB → 5.5GB headroom
+#
+# Run on EC2: bash scripts/deploy-kc.sh
+
+x-kc-service-defaults: &kc-service-defaults
+  restart: unless-stopped
+  networks: [kite-net]
+  env_file: [/etc/kite/.env]
+  logging:
+    driver: awslogs
+    options:
+      awslogs-region: ap-southeast-1
+      awslogs-group: /aws/ec2/kite-prod-kc
+      awslogs-create-group: 'true'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: kite-redis
+    restart: unless-stopped
+    networks: [kite-net]
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 320M
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: kite-rabbitmq
+    restart: unless-stopped
+    networks: [kite-net]
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 320M
+
+  kiteclass-core:
+    <<: *kc-service-defaults
+    image: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/kiteclass-core:${KITE_VERSION}
+    container_name: kiteclass-core
+    environment:
+      JAVA_OPTS: "-Xmx384m -Xms192m -XX:+UseSerialGC"
+      SPRING_PROFILES_ACTIVE: production
+      SERVER_PORT: 8081
+    depends_on:
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+
+  kiteclass-gateway:
+    <<: *kc-service-defaults
+    image: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/kiteclass-gateway:${KITE_VERSION}
+    container_name: kiteclass-gateway
+    environment:
+      JAVA_OPTS: "-Xmx256m -Xms128m -XX:+UseSerialGC"
+      SPRING_PROFILES_ACTIVE: production
+      SERVER_PORT: 8080
+    ports:
+      - "3000:8080"  # ALB target group kc_app:3000 → container :8080
+    depends_on:
+      kiteclass-core: { condition: service_started }
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+networks:
+  kite-net:
+    name: kite-net
+    driver: bridge
