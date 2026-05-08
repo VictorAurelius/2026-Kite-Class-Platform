@@ -13,6 +13,7 @@ import com.kitehub.subscription.beta.entity.BetaAccessRequest;
 import com.kitehub.subscription.beta.entity.BetaAccessRequestStatus;
 import com.kitehub.subscription.beta.service.BetaAccessService;
 import com.kitehub.subscription.beta.service.BetaRateLimitExceededException;
+import com.kitehub.subscription.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -63,9 +64,11 @@ import java.util.UUID;
 public class BetaAccessController {
 
     private final BetaAccessService service;
+    private final AuthService authService;
 
-    public BetaAccessController(BetaAccessService service) {
+    public BetaAccessController(BetaAccessService service, AuthService authService) {
         this.service = service;
+        this.authService = authService;
     }
 
     // ── Public endpoints ──────────────────────────────────────────────
@@ -104,12 +107,12 @@ public class BetaAccessController {
     }
 
     @Operation(summary = "Complete beta signup with invite token",
-               description = "Public unauthenticated endpoint. Marks the request SIGNED_UP and clears the token. Tenant provisioning is delegated to the standard registration pipeline.")
+               description = "Public unauthenticated endpoint. Marks the request SIGNED_UP, then provisions the tenant via the standard registration pipeline (subdomain reservation, owner-user creation, password hashing). On registration failure the beta request is rolled back to APPROVED with a fresh invite token so the invitee can retry (GAP-372 closure follow-up #1, Wave 45 Bucket A).")
     @PostMapping("/api/v1/auth/beta-signup")
     public ResponseEntity<BetaRequestResponse> completeBetaSignup(@Valid @RequestBody BetaSignupCommand cmd) {
+        BetaAccessRequest saved;
         try {
-            BetaAccessRequest saved = service.completeBetaSignup(cmd);
-            return ResponseEntity.ok(BetaRequestResponse.from(saved));
+            saved = service.completeBetaSignup(cmd);
         } catch (IllegalArgumentException ex) {
             log.warn("Beta signup rejected: {}", ex.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -117,6 +120,30 @@ public class BetaAccessController {
             log.warn("Beta signup invalid state: {}", ex.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
+
+        // Token redeemed + status flipped to SIGNED_UP. Now provision the tenant
+        // via the standard registration pipeline. If it fails, roll the beta
+        // request back to APPROVED so the invitee can retry with the same email.
+        try {
+            authService.registerFromBetaInvite(
+                    saved.getOrgName(),
+                    cmd.subdomain(),
+                    saved.getEmail(),
+                    cmd.ownerPassword());
+        } catch (IllegalArgumentException ex) {
+            // Conflicting subdomain / email — surface 409 + rollback.
+            log.warn("Beta signup tenant provisioning conflict (rolling back): {}", ex.getMessage());
+            service.rollbackSignup(saved.getId());
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        } catch (RuntimeException ex) {
+            // Generic provisioning failure — rollback + surface 500 so the FE
+            // can show a retry message; invitee keeps a usable token.
+            log.error("Beta signup tenant provisioning failed (rolling back): {}", ex.getMessage(), ex);
+            service.rollbackSignup(saved.getId());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return ResponseEntity.ok(BetaRequestResponse.from(saved));
     }
 
     // ── Coordinator endpoints ─────────────────────────────────────────
