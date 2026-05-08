@@ -1,6 +1,6 @@
 # GAP-440: Spring Boot 3.5.14 → latest dep bump before v1.0.0 prod tag
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — kiteclass side bumped (Wave 46 Bucket B); awaiting Bucket A (kitehub) + Bucket C (Alpine) + Trivy delta confirmation
 **Priority:** 🟠 P1 — required before v1.0.0 production tag (NOT blocking Phase 1 BETA staging)
 **Domain:** Backend / Security / DevOps
 **Found:** 2026-05-08 (Phase 3 staging.4 retro — 48 HIGH+ CVE found across 10 services)
@@ -52,4 +52,5 @@ Spring Boot version pinned at parent pom 3.5.14. Latest Spring Boot 3.5.x patche
 ## Log
 
 - **2026-05-08** Filed during Phase 3 staging.5 retro. CRITICAL-only staging gate unblocks Phase 1 BETA; this gap closes before v1.0.0-rc.
-- **2026-05-08** Wave 46 Bucket A (kitehub side) attempted but BLOCKED at pre-flight: Maven Central authoritative version list shows `3.5.14` IS the latest 3.5.x patch — no newer 3.5.15+ exists to bump to (verified via `maven-metadata.xml` + directory listing). Status remains 🔵 OPEN; blocking concern tracked in GAP-451 (await upstream Spring Boot 3.5.15 release). Bucket A PR #TBD ships the GAP-451 file + this Log entry only — no code changes. Bucket B (kiteclass) likely faces identical blocker; coordinator to verify.
+- **2026-05-08** Wave 46 Bucket A (kitehub) BLOCKED pre-flight: Maven Central confirms 3.5.14 IS the latest 3.5.x patch (no 3.5.15+ exists). Tracked GAP-451. PR #1060 ships GAP-451 + Log entries only — no code changes.
+- **2026-05-08** Wave 46 Bucket B (kiteclass): same Spring Boot upstream blocker. Bumped Spring Cloud 2025.0.0 → 2025.0.2 in `kiteclass/kiteclass-gateway/pom.xml` to clear CVE-2025-41253 (spring-cloud-gateway EL injection). kiteclass-core has no Spring Cloud dep. Local `mvn test-compile -P strict-warnings` exit 0 both modules; full `mvn verify` needs Docker (CI runners). PR: wave/46-bucket-b-kiteclass-spring-boot-bump.
