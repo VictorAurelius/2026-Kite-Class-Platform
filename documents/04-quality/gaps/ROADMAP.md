@@ -15,8 +15,8 @@
 **Phase 1 BETA Beta Access closure:** ✅ CODE COMPLETE 2026-05-08 (Wave 45 — GAP-372 DONE + GAP-370 PARTIAL pending AWS user-action).
 
 **Pending user actions (separate from session work):**
-1. ❗ **Deactivate `solo-dev-admin` access key** (exposed earlier in chat 2026-05-08; AKID prefix `AKIA…MMUZ`) — IAM Console → Make Inactive (24-48h verify) → Delete
-2. ⚠️ **Rotate `kite-readonly-wsl` key** (also exposed in chat, lower-severity ReadOnly; AKID prefix `AKIA…E7SO`) — non-urgent
+1. ❗ **Rotate `solo-dev-admin` access key** (AKID prefix `AKIA…MMUZ`) — reusable: `scripts/rotate-iam-access-key.sh solo-dev-admin <old-AKID> dev-admin dev-admin` (admin profile rotates itself; AWS new-before-delete = no lockout)
+2. ✅ **Rotate `kite-readonly-wsl` key** — DONE 2026-05-08 via `scripts/rotate-iam-access-key.sh`; new AKID `AKIA…SVMD`, old `AKIA…E7SO` deleted. Audit: `documents/04-quality/audits/aws-verification/2026-05-08-key-rotation-readonly-wsl.md`
 3. **CWAgent install** trên kh_backend via SSM Run Command — `right-size-stress-test.md` §1; alarm sẽ transitions từ INSUFFICIENT_DATA → active monitoring
 4. **GAP-450 drift fix** separate session — `terraform import random_password` + verify state align
 5. **AWS SES sandbox→production approval** (GAP-370 closure) — follow `documents/05-guides/operations/email-ses-setup-runbook.md`; DKIM/SPF/DMARC verification; out-of-sandbox approval ticket; verify domain reputation pre-launch
