@@ -46,15 +46,24 @@ fi
 echo "AWS identity OK: $ACCT"
 echo
 
-# Send deploy command — single line, calls deploy-prod.sh on EC2
-echo "Sending deploy command (KITE_VERSION=$VERSION)..."
+# Send deploy command. Force-update repo first (bypasses stale
+# deploy-prod.sh git-pull bug per release-fix-retry-budget.md §4 pivot —
+# script bootstrap chicken-and-egg). Strip 'v' prefix here too in case
+# EC2 deploy-prod.sh is stale and doesn't strip yet.
+VERSION_NOV="${VERSION#v}"
+echo "Sending deploy command (KITE_VERSION=$VERSION_NOV, force-update repo first)..."
 CMD_ID=$(aws ssm send-command \
   --region "$REGION" \
   --instance-ids "$INSTANCE_ID" \
   --document-name AWS-RunShellScript \
-  --comment "Deploy $VERSION" \
+  --comment "Deploy $VERSION_NOV" \
   --timeout-seconds 600 \
-  --parameters "commands=[\"sudo KITE_VERSION=$VERSION bash /opt/kite-prod/scripts/deploy-prod.sh 2>&1 | tail -200\"]" \
+  --parameters "commands=[\
+\"sudo git config --global --add safe.directory /opt/kite-prod\",\
+\"sudo git -C /opt/kite-prod fetch --depth 1 origin main\",\
+\"sudo git -C /opt/kite-prod reset --hard origin/main\",\
+\"sudo KITE_VERSION=$VERSION_NOV bash /opt/kite-prod/scripts/deploy-prod.sh 2>&1 | tail -200\"\
+]" \
   --query "Command.CommandId" --output text)
 
 echo "CommandId: $CMD_ID"
