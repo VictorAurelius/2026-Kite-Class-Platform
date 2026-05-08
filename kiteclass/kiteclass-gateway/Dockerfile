@@ -1,7 +1,7 @@
 # Multi-stage build for KiteClass Gateway
 
 # Stage 1: Build
-FROM eclipse-temurin:17-jdk-alpine AS build
+FROM eclipse-temurin:17-jdk-noble AS build
 WORKDIR /app
 
 # Copy Maven wrapper and pom.xml
@@ -18,7 +18,8 @@ COPY src/ src/
 RUN ./mvnw clean package -DskipTests -Dcheckstyle.skip=true -B
 
 # Stage 2: Runtime
-FROM eclipse-temurin:17-jre-alpine
+# GAP-442: Debian noble (Ubuntu 24.04) — replaces alpine 3.23 to clear gnutls CVE-2026-33845.
+FROM eclipse-temurin:17-jre-noble
 
 # Build arguments for version tracking
 ARG BUILD_TAG="dev"
@@ -38,8 +39,11 @@ LABEL com.kiteclass.branch="${BRANCH}"
 
 WORKDIR /app
 
+# wget for HEALTHCHECK
+RUN apt-get update && apt-get install -y --no-install-recommends wget && rm -rf /var/lib/apt/lists/*
+
 # Create non-root user
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN groupadd --system spring && useradd --system -g spring --no-create-home --shell /usr/sbin/nologin spring
 USER spring:spring
 
 # Copy JAR from build stage

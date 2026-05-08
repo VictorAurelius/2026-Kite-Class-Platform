@@ -6,7 +6,7 @@
 # ============================================================================
 # BUILD STAGE
 # ============================================================================
-FROM maven:3.9-eclipse-temurin-17-alpine AS builder
+FROM maven:3.9-eclipse-temurin-17-noble AS builder
 WORKDIR /build
 
 # Copy parent + ALL sibling module pom stubs first (parent <modules> validation).
@@ -29,7 +29,7 @@ RUN mvn -B clean package -pl kitehub-admin -am -DskipTests
 # ============================================================================
 # RUNTIME STAGE
 # ============================================================================
-FROM eclipse-temurin:17-jre-alpine AS runtime
+FROM eclipse-temurin:17-jre-noble AS runtime
 WORKDIR /app
 
 ARG BUILD_DATE
@@ -44,10 +44,11 @@ LABEL org.opencontainers.image.title="kitehub-admin" \
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.vendor="Kite Platform"
 
-RUN apk add --no-cache curl
+# GAP-442: Debian noble (Ubuntu 24.04) — replaces alpine 3.23 to clear gnutls CVE-2026-33845.
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
-RUN addgroup --system --gid 1001 spring && \
-    adduser --system --uid 1001 spring
+RUN groupadd --system --gid 1001 spring && \
+    useradd --system --uid 1001 --gid spring --no-create-home --shell /usr/sbin/nologin spring
 
 COPY --from=builder /build/kitehub-admin/target/*.jar app.jar
 RUN chown -R spring:spring /app

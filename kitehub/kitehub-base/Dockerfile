@@ -4,7 +4,7 @@
 # Usage: Child Dockerfiles use "FROM kitehub-base:latest AS builder"
 # Build: docker build -t kitehub-base:latest -f kitehub-base/Dockerfile .
 
-FROM eclipse-temurin:17-jdk-alpine
+FROM eclipse-temurin:17-jdk-noble
 
 LABEL maintainer="KiteHub Team"
 LABEL description="Base image with JDK 17 and Maven dependencies for KiteHub services"
@@ -12,7 +12,8 @@ LABEL description="Base image with JDK 17 and Maven dependencies for KiteHub ser
 WORKDIR /build
 
 # Install Maven and curl (for healthchecks in child images)
-RUN apk add --no-cache maven curl
+# GAP-442: Debian noble (Ubuntu 24.04) — replaces alpine 3.23 to clear gnutls CVE-2026-33845.
+RUN apt-get update && apt-get install -y --no-install-recommends maven curl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Copy ALL pom files for dependency resolution
 COPY pom.xml ./

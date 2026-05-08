@@ -1,6 +1,6 @@
 # GAP-442: Alpine 3.23 → 3.24+ base image bump (10 Dockerfiles)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Dockerfiles bumped to noble (alpine 3.24+ unavailable upstream); CI Trivy confirmation pending before `.trivyignore` removal
 **Priority:** 🟠 P1 — required before v1.0.0 production tag
 **Domain:** DevOps / Security
 **Found:** 2026-05-08 (Phase 3 staging.5 — CVE-2026-33845 gnutls CRITICAL in alpine 3.23)
@@ -29,10 +29,10 @@ Dockerfile `FROM` lines pinned to alpine 3.23-derived images. Upstream fix in al
 
 ## Acceptance Criteria
 
-- [ ] 10 Dockerfiles bumped to alpine 3.24+ derived
-- [ ] Trivy scan finds 0 gnutls HIGH/CRITICAL
-- [ ] `.trivyignore` entry for CVE-2026-33845 removed
-- [ ] Image size delta acceptable (<10% growth)
+- [x] 10 Dockerfiles bumped — pivoted to Debian noble (Ubuntu 24.04) / `node:22-trixie-slim` because eclipse-temurin / maven / node alpine variants are still pinned at 3.23 upstream (no 3.24+ tag published yet, verified Docker Hub 2026-05-08). Noble is a documented fallback per task spec.
+- [ ] Trivy scan finds 0 gnutls HIGH/CRITICAL — pending CI verification on next staging tag
+- [ ] `.trivyignore` entry for CVE-2026-33845 removed — gated by CI Trivy confirmation, follow-up PR
+- [ ] Image size delta acceptable (<10% growth) — pending CI build size measurement (noble is larger than alpine; expect ~30-50MB delta per service which is acceptable for security parity)
 
 ## Related
 
@@ -42,3 +42,4 @@ Dockerfile `FROM` lines pinned to alpine 3.23-derived images. Upstream fix in al
 ## Log
 
 - **2026-05-08** Filed during Phase 3 staging.5 retro. Pairs with GAP-440 + GAP-441 as production-readiness trio before v1.0.0 tag.
+- **2026-05-08** Wave 46 Bucket C — 10 Dockerfiles bumped to Debian `noble` / `trixie-slim` base. State-check on Docker Hub: eclipse-temurin / maven / node alpine variants topped at 3.23 (no 3.24+ published upstream as of today). Per task spec fallback, switched Java images to `*-noble` (Ubuntu 24.04 LTS, glibc) and Node images to `node:22-trixie-slim` (Debian 13 trixie, Node 22 LTS — clears 11 npm-in-base CVE pile: tar/minimatch/cross-spawn/glob). Adapted package-manager calls (`apk add` → `apt-get install`) and user-creation commands (BusyBox `addgroup -S` / `adduser -S` → util-linux `groupadd --system` / `useradd --system`). Added explicit `wget` install for kiteclass-core/kiteclass-gateway HEALTHCHECK (BusyBox provided `wget` on alpine; Debian doesn't by default). Removed `apk add libc6-compat` from Node frontends (alpine-only musl→glibc shim). Status flipped to 🟡 PARTIAL per `gap-done-discipline.md` §3 — CI Trivy scan + `.trivyignore` removal queued as follow-up PR after staging.N tag confirms CVE-2026-33845 cleared. Local Docker build verification not run (Docker not available in worktree); CI is the verification gate. PR: wave/46-bucket-c-alpine-base-bump.
