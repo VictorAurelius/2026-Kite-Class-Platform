@@ -10,6 +10,52 @@
 
 ## 🎯 Current Status Snapshot (2026-05-08)
 
+### 🚀 Next Action (signpost cho new session)
+
+**Phase 1 BETA cost-discipline + terraform-apply workflow:** ✅ INFRA COMPLETE 2026-05-08 (Wave 43+44 bootstrap applied).
+
+**Pending user actions (separate from session work):**
+1. ❗ **Deactivate `solo-dev-admin` access key** (exposed earlier in chat 2026-05-08; AKID prefix `AKIA…MMUZ`) — IAM Console → Make Inactive (24-48h verify) → Delete
+2. ⚠️ **Rotate `kite-readonly-wsl` key** (also exposed in chat, lower-severity ReadOnly; AKID prefix `AKIA…E7SO`) — non-urgent
+3. **CWAgent install** trên kh_backend via SSM Run Command — `right-size-stress-test.md` §1; alarm sẽ transitions từ INSUFFICIENT_DATA → active monitoring
+4. **GAP-450 drift fix** separate session — `terraform import random_password` + verify state align
+
+**Wave 45+ candidates (Phase 1 BETA progression per `release-1-plan-2026.md` §3):**
+- E2E activation (per Wave 30+ scope) — bật `if: false` trong frontend-ci.yml + KH/KC frontend e2e
+- Beta tenant invite mechanism (GAP-372)
+- DSAR + RTBF Phase 2 (GAP-353c + GAP-073)
+- Custom domain procurement Phase 2 (GAP-369b deferred from Wave 43)
+
+**Strategic gates Phase 1 → Phase 1.5:** Quality audit /100 ≥80 (current 86 ✅) + 5 beta tenants live + 0 P0 incidents 2 tuần
+
+---
+
+### ⭐ Wave 43+44 bootstrap apply COMPLETE 2026-05-08
+
+**Bootstrap via local `terraform apply`** (admin profile, chicken-and-egg per `release-deploy-standard.md` §9 v1.0.1 carve-out):
+
+| Item | Status |
+|---|---|
+| 8 EventBridge schedulers ENABLED | ✅ first stop 22:00 ICT tonight |
+| `kh_backend` t3.medium running healthy | ✅ in-place modify ~30s restart |
+| `kc_app` replaced (`i-04f65503ace7febe4` → `i-07f6de54544162124` stopped) | ⚠️ unintentional, drift GAP-450 |
+| `github_terraform_apply` IAM role provisioned | ✅ workflow_dispatch ready |
+| GitHub Variable `AWS_TERRAFORM_APPLY_ROLE_ARN` set | ✅ |
+| SNS `kitehub-memory-alerts` + email confirmed | ✅ `vannkite@outlook.com` subscription ARN `99266533-...` |
+| `kh_backend_memory_high` alarm | ⚠️ INSUFFICIENT_DATA (CWAgent install pending) |
+| `kc_app_memory_high` alarm | ⏸️ deferred Phase 7 (kc_app drift) |
+| `kite-readonly-wsl` IAM user + Tier 1 boundary verified | ✅ Tier 3 `stop-instances` → AccessDenied confirmed |
+
+**Verification artifact:** `documents/04-quality/audits/aws-verification/2026-05-08-wave-43-44-bootstrap-apply.md`
+
+**Cost saving achieved:** $157/mo → ~$45-55/mo target → $200 credit longevity 1.3 → 3.5-4 tháng (đủ Phase 1 BETA 9-12 tuần).
+
+**Closeout PRs:** #1046 SNS tag fix + #1047 verification artifact + GAP status flips + GAP-450 filed.
+
+**80th consecutive 0-clarification streak.**
+
+---
+
 ### ⭐ Wave 44 SHIPPED 2026-05-08 — terraform-apply workflow_dispatch infra
 
 **Trigger:** Wave 43 closure user-flagged "tại sao cần rule terraform apply human-only?" — rule §9 over-restrictive blocking workflow_dispatch + confirm pattern (industry standard Atlantis/TF Cloud).
