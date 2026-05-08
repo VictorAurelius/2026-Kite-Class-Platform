@@ -25,28 +25,38 @@ This WSL Ubuntu instance (Ubuntu 24.04 Noble) is now designated as `kite-dev` �
 
 ---
 
-## One-time setup (already done as of 2026-05-08)
+## One-time setup
 
 ```bash
 # Run as user with sudo:
 sudo bash scripts/setup-mosh-kite-dev.sh
 ```
 
-Idempotent. Installs: `mosh`, `openssh-server`, `tailscale`, `ufw`. Sets hostname to `kite-dev`. Opens UFW for SSH + mosh UDP.
+Idempotent. Installs: `mosh`, `openssh-server`, `tailscale`, `ufw`, `jq`. Sets runtime hostname to `kite-dev`, persists in `/etc/wsl.conf [network]` so WSL restart doesn't reset to Windows machine name. Opens UFW for SSH + mosh UDP. Renames Tailscale device to `kite-dev` (post-up only).
 
 After script completes, run interactively (browser auth):
 
 ```bash
-sudo tailscale up
+sudo tailscale up --hostname=kite-dev
 # → Click URL printed, sign in to Tailscale, approve device "kite-dev"
+```
+
+Then apply WSL persistent hostname (Windows-side restart, one-time):
+
+```powershell
+# In Windows PowerShell:
+wsl --shutdown
+# → reopen WSL terminal — `hostname` returns kite-dev across reboots forever
 ```
 
 Then get the tailnet IP:
 
 ```bash
 tailscale ip -4
-# Example: 100.64.1.23
+# Example: 100.91.182.85
 ```
+
+**If Tailscale was activated BEFORE this script ran** (legacy state where device name = `vankiet-2` or similar): re-run script after `tailscale up` to rename device to `kite-dev` via `tailscale set --hostname=kite-dev` (no re-auth needed, tailscale 1.50+).
 
 ---
 
@@ -146,10 +156,12 @@ For Claude Code sessions on mobile via mosh: same WSL identity = same AWS profil
 |---|---|
 | Mosh server installed | ✅ Step 1 of script |
 | SSH server active | ✅ Was already listening; script idempotent |
-| Hostname → `kite-dev` | ✅ Step 3 of script |
+| Hostname → `kite-dev` runtime | ✅ Step 3 of script |
+| Hostname persistent (`/etc/wsl.conf`) | ✅ Step 3 of script (requires `wsl --shutdown` once on Windows) |
 | UFW firewall configured | ✅ Step 4 of script |
 | Tailscale installed | ✅ Step 5 of script |
-| Tailscale activated | ⏳ User-interactive (`sudo tailscale up`, browser) |
+| Tailscale device renamed to `kite-dev` | ✅ Step 6 of script (post-up only — re-run script if needed) |
+| Tailscale activated | ⏳ User-interactive (`sudo tailscale up --hostname=kite-dev`, browser) |
 | Mobile client config | ⏳ User step (Blink / Termius / Termux) |
 
 After user runs `sudo tailscale up` + activates mobile client, this WSL is reachable from mobile globally as `kite-dev`. Mosh session survives WiFi/4G/sleep — same shell context across day.
@@ -164,3 +176,4 @@ After user runs `sudo tailscale up` + activates mobile client, this WSL is reach
 ## Log
 
 - **2026-05-08:** Runbook created + setup script shipped. WSL `VANKIET` → `kite-dev`. Designated as solo-dev's mosh node. Tailscale chosen over port-forward/Cloudflare for "anywhere" use case + zero-router-config. User runs `sudo bash scripts/setup-mosh-kite-dev.sh` once + `sudo tailscale up` for browser auth.
+- **2026-05-08 (revision 2):** Persistence + Tailscale-rename added. Original v1 had: (a) hostname reset to `VANKIET` on WSL restart (script set runtime only, not `/etc/wsl.conf`), (b) Tailscale device joined as Windows hostname `vankiet-2` instead of `kite-dev` → Magic DNS lookup fails. Script v2 writes `[network] hostname=kite-dev generateHosts=false` to `/etc/wsl.conf` for persistence + uses `tailscale set --hostname=kite-dev` for clean device rename without re-auth (tailscale 1.50+). Step count 6→7. Runbook updated with `wsl --shutdown` follow-up requirement.
