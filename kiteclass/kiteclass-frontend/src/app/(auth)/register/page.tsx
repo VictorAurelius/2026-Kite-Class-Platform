@@ -17,7 +17,9 @@ import { GraduationCap, Building2 } from 'lucide-react';
 export default function RegisterPage() {
   const router = useRouter();
   const kitehubUrl = process.env.NEXT_PUBLIC_KITEHUB_URL || 'https://hub.kiteclass.com';
-  const kitehubRegisterUrl = `${kitehubUrl}/register`;
+  // Phase 1 BETA invite-only — direct centers to beta access request form
+  // instead of public self-signup. See GAP-372 closure follow-up #2.
+  const kitehubRegisterUrl = `${kitehubUrl}/auth/request-beta-access`;
 
   return (
     <AuthLayout>
@@ -60,7 +62,7 @@ export default function RegisterPage() {
                 <CardTitle>Trung tâm</CardTitle>
               </div>
               <CardDescription>
-                Dành cho trung tâm giáo dục muốn sử dụng nền tảng
+                Dành cho trung tâm giáo dục — gửi yêu cầu Beta để được mời sử dụng
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -72,7 +74,7 @@ export default function RegisterPage() {
                   window.open(kitehubRegisterUrl, '_blank');
                 }}
               >
-                Đăng ký trung tâm ↗
+                Yêu cầu Beta ↗
               </Button>
             </CardContent>
           </Card>
