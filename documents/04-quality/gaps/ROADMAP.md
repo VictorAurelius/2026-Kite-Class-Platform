@@ -15,7 +15,7 @@
 **Phase 1 BETA Beta Access closure:** ✅ CODE COMPLETE 2026-05-08 (Wave 45 — GAP-372 DONE + GAP-370 PARTIAL pending AWS user-action).
 
 **Pending user actions (separate from session work):**
-1. ❗ **Rotate `solo-dev-admin` access key** (AKID prefix `AKIA…MMUZ`) — reusable: `scripts/rotate-iam-access-key.sh solo-dev-admin <old-AKID> dev-admin dev-admin` (admin profile rotates itself; AWS new-before-delete = no lockout)
+1. ✅ **Delete exposed `solo-dev-admin` orphan key** (AKID `AKIA…MMUZ`) — DONE 2026-05-08 via `scripts/delete-iam-access-key.sh` (orphan: not bound to any local profile, dev-admin uses `AKIA…52MY` unaffected). Audit: `documents/04-quality/audits/aws-verification/2026-05-08-orphan-key-delete-solo-dev-admin.md`. Future rotation of `52MY` available via `rotate-iam-access-key.sh` when chosen (not exposed, no urgency).
 2. ✅ **Rotate `kite-readonly-wsl` key** — DONE 2026-05-08 via `scripts/rotate-iam-access-key.sh`; new AKID `AKIA…SVMD`, old `AKIA…E7SO` deleted. Audit: `documents/04-quality/audits/aws-verification/2026-05-08-key-rotation-readonly-wsl.md`
 3. **CWAgent install** trên kh_backend via SSM Run Command — `right-size-stress-test.md` §1; alarm sẽ transitions từ INSUFFICIENT_DATA → active monitoring
 4. **GAP-450 drift fix** separate session — `terraform import random_password` + verify state align
