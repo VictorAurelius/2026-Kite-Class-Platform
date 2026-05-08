@@ -1,8 +1,8 @@
 ---
 title: Wave 42 — AWS deploy follow-ups (post Phase 2.3)
-status: draft
+status: complete
 created: 2026-05-08
-updated: 2026-05-08
+updated: 2026-05-07
 waves: [42]
 gaps: [GAP-438, GAP-436, GAP-117]
 audit_cluster: release-deploy-artifacts
@@ -153,4 +153,5 @@ Per session retro 2026-05-08:
 
 ## 10. Log
 
+- **2026-05-07** (closure): SHIPPED 5/5 buckets in ~6min wall-clock (vs ~65min plan estimate, ~11× faster than serial). Wave 42 closure PR includes Tier 1 meta updates from Phase 3 retro (runbook §F5 + ADR-025 addendum + memory `feedback_docker_multiarch_basemage_precheck.md`). PRs merged sequence: #1002 (B aws-smoke-test) → #1001 (C populate-secrets, includes 2-AI-keys trim per user 2026-05-07) → #1000 (D phase-3-image-push runbook) → #999 (E GAP-436 Phase 4 checklist PARTIAL) → #1003 (followup runbook Phase 4.2 sslip.io + 7.3.9 .vn). Bucket F (memory) shipped without PR (outside repo). All bucket-touched gaps flipped per `gap-done-discipline.md`: GAP-438 Phase 2 ✅ DONE; GAP-436 Phase 4 → 🟡 PARTIAL (deferred user-action after Phase 3 first push verified). Phase 3 first OIDC trigger fired immediately post-merge (tag `v0.9.0-beta-staging.1`, run #25527705091): OIDC AssumeRole verified ✅, Build Test 9/9 amd64 pass, but Push to ECR failed for 7 Java services due to multi-arch base-image mismatch. PR #1004 amd64-only fix shipped + tag `v0.9.0-beta-staging.2` (run #25528087813) re-trigger pending verification. Closure protocol per `post-wave-cleanup.md`: 4 worktree husks pruned + 4 wave/42-bucket-* branches deleted. Audit defer trailer: `AUDIT_DEFER_DOMAIN_MILESTONE: release-deploy-artifacts — milestone Phase 1 BETA launch wave (cluster với Wave 41)`.
 - **2026-05-08** (draft): Plan tạo sau user-flagged retro về missed wave-pack opportunity. 5 ngăn parallel covering GAP-438 Phase 2+4, Phase 2.4 helper, Phase 3 prep, GAP-436 Phase 4. Stake tier LOW, all Sonnet bg-agents, ~65min wall-clock estimate.
