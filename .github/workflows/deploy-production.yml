@@ -74,7 +74,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Send deploy command via SSM
+      - name: Send deploy command via SSM (simple — calls deploy-prod.sh)
         id: ssm
         env:
           KITE_VERSION: ${{ github.event.inputs.version }}
@@ -82,24 +82,21 @@ jobs:
         run: |
           echo "Deploying ${KITE_VERSION} to ${INSTANCE_ID}..."
 
-          # SSM run-command: call existing deploy-prod.sh on EC2.
-          # EC2 has /etc/ecr-login.sh from terraform user_data + scripts/
-          # synced to /opt/kite-prod via deploy-prod.sh's git pull logic.
+          # SSM run-command: assume EC2 already bootstrapped with repo at
+          # /opt/kite-prod (one-time manual setup per Phase 7 prep §7.1.2).
+          # deploy-prod.sh handles git pull + ECR login + secrets fetch +
+          # docker compose pull/up internally.
+          # Per release-fix-retry-budget.md §4 pivot: avoid multi-line bash
+          # inside JSON inside YAML — use simplest possible SSM call.
+
+          # Use --parameters with simple commands list (CLI accepts shorthand)
           COMMAND_ID=$(aws ssm send-command \
             --region "${AWS_REGION}" \
             --instance-ids "${INSTANCE_ID}" \
             --document-name "AWS-RunShellScript" \
-            --comment "Deploy production ${KITE_VERSION}" \
+            --comment "Deploy ${KITE_VERSION}" \
             --timeout-seconds 600 \
-            --parameters "{
-              \"commands\": [
-                \"set -euo pipefail\",
-                \"export KITE_VERSION='${KITE_VERSION}'\",
-                \"export KITE_REPO_URL='https://github.com/${{ github.repository }}.git'\",
-                \"if [ ! -d /opt/kite-prod/.git ]; then sudo mkdir -p /opt/kite-prod && sudo chown ec2-user:ec2-user /opt/kite-prod && cd /opt/kite-prod && git clone --depth 1 \\\"\\$KITE_REPO_URL\\\" .; else cd /opt/kite-prod && git fetch --depth 1 origin main && git reset --hard origin/main; fi\",
-                \"sudo KITE_VERSION=\\\"\\$KITE_VERSION\\\" KITE_REPO_URL=\\\"\\$KITE_REPO_URL\\\" bash /opt/kite-prod/scripts/deploy-prod.sh 2>&1 | tail -100\"
-              ]
-            }" \
+            --parameters commands="sudo KITE_VERSION=${KITE_VERSION} bash /opt/kite-prod/scripts/deploy-prod.sh" \
             --query "Command.CommandId" --output text)
 
           echo "command_id=${COMMAND_ID}" >> "$GITHUB_OUTPUT"
