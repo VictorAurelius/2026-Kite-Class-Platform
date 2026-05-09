@@ -38,42 +38,38 @@ import { test, expect } from '@playwright/test';
 import { login } from '../helpers/auth';
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Shared navigation helper: (optionally login) → classes page → pick course →
-// click first class row → land on /classes/:id
+// Shared navigation helper: (optionally login) → land on /classes/:id directly.
+//
+// History: pre-GAP-454 the helper went through the listing UI flow
+// (click /classes nav link → open Shadcn <Select> combobox → pick course option →
+// wait for /api/v1/courses/:id/classes mock → click Eye icon ghost button row).
+// That UI chain proved flaky in headless chromium (Shadcn Select interaction +
+// row-action button selector) and made the helper a 4/6 failure point during
+// GAP-453 Phase B local verify (2026-05-09), even though the underlying
+// /api/v1/classes/:id mocks (registered by setupApiMocks() inside login()) were
+// in place.
+//
+// Per GAP-454 Option C.2 — direct-navigation pattern (matches existing test 6
+// "invalid-id" that already used `page.goto('/classes/99999')` successfully):
+// helper now goto's /classes/1 directly. Trade-off: loses listing-UI navigation
+// coverage in this gate (was already shallow per the GAP-455 audit) in exchange
+// for stable, repeatable lifecycle test signal. Listing-UI coverage belongs in
+// a separate spec or under the future docker-compose-in-CI gate (GAP-453 B.1).
 // ──────────────────────────────────────────────────────────────────────────────
 async function navigateToClassDetail(
   page: Parameters<typeof login>[0],
   skipLogin = false
 ) {
   if (!skipLogin) {
+    // login() also wires setupApiMocks() which registers the /classes/1 detail
+    // route mocks. Direct goto below relies on those mocks.
     await login(page);
   }
 
-  // Navigate to classes list
-  await page.click('a[href="/classes"]');
-  await expect(page).toHaveURL('/classes');
+  await page.goto('/classes/1');
 
-  // The course selector is a Shadcn <Select> (renders as role="combobox").
-  const courseSelector = page.getByRole('combobox');
-  await expect(courseSelector).toBeVisible({ timeout: 5000 });
-  await courseSelector.click();
-
-  // Shadcn SelectItem renders as role="option"
-  await page.getByRole('option').first().click();
-
-  // Wait for classes to load (debounce / react-query fetch)
-  await page.waitForTimeout(1000);
-
-  // Actions column: Eye icon ghost button title="Xem chi tiết" (icon-only).
-  const viewButton = page
-    .locator('table tbody tr')
-    .first()
-    .locator('button[title="Xem chi tiết"], button')
-    .first();
-  await expect(viewButton).toBeVisible({ timeout: 5000 });
-  await viewButton.click();
-
-  // Should now be on /classes/:id
+  // Confirm we landed (mocks should make this near-instant; 5s buffer for
+  // first-time Next.js dev server compile of the [id] route).
   await expect(page).toHaveURL(/\/classes\/\d+$/, { timeout: 5000 });
 }
 

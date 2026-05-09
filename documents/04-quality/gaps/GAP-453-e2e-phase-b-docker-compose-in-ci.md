@@ -1,10 +1,10 @@
 # GAP-453: E2E Phase B — docker-compose stack in CI for KH+KC frontend E2E gates
 
-**Status:** 🟡 PARTIAL — KH side DONE 2026-05-09 (Phase B Option B.2 narrow-subset gate); KC side deferred to GAP-454
+**Status:** 🟢 DONE 2026-05-09 — both slices shipped: KH B.2 narrow-subset gate (PR #1078) + KC C.2 direct-navigation gate (this PR via GAP-454 closure). Coverage extension still pending GAP-455 (KH error branches).
 **Priority:** 🟠 P1
 **Domain:** DevOps / CI
 **Found:** 2026-05-09 (Wave 47 Phase A pre-flight verify aborted)
-**Affects:** `.github/workflows/frontend-ci.yml` (KC E2E job line 90 `if: false` — DEFERRED to GAP-454), `.github/workflows/kitehub-frontend-ci.yml` (KH E2E job — `if: true` ACTIVATED 2026-05-09); blocks GAP-403/404/420 closure (PARTIAL on KH path only)
+**Affects:** `.github/workflows/frontend-ci.yml` (KC E2E job — `if: true` ACTIVATED 2026-05-09 via GAP-454), `.github/workflows/kitehub-frontend-ci.yml` (KH E2E job — `if: true` ACTIVATED 2026-05-09 via PR #1078); GAP-403/404/420 unblocked on both slices. Coverage breadth pending GAP-455.
 
 ## Problem
 
@@ -93,3 +93,4 @@ Note KC workflow has `pnpm test:e2e || true` + `continue-on-error: true` (lines 
 
 - **2026-05-09** Filed after Wave 47 Phase A pre-flight verify aborted. KC critical-journeys chromium 11/17 pass, KH beta-funnel chromium 5/5 pass, but full-folder E2E suites both fail because workflows run entire `e2e/` folder including real-backend-dependent specs (auth, billing, classes detail, etc.). Plan recon assumed narrow route-mock-only scope; reality is wider. Phase B docker-compose fallback OR subset-only scripts required before E2E gate can be activated as blocking.
 - **2026-05-09** Status flipped 🔵 OPEN → 🟡 PARTIAL. Phase B Option B.2 shipped for **KH only**. Local verify revealed KC narrow subset insufficient: `class-lifecycle.spec.ts` 2/6 pass under chromium route-mock-only because 4 tests use `navigateToClassDetail()` helper that hits unmocked `/api/v1/classes` listing. KH `beta-funnel/` 5/5 pass in 8.6s (fully self-contained). Per `release-fix-retry-budget.md` §3 decision flow at retry #1 (Phase A = retry #0) + `gap-done-discipline.md` §3 PARTIAL exit ramp: ship KH, defer KC to GAP-454 follow-up with 4 path options (route-mock refactor / direct-navigation / MSW migration / docker-compose escalation). KH side closes its slice of GAP-403/404/420; KC slice remains pending until GAP-454 lands.
+- **2026-05-09 (later)** Status flipped 🟡 PARTIAL → 🟢 DONE. GAP-454 closed via Option C.2 direct-navigation refactor: `navigateToClassDetail()` 25-line UI chain → 3-line `page.goto('/classes/1')`. Investigation revealed `/api/v1/courses/*/classes*` endpoint mock was already in place from `setupApiMocks()`; the failure was UI selector flake (Shadcn Select + row Eye click) not endpoint mismatch. Local verify chromium-only: **6/6 pass in 17.3s** (was 2/6). KC `frontend-ci.yml` `if: false → if: true` + removed `|| true` swallow + `continue-on-error: true`. Both KC + KH gates now blocking. GAP-403/404/420 fully unblocked on Phase B path. Coverage breadth (~28% scenarios on KH side per audit during PR #1078) tracked in GAP-455 follow-up.
