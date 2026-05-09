@@ -42,7 +42,8 @@ CVE delta: 21 HIGH alerts → ~10 expected post-Trivy-rescan (12 npm-in-base + g
 - ✅ **Deployment-naming cleanup PR** — rule shipped PR #1055; cleanup PR shipped 2026-05-08 (3 file moves + 14 link updates: `operations/email-ses-setup-runbook.md` → `deploy/`, `operations/dns-setup-runbook.md` → `deploy/`, `deploy/terraform-apply-bootstrap.md` → `terraform-apply-bootstrap-runbook.md`). `secrets-management-runbook.md` split deferred to GAP-452 (P2, substantive editorial). `kiteclass-docker-deployment.md` already absent.
 - DSAR + RTBF Phase 2 (GAP-353c + GAP-073)
 - Custom domain procurement Phase 2 (GAP-369b deferred from Wave 43)
-- GAP-451 await Spring Boot 3.5.15+ upstream (weekly check; if delayed >4 weeks, fall back per-CVE `<dependencyManagement>` overrides)
+- GAP-451 await Spring Boot 3.5.15+ upstream (weekly check; if delayed >4 weeks, fall back per-CVE `<dependencyManagement>` overrides). Cross-link **GAP-456 Group B** — 12 of the 33 CVEs surfaced 2026-05-09 are Spring Boot transitive deps (10 Netty + bcprov + postgresql + commons-lang3 + spring-cloud-gateway); rolled into this tracking.
+- **GAP-456 🟢 DONE 2026-05-09** — CVE triage: 33 alerts → 3 root-cause groups → A FIX (apt-get upgrade in 7 Dockerfiles, dpkg/libcap2/sed → 24.04.1, local verify proven) / B AWAIT-UPSTREAM (cross-link GAP-451) / C IGNORE-DOCUMENTED (`.trivyignore` 4 npm-internals entries, expiry 2026-08-09). Audit `documents/04-quality/audits/security/2026-05-09-cve-triage.md`. Repo level projected RED → YELLOW post-merge.
 - GAP-441 P2 centralized pom override hygiene (originally deferred Wave 47; revisit after GAP-451 resolution)
 
 **Strategic gates Phase 1 → Phase 1.5:** Quality audit /100 ≥80 (current 86 ✅) + 5 beta tenants live + 0 P0 incidents 2 tuần
