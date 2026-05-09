@@ -115,7 +115,8 @@ Sau khi checkout success:
    - Status: **Active**
    - Expiry: ~12 tháng sau ngày claim
 5. Click **Manage** bên cạnh row `kitehub.me` để vào trang quản lý chi tiết
-   - 5 tabs: **Domain** / **Sharing & Transfer** / **Advanced DNS** / **Email Forwarding** / **WhoIs**
+   - 5 tabs: **Domain** / **Sharing & Transfer** / **Advanced DNS** / **Redirect Email** / **WhoIs**
+   - (Namecheap UI gần đây đổi "Email Forwarding" → "Redirect Email" — cùng feature)
    - Tab **Domain** chứa: Auto-renew toggle (xem §3) + Nameservers selector (xem §2)
 
 ---
