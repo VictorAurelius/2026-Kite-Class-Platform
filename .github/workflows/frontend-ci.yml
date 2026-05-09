@@ -83,11 +83,17 @@ jobs:
           if-no-files-found: ignore
 
   frontend-e2e:
-    name: E2E Tests (Playwright)
+    name: E2E Tests (Playwright — class-lifecycle gate, route-mocked)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     needs: frontend-test
-    if: false  # Disabled - E2E tests require full stack (Gateway + Core + DB)
+    # GAP-454 Phase B Option C.2 — direct-navigation route-mocked gate.
+    # Runs ONLY e2e/critical-journeys/class-lifecycle.spec.ts (6 tests, ~17s local).
+    # navigateToClassDetail() refactored to page.goto('/classes/1') directly,
+    # bypassing flaky Shadcn <Select> + row-action UI chain that 4/6 failed under
+    # original listing-flow helper (per GAP-454 §Problem). Full E2E with backend
+    # stack still local-only via `pnpm test:e2e`.
+    if: true
 
     defaults:
       run:
@@ -113,9 +119,8 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run E2E tests
-        run: pnpm test:e2e || true
-        continue-on-error: true
+      - name: Run E2E gate tests (route-mocked class-lifecycle only)
+        run: pnpm test:e2e:gates
 
       - name: Upload Playwright report
         if: always()

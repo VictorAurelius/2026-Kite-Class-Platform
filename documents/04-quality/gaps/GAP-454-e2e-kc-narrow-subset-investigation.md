@@ -1,10 +1,10 @@
 # GAP-454: KC frontend E2E narrow-subset gate — investigation needed
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-09 — Option C.2 direct-navigation refactor; `class-lifecycle.spec.ts` 6/6 pass locally + workflow `if: false → if: true`
 **Priority:** 🟡 P2
 **Domain:** DevOps / CI / Frontend
 **Found:** 2026-05-09 (GAP-453 Phase B local verify)
-**Affects:** `.github/workflows/frontend-ci.yml` E2E job (kept `if: false` until this gap resolves), `kiteclass/kiteclass-frontend/e2e/`
+**Affects:** `.github/workflows/frontend-ci.yml` E2E job — flipped `if: false → if: true` 2026-05-09; `kiteclass/kiteclass-frontend/e2e/critical-journeys/class-lifecycle.spec.ts` (helper refactor)
 
 ## Problem
 
@@ -55,13 +55,13 @@ When picked up, recommend Option C.1 first (smallest reversible, ~30 min), measu
 
 ## Acceptance Criteria
 
-- [ ] Pick option C.1/C.2/C.3/C.4 with explicit rationale
-- [ ] Local verify chromium-only: `pnpm test:e2e:gates` green 100% on chosen subset
-- [ ] If C.1/C.2: route-mocks added/refactored, no real-backend dependency
-- [ ] If C.3: MSW handlers in place; document worker setup in CI
-- [ ] If C.4: docker-compose stack-in-CI step added per GAP-453 Option B.1
-- [ ] `frontend-ci.yml` `if: false` flipped → `if: true`
-- [ ] CI run on fix-PR shows newly-activated KC E2E job green
+- [x] Pick option C.1/C.2/C.3/C.4 with explicit rationale — **C.2 chosen** (matches existing test 6 `goto('/classes/99999')` direct-nav pattern; smallest-reversible per `release-fix-retry-budget.md`)
+- [x] Local verify chromium-only: `pnpm test:e2e:gates` green 100% on chosen subset — **6/6 pass in 17.3s** (was 2/6 pre-refactor)
+- [x] If C.1/C.2: route-mocks added/refactored, no real-backend dependency — `navigateToClassDetail()` reduced from 25-line UI chain (Shadcn Select + row-Eye click) to 3-line `page.goto('/classes/1')` direct nav
+- [ ] ~~If C.3: MSW handlers in place~~ — N/A (chose C.2)
+- [ ] ~~If C.4: docker-compose stack-in-CI step~~ — N/A (chose C.2)
+- [x] `frontend-ci.yml` `if: false` flipped → `if: true` — done; also removed `|| true` swallow + `continue-on-error: true` so gate is now actually blocking
+- [ ] CI run on fix-PR shows newly-activated KC E2E job green — **pending after fix-PR push**
 
 ## Related
 
@@ -74,3 +74,4 @@ When picked up, recommend Option C.1 first (smallest reversible, ~30 min), measu
 ## Log
 
 - **2026-05-09** Filed during GAP-453 Phase B local verify. KC narrow-subset insufficient (2/6 pass); KH ships separately. Defer per Phase 1 BETA scope decision — KH beta-funnel gate covers immediate critical-path; KC E2E gate revisit when needed.
+- **2026-05-09 (later)** Status flipped 🔵 OPEN → 🟢 DONE. Option C.2 chosen + applied: `navigateToClassDetail()` helper refactored from 25-line listing-UI chain (click `/classes` link → Shadcn Select → first option → wait 1s → Eye icon ghost button → URL assert) to 3-line direct `page.goto('/classes/1')`. Investigation revealed `setupApiMocks()` (called inside `login()`) ALREADY mocks `/api/v1/courses/*/classes*` collection AND `/api/v1/classes/:id` detail — endpoint mocks were never the issue. Failure mode was UI selector/interaction flake (Shadcn Select combobox not opening cleanly in headless chromium + row-Eye click not navigating). Direct nav bypasses the entire UI chain; mocks fire on first `/classes/1` GET. Local verify chromium-only: **6/6 pass in 17.3s** (was 2/6). Workflow flip + script swap shipped same PR. Per `release-fix-retry-budget.md` §3 retry-budget discipline: this was retry #2 on KC E2E gate (Wave 47 Phase A retry #0; GAP-453 PR #1078 retry #1 deferred KC; this PR retry #2 ships C.2). Coverage trade-off: lost listing-UI navigation flow as gated path (was already shallow per GAP-455-style audit principle); preserved class-lifecycle correctness signal which is the actual gate intent. Listing-UI coverage belongs in future docker-compose-in-CI gate (GAP-453 B.1).
