@@ -1,10 +1,10 @@
 # GAP-453: E2E Phase B — docker-compose stack in CI for KH+KC frontend E2E gates
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — KH side DONE 2026-05-09 (Phase B Option B.2 narrow-subset gate); KC side deferred to GAP-454
 **Priority:** 🟠 P1
 **Domain:** DevOps / CI
 **Found:** 2026-05-09 (Wave 47 Phase A pre-flight verify aborted)
-**Affects:** `.github/workflows/frontend-ci.yml` (KC E2E job line 90 `if: false`), `.github/workflows/kitehub-frontend-ci.yml` (KH E2E job line 237 `if: false`); blocks GAP-403/404/420 closure
+**Affects:** `.github/workflows/frontend-ci.yml` (KC E2E job line 90 `if: false` — DEFERRED to GAP-454), `.github/workflows/kitehub-frontend-ci.yml` (KH E2E job — `if: true` ACTIVATED 2026-05-09); blocks GAP-403/404/420 closure (PARTIAL on KH path only)
 
 ## Problem
 
@@ -70,12 +70,13 @@ Migrate KC + KH tests to use MSW handlers instead of inline `page.route()`. 2-4h
 
 ## Acceptance Criteria
 
-- [ ] Phase B option chosen (B.1 or B.2) with explicit rationale in PR body
-- [ ] If B.2: new scripts `test:e2e:gates` (KC + KH) running ONLY route-mocked subsets; workflows updated to use these scripts; `if: false` flipped to `if: true` only after subset-only scripts verified locally green
-- [ ] If B.1: docker-compose-in-CI step added with `wait-on` health gate; Gateway port 9000 health verified before Playwright runs
-- [ ] Local verify: subset (or full stack) test command passes 100% locally on chromium (no Mobile / firefox / webkit until separate scope)
-- [ ] CI run on the fix-PR branch shows the newly-activated job(s) green (not just `|| true` swallowed)
-- [ ] PR body documents pass count + chosen option + rationale per `release-fix-retry-budget.md` discipline
+- [x] Phase B option chosen (B.1 or B.2) with explicit rationale in PR body — **B.2 chosen**, fix-PR body documents
+- [x] If B.2: new scripts `test:e2e:gates` (KC + KH) running ONLY route-mocked subsets; workflows updated to use these scripts; `if: false` flipped to `if: true` only after subset-only scripts verified locally green — **KH only**: `test:e2e:gates` + `test:e2e:gates:ci` added; workflow flipped + script updated. KC scripts NOT shipped — narrow subset insufficient (2/6 pass); see GAP-454.
+- [ ] ~~If B.1: docker-compose-in-CI step added with `wait-on` health gate; Gateway port 9000 health verified before Playwright runs~~ — N/A (chose B.2)
+- [x] Local verify: subset (or full stack) test command passes 100% locally on chromium — **KH 5/5 pass in 8.6s**; KC 2/6 (deferred GAP-454)
+- [ ] CI run on the fix-PR branch shows the newly-activated job(s) green — **pending after fix-PR push**
+- [x] PR body documents pass count + chosen option + rationale per `release-fix-retry-budget.md` discipline — see fix-PR body
+- [x] PARTIAL exit ramp: KC follow-up filed (GAP-454) per `gap-done-discipline.md` §3
 
 ## Related
 
@@ -90,3 +91,4 @@ Note KC workflow has `pnpm test:e2e || true` + `continue-on-error: true` (lines 
 ## Log
 
 - **2026-05-09** Filed after Wave 47 Phase A pre-flight verify aborted. KC critical-journeys chromium 11/17 pass, KH beta-funnel chromium 5/5 pass, but full-folder E2E suites both fail because workflows run entire `e2e/` folder including real-backend-dependent specs (auth, billing, classes detail, etc.). Plan recon assumed narrow route-mock-only scope; reality is wider. Phase B docker-compose fallback OR subset-only scripts required before E2E gate can be activated as blocking.
+- **2026-05-09** Status flipped 🔵 OPEN → 🟡 PARTIAL. Phase B Option B.2 shipped for **KH only**. Local verify revealed KC narrow subset insufficient: `class-lifecycle.spec.ts` 2/6 pass under chromium route-mock-only because 4 tests use `navigateToClassDetail()` helper that hits unmocked `/api/v1/classes` listing. KH `beta-funnel/` 5/5 pass in 8.6s (fully self-contained). Per `release-fix-retry-budget.md` §3 decision flow at retry #1 (Phase A = retry #0) + `gap-done-discipline.md` §3 PARTIAL exit ramp: ship KH, defer KC to GAP-454 follow-up with 4 path options (route-mock refactor / direct-navigation / MSW migration / docker-compose escalation). KH side closes its slice of GAP-403/404/420; KC slice remains pending until GAP-454 lands.

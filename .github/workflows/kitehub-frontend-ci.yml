@@ -228,13 +228,14 @@ jobs:
           docker stop kitehub-test
 
   e2e:
-    name: E2E Tests (Playwright)
+    name: E2E Tests (Playwright — beta-funnel gate, route-mocked)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     needs: build
-    # E2E tests should be run locally only to save CI time
-    # Run manually with: cd kitehub/kitehub-frontend && pnpm test:e2e:ci
-    if: false
+    # GAP-453 Phase B Option B.2 — narrow-subset gate
+    # Runs ONLY route-mocked beta-funnel/ subset (5 tests, ~9s local).
+    # Full E2E with backend stack still local-only via `pnpm test:e2e:ci`.
+    if: true
 
     defaults:
       run:
@@ -287,10 +288,12 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps chromium
 
-      - name: Run E2E tests
-        run: pnpm test:e2e:ci
+      - name: Run E2E gate tests (route-mocked beta-funnel only)
+        run: pnpm test:e2e:gates:ci
         env:
           CI: true
+          # NEXT_PUBLIC_API_URL kept for parity với manual full-stack run; route-mocked
+          # tests don't actually call out to backend — page.route intercepts all /api calls.
           NEXT_PUBLIC_API_URL: http://localhost:9000
 
       - name: Upload Playwright report
