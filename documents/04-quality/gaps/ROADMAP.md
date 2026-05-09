@@ -860,15 +860,17 @@ Counts: **88 OPEN → 90 OPEN** (-GAP-126 -GAP-130 closed; +GAP-236/237/238/239 
 
 > **Recently closed (do NOT count as blockers):** GAP-046 Wave 6 2026-04-26 (audit 82/100 + ADR-020); GAP-047 Wave 5 2026-04-25 (#532 doc-gen trio).
 
-**GA Blockers remaining: 5 — ordered per `meta-gap-priority.md` (meta before feature within P0).**
+**GA Blockers remaining: 3 — ordered per `meta-gap-priority.md` (meta before feature within P0).**
+
+(Synced 2026-05-09: GAP-016 + GAP-014 closures from 2026-04-26/27 finally reflected in this table; row count 5 → 3 active.)
 
 | # | Gap | Title | Type | Status | Effort |
 |:-:|-----|-------|:----:|:------:|:------:|
 | 1 | **GAP-223** | AI Branding migration verification governance — Sub-PR 223.1 SHIPPED 2026-04-26 (skill + audit-gate rule + §11.4 + baseline 62/100); Sub-PR 223.2 = GAP-006 ⏸ DEFERRED 2026-04-28 (Ollama + Docker stack required) | 🔴 P0 Meta (governance) | 🟡 PARTIAL | Sub-PR 223.2 ⏸ DEFERRED |
 | 2 | ~~GAP-222a~~ | ~~Extract Outbox infra to shared lib~~ — superseded by ADR-021 per-module pattern; closed via GAP-222a Phase 2 + GAP-222b + GAP-222c (all DONE 2026-04-26) | 🟠 Meta (infra) | ✅ DONE | — |
-| 3 | **GAP-016** | Living docs impact scope (3-layer sweep) | 🔴 Meta (docs contract) | 🟡 PLANNED | S |
+| 3 | ~~GAP-016~~ | ~~Living docs impact scope (3-layer sweep)~~ — DONE 2026-04-26 (§2.9 business-gap-check audit 16/20 ✅; remaining diagram drift split to GAP-234) | 🔴 Meta (docs contract) | ✅ DONE | — |
 | 4 | GAP-011 | Template library curation (30 templates) | Feature | 🟡 PLANNED | L |
-| 5 | GAP-014 | Wave mock plan include AI branding | Feature | 🟡 PLANNED | M |
+| 5 | ~~GAP-014~~ | ~~Wave mock plan include AI branding~~ — DONE: planning portion 2026-04-26 (wave plan §7 v2-aligned); implementation portion via GAP-235 DONE 2026-04-27 (4 sub-PRs E1/F/E2/G shipped #588-#590 + closure) | Feature | ✅ DONE | — |
 | 6 | GAP-005 | AI queue fair scheduling (Phase 2) | Feature | 🟡 IN_PROGRESS | M |
 
 > **Priority rule:** Meta-gaps (skills/rules/workflow) go first at each P-level — 1 broken skill/rule affects every future PR, so force multiplier first. Ref `.claude/rules/meta-gap-priority.md`.
