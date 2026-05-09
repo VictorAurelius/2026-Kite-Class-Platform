@@ -21,7 +21,8 @@ AWS Activate Founders Pack là free credit program cho early-stage startup, self
 
 ## 2. Application Checklist
 
-**URL:** https://aws.amazon.com/activate/founders-pack
+**URL:** https://aws.amazon.com/startups/credits/ (rebrand 2024-2025; cũ `https://aws.amazon.com/activate/founders-pack` → 404 từ ~2025)
+**Tier name (current):** "Activate Founder" (singular) — $1,000 USD credits, no Org ID required
 **Eligibility 2026-05-07:**
 - Pre-revenue startup (KiteClass status)
 - Có pitch deck (1-page minimum) — see `documents/00-brd/kite-pitch-deck.md`
@@ -161,8 +162,9 @@ $1000 credit ÷ $72/mo target = 13.9 tháng. Phase 1 BETA 9-12 tuần = 2-3 thá
 - GAP-394 — account prep (creates AWS account ID for Activate form)
 - ADR-025 — AWS Singapore
 - `documents/00-brd/kite-pitch-deck.md` — 1-page pitch deck
-- AWS Activate: https://aws.amazon.com/activate/
-- AWS Activate Founders Pack: https://aws.amazon.com/activate/founders-pack
+- AWS Activate landing: https://aws.amazon.com/activate/
+- AWS Startups credits (current Activate apply page): https://aws.amazon.com/startups/credits/ (rebrand 2024-2025)
+- AWS Activate Founder package ($1,000 self-apply, no Org ID required) — sub-page của startups/credits
 - `feedback_release_1_first_session_priority.md` — MVP-first philosophy
 
 ---
