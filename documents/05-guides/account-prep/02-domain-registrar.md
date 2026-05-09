@@ -1,9 +1,11 @@
 # 02 — Domain Registrar Runbook (`.vn` + fallback `.com`)
 
-**Audience:** Solo dev đăng ký 2 domain `kitehub.vn` + `kiteclass.vn` lần đầu.
-**Standards:** VN Luật Giao dịch điện tử 2023 · VNNIC `.vn` policy · Cloudflare onboarding.
+**Đối tượng:** Solo dev đăng ký 2 domain `kitehub.vn` + `kiteclass.vn` lần đầu.
+**Tiêu chuẩn:** VN Luật Giao dịch điện tử 2023 · VNNIC `.vn` policy · Cloudflare onboarding.
 **Cross-link:** Blocks `dns-setup-runbook.md` §2.1 (domain registration) → §2.2 (Cloudflare nameserver migrate) → SSL Let's Encrypt (`02-architecture/adr/`).
 **Estimated time:** ~1h registration + 24-48h DNS propagation.
+
+> ⚡ **Free alternative cho Release 1:** Nếu chỉ cần 1 domain cho Phase 1 BETA + Phase 1.5 PAID (~6 tháng), dùng GitHub Student Pack — claim **free `.me` 1 năm** qua Namecheap. Xem [`02b-github-student-pack-free-domain.md`](02b-github-student-pack-free-domain.md) (GAP-458). Decision lock 2026-05-09: front-door domain = `kitehub.me`. Sau Year 1 quyết định renew (~$10-20/year) hoặc switch sang `.vn` paid (xem runbook này).
 
 ---
 

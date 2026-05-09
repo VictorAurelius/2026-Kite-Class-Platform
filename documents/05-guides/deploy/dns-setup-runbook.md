@@ -6,17 +6,34 @@
 
 ---
 
-## 1. Phase 1 BETA strategy (`beta.kitehub.vn` / `beta.kiteclass.vn`)
+## 1. Phase 1 BETA strategy
+
+> **Decision 2026-05-09 (GAP-458):** Release 1 dùng **`kitehub.me`** Free path qua GitHub Student Pack. Bảng dưới support cả paid `.vn` lẫn free `.me` paths.
+
+### Free path (Recommended Release 1)
+
+| Item | Value |
+|------|-------|
+| Production domain | `kitehub.me` (Student Pack 1 năm free; renew ~$10-20 hoặc switch `.vn`) |
+| Beta domain | `beta.kitehub.me` hoặc apex `kitehub.me` |
+| Tenant access | `tenant1.kitehub.me` (Pattern A subdomain) qua wildcard `*.kitehub.me` |
+| Origin host | AWS ALB `kitehub-alb-224105328.ap-southeast-1.elb.amazonaws.com` |
+| TTL | **300s** (5 min) cutover window; revert 3600s post-stable |
+| Proxy | Cloudflare Free orange-cloud (DDoS + cache + WAF) — GAP-371 |
+| SSL | ACM cert AWS + Cloudflare Full (strict) |
+| Registrar | Namecheap (Student Pack offer) — `02b-github-student-pack-free-domain.md` |
+
+### Paid path (alternative `.vn`)
 
 | Item | Value |
 |------|-------|
 | Production domain | `kitehub.vn` + `kiteclass.vn` (cutover Phase 1.5 PAID) |
 | Beta domain | `beta.kitehub.vn` + `beta.kiteclass.vn` |
-| Origin host | Oracle Cloud VM `[USER_INPUT_REQUIRED: VM_PUBLIC_IP]` |
-| TTL | **300s** (5 min) trong cutover window; revert 3600s post-stable |
-| Proxy | Cloudflare orange-cloud (DDoS + cache + WAF free tier) — see GAP-371 |
-| SSL | Let's Encrypt (certbot) — automated cron renewal |
-| Registrar | **Nhân Hòa** (preferred for `.vn` per VNNIC) hoặc Mat Bao / FPT / PA Vietnam |
+| Origin host | AWS ALB DNS |
+| TTL | **300s** trong cutover window; revert 3600s post-stable |
+| Proxy | Cloudflare orange-cloud (DDoS + cache + WAF free tier) — GAP-371 |
+| SSL | Let's Encrypt (certbot) hoặc ACM — automated cron renewal |
+| Registrar | **Nhân Hòa** (preferred for `.vn` per VNNIC) hoặc Mắt Bão / FPT / PA Vietnam |
 
 `.com` alternative: Namecheap / Cloudflare Registrar (cheaper renewals; instant DNS provisioning).
 

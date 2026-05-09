@@ -87,13 +87,17 @@ Preview environment có thể dùng cùng giá trị Production HOẶC trỏ v�
 
 ### 3.1 Domain plan — pick 1
 
-| Plan | Vercel domain | Backend domain | Phù hợp |
-|---|---|---|---|
-| **A — Apex + subdomain** | `kitehub.vn` (Vercel) | `api.kitehub.vn` (AWS ALB) | Phase 1 BETA invite-only — branded, simple |
-| **B — Subdomain only** | `app.kitehub.vn` (Vercel) | `api.kitehub.vn` (AWS ALB) | Phase 1.5 PAID public — apex `kitehub.vn` cho marketing/landing trên Vercel |
-| **C — Beta prefix** | `beta.kitehub.vn` (Vercel) | `api.kitehub.vn` (AWS ALB) | Phase 1 BETA early — apex còn placeholder, beta tách riêng |
+> **Decision 2026-05-09 (GAP-458):** Release 1 dùng **`kitehub.me`** (Free 1 năm qua GitHub Student Pack — `account-prep/02b-github-student-pack-free-domain.md`). Bảng dưới support cả paid `.vn` lẫn free `.me`.
 
-**Khuyến nghị Phase 1 BETA invite-only:** Plan **C** (`beta.kitehub.vn` + `beta.kiteclass.vn`) — apex domain còn `Coming soon` placeholder; beta tenants thấy URL `https://beta.kitehub.vn` rõ ràng đây là beta period.
+| Plan | Vercel domain (`.me` Free) | Vercel domain (`.vn` paid) | Backend domain | Phù hợp |
+|---|---|---|---|---|
+| **A — Apex + subdomain** | `kitehub.me` | `kitehub.vn` | `api.kitehub.me` (hoặc `.vn`) | Phase 1 BETA invite-only — branded, simple |
+| **B — Subdomain only** | `app.kitehub.me` | `app.kitehub.vn` | `api.kitehub.me` | Phase 1.5 PAID public — apex cho marketing/landing trên Vercel |
+| **C — Beta prefix** | `beta.kitehub.me` | `beta.kitehub.vn` | `api.kitehub.me` | Phase 1 BETA early — apex còn placeholder, beta tách riêng |
+
+**Khuyến nghị Release 1 (Free path):** Plan **A** với `kitehub.me` apex — domain mới claim, không có legacy → dùng apex luôn rõ ràng. KiteClass tenants access qua subdomain pattern `tenant1.kitehub.me`, `tenant2.kitehub.me` (wildcard DNS A record `*.kitehub.me` → ALB; FE Next.js parse subdomain → tenantId per `kiteclass-frontend/src/lib/tenant.ts`).
+
+**Khuyến nghị Phase 1 BETA invite-only (paid path nếu user prefer `.vn`):** Plan **C** (`beta.kitehub.vn` + `beta.kiteclass.vn`) — apex domain còn `Coming soon` placeholder.
 
 ### 3.2 Vào Settings → Domains
 

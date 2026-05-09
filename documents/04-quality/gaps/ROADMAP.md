@@ -26,6 +26,7 @@
 3. **CWAgent install** trên kh_backend via SSM Run Command — `right-size-stress-test.md` §1; alarm sẽ transitions từ INSUFFICIENT_DATA → active monitoring
 4. **GAP-450 drift fix** separate session — `terraform import random_password` + verify state align
 5. **AWS SES sandbox→production approval** (GAP-370 closure) — follow `documents/05-guides/deploy/email-ses-setup-runbook.md`; DKIM/SPF/DMARC verification; out-of-sandbox approval ticket; verify domain reputation pre-launch
+6. **Domain procurement Release 1** (GAP-458 decision 2026-05-09) — chọn **Free path `kitehub.me`** qua GitHub Student Pack Namecheap (1 năm free, $10-20 renewal) per `account-prep/02b-github-student-pack-free-domain.md`. KiteClass tenants access qua subdomain pattern `tenant1.kitehub.me` (wildcard `*.kitehub.me`). User-action: claim domain → set Cloudflare nameservers → bind Vercel custom domain. Phase 1.5 PAID có thể switch sang `.vn` paid nếu cần thị trường VN trust signal.
 
 **Wave 46 SHIPPED 2026-05-08** — Java deps bump cluster (GAP-440 + GAP-442). 3 buckets parallel ~75min:
 - **#1059** plan
