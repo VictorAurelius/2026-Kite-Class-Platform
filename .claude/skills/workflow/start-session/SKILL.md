@@ -2,7 +2,7 @@
 name: start-session
 description: "Dùng khi user nói 'start new session', 'bắt đầu session mới', '/start-session', 'what's the state?', 'tình trạng hiện tại', hoặc khi cần load context sau khi /clear. Load: CLAUDE.md digest, current wave, open PRs, failing CI, active blockers. Output: single summary block. Cũng check session-lock conflicts khi chạy parallel agents."
 user-invocable: true
-argument-hint: "[--quick] [--no-lock]"
+argument-hint: "[--quick] [--no-lock] [--no-aws|--refresh-aws] [--audit-snapshot]"
 ---
 
 # /start-session — Session Orchestration
@@ -59,20 +59,39 @@ Format theo `reference/context-template.md`. Data sources (from `collect-state.s
 | Recent merges | `git log main --since='3 days ago' --oneline` (last 5) |
 | Branch state | `git diff --name-only`; `documents/action-2.md` alone = "scratchpad only" |
 | **MCP servers** | `claude mcp list` → connected/total + failed names. Added 2026-04-26 after Wave 6 anti-pattern: session defaulted `gh` CLI all wave because MCP availability never checked. Per `.claude/rules/mcp-first-with-fallback.md` §3 must verify at session start. |
+| **AWS Phase 1 BETA** | Tier 1 read-only commands per `.claude/rules/agent-aws-access.md` §2.1: `sts get-caller-identity` / `ec2 describe-instances` / `rds describe-db-instances` / `elbv2 describe-load-balancers` / `cloudtrail describe-trails` + `get-trail-status` / `cloudwatch describe-alarms --state-value ALARM`. Cached 30 min in `.claude/session-aws-cache/snapshot.json` (gitignored). Added 2026-05-09 after user-flagged miss "session report thiếu trạng thái AWS" — Phase 1 BETA stack on account 906286017800 (ap-southeast-1) needs visibility at session start so drift / alarms / EC2 stop don't surprise mid-wave. |
 
 Ví dụ output (tiếng Việt per CLAUDE.md §CRITICAL — GAP-207):
 
 ```
-## Ngữ cảnh session (2026-04-24 04:45)
-**Wave:** Wave 5 — GAP-047 document generation (theo ROADMAP §Next recommended wave)
-**Nhánh:** main (clean, scratchpad: action-2.md) / worktrees: 0
+## Ngữ cảnh session (2026-05-09 09:30)
+**Wave:** Wave 48 SHIPPED — chưa có wave kế hoạch tiếp theo (theo ROADMAP §Next Action)
+**Nhánh:** main (clean) / worktrees: 0
 **Mức repo:** GREEN (CI green, 0 CVE, 0 branches cũ, 0 audit P0)
 **PRs đang mở:** 0
-**Gaps blocker (top 6):** GAP-047, GAP-046, GAP-016, GAP-011, GAP-014, GAP-005
-**Merges gần đây (3 ngày):** #468 start-session accuracy, #467 solo-dev CI, #466 Dependabot guide, #465 CI retention, #464 size limit
+**MCP servers:** 1/1 connected (github)
+**AWS Phase 1 BETA (cache 5m):**
+  · Account/Region: 906286017800 / ap-southeast-1
+  · EC2: 2 running, 0 stopped (kh_backend=running, kc_backend=running)
+  · RDS: 1 — kite-postgres-prod=available
+  · ALB: 1 — kite-alb=active
+  · CloudTrail: kitehub-main=IsLogging:True
+  · Alarms ALARM: 0
+**Gaps blocker (top 6):** GAP-453, GAP-223, GAP-222a, GAP-016, GAP-011, GAP-014
 **Sức khỏe context:** fresh session
-**Đề xuất tiếp theo:** bắt đầu Wave 5 sub-PR 5.1 (PDF+Excel doc generation)
+**Đề xuất tiếp theo:** GAP-453 (PR-time E2E gate, B.2 narrow-subset) hoặc /repo-status để triage CVE
 ```
+
+### Cờ collect-state.sh
+
+| Cờ | Tác dụng |
+|---|---|
+| `--quick` | One-line summary; AWS thu gọn còn `EC2-running / alarms` |
+| `--json` | Structured JSON cho hooks/agents khác consume |
+| `--no-aws` | Skip phần AWS hoàn toàn (offline / no-creds / không quan tâm) |
+| `--refresh-aws` | Bỏ qua cache 30m, gọi AWS thật ngay |
+| `--audit-snapshot` | Ghi `documents/04-quality/audits/aws-verification/<date>-session-start-snapshot.md` per `agent-aws-access.md` §5 |
+| `--no-lock` | Bỏ qua session-lock check / create |
 
 **KHÔNG** infer wave từ `ls -t` mtime hoặc blockers alphabetical grep (bugs cũ pre-GAP-206). Luôn parse `ROADMAP.md`.
 
@@ -155,6 +174,7 @@ Lock lifecycle:
 - Output format tuân `reference/context-template.md` (có ví dụ VN trong Step 4)
 - **MCP status PHẢI nêu trong summary** — nếu line "MCP servers" báo failed servers hoặc 0/N, suggest user fix trước critical work (GitHub MCP cần cho merge/PR ops); per `.claude/rules/mcp-first-with-fallback.md` §3 default sang CLI fallback nhưng phải biết để swap khi fix xong. Anti-pattern bắt nguồn 2026-04-26 (Wave 6 session default `gh` CLI suốt 4 sub-PR vì không check MCP đầu session).
 - **Step 4.5 BẮT BUỘC** — luôn output line "Wave-eligible: YES/NO" sau "Đề xuất tiếp theo". Anti-pattern bắt nguồn 2026-04-26 (GAP-229 3 phases serial = ~90min vs ~30min nếu parallel). Per memory `feedback_wave_plan_before_serial_prs.md` + `feedback_parallel_agent_strategy.md`.
+- **AWS section trong summary**: nếu `AWS Phase 1 BETA` line báo `no-auth`, `no-cli`, hoặc bất kỳ alarm ALARM > 0, PHẢI surface trong "Đề xuất tiếp theo" (vd: "Triage alarm X trước infra work" hoặc "Fix AWS auth trước deploy work"). Anti-pattern: silently swallow AWS state, ship infra change rồi mới phát hiện EC2 đã stopped sáng nay. Per `.claude/rules/agent-aws-access.md` §1 + `aws-observability-first.md`.
 
 ## Gotchas
 
@@ -164,13 +184,18 @@ Lock lifecycle:
 - Hostname trên WSL = `wsl-name`; multiple Claude Code windows cùng host vẫn tạo unique lock (timestamp differs)
 - KHÔNG rely solely trên lock để prevent conflict — lock là hint, git branch isolation (worktree) mới là enforcement thật
 - **MCP transient connect failure**: `claude mcp list` có thể báo `✗ Failed` rồi retry trong cùng session báo `✓ Connected` — lý do thường là Docker daemon vừa khởi động hoặc image đang pull. Khi gặp failed: `docker ps` (verify daemon) → `docker pull ghcr.io/github/github-mcp-server` → `claude mcp list` lại. Nếu vẫn failed, báo user, fallback CLI per `mcp-first-with-fallback.md` §3.
+- **AWS auth states**: `no-cli` (CLI chưa cài), `no-auth` (sts get-caller-identity fail — kiểm `aws configure list` + key valid), `cached` (đọc snapshot 30m), `fresh` (vừa fetch lại), `skipped` (`--no-aws`). Khi `no-auth` xuất hiện trên Phase 1 BETA branch, cảnh báo user trước khi làm bất kỳ infra/deploy work — drift visibility = 0.
+- **AWS cost**: Tier 1 describe/list calls đều free-tier within reason (vài chục ngàn requests/month per service). Cache 30m + opt-out `--no-aws` cover heavy session pattern. KHÔNG add `aws cloudtrail get-trail-status` data-events query — đó là Tier 2 + tốn `$0.10/100k` (per `agent-aws-access.md` §3).
+- **AWS section bypasses agent-aws-access.md §5 logging by default**: theo §5.3 single ad-hoc no-log; multi-command verification logs only when `--audit-snapshot`. Cache file is gitignored, contains no secret material (Tier 1 commands return metadata only, never `get-secret-value`).
+- **AWS region**: lấy từ `aws configure get region` (default profile) → fallback `$AWS_REGION` env → `?`. Phase 1 BETA dùng `ap-southeast-1`; nếu profile shifted region, snapshot sẽ phản ánh region đó (KHÔNG cross-region multi-call để tiết kiệm time).
 
 ## Skill contents
 
 - `SKILL.md` — this file
 - `reference/context-template.md` — output format + lock schema + example
-- `scripts/collect-state.sh` — state collector
+- `scripts/collect-state.sh` — state collector (full / `--quick` / `--json` modes; AWS flags: `--no-aws` / `--refresh-aws` / `--audit-snapshot`)
 - `data/` — session history log (optional, append-only)
+- `.claude/session-aws-cache/snapshot.json` — AWS Tier 1 snapshot, 30m TTL, gitignored (created lazily on first AWS-enabled run)
 
 ## Related
 
@@ -178,4 +203,6 @@ Lock lifecycle:
 - `.claude/skills/workflow/repo-status/SKILL.md` — deeper remote health
 - `.claude/skills/quality/rework-audit/SKILL.md` — consumes degradation signal for retrospective audit
 - Rule: `.claude/rules/output-review-mandate.md` (sessions produce outputs)
+- Rule: `.claude/rules/agent-aws-access.md` (Tier 1 read-only commands powering AWS section; `--audit-snapshot` artifact format)
+- Rule: `.claude/rules/aws-observability-first.md` (CloudTrail IsLogging line in AWS section closes the audit-baseline gap surfaced by this rule)
 - Memory: `feedback_parallel_agent_strategy.md` (multi-agent safety)

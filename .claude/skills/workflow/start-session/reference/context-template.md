@@ -15,6 +15,13 @@ Target: single fenced markdown block, ≤15 dòng. Skip field nào empty.
 **PRs đang mở:** {count} ({top 3 #ids với 1-word status})
 **CI:** main {green|red|unknown} — {N} failure gần đây
 **MCP servers:** {connected}/{total}{ — FAILED: {list}}
+**AWS Phase 1 BETA (cache {N}m):**
+  · Account/Region: {AWS_ACCOUNT_ID} / {region}
+  · EC2: {N} running, {N} stopped (key instances)
+  · RDS: {N} — {id=state list}
+  · ALB: {N} — {name=state}
+  · CloudTrail: {trail=IsLogging:True|False}
+  · Alarms ALARM: {N}{ ⚠️  alarm names khi >0}
 **Gaps blocker:** {top 3 P0/P1 gap IDs + 1-từ topic}
 **Sức khỏe context:** {fresh|warm|degraded} (lượt ~{N}, lần compact gần nhất {time})
 **Session locks đang active:** {N} ({list nếu conflict với intended work})
@@ -22,6 +29,8 @@ Target: single fenced markdown block, ≤15 dòng. Skip field nào empty.
 ```
 
 > **MCP row** (added 2026-04-26 sau Wave 6 anti-pattern): nếu báo failed servers hoặc 0/N connected → suggest user fix trước critical work. GitHub MCP thiếu → mọi PR/merge/check ops fallback `gh` CLI per `.claude/rules/mcp-first-with-fallback.md` §3 (vẫn work nhưng tốn parsing layer + bỏ qua structured output advantage). Khi có failed → nêu rõ tên server thay vì im lặng fallback.
+
+> **AWS row** (added 2026-05-09): phản ánh Phase 1 BETA stack on AWS account 906286017800 (ap-southeast-1) per `.claude/rules/agent-aws-access.md` Tier 1 read-only commands, cached 30m tại `.claude/session-aws-cache/`. Skip section khi `--no-aws` hoặc khi báo `no-cli` / `no-auth` / `skipped` / `error`. Nếu Alarms ALARM > 0, hoặc CloudTrail IsLogging != True, hoặc EC2 expected-running mà ở state stopped → SURFACE trong "Đề xuất tiếp theo" (không chỉ in mỗi line). Audit artifact ghi qua `--audit-snapshot` per `agent-aws-access.md` §5; default no-log per §5.3.
 
 ### Vocabulary status
 
@@ -32,6 +41,7 @@ Target: single fenced markdown block, ≤15 dòng. Skip field nào empty.
 | sức khỏe context | `fresh` (<20 lượt) / `warm` (20-40) / `degraded` (>40 hoặc >2h kể từ compact) |
 | PR status | `review` / `draft` / `ci-fail` / `approved` / `conflicts` |
 | MCP servers | `N/M` connected (vd `1/1` clean, `0/1 — FAILED: github` cần fix) |
+| AWS status | `cached` / `fresh` (data OK) / `skipped` (--no-aws) / `no-cli` / `no-auth` / `error` |
 
 ## 2. Lock File Schema
 
@@ -106,16 +116,35 @@ Khi `/start-session` chạy, scan existing locks:
 **PRs đang mở:** 2
 **CI:** main green
 **MCP servers:** 0/1 — FAILED: github (Docker daemon down?)
+**AWS Phase 1 BETA:** skipped (--no-aws — offline / no-creds session)
 **Sức khỏe context:** DEGRADED (lượt ~55, last compact 3h trước, quality drift likely)
 **Đề xuất tiếp theo:** Fix MCP (`docker ps` rồi `claude mcp list`) + commit WIP + /clear + re-run /start-session TRƯỚC critical merge
 ```
 
+### 4.4 AWS có alarm — surface trong recommendation
+```
+## Ngữ cảnh session (2026-05-09 14:00)
+**Wave:** chưa có wave kế hoạch
+**Nhánh:** main (clean)
+**CI:** main green
+**MCP servers:** 1/1 connected (github)
+**AWS Phase 1 BETA (fresh, vừa fetch):**
+  · Account/Region: 906286017800 / ap-southeast-1
+  · EC2: 1 running, 1 stopped — kh_backend=running, kc_backend=stopped ⚠️
+  · RDS: 1 — kite-postgres-prod=available
+  · ALB: 1 — kite-alb=active
+  · CloudTrail: kitehub-main=IsLogging:True
+  · Alarms ALARM: 2 ⚠️  KH-Backend-Memory-High, KC-Backend-CPU-High
+**Sức khỏe context:** fresh
+**Đề xuất tiếp theo:** ⚠️ Triage AWS state TRƯỚC infra/deploy work — kc_backend stopped + 2 alarms ALARM. Runbook: `documents/05-guides/operations/runbooks/`. Sau khi triage xong, mới resume /continue.
+```
+
 ## 5. Minimal Output Mode (`--quick`)
 
-Single line:
+Single line — `collect-state.sh --quick` thêm AWS slot khi có cache:
 
 ```
-Wave 8b · main clean · 4 PRs (1 red) · 3 blockers · fresh
+Mức: GREEN · Nhánh: main (clean) · PRs: 0 · CVE H/C: 0/0 · MCP: 1/1 · AWS: 2 EC2 running / 0 alarms (cached) · Wave: Wave 48 SHIPPED
 ```
 
 Dùng khi user chỉ cần sanity check, không phải full digest.
@@ -135,3 +164,6 @@ Dùng khi user chỉ cần sanity check, không phải full digest.
 | Skip lock check vì "solo session" | Check kể cả solo — cheap, future-proof |
 | Để stale locks | Auto-purge >4h mỗi run |
 | Treat lock as hard enforcement | Hint thôi — git worktree isolation mới là barrier thật |
+| Silent fall-through khi AWS báo `no-auth` rồi vẫn ship infra/deploy | SURFACE state trong "Đề xuất tiếp theo"; fix auth trước per `agent-aws-access.md` §1 |
+| Polling AWS mỗi turn (bypass cache) | Cache 30m đã đủ; chỉ `--refresh-aws` khi vừa làm infra change cần xác nhận |
+| `--audit-snapshot` mỗi session | Folder bloat — chỉ dùng khi cần audit trail thật (incident, weekly check, post-deploy verify) |

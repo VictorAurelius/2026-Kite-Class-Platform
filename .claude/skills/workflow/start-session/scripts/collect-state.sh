@@ -1,16 +1,38 @@
 #!/usr/bin/env bash
 # collect-state.sh — gather session-start context for /start-session skill
 # Output: human-readable summary to stdout; errors to stderr
-# Usage: ./collect-state.sh [--quick] [--json]
+# Usage: ./collect-state.sh [--quick|--json] [--no-aws|--refresh-aws] [--audit-snapshot]
 #
 # Accuracy fix 2026-04-24 per GAP-206:
 #   - Wave + blockers parsed from ROADMAP.md (not filename mtime / alphabetical)
 #   - Recent merges from git log
 #   - /repo-status integration for full health
 #   - Scratchpad awareness for documents/action-2.md
+#
+# AWS Phase 1 BETA snapshot 2026-05-09 (this PR):
+#   - Tier 1 read-only commands per .claude/rules/agent-aws-access.md §2.1
+#     (sts get-caller-identity / ec2 describe-instances / rds describe-db-instances /
+#      elbv2 describe-load-balancers / cloudtrail describe-trails+get-trail-status /
+#      cloudwatch describe-alarms --state-value ALARM)
+#   - 30-minute cache at .claude/session-aws-cache/snapshot.json (gitignored)
+#   - --no-aws skips the section; --refresh-aws bypasses cache; --audit-snapshot
+#     writes a verification artifact under documents/04-quality/audits/aws-verification/
 
 set -u
-MODE="${1:-full}"
+
+MODE="full"
+AWS_ENABLED=true
+AWS_REFRESH=false
+AWS_AUDIT=false
+for arg in "$@"; do
+  case "$arg" in
+    --quick)          MODE="quick" ;;
+    --json)           MODE="json"  ;;
+    --no-aws)         AWS_ENABLED=false ;;
+    --refresh-aws)    AWS_REFRESH=true ;;
+    --audit-snapshot) AWS_AUDIT=true ;;
+  esac
+done
 
 TS="$(date -Iseconds)"
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
@@ -136,7 +158,231 @@ if command -v claude >/dev/null 2>&1; then
     | sed -E 's/^([a-zA-Z0-9_-]+):.*$/\1/' | tr '\n' ',' | sed 's/,$//' || echo '')"
 fi
 
-if [ "$MODE" = "--json" ]; then
+# AWS Phase 1 BETA snapshot — Tier 1 read-only per .claude/rules/agent-aws-access.md.
+# Cached 30 minutes in .claude/session-aws-cache/snapshot.json (gitignored).
+# --no-aws skips entirely; --refresh-aws forces a re-fetch; --audit-snapshot writes
+# a verification artifact per agent-aws-access.md §5.
+AWS_CACHE_DIR=".claude/session-aws-cache"
+AWS_CACHE_FILE="$AWS_CACHE_DIR/snapshot.json"
+AWS_CACHE_TTL_SEC=1800   # 30 minutes
+AWS_STATUS="skipped"     # skipped | no-cli | no-auth | cached | fresh | error
+AWS_REGION_OUT="?"
+
+aws_collect() {
+  if [ "$AWS_ENABLED" != "true" ]; then
+    AWS_STATUS="skipped"
+    return
+  fi
+  if ! command -v aws >/dev/null 2>&1; then
+    AWS_STATUS="no-cli"
+    return
+  fi
+  if ! command -v jq >/dev/null 2>&1; then
+    AWS_STATUS="error"
+    return
+  fi
+
+  local now cache_ts cache_age
+  now="$(date +%s)"
+  cache_ts=0
+  if [ -f "$AWS_CACHE_FILE" ]; then
+    cache_ts="$(jq -r '.timestamp_epoch // 0' "$AWS_CACHE_FILE" 2>/dev/null || echo 0)"
+  fi
+  cache_age=$(( now - cache_ts ))
+
+  # Fast path: cache fresh
+  if [ "$AWS_REFRESH" != "true" ] && [ "$cache_age" -lt "$AWS_CACHE_TTL_SEC" ] && [ -s "$AWS_CACHE_FILE" ]; then
+    AWS_STATUS="cached"
+    AWS_REGION_OUT="$(jq -r '.region // "?"' "$AWS_CACHE_FILE" 2>/dev/null || echo '?')"
+    return
+  fi
+
+  # Verify auth (single Tier 1 call; safe per agent-aws-access.md §2.1)
+  local identity
+  identity="$(timeout 5 aws sts get-caller-identity --output json 2>/dev/null || true)"
+  if [ -z "$identity" ]; then
+    AWS_STATUS="no-auth"
+    return
+  fi
+
+  local region
+  region="$(aws configure get region 2>/dev/null || echo "${AWS_REGION:-?}")"
+  AWS_REGION_OUT="$region"
+
+  # Tier 1 fan-out — each call timeout-bounded, never throws
+  local ec2 rds alb trails alarms
+  ec2="$(timeout 8 aws ec2 describe-instances \
+    --query 'Reservations[].Instances[].{id:InstanceId,state:State.Name,name:Tags[?Key==`Name`]|[0].Value,type:InstanceType}' \
+    --output json 2>/dev/null || echo '[]')"
+  rds="$(timeout 8 aws rds describe-db-instances \
+    --query 'DBInstances[].{id:DBInstanceIdentifier,state:DBInstanceStatus,class:DBInstanceClass}' \
+    --output json 2>/dev/null || echo '[]')"
+  alb="$(timeout 8 aws elbv2 describe-load-balancers \
+    --query 'LoadBalancers[].{name:LoadBalancerName,state:State.Code,type:Type}' \
+    --output json 2>/dev/null || echo '[]')"
+  trails="$(timeout 8 aws cloudtrail describe-trails \
+    --query 'trailList[].{name:Name,multi:IsMultiRegionTrail,home:HomeRegion}' \
+    --output json 2>/dev/null || echo '[]')"
+
+  # For each trail, check IsLogging (Tier 1 get-trail-status — returns boolean only,
+  # no secret material; OK to run unconfirmed at session start)
+  local trail_status="[]"
+  if [ "$(echo "$trails" | jq 'length' 2>/dev/null || echo 0)" != "0" ]; then
+    trail_status="$(echo "$trails" | jq -r '.[].name' | while IFS= read -r tname; do
+      [ -z "$tname" ] && continue
+      logging="$(timeout 5 aws cloudtrail get-trail-status --name "$tname" --query 'IsLogging' --output text 2>/dev/null || echo unknown)"
+      printf '{"name":"%s","is_logging":"%s"}\n' "$tname" "$logging"
+    done | jq -s '.' 2>/dev/null || echo '[]')"
+  fi
+
+  alarms="$(timeout 8 aws cloudwatch describe-alarms --state-value ALARM \
+    --query 'MetricAlarms[].AlarmName' --output json 2>/dev/null || echo '[]')"
+
+  mkdir -p "$AWS_CACHE_DIR"
+  jq -n \
+    --arg ts "$(date -Iseconds)" \
+    --argjson tsep "$now" \
+    --arg region "$region" \
+    --argjson identity "$identity" \
+    --argjson ec2 "$ec2" \
+    --argjson rds "$rds" \
+    --argjson alb "$alb" \
+    --argjson trails "$trail_status" \
+    --argjson alarms "$alarms" \
+    '{timestamp:$ts, timestamp_epoch:$tsep, region:$region, identity:$identity,
+      ec2:$ec2, rds:$rds, alb:$alb, trails:$trails, alarms_in_alarm:$alarms}' \
+    > "$AWS_CACHE_FILE"
+  AWS_STATUS="fresh"
+}
+
+aws_render_lines() {
+  # Stdout = multi-line block; safe to interpolate into the full output. No-op
+  # if cache absent or status indicates no data was collected.
+  case "$AWS_STATUS" in
+    skipped)  echo "  · (skipped — pass --no-aws to keep skipped, omit flag to enable)"; return ;;
+    no-cli)   echo "  · (aws CLI not installed — skipping)"; return ;;
+    no-auth)  echo "  · (aws not authenticated — run 'aws sts get-caller-identity' to verify)"; return ;;
+    error)    echo "  · (jq missing or unexpected error)"; return ;;
+  esac
+  if [ ! -s "$AWS_CACHE_FILE" ]; then
+    echo "  · (no cache data)"
+    return
+  fi
+
+  local account ec2_total ec2_running ec2_stopped ec2_summary
+  local rds_summary rds_count alb_summary alb_count
+  local trail_summary alarm_count alarm_list cache_age_min cache_ts now
+  account="$(jq -r '.identity.Account // "?"' "$AWS_CACHE_FILE")"
+  ec2_total="$(jq '.ec2 | length' "$AWS_CACHE_FILE")"
+  ec2_running="$(jq '[.ec2[] | select(.state=="running")] | length' "$AWS_CACHE_FILE")"
+  ec2_stopped="$(jq '[.ec2[] | select(.state=="stopped")] | length' "$AWS_CACHE_FILE")"
+  ec2_summary="$(jq -r '[.ec2[] | "\(.name // .id)=\(.state)"] | join(", ")' "$AWS_CACHE_FILE")"
+  rds_count="$(jq '.rds | length' "$AWS_CACHE_FILE")"
+  rds_summary="$(jq -r '[.rds[] | "\(.id)=\(.state)"] | join(", ")' "$AWS_CACHE_FILE")"
+  alb_count="$(jq '.alb | length' "$AWS_CACHE_FILE")"
+  alb_summary="$(jq -r '[.alb[] | "\(.name)=\(.state)"] | join(", ")' "$AWS_CACHE_FILE")"
+  trail_summary="$(jq -r '[.trails[] | "\(.name)=IsLogging:\(.is_logging)"] | join(", ")' "$AWS_CACHE_FILE")"
+  alarm_count="$(jq '.alarms_in_alarm | length' "$AWS_CACHE_FILE")"
+  alarm_list="$(jq -r '.alarms_in_alarm | join(", ")' "$AWS_CACHE_FILE")"
+
+  cache_ts="$(jq -r '.timestamp_epoch // 0' "$AWS_CACHE_FILE")"
+  now="$(date +%s)"
+  cache_age_min=$(( (now - cache_ts) / 60 ))
+
+  cat <<EOS
+  · Account/Region: $account / $AWS_REGION_OUT
+  · EC2:           $ec2_running running, $ec2_stopped stopped, $ec2_total total${ec2_summary:+ — $ec2_summary}
+  · RDS:           $rds_count instance(s)${rds_summary:+ — $rds_summary}
+  · ALB:           $alb_count load balancer(s)${alb_summary:+ — $alb_summary}
+  · CloudTrail:    ${trail_summary:-<none — audit baseline missing per aws-observability-first.md>}
+  · Alarms ALARM:  $alarm_count$([ "$alarm_count" -gt 0 ] && echo " ⚠️  $alarm_list")
+  · Cache:         ${AWS_STATUS} (age ${cache_age_min}m, TTL 30m)
+EOS
+}
+
+aws_write_audit_artifact() {
+  # Per agent-aws-access.md §5: multi-command verification → log to
+  # documents/04-quality/audits/aws-verification/. Triggered only via
+  # --audit-snapshot to avoid folder bloat (§5.3 ad-hoc exception).
+  if [ "$AWS_AUDIT" != "true" ]; then return; fi
+  if [ ! -s "$AWS_CACHE_FILE" ]; then return; fi
+  case "$AWS_STATUS" in
+    no-cli|no-auth|skipped|error) return ;;
+  esac
+
+  local audit_dir audit_file ymd
+  audit_dir="documents/04-quality/audits/aws-verification"
+  ymd="$(date +%Y-%m-%d)"
+  audit_file="$audit_dir/${ymd}-session-start-snapshot.md"
+  mkdir -p "$audit_dir"
+
+  {
+    cat <<EOM
+---
+title: AWS Verification — session-start snapshot
+status: complete
+created: ${ymd}
+phase: post-deploy
+---
+
+# AWS Verification Report — session-start snapshot
+
+## Scope
+
+Periodic Phase 1 BETA stack health check captured at \`/start-session\` via \`collect-state.sh --audit-snapshot\`.
+Tier 1 read-only commands per \`.claude/rules/agent-aws-access.md\` §2.1.
+
+## Commands run
+
+- \`aws sts get-caller-identity\`
+- \`aws ec2 describe-instances\`
+- \`aws rds describe-db-instances\`
+- \`aws elbv2 describe-load-balancers\`
+- \`aws cloudtrail describe-trails\` + \`get-trail-status\` (per trail)
+- \`aws cloudwatch describe-alarms --state-value ALARM\`
+
+## Results
+
+\`\`\`
+EOM
+    aws_render_lines
+    cat <<EOM
+\`\`\`
+
+Raw snapshot (gitignored): \`${AWS_CACHE_FILE}\`
+
+## Findings
+
+EOM
+    local alarm_count
+    alarm_count="$(jq '.alarms_in_alarm | length' "$AWS_CACHE_FILE" 2>/dev/null || echo 0)"
+    if [ "$alarm_count" -gt 0 ]; then
+      echo "- ⚠️  ${alarm_count} CloudWatch alarm(s) in ALARM state — triage required"
+    else
+      echo "- No active alarms; baseline healthy at capture time"
+    fi
+    local trails_logging_off
+    trails_logging_off="$(jq -r '[.trails[] | select(.is_logging != "True")] | length' "$AWS_CACHE_FILE" 2>/dev/null || echo 0)"
+    if [ "$trails_logging_off" -gt 0 ]; then
+      echo "- ⚠️  ${trails_logging_off} CloudTrail trail(s) with IsLogging != True — audit blind spot"
+    fi
+    cat <<'EOM'
+
+## Next steps
+
+- If alarms in ALARM: triage via `documents/05-guides/operations/runbooks/`
+- If RDS/EC2 state unexpected: `terraform plan` from `infrastructure/terraform-aws/` to check drift
+- If CloudTrail not logging: `aws cloudtrail start-logging --name <trail>` per `aws-observability-first.md`
+EOM
+  } > "$audit_file"
+
+  echo "  · Audit artifact: $audit_file" >&2
+}
+
+aws_collect
+aws_write_audit_artifact
+
+if [ "$MODE" = "json" ]; then
   cat <<EOF
 {
   "timestamp": "$TS",
@@ -157,14 +403,29 @@ if [ "$MODE" = "--json" ]; then
   "recent_merges": "$RECENT_MERGES",
   "mcp_total": $MCP_TOTAL,
   "mcp_connected": $MCP_CONNECTED,
-  "mcp_failed": "$MCP_FAILED"
+  "mcp_failed": "$MCP_FAILED",
+  "aws_status": "$AWS_STATUS",
+  "aws_region": "$AWS_REGION_OUT",
+  "aws_cache_file": "$AWS_CACHE_FILE"
 }
 EOF
   exit 0
 fi
 
-if [ "$MODE" = "--quick" ]; then
-  echo "Mức: $RS_LEVEL · Nhánh: $BRANCH ($BRANCH_STATE) · PRs: $OPEN_PRS · CVE H/C: $RS_CVE_HIGH/$RS_CVE_CRIT · MCP: $MCP_CONNECTED/$MCP_TOTAL · Wave: ${CURRENT_WAVE:-chưa rõ}"
+if [ "$MODE" = "quick" ]; then
+  AWS_QUICK=""
+  case "$AWS_STATUS" in
+    cached|fresh)
+      if [ -s "$AWS_CACHE_FILE" ] && command -v jq >/dev/null 2>&1; then
+        ec2r="$(jq '[.ec2[] | select(.state=="running")] | length' "$AWS_CACHE_FILE" 2>/dev/null || echo ?)"
+        alarms="$(jq '.alarms_in_alarm | length' "$AWS_CACHE_FILE" 2>/dev/null || echo ?)"
+        AWS_QUICK=" · AWS: ${ec2r} EC2 running / ${alarms} alarms ($AWS_STATUS)"
+      fi
+      ;;
+    skipped) AWS_QUICK="" ;;
+    *)       AWS_QUICK=" · AWS: $AWS_STATUS" ;;
+  esac
+  echo "Mức: $RS_LEVEL · Nhánh: $BRANCH ($BRANCH_STATE) · PRs: $OPEN_PRS · CVE H/C: $RS_CVE_HIGH/$RS_CVE_CRIT · MCP: $MCP_CONNECTED/$MCP_TOTAL${AWS_QUICK} · Wave: ${CURRENT_WAVE:-chưa rõ}"
   exit 0
 fi
 
@@ -185,6 +446,9 @@ Gaps blocker:      ${BLOCKERS:-<none>}
 Session locks:     $ACTIVE_LOCKS  [$LOCK_LIST]
 Worktree husks:    $WT_HUSK_COUNT (.claude/worktrees/agent-*)$([ "$WT_HUSK_COUNT" -ge 3 ] && echo "  ⚠️  ≥3 → run: bash scripts/prune-merged-worktrees.sh --dry-run")
 
+AWS Phase 1 BETA (Tier 1 read-only per .claude/rules/agent-aws-access.md):
+$(aws_render_lines)
+
 Merges gần đây (3 ngày):
 $(echo "${RECENT_MERGES:-<none>}" | tr '§' '\n' | sed 's/^/  · /')
 
@@ -195,6 +459,9 @@ Ghi chú:
   · Các field cần gh — đảm bảo 'gh auth status' OK
   · MCP failed → 'docker ps' + 'docker pull ghcr.io/github/github-mcp-server' + 'claude mcp list' để reconnect.
     Per .claude/rules/mcp-first-with-fallback.md §3: nếu MCP unavailable thì fallback CLI; nhưng phải biết để swap khi fix xong.
+  · AWS snapshot dùng cache 30m tại $AWS_CACHE_DIR/ (gitignored). Cờ:
+    --no-aws (skip), --refresh-aws (force re-fetch), --audit-snapshot (ghi documents/04-quality/audits/aws-verification/<date>-session-start-snapshot.md).
+    Per .claude/rules/agent-aws-access.md §2.1 chỉ Tier 1 read-only; §5.3 ad-hoc no-log default; §5 audit artifact when --audit-snapshot.
   · ⚠️ Wave-eligibility: trước khi /continue, Claude PHẢI check action sắp tới có ≥3 sub-tasks disjoint không.
     Nếu YES → tạo wave plan + spawn 4-5 parallel agents thay vì serial PRs.
     Refs: feedback_wave_plan_before_serial_prs.md + feedback_parallel_agent_strategy.md
