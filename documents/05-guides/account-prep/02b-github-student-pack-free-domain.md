@@ -117,6 +117,8 @@ Sau khi checkout success:
 5. Click **Manage** bên cạnh row `kitehub.me` để vào trang quản lý chi tiết
    - 5 tabs: **Domain** / **Sharing & Transfer** / **Advanced DNS** / **Redirect Email** / **WhoIs**
    - (Namecheap UI gần đây đổi "Email Forwarding" → "Redirect Email" — cùng feature)
+
+> ⚠️ **CẢNH BÁO email forwarding:** Namecheap **Redirect Email** chỉ hoạt động khi dùng **Namecheap default nameservers**. Một khi bạn switch sang Cloudflare nameservers (§2 dưới), tab này hiển thị warning "must first change your nameservers to Namecheap default" và KHÔNG dùng được. **GIẢI PHÁP:** dùng **Cloudflare Email Routing** (free, built-in, replace Namecheap forwarding 1:1) — xem `02c-cloudflare-email-routing.md` (sẽ tạo) hoặc Cloudflare Dashboard → kitehub.me → Email → Email Routing → Get started → Cloudflare auto-replace MX records + add custom address rules.
    - Tab **Domain** chứa: Auto-renew toggle (xem §3) + Nameservers selector (xem §2)
 
 ---
@@ -195,19 +197,83 @@ whois kitehub.me 2>&1 | grep -E "Registrar|Expir|Name Server"
 
 ---
 
-## 5. Cross-references — bước tiếp theo
+## 5. Email Forwarding via Cloudflare Email Routing
+
+> **Tại sao không dùng Namecheap Redirect Email tab?** Namecheap email forwarding chỉ work khi dùng **Namecheap default nameservers**. Sau khi switch sang Cloudflare nameservers (§2), tab Namecheap Redirect Email hiển thị warning "must first change your nameservers to Namecheap default" — không dùng được. Cloudflare Email Routing (free, built-in) replace Namecheap forwarding 1:1.
+
+### 5.1 Setup (sau khi Cloudflare status = Active)
+
+1. Cloudflare Dashboard → site `kitehub.me`
+2. Sidebar trái → click **Email** → **Email Routing**
+3. Click **Get started** / **Enable Email Routing**
+4. Cloudflare hỏi confirm: sẽ replace existing MX records (5 Namecheap eforward + 1 SPF TXT) bằng 3 MX records của Cloudflare + 1 SPF TXT mới — click **Yes, confirm**
+5. Tab **Routes** sẽ mở:
+
+### 5.2 Add custom address rules
+
+| Custom address | Action | Destination |
+|---|---|---|
+| `admin@kitehub.me` | Send to email | `<email cá nhân của bạn>` |
+| `support@kitehub.me` | Send to email | `<email cá nhân của bạn>` |
+| `noreply@kitehub.me` | (skip — sẽ replaced bởi SES sau) | — |
+
+Hoặc dùng **Catch-all** (toggle ở dưới): tất cả `*@kitehub.me` → 1 email destination duy nhất. Tiện cho beta period.
+
+### 5.3 Verify destination email
+
+Lần đầu add destination:
+
+1. Cloudflare gửi 1 email confirmation tới Gmail target
+2. Mở email từ Cloudflare → click **Verify email address** link
+3. Quay về Cloudflare → status đổi từ **Pending verification** → **Verified**
+4. Routes lúc này active
+
+### 5.4 Test email forwarding
+
+```
+Gửi email từ Gmail khác (NOT destination email) → admin@kitehub.me
+↓ ~1-3 phút
+Email forward về Gmail destination ✓
+Subject + body unchanged
+Sender = email gốc (KHÔNG phải admin@kitehub.me)
+```
+
+### 5.5 Cờ đỏ thường gặp
+
+| Symptom | Nguyên nhân | Fix |
+|---|---|---|
+| "Email Routing requires DNS Routing" error | DNS records old MX của Namecheap chưa replaced | Click "Configure Email Routing automatically" để Cloudflare tự thêm 3 MX + 1 SPF |
+| Test email không tới sau 5 phút | Destination chưa verify | Check Spam folder Gmail; click verify link nếu chưa |
+| Sender address rỗng / spam-flagged | DKIM chưa setup | Add DKIM via Cloudflare Email DNS Settings (auto-suggest) |
+| Reply từ Gmail KHÔNG xuất hiện admin@kitehub.me | Limit của Email Routing — chỉ inbound forward | Cần SES production approval (Wave 33 GAP-370) hoặc Google Workspace để gửi outbound từ domain |
+
+### 5.6 Trade-off vs SES production
+
+| Use case | Provider | When |
+|---|---|---|
+| **Inbound** `admin@kitehub.me` → Gmail forward | Cloudflare Email Routing | NOW (free, instant) |
+| **Outbound** beta invite emails / password reset (FROM `noreply@kitehub.me`) | AWS SES production | Sau khi GAP-370 SES approval (~2-7 ngày) |
+| **2-way email** (cả inbound + outbound) | Google Workspace ($6/user/month) | Phase 1.5 PAID nếu cần ổn định |
+
+→ Phase 1 BETA invite-only: Cloudflare Email Routing (free) + AWS SES production (sau approval) đủ.
+
+---
+
+## 6. Cross-references — bước tiếp theo
 
 Sau khi `kitehub.me` claim xong + Cloudflare nameservers active:
 
 1. **Cloudflare DNS records:** [`../deploy/cloudflare-setup.md`](../deploy/cloudflare-setup.md) §3 — A record / CNAME trỏ về AWS ALB
-2. **SSL/TLS Full(strict):** [`../deploy/dns-setup-runbook.md`](../deploy/dns-setup-runbook.md) §2.4 — ACM cert + Cloudflare SSL mode
-3. **Vercel custom domain bind:** [`../deploy/vercel-production-setup.md`](../deploy/vercel-production-setup.md) §3 — bind `kitehub.me` (apex) hoặc `beta.kitehub.me` (subdomain)
-4. **Resume AWS BE compute:** [`../deploy/aws-cost-scheduling.md`](../deploy/aws-cost-scheduling.md) §4
-5. **Smoke test verify:** [`../deploy/vercel-production-setup.md`](../deploy/vercel-production-setup.md) §4
+2. **Cloudflare Email Routing:** §5 trên (setup sau Cloudflare active)
+3. **SSL/TLS Full(strict):** [`../deploy/dns-setup-runbook.md`](../deploy/dns-setup-runbook.md) §2.4 — ACM cert + Cloudflare SSL mode
+4. **Vercel custom domain bind:** [`../deploy/vercel-production-setup.md`](../deploy/vercel-production-setup.md) §3 — bind `kitehub.me` (apex) hoặc `beta.kitehub.me` (subdomain)
+5. **Resume AWS BE compute:** [`../deploy/aws-cost-scheduling.md`](../deploy/aws-cost-scheduling.md) §4
+6. **AWS SES production approval:** [`../deploy/email-ses-setup-runbook.md`](../deploy/email-ses-setup-runbook.md) — submit ticket sớm để tránh slip launch
+7. **Smoke test verify:** [`../deploy/vercel-production-setup.md`](../deploy/vercel-production-setup.md) §4
 
 ---
 
-## 6. KiteClass tenant access pattern
+## 7. KiteClass tenant access pattern
 
 `kitehub.me` cover KiteHub front door (signup + manage). KiteClass tenants access qua 1 trong 3 pattern (chốt theo product decision):
 
@@ -221,13 +287,13 @@ Pattern A phổ biến nhất cho multi-tenant SaaS; KiteClass codebase đã sup
 
 ---
 
-## 7. Out of scope
+## 8. Out of scope
 
 - Mua `.vn` paid path → xem [`02-domain-registrar.md`](02-domain-registrar.md)
 - Free alternatives khác (`.eu.org`, vercel.app, promo TLDs) → xem GAP-458 §"5 lựa chọn ranked"
 - Cloudflare Workers / KV / R2 setup
 - Email subdomain MX records (Phase 1.5 PAID khi GAP-370 SES production approved)
 
-## 8. Log
+## 9. Log
 
 - **2026-05-09** Runbook created — closes GAP-458 Path C decision. User chose Student Pack `.me` route after analyzing 5 free options. Domain choice `kitehub.me` (KiteHub front door SaaS); KiteClass via subdomain Pattern A planned. Auto-renew tắt mandatory.
