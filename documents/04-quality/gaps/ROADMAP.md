@@ -18,6 +18,8 @@
 
 **Phase 1 BETA Beta Access closure:** ✅ CODE COMPLETE 2026-05-08 (Wave 45 — GAP-372 DONE + GAP-370 PARTIAL pending AWS user-action).
 
+**AWS Phase 1 BETA stack state (2026-05-09 09:52, confirmed cost-save — intentional):** account `906286017800` / `ap-southeast-1` đang ở mode tiết kiệm chi phí khi chưa có tenant onboarded — 2 EC2 (`kitehub-kh-backend`, `kitehub-kc-app`) STOPPED, RDS `kitehub-postgres` STOPPED, ALB `kitehub-alb` ACTIVE (DNS placeholder), CloudTrail `kitehub-main` IsLogging:True (audit baseline maintained), 0 alarms ALARM. **Resume khi:** beta tenant onboard / smoke test pre-launch / Phase 1.5 prep. Snapshot live nhìn qua `bash .claude/skills/workflow/start-session/scripts/collect-state.sh --refresh-aws` (cache 30m mặc định). Note này đặt ở §🚀 Next Action để session sau không nhầm "drift" → "force restart".
+
 **Pending user actions (separate from session work):**
 1. ✅ **Delete exposed `solo-dev-admin` orphan key** (AKID `AKIA…MMUZ`) — DONE 2026-05-08 via `scripts/delete-iam-access-key.sh` (orphan: not bound to any local profile, dev-admin uses `AKIA…52MY` unaffected). Audit: `documents/04-quality/audits/aws-verification/2026-05-08-orphan-key-delete-solo-dev-admin.md`. Future rotation of `52MY` available via `rotate-iam-access-key.sh` when chosen (not exposed, no urgency).
 2. ✅ **Rotate `kite-readonly-wsl` key** — DONE 2026-05-08 via `scripts/rotate-iam-access-key.sh`; new AKID `AKIA…SVMD`, old `AKIA…E7SO` deleted. Audit: `documents/04-quality/audits/aws-verification/2026-05-08-key-rotation-readonly-wsl.md`
