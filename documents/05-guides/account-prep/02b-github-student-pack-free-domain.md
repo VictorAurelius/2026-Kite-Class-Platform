@@ -103,9 +103,20 @@ Namecheap yêu cầu credit/debit card on file dù total $0 (để bảo vệ ch
 ### 1.6 Confirm → ownership
 
 Sau khi checkout success:
-1. Email confirmation từ Namecheap
-2. Domain xuất hiện trong Namecheap Dashboard → **Domain List**
-3. Status: **Active** with expiry date 12 months sau
+
+1. Email confirmation từ Namecheap (~1-2 phút)
+2. **Vào Namecheap Dashboard:**
+   - URL trực tiếp: https://ap.www.namecheap.com/
+   - Hoặc: https://www.namecheap.com/ → click **Sign In** (góc trên phải) → đăng nhập
+3. **Mở Domain List:**
+   - Sidebar trái → click **Domain List** (icon 🌐)
+   - Hoặc URL trực tiếp: https://ap.www.namecheap.com/domains/list/
+4. Verify `kitehub.me` xuất hiện trong bảng domains:
+   - Status: **Active**
+   - Expiry: ~12 tháng sau ngày claim
+5. Click **Manage** bên cạnh row `kitehub.me` để vào trang quản lý chi tiết
+   - 5 tabs: **Domain** / **Sharing & Transfer** / **Advanced DNS** / **Email Forwarding** / **WhoIs**
+   - Tab **Domain** chứa: Auto-renew toggle (xem §3) + Nameservers selector (xem §2)
 
 ---
 
@@ -115,14 +126,20 @@ Sau khi checkout success:
 
 Tóm tắt nhanh:
 
-1. Tạo / login Cloudflare account
-2. **Add Site** → nhập `kitehub.me`
-3. Chọn Free plan
-4. Cloudflare scan existing DNS — sẽ rỗng vì domain mới
-5. Cloudflare cung cấp 2 nameservers (vd `ana.ns.cloudflare.com` + `bob.ns.cloudflare.com`)
-6. Quay lại Namecheap → Domain List → **Manage** `kitehub.me` → **Nameservers** → chọn **Custom DNS**
-7. Paste 2 Cloudflare nameservers → Save
-8. Đợi propagation 5-30 phút → Cloudflare auto-verify status = **Active**
+1. Tạo / login Cloudflare account: https://dash.cloudflare.com/sign-up
+2. **Add Site** (button trên dashboard chính) → nhập `kitehub.me` → click Continue
+3. Chọn **Free plan** (scroll xuống cuối list, $0/month) → Continue
+4. Cloudflare scan existing DNS — sẽ rỗng vì domain mới claim
+5. Cloudflare cung cấp 2 nameservers (vd `ana.ns.cloudflare.com` + `bob.ns.cloudflare.com`) → ghi nhớ 2 dòng này
+6. Quay lại Namecheap:
+   - Mở https://ap.www.namecheap.com/domains/list/
+   - Click **Manage** bên cạnh `kitehub.me`
+   - Tab **Domain** → section **Nameservers**
+   - Dropdown chọn **Custom DNS** (mặc định là "Namecheap BasicDNS")
+   - 2 ô input xuất hiện → paste 2 Cloudflare nameservers từ bước 5
+   - Click ✓ (checkmark) bên phải để save
+7. Đợi propagation 5-30 phút (đôi khi tới 24h tùy ISP)
+8. Quay lại Cloudflare → click **Done, check nameservers** → Cloudflare auto-verify status = **Active** khi DNS resolve thành công
 
 ---
 
@@ -130,10 +147,12 @@ Tóm tắt nhanh:
 
 Để tránh card bị charge $10-20 sau 1 năm:
 
-1. Namecheap Dashboard → **Domain List** → click `kitehub.me`
-2. Tab **Domain** → section **Auto-renew settings**
-3. Toggle **Auto-renew = OFF** ✅
-4. Set calendar reminder 11 tháng từ ngày claim → quyết định renew hay switch sang `.vn` paid
+1. Mở Namecheap Dashboard: https://ap.www.namecheap.com/domains/list/
+2. Click **Manage** bên cạnh row `kitehub.me`
+3. Tab **Domain** (mặc định mở sẵn) → scroll xuống section **Auto-renew settings**
+4. Toggle **Auto-renew = OFF** ✅ (slider chuyển từ xanh sang xám)
+5. Confirm popup nếu hiện
+6. Set calendar reminder 11 tháng từ ngày claim → quyết định renew (~$10-20 manual) hay switch sang `.vn` paid
 
 **Nếu sau 1 năm muốn giữ `.me`:**
 - Renew thủ công $10-20/year (Namecheap regular price)
