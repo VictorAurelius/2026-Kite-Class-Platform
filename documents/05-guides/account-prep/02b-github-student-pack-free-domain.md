@@ -31,13 +31,24 @@ Trước khi bắt đầu:
 
 ### 1.1 Vào Namecheap — Student Pack offer
 
+**Hai đường dẫn — chọn 1:**
+
+**Cách A — Direct (Recommended, nhanh hơn):** Mở https://nc.me/ — đây là landing page Namecheap riêng cho Student Pack `.me` offer.
+
+**Cách B — Qua GitHub Pack hub:**
 1. Đăng nhập https://education.github.com/pack
 2. Sidebar trái → **All offers** → tìm **Namecheap** card
-3. Click **Get access** → Namecheap mở trang Student Pack landing
-4. Trang sẽ hiển thị 3 offers:
-   - Free `.me` domain (1 year) ← **chọn này**
-   - SSL certificate 1 year free
-   - WhoisGuard privacy protection forever
+3. Click **Get access** → redirect đến `nc.me` hoặc Namecheap Education landing
+
+**Cả 2 đường dẫn đều dẫn về cùng offer:**
+
+Trang `nc.me` hiển thị:
+- Free `.me` domain registration (1 year) ← **chọn này**
+- SSL certificate (PositiveSSL 1 year free)
+- WhoisGuard privacy protection forever
+- Verify GitHub Student Pack ownership qua OAuth
+
+> **Phản hồi user thực tế 2026-05-09:** Cách B redirect tự động đến `https://nc.me/` — đúng đường, không phải lỗi. Đây là Namecheap's dedicated student landing thay vì namecheap.com main domain.
 
 ### 1.2 Tạo / login Namecheap account
 
