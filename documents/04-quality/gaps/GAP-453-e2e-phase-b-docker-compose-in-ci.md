@@ -81,6 +81,7 @@ Migrate KC + KH tests to use MSW handlers instead of inline `page.route()`. 2-4h
 ## Related
 
 - Parent gaps: GAP-403 (KC E2E gate), GAP-404 (KH E2E gate), GAP-420 (E2E activation umbrella)
+- Children: **GAP-454** (KC narrow-subset investigation P2) · **GAP-455** (KH beta-funnel coverage extension P2 — surfaced 2026-05-09 user audit: gate ships narrow ~28% scenario coverage; extend to ~80% in follow-up)
 - Wave 47 plan: `documents/03-planning/waves/wave-47-e2e-activation.md`
 - Wave 47 Phase A PR: (this wave's PR — closed without merge after pre-flight abort)
 - KC workflow: `.github/workflows/frontend-ci.yml:90`
