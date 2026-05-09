@@ -1,8 +1,8 @@
-# DNS + SSL Setup Runbook — Production / Beta
+# DNS + SSL Setup Runbook — Hướng Dẫn Cài Đặt Production / Beta
 
-**Audience:** SRE / DevOps / on-call engineer doing first-time DNS provisioning hoặc cutover.
-**Closes (PARTIAL):** GAP-369 — DNS runbook artifact. Domain registration + DNS records + cert provisioning are user steps, not auto-runnable.
-**Standards:** AWS Well-Architected (Reliability + Operational Excellence) · Twelve-Factor (config in env) · `.claude/rules/release-deploy-standard.md` §3.1 + §3.4 · `.claude/rules/logs-format-standard.md` (no PII trong logs).
+**Đối tượng:** SRE / DevOps / on-call engineer cài đặt DNS lần đầu hoặc cutover sang production.
+**Closes (PARTIAL):** GAP-369 — DNS runbook artifact. Domain registration + DNS records + cert provisioning là user steps, không tự động chạy được.
+**Tiêu chuẩn áp dụng:** AWS Well-Architected (Reliability + Operational Excellence) · Twelve-Factor (config in env) · `.claude/rules/release-deploy-standard.md` §3.1 + §3.4 · `.claude/rules/logs-format-standard.md` (không log PII).
 
 ---
 
@@ -22,7 +22,7 @@
 
 ---
 
-## 2. Step-by-step — first-time setup
+## 2. Step-by-step — cài đặt lần đầu
 
 ### 2.1 Domain registration (one-time, ~30 min)
 
@@ -168,7 +168,7 @@ Mail subdomain `mail.kitehub.vn` — **NOT used**. Sending via SES through MX of
 
 ---
 
-## 5. Cutover plan rollback
+## 5. Kế hoạch rollback cutover
 
 Nếu Phase 1.5 cutover fails (error rate >1%, P95 latency >2s, signup conversion drops >50%):
 
@@ -181,7 +181,7 @@ Beta env stays live 30d post-cutover specifically for this scenario.
 
 ---
 
-## 6. Cost estimate (Cloudflare Free + Let's Encrypt)
+## 6. Ước tính chi phí (Cloudflare Free + Let's Encrypt)
 
 | Item | Cost |
 |------|------|
@@ -194,7 +194,7 @@ Phase 1.5 PAID: consider Cloudflare Pro ($25/mo per zone) for image optimization
 
 ---
 
-## 7. Acceptance — when this runbook is "verified"
+## 7. Tiêu chí nghiệm thu — runbook đã "verified" khi nào
 
 - [ ] User has performed §2.1-2.5 successfully on at least beta subdomain
 - [ ] `check-dns-propagation.sh` exits 0 against `beta.kitehub.vn`
@@ -216,7 +216,7 @@ Phase 1.5 PAID: consider Cloudflare Pro ($25/mo per zone) for image optimization
 
 ---
 
-## 9. Related
+## 9. Liên quan
 
 - `documents/05-guides/operations/secrets-management-runbook.md` (sister runbook)
 - `documents/03-planning/roadmap/release-1-deploy-plan.md` (parent)

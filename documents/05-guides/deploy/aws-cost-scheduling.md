@@ -1,13 +1,13 @@
-# AWS Cost Scheduling Runbook — EventBridge Scheduler stop/start
+# AWS Cost Scheduling Runbook — EventBridge Scheduler stop/start tiết kiệm chi phí
 
-**Owner:** Solo-dev / SRE
-**Source:** [GAP-446](../../04-quality/gaps/GAP-446-aws-resource-scheduling-cost-saving.md), [Wave 43](../../03-planning/waves/wave-2026-05-08-43-cost-discipline.md)
+**Chủ sở hữu:** Solo-dev / SRE
+**Nguồn:** [GAP-446](../../04-quality/gaps/GAP-446-aws-resource-scheduling-cost-saving.md), [Wave 43](../../03-planning/waves/wave-2026-05-08-43-cost-discipline.md)
 **Terraform:** `infrastructure/terraform-aws/scheduler.tf`
-**Last Updated:** 2026-05-08
+**Cập nhật gần nhất:** 2026-05-08
 
 ---
 
-## 1. Purpose
+## 1. Mục đích
 
 EventBridge Scheduler stops EC2 (`kh-backend`, `kc-app`) + RDS (`kitehub-postgres`) outside working hours to save ~$70/mo while Phase 1 BETA is invite-only solo-dev mode. AWS-managed.
 
@@ -26,7 +26,7 @@ EventBridge Scheduler stops EC2 (`kh-backend`, `kc-app`) + RDS (`kitehub-postgre
 
 ---
 
-## 3. Verification
+## 3. Kiểm tra (verification)
 
 After terraform apply, verify the 8 schedules are firing:
 
@@ -55,7 +55,7 @@ aws cloudtrail lookup-events \
 
 ---
 
-## 4. Manual override — emergency START
+## 4. Manual override — khẩn cấp khởi động lại (emergency START)
 
 When an instance needs to be running outside scheduled hours (incident triage, demo, late-night dev):
 
@@ -79,7 +79,7 @@ The next scheduled stop (22:00 ICT) WILL still fire. To pause schedules during a
 
 ---
 
-## 5. Disable scheduling (for incident, demo day, GA cutover)
+## 5. Tắt scheduling (cho incident, demo day, GA cutover)
 
 ### Option A — Pause individual schedule (no terraform churn)
 
@@ -109,7 +109,7 @@ This destroys the schedule group + 8 schedules + IAM role. Re-applying with the 
 
 ---
 
-## 6. Monitoring — did the schedule actually fire?
+## 6. Monitoring — schedule có thực sự fire không?
 
 ### Quick check via CloudTrail
 
@@ -129,7 +129,7 @@ If a schedule fails (IAM denied / target ARN drift), EventBridge Scheduler incre
 
 ---
 
-## 7. Caveats
+## 7. Lưu ý quan trọng
 
 - **RDS 7-day auto-restart:** AWS auto-starts a stopped RDS after 7 days. Friday-stop → Monday-start (~60h) stays well under 7d, OK.
 - **ALB stays running** — cannot be stopped (only deleted). Cost ~$22/mo. Out of scope; right-sizing tracked under GAP-447.
@@ -139,7 +139,7 @@ If a schedule fails (IAM denied / target ARN drift), EventBridge Scheduler incre
 
 ---
 
-## 8. Rollback (if scheduling causes incident)
+## 8. Rollback (nếu scheduling gây incident)
 
 1. **Immediate:** Disable all 8 schedules via Option A in §5 (per-schedule, takes ~30s each).
 2. **Verify:** instances start manually per §4 if currently stopped.
@@ -148,7 +148,7 @@ If a schedule fails (IAM denied / target ARN drift), EventBridge Scheduler incre
 
 ---
 
-## 9. Related
+## 9. Liên quan
 
 - `infrastructure/terraform-aws/scheduler.tf` — terraform definitions
 - `.claude/rules/agent-aws-access.md` §2 — `aws scheduler list-schedules` is Tier 1 read-only (logged here is OK)

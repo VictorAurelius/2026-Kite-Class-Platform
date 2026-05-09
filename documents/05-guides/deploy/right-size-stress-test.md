@@ -1,14 +1,14 @@
-# Right-Size EC2 Stress-Test Runbook
+# Right-Size EC2 Stress-Test Runbook — Hướng Dẫn Test Tải Trước Khi Hạ Cấp Instance
 
-**Status:** active
-**Created:** 2026-05-08
+**Trạng thái:** active
+**Tạo:** 2026-05-08
 **Wave:** 43 Bucket B
 **Closes:** GAP-447 (PARTIAL — terraform shipped, apply + stress test post-merge)
-**Related:** GAP-411 (sizing matrix), GAP-446 (EventBridge stop/start), `release-deploy-standard.md` §3.4
+**Liên quan:** GAP-411 (sizing matrix), GAP-446 (EventBridge stop/start), `release-deploy-standard.md` §3.4
 
 ---
 
-## Purpose
+## Mục đích
 
 Step-by-step runbook for right-sizing both Phase 1 BETA EC2 instances from `m7i-flex.large` 8GB → `t3.medium` 4GB safely:
 
@@ -20,7 +20,7 @@ Step-by-step runbook for right-sizing both Phase 1 BETA EC2 instances from `m7i-
 
 ---
 
-## Phase 0 — Prerequisites
+## Phase 0 — Điều kiện tiên quyết
 
 - [ ] Wave 43 Bucket B PR merged (terraform diff: `kh_backend_instance_type` + `kc_app_instance_type` defaults → `t3.medium`; `cloudwatch.tf` SNS + 2 memory alarms)
 - [ ] Email `vannkite@outlook.com` confirmed SNS subscription (AWS sends confirmation link after `terraform apply`)
@@ -30,7 +30,7 @@ Step-by-step runbook for right-sizing both Phase 1 BETA EC2 instances from `m7i-
 
 ---
 
-## Phase 1 — Install + start CloudWatch agent (BOTH instances, BEFORE downsize)
+## Phase 1 — Cài đặt CloudWatch agent (CẢ 2 instances, TRƯỚC khi downsize)
 
 CloudWatch agent emits `mem_used_percent` to `CWAgent` namespace. Without this, the alarms in `cloudwatch.tf` stay `INSUFFICIENT_DATA` (quiet, not noisy — but no OOM detection).
 
@@ -101,7 +101,7 @@ Expected: `OK` (assuming current m7i-flex.large 8GB is comfortably under 85%).
 
 ---
 
-## Phase 2 — Downsize kh-backend FIRST (sequential, NOT parallel)
+## Phase 2 — Downsize kh-backend TRƯỚC (sequential, KHÔNG parallel)
 
 Why kh-backend first: live tenant data, broader service mix → richer stress signal. If t3.medium 4GB OOMs on KH, no point trying KC.
 
@@ -155,7 +155,7 @@ If pass → proceed Phase 3. If fail → **STOP, escalate to Phase 5 rollback**.
 
 ---
 
-## Phase 3 — Downsize kc-app (after kh-backend stress passes)
+## Phase 3 — Downsize kc-app (sau khi kh-backend stress test pass)
 
 Same procedure as Phase 2, target `aws_instance.kc_app`.
 
@@ -168,7 +168,7 @@ Post-apply verification + 1h stress test (lighter traffic — Vercel handles FE;
 
 ---
 
-## Phase 4 — Memory monitoring (ongoing, post-deploy)
+## Phase 4 — Theo dõi memory (định kỳ, post-deploy)
 
 CloudWatch dashboard `kitehub-phase-1-overview` (per `cloudwatch-dashboard.tf`) does NOT yet include memory widget — add memory row in follow-up PR if needed. For now:
 
@@ -189,7 +189,7 @@ Alarms in `cloudwatch.tf` will fire automatically; no polling needed.
 
 ---
 
-## Phase 5 — Rollback escalation
+## Phase 5 — Rollback escalation (khi instance vượt ngưỡng)
 
 If memory consistently >85% OR OOMKilled events:
 
@@ -224,7 +224,7 @@ File follow-up gap on root cause (memory leak? unaccounted service growth?). Rig
 
 ---
 
-## Combined với GAP-446 stop/start scheduling
+## Kết hợp với GAP-446 stop/start scheduling
 
 After right-size lands, EventBridge stop/start (per GAP-446) compounds savings:
 
@@ -235,7 +235,7 @@ Stop/start should land AFTER right-size proves stable (≥7 days post-stress-tes
 
 ---
 
-## Verification artifact
+## Verification artifact (tài liệu xác minh)
 
 Per `release-deploy-standard.md` §9 (post-deploy verification = agent role) + `agent-aws-access.md` §5 (mandatory logging):
 
@@ -251,7 +251,7 @@ Include:
 
 ---
 
-## Acceptance criteria (closes GAP-447)
+## Tiêu chí nghiệm thu (closes GAP-447)
 
 - [ ] Phase 1 CloudWatch agent installed + emitting `mem_used_percent` on both EC2
 - [ ] Phase 2 kh-backend downsized + 1h stress test passed
