@@ -95,6 +95,7 @@ Phase 1 BETA invite-only ~10-20 tenants → 1 domain đủ; Phase 1.5 PAID publi
 - Sibling: GAP-457 (deploy guides VN sync — landed PR #1083)
 - Original .vn path: `account-prep/02-domain-registrar.md`
 - Free TLD analysis: chat session 2026-05-09 (5 options ranked → user chose Path C)
+- **Dev tooling extension:** `documents/05-guides/dev/google-calendar-mcp-setup.md` — Google Calendar MCP server setup (use case originated from §3 Auto-renew reminder 11-month calendar event; broader scope: future automation cho schedule reminders + log Phase 1 BETA milestones). Verified walkthrough 2026-05-09 captured all gotchas (Test users requirement, ~/.config/ WSL2 permission, GOOGLE_CALENDAR_MCP_TOKEN_PATH env override).
 
 ## Log
 

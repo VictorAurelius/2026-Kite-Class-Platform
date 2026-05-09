@@ -157,6 +157,10 @@ Tóm tắt nhanh:
 5. Confirm popup nếu hiện
 6. Set calendar reminder 11 tháng từ ngày claim → quyết định renew (~$10-20 manual) hay switch sang `.vn` paid
 
+> **Cách set reminder (2 options):**
+> - **Manual (1 phút):** Mở https://calendar.google.com → tạo event ngày `<claim+11mo>` 9:00 AM với title "Auto-renew check kitehub.me — Decide renew $10-20 hay switch .vn paid"; reminder email + popup 1 day before
+> - **Automated qua MCP (one-time setup ~30 phút):** Setup Google Calendar MCP server cho Claude Code → prompt Claude tạo event tự động + future automation. Xem `../dev/google-calendar-mcp-setup.md` (verified runbook 2026-05-09)
+
 **Nếu sau 1 năm muốn giữ `.me`:**
 - Renew thủ công $10-20/year (Namecheap regular price)
 - Hoặc transfer sang Cloudflare Registrar — at-cost pricing thường rẻ hơn ~$8-12/year
