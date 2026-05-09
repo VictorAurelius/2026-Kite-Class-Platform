@@ -51,7 +51,12 @@ LABEL org.opencontainers.image.title="kitehub-subscription" \
 
 # Curl for HEALTHCHECK
 # GAP-442: Debian noble (Ubuntu 24.04) — replaces alpine 3.23 to clear gnutls CVE-2026-33845.
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+# GAP-456: apt-get upgrade applies Ubuntu 24.04.1 patches for dpkg/libcap2/sed
+# (CVE-2026-2219 / CVE-2026-4878 / CVE-2026-5958 — Group A OS package bundle).
+RUN apt-get update && \
+    apt-get upgrade -y --no-install-recommends && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
 
 # Non-root user
 RUN groupadd --system --gid 1001 spring && \

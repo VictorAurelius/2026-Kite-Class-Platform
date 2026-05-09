@@ -86,3 +86,26 @@ CVE-2026-33845
 #
 # Re-evaluate this file at expiry 2026-06-07. Spring Boot bump (GAP-440) +
 # alpine bump (GAP-442) expected to clear 6 of 7 entries automatically.
+
+# === GAP-456 Group C — npm internals bundled in Node base image ===
+# These 4 CVEs live in `usr/local/lib/node_modules/npm/node_modules/...` —
+# i.e. inside the npm bundled with the Node base image used at BUILD time
+# only. They are NOT application dependencies (no `package.json` import,
+# no FE bundle inclusion, no runtime exposure). Reachability ~0.
+# Fix path: rebase to fresher node:*-trixie tag when next CVE wave hits;
+# defer until then per release-fix-retry-budget.md (don't churn base image
+# for non-reachable CVEs).
+# Reviewer: @nguyenvankiet (solo-dev acting Security Lead, 2026-05-09).
+# Expiry: 2026-08-09 (re-evaluate at quarter end).
+
+# CVE-2026-33671: picomatch (npm bundled regex util)
+CVE-2026-33671
+
+# CVE-2026-33672: picomatch (second advisory, same package)
+CVE-2026-33672
+
+# CVE-2026-33750: brace-expansion (npm bundled glob expansion)
+CVE-2026-33750
+
+# CVE-2026-42338: ip-address (npm bundled IP parser)
+CVE-2026-42338

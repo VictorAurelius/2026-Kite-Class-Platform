@@ -41,7 +41,12 @@ LABEL com.kiteclass.branch="${BRANCH}"
 WORKDIR /app
 
 # wget for HEALTHCHECK (alpine had busybox-wget by default; noble doesn't)
-RUN apt-get update && apt-get install -y --no-install-recommends wget && rm -rf /var/lib/apt/lists/*
+# GAP-456: apt-get upgrade applies Ubuntu 24.04.1 patches for dpkg/libcap2/sed
+# (CVE-2026-2219 / CVE-2026-4878 / CVE-2026-5958 — Group A OS package bundle).
+RUN apt-get update && \
+    apt-get upgrade -y --no-install-recommends && \
+    apt-get install -y --no-install-recommends wget && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy jar from builder
 COPY --from=builder /app/target/*.jar app.jar
