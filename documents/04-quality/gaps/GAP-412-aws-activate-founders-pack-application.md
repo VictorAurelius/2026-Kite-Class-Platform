@@ -1,6 +1,6 @@
 # GAP-412: AWS Activate Founders Pack Application ($1k credit)
 
-**Status:** 🔴 DENIED 2026-05-10 (submission 2026-05-09 17:19 ICT; denied 2026-05-10 — reason "Your website cannot be accessed or fails to load"; resubmit blocked trên GAP-459 fix kitehub.me SSR bailout + canonical URL `.vn`→`.me`)
+**Status:** 🟡 PARTIAL — **RESUBMITTED 2026-05-11 01:19 ICT** sau khi GAP-459 root-cause fix shipped (PR #1086). Pending approval D+7-10 BD (~2026-05-21). Calendar reminder D+14 (2026-05-25) set via Google Calendar MCP. Resubmission log: `documents/05-guides/deploy/aws-activate-confirmation/2026-05-11-resubmission.md`. Original 2026-05-09 submission denied 2026-05-10 ("website cannot be accessed") — root cause GAP-459 fixed.
 **Priority:** 🔴 P0 v0.9.0-beta
 **Domain:** Infrastructure / Cost / Business
 **Found:** 2026-05-07 (Wave 37 — Layer 5)

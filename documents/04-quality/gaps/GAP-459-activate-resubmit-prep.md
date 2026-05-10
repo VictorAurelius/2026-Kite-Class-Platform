@@ -1,6 +1,6 @@
 # GAP-459: AWS Activate denial — fix kitehub.me SSR bailout + canonical URL `.vn` → `.me`
 
-**Status:** 🟡 PARTIAL — Phase 1+2+3 shipped 2026-05-10; Phase 4 (deploy verify + AWS resubmit) pending post-merge user-action
+**Status:** 🟢 DONE 2026-05-11 — Phase 1+2+3 shipped 2026-05-10 (PR #1086) + Phase 4 user-action complete: production verified accessible 2026-05-10 + AWS Activate resubmitted 2026-05-11 01:19 ICT (`documents/05-guides/deploy/aws-activate-confirmation/2026-05-11-resubmission.md`) + Calendar reminder D+14 (2026-05-25) set; gap closes regardless of approval outcome (resubmission action complete; approval = parent GAP-412 dependency)
 **Priority:** 🟠 P1 — block AWS Activate $1k credit (compute cover Phase 1 BETA ~10 tháng)
 **Domain:** Frontend (kitehub-frontend) / SEO / DevOps
 **Found:** 2026-05-10 (AWS Activate denial email — "Your website cannot be accessed or fails to load")
@@ -130,9 +130,9 @@ curl -s http://localhost:3001 | grep -E "Đang tải|kitehub\.vn"
 - [x] Phase 1: 21 `.vn` refs → `.me` via centralized `lib/site-config.ts` SITE_URL constant (+5 vs gap-doc estimate of 16 — added DPO email in `legal/data-rights/page.tsx` + LandingClient JSON-LD + 2 layout og:url variants caught by grep sweep)
 - [x] Phase 2: `LandingShellSSR.tsx` ships SSR hero + CTA + value prop + nav + footer; wired into `LandingShell` `loading` prop so initial HTML contains real content (verified via `.next/server/app/index.html` — hero in body not template)
 - [x] Phase 3: `pnpm test --run` 649/649 pass; `pnpm build` succeeds; built HTML 22KB with hero copy + 0 `.vn` refs + 0 "Đang tải" spinner text
-- [ ] Phase 4: Production verify `kitehub.me` shows hero content via curl (no "Đang tải"); zero `.vn` refs in HTML — **post-deploy user-action**
-- [ ] Resubmit AWS Activate với same form data + updated submission log — **user-action**
-- [ ] Calendar reminder 2 tuần wait (D+14 từ resubmit date) — **user-action**
+- [x] Phase 4: Production verify `kitehub.me` shows hero content via curl (no "Đang tải"); zero `.vn` refs in HTML — **verified 2026-05-10 post-PR-#1086 deploy**
+- [x] Resubmit AWS Activate với same form data + updated submission log — **2026-05-11 01:19 ICT, log `documents/05-guides/deploy/aws-activate-confirmation/2026-05-11-resubmission.md`**
+- [x] Calendar reminder 2 tuần wait (D+14 từ resubmit date) — **2026-05-25 set via Google Calendar MCP**
 
 ## Compliance
 
@@ -154,3 +154,4 @@ curl -s http://localhost:3001 | grep -E "Đang tải|kitehub\.vn"
 
 - **2026-05-10** Filed in response to AWS Activate denial email. Curl audit confirmed 2 root causes: SSR bailout (JS-only fallback "Đang tải trang chủ…") + canonical URL trỏ `.vn` (DNS NXDOMAIN). User chose Recommended fix path (full session ship). Fix branch `fix/activate-resubmit-prep-gap-459`.
 - **2026-05-10 (later)** Phases 1+2+3 shipped single-PR (wave-pack analysis: 2 disjoint code buckets < 3 threshold → serial single-PR per `feedback_wave_plan_before_serial_prs.md`). Implementation: created `kitehub-frontend/src/lib/site-config.ts` exporting `SITE_URL`/`SUPPORT_EMAIL`/`DPO_EMAIL`; centralized 21 `.vn` refs across 9 files via TypeScript imports; created `LandingShellSSR.tsx` server-friendly above-fold component (hero + 2 CTAs + 3 value props + nav + footer); wired it into `LandingShell` `loading` prop so Next.js renders real content in initial HTML for `ssr: false` dynamic import. Verify: `pnpm test --run` 649/649 pass, `pnpm build` succeeds, built `index.html` contains hero copy in body (not template) + 0 `.vn` refs + 0 "Đang tải" spinner. BAILOUT marker still emitted by Next.js as empty `<template>` element (expected — doesn't hide content). Phase 4 (production curl verify + Activate resubmit + calendar reminder) deferred to post-merge user-action per `gap-done-discipline.md` §3 PARTIAL exit ramp.
+- **2026-05-11 — Phase 4 user-action complete + gap closure**: User confirmed resubmit AWS Activate Founder $1k tier 01:19 ICT từ rejected dashboard (Path 1 standard re-submission flow worked; KHÔNG cần Path 2 Contact us escalation). Form values carried forward từ 2026-05-09 submission; description text refreshed nhấn "Live at kitehub.me" (247 chars, ≤250 budget) để counter denial reason. Pitch deck attached unchanged. Calendar reminder 2026-05-25 set via Google Calendar MCP per `agent-action-bias.md` §3 (agent-do tooling actions). Status flipped 🟡 PARTIAL → 🟢 DONE per `gap-done-discipline.md` §2 — all 6 AC checked. Approval outcome = GAP-412 parent dependency; this gap (resubmission prep work) is complete regardless of approval verdict. Per `gap-done-discipline.md` §3 framing: "DONE = work complete," not "outcome favorable" — GAP-412 tracks outcome separately.
