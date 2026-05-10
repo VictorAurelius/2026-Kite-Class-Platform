@@ -1,7 +1,7 @@
 # AWS Activate Founders Pack — Credit Allocation Policy + Spend-Down Strategy
 
-**Status:** ACCEPTED — Phase 1 BETA chốt 2026-05-07
-**Last-Reviewed:** 2026-05-07
+**Status:** ACCEPTED — Phase 1 BETA chốt 2026-05-07; v1.1 update 2026-05-11 với actual numbers từ AWS verification
+**Last-Reviewed:** 2026-05-11
 **Reviewer:** @nguyenvankiet (solo-dev, acting CTO + acting Founder)
 **Closes:** GAP-412 (AWS Activate application + credit policy doc)
 **Related:** GAP-411 (sizing matrix — Yr1 cost target), GAP-413 (cost monitoring — credit depletion alarm), ADR-025 (AWS Singapore), `release-1-plan-2026.md`
@@ -109,6 +109,35 @@ AWS Activate Founders Pack là free credit program cho early-stage startup, self
 
 $1000 credit ÷ $72/mo target = 13.9 tháng. Phase 1 BETA 9-12 tuần = 2-3 tháng. Phase 1.5 early 4-6 tuần = ~1.5 tháng → cumulative ~3.5-4.5 tháng. Revenue should kick in by month 4-5 → credit lasts well into Phase 1.5 với buffer cho cost overrun OR scope expansion.
 
+### 4.5 Cash burn nếu Activate denied — actual numbers (2026-05-11 verification)
+
+**Verified via `aws ce get-cost-and-usage` + `aws freetier get-free-tier-usage` per `documents/04-quality/audits/aws-verification/2026-05-11-actual-cost-vs-estimate.md`:**
+
+Account 906286017800 created ~2026-05-07; Free Tier 12 tháng active đến ~**2027-05-07**. Hiện trạng MTD spend = $0 vì stack stopped post-Wave-50-verify (5.5h EC2 + 16.5h RDS = <3% Free Tier monthly cap consumed).
+
+**Khi resume EC2+RDS 24/7 cho beta launch (Free Tier 750h/mo cap fully consumed):**
+
+| Phase | Duration | Architecture | $/mo (Free Tier active Yr1) | Cumulative |
+|-------|---------:|--------------|---------------------------:|-----------:|
+| Phase 1 BETA invite | 3 tháng | B (split EC2 + Free Tier max benefit) | **~$40/mo** | $120 |
+| Phase 1.5 PAID early | 1.5 tháng | A (single t3.large + db.t3.small — **Free Tier NOT applicable**) | **~$115/mo** | +$173 → $293 |
+| **Release 1 total** | 4.5 tháng | | | **~$293** |
+
+**Note:** Phase 1.5 Architecture A upgrades to t3.large + db.t3.small — both **OUT of Free Tier scope**. Free Tier only covers 1× t3.micro/small/medium per account/month + 1× db.t3.micro. Architecture A consumes none of these benefits.
+
+**With contingency buffer (egress spike, longer Phase 1.5):** $300-400 personal cash range realistic.
+
+### 4.6 Premise correction (2026-05-11)
+
+Earlier framing "$144-216 over 3 tháng" was **Architecture B target $48-72/mo × 3 mo only** (Phase 1 BETA window). For **complete Release 1 (Phase 1 BETA + Phase 1.5 PAID early)** the realistic personal cash burn nếu Activate denied = **~$293-400**.
+
+Premise "Release 1 hoàn thành 100% mà KHÔNG phát sinh cost" chỉ đúng KHI:
+- Activate $1k approved + applied (covers $293 buffer comfortably)
+- HOẶC Phase 1.5 transition delayed ≥3 tháng để revenue kick-in trước (Path A)
+- HOẶC scope reduce: Phase 1.5 stays Architecture B thay vì A (Path C — chấp nhận degraded performance khi tăng tenants)
+
+KHÔNG đúng nếu Activate denied + Phase 1.5 transition timely + Architecture A upgrade per plan. Mặc dù vậy ~$293 personal cash là **manageable cho solo-dev** (assumed budget stake), nên Activate denial KHÔNG block Release 1 — chỉ shifts $293 from credit subsidy to personal cash.
+
 ---
 
 ## 5. Monitoring + Reporting
@@ -172,3 +201,4 @@ $1000 credit ÷ $72/mo target = 13.9 tháng. Phase 1 BETA 9-12 tuần = 2-3 thá
 ## 9. Log
 
 - **2026-05-07** — Initial credit allocation policy + spend-down strategy. 3-path transition plan (revenue / Investor upgrade / cost reduction). Closes GAP-412 acceptance criterion partial (policy + pitch deck); submission + approval pending human action post-deploy.
+- **2026-05-11 (v1.1 actual numbers update)** — Added §4.5 cash-burn estimate with verified data (AWS verification audit `documents/04-quality/audits/aws-verification/2026-05-11-actual-cost-vs-estimate.md`): MTD spend $0 (Free Tier 12mo active đến ~2027-05-07; stack stopped post-Wave-50-verify). Phase 1 BETA Architecture B ~$40/mo Yr1 actual (Free Tier max benefit) → 3mo = $120. Phase 1.5 PAID Architecture A ~$115/mo (Free Tier NOT applicable cho t3.large + db.t3.small) → 1.5mo = $173. Release 1 total realistic personal cash nếu Activate denied: **~$293-400 with contingency buffer**. Added §4.6 premise correction: "Release 1 KHÔNG phát sinh cost" chỉ đúng nếu Activate approved hoặc scope reduce; default assumption Activate denial = $293 manageable burn cho solo-dev mode. Reviewer: @nguyenvankiet (solo-dev, acting CTO).
