@@ -1,6 +1,6 @@
 ---
 title: Wave 49 — Track 2 Phase 4 KC Personas (kc-parent + kc-teacher + kc-student)
-status: draft
+status: complete
 created: 2026-05-10
 updated: 2026-05-10
 waves: [49]
@@ -234,3 +234,10 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ## 8. Log
 
 - **2026-05-10 (draft)**: Wave 49 plan filed sau state-check phát hiện Phase 2+3 đã ship đầy đủ (PR #1088 sync). User chọn "Fix doc drift + spawn Phase 4 wave-pack ngay" với 3 KC personas ưu tiên. Plan tuân thủ `audit-to-gap-pipeline.md` §2.6 State-Check Evidence + `contract-first-for-cross-layer.md` (NO cross-layer, không cần Bucket 0 contract; nhưng có Bucket 0 FE-only PWA infra để tránh conflict A+C parallel) + `gap-done-discipline.md` PARTIAL exit-ramp ready + `post-wave-cleanup.md` cleanup script trong closure protocol. Stake tier HIGH → Opus 4.7 full mỗi agent. Wall-clock estimate ~8-9h (Bucket 0 ~1h + parallel max ~7-8h longest path). **Status: draft — chờ user review + approve trước khi merge plan PR + spawn agents.**
+- **2026-05-10 (complete)**: Wave 49 SHIPPED. 4 PRs merged sequentially: plan #1089 → Bucket 0 PWA infra #1090 → A kc-parent #1092 → B kc-teacher #1094 → C kc-student #1093. 3 background agents Opus full với worktree isolation chạy parallel ~24min wall-clock vs ~8-9h estimate (≥20× speedup vs serial). Tất cả 3 GAP-267/268/269 flipped 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 honest exit-ramp:
+  - GAP-267 (kc-parent): 14/17 AC verified; 3 deferred (Lighthouse PWA ≥90 needs HTTPS deploy, Playwright E2E parent-invite spec, G7 redeem variant in GAP-273) — sub-gap GAP-267a follow-up logged
+  - GAP-268 (kc-teacher): route consolidation `(teacher)/teacher/*` shipped; 3 follow-ups (per-screen /128 audit, attendance overview API extension, E2E flow spec) logged in gap file
+  - GAP-269 (kc-student): 7/10 AC; deferred social-login backend, real REST endpoints, Lighthouse, E2E, login screen — logged in gap Log
+  - **Phase 4 Track 2 progress**: 0/7 DONE → **3/7 PARTIAL** (267+268+269) + 2/7 PARTIAL pre-existing (266+270) + 2/7 OPEN (271+272 Wave 50)
+  - **Discipline wins**: zero file conflicts (state-check disjoint paths verified pre-spawn); Wave 18b1 logic preserved verbatim (Bucket A); Bucket C `sw.js` extension architecturally clean (page-context queue module, additive); coordination note Bucket A↔C honored — zero merge conflicts; 3/3 buckets shipped CI green (Frontend Tests + Build pass on all, E2E Playwright pass on A+C, B Frontend Tests passed before merge); local verify on each bucket per `admin-merge-discipline.md` (711+705+707 tests respectively, builds clean)
+  - **Cleanup**: 1 worktree husk + 2 merged branches pruned via `scripts/prune-merged-worktrees.sh --yes`
