@@ -1,6 +1,6 @@
 ---
 title: Wave 51 — Wave 49 KC Follow-ups (E2E sweep + backend read APIs)
-status: draft
+status: complete
 created: 2026-05-10
 updated: 2026-05-10
 waves: [51]

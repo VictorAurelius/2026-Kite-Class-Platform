@@ -12,6 +12,34 @@
 
 ### 🚀 Next Action (signpost cho new session)
 
+**🚨 BRAND PIVOT 2026-05-10 — GAP-460 P0 BLOCKING (PR #1102 merged):** User flagged collision searching "kitehub" Google → kitehub.eu (Czech water sports SaaS) #1; adjacent collisions KU Kite® (US K-12 assessment registered TM) + kiteclasses.org + Kerala IT. **Decision: Path B' KiteClass.me as customer-facing brand + KiteHub stays internal** (dual-brand: customer remembers KiteClass; KiteHub = code repos / Docker / AWS / architecture docs / dev admin URLs only). 5-attribute review per `business-logic-review.md` §2 complete. Supersedes GAP-458; reframes GAP-459 sweep scope. **GAP-461 META** filed — meta-rule `.claude/rules/brand-clearance-pre-domain.md` to prevent recurrence (deferred to Wave 53+). **User-action ngoài tầm Claude:** claim `kiteclass.me` via Namecheap GitHub Student Pack (free year 1) + NOIP "KiteClass" Class 41+42 trademark search/filing. **Wave 52 plan** TODO — customer surface rebrand sweep (UI text + email templates + Vercel/Cloudflare cutover + DKIM/SPF/DMARC re-setup + tenant subdomain pattern). AWS Activate $1k credit resubmit deferred to post-Wave-52.
+
+**Wave 50 SHIPPED 2026-05-10 — Track 2 Phase 4 KH Kits (PRs #1091 plan + #1099 A kh-admin + #1096 B ai-branding-wizard v2):** 2 background agents Opus full + worktree isolation parallel ~78min vs ~7-9h estimate (6.2× speedup). Sequential merge A→B all CI green. GAP-271 + GAP-272 → 🟡 PARTIAL per `gap-done-discipline.md` §3.
+- **GAP-271 kh-admin (#1099):** NEW `(school-admin)` route group at `/school-admin/*` (path-segment needed); 11 pages + 1 redirect; `SchoolAdminShell`; G1 + G3 + G10 imported from `@kite/shared-ui`; existing `(admin)/admin/**` PLATFORM admin untouched; auth gate in layout (no middleware change); login REUSE `/login`; 8/8 component tests + build green. Deferrals: ⌘K full keyboard handler stub, per-screen ≥105/128 audit (Phase 4 milestone), MoET legal sign-off (Phase 3 K-12), SCHOOL_ADMIN role gate (BE doesn't ship role).
+- **GAP-272 ai-branding-wizard v2 (#1096):** **DISCOVERY:** wizard v2 already implemented via Wave 32+34 (17 components + reducer-driven 6-step orchestrator + 73 test files / 649 tests pass). Bucket B became **closure+verification** instead of rewrite (state-check pivot saved estimated ~6-8h). Shipped: `src/config/ai-input-cap.ts` centralized token-cap labels + regenerate quotas + estimator helper; TemplateStep refactor; 11/11 parent AC verified with implementation site map. Feature-flag rollout decision: REPLACE (no gating). 5 sub-letters remain open: 272f visual-regression / 272g E2E / 272m Advanced Mode persistence / 272n response wrapper / 272o orchestrator deploy-stream.
+
+**Wave 51 SHIPPED 2026-05-10 — Wave 49 KC Follow-ups (PRs #1098 plan + #1100 A E2E sweep + #1101 B BE read APIs):** 2 background agents Opus + worktree parallel ~42min vs ~5h estimate (7.1× speedup). 5 sub-gap progressions:
+- **GAP-267a** OPEN → 🟡 PARTIAL (Playwright DONE; Lighthouse defer post-HTTPS)
+- **GAP-268b** OPEN → 🟢 DONE (Playwright happy + 1 error branch all pass)
+- **GAP-269c** OPEN → 🟡 PARTIAL (Playwright DONE; Lighthouse defer)
+- **GAP-268a** OPEN → 🟡 PARTIAL (`POST /api/v1/attendance/class/{classId}/batch` shipped + IT pass; FE wiring + outbox refactor deferred)
+- **GAP-269b** OPEN → 🟡 PARTIAL (5 student-portal me-scoped read endpoints shipped + IT pass + NEW `documents/01-business/kiteclass/student-portal/` 3-layer docs + 5 BR + 5 UC; FE swap to real data + service-layer joins deferred to Phase 2 FE consumer PR)
+- Bucket A spec adapted to actual fixture state (3 mismatches found: Lớp 10A2 not 6A1; localStorage key `kc.student.offline-submits` not `student-assignment-queue`; useMyChildren endpoint `/api/v1/parent/me/children` not `/api/parents/me/children`) — fragile-spec prevention via state-check.
+- Bucket B created NEW `student/portal/` package separate from existing admin-facing `StudentController` to prevent scope mixing; outbox-event uniformity decision documented (inherits Wave 18b2 ApplicationEventPublisher pattern; cross-cutting outbox refactor separate scope).
+
+**Phase 4 Track 2 progress:**
+
+| Item | Trước | Sau Wave 50+51 |
+|------|-------|----------------|
+| Phase 4 kit DONE | 0/7 | 0/7 |
+| Phase 4 kit PARTIAL | 2/7 (266 + 270) | **5/7** (266 + 267 + 268 + 269 + 270 + 271 + 272 = 7/7 PARTIAL — net **0 OPEN**) |
+| Phase 4 kit OPEN | 5/7 | 0/7 |
+| Phase 1 BETA §3.6 row #1 "8 Track 2 ports" | 2/8 | **7/8** (5+2 PARTIAL counting `@kite/shared-ui` shared-lib as 8th DONE) |
+
+**Domain milestone audit deferred:** Per `post-wave-audit-mandate.md` §2.4 + §2.4.2, `phase-4-kit-ports` milestone reached at Wave 50 closure → audit suite obligation (UI /128 per kit + Quality + Performance) tracked as **GAP-462** (file separately). Audit prep checklist already produced via Explore agent (~5-6h sequential / 1.5-2h subagent-parallel). Streak: 86+87 = 87 consecutive 0-clarification-flip waves.
+
+**Cleanup:** N worktree husks + merged branches pruned via `scripts/prune-merged-worktrees.sh --yes`.
+
 **Wave 49 SHIPPED 2026-05-10 — Track 2 Phase 4 KC Personas (PRs #1089 plan + #1090 Bucket 0 PWA + #1092 A kc-parent + #1094 B kc-teacher + #1093 C kc-student):** 3 background agents Opus full với worktree isolation chạy parallel ~24min wall-clock vs ~8-9h estimate (21.3× speedup vs serial). Sequential merge A→B→C tất cả CI green (Frontend Tests + Build pass; E2E Playwright pass on A+C). Tất cả 3 GAP-267/268/269 flipped 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 honest exit-ramp:
 - **GAP-267 kc-parent (#1092):** 14/17 AC; Wave 18b1 `useMyChildren`+transcript preserved; 8 routes consolidating 17 prototype screens; Zalo OA primary card + Web Push fallback per VN UX musts §5; deferred: Lighthouse PWA ≥90 (needs HTTPS), Playwright E2E parent-invite spec, G7 redeem variant (tracked GAP-273). Sub-gap GAP-267a follow-up.
 - **GAP-268 kc-teacher (#1094):** 24 screens → 11 routes under canonical `(teacher)/teacher/*` (bare `(teacher)/*` conflicted với `(dashboard)/attendance` + `(public)/page` per Next.js route-group semantics); preserved `(teacher)/attendance/period/[classId]/[periodNo]/[date]` Wave 18b2 route; G2/G3/G4/G8 imported từ `@kite/shared-ui`; 3 follow-ups (per-screen /128 UI audit + `attendancePeriodApi` overview-by-class extension + E2E flow spec).
