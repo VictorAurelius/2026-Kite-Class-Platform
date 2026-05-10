@@ -142,6 +142,42 @@ curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
 # Output: bb54ef8f69b0ef03085ce8903d90a5a4 (per kitehub.me 2026-05-09)
 ```
 
+### 2.5 Origin CA token (cho `origin-cert` command)
+
+⚠️ **Origin CA endpoint `/certificates` yêu cầu token combo SPECIAL** — single token cần BOTH scopes:
+
+| Scope | Why |
+|---|---|
+| **Account: SSL and Certificates: Edit** | Account-level cert issuance |
+| **Zone: Zone: Read** (specific zone `kitehub.me`) | Hostname validation — Cloudflare verify zone belongs to your account |
+
+Single-scope token (chỉ Account hoặc chỉ Zone) **sẽ fail** với error `code 1010: zone not part of your account`.
+
+**Lessons learned 2026-05-10:**
+- ❌ `kite-cli-dns-edit` (Zone:DNS:Edit + Zone:Read only) — fail error 1016 "User not authorized"
+- ❌ `kite-cli-origin-cert` (Account:SSL:Edit only) — fail error 1010 "zone not part of your account"
+- ✅ Need: NEW token với BOTH Account:SSL:Edit AND Zone:Read
+
+**Create combined token:**
+
+1. Cloudflare Dashboard → API Tokens → **Create Token** → **Create Custom Token**
+2. Token name: `kite-cli-origin-cert-v2`
+3. Permissions:
+   - Add row 1: **Account** → **SSL and Certificates** → **Edit**
+   - Add row 2: **Zone** → **Zone** → **Read**
+4. Account Resources: Include — `Vankiet14491@gmail.com's Account`
+5. Zone Resources: Include — Specific zone — `kitehub.me`
+6. Continue → Create Token
+7. Save token tới env `CLOUDFLARE_API_TOKEN_ORIGIN_CA`
+
+**Pragmatic alternative — Dashboard manual (RECOMMENDED cho 1-time generate):**
+
+Origin Cert valid **15 năm** = generate 1 lần là đủ. Setup token combo cho automation chỉ đáng nếu rotating thường xuyên. Đa số case → use Dashboard:
+
+🔗 https://dash.cloudflare.com/<account>/kitehub.me/ssl-tls/origin → **Create Certificate** → copy 2 textareas → save local.
+
+Per `release-fix-retry-budget.md` §3 (retry #2 → pivot, don't patch): CLI route hit 2 token-config errors; Dashboard 1-click is the right path for one-time generate.
+
 ### 2.4 Test token
 
 ```bash

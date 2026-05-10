@@ -99,16 +99,33 @@ for r in d['result']:
     ;;
 
   origin-cert)
+    # Origin CA endpoint requires SEPARATE token với permissions:
+    # - Account: SSL and Certificates: Edit (account-level)
+    # - Zone: Zone: Read (so Cloudflare can validate hostnames belong to your account)
+    # Both scopes mandatory in SAME token. Single account-only OR zone-only token will fail.
+    # See documents/05-guides/dev/cloudflare-cli-setup.md §2.5 for token creation.
+    # Alternative: Cloudflare Dashboard → SSL/TLS → Origin Server → Create Certificate (1 click).
+    ORIGIN_CA_TOKEN="${CLOUDFLARE_API_TOKEN_ORIGIN_CA:-}"
+    if [ -z "$ORIGIN_CA_TOKEN" ]; then
+      echo "ERROR: CLOUDFLARE_API_TOKEN_ORIGIN_CA env not set" >&2
+      echo "" >&2
+      echo "Recommended: use Dashboard manual instead — 1 click vs token setup" >&2
+      echo "  https://dash.cloudflare.com/<account>/kitehub.me/ssl-tls/origin" >&2
+      echo "" >&2
+      echo "If you want CLI: create token with BOTH scopes:" >&2
+      echo "  - Account: SSL and Certificates: Edit" >&2
+      echo "  - Zone: Zone: Read (specific zone kitehub.me)" >&2
+      exit 1
+    fi
     hostnames="${1:-kitehub.me,*.kitehub.me}"
     echo "Generating Origin Cert for hostnames: $hostnames"
-    # Generate CSR + private key locally first
     keyfile=$(mktemp -t cf-origin-key.XXXXXX)
     csrfile=$(mktemp -t cf-origin-csr.XXXXXX)
     openssl req -new -newkey rsa:2048 -nodes -keyout "$keyfile" -out "$csrfile" \
       -subj "/CN=kitehub.me" 2>&1 | head -1
     csr_content=$(cat "$csrfile" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))")
     hosts_json=$(echo "$hostnames" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read().strip().split(',')))")
-    response=$(curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+    response=$(curl -s -X POST -H "Authorization: Bearer $ORIGIN_CA_TOKEN" -H "Content-Type: application/json" \
       "$API/certificates" \
       -d "{\"hostnames\":$hosts_json,\"requested_validity\":5475,\"request_type\":\"origin-rsa\",\"csr\":$csr_content}")
     cert=$(echo "$response" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['result']['certificate'] if d.get('success') else 'ERROR:'+str(d.get('errors')))")
