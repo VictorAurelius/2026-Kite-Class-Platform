@@ -1,4 +1,4 @@
-# GAP-467: RLS performance baseline measurement
+# GAP-469: RLS performance baseline measurement
 
 **Status:** 🔵 OPEN
 **Priority:** 🟡 P2 (pre-Phase-1-BETA-cutover; not launch-blocking but should land before tenant onboarding ramps)
