@@ -1,6 +1,6 @@
 # GAP-269b: kc-student real REST endpoints (today/grades/payments/notifications)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — endpoint contracts + Phase 1 v1 stubs + business docs shipped Wave 51 Bucket B; full data joins + FE swap-to-real-data deferred to follow-ups
 **Priority:** 🟡 P2 (UI ships with mock VN data; production wiring blocks beta tenant ship)
 **Domain:** Backend (kiteclass-core student-facing read APIs)
 **Found:** 2026-05-10 (Wave 49 Bucket C PARTIAL exit-ramp per `gap-done-discipline.md` §3)
@@ -39,12 +39,12 @@ Phase 1 BETA can ship invite-only with mock data short-term, but real beta tenan
 
 ## Acceptance Criteria
 
-- [ ] 5 REST endpoints documented in api-contract.md + use-cases.md
-- [ ] Backend integration tests pass per controller
-- [ ] FE student pages render real data from API (no mock fixtures in production code path)
-- [ ] Loading + empty + error states handled per existing kit design
-- [ ] Pagination on notifications feed (cursor-based)
-- [ ] GAP-269 parent gap "Real REST endpoints" AC ✅ verifiable
+- [x] 5 REST endpoints documented in api-contract.md + use-cases.md (NEW domain folder `documents/01-business/kiteclass/student-portal/` with rules.md + use-cases.md UC-STUDENT-PORTAL-01..05 + api-contract.md covering all 5 endpoints with request/response schemas + error codes + Phase 1 v1 stub vs Phase 2 split)
+- [x] Backend integration tests pass per controller (`StudentPortalControllerIT` — 7 tests covering all 5 endpoints + auth-missing 401 path + cursor/limit pagination shape)
+- [ ] FE student pages render real data from API (no mock fixtures in production code path) — **deferred to FE swap-to-real-data follow-up gap; out of scope of Wave 51 Bucket B per plan §3 R1**
+- [ ] Loading + empty + error states handled per existing kit design — **FE concern, deferred with FE follow-up**
+- [x] Pagination on notifications feed (cursor-based) — `StudentNotificationFeedResponse` ships with `items + nextCursor`; clamping `[1..100]` documented per BR-STUDENT-PORTAL-003
+- [ ] GAP-269 parent gap "Real REST endpoints" AC ✅ verifiable — pending FE consumer + service-layer joins (Phase 2)
 
 ## Related
 
@@ -55,3 +55,4 @@ Phase 1 BETA can ship invite-only with mock data short-term, but real beta tenan
 ## Log
 
 - **2026-05-10**: Filed at Wave 49 closure as named follow-up promised in GAP-269 Log entry §"Deferred (explicit) → follow-up sub-gaps".
+- **2026-05-10**: Wave 51 Bucket B shipped Phase 1 v1 — endpoint contracts published. New package `kiteclass-core/.../module/student/portal/` with `StudentPortalController` exposing 5 GET endpoints + `StudentPortalService` interface + `StudentPortalServiceImpl` returning shape-stable empty payloads (foundation pattern matching `ParentNotificationsFacetController` Wave 18b2). DTOs: `StudentTodayResponse`, `StudentGradeOverview`, `StudentGradeDetailResponse`, `StudentPaymentSummary`, `StudentNotificationItem`, `StudentNotificationFeedResponse`. Auth via Gateway-injected `X-User-Reference-Id` header → 401 when missing. NEW domain folder `documents/01-business/kiteclass/student-portal/` with full 3-layer (rules.md BR-STUDENT-PORTAL-001..005 with 5-attribute review per `business-logic-review.md` + use-cases.md UC-STUDENT-PORTAL-01..05 + api-contract.md). Integration tests `StudentPortalControllerIT` (7 tests) cover all 5 endpoints + auth guard. Status flips OPEN → PARTIAL per `gap-done-discipline.md` §3 — full join logic against ClassSchedule/Assignment/SubjectGrade/Invoice/Notification entities deferred to FE consumer PR per Wave 51 plan §3 R1.

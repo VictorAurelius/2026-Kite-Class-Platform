@@ -192,3 +192,30 @@
 **Notes:**
 - Weekends + holidays respect Holiday table (Wave 2 GAP-053)
 - Calendar respects academic year boundaries from AcademicYear entity
+
+### UC-ATT-09: Class-overview batch save (GAP-268a)
+
+**Actor:** Teacher / GVCN
+**Precondition:** Teacher có quyền truy cập lớp; class có students enrolled; subject_section đã được lập lịch cho ngày đó.
+
+**Steps:**
+1. Teacher mở UI `(teacher)/teacher/attendance/[classId]` overview screen
+2. UI hiển thị grid 1-10 tiết × N students với pre-loaded current state (hoặc trống nếu chưa có data)
+3. Teacher chỉnh từng cell (PRESENT / ABSENT / LATE / EXCUSED / MAKEUP) + optional notes
+4. Teacher click "Lưu" → FE gọi `POST /api/v1/attendance/class/{classId}/batch?date=YYYY-MM-DD` với array of `{studentId, subjectSectionId, periodNo, status, notes}` cells
+5. BE service `AttendancePeriodService.upsertClassBatch` folds (classId, date) vào từng entry → forwards tới existing `upsertBatch` path
+6. Per-row idempotent upsert: existing rows → update (status/notes/recordedBy/recordedAt), new tuples → insert
+7. Response 201 + `List<AttendancePeriodResponse>` (entry order preserved) — FE refresh state
+
+**Postcondition:**
+- Mỗi (student × subjectSection × date × periodNo) tuple có exactly 1 row in `attendance_period`
+- Resubmit cùng body → cùng state, KHÔNG duplicate rows (DB unique index V50 backstop)
+
+**Errors:**
+- `400` entries empty / batch > 200 cells / periodNo ngoài 1..10 / missing X-Teacher-Id
+- `409 OPTIMISTIC_LOCK_CONFLICT` nếu concurrent edit beats request (rare — overview save is single-teacher path)
+
+**Notes:**
+- Wave 51 Bucket B (GAP-268a) thêm endpoint mới; per-tiết save (`POST /api/v1/attendance/periods`) vẫn được giữ nguyên cho path "mark từng tiết riêng lẻ"
+- Outbox emission deferred (consistent với existing `upsertBatch` path)
+- 200-cell cap = 10 tiết × 20 students leaves headroom cho combined bộ môn classes

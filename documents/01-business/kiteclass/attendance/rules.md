@@ -32,6 +32,24 @@
 | Override status | Yes | No | Yes | No |
 | Export report | Yes (own classes) | No | Yes (all) | No |
 
+### BR-ATT-CLASS-BATCH-001: Class-overview batch save cap (GAP-268a)
+
+- **Value:** 200 cells per request (`ClassBatchAttendanceRequest.entries.@Size(max=200)`)
+- **Rationale:** 10 tiết × 20 students = 200 = realistic worst-case cho one class one day; cap leaves headroom for combined bộ môn classes mà không cho phép unbounded payloads gây DoS.
+- **Source:** `informed gut` derived from Wave 18b2 `AttendancePeriodBatchCreateRequest` precedent (cap 60) + class-overview UI scope; quarterly re-review per `business-logic-review.md` §2.1.
+- **Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-05-10). Stakeholder review queued via GAP-156.
+- **Compliance check:** N/A — operational cap, không touch regulated data.
+- **Review cadence:** Quarterly. **Next review:** 2026-08-10. Event triggers: complaint về cap quá nhỏ cho class lớn (>20 students), hoặc audit phát hiện cell count consistently > 200.
+
+### BR-ATT-CLASS-BATCH-002: Idempotency via DB unique index (GAP-268a)
+
+- **Value:** Resubmit cùng `(classId, date, body)` → cùng final state, KHÔNG duplicate rows
+- **Rationale:** Network retries + double-click + offline-replay paths đều cần idempotency. DB-level unique index `(student_id, subject_section_id, date, period_no, instance_id)` (V50 migration) là source of truth — application layer chỉ "upsert" qua repository pattern.
+- **Source:** Wave 18b2 GAP-323b precedent + standard REST idempotency principle.
+- **Reviewer:** @nguyenvankiet (acting Tech Lead, solo-dev, 2026-05-10).
+- **Compliance check:** N/A — implementation invariant.
+- **Review cadence:** Annual (stable rule). **Next review:** 2027-05-10. Event triggers: V50 migration changed.
+
 ---
 
 ## 2. Flow
