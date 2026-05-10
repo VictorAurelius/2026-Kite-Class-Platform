@@ -427,7 +427,7 @@ export default function LandingClient() {
           'applicationCategory': 'BusinessApplication',
           'operatingSystem': 'Web',
           'description': 'Nền tảng SaaS quản lý trung tâm giáo dục: website, tuyển sinh, học phí, AI Branding.',
-          'url': 'https://kitehub.vn',
+          'url': 'https://kitehub.me',
           'offers': {
             '@type': 'AggregateOffer',
             'lowPrice': '0',

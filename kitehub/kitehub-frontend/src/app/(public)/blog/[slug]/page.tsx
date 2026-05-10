@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getAllBlogSlugs, getBlogPost } from '@/lib/blog';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { blogPostingSchema, breadcrumbListSchema } from '@/components/seo/schemas';
+import { SITE_URL } from '@/lib/site-config';
 
 import type { Metadata } from 'next';
 
@@ -27,12 +28,12 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     title: `${post.title} - KiteHub Blog`,
     description: post.description,
     alternates: {
-      canonical: `https://kitehub.vn/blog/${slug}`,
+      canonical: `${SITE_URL}/blog/${slug}`,
     },
     openGraph: {
       title: post.title,
       description: post.description,
-      url: `https://kitehub.vn/blog/${slug}`,
+      url: `${SITE_URL}/blog/${slug}`,
       type: 'article',
       publishedTime: post.date,
       authors: [post.author],

@@ -92,7 +92,7 @@ describe('PublicLayout', () => {
 
     it('renders contact info', () => {
       render(<PublicLayout><div>Content</div></PublicLayout>);
-      expect(screen.getByText('support@kitehub.vn')).toBeInTheDocument();
+      expect(screen.getByText('support@kitehub.me')).toBeInTheDocument();
       expect(screen.getByText('1900 xxxx xx')).toBeInTheDocument();
     });
 

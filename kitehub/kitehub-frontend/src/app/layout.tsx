@@ -5,6 +5,7 @@ import './globals.css';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { Toaster } from 'sonner';
+import { SITE_URL } from '@/lib/site-config';
 
 const inter = Inter({ subsets: ['latin', 'vietnamese'] });
 
@@ -12,19 +13,19 @@ const inter = Inter({ subsets: ['latin', 'vietnamese'] });
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://kitehub.vn'),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'KiteHub - Nền tảng quản lý trung tâm giáo dục',
     template: '%s | KiteHub',
   },
   description: 'Tạo website và quản lý trung tâm giáo dục chuyên nghiệp. AI tự động tạo thương hiệu. Dùng thử miễn phí 14 ngày.',
   alternates: {
-    canonical: 'https://kitehub.vn',
+    canonical: SITE_URL,
   },
   openGraph: {
     type: 'website',
     locale: 'vi_VN',
-    url: 'https://kitehub.vn',
+    url: SITE_URL,
     siteName: 'KiteHub',
     title: 'KiteHub - Nền tảng quản lý trung tâm giáo dục',
     description: 'Tạo website và quản lý trung tâm giáo dục chuyên nghiệp.',

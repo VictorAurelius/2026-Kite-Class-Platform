@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { faqPageSchema } from '@/components/seo/schemas';
+import { SITE_URL } from '@/lib/site-config';
 import { PRICING_FAQS } from './faqs';
 import { PricingContent } from './PricingContent';
 
@@ -9,13 +10,13 @@ export const metadata: Metadata = {
   description:
     'KiteHub cung cấp 4 gói dịch vụ: FREE (miễn phí), BASIC (500.000₫/tháng), PREMIUM (1.500.000₫/tháng) và ENTERPRISE. Dùng thử 14 ngày, không cần thẻ tín dụng.',
   alternates: {
-    canonical: 'https://kitehub.vn/pricing',
+    canonical: `${SITE_URL}/pricing`,
   },
   openGraph: {
     title: 'Bảng giá KiteHub - Dùng thử miễn phí 14 ngày',
     description:
       'So sánh 4 gói dịch vụ KiteHub. Giá từ 500.000₫/tháng cho trung tâm giáo dục Việt Nam. Thanh toán qua VietQR.',
-    url: 'https://kitehub.vn/pricing',
+    url: `${SITE_URL}/pricing`,
     type: 'website',
   },
 };
