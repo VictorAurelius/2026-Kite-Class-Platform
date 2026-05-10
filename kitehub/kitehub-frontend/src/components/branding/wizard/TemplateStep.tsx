@@ -37,6 +37,7 @@ import {
 } from './wizard-shared';
 import { useBrandingTier, type BrandingTierInfo } from '@/hooks/use-branding-tier';
 import type { PricingTier } from '@/types/subscription';
+import { TIER_CAP_LABEL, REGENERATE_QUOTA, estimateTokens } from '@/config/ai-input-cap';
 
 // ---------------------------------------------------------------------------
 // CustomPromptInput — Enterprise Advanced Mode opt-in.
@@ -60,8 +61,9 @@ function CustomPromptInput({
   capLabel,
 }: CustomPromptInputProps) {
   const max = 200;
-  // Heuristic chars/4 estimate (matches `PromptTokenEstimator` in §2.5).
-  const estimatedTokens = Math.ceil(value.length / 4);
+  // Heuristic chars/4 estimate (matches `PromptTokenEstimator` in §2.5)
+  // via centralized helper from `@/config/ai-input-cap`.
+  const estimatedTokens = estimateTokens(value);
 
   return (
     <div
@@ -150,29 +152,12 @@ export interface TemplateStepLocalProps extends TemplateStepProps {
   instanceId?: string;
 }
 
-/**
- * Per-tier estimated-token cap label (matches `ai-branding-guidelines.md`
- * §2.5 + `AIInputCapConfig` defaults). Keyed on canonical `PricingTier`.
- */
-const TIER_CAP_LABEL: Record<PricingTier, string> = {
-  FREE: '2.000',
-  BASIC: '4.000',
-  PREMIUM: '8.000',
-  ENTERPRISE: '16.000',
-};
-
 /** Synthesize a {@link BrandingTierInfo} from a forced tier (test-only path). */
 function synthesizeTierInfo(forced: PricingTier): BrandingTierInfo {
   const isEnterprise = forced === 'ENTERPRISE';
-  const quota: Record<PricingTier, number> = {
-    FREE: 3,
-    BASIC: 10,
-    PREMIUM: 30,
-    ENTERPRISE: -1,
-  };
   return {
     tier: forced,
-    regenerateQuota: quota[forced],
+    regenerateQuota: REGENERATE_QUOTA[forced],
     advancedModeEnabled: isEnterprise,
     canUseCustomPrompt: isEnterprise,
     isLoading: false,
