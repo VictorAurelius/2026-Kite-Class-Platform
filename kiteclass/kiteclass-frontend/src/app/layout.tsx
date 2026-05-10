@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
 import { Inter } from 'next/font/google';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
@@ -7,13 +7,29 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ThemeReceiver } from '@/components/theme/ThemeReceiver';
 import { ThemePreviewPanel } from '@/components/theme/ThemePreviewPanel';
 import { Toaster } from '@/components/ui/toaster';
+import { ServiceWorkerRegistrar } from '@/components/pwa/ServiceWorkerRegistrar';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
+// Wave 49 Bucket 0 — PWA infra. Manifest + theme color + iOS standalone hints
+// for the parent (GAP-267) and student (GAP-269) mobile personas.
 export const metadata: Metadata = {
   title: 'KiteClass - Quản Lý Trung Tâm Tiếng Anh',
   description: 'Hệ thống quản lý trung tâm tiếng Anh toàn diện',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'KiteClass',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#3b82f6',
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -34,6 +50,7 @@ export default function RootLayout({
             {children}
             <Toaster />
           </ReactQueryProvider>
+          <ServiceWorkerRegistrar />
         </ThemeProvider>
         </NextThemesProvider>
       </body>
