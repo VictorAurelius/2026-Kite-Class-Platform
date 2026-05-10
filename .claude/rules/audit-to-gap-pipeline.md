@@ -1,11 +1,11 @@
 # Audit → Gap → Fix Pipeline
 
 **Priority:** 🟠 MANDATORY — audit findings governance
-**Version:** 1.2.0
+**Version:** 1.3.0
 **Created:** 2026-04-16
-**Last-Reviewed:** 2026-05-05
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new §2.6 Wave-Plan Pre-Flight Protocol paired same-PR with `session-docs-check` Rule 16 detector + 3-fixture self-test + wave-plan template per §6.5 Enforcement Parity Mandate; closes GAP-356 5th-recurrence escalation)
-**Applies to:** Every audit run (UI /128, Quality /100, Security /100, Performance /100, API Contract /100, Ops Readiness /100, Business Logic /100), every wave plan drafting, and the gap files / fix PRs they produce
+**Last-Reviewed:** 2026-05-10
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; v1.3.0 adds §2.7 Decision-Doc Code-Sync state-check extending state-check family from gap-filing (§2.5) + wave-planning (§2.6) to decision-doc landing time; paired same-PR with PR-template Output Review Checklist row + memory `feedback_decision_doc_code_sync.md` + worked self-test on 2026-05-09 GAP-458 → GAP-459 cascade per §6.5 Enforcement Parity Mandate; new constraint, no constraint loosening; existing decision docs grandfathered, rule applies prospectively)
+**Applies to:** Every audit run (UI /128, Quality /100, Security /100, Performance /100, API Contract /100, Ops Readiness /100, Business Logic /100), every wave plan drafting, every decision-doc PR (gap closure with config-shaped value, ADR, runbook with new domain/email/brand/env-var/region), and the gap files / fix PRs they produce
 
 ---
 
@@ -135,6 +135,75 @@ If 6th recurrence detected, escalate to meta-rule audit (this rule's enforcement
 
 **Detector:** `session-docs-check` Rule 16 (`scripts/check-docs.sh`) — fires on new wave plan files in diff; FAIL when symbol-shaped references in `## Scope` / `### Bucket` sections lack a corresponding `## State-Check Evidence` row OR the row's grep evidence is absent.
 
+### Step 2.7: Decision-Doc Code-Sync (BẮT BUỘC trong cùng PR khi decision-doc thay đổi config-shaped value)
+
+**Why this exists:** §2.5 covers state-check at gap-FILING (catch gaps proposing already-shipped work). §2.6 covers state-check at WAVE-PLANNING (catch plans referencing absent symbols). NEITHER covers the inverse direction: when a **decision document lands changing a config-shaped value**, are there stale code references that would silently drift?
+
+Decision docs (gap files flipped DONE with a config decision, ADRs, runbooks, brand/policy guides) effectively introduce a new "ground truth" value. Code that references the OLD value becomes stale immediately on merge — but no rule forced a sync until something downstream broke. Per `incident-to-rule-pipeline.md` 5-stage applied to 2026-05-10 GAP-458→GAP-459 cascade (worked example below), this is rule-worthy: same class will recur on every brand/email/domain/env-var/region/payment-processor change.
+
+**Trigger:** any PR that touches a "decision artifact" landing a NEW config-shaped value. Concretely:
+
+| Artifact type | Examples |
+|--------------|----------|
+| Gap file flipped to 🟢 DONE that introduces a config decision | GAP-458 (`kitehub.me` domain decision Path C) |
+| ADR setting a new platform-wide value | ADR picking new payment processor / region / DB engine |
+| Runbook referencing new domain/email/brand/environment | DNS runbook with new apex; email setup with new sender |
+| Brand/policy guide changing user-facing identifier | Rename, rebrand, support-channel change |
+
+**Required content in the decision-doc PR:** a `## Code-Sync Evidence` section (or equivalent prose in PR description) demonstrating that every code reference to the OLD value has been swept OR a follow-up sync gap is filed and linked.
+
+**Config-shaped values requiring sweep:**
+
+| Value class | Pattern | Required grep |
+|-------------|---------|---------------|
+| Domain (apex/subdomain) | `kitehub.vn`, `kiteclass.vn`, `*.kitehub.io` | `grep -rn "<old-domain>" kitehub/ kiteclass/ infrastructure/ scripts/ documents/ --include="*.ts" --include="*.tsx" --include="*.java" --include="*.yml" --include="*.yaml" --include="*.tf" --include="*.sh"` (no `\| head`) |
+| Email address | `support@<old>`, `dpo@<old>`, `noreply@<old>` | `grep -rn "@<old-domain>" <same scopes>` |
+| Brand name (if rebranded) | `KiteHub` → `NewName` | `grep -rni "<old-brand>" <same scopes>` |
+| Env var name | `OLD_VAR_NAME` | `grep -rn "OLD_VAR_NAME" <code+infra+helm+terraform>` |
+| Cloud region | `ap-southeast-1` → other | `grep -rn "<old-region>" infrastructure/ .github/ helm/` |
+| Payment processor / 3rd-party | `stripe` → `momo` | `grep -rn "<old-vendor>" <code scope>` |
+| Cloud account ID | account renumber | `grep -rn "<old-account>" infrastructure/ documents/05-guides/` |
+
+**Two valid outcomes per §3 acceptance criterion:**
+
+1. **Sweep in same PR** — decision-doc PR includes the code edits replacing OLD → NEW (preferred when sweep is small ≤20 files OR the decision-doc author owns the affected code)
+2. **Follow-up sync gap filed in same PR** — decision-doc PR includes a new gap file (or appends to existing gap) that explicitly tracks the code sync work as P0/P1, with grep evidence of the affected files
+
+**Banned shortcuts (mirroring §2.5/§2.6):**
+
+- `| head` truncation on grep — must read FULL output to surface ALL stale refs
+- "We'll catch it next PR" without a follow-up gap — that's the failure mode this rule prevents
+- Skipping sweep "because the decision is docs-only" — the decision IS the trigger; whether the doc itself touches code is irrelevant
+- Sweeping ONLY the obvious files (FE source) — must include `infrastructure/`, `scripts/`, `documents/05-guides/runbooks`, helm values, terraform vars, .env.example, CI workflow files
+
+**Forward-looking exception:** values intentionally absent from code at decision time (e.g., domain decision lands BEFORE FE code exists) are allowed IF the decision-doc PR explicitly cites the future code-creation as a tracked dependency (gap or wave plan with the code path scheduled).
+
+**Detector:** deferred per `incident-to-rule-pipeline.md` §3 advisory-rule guard until 2nd recurrence (premature-rule guard ≥7 days). For v1.0.0, enforcement = §6.5-paired PR-template Output Review row + reviewer manual + worked self-test below.
+
+**Reviewer-checklist line** (added to `.github/PULL_REQUEST_TEMPLATE.md` Output Review section same PR):
+> - [ ] **Decision-doc code-sync** — if PR introduces or changes a config-shaped value (domain/brand/email/env-var/region/vendor/account-ID) in a gap-file/ADR/runbook, grep evidence shows zero stale refs in code+infra+scripts+helm+terraform OR a follow-up sync gap is filed and linked per `audit-to-gap-pipeline.md` §2.7
+
+**Worked self-test — apply §2.7 retroactively to 2026-05-09 GAP-458 PR (#1084 predecessor):**
+
+State at decision time:
+- GAP-458 introduced `kitehub.me` (Path C Free GitHub Student Pack) as Release 1 domain
+- Decision-doc PR scope: 4 docs reflecting domain decision + ROADMAP update
+- Code-sync evidence in PR: **none** — no `grep -rn "kitehub.vn"` evidence; no follow-up sync gap filed
+- Stale refs that existed at decision-time: 21 `kitehub.vn` refs in `kitehub-frontend/src/` (10 files) — verified post-hoc 2026-05-10 by GAP-459
+
+Cost of the miss:
+- AWS Activate Founder application denied 2026-05-10 (compute cover Phase 1 BETA ~10 tháng = real $1k)
+- GAP-459 ~3h fix work + 2-week resubmit delay
+- Drift-time = 1 day (2026-05-09 GAP-458 merge → 2026-05-10 denial caught)
+
+Counterfactual with §2.7 applied at GAP-458 PR review:
+- Reviewer asks "decision-doc code-sync evidence?" per checkbox
+- Author runs `grep -rn "kitehub.vn" kitehub/ kiteclass/ infrastructure/ scripts/ documents/ --include="*.ts" --include="*.tsx" --include="*.java" --include="*.yml" --include="*.tf" --include="*.sh"` → 21 hits surfaced
+- Two paths: (a) sweep in same PR (small ≤20 files, owner = author) OR (b) file follow-up sync gap with 21 hits as evidence
+- AWS Activate denial eliminated; GAP-459 work eliminated
+
+→ **Rule fires correctly on the originating incident. Self-test PASS.** ✅
+
 ### Step 3: Gap File Creation
 
 Format chuẩn cho gap từ audit:
@@ -249,6 +318,7 @@ Sau khi meta-boost áp dụng, fix gaps theo thứ tự:
 
 ## 6. Log
 
+- **2026-05-10** (v1.3.0): MINOR — added §2.7 Decision-Doc Code-Sync state-check extending state-check family from gap-filing (§2.5) + wave-planning (§2.6) to **decision-doc landing time**. Triggered by 2026-05-10 user-flagged retro after GAP-459 fix session: GAP-458 (`kitehub.me` domain decision Path C, merged 2026-05-09) shipped without sweeping 21 stale `kitehub.vn` refs in `kitehub-frontend/src/` → AWS Activate Founder application denied next day with reason "Your website cannot be accessed or fails to load" → GAP-459 filed → ~3h fix + 2-week resubmit delay + real $1k credit at risk. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged "is a meta update necessary after this gap fix experience?") → Classify ✓ (no existing rule covers decision-doc → code-sync direction; §2.5 covers filing-time, §2.6 covers planning-time, but inverse case "decision lands → grep stale code refs" was uncovered) → Rule+Enforce ✓ (this §2.7 + paired same-PR PR-template Output Review checkbox + memory `feedback_decision_doc_code_sync.md` + memory `feedback_nextjs_dynamic_loading_ssr.md` (Class C insight) per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§2.7 worked example on 2026-05-09 GAP-458 PR — rule fires correctly + 21 stale refs surfaced + counterfactual shows AWS Activate denial eliminated) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds new constraint covering previously-uncovered direction of state-check; no constraint loosening for prior work; existing decision docs grandfathered, rule applies prospectively; class includes domain/brand/email/env-var/region/vendor/account-ID rename — all would hit same pattern). Detector wiring deferred to 2nd recurrence per `incident-to-rule-pipeline.md` premature-rule guard ≥7 days; v1.0.0 enforcement = PR-template checkbox + reviewer manual + memory auto-load + worked self-test sufficient.
 - **2026-05-05** (v1.2.0): MINOR — added §2.6 Wave-Plan Pre-Flight State-Check Protocol extending state-check from gap-filing to wave-plan drafting. Triggered by 5th GAP-190/197 head-truncation recurrence (Wave 18b3 plan §3 Bucket C referenced 3 absent symbols `Incident.visibilityScope` + `BR-CHILD-PROTECT-005` + `Notification` entity; agent caught at execution time + filed 3 sub-gaps GAP-321b.1-trio). Per self-mandated 5th-recurrence escalation clause: file gap on rule itself (GAP-356 filed 2026-05-05) → ship rule extension. Paired same-PR per `rule-change-process.md` §6.5 with: `session-docs-check` Rule 16 detector + 3-fixture self-test (good-flip / bad-absent-symbol / forward-flag-allowed) + `documents/03-planning/waves/_TEMPLATE.md` State-Check Evidence section + `feedback_wave_plan_state_check.md` memory + cross-link updates. Recurrence list updated inline (5th entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds new constraint covering previously-uncovered higher-leverage artifact, no constraint loosening for prior work).
 - **2026-05-04** (v1.1.0): MINOR — added "Hardened state-check protocol" subsection to Step 2.5 banning `| head` truncation on grep/find during state-check. Triggered by 4th recurrence: GAP-345 K-12 LEGAL audit itself missed Wave 2 inline-fetch FE skeleton (159 LOC) at `(dashboard)/parent/page.tsx`; Wave 18b1 Bucket D agent caught at execution time + flagged in PR #766. Per `rule-change-process.md` §5 MINOR self-approve solo-dev — adds enforcement detail to existing rule, no constraint loosening. Recurrence list now tracked inline; 5th recurrence escalates to gap on this rule.
 - **2026-04-28** (v1.0.0 backfill): Frontmatter backfill per GAP-249 — added Last-Reviewed + Reviewer-Approver + Applies-to fields; reformatted existing Version `1.0` → `1.0.0` (semver three-part canonical). No content change. Solo-dev PATCH self-approve per `rule-change-process.md` §5.

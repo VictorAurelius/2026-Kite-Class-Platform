@@ -193,6 +193,7 @@ Applies if PR produces new output types:
 - [ ] ADR doc — tech lead reviewed
 - [ ] Logs format — structured JSON, no PII
 - [ ] **Design layer coverage (4-layer V-model)** — if PR touches UI/design/kit/feature scope, all 4 Japanese layers (要件定義 / 基本設計 / 詳細設計 / コンポーネント設計) verified per `.claude/rules/design-layer-coverage.md` §2 matrix. Reference: `documents/02-architecture/design-system/dossier/16-design-layer-mapping.md`. Missing layer = file follow-up gap inline OR commit trailer `DESIGN_LAYER_OVERRIDE: <layer> N/A — <reason>`
+- [ ] **Decision-doc code-sync** — if PR introduces or changes a config-shaped value (domain / brand / support email / env var / cloud region / vendor / account ID) in a gap file flipped DONE / ADR / runbook / brand guide, grep evidence shows zero stale refs across `kitehub/`, `kiteclass/`, `infrastructure/`, `scripts/`, `documents/05-guides/`, helm values, terraform vars, CI workflows OR a follow-up sync gap is filed and linked per `.claude/rules/audit-to-gap-pipeline.md` §2.7. Override trailer: `DECISION_DOC_SYNC_DEFERRED: <reason + follow-up gap link>`
 
 **Summary:**
 <!-- Brief summary of code quality review -->
