@@ -1,10 +1,16 @@
 ---
-title: Wave Track 2 UI Kits Production Port — Multi-week Umbrella Plan (15 OPEN gaps GAP-266..280)
-status: planning
+title: Wave Track 2 UI Kits Production Port — Multi-week Umbrella Plan (Phase 1+2+3 DONE; 5 kit OPEN + Phase 5+6 pending)
+status: in-progress
 created: 2026-04-30
-updated: 2026-04-30
+updated: 2026-05-10
 gaps: [GAP-266, GAP-267, GAP-268, GAP-269, GAP-270, GAP-271, GAP-272, GAP-273, GAP-274, GAP-275, GAP-276, GAP-277, GAP-278, GAP-279, GAP-280]
 phase_1_done: [ADR-024, GAP-273-Phase-1]
+phase_2_done: [GAP-273-Phase-2-G2, GAP-273-Phase-2-G6, GAP-273-Phase-2-G5, GAP-273-Phase-2-G7]
+phase_3_done: [GAP-273-Phase-3-G3, GAP-273-Phase-3-G4, GAP-273-Phase-3-G8, GAP-273-Phase-3-G10, GAP-273-Phase-3-D1, GAP-273-Phase-3-G1, GAP-273-Phase-3-G9, GAP-273-Phase-3-G11, GAP-273-Phase-3-G12]
+phase_4_partial: [GAP-266, GAP-270]
+phase_4_open: [GAP-267, GAP-268, GAP-269, GAP-271, GAP-272]
+phase_5_open: [GAP-274, GAP-275, GAP-276, GAP-277, GAP-278, GAP-279, GAP-280]
+phase_6_open: [bundle-optimization, lighthouse-baseline, e2e-playwright, visual-regression-baseline]
 deferred_separate_track: []
 adr_reference: ADR-024
 ---
@@ -14,6 +20,25 @@ adr_reference: ADR-024
 **Wave date range:** 2026-04-30 (Phase 1 ADR + scaffolding DONE) → MVP launch (~4-6 weeks projected)
 **Cluster theme:** Port HTML prototype kits (Round 2 + Round 3) → production Next.js apps. Multi-week scope, NOT single wave-pack.
 **Strategy reference:** ADR-024 ACCEPTED 2026-04-30 ([`documents/02-architecture/adr/ADR-024-shared-ui-lib-strategy.md`](../../02-architecture/adr/ADR-024-shared-ui-lib-strategy.md)) — pnpm workspace + `@kite/shared-ui` package.
+
+---
+
+## ⚠️ Status sync 2026-05-10
+
+Per state-check audit `audit-to-gap-pipeline.md` §2.5/§2.7, Phase 2 + Phase 3 đã thực sự ship qua Waves 27/28/29 (2026-05-06) nhưng phần "Phase 2-6 Multi-week port roadmap" bên dưới vẫn đang được viết ở dạng "tương lai sẽ ship". Phần đó **đã thành lịch sử cho Phase 2 + 3**; chỉ còn pending Phase 4 (5 kit OPEN + 2 PARTIAL follow-up), Phase 5 (7 coverage gap), Phase 6 (hardening).
+
+**Hiện trạng tổng hợp** (verified 2026-05-10):
+
+| Phase | Trạng thái | Bằng chứng |
+|-------|-----------|------------|
+| 1 ADR + scaffolding | ✅ DONE 2026-04-30 PR #713 | `packages/shared-ui/` workspace + ADR-024 ACCEPTED |
+| 2 — G2/G6/G5/G7 | ✅ DONE Wave 27 (2026-05-06) | 4 component thư mục đầy đủ + tests + exports trong `index.ts` |
+| 3 — G3/G4/G8/G10/D1 + G1/G9/G11/G12 | ✅ DONE Waves 28/29 (2026-05-06) | 9 component thư mục + 23 test files × 307 tests PASS |
+| 4 — 7 kit ports | 🟡 2/7 PARTIAL + 5/7 OPEN | GAP-266 (Wave 30) + GAP-270 (Wave 31) PARTIAL; GAP-267/268/269/271/272 OPEN |
+| 5 — 7 coverage gap | ⏳ tất cả OPEN | GAP-274..280 chưa start |
+| 6 — Hardening | ⏳ chưa start | Bundle / Lighthouse / E2E / visual regression baseline pending |
+
+**Đường găng còn lại:** Phase 4 (5 kit OPEN) → Phase 4 PARTIAL follow-up close → Phase 5 → Phase 6. Ước tính ~28-39h (giảm so với ~30-40h ban đầu vì component lib đã sạch sẽ).
 
 ---
 
