@@ -16,10 +16,11 @@ Tenants access the platform via subdomains: `{tenant}.kiteclass.com`.
 
 ## Multi-Tenant Isolation
 
-- **Strategy:** Shared database, tenant column isolation.
-- Every entity includes a `tenantId` (UUID) column.
-- Tenant is resolved from the JWT token or subdomain on each request.
-- Queries are scoped by `tenantId` — no cross-tenant data access.
+- **Strategy:** Shared database with **layered defense** — code-level `instance_id` column **and** Postgres Row-Level Security (RLS) at the database layer (per GAP-466 / Wave 56).
+- **Layer 1 — Code (Hibernate filter):** Every entity extends `BaseEntity`, which declares `@Column("instance_id")` plus the `tenantFilter` Hibernate `@FilterDef`. `TenantFilterInterceptor` enables the filter per HTTP request from the `X-Tenant-Id` header (forwarded by the gateway).
+- **Layer 2 — Database (RLS policy):** Every tenant-scoped table has `ENABLE ROW LEVEL SECURITY` plus `FORCE ROW LEVEL SECURITY` and a `tenant_isolation` policy `USING (instance_id = current_setting('app.current_tenant_id', true)::uuid)`. `TenantAwareDataSourceInterceptor` issues `SET LOCAL app.current_tenant_id = <uuid>` at every `@Transactional` boundary, so even raw `SELECT * FROM students` returns only current-tenant rows. If `TenantContext` is empty, the GUC stays NULL and the policy defaults to deny.
+- **Why both layers?** Layer 1 is fast but bypassable by custom JPQL / native SQL / projection DTOs that forget the filter. Layer 2 makes a developer-error cross-tenant leak structurally impossible at the database boundary. AWS Well-Architected SaaS Lens recommends this pattern for "Pool" multi-tenant models.
+- **Break-glass:** Documented in [`documents/05-guides/operations/runbooks/rls-policy-violation.md`](../05-guides/operations/runbooks/rls-policy-violation.md). DB superuser only; every invocation logs an audit trail.
 
 ## Infrastructure
 
