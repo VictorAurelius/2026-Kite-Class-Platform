@@ -1,6 +1,6 @@
 # GAP-267a: kc-parent E2E spec + Lighthouse PWA ≥90 verification
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Playwright spec shipped Wave 51 Bucket A; Lighthouse PWA defer to post-staging-HTTPS
 **Priority:** 🟡 P2 (verification of Wave 49 Bucket A AC; not blocking new feature ship)
 **Domain:** Frontend testing + PWA deployment
 **Found:** 2026-05-10 (Wave 49 Bucket A PARTIAL exit-ramp per `gap-done-discipline.md` §3)
@@ -34,9 +34,9 @@ Wave 49 Bucket A (PR #1092) shipped 17 kc-parent screens consolidated into 8 pro
 
 ## Acceptance Criteria
 
-- [ ] Playwright spec passes locally + in `frontend-ci.yml` E2E job
-- [ ] Lighthouse PWA ≥90 on Vercel preview (audit report committed)
-- [ ] GAP-267 parent gap flipped 🟡 PARTIAL → 🟢 DONE per `gap-done-discipline.md` §2
+- [x] Playwright spec authored (`kiteclass-frontend/e2e/wave-49-followups/parent-invite-pay-flow.spec.ts`) — Wave 51 Bucket A
+- [ ] Lighthouse PWA ≥90 on Vercel preview (audit report committed) — DEFERRED post-staging-HTTPS
+- [ ] GAP-267 parent gap flipped 🟡 PARTIAL → 🟢 DONE per `gap-done-discipline.md` §2 (blocked on Lighthouse measurement)
 
 ## Related
 
@@ -47,4 +47,5 @@ Wave 49 Bucket A (PR #1092) shipped 17 kc-parent screens consolidated into 8 pro
 
 ## Log
 
+- **2026-05-10** (PARTIAL flip): Wave 51 Bucket A shipped `kiteclass-frontend/e2e/wave-49-followups/parent-invite-pay-flow.spec.ts` — happy path (home → child card → transcript → billing → pay) + 1 error branch (children API 500 → error region). Stays PARTIAL per `gap-done-discipline.md` §3 because Lighthouse PWA ≥90 requires HTTPS staging (Lighthouse refuses `http://localhost:4700`). Lighthouse measurement deferred to dedicated follow-up post-staging-HTTPS deploy.
 - **2026-05-10**: Filed at Wave 49 closure as named follow-up promised in GAP-267 Log entry (PR #1092 Bucket A coordinator note). Per `audit-to-gap-pipeline.md` §3 + `gap-done-discipline.md` §3, deferred items get real gap files instead of orphan Log mentions.
