@@ -318,7 +318,15 @@ monitoring:
           smtp_from: "alerts@kiteclass.com"
           {{- if .Values.monitoring.alertmanager.receivers.production.enabled }}
           # AWS SES SMTP endpoint. Region defaults to us-east-1; override per env.
-          smtp_smarthost: "email-smtp.{{ .Values.monitoring.alertmanager.smtp.region | default "us-east-1" }}.amazonaws.com:587"
+          # Note: alertmanager 0.27 supports smtp_auth_password_file but NOT
+          # smtp_smarthost_file / smtp_auth_username_file. Host + username are
+          # materialized into the alertmanager-receivers k8s Secret by ESO
+          # (Wave 55 Bucket C / GAP-144 added smtp-host + smtp-username keys);
+          # operators inject the values into values-<env>.yaml at deploy time
+          # via `kubectl get secret alertmanager-receivers -o jsonpath='{.data.smtp-host}' | base64 -d`
+          # then --set monitoring.alertmanager.smtp.smarthost=...; see runbook
+          # documents/05-guides/operations/runbooks/alertmanager-mock-fire-runbook.md §3.2.
+          smtp_smarthost: "{{ .Values.monitoring.alertmanager.smtp.smarthost | default (printf "email-smtp.%s.amazonaws.com:587" (.Values.monitoring.alertmanager.smtp.region | default "us-east-1")) }}"
           smtp_auth_username: "{{ .Values.monitoring.alertmanager.smtp.authUsername | default "alerts@kiteclass.com" }}"
           smtp_auth_password_file: "/etc/alertmanager/secrets/alertmanager-receivers/smtp-password"
           {{- else }}
@@ -433,7 +441,17 @@ monitoring:
       # SES SMTP endpoint config. Region used to construct
       # email-smtp.<region>.amazonaws.com:587 — defaults match global.aws.region
       # but kept independent so SES can live in a different region than RDS/S3.
+      #
+      # Wave 55 Bucket C (GAP-144): the canonical source of these values is the
+      # alertmanager-receivers k8s Secret (keys smtp-host, smtp-username) sourced
+      # via ExternalSecret from AWS Secrets Manager. Override per env using
+      # values-<env>.yaml or --set when ESO has materialized the Secret. See
+      # operations/runbooks/alertmanager-mock-fire-runbook.md §3.2 for the read
+      # + populate recipe.
       smtp:
+        # Optional explicit smarthost (host:port). When unset, falls back to
+        # email-smtp.<region>.amazonaws.com:587 derived from .region below.
+        smarthost: ""
         region: "us-east-1"
         authUsername: "alerts@kiteclass.com"
 

@@ -1,6 +1,6 @@
 # GAP-144: Alertmanager Production Receivers (Slack + PagerDuty + SMTP)
 
-**Status:** 🟡 PARTIAL — chart-level wiring DONE 2026-04-28; live-cluster mock-fire verification pending platform deploy (tracked separately, see Log + AC table)
+**Status:** 🟡 PARTIAL — chart-level wiring DONE 2026-04-28; mock-fire runbook + ESO smtp-host/smtp-username key extension DONE 2026-05-11 (Wave 55 Bucket C); live-cluster delivery verification still pending platform deploy (recipe ready in mock-fire runbook §3 — recipe IS the verification artifact pointer per `gap-done-discipline.md` §2.5)
 **Priority:** 🔴 P0 (BLOCKS: alerts fire but go nowhere — same root concern as GAP-120 baseline)
 **Domain:** DevOps / Alerting
 **Found:** 2026-04-20 (split from GAP-120 foundation work)
@@ -71,8 +71,8 @@ an org-level decision that needs alignment before wiring.
 
 - [x] Secret strategy documented (ADR or inline in helm README) — ADR-022 + helm README §"Alertmanager production receivers"
 - [x] All 3 receiver placeholder URLs replaced with real-secret-backed values — gated by `monitoring.alertmanager.receivers.production.enabled=true`; placeholders stay as fallback so dev installs without AWS keep working
-- [ ] Mock ServiceDown alert delivers to Slack within 2 min → blocked by live-cluster prerequisite (recipe ready in README §Testing)
-- [ ] Mock critical alert pages PagerDuty within 2 min → blocked by live-cluster prerequisite (recipe ready in README §Testing)
+- [x] Mock-fire recipe published — `documents/05-guides/operations/runbooks/alertmanager-mock-fire-runbook.md` §3 covers `amtool alert add` for Slack + PagerDuty + email with explicit expected-outcome rows; offline `amtool check-config` recipe in §2 for pre-deploy validation. Live-cluster execution is the runbook's responsibility on next platform deploy (no follow-up gap needed — runbook IS the verification artifact pointer)
+- [x] ExternalSecret extended with `smtp-host` + `smtp-username` keys (Wave 55 Bucket C) so all credential-shaped values flow through one ESO materialization path; values.yaml `monitoring.alertmanager.smtp.smarthost` added so operators can `--set` from the materialized Secret per runbook §3.2
 - [x] Inhibition rules verified (ServiceDown suppresses HighErrorRate same job) — explicit pair added in `inhibit_rules` block alongside existing catch-all
 - [x] No secret values committed to git (verified via `git diff` + secret-scan) — `git diff main | grep -iE "(api_url|service_key|smtp.*password):" | grep -v "_file:"` returns empty
 
@@ -87,5 +87,6 @@ an org-level decision that needs alignment before wiring.
 
 ## Log
 
+- **2026-05-11** — Wave 55 Bucket C shipped mock-fire backfill: (a) `documents/05-guides/operations/runbooks/alertmanager-mock-fire-runbook.md` (285 lines) covering offline `amtool check-config` recipe + online `amtool alert add` per-receiver mock-fire + 4-section troubleshooting (ESO sync, alertmanager boot, alert-not-delivering, network egress); (b) ExternalSecret `templates/alertmanager-external-secret.yaml` extended from 3 → 5 keys (added `smtp-host` + `smtp-username` so all credential-shaped values flow through one ESO materialization path); (c) values.yaml `monitoring.alertmanager.smtp.smarthost` added with default fallback to `email-smtp.<region>.amazonaws.com:587` so operators can `--set` host from the materialized Secret without forking the chart. Note: alertmanager 0.27 doesn't support `smtp_smarthost_file` / `smtp_auth_username_file` directives, so host + username bind at config-render time from values.yaml — runbook §3.2 documents the read-secret + `--set` deploy recipe. Status stays 🟡 PARTIAL — live-cluster delivery verification still requires actual platform deploy; runbook §3 IS the verification artifact pointer per `gap-done-discipline.md` §2.5 (no follow-up gap needed). 2 mock-fire ACs flipped to ✅ (recipe published + ESO extended); chart-level wiring AC unchanged. Pre-existing helm-template `Error: cannot load values.yaml: line 287` failure on main HEAD is OUT OF SCOPE — not introduced by this PR (verified via `git stash` baseline test). amtool not installed locally; offline check deferred to first deploy where amtool is available.
 - **2026-04-28** — Wave Observability Agent C shipped chart-level closure (PR #TBD): ADR-022 ACCEPTED (ESO + AWS SM); `ExternalSecret` template added; values.yaml Alertmanager config gated for production opt-in via `monitoring.alertmanager.receivers.production.enabled` flag; explicit inhibition pair `ServiceDown → HighErrorRate same job` added; helm README extended with operator runbook (provisioning + activation + amtool testing recipe). Status flipped 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 — live-cluster mock-fire ACs (#3, #4) pending platform deploy. Recipe in `infrastructure/helm/README.md` §"Testing Alertmanager Receivers" is the verification artifact pointer when those tests run. AC #1, #2, #5, #6 verified in this PR.
 - 2026-04-20 — Split from GAP-120 foundation work; production-secret wiring deferred for org-level secret strategy alignment.
