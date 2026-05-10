@@ -385,6 +385,59 @@ check_no_502() {
     fi
 }
 
+# GAP-434 Phase 2 — Logs Overview end-to-end smoke test.
+#
+# Verifies the Loki/Promtail stack is shipping log lines to Loki by querying
+# the Loki HTTP API (proxied via Grafana) for a count of recent samples from
+# kitehub-gateway. Gated by env var SMOKE_LOGS_E2E=1 because it requires:
+#   - LOKI_URL pointing at a reachable Loki HTTP endpoint
+#     (e.g. via `kubectl port-forward svc/kitehub-loki 3100:3100` OR
+#     a cluster-external Grafana proxy URL with auth)
+# Default invocation in CI / prod skips this check (warns once); operators
+# enable explicitly when verifying a fresh deploy.
+#
+# Equivalent LogQL query: count_over_time({service="kitehub-gateway"}[5m]) > 0
+check_logs_overview_e2e() {
+    local label="LOGS_OVERVIEW_E2E"
+    if [ "${SMOKE_LOGS_E2E:-0}" != "1" ]; then
+        warn "$label" "skipped (set SMOKE_LOGS_E2E=1 + LOKI_URL to enable)"
+        return
+    fi
+    local loki_url="${LOKI_URL:-}"
+    if [ -z "$loki_url" ]; then
+        fail "$label" "SMOKE_LOGS_E2E=1 but LOKI_URL unset"
+        return
+    fi
+    # Loki query_range: count log lines emitted by kitehub-gateway in last 5m.
+    # See https://grafana.com/docs/loki/latest/reference/api/#query-loki-over-a-range-of-time
+    local query='count_over_time({service="kitehub-gateway"}[5m])'
+    local now_ns start_ns
+    now_ns=$(date +%s%N)
+    start_ns=$(($(date +%s) - 300))000000000
+    local url="${loki_url}/loki/api/v1/query_range?query=$(printf %s "$query" | jq -sRr @uri)&start=${start_ns}&end=${now_ns}&step=60s"
+    local code
+    code=$(http_get "$url")
+    read_body
+    if [ "$code" != "200" ]; then
+        fail "$label" "Loki query_range returned ${code}"
+        return
+    fi
+    if ! command -v jq >/dev/null 2>&1; then
+        warn "$label" "Loki responded 200 but jq not available — cannot assert sample count"
+        return
+    fi
+    local sample_count
+    sample_count=$(echo "$BODY" | jq -r '[.data.result[]?.values[]? | .[1] | tonumber] | add // 0' 2>/dev/null || echo "0")
+    if [ -z "$sample_count" ] || [ "$sample_count" = "null" ]; then
+        sample_count=0
+    fi
+    if [ "$(printf '%s\n' "$sample_count" | awk '{print ($1 > 0)}')" = "1" ]; then
+        pass "$label" "Loki has ${sample_count} samples for kitehub-gateway in last 5m"
+    else
+        fail "$label" "Loki returned 0 samples — Promtail not shipping or service silent"
+    fi
+}
+
 # Build info: read /actuator/info build.version. Echo only — no assertion.
 echo_build_info() {
     local label="$1"
@@ -475,6 +528,9 @@ check_beta_signup_flow "$KH_URL"
 # 8. Gateway routing (no 502/503)
 check_no_502 "kiteclass route"   "${KC_URL}/kiteclass/actuator/info"
 check_no_502 "kitehub-sub route" "${KH_URL}/kitehub-subscription/actuator/info"
+
+# 9b. Logs Overview end-to-end (GAP-434 Phase 2 — gated by SMOKE_LOGS_E2E=1)
+check_logs_overview_e2e
 
 # 9. Build info display (echo only — no assertion)
 echo_build_info "KH" "${KH_URL}/actuator/info"

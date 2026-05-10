@@ -1,0 +1,41 @@
+{{- if and .Values.loki.enabled .Values.monitoring.grafana.enabled }}
+---
+# GAP-434 Phase 2 — Grafana Loki datasource auto-provisioning ConfigMap.
+#
+# Provisioned via the Grafana sidecar discovery mechanism (label
+# `grafana_datasource=1`). The kube-prometheus-stack Grafana sidecar
+# (monitoring.grafana.sidecar.datasources.enabled=true — already wired
+# in this chart values.yaml) picks up ConfigMaps with this label and
+# loads them into Grafana's datasource registry on startup.
+#
+# uid: loki — matches the `${DS_LOKI}` placeholder in
+# `dashboards/logs-overview.json`, so the kitehub-logs-overview dashboard
+# panels resolve to this datasource without manual operator selection.
+#
+# Service hostname `kitehub-loki` matches loki-stack subchart's
+# fullnameOverride (see values.yaml loki.loki-stack.fullnameOverride).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kitehub-grafana-datasource-loki
+  labels:
+    app: kitehub
+    release: {{ .Release.Name }}
+    grafana_datasource: "1"
+data:
+  loki-datasource.yaml: |-
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        uid: loki
+        type: loki
+        access: proxy
+        url: http://kitehub-loki:3100
+        isDefault: false
+        editable: false
+        jsonData:
+          maxLines: 1000
+          # 90d retention matches logs-format-standard.md §4 cold tier
+          # (loki.config.limits_config.retention_period = 2160h)
+          timeout: 60
+{{- end }}

@@ -1,6 +1,6 @@
 # GAP-434: Loki/Promtail Stack (Phase 2 of GAP-115)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (chart-level wiring shipped Wave 55 Bucket A; live-cluster smoke gated on first deploy per Risk C)
 **Priority:** 🟠 P1
 **Domain:** DevOps / Observability
 **Found:** 2026-05-08 (Wave 41 Bucket F — split from GAP-115 after Phase 1 dashboards shipped)
@@ -30,15 +30,18 @@ Phase 1 intentionally split off the dashboard provisioning from the backend stac
 
 ## Acceptance Criteria
 
-- [ ] `loki-stack` dependency added + `helm dependency build` clean
-- [ ] Promtail DaemonSet scrapes pod logs in all kitehub namespaces
-- [ ] Loki backend persists chunks to S3 (90d retention)
-- [ ] Grafana sidecar auto-provisions Loki datasource (uid `loki`)
-- [ ] `kitehub-logs-overview` dashboard panels show real data within 5min of any service log
-- [ ] Tenant-scoped query verified: `{service="kitehub-subscription"} | json | tenantId="<seed-tenant>"` returns ≥1 line in dev cluster
-- [ ] `scripts/smoke-test.sh LOGS_OVERVIEW_E2E` passes
-- [ ] Cost baseline documented (S3 storage + egress + Loki compute)
-- [ ] Runbook §3 Phase 2 → "✅ Active"
+- [x] `loki-stack` dependency added (`Chart.yaml` v1.2.0, grafana/loki-stack 2.10.2)
+- [x] Promtail DaemonSet config provisioned in `values.yaml` (scrapes `/var/log/containers/*.log`, JSON pipeline extracts `service`/`level`/`tenantId`/`traceId`/`spanId`/`userId` per `logs-format-standard.md` §2)
+- [x] Loki single-binary backend configured with S3 chunk storage + BoltDB index + 90d retention (matches `logs-format-standard.md` §4)
+- [x] Grafana datasource auto-provisioning ConfigMap (`templates/grafana-datasource-loki.yaml`, uid `loki`) — sidecar discovers via `grafana_datasource=1` label
+- [x] S3 bucket name supplied via env-var/install flag (NOT hardcoded — matches `terraform-partial-backend-public-repo.md` defense-in-depth pattern)
+- [x] `scripts/smoke-test.sh` extended with `check_logs_overview_e2e` (gated by `SMOKE_LOGS_E2E=1` + `LOKI_URL` env vars; auto-warns when not enabled)
+- [ ] Live `helm dependency update` succeeds — DEFERRED: blocked by pre-existing PR #984 Go-template-in-values.yaml issue (tracked separately; not a Bucket A regression)
+- [ ] `kitehub-logs-overview` dashboard panels show real data within 5min of any service log — DEFERRED to first cluster deploy (no local k8s in solo-dev mode per Wave 55 plan §1 Q3 Risk C)
+- [ ] Tenant-scoped query verified: `{service="kitehub-subscription"} | json | tenantId="<seed-tenant>"` returns ≥1 line — DEFERRED to first cluster deploy
+- [ ] `scripts/smoke-test.sh` LOGS_OVERVIEW_E2E green run on live cluster — DEFERRED (script committed, execution gated on cluster)
+- [ ] Cost baseline documented (S3 storage + egress + Loki compute) — DEFERRED to first deploy (cost = empirical from CloudWatch/billing post-cutover)
+- [ ] Runbook `documents/05-guides/operations/runbooks/monitoring-dashboards.md` §3 Phase 2 → "✅ Active" — DEFERRED to first deploy
 
 ## Related
 
@@ -53,3 +56,11 @@ Phase 1 intentionally split off the dashboard provisioning from the backend stac
 ## Log
 
 - **2026-05-08 — Wave 41 Bucket F:** Gap created when Phase 1 (dashboard + runbook) shipped. Phase 2 scope = Loki/Promtail backend + S3 retention + smoke test. Estimated effort: ~6-8h Helm wiring + cluster smoke test (single bucket — backend stack is internally cohesive).
+- **2026-05-11 — Wave 55 Bucket A:** Chart-level wiring shipped. Status flipped 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 PARTIAL exit ramp. Scope shipped:
+  - `Chart.yaml` v1.1.0 → v1.2.0; added `grafana/loki-stack` v2.10.2 dependency (condition `loki.enabled`).
+  - `values.yaml` `loki:` section: single-binary StatefulSet + BoltDB index on PVC + S3 chunk storage (90d retention per `logs-format-standard.md` §4) + Promtail DaemonSet with JSON pipeline extracting `service`/`level`/`tenantId`/`traceId`/`spanId`/`userId` MDC labels.
+  - `templates/grafana-datasource-loki.yaml`: ConfigMap labelled `grafana_datasource=1` so kube-prometheus-stack Grafana sidecar auto-loads the datasource (uid `loki`, matches dashboard `${DS_LOKI}` placeholder).
+  - `scripts/smoke-test.sh`: `check_logs_overview_e2e` function gated by `SMOKE_LOGS_E2E=1` + `LOKI_URL` env vars. Default invocation warns once; operator enables explicitly post-deploy.
+  - S3 bucket name NEVER hardcoded — flows via `--set loki.s3.bucket=<from-terraform-output>` (defense-in-depth per `terraform-partial-backend-public-repo.md` pattern).
+  - Local verify: `helm lint` + `helm dependency update` BLOCKED by pre-existing PR #984 Go-template-in-`values.yaml` issue (`monitoring.alertmanager.config` block uses `{{- if ... }}` inside values.yaml which is invalid YAML). Confirmed pre-existing on `main` HEAD baseline (same error before Bucket A changes). NOT a Bucket A regression — tracked as separate issue. YAML validity of new `loki:` block verified via `python3 -c yaml.safe_load(...)` standalone (PASS).
+  - Live cluster verification (helm install + Promtail scrape + Loki query) DEFERRED per Wave 55 plan §1 Q3 Risk C (no local k8s in solo-dev mode). Re-verify checklist enforced when first deploy lands.
