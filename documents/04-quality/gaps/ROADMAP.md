@@ -8,9 +8,15 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-09)
+## 🎯 Current Status Snapshot (2026-05-10)
 
 ### 🚀 Next Action (signpost cho new session)
+
+**Session 2026-05-10 SHIPPED — Tier 2 + Tier 3 automation cluster (PRs #1084 + #1085):**
+- **PR #1084 MERGED** — Tier 2 status sync (4 docs reflect Origin Cert generated 2026-05-10) + new Tier 3 cutover runbook (`release-1-tier-3-cutover.md` ~600 lines: 10 steps + rollback + 13-criterion AC + Path X CLI vs Path Y workflow_dispatch).
+- **PR #1085 OPEN** — Tier 3 cutover AUTOMATION (workflow_dispatch + narrow OIDC IAM `kitehub-github-tier-3-cutover` + `cloudflare-dns.sh` extended +4 subcommands `get/set-ssl-mode` + `get/set-always-https` qua extended Cloudflare token; Path Y 1-click setup ~1h pre-deploy).
+- **AWS Activate $1k credit DENIED 2026-05-10** — reason "Your website cannot be accessed or fails to load". Curl audit confirmed (1) SSR bailout (`LandingShell.tsx ssr:false` → bot không-JS thấy "Đang tải trang chủ…") + (2) canonical URL trỏ `kitehub.vn` (16 hardcoded refs trong FE — domain dùng `.me` per GAP-458). **GAP-459 filed** với Phase 1-4 fix plan (canonical `.vn`→`.me` + LandingShellSSR server component); GAP-412 status flipped PARTIAL → 🔴 DENIED. Resubmit gated trên GAP-459 ship — work paused per user pivot ưu tiên Tier 3 automation trước.
+- **Cloudflare token in-place edit** verified: extended `kite-cli-dns-edit` với `Zone:SSL:Edit` + `Zone:Zone Settings:Edit` (token VALUE preserved → no env/secret update). 4 REST API endpoints verified working.
 
 **Wave 48 SHIPPED 2026-05-09** — DSAR DPO Email Notification (PR #1074, ~9min wall-clock vs 60-90min estimate, 8.3× speedup). Pattern reuse via `EmailServiceClient.dispatchEmail` outbox-first precedent: +2 methods in client + 2 Thymeleaf templates + `DsarServiceImpl.notifyDpo` wiring + 3 unit tests + `BR-PDPL-DSAR-006` 5-attribute review. **Cascade closure:** GAP-353c-followup-dpo-email-notification 🔵 OPEN → 🟢 DONE; GAP-353c parent 🟡 PARTIAL → 🟢 DONE per `gap-done-discipline.md` §2 (all 11/11 AC verified). mvn verify SUCCESS 455 tests; CI Test KiteHub Subscription Service 1m0s PASS.
 
