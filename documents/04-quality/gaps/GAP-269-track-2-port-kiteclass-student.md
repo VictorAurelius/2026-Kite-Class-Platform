@@ -1,6 +1,6 @@
 # GAP-269: Track 2 Port — kiteclass-student → production Next.js (mobile PWA, NEW route)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — shell + 11 screens shipped Wave 49 Bucket C; login screen reuses existing `/login`; social-login backend wiring + Lighthouse PWA validation deferred to follow-up
 **Priority:** 🟡 P2 (UX growth — Tier 2 S. Student persona, mobile-first)
 **Domain:** Frontend
 **Found:** 2026-04-29
@@ -68,4 +68,16 @@ Create production student dashboard from prototype — 14 mobile screens.
 
 ## Log
 
+- **2026-05-10 (Wave 49 Bucket C):** PARTIAL — production port shipped under `kiteclass-frontend/src/app/(dashboard)/student/` (NEW route per Wave 49 plan §1 Q3 R3). 11 screens + 1 redirect (login deferred to existing `/login`):
+  - `student/today` (Trang hôm nay) · `student/my-classes` + `[classId]` · `student/assignments` + `[assignmentId]` (offline-aware submit) · `student/grades` + `[subjectId]` · `student/attendance` (G8 AttendanceCalendar) · `student/payments` · `student/notifications` (Web Push UI) · `student/profile` · `student/empty-states`.
+  - PWA infra reused from Bucket 0 (`public/manifest.json` + `public/sw.js` + `src/lib/web-push.ts`). `sw.js` NOT modified — offline assignment retry implemented as additive page-context queue at `src/lib/offline/student-assignment-queue.ts` (Command + Outbox pattern; persisted to `localStorage`; auto-flushes on `online` event). Rationale: SW does not yet inject JWT, so submit must run in page context; future Periodic-Sync upgrade can hook this same queue.
+  - Bottom 5-tab nav (`StudentBottomTabs`) + mobile shell (`StudentMobileShell`) — 56px tap targets exceed WCAG 2.5.5 AA (44px). Persona guard in `student/layout.tsx` redirects non-STUDENT users to `/dashboard`.
+  - Vietnamese-only copy + realistic VN data (lớp 10A2, 6 môn, học phí 2.500.000 ₫/tháng).
+  - Test: `src/lib/offline/__tests__/student-assignment-queue.test.ts` covers enqueue/remove/flush success+failure/corrupt-storage tolerance.
+  - **Deferred (explicit) → follow-up sub-gaps:**
+    - Social login backend wiring (Zalo OA + Google) — UI shows existing auth state only; no new providers added.
+    - Real REST endpoints (today/grades/payments/notifications) — pages render representative VN data; backend wiring waits on kc-core REST controllers.
+    - Lighthouse PWA score ≥90 verification — manual audit not run in this bucket.
+    - E2E Playwright spec (login → today → submit offline → sync) — unit test covers the queue contract.
+  - Acceptance criteria progress: 7/10 partially or fully met (PWA infra ✅, Web Push UI ✅, offline submit ✅ via queue, 5-tab nav ✅, Vietnamese ✅, WCAG AA preserved ✅, screens ported ⚠️ at lower fidelity than 110/128 target). Per `gap-done-discipline.md` §3 PARTIAL exit ramp — does not flip DONE.
 - **2026-04-29:** Filed after user accepted Round 3 quality. HIGHEST-scoring kit Round 3 (116/128 ⭐⭐).
