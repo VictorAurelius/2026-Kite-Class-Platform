@@ -69,6 +69,16 @@ management:
   endpoint:
     health:
       show-details: ${HEALTH_SHOW_DETAILS:always}
+  # GAP-112: Distributed tracing via Micrometer Tracing + OTLP exporter.
+  # Sampling 10% in prod, override OTEL_SAMPLING_PROBABILITY=1.0 in staging/dev.
+  # OTLP endpoint defaults to empty (disables exporter); set OTEL_EXPORTER_OTLP_ENDPOINT
+  # to e.g. http://tempo:4318 to enable trace export.
+  tracing:
+    sampling:
+      probability: ${OTEL_SAMPLING_PROBABILITY:0.1}
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:}
 
 # JWT configuration
 jwt:

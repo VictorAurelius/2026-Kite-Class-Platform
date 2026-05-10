@@ -1,6 +1,6 @@
 # GAP-112: Distributed Tracing Missing
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** DevOps / Monitoring
 **Found:** 2026-04-19 (ops-readiness audit — baseline)
@@ -41,17 +41,61 @@ Feature chưa được prioritize. Spring Boot 3 hỗ trợ Micrometer Tracing O
 
 ## Acceptance Criteria
 
-- [ ] TraceId xuất hiện trong logs (depends on GAP-114 MDC)
-- [ ] Request từ FE xuyên 3 services show thành 1 trace trong Tempo/Jaeger
-- [ ] RabbitMQ messages propagate trace context
-- [ ] Grafana "Trace Latency" dashboard
-- [ ] Sampling config per environment (prod 10%, staging 100%)
+- [x] TraceId xuất hiện trong logs (depends on GAP-114 MDC) — auto-injected via Spring Boot 3.5 MDC bridge
+- [ ] Request từ FE xuyên 3 services show thành 1 trace trong Tempo/Jaeger — **deferred to live verification post-Tempo deploy (GAP-111 Phase 2)**
+- [x] RabbitMQ messages propagate trace context — auto-instrumented by Micrometer Tracing for Spring AMQP (W3C `traceparent` header on message properties)
+- [ ] Grafana "Trace Latency" dashboard — **deferred to GAP-111 Phase 2 (Grafana dashboards)**
+- [x] Sampling config per environment (prod 10%, staging 100%) — `OTEL_SAMPLING_PROBABILITY` env override; default 0.1
+
+## Current State (verified 2026-05-11)
+
+Wave 55 Bucket B shipped infrastructure foundation across **7 deployable backend services**:
+
+| Service | pom.xml deps added | application.yml updated | TracingConfigTest |
+|---|---|---|---|
+| `kitehub-subscription` | ✅ | ✅ | ✅ 2 tests pass |
+| `kitehub-branding` | ✅ | ✅ | ✅ 1 test pass |
+| `kitehub-email` | ✅ | ✅ | ✅ 1 test pass |
+| `kitehub-admin` | ✅ | ✅ | ✅ 1 test pass |
+| `kitehub-gateway` | ✅ | ✅ | ✅ 1 test pass |
+| `kiteclass-core` | ✅ | ✅ | ✅ 1 test pass |
+| `kiteclass-gateway` | ✅ | ✅ | ✅ 1 test pass |
+| `kitehub-platform` | N/A — shared library, no Spring Boot application context | N/A | N/A |
+
+Dependencies added per service (versions managed by Spring Boot 3.5 BOM):
+- `io.micrometer:micrometer-tracing-bridge-otel`
+- `io.opentelemetry:opentelemetry-exporter-otlp`
+
+Application.yml block per service:
+```yaml
+management:
+  tracing:
+    sampling:
+      probability: ${OTEL_SAMPLING_PROBABILITY:0.1}
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:}
+```
+
+**RabbitMQ propagation:** Spring Boot 3.5 + Micrometer Tracing auto-instruments Spring AMQP. `RabbitTemplate` automatically adds W3C `traceparent` to message headers; `@RabbitListener` automatically extracts and continues the trace context. No manual `MessagePostProcessor` or interceptor needed.
+
+## Why PARTIAL (not DONE)
+
+Per `gap-done-discipline.md` §2 + §3 PARTIAL exit ramp — 2 of 5 ACs require infrastructure not yet deployed:
+
+1. **Live trace verification across services** — requires Tempo/Jaeger backend deployed (tracked GAP-111 monitoring stack Phase 2)
+2. **Grafana "Trace Latency" dashboard** — requires Grafana provisioning (tracked GAP-111 Phase 2)
+
+The application-side infrastructure (deps + config + auto-instrumentation + tests) is fully in place. As soon as `OTEL_EXPORTER_OTLP_ENDPOINT` env var points to a live Tempo collector, traces will flow without further code changes.
 
 ## Related
 
 - Audit: `documents/04-quality/audits/ops/ops-readiness-audit-2026-04-19.md` §4
 - Depends: GAP-111 (monitoring stack in prod), GAP-114 (MDC traceId)
+- Wave 55 Bucket B PR (this PR) — application-side foundation
+- Follow-up GAP-111 Phase 2 — live verification + Grafana dashboard
 
 ## Log
 
 - 2026-04-19 — Discovered in ops-readiness baseline audit
+- **2026-05-11** — Wave 55 Bucket B shipped: tracing dependencies + `management.tracing.*` config across 7 deployable backend services (5 KH + 2 KC); 8 unit tests verify Spring `Tracer` bean wires when OTLP endpoint configured. RabbitMQ `traceparent` propagation auto-instrumented via Spring Boot 3.5 + Micrometer Tracing for Spring AMQP — verified by Spring Boot documentation, no manual `RabbitTemplate` wrapping needed. Status flipped 🔵 OPEN → 🟡 PARTIAL pending Tempo/Jaeger backend (GAP-111 Phase 2). `kitehub-platform` skipped (shared library, no Spring Boot application context). Verified `mvn verify -P strict-warnings` clean for all 5 KH services + KC gateway; KC core failures pre-existing (TenantIsolationIT GAP-466 RLS, unrelated to this change — confirmed via stash-and-verify on clean tree).
