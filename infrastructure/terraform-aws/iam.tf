@@ -464,3 +464,132 @@ resource "aws_iam_role_policy" "github_restore_drill_inline" {
     ]
   })
 }
+
+# =============================================================================
+# GitHub OIDC — Tier 3 cutover role (.github/workflows/tier-3-cutover.yml)
+# =============================================================================
+# Per GAP-459 + release-deploy-standard.md §9 (workflow_dispatch + confirm-input
+# narrow OIDC role). Scoped to operational state-changes for Tier 3 cutover:
+#   - EC2 lifecycle: Start/Stop/DescribeInstances
+#   - RDS lifecycle: Start/Stop/DescribeDBInstances
+#   - ACM:           ImportCertificate, ListCertificates, DescribeCertificate
+#   - ELBv2 listener: Create/Modify/Delete, AddListenerCertificates, Describe*
+#
+# NO IAM management (those are in github_terraform_apply role). NO write to S3
+# beyond logs. Trust: GitHub Environment 'production' only — same gate as
+# terraform-apply role (requires environment protection rules in repo settings).
+
+resource "aws_iam_role" "github_tier_3_cutover" {
+  name = "${var.project_name}-github-tier-3-cutover"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Federated = aws_iam_openid_connect_provider.github.arn }
+      Action    = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+        StringLike = {
+          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:environment:production"
+        }
+      }
+    }]
+  })
+
+  tags = { Name = "${var.project_name}-github-tier-3-cutover" }
+}
+
+resource "aws_iam_role_policy" "github_tier_3_cutover_inline" {
+  name = "${var.project_name}-github-tier-3-cutover-inline"
+  role = aws_iam_role.github_tier_3_cutover.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      # EC2 lifecycle — Start/Stop/Describe scoped to Project=kitehub-tagged instances
+      {
+        Sid    = "Ec2Lifecycle"
+        Effect = "Allow"
+        Action = [
+          "ec2:StartInstances",
+          "ec2:StopInstances",
+        ]
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "aws:ResourceTag/Project" = var.project_name
+          }
+        }
+      },
+      {
+        Sid    = "Ec2Describe"
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeInstances",
+          "ec2:DescribeInstanceStatus",
+        ]
+        Resource = "*"
+      },
+      # RDS lifecycle — Start/Stop/Describe (RDS doesn't support tag-based condition for Start/Stop)
+      {
+        Sid    = "RdsLifecycle"
+        Effect = "Allow"
+        Action = [
+          "rds:StartDBInstance",
+          "rds:StopDBInstance",
+          "rds:DescribeDBInstances",
+        ]
+        Resource = "*"
+      },
+      # ACM — Import + Describe (limited to specific account)
+      {
+        Sid    = "AcmCertManagement"
+        Effect = "Allow"
+        Action = [
+          "acm:ImportCertificate",
+          "acm:ListCertificates",
+          "acm:DescribeCertificate",
+          "acm:GetCertificate",
+          "acm:AddTagsToCertificate",
+        ]
+        Resource = "*"
+      },
+      # ELBv2 — Listener + cert binding for ALB HTTPS
+      {
+        Sid    = "ElbV2ListenerOps"
+        Effect = "Allow"
+        Action = [
+          "elasticloadbalancing:DescribeLoadBalancers",
+          "elasticloadbalancing:DescribeListeners",
+          "elasticloadbalancing:DescribeListenerCertificates",
+          "elasticloadbalancing:DescribeTargetGroups",
+          "elasticloadbalancing:DescribeTargetHealth",
+          "elasticloadbalancing:CreateListener",
+          "elasticloadbalancing:ModifyListener",
+          "elasticloadbalancing:AddListenerCertificates",
+          "elasticloadbalancing:RemoveListenerCertificates",
+        ]
+        Resource = "*"
+      },
+      # CloudWatch logs (for workflow output debugging if needed)
+      {
+        Sid    = "LogsRead"
+        Effect = "Allow"
+        Action = [
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams",
+          "logs:GetLogEvents",
+        ]
+        Resource = "*"
+      },
+    ]
+  })
+}
+
+output "github_tier_3_cutover_role_arn" {
+  description = "ARN of GitHub OIDC role for tier-3-cutover.yml workflow_dispatch"
+  value       = aws_iam_role.github_tier_3_cutover.arn
+}

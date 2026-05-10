@@ -9,9 +9,14 @@
 #   bash scripts/cloudflare-dns.sh toggle-proxy <record-name>   # DNS only ↔ Proxied
 #   bash scripts/cloudflare-dns.sh origin-cert <hostnames>      # Generate Origin Cert via API
 #   bash scripts/cloudflare-dns.sh zone                          # zone metadata
+#   bash scripts/cloudflare-dns.sh get-ssl-mode                  # current SSL mode
+#   bash scripts/cloudflare-dns.sh set-ssl-mode <flexible|full|strict>
+#   bash scripts/cloudflare-dns.sh get-always-https              # current Always Use HTTPS state
+#   bash scripts/cloudflare-dns.sh set-always-https <on|off>
 #
 # Env requirements:
 #   CLOUDFLARE_API_TOKEN          — token with Zone:DNS:Edit + Zone:Zone:Read scope
+#                                   (+ Zone:SSL:Edit + Zone:Zone Settings:Edit cho ssl-mode/always-https)
 #   CLOUDFLARE_ZONE_ID_KITEHUB_ME — zone ID (auto-loaded từ ~/.bashrc nếu setup per
 #                                   documents/05-guides/dev/cloudflare-cli-setup.md)
 #
@@ -98,6 +103,46 @@ for r in d['result']:
       | python3 -c "import sys,json; d=json.load(sys.stdin); print('OK' if d.get('success') else 'ERROR:'+str(d.get('errors')))"
     ;;
 
+  get-ssl-mode)
+    curl -s -H "Authorization: Bearer $TOKEN" "$API/zones/$ZONE_ID/settings/ssl" \
+      | python3 -c "import sys,json; r=json.load(sys.stdin);
+print(r['result']['value']) if r.get('success') else (print('ERROR:', r.get('errors')), sys.exit(1))"
+    ;;
+
+  set-ssl-mode)
+    mode="${1:-}"
+    case "$mode" in
+      off|flexible|full|strict) ;;
+      *) echo "Usage: $0 set-ssl-mode <off|flexible|full|strict>" >&2; exit 1 ;;
+    esac
+    echo "Switching SSL mode → $mode"
+    curl -s -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+      "$API/zones/$ZONE_ID/settings/ssl" \
+      -d "{\"value\":\"$mode\"}" \
+      | python3 -c "import sys,json; r=json.load(sys.stdin);
+print('OK — SSL mode now:', r['result']['value']) if r.get('success') else (print('ERROR:', r.get('errors')), sys.exit(1))"
+    ;;
+
+  get-always-https)
+    curl -s -H "Authorization: Bearer $TOKEN" "$API/zones/$ZONE_ID/settings/always_use_https" \
+      | python3 -c "import sys,json; r=json.load(sys.stdin);
+print(r['result']['value']) if r.get('success') else (print('ERROR:', r.get('errors')), sys.exit(1))"
+    ;;
+
+  set-always-https)
+    state="${1:-}"
+    case "$state" in
+      on|off) ;;
+      *) echo "Usage: $0 set-always-https <on|off>" >&2; exit 1 ;;
+    esac
+    echo "Switching Always Use HTTPS → $state"
+    curl -s -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+      "$API/zones/$ZONE_ID/settings/always_use_https" \
+      -d "{\"value\":\"$state\"}" \
+      | python3 -c "import sys,json; r=json.load(sys.stdin);
+print('OK — Always Use HTTPS now:', r['result']['value']) if r.get('success') else (print('ERROR:', r.get('errors')), sys.exit(1))"
+    ;;
+
   origin-cert)
     # Origin CA endpoint requires SEPARATE token với permissions:
     # - Account: SSL and Certificates: Edit (account-level)
@@ -167,12 +212,18 @@ Commands:
   toggle-proxy <name>      Switch DNS only ↔ Proxied
   origin-cert [hostnames]  Generate Cloudflare Origin Cert (default: kitehub.me,*.kitehub.me)
                            Saves .pem + .key to ~/.gcal-mcp/cloudflare-origin-cert/
+  get-ssl-mode             Show current SSL mode (off/flexible/full/strict)
+  set-ssl-mode <mode>      Set SSL mode — Tier 3 §6 needs 'strict'
+  get-always-https         Show Always Use HTTPS state (on/off)
+  set-always-https <on|off>  Toggle Always Use HTTPS — Tier 3 §7 needs 'on'
 
 Examples:
   bash scripts/cloudflare-dns.sh list
   bash scripts/cloudflare-dns.sh add CNAME staging cname.vercel-dns.com
   bash scripts/cloudflare-dns.sh toggle-proxy api.kitehub.me
   bash scripts/cloudflare-dns.sh origin-cert
+  bash scripts/cloudflare-dns.sh set-ssl-mode strict     # Tier 3 §6
+  bash scripts/cloudflare-dns.sh set-always-https on     # Tier 3 §7
 EOF
     ;;
 esac
