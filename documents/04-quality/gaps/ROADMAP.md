@@ -28,11 +28,23 @@
 | Step | Status |
 |------|:------:|
 | 1. Phase 4 milestone audit | ✅ DONE (Wave 53+54: UI 111.7 + Quality 87 + Performance 81) |
-| 2. Production observability validation | ⏳ Wave 55 (GAP-434 Loki + GAP-112 tracing + GAP-144 alert receivers parallel ~3 weeks) |
+| 2. Production observability validation | 🟡 PARTIAL (Wave 55 SHIPPED 2026-05-11; chart-level + foundation DONE per PRs #1119 Loki / #1125 tracing / #1120 alertmanager; live-cluster validation gated step 4 first deploy) |
 | **2.5 (NEW)** Multi-tenant RLS hardening | ⏳ Wave 56-57 (GAP-466 P1, ~5-6 days) |
 | 3. AWS funding decision | 🟡 RESUBMITTED 2026-05-11; pending D+14 (2026-05-25 reminder set) |
 | 4. Tier 3 cutover (api.kitehub.me HTTPS) | ⏳ runbook ready GAP-449; gated step 3 funding decision |
 | 5. Beta tenant onboarding (4-6 week beta period) | ⏳ gated step 4 + RLS hardening |
+
+**Wave 55 SHIPPED 2026-05-11 — Production Observability Validation (PRs #1118 plan + #1119 A Loki + #1125 B tracing + #1120 C alertmanager + #1121 side-discoveries + closure):**
+- **Bucket A GAP-434 Loki/Promtail Phase 2** → PR #1119 → 🟡 PARTIAL: Helm subchart `grafana/loki-stack` 2.10.2 added; `loki:` block in values.yaml (single-binary + S3 90d + Promtail DaemonSet + JSON pipeline for tenantId/traceId/spanId/level/service); new `templates/grafana-datasource-loki.yaml` (uid `loki`); `scripts/smoke-test.sh` extended with `LOGS_OVERVIEW_E2E` (gated `SMOKE_LOGS_E2E=1`); 6/12 AC. Live `helm test` + LogQL query deferred to first deploy (no local k8s; matches GAP-144 mock-fire precedent).
+- **Bucket B GAP-112 distributed tracing** → PR #1125 → 🟡 PARTIAL: 7 deployable modules (gateway + 6 KH services + kc-core/gateway) instrumented with `micrometer-tracing-bridge-otel` + `opentelemetry-exporter-otlp` (Spring Boot 3.5 BOM-managed). `application.yml` env-driven `OTEL_SAMPLING_PROBABILITY=0.1` + `OTEL_EXPORTER_OTLP_ENDPOINT`. **RabbitMQ auto-instrumented** (no manual interceptor needed — Spring AMQP picks up W3C `traceparent` OOTB). 1 TracingConfigTest per service. All 7 modules `mvn verify -P strict-warnings` ✅. 3/5 AC; live Tempo backend + Grafana dashboard deferred to GAP-111 Phase 2.
+- **Bucket C GAP-144 mock-fire backfill** → PR #1120 → stays 🟡 PARTIAL: ExternalSecret 3→5 keys (added `smtp-host` + `smtp-username`); `monitoring.alertmanager.smtp.smarthost` regional default extended; new `documents/05-guides/operations/runbooks/alertmanager-mock-fire-runbook.md` (285 lines — offline `amtool check-config` + online `amtool alert add` per-receiver + 4-section troubleshooting). Live-cluster delivery verification still gated platform deploy.
+- **Side-discoveries** → PR #1121 → 2 follow-up gaps filed:
+  - **GAP-467** 🟠 P1 — PR #984 embedded Go templates `{{- if ... }}` directly in `values.yaml` → breaks `helm lint`/`helm template` on main HEAD. Both Bucket A + C agents independently verified pre-existing via `git stash` baseline. Single fix (extract templated block to `templates/alertmanager-config.yaml`) unblocks all helm work.
+  - **GAP-468** 🟠 P1 — 9 HIGH CVE in built Docker jars (6× netty 4.1.132 + postgres JDBC + bcprov + spring-cloud-gateway). Single Spring Boot BOM bump fixes most. **Sequencing:** MUST land after Bucket B merged (now satisfied; gap unblocked).
+- **Risk A (`values.yaml` overlap A+C) materialized as expected; mitigation worked** — sequential rebase A→C produced clean merge (different YAML sub-trees: A added top-level `loki:`, C extended `monitoring.alertmanager.smtp` block).
+- **Wall-clock:** ~95 min coordinator (3 agents parallel + sequential merge B→A→C) vs ~5-7 calendar days serial estimate. Wave-pack methodology continues 5-7× speedup.
+- **Phase 1 BETA critical-path step 2** ⏳ → 🟡 PARTIAL (chart-level + foundation shipped; live-cluster validation gated step 4 first deploy via GAP-449 → step 3 AWS funding decision unblock).
+- **Streak: 90** consecutive 0-clarification-flip waves.
 
 **Wave 54 SHIPPED 2026-05-11 — Performance /100 redux + Observability state-check (PRs #1109 plan + #1110 Performance):**
 - **Performance /100:** ✅ Bucket A PR #1110 — **81/100 B** (Δ +6 vs Wave 40 75/100). Zero P1 remaining (3 Wave 40 P1 unbounded `findAll` closed Wave 41 GAP-432). Wave 51 new endpoints fully compliant pagination. Zero new sub-gaps.
