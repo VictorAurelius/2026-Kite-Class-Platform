@@ -1,6 +1,6 @@
 # GAP-271: Track 2 Port — kitehub-admin → production Next.js (NEW K-12 Principal scope)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟡 P2 (UX growth — Tier 1 P5 K-12 School Principal persona)
 **Domain:** Frontend
 **Found:** 2026-04-29
@@ -67,3 +67,16 @@ Port 12 dense-desktop screens for P5 K-12 School Principal.
 ## Log
 
 - **2026-04-29:** Filed after user accepted Round 3 quality.
+- **2026-05-10 (Wave 50 Bucket A):** Port shipped — 11 production Next.js screens under NEW `(school-admin)/school-admin/**` route group. Login screen NOT recreated — reuses existing `/login` (auth shared across personas). Decisions:
+  - Route group: NEW `(school-admin)/**` (not extending `(admin)/admin/**` PLATFORM admin). URL path `/school-admin/*` to avoid root-path collision with `(public)`/`(customer)` route groups.
+  - Auth gate: layout reuses `useAuthStore.isAuthenticated` (no `SCHOOL_ADMIN` role enum yet — `User.role` is `OWNER | ADMIN`); accepts any authenticated session for now. Tighten when backend exposes the new role.
+  - Components imported from `@kite/shared-ui`: G1 BulkImportDropzone (bulk-import), G3 GradebookEntryGrid (report-cards preview), G10 PaymentStatusTimeline (fees example). NO inline copies. ImportSummary aux type re-declared inline because not exported by shared-ui index (follow-up: add to shared-ui exports).
+  - Screens: dashboard, bulk-import, teacher-management, multi-class-roster, academic-calendar, report-cards, parent-comms, fees, conduct, school-profile, empty-states. Login skipped (reuse).
+  - VN K-12 mock data: Trường THCS Nguyễn Du (1.247 HS, 25 lớp 5×5 grade blocks, 62 GV scaled-down sample 8 in code, 5 conduct cases covering all 5 escalation steps, 25-class report-card status with MoET compliance flags).
+  - MoET compliance stamp visible: dashboard event card, academic-calendar event row, report-cards header banner, school-profile sidebar.
+  - 5-step conduct ladder UI: dedicated section + step badge component + per-step filter.
+  - Parent comms SLA timer: SlaIndicator component with 3-state pill (success/warning/danger).
+  - Hierarchy breadcrumb on all pages via PageHeader breadcrumbs prop (school → section → screen).
+  - ⌘K palette: trigger present in sidebar; full command-palette behaviour deferred (UI-only stub now).
+  - Build verify: `pnpm build` PASSED (Next.js 15.5.15, 11 routes prerendered static). Tests: 8/8 pass under `vitest run school-admin` (shell + mock-data realism assertions).
+  - PARTIAL not DONE: ⌘K palette functionality not wired; ≥105/128 per-screen score not measured (no UI audit run); MoET compliance stamp shipped per spec but legal sign-off out-of-scope (Phase 3 K-12 trigger).
