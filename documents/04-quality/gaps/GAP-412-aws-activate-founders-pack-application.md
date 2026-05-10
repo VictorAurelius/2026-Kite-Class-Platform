@@ -1,6 +1,6 @@
 # GAP-412: AWS Activate Founders Pack Application ($1k credit)
 
-**Status:** 🟡 PARTIAL 2026-05-07 (policy + pitch deck shipped; submission + approval = human action post-deploy per GAP-381 Phase 2 BANNED-for-agent)
+**Status:** 🟡 PARTIAL 2026-05-09 (submission DONE 2026-05-09 17:19 ICT; awaiting approval ~1-2 tuần; flip → 🟢 DONE khi credit balance applied billing dashboard)
 **Priority:** 🔴 P0 v0.9.0-beta
 **Domain:** Infrastructure / Cost / Business
 **Found:** 2026-05-07 (Wave 37 — Layer 5)
@@ -28,9 +28,9 @@ Document credit usage policy:
 
 ## Acceptance Criteria
 
-- [ ] Application submitted (screenshot confirmation) — **deferred: human action post-deploy per GAP-381**
+- [x] Application submitted (screenshot confirmation) — **submitted 2026-05-09 ~17:19 ICT** (form qua https://aws.amazon.com/startups/credits/ → Activate Founder $1k tier; calendar reminder D+14 set qua MCP cho approval check 2026-05-23)
 - [x] Pitch deck draft `documents/00-brd/kite-pitch-deck.md` (1-page minimum)
-- [ ] Credit approval received → balance reflected billing dashboard — **deferred: human action post-submission**
+- [ ] Credit approval received → balance reflected billing dashboard — **pending AWS review (typical 1-2 tuần)**
 - [x] Document `documents/05-guides/deploy/aws-activate-credit-policy.md` (usage rules)
 - [ ] Budget alarm wired (GAP-413 dependency) — **tracked separately GAP-413 + GAP-395 Terraform**
 
@@ -45,3 +45,4 @@ Document credit usage policy:
 ## Log
 
 - **2026-05-07** — PARTIAL. Pitch deck + credit allocation policy shipped (Wave 37 Bucket E). Application submission + approval = human action post-deploy per GAP-381 Phase 2 BANNED-for-agent. Follow-up: track submission + approval evidence in next monthly cost report (per `documents/04-quality/cost-reports/2026-06-template.md`).
+- **2026-05-09 (submission)** — Submitted Activate Founder $1k tier qua https://aws.amazon.com/startups/credits/ (rebrand từ /activate/founders-pack/). Form fields: Company KiteClass, Country VN, Industry Education, AWS account 906286017800, Founded 2026-01-01, Stage "Ideating/building initial product", Customer type Businesses (B2B), AI/ML Yes, % AWS spend 75-99%, No Funding, Marketing <$250k, Planned launch 2026-07. Pitch deck PDF (3 pages, 95KB) attached qua md-to-pdf render. Calendar reminder D+14 (2026-05-23 10:00 ICT) set qua Google Calendar MCP cho approval status check. AC #1 flipped checked. AC #3 (approval) chờ AWS review 1-2 tuần.

@@ -11,11 +11,13 @@
 
 Theo thứ tự dependency:
 
-1. ✅ **Domain mua xong** (`account-prep/02-domain-registrar.md`) — `kitehub.vn` + `kiteclass.vn` đã register
+1. ✅ **Domain claim xong** (`account-prep/02b-github-student-pack-free-domain.md` qua Free path Student Pack 2026-05-09 hoặc `02-domain-registrar.md` Paid path)
 2. ✅ **Cloudflare nameservers active** (`cloudflare-setup.md` §1-2) — domain trỏ về Cloudflare NS
-3. ✅ **Cloudflare DNS records ALB** (`cloudflare-setup.md` §3 + `dns-setup-runbook.md` §2.3) — `api.kitehub.vn` / `api.kiteclass.vn` trỏ về AWS ALB DNS
-4. ✅ **SSL/TLS Full(strict)** (`dns-setup-runbook.md` §2.4) — ACM cert binding ALB + Cloudflare SSL active
-5. ✅ **AWS BE running** — EC2 + RDS resume (`aws-cost-scheduling.md` §4 manual override) + ALB target group healthy
+3. ✅ **Cloudflare DNS records** (`cloudflare-setup.md` §3 + `dns-setup-runbook.md` §2.3) — apex CNAME → Vercel + `api.<domain>` → AWS ALB
+4. ⏳ **SSL/TLS Full(strict)** — Vercel apex cert ✅ Let's Encrypt auto-issued; ALB HTTPS listener cert binding **block trên Tier 3** (`release-1-tier-3-cutover.md`)
+5. ⏳ **AWS BE running** — EC2 + RDS đang STOPPED cost-save; resume qua `aws-cost-scheduling.md` §4 hoặc `release-1-tier-3-cutover.md` §1
+
+> **Tier 1 + 2 status (per session 2026-05-09/10):** Vercel custom domain + env var ✅; Cloudflare DNS + Email Routing + Origin Cert generated ✅. **Tier 3 cutover** (resume EC2 → ACM import → ALB binding → Cloudflare Full strict) tracked riêng trong `release-1-tier-3-cutover.md`.
 
 Nếu BẤT KỲ pre-flight item nào chưa xong → quay lại guide tương ứng. Vercel setup này KHÔNG hoạt động độc lập — FE phải gọi được backend qua HTTPS để smoke test pass.
 
@@ -87,13 +89,17 @@ Preview environment có thể dùng cùng giá trị Production HOẶC trỏ v�
 
 ### 3.1 Domain plan — pick 1
 
-| Plan | Vercel domain | Backend domain | Phù hợp |
-|---|---|---|---|
-| **A — Apex + subdomain** | `kitehub.vn` (Vercel) | `api.kitehub.vn` (AWS ALB) | Phase 1 BETA invite-only — branded, simple |
-| **B — Subdomain only** | `app.kitehub.vn` (Vercel) | `api.kitehub.vn` (AWS ALB) | Phase 1.5 PAID public — apex `kitehub.vn` cho marketing/landing trên Vercel |
-| **C — Beta prefix** | `beta.kitehub.vn` (Vercel) | `api.kitehub.vn` (AWS ALB) | Phase 1 BETA early — apex còn placeholder, beta tách riêng |
+> **Decision 2026-05-09 (GAP-458):** Release 1 dùng **`kitehub.me`** (Free 1 năm qua GitHub Student Pack — `account-prep/02b-github-student-pack-free-domain.md`). Bảng dưới support cả paid `.vn` lẫn free `.me`.
 
-**Khuyến nghị Phase 1 BETA invite-only:** Plan **C** (`beta.kitehub.vn` + `beta.kiteclass.vn`) — apex domain còn `Coming soon` placeholder; beta tenants thấy URL `https://beta.kitehub.vn` rõ ràng đây là beta period.
+| Plan | Vercel domain (`.me` Free) | Vercel domain (`.vn` paid) | Backend domain | Phù hợp |
+|---|---|---|---|---|
+| **A — Apex + subdomain** | `kitehub.me` | `kitehub.vn` | `api.kitehub.me` (hoặc `.vn`) | Phase 1 BETA invite-only — branded, simple |
+| **B — Subdomain only** | `app.kitehub.me` | `app.kitehub.vn` | `api.kitehub.me` | Phase 1.5 PAID public — apex cho marketing/landing trên Vercel |
+| **C — Beta prefix** | `beta.kitehub.me` | `beta.kitehub.vn` | `api.kitehub.me` | Phase 1 BETA early — apex còn placeholder, beta tách riêng |
+
+**Khuyến nghị Release 1 (Free path):** Plan **A** với `kitehub.me` apex — domain mới claim, không có legacy → dùng apex luôn rõ ràng. KiteClass tenants access qua subdomain pattern `tenant1.kitehub.me`, `tenant2.kitehub.me` (wildcard DNS A record `*.kitehub.me` → ALB; FE Next.js parse subdomain → tenantId per `kiteclass-frontend/src/lib/tenant.ts`).
+
+**Khuyến nghị Phase 1 BETA invite-only (paid path nếu user prefer `.vn`):** Plan **C** (`beta.kitehub.vn` + `beta.kiteclass.vn`) — apex domain còn `Coming soon` placeholder.
 
 ### 3.2 Vào Settings → Domains
 

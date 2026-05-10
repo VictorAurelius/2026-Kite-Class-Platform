@@ -23,7 +23,7 @@ Theo `release-1-deploy-plan.md` §2.1 pre-deploy checklist. **Phụ thuộc gi�
 
 | # | Action | Guide | Thời lượng | Cost |
 |---|---|---|---|---|
-| 1 | Mua domain `.vn` (Mắt Bão / PA Vietnam / Z.com) | [`account-prep/02-domain-registrar.md`](../account-prep/02-domain-registrar.md) | 30 phút + propagation 1-3 ngày | **~$60/year** (2 domains) |
+| 1 | **Domain procurement** — chọn 1 path: <br>· **Free path (Recommended Release 1):** `kitehub.me` qua GitHub Student Pack — [`account-prep/02b-github-student-pack-free-domain.md`](../account-prep/02b-github-student-pack-free-domain.md) <br>· **Paid path:** `.vn` qua VN registrar — [`account-prep/02-domain-registrar.md`](../account-prep/02-domain-registrar.md) | (xem cột guide) | 30 phút + propagation 1-3 ngày | **$0** (Student Pack) hoặc **~$60/year** (2 `.vn` domains) |
 | 2 | Cloudflare account + nameservers active | [`cloudflare-setup.md`](cloudflare-setup.md) §1-2 | 20 phút + Cloudflare verification | $0 (Free tier) |
 | 3 | Cloudflare DNS records → AWS ALB | [`cloudflare-setup.md`](cloudflare-setup.md) §3 + [`dns-setup-runbook.md`](dns-setup-runbook.md) §2.3 | 15 phút | $0 |
 | 4 | SSL Full(strict) + ACM cert | [`dns-setup-runbook.md`](dns-setup-runbook.md) §2.4 | 15 phút (auto cert issue 1-3 phút) | $0 |

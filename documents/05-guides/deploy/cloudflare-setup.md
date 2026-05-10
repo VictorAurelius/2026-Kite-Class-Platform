@@ -1,8 +1,10 @@
 # Cloudflare CDN Setup — Hướng Dẫn Cài Đặt
 
-**Last updated:** 2026-05-07
-**Applies to:** `kitehub.vn` + `kiteclass.vn` — Production domains
-**Related:** GAP-371 (CDN Cloudflare), GAP-369 (DNS production setup), Wave 38 Bucket D (staging runbook)
+**Last updated:** 2026-05-09 (GAP-458 — `.me` Free path support)
+**Applies to:**
+- **Free path Release 1 (Recommended, GAP-458):** `kitehub.me` apex domain — 1 domain duy nhất qua GitHub Student Pack
+- **Paid path alternative:** `kitehub.vn` + `kiteclass.vn` — 2 production domains qua VN registrar
+**Related:** GAP-371 (CDN Cloudflare), GAP-369 (DNS production setup), GAP-458 (domain decision `kitehub.me`), Wave 38 Bucket D (staging runbook)
 **Tier:** Cloudflare Free (Phase 1 BETA) — xem §11 để đánh giá Pro
 
 ---
@@ -54,28 +56,39 @@ Internal services (subscription, branding, core, ...)
 
 ## §3 Thêm Domain vào Cloudflare
 
-Làm lần lượt cho **cả 2 domains**: `kitehub.vn` + `kiteclass.vn`
+> **Free path Release 1 (GAP-458 decision 2026-05-09):** chỉ 1 domain `kitehub.me` — Student Pack chỉ cấp 1 free domain. KiteClass tenants access qua wildcard subdomain `*.kitehub.me` (Pattern A — vd `tenant1.kitehub.me`).
+>
+> **Paid path alternative:** nếu user mua `.vn` paid sau này, làm lần lượt cho **cả 2 domains** `kitehub.vn` + `kiteclass.vn`.
 
 ### 3.1 Add site
 
+**Free path (Recommended — 1 domain duy nhất):**
 ```
-Cloudflare Dashboard → Add a Site → nhập domain (vd: kitehub.vn) → Continue
+Cloudflare Dashboard → Add a Site → nhập kitehub.me → Continue
 ```
 
-Chọn plan **Free** → Continue.
+**Paid path (2 domains):**
+```
+Cloudflare Dashboard → Add a Site → nhập kitehub.vn → Continue
+... (lặp lại với kiteclass.vn)
+```
+
+Chọn plan **Free** → Continue (scroll xuống cuối list, $0/month — tránh chọn Pro/Business).
 
 ### 3.2 Cloudflare scan DNS records
 
-Cloudflare tự scan DNS records hiện tại. **Kiểm tra kỹ:**
+Cloudflare tự scan DNS records hiện tại. **Đối với domain mới claim từ Student Pack** scan sẽ rỗng (đúng — domain chưa có records). **Kiểm tra:**
 
-| Record Type | Name | Expected |
+| Record Type | Name | Expected (post-launch) |
 |---|---|---|
-| A | `@` (apex) | IP của AWS ALB/EC2 |
-| A | `www` | IP của AWS ALB/EC2 |
-| MX | `@` | Nếu có email, phải giữ nguyên |
-| TXT | `@` | SPF/DKIM records nếu có |
+| A | `@` (apex) | IP của AWS ALB (sẽ thêm sau §5) |
+| CNAME | `*` (wildcard) | `kitehub.me` apex (cho subdomain pattern, Free path) |
+| CNAME | `app` hoặc `www` | Vercel project alias (cho FE) |
+| A | `api` | IP của AWS ALB |
+| MX | `@` | Nếu setup email (SES) — giữ nguyên |
+| TXT | `@` | SPF/DKIM/DMARC nếu có (post GAP-370 SES production) |
 
-> **QUAN TRỌNG:** Đảm bảo tất cả records proxied (cam ☁️) trừ MX + các records không cần CDN.
+> **QUAN TRỌNG:** Đảm bảo tất cả records proxied (cam ☁️) trừ MX + records không cần CDN.
 
 Nếu Cloudflare miss records nào, thêm thủ công trước khi proceed (xem §5).
 
@@ -83,11 +96,11 @@ Nếu Cloudflare miss records nào, thêm thủ công trước khi proceed (xem 
 
 Cloudflare sẽ cấp 2 nameservers, ví dụ:
 ```
-ns1.cloudflare.com   (thực tế sẽ khác)
-ns2.cloudflare.com   (thực tế sẽ khác)
+ana.ns.cloudflare.com   (mỗi account Cloudflare khác nhau)
+bob.ns.cloudflare.com   (mỗi account Cloudflare khác nhau)
 ```
 
-Ghi lại đúng nameservers được cấp — mỗi account Cloudflare có nameservers riêng.
+Ghi lại 2 dòng này — sẽ paste vào Namecheap (Free path) hoặc VN registrar (Paid path) ở §4.
 
 ---
 
@@ -98,27 +111,51 @@ Ghi lại đúng nameservers được cấp — mỗi account Cloudflare có nam
 
 ### 4.1 Tìm registrar
 
-Domain `.vn` thường được đăng ký qua:
+**Free path:** Namecheap (claim qua GitHub Student Pack — `account-prep/02b-github-student-pack-free-domain.md`).
+
+**Paid path:** Domain `.vn` thường được đăng ký qua:
 - VNPT/VinaPhone domain (khách hàng enterprise)
 - PA Vietnam (pavietnam.vn)
 - Mắt Bão (matbao.net)
 - Nhân Hòa (nhanhoa.com)
 
-Kiểm tra WHOIS để xác định registrar:
+Kiểm tra registrar (nếu không nhớ):
 ```bash
+# Free path
+curl -s "https://rdap.verisign.com/com/v1/domain/kitehub.me" 2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin).get('registrar',{}).get('name','?'))"
+
+# Paid path (cần whois CLI cài qua apt-get install whois)
 whois kitehub.vn | grep -i "registrar\|name server"
 ```
 
 ### 4.2 Thay nameservers
 
+**Free path (Namecheap):**
+
+1. Mở https://ap.www.namecheap.com/domains/list/
+2. Click **Manage** bên cạnh `kitehub.me`
+3. Tab **Domain** (mặc định mở) → scroll xuống section **Nameservers**
+4. Dropdown chọn **Custom DNS** (mặc định "Namecheap BasicDNS")
+5. 2 ô input xuất hiện → paste 2 Cloudflare nameservers từ §3.3
+6. Click ✓ (checkmark) bên phải để save
+7. Confirm popup nếu hiện
+
+**Paid path (VN registrar):**
+
 Login vào registrar panel → DNS Management / Nameserver Settings → xóa nameservers cũ → nhập 2 nameservers Cloudflare từ §3.3.
 
-**Thời gian propagation:** 2–24 giờ (thường <4h cho .vn)
+**Thời gian propagation:**
+- Namecheap (`.me`): 5-30 phút (thường nhanh)
+- VN `.vn` registrars: 2-24 giờ (thường <4h)
 
 ### 4.3 Xác nhận propagation
 
 ```bash
-# Check từ DNS resolver công khai
+# Free path — check từ DNS resolver công khai
+getent hosts kitehub.me
+# (hoặc nếu có dig: dig NS kitehub.me @8.8.8.8 ; dig NS kitehub.me @1.1.1.1)
+
+# Paid path
 dig NS kitehub.vn @8.8.8.8
 dig NS kitehub.vn @1.1.1.1
 
@@ -132,6 +169,9 @@ Sau khi propagation xong, Cloudflare Dashboard sẽ hiện **"Active"** status c
 ---
 
 ## §5 Cấu Hình DNS Records (Proxied)
+
+> **Free path note (GAP-458):** examples dưới đây dùng `kitehub.vn` từ thiết kế cũ. Khi user đi Free path `kitehub.me`, mentally substitute mọi `*.kitehub.vn` → `*.kitehub.me`. Pattern wildcard subdomain `*.kitehub.me` = wildcard `*.kitehub.vn` về mặt logic CDN/cache.
+
 
 Sau khi domain Active trong Cloudflare, vào **DNS** tab và cấu hình:
 
@@ -171,6 +211,8 @@ Cloudflare Dashboard → SSL/TLS → Overview → chọn "Full (strict)"
 - `Full (strict)`: Cloudflare verify cert phải do trusted CA ký → an toàn hơn
 
 ### 6.2 Cài đặt Cloudflare Origin Certificate trên AWS
+
+> **Trạng thái 2026-05-10:** Origin Cert đã generate qua Cloudflare Dashboard (Path C — `release-1-tier-3-cutover.md` §0 explains why CLI route fail with token combo). Files saved tới `~/.gcal-mcp/cloudflare-origin-cert/{kitehub.me.pem, kitehub.me.key}`. Subject: `CloudFlare Origin Certificate`, validity 2026-05-10 → 2041-05-06 (~15 năm), SAN: `kitehub.me + *.kitehub.me`, RSA 2048. ALB import + binding tracked trong **Tier 3 cutover runbook** (`release-1-tier-3-cutover.md` §2). Step content dưới đây retained cho tham khảo formal procedure khi need re-issue cert tương lai.
 
 Cloudflare Origin Certificate là free certificate cho encrypted traffic giữa Cloudflare và origin server:
 

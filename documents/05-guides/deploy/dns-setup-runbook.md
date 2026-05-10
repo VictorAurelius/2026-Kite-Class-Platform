@@ -6,17 +6,34 @@
 
 ---
 
-## 1. Phase 1 BETA strategy (`beta.kitehub.vn` / `beta.kiteclass.vn`)
+## 1. Phase 1 BETA strategy
+
+> **Decision 2026-05-09 (GAP-458):** Release 1 dùng **`kitehub.me`** Free path qua GitHub Student Pack. Bảng dưới support cả paid `.vn` lẫn free `.me` paths.
+
+### Free path (Recommended Release 1)
+
+| Item | Value |
+|------|-------|
+| Production domain | `kitehub.me` (Student Pack 1 năm free; renew ~$10-20 hoặc switch `.vn`) |
+| Beta domain | `beta.kitehub.me` hoặc apex `kitehub.me` |
+| Tenant access | `tenant1.kitehub.me` (Pattern A subdomain) qua wildcard `*.kitehub.me` |
+| Origin host | AWS ALB `kitehub-alb-224105328.ap-southeast-1.elb.amazonaws.com` |
+| TTL | **300s** (5 min) cutover window; revert 3600s post-stable |
+| Proxy | Cloudflare Free orange-cloud (DDoS + cache + WAF) — GAP-371 |
+| SSL | ACM cert AWS + Cloudflare Full (strict) |
+| Registrar | Namecheap (Student Pack offer) — `02b-github-student-pack-free-domain.md` |
+
+### Paid path (alternative `.vn`)
 
 | Item | Value |
 |------|-------|
 | Production domain | `kitehub.vn` + `kiteclass.vn` (cutover Phase 1.5 PAID) |
 | Beta domain | `beta.kitehub.vn` + `beta.kiteclass.vn` |
-| Origin host | Oracle Cloud VM `[USER_INPUT_REQUIRED: VM_PUBLIC_IP]` |
-| TTL | **300s** (5 min) trong cutover window; revert 3600s post-stable |
-| Proxy | Cloudflare orange-cloud (DDoS + cache + WAF free tier) — see GAP-371 |
-| SSL | Let's Encrypt (certbot) — automated cron renewal |
-| Registrar | **Nhân Hòa** (preferred for `.vn` per VNNIC) hoặc Mat Bao / FPT / PA Vietnam |
+| Origin host | AWS ALB DNS |
+| TTL | **300s** trong cutover window; revert 3600s post-stable |
+| Proxy | Cloudflare orange-cloud (DDoS + cache + WAF free tier) — GAP-371 |
+| SSL | Let's Encrypt (certbot) hoặc ACM — automated cron renewal |
+| Registrar | **Nhân Hòa** (preferred for `.vn` per VNNIC) hoặc Mắt Bão / FPT / PA Vietnam |
 
 `.com` alternative: Namecheap / Cloudflare Registrar (cheaper renewals; instant DNS provisioning).
 
@@ -75,7 +92,13 @@ CNAME    <token3>._domainkey.beta    <token3>.dkim.amazonses.com    Auto   DNS o
 AAAA     beta                  <VM_PUBLIC_IPv6>                                Auto   Proxied
 ```
 
-### 2.4 SSL certificates (Let's Encrypt)
+### 2.4 SSL certificates (Let's Encrypt + Cloudflare Origin Cert)
+
+> **Trạng thái Tier 2 (2026-05-10):**
+> - **Vercel apex** `kitehub.me` — Let's Encrypt R13 cert auto-issued by Vercel sau apex bind 2026-05-09; valid May 10 → Aug 8 2026 (auto-renew 90-day cycle).
+> - **Cloudflare Origin Cert** — generated 2026-05-10 cho ALB binding (Tier 3); files local `~/.gcal-mcp/cloudflare-origin-cert/`; validity 2026-05-10 → 2041-05-06 (15 năm).
+> - **AWS ACM cert** — KHÔNG cần riêng; ACM imports Cloudflare Origin Cert ở Tier 3 step (free).
+> - **ALB HTTPS listener cert binding** — pending Tier 3 cutover (per `release-1-tier-3-cutover.md` §2-3).
 
 Run on Oracle Cloud VM as `root` or `sudo`:
 
