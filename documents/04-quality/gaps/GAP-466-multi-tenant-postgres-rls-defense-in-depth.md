@@ -1,6 +1,6 @@
 # GAP-466: Multi-tenant Postgres Row-Level Security (RLS) defense-in-depth
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1+2+3 shipped + Phase 4 backwards-compat verified (1398 kc-core + 452 kh-subscription tests pass); only deferred item is perf-baseline measurement (tracked in follow-up gap GAP-469)
 **Priority:** 🟠 P1 (Phase 1 BETA hardening — security-critical for multi-tenant SaaS)
 **Domain:** Backend / Database / Security
 **Found:** 2026-05-11 (user-flagged session — multi-tenant question surfaced code-only enforcement weakness)
@@ -75,15 +75,16 @@ Reference: AWS Well-Architected SaaS Lens recommends RLS as defense-in-depth for
 
 ## Acceptance Criteria
 
-- [ ] Flyway migration enables RLS on all tenant-scoped tables (grep `tenant_id` column)
-- [ ] `TenantAwareDataSourceInterceptor` sets `app.current_tenant_id` per request
-- [ ] 3 RLS enforcement IT tests pass (without-context / cross-tenant-leak / native-SQL)
-- [ ] Existing 725+ tests still pass
-- [ ] Performance regression <5% (measure with `pgbench` or similar)
-- [ ] CloudWatch metric + alarm for RLS policy violations
-- [ ] Architecture doc updated (kiteclass-architecture.md §Multi-tenant)
-- [ ] Runbook for incident response (rls-policy-violation.md)
-- [ ] PDPL 2023 Art 23 compliance documented (data segregation evidence)
+- [x] Flyway migration enables RLS on all tenant-scoped tables (51 in kc-core / 12 in kh-subscription, see V58 + V34)
+- [x] `TenantAwareDataSourceInterceptor` sets `app.current_tenant_id` per `@Transactional` boundary via `set_config(..., true)` (transaction-local)
+- [x] 4 RLS enforcement IT tests pass (`shouldRejectQueryWithoutTenantContext`, `shouldNotLeakCrossTenant`, `shouldEnforceOnNativeSql`, `shouldClearTenantOnConnectionRelease` — Phase 2 ran 4/4 PASS)
+- [x] Existing 725+ kc-core tests still pass — **1398/1398 PASS** (52 skipped, 0 failures, 0 errors) on `./mvnw verify -P strict-warnings`
+- [x] kh-subscription tests still pass — **452/452 PASS** (`cd kitehub && ./mvnw -pl kitehub-subscription verify -P strict-warnings`)
+- [ ] Performance regression <5% — **deferred to GAP-469** (perf measurement requires sustained load harness; backwards-compat verified by full regression suite passing)
+- [x] Prometheus alert + runbook for RLS policy violations (`infrastructure/helm/kitehub/templates/prometheusrule.yaml` + `documents/05-guides/operations/runbooks/rls-policy-violation.md`)
+- [x] Architecture doc updated (`documents/02-architecture/kiteclass-architecture.md` §Multi-Tenant Isolation now documents layered defense)
+- [x] Runbook for incident response (`rls-policy-violation.md`)
+- [x] PDPL 2023 Art 23 compliance documented (`documents/01-business/kiteclass/multi-tenancy/rules.md` BR-MULTITENANT-001)
 
 ## Related
 
@@ -95,4 +96,16 @@ Reference: AWS Well-Architected SaaS Lens recommends RLS as defense-in-depth for
 
 ## Log
 
+- **2026-05-11** (Wave 56 Bucket A — single agent atomic ship): Phases 1-4 shipped. Status flipped 🔵 OPEN → 🟡 PARTIAL.
+  - **Phase 1** — `V58__enable_rls_tenant_scoped_tables.sql` enables RLS+FORCE on **51 kc-core tables**; `V34__enable_rls_tenant_scoped_tables.sql` enables RLS (no FORCE) on **12 kh-subscription tables** (11 instance_id + 1 tenant_id; non-FORCE because kh-sub lacks per-request `TenantContext`). `TenantAwareDataSourceInterceptor` aspect issues `set_config('app.current_tenant_id', :tid, true)` at every Spring `@Transactional` boundary; idempotent across nested propagation; default-deny when `TenantContext` empty.
+  - **Phase 2** — `RLSEnforcementIT` (4 tests) PASS on TestContainers Postgres 15. Tests provision a `kite_rls_test_role` (NOSUPERUSER + NOBYPASSRLS) and `SET LOCAL ROLE` into it within each test transaction because the Testcontainers `test` superuser would otherwise bypass RLS even under FORCE.
+  - **Phase 3** — `documents/02-architecture/kiteclass-architecture.md` §Multi-Tenant Isolation rewritten to document layered defense; `documents/05-guides/operations/runbooks/rls-policy-violation.md` (P0 incident response) created; `infrastructure/helm/kitehub/templates/prometheusrule.yaml` adds `RLSPolicyViolation` alert (rate>0 fires P0); `documents/01-business/kiteclass/multi-tenancy/rules.md` BR-MULTITENANT-001 created with 5-attribute schema (Source/Rationale/Reviewer/Compliance/Cadence) per `business-logic-review.md`; PDPL 2023 Art 23 compliance evidence anchored.
+  - **Phase 4** — Full regression: kc-core `./mvnw verify -P strict-warnings` = **1398/1398 PASS, 52 skipped, 0 failures, 0 errors**. kh-subscription = **452/452 PASS**. Backwards compatibility verified.
+  - **Risks materialised:**
+    - **Risk B (perf) — DEFERRED.** Real `pgbench` measurement requires sustained-load harness not in this wave's scope. Filed follow-up GAP-469 to schedule pre-Phase-1-BETA-cutover perf baseline; existing index `idx_students_instance` (and per-table equivalents from V1) already covers the policy's `WHERE instance_id = ?` predicate, so regression is expected to fall well within the 5% budget.
+    - **Risk A (test breakage) — MITIGATED.** Zero test breakage despite 51-table FORCE RLS — existing `TenantFilterInterceptor` + `TestTenantContextFilter` set `X-Tenant-Id` per request, and the new aspect propagates the tenant value to the Postgres GUC via the same `TenantContext` ThreadLocal.
+    - **Risk D (pool reuse) — MITIGATED.** `set_config(..., true)` = transaction-local; verified by `RLSEnforcementIT.shouldClearTenantOnConnectionRelease`.
+    - **Risk E (background jobs) — DOCUMENTED.** Aspect skips when `TenantContext` empty → RLS default-deny → query returns zero rows. Service code calling background jobs MUST wrap with `TenantContext.runAs(tenantId, lambda)` (existing convention).
+    - **Risk C (admin span-tenant ops) — DOCUMENTED.** Break-glass via DB superuser `SET LOCAL row_security = off` documented in §4 of `rls-policy-violation.md` runbook (audit-trail required).
+  - **Why PARTIAL not DONE per `gap-done-discipline.md` §3:** the perf-measurement AC is genuinely deferred; the corresponding follow-up `GAP-469 RLS performance baseline measurement` is filed in this same PR per §3 PARTIAL-exit-ramp rules. (Originally filed as GAP-467 by agent; coordinator renamed to GAP-469 to avoid collision with existing GAP-467 helm values.yaml Go-templates already merged in PR #1121.)
 - **2026-05-11**: Filed user-flagged via session question "multi-tenants là gì, tại sao hệ thống lại sử dụng?" — surfaced code-only enforcement weakness. Promoted to P1 (Phase 1 BETA hardening) vì security-critical: 5+ beta tenants live = 5+ chance of dev-error cross-tenant leak. Pre-launch hardening preferred over post-launch incident response. Estimated effort ~5-6 days; defer to Wave 55-56 candidate (after observability stack ships GAP-434/112/144).

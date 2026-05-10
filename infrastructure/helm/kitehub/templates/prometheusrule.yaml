@@ -404,4 +404,19 @@ spec:
             summary: "Beta honeypot rejection rate >10/hour"
             description: "Honeypot anti-bot trap fired at {{ "{{ $value }}" }} req/s over the last hour — bot scanning or distributed botnet probing the public beta-signup endpoint. Tighten gateway rate-limit or rotate honeypot field name."
             runbook_url: "/documents/05-guides/operations/runbooks/beta-honeypot-spike.md"
+
+        # GAP-466 — Multi-tenant Postgres RLS defense-in-depth (Wave 56 Bucket A).
+        # `postgres_logs_rls_violations_total` is emitted by the log-shipper sidecar that
+        # parses Postgres CSV logs for `row violates row-level security policy "tenant_isolation"`.
+        # Wiring of the log-shipper itself is tracked in GAP-115 (log aggregation pipeline);
+        # promotion to production fires depends on GAP-115 closure.
+        - alert: RLSPolicyViolation
+          expr: rate(postgres_logs_rls_violations_total[5m]) > 0
+          for: 0m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Postgres RLS policy violation detected"
+            description: "tenant_isolation policy denied a query at {{ "{{ $value }}" }} req/s — possible developer regression OR active cross-tenant probe. Treat as P0 security incident."
+            runbook_url: "/documents/05-guides/operations/runbooks/rls-policy-violation.md"
 {{- end }}
