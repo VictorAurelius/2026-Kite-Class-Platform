@@ -219,6 +219,19 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
+        <!-- GAP-112: Distributed tracing — Micrometer Tracing Bridge to OpenTelemetry + OTLP exporter.
+             Versions managed by Spring Boot 3.5 BOM. Gateway is the trace-injection edge:
+             Micrometer-Tracing instruments Spring Cloud Gateway routes and propagates
+             traceparent headers to downstream services. -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
+        </dependency>
+
         <!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

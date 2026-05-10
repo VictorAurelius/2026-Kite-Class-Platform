@@ -153,6 +153,15 @@ management:
         enabled: true
     gateway:
       enabled: true
+  # GAP-112: Distributed tracing via Micrometer Tracing + OTLP exporter.
+  # Gateway is the trace-injection edge: instruments Spring Cloud Gateway routes and
+  # propagates traceparent headers to downstream services.
+  tracing:
+    sampling:
+      probability: ${OTEL_SAMPLING_PROBABILITY:0.1}
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:}
 
 # Core Service (for Feign Client)
 core:

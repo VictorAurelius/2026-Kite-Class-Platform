@@ -99,6 +99,18 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
+        <!-- GAP-112: Distributed tracing — Micrometer Tracing Bridge to OpenTelemetry + OTLP exporter.
+             Versions managed by Spring Boot 3.5 BOM. Auto-instruments Spring MVC, RestTemplate,
+             RestClient, JDBC, and Spring AMQP (RabbitMQ traceparent header propagation). -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
+        </dependency>
+
         <!-- AOP — required for Micrometer @Timed annotation support (GAP-135) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -74,6 +74,14 @@ management:
   endpoint:
     health:
       show-details: always
+  # GAP-112: Distributed tracing via Micrometer Tracing + OTLP exporter.
+  # Sampling 10% in prod, override OTEL_SAMPLING_PROBABILITY=1.0 in staging/dev.
+  tracing:
+    sampling:
+      probability: ${OTEL_SAMPLING_PROBABILITY:0.1}
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:}
 
 # Storage config required by BackupStorageService bean (pulled from kitehub-subscription
 # via @ComponentScan; without this block, S3Config@ConfigurationProperties("storage.s3")
