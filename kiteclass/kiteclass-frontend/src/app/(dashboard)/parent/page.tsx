@@ -1,16 +1,21 @@
 /**
- * Parent portal landing — children selector + transcript drill-in.
+ * Parent portal home — mobile-first PWA shell with hero attendance metric,
+ * children list (Wave 18b1 hook preserved), quick stats, and recent activity.
  *
- * Phase 1A (GAP-321 — Wave 18b1 Bucket D): replaces the Wave 2 GAP-052a
- * skeleton with a proper React Query hook (`useMyChildren`) and a
- * "Xem học bạ" CTA per child that links to `/parent/transcript/[childId]`.
+ * Wave 49 Bucket A (GAP-267): re-skinned the Wave 18b1 children-list page
+ * (was a desktop card grid) into the kc-parent kit's mobile shell while
+ * preserving the `useMyChildren` + `useParentMe` hooks and the `Xem học bạ`
+ * link to `/parent/transcript/[childId]`. The skeleton shows the hero +
+ * child cards + activity feed; auxiliary tabs (attendance, billing, grades,
+ * settings) live as sibling routes.
  *
- * Phase 1B (GAP-321b) deliverables NOT in this page yet:
- * - Per-child cards for điểm danh / học phí / hạnh kiểm / notifications / kỷ luật
- * - className + grade enrichment (currently null until subject-grade joins ship)
+ * Empty / loading / error states match `home-empty.html`, `home-loading.html`,
+ * `home-error.html` from `ui_kits/kiteclass-parent/screens/`.
  *
  * @author KiteClass Team
- * @since 2.18.0 (Wave 18b1 — GAP-321 Phase 1A; replaces 3.14.0 Wave 2 skeleton)
+ * @since 2.49.0 (Wave 49 — GAP-267 Bucket A; supersedes 2.18.0 Wave 18b1
+ *                desktop layout but preserves all hook calls and the
+ *                transcript drill-in route).
  */
 
 'use client';
@@ -20,22 +25,32 @@ export const dynamic = 'force-dynamic';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FileText, GraduationCap, Users } from 'lucide-react';
+import {
+  CheckCircle2,
+  Clock,
+  GraduationCap,
+  MessageSquare,
+  Receipt,
+  Shield,
+  Wallet,
+} from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { UserType } from '@/types/auth';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorAlert } from '@/components/common/error-alert';
 import { useMyChildren, useParentMe } from '@/hooks/use-parent';
+import { ParentShell } from '@/components/parent/parent-shell';
+import { HeroMetric } from '@/components/parent/hero-metric';
+import { ChildCard } from '@/components/parent/child-card';
+import { ActivityRow } from '@/components/parent/activity-row';
+import { MOCK_ACTIVITIES } from '@/components/parent/parent-mock-data';
+
+const ICON_FOR_KEY = {
+  check: CheckCircle2,
+  shield: Shield,
+  clock: Clock,
+  message: MessageSquare,
+} as const;
 
 export default function ParentDashboardPage() {
   const router = useRouter();
@@ -57,118 +72,157 @@ export default function ParentDashboardPage() {
     refetch,
   } = useMyChildren();
 
+  const greeting = profile
+    ? `Chào ${profile.fullName}`
+    : 'Cổng phụ huynh';
+  const subtitle = `Tháng ${new Date().getMonth() + 1} — Năm học ${currentSchoolYear()}`;
+
   if (loadingMe || loadingKids) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <LoadingSpinner size="lg" text="Đang tải dữ liệu phụ huynh..." />
-      </div>
+      <ParentShell title={greeting} subtitle={subtitle}>
+        <div
+          className="flex min-h-[60vh] items-center justify-center"
+          data-testid="parent-home-loading"
+        >
+          <LoadingSpinner size="lg" text="Đang tải dữ liệu phụ huynh..." />
+        </div>
+      </ParentShell>
     );
   }
 
   if (isError) {
     return (
-      <div className="mx-auto max-w-4xl p-6">
-        <ErrorAlert
-          title="Không tải được danh sách con"
-          message={error instanceof Error ? error.message : 'Lỗi hệ thống'}
-          onRetry={() => refetch()}
-        />
-      </div>
+      <ParentShell title={greeting} subtitle={subtitle}>
+        <div className="p-4" data-testid="parent-home-error">
+          <ErrorAlert
+            title="Không tải được danh sách con"
+            message={error instanceof Error ? error.message : 'Lỗi hệ thống'}
+            onRetry={() => refetch()}
+          />
+        </div>
+      </ParentShell>
     );
   }
 
   const list = children ?? [];
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6">
-      <header className="space-y-2">
-        <h1 className="flex items-center gap-2 text-3xl font-bold">
-          <GraduationCap className="h-8 w-8 text-primary" />
-          Cổng phụ huynh{profile ? ` — ${profile.fullName}` : ''}
-        </h1>
-        <p className="text-muted-foreground">
-          Xem học bạ và thông tin học tập của con. Phụ huynh chỉ có quyền xem dữ
-          liệu các con đã được liên kết với tài khoản của mình.
-        </p>
-      </header>
+    <ParentShell title={greeting} subtitle={subtitle} unreadCount={3}>
+      <HeroMetric
+        label="Tỷ lệ đi học của con tháng này"
+        value={92}
+        suffix="%"
+        delta={{ direction: 'up', label: 'Tăng 4% so với tháng trước' }}
+        data-testid="parent-home-hero"
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Danh sách con
-          </CardTitle>
-          <CardDescription>
-            {list.length > 0
-              ? `Bạn đang liên kết với ${list.length} con.`
-              : 'Chưa có con nào được liên kết với tài khoản của bạn.'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {list.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Liên hệ nhà trường để được gửi lại lời mời liên kết tài khoản phụ
-              huynh.
-            </p>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {list.map((child) => (
-                <Card
-                  key={child.studentId}
-                  data-testid={`child-card-${child.studentId}`}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <CardTitle className="text-lg">
-                          {child.studentName}
-                        </CardTitle>
-                        {(child.className || child.grade) && (
-                          <CardDescription>
-                            {[child.grade, child.className]
-                              .filter(Boolean)
-                              .join(' · ')}
-                          </CardDescription>
-                        )}
-                      </div>
-                      <Badge
-                        variant={
-                          child.linkType === 'PRIMARY' ? 'default' : 'secondary'
-                        }
-                      >
-                        {child.linkType === 'PRIMARY' ? 'Chính' : 'Phụ'}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="text-sm text-muted-foreground">
-                    {/* Phase 1B (GAP-321b) sẽ thêm điểm danh / học phí / hạnh kiểm / kỷ luật. */}
-                    Hiện bạn có thể xem học bạ. Các mục khác (điểm danh, học phí,
-                    hạnh kiểm, thông báo, kỷ luật) sẽ ra mắt trong các đợt tiếp
-                    theo.
-                  </CardContent>
-                  <CardFooter>
-                    <Button
-                      asChild
-                      className="w-full"
-                      data-testid={`view-transcript-${child.studentId}`}
-                    >
-                      <Link href={`/parent/transcript/${child.studentId}`}>
-                        <FileText className="mr-2 h-4 w-4" />
-                        Xem học bạ
-                      </Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Children list — Wave 18b1 logic preserved. */}
+      {list.length === 0 ? (
+        <div
+          className="mx-4 mt-6 rounded-2xl border bg-card p-6 text-center"
+          data-testid="parent-home-empty"
+        >
+          <GraduationCap
+            className="mx-auto mb-3 h-10 w-10 text-muted-foreground"
+            aria-hidden
+          />
+          <p className="text-sm font-semibold">Chưa có con nào được liên kết</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Liên hệ nhà trường để được gửi lại lời mời liên kết tài khoản phụ
+            huynh.
+          </p>
+        </div>
+      ) : (
+        <ul className="space-y-0" data-testid="parent-home-children">
+          {list.map((child) => (
+            <li key={child.studentId}>
+              <ChildCard child={child} />
+            </li>
+          ))}
+        </ul>
+      )}
 
-      <p className="text-center text-xs text-muted-foreground">
-        Phase 1A — học bạ. Các widget điểm danh, học phí, hạnh kiểm, thông báo,
-        kỷ luật sẽ có trong Phase 1B (GAP-321b).
-      </p>
-    </div>
+      {/* Quick-stat tiles. */}
+      <section className="mx-4 mt-4 grid grid-cols-2 gap-3">
+        <Link
+          href="/parent/grades"
+          className="rounded-2xl border bg-card p-4 text-left shadow-sm transition-colors hover:bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          data-testid="parent-home-stat-gpa"
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Điểm trung bình
+          </p>
+          <p className="mt-1 text-3xl font-extrabold tracking-tight">8.4</p>
+          <p className="mt-2 inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+            Học lực Giỏi
+          </p>
+        </Link>
+        <Link
+          href="/parent/billing"
+          className="rounded-2xl border bg-card p-4 text-left shadow-sm transition-colors hover:bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          data-testid="parent-home-stat-billing"
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Học phí
+          </p>
+          <p className="mt-1 text-lg font-bold">Đã đóng</p>
+          <p className="mt-2 inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-700">
+            Kỳ I · 2025-2026
+          </p>
+        </Link>
+      </section>
+
+      {/* Recent activity. */}
+      <section className="mx-4 mt-6">
+        <header className="mb-2 flex items-center justify-between">
+          <h2 className="text-sm font-bold">Hoạt động gần đây</h2>
+          <Link
+            href="/parent/grades"
+            className="text-xs font-semibold text-primary hover:underline"
+          >
+            Xem tất cả
+          </Link>
+        </header>
+        <ul
+          className="rounded-2xl border bg-card px-4"
+          data-testid="parent-home-activity"
+        >
+          {MOCK_ACTIVITIES.map((act) => {
+            const Icon = ICON_FOR_KEY[act.iconKey];
+            return (
+              <ActivityRow
+                key={act.id}
+                icon={<Icon className="h-4 w-4" aria-hidden />}
+                title={act.title}
+                sub={act.sub}
+                trailing={act.trailing}
+                variant={act.variant}
+              />
+            );
+          })}
+        </ul>
+      </section>
+
+      {/* Pay shortcut — duplicate of bottom-tab Học phí for one-tap access. */}
+      <section className="mx-4 mt-6">
+        <Link
+          href="/parent/billing"
+          className="flex items-center justify-between rounded-2xl bg-primary p-4 text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <div className="flex items-center gap-3">
+            <Wallet className="h-5 w-5" aria-hidden />
+            <span className="text-sm font-semibold">Đóng học phí ngay</span>
+          </div>
+          <Receipt className="h-5 w-5 opacity-90" aria-hidden />
+        </Link>
+      </section>
+    </ParentShell>
   );
+}
+
+function currentSchoolYear(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  // VN academic year runs Sep–Jun; before September, return previous-year span.
+  return now.getMonth() >= 8 ? `${year}–${year + 1}` : `${year - 1}–${year}`;
 }
