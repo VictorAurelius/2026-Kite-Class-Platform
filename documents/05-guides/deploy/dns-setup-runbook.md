@@ -92,7 +92,13 @@ CNAME    <token3>._domainkey.beta    <token3>.dkim.amazonses.com    Auto   DNS o
 AAAA     beta                  <VM_PUBLIC_IPv6>                                Auto   Proxied
 ```
 
-### 2.4 SSL certificates (Let's Encrypt)
+### 2.4 SSL certificates (Let's Encrypt + Cloudflare Origin Cert)
+
+> **Trạng thái Tier 2 (2026-05-10):**
+> - **Vercel apex** `kitehub.me` — Let's Encrypt R13 cert auto-issued by Vercel sau apex bind 2026-05-09; valid May 10 → Aug 8 2026 (auto-renew 90-day cycle).
+> - **Cloudflare Origin Cert** — generated 2026-05-10 cho ALB binding (Tier 3); files local `~/.gcal-mcp/cloudflare-origin-cert/`; validity 2026-05-10 → 2041-05-06 (15 năm).
+> - **AWS ACM cert** — KHÔNG cần riêng; ACM imports Cloudflare Origin Cert ở Tier 3 step (free).
+> - **ALB HTTPS listener cert binding** — pending Tier 3 cutover (per `release-1-tier-3-cutover.md` §2-3).
 
 Run on Oracle Cloud VM as `root` or `sudo`:
 

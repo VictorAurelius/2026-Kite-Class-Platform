@@ -11,11 +11,13 @@
 
 Theo thứ tự dependency:
 
-1. ✅ **Domain mua xong** (`account-prep/02-domain-registrar.md`) — `kitehub.vn` + `kiteclass.vn` đã register
+1. ✅ **Domain claim xong** (`account-prep/02b-github-student-pack-free-domain.md` qua Free path Student Pack 2026-05-09 hoặc `02-domain-registrar.md` Paid path)
 2. ✅ **Cloudflare nameservers active** (`cloudflare-setup.md` §1-2) — domain trỏ về Cloudflare NS
-3. ✅ **Cloudflare DNS records ALB** (`cloudflare-setup.md` §3 + `dns-setup-runbook.md` §2.3) — `api.kitehub.vn` / `api.kiteclass.vn` trỏ về AWS ALB DNS
-4. ✅ **SSL/TLS Full(strict)** (`dns-setup-runbook.md` §2.4) — ACM cert binding ALB + Cloudflare SSL active
-5. ✅ **AWS BE running** — EC2 + RDS resume (`aws-cost-scheduling.md` §4 manual override) + ALB target group healthy
+3. ✅ **Cloudflare DNS records** (`cloudflare-setup.md` §3 + `dns-setup-runbook.md` §2.3) — apex CNAME → Vercel + `api.<domain>` → AWS ALB
+4. ⏳ **SSL/TLS Full(strict)** — Vercel apex cert ✅ Let's Encrypt auto-issued; ALB HTTPS listener cert binding **block trên Tier 3** (`release-1-tier-3-cutover.md`)
+5. ⏳ **AWS BE running** — EC2 + RDS đang STOPPED cost-save; resume qua `aws-cost-scheduling.md` §4 hoặc `release-1-tier-3-cutover.md` §1
+
+> **Tier 1 + 2 status (per session 2026-05-09/10):** Vercel custom domain + env var ✅; Cloudflare DNS + Email Routing + Origin Cert generated ✅. **Tier 3 cutover** (resume EC2 → ACM import → ALB binding → Cloudflare Full strict) tracked riêng trong `release-1-tier-3-cutover.md`.
 
 Nếu BẤT KỲ pre-flight item nào chưa xong → quay lại guide tương ứng. Vercel setup này KHÔNG hoạt động độc lập — FE phải gọi được backend qua HTTPS để smoke test pass.
 

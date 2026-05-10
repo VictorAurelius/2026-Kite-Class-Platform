@@ -96,6 +96,8 @@ Phase 1 BETA invite-only ~10-20 tenants → 1 domain đủ; Phase 1.5 PAID publi
 - Original .vn path: `account-prep/02-domain-registrar.md`
 - Free TLD analysis: chat session 2026-05-09 (5 options ranked → user chose Path C)
 - **Dev tooling extension:** `documents/05-guides/dev/google-calendar-mcp-setup.md` — Google Calendar MCP server setup (use case originated from §3 Auto-renew reminder 11-month calendar event; broader scope: future automation cho schedule reminders + log Phase 1 BETA milestones). Verified walkthrough 2026-05-09 captured all gotchas (Test users requirement, ~/.config/ WSL2 permission, GOOGLE_CALENDAR_MCP_TOKEN_PATH env override).
+- **Cloudflare CLI extension:** `documents/05-guides/dev/cloudflare-cli-setup.md` — Wrangler v4.90 + REST API token + `scripts/cloudflare-dns.sh` wrapper shipped 2026-05-10. Captures combined-token Origin CA gotcha (Account:SSL:Edit + Zone:Read mandatory same token).
+- **Tier 3 cutover runbook:** `documents/05-guides/deploy/release-1-tier-3-cutover.md` — 10-step sequence (resume EC2+RDS → ACM import → ALB HTTPS listener → Cloudflare proxy api.kitehub.me → Full strict → Always HTTPS → smoke test) + rollback per step + 13 acceptance criteria. Block trên AWS Activate approval D+14 (2026-05-23 reminder).
 
 ## Log
 

@@ -212,6 +212,8 @@ Cloudflare Dashboard → SSL/TLS → Overview → chọn "Full (strict)"
 
 ### 6.2 Cài đặt Cloudflare Origin Certificate trên AWS
 
+> **Trạng thái 2026-05-10:** Origin Cert đã generate qua Cloudflare Dashboard (Path C — `release-1-tier-3-cutover.md` §0 explains why CLI route fail with token combo). Files saved tới `~/.gcal-mcp/cloudflare-origin-cert/{kitehub.me.pem, kitehub.me.key}`. Subject: `CloudFlare Origin Certificate`, validity 2026-05-10 → 2041-05-06 (~15 năm), SAN: `kitehub.me + *.kitehub.me`, RSA 2048. ALB import + binding tracked trong **Tier 3 cutover runbook** (`release-1-tier-3-cutover.md` §2). Step content dưới đây retained cho tham khảo formal procedure khi need re-issue cert tương lai.
+
 Cloudflare Origin Certificate là free certificate cho encrypted traffic giữa Cloudflare và origin server:
 
 ```
