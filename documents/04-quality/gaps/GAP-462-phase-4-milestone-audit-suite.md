@@ -1,6 +1,6 @@
 # GAP-462: Phase 4 milestone audit suite (UI /128 + Quality + Performance)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Wave 53 closure 2026-05-11 shipped 2/3 audits (UI /128 ✅ + Quality /110 ✅); Performance /100 deferred (agent hit usage limit pre-execution; defer to Wave 54+ after limit reset 2026-05-11 02:50 Asia/Bangkok)
 **Priority:** 🟠 P1 (mandate per `post-wave-audit-mandate.md` §2.4.2 — `phase-4-kit-ports` domain-milestone obligation; deferred as separate gap to keep Wave 50/51 closure tight)
 **Domain:** Quality / audit
 **Found:** 2026-05-10 (Wave 50 SHIPPED triggered phase-4-kit-ports milestone)
@@ -59,3 +59,10 @@ Audit prep checklist already produced via Explore agent (Wave 50 prep task). Ava
 ## Log
 
 - **2026-05-10**: Filed at Wave 50 closure as deferred milestone audit obligation. Per `post-wave-audit-mandate.md` §2.4.3 closure PR `AUDIT_DEFER_DOMAIN_MILESTONE` trailer norm: this gap = the named follow-up milestone wave 53+ is expected to close. 14-day staleness warning kicks in 2026-05-24 if no Wave 53+ milestone audit in flight.
+
+- **2026-05-11 (Wave 53 closure)**: Status 🔵 OPEN → 🟡 PARTIAL. 2/3 audits shipped:
+  - **UI /128** ✅ Bucket A PR #1106 — aggregate **111.7/128 A+** (+0.4 vs Wave 40 baseline 111.3); 4 kits DONE-eligible (267/269/271/272 avg 114-117); 3 kits stay PARTIAL (266/268/270; carry-forward GAP-429 umbrella transient-state UX)
+  - **Quality /110** ✅ Bucket B PR #1107 — aggregate **85/110 (87/100 / 80 tech-only) B+** (+1 vs Wave 40 86); +7 buffer above Phase 1 BETA threshold 80; Cat 4 FE Tests +2 (Wave 51 Playwright specs); Cat 8 Docs +1 (audit-to-gap-pipeline §2.7 + student-portal/ 3-layer)
+  - **Performance /100** ❌ Bucket C agent hit usage limit pre-execution (reset 2026-05-11 02:50 Asia/Bangkok); deferred to Wave 54+ separate spawn. Wave 40 baseline 75/100 stable; risk LOW (Phase 4 FE-only ports; minimal BE perf delta expected)
+- **DOMAIN_MILESTONE_AUDIT** trailer applied with 2 reports: `documents/04-quality/audits/{ui,quality}/2026-05-10-wave-53-*.md`
+- Performance audit follow-up tracked: file Wave 54 plan with Bucket C re-spawn after limit reset

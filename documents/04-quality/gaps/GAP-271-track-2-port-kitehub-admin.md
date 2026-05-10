@@ -80,3 +80,5 @@ Port 12 dense-desktop screens for P5 K-12 School Principal.
   - ⌘K palette: trigger present in sidebar; full command-palette behaviour deferred (UI-only stub now).
   - Build verify: `pnpm build` PASSED (Next.js 15.5.15, 11 routes prerendered static). Tests: 8/8 pass under `vitest run school-admin` (shell + mock-data realism assertions).
   - PARTIAL not DONE: ⌘K palette functionality not wired; ≥105/128 per-screen score not measured (no UI audit run); MoET compliance stamp shipped per spec but legal sign-off out-of-scope (Phase 3 K-12 trigger).
+
+- **2026-05-11 (Wave 53 Phase 4 milestone audit — UI /128 ✅ DONE-eligible):** Bucket A static-analysis audit (PR #1106) confirmed avg 117.1/128 (range 106-121) — ALL screens ≥105/128 baseline. Per Wave 53 plan §7 + `gap-done-discipline.md` §2: UI-dimension AC verified; gap stays 🟡 PARTIAL pending remaining deferred sub-gaps (Lighthouse PWA / E2E spec / etc. tracked in their own follow-up gaps). When those close, this gap eligible PARTIAL → DONE flip via cascade.
