@@ -436,3 +436,161 @@ monitoring:
       smtp:
         region: "us-east-1"
         authUsername: "alerts@kiteclass.com"
+
+# --- Logging (GAP-434 Phase 2 of GAP-115) ---
+#
+# Loki single-binary backend + Promtail DaemonSet + Grafana datasource auto-
+# provisioning. Phase 1 (Wave 41 Bucket F) shipped the `kitehub-logs-overview`
+# Grafana dashboard with placeholder Loki uid. This section wires the actual
+# Loki backend so dashboard panels resolve.
+#
+# Architecture (single-binary mode — Phase 2a):
+#   - Loki StatefulSet 1 replica (read+write+index in one process)
+#   - BoltDB index on local PVC (24h hot)
+#   - Chunks on S3 (90d cold per logs-format-standard.md §4)
+#   - Promtail DaemonSet scrapes /var/log/containers/*.log per node
+#   - Grafana datasource auto-provisioned via sidecar ConfigMap
+#     (templates/grafana-datasource-loki.yaml — uid `loki`)
+#
+# Activation:
+#   helm repo add grafana https://grafana.github.io/helm-charts
+#   helm dependency update infrastructure/helm/kitehub/
+#   helm install ... \
+#     --set monitoring.enabled=true \
+#     --set monitoring.grafana.enabled=true \
+#     --set loki.enabled=true \
+#     --set loki.s3.bucket=<bucket-from-terraform-output>
+#
+# S3 bucket: NEVER hardcoded — supplied via env-var/terraform output. The
+# `loki.s3.bucket` value flows into the loki-stack subchart's
+# storage_config.aws.bucketnames. Empty default + `enabled: false` means
+# foundation install (no Loki) ships clean.
+#
+# Phase 2b (microservices mode) deferred until log volume warrants the
+# operational complexity — single-binary handles ≥10MB/sec ingestion on
+# modest hardware, well above Phase 1 BETA invite-only projection.
+loki:
+  enabled: false
+
+  # S3 bucket for chunk storage. MUST be supplied at install time:
+  #   --set loki.s3.bucket=<from-terraform-output>
+  # OR via env-var sourced values file. Empty default + `enabled: false`
+  # means foundation install ships clean.
+  s3:
+    bucket: ""             # populated from terraform output / env-var
+    region: "ap-southeast-1"
+
+  # Subchart values forwarded to grafana/loki-stack. Single-binary mode
+  # configured via loki.config below; Promtail DaemonSet enabled by default
+  # in the subchart (we leave it on, just adjust scrape config).
+  loki-stack:
+    fullnameOverride: kitehub-loki
+
+    # Loki single-binary StatefulSet (read+write+index together)
+    loki:
+      enabled: true
+      isDefault: false   # we provision datasource via separate template (uid: loki)
+      persistence:
+        enabled: true
+        size: 10Gi       # BoltDB index + 24h hot WAL — bumped per env if needed
+      # logs-format-standard.md §4 retention: 90d cold (S3) — chunk_retain_period
+      # below is in-memory cache window only; bucket lifecycle policy enforces 90d.
+      config:
+        auth_enabled: false
+        server:
+          http_listen_port: 3100
+        ingester:
+          chunk_idle_period: 30m
+          chunk_block_size: 262144
+          chunk_retain_period: 1m
+          max_transfer_retries: 0
+          lifecycler:
+            ring:
+              kvstore:
+                store: inmemory
+              replication_factor: 1
+        schema_config:
+          configs:
+            - from: 2026-01-01
+              store: boltdb-shipper
+              object_store: s3
+              schema: v11
+              index:
+                prefix: kitehub_index_
+                period: 24h
+        storage_config:
+          boltdb_shipper:
+            active_index_directory: /data/loki/boltdb-shipper-active
+            cache_location: /data/loki/boltdb-shipper-cache
+            cache_ttl: 24h
+            shared_store: s3
+          aws:
+            # Bucket name flows from .Values.loki.s3.bucket via override at install
+            # time. The loki-stack chart accepts these keys verbatim. Region echoes
+            # global.aws.region for cost (avoid cross-region transfer).
+            s3: ""
+            bucketnames: ""           # SET via --set loki.s3.bucket=... → loki.loki-stack.loki.config.storage_config.aws.bucketnames
+            region: "ap-southeast-1"
+            s3forcepathstyle: false
+            insecure: false
+        limits_config:
+          enforce_metric_name: false
+          reject_old_samples: true
+          reject_old_samples_max_age: 168h
+          retention_period: 2160h     # 90d retention (matches §4 cold tier)
+        chunk_store_config:
+          max_look_back_period: 2160h
+        table_manager:
+          retention_deletes_enabled: true
+          retention_period: 2160h
+        compactor:
+          working_directory: /data/loki/compactor
+          shared_store: s3
+          retention_enabled: true
+          retention_delete_delay: 2h
+
+    # Promtail DaemonSet — scrapes /var/log/containers/*.log on each node,
+    # parses structured JSON (per logs-format-standard.md §2), forwards to
+    # Loki Distributor at http://kitehub-loki:3100/loki/api/v1/push.
+    promtail:
+      enabled: true
+      config:
+        clients:
+          - url: http://kitehub-loki:3100/loki/api/v1/push
+        snippets:
+          # Parse structured JSON logs emitted per logs-format-standard.md §2.
+          # Required fields: timestamp, level, service, message + MDC fields
+          # (tenantId, traceId, spanId, userId). Promtail extracts them as
+          # Loki labels/fields so LogQL queries like
+          #   {service="kitehub-subscription"} | json | tenantId="tenant-abc"
+          # resolve at query time.
+          pipelineStages:
+            - cri: {}
+            - json:
+                expressions:
+                  level: level
+                  service: service
+                  message: message
+                  tenantId: tenantId
+                  traceId: traceId
+                  spanId: spanId
+                  userId: userId
+            - labels:
+                level:
+                service:
+                tenantId:
+
+    # Disable bundled Grafana — we use the kube-prometheus-stack Grafana
+    # (provisioned via monitoring.grafana.enabled=true). Datasource for Loki
+    # is provided by templates/grafana-datasource-loki.yaml ConfigMap which
+    # the existing Grafana sidecar discovers via grafana_datasource=1 label.
+    grafana:
+      enabled: false
+    prometheus:
+      enabled: false
+    fluent-bit:
+      enabled: false
+    filebeat:
+      enabled: false
+    logstash:
+      enabled: false
