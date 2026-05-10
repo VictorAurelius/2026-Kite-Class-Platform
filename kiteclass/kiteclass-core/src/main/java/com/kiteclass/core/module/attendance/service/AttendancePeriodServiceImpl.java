@@ -6,6 +6,8 @@ import com.kiteclass.core.module.attendance.dto.AttendancePeriodBatchCreateReque
 import com.kiteclass.core.module.attendance.dto.AttendancePeriodCreateRequest;
 import com.kiteclass.core.module.attendance.dto.AttendancePeriodResponse;
 import com.kiteclass.core.module.attendance.dto.AttendancePeriodUpdateRequest;
+import com.kiteclass.core.module.attendance.dto.ClassBatchAttendanceEntry;
+import com.kiteclass.core.module.attendance.dto.ClassBatchAttendanceRequest;
 import com.kiteclass.core.module.attendance.dto.DailyAttendanceRollupResponse;
 import com.kiteclass.core.module.attendance.entity.AttendancePeriod;
 import com.kiteclass.core.module.attendance.repository.AttendancePeriodRepository;
@@ -128,6 +130,39 @@ public class AttendancePeriodServiceImpl implements AttendancePeriodService {
         log.info("Upserted {} attendance_period rows for tenant {} by teacher {}",
                 out.size(), tenantId, recordedBy);
         return out;
+    }
+
+    @Override
+    @Transactional
+    public List<AttendancePeriodResponse> upsertClassBatch(
+            Long classId,
+            LocalDate date,
+            ClassBatchAttendanceRequest request,
+            Long recordedBy) {
+
+        // Fold class-level (classId, date) into per-cell entries and forward
+        // to the existing idempotent upsert. GAP-268a is intentionally a thin
+        // adapter: the unique index from V50 still backstops idempotency.
+        List<AttendancePeriodCreateRequest> folded =
+                new ArrayList<>(request.getEntries().size());
+        for (ClassBatchAttendanceEntry e : request.getEntries()) {
+            folded.add(AttendancePeriodCreateRequest.builder()
+                    .studentId(e.getStudentId())
+                    .classId(classId)
+                    .subjectSectionId(e.getSubjectSectionId())
+                    .periodNo(e.getPeriodNo())
+                    .date(date)
+                    .status(e.getStatus())
+                    .notes(e.getNotes())
+                    .build());
+        }
+        AttendancePeriodBatchCreateRequest delegate =
+                AttendancePeriodBatchCreateRequest.builder()
+                        .entries(folded)
+                        .build();
+        log.info("Class-batch upsert: classId={} date={} cells={} teacher={}",
+                classId, date, folded.size(), recordedBy);
+        return upsertBatch(delegate, recordedBy);
     }
 
     @Override

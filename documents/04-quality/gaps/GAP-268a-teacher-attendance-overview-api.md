@@ -1,6 +1,6 @@
 # GAP-268a: `/teacher/attendance/[classId]` overview-by-class save endpoint
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — BE endpoint + tests + business docs shipped Wave 51 Bucket B; FE wiring + outbox emission deferred to follow-ups
 **Priority:** 🟡 P2 (existing per-tiết save works; class-overview is convenience layer)
 **Domain:** Backend (kiteclass-core attendance API extension)
 **Found:** 2026-05-10 (Wave 49 Bucket B PARTIAL exit-ramp per `gap-done-discipline.md` §3)
@@ -33,11 +33,11 @@ The class-overview UI lets teacher see today's roster across ALL periods at once
 
 ## Acceptance Criteria
 
-- [ ] `POST /api/v1/attendance/class/{classId}/batch` documented in api-contract.md
-- [ ] Backend integration test passes
-- [ ] FE `attendancePeriodApi.saveOverviewByClass` calls new endpoint (no stub TODO)
-- [ ] Outbox event published per attendance domain pattern
-- [ ] GAP-268 parent gap "Daily attendance saves to backend" AC ✅ verifiable
+- [x] `POST /api/v1/attendance/class/{classId}/batch` documented in api-contract.md (extended `documents/01-business/kiteclass/attendance/api-contract.md` + `use-cases.md` UC-ATT-09 + `rules.md` BR-ATT-CLASS-BATCH-001/002)
+- [x] Backend integration test passes (`AttendanceClassBatchControllerIT` — 4 tests: happy path captures classId+date+entries forwarded to service, empty entries → 400, periodNo > 10 → 400, missing X-Teacher-Id → error)
+- [ ] FE `attendancePeriodApi.saveOverviewByClass` calls new endpoint (no stub TODO) — **deferred to FE follow-up gap; out of scope of Wave 51 Bucket B per plan §3**
+- [ ] Outbox event published per attendance domain pattern — **deferred; existing `upsertBatch` path uses `ApplicationEventPublisher` only without outbox emission, new endpoint mirrors that behaviour to keep upsert-path uniform; cross-cutting outbox refactor tracked separately**
+- [ ] GAP-268 parent gap "Daily attendance saves to backend" AC ✅ verifiable — pending FE wiring follow-up
 
 ## Related
 
@@ -48,3 +48,4 @@ The class-overview UI lets teacher see today's roster across ALL periods at once
 ## Log
 
 - **2026-05-10**: Filed at Wave 49 closure as named follow-up promised in GAP-268 Log entry. Per `audit-to-gap-pipeline.md` §3 + `gap-done-discipline.md` §3, deferred items get real gap files.
+- **2026-05-10**: Wave 51 Bucket B shipped backend portion. `POST /api/v1/attendance/class/{classId}/batch` endpoint live via `AttendanceClassBatchController` + `AttendancePeriodService.upsertClassBatch` (thin adapter that folds classId+date into existing per-row upsert). DTOs `ClassBatchAttendanceRequest` + `ClassBatchAttendanceEntry` capped at 200 cells. Integration test `AttendanceClassBatchControllerIT` covers happy path + 400 validation. Business docs extended (api-contract.md + use-cases.md UC-ATT-09 + rules.md BR-ATT-CLASS-BATCH-001/002 with 5-attribute review). Status flips OPEN → PARTIAL per `gap-done-discipline.md` §3 — FE wiring + outbox emission named-deferred.

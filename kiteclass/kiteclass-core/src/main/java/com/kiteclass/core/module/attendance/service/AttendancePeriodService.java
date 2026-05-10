@@ -3,6 +3,7 @@ package com.kiteclass.core.module.attendance.service;
 import com.kiteclass.core.module.attendance.dto.AttendancePeriodBatchCreateRequest;
 import com.kiteclass.core.module.attendance.dto.AttendancePeriodResponse;
 import com.kiteclass.core.module.attendance.dto.AttendancePeriodUpdateRequest;
+import com.kiteclass.core.module.attendance.dto.ClassBatchAttendanceRequest;
 import com.kiteclass.core.module.attendance.dto.DailyAttendanceRollupResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -75,6 +76,28 @@ public interface AttendancePeriodService {
      */
     List<AttendancePeriodResponse> upsertBatch(
             AttendancePeriodBatchCreateRequest request, Long recordedBy);
+
+    /**
+     * Class-overview convenience wrapper for {@link #upsertBatch}.
+     *
+     * <p>Folds {@code classId} and {@code date} from the request envelope into
+     * each per-cell entry (per {@link ClassBatchAttendanceRequest}) and forwards
+     * to the existing idempotent upsert path. The teacher-overview save UI
+     * (route {@code (teacher)/teacher/attendance/[classId]}, GAP-268a) calls
+     * this in a single round-trip across all 1-10 periods.
+     *
+     * @param classId target class (URL path)
+     * @param date lesson date (URL query)
+     * @param request body containing per-cell entries
+     * @param recordedBy teacher / GVCN user ID from {@code X-Teacher-Id} header
+     * @return upserted rows in entry order
+     * @since GAP-268a (Wave 51 Bucket B)
+     */
+    List<AttendancePeriodResponse> upsertClassBatch(
+            Long classId,
+            LocalDate date,
+            ClassBatchAttendanceRequest request,
+            Long recordedBy);
 
     /**
      * Update status / notes on a single period-attendance row.

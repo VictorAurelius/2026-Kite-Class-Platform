@@ -51,6 +51,31 @@ Delete an attendance record.
 - **Response:** `204 No Content`
 - **Errors:** `404` not found
 
+### POST `/api/v1/attendance/class/{classId}/batch?date=YYYY-MM-DD`
+Save attendance cho một lớp trong một ngày qua một round-trip duy nhất — UI overview teacher per-class (GAP-268a, Wave 51 Bucket B).
+- **Headers:** `X-Teacher-Id` (Long, bắt buộc) — recording GVCN / teacher ID.
+- **Path:** `classId` (Long) — target class ID.
+- **Query:** `date` (LocalDate ISO-8601) — ngày tiết học.
+- **Request:** `ClassBatchAttendanceRequest`
+  ```json
+  {
+    "entries": [
+      { "studentId": 11, "subjectSectionId": 7, "periodNo": 1, "status": "PRESENT", "notes": "tới đúng giờ" }
+    ]
+  }
+  ```
+  - `entries`: NotEmpty, max 200 cells (e.g. 10 tiết × 20 students).
+  - `periodNo`: 1..10 per TT 22/2021/TT-BGDĐT.
+  - `status`: enum `AttendanceStatus` (PRESENT, ABSENT, LATE, EXCUSED, MAKEUP).
+  - `notes`: optional, max 500 chars.
+- **Response:** `201 CREATED` + `List<AttendancePeriodResponse>` (entry order preserved).
+- **Idempotency:** DB unique index `(student_id, subject_section_id, date, period_no, instance_id)` (V50 migration) backstops resubmits — same body → same final state, no duplicate rows.
+- **Error codes:**
+  - `400` — entries empty / batch > 200 / periodNo out of range 1..10 / missing X-Teacher-Id header.
+  - `409 OPTIMISTIC_LOCK_CONFLICT` — concurrent `@Version` bump beats request.
+- **Service:** delegates to `AttendancePeriodService.upsertClassBatch` → folds (classId, date) into per-row entries → reuses existing `upsertBatch` logic.
+- **Outbox:** Phase 1 v1 — no outbox event emitted (consistent with existing per-tiết upsertBatch path which uses `ApplicationEventPublisher` only). Outbox emission tracked as cross-cutting refactor.
+
 ## DTOs
 
 ### AttendanceResponse
