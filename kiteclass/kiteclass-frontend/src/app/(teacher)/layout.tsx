@@ -1,11 +1,17 @@
 /**
- * Teacher route-group layout (Phase 1B v1).
+ * Teacher route-group layout.
  *
- * Mirrors the auth gate from the (dashboard) layout. Phase 1B v1 only ships
- * the per-tiết attendance route at /attendance/period/[classId]/[periodNo]/
- * [date]; richer GVCN navigation shell is Phase 1B follow-up scope.
+ * Phase 1B v1 (Wave 18b2): minimal auth gate for the per-tiết attendance
+ * route at `/attendance/period/[classId]/[periodNo]/[date]`.
  *
- * @since 4.x.x (Wave 18b2 Bucket A)
+ * Wave 49 Bucket B (GAP-268): expanded into the GVCN + subject-teacher full
+ * shell. The kc-teacher production port consolidates all teacher routes
+ * under this `(teacher)/*` route group (canonical, replaces the partial
+ * `(dashboard)/teacher/*` shape from Wave 18b2 bridging — see PR description
+ * §Route consolidation decision). The shell ships the top-nav + identity
+ * badge defined in the kiteclass-teacher Round-2 prototype.
+ *
+ * @since 4.x.x (Wave 18b2 Bucket A); Wave 49 Bucket B GVCN shell
  */
 
 'use client';
@@ -14,6 +20,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { TeacherShell } from '@/components/teacher/teacher-shell';
+import { TEACHER_PROFILE } from '@/components/teacher/teacher-mock-data';
 
 export default function TeacherLayout({
   children,
@@ -44,5 +52,13 @@ export default function TeacherLayout({
     );
   }
 
-  return <main className="min-h-screen bg-background">{children}</main>;
+  return (
+    <TeacherShell
+      teacherName={TEACHER_PROFILE.fullName}
+      teacherSubtitle={`GVCN ${TEACHER_PROFILE.homeroomClass}`}
+      teacherInitials={TEACHER_PROFILE.initials}
+    >
+      {children}
+    </TeacherShell>
+  );
 }
