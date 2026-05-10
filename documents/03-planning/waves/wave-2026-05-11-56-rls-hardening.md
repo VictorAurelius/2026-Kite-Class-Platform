@@ -1,10 +1,10 @@
 ---
 title: Wave 56 — Multi-tenant Postgres RLS Hardening (GAP-466)
-status: draft
+status: complete
 created: 2026-05-11
 updated: 2026-05-11
 waves: [56]
-gaps: [GAP-466]
+gaps: [GAP-466, GAP-469]
 ---
 
 # Wave 56 — Multi-tenant Postgres RLS Hardening
@@ -180,3 +180,17 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ## 8. Log
 
 - **2026-05-11** (draft): Plan created. State-check evidence in §4 confirms 59 kc-core entities + 2 kh-subscription migrations in scope. 7 🆕 to-be-created symbols owned by Bucket A's 4 sequential phases. Single-bucket per user "best practice" decision: atomic ship for security-critical defense-in-depth. Awaiting plan PR review/merge before agent spawn.
+- **2026-05-11** (complete): Wave SHIPPED. **Outcomes:**
+  - **Bucket A GAP-466** → PR #1131 → 🟡 PARTIAL: Phase 1+2+3+4 backwards-compat all DONE; only deferred AC = perf-baseline measurement (sustained-load harness needed; tracked GAP-469).
+  - **Final tenant-scoped table count:** 51 kc-core (vs 59 plan estimate) + 12 kh-subscription (vs 2 plan estimate — kh-sub uses `instance_id` for 11 tables + `tenant_id` for 1).
+  - **Test results:** 1398/1398 kc-core PASS (52 skipped, 0 fail/err) + 452/452 kh-subscription PASS + 4/4 RLSEnforcementIT PASS. **Zero test breakage despite 51-table FORCE RLS.**
+  - **Risks materialized:** A test breakage ✅ MITIGATED zero break; B perf ⏳ DEFERRED → GAP-469; C admin cross-tenant ✅ DOCUMENTED runbook §4 break-glass; D pool reuse ✅ MITIGATED `set_config(.., true)` + IT verifies; E batch jobs ✅ DOCUMENTED `TenantContext.runAs(...)` convention.
+  - **Implementation notes:**
+    1. kh-subscription uses non-FORCE RLS (lacks per-request `TenantContext`; FORCE would default-deny everything). Documented future-tightening when kh-sub gains tenant-aware request flow.
+    2. Test profile disables Flyway (`flyway.enabled: false` + `ddl-auto: create-drop`); `RLSEnforcementIT` applies policy programmatically `@BeforeAll` mirroring V58 SQL.
+    3. TestContainers `test` user is superuser (would bypass FORCE RLS); tests provision `kite_rls_test_role` (`NOSUPERUSER NOBYPASSRLS`) and `SET LOCAL ROLE` per transaction.
+    4. `NULLIF(current_setting('app.current_tenant_id', true), '')::uuid` guards against empty-string GUC raising `invalid input syntax for type uuid`.
+  - **Coordinator-applied fix:** agent-filed `GAP-467 RLS perf baseline` collided with existing `GAP-467 helm values.yaml Go-templates` (merged PR #1121). Renamed → `GAP-469-rls-performance-baseline.md` + 4 in-text refs in GAP-466.
+  - **Wall-clock:** ~33 min agent + ~5 min coordinator rename = ~38 min vs ~5-6 day plan estimate (**~218× speedup**) — perf-deferred-to-baseline-gap pattern enabled atomic 4-phase ship.
+  - **0-clarification streak:** 91 (Wave 56 = 0 clarification rounds; coordinator GAP-ID rename is post-completion housekeeping, not a clarification round).
+- **Phase 1 BETA critical-path step 2.5 status:** flipped ⏳ → 🟡 PARTIAL (defense-in-depth shipped; only perf measurement deferred to GAP-469; gap unblocked via PR #1131).

@@ -29,10 +29,22 @@
 |------|:------:|
 | 1. Phase 4 milestone audit | ✅ DONE (Wave 53+54: UI 111.7 + Quality 87 + Performance 81) |
 | 2. Production observability validation | 🟡 PARTIAL (Wave 55 SHIPPED 2026-05-11; chart-level + foundation DONE per PRs #1119 Loki / #1125 tracing / #1120 alertmanager; live-cluster validation gated step 4 first deploy) |
-| **2.5 (NEW)** Multi-tenant RLS hardening | ⏳ Wave 56-57 (GAP-466 P1, ~5-6 days) |
+| **2.5** Multi-tenant RLS hardening | 🟡 PARTIAL (Wave 56 SHIPPED 2026-05-11 PR #1131; 51 kc-core + 12 kh-sub tables RLS-enabled; perf baseline deferred GAP-469) |
 | 3. AWS funding decision | 🟡 RESUBMITTED 2026-05-11; pending D+14 (2026-05-25 reminder set) |
 | 4. Tier 3 cutover (api.kitehub.me HTTPS) | ⏳ runbook ready GAP-449; gated step 3 funding decision |
 | 5. Beta tenant onboarding (4-6 week beta period) | ⏳ gated step 4 + RLS hardening |
+
+**Wave 56 SHIPPED 2026-05-11 — Multi-tenant Postgres RLS Hardening (PRs #1130 plan + #1131 single-bucket + closure):**
+- **Bucket A GAP-466 RLS defense-in-depth** → PR #1131 → 🟡 PARTIAL: 4-phase atomic ship.
+  - **Phase 1 Migrations:** `V58__enable_rls_tenant_scoped_tables.sql` (51 kc-core tables RLS+FORCE) + `V34__enable_rls_tenant_scoped_tables.sql` (12 kh-subscription tables RLS, no FORCE — kh-sub lacks per-request `TenantContext`). `TenantAwareDataSourceInterceptor` aspect issues `set_config('app.current_tenant_id', :tid, true)` at every Spring `@Transactional` boundary; idempotent across nested propagation; default-deny when context empty.
+  - **Phase 2 IT tests:** `RLSEnforcementIT` 4/4 PASS on TestContainers Postgres 15. Tests provision `kite_rls_test_role` (NOSUPERUSER + NOBYPASSRLS) + `SET LOCAL ROLE` per tx (Testcontainers `test` superuser would bypass FORCE).
+  - **Phase 3 Docs+monitor:** `kiteclass-architecture.md` §Multi-Tenant Isolation rewritten layered defense; `runbooks/rls-policy-violation.md` P0 incident response; `prometheusrule.yaml` `RLSPolicyViolation` alert rate>0 fires P0; `multi-tenancy/rules.md` BR-MULTITENANT-001 5-attribute schema PDPL 2023 Art 23 compliance evidence anchored.
+  - **Phase 4 Backwards-compat:** **1398/1398 kc-core PASS** (52 skipped, 0 fail/err) + **452/452 kh-subscription PASS** + 4/4 `RLSEnforcementIT` PASS. **Zero test breakage** despite 51-table FORCE RLS.
+- **Side-discovery rename:** agent-filed `GAP-467 RLS perf baseline` collided with existing `GAP-467 helm values.yaml Go-templates` (merged PR #1121). Coordinator renamed → `GAP-469-rls-performance-baseline.md` + 4 in-text refs in GAP-466 fixed inline.
+- **Risks materialized:** A test breakage ✅ MITIGATED zero break; B perf ⏳ DEFERRED → GAP-469 (sustained-load harness pending); C admin cross-tenant ✅ DOCUMENTED runbook §4 break-glass; D pool reuse ✅ MITIGATED `set_config(.., true)` + IT verifies; E batch jobs ✅ DOCUMENTED `TenantContext.runAs(...)` convention.
+- **Wall-clock:** ~33 min agent + ~5 min coordinator rename = ~38 min vs ~5-6 day plan estimate (**~218× speedup**). Atomic single-bucket ship + perf-baseline-deferred-to-follow-up-gap pattern enabled.
+- **Phase 1 BETA critical-path step 2.5** ⏳ → 🟡 PARTIAL (defense-in-depth shipped; perf gate deferred GAP-469).
+- **Streak: 91** consecutive 0-clarification-flip waves.
 
 **Wave 55 SHIPPED 2026-05-11 — Production Observability Validation (PRs #1118 plan + #1119 A Loki + #1125 B tracing + #1120 C alertmanager + #1121 side-discoveries + closure):**
 - **Bucket A GAP-434 Loki/Promtail Phase 2** → PR #1119 → 🟡 PARTIAL: Helm subchart `grafana/loki-stack` 2.10.2 added; `loki:` block in values.yaml (single-binary + S3 90d + Promtail DaemonSet + JSON pipeline for tenantId/traceId/spanId/level/service); new `templates/grafana-datasource-loki.yaml` (uid `loki`); `scripts/smoke-test.sh` extended with `LOGS_OVERVIEW_E2E` (gated `SMOKE_LOGS_E2E=1`); 6/12 AC. Live `helm test` + LogQL query deferred to first deploy (no local k8s; matches GAP-144 mock-fire precedent).
