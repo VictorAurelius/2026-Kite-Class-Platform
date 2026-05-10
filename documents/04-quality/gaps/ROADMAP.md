@@ -12,6 +12,28 @@
 
 ### 🚀 Next Action (signpost cho new session)
 
+**Session 2026-05-11 post-Wave-54 cluster (5 PRs after closure):**
+- **PR #1112** fix(it): unused imports removed AttendanceClassBatch + StudentPortal IT (`ADMIN_MERGE_OVERRIDE` for Vercel rate-limit environmental)
+- **PR #1113** audit(aws): actual cost Apr-May 2026 — $0 MTD vs theoretical $144-216 estimate (Free Tier 12mo intact đến ~2027-05-07; account spend effectively $0 vì stack stopped post-Wave-50)
+- **PR #1114** docs(aws-credit) v1.1: actual numbers — Phase 1.5 cost correction. Premise "Release 1 không phát sinh cost" CORRECTED: nếu Activate denied, realistic personal cash **$293 over 4.5 tháng** (Phase 1 BETA Architecture B ~$40/mo × 3mo + Phase 1.5 Architecture A ~$115/mo × 1.5mo; Free Tier KHÔNG cover t3.large)
+- **PR #1115** docs(aws-activate): Founder $1k **RESUBMITTED 2026-05-11 01:19 ICT** sau GAP-459 root-cause fix shipped (PR #1086 SSR shell + canonical URL `.vn`→`.me`). Form values carried forward from 2026-05-09 submission; description text refreshed nhấn "Live at kitehub.me" (247 chars). GAP-459 🟡→🟢 DONE; GAP-412 🔴→🟡 PARTIAL pending approval D+7-10 BD (~2026-05-21). Calendar reminder D+14 (2026-05-25 10:00 ICT) set via Google Calendar MCP event `rk5m95s90qm1ulavk4qfhsui20`
+- **PR #1116** docs(gaps): 4 infra gaps surfaced từ user 4-question deployment review:
+  - **GAP-463** P2 — `infrastructure/README.md` sync với Phase 1 BETA reality (terraform-oracle archived, EKS hint misleading, helm/k8s dormant clarification)
+  - **GAP-464** P2 — ECS Fargate vs EKS architecture decision (ADR-025 §5 follow-up commitment unfulfilled; trigger Phase 1 BETA closure)
+  - **GAP-465** P2 — Helm + k8s artifacts validation pre-Phase-1.5-migration (GAP-415 sub-task; staleness audit + remediate + CI guard)
+  - **GAP-466** 🟠 **P1** — Multi-tenant Postgres RLS defense-in-depth (PDPL 2023 Art 23 compliance; pre-Phase-1-BETA-launch hardening security-critical)
+
+**Phase 1 BETA critical-path tracker (updated 2026-05-11):**
+
+| Step | Status |
+|------|:------:|
+| 1. Phase 4 milestone audit | ✅ DONE (Wave 53+54: UI 111.7 + Quality 87 + Performance 81) |
+| 2. Production observability validation | ⏳ Wave 55 (GAP-434 Loki + GAP-112 tracing + GAP-144 alert receivers parallel ~3 weeks) |
+| **2.5 (NEW)** Multi-tenant RLS hardening | ⏳ Wave 56-57 (GAP-466 P1, ~5-6 days) |
+| 3. AWS funding decision | 🟡 RESUBMITTED 2026-05-11; pending D+14 (2026-05-25 reminder set) |
+| 4. Tier 3 cutover (api.kitehub.me HTTPS) | ⏳ runbook ready GAP-449; gated step 3 funding decision |
+| 5. Beta tenant onboarding (4-6 week beta period) | ⏳ gated step 4 + RLS hardening |
+
 **Wave 54 SHIPPED 2026-05-11 — Performance /100 redux + Observability state-check (PRs #1109 plan + #1110 Performance):**
 - **Performance /100:** ✅ Bucket A PR #1110 — **81/100 B** (Δ +6 vs Wave 40 75/100). Zero P1 remaining (3 Wave 40 P1 unbounded `findAll` closed Wave 41 GAP-432). Wave 51 new endpoints fully compliant pagination. Zero new sub-gaps.
 - **Observability state-check:** ✅ Bucket B Explore — Phase 1 BETA §3.6 deliverable verdict 🟡 **PARTIAL-VERIFIABLE**. Audit file `documents/04-quality/audits/ops-readiness/2026-05-11-wave-54-observability-state-check.md`. 4 follow-up gaps already filed (no duplicates):
