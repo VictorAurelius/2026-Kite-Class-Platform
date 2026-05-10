@@ -1,0 +1,249 @@
+name: Tier 3 Cutover (kitehub.me)
+
+# workflow_dispatch only — NO push/PR triggers. User-triggered, confirm-input
+# gated, OIDC ephemeral creds, narrow IAM role.
+#
+# References:
+#   - documents/05-guides/deploy/release-1-tier-3-cutover.md (full sequence)
+#   - .claude/rules/release-deploy-standard.md §9 — agent ships workflow, human runs apply
+#   - .claude/rules/agent-aws-access.md — apply via documented workflow OK
+#   - infrastructure/terraform-aws/iam.tf — role `${project_name}-github-tier-3-cutover`
+#   - GAP-459 / GAP-458 (Phase 1 BETA domain cutover)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type APPLY verbatim to confirm Tier 3 cutover"
+        required: true
+        type: string
+      step:
+        description: 'Which step to run'
+        required: true
+        type: choice
+        default: 'verify-only'
+        options:
+          - verify-only          # Read-only: describe EC2/RDS/ALB/ACM state, no mutation
+          - resume-compute       # §1: start EC2 + RDS
+          - import-cert          # §2: ACM import Cloudflare Origin Cert (requires CERT_PEM/CERT_KEY repo secrets)
+          - alb-https-listener   # §3: create ALB HTTPS listener with cert binding
+          - all                  # §1 + §2 + §3 in sequence
+      cert_arn_override:
+        description: '(alb-https-listener only) Existing ACM cert ARN — leave blank to use most-recent kitehub.me cert'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  id-token: write       # OIDC token for AWS STS AssumeRoleWithWebIdentity
+  contents: read        # Checkout
+
+env:
+  AWS_REGION: 'ap-southeast-1'
+  PROJECT_NAME: 'kitehub'
+  ALB_NAME: 'kitehub-alb'
+  EC2_TAG_VALUES: 'kitehub-kh-backend,kitehub-kc-app'
+  RDS_INSTANCE_ID: 'kitehub-postgres'
+
+jobs:
+  validate:
+    name: Validate inputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm intent
+        if: ${{ github.event.inputs.confirm != 'APPLY' }}
+        run: |
+          echo "::error ::Confirm input must be 'APPLY' verbatim. Got: '${{ github.event.inputs.confirm }}'"
+          exit 1
+
+      - name: Echo run summary
+        run: |
+          echo "Step:      ${{ github.event.inputs.step }}"
+          echo "Cert ARN:  ${{ github.event.inputs.cert_arn_override || '(auto-detect)' }}"
+          echo "Region:    ${{ env.AWS_REGION }}"
+
+  cutover:
+    name: tier-3-cutover (${{ github.event.inputs.step }})
+    runs-on: ubuntu-latest
+    needs: validate
+    environment: production    # GitHub Environment ref (protection rules optional but recommended)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_TIER_3_CUTOVER_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: github-tier-3-cutover-${{ github.run_id }}
+
+      # ---------------------------------------------------------------- VERIFY
+      - name: Verify — EC2 state
+        run: |
+          aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=${{ env.EC2_TAG_VALUES }}" \
+            --query 'Reservations[].Instances[].[Tags[?Key==`Name`]|[0].Value,InstanceId,State.Name,PublicIpAddress]' \
+            --output table
+
+      - name: Verify — RDS state
+        run: |
+          aws rds describe-db-instances \
+            --db-instance-identifier "${{ env.RDS_INSTANCE_ID }}" \
+            --query 'DBInstances[0].[DBInstanceStatus,Endpoint.Address]' \
+            --output table || echo "RDS not yet provisioned"
+
+      - name: Verify — ALB + listeners
+        run: |
+          ALB_ARN=$(aws elbv2 describe-load-balancers \
+            --query "LoadBalancers[?LoadBalancerName=='${{ env.ALB_NAME }}'].LoadBalancerArn" \
+            --output text)
+          echo "ALB_ARN=$ALB_ARN"
+          if [ -n "$ALB_ARN" ]; then
+            aws elbv2 describe-listeners --load-balancer-arn "$ALB_ARN" \
+              --query 'Listeners[].[Port,Protocol,Certificates[0].CertificateArn]' \
+              --output table
+          fi
+
+      - name: Verify — ACM certs for kitehub.me
+        run: |
+          aws acm list-certificates \
+            --query 'CertificateSummaryList[?contains(DomainName, `kitehub.me`)].[CertificateArn,DomainName,Status]' \
+            --output table
+
+      # ----------------------------------------------------------- §1 RESUME
+      - name: §1 Resume — Start EC2 instances
+        if: ${{ github.event.inputs.step == 'resume-compute' || github.event.inputs.step == 'all' }}
+        run: |
+          KH=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=kitehub-kh-backend" \
+            --query 'Reservations[0].Instances[0].InstanceId' --output text)
+          KC=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=kitehub-kc-app" \
+            --query 'Reservations[0].Instances[0].InstanceId' --output text)
+          echo "Starting EC2: $KH $KC"
+          aws ec2 start-instances --instance-ids "$KH" "$KC"
+          aws ec2 wait instance-running --instance-ids "$KH" "$KC"
+          echo "✓ EC2 running"
+
+      - name: §1 Resume — Start RDS
+        if: ${{ github.event.inputs.step == 'resume-compute' || github.event.inputs.step == 'all' }}
+        run: |
+          STATUS=$(aws rds describe-db-instances --db-instance-identifier "${{ env.RDS_INSTANCE_ID }}" \
+            --query 'DBInstances[0].DBInstanceStatus' --output text)
+          if [ "$STATUS" = "stopped" ]; then
+            echo "Starting RDS: ${{ env.RDS_INSTANCE_ID }}"
+            aws rds start-db-instance --db-instance-identifier "${{ env.RDS_INSTANCE_ID }}"
+            aws rds wait db-instance-available --db-instance-identifier "${{ env.RDS_INSTANCE_ID }}"
+            echo "✓ RDS available"
+          else
+            echo "ℹ RDS already in state: $STATUS — skip start"
+          fi
+
+      # --------------------------------------------------------- §2 ACM IMPORT
+      - name: §2 ACM — Validate cert secrets
+        if: ${{ github.event.inputs.step == 'import-cert' || github.event.inputs.step == 'all' }}
+        run: |
+          if [ -z "${{ secrets.CLOUDFLARE_ORIGIN_CERT_PEM }}" ] || [ -z "${{ secrets.CLOUDFLARE_ORIGIN_CERT_KEY }}" ]; then
+            echo "::error ::Missing CLOUDFLARE_ORIGIN_CERT_PEM and/or CLOUDFLARE_ORIGIN_CERT_KEY repo secrets."
+            echo "Add via GitHub Settings → Secrets and variables → Actions → New repository secret"
+            echo "Source: ~/.gcal-mcp/cloudflare-origin-cert/{kitehub.me.pem, kitehub.me.key}"
+            exit 1
+          fi
+
+      - name: §2 ACM — Import Cloudflare Origin Cert
+        if: ${{ github.event.inputs.step == 'import-cert' || github.event.inputs.step == 'all' }}
+        env:
+          CERT_PEM: ${{ secrets.CLOUDFLARE_ORIGIN_CERT_PEM }}
+          CERT_KEY: ${{ secrets.CLOUDFLARE_ORIGIN_CERT_KEY }}
+        run: |
+          umask 077
+          echo "$CERT_PEM" > /tmp/cert.pem
+          echo "$CERT_KEY" > /tmp/cert.key
+          # Validate cert + key match
+          CERT_MD5=$(openssl x509 -noout -modulus -in /tmp/cert.pem | openssl md5)
+          KEY_MD5=$(openssl rsa -noout -modulus -in /tmp/cert.key | openssl md5)
+          if [ "$CERT_MD5" != "$KEY_MD5" ]; then
+            echo "::error ::Cert + key modulus mismatch — corrupted secrets"
+            exit 1
+          fi
+          # Import
+          CERT_ARN=$(aws acm import-certificate \
+            --certificate fileb:///tmp/cert.pem \
+            --private-key fileb:///tmp/cert.key \
+            --tags Key=Name,Value=cloudflare-origin-kitehub.me Key=GAP,Value=GAP-458 \
+            --query 'CertificateArn' --output text)
+          rm -f /tmp/cert.pem /tmp/cert.key
+          echo "✓ Cert imported: $CERT_ARN"
+          echo "TIER_3_CERT_ARN=$CERT_ARN" >> "$GITHUB_ENV"
+
+      # -------------------------------------------------- §3 ALB HTTPS LISTENER
+      - name: §3 ALB — Resolve cert ARN
+        if: ${{ github.event.inputs.step == 'alb-https-listener' || github.event.inputs.step == 'all' }}
+        run: |
+          if [ -n "${{ github.event.inputs.cert_arn_override }}" ]; then
+            CERT_ARN="${{ github.event.inputs.cert_arn_override }}"
+          elif [ -n "${TIER_3_CERT_ARN:-}" ]; then
+            CERT_ARN="$TIER_3_CERT_ARN"
+          else
+            # Auto-detect most-recent kitehub.me cert
+            CERT_ARN=$(aws acm list-certificates \
+              --query 'CertificateSummaryList[?contains(DomainName, `kitehub.me`)] | sort_by(@, &CreatedAt) | [-1].CertificateArn' \
+              --output text)
+          fi
+          if [ -z "$CERT_ARN" ] || [ "$CERT_ARN" = "None" ]; then
+            echo "::error ::No ACM cert found for kitehub.me. Run import-cert step first or pass cert_arn_override."
+            exit 1
+          fi
+          echo "Using cert: $CERT_ARN"
+          echo "RESOLVED_CERT_ARN=$CERT_ARN" >> "$GITHUB_ENV"
+
+      - name: §3 ALB — Create/modify HTTPS listener
+        if: ${{ github.event.inputs.step == 'alb-https-listener' || github.event.inputs.step == 'all' }}
+        run: |
+          ALB_ARN=$(aws elbv2 describe-load-balancers \
+            --query "LoadBalancers[?LoadBalancerName=='${{ env.ALB_NAME }}'].LoadBalancerArn" \
+            --output text)
+          TG_ARN=$(aws elbv2 describe-target-groups \
+            --query 'TargetGroups[?contains(TargetGroupName, `kitehub`)].TargetGroupArn' \
+            --output text | head -1)
+          echo "ALB: $ALB_ARN"
+          echo "TG:  $TG_ARN"
+          # Check if HTTPS listener exists already
+          EXISTING_HTTPS=$(aws elbv2 describe-listeners --load-balancer-arn "$ALB_ARN" \
+            --query 'Listeners[?Port==`443`].ListenerArn' --output text)
+          if [ -n "$EXISTING_HTTPS" ]; then
+            echo "ℹ HTTPS listener exists ($EXISTING_HTTPS) — modifying cert binding"
+            aws elbv2 modify-listener --listener-arn "$EXISTING_HTTPS" \
+              --certificates "CertificateArn=$RESOLVED_CERT_ARN"
+          else
+            echo "Creating new HTTPS listener"
+            aws elbv2 create-listener --load-balancer-arn "$ALB_ARN" \
+              --protocol HTTPS --port 443 \
+              --certificates "CertificateArn=$RESOLVED_CERT_ARN" \
+              --ssl-policy ELBSecurityPolicy-TLS13-1-2-2021-06 \
+              --default-actions "Type=forward,TargetGroupArn=$TG_ARN"
+          fi
+          # HTTP→HTTPS redirect on port 80 listener
+          HTTP_ARN=$(aws elbv2 describe-listeners --load-balancer-arn "$ALB_ARN" \
+            --query 'Listeners[?Port==`80`].ListenerArn' --output text)
+          if [ -n "$HTTP_ARN" ]; then
+            echo "Setting port 80 → 301 HTTPS redirect"
+            aws elbv2 modify-listener --listener-arn "$HTTP_ARN" \
+              --default-actions 'Type=redirect,RedirectConfig={Protocol=HTTPS,Port=443,Host=#{host},Path=/#{path},Query=#{query},StatusCode=HTTP_301}'
+          fi
+          echo "✓ ALB HTTPS listener active"
+
+      # ------------------------------------------------------------- POST-CHECK
+      - name: Post-check — Final state
+        if: ${{ github.event.inputs.step != 'verify-only' }}
+        run: |
+          ALB_ARN=$(aws elbv2 describe-load-balancers \
+            --query "LoadBalancers[?LoadBalancerName=='${{ env.ALB_NAME }}'].LoadBalancerArn" \
+            --output text)
+          aws elbv2 describe-listeners --load-balancer-arn "$ALB_ARN" \
+            --query 'Listeners[].[Port,Protocol,Certificates[0].CertificateArn]' \
+            --output table
+          echo ""
+          echo "Next: switch Cloudflare proxy ON for api.kitehub.me + SSL Full(strict) + Always HTTPS"
+          echo "  bash scripts/cloudflare-dns.sh toggle-proxy api.kitehub.me"
+          echo "  bash scripts/cloudflare-dns.sh set-ssl-mode strict"
+          echo "  bash scripts/cloudflare-dns.sh set-always-https on"

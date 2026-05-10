@@ -7,6 +7,7 @@
 - Tier 1: `vercel-production-setup.md` (FE bind + env var) — DONE 2026-05-09
 - Tier 2: `cloudflare-setup.md` §6.2 (Origin Cert generate) — DONE 2026-05-10
 - Tier 3 standards: `cloudflare-setup.md` §6.1 + §6.3 + §6.4 (Full strict / Always HTTPS / HSTS)
+- Tier 3 CLI agent-runnable §5+§6+§7: `scripts/cloudflare-dns.sh` (token extended 2026-05-10 — Zone:DNS:Edit + Zone:SSL:Edit + Zone:Zone Settings:Edit + Zone:Read)
 - Cost: `aws-cost-scheduling.md` §4 (resume manual override)
 - Decision context: GAP-458 + `release-1-deploy-plan.md` §2.2
 
@@ -50,6 +51,56 @@
 
 **Option A:** wait Activate approval (D+14 reminder) → resume EC2 sau khi approved
 **Option B:** resume now, pay first 1-2 weeks if Activate denied → start Phase 1 BETA testing earlier
+
+---
+
+## 0.5 Two execution paths — CLI manual vs workflow_dispatch
+
+§1-§3 (AWS write actions) chấp nhận 2 execution paths:
+
+### Path X — Manual CLI (user paste commands locally)
+
+**When:** Bạn có AWS CLI authed locally (đã `aws sts get-caller-identity` returns 906286017800), prefer hands-on control, comfortable đọc output từng step.
+
+**How:** Follow §1-§3 dưới — paste từng `aws ec2 ...` / `aws rds ...` / `aws acm ...` / `aws elbv2 ...` command vào terminal.
+
+**Pros:** Zero setup ngoài AWS CLI; full visibility từng step; easy abort mid-sequence.
+**Cons:** Bạn phải paste 15+ commands; nhỡ typo → re-run.
+
+### Path Y — workflow_dispatch GitHub Actions (1-click)
+
+**When:** Bạn muốn 1-click cutover; audit trail trong GitHub Actions; OIDC ephemeral creds (KHÔNG cần admin AWS key trên laptop).
+
+**Workflow:** `.github/workflows/tier-3-cutover.yml` (per `release-deploy-standard.md` §9 carve-out: human-triggered + confirm-input "APPLY" + narrow OIDC role).
+
+**Inputs:**
+- `confirm`: phải gõ `APPLY` verbatim
+- `step`: `verify-only` / `resume-compute` (§1) / `import-cert` (§2) / `alb-https-listener` (§3) / `all` (§1+2+3)
+- `cert_arn_override` (optional): nếu đã có ACM cert ARN, paste vào để skip §2 import
+
+**One-time setup required (PR #TBD):**
+1. Apply terraform (qua existing `terraform-apply.yml` workflow_dispatch) để tạo new IAM role `kitehub-github-tier-3-cutover`. Capture output `github_tier_3_cutover_role_arn`.
+2. Add **Repository Variable** `AWS_TIER_3_CUTOVER_ROLE_ARN` = `<arn from step 1>` (Settings → Secrets and variables → Actions → Variables tab → New).
+3. Add **Repository Secrets** (cho §2 import):
+   - `CLOUDFLARE_ORIGIN_CERT_PEM` = paste content `~/.gcal-mcp/cloudflare-origin-cert/kitehub.me.pem`
+   - `CLOUDFLARE_ORIGIN_CERT_KEY` = paste content `~/.gcal-mcp/cloudflare-origin-cert/kitehub.me.key`
+4. Verify GitHub Environment `production` exists (Settings → Environments). Optional: add protection rules (required reviewer = solo dev, wait timer 0 min).
+
+**How to trigger:**
+1. GitHub Actions tab → **Tier 3 Cutover (kitehub.me)**
+2. Run workflow → Branch `main` → Inputs:
+   - confirm: `APPLY`
+   - step: `verify-only` first (sanity), then `all` (or step-by-step for safety)
+3. Click **Run workflow**
+
+**Pros:** 1-click; OIDC ephemeral creds (no admin key on laptop); audit trail; idempotent re-run safe (`verify-only` first).
+**Cons:** ~1h setup (terraform apply IAM + 3 secrets/vars); GitHub Environment protection adds 1 approval click per run.
+
+### Recommended
+
+Path X cho first run (full visibility); Path Y cho subsequent re-runs (vd cert renewal yearly, listener cert rotation). Path Y setup cost amortizes nếu cutover repeated ≥3 lần.
+
+§5+§6+§7 (Cloudflare ops) luôn agent CLI — `scripts/cloudflare-dns.sh` (token extended scope per §6).
 
 ---
 
@@ -343,28 +394,31 @@ echo | timeout 5 openssl s_client -connect api.kitehub.me:443 -servername api.ki
 
 ## 6. Step 6 — Switch Cloudflare SSL mode → Full (strict) (~1 phút)
 
-### 6.1 Cloudflare Dashboard
+**Yêu cầu:** Cloudflare API token với scope `Zone:DNS:Edit + Zone:SSL and Certificates:Edit + Zone:Zone Settings:Edit + Zone:Zone:Read`. Setup per `documents/05-guides/dev/cloudflare-cli-setup.md` §3 (token đã extended 2026-05-10).
+
+### 6.1 Verify current state
+
+```bash
+bash scripts/cloudflare-dns.sh get-ssl-mode
+# Pre-Tier-3 expected: full (Universal SSL active, NOT strict yet)
+```
+
+### 6.2 Switch → strict (CLI agent-runnable)
+
+```bash
+bash scripts/cloudflare-dns.sh set-ssl-mode strict
+# Expected: OK — SSL mode now: strict
+```
+
+### 6.3 Alternative — Cloudflare Dashboard (fallback nếu token chưa extended)
 
 🔗 https://dash.cloudflare.com/3adf4fc6532225cb928acbf57ca0206c/kitehub.me/ssl-tls/configuration
 
 1. Sidebar **SSL/TLS** → **Overview** (hoặc **Configuration**)
-2. **SSL/TLS encryption mode** dropdown
-3. Hiện tại: `Full` hoặc `Flexible` (Cloudflare default sau Universal SSL)
-4. Change to **Full (strict)**
-5. Save
+2. **SSL/TLS encryption mode** dropdown → change to **Full (strict)**
+3. Save
 
-### 6.2 Verify SSL mode
-
-```bash
-# Via API:
-ZONE_ID="bb54ef8f69b0ef03085ce8903d90a5a4"
-curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-  "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/ssl" \
-  | python3 -c "import sys,json; print('SSL mode:', json.load(sys.stdin)['result']['value'])"
-# Expected: SSL mode: strict
-```
-
-### 6.3 Test end-to-end với Full strict
+### 6.4 Test end-to-end với Full strict
 
 ```bash
 # Browser-style test (verify cert chain valid)
@@ -376,31 +430,40 @@ curl -sI -m 10 https://kitehub.me
 # Expected: 200 từ Vercel
 ```
 
-### 6.4 Cờ đỏ Step 6
+### 6.5 Cờ đỏ Step 6
 
 | Symptom | Fix |
 |---|---|
 | `525 SSL handshake failed` từ Cloudflare | Origin Cert chưa import ACM hoặc ALB chưa serve HTTPS — quay lại Step 2-3 |
 | `526 Invalid SSL certificate` | Origin Cert mismatch hoặc expired; verify cert active trong ACM |
-| Browser cert warning | Full (strict) chưa apply; recheck Step 6.1 |
+| Browser cert warning | Full (strict) chưa apply; verify `bash scripts/cloudflare-dns.sh get-ssl-mode` returns `strict` |
 
 ---
 
 ## 7. Step 7 — Enable Always Use HTTPS (~1 phút)
 
-### 7.1 Cloudflare Dashboard
+### 7.1 Verify current state
 
-1. Sidebar **SSL/TLS** → **Edge Certificates**
-2. Section **Always Use HTTPS** → toggle **ON**
+```bash
+bash scripts/cloudflare-dns.sh get-always-https
+# Pre-Tier-3 expected: off
+```
 
-### 7.2 Verify
+### 7.2 Toggle ON (CLI agent-runnable)
+
+```bash
+bash scripts/cloudflare-dns.sh set-always-https on
+# Expected: OK — Always Use HTTPS now: on
+```
+
+### 7.3 Verify HTTP→HTTPS redirect
 
 ```bash
 curl -sI -m 10 http://api.kitehub.me/actuator/health
 # Expected: HTTP/1.1 301 Moved Permanently + location: https://...
 ```
 
-### 7.3 Verify apex (Vercel)
+### 7.4 Verify apex (Vercel)
 
 Vercel apex bind đã có Always Use HTTPS built-in. Verify:
 
