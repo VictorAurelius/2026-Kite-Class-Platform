@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getAllBlogPosts } from '@/lib/blog';
+import { SITE_URL } from '@/lib/site-config';
 
 import type { Metadata } from 'next';
 
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
     title: 'Blog - KiteHub',
     description:
       'Chia sẻ kiến thức quản lý trung tâm giáo dục, công nghệ EdTech, và mẹo vận hành hiệu quả.',
-    url: 'https://kitehub.vn/blog',
+    url: `${SITE_URL}/blog`,
   },
 };
 

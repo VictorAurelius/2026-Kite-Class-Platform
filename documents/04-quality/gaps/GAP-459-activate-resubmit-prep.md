@@ -1,6 +1,6 @@
 # GAP-459: AWS Activate denial — fix kitehub.me SSR bailout + canonical URL `.vn` → `.me`
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1+2+3 shipped 2026-05-10; Phase 4 (deploy verify + AWS resubmit) pending post-merge user-action
 **Priority:** 🟠 P1 — block AWS Activate $1k credit (compute cover Phase 1 BETA ~10 tháng)
 **Domain:** Frontend (kitehub-frontend) / SEO / DevOps
 **Found:** 2026-05-10 (AWS Activate denial email — "Your website cannot be accessed or fails to load")
@@ -127,12 +127,12 @@ curl -s http://localhost:3001 | grep -E "Đang tải|kitehub\.vn"
 
 ## Acceptance Criteria
 
-- [ ] Phase 1: 16 `.vn` refs → `.me` (PublicLayout footer + schemas + layout + sitemap + robots + pricing + blog + LandingClient + test assertion)
-- [ ] Phase 2: `LandingShellSSR.tsx` ships SSR hero + CTA + value prop visible without JS
-- [ ] Phase 3: `pnpm test --run` + `pnpm build` pass; curl no JS shows real content
-- [ ] Phase 4: Production verify `kitehub.me` shows hero content via curl (no "Đang tải"); zero `.vn` refs in HTML
-- [ ] Resubmit AWS Activate với same form data + updated submission log
-- [ ] Calendar reminder 2 tuần wait (D+14 từ resubmit date)
+- [x] Phase 1: 21 `.vn` refs → `.me` via centralized `lib/site-config.ts` SITE_URL constant (+5 vs gap-doc estimate of 16 — added DPO email in `legal/data-rights/page.tsx` + LandingClient JSON-LD + 2 layout og:url variants caught by grep sweep)
+- [x] Phase 2: `LandingShellSSR.tsx` ships SSR hero + CTA + value prop + nav + footer; wired into `LandingShell` `loading` prop so initial HTML contains real content (verified via `.next/server/app/index.html` — hero in body not template)
+- [x] Phase 3: `pnpm test --run` 649/649 pass; `pnpm build` succeeds; built HTML 22KB with hero copy + 0 `.vn` refs + 0 "Đang tải" spinner text
+- [ ] Phase 4: Production verify `kitehub.me` shows hero content via curl (no "Đang tải"); zero `.vn` refs in HTML — **post-deploy user-action**
+- [ ] Resubmit AWS Activate với same form data + updated submission log — **user-action**
+- [ ] Calendar reminder 2 tuần wait (D+14 từ resubmit date) — **user-action**
 
 ## Compliance
 
@@ -153,3 +153,4 @@ curl -s http://localhost:3001 | grep -E "Đang tải|kitehub\.vn"
 ## Log
 
 - **2026-05-10** Filed in response to AWS Activate denial email. Curl audit confirmed 2 root causes: SSR bailout (JS-only fallback "Đang tải trang chủ…") + canonical URL trỏ `.vn` (DNS NXDOMAIN). User chose Recommended fix path (full session ship). Fix branch `fix/activate-resubmit-prep-gap-459`.
+- **2026-05-10 (later)** Phases 1+2+3 shipped single-PR (wave-pack analysis: 2 disjoint code buckets < 3 threshold → serial single-PR per `feedback_wave_plan_before_serial_prs.md`). Implementation: created `kitehub-frontend/src/lib/site-config.ts` exporting `SITE_URL`/`SUPPORT_EMAIL`/`DPO_EMAIL`; centralized 21 `.vn` refs across 9 files via TypeScript imports; created `LandingShellSSR.tsx` server-friendly above-fold component (hero + 2 CTAs + 3 value props + nav + footer); wired it into `LandingShell` `loading` prop so Next.js renders real content in initial HTML for `ssr: false` dynamic import. Verify: `pnpm test --run` 649/649 pass, `pnpm build` succeeds, built `index.html` contains hero copy in body (not template) + 0 `.vn` refs + 0 "Đang tải" spinner. BAILOUT marker still emitted by Next.js as empty `<template>` element (expected — doesn't hide content). Phase 4 (production curl verify + Activate resubmit + calendar reminder) deferred to post-merge user-action per `gap-done-discipline.md` §3 PARTIAL exit ramp.

@@ -8,7 +8,8 @@
  * @since Wave 9 (GAP-190)
  */
 
-const SITE_URL = 'https://kitehub.vn';
+import { SITE_URL, SUPPORT_EMAIL } from '@/lib/site-config';
+
 const SITE_NAME = 'KiteHub';
 const LOGO_URL = `${SITE_URL}/logo.png`;
 const DEFAULT_LOCALE = 'vi-VN';
@@ -42,7 +43,7 @@ export function organizationSchema(): Record<string, unknown> {
       {
         '@type': 'ContactPoint',
         contactType: 'customer support',
-        email: 'support@kitehub.vn',
+        email: SUPPORT_EMAIL,
         availableLanguage: ['Vietnamese', 'English'],
       },
     ],

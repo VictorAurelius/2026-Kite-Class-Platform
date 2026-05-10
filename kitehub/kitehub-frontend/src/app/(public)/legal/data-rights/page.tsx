@@ -42,7 +42,7 @@ export default function DataRightsPage() {
           <h2 className="text-xl font-semibold">Bạn cũng có thể liên hệ trực tiếp</h2>
           <p>
             Nếu không muốn dùng form, bạn có thể email DPO trực tiếp tại{' '}
-            <a className="underline" href="mailto:dpo@kitehub.vn">dpo@kitehub.vn</a>. Vui lòng cung cấp đủ thông tin
+            <a className="underline" href="mailto:dpo@kitehub.me">dpo@kitehub.me</a>. Vui lòng cung cấp đủ thông tin
             xác minh (họ tên, email đăng ký, 4 chữ số cuối CCCD/CMND) để DPO xử lý nhanh.
           </p>
         </section>

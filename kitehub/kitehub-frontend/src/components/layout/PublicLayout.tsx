@@ -78,7 +78,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             <div>
               <h4 className="mb-4 text-sm font-semibold">Liên hệ</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>support@kitehub.vn</li>
+                <li>support@kitehub.me</li>
                 <li>1900 xxxx xx</li>
               </ul>
             </div>
