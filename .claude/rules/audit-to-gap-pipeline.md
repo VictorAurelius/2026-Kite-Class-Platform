@@ -1,10 +1,10 @@
 # Audit → Gap → Fix Pipeline
 
 **Priority:** 🟠 MANDATORY — audit findings governance
-**Version:** 1.3.0
+**Version:** 1.4.0
 **Created:** 2026-04-16
-**Last-Reviewed:** 2026-05-10
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; v1.3.0 adds §2.7 Decision-Doc Code-Sync state-check extending state-check family from gap-filing (§2.5) + wave-planning (§2.6) to decision-doc landing time; paired same-PR with PR-template Output Review Checklist row + memory `feedback_decision_doc_code_sync.md` + worked self-test on 2026-05-09 GAP-458 → GAP-459 cascade per §6.5 Enforcement Parity Mandate; new constraint, no constraint loosening; existing decision docs grandfathered, rule applies prospectively)
+**Last-Reviewed:** 2026-05-11
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; v1.4.0 adds §2.8 Fix-Time State-Check extending state-check family from gap-filing (§2.5) + wave-planning (§2.6) + decision-doc (§2.7) to **fix pick-up time** — verify symptom còn tồn tại trước khi propose solution; paired same-PR with memory `feedback_gap_state_check_required.md` extension + worked self-test on 2026-05-11 GAP-450 session per §6.5 Enforcement Parity Mandate; no constraint loosening — adds completeness guard for previously-uncovered direction of state-check; existing fix PRs grandfathered, rule applies prospectively. v1.3.0 (kept): paired same-PR with PR-template Output Review Checklist row + memory `feedback_decision_doc_code_sync.md` + worked self-test on 2026-05-09 GAP-458 → GAP-459 cascade per §6.5 Enforcement Parity Mandate; new constraint, no constraint loosening; existing decision docs grandfathered, rule applies prospectively)
 **Applies to:** Every audit run (UI /128, Quality /100, Security /100, Performance /100, API Contract /100, Ops Readiness /100, Business Logic /100), every wave plan drafting, every decision-doc PR (gap closure with config-shaped value, ADR, runbook with new domain/email/brand/env-var/region), and the gap files / fix PRs they produce
 
 ---
@@ -204,6 +204,99 @@ Counterfactual with §2.7 applied at GAP-458 PR review:
 
 → **Rule fires correctly on the originating incident. Self-test PASS.** ✅
 
+### Step 2.8: Fix-Time State-Check (BẮT BUỘC trước khi propose solution cho gap >7 ngày tuổi hoặc drift-class)
+
+**Why this exists:** §2.5/§2.6/§2.7 cover state-check tại **filing-time, planning-time, decision-doc-time**. NONE cover **fix-time** — khi agent/dev pick up existing gap để fix. Gaps mô tả symptom (drift, missing file, broken state) có thể **self-correct theo thời gian** giữa filed date và fix date — đặc biệt:
+
+- Drift-class gaps (terraform state, repo state, dependency state) — runtime mechanisms (refresh, auto-merge, scheduled jobs) có thể đã sync state
+- Tooling-state gaps (CI workflow, hook config) — có thể đã được fix bởi PR khác
+- External-state gaps (API endpoints, DNS records, vendor approvals) — vendor có thể đã change
+
+Fix proposed BÁM theo gap description mà KHÔNG state-check sẽ:
+- Over-engineer solution cho non-existent problem
+- Tốn effort + token vào PR không cần
+- Discover only at execution-time mà symptom không còn — gây session pivot
+
+**Trigger:** picking up gap để fix khi:
+- Gap age ≥ 7 ngày từ Found date
+- Gap class = drift / state-sync / tooling-state / external-state
+- Gap mentioned in ROADMAP §🚀 Next Action (suggesting it's been queued)
+- Gap blocked dependencies (waiting for credentials, infrastructure, vendor approval)
+
+**Required content before drafting fix PR:**
+
+1. **Empirical state-check** — run the verification commands the gap describes as symptom:
+   - Drift gap → `terraform plan` (verify drift still present) + read state to confirm symptom
+   - Repo-state gap → grep / find against current code
+   - Tooling gap → run the tool that should be broken
+   - External-state gap → API call / curl / DNS query
+2. **Document findings** trong PR description hoặc comment trên gap before proposing solution:
+
+```markdown
+## Fix-time state-check (per audit-to-gap-pipeline.md §2.8)
+
+Gap age: <N> days since Found YYYY-MM-DD.
+Symptom claim: <copy from gap §Problem>
+Verification commands run: <list>
+Result: <empirical findings — drift still present / drift self-corrected / etc.>
+Decision: <proceed with fix / flip DONE without fix / scope-revise / etc.>
+```
+
+3. **Decision matrix:**
+
+| State-check result | Action |
+|---|---|
+| Symptom verified present | Proceed with proposed fix |
+| Symptom no longer present (self-corrected) | Flip gap to 🟢 DONE với findings; NO fix PR needed |
+| Symptom partially present (sub-set drifted) | Scope-revise fix to actual drift; document delta |
+| Symptom diagnostic was wrong from filing | Edit gap §Problem để correct; flag as gap-quality issue |
+
+**Banned shortcuts:**
+- "Trust the gap description because it was filed by an experienced dev"
+- "State-check at execution time is good enough" (no — execution-time pivot costs already-shipped PR effort)
+- "Gap is small, state-check overhead > fix effort" (small gaps still benefit; 5-min `terraform plan` saves 1.5h PR + retro)
+
+**Forward-looking exception:** gap với explicit deferred-execution semantics (e.g., "execute when AWS Activate D+14 unlocks") doesn't need fix-time state-check UNTIL the dependency unlocks. Reference dependency in gap; deferred state stays valid until trigger.
+
+**Detector:** deferred per `incident-to-rule-pipeline.md` §3 advisory-rule guard (premature-rule guard ≥7 ngày). For v1.3.0 enforcement = §6.5-paired memory `feedback_gap_state_check_required.md` extension + worked self-test + reviewer-checklist line. After 2nd recurrence, file follow-up gap to wire detector (e.g., scan gap pick-up via session-transcript hook).
+
+**Reviewer-checklist line:** when reviewing fix PR for gap >7 ngày tuổi OR drift-class:
+
+> Did the fix PR description include "Fix-time state-check" section per §2.8 với empirical verification commands + findings? If no → ask author to verify symptom still present before proceeding.
+
+**Worked self-test — apply §2.8 retroactively to 2026-05-11 GAP-450 session:**
+
+State at fix pick-up (2026-05-11):
+- GAP-450 Found 2026-05-08 — 3 ngày tuổi (boundary, but drift-class)
+- Symptom claim: "Terraform state shows id='none' + recurring 'will be updated in-place'"
+- §2.8 trigger: gap age + drift-class + mentioned in ROADMAP §🚀 Wave 60 candidates (f)
+
+Required state-check BEFORE proposing fix (Path A/B/C):
+
+```bash
+# Verify drift still present
+AWS_PROFILE=dev-admin AWS_DEFAULT_REGION=ap-southeast-1 terraform plan -out=tfplan
+AWS_PROFILE=dev-admin AWS_DEFAULT_REGION=ap-southeast-1 terraform show -json tfplan \
+  | jq '.resource_changes[] | select(.address | startswith("random_password.")) | {address, actions: .change.actions, before_id: .change.before.id, after_id: .change.after.id}'
+```
+
+Expected output (per actual 2026-05-11 investigation findings):
+- `actions: ["update"]` but `before == after` for all 3 random_password → phantom plan, no real drift
+- `aws_secretsmanager_secret_version.*` similar — id + version_stages + length match
+
+**Decision per §2.8 matrix**: "Symptom no longer present (self-corrected)" → Flip gap to 🟢 DONE với findings; NO fix PR needed.
+
+**Cost saved if §2.8 had been applied at fix-time:**
+- PR #1154 (Option B lifecycle ignore_changes + 253-line runbook + audit artifact) — ~1.5h effort
+- ~10-15k tokens conversation + tool calls
+- Pre-flight infra stop (EC2 + RDS, ~13 min wait)
+
+**Actual cost without §2.8:**
+- PR #1154 shipped (Option B retains future-proofing value; runbook value reduced)
+- PR #1155 (DONE flip post-investigation) shipped same day
+
+→ **Rule fires correctly on the originating incident.** Self-test PASS — rule would have caught the miss at step 2 instead of step 5. ✅
+
 ### Step 3: Gap File Creation
 
 Format chuẩn cho gap từ audit:
@@ -318,6 +411,7 @@ Sau khi meta-boost áp dụng, fix gaps theo thứ tự:
 
 ## 6. Log
 
+- **2026-05-11** (v1.4.0): MINOR — added §2.8 Fix-Time State-Check extending state-check family từ filing-time (§2.5) + planning-time (§2.6) + decision-doc-time (§2.7) to **fix pick-up time**. Triggered by 2026-05-11 user-flagged retro after GAP-450 fix session: GAP-450 filed 2026-05-08 mô tả terraform state drift; fix session 2026-05-11 (3 ngày sau) proposed Option A surgery via PR #1154 (Path B+C combined: lifecycle ignore_changes + runbook + audit artifact, ~1.5h effort) **TRƯỚC KHI** state-check confirm symptom còn tồn tại. Phase 1 investigation post-PR-#1154 với dev-admin credentials revealed: state đã self-correct via terraform refresh runs over 3 ngày → Option A surgery is no-op. Cost: ~1.5h PR + ~10-15k tokens + EC2/RDS stop wait — preventable nếu state-check tại fix pick-up. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged "lần fix gaps này chưa state-check trước khi tốn token để đưa ra solution đúng không?") → Classify ✓ (no existing rule covers fix-time direction; §2.5 covers filing-time, §2.6 wave-planning, §2.7 decision-doc — all input-time checks; fix pick-up was uncovered) → Rule+Enforce ✓ (this §2.8 + paired same-PR memory `feedback_gap_state_check_required.md` extension + worked self-test on GAP-450 incident + reviewer-checklist line per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§2.8 worked example on 2026-05-11 GAP-450 — rule fires correctly + would have caught miss at step 2 instead of step 5) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds new constraint covering previously-uncovered direction of state-check; no constraint loosening for prior work; existing fix PRs grandfathered, rule applies prospectively cho gaps ≥ 7 ngày tuổi OR drift-class từ session sau). Detector wiring deferred to 2nd recurrence per `incident-to-rule-pipeline.md` premature-rule guard ≥7 ngày; v1.4.0 enforcement = reviewer-checklist + memory auto-load + worked self-test sufficient.
 - **2026-05-10** (v1.3.0): MINOR — added §2.7 Decision-Doc Code-Sync state-check extending state-check family from gap-filing (§2.5) + wave-planning (§2.6) to **decision-doc landing time**. Triggered by 2026-05-10 user-flagged retro after GAP-459 fix session: GAP-458 (`kitehub.me` domain decision Path C, merged 2026-05-09) shipped without sweeping 21 stale `kitehub.vn` refs in `kitehub-frontend/src/` → AWS Activate Founder application denied next day with reason "Your website cannot be accessed or fails to load" → GAP-459 filed → ~3h fix + 2-week resubmit delay + real $1k credit at risk. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged "is a meta update necessary after this gap fix experience?") → Classify ✓ (no existing rule covers decision-doc → code-sync direction; §2.5 covers filing-time, §2.6 covers planning-time, but inverse case "decision lands → grep stale code refs" was uncovered) → Rule+Enforce ✓ (this §2.7 + paired same-PR PR-template Output Review checkbox + memory `feedback_decision_doc_code_sync.md` + memory `feedback_nextjs_dynamic_loading_ssr.md` (Class C insight) per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§2.7 worked example on 2026-05-09 GAP-458 PR — rule fires correctly + 21 stale refs surfaced + counterfactual shows AWS Activate denial eliminated) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds new constraint covering previously-uncovered direction of state-check; no constraint loosening for prior work; existing decision docs grandfathered, rule applies prospectively; class includes domain/brand/email/env-var/region/vendor/account-ID rename — all would hit same pattern). Detector wiring deferred to 2nd recurrence per `incident-to-rule-pipeline.md` premature-rule guard ≥7 days; v1.0.0 enforcement = PR-template checkbox + reviewer manual + memory auto-load + worked self-test sufficient.
 - **2026-05-05** (v1.2.0): MINOR — added §2.6 Wave-Plan Pre-Flight State-Check Protocol extending state-check from gap-filing to wave-plan drafting. Triggered by 5th GAP-190/197 head-truncation recurrence (Wave 18b3 plan §3 Bucket C referenced 3 absent symbols `Incident.visibilityScope` + `BR-CHILD-PROTECT-005` + `Notification` entity; agent caught at execution time + filed 3 sub-gaps GAP-321b.1-trio). Per self-mandated 5th-recurrence escalation clause: file gap on rule itself (GAP-356 filed 2026-05-05) → ship rule extension. Paired same-PR per `rule-change-process.md` §6.5 with: `session-docs-check` Rule 16 detector + 3-fixture self-test (good-flip / bad-absent-symbol / forward-flag-allowed) + `documents/03-planning/waves/_TEMPLATE.md` State-Check Evidence section + `feedback_wave_plan_state_check.md` memory + cross-link updates. Recurrence list updated inline (5th entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds new constraint covering previously-uncovered higher-leverage artifact, no constraint loosening for prior work).
 - **2026-05-04** (v1.1.0): MINOR — added "Hardened state-check protocol" subsection to Step 2.5 banning `| head` truncation on grep/find during state-check. Triggered by 4th recurrence: GAP-345 K-12 LEGAL audit itself missed Wave 2 inline-fetch FE skeleton (159 LOC) at `(dashboard)/parent/page.tsx`; Wave 18b1 Bucket D agent caught at execution time + flagged in PR #766. Per `rule-change-process.md` §5 MINOR self-approve solo-dev — adds enforcement detail to existing rule, no constraint loosening. Recurrence list now tracked inline; 5th recurrence escalates to gap on this rule.
