@@ -12,7 +12,41 @@
 
 ### 🚀 Next Action (signpost cho new session)
 
-**Session 2026-05-11 post-Wave-54 cluster (5 PRs after closure):**
+**Session 2026-05-11 post-Wave-56 handoff (10 PRs across Wave 55 + Wave 56; Wave 57 plan open):**
+
+📌 **PICK-UP SIGNAL FOR NEW SESSION:**
+- **Wave 57 plan PR #1133 OPEN** awaiting review/merge → after merge, spawn 3 background agents (Bucket A GAP-467 helm fix + Bucket B GAP-468 BOM bump + Bucket C GAP-469 RLS perf baseline)
+- **Closure goal:** repo level RED→GREEN (CVE) + Phase 1 BETA step 2.5 🟡→✅ DONE (RLS perf AC closed)
+- **No agents in flight; no worktrees active.** Clean checkpoint.
+
+**Session work summary:**
+
+**Wave 55 SHIPPED — Production Observability (6 PRs):**
+- #1118 plan; #1119 A GAP-434 Loki/Promtail Phase 2 🟡 PARTIAL; #1125 B GAP-112 distributed tracing 7 modules 🟡 PARTIAL; #1120 C GAP-144 alertmanager mock-fire 🟡 PARTIAL; #1121 side-discoveries (GAP-467 + GAP-468 filed); #1129 closure. Wall-clock ~95min coordinator (26× speedup vs 5-7 day estimate). Streak 90.
+
+**Wave 56 SHIPPED — Multi-tenant Postgres RLS Hardening (3 PRs):**
+- #1130 plan; #1131 single-bucket atomic GAP-466 (1854/1854 tests PASS + 4/4 RLSEnforcementIT); #1132 closure. Wall-clock ~38min (200× speedup). Streak 91. Coordinator-applied GAP-ID rename fix (agent's GAP-467 perf baseline → GAP-469 to avoid collision with existing helm gap).
+
+**Wave 57 plan drafted (PR #1133 OPEN):**
+- 3 disjoint buckets (helm/maven/scripts+docs); est ~1 day with 3 parallel agents
+- Bucket A GAP-467 P1 — extract Go-templates from values.yaml (~2h)
+- Bucket B GAP-468 P1 — Spring Boot 3.5.14 → latest BOM (9 HIGH CVE fix; ~3-4h)
+- Bucket C GAP-469 P2 — RLS perf baseline pgbench harness + methodology + runbook (full staging execution deferred; ~3-4h)
+
+**New gaps filed this session (3):**
+- **GAP-467** 🟠 P1 — Helm values.yaml Go-templates pre-existing PR #984 break (blocks `helm lint` CI)
+- **GAP-468** 🟠 P1 — Spring Boot BOM bump fixes 9 HIGH CVE in built Docker jars
+- **GAP-469** 🟡 P2 — RLS performance baseline measurement (deferred Phase 4 AC from GAP-466)
+
+**Open Dependabot PRs (not session-blocking; review at next CVE triage):**
+- #1122, #1123, #1124, #1126, #1127, #1128 — automated dep bumps; some likely subsumed by Wave 57 Bucket B BOM bump
+
+**Stale local branches (defer destructive cleanup):**
+- ~10 local branches from squash-merged Wave 47-53 (squash changes hash so `prune-merged-worktrees.sh --merged` doesn't catch). Run `git branch -D` after explicit confirm at next session.
+
+---
+
+**Previous session (post-Wave-54 cluster, 5 PRs):**
 - **PR #1112** fix(it): unused imports removed AttendanceClassBatch + StudentPortal IT (`ADMIN_MERGE_OVERRIDE` for Vercel rate-limit environmental)
 - **PR #1113** audit(aws): actual cost Apr-May 2026 — $0 MTD vs theoretical $144-216 estimate (Free Tier 12mo intact đến ~2027-05-07; account spend effectively $0 vì stack stopped post-Wave-50)
 - **PR #1114** docs(aws-credit) v1.1: actual numbers — Phase 1.5 cost correction. Premise "Release 1 không phát sinh cost" CORRECTED: nếu Activate denied, realistic personal cash **$293 over 4.5 tháng** (Phase 1 BETA Architecture B ~$40/mo × 3mo + Phase 1.5 Architecture A ~$115/mo × 1.5mo; Free Tier KHÔNG cover t3.large)
