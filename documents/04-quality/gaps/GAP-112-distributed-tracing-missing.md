@@ -98,4 +98,11 @@ The application-side infrastructure (deps + config + auto-instrumentation + test
 ## Log
 
 - 2026-04-19 — Discovered in ops-readiness baseline audit
+- **2026-05-11:** PR# backfill (Wave 60 Bucket D-2). Verified shipped work cross-references:
+  - PR #1125 — `feat(observability): GAP-112 distributed tracing across 7 modules [Wave 55 Bucket B]` (merged 2026-05-10) — tracing deps + `management.tracing.*` config + 8 TracingConfigTest unit tests across 7 deployable services.
+
+  Code-verify: 3/5 AC verified shipped (traceId in logs via MDC; RabbitMQ propagation auto-instrumented; sampling config per env). 2 AC blocked on Tempo/Jaeger backend deployment (GAP-111 Phase 2) — live trace verification + Grafana Trace Latency dashboard.
+
+  Verdict: 🟡 PARTIAL maintained (NOT flipped DONE — infra deps deployed but live verification requires Tempo backend per GAP-111 Phase 2; complies with `gap-done-discipline.md` §3 PARTIAL exit ramp with named follow-up).
+
 - **2026-05-11** — Wave 55 Bucket B shipped: tracing dependencies + `management.tracing.*` config across 7 deployable backend services (5 KH + 2 KC); 8 unit tests verify Spring `Tracer` bean wires when OTLP endpoint configured. RabbitMQ `traceparent` propagation auto-instrumented via Spring Boot 3.5 + Micrometer Tracing for Spring AMQP — verified by Spring Boot documentation, no manual `RabbitTemplate` wrapping needed. Status flipped 🔵 OPEN → 🟡 PARTIAL pending Tempo/Jaeger backend (GAP-111 Phase 2). `kitehub-platform` skipped (shared library, no Spring Boot application context). Verified `mvn verify -P strict-warnings` clean for all 5 KH services + KC gateway; KC core failures pre-existing (TenantIsolationIT GAP-466 RLS, unrelated to this change — confirmed via stash-and-verify on clean tree).

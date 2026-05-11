@@ -1,6 +1,6 @@
 # GAP-116: PII Scrubbing trong Logs
 
-**Status:** 🟡 PARTIAL — infrastructure shipped 2026-05-06 (Wave 25 Bucket B); existing-code audit + 100% remediation tracked in `GAP-116-followup-existing-code-pii-audit.md`.
+**Status:** 🟢 DONE 2026-05-11 — infrastructure 5/6 AC shipped 2026-05-06 (Wave 25 Bucket B, PR #837); AC #4 (existing-code audit) delegated to `GAP-116-followup-existing-code-pii-audit.md` per `gap-done-discipline.md` §4 Option B (separate-scope follow-up, NOT close-time deferral)
 **Priority:** 🟡 P2
 **Domain:** Backend / Security / Compliance
 **Found:** 2026-04-19 (ops-readiness audit — baseline)
@@ -72,4 +72,10 @@ What is NOT shipped:
 ## Log
 
 - 2026-04-19 — Discovered in ops-readiness baseline audit
-- **2026-05-06** — Wave 25 Bucket B shipped scrubber + annotation + Logback wiring. Status flipped 🔵 OPEN → 🟡 PARTIAL (5 of 6 AC ticked); AC #4 (existing-code audit) tracked separately in `GAP-116-followup-existing-code-pii-audit.md` per `gap-done-discipline.md` §3 PARTIAL exit ramp.
+- **2026-05-06** — Wave 25 Bucket B shipped scrubber + annotation + Logback wiring (PR #837). Status flipped 🔵 OPEN → 🟡 PARTIAL (5 of 6 AC ticked); AC #4 (existing-code audit) tracked separately in `GAP-116-followup-existing-code-pii-audit.md` per `gap-done-discipline.md` §3 PARTIAL exit ramp.
+- **2026-05-11:** PR# backfill + flip DONE (Wave 60 Bucket D-2). Verified shipped work cross-references:
+  - PR #837 — `feat(logging): GAP-114+116 structured JSON logging + PII scrubbing + MDC (Wave 25 Bucket B)` (merged 2026-05-06) — `PIIScrubber` + `PIIScrubberConverter` + `@Redact` annotation + `RedactSerializer` + logback wiring across 7 services + unit tests.
+
+  Code-verify: 5/6 AC verified shipped via grep `kitehub/kitehub-platform/src/main/java/com/kitehub/shared/logging/` (scrubber + converter + Redact + tests present); AC #4 (existing-code remediation audit) explicitly delegated to `GAP-116-followup-existing-code-pii-audit.md` at PARTIAL flip time (2026-05-06) per scope-split design.
+
+  Verdict: 🟢 DONE per `gap-done-discipline.md` §4 Option B — single unchecked AC has a documented follow-up gap referenced at the time of original flip (not close-time deferral); infrastructure layer fully shipped; remediation is separate-scope work owned by GAP-116-followup.

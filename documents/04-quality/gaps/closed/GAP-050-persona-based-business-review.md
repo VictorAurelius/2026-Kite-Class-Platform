@@ -1,6 +1,6 @@
 # GAP-050: Persona-Based Business Review Process
 
-**Status:** 🟡 PARTIAL (framework shipped 2026-04-29; execution belongs to GAP-152 by scope-split design)
+**Status:** 🟢 DONE 2026-05-11 — framework AC 100% shipped 2026-04-29 (PR #653); execution scope explicitly delegated to GAP-152 per `gap-done-discipline.md` §4 Option B (scope-split design 2026-04-20, NOT close-time deferral)
 **Branch:** wave/01-foundation
 **Priority:** 🔴 P0 (business-logic tier per `meta-gap-priority.md` §3)
 **Domain:** Product / Business
@@ -103,6 +103,14 @@ K-12 School persona is **most under-served** — biggest market, biggest misses.
 
 ## Log
 
-- **2026-04-29 — Phase 1 framework AC shipped** (Wave Business Correctness, Cluster 5 Agent C). All 3 remaining framework AC items checked: (1) Quarterly review cadence added to `persona-based-business-review.md` §Quarterly Review Cadence (calendar-anchored EOQ Q1-Q4 + off-cycle triggers + reviewer roles + `next_review` tracking); (2) `pre-flight-check.md` extended with Layer 4 (Persona impact check) — fires on user-facing diff, blocks merge on coverage degradation; (3) `quality-audit/SKILL.md` extended with Cat 11 Persona Coverage /10, total scale rebased 100 → 110 with proportional grade thresholds, references GAP-152 as data source. Status flipped 🟡 PLANNED → 🟡 PARTIAL: execution remains in GAP-152 (already-filed); scope was split 2026-04-20 with GAP-152 owning execution by design (NOT scope cut at close-time per `gap-done-discipline.md` §3 PARTIAL exit-ramp). Remaining work tracked in GAP-152 (first 4 Tier 1 reports) and GAP-151 (per-persona AC template).
+- **2026-05-11:** PR# backfill + flip DONE (Wave 60 Bucket D-2). Verified shipped work cross-references:
+  - PR #653 — `docs(skills): GAP-050 — persona review framework Phase 1 (cadence + pre-flight Layer 4 + audit Cat 11)` (merged 2026-04-29) — shipped 3 framework AC items: quarterly cadence in `persona-based-business-review.md`, pre-flight `Layer 4` Persona impact check, `quality-audit/SKILL.md` Cat 11 Persona Coverage /10.
+  - PR #719 — `docs(wave): kick off Wave Persona-AC-Template — full ship GAP-151 (template + 4 Tier-1 AC docs + skill update)` (merged later) — GAP-151 ac-template delivered; cross-reference only.
+
+  Code-verify: 5/5 framework AC verified shipped (catalog `.claude/skills/quality/persona-based-business-review.md` exists; cadence section present; pre-flight Layer 4 present; quality-audit Cat 11 present; initial gaps GAP-051..064 filed). Execution scope (per-persona reports) delegated to GAP-152 by 2026-04-20 scope-split design — this is `gap-done-discipline.md` §4 Option B (scope cut documented as out-of-scope at filing time, NOT a close-time deferral) → DONE valid.
+
+  Verdict: 🟢 DONE (framework complete; execution = GAP-152).
+
+- **2026-04-29 — Phase 1 framework AC shipped** (Wave Business Correctness, Cluster 5 Agent C, PR #653). All 3 remaining framework AC items checked: (1) Quarterly review cadence added to `persona-based-business-review.md` §Quarterly Review Cadence (calendar-anchored EOQ Q1-Q4 + off-cycle triggers + reviewer roles + `next_review` tracking); (2) `pre-flight-check.md` extended with Layer 4 (Persona impact check) — fires on user-facing diff, blocks merge on coverage degradation; (3) `quality-audit/SKILL.md` extended with Cat 11 Persona Coverage /10, total scale rebased 100 → 110 with proportional grade thresholds, references GAP-152 as data source. Status flipped 🟡 PLANNED → 🟡 PARTIAL: execution remains in GAP-152 (already-filed); scope was split 2026-04-20 with GAP-152 owning execution by design (NOT scope cut at close-time per `gap-done-discipline.md` §3 PARTIAL exit-ramp). Remaining work tracked in GAP-152 (first 4 Tier 1 reports) and GAP-151 (per-persona AC template).
 - 2026-04-20 — Scope split: this gap = PROCESS framework. AC template + per-persona AC → GAP-151. Review execution + reports → GAP-152. 3 original AC items marked done (catalog, skill, initial gaps). Remaining AC narrowed to framework integration points.
 - 2026-04-14 — User raised: review phải theo persona. Initial scan found 14+ critical gaps.
