@@ -118,7 +118,7 @@ if [ -d ".claude/worktrees" ]; then
     | wc -l | tr -d ' ')"
 fi
 
-# Blocker gaps — parse ROADMAP "GA Blockers" table (column 2 only, preserve table order)
+# Blocker gaps — primary path: ROADMAP §GA Blockers table (human-curated priority order).
 # GAP-224: regex bumped to handle sub-IDs (GAP-222a/b/c); column-2 extraction skips
 # prose cross-refs (e.g. "BLOCKS GAP-006"); awk dedup preserves table order vs sort -u.
 BLOCKERS=""
@@ -129,11 +129,21 @@ if [ -f "$ROADMAP" ]; then
     | awk '!seen[$0]++' \
     | head -6 | tr '\n' ';' || echo '')"
 fi
-# Fallback to old behavior if ROADMAP missing
-if [ -z "$BLOCKERS" ] && [ -d documents/04-quality/gaps ]; then
-  BLOCKERS="(fallback) $(grep -l '^\*\*Status:\*\* 🔵 OPEN' documents/04-quality/gaps/GAP-*.md 2>/dev/null \
-    | xargs grep -l '^\*\*Priority:\*\* 🔴 P0\|^\*\*Priority:\*\* 🟠 P1' 2>/dev/null \
-    | head -3 | xargs -I{} basename {} .md 2>/dev/null | tr '\n' ';' || echo '')"
+# Fallback: query gap-status.csv (canonical per gap-architecture-v2.md) — P0 + active.
+# CSV is faster + more reliable than grepping individual gap files (Phase 4 integration).
+GAP_CSV="documents/04-quality/gaps/gap-status.csv"
+if [ -z "$BLOCKERS" ] && [ -f "$GAP_CSV" ]; then
+  BLOCKERS="(csv) $(awk -F, '/^GAP-/ && $5=="P0" && ($4=="OPEN" || $4=="PARTIAL" || $4=="IN_PROGRESS") {print $1}' "$GAP_CSV" \
+    | head -6 | tr '\n' ';' || echo '')"
+fi
+
+# Phase 1 BETA P0 count — surface for Phase 1 phương châm focus (per CLAUDE.md §CURRENT PHASE).
+# Mechanical CSV count: P0 + phase-1-beta + (OPEN | PARTIAL | IN_PROGRESS).
+PHASE1_BETA_P0_COUNT="?"
+PHASE1_BETA_P0_PARTIAL_COUNT="?"
+if [ -f "$GAP_CSV" ]; then
+  PHASE1_BETA_P0_COUNT="$(awk -F, '/^GAP-/ && $5=="P0" && $7=="phase-1-beta" && ($4=="OPEN" || $4=="PARTIAL" || $4=="IN_PROGRESS")' "$GAP_CSV" | wc -l | tr -d ' ')"
+  PHASE1_BETA_P0_PARTIAL_COUNT="$(awk -F, '/^GAP-/ && $5=="P0" && $7=="phase-1-beta" && $4=="PARTIAL"' "$GAP_CSV" | wc -l | tr -d ' ')"
 fi
 
 # Recent merges — last 5 squash-merges on main in past 3 days
@@ -408,6 +418,8 @@ if [ "$MODE" = "json" ]; then
   "active_locks": $ACTIVE_LOCKS,
   "lock_files": "$LOCK_LIST",
   "blocker_gaps": "$BLOCKERS",
+  "phase_1_beta_p0_active": "$PHASE1_BETA_P0_COUNT",
+  "phase_1_beta_p0_partial": "$PHASE1_BETA_P0_PARTIAL_COUNT",
   "recent_merges": "$RECENT_MERGES",
   "mcp_total": $MCP_TOTAL,
   "mcp_connected": $MCP_CONNECTED,
@@ -451,6 +463,7 @@ PRs đang mở:       $OPEN_PRS  ${TOP_PRS:+— $TOP_PRS}
 MCP servers:       $MCP_CONNECTED/$MCP_TOTAL connected${MCP_FAILED:+ (FAILED: $MCP_FAILED — see hint below)}
 Wave hiện tại:     ${CURRENT_WAVE:-<chưa rõ — check ROADMAP.md thủ công>}
 Gaps blocker:      ${BLOCKERS:-<none>}
+Phase 1 BETA P0:   ${PHASE1_BETA_P0_COUNT} active (${PHASE1_BETA_P0_PARTIAL_COUNT} PARTIAL) — query: bash scripts/query-gaps.sh P0 "" phase-1-beta
 Session locks:     $ACTIVE_LOCKS  [$LOCK_LIST]
 Worktree husks:    $WT_HUSK_COUNT (.claude/worktrees/agent-*)$([ "$WT_HUSK_COUNT" -ge 3 ] && echo "  ⚠️  ≥3 → run: bash scripts/prune-merged-worktrees.sh --dry-run")
 
@@ -461,7 +474,8 @@ Merges gần đây (3 ngày):
 $(echo "${RECENT_MERGES:-<none>}" | tr '§' '\n' | sed 's/^/  · /')
 
 Ghi chú:
-  · Wave + blockers parse từ documents/04-quality/gaps/ROADMAP.md
+  · Wave + blockers primary: documents/04-quality/gaps/ROADMAP.md; CSV fallback per gap-architecture-v2.md
+  · Phase 1 BETA P0 count: query gap-status.csv (canonical); per CLAUDE.md §CURRENT PHASE focus
   · Mức repo qua scripts/repo-status.sh --json (4 yếu tố)
   · Lock dir: $LOCK_DIR (auto-purge sau 4h stale)
   · Các field cần gh — đảm bảo 'gh auth status' OK
