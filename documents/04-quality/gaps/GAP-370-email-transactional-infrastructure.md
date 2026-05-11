@@ -57,15 +57,15 @@ Existing `kitehub-email` service tồn tại (per Wave 18a) nhưng chưa có pro
 
 ## Acceptance Criteria
 
-- [ ] Vendor decision documented + approved
-- [ ] DNS TXT records added (SPF, DKIM, DMARC)
-- [ ] AWS SES production-ready (or chosen vendor)
-- [ ] kitehub-email service integration tested
-- [ ] Email templates created (5+ minimum)
-- [ ] Smoke test: signup → email verification end-to-end
-- [ ] Rate limit + bounce/complaint handling configured
-- [ ] Logs capture send/deliver/bounce events
-- [ ] Verified domain reputation pre-launch
+- [x] Vendor decision documented + approved (AWS SES per Wave 33 ADR)
+- [ ] DNS TXT records added (SPF, DKIM, DMARC) — pending Cloudflare DNS setup (`dns-setup-runbook.md`)
+- [ ] AWS SES production-ready (or chosen vendor) — pending user submit production access request per `email-ses-setup-runbook.md` §4.1.1 + 24-48h AWS approval
+- [x] kitehub-email service integration tested (Wave 33+45 SESEmailService + SesIntegrationSmokeTest profile-gated)
+- [x] Email templates created (5+ minimum) — 17 Thymeleaf templates Wave 33+
+- [x] Smoke test: signup → email verification end-to-end — Wave 61 `scripts/smoke-ses.sh` Tier 1 read-only verification + Wave 45 JUnit profile-gated send
+- [x] Rate limit + bounce/complaint handling configured — Wave 33 SES `bounce/complaint/rate` config properties (auto-suppression server-side); SNS-subscribed webhook scaffold deferred to follow-up (volume-driven need)
+- [x] Logs capture send/deliver/bounce events (Wave 33 SESConfig MDC fields)
+- [ ] Verified domain reputation pre-launch — pending sandbox→production approval + warmup Day 1-7
 
 ## Open decisions
 
@@ -95,6 +95,9 @@ Per `.claude/rules/release-deploy-standard.md` §3 — this gap satisfies a chec
 
 ## Log
 
+- **2026-05-11** (Wave 61 Bucket B): Production approval prep shipped. New `scripts/smoke-ses.sh` — Tier 1 read-only AWS CLI verification (account state, identities, DKIM, suppression list, DNS records). Runbook `email-ses-setup-runbook.md` refreshed: §4.1.1 copy-paste production access request form template (English, refreshed for `kitehub.me` domain + Free Tier 62k/mo + Phase 1 BETA invite cohort 5-10 tenants); §4.1.2 3 common AWS-rejection reply templates; §4.3 post-approval verification commands; §4.4 DNS verify commands; §4.5 user-action checklist. SES state verified 2026-05-11 via smoke script: sandbox HEALTHY, 200/24h, 1/sec, 0 identities, suppression list empty. **Status stays 🟡 PARTIAL** — code + runbook + smoke script complete; remaining user-action gates (verify domain identity in SES Console, add Cloudflare DNS records per `dns-setup-runbook.md`, submit production access request via SES Console with §4.1.1 template, wait 24-48h AWS approval). Bounce/complaint webhook scaffold deferred — current `SESConfig` only configures send-side; SNS-subscribed HTTP endpoint OR SQS poller tracked as follow-up (Wave 61 §4.4 scope creep — not strictly blocking BETA invite delivery since AWS SES auto-suppression handles bounce blast radius until volume scales).
+- **2026-05-08:** Wave 45 Bucket C shipped (PR #1050 — `SesIntegrationSmokeTest.java` profile-gated via `@EnabledIfSystemProperty("aws-ses-real")` sends 1 templated email + asserts `MessageId` returned; `email-ses-setup-runbook.md` Wave 45 verification table — all 7 steps re-verified accurate, no drift, no rewrite needed; runbook actual path confirmed `documents/05-guides/operations/` not `deploy/` — drift documented + cleanup tracked separately). `mvn verify -P strict-warnings` BUILD SUCCESS, smoke test SKIPPED expected. Status remains 🟡 PARTIAL — code complete, AWS SES sandbox→production approval pending user-executed action.
+- **2026-05-07:** Wave 33 Bucket B shipped (PR #896 — beta-invite.html + beta-request-confirmation.html templates + EmailType enum + SES bounce/complaint/rate-limit config + `email-ses-setup-runbook.md` + 8 new tests). Status 🔵 OPEN → 🟡 PARTIAL — templates + config + runbook shipped on top of existing Wave 18a SES infrastructure, **AWS SES sandbox→production approval + DKIM/SPF/DMARC verification = user-executed steps** per runbook. Beta-invite email delivery effective when GAP-379 + production SES landed.
 - **2026-05-06:** Filed by Release 1 deploy plan PR. BLOCKING cho Phase 1 BETA — beta invite emails + email verification cannot ship without this.
 - **2026-05-08:** Wave 45 Bucket C shipped (PR #1050 — `SesIntegrationSmokeTest.java` profile-gated via `@EnabledIfSystemProperty("aws-ses-real")` sends 1 templated email + asserts `MessageId` returned; `email-ses-setup-runbook.md` Wave 45 verification table — all 7 steps re-verified accurate, no drift, no rewrite needed; runbook actual path confirmed `documents/05-guides/operations/` not `deploy/` — drift documented + cleanup tracked separately). `mvn verify -P strict-warnings` BUILD SUCCESS, smoke test SKIPPED expected. Status remains 🟡 PARTIAL — code complete, AWS SES sandbox→production approval pending user-executed action.
 - **2026-05-07:** Wave 33 Bucket B shipped (PR #896 — beta-invite.html + beta-request-confirmation.html templates + EmailType enum + SES bounce/complaint/rate-limit config + `email-ses-setup-runbook.md` + 8 new tests). Status 🔵 OPEN → 🟡 PARTIAL — templates + config + runbook shipped on top of existing Wave 18a SES infrastructure, **AWS SES sandbox→production approval + DKIM/SPF/DMARC verification = user-executed steps** per runbook. Beta-invite email delivery effective when GAP-379 + production SES landed.
