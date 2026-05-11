@@ -1,7 +1,7 @@
 # Gap Status CSV — Pilot (Design A per session 2026-05-11)
 # Single canonical source for: status, priority, phase, completion_pct, last_verified
 # Schema versioning: see scripts/check-gap-status-csv.sh + .claude/rules/gap-architecture-v2.md
-# Rows: 289 (Phase 2 bulk migration 2026-05-11; audit-2026-05-11 reclassification 34+3+7 changes).
+# Rows: 289 (Phase 2 bulk 2026-05-11; audit reclass + pending-legal-2026-05-11 29 legal gaps moved to pending/).
 #
 # Columns:
 #   id              — Gap ID matching filename prefix
@@ -93,15 +93,15 @@ GAP-144,GAP-144-alertmanager-production-receivers.md,Alertmanager Production Rec
 GAP-145,GAP-145-loki-tracing-stack.md,Loki Log Aggregation + Tempo Tracing Stack,OPEN,P2,DevOps,n/a,0,2026-04-20,2026-05-11,
 GAP-154,GAP-154-brd-scope-expansion-umbrella.md,BRD Scope Expansion (Umbrella — 22 Missing BRD Docs),OPEN,P0,Mixed,n/a,0,2026-04-20,2026-05-11,
 GAP-155,GAP-155-brd-content-fill.md,BRD Content Fill (Phase 2 of GAP-150),OPEN,P1,Mixed,n/a,0,2026-04-29,2026-05-11,
-GAP-156,GAP-156-business-rules-compliance-audit.md,Business Rules Compliance Audit + Stakeholder Sign-offs,OPEN,P0,Mixed,n/a,0,2026-04-29,2026-05-11,
+GAP-156,pending/GAP-156-business-rules-compliance-audit.md,Business Rules Compliance Audit + Stakeholder Sign-offs,PENDING,P0,Mixed,n/a,0,2026-04-29,2026-05-11,pending-legal-2026-05-11: Legal audit — Business Rules Compliance Audit (Phase 2 counsel)
 GAP-176,GAP-176-ui-ux-pro-max-skill-integration.md,GAP-176,OPEN,P1,Mixed,n/a,0,2026-04-20,2026-05-11,
 GAP-180,GAP-180-terms-of-service.md,Terms of Service (TOS) — Customer Legal Contract,PARTIAL,P0,Mixed,n/a,50,2026-04-20,2026-05-11,
 GAP-181,GAP-181-acceptable-use-policy.md,Acceptable Use Policy (AUP),PARTIAL,P0,Mixed,n/a,50,2026-04-20,2026-05-11,
-GAP-182,GAP-182-privacy-policy.md,Privacy Policy — VN PDPL 2023 + GDPR Compliance,PARTIAL,P0,Mixed,n/a,50,2026-04-20,2026-05-11,
+GAP-182,pending/GAP-182-privacy-policy.md,Privacy Policy — VN PDPL 2023 + GDPR Compliance,PENDING,P0,Mixed,n/a,0,2026-04-20,2026-05-11,pending-legal-2026-05-11: PDPL — Privacy Policy
 GAP-183,GAP-183-refund-dispute-resolution-policy.md,Refund + Dispute Resolution Policy,PARTIAL,P0,Mixed,phase-1.5-paid,50,2026-04-20,2026-05-11,
-GAP-184,GAP-184-data-retention-deletion-policy.md,Data Retention + Deletion Policy,PARTIAL,P0,Mixed,n/a,50,2026-04-20,2026-05-11,
-GAP-185,GAP-185-billing-terms-vat-tct-compliance.md,Billing Terms + VAT/TCT Invoice Compliance,PARTIAL,P0,Mixed,phase-1.5-paid,50,2026-04-20,2026-05-11,
-GAP-186,GAP-186-child-protection-policy.md,Child Protection Policy (K-12 Minors),PARTIAL,P0,Mixed,phase-1.5-paid,50,2026-04-20,2026-05-11,
+GAP-184,pending/GAP-184-data-retention-deletion-policy.md,Data Retention + Deletion Policy,PENDING,P0,Mixed,n/a,0,2026-04-20,2026-05-11,pending-legal-2026-05-11: PDPL — Data Retention + Deletion
+GAP-185,pending/GAP-185-billing-terms-vat-tct-compliance.md,Billing Terms + VAT/TCT Invoice Compliance,PENDING,P0,Mixed,phase-1.5-paid,0,2026-04-20,2026-05-11,pending-legal-2026-05-11: Tax — VAT/TCT Billing Terms
+GAP-186,pending/GAP-186-child-protection-policy.md,Child Protection Policy (K-12 Minors),PENDING,P0,Mixed,phase-1.5-paid,0,2026-04-20,2026-05-11,pending-legal-2026-05-11: Luật Trẻ em — Child Protection Policy
 GAP-191,GAP-191-domain-registration-dns-strategy.md,Domain Registration & Instance DNS Strategy,PARTIAL,P1,Mixed,n/a,50,2026-04-20,2026-05-11,
 GAP-192,GAP-192-trial-to-paid-zero-downtime-migration.md,Trial → Paid Zero-Downtime Migration Design,PARTIAL,P0,Mixed,n/a,50,2026-04-20,2026-05-11,
 GAP-195,GAP-195-starter-kit-bulk-retro-sync.md,Starter-Kit Bulk Retro-Sync,PARTIAL,P2,Mixed,n/a,50,2026-04-20,2026-05-11,
@@ -184,10 +184,10 @@ GAP-297,GAP-297-batch-monthly-invoice-generation.md,Batch Monthly Invoice Genera
 GAP-298,GAP-298-manual-bank-transfer-reconciliation.md,Manual Bank-Transfer Reconciliation UI,OPEN,P1,Frontend,n/a,0,2026-05-04,2026-05-11,
 GAP-299,GAP-299-payment-reminder-scheduler.md,Payment Reminder Scheduler (3-day pre-due + due-date),OPEN,P1,Frontend,n/a,0,2026-05-04,2026-05-11,
 GAP-300,GAP-300-mid-term-class-transfer-prorate.md,Mid-Term Student Class Transfer + Pro-Rate Tuition,OPEN,P2,AI,n/a,0,2026-05-04,2026-05-11,
-GAP-301,GAP-301-tenant-data-export-bundle-completeness.md,Tenant Data Export Bundle Completeness Verification,OPEN,P1,Compliance,n/a,0,2026-05-04,2026-05-11,
+GAP-301,pending/GAP-301-tenant-data-export-bundle-completeness.md,Tenant Data Export Bundle Completeness Verification,PENDING,P1,Compliance,n/a,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: PDPL — Tenant Data Export DSAR
 GAP-302,GAP-302-homework-receipt-mobile-ux.md,Homework Receipt — Mobile UX (Student Secondary),OPEN,P2,Frontend,n/a,0,2026-05-04,2026-05-11,
 GAP-303,GAP-303-parent-absence-request-flow.md,Parent-Mediated Absence Request Flow,OPEN,P2,Frontend,n/a,0,2026-05-04,2026-05-11,
-GAP-306,GAP-306-p3-teacher-commission-engine-bhxh-bhyt-tncn.md,Teacher Commission Engine + Payroll BHXH/BHYT/BHTN/TNCN,OPEN,P0,Frontend,phase-3,0,2026-05-04,2026-05-11,
+GAP-306,pending/GAP-306-p3-teacher-commission-engine-bhxh-bhyt-tncn.md,Teacher Commission Engine + Payroll BHXH/BHYT/BHTN/TNCN,PENDING,P0,Frontend,phase-3,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: Tax + Lao động — Teacher Commission BHXH/BHYT/TNCN
 GAP-307,GAP-307-p3-multi-class-schedule-conflict-3axis.md,Multi-Class Scheduling with 3-Axis Conflict Detection,OPEN,P0,DevOps,phase-3,0,2026-05-04,2026-05-11,
 GAP-308,GAP-308-p3-rbac-audit-log-unauthorized-403.md,RBAC Granular Gating + Audit Log on Unauthorized 403,OPEN,P0,Frontend,phase-3,0,2026-05-04,2026-05-11,
 GAP-309,GAP-309-p3-multi-scale-gradebook-unified-view.md,Multi-Scale Gradebook with Auto-Convert + Unified Multi-Teacher View,OPEN,P1,Frontend,phase-3,0,2026-05-04,2026-05-11,
@@ -198,58 +198,58 @@ GAP-313,GAP-313-p3-bank-mt940-vnpay-momo-reconcile.md,Bank MT940 Import + VNPay/
 GAP-314,GAP-314-p3-monthly-pl-financial-reports.md,Monthly P&L per Branch + Teacher-Level Financial Breakdown,OPEN,P1,Frontend,phase-3,0,2026-05-04,2026-05-11,
 GAP-315,GAP-315-p3-vat-einvoice-nd123-tct-integration.md,VAT E-Invoice (NĐ 123/2020) with HSM Signature + TCT API Integration,OPEN,P0,Frontend,phase-3,0,2026-05-04,2026-05-11,
 GAP-316,GAP-316-p3-complaint-workflow-sla-escalation.md,Complaint Workflow with SLA Tracking + Auto-Escalation,OPEN,P1,Frontend,phase-3,0,2026-05-04,2026-05-11,
-GAP-317,GAP-317-p3-staff-offboard-wizard.md,Staff Offboard Wizard (Admin + Teacher) with Handover + Access Revocation,OPEN,P1,Frontend,phase-3,0,2026-05-04,2026-05-11,
+GAP-317,pending/GAP-317-p3-staff-offboard-wizard.md,Staff Offboard Wizard (Admin + Teacher) with Handover + Access Revocation,PENDING,P1,Frontend,phase-3,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: Lao động — Staff Offboard Wizard
 GAP-318,GAP-318-p3-stress-test-peak-enrollment.md,Stress Test Framework for Peak Enrollment Scenarios,OPEN,P2,DevOps,phase-3,0,2026-05-04,2026-05-11,
-GAP-319,GAP-319-p3-worm-audit-log-10-year-retention.md,WORM Audit Log for 10-Year Tax Compliance,OPEN,P0,Compliance,phase-3,0,2026-05-04,2026-05-11,
+GAP-319,pending/GAP-319-p3-worm-audit-log-10-year-retention.md,WORM Audit Log for 10-Year Tax Compliance,PENDING,P0,Compliance,phase-3,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: Tax — WORM Audit Log 10-Year
 GAP-320,GAP-320-p3-completion-certificate-transcript-qr.md,Completion Certificate + Student Transcript with QR Verify,OPEN,P2,Frontend,phase-3,0,2026-05-04,2026-05-11,
-GAP-321,GAP-321-parent-portal-v1-legal-mandate.md,Parent Portal v1 — LEGAL MANDATE (Luật Giáo dục 2019 Đ.83),PARTIAL,P0,Compliance,phase-3,50,2026-05-04,2026-05-11,
+GAP-321,pending/GAP-321-parent-portal-v1-legal-mandate.md,Parent Portal v1 — LEGAL MANDATE (Luật Giáo dục 2019 Đ.83),PENDING,P0,Compliance,phase-3,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: Luật Giáo dục — Parent Portal v1 LEGAL MANDATE
 GAP-321b,GAP-321b-parent-portal-phase-1b-facets-zalo-audit.md,Parent Portal Phase 1B — 5 facets + Zalo OTP + per-read audit + multi-childre...,PARTIAL,P0,Frontend,n/a,50,2026-05-04,2026-05-11,
 GAP-321b-1-fees-instalment-payment-history,GAP-321b-1-fees-instalment-payment-history.md,GAP-321b.1 — Fees facet instalment-plan join + payment-history projection,OPEN,P2,Frontend,n/a,0,2026-05-04,2026-05-11,
 GAP-321b-1-notifications-engine-wiring,GAP-321b-1-notifications-engine-wiring.md,GAP-321b.1 — Notifications facet wiring against parent-audience-scoped notifi...,OPEN,P1,Frontend,n/a,0,2026-05-04,2026-05-11,
-GAP-321c,GAP-321c-parent-portal-phase-1c-pdpl-consent-write-actions.md,Parent Portal Phase 1C — PDPL granular consent + write actions,PARTIAL,P1,Compliance,n/a,50,2026-05-04,2026-05-11,
-GAP-322,GAP-322-child-protection-workflow.md,Child Protection Workflow — CRIMINAL LIABILITY (Luật Trẻ em 2016 Đ.51 + Đ.25...,PARTIAL,P0,Compliance,phase-3,50,2026-05-04,2026-05-11,
-GAP-322b,GAP-322b-child-protection-phase-1b-vetting-minio-rbac.md,Child Protection Phase 1B — Staff vetting workflow + MinIO encrypted bucket +...,PARTIAL,P0,DevOps,phase-3,50,2026-05-04,2026-05-11,
-GAP-322c,GAP-322c-child-protection-phase-1c-mandatory-reporting-hash-audit.md,Child Protection Phase 1C — Mandatory reporting Đ.51 + hash-chained audit + 7...,PARTIAL,P0,Compliance,phase-3,50,2026-05-04,2026-05-11,
+GAP-321c,pending/GAP-321c-parent-portal-phase-1c-pdpl-consent-write-actions.md,Parent Portal Phase 1C — PDPL granular consent + write actions,PENDING,P1,Compliance,n/a,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: PDPL — Parent Portal Phase 1C consent
+GAP-322,pending/GAP-322-child-protection-workflow.md,Child Protection Workflow — CRIMINAL LIABILITY (Luật Trẻ em 2016 Đ.51 + Đ.25...,PENDING,P0,Compliance,phase-3,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: Luật Trẻ em — Child Protection Workflow
+GAP-322b,pending/GAP-322b-child-protection-phase-1b-vetting-minio-rbac.md,Child Protection Phase 1B — Staff vetting workflow + MinIO encrypted bucket +...,PENDING,P0,DevOps,phase-3,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: Luật Trẻ em — Vetting + MinIO RBAC
+GAP-322c,pending/GAP-322c-child-protection-phase-1c-mandatory-reporting-hash-audit.md,Child Protection Phase 1C — Mandatory reporting Đ.51 + hash-chained audit + 7...,PENDING,P0,Compliance,phase-3,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: Luật Trẻ em — Mandatory Reporting + Hash Audit
 GAP-323,GAP-323-period-attendance-multi-subject-gradebook.md,Period-based Attendance + Multi-subject Gradebook + ĐTBmHK Formula (TT 22/2021),PARTIAL,P0,Backend,n/a,50,2026-05-04,2026-05-11,
 GAP-323b,GAP-323b-period-attendance-phase-1b-write-mobile-rollup.md,Period Attendance Phase 1B — Write API + GVCN mobile UI ≤2min + daily roll-up...,PARTIAL,P0,Frontend,n/a,50,2026-05-04,2026-05-11,
 GAP-323c,GAP-323c-period-attendance-phase-1c-formula-state-machine-gradebook.md,Period Attendance Phase 1C — GradeFormulaService TT 22/2021 + Tổ trưởng state...,PARTIAL,P0,Frontend,n/a,50,2026-05-04,2026-05-11,
 GAP-324,GAP-324-k12-role-hierarchy-bulk-onboarding.md,K-12 Multi-tenant Role Hierarchy Bulk-Onboarding,OPEN,P0,Backend,n/a,0,2026-05-04,2026-05-11,
 GAP-325,GAP-325-parent-student-bulk-import-link.md,Parent-Student Auto-Link Bulk Import (sibling dedup; dual-parent),OPEN,P0,Backend,n/a,0,2026-05-04,2026-05-11,
-GAP-326,GAP-326-moet-school-license-verification.md,MOET School License Verification at Tenant Signup,OPEN,P1,Backend,n/a,0,2026-05-04,2026-05-11,
-GAP-327,GAP-327-moet-subject-taxonomy-seed.md,MOET Subject Taxonomy Seed (TT 32/2018 GDPT 2018),OPEN,P1,Backend,n/a,0,2026-05-04,2026-05-11,
+GAP-326,pending/GAP-326-moet-school-license-verification.md,MOET School License Verification at Tenant Signup,PENDING,P1,Backend,n/a,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: MOET — School License Verification
+GAP-327,pending/GAP-327-moet-subject-taxonomy-seed.md,MOET Subject Taxonomy Seed (TT 32/2018 GDPT 2018),PENDING,P1,Backend,n/a,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: MOET — Subject Taxonomy Seed
 GAP-328,GAP-328-exam-workflow-approval-chain.md,Mid+Final Exam Workflow with Approval Chain + Publish-Window,OPEN,P0,Backend,n/a,0,2026-05-04,2026-05-11,
 GAP-329,GAP-329-substitute-teacher-rbac-time-bound.md,Substitute Teacher Workflow with Time-bound RBAC,OPEN,P1,Backend,n/a,0,2026-05-04,2026-05-11,
 GAP-330,GAP-330-classroom-resource-scheduling.md,Classroom Resource Scheduling (Lab / Máy tính / Sân) with Conflict Detection,OPEN,P2,Backend,n/a,0,2026-05-04,2026-05-11,
 GAP-331,GAP-331-exam-invigilation-roster.md,Exam Invigilation Roster with Teacher Schedule Conflict Detection,OPEN,P2,Backend,n/a,0,2026-05-04,2026-05-11,
 GAP-332,GAP-332-homework-module.md,Homework Module (Assign / Submit / On-time + Late + Missing Tracking),OPEN,P1,Frontend,n/a,0,2026-05-04,2026-05-11,
-GAP-333,GAP-333-so-dau-bai-digital.md,Sổ Đầu Bài Digital (TT 32/2020 mandate),OPEN,P0,Frontend,n/a,0,2026-05-04,2026-05-11,
+GAP-333,pending/GAP-333-so-dau-bai-digital.md,Sổ Đầu Bài Digital (TT 32/2020 mandate),PENDING,P0,Frontend,n/a,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: Luật Giáo dục — Sổ đầu bài Digital
 GAP-334,GAP-334-multi-fee-structure.md,Multi-fee Structure (HP + Bán trú + Đồng phục + BHYT + BHTN + Quỹ PH) + Disco...,OPEN,P1,Backend,n/a,0,2026-05-04,2026-05-11,
-GAP-335,GAP-335-public-private-fee-compliance.md,Public vs Private School Fee Compliance Enforcement,OPEN,P1,Compliance,n/a,0,2026-05-04,2026-05-11,
-GAP-336,GAP-336-moet-financial-report-tt107-tt200.md,MOET Financial Report TT 107/2017 + TT 200/2014 with E-Signature,OPEN,P1,Compliance,n/a,0,2026-05-04,2026-05-11,
+GAP-335,pending/GAP-335-public-private-fee-compliance.md,Public vs Private School Fee Compliance Enforcement,PENDING,P1,Compliance,n/a,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: Luật Giáo dục — Public/Private School Fee Compliance
+GAP-336,pending/GAP-336-moet-financial-report-tt107-tt200.md,MOET Financial Report TT 107/2017 + TT 200/2014 with E-Signature,PENDING,P1,Compliance,n/a,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: MOET — Financial Report TT 107/200
 GAP-337,GAP-337-emergency-broadcast-multi-channel.md,Emergency Broadcast Workflow (1500+ PH ≤5 min Multi-channel + Failover),OPEN,P1,Backend,n/a,0,2026-05-04,2026-05-11,
 GAP-338,GAP-338-parent-teacher-meeting-coordination.md,Parent-Teacher Meeting Coordination + Calendar.ics + RSVP + Biên bản,OPEN,P2,Frontend,n/a,0,2026-05-04,2026-05-11,
 GAP-339,GAP-339-complaint-escalation-4-level.md,Complaint Escalation 4-Level (GVCN → Phó CM → HT → Phòng GD),OPEN,P0,Backend,n/a,0,2026-05-04,2026-05-11,
-GAP-340,GAP-340-moet-inter-school-transfer-api.md,MOET Inter-school Transfer API (cùng tỉnh),OPEN,P2,Backend,phase-3,0,2026-05-04,2026-05-11,
-GAP-341,GAP-341-phocap-escalation-mandatory.md,Phổ cập Giáo dục Mandatory Escalation (Luật GD 2019 Đ.13),OPEN,P0,Backend,phase-3,0,2026-05-04,2026-05-11,
+GAP-340,pending/GAP-340-moet-inter-school-transfer-api.md,MOET Inter-school Transfer API (cùng tỉnh),PENDING,P2,Backend,phase-3,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: MOET — Inter-school Transfer API
+GAP-341,pending/GAP-341-phocap-escalation-mandatory.md,Phổ cập Giáo dục Mandatory Escalation (Luật GD 2019 Đ.13),PENDING,P0,Backend,phase-3,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: Luật Giáo dục — Phổ cập Escalation
 GAP-342,GAP-342-exam-retake-workflow.md,Exam Re-take Workflow for Sick Students with Admin Approval + Evidence,OPEN,P2,Backend,n/a,0,2026-05-04,2026-05-11,
-GAP-343,GAP-343-hocba-bangtotnghiep-sealed-pdf-qr.md,Học bạ + Bằng tốt nghiệp Sealed PDF + E-Signature + Dấu Digital + QR Verifica...,OPEN,P1,Compliance,n/a,0,2026-05-04,2026-05-11,
-GAP-344,GAP-344-school-closure-30y-archive.md,School Closure 30-Year MOET-Coordinated Archive Workflow (Luật Lưu trữ 2011),OPEN,P3,Backend,n/a,0,2026-05-04,2026-05-11,
-GAP-345,GAP-345-wave-17-k12-legal-trio-state-check-audit.md,Wave 17 K-12 LEGAL Trio State-Check Audit,PARTIAL,P0,Meta,phase-3,50,2026-05-04,2026-05-11,
+GAP-343,pending/GAP-343-hocba-bangtotnghiep-sealed-pdf-qr.md,Học bạ + Bằng tốt nghiệp Sealed PDF + E-Signature + Dấu Digital + QR Verifica...,PENDING,P1,Compliance,n/a,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: Luật Giáo dục — Học bạ + Bằng tốt nghiệp Sealed PDF
+GAP-344,pending/GAP-344-school-closure-30y-archive.md,School Closure 30-Year MOET-Coordinated Archive Workflow (Luật Lưu trữ 2011),PENDING,P3,Backend,n/a,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: Luật Lưu trữ — School Closure 30y Archive
+GAP-345,pending/GAP-345-wave-17-k12-legal-trio-state-check-audit.md,Wave 17 K-12 LEGAL Trio State-Check Audit,PENDING,P0,Meta,phase-3,0,2026-05-04,2026-05-11,pending-legal-2026-05-11: Legal audit — K-12 LEGAL Trio State-Check
 GAP-346,GAP-346-test-skip-audit-and-ci-warning.md,Test Skip Audit — kiteclass-frontend 26.7% Skip Ratio + CI Warning Mechanism,OPEN,P1,Frontend,n/a,0,2026-05-04,2026-05-11,
 GAP-348,GAP-348-round-3-ui-kits-persona-driven-review.md,Round 3 UI Kits Persona-Driven Review (kiteclass-student + kitehub-admin),PARTIAL,P1,Frontend,n/a,50,2026-05-04,2026-05-11,
 GAP-349,GAP-349-track-2-phase-2-wave-pack-plan.md,Track 2 Phase 2 Wave-Pack Plan — 5 Priority Components,OPEN,P1,Frontend,phase-3,0,2026-05-04,2026-05-11,
 GAP-351,GAP-351-shared-ui-semver-breaking-change-policy.md,`@kite/shared-ui` Semver + Breaking-Change Policy,OPEN,P1,Mixed,phase-3,0,2026-05-05,2026-05-11,
 GAP-352,GAP-352-wcag-third-party-audit-pre-production.md,WCAG AA Third-Party Audit Before Track 2 Production Port,OPEN,P1,Mixed,n/a,0,2026-05-05,2026-05-11,
-GAP-353,GAP-353-pdpl-cookie-consent-banner-marketing-kits.md,PDPL 2023 Cookie / Consent Banner — KH + KC Marketing Kits,PARTIAL,P0,Mixed,n/a,50,2026-05-05,2026-05-11,
-GAP-353b-server-consent-api-audit-log,GAP-353b-server-consent-api-audit-log.md,Server-side Consent API + Audit-log link (PDPL Phase 2),PARTIAL,P1,Compliance,phase-1-beta,73,2026-05-06,2026-05-11,8/11 AC verified Wave 25 Bucket A; 3 deepening items routed GAP-353b-followup
-GAP-353b-followup-multi-device-and-audit-chain,GAP-353b-followup-multi-device-and-audit-chain.md,GAP-353b-followup: Multi-device cross-browser test + hash-chain audit log + T...,OPEN,P2,Mixed,n/a,0,2026-05-06,2026-05-11,
+GAP-353,pending/GAP-353-pdpl-cookie-consent-banner-marketing-kits.md,PDPL 2023 Cookie / Consent Banner — KH + KC Marketing Kits,PENDING,P0,Mixed,n/a,0,2026-05-05,2026-05-11,pending-legal-2026-05-11: PDPL — Cookie Consent Banner
+GAP-353b-server-consent-api-audit-log,pending/GAP-353b-server-consent-api-audit-log.md,Server-side Consent API + Audit-log link (PDPL Phase 2),PENDING,P1,Compliance,phase-1-beta,0,2026-05-06,2026-05-11,8/11 AC verified Wave 25 Bucket A; 3 deepening items routed GAP-353b-followup; pending-legal-2026-05-11: PDPL — Server Consent API
+GAP-353b-followup-multi-device-and-audit-chain,pending/GAP-353b-followup-multi-device-and-audit-chain.md,GAP-353b-followup: Multi-device cross-browser test + hash-chain audit log + T...,PENDING,P2,Mixed,n/a,0,2026-05-06,2026-05-11,pending-legal-2026-05-11: PDPL — Multi-device + Audit Chain
 GAP-354,GAP-354-per-kit-bundle-budget.md,Per-Kit Bundle Size Budget (Track 2 Production Port),OPEN,P2,Mixed,n/a,0,2026-05-05,2026-05-11,
 GAP-355,GAP-355-visual-regression-drift-policy.md,Visual Regression Drift Policy — Prototype ↔ Production Sync,OPEN,P2,Mixed,n/a,0,2026-05-05,2026-05-11,
 GAP-357,GAP-357-deprecated-exception-ctors-warning-sweep.md,Deprecated exception-ctor migration + IDE warning sweep (kiteclass-core),PARTIAL,P3,Backend,n/a,50,2026-05-05,2026-05-11,
 GAP-358,GAP-358-dev-workstation-server-migration-oracle-cloud.md,Migrate WSL2 dev workstation to Oracle Cloud Always Free server,OPEN,P2,Mixed,n/a,0,2026-05-05,2026-05-11,
-GAP-359,GAP-359-child-protection-phase-1c-remainder.md,Child Protection Phase 1C — Remainder (retention enforcement; pen test; escal...,OPEN,P1,Compliance,phase-3,0,2026-05-05,2026-05-11,
+GAP-359,pending/GAP-359-child-protection-phase-1c-remainder.md,Child Protection Phase 1C — Remainder (retention enforcement; pen test; escal...,PENDING,P1,Compliance,phase-3,0,2026-05-05,2026-05-11,pending-legal-2026-05-11: Luật Trẻ em — Phase 1C Remainder
 GAP-360,GAP-360-multi-subject-gradebook-phase-1c-remainder.md,Multi-Subject Gradebook Phase 1C Remainder — state machine + Tổ trưởng workfl...,OPEN,P1,Meta,n/a,0,2026-05-05,2026-05-11,
-GAP-361,GAP-361-parent-portal-phase-1c-remainder.md,Parent Portal Phase 1C remainder — 3 write actions + multi-facet consent gate...,OPEN,P1,Compliance,phase-3,0,2026-05-05,2026-05-11,
+GAP-361,pending/GAP-361-parent-portal-phase-1c-remainder.md,Parent Portal Phase 1C remainder — 3 write actions + multi-facet consent gate...,PENDING,P1,Compliance,phase-3,0,2026-05-05,2026-05-11,pending-legal-2026-05-11: Luật Giáo dục — Parent Portal Phase 1C Remainder
 GAP-362,GAP-362-tenant-isolation-it-flake.md,TenantIsolationIT.shouldIsolateCourseDataBetweenTenants pre-existing flake,OPEN,P1,Backend,n/a,0,2026-05-05,2026-05-11,
 GAP-363,GAP-363-kiteclass-student-polish-payments-persona-violation.md,kiteclass-student kit polish — `payments.html` persona-AC violation + 4 partials,PARTIAL,P1,Mixed,n/a,50,2026-05-05,2026-05-11,
 GAP-363b,GAP-363b-kiteclass-student-external-reaudit-delta-to-105.md,kiteclass-student kit — external re-audit + delta-to-≥105 polish,OPEN,P0,Frontend,n/a,0,2026-05-06,2026-05-11,
