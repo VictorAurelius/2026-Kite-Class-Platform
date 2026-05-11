@@ -86,16 +86,17 @@ When transitioning to v1.0.0:
 
 ## Acceptance Criteria
 
-- [ ] `ProductionSeedRunner` class implemented + idempotent
-- [ ] Admin user seed (password from secrets manager — see GAP-379)
-- [ ] System config records seed
-- [ ] Instance zero seed
-- [ ] Currencies + locales seed
-- [ ] Beta capacity config
-- [ ] Run-as-CLI documented
-- [ ] Smoke test: empty DB → run seed → verify all records present
-- [ ] Idempotent re-run test (run twice → no duplicates)
-- [ ] Production deploy runbook updated with seed step
+- [x] `ProductionSeedRunner` class implemented + idempotent (Wave 33 PR #895)
+- [x] Admin user seed (password from secrets manager — see GAP-379) — runner wired, password injection via `SEED_ADMIN_PASSWORD` env (Wave 33)
+- [x] System config records seed (Wave 33 — V27 baseline)
+- [x] Instance zero seed (Wave 33 — platform tenant id=0)
+- [x] Currencies + locales seed (Wave 33 — VND + vi via system_config)
+- [x] Beta capacity config (Wave 33 — system_config.beta.max_tenants)
+- [x] Run-as-CLI documented (Wave 33 — `scripts/seed-production.sh --help`; Wave 61 — runbook §3)
+- [x] Smoke test: empty DB → run seed → verify all records present (Wave 61 — `STOP_WHEN_IDLE_E2E=1` cycle audit in `scripts/smoke-test.sh`)
+- [x] Idempotent re-run test (run twice → no duplicates) (Wave 33 — ON CONFLICT semantics, integration test in `ProductionSeedRunnerIntegrationTest`)
+- [x] Production deploy runbook updated with seed step (Wave 61 — `documents/05-guides/deploy/production-seed-runbook.md`)
+- [ ] **Real production seed execution** (USER-EXECUTED first cutover step — per `agent-aws-access.md` Tier 3)
 
 ## Open decisions
 
@@ -127,3 +128,4 @@ Per `.claude/rules/release-deploy-standard.md` §3 — this gap satisfies a chec
 
 - **2026-05-06:** Filed by Release 1 deploy plan PR. BLOCKING cho Phase 1 BETA first deploy.
 - **2026-05-07:** Wave 33 Bucket A shipped (PR #895 — `ProductionSeedRunner` Spring Boot ApplicationRunner + `SeedProperties` @ConfigurationProperties + `SystemConfigSeedDao` + V27 idempotent INSERT-ON-CONFLICT-DO-NOTHING + `scripts/seed-production.sh` wrapper với --dry-run mode + 14 new tests, 407/407 module pass). Status 🔵 OPEN → 🟡 PARTIAL — runner + migration + script shipped, **production execution = user-executed step** (run `scripts/seed-production.sh` với `SEED_ADMIN_PASSWORD` env on first deploy). Seeds `admin@kitehub.vn` PLATFORM_ADMIN + system_config baseline (default_tier=FREE, currency=VND, locale=vi) + platform tenant id=0; NO demo content (separate optional script).
+- **2026-05-11:** Wave 61 Bucket C shipped — (1) `documents/05-guides/deploy/production-seed-runbook.md` covering when-to-run + prerequisites + step-by-step §3.1-§3.7 + recovery §4 + rollback §5; (2) `scripts/smoke-test.sh` extended with `STOP_WHEN_IDLE_E2E=1` cycle audit (seed dry-run + ≤25min envelope + optional `STOP_WHEN_IDLE_STATE_FILE` JSONL log); (3) all agent-shippable AC ticked. Per `gap-done-discipline.md` §3 PARTIAL exit ramp — Status stays 🟡 PARTIAL pending real production seed execution (user-action first cutover step per `agent-aws-access.md` Tier 3 mutation ban). Forward-references Wave 61 Bucket D (`scripts/aws/start-stack.sh` + `stack-on-demand-runbook.md`) for stack resume/stop wrapper.
