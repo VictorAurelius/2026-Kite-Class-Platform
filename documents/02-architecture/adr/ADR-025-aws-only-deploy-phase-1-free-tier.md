@@ -156,9 +156,11 @@ Nếu AWS Singapore deploy fail Phase 1 BETA hoặc compliance complaint trướ
 - Try Oracle Cloud signup lần 2 với 24h cooldown + checklist tightened (mobile data + new email + physical Visa card từ major bank + Singapore region SG-SIN)
 - Migration AWS → Oracle: `pg_dump` Postgres, `aws s3 sync` → Oracle Object Storage, terraform apply Oracle module
 
-### 5. EKS vs ECS Fargate decision (deferred)
+### 5. EKS vs ECS Fargate decision (deferred → closed by ADR-028)
 
 Free tier favor **ECS Fargate** vì EKS control plane charge $73/tháng KHÔNG có free tier. Decision tracked trong follow-up gap; this ADR scope = Oracle→AWS switch.
+
+→ **ADR-028 ECS Fargate vs EKS evaluation completed 2026-05-11 (ACCEPTED ECS Fargate)** — closes this commitment per GAP-464.
 
 ### 6. Monitoring / success criteria
 
