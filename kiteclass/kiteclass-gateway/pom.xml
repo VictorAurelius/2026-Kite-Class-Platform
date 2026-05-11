@@ -33,6 +33,9 @@
         <tomcat.version>10.1.54</tomcat.version>
         <commons-beanutils.version>1.11.0</commons-beanutils.version>
         <commons-compress.version>1.28.0</commons-compress.version>
+        <!-- GAP-468: CVE overrides for transitive deps surfaced via GitHub code-scanning 2026-05-11 -->
+        <netty.version>4.1.133.Final</netty.version>
+        <bouncycastle.version>1.84</bouncycastle.version>
     </properties>
 
     <dependencyManagement>
@@ -54,6 +57,22 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
                 <version>${commons-compress.version}</version>
+            </dependency>
+
+            <!-- GAP-468: netty-bom override forces all netty-* artifacts to 4.1.133.Final (closes 5 HIGH CVE) -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>${netty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- GAP-468: bcprov-jdk18on 1.84 (CVE-2026-5598) -->
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

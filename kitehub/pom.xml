@@ -37,6 +37,13 @@
         <poi.version>5.5.1</poi.version>
         <!-- GAP-114: structured JSON logging via LogstashEncoder (Spring Boot 3.5.x compatible) -->
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
+        <!-- GAP-468: CVE overrides for transitive deps surfaced via GitHub code-scanning 2026-05-11 -->
+        <!-- netty 4.1.133.Final fixes CVE-2026-42577/42579/42583/42584/42587 (Spring Boot 3.5.14 ships 4.1.132.Final) -->
+        <netty.version>4.1.133.Final</netty.version>
+        <!-- postgresql 42.7.11 fixes CVE-2026-42198 (Spring Boot 3.5.14 ships 42.7.10) -->
+        <postgresql.version>42.7.11</postgresql.version>
+        <!-- bcprov-jdk18on 1.84 fixes CVE-2026-5598 (not managed by Spring Boot BOM; transitive) -->
+        <bouncycastle.version>1.84</bouncycastle.version>
     </properties>
 
     <modules>
@@ -116,6 +123,22 @@
                 <groupId>net.logstash.logback</groupId>
                 <artifactId>logstash-logback-encoder</artifactId>
                 <version>${logstash-logback-encoder.version}</version>
+            </dependency>
+
+            <!-- GAP-468: netty-bom override forces all netty-* artifacts to 4.1.133.Final (closes 5 HIGH CVE) -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>${netty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- GAP-468: bcprov-jdk18on 1.84 (CVE-2026-5598) -->
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
