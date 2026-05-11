@@ -8,11 +8,49 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-11 — gap-architecture-v2 + legal-defer landed)
+## 🎯 Current Status Snapshot (2026-05-11 — Wave 60 SHIPPED post-pending-legal-defer)
 
 ### 🚀 Next Action (signpost cho new session)
 
-**Session 2026-05-11 — Gap Architecture v2 hardened + Legal scope cut (5 PRs):**
+**Wave 60 SHIPPED 2026-05-11 — Pre-cutover P0 hardening (4 buckets, 4 PR):**
+
+- **Bucket A GAP-406 OWASP Top 10 self-audit** → PR #1168 → 🟢 **DONE**: 76/100 C+, 0 P0 / 3 P1 / 2 P2 / 1 P3 findings; live header probe HSTS PASS + 4/5 missing → 3 follow-up gaps (GAP-470 K8s `runAsNonRoot` / GAP-471 Vercel FE headers + CORS / GAP-472 Gateway `SecurityHeadersFilter` parity); SQL/JWT/AES/SSRF clean. 3 P1 follow-up sẽ promote → P0 cho v1.0.0 PRODUCTION cutover gate.
+- **Bucket B GAP-137 FE bulk-import** → PR #1169 → 🟢 **DONE**: `/admin/bulk-import` page + 7 component tests (full suite 728 pass/0 fail) + MSW handler + students entry-point. Format thực tế = XLSX (Apache POI BE) chứ không phải CSV như plan ghi — agent state-check catch. Admin-merge per `admin-merge-discipline.md` §2 (Vercel rate-limited environmental; Frontend Tests + E2E + Build CI green).
+- **Bucket C GAP-430 + GAP-114** → PR #1167 → 🟢 **DONE** (cả 2): Fix-time state-check phát hiện metric đã đổi Wave 41 PR #983 (`kite_backup_last_success_timestamp_seconds` + `absent()` arm) → Option B scope-cut (drop AC + §Out-of-scope cite GAP-435 promtool fixture); GAP-114 Wave 25 logging infra verified, live 3-service smoke → GAP-115 deploy verification. CSV validator PASS 289 rows.
+- **Bucket D-2 GAP-* PR# backfill (6 candidates)** → PR #1170 (docs-only) → 2 DONE / 4 PARTIAL: GAP-050 + GAP-116-pii flip DONE Option B; GAP-033 + GAP-049 + GAP-102 + GAP-112 stay PARTIAL với follow-up cited (Wave 6 deps / GAP-156 / GAP-111 Phase 2). 10 PR refs backfilled. (Bucket D Explore audit ban đầu refuse 0/6 flips vì cả 6 fail Criterion 4 PR# missing → Bucket D-2 spawn Option 1 chuyển sang backfill.)
+
+**Stats Wave 60:**
+- **Gap DONE: 6** (GAP-406 + GAP-430 + GAP-114 + GAP-137 + GAP-050 + GAP-116-pii)
+- **Gap PARTIAL unchanged: 4** (GAP-033/049/102/112 — đúng kỷ luật + follow-up)
+- **New gap filed: 3** (GAP-470/471/472 — security headers P1 → P0 v1.0.0)
+- **Wall-clock:** ~30 phút coordinator (plan-spawn-merge same session)
+- **Speedup:** ~144× vs 3-5 ngày plan estimate
+- **Streak:** 94 consecutive 0-clarification waves
+- **Merge overrides:** #1169 + #1170 admin-merge per Vercel rate-limit environmental (all real CI green)
+
+**Phase 1 BETA critical-path tracker (post Wave 60):**
+
+| Step | Status |
+|------|:------:|
+| 1. Phase 4 milestone audit | ✅ DONE (Wave 53+54) |
+| 2. Production observability validation | 🟡 PARTIAL (Wave 55; live-cluster gated step 4) |
+| **2.5** Multi-tenant RLS + perf methodology | 🟡 PARTIAL (Wave 56+57; staging exec gated step 4) |
+| **2.6** Pre-cutover P0 hardening | ✅ **DONE Wave 60** (OWASP audit + backup metric verify + FE bulk-import + 6 FLIP-DONE sweep) |
+| 3. AWS funding decision | 🟡 RESUBMITTED 2026-05-11; pending D+14 (2026-05-25 reminder set) |
+| 4. Tier 3 cutover (api.kitehub.me HTTPS) | ⏳ runbook ready GAP-449; gated step 3 funding decision |
+| 5. Beta tenant onboarding (4-6 week beta period) | ⏳ gated step 4 + RLS hardening |
+
+**Wave 61 candidates:**
+- (a) AWS Activate D+14 cutover execution (gated 2026-05-23 approval)
+- (b) Helm + k8s artifacts validation (GAP-465 staleness audit pre-Phase-1.5)
+- (c) ADR README index drift sweep + 2 residual HIGH CVE post-Wave 57 (deferred Wave 58)
+- (d) Beta tenant invite mechanism + signup smoke (gated step 3)
+
+**Cleanup:** All 4 Wave 60 PRs merged; worktree husks pruned (`prune-merged-worktrees.sh --yes` clean); local main synced với origin/main.
+
+---
+
+**Session 2026-05-11 earlier — Gap Architecture v2 hardened + Legal scope cut (5 PRs):**
 
 📌 **PICK-UP SIGNAL CHO SESSION MỚI:**
 
