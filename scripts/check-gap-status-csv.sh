@@ -20,7 +20,7 @@ GAPS_DIR="documents/04-quality/gaps"
 GAP_FILES_OPTIONAL="${GAP_FILES_OPTIONAL:-false}"  # Phase 2 — require 100% coverage
 
 # Enum validation
-VALID_STATUSES="OPEN PARTIAL PLANNED IN_PROGRESS DONE WONTFIX"
+VALID_STATUSES="OPEN PARTIAL PLANNED IN_PROGRESS DONE WONTFIX PENDING"
 VALID_PRIORITIES="P0 P1 P2 P3"
 VALID_PHASES="phase-1-beta phase-1.5-paid phase-2 phase-3 n/a"
 
@@ -54,10 +54,13 @@ while IFS=, read -r ID FILENAME TITLE STATUS PRIORITY DOMAIN PHASE COMPLETION FO
   fi
   SEEN_IDS="$SEEN_IDS $ID"
 
-  # File existence check (also check closed/ subfolder)
+  # File existence check (also check closed/ + pending/ subfolders).
+  # Filename column may already include subfolder prefix (pending/...) — in
+  # which case $GAPS_DIR/$FILENAME resolves directly.
   FILE_PATH="$GAPS_DIR/$FILENAME"
   CLOSED_PATH="$GAPS_DIR/closed/$FILENAME"
-  if [[ ! -f "$FILE_PATH" && ! -f "$CLOSED_PATH" ]]; then
+  PENDING_PATH="$GAPS_DIR/pending/$FILENAME"
+  if [[ ! -f "$FILE_PATH" && ! -f "$CLOSED_PATH" && ! -f "$PENDING_PATH" ]]; then
     echo "FAIL: $ID — file not found ($FILENAME)"
     ERRORS=$((ERRORS + 1))
     continue
@@ -88,6 +91,7 @@ while IFS=, read -r ID FILENAME TITLE STATUS PRIORITY DOMAIN PHASE COMPLETION FO
     OPEN)        [[ "$COMPLETION" == "0" ]] || echo "WARN: $ID — OPEN should have completion_pct=0 (got $COMPLETION)" ;;
     DONE)        [[ "$COMPLETION" == "100" ]] || echo "WARN: $ID — DONE should have completion_pct=100 (got $COMPLETION)" ;;
     PARTIAL|IN_PROGRESS) [[ "$COMPLETION" -gt 0 && "$COMPLETION" -lt 100 ]] || echo "WARN: $ID — PARTIAL/IN_PROGRESS should have 0<completion_pct<100 (got $COMPLETION)" ;;
+    PENDING|WONTFIX) [[ "$COMPLETION" == "0" ]] || echo "WARN: $ID — $STATUS should have completion_pct=0 (got $COMPLETION)" ;;
   esac
 
   # Date format
@@ -105,10 +109,19 @@ done <<< "$ROWS"
 # Match by exact filename in column 2 — handles collision-stem ids
 # (e.g. multiple files sharing GAP-116 prefix).
 if [[ "$GAP_FILES_OPTIONAL" == "false" ]]; then
+  # Active (top-level) — coverage required, match by exact filename
   ACTIVE_FILES=$(find "$GAPS_DIR" -maxdepth 1 -name "GAP-*.md" -type f | xargs -n1 basename)
   for FILE in $ACTIVE_FILES; do
     if ! awk -F, -v f="$FILE" '$2==f {found=1} END {exit !found}' "$CSV"; then
       echo "FAIL: $FILE missing CSV row (Phase 2 100%-coverage mode)"
+      ERRORS=$((ERRORS + 1))
+    fi
+  done
+  # Pending (deferred legal) — coverage required, match by pending/<filename>
+  PENDING_FILES=$(find "$GAPS_DIR/pending" -maxdepth 1 -name "GAP-*.md" -type f 2>/dev/null | xargs -n1 basename)
+  for FILE in $PENDING_FILES; do
+    if ! awk -F, -v f="pending/$FILE" '$2==f {found=1} END {exit !found}' "$CSV"; then
+      echo "FAIL: pending/$FILE missing CSV row (Phase 2 100%-coverage mode)"
       ERRORS=$((ERRORS + 1))
     fi
   done
