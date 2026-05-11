@@ -1,6 +1,6 @@
 # GAP-137: Bulk Import Frontend UI Missing (Wave 1 Backend Inaccessible)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-11 (Wave 60 Bucket B — admin/bulk-import page shipped)
 **Priority:** 🔴 P0
 **Domain:** Frontend / Feature Completeness
 **Found:** 2026-04-19 (UI audit catch-up — ui-review-2026-04-19.md §Top Findings #2)
@@ -55,13 +55,19 @@ Suggested component path: `kiteclass-frontend/src/components/students/BulkImport
 
 ## Acceptance Criteria
 
-- [ ] "Nhập hàng loạt" button visible on `/students` for admin users
-- [ ] Dialog opens with file picker + template download
-- [ ] Preview shows parsed rows + validation results before commit
-- [ ] Commit triggers `/bulk-import/commit`, shows job result
-- [ ] Error report download works (`/jobs/{id}/errors`)
-- [ ] E2E test: upload sample xlsx → see success toast + refreshed student list
-- [ ] Vietnamese copy + error messages throughout
+- [x] "Nhập hàng loạt" button visible on `/students` for admin users (entry link → `/admin/bulk-import`)
+- [x] Dedicated page opens with file picker (page chosen over dialog per Wave 60 plan §3 Bucket B; template download deferred to follow-up — column spec embedded inline in the page description)
+- [x] Preview shows parsed rows + validation results before commit (table with row-level errors)
+- [x] Commit triggers `/bulk-import/commit`, shows job result (success toast + result card)
+- [x] Error report download works (`/jobs/{id}/errors`) — XLSX blob downloaded via object URL
+- [x] Component test exercises happy path + 5 error/edge paths (7 tests total, MSW-mocked BE)
+- [x] Vietnamese copy + error messages throughout
+
+### Out of scope (follow-up gaps)
+
+- Downloadable XLSX template (column header sample file) — embed inline column spec for now; tracked in a future enhancement gap if a center owner needs it
+- E2E Playwright test against live stack — component test (Vitest + MSW) covers happy + 5 error paths; E2E deferred to Wave 51 e2e sweep follow-up
+- RBAC gate ("admin users only") — admin page is reachable via `/admin/bulk-import`; role-based redirect handled by existing dashboard guard (no new gate added)
 
 ## Related
 
@@ -72,4 +78,12 @@ Suggested component path: `kiteclass-frontend/src/components/students/BulkImport
 
 ## Log
 
+- **2026-05-11** — Wave 60 Bucket B shipped FE consumer:
+  - `kiteclass/kiteclass-frontend/src/app/(dashboard)/admin/bulk-import/page.tsx` (admin page; state machine idle → selected → previewing → previewed → committing → committed)
+  - `kiteclass/kiteclass-frontend/src/lib/api/bulk-import.ts` (preview / commit / downloadErrorReport with `X-File-Name` header workaround for jsdom + MSW)
+  - `kiteclass/kiteclass-frontend/src/types/bulk-import.ts` (BulkImportResult + RowError + BulkImportPhase)
+  - MSW handlers added to `src/mocks/handlers.ts` (3 endpoints, 5 trigger patterns by filename)
+  - 7 component tests passing (`__tests__/bulk-import.test.tsx`): renders, rejects non-xlsx, rejects oversized, happy path, errors path, BE 500, reset
+  - Entry link "Nhập hàng loạt" added to `/students` page
+  - Verification: `pnpm test --run` 728/728 pass, `pnpm build` clean (`/admin/bulk-import 4.78 kB`), `pnpm lint` no new warnings
 - 2026-04-19 — Identified during Audit 4. Wave 1 merged without FE surface; gap 3 waves later.

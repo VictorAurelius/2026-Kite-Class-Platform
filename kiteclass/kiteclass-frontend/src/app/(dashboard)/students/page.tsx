@@ -21,7 +21,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useCallback, useMemo, useState } from 'react';
-import { Plus, Users } from 'lucide-react';
+import { Plus, Upload, Users } from 'lucide-react';
 import Link from 'next/link';
 import { BulkActionsBar, type BulkAction } from '@kite/shared-ui';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -145,12 +145,20 @@ export default function StudentsPage() {
               Quản lý danh sách học viên của trung tâm
             </p>
           </div>
-          <Link href="/students/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Thêm học viên
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/admin/bulk-import">
+              <Button variant="outline">
+                <Upload className="mr-2 h-4 w-4" />
+                Nhập hàng loạt
+              </Button>
+            </Link>
+            <Link href="/students/new">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Thêm học viên
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <div className="flex items-center gap-4">
