@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =========================================================================
-# smoke-rollback-cycle.sh — Rollback cycle test (GAP-475 Sub-6, Wave 62)
+# smoke-rollback-cycle.sh — Rollback cycle test (GAP-477, Wave 63)
 # =========================================================================
 # Usage:
 #   ./scripts/smoke-rollback-cycle.sh                 # dry-run (default)
@@ -24,15 +24,13 @@
 #   - Monthly: --dry-run
 #   - Quarterly: --execute during maintenance window
 #
-# ⚠️  PARTIAL STATUS (2026-05-11): rollback.yml workflow not yet present in
-#     .github/workflows/. This script ships as scaffold; rollback trigger step
-#     skips when workflow absent + logs [DEFER] message. Once rollback.yml lands
-#     (tracked GAP-475 follow-up), enable real path by setting WORKFLOW_NAME
-#     below + re-verify with --dry-run.
+# Wired to .github/workflows/rollback.yml since Wave 63 (GAP-477). The workflow
+# accepts inputs: target_sha, confirm (must equal "APPLY"), dry_run (bool).
+# Absence of rollback.yml is now a regression — script fails fast with [FAIL].
 #
 # Exit codes:
 #   0 = all phases pass (or dry-run completes)
-#   1 = any smoke FAIL OR rollback workflow failure
+#   1 = any smoke FAIL OR rollback workflow failure OR workflow file missing
 #   2 = pre-flight infra not ready (health endpoint unreachable)
 # =========================================================================
 
@@ -41,6 +39,7 @@ set -euo pipefail
 # ─── Config ────────────────────────────────────────────────────────────
 
 WORKFLOW_NAME="${WORKFLOW_NAME:-rollback.yml}"
+GH_REPO="${GH_REPO:-VictorAurelius/2026-Kite-Class-Platform}"
 HEALTH_URL="${HEALTH_URL:-https://kitehub.vn/actuator/health}"
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-300}"  # 5 minutes max
 SMOKE_SCRIPT="${SMOKE_SCRIPT:-$(dirname "$0")/smoke-test.sh}"
@@ -62,6 +61,7 @@ fi
 # Defaults
 MODE="dry-run"
 TARGET_SHA=""
+WORKFLOW_RUN_ID=""
 
 # ─── Args ──────────────────────────────────────────────────────────────
 
@@ -100,7 +100,6 @@ log_info()  { printf "%b[INFO]%b  %s\n" "$BLUE"   "$NC" "$*"; }
 log_pass()  { printf "%b[PASS]%b  %s\n" "$GREEN"  "$NC" "$*"; }
 log_fail()  { printf "%b[FAIL]%b  %s\n" "$RED"    "$NC" "$*"; }
 log_warn()  { printf "%b[WARN]%b  %s\n" "$YELLOW" "$NC" "$*"; }
-log_defer() { printf "%b[DEFER]%b %s\n" "$YELLOW" "$NC" "$*"; }
 log_step()  { printf "\n%b━━━ %s ━━━%b\n" "$BOLD" "$*" "$NC"; }
 
 iso_now() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
@@ -157,23 +156,39 @@ wait_health() {
 trigger_rollback() {
     local sha="$1"
     if ! workflow_exists "$WORKFLOW_NAME"; then
-        log_defer "$WORKFLOW_NAME not present in .github/workflows/ — Sub-6 PARTIAL"
-        log_defer "Once rollback.yml lands, enable real path. Skipping trigger."
-        return 0
+        log_fail "$WORKFLOW_NAME not present in .github/workflows/ — regression since Wave 63 GAP-477"
+        log_fail "Expected workflow file at .github/workflows/${WORKFLOW_NAME}. Investigate before re-running."
+        return 1
     fi
-    log_info "Triggering ${WORKFLOW_NAME} with target_sha=${sha}..."
     if [ "$MODE" = "execute" ] && [ "${ROLLBACK_CYCLE_E2E:-0}" = "1" ]; then
-        gh workflow run "$WORKFLOW_NAME" -f "target_sha=${sha}" \
-            || { log_fail "gh workflow run failed"; return 1; }
-        log_info "Polling completion..."
-        sleep 10
-        local run_id
-        run_id=$(gh run list --workflow "$WORKFLOW_NAME" --limit 1 --json databaseId --jq '.[0].databaseId')
-        gh run watch "$run_id" --exit-status \
-            || { log_fail "rollback workflow run failed (id=$run_id)"; return 1; }
-        log_pass "Rollback workflow completed"
+        log_info "Triggering ${WORKFLOW_NAME} target_sha=${sha} confirm=APPLY dry_run=false..."
+        local trigger_out
+        trigger_out=$(gh workflow run "$WORKFLOW_NAME" \
+            -f "target_sha=${sha}" \
+            -f "confirm=APPLY" \
+            -f "dry_run=false" \
+            --repo "${GH_REPO}" 2>&1) || {
+                log_fail "gh workflow run failed: ${trigger_out}"
+                return 1
+            }
+        # gh workflow run does not always return run_id directly; parse, then fall back to recent-run query.
+        WORKFLOW_RUN_ID=$(printf "%s\n" "$trigger_out" | grep -oE 'run [0-9]+' | awk '{print $2}' | head -1)
+        if [ -z "$WORKFLOW_RUN_ID" ]; then
+            log_info "Parsing run_id from output failed; querying recent runs..."
+            sleep 5
+            WORKFLOW_RUN_ID=$(gh run list --workflow "$WORKFLOW_NAME" --limit 1 \
+                --json databaseId --jq '.[0].databaseId' --repo "${GH_REPO}" 2>/dev/null || echo "")
+        fi
+        if [ -z "$WORKFLOW_RUN_ID" ]; then
+            log_fail "Could not determine workflow run_id"
+            return 1
+        fi
+        log_info "Workflow run id: $WORKFLOW_RUN_ID — watching..."
+        gh run watch "$WORKFLOW_RUN_ID" --exit-status --repo "${GH_REPO}" \
+            || { log_fail "rollback workflow run failed (id=$WORKFLOW_RUN_ID)"; return 1; }
+        log_pass "Rollback workflow completed (run_id=$WORKFLOW_RUN_ID)"
     else
-        log_info "(dry-run) Would run: gh workflow run $WORKFLOW_NAME -f target_sha=$sha"
+        log_info "(dry-run) Would run: gh workflow run $WORKFLOW_NAME -f target_sha=$sha -f confirm=APPLY -f dry_run=false --repo ${GH_REPO}"
     fi
 }
 
@@ -232,7 +247,9 @@ if [ "$MODE" = "dry-run" ]; then
   "restored_smoke_pass": null,
   "tta_rollback_sec": null,
   "tta_restore_sec": null,
-  "workflow_present": $(workflow_exists "$WORKFLOW_NAME" && echo "true" || echo "false")
+  "workflow_present": $(workflow_exists "$WORKFLOW_NAME" && echo "true" || echo "false"),
+  "workflow_run_id": null,
+  "restore_workflow_run_id": null
 }
 EOF
     log_pass "Report: $REPORT_FILE"
@@ -244,6 +261,7 @@ fi
 log_step "Phase 2 — Rollback to $PREVIOUS_SHA"
 ROLLBACK_START=$(date +%s)
 trigger_rollback "$PREVIOUS_SHA"
+ROLLBACK_RUN_ID="${WORKFLOW_RUN_ID:-}"
 wait_health
 ROLLBACK_END=$(date +%s)
 TTA_ROLLBACK=$(( ROLLBACK_END - ROLLBACK_START ))
@@ -259,6 +277,7 @@ fi
 log_step "Phase 4 — Restore forward to $CURRENT_SHA"
 RESTORE_START=$(date +%s)
 trigger_rollback "$CURRENT_SHA"
+RESTORE_RUN_ID="${WORKFLOW_RUN_ID:-}"
 wait_health
 RESTORE_END=$(date +%s)
 TTA_RESTORE=$(( RESTORE_END - RESTORE_START ))
@@ -281,7 +300,9 @@ cat > "$REPORT_FILE" <<EOF
   "restored_smoke_pass": ${RESTORED_PASS:-0},
   "tta_rollback_sec": ${TTA_ROLLBACK:-0},
   "tta_restore_sec": ${TTA_RESTORE:-0},
-  "workflow_present": $(workflow_exists "$WORKFLOW_NAME" && echo "true" || echo "false")
+  "workflow_present": $(workflow_exists "$WORKFLOW_NAME" && echo "true" || echo "false"),
+  "workflow_run_id": "${ROLLBACK_RUN_ID}",
+  "restore_workflow_run_id": "${RESTORE_RUN_ID}"
 }
 EOF
 
