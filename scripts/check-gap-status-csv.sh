@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # check-gap-status-csv.sh — validate gap-status.csv ↔ gap file consistency
 #
-# Pilot mode (Phase 1 — gap-architecture-v2.md): only validates rows present in CSV,
-# does NOT require every gap file to have a CSV row yet (bulk migration follow-up).
+# Phase 2 mode (gap-architecture-v2.md §4 step "Bulk migration"): require
+# every active gap file to have a matching CSV row. CSV is canonical for
+# status / priority / phase / completion_pct / last_verified.
 #
-# Phase 2 (post bulk-migrate): flip GAP_FILES_OPTIONAL=false → require 100% coverage.
+# Toggle Phase 1 pilot mode by setting GAP_FILES_OPTIONAL=true.
 #
 # Exit codes:
 #   0 — all checks pass
-#   1 — CSV row points to missing file
+#   1 — CSV row points to missing file OR gap file lacks CSV row
 #   2 — CSV malformed (missing required columns, bad status/priority enum)
 #   3 — duplicate id in CSV
 
@@ -16,7 +17,7 @@ set -euo pipefail
 
 CSV="documents/04-quality/gaps/gap-status.csv"
 GAPS_DIR="documents/04-quality/gaps"
-GAP_FILES_OPTIONAL=true  # Phase 1 pilot — flip to false post bulk-migrate
+GAP_FILES_OPTIONAL="${GAP_FILES_OPTIONAL:-false}"  # Phase 2 — require 100% coverage
 
 # Enum validation
 VALID_STATUSES="OPEN PARTIAL PLANNED IN_PROGRESS DONE WONTFIX"
@@ -100,12 +101,13 @@ while IFS=, read -r ID FILENAME TITLE STATUS PRIORITY DOMAIN PHASE COMPLETION FO
   fi
 done <<< "$ROWS"
 
-# Phase 2 check: every active gap file has CSV row
+# Phase 2 check: every active gap file has CSV row.
+# Match by exact filename in column 2 — handles collision-stem ids
+# (e.g. multiple files sharing GAP-116 prefix).
 if [[ "$GAP_FILES_OPTIONAL" == "false" ]]; then
   ACTIVE_FILES=$(find "$GAPS_DIR" -maxdepth 1 -name "GAP-*.md" -type f | xargs -n1 basename)
   for FILE in $ACTIVE_FILES; do
-    ID=$(echo "$FILE" | sed -E 's/^(GAP-[0-9]+[a-z]*).*/\1/')
-    if ! grep -q "^$ID," "$CSV"; then
+    if ! awk -F, -v f="$FILE" '$2==f {found=1} END {exit !found}' "$CSV"; then
       echo "FAIL: $FILE missing CSV row (Phase 2 100%-coverage mode)"
       ERRORS=$((ERRORS + 1))
     fi

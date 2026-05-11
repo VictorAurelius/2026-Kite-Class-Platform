@@ -1,10 +1,10 @@
-# Gap Architecture v2 — single canonical source (Design A pilot)
+# Gap Architecture v2 — single canonical source (Design A)
 
-**Priority:** 🟠 MANDATORY — gap docs governance (pilot phase)
-**Version:** 1.0.0
+**Priority:** 🟠 MANDATORY — gap docs governance
+**Version:** 1.0.1
 **Created:** 2026-05-11
 **Last-Reviewed:** 2026-05-11
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (CSV + CI script + query helper + worked self-test on 5 pilot gaps) per `rule-change-process.md` §6.5 Enforcement Parity Mandate; no constraint loosening — existing gap files grandfathered; rule applies prospectively cho new gap creation + bulk migration tracked separately)
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; Phase 2 bulk migration closeout sync — 289 active gap files migrated to CSV via `scripts/migrate-gaps-to-csv.py`; check script flipped to Phase 2 mode (100% coverage required); CI job wired in `.github/workflows/script-quality.yml`. No constraint change vs v1.0.0 — Phase 2 was already mandated in §4 of original rule. v1.0.0: MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (CSV + CI script + query helper + worked self-test on 5 pilot gaps) per `rule-change-process.md` §6.5 Enforcement Parity Mandate; no constraint loosening)
 **Applies to:** `documents/04-quality/gaps/*.md` files + `documents/04-quality/gaps/gap-status.csv` canonical store + tools that query/update gap status
 
 ---
@@ -74,7 +74,7 @@ Markdown gap file remains canonical for:
 
 ## 4. Migration phases
 
-### Phase 1 — Pilot (this PR, 2026-05-11)
+### Phase 1 — Pilot (PR #1159, 2026-05-11) ✅ DONE
 
 - CSV created với 5 sample rows
 - CI script `check-gap-status-csv.sh` validates rows present
@@ -82,11 +82,23 @@ Markdown gap file remains canonical for:
 - Markdown files unchanged — still có Status/Priority frontmatter
 - Query helper `scripts/query-gaps.sh` proves token-savings claim
 
-### Phase 2 — Bulk migration (follow-up wave)
+### Phase 2 — Bulk migration (this PR, 2026-05-11) ✅ DONE
 
-- Migration script: extract Status/Priority from every active gap file → CSV row
-- Verify CI script với `GAP_FILES_OPTIONAL=false` mode → 100% coverage required
-- Flip CI gate to enforce coverage
+- `scripts/migrate-gaps-to-csv.py` extractor — parses Status/Priority/Domain/Found
+  from every `documents/04-quality/gaps/GAP-*.md` frontmatter; handles multi-line
+  Status blocks (GAP-436), date-field variants (Found/Detected/Created), and
+  filename-prefix collisions (GAP-116, GAP-200, GAP-321b-1, GAP-353b each have 2
+  files — bulk migrator emits full-stem ids for all colliding files; pilot rows
+  remap accordingly)
+- CSV grown từ 5 → 289 rows (100% coverage of active gap files)
+- Final distribution: Status `OPEN 186 / PARTIAL 98 / IN_PROGRESS 3 / PLANNED 2`;
+  Priority `P0 67 / P1 114 / P2 104 / P3 4`; Phase `phase-1-beta 35 /
+  phase-1.5-paid 4 / phase-2 1 / phase-3 3 / n/a 246` (conservative — bulk
+  migrate does NOT infer phase unless content explicitly cites it; reclassify
+  Phase 1 BETA-relevant gaps post-merge)
+- `check-gap-status-csv.sh` flipped to Phase 2 mode (`GAP_FILES_OPTIONAL=false`
+  default; coverage check matches by exact filename to support collision-stem
+  ids); CI job `gap-status-csv` wired in `.github/workflows/script-quality.yml`
 
 ### Phase 3 — Frontmatter strip (post bulk-migrate validated)
 
@@ -220,15 +232,20 @@ Test 3 — Pilot CSV catches representative drift scenarios:
 
 ## 10. Open Items / Follow-ups (per `gap-done-discipline.md` §3 PARTIAL exit ramp)
 
-Phase 1 pilot ships này PR. Tracked separately:
+Phase 1 pilot + Phase 2 bulk migration shipped (this PR + #1159). Tracked separately:
 
-- [ ] Phase 2 bulk migration: script to extract Status/Priority from 293 active gap files → CSV rows. File follow-up gap `GAP-NEW-csv-bulk-migration`.
-- [ ] Phase 3 markdown frontmatter strip: remove Status/Priority field from gap files post coverage validation. File follow-up gap.
-- [ ] Phase 4 tooling integration: `audit-to-gap-pipeline.md` §2.8 query CSV; `start-session` collect-state.sh CSV query; ROADMAP §🚀 auto-derive. File follow-up gap.
-- [ ] CI wiring: add `check-gap-status-csv.sh` to `.github/workflows/script-quality.yml` (deferred Phase 2, after coverage flip).
+- [x] ~~Phase 2 bulk migration~~ — shipped this PR (289/289 active gap files have CSV rows; check script flipped to Phase 2 mode; CI job wired)
+- [x] ~~CI wiring~~ — shipped this PR (`gap-status-csv` job in `script-quality.yml`)
+- [ ] **Phase 2.1 phase reclassification** — 246 gaps currently `phase=n/a` because bulk migrator did not infer phase unless content explicitly cited it. Filter `awk -F, '$7=="n/a" {print}' gap-status.csv` and reclassify Phase 1 BETA-relevant blockers. File follow-up gap when convenient.
+- [ ] **Phase 2.2 completion_pct refinement** — PARTIAL/IN_PROGRESS rows default to 50/40; can be refined per gap when context known (e.g., GAP-005 Phase 1 done = ~40; GAP-114 ~80). Iterative, no urgency.
+- [ ] **Phase 3 markdown frontmatter strip** — remove Status/Priority field from gap files; add header comment "Canonical status: gap-status.csv". File follow-up gap.
+- [ ] **Phase 4 tooling integration** — `audit-to-gap-pipeline.md` §2.8 query CSV; `start-session` collect-state.sh query CSV; ROADMAP §🚀 auto-derive. File follow-up gap.
+- [ ] **Filename-collision cleanup** — 4 prefix-collision pairs surfaced during bulk migration (GAP-116 / GAP-200 / GAP-321b-1 / GAP-353b each have 2 files). Currently handled via full-stem ids; consider renaming one side of each pair to disambiguate filename too. Low priority.
 
 ---
 
 ## 11. Log
+
+- **2026-05-11 (v1.0.1):** PATCH — Phase 2 bulk migration shipped (this PR). `scripts/migrate-gaps-to-csv.py` extracted Status/Priority/Domain/Found from 289 active gap files into `gap-status.csv`; CSV grown 5 → 289 rows. `scripts/check-gap-status-csv.sh` flipped to Phase 2 mode (`GAP_FILES_OPTIONAL=false` default) — coverage match by exact filename to support filename-prefix collision pairs (GAP-116 / GAP-200 / GAP-321b-1 / GAP-353b each have 2 files; both members get full-stem ids; pilot row GAP-353b remapped to GAP-353b-server-consent-api-audit-log). CI job `gap-status-csv` added to `.github/workflows/script-quality.yml`. §4 Phase 1/2 marked DONE; §10 Open Items updated. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — Phase 2 was already mandated in v1.0.0 §4 as "follow-up wave"; this PR is the closeout sync). No constraint change. Phase 3 (frontmatter strip) + Phase 4 (tooling integration) remain deferred per §10.
 
 - **2026-05-11 (v1.0.0):** Rule created. Triggered by 2026-05-11 user-flagged retro on docs trust ("tinh giảm docs xuống để có thể sync đơn giản, đỡ tốn token không?"). 5 drift classes documented empirically (plan vs gap Priority disagreement, status stale, obsolete refs, PARTIAL granularity, ROADMAP §🚀 stale). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged systemic doc-trust failure) → Classify ✓ (no existing rule mandates single canonical source for gap status; CLAUDE.md §Living Documents addresses sync but doesn't eliminate multi-source) → Rule+Enforce ✓ (this file + gap-status.csv + scripts/check-gap-status-csv.sh CI validator + scripts/query-gaps.sh helper + paired memory + 5-gap worked self-test per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§8 worked example on 5 representative gaps — IN_PROGRESS, DEFERRED, PARTIAL near-DONE, OPEN, PARTIAL mid) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new rule with built-in enforcement, no constraint loosening for prior work; existing gap files grandfathered; rule applies prospectively). Phase 2-4 bulk migration deferred to follow-up gaps per §10. Phase 1 pilot proves concept on 5 representative gaps spanning full status/priority/completion enum range.
