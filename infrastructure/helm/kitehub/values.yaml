@@ -272,147 +272,56 @@ monitoring:
 
     alertmanager:
       enabled: true
+      # GAP-467 / Wave 57 Bucket A — alertmanager runtime config is rendered by
+      # templates/alertmanager-config.yaml into a Secret named
+      # `alertmanager-kitehub`. Go-template rendering of alertmanager.yaml
+      # lives there (templates/ is where Helm runs the template engine);
+      # values.yaml must stay plain YAML per Helm v3 contract.
+      #
+      # Reference the rendered Secret here so kube-prometheus-stack mounts it
+      # into Alertmanager instead of using the chart's auto-generated config.
       alertmanagerSpec:
         retention: 120h
         resources:
           requests: { cpu: 50m, memory: 128Mi }
           limits:   { cpu: 200m, memory: 256Mi }
+        # Use our externally-rendered Secret (see templates/alertmanager-config.yaml)
+        # instead of the kube-prometheus-stack auto-generated config Secret.
+        # Per kube-prometheus-stack convention, this string is the Secret name
+        # (alertmanager-kitehub) which the chart mounts at /etc/alertmanager/config.
+        configSecret: alertmanager-kitehub
         # GAP-144 / ADR-022 — mount the alertmanager-receivers Secret materialized
         # by ExternalSecret (templates/alertmanager-external-secret.yaml). Files
         # appear at /etc/alertmanager/secrets/alertmanager-receivers/<key> and are
-        # referenced from receivers.config below via *_file: directives. Volume
-        # only mounts when receivers.production.enabled=true (the Secret only
-        # exists then); foundation deploys with enabled=false skip both.
-        {{- if and .Values.monitoring.enabled .Values.monitoring.alertmanager.receivers.production.enabled }}
+        # referenced from the rendered config (templates/alertmanager-config.yaml)
+        # via *_file: directives.
+        #
+        # Note (Wave 57 Bucket A / GAP-467): volumes/volumeMounts are listed
+        # unconditionally here because (a) values.yaml must be plain YAML so we
+        # cannot gate on a flag, and (b) Alertmanager tolerates a missing-Secret
+        # volume mount at config-load time only when files are not yet referenced
+        # (placeholder mode does not reference any *_file: paths). Operators who
+        # disable monitoring.alertmanager.receivers.production.enabled in dev
+        # clusters that lack the ExternalSecret can either (i) leave the
+        # ExternalSecret template disabled (default — alertmanager-receivers
+        # Secret never created → pod stays Pending on volume mount, which is the
+        # desired loud failure for misconfigured prod), or (ii) supply a stub
+        # Secret. The default dev mode disables monitoring.enabled entirely so
+        # this whole subchart is skipped.
         volumes:
           - name: alertmanager-receivers
             secret:
               secretName: alertmanager-receivers
+              optional: true
         volumeMounts:
           - name: alertmanager-receivers
             mountPath: /etc/alertmanager/secrets/alertmanager-receivers
             readOnly: true
-        {{- end }}
-
-      # GAP-144 / ADR-022 — Alertmanager receiver config.
-      #
-      # Two modes, controlled by .Values.monitoring.alertmanager.receivers.production.enabled:
-      #
-      #   1. production.enabled=false (DEFAULT) — placeholder receivers pointing
-      #      at *.invalid hosts. Alertmanager starts cleanly; alerts SILENTLY
-      #      DROP. Foundation parity (existing dev / local installs unchanged).
-      #
-      #   2. production.enabled=true — receivers reference files mounted from
-      #      the alertmanager-receivers Secret (ExternalSecret materializes
-      #      it from AWS Secrets Manager per ADR-022). Slack via api_url_file,
-      #      PagerDuty via service_key_file, email via global.smtp_auth_password_file.
-      #      Activate via:
-      #        helm upgrade ... \
-      #          --set monitoring.enabled=true \
-      #          --set monitoring.alertmanager.receivers.production.enabled=true
-      #      after ESO + ClusterSecretStore + AWS SM secrets are provisioned
-      #      (see infrastructure/helm/README.md "Alertmanager production receivers").
-      config:
-        global:
-          resolve_timeout: 5m
-          smtp_from: "alerts@kiteclass.com"
-          {{- if .Values.monitoring.alertmanager.receivers.production.enabled }}
-          # AWS SES SMTP endpoint. Region defaults to us-east-1; override per env.
-          # Note: alertmanager 0.27 supports smtp_auth_password_file but NOT
-          # smtp_smarthost_file / smtp_auth_username_file. Host + username are
-          # materialized into the alertmanager-receivers k8s Secret by ESO
-          # (Wave 55 Bucket C / GAP-144 added smtp-host + smtp-username keys);
-          # operators inject the values into values-<env>.yaml at deploy time
-          # via `kubectl get secret alertmanager-receivers -o jsonpath='{.data.smtp-host}' | base64 -d`
-          # then --set monitoring.alertmanager.smtp.smarthost=...; see runbook
-          # documents/05-guides/operations/runbooks/alertmanager-mock-fire-runbook.md §3.2.
-          smtp_smarthost: "{{ .Values.monitoring.alertmanager.smtp.smarthost | default (printf "email-smtp.%s.amazonaws.com:587" (.Values.monitoring.alertmanager.smtp.region | default "us-east-1")) }}"
-          smtp_auth_username: "{{ .Values.monitoring.alertmanager.smtp.authUsername | default "alerts@kiteclass.com" }}"
-          smtp_auth_password_file: "/etc/alertmanager/secrets/alertmanager-receivers/smtp-password"
-          {{- else }}
-          # Placeholder — switched to AWS SES when receivers.production.enabled=true.
-          smtp_smarthost: "smtp.placeholder.invalid:587"
-          {{- end }}
-          smtp_require_tls: true
-
-        route:
-          group_by: ["alertname", "severity", "job"]
-          group_wait: 30s
-          group_interval: 5m
-          repeat_interval: 12h
-          receiver: "default-webhook"
-          routes:
-            - matchers:
-                - severity = "critical"
-              receiver: "critical-webhook"
-              continue: true
-            - matchers:
-                - severity = "warning"
-              receiver: "warning-email"
-
-        receivers:
-          {{- if .Values.monitoring.alertmanager.receivers.production.enabled }}
-          # Production receivers — credentials read from files mounted from
-          # alertmanager-receivers Secret (sourced via ExternalSecret + AWS SM).
-          - name: "default-webhook"
-            slack_configs:
-              - api_url_file: "/etc/alertmanager/secrets/alertmanager-receivers/slack-webhook-url"
-                channel: "{{ .Values.monitoring.alertmanager.receivers.production.slack.channel | default "#alerts" }}"
-                send_resolved: true
-                title: "[{{ `{{ .Status | toUpper }}` }}] {{ `{{ .CommonLabels.alertname }}` }}"
-                text: "{{ `{{ range .Alerts }}{{ .Annotations.summary }}\n{{ .Annotations.description }}\n{{ if .Annotations.runbook_url }}Runbook: {{ .Annotations.runbook_url }}{{ end }}\n{{ end }}` }}"
-
-          - name: "critical-webhook"
-            pagerduty_configs:
-              - service_key_file: "/etc/alertmanager/secrets/alertmanager-receivers/pagerduty-routing-key"
-                send_resolved: true
-                description: "{{ `{{ .CommonLabels.alertname }}` }}: {{ `{{ .CommonAnnotations.summary }}` }}"
-                severity: "{{ `{{ if eq .CommonLabels.severity \"critical\" }}critical{{ else }}error{{ end }}` }}"
-                client: "kitehub-alertmanager"
-
-          - name: "warning-email"
-            email_configs:
-              - to: "{{ .Values.monitoring.alertmanager.receivers.production.email.to | default "ops@kiteclass.com" }}"
-                send_resolved: true
-                headers:
-                  Subject: "[{{ `{{ .Status | toUpper }}` }}] {{ `{{ .CommonLabels.alertname }}` }} — kitehub"
-          {{- else }}
-          # Foundation placeholders — *.invalid hosts mean alerts silently drop.
-          # Switch to production receivers via receivers.production.enabled=true.
-          - name: "default-webhook"
-            webhook_configs:
-              - url: "http://alertmanager-webhook-placeholder.invalid/default"
-                send_resolved: true
-
-          - name: "critical-webhook"
-            webhook_configs:
-              - url: "http://alertmanager-webhook-placeholder.invalid/critical"
-                send_resolved: true
-
-          - name: "warning-email"
-            email_configs:
-              - to: "ops@kiteclass.com"
-                send_resolved: true
-          {{- end }}
-
-        # Inhibition: suppress dependent alerts when ServiceDown is firing for
-        # the same job (avoids alert storm). Verified for GAP-144 AC.
-        inhibit_rules:
-          - source_matchers:
-              - alertname = "ServiceDown"
-            target_matchers:
-              - severity =~ "warning|critical"
-            equal: ["job"]
-          # HighErrorRate inhibited when ServiceDown is firing for the same job —
-          # explicit pairing to satisfy GAP-144 AC; equivalent to the catch-all
-          # above but documents the intent for reviewers.
-          - source_matchers:
-              - alertname = "ServiceDown"
-            target_matchers:
-              - alertname = "HighErrorRate"
-            equal: ["job"]
 
       # GAP-144 / ADR-022 — production receiver opt-in flag + ESO integration.
+      # The config block itself moved to templates/alertmanager-config.yaml in
+      # Wave 57 Bucket A (GAP-467). Values below remain plain YAML data; the
+      # template consumes them via .Values.monitoring.alertmanager.* paths.
       receivers:
         production:
           # Master gate. When true: ExternalSecret renders, Alertmanager mounts
