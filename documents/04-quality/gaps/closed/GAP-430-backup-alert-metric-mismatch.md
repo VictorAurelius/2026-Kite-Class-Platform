@@ -1,6 +1,6 @@
 # GAP-430: `BackupJobFailure` alert metric name mismatch — alert chưa từng fire
 
-**Status:** 🟡 PARTIAL 2026-05-08 (Wave 41 Bucket A — silent-failure root cause fixed via Option B+: script now emits the gauge the alert watches, plus `absent()` arm hardens against series-disappearance. Remaining: dedicated PromQL unit-test fixture pending agent-environment access to `promtool`/`helm`)
+**Status:** 🟢 DONE 2026-05-11 (Wave 60 Bucket C — fix-time state-check confirmed root-cause functional fix already shipped Wave 41 Bucket A; promtool unit-test fixture scope-cut to dedicated GAP-435)
 **Priority:** 🔴 P0 BLOCKING (Phase 1 BETA — silent monitoring failure; backup chạy nhưng nếu fail không ai biết)
 **Domain:** DevOps / Observability
 **Found:** 2026-05-08 Wave 40 audit milestone (Bucket E Ops Readiness, PR #975)
@@ -41,7 +41,13 @@ Recommend Option A (no new infrastructure).
 - [x] `BackupJobFailure` PromQL match metric thực tế emit — `scripts/backup-production.sh` now emits `kite_backup_last_success_timestamp_seconds` (gauge) alongside the existing `kite_backup_snapshots_total` (counter); alert PromQL watches the gauge as before. Both Helm (`infrastructure/helm/kitehub/templates/prometheusrule.yaml:257`) and Docker (`kitehub/docker/prometheus/alert-rules.yml:135`) copies of the rule updated, with hardened expression `(time() - max(<gauge>) > 90000) or absent(<gauge>)` so series-disappearance also fires.
 - [x] Self-test fire-alert via dry-run: `bash scripts/backup-production.sh --dry-run` confirms gauge line `kite_backup_last_success_timestamp_seconds{type="pre_deploy",region="ap-southeast-1",instance="kite-rds-prod"} <unix-seconds>` is emitted on the success path. Alert PromQL `time() - max(<gauge>) > 90000` will fire >25h after last emission; the new `absent(<gauge>)` arm additionally fires if the gauge series disappears (covers the silent-failure mode this gap originally surfaced — script never running). Live 25h soak observation is owned by the first production deploy cycle and tracked via the runbook + dashboards.
 - [x] Alert paired với runbook — `documents/05-guides/operations/runbooks/backup-job-failure.md` updated with the post-GAP-430 metric contract section, both alert arms explained, dated 2026-05-08. Note: gap originally referenced `backup-failure.md`; actual file name is `backup-job-failure.md` and the alert `runbook_url` annotation already points at the correct file.
-- [ ] CI test (PromQL syntax + unit test rule) added vào `infrastructure/helm/...test/` — **deferred to GAP-435** (`promtool` + `helm` not installed in agent environment; bash + YAML syntax verified inline as interim — `bash -n scripts/backup-production.sh` clean, `python3 -c "yaml.safe_load(...)"` clean for `kitehub/docker/prometheus/alert-rules.yml`). Functional silent-failure root cause is fixed in this PR; the dedicated test fixture is the missing institutional guard against re-regression.
+- [x] Bash + YAML syntax verified inline (`bash -n scripts/backup-production.sh` clean; `python3 -c "yaml.safe_load(...)"` clean for `kitehub/docker/prometheus/alert-rules.yml` + `infrastructure/helm/kitehub/templates/prometheusrule.yaml`). Functional silent-failure root cause is fixed.
+
+## Out-of-scope (tracked separately)
+
+| Item | Where |
+|---|---|
+| Dedicated `promtool check rules` + `promtool test rules` CI fixture against `BackupJobFailure` (institutional regression guard) | [GAP-435](GAP-435-promtool-alert-rule-unit-test.md) — OPEN, P2, scheduled when `promtool` + `helm` CI tooling lands |
 
 ## Related
 
@@ -56,6 +62,7 @@ Recommend Option A (no new infrastructure).
 
 ## Log
 
+- **2026-05-11** Wave 60 Bucket C closure — fix-time state-check per `audit-to-gap-pipeline.md` §2.8 confirmed root-cause fix landed Wave 41 (alert PromQL watches `kite_backup_last_success_timestamp_seconds` with `absent()` arm + `emit_metrics()` emits the gauge). AC #4 (promtool unit-test fixture) reframed as scope-cut to GAP-435 (filed, OPEN, P2 — owns the institutional regression guard). Status flipped 🟡 PARTIAL → 🟢 DONE per `gap-done-discipline.md` §3 Option B (drop AC + cite follow-up in §Out-of-scope). Verification artifact: `grep -n "kite_backup_last_success_timestamp_seconds" kitehub/docker/prometheus/alert-rules.yml infrastructure/helm/kitehub/templates/prometheusrule.yaml scripts/backup-production.sh` returns matches at expected sites (alert line 144 + 268, script line 113 + 163). File moved to `documents/04-quality/gaps/closed/`.
 - **2026-05-08** Wave 41 Bucket A fix shipped — chose Option B (emit gauge from script) over Option A (rewrite PromQL to counter) because the runbook + dashboards already document gauge semantics, and the fix preserves the existing alert intent (time-since-last-success). Changes:
   - `scripts/backup-production.sh` — renamed `emit_counter` → `emit_metrics`; now emits BOTH `kite_backup_snapshots_total` (counter, unchanged) AND `kite_backup_last_success_timestamp_seconds` (gauge, new). Single Pushgateway POST so alert + counter stay in lockstep. Dry-run output verified — gauge line emitted with current unix timestamp.
   - `infrastructure/helm/kitehub/templates/prometheusrule.yaml` + `kitehub/docker/prometheus/alert-rules.yml` — alert PromQL hardened: `(time() - max(<gauge>) > 90000) or absent(<gauge>)`. The `absent()` arm closes the original silent-failure mode (alert silent when script never emits). Comment block updated from "METRIC PENDING" to "METRIC LIVE" with cross-ref to this gap.
