@@ -99,6 +99,15 @@ AAAA     beta                  <VM_PUBLIC_IPv6>                                A
 > - **Cloudflare Origin Cert** — generated 2026-05-10 cho ALB binding (Tier 3); files local `~/.gcal-mcp/cloudflare-origin-cert/`; validity 2026-05-10 → 2041-05-06 (15 năm).
 > - **AWS ACM cert** — KHÔNG cần riêng; ACM imports Cloudflare Origin Cert ở Tier 3 step (free).
 > - **ALB HTTPS listener cert binding** — pending Tier 3 cutover (per `release-1-tier-3-cutover.md` §2-3).
+>
+> **Trạng thái Wave 61 Bucket A state-check (2026-05-11):** verified live via `agent-aws-access.md` Tier 1 commands —
+> - Cloudflare DNS records: ✅ 9 records present (CNAME `api.kitehub.me` → ALB DNS, apex → Vercel, wildcard, MX × 3, SPF, DKIM); DNS resolves globally (`getent hosts api.kitehub.me` → 13.250.213.35).
+> - Cloudflare SSL mode: `full` (NOT `strict`); Always Use HTTPS: `off` — Tier 3 cutover pending.
+> - AWS ACM (region ap-southeast-1): EMPTY — Origin Cert chưa import.
+> - AWS ALB `kitehub-alb`: HTTP:80 listener only; HTTPS:443 missing.
+> - Stack state: EC2 + RDS STOPPED (Wave 61 stop-when-idle path per `documents/03-planning/waves/wave-2026-05-12-61-stop-when-idle-cutover.md`).
+>
+> **Path forward:** finalize via Tier 3 cutover Steps 2 (ACM import) + 3 (ALB HTTPS listener) + 6 (SSL strict) + 7 (Always HTTPS) per `release-1-tier-3-cutover.md`. Choose Path X (CLI manual) or Path Y (`.github/workflows/tier-3-cutover.yml` workflow_dispatch + confirm "APPLY") per §0.5. Verification artifact: `documents/04-quality/audits/aws-verification/2026-05-11-wave-61-bucket-a-dns-state.md`.
 
 Run on Oracle Cloud VM as `root` or `sudo`:
 
