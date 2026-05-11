@@ -1,6 +1,6 @@
 ---
 title: Wave 63 — Rollback workflow (GAP-477 P1)
-status: draft
+status: complete
 created: 2026-05-11
 updated: 2026-05-11
 waves: [63]
@@ -153,3 +153,4 @@ Per `feedback_parallel_agent_strategy.md` + `agent-background-spawn-default.md`:
 ## 8. Log
 
 - **2026-05-11** (draft): Plan created. GAP-477 decomposed → 3 parallel buckets. Stake HIGH → Opus full. ECS-vs-EC2 verification deferred to Bucket A state-check at exec.
+- **2026-05-11** (complete): Wave SHIPPED. 3 parallel Opus-full agents → PRs #1188 (Bucket A IAM+workflow, +383 LOC) + #1189 (Bucket B script wire-up, +21 net) + #1190 (Bucket C docs, +67 net). Stack architecture chosen at state-check: EC2+SSM RunCommand (zero ECS resources found in terraform). IAM trust policy scoped to GitHub Environment `production` per least-priv design. Workflow 3-job pattern (validate / rollback / notify) mirroring `deploy-production.yml`. GAP-477 OPEN → PARTIAL 85%. Remaining: user-action `terraform apply` + GitHub Environment config + first live `--execute` for TTR baseline. Streak: 97 consecutive 0-clarification waves.

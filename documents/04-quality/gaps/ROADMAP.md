@@ -8,9 +8,35 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-11 — Wave 60+61+62 SHIPPED same-day)
+## 🎯 Current Status Snapshot (2026-05-11 — Wave 60+61+62+63 SHIPPED same-day)
 
 ### 🚀 Next Action (signpost cho new session)
+
+**Wave 63 SHIPPED 2026-05-11 — Rollback workflow (GAP-477 P1, 3 buckets, 4 PR gồm plan):**
+
+- **Bucket A GAP-477 IAM+workflow** → PR #1188 → 🟢 **shipped**: terraform IAM `kitehub-rollback-role` (least-priv ECR+SSM+EC2 describe+CloudWatch) + `.github/workflows/rollback.yml` 3-job (validate/rollback/notify). Stack EC2+SSM (state-check confirmed zero ECS). +383 LOC. terraform validate + actionlint clean.
+- **Bucket B GAP-477 script wire-up** → PR #1189 → 🟢 **shipped**: `smoke-rollback-cycle.sh` `trigger_rollback()` calls real `gh workflow run rollback.yml`; JSON adds `workflow_run_id` + `restore_workflow_run_id`. +21 net LOC. Shellcheck clean.
+- **Bucket C GAP-477 docs** → PR #1190 → 🟢 **shipped**: `incident-response-runbook.md` §8 rewrite + §8.1-8.4 (invocation/cadence/TTR/troubleshooting). `release-deploy-standard.md` v1.0.1 → v1.1.0 (new §4.4 rollback execution + §9 matrix row). +67 net LOC. Markdown clean.
+- **GAP-477 status:** OPEN → PARTIAL 85% (all agent-deliverable AC checked; user-action remaining: terraform apply + GitHub Environment config + first `--execute` for TTR baseline).
+
+**Stats Wave 63:**
+- **0 gap DONE** (GAP-477 PARTIAL 85% — user-action gate clean)
+- **Wall-clock:** ~4 min coordinator (3 Opus-full agents parallel)
+- **Speedup:** ~30× vs 2h serial estimate
+- **Streak:** 97 consecutive 0-clarification waves
+- **release-deploy-standard.md** bumped v1.0.1 → v1.1.0 paired same-wave (rule-change-process §6.5)
+
+**User-action gates remaining (Phase 1 BETA pre-launch):**
+1. Wave 61 cutover gates (ACM cert import via `aws acm import-certificate` + ALB HTTPS:443 listener + SES domain verify + SES production access form + tier-3-cutover workflow_dispatch + resume stack + final smoke)
+2. **Wave 63 rollback enablement** (NEW): `terraform apply` rollback IAM role + GitHub Environment `production` config + first `bash scripts/smoke-rollback-cycle.sh --execute` for TTR baseline
+
+**Wave 64 candidates** (post-Wave 63):
+- (a) User finalize Wave 61 + Wave 63 user-action gates → invite first beta tenant
+- (b) GAP-476 Flyway migration HTTP endpoint (P2, Spring Actuator Flyway) → unblocks GAP-475 Sub-5 DONE
+- (c) Helm + k8s staleness audit (GAP-465)
+- (d) GAP-475 PARTIAL → DONE final flip (gated on user-action TTR baseline + GAP-476 endpoint)
+
+---
 
 **Wave 62 SHIPPED 2026-05-11 — Smoke test coverage extensions (GAP-475, 3 buckets, 4 PR gồm plan):**
 
