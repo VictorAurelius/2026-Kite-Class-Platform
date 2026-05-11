@@ -26,9 +26,20 @@ resource "aws_secretsmanager_secret_version" "db_password" {
 }
 
 # --- JWT signing secret ---
+# GAP-450 Option B: lifecycle ignore_changes prevents recurring drift on `result`
+# attribute (state shows id="none" while Secrets Manager has live value from Phase 2.3
+# apply 2026-05-07). Rotation is manual per documents/05-guides/operations/secrets-rotation-runbook.md;
+# auto-regenerate-on-plan would silently rotate production secret = unwanted.
+# Option A (terraform state rm + import current value) tracked in
+# documents/05-guides/operations/terraform-state-import-runbook.md as user-executed
+# follow-up requiring secretsmanager:GetSecretValue (Tier 2 per agent-aws-access.md §3)
+# and terraform state rm/import (Tier 3 BANNED for agent per §4.3) — solo-dev runs manually.
 resource "random_password" "jwt" {
   length  = 64
   special = false
+  lifecycle {
+    ignore_changes = [result, length, special, lower, upper, numeric, min_lower, min_upper, min_numeric, min_special, override_special, keepers]
+  }
 }
 
 resource "aws_secretsmanager_secret" "jwt" {
@@ -44,9 +55,13 @@ resource "aws_secretsmanager_secret_version" "jwt" {
 }
 
 # --- Encryption master key (32 bytes base64) ---
+# GAP-450 Option B: lifecycle ignore_changes — same rationale as random_password.jwt above.
 resource "random_password" "encryption_raw" {
   length  = 32
   special = false
+  lifecycle {
+    ignore_changes = [result, length, special, lower, upper, numeric, min_lower, min_upper, min_numeric, min_special, override_special, keepers]
+  }
 }
 
 resource "aws_secretsmanager_secret" "encryption" {

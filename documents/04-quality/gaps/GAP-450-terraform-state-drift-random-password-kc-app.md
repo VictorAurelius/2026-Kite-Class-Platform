@@ -1,6 +1,6 @@
 # GAP-450: Terraform state drift — random_password + kc_app instance attributes
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Option B (lifecycle ignore_changes) shipped 2026-05-11 PR #1154 — drift symptom ẩn khỏi `terraform plan`. Option A (state rm + import current Secrets Manager values) tracked in `documents/05-guides/operations/terraform-state-import-runbook.md` for user manual execution (agent blocked by stale credentials + Tier 2/3 rule per `agent-aws-access.md` §4.3).
 **Priority:** 🟠 P1 (cleanup; non-blocking — bootstrap apply succeeded around drift)
 **Domain:** Infrastructure / Terraform / FinOps
 **Found:** 2026-05-08 (Wave 43+44 bootstrap apply session)
@@ -112,13 +112,19 @@ terraform apply -target=aws_cloudwatch_metric_alarm.kc_app_memory_high
 
 ## Acceptance Criteria
 
+### Phase B — Option B shipped (this PR 2026-05-11)
+- [x] `lifecycle { ignore_changes = [...] }` added to all 3 `random_password` resources (rds.tf + secrets.tf) — `terraform plan` no longer shows recurring drift on these resources
+- [x] Runbook `documents/05-guides/operations/terraform-state-import-runbook.md` created for user manual Option A execution
+- [x] Comment-block in each resource references GAP-450 + Option A runbook path
+
+### Phase A — Option A deferred to user manual execution
 - [ ] `terraform state pull` shows random_password resources với valid IDs (not `"none"`)
 - [ ] `terraform plan` reports clean state (no `random_password` updates pending)
 - [ ] Secret values trong AWS Secrets Manager unchanged (verified via timestamp not bumped)
-- [ ] kh_backend health check 200 post-import (no JWT/RDS password rotation collateral)
+- [ ] kh_backend health check 200 post-import (no JWT/RDS password rotation collateral) — verify khi infra resumed
 - [ ] kc_app drift resolved — `terraform plan` shows no replacement pending
 - [ ] kc_app_memory_high alarm provisioned post-stabilization
-- [ ] Investigation findings documented (Phase 2.3 history) trong this gap Log
+- [ ] Investigation findings documented (Phase 2.3 history) trong this gap Log post-Option-A execution
 
 ## Related
 
@@ -132,3 +138,4 @@ terraform apply -target=aws_cloudwatch_metric_alarm.kc_app_memory_high
 ## Log
 
 - **2026-05-08** — OPEN. Filed sau Wave 43+44 bootstrap apply phát hiện 2 drift classes (random_password ID=none + kc_app associate_public_ip_address). Targeted apply skipped drift to avoid kh_backend outage; clean fix tracked here for separate session với explicit safety net + investigation phase.
+- **2026-05-11 — 🟡 PARTIAL (Path B+C combined per session retro):** Option A attempted but blocked pre-flight — agent credentials stale (key `AKIA…E7SO` deleted 2026-05-08 per ROADMAP §🚀 Next Action; local `~/.aws/credentials` chưa update với `AKIA…SVMD`) + Tier 3 BAN per `agent-aws-access.md` §4.3 (`terraform state rm` + `import`) + Tier 2 always-confirm per §2.2 (`get-secret-value` × 3). Path chuyển sang B+C: (a) **Option B shipped** — `lifecycle { ignore_changes = [result, length, special, lower, upper, numeric, ...] }` added to 3 random_password resources (rds.tf + secrets.tf) → drift symptom ẩn khỏi `terraform plan`. (b) **Runbook tạo** — `documents/05-guides/operations/terraform-state-import-runbook.md` cung cấp 12-step procedure cho user manual Option A execution khi credentials sẵn sàng + maintenance window. Phase A AC giữ unchecked, Phase B AC checked. Status PARTIAL không DONE per `gap-done-discipline.md` §3 — Phase A deferred items vẫn tracked. Per `release-fix-retry-budget.md`: retry #1 (Option A pre-flight) fail → §3 STOP-AND-REDESIGN → pivot Option B (correct decision, drift symptom resolved without state surgery).
