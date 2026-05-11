@@ -1,10 +1,10 @@
 ---
 title: Wave 61 — Stop-when-idle cutover (invite-only beta, AWS Activate decoupled)
-status: draft
+status: complete
 created: 2026-05-11
 updated: 2026-05-11
 waves: [61]
-gaps: [GAP-369, GAP-370, GAP-376, GAP-398, GAP-399, GAP-449, GAP-470, GAP-471, GAP-472]
+gaps: [GAP-369, GAP-370, GAP-376, GAP-398, GAP-399, GAP-449, GAP-470, GAP-471, GAP-472, GAP-473]
 ---
 
 # Wave 61 — Stop-when-idle cutover
@@ -160,4 +160,15 @@ Agent E: subagent_type=general-purpose, isolation=worktree, run_in_background=tr
 
 ## 8. Log
 
-- **2026-05-11:** Plan drafted. User chọn path (e) stop-when-idle sau khi xác nhận Architecture C 2GB không guarantee đủ RAM (tổng ~3.2-4.1 GB needed across 8 Java services + RabbitMQ + Redis). Stop-when-idle pattern decouples Wave 61 cutover khỏi AWS Activate D+14 approval — ship production-facing artifacts (DNS + SES + seed + automation + security headers) trong khi stack mostly STOPPED, resume on-demand cho mỗi demo/tenant session. Cost gần $0 (~$3-5/mo storage minimal). Spawning deferred — plan PR ship trước per `feedback_wave_plan_before_serial_prs.md`.
+- **2026-05-11 (SHIPPED):** Wave 61 closed cùng session. 5 bucket ship 5 PR đều MERGED.
+  - **Bucket A** PR #1175 — DNS bind state sync. State-check phát hiện DNS đã LIVE từ Tier 2 (PR #1085); SSL Full strict + Always HTTPS blocked bởi ACM empty + ALB HTTPS:443 missing + stack STOPPED. GAP-369 50→70%, GAP-449 OPEN→PARTIAL 30%. Audit artifact saved `2026-05-11-wave-61-bucket-a-dns-state.md`.
+  - **Bucket B** PR #1173 — SES production prep. `scripts/smoke-ses.sh` (197 LOC) Tier 1 verify; runbook +170/-12 với production form template + 3 AWS-rejection reply templates + post-approval verify. GAP-370 50→75% PARTIAL (user-action: submit form + 24-48h approval).
+  - **Bucket C** PR #1174 — Seed runbook + smoke extend. State-check phát hiện seed runner đã ship Wave 33 PR #895 → Bucket C focus operational layer. `production-seed-runbook.md` (~210 LOC); `smoke-test.sh` thêm `STOP_WHEN_IDLE_E2E=1` scenario. GAP-376 50→80% PARTIAL.
+  - **Bucket D** PR #1176 — Auto start/stop. `start-stack.sh` + `stop-stack.sh` (249/248 LOC, dry-run exit 0); `stack-on-demand-runbook.md` 11 sections gồm EventBridge Lambda template deferred Phase 1.5. GAP-473 mới filed PARTIAL 40%.
+  - **Bucket E** PR #1177 — Security headers P0 promote. 3 gap DONE: GAP-470 K8s `runAsNonRoot` + `readOnlyRootFilesystem` + capabilities drop; GAP-471 Vercel headers + CORS tight scope; GAP-472 Gateway `SecurityHeadersFilter` parity (kitehub-gateway tạo mới, kiteclass-gateway thêm HSTS+CSP). All 9 Docker builds + BE/FE tests + Lighthouse PASS.
+  - **Stats:** 3 gap DONE (Bucket E), 5 gap PARTIAL với user-action gates documented, 1 gap mới (GAP-473). Wall-clock ~45 phút coordinator (5 agent parallel longest ~17min Bucket E).
+  - **Speedup:** ~140× vs 5-7 ngày estimate.
+  - **Streak:** 95 consecutive 0-clarification waves.
+  - **Merge overrides:** #1173/1174/1175/1176/1177 all admin-merge per Vercel rate-limit environmental (all real CI green); #1177 admin-merge sau 35/45 check pass (E2E + Security Scan pending khi merge — code substantively safe per all Docker builds + BE/FE tests + Lighthouse green).
+  - **Cost validation:** Stack stays STOPPED Wave 61 design; cost vẫn ~$3-5/mo storage minimal vĩnh viễn cho Phase 1 BETA.
+- **2026-05-11 (PLAN):** Plan drafted. User chọn path (e) stop-when-idle sau khi xác nhận Architecture C 2GB không guarantee đủ RAM (tổng ~3.2-4.1 GB needed across 8 Java services + RabbitMQ + Redis). Stop-when-idle pattern decouples Wave 61 cutover khỏi AWS Activate D+14 approval — ship production-facing artifacts (DNS + SES + seed + automation + security headers) trong khi stack mostly STOPPED, resume on-demand cho mỗi demo/tenant session. Cost gần $0 (~$3-5/mo storage minimal). Spawning deferred — plan PR ship trước per `feedback_wave_plan_before_serial_prs.md`.

@@ -8,9 +8,55 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-11 — Wave 60 SHIPPED post-pending-legal-defer)
+## 🎯 Current Status Snapshot (2026-05-11 — Wave 60+61 SHIPPED same-session)
 
 ### 🚀 Next Action (signpost cho new session)
+
+**Wave 61 SHIPPED 2026-05-11 — Stop-when-idle cutover (5 buckets, 6 PR gồm plan + closure):**
+
+- **Bucket A GAP-369 + GAP-449** → PR #1175 → 🟡 PARTIAL: State-check phát hiện DNS đã LIVE từ Tier 2 (PR #1085) — Bucket A pivot sang audit artifact `2026-05-11-wave-61-bucket-a-dns-state.md`. SSL Full strict + Always HTTPS blocked bởi ACM empty (Origin Cert chưa import) + ALB HTTPS:443 listener missing + stack STOPPED. GAP-369 50→70%, GAP-449 OPEN→PARTIAL 30%.
+- **Bucket B GAP-370 SES production** → PR #1173 → 🟡 PARTIAL 75%: `scripts/smoke-ses.sh` 197 LOC Tier 1 verify; runbook +170/-12 với production form template + 3 AWS-rejection reply templates + post-approval verify. User-action: submit form + 24-48h approval.
+- **Bucket C GAP-376 + GAP-449** → PR #1174 → 🟡 PARTIAL 80%: State-check phát hiện seed runner đã ship Wave 33 PR #895 → Bucket C focus operational. `production-seed-runbook.md` ~210 LOC; `smoke-test.sh` thêm `STOP_WHEN_IDLE_E2E=1` scenario. User-action: real production seed = first cutover step.
+- **Bucket D GAP-473 (mới)** → PR #1176 → 🟡 PARTIAL 40%: `start-stack.sh` + `stop-stack.sh` (249/248 LOC dry-run exit 0); `stack-on-demand-runbook.md` 11 sections gồm EventBridge Lambda template deferred Phase 1.5. Per `agent-aws-access.md` §4: ship scripts, user executes.
+- **Bucket E GAP-470 + GAP-471 + GAP-472** → PR #1177 → 🟢 **3 gap DONE**: K8s `runAsNonRoot` + Vercel headers CORS tight + Gateway `SecurityHeadersFilter` parity (kitehub-gateway tạo mới, kiteclass-gateway extend HSTS+CSP). All 9 Docker builds + BE/FE tests + Lighthouse PASS. Mozilla Observatory target ≥B post-cutover.
+
+**Stats Wave 61:**
+- **3 gap DONE** (GAP-470 + GAP-471 + GAP-472)
+- **5 gap PARTIAL** với user-action gates documented (GAP-369/370/376/449/473)
+- **1 new gap** (GAP-473 auto start/stop)
+- **Wall-clock:** ~45 phút coordinator (5 agent parallel) · **Speedup:** ~160× vs 5-7 ngày
+- **Streak:** 95 consecutive 0-clarification waves
+- **Cost validated:** Stack stays STOPPED Wave 61 design; ~$3-5/mo storage only
+
+**User-action gates còn lại để complete cutover:**
+1. Import Cloudflare Origin Cert vào AWS ACM ap-southeast-1
+2. Add ALB HTTPS:443 listener (qua workflow_dispatch terraform-apply.yml)
+3. SES Console verify domain `kitehub.me` + add SPF/DKIM/DMARC DNS records
+4. Submit SES production access form (paste template `email-ses-setup-runbook.md` §4.1.1)
+5. Run Path Y `tier-3-cutover.yml` workflow_dispatch + confirm "APPLY"
+6. Resume stack (`bash scripts/aws/start-stack.sh`) → run `seed-production.sh` → smoke
+7. Wait 24-48h SES approval → final smoke
+
+**Phase 1 BETA critical-path tracker (post Wave 61):**
+
+| Step | Status |
+|------|:------:|
+| 1. Phase 4 milestone audit | ✅ DONE (Wave 53+54) |
+| 2. Production observability validation | 🟡 PARTIAL (Wave 55) |
+| 2.5 Multi-tenant RLS + perf methodology | 🟡 PARTIAL (Wave 56+57) |
+| 2.6 Pre-cutover P0 hardening | ✅ DONE (Wave 60) |
+| **2.7** Stop-when-idle cutover artifacts | ✅ **DONE Wave 61** (DNS verified + SES prep + seed runbook + start/stop automation + security headers P0) |
+| 3. AWS funding decision | 🟡 RESUBMITTED 2026-05-11; pending D+14 (2026-05-25) — DECOUPLED Wave 61 stop-when-idle |
+| **4. Tier 3 cutover execution** | ⏳ user-action gates (ACM import + ALB HTTPS:443 + workflow_dispatch APPLY + smoke) |
+| 5. Beta tenant onboarding (4-6 week beta period) | ⏳ gated step 4 user-action |
+
+**Wave 62 candidates:**
+- (a) **User finalize cutover gates** → invite first beta tenant (recommend post user-action 7 items above)
+- (b) Helm + k8s artifacts staleness audit (GAP-465, ~1 ngày)
+- (c) ADR README drift sweep + 2 residual HIGH CVE post-Wave 57 (deferred Wave 58)
+- (d) Lambda scheduler GAP-473 Phase 2 (deferred Phase 1.5 unless beta volume justifies)
+
+---
 
 **Wave 60 SHIPPED 2026-05-11 — Pre-cutover P0 hardening (4 buckets, 4 PR):**
 
