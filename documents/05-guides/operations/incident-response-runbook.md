@@ -228,18 +228,65 @@ Apologies for the inconvenience.
 
 ---
 
-## 8. Rollback Cycle Validation (GAP-475 Sub-6)
+## 8. Rollback Workflow & Cycle Validation (GAP-475 Sub-6 + GAP-477)
 
-Periodic validation of the full rollback → smoke → restore → smoke cycle. Validates that the rollback workflow + smoke gates can detect a regression and the restore-forward path leaves the system in a known-good state.
+`rollback.yml` workflow đã landed Wave 63 (GAP-477). Cấu hình human-triggered `workflow_dispatch` + confirm input `APPLY` verbatim + narrow OIDC role `kitehub-rollback-role`, theo pattern `release-deploy-standard.md` §9 (deploy execution allowed case).
+
+### 8.1 Invocation
+
+Trigger rollback (production incident response — P0/P1 only):
+
+```bash
+gh workflow run rollback.yml \
+  -f target_sha=<sha> \
+  -f confirm=APPLY \
+  -f dry_run=false
+```
+
+| Input | Type | Required | Description |
+|-------|------|----------|-------------|
+| `target_sha` | string | yes | Full 40-char commit SHA from `main` to rollback to (verified exists in repo history) |
+| `confirm` | string | yes | Must equal `APPLY` verbatim (case-sensitive cognitive checkpoint per `release-deploy-standard.md` §9) |
+| `dry_run` | bool | yes | `true` = log intended actions, no real revert; `false` = execute rollback |
+
+Workflow gates:
+- GitHub Environment `production` requires reviewer approval before the apply job runs (manual gate, 1 approver minimum)
+- OIDC role `kitehub-rollback-role` scoped least-privilege (ECS service update + ALB health probe + CloudWatch metrics write)
+- Output: GitHub Step Summary với target_sha + smoke pre/post status + TTR (time-to-recovery) emitted dưới dạng metric `KiteHub/Rollback/TimeToRecovery`
+
+### 8.2 Cadence — periodic validation cycle
+
+Periodic validation của full rollback → smoke → restore → smoke cycle. Validates rằng rollback workflow + smoke gates phát hiện được regression và restore-forward path để hệ thống về trạng thái known-good. Per `release-deploy-standard.md` §4.3 post-deploy schedule:
 
 | Cadence | Command | Purpose |
 |---------|---------|---------|
-| Monthly | `bash scripts/smoke-rollback-cycle.sh --dry-run` | Verify pre-flight smoke + SHA resolution + report scaffold (no real rollback). |
-| Quarterly (maintenance window) | `ROLLBACK_CYCLE_E2E=1 bash scripts/smoke-rollback-cycle.sh --execute` | Real rollback to previous main SHA → re-smoke → restore forward → re-smoke. Emits JSON report to `/tmp/rollback-cycle-<epoch>.json`. |
+| Monthly | `bash scripts/smoke-rollback-cycle.sh --dry-run` | Verify pre-flight smoke + SHA resolution + report scaffold (no real rollback). Default behavior của script. |
+| Quarterly (maintenance window) | `bash scripts/smoke-rollback-cycle.sh --execute` | Real rollback to previous main SHA → re-smoke → restore forward → re-smoke. Emits JSON report to `/tmp/rollback-cycle-<epoch>.json` + baseline TTR cho monitoring. |
 
-⚠️ `rollback.yml` workflow is not yet present in `.github/workflows/` — script logs `[DEFER]` and skips the real trigger until that workflow lands (tracked GAP-475 follow-up). The dry-run path stays useful as a CI scaffold + SHA-resolution smoke.
+Reference: [`scripts/smoke-rollback-cycle.sh`](../../../scripts/smoke-rollback-cycle.sh), [`scripts/smoke-test.sh`](../../../scripts/smoke-test.sh), [`.github/workflows/rollback.yml`](../../../.github/workflows/rollback.yml), [Rollback Procedure](./rollback-procedure.md).
 
-Reference: [`scripts/smoke-rollback-cycle.sh`](../../../scripts/smoke-rollback-cycle.sh), [`scripts/smoke-test.sh`](../../../scripts/smoke-test.sh), [Rollback Procedure](./rollback-procedure.md).
+### 8.3 TTR (Time-to-Recovery) target
+
+| Metric | Target | Notes |
+|--------|--------|-------|
+| Workflow trigger → `production` env approval | <2 min | Reviewer responsiveness (P0 = page on-call) |
+| Approval → ECS service stable on target_sha | <2 min | Image pull + task replacement |
+| Stable → smoke probe green | <1 min | Health endpoint + smoke-test.sh |
+| **End-to-end TTR** | **<5 min** | Trigger → health-back; tracked CloudWatch metric `KiteHub/Rollback/TimeToRecovery` |
+
+Pattern TTR >5 min trong 2 incidents liên tiếp = file follow-up gap để retune workflow (image cache, smoke probe, approval SLA).
+
+### 8.4 Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---------|--------------|-----|
+| Workflow fails ngay với "target_sha not found" | SHA quá cũ (rebased away) hoặc typo | Verify với `git log --all --oneline <sha>`; nếu SHA bị GC, dùng tag `v*` gần nhất thay vì SHA |
+| OIDC token request bị deny | `kitehub-rollback-role` IAM trust policy stale hoặc workflow `id-token: write` permission thiếu | Check `.github/workflows/rollback.yml` permissions + AWS console role trust policy includes `repo:VictorAurelius/2026-Kite-Class-Platform:ref:refs/heads/main` |
+| Health probe timeout sau rollback | ECS task vẫn pull image hoặc DB migration không backward-compat | (a) tăng probe grace period 60s; (b) verify migration revert đã chạy; (c) escalate P0 — có thể cần restore-forward + manual DB fix |
+| `confirm` input bị reject | Không gõ đúng `APPLY` (verbatim, case-sensitive) | Re-run workflow với `confirm=APPLY` chính xác (no quotes, no whitespace) |
+| Smoke post-rollback fail | Application code có bug ở target_sha cũ HOẶC dependency drift | Escalate P0; option: restore-forward (rollback the rollback) HOẶC fix-forward hotfix PR |
+
+⚠️ **Khi nào KHÔNG dùng rollback workflow:** config-only changes (revert qua env var), data corruption (cần DB restore, không phải code rollback), security incident yêu cầu evidence preservation (rollback xóa stack trace runtime).
 
 ---
 
