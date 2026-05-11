@@ -12,13 +12,16 @@
 
 ### 🚀 Next Action (signpost cho new session)
 
-**Session 2026-05-11 Wave 57 SHIPPED (5 PRs: plan + 4 buckets/fix merged):**
+**Session 2026-05-11 Wave 57 + Wave 58 SHIPPED back-to-back (10 PRs total: 2 plans + 2 closures + 6 bucket-PRs):**
 
 📌 **PICK-UP SIGNAL FOR NEW SESSION:**
-- **Wave 57 SHIPPED** — all 3 buckets + inline fix landed (#1133 plan + #1135 unused-import fix + #1136 Bucket C perf methodology + #1137 Bucket B CVE overrides + #1138 Bucket A helm Go-template extract). All 3 gaps GAP-467/468/469 → 🟡 PARTIAL per `gap-done-discipline.md` §3 (no premature DONE).
-- **Repo level RED→GREEN graduation pending** Docker image rebuild via `docker-build-push.yml` + code-scanning rescan confirms 9 HIGH → 0 HIGH (GAP-468 final 🟢 DONE flip). Auto-trigger on next push to main; rescan ~10min.
-- **Phase 1 BETA critical-path step 2.5 stays 🟡 PARTIAL** — RLS defense-in-depth (Wave 56) + perf methodology (Wave 57 Bucket C Phase 1) shipped; full staging perf execution legitimately deferred to Phase 1 BETA cutover per `release-deploy-standard.md` §9 (post-deploy load test).
-- **Wave 58 candidates:** (a) verify GAP-468 final DONE flip post Docker rebuild rescan; (b) helm CI guard (GAP-467 AC #5 deferred); (c) step 4 Tier 3 cutover prep (gated step 3 AWS funding decision D+14 ~2026-05-25).
+- **Wave 57 SHIPPED** (PRs #1133/1135/1136/1137/1138/1139) — helm Go-template extract (Bucket A) + 9 HIGH CVE explicit overrides (Bucket B) + RLS perf baseline methodology+harness+runbook (Bucket C) + inline @Transactional unused-import fix. GAP-467/468/469 → 🟡 PARTIAL.
+- **Wave 58 SHIPPED** (PRs #1140/1141/1142/1143 + closure pending) — helm CI guard (Bucket A) + infrastructure/README sync Phase 1 BETA reality (Bucket B) + ADR-028 ECS Fargate vs EKS ACCEPTED (Bucket C). GAP-467 final 🟢 DONE all 6 AC; GAP-463 🟢 DONE; GAP-464 🟢 DONE.
+- **Repo level partial graduation** — code-scan HIGH 9 → **2** post Docker rebuild (Wave 57 CVE fix effective; ~78% reduction). 2 residual HIGH need Wave 59 investigation (`gh api /repos/.../code-scanning/alerts?state=open&severity=error`).
+- **Phase 1 BETA critical-path step 2.5 stays 🟡 PARTIAL** — RLS hardening (Wave 56) + perf methodology (Wave 57 C) shipped; staging exec deferred step 4 cutover.
+- **Phase 1 BETA pre-launch cleanup queue: empty** — Wave 56/57/58 closed all known follow-up backlog from Wave 55 side-discoveries + user 4-question review.
+- **Wave 59 candidates:** (a) identify + close 2 residual HIGH CVE (`gh api`); (b) ADR README index drift sweep (line 128 stale "Next free ID: ADR-026" — ADR-026/027/028 all shipped); (c) step 4 Tier 3 cutover prep (gated step 3 AWS Activate D+14 ~2026-05-25); (d) GAP-468 final 🟢 DONE flip after 2 residual HIGH closed.
+- **Streak: 93** consecutive 0-clarification waves (Wave 57 + 58 both first-spawn 0-clarif).
 - **No agents in flight; 0 worktree husks; coordinator clean.**
 
 **Session work summary:**

@@ -1,6 +1,6 @@
 ---
 title: Wave 58 — Cleanup follow-up wave-pack (helm CI guard + infrastructure README + ECS ADR)
-status: draft
+status: complete
 created: 2026-05-11
 updated: 2026-05-11
 waves: [58]
