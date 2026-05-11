@@ -131,6 +131,123 @@ const kiteClassCoreHandlers = [
     return HttpResponse.json({ success: true });
   }),
 
+  // ==================== Bulk Import API (GAP-137 / Wave 60 Bucket B) ====================
+  // Mirrors BE contract:
+  //   POST /api/v1/students/bulk-import/preview
+  //   POST /api/v1/students/bulk-import/commit
+  //   POST /api/v1/students/bulk-import/jobs/{id}/errors
+  // File name conventions for test triggers:
+  //   - filename contains "empty"    → 0 rows
+  //   - filename contains "errors"   → 5 rows, 2 errors
+  //   - filename contains "fail"     → HTTP 500 (server error)
+  //   - filename contains "invalid"  → HTTP 400 (parse error)
+  //   - default                       → 10 rows, 0 errors
+  http.post(`${BASE_URL}/api/v1/students/bulk-import/preview`, async ({ request }) => {
+    // jsdom + MSW lose File.name after multipart parse; rely on X-File-Name
+    // header that the FE attaches alongside the body.
+    const name = (request.headers.get('x-file-name') || '').toLowerCase();
+
+    if (name.includes('fail')) {
+      return HttpResponse.json(
+        { success: false, message: 'Lỗi máy chủ nội bộ' },
+        { status: 500 },
+      );
+    }
+    if (name.includes('invalid')) {
+      return HttpResponse.json(
+        {
+          success: false,
+          errorCode: 'BULK_IMPORT_PARSE',
+          message: 'Tệp không phải xlsx hợp lệ',
+        },
+        { status: 400 },
+      );
+    }
+    if (name.includes('empty')) {
+      return HttpResponse.json({
+        success: true,
+        data: { jobId: null, totalRows: 0, successCount: 0, errorCount: 0, errors: [] },
+      });
+    }
+    if (name.includes('errors')) {
+      return HttpResponse.json({
+        success: true,
+        data: {
+          jobId: null,
+          totalRows: 5,
+          successCount: 3,
+          errorCount: 2,
+          errors: [
+            { rowNumber: 2, field: 'email', message: 'Email không hợp lệ' },
+            { rowNumber: 4, field: 'phone', message: 'Số điện thoại không đúng định dạng VN' },
+          ],
+        },
+      });
+    }
+    return HttpResponse.json({
+      success: true,
+      data: { jobId: null, totalRows: 10, successCount: 10, errorCount: 0, errors: [] },
+    });
+  }),
+
+  http.post(`${BASE_URL}/api/v1/students/bulk-import/commit`, async ({ request }) => {
+    // jsdom + MSW lose File.name after multipart parse; rely on X-File-Name
+    // header that the FE attaches alongside the body.
+    const name = (request.headers.get('x-file-name') || '').toLowerCase();
+
+    if (name.includes('fail')) {
+      return HttpResponse.json(
+        { success: false, message: 'Lỗi máy chủ nội bộ' },
+        { status: 500 },
+      );
+    }
+    if (name.includes('errors')) {
+      return HttpResponse.json(
+        {
+          success: true,
+          data: {
+            jobId: 42,
+            totalRows: 5,
+            successCount: 3,
+            errorCount: 2,
+            errors: [
+              { rowNumber: 2, field: 'email', message: 'Email không hợp lệ' },
+              { rowNumber: 4, field: 'phone', message: 'Số điện thoại không đúng định dạng VN' },
+            ],
+          },
+        },
+        { status: 201 },
+      );
+    }
+    return HttpResponse.json(
+      {
+        success: true,
+        data: {
+          jobId: 7,
+          totalRows: 10,
+          successCount: 10,
+          errorCount: 0,
+          errors: [],
+        },
+      },
+      { status: 201 },
+    );
+  }),
+
+  http.post(`${BASE_URL}/api/v1/students/bulk-import/jobs/:id/errors`, () => {
+    const blob = new Blob(['mock-xlsx-bytes'], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    return new HttpResponse(blob, {
+      status: 200,
+      headers: {
+        'Content-Type':
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': 'attachment; filename="bulk-import-errors.xlsx"',
+      },
+    });
+  }),
+
   // ==================== Teachers API ====================
   http.get(`${BASE_URL}/api/v1/teachers`, ({ request }) => {
     const url = new URL(request.url);
