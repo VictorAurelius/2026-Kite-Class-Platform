@@ -90,3 +90,15 @@ Hiểu lầm thường gặp: developers tạo file "why-rabbitmq.md" ở `05-gu
 - GAP-093 (backup not functional) — backup-restore-sop consume GAP-093 implementation
 - GAP-101 (docs folder READMEs) — prerequisite
 - Wave 6 — monitoring runbook timing
+
+## Log
+
+- **2026-05-11:** PR# backfill (Wave 60 Bucket D-2). Verified shipped work cross-references:
+  - PR #346 — `docs(gaps): GAP-101/102/103 docs folder governance + generic docs-folder-structure rule` (2026-04-18) — initial governance scaffold.
+  - PR #348 — Part 2 ADR shipped (ADR-014 async jobs queue over batch + ADR README backfill 5 → 14 ADRs).
+  - PR #350 — `docs(adr): GAP-102 Part 2 — ADR index backfill + ADR-014 async jobs queue over batch`.
+  - PR #352 — `docs(guides): GAP-102 Part 1 P2 — 3 operational guides` (local-dev, CI/CD, tenant onboarding).
+
+  Code-verify: Part 2 (ADR) 4/4 AC ticked. Part 1 P2 (3 nice-to-have guides) 2/2 AC ticked. Part 1 P1 (3 production-critical guides — monitoring/backup/security) 0/1 AC unchecked, **explicitly blocked on Wave 6 (AI Billing + Observability) + legal input** per gap §Dependencies.
+
+  Verdict: 🟡 PARTIAL maintained — Part 2 + Part 1 P2 shipped; Part 1 P1 blocked per explicit Wave 6 dependency per `gap-done-discipline.md` §3 PARTIAL exit ramp.

@@ -35,7 +35,7 @@ GAP-027,GAP-027-multi-brand-per-tenant.md,Multi-Brand per Tenant (Franchise / Mu
 GAP-028,GAP-028-model-versioning-migration-strategy.md,AI Model Versioning & Migration Strategy,OPEN,P2,DevOps,phase-2,0,2026-04-14,2026-05-11,
 GAP-029,GAP-029-quality-gate-calibration.md,Quality Gate Calibration & Feedback Loop,OPEN,P2,Backend,phase-2,0,2026-04-14,2026-05-11,
 GAP-030,GAP-030-disaster-recovery-ai-branding.md,Disaster Recovery for AI Branding,OPEN,P2,DevOps,phase-2,0,2026-04-14,2026-05-11,
-GAP-033,GAP-033-branding-version-history-rollback.md,Branding Version History & Rollback (User-facing),PARTIAL,P1,Backend,n/a,95,2026-04-14,2026-05-11,
+GAP-033,GAP-033-branding-version-history-rollback.md,Branding Version History & Rollback (User-facing),PARTIAL,P1,Backend,n/a,57,2026-04-14,2026-05-11,Wave 4 BE shipped PR #343 (4/7 AC: entity+migration+auto-snapshot+rollback+tests); 3/7 deferred (FE UI+diff viewer+retention)
 GAP-034,GAP-034-branding-export-pack.md,Branding Export Pack (ZIP + PDF Style Guide),OPEN,P2,Backend,phase-2,0,2026-04-14,2026-05-11,
 GAP-035,GAP-035-wizard-team-collaboration.md,Wizard Team Collaboration (Multi-user Edit),OPEN,P2,Frontend,phase-2,0,2026-04-14,2026-05-11,
 GAP-036,GAP-036-tier-upgrade-reveal-ux.md,Tier Upgrade UX (Reveal; Teaser; Unlock),OPEN,P1,Backend,phase-2,0,2026-04-14,2026-05-11,
@@ -45,8 +45,8 @@ GAP-040,GAP-040-support-impersonation-tools.md,Support Impersonation & Troublesh
 GAP-043,GAP-043-performance-cache-stampede-protection.md,Performance — Cache Stampede & Thundering Herd Protection,PARTIAL,P1,Backend,n/a,50,2026-04-14,2026-05-11,
 GAP-044,GAP-044-synthetic-monitoring-feature-flags.md,Synthetic Monitoring + Feature Flags,OPEN,P2,DevOps,phase-2,0,2026-04-14,2026-05-11,
 GAP-045,GAP-045-template-marketplace.md,Template Marketplace (Community Contributions),WONTFIX,P2,Backend,n/a,0,2026-04-14,2026-05-11,"audit-2026-05-11: Template marketplace forever-defer (community feature, post-GA per release-1-plan §7.2)"
-GAP-049,GAP-049-business-logic-correctness-review.md,Business Logic Correctness Review (not just implementation),PARTIAL,P0,Mixed,n/a,95,2026-04-14,2026-05-11,
-GAP-050,GAP-050-persona-based-business-review.md,Persona-Based Business Review Process,PARTIAL,P0,Backend,n/a,95,2026-04-14,2026-05-11,
+GAP-049,GAP-049-business-logic-correctness-review.md,Business Logic Correctness Review (not just implementation),PARTIAL,P0,Mixed,n/a,40,2026-04-14,2026-05-11,Phase 1 rule+matrix shipped PR #652; Phase 2 audit+sign-offs = GAP-156
+GAP-050,closed/GAP-050-persona-based-business-review.md,Persona-Based Business Review Process,DONE,P0,Backend,n/a,100,2026-04-14,2026-05-11,Framework Phase 1 shipped PR #653 (cadence + pre-flight Layer 4 + audit Cat 11); execution = GAP-152 per scope-split (Option B not deferral)
 GAP-052,GAP-052-parent-portal.md,Parent Portal + Accounts,IN_PROGRESS,P0,Mixed,n/a,40,2026-04-14,2026-05-11,
 GAP-055,GAP-055-official-report-card-vn.md,Official Report Card (Bảng điểm VN format),OPEN,P1,Backend,phase-3,0,2026-04-14,2026-05-11,
 GAP-056,GAP-056-homeroom-teacher-gvcn.md,Homeroom Teacher (GVCN) Concept,OPEN,P1,Backend,phase-3,0,2026-04-14,2026-05-11,
@@ -68,15 +68,15 @@ GAP-074,GAP-074-ai-alt-text-accessibility.md,AI-Generated Alt-Text for Accessibi
 GAP-075,GAP-075-developer-sandbox-tenant.md,Developer Sandbox Tenant Environment,OPEN,P2,Backend,phase-2,0,2026-04-14,2026-05-11,
 GAP-080,GAP-080-kitehub-dashboard-loading-ux.md,KiteHub Dashboard Loading/Error UX Inconsistent,OPEN,P2,Frontend,phase-1-beta,0,2026-04-16,2026-05-11,
 GAP-099,GAP-099-structured-class-schedule.md,Structured Class Schedule (replaces free-form text),PARTIAL,P2,Frontend,phase-3,50,2026-04-18,2026-05-11,
-GAP-102,GAP-102-guides-completion-adr-kickoff.md,05-guides Completion + ADR Kickoff,PARTIAL,P2,Backend,n/a,95,2026-04-18,2026-05-11,
+GAP-102,GAP-102-guides-completion-adr-kickoff.md,05-guides Completion + ADR Kickoff,PARTIAL,P2,Backend,n/a,75,2026-04-18,2026-05-11,Part 2 ADR + Part 1 P2 shipped PRs #346/#348/#350/#352; Part 1 P1 (3 guides) blocked Wave 6
 GAP-108,GAP-108-payment-invoice-config-hardcoded.md,Payment-Invoice Rules Document 12 Config Keys But Code Hardcoded (Persistent...,OPEN,P1,Mixed,n/a,0,2026-04-19,2026-05-11,
 GAP-110,GAP-110-ollama-model-inter-service-inconsistent.md,Ollama Default Text Model Inconsistent Between kitehub-branding and kiteclass...,OPEN,P2,Mixed,phase-1.5-paid,0,2026-04-19,2026-05-11,
-GAP-112,GAP-112-distributed-tracing-missing.md,Distributed Tracing Missing,PARTIAL,P1,DevOps,n/a,90,2026-04-19,2026-05-11,
+GAP-112,GAP-112-distributed-tracing-missing.md,Distributed Tracing Missing,PARTIAL,P1,DevOps,n/a,60,2026-04-19,2026-05-11,Wave 55 Bucket B infra shipped PR #1125 (3/5 AC: deps+config+sampling+RabbitMQ); 2/5 blocked Tempo backend GAP-111 Phase 2
 GAP-113,GAP-113-fe-error-tracking-missing.md,Frontend Error Tracking Missing,OPEN,P2,Frontend,n/a,0,2026-04-19,2026-05-11,
 GAP-114,closed/GAP-114-structured-json-logging.md,Structured JSON Logging + MDC Propagation,DONE,P0,Backend,phase-1-beta,100,2026-04-19,2026-05-11,Wave 60 Bucket C DONE flip — infra shipped Wave 25 Bucket B; live 3-service smoke scope-cut to GAP-115
 GAP-115,GAP-115-log-aggregation-pipeline.md,Log Aggregation Pipeline (ELK/Loki),PARTIAL,P1,DevOps,n/a,50,2026-04-19,2026-05-11,
 GAP-116-followup-existing-code-pii-audit,GAP-116-followup-existing-code-pii-audit.md,GAP-116-followup: Existing-code PII log-leak audit + remediation,OPEN,P2,Mixed,n/a,0,2026-05-06,2026-05-11,
-GAP-116-pii-scrubbing-logs,GAP-116-pii-scrubbing-logs.md,GAP-116: PII Scrubbing trong Logs,PARTIAL,P2,Mixed,n/a,90,2026-04-19,2026-05-11,
+GAP-116-pii-scrubbing-logs,closed/GAP-116-pii-scrubbing-logs.md,GAP-116: PII Scrubbing trong Logs,DONE,P2,Mixed,n/a,100,2026-04-19,2026-05-11,Infra 5/6 AC shipped PR #837 (Wave 25 Bucket B); existing-code remediation = GAP-116-followup (Option B)
 GAP-117,GAP-117-restore-drill-test.md,Backup Restore Drill Automation,PARTIAL,P0,DevOps,n/a,50,2026-04-19,2026-05-11,
 GAP-123,GAP-123-hpa-kitehub-services.md,HPA cho KiteHub Services,OPEN,P2,DevOps,phase-1.5-paid,0,2026-04-19,2026-05-11,
 GAP-124,GAP-124-pdb-networkpolicy-hardening.md,PodDisruptionBudget + NetworkPolicy Hardening,OPEN,P2,DevOps,phase-1.5-paid,0,2026-04-19,2026-05-11,
