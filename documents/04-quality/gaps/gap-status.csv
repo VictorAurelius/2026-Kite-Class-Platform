@@ -273,7 +273,7 @@ GAP-400,GAP-400-trivy-image-vulnerability-scan.md,Trivy Image Vulnerability Scan
 GAP-401,GAP-401-multi-arch-docker-build-amd64-arm64.md,Multi-arch Docker Build (linux/amd64 + linux/arm64),PARTIAL,P2,DevOps,n/a,50,2026-05-07,2026-05-11,
 GAP-402,GAP-402-sbom-image-signing-cosign.md,SBOM + Image Signing (Cosign Supply Chain Security),PARTIAL,P2,DevOps,phase-1-beta,50,2026-05-07,2026-05-11,
 GAP-405,GAP-405-visual-regression-baseline-playwright.md,Visual Regression Baseline (Playwright Screenshot Diff),PARTIAL,P2,Backend,n/a,50,2026-05-07,2026-05-11,
-GAP-406,GAP-406-pen-test-light-owasp-top-10.md,Pen-test Light (OWASP Top 10 + Security Headers + CSRF),PARTIAL,P0,Compliance,phase-1-beta,50,2026-05-07,2026-05-11,
+GAP-406,GAP-406-pen-test-light-owasp-top-10.md,Pen-test Light (OWASP Top 10 + Security Headers + CSRF),DONE,P0,Compliance,phase-1-beta,100,2026-05-07,2026-05-11,Wave 60 Bucket A — full OWASP self-audit 76/100 C+; 3 follow-up gaps GAP-470/471/472
 GAP-408,GAP-408-jvm-heap-cap-dev-profile.md,JVM Heap Cap trong Dev Profile,PARTIAL,P2,Mixed,n/a,50,2026-05-07,2026-05-11,
 GAP-412,GAP-412-aws-activate-founders-pack-application.md,AWS Activate Founders Pack Application ($1k credit),PARTIAL,P0,Mixed,phase-1-beta,50,2026-05-07,2026-05-11,
 GAP-413,GAP-413-aws-budgets-cost-monitoring.md,AWS Budgets Cost Monitoring + Alerting,PARTIAL,P1,Mixed,n/a,50,2026-05-07,2026-05-11,
@@ -306,3 +306,6 @@ GAP-461,GAP-461-rule-brand-clearance-pre-domain.md,Meta-rule — brand-clearance
 GAP-465,GAP-465-helm-k8s-artifacts-validation-pre-phase-1-5-migration.md,Helm + k8s artifacts validation pre-Phase-1.5-migration,OPEN,P2,Mixed,phase-1-beta,0,2026-05-11,2026-05-11,
 GAP-466,GAP-466-multi-tenant-postgres-rls-defense-in-depth.md,Multi-tenant Postgres Row-Level Security (RLS) defense-in-depth,PARTIAL,P1,Mixed,phase-1-beta,50,2026-05-11,2026-05-11,
 GAP-469,GAP-469-rls-performance-baseline.md,RLS performance baseline measurement,PARTIAL,P2,Mixed,phase-1-beta,50,2026-05-11,2026-05-11,
+GAP-470,GAP-470-k8s-deployments-runasnonroot-security-context.md,K8s deployments add runAsNonRoot securityContext,OPEN,P1,Infrastructure,phase-1.5-paid,0,2026-05-11,2026-05-11,Wave 60 Bucket A pen-test follow-up; P0 v1.0.0 cutover gate
+GAP-471,GAP-471-vercel-security-headers-and-cors.md,Vercel frontend add CSP + 3 headers + restrict CORS,OPEN,P1,Frontend,phase-1-beta,0,2026-05-11,2026-05-11,Wave 60 Bucket A pen-test follow-up; live probe 1/5 headers PASS; P0 v1.0.0
+GAP-472,GAP-472-gateway-security-headers-filter-parity.md,Gateway SecurityHeadersFilter parity (kitehub missing; kiteclass missing HSTS+CSP),OPEN,P1,Backend,phase-1.5-paid,0,2026-05-11,2026-05-11,Wave 60 Bucket A pen-test follow-up; P0 v1.0.0 cutover gate
