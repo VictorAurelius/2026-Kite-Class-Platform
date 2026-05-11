@@ -258,7 +258,7 @@ GAP-364b,GAP-364b-kitehub-admin-cross-screen-polish.md,kitehub-admin kit — cro
 GAP-366,GAP-366-frontend-standards-kit-as-source-of-truth.md,`frontend-standards.md` extend — Kit as Source of Truth + dossier cross-link,OPEN,P1,Mixed,n/a,0,2026-05-06,2026-05-11,
 GAP-367,GAP-367-kit-production-parity-skill.md,Skill `quality/kit-production-parity` — extend `ui-review/SKILL.md` with 4-la...,OPEN,P1,Mixed,n/a,0,2026-05-06,2026-05-11,
 GAP-369,GAP-369-production-dns-domain-setup.md,Production DNS + Domain Setup (kitehub.vn + kiteclass.vn),PARTIAL,P0,DevOps,phase-1-beta,50,2026-05-06,2026-05-11,
-GAP-370,GAP-370-email-transactional-infrastructure.md,Email Transactional Infrastructure (SendGrid / SES / Mailgun),PARTIAL,P0,DevOps,phase-1-beta,50,2026-05-06,2026-05-11,
+GAP-370,GAP-370-email-transactional-infrastructure.md,Email Transactional Infrastructure (SendGrid / SES / Mailgun),PARTIAL,P0,DevOps,phase-1-beta,75,2026-05-06,2026-05-11,Wave 61 Bucket B added smoke-ses.sh + production approval form template; user-action gates remain (DNS + SES Console submit)
 GAP-371,GAP-371-cdn-cloudflare-setup.md,CDN Setup — Cloudflare Proxy + DDoS Protection,PARTIAL,P1,Mixed,phase-1-beta,50,2026-05-06,2026-05-11,
 GAP-374,GAP-374-tag-based-release-automation-ci.md,Tag-based Release Automation CI Workflow,PARTIAL,P1,Mixed,phase-1-beta,50,2026-05-06,2026-05-11,
 GAP-375,GAP-375-github-release-template-changelog-folder.md,GitHub Release Template + Changelog Folder,OPEN,P2,DevOps,phase-1-beta,0,2026-05-06,2026-05-11,

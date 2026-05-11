@@ -1,14 +1,38 @@
 # AWS SES Production Setup Runbook
 
 **Audience:** Solo dev / SRE provisioning AWS SES for KiteHub email transactional traffic
-**Status:** Active runbook (Wave 33 Bucket B — GAP-370)
-**Last reviewed:** 2026-05-07
+**Status:** Active runbook (Wave 33 Bucket B — GAP-370; Wave 61 Bucket B refresh — production approval prep)
+**Last reviewed:** 2026-05-11
 **Cross-refs:**
 - `documents/04-quality/gaps/GAP-370-email-transactional-infrastructure.md`
 - `documents/05-guides/deploy/dns-setup-runbook.md` (Bucket D — TXT records)
 - `kitehub/kitehub-email/src/main/resources/application.yml` (`aws.ses.*` keys)
 - `.claude/rules/release-deploy-standard.md` §3.4 (MAJOR release email checklist)
-- `kitehub/kitehub-email/src/test/java/com/kitehub/email/integration/SesIntegrationSmokeTest.java` (Wave 45 — profile-gated smoke test)
+- `kitehub/kitehub-email/src/test/java/com/kitehub/email/integration/SesIntegrationSmokeTest.java` (Wave 45 — profile-gated JUnit smoke test)
+- `scripts/smoke-ses.sh` (Wave 61 — read-only AWS SES state verification)
+
+---
+
+## Wave 61 Verification (2026-05-11)
+
+Re-checked SES state via `bash scripts/smoke-ses.sh` (Tier 1 read-only per `agent-aws-access.md` §2.1):
+
+| Check | State 2026-05-11 | Action |
+|-------|-----------------|--------|
+| `aws sesv2 get-account` EnforcementStatus | `HEALTHY` | ✅ |
+| `ProductionAccessEnabled` | `false` (SANDBOX) | ⏳ submit production access request per §4.1.1 below |
+| `SendingEnabled` | `true` | ✅ |
+| `Max24HourSend` / `MaxSendRate` | `200` / `1.0` | sandbox default; → 50000 / 14 post-approval |
+| Email identities registered | 0 | ⏳ verify `kitehub.me` per §3 (depends on DNS records — see `dns-setup-runbook.md`) |
+| Suppression list | empty | ✅ clean baseline |
+
+**Two user-action gates remain (per `release-deploy-standard.md` §9 "Deploy execution = HUMAN-IN-THE-LOOP"):**
+1. Verify domain identity `kitehub.me` in SES Console — agent cannot run `aws sesv2 create-email-identity` (Tier 3 banned per `agent-aws-access.md` §4.1)
+2. Submit production access request — AWS support case requires browser/console (no public API for this case type)
+
+Agent role: prepare templates + verify post-action state via smoke script. User executes the 2 gates.
+
+---
 
 ---
 
@@ -216,17 +240,75 @@ For production (send to anyone, higher limits), you must request out-of-sandbox.
 
 **AWS Console:** SES → **Account dashboard** → **Request production access**
 
-Fill out form:
-- **Use case:** Transactional (signup verification, beta invites, password reset, account notifications)
-- **Website URL:** `https://kitehub.vn`
-- **How do you build/maintain mailing lists:** "Users explicitly sign up; we do not send marketing without opt-in. Beta invite list is curated from `BetaAccessRequest` table — only users who submitted the request form."
-- **How do you handle bounces/complaints:** "SNS topics `ses-bounces` + `ses-complaints` subscribed; bounced addresses auto-suppressed in `email_suppression_list` table. Hard bounces blocked permanently; soft bounces retry max 3× then suppress."
-- **How do you handle unsubscribe:** "All transactional emails include unsubscribe link in footer for marketing-class messages. Critical transactional (verification, password reset) cannot be unsubscribed per industry standard."
-- **Expected daily volume:** Phase 1 BETA: ~500/day; Phase 2: ~5,000/day; Phase 3: ~50,000/day
-- **Expected bounce rate:** <2% (industry threshold; SES suspends if >5%)
-- **Expected complaint rate:** <0.1% (SES suspends if >0.3%)
+#### 4.1.1 Copy-paste form template (Wave 61 — refreshed for Free Tier 62k/mo)
 
-**Approval time:** Typically 24-48h, occasionally up to 7 days.
+> **User action:** open SES Console region `ap-southeast-1` → Account dashboard → "Request production access" → copy/paste each field below verbatim. Edit volume forecast only if Phase 1 BETA cohort size diverges.
+
+**Mail type:** `Transactional`
+
+**Website URL:**
+```
+https://kitehub.me
+```
+
+**Use case description** (≥30 words, English required by AWS form):
+```
+Transactional emails for B2B SaaS education platform Phase 1 BETA invite cohort (5-10 education center tenants). Use cases: (1) email verification on signup, (2) beta invite delivery with one-time signup token, (3) password reset with expiring link, (4) MFA recovery TOTP backup codes per OWASP V2 auth requirements, (5) subscription/billing notifications, (6) DSAR acknowledgement per PDPL 2023 Art 23 compliance. Audience is explicit opt-in only via signup or invitation form; we do not send marketing-class email from this domain. Volume forecast: ~2,000 emails/month Phase 1 BETA (5-10 tenants × ~5-10 students each × signup + verify + 2-3 notifications/month). Free Tier 62,000 emails/month is sufficient runway through Phase 2 PAID launch. We commit to maintaining bounce rate <2% and complaint rate <0.1% via SNS-subscribed feedback loop with automatic suppression list management.
+```
+
+**How do you build and maintain your mailing lists:**
+```
+Users explicitly sign up via web form at https://kitehub.me/signup which requires email verification before account activation. Beta invite list is curated from BetaAccessRequest database table — only users who personally submitted the request form receive invites. No purchased lists, no scraping, no third-party sources. Email addresses are stored encrypted at rest (PostgreSQL with TLS) per PDPL 2023 Art 23 personal data protection requirements.
+```
+
+**How do you handle bounces and complaints:**
+```
+SES → SNS topics ses-bounces and ses-complaints subscribed. Bounce/complaint events are processed by kitehub-email service: hard bounces → permanently suppressed in email_suppression_list table (90-day retention per PDPL); soft bounces → retry max 3 times with exponential backoff then suppress; complaints → immediate permanent suppression with audit log entry. CloudWatch alarms wired to alert at bounce rate >3% (warn) and >5% (paging). Daily reputation dashboard review during Phase 1 BETA warmup period.
+```
+
+**How can recipients opt out of receiving email:**
+```
+All non-critical transactional emails (subscription notifications, onboarding tips, billing reminders) include a List-Unsubscribe header (RFC 2369 + RFC 8058 one-click) and a footer unsubscribe link. Critical transactional emails (email verification, password reset, MFA recovery, DSAR acknowledgement) cannot be unsubscribed per industry standard and PDPL 2023 Art 23 requirements for account security. Unsubscribe requests update email_suppression_list within 24 hours.
+```
+
+**Additional contacts / process** (optional but recommended):
+```
+DPO contact: dpo@kitehub.me (PDPL compliance per Vietnam Decree 13/2023/NĐ-CP). Abuse contact: abuse@kitehub.me. Bounce/complaint webhook automation deployed since Wave 33 (PR #896). Suppression list managed per documents/05-guides/deploy/email-ses-setup-runbook.md.
+```
+
+**Volume forecast** (form field):
+- Phase 1 BETA (current): ~2,000 emails/month (62k Free Tier headroom)
+- Phase 2 PAID (~Tuần 13-18): ~10,000 emails/month
+- Phase 3 K-12: ~50,000 emails/month (still within Free Tier when sending from EC2)
+
+**Bounce/complaint targets:**
+- Expected bounce rate: <2% (industry threshold; SES suspends if >5%)
+- Expected complaint rate: <0.1% (SES suspends if >0.3%)
+
+**Approval time:** Typically 24-48h, occasionally up to 7 days. AWS will email approval/rejection to root account contact.
+
+#### 4.1.2 Common rejection reasons + reply templates
+
+If AWS rejects with "Insufficient sending history":
+```
+This is a new AWS account for a new product (Phase 1 BETA). Sending history is intentionally zero — we have not sent any production email yet. We are requesting production access BEFORE first send to avoid bounce-rate spikes during initial warmup. Volume will start at <50 emails/day Day 1 and ramp gradually per documented warmup schedule (see runbook §6.1). All recipients have explicit opt-in via signup form. Suppression list is empty (verified via `aws sesv2 list-suppressed-destinations`).
+```
+
+If AWS rejects with "Bounce handling unclear":
+```
+Bounce/complaint handling is automated via SNS topics ses-bounces and ses-complaints (configured per §5 of our SES setup runbook). The kitehub-email Java service consumes these topics and maintains a database-backed suppression list (email_suppression_list table). Hard bounces are permanently suppressed; soft bounces retry up to 3 times then suppress. CloudWatch alarms alert at bounce rate >3%. Source code: github.com/VictorAurelius/2026-Kite-Class-Platform (public).
+```
+
+If AWS rejects with "Use case too generic":
+```
+Specific use cases (all transactional, all opt-in):
+1. Email verification on signup — RFC 5322 compliant verification link sent within 30 seconds of user submitting signup form
+2. Password reset — One-time token with 60-minute expiry per OWASP Auth Cheat Sheet
+3. MFA recovery codes — TOTP backup codes per OWASP ASVS V2.7 (account compromise recovery)
+4. Beta invite delivery — single email per BetaAccessRequest row with unique signup token
+5. DSAR acknowledgement — automatic reply within 24h of data subject access request per PDPL 2023 Art 23
+6. Subscription/billing notifications — trial expiry warnings, renewal reminders, payment receipts
+```
 
 ### 4.2 Post-approval limits
 
@@ -237,6 +319,60 @@ After approval, default production tier:
 These match `aws.ses.rate.max-per-day=50000` + `aws.ses.rate.max-per-second=14` defaults (set conservatively at 10 in code; bump after warmup).
 
 To request higher limits later: SES → Account dashboard → **Request quota increase** với justification.
+
+### 4.3 Verify approval (post user-action)
+
+After AWS support emails approval (24-48h), run smoke script to verify production state propagated:
+
+```bash
+# Tier 1 read-only verification (per agent-aws-access.md §2.1)
+AWS_PROFILE=dev-admin AWS_DEFAULT_REGION=ap-southeast-1 bash scripts/smoke-ses.sh
+```
+
+Expected output post-approval:
+```
+PASS  EnforcementStatus = HEALTHY
+PASS  SendingEnabled = true
+PASS  ProductionAccessEnabled = true (Max24h=50000.0, Rate=14.0/sec, Sent24h=...)
+```
+
+Pre-approval (sandbox) output:
+```
+WARN  ProductionAccessEnabled = false — SANDBOX mode (Max24h=200.0, Rate=1.0/sec)
+WARN    → Action: submit production access request per email-ses-setup-runbook.md §4
+```
+
+### 4.4 DNS records verification (post §3.2 user-action)
+
+After Cloudflare DNS records added (per `dns-setup-runbook.md`), verify propagation:
+
+```bash
+# SPF
+dig +short TXT kitehub.me | grep -E '^"v=spf1'
+# Expected: "v=spf1 include:amazonses.com -all"
+
+# DMARC
+dig +short TXT _dmarc.kitehub.me | grep -E '^"v=DMARC1'
+# Expected: "v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@kitehub.me; ..."
+
+# DKIM (one per token returned by aws sesv2 create-email-identity)
+dig +short CNAME <token1>._domainkey.kitehub.me
+# Expected: <token1>.dkim.amazonses.com
+
+# All-in-one (Wave 61): smoke script checks SPF + DMARC + AWS identity state
+bash scripts/smoke-ses.sh --domain
+```
+
+### 4.5 User-action checklist
+
+| Step | Owner | Verify command | Status |
+|------|-------|---------------|--------|
+| Verify domain identity `kitehub.me` in SES Console (region `ap-southeast-1`) | User | `aws sesv2 list-email-identities --region ap-southeast-1` shows `kitehub.me` | ⏳ pending |
+| Add 3 DKIM CNAME + 1 SPF TXT + 1 DMARC TXT to Cloudflare DNS | User | `dig +short TXT kitehub.me` returns SPF line | ⏳ pending DNS setup (`dns-setup-runbook.md`) |
+| Submit production access request via SES Console with template §4.1.1 | User | AWS support case ID returned + approval email within 24-48h | ⏳ pending |
+| Wait approval 24-48h (occasionally up to 7 days) | (AWS) | `aws sesv2 get-account` returns `ProductionAccessEnabled: true` | ⏳ pending |
+| Run `bash scripts/smoke-ses.sh` to verify approval propagated | User or agent | smoke script PASS on production access check | ⏳ pending |
+| Add reminder calendar event D+1 + D+7 (escalate if no approval) | User (Google Calendar MCP) | event visible | ⏳ pending |
 
 ---
 
@@ -354,10 +490,11 @@ Alert thresholds (per `monitoring-runbook.md` future scope):
 
 ## 7. Smoke test (post-setup verification)
 
-Two complementary smoke paths:
+Three complementary smoke paths (use in order — cheapest first):
 
-1. **HTTP curl smoke (below)** — exercises `kitehub-email` service end-to-end (controller → Thymeleaf render → SES). Use after stack is deployed to staging/prod.
-2. **JUnit code-side smoke** — `kitehub/kitehub-email/src/test/java/com/kitehub/email/integration/SesIntegrationSmokeTest.java` (Wave 45 GAP-370). Profile-gated, skipped by default; sends one minimal SES email + asserts `MessageId`. Use to verify credentials + FROM-domain identity + production access without spinning up the full service:
+1. **Shell read-only smoke (Wave 61)** — `bash scripts/smoke-ses.sh` runs Tier 1 read-only AWS CLI calls only (no email sent, no cost): `get-account`, `list-email-identities`, `get-email-identity`, `list-suppressed-destinations`, plus optional `dig` for SPF/DMARC TXT. Use to verify SES state at any time without spinning up the JVM or hitting AWS send quota. Output: PASS/WARN/FAIL summary + artifact path. Safe to run hourly in CI/cron.
+2. **HTTP curl smoke (§7 below)** — exercises `kitehub-email` service end-to-end (controller → Thymeleaf render → SES `send-email`). Use after stack is deployed to staging/prod. Costs 1 quota slot per run.
+3. **JUnit code-side smoke** — `kitehub/kitehub-email/src/test/java/com/kitehub/email/integration/SesIntegrationSmokeTest.java` (Wave 45 GAP-370). Profile-gated, skipped by default; sends one minimal SES email + asserts `MessageId`. Use to verify credentials + FROM-domain identity + production access without spinning up the full service:
 
    ```bash
    cd kitehub
@@ -439,4 +576,5 @@ Per `.claude/rules/release-deploy-standard.md` §2:
 
 ## 11. Log
 
+- **2026-05-11** (Wave 61 Bucket B): Production approval prep refresh. Added §4.1.1 copy-paste form template (refreshed for `kitehub.me` domain + Free Tier 62k/mo volume forecast + Phase 1 BETA invite cohort 5-10 tenants); §4.1.2 rejection-reason reply templates (3 common AWS rejection patterns); §4.3 post-approval verification commands + smoke script output expectations; §4.4 DNS verification commands (dig SPF + DMARC + DKIM); §4.5 user-action checklist with verify commands. New §7 path 1 references `scripts/smoke-ses.sh` (Tier 1 read-only AWS CLI verification — `get-account` + `list-email-identities` + suppression list + DNS records). Wave 61 verification table added at top — SES state 2026-05-11 = sandbox HEALTHY, 0 identities, suppression list empty. Reviewed accuracy of all sections — no drift. GAP-370 stays PARTIAL until user submits SES production access request + AWS approves.
 - **2026-05-07** (Wave 33 Bucket B): Runbook created. SES sandbox→production approval steps + DKIM/SPF/DMARC TXT values + bounce/complaint SNS subscription + warmup schedule (Day 1: 50/day → Day 14: 10K/day → Day 30: 50K/day). Paired same-PR với `beta-invite.html` + `beta-request-confirmation.html` templates + `EmailType` enum + SES `bounce/complaint/rate` config properties.
