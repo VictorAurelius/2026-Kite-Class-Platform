@@ -1190,6 +1190,7 @@ Counts: **88 OPEN → 90 OPEN** (-GAP-126 -GAP-130 closed; +GAP-236/237/238/239 
 | GAP-012 ✅ | Automated instance quality review — DONE Wave 4 | 🟢 DONE | M |
 | **GAP-203** | Fix 7 open CVEs in transitive Maven deps (3 HIGH) + enable Dependabot | 🔴 P0 | M |
 | **GAP-204** | 89 npm alerts — 8 CRITICAL (next.js) + 32 HIGH + 45 medium + 4 low (5 stages A-E) | 🟡 P2 | XL |
+| **GAP-470** | netty-epoll 4.1.133 → 4.2.13 line bump for revised CVE-2026-42577 (Wave 57 GAP-468 follow-up) | 🟠 P1 | S |
 
 **Dependencies:** Can parallelize với Epic 2. GAP-203 pairs with GAP-202 (detection skill fix). GAP-204 depends on GAP-202 (detection exposed scope) + compatibility work on JsonLd RSC serialization.
 **Status:** 🟡 PARTIAL 2026-04-24 — All 8 CRITICAL + 32 HIGH + 39/45 medium CLOSED (92% resolved) via PRs #457/#458/#459/#460. Only 6 medium remain (axios 4 + follow-redirects 2 transitive) handled by Stage E auto-flow. Epic 5 **back to GREEN** (no CRITICAL/HIGH live on main). GAP-203 shipped 2026-04-21 (PR #424), GAP-202 shipped 2026-04-21 (PR #423/#453). Security session 2026-04-21 → 2026-04-24: total 8 PRs, 82/89 alerts closed.
