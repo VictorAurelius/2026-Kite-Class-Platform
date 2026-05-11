@@ -198,29 +198,37 @@ aws_collect() {
   fi
 
   # Verify auth (single Tier 1 call; safe per agent-aws-access.md §2.1)
+  # Use kite-readonly profile explicitly — read-only by design per §2.1.
+  # User can override with AWS_PROFILE env var if they want a different read-only profile.
   local identity
-  identity="$(timeout 5 aws sts get-caller-identity --output json 2>/dev/null || true)"
+  local profile_arg=""
+  if [ -z "${AWS_PROFILE:-}" ]; then
+    profile_arg="--profile kite-readonly"
+  fi
+  identity="$(timeout 5 aws sts get-caller-identity $profile_arg --output json 2>/dev/null || true)"
   if [ -z "$identity" ]; then
     AWS_STATUS="no-auth"
     return
   fi
 
-  local region
-  region="$(aws configure get region 2>/dev/null || echo "${AWS_REGION:-?}")"
+  local region profile_for_config
+  profile_for_config="${AWS_PROFILE:-kite-readonly}"
+  region="$(aws configure get region --profile "$profile_for_config" 2>/dev/null || echo "${AWS_REGION:-?}")"
   AWS_REGION_OUT="$region"
 
-  # Tier 1 fan-out — each call timeout-bounded, never throws
+  # Tier 1 fan-out — each call timeout-bounded, never throws.
+  # profile_arg already set above (kite-readonly default unless AWS_PROFILE override).
   local ec2 rds alb trails alarms
-  ec2="$(timeout 8 aws ec2 describe-instances \
+  ec2="$(timeout 8 aws ec2 describe-instances $profile_arg \
     --query 'Reservations[].Instances[].{id:InstanceId,state:State.Name,name:Tags[?Key==`Name`]|[0].Value,type:InstanceType}' \
     --output json 2>/dev/null || echo '[]')"
-  rds="$(timeout 8 aws rds describe-db-instances \
+  rds="$(timeout 8 aws rds describe-db-instances $profile_arg \
     --query 'DBInstances[].{id:DBInstanceIdentifier,state:DBInstanceStatus,class:DBInstanceClass}' \
     --output json 2>/dev/null || echo '[]')"
-  alb="$(timeout 8 aws elbv2 describe-load-balancers \
+  alb="$(timeout 8 aws elbv2 describe-load-balancers $profile_arg \
     --query 'LoadBalancers[].{name:LoadBalancerName,state:State.Code,type:Type}' \
     --output json 2>/dev/null || echo '[]')"
-  trails="$(timeout 8 aws cloudtrail describe-trails \
+  trails="$(timeout 8 aws cloudtrail describe-trails $profile_arg \
     --query 'trailList[].{name:Name,multi:IsMultiRegionTrail,home:HomeRegion}' \
     --output json 2>/dev/null || echo '[]')"
 
@@ -230,12 +238,12 @@ aws_collect() {
   if [ "$(echo "$trails" | jq 'length' 2>/dev/null || echo 0)" != "0" ]; then
     trail_status="$(echo "$trails" | jq -r '.[].name' | while IFS= read -r tname; do
       [ -z "$tname" ] && continue
-      logging="$(timeout 5 aws cloudtrail get-trail-status --name "$tname" --query 'IsLogging' --output text 2>/dev/null || echo unknown)"
+      logging="$(timeout 5 aws cloudtrail get-trail-status --name "$tname" $profile_arg --query 'IsLogging' --output text 2>/dev/null || echo unknown)"
       printf '{"name":"%s","is_logging":"%s"}\n' "$tname" "$logging"
     done | jq -s '.' 2>/dev/null || echo '[]')"
   fi
 
-  alarms="$(timeout 8 aws cloudwatch describe-alarms --state-value ALARM \
+  alarms="$(timeout 8 aws cloudwatch describe-alarms $profile_arg --state-value ALARM \
     --query 'MetricAlarms[].AlarmName' --output json 2>/dev/null || echo '[]')"
 
   mkdir -p "$AWS_CACHE_DIR"
