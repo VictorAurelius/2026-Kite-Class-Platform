@@ -228,6 +228,21 @@ Apologies for the inconvenience.
 
 ---
 
+## 8. Rollback Cycle Validation (GAP-475 Sub-6)
+
+Periodic validation of the full rollback → smoke → restore → smoke cycle. Validates that the rollback workflow + smoke gates can detect a regression and the restore-forward path leaves the system in a known-good state.
+
+| Cadence | Command | Purpose |
+|---------|---------|---------|
+| Monthly | `bash scripts/smoke-rollback-cycle.sh --dry-run` | Verify pre-flight smoke + SHA resolution + report scaffold (no real rollback). |
+| Quarterly (maintenance window) | `ROLLBACK_CYCLE_E2E=1 bash scripts/smoke-rollback-cycle.sh --execute` | Real rollback to previous main SHA → re-smoke → restore forward → re-smoke. Emits JSON report to `/tmp/rollback-cycle-<epoch>.json`. |
+
+⚠️ `rollback.yml` workflow is not yet present in `.github/workflows/` — script logs `[DEFER]` and skips the real trigger until that workflow lands (tracked GAP-475 follow-up). The dry-run path stays useful as a CI scaffold + SHA-resolution smoke.
+
+Reference: [`scripts/smoke-rollback-cycle.sh`](../../../scripts/smoke-rollback-cycle.sh), [`scripts/smoke-test.sh`](../../../scripts/smoke-test.sh), [Rollback Procedure](./rollback-procedure.md).
+
+---
+
 ## Related
 
 - [Rollback Procedure](./rollback-procedure.md)
