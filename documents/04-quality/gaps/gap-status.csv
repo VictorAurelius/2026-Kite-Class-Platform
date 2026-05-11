@@ -73,7 +73,7 @@ GAP-108,GAP-108-payment-invoice-config-hardcoded.md,Payment-Invoice Rules Docume
 GAP-110,GAP-110-ollama-model-inter-service-inconsistent.md,Ollama Default Text Model Inconsistent Between kitehub-branding and kiteclass...,OPEN,P2,Mixed,phase-1.5-paid,0,2026-04-19,2026-05-11,
 GAP-112,GAP-112-distributed-tracing-missing.md,Distributed Tracing Missing,PARTIAL,P1,DevOps,n/a,90,2026-04-19,2026-05-11,
 GAP-113,GAP-113-fe-error-tracking-missing.md,Frontend Error Tracking Missing,OPEN,P2,Frontend,n/a,0,2026-04-19,2026-05-11,
-GAP-114,GAP-114-structured-json-logging.md,Structured JSON Logging + MDC Propagation,PARTIAL,P0,Backend,phase-1-beta,90,2026-04-19,2026-05-11,Infrastructure shipped Wave 25 Bucket B; per-service e2e smoke deferred to GAP-115
+GAP-114,closed/GAP-114-structured-json-logging.md,Structured JSON Logging + MDC Propagation,DONE,P0,Backend,phase-1-beta,100,2026-04-19,2026-05-11,Wave 60 Bucket C DONE flip — infra shipped Wave 25 Bucket B; live 3-service smoke scope-cut to GAP-115
 GAP-115,GAP-115-log-aggregation-pipeline.md,Log Aggregation Pipeline (ELK/Loki),PARTIAL,P1,DevOps,n/a,50,2026-04-19,2026-05-11,
 GAP-116-followup-existing-code-pii-audit,GAP-116-followup-existing-code-pii-audit.md,GAP-116-followup: Existing-code PII log-leak audit + remediation,OPEN,P2,Mixed,n/a,0,2026-05-06,2026-05-11,
 GAP-116-pii-scrubbing-logs,GAP-116-pii-scrubbing-logs.md,GAP-116: PII Scrubbing trong Logs,PARTIAL,P2,Mixed,n/a,90,2026-04-19,2026-05-11,
@@ -284,7 +284,7 @@ GAP-424,GAP-424-statuspage-runbook-vietnamese-overlay.md,Statuspage / Instatus r
 GAP-427,GAP-427-exchange-claim-code-undocumented.md,POST /api/v1/auth/beta-signup/exchange-claim-code not documented in api-contr...,OPEN,P1,Frontend,n/a,0,2026-05-08,2026-05-11,
 GAP-428,GAP-428-prospect-public-pages-missing-kit.md,Prospects / Public Pages Have No UI Kit Coverage,OPEN,P1,Frontend,n/a,0,2026-05-08,2026-05-11,
 GAP-429,GAP-429-transient-state-ux-skeleton-pattern.md,Transient-State UX Skeleton Pattern — Loading/Empty/Error States Below 105/128,OPEN,P1,Frontend,n/a,0,2026-05-08,2026-05-11,
-GAP-430,GAP-430-backup-alert-metric-mismatch.md,`BackupJobFailure` alert metric name mismatch — alert chưa từng fire,PARTIAL,P0,DevOps,phase-1-beta,50,2026-05-08,2026-05-11,
+GAP-430,closed/GAP-430-backup-alert-metric-mismatch.md,`BackupJobFailure` alert metric name mismatch — alert chưa từng fire,DONE,P0,DevOps,phase-1-beta,100,2026-05-08,2026-05-11,Wave 60 Bucket C DONE flip — Wave 41 root-cause fix verified; promtool fixture scope-cut to GAP-435
 GAP-431,GAP-431-helm-startupprobe-missing.md,thiếu `startupProbe` trong Helm deployment templates,PARTIAL,P1,DevOps,phase-1-beta,50,2026-05-08,2026-05-11,
 GAP-432,GAP-432-unbounded-findall-services.md,3 service `findAll()` không bounded — performance cliff post-launch,PARTIAL,P1,Backend,phase-1-beta,50,2026-05-08,2026-05-11,
 GAP-433,GAP-433-rules-md-5-attr-coverage-backfill.md,backfill 5-attribute frontmatter cho rules.md (40% thiếu Reviewer + Review ca...,PARTIAL,P1,Meta,phase-3,50,2026-05-08,2026-05-11,

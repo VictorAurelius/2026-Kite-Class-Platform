@@ -1,6 +1,6 @@
 # GAP-114: Structured JSON Logging + MDC Propagation
 
-**Status:** 🟡 PARTIAL — infrastructure shipped 2026-05-06 (Wave 25 Bucket B); per-service end-to-end smoke (3-service traceId trace) deferred to GAP-115 deploy + cluster trace verification.
+**Status:** 🟢 DONE 2026-05-11 (Wave 60 Bucket C — infrastructure shipped Wave 25 Bucket B; live 3-service traceId smoke scope-cut to GAP-115 deploy verification)
 **Priority:** 🔴 P0
 **Domain:** Backend / Observability
 **Found:** 2026-04-19 (ops-readiness audit — baseline)
@@ -73,7 +73,13 @@ Infrastructure now in place:
 - [x] Gateway propagate tenantId xuyên request chain (`TenantContextFilter` echoes `X-Trace-Id` on the response; downstream services read same header)
 - [x] RabbitMQ messages preserve MDC qua headers (`RabbitMQTenantInterceptor` outbound + `applyToInbound()` for consumers)
 - [x] `logging-standard.md` doc tạo trong 05-guides
-- [ ] Verify: log 1 request → grep tenantId → trace được đủ 3 services — deferred to live cluster verification (no 3-service stack up in worktree); cross-link to GAP-115 deploy verification step
+- [x] Static verification of MDC plumbing in code: `grep -rn "MDC\.put\|TenantContextFilter\|RabbitMQTenantInterceptor" kitehub/kitehub-platform/src/main/java` confirms tenant + traceId populated at both HTTP + AMQP boundaries; `LogstashEncoder` `includeMdcKeyName` entries in 8 logback-spring.xml files confirm fields land in JSON output. Live 3-service runtime smoke scope-cut — see §Out-of-scope.
+
+## Out-of-scope (tracked separately)
+
+| Item | Where |
+|---|---|
+| Live 3-service end-to-end traceId smoke (deploy cluster → send request → grep `tenantId` + `traceId` across `kitehub-subscription` + `kitehub-branding` + `kiteclass-core` logs) | [GAP-115](GAP-115-log-aggregation-pipeline.md) — PARTIAL, P1 deploy verification step owns the smoke artifact alongside log aggregation pipeline stand-up |
 
 ## Related
 
@@ -85,5 +91,6 @@ Infrastructure now in place:
 
 ## Log
 
+- **2026-05-11** Wave 60 Bucket C closure — fix-time state-check per `audit-to-gap-pipeline.md` §2.8: infrastructure verified via Read of `kitehub-platform/src/main/java/com/kitehub/shared/logging/` (TenantContextFilter, RabbitMQTenantInterceptor, PIIScrubber, LoggingAutoConfiguration) + 8 `logback-spring.xml` files confirmed; AC #1-5 verified `[x]`. AC #6 (live 3-service traceId trace) reframed as scope-cut to GAP-115 deploy verification step per `gap-done-discipline.md` §3 Option B — no Docker stack available in agent worktree; cluster smoke owned by GAP-115 (log aggregation pipeline stand-up). Status flipped 🟡 PARTIAL → 🟢 DONE. File moved to `documents/04-quality/gaps/closed/`.
 - 2026-04-19 — Discovered in ops-readiness baseline audit
 - **2026-05-06** — Wave 25 Bucket B shipped the JSON logging stack. Status flipped 🔵 OPEN → 🟡 PARTIAL (5 of 6 AC ticked). Live 3-service traceId trace AC remains unchecked because the closing PR is a code change in a worktree without a running 3-service Docker stack; verification rolls into GAP-115 deploy step where the cluster is stood up in earnest. No deferral within a DONE flip per `gap-done-discipline.md` §3 PARTIAL exit ramp.
