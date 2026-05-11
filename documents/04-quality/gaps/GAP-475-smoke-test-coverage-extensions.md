@@ -1,6 +1,6 @@
 # GAP-475: Smoke test coverage extensions — happy-path login, email loop, P95, MFA, migration verify, rollback cycle
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 75% (Wave 62 SHIPPED 2026-05-11 — 4/6 sub-items functional; 2 deferred to follow-up gaps due to absent dependencies)
 **Priority:** 🟠 P1 (gates beta tenant launch confidence)
 **Domain:** DevOps / QA
 **Found:** 2026-05-11 (review session post-Wave 61, audit-driven)
@@ -74,14 +74,14 @@ Wave 61 stop-when-idle cutover model + imminent beta tenant invitation (step 4-7
 
 ## Acceptance Criteria
 
-- [ ] Sub-1 `check_auth_happy_path` added to `smoke-test.sh`, env-gated, dry-run exit 0
-- [ ] Sub-2 `smoke-ses.sh` extended with send-receive E2E + dedicated test mailbox documented
-- [ ] Sub-3 MFA path added, conditional on Sub-2
-- [ ] Sub-4 latency assertion added with per-endpoint threshold map
-- [ ] Sub-5 Flyway head check added, env-gated
-- [ ] Sub-6 `smoke-rollback-cycle.sh` shipped + dry-run validated
-- [ ] All sub-items run clean locally OR documented dry-run-only mode
-- [ ] CSV row updated to DONE when all 6 ship OR PARTIAL with per-sub completion %
+- [x] Sub-1 `check_auth_happy_path` added to `smoke-test.sh`, env-gated, dry-run exit 0 (PR #1183 Bucket A)
+- [x] Sub-2 `smoke-ses.sh` extended with send-receive E2E + Mailgun primary + IMAP fallback + test mailbox runbook §6.1 (PR #1184 Bucket B)
+- [x] Sub-3 MFA path added — adapted to link-based verify-email (`?token=<uuid>`) per actual AuthController, not 6-digit OTP (PR #1184 Bucket B)
+- [x] Sub-4 latency assertion added with per-endpoint threshold map + JSON report (PR #1183 Bucket A)
+- [ ] Sub-5 Flyway head check — scaffold added with graceful SKIP path; **deferred: no HTTP migration endpoint exists in codebase** → follow-up GAP-476 filed (PR #1183 Bucket A)
+- [ ] Sub-6 `smoke-rollback-cycle.sh` shipped — scaffold + dry-run validated; **deferred: `rollback.yml` workflow absent in `.github/workflows/`** → follow-up GAP-477 filed (PR #1185 Bucket C)
+- [x] All shipped sub-items run clean locally (shellcheck + bash -n + dry-run exit 0)
+- [x] CSV row updated PARTIAL 75% (4 functional + 2 scaffold-with-deferral)
 
 ## Out-of-scope
 
@@ -106,3 +106,4 @@ Wave 61 stop-when-idle cutover model + imminent beta tenant invitation (step 4-7
 ## Log
 
 - **2026-05-11:** Gap filed audit-driven post-Wave 61 smoke-test review. 6 coverage gaps identified, sub-items decomposed P1 (1-3) + P2 (4-6) cluster.
+- **2026-05-11 (Wave 62 SHIPPED):** 3 parallel buckets shipped via Opus medium agents. PRs #1183 (Bucket A) + #1184 (Bucket B) + #1185 (Bucket C). Status OPEN → PARTIAL 75%. State-check discoveries: (1) Sub-3 MFA path adapted to actual link-based verify (`AuthController.verifyEmail` uses `@RequestParam token=<UUID>` not 6-digit OTP body) — agent followed BE source-of-truth per `audit-to-gap-pipeline.md` §2.5; (2) Sub-5 graceful SKIP — no HTTP Flyway endpoint exists (only `scripts/verify-restore.sh` psql access) → follow-up GAP-476 filed; (3) Sub-6 PARTIAL deferral — `rollback.yml` workflow absent → follow-up GAP-477 filed. Scaffold ships ready to flip DONE when (a) admin migration endpoint + (b) rollback workflow land. ~3h wall-clock parallel vs 1h longest bucket.

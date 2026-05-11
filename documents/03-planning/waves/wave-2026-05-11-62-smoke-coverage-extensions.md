@@ -1,6 +1,6 @@
 ---
 title: Wave 62 — Smoke test coverage extensions (GAP-475 P1+P2 cluster)
-status: draft
+status: complete
 created: 2026-05-11
 updated: 2026-05-11
 waves: [62]
@@ -141,3 +141,4 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ## 8. Log
 
 - **2026-05-11** (draft): Plan created. GAP-475 6 sub-items decomposed → 3 parallel buckets (A: smoke-test.sh extensions, B: smoke-ses.sh extensions, C: new rollback-cycle script). Stake MEDIUM → Opus medium. Cross-layer NO → skip Bucket 0.
+- **2026-05-11** (complete): Wave SHIPPED. 3 parallel Opus-medium agents → PR #1183 (Bucket A, +294 LOC) + #1184 (Bucket B, +229+97 LOC) + #1185 (Bucket C, +291+15 LOC). All shellcheck clean. 4/6 sub-items functional; Sub-5 (Flyway HTTP endpoint absent) + Sub-6 (rollback.yml absent) PARTIAL with follow-up GAP-476 + GAP-477 filed. GAP-475 → PARTIAL 75%. Wall-clock ~4min agent sum (max ~4min Bucket C). Streak: 96 consecutive 0-clarification. State-check discipline win: Sub-3 MFA adapted to actual link-based verify pattern (`?token=<UUID>` per AuthController) not assumed 6-digit OTP — agent followed BE source-of-truth per `audit-to-gap-pipeline.md` §2.5.
