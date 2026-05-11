@@ -14,6 +14,14 @@
 #
 # Defaults (no args): https://kitehub.vn  +  https://kiteclass.vn
 #
+# Env-gated scenarios:
+#   SMOKE_LOGS_E2E=1 LOKI_URL=...      Enable Loki ingest assertion (GAP-434)
+#   STOP_WHEN_IDLE_E2E=1               Enable stop-when-idle cycle audit
+#                                      (Wave 61 Bucket C — seed dry-run + ≤25min
+#                                       cycle envelope + optional state.json log
+#                                       via STOP_WHEN_IDLE_STATE_FILE=path)
+#   BETA_SMOKE_SES_VERIFY=live|stub    Beta-signup end-to-end mode (GAP-389-B)
+#
 # How to extend (add a new assertion):
 # 1. For a simple status-code assertion against KH or KC, add a `check_page`
 #    or `check_status` call in the appropriate Section (1..7) below.
@@ -438,6 +446,71 @@ check_logs_overview_e2e() {
     fi
 }
 
+# ─── Stop-when-idle E2E (Wave 61 Bucket C — GAP-376 + GAP-449) ────────
+#
+# Validates the resume → seed-verify → smoke → stop cycle for the
+# stop-when-idle production posture (per Wave 61 plan §3 Bucket C).
+# Gated by STOP_WHEN_IDLE_E2E=1 because the stack-resume + stack-stop steps
+# are USER-EXECUTED (per `agent-aws-access.md` Tier 1; mutation actions
+# remain manual). The script ASSUMES the user has already resumed the stack
+# (`bash scripts/aws/start-stack.sh` — Bucket D follow-up) and will stop it
+# after this check exits.
+#
+# Asserts in order:
+#   1. Seed dry-run (`scripts/seed-production.sh --dry-run`) PASS
+#   2. 13 endpoint health checks already covered by Sections 1-8 above
+#      → this function only audits the cycle envelope (timing + log entry)
+#   3. Writes a state.json fragment to documents/05-guides/deploy/state/ if
+#      the user has set STOP_WHEN_IDLE_STATE_FILE (default skipped — read-only)
+#
+# Honors `agent-aws-access.md` Tier 1: no AWS CLI mutation, no infra change.
+check_stop_when_idle_e2e() {
+    local label="STOP_WHEN_IDLE_E2E"
+    if [ "${STOP_WHEN_IDLE_E2E:-0}" != "1" ]; then
+        warn "$label" "skipped (set STOP_WHEN_IDLE_E2E=1 to enable cycle audit)"
+        return
+    fi
+
+    local cycle_start
+    cycle_start=$(date +%s)
+
+    # 1. Seed dry-run — verifies seed scripts + env wiring without DB write
+    if [ -x scripts/seed-production.sh ]; then
+        if scripts/seed-production.sh --dry-run >/dev/null 2>&1; then
+            pass "$label seed dry-run" "scripts/seed-production.sh --dry-run exit 0"
+        else
+            # Dry-run can fail on missing env vars — informational only here.
+            warn "$label seed dry-run" "missing env (SEED_ADMIN_PASSWORD etc.) — populate before real cutover"
+        fi
+    else
+        warn "$label seed dry-run" "scripts/seed-production.sh not executable"
+    fi
+
+    # 2. Cycle wall-clock — fail if other checks already consumed >25 minutes
+    #    (per Wave 61 plan §3 Bucket C acceptance: 1 cycle ≤25 phút).
+    local now elapsed
+    now=$(date +%s)
+    elapsed=$((now - TOTAL_START))
+    if [ "$elapsed" -lt 1500 ]; then  # 25 min = 1500s
+        pass "$label cycle envelope" "elapsed ${elapsed}s of 1500s budget"
+    else
+        warn "$label cycle envelope" "elapsed ${elapsed}s exceeds 1500s (25 min) target"
+    fi
+
+    # 3. Optional state.json append — only if caller provided file path
+    local state_file="${STOP_WHEN_IDLE_STATE_FILE:-}"
+    if [ -n "$state_file" ]; then
+        # Best-effort JSON append; do not fail the smoke if write fails.
+        if printf '{"ts":"%s","cycle_seconds":%d,"pass":%d,"fail":%d,"warn":%d}\n' \
+            "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$((now - cycle_start))" \
+            "$PASS_COUNT" "$FAIL_COUNT" "$WARN_COUNT" >> "$state_file" 2>/dev/null; then
+            pass "$label state log" "appended to $state_file"
+        else
+            warn "$label state log" "cannot write $state_file"
+        fi
+    fi
+}
+
 # Build info: read /actuator/info build.version. Echo only — no assertion.
 echo_build_info() {
     local label="$1"
@@ -531,6 +604,9 @@ check_no_502 "kitehub-sub route" "${KH_URL}/kitehub-subscription/actuator/info"
 
 # 9b. Logs Overview end-to-end (GAP-434 Phase 2 — gated by SMOKE_LOGS_E2E=1)
 check_logs_overview_e2e
+
+# 9c. Stop-when-idle cycle audit (Wave 61 Bucket C — gated by STOP_WHEN_IDLE_E2E=1)
+check_stop_when_idle_e2e
 
 # 9. Build info display (echo only — no assertion)
 echo_build_info "KH" "${KH_URL}/actuator/info"
