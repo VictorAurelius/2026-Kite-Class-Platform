@@ -28,14 +28,14 @@
 - **Streak:** 95 consecutive 0-clarification waves
 - **Cost validated:** Stack stays STOPPED Wave 61 design; ~$3-5/mo storage only
 
-**User-action gates còn lại để complete cutover:**
-1. Import Cloudflare Origin Cert vào AWS ACM ap-southeast-1
+**User-action gates còn lại để complete cutover** (CLI-first per `agent-action-bias.md` §1 Part B; Console chỉ khi không có CLI path):
+1. Import Cloudflare Origin Cert vào AWS ACM ap-southeast-1 — `aws acm import-certificate --region ap-southeast-1 --certificate fileb://cert.pem --private-key fileb://key.pem --certificate-chain fileb://chain.pem`
 2. Add ALB HTTPS:443 listener (qua workflow_dispatch terraform-apply.yml)
-3. SES Console verify domain `kitehub.me` + add SPF/DKIM/DMARC DNS records
-4. Submit SES production access form (paste template `email-ses-setup-runbook.md` §4.1.1)
-5. Run Path Y `tier-3-cutover.yml` workflow_dispatch + confirm "APPLY"
+3. SES verify domain `kitehub.me` + DKIM — `aws ses verify-domain-identity --region ap-southeast-1 --domain kitehub.me` + `aws ses verify-domain-dkim --region ap-southeast-1 --domain kitehub.me`; thêm DKIM CNAME + SPF/DMARC TXT vào Cloudflare DNS qua `wrangler` (xem `email-ses-setup-runbook.md` §3.2 cho payload)
+4. Submit SES production access form (paste template `email-ses-setup-runbook.md` §4.1.1) — **Console-only** (AWS không có API submit support case này) → `agent-action-bias.md` §3 exception row 1
+5. Run Path Y `tier-3-cutover.yml` workflow_dispatch + confirm "APPLY" — `gh workflow run tier-3-cutover.yml -f confirm=APPLY`
 6. Resume stack (`bash scripts/aws/start-stack.sh`) → run `seed-production.sh` → smoke
-7. Wait 24-48h SES approval → final smoke
+7. Wait 24-48h SES approval → final smoke (`bash scripts/smoke-ses.sh`)
 
 **Phase 1 BETA critical-path tracker (post Wave 61):**
 
