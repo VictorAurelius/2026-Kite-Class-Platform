@@ -1,4 +1,4 @@
-name: Script Quality (ShellCheck + Ruff + Rule Frontmatter + Skill Conventions + README Freshness + Alert Runbook URL + Helm Lint)
+name: Script Quality (ShellCheck + Ruff + Rule Frontmatter + Skill Conventions + README Freshness + Alert Runbook URL + Helm Lint + Gap Status CSV)
 
 # Closes GAP-194 — CI enforcement of script standard defined in
 # `.claude/skills/quality/script-review/SKILL.md` + `output-review-mandate.md` §5.5.
@@ -45,6 +45,9 @@ on:
       - 'scripts/fixtures/alert-runbook-url/**'
       - 'infrastructure/helm/**'
       - 'scripts/check-helm-lint.sh'
+      - 'documents/04-quality/gaps/**'
+      - 'scripts/check-gap-status-csv.sh'
+      - 'scripts/migrate-gaps-to-csv.py'
 
 permissions:
   contents: read
@@ -337,3 +340,21 @@ jobs:
           # Workflow paths filter restricts this job to PRs touching
           # infrastructure/helm/** or the validator script.
           bash scripts/check-helm-lint.sh
+
+  gap-status-csv:
+    name: Gap status CSV (`documents/04-quality/gaps/gap-status.csv`)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate gap-status.csv (Phase 2 — 100% coverage)
+        run: |
+          # Phase 2 mode: every active gap file MUST have a CSV row, and every
+          # CSV row MUST point to an existing gap file. CSV is canonical for
+          # status / priority / phase / completion_pct per
+          # `.claude/rules/gap-architecture-v2.md`.
+          bash scripts/check-gap-status-csv.sh
