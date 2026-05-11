@@ -175,7 +175,7 @@ Sau khi xong tất cả §2:
 
 ## 6. Cross-link
 
-- `documents/05-guides/operations/secrets-management-runbook.md` — assumes admin IAM user + CLI ready
+- `documents/05-guides/deploy/secrets-seeding-runbook.md` — assumes admin IAM user + CLI ready (first-time seed); rotation runbook lives in `documents/05-guides/operations/secrets-rotation-runbook.md`
 - `documents/05-guides/deploy/email-ses-setup-runbook.md` — needs SES domain verification post §2.1
 - `documents/02-architecture/adr/ADR-025-aws-singapore-free-tier.md` — region rationale
 - `02-domain-registrar.md` — domain → SES domain identity → MX records (Bước 5 dns-setup-runbook)

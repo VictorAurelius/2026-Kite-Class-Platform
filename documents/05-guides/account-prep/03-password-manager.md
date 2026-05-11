@@ -256,7 +256,7 @@ Phase 1 BETA solo dev: **optional**. TOTP TOTP đủ baseline. Recommend procure
 - `01-aws-account-creation.md` — credentials populated từ §2.5/2.6/2.7
 - `02-domain-registrar.md` — registrar credentials populated từ §2.1
 - `04-kitehub-superadmin-first-login.md` — superadmin@kitehub.vn entry tạo trước first-login
-- `documents/05-guides/operations/secrets-management-runbook.md` — architectural side; rotation procedure
+- `documents/05-guides/operations/secrets-rotation-runbook.md` — architectural side; rotation procedure (seed-time provisioning lives in `documents/05-guides/deploy/secrets-seeding-runbook.md`)
 - OWASP ASVS V2 — credential storage standard
 - NIST SP 800-63B — passphrase length recommendation
 

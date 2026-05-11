@@ -134,7 +134,7 @@ Example applications:
 
 **Other drift candidates** (post-cleanup state):
 - ✅ `operations/dns-setup-runbook.md` → `deploy/dns-setup-runbook.md` (cleanup PR 2026-05-08)
-- ⏳ `operations/secrets-management-runbook.md` — split deferred to GAP-452 (substantive editorial: extract §3 Provisioning into new `deploy/secrets-seeding-runbook.md`, current file renamed to `operations/secrets-rotation-runbook.md`). File covers both seeding (§3 + §4) and rotation (§5+) — left as-is pending split.
+- ✅ `operations/secrets-management-runbook.md` split — GAP-452 closure 2026-05-11. §3 Provisioning + §9 first-time AC extracted to `deploy/secrets-seeding-runbook.md`; remainder renamed to `operations/secrets-rotation-runbook.md` với rotation-focused §9 AC. Both files cross-link in §1.
 - ✅ `deploy/terraform-apply-bootstrap.md` → `deploy/terraform-apply-bootstrap-runbook.md` (cleanup PR 2026-05-08)
 
 **Self-test verdict:** rule fires correctly + identifies all 4 drift candidates surfaced by parallel agents. ✅

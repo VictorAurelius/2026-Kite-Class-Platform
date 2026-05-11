@@ -1,8 +1,26 @@
-# Secrets Management Runbook — AWS Secrets Manager + Rotation
+# Secrets Rotation Runbook — AWS Secrets Manager (ongoing operations)
 
-**Audience:** SRE / DevOps provisioning secrets cho production / beta deploy.
-**Closes (PARTIAL):** GAP-379 — runbook artifact. AWS Secrets Manager provisioning + rotation Lambda setup are user steps, not auto-runnable.
-**Standards:** AWS Well-Architected (Security pillar) · NIST SP 800-53 Rev 5 (SC-12 Cryptographic Key Management) · Twelve-Factor (config in env) · `.claude/rules/release-deploy-standard.md` §3.1 · Luật An ninh mạng 2018 + ND 53/2022/NĐ-CP (data localization → choose `ap-southeast-1` Singapore region).
+**Audience:** SRE / DevOps thực hiện routine rotation, audit, emergency-rotate procedures. Đây là recurring artifact (cadence-driven hoặc incident-driven).
+**Sister runbook:** first-time seeding during release deploy lives in `documents/05-guides/deploy/secrets-seeding-runbook.md`.
+**Closes (PARTIAL):** GAP-379 — runbook artifact (rotation/audit slice). Lambda automated rotation tracked separately.
+**Standards:** AWS Well-Architected (Security pillar) · NIST SP 800-53 Rev 5 (SC-12 Cryptographic Key Management) · Twelve-Factor (config in env) · `.claude/rules/release-deploy-standard.md` §3.1 · Luật An ninh mạng 2018 + ND 53/2022/NĐ-CP (data localization → `ap-southeast-1` Singapore region).
+**Naming:** Per `.claude/rules/deployment-naming-convention.md` §2 — recurring ops artifacts live in `operations/`.
+
+---
+
+## 0. Audience + scope
+
+This runbook covers **ongoing rotation, audit, and emergency-rotate procedures** — recurring per cadence hoặc incident-driven. Cho first-time provisioning trong release deploy, xem **`documents/05-guides/deploy/secrets-seeding-runbook.md`**.
+
+Use this runbook when:
+- Quarterly / cadence-driven rotation per inventory (§2)
+- Emergency rotation on suspected compromise (§5.3)
+- Quarterly audit + compliance review (§6.3)
+- Configuring Spring Boot service to consume rotated secrets (§7)
+
+Do NOT use this runbook for:
+- First-time secret seeding on a fresh AWS environment (→ seeding runbook)
+- New secret added to inventory (→ seeding runbook §4 first, then return here for rotation cadence)
 
 ---
 
@@ -62,70 +80,9 @@ Phase 1.5 PAID adds:
 
 ---
 
-## 3. Provisioning — first-time setup
+## 3. Provisioning (first-time seed) — moved
 
-### 3.1 Create secrets via Terraform (preferred)
-
-`infrastructure/terraform-aws/secrets.tf` already declares some secrets. Extend per inventory §2:
-
-```hcl
-# Example — extend secrets.tf
-resource "aws_secretsmanager_secret" "ses_smtp" {
-  name                    = "${var.project_name}/${var.environment}/ses-smtp-credentials"
-  recovery_window_in_days = 7
-  tags                    = { Name = "SES SMTP Credentials" }
-}
-
-resource "aws_secretsmanager_secret_version" "ses_smtp" {
-  secret_id     = aws_secretsmanager_secret.ses_smtp.id
-  secret_string = jsonencode({
-    smtp_username = "[USER_INPUT_REQUIRED: SES_SMTP_USERNAME]"
-    smtp_password = "[USER_INPUT_REQUIRED: SES_SMTP_PASSWORD]"
-  })
-  lifecycle {
-    ignore_changes = [secret_string]  # Manual updates after first apply
-  }
-}
-```
-
-Apply:
-```bash
-cd infrastructure/terraform-aws
-terraform plan -out tfplan
-# Review tfplan → confirm only "create" not "destroy" for any existing secret
-terraform apply tfplan
-```
-
-### 3.2 Manual seed of secret values (one-time)
-
-After `terraform apply` creates the empty secret resource, populate value:
-
-```bash
-aws secretsmanager put-secret-value \
-  --region ap-southeast-1 \
-  --secret-id kitehub/production/openai-api-key \
-  --secret-string "sk-[USER_INPUT_REQUIRED]"
-```
-
-**Never commit real secret values to git.** Use 1Password / Bitwarden / company password manager as offline source-of-truth, sync to Secrets Manager via `put-secret-value`.
-
-### 3.3 Generated random secrets (preferred for DB passwords / JWT)
-
-`secrets.tf` already has the pattern:
-
-```hcl
-resource "random_password" "jwt" {
-  length  = 64
-  special = false
-}
-
-resource "aws_secretsmanager_secret_version" "jwt" {
-  secret_id     = aws_secretsmanager_secret.jwt.id
-  secret_string = random_password.jwt.result
-}
-```
-
-Reuse for new secrets where the value can be machine-generated (DB master password, encryption key).
+First-time secrets seeding (Terraform create, manual `put-secret-value`, random_password pattern) is documented in **`documents/05-guides/deploy/secrets-seeding-runbook.md` §4**. Đó là one-time per environment artifact; rotation runbook này focuses on ongoing operations.
 
 ---
 
@@ -319,13 +276,16 @@ Vault self-hosted alternative: $0 software cost + ~$30/mo Oracle VM = $30/mo + m
 
 ---
 
-## 9. Acceptance — when this runbook is "verified"
+## 9. Acceptance — rotation cadence verification
 
-- [ ] Inventory §2 secrets all created via Terraform on production AWS account
-- [ ] IAM policy §4 applied per service (least-privilege verified)
-- [ ] CloudTrail logs `GetSecretValue` for at least 1 production service start
-- [ ] Manual DB password rotation §5.1 dry-run on staging — zero downtime confirmed
-- [ ] Documented `[USER_INPUT_REQUIRED]` placeholders all replaced với real values
+- [ ] Per-secret `Next rotate` date tracked (1Password vault note or terraform var) ≤ inventory §2 cadence
+- [ ] Manual DB password rotation §5.1 dry-run on staging — zero downtime confirmed at least quarterly
+- [ ] Emergency rotation §5.3 procedure tested annually on staging (table-top simulation OK)
+- [ ] CloudTrail `GetSecretValue` audit query §6.1 runs cleanly on production weekly
+- [ ] Quarterly audit §6.3 checklist completed; findings filed as gaps per `audit-to-gap-pipeline.md`
+- [ ] No secret past `Next rotate` date trong inventory
+
+First-time seeding AC lives in `deploy/secrets-seeding-runbook.md` §7.
 
 ---
 
@@ -345,18 +305,22 @@ Vault self-hosted alternative: $0 software cost + ~$30/mo Oracle VM = $30/mo + m
 
 ## 11. Related
 
-- `documents/05-guides/deploy/dns-setup-runbook.md` (sister runbook)
+- **Sister runbook:** `documents/05-guides/deploy/secrets-seeding-runbook.md` (first-time provisioning)
+- `documents/05-guides/deploy/dns-setup-runbook.md`
 - `documents/03-planning/roadmap/release-1-deploy-plan.md` (parent)
 - `infrastructure/terraform-aws/secrets.tf` (existing IaC)
 - `.env.production.template` (env vars consumed at boot)
 - `.claude/rules/logs-format-standard.md` (PII scrubbing — never log secret values)
 - `.claude/rules/release-deploy-standard.md` §3.1 Security
+- `.claude/rules/deployment-naming-convention.md` §2 + §8 (split mandate)
 - GAP-376 production seed admin password
 - GAP-370 SES setup (consumes `ses-smtp-credentials`)
 - GAP-371 Cloudflare setup (consumes `cloudflare-api-token`)
+- GAP-452 (split rationale + AC)
 
 ---
 
 ## 12. Log
 
+- **2026-05-11** Renamed from `secrets-management-runbook.md` per `.claude/rules/deployment-naming-convention.md` §8 split mandate. §3 Provisioning + first-time AC moved to `deploy/secrets-seeding-runbook.md`; §9 reframed as rotation cadence AC. Closes GAP-452.
 - **2026-05-07** Wave 33 Bucket D — runbook + IAM policy templates + rotation procedures shipped. GAP-379 stays 🟡 PARTIAL: AWS Secrets Manager populate + IAM policy apply on production AWS account are user steps (cannot run from CI).
