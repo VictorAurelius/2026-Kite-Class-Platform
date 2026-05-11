@@ -1,6 +1,6 @@
 # GAP-463: infrastructure/README.md sync với Phase 1 BETA reality
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-11
 **Priority:** 🟡 P2 (docs-only; new-contributor confusion risk)
 **Domain:** Documentation / Infrastructure
 **Found:** 2026-05-11 (user-flagged session — infra deployment understanding question)
@@ -51,11 +51,11 @@ Add section explaining:
 
 ## Acceptance Criteria
 
-- [ ] `infrastructure/README.md` Directory Map updated
-- [ ] "Phase 1 BETA active vs Phase 1.5+ future" section added
-- [ ] terraform-oracle reference removed
-- [ ] EKS reference clarified as future-target not current
-- [ ] Cross-link added: ADR-025 + GAP-415 + `aws-architecture-sizing-matrix.md`
+- [x] `infrastructure/README.md` Directory Map updated
+- [x] "Phase 1 BETA active vs Phase 1.5+ future" section added
+- [x] terraform-oracle reference removed (correctly framed as archived)
+- [x] EKS reference clarified as future-target (Phase 1.5+ dormant), Phase 1 BETA = EC2 docker-compose per ADR-025
+- [x] Cross-link added: ADR-025 + ADR-028 (draft) + GAP-415 + related rules
 
 ## Related
 
@@ -67,3 +67,4 @@ Add section explaining:
 ## Log
 
 - **2026-05-11**: Filed user-flagged via session question "tại sao có EKS và K8s trong infra?" — README inconsistency surfaced. Per `feedback_post_merge_doc_sync.md` + `incident-to-rule-pipeline.md` Stage 3: this is README drift incident; fix inline trong follow-up wave/PR.
+- **2026-05-11 (Wave 58 Bucket B)**: `infrastructure/README.md` synced với Phase 1 BETA reality. 4 user-flagged issues addressed: (1) `terraform-oracle/` correctly framed as ARCHIVED → `documents/07-archived/oracle-deploy-2026/` per ADR-025, (2) EKS misleading hint removed — Phase 1 BETA = EC2 docker-compose Architecture B (NOT EKS), (3) `helm/` + `k8s/` framed as ⏳ DORMANT Phase 1.5+ migration target, (4) Cross-links added ADR-025 + ADR-028 (draft) + ADR-015 + 6 related rules. Status matrix table added. Status: 🔵 OPEN → 🟢 DONE.
