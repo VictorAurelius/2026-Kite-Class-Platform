@@ -8,9 +8,17 @@ resource "aws_db_subnet_group" "main" {
   tags       = { Name = "${var.project_name}-db-subnet" }
 }
 
+# GAP-450 Option B: lifecycle ignore_changes prevents recurring drift on `result`
+# attribute. Auto-regenerate-on-plan would silently rotate RDS master password =
+# kh_backend kết nối DB hỏng. Rotation manual qua documents/05-guides/operations/secrets-rotation-runbook.md §5.1.
+# Option A (state rm + import current value) tracked in
+# documents/05-guides/operations/terraform-state-import-runbook.md.
 resource "random_password" "rds" {
   length  = 32
   special = false
+  lifecycle {
+    ignore_changes = [result, length, special, lower, upper, numeric, min_lower, min_upper, min_numeric, min_special, override_special, keepers]
+  }
 }
 
 resource "aws_db_instance" "main" {
