@@ -8,26 +8,99 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-11)
+## 🎯 Current Status Snapshot (2026-05-11 — gap-architecture-v2 + legal-defer landed)
 
 ### 🚀 Next Action (signpost cho new session)
 
-**Session 2026-05-11 Wave 57 + 58 + 59 SHIPPED + post-wave cleanup (PRs #1150/#1151/+ this DONE flip):**
+**Session 2026-05-11 — Gap Architecture v2 hardened + Legal scope cut (5 PRs):**
 
-📌 **PICK-UP SIGNAL FOR NEW SESSION:**
-- **Security GREEN as of 2026-05-11 04:50 UTC** — all 3 outstanding code-scanning alerts (#60 HIGH postgresql, #57 MED commons-lang3, #163 HIGH netty epoll) auto-closed `state:fixed` post PR #1150 (sister fix adding explicit `<dependencyManagement>` entries cho postgresql + commons-lang3). Root cause của "Sister cleanup pending" thread: Spring Boot 3.5.14 BOM hard-pins postgresql + commons-lang3 không qua property substitution → property override alone không thắng → cần explicit `<dependency>` entries (cùng pattern bcprov-jdk18on đã dùng). KHÔNG phải SARIF upload issue.
-- **GAP-468 + GAP-470 🟢 DONE** post PR #1150 verification + DONE flip PR (this session).
-- **GAP-452 🟢 DONE** (PR #1151) — secrets-management runbook split → `deploy/secrets-seeding-runbook.md` + `operations/secrets-rotation-runbook.md`. `deployment-naming-convention.md` §6 row ⏳ → ✅ DONE.
-- **Wave 59 PR #1148 MERGED 03:58 UTC** — GAP-470 netty 4.1.133 → 4.2.13.Final bump across **3 standalone Spring Boot parents** (kitehub + kiteclass-core + **kiteclass-gateway** — state-check initially missed gateway; corrected mid-PR). Local verify: kitehub 30 tests + kiteclass-core 1398 tests + both gateways `clean verify -P strict-warnings` + jacoco — all GREEN.
-- **Wave 57 SHIPPED** (PRs #1133/1135/1136/1137/1138/1139) — helm Go-template extract + 9 HIGH CVE explicit overrides + RLS perf baseline. GAP-467 🟢 DONE (Wave 58 closure); GAP-468 🟢 DONE (this session); GAP-469 🟡 PARTIAL (staging exec deferred step 4 cutover).
-- **Wave 58 SHIPPED** (PRs #1140/1141/1142/1143 + closure) — helm CI guard + infrastructure README sync + ADR-028 ECS Fargate vs EKS ACCEPTED. GAP-463/464/467 🟢 DONE.
-- **Phase 1 BETA critical-path step 2.5 stays 🟡 PARTIAL** — RLS hardening (Wave 56) + perf methodology (Wave 57 C) shipped; staging exec deferred step 4 cutover.
-- **Phase 1 BETA pre-launch cleanup queue: empty** — Wave 56/57/58/59 + post-wave cleanup PRs closed all known follow-up backlog.
-- **Wave 60 candidates:** (a) ~~verify alerts~~ DONE; (b) ~~GAP-468 + GAP-470 DONE flip~~ DONE; (c) step 4 Tier 3 cutover prep (gated AWS Activate D+14 ~2026-05-23); (d) ~~stale local branch prune~~ DONE (24 pruned 2026-05-11); (e) GAP-073 RTBF Phase 2 (Phase 1.5 scope per release-1-plan-2026 line 323); (f) ~~GAP-450 terraform drift~~ DONE 2026-05-11 (Option B PR #1154 + empirical investigation found state already in-sync, Option A skipped). **Infra state (2026-05-11 08:25 post GAP-450 investigation):** EC2 `kitehub-kh-backend` + `kitehub-kc-app` + RDS `kitehub-postgres` STOPPED — user explicitly stop for maintenance, scheduler `start_weekday_morning_ec2` sẽ auto-resume. ROADMAP 2026-05-09 snapshot stale (some auto-start happened between snapshots).
-- **Streak: 94** consecutive 0-clarification waves (Wave 57 + 58 + 59 all first-spawn 0-clarif).
-- **No agents in flight; 0 worktree husks; coordinator clean.**
+📌 **PICK-UP SIGNAL CHO SESSION MỚI:**
 
-**Session work summary:**
+**A. Hạ tầng quản lý gap (gap-architecture-v2.md v1.0.0 → v1.0.3):**
+- **#1161** Phase 2 bulk migration — `gap-status.csv` 5→289 rows (100% coverage active gaps)
+- **#1162** Phase 4 `collect-state.sh` query CSV + surface "Phase 1 BETA P0 count" mỗi session start
+- **#1163** Phase 2.1 auto-fill (27 reclassifications) + audit-pipeline §2.8 step 0 CSV query + wave-plan template gap-ref convention
+- **#1164** 3-agent staleness audit của 88 gap → 44 CSV updates (34 phase reclass + 3 WONTFIX + 7 completion refine)
+- **#1165** Legal scope-cut — 29 gap moved to `pending/` folder (PDPL + Luật Trẻ em + Giáo dục + Tax + Lao động)
+
+**B. CSV distribution sau session:**
+| Status | Count |
+|---|---|
+| OPEN | 166 |
+| PARTIAL | 86 |
+| **PENDING** (legal defer) | **29** |
+| IN_PROGRESS | 3 |
+| WONTFIX | 3 |
+| PLANNED | 2 |
+| **Tổng** | **289** |
+
+**C. Quyết định lớn — Legal defer (2026-05-11):**
+
+Solo-dev chốt: KiteClass **không làm compliance pháp lý toàn diện** trong Phase 1 BETA + Phase 1.5 PAID. 29 gap legal → `documents/04-quality/gaps/pending/` (xem `pending/README.md`). Hệ quả:
+- PDPL hạn 2026-07-01 **chấp nhận risk** — beta cohort được brief "v1 pending counsel review"
+- Không onboard tenant K-12 trong Phase 1 BETA + 1.5 (gating)
+- Re-eval triggers: legal counsel engaged / first commercial tenant / first K-12 request / regulator inquiry / Phase 2 ramp / Phase 3 K-12
+
+**D. Phase 1 BETA critical path còn lại (post-legal-defer):**
+
+| Cluster | Gap | Trạng thái | Wave đề xuất |
+|---|---|---|---|
+| **Cutover AWS Activate D+14** | GAP-369 DNS, GAP-370 SES, GAP-376 seed, GAP-398 docker, GAP-399 ECR, GAP-412 Activate, GAP-447 EC2 right-size | 7 P0 PARTIAL chờ AWS Activate ~2026-05-23 | **Wave 61** |
+| **P0 hardening pre-cutover** | GAP-406 pen-test OWASP, GAP-430 backup metric, GAP-114 logging verify (90%) | 3 P0 ship được ngay | **Wave 60** |
+| **FE UX P0** | GAP-137 bulk import frontend UI | 1 P0 — 1-2 ngày FE work | **Wave 60** |
+| **AI MVP** | GAP-005 AI queue (Phase 1 MVP done, Phase 2 scale defer) | IN_PROGRESS 40% | Defer Phase 2 |
+| **Beta tenant onboarding** | GAP-371 CDN, GAP-379 secrets, GAP-380 staging, GAP-432 findAll, GAP-466 RLS, GAP-374 release CI, GAP-440 Spring Boot bump | 14 P1 PARTIAL | **Wave 62-63** |
+
+**E. Wave roadmap đến beta launch (4-6 tuần):**
+
+1. **Wave 60 — Pre-cutover P0 hardening** (1 tuần)
+   - GAP-430 backup alert metric fix
+   - GAP-406 pen-test OWASP Top 10 (manual, self-audit)
+   - GAP-114 logging 90% PARTIAL → DONE flip (per-gap §2 verify)
+   - GAP-137 bulk import frontend UI
+   - Cleanup: 6 FLIP-DONE candidates (GAP-033/049/050/102/112/116)
+
+2. **Wave 61 — AWS Activate D+14 Production Cutover** (gated 2026-05-23, ~1 tuần)
+   - Step 4 Tier 3 cutover: EC2/RDS resume + DNS bind + SES production approval
+   - GAP-369 + GAP-376 + GAP-370 production verify
+   - Post-deploy smoke + audit artifact
+
+3. **Wave 62 — Beta tenant onboarding readiness** (2-3 tuần)
+   - GAP-371 Cloudflare CDN
+   - GAP-379 secrets management
+   - GAP-380 staging parity
+   - GAP-432 findAll pagination
+   - GAP-466 RLS production hardening
+   - Beta cohort recruitment + invite flow
+
+4. **Wave 63 — Beta launch + stabilization** (2 tuần)
+   - Onboard 5-10 beta tenants
+   - 0 P0 incidents 2 tuần stabilization
+   - Quality audit /100 ≥80 maintained (currently 87)
+   - User feedback collection
+
+**F. Streak + housekeeping:**
+- Streak: 99 consecutive 0-clarification waves
+- No agents in flight; 0 worktree husks; coordinator clean
+- Local main synced với origin/main 2026-05-11 sau merge #1165
+
+**G. Infra state (live snapshot — cost-save mode):**
+- AWS account 906286017800 / ap-southeast-1
+- EC2 `kitehub-kh-backend` + `kitehub-kc-app`: STOPPED
+- RDS `kitehub-postgres`: STOPPED
+- ALB `kitehub-alb`: ACTIVE
+- CloudTrail `kitehub-main`: IsLogging:True
+- 0 alarms ALARM
+- Resume khi: beta onboard / smoke test pre-launch / Wave 61 cutover
+
+**Session work summary (2026-05-11 — Gap Architecture v2 + Legal defer):**
+
+**5 PRs shipped (5/5 squash-merge clean CI):**
+- **#1161** `feat(gaps)(phase-2)`: bulk migrate 289 active gap files to gap-status.csv
+- **#1162** `feat(start-session)`: query gap-status.csv for blockers + Phase 1 BETA P0 count
+- **#1163** `feat(gaps)(phase-2.1+4)`: richer phase inference + audit-pipeline CSV note + wave template
+- **#1164** `chore(gaps)(audit-2026-05-11)`: apply 44 CSV reclassifications from 3-agent staleness audit
+- **#1165** `chore(gaps)(pending-legal)`: defer 29 legal/compliance gaps — solo-dev scope cut
 
 **Wave 55 SHIPPED — Production Observability (6 PRs):**
 - #1118 plan; #1119 A GAP-434 Loki/Promtail Phase 2 🟡 PARTIAL; #1125 B GAP-112 distributed tracing 7 modules 🟡 PARTIAL; #1120 C GAP-144 alertmanager mock-fire 🟡 PARTIAL; #1121 side-discoveries (GAP-467 + GAP-468 filed); #1129 closure. Wall-clock ~95min coordinator (26× speedup vs 5-7 day estimate). Streak 90.
