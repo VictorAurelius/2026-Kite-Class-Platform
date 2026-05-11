@@ -12,16 +12,17 @@
 
 ### 🚀 Next Action (signpost cho new session)
 
-**Session 2026-05-11 Wave 57 + Wave 58 SHIPPED back-to-back (10 PRs total: 2 plans + 2 closures + 6 bucket-PRs):**
+**Session 2026-05-11 Wave 57 + 58 + 59 SHIPPED (Wave 59 single-PR cleanup, no wave-pack):**
 
 📌 **PICK-UP SIGNAL FOR NEW SESSION:**
-- **Wave 57 SHIPPED** (PRs #1133/1135/1136/1137/1138/1139) — helm Go-template extract (Bucket A) + 9 HIGH CVE explicit overrides (Bucket B) + RLS perf baseline methodology+harness+runbook (Bucket C) + inline @Transactional unused-import fix. GAP-467/468/469 → 🟡 PARTIAL.
-- **Wave 58 SHIPPED** (PRs #1140/1141/1142/1143 + closure pending) — helm CI guard (Bucket A) + infrastructure/README sync Phase 1 BETA reality (Bucket B) + ADR-028 ECS Fargate vs EKS ACCEPTED (Bucket C). GAP-467 final 🟢 DONE all 6 AC; GAP-463 🟢 DONE; GAP-464 🟢 DONE.
-- **Repo level partial graduation** — code-scan HIGH 9 → **2** post Docker rebuild (Wave 57 CVE fix effective; ~78% reduction). 2 residual HIGH need Wave 59 investigation (`gh api /repos/.../code-scanning/alerts?state=open&severity=error`).
+- **Wave 59 PR #1148 MERGED 03:58 UTC** — GAP-470 netty 4.1.133 → 4.2.13.Final bump across **3 standalone Spring Boot parents** (kitehub + kiteclass-core + **kiteclass-gateway** — state-check initially missed gateway; corrected mid-PR). Local verify: kitehub 30 tests + kiteclass-core 1398 tests + both gateways `clean verify -P strict-warnings` + jacoco — all GREEN. CI all backend gates ✅; only Vercel kiteclass deployment rate-limited (external, unrelated). GAP-470 → 🟡 PARTIAL (AC #1-5 done; #6 alert auto-dismiss pending Docker rebuild + scan).
+- **Sister cleanup pending:** alerts #57 (commons-lang3 medium) + #60 (postgresql 42.7.10 HIGH) still open despite Wave 57 pins resolving correctly via `mvn dependency:list` — suggests SARIF upload / scan-workflow issue. **Investigate if alerts don't auto-clear within 24h post-Docker rebuild.**
+- **Wave 57 SHIPPED** (PRs #1133/1135/1136/1137/1138/1139) — helm Go-template extract + 9 HIGH CVE explicit overrides + RLS perf baseline. GAP-467/468/469 → 🟡 PARTIAL.
+- **Wave 58 SHIPPED** (PRs #1140/1141/1142/1143 + closure) — helm CI guard + infrastructure README sync + ADR-028 ECS Fargate vs EKS ACCEPTED. GAP-467 final 🟢 DONE; GAP-463 🟢 DONE; GAP-464 🟢 DONE.
 - **Phase 1 BETA critical-path step 2.5 stays 🟡 PARTIAL** — RLS hardening (Wave 56) + perf methodology (Wave 57 C) shipped; staging exec deferred step 4 cutover.
-- **Phase 1 BETA pre-launch cleanup queue: empty** — Wave 56/57/58 closed all known follow-up backlog from Wave 55 side-discoveries + user 4-question review.
-- **Wave 59 candidates:** (a) identify + close 2 residual HIGH CVE (`gh api`); (b) ADR README index drift sweep (line 128 stale "Next free ID: ADR-026" — ADR-026/027/028 all shipped); (c) step 4 Tier 3 cutover prep (gated step 3 AWS Activate D+14 ~2026-05-25); (d) GAP-468 final 🟢 DONE flip after 2 residual HIGH closed.
-- **Streak: 93** consecutive 0-clarification waves (Wave 57 + 58 both first-spawn 0-clarif).
+- **Phase 1 BETA pre-launch cleanup queue: empty** — Wave 56/57/58/59 closed all known follow-up backlog.
+- **Wave 60 candidates:** (a) verify + auto-dismiss alerts #57/#60/#163 OR investigate SARIF upload chain if stuck; (b) GAP-468 + GAP-470 final 🟢 DONE flip after all HIGH cleared; (c) step 4 Tier 3 cutover prep (gated AWS Activate D+14 ~2026-05-25); (d) stale local branch prune (~10 squash-merged).
+- **Streak: 94** consecutive 0-clarification waves (Wave 57 + 58 + 59 all first-spawn 0-clarif).
 - **No agents in flight; 0 worktree husks; coordinator clean.**
 
 **Session work summary:**
