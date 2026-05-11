@@ -1,6 +1,6 @@
 ---
 title: Wave 57 — Follow-up cleanup wave-pack (helm-lint + CVE bump + RLS perf baseline)
-status: draft
+status: complete
 created: 2026-05-11
 updated: 2026-05-11
 waves: [57]

@@ -8,16 +8,18 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-10)
+## 🎯 Current Status Snapshot (2026-05-11)
 
 ### 🚀 Next Action (signpost cho new session)
 
-**Session 2026-05-11 post-Wave-56 handoff (10 PRs across Wave 55 + Wave 56; Wave 57 plan open):**
+**Session 2026-05-11 Wave 57 SHIPPED (5 PRs: plan + 4 buckets/fix merged):**
 
 📌 **PICK-UP SIGNAL FOR NEW SESSION:**
-- **Wave 57 plan PR #1133 OPEN** awaiting review/merge → after merge, spawn 3 background agents (Bucket A GAP-467 helm fix + Bucket B GAP-468 BOM bump + Bucket C GAP-469 RLS perf baseline)
-- **Closure goal:** repo level RED→GREEN (CVE) + Phase 1 BETA step 2.5 🟡→✅ DONE (RLS perf AC closed)
-- **No agents in flight; no worktrees active.** Clean checkpoint.
+- **Wave 57 SHIPPED** — all 3 buckets + inline fix landed (#1133 plan + #1135 unused-import fix + #1136 Bucket C perf methodology + #1137 Bucket B CVE overrides + #1138 Bucket A helm Go-template extract). All 3 gaps GAP-467/468/469 → 🟡 PARTIAL per `gap-done-discipline.md` §3 (no premature DONE).
+- **Repo level RED→GREEN graduation pending** Docker image rebuild via `docker-build-push.yml` + code-scanning rescan confirms 9 HIGH → 0 HIGH (GAP-468 final 🟢 DONE flip). Auto-trigger on next push to main; rescan ~10min.
+- **Phase 1 BETA critical-path step 2.5 stays 🟡 PARTIAL** — RLS defense-in-depth (Wave 56) + perf methodology (Wave 57 Bucket C Phase 1) shipped; full staging perf execution legitimately deferred to Phase 1 BETA cutover per `release-deploy-standard.md` §9 (post-deploy load test).
+- **Wave 58 candidates:** (a) verify GAP-468 final DONE flip post Docker rebuild rescan; (b) helm CI guard (GAP-467 AC #5 deferred); (c) step 4 Tier 3 cutover prep (gated step 3 AWS funding decision D+14 ~2026-05-25).
+- **No agents in flight; 0 worktree husks; coordinator clean.**
 
 **Session work summary:**
 
@@ -63,7 +65,7 @@
 |------|:------:|
 | 1. Phase 4 milestone audit | ✅ DONE (Wave 53+54: UI 111.7 + Quality 87 + Performance 81) |
 | 2. Production observability validation | 🟡 PARTIAL (Wave 55 SHIPPED 2026-05-11; chart-level + foundation DONE per PRs #1119 Loki / #1125 tracing / #1120 alertmanager; live-cluster validation gated step 4 first deploy) |
-| **2.5** Multi-tenant RLS hardening | 🟡 PARTIAL (Wave 56 SHIPPED 2026-05-11 PR #1131; 51 kc-core + 12 kh-sub tables RLS-enabled; perf baseline deferred GAP-469) |
+| **2.5** Multi-tenant RLS hardening | 🟡 PARTIAL (Wave 56 RLS defense-in-depth PR #1131 + Wave 57 Bucket C perf methodology PR #1136; full staging perf execution deferred to step 4 cutover per `release-deploy-standard.md` §9) |
 | 3. AWS funding decision | 🟡 RESUBMITTED 2026-05-11; pending D+14 (2026-05-25 reminder set) |
 | 4. Tier 3 cutover (api.kitehub.me HTTPS) | ⏳ runbook ready GAP-449; gated step 3 funding decision |
 | 5. Beta tenant onboarding (4-6 week beta period) | ⏳ gated step 4 + RLS hardening |
