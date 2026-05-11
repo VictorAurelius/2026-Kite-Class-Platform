@@ -8,9 +8,30 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-11 — Wave 60+61 SHIPPED same-session)
+## 🎯 Current Status Snapshot (2026-05-11 — Wave 60+61+62 SHIPPED same-day)
 
 ### 🚀 Next Action (signpost cho new session)
+
+**Wave 62 SHIPPED 2026-05-11 — Smoke test coverage extensions (GAP-475, 3 buckets, 4 PR gồm plan):**
+
+- **Bucket A GAP-475 Sub-1+4+5** → PR #1183 → 🟡 PARTIAL: `smoke-test.sh` +294 LOC; auth happy-path env-gated, latency report 10 endpoints, Flyway head graceful SKIP. Sub-5 deferred → **GAP-476 P2** filed (no HTTP migration endpoint in codebase).
+- **Bucket B GAP-475 Sub-2+3** → PR #1184 → 🟢 **2 sub DONE**: `smoke-ses.sh` +229 LOC + runbook §6.1 +97 LOC; Mailgun primary + IMAP fallback; MFA adapted to link-based `?token=<UUID>` (BE source-of-truth per `audit-to-gap-pipeline.md` §2.5).
+- **Bucket C GAP-475 Sub-6** → PR #1185 → 🟡 PARTIAL: `smoke-rollback-cycle.sh` +291 LOC + `incident-response-runbook.md` §8; default `--dry-run`; `rollback.yml` absent → **GAP-477 P1** filed (workflow_dispatch rollback workflow).
+- **GAP-475 status:** OPEN → PARTIAL 75% (4/6 sub functional; 2 deferred to GAP-476 + GAP-477).
+
+**Stats Wave 62:**
+- **0 gap DONE** (PARTIAL exit-ramp clean) · **2 sub DONE within GAP-475** (Sub-2 + Sub-3) · **2 new gap filed** (GAP-476 + GAP-477)
+- **Wall-clock:** ~4 phút coordinator (3 agents parallel, max ~4 min Bucket C)
+- **Speedup:** ~45× vs 3h serial estimate
+- **Streak:** 96 consecutive 0-clarification waves
+
+**Wave 63 candidates** (post-Wave 62):
+- (a) **GAP-477 rollback workflow** (P1) — workflow_dispatch + IAM role + dry-run validate → unblocks Sub-6 final DONE + production rollback readiness
+- (b) **GAP-476 migration endpoint** (P2) — Spring Boot Actuator Flyway expose + admin-auth → unblocks Sub-5 final DONE
+- (c) User finalize cutover gates per Wave 61 §🚀 (ACM + ALB HTTPS:443 + SES production approval) → invite first beta tenant
+- (d) Helm + k8s staleness audit (GAP-465)
+
+---
 
 **Wave 61 SHIPPED 2026-05-11 — Stop-when-idle cutover (5 buckets, 6 PR gồm plan + closure):**
 
