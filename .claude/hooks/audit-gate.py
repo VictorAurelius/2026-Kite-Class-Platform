@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 PostToolUse hook: PR lifecycle tracker + audit gate.
 
