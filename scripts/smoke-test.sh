@@ -511,6 +511,290 @@ check_stop_when_idle_e2e() {
     fi
 }
 
+# ─── Auth happy path (GAP-475 Sub-1 — Wave 62 Bucket A) ───────────────
+#
+# Env-gated end-to-end auth verification: POST login → extract Bearer →
+# GET protected endpoint → assert 200.
+#
+# Requires (set ALL three to enable):
+#   SMOKE_AUTH_E2E=1          Enable the check
+#   SMOKE_AUTH_USER=...       Pre-seeded test account email (KH)
+#   SMOKE_AUTH_PASS=...       Test account password
+#
+# When env vars are unset, function logs a single SKIP line and returns 0.
+# Endpoint shape verified 2026-05-11 via kitehub/scripts/test-api-e2e.sh:
+#   POST ${KH_URL}/api/auth/login  body {email, password}  -> 200 {accessToken, ...}
+#   GET  ${KH_URL}/api/platform/instances  Authorization: Bearer <jwt>  -> 200
+# Protected route chosen because it requires real JWT (returns 401 unauth).
+check_auth_happy_path() {
+    local label="AUTH_HAPPY_PATH"
+    if [ "${SMOKE_AUTH_E2E:-0}" != "1" ]; then
+        warn "$label" "skipped (set SMOKE_AUTH_E2E=1 + SMOKE_AUTH_USER + SMOKE_AUTH_PASS to enable)"
+        return
+    fi
+    local user="${SMOKE_AUTH_USER:-}"
+    local pass="${SMOKE_AUTH_PASS:-}"
+    if [ -z "$user" ] || [ -z "$pass" ]; then
+        fail "$label" "SMOKE_AUTH_E2E=1 but SMOKE_AUTH_USER/SMOKE_AUTH_PASS unset"
+        return
+    fi
+
+    # Step 1 — POST login
+    local login_url="${KH_URL}/api/auth/login"
+    local payload
+    payload=$(printf '{"email":"%s","password":"%s"}' "$user" "$pass")
+    local code
+    code=$(http_post "$login_url" "$payload" "application/json")
+    if [ "$code" = "000" ]; then
+        fail "$label login" "connection refused / timeout ($login_url)"
+        return
+    fi
+    if [ "$code" != "200" ]; then
+        fail "$label login" "HTTP ${code} (expected 200)"
+        return
+    fi
+    read_body
+
+    # Step 2 — Extract JWT (try accessToken first, then token)
+    local jwt=""
+    if command -v jq >/dev/null 2>&1; then
+        jwt=$(echo "$BODY" | jq -r '.accessToken // .token // empty' 2>/dev/null || echo "")
+    else
+        # Fallback grep — extract first matching token field value (non-greedy)
+        jwt=$(echo "$BODY" | grep -oE '"(accessToken|token)"[[:space:]]*:[[:space:]]*"[^"]+"' \
+            | head -1 \
+            | sed -E 's/.*"(accessToken|token)"[[:space:]]*:[[:space:]]*"([^"]+)"/\2/')
+    fi
+    if [ -z "$jwt" ]; then
+        fail "$label token-extract" "200 OK but no accessToken/token field in response body"
+        return
+    fi
+    pass "$label login" "200 OK, JWT extracted (${#jwt} chars)"
+
+    # Step 3 — GET protected endpoint with Bearer
+    local protected_url="${KH_URL}/api/platform/instances"
+    local protected_code
+    protected_code=$(curl -sS --max-time "$TIMEOUT" \
+        -H "Authorization: Bearer ${jwt}" \
+        -o "$BODY_FILE" -w '%{http_code}' \
+        "$protected_url" 2>/dev/null || echo "000")
+    case "$protected_code" in
+        200)
+            pass "$label protected GET" "200 OK (${protected_url})"
+            ;;
+        401|403)
+            fail "$label protected GET" "${protected_code} — JWT rejected (token/role issue)"
+            ;;
+        000)
+            fail "$label protected GET" "connection refused / timeout"
+            ;;
+        *)
+            warn "$label protected GET" "HTTP ${protected_code} (expected 200)"
+            ;;
+    esac
+}
+
+# ─── Latency thresholds (GAP-475 Sub-4 — Wave 62 Bucket A) ────────────
+#
+# Measure per-endpoint wall-clock latency via curl -w "%{time_total}".
+# Always writes JSON report to /tmp/smoke-latency-<epoch>.json + prints
+# summary table. By default the function only emits informational warns
+# above threshold; with SMOKE_LATENCY_ASSERT=1 it converts threshold
+# breaches into FAIL.
+#
+# Per-endpoint thresholds (ms):
+#   /actuator/health endpoints     ≤  500
+#   public API JSON endpoints      ≤ 1500
+#   FE landing / login / register  ≤ 2000
+check_latency_thresholds() {
+    local label="LATENCY"
+    local assert_mode="${SMOKE_LATENCY_ASSERT:-0}"
+
+    local epoch
+    epoch=$(date +%s)
+    local report="/tmp/smoke-latency-${epoch}.json"
+
+    # endpoint|category|threshold_ms
+    local endpoints=(
+        "${KC_URL}/kiteclass/actuator/health|health|500"
+        "${KH_URL}/kitehub-subscription/actuator/health|health|500"
+        "${KH_URL}/kitehub-branding/actuator/health|health|500"
+        "${KH_URL}/kitehub-email/actuator/health|health|500"
+        "${KH_URL}/api/health|api|1500"
+        "${KC_URL}/api/v1/public/courses|api|1500"
+        "${KC_URL}/api/v1/public/settings|api|1500"
+        "${KH_URL}/|page|2000"
+        "${KH_URL}/login|page|2000"
+        "${KH_URL}/register|page|2000"
+    )
+
+    : > "$report"
+    printf '[' >> "$report"
+    local first=1
+    local breach=0
+    local total=0
+
+    printf "  ${BOLD}Latency report:${NC}\n"
+
+    local entry url category threshold time_ms ok
+    for entry in "${endpoints[@]}"; do
+        url="${entry%%|*}"
+        local rest="${entry#*|}"
+        category="${rest%%|*}"
+        threshold="${rest##*|}"
+
+        # %{time_total} = total transfer seconds (float). Convert to ms.
+        local time_sec
+        time_sec=$(curl -sS --max-time "$TIMEOUT" -o /dev/null \
+            -w '%{time_total}' "$url" 2>/dev/null || echo "0")
+        if [ -z "$time_sec" ] || [ "$time_sec" = "0" ]; then
+            time_ms=0
+        else
+            time_ms=$(awk -v t="$time_sec" 'BEGIN{printf "%d", t * 1000}')
+        fi
+
+        if [ "$time_ms" -le "$threshold" ] && [ "$time_ms" -gt 0 ]; then
+            ok="true"
+        else
+            ok="false"
+            breach=$((breach + 1))
+        fi
+        total=$((total + 1))
+
+        # Comma separator between JSON objects
+        if [ "$first" -eq 1 ]; then
+            first=0
+        else
+            printf ',' >> "$report"
+        fi
+        printf '{"endpoint":"%s","category":"%s","time_ms":%d,"threshold_ms":%d,"pass":%s}' \
+            "$url" "$category" "$time_ms" "$threshold" "$ok" >> "$report"
+
+        # Print one row
+        local marker="OK  "
+        if [ "$ok" = "false" ]; then
+            marker="OVER"
+        fi
+        printf "    [%s] %5dms / %4dms  %s\n" "$marker" "$time_ms" "$threshold" "$url"
+    done
+    printf ']\n' >> "$report"
+
+    if [ "$breach" -eq 0 ]; then
+        pass "$label" "${total}/${total} endpoints within threshold (report: ${report})"
+    else
+        if [ "$assert_mode" = "1" ]; then
+            fail "$label" "${breach}/${total} endpoints exceeded threshold (SMOKE_LATENCY_ASSERT=1; report: ${report})"
+        else
+            warn "$label" "${breach}/${total} endpoints exceeded threshold (info-only; set SMOKE_LATENCY_ASSERT=1 to fail; report: ${report})"
+        fi
+    fi
+}
+
+# ─── Flyway migration head verify (GAP-475 Sub-5 — Wave 62 Bucket A) ──
+#
+# Compare highest Flyway version on disk with the version reported by an
+# admin-protected endpoint. AS OF 2026-05-11 state-check the project has
+# NO HTTP-exposed Flyway endpoint — the only access path is direct psql
+# against flyway_schema_history (used by scripts/verify-restore.sh +
+# rollback-runbook). When SMOKE_MIGRATION_VERIFY=1 the function will
+# probe a couple of plausible endpoint paths; if none responds, it logs
+# a SKIP and returns 0 (defer wiring to follow-up gap once endpoint
+# ships).
+#
+# Required env (when SMOKE_MIGRATION_VERIFY=1):
+#   SMOKE_ADMIN_TOKEN=...     Admin Bearer JWT
+#   SMOKE_MIGRATION_URL=...   (optional) override endpoint path; default
+#                             tries ${KH_URL}/api/platform/admin/migrations
+#                             then ${KH_URL}/actuator/flyway
+check_migration_head() {
+    local label="MIGRATION_HEAD"
+    if [ "${SMOKE_MIGRATION_VERIFY:-0}" != "1" ]; then
+        warn "$label" "skipped (set SMOKE_MIGRATION_VERIFY=1 + SMOKE_ADMIN_TOKEN to enable)"
+        return
+    fi
+    local admin_token="${SMOKE_ADMIN_TOKEN:-}"
+    if [ -z "$admin_token" ]; then
+        fail "$label" "SMOKE_MIGRATION_VERIFY=1 but SMOKE_ADMIN_TOKEN unset"
+        return
+    fi
+
+    # Compute on-disk max version. kiteclass-core is the canonical Flyway
+    # owner (per scripts/verify-restore.sh + Wave02MigrationsTest).
+    local migration_dir="kiteclass/kiteclass-core/src/main/resources/db/migration"
+    if [ ! -d "$migration_dir" ]; then
+        warn "$label" "migration dir not found at ${migration_dir} — skipping"
+        return
+    fi
+    local disk_max
+    # shellcheck disable=SC2010  # ls | grep is fine here: V-prefixed filenames are ASCII-only by Flyway convention
+    disk_max=$(ls "$migration_dir" 2>/dev/null \
+        | grep -oE '^V[0-9]+' \
+        | sed 's/^V//' \
+        | sort -n \
+        | tail -1)
+    if [ -z "$disk_max" ]; then
+        warn "$label" "no V<N>__*.sql migrations found in ${migration_dir}"
+        return
+    fi
+
+    # Probe candidate admin endpoints. Default tries the platform-admin
+    # path first, then a Spring Boot actuator/flyway fallback.
+    local endpoints=()
+    if [ -n "${SMOKE_MIGRATION_URL:-}" ]; then
+        endpoints+=("$SMOKE_MIGRATION_URL")
+    else
+        endpoints+=("${KH_URL}/api/platform/admin/migrations")
+        endpoints+=("${KH_URL}/actuator/flyway")
+    fi
+
+    local found_endpoint=""
+    local body_ok=""
+    local url code
+    for url in "${endpoints[@]}"; do
+        code=$(curl -sS --max-time "$TIMEOUT" \
+            -H "Authorization: Bearer ${admin_token}" \
+            -o "$BODY_FILE" -w '%{http_code}' \
+            "$url" 2>/dev/null || echo "000")
+        if [ "$code" = "200" ]; then
+            found_endpoint="$url"
+            read_body
+            body_ok="$BODY"
+            break
+        fi
+    done
+
+    if [ -z "$found_endpoint" ]; then
+        warn "$label" "no admin Flyway endpoint reachable (probed: ${endpoints[*]}) — defer to follow-up gap"
+        return
+    fi
+
+    # Parse highest version from response. Try jq paths covering both
+    # custom shape ({migrations:[{version}]}) and actuator/flyway shape
+    # ({contexts:{...:{flywayBeans:{...:{migrations:[{version,state}]}}}}}).
+    local server_max=""
+    if command -v jq >/dev/null 2>&1; then
+        server_max=$(echo "$body_ok" | jq -r '
+            [
+              (.migrations // [])[]?.version,
+              (.contexts // {} | to_entries[]?.value.flywayBeans // {} | to_entries[]?.value.migrations // [])[]?.version
+            ]
+            | map(select(. != null and . != ""))
+            | map(tonumber? // 0)
+            | max // empty
+        ' 2>/dev/null || echo "")
+    fi
+    if [ -z "$server_max" ] || [ "$server_max" = "null" ]; then
+        warn "$label" "200 OK from ${found_endpoint} but cannot parse migration version (jq path mismatch)"
+        return
+    fi
+
+    if [ "$server_max" = "$disk_max" ]; then
+        pass "$label" "server V${server_max} == disk V${disk_max} (endpoint: ${found_endpoint})"
+    else
+        fail "$label" "server V${server_max} != disk V${disk_max} — migration drift (endpoint: ${found_endpoint})"
+    fi
+}
+
 # Build info: read /actuator/info build.version. Echo only — no assertion.
 echo_build_info() {
     local label="$1"
@@ -598,6 +882,12 @@ check_error_handling "KC login (empty body)"    "${KC_URL}/api/auth/login"    "4
 # BETA_SMOKE_CLEANUP_URL + BETA_SMOKE_ADMIN_TOKEN for row cleanup.
 check_beta_signup_flow "$KH_URL"
 
+# 7c. Auth happy path (GAP-475 Sub-1 — Wave 62 Bucket A; gated by SMOKE_AUTH_E2E=1)
+check_auth_happy_path
+
+# 7d. Migration head verify (GAP-475 Sub-5 — Wave 62 Bucket A; gated by SMOKE_MIGRATION_VERIFY=1)
+check_migration_head
+
 # 8. Gateway routing (no 502/503)
 check_no_502 "kiteclass route"   "${KC_URL}/kiteclass/actuator/info"
 check_no_502 "kitehub-sub route" "${KH_URL}/kitehub-subscription/actuator/info"
@@ -607,6 +897,10 @@ check_logs_overview_e2e
 
 # 9c. Stop-when-idle cycle audit (Wave 61 Bucket C — gated by STOP_WHEN_IDLE_E2E=1)
 check_stop_when_idle_e2e
+
+# 9d. Per-endpoint latency thresholds (GAP-475 Sub-4 — Wave 62 Bucket A)
+# Always runs (info-only); set SMOKE_LATENCY_ASSERT=1 to fail on threshold breach.
+check_latency_thresholds
 
 # 9. Build info display (echo only — no assertion)
 echo_build_info "KH" "${KH_URL}/actuator/info"
