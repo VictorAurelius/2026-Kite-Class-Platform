@@ -38,6 +38,10 @@
         <!-- gateway uses Spring Cloud Gateway / Reactor Netty - PRIMARY exploit surface for epoll DoS -->
         <netty.version>4.2.13.Final</netty.version>
         <bouncycastle.version>1.84</bouncycastle.version>
+        <!-- postgresql 42.7.11 fixes CVE-2026-42198 (Spring Boot 3.5.14 BOM ships 42.7.10) -->
+        <postgresql.version>42.7.11</postgresql.version>
+        <!-- commons-lang3 3.18.0 fixes CVE-2025-48924 (Spring Boot 3.5.14 ships 3.17.0) -->
+        <commons-lang3.version>3.18.0</commons-lang3.version>
     </properties>
 
     <dependencyManagement>
@@ -75,6 +79,18 @@
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk18on</artifactId>
                 <version>${bouncycastle.version}</version>
+            </dependency>
+
+            <!-- Spring Boot 3.5.14 BOM hard-pins these (property override alone không thắng); cần explicit dependencyManagement entry -->
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
