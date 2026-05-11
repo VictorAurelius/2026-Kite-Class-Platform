@@ -593,3 +593,132 @@ output "github_tier_3_cutover_role_arn" {
   description = "ARN of GitHub OIDC role for tier-3-cutover.yml workflow_dispatch"
   value       = aws_iam_role.github_tier_3_cutover.arn
 }
+
+# =============================================================================
+# GitHub OIDC — Rollback role (.github/workflows/rollback.yml)
+# =============================================================================
+# Per GAP-477 (Wave 63 Bucket A) + release-deploy-standard.md §3.1 / §4.3 +
+# agent-aws-access.md §4.3 (workflow_dispatch carve-out with confirm-input gate).
+#
+# Stack: EC2 + SSM RunCommand pattern (mirrors github_deploy role). Phase 1 BETA
+# is EC2-based, NOT ECS — verified via state-check 2026-05-11:
+#   grep -rnE "aws_ecs|aws_ec2_instance" infrastructure/terraform-aws/*.tf
+#   → only EC2 resources found (ec2.tf), no aws_ecs_* anywhere.
+#
+# Least-priv vs github_deploy: rollback role has the same SSM + ECR-pull scope
+# but adds CloudWatch PutMetricData (TTR metric per release-deploy-standard.md
+# §4.3) and is trust-scoped to GitHub Environment 'production' for stricter
+# reviewer-gate (matches github_terraform_apply pattern). NO IAM management,
+# NO ALB modify, NO Secrets write — purely image-rollback + redeploy.
+
+resource "aws_iam_role" "github_rollback" {
+  name = "${var.project_name}-github-rollback"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Federated = aws_iam_openid_connect_provider.github.arn }
+      Action    = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+        StringLike = {
+          # Restrict to GitHub Environment 'production' — matches apply role
+          # pattern. Requires repo settings: Environments → production →
+          # Required reviewers + Deployment branches=main.
+          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:environment:production"
+        }
+      }
+    }]
+  })
+
+  tags = { Name = "${var.project_name}-github-rollback" }
+}
+
+resource "aws_iam_role_policy" "github_rollback_inline" {
+  name = "${var.project_name}-github-rollback-inline"
+  role = aws_iam_role.github_rollback.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      # ECR — read + retag images (rollback retags a previous SHA's image to :latest)
+      {
+        Sid    = "EcrRead"
+        Effect = "Allow"
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:BatchGetImage",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:DescribeImages",
+          "ecr:ListImages",
+        ]
+        Resource = "*"
+      },
+      # ECR retag scoped to kite/ namespace (matches github_ecr_push pattern)
+      {
+        Sid    = "EcrRetag"
+        Effect = "Allow"
+        Action = [
+          "ecr:PutImage",
+        ]
+        Resource = "arn:aws:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/kite/*"
+      },
+      # SSM RunCommand on instances tagged Project=kitehub (mirrors github_deploy
+      # pattern — Phase 1 BETA EC2 stack uses SSM to pull-and-restart containers)
+      {
+        Sid    = "SsmRollback"
+        Effect = "Allow"
+        Action = [
+          "ssm:SendCommand",
+          "ssm:GetCommandInvocation",
+          "ssm:ListCommandInvocations",
+          "ssm:DescribeInstanceInformation",
+        ]
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "aws:ResourceTag/Project" = var.project_name
+          }
+        }
+      },
+      {
+        Sid      = "SsmDocument"
+        Effect   = "Allow"
+        Action   = "ssm:SendCommand"
+        Resource = "arn:aws:ssm:${var.aws_region}::document/AWS-RunShellScript"
+      },
+      # EC2 describe (read-only) — needed to verify target instances post-rollback
+      {
+        Sid    = "Ec2DescribeRead"
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeInstances",
+          "ec2:DescribeInstanceStatus",
+        ]
+        Resource = "*"
+      },
+      # CloudWatch PutMetricData scoped to KiteHub/Rollback namespace (TTR metric
+      # per release-deploy-standard.md §4.3 DORA baseline measurement)
+      {
+        Sid      = "CloudWatchRollbackMetrics"
+        Effect   = "Allow"
+        Action   = "cloudwatch:PutMetricData"
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "cloudwatch:namespace" = "KiteHub/Rollback"
+          }
+        }
+      },
+    ]
+  })
+}
+
+output "github_rollback_role_arn" {
+  description = "ARN of GitHub OIDC role for rollback.yml workflow_dispatch (GAP-477)"
+  value       = aws_iam_role.github_rollback.arn
+}

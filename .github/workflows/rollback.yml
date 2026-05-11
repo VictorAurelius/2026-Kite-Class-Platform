@@ -1,0 +1,254 @@
+name: Rollback Production (Architecture B — EC2 + docker-compose)
+
+# =============================================================================
+# GAP-477 (Wave 63 Bucket A) — production rollback workflow.
+#
+# Stack: EC2 + docker-compose (mirrors deploy-production.yml SSM pattern; Phase
+# 1 BETA = EC2-based per ADR-025, NOT ECS).
+#
+# Per release-deploy-standard.md §3.1 + §4.3 + §9 (workflow_dispatch +
+# confirm-input + narrow OIDC role = ALLOWED human-in-the-loop pattern):
+#   - workflow_dispatch with target_sha (image tag, 7-40 hex) + confirm=APPLY
+#   - Validates SHA exists in main + age <30 days
+#   - dry_run=true (default) outputs plan only — no SSM execute
+#   - dry_run=false: SSM send-command to kh-backend EC2, polls until healthy,
+#     emits TTR (time-to-recovery) metric to CloudWatch KiteHub/Rollback
+#   - Environment: production (GitHub Environment with required reviewers gate
+#     — configure in repo settings: Environments → production)
+#
+# Least-priv: assumes kitehub-github-rollback role (iam.tf) — narrower than
+# apply role. NO ALB modify, NO Secrets write, NO IAM. Only ECR retag + SSM
+# RunCommand + CloudWatch metric.
+# =============================================================================
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Target commit SHA / image tag to roll back to (7-40 hex chars)'
+        required: true
+        type: string
+      confirm:
+        description: 'Type APPLY (verbatim) to confirm rollback execution'
+        required: true
+        type: string
+      dry_run:
+        description: 'Dry run (true) outputs plan only; false executes rollback'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  id-token: write     # OIDC for AWS
+  contents: read
+
+env:
+  AWS_REGION: ap-southeast-1
+  ROLLBACK_INSTANCE_ID_KH: i-0b65c3947d36cae61   # kh-backend EC2 (same as deploy-production.yml)
+  ALB_DNS: kitehub-alb-224105328.ap-southeast-1.elb.amazonaws.com
+  ECR_NAMESPACE: kite
+
+jobs:
+  validate:
+    name: Validate inputs + target SHA
+    runs-on: ubuntu-latest
+    outputs:
+      target_sha: ${{ steps.normalize.outputs.target_sha }}
+    steps:
+      - name: Confirm rollback intent
+        if: ${{ github.event.inputs.confirm != 'APPLY' }}
+        run: |
+          echo "::error ::Confirm input must be 'APPLY' verbatim. Got: '${{ github.event.inputs.confirm }}'"
+          exit 1
+
+      - name: Validate target_sha format
+        id: normalize
+        run: |
+          SHA="${{ github.event.inputs.target_sha }}"
+          if [[ ! "${SHA}" =~ ^[a-f0-9]{7,40}$ ]]; then
+            echo "::error ::Invalid target_sha format. Expected 7-40 lowercase hex chars. Got: '${SHA}'"
+            exit 1
+          fi
+          echo "target_sha=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "::notice ::target_sha format OK: ${SHA}"
+
+      - name: Checkout (fetch-depth=100 for SHA age check)
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 100
+
+      - name: Verify target_sha exists in repo + age <30 days
+        env:
+          TARGET_SHA: ${{ steps.normalize.outputs.target_sha }}
+        run: |
+          if ! git cat-file -e "${TARGET_SHA}" 2>/dev/null; then
+            echo "::error ::target_sha '${TARGET_SHA}' not found in repo (fetch-depth=100). Try a more recent SHA or fetch deeper."
+            exit 1
+          fi
+          COMMIT_TS=$(git log -1 --format=%ct "${TARGET_SHA}")
+          NOW_TS=$(date +%s)
+          AGE_DAYS=$(( (NOW_TS - COMMIT_TS) / 86400 ))
+          echo "::notice ::Target SHA age: ${AGE_DAYS} days"
+          if [ "${AGE_DAYS}" -gt 30 ]; then
+            echo "::error ::target_sha is ${AGE_DAYS} days old (>30 day cap). Rolling back beyond 30 days risks DB schema drift. File an incident gap to review before forcing."
+            exit 1
+          fi
+
+  rollback:
+    name: Execute rollback via SSM
+    runs-on: ubuntu-latest
+    needs: validate
+    environment: production   # gates via required-reviewers (configure in repo settings)
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLLBACK_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Record start timestamp (for TTR metric)
+        id: start
+        run: |
+          echo "start_ts=$(date +%s)" >> "$GITHUB_OUTPUT"
+
+      - name: Plan rollback (always)
+        env:
+          TARGET_SHA: ${{ needs.validate.outputs.target_sha }}
+          MODE: ${{ github.event.inputs.dry_run == 'true' && 'DRY-RUN' || 'EXECUTE' }}
+        run: |
+          {
+            echo "## Rollback Plan"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Target SHA | \`${TARGET_SHA}\` |"
+            echo "| Instance | \`${ROLLBACK_INSTANCE_ID_KH}\` |"
+            echo "| ECR namespace | \`${ECR_NAMESPACE}\` |"
+            echo "| ALB | \`${ALB_DNS}\` |"
+            echo "| Mode | **${MODE}** |"
+            echo ""
+            echo "### Steps (when not dry-run)"
+            echo "1. SSM RunCommand → kh-backend EC2: pull image \`${TARGET_SHA}\` via deploy-prod.sh"
+            echo "2. Poll SSM command (up to 8 min)"
+            echo "3. Wait 90s for ALB target group health"
+            echo "4. Smoke test gateway via ALB"
+            echo "5. Emit TTR metric to CloudWatch \`KiteHub/Rollback\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Send rollback command via SSM (execute mode only)
+        id: ssm
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        env:
+          TARGET_SHA: ${{ needs.validate.outputs.target_sha }}
+          INSTANCE_ID: ${{ env.ROLLBACK_INSTANCE_ID_KH }}
+        run: |
+          echo "Rolling back to ${TARGET_SHA} on ${INSTANCE_ID}..."
+          # Mirror deploy-production.yml SSM pattern: deploy-prod.sh accepts
+          # KITE_VERSION env var. For rollback we pass the target SHA as the
+          # version tag (deploy-prod.sh: ECR login + compose pull/up).
+          COMMAND_ID=$(aws ssm send-command \
+            --region "${AWS_REGION}" \
+            --instance-ids "${INSTANCE_ID}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Rollback to ${TARGET_SHA}" \
+            --timeout-seconds 600 \
+            --parameters commands="sudo KITE_VERSION=${TARGET_SHA} bash /opt/kite-prod/scripts/deploy-prod.sh" \
+            --query "Command.CommandId" --output text)
+          echo "command_id=${COMMAND_ID}" >> "$GITHUB_OUTPUT"
+          echo "::notice ::SSM CommandId: ${COMMAND_ID}"
+
+      - name: Poll SSM command status (up to 8 min)
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        env:
+          INSTANCE_ID: ${{ env.ROLLBACK_INSTANCE_ID_KH }}
+          COMMAND_ID: ${{ steps.ssm.outputs.command_id }}
+        run: |
+          for attempt in $(seq 1 48); do
+            sleep 10
+            STATUS=$(aws ssm get-command-invocation \
+              --region "${AWS_REGION}" \
+              --command-id "${COMMAND_ID}" \
+              --instance-id "${INSTANCE_ID}" \
+              --query "Status" --output text 2>/dev/null || echo "InProgress")
+            echo "Attempt ${attempt}/48: Status=${STATUS}"
+            case "${STATUS}" in
+              Success)
+                echo "::notice ::Rollback SSM command succeeded on ${INSTANCE_ID}"
+                aws ssm get-command-invocation \
+                  --region "${AWS_REGION}" \
+                  --command-id "${COMMAND_ID}" \
+                  --instance-id "${INSTANCE_ID}" \
+                  --query "StandardOutputContent" --output text | tail -50
+                exit 0
+                ;;
+              Failed|Cancelled|TimedOut)
+                echo "::error ::Rollback failed with status ${STATUS}"
+                aws ssm get-command-invocation \
+                  --region "${AWS_REGION}" \
+                  --command-id "${COMMAND_ID}" \
+                  --instance-id "${INSTANCE_ID}" \
+                  --query "StandardErrorContent" --output text
+                exit 1
+                ;;
+            esac
+          done
+          echo "::error ::Rollback SSM command timed out after 8 min"
+          exit 1
+
+      - name: Wait for ALB target group health
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        run: |
+          echo "Waiting 90s for kh-backend target group health check..."
+          sleep 90
+
+      - name: Smoke test (gateway through ALB)
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        run: |
+          for attempt in 1 2 3; do
+            if curl -fsS -o /dev/null -w "HTTP %{http_code} (attempt ${attempt})\n" \
+                 "http://${ALB_DNS}/actuator/health"; then
+              echo "::notice ::Rollback healthy ✅"
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "::error ::ALB health check failed after 3 attempts post-rollback"
+          exit 1
+
+      - name: Emit TTR metric to CloudWatch
+        if: ${{ github.event.inputs.dry_run != 'true' && always() }}
+        env:
+          START_TS: ${{ steps.start.outputs.start_ts }}
+        run: |
+          # TTR = wall-clock seconds from rollback start → health-check pass.
+          # Per release-deploy-standard.md §4.3 DORA baseline measurement.
+          END_TS=$(date +%s)
+          TTR=$(( END_TS - START_TS ))
+          echo "::notice ::TTR (time-to-recovery): ${TTR}s"
+          aws cloudwatch put-metric-data \
+            --region "${AWS_REGION}" \
+            --namespace "KiteHub/Rollback" \
+            --metric-name "TimeToRecovery" \
+            --value "${TTR}" \
+            --unit "Seconds" || \
+            echo "::warning ::CloudWatch PutMetricData failed (non-fatal)"
+
+  notify:
+    name: Notify rollback outcome
+    runs-on: ubuntu-latest
+    needs: [validate, rollback]
+    if: always()
+    steps:
+      - name: Summary
+        env:
+          MODE: ${{ github.event.inputs.dry_run == 'true' && 'DRY-RUN' || 'EXECUTE' }}
+        run: |
+          echo "Validate: ${{ needs.validate.result }}"
+          echo "Rollback: ${{ needs.rollback.result }}"
+          echo "Mode:     ${MODE}"
+          echo "Target:   ${{ github.event.inputs.target_sha }}"
+          if [[ "${{ needs.rollback.result }}" == "success" ]]; then
+            echo "::notice ::🔙 Rollback ${MODE} to ${{ github.event.inputs.target_sha }} SUCCESS"
+          else
+            echo "::error ::Rollback did not complete cleanly. Check job logs above."
+          fi
