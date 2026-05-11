@@ -23,7 +23,7 @@
 - **Wave 58 SHIPPED** (PRs #1140/1141/1142/1143 + closure) — helm CI guard + infrastructure README sync + ADR-028 ECS Fargate vs EKS ACCEPTED. GAP-463/464/467 🟢 DONE.
 - **Phase 1 BETA critical-path step 2.5 stays 🟡 PARTIAL** — RLS hardening (Wave 56) + perf methodology (Wave 57 C) shipped; staging exec deferred step 4 cutover.
 - **Phase 1 BETA pre-launch cleanup queue: empty** — Wave 56/57/58/59 + post-wave cleanup PRs closed all known follow-up backlog.
-- **Wave 60 candidates:** (a) ~~verify alerts~~ DONE; (b) ~~GAP-468 + GAP-470 DONE flip~~ DONE; (c) step 4 Tier 3 cutover prep (gated AWS Activate D+14 ~2026-05-23); (d) stale local branch prune (~22 squash-merged); (e) GAP-073 RTBF Phase 2 (PDPL Phase 2 follow-up); (f) GAP-450 terraform random_password drift fix.
+- **Wave 60 candidates:** (a) ~~verify alerts~~ DONE; (b) ~~GAP-468 + GAP-470 DONE flip~~ DONE; (c) step 4 Tier 3 cutover prep (gated AWS Activate D+14 ~2026-05-23); (d) ~~stale local branch prune~~ DONE (24 pruned 2026-05-11); (e) GAP-073 RTBF Phase 2 (Phase 1.5 scope per release-1-plan-2026 line 323); (f) ~~GAP-450 terraform drift~~ DONE 2026-05-11 (Option B PR #1154 + empirical investigation found state already in-sync, Option A skipped). **Infra state (2026-05-11 08:25 post GAP-450 investigation):** EC2 `kitehub-kh-backend` + `kitehub-kc-app` + RDS `kitehub-postgres` STOPPED — user explicitly stop for maintenance, scheduler `start_weekday_morning_ec2` sẽ auto-resume. ROADMAP 2026-05-09 snapshot stale (some auto-start happened between snapshots).
 - **Streak: 94** consecutive 0-clarification waves (Wave 57 + 58 + 59 all first-spawn 0-clarif).
 - **No agents in flight; 0 worktree husks; coordinator clean.**
 
