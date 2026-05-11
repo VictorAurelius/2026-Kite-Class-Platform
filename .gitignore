@@ -31,6 +31,10 @@ infrastructure/logs/run-*/
 # Tier 1 read-only data only; no secret material per agent-aws-access.md §2.2
 .claude/session-aws-cache/
 
+# AWS stack on-demand session ledger (scripts/aws/start-stack.sh + stop-stack.sh, Wave 61 Bucket D)
+# Local per-operator usage log; informs cost forecast but no shared state required
+.aws-stack-state.json
+
 # Environment files (contain secrets - never commit)
 .env
 .env.local
