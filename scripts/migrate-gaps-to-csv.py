@@ -68,20 +68,52 @@ def normalize_domain(text: str) -> str:
     return "Backend"
 
 
-def infer_phase(content: str, priority: str) -> str:
-    """Conservative heuristic: only assign phase when content explicitly cites it.
+def infer_phase(content: str, priority: str, filename: str = "") -> str:
+    """Conservative-but-richer heuristic: assign phase when content explicitly cites it.
 
-    Default n/a — bulk-migrate avoids guessing. User can re-classify post-merge.
+    Scans full file content + filename for explicit phase signals.
+    Order matters — most specific phase wins. Default n/a when zero signal.
+
+    Filename convention `GAP-NNN-p3-*` indicates author-tagged Phase 3 K-12.
     """
     low = content.lower()
-    if "phase 1 beta" in low or "phase-1-beta" in low or "p1 beta" in low:
-        return "phase-1-beta"
-    if "phase 1.5" in low or "phase-1.5" in low or "phase 1.5 paid" in low:
-        return "phase-1.5-paid"
-    if "phase 3" in low and ("k-12" in low or "k12" in low or "minor" in low):
+    fname_low = filename.lower()
+
+    # filename author-tag: `GAP-NNN-p3-*` → phase-3 K-12 LEGAL
+    if re.search(r"^gap-\d+[a-z]?-p3-", fname_low):
         return "phase-3"
-    if "phase 2" in low and ("medium-center" in low or "phase 2 ramp" in low):
+
+    # phase-1.5-paid — strongest signal
+    if any(k in low for k in ("phase 1.5", "phase-1.5", "phase 1.5 paid",
+                              "p1.5", "phase 1.5 launch", "phase 1.5 paid launch")):
+        return "phase-1.5-paid"
+
+    # phase-3 K-12 minors LEGAL
+    phase_3_signals = (
+        "phase 3 k-12", "phase-3 k-12", "k-12 phase 3", "k12 phase 3",
+        "phase 3 minor", "luật trẻ em", "luật giáo dục", "mandatory.reporting",
+        "k-12 legal", "phocap escalation", "moet inter-school",
+    )
+    if any(k in low for k in phase_3_signals):
+        return "phase-3"
+
+    # phase-2 ramp / medium-center
+    if any(k in low for k in ("phase 2 ramp", "phase-2 ramp",
+                              "medium-center phase 2", "phase 2 medium-center")):
         return "phase-2"
+
+    # phase-1-beta — broad signals; this is the current active phase per CLAUDE.md
+    phase_1_beta_signals = (
+        "phase 1 beta", "phase-1-beta", "p1 beta", "phase-1 beta",
+        "blocking phase 1 beta", "phase 1 beta blocker", "phase 1 beta required",
+        "phase 1 beta launch", "phase 1 beta hard deadline",
+        "phase 1 beta deploy", "phase 1 beta milestone",
+        "release 1 phase 1", "release lần 1 phase 1",
+        "p1+p2 soft launch", "p1 + p2 soft launch",
+    )
+    if any(k in low for k in phase_1_beta_signals):
+        return "phase-1-beta"
+
     return "n/a"
 
 
@@ -158,7 +190,7 @@ def extract_gap_row(path: Path, gap_id: str | None = None) -> dict | None:
     status = normalize_status(status_block)
     priority = normalize_priority(priority_block)
     domain = normalize_domain(domain_block)
-    phase = infer_phase(text[:2000], priority)
+    phase = infer_phase(text, priority, filename=name)
     completion = completion_for(status)
     found = extract_found_date(lines)
     title = extract_title(lines, gap_id)
@@ -253,6 +285,25 @@ def main() -> int:
             skipped.append(path.name)
             continue
         new_rows[row["id"]] = row
+
+    # Phase 2.1: re-infer phase for existing rows whose current phase is "n/a"
+    # if new inference yields a non-n/a result. Preserves hand-curated phases
+    # (e.g. pilot rows GAP-006 phase-2, GAP-353b phase-1-beta) verbatim.
+    reinferred_phase = 0
+    for gid, row in list(existing.items()):
+        if row.get("phase") != "n/a":
+            continue
+        # Need filename to read the file
+        target_file = GAPS_DIR / row["filename"]
+        if not target_file.exists():
+            continue
+        text = target_file.read_text(encoding="utf-8")
+        new_phase = infer_phase(text, row.get("priority", ""), filename=row["filename"])
+        if new_phase != "n/a":
+            existing[gid] = {**row, "phase": new_phase, "last_verified": TODAY}
+            reinferred_phase += 1
+    if reinferred_phase:
+        print(f"  Re-inferred phase (n/a → specific): {reinferred_phase} rows", file=sys.stderr)
 
     # Reconcile pilot rows with collision-renamed ids.
     # If a pilot row's id matches a collision-prefix that now expands to full

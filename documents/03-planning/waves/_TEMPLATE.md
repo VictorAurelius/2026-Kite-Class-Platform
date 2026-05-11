@@ -39,6 +39,8 @@ Disjoint check: confirm no two buckets touch the same package / file.
 **Stake tier (per `wave-pack-planner/SKILL.md` §Step 4.6):** <HIGH | MEDIUM | LOW> → model: <Opus 4.7 full | Opus medium | Sonnet/Haiku>
 **Cross-layer? (per `wave-pack-planner/SKILL.md` §Step 4.5):** <YES → Bucket 0 Foundation required per `contract-first-for-cross-layer.md` | NO → skip foundation>
 
+> **Gap referencing convention** (per `.claude/rules/gap-architecture-v2.md`): use the canonical id from `documents/04-quality/gaps/gap-status.csv` column 1. For collision-stem ids (multiple files sharing a numeric prefix), use the full stem (e.g. `GAP-116-pii-scrubbing-logs`). Query gap state via `bash scripts/query-gaps.sh <prefix>` before referencing — confirms `status`/`priority`/`phase` match what the wave assumes.
+
 | # | Bucket | Gap(s) | Priority | Files (glob) | Spawn order |
 |:-:|--------|--------|:--------:|--------------|:-----------:|
 | 0 | **Foundation** | (contract + mock infra — only if cross-layer=YES) | 🟠 P1 | `documents/01-business/{domain}/api-contract.md` + `{frontend}/src/test/msw/handlers/{domain}.ts` | MERGE FIRST |

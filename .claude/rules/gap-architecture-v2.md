@@ -1,10 +1,10 @@
 # Gap Architecture v2 — single canonical source (Design A)
 
 **Priority:** 🟠 MANDATORY — gap docs governance
-**Version:** 1.0.2
+**Version:** 1.0.3
 **Created:** 2026-05-11
 **Last-Reviewed:** 2026-05-11
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.2 PATCH self-approve per `rule-change-process.md` §5; Phase 4 partial integration — `collect-state.sh` queries CSV as fallback for blockers + surfaces Phase 1 BETA P0 count per session. v1.0.1 (kept): Phase 2 bulk migration closeout sync — 289 active gap files migrated to CSV via `scripts/migrate-gaps-to-csv.py`; check script flipped to Phase 2 mode; CI job wired. v1.0.0: new rule with built-in enforcement per `rule-change-process.md` §6.5 Enforcement Parity Mandate; no constraint loosening across versions)
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.3 PATCH self-approve per `rule-change-process.md` §5; Phase 2.1 partial auto-fill (richer keyword + `GAP-NNN-p3-*` filename pattern → phase-3 K-12; n/a dropped 246→219, +26 phase-3 gaps) + Phase 4 doc closeout (`audit-to-gap-pipeline.md` §2.8 step 0 CSV query recommendation + wave plan template §3 gap-ref-via-CSV convention). v1.0.2 (kept): `collect-state.sh` queries CSV + surfaces Phase 1 BETA P0 count. v1.0.1: Phase 2 bulk migration closeout. v1.0.0: new rule with built-in enforcement per `rule-change-process.md` §6.5; no constraint loosening across versions)
 **Applies to:** `documents/04-quality/gaps/*.md` files + `documents/04-quality/gaps/gap-status.csv` canonical store + tools that query/update gap status
 
 ---
@@ -106,14 +106,12 @@ Markdown gap file remains canonical for:
 - Add header comment: "Canonical status: gap-status.csv. To update, edit CSV."
 - ROADMAP §🚀 Next Action auto-derived from CSV via script
 
-### Phase 4 — Tooling integration (partial)
+### Phase 4 — Tooling integration
 
-- [x] `start-session` collect-state.sh — queries CSV as fallback for blockers
-  + surfaces Phase 1 BETA P0 count (active + PARTIAL) per session start
-  ✅ shipped this PR
-- [ ] `audit-to-gap-pipeline.md` §2.8 fix-time state-check queries CSV — pending
-- [ ] Wave plans reference CSV rows by ID — pending
-- [ ] ROADMAP §🚀 Next Action auto-derive from CSV — pending
+- [x] `start-session` collect-state.sh queries CSV as fallback for blockers + surfaces Phase 1 BETA P0 count ✅ (PR #1162)
+- [x] `audit-to-gap-pipeline.md` §2.8 step 0 recommends `query-gaps.sh` ✅ (this PR)
+- [x] Wave plan template `_TEMPLATE.md` §3 — gap referencing convention via CSV id ✅ (this PR)
+- [ ] ROADMAP §🚀 Next Action auto-derive from CSV — deferred (curated doc, risky to autogen)
 
 ---
 
@@ -235,19 +233,22 @@ Test 3 — Pilot CSV catches representative drift scenarios:
 
 ## 10. Open Items / Follow-ups (per `gap-done-discipline.md` §3 PARTIAL exit ramp)
 
-Phase 1 pilot + Phase 2 bulk migration shipped (this PR + #1159). Tracked separately:
+Phase 1 pilot + Phase 2 bulk migration + Phase 4 governance integration shipped (this PR + #1159 + #1161 + #1162). Tracked separately:
 
-- [x] ~~Phase 2 bulk migration~~ — shipped this PR (289/289 active gap files have CSV rows; check script flipped to Phase 2 mode; CI job wired)
-- [x] ~~CI wiring~~ — shipped this PR (`gap-status-csv` job in `script-quality.yml`)
-- [ ] **Phase 2.1 phase reclassification** — 246 gaps currently `phase=n/a` because bulk migrator did not infer phase unless content explicitly cited it. Filter `awk -F, '$7=="n/a" {print}' gap-status.csv` and reclassify Phase 1 BETA-relevant blockers. File follow-up gap when convenient.
+- [x] ~~Phase 2 bulk migration~~ ✅ (PR #1161)
+- [x] ~~CI wiring~~ ✅ (PR #1161)
+- [x] ~~Phase 2.1 phase reclassification (auto-fill safe cases)~~ ✅ — this PR extended `migrate-gaps-to-csv.py` with richer keyword + filename-pattern (`GAP-NNN-p3-*` → phase-3 K-12); n/a count dropped 246 → 219 (27 gaps reclassified to phase-3 K-12 LEGAL). Remaining 219 n/a are genuinely ambiguous — leave to user judgment per gap.
+- [x] ~~Phase 4 tooling integration~~ ✅ — `collect-state.sh` (PR #1162) + `audit-to-gap-pipeline.md` §2.8 step 0 + wave template §3 convention note (this PR). ROADMAP §🚀 auto-derive remains deferred (curated doc, risky).
 - [ ] **Phase 2.2 completion_pct refinement** — PARTIAL/IN_PROGRESS rows default to 50/40; can be refined per gap when context known (e.g., GAP-005 Phase 1 done = ~40; GAP-114 ~80). Iterative, no urgency.
-- [ ] **Phase 3 markdown frontmatter strip** — remove Status/Priority field from gap files; add header comment "Canonical status: gap-status.csv". File follow-up gap.
-- [ ] **Phase 4 tooling integration** — `audit-to-gap-pipeline.md` §2.8 query CSV; `start-session` collect-state.sh query CSV; ROADMAP §🚀 auto-derive. File follow-up gap.
+- [ ] **Phase 3 markdown frontmatter strip** — remove Status/Priority field from gap files; add header comment "Canonical status: gap-status.csv". Premature until ROADMAP auto-derive + every consumer (runbooks, skills) migrated off Status grep.
+- [ ] **ROADMAP §🚀 Next Action auto-derive** — deferred (curated doc, risky to autogen). File follow-up gap when need outweighs maintenance cost.
 - [ ] **Filename-collision cleanup** — 4 prefix-collision pairs surfaced during bulk migration (GAP-116 / GAP-200 / GAP-321b-1 / GAP-353b each have 2 files). Currently handled via full-stem ids; consider renaming one side of each pair to disambiguate filename too. Low priority.
 
 ---
 
 ## 11. Log
+
+- **2026-05-11 (v1.0.3):** PATCH — Phase 2.1 auto-fill + Phase 4 doc closeout. `migrate-gaps-to-csv.py` `infer_phase()` extended with richer keyword set + filename pattern (`GAP-NNN-p3-*` → phase-3 K-12 LEGAL, captures author convention). Re-ran extractor: 27 gaps reclassified from `n/a` to specific phase (mostly phase-3 K-12). Final distribution: phase-1-beta 35 / phase-1.5-paid 4 / phase-2 1 / **phase-3 30** (was 3) / n/a 219 (was 246). `audit-to-gap-pipeline.md` v1.4.0 → v1.4.1 — adds §2.8 step 0 "Canonical-status lookup first" recommending `query-gaps.sh` before heavier state-check. `documents/03-planning/waves/_TEMPLATE.md` §3 — adds gap-referencing convention note (use CSV canonical id + `query-gaps.sh` to verify status before wave plan references). §10 Open Items updated: only ROADMAP auto-derive + Phase 3 frontmatter strip + Phase 2.2 completion refinement + filename rename remain (all genuinely lower priority or risky). No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive automation + doc cross-references).
 
 - **2026-05-11 (v1.0.2):** PATCH — Phase 4 partial integration. `collect-state.sh` (used by `/start-session`) now queries `gap-status.csv` as fallback for blocker IDs (replacing the slower grep-each-gap-file path) and surfaces a new line `Phase 1 BETA P0: N active (M PARTIAL)` per session start. JSON output adds `phase_1_beta_p0_active` + `phase_1_beta_p0_partial` keys. §4 Phase 4 marked partial; remaining items (audit-pipeline §2.8 CSV query, wave plans by CSV id, ROADMAP §🚀 auto-derive) tracked. No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive tool integration, no constraint loosening).
 
