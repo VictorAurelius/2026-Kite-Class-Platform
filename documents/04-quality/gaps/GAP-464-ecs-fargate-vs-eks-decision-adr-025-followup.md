@@ -1,6 +1,6 @@
 # GAP-464: ECS Fargate vs EKS architecture decision (ADR-025 §5 follow-up)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2 (Phase 1.5 PAID full mid-cycle decision; not Phase 1 BETA blocker)
 **Domain:** Infrastructure / Architecture
 **Found:** 2026-05-11 (user-flagged session — surfaced unfilled ADR-025 commitment)
@@ -69,10 +69,16 @@ File ADR-027 "ECS Fargate vs EKS for Phase 1.5 PAID full migration":
 
 ## Acceptance Criteria
 
-- [ ] ADR-027 drafted với decision matrix + tentative verdict
-- [ ] Cost model spreadsheet với Phase 1.5 / Phase 2 / Phase 3 projections cho cả EKS + ECS Fargate
-- [ ] GAP-415 status note updated với cross-link to ADR-027
-- [ ] `aws-architecture-sizing-matrix.md` §5 updated với "alternative considered" footnote
+- [x] ADR-028 drafted với decision matrix + verdict (ADR-027 slot was already taken by statuspage vendor; chose next free ID — `documents/02-architecture/adr/ADR-028-ecs-fargate-vs-eks-phase-1-beta.md`)
+- [x] Cost model documented inline in ADR-028 §"Context" + §"Considered Options" (Phase 1.5 EKS ≈ $250/mo vs. ECS Fargate ≈ $150-200/mo; Phase 2 P3 EKS ≈ $400 vs. Fargate ≈ $250-350; Phase 3 K-12 EKS ≈ $1000+ vs. Fargate ≈ $700-900) — full Phase 1.5 dress-rehearsal spreadsheet remains a Phase 1.5 prep deliverable per ADR-028 Implementation Notes; inline figures sufficient for verdict
+- [x] ADR-025 §5 cross-link added to ADR-028 closing the original commitment (this PR)
+
+## Out-of-scope (track separately)
+
+| Item | Where |
+|---|---|
+| GAP-415 status note updated với cross-link to ADR-028 | Not in this Bucket C PR; tracked as follow-up update of GAP-415 referencing ADR-028 acceptance |
+| `aws-architecture-sizing-matrix.md` §5 updated với "alternative considered" footnote | Not in this Bucket C PR; tracked as follow-up doc edit; ADR-028 §"Consequences → Neutral" already documents the §5 footnote intent |
 
 ## Related
 
@@ -84,3 +90,4 @@ File ADR-027 "ECS Fargate vs EKS for Phase 1.5 PAID full migration":
 ## Log
 
 - **2026-05-11**: Filed user-flagged via session question "tại sao có EKS và K8s trong infra?" — surfaced ADR-025 §5 commitment to file follow-up gap chưa fulfilled. Decision deferred to Phase 1 BETA closure trigger (no urgency Phase 1 BETA scope). Per `incident-to-rule-pipeline.md`: this is gap-tracking incident, not coverage-gap rule incident.
+- **2026-05-11 (Wave 58 Bucket C):** ADR-028 ECS Fargate vs EKS shipped ACCEPTED. ADR-025 §5 commitment closed. ADR uses next free ADR ID (ADR-027 slot already taken by Instatus statuspage vendor decision Wave 38). Two satellite ACs (GAP-415 cross-link + `aws-architecture-sizing-matrix.md` §5 footnote) moved to §Out-of-scope as follow-up doc edits — ADR-028 §"Consequences → Neutral" already records the intent. Solo-dev acting CTO sign-off per CLAUDE.md decision context locked 2026-05-06.
