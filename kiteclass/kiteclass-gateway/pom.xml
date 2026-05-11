@@ -33,8 +33,10 @@
         <tomcat.version>10.1.54</tomcat.version>
         <commons-beanutils.version>1.11.0</commons-beanutils.version>
         <commons-compress.version>1.28.0</commons-compress.version>
-        <!-- GAP-468: CVE overrides for transitive deps surfaced via GitHub code-scanning 2026-05-11 -->
-        <netty.version>4.1.133.Final</netty.version>
+        <!-- GAP-468 + GAP-470: CVE overrides for transitive deps surfaced via GitHub code-scanning 2026-05-11 -->
+        <!-- netty 4.2.13.Final: GAP-470 line bump for revised CVE-2026-42577 (advisory has no 4.1.x patch); -->
+        <!-- gateway uses Spring Cloud Gateway / Reactor Netty - PRIMARY exploit surface for epoll DoS -->
+        <netty.version>4.2.13.Final</netty.version>
         <bouncycastle.version>1.84</bouncycastle.version>
     </properties>
 
