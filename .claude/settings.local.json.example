@@ -1,0 +1,29 @@
+{
+  "_comment": "Copy this file to .claude/settings.local.json and customize. The .local.json file is gitignored per-user override. Source-of-truth template (this .example file) IS tracked.",
+  "_hook_command_note": "Use $CLAUDE_PROJECT_DIR for portability across OS (Linux WSL2, macOS, Windows). Use python3 explicitly — 'python' alias may not exist on WSL2.",
+  "permissions": {
+    "allow": [
+      "Edit(.claude/rules/**)",
+      "Write(.claude/rules/**)",
+      "Edit(.claude/skills/**)",
+      "Write(.claude/skills/**)",
+      "Write(.claude/session-locks/**)",
+      "Bash(touch .claude/session-locks/*)",
+      "Bash(rm .claude/session-locks/*)"
+    ],
+    "defaultMode": "default"
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/audit-gate.py"
+          }
+        ]
+      }
+    ]
+  }
+}
