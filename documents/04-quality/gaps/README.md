@@ -4,6 +4,31 @@ Hàng đợi các design gaps / implementation gaps được phát hiện. Mỗi
 
 > **📋 Đang quá nhiều gaps?** Đọc **[ROADMAP.md](ROADMAP.md)** để xem epic grouping, dependencies, sprint plan thay vì flat list.
 
+## Folder structure (2026-05-11 reorganization)
+
+```
+documents/04-quality/gaps/
+├── README.md                    │ This file
+├── ROADMAP.md                   │ Live queue + status snapshot
+├── _REVIEW-TEMPLATE.md          │ Gap review checklist template
+├── GAP-XXX-*.md                 │ ACTIVE gaps (🔵 OPEN / 🟡 PARTIAL / 🟡 PLANNED)
+└── closed/
+    └── GAP-XXX-*.md             │ ARCHIVED gaps (🟢 DONE — kept for cross-link history)
+```
+
+**Active gaps top-level:** ~300 files (OPEN + PARTIAL + PLANNED)
+**Archived gaps in `closed/`:** ~187 files (DONE)
+
+**Reason:** flat folder với ~490 files khó browse + tools state-check tốn token scan DONE gaps. Archive separation giảm noise cho active work tracking.
+
+**When to move to `closed/`:** sau khi gap flip 🟢 DONE per `gap-done-discipline.md` §2 + no expected re-open ≥30 days. Use `git mv` để preserve history. Update cross-references (full paths + markdown links) đồng thời.
+
+**Cross-reference paths:**
+- From outside `gaps/`: `documents/04-quality/gaps/closed/GAP-XXX.md`
+- From active gap to closed sibling: `closed/GAP-XXX.md`
+- From closed gap to active sibling: `../GAP-XXX.md`
+- From closed gap to other closed gap: `GAP-XXX.md` (same folder)
+
 ## Workflow
 
 1. **Phát hiện** — gap được tạo file `GAP-XXX-title.md` với status `OPEN`
@@ -41,21 +66,21 @@ Hàng đợi các design gaps / implementation gaps được phát hiện. Mỗi
 | [GAP-004](GAP-004-template-based-image-composition.md) | Template-based image composition (Canva-like) | AI/Frontend | 🟡 P2 | 🔵 OPEN |
 | [GAP-005](GAP-005-ai-queue-fair-scheduling.md) | AI queue fair scheduling + capacity plan (100 users feasible on Oracle Free) | AI/Backend/DevOps | 🔴 P0 | 🔵 OPEN |
 | [GAP-006](GAP-006-upgrade-to-gemma-4.md) | Upgrade AI models Llama 3.1 + LLaVA → Gemma 4 E4B | AI/Backend | 🟠 P1 | 🔵 OPEN |
-| [GAP-007](GAP-007-resource-classification-pipeline.md) | Resource classification pipeline (static/template/full-AI) | AI/Backend | 🔴 P0 | 🔵 OPEN |
-| [GAP-008](GAP-008-ai-agent-workflow.md) | AI Agent workflow (analyzer→planner→executor) thay direct gen | AI/Backend | 🟠 P1 | 🔵 OPEN |
-| [GAP-009](GAP-009-instance-provisioning-lifecycle.md) | Frontend instance provisioning lifecycle (6 states) | Backend/DevOps | 🟠 P1 | 🔵 OPEN |
-| [GAP-010](GAP-010-branding-package-api-integration.md) | Branding package API + KiteClass integration + E2E test | Backend/Frontend | 🟠 P1 | 🔵 OPEN |
+| [GAP-007](closed/GAP-007-resource-classification-pipeline.md) | Resource classification pipeline (static/template/full-AI) | AI/Backend | 🔴 P0 | 🔵 OPEN |
+| [GAP-008](closed/GAP-008-ai-agent-workflow.md) | AI Agent workflow (analyzer→planner→executor) thay direct gen | AI/Backend | 🟠 P1 | 🔵 OPEN |
+| [GAP-009](closed/GAP-009-instance-provisioning-lifecycle.md) | Frontend instance provisioning lifecycle (6 states) | Backend/DevOps | 🟠 P1 | 🔵 OPEN |
+| [GAP-010](closed/GAP-010-branding-package-api-integration.md) | Branding package API + KiteClass integration + E2E test | Backend/Frontend | 🟠 P1 | 🔵 OPEN |
 | [GAP-011](GAP-011-template-library-curation-plan.md) | Template library curation plan + review standards | Design/Product | 🔴 P0 | 🔵 OPEN |
-| [GAP-012](GAP-012-frontend-instance-quality-review.md) | Automated frontend instance quality review (post-deploy) | Quality/AI/FE | 🟠 P1 | 🔵 OPEN |
-| [GAP-013](GAP-013-guided-branding-wizard-ux.md) | Guided branding wizard UX (closed-loop with flexibility) | FE/UX/Product | 🟠 P1 | 🔵 OPEN |
-| [GAP-014](GAP-014-wave-mock-include-ai-branding.md) | Wave mock plan missing AI branding workflow | Mock Data/Wave | 🔴 P0 | 🔵 OPEN |
-| [GAP-015](GAP-015-tenant-provisioning-auto-trigger-branding.md) | Tenant provisioning thiếu auto-trigger AI branding (event-driven) | Backend/FE/Integration | 🔴 P0 | 🔵 OPEN |
-| [GAP-016](GAP-016-ai-branding-v2-living-docs-impact.md) | AI Branding v2 living docs impact scope (business/API/ERD/tests) | Docs/Governance | 🔴 P0 | 🟢 DONE |
+| [GAP-012](closed/GAP-012-frontend-instance-quality-review.md) | Automated frontend instance quality review (post-deploy) | Quality/AI/FE | 🟠 P1 | 🔵 OPEN |
+| [GAP-013](closed/GAP-013-guided-branding-wizard-ux.md) | Guided branding wizard UX (closed-loop with flexibility) | FE/UX/Product | 🟠 P1 | 🔵 OPEN |
+| [GAP-014](closed/GAP-014-wave-mock-include-ai-branding.md) | Wave mock plan missing AI branding workflow | Mock Data/Wave | 🔴 P0 | 🔵 OPEN |
+| [GAP-015](closed/GAP-015-tenant-provisioning-auto-trigger-branding.md) | Tenant provisioning thiếu auto-trigger AI branding (event-driven) | Backend/FE/Integration | 🔴 P0 | 🔵 OPEN |
+| [GAP-016](closed/GAP-016-ai-branding-v2-living-docs-impact.md) | AI Branding v2 living docs impact scope (business/API/ERD/tests) | Docs/Governance | 🔴 P0 | 🟢 DONE |
 | [GAP-017](GAP-017-ai-usage-billing-integration.md) | AI usage → billing integration (upsell, cost attribution) | Billing/AI | 🟠 P1 | 🔵 OPEN |
-| [GAP-018](GAP-018-content-safety-compliance.md) | Content safety & compliance (moderation, audit, GDPR) | Security/Compliance | 🔴 P0 | 🔵 OPEN |
+| [GAP-018](closed/GAP-018-content-safety-compliance.md) | Content safety & compliance (moderation, audit, GDPR) | Security/Compliance | 🔴 P0 | 🔵 OPEN |
 | [GAP-019](GAP-019-ai-observability-cost-monitoring.md) | AI observability & cost monitoring (Grafana, alerts) | DevOps/Monitoring | 🟠 P1 | 🔵 OPEN |
 | [GAP-020](GAP-020-wizard-state-persistence.md) | Wizard state persistence & error recovery | Frontend/UX | 🟠 P1 | 🔵 OPEN |
-| [GAP-021](GAP-021-branding-propagation-email-services.md) | Branding propagation to email + other services | Backend/Integration | 🟠 P1 | 🔵 OPEN |
+| [GAP-021](closed/GAP-021-branding-propagation-email-services.md) | Branding propagation to email + other services | Backend/Integration | 🟠 P1 | 🔵 OPEN |
 | [GAP-022](GAP-022-template-analytics-optimization.md) | Template analytics & A/B optimization | Analytics/Product | 🟡 P2 | 🔵 OPEN |
 | [GAP-023](GAP-023-admin-moderation-tools.md) | Admin moderation tools (review, flag, take-down) | Admin/Compliance | 🟠 P1 | 🔵 OPEN |
 | [GAP-024](GAP-024-asset-lifecycle-storage-cleanup.md) | Asset lifecycle & storage cleanup (archive, quota) | DevOps/Storage | 🟡 P2 | 🔵 OPEN |
@@ -65,34 +90,34 @@ Hàng đợi các design gaps / implementation gaps được phát hiện. Mỗi
 | [GAP-028](GAP-028-model-versioning-migration-strategy.md) | AI model versioning & migration strategy | AI/DevOps | 🟡 P2 | 🔵 OPEN |
 | [GAP-029](GAP-029-quality-gate-calibration.md) | Quality gate calibration & feedback loop | Quality/AI | 🟡 P2 | 🔵 OPEN |
 | [GAP-030](GAP-030-disaster-recovery-ai-branding.md) | Disaster recovery for AI branding (RTO/RPO, runbooks) | DevOps/Reliability | 🟡 P2 | 🔵 OPEN |
-| [GAP-031](GAP-031-expand-wizard-inputs-beyond-logo.md) | Expand wizard inputs beyond logo (rich brand context) | UX/Product/AI | 🔴 P0 | 🔵 OPEN |
-| [GAP-032](GAP-032-branded-error-pages.md) | Branded error pages (404/500/maintenance) | Frontend/UX | 🟠 P1 | 🔵 OPEN |
+| [GAP-031](closed/GAP-031-expand-wizard-inputs-beyond-logo.md) | Expand wizard inputs beyond logo (rich brand context) | UX/Product/AI | 🔴 P0 | 🔵 OPEN |
+| [GAP-032](closed/GAP-032-branded-error-pages.md) | Branded error pages (404/500/maintenance) | Frontend/UX | 🟠 P1 | 🔵 OPEN |
 | [GAP-033](GAP-033-branding-version-history-rollback.md) | Branding version history & rollback (user-facing) | Product/Backend | 🟠 P1 | 🔵 OPEN |
 | [GAP-034](GAP-034-branding-export-pack.md) | Branding export pack (ZIP + PDF style guide) | Product/Backend | 🟡 P2 | 🔵 OPEN |
 | [GAP-035](GAP-035-wizard-team-collaboration.md) | Wizard team collaboration (multi-user edit) | FE/Backend | 🟡 P2 | 🔵 OPEN |
 | [GAP-036](GAP-036-tier-upgrade-reveal-ux.md) | Tier upgrade UX (reveal, teaser, unlock) | Product/Conversion | 🟠 P1 | 🔵 OPEN |
-| [GAP-037](GAP-037-branded-auth-flows.md) | Branded auth flows (verify email, reset pwd pages) | Frontend/Integration | 🟠 P1 | 🔵 OPEN |
+| [GAP-037](closed/GAP-037-branded-auth-flows.md) | Branded auth flows (verify email, reset pwd pages) | Frontend/Integration | 🟠 P1 | 🔵 OPEN |
 | [GAP-038](GAP-038-developer-api-docs-sdk.md) | Developer API docs + SDK / client library | DevExp/Docs | 🟠 P1 | 🔵 OPEN |
 | [GAP-039](GAP-039-webhook-reliability-versioning.md) | Webhook reliability (retry, idempotency, versioning) | Integration/Backend | 🟠 P1 | 🔵 OPEN |
 | [GAP-040](GAP-040-support-impersonation-tools.md) | Support impersonation & troubleshooting tools | Support/Ops | 🟠 P1 | 🔵 OPEN |
-| [GAP-041](GAP-041-security-hardening-injection.md) | Security hardening — SVG XSS, SSRF, CSRF, prompt injection | Security | 🔴 P0 | 🔵 OPEN |
-| [GAP-042](GAP-042-legal-ip-protection.md) | Legal/IP protection — trademark, DMCA, copyright | Legal/Compliance | 🔴 P0 | 🔵 OPEN |
+| [GAP-041](closed/GAP-041-security-hardening-injection.md) | Security hardening — SVG XSS, SSRF, CSRF, prompt injection | Security | 🔴 P0 | 🔵 OPEN |
+| [GAP-042](closed/GAP-042-legal-ip-protection.md) | Legal/IP protection — trademark, DMCA, copyright | Legal/Compliance | 🔴 P0 | 🔵 OPEN |
 | [GAP-043](GAP-043-performance-cache-stampede-protection.md) | Performance — cache stampede + thundering herd | Performance/Backend | 🟠 P1 | 🔵 OPEN |
 | [GAP-044](GAP-044-synthetic-monitoring-feature-flags.md) | Synthetic monitoring + feature flags system | DevOps/Release | 🟡 P2 | 🔵 OPEN |
 | [GAP-045](GAP-045-template-marketplace.md) | Template marketplace (community contributions) | Product/Community | 🟡 P2 | 🔵 OPEN |
-| [GAP-046](GAP-046-apply-design-patterns-systematically.md) | Apply design patterns systematically (17 patterns catalog) | Architecture | 🟠 P1 | 🔵 OPEN |
-| [GAP-047](GAP-047-document-generation-skills.md) | Document generation skills + infrastructure (Excel/Word/PDF/PPT from MiniMax) | Skills/Backend | 🔴 P0 | 🔵 OPEN |
-| [GAP-048](GAP-048-output-review-standards-coverage.md) | Output review standards coverage (9 violations: gaps, rules, ADR, migrations, scripts, APIs, emails, legal, logs) | Governance | 🔴 P0 | 🔵 OPEN |
+| [GAP-046](closed/GAP-046-apply-design-patterns-systematically.md) | Apply design patterns systematically (17 patterns catalog) | Architecture | 🟠 P1 | 🔵 OPEN |
+| [GAP-047](closed/GAP-047-document-generation-skills.md) | Document generation skills + infrastructure (Excel/Word/PDF/PPT from MiniMax) | Skills/Backend | 🔴 P0 | 🔵 OPEN |
+| [GAP-048](closed/GAP-048-output-review-standards-coverage.md) | Output review standards coverage (9 violations: gaps, rules, ADR, migrations, scripts, APIs, emails, legal, logs) | Governance | 🔴 P0 | 🔵 OPEN |
 | [GAP-049](GAP-049-business-logic-correctness-review.md) | Business logic CORRECTNESS review (implementation reviewed, market/law correctness NOT) | Product/Business/Legal | 🔴 P0 | 🔵 OPEN |
 | [GAP-050](GAP-050-persona-based-business-review.md) | Persona-based business review process (master) | Product/Business | 🔴 P0 | 🔵 OPEN |
-| [GAP-051](GAP-051-bulk-import-users-xlsx.md) | Bulk import users via xlsx (user's school 500-student example) | Backend/Product | 🔴 P0 | 🔵 OPEN |
+| [GAP-051](closed/GAP-051-bulk-import-users-xlsx.md) | Bulk import users via xlsx (user's school 500-student example) | Backend/Product | 🔴 P0 | 🔵 OPEN |
 | [GAP-052](GAP-052-parent-portal.md) | Parent portal + accounts (K-12 critical) | Product/FE/BE | 🔴 P0 | 🔵 OPEN |
-| [GAP-053](GAP-053-academic-year-semester-structure.md) | Academic year + semester structure (VN K-12) | Backend/Product | 🔴 P0 | 🔵 OPEN |
-| [GAP-054](GAP-054-multi-subject-per-student.md) | Multi-subject per student (K-12 data model) | Backend/Data | 🔴 P0 | 🔵 OPEN |
+| [GAP-053](closed/GAP-053-academic-year-semester-structure.md) | Academic year + semester structure (VN K-12) | Backend/Product | 🔴 P0 | 🔵 OPEN |
+| [GAP-054](closed/GAP-054-multi-subject-per-student.md) | Multi-subject per student (K-12 data model) | Backend/Data | 🔴 P0 | 🔵 OPEN |
 | [GAP-055](GAP-055-official-report-card-vn.md) | Official report card VN format (bảng điểm MOE) | Backend/PDF | 🟠 P1 | 🔵 OPEN |
 | [GAP-056](GAP-056-homeroom-teacher-gvcn.md) | Homeroom teacher (GVCN) concept | Backend/Product | 🟠 P1 | 🔵 OPEN |
 | [GAP-057](GAP-057-payroll-teacher-commission.md) | Teacher payroll + commission calculation | Backend/Finance | 🟠 P1 | 🔵 OPEN |
-| [GAP-058](GAP-058-role-hierarchy-org-chart.md) | Role hierarchy + organizational chart | Backend/Security | 🟠 P1 | 🔵 OPEN |
+| [GAP-058](closed/GAP-058-role-hierarchy-org-chart.md) | Role hierarchy + organizational chart | Backend/Security | 🟠 P1 | 🔵 OPEN |
 | [GAP-059](GAP-059-student-conduct-tracking.md) | Student conduct tracking (hạnh kiểm) | Product/Backend | 🟡 P2 | 🔵 OPEN |
 | [GAP-060](GAP-060-period-based-attendance.md) | Period-based attendance (multiple slots/day) | Backend/Product | 🟡 P2 | 🔵 OPEN |
 | [GAP-061](GAP-061-promotion-retention-logic.md) | Promotion/retention logic (lên lớp / ở lại) | Backend/Product | 🟡 P2 | 🔵 OPEN |

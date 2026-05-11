@@ -97,8 +97,8 @@ Disjoint check:
   - `kitehub/kitehub-gateway/src/main/java/com/kitehub/gateway/config/KeyResolverConfig.java` (already fixed Wave-39-eve; verify boot)
   - `kitehub/scripts/up.sh` (run with `--profile beta-funnel` profile)
 - Files (EDIT — flip AC):
-  - `documents/04-quality/gaps/GAP-418-kitehub-frontend-dockerfile-context-broken.md` (tick 3 unchecked AC + Log entry)
-  - `documents/04-quality/gaps/GAP-419-gateway-keyresolver-disambiguation-crash.md` (tick 3 unchecked AC + Log entry)
+  - `documents/04-quality/gaps/closed/GAP-418-kitehub-frontend-dockerfile-context-broken.md` (tick 3 unchecked AC + Log entry)
+  - `documents/04-quality/gaps/closed/GAP-419-gateway-keyresolver-disambiguation-crash.md` (tick 3 unchecked AC + Log entry)
 - Acceptance:
   - `bash kitehub/scripts/setup.sh` produces parseable `.env` (GAP-417 already DONE — sanity-check still works)
   - `bash kitehub/scripts/up.sh --profile beta-funnel` reaches all-services-healthy within 3 min on first try (cold image build OK)

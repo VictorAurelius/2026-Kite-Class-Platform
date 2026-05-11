@@ -62,5 +62,5 @@ Review gate cho customer-facing marketing copy và legal documents. Closes GAP-1
 
 - Rule: `.claude/rules/output-review-mandate.md` §5.8
 - Sibling skill: `.claude/skills/quality/email-template-review/SKILL.md` (email templates cite privacy/unsubscribe URLs that come from here)
-- Gap: `documents/04-quality/gaps/GAP-174-marketing-legal-review.md`
+- Gap: `documents/04-quality/gaps/closed/GAP-174-marketing-legal-review.md`
 - Pre-GA blocker per gap — do not ship TOS/Privacy to real customers before counsel sign-off.

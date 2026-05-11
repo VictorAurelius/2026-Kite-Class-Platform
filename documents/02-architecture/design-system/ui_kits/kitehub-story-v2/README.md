@@ -211,7 +211,7 @@ CSS classes (`kh2-*` prefix). v2 differences:
 
 ## Related
 
-- **Gap:** `documents/04-quality/gaps/GAP-350-round-3-polish-kitehub-story-v2.md` (THIS kit closes Phase 1)
+- **Gap:** `documents/04-quality/gaps/closed/GAP-350-round-3-polish-kitehub-story-v2.md` (THIS kit closes Phase 1)
 - **Decision:** `documents/02-architecture/design-system/dossier/08-direction-decisions.md` Decision 3 (Direction A scope)
 - **Sister kit (theme reference):** `ui_kits/kitehub-pro-v2/` — KH SaaS control plane (P2 owner side, post-trial)
 - **Round 1 archive:** `documents/07-archived/design-round-1-2026-04-29/kitehub-story/` (preserved as `_v1-baseline/`)

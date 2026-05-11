@@ -130,7 +130,7 @@ jobs:
               `| fmt -check | ${fmtIcon} ${process.env.FMT_OUTCOME} |\n` +
               `| validate | ${validateIcon} ${process.env.VALIDATE_OUTCOME} |\n\n` +
               planSection +
-              `\n---\n*Per [GAP-397](../../documents/04-quality/gaps/GAP-397-terraform-plan-ci-pr-validation.md): plan-only, no apply (per GAP-381 Phase 2 BANNED for agent).*`;
+              `\n---\n*Per [GAP-397](../../documents/04-quality/gaps/closed/GAP-397-terraform-plan-ci-pr-validation.md): plan-only, no apply (per GAP-381 Phase 2 BANNED for agent).*`;
 
             // Find existing comment to update (avoid spam)
             const { data: comments } = await github.rest.issues.listComments({

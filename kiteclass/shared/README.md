@@ -3,7 +3,7 @@
 Cross-tier (BE + FE) shared assets for KiteClass mock data and contract sync.
 
 **Wave plan:** [`documents/03-planning/waves/wave-mock-data-local-dev.md`](../../documents/03-planning/waves/wave-mock-data-local-dev.md)
-**Tracking gap:** [GAP-235](../../documents/04-quality/gaps/GAP-235-ai-branding-mock-implementation.md) Sub-PR E1
+**Tracking gap:** [GAP-235](../../documents/04-quality/gaps/closed/GAP-235-ai-branding-mock-implementation.md) Sub-PR E1
 
 ---
 

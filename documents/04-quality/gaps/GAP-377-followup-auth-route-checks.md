@@ -39,7 +39,7 @@ Three independent items, any/all may close this gap:
 
 ## Related
 
-- Parent: `documents/04-quality/gaps/GAP-377-smoke-test-post-deploy-automation.md` (closed Wave 26 Bucket C)
+- Parent: `documents/04-quality/gaps/closed/GAP-377-smoke-test-post-deploy-automation.md` (closed Wave 26 Bucket C)
 - Wave plan: `documents/03-planning/waves/wave-2026-05-06-26-pdpl-phase-2-closeout-smoke-test.md`
 
 ## Log

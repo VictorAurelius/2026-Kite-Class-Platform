@@ -5,7 +5,7 @@ created: 2026-05-08
 phase: 1-beta
 related:
   - documents/04-quality/gaps/GAP-449-terraform-apply-workflow-dispatch-rule-revise.md
-  - documents/04-quality/gaps/GAP-446-aws-resource-scheduling-cost-saving.md
+  - documents/04-quality/gaps/closed/GAP-446-aws-resource-scheduling-cost-saving.md
   - documents/04-quality/gaps/GAP-447-right-size-ec2-post-vercel-pivot.md
   - documents/03-planning/waves/wave-2026-05-08-44-terraform-apply-workflow.md
   - documents/05-guides/deploy/aws-cost-scheduling.md

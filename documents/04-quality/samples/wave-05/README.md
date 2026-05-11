@@ -46,6 +46,6 @@ Re-run only when the templates or the generators change in a way that affects vi
 ## Related
 
 - Wave plan: `documents/03-planning/waves/wave-05-document-generation.md`
-- Gap: `documents/04-quality/gaps/GAP-047-document-generation-skills.md`
+- Gap: `documents/04-quality/gaps/closed/GAP-047-document-generation-skills.md`
 - 3-layer business docs: `documents/01-business/kiteclass/document-generation/{rules,use-cases,api-contract}.md`
 - ADR: `documents/02-architecture/adr/ADR-019-document-generation-architecture.md`

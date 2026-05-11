@@ -1,7 +1,7 @@
 # Terraform State Import Runbook — GAP-450 random_password drift fix (Option A)
 
 **Audience:** Solo-dev / SRE thực hiện thủ công Option A của GAP-450 — phẫu thuật state để xoá lệch `random_password.{jwt, rds, encryption_raw}` mà không tự xoay secret values trong AWS Secrets Manager.
-**Sister docs:** `documents/04-quality/gaps/GAP-450-terraform-state-drift-random-password-kc-app.md` (gap context); `documents/05-guides/operations/secrets-rotation-runbook.md` (rotation cadence).
+**Sister docs:** `documents/04-quality/gaps/closed/GAP-450-terraform-state-drift-random-password-kc-app.md` (gap context); `documents/05-guides/operations/secrets-rotation-runbook.md` (rotation cadence).
 **Standards:** `.claude/rules/agent-aws-access.md` (Tier hierarchy) · `.claude/rules/terraform-apply-retry-reconfirm.md` (state-changing operations need confirm per step) · `.claude/rules/release-fix-retry-budget.md` (retry budget §3).
 **Naming:** Per `.claude/rules/deployment-naming-convention.md` §2 — recurring ops procedure → `operations/`.
 
@@ -240,7 +240,7 @@ Hiện tại 2026-05-11: agent attempted Option A nhưng credentials stale (`AKI
 
 ## 8. Related
 
-- **Gap parent**: `documents/04-quality/gaps/GAP-450-terraform-state-drift-random-password-kc-app.md`
+- **Gap parent**: `documents/04-quality/gaps/closed/GAP-450-terraform-state-drift-random-password-kc-app.md`
 - **Sister gap**: GAP-379 (secrets-management Phase 1 — secrets seeded by Phase 2.3 apply 2026-05-07 chính là nguồn drift)
 - **Audit baseline**: `documents/04-quality/audits/aws-verification/2026-05-08-wave-43-44-bootstrap-apply.md`
 - **Rules**: `agent-aws-access.md` §4.3 (Tier 3 ban), §2.2 (Tier 2 get-secret-value), §5 (audit artifact mandate); `terraform-apply-retry-reconfirm.md`; `release-fix-retry-budget.md` §3 STOP-AND-REDESIGN; `release-deploy-standard.md` §9 (agent role matrix)

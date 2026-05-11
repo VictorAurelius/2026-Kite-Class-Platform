@@ -16,8 +16,8 @@
 - Wave 6: PowerPoint format (deferred per Q6 scope-lock — Canva/Slides viable alternative)
 - [GAP-208](GAP-208-template-library-expansion.md) — template library expansion (~20 templates per format for launch)
 - [GAP-210](GAP-210-document-generation-async-queue.md) — async queue (Wave 5 sync-only)
-- [GAP-217](GAP-217-document-endpoints-alert-rules.md) 🟡 PARTIAL — Alertmanager routing depends on GAP-120
-- [GAP-219](GAP-219-wave5-audit-followups.md) — umbrella for 5 P1 + 8 P2/P3 audit follow-ups
+- [GAP-217](../GAP-217-document-endpoints-alert-rules.md) 🟡 PARTIAL — Alertmanager routing depends on GAP-120
+- [GAP-219](../GAP-219-wave5-audit-followups-p1-p2.md) — umbrella for 5 P1 + 8 P2/P3 audit follow-ups
 
 **Related Docs:**
 - `documents/04-quality/skills-gap-analysis-vs-minimax.md` (full analysis)

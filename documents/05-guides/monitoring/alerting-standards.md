@@ -178,8 +178,8 @@ This is the §6.5 Enforcement Parity Mandate (`rule-change-process.md`) applied 
 
 ## 12. Related
 
-- `documents/04-quality/gaps/GAP-121-per-alert-runbooks.md` — per-alert runbook library (closed)
-- `documents/04-quality/gaps/GAP-122-missing-platform-alerts.md` — this addition's source gap
+- `documents/04-quality/gaps/closed/GAP-121-per-alert-runbooks.md` — per-alert runbook library (closed)
+- `documents/04-quality/gaps/closed/GAP-122-missing-platform-alerts.md` — this addition's source gap
 - `.claude/rules/output-review-mandate.md` §3 — review-standards matrix (alerting-standards lands a row here)
 - `.claude/rules/audit-to-gap-pipeline.md` — audit findings on alerts feed this pipeline
 - `documents/05-guides/operations/runbooks/README.md` — runbook index

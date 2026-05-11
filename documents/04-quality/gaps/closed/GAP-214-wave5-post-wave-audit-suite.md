@@ -51,12 +51,12 @@ Each audit follows `audit-to-gap-pipeline.md` Step 1–5 — issues found → ga
 
 ## Used as AUDIT_OVERRIDE link
 
-Sub-PR 5.5 (PR #529) merges with `AUDIT_OVERRIDE: <reason> documents/04-quality/gaps/GAP-214-wave5-post-wave-audit-suite.md` per `post-wave-audit-mandate.md` §3 override clause. The override is honoured because (a) Sub-PR 5.5 is mid-wave (not the wave-merge itself), (b) Sub-PR 5.6 is the natural slot for the full suite per §4 Day 0–3 cadence, and (c) this gap commits to the schedule.
+Sub-PR 5.5 (PR #529) merges with `AUDIT_OVERRIDE: <reason> documents/04-quality/gaps/closed/GAP-214-wave5-post-wave-audit-suite.md` per `post-wave-audit-mandate.md` §3 override clause. The override is honoured because (a) Sub-PR 5.5 is mid-wave (not the wave-merge itself), (b) Sub-PR 5.6 is the natural slot for the full suite per §4 Day 0–3 cadence, and (c) this gap commits to the schedule.
 
 ## Related
 
 - `documents/03-planning/waves/wave-05-document-generation.md` §4 Sub-PR 5.6 scope (audit deliverable added there)
-- `documents/04-quality/gaps/GAP-047-document-generation-skills.md` (Wave 5 master gap — references this for audit closure)
+- `documents/04-quality/gaps/closed/GAP-047-document-generation-skills.md` (Wave 5 master gap — references this for audit closure)
 - `.claude/rules/post-wave-audit-mandate.md` §2.2 freshness, §3 enforcement, §4 runbook, §5 baselines
 - `.claude/rules/audit-to-gap-pipeline.md` (workflow each audit will follow)
 - Past audit reports being refreshed:

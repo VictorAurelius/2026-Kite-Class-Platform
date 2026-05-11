@@ -44,6 +44,6 @@ Sustained > 1 hour with confirmed bot signature → page on-call security + back
 
 ## References
 
-- Source GAP: `documents/04-quality/gaps/GAP-387-beta-signup-metric-counters-missing.md`
+- Source GAP: `documents/04-quality/gaps/closed/GAP-387-beta-signup-metric-counters-missing.md`
 - DTO honeypot field: `BetaRequestDto.honeypot` (`@Size(max = 0)` Bean Validation)
 - Counter: `BetaAccessService#recordHoneypotRejection()`

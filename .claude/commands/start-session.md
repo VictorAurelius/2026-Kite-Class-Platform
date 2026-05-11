@@ -62,4 +62,4 @@ Flag session as **degraded** if ANY:
 
 - Full process: `.claude/skills/workflow/start-session/SKILL.md`
 - Output format + lock schema + 4 examples: `.claude/skills/workflow/start-session/reference/context-template.md`
-- Origin gap: `documents/04-quality/gaps/GAP-193-session-orchestration-skill.md`
+- Origin gap: `documents/04-quality/gaps/closed/GAP-193-session-orchestration-skill.md`

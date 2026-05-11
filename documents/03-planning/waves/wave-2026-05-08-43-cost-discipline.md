@@ -57,7 +57,7 @@ Disjoint check: A touches `scheduler.tf` (NEW) + `iam.tf`; B touches `ec2.tf` + 
 | # | Bucket | Gap(s) | Priority | Files (glob) | Spawn order |
 |:-:|--------|--------|:--------:|--------------|:-----------:|
 | 1 | **A** | GAP-446 | 🔴 P0 | `infrastructure/terraform-aws/scheduler.tf` (NEW) + `iam.tf` (amend) + `documents/05-guides/deploy/aws-cost-scheduling.md` (NEW) | parallel |
-| 2 | **B** | GAP-447 + GAP-411 update | 🔴 P0 | `infrastructure/terraform-aws/ec2.tf` (amend) + `cloudwatch.tf` (NEW or amend) + `documents/04-quality/gaps/GAP-411-aws-architecture-b-sizing-matrix.md` (update) + `documents/05-guides/deploy/right-size-stress-test.md` (NEW) | parallel |
+| 2 | **B** | GAP-447 + GAP-411 update | 🔴 P0 | `infrastructure/terraform-aws/ec2.tf` (amend) + `cloudwatch.tf` (NEW or amend) + `documents/04-quality/gaps/closed/GAP-411-aws-architecture-b-sizing-matrix.md` (update) + `documents/05-guides/deploy/right-size-stress-test.md` (NEW) | parallel |
 | 3 | **C** | GAP-373/369/377/378/413 sweep | 🟠 P1 | `documents/04-quality/gaps/GAP-373*.md` + `GAP-369*.md` + `GAP-377*.md` + `GAP-378*.md` + `GAP-413*.md` | parallel |
 
 ### Bucket A — EventBridge Scheduler stop/start

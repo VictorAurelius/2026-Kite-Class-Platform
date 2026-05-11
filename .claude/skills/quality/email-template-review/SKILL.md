@@ -54,5 +54,5 @@ Review gate cho customer-facing email templates TRƯỚC KHI ship hoặc send. C
 
 - Rule: `.claude/rules/output-review-mandate.md` §5.7
 - Sibling skill: `.claude/skills/quality/marketing-legal-review/SKILL.md` (broader marketing + legal scope)
-- Gap: `documents/04-quality/gaps/GAP-173-email-template-review.md`
+- Gap: `documents/04-quality/gaps/closed/GAP-173-email-template-review.md`
 - Sibling gap: GAP-063 (SMS + Zalo notifications — same review pattern applies there once wired)

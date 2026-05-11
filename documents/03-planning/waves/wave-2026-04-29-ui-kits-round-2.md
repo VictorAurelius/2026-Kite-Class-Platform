@@ -138,7 +138,7 @@ Manual matrix (no gap files to feed `analyze-overlap.sh`):
 | `documents/02-architecture/design-system/ui_kits/components/**` | C only | None |
 | `documents/03-planning/waves/wave-2026-04-29-ui-kits-round-2.md` | Foundation seeds; coordinator updates Log + Lessons-learned post-wave | None (single-author) |
 | `documents/04-quality/gaps/ROADMAP.md` "Active wave queue" | Foundation seeds; coordinator wave-closure entry post-merge | None (single-author) |
-| `documents/04-quality/gaps/GAP-263-html-prototype-review-standard.md` | Foundation only (NEW gap) | None |
+| `documents/04-quality/gaps/closed/GAP-263-html-prototype-review-standard.md` | Foundation only (NEW gap) | None |
 | `documents/07-archived/design-round-1-2026-04-29/**` | Foundation only (archive of /tmp Round 1) | None |
 
 **Net: 0 HARD conflicts, 1 SOFT conflict (`README.md` status table — trivial resolve).**
@@ -249,7 +249,7 @@ Per `feedback_parallel_agent_strategy.md` + `feedback_wave_plan_through_pr.md`:
   - Wave plan template extended slightly: `gaps:` frontmatter set to empty array `[]`; ROADMAP "Active wave queue" entry uses descriptive title instead of GAP-IDs
   - Foundation PR overhead higher than gap-closing (governance work for new output type) but justified — set up GAP-263 review standard for future Round 2+ waves
 - **HTML prototype review standard (GAP-263 Phase 1) filed + applied same wave** — first concrete instance of `output-review-mandate.md` v1.2.0 §3 row "HTML/JSX prototypes". Agents self-scored using `dossier/10-acceptance-criteria.md` 100-item checklist; produced measurable score reports for Track 2 reviewer reference.
-- **Phase 0 rollback as governance lesson** — captured in `documents/04-quality/gaps/GAP-263-html-prototype-review-standard.md` and this Lessons-learned section. Memory entry candidate: "Phase 0 anti-pattern detection — HTTP server + scaffold without wave plan PR triggered Option A correction".
+- **Phase 0 rollback as governance lesson** — captured in `documents/04-quality/gaps/closed/GAP-263-html-prototype-review-standard.md` and this Lessons-learned section. Memory entry candidate: "Phase 0 anti-pattern detection — HTTP server + scaffold without wave plan PR triggered Option A correction".
 
 ### Memory entry filed?
 - Candidate: `feedback_phase_0_governance_violation.md` — captures the Option A correction lesson (wave plan PR-FIRST is non-negotiable even for "low-stakes" docs work). Filing decision deferred to follow-up — let `incident-to-rule-pipeline.md` §1 govern: did this incident reveal a coverage gap that existing tooling didn't catch? Yes — `audit-gate.py` had no rule blocking ui_kits/ writes without matching wave plan. Tracked as **GAP-264** candidate (or hook enhancement directly).

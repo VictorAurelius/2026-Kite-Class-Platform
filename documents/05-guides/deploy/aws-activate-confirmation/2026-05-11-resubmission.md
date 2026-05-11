@@ -101,6 +101,6 @@ Same form values as original submission, ngoại trừ description text refreshe
 
 - `documents/05-guides/deploy/aws-activate-confirmation/2026-05-09-submission.md` — original submission log (superseded by this file)
 - `documents/04-quality/gaps/GAP-412-aws-activate-founders-pack-application.md` — parent gap (status update needed)
-- `documents/04-quality/gaps/GAP-459-activate-resubmit-prep.md` — Phase 4 user-action partial-DONE
+- `documents/04-quality/gaps/closed/GAP-459-activate-resubmit-prep.md` — Phase 4 user-action partial-DONE
 - `documents/04-quality/audits/aws-verification/2026-05-11-actual-cost-vs-estimate.md` — cash burn analysis ($293 personal-fund risk if denied)
 - `documents/05-guides/deploy/aws-activate-credit-policy.md` v1.1 — updated 2026-05-11 với actual numbers

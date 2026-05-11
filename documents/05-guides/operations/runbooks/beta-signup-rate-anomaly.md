@@ -45,6 +45,6 @@ If sustained > 30 minutes despite mitigations, page on-call backend engineer.
 
 ## References
 
-- Source GAP: `documents/04-quality/gaps/GAP-387-beta-signup-metric-counters-missing.md`
+- Source GAP: `documents/04-quality/gaps/closed/GAP-387-beta-signup-metric-counters-missing.md`
 - Service: `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/beta/service/BetaAccessService.java`
 - Alert rule: `infrastructure/helm/kitehub/templates/prometheusrule.yaml` + `kitehub/docker/prometheus/alert-rules.yml`
