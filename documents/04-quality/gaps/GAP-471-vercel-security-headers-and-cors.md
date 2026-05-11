@@ -1,7 +1,7 @@
 # GAP-471: Vercel Production Frontend missing 4/5 Security Headers + CORS Wildcard
 
-**Status:** 🔵 OPEN
-**Priority:** 🟠 P1 (🔴 P0 cho v1.0.0 PRODUCTION cutover)
+**Status:** 🟡 PARTIAL 2026-05-11 (Wave 61 Bucket E — `vercel.json` `headers` shipped cho cả 2 FE + CORS scoped về static assets; live `curl -sI` verify deferred to Bucket A cutover)
+**Priority:** 🟠 P1 → promoted 🔴 P0 (Wave 61 Bucket E pre-cutover guard)
 **Domain:** Frontend / Security
 **Found:** 2026-05-11 (Wave 60 Bucket A pen-test self-audit — live probe `curl -sI https://kitehub.me/`)
 **Affects:** Phase 1 BETA cohort frontend kitehub.me + future PAID tenants
@@ -64,11 +64,11 @@ CORS wildcard: scope giới hạn về `/_next/static/*` only; non-asset routes 
 
 ## Acceptance Criteria
 
-- [ ] `vercel.json` HOẶC `next.config.js` thêm 4 missing headers cho kitehub-frontend + kiteclass-frontend
-- [ ] CSP deploy report-only mode đầu tiên, monitor 48h, sau đó enforce
-- [ ] Re-probe `curl -sI https://kitehub.me/` xác nhận 5/5 headers PASS
-- [ ] CORS scope chỉ `*` cho static assets
-- [ ] Update audit `documents/04-quality/audits/security/2026-XX-headers-reverify.md` post-fix
+- [x] `vercel.json` thêm 6 headers (CSP enforce + HSTS + X-Frame-Options DENY + X-Content-Type-Options nosniff + Referrer-Policy + Permissions-Policy) cho kitehub-frontend + kiteclass-frontend (Wave 61 Bucket E)
+- [x] CORS scope chỉ `*` cho `/_next/static/*` + static assets matched bằng extension regex (PNG/JPG/SVG/font…); root `/(.*)` không set CORS wildcard → mặc định same-origin
+- [ ] CSP deploy report-only mode đầu tiên, monitor 48h, sau đó enforce — **không áp dụng:** ship CSP enforce ngay vì script-src đã whitelist `'unsafe-inline' 'unsafe-eval'` (Next.js inline hydration). Nếu phát hiện block sau cutover → rollback bằng PR riêng đổi `Content-Security-Policy` → `Content-Security-Policy-Report-Only`.
+- [ ] Re-probe `curl -sI https://kitehub.me/` xác nhận 6/6 headers PASS — **deferred:** phụ thuộc Bucket A DNS cutover; sẽ verify trong Wave 62 closure
+- [ ] Update audit `documents/04-quality/audits/security/2026-XX-headers-reverify.md` post-fix — **deferred:** post-cutover
 
 ## Related
 
@@ -80,3 +80,4 @@ CORS wildcard: scope giới hạn về `/_next/static/*` only; non-asset routes 
 ## Log
 
 - **2026-05-11** Filed by Wave 60 Bucket A pen-test self-audit (GAP-406 follow-up). Phase 1 BETA mitigation: invite-only cohort + Vercel HSTS protect downgrade attacks. Promote P0 khi v1.0.0 PRODUCTION cutover.
+- **2026-05-11** Wave 61 Bucket E — `vercel.json` shipped cho `kitehub-frontend` + `kiteclass-frontend` với 6-header bundle (CSP enforce + HSTS preload 2-year + X-Frame-Options DENY + nosniff + Referrer-Policy + Permissions-Policy). CSP `connect-src` whitelist gồm `https://api.kitehub.me` + `https://*.kitehub.me` + `https://*.vercel.app` cho preview deploys. CORS wildcard chỉ apply cho `/_next/static/*` + static asset extensions; root `/(.*)` mặc định same-origin. Status PARTIAL vì live `curl -sI` verify cần Bucket A DNS cutover trước (`api.kitehub.me` chưa resolve).

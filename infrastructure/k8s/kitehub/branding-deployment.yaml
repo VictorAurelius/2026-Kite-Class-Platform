@@ -17,10 +17,26 @@ spec:
         app: kitehub-branding
         version: v1.0.0
     spec:
+      # GAP-470 (Wave 61 Bucket E) — non-root, hardened pod context.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: branding
         image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/kitehub/branding:latest
         imagePullPolicy: Always
+        # GAP-470 — container hardening: drop all Linux capabilities, ban privilege
+        # escalation, mount root filesystem read-only (tmp/cache volumes mounted below).
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
         ports:
         - containerPort: 8083
           name: http
@@ -110,6 +126,13 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 3
+        # GAP-470 — writable scratch dirs because rootFS is read-only.
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}
       restartPolicy: Always
 ---
 apiVersion: v1

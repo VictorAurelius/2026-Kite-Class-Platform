@@ -48,8 +48,17 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends wget && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy jar from builder
-COPY --from=builder /app/target/*.jar app.jar
+# GAP-470 (Wave 61 Bucket E) — run as non-root UID 1001 to satisfy K8s `runAsNonRoot: true`.
+# UID 1001 matches project convention (kitehub-subscription, kitehub-gateway, etc.);
+# UID 1000 is reserved by Ubuntu noble base image (`ubuntu` user).
+RUN groupadd --system --gid 1001 spring \
+ && useradd --system --uid 1001 --gid spring --no-create-home --shell /usr/sbin/nologin spring
+
+# Copy jar from builder (owned by spring so the read-only-rootfs container can load it).
+COPY --from=builder --chown=spring:spring /app/target/*.jar app.jar
+RUN chown -R spring:spring /app
+
+USER spring
 
 # Expose port
 EXPOSE 8081

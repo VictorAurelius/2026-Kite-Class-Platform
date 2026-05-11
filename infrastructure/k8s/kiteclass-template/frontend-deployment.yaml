@@ -23,10 +23,25 @@ spec:
         instance-id: "{{INSTANCE_ID}}"
         version: "{{KITECLASS_VERSION}}"
     spec:
+      # GAP-470 (Wave 61 Bucket E) — non-root, hardened pod context.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: frontend
         image: {{ECR_REGISTRY}}/kiteclass/frontend:{{KITECLASS_VERSION}}
         imagePullPolicy: Always
+        # GAP-470 — container hardening.
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
         ports:
         - containerPort: 3000
           name: http
@@ -64,6 +79,18 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 3
+        # GAP-470 — writable scratch dirs because rootFS is read-only.
+        # Next.js writes runtime cache to /.next/cache + uses /tmp for SSR work.
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: nextjs-cache
+          mountPath: /.next/cache
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: nextjs-cache
+        emptyDir: {}
       restartPolicy: Always
 ---
 apiVersion: v1
