@@ -241,7 +241,7 @@ Phase 1.5 PAID: consider Cloudflare Pro ($25/mo per zone) for image optimization
 
 ## 9. Liên quan
 
-- `documents/05-guides/operations/secrets-management-runbook.md` (sister runbook)
+- `documents/05-guides/deploy/secrets-seeding-runbook.md` (sister deploy runbook) + `documents/05-guides/operations/secrets-rotation-runbook.md` (rotation cadence)
 - `documents/03-planning/roadmap/release-1-deploy-plan.md` (parent)
 - `documents/02-architecture/deployment-strategy.md` (5 nguyên tắc)
 - `infrastructure/terraform-aws/secrets.tf` (existing AWS secrets)
