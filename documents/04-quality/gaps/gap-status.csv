@@ -1,0 +1,24 @@
+# Gap Status CSV — Pilot (Design A per session 2026-05-11)
+# Single canonical source for: status, priority, phase, completion_pct, last_verified
+# Schema versioning: see scripts/check-gap-status-csv.sh + .claude/rules/gap-architecture-v2.md
+# Rows: 5 pilot gaps. Bulk migration tracked GAP-NEW-csv-bulk-migration (follow-up).
+#
+# Columns:
+#   id              — Gap ID matching filename prefix
+#   filename        — Relative path từ documents/04-quality/gaps/
+#   title_short     — One-line summary (<=80 chars)
+#   status          — OPEN | PARTIAL | PLANNED | IN_PROGRESS | DONE | WONTFIX
+#   priority        — P0 | P1 | P2 | P3
+#   domain          — Frontend | Backend | DevOps | Compliance | Meta | AI | Mixed
+#   phase           — phase-1-beta | phase-1.5-paid | phase-2 | phase-3 | n/a
+#   completion_pct  — 0..100 (for PARTIAL granularity; 0=OPEN, 100=DONE)
+#   found_date      — ISO YYYY-MM-DD
+#   last_verified   — ISO YYYY-MM-DD (per audit-to-gap-pipeline.md §2.8 spirit)
+#   notes           — Optional 1-line context (DEFERRED reason, blocked-by ref, etc.)
+#
+id,filename,title_short,status,priority,domain,phase,completion_pct,found_date,last_verified,notes
+GAP-005,GAP-005-ai-queue-fair-scheduling.md,AI queue fair scheduling + horizontal scaling,IN_PROGRESS,P0,AI,phase-1-beta,40,2026-04-14,2026-05-11,Phase 1 MVP done Wave 3; Phase 2 production scale open
+GAP-006,GAP-006-upgrade-to-gemma-4.md,Upgrade AI models to Gemma 4,OPEN,P1,AI,phase-2,0,2026-04-14,2026-05-11,DEFERRED until local Ollama + full Docker stack ready (WSL2 CPU too slow)
+GAP-114,GAP-114-structured-json-logging.md,Structured JSON Logging + MDC Propagation,PARTIAL,P0,Backend,phase-1-beta,80,2026-04-19,2026-05-11,Infrastructure shipped Wave 25 Bucket B; per-service e2e smoke deferred to GAP-115
+GAP-137,GAP-137-bulk-import-frontend-ui-missing.md,Bulk Import Frontend UI Missing (Wave 1 BE inaccessible),OPEN,P0,Frontend,phase-1-beta,0,2026-04-19,2026-05-11,FE missing; BE shipped Wave 1 GAP-051 nhưng user-inaccessible
+GAP-353b,GAP-353b-server-consent-api-audit-log.md,Server-side Consent API + Audit-log link (PDPL Phase 2),PARTIAL,P1,Compliance,phase-1-beta,73,2026-05-06,2026-05-11,8/11 AC verified Wave 25 Bucket A; 3 deepening items routed GAP-353b-followup
