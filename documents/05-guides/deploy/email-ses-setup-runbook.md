@@ -488,6 +488,103 @@ Alert thresholds (per `monitoring-runbook.md` future scope):
 
 ---
 
+## 6.1 Test mailbox setup for E2E smoke (Wave 62 GAP-475)
+
+The shell smoke `scripts/smoke-ses.sh` (Wave 62 Bucket B extension) provides two opt-in E2E checks that send a real email and verify receipt:
+
+- `send_receive_email_e2e` — sends a timestamped test email via `aws ses send-email` and polls a mailbox for delivery evidence (GAP-475 Sub-2).
+- `verify_mfa_otp_e2e` — triggers `POST /api/auth/register` then polls for the verification-email link, extracts the `?token=<UUID>` value, and calls `POST /api/auth/verify-email?token=<...>` to confirm the email→link→verify flow end-to-end (GAP-475 Sub-3).
+
+Both checks are env-gated. Without env set, the smoke skips them (graceful `[SKIP]` log line, exit 0). Two polling backends are supported; **Mailgun route is the primary path** for production cron / CI use.
+
+### 6.1.1 Path A — Mailgun events API (preferred)
+
+Mailgun's events API gives a structured, scriptable read of inbound messages without IMAP fragility. Use this in CI cron + nightly Phase 1 BETA verification.
+
+**Prerequisites:**
+1. Mailgun account with a verified domain configured for inbound routing (free Flex tier covers smoke volume; ~5 inbound msg/day for the smoke).
+2. A Mailgun route forwarding inbound mail addressed to `smoke@<mailgun-domain>` into stored events.
+3. Mailgun **Private API key** (Dashboard → Settings → API Keys → Private API key).
+
+**Env vars to set:**
+
+```bash
+export SMOKE_EMAIL_E2E=1
+export SMOKE_MFA_E2E=1                           # optional, to also run Sub-3
+export SMOKE_EMAIL_RECIPIENT="smoke@<mailgun-domain>"
+export SMOKE_EMAIL_MAILGUN_API_KEY="<private-api-key>"
+export SMOKE_EMAIL_MAILGUN_DOMAIN="<mailgun-domain>"
+# Optional — override sender (defaults to noreply@kitehub.me)
+export SMOKE_EMAIL_FROM="noreply@kitehub.me"
+# Optional — for MFA E2E, override target backend (defaults to http://localhost:8080)
+export KH_URL="https://api.kitehub.me"
+```
+
+Then run:
+
+```bash
+bash scripts/smoke-ses.sh
+```
+
+The script will:
+1. Run all existing Tier 1 SES read-only checks.
+2. Send a `smoke-test-<timestamp>` email via SES to `SMOKE_EMAIL_RECIPIENT`.
+3. Poll the Mailgun events API every 30 sec for up to 5 min, filtered by `recipient` + `event=accepted|delivered|stored`.
+4. Assert subject match (and body content where the event payload includes it).
+5. If `SMOKE_MFA_E2E=1`: POST a fresh registration to `${KH_URL}/api/auth/register`, poll for the verification email, extract the URL token, and POST `${KH_URL}/api/auth/verify-email?token=<...>`.
+
+**Cost:** 1-2 SES quota slots per run + free Mailgun events read. Safe to run hourly during the Phase 1 BETA hardening window.
+
+### 6.1.2 Path B — Dedicated IMAP mailbox `smoke@kitehub.me`
+
+For environments where Mailgun is not provisioned, point the smoke at a dedicated IMAP mailbox. **Caveat:** the IMAP path in `scripts/smoke-ses.sh` uses `curl imaps://` for fetch and is best-effort — it grep-matches the most recent message body. For production cron, prefer Path A.
+
+**Prerequisites:**
+1. Create a dedicated mailbox `smoke@kitehub.me` (Cloudflare Email Routing → forward to a Gmail/Outlook account with IMAP enabled; or any standalone IMAP host).
+2. Generate an app password (Gmail requires 2FA + app password; Outlook accepts native password if IMAP/POP enabled).
+3. Note the IMAP host (e.g., `imap.gmail.com`, `outlook.office365.com`).
+
+**Env vars to set:**
+
+```bash
+export SMOKE_EMAIL_E2E=1
+export SMOKE_MFA_E2E=1                           # optional
+export SMOKE_EMAIL_RECIPIENT="smoke@kitehub.me"
+export SMOKE_EMAIL_IMAP_HOST="imap.gmail.com"
+export SMOKE_EMAIL_IMAP_USER="smoke-forwarded@gmail.com"
+export SMOKE_EMAIL_IMAP_PASS="<app-password>"
+```
+
+Then run `bash scripts/smoke-ses.sh` as in Path A.
+
+**Known limitations of the IMAP path:**
+- Single-shot `curl imaps://` fetch; race possible if email is delivered between polls.
+- Body parsing is grep-based; HTML-only emails may fail token extraction in the MFA flow.
+- TLS handshake may fail on hosts with strict cipher policies.
+
+For higher reliability, replace the IMAP polling block in `scripts/smoke-ses.sh::_poll_email_inbox()` with a project-specific helper (e.g., a small Python script using `imaplib`).
+
+### 6.1.3 CI / cron integration
+
+Once env vars are wired into GitHub Actions secrets (Mailgun path) or a secrets manager (IMAP path), schedule the smoke daily via the existing workflow gate:
+
+```yaml
+# .github/workflows/smoke-ses-nightly.yml (out of scope this PR — see GAP-475 Sub-X)
+schedule:
+  - cron: "17 3 * * *"   # daily 03:17 UTC
+env:
+  SMOKE_EMAIL_E2E: "1"
+  SMOKE_MFA_E2E: "1"
+  SMOKE_EMAIL_RECIPIENT: ${{ secrets.SMOKE_EMAIL_RECIPIENT }}
+  SMOKE_EMAIL_MAILGUN_API_KEY: ${{ secrets.SMOKE_EMAIL_MAILGUN_API_KEY }}
+  SMOKE_EMAIL_MAILGUN_DOMAIN: ${{ vars.SMOKE_EMAIL_MAILGUN_DOMAIN }}
+  KH_URL: ${{ vars.KH_URL }}
+```
+
+Reference: `scripts/smoke-ses.sh::send_receive_email_e2e` + `::verify_mfa_otp_e2e`.
+
+---
+
 ## 7. Smoke test (post-setup verification)
 
 Three complementary smoke paths (use in order — cheapest first):

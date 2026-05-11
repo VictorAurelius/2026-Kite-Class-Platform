@@ -175,6 +175,235 @@ if [ "${1:-}" = "--domain" ] || [ "$IDENTITY_COUNT" -gt 0 ]; then
 fi
 
 # ---------------------------------------------------------------------------
+# 5. Email delivery E2E (Wave 62 GAP-475 Sub-2, opt-in)
+# ---------------------------------------------------------------------------
+# Env-gated send→receive verification. Sends a real SES email and polls a
+# mailbox (Mailgun events API or IMAP via curl) for receipt evidence.
+#
+# Required env to opt in:
+#   SMOKE_EMAIL_E2E=1
+#   SMOKE_EMAIL_RECIPIENT=<address>
+#
+# Polling mode A (preferred — Mailgun events API):
+#   SMOKE_EMAIL_MAILGUN_API_KEY=<key>
+#   SMOKE_EMAIL_MAILGUN_DOMAIN=<domain configured in Mailgun for inbound>
+#
+# Polling mode B (IMAP via curl; fragile — Mailgun preferred):
+#   SMOKE_EMAIL_IMAP_HOST=imap.example.com  (port :993 implicit)
+#   SMOKE_EMAIL_IMAP_USER=<user>
+#   SMOKE_EMAIL_IMAP_PASS=<pass>
+#
+# Optional sender override:
+#   SMOKE_EMAIL_FROM (default noreply@kitehub.me)
+
+SES_SMOKE_FROM="${SMOKE_EMAIL_FROM:-noreply@kitehub.me}"
+
+# Poll mailbox for a message whose subject contains $1.
+# Echoes raw email body to stdout if found; exits 0 on hit, 1 on timeout.
+# Usage: _poll_email_inbox "<subject-token>" [max_retries=10] [sleep_seconds=30]
+_poll_email_inbox() {
+  local needle="$1"
+  local max_retries="${2:-10}"
+  local sleep_secs="${3:-30}"
+  local attempt=0
+
+  while [ "$attempt" -lt "$max_retries" ]; do
+    attempt=$((attempt + 1))
+
+    if [ -n "${SMOKE_EMAIL_MAILGUN_API_KEY:-}" ] && [ -n "${SMOKE_EMAIL_MAILGUN_DOMAIN:-}" ]; then
+      # Mailgun events API — filter by recipient + event=accepted/delivered
+      local events_json
+      events_json=$(curl -s --user "api:${SMOKE_EMAIL_MAILGUN_API_KEY}" \
+        "https://api.mailgun.net/v3/${SMOKE_EMAIL_MAILGUN_DOMAIN}/events?event=accepted+OR+delivered+OR+stored&recipient=${SMOKE_EMAIL_RECIPIENT}&limit=25" 2>/dev/null || echo '{}')
+
+      # Find an item whose message subject contains the needle
+      local body
+      body=$(echo "$events_json" | jq -r --arg n "$needle" \
+        '.items // [] | map(select((.message.headers.subject // "") | contains($n))) | .[0] // empty' 2>/dev/null || echo "")
+
+      if [ -n "$body" ] && [ "$body" != "null" ]; then
+        echo "$body"
+        return 0
+      fi
+    elif [ -n "${SMOKE_EMAIL_IMAP_HOST:-}" ] && [ -n "${SMOKE_EMAIL_IMAP_USER:-}" ] && [ -n "${SMOKE_EMAIL_IMAP_PASS:-}" ]; then
+      # Best-effort IMAP fetch via curl — fragile; users may prefer custom helper.
+      # Fetches the most recent message body and greps for the needle.
+      local imap_body
+      imap_body=$(curl -s --url "imaps://${SMOKE_EMAIL_IMAP_HOST}/INBOX;UID=*" \
+        --user "${SMOKE_EMAIL_IMAP_USER}:${SMOKE_EMAIL_IMAP_PASS}" 2>/dev/null || echo "")
+
+      if echo "$imap_body" | grep -q "$needle"; then
+        echo "$imap_body"
+        return 0
+      fi
+    else
+      # No polling backend configured.
+      return 2
+    fi
+
+    if [ "$attempt" -lt "$max_retries" ]; then
+      sleep "$sleep_secs"
+    fi
+  done
+
+  return 1
+}
+
+send_receive_email_e2e() {
+  if [ "${SMOKE_EMAIL_E2E:-0}" != "1" ]; then
+    info "[SKIP] Email E2E (set SMOKE_EMAIL_E2E=1 + SMOKE_EMAIL_RECIPIENT + Mailgun/IMAP creds to enable)"
+    return 0
+  fi
+
+  if [ -z "${SMOKE_EMAIL_RECIPIENT:-}" ]; then
+    warn "Email E2E: SMOKE_EMAIL_E2E=1 but SMOKE_EMAIL_RECIPIENT unset — skipping"
+    return 0
+  fi
+
+  if [ -z "${SMOKE_EMAIL_MAILGUN_API_KEY:-}" ] && [ -z "${SMOKE_EMAIL_IMAP_HOST:-}" ]; then
+    warn "Email E2E: no polling backend configured (need Mailgun OR IMAP env) — skipping"
+    return 0
+  fi
+
+  info "Email delivery E2E (send→receive)"
+
+  local ts subject body
+  ts="$(date +%s)"
+  subject="smoke-test-${ts}"
+  body="Smoke test body $(date -u +%Y-%m-%dT%H:%M:%SZ) — token=${ts}"
+
+  # Send via SES
+  local send_out
+  send_out=$(aws ses send-email \
+    --region "$REGION" \
+    --from "$SES_SMOKE_FROM" \
+    --destination "ToAddresses=${SMOKE_EMAIL_RECIPIENT}" \
+    --message "Subject={Data=${subject},Charset=UTF-8},Body={Text={Data=${body},Charset=UTF-8}}" \
+    2>&1) || true
+
+  local message_id
+  message_id=$(echo "$send_out" | jq -r '.MessageId // empty' 2>/dev/null || echo "")
+
+  if [ -z "$message_id" ]; then
+    fail "SES send-email failed: $(echo "$send_out" | head -c 200)"
+    return 0
+  fi
+  ok "SES send-email returned MessageId=${message_id}"
+
+  # Poll mailbox
+  info "Polling mailbox for subject containing '${subject}' (max ~5min)"
+  local fetched
+  fetched=$(_poll_email_inbox "$subject" 10 30 || true)
+
+  if [ -z "$fetched" ]; then
+    fail "Email not received within polling window (subject=${subject})"
+    return 0
+  fi
+
+  ok "Email received (subject match confirmed)"
+
+  # Best-effort body verification — Mailgun events expose stored.url; IMAP gives raw.
+  # When body content not in event payload, skip strict assertion.
+  if echo "$fetched" | grep -q "token=${ts}"; then
+    ok "Email body content match (token=${ts})"
+  else
+    warn "Body content not asserted (poll backend may only expose headers)"
+  fi
+}
+
+verify_mfa_otp_e2e() {
+  if [ "${SMOKE_MFA_E2E:-0}" != "1" ]; then
+    info "[SKIP] MFA OTP E2E (set SMOKE_MFA_E2E=1 + reuse SMOKE_EMAIL_* env to enable)"
+    return 0
+  fi
+
+  if [ -z "${SMOKE_EMAIL_RECIPIENT:-}" ]; then
+    warn "MFA OTP E2E: SMOKE_EMAIL_RECIPIENT unset — skipping"
+    return 0
+  fi
+
+  if [ -z "${SMOKE_EMAIL_MAILGUN_API_KEY:-}" ] && [ -z "${SMOKE_EMAIL_IMAP_HOST:-}" ]; then
+    warn "MFA OTP E2E: no polling backend configured — skipping"
+    return 0
+  fi
+
+  local kh_url="${KH_URL:-${SMOKE_KH_URL:-http://localhost:8080}}"
+  info "MFA OTP E2E via ${kh_url}"
+
+  # Trigger signup. Backend POST /api/auth/register expects RegisterRequest:
+  #   {organizationName, subdomain, ownerEmail, ownerPassword}
+  # Verification is link-based (?token=<UUID>) per AuthController#verifyEmail.
+  # We extract the token from the verification email URL.
+  local ts org_name subdomain password
+  ts="$(date +%s)"
+  org_name="Smoke Test ${ts}"
+  subdomain="smoke-${ts}"
+  password="Sm0keTest!${ts}"
+
+  local register_body
+  register_body=$(cat <<EOF
+{"organizationName":"${org_name}","subdomain":"${subdomain}","ownerEmail":"${SMOKE_EMAIL_RECIPIENT}","ownerPassword":"${password}"}
+EOF
+)
+
+  local http_code
+  http_code=$(curl -s -o /tmp/smoke-register.out -w "%{http_code}" \
+    -X POST "${kh_url}/api/auth/register" \
+    -H "Content-Type: application/json" \
+    -d "$register_body" 2>/dev/null || echo "000")
+
+  if [ "$http_code" != "201" ] && [ "$http_code" != "200" ]; then
+    fail "Register endpoint returned HTTP ${http_code} (expected 200/201). Body: $(head -c 200 /tmp/smoke-register.out 2>/dev/null || echo none)"
+    return 0
+  fi
+  ok "Register endpoint returned HTTP ${http_code}"
+
+  # Poll mailbox for the verification email (subject heuristic: "verify" or "xác nhận")
+  info "Polling mailbox for verification email (max ~5min)"
+  local fetched
+  # Try common subject tokens — registration emails usually contain "verify" or "verification".
+  fetched=$(_poll_email_inbox "verify" 10 30 || true)
+  if [ -z "$fetched" ]; then
+    fetched=$(_poll_email_inbox "xác nhận" 10 30 || true)
+  fi
+
+  if [ -z "$fetched" ]; then
+    fail "Verification email not received within polling window"
+    return 0
+  fi
+  ok "Verification email received"
+
+  # Extract token from URL — verifyEmail uses ?token=<UUID> query param.
+  local token
+  token=$(echo "$fetched" | grep -oE 'token=[A-Za-z0-9_-]+' | head -1 | cut -d= -f2)
+
+  if [ -z "$token" ]; then
+    # Fallback: try 6-digit OTP pattern in case future email format uses one
+    token=$(echo "$fetched" | grep -oE '\b[0-9]{6}\b' | head -1)
+  fi
+
+  if [ -z "$token" ]; then
+    fail "Could not extract verification token from email body"
+    return 0
+  fi
+  ok "Extracted verification token (length=${#token})"
+
+  # POST verify-email — controller uses @RequestParam, so token is query-string.
+  local verify_code
+  verify_code=$(curl -s -o /tmp/smoke-verify.out -w "%{http_code}" \
+    -X POST "${kh_url}/api/auth/verify-email?token=${token}" 2>/dev/null || echo "000")
+
+  if [ "$verify_code" = "200" ]; then
+    ok "verify-email returned HTTP 200 — MFA OTP flow E2E pass"
+  else
+    fail "verify-email returned HTTP ${verify_code}. Body: $(head -c 200 /tmp/smoke-verify.out 2>/dev/null || echo none)"
+  fi
+}
+
+send_receive_email_e2e
+verify_mfa_otp_e2e
+
+# ---------------------------------------------------------------------------
 # Summary
 # ---------------------------------------------------------------------------
 echo ""
