@@ -48,8 +48,15 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends wget && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy jar from builder
-COPY --from=builder /app/target/*.jar app.jar
+# GAP-470 (Wave 61 Bucket E) — run as non-root UID 1000 to satisfy K8s `runAsNonRoot: true`.
+RUN groupadd --system --gid 1000 spring \
+ && useradd --system --uid 1000 --gid spring --home-dir /app --shell /usr/sbin/nologin spring
+
+# Copy jar from builder (owned by spring so the read-only-rootfs container can load it).
+COPY --from=builder --chown=spring:spring /app/target/*.jar app.jar
+RUN chown -R spring:spring /app
+
+USER 1000
 
 # Expose port
 EXPOSE 8081

@@ -16,10 +16,25 @@ spec:
       labels:
         app: kitehub-{{ $name }}
     spec:
+      # GAP-470 (Wave 61 Bucket E) — non-root, hardened pod context.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: {{ $name }}
           image: "{{ $.Values.global.image.registry }}/{{ $svc.image.name }}:{{ $.Values.global.image.tag }}"
           imagePullPolicy: {{ $.Values.global.image.pullPolicy }}
+          # GAP-470 — container hardening: drop caps, ban privesc, read-only rootFS.
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: {{ $svc.port }}
           env:
@@ -137,4 +152,19 @@ spec:
               port: {{ $svc.port }}
             initialDelaySeconds: 30
             periodSeconds: 10
+          # GAP-470 — writable scratch dirs because rootFS is read-only.
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            {{- if eq $name "frontend" }}
+            - name: nextjs-cache
+              mountPath: /.next/cache
+            {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if eq $name "frontend" }}
+        - name: nextjs-cache
+          emptyDir: {}
+        {{- end }}
 {{- end }}

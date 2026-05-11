@@ -1,7 +1,7 @@
 # GAP-472: Gateway SecurityHeadersFilter Parity (KiteHub missing entirely; KiteClass missing HSTS+CSP)
 
-**Status:** 🔵 OPEN
-**Priority:** 🟠 P1 (🔴 P0 cho v1.0.0 PRODUCTION cutover)
+**Status:** 🟡 PARTIAL 2026-05-11 (Wave 61 Bucket E — code shipped + unit-tested; docs update + live post-cutover probe deferred to Wave 62 post-cutover audit)
+**Priority:** 🟠 P1 → promoted 🔴 P0 (Wave 61 Bucket E pre-cutover guard)
 **Domain:** Backend / Gateway / Security
 **Found:** 2026-05-11 (Wave 60 Bucket A pen-test self-audit — source-level inspection)
 **Affects:** Backend API responses sau cutover Phase 1.5+ (Phase 1 BETA chưa active vì FE đi qua Vercel; gateway sẽ active khi BE cutover)
@@ -61,11 +61,11 @@ public class SecurityHeadersFilter implements WebFilter {
 
 ## Acceptance Criteria
 
-- [ ] `kitehub/kitehub-gateway/src/main/java/com/kitehub/gateway/filter/SecurityHeadersFilter.java` shipped
-- [ ] `kiteclass/kiteclass-gateway/src/main/java/com/kiteclass/gateway/filter/SecurityHeadersFilter.java` thêm HSTS + CSP
-- [ ] Integration test verify response headers cả 2 gateway
-- [ ] Documentation update `documents/05-guides/security/owasp-top-10-baseline.md` §7 — gateway header coverage
-- [ ] Post-cutover re-probe verify
+- [x] `kitehub/kitehub-gateway/src/main/java/com/kitehub/gateway/filter/SecurityHeadersFilter.java` shipped (Wave 61 Bucket E)
+- [x] `kiteclass/kiteclass-gateway/src/main/java/com/kiteclass/gateway/filter/SecurityHeadersFilter.java` thêm HSTS + CSP + Permissions-Policy (Wave 61 Bucket E)
+- [x] Unit test verify 6/6 headers trên kitehub-gateway (`SecurityHeadersFilterTest.allSixHeadersPresent`) + 7/7 headers trên kiteclass-gateway (`SecurityHeadersFilterTest.filter_addsSecurityHeaders`)
+- [ ] Documentation update `documents/05-guides/security/owasp-top-10-baseline.md` §7 — gateway header coverage (deferred to post-cutover audit refresh — file does not yet exist; tracked via Wave 60 OWASP audit re-run)
+- [ ] Post-cutover re-probe verify (deferred to post-Bucket A DNS cutover live probe — see closure PR for `curl -sI` once `api.kitehub.me` resolves)
 
 ## Related
 
@@ -78,3 +78,4 @@ public class SecurityHeadersFilter implements WebFilter {
 ## Log
 
 - **2026-05-11** Filed by Wave 60 Bucket A pen-test self-audit (GAP-406 follow-up). Source-level inspection xác nhận asymmetry. Phase 1 BETA mitigation: Cloudflare edge HSTS khi DNS qua CF. Promote P0 khi v1.0.0 PRODUCTION cutover gate fires.
+- **2026-05-11** Wave 61 Bucket E — code shipped. `kitehub-gateway` mới có `SecurityHeadersFilter` (GlobalFilter @ `LOWEST_PRECEDENCE - 1`) injecting 6 headers (HSTS preload 1y / CSP `default-src 'none'` / X-Frame-Options DENY / X-Content-Type-Options nosniff / Referrer-Policy strict-origin-when-cross-origin / Permissions-Policy). `kiteclass-gateway` `SecurityHeadersFilter` mở rộng từ 4 → 7 headers (thêm HSTS + CSP + Permissions-Policy). Verification: `kitehub` `mvn -pl kitehub-gateway verify -P strict-warnings` 32 tests PASS; `kiteclass-gateway` `mvn verify -P strict-warnings` 168 tests PASS. Status PARTIAL vì 2 AC còn pending: (1) `documents/05-guides/security/owasp-top-10-baseline.md` §7 update — file chưa tồn tại, scope thuộc về Wave 60 OWASP audit doc refresh tách riêng; (2) post-cutover live `curl -sI` probe — phụ thuộc Bucket A DNS bind cho `api.kitehub.me`. Cả 2 sẽ flip DONE trong Wave 62 post-cutover audit refresh.

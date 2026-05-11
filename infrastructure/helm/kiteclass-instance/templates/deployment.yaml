@@ -20,9 +20,24 @@ spec:
         instance: {{ .Values.instanceId }}
         tier: {{ .Values.tier }}
     spec:
+      # GAP-470 (Wave 61 Bucket E) — non-root, hardened pod context.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: core
           image: "{{ .Values.image.registry }}/kiteclass-core:{{ .Values.image.tag }}"
+          # GAP-470 — container hardening.
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 8080
           env:
@@ -70,3 +85,10 @@ spec:
               port: 8080
             initialDelaySeconds: 30
             periodSeconds: 10
+          # GAP-470 — writable scratch dirs because rootFS is read-only.
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

@@ -12,6 +12,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Tests for SecurityHeadersFilter.
  *
+ * <p>Extended 2026-05-11 (GAP-472 — Wave 61 Bucket E) to verify HSTS,
+ * Content-Security-Policy, and Permissions-Policy in addition to the original
+ * four headers.</p>
+ *
  * @since 2026-03-24
  */
 class SecurityHeadersFilterTest {
@@ -19,7 +23,7 @@ class SecurityHeadersFilterTest {
     private final SecurityHeadersFilter filter = new SecurityHeadersFilter();
 
     @Test
-    @DisplayName("Should add all security headers to response")
+    @DisplayName("Should add all 7 security headers (HSTS+CSP+4 original+Permissions-Policy)")
     void filter_addsSecurityHeaders() {
         MockServerHttpRequest request = MockServerHttpRequest.get("/api/test").build();
         MockServerWebExchange exchange = MockServerWebExchange.from(request);
@@ -27,13 +31,20 @@ class SecurityHeadersFilterTest {
 
         filter.filter(exchange, chain).block();
 
+        var headers = exchange.getResponse().getHeaders();
+        assertEquals(SecurityHeadersFilter.HSTS_VALUE,
+            headers.getFirst("Strict-Transport-Security"));
+        assertEquals(SecurityHeadersFilter.CSP_VALUE,
+            headers.getFirst("Content-Security-Policy"));
         assertEquals("nosniff",
-            exchange.getResponse().getHeaders().getFirst("X-Content-Type-Options"));
+            headers.getFirst("X-Content-Type-Options"));
         assertEquals("DENY",
-            exchange.getResponse().getHeaders().getFirst("X-Frame-Options"));
+            headers.getFirst("X-Frame-Options"));
         assertEquals("1; mode=block",
-            exchange.getResponse().getHeaders().getFirst("X-XSS-Protection"));
+            headers.getFirst("X-XSS-Protection"));
         assertEquals("strict-origin-when-cross-origin",
-            exchange.getResponse().getHeaders().getFirst("Referrer-Policy"));
+            headers.getFirst("Referrer-Policy"));
+        assertEquals(SecurityHeadersFilter.PERMISSIONS_VALUE,
+            headers.getFirst("Permissions-Policy"));
     }
 }
