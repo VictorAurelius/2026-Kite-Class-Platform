@@ -61,7 +61,7 @@ documents/04-quality/gaps/
 | ID | Title | Domain | Priority | Status |
 |----|-------|--------|:--------:|:------:|
 | [GAP-001](GAP-001-kiteclass-gateway-decision.md) | Quyết định giữ/xóa kiteclass-gateway service | Architecture | 🟡 P2 | 🔵 OPEN |
-| [GAP-002](GAP-002-ai-async-pipeline.md) | Async pipeline cho heavy AI tasks (image gen) | AI/Backend | 🟠 P1 | 🔵 OPEN |
+| [GAP-002](closed/GAP-002-ai-async-pipeline.md) | Async pipeline cho heavy AI tasks (image gen) | AI/Backend | 🟠 P1 | 🔵 OPEN |
 | [GAP-003](GAP-003-ai-multi-tier-image-generation.md) | Multi-tier image generation strategy | AI/Backend | 🟡 P2 | 🔵 OPEN |
 | [GAP-004](GAP-004-template-based-image-composition.md) | Template-based image composition (Canva-like) | AI/Frontend | 🟡 P2 | 🔵 OPEN |
 | [GAP-005](GAP-005-ai-queue-fair-scheduling.md) | AI queue fair scheduling + capacity plan (100 users feasible on Oracle Free) | AI/Backend/DevOps | 🔴 P0 | 🔵 OPEN |
