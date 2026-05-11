@@ -6,7 +6,7 @@
 **Detected:** 2026-04-26 (split from GAP-014 implementation portion)
 **Related Docs:**
 - `documents/03-planning/waves/wave-mock-data-local-dev.md` §7 (v2-aligned planning)
-- `documents/04-quality/gaps/GAP-014-wave-mock-include-ai-branding.md` (parent — planning portion DONE)
+- `documents/04-quality/gaps/closed/GAP-014-wave-mock-include-ai-branding.md` (parent — planning portion DONE)
 - `.claude/rules/ai-branding-guidelines.md`
 
 ## Current State (verified 2026-04-26)

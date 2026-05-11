@@ -167,7 +167,7 @@ Every generator receives branding via the cached Branding Package facade (ADR-00
 
 ## References
 
-- Gap: [`documents/04-quality/gaps/GAP-047-document-generation-skills.md`](../../04-quality/gaps/GAP-047-document-generation-skills.md)
+- Gap: [`documents/04-quality/gaps/closed/GAP-047-document-generation-skills.md`](../../04-quality/gaps/GAP-047-document-generation-skills.md)
 - Wave plan: [`documents/03-planning/waves/wave-05-document-generation.md`](../../03-planning/waves/wave-05-document-generation.md)
 - Decision guide: [`documents/03-planning/waves/wave-05-decision-guide.md`](../../03-planning/waves/wave-05-decision-guide.md)
 - Design pattern: [`.claude/rules/design-patterns.md`](../../../.claude/rules/design-patterns.md) §3 Facade + Strategy

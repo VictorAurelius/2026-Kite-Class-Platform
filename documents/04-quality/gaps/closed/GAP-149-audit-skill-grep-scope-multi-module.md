@@ -75,7 +75,7 @@ All 3 gaps survive broader-scope verification — no retroactive retraction need
 
 ## Related
 
-- Retraction source: `documents/04-quality/gaps/GAP-107-ai-provider-rules-reference-nonexistent-classes.md` §Resolution
+- Retraction source: `documents/04-quality/gaps/closed/GAP-107-ai-provider-rules-reference-nonexistent-classes.md` §Resolution
 - Rule: `.claude/rules/audit-to-gap-pipeline.md` §2 Step 2 Duplicate Check (grep scope affects this step)
 - Memory: `feedback_audit_grep_scope.md` (source feedback)
 - Memory: `feedback_audit_calibration.md` (related — audit honesty)

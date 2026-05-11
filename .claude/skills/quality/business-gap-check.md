@@ -241,7 +241,7 @@ grep -rn "@Disabled" kiteclass/kiteclass-core/src/test --include="*.java"
 
 #### 2.9 AI Branding (v2 redesign) — kiteclass-core
 
-Reference: `documents/02-architecture/ai-branding-v2-redesign.md`, `.claude/rules/ai-branding-guidelines.md`, `documents/04-quality/gaps/GAP-016-ai-branding-v2-living-docs-impact.md`
+Reference: `documents/02-architecture/ai-branding-v2-redesign.md`, `.claude/rules/ai-branding-guidelines.md`, `documents/04-quality/gaps/closed/GAP-016-ai-branding-v2-living-docs-impact.md`
 
 > **Module location note (verified 2026-04-26):** v2 implementation shipped to `kiteclass/kiteclass-core/` (NOT `kitehub/kitehub-branding/` as architecture doc specified). `kitehub-branding/` retains v1 only. Class renames: `BrandingAnalyzer → AnalyzerService`, `BrandingPlanner → PlannerService`, `BrandingExecutor → PlanExecutor`. Architecture doc drift tracked separately (see GAP-016 Findings + follow-up).
 

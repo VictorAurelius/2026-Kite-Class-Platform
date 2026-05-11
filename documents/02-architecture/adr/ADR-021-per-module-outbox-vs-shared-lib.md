@@ -125,7 +125,7 @@ If the per-module pattern proves problematic (e.g., drift hurts more than infras
 
 - ADR-007 (parent — established the outbox pattern itself)
 - Rule: `.claude/rules/design-patterns.md` §3.5 + §3.5.1 (Outbox Bypass Policy)
-- Gap: `documents/04-quality/gaps/GAP-222a-extract-outbox-shared-lib.md` (re-scoped by this ADR)
+- Gap: `documents/04-quality/gaps/closed/GAP-222a-extract-outbox-shared-lib.md` (re-scoped by this ADR)
 - Audit: `documents/04-quality/audits/design-patterns/audit-2026-04-26.md` Cat 5
 - Sam Newman, *Building Microservices* 2nd ed., Ch.5 ("Don't share code across services")
 - Existing precedent: `kitehub/kitehub-subscription/.../outbox/MigrationOutboxRepository.java`

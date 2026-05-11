@@ -131,6 +131,6 @@ Per `aws-activate-credit-policy.md` §6 conclusion + this verification: **"manag
 
 - `documents/05-guides/deploy/aws-architecture-sizing-matrix.md` §3.1 — 12-service breakdown
 - `documents/05-guides/deploy/aws-activate-credit-policy.md` §6 Risks — original $144 estimate
-- `documents/04-quality/gaps/GAP-411-aws-architecture-b-sizing-matrix.md` — sizing decision
+- `documents/04-quality/gaps/closed/GAP-411-aws-architecture-b-sizing-matrix.md` — sizing decision
 - ADR-025 — AWS Singapore Architecture B
 - `documents/03-planning/roadmap/release-1-plan-2026.md` §1.4 — Phase 1 BETA timeline

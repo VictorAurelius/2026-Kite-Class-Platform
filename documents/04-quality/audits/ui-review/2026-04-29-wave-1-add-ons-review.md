@@ -219,7 +219,7 @@ Self-verdict: SHIP (≥80/100 + all kits ≥95 floor + all kits ≥ target avg)
 - Checklist: `documents/02-architecture/design-system/dossier/10-acceptance-criteria.md` (PR #667)
 - Wave plan: `documents/03-planning/waves/wave-2026-04-29-ui-kits-round-2.md`
 - Round 1 baseline: `documents/07-archived/design-round-1-2026-04-29/`
-- Phase 1 standard: `documents/04-quality/gaps/GAP-263-html-prototype-review-standard.md`
+- Phase 1 standard: `documents/04-quality/gaps/closed/GAP-263-html-prototype-review-standard.md`
 - Phase 2 skill (deferred): GAP-264 `ui-review-prototype/` skill
 - Phase 3 enforcement (deferred): GAP-265 hook/CI
 - Memory: `feedback_wave_scope_completeness_check.md`, `feedback_phase_0_governance_violation.md`, `feedback_audit_calibration.md`

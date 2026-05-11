@@ -402,7 +402,7 @@ GAP-321..344 reserved range. Used 24 of 25 allowed (GAP-345 reserved as buffer f
 ## 8. Cross-references
 
 - Wave plan: `documents/03-planning/waves/wave-2026-05-04-persona-review-round-1.md` §3 Bucket D
-- Parent gap: `documents/04-quality/gaps/GAP-152-execute-persona-review-round-1.md`
+- Parent gap: `documents/04-quality/gaps/closed/GAP-152-execute-persona-review-round-1.md`
 - Persona AC docs:
   - `documents/00-brd/persona-criteria/P5-k12-school.md`
   - `documents/00-brd/persona-criteria/secondary/student-in-P5.md`

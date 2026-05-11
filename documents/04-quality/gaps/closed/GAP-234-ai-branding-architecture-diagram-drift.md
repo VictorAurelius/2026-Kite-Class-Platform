@@ -6,7 +6,7 @@
 **Detected:** 2026-04-26 (GAP-016 final closure §2.9 audit + diagram sweep)
 **Related Docs:**
 - `documents/02-architecture/ai-branding-v2-redesign.md`
-- `documents/04-quality/gaps/GAP-016-ai-branding-v2-living-docs-impact.md`
+- `documents/04-quality/gaps/closed/GAP-016-ai-branding-v2-living-docs-impact.md`
 - `.claude/rules/docs-folder-structure.md`
 
 ## Current State (verified 2026-04-26)

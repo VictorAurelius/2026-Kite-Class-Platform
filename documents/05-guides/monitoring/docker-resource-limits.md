@@ -286,7 +286,7 @@ resources:
 
 ## 9. Related
 
-- Gap closed: GAP-130 (`documents/04-quality/gaps/GAP-130-docker-resource-limits-missing.md`)
+- Gap closed: GAP-130 (`documents/04-quality/gaps/closed/GAP-130-docker-resource-limits-missing.md`)
 - Audit source: `documents/04-quality/audits/performance/performance-audit-2026-04-19.md` §5
 - Wave plan: `documents/03-planning/waves/wave-7-perf-cluster.md`
 - Standards: `.claude/skills/devops/devops-standards.md`

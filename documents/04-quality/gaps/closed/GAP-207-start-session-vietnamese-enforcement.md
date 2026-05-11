@@ -9,7 +9,7 @@
 - `.claude/skills/workflow/start-session/SKILL.md`
 - `.claude/skills/workflow/start-session/scripts/collect-state.sh`
 - `CLAUDE.md` §CRITICAL Communication Language
-- `documents/04-quality/gaps/GAP-206-start-session-skill-accuracy.md` (predecessor — fixed data accuracy but not language)
+- `documents/04-quality/gaps/closed/GAP-206-start-session-skill-accuracy.md` (predecessor — fixed data accuracy but not language)
 
 ## Current State (verified 2026-04-24)
 

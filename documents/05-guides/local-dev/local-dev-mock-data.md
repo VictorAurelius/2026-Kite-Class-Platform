@@ -164,7 +164,7 @@ OpenAPI spec for the full list (134+ paths): regenerate via `kiteclass/shared/sc
 
 - Rule: [`.claude/rules/ai-branding-guidelines.md`](../../.claude/rules/ai-branding-guidelines.md)
 - Wave plan: [`documents/03-planning/waves/wave-mock-data-local-dev.md`](../03-planning/waves/wave-mock-data-local-dev.md)
-- Gap: [`documents/04-quality/gaps/GAP-235-ai-branding-mock-implementation.md`](../04-quality/gaps/GAP-235-ai-branding-mock-implementation.md)
+- Gap: [`documents/04-quality/gaps/closed/GAP-235-ai-branding-mock-implementation.md`](../04-quality/gaps/GAP-235-ai-branding-mock-implementation.md)
 - Seeder: `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/dev/seeder/BrandingDataSeeder.java`
 - FE mocks: `kiteclass/kiteclass-frontend/src/mocks/ai-branding-{state,handlers}.ts`
 - Smoke script: `kiteclass/scripts/smoke-ai-branding-dev.sh`

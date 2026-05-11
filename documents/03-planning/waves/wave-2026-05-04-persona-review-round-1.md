@@ -141,7 +141,7 @@ You are executing Wave 17 Bucket {X} — Persona Review Round 1 for {persona_id}
 
 CONTEXT:
 - Wave plan: documents/03-planning/waves/wave-2026-05-04-persona-review-round-1.md (your bucket = §3 Bucket {X})
-- GAP being closed (parent): documents/04-quality/gaps/GAP-152-execute-persona-review-round-1.md
+- GAP being closed (parent): documents/04-quality/gaps/closed/GAP-152-execute-persona-review-round-1.md
 - Reusable skill: .claude/skills/quality/persona-based-business-review.md (METHODOLOGY)
 - Audit-to-gap pipeline: .claude/rules/audit-to-gap-pipeline.md (NEW gap filing protocol)
 - 4-layer design coverage: .claude/rules/design-layer-coverage.md (verify §2.1 matrix when filing FAIL gaps)

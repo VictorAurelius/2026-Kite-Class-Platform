@@ -73,7 +73,7 @@ updated: 2026-04-20
 
 | Artifact | Location | Status |
 |----------|----------|:------:|
-| Gap file | `documents/04-quality/gaps/GAP-103-deploy-philosophy-aws-plugins-adr.md` | 🟢 DONE (PR #351) |
+| Gap file | `documents/04-quality/gaps/closed/GAP-103-deploy-philosophy-aws-plugins-adr.md` | 🟢 DONE (PR #351) |
 | ADR | `documents/02-architecture/adr/ADR-015-aws-agent-plugins-evaluation.md` | ACCEPTED |
 | Deploy doc | `documents/02-architecture/deployment-strategy.md` | Shipped |
 

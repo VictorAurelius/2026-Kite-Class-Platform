@@ -99,7 +99,7 @@ If a new template lands without a sample golden output OR without 3-layer doc up
 
 ## Severity Rubric (5-tier)
 
-Per `documents/04-quality/gaps/GAP-254-severity-rubric-two-stage-code-review.md`,
+Per `documents/04-quality/gaps/closed/GAP-254-severity-rubric-two-stage-code-review.md`,
 review findings carry a 5-tier severity label. The Praise tier is the novel
 addition — explicit positive recognition reduces the deficit-bias that
 accumulates in long PRs (per 2026 reviewer-fatigue research). External refs:

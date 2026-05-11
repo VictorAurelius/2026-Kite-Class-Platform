@@ -120,7 +120,7 @@ Snapshots created by this runbook follow the existing RDS automated-retention po
 
 - Script: `scripts/backup-production.sh`
 - Workflow: `.github/workflows/deploy-production.yml`
-- Gap: `documents/04-quality/gaps/GAP-389-wave-33-ops-p1-cluster.md`
+- Gap: `documents/04-quality/gaps/closed/GAP-389-wave-33-ops-p1-cluster.md`
 - Standards: `.claude/rules/release-deploy-standard.md` §3.1 + §3.4
 - Restore runbook (separate): `documents/05-guides/operations/restore-runbook.md` (GAP-117)
 - Alert rule: `infrastructure/k8s/prometheus/alerts/backup.yaml`
