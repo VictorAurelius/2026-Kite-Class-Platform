@@ -1,6 +1,6 @@
 # GAP-477: rollback.yml workflow missing — required for smoke-rollback-cycle exec
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 85% (Wave 63 SHIPPED 2026-05-11 — workflow + IAM + script + docs all landed; user-action `terraform apply` + GitHub Environment config + first live `--execute` test = remaining)
 **Priority:** 🟠 P1
 **Domain:** DevOps
 **Found:** 2026-05-11 (Wave 62 Bucket C state-check)
@@ -38,12 +38,12 @@ Create `.github/workflows/rollback.yml`:
 
 ## Acceptance Criteria
 
-- [ ] `.github/workflows/rollback.yml` shipped with `workflow_dispatch` + `confirm=APPLY` input
-- [ ] OIDC role for rollback ops created via terraform (separate from apply role per least-privilege)
-- [ ] Dry-run path: workflow can be invoked with `--field dry_run=true` outputting plan only
-- [ ] Documentation cross-link in `incident-response-runbook.md` §8 + `release-deploy-standard.md` §4.3
-- [ ] `scripts/smoke-rollback-cycle.sh` updated to remove `[DEFER]` path, exercise real workflow
-- [ ] First `--execute` dry-run in staging records baseline TTR (time-to-recovery)
+- [x] `.github/workflows/rollback.yml` shipped with `workflow_dispatch` + `confirm=APPLY` input (PR #1188 Bucket A)
+- [x] OIDC role `kitehub-rollback-role` created via terraform — least-priv ECR + SSM RunCommand + EC2 describe + CloudWatch scoped (PR #1188 Bucket A)
+- [x] Dry-run path: workflow `dry_run` input default true; execute-mode steps gated `if: dry_run != 'true'` (PR #1188 Bucket A)
+- [x] Documentation cross-link in `incident-response-runbook.md` §8 + `release-deploy-standard.md` §4.4 + §9 matrix (PR #1190 Bucket C)
+- [x] `scripts/smoke-rollback-cycle.sh` updated to remove `[DEFER]` path — `trigger_rollback()` wired to `gh workflow run rollback.yml` (PR #1189 Bucket B)
+- [ ] First `--execute` dry-run in staging records baseline TTR — **user-action remaining**: (a) `terraform apply` IAM role to AWS account 906286017800, (b) configure GitHub Environment `production` required reviewers, (c) run `bash scripts/smoke-rollback-cycle.sh --execute` once
 
 ## Related
 
@@ -58,3 +58,4 @@ Create `.github/workflows/rollback.yml`:
 ## Log
 
 - **2026-05-11:** Filed as Wave 62 Bucket C deferral. Sub-6 of GAP-475 PARTIAL pending this workflow. P1 because blocks beta-launch rollback readiness.
+- **2026-05-11 (Wave 63 SHIPPED):** 3 parallel Opus-full agents → PR #1188 (Bucket A IAM+workflow, +383 LOC) + #1189 (Bucket B script wire-up, +21 net) + #1190 (Bucket C docs, +67 net). Stack architecture chosen: EC2+SSM RunCommand (state-check via `grep aws_ecs|aws_ec2_instance` found zero ECS hits; only EC2 in `ec2.tf`). Mirrored `deploy-production.yml` SSM pattern. IAM trust policy scoped to GitHub Environment `production`. Status OPEN → PARTIAL 85%. Remaining = user-action only: terraform apply + GitHub Environment config + first live `--execute` for TTR baseline.
