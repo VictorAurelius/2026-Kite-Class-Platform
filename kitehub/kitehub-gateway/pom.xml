@@ -16,7 +16,8 @@
     <description>API Gateway with routing, rate limiting, circuit breaker</description>
 
     <properties>
-        <spring-cloud.version>2025.0.0</spring-cloud.version>
+        <!-- GAP-468: Spring Cloud 2025.0.2 brings spring-cloud-gateway-server 4.3.4 (fixes CVE-2025-41253 EL injection) -->
+        <spring-cloud.version>2025.0.2</spring-cloud.version>
     </properties>
 
     <dependencyManagement>
