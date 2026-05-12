@@ -1,6 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "ignoreCommand": "git diff --quiet $VERCEL_GIT_PREVIOUS_SHA HEAD -- :/kiteclass/kiteclass-frontend :/packages/shared-ui :/pnpm-lock.yaml :/package.json && exit 0 || exit 1",
+  "github": {
+    "silent": true,
+    "autoAlias": false
+  },
   "headers": [
     {
       "source": "/(.*)",
