@@ -1,74 +1,98 @@
-# GAP-493: kitehub-* containers crash-restart loop on first deploy
+# GAP-493: Deploy lacks RDS preflight check → containers crash-restart on stopped DB
 
-**Status:** 🔵 OPEN
-**Priority:** 🔴 P0 BLOCKING (blocks Phase 1 BETA soft launch — deploy never reaches healthy state)
-**Domain:** DevOps / Backend
+**Status:** 🟡 PARTIAL — root cause found 2026-05-12 (RDS stopped); preflight check TBD
+**Priority:** 🔴 P0 BLOCKING (blocks Phase 1 BETA soft launch — silent dependency failure surfaces only via container crash logs)
+**Domain:** DevOps
 **Found:** 2026-05-12 (post-GAP-491 verified deploy run 25748003956)
-**Affects:** Every deploy attempt until container startup config diagnosed
+**Affects:** Every deploy attempt when RDS / RabbitMQ / Redis dependency is stopped (cost-saving scheduler.tf can leave deps stopped)
 
-## Problem
+## Problem (original)
 
-Deploy run 25748003956 (v0.9.0-beta-staging.10, post-OTel-fix per #1209 + post-GAP-491 visibility) shows all 5 kitehub-* containers in crash-restart loop after `docker compose up -d`:
+Deploy run 25748003956 (v0.9.0-beta-staging.10) showed all 5 kitehub-* containers in crash-restart loop after `docker compose up -d`. ALB target unhealthy, gateway port 8080 `Connection reset by peer`.
+
+## Root cause (diagnosed 2026-05-12)
+
+`docker logs kitehub-admin` revealed Spring Boot crash:
 
 ```
-NAMES                  STATUS
-kitehub-gateway        Up 54 seconds (health: starting)
-kitehub-subscription   Up 57 seconds (health: starting)
-kitehub-branding       Up About a minute (health: starting)
-kitehub-admin          Up 2 seconds (health: starting)        ← just restarted
-kitehub-email          Up Less than a second (health: starting) ← just restarted
-kite-rabbitmq          Up 13 minutes (healthy)
-kite-redis             Up 13 minutes (healthy)
+HikariPool-1 - Starting...
+[10 seconds later]
+PSQLException: The connection attempt failed.
+Caused by: java.net.SocketTimeoutException: Connect timed out
+  at org.postgresql.core.PGStream.createSocket(...)
+
+Flyway → entityManagerFactory bean creation FAILED → Spring context refresh cancelled → container exits 1 → docker-compose restart: unless-stopped → loop
 ```
 
-Symptoms:
-- `kitehub-gateway` port 8080: `curl: (56) Recv failure: Connection reset by peer` (container down at moment of probe)
-- ALB target `i-05d7af46d01436b96` = `unhealthy` (Target.FailedHealthChecks)
-- Containers cycle Up-seconds → crash → restart per docker-compose `restart: unless-stopped` policy
-- SSM `Status=InProgress` for 8min even though deploy-prod.sh script finished (script exit + container restart cycle don't align)
+**Root cause: RDS `kitehub-postgres` was STOPPED** (verified via `aws rds describe-db-instances`). Cost-saving scheduler (scheduler.tf cron `stop_weekday_evening_ec2` / `stop_friday_evening_ec2`) stopped RDS during off-hours; no auto-start happened before deploy.
 
-## Root cause — to diagnose
+This is NOT a Spring config bug or container resource issue — it's a deploy workflow ordering issue: deploy ran against a stopped dependency.
 
-Candidates (need EC2 container log inspection):
-1. Spring Boot config error (missing env var? Wrong DB URL? Secrets not propagated?)
-2. RabbitMQ ephemeral creds: deploy-prod.sh warning "rabbitmq-default-creds empty — generating ephemeral" — services may fail to connect with wrong/missing creds
-3. Health check too aggressive (compose `healthcheck` interval/retries cause kill before Spring boots fully)
-4. JVM memory exhaustion on t3.medium (GAP-447 right-size — 4GB RAM × 5 services × Spring Boot heap)
+## Fix path
 
-## Diagnostic commands (next session)
+### Path A (immediate unblock)
 
+Start RDS before retry deploy:
 ```bash
-AWS_PROFILE=dev-admin aws ssm send-command --region ap-southeast-1 \
-  --instance-ids i-05d7af46d01436b96 --document-name AWS-RunShellScript \
-  --parameters 'commands=["docker logs --tail 100 kitehub-admin 2>&1; echo ===; docker logs --tail 100 kitehub-gateway 2>&1"]' \
-  --query 'Command.CommandId' --output text
+AWS_PROFILE=dev-admin aws rds start-db-instance --region ap-southeast-1 \
+  --db-instance-identifier kitehub-postgres
+# OR project script:
+bash scripts/start-stack.sh
 ```
 
-Or via Session Manager: inspect `/var/log/containers/*` if compose logs missing.
+After RDS reaches `available` state (~5-10min) → retry deploy → containers should reach `healthy`.
 
-## Proposed Fix
+### Path B (preflight in workflow — proposed)
 
-TBD pending log inspection. Likely 1 of:
-- Fix `populate-secrets.sh` to seed rabbitmq creds (if root cause = creds)
-- Adjust docker-compose healthcheck `start_period: 120s` (if root cause = aggressive probe)
-- JVM heap tune `-Xmx512m` (if root cause = OOM)
-- Spring profile / env var injection (if root cause = config)
+Add preflight job to `.github/workflows/deploy-production.yml` between `validate` and `deploy`:
+
+```yaml
+preflight:
+  name: Verify dependencies online
+  runs-on: ubuntu-latest
+  needs: validate
+  steps:
+    - uses: aws-actions/configure-aws-credentials@v6
+      with:
+        role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+        aws-region: ${{ env.AWS_REGION }}
+    - name: Verify RDS available
+      run: |
+        STATUS=$(aws rds describe-db-instances --region ${AWS_REGION} \
+          --db-instance-identifier kitehub-postgres \
+          --query 'DBInstances[0].DBInstanceStatus' --output text)
+        if [ "$STATUS" != "available" ]; then
+          echo "::error ::RDS kitehub-postgres is $STATUS (expected: available). Run scripts/start-stack.sh or wait for cost-saving scheduler. See GAP-493."
+          exit 1
+        fi
+        echo "::notice ::RDS available ✅"
+```
+
+Fails fast with actionable error instead of 8min container crash-loop. Same pattern can extend to RabbitMQ / Redis if they ever become external (currently local containers).
+
+IAM: deploy role already has `ec2:DescribeInstances`; needs `rds:DescribeDBInstances` added — single statement extension.
+
+### Path C (alternative — auto-start in deploy-prod.sh)
+
+deploy-prod.sh could `aws rds start-db-instance` and `wait db-instance-available` before docker compose. Trade-off: longer deploys (always 5-10min start), but no preflight gate fail. NOT preferred — slower + obscures the state issue.
 
 ## Acceptance Criteria
 
-- [ ] Root cause identified via container logs from `docker logs kitehub-admin/gateway/...`
-- [ ] Fix shipped (config / secrets / healthcheck / heap as appropriate)
-- [ ] Deploy retry succeeds: SSM `Status=Success`, ALB target `healthy`, `curl https://api.kitehub.me/actuator/health` returns 200
-- [ ] Container `STATUS` column shows `(healthy)` for all 5 kitehub-* services after 2 min
+- [x] Root cause identified (RDS stopped, verified via describe-db-instances + Spring crash logs)
+- [ ] Path A executed: RDS started, deploy retry succeeds (SSM `Success`, ALB `healthy`, `curl https://api.kitehub.me/actuator/health` = 200)
+- [ ] Path B shipped: `deploy-production.yml` has `preflight` job verifying RDS available + actionable error
+- [ ] `iam.tf` extends `github_deploy_inline` with `rds:DescribeDBInstances`
+- [ ] Verified: trigger deploy when RDS stopped → preflight fails with clear message in <30s (vs 8min crash-loop)
 
 ## Related
 
-- **Tooling:** GAP-491 (CloudWatch streaming) — VERIFIED working; surfaced this issue
-- **Adjacent:** GAP-484 OTel fix (#1209) — already merged, NOT root cause
-- **Adjacent:** GAP-447 EC2 right-size — t3.medium 4GB may be tight
-- **Adjacent:** GAP-376 production data seed — secrets seeding scope
-- **Rule:** Per `release-fix-retry-budget.md` v1.1.0 §3 — this is retry #2 from same deploy gate; STOP-AND-REDESIGN trigger applies. Next session must diagnose root cause BEFORE another retry.
+- **Tooling:** GAP-491 (CloudWatch streaming) — surfaced this by making container crash logs visible. Without GAP-491, would have been a black box.
+- **Adjacent:** scheduler.tf `stop_weekday_evening_ec2` / `stop_friday_evening_ec2` — stops RDS for cost savings; no matching auto-start for production deploy
+- **Adjacent:** GAP-447 EC2 right-size — t3.medium adequate for backend; RDS sizing separate
+- **Adjacent:** GAP-484 OTel fix (#1209) — confirmed working from logs (no OTLP autoconfig crash visible)
+- **Adjacent:** scripts/start-stack.sh — project-level start (already uses dynamic lookup per GAP-492)
 
 ## Log
 
+- **2026-05-12 (root cause + Path A):** docker logs SSM exec revealed PSQLException SocketTimeoutException → checked RDS state → `kitehub-postgres=stopped`. Started RDS via `aws rds start-db-instance`. Status → 🟡 PARTIAL pending retry verify.
 - **2026-05-12:** Filed after deploy retry 25748003956 (GAP-491 verified) showed all kitehub-* containers in crash-restart loop. Visibility now works; this gap is what visibility surfaced.
