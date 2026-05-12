@@ -94,3 +94,33 @@ output "memory_alerts_sns_topic_arn" {
   description = "SNS topic ARN for EC2 memory alarms (subscribe additional endpoints if needed)"
   value       = aws_sns_topic.memory_alerts.arn
 }
+
+# =============================================================================
+# SSM CloudWatch log streaming for deploy-production.yml (GAP-491)
+# =============================================================================
+# Without --cloud-watch-output-config on `aws ssm send-command`, SSM only
+# returns stdout/stderr AT END of command execution. The deploy-production.yml
+# poll loop sees Status=InProgress with no incremental output, masking failures
+# (2026-05-12 incident: SSM Failed at 7s; workflow polled 15× / 2.5min before
+# noticing). Per `.claude/rules/release-fix-retry-budget.md` v1.1.0 §4 row
+# "Tooling visibility gap" — fix observability BEFORE next deploy retry.
+#
+# IAM: EC2 instance profile already has `CloudWatchAgentServerPolicy`
+# (iam.tf line 34-37) which grants logs:CreateLogStream + logs:PutLogEvents
+# on all log groups → no additional IAM policy needed.
+# =============================================================================
+
+resource "aws_cloudwatch_log_group" "ssm_kite_deploy" {
+  name              = "/aws/ssm/kite-deploy"
+  retention_in_days = 7
+
+  tags = {
+    Name    = "${var.project_name}-ssm-kite-deploy"
+    Purpose = "SSM send-command stdout/stderr streaming for deploy-production.yml (GAP-491)"
+  }
+}
+
+output "ssm_kite_deploy_log_group" {
+  description = "CloudWatch log group for SSM deploy command streaming (used by deploy-production.yml --cloud-watch-output-config)"
+  value       = aws_cloudwatch_log_group.ssm_kite_deploy.name
+}
