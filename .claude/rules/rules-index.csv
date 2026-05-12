@@ -39,3 +39,4 @@ skill-conventions,MANDATORY,1.0.0,2026-04-01,2026-04-28,skill-conventions.md
 terraform-apply-retry-reconfirm,MANDATORY,1.0.0,2026-05-07,2026-05-07,terraform-apply-retry-reconfirm.md
 terraform-partial-backend-public-repo,MANDATORY,1.0.0,2026-05-07,2026-05-07,terraform-partial-backend-public-repo.md
 third-party-platform-automation-discovery,MANDATORY,1.0.0,2026-05-10,2026-05-10,third-party-platform-automation-discovery.md
+post-merge-sync-completeness,MANDATORY,1.0.0,2026-05-12,2026-05-12,post-merge-sync-completeness.md
