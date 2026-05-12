@@ -1,0 +1,41 @@
+# Rules Index — canonical CSV per `.claude/rules/meta-csv-index-pattern.md`
+# Schema: name,priority,version,created,last_reviewed,file
+# Priority enums: CRITICAL | MANDATORY | ADVISORY
+# Pattern source: gap-architecture-v2.md (proven for gaps; generalized per GAP-485)
+name,priority,version,created,last_reviewed,file
+admin-merge-discipline,CRITICAL,1.0.0,2026-05-07,2026-05-07,admin-merge-discipline.md
+agent-action-bias,MANDATORY,1.0.0,2026-05-07,2026-05-07,agent-action-bias.md
+agent-aws-access,MANDATORY,1.0.1,2026-05-07,2026-05-08,agent-aws-access.md
+agent-background-spawn-default,MANDATORY,1.0.0,2026-04-29,2026-04-29,agent-background-spawn-default.md
+ai-branding-guidelines,MANDATORY,1.2.0,2026-04-14,2026-04-28,ai-branding-guidelines.md
+audit-to-gap-pipeline,MANDATORY,1.4.1,2026-04-16,2026-05-11,audit-to-gap-pipeline.md
+aws-observability-first,CRITICAL,1.0.0,2026-05-07,2026-05-07,aws-observability-first.md
+aws-sg-description-ascii,MANDATORY,1.0.0,2026-05-07,2026-05-07,aws-sg-description-ascii.md
+business-logic-review,CRITICAL,1.0.0,2026-04-29,2026-04-29,business-logic-review.md
+contract-first-for-cross-layer,MANDATORY,1.0.0,2026-05-07,2026-05-07,contract-first-for-cross-layer.md
+deployment-naming-convention,MANDATORY,1.0.1,2026-05-08,2026-05-08,deployment-naming-convention.md
+design-layer-coverage,CRITICAL,1.0.0,2026-04-30,2026-04-30,design-layer-coverage.md
+design-patterns,MANDATORY,1.3.0,2026-04-14,2026-04-26,design-patterns.md
+docs-folder-structure,MANDATORY,1.0.0,2026-04-18,2026-04-28,docs-folder-structure.md
+docs-only-pr-auto-merge,MANDATORY,1.0.0,2026-05-11,2026-05-11,docs-only-pr-auto-merge.md
+gap-architecture-v2,MANDATORY,1.0.3,2026-05-11,2026-05-11,gap-architecture-v2.md
+gap-done-discipline,MANDATORY,1.0.0,2026-04-27,2026-04-27,gap-done-discipline.md
+incident-to-rule-pipeline,CRITICAL,1.0.0,2026-04-27,2026-04-27,incident-to-rule-pipeline.md
+logs-format-standard,MANDATORY,1.0.0,2026-04-20,2026-04-28,logs-format-standard.md
+mcp-first-with-fallback,MANDATORY,1.1.0,2026-04-18,2026-05-05,mcp-first-with-fallback.md
+meta-csv-index-pattern,MANDATORY,1.0.0,2026-05-12,2026-05-12,meta-csv-index-pattern.md
+meta-gap-priority,CRITICAL,1.0.0,2026-04-18,2026-04-28,meta-gap-priority.md
+output-review-mandate,CRITICAL,1.5.0,2026-04-14,2026-04-30,output-review-mandate.md
+planning-docs-structure,MANDATORY,1.0.0,2026-04-18,2026-04-28,planning-docs-structure.md
+post-wave-audit-mandate,MANDATORY,1.1.0,2026-04-19,2026-05-06,post-wave-audit-mandate.md
+post-wave-cleanup,MANDATORY,1.0.0,2026-05-06,2026-05-06,post-wave-cleanup.md
+pre-mutation-state-check,CRITICAL,1.1.0,2026-05-12,2026-05-12,pre-mutation-state-check.md
+readme-content-discipline,MANDATORY,1.0.0,2026-04-29,2026-04-29,readme-content-discipline.md
+release-deploy-standard,CRITICAL,1.1.0,2026-05-06,2026-05-11,release-deploy-standard.md
+release-fix-retry-budget,CRITICAL,1.0.0,2026-05-08,2026-05-08,release-fix-retry-budget.md
+rule-change-process,CRITICAL,1.1.0,2026-04-20,2026-04-27,rule-change-process.md
+session-currentdate-check,MANDATORY,1.0.0,2026-05-07,2026-05-07,session-currentdate-check.md
+skill-conventions,MANDATORY,1.0.0,2026-04-01,2026-04-28,skill-conventions.md
+terraform-apply-retry-reconfirm,MANDATORY,1.0.0,2026-05-07,2026-05-07,terraform-apply-retry-reconfirm.md
+terraform-partial-backend-public-repo,MANDATORY,1.0.0,2026-05-07,2026-05-07,terraform-partial-backend-public-repo.md
+third-party-platform-automation-discovery,MANDATORY,1.0.0,2026-05-10,2026-05-10,third-party-platform-automation-discovery.md

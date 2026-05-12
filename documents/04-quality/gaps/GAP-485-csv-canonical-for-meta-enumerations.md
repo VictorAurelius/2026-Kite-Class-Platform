@@ -1,6 +1,6 @@
 # GAP-485: Extend CSV-canonical pattern to meta enumerations (rules, skills, audits, ADRs)
 
-**Status:** 🔵 OPEN (design proposal)
+**Status:** 🟡 PARTIAL (Tier 1+2 DONE 2026-05-12 Wave 65 Bucket C; Tier 3 → GAP-490)
 **Priority:** 🟡 P2 (meta-improvement; not blocking Release 1)
 **Domain:** Meta / Governance
 **Found:** 2026-05-12 (user-flagged during Wave 64 session close)
@@ -102,4 +102,15 @@ number,title,status,decision_summary,date,file
 
 ## Log
 
+- **2026-05-12 Wave 65 Bucket C — Tier 1+2 SHIPPED (PARTIAL).** Files added:
+  - `.claude/rules/meta-csv-index-pattern.md` v1.0.0 (codifies CSV-canonical pattern + trigger conditions + schema + 4 paired artifacts mandate)
+  - `documents/02-architecture/adr/adrs-index.csv` (28 rows, 100% ADR coverage)
+  - `.claude/rules/rules-index.csv` (36 rows, 100% rule coverage)
+  - `scripts/query-adrs.sh` + `scripts/query-rules.sh` (filter + grep + count)
+  - `scripts/check-adrs-index-csv.sh` + `scripts/check-rules-index-csv.sh` (enum + format + coverage validators)
+  - `.github/workflows/script-quality.yml` job `meta-csv-indexes` (CI wire)
+  - `.github/PULL_REQUEST_TEMPLATE.md` Output Review row (PR template enforcement)
+  - `.claude/rules/output-review-mandate.md` §3 matrix row "Meta CSV indexes"
+  - Self-test PASS: 28 ADR + 36 rule rows validated; 4 query commands verified.
+  - **Tier 3 deferred to GAP-490:** Skills index (~50 SKILL.md) + Audits index (heterogeneous categories). PARTIAL exit ramp per `gap-done-discipline.md` §3.
 - **2026-05-12:** Filed at user request during Wave 64 session close. Pattern proven by gap-architecture-v2.md; design proposal phase.

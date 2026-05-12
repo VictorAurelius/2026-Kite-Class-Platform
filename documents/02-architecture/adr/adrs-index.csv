@@ -1,0 +1,33 @@
+# ADRs Index — canonical CSV per `.claude/rules/meta-csv-index-pattern.md`
+# Schema: number,status,date,title,file
+# Status enums: PROPOSED | ACCEPTED | DEPRECATED | SUPERSEDED | REJECTED
+# Pattern source: gap-architecture-v2.md (proven for gaps; generalized to meta enumerations per GAP-485)
+number,status,date,title,file
+001,ACCEPTED,2026-04-14,K-12 Multi-Subject Data Model,ADR-001-k12-data-model.md
+002,ACCEPTED,2026-04-14,Academic Year + Semester Structure,ADR-002-academic-year-structure.md
+003,ACCEPTED,2026-04-14,Hierarchical Role-Based Access Control,ADR-003-role-hierarchy.md
+004,ACCEPTED,2026-04-14,Frontend Instance Provisioning Lifecycle,ADR-004-instance-lifecycle.md
+005,ACCEPTED,2026-04-14,Resource Classification Pipeline,ADR-005-resource-classification.md
+006,ACCEPTED,2026-04-14,AI Agent Orchestration (Analyzer → Planner → Executor),ADR-006-ai-agent-orchestration.md
+007,ACCEPTED,2026-04-14,Outbox Pattern for Reliable Event Publishing,ADR-007-outbox-pattern-for-events.md
+008,ACCEPTED,2026-04-14,Resilience for External AI Calls (Circuit Breaker + Bulkhead + Retry),ADR-008-resilience-for-ai-calls.md
+009,ACCEPTED,2026-04-14,Branding Package API — Composite + ETag + Proxy Cache,ADR-009-branding-package-api.md
+010,ACCEPTED,2026-04-14,Content Moderation Policy (Staged Review),ADR-010-content-moderation-policy.md
+011,ACCEPTED,2026-04-14,Defense-in-Depth Security (Validators + Output-Encoders + CSP),ADR-011-defense-in-depth-security.md
+012,ACCEPTED,2026-04-14,DMCA / Trademark Workflow,ADR-012-dmca-trademark-workflow.md
+013,ACCEPTED,2026-04-14,Data Retention Classification (GDPR + VN Compliance),ADR-013-data-retention-classification.md
+014,ACCEPTED,2026-04-18,Async Jobs Queue (RabbitMQ) over Batch Framework,ADR-014-async-jobs-queue-over-batch.md
+015,ACCEPTED,2026-04-18,AWS Agent Plugins Evaluation — Defer Adoption,ADR-015-aws-agent-plugins-evaluation.md
+016,ACCEPTED,2026-04-20,FE↔BE Contract Strategy — OpenAPI Schema Diff (Phase 1); Pact Deferred,ADR-016-fe-be-contract-strategy.md
+017,PROPOSED,2026-04-21,School MIS Sync Strategy (One-Shot vs Live Sync),ADR-017-mis-sync-strategy.md
+018,ACCEPTED,2026-04-21,Domain Registrar; DNS Provider; and TLD Policy,ADR-018-domain-registrar-dns.md
+019,ACCEPTED,2026-04-24,Document Generation Architecture,ADR-019-document-generation-architecture.md
+020,ACCEPTED,2026-04-26,Vendor Client Package Naming — Accept `client/` as Adapter Convention,ADR-020-vendor-client-package-naming.md
+021,PROPOSED,2026-04-26,Per-Module Domain Outbox over Cross-Product Shared Library,ADR-021-per-module-outbox-vs-shared-lib.md
+022,ACCEPTED,2026-04-28,Alertmanager Secret Strategy — External Secrets Operator + AWS Secrets Manager,ADR-022-alertmanager-secret-strategy.md
+023,ACCEPTED,2026-04-28,Gateway Rate-Limit Key Resolver Strategy,ADR-023-gateway-key-resolver-strategy.md
+024,ACCEPTED,2026-04-30,Shared UI Library Strategy — pnpm Workspace Package,ADR-024-shared-ui-lib-strategy.md
+025,ACCEPTED,2026-05-07,AWS-only Deploy for Phase 1 BETA (Free Tier; Singapore region),ADR-025-aws-only-deploy-phase-1-free-tier.md
+026,ACCEPTED,2026-05-07,Defer Ollama / FULL_AI Inference to Phase 2 (Phase 1 BETA = Template-Only),ADR-026-ollama-defer-phase-2.md
+027,ACCEPTED,2026-05-07,Status Page Vendor — Instatus Free Tier (Phase 1 BETA),ADR-027-statuspage-vendor.md
+028,ACCEPTED,2026-05-11,ECS Fargate vs EKS for Phase 1 BETA Container Orchestration,ADR-028-ecs-fargate-vs-eks-phase-1-beta.md
