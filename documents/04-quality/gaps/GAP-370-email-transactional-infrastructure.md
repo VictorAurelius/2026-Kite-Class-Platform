@@ -1,6 +1,6 @@
 # GAP-370: Email Transactional Infrastructure (SendGrid / SES / Mailgun)
 
-**Status:** 🟡 PARTIAL — Wave 33+45 shipped all CODE ACs; AWS SES sandbox→production approval + DKIM/SPF/DMARC verify = user-executed action per `email-ses-setup-runbook.md` (tracked ROADMAP §🚀 Next Action). Status stays PARTIAL until user completes SES production onboarding per `gap-done-discipline.md` §3 PARTIAL exit ramp.
+**Status:** 🟡 PARTIAL — Wave 33+45 shipped all CODE ACs; SES production access form SUBMITTED by user 2026-05-12. Waiting AWS reply 24-48h. Next check: SES Console → Account dashboard → sandbox status. Status flips 🟢 DONE when AWS approves production access AND DKIM/SPF/DMARC verified ✅.
 **Priority:** 🔴 P0 BLOCKING (Phase 1 BETA — required cho email verification + invite emails + password reset)
 **Domain:** Infrastructure / DevOps
 **Found:** 2026-05-06 (Release 1 deploy plan)
