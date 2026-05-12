@@ -34,6 +34,9 @@ EXPECTATIONS=(
   "wave-plan-state-check/good-symbol-with-evidence|PASS|Rule 16.*all have State-Check Evidence rows"
   "wave-plan-state-check/bad-symbol-no-evidence|FAIL|Rule 16.*missing State-Check Evidence row for"
   "wave-plan-state-check/forward-flagged-allowed|PASS|Rule 16.*all have State-Check Evidence rows"
+  "post-merge-sync/good-status-flip-with-csv-sync|PASS|Rule 17.*Status flipped \\+ gap-status.csv touched"
+  "post-merge-sync/bad-status-flip-no-csv-sync|FAIL|Rule 17.*Status flipped but gap-status.csv NOT updated in same PR"
+  "post-merge-sync/bad-status-flip-no-csv-sync-with-override|WARN|Rule 17.*override trailer present"
 )
 
 PASS_COUNT=0
@@ -72,7 +75,13 @@ run_fixture() {
     git ls-files -z | xargs -0 -r rm -f
     cp -a "$after/." .
     git add -A
-    git commit -q -m "fixture: after — apply scenario"
+    # Optional commit-message override per-fixture (lives at case_dir root, NOT
+    # under before/ or after/ so it isn't applied as a tracked file).
+    if [ -f "$case_dir/commit-message.txt" ]; then
+      git commit -q -F "$case_dir/commit-message.txt"
+    else
+      git commit -q -m "fixture: after — apply scenario"
+    fi
 
     # Run check-docs.sh against this fixture repo
     bash "$CHECK" --base=main --branch=fixture/test 2>&1 || true
@@ -99,7 +108,7 @@ run_fixture() {
     FAIL_COUNT=$((FAIL_COUNT+1))
     RESULTS+="[FAIL] $key — expected $expect, got $actual"$'\n'
     RESULTS+="       output excerpt:"$'\n'
-    RESULTS+="$(echo "$out" | grep -E "^\[(OK|WARN|FAIL)\].*(Rule 15|Rule 16)" | sed 's/^/         /')"$'\n'
+    RESULTS+="$(echo "$out" | grep -E "^\[(OK|WARN|FAIL)\].*(Rule 15|Rule 16|Rule 17)" | sed 's/^/         /')"$'\n'
   fi
 
   rm -f "$tmp.out"

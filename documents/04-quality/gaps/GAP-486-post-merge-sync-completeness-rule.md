@@ -1,6 +1,6 @@
 # GAP-486: Post-merge sync mandate — extend rule to cover all 4 sync targets + CI detector
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-12 — Rule + Rule 17 detector + 3 fixtures + PR template + worked self-test shipped Wave 65 Bucket B (this PR)
 **Priority:** 🟠 P1 (meta-governance — recurring miss pattern user-flagged)
 **Domain:** Meta / Governance
 **Found:** 2026-05-12 (Wave 64 session close — user-flagged recurring miss)
@@ -55,12 +55,12 @@ Recommend Option B + C ship same PR per `rule-change-process.md` §6.5 Enforceme
 
 ## Acceptance Criteria
 
-- [ ] New rule `.claude/rules/post-merge-sync-completeness.md` v1.0.0 codifies 4 sync targets
-- [ ] PR template Output Review section adds explicit checkbox per 4-target matrix
-- [ ] `scripts/check-post-merge-sync.sh` shipped — detects each of 4 miss patterns + exits non-zero on stale targets
-- [ ] CI workflow integrates the script (e.g. extend `script-quality.yml`)
-- [ ] Worked self-test: rule applied retroactively to 4 misses from Wave 64 session — verify all 4 would be caught
-- [ ] Memory entry `feedback_post_merge_sync_completeness.md` paired same-PR per `rule-change-process.md` §6.5
+- [x] New rule `.claude/rules/post-merge-sync-completeness.md` v1.0.0 codifies 4 sync targets
+- [x] PR template Output Review section adds explicit checkbox per 4-target matrix
+- [x] Detector shipped — `session-docs-check` Rule 17 in `scripts/check-docs.sh` flags status flip without CSV sync (with override-trailer downgrade FAIL→WARN). Rule 18 (memory mirror) scoped as PARTIAL per `post-merge-sync-completeness.md` §5 (no in-repo mirror exists — reviewer manual until future scope)
+- [x] CI integration via existing `session-docs-check` skill (already wired in audit-gate.py hook); standalone `scripts/check-post-merge-sync.sh` superseded by Rule 17 in `check-docs.sh` per `rule-change-process.md` §6.5 (single detection surface preferred over duplicating logic)
+- [x] Worked self-test: rule §8 retroactively applied to Wave 64 GAP-482 incident — Rule 17 fires correctly; 3 fixtures (good / bad / bad-with-override) all green (`bash .claude/skills/workflow/session-docs-check/test/run-rules.sh` → 9/9 pass)
+- [x] Memory entry text embedded in PR description (per rule §7.5) — repo has no in-repo memory mirror; user copies to `~/.claude/projects/.../memory/feedback_post_merge_sync_completeness.md` + updates MEMORY.md index
 
 ## Out-of-scope
 
@@ -82,3 +82,4 @@ Recommend Option B + C ship same PR per `rule-change-process.md` §6.5 Enforceme
 ## Log
 
 - **2026-05-12:** Filed at user request after Wave 64 session-close audit found 4 recurring sync misses (CSV / ROADMAP / wave-history / MEMORY.md). Pattern systemic, not isolated.
+- **2026-05-12:** 🟢 DONE — Wave 65 Bucket B shipped: (a) new rule `.claude/rules/post-merge-sync-completeness.md` v1.0.0 codifying the 4 sync targets + §4 decision flow + §5 memory-mirror scope clarification + §6 anti-patterns + §7 enforcement + §8 worked self-test; (b) `session-docs-check` Rule 17 in `scripts/check-docs.sh` detects gap Status flip without `gap-status.csv` row update (FAIL strict, WARN otherwise; override trailer `POST_MERGE_SYNC_OVERRIDE: GAP-NNN — <reason>` downgrades FAIL→WARN); (c) 3 fixtures under `test/fixtures/post-merge-sync/{good-status-flip-with-csv-sync,bad-status-flip-no-csv-sync,bad-status-flip-no-csv-sync-with-override}` + run-rules.sh expectations + commit-message.txt override-injection support — 9/9 fixtures green; (d) PR template Output Review checkbox added; (e) doc-rules-matrix.md gains Rule 17 (full) + Rule 18 (PARTIAL with deferred scope) entries; (f) SKILL.md rule count bumped 14→17; (g) gap-status.csv row for GAP-486 synced to DONE/100 per the rule it ships. Rule 18 (memory mirror) PARTIAL per §5 — repo has no in-repo memory mirror; enforcement via reviewer manual + PR-description embedding until future scope adoption.

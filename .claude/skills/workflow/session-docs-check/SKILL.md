@@ -70,7 +70,7 @@ Cho mỗi Failed, output template diff để user copy-paste fix nhanh.
 
 ## The matrix (quick reference)
 
-Chi tiết: `reference/doc-rules-matrix.md`. Tóm tắt 14 rules (12 base + Rule 13 gap DONE discipline + Rule 15 wave-history append):
+Chi tiết: `reference/doc-rules-matrix.md`. Tóm tắt 17 rules (12 base + Rule 13 gap DONE discipline + Rule 15 wave-history append + Rule 16 wave-plan state-check + Rule 17 gap-status.csv sync + Rule 18 memory mirror PARTIAL):
 
 | # | Change pattern | Required co-update |
 |---|---------------|-------------------|
@@ -88,6 +88,9 @@ Chi tiết: `reference/doc-rules-matrix.md`. Tóm tắt 14 rules (12 base + Rule
 | 12 | Wave merge (≥3 PRs squashed within 24h) | Audit suite trigger per `post-wave-audit-mandate.md` §4 (3-day window) |
 | 13 | Gap status flip → 🟢 DONE | AC fully checked + no banned phrases + follow-up filed (per `gap-done-discipline.md`) |
 | 15 | Wave plan flipped to `status: complete` | Append valid JSON to `wave-pack-planner/data/wave-history.jsonl` (per wave-pack-planner SKILL.md §Rules) |
+| 16 | New wave plan under `documents/03-planning/waves/wave-*.md` | `## State-Check Evidence` section covering every symbol-shaped ref in §Scope (per `audit-to-gap-pipeline.md` §2.6) |
+| 17 | Gap status flip on `GAP-*.md` (`+**Status:**` line) | `documents/04-quality/gaps/gap-status.csv` row updated in same diff (per `post-merge-sync-completeness.md` §2 target 1 + `gap-architecture-v2.md` §3) |
+| 18 | New memory entry (PARTIAL — see matrix doc) | `MEMORY.md` index entry — currently reviewer-manual until in-repo mirror lands |
 
 ## Rules
 

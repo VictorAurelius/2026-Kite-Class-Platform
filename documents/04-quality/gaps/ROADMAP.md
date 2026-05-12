@@ -8,7 +8,13 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-12 — Wave 64 cutover attempt PARTIAL; 2 P0 blockers)
+## 🎯 Current Status Snapshot (2026-05-12 — Wave 64 cutover attempt PARTIAL; 2 P0 blockers; Wave 65 Buckets A+B meta-governance shipping)
+
+### 🆕 Wave 65 progress (meta-governance cleanup + Release 1 blockers)
+
+- ✅ **Bucket A** (#1207) — 64 wave-history.jsonl orphan entries backfilled
+- ✅ **Bucket B** (this PR, GAP-486 🟢 DONE) — `post-merge-sync-completeness.md` v1.0.0 + `session-docs-check` Rule 17 (status flip → `gap-status.csv` sync) + 3 fixtures (9/9 green) + PR-template Output Review row + matrix Rule 18 PARTIAL (memory mirror deferred per §5). Closes meta-governance gap surfaced by Wave 64 4-miss session-close audit.
+- 🚧 Remaining Release 1 blockers: GAP-484 (OTel) + GAP-483 (EC2 user_data) per "Concrete next-session pickup order" below.
 
 ### 🚀 Next Action (signpost cho new session)
 
