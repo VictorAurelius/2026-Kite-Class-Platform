@@ -1,6 +1,6 @@
 # GAP-491: SSM command CloudWatch log streaming (deploy-production.yml visibility)
 
-**Status:** 🟡 PARTIAL (Phase 1 applied + Phase 2 shipped — pending IAM apply + retry deploy verify)
+**Status:** 🟢 DONE 2026-05-12 — Phase 1+2+3 complete; live streaming verified on deploy run 25748003956
 **Priority:** 🔴 P0 BLOCKING (next deploy retry blocked per `release-fix-retry-budget.md` v1.1.0 §4 row "Tooling visibility gap" — MUST land before next deploy attempt)
 **Domain:** DevOps / Observability
 **Found:** 2026-05-12 (Wave 65 deploy incident — SSM Status=InProgress for 15 poll attempts while command Failed at 7s)
@@ -78,8 +78,8 @@ Per AWS docs, SSM agent streams stdout/stderr to CloudWatch in 10s chunks during
 - [x] EC2 instance profile has `logs:CreateLogStream` + `logs:PutLogEvents` — covered by existing `CloudWatchAgentServerPolicy` attachment (`iam.tf:34-37`)
 - [x] `deploy-production.yml` send-command includes `--cloud-watch-output-config CloudWatchLogGroupName=/aws/ssm/kite-deploy,CloudWatchOutputEnabled=true` (Phase 2)
 - [x] Poll loop interleaves with `filter-log-events --start-time` query every 10s + deploy OIDC role has `logs:FilterLogEvents` perm (Phase 2)
-- [ ] Verified on retry deploy: CloudWatch shows live stdout during script execution (Phase 3 — pending apply IAM + retry deploy)
-- [ ] Bucket E (terraform user_data update) re-tested via deploy WITHOUT prior conflict (validates `concurrent-production-mutation-ops.md` serialization)
+- [x] Verified on retry deploy run 25748003956: workflow log shows `│ <stdout>` lines interleaved with `Attempt N/48: Status=InProgress` — ECR login, secrets fetch, docker pull progress, container start all streamed live (Phase 3)
+- [x] Bucket E (terraform user_data update) — apply 25747258524 succeeded standalone (no concurrent deploy); validates `concurrent-production-mutation-ops.md` serialization rule
 
 ## Effort estimate
 
@@ -95,6 +95,7 @@ Per AWS docs, SSM agent streams stdout/stderr to CloudWatch in 10s chunks during
 
 ## Log
 
+- **2026-05-12 (Phase 3 — DONE):** Deploy retry run 25748003956 triggered with `RELEASE_RETRY_TOOLING_FIXED: GAP-491 PR-#1218` semantics. CloudWatch streaming **verified live** — workflow log shows `│ [2026-05-12T16:32:06Z] ==================== deploy-prod.sh START ====================` + ECR login + secrets fetch + 14 image-pull progress lines + container start status table all interleaved with `Attempt N/48: Status=InProgress` polls. Visibility gap CLOSED. Deploy itself failed for unrelated reasons (containers crash-restart loop on first deploy — Spring Boot startup config issue, NOT visibility); separate follow-up gap to be filed.
 - **2026-05-12 (Phase 2):** `deploy-production.yml` adds `--cloud-watch-output-config` to send-command + poll loop interleaves `filter-log-events --start-time` query every 10s (timestamp-tracked). `iam.tf` extends `github_deploy_inline` policy with `logs:FilterLogEvents` + `logs:DescribeLogStreams` scoped to `/aws/ssm/kite-deploy`. terraform validate PASS + YAML parse PASS. Status remains 🟡 PARTIAL until IAM applied + retry deploy verifies live streaming (Phase 3).
 - **2026-05-12 (Phase 1):** Terraform `aws_cloudwatch_log_group.ssm_kite_deploy` added to `cloudwatch.tf` (retention 7d). IAM coverage verified — `CloudWatchAgentServerPolicy` already attached to EC2 role (`iam.tf:34-37`) grants needed `logs:*` perms on all log groups. Status → 🟡 PARTIAL; pending human-triggered `terraform-apply.yml` + Phase 2 workflow update.
 - **2026-05-12:** Filed after Wave 65 staging.10 deploy attempt failed silently (SSM Status=InProgress for 15 poll attempts while command actually Failed at 7s). User-flagged tooling gap + asked rule to prevent recurrence. P0 BLOCKING because next deploy retry MUST have observability shipped per `release-fix-retry-budget.md` v1.1.0 §4.

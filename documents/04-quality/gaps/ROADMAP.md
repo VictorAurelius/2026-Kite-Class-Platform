@@ -8,7 +8,7 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-12 — Wave 65 SHIPPED; GAP-491 P0 blocks next deploy retry)
+## 🎯 Current Status Snapshot (2026-05-12 — GAP-491 DONE; GAP-493 P0 BLOCKING new — container crash-restart loop)
 
 ### ✅ Wave 65 SHIPPED (8 PRs, 5 DONE + 1 PARTIAL + 1 incident-rules + 1 closure)
 
@@ -20,18 +20,24 @@
 - ✅ **Bucket E** (#1208) — GAP-483 EC2 user_data terraform applied 2026-05-12 07:52 UTC (in-place update 2 EC2)
 - ✅ **Incident rules** (#1212) — 2026-05-12 concurrent ops + visibility-gap incident → `concurrent-production-mutation-ops.md` v1.0.0 + `release-fix-retry-budget.md` v1.1.0 + GAP-491 follow-up + audit artifact extension
 
-### 🚀 Next Action (signpost cho new session — Wave 66 candidates)
+### 🚀 Next Action (signpost cho new session — Wave 66)
 
-**🔴 P0 BLOCKING — Path A (GAP-491) MUST land before next deploy retry per `release-fix-retry-budget.md` v1.1.0 §4 row "Tooling visibility gap":**
+**✅ GAP-491 SHIPPED 2026-05-12** (PR #1216 + #1217 + #1218):
+- CloudWatch log group `/aws/ssm/kite-deploy` live (retention 7d)
+- `deploy-production.yml` adds `--cloud-watch-output-config` + interleave `filter-log-events` poll
+- IAM `logs:FilterLogEvents` scoped to log group on `github_deploy` OIDC role
+- **Verified live** on deploy run 25748003956: workflow log shows `│ <stdout>` interleaved with `Status=InProgress` polls
 
-1. **GAP-491 Phase 1** — Terraform: CloudWatch log group `/aws/ssm/kite-deploy` + IAM policy on EC2 instance profile (`logs:CreateLogStream` + `logs:PutLogEvents`). Apply via `terraform-apply.yml` (verify §1 serialization rule — no concurrent deploy)
-2. **GAP-491 Phase 2** — `deploy-production.yml`: add `--cloud-watch-output-config CloudWatchLogGroupName=/aws/ssm/kite-deploy,CloudWatchOutputEnabled=true` to send-command + extend poll loop with `aws logs tail` background job
-3. **Retry deploy** — `gh workflow run deploy-production.yml -f version=v0.9.0-beta-staging.10 -f confirm=DEPLOY` with squash commit trailer `RELEASE_RETRY_TOOLING_FIXED: GAP-491 PR-#XXXX`
-4. **Verify** — CloudWatch streams live stdout + `curl -sI https://api.kitehub.me/actuator/health` returns 200
+**🔴 NEW P0 BLOCKING — GAP-493 container crash-restart loop** (GAP-491 visibility surfaced this):
 
-**Wave 66 candidates (after GAP-491 unblocks deploy):**
-- GAP-491 P0 BLOCKING (Phase 1 + Phase 2 + retry deploy verification)
-- GAP-482 PARTIAL — Deploy workflow cascade close (gated on GAP-491 retry success)
+1. **Diagnose** — SSM exec on i-05d7af46d01436b96: `docker logs --tail 100 kitehub-{admin,gateway,subscription,branding,email}` to find Spring Boot startup error
+2. **Suspect candidates:** (a) RabbitMQ ephemeral creds (deploy-prod.sh warned creds empty), (b) Spring profile/env missing, (c) JVM OOM on t3.medium 4GB × 5 services, (d) compose healthcheck too aggressive
+3. **Fix in PR**, retry deploy with `RELEASE_RETRY_TOOLING_FIXED: GAP-493 PR-#XXXX` trailer
+4. **Per `release-fix-retry-budget.md` v1.1.0 §3** — this is retry #2 from same deploy gate; STOP-AND-REDESIGN trigger applies; diagnose root cause BEFORE another retry
+
+**Wave 66 candidates (after GAP-493 unblocks deploy):**
+- GAP-493 P0 BLOCKING (container crash-restart diagnosis + fix + verify deploy)
+- GAP-482 PARTIAL — Deploy workflow cascade close (gated on GAP-493 fix)
 - GAP-369 PARTIAL — DNS production cutover (currently 70%)
 - GAP-376 PARTIAL — Production data seed (80%)
 - GAP-398/399 — Docker images + ECR state-check shows essentially DONE (docs-only flip needed)
