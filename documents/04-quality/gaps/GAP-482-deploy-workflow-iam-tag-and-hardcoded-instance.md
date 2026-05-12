@@ -127,3 +127,34 @@ Edit `.github/workflows/deploy-production.yml`:
 ## Log
 
 - **2026-05-12:** Filed Wave 64 Step F deploy fail investigation. 2 bugs in 1 gap (architectural fix needed in same PR for retry budget discipline).
+- **2026-05-12 (post-PR #1199 + #1200 cascade discovery):** Wave 64 Step F deploy surfaced 7 cascading bugs in single session — retry budget per `release-fix-retry-budget.md` §3 exceeded at retry #4. Pivot to file separate gaps + close session.
+
+  Bugs discovered (status):
+  1. ✅ FIXED (PR #1199) — IAM tag mismatch `var.project_name` (kitehub) vs `default_tags` (Kite)
+  2. ✅ FIXED (PR #1199) — Hardcoded EC2 instance ID DEPLOY_INSTANCE_ID_KH
+  3. ✅ FIXED (PR #1200) — ec2:DescribeInstances missing for dynamic lookup
+  4. ✅ FIXED (PR #1200) — Secret prefix mismatch `kite/prod/*` vs `kitehub/production/*`
+  5. ⚠️ PARTIAL (manual SSM bootstrap) — EC2 user_data doesn't clone repo; new instances lack `/opt/kite-prod`. Manual SSM RunCommand ran git clone + checkout tag. NOT in terraform code → future EC2 replacements will hit same issue. → **File new GAP for user_data clone bootstrap**
+  6. ⚠️ PARTIAL (manual install) — EC2 user_data doesn't install `git`. Same future-replacement issue. → **Roll into GAP-483 with #5**
+  7. ❌ BLOCKING (this iteration ended) — Java services (5x kitehub-*) crash on startup: `OtlpHttpSpanExporter: Invalid endpoint, must start with http:// or https://`. OpenTelemetry tracing autoconfig requires `MANAGEMENT_OTLP_TRACING_ENDPOINT` or `OTEL_EXPORTER_OTLP_ENDPOINT` env var with valid URL. Adding `MANAGEMENT_TRACING_ENABLED=false + OTEL_SDK_DISABLED=true` to `/etc/kite/.env` did NOT prevent autoconfig from running. Need code-level fix: exclude autoconfig OR set valid endpoint default (even non-listening localhost) OR proper Spring property. → **File new GAP for OTel config**
+
+  Cutover state at session end:
+  - ✅ ACM cert imported (cert ARN e0adcd76-...)
+  - ✅ ALB HTTPS:443 listener live
+  - ✅ HTTP:80 redirects to HTTPS
+  - ✅ CF SSL `full strict` + Always HTTPS `on`
+  - ✅ api.kitehub.me proxied=true through CF
+  - ✅ DNS records 6 records (SES verify + 3 DKIM + DMARC + SPF merge)
+  - ✅ Docker images pushed v0.9.0-beta-staging.9 (10 services)
+  - ✅ deploy-prod.sh runs successfully (containers start)
+  - ❌ Java services crash on startup (OTel config)
+  - ⏳ SES production access form (user action — separate gate, can submit while OTel fix shipped)
+  - ⏳ kc-app instance EMPTY (deferred Phase 7 per ec2.tf design)
+  - ⏳ Production seed run (gated by Java services healthy first)
+
+  Next session pickup:
+  1. File GAP-483 (EC2 user_data bootstrap missing git + repo clone + tag checkout)
+  2. File GAP-484 (Java services OTel autoconfig crash on missing endpoint)
+  3. Fix OTel in code (likely `application.yml` set valid default endpoint or exclude autoconfig)
+  4. Re-trigger deploy
+  5. Verify health → continue cutover
