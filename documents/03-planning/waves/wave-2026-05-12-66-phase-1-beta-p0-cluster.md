@@ -1,6 +1,6 @@
 ---
 title: Wave 66 — Phase 1 BETA P0 cluster (CI fix + deploy preflight + docs flip sweep)
-status: draft
+status: complete
 created: 2026-05-12
 updated: 2026-05-12
 waves: [66]
