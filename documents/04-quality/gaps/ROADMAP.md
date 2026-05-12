@@ -79,7 +79,7 @@
 |---|---|---|
 | Wave 66 | GAP-493 B + 482 close + 447 verify + 369 Phase 2 + 398/399 docs | Infra polish done |
 | Wave 67 | GAP-376 seed + GAP-491 dashboard polish + monitoring tune | Production-ready |
-| Wave 68 | GAP-370 SES (post 24-48h AWS reply) + GAP-372 beta tenant invite mechanism + smoke E2E | Invite-ready |
+| Wave 68 | GAP-370 SES (post 24-48h AWS reply) + smoke E2E + audit /100 ≥80 baseline | Invite-ready (~~GAP-372~~ DONE Wave 45) |
 | Wave 69 | Rollback drill (`smoke-rollback-cycle.sh --execute`) + final audit /100 ≥80 + pre-launch acceptance | First invite |
 
 Per CLAUDE.md §CURRENT PHASE Phase 1 → Phase 2 trigger: audit /100 ≥80 + 5 beta tenants live + 0 P0 incidents 2 tuần.
