@@ -1,6 +1,6 @@
 ---
 title: Wave 64 — Cleanup cluster (Dependabot HIGH + GAP-476 + GAP-465)
-status: draft
+status: complete
 created: 2026-05-11
 updated: 2026-05-11
 waves: [64]
@@ -124,3 +124,5 @@ Disjoint: B=FE deps, C=BE+script, D=helm+audit. Zero overlap.
 ## 8. Log
 
 - **2026-05-11** (draft): Plan created. 3 cleanup gaps bundled. E folded into closure (GAP-475 Sub-5 DONE flip post-Bucket-C). Stake MEDIUM → Opus medium.
+- **2026-05-11** (in-progress, session-interrupt + recovery): Bucket B agent died with uncommitted local; Dependabot AUTO PR #1193 (next 15.5.15→15.5.18) covers same scope — MERGED instead. Bucket C agent died early (empty worktree) — re-spawned, PR #1195 shipped. Bucket D agent wrote 179 LOC audit but died before commit — coordinator salvaged → PR #1194 + filed GAP-478 + GAP-479.
+- **2026-05-11** (complete): Wave SHIPPED. 3 bucket PRs merged (#1193 Dependabot Bucket B / #1194 Bucket D salvage / #1195 Bucket C re-spawn). Closure: GAP-475 PARTIAL 75%→90%, GAP-465 DONE, GAP-476 DONE, GAP-204 PARTIAL 50%→75%. New gaps GAP-478 P1 + GAP-479 P2 (Phase 2 helm prep). Post-closure handles 26 new Dependabot alerts (per-FE pnpm-lock dupes stale at 15.5.15 despite root 15.5.18) — delete per-FE locks + gitignore (root lock canonical per workspace mode). Both FE builds PASS post-cleanup. Streak: 97→98 consecutive 0-clarification waves (Bucket B Dependabot does not count as agent clarification).
