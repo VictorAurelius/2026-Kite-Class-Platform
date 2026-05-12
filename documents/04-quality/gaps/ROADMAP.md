@@ -8,7 +8,7 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-12 — GAP-491 DONE; GAP-493 P0 BLOCKING new — container crash-restart loop)
+## 🎯 Current Status Snapshot (2026-05-12 — 🎉 PHASE 1 BETA INFRA REACHES HEALTHY STATE — api.kitehub.me HTTP 200)
 
 ### ✅ Wave 65 SHIPPED (8 PRs, 5 DONE + 1 PARTIAL + 1 incident-rules + 1 closure)
 
@@ -28,14 +28,15 @@
 - IAM `logs:FilterLogEvents` scoped to log group on `github_deploy` OIDC role
 - **Verified live** on deploy run 25748003956: workflow log shows `│ <stdout>` interleaved with `Status=InProgress` polls
 
-**🔴 NEW P0 BLOCKING — GAP-493 container crash-restart loop** (GAP-491 visibility surfaced this):
+**✅ GAP-493 Path A SHIPPED 2026-05-12** — Phase 1 BETA infra alive:
+- Root cause 1: RDS stopped (cost-saving scheduler) → started via `aws rds start-db-instance`
+- Root cause 2: Flyway V34 checksum mismatch (DB vs code) → `DROP SCHEMA public CASCADE; CREATE SCHEMA public` (pre-launch, no real data)
+- Restarted kitehub-admin/branding/email/subscription via docker compose restart
+- **Verified:** ALB target healthy, `curl https://api.kitehub.me/actuator/health` = HTTP 200 ✅
 
-1. **Diagnose** — SSM exec on i-05d7af46d01436b96: `docker logs --tail 100 kitehub-{admin,gateway,subscription,branding,email}` to find Spring Boot startup error
-2. **Suspect candidates:** (a) RabbitMQ ephemeral creds (deploy-prod.sh warned creds empty), (b) Spring profile/env missing, (c) JVM OOM on t3.medium 4GB × 5 services, (d) compose healthcheck too aggressive
-3. **Fix in PR**, retry deploy with `RELEASE_RETRY_TOOLING_FIXED: GAP-493 PR-#XXXX` trailer
-4. **Per `release-fix-retry-budget.md` v1.1.0 §3** — this is retry #2 from same deploy gate; STOP-AND-REDESIGN trigger applies; diagnose root cause BEFORE another retry
+**Path B (follow-up Wave 66):** Preflight job in `deploy-production.yml` verify RDS available before SSM (fail-fast <30s vs 8min crash-loop) + IAM `rds:DescribeDBInstances` + V34 file audit (revert vs renumber).
 
-**Wave 66 candidates (after GAP-493 unblocks deploy):**
+**Wave 66 candidates:**
 - GAP-493 P0 BLOCKING (container crash-restart diagnosis + fix + verify deploy)
 - GAP-482 PARTIAL — Deploy workflow cascade close (gated on GAP-493 fix)
 - GAP-369 PARTIAL — DNS production cutover (currently 70%)
