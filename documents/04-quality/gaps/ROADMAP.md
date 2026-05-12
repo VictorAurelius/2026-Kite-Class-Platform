@@ -8,9 +8,62 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-11 — Wave 60+61+62+63+64 SHIPPED same-day)
+## 🎯 Current Status Snapshot (2026-05-12 — Wave 64 cutover attempt PARTIAL; 2 P0 blockers)
 
 ### 🚀 Next Action (signpost cho new session)
+
+**Wave 64 cutover (2026-05-12) — 7 cascading bugs surfaced; retry budget exhausted; pivoted to session-end checkpoint per `release-fix-retry-budget.md` §3.**
+
+✅ **Cutover Done (shipped this session):**
+- ACM cert imported (`arn:aws:acm:ap-southeast-1:906286017800:certificate/e0adcd76-9d72-4567-a32e-a62d7987ccb1`) — Cloudflare Origin CA-issued, hostnames `*.kitehub.me` + `kitehub.me`, expires 2041
+- ALB HTTPS:443 listener live (terraform apply via workflow_dispatch)
+- HTTP:80 redirects to HTTPS
+- CF SSL mode `full strict` + Always HTTPS `on` (CF API)
+- `api.kitehub.me` proxied=true through CF
+- 6 DNS records added (SES verification TXT + 3 DKIM CNAMEs + DMARC TXT + SPF merge)
+- Docker images pushed v0.9.0-beta-staging.9 (10 services via tag trigger)
+- deploy-prod.sh executes successfully (containers start, DB connect via Hikari)
+- Bug 1-4 fixed (PR #1199 + #1200): IAM tag mismatch, hardcoded EC2 ID, ec2:DescribeInstances perm, secret prefix mismatch
+
+❌ **Blocking next session:**
+
+| GAP | Title | Priority |
+|-----|-------|---------|
+| **GAP-484** | Java services OTel OTLP tracing autoconfig crash — 5 kitehub-* services fail Spring startup with `Invalid endpoint, must start with http:// or https://` (env var disable doesn't work; need code-level fix) | 🔴 P0 BLOCKING |
+| **GAP-483** | EC2 user_data missing git + repo clone bootstrap — every EC2 replacement breaks (worked around via manual SSM this session) | 🔴 P0 BLOCKING |
+| GAP-482 | ✅ FIXED PR #1199 + #1200 (4 of 6 bugs from cascade) | — |
+
+### Concrete next-session pickup order
+
+1. **Fix GAP-484 (OTel) FIRST** — pick Option A from gap file: add to `kitehub-*/src/main/resources/application.yml`:
+   ```yaml
+   management:
+     otlp:
+       tracing:
+         endpoint: ${MANAGEMENT_OTLP_TRACING_ENDPOINT:http://localhost:4318/v1/traces}
+   ```
+   Tag new version `v0.9.0-beta-staging.10` → docker-build-push → re-trigger deploy-production.
+2. **Fix GAP-483 (user_data)** — extend `infrastructure/terraform-aws/ec2.tf` `ec2_user_data` add `dnf install -y git` + `git clone https://github.com/VictorAurelius/2026-Kite-Class-Platform.git /opt/kite-prod`. terraform apply (will replace 2 EC2 again — accept, no data to lose pre-launch).
+3. **Verify health** — `curl https://api.kitehub.me/actuator/health` should return 200; ALB target `kh-backend` should be `healthy`.
+4. **Submit SES production access form** (Console, paste template `email-ses-setup-runbook.md` §4.1.1) — can do parallel with steps 1-3 to start 24-48h timer.
+5. **Production seed** — `bash scripts/seed-production.sh` (gated on Java services healthy).
+6. **Wave 65 candidates** post-cutover: define beta invite flow (GAP-480), gateway routing audit (GAP-481), GAP-478 ESO v1 bump.
+
+### State at session end (Cloudflare + AWS facts for fix-time state-check)
+
+- `kitehub.me` zone ID: `bb54ef8f69b0ef03085ce8903d90a5a4`
+- ACM cert ARN: `arn:aws:acm:ap-southeast-1:906286017800:certificate/e0adcd76-9d72-4567-a32e-a62d7987ccb1`
+- ALB listeners: HTTP:80 (redirect→HTTPS), HTTPS:443 (ACM cert)
+- EC2 instances (live): kh-backend `i-00505094277deda29` + kc-app `i-007b72fffc6dcad22` (manual SSM-bootstrapped this session — will need re-bootstrap if replaced again before GAP-483 fix)
+- Containers running on kh-backend: 5 kitehub-* + rabbitmq + redis (Java services in crash-loop)
+- CF API token stored at `~/.cf-token.env` (gitignored, perm 600); zone ID at `/tmp/cf-zone-id.txt`
+- GitHub Variable `ALB_ACM_CERTIFICATE_ARN` set
+
+### Cost note (session discovery)
+
+AWS Billing dashboard cost summary $8.31 MTD = **gross usage**. Bills tab "Estimated grand total: $0.00" = **net payable** after Free Tier credits (12-month new account). User KHÔNG phải trả gì cho May 2026 nếu giữ trong Free Tier ceilings.
+
+---
 
 **Wave 64 SHIPPED 2026-05-11 — Cleanup cluster (3 buckets, 4 PR + closure handles 26 Dependabot alerts):**
 
