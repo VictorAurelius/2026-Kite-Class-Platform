@@ -113,3 +113,8 @@ kiteclass/shared/openapi.json.tmp
 # TypeScript incremental build info
 **/tsconfig.tsbuildinfo
 documents/image*.png
+
+# Per-workspace pnpm lock duplicates — root pnpm-lock.yaml is canonical (workspace mode)
+# Wave 64: deleted to resolve 26 stale Dependabot alerts (next 15.5.15 → 15.5.18)
+kitehub/kitehub-frontend/pnpm-lock.yaml
+kiteclass/kiteclass-frontend/pnpm-lock.yaml

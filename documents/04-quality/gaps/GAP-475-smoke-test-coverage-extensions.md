@@ -1,6 +1,6 @@
 # GAP-475: Smoke test coverage extensions — happy-path login, email loop, P95, MFA, migration verify, rollback cycle
 
-**Status:** 🟡 PARTIAL 75% (Wave 62 SHIPPED 2026-05-11 — 4/6 sub-items functional; 2 deferred to follow-up gaps due to absent dependencies)
+**Status:** 🟡 PARTIAL 90% (Wave 64 Bucket C unblocks Sub-5; 5/6 sub-items functional; Sub-6 still gated user-action TTR baseline run)
 **Priority:** 🟠 P1 (gates beta tenant launch confidence)
 **Domain:** DevOps / QA
 **Found:** 2026-05-11 (review session post-Wave 61, audit-driven)
@@ -78,7 +78,7 @@ Wave 61 stop-when-idle cutover model + imminent beta tenant invitation (step 4-7
 - [x] Sub-2 `smoke-ses.sh` extended with send-receive E2E + Mailgun primary + IMAP fallback + test mailbox runbook §6.1 (PR #1184 Bucket B)
 - [x] Sub-3 MFA path added — adapted to link-based verify-email (`?token=<uuid>`) per actual AuthController, not 6-digit OTP (PR #1184 Bucket B)
 - [x] Sub-4 latency assertion added with per-endpoint threshold map + JSON report (PR #1183 Bucket A)
-- [ ] Sub-5 Flyway head check — scaffold added with graceful SKIP path; **deferred: no HTTP migration endpoint exists in codebase** → follow-up GAP-476 filed (PR #1183 Bucket A)
+- [x] Sub-5 Flyway head check — Wave 64 Bucket C PR #1195 ships Actuator Flyway endpoint admin-gated; smoke wired to `${KC_URL}/kiteclass/actuator/flyway`, graceful SKIP removed (GAP-476 DONE)
 - [ ] Sub-6 `smoke-rollback-cycle.sh` shipped — scaffold + dry-run validated; **deferred: `rollback.yml` workflow absent in `.github/workflows/`** → follow-up GAP-477 filed (PR #1185 Bucket C)
 - [x] All shipped sub-items run clean locally (shellcheck + bash -n + dry-run exit 0)
 - [x] CSV row updated PARTIAL 75% (4 functional + 2 scaffold-with-deferral)

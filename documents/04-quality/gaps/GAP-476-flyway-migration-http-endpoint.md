@@ -1,6 +1,6 @@
 # GAP-476: Flyway migration HTTP endpoint for smoke-test verification
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 64 Bucket C SHIPPED 2026-05-11 — PR #1195)
 **Priority:** 🟡 P2
 **Domain:** Backend
 **Found:** 2026-05-11 (Wave 62 Bucket A state-check)
@@ -48,3 +48,4 @@ Option A simpler; Option B more controlled output. Pick during implementation.
 ## Log
 
 - **2026-05-11:** Filed as Wave 62 Bucket A deferral. Sub-5 of GAP-475 PARTIAL pending this endpoint.
+- **2026-05-11 (Wave 64 Bucket C SHIPPED):** PR #1195 ships Option A (Spring Actuator Flyway expose) + custom `FlywayEndpointAuthFilter` (gateway-trust pattern matching existing `VettingController` precedent — Spring Security permitAll because gateway is auth boundary forwarding `X-User-Roles`). 6 unit tests PASS. smoke-test.sh `check_migration_head` rewired to `${KC_URL}/kiteclass/actuator/flyway`, graceful SKIP removed → probe failures now FAIL. kiteclass-core canonical Flyway owner (58 V*.sql migrations). Status OPEN → DONE.

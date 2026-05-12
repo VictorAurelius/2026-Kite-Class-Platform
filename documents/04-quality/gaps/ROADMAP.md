@@ -8,9 +8,36 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-11 — Wave 60+61+62+63 SHIPPED same-day)
+## 🎯 Current Status Snapshot (2026-05-11 — Wave 60+61+62+63+64 SHIPPED same-day)
 
 ### 🚀 Next Action (signpost cho new session)
+
+**Wave 64 SHIPPED 2026-05-11 — Cleanup cluster (3 buckets, 4 PR + closure handles 26 Dependabot alerts):**
+
+- **Bucket B GAP-204** → PR #1193 (Dependabot AUTO) → 🟢 **next 15.5.15→15.5.18 MERGED**. Original agent died with uncommitted local; Dependabot AUTO covered same scope = used efficiently.
+- **Bucket C GAP-476 + GAP-475 Sub-5** → PR #1195 (re-spawn) → 🟢 **GAP-476 DONE**: Spring Actuator Flyway expose + custom `FlywayEndpointAuthFilter` (gateway-trust pattern) + 6 unit tests PASS + smoke-test wired. GAP-475 75%→90% PARTIAL.
+- **Bucket D GAP-465** → PR #1194 (coordinator salvage) → 🟢 **GAP-465 DONE**: 179 LOC audit report (2 charts YELLOW verdict) + GAP-478 P1 (ESO v1 bump) + GAP-479 P2 (Phase 2 EKS batch) filed.
+- **Closure** → 26 NEW Dependabot alerts post-Bucket-B surfaced root-cause: stale per-FE pnpm-lock dupes (next@15.5.15) vs root pnpm-lock (15.5.18). Workspace mode → root canonical → delete per-FE locks + gitignore. Both FE builds PASS.
+
+**Stats Wave 64:**
+- **3 gap DONE** (GAP-465, GAP-476, GAP-204 75% PARTIAL from 50%)
+- **2 new gap filed** (GAP-478 P1, GAP-479 P2)
+- **Wall-clock:** ~40 min coordinator (recovery overhead from session-interrupt)
+- **Speedup:** ~4.5× vs 3h serial (recovery cost reduces normal ~30× speedup)
+- **Streak:** 98 consecutive 0-clarification waves
+- **Recovery discipline:** Session-interrupt protocol applied — triaged 3 agent states (dead/salvage/Dependabot-covered) without redundant re-runs
+
+**User-action gates remaining (Phase 1 BETA pre-launch):**
+1. Wave 61 cutover gates (ACM cert + ALB HTTPS:443 + SES domain verify + SES production form + tier-3 workflow + resume stack + final smoke)
+2. Wave 63 rollback enablement (`terraform apply` IAM role + GitHub Environment `production` config + first `bash scripts/smoke-rollback-cycle.sh --execute` for TTR baseline)
+
+**Wave 65 candidates** (post-Wave 64):
+- (a) **User-action gates execution** → invite first beta tenant (Wave 61 + 63 user-actions)
+- (b) GAP-478 ESO v1 bump (P1, ~30min mechanical)
+- (c) GAP-479 Phase 2 EKS batch (deferred Phase 2)
+- (d) GAP-475 final DONE (gated user-action TTR baseline)
+
+---
 
 **Wave 63 SHIPPED 2026-05-11 — Rollback workflow (GAP-477 P1, 3 buckets, 4 PR gồm plan):**
 
