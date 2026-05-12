@@ -116,7 +116,7 @@ resource "aws_cloudwatch_log_group" "ssm_kite_deploy" {
 
   tags = {
     Name    = "${var.project_name}-ssm-kite-deploy"
-    Purpose = "SSM send-command stdout/stderr streaming for deploy-production.yml (GAP-491)"
+    Purpose = "SSM send-command stdout streaming for deploy-production.yml GAP-491"
   }
 }
 
