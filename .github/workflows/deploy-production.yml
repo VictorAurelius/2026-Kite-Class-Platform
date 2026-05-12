@@ -109,27 +109,56 @@ jobs:
           # Per release-fix-retry-budget.md §4 pivot: avoid multi-line bash
           # inside JSON inside YAML — use simplest possible SSM call.
 
-          # Use --parameters with simple commands list (CLI accepts shorthand)
+          # Use --parameters with simple commands list (CLI accepts shorthand).
+          # --cloud-watch-output-config streams stdout/stderr to /aws/ssm/kite-deploy
+          # in ~10s chunks DURING execution (GAP-491 Phase 2) so poll loop below
+          # can show live progress instead of opaque InProgress. Log group +
+          # IAM (CloudWatchAgentServerPolicy on ec2_app role) shipped in
+          # GAP-491 Phase 1 (PR #1216 + #1217).
           COMMAND_ID=$(aws ssm send-command \
             --region "${AWS_REGION}" \
             --instance-ids "${INSTANCE_ID}" \
             --document-name "AWS-RunShellScript" \
             --comment "Deploy ${KITE_VERSION}" \
             --timeout-seconds 600 \
+            --cloud-watch-output-config "CloudWatchLogGroupName=/aws/ssm/kite-deploy,CloudWatchOutputEnabled=true" \
             --parameters commands="sudo KITE_VERSION=${KITE_VERSION} bash /opt/kite-prod/scripts/deploy-prod.sh" \
             --query "Command.CommandId" --output text)
 
           echo "command_id=${COMMAND_ID}" >> "$GITHUB_OUTPUT"
           echo "SSM CommandId: ${COMMAND_ID}"
+          echo "CloudWatch logs: /aws/ssm/kite-deploy stream prefix ${COMMAND_ID}/"
 
-      - name: Poll SSM command status (up to 8 min)
+      - name: Poll SSM command status (up to 8 min) + interleave CloudWatch logs
         id: poll
         env:
           INSTANCE_ID: ${{ steps.ec2_lookup.outputs.instance_id }}
           COMMAND_ID: ${{ steps.ssm.outputs.command_id }}
         run: |
+          # GAP-491 Phase 2: interleave SSM status with CloudWatch log fetch so
+          # operator sees live progress instead of opaque InProgress. Without
+          # this, a Failed command at 7s shows as InProgress for 2.5min until
+          # the next poll catches Failed terminal state (2026-05-12 incident).
+          LAST_LOG_TS=$(($(date -u +%s) * 1000))
           for attempt in $(seq 1 48); do
             sleep 10
+            NOW_TS=$(($(date -u +%s) * 1000))
+
+            # Fetch new CloudWatch log events since last poll (SSM agent streams
+            # in ~10s chunks). Log stream pattern: ${COMMAND_ID}/${INSTANCE_ID}/
+            # aws-runShellScript/{stdout,stderr} — prefix-match captures both.
+            # Quiet on no-events / no-stream-yet (early polls); ignore errors.
+            LOGS=$(aws logs filter-log-events \
+              --region "${AWS_REGION}" \
+              --log-group-name /aws/ssm/kite-deploy \
+              --log-stream-name-prefix "${COMMAND_ID}/" \
+              --start-time "${LAST_LOG_TS}" \
+              --query 'events[*].message' --output text 2>/dev/null || true)
+            if [ -n "${LOGS}" ]; then
+              echo "${LOGS}" | sed 's/^/  │ /'
+            fi
+            LAST_LOG_TS=${NOW_TS}
+
             STATUS=$(aws ssm get-command-invocation \
               --region "${AWS_REGION}" \
               --command-id "${COMMAND_ID}" \

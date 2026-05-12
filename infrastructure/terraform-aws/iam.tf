@@ -352,6 +352,23 @@ resource "aws_iam_role_policy" "github_deploy_inline" {
           "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}/staging/*",
         ]
       },
+      # CloudWatch Logs read on SSM deploy log group (GAP-491 Phase 2).
+      # deploy-production.yml poll loop calls filter-log-events every 10s
+      # to interleave live stdout/stderr with status polling — closes the
+      # 2026-05-12 visibility gap (SSM Failed at 7s shown as InProgress
+      # for 15 polls before noticing).
+      {
+        Sid    = "CloudWatchLogsReadDeployStream"
+        Effect = "Allow"
+        Action = [
+          "logs:FilterLogEvents",
+          "logs:DescribeLogStreams",
+        ]
+        Resource = [
+          "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/ssm/kite-deploy",
+          "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/ssm/kite-deploy:*",
+        ]
+      },
     ]
   })
 }
