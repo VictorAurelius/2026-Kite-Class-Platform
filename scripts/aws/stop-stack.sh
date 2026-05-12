@@ -16,8 +16,8 @@
 #   3 — AWS CLI / credentials missing
 #
 # Stack resources (matches start-stack.sh):
-#   EC2: i-0b65c3947d36cae61 (kitehub-kh-backend)
-#        i-07f6de54544162124 (kitehub-kc-app)
+#   EC2: instances tagged Name=kitehub-kh-backend + kitehub-kc-app
+#        (dynamic lookup — survives EC2 replacement per GAP-492)
 #   RDS: kitehub-postgres
 
 set -euo pipefail
@@ -25,9 +25,29 @@ set -euo pipefail
 # ─────────────────────────────────────────────────────────────────
 # Configuration
 # ─────────────────────────────────────────────────────────────────
-EC2_INSTANCE_IDS=("i-0b65c3947d36cae61" "i-07f6de54544162124")
 RDS_DB_IDENTIFIER="kitehub-postgres"
 AWS_REGION="${AWS_REGION:-ap-southeast-1}"
+AWS_PROFILE_STOP="${AWS_PROFILE_STOP:-${AWS_PROFILE:-dev-admin}}"
+
+# Dynamic EC2 instance ID lookup by tag (GAP-492 fix — survives AMI bump replacement).
+# Filters: Name tag matches stack + state running OR stopped (skip terminated).
+# Output: space-separated InstanceId list ordered by Name tag.
+lookup_ec2_instance_ids() {
+  AWS_PROFILE="${AWS_PROFILE_STOP}" aws ec2 describe-instances \
+    --region "${AWS_REGION}" \
+    --filters \
+      "Name=tag:Name,Values=kitehub-kh-backend,kitehub-kc-app" \
+      "Name=instance-state-name,Values=running,stopped" \
+    --query 'Reservations[].Instances[].InstanceId' \
+    --output text 2>/dev/null
+}
+
+mapfile -t EC2_INSTANCE_IDS < <(lookup_ec2_instance_ids | tr '\t' '\n' | grep -v '^$')
+if [ "${#EC2_INSTANCE_IDS[@]}" -eq 0 ]; then
+  echo "::error :: No kitehub-kh-backend or kitehub-kc-app instances found via tag lookup"
+  echo "Check: AWS_PROFILE=${AWS_PROFILE_STOP} aws ec2 describe-instances --filters 'Name=tag:Name,Values=kitehub-*'"
+  exit 3
+fi
 STATE_FILE="${STATE_FILE:-.aws-stack-state.json}"
 GRACE_SECONDS=60
 TIMEOUT_SECONDS=300  # 5 min total budget

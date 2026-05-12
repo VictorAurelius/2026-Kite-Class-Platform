@@ -1,6 +1,6 @@
 # GAP-492: stop-stack.sh + start-stack.sh hardcoded stale EC2 instance IDs
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-12 (dynamic tag lookup applied to both scripts; dry-run verified new IDs i-00505094277deda29 + i-007b72fffc6dcad22)
 **Priority:** 🟠 P1 (every EC2 replacement makes scripts no-op — same bug class as GAP-482 fixed for deploy-production.yml)
 **Domain:** DevOps
 **Found:** 2026-05-12 (Wave 65 pre-stop audit)
@@ -39,11 +39,11 @@ Update both `stop-stack.sh` + `start-stack.sh`.
 
 ## Acceptance Criteria
 
-- [ ] `stop-stack.sh` uses dynamic tag lookup (no hardcoded IDs)
-- [ ] `start-stack.sh` uses dynamic tag lookup (no hardcoded IDs)
-- [ ] `--dry-run` validates lookup output before applying
-- [ ] Header comments removed/updated (no hardcoded ID references)
-- [ ] Both scripts survive next EC2 replacement without manual edit
+- [x] `stop-stack.sh` uses dynamic tag lookup (no hardcoded IDs)
+- [x] `start-stack.sh` uses dynamic tag lookup (no hardcoded IDs)
+- [x] `--dry-run` validates lookup output before applying — verified `i-00505094277deda29 i-007b72fffc6dcad22` resolved correctly
+- [x] Header comments removed/updated (no hardcoded ID references)
+- [x] Both scripts survive next EC2 replacement without manual edit
 
 ## Related
 
@@ -54,3 +54,4 @@ Update both `stop-stack.sh` + `start-stack.sh`.
 ## Log
 
 - **2026-05-12:** Filed during Wave 65 pre-stop audit. Same fix pattern as GAP-482; ~30min terraform-free script edit.
+- **2026-05-12 (DONE):** Both scripts updated with `lookup_ec2_instance_ids()` function — `aws ec2 describe-instances --filters Name=tag:Name,Values=kitehub-{kh-backend,kc-app}` populates `EC2_INSTANCE_IDS` array dynamically. Header comments updated. Bash syntax check + dry-run verified new IDs resolved correctly. AWS_PROFILE_STOP/AWS_PROFILE_START env var added for explicit profile control. Both scripts survive future EC2 replacement.
