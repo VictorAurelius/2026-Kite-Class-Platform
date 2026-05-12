@@ -8,17 +8,43 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-12 — Wave 64 cutover attempt PARTIAL; 2 P0 blockers; Wave 65 Buckets A+B meta-governance shipping)
+## 🎯 Current Status Snapshot (2026-05-12 — Wave 65 SHIPPED; GAP-491 P0 blocks next deploy retry)
 
-### 🆕 Wave 65 progress (meta-governance cleanup + Release 1 blockers)
+### ✅ Wave 65 SHIPPED (8 PRs, 5 DONE + 1 PARTIAL + 1 incident-rules + 1 closure)
 
-- ✅ **Bucket A** (#1207) — 64 wave-history.jsonl orphan entries backfilled
-- ✅ **Bucket B** (this PR, GAP-486 🟢 DONE) — `post-merge-sync-completeness.md` v1.0.0 + `session-docs-check` Rule 17 (status flip → `gap-status.csv` sync) + 3 fixtures (9/9 green) + PR-template Output Review row + matrix Rule 18 PARTIAL (memory mirror deferred per §5). Closes meta-governance gap surfaced by Wave 64 4-miss session-close audit.
-- 🚧 Remaining Release 1 blockers: GAP-484 (OTel) + GAP-483 (EC2 user_data) per "Concrete next-session pickup order" below.
+- ✅ **Bucket A1** (#1206) — GAP-487 MEMORY orphans state-corrected (0 orphans on disk-vs-index)
+- ✅ **Bucket A2** (#1207) — GAP-488 wave-history.jsonl 64 orphan entries backfilled
+- ✅ **Bucket B** (#1210) — GAP-486 `post-merge-sync-completeness.md` v1.0.0 + Rule 17 detector + 3 fixtures + PR template
+- 🟡 **Bucket C** (#1211) — GAP-485 PARTIAL 55% (`meta-csv-index-pattern.md` v1.0.0 + ADRs CSV 28 rows + Rules CSV 36 rows + 2 query helpers + 2 validators + CI job); Tier 3 skills+audits → GAP-490
+- ✅ **Bucket D** (#1209) — GAP-484 OTel autoconfig fix (7 application.yml services); production deploy verification deferred per `release-deploy-standard.md` §9
+- ✅ **Bucket E** (#1208) — GAP-483 EC2 user_data terraform applied 2026-05-12 07:52 UTC (in-place update 2 EC2)
+- ✅ **Incident rules** (#1212) — 2026-05-12 concurrent ops + visibility-gap incident → `concurrent-production-mutation-ops.md` v1.0.0 + `release-fix-retry-budget.md` v1.1.0 + GAP-491 follow-up + audit artifact extension
 
-### 🚀 Next Action (signpost cho new session)
+### 🚀 Next Action (signpost cho new session — Wave 66 candidates)
+
+**🔴 P0 BLOCKING — Path A (GAP-491) MUST land before next deploy retry per `release-fix-retry-budget.md` v1.1.0 §4 row "Tooling visibility gap":**
+
+1. **GAP-491 Phase 1** — Terraform: CloudWatch log group `/aws/ssm/kite-deploy` + IAM policy on EC2 instance profile (`logs:CreateLogStream` + `logs:PutLogEvents`). Apply via `terraform-apply.yml` (verify §1 serialization rule — no concurrent deploy)
+2. **GAP-491 Phase 2** — `deploy-production.yml`: add `--cloud-watch-output-config CloudWatchLogGroupName=/aws/ssm/kite-deploy,CloudWatchOutputEnabled=true` to send-command + extend poll loop with `aws logs tail` background job
+3. **Retry deploy** — `gh workflow run deploy-production.yml -f version=v0.9.0-beta-staging.10 -f confirm=DEPLOY` with squash commit trailer `RELEASE_RETRY_TOOLING_FIXED: GAP-491 PR-#XXXX`
+4. **Verify** — CloudWatch streams live stdout + `curl -sI https://api.kitehub.me/actuator/health` returns 200
+
+**Wave 66 candidates (after GAP-491 unblocks deploy):**
+- GAP-491 P0 BLOCKING (Phase 1 + Phase 2 + retry deploy verification)
+- GAP-482 PARTIAL — Deploy workflow cascade close (gated on GAP-491 retry success)
+- GAP-369 PARTIAL — DNS production cutover (currently 70%)
+- GAP-376 PARTIAL — Production data seed (80%)
+- GAP-398/399 — Docker images + ECR state-check shows essentially DONE (docs-only flip needed)
+- GAP-370 USER-action — SES production access submit (parallel work, 24-48h AWS wait)
+
+**Wait-state (out of session control):**
+- GAP-370 — User submits SES production access form per `documents/05-guides/deploy/email-ses-setup-runbook.md` §4.1.1 → wait AWS 24-48h reply
+
+### 📜 Wave 64 cutover (2026-05-12) — historical reference
 
 **Wave 64 cutover (2026-05-12) — 7 cascading bugs surfaced; retry budget exhausted; pivoted to session-end checkpoint per `release-fix-retry-budget.md` §3.**
+
+### 🚀 Next Action — historical (Wave 64 — now superseded by Wave 65)
 
 ✅ **Cutover Done (shipped this session):**
 - ACM cert imported (`arn:aws:acm:ap-southeast-1:906286017800:certificate/e0adcd76-9d72-4567-a32e-a62d7987ccb1`) — Cloudflare Origin CA-issued, hostnames `*.kitehub.me` + `kitehub.me`, expires 2041
