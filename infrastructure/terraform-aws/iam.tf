@@ -325,7 +325,22 @@ resource "aws_iam_role_policy" "github_deploy_inline" {
           "arn:aws:ssm:${var.aws_region}::document/AWS-RunShellScript",
         ]
       },
-      # Secrets Manager read — staging + prod secret prefixes
+      # EC2 describe (read-only) — needed for dynamic instance lookup by tag
+      # in deploy-production.yml workflow (GAP-482 fix: survives EC2 replacement
+      # via AMI bump). Read-only — no instance lifecycle perms.
+      {
+        Sid    = "Ec2DescribeForDeployLookup"
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeInstances",
+          "ec2:DescribeTags",
+        ]
+        Resource = "*"
+      },
+      # Secrets Manager read — production + staging secret prefixes.
+      # GAP-482 retry #3: actual secrets named ${var.project_name}/${var.environment}/*
+      # (= kitehub/production/* per secrets.tf), NOT hardcoded "kite/staging/*"
+      # or "kite/prod/*" which never matched any real secret ARN.
       {
         Effect = "Allow"
         Action = [
@@ -333,8 +348,8 @@ resource "aws_iam_role_policy" "github_deploy_inline" {
           "secretsmanager:DescribeSecret",
         ]
         Resource = [
-          "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:kite/staging/*",
-          "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:kite/prod/*",
+          "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}/${var.environment}/*",
+          "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}/staging/*",
         ]
       },
     ]

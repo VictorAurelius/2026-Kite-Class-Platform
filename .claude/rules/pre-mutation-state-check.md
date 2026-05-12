@@ -1,7 +1,7 @@
 # Pre-Mutation State-Check — investigate before applying production changes
 
 **Priority:** 🔴 CRITICAL — production mutation discipline
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Created:** 2026-05-12
 **Last-Reviewed:** 2026-05-12
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (PR template + reviewer-checklist + memory + worked self-test on Wave 64 cutover) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-uncovered pre-mutation investigation log mandate)
@@ -20,6 +20,41 @@
 This closes the gap that `audit-to-gap-pipeline.md` §2.5/§2.6/§2.7/§2.8 covers state-check for GAPS / WAVE-PLANS / DECISION-DOCS / FIX-TIME, but NOT for DEPLOY/MUTATION ops. Per `agent-aws-access.md` §5, **verification sessions** require logging artifacts — but **mutation sessions** had no equivalent pre-mutation audit mandate until this rule.
 
 User-flagged 2026-05-12 during Wave 64 cutover: "thao tác deploy cũng giống như fix gaps, phải lưu logs và state check chứ?" — yes, same discipline applies.
+
+---
+
+## 1.5 Terraform-specific workflow (mandatory when touching `infrastructure/terraform-aws/**` or `infrastructure/terraform-oracle/**`)
+
+Added v1.1.0 sau user-flagged meta-gap 2026-05-12 trong Wave 64 Step F: 3 cascading IAM bugs (tag mismatch + missing perm + secret prefix mismatch) should have been caught in 1 review pass instead of 2+ retry cycles. Per `release-fix-retry-budget.md` §3 — retry #2 from same gate = redesign trigger; for terraform that means structured cross-reference review BEFORE apply.
+
+**Mandatory workflow when editing any `.tf` file:**
+
+1. **Skill-driven review FIRST** — invoke `.claude/skills/devops/terraform-cloud-deploy/SKILL.md` mode "Terraform Review" OR perform equivalent manual cross-reference pass:
+   - For IAM policy edits: scan ALL Resource ARN patterns against actual resource names in companion `.tf` files (e.g., `secrets.tf` resource names vs IAM Resource scope; `default_tags` values vs Condition tag values)
+   - For variable-driven naming: verify `var.project_name`/`var.environment`/etc. expand to the same value used in resource definitions AND policies
+   - For action lists: cross-reference against the actual workflow/script that calls the role (`grep "aws " .github/workflows/<workflow>.yml`, `grep "aws " scripts/<script>.sh`) — every CLI call needs matching IAM action
+   - For Condition scopes: verify tag KEY (e.g., `aws:ResourceTag/Project`) and tag VALUE match what `default_tags` sets and what actual resources carry (via `aws ec2 describe-instances --query 'Tags'`)
+
+2. **Pre-apply diff scan** — `terraform plan` output review per `pre-mutation-state-check.md` §3 (already mandatory):
+   - "Real vs phantom" classification per resource
+   - For every "create/update/replace/destroy" line, cross-reference companion `.tf` files to verify intent
+
+3. **Companion file scan** — when editing IAM, ALSO scan:
+   - The workflow YAML that uses the role (e.g., `deploy-production.yml`) for all `aws <verb>` commands
+   - The shell scripts the role triggers (e.g., `deploy-prod.sh`) for `aws secretsmanager get-secret-value`, `aws ecr get-login-password`, etc.
+   - The corresponding resource `.tf` files (`secrets.tf`, `ec2.tf`, `rds.tf`) for actual resource name patterns
+
+4. **Cross-reference matrix** — document in pre-apply audit artifact (`documents/04-quality/audits/aws-verification/...`):
+
+| IAM Action | Resource pattern in policy | Actual resource name (verified) | Workflow caller | Verdict |
+|------------|---------------------------|--------------------------------|-----------------|---------|
+| ssm:SendCommand | `*` Condition Project=Kite | EC2 tag Project=Kite (✓) | deploy-production.yml line N | ✅ match |
+| secretsmanager:GetSecretValue | `kite/prod/*` (BUG!) | `kitehub/production/*` | deploy-prod.sh line N | ❌ mismatch |
+| ec2:DescribeInstances | (missing) | — | ec2_lookup step | ❌ missing action |
+
+Bugs surface in the matrix → fix all in same PR.
+
+5. **Banned shortcut:** "I'll fix one bug, run, see what next bug surfaces" — that's retry-cycle anti-pattern. Catch ALL bugs in one review pass via matrix.
 
 ---
 
@@ -274,4 +309,5 @@ Future enhancement — `audit-gate.py` AUDIT_RULES rule scanning for mutation pa
 
 ## 9. Log
 
+- **2026-05-12 (v1.1.0):** MINOR — added §1.5 Terraform-specific workflow mandate. Triggered by user-flagged meta-gap during Wave 64 Step F deploy retry: "bổ sung đúng workflow khi động đến terraform" — 3 cascading IAM bugs (tag mismatch + missing ec2:DescribeInstances + secret prefix mismatch) shipped in 2+ retry cycles instead of 1 review pass. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged) → Classify ✓ (existing §3 audit artifact mandate but no explicit "terraform-review cross-reference matrix" workflow) → Rule+Enforce ✓ (this §1.5 + matrix template + companion file scan mandate paired same-PR with concrete fix) → Self-Test ✓ (matrix applied retroactively to Wave 64 Step F caught all 3 bugs in 1 pass) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint adds terraform-specific cross-reference workflow, no constraint loosening). Detector deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 days.
 - **2026-05-12 (v1.0.0):** Rule created. Triggered by user comment during Wave 64 Step E: "thao tác deploy cũng giống như fix gaps, phải lưu logs và state check chứ?" (mid-session, after agent shipped investigation log organically but user flagged that existing rules didn't MANDATE the discipline for deploy ops). Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged meta-gap during ongoing mutation session) → Classify ✓ (`audit-to-gap-pipeline.md` covers GAP/wave/decision/fix-time state-check; `agent-aws-access.md` covers verification logging; NO rule explicitly mandated pre-mutation audit log) → Rule+Enforce ✓ (this rule + paired same-PR PR template checkbox + memory `feedback_pre_mutation_state_check.md` + Wave 64 investigation log as worked self-test per `rule-change-process.md` §6.5) → Self-Test ✓ (§7 worked example on the originating Wave 64 Step E session — rule fires correctly + investigation written organically matches all §3 sections) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — new constraint adding previously-uncovered pre-mutation investigation log mandate, no constraint loosening for prior work; existing audit artifacts grandfathered, rule applies prospectively from this PR). Detector deferred per premature-rule guard ≥7 days.
