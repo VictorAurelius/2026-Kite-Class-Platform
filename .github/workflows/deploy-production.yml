@@ -29,7 +29,8 @@ permissions:
 
 env:
   AWS_REGION: ap-southeast-1
-  DEPLOY_INSTANCE_ID_KH: i-0b65c3947d36cae61   # kh-backend EC2 (Phase 2.3 output)
+  # DEPLOY_INSTANCE_ID_KH removed — now looked up dynamically by tag
+  # (GAP-482: hardcoded ID stale after EC2 replacement via AMI bump)
   COMPOSE_FILE: /opt/kite-prod/docker-compose.production.yml
   ALB_DNS: kitehub-alb-224105328.ap-southeast-1.elb.amazonaws.com
 
@@ -74,11 +75,28 @@ jobs:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Lookup current kh-backend instance ID (dynamic — survives EC2 replacement)
+        id: ec2_lookup
+        run: |
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --region "${AWS_REGION}" \
+            --filters \
+              "Name=tag:Name,Values=kitehub-kh-backend" \
+              "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].InstanceId" \
+            --output text)
+          if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" = "None" ]; then
+            echo "::error ::No running kitehub-kh-backend instance found"
+            exit 1
+          fi
+          echo "Found kh-backend instance: $INSTANCE_ID"
+          echo "instance_id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
+
       - name: Send deploy command via SSM (simple — calls deploy-prod.sh)
         id: ssm
         env:
           KITE_VERSION: ${{ github.event.inputs.version }}
-          INSTANCE_ID: ${{ env.DEPLOY_INSTANCE_ID_KH }}
+          INSTANCE_ID: ${{ steps.ec2_lookup.outputs.instance_id }}
         run: |
           echo "Deploying ${KITE_VERSION} to ${INSTANCE_ID}..."
 
@@ -105,7 +123,7 @@ jobs:
       - name: Poll SSM command status (up to 8 min)
         id: poll
         env:
-          INSTANCE_ID: ${{ env.DEPLOY_INSTANCE_ID_KH }}
+          INSTANCE_ID: ${{ steps.ec2_lookup.outputs.instance_id }}
           COMMAND_ID: ${{ steps.ssm.outputs.command_id }}
         run: |
           for attempt in $(seq 1 48); do

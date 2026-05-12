@@ -313,7 +313,7 @@ resource "aws_iam_role_policy" "github_deploy_inline" {
         Resource = "*"
         Condition = {
           StringEquals = {
-            "aws:ResourceTag/Project" = var.project_name
+            "aws:ResourceTag/Project" = "Kite"
           }
         }
       },
@@ -520,7 +520,7 @@ resource "aws_iam_role_policy" "github_tier_3_cutover_inline" {
         Resource = "*"
         Condition = {
           StringEquals = {
-            "aws:ResourceTag/Project" = var.project_name
+            "aws:ResourceTag/Project" = "Kite"
           }
         }
       },
@@ -681,7 +681,7 @@ resource "aws_iam_role_policy" "github_rollback_inline" {
         Resource = "*"
         Condition = {
           StringEquals = {
-            "aws:ResourceTag/Project" = var.project_name
+            "aws:ResourceTag/Project" = "Kite"
           }
         }
       },
