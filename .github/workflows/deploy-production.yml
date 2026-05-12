@@ -61,10 +61,40 @@ jobs:
   # (uses BatchGetImage which IS in role policy). If image missing → SSM
   # command fails with non-zero exit; workflow surfaces error.
 
+  preflight:
+    name: Preflight — verify RDS available (GAP-493 Path B)
+    runs-on: ubuntu-latest
+    needs: validate
+    # Fails fast (<30s) if shared production dependencies are stopped
+    # (cost-saving scheduler.tf stops RDS on weekday/Friday evenings).
+    # Without this, container starts → Spring Boot connects to RDS →
+    # PSQLException SocketTimeoutException → 8min crash-restart loop.
+    # See documents/04-quality/gaps/GAP-493-container-crash-restart-on-deploy.md
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify RDS kitehub-postgres available
+        run: |
+          STATUS=$(aws rds describe-db-instances \
+            --region "${AWS_REGION}" \
+            --db-instance-identifier kitehub-postgres \
+            --query 'DBInstances[0].DBInstanceStatus' \
+            --output text 2>/dev/null || echo "ERROR")
+          echo "RDS kitehub-postgres status: ${STATUS}"
+          if [ "$STATUS" != "available" ]; then
+            echo "::error ::RDS kitehub-postgres is '${STATUS}' (expected: 'available'). Containers would crash-restart in deploy. Run 'bash scripts/start-stack.sh' to start RDS, then retry deploy. See documents/04-quality/gaps/GAP-493-container-crash-restart-on-deploy.md"
+            exit 1
+          fi
+          echo "::notice ::RDS kitehub-postgres available ✅ — proceeding to deploy"
+
   deploy:
     name: Deploy to kh-backend via SSM
     runs-on: ubuntu-latest
-    needs: validate
+    needs: preflight
     environment: production
     steps:
       - uses: actions/checkout@v6
@@ -211,12 +241,13 @@ jobs:
   notify:
     name: Notify deploy outcome
     runs-on: ubuntu-latest
-    needs: [validate, deploy]
+    needs: [validate, preflight, deploy]
     if: always()
     steps:
       - name: Summary
         run: |
           echo "Validate:  ${{ needs.validate.result }}"
+          echo "Preflight: ${{ needs.preflight.result }}"
           echo "Deploy:    ${{ needs.deploy.result }}"
           echo "Version:   ${{ github.event.inputs.version }}"
           if [[ "${{ needs.deploy.result }}" == "success" ]]; then

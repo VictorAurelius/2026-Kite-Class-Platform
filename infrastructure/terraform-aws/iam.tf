@@ -337,6 +337,21 @@ resource "aws_iam_role_policy" "github_deploy_inline" {
         ]
         Resource = "*"
       },
+      # RDS describe (read-only) — needed for preflight job in
+      # deploy-production.yml (GAP-493 Path B). Workflow fails fast if
+      # kitehub-postgres is stopped (cost-saving scheduler.tf can stop RDS
+      # off-hours) instead of letting containers crash-restart for 8 min.
+      # RDS DescribeDBInstances does NOT support tag-based Condition scoping
+      # on the action (per AWS docs); Resource="*" is the only valid form
+      # for this verb. Read-only — no lifecycle perms (start/stop/modify).
+      {
+        Sid    = "RdsDescribeForPreflight"
+        Effect = "Allow"
+        Action = [
+          "rds:DescribeDBInstances",
+        ]
+        Resource = "*"
+      },
       # Secrets Manager read — production + staging secret prefixes.
       # GAP-482 retry #3: actual secrets named ${var.project_name}/${var.environment}/*
       # (= kitehub/production/* per secrets.tf), NOT hardcoded "kite/staging/*"

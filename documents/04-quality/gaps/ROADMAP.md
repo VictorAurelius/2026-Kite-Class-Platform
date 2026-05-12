@@ -34,17 +34,22 @@
 - Restarted kitehub-admin/branding/email/subscription via docker compose restart
 - **Verified:** ALB target healthy, `curl https://api.kitehub.me/actuator/health` = HTTP 200 ✅
 
-**Path B (follow-up Wave 66):** Preflight job in `deploy-production.yml` verify RDS available before SSM (fail-fast <30s vs 8min crash-loop) + IAM `rds:DescribeDBInstances` + V34 file audit (revert vs renumber).
+**✅ GAP-493 Path B SHIPPED 2026-05-12** — Wave 66 Bucket A:
+- `deploy-production.yml` `preflight` job added between validate + deploy — runs `aws rds describe-db-instances --db-instance-identifier kitehub-postgres`, fails fast (<30s) with `::error::` referencing `scripts/start-stack.sh` if status ≠ `available`
+- `infrastructure/terraform-aws/iam.tf` `github_deploy_inline` extended with `RdsDescribeForPreflight` Sid (`rds:DescribeDBInstances`, Resource=`*` — least-privilege via action-only since RDS Describe doesn't support tag Condition)
+- Pre-mutation audit: `documents/04-quality/audits/aws-verification/2026-05-12-gap-493-path-b-preflight.md`
+- **Apply pending user-triggered** `gh workflow run terraform-apply.yml -f confirm=APPLY -f dry_run=false` post-merge per `release-deploy-standard.md` §9
+
+**V34 file audit (follow-up):** revert if accidental edit, or renumber as V36 if intentional schema change. Tracked separately.
 
 **Wave 66 plan (next session — start here):**
 
 Pick-up order theo dependency chain:
 
-1. **GAP-493 Path B** — Preflight RDS check in `deploy-production.yml` + IAM `rds:DescribeDBInstances`. Workflow fails fast (<30s) with actionable error if RDS stopped, instead of 8min container crash-loop. Plus V34 file audit (revert if accidental edit, or renumber as V36 if intentional schema change).
-2. **GAP-482 close** — Deploy workflow cascade now unblocked (GAP-491+493 chain done). Re-verify deploy retry green end-to-end với clean trailer + auto-flip 🟢 DONE.
-3. **GAP-447 verify** — Right-size t3.medium stress test (5 services × Spring Boot + JVM heap on 4GB). Run `documents/05-guides/deploy/right-size-stress-test.md`. Flip 🟢 DONE.
-4. **GAP-369 Phase 2** — DNS production cutover. Cloudflare proxy already live (`api.kitehub.me` HTTPS 200 verified Wave 65b). Phase 2 = cleanup stale records + canonical apex/www. Flip 🟢 DONE.
-5. **GAP-398/399 docs-only flip** — State-check shows essentially DONE; just sync docs.
+1. **GAP-482 close** — Deploy workflow cascade now unblocked (GAP-491+493 chain done). Re-verify deploy retry green end-to-end với clean trailer + auto-flip 🟢 DONE.
+2. **GAP-447 verify** — Right-size t3.medium stress test (5 services × Spring Boot + JVM heap on 4GB). Run `documents/05-guides/deploy/right-size-stress-test.md`. Flip 🟢 DONE.
+3. **GAP-369 Phase 2** — DNS production cutover. Cloudflare proxy already live (`api.kitehub.me` HTTPS 200 verified Wave 65b). Phase 2 = cleanup stale records + canonical apex/www. Flip 🟢 DONE.
+4. **GAP-398/399 docs-only flip** — State-check shows essentially DONE; just sync docs.
 
 **Parallel work (AWS-side wait — no user action needed):**
 - **GAP-370** — SES production access form SUBMITTED 2026-05-12. Waiting AWS reply 24-48h. Next session check: AWS Console → SES → Account dashboard → sandbox status.
