@@ -1,6 +1,6 @@
 # GAP-484: Java services crash on startup — OTel OTLP tracing autoconfig requires non-empty endpoint
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-12 (Wave 65 Bucket D — yml fix applied to 7 services; production deploy verification deferred per `release-deploy-standard.md` §9)
 **Priority:** 🔴 P0 BLOCKING (Wave 64 Step F — all 5 Java microservices fail to start)
 **Domain:** Backend / Spring Boot
 **Found:** 2026-05-12 (Wave 64 cutover Step F)
@@ -78,11 +78,16 @@ Option A (localhost endpoint default) — simplest, no autoconfig exclude comple
 
 ## Acceptance Criteria
 
-- [ ] All 5 Java services start cleanly on production EC2 without OTel collector running
-- [ ] `curl http://localhost:8080/actuator/health` returns 200 on kh-backend
-- [ ] ALB target group `kh-backend` reports `healthy`
-- [ ] `https://api.kitehub.me/actuator/health` returns 200 via CF proxy
-- [ ] Tracing can be re-enabled later when OTel collector deployed (GAP-115 / GAP-434 Loki+OTel backend)
+- [x] application.yml fix applied — 7 services have `endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}` (Option A per gap §"Recommended path")
+- [ ] All 5 Java services start cleanly on production EC2 without OTel collector running — deferred (out-of-scope: production verification per `release-deploy-standard.md` §9)
+- [ ] `curl http://localhost:8080/actuator/health` returns 200 on kh-backend — deferred (production verification)
+- [ ] ALB target group `kh-backend` reports `healthy` — deferred (production verification)
+- [ ] `https://api.kitehub.me/actuator/health` returns 200 via CF proxy — deferred (production verification)
+- [x] Tracing can be re-enabled later when OTel collector deployed (GAP-115 / GAP-434 Loki+OTel backend) — verified: endpoint remains overridable via `OTEL_EXPORTER_OTLP_ENDPOINT` env var
+
+## Out-of-scope (track separately)
+
+Production verification AC items (services start on EC2, ALB healthy, ALB+CF endpoints return 200) are deferred per `release-deploy-standard.md` §9 — these require human-triggered `workflow_dispatch` deploy (tag bump + `docker-build-push.yml` + `deploy-production.yml`), which is BANNED for agent-initiated execution. Wave 65 closure will trigger deploy + verify; rule-compliant local verification (`mvn verify -P strict-warnings` on kitehub-subscription) confirmed Spring context loads cleanly with the default endpoint, eliminating the `OtlpHttpSpanExporter` autoconfig crash described in §Problem.
 
 ## Related
 
@@ -94,3 +99,4 @@ Option A (localhost endpoint default) — simplest, no autoconfig exclude comple
 ## Log
 
 - **2026-05-12:** Filed Wave 64 Step F. Disable-via-env-var attempts failed. Code-level fix required.
+- **2026-05-12 (Wave 65 Bucket D):** Option A applied — 7 services' `application.yml` updated to set default `endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}` (preserved existing env var name `OTEL_EXPORTER_OTLP_ENDPOINT` instead of gap's suggested `MANAGEMENT_OTLP_TRACING_ENDPOINT` for consistency with existing config). State-check confirmed all 7 services (5 kitehub-* + kiteclass-core + kiteclass-gateway) had identical broken pattern. Local verify: `mvn verify -P strict-warnings` on kitehub-subscription = 457 tests pass, BUILD SUCCESS. YAML parse-check on all 7 files clean. Production verification AC deferred per `release-deploy-standard.md` §9 — tracked in §Out-of-scope. Status → 🟢 DONE per `gap-done-discipline.md` §3 (yml-fix AC checked, production-verify AC moved to Out-of-scope with deferral rationale).
