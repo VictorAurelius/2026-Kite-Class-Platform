@@ -16,8 +16,8 @@
 #   3 — AWS CLI / credentials missing
 #
 # Stack resources (Phase 1 BETA, account 906286017800, region ap-southeast-1):
-#   EC2: i-0b65c3947d36cae61 (kitehub-kh-backend)
-#        i-07f6de54544162124 (kitehub-kc-app)
+#   EC2: instances tagged Name=kitehub-kh-backend + kitehub-kc-app
+#        (dynamic lookup — survives EC2 replacement per GAP-492)
 #   RDS: kitehub-postgres
 #   ALB: kitehub-alb (ALWAYS-ON, Free Tier; not managed here)
 
@@ -26,10 +26,27 @@ set -euo pipefail
 # ─────────────────────────────────────────────────────────────────
 # Configuration
 # ─────────────────────────────────────────────────────────────────
-EC2_INSTANCE_IDS=("i-0b65c3947d36cae61" "i-07f6de54544162124")
 EC2_INSTANCE_NAMES=("kitehub-kh-backend" "kitehub-kc-app")
 RDS_DB_IDENTIFIER="kitehub-postgres"
 AWS_REGION="${AWS_REGION:-ap-southeast-1}"
+AWS_PROFILE_START="${AWS_PROFILE_START:-${AWS_PROFILE:-dev-admin}}"
+
+# Dynamic EC2 instance ID lookup by tag (GAP-492 fix — survives AMI bump replacement).
+lookup_ec2_instance_ids() {
+  AWS_PROFILE="${AWS_PROFILE_START}" aws ec2 describe-instances \
+    --region "${AWS_REGION}" \
+    --filters \
+      "Name=tag:Name,Values=kitehub-kh-backend,kitehub-kc-app" \
+      "Name=instance-state-name,Values=stopped,running" \
+    --query 'Reservations[].Instances[].InstanceId' \
+    --output text 2>/dev/null
+}
+
+mapfile -t EC2_INSTANCE_IDS < <(lookup_ec2_instance_ids | tr '\t' '\n' | grep -v '^$')
+if [ "${#EC2_INSTANCE_IDS[@]}" -eq 0 ]; then
+  echo "::error :: No kitehub-kh-backend or kitehub-kc-app instances found via tag lookup"
+  exit 3
+fi
 STATE_FILE="${STATE_FILE:-.aws-stack-state.json}"
 TIMEOUT_SECONDS=600  # 10 min total budget
 POLL_INTERVAL=15
