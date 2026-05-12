@@ -690,22 +690,22 @@ check_latency_thresholds() {
     fi
 }
 
-# ─── Flyway migration head verify (GAP-475 Sub-5 — Wave 62 Bucket A) ──
+# ─── Flyway migration head verify (GAP-475 Sub-5 + GAP-476 — Wave 64) ─
 #
-# Compare highest Flyway version on disk with the version reported by an
-# admin-protected endpoint. AS OF 2026-05-11 state-check the project has
-# NO HTTP-exposed Flyway endpoint — the only access path is direct psql
-# against flyway_schema_history (used by scripts/verify-restore.sh +
-# rollback-runbook). When SMOKE_MIGRATION_VERIFY=1 the function will
-# probe a couple of plausible endpoint paths; if none responds, it logs
-# a SKIP and returns 0 (defer wiring to follow-up gap once endpoint
-# ships).
+# Compare highest Flyway version on disk with the version reported by the
+# Spring Boot Actuator Flyway endpoint exposed at
+# ${KC_URL}/kiteclass/actuator/flyway (kiteclass-core is the canonical
+# Flyway owner per scripts/verify-restore.sh + Wave02MigrationsTest).
+#
+# Endpoint is admin-gated by FlywayEndpointAuthFilter — caller must send
+# X-User-Roles: ADMIN header (gateway forwards this post-auth) along with
+# the Bearer token. Smoke runs the gateway-routed URL so the gateway has
+# already validated the token before reaching kiteclass-core.
 #
 # Required env (when SMOKE_MIGRATION_VERIFY=1):
-#   SMOKE_ADMIN_TOKEN=...     Admin Bearer JWT
+#   SMOKE_ADMIN_TOKEN=...     Admin Bearer JWT (validated by gateway)
 #   SMOKE_MIGRATION_URL=...   (optional) override endpoint path; default
-#                             tries ${KH_URL}/api/platform/admin/migrations
-#                             then ${KH_URL}/actuator/flyway
+#                             ${KC_URL}/kiteclass/actuator/flyway
 check_migration_head() {
     local label="MIGRATION_HEAD"
     if [ "${SMOKE_MIGRATION_VERIFY:-0}" != "1" ]; then
@@ -722,7 +722,7 @@ check_migration_head() {
     # owner (per scripts/verify-restore.sh + Wave02MigrationsTest).
     local migration_dir="kiteclass/kiteclass-core/src/main/resources/db/migration"
     if [ ! -d "$migration_dir" ]; then
-        warn "$label" "migration dir not found at ${migration_dir} — skipping"
+        fail "$label" "migration dir not found at ${migration_dir}"
         return
     fi
     local disk_max
@@ -733,50 +733,43 @@ check_migration_head() {
         | sort -n \
         | tail -1)
     if [ -z "$disk_max" ]; then
-        warn "$label" "no V<N>__*.sql migrations found in ${migration_dir}"
+        fail "$label" "no V<N>__*.sql migrations found in ${migration_dir}"
         return
     fi
 
-    # Probe candidate admin endpoints. Default tries the platform-admin
-    # path first, then a Spring Boot actuator/flyway fallback.
-    local endpoints=()
-    if [ -n "${SMOKE_MIGRATION_URL:-}" ]; then
-        endpoints+=("$SMOKE_MIGRATION_URL")
-    else
-        endpoints+=("${KH_URL}/api/platform/admin/migrations")
-        endpoints+=("${KH_URL}/actuator/flyway")
-    fi
+    # Probe the Spring Boot Actuator Flyway endpoint (GAP-476). Admin gate
+    # via FlywayEndpointAuthFilter requires X-User-Roles: ADMIN header.
+    local url="${SMOKE_MIGRATION_URL:-${KC_URL}/kiteclass/actuator/flyway}"
+    local code
+    code=$(curl -sS --max-time "$TIMEOUT" \
+        -H "Authorization: Bearer ${admin_token}" \
+        -H "X-User-Roles: ADMIN" \
+        -o "$BODY_FILE" -w '%{http_code}' \
+        "$url" 2>/dev/null || echo "000")
 
-    local found_endpoint=""
-    local body_ok=""
-    local url code
-    for url in "${endpoints[@]}"; do
-        code=$(curl -sS --max-time "$TIMEOUT" \
-            -H "Authorization: Bearer ${admin_token}" \
-            -o "$BODY_FILE" -w '%{http_code}' \
-            "$url" 2>/dev/null || echo "000")
-        if [ "$code" = "200" ]; then
-            found_endpoint="$url"
-            read_body
-            body_ok="$BODY"
-            break
-        fi
-    done
-
-    if [ -z "$found_endpoint" ]; then
-        warn "$label" "no admin Flyway endpoint reachable (probed: ${endpoints[*]}) — defer to follow-up gap"
+    if [ "$code" = "000" ]; then
+        fail "$label" "connection refused / timeout (${url})"
         return
     fi
+    if [ "$code" = "401" ] || [ "$code" = "403" ]; then
+        fail "$label" "${code} — admin auth rejected (check SMOKE_ADMIN_TOKEN + X-User-Roles forwarding) at ${url}"
+        return
+    fi
+    if [ "$code" != "200" ]; then
+        fail "$label" "HTTP ${code} from ${url}"
+        return
+    fi
+    read_body
+    local body_ok="$BODY"
 
-    # Parse highest version from response. Try jq paths covering both
-    # custom shape ({migrations:[{version}]}) and actuator/flyway shape
-    # ({contexts:{...:{flywayBeans:{...:{migrations:[{version,state}]}}}}}).
+    # Parse highest version from actuator/flyway response shape:
+    # {contexts:{<dataSource>:{flywayBeans:{<bean>:{migrations:[{version,state,...}]}}}}}
     local server_max=""
     if command -v jq >/dev/null 2>&1; then
         server_max=$(echo "$body_ok" | jq -r '
             [
-              (.migrations // [])[]?.version,
-              (.contexts // {} | to_entries[]?.value.flywayBeans // {} | to_entries[]?.value.migrations // [])[]?.version
+              (.contexts // {} | to_entries[]?.value.flywayBeans // {} | to_entries[]?.value.migrations // [])[]?.version,
+              (.migrations // [])[]?.version
             ]
             | map(select(. != null and . != ""))
             | map(tonumber? // 0)
@@ -784,14 +777,14 @@ check_migration_head() {
         ' 2>/dev/null || echo "")
     fi
     if [ -z "$server_max" ] || [ "$server_max" = "null" ]; then
-        warn "$label" "200 OK from ${found_endpoint} but cannot parse migration version (jq path mismatch)"
+        fail "$label" "200 OK from ${url} but cannot parse migration version (jq required, or unexpected shape)"
         return
     fi
 
     if [ "$server_max" = "$disk_max" ]; then
-        pass "$label" "server V${server_max} == disk V${disk_max} (endpoint: ${found_endpoint})"
+        pass "$label" "server V${server_max} == disk V${disk_max} (endpoint: ${url})"
     else
-        fail "$label" "server V${server_max} != disk V${disk_max} — migration drift (endpoint: ${found_endpoint})"
+        fail "$label" "server V${server_max} != disk V${disk_max} — migration drift (endpoint: ${url})"
     fi
 }
 

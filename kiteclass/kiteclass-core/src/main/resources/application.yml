@@ -85,12 +85,17 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus,metrics
+        # GAP-476: flyway endpoint exposed, admin-gated by FlywayEndpointAuthFilter
+        # (checks X-User-Roles header for ADMIN — gateway forwards post-auth).
+        include: health,info,prometheus,metrics,flyway
   endpoint:
     health:
       show-details: when_authorized
       probes:
         enabled: true
+    flyway:
+      # Admin-only access enforced via FlywayEndpointAuthFilter (X-User-Roles=ADMIN).
+      enabled: true
   # GAP-112: Distributed tracing via Micrometer Tracing + OTLP exporter.
   # Sampling 10% in prod, override OTEL_SAMPLING_PROBABILITY=1.0 in staging/dev.
   tracing:
