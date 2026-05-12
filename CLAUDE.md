@@ -29,6 +29,15 @@
 
 **Reference:** `feedback_release_1_first_session_priority.md` (auto-loaded memory).
 
+### AWS stack start/stop (per GAP-492 — dynamic tag lookup, survives EC2 replacement)
+
+```bash
+bash scripts/aws/start-stack.sh         # restart 2 EC2 + RDS (next session)
+bash scripts/aws/stop-stack.sh --force  # stop khi idle/EOD để save Free Tier hours
+```
+
+Scripts auto-resolve current EC2 IDs qua tag `Name=kitehub-{kh-backend,kc-app}`. Default profile `dev-admin`.
+
 ---
 
 ## Project Overview
