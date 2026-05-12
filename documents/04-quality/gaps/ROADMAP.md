@@ -8,7 +8,20 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-12 — 🎉 PHASE 1 BETA INFRA REACHES HEALTHY STATE — api.kitehub.me HTTP 200)
+## 🎯 Current Status Snapshot (2026-05-12 — 🎉 PHASE 1 BETA infra LIVE + Wave 66 P0 cluster shipped — 6 P0 gaps closed/advanced)
+
+### ✅ Wave 66 SHIPPED (5 PRs: plan + 3 buckets + 1 vendor follow-up)
+
+- ✅ **Plan** (#1224) — Wave 66 plan v2 with state-check evidence corrections (audit-to-gap-pipeline.md §2.6 hardened)
+- ✅ **Bucket 0** (#1225) — GAP-494 Lighthouse CI cache fix (removed setup-node built-in cache:pnpm, added explicit actions/cache@v5; Lighthouse PASS verified)
+- ✅ **Bucket A** (#1227) — GAP-493 Path B preflight job + iam.tf RdsDescribeForPreflight Sid (audit artifact 2026-05-12-gap-493-path-b-preflight.md)
+- ✅ **Bucket Z** (#1226) — 5-gap docs sweep: GAP-369/398/399 DONE 100%; GAP-447 PARTIAL 75%; GAP-482 PARTIAL 95% (state-check evidence cited each Log)
+- ⚠️ **GAP-495** (#1228) — Vercel rate-limit noise mitigation Phase 1 (silent:true + autoAlias:false). Phase 2/3 user-action.
+
+**Post-Wave-66 user actions (gated on user-triggered workflows per `release-deploy-standard.md` §9):**
+1. `gh workflow run terraform-apply.yml -f confirm=APPLY -f dry_run=false` → land IAM `rds:DescribeDBInstances` extension
+2. `gh workflow run deploy-production.yml -f dry_run=false` → verify preflight job + flip GAP-482 DONE
+3. Vercel Dashboard Settings → Notifications → disable "Failing deploys" GitHub status (per GAP-495 Phase 2)
 
 ### ✅ Wave 65 SHIPPED (8 PRs, 5 DONE + 1 PARTIAL + 1 incident-rules + 1 closure)
 
