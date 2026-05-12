@@ -1,0 +1,98 @@
+# GAP-491: SSM command CloudWatch log streaming (deploy-production.yml visibility)
+
+**Status:** 🔵 OPEN
+**Priority:** 🔴 P0 BLOCKING (next deploy retry blocked per `release-fix-retry-budget.md` v1.1.0 §4 row "Tooling visibility gap" — MUST land before next deploy attempt)
+**Domain:** DevOps / Observability
+**Found:** 2026-05-12 (Wave 65 deploy incident — SSM Status=InProgress for 15 poll attempts while command Failed at 7s)
+**Affects:** Every deploy attempt via `deploy-production.yml` until fixed; future SSM-based ops will hit same visibility gap
+
+## Problem
+
+`.github/workflows/deploy-production.yml` uses `aws ssm send-command` WITHOUT `--cloud-watch-output-config`. SSM captures stdout/stderr only AT END of command execution. While running, poll loop sees `Status=InProgress` with no incremental output.
+
+2026-05-12 incident — concrete cost:
+- SSM command Failed at 7.88s with `Terminated / exit status 143`
+- Workflow poll showed `Status=InProgress` for 15 attempts (2.5 min) before noticing
+- No diagnostic available until command terminal state visible
+
+Per `release-fix-retry-budget.md` v1.1.0 §4 — Tooling visibility gap = STOP retry, fix observability FIRST.
+
+## Proposed Fix — Path A (CloudWatch streaming)
+
+### Phase 1 — Terraform (CloudWatch log group + IAM)
+
+1. New CloudWatch log group `/aws/ssm/kite-deploy`:
+   ```hcl
+   # infrastructure/terraform-aws/cloudwatch.tf (or extend existing)
+   resource "aws_cloudwatch_log_group" "ssm_kite_deploy" {
+     name              = "/aws/ssm/kite-deploy"
+     retention_in_days = 7
+     tags              = { Project = "Kite", Environment = "production" }
+   }
+   ```
+2. IAM policy extension on EC2 instance profile (`kitehub-ec2-instance-profile` per existing convention):
+   ```hcl
+   # logs:CreateLogStream + logs:PutLogEvents on /aws/ssm/kite-deploy
+   ```
+3. Apply terraform → log group exists + IAM ready.
+
+### Phase 2 — Workflow update (`deploy-production.yml`)
+
+Modify `send-command` step:
+```yaml
+COMMAND_ID=$(aws ssm send-command \
+  --region "${AWS_REGION}" \
+  --instance-ids "${INSTANCE_ID}" \
+  --document-name "AWS-RunShellScript" \
+  --comment "Deploy ${KITE_VERSION}" \
+  --timeout-seconds 600 \
+  --cloud-watch-output-config CloudWatchLogGroupName=/aws/ssm/kite-deploy,CloudWatchOutputEnabled=true \
+  --parameters commands="sudo KITE_VERSION=${KITE_VERSION} bash /opt/kite-prod/scripts/deploy-prod.sh" \
+  --query "Command.CommandId" --output text)
+```
+
+Extend poll loop to ALSO tail CloudWatch logs:
+```yaml
+- name: Tail SSM CloudWatch logs in background
+  run: |
+    aws logs tail /aws/ssm/kite-deploy --since 0s --follow &
+    echo $! > /tmp/tail.pid
+- name: Poll SSM command status (up to 8 min)
+  # ... existing poll loop
+- name: Stop log tail
+  if: always()
+  run: kill $(cat /tmp/tail.pid) 2>/dev/null || true
+```
+
+Per AWS docs, SSM agent streams stdout/stderr to CloudWatch in 10s chunks during execution → poll loop sees real progress.
+
+### Phase 3 — Verify
+
+1. Run dry-deploy on existing staging.10 image (no-op deploy)
+2. Observe CloudWatch log group receives stdout chunks every ~10s
+3. Workflow log shows interleaved poll status + script output
+
+## Acceptance Criteria
+
+- [ ] CloudWatch log group `/aws/ssm/kite-deploy` created via terraform (Phase 1)
+- [ ] EC2 instance profile has `logs:CreateLogStream` + `logs:PutLogEvents` on that group (Phase 1)
+- [ ] `deploy-production.yml` send-command includes `--cloud-watch-output-config CloudWatchLogGroupName=/aws/ssm/kite-deploy,CloudWatchOutputEnabled=true` (Phase 2)
+- [ ] Poll loop interleaves with `aws logs tail` background job OR `filter-log-events --start-time` query every 10s (Phase 2)
+- [ ] Verified on retry deploy: CloudWatch shows live stdout during script execution (Phase 3)
+- [ ] Bucket E (terraform user_data update) re-tested via deploy WITHOUT prior conflict (validates `concurrent-production-mutation-ops.md` serialization)
+
+## Effort estimate
+
+~30-60 phút (Phase 1 + 2). Phase 3 verify = same retry deploy that's currently blocked.
+
+## Related
+
+- **Origin:** 2026-05-12 Wave 65 deploy incident — `documents/04-quality/audits/aws-verification/2026-05-12-wave-65-bucket-e-pre-apply.md` extension
+- **Blocking:** Next deploy attempt (per `release-fix-retry-budget.md` v1.1.0 §4 row "Tooling visibility gap")
+- **Sister rule (paired same PR):** `concurrent-production-mutation-ops.md` v1.0.0 — covers concurrency conflict that masked tooling gap
+- **Reference:** `.claude/rules/release-fix-retry-budget.md` v1.1.0 §5 exception row "Tooling-fix-then-retry" with override trailer `RELEASE_RETRY_TOOLING_FIXED:`
+- **Reference:** `release-deploy-standard.md` §9 (deploy execution = human-triggered workflow_dispatch)
+
+## Log
+
+- **2026-05-12:** Filed after Wave 65 staging.10 deploy attempt failed silently (SSM Status=InProgress for 15 poll attempts while command actually Failed at 7s). User-flagged tooling gap + asked rule to prevent recurrence. P0 BLOCKING because next deploy retry MUST have observability shipped per `release-fix-retry-budget.md` v1.1.0 §4.

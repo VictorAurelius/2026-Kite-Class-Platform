@@ -32,7 +32,7 @@ post-wave-cleanup,MANDATORY,1.0.0,2026-05-06,2026-05-06,post-wave-cleanup.md
 pre-mutation-state-check,CRITICAL,1.1.0,2026-05-12,2026-05-12,pre-mutation-state-check.md
 readme-content-discipline,MANDATORY,1.0.0,2026-04-29,2026-04-29,readme-content-discipline.md
 release-deploy-standard,CRITICAL,1.1.0,2026-05-06,2026-05-11,release-deploy-standard.md
-release-fix-retry-budget,CRITICAL,1.0.0,2026-05-08,2026-05-08,release-fix-retry-budget.md
+release-fix-retry-budget,CRITICAL,1.1.0,2026-05-08,2026-05-12,release-fix-retry-budget.md
 rule-change-process,CRITICAL,1.1.0,2026-04-20,2026-04-27,rule-change-process.md
 session-currentdate-check,MANDATORY,1.0.0,2026-05-07,2026-05-07,session-currentdate-check.md
 skill-conventions,MANDATORY,1.0.0,2026-04-01,2026-04-28,skill-conventions.md
@@ -40,3 +40,4 @@ terraform-apply-retry-reconfirm,MANDATORY,1.0.0,2026-05-07,2026-05-07,terraform-
 terraform-partial-backend-public-repo,MANDATORY,1.0.0,2026-05-07,2026-05-07,terraform-partial-backend-public-repo.md
 third-party-platform-automation-discovery,MANDATORY,1.0.0,2026-05-10,2026-05-10,third-party-platform-automation-discovery.md
 post-merge-sync-completeness,MANDATORY,1.0.0,2026-05-12,2026-05-12,post-merge-sync-completeness.md
+concurrent-production-mutation-ops,CRITICAL,1.0.0,2026-05-12,2026-05-12,concurrent-production-mutation-ops.md
