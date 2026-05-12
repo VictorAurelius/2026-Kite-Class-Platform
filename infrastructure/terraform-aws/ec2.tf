@@ -52,6 +52,15 @@ locals {
     ECR
     chmod +x /etc/ecr-login.sh
 
+    # GAP-483 Wave 65: git + repo clone for deploy-prod.sh
+    # deploy-production.yml SSM RunCommand invokes /opt/kite-prod/scripts/deploy-prod.sh
+    # so every EC2 instance MUST boot with the repo already cloned (no manual SSM bootstrap).
+    dnf install -y git
+    mkdir -p /opt/kite-prod
+    chown ec2-user:ec2-user /opt/kite-prod
+    sudo -u ec2-user git clone https://github.com/VictorAurelius/2026-Kite-Class-Platform.git /opt/kite-prod
+    # Tag pinning: leave on main; deploy-prod.sh checks out KITE_VERSION at deploy time.
+
     # Mark bootstrap complete
     echo "Phase 1 BETA EC2 ready" > /var/log/kite-bootstrap.log
   USERDATA

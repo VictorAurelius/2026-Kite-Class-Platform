@@ -100,8 +100,10 @@ jobs:
         run: |
           echo "Deploying ${KITE_VERSION} to ${INSTANCE_ID}..."
 
-          # SSM run-command: assume EC2 already bootstrapped with repo at
-          # /opt/kite-prod (one-time manual setup per Phase 7 prep §7.1.2).
+          # SSM run-command: EC2 user_data (infrastructure/terraform-aws/ec2.tf
+          # `ec2_user_data` local) installs git + clones repo to /opt/kite-prod on
+          # boot, so deploy-prod.sh is always available on every replacement EC2
+          # (GAP-483 Wave 65 — eliminates one-time manual SSM bootstrap).
           # deploy-prod.sh handles git pull + ECR login + secrets fetch +
           # docker compose pull/up internally.
           # Per release-fix-retry-budget.md §4 pivot: avoid multi-line bash
