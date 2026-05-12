@@ -266,6 +266,54 @@
 
 ---
 
+## Rule 17 — Gap status flip → gap-status.csv row sync (per `post-merge-sync-completeness.md`)
+
+**Trigger:** diff modifies any `documents/04-quality/gaps/GAP-*.md` file AND adds a `+**Status:**` line (the closing-PR or status-update PR of the gap).
+
+**Required co-change:** the same diff also touches `documents/04-quality/gaps/gap-status.csv`. (Row-level intent — script verifies file touched; auditor verifies the affected GAP-NNN row was actually updated.)
+
+**Why:** `gap-architecture-v2.md` §3 makes CSV the canonical store for status / priority / completion_pct / last_verified. Markdown frontmatter `**Status:**` is a cache. Flipping markdown without syncing CSV silently drifts the canonical state — Wave 64 (2026-05-12) saw GAP-482 status flipped to PARTIAL in markdown while CSV row stayed OPEN.
+
+**Override trailer:** `POST_MERGE_SYNC_OVERRIDE: GAP-NNN — <reason>` in any commit between `BASE_REF..HEAD` downgrades FAIL → WARN. Reason should explain why CSV sync deferred + reference the follow-up PR / gap.
+
+**Output examples:**
+- `[OK]    Rule 17 — GAP-NNN Status flipped + gap-status.csv touched in same diff`
+- `[FAIL]  Rule 17 — GAP-NNN Status flipped but gap-status.csv NOT updated in same PR. Fix: edit row OR add POST_MERGE_SYNC_OVERRIDE trailer`
+- `[WARN]  Rule 17 — GAP-NNN Status flipped but gap-status.csv NOT updated (override trailer present)`
+
+**False-positive handling:**
+- Status flip with no CSV touched is the EXACT incident this rule prevents — no false-positive carve-out beyond the override trailer.
+- Multi-gap PR (multiple GAP-*.md files with Status changes): the rule iterates per gap; ANY missing CSV touch triggers FAIL for that gap. (CSV row check is coarse — a single CSV edit covering one gap will satisfy ALL gaps in the diff at the file-touch level. That's acceptable; reviewer verifies per-row correctness.)
+- Cosmetic edit that happens to re-quote the Status line without semantic change: still flagged. If genuine no-op, use override trailer.
+
+**Self-test:** see `test/fixtures/post-merge-sync/` for 3 fixtures (good-status-flip-with-csv-sync / bad-status-flip-no-csv-sync / bad-status-flip-no-csv-sync-with-override) + `test/run-rules.sh`.
+
+**References:**
+- `.claude/rules/post-merge-sync-completeness.md` (the rule this enforces) §2 target 1 + §7.1
+- `.claude/rules/gap-architecture-v2.md` §3 (CSV canonical authority)
+- Wave 64 retro 2026-05-12 (4-miss session incident)
+
+---
+
+## Rule 18 — Memory entry → MEMORY.md index sync (PARTIAL — see scope clarification)
+
+**Status:** PARTIAL. Repo does not currently maintain an in-repo memory mirror. The canonical MEMORY.md sits OUTSIDE the repo at `~/.claude/projects/.../memory/MEMORY.md`. CI cannot enforce sync of files it cannot see.
+
+**Trigger (when in-repo mirror exists):** diff adds a new `feedback_*.md` or `project_*.md` under the repo's memory mirror dir AND the same diff does NOT update `MEMORY.md` index.
+
+**Current enforcement (until §5 in-repo mirror lands):**
+1. Reviewer manual check per `.claude/rules/post-merge-sync-completeness.md` §7.4
+2. Author self-discipline per `incident-to-rule-pipeline.md` Stage 5
+3. PR description embedding under `## Memory entry (copy to user-memory)` heading per §7.5 of the rule
+
+**Future scope:** if the project adopts `documents/09-memory/` (or similar) as in-repo mirror, Rule 18 in `check-docs.sh` would gain detection logic mirroring Rule 5 (new SKILL.md → index entry). Tracked as deferred follow-up gap per `gap-done-discipline.md` §3 PARTIAL exit ramp.
+
+**References:**
+- `.claude/rules/post-merge-sync-completeness.md` §5 + §7.2 (scope clarification + deferred follow-up)
+- `.claude/rules/incident-to-rule-pipeline.md` Stage 5 (the canonical Stage-5 obligation)
+
+---
+
 ## Edge cases applying to all rules
 
 ### Multi-domain change

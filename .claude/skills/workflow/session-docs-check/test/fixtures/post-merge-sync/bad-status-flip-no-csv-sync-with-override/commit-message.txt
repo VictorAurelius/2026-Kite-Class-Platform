@@ -1,0 +1,4 @@
+fixture: after — apply scenario with override trailer
+
+POST_MERGE_SYNC_OVERRIDE: GAP-9003 — CSV row sync deferred to follow-up PR XYZ
+POST_MERGE_SYNC_FOLLOWUP: GAP-9999 follow-up gap link placeholder

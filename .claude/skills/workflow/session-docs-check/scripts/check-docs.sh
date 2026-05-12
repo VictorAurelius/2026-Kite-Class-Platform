@@ -595,6 +595,62 @@ if [ -n "$NEW_WAVE_PLANS" ]; then
 fi
 
 # ============================================================
+# Rule 17 — Gap status flip → gap-status.csv row sync
+# (per .claude/rules/post-merge-sync-completeness.md §2 target 1 +
+#  .claude/rules/gap-architecture-v2.md §3 CSV canonical authority)
+# ============================================================
+# Trigger: diff modifies any `documents/04-quality/gaps/GAP-*.md` file AND adds
+# a `+**Status:**` line. Required co-change: `documents/04-quality/gaps/gap-status.csv`
+# is ALSO modified in the same diff (the row for that GAP-NNN, but a coarse
+# "file touched" check is sufficient — auditor can verify row-level intent).
+#
+# Override trailer: `POST_MERGE_SYNC_OVERRIDE: GAP-NNN — <reason>` in any commit
+# body between BASE_REF..HEAD downgrades FAIL → WARN.
+STATUS_FLIPS_R17="$(git diff "$BASE_REF" --name-only 2>/dev/null \
+  | grep -E '^documents/04-quality/gaps/GAP-[0-9]+-.+\.md$' \
+  | while IFS= read -r gf; do
+      [ -z "$gf" ] && continue
+      if git diff "$BASE_REF" -- "$gf" 2>/dev/null \
+          | grep -qE '^\+\*\*Status:\*\*'; then
+        echo "$gf"
+      fi
+    done || true)"
+
+POST_MERGE_OVERRIDES="$(git log "$BASE_REF..HEAD" --pretty=%B 2>/dev/null \
+  | grep -E '^POST_MERGE_SYNC_OVERRIDE: .+' || true)"
+
+CSV_TOUCHED_R17=0
+if file_changed "documents/04-quality/gaps/gap-status.csv"; then
+  CSV_TOUCHED_R17=1
+fi
+
+if [ -n "$STATUS_FLIPS_R17" ]; then
+  while IFS= read -r gap_file; do
+    [ -z "$gap_file" ] && continue
+    GAP_NUM="$(basename "$gap_file" | grep -oE 'GAP-[0-9]+' | head -1)"
+
+    HAS_OVERRIDE_R17=0
+    if [ -n "$POST_MERGE_OVERRIDES" ] \
+        && echo "$POST_MERGE_OVERRIDES" | grep -qE "POST_MERGE_SYNC_OVERRIDE: $GAP_NUM "; then
+      HAS_OVERRIDE_R17=1
+    fi
+
+    if [ "$CSV_TOUCHED_R17" = "1" ]; then
+      # CSV touched — accept (auditor verifies row-level intent)
+      emit_pass "Rule 17 — $GAP_NUM Status flipped + gap-status.csv touched in same diff"
+    else
+      if [ "$HAS_OVERRIDE_R17" = "1" ]; then
+        OVERRIDE_REASON_R17="$(echo "$POST_MERGE_OVERRIDES" \
+          | grep -E "POST_MERGE_SYNC_OVERRIDE: $GAP_NUM " | head -1 || true)"
+        emit_warn "Rule 17 — $GAP_NUM Status flipped but gap-status.csv NOT updated (override trailer present: $OVERRIDE_REASON_R17). Logged for quarterly audit"
+      else
+        emit_fail "Rule 17 — $GAP_NUM Status flipped but gap-status.csv NOT updated in same PR. Per post-merge-sync-completeness.md §2 target 1, CSV is canonical — must sync in same diff. Fix: edit documents/04-quality/gaps/gap-status.csv row for $GAP_NUM OR add commit trailer 'POST_MERGE_SYNC_OVERRIDE: $GAP_NUM — <reason>'"
+      fi
+    fi
+  done <<< "$STATUS_FLIPS_R17"
+fi
+
+# ============================================================
 # Output
 # ============================================================
 echo "## Session Docs Check ($TS) — branch $BRANCH (vs $BASE_REF)"

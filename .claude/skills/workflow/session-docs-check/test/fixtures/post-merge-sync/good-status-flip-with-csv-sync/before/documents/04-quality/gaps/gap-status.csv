@@ -1,0 +1,3 @@
+# Gap Status CSV — fixture
+id,filename,title_short,status,priority,domain,phase,completion_pct,found_date,last_verified,notes
+GAP-9001,GAP-9001-fixture.md,Fixture gap,OPEN,P2,Meta,n/a,0,2026-99-99,2026-99-99,
