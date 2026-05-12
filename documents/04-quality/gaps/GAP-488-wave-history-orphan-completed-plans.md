@@ -1,6 +1,6 @@
 # GAP-488: wave-history.jsonl orphan backfill — 15+ wave plans status:complete missing entries
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-12 (Wave 65 Bucket A — 64 orphan entries backfilled)
 **Priority:** 🟠 P1 (Wave 65 Bucket A — sync target #2)
 **Domain:** Meta
 **Found:** 2026-05-12 (Wave 64 close meta-audit)
@@ -42,16 +42,17 @@ If full per-wave detail not available (some old plans), use minimal stub:
 
 ## Acceptance Criteria
 
-- [ ] All wave plan files with `status: complete` have corresponding jsonl entry (full OR stub)
-- [ ] No new orphan after backfill: `grep -l "status: complete" wave-*.md | xargs basename → all in jsonl`
-- [ ] Stub entries clearly marked `status:complete-backfilled` so future readers know data is partial
-- [ ] `session-docs-check` Rule 15 detector validated on backfilled state (no false positive)
+- [x] All wave plan files with `status: complete` have corresponding jsonl entry (full OR stub) — 64 entries backfilled
+- [x] No new orphan after backfill: `grep -l "status: complete" wave-*.md | xargs basename → all in jsonl` (verified 0 orphans)
+- [x] Stub entries clearly marked `status:complete-backfilled` so future readers know data is partial
+- [x] `session-docs-check` Rule 15 detector validated on backfilled state (no false positive — backfill entries include `source_plan` field per stub schema)
 
 ## Related
 
 - Wave 65 Bucket A
-- Sibling: GAP-487 (memory orphan), GAP-486 (sync detector to prevent recurrence — extend Rule 15 to catch prior misses?)
+- Sibling: GAP-487 (memory orphan — already DONE state-corrected), GAP-486 (sync detector to prevent recurrence — extend Rule 15 to catch prior misses?)
 
 ## Log
 
 - **2026-05-12:** Filed Wave 64 close audit.
+- **2026-05-12** (Wave 65 Bucket A closure): Backfilled 64 stub entries via `scripts/backfill_jsonl.py` (regex extract frontmatter `title`+`created`+`waves[N]`+filename basename). 63 auto-extracted + 1 manual (wave-05-document-generation had inline comment in `status:` field that broke parser). All entries marked `status: complete-backfilled` per AC#3. Final state: 87 total jsonl entries, 0 orphans. Script ad-hoc — not committed (one-shot use); if needed for future audit, see Wave 65 PR diff.
