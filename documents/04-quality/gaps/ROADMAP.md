@@ -36,16 +36,40 @@
 
 **Path B (follow-up Wave 66):** Preflight job in `deploy-production.yml` verify RDS available before SSM (fail-fast <30s vs 8min crash-loop) + IAM `rds:DescribeDBInstances` + V34 file audit (revert vs renumber).
 
-**Wave 66 candidates:**
-- GAP-493 P0 BLOCKING (container crash-restart diagnosis + fix + verify deploy)
-- GAP-482 PARTIAL — Deploy workflow cascade close (gated on GAP-493 fix)
-- GAP-369 PARTIAL — DNS production cutover (currently 70%)
-- GAP-376 PARTIAL — Production data seed (80%)
-- GAP-398/399 — Docker images + ECR state-check shows essentially DONE (docs-only flip needed)
-- GAP-370 USER-action — SES production access submit (parallel work, 24-48h AWS wait)
+**Wave 66 plan (next session — start here):**
+
+Pick-up order theo dependency chain:
+
+1. **GAP-493 Path B** — Preflight RDS check in `deploy-production.yml` + IAM `rds:DescribeDBInstances`. Workflow fails fast (<30s) with actionable error if RDS stopped, instead of 8min container crash-loop. Plus V34 file audit (revert if accidental edit, or renumber as V36 if intentional schema change).
+2. **GAP-482 close** — Deploy workflow cascade now unblocked (GAP-491+493 chain done). Re-verify deploy retry green end-to-end với clean trailer + auto-flip 🟢 DONE.
+3. **GAP-447 verify** — Right-size t3.medium stress test (5 services × Spring Boot + JVM heap on 4GB). Run `documents/05-guides/deploy/right-size-stress-test.md`. Flip 🟢 DONE.
+4. **GAP-369 Phase 2** — DNS production cutover. Cloudflare proxy already live (`api.kitehub.me` HTTPS 200 verified Wave 65b). Phase 2 = cleanup stale records + canonical apex/www. Flip 🟢 DONE.
+5. **GAP-398/399 docs-only flip** — State-check shows essentially DONE; just sync docs.
+
+**Parallel work (AWS-side wait — no user action needed):**
+- **GAP-370** — SES production access form SUBMITTED 2026-05-12. Waiting AWS reply 24-48h. Next session check: AWS Console → SES → Account dashboard → sandbox status.
+- **GAP-412** — AWS Activate Founders Pack application resubmit ($1k credit gated on `kitehub.me` accessibility — now satisfied; check status).
+
+**Session work (Wave 66 buckets — no user action):**
+- **GAP-376** — Production data seed (admin user + system config) → run `scripts/seed-production.sh` once Wave 66 picks it up.
+
+**Path to invite first 5 beta tenants — estimate 4 waves (~4 tuần)**
+
+| Wave | Scope | Trigger to next |
+|---|---|---|
+| Wave 66 | GAP-493 B + 482 close + 447 verify + 369 Phase 2 + 398/399 docs | Infra polish done |
+| Wave 67 | GAP-376 seed + GAP-491 dashboard polish + monitoring tune | Production-ready |
+| Wave 68 | GAP-370 SES (post 24-48h AWS reply) + GAP-372 beta tenant invite mechanism + smoke E2E | Invite-ready |
+| Wave 69 | Rollback drill (`smoke-rollback-cycle.sh --execute`) + final audit /100 ≥80 + pre-launch acceptance | First invite |
+
+Per CLAUDE.md §CURRENT PHASE Phase 1 → Phase 2 trigger: audit /100 ≥80 + 5 beta tenants live + 0 P0 incidents 2 tuần.
 
 **Wait-state (out of session control):**
-- GAP-370 — User submits SES production access form per `documents/05-guides/deploy/email-ses-setup-runbook.md` §4.1.1 → wait AWS 24-48h reply
+- GAP-370 SES — User submits form, AWS replies 24-48h
+- GAP-412 AWS Activate — User submits, AWS replies ~weeks
+
+**Follow-up gaps to file (Wave 66 Bucket 0 — meta cleanup):**
+- **GAP-494** — Lighthouse CI pnpm cache path race condition (admin-merge #1220 follow-up obligation per `admin-merge-discipline.md`)
 
 ### 📜 Wave 64 cutover (2026-05-12) — historical reference
 
