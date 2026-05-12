@@ -92,6 +92,10 @@ jobs:
       - name: Terraform plan
         id: plan
         working-directory: ${{ env.TF_WORKING_DIR }}
+        env:
+          # Inject TF_VAR_* from GitHub Variables. Wave 64 cutover (GAP-369): ALB HTTPS:443 listener.
+          # Empty fallback → terraform variable default (null) → no HTTPS listener created.
+          TF_VAR_alb_acm_certificate_arn: ${{ vars.ALB_ACM_CERTIFICATE_ARN }}
         run: |
           terraform plan -no-color -input=false -out=tfplan 2>&1 | tee plan-output.txt
 

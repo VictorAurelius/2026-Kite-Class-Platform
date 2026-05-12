@@ -82,6 +82,9 @@ jobs:
         id: plan
         if: ${{ vars.AWS_TERRAFORM_PLAN_ROLE_ARN != '' }}
         working-directory: ${{ env.TF_WORKING_DIR }}
+        env:
+          # Inject TF_VAR_* from GitHub Variables (Wave 64 cutover GAP-369: ALB HTTPS listener).
+          TF_VAR_alb_acm_certificate_arn: ${{ vars.ALB_ACM_CERTIFICATE_ARN }}
         run: |
           set +e
           terraform plan -no-color -input=false -out=tfplan 2>&1 | tee plan-output.txt
