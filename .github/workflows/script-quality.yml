@@ -48,6 +48,10 @@ on:
       - 'documents/04-quality/gaps/**'
       - 'scripts/check-gap-status-csv.sh'
       - 'scripts/migrate-gaps-to-csv.py'
+      - 'documents/02-architecture/adr/**'
+      - 'scripts/check-adrs-index-csv.sh'
+      - '.claude/rules/**'
+      - 'scripts/check-rules-index-csv.sh'
 
 permissions:
   contents: read
@@ -358,3 +362,28 @@ jobs:
           # status / priority / phase / completion_pct per
           # `.claude/rules/gap-architecture-v2.md`.
           bash scripts/check-gap-status-csv.sh
+
+  meta-csv-indexes:
+    name: Meta CSV indexes (ADRs + Rules)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate adrs-index.csv (100% coverage)
+        run: |
+          # Per `.claude/rules/meta-csv-index-pattern.md`: every ADR file MUST
+          # have a CSV row + every row MUST point to existing file. CSV is
+          # canonical for ADR enumeration (number, status, date, title).
+          bash scripts/check-adrs-index-csv.sh
+
+      - name: Validate rules-index.csv (100% coverage)
+        run: |
+          # Per `.claude/rules/meta-csv-index-pattern.md`: every rule file MUST
+          # have a CSV row. CSV is canonical for rule enumeration. Content
+          # validation (Last-Reviewed ≤ today, etc.) handled by separate
+          # `rule-frontmatter` job above.
+          bash scripts/check-rules-index-csv.sh
