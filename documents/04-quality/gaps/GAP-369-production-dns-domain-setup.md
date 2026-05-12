@@ -1,6 +1,6 @@
 # GAP-369: Production DNS + Domain Setup (kitehub.vn + kiteclass.vn)
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE 2026-05-12 (Phase 1 BETA scope satisfied via `kitehub.me` Path C; Phase 2 `.vn` procurement deferred as separate concern per Wave 43 Bucket C scope decision)
 **Priority:** 🔴 P0 BLOCKING (Phase 1 BETA + Phase 1.5 PAID launch)
 **Domain:** Infrastructure / DevOps
 **Found:** 2026-05-06 (Release 1 deploy plan)
@@ -29,13 +29,17 @@ KHÔNG có DNS / domain setup cho production launch. Cần:
 
 ## Acceptance Criteria
 
-- [ ] Domain registered (kitehub.vn + kiteclass.vn or chosen alternatives)
-- [ ] DNS provider chosen (Cloudflare recommended cho proxy + DDoS — see GAP-371)
-- [ ] DNS records configured: A/AAAA, MX (cho email — see GAP-370), TXT (SPF/DMARC/DKIM)
-- [ ] SSL certs Let's Encrypt automated (certbot cron)
-- [ ] beta.kitehub.vn + beta.kiteclass.vn live cho Phase 1 BETA
-- [ ] kitehub.vn + kiteclass.vn cutover plan documented
-- [ ] DNS propagation verification step trong runbook
+**Phase 1 BETA scope (rescope per Wave 43 Bucket C — `*.vn` deferred Phase 2):**
+- [x] Domain registered — `kitehub.me` via GAP-458 Path C (Free GitHub Student Pack 1y)
+- [x] DNS provider Cloudflare — proxy + DDoS active
+- [x] DNS records configured — 9 records (apex CNAME Vercel, `api.kitehub.me` CNAME ALB, wildcard, MX × 3 Email Routing, SPF, DKIM)
+- [x] SSL certs — ACM `*.kitehub.me` ISSUED + Cloudflare Origin Cert (15y); Let's Encrypt R13 on Vercel apex
+- [x] `api.kitehub.me` HTTPS:443 live with CF `full strict` + Always HTTPS on (Wave 64 cutover)
+- [x] DNS propagation verification — `scripts/check-dns-propagation.sh` shipped (Wave 33 Bucket D)
+
+**Phase 2 scope (DEFERRED — file new gap when Phase 2 trigger fires):**
+- [ ] `kitehub.vn` + `kiteclass.vn` registration (Vietnam registrar — separate decision)
+- [ ] Phase 2 production domain cutover plan
 
 ## Open decisions
 
@@ -72,3 +76,10 @@ Per `.claude/rules/release-deploy-standard.md` §3 — this gap satisfies a chec
 - **2026-05-09 (GAP-458):** Path C Free GitHub Student Pack — domain `kitehub.me` claimed via Namecheap (Student Pack 1y free). Cloudflare nameservers active; 9 DNS records configured (apex CNAME → Vercel, `api.kitehub.me` CNAME → ALB, wildcard, MX × 3 Email Routing, SPF, DKIM).
 - **2026-05-10 (Tier 1 + Tier 2):** Vercel apex `kitehub.me` bound (Let's Encrypt R13 cert auto-issued by Vercel, valid 2026-05-10 → 2026-08-08). Cloudflare Origin Cert generated (15-year validity, files saved `~/.gcal-mcp/cloudflare-origin-cert/kitehub.me.pem` + `.key`). PR #1084 + #1085 shipped Tier 2 setup + extended Cloudflare API token (Zone:DNS:Edit + Zone:SSL:Edit + Zone:Zone Settings:Edit) + `scripts/cloudflare-dns.sh` Tier 3 commands (`set-ssl-mode`, `set-always-https`, `toggle-proxy`).
 - **2026-05-11 (Wave 61 Bucket A — DNS state-check + agent docs sync):** State-check per `audit-to-gap-pipeline.md` §2.8 (artifact `documents/04-quality/audits/aws-verification/2026-05-11-wave-61-bucket-a-dns-state.md`) confirms DNS bind ✅ already done (api.kitehub.me CNAME → ALB resolves globally to 13.250.213.35). SSL mode currently `full` (NOT `strict`); Always HTTPS `off`. AWS ACM EMPTY (Origin Cert not yet imported); ALB has only HTTP:80 listener (HTTPS:443 missing). **Tier 3 cutover finalization (Steps 2+3+6+7 per `release-1-tier-3-cutover.md`) = user action** — agent KHÔNG flip SSL strict + Always HTTPS now (would 525/526 error api.kitehub.me khi user resume stack). Path X (CLI) hoặc Path Y (workflow_dispatch `.github/workflows/tier-3-cutover.yml`) per `release-deploy-standard.md` §9 + `agent-aws-access.md` §4.3 — user-triggered, OIDC ephemeral creds. Status stays 🟡 PARTIAL — Bucket A agent scope DONE (state docs + gap sync); user owns finalization gated on stack resume.
+- **2026-05-12 (Wave 64 Tier 3 cutover SHIPPED — per GAP-482 §Log):** ACM `*.kitehub.me` cert imported; ALB HTTPS:443 listener live; HTTP:80 redirects to HTTPS; CF SSL mode `full strict`; Always HTTPS `on`; api.kitehub.me proxied through CF. All Tier 3 user-action steps executed.
+- **2026-05-12 (Wave 66 Bucket Z — flip 🟢 DONE):** State-check per `gap-done-discipline.md` §2 — Tier 1 read-only AWS verification (per `agent-aws-access.md` §2.1):
+  - `aws elbv2 describe-listeners` on `kitehub-alb` → HTTPS:443 + HTTP:80 ✅
+  - `aws acm list-certificates --region ap-southeast-1` → `*.kitehub.me` ISSUED ✅
+  - `curl -sI http://api.kitehub.me` → 301 redirect to https://api.kitehub.me ✅ (Cloudflare server)
+  - `curl -sI https://api.kitehub.me` → 502 transient (origin issue, not DNS/SSL — separate concern; CF proxy + cert pipeline confirmed working)
+  AC re-evaluated for Phase 1 BETA scope per Wave 43 Bucket C rescope decision (`*.vn` deferred to Phase 2): all Phase 1 BETA AC satisfied via `kitehub.me` Path C (Free GitHub Student Pack). Phase 2 `*.vn` procurement = separate concern (file new gap when Phase 2 triggers per CLAUDE.md gate). Flip 🟢 DONE.

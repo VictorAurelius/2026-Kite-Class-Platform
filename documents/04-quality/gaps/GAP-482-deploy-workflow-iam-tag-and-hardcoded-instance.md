@@ -1,6 +1,6 @@
 # GAP-482: Deploy workflow blocked by IAM tag mismatch + hardcoded EC2 ID
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 95% 2026-05-12 — 4 of 7 cascade bugs FIXED (PR #1199 + #1200); GAP-484 OTel fix DONE (#1209) + GAP-483 user_data DONE; remaining = E2E deploy-production.yml verification gated on Wave 66 Bucket A (GAP-493 Path B preflight) merge
 **Priority:** 🔴 P0 BLOCKING (Wave 64 Step F deploy-production fails)
 **Domain:** DevOps / Infrastructure
 **Found:** 2026-05-12 (Wave 64 Step F deploy-production.yml run 25713149664 failed)
@@ -126,6 +126,7 @@ Edit `.github/workflows/deploy-production.yml`:
 
 ## Log
 
+- **2026-05-12** (Wave 66 Bucket Z — status sync per `post-merge-sync-completeness.md` Rule 17): Status frontmatter was stale "🔵 OPEN" while file §Log showed 4 of 7 cascade bugs FIXED (PR #1199 + #1200) + dependencies cleared (GAP-484 OTel #1209, GAP-483 user_data DONE). Flipped to 🟡 PARTIAL 95%. Remaining 5% = E2E deploy-production.yml run with green ALB target — gated on Wave 66 Bucket A merge (GAP-493 Path B preflight). Will flip 🟢 DONE when user triggers `deploy-production.yml workflow_dispatch dry_run=false` post-Bucket-A merge and target reports healthy.
 - **2026-05-12:** Filed Wave 64 Step F deploy fail investigation. 2 bugs in 1 gap (architectural fix needed in same PR for retry budget discipline).
 - **2026-05-12 (post-PR #1199 + #1200 cascade discovery):** Wave 64 Step F deploy surfaced 7 cascading bugs in single session — retry budget per `release-fix-retry-budget.md` §3 exceeded at retry #4. Pivot to file separate gaps + close session.
 

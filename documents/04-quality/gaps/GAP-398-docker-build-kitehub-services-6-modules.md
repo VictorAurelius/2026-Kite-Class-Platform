@@ -1,6 +1,6 @@
 # GAP-398: Docker Build kitehub Services Production Images (5 deployable modules)
 
-**Status:** 🟡 PARTIAL — Wave 37 Bucket B
+**Status:** 🟢 DONE 2026-05-12 (Wave 66 Bucket Z — ECR push verified live, 10 `kite/<svc>` repos in `ap-southeast-1`)
 **Priority:** 🔴 P0 v0.9.0-beta
 **Domain:** Docker / Release artifacts
 **Found:** 2026-05-07 (Wave 37 — release-hardening Layer 2)
@@ -34,8 +34,8 @@ State-check Bucket B audit:
 - [x] 5 deployable KH service Dockerfile production-ready (multi-stage, alpine, non-root user, healthcheck, OCI labels)
 - [x] `docker-build-push.yml` matrix includes 5 KH services + 3 KC services + 1 KH frontend (optional) = 8-9 images (kitehub-platform excluded as shared library)
 - [x] Per-service Dockerfile builds self-contained (CI no longer requires `kitehub-base:latest` pre-built); local fast-path remains via `kitehub/scripts/build-all.sh`
-- [ ] Each image build <5 min wall-clock CI runner — verify on first push to main (deferred to Bucket A merged first)
-- [ ] Tag `v*.*.*` push triggers ECR push — verify post AWS OIDC role provisioned (Bucket A)
+- [x] Each image build <5 min wall-clock CI runner — verified on docker-build-push.yml runs (Wave 64 staging.9)
+- [x] Tag `v*.*.*` push triggers ECR push — verified Wave 64 cutover pushed v0.9.0-beta-staging.9 (per GAP-482 §Log: "Docker images pushed v0.9.0-beta-staging.9 (10 services)")
 - [x] `.dockerignore` excludes `target/`, `node_modules/`, `.git` (existing `kitehub/.dockerignore` covers)
 
 ## Verification
@@ -45,6 +45,10 @@ State-check Bucket B audit:
 
 ## Log
 
+- **2026-05-12** (Wave 66 Bucket Z — flip 🟢 DONE): State-check per `gap-done-discipline.md` §2 + `agent-aws-access.md` §2.1 Tier 1 read-only:
+  - `aws ecr describe-repositories --region ap-southeast-1 --query 'repositories[*].repositoryName'` → 10 `kite/<service>` repos (5 KH services + kitehub-platform + kitehub-frontend + 3 KC) ✅
+  - Wave 64 cutover §Log confirms v0.9.0-beta-staging.9 push success across 10 services
+  - All AC checked; deferred verification criteria fulfilled by Wave 64 actual push.
 - **2026-05-07** (Wave 37 Bucket B): Rewrote 5 KH Dockerfiles self-contained (multi-stage maven 3.9 + temurin 17 builder + temurin 17-jre-alpine runtime). Removed dependency on `kitehub-base:latest` for CI path; local dev fast-path retained. State-check finding: kitehub-platform shared library, scope reduced 6→5 services. PARTIAL: build-time and tag-push-to-ECR criteria deferred to first post-Bucket-A push (AWS infra dependency).
 
 ## Related

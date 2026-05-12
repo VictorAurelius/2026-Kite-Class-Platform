@@ -42,14 +42,16 @@
 
 **V34 file audit (follow-up):** revert if accidental edit, or renumber as V36 if intentional schema change. Tracked separately.
 
-**Wave 66 plan (next session — start here):**
+**Wave 66 SPAWNED 2026-05-12** (PR #1224 plan merged — 2 bg-agents + 1 coordinator):
 
-Pick-up order theo dependency chain:
+- **Bucket 0** — GAP-494 Lighthouse CI cache fix (bg-agent, Opus medium)
+- **Bucket A** — GAP-493 Path B deploy preflight + IAM rds:DescribeDBInstances (bg-agent, Opus 4.7)
+- **Bucket Z** — Coordinator docs-flip sweep: GAP-369 ✅ DONE, GAP-398 ✅ DONE, GAP-399 ✅ DONE, GAP-447 🟡 75% (kc_app drift GAP-450 + CWAgent user-action), GAP-482 🟡 95% (E2E gated on Bucket A merge)
 
-1. **GAP-482 close** — Deploy workflow cascade now unblocked (GAP-491+493 chain done). Re-verify deploy retry green end-to-end với clean trailer + auto-flip 🟢 DONE.
-2. **GAP-447 verify** — Right-size t3.medium stress test (5 services × Spring Boot + JVM heap on 4GB). Run `documents/05-guides/deploy/right-size-stress-test.md`. Flip 🟢 DONE.
-3. **GAP-369 Phase 2** — DNS production cutover. Cloudflare proxy already live (`api.kitehub.me` HTTPS 200 verified Wave 65b). Phase 2 = cleanup stale records + canonical apex/www. Flip 🟢 DONE.
-4. **GAP-398/399 docs-only flip** — State-check shows essentially DONE; just sync docs.
+**Post-Wave-66 actions:**
+- ✅ Bucket A merged → trigger `terraform-apply.yml workflow_dispatch confirm=APPLY` to land IAM `RdsDescribeForPreflight` extension
+- Trigger `deploy-production.yml workflow_dispatch dry_run=false` → verifies preflight job + flips GAP-482 to DONE (Bucket Z marked 95%)
+- Wave 67 picks up: GAP-376 prod data seed + GAP-412 AWS Activate D+14 cutover
 
 **Parallel work (AWS-side wait — no user action needed):**
 - **GAP-370** — SES production access form SUBMITTED 2026-05-12. Waiting AWS reply 24-48h. Next session check: AWS Console → SES → Account dashboard → sandbox status.
