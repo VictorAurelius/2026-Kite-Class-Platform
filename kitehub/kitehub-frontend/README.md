@@ -100,3 +100,4 @@ docker run -d -p 3001:3001 -e NEXT_PUBLIC_API_URL=http://localhost:9000 kitehub-
 - Business logic: [documents/01-business/kitehub/](../../documents/01-business/kitehub/)
 - Architecture: [documents/02-architecture/](../../documents/02-architecture/)
 - Archived PR docs: [documents/07-archived/kiteclass-legacy-docs/kitehub-frontend-prs/](../../documents/07-archived/kiteclass-legacy-docs/kitehub-frontend-prs/)
+

@@ -74,7 +74,7 @@ Per CLAUDE.md §CURRENT PHASE Phase 1 → Phase 2 trigger: audit /100 ≥80 + 5 
 - GAP-412 AWS Activate — User submits, AWS replies ~weeks
 
 **Follow-up gaps to file (Wave 66 Bucket 0 — meta cleanup):**
-- **GAP-494** — Lighthouse CI pnpm cache path race condition (admin-merge #1220 follow-up obligation per `admin-merge-discipline.md`)
+- ~~**GAP-494**~~ — ✅ DONE 2026-05-12 (Wave 66 Bucket 0) — Lighthouse CI fixed via explicit actions/cache@v5 pattern matching frontend-ci.yml
 
 ### 📜 Wave 64 cutover (2026-05-12) — historical reference
 
