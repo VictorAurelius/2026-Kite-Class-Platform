@@ -58,7 +58,7 @@ gaps: [GAP-494, GAP-493, GAP-482, GAP-447, GAP-369, GAP-398, GAP-399]
 | # | Bucket | Gap(s) | Priority | Files (glob) | Spawn order |
 |:-:|--------|--------|:--------:|--------------|:-----------:|
 | 0 | **Lighthouse CI fix** | GAP-494 | 🟡 P2 | `.github/workflows/lighthouse.yml` | parallel with A/C/D/E |
-| A | **Deploy preflight + V34 audit** | GAP-493 Path B | 🔴 P0 | `.github/workflows/deploy-production.yml` + `infrastructure/terraform-aws/iam-deploy.tf` + `kitehub/kitehub-platform/src/main/resources/db/migration/` | spawn first (longest) |
+| A | **Deploy preflight + V34 audit** | GAP-493 Path B | 🔴 P0 | `.github/workflows/deploy-production.yml` + `infrastructure/terraform-aws/iam.tf` + `kitehub/kitehub-subscription/src/main/resources/db/migration/V34__*.sql` | spawn first (longest) |
 | B | **GAP-482 close** | GAP-482 | 🔴 P0 | gap file + ROADMAP + CSV + smoke E2E verify | AFTER A green |
 | C | **EC2 right-size** | GAP-447 | 🔴 P0 | `infrastructure/terraform-aws/ec2.tf` + `documents/04-quality/audits/aws-verification/` + GAP file | parallel with A/0/D/E |
 | D | **DNS Phase 2 cleanup** | GAP-369 | 🔴 P0 | Cloudflare DNS records + GAP file + ROADMAP | parallel with A/0/C/E |
@@ -75,12 +75,12 @@ gaps: [GAP-494, GAP-493, GAP-482, GAP-447, GAP-369, GAP-398, GAP-399]
 
 ### Bucket A — Deploy preflight + V34 audit (GAP-493 Path B)
 
-- Files: `.github/workflows/deploy-production.yml` + `infrastructure/terraform-aws/iam-deploy.tf` + migration audit
-- Tests: terraform plan clean; deploy dry-run shows preflight job; V34 file audit documented
+- Files: `.github/workflows/deploy-production.yml` + `infrastructure/terraform-aws/iam.tf` + migration audit
+- Tests: terraform plan clean; deploy dry-run shows preflight job; V34 checksum drift documented
 - Acceptance:
   - Preflight job added before SSM step (checks RDS `available` via `aws rds describe-db-instances`)
-  - IAM role gains `rds:DescribeDBInstances` permission
-  - V34 file audit: find which migration drifted causing Flyway checksum mismatch on previous deploy
+  - IAM role gains `rds:DescribeDBInstances` permission (add to existing `iam.tf` deploy role, not new file)
+  - V34 checksum audit: query RDS `flyway_schema_history` table for V34 deployed checksum; compare with file `V34__enable_rls_tenant_scoped_tables.sql` checksum; document which side drifted + remediation
   - Audit artifact `documents/04-quality/audits/aws-verification/2026-05-12-gap-493-path-b-preflight.md` per `pre-mutation-state-check.md`
 - Apply via `workflow_dispatch terraform-apply.yml` with `confirm=APPLY` (human-triggered per `release-deploy-standard.md` §9)
 
@@ -118,11 +118,11 @@ gaps: [GAP-494, GAP-493, GAP-482, GAP-447, GAP-369, GAP-398, GAP-399]
 
 - Files: gap files + `gap-status.csv` only
 - State-check first (per `audit-to-gap-pipeline.md` §2.8):
-  - GAP-398 Docker build status: query ECR repo + verify 5 modules pushed
-  - GAP-399 region pin: grep `us-east-1` in all `.tf` + `.github/workflows/*`; verify zero matches OR documented exception
+  - GAP-398 Docker build status: `aws ecr describe-repositories --region ap-southeast-1` + verify 5 modules pushed
+  - GAP-399 region pin: **DONE per §4 State-Check** — only `cloudtrail.tf` has `us-east-1` in COMMENTS (not config). Flip immediate.
 - Acceptance:
-  - If state-check shows fully implemented → flip DONE with state-check evidence in Log
-  - If still partial → file follow-up sub-gap, keep PARTIAL per `gap-done-discipline.md` §3
+  - GAP-399 flip DONE 100% with §4 state-check evidence cited in Log
+  - GAP-398: if ECR shows 5 modules pushed → flip DONE; if partial → keep PARTIAL + sub-gap per `gap-done-discipline.md` §3
 
 ---
 
@@ -133,9 +133,10 @@ gaps: [GAP-494, GAP-493, GAP-482, GAP-447, GAP-369, GAP-398, GAP-399]
 | `.github/workflows/lighthouse.yml` | CI workflow | `ls .github/workflows/lighthouse.yml` | 1 file (3.0K) | ✅ exists (GAP-494 references wrong name `lighthouse-ci.yml` — investigation bucket 0) |
 | `pnpm/action-setup@v6` in lighthouse.yml | Action step | `grep -n "pnpm/action-setup" .github/workflows/lighthouse.yml` | line 35-37 (already present) | ✅ exists (root cause hypothesis WRONG → Bucket 0 investigation) |
 | `.github/workflows/deploy-production.yml` | CI workflow | `ls .github/workflows/deploy-production.yml` | 1 file (9.9K) | ✅ exists |
-| `infrastructure/terraform-aws/iam-deploy.tf` | Terraform | `ls infrastructure/terraform-aws/iam-deploy.tf` | (to verify by agent A — paired with `iam-roles.tf` family) | ⚠️ to-verify (Bucket A first step) |
-| `infrastructure/terraform-aws/ec2.tf` | Terraform | `ls infrastructure/terraform-aws/ec2.tf` | (to verify by agent C) | ⚠️ to-verify (Bucket C first step) |
-| `V34__*.sql` migration | Flyway file | `find kitehub kiteclass -path "*/db/migration/V34*"` | **0 matches** (latest is V33 in subscription + core) | ❌ absent (Bucket A audit must find which file/checksum drifted) |
+| `infrastructure/terraform-aws/iam.tf` | Terraform | `ls infrastructure/terraform-aws/iam.tf` | 26.3K | ✅ exists (NOT `iam-deploy.tf` — Bucket A targets `iam.tf`) |
+| `infrastructure/terraform-aws/ec2.tf` | Terraform | `ls infrastructure/terraform-aws/ec2.tf` | 8.4K | ✅ exists |
+| `V34__*.sql` migrations | Flyway files | `find . -path ./node_modules -prune -o -name "V34*" -print` | `kitehub-subscription/V34__enable_rls_tenant_scoped_tables.sql` (4.4K, Wave 56 GAP-466) + `kiteclass-core/V34__create_rebrand_approvals_table.sql` (4.6K) | ✅ exists (Bucket A audit refined: compare deployed checksum vs file checksum to find drift, NOT find missing file) |
+| `us-east-1` references | Region pin | `grep -l "us-east-1" .github/workflows/*.yml infrastructure/terraform-aws/*.tf` | 1 file (`cloudtrail.tf` — both matches in COMMENTS lines 9+130, no actual config) | ✅ effectively DONE (Bucket E GAP-399 flip immediate per `gap-done-discipline.md` §2 state-check evidence) |
 | EC2 `kitehub-kh-backend` running | AWS resource | session-start AWS snapshot | `running` | ✅ exists |
 | EC2 `kitehub-kc-app` running | AWS resource | session-start AWS snapshot | `running` | ✅ exists |
 | RDS `kitehub-postgres` available | AWS resource | session-start snapshot | `available` | ✅ exists |
