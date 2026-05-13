@@ -1,0 +1,197 @@
+name: Seed Production Data (Wave 67 + recovery)
+
+# Sister of deploy-production.yml. User-triggered workflow_dispatch + confirm
+# gate per release-deploy-standard.md §9. Idempotent — ProductionSeedRunner
+# uses INSERT ON CONFLICT DO NOTHING (Wave 33).
+#
+# Replaces local interactive seed flow (SSM tunnel + Maven build) with
+# CI-driven SSM send-command to kh-backend EC2 (script: scripts/seed-prod-ec2.sh).
+#
+# Pre-requisite gaps:
+#   - GAP-376 (ProductionSeedRunner shipped Wave 33)
+#   - GAP-499 (kitehub/production/seed-admin-password secret provisioned)
+#   - GAP-493 Path B (RDS preflight pattern)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type SEED to confirm production data seed'
+        required: true
+        type: string
+      timeout_seconds:
+        description: 'Marker poll timeout (default 180s)'
+        required: false
+        type: string
+        default: '180'
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-southeast-1
+
+jobs:
+  validate:
+    name: Validate inputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm seed intent
+        if: ${{ github.event.inputs.confirm != 'SEED' }}
+        run: |
+          echo "::error ::confirm must be 'SEED' (got: ${{ github.event.inputs.confirm }})"
+          exit 1
+      - name: Validate timeout
+        run: |
+          T="${{ github.event.inputs.timeout_seconds }}"
+          if ! [[ "$T" =~ ^[0-9]+$ ]] || (( T < 30 || T > 600 )); then
+            echo "::error ::timeout_seconds must be 30-600 (got: $T)"
+            exit 1
+          fi
+
+  preflight:
+    name: Preflight — RDS available + secret exists (GAP-493/499)
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::906286017800:role/kitehub-github-deploy
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Verify RDS kitehub-postgres available
+        run: |
+          STATUS=$(aws rds describe-db-instances \
+            --db-instance-identifier kitehub-postgres \
+            --query 'DBInstances[0].DBInstanceStatus' --output text)
+          echo "::notice ::RDS kitehub-postgres status: $STATUS"
+          if [ "$STATUS" != "available" ]; then
+            echo "::error ::RDS not available (status=$STATUS) — run start-stack.sh"
+            exit 1
+          fi
+      - name: Verify seed-admin-password secret provisioned
+        run: |
+          aws secretsmanager describe-secret \
+            --secret-id kitehub/production/seed-admin-password \
+            --query 'ARN' --output text \
+            || { echo "::error ::seed-admin-password missing — terraform-apply GAP-499 first"; exit 1; }
+          echo "::notice ::Secret kitehub/production/seed-admin-password exists ✓"
+
+  seed:
+    name: Run seed on kh-backend via SSM
+    needs: preflight
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::906286017800:role/kitehub-github-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Lookup kh-backend instance ID (dynamic, tag-based)
+        id: ec2_lookup
+        run: |
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=kitehub-kh-backend" \
+                      "Name=instance-state-name,Values=running" \
+            --query 'Reservations[0].Instances[0].InstanceId' --output text)
+          [ "$INSTANCE_ID" = "None" ] && { echo "::error ::kh-backend EC2 not running"; exit 1; }
+          echo "instance_id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
+          echo "::notice ::Target EC2: $INSTANCE_ID"
+
+      - name: Send seed command via SSM (calls /opt/kite-prod/scripts/seed-prod-ec2.sh)
+        id: ssm
+        env:
+          INSTANCE_ID: ${{ steps.ec2_lookup.outputs.instance_id }}
+          SEED_TIMEOUT_S: ${{ github.event.inputs.timeout_seconds }}
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --region "${AWS_REGION}" \
+            --instance-ids "${INSTANCE_ID}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Wave 67 production seed" \
+            --timeout-seconds 600 \
+            --cloud-watch-output-config "CloudWatchLogGroupName=/aws/ssm/kite-deploy,CloudWatchOutputEnabled=true" \
+            --parameters commands="sudo SEED_TIMEOUT_S=${SEED_TIMEOUT_S} bash /opt/kite-prod/scripts/seed-prod-ec2.sh" \
+            --query 'Command.CommandId' --output text)
+          echo "command_id=$COMMAND_ID" >> "$GITHUB_OUTPUT"
+          echo "::notice ::SSM command: $COMMAND_ID"
+          echo "CloudWatch: /aws/ssm/kite-deploy stream prefix ${COMMAND_ID}/"
+
+      - name: Poll SSM status + interleave CloudWatch logs + log-marker detection
+        env:
+          INSTANCE_ID: ${{ steps.ec2_lookup.outputs.instance_id }}
+          COMMAND_ID: ${{ steps.ssm.outputs.command_id }}
+        run: |
+          # GAP-491 log interleave + PR #1235 FAIL marker + GAP-498 log-marker
+          # detection pattern. Success criterion: SSM Status=Success OR log
+          # contains "seed-prod-ec2.sh DONE" marker. Failure: explicit FAILED
+          # marker OR SSM Status=Failed.
+          LAST_LOG_TS=$(($(date -u +%s) * 1000))
+          for attempt in $(seq 1 48); do
+            sleep 10
+            NOW_TS=$(($(date -u +%s) * 1000))
+
+            LOGS=$(aws logs filter-log-events \
+              --region "${AWS_REGION}" \
+              --log-group-name /aws/ssm/kite-deploy \
+              --log-stream-name-prefix "${COMMAND_ID}/" \
+              --start-time "${LAST_LOG_TS}" \
+              --query 'events[*].message' --output text 2>/dev/null || true)
+            if [ -n "${LOGS}" ]; then
+              echo "${LOGS}" | sed 's/^/  │ /'
+              # Success marker (script exits 0 on success)
+              if echo "${LOGS}" | grep -q "seed-prod-ec2.sh DONE"; then
+                echo "::notice ::Seed success marker detected"
+                exit 0
+              fi
+              # Failure markers
+              if echo "${LOGS}" | grep -qE "seed-prod-ec2.sh FAILED|failed to run commands: exit status [1-9]"; then
+                echo "::error ::Seed failed (CloudWatch log marker)"
+                exit 1
+              fi
+            fi
+            LAST_LOG_TS=${NOW_TS}
+
+            # Fallback: poll SSM Status (with caveats per GAP-498 — Status field lag)
+            STATUS=$(aws ssm get-command-invocation \
+              --region "${AWS_REGION}" \
+              --command-id "${COMMAND_ID}" \
+              --instance-id "${INSTANCE_ID}" \
+              --query "Status" --output text 2>/dev/null || echo "InProgress")
+            echo "Attempt ${attempt}/48: SSM Status=${STATUS}"
+            case "$STATUS" in
+              Success) echo "::notice ::SSM Success — seed complete"; exit 0 ;;
+              Failed|Cancelled|TimedOut)
+                echo "::error ::SSM ${STATUS}"
+                aws ssm get-command-invocation \
+                  --region "${AWS_REGION}" \
+                  --command-id "${COMMAND_ID}" \
+                  --instance-id "${INSTANCE_ID}" \
+                  --query "StandardErrorContent" --output text 2>/dev/null || true
+                exit 1
+                ;;
+            esac
+          done
+          echo "::error ::Timeout 8min — no terminal state"
+          exit 1
+
+  notify:
+    name: Notify seed outcome
+    runs-on: ubuntu-latest
+    needs: [validate, preflight, seed]
+    if: always()
+    steps:
+      - name: Summary
+        run: |
+          echo "Validate:  ${{ needs.validate.result }}"
+          echo "Preflight: ${{ needs.preflight.result }}"
+          echo "Seed:      ${{ needs.seed.result }}"
+          if [[ "${{ needs.seed.result }}" == "success" ]]; then
+            echo "::notice ::🎉 Wave 67 production seed SUCCESS"
+          else
+            echo "::error ::Seed did not complete cleanly. Check job logs above + CloudWatch /aws/ssm/kite-deploy."
+          fi

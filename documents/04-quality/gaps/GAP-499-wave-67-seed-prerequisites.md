@@ -1,6 +1,7 @@
 # GAP-499: Wave 67 production seed prerequisites — 5 bugs + 2 risks pre-execution
 
-**Status:** 🟡 PARTIAL — code/docs fixes shipped (this PR); secret provisioning + SES verify gated on user terraform-apply + AWS check
+**Status:** 🟡 PARTIAL — code/docs/CI shipped; remaining = user trigger workflow_dispatch + verify result
+**Scope expansion 2026-05-13:** added CI workflow conversion (PR #1240 prep + PR #1241) — removes local Maven build + SSM tunnel + session-manager-plugin dependency
 **Priority:** 🔴 P0 BLOCKING (Wave 67 entry — GAP-376 production seed cannot execute without these)
 **Domain:** DevOps / Documentation
 **Found:** 2026-05-13 (pre-execution audit per `pre-mutation-state-check.md` §1.5)
@@ -89,4 +90,15 @@ Local `java -jar` connects via tunnel localhost:5432 → RDS. Works but ugly (no
 
 ## Log
 
-- **2026-05-13:** Filed during pre-execution audit of Wave 67 GAP-376 seed step. User-flagged "verify Wave 67 trước khi execute" prompted state-check per `pre-mutation-state-check.md` §1.5 → 5 bugs + 2 risks surfaced. This PR ships code/docs/terraform fixes; user-action remaining = terraform-apply + SES check + first seed run.
+- **2026-05-13 (PR #1241 — CI conversion):** User-requested "convert ngay" after rule audit confirmed local script ≠ rule violation but workflow_dispatch IS preferred pattern per `release-deploy-standard.md` §9. Sister of `deploy-production.yml`. Shipped:
+  - `.github/workflows/seed-production.yml` — workflow_dispatch + confirm=SEED gate + RDS preflight + secret existence check + SSM send-command + log-marker poll (sister of GAP-498 pattern)
+  - `scripts/seed-prod-ec2.sh` — on-EC2 script: fetches seed-admin-password + injects KITE_SEED_* into /etc/kite/.env + restarts kitehub-subscription + waits for `ProductionSeedRunner: seed complete` marker + cleans seed env post-run
+  - Removes dependencies: local Maven build, SSM session-manager-plugin, port-forward tunnel, ad-hoc `ps aux` secret exposure
+  - IAM reuse: github_deploy role already has SSM SendCommand + secrets read + rds describe (scoped `kitehub/production/*`) — no terraform-apply needed
+  - Trigger: `gh workflow run seed-production.yml -f confirm=SEED`
+- **2026-05-13 (PR #1240 — initial fixes):** Pre-execution audit per `pre-mutation-state-check.md` §1.5 surfaced 5 bugs + 2 risks blocking local script execution. Code/docs/terraform fixes shipped:
+  - Script `scripts/seed-production.sh` default email `.vn` → `.me`
+  - Runbook secret paths `kite/prod/*` → `kitehub/production/*`
+  - Runbook §3.0 Execution Context section (Option A SSM tunnel + Option B docker exec)
+  - `secrets.tf` adds `seed-admin-password` secret (terraform-applied 2026-05-13 04:29Z, 32-char password live)
+  - SES `admin@kitehub.me` verified (inherited domain DKIM) — sandbox sending unblocked
