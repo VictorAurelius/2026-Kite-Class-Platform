@@ -30,10 +30,10 @@
 Full evidence: [`audits/aws-verification/2026-05-13-audit-of-trust-production-instability.md`](../audits/aws-verification/2026-05-13-audit-of-trust-production-instability.md)
 
 **Fix sequence (user-triggered, mutation):**
-1. SSH/SSM kh_backend → diagnose RabbitMQ creds vs `/etc/kite/.env` (option A) hoặc defer rabbit listener (option B)
-2. Choose JVM tune path per GAP-447 §Rollback: `MaxRAMPercentage=50.0` + upsize t3.medium → t3.large (~$60/mo, recommended) OR fixed `-Xmx` lower (perf risk)
-3. Restart stack + verify 30 min stable
-4. Re-run audit-of-trust pass → unblock Plan 1
+1. **GAP-502** (P0 BLOCKING): SSH/SSM kh_backend → diagnose RabbitMQ creds vs `/etc/kite/.env` (option A) hoặc defer rabbit listener (option B); restart stack + verify 30 min stable
+2. **GAP-503** (P1, follow-up — depends GAP-502): Tier 2 config optimization — JVM `MaxRAMPercentage=50.0` + Tomcat thread tune + HikariCP right-size + healthcheck grace period (~5-6h, no infra change)
+3. Re-run audit-of-trust pass → unblock Plan 1
+4. Phase 1.5 prep: terraform Architecture A (single t3.large) ready cho trigger gate ≥30 paying tenants
 
 ### 🚀 Next Action (Wave 70 — GAP-502 P0 fix, blocks Plan 1)
 
