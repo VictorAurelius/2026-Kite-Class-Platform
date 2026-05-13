@@ -1,6 +1,6 @@
 # GAP-498: Deploy workflow poll redesign — track ALB target health instead of SSM Status field
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 90% — code shipped (workflow + IAM); E2E verification gated on next deploy
 **Priority:** 🟡 P2 (non-blocking — deploy IS functional; workflow gate is the false signal)
 **Domain:** DevOps / CI
 **Found:** 2026-05-13 (deploy run 25776387051 false-failure)
@@ -82,4 +82,10 @@ Replace SSM Status polling with **independent ALB target health + curl smoke** v
 
 ## Log
 
+- **2026-05-13 (PARTIAL 90% — code shipped):** PR #1237 ships Path B redesign:
+  - `deploy-production.yml` Poll step replaced: ALB target health + smoke 200 as success criteria (≥60s elapsed + state=healthy + curl `/actuator/health` = 200)
+  - Preserved: CloudWatch log interleave (GAP-491) + FAIL marker early-exit (PR #1235)
+  - Removed: redundant "Wait for ALB target group health" step (90s sleep) + standalone "Smoke test" step (3-attempt curl) — both merged into Poll
+  - IAM `github_deploy_inline` extended with `AlbTargetHealthForDeployPoll` Sid (`elasticloadbalancing:DescribeTargetGroups` + `DescribeTargetHealth`, Resource=`*` — read-only)
+  - Remaining 10% = E2E verification: trigger deploy after merge, verify success path completes within ~3 min (vs current 8-min false-timeout); flip 🟢 DONE.
 - **2026-05-13:** Filed after GAP-482 closure deploy showed Status-field false-InProgress for 48 attempts despite SSM API Success + functional ALB 200. Pivot from patch-to-redesign per `release-fix-retry-budget.md` §3 retry-budget exhausted. P2 priority because deploy IS functional; workflow gate is the broken layer, not the deploy itself.

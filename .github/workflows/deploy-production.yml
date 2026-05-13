@@ -159,25 +159,43 @@ jobs:
           echo "SSM CommandId: ${COMMAND_ID}"
           echo "CloudWatch logs: /aws/ssm/kite-deploy stream prefix ${COMMAND_ID}/"
 
-      - name: Poll SSM command status (up to 8 min) + interleave CloudWatch logs
+      - name: Poll deploy via ALB target health + CloudWatch logs (GAP-498 redesign)
         id: poll
         env:
           INSTANCE_ID: ${{ steps.ec2_lookup.outputs.instance_id }}
           COMMAND_ID: ${{ steps.ssm.outputs.command_id }}
+          TG_NAME: kitehub-kh-backend-tg
         run: |
-          # GAP-491 Phase 2: interleave SSM status with CloudWatch log fetch so
-          # operator sees live progress instead of opaque InProgress. Without
-          # this, a Failed command at 7s shows as InProgress for 2.5min until
-          # the next poll catches Failed terminal state (2026-05-12 incident).
-          LAST_LOG_TS=$(($(date -u +%s) * 1000))
+          # GAP-498 redesign: replace SSM Status field polling (false-InProgress
+          # 8min false-failure pattern from 2026-05-13 run 25776387051) with
+          # independent ALB target health + smoke verification. Workflow IAM
+          # context divergence makes Status field unreliable; ALB is single
+          # source of truth — once target healthy + smoke 200, deploy IS done.
+          #
+          # Preserved from prior versions:
+          # - CloudWatch log interleave (GAP-491 Phase 2 — operator visibility)
+          # - FAIL marker early-exit (PR #1235 — fast-fail on docker errors)
+          #
+          # Success criteria (ALL must hold):
+          # - ≥60s elapsed since SSM send (containers had time to restart)
+          # - ALB target i-${INSTANCE_ID} state = healthy
+          # - curl https://api.kitehub.me/actuator/health = 200
+          # Failure criteria (ANY triggers exit 1):
+          # - FAIL log marker detected (manifest unknown / failed to run commands)
+          # - 8min step budget exhausted without success criteria
+          TG_ARN=$(aws elbv2 describe-target-groups \
+            --names "${TG_NAME}" \
+            --region "${AWS_REGION}" \
+            --query 'TargetGroups[0].TargetGroupArn' --output text)
+          echo "Target group: ${TG_NAME} ARN=${TG_ARN}"
+          START_TS=$(date -u +%s)
+          LAST_LOG_TS=$((START_TS * 1000))
           for attempt in $(seq 1 48); do
             sleep 10
             NOW_TS=$(($(date -u +%s) * 1000))
+            ELAPSED=$(( $(date -u +%s) - START_TS ))
 
-            # Fetch new CloudWatch log events since last poll (SSM agent streams
-            # in ~10s chunks). Log stream pattern: ${COMMAND_ID}/${INSTANCE_ID}/
-            # aws-runShellScript/{stdout,stderr} — prefix-match captures both.
-            # Quiet on no-events / no-stream-yet (early polls); ignore errors.
+            # GAP-491 preserved — CloudWatch log interleave
             LOGS=$(aws logs filter-log-events \
               --region "${AWS_REGION}" \
               --log-group-name /aws/ssm/kite-deploy \
@@ -186,71 +204,39 @@ jobs:
               --query 'events[*].message' --output text 2>/dev/null || true)
             if [ -n "${LOGS}" ]; then
               echo "${LOGS}" | sed 's/^/  │ /'
-              # GAP-491 sister-fix: SSM Status field lags actual exit by 5-10min
-              # when --cloud-watch-output-config is enabled (agent flushes logs
-              # before flipping Status to Failed). 2026-05-13 incident: command
-              # exited status 1 at 02:50:04, Status stayed InProgress for 47 more
-              # polls until 8min step timeout. Scan log content for explicit
-              # exit-status markers to fail fast.
+              # PR #1235 preserved — FAIL marker early-exit
               if echo "${LOGS}" | grep -qE 'failed to run commands: exit status [1-9]|manifest unknown'; then
-                echo "::error ::Deploy script reported failure (CloudWatch log marker detected pre-Status-flip)"
-                aws ssm get-command-invocation \
-                  --region "${AWS_REGION}" \
-                  --command-id "${COMMAND_ID}" \
-                  --instance-id "${INSTANCE_ID}" \
-                  --query "StandardErrorContent" --output text 2>/dev/null || true
+                echo "::error ::Deploy script reported failure (CloudWatch log marker)"
                 exit 1
               fi
             fi
             LAST_LOG_TS=${NOW_TS}
 
-            STATUS=$(aws ssm get-command-invocation \
+            # GAP-498 new — ALB target health + smoke as success criteria
+            TARGET_HEALTH=$(aws elbv2 describe-target-health \
+              --target-group-arn "${TG_ARN}" \
               --region "${AWS_REGION}" \
-              --command-id "${COMMAND_ID}" \
-              --instance-id "${INSTANCE_ID}" \
-              --query "Status" --output text 2>/dev/null || echo "InProgress")
-            echo "Attempt ${attempt}/48: Status=${STATUS}"
-            case "$STATUS" in
-              Success)
-                echo "::notice ::Deploy succeeded on ${INSTANCE_ID}"
-                aws ssm get-command-invocation \
-                  --region "${AWS_REGION}" \
-                  --command-id "${COMMAND_ID}" \
-                  --instance-id "${INSTANCE_ID}" \
-                  --query "StandardOutputContent" --output text | tail -50
+              --query "TargetHealthDescriptions[?Target.Id=='${INSTANCE_ID}'].TargetHealth.State" \
+              --output text 2>/dev/null || echo "unknown")
+            echo "Attempt ${attempt}/48 (elapsed ${ELAPSED}s): ALB target=${TARGET_HEALTH}"
+            if [ "${ELAPSED}" -ge 60 ] && [ "${TARGET_HEALTH}" = "healthy" ]; then
+              # Smoke check through ALB DNS via HTTP (HTTPS via Cloudflare; ALB direct = HTTP)
+              SMOKE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
+                "http://${{ env.ALB_DNS }}/actuator/health" 2>/dev/null || echo "000")
+              echo "Smoke ALB:80/actuator/health → HTTP ${SMOKE}"
+              if [ "${SMOKE}" = "200" ]; then
+                echo "::notice ::Production deploy ${{ github.event.inputs.version }} healthy ✅ (target=healthy + smoke=200 at ${ELAPSED}s)"
                 exit 0
-                ;;
-              Failed|Cancelled|TimedOut)
-                echo "::error ::Deploy failed with status ${STATUS}"
-                aws ssm get-command-invocation \
-                  --region "${AWS_REGION}" \
-                  --command-id "${COMMAND_ID}" \
-                  --instance-id "${INSTANCE_ID}" \
-                  --query "StandardErrorContent" --output text
-                exit 1
-                ;;
-            esac
-          done
-          echo "::error ::Deploy timed out after 8 min"
-          exit 1
-
-      - name: Wait for ALB target group health
-        run: |
-          echo "Waiting 90s for kh-backend target group health check (2× healthy)..."
-          sleep 90
-
-      - name: Smoke test (gateway through ALB)
-        run: |
-          echo "Health check via ALB..."
-          for attempt in 1 2 3; do
-            if curl -fsS -o /dev/null -w "HTTP %{http_code} (attempt ${attempt})\n" \
-                 "http://${{ env.ALB_DNS }}/actuator/health"; then
-              echo "::notice ::Production deploy ${{ github.event.inputs.version }} healthy ✅"
-              exit 0
+              fi
             fi
-            sleep 30
           done
-          echo "::error ::ALB health check failed after 3 attempts"
+          echo "::error ::Deploy timed out after 8min — target never reached healthy + smoke 200"
+          # Surface SSM stderr for diagnosis (best-effort)
+          aws ssm get-command-invocation \
+            --region "${AWS_REGION}" \
+            --command-id "${COMMAND_ID}" \
+            --instance-id "${INSTANCE_ID}" \
+            --query "StandardErrorContent" --output text 2>/dev/null || true
           exit 1
 
   notify:
