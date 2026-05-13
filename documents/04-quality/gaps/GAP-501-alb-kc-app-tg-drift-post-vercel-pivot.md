@@ -1,6 +1,6 @@
 # GAP-501: ALB kc_app target group drift post-Vercel pivot — HTTPS 502 on root/auth/dashboard paths
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-13 — terraform apply run 25783192647 destroyed 3 resources; smoke verified 502→404 on all FE paths; TG kitehub-kc-app-tg returns TargetGroupNotFound
 **Priority:** 🟠 P1 (Phase 1 BETA — production routing returns 502 on FE paths via api.kitehub.me; backend health unaffected because falls through default rule)
 **Domain:** DevOps / Infrastructure
 **Found:** 2026-05-13 (Wave 68 verification pass — smoke E2E surfaced 502 on `api.kitehub.me/`)
@@ -55,12 +55,12 @@ After removal:
 
 ## Acceptance Criteria
 
-- [ ] `infrastructure/terraform-aws/ec2.tf` — 3 resources removed (`aws_lb_target_group.kc_app`, `aws_lb_target_group_attachment.kc_app`, `aws_lb_listener_rule.kc_app_default`)
-- [ ] Pre-mutation audit artifact filed per `pre-mutation-state-check.md` §3 (verifies terraform plan = 3 destroys + 0 surprises)
-- [ ] User-triggered `gh workflow run terraform-apply.yml -f confirm=APPLY -f dry_run=false` per `release-deploy-standard.md` §9
-- [ ] Post-apply verification: `curl -sS -o /dev/null -w "%{http_code}\n" https://api.kitehub.me/` returns **404** (or 200) — **not 502**
-- [ ] Post-apply verification: `aws elbv2 describe-target-groups --names kitehub-kc-app-tg` returns `TargetGroupNotFound`
-- [ ] `gap-status.csv` row updated to DONE/100 post-verification
+- [x] `infrastructure/terraform-aws/ec2.tf` — 3 resources removed (`aws_lb_target_group.kc_app`, `aws_lb_target_group_attachment.kc_app`, `aws_lb_listener_rule.kc_app_default`) — PR #1250 merged 2026-05-13
+- [x] Pre-mutation audit artifact filed per `pre-mutation-state-check.md` §3 (verifies terraform plan = 3 destroys + 0 surprises) — `documents/04-quality/audits/aws-verification/2026-05-13-gap-501-pre-apply-kc-app-tg-removal.md`
+- [x] User-triggered `gh workflow run terraform-apply.yml -f confirm=APPLY -f dry_run=false` per `release-deploy-standard.md` §9 — dry_run run 25783133968 + real apply run 25783192647 both SUCCESS
+- [x] Post-apply verification: `curl -sS -o /dev/null -w "%{http_code}\n" https://api.kitehub.me/` returns **404** — **not 502** (verified `/`, `/auth/login`, `/dashboard` all → 404)
+- [x] Post-apply verification: `aws elbv2 describe-target-groups --names kitehub-kc-app-tg` returns `TargetGroupNotFound` ✓
+- [x] `gap-status.csv` row updated to DONE/100 post-verification (this PR)
 
 ## Out-of-scope
 
@@ -78,3 +78,12 @@ After removal:
 ## Log
 
 - **2026-05-13:** Filed Wave 68 verification pass. Smoke probe surfaced 3 paths returning 502; ALB DescribeRules + DescribeTargetHealth confirmed priority-100 rule + unhealthy TG drift. Pre-mutation audit artifact to be filed before terraform apply per `pre-mutation-state-check.md`.
+- **2026-05-13:** PR #1250 merged (commit `217b2ef2`) — terraform `ec2.tf` removed 3 resources + pre-mutation audit artifact filed. CI terraform-plan + dry_run workflow both confirmed `Plan: 0 to add, 0 to change, 3 to destroy.`
+- **2026-05-13:** 🟢 DONE — terraform-apply.yml dry_run run 25783133968 + real apply run 25783192647 both completed SUCCESS. `Apply complete! Resources: 0 added, 0 changed, 3 destroyed.` Post-apply smoke evidence:
+  - `https://api.kitehub.me/` → HTTP **404** (was 502) ✅
+  - `https://api.kitehub.me/auth/login` → HTTP **404** (was 502) ✅
+  - `https://api.kitehub.me/dashboard` → HTTP 404 (now via kh_backend default rule) ✅
+  - `https://api.kitehub.me/actuator/health` → HTTP 200 (unchanged) ✅
+  - `aws elbv2 describe-target-groups --names kitehub-kc-app-tg` → `TargetGroupNotFound` ✅
+  - ALB listener 443 rules: only `default → kh_backend` remains (priority-100 rule gone) ✅
+  All 6 AC items verified; status flipped + CSV row sync per `post-merge-sync-completeness.md` Rule 17.
