@@ -1,6 +1,6 @@
 # GAP-482: Deploy workflow blocked by IAM tag mismatch + hardcoded EC2 ID
 
-**Status:** 🟡 PARTIAL 95% 2026-05-12 — 4 of 7 cascade bugs FIXED (PR #1199 + #1200); GAP-484 OTel fix DONE (#1209) + GAP-483 user_data DONE; remaining = E2E deploy-production.yml verification gated on Wave 66 Bucket A (GAP-493 Path B preflight) merge
+**Status:** 🟢 DONE 2026-05-13 — E2E deploy-production verified via run 25776387051 on tag v0.9.0-beta-staging.11. Containers all started; `https://api.kitehub.me/actuator/health` HTTP 200; ALB target `i-05d7af46d01436b96` healthy. Workflow gate reported false-failure (timeout poll-Status-vs-actual-SSM-Success divergence — tracked GAP-498). All 7 cascade bugs functionally closed.
 **Priority:** 🔴 P0 BLOCKING (Wave 64 Step F deploy-production fails)
 **Domain:** DevOps / Infrastructure
 **Found:** 2026-05-12 (Wave 64 Step F deploy-production.yml run 25713149664 failed)
@@ -126,6 +126,13 @@ Edit `.github/workflows/deploy-production.yml`:
 
 ## Log
 
+- **2026-05-13 (🟢 DONE — functional E2E verified)**: Deploy-production run [25776387051](https://github.com/VictorAurelius/2026-Kite-Class-Platform/actions/runs/25776387051) for tag `v0.9.0-beta-staging.11` (post PR #1235 ECR lifecycle + sha-conditional fixes). Outcome:
+  - ✅ All 5 containers (kitehub-admin/branding/email/gateway/subscription) `Started` with image `0.9.0-beta-staging.11`
+  - ✅ `curl https://api.kitehub.me/actuator/health` → HTTP 200 (0.75s)
+  - ✅ ALB target `i-05d7af46d01436b96` → `healthy`
+  - ✅ SSM command `36ce3eae-8848-4cfd-b5f0-87cb347aced3` → Status=Success (verified via `aws ssm get-command-invocation`)
+  - ⚠️ Workflow gate reported `failure` due to false-positive 8-min poll timeout — workflow's IAM context saw stale `InProgress` for 48 attempts despite SSM actual Success. Tracked separately as **GAP-498** (workflow poll redesign — poll ALB target health + curl smoke directly instead of SSM Status field).
+  - GAP-498 is non-blocking for invite path — deploy IS functional. Closure based on `gap-done-discipline.md` §2 verification artifact pointer = ALB 200 + target healthy evidence.
 - **2026-05-12** (Wave 66 Bucket Z — status sync per `post-merge-sync-completeness.md` Rule 17): Status frontmatter was stale "🔵 OPEN" while file §Log showed 4 of 7 cascade bugs FIXED (PR #1199 + #1200) + dependencies cleared (GAP-484 OTel #1209, GAP-483 user_data DONE). Flipped to 🟡 PARTIAL 95%. Remaining 5% = E2E deploy-production.yml run with green ALB target — gated on Wave 66 Bucket A merge (GAP-493 Path B preflight). Will flip 🟢 DONE when user triggers `deploy-production.yml workflow_dispatch dry_run=false` post-Bucket-A merge and target reports healthy.
 - **2026-05-12:** Filed Wave 64 Step F deploy fail investigation. 2 bugs in 1 gap (architectural fix needed in same PR for retry budget discipline).
 - **2026-05-12 (post-PR #1199 + #1200 cascade discovery):** Wave 64 Step F deploy surfaced 7 cascading bugs in single session — retry budget per `release-fix-retry-budget.md` §3 exceeded at retry #4. Pivot to file separate gaps + close session.
