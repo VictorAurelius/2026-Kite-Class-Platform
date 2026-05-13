@@ -17,6 +17,9 @@
 - ✅ **PR #1235** — ECR lifecycle preserve version tags + SSM poll early-exit on FAIL log markers + docker-build-push sha-conditional on tag events (3 sister bugs)
 - ✅ **GAP-482 DONE** — Deploy E2E verified via run 25776387051 on `v0.9.0-beta-staging.11`: ALB 200, target healthy, 5 containers Started
 - 🆕 **GAP-498 filed** — Deploy workflow poll redesign (ALB target health vs SSM Status field) — P2 non-blocking, deploy IS functional; pivot per `release-fix-retry-budget.md` §3
+- ✅ **PR #1237** — GAP-498 Path B (ALB target health + smoke 200 replaces SSM Status poll); IAM `AlbTargetHealthForDeployPoll` Sid added
+- ✅ **PR #1238** — Fix smoke retry #1: HTTPS api.kitehub.me + `-L` (ALB:80 redirect to HTTPS caused 301 vs 200 mismatch)
+- ✅ **GAP-498 DONE** — E2E verified run 25777744962 ~3.5min wall-clock (vs old 8min false-timeout). All AC items checked.
 
 ### 🚀 Next Action (Wave 67 entry — Step B per path-to-invite)
 
