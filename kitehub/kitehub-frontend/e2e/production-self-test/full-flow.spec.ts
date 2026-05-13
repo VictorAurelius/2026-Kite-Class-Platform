@@ -48,7 +48,7 @@ test.describe('Production self-test full flow (7 bước)', () => {
   });
 
   test.skip('Bước 2 — Submit beta access request form', async ({ page }) => {
-    await page.goto(`${BASE_URL}/auth/request-beta-access`);
+    await page.goto(`${BASE_URL}/request-beta-access`);
 
     // TODO calibrate form field names/selectors post manual-run
     await page.getByLabel(/email/i).fill(TEST_RECIPIENT);
@@ -73,7 +73,7 @@ test.describe('Production self-test full flow (7 bước)', () => {
 
   test.skip('Bước 3 — Admin login + approve request trong dashboard', async ({ page }) => {
     // Login admin
-    await page.goto(`${BASE_URL}/auth/login`);
+    await page.goto(`${BASE_URL}/login`);
     await page.getByLabel(/email/i).fill(ADMIN_EMAIL);
     await page.getByLabel(/password|mật khẩu/i).fill(ADMIN_PASSWORD);
     await page.getByRole('button', { name: /login|đăng nhập/i }).click();
@@ -106,7 +106,7 @@ test.describe('Production self-test full flow (7 bước)', () => {
     const { inviteToken } = await tokenResp.json();
     expect(inviteToken).toBeTruthy();
 
-    await page.goto(`${BASE_URL}/auth/signup?token=${inviteToken}`);
+    await page.goto(`${BASE_URL}/beta-signup?token=${inviteToken}`);
     await page.getByLabel(/password|mật khẩu/i).fill('SelfTest@2026Strong!');
     await page.getByLabel(/confirm|xác nhận/i).fill('SelfTest@2026Strong!');
     await page.getByRole('button', { name: /signup|đăng ký|hoàn tất/i }).click();
@@ -156,7 +156,7 @@ test.describe('Production self-test full flow (7 bước)', () => {
  * TODO: extract to fixture file when tests opt-in.
  */
 async function getAdminToken(page: any): Promise<string> {
-  const resp = await page.request.post(`${API_BASE}/api/v1/auth/login`, {
+  const resp = await page.request.post(`${API_BASE}/api/v1/login`, {
     data: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
   });
   expect(resp.ok()).toBeTruthy();
