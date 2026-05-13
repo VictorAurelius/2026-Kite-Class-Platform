@@ -38,7 +38,18 @@ resource "aws_ecr_repository" "services" {
   tags = { Name = each.key }
 }
 
-# Lifecycle: keep last 10 images per repo (Free tier 500MB limit guard)
+# Lifecycle: prefix-targeted retention — version tags (0.x.y, 1.x) kept forever,
+# ephemeral tags (sha-, main, test, latest, pr-) capped to avoid Free Tier blowup.
+#
+# 2026-05-13 redesign: previous "keep last 10 any" rule expired version tags
+# when ephemeral churn outpaced version cadence — v0.9.0-beta-staging.10 was
+# pushed 2026-05-12 then expired by 2026-05-13 because 10+ ephemeral pushes
+# (sha-XXX, test, main, latest) for Wave 66 fixes bumped it out of top-10.
+# Deploy of staging.10 failed: "manifest unknown: Requested image not found".
+#
+# New design: no catch-all "any" rule → version tags (no matching prefix) kept
+# forever. Storage growth ~10 services × 10 versions/mo × 500MB = ~50GB/yr.
+# Acceptable cost (~$5/mo) for reliable redeploy of older versions.
 resource "aws_ecr_lifecycle_policy" "cleanup" {
   for_each   = aws_ecr_repository.services
   repository = each.value.name
@@ -58,14 +69,28 @@ resource "aws_ecr_lifecycle_policy" "cleanup" {
       },
       {
         rulePriority = 2
-        description  = "Keep last 10 tagged images"
+        description  = "Keep last 20 sha-prefixed (commit-pinned) tags"
         selection = {
-          tagStatus   = "any"
-          countType   = "imageCountMoreThan"
-          countNumber = 10
+          tagStatus     = "tagged"
+          tagPrefixList = ["sha-"]
+          countType     = "imageCountMoreThan"
+          countNumber   = 20
         }
         action = { type = "expire" }
       },
+      {
+        rulePriority = 3
+        description  = "Keep last 10 ephemeral branch/PR tags (main/test/latest/pr-)"
+        selection = {
+          tagStatus     = "tagged"
+          tagPrefixList = ["main", "test", "latest", "pr-"]
+          countType     = "imageCountMoreThan"
+          countNumber   = 10
+        }
+        action = { type = "expire" }
+      },
+      # Version tags (0.x.y, 1.x, v* — none of the above prefixes) NOT matched
+      # by any expire rule → kept forever. Storage cost accepted per file header.
     ]
   })
 }

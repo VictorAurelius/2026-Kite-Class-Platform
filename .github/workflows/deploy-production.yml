@@ -186,6 +186,21 @@ jobs:
               --query 'events[*].message' --output text 2>/dev/null || true)
             if [ -n "${LOGS}" ]; then
               echo "${LOGS}" | sed 's/^/  │ /'
+              # GAP-491 sister-fix: SSM Status field lags actual exit by 5-10min
+              # when --cloud-watch-output-config is enabled (agent flushes logs
+              # before flipping Status to Failed). 2026-05-13 incident: command
+              # exited status 1 at 02:50:04, Status stayed InProgress for 47 more
+              # polls until 8min step timeout. Scan log content for explicit
+              # exit-status markers to fail fast.
+              if echo "${LOGS}" | grep -qE 'failed to run commands: exit status [1-9]|manifest unknown'; then
+                echo "::error ::Deploy script reported failure (CloudWatch log marker detected pre-Status-flip)"
+                aws ssm get-command-invocation \
+                  --region "${AWS_REGION}" \
+                  --command-id "${COMMAND_ID}" \
+                  --instance-id "${INSTANCE_ID}" \
+                  --query "StandardErrorContent" --output text 2>/dev/null || true
+                exit 1
+              fi
             fi
             LAST_LOG_TS=${NOW_TS}
 
