@@ -56,12 +56,20 @@ Full evidence: [`audits/aws-verification/2026-05-13-audit-of-trust-production-in
 
 8. **GAP-517** PLATFORM_ADMIN login alert from new IP/UA
 
-**Meta fixes shipped same wave (this PR):**
+**Meta fixes shipped Wave 71c PR #1278:**
 
 - New rule `pre-handoff-self-test-completeness.md` v1.0.0 — mandates flow-level verify before DONE flip
 - New rule `pre-launch-auth-hardening-checklist.md` v1.0.0 — 8 OWASP A07 mandatory checks
 - `security-audit/SKILL.md` rubric extended Category 4 binds to auth-hardening rule + adds "bug-finding > scoring" primacy section
 - Admin password for self-test logged in 2026-05-13 closure summary (rotate after Wave 71c P0 close)
+
+**Residual meta gaps (Wave 71c-meta-Phase-2 filed same day, this PR):**
+
+- **GAP-522** META P0 — Extend per-check rubric to all 5 security-audit categories (4 sister rules: dependency / secrets / OWASP-noA07 / infra hardening)
+- **GAP-523** META P0 — Audit skill rubric review wave: apply primacy + per-check to 6 sister skills (quality / ops-readiness / performance / api-contract / business-logic / ui-review)
+- **GAP-524** META P1 — pre-handoff rule additional flow classes (lazy add per incident: file-upload, payment, multi-tenant, SSE, async, time-sensitive, i18n)
+
+Recommend close GAP-518 (admin UI unblock) + GAP-514/515 (auth surface) in parallel with GAP-522 before Wave 72; defer GAP-523/524 to Wave 72.
 
 **Plan 1 Bước 3-7 BLOCKED on Wave 71c P0** — user cannot self-test admin approve/reject until GAP-518 fixed.
 
