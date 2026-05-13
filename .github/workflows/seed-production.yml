@@ -112,7 +112,7 @@ jobs:
           # composite git-pull-then-seed command). Newline-separated commands
           # run as single shell invocation under bash; set -e fails fast.
           PAYLOAD=$(cat <<JSON
-          {"commands":["set -e\ncd /opt/kite-prod\nsudo git fetch --quiet origin main\nsudo git reset --hard origin/main\nsudo SEED_TIMEOUT_S=${SEED_TIMEOUT_S} bash /opt/kite-prod/scripts/seed-prod-ec2.sh"]}
+          {"commands":["set -e\ncd /opt/kite-prod\nsudo git fetch --quiet origin main\nsudo git reset --hard origin/main\nsudo bash /opt/kite-prod/scripts/seed-direct-sql.sh"]}
           JSON
           )
           COMMAND_ID=$(aws ssm send-command \
@@ -151,12 +151,12 @@ jobs:
             if [ -n "${LOGS}" ]; then
               echo "${LOGS}" | sed 's/^/  │ /'
               # Success marker (script exits 0 on success)
-              if echo "${LOGS}" | grep -q "seed-prod-ec2.sh DONE"; then
+              if echo "${LOGS}" | grep -q "seed-direct-sql.sh DONE"; then
                 echo "::notice ::Seed success marker detected"
                 exit 0
               fi
               # Failure markers
-              if echo "${LOGS}" | grep -qE "seed-prod-ec2.sh FAILED|failed to run commands: exit status [1-9]"; then
+              if echo "${LOGS}" | grep -qE "seed-direct-sql.sh FAILED|failed to run commands: exit status [1-9]"; then
                 echo "::error ::Seed failed (CloudWatch log marker)"
                 exit 1
               fi
