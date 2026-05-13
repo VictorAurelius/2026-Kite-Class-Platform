@@ -70,8 +70,12 @@ log "Pre-restart timestamp: $PRE_RESTART_TS"
 # stale env from original `up`. `up -d --no-deps --force-recreate` recreates
 # the service with fresh env from /etc/kite/.env (where we just appended
 # KITE_SEED_*). --no-deps avoids restarting redis/rabbitmq dependencies.
+# --env-file: docker compose uses this file for variable substitution in
+# compose YAML (${KITE_VERSION} → image tag, ${RABBITMQ_USER} → service env).
+# Without it, compose warns + interpolates empty strings → invalid image ref.
+# /etc/kite/.env is the canonical source per fetch-secrets.sh contract.
 log "Recreating $SERVICE (force re-read /etc/kite/.env; Spring cold start ~60s)..."
-sudo docker compose -f "$COMPOSE_FILE" up -d --no-deps --force-recreate "$SERVICE"
+sudo docker compose --env-file /etc/kite/.env -f "$COMPOSE_FILE" up -d --no-deps --force-recreate "$SERVICE"
 
 # 6. Wait for seed completion marker (only logs POST-restart count)
 log "Polling for marker '$COMPLETE_MARKER' (timeout ${SEED_TIMEOUT_S}s)..."
