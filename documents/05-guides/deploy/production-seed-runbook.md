@@ -40,7 +40,7 @@ Before invoking seed, the following MUST be true:
 | 1 | DNS shipped (kitehub.me apex + api subdomain resolve) | `dig +short api.kitehub.me` returns IP | Wave 61 Bucket A (GAP-369) |
 | 2 | SES production approval landed (out of sandbox) | AWS Console → SES → Account Dashboard | Wave 61 Bucket B (GAP-370) |
 | 3 | RDS instance resumed + reachable | `aws rds describe-db-instances --query 'DBInstances[0].DBInstanceStatus'` returns `available` (user-executed) | Wave 61 Bucket D (forward-ref) |
-| 4 | Secrets populated (DB creds + SEED_ADMIN_PASSWORD) | `aws secretsmanager list-secrets` shows `kite/prod/*` entries | GAP-379 |
+| 4 | Secrets populated (DB creds + SEED_ADMIN_PASSWORD) | `aws secretsmanager list-secrets` shows `kitehub/production/*` entries | GAP-379, GAP-499 |
 | 5 | Flyway migrations applied (V1 → V27) | `psql ... -c "SELECT version FROM flyway_schema_history ORDER BY installed_rank DESC LIMIT 5;"` shows V27 | Wave 33 |
 | 6 | Subscription jar built | `ls kitehub/kitehub-subscription/target/kitehub-subscription-*.jar` | CI |
 
@@ -49,6 +49,54 @@ Missing any prerequisite → STOP, fix prerequisite first. Seed assumes a health
 ---
 
 ## 3. Standard procedure (first cutover)
+
+### 3.0 Execution context (where to run — added GAP-499)
+
+RDS is `PubliclyAccessible=false` (private VPC subnet). Local machine cannot reach RDS endpoint directly. **Two valid execution contexts:**
+
+**Option A — SSM port-forward tunnel (preferred for local-dev workflow):**
+
+```bash
+# Terminal 1: open SSH tunnel through EC2 to RDS (SSM session-manager)
+RDS_HOST=$(aws rds describe-db-instances \
+    --db-instance-identifier kitehub-postgres \
+    --query 'DBInstances[0].Endpoint.Address' --output text \
+    --profile dev-admin --region ap-southeast-1)
+EC2_ID=$(aws ec2 describe-instances \
+    --filters "Name=tag:Name,Values=kitehub-kh-backend" "Name=instance-state-name,Values=running" \
+    --query 'Reservations[0].Instances[0].InstanceId' --output text \
+    --profile dev-admin --region ap-southeast-1)
+
+aws ssm start-session --target "$EC2_ID" --profile dev-admin --region ap-southeast-1 \
+  --document-name AWS-StartPortForwardingSessionToRemoteHost \
+  --parameters "host=$RDS_HOST,portNumber=5432,localPortNumber=5432"
+
+# Terminal 2 (parallel): build jar + run seed
+cd <repo-root>
+mvn -pl kitehub/kitehub-subscription -am package -DskipTests
+# Then run §3.2 secrets fetch + §3.3 dry-run + §3.4 real seed
+# DATABASE_URL uses localhost:5432 (tunnel endpoint)
+export DATABASE_URL=jdbc:postgresql://localhost:5432/$(echo "$DB_JSON" | jq -r .dbname)
+```
+
+**Option B — SSM run on EC2 (no local build needed):**
+
+```bash
+# SSH to EC2 via SSM (no local maven needed)
+aws ssm start-session --target "$EC2_ID" --profile dev-admin --region ap-southeast-1
+
+# Inside session: invoke seed runner via existing container's JVM
+docker exec -e KITE_SEED_RUN=true \
+  -e SEED_ADMIN_EMAIL=admin@kitehub.me \
+  -e SEED_ADMIN_PASSWORD="$SEED_ADMIN_PASSWORD" \
+  kitehub-subscription java -Dkite.seed.run=true -jar /app/app.jar &
+# (Container already has DATABASE_* env from /etc/kite/.env populated at deploy time.
+# Seed runner is ApplicationRunner — runs once on startup. Watch logs for completion.)
+```
+
+**Pre-requisite for both:** AWS CLI authenticated + SSM session-manager plugin installed locally. Option A requires Maven; Option B uses production container directly.
+
+**Recommend Option A for first run** — visibility into seed runner output via local console + ability to abort cleanly with Ctrl+C if anomaly detected. Option B is recovery scenario (e.g., post-RDS-restore drill).
 
 ### 3.1 Resume stack (USER-EXECUTED)
 
@@ -67,15 +115,20 @@ Wait for healthy state (~5-8 phút cold start).
 ### 3.2 Populate secrets into shell env
 
 ```bash
-export DATABASE_URL=$(aws secretsmanager get-secret-value \
-    --secret-id kite/prod/database-url --query SecretString --output text)
-export DATABASE_USERNAME=$(aws secretsmanager get-secret-value \
-    --secret-id kite/prod/database-username --query SecretString --output text)
-export DATABASE_PASSWORD=$(aws secretsmanager get-secret-value \
-    --secret-id kite/prod/database-password --query SecretString --output text)
+# db-password secret contains JSON with {username, password, host, port, dbname}
+# per secrets.tf aws_secretsmanager_secret_version.db_password block.
+DB_JSON=$(aws secretsmanager get-secret-value \
+    --secret-id kitehub/production/db-password --query SecretString --output text \
+    --profile dev-admin --region ap-southeast-1)
+export DATABASE_USERNAME=$(echo "$DB_JSON" | jq -r .username)
+export DATABASE_PASSWORD=$(echo "$DB_JSON" | jq -r .password)
+export DATABASE_URL="jdbc:postgresql://$(echo "$DB_JSON" | jq -r .host):$(echo "$DB_JSON" | jq -r .port)/$(echo "$DB_JSON" | jq -r .dbname)"
+
+# seed-admin-password provisioned by terraform per GAP-499 (kitehub/production/seed-admin-password)
 export SEED_ADMIN_PASSWORD=$(aws secretsmanager get-secret-value \
-    --secret-id kite/prod/seed-admin-password --query SecretString --output text)
-export SEED_ADMIN_EMAIL=admin@kitehub.me   # default — override only if pivot away
+    --secret-id kitehub/production/seed-admin-password --query SecretString --output text \
+    --profile dev-admin --region ap-southeast-1)
+export SEED_ADMIN_EMAIL=admin@kitehub.me   # default per Path C; override only if pivot away
 ```
 
 > **Security note.** Per `agent-aws-access.md` §2.2, `get-secret-value` is Tier 2 (always-confirm). Run each command interactively, do NOT batch. Clear shell history after cutover: `history -c`.
