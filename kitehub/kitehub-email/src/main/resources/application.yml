@@ -70,6 +70,15 @@ management:
   endpoint:
     health:
       show-details: always
+  # GAP-506 Sub-B: mail health indicator disabled because Phase 1 BETA uses
+  # Resend HTTP API (per ADR-025 Stream A), not SMTP. Default mail health
+  # tries SMTP TCP connect to kite-mailhog:1025 (dev SMTP catcher, not deployed
+  # in production) → fails → composite health 503 → docker unhealthy → masks
+  # actual service capability. Email sending capability tracked via Resend API
+  # response codes + send-failure metrics, not Spring mail health indicator.
+  health:
+    mail:
+      enabled: false
   # GAP-112: Distributed tracing via Micrometer Tracing + OTLP exporter.
   # Sampling 10% in prod, override OTEL_SAMPLING_PROBABILITY=1.0 in staging/dev.
   tracing:

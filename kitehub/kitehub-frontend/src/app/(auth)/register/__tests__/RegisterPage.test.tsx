@@ -1,7 +1,7 @@
 /**
  * Smoke test for RegisterPage (GAP-372 Wave 45 closure follow-up #2).
  *
- * Verifies that /register redirects to /auth/request-beta-access during
+ * Verifies that /register redirects to /request-beta-access during
  * Phase 1 BETA invite-only mode.
  */
 import { describe, it, expect, vi } from 'vitest';
@@ -16,8 +16,8 @@ vi.mock('next/navigation', () => ({
 }));
 
 describe('RegisterPage', () => {
-  it('redirects to /auth/request-beta-access (Phase 1 BETA invite-only)', () => {
+  it('redirects to /request-beta-access (Phase 1 BETA invite-only)', () => {
     RegisterPage();
-    expect(redirect).toHaveBeenCalledWith('/auth/request-beta-access');
+    expect(redirect).toHaveBeenCalledWith('/request-beta-access');
   });
 });

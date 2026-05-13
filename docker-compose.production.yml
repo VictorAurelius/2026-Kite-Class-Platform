@@ -135,6 +135,9 @@ services:
     environment:
       JAVA_OPTS: "-XX:MaxRAMPercentage=50.0 -XX:+UseContainerSupport -XX:+UseSerialGC"
       SPRING_PROFILES_ACTIVE: production
+      # GAP-506 Sub-B: disable mail health indicator — Phase 1 BETA uses Resend HTTP API (ADR-025 Stream A), not SMTP.
+      # Default Spring mail health probes kite-mailhog:1025 (dev SMTP) → DOWN → composite 503 → unhealthy.
+      MANAGEMENT_HEALTH_MAIL_ENABLED: "false"
     depends_on:
       rabbitmq:
         condition: service_healthy
