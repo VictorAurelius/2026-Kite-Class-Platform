@@ -41,3 +41,4 @@ terraform-partial-backend-public-repo,MANDATORY,1.0.0,2026-05-07,2026-05-07,terr
 third-party-platform-automation-discovery,MANDATORY,1.0.0,2026-05-10,2026-05-10,third-party-platform-automation-discovery.md
 post-merge-sync-completeness,MANDATORY,1.0.0,2026-05-12,2026-05-12,post-merge-sync-completeness.md
 concurrent-production-mutation-ops,CRITICAL,1.0.0,2026-05-12,2026-05-12,concurrent-production-mutation-ops.md
+production-env-config-registry,MANDATORY,1.0.0,2026-05-13,2026-05-13,production-env-config-registry.md
