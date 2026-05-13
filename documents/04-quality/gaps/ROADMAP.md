@@ -35,34 +35,24 @@ Full evidence: [`audits/aws-verification/2026-05-13-audit-of-trust-production-in
 3. Re-run audit-of-trust pass → unblock Plan 1
 4. Phase 1.5 prep: terraform Architecture A (single t3.large) ready cho trigger gate ≥30 paying tenants
 
-### 🚀 Next Action (Wave 71b — gateway routing scope extension + GAP-513 Resend manual provisioning)
+### 🚀 Next Action (Plan 1 Bước 3-7 execute — infrastructure ready)
 
-**Wave 71 SHIPPED 2026-05-13** — Pre-launch hardening (5 PRs #1269-#1273; tag `v0.9.0-beta-staging.12` deployed). GAP-509/510/511 → 🟢 DONE. GAP-508 Phase 2 → BE ready, user-action remaining. Plan 1 Bước 2 **VERIFIED LIVE: HTTP 201 + DB row id=1 PENDING** via api.kitehub.me from kitehub.me Origin.
+**Wave 71b SHIPPED 2026-05-13** — Gateway routing scope extension (PR #1276 + tag `v0.9.0-beta-staging.13` deployed). GAP-512 → 🟢 DONE (3-path live verify: admin/beta-requests 401, consent/record 400, branding/slug-availability 200). GAP-513 Resend → 🟢 DONE (AWS Secret populated, SSM verify RESEND_API_KEY length=35 prefix=re_ho in kitehub-email container).
 
-**Wave 71b candidates (P0 — Plan 1 BETA blockers):**
+**Plan 1 BETA — infrastructure ready cho Bước 3-7:**
 
-1. **GAP-512 gateway routing scope extension** (P0 — Bucket E audit surfaced 22 wrong-service routings + 1 orphan):
-   - `/api/v1/consent` `/api/v1/dsar` `/api/v1/notification-preferences` `/api/v1/branding/**` catch-all → kiteclass-core (kitehub controllers mis-routed)
-   - `/api/v1/admin/beta-requests/**` — Bucket A routed to kitehub-admin BUT controller lives in kitehub-subscription (Bucket A scope-creep bug)
-   - `/api/platform/admin/emails+instances/**` — kitehub-admin catch-all forwards kitehub-subscription endpoints to wrong service
-   - Orphan: `/api/instances/{id}/domain/verify` (no route)
-   - Detector: `bash scripts/audit-gateway-routes.sh` exit 0
-   - Estimated: 3-4h
+1. **Bước 3 verify-email** — gateway routes ✓, email send ✓
+2. **Bước 4 admin approve/reject** — `/api/v1/admin/beta-requests/**` reaches subscription ✓
+3. **Bước 5 email send** — RESEND_API_KEY present ✓ (END-TO-END SMOKE PENDING: register beta → check inbox)
+4. **Bước 6 tenant onboarding** — branding routes ✓
+5. **Bước 7 dashboard** — consent + notification routes ✓
 
-2. **GAP-513 Resend manual provisioning** (P0 user-action — unblock Plan 1 Bước 5 email send):
-   - Per `documents/05-guides/deploy/resend-provisioning-runbook.md`
-   - User-action: Resend account + domain verify DKIM/SPF/DMARC + AWS Secret populate
-   - BE infrastructure ready (fetch-secrets.sh pulls `kitehub/production/resend-api-key`)
+**Next session signpost:**
 
-3. **Plan 1 remaining Bước 3-7** (gated on GAP-512 + GAP-513):
-   - Bước 3 verify-email, Bước 4 admin approve/reject, Bước 5 email send, Bước 6 tenant onboarding, Bước 7 dashboard
-
-4. **GAP-506 Phase 1** (P1 — deploy-prod tech debt cluster, defer behind 71b):
-   - Bash chicken-and-egg fix in deploy-prod.sh (re-exec post-pull)
-   - start_period 150s → 180s (safety bump)
-
-5. **Post-release downsize evaluation** (deferred ≥4 weeks):
-   - Criteria: avg MemoryUtilization <60% + zero OOM events ≥4 weeks → re-evaluate t3.large → t3.medium
+- User runs Plan 1 self-test E2E end-to-end (or single-step manual)
+- File any bugs surfaced → Wave 72
+- **GAP-506 Phase 1** (P1 — deploy-prod tech debt: chicken-and-egg fix + start_period bump) — defer to next maintenance wave
+- **Post-release downsize evaluation** (≥4 weeks): if avg MemoryUtilization <60% + zero OOM → t3.large → t3.medium
 
 ---
 
