@@ -215,6 +215,7 @@ resource "aws_iam_role_policy" "github_apply_iam_management" {
         "iam:PassRole", "iam:TagRole", "iam:UntagRole",
         "iam:CreateInstanceProfile", "iam:DeleteInstanceProfile", "iam:GetInstanceProfile",
         "iam:AddRoleToInstanceProfile", "iam:RemoveRoleFromInstanceProfile",
+        "iam:ListInstanceProfilesForRole",
         "iam:CreateOpenIDConnectProvider", "iam:DeleteOpenIDConnectProvider",
         "iam:GetOpenIDConnectProvider", "iam:UpdateOpenIDConnectProviderThumbprint",
         "iam:TagOpenIDConnectProvider"
