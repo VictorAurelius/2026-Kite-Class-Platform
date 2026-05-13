@@ -368,6 +368,18 @@ resource "aws_iam_role_policy" "github_deploy_inline" {
           "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}/staging/*",
         ]
       },
+      # ALB target health read — needed by Poll step (GAP-498 redesign).
+      # Replaces SSM Status field polling (false-InProgress 8min false-failure)
+      # with independent ALB target health + smoke verification. Read-only.
+      {
+        Sid    = "AlbTargetHealthForDeployPoll"
+        Effect = "Allow"
+        Action = [
+          "elasticloadbalancing:DescribeTargetGroups",
+          "elasticloadbalancing:DescribeTargetHealth",
+        ]
+        Resource = "*"
+      },
       # CloudWatch Logs read on SSM deploy log group (GAP-491 Phase 2).
       # deploy-production.yml poll loop calls filter-log-events every 10s
       # to interleave live stdout/stderr with status polling — closes the
