@@ -74,9 +74,25 @@ if [[ -z "${RMQ_USER:-}" || "$RMQ_USER" == "null" ]]; then
   RMQ_PASS=$(openssl rand -base64 32 | tr -d '/+=' | head -c 32)
 fi
 
-# Resend (from GitHub Secret, not Secrets Manager — Stream A pivot per ADR-025)
-# kh-backend EC2 reads from a separate location; for Phase 1 BETA, allow optional
-RESEND_API_KEY="${RESEND_API_KEY:-}"
+# Resend (Stream A per ADR-025 — HTTP API replaces SMTP path)
+# GAP-508 Phase 2: pull from AWS Secrets Manager kitehub/production/resend-api-key.
+# Secret payload schema: {"api_key":"re_...","from_email":"noreply@kitehub.me","from_name":"KiteHub Beta"}
+RESEND_API_KEY=""
+AWS_SES_FROM_EMAIL_FROM_SECRET=""
+AWS_SES_FROM_NAME_FROM_SECRET=""
+if RESEND_PAYLOAD=$(fetch_secret resend-api-key 2>/dev/null); then
+  RESEND_API_KEY=$(echo "$RESEND_PAYLOAD" | jq -r .api_key 2>/dev/null || echo "")
+  AWS_SES_FROM_EMAIL_FROM_SECRET=$(echo "$RESEND_PAYLOAD" | jq -r .from_email 2>/dev/null || echo "")
+  AWS_SES_FROM_NAME_FROM_SECRET=$(echo "$RESEND_PAYLOAD" | jq -r .from_name 2>/dev/null || echo "")
+fi
+# Fail-safe: allow caller-provided env override (legacy / dev path)
+RESEND_API_KEY="${RESEND_API_KEY:-${RESEND_API_KEY_FALLBACK:-}}"
+if [[ -z "$RESEND_API_KEY" ]]; then
+  log "WARN: kitehub/production/resend-api-key not found or empty — emails will NOT deliver. See documents/05-guides/deploy/resend-provisioning-runbook.md"
+fi
+# Derive from-email/from-name with sensible fallbacks
+AWS_SES_FROM_EMAIL="${AWS_SES_FROM_EMAIL_FROM_SECRET:-${AWS_SES_FROM_EMAIL:-noreply@kitehub.me}}"
+AWS_SES_FROM_NAME="${AWS_SES_FROM_NAME_FROM_SECRET:-${AWS_SES_FROM_NAME:-KiteHub Beta}}"
 
 # Write .env file
 sudo tee "$ENV_FILE" > /dev/null <<ENVEOF
@@ -116,8 +132,10 @@ SPRING_RABBITMQ_PASSWORD=${RMQ_PASS}
 JWT_SECRET=${JWT_SECRET}
 ENCRYPTION_MASTER_KEY=${ENCRYPTION_KEY}
 
-# Email (Resend)
+# Email (Resend — Stream A per ADR-025)
 RESEND_API_KEY=${RESEND_API_KEY}
+AWS_SES_FROM_EMAIL=${AWS_SES_FROM_EMAIL}
+AWS_SES_FROM_NAME=${AWS_SES_FROM_NAME}
 
 # Region pinning
 AWS_REGION=ap-southeast-1
