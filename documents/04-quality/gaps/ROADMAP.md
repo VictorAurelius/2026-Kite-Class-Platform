@@ -20,21 +20,20 @@
 - ✅ **Live smoke verified** — `api.kitehub.me/` 502→**404**; `/auth/login` 502→**404**; `/actuator/health` 200 unchanged; TG `kitehub-kc-app-tg` returns `TargetGroupNotFound`
 - ⚠️ **GAP-370 SES re-submit needed** — API trả DENIED CaseId 177857212400418; user accept sandbox for now; needs manual investigation hoặc re-submit qua AWS Console
 
-### 🚀 Next Action (Wave 69 — Self-Test E2E Verification, rescoped 2026-05-13)
+### 🚀 Next Action (Wave 69 — Self-Test Tooling Delivery, re-rescoped 2026-05-13)
 
-**Wave 69 main scope** (rescoped — execute [`end-user/plan-1-self-test-e2e.md`](../../03-planning/end-user/plan-1-self-test-e2e.md)):
+**Wave 69 main scope** (re-rescoped — tooling delivery, user self-execute Plan 1 lần đầu):
 
-GAP-372 (invite mechanism) marked DONE per checkbox nhưng **chưa từng test thật end-to-end trên production**. Trước khi mời người dùng thật, phải self-test admin@kitehub.me toàn bộ 7 bước flow:
+GAP-372 (invite mechanism) marked DONE per checkbox nhưng **chưa từng test thật end-to-end trên production**. User chốt self-test 100% bằng tay lần đầu (có guide chi tiết) + ship Playwright scaffold cho lần re-test sau.
 
-1. Landing page `kitehub.me/` → CTA → `/auth/request-beta-access`
-2. Submit form (email cá nhân thứ 2) → BE persist beta_access_request
-3. Admin approve trong `/admin/beta-requests` → BE generate invite token
-4. Invite email delivery (path C1 SES verify-recipient hoặc C2 manual send)
-5. Signup với token → tenant provision
-6. Tạo lớp đầu tiên (core KiteClass flow)
-7. Logout + re-login persistence
+**Wave 69 deliverables (tooling, không phải execution):**
+1. **Follow-along guide** — [`end-user/plan-1-self-test-e2e.md`](../../03-planning/end-user/plan-1-self-test-e2e.md) enhanced với evidence log template + helper commands + setup checklist
+2. **Playwright scaffold** — `kitehub/kitehub-frontend/e2e/production-self-test/full-flow.spec.ts` (7 tests, `.skip`-ed by default; selectors cần calibrate sau khi user manual-run lần đầu); `playwright.config.ts` `testIgnore` để CI không pick up; README hướng dẫn run on-demand
 
-Pass/fail criteria + bug log + gap filing per `plan-1` §4-§5.
+**Post-Wave-69 (user manual execute):**
+- User chạy Plan 1 theo guide → 7 bước có kết quả pass/fail
+- Bugs found → file gap mới, fix trong wave tiếp
+- Sau khi flow stable → calibrate selectors trong `full-flow.spec.ts`, opt-in CI (hoặc giữ on-demand)
 
 **Path to invite — 2 plans + N waves remaining:**
 - ✅ Wave 67: Production seed
