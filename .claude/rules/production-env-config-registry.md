@@ -1,10 +1,10 @@
 # Production Env Config Registry — single source of truth + coverage audit
 
 **Priority:** 🟠 MANDATORY — production config governance
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Created:** 2026-05-13
 **Last-Reviewed:** 2026-05-13
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (registry doc + scan script + CI gate deferred + worked self-test on 2026-05-13 Plan 1 incident) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds coverage guard for previously-uncovered class)
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; adds §11 listing 3 new audit scripts (gateway-routes / service-ports / spring-profiles) shipped same-PR via Wave 71 Bucket E per §6.5 Enforcement Parity Mandate; no constraint loosening — extends rule coverage to architectural class-of-bug audits that detected 4 P0 production bugs Wave 71 missed by all prior audit skills. v1.0.0 (kept): new rule with built-in enforcement (registry doc + scan script + CI gate deferred + worked self-test on 2026-05-13 Plan 1 incident))
 **Applies to:** Every `application*.yml` Spring config + every `docker-compose*.yml` production env block + `scripts/fetch-secrets.sh` + AWS Secrets Manager production secret entries
 
 ---
@@ -171,6 +171,35 @@ bash scripts/audit-env-coverage.sh
 
 ---
 
-## 10. Log
+## 11. Three new audits (post-Wave-71)
+
+Per Wave 71 Bucket E (GAP-509/510/511), three audit scripts complement `audit-env-coverage.sh` (§3.2) to cover architectural class-of-bugs that surfaced during Wave 71 — `audit-env-coverage.sh` catches **env-var defaults drift**, but missed **gateway routing mismatches**, **service port collisions**, and **silently-ignored Spring profiles** (all 4 of which produced P0 production incidents in Wave 71).
+
+| Script | What it catches | When to run | Trigger paths |
+|---|---|---|---|
+| `scripts/audit-gateway-routes.sh` | Backend `@*Mapping` exposed but NO matching `kitehub-gateway` route predicate; gateway route URI hostname not in known service registry; gateway route URI points to WRONG service (e.g. `/api/v1/**` blanket forwarding kitehub endpoints to kiteclass-core) | Before any release tag; after any `application.yml` route edit; after adding a new backend controller | `kitehub/kitehub-gateway/src/main/resources/application.yml`, `kitehub/*/src/main/java/**/*Controller.java` |
+| `scripts/audit-service-ports.sh` | Spring `server.port: ${SERVER_PORT:N}` default ≠ `docker-compose.production.yml` `SERVER_PORT` env override ≠ gateway route URI port targeting that service | Before any release tag; after editing service `application.yml` `server.port` or compose `SERVER_PORT` env | `kitehub/*/src/main/resources/application.yml`, `docker-compose.production.yml`, `kitehub/kitehub-gateway/src/main/resources/application.yml` |
+| `scripts/audit-spring-profiles.sh` | `SPRING_PROFILES_ACTIVE=<profile>` env in compose with NO matching `application-<profile>.yml` file in service resources (Spring silently ignores → production overrides never load) | Before any release tag; after adding new `SPRING_PROFILES_ACTIVE` env to compose | `docker-compose.production.yml`, `kitehub/*/src/main/resources/application-*.yml` |
+
+### Run order (recommended)
+
+```bash
+bash scripts/audit-env-coverage.sh        # §3.2 — env-var defaults
+bash scripts/audit-gateway-routes.sh      # §11 — controller ↔ route ↔ service
+bash scripts/audit-service-ports.sh       # §11 — port chain consistency
+bash scripts/audit-spring-profiles.sh     # §11 — profile file existence
+```
+
+All 4 scripts exit 0 = green for production release. Any FAIL → fix before tagging.
+
+### CI gate (deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 days)
+
+Same wiring strategy as §3.3: add to `.github/workflows/script-quality.yml` after rule stabilizes. Track as follow-up GAP-509/510/511 closure.
+
+---
+
+## 12. Log
+
+- **2026-05-13 (v1.1.0):** MINOR — added §11 Three new audits (post-Wave-71) listing `audit-gateway-routes.sh` + `audit-service-ports.sh` + `audit-spring-profiles.sh` shipped same-PR via Wave 71 Bucket E. Per `rule-change-process.md` §6.5 Enforcement Parity Mandate: 3 scripts paired same-PR; CI gate wire deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 days. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds audit coverage for class-of-bugs (gateway routing / port chain / profile silence) Wave 71 audit found 4 P0 production bugs that `audit-env-coverage.sh` alone missed; no constraint loosening). Self-test: each script FAILed against pre-Wave-71 main state (gateway-routes: 27 findings = 26 wrong-service routing + 1 orphan; service-ports: 13 findings = subscription:8081/email:8084/branding:8083/admin:8083 ≠ gateway route uri :8080; spring-profiles: 5 findings = all 5 kitehub services reference `production` profile with no `application-production.yml`). Closes GAP-509/510/511 Phase 1 (scripts + rule); Phase 2 (CI wire) deferred.
 
 - **2026-05-13 (v1.0.0):** Rule created. Triggered by Plan 1 self-test CORS 403 incident — surface of 6 P0 production config gaps not caught by any audit skill. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged CORS in browser console + 5 other gaps in same audit) → Classify ✓ (no rule covers env-var production coverage) → Rule+Enforce ✓ (this file + registry doc + scan script + 3 P0 env overrides in compose paired same-PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§8 retro on 2026-05-13 incident — scan correctly identifies all 6 gaps) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint, no constraint loosening; existing services grandfathered until registry + scan PASS state achieved). CI gate deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 days; v1.0.0 enforcement = scan script + reviewer-checklist sufficient.
