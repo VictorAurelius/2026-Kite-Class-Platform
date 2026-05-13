@@ -35,7 +35,30 @@ Full evidence: [`audits/aws-verification/2026-05-13-audit-of-trust-production-in
 3. Re-run audit-of-trust pass → unblock Plan 1
 4. Phase 1.5 prep: terraform Architecture A (single t3.large) ready cho trigger gate ≥30 paying tenants
 
-### 🚀 Next Action (Wave 70 — GAP-502 P0 fix, blocks Plan 1)
+### 🚀 Next Action (Wave 71 — GAP-506 deploy-prod debt + Plan 1 self-test execute)
+
+**Wave 70 SHIPPED 2026-05-13** — GAP-502 → 🟡 PARTIAL (RC1 RabbitMQ auth + RC2 OOM functionally resolved; 4/5 services healthy; email cosmetic). 6 PRs: #1258 plan + #1259-1262 buckets A/C/D/E + #1263 GAP-504+505 fix. EC2 kh_backend t3.medium → t3.large (+$30/mo) + Step 6.5 rabbit self-heal trong deploy-prod.sh + per-service healthcheck override với correct ports + ADR-029 JVM-in-container budget rule ACCEPTED.
+
+**Wave 71 candidates (P1+P2 priority):**
+
+1. **GAP-506 Phase 1** (P1 — deploy-prod tech debt cluster):
+   - Sub-A: `bash scripts/populate-secrets.sh --yes` (one-shot, stops ephemeral rabbit cred rotation)
+   - Sub-B: Investigate kitehub-email healthcheck port (production profile actuator endpoint)
+   - Sub-C: Bash chicken-and-egg fix in deploy-prod.sh (re-exec post-pull)
+   - Sub-D: start_period 150s → 180s (safety bump)
+   - Estimated: 2-3h
+
+2. **Plan 1 self-test execute** (gated on GAP-502 closure quality):
+   - User manual run `documents/03-planning/end-user/plan-1-self-test-e2e.md`
+   - With 4/5 services healthy + email cosmetic, MAY proceed cautiously
+   - Bugs found → Wave 71 sub-scope OR Wave 72
+
+3. **Post-release downsize evaluation** (deferred ≥4 weeks):
+   - Criteria: avg MemoryUtilization <60% + zero OOM events ≥4 weeks → re-evaluate t3.large → t3.medium
+
+---
+
+### 🚀 Next Action (Wave 70 — GAP-502 P0 fix, blocks Plan 1) [HISTORICAL — Wave 70 SHIPPED]
 
 **Wave 69 main scope** (re-rescoped — tooling delivery, user self-execute Plan 1 lần đầu):
 
