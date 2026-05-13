@@ -92,10 +92,13 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    # NOTE: healthcheck deferred — service listens on 8081, actuator exposure
-    # in production profile not yet verified. Adding wget localhost:8080 healthcheck
-    # would cause unhealthy → restart loop. Track follow-up to align port + verify
-    # /actuator/health exposed before adding per-service healthcheck.
+    # Override Dockerfile HEALTHCHECK (baked in for port 8080); subscription listens on 8081 per application.yml
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 150s
     deploy:
       resources:
         limits:
@@ -113,8 +116,13 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    # NOTE: healthcheck deferred — service listens on 8083 (per application.yml).
-    # See follow-up gap on per-service healthcheck port alignment.
+    # Override Dockerfile HEALTHCHECK; branding listens on 8083 per application.yml
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 150s
     deploy:
       resources:
         limits:
@@ -130,8 +138,13 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-    # NOTE: healthcheck deferred — service listens on 8084 (per application.yml).
-    # See follow-up gap on per-service healthcheck port alignment.
+    # Override Dockerfile HEALTHCHECK; email listens on 8084 per application.yml
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8084/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 150s
     deploy:
       resources:
         limits:
@@ -147,8 +160,13 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    # NOTE: healthcheck deferred — service listens on 8083 (per application.yml).
-    # See follow-up gap on per-service healthcheck port alignment.
+    # Override Dockerfile HEALTHCHECK; admin listens on 8083 per application.yml
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 150s
     deploy:
       resources:
         limits:
