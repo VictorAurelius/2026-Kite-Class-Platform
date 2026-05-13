@@ -8,7 +8,35 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-13 — 🎉 GAP-482 DONE E2E verified — Wave 67 entry ready)
+## 🎯 Current Status Snapshot (2026-05-13 — 🎉 Wave 68 SHIPPED — kc_app TG drift fixed, 502→404 live verified)
+
+### ✅ Wave 68 SHIPPED 2026-05-13 (verification pass + bonus drift fix)
+
+- ✅ **Verification 3/3** — SES API check (DENIED CaseId 177857212400418, user accept sandbox), smoke E2E `api.kitehub.me/actuator/health` 200 + kh_backend TG healthy, audit 87/100 baseline maintained (Wave 53 refresh in 3-day freshness)
+- 🆕 **GAP-501 filed + DONE** — kc_app ALB target group drift post-Vercel pivot (502 on `/`, `/auth/*`, `/dashboard/*` via api.kitehub.me)
+- ✅ **PR #1250** — `infrastructure/terraform-aws/ec2.tf` remove 3 ALB resources (TG + attachment + listener rule); pre-mutation audit artifact filed
+- ✅ **PR #1251** — sync: GAP-501 DONE + gap-status.csv per Rule 17
+- ✅ Terraform apply user-triggered: dry-run 25783133968 + real apply 25783192647 SUCCESS (`0 add, 0 change, 3 destroy`)
+- ✅ **Live smoke verified** — `api.kitehub.me/` 502→**404**; `/auth/login` 502→**404**; `/actuator/health` 200 unchanged; TG `kitehub-kc-app-tg` returns `TargetGroupNotFound`
+- ⚠️ **GAP-370 SES re-submit needed** — API trả DENIED CaseId 177857212400418; user accept sandbox for now; needs manual investigation hoặc re-submit qua AWS Console
+
+### 🚀 Next Action (Wave 69 — final step per path-to-invite)
+
+**Wave 69 main scope:**
+1. **Rollback drill** — quarterly `bash scripts/smoke-rollback-cycle.sh --execute` per `release-deploy-standard.md` §4.3 + GAP-477; measure real TTR baseline
+2. **First beta invite execution** — per GAP-372 invite mechanism + `release-1-deploy-plan.md` §Phase 1 BETA
+3. **GAP-370 SES** — re-submit production access request OR confirm sandbox path acceptable for Phase 1 BETA initial cohort (200 send/day cap)
+
+**Path to invite — 1 wave remaining (~1-2 tuần):**
+- ✅ Wave 67: Production seed (admin user + system config)
+- ✅ Wave 68: Verification + kc_app drift fix
+- ⏳ Wave 69: Rollback drill + **first beta invite**
+
+**Parallel passive checks:**
+- GAP-412 AWS Activate — rejected ×2 per GAP-497, deprioritized
+- GAP-447 kc_app sizing — DONE per CSV (right-sizing complete; BE workload on t3.medium)
+
+### ✅ 2026-05-13 SHIPPED (post-Wave-66 follow-through)
 
 ### ✅ 2026-05-13 SHIPPED (post-Wave-66 follow-through)
 
@@ -28,23 +56,6 @@
 - ✅ **GAP-500 DONE** — Path B direct SQL seed (bypassed Spring runner per retry budget pivot)
 - ✅ Seed run 25782010115 wall-clock **52s** (vs prior 180s timeouts of Spring runner approach)
 - ✅ 7 PRs shipped: #1240/1241/1242/1243/1244/1245 (prep+retry fixes) + #1247 (Path B)
-
-### 🚀 Next Action (Wave 68 — Step C per path-to-invite)
-
-**Wave 68 main scope (next session):**
-1. GAP-370 SES production access — check status `aws sesv2 get-account --query ProductionAccessEnabled`
-2. Smoke E2E (full user flow via api.kitehub.me)
-3. Audit /100 ≥80 baseline maintained
-
-**Path to invite — 2 waves remaining (~2 tuần):**
-- Wave 68: SES + smoke + audit baseline
-- Wave 69: Rollback drill + **first beta invite**
-
-**Parallel passive checks:**
-- GAP-370 SES production access — `aws ses get-account --query 'ProductionAccessEnabled'` (form submitted 2026-05-12, AWS reply 24-48h)
-- GAP-412 AWS Activate — rejected ×2 per GAP-497, deprioritized
-
-**Wave 68:** Smoke E2E + audit /100 ≥80 baseline | **Wave 69:** Rollback drill + first invite
 
 ### ✅ Wave 66 SHIPPED (5 PRs: plan + 3 buckets + 1 vendor follow-up) — historical
 
