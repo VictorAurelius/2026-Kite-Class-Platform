@@ -20,7 +20,22 @@
 - ✅ **Live smoke verified** — `api.kitehub.me/` 502→**404**; `/auth/login` 502→**404**; `/actuator/health` 200 unchanged; TG `kitehub-kc-app-tg` returns `TargetGroupNotFound`
 - ⚠️ **GAP-370 SES re-submit needed** — API trả DENIED CaseId 177857212400418; user accept sandbox for now; needs manual investigation hoặc re-submit qua AWS Console
 
-### 🚀 Next Action (Wave 69 — Self-Test Tooling Delivery, re-rescoped 2026-05-13)
+### 🔴 BLOCKER (2026-05-13 audit-of-trust pass)
+
+**GAP-502 P0 BLOCKING filed** — kh_backend production thrashing:
+- RC1: RabbitMQ `AuthenticationFailureException ACCESS_REFUSED PLAIN` — Spring context init fail → restart loop (11 die events/1h)
+- RC2: Container OOM kills — JVM real footprint exceeds 320-480 MiB limits; GAP-447 sizing assumption (t3.medium 4GB, "1.5GB headroom") invalidated; actual headroom ~0.4 GB
+- Plan 1 self-test BLOCKED — API endpoints unstable (POST `/api/v1/beta-access/request` returns 400 empty OR 502)
+
+Full evidence: [`audits/aws-verification/2026-05-13-audit-of-trust-production-instability.md`](../audits/aws-verification/2026-05-13-audit-of-trust-production-instability.md)
+
+**Fix sequence (user-triggered, mutation):**
+1. SSH/SSM kh_backend → diagnose RabbitMQ creds vs `/etc/kite/.env` (option A) hoặc defer rabbit listener (option B)
+2. Choose JVM tune path per GAP-447 §Rollback: `MaxRAMPercentage=50.0` + upsize t3.medium → t3.large (~$60/mo, recommended) OR fixed `-Xmx` lower (perf risk)
+3. Restart stack + verify 30 min stable
+4. Re-run audit-of-trust pass → unblock Plan 1
+
+### 🚀 Next Action (Wave 70 — GAP-502 P0 fix, blocks Plan 1)
 
 **Wave 69 main scope** (re-rescoped — tooling delivery, user self-execute Plan 1 lần đầu):
 
