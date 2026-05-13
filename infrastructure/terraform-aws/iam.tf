@@ -212,12 +212,13 @@ resource "aws_iam_role_policy" "github_apply_iam_management" {
         "iam:CreatePolicyVersion", "iam:DeletePolicyVersion", "iam:ListPolicyVersions",
         "iam:GetPolicyVersion",
         "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:GetRolePolicy", "iam:ListRolePolicies",
-        "iam:PassRole", "iam:TagRole", "iam:UntagRole",
+        "iam:PassRole", "iam:TagRole", "iam:UntagRole", "iam:ListRoleTags",
         "iam:CreateInstanceProfile", "iam:DeleteInstanceProfile", "iam:GetInstanceProfile",
         "iam:AddRoleToInstanceProfile", "iam:RemoveRoleFromInstanceProfile",
+        "iam:ListInstanceProfilesForRole",
         "iam:CreateOpenIDConnectProvider", "iam:DeleteOpenIDConnectProvider",
         "iam:GetOpenIDConnectProvider", "iam:UpdateOpenIDConnectProviderThumbprint",
-        "iam:TagOpenIDConnectProvider"
+        "iam:TagOpenIDConnectProvider", "iam:ListOpenIDConnectProviderTags"
       ]
       Resource = "*"
     }]
