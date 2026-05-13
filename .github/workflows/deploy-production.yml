@@ -220,10 +220,13 @@ jobs:
               --output text 2>/dev/null || echo "unknown")
             echo "Attempt ${attempt}/48 (elapsed ${ELAPSED}s): ALB target=${TARGET_HEALTH}"
             if [ "${ELAPSED}" -ge 60 ] && [ "${TARGET_HEALTH}" = "healthy" ]; then
-              # Smoke check through ALB DNS via HTTP (HTTPS via Cloudflare; ALB direct = HTTP)
-              SMOKE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
-                "http://${{ env.ALB_DNS }}/actuator/health" 2>/dev/null || echo "000")
-              echo "Smoke ALB:80/actuator/health → HTTP ${SMOKE}"
+              # Smoke via HTTPS production endpoint (api.kitehub.me) — end-to-end
+              # what real users hit. ALB HTTP:80 listener redirects to HTTPS:443
+              # (configured per cutover); curl direct to :80 returns 301, not 200.
+              # api.kitehub.me proxied through Cloudflare → ALB:443 → kitehub-gateway.
+              SMOKE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -L \
+                "https://api.kitehub.me/actuator/health" 2>/dev/null || echo "000")
+              echo "Smoke https://api.kitehub.me/actuator/health → HTTP ${SMOKE}"
               if [ "${SMOKE}" = "200" ]; then
                 echo "::notice ::Production deploy ${{ github.event.inputs.version }} healthy ✅ (target=healthy + smoke=200 at ${ELAPSED}s)"
                 exit 0
