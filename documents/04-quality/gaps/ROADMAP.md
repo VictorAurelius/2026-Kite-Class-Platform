@@ -21,12 +21,15 @@
 - ✅ **PR #1238** — Fix smoke retry #1: HTTPS api.kitehub.me + `-L` (ALB:80 redirect to HTTPS caused 301 vs 200 mismatch)
 - ✅ **GAP-498 DONE** — E2E verified run 25777744962 ~3.5min wall-clock (vs old 8min false-timeout). All AC items checked.
 
-### 🚀 Next Action (Wave 67 entry — Step B per path-to-invite)
+### 🚀 Next Action (Wave 67 — BLOCKED on GAP-500)
 
-**Wave 67 main scope:** GAP-376 Production Data Seed (PARTIAL 80%)
-```bash
-bash scripts/seed-production.sh  # admin user + system config seeding
-```
+**🔴 BLOCKED:** Wave 67 seed flow exhausted retry budget 2026-05-13 (5 retries, 4 fixes + 1 unknown root cause). STOP-AND-REDESIGN per `release-fix-retry-budget.md` §3.
+
+**Next session entry:** GAP-500 redesign — pick Path A (Spring debug) / Path B (Flyway migration) / Path C (REST endpoint) / Path D (one-shot CLI).
+
+Recommend Path B (Flyway V35) — bypasses Spring runner complexity entirely, deterministic, ETA 1h.
+
+**Wave 67 main scope (next session):** GAP-500 redesign + GAP-376 PARTIAL → DONE on first successful seed
 
 **Parallel passive checks:**
 - GAP-370 SES production access — `aws ses get-account --query 'ProductionAccessEnabled'` (form submitted 2026-05-12, AWS reply 24-48h)
