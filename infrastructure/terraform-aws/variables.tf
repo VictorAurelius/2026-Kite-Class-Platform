@@ -135,9 +135,9 @@ variable "staging_rds_instance_class" {
 
 # --- Cost-saving scheduler (per GAP-446 / Wave 43 Bucket A) ---
 variable "enable_cost_scheduling" {
-  description = "Provision EventBridge Scheduler to stop/start EC2 + RDS off-hours (Asia/Ho_Chi_Minh). Phase 1 BETA solo-dev mode = true (saves ~$70/mo). Set false when promoting to GA / 24/7 paying tenants."
+  description = "Provision EventBridge Scheduler to stop/start EC2 + RDS off-hours (Asia/Ho_Chi_Minh). Disabled 2026-05-13 — manual stop/start via scripts/aws/{stop,start}-stack.sh preferred during active dev; scheduler auto-restart conflicted with manual stops. Re-enable when promoting to GA or when consistent off-hours pattern resumes."
   type        = bool
-  default     = true
+  default     = false
 }
 
 # --- GitHub OIDC (for terraform-plan CI workflow per GAP-397) ---
