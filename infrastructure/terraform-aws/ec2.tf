@@ -176,33 +176,12 @@ resource "aws_lb_target_group_attachment" "kh_backend" {
   port             = 8080
 }
 
-# Target group: KC app on port 3000 (Next.js)
-resource "aws_lb_target_group" "kc_app" {
-  count       = var.enable_alb ? 1 : 0
-  name        = "${var.project_name}-kc-app-tg"
-  port        = 3000
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id
-  target_type = "instance"
-
-  health_check {
-    path                = "/api/health"
-    matcher             = "200,404" # Health endpoint may not exist initially
-    interval            = 30
-    timeout             = 5
-    healthy_threshold   = 2
-    unhealthy_threshold = 3
-  }
-
-  tags = { Name = "${var.project_name}-kc-app-tg" }
-}
-
-resource "aws_lb_target_group_attachment" "kc_app" {
-  count            = var.enable_alb ? 1 : 0
-  target_group_arn = aws_lb_target_group.kc_app[0].arn
-  target_id        = aws_instance.kc_app.id
-  port             = 3000
-}
+# NOTE: kc_app TG + attachment + listener rule removed 2026-05-13 (GAP-501).
+# Reason: post-Vercel pivot (2026-05-07) — FE served by Vercel CDN at kitehub.me apex;
+# nothing listens on kc_app EC2 :3000 anymore. ALB priority-100 rule was returning
+# HTTP 502 on /, /auth/*, /dashboard/* via api.kitehub.me. Default action of HTTPS
+# listener forwards to kh_backend TG, which is the only TG api.kitehub.me needs.
+# kc_app EC2 itself stays (runs BE Java services per GAP-447 right-sizing).
 
 # HTTP listener (redirects to HTTPS if cert provided, else forwards)
 resource "aws_lb_listener" "http" {
@@ -249,20 +228,5 @@ resource "aws_lb_listener" "https" {
   }
 }
 
-# Path-based routing: /api/* -> KH backend, others -> KC app
-resource "aws_lb_listener_rule" "kc_app_default" {
-  count        = var.enable_alb ? 1 : 0
-  listener_arn = var.alb_acm_certificate_arn != null ? aws_lb_listener.https[0].arn : aws_lb_listener.http[0].arn
-  priority     = 100
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.kc_app[0].arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["/", "/_next/*", "/static/*", "/dashboard/*", "/auth/*"]
-    }
-  }
-}
+# Listener rule kc_app_default removed 2026-05-13 (GAP-501) — see header note above.
+# All paths now fall through HTTPS listener default action → kh_backend TG.
