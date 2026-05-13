@@ -21,6 +21,20 @@ const nextConfig = {
       },
     ],
   },
+  // Defense-in-depth redirects for `/auth/*` paths.
+  // Frontend routes use industry-standard top-level URLs (`/login`, `/register` etc.)
+  // — `(auth)/` is a Next.js route group (parentheses = code organization only, NOT URL segment).
+  // But external links (marketing, email templates, docs) may accidentally use `/auth/*`
+  // form per folder-name intuition. These 301 redirects prevent 404s from those typos.
+  async redirects() {
+    return [
+      { source: '/auth/login', destination: '/login', permanent: true },
+      { source: '/auth/register', destination: '/register', permanent: true },
+      { source: '/auth/beta-signup', destination: '/beta-signup', permanent: true },
+      { source: '/auth/request-beta-access', destination: '/request-beta-access', permanent: true },
+      { source: '/auth/verify-email', destination: '/verify-email', permanent: true },
+    ];
+  },
   // GAP-127 Wave 7-Perf — barrel optimization to shrink First Load JS.
   // `optimizePackageImports` enables Next.js modular re-exports for these
   // libraries so only consumed icons/components ship to the client.
