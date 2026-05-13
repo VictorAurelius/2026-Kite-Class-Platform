@@ -1,6 +1,6 @@
 # GAP-498: Deploy workflow poll redesign — track ALB target health instead of SSM Status field
 
-**Status:** 🟡 PARTIAL 90% — code shipped (workflow + IAM); E2E verification gated on next deploy
+**Status:** 🟢 DONE 2026-05-13 — Path B redesign E2E verified via deploy run 25777744962. Attempt 16/48 (elapsed 210s, ~3.5 min wall-clock) ALB target=healthy + smoke `https://api.kitehub.me/actuator/health` HTTP 200 → workflow success. Vs old SSM Status field poll: 8-min false-timeout failure. AC items all checked.
 **Priority:** 🟡 P2 (non-blocking — deploy IS functional; workflow gate is the false signal)
 **Domain:** DevOps / CI
 **Found:** 2026-05-13 (deploy run 25776387051 false-failure)
@@ -82,6 +82,18 @@ Replace SSM Status polling with **independent ALB target health + curl smoke** v
 
 ## Log
 
+- **2026-05-13 (🟢 DONE — E2E verified):** Deploy run [25777744962](https://github.com/VictorAurelius/2026-Kite-Class-Platform/actions/runs/25777744962) on v0.9.0-beta-staging.11 (same image, redeploy to validate new poll logic):
+  - Attempt 16/48 (elapsed 210s, ~3.5 min wall-clock) → ALB target `i-05d7af46d01436b96` flipped `unhealthy` → `healthy`
+  - Smoke `https://api.kitehub.me/actuator/health` → **HTTP 200**
+  - Workflow exit 0 with `🎉 Production deploy v0.9.0-beta-staging.11 SUCCESS`
+  - Wall-clock comparison: redesigned poll ~3.5 min vs old SSM Status field poll 8-min false-timeout (2026-05-13 run 25776387051)
+  - Sister bug surfaced + fixed retry #1: ALB HTTP:80 returns 301 redirect (PR #1238 — smoke via HTTPS api.kitehub.me + `-L`); single-line fix bounded root cause, within `release-fix-retry-budget.md` §1
+  - All AC items checked:
+    - [x] Poll step replaced with ALB target health + smoke (PR #1237)
+    - [x] CloudWatch log interleave preserved
+    - [x] FAIL marker early-exit preserved
+    - [x] IAM policy verified (`AlbTargetHealthForDeployPoll` Sid live in github_deploy role)
+    - [x] Next deploy completes within ~3-5 min on success path (210s = 3.5 min)
 - **2026-05-13 (PARTIAL 90% — code shipped):** PR #1237 ships Path B redesign:
   - `deploy-production.yml` Poll step replaced: ALB target health + smoke 200 as success criteria (≥60s elapsed + state=healthy + curl `/actuator/health` = 200)
   - Preserved: CloudWatch log interleave (GAP-491) + FAIL marker early-exit (PR #1235)
