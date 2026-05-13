@@ -35,7 +35,35 @@ Full evidence: [`audits/aws-verification/2026-05-13-audit-of-trust-production-in
 3. Re-run audit-of-trust pass → unblock Plan 1
 4. Phase 1.5 prep: terraform Architecture A (single t3.large) ready cho trigger gate ≥30 paying tenants
 
-### 🚀 Next Action (Plan 1 Bước 3-7 execute — infrastructure ready)
+### 🚀 Next Action (Wave 71c — meta + auth hardening bundle, P0)
+
+**Wave 71b "verify live" was incomplete** — claimed DONE at curl-level (HTTP 201) without walking user-facing flow. User-flagged 2 cascading bugs at Plan 1 Bước 4 attempt: (1) no UI nav button to /admin/beta-requests, (2) BE seed role `PLATFORM_ADMIN` vs FE role-guard `'ADMIN'` → admin UI 100% unusable in production. Plus parallel meta audit per `pre-launch-auth-hardening-checklist.md` v1.0.0 surfaced 5 confirmed + 3 likely OWASP A07 gaps that security-audit skill at 87/100 score missed.
+
+**Wave 71c P0 (must close before any Plan 1 Bước 3-7 retry):**
+
+1. **GAP-518** BE seed `PLATFORM_ADMIN` vs FE guard `'ADMIN'` mismatch — admin UI unusable (Option B: FE accept both)
+2. **GAP-514** Auth endpoints missing gateway rate limit — 6 endpoints unprotected
+3. **GAP-515** Account lockout missing — 0 failedLoginAttempts mechanism
+
+**Wave 71c P1 (post-P0 cleanup, ≤2 weeks):**
+
+4. **GAP-519** Admin dashboard nav sidebar missing links
+5. **GAP-520** JWT signing secret rotation runbook + dual-key support
+6. **GAP-521** Admin action audit log (PDPL compliance overlap)
+7. **GAP-516** 2FA TOTP mandatory for PLATFORM_ADMIN
+
+**Wave 71c P2:**
+
+8. **GAP-517** PLATFORM_ADMIN login alert from new IP/UA
+
+**Meta fixes shipped same wave (this PR):**
+
+- New rule `pre-handoff-self-test-completeness.md` v1.0.0 — mandates flow-level verify before DONE flip
+- New rule `pre-launch-auth-hardening-checklist.md` v1.0.0 — 8 OWASP A07 mandatory checks
+- `security-audit/SKILL.md` rubric extended Category 4 binds to auth-hardening rule + adds "bug-finding > scoring" primacy section
+- Admin password for self-test logged in 2026-05-13 closure summary (rotate after Wave 71c P0 close)
+
+**Plan 1 Bước 3-7 BLOCKED on Wave 71c P0** — user cannot self-test admin approve/reject until GAP-518 fixed.
 
 **Wave 71b SHIPPED 2026-05-13** — Gateway routing scope extension (PR #1276 + tag `v0.9.0-beta-staging.13` deployed). GAP-512 → 🟢 DONE (3-path live verify: admin/beta-requests 401, consent/record 400, branding/slug-availability 200). GAP-513 Resend → 🟢 DONE (AWS Secret populated, SSM verify RESEND_API_KEY length=35 prefix=re_ho in kitehub-email container).
 

@@ -26,15 +26,28 @@ grep -rn "localhost\|127\.0\.0\.1\|0\.0\.0\.0" --include="*.java" --include="*.y
   kiteclass/*/src/main/ kitehub/*/src/main/ | head -20
 ```
 
-### 2. Score 5 Categories
+### 2. Primacy: bug-finding > scoring (BLOCKING)
 
-| # | Category (20pts) | Key Checks |
-|---|-----------------|------------|
-| 1 | **Dependency Vulnerabilities** | npm audit critical/high count, Maven dep versions |
-| 2 | **Secrets & Credentials** | No hardcoded secrets, .env gitignored, rotation policy |
-| 3 | **OWASP Top 10** | XSS/SQLi/CSRF/SSRF guards per Wave 4 defense-in-depth |
-| 4 | **Auth & Access Control** | JWT validation, role checks, rate limiting, session mgmt |
+> **An audit's purpose is to surface bugs the dev team cannot trust other layers to catch. A high score with hidden P0 bugs is WORSE than a low score that lists every finding honestly.** Per Wave 71b incident (87/100 score missed 5 P0 OWASP A07 gaps), the previous rubric averaged sub-checks within a 20-pt category, which let major gaps hide behind passing sub-checks. New rubric: per-check pass/fail; any P0/P1 fail in any check = audit FAIL regardless of total.
+
+Rules for every audit run:
+1. Enumerate ALL §3 sub-checks. NEVER skip one because "obviously fine."
+2. Each sub-check returns: PASS / FAIL / N/A-with-reason. No "partial credit."
+3. Final output starts with a **bug list** (every FAIL surfaces) BEFORE the score.
+4. Score is descriptive only; the bug list is the deliverable.
+5. If audit time-budget runs out, leave remaining sub-checks marked `❓ UNCHECKED` — do NOT mark PASS by default. Coordinator decides whether to defer.
+
+### 3. Score 5 Categories with per-check rubric
+
+| # | Category (20pts) | Per-check rubric file |
+|---|-----------------|------------------------|
+| 1 | **Dependency Vulnerabilities** | `reference/scoring-guide.md` §1 + `npm audit` + `mvn dependency-check` |
+| 2 | **Secrets & Credentials** | `reference/scoring-guide.md` §2 + git pickaxe + AWS Secrets Manager inventory |
+| 3 | **OWASP Top 10 (A01-A06, A08-A10)** | `reference/scoring-guide.md` §3 per OWASP item |
+| 4 | **Auth & Access Control (OWASP A07)** | **`pre-launch-auth-hardening-checklist.md` §2 (8 sub-checks, per-check pass/fail)** |
 | 5 | **Infrastructure Security** | TLS config, CORS, CSP, Docker non-root, k8s security context |
+
+Category 4 binds to `pre-launch-auth-hardening-checklist.md` — Wave 71c rule that enumerates rate-limit, lockout, password-complexity, 2FA-admin, login-alerts, JWT-rotation, admin-audit-log, refresh-rotation. Any 1 FAIL = category FAIL.
 
 Scoring details: `reference/scoring-guide.md`
 
