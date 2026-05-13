@@ -8,7 +8,30 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-12 — 🎉 PHASE 1 BETA infra LIVE + Wave 66 P0 cluster shipped — 6 P0 gaps closed/advanced)
+## 🎯 Current Status Snapshot (2026-05-13 — 🎉 GAP-482 DONE E2E verified — Wave 67 entry ready)
+
+### ✅ 2026-05-13 SHIPPED (post-Wave-66 follow-through)
+
+- ✅ **PR #1233** — Disable cost-saving EventBridge scheduler (`enable_cost_scheduling=false` default; resolves manual stop vs auto-restart conflict)
+- ✅ **PR #1234** — IAM apply role: +`iam:ListInstanceProfilesForRole` +`iam:ListRoleTags` +`iam:ListOpenIDConnectProviderTags` (terraform AWS provider IAM Read coverage)
+- ✅ **PR #1235** — ECR lifecycle preserve version tags + SSM poll early-exit on FAIL log markers + docker-build-push sha-conditional on tag events (3 sister bugs)
+- ✅ **GAP-482 DONE** — Deploy E2E verified via run 25776387051 on `v0.9.0-beta-staging.11`: ALB 200, target healthy, 5 containers Started
+- 🆕 **GAP-498 filed** — Deploy workflow poll redesign (ALB target health vs SSM Status field) — P2 non-blocking, deploy IS functional; pivot per `release-fix-retry-budget.md` §3
+
+### 🚀 Next Action (Wave 67 entry — Step B per path-to-invite)
+
+**Wave 67 main scope:** GAP-376 Production Data Seed (PARTIAL 80%)
+```bash
+bash scripts/seed-production.sh  # admin user + system config seeding
+```
+
+**Parallel passive checks:**
+- GAP-370 SES production access — `aws ses get-account --query 'ProductionAccessEnabled'` (form submitted 2026-05-12, AWS reply 24-48h)
+- GAP-412 AWS Activate — rejected ×2 per GAP-497, deprioritized
+
+**Wave 68:** Smoke E2E + audit /100 ≥80 baseline | **Wave 69:** Rollback drill + first invite
+
+### ✅ Wave 66 SHIPPED (5 PRs: plan + 3 buckets + 1 vendor follow-up) — historical
 
 ### ✅ Wave 66 SHIPPED (5 PRs: plan + 3 buckets + 1 vendor follow-up)
 
