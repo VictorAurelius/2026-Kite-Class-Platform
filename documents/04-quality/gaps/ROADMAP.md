@@ -20,21 +20,37 @@
 - ✅ **Live smoke verified** — `api.kitehub.me/` 502→**404**; `/auth/login` 502→**404**; `/actuator/health` 200 unchanged; TG `kitehub-kc-app-tg` returns `TargetGroupNotFound`
 - ⚠️ **GAP-370 SES re-submit needed** — API trả DENIED CaseId 177857212400418; user accept sandbox for now; needs manual investigation hoặc re-submit qua AWS Console
 
-### 🚀 Next Action (Wave 69 — final step per path-to-invite)
+### 🚀 Next Action (Wave 69 — Self-Test E2E Verification, rescoped 2026-05-13)
 
-**Wave 69 main scope:**
-1. **Rollback drill** — quarterly `bash scripts/smoke-rollback-cycle.sh --execute` per `release-deploy-standard.md` §4.3 + GAP-477; measure real TTR baseline
-2. **First beta invite execution** — per GAP-372 invite mechanism + `release-1-deploy-plan.md` §Phase 1 BETA
-3. **GAP-370 SES** — re-submit production access request OR confirm sandbox path acceptable for Phase 1 BETA initial cohort (200 send/day cap)
+**Wave 69 main scope** (rescoped — execute [`end-user/plan-1-self-test-e2e.md`](../../03-planning/end-user/plan-1-self-test-e2e.md)):
 
-**Path to invite — 1 wave remaining (~1-2 tuần):**
-- ✅ Wave 67: Production seed (admin user + system config)
+GAP-372 (invite mechanism) marked DONE per checkbox nhưng **chưa từng test thật end-to-end trên production**. Trước khi mời người dùng thật, phải self-test admin@kitehub.me toàn bộ 7 bước flow:
+
+1. Landing page `kitehub.me/` → CTA → `/auth/request-beta-access`
+2. Submit form (email cá nhân thứ 2) → BE persist beta_access_request
+3. Admin approve trong `/admin/beta-requests` → BE generate invite token
+4. Invite email delivery (path C1 SES verify-recipient hoặc C2 manual send)
+5. Signup với token → tenant provision
+6. Tạo lớp đầu tiên (core KiteClass flow)
+7. Logout + re-login persistence
+
+Pass/fail criteria + bug log + gap filing per `plan-1` §4-§5.
+
+**Path to invite — 2 plans + N waves remaining:**
+- ✅ Wave 67: Production seed
 - ✅ Wave 68: Verification + kc_app drift fix
-- ⏳ Wave 69: Rollback drill + **first beta invite**
+- ⏳ **Wave 69:** Plan 1 self-test E2E (verify code path)
+- ⏳ Wave 70+: Plan 2 (real cohort outreach + first invites) — chỉ execute sau khi Plan 1 SHIPPED
+- ⏳ Wave 70+: Plan 3 (rollback drill quarterly execute) — parallel với Plan 2
+
+**Deferred (out of Wave 69 scope):**
+- Rollback drill quarterly execute → Plan 3 (separate wave)
+- First beta invite real cohort → Plan 2 (gated on Plan 1 SHIPPED)
+- GAP-370 SES re-submit → parallel passive action (không block Wave 69)
 
 **Parallel passive checks:**
 - GAP-412 AWS Activate — rejected ×2 per GAP-497, deprioritized
-- GAP-447 kc_app sizing — DONE per CSV (right-sizing complete; BE workload on t3.medium)
+- GAP-447 kc_app sizing — DONE per CSV (right-sizing complete)
 
 ### ✅ 2026-05-13 SHIPPED (post-Wave-66 follow-through)
 
