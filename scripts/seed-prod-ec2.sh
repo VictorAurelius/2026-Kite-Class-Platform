@@ -65,9 +65,13 @@ EOF
 PRE_RESTART_TS=$(date -u +%s)
 log "Pre-restart timestamp: $PRE_RESTART_TS"
 
-# 5. Restart kitehub-subscription
-log "Restarting $SERVICE (Spring boot cold start ~60s)..."
-sudo docker compose -f "$COMPOSE_FILE" restart "$SERVICE"
+# 5. Recreate kitehub-subscription (force re-read /etc/kite/.env env_file)
+# NOTE: `docker compose restart` does NOT reload env_file — container keeps
+# stale env from original `up`. `up -d --no-deps --force-recreate` recreates
+# the service with fresh env from /etc/kite/.env (where we just appended
+# KITE_SEED_*). --no-deps avoids restarting redis/rabbitmq dependencies.
+log "Recreating $SERVICE (force re-read /etc/kite/.env; Spring cold start ~60s)..."
+sudo docker compose -f "$COMPOSE_FILE" up -d --no-deps --force-recreate "$SERVICE"
 
 # 6. Wait for seed completion marker (only logs POST-restart count)
 log "Polling for marker '$COMPLETE_MARKER' (timeout ${SEED_TIMEOUT_S}s)..."
