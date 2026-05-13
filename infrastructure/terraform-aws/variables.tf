@@ -46,9 +46,9 @@ variable "enable_nat_gateway" {
 
 # --- EC2 (Architecture B: 2 instances replace EKS) ---
 variable "kh_backend_instance_type" {
-  description = "EC2 instance type for KiteHub backend cluster (5 KH services + redis + rabbitmq + gateway). Phase 1 BETA: t3.medium 4GB (~$30/mo) — right-sized 2026-05-08 per GAP-447. Compose budget ~3.2GB peak (docker-compose.production.yml §13-19) → 800MB headroom. Previously m7i-flex.large 8GB (PR #1031) was over-correction after t3.micro 1GB OOM cascade #1031; t3.medium per GAP-411 sizing matrix is the right shape. OOM safety net: CloudWatch MemoryUtilization >85% alarm + JVM heap tune → t3.large → m7i-flex.large rollback escalation."
+  description = "EC2 instance type for KiteHub backend cluster (5 KH services + redis + rabbitmq + gateway). Phase 1 BETA: t3.large 8GB (~$60/mo) — UPSIZED 2026-05-13 per GAP-502 RC2 OOM evidence (11 container die/1h on t3.medium; GAP-447 sizing assumption invalidated). Compose budget ~3.0GB peak post Wave 70 Bucket C JVM tune (kitehub-* mem_limit total 2944 MiB) + 1.5GB headroom for GC/spike. Sizing history: t3.micro (OOM cascade #1031) → m7i-flex.large (over-correction PR #1031) → t3.medium (PR #1032 right-size GAP-447) → t3.large (Wave 70 GAP-502 escalation). Post-release downsize evaluation tracked separately (criteria: ≥4 weeks stability + avg MemoryUtilization <60% + zero OOM events → consider t3.large → t3.medium)."
   type        = string
-  default     = "t3.medium"
+  default     = "t3.large"
 }
 
 variable "kc_app_instance_type" {

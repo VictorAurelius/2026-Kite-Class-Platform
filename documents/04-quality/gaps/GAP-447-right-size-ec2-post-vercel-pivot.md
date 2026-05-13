@@ -87,6 +87,7 @@ Right-size + stop/start = combined saving:
 
 ## Log
 
+- **2026-05-13:** Wave 70 GAP-502 revisit. Original "right-size t3.medium" assumption invalidated by production OOM evidence (11 container die/1h, Wave 69 audit-of-trust). kh_backend upsized t3.medium → t3.large (+$30/mo). kc_app stays t3.medium. Status STAYS PARTIAL: original right-sizing decision retained for kc_app; kh_backend escalation per built-in OOM-safety-net rollback path (variable description §"escalation: → t3.large → m7i-flex.large"). Post-release downsize evaluation deferred to follow-up gap (criteria: ≥4 weeks stability + avg MemoryUtilization <60% + zero OOM → consider re-downsize).
 - **2026-05-12** (Wave 66 Bucket Z — PARTIAL exit-ramp clarification per `gap-done-discipline.md` §3): Re-scoped remaining items into 3 categories:
   1. **kh_backend right-size** — ✅ DONE 2026-05-08 (t3.medium in-place modify; Phase 1 BETA cost goal achieved $120 → $60/mo EC2)
   2. **kc_app drift** — tracked separately in GAP-450 (not Wave 66 scope; ship when Phase 7 resumes)
