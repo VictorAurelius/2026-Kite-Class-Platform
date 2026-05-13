@@ -108,6 +108,9 @@ jobs:
           INSTANCE_ID: ${{ steps.ec2_lookup.outputs.instance_id }}
           SEED_TIMEOUT_S: ${{ github.event.inputs.timeout_seconds }}
         run: |
+          # Step 1: ensure /opt/kite-prod is at latest main (EC2 cloned at boot
+          # per GAP-483 ec2_user_data, but new scripts merged post-deploy require
+          # git pull to land on EC2). Composite command: pull → run seed script.
           COMMAND_ID=$(aws ssm send-command \
             --region "${AWS_REGION}" \
             --instance-ids "${INSTANCE_ID}" \
@@ -115,7 +118,7 @@ jobs:
             --comment "Wave 67 production seed" \
             --timeout-seconds 600 \
             --cloud-watch-output-config "CloudWatchLogGroupName=/aws/ssm/kite-deploy,CloudWatchOutputEnabled=true" \
-            --parameters commands="sudo SEED_TIMEOUT_S=${SEED_TIMEOUT_S} bash /opt/kite-prod/scripts/seed-prod-ec2.sh" \
+            --parameters commands="sudo bash -c 'cd /opt/kite-prod && git fetch --quiet origin main && git reset --hard origin/main && SEED_TIMEOUT_S=${SEED_TIMEOUT_S} bash /opt/kite-prod/scripts/seed-prod-ec2.sh'" \
             --query 'Command.CommandId' --output text)
           echo "command_id=$COMMAND_ID" >> "$GITHUB_OUTPUT"
           echo "::notice ::SSM command: $COMMAND_ID"
