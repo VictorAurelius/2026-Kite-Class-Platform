@@ -76,6 +76,30 @@ resource "aws_secretsmanager_secret_version" "encryption" {
   secret_string = base64encode(random_password.encryption_raw.result)
 }
 
+# --- Seed admin password (GAP-499: Wave 67 production seed prerequisite) ---
+# Generated random password for PLATFORM_ADMIN user inserted by ProductionSeedRunner.
+# User rotates manually post-cutover per secrets-rotation-runbook.md.
+# GAP-450 Option B: ignore_changes — same rationale as jwt/encryption above.
+resource "random_password" "seed_admin" {
+  length  = 32
+  special = true
+  lifecycle {
+    ignore_changes = [result, length, special, lower, upper, numeric, min_lower, min_upper, min_numeric, min_special, override_special, keepers]
+  }
+}
+
+resource "aws_secretsmanager_secret" "seed_admin_password" {
+  name                    = "${var.project_name}/${var.environment}/seed-admin-password"
+  description             = "Initial password for PLATFORM_ADMIN user seeded by ProductionSeedRunner (rotate post-cutover)"
+  recovery_window_in_days = 7
+  tags                    = { Name = "${var.project_name}-seed-admin-password" }
+}
+
+resource "aws_secretsmanager_secret_version" "seed_admin_password" {
+  secret_id     = aws_secretsmanager_secret.seed_admin_password.id
+  secret_string = random_password.seed_admin.result
+}
+
 # --- Placeholder secrets (filled by user post-apply via AWS console) ---
 # These are CREATED but EMPTY — user populates with real values.
 locals {

@@ -18,7 +18,7 @@
 #   SEED_ADMIN_PASSWORD       <secret — sourced from secrets manager per GAP-379>
 #
 # Optional:
-#   SEED_ADMIN_EMAIL          default admin@kitehub.vn
+#   SEED_ADMIN_EMAIL          default admin@kitehub.me  (Path C per GAP-458/497)
 #   JAVA_OPTS                 forwarded to the spring-boot run
 #   KITE_SUBSCRIPTION_JAR     path to the built jar (default kitehub/kitehub-subscription/target/*.jar)
 #
@@ -66,7 +66,7 @@ fi
 
 log "env validation: OK (4 required vars present)"
 
-ADMIN_EMAIL="${SEED_ADMIN_EMAIL:-admin@kitehub.vn}"
+ADMIN_EMAIL="${SEED_ADMIN_EMAIL:-admin@kitehub.me}"
 log "admin email target: ${ADMIN_EMAIL}"
 
 # 2. DB connectivity check (best-effort — uses pg_isready if available)
