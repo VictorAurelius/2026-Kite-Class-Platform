@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "ignoreCommand": "git diff --quiet $VERCEL_GIT_PREVIOUS_SHA HEAD -- :/kitehub/kitehub-frontend :/packages/shared-ui :/pnpm-lock.yaml :/package.json && exit 0 || exit 1",
+  "//ignoreCommand-note": "GAP-506 mitigation 2026-05-13: free-tier api-deployments-free-per-day 100/day exhausted by auto-deploys. Auto-deploy DISABLED via exit 0. Manual deploy: vercel redeploy <preview-url> --target=production. Previous path-filter kept as ref: git diff --quiet $VERCEL_GIT_PREVIOUS_SHA HEAD -- :/kitehub/kitehub-frontend :/packages/shared-ui :/pnpm-lock.yaml :/package.json && exit 0 || exit 1",
+  "ignoreCommand": "exit 0",
   "github": {
     "silent": true,
     "autoAlias": false
