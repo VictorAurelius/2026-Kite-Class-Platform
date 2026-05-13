@@ -35,25 +35,33 @@ Full evidence: [`audits/aws-verification/2026-05-13-audit-of-trust-production-in
 3. Re-run audit-of-trust pass → unblock Plan 1
 4. Phase 1.5 prep: terraform Architecture A (single t3.large) ready cho trigger gate ≥30 paying tenants
 
-### 🚀 Next Action (Wave 71 — GAP-506 deploy-prod debt + Plan 1 self-test execute)
+### 🚀 Next Action (Wave 71b — gateway routing scope extension + GAP-513 Resend manual provisioning)
 
-**Wave 70 SHIPPED 2026-05-13** — GAP-502 → 🟡 PARTIAL (RC1 RabbitMQ auth + RC2 OOM functionally resolved; 4/5 services healthy; email cosmetic). 6 PRs: #1258 plan + #1259-1262 buckets A/C/D/E + #1263 GAP-504+505 fix. EC2 kh_backend t3.medium → t3.large (+$30/mo) + Step 6.5 rabbit self-heal trong deploy-prod.sh + per-service healthcheck override với correct ports + ADR-029 JVM-in-container budget rule ACCEPTED.
+**Wave 71 SHIPPED 2026-05-13** — Pre-launch hardening (5 PRs #1269-#1273; tag `v0.9.0-beta-staging.12` deployed). GAP-509/510/511 → 🟢 DONE. GAP-508 Phase 2 → BE ready, user-action remaining. Plan 1 Bước 2 **VERIFIED LIVE: HTTP 201 + DB row id=1 PENDING** via api.kitehub.me from kitehub.me Origin.
 
-**Wave 71 candidates (P1+P2 priority):**
+**Wave 71b candidates (P0 — Plan 1 BETA blockers):**
 
-1. **GAP-506 Phase 1** (P1 — deploy-prod tech debt cluster):
-   - Sub-A: `bash scripts/populate-secrets.sh --yes` (one-shot, stops ephemeral rabbit cred rotation)
-   - Sub-B: Investigate kitehub-email healthcheck port (production profile actuator endpoint)
-   - Sub-C: Bash chicken-and-egg fix in deploy-prod.sh (re-exec post-pull)
-   - Sub-D: start_period 150s → 180s (safety bump)
-   - Estimated: 2-3h
+1. **GAP-512 gateway routing scope extension** (P0 — Bucket E audit surfaced 22 wrong-service routings + 1 orphan):
+   - `/api/v1/consent` `/api/v1/dsar` `/api/v1/notification-preferences` `/api/v1/branding/**` catch-all → kiteclass-core (kitehub controllers mis-routed)
+   - `/api/v1/admin/beta-requests/**` — Bucket A routed to kitehub-admin BUT controller lives in kitehub-subscription (Bucket A scope-creep bug)
+   - `/api/platform/admin/emails+instances/**` — kitehub-admin catch-all forwards kitehub-subscription endpoints to wrong service
+   - Orphan: `/api/instances/{id}/domain/verify` (no route)
+   - Detector: `bash scripts/audit-gateway-routes.sh` exit 0
+   - Estimated: 3-4h
 
-2. **Plan 1 self-test execute** (gated on GAP-502 closure quality):
-   - User manual run `documents/03-planning/end-user/plan-1-self-test-e2e.md`
-   - With 4/5 services healthy + email cosmetic, MAY proceed cautiously
-   - Bugs found → Wave 71 sub-scope OR Wave 72
+2. **GAP-513 Resend manual provisioning** (P0 user-action — unblock Plan 1 Bước 5 email send):
+   - Per `documents/05-guides/deploy/resend-provisioning-runbook.md`
+   - User-action: Resend account + domain verify DKIM/SPF/DMARC + AWS Secret populate
+   - BE infrastructure ready (fetch-secrets.sh pulls `kitehub/production/resend-api-key`)
 
-3. **Post-release downsize evaluation** (deferred ≥4 weeks):
+3. **Plan 1 remaining Bước 3-7** (gated on GAP-512 + GAP-513):
+   - Bước 3 verify-email, Bước 4 admin approve/reject, Bước 5 email send, Bước 6 tenant onboarding, Bước 7 dashboard
+
+4. **GAP-506 Phase 1** (P1 — deploy-prod tech debt cluster, defer behind 71b):
+   - Bash chicken-and-egg fix in deploy-prod.sh (re-exec post-pull)
+   - start_period 150s → 180s (safety bump)
+
+5. **Post-release downsize evaluation** (deferred ≥4 weeks):
    - Criteria: avg MemoryUtilization <60% + zero OOM events ≥4 weeks → re-evaluate t3.large → t3.medium
 
 ---
