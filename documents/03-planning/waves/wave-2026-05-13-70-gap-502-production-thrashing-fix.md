@@ -1,6 +1,6 @@
 ---
 title: Wave 70 — GAP-502 production thrashing fix (RC1 cred sync + RC2 sizing/JVM)
-status: draft
+status: complete
 created: 2026-05-13
 updated: 2026-05-13
 waves: [70]
@@ -197,3 +197,14 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ## 8. Log
 
 - **2026-05-13 (draft):** Plan created post Wave 69 audit-of-trust closure. User chốt RC1 Option A (cred sync) + RC2 Sub-A+B (JVM tune + t3.large upsize) + post-release downsize evaluation. 4 buckets parallel code-prep + sequential live ops per `concurrent-production-mutation-ops.md`.
+
+- **2026-05-13 (complete):** Wave 70 SHIPPED. 6 PRs merged total: plan #1258, code-prep A/C/D/E (#1259/1260/1261/1262), follow-up fix #1263 (GAP-504+505). Live ops executed end-to-end this session: terraform-apply.yml run 25788727856 (t3.medium → t3.large success) + 3 SSM cred sync rounds (5 ephemeral rabbit users generated due to GAP-506 chicken-and-egg) + deploy-production.yml runs 25789336481 + 25790657079 + 25791611463 (3rd ran Step 6.5 self-heal correctly per logs). RC1 (rabbit auth) ✅ RESOLVED. RC2 (OOM) ✅ RESOLVED (host mem 7.8GB / 5.6GB free post-upsize). 4/5 services healthy + zero auth + zero OOM + 5/5 API valid responses. Outcomes:
+  - GAP-502 → 🟡 PARTIAL (email service unhealthy cosmetic; functional)
+  - GAP-447 → revisited (ADR-029 + variable description)
+  - GAP-504 (rabbit self-heal in deploy-prod.sh) → DONE
+  - GAP-505 (per-service healthcheck port override) → DONE
+  - GAP-506 (deploy-prod tech debt: chicken-and-egg + ephemeral cred + start_period + email port) → FILED OPEN P1
+  - ADR-029 ACCEPTED (JVM-in-container memory budget rule)
+  - Rule applied first time end-to-end: `agent-aws-access.md` Tier 3 carve-out via workflow_dispatch + ad-hoc Step 6.5 in scripted location
+  - Rule violations observed during live ops (raw `docker` via SSM) → tracked GAP-506 Phase 3
+  - Post-release downsize evaluation deferred (criteria: ≥4 weeks stable + avg MemoryUtilization <60% → consider t3.large → t3.medium)

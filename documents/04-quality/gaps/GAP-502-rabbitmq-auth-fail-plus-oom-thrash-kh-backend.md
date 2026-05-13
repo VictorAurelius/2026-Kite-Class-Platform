@@ -1,6 +1,6 @@
 # GAP-502: kh_backend production thrashing — RabbitMQ auth fail + container OOM kills
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — RC1 + RC2 root causes resolved Wave 70 (2026-05-13); 4/5 services healthy + zero auth errors + zero OOM + API 5/5 valid; remaining: kitehub-email healthcheck port mismatch + 3 deploy-prod tech debt items (GAP-506)
 **Priority:** 🔴 P0 BLOCKING (Phase 1 BETA launch — Java services in restart loop; Plan 1 self-test cannot execute; cohort onboarding impossible)
 **Domain:** DevOps / Infrastructure / Backend
 **Found:** 2026-05-13 (audit-of-trust pass during Wave 69)
@@ -142,5 +142,16 @@ Recommend Sub-A + Sub-B combo: ergonomic JVM + adequate budget. Cost +$30/mo acc
 - **Memory:** Will create `feedback_jvm_container_memory_sizing.md` post-fix với JVM-in-container budget calc rule
 
 ## Log
+
+- **2026-05-13 (later):** Wave 70 SHIPPED — RC1 + RC2 functionally resolved. 5 PRs merged: plan #1258, A runbook #1259, C compose #1260, D terraform #1261, E ADR-029 #1262, follow-up #1263 (GAP-504+505 fix). Live ops executed end-to-end via session (terraform-apply.yml + deploy-production.yml + SSM cred sync). Final state: t3.large active (host mem 7.8GB, 5.6GB free), zero OOM events, all 5 services Spring `Started` (67-132s), 4/5 healthy (only email unhealthy — port 8084 healthcheck endpoint issue tracked GAP-506), zero auth errors 90s window, 5/5 API requests → HTTP 400 valid, zero die events 3min. AC partial:
+  - [x] RC1 fixed (Step 6.5 self-heal in deploy-prod.sh + per-deploy `rabbitmqctl add_user`)
+  - [x] RC2 fixed (t3.large + JVM `MaxRAMPercentage=50.0` + mem_limit bumped 320/480 → 512/640)
+  - [⚠️] All 5 Up `(healthy)` ≥30 min — 4/5 ✅, kitehub-email unhealthy (cosmetic; service functional)
+  - [x] API reliability (5/5 valid responses)
+  - [x] Trigger identified (deploy-prod.sh fetch-secrets ephemeral cred fallback + bash chicken-and-egg)
+  - [x] GAP-447 sizing revisited (ADR-029 + variable description)
+  - [⚠️] Plan 1 re-runnable — surface alive, but email service unhealthy may affect email-related Plan 1 paths
+  
+  Status flipped 🟡 PARTIAL not 🟢 DONE per `gap-done-discipline.md` §1. Follow-up GAP-506 tracks: (a) bash chicken-and-egg in deploy-prod.sh, (b) populate-secrets.sh need (stop ephemeral cred rotation), (c) start_period 150s → 180s safety bump, (d) kitehub-email healthcheck root-cause investigation.
 
 - **2026-05-13:** Filed during Wave 69 audit-of-trust pass. User asked "đã sẵn sàng cho beta user test full flow chưa?" → audit surfaced production thrashing not visible via `/actuator/health` 200 alone. 2 root causes documented (RabbitMQ auth + OOM); fix path matrix Phase 1/2/3 outlined; Plan 1 BLOCKED until GAP-502 satisfied.
