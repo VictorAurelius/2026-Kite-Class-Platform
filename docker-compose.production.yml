@@ -85,71 +85,95 @@ services:
     image: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/kitehub-subscription:${KITE_VERSION}
     container_name: kitehub-subscription
     environment:
-      JAVA_OPTS: "-Xmx384m -Xms192m -XX:+UseSerialGC"
+      JAVA_OPTS: "-XX:MaxRAMPercentage=50.0 -XX:+UseContainerSupport -XX:+UseSerialGC"
       SPRING_PROFILES_ACTIVE: production
     depends_on:
       redis:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
     deploy:
       resources:
         limits:
-          memory: 480M
+          memory: 640M
 
   kitehub-branding:
     <<: *kh-service-defaults
     image: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/kitehub-branding:${KITE_VERSION}
     container_name: kitehub-branding
     environment:
-      JAVA_OPTS: "-Xmx384m -Xms192m -XX:+UseSerialGC"
+      JAVA_OPTS: "-XX:MaxRAMPercentage=50.0 -XX:+UseContainerSupport -XX:+UseSerialGC"
       SPRING_PROFILES_ACTIVE: production
     depends_on:
       redis:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
     deploy:
       resources:
         limits:
-          memory: 480M
+          memory: 640M
 
   kitehub-email:
     <<: *kh-service-defaults
     image: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/kitehub-email:${KITE_VERSION}
     container_name: kitehub-email
     environment:
-      JAVA_OPTS: "-Xmx256m -Xms128m -XX:+UseSerialGC"
+      JAVA_OPTS: "-XX:MaxRAMPercentage=50.0 -XX:+UseContainerSupport -XX:+UseSerialGC"
       SPRING_PROFILES_ACTIVE: production
     depends_on:
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
     deploy:
       resources:
         limits:
-          memory: 320M
+          memory: 512M
 
   kitehub-admin:
     <<: *kh-service-defaults
     image: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/kitehub-admin:${KITE_VERSION}
     container_name: kitehub-admin
     environment:
-      JAVA_OPTS: "-Xmx384m -Xms192m -XX:+UseSerialGC"
+      JAVA_OPTS: "-XX:MaxRAMPercentage=50.0 -XX:+UseContainerSupport -XX:+UseSerialGC"
       SPRING_PROFILES_ACTIVE: production
     depends_on:
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
     deploy:
       resources:
         limits:
-          memory: 480M
+          memory: 640M
 
   kitehub-gateway:
     <<: *kh-service-defaults
     image: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/kitehub-gateway:${KITE_VERSION}
     container_name: kitehub-gateway
     environment:
-      JAVA_OPTS: "-Xmx256m -Xms128m -XX:+UseSerialGC"
+      JAVA_OPTS: "-XX:MaxRAMPercentage=50.0 -XX:+UseContainerSupport -XX:+UseSerialGC"
       SPRING_PROFILES_ACTIVE: production
       # Force gateway to listen on 8080 to match ALB target group port
       # (application.yml default = ${SERVER_PORT:9000} = 9000 if env unset).
@@ -168,13 +192,13 @@ services:
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/actuator/health"]
       interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
     deploy:
       resources:
         limits:
-          memory: 320M
+          memory: 512M
 
 networks:
   kite-net:
