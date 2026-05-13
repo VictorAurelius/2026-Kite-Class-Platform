@@ -61,6 +61,18 @@ spring:
                 name: instancesCircuitBreaker
                 fallbackUri: forward:/fallback/instances
 
+        # GAP-512 — /api/instances/{id}/domain/verify (DomainVerifyController, kitehub-subscription)
+        # Orphan — no prior gateway route covered.
+        - id: kitehub-instance-domain-verify
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/instances/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: instancesCircuitBreaker
+                fallbackUri: forward:/fallback/instances
+
         # Platform APIs - Public Config (no auth required)
         - id: platform-config
           uri: http://kitehub-subscription:8080
@@ -113,6 +125,39 @@ spring:
               args:
                 name: brandingCircuitBreaker
                 fallbackUri: forward:/fallback/branding
+
+        # GAP-512 — /api/platform/admin/emails + /instances owned by kitehub-subscription
+        # (EmailHistoryController, EmailStatsController, InstanceForceConvertController, etc.)
+        # Must precede platform-admin catch-all.
+        - id: platform-admin-emails-subscription
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/platform/admin/emails/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
+
+        - id: platform-admin-instances-force-convert-subscription
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/platform/admin/instances/{id}/force-convert
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: instancesCircuitBreaker
+                fallbackUri: forward:/fallback/instances
+
+        - id: platform-admin-instances-rollback-migration-subscription
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/platform/admin/instances/{id}/rollback-migration
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: instancesCircuitBreaker
+                fallbackUri: forward:/fallback/instances
 
         # Platform APIs - Admin Service
         - id: platform-admin
@@ -178,6 +223,19 @@ spring:
                 name: authCircuitBreaker
                 fallbackUri: forward:/fallback/auth
 
+        # GAP-512 — beta-requests admin endpoints live in kitehub-subscription
+        # (BetaAccessController.adminListBetaRequests/approveBetaRequest/rejectBetaRequest)
+        # Must precede kitehub-admin-v1 catch-all.
+        - id: kitehub-admin-beta-requests-v1
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/admin/beta-requests/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+
         # GAP-509 — kitehub admin v1 (beta-requests approve/reject) routes
         # to admin service. Must precede instance-apis catch-all.
         - id: kitehub-admin-v1
@@ -189,6 +247,48 @@ spring:
               args:
                 name: adminCircuitBreaker
                 fallbackUri: forward:/fallback/admin
+
+        # GAP-512 — kitehub consent/dsar/notification/branding under /api/v1/**
+        # Must precede instance-apis catch-all to avoid forwarding to kiteclass-core.
+        - id: kitehub-consent-v1
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/consent/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
+
+        - id: kitehub-dsar-v1
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/dsar/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
+
+        - id: kitehub-notification-preferences-v1
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/notification-preferences/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
+
+        - id: kitehub-branding-v1
+          uri: http://kitehub-branding:8080
+          predicates:
+            - Path=/api/v1/branding/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: brandingCircuitBreaker
+                fallbackUri: forward:/fallback/branding
 
         # Instance APIs - Route to KiteClass Core (via TenantResolver)
         - id: instance-apis
