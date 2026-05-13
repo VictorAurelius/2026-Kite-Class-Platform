@@ -85,7 +85,7 @@ aws logs tail /aws/ssm/kite-deploy --since 5m --follow
 
 - [ ] Mở `https://kitehub.me/` → load thành công, không 4xx/5xx
 - [ ] Hero + CTA hiển thị tiếng Việt đúng tone
-- [ ] Click "Request Beta Access" → navigate `kitehub.me/auth/request-beta-access`
+- [ ] Click "Request Beta Access" → navigate `kitehub.me/request-beta-access`
 
 ### Bước 2 — Submit request form
 
@@ -121,7 +121,7 @@ aws logs tail /aws/ssm/kite-deploy --since 5m --follow
 
 ### Bước 5 — Signup với token
 
-- [ ] Click signup link → navigate `kitehub.me/auth/signup?token=XXX`
+- [ ] Click signup link → navigate `kitehub.me/beta-signup?token=XXX`
 - [ ] Token validate ở BE — nếu invalid → error message rõ; nếu valid → render signup form
 - [ ] Complete signup form (password + confirm + ...) → submit
 - [ ] BE provision tenant với beta-flag=true
@@ -217,3 +217,4 @@ Mỗi bug phát hiện trong khi self-test:
 ## 10. Log
 
 - **2026-05-13:** Plan created. Triggered by user-flagged audit during Wave 68 closure: "GAP-372 code path shipped nhưng chưa từng test thật end-to-end". Wave 69 scope rebased from original "rollback drill + first beta invite + SES decision" → focus solo trên self-test E2E. Real cohort + rollback drill + SES re-submit move to Plan 2/3/4 hoặc parallel passive actions.
+- **2026-05-13** (path fix pre-execution): User probed `kitehub.me/auth/request-beta-access` → 404. Root cause: Next.js App Router `(auth)` là **route group** (folder ngoặc đơn) — không thêm vào URL path. Source `src/app/(auth)/request-beta-access/page.tsx` deploy thành route `/request-beta-access`. Plan 1 + Playwright spec dùng path `/auth/*` sai → fixed. Live probe verified routes correct: `/request-beta-access` 200 (Bước 2), `/login` 200 (Bước 3+7), `/beta-signup` 200 (Bước 5), `/admin/beta-requests` 200 (Bước 3). `/register` 404 (source có nhưng deploy thiếu — separate finding ngoài scope Plan 1).
