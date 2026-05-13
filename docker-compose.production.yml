@@ -92,12 +92,10 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 120s
+    # NOTE: healthcheck deferred — service listens on 8081, actuator exposure
+    # in production profile not yet verified. Adding wget localhost:8080 healthcheck
+    # would cause unhealthy → restart loop. Track follow-up to align port + verify
+    # /actuator/health exposed before adding per-service healthcheck.
     deploy:
       resources:
         limits:
@@ -115,12 +113,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 120s
+    # NOTE: healthcheck deferred — service listens on 8083 (per application.yml).
+    # See follow-up gap on per-service healthcheck port alignment.
     deploy:
       resources:
         limits:
@@ -136,12 +130,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 120s
+    # NOTE: healthcheck deferred — service listens on 8084 (per application.yml).
+    # See follow-up gap on per-service healthcheck port alignment.
     deploy:
       resources:
         limits:
@@ -157,12 +147,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 120s
+    # NOTE: healthcheck deferred — service listens on 8083 (per application.yml).
+    # See follow-up gap on per-service healthcheck port alignment.
     deploy:
       resources:
         limits:
