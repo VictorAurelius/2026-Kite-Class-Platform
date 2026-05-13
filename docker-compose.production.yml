@@ -87,6 +87,11 @@ services:
     environment:
       JAVA_OPTS: "-XX:MaxRAMPercentage=50.0 -XX:+UseContainerSupport -XX:+UseSerialGC"
       SPRING_PROFILES_ACTIVE: production
+      # GAP-508 P0 — verify-email + beta-signup links sent in transactional emails
+      # default ${VERIFICATION_BASE_URL:http://localhost:3001} would generate dead local links
+      VERIFICATION_BASE_URL: "https://kitehub.me"
+      # GAP-508 P0 — subscription → email service inter-service RPC (gateway routes via internal docker network)
+      EMAIL_SERVICE_URL: "http://kitehub-email:8084"
     depends_on:
       redis:
         condition: service_healthy
@@ -138,6 +143,15 @@ services:
       # GAP-506 Sub-B: disable mail health indicator — Phase 1 BETA uses Resend HTTP API (ADR-025 Stream A), not SMTP.
       # Default Spring mail health probes kite-mailhog:1025 (dev SMTP) → DOWN → composite 503 → unhealthy.
       MANAGEMENT_HEALTH_MAIL_ENABLED: "false"
+      # GAP-508 P0 — provider must NOT default to 'mock' in production
+      # (default ${EMAIL_PROVIDER:mock} would silently swallow all outbound emails)
+      EMAIL_PROVIDER: "resend"
+      # GAP-508 P0 — From address; default ${AWS_SES_FROM_EMAIL:noreply@localhost} would be invalid.
+      # (Resend uses its own sender config but this provides legacy SES path fallback safety.)
+      AWS_SES_FROM_EMAIL: "noreply@kitehub.me"
+      AWS_SES_FROM_NAME: "KiteHub Beta"
+      # NOTE: RESEND_API_KEY must come from /etc/kite/.env populated via fetch-secrets.sh.
+      # Currently UNSET (verified 2026-05-13 Plan 1 self-test) — see GAP-508 Phase 2 action.
     depends_on:
       rabbitmq:
         condition: service_healthy
