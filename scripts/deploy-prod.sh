@@ -115,6 +115,45 @@ log "docker compose up -d --remove-orphans..."
 KITE_VERSION="$KITE_VERSION" sudo --preserve-env=KITE_VERSION \
   docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
 
+# Step 6.5: Sync RabbitMQ user (GAP-502 RC1 self-heal)
+#
+# fetch-secrets.sh may generate ephemeral rabbit creds when
+# kitehub/production/rabbitmq-default-creds secret is empty (see fetch-secrets.sh
+# fallback block). Even when secret has stable values, rabbit container itself
+# doesn't know about the kite_admin_* user — it only knows the default `user` +
+# `guest`. Without this sync, Spring Boot services hit ACCESS_REFUSED on startup.
+#
+# Self-heal: after compose up + rabbit healthy, ensure rabbit has the user
+# matching .env creds. add_user if missing; change_password if exists.
+log "Sync rabbit user (GAP-502 RC1)..."
+RMQ_USER=$(grep -E '^RABBITMQ_USER=' /etc/kite/.env | cut -d= -f2- | tr -d '"' || true)
+RMQ_PASS=$(grep -E '^RABBITMQ_PASS=' /etc/kite/.env | cut -d= -f2- | tr -d '"' || true)
+if [[ -n "${RMQ_USER:-}" && -n "${RMQ_PASS:-}" ]]; then
+  # Wait up to 60s for rabbit to be reachable
+  for i in 1 2 3 4 5 6; do
+    if sudo docker exec kite-rabbitmq rabbitmqctl status >/dev/null 2>&1; then
+      break
+    fi
+    log "Waiting for rabbit broker (attempt $i/6)..."
+    sleep 10
+  done
+  if sudo docker exec kite-rabbitmq rabbitmqctl list_users 2>/dev/null | awk 'NR>1{print $1}' | grep -qx "$RMQ_USER"; then
+    log "rabbit user '$RMQ_USER' exists — running change_password (idempotent)"
+    sudo docker exec kite-rabbitmq rabbitmqctl change_password "$RMQ_USER" "$RMQ_PASS" 2>&1 | tee -a "$LOG"
+  else
+    log "rabbit user '$RMQ_USER' missing — add_user + set_permissions + admin tag"
+    sudo docker exec kite-rabbitmq rabbitmqctl add_user "$RMQ_USER" "$RMQ_PASS" 2>&1 | tee -a "$LOG"
+    sudo docker exec kite-rabbitmq rabbitmqctl set_permissions -p / "$RMQ_USER" ".*" ".*" ".*" 2>&1 | tee -a "$LOG"
+    sudo docker exec kite-rabbitmq rabbitmqctl set_user_tags "$RMQ_USER" administrator 2>&1 | tee -a "$LOG"
+  fi
+  # Restart KH services so they pick up working auth (idempotent — services already running just reconnect)
+  log "Restart kitehub-* to refresh rabbit connections..."
+  KITE_VERSION="$KITE_VERSION" sudo --preserve-env=KITE_VERSION \
+    docker compose -f "$COMPOSE_FILE" restart kitehub-subscription kitehub-gateway kitehub-admin kitehub-branding kitehub-email | tee -a "$LOG"
+else
+  log "WARN: RABBITMQ_USER/PASS not in /etc/kite/.env — skipping rabbit user sync"
+fi
+
 # Step 7: Wait + healthcheck
 log "Waiting 60s for stack to settle..."
 sleep 60
