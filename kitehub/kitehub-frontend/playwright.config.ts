@@ -10,6 +10,11 @@ export default defineConfig({
   // Test directory
   testDir: './e2e',
 
+  // Production self-test specs ignored by default (Wave 69 scaffold).
+  // Run on-demand only: `pnpm exec playwright test e2e/production-self-test/`.
+  // See e2e/production-self-test/README.md.
+  testIgnore: ['**/production-self-test/**'],
+
   // Run tests in files in parallel (disabled to avoid DB race conditions)
   fullyParallel: false,
 

@@ -1,5 +1,5 @@
 ---
-title: Plan 1 — Self-Test E2E Flow (Wave 69 execution scope)
+title: Plan 1 — Self-Test E2E Flow (follow-along guide + Playwright automation scaffold)
 status: draft
 created: 2026-05-13
 updated: 2026-05-13
@@ -7,6 +7,12 @@ wave: 69
 gaps: [GAP-372, GAP-480, GAP-370]
 prs: []
 ---
+
+> **Wave 69 scope (rescoped 2026-05-13):** Wave này deliver **tooling** chứ không phải execution. 2 deliverables:
+> 1. **Follow-along guide** (file này — enhanced với evidence log + command snippets) — user tự manual run lần đầu
+> 2. **Playwright spec scaffold** (`kitehub/kitehub-frontend/e2e/production-self-test/`) — automation cho lần re-run sau
+>
+> User self-execute Plan 1 lần đầu sau Wave 69 SHIPPED; bugs found → Plan 2+. Playwright spec ban đầu skipped-by-default; sau khi flow stable + selectors khớp thì opt-in cho CI hoặc manual on-demand.
 
 # Plan 1 — Self-Test E2E Flow
 
@@ -36,6 +42,40 @@ Output: pass/fail per bước + log bugs found + fix plan trước Plan 2 (real 
 | Personal email khác để self-test recipient | ⚠️ user provide |
 | Status page (Instatus per ADR-027) | ⚠️ verify trạng thái live |
 | Kênh feedback (form/email/Discord) | ⚠️ chốt path |
+
+---
+
+## 2.5 Setup trước khi chạy
+
+### Tab/cửa sổ cần mở
+- Browser tab 1: `https://kitehub.me/` (FE marketing)
+- Browser tab 2: Gmail/email cá nhân thứ 2 (recipient cho invite email)
+- Browser tab 3: AWS Console SES → Verified Identities (verify recipient nếu sandbox)
+- Terminal 1: tail logs / DB query khi cần
+- Notion/Markdown editor: ghi evidence log realtime (xem §5)
+
+### Helper commands chạy parallel (terminal)
+
+```bash
+# Set credentials
+export AWS_PROFILE=dev-admin AWS_DEFAULT_REGION=ap-southeast-1
+
+# Quick health re-check (run before mỗi bước nếu nghi ngờ)
+curl -sS -o /dev/null -w "FE %{http_code} | API %{http_code}\n" https://kitehub.me/ https://api.kitehub.me/actuator/health
+
+# SES verify identity cho recipient (Bước 4)
+aws sesv2 create-email-identity --email-identity <recipient-email>
+# → AWS gửi email tới <recipient>, user click link verify trong inbox đó
+
+# Query DB qua SSM bastion (Bước 2/3/5 verify state)
+aws ssm start-session --target i-05d7af46d01436b96 --document-name AWS-StartInteractiveCommand --parameters command="docker exec kite-postgres psql -U kite -d kitehub -c 'SELECT id, email, status, created_at FROM beta_access_request ORDER BY id DESC LIMIT 5;'"
+
+# SES send statistics (Bước 4 verify email actually sent)
+aws sesv2 get-account --query '{Sent:SendQuota.SentLast24Hours,Max:SendQuota.Max24HourSend}' --output table
+
+# CloudWatch tail BE logs (background nếu cần debug)
+aws logs tail /aws/ssm/kite-deploy --since 5m --follow
+```
 
 ---
 
