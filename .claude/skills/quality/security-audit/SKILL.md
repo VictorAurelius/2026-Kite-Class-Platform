@@ -39,17 +39,28 @@ Rules for every audit run:
 
 ### 3. Score 5 Categories with per-check rubric
 
+Per Wave 72a Bucket E (GAP-522 closure), every category binds to a per-check pass/fail rule. Within each 20-pt category: any P0/P1 sub-check FAIL caps category total ≤ 16/20 (pattern from `pre-launch-auth-hardening-checklist.md` §4 "1 fail = checklist fail"). No averaging hides P0 gaps.
+
 | # | Category (20pts) | Per-check rubric file |
 |---|-----------------|------------------------|
-| 1 | **Dependency Vulnerabilities** | `reference/scoring-guide.md` §1 + `npm audit` + `mvn dependency-check` |
-| 2 | **Secrets & Credentials** | `reference/scoring-guide.md` §2 + git pickaxe + AWS Secrets Manager inventory |
-| 3 | **OWASP Top 10 (A01-A06, A08-A10)** | `reference/scoring-guide.md` §3 per OWASP item |
+| 1 | **Dependency Vulnerabilities** | **`pre-launch-dependency-hardening-checklist.md` §2 (8 sub-checks, per-check pass/fail)** |
+| 2 | **Secrets & Credentials** | **`pre-launch-secrets-hardening-checklist.md` §2 (8 sub-checks, per-check pass/fail)** |
+| 3 | **OWASP Top 10 (A01-A06, A08-A10)** | **`pre-launch-owasp-rest-hardening-checklist.md` §2 (9 sub-checks, per-OWASP-item pass/fail)** |
 | 4 | **Auth & Access Control (OWASP A07)** | **`pre-launch-auth-hardening-checklist.md` §2 (8 sub-checks, per-check pass/fail)** |
-| 5 | **Infrastructure Security** | TLS config, CORS, CSP, Docker non-root, k8s security context |
+| 5 | **Infrastructure Security** | **`pre-launch-infra-hardening-checklist.md` §2 (9 sub-checks, per-check pass/fail)** |
 
-Category 4 binds to `pre-launch-auth-hardening-checklist.md` — Wave 71c rule that enumerates rate-limit, lockout, password-complexity, 2FA-admin, login-alerts, JWT-rotation, admin-audit-log, refresh-rotation. Any 1 FAIL = category FAIL.
+#### Per-check scoring (all 5 categories)
 
-Scoring details: `reference/scoring-guide.md`
+For each Category N:
+1. Walk through every §2 sub-check in the bound rule.
+2. Mark each sub-check `PASS` / `FAIL` / `N/A-with-reason` / `❓ UNCHECKED` (no partial credit).
+3. Score = `20 - (failed_P0_count * 6) - (failed_P1_count * 3) - (failed_P2_count * 1)`, floor 0; cap 20 if all PASS.
+4. If ANY P0 sub-check fails → category total CAPPED at 16/20 AND audit-level verdict = FAIL regardless of total score.
+5. Each FAIL surfaces in the audit-report bug list per §2 "Primacy: bug-finding > scoring" — bug list is the deliverable.
+
+Cross-reference: each rule's §2 enumerates concrete checks; each rule's §4 has worked self-test demonstrating rubric fires on current main. Reading the bound rule IS the rubric — `reference/scoring-guide.md` legacy file retained for backward-compat narrative only.
+
+Scoring details: `reference/scoring-guide.md` (legacy) — superseded by per-category rule files above per Wave 72a Bucket E.
 
 ### 3. Output
 
