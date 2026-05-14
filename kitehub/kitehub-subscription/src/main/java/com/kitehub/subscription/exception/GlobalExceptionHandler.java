@@ -2,8 +2,10 @@ package com.kitehub.subscription.exception;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
@@ -41,6 +43,28 @@ public class GlobalExceptionHandler {
         );
         problemDetail.setTitle("Not Found");
         return problemDetail;
+    }
+
+    /**
+     * Handle account lockout (GAP-515 / OWASP A07) — returns HTTP 423 + Retry-After header.
+     */
+    @ExceptionHandler(AccountLockedException.class)
+    public ResponseEntity<ProblemDetail> handleAccountLockedException(
+        AccountLockedException ex,
+        WebRequest request
+    ) {
+        log.warn("Account locked: until={}", ex.getLockedUntil());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.LOCKED,
+            "Account is temporarily locked due to too many failed login attempts."
+        );
+        problemDetail.setTitle("Account Locked");
+        problemDetail.setProperty("lockedUntil", ex.getLockedUntil().toString());
+        problemDetail.setProperty("retryAfterSeconds", ex.retryAfterSeconds());
+        return ResponseEntity
+            .status(HttpStatus.LOCKED)
+            .header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.retryAfterSeconds()))
+            .body(problemDetail);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

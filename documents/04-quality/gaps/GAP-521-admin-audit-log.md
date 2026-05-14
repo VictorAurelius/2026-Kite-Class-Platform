@@ -1,6 +1,6 @@
 # GAP-521: Admin action audit log
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (70% — Wave 72a Bucket B PR #1287)
 **Priority:** 🟠 P1 (PDPL compliance + incident forensics)
 **Domain:** Backend
 **Found:** 2026-05-13 (Wave 71c per `pre-launch-auth-hardening-checklist.md` §2.7)
@@ -18,12 +18,18 @@ Không có audit log cho PLATFORM_ADMIN actions (approve/reject beta requests, s
 
 ## Acceptance Criteria
 
-- [ ] Migration + entity + repository
-- [ ] Interceptor catches approve/reject/suspend/edit actions
-- [ ] Admin UI page `/admin/audit-log` for review
-- [ ] Unit + IT tests
+- [x] Migration + entity + repository (`V36__create_admin_audit_log.sql` + `AdminAuditLog` + `AdminAuditLogRepository` — Wave 72a Bucket B PR #1287)
+- [x] Interceptor catches approve/reject actions on BetaAccessController (`@Auditable` + `AdminAuditAspect`); IP + UA + redacted JSON payload persisted
+- [ ] Other admin controllers annotated (suspend instance, edit config, AdminEmailController, etc.) — follow-up GAP
+- [ ] Admin UI page `/admin/audit-log` for review (FE work — deferred to follow-up GAP)
+- [x] Unit tests (`AdminAuditAspectTest` — 3 cases: success / sensitive-redaction / failure-propagation)
 
 ## Related
 
 - Rule: `pre-launch-auth-hardening-checklist.md` §2.7
 - PDPL retention compliance overlap
+- PR: #1287 (Wave 72a Bucket B)
+
+## Log
+
+- **2026-05-14** Wave 72a Bucket B PR #1287 ships BE foundation: V36 migration + entity + repository + `@Auditable` annotation + `AdminAuditAspect` (Spring AOP `@Around` — captures SecurityContext principal, ServletRequest IP+UA, redacts password/token/secret/jwt sub-fields in JSON payload). Applied to `BetaAccessController.approve` + `.reject`. Status → 🟡 PARTIAL pending other admin controller annotations + FE review UI.

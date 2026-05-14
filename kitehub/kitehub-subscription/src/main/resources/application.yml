@@ -80,9 +80,16 @@ management:
     tracing:
       endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
 
-# JWT configuration
+# JWT configuration (GAP-520 — dual-key rotation support)
+# - jwt.secret (legacy / current) is REQUIRED. It is the signing key + the primary
+#   verification key.
+# - jwt.previous-secret is OPTIONAL. When set, tokens signed by the previous key
+#   are still verified — this honors refresh tokens issued before a key rotation.
+#   Remove (or leave empty) once the refresh-token TTL window has elapsed.
+# See documents/05-guides/operations/jwt-rotation-runbook.md.
 jwt:
-  secret: ${JWT_SECRET:}
+  secret: ${JWT_SECRET_CURRENT:${JWT_SECRET:}}
+  previous-secret: ${JWT_SECRET_PREVIOUS:}
 
 # Email verification
 kitehub:

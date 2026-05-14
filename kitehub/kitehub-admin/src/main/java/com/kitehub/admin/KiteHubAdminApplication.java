@@ -34,7 +34,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "com.kitehub.subscription.dsar.repository",
         // Wave 33 Bucket C (GAP-372): BetaAccessService auto-scanned via @ComponentScan;
         // repository must be JPA-enabled here per feedback_admin_scan_packages_after_module_add.md.
-        "com.kitehub.subscription.beta.repository"
+        "com.kitehub.subscription.beta.repository",
+        // Wave 72a Bucket B (GAP-521): AdminAuditLogRepository — admin context pulls
+        // AdminAuditAspect (it's a @Component) so its repository must be JPA-enabled too.
+        "com.kitehub.subscription.audit"
 })
 @EntityScan(basePackages = {
         // GAP-240: include all subscription entity packages — must mirror subscription's
@@ -51,7 +54,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         // Wave 26 Bucket A (GAP-353c): DsarTicket entity.
         "com.kitehub.subscription.dsar.entity",
         // Wave 33 Bucket C (GAP-372): BetaAccessRequest entity.
-        "com.kitehub.subscription.beta.entity"
+        "com.kitehub.subscription.beta.entity",
+        // Wave 72a Bucket B (GAP-521): AdminAuditLog entity.
+        "com.kitehub.subscription.audit"
 })
 public class KiteHubAdminApplication {
 

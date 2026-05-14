@@ -5,11 +5,11 @@ import com.kitehub.platform.domain.entity.User;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.subscription.dto.*;
+import com.kitehub.subscription.exception.AccountLockedException;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import jakarta.annotation.PostConstruct;
@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -42,6 +41,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final CaptchaService captchaService;
     private final EmailSenderService emailSenderService;
+    private final JwtKeyService jwtKeyService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Value("${jwt.secret:#{null}}")
@@ -306,15 +306,53 @@ public class AuthService {
         log.info("Resent verification email to: {}", email);
     }
 
-    @Transactional(readOnly = true)
+    /**
+     * Authenticate a user, enforcing account-lockout policy (GAP-515 / OWASP A07).
+     *
+     * <p>Behavior:
+     * <ol>
+     *   <li>If the account is currently locked → throw {@link AccountLockedException}
+     *       BEFORE comparing the password. This prevents probing whether a password
+     *       is correct on a locked account.</li>
+     *   <li>If the password is wrong → increment {@code failed_login_attempts}.
+     *       After {@link AccountLockoutPolicy#MAX_FAILED_ATTEMPTS} within
+     *       {@link AccountLockoutPolicy#ATTEMPT_WINDOW_MINUTES}, set
+     *       {@code locked_until} per the exponential-backoff schedule.</li>
+     *   <li>On success → reset {@code failed_login_attempts} to 0 (but preserve
+     *       {@code lockout_count} for backoff history) and issue tokens.</li>
+     * </ol>
+     *
+     * <p>Non-existent email also returns generic "invalid email or password" to
+     * avoid user enumeration (per OWASP A07 §1 password complexity sister-rule).</p>
+     */
+    @Transactional
     public LoginResponse login(LoginRequest request) {
         log.info("Login attempt for: {}", request.getEmail());
 
         User user = userRepository.findByEmail(request.getEmail())
             .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
 
+        // (1) Reject locked accounts before any password compare — see method javadoc.
+        LocalDateTime now = LocalDateTime.now();
+        if (user.getLockedUntil() != null && user.getLockedUntil().isAfter(now)) {
+            log.warn("Login rejected — account locked: userId={} lockedUntil={}",
+                user.getId(), user.getLockedUntil());
+            throw new AccountLockedException(user.getLockedUntil());
+        }
+
+        // (2) Password check + failure accounting.
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            recordFailedLogin(user, now);
+            // Caller sees generic "invalid email or password"; if the failure just
+            // triggered the lock, the NEXT attempt will surface 423.
             throw new IllegalArgumentException("Invalid email or password");
+        }
+
+        // (3) Success — clear the failure counter (but keep lockout_count for backoff).
+        if (user.getFailedLoginAttempts() != 0 || user.getLastFailedLoginAt() != null) {
+            user.setFailedLoginAttempts(0);
+            user.setLastFailedLoginAt(null);
+            userRepository.save(user);
         }
 
         List<InstanceResponse> instances = instanceService.getInstancesByOwner(user.getId());
@@ -337,14 +375,39 @@ public class AuthService {
             .build();
     }
 
+    /**
+     * Record a failed login attempt and lock the account when the threshold is hit
+     * (GAP-515). Called from {@link #login} with the parent transaction so the
+     * counter increment persists even when the surrounding service throws.
+     */
+    private void recordFailedLogin(User user, LocalDateTime now) {
+        // If the last failure is OUTSIDE the rolling window, reset the counter
+        // (so a sparse pattern of wrong-passwords-over-weeks doesn't compound).
+        LocalDateTime windowStart = now.minusMinutes(AccountLockoutPolicy.ATTEMPT_WINDOW_MINUTES);
+        if (user.getLastFailedLoginAt() == null || user.getLastFailedLoginAt().isBefore(windowStart)) {
+            user.setFailedLoginAttempts(1);
+        } else {
+            user.setFailedLoginAttempts(user.getFailedLoginAttempts() + 1);
+        }
+        user.setLastFailedLoginAt(now);
+
+        if (user.getFailedLoginAttempts() >= AccountLockoutPolicy.MAX_FAILED_ATTEMPTS) {
+            LocalDateTime lockedUntil = AccountLockoutPolicy.computeLockedUntil(user.getLockoutCount());
+            user.setLockedUntil(lockedUntil);
+            user.setLockoutCount(user.getLockoutCount() + 1);
+            user.setFailedLoginAttempts(0); // reset counter; lockedUntil is the gate now
+            log.warn("Account locked: userId={} lockoutCount={} lockedUntil={}",
+                user.getId(), user.getLockoutCount(), lockedUntil);
+        }
+
+        userRepository.save(user);
+    }
+
     public RefreshResponse refresh(String refreshToken) {
         try {
-            SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-            Claims claims = Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(refreshToken)
-                .getPayload();
+            // GAP-520 — verify via JwtKeyService so refresh tokens issued under
+            // the previous signing key are still honored during the rotation window.
+            Claims claims = jwtKeyService.parse(refreshToken).getPayload();
 
             String type = claims.get("type", String.class);
             if (!"refresh".equals(type)) {
@@ -398,7 +461,8 @@ public class AuthService {
     }
 
     private String generateAccessToken(UUID userId, String email, String role) {
-        SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        // GAP-520 — always sign with the CURRENT key via JwtKeyService.
+        SecretKey key = jwtKeyService.signingKey();
         Instant now = Instant.now();
 
         return Jwts.builder()
@@ -413,7 +477,7 @@ public class AuthService {
     }
 
     private String generateRefreshToken(UUID userId) {
-        SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        SecretKey key = jwtKeyService.signingKey();
         Instant now = Instant.now();
 
         return Jwts.builder()

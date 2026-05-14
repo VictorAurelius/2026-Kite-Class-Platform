@@ -1,6 +1,6 @@
 # GAP-520: JWT signing secret rotation runbook + dual-key support
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (90% — Wave 72a Bucket B PR #1287)
 **Priority:** 🟠 P1
 **Domain:** Backend / DevOps
 **Found:** 2026-05-13 (Wave 71c per `pre-launch-auth-hardening-checklist.md` §2.6)
@@ -18,10 +18,15 @@ JWT secret stored in env var. No rotation runbook. If secret leaks (worktree com
 
 ## Acceptance Criteria
 
-- [ ] 2-slot verifier + tests
-- [ ] Rotation runbook with grace window
-- [ ] AWS Secret `kitehub/production/jwt-signing-secret` versioned
+- [x] 2-slot verifier + tests (`JwtKeyService` + `JwtKeyServiceTest` 7 cases — Wave 72a Bucket B PR #1287)
+- [x] Rotation runbook with grace window (`documents/05-guides/operations/jwt-rotation-runbook.md`)
+- [ ] AWS Secret `kitehub/production/jwt-signing-secret` versioned — provisioning step, executed at first real rotation (deferred to ops follow-up)
 
 ## Related
 
 - Rule: `pre-launch-auth-hardening-checklist.md` §2.6
+- PR: #1287 (Wave 72a Bucket B)
+
+## Log
+
+- **2026-05-14** Wave 72a Bucket B PR #1287 ships dual-key code + runbook: `JwtKeyService` (current + optional previous + `jwt.verify.fallback` counter), `AuthService.refresh` + `TokenService` delegate, new `jwt.previous-secret` config slot (env `JWT_SECRET_PREVIOUS`), 7 unit tests + 1 quarterly rotation runbook. Status → 🟡 PARTIAL — last AC (AWS Secret versioning) ships at first real rotation per runbook §3.
