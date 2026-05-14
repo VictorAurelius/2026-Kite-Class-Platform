@@ -1,3 +1,8 @@
+---
+paths:
+  - ".claude/rules/**"
+---
+
 # Project Rules — `.claude/rules/`
 
 Index + governance hướng dẫn cho mọi rule file trong folder này. Rules là **project DNA** — mỗi rule edit force-multiplies mọi PR tương lai trong scope của rule đó (per [`meta-gap-priority.md`](meta-gap-priority.md)).
@@ -150,3 +155,9 @@ Wave 73 — Meta Context Optimization (2026-05-14) targets reducing base context
 - ⏳ Bucket E: verification + baseline measurement
 
 Wave plan: [`documents/03-planning/waves/wave-2026-05-14-73-meta-context-optimization.md`](../../documents/03-planning/waves/wave-2026-05-14-73-meta-context-optimization.md)
+
+---
+
+## Log
+
+- **2026-05-14**: thêm `paths: [".claude/rules/**"]` frontmatter (Wave 73 miss fix). Folder index giờ load on-demand khi browse rules folder. Reviewer: @nguyenvankiet (solo-dev).

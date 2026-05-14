@@ -1,9 +1,16 @@
+---
+paths:
+  - "infrastructure/**/*.tf"
+  - ".github/workflows/terraform-*.yml"
+  - "documents/04-quality/audits/aws-verification/**"
+---
+
 # Terraform Apply Retry Requires Re-Confirm
 
 **Priority:** 🟠 MANDATORY — production-apply blast-radius governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-07
-**Last-Reviewed:** 2026-05-07
+**Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement; no constraint loosening for prior work; migrated from session memory `feedback_terraform_apply_retry_reconfirm.md` for git-tracked durability)
 **Applies to:** Every `terraform apply` invocation against a production-grade AWS account from this repo (`infrastructure/terraform-aws/**`); applies whenever apply fails mid-run AND the agent intends to fix and re-run
 
@@ -166,4 +173,5 @@ Trailer logged in quarterly retro. Pattern frequency >5% triggers meta-review.
 
 ## 11. Log
 
+- **2026-05-14** (v1.0.1): PATCH — thêm `paths:` frontmatter — Wave 73 miss fix (rule này nằm trong 13 MANDATORY rules wave plan §3 Scope bỏ sót, vẫn auto-load base context dù scope rule có path trigger rõ ràng). PATCH bump per `rule-change-process.md` §5 — additive frontmatter, no constraint change, deferred-load khi no matching file in context. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve). Scope: terraform apply context.
 - **2026-05-07 (v1.0.0):** Migrated from session memory `feedback_terraform_apply_retry_reconfirm.md` per user request "memory persistence strategy = migrate to .claude/rules/ for git-tracked durability". Original incident: 2026-05-08 Phase 2.3 production apply on account 906286017800 = 3 separate `terraform apply` invocations on 1 explicit user authorization (apply #1 SG em-dash, apply #2 count[0], apply #3 success). User retro flagged silent-retry pattern as soft violation of CLAUDE.md "Executing actions with care." Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5). Enforcement: reviewer manual + memory auto-load + cross-link to `agent-aws-access.md §4` (which already cites the pattern) now; consecutive-apply hook deferred. Note: `agent-aws-access.md §4` is unchanged in this PR (PR scope avoidance per task spec); this rule becomes canonical source going forward, cross-link from §4 remains valid.

@@ -1,0 +1,33 @@
+{
+  "pr": 1318,
+  "title": "feat(wave-73-B2): 8 deterministic enforcement hooks (close GAP-528)",
+  "branch": "feat/wave-73-B2-hooks-deterministic-enforcement",
+  "created_at": null,
+  "merged_at": "2026-05-14T06:57:27Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-14T06:57:37.413009",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 8,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-51373"
+  }
+}

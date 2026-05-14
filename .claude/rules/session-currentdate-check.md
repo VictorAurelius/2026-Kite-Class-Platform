@@ -1,9 +1,17 @@
+---
+paths:
+  - ".claude/rules/**/*.md"
+  - "documents/04-quality/gaps/**"
+  - "documents/04-quality/audits/**"
+  - "documents/03-planning/waves/**"
+---
+
 # Session currentDate Check Before Dating Artifacts
 
 **Priority:** 🟠 MANDATORY — date-stamping discipline
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-07
-**Last-Reviewed:** 2026-05-07
+**Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement; no constraint loosening for prior work; migrated from session memory `feedback_session_currentdate_check.md` for git-tracked durability)
 **Applies to:** Every artifact this agent writes that contains a date field — rule frontmatter (`Last-Reviewed`, `Created`), gap files, session logs, memory entries, audit reports, ADR dates, wave plan frontmatter, skill SKILL.md retro sections, ROADMAP entries
 
@@ -170,4 +178,5 @@ Trailer logged. Pattern frequency >5% triggers meta-review (likely the rule's §
 
 ## 11. Log
 
+- **2026-05-14** (v1.0.1): PATCH — thêm `paths:` frontmatter — Wave 73 miss fix (rule này nằm trong 13 MANDATORY rules wave plan §3 Scope bỏ sót, vẫn auto-load base context dù scope rule có path trigger rõ ràng). PATCH bump per `rule-change-process.md` §5 — additive frontmatter, no constraint change, deferred-load khi no matching file in context. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve). Scope: date-stamped artifact write context.
 - **2026-05-07 (v1.0.0):** Migrated from session memory `feedback_session_currentdate_check.md` per user request "memory persistence strategy = migrate to .claude/rules/ for git-tracked durability". Original incident: 2026-05-07 session shipped artifacts with `2026-05-08` dates because Wave 41 plan filename `wave-2026-05-08-41-...md` (forward-dated handoff) was treated as "today's date" signal. CI `Rule frontmatter` validator caught it on PR #995; other forward-dated content (filenames + body text) leaked into Wave 42 plan, GAP-438, session log, 5 memory entries, skill SKILL.md retro. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5). Enforcement: existing CI `Rule frontmatter` job catches rule-file slice + memory auto-load + reviewer manual generalizes to non-rule artifacts; PR-template item deferred.

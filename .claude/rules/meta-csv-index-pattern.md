@@ -1,9 +1,17 @@
+---
+paths:
+  - "**/*-index.csv"
+  - "**/*-status.csv"
+  - "scripts/query-*.sh"
+  - "scripts/check-*-csv.sh"
+---
+
 # Meta CSV Index Pattern — canonical CSV for enumerations
 
 **Priority:** 🟠 MANDATORY — codifies CSV-canonical pattern for meta enumerations
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-12
-**Last-Reviewed:** 2026-05-12
+**Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (4 worked CSV indexes shipped same PR + ADR + rules validators + CI wire + PR template row) per §6.5 Enforcement Parity Mandate; no constraint loosening — generalizes proven pattern from `gap-architecture-v2.md` to other meta enumerations per GAP-485)
 **Applies to:** Every repo-wide enumeration of meta artifacts (rules, skills, ADRs, audits, runbooks, gaps) where: (a) the set is queried programmatically more than ~5×/week, (b) each item has a stable identifier + small fixed metadata schema, (c) reading the source files costs ≥10× the CSV row read
 
@@ -237,4 +245,5 @@ When 2nd recurrence (i.e., a 4th index becomes worthwhile), the bulk-migrator pa
 
 ## 13. Log
 
+- **2026-05-14** (v1.0.1): PATCH — thêm `paths:` frontmatter — Wave 73 miss fix (rule này nằm trong 13 MANDATORY rules wave plan §3 Scope bỏ sót, vẫn auto-load base context dù scope rule có path trigger rõ ràng). PATCH bump per `rule-change-process.md` §5 — additive frontmatter, no constraint change, deferred-load khi no matching file in context. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve). Scope: CSV meta index work.
 - **2026-05-12 (v1.0.0):** Rule created. Closes GAP-485 Tier 1 + Tier 2 (rule + ADRs CSV + Rules CSV + helpers + validators + CI wire + PR template). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (GAP-485 filed 2026-05-12 user-flagged generalization opportunity from proven gap pattern) → Classify ✓ (no existing rule generalizes CSV-canonical pattern; `gap-architecture-v2.md` covers gaps only) → Rule+Enforce ✓ (this file + 2 CSV indexes + 2 query helpers + 2 validators + CI wire + PR template row + `output-review-mandate.md` §3 cross-link per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§10 worked example — 2 validators PASS + 4 query commands verified) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new rule with built-in enforcement, no constraint loosening for prior work; existing rule/ADR markdown frontmatter grandfathered; rule applies prospectively to new index additions). Skills + Audits indexes (Tier 3) deferred to GAP-490 per §12.

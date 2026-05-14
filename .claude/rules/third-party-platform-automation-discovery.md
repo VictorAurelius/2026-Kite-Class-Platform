@@ -1,9 +1,16 @@
+---
+paths:
+  - "documents/05-guides/dev/*.md"
+  - ".claude/skills/**/SKILL.md"
+  - ".claude/rules/**"
+---
+
 # Third-Party Platform Automation Discovery
 
 **Priority:** 🟠 MANDATORY — discovery rule applied at first encounter
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-10
-**Last-Reviewed:** 2026-05-10
+**Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (memory auto-load + self-test on 3 worked examples this session) per §6.5 Enforcement Parity Mandate; no constraint loosening)
 **Applies to:** Every Claude turn that introduces a NEW third-party platform / SaaS / cloud service / framework with potential for CLI/SDK/MCP automation. Examples: Vercel, Cloudflare, GitHub, Google Workspace (Calendar/Drive/Gmail), Stripe, Slack, Linear, AWS, Twilio, Sentry, etc.
 
@@ -213,4 +220,5 @@ Pattern frequency >5% per quarter triggers meta-review of §3 matrix thresholds.
 
 ## 10. Log
 
+- **2026-05-14** (v1.0.1): PATCH — thêm `paths:` frontmatter — Wave 73 miss fix (rule này nằm trong 13 MANDATORY rules wave plan §3 Scope bỏ sót, vẫn auto-load base context dù scope rule có path trigger rõ ràng). PATCH bump per `rule-change-process.md` §5 — additive frontmatter, no constraint change, deferred-load khi no matching file in context. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve). Scope: first-encounter platform setup decisions.
 - **2026-05-10 (v1.0.0):** Rule created in response to user explicit request "thêm rules, mỗi khi tiếp cận 1 công nghệ mới, hoặc 1 nền tảng thứ 3, cần xem xét có setup được không". Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged after observing 3 platform setups this session — Google Calendar / Vercel / Cloudflare) → Classify ✓ (no existing rule covers first-encounter platform automation discovery; `mcp-first-with-fallback.md` is narrower; `agent-action-bias.md` is per-turn not cross-session) → Rule+Enforce ✓ (this rule + memory `feedback_third_party_platform_automation_discovery.md` paired same-PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§6 worked examples on Google Calendar MCP / Vercel CLI / Wrangler CLI + Stripe counter-example) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new rule with built-in enforcement, no constraint loosening; existing platform integrations grandfathered, rule applies prospectively). Detector wiring (§9) deferred to 2nd recurrence per premature-rule guard.

@@ -1,9 +1,22 @@
+---
+paths:
+  - "**/application*.yml"
+  - "**/application*.properties"
+  - "docker-compose*.yml"
+  - "scripts/fetch-secrets*.sh"
+  - "scripts/audit-env-coverage.sh"
+  - "scripts/audit-gateway-routes.sh"
+  - "scripts/audit-service-ports.sh"
+  - "scripts/audit-spring-profiles.sh"
+  - "documents/02-architecture/env-vars-registry.md"
+---
+
 # Production Env Config Registry — single source of truth + coverage audit
 
 **Priority:** 🟠 MANDATORY — production config governance
-**Version:** 1.1.0
+**Version:** 1.1.1
 **Created:** 2026-05-13
-**Last-Reviewed:** 2026-05-13
+**Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; adds §11 listing 3 new audit scripts (gateway-routes / service-ports / spring-profiles) shipped same-PR via Wave 71 Bucket E per §6.5 Enforcement Parity Mandate; no constraint loosening — extends rule coverage to architectural class-of-bug audits that detected 4 P0 production bugs Wave 71 missed by all prior audit skills. v1.0.0 (kept): new rule with built-in enforcement (registry doc + scan script + CI gate deferred + worked self-test on 2026-05-13 Plan 1 incident))
 **Applies to:** Every `application*.yml` Spring config + every `docker-compose*.yml` production env block + `scripts/fetch-secrets.sh` + AWS Secrets Manager production secret entries
 
@@ -200,6 +213,7 @@ Same wiring strategy as §3.3: add to `.github/workflows/script-quality.yml` aft
 
 ## 12. Log
 
+- **2026-05-14** (v1.1.1): PATCH — thêm `paths:` frontmatter — Wave 73 miss fix (rule này nằm trong 13 MANDATORY rules wave plan §3 Scope bỏ sót, vẫn auto-load base context dù scope rule có path trigger rõ ràng). PATCH bump per `rule-change-process.md` §5 — additive frontmatter, no constraint change, deferred-load khi no matching file in context. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve). Scope: production env config + 4 audit scripts.
 - **2026-05-13 (v1.1.0):** MINOR — added §11 Three new audits (post-Wave-71) listing `audit-gateway-routes.sh` + `audit-service-ports.sh` + `audit-spring-profiles.sh` shipped same-PR via Wave 71 Bucket E. Per `rule-change-process.md` §6.5 Enforcement Parity Mandate: 3 scripts paired same-PR; CI gate wire deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 days. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds audit coverage for class-of-bugs (gateway routing / port chain / profile silence) Wave 71 audit found 4 P0 production bugs that `audit-env-coverage.sh` alone missed; no constraint loosening). Self-test: each script FAILed against pre-Wave-71 main state (gateway-routes: 27 findings = 26 wrong-service routing + 1 orphan; service-ports: 13 findings = subscription:8081/email:8084/branding:8083/admin:8083 ≠ gateway route uri :8080; spring-profiles: 5 findings = all 5 kitehub services reference `production` profile with no `application-production.yml`). Closes GAP-509/510/511 Phase 1 (scripts + rule); Phase 2 (CI wire) deferred.
 
 - **2026-05-13 (v1.0.0):** Rule created. Triggered by Plan 1 self-test CORS 403 incident — surface of 6 P0 production config gaps not caught by any audit skill. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged CORS in browser console + 5 other gaps in same audit) → Classify ✓ (no rule covers env-var production coverage) → Rule+Enforce ✓ (this file + registry doc + scan script + 3 P0 env overrides in compose paired same-PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§8 retro on 2026-05-13 incident — scan correctly identifies all 6 gaps) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint, no constraint loosening; existing services grandfathered until registry + scan PASS state achieved). CI gate deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 days; v1.0.0 enforcement = scan script + reviewer-checklist sufficient.
