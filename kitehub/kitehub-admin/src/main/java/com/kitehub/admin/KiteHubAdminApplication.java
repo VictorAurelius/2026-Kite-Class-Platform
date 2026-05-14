@@ -40,7 +40,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "com.kitehub.subscription.audit",
         // Wave 72b Bucket A (GAP-516): RecoveryCodeRepository — admin context @ComponentScan
         // pulls TwoFactorEnrollmentService → RecoveryCodeService → RecoveryCodeRepository.
-        "com.kitehub.subscription.auth.twofactor"
+        "com.kitehub.subscription.auth.twofactor",
+        // Wave 78 Bucket B (GAP-538): OnboardingProgressRepository — admin context @ComponentScan
+        // pulls OnboardingProgressService → OnboardingProgressRepository.
+        "com.kitehub.subscription.onboarding.repository"
 })
 @EntityScan(basePackages = {
         // GAP-240: include all subscription entity packages — must mirror subscription's
@@ -62,7 +65,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "com.kitehub.subscription.audit",
         // Wave 72b Bucket A (GAP-516): RecoveryCode entity (totp_* columns added to existing
         // platform User entity via V37 migration — no separate entity scan needed for User).
-        "com.kitehub.subscription.auth.twofactor"
+        "com.kitehub.subscription.auth.twofactor",
+        // Wave 78 Bucket B (GAP-538): OnboardingProgress entity.
+        "com.kitehub.subscription.onboarding.entity"
 })
 public class KiteHubAdminApplication {
 
