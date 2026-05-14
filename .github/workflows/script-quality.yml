@@ -481,3 +481,22 @@ jobs:
           # + frontmatter fields (title/status/created/waves). Pre-Wave-76 legacy
           # plans grandfathered via `<!-- wave-plan-completeness-exempt: ... -->` comment.
           bash scripts/check-wave-plan-completeness.sh
+
+  script-tests:
+    name: Script tests (`scripts/tests/test-*.sh` fixture-based)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run all script tests
+        run: |
+          # Wave 76 Bucket B — fixture-based tests for scripts/check-*.sh.
+          # Each test-*.sh creates synthetic fixture(s) + invokes the check
+          # script + asserts exit codes (PASS/FAIL behavior). prune-merged-
+          # worktrees tests run --dry-run mode only in isolated temp git
+          # repos (NO mutation of real branches).
+          bash scripts/tests/run-all.sh

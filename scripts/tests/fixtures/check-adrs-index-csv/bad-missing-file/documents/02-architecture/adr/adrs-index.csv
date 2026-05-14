@@ -1,0 +1,4 @@
+# Test fixture — CSV row points to non-existent ADR
+number,status,date,title,file
+001,ACCEPTED,2026-05-01,Phantom,ADR-001-nonexistent.md
+002,ACCEPTED,2026-05-02,Filler,ADR-002-placeholder.md

@@ -1,0 +1,3 @@
+# Test fixture — ADR file exists without CSV row
+number,status,date,title,file
+001,ACCEPTED,2026-05-01,Test,ADR-001-test.md

@@ -1,0 +1,4 @@
+# Test fixture — invalid status enum
+id,filename,title,status,priority,domain,phase,completion_pct,found_date,last_verified,notes
+GAP-001,GAP-001-test.md,Bad status,FOOBAR,P0,meta,phase-1-beta,0,2026-05-01,2026-05-14,test
+GAP-999,pending/GAP-999-pending-test.md,Pending,PENDING,P3,meta,phase-3,0,2026-05-01,2026-05-14,deferred

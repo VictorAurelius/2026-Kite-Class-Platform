@@ -1,0 +1,3 @@
+# Test fixture — CSV row points to non-existent rule file
+name,priority,version,created,last_reviewed,file,path_trigger
+test-rule-one,CRITICAL,1.0.0,2026-05-01,2026-05-14,nonexistent-rule.md,

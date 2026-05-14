@@ -1,0 +1,1 @@
+# test-rule-one fixture

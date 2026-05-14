@@ -1,0 +1,5 @@
+# Test fixture
+id,filename,title,status,priority,domain,phase,completion_pct,found_date,last_verified,notes
+GAP-001,GAP-001-test.md,Test gap one,OPEN,P0,meta,phase-1-beta,0,2026-05-01,2026-05-14,test
+GAP-002,GAP-002-test.md,Test gap two,DONE,P1,backend,phase-1-beta,100,2026-05-02,2026-05-14,test
+GAP-999,pending/GAP-999-pending-test.md,Pending test,PENDING,P3,meta,phase-3,0,2026-05-01,2026-05-14,deferred
