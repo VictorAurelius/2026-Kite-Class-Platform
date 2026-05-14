@@ -71,6 +71,26 @@ public class User {
     @Builder.Default
     private int lockoutCount = 0;
 
+    /**
+     * 2FA state (GAP-516 / OWASP A07 §2.4).
+     * AES-encrypted base32 TOTP secret; NULL means user has not enrolled yet.
+     * Encryption key: {@code kitehub.auth.totp.encryption-key} (Phase 1.5+ KMS).
+     */
+    @Column(name = "totp_secret_encrypted")
+    private String totpSecretEncrypted;
+
+    /** Timestamp of successful enroll-confirm. NULL = not enrolled. */
+    @Column(name = "totp_enrolled_at")
+    private LocalDateTime totpEnrolledAt;
+
+    /**
+     * When TRUE, the user MUST enroll 2FA before access tokens are issued.
+     * Set TRUE for PLATFORM_ADMIN by the V37 migration.
+     */
+    @Column(name = "totp_required", nullable = false)
+    @Builder.Default
+    private boolean totpRequired = false;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

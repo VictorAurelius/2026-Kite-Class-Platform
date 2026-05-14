@@ -5,6 +5,7 @@ import com.kitehub.platform.domain.entity.User;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.subscription.audit.login.LoginAuditService;
+import com.kitehub.subscription.auth.twofactor.ChallengeTokenService;
 import com.kitehub.subscription.dto.*;
 import com.kitehub.subscription.exception.AccountLockedException;
 import com.kitehub.subscription.repository.InstanceRepository;
@@ -51,11 +52,16 @@ public class AuthService {
      * to construct {@link AuthService} via the 6-arg constructor below.
      */
     private final LoginAuditService loginAuditService;
+    /**
+     * Issues 5-min HS256 challenge tokens for 2FA-pending logins (GAP-516 / Wave 72b Bucket A).
+     * Nullable to allow existing unit tests that pre-date this dependency.
+     */
+    private final ChallengeTokenService challengeTokenService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     /**
-     * Legacy 6-arg constructor for unit tests written before Wave 72b Bucket C.
-     * Tests that don't exercise the login-audit path can keep their setup.
+     * Legacy 6-arg constructor for unit tests written before Wave 72b Bucket C / Bucket A.
+     * Tests that don't exercise login-audit OR 2FA challenge paths can keep their setup.
      */
     public AuthService(InstanceRepository instanceRepository,
                        InstanceService instanceService,
@@ -64,7 +70,21 @@ public class AuthService {
                        EmailSenderService emailSenderService,
                        JwtKeyService jwtKeyService) {
         this(instanceRepository, instanceService, userRepository,
-             captchaService, emailSenderService, jwtKeyService, null);
+             captchaService, emailSenderService, jwtKeyService, null, null);
+    }
+
+    /**
+     * 7-arg constructor for tests that use login-audit but not 2FA challenge service.
+     */
+    public AuthService(InstanceRepository instanceRepository,
+                       InstanceService instanceService,
+                       UserRepository userRepository,
+                       CaptchaService captchaService,
+                       EmailSenderService emailSenderService,
+                       JwtKeyService jwtKeyService,
+                       LoginAuditService loginAuditService) {
+        this(instanceRepository, instanceService, userRepository,
+             captchaService, emailSenderService, jwtKeyService, loginAuditService, null);
     }
 
     @Value("${jwt.secret:#{null}}")
@@ -402,6 +422,31 @@ public class AuthService {
         // Failures inside recordLogin are swallowed; login proceeds.
         if (loginAuditService != null) {
             loginAuditService.recordLogin(user, httpRequest);
+        }
+
+        // (5) GAP-516 — if 2FA is enrolled (or required for enrollment), do NOT
+        // issue access/refresh tokens. Instead return a challenge_token the FE
+        // must redeem at POST /api/auth/2fa/{verify,enroll-init}. Per the auth
+        // api-contract §"Login endpoint extension".
+        if (challengeTokenService != null) {
+            if (user.getTotpEnrolledAt() != null) {
+                String challenge = challengeTokenService.issue(
+                    user.getId(), ChallengeTokenService.Purpose.TWO_FACTOR_VERIFY);
+                log.info("Login requires 2FA challenge: userId={}", user.getId());
+                return LoginResponse.builder()
+                    .requires2fa(true)
+                    .challengeToken(challenge)
+                    .build();
+            }
+            if (user.isTotpRequired()) {
+                String challenge = challengeTokenService.issue(
+                    user.getId(), ChallengeTokenService.Purpose.TWO_FACTOR_ENROLL);
+                log.info("Login requires 2FA enrollment: userId={}", user.getId());
+                return LoginResponse.builder()
+                    .requires2faEnrollment(true)
+                    .challengeToken(challenge)
+                    .build();
+            }
         }
 
         List<InstanceResponse> instances = instanceService.getInstancesByOwner(user.getId());
