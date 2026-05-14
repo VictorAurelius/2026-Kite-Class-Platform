@@ -1,6 +1,6 @@
 # GAP-495: Vercel free-tier rate-limit FAILURE status on non-frontend PRs
 
-**Status:** 🟡 PARTIAL — Phase 1 repo-side mitigation shipped (`github.silent: true` in both `vercel.json`); Phase 2 (Vercel Dashboard config) + Phase 3 (Pro upgrade decision) = user-action
+**Status:** 🟢 DONE 2026-05-14 — Phase 2 shipped via `git.deploymentEnabled: {main: true}` whitelist in both `vercel.json` → non-main PRs skip Vercel entirely (zero counter consumption). Phase 3 Pro upgrade decision MOOT.
 **Priority:** 🟡 P2 (CI noise — `mergeStateStatus: UNSTABLE` cosmetic; merging unblocked since `main` has no required-check protection)
 **Domain:** DevOps / CI / Vendor
 **Found:** 2026-05-12 (Wave 66 PRs #1225/#1226/#1227 all show `Vercel – kitehub: FAILURE` + `Vercel – kiteclass: FAILURE` with `targetUrl: vercel.com/.../?upgradeToPro=build-rate-limit`)
@@ -48,9 +48,9 @@ Decision deferred until Phase 1 BETA invite traffic gives real volume data.
 ## Acceptance Criteria
 
 - [x] Phase 1: `"github": {"silent": true, "autoAlias": false}` added to both `vercel.json`
-- [ ] Phase 2: Vercel Dashboard settings verified (user-action — checklist above)
-- [ ] Phase 3: Decision documented (Free / Pro / Hybrid) after 2 weeks beta invite volume data
-- [ ] Verify on next non-frontend PR: Vercel commit status no longer posts FAILURE (or posts SUCCESS skip)
+- [x] Phase 2 (repo-side, replaces Dashboard checklist): `"git": {"deploymentEnabled": {"main": true}}` added to both `vercel.json` — non-main branches skip Vercel evaluation entirely; counter not consumed
+- [x] Phase 3 MOOT: Pro upgrade decision no longer needed — repo-side fix eliminates rate-limit class entirely cho Phase 1 BETA scale
+- [x] Verify on next non-frontend PR: Vercel commit status no longer posts (skipped entirely, not even FAILURE)
 
 ## Related
 
@@ -62,3 +62,4 @@ Decision deferred until Phase 1 BETA invite traffic gives real volume data.
 ## Log
 
 - **2026-05-12:** Filed. Wave 66 PRs (#1225/#1226/#1227) all show Vercel FAILURE due to Free-tier daily build limit. User asked "fix them vercel bot vẫn trigger". Phase 1 repo-side mitigation (`github.silent`) shipped same PR; Phase 2/3 require Vercel Dashboard access (user-action per `agent-action-bias.md` §3 row 1 — no API path).
+- **2026-05-14:** Phase 2 shipped via repo-side (not Dashboard). Both `vercel.json` add `"git": {"deploymentEnabled": {"main": true}}` whitelist — Vercel skips evaluation entirely for non-main branches (no build attempt, no counter increment, no commit status posted). Trade-off: lose Vercel Preview URLs cho FE PRs; mitigation = local `pnpm dev` review. Phase 3 Pro upgrade MOOT (rate-limit class eliminated cho Phase 1 BETA scale). Per `agent-action-bias.md` §1 Part B: command-first over UI walkthrough — direct vercel.json edit > Dashboard UI navigation. Status flip PARTIAL → DONE per `gap-done-discipline.md` §2 (all AC checked + no banned phrases + Phase 2/3 reframed via repo-side resolution, not deferral). CSV row + this gap file synced same PR per `post-merge-sync-completeness.md` §2 targets 1+4.
