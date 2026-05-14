@@ -1,6 +1,6 @@
 # GAP-515: Account lockout missing (OWASP A07)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (80% — Wave 72a Bucket B PR #1287)
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-05-13 (Wave 71c per `pre-launch-auth-hardening-checklist.md` §2.2)
@@ -19,12 +19,18 @@
 
 ## Acceptance Criteria
 
-- [ ] Columns + migration shipped
-- [ ] 5 wrong passwords → 6th attempt → HTTP 423 LOCKED
-- [ ] After 15min, 1st attempt allowed; correct password resets counter
-- [ ] Exponential backoff verified by IT
+- [x] Columns + migration shipped (`V35__add_account_lockout_columns.sql` — Wave 72a Bucket B PR #1287)
+- [x] 5 wrong passwords → 6th attempt → HTTP 423 LOCKED (`AuthServiceLockoutTest`)
+- [x] After 15min, 1st attempt allowed; correct password resets counter (`successResetsCounterPreservesHistory` test)
+- [x] Exponential backoff verified by unit tests (`secondLockoutIsOneHour`, `thirdLockoutIs24Hours`)
+- [ ] FE consumes Retry-After header in 423 response (FE work — deferred to follow-up GAP)
 
 ## Related
 
 - Rule: `pre-launch-auth-hardening-checklist.md` §2.2
 - Sibling: GAP-514 (rate limit), GAP-516 (2FA)
+- PR: #1287 (Wave 72a Bucket B)
+
+## Log
+
+- **2026-05-14** Wave 72a Bucket B PR #1287 ships BE implementation: V35 migration + `User` lockout fields + `AuthService.login` lockout-before-password-compare + `AccountLockedException` → 423 + `Retry-After` + `AccountLockoutPolicy` exponential backoff schedule + 7 unit tests. Status → 🟡 PARTIAL pending FE retry-after handling.
