@@ -1,0 +1,3 @@
+# Test fixture — invalid priority enum
+name,priority,version,created,last_reviewed,file,path_trigger
+test-rule-one,SUPERCRITICAL,1.0.0,2026-05-01,2026-05-14,test-rule-one.md,

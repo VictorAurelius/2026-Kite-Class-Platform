@@ -1,0 +1,4 @@
+# Test fixture — ADR index
+number,status,date,title,file
+001,ACCEPTED,2026-05-01,Test ADR one,ADR-001-test-one.md
+002,PROPOSED,2026-05-02,Test ADR two,ADR-002-test-two.md

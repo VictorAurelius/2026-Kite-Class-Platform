@@ -1,0 +1,3 @@
+# Test fixture — gap file exists without CSV row (coverage gap)
+id,filename,title,status,priority,domain,phase,completion_pct,found_date,last_verified,notes
+GAP-999,pending/GAP-999-pending-test.md,Pending,PENDING,P3,meta,phase-3,0,2026-05-01,2026-05-14,deferred
