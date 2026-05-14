@@ -32,3 +32,4 @@ number,status,date,title,file
 027,ACCEPTED,2026-05-07,Status Page Vendor — Instatus Free Tier (Phase 1 BETA),ADR-027-statuspage-vendor.md
 028,ACCEPTED,2026-05-11,ECS Fargate vs EKS for Phase 1 BETA Container Orchestration,ADR-028-ecs-fargate-vs-eks-phase-1-beta.md
 029,ACCEPTED,2026-05-13,JVM-in-container memory budget rule (50% MaxRAMPercentage + tiered mem_limit floors),ADR-029-jvm-container-memory-budget.md
+030,ACCEPTED,2026-05-14,CSV canonical for meta indexes,ADR-030-csv-canonical-meta-indexes.md

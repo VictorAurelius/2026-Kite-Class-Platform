@@ -1,9 +1,9 @@
 # Release Deploy Standard — Generic deploy artifact + process baseline
 
 **Priority:** 🔴 CRITICAL — every production release must satisfy this standard
-**Version:** 1.1.0
+**Version:** 1.1.1
 **Created:** 2026-05-06
-**Last-Reviewed:** 2026-05-11
+**Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; adds §4.4 Rollback execution + §9 matrix Rollback execution row per Wave 63 GAP-477 (rollback.yml + smoke-rollback-cycle.sh landing). Extends existing §9 carve-out for human-triggered workflow_dispatch to rollback scope — no constraint loosening.)
 **Applies to:** Every git tag matching `v[0-9]+.[0-9]+.[0-9]+*` (per `versioning-policy.md`); every production deploy; every pre-release (alpha/beta/rc) shipping to invite tenants
 
@@ -250,40 +250,9 @@ This delineation matches `output-review-mandate.md` Section 6 (Production deploy
 
 ---
 
-## 11. Self-test (worked example — Release 1)
+## 11. Self-test
 
-Apply rule §3.4 (MAJOR + first PRODUCTION) to Release Lần 1 v1.0.0:
-
-| Required artifact | Status | Reference |
-|---|---|---|
-| Deploy plan document linked | ✅ | `release-1-deploy-plan.md` |
-| Smoke test script | ⏳ | GAP-377 (P1) |
-| Rollback procedure | ⏳ | GAP-378 (P1) |
-| Status page | ⏳ | GAP-373 (P1) |
-| Secrets management | ⏳ | GAP-379 (P1) |
-| HTTPS/TLS | ⏳ | Per Oracle Cloud setup |
-| DNS production setup | ⏳ | GAP-369 (P0 BLOCKING) |
-| CDN setup | ⏳ | GAP-371 (P1) |
-| Email transactional | ⏳ | GAP-370 (P0 BLOCKING) |
-| Pen-test light | ⏳ | New gap (mentioned in `release-1-deploy-plan.md` Phase 1.5) |
-| Production data seed | ⏳ | GAP-376 (P0 BLOCKING) |
-| Monitoring dashboards | ⏳ | GAP-115 (PARTIAL) |
-| SLO targets | ⏳ | GAP-135 (PARTIAL) |
-| Tag-based release CI | ⏳ | GAP-374 (P1) |
-| GitHub Release với changelog | ⏳ | GAP-375 (P2) |
-| Staging environment parity | ⏳ | GAP-380 (P1) |
-| Beta tenant invite mechanism | ⏳ | GAP-372 (P0 BLOCKING — for v0.9.0-beta) |
-| Counsel-reviewed legal docs | ⏳ | GAP-182 + GAP-184 Phase 2 (Phase 3 K-12 trigger) |
-
-→ Rule §3.4 successfully maps Release 1 v1.0.0 readiness state. 12 gaps GAP-369..380 + existing GAP-115/135/182/184 = comprehensive coverage. **Rule fires correctly on existing scope.** ✅
-
-### Meta-lesson
-
-Rule creation itself surfaced 2 misses by current author:
-1. State-check vi phạm — không đọc `deployment-strategy.md` (GAP-103 DONE) trước khi file 12 deploy gaps
-2. Standard groundwork miss — generated artifacts free-form thay vì cite Well-Architected/Twelve-Factor/DORA/OWASP
-
-Both addressed via this rule §2 (standards reference) + §10 (cross-link GAP-103) + 12 gaps' updates (cross-ref `deployment-strategy.md`).
+See `_examples/release-deploy-standard-examples.md` §Self-test (Release Lần 1 v1.0.0 §3.4 mapping — 12 gaps GAP-369..380 + GAP-115/135/182/184 cover MAJOR scope; meta-lesson recorded).
 
 ---
 
@@ -313,6 +282,7 @@ If unsure: default to apply per-bump-type checklist; skipping requires override 
 
 ## 13. Log
 
+- **2026-05-14 (v1.1.1):** PATCH — Wave 76 Bucket E body streamline. §11 Self-test moved to `_examples/release-deploy-standard-examples.md`; body replaced with 1-line stub pointer. No constraint change; content preserved (deferred-load). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-05-11 (v1.1.0):** MINOR — added §4.4 Rollback execution section + §9 matrix row "Rollback execution — human-triggered workflow_dispatch" per Wave 63 GAP-477 rollback.yml landing. Also added monthly `--dry-run` + quarterly `--execute` cadence bullets to §4.3 post-deploy. Sister-mechanism của terraform-apply.yml pattern; reuses confirm-input gate + ephemeral OIDC pattern; scope = ECS service rollback (narrow role `kitehub-rollback-role`). Cross-link added: `documents/05-guides/operations/incident-response-runbook.md` §8 for invocation details + troubleshooting. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — extends existing §9 carve-out to rollback scope; no constraint loosening; consistent with v1.0.1 expansion pattern).
 
 - **2026-05-08 (v1.0.1):** PATCH — §9 matrix "Deploy execution" row replaced single ❌ SKIP cell với 4-case distinction (auto-apply BANNED / agent-apply BANNED / human-triggered workflow_dispatch ALLOWED / one-time local bootstrap ALLOWED for chicken-and-egg). Triggered by Wave 43 closure user-flagged miss "tại sao cần rule terraform apply human-only" — surfaced rule conflated 3 cases, banning workflow_dispatch + confirm-input pattern that's industry standard (Atlantis/TF Cloud). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user retro post Wave 43 closure) → Classify ✓ (existing §9 didn't distinguish autonomy vs human-trigger) → Rule+Enforce ✓ (this entry + paired same-PR Bucket B `terraform-apply.yml` + IAM apply role + Bucket C bootstrap runbook per `rule-change-process.md` §6.5) → Self-Test ✓ (worked example: Wave 43 GAP-446/447 PARTIAL state would be unblocked by workflow_dispatch carve-out without violating rule spirit) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — clarification only, no constraint loosening for actual-banned cases; auto-apply BAN preserved, agent-apply BAN preserved, only adds explicit carve-out for human-triggered workflow_dispatch). Closes Wave 44 Bucket A via GAP-449 Phase 1.

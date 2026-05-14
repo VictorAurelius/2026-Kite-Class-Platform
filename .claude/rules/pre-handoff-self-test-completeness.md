@@ -1,7 +1,7 @@
 # Pre-Handoff Self-Test Completeness — verify the FLOW, not the endpoint
 
 **Priority:** 🔴 CRITICAL — verification governance
-**Version:** 1.1.0
+**Version:** 1.1.1
 **Created:** 2026-05-13
 **Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; adds 7 new flow classes §2.5-§2.11 (file-upload, payment, multi-tenant tenant-switch, SSE/WebSocket, background job, time-sensitive, i18n) closing GAP-524 — no constraint loosening, prospectively extends coverage of "user-facing flow" classes. v1.0.0 (kept): new rule with mandatory verify checklist + worked self-test on Wave 71b admin-login bug per §6.5 Enforcement Parity Mandate)
@@ -177,26 +177,9 @@ When AC mentions "Vietnamese / English / multi-language / localization":
 
 ---
 
-## 4. Worked self-test — Wave 71b 2026-05-13 incident
+## 4. Worked self-test
 
-**Scenario:** Coordinator (me) claimed "Plan 1 Bước 2 LIVE PASS — HTTP 201 + DB row id=1 PENDING" + flipped GAP-509/512/513 → DONE. User attempted Plan 1 Bước 4 (admin approve in UI) and hit 2 bugs:
-
-1. No UI button → had to guess URL `/admin/beta-requests`
-2. Direct URL → redirect to `/login` → no admin credential in handoff
-3. After credential retrieved manually from AWS, login succeeded → redirects to `/dashboard` (not `/admin`) → `/admin/*` routes blocked by role-guard
-
-**Apply §2.4 admin-flow checklist retroactively:**
-
-| Check | Pre-this-rule | Required outcome |
-|---|---|---|
-| (a) Role match BE seed `PLATFORM_ADMIN` vs FE guard `'ADMIN'` | ❌ NOT VERIFIED | grep both, find mismatch → file P0 gap |
-| (b) Admin sees admin dashboard post-login | ❌ NOT VERIFIED | browser test: login as admin → expect `/admin` URL |
-| (c) Admin can navigate to /admin/beta-requests | ❌ NOT VERIFIED | check AdminLayout sidebar/nav |
-| (d) Approve action reaches kitehub-subscription | ⚠️ partially (curl GET works, button POST not tested) | browser click → network inspect |
-
-**Verdict:** §2.4 (a)+(b)+(c) all FAIL retroactively. Self-test PASS as a worked example proving the rule fires on the originating incident.
-
-**Cost of the miss:** ~1 user round-trip to discover bugs that should have been surfaced at Wave 71 closure. GAP-518 (role mismatch) + GAP-519 (admin nav missing) filed as P0 follow-ups.
+See `_examples/pre-handoff-self-test-completeness-examples.md` §Worked self-test (Wave 71b 2026-05-13 admin-login incident — §2.4 admin-flow checklist (a)+(b)+(c) all FAIL retroactively, validates rule fires).
 
 ---
 
@@ -277,6 +260,7 @@ Future: `audit-gate.py` rule scanning PR body for `LIVE VERIFY` / `verified live
 
 ## 8. Log
 
+- **2026-05-14 (v1.1.1):** PATCH — Wave 76 Bucket E body streamline. §4 Worked self-test moved to `_examples/pre-handoff-self-test-completeness-examples.md`; body replaced with 1-line stub pointer. No constraint change; content preserved in `_examples/` (deferred-load). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-05-14 (v1.1.0):** MINOR — added 7 new flow class checklists §2.5-§2.11 closing GAP-524 META P1 (Wave 72b Bucket E): §2.5 File-upload (MIME/size/scan/storage/retrieval), §2.6 Payment (gateway redirect/webhook signature/idempotency/reconciliation), §2.7 Multi-tenant tenant-switch (picker/JWT swap/data isolation/cache invalidation), §2.8 SSE/WebSocket/long-polling (protocol/heartbeat/reconnect/auth-on-reconnect/degradation), §2.9 Background job/async (enqueue/worker pick/retry/DLQ/notification), §2.10 Time-sensitive (TTL/refresh rotation/clock skew/countdown), §2.11 i18n (locale detection/fallback/format/pluralization). Each class mirrors §2.1-§2.4 4-row checklist structure adapted to its class. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (GAP-524 Wave 71c-meta-Phase-2 discovery — 7 classes likely to cause future verify-claimed-but-flow-broken incidents) → Classify ✓ (existing v1.0.0 covered 4 classes; 7 more enumerable from incident-likely surfaces) → Rule+Enforce ✓ (this v1.1.0 + same-PR sister 6 audit-rubric rules per `rule-change-process.md` §6.5) → Self-Test ✓ (each class's required check is grep-able / observable / verifiable — not aspirational; e.g., 2.5 (c) virus scan = ClamAV presence verifiable) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds prospective coverage for 7 previously-uncovered flow classes; no constraint loosening for prior gap closures; rule applies prospectively from Wave 72b Bucket E forward).
 
 - **2026-05-13 (v1.0.0):** Rule created in response to user-flagged miss — Wave 71b closure claimed "verified live" but admin@kitehub.me UI flow had 3 unblocked bugs (no nav button, no credential in handoff, role-name mismatch). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user "self-test quá tệ") → Classify ✓ (no existing rule mandates flow-level verify; `gap-done-discipline.md` covers DONE flip mechanics; `audit-to-gap-pipeline.md` covers state-check at file time, not flow at closure time) → Rule+Enforce ✓ (this file + paired same-PR with `pre-launch-auth-hardening-checklist.md` + 8 gap files + ROADMAP Wave 71c queue + worked self-test §4 per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§4 worked example on Wave 71b incident — rule fires correctly + 3 checklist items FAIL retroactively, file GAP-518/519/520) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new coverage class, no constraint loosening; existing DONE flips grandfathered, rule applies prospectively).

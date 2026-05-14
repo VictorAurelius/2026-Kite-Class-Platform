@@ -54,6 +54,23 @@ Query helper: `bash scripts/query-rules.sh <priority> [date-prefix]` (vd `bash s
 
 ---
 
+## Skill-vs-rule split criterion (Wave 76 Bucket E — per outside-in benchmark NEW-2)
+
+Khi đề xuất artifact governance mới, áp dụng matrix:
+
+| Concept | Lý do | Artifact |
+|---|---|---|
+| Constraint enforced via review / CI / hook | Có thể test deterministic; force-multiplier | **RULE** (.claude/rules/) |
+| Multi-step workflow với state | Người thực thi cần guidance + decision tree | **SKILL** (.claude/skills/) |
+| Reference docs (rubrics, checklists, examples) | Material đi kèm rule hoặc skill | **SKILL reference/** (`.claude/skills/quality/<skill>/reference/`) |
+| Borderline (constraint + workflow) | Khó back-fit constraint mechanism sau | **Default RULE** + skill cho process detail |
+
+**Industry baseline** (per outside-in benchmark Wave 75): ESLint rules + Husky hooks = constraints. Mintlify docs + GitHub guides = workflows. KiteHub follow same split.
+
+Cross-link: `rule-change-process.md` §5.1 atomic-unique-bar (rule audit) + `skill-conventions.md` §2 progressive disclosure (skill structure).
+
+---
+
 ## How auto-load works (Anthropic native feature)
 
 Per Anthropic docs (https://code.claude.com/docs/en/memory) — "Path-specific rules":

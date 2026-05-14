@@ -9,7 +9,7 @@ paths:
 # Agent AWS Access — read-only allowlist + mandatory logging
 
 **Priority:** 🟠 MANDATORY — bounds blast radius for agent AWS interactions
-**Version:** 1.0.2
+**Version:** 1.0.3
 **Created:** 2026-05-07
 **Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (allowlist + log requirement + self-test) per §6.5; new constraint, no constraint loosening; paired same-PR with first audit artifact `documents/04-quality/audits/aws-verification/2026-05-08-phase-2-3-post-apply.md`)
@@ -201,24 +201,9 @@ Trailer logged in quarterly retro. Pattern frequency >5% triggers meta-review.
 
 ---
 
-## 7. Worked self-test — apply rule to 2026-05-08 session
+## 7. Worked self-test
 
-User-flagged commands from Phase 2.3 retro session:
-
-| Command | Tier | Verdict |
-|---|---|---|
-| `curl -sI https://kitehub.vercel.app/` | Tier 1 (network probe) | ✅ allowed |
-| `aws ec2 describe-instances --query ...` | Tier 1 (`describe-`) | ✅ allowed |
-| `aws rds describe-db-instances --query ...` | Tier 1 (`describe-`) | ✅ allowed |
-| `aws sts get-caller-identity --profile default` | Tier 1 (allowed `get-*`) | ✅ allowed |
-| `aws cloudtrail describe-trails` | Tier 1 (`describe-`) | ✅ allowed |
-| `aws cloudtrail get-trail-status` | Tier 2 (always-confirm first time) | ⚠️ confirm |
-
-Verdict: 5/6 commands ✅ allowed at Tier 1; 1 was Tier 2 borderline (no harm, status check). **No banned commands run.** ✓ rule fires correctly on the original session.
-
-Logging gap: report was conversation-only, NOT saved to repo. ❌ rule §5 violated. Remediation: same-PR artifact `documents/04-quality/audits/aws-verification/2026-05-08-phase-2-3-post-apply.md` saves the verification.
-
-→ Self-test PASS for command tiering, FAIL→FIX for logging requirement (artifact ships same PR).
+See `_examples/agent-aws-access-examples.md` §Self-test (apply rule to 2026-05-08 Phase 2.3 retro session — 5/6 commands Tier 1 OK, logging gap remediated).
 
 ---
 
@@ -274,6 +259,7 @@ Future: `audit-gate.py` AUDIT_RULES rule scanning Bash invocations for Tier 3 pa
 
 ## 11. Log
 
+- **2026-05-14** (v1.0.3): PATCH — Wave 76 Bucket E body streamline. §7 Worked self-test moved to `_examples/agent-aws-access-examples.md` (deferred-load); body replaced with 1-line stub pointer. No constraint change; reduces auto-load context per `context-budget-mandate.md` §3 for path-scoped rule. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — content moved not deleted; reviewer can verify in `_examples/`).
 - **2026-05-14** (v1.0.2): PATCH — thêm `paths:` frontmatter — Wave 73 miss fix (rule này nằm trong 13 MANDATORY rules wave plan §3 Scope bỏ sót, vẫn auto-load base context dù scope rule có path trigger rõ ràng). PATCH bump per `rule-change-process.md` §5 — additive frontmatter, no constraint change, deferred-load khi no matching file in context. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve). Scope: AWS work scope.
 - **2026-05-08 (v1.0.1):** PATCH — §4.3 reframed "Banned terraform actions" → "Banned terraform actions (agent-initiated only)" + lead-in clarifying scope = AGENT-INITIATED apply per `release-deploy-standard.md` §9 (revised v1.0.1 same wave). Existing BAN clauses preserved verbatim; added "User-triggered (allowed)" sub-section listing workflow_dispatch + chicken-and-egg bootstrap as carve-outs. No constraint loosening for agent-initiated cases. Cross-link aligned với Wave 44 Bucket A. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — clarification of existing rule scope, paired with `release-deploy-standard.md` §9 revision in same wave). Closes Wave 44 Bucket A part of GAP-449 Phase 1.
 - **2026-05-08 (v1.0.0):** Rule created in response to user-flagged retro after Phase 2.3 apply session ("lệnh check có vẻ là lệnh tự do, cần bổ sung workflow cho agent aws theo chuẩn đã đề cập chưa? báo cáo chi tiết như này có lưu logs tại repo không?"). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged) → Classify ✓ (no existing rule covers; `release-deploy-standard.md` §9 high-level only) → Rule+Enforce ✓ (this file + first audit artifact `2026-05-08-phase-2-3-post-apply.md` + folder README + `output-review-mandate.md` §3 row update — all paired same-PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§7 worked example on the originating session — 5/6 commands Tier 1 OK, logging requirement violated and now remediated) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — new constraint, no loosening). Phase 2 (skill + script) + Phase 4 (memory) deferred to follow-up per GAP-438.

@@ -1,9 +1,9 @@
 # Pre-Mutation State-Check — investigate before applying production changes
 
 **Priority:** 🔴 CRITICAL — production mutation discipline
-**Version:** 1.1.0
+**Version:** 1.1.1
 **Created:** 2026-05-12
-**Last-Reviewed:** 2026-05-12
+**Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (PR template + reviewer-checklist + memory + worked self-test on Wave 64 cutover) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-uncovered pre-mutation investigation log mandate)
 **Applies to:** Every production-grade mutation operation — `terraform apply` (whether via workflow_dispatch or local), `aws acm import-certificate`, `aws ses verify-*`, `aws iam create-*`, AWS Secrets Manager rotate, Cloudflare DNS POST/PATCH/DELETE on production zones, GitHub Variable/Secret create/update on `production` environment, Kubernetes `kubectl apply` against prod cluster
 
@@ -178,50 +178,7 @@ gaps: [GAP-XXX, GAP-YYY]
 
 ## 4. Concrete examples
 
-### ✅ GOOD — Wave 64 Step E pre-apply (this PR's worked example)
-
-Before triggering `terraform-apply.yml` workflow_dispatch:
-1. Run `gh run download` to get plan output
-2. Grep for `must be replaced` / `will be created` / phantom indicators
-3. Run AWS describe-instances to verify current state
-4. Search `documents/04-quality/audits/aws-verification/` for prior apply audits
-5. Write `2026-05-12-wave-64-pre-apply-plan-investigation.md` documenting:
-   - 11 add (real: HTTPS listener, 2 IAM roles, memory alarm; +cascades)
-   - 14 change (real: 1 (lb_listener.http redirect flip); phantom: 13 (random_password ignore_changes, db_instance metadata, schedulers))
-   - 4 destroy (real: 2 EC2 AMI bump pre-launch acceptable + 2 cascading)
-6. Verdict: safe to apply (pre-launch, no data, all changes desired/beneficial)
-7. THEN user triggers `dry_run=false`
-
-### ❌ BAD — apply without investigation
-
-```
-agent: "Plan shows 11 add 14 change 4 destroy. Apply?"
-user: "Yes"
-→ agent triggers workflow_dispatch
-```
-
-Risk: drift hidden in "4 destroy" — could be EC2 replacement (data loss on local state), could be IAM role deletion (auth break), could be RDS replacement (DB loss). Without investigation, blind apply.
-
-### ✅ GOOD — Cloudflare DNS PATCH on production
-
-Before `curl PATCH /zones/{id}/dns_records/{id}` to modify existing SPF:
-1. GET current record state (verify content + record_id)
-2. Search `aws-verification/` audits for prior DNS changes
-3. List CF Email Routing rules to confirm SPF still needed for those forwarders
-4. Document in audit artifact:
-   - Current SPF value, proposed merged value
-   - 2 active Email Routing rules depend on `_spf.mx.cloudflare.net`
-   - Merge keeps both routing + adds amazonses
-5. PATCH
-
-### ❌ BAD — DNS DELETE without state-check
-
-```
-agent: "Old SPF record, delete?"
-→ DELETE /zones/{id}/dns_records/{id}
-```
-
-Risk: didn't check if CF Email Routing depends on it → routing breaks silently.
+See `_examples/pre-mutation-state-check-examples.md` §Concrete examples (4 worked cases: Wave 64 Step E good apply, blind-apply bad case, Cloudflare DNS PATCH good, DNS DELETE bad).
 
 ---
 
@@ -278,19 +235,9 @@ Future enhancement — `audit-gate.py` AUDIT_RULES rule scanning for mutation pa
 
 ---
 
-## 7. Self-test (worked example — Wave 64 Step E)
+## 7. Self-test
 
-**Scenario:** 2026-05-12 03:48 UTC — Wave 64 cutover Step E. User-triggered terraform-apply workflow_dispatch `dry_run=true` produced plan summary `11 to add, 14 to change, 4 to destroy`. Agent must decide: apply now (dry_run=false) or hold?
-
-**Apply rule §3 mandate:**
-1. ✅ Read current state — `aws ec2 describe-instances` confirmed actual IDs
-2. ✅ Search prior actions — found `2026-05-08-wave-43-44-bootstrap-apply.md` + `2026-05-08-current-state.md` + `2026-05-11-wave-61-bucket-a-dns-state.md` + GAP-450 investigation logs
-3. ✅ Document findings → `documents/04-quality/audits/aws-verification/2026-05-12-wave-64-pre-apply-plan-investigation.md` (this audit)
-4. ✅ Sections present: Scope + Commands + Findings (real-vs-phantom 11/14/4 broken down) + Prior actions table (10 items) + Pending table + Recommendations + References
-
-**Verdict:** all §3 sections present + decisions justified. Rule fires correctly. ✅
-
-**Without this rule:** session 2026-05-12 would have run apply with shallow understanding of 4-destroy items + 14-change items, potentially missing the AMI replacement detail OR misinterpreting phantom updates as real rotations.
+See `_examples/pre-mutation-state-check-examples.md` §Self-test (Wave 64 Step E worked example — all §3 sections present, rule fires correctly).
 
 ---
 
@@ -309,5 +256,6 @@ Future enhancement — `audit-gate.py` AUDIT_RULES rule scanning for mutation pa
 
 ## 9. Log
 
+- **2026-05-14 (v1.1.1):** PATCH — Wave 76 Bucket E body streamline. §4 Concrete examples + §7 Self-test moved to `_examples/pre-mutation-state-check-examples.md`; body replaced with 1-line stub pointers. No constraint change; content preserved (deferred-load). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-05-12 (v1.1.0):** MINOR — added §1.5 Terraform-specific workflow mandate. Triggered by user-flagged meta-gap during Wave 64 Step F deploy retry: "bổ sung đúng workflow khi động đến terraform" — 3 cascading IAM bugs (tag mismatch + missing ec2:DescribeInstances + secret prefix mismatch) shipped in 2+ retry cycles instead of 1 review pass. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged) → Classify ✓ (existing §3 audit artifact mandate but no explicit "terraform-review cross-reference matrix" workflow) → Rule+Enforce ✓ (this §1.5 + matrix template + companion file scan mandate paired same-PR with concrete fix) → Self-Test ✓ (matrix applied retroactively to Wave 64 Step F caught all 3 bugs in 1 pass) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint adds terraform-specific cross-reference workflow, no constraint loosening). Detector deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 days.
 - **2026-05-12 (v1.0.0):** Rule created. Triggered by user comment during Wave 64 Step E: "thao tác deploy cũng giống như fix gaps, phải lưu logs và state check chứ?" (mid-session, after agent shipped investigation log organically but user flagged that existing rules didn't MANDATE the discipline for deploy ops). Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged meta-gap during ongoing mutation session) → Classify ✓ (`audit-to-gap-pipeline.md` covers GAP/wave/decision/fix-time state-check; `agent-aws-access.md` covers verification logging; NO rule explicitly mandated pre-mutation audit log) → Rule+Enforce ✓ (this rule + paired same-PR PR template checkbox + memory `feedback_pre_mutation_state_check.md` + Wave 64 investigation log as worked self-test per `rule-change-process.md` §6.5) → Self-Test ✓ (§7 worked example on the originating Wave 64 Step E session — rule fires correctly + investigation written organically matches all §3 sections) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — new constraint adding previously-uncovered pre-mutation investigation log mandate, no constraint loosening for prior work; existing audit artifacts grandfathered, rule applies prospectively from this PR). Detector deferred per premature-rule guard ≥7 days.
