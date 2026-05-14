@@ -221,7 +221,7 @@ importers:
         version: link:../../packages/shared-ui
       '@next/third-parties':
         specifier: 15.5.15
-        version: 15.5.15(next@15.5.18(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)
+        version: 15.5.15(next@15.5.18(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)
       '@radix-ui/react-alert-dialog':
         specifier: ^1.1.15
         version: 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -297,6 +297,9 @@ importers:
       next-themes:
         specifier: ^0.4.4
         version: 0.4.6(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      qrcode.react:
+        specifier: 4.2.0
+        version: 4.2.0(react@19.2.5)
       react:
         specifier: ^19.2.5
         version: 19.2.5
@@ -3788,6 +3791,11 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
+  qrcode.react@4.2.0:
+    resolution: {integrity: sha512-QpgqWi8rD9DsS9EP3z7BT+5lY5SFhsqGjpgW5DY/i3mK4M9DTBNz3ErMi8BWYEfI3L0d8GIbGmcdFAS1uIRGjA==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
@@ -5083,7 +5091,7 @@ snapshots:
   '@next/swc-win32-x64-msvc@15.5.18':
     optional: true
 
-  '@next/third-parties@15.5.15(next@15.5.18(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)':
+  '@next/third-parties@15.5.15(next@15.5.18(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)':
     dependencies:
       next: 15.5.18(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       react: 19.2.5
@@ -8019,6 +8027,10 @@ snapshots:
       event-stream: 3.3.4
 
   punycode@2.3.1: {}
+
+  qrcode.react@4.2.0(react@19.2.5):
+    dependencies:
+      react: 19.2.5
 
   queue-microtask@1.2.3: {}
 
