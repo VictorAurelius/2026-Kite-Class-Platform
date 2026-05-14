@@ -4,7 +4,7 @@ status: draft
 created: 2026-05-14
 updated: 2026-05-14
 waves: [79]
-gaps: [GAP-040, GAP-537, GAP-544, GAP-545, GAP-547, GAP-548, GAP-551, GAP-552, GAP-553, GAP-554, GAP-555, GAP-556, GAP-557, GAP-558, GAP-559, GAP-560, GAP-561, GAP-562]
+gaps: [GAP-040, GAP-537, GAP-544, GAP-545, GAP-547, GAP-548, GAP-551, GAP-552, GAP-553, GAP-554, GAP-555, GAP-556, GAP-557, GAP-558, GAP-559, GAP-560, GAP-561, GAP-562, GAP-563]
 ---
 
 # Wave 79 — Beta Invite Close-Out
@@ -36,8 +36,9 @@ Inside-out queue (13 items, Wave 78 audit suite + carry-forward):
 | Carry-forward | GAP-040 | P1 | Support impersonation |
 | Business Logic audit | GAP-556 | P1 | Support rules.md misleading — BE not implemented |
 | Business Logic audit | GAP-557 | P1 | use-cases.md thiếu BR-xxx refs |
+| Outside-in user manual audit | **GAP-563** | **P1 META** | User manual content review standard rule file (force-multiplier; ship same PR với F1 sample) |
 
-Outside-in additions (5 items, từ persona audit 2026-05-14):
+Outside-in additions (5 items, từ persona audit 2026-05-14 + 1 từ user manual audit pre-F1):
 
 | Persona | Gap | Priority | Friction class |
 |---|---|---|---|
@@ -76,9 +77,11 @@ Outside-in additions (5 items, từ persona audit 2026-05-14):
 | **C P1 cluster security** | GAP-548 (password-reset BE) + GAP-552 (SecurityConfig default-deny) + GAP-553 (TOTP/JWT fail-fast) + GAP-554 (X-Tenant-Id JWT cross-check) | bg-agent | ~2-3h | ✅ auth module + SecurityConfig + onboarding controller |
 | **D P1 UX retention** | GAP-545 (Radix Dialog migrate) + GAP-559 (Sidebar nav + CTA) + GAP-560 (disclaimer specificity + data-reset doc) | bg-agent | ~2-3h | ✅ dashboard sidebar + disclaimer banner + new doc |
 | **E P1 docs+tests** | GAP-544 (testcontainers 2 tests) + GAP-556 (support rules.md scope note) + GAP-557 (use-cases BR-refs) | bg-agent | ~2h | ✅ subscription tests + business docs |
-| **F P1 user manual + support** | GAP-537 (user manual 4 personas × 5-10 screenshots) + GAP-040 (admin impersonation BE+FE) | bg-agent | ~3-4h | ✅ documents/05-guides/user-manual + kitehub-admin impersonation module |
+| **F1 P1 user manual sample + meta** | GAP-563 (rule file `user-manual-content-standard.md`) + GAP-537 anonymous-prospect sample (5 pages) | bg-agent | ~2-3h | ✅ rule + anonymous folder + Next.js MDX route |
+| **F2 P1 user manual rest** (DEFER Wave 80+) | GAP-537 rest (P2 Owner + P3 Manager + Platform Admin × 5-10 pages) | bg-agent | ~2-3h | gated on F1 dev review approval |
+| **F-bis P1 support impersonation** | GAP-040 (admin "View as tenant" BE+FE+audit log) | bg-agent | ~2h | ✅ kitehub-admin impersonation module — independent F1/F2 |
 
-**Disjoint check:** 7 bucket touch disjoint package/file paths — chi tiết §3 Scope.
+**Disjoint check:** 9 bucket (0 + A/B/C/D/E + F1/F2-defer/F-bis) touch disjoint package/file paths — chi tiết §3 Scope. F2 gated on F1 dev review = defer-eligible (Wave 80+); 8 actual buckets shipping Wave 79.
 
 ---
 
@@ -97,7 +100,9 @@ Outside-in additions (5 items, từ persona audit 2026-05-14):
 | 3 | **C** | GAP-548 + GAP-552 + GAP-553 + GAP-554 | 🟠 P1 | `kitehub-subscription/src/main/java/com/kitehub/subscription/auth/{controller,config}/**` + `kitehub-subscription/.../onboarding/controller/OnboardingProgressController.java` | parallel after 0 |
 | 4 | **D** | GAP-545 + GAP-559 + GAP-560 | 🟠 P1 | `kitehub-frontend/src/components/{Sidebar,BetaDisclaimerBanner,FeedbackWidget,OnboardingChecklist}/**` + `documents/05-guides/operations/data-reset-policy.md` (new doc) | parallel after 0 |
 | 5 | **E** | GAP-544 + GAP-556 + GAP-557 | 🟠 P1 | `kitehub-subscription/src/test/java/.../{DatabaseBackupServiceTest,InstanceControllerIntegrationTest}.java` + `documents/01-business/support/rules.md` + `documents/01-business/kitehub/auth/use-cases.md` | parallel after 0 |
-| 6 | **F** | GAP-537 + GAP-040 | 🟠 P1 | `documents/05-guides/user-manual/**` (new folder, 4 personas) + `kitehub-admin/src/main/java/.../impersonation/**` (new module) + `kitehub-admin/src/main/.../frontend/admin-impersonation.tsx` | parallel after 0 |
+| 6a | **F1** | GAP-563 (META rule) + GAP-537 (anonymous sample) | 🟠 P1 META | `.claude/rules/user-manual-content-standard.md` (NEW) + `documents/05-guides/user-manual/anonymous/{index,pricing,beta-access,terms,faq}.md` (5 MDX) + `kitehub-frontend/src/app/help/anonymous/**` (Next.js route) + `scripts/render-user-manual-pdf.sh` (NEW) | parallel after 0 |
+| 6b | **F2** (DEFER Wave 80+) | GAP-537 rest | 🟠 P1 | `documents/05-guides/user-manual/{p2-owner,p3-manager,platform-admin}/*.md` | gated on F1 dev review — DEFER eligible |
+| 6c | **F-bis** | GAP-040 | 🟠 P1 | `kitehub-admin/src/main/java/com/kitehub/admin/impersonation/**` (new module) + `kitehub-admin/frontend/src/components/ImpersonateButton.tsx` | parallel after 0 — independent |
 
 ### Bucket 0 — Foundation (Contract + Mock Infrastructure)
 
@@ -137,11 +142,26 @@ Per `.claude/rules/contract-first-for-cross-layer.md` v1.0.0:
 - Files: `kitehub-subscription/src/test/java/.../DatabaseBackupServiceTest.java` + `InstanceControllerIntegrationTest.java` (testcontainers migration), `kitehub-subscription/pom.xml` (testcontainers dep), `documents/01-business/support/rules.md` (header scope note), `documents/01-business/kitehub/auth/use-cases.md` (BR-AUTH-009 alias)
 - Acceptance: 2 tests pass on CI runner via testcontainers; support rules.md scope note explicit "Wave 78 DISCOVERABILITY ONLY"; BR-AUTH-009 documented
 
-### Bucket F — P1 user manual + support (GAP-537+040)
+### Bucket F1 — User manual sample + meta standard (GAP-563 + GAP-537 anonymous sample)
 
-- Files: `documents/05-guides/user-manual/{p2-owner,p3-manager,anonymous,platform-admin}/*.md` (new — 4 personas × 5-10 screens), `kitehub-admin/src/main/java/com/kitehub/admin/impersonation/**` (new module), `kitehub-admin/frontend/src/components/ImpersonateButton.tsx`
-- Tests: `ImpersonationServiceTest.java` (audit log), `ImpersonateButton.test.tsx`
-- Acceptance: User manual rendered cho 4 personas; admin impersonation "View as tenant" button + 30s session timeout + audit log row
+- Files: `.claude/rules/user-manual-content-standard.md` (NEW rule v1.0.0 với 15-item checklist từ outside-in audit findings), `documents/05-guides/user-manual/anonymous/{index,pricing,beta-access,terms,faq}.md` (5 MDX pages annotated screenshots 1440×900 + 375×812 vi-VN), `kitehub-frontend/src/app/help/anonymous/**` (Next.js MDX route), `scripts/render-user-manual-pdf.sh` (NEW reusable từ `render-acceptance-test-xlsx.sh` pattern), `output-review-mandate.md` §3 row mới "User manual pages", `rules-index.csv` row mới
+- Tests: 15-item self-test pass trên 5 pages prototype (auto-script verify); reviewer manual screenshot annotation review
+- Acceptance: GAP-563 status=DONE (rule + 15-item checklist + 5-page worked example); GAP-537 status=PARTIAL (anonymous sample done; P2/P3/Admin defer F2)
+- Outside-in findings integrated: Intercom-style TOC sidebar + PDF auto-gen + annotated screenshots + Fuse.js search + ≥3 discoverability entry points (header nav + footer + search)
+- Cross-layer: rule file + content + render script — Bucket 0 Foundation prereq cho rule scaffold
+
+### Bucket F2 — User manual rest (DEFER Wave 80+ post-F1 dev review)
+
+- Files: `documents/05-guides/user-manual/{p2-owner,p3-manager,platform-admin}/*.md` (5-10 pages each)
+- Gate: F1 sample approved by dev review → template + format validated → F2 apply same standard
+- DEFER candidate: Wave 80 hoặc Wave 81 — KHÔNG gate Wave 79 closure
+- Acceptance (Wave 79 trigger): GAP-537 status=PARTIAL completion_pct ~25% (1/4 personas); DONE flip khi cả 4 personas shipped
+
+### Bucket F-bis — Support impersonation (GAP-040, independent F1/F2)
+
+- Files: `kitehub-admin/src/main/java/com/kitehub/admin/impersonation/**` (new module: controller/service/repository), `kitehub-admin/frontend/src/components/ImpersonateButton.tsx` ("View as tenant" button), audit log row schema
+- Tests: `ImpersonationServiceTest.java` (30s session timeout + audit log entry), `ImpersonateButton.test.tsx`
+- Acceptance: GAP-040 status=DONE (admin impersonation E2E flow + audit trail; 30s session timeout enforced)
 
 ---
 
@@ -169,8 +189,11 @@ Per `.claude/rules/contract-first-for-cross-layer.md` v1.0.0:
 | `FeedbackWidget.tsx` + `OnboardingChecklist.tsx` | FE components (target GAP-545) | `find kitehub/kitehub-frontend/src -name 'FeedbackWidget*'` | 1 match each | ✅ exists |
 | `BetaDisclaimerBanner.tsx` | FE component | `find kitehub/kitehub-frontend/src -name 'BetaDisclaimerBanner*'` | 1 match | ✅ exists |
 | `DatabaseBackupServiceTest.java` + `InstanceControllerIntegrationTest.java` | Test classes (target GAP-544) | `find kitehub -name 'DatabaseBackupServiceTest*'` | 1 match each | ✅ exists |
-| `documents/05-guides/user-manual/` | Doc folder (target GAP-537) | `ls documents/05-guides/user-manual/ 2>&1` | "No such directory" | 🆕 to-be-created (Bucket F) |
-| `kitehub-admin/.../impersonation/` | BE module (target GAP-040) | `find kitehub/kitehub-admin -path '*impersonation*'` | 0 matches | 🆕 to-be-created (Bucket F) |
+| `documents/05-guides/user-manual/anonymous/` | Doc folder F1 sample (target GAP-563 + GAP-537 anonymous) | `ls documents/05-guides/user-manual/ 2>&1` | "No such directory" | 🆕 to-be-created (Bucket F1) |
+| `.claude/rules/user-manual-content-standard.md` | Meta rule file (target GAP-563) | `ls .claude/rules/user-manual-content-standard.md 2>&1` | "No such file" | 🆕 to-be-created (Bucket F1) |
+| `scripts/render-user-manual-pdf.sh` | Render script (target Bucket F1) | `ls scripts/render-user-manual-pdf.sh 2>&1` | "No such file" | 🆕 to-be-created (Bucket F1) |
+| `kitehub-frontend/src/app/help/anonymous/` | Next.js MDX route (target Bucket F1) | `find kitehub/kitehub-frontend/src/app/help 2>&1` | "No such directory" | 🆕 to-be-created (Bucket F1) |
+| `kitehub-admin/.../impersonation/` | BE module (target GAP-040) | `find kitehub/kitehub-admin -path '*impersonation*'` | 0 matches | 🆕 to-be-created (Bucket F-bis) |
 
 Banned shortcuts: không `| head` truncation, không skip verification "because agents will check", không aspirational ref thiếu 🆕 flag.
 
@@ -186,7 +209,9 @@ Banned shortcuts: không `| head` truncation, không skip verification "because 
 | C | `cd kitehub && ./mvnw -pl kitehub-subscription clean verify -Dtest='*Security*,*Totp*,*PasswordReset*,*Onboarding*'` | kitehub-ci |
 | D | `pnpm -F kitehub-frontend test --run -- FeedbackWidget Sidebar BetaDisclaimer` + `pnpm -F kitehub-frontend build` + `bash scripts/check-readme-freshness.sh` | frontend-ci |
 | E | `cd kitehub && ./mvnw -pl kitehub-subscription test -Dtest='DatabaseBackupServiceTest,InstanceControllerIntegrationTest'` (CI Docker available) + `bash scripts/check-business-docs-3-layer.sh documents/01-business/{support,kitehub}` | kitehub-ci |
-| F | `cd kitehub && ./mvnw -pl kitehub-admin clean verify -Dtest='*Impersonation*'` + `pnpm -F kitehub-admin-frontend test` + manual screenshot review per persona | kitehub-ci + reviewer |
+| F1 | `bash scripts/check-rule-frontmatter.sh .claude/rules/user-manual-content-standard.md` + `bash scripts/render-user-manual-pdf.sh anonymous` (generates PDF; verify exit 0) + `pnpm -F kitehub-frontend build` (verify MDX route) + reviewer manual 15-item checklist on 5 sample pages | rule-frontmatter + frontend-ci + reviewer |
+| F2 (DEFER) | (gated on F1 dev review approval; F2 spawn in Wave 80+ when template validated) | — |
+| F-bis | `cd kitehub && ./mvnw -pl kitehub-admin clean verify -Dtest='*Impersonation*'` + `pnpm -F kitehub-admin-frontend test` + audit log row presence verify | kitehub-ci + reviewer |
 
 ---
 
@@ -194,12 +219,12 @@ Banned shortcuts: không `| head` truncation, không skip verification "because 
 
 Per `feedback_parallel_agent_strategy.md` + `agent-background-spawn-default.md`:
 - Bucket 0 Foundation spawn FIRST, sequential merge (~45min)
-- 6 buckets (A-F) spawn parallel với `run_in_background: true` sau khi Bucket 0 merge
+- 7 buckets (A, B, C, D, E, F1, F-bis) spawn parallel với `run_in_background: true` sau khi Bucket 0 merge — F2 DEFER Wave 80+ gated trên F1 dev review
 - Worktree isolation per bucket (`isolation: worktree`) cho parallel safety
 - RELATIVE paths trong agent prompts per `feedback_worktree_absolute_path_contamination.md`
 - Coordinator merge sequentially (rebase from main mỗi bucket trước merge) sau all background completions
 - Bucket B split risk: nếu effort >4h sau Foundation, split B1 (cookie consent) + B2 (invite-staff + RBAC) per `release-fix-retry-budget.md` pivot
-- 6 buckets parallel là edge-case cho solo-dev (per `wave-pack-planner` optimal 4-5); disjoint check pass → acceptable
+- 7 buckets parallel là edge-case cho solo-dev (per `wave-pack-planner` optimal 4-5); disjoint check pass → acceptable. F1 + F-bis low-risk add-on (docs + isolated module) — không tăng coordination cost meaningful
 
 ---
 
@@ -221,3 +246,4 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ## 8. Log
 
 - **2026-05-14** (draft): Plan created. Inside-out queue (13 items) từ Wave 78 post-wave audit suite (5 audits parallel). Outside-in persona audit (4 personas: P2 Owner/P3 Manager/Anonymous/Platform Admin) surface 5 new gaps (GAP-558..562) — applied `outside-in-coverage-trigger.md` Bước 4 BEFORE plan PR opens. Zero overlap inside-out ↔ outside-in confirms rule rationale.
+- **2026-05-14** (draft restructure): Bucket F split into F1 (sample + meta rule, ship Wave 79) + F2 (rest 3 personas, DEFER Wave 80+) + F-bis (impersonation, independent) sau outside-in user manual audit (4 personas × 5 questions: discovery/format/cognitive-load/VN-edu/trust-gates). Added GAP-563 (META P1 — user manual content review standard rule file) per `outside-in-coverage-trigger.md` Bước 5 + `meta-gap-priority.md` §3 force-multiplier. Recurring outside-in miss pattern logged in memory `feedback_outside_in_recurring_miss.md` — Wave 73 + Wave 79 Bucket F user-caught both. Outside-in findings integrated: Intercom-style web manual + PDF auto-gen + annotated screenshots 1440×900 + 375×812 vi-VN + Fuse.js search + ≥3 discoverability entry points. F1 spawn ONLY anonymous-prospect persona (lowest-risk validate template).
