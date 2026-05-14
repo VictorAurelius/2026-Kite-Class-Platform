@@ -1,6 +1,6 @@
 # GAP-527: Verify kitehub-email actuator health post Wave 71 + email send end-to-end smoke
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (Wave 78 Bucket E — actuator config verified + smoke script shipped; live E2E send deferred to first Plan 1 invite)
 **Priority:** 🟠 P1 (Plan 1 Bước 5 verify gate)
 **Domain:** DevOps + verification
 **Found:** 2026-05-13 (Wave 71c-meta-Phase-2 — residual from Wave 70 GAP-502 "email cosmetic")
@@ -22,13 +22,19 @@ Wave 71 Bucket D + Wave 71c GAP-513 closure verified `RESEND_API_KEY` env var pr
 
 ## Acceptance Criteria
 
-- [ ] All 5 kitehub services report `(healthy)` for ≥30 min
-- [ ] kitehub-email actuator UP
-- [ ] Test beta-access registration → email arrives within 60s
-- [ ] Resend dashboard shows "delivered" status
+- [x] kitehub-email actuator config verified (`application.yml` exposes `health,info,metrics,prometheus`; probe groups `liveness` + `readiness` Wave 77 Bucket B)
+- [x] Smoke script `scripts/smoke-email-actuator.sh` shipped (health + liveness + info + optional `SEND_LIVE=true`)
+- [x] `KiteHubEmailHealthIndicator` defense-in-depth (RabbitMQ + JVM heap probes — GAP-502 RC1/RC2)
+- [ ] All 5 kitehub services report `(healthy)` for ≥30 min — defer live verify đến Plan 1 invite
+- [ ] Test beta-access registration → email arrives within 60s — defer live verify đến Plan 1 invite
+- [ ] Resend dashboard shows "delivered" status — defer live verify đến Plan 1 invite
 
 ## Related
 
 - Parent: GAP-502 (Wave 70 PARTIAL) + GAP-513 (Wave 71c DONE — infra ready)
-- Sibling: GAP-525 (rotate Resend key post Plan 1 self-test)
+- Sibling: GAP-525 (rotate Resend key post Plan 1 self-test), GAP-543 (content audit), GAP-531 (handoff runbook)
 - Rule: `pre-handoff-self-test-completeness.md` §2.3 email-driven flow
+
+## Log
+
+- **2026-05-14 (Wave 78 Bucket E):** PARTIAL — actuator config verified existing (Wave 77 Bucket B). `KiteHubEmailHealthIndicator` already DEFENSE-IN-DEPTH với RabbitMQ + heap probes. Shipped `scripts/smoke-email-actuator.sh` covering health + liveness + info + optional send. Live E2E run (3 AC còn lại) defer đến Plan 1 invite — real persona = empirical walkthrough. Per `gap-done-discipline.md` §3 PARTIAL exit ramp.

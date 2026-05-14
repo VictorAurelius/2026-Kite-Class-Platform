@@ -1,6 +1,6 @@
 # GAP-531: Tenant init handoff post admin-approve walked end-to-end
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (Wave 78 Bucket E — runbook shipped covering 6-step flow + 4 failure modes; live walkthrough deferred Plan 1 invite)
 **Priority:** 🟠 P1
 **Domain:** Backend + Frontend
 **Found:** 2026-05-14 (Wave 76 — Phase 1 BETA persona audit)
@@ -47,11 +47,13 @@ E2E Playwright spec covering full handoff (Wave 37 Bucket C `signup-with-claim-c
 
 ## Acceptance Criteria
 
-- [ ] Synthetic walkthrough completed production-side
-- [ ] Each step (b)-(f) verified per §2.1 checklist
-- [ ] Audit artifact filed `documents/04-quality/audits/persona/2026-XX-XX-tenant-init-handoff-walkthrough.md`
-- [ ] Any blockers discovered → file follow-up gap
-- [ ] Cross-link to GAP-530 (email side) + GAP-526 (admin UI side)
+- [x] Runbook `documents/05-guides/operations/tenant-init-handoff-runbook.md` shipped — 6-step happy path + 4 failure modes + verify commands per bước
+- [x] Cross-link to GAP-530 + GAP-526 trong runbook §Related
+- [x] Runbook walks `pre-handoff-self-test-completeness.md` §2.1 (auth-gated) + §2.4 (admin-flow) verification per bước
+- [ ] Synthetic walkthrough completed production-side — defer Plan 1 invite ship (real persona = empirical walkthrough)
+- [ ] Each step (b)-(f) verified per §2.1 checklist — defer Plan 1 invite ship
+- [ ] Audit artifact filed `documents/04-quality/audits/persona/2026-XX-XX-tenant-init-handoff-walkthrough.md` — defer post-walkthrough
+- [ ] Any blockers discovered → file follow-up gap — defer post-walkthrough
 
 ## Related
 
@@ -62,3 +64,4 @@ E2E Playwright spec covering full handoff (Wave 37 Bucket C `signup-with-claim-c
 ## Log
 
 - **2026-05-14:** Gap filed Wave 76 Bucket F closure from Phase 1 BETA persona audit (NEW-002 P1). Each handoff step verified individually in prior waves but never walked end-to-end. Defer to Wave 77 after Plan 1 tightly-controlled handful invite ships (handful invite IS the empirical walkthrough — close gap post-invite).
+- **2026-05-14 (Wave 78 Bucket E):** PARTIAL — runbook ship covering 6 bước + 4 failure modes + verify commands per bước. Live walkthrough vẫn pending Plan 1 invite (real persona = empirical walkthrough). Per `gap-done-discipline.md` §3 PARTIAL exit ramp — close DONE sau khi Plan 1 ship + audit artifact `persona/<date>-tenant-init-handoff-walkthrough.md` filed.

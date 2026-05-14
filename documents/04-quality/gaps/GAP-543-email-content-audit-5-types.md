@@ -1,6 +1,6 @@
 # GAP-543: Email content audit — 5 email types content/tone Vietnamese
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (Wave 78 Bucket E — 5 audit notes shipped; 3 templates MISSING tracked follow-up; plain-text fallback + content rewrite defer Wave 79)
 **Priority:** 🔴 P0
 **Domain:** Mixed (Content + Backend templates)
 **Detected:** 2026-05-14
@@ -60,16 +60,16 @@ User confirm 2026-05-14: "Email content audit vào Wave 78" (1 trong 3 inside-ou
 
 ## Acceptance Criteria
 
-- [ ] `documents/01-business/email/templates/` folder created với 5 audit notes
-- [ ] Mỗi audit note covers 7 dimensions (tone / subject / body / CTA / footer / HTML render / plain-text fallback)
-- [ ] All 5 email types ship với content fix applied (zero awkward translations + zero PII leak in subject)
-- [ ] Plain-text `.txt` fallback exists cho mỗi `.html` template
-- [ ] Subject line ≤50 char + Vietnamese natural + zero PII (tenant name in body OK, in subject NOT OK)
-- [ ] Footer mention support@kitehub.me + /beta-status link sync với GAP-540 + GAP-539
-- [ ] HTML render verify trên ≥2 email clients (Gmail web + Outlook web minimum)
-- [ ] Live email send smoke test sau template fix → received email matches audited content (per `pre-handoff-self-test-completeness.md` §2.3 email-driven flow)
-- [ ] Email i18n fallback: locale `vi` default; English fallback present cho international tenant (Wave 79+ scope)
-- [ ] Audit note Vietnamese narrative (per `dev-readable-doc-language.md` §2 dev-readable docs scope; identifier như template name English)
+- [x] `documents/01-business/kitehub/email/templates/` folder created với 5 audit notes + README
+- [x] Mỗi audit note covers 7 dimensions (tone / subject / body / CTA / footer / HTML render / plain-text fallback)
+- [x] Subject line ≤50 char + Vietnamese natural + zero PII (welcome + beta-invite PASS — 0 PII leak)
+- [x] Audit note Vietnamese narrative (per `dev-readable-doc-language.md` §2)
+- [ ] All 5 email types ship với content fix — defer (3 templates missing → GAP-543.1 follow-up Wave 79)
+- [ ] Plain-text `.txt` fallback cho mỗi `.html` — defer (GAP-543.2 follow-up Wave 79)
+- [ ] Footer support@kitehub.me + /beta-status link — defer (content rewrite wave riêng, sync GAP-539/540)
+- [ ] HTML render verify ≥2 email clients — defer (GAP-543.3 follow-up Wave 79)
+- [ ] Live email send smoke test — defer (sync GAP-527 Plan 1 invite)
+- [ ] Email i18n vi/en fallback — defer Wave 79+ (Phase 1 BETA Vietnamese-first, low priority)
 
 ## Related
 
@@ -86,3 +86,4 @@ User confirm 2026-05-14: "Email content audit vào Wave 78" (1 trong 3 inside-ou
 ## Log
 
 - 2026-05-14 — Initial write-up (state-check completed; 5 template files partial; audit notes folder absent; Wave 78 Bucket E owner).
+- **2026-05-14 (Wave 78 Bucket E):** PARTIAL — 5 audit notes ship: welcome PASS (8/10 tone, plain-text gap), beta-invite PASS (9/10 tone, security claim code OK), approve-tenant intentional consolidate với beta-invite (Option A), reset-password MISSING (P1 follow-up GAP-543.1.A), day-7-survey MISSING (sync GAP-542). Aggregate: 0 PII leak subject (an toàn); plain-text fallback 0/2 (gap); cross-client render 0/2 (gap). Per `gap-done-discipline.md` §3 PARTIAL exit ramp — 3 template tạo mới + content rewrite + plain-text = wave riêng (Wave 79+).
