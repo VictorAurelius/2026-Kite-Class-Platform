@@ -10,7 +10,7 @@
 
 ## 🎯 Current Status Snapshot (2026-05-14 EOD — 🎉 Wave 78 SHIPPED Beta Invite Launch Retain UX/trust + Wave 77 SEND foundation + GitHub suspension survived + GitLab mirror permanent)
 
-> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-14-eod-session-handoff.md`](../../03-planning/session-handoffs/2026-05-14-eod-session-handoff.md) — full EOD state + Wave 77 user-action deploy pickup order + Wave 78 post-wave audit suite (≤3 ngày)
+> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-14-post-wave-78-handoff.md`](../../03-planning/session-handoffs/2026-05-14-post-wave-78-handoff.md) — post-Wave-78 state + post-wave audit suite (≤3 ngày) + Plan 1 invite deploy verify + GAP-544 follow-up. Supersedes EOD handoff.
 
 ### 🎉 Wave 78 SHIPPED 2026-05-14 — Beta Invite Launch Retain UX/trust (7 buckets + 1 hotfix + GAP-544 filed)
 
