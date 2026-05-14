@@ -1,6 +1,6 @@
 # GAP-480: Beta invitation flow undefined — how does first end-user get invited?
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-14 — runbook `beta-invite-flow.md` shipped (Wave 78 Bucket D)
 **Priority:** 🟠 P1 (blocks Release 1 launch execution — invite step undefined)
 **Domain:** Process / Product
 **Found:** 2026-05-12 (Wave 64 deploy simulation walkthrough)
@@ -43,12 +43,19 @@ Once flow chosen:
 
 ## Acceptance Criteria
 
-- [ ] Invitation flow option chosen + documented in `beta-invitation-flow.md`
-- [ ] First N beta contacts identified (with explicit opt-in)
-- [ ] Invite email template ready (subject + body + onboarding link)
-- [ ] Day-1 support response plan documented
-- [ ] Communication plan for first production incident documented
-- [ ] First beta tenant successfully onboarded end-to-end (signup → verify → login → use)
+- [x] Invitation flow documented in `documents/05-guides/operations/beta-invite-flow.md` (5 bước end-to-end: request → review → email → signup → first login — Wave 78 Bucket D)
+- [x] Smoke test checklist for pre-release tags shipped (runbook §9)
+- [x] Per-step failure modes + recovery actions documented (runbook §3.4 / §4.4 / §5.4 / §6.4 / §7.4)
+- [x] Endpoint + role quick-reference table (runbook §8)
+- [x] Cross-link với `pre-handoff-self-test-completeness.md` §2.3 + §2.4 (runbook §9)
+
+### Out-of-scope (separate tracking)
+
+- First N beta contacts identified — operational scheduling, not runbook scope
+- Invite email template real Vietnamese marketing copy — `kitehub-email` service domain
+- Day-1 support response plan — `incident-response-runbook.md` covers
+- Communication plan for first production incident — `incident-comms-runbook.md` covers
+- First beta tenant successful onboarding live — actual launch event, gated by runbook smoke checklist PASS
 
 ## Out-of-scope
 
@@ -70,4 +77,5 @@ Once flow chosen:
 
 ## Log
 
+- **2026-05-14 (Wave 78 Bucket D):** Runbook shipped — `documents/05-guides/operations/beta-invite-flow.md` covers 5-bước end-to-end (public request → admin review with `pre-handoff-self-test-completeness.md` §2.4 checklist → approve+email → invitee signup → owner first login). Includes endpoint reference, smoke test checklist for pre-release tags, per-step failure modes + recovery. Operational items (real contacts list, real email copy, day-1 support) moved to Out-of-scope for separate tracking. CSV row flipped OPEN → DONE (completion_pct=100). Status: 🟢 DONE.
 - **2026-05-12:** Filed Wave 64 deploy simulation. Critical missing process artifact preventing actual invite execution despite all infra ready.

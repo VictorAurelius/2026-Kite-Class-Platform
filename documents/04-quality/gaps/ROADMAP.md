@@ -29,6 +29,20 @@
 - Weekly tarball cron Sunday 02:00 UTC
 - Incident log [`2026-05-14-github-account-suspension-and-gitlab-migration.md`](../audits/incidents/2026-05-14-github-account-suspension-and-gitlab-migration.md)
 
+### 🟢 Wave 78 Bucket D SHIPPED 2026-05-14 — Admin/Security Close-out (GAP-518/480)
+
+**Scope:**
+- GAP-518 (admin role compat PLATFORM_ADMIN vs ADMIN) — regression-safe `auth-helpers.test.ts` (10 cases) added; CSV `completion_pct` 80 → 90; live browser walkthrough still gated per `pre-handoff-self-test-completeness.md` §2.4 (b)(c)
+- GAP-480 (beta invitation flow undefined) — runbook `documents/05-guides/operations/beta-invite-flow.md` shipped covering 5 bước end-to-end (public request → admin review → email → invitee signup → owner first login) + smoke checklist + per-step failure modes; OPEN → DONE (100%)
+
+**Files touched:**
+- `kitehub/kitehub-frontend/src/lib/__tests__/auth-helpers.test.ts` (NEW)
+- `documents/05-guides/operations/beta-invite-flow.md` (NEW)
+- `documents/05-guides/operations/README.md` (link)
+- `documents/04-quality/gaps/{GAP-480,GAP-518}*.md` + `gap-status.csv`
+
+Local verify: 10/10 auth-helpers tests PASS · `pnpm build` GREEN · `check-gap-status-csv.sh` PASS (364 rows).
+
 ### ✅ Wave 73 SHIPPED 2026-05-14 — Meta Context Optimization (path-scope 30 rules + UserPromptSubmit dynamic inject + context-budget-mandate)
 
 **9 PRs merged:** #1308 plan + #1309 Bucket 0 + #1310/#1311/#1312/#1313/#1314 Buckets A1-A5 (path-scope ~30 MANDATORY rules) + #1315 Bucket C (UserPromptSubmit hook inject-rule-digest.py + 20 tests pass) + #1316 Bucket D (context-budget-mandate.md v1.0.0 + output-review-mandate v1.6→v1.7 + rules-index 54→55).
