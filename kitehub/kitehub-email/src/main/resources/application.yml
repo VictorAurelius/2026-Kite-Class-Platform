@@ -69,7 +69,20 @@ management:
         include: health,info,metrics,prometheus
   endpoint:
     health:
+      # Wave 77 Bucket B (closes GAP-502 remaining 20% for email scope / GAP-506 Sub-B):
+      # expose probe groups so the docker-compose healthcheck can target
+      # /actuator/health/liveness (only RabbitMQ + JVM heap matter for liveness —
+      # vendor flakiness must NOT flap the container).
       show-details: always
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState,kiteHubEmail
+          show-details: always
+        readiness:
+          include: readinessState,kiteHubEmail
+          show-details: always
   # GAP-506 Sub-B: mail health indicator disabled because Phase 1 BETA uses
   # Resend HTTP API (per ADR-025 Stream A), not SMTP. Default mail health
   # tries SMTP TCP connect to kite-mailhog:1025 (dev SMTP catcher, not deployed
@@ -79,6 +92,12 @@ management:
   health:
     mail:
       enabled: false
+    # Wave 77 Bucket B: enable LivenessState + ReadinessState ApplicationAvailability
+    # signals — paired with the custom `kiteHubEmail` HealthIndicator in liveness/readiness groups.
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
   # GAP-112: Distributed tracing via Micrometer Tracing + OTLP exporter.
   # Sampling 10% in prod, override OTEL_SAMPLING_PROBABILITY=1.0 in staging/dev.
   tracing:
