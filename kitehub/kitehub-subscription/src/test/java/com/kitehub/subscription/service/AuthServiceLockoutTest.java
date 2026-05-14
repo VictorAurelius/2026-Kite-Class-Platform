@@ -1,6 +1,7 @@
 package com.kitehub.subscription.service;
 
 import com.kitehub.platform.domain.entity.User;
+import com.kitehub.subscription.auth.twofactor.ChallengeTokenService;
 import com.kitehub.subscription.dto.LoginRequest;
 import com.kitehub.subscription.exception.AccountLockedException;
 import com.kitehub.subscription.repository.InstanceRepository;
@@ -57,6 +58,7 @@ class AuthServiceLockoutTest {
     @Mock CaptchaService captchaService;
     @Mock EmailSenderService emailSenderService;
     @Mock JwtKeyService jwtKeyService;
+    @Mock ChallengeTokenService challengeTokenService;
 
     AuthService service;
     BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
@@ -69,7 +71,9 @@ class AuthServiceLockoutTest {
     void setUp() {
         service = new AuthService(
             instanceRepository, instanceService, userRepository,
-            captchaService, emailSenderService, jwtKeyService
+            captchaService, emailSenderService, jwtKeyService,
+            null /* loginAuditService — not exercised in lockout path */,
+            challengeTokenService
         );
         // Bypass @PostConstruct's jwtSecret check — we only test the lockout path.
         ReflectionTestUtils.setField(service, "jwtSecret", "x".repeat(32));

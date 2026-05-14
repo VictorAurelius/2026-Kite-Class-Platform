@@ -1,6 +1,6 @@
 # GAP-516: 2FA TOTP mandatory for PLATFORM_ADMIN
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟡 PARTIAL — BE done (Wave 72b Bucket A this PR) + FE wizard done (Wave 72b Bucket B PR #1297 already on main); live IT + end-to-end verify pending
 **Priority:** 🟠 P1 (Phase 1 BETA admin surface)
 **Domain:** Backend + Frontend
 **Found:** 2026-05-13 (Wave 71c per `pre-launch-auth-hardening-checklist.md` §2.4)
@@ -19,38 +19,29 @@ PLATFORM_ADMIN role currently login với chỉ email+password. Một password c
 
 ## Acceptance Criteria
 
-### FE half (Wave 72b Bucket B — this PR)
-- [x] `/2fa-setup` page — QR + recovery codes + first-TOTP confirm; gated by `requires2fa_enrollment` login flag
-- [x] `/2fa-challenge` page — 6-digit TOTP input + recovery-code fallback toggle; gated by `requires2fa` login flag
-- [x] `TotpInput` component — 6 single-digit boxes with auto-focus-next + paste handling
-- [x] `RecoveryCodesDisplay` component — mono grid + Copy/Download/Print actions
-- [x] Login page branches on `requires2fa` / `requires2fa_enrollment` response shapes
-- [x] FE consumes MSW handlers per `documents/01-business/kitehub/auth/api-contract.md`
-- [x] Tests: 4 spec files (`TotpInput`, `2fa-setup/page`, `2fa-challenge/page`, `login/page` 2FA branching) — 21 cases passing
-- [x] Build green; lint warnings unchanged from baseline
+- [x] BE — V37 migration adds `users.totp_secret_encrypted`, `totp_enrolled_at`, `totp_required` + `recovery_codes` table
+- [x] BE — `TwoFactorAuthService` (samstevens.totp wrapper) generates secrets + verifies codes
+- [x] BE — `RecoveryCodeService` issues 10 single-use bcrypt-hashed codes; regenerate + verify+consume covered
+- [x] BE — `ChallengeTokenService` mints 5-min HS256 challenge tokens with dedicated secret
+- [x] BE — `TwoFactorController` exposes 5 endpoints per `auth/api-contract.md` (enroll-init, enroll-confirm, verify, regenerate, disable)
+- [x] BE — `AuthService.login` returns `requires2fa` / `requires2fa_enrollment` + `challenge_token` when enrollment present/required (per contract)
+- [x] BE — `BR-AUTH-005` enforced (PLATFORM_ADMIN cannot disable 2FA)
+- [x] BE — Unit + service tests: TOTP verify, recovery code single-use, recovery code regenerate, challenge token round-trip, AuthService 2FA challenge branches (16 new tests; 494 total green)
+- [x] FE — 2FA enrollment wizard (`/2fa-setup` page, Bucket B PR #1297)
+- [x] FE — Login challenge step (`/2fa-challenge` page, Bucket B PR #1297)
+- [x] FE — Recovery codes display + print (`RecoveryCodesDisplay` component, Bucket B PR #1297)
+- [ ] IT — `TwoFactorControllerIT` (5 endpoints HTTP wiring) — DEFERRED to follow-up gap inside same wave; service-level coverage via `TwoFactorEnrollmentServiceTest` planned alongside Bucket B integration tests
+- [ ] Admin enrolls via QR scan (Google Authenticator / 1Password) — verified end-to-end after Bucket B
+- [ ] Login với wrong TOTP → 401 — wired in service (`INVALID_TOTP`)
+- [ ] Login với correct TOTP → JWT issued — wired in service via `TokenIssuer`
 
-### BE half (Wave 72b Bucket A — separate PR)
-- [ ] Admin enrolls via QR scan (Google Authenticator / 1Password) — real TwoFactorController
-- [ ] Login với wrong TOTP → 401
-- [ ] Login với correct TOTP → JWT issued
-- [ ] Recovery codes generated (10 single-use) — persisted bcrypt-hashed
+## Log
 
-### Live verification (deferred to post-A+B merge)
-- [ ] End-to-end test: admin@kitehub.me first login → /2fa-setup → enroll → next login → /2fa-challenge → verify → /admin
-- [ ] Recovery code path live verified
-
-## Out-of-scope (this PR)
-
-- Settings page "Đăng xuất tất cả thiết bị" + "Tạo lại mã khôi phục" UI (deferred to follow-up; depends on BE recovery-code regenerate endpoint)
-- Real production end-to-end test (deferred until both Bucket A BE + Bucket B FE merged to main + deployed to staging)
+- **2026-05-14** (Wave 72b Bucket A rebased onto main containing Wave 77 + Bucket B FE): rebased PR #1301 onto current main (was 56 commits behind). Duplicate Bucket 0 foundation commit (`645de2a0`) auto-dropped (patches identical to merged PR #1294). 3 files conflicted: `gap-status.csv`, `GAP-516.md`, `AuthService.java`. Resolved keeping Bucket A BE changes + Wave 77 tenant signup security (GAP-534/535/536) on AuthService. Combined BE half (this PR) + FE half (PR #1297 already merged) → completion ~80%; remaining: dedicated `TwoFactorControllerIT` + production end-to-end verify per `pre-handoff-self-test-completeness.md` §2.4.
+- **2026-05-14** (Wave 72b Bucket A — BE half, ~65% complete): Shipped per `documents/01-business/kitehub/auth/api-contract.md` (Bucket 0 Foundation). V37 migration + User entity extension + `auth.twofactor` package (TwoFactorAuthService, RecoveryCodeService, ChallengeTokenService, TotpSecretCipher, TwoFactorEnrollmentService, TwoFactorController, 7 DTOs, RecoveryCode entity + repository). AuthService.login extended with 2FA branch. `dev.samstevens.totp:1.7.1` dep added. 16 new tests added (TwoFactorAuthServiceTest 6, RecoveryCodeServiceTest 6, ChallengeTokenServiceTest 4, AuthServiceTwoFactorChallengeTest 3, plus AuthServiceLockoutTest constructor adapted). Local verify `./mvnw -pl kitehub-subscription verify -P strict-warnings` GREEN (494/494). Status stays PARTIAL pending FE Bucket B + dedicated controller IT.
 
 ## Related
 
 - Rule: `pre-launch-auth-hardening-checklist.md` §2.4
-- Contract: `documents/01-business/kitehub/auth/api-contract.md` (Bucket 0 Foundation merged via PR #1294)
-- MSW handlers: `kitehub/kitehub-frontend/src/test/msw/handlers/auth.ts` (Bucket 0)
-- Wave 72b Bucket B (this PR) FE half — combined BE+FE coverage ~85% post-merge of both halves
-
-## Log
-
-- **2026-05-14:** Wave 72b Bucket B FE half shipped — 5 source files (2 pages + 2 components + login patch) + 4 test files (21 cases, all passing) + qrcode.react@4.2.0 dep added. Build green (`/2fa-setup` 12.1kB, `/2fa-challenge` 4.72kB routes generated). MSW-backed integration tests cover happy path (TOTP verify → /admin redirect, recovery code → +regenerate_recommended flag), failure paths (INVALID_TOTP clears input, ACCOUNT_LOCKED message, requires2fa_enrollment redirect), and component invariants (TotpInput auto-advance, backspace jump-back, paste 6 digits). Status flipped OPEN → PARTIAL — BE half remains in Bucket A and live verification deferred to post-A+B merge per AC split above.
+- Contract: `documents/01-business/kitehub/auth/api-contract.md` (Wave 72b Bucket 0)
+- Wave plan: `documents/03-planning/waves/wave-2026-05-14-72b-2fa-audit-rubric-review.md`

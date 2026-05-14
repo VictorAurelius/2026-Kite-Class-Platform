@@ -90,11 +90,23 @@ management:
 jwt:
   secret: ${JWT_SECRET_CURRENT:${JWT_SECRET:}}
   previous-secret: ${JWT_SECRET_PREVIOUS:}
+  # GAP-516 Wave 72b — challenge tokens (5-min TTL) issued during the 2FA dance
+  # between POST /api/auth/login and POST /api/auth/2fa/{verify,enroll-*}. MUST
+  # be different from jwt.secret so a leaked access token cannot impersonate a
+  # challenge token (and vice versa).
+  challenge-secret: ${JWT_CHALLENGE_SECRET:dev-challenge-secret-pad-pad-pad-pad-pad}
 
 # Email verification
 kitehub:
   admin:
     api-key: ${ADMIN_API_KEY:}
+  auth:
+    # GAP-516 Wave 72b — AES-256 key for encrypting TOTP secrets at rest. 32
+    # bytes required in production; the default placeholder padding keeps dev
+    # boots green. Phase 1.5+ migrates to AWS KMS (see
+    # pre-launch-secrets-hardening-checklist.md §2.4).
+    totp:
+      encryption-key: ${TOTP_ENCRYPTION_KEY:dev-key-32-chars-pad-pad-pad-pad-pad}
   trial:
     duration-days: 14
     max-per-owner: 1

@@ -27,7 +27,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     // Wave 33 Bucket C — GAP-372 Phase 1 BETA invite mechanism
     "com.kitehub.subscription.beta.entity",
     // Wave 72a Bucket B — GAP-521 admin action audit log (OWASP A07)
-    "com.kitehub.subscription.audit"
+    "com.kitehub.subscription.audit",
+    // Wave 72b Bucket A — GAP-516 TOTP 2FA + recovery codes (OWASP A07)
+    "com.kitehub.subscription.auth.twofactor"
 })
 @EnableJpaAuditing
 @EnableScheduling
