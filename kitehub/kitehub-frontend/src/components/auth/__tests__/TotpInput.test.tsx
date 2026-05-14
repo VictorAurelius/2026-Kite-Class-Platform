@@ -21,60 +21,60 @@ describe('TotpInput', () => {
   it('auto-focuses first box on mount', () => {
     render(<TotpHarness />);
     const inputs = screen.getAllByRole('textbox') as HTMLInputElement[];
-    expect(document.activeElement).toBe(inputs[0]);
+    expect(document.activeElement).toBe(inputs[0]!);
   });
 
   it('accepts single digit and auto-advances focus to next box', () => {
     render(<TotpHarness />);
     const inputs = screen.getAllByRole('textbox') as HTMLInputElement[];
-    fireEvent.change(inputs[0], { target: { value: '3' } });
-    expect(inputs[0].value).toBe('3');
-    expect(document.activeElement).toBe(inputs[1]);
+    fireEvent.change(inputs[0]!, { target: { value: '3' } });
+    expect(inputs[0]!.value).toBe('3');
+    expect(document.activeElement).toBe(inputs[1]!);
   });
 
   it('rejects non-digit input', () => {
     render(<TotpHarness />);
     const inputs = screen.getAllByRole('textbox') as HTMLInputElement[];
-    fireEvent.change(inputs[0], { target: { value: 'a' } });
-    expect(inputs[0].value).toBe('');
+    fireEvent.change(inputs[0]!, { target: { value: 'a' } });
+    expect(inputs[0]!.value).toBe('');
   });
 
   it('handles paste of full 6-digit code', () => {
     const onComplete = vi.fn();
     render(<TotpHarness onComplete={onComplete} />);
     const inputs = screen.getAllByRole('textbox') as HTMLInputElement[];
-    fireEvent.paste(inputs[0], {
+    fireEvent.paste(inputs[0]!, {
       clipboardData: {
         getData: () => '123456',
       },
     });
-    expect(inputs[0].value).toBe('1');
-    expect(inputs[1].value).toBe('2');
-    expect(inputs[5].value).toBe('6');
+    expect(inputs[0]!.value).toBe('1');
+    expect(inputs[1]!.value).toBe('2');
+    expect(inputs[5]!.value).toBe('6');
     expect(onComplete).toHaveBeenCalledWith('123456');
   });
 
   it('strips non-digits from pasted text', () => {
     render(<TotpHarness />);
     const inputs = screen.getAllByRole('textbox') as HTMLInputElement[];
-    fireEvent.paste(inputs[0], {
+    fireEvent.paste(inputs[0]!, {
       clipboardData: {
         getData: () => '12-34 56',
       },
     });
-    expect(inputs[0].value).toBe('1');
-    expect(inputs[5].value).toBe('6');
+    expect(inputs[0]!.value).toBe('1');
+    expect(inputs[5]!.value).toBe('6');
   });
 
   it('backspace on empty box jumps to previous box and clears it', () => {
     render(<TotpHarness />);
     const inputs = screen.getAllByRole('textbox') as HTMLInputElement[];
-    fireEvent.change(inputs[0], { target: { value: '1' } });
-    fireEvent.change(inputs[1], { target: { value: '2' } });
-    // inputs[2] is focused and empty
-    fireEvent.keyDown(inputs[2], { key: 'Backspace' });
-    expect(document.activeElement).toBe(inputs[1]);
-    expect(inputs[1].value).toBe('');
+    fireEvent.change(inputs[0]!, { target: { value: '1' } });
+    fireEvent.change(inputs[1]!, { target: { value: '2' } });
+    // inputs[2]! is focused and empty
+    fireEvent.keyDown(inputs[2]!, { key: 'Backspace' });
+    expect(document.activeElement).toBe(inputs[1]!);
+    expect(inputs[1]!.value).toBe('');
   });
 
   it('fires onComplete when 6 digits filled', () => {
@@ -82,7 +82,7 @@ describe('TotpInput', () => {
     render(<TotpHarness onComplete={onComplete} />);
     const inputs = screen.getAllByRole('textbox') as HTMLInputElement[];
     for (let i = 0; i < 6; i += 1) {
-      fireEvent.change(inputs[i], { target: { value: String(i + 1) } });
+      fireEvent.change(inputs[i]!, { target: { value: String(i + 1) } });
     }
     expect(onComplete).toHaveBeenCalledWith('123456');
   });
