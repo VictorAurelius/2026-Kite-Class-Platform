@@ -229,6 +229,11 @@ fi
 total=0
 fail_total=0
 for file in "${files[@]}"; do
+  # Skip README.md — folder index, not a rule (per rule-change-process.md §3)
+  # Applied in for-loop so it works for both auto-discover and --paths modes
+  if [[ "$(basename "$file")" == "README.md" ]]; then
+    continue
+  fi
   total=$((total + 1))
   if ! validate_file "$file"; then
     fail_total=$((fail_total + 1))
