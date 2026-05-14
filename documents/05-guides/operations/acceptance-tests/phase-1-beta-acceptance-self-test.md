@@ -5,7 +5,7 @@ created: 2026-05-14
 updated: 2026-05-14
 wave: 72a
 gaps: [GAP-372, GAP-480, GAP-514, GAP-515, GAP-516, GAP-517, GAP-518, GAP-519, GAP-520, GAP-521, GAP-523, GAP-524, GAP-525]
-supersedes: documents/03-planning/end-user/plan-1-self-test-e2e.md
+supersedes: documents/07-archived/planning-2026/plan-1-self-test-e2e-superseded.md
 ---
 
 # Phase 1 BETA Acceptance Self-Test Matrix
@@ -14,7 +14,9 @@ supersedes: documents/03-planning/end-user/plan-1-self-test-e2e.md
 
 **Mục đích:** Exhaustive, pre-filled, tick-trackable matrix cho mọi flow user-facing trong Phase 1 BETA. User mở CSV trong spreadsheet, walk từng row, tick `status` column. Zero data composition required — mọi input field đã được pre-fill với sample test data.
 
-**Replaces:** [`documents/03-planning/end-user/plan-1-self-test-e2e.md`](../../03-planning/end-user/plan-1-self-test-e2e.md) (Wave 69 7-step checklist) — file cũ scope hẹp (chỉ E2E request→approve→signup→create-class), không cover Owner provisioning wizard, branding regenerate, attendance, billing tier, admin ops, off-boarding, parent/student flows. CSV mới expand thành matrix toàn diện cho mọi persona Phase 1 BETA.
+**Replaces:** [`documents/07-archived/planning-2026/plan-1-self-test-e2e-superseded.md`](../../../07-archived/planning-2026/plan-1-self-test-e2e-superseded.md) (Wave 69 7-step checklist, archived 2026-05-14) — file cũ scope hẹp (chỉ E2E request→approve→signup→create-class), không cover Owner provisioning wizard, branding regenerate, attendance, billing tier, admin ops, off-boarding, parent/student flows. CSV mới expand thành matrix toàn diện cho mọi persona Phase 1 BETA.
+
+**Format:** CSV canonical với UTF-8 BOM + companion XLSX render (gitignored) per [`.claude/rules/test-artifact-format-standard.md`](../../../../.claude/rules/test-artifact-format-standard.md). Column names tiếng Anh (technical identifier cross-locale stable), values tiếng Việt cho dev đọc tự nhiên per [`.claude/rules/dev-readable-doc-language.md`](../../../../.claude/rules/dev-readable-doc-language.md). Render XLSX: `bash scripts/render-acceptance-test-xlsx.sh documents/05-guides/operations/acceptance-tests/phase-1-beta-acceptance-self-test.csv`.
 
 ---
 
@@ -145,11 +147,13 @@ Sau Wave 72a closure PR ships, user re-walk CSV và xóa giá trị `blocker_gap
 
 ## 6. Reference
 
-- **Personas catalog:** [`documents/00-brd/personas-catalog.md`](../../00-brd/personas-catalog.md)
-- **Release 1 plan §3 Phase 1 BETA scope:** [`documents/03-planning/roadmap/release-1-plan-2026.md`](../../03-planning/roadmap/release-1-plan-2026.md)
-- **Superseded plan (file cũ):** [`documents/03-planning/end-user/plan-1-self-test-e2e.md`](../../03-planning/end-user/plan-1-self-test-e2e.md) — Wave 69 7-step E2E. Kept cho lịch sử nhưng new walks dùng CSV.
-- **ROADMAP §🚀 Next Action:** [`documents/04-quality/gaps/ROADMAP.md`](../../04-quality/gaps/ROADMAP.md)
-- **Rule mandate (verify the FLOW):** [`.claude/rules/pre-handoff-self-test-completeness.md`](../../../.claude/rules/pre-handoff-self-test-completeness.md)
+- **Personas catalog:** [`documents/00-brd/personas-catalog.md`](../../../00-brd/personas-catalog.md)
+- **Release 1 plan §3 Phase 1 BETA scope:** [`documents/03-planning/roadmap/release-1-plan-2026.md`](../../../03-planning/roadmap/release-1-plan-2026.md)
+- **Superseded plan (đã archive):** [`documents/07-archived/planning-2026/plan-1-self-test-e2e-superseded.md`](../../../07-archived/planning-2026/plan-1-self-test-e2e-superseded.md) — Wave 69 7-step E2E. Giữ cho lịch sử; new walks dùng CSV.
+- **ROADMAP §🚀 Next Action:** [`documents/04-quality/gaps/ROADMAP.md`](../../../04-quality/gaps/ROADMAP.md)
+- **Rule mandate (verify the FLOW):** [`.claude/rules/pre-handoff-self-test-completeness.md`](../../../../.claude/rules/pre-handoff-self-test-completeness.md)
+- **Test format standard:** [`.claude/rules/test-artifact-format-standard.md`](../../../../.claude/rules/test-artifact-format-standard.md)
+- **Dev-readable language standard:** [`.claude/rules/dev-readable-doc-language.md`](../../../../.claude/rules/dev-readable-doc-language.md)
 
 ---
 
@@ -165,4 +169,5 @@ Mỗi `fail` row → file gap theo `audit-to-gap-pipeline.md` §3 với:
 
 ## 8. Log
 
-- **2026-05-14:** Matrix created (Wave 72a Bucket F). Supersedes `plan-1-self-test-e2e.md` (Wave 69 7-step). Format CSV (NOT markdown checkbox per user mandate). Every `input_data` pre-filled — zero data composition required. Wave 72a in-flight blocker gaps (GAP-514..525) referenced trong `blocker_gap` column; re-walk after Wave 72a closure.
+- **2026-05-14 (Wave 72b Bucket G):** Reorganised. (1) Folder mới `documents/05-guides/operations/acceptance-tests/` thay cho `operations/` root → tách rõ acceptance test khỏi ops runbook. (2) CSV content translated to Vietnamese (`step_title` / `action` / `expected_result` / `verify_via` / `notes` cells) — column names + identifiers + enums giữ English per [`.claude/rules/dev-readable-doc-language.md`](../../../../.claude/rules/dev-readable-doc-language.md). (3) UTF-8 BOM prepended cho Excel UX. (4) Companion XLSX render script + `.gitignore` exclude generated XLSX. (5) Old Plan 1 `plan-1-self-test-e2e.md` archived to `documents/07-archived/planning-2026/plan-1-self-test-e2e-superseded.md`; `documents/03-planning/end-user/` folder deleted (was only that file). (6) 2 meta rules shipped same PR: `test-artifact-format-standard.md` + `dev-readable-doc-language.md` codifying the convention. User-flagged 4 issues từ Wave 72a Bucket F PR #1288.
+- **2026-05-14 (Wave 72a Bucket F):** Matrix created. Supersedes `plan-1-self-test-e2e.md` (Wave 69 7-step). Format CSV (NOT markdown checkbox per user mandate). Every `input_data` pre-filled — zero data composition required. Wave 72a in-flight blocker gaps (GAP-514..525) referenced trong `blocker_gap` column; re-walk after Wave 72a closure.
