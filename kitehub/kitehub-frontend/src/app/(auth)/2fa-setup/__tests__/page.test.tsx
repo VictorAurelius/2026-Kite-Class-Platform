@@ -84,7 +84,7 @@ describe('TwoFactorSetupPage', () => {
     // 6 TOTP boxes
     expect(inputs.length).toBeGreaterThanOrEqual(6);
     for (let i = 0; i < 6; i += 1) {
-      fireEvent.change(inputs[i], { target: { value: String((i + 1) % 10) } });
+      fireEvent.change(inputs[i]!, { target: { value: String((i + 1) % 10) } });
     }
 
     fireEvent.click(screen.getByRole('button', { name: /Xác nhận và kích hoạt 2FA/i }));

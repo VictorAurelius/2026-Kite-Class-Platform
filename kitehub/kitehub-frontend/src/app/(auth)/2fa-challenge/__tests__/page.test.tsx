@@ -48,7 +48,7 @@ describe('TwoFactorChallengePage', () => {
     render(<TwoFactorChallengePage />);
     const inputs = screen.getAllByRole('textbox') as HTMLInputElement[];
     for (let i = 0; i < 6; i += 1) {
-      fireEvent.change(inputs[i], { target: { value: String((i + 1) % 10) } });
+      fireEvent.change(inputs[i]!, { target: { value: String((i + 1) % 10) } });
     }
     fireEvent.click(screen.getByRole('button', { name: /^Xác thực$/i }));
 
@@ -62,7 +62,7 @@ describe('TwoFactorChallengePage', () => {
     render(<TwoFactorChallengePage />);
     const inputs = screen.getAllByRole('textbox') as HTMLInputElement[];
     for (let i = 0; i < 6; i += 1) {
-      fireEvent.change(inputs[i], { target: { value: '0' } });
+      fireEvent.change(inputs[i]!, { target: { value: '0' } });
     }
     fireEvent.click(screen.getByRole('button', { name: /^Xác thực$/i }));
 
