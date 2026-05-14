@@ -8,6 +8,8 @@ gaps: [GAP-449]
 audit_cluster: release-deploy-artifacts
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 44 — terraform-apply Workflow Infrastructure
 
 **Goal:** Ship workflow_dispatch terraform-apply infrastructure để future infra applies (bao gồm Wave 43 verification) chạy qua CI OIDC thay vì local admin key. Revise rule §9 distinguish 3 cases (auto-apply / agent-apply / workflow_dispatch).

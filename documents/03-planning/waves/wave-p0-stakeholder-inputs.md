@@ -1,3 +1,5 @@
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 0 — Stakeholder Inputs Checklist
 
 **Purpose:** Collect non-engineering inputs required before later waves can start. Owned by stakeholders, not engineering.

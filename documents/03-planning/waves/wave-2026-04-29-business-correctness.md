@@ -8,6 +8,8 @@ deferred_to_next_wave: []
 deferred_separate_track: [GAP-151, GAP-152, GAP-153, GAP-154, GAP-155, GAP-156]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave Business Correctness — Cluster Pack 5
 
 **Wave date:** 2026-04-29 (kicked off ~02:55 UTC)

@@ -8,6 +8,8 @@ waves: [6]
 gaps: [GAP-046, GAP-222, GAP-222a, GAP-222b, GAP-222c]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 6 — Design Pattern Audit + Hotspot Refactor
 
 **Owner:** solo-dev

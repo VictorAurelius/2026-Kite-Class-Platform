@@ -7,6 +7,8 @@ waves: [74]
 gaps: [GAP-529]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 74 — Hook Coverage
 
 **Goal:** Close coverage gap for 6 hooks shipped Wave 73 B (PR #1318). Currently: 779-line `audit-gate.py` has 0 unit tests; `post-tool-guard.py` + `stop-handoff-check.py` có ít tests (3-7/rule); KHÔNG có meta-rubric review hook. User-flagged 2026-05-14: "có meta để review hook chưa? tôi lo lắng về coverage để giảm risk."

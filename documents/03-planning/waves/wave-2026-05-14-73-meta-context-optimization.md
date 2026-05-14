@@ -7,6 +7,8 @@ waves: [73]
 gaps: [GAP-528]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 73 — Meta Context Optimization
 
 **Goal:** Giảm base context auto-load mỗi session từ ~250k → ~100k tokens (saved ~150k, ~45% context window) qua native `paths:` frontmatter path-scoping + deterministic hook coverage cho rules không có natural path trigger.

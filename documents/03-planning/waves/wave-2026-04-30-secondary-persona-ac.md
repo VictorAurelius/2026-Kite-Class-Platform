@@ -10,6 +10,8 @@ sister_waves: [wave-2026-04-29-business-correctness, wave-2026-04-29-legal-brd-p
 unblocks: [GAP-152]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave Secondary-Persona-AC — Cluster Pack 16 (12th wave-pack)
 
 **Wave date:** 2026-04-30 (same-day continuation of Wave 15 Persona-AC-Template)

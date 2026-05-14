@@ -1,3 +1,5 @@
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 3: AI Branding Core Pipeline
 
 **Branch:** `wave/03-ai-branding-core`

@@ -7,6 +7,8 @@ waves: [64]
 gaps: [GAP-204, GAP-476, GAP-465, GAP-475]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 64 — Cleanup cluster
 
 **Goal:** Flip repo RED→GREEN (Dependabot HIGH cleanup) + close GAP-476 (unblock GAP-475 Sub-5 DONE) + ship GAP-465 helm staleness audit. Bundle 3 cleanup gaps into 1 wave.

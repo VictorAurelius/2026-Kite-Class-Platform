@@ -7,6 +7,8 @@ gaps: [GAP-234, GAP-236, GAP-237]
 parent_session: 20260426-164325
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave P2-Cleanup — 3 parallel agents
 
 **Status:** 🟠 IN_PROGRESS

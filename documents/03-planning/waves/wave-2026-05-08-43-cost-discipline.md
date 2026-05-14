@@ -8,6 +8,8 @@ gaps: [GAP-446, GAP-447, GAP-448, GAP-411, GAP-373, GAP-369, GAP-377, GAP-378, G
 audit_cluster: release-deploy-artifacts
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 43 — Cost Discipline (Phase 1 BETA)
 
 **Goal:** Giảm AWS burn rate $157/mo → ~$45-55/mo để $200 credit kéo đủ Phase 1 BETA 9-12 tuần.

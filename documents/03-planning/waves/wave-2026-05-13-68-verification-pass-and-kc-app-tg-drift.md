@@ -9,6 +9,8 @@ prs: [1250, 1251]
 outcome: Verification 3/3 (SES sandbox/DENIED, smoke 200 healthy, audit 87/100 baseline); bonus drift fix GAP-501 ship E2E (terraform apply 25783192647, 502→404 live)
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 68 — Verification pass + kc_app TG drift fix (backfilled closure)
 
 **Goal:** Execute Wave 68 main scope per ROADMAP §🚀 post-Wave-67: (1) GAP-370 SES production access status, (2) Smoke E2E full user flow, (3) Audit /100 ≥80 baseline maintained.

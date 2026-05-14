@@ -8,6 +8,8 @@ deferred_to_next_wave: []
 deferred_separate_track: [GAP-030]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave DR/Backup — Cluster Pack 2
 
 **Wave date:** 2026-04-29 (kicked off 2026-04-28 evening)

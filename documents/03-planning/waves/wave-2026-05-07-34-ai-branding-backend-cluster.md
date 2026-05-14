@@ -7,6 +7,8 @@ waves: [34]
 gaps: [GAP-272c, GAP-272d, GAP-272e, GAP-272h, GAP-272i, GAP-272j, GAP-272k, GAP-272l]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 34 — AI Branding Wizard Backend Cluster
 
 **Goal:** Close 8 sub-letter follow-ups từ Wave 32 v1+rework (GAP-272c/d/e/h/i/j/k/l) — 7 backend endpoints + 1 service integration + FE refactor inline-mocks → MSW handlers. **First wave thực sự áp dụng `.claude/rules/contract-first-for-cross-layer.md` v1.0.0** (rule §7.2 forward-looking self-test → real). Phase D của locked Post-Wave-32 sequence A→B→C→D (per `project_post_wave_32_sequence_plan.md`).

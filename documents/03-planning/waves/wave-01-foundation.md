@@ -1,3 +1,5 @@
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 1: Foundation Prerequisites
 
 **Branch:** `wave/01-foundation`

@@ -11,6 +11,8 @@ actual_outputs: 6 PRs merged (#769 GAP-323b backend + #770 plan + #771 Bucket A 
 strategy: Phase-1B foundation wave-pack — same disjoint-buckets pattern as Wave 18b1; each bucket ships one user-visible v1 surface
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 18b2 — K-12 LEGAL Trio Phase 1B Foundation Wave-Pack
 
 **Wave kickoff readiness:** 🟢 ALL preconditions met

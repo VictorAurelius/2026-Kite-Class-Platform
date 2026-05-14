@@ -11,6 +11,8 @@ actual_outputs: 5 PRs merged (#779 plan + #780 Bucket A offline + k6 + #782 Buck
 strategy: Phase-1B remainder wave-pack — same disjoint-buckets pattern as Wave 18b2; each bucket completes the user-visible v1 surface left open by 18b2 foundation
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 18b3 — K-12 LEGAL Trio Phase 1B Remainder Wave-Pack
 
 **Wave kickoff readiness:** 🟢 ALL preconditions met

@@ -8,6 +8,8 @@ deferred_to_next_wave: [GAP-195-phase-2b]
 deferred_separate_track: [GAP-198, GAP-199, GAP-201, GAP-261]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave Meta Phase-2 Cleanup — Cluster Pack 7
 
 **Wave date:** 2026-04-29 (3rd wave today; kicked off after Wave Meta-Gov 2 SHIPPED ~03:55 UTC)

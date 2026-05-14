@@ -7,6 +7,8 @@ waves: [75]
 gaps: [GAP-529]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 75 — Meta Hook Coverage Finish
 
 **Goal:** Close all residual meta-governance hook coverage gaps surfaced by Wave 74 outside-in benchmark + GAP-529. After Wave 75 ships, meta-governance for hooks is COMPLETE (rule + skill + tests + ordering + race + coverage measurement all addressed).

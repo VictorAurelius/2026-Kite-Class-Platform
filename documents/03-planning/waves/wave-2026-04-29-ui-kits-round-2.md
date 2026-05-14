@@ -8,6 +8,8 @@ deferred_to_next_wave: []
 deferred_separate_track: [kiteclass-teacher, ai-branding-wizard-v2, kitehub-story-v2]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave UI Kits Round 2 — Cluster Pack 8
 
 **Wave date:** 2026-04-29 (kicked off after Phase 0 rollback per Option A)

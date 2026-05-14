@@ -13,6 +13,8 @@ total_loc: 1326
 wall_clock_min: 35
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave Legal-BRD Phase 1 — Cluster Pack 13 (5th business-correctness slice)
 
 **Wave date:** 2026-04-29 (kicked off this session)

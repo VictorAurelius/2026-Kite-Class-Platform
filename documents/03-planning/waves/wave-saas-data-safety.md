@@ -1,3 +1,5 @@
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave: SaaS Data Safety
 
 **Gaps:** GAP-093, GAP-094, GAP-096

@@ -8,6 +8,8 @@ deferred_to_next_wave: []
 deferred_separate_track: []
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave Review Process Improvement — Cluster Pack 12
 
 **Wave date:** 2026-04-29 (kicked off after PR #679 landing-page hotfix exposed coverage gap in review process)

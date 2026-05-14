@@ -7,6 +7,8 @@ waves: [46]
 gaps: [GAP-440, GAP-442]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 46 — Java deps bump (Spring Boot 3.5.14 → 3.5.x latest + Alpine base)
 
 **Goal:** Đưa GitHub Security HIGH alerts từ 21 → ≤5 bằng cách bump Spring Boot patch (covers ~9 transitive Java CVE) + Alpine base image (covers ~12 npm-in-base CVE), unblock v1.0.0-rc strict-gate path.

@@ -9,6 +9,8 @@ predecessor: wave-2026-04-29-ui-kits-round-3.md
 spawns_followups: [GAP-274, GAP-275, GAP-276, GAP-277, GAP-278, GAP-279, GAP-280]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave UI Coverage Audit — 100% production frontend coverage with evidence
 
 **Type:** Audit-only wave (NOT gap-closing, NOT prototype-shipping). Produces evidence document + spawns follow-up GAPs.
