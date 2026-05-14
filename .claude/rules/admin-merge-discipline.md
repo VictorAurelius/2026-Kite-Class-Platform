@@ -1,10 +1,10 @@
 # Admin-Merge Discipline — `gh pr merge --admin` is a sharp tool
 
 **Priority:** 🔴 CRITICAL — guardrail against silent main breakage
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-07
-**Last-Reviewed:** 2026-05-07
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement per §6.5; paired same-PR with memory `feedback_admin_merge_bypass_test_compile.md` + worked self-test on 2026-05-07 GAP-926 incident; no constraint loosening)
+**Last-Reviewed:** 2026-05-14
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; clarifies §4 trailer mechanism to "PR body (read via `gh pr view <N> --json body`)" per Wave 75 GAP-529 fix — no constraint loosening, matches the actual enforcement implementation in `pre-tool-guard.py` after per-PR scoping migration. v1.0.0 (kept): MINOR self-approve per §5; new rule with built-in enforcement per §6.5; paired same-PR with memory `feedback_admin_merge_bypass_test_compile.md` + worked self-test on 2026-05-07 GAP-926 incident; no constraint loosening)
 **Applies to:** Every `gh pr merge --admin` invocation in this repo (manual OR automated)
 
 ---
@@ -70,7 +70,7 @@ Trailer requirements:
 2. Follow-up gap link with concrete completion date
 3. Quarterly retro reviews override frequency — pattern frequency >5% of admin merges triggers meta-review
 
-Trailer applied to the SQUASH commit (so it lands on main, not PR feature branch).
+Trailer applied to the **PR body** (read by `pre-tool-guard.py` via `gh pr view <N> --json body` — per-PR-scoped per Wave 75 GAP-529 fix). The squash commit will inherit the trailer naturally since `gh pr merge --squash` includes the PR description by default, but the hook's enforcement reads the PR body specifically — not the HEAD commit body of any branch. This prevents stale trailer leak across PRs / branches / sessions.
 
 ---
 
@@ -189,4 +189,5 @@ Pattern frequency >5% of admin merges per quarter → meta-review of this rule.
 
 ## 11. Log
 
+- **2026-05-14 (v1.0.1):** PATCH — clarified §4 trailer mechanism. Pre-fix wording said "Trailer applied to the SQUASH commit" which described the semantic intent but mismatched the actual hook implementation in `pre-tool-guard.py` `_has_trailer()` (which read HEAD commit body of the current branch via `git log -1 --format=%B`). Wave 74 Bucket C empirical test surfaced GAP-529 (HEAD-trailer-leak across PRs/branches/sessions); Wave 75 Bucket A fix migrated hook to per-PR scoping via `gh pr view <N> --json body`. This rule update aligns the prose with the corrected implementation: trailer lives in the **PR body**, read by the hook via `gh pr view`, no longer dependent on branch HEAD state. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — clarification matching shipped implementation, no constraint loosening; users already added trailers to PR descriptions in practice, this codifies the contract).
 - **2026-05-07 (v1.0.0):** Rule created. Triggered by GAP-926 incident (PR #920 Bucket D rebased + force-pushed + immediately `--admin` merged → Java compile error in `BetaAccessServiceTest:285` landed on main; user caught via IDE diagnostic). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged) → Classify ✓ (no existing rule prohibits `--admin` post-rebase; `feedback_coordinator_ci_fix_pattern.md` covers force-push pattern but not post-merge gate) → Rule+Enforce ✓ (this file + memory `feedback_admin_merge_bypass_test_compile.md` paired same PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§9 worked example) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds new constraint, no constraint loosening). Detector deferred per §10 Open Items per premature-rule guard.

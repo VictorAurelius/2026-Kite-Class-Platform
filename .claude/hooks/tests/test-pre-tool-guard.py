@@ -1,12 +1,24 @@
 #!/usr/bin/env python3
-"""Tests for pre-tool-guard.py — Wave 73 Bucket B Rules 1-5."""
+"""Tests for pre-tool-guard.py — Wave 73 Bucket B Rules 1-5 + Wave 75 GAP-529 fix.
 
+Wave 75 GAP-529: `check_admin_merge` now uses per-PR trailer scoping via
+`gh pr view <N> --json body`. Tests use `unittest.mock.patch.object` to stub
+`_pr_body` / `_commit_body` deterministically — no HEAD env dependency.
+"""
+
+import importlib.util
 import json
 import subprocess
 import unittest
+import unittest.mock
 from pathlib import Path
 
 HOOK = Path(__file__).resolve().parent.parent / "pre-tool-guard.py"
+
+# Load pre-tool-guard.py as a module for direct function-level testing + mocking.
+_spec = importlib.util.spec_from_file_location("pre_tool_guard", HOOK)
+pre_tool_guard = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(pre_tool_guard)
 
 
 def run_hook(payload: dict) -> dict:
@@ -37,23 +49,14 @@ def deny_reason(out: dict) -> str:
 
 class TestAdminMergeDiscipline(unittest.TestCase):
     def test_admin_merge_blocked(self):
-        """Verify --admin flag triggers BLOCK when HEAD commit has no ADMIN_MERGE_OVERRIDE trailer.
+        """Wave 75 GAP-529: `--admin` on nonexistent PR #1234 → `gh pr view` returns empty body → BLOCK.
 
-        NOTE (Wave 74 Bucket C): this test is environment-sensitive due to a hook bug —
-        check_admin_merge() reads HEAD commit body for trailer override. If main HEAD has a
-        legitimate ADMIN_MERGE_OVERRIDE trailer from a prior PR (e.g. docs-only wave plan PR),
-        the hook silently allows ANY subsequent --admin command. Test asserts EITHER deny
-        (clean HEAD) OR allow-with-trailer-on-HEAD (bug state). See test_admin_merge_trailer_scope_bug_documentation
-        below for the bug class. Filed for fix in Wave 75.
+        Pre-fix: this test was environment-sensitive (HEAD commit body could carry stale trailer).
+        Post-fix: hook reads target PR body specifically; nonexistent PR → empty body → no trailer → BLOCK.
         """
         out = run_hook({"tool_name": "Bash", "tool_input": {"command": "gh pr merge 1234 --squash --admin"}})
-        if is_denied(out):
-            # Clean HEAD path — expected behavior
-            self.assertIn("admin-merge-discipline", deny_reason(out))
-        else:
-            # HEAD-trailer-leak bug path — allowed because main HEAD carries override trailer
-            self.assertTrue(is_allowed(out),
-                            f"Hook should be either denied (clean HEAD) or allowed (HEAD-trailer-leak), got: {out}")
+        self.assertTrue(is_denied(out), f"Expected deny (clean PR body), got: {out}")
+        self.assertIn("admin-merge-discipline", deny_reason(out))
 
     def test_normal_merge_allowed(self):
         out = run_hook({"tool_name": "Bash", "tool_input": {"command": "gh pr merge 1234 --squash"}})
@@ -62,6 +65,76 @@ class TestAdminMergeDiscipline(unittest.TestCase):
     def test_unrelated_command_allowed(self):
         out = run_hook({"tool_name": "Bash", "tool_input": {"command": "ls -la"}})
         self.assertTrue(is_allowed(out))
+
+
+class TestAdminMergePerPrTrailerScoping(unittest.TestCase):
+    """Wave 75 GAP-529 regression tests — per-PR trailer scoping via stubbed `_pr_body`.
+
+    These tests exercise `check_admin_merge` directly via the imported module so we can
+    patch `_pr_body` deterministically — no HEAD env dependency, no live `gh` call.
+    """
+
+    def test_clean_pr_body_blocks_admin_merge(self):
+        """Empty PR body → no trailer → BLOCK."""
+        with (
+            unittest.mock.patch.object(pre_tool_guard, "_pr_body", return_value=""),
+            self.assertRaises(SystemExit),
+        ):
+            pre_tool_guard.check_admin_merge("gh pr merge 9999 --squash --admin")
+
+    def test_trailer_in_pr_body_allows_admin_merge(self):
+        """PR body contains valid `ADMIN_MERGE_OVERRIDE:` trailer → ALLOW (no SystemExit)."""
+        body = (
+            "Some PR description text.\n"
+            "\n"
+            "ADMIN_MERGE_OVERRIDE: legitimate reason — Vercel rate-limit, docs-only\n"
+            "ADMIN_MERGE_FOLLOWUP: GAP-999 (2026-06-01)\n"
+        )
+        with unittest.mock.patch.object(pre_tool_guard, "_pr_body", return_value=body):
+            try:
+                pre_tool_guard.check_admin_merge("gh pr merge 9999 --squash --admin")
+            except SystemExit as e:
+                self.fail(f"Expected allow (no SystemExit), but check_admin_merge raised SystemExit: {e}")
+
+    def test_pr_num_extracted_from_command(self):
+        """Verify `_extract_pr_num` handles common command shapes."""
+        self.assertEqual(pre_tool_guard._extract_pr_num("gh pr merge 1234 --admin"), "1234")
+        self.assertEqual(pre_tool_guard._extract_pr_num("gh pr merge 1234 --squash --admin"), "1234")
+        self.assertEqual(pre_tool_guard._extract_pr_num("gh pr merge --squash 5678 --admin"), "5678")
+        self.assertIsNone(pre_tool_guard._extract_pr_num("gh pr merge --admin"))
+        self.assertIsNone(pre_tool_guard._extract_pr_num("ls -la"))
+
+    def test_stale_head_trailer_does_not_leak_when_pr_num_present(self):
+        """Wave 75 GAP-529 worked self-test — simulate the Wave 74 Bucket C incident.
+
+        Pre-fix: HEAD commit body has stale `ADMIN_MERGE_OVERRIDE:` from prior PR →
+        `_has_trailer` reads HEAD → trailer found → ALLOW (BUG).
+
+        Post-fix: `check_admin_merge` calls `_has_trailer_in_pr(pr_num, ...)` which
+        reads target PR body via `gh pr view`. Stubbed `_pr_body` returns clean body
+        → no trailer found → BLOCK (correct).
+        """
+        stale_head = "Prior PR squash commit\n\nADMIN_MERGE_OVERRIDE: stale leaked trailer\n"
+        clean_pr = "Current PR description — no override needed.\n"
+        with (
+            unittest.mock.patch.object(pre_tool_guard, "_commit_body", return_value=stale_head),
+            unittest.mock.patch.object(pre_tool_guard, "_pr_body", return_value=clean_pr),
+            self.assertRaises(SystemExit),
+        ):
+            pre_tool_guard.check_admin_merge("gh pr merge 9999 --squash --admin")
+
+    def test_admin_merge_trailer_scope_post_fix(self):
+        """Post-Wave-75-GAP-529 deterministic version of the original Wave 74 documentation test.
+
+        Subprocess invocation against non-existent PR #9999 → `gh pr view 9999` returns
+        non-zero → `_pr_body` returns "" → no trailer found → DENY.
+
+        Original Wave 74 test had to accept either allow OR deny (HEAD-state variance);
+        this post-fix version asserts a single outcome.
+        """
+        out = run_hook({"tool_name": "Bash", "tool_input": {"command": "gh pr merge 9999 --squash --admin"}})
+        self.assertTrue(is_denied(out), f"Post-fix: nonexistent PR should BLOCK, got: {out}")
+        self.assertIn("admin-merge-discipline", deny_reason(out))
 
 
 class TestAwsTier3(unittest.TestCase):
@@ -152,28 +225,6 @@ class TestFalsePositives(unittest.TestCase):
         cmd = 'git commit -m "Document gh pr merge --admin discipline rule per .claude/rules/admin-merge-discipline.md"'
         out = run_hook({"tool_name": "Bash", "tool_input": {"command": cmd}})
         self.assertTrue(is_allowed(out), f"False positive: {deny_reason(out)}")
-
-    def test_admin_merge_trailer_scope_bug_documentation(self):
-        """Bonus test (Wave 74 Bucket C) — documents HOOK BUG discovered 2026-05-14 in Wave 74 plan PR #1320.
-
-        check_admin_merge() inspects HEAD commit body for ADMIN_MERGE_OVERRIDE: trailer to allow
-        override. After PR #1320 merge, that trailer (legitimate per admin-merge-discipline.md
-        §2 row "Trivial docs PR" for Vercel rate-limit + docs-only diff) landed on main HEAD.
-        Result: any SUBSEQUENT `gh pr merge --admin` invocation in any agent session will be
-        ALLOWED because _has_trailer() reads HEAD and finds the prior PR's trailer.
-
-        This is a hook design bug: trailer scoping should be per-PR (e.g. read commit body of
-        the merge candidate, not HEAD) — not per-HEAD-on-main. Filed as follow-up gap for Wave 75.
-
-        Test: smoke-checks that hook returns a clear decision (allow OR deny). Does NOT assert
-        specific outcome because HEAD state varies across sessions (which IS the bug — the test
-        documents the variability and ensures hook doesn't crash on either branch).
-        """
-        out = run_hook({"tool_name": "Bash", "tool_input": {"command": "gh pr merge 9999 --squash --admin"}})
-        self.assertTrue(is_allowed(out) or is_denied(out),
-                        "Hook should return clear decision (allow or deny), not crash")
-        if is_denied(out):
-            self.assertIn("admin-merge-discipline", deny_reason(out))
 
     def test_git_commit_with_aws_create_text_in_message_allowed(self):
         cmd = 'git commit -m "Block aws create-bucket per Tier 3 rule"'
