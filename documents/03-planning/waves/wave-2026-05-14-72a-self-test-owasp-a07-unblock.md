@@ -1,6 +1,6 @@
 ---
 title: Wave 72a — Self-Test Unblock + OWASP A07 P0/P1 Hardening
-status: draft
+status: complete
 created: 2026-05-14
 updated: 2026-05-14
 waves: [72a]
@@ -213,5 +213,5 @@ If any FAIL → wave PARTIAL, file follow-up gap, stay at 🟡 PARTIAL not 🟢 
 ## 8. Log
 
 - **2026-05-14** (draft): Wave plan created. State-check evidence collected directly on main (commit 00fbf2d6). Bucket layout = 5 disjoint buckets. Cross-layer Bucket C confirmed NO Bucket 0 Foundation needed (existing JWT response shape; FE-only fix). Sister stub `wave-2026-05-14-72b-2fa-audit-rubric-review.md` ships same PR for follow-up scope visibility.
-- **2026-05-14** (TBD in-progress): Agents spawned post wave-plan PR merge.
-- **2026-05-14** (TBD complete): Wave SHIPPED. Outcomes: ...
+- **2026-05-14** (in-progress): Plan PR #1282 merged main `78b530db`. 5 buckets spawned background+worktree-isolated. Bucket F (self-test CSV matrix) added in-flight per user request "tạo thêm self-test để đi qua flow thông thường" — 6th bucket on top of original 5.
+- **2026-05-14** (complete): Wave SHIPPED. 6 bucket PRs all merged: #1283 A (GAP-514 PARTIAL 66%), #1287 B (GAP-515/520/521 PARTIAL 80/90/70%), #1285 C (GAP-518/519 PARTIAL 80%), #1284 D (GAP-525 PARTIAL 50%), #1286 E (GAP-522 DONE), #1288 F (new self-test CSV 126 rows). Gaps: 1 DONE + 7 PARTIAL + 0 newly-filed in scope (Wave 72b stub references GAP-516/517/523/524/526 for follow-up). Side-track: #1289 statusline sync + #1290 starter-kit v2.4.0 retro-sync (17 new + 3 updated rules) + remote v2.4.0 PR #11 merged on canonical repo.

@@ -8,7 +8,7 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-13 — 🎉 Wave 68 SHIPPED — kc_app TG drift fixed, 502→404 live verified)
+## 🎯 Current Status Snapshot (2026-05-14 — 🎉 Wave 72a SHIPPED — self-test unblock + OWASP A07 hardening, 1 DONE + 7 PARTIAL)
 
 ### ✅ Wave 68 SHIPPED 2026-05-13 (verification pass + bonus drift fix)
 
@@ -35,50 +35,44 @@ Full evidence: [`audits/aws-verification/2026-05-13-audit-of-trust-production-in
 3. Re-run audit-of-trust pass → unblock Plan 1
 4. Phase 1.5 prep: terraform Architecture A (single t3.large) ready cho trigger gate ≥30 paying tenants
 
-### Wave 72a Bucket D 2026-05-14 — GAP-525 credential rotation runbook + incident artifact (PARTIAL)
+### ✅ Wave 72a SHIPPED 2026-05-14 — Self-test unblock + OWASP A07 P0/P1 hardening (6 buckets parallel)
 
-- 🟡 **GAP-525 → PARTIAL** — `credential-rotation-runbook.md` (general procedure for admin password / JWT secret / 3rd-party API tokens) + incident artifact `documents/04-quality/audits/credential-rotation/2026-05-14-wave-72a-3-credentials.md` shipped. Procedure DONE; actual rotation = user-action pending per `agent-aws-access.md` §4 (Tier 3 mutations + vendor portal revocations are user-execute only).
-- New audit category folder `documents/04-quality/audits/credential-rotation/` + README created.
-- 3 credentials covered: admin@kitehub.me production password (AWS Secrets Manager) + Cloudflare API token (read-only) + Resend API key (sending). All referenced by class/ID only — no credential values stored in repo per `agent-aws-access.md` §2.2.
-- User-action checklist tracked in artifact §"Next steps"; flip GAP-525 → 🟢 DONE when rows 1–3 of rotation-status table show `verified`.
+**Plan PR #1282** + **6 bucket PRs** (#1283 A + #1284 D + #1285 C + #1286 E + #1287 B + #1288 F) — all merged to main. Side-track: **#1289** statusline sync + **#1290** starter-kit v2.4.0 retro-sync (17 new + 3 updated rules) + canonical remote **#11** also merged.
 
-### 🚀 Next Action (Wave 71c — meta + auth hardening bundle, P0)
+**Gaps outcome:**
+- 🟢 **GAP-522 DONE** — security-audit Cat 1/2/3/5 per-check rubric extension + 4 sister rules (`pre-launch-{dependency,secrets,owasp-rest,infra}-hardening-checklist.md`)
+- 🟡 **GAP-514 PARTIAL 66%** — gateway rate limit on 5 missing auth routes; live 429 smoke deferred to post-deploy
+- 🟡 **GAP-515 PARTIAL 80%** — V35 lockout columns + AuthService 5-attempt/15min + exponential backoff; FE Retry-After UX deferred
+- 🟡 **GAP-518 PARTIAL 80%** — FE role-guard widen `'OWNER'|'ADMIN'|'PLATFORM_ADMIN'` + login redirect fix; live admin walkthrough deferred to user
+- 🟡 **GAP-519 PARTIAL 80%** — admin sidebar with 4 testid'd nav links; live click-through deferred
+- 🟡 **GAP-520 PARTIAL 90%** — JWT dual-key verifier + rotation runbook; first real AWS Secret rotation = ops follow-up
+- 🟡 **GAP-521 PARTIAL 70%** — V36 admin_audit_log + AOP aspect + @Auditable annotation on 2 endpoints; other controllers + FE review page deferred
+- 🟡 **GAP-525 PARTIAL 50%** — credential-rotation-runbook + incident artifact (3 credentials by class/ID only); actual rotation = user-action
 
-**Wave 71b "verify live" was incomplete** — claimed DONE at curl-level (HTTP 201) without walking user-facing flow. User-flagged 2 cascading bugs at Plan 1 Bước 4 attempt: (1) no UI nav button to /admin/beta-requests, (2) BE seed role `PLATFORM_ADMIN` vs FE role-guard `'ADMIN'` → admin UI 100% unusable in production. Plus parallel meta audit per `pre-launch-auth-hardening-checklist.md` v1.0.0 surfaced 5 confirmed + 3 likely OWASP A07 gaps that security-audit skill at 87/100 score missed.
+**New artifacts:** `phase-1-beta-acceptance-self-test.csv` 126 rows pre-filled (supersedes `plan-1-self-test-e2e.md`) — user opens in spreadsheet, ticks `status` column, surfaces blocker gaps per row.
 
-**Wave 71c P0 (must close before any Plan 1 Bước 3-7 retry):**
+### 🚀 Next Action (Wave 72b — 2FA + audit rubric review + admin verify, post-Plan 1 user walkthrough)
 
-1. **GAP-518** BE seed `PLATFORM_ADMIN` vs FE guard `'ADMIN'` mismatch — admin UI unusable (Option B: FE accept both)
-2. **GAP-514** Auth endpoints missing gateway rate limit — 6 endpoints unprotected
-3. **GAP-515** Account lockout missing — 0 failedLoginAttempts mechanism
+**Wave 72a P0 BLOCKERS unblocked** — admin UI now usable (GAP-518/519 PARTIAL 80%); auth surface protected (GAP-514 rate limit + GAP-515 lockout PARTIAL); credentials covered by runbook (GAP-525 PARTIAL 50%); meta rubric extended (GAP-522 DONE).
 
-**Wave 71c P1 (post-P0 cleanup, ≤2 weeks):**
+**Wave 72b plan stub** (filed in Wave 72a plan PR #1282): `wave-2026-05-14-72b-2fa-audit-rubric-review.md` — 5 buckets, runs after Wave 72a closure. Full §3-§5 elaboration deferred to dedicated Wave 72b plan PR per stub §4 spawn condition.
 
-4. **GAP-519** Admin dashboard nav sidebar missing links
-5. **GAP-520** JWT signing secret rotation runbook + dual-key support
-6. **GAP-521** Admin action audit log (PDPL compliance overlap)
-7. **GAP-516** 2FA TOTP mandatory for PLATFORM_ADMIN
+**Wave 72b candidate scope:**
 
-**Wave 71c P2:**
+1. **GAP-526 P1** — Verify admin UI subpages reach correct backends (3 subpages × DevTools click-through). **Depends on Wave 72a Bucket C live walkthrough.**
+2. **GAP-516 P1** — 2FA TOTP mandatory for PLATFORM_ADMIN (cross-layer FE+BE, Bucket 0 Foundation required for new endpoints)
+3. **GAP-517 P2** — PLATFORM_ADMIN login alert from new IP/UA + Resend transactional template
+4. **GAP-523 P0 META** — Audit skill rubric review wave: apply primacy + per-check to 6 sister skills (quality / ops-readiness / performance / api-contract / business-logic / ui-review)
+5. **GAP-524 P1 META** — pre-handoff rule additional flow classes (file-upload, payment, multi-tenant, SSE, async job, time-sensitive, i18n)
 
-8. **GAP-517** PLATFORM_ADMIN login alert from new IP/UA
+**Pre-Wave-72b user-action (Plan 1 walkthrough first):**
 
-**Meta fixes shipped Wave 71c PR #1278:**
+- Open `documents/05-guides/operations/phase-1-beta-acceptance-self-test.csv` in spreadsheet
+- Tick each row's `status` column (pass/fail/blocked/-)
+- File bugs surfaced per row's `blocker_gap` column → Wave 72b scope OR new gap
+- 3 user-action items pending: GAP-525 credential rotation × 3 (admin password / Cloudflare token / Resend key)
 
-- New rule `pre-handoff-self-test-completeness.md` v1.0.0 — mandates flow-level verify before DONE flip
-- New rule `pre-launch-auth-hardening-checklist.md` v1.0.0 — 8 OWASP A07 mandatory checks
-- `security-audit/SKILL.md` rubric extended Category 4 binds to auth-hardening rule + adds "bug-finding > scoring" primacy section
-- Admin password for self-test logged in 2026-05-13 closure summary (rotate after Wave 71c P0 close)
-
-**Residual meta gaps (Wave 71c-meta-Phase-2 filed same day, this PR):**
-
-- **GAP-522** META P0 — Extend per-check rubric to all 5 security-audit categories (4 sister rules: dependency / secrets / OWASP-noA07 / infra hardening)
-- **GAP-523** META P0 — Audit skill rubric review wave: apply primacy + per-check to 6 sister skills (quality / ops-readiness / performance / api-contract / business-logic / ui-review)
-- **GAP-524** META P1 — pre-handoff rule additional flow classes (lazy add per incident: file-upload, payment, multi-tenant, SSE, async, time-sensitive, i18n)
-
-Recommend close GAP-518 (admin UI unblock) + GAP-514/515 (auth surface) in parallel with GAP-522 before Wave 72; defer GAP-523/524 to Wave 72.
-
-**Plan 1 Bước 3-7 BLOCKED on Wave 71c P0** — user cannot self-test admin approve/reject until GAP-518 fixed.
+**Wave 72a deferrals tracked inline in gap files** (per `gap-done-discipline.md` §3 PARTIAL exit ramp): GAP-514 live 429 smoke + `/api/auth/password-reset-request` route; GAP-515 FE Retry-After UX; GAP-518/519 live admin walkthrough; GAP-520 first real AWS Secret rotation; GAP-521 other admin controllers annotation + FE review page; GAP-525 user-action × 3.
 
 **Wave 71b SHIPPED 2026-05-13** — Gateway routing scope extension (PR #1276 + tag `v0.9.0-beta-staging.13` deployed). GAP-512 → 🟢 DONE (3-path live verify: admin/beta-requests 401, consent/record 400, branding/slug-availability 200). GAP-513 Resend → 🟢 DONE (AWS Secret populated, SSM verify RESEND_API_KEY length=35 prefix=re_ho in kitehub-email container).
 
