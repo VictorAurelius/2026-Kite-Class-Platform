@@ -66,7 +66,29 @@ Full evidence: [`audits/aws-verification/2026-05-13-audit-of-trust-production-in
 
 **New artifacts:** [`documents/05-guides/operations/acceptance-tests/phase-1-beta-acceptance-self-test.csv`](../../05-guides/operations/acceptance-tests/phase-1-beta-acceptance-self-test.csv) 126 rows pre-filled in Vietnamese with UTF-8 BOM (Wave 72b Bucket G relocated + translated; supersedes archived `plan-1-self-test-e2e-superseded.md`) — user opens in spreadsheet, ticks `status` column, surfaces blocker gaps per row. Render XLSX: `bash scripts/render-acceptance-test-xlsx.sh <csv>`.
 
-### 🚀 Next Action (Wave 72b — 2FA + audit rubric review + admin verify, post-Plan 1 user walkthrough)
+### 🚀 Next Action (Wave 77 — Beta Invite Launch Foundation SEND, 2026-05-14 draft)
+
+**Wave 77 plan drafted** — `documents/03-planning/waves/wave-2026-05-14-77-beta-invite-launch-foundation.md` — 4 buckets parallel, ~3-4h. Scope = Sub-wave A SEND foundation (8 P0 items chặn "gửi invite an toàn"):
+
+**Inside-out (4 PARTIAL from ROADMAP):**
+- 🟡 GAP-370 (Resend infra 60%) → close PARTIAL with deliverability path
+- 🟡 GAP-502 (kh_backend thrashing 80%) → close 20% remaining for kitehub-email scope; GAP-506 defer
+- 🟡 GAP-525 (cred rotate 50%) → ship automation + user-action checklist
+- 🔵 GAP-530 (email flow live verify 0%) → end-to-end §2.3 post Bucket A
+
+**Outside-in NEW (4 P0 from 3-agent convergence persona+benchmark+matrix 2026-05-14):**
+- 🔵 GAP-533 OPEN P0 — Resend deliverability warm-up DKIM/DMARC/SPF + spam-score ≥8/10 (persona+benchmark convergence)
+- 🔵 GAP-534 OPEN P0 — Invite token single-use enforcement + audit log (matrix F1 — share-link hijack)
+- 🔵 GAP-535 OPEN P0 — Tenant slug normalize VN diacritics + smart quotes + collision recovery (matrix F2 — P2 100% target persona block)
+- 🔵 GAP-536 OPEN P0 — POST /tenants idempotency key (matrix F3 — slow 3G double-submit orphan tenants)
+
+**Buckets:** A Email SEND foundation (GAP-370+533+530) · B Backend stability close (GAP-502) · C Cred rotation execution (GAP-525) · D Tenant signup security (GAP-534+535+536). Cross-layer check: NO FE work → no Bucket 0 Foundation.
+
+**Sub-wave B (Wave 78) queued — RETAIN scope** — 9 P0 (GAP-508 env meta, GAP-514 rate limit live, GAP-515 lockout UX, GAP-518 role mismatch live verify, GAP-428 Prospects UI kit, + 4 outside-in NEW: N1 onboarding+sample data, N2 beta disclaimer+status page, N7 support channel, N8 VN i18n customer-facing). 14 P1/P2 outside-in items defer Sub-wave C or Phase 2.
+
+---
+
+### 🚀 Next Action — historical (Wave 72b — 2FA + audit rubric review + admin verify, post-Plan 1 user walkthrough) [SUPERSEDED by Wave 77]
 
 **Wave 72a P0 BLOCKERS unblocked** — admin UI now usable (GAP-518/519 PARTIAL 80%); auth surface protected (GAP-514 rate limit + GAP-515 lockout PARTIAL); credentials covered by runbook (GAP-525 PARTIAL 50%); meta rubric extended (GAP-522 DONE).
 
