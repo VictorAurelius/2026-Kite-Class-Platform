@@ -8,9 +8,44 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-14 EOD — 🎉 Wave 77 SHIPPED Beta Invite Launch SEND foundation + GitHub suspension survived + GitLab mirror permanent)
+## 🎯 Current Status Snapshot (2026-05-14 EOD — 🎉 Wave 78 SHIPPED Beta Invite Launch Retain UX/trust + Wave 77 SEND foundation + GitHub suspension survived + GitLab mirror permanent)
 
-> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-14-eod-session-handoff.md`](../../03-planning/session-handoffs/2026-05-14-eod-session-handoff.md) — full EOD state + Wave 77 user-action deploy pickup order + 3 pending PRs (#1340/#1341/#1342)
+> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-14-eod-session-handoff.md`](../../03-planning/session-handoffs/2026-05-14-eod-session-handoff.md) — full EOD state + Wave 77 user-action deploy pickup order + Wave 78 post-wave audit suite (≤3 ngày)
+
+### 🎉 Wave 78 SHIPPED 2026-05-14 — Beta Invite Launch Retain UX/trust (7 buckets + 1 hotfix + GAP-544 filed)
+
+**7 bucket PRs merged:** #1349 Bucket 0 Foundation (4 NEW api-contract.md + MSW handlers) · #1351 Bucket A FE Polish (Prospects UI kit + VN i18n audit, GAP-428/541) · #1352 Bucket D Admin/Security (FE role compat + beta invite runbook, GAP-518/480) · #1353 Bucket E Email + Smoke (kitehub-email actuator + 5-template audit + tenant init handoff runbook, GAP-527/543/531) · #1354 Bucket C Backend Close-out (auth rate limit + Retry-After UX + env config, GAP-508/514/515) · #1355 Bucket F Beta Business (feedback widget + email survey day-7/14 + footer support, GAP-542/540 — admin-merge w/ GAP-544 follow-up) · #1356 Bucket B UX Onboarding (checklist + sample data seed + beta disclaimer + /beta-status, GAP-538/539, V43 — admin-merge w/ GAP-544 follow-up). Plus hotfix #1350 (2FA TS strict-mode errors unblock all FE CI) + PR #1301 (Wave 72b Bucket A TOTP 2FA BE rebased 56 commits + merged, GAP-516 BE 80%).
+
+**Outcome (gap-status.csv canonical):**
+- 2 gaps DONE 100%: GAP-480 (beta invite runbook), GAP-515 (FE Retry-After UX + BE lockout total)
+- 12 gaps PARTIAL advanced: GAP-428→70 / GAP-508→75 / GAP-514→90 / GAP-518→90 / GAP-527→60 / GAP-531→50 / GAP-538→85 / GAP-539→90 / GAP-540→80 / GAP-541→60 / GAP-542→80 / GAP-543→40
+- 1 NEW gap: GAP-544 (kitehub-subscription integration tests Postgres :5433 testcontainers flakiness, P1, Wave 79)
+- Phase 1 BETA Plan 1 invite-ready: onboarding + trust + feedback + support discoverability foundation shipped
+
+**Infra changes:**
+- V43__create_onboarding_progress_table.sql + V44__create_feedback_submissions_table.sql (2 NEW migrations)
+- kitehub-gateway/application.yml: `/api/auth/password-reset-request` route + 7-route rate limit policy per `pre-launch-auth-hardening-checklist.md` §2.1
+- kitehub-email/application.yml: actuator endpoints expose (health, info, metrics, prometheus)
+- KiteHubAdminApplication: +2 entity packages + 2 repo packages (onboarding + feedback) per GAP-382 admin scan
+- Floating FeedbackWidget (5-star + comment + email) + Footer with support@/Help/beta-status links
+- BetaDisclaimerBanner (cookie-persistent dismiss) + /beta-status static MVP page
+- 12 business docs (3-layer × 4 NEW domains: onboarding/feedback/beta-status/support) + 4 MSW handlers
+- 580-line beta-invite-flow.md runbook + tenant-init-handoff runbook + 5 email-template audit notes
+- scripts/smoke-email-actuator.sh + AuthRouteRateLimitConfigTest (8 structural assertions)
+
+**Wave 78 closure protocol satisfied per `gap-done-discipline.md` + `post-merge-sync-completeness.md` §2:**
+- ✅ Wave plan frontmatter `status: complete` flipped
+- ✅ `wave-history.jsonl` appended (this PR — Rule 15)
+- ✅ ROADMAP §🚀 Next Action updated (this section)
+- ✅ Worktree prune ran (pre-closure)
+- ✅ AUDIT_OVERRIDE trailer cited on each bucket PR — closure-audit deferred to ≤3-day window per `post-wave-audit-mandate.md` §2.2 (Wave 78 multi-domain ineligible for §2.4 milestone deferral)
+
+**Post-wave audit suite due ≤3 ngày (per `post-wave-audit-mandate.md` §9 of Wave 78 plan):**
+- UI /128 across kitehub-frontend public + dashboard + auth (Buckets A/B/D/F)
+- API Contract /100 across 4 NEW endpoints + auth + onboarding + feedback controllers (Buckets B/C/F)
+- Business Logic /100 across 4 NEW rules.md + 5 email-template audit findings (Bucket E)
+- Security /100 (auth rate limit + lockout + Retry-After + admin role compat — Bucket C/D)
+- Quality /100 weekly refresh
 
 ### ✅ Wave 77 SHIPPED 2026-05-14 EOD — Beta Invite Launch Foundation SEND (4 buckets + 1 hotfix)
 
