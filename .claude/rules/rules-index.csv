@@ -10,7 +10,7 @@ admin-merge-discipline,CRITICAL,1.0.0,2026-05-07,2026-05-07,admin-merge-discipli
 agent-action-bias,MANDATORY,1.0.0,2026-05-07,2026-05-07,agent-action-bias.md,
 agent-aws-access,MANDATORY,1.0.1,2026-05-07,2026-05-08,agent-aws-access.md,
 agent-background-spawn-default,MANDATORY,1.0.0,2026-04-29,2026-04-29,agent-background-spawn-default.md,
-ai-branding-guidelines,MANDATORY,1.2.0,2026-04-14,2026-04-28,ai-branding-guidelines.md,kitehub-branding/**
+ai-branding-guidelines,MANDATORY,1.2.1,2026-04-14,2026-05-14,ai-branding-guidelines.md,kitehub/kitehub-branding/**
 audit-skill-rubric-api-contract-audit,MANDATORY,1.0.1,2026-05-14,2026-05-14,audit-skill-rubric-api-contract-audit.md,documents/04-quality/audits/api-contract/**
 audit-skill-rubric-business-logic-audit,MANDATORY,1.0.1,2026-05-14,2026-05-14,audit-skill-rubric-business-logic-audit.md,documents/04-quality/audits/business-logic/**
 audit-skill-rubric-ops-readiness-audit,MANDATORY,1.0.0,2026-05-14,2026-05-14,audit-skill-rubric-ops-readiness-audit.md,documents/04-quality/audits/ops-readiness/**
@@ -21,10 +21,10 @@ audit-to-gap-pipeline,MANDATORY,1.4.2,2026-04-16,2026-05-14,audit-to-gap-pipelin
 aws-observability-first,CRITICAL,1.0.0,2026-05-07,2026-05-07,aws-observability-first.md,
 aws-sg-description-ascii,MANDATORY,1.0.1,2026-05-07,2026-05-14,aws-sg-description-ascii.md,infrastructure/**/*.tf
 business-logic-review,CRITICAL,1.0.0,2026-04-29,2026-04-29,business-logic-review.md,documents/01-business/**/rules.md
-contract-first-for-cross-layer,MANDATORY,1.0.0,2026-05-07,2026-05-07,contract-first-for-cross-layer.md,documents/03-planning/waves/**
+contract-first-for-cross-layer,MANDATORY,1.0.1,2026-05-07,2026-05-14,contract-first-for-cross-layer.md,"documents/03-planning/waves/**,documents/01-business/**/api-contract.md"
 deployment-naming-convention,MANDATORY,1.0.1,2026-05-08,2026-05-08,deployment-naming-convention.md,"documents/05-guides/{deploy,operations,account-prep}/**,infrastructure/**"
-design-layer-coverage,CRITICAL,1.0.0,2026-04-30,2026-04-30,design-layer-coverage.md,
-design-patterns,MANDATORY,1.3.0,2026-04-14,2026-04-26,design-patterns.md,"**/*.java,**/*.tsx,**/*.ts"
+design-layer-coverage,CRITICAL,1.0.1,2026-04-30,2026-05-14,design-layer-coverage.md,"documents/02-architecture/design-system/**,documents/02-architecture/design-system/ui_kits/**"
+design-patterns,MANDATORY,1.3.1,2026-04-14,2026-05-14,design-patterns.md,"**/*.java,**/*.tsx,**/*.ts"
 dev-readable-doc-language,MANDATORY,1.0.0,2026-05-14,2026-05-14,dev-readable-doc-language.md,documents/**/*.md
 docs-folder-structure,MANDATORY,1.0.0,2026-04-18,2026-04-28,docs-folder-structure.md,documents/**/*.md
 docs-only-pr-auto-merge,MANDATORY,1.0.0,2026-05-11,2026-05-11,docs-only-pr-auto-merge.md,
@@ -38,8 +38,8 @@ meta-gap-priority,CRITICAL,1.0.0,2026-04-18,2026-04-28,meta-gap-priority.md,
 output-review-mandate,CRITICAL,1.6.0,2026-04-14,2026-05-14,output-review-mandate.md,
 outside-in-coverage-trigger,CRITICAL,1.0.0,2026-05-14,2026-05-14,outside-in-coverage-trigger.md,
 planning-docs-structure,MANDATORY,1.0.0,2026-04-18,2026-04-28,planning-docs-structure.md,documents/03-planning/**/*.md
-post-wave-audit-mandate,MANDATORY,1.1.0,2026-04-19,2026-05-06,post-wave-audit-mandate.md,"documents/03-planning/waves/**,documents/04-quality/audits/**"
-post-wave-cleanup,MANDATORY,1.0.0,2026-05-06,2026-05-06,post-wave-cleanup.md,documents/03-planning/waves/**
+post-wave-audit-mandate,MANDATORY,1.1.1,2026-04-19,2026-05-14,post-wave-audit-mandate.md,"documents/03-planning/waves/**,documents/04-quality/audits/**"
+post-wave-cleanup,MANDATORY,1.0.1,2026-05-06,2026-05-14,post-wave-cleanup.md,documents/03-planning/waves/**
 pre-mutation-state-check,CRITICAL,1.1.0,2026-05-12,2026-05-12,pre-mutation-state-check.md,
 readme-content-discipline,MANDATORY,1.0.0,2026-04-29,2026-04-29,readme-content-discipline.md,README.md
 release-deploy-standard,CRITICAL,1.1.0,2026-05-06,2026-05-11,release-deploy-standard.md,

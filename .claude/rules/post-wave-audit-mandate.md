@@ -1,10 +1,16 @@
+---
+paths:
+  - "documents/03-planning/waves/**"
+  - "documents/04-quality/audits/**"
+---
+
 # Post-Wave Audit Mandate
 
 **Priority:** 🔴 MANDATORY — governance for wave/feature delivery
-**Version:** 1.1.0
+**Version:** 1.1.1
 **Created:** 2026-04-19
-**Last-Reviewed:** 2026-05-06
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; v1.1.0 adds §2.4 Domain-Milestone Audit Cadence + §3 audit-gate detector for `AUDIT_DEFER_DOMAIN_MILESTONE` trailer paired same-PR per §6.5 Enforcement Parity Mandate; no constraint loosening — defers per-wave audit to milestone but enforces audit AT milestone, net stricter for solo-dev mode)
+**Last-Reviewed:** 2026-05-14
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.1 PATCH self-approve per `rule-change-process.md` §5; thêm `paths:` frontmatter cho path-scoped auto-load qua Wave 73 Bucket A5 — chuyển từ CRITICAL auto-load mọi session sang path-scoped vì rule chỉ apply khi Claude đọc wave plan hoặc audit report. Hook `audit-gate.py` vẫn enforce per-PR cadence; rule giờ load on-demand cho narrative review thay vì always-on. v1.1.0 (kept): MINOR self-approve per §5; adds §2.4 Domain-Milestone Audit Cadence + §3 audit-gate detector for `AUDIT_DEFER_DOMAIN_MILESTONE` trailer paired same-PR per §6.5 Enforcement Parity Mandate; no constraint loosening — defers per-wave audit to milestone but enforces audit AT milestone, net stricter for solo-dev mode)
 **Supersedes:** Strengthens `output-review-mandate.md` for waves specifically
 **Applies to:** Every wave merge + every feature cluster PR that closes ≥1 gap
 
@@ -223,6 +229,7 @@ Track per quarter:
 
 ## 10. Log
 
+- **2026-05-14** (v1.1.1): PATCH — thêm `paths: ["documents/03-planning/waves/**", "documents/04-quality/audits/**"]` frontmatter qua Wave 73 Bucket A5. Per Anthropic native `paths:` mechanism, rule giờ chỉ auto-load khi Claude đọc wave plan hoặc audit report. Hook `audit-gate.py` (per §3) vẫn enforce per-PR cadence độc lập với rule auto-load — rule body giờ chỉ cần load khi human review wave/audit narrative. Không thay đổi rule content/scope; reduces base context auto-load per Wave 73 Meta Context Optimization plan. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive frontmatter, no constraint change; deterministic enforcement via hook unchanged).
 - **2026-05-06** (v1.1.0): MINOR — added §2.4 Domain-Milestone Audit Cadence + §3 audit-gate trailer detector (`AUDIT_DEFER_DOMAIN_MILESTONE`, `DOMAIN_MILESTONE_AUDIT`). Triggered by user flagging "11 days no audit since 2026-04-25, 22 wave merged" — rule enforced per file-pattern matrix but solo-dev mode skipped per-wave audit gate informally. v1.1.0 codifies practical "audit at domain milestone" pattern WITH stricter milestone obligation (audit MUST run + reports + matrix + gaps at milestone). Net stricter for solo-dev mode (deferred ≠ skipped). Domain registry §2.4.1 covers Track 2 shared-ui + Phase 4 kit ports + Release deploy artifacts + Backend domain clusters + Meta-governance. Paired same-PR with `audit-gate.py` AUDIT_RULES update + memory `feedback_domain_milestone_audit.md` + self-test on Wave 27/28 retrospectively per `rule-change-process.md` §6.5 Enforcement Parity Mandate. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — no constraint loosening; transfers obligation from per-wave to per-cluster with stricter milestone enforcement).
 - **2026-04-28** (v1.0.0 backfill): Frontmatter backfill per GAP-249 — added Version + Last-Reviewed + Reviewer-Approver fields. No content change. Solo-dev PATCH self-approve per `rule-change-process.md` §5.
 - **2026-04-19 (later same day):** Part A catch-up 5/5 COMPLETE — business-logic 65/100 (PR #366), ops-readiness 49/100 first-ever (PR #365), performance 58/100 first-ever (PR #364), ui-review KC 81 / KH 59 out of 128 (PR #368), quality-audit refresh 77/100 C+ (PR #369, honest baseline vs 95 self-audit). 39 new gaps GAP-104 → GAP-142. §5 baselines for ops + performance now captured — hook enforcement fully active for future PRs touching those patterns.

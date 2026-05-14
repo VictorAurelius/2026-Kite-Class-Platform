@@ -1,10 +1,15 @@
+---
+paths:
+  - "documents/03-planning/waves/**"
+---
+
 # Post-Wave Cleanup — prune worktree husks + merged branches in closure
 
 **Priority:** 🟠 MANDATORY — closure protocol governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-06
-**Last-Reviewed:** 2026-05-06
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — new rule with built-in enforcement per `rule-change-process.md` §6.5; paired same-PR with `scripts/prune-merged-worktrees.sh` + `_TEMPLATE.md` §7 update + `start-session/scripts/collect-state.sh` hint + memory `feedback_post_merge_doc_sync.md` cleanup row + self-test on 18 husks + 12 branches)
+**Last-Reviewed:** 2026-05-14
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; thêm `paths:` frontmatter cho path-scoped auto-load qua Wave 73 Bucket A5 — không thay đổi scope rule, chỉ defer-load khi không đọc wave plan trong context. v1.0.0 (kept): new rule with built-in enforcement per `rule-change-process.md` §6.5; paired same-PR with `scripts/prune-merged-worktrees.sh` + `_TEMPLATE.md` §7 update + `start-session/scripts/collect-state.sh` hint + memory `feedback_post_merge_doc_sync.md` cleanup row + self-test on 18 husks + 12 branches)
 **Applies to:** Every wave closure PR — coordinator must run cleanup as part of closure protocol
 
 ---
@@ -130,4 +135,5 @@ Verdict: 19 → 1 worktree, 28 → ~10 branches in 3 idempotent runs. Rule fires
 
 ## 7. Log
 
+- **2026-05-14** (v1.0.1): PATCH — thêm `paths: ["documents/03-planning/waves/**"]` frontmatter qua Wave 73 Bucket A5. Per Anthropic native `paths:` mechanism, rule giờ chỉ auto-load khi Claude đọc wave plan. Không thay đổi rule content/scope; reduces base context auto-load per Wave 73 Meta Context Optimization plan. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive frontmatter, no constraint change).
 - **2026-05-06 (v1.0.0):** Rule created in response to user-flagged miss "tại sao vẫn miss clean up? cập nhật workflow?" after Wave 26 closure. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged 17 stale branches + 6 worktree husks accumulated over Wave 22-26), Classify ✓ (no rule covers; closure protocol implicit not explicit), Rule+Enforce ✓ (this file + `scripts/prune-merged-worktrees.sh` + `_TEMPLATE.md` §7 update + `collect-state.sh` hint + memory update — all paired same-PR per `rule-change-process.md` §6.5), Self-Test ✓ (§4 worked example: 19→1 worktree, 28→~10 branches), Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new rule with built-in enforcement, no constraint loosening for prior work; existing accumulated husks fixed by self-test).
