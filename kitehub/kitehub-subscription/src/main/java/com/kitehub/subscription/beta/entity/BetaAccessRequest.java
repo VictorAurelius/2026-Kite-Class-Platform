@@ -128,6 +128,21 @@ public class BetaAccessRequest {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    /**
+     * GAP-534 Wave 77 — invite-token consumption timestamp (single-use enforcement).
+     * NULL = unused. Set atomically via {@code InviteTokenService.validateAndConsume}.
+     */
+    @Column(name = "used_at")
+    private OffsetDateTime usedAt;
+
+    /** GAP-534 Wave 77 — IP that consumed the token (forensic audit on reuse-attempt). */
+    @Column(name = "consumed_ip", length = 45)
+    private String consumedIp;
+
+    /** GAP-534 Wave 77 — UA string at consume time (forensic audit on reuse-attempt). */
+    @Column(name = "consumed_user_agent", length = 512)
+    private String consumedUserAgent;
+
     @PrePersist
     void onCreate() {
         OffsetDateTime now = OffsetDateTime.now();
