@@ -20,7 +20,7 @@ id,filename,title_short,status,priority,domain,phase,completion_pct,found_date,l
 GAP-001,GAP-001-kiteclass-gateway-decision.md,Quyết định giữ/xóa kiteclass-gateway service,OPEN,P2,Backend,n/a,0,2026-04-14,2026-05-11,
 GAP-003,GAP-003-ai-multi-tier-image-generation.md,Multi-tier image generation strategy,OPEN,P2,Backend,phase-2,0,2026-04-14,2026-05-11,
 GAP-004,GAP-004-template-based-image-composition.md,Template-based image composition (Canva-like),OPEN,P2,Frontend,phase-2,0,2026-04-14,2026-05-11,
-GAP-005,GAP-005-ai-queue-fair-scheduling.md,AI queue fair scheduling + horizontal scaling,IN_PROGRESS,P0,AI,phase-1-beta,40,2026-04-14,2026-05-11,Phase 1 MVP done Wave 3; Phase 2 production scale open
+GAP-005,GAP-005-ai-queue-fair-scheduling.md,AI queue fair scheduling + horizontal scaling,IN_PROGRESS,P1,AI,phase-1-beta,40,2026-04-14,2026-05-11,Phase 1 MVP done Wave 3; Phase 2 production scale open
 GAP-006,GAP-006-upgrade-to-gemma-4.md,Upgrade AI models to Gemma 4,OPEN,P1,AI,phase-2,0,2026-04-14,2026-05-11,DEFERRED until local Ollama + full Docker stack ready (WSL2 CPU too slow)
 GAP-011,GAP-011-template-library-curation-plan.md,Template Library Curation Plan + Review Standards,PLANNED,P0,Mixed,n/a,10,2026-04-14,2026-05-11,
 GAP-017,GAP-017-ai-usage-billing-integration.md,AI Usage → Billing Integration,OPEN,P1,Mixed,phase-2,0,2026-04-14,2026-05-11,
@@ -276,7 +276,7 @@ GAP-402,GAP-402-sbom-image-signing-cosign.md,SBOM + Image Signing (Cosign Supply
 GAP-405,GAP-405-visual-regression-baseline-playwright.md,Visual Regression Baseline (Playwright Screenshot Diff),PARTIAL,P2,Backend,n/a,50,2026-05-07,2026-05-11,
 GAP-406,GAP-406-pen-test-light-owasp-top-10.md,Pen-test Light (OWASP Top 10 + Security Headers + CSRF),DONE,P0,Compliance,phase-1-beta,100,2026-05-07,2026-05-11,Wave 60 Bucket A — full OWASP self-audit 76/100 C+; 3 follow-up gaps GAP-470/471/472
 GAP-408,GAP-408-jvm-heap-cap-dev-profile.md,JVM Heap Cap trong Dev Profile,PARTIAL,P2,Mixed,n/a,50,2026-05-07,2026-05-11,
-GAP-412,GAP-412-aws-activate-founders-pack-application.md,AWS Activate Founders Pack Application ($1k credit),PARTIAL,P0,Mixed,phase-1-beta,50,2026-05-07,2026-05-11,
+GAP-412,GAP-412-aws-activate-founders-pack-application.md,AWS Activate Founders Pack Application ($1k credit),PARTIAL,P1,Mixed,phase-1-beta,50,2026-05-07,2026-05-11,
 GAP-413,GAP-413-aws-budgets-cost-monitoring.md,AWS Budgets Cost Monitoring + Alerting,PARTIAL,P1,Mixed,n/a,50,2026-05-07,2026-05-11,
 GAP-414,GAP-414-ec2-right-sizing-monthly-review.md,EC2 Right-Sizing Monthly Review,PARTIAL,P2,Mixed,phase-1-beta,50,2026-05-07,2026-05-11,
 GAP-415,GAP-415-phase-2-eks-migration-plan.md,Phase 2 EKS Migration Plan,PARTIAL,P2,DevOps,phase-1.5-paid,50,2026-05-07,2026-05-11,
@@ -299,7 +299,7 @@ GAP-441,GAP-441-per-service-pom-override-hygiene.md,Per-service pom.xml dep over
 GAP-442,GAP-442-alpine-base-bump-3-24.md,Alpine 3.23 → 3.24+ base image bump (10 Dockerfiles),PARTIAL,P1,DevOps,n/a,50,2026-05-08,2026-05-11,
 GAP-444,GAP-444-phase-4-staging-defer-to-phase-7-prod-deploy.md,Phase 4 staging deploy artifacts — defer to Phase 7 production prep,PARTIAL,P1,DevOps,phase-1-beta,50,2026-05-08,2026-05-11,
 GAP-445,GAP-445-kc-backend-deploy-deferred-phase-7.md,KC backend deploy deferred to Phase 7 (3-fix pivot per release-fix-retry-budget),OPEN,P1,DevOps,phase-1-beta,0,2026-05-08,2026-05-11,
-GAP-447,GAP-447-right-size-ec2-post-vercel-pivot.md,Right-size EC2 m7i-flex.large → t3.medium (post-Vercel pivot),PARTIAL,P0,Mixed,phase-1-beta,75,2026-05-08,2026-05-12,Wave 66 Bucket Z: kh_backend DONE (in-place modify $60/mo); kc_app GAP-450 drift; CWAgent install user-action SSM (Tier 3 ban per agent-aws-access.md)
+GAP-447,GAP-447-right-size-ec2-post-vercel-pivot.md,Right-size EC2 m7i-flex.large → t3.medium (post-Vercel pivot),PARTIAL,P1,Mixed,phase-1-beta,75,2026-05-08,2026-05-12,Wave 66 Bucket Z: kh_backend DONE (in-place modify $60/mo); kc_app GAP-450 drift; CWAgent install user-action SSM (Tier 3 ban per agent-aws-access.md)
 GAP-449,GAP-449-terraform-apply-workflow-dispatch-rule-revise.md,Terraform-apply workflow_dispatch + revise §9 distinguish 3 cases,PARTIAL,P0,Mixed,n/a,30,2026-05-08,2026-05-11,Wave 61 Bucket A confirms Path Y workflow_dispatch eligibility for Tier 3 cutover; pending GAP-446/447 verify artifacts
 GAP-451,GAP-451-spring-boot-3-5-x-no-newer-patch-await-upstream.md,Spring Boot 3.5.x — no newer patch available; await upstream,OPEN,P1,Mixed,n/a,0,2026-05-08,2026-05-11,
 GAP-460,GAP-460-brand-pivot-kiteclass-me-customer-facing.md,Brand pivot — KiteClass.me as customer-facing brand (KiteHub stays internal),PLANNED,P2,Mixed,phase-1-beta,10,2026-05-10,2026-05-11,
@@ -367,3 +367,6 @@ GAP-526,GAP-526-admin-ui-subpages-verify.md,Verify all admin UI subpages reach c
 GAP-527,GAP-527-kitehub-email-actuator-health-verify.md,kitehub-email actuator health + email send end-to-end smoke,OPEN,P1,DevOps,phase-1-beta,0,2026-05-13,2026-05-13,Plan 1 Bước 5 gate; cosmetic mail-health disabled Wave 71 but real email send not E2E
 GAP-528,GAP-528-wave-73-bucket-b-hooks-deterministic-enforcement.md,Wave 73 Bucket B: 8 deterministic enforcement hooks (META),DONE,P1,Meta,phase-1-beta,100,2026-05-14,2026-05-14,Bucket B2 same-session re-impl; 3 hooks (pre/post/stop-tool-guard) + 30/30 tests
 GAP-529,GAP-529-hook-trailer-scope-bug.md,Hook _has_trailer() reads HEAD allowing trailer leak across PRs,DONE,P1,Meta,phase-1-beta,100,2026-05-14,2026-05-14,Wave 75 Bucket A — pre-tool-guard migrated to per-PR scoping via gh pr view; audit-gate verified already per-PR scoped; 5 new regression tests
+GAP-530,GAP-530-email-flow-end-to-end-verify.md,Email-driven flow end-to-end live verify per §2.3,OPEN,P0,Mixed,phase-1-beta,0,2026-05-14,2026-05-14,Wave 76 Phase 1 BETA persona audit NEW-001; blocks Plan 1 invite
+GAP-531,GAP-531-tenant-init-handoff-end-to-end.md,Tenant init handoff post admin-approve walked end-to-end,OPEN,P1,Mixed,phase-1-beta,0,2026-05-14,2026-05-14,Wave 76 Phase 1 BETA persona audit NEW-002
+GAP-532,GAP-532-multi-tenant-tenant-switch-flow.md,Multi-tenant tenant-switch flow §2.7 coverage gap,OPEN,P1,Mixed,phase-1-beta,0,2026-05-14,2026-05-14,Wave 76 Phase 1 BETA persona audit NEW-003 P3 Manager

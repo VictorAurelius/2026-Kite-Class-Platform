@@ -1,10 +1,10 @@
 ---
 title: Wave 76 — Meta Governance Hygiene Finish (steady-state preparation)
-status: in_progress
+status: complete
 created: 2026-05-14
 updated: 2026-05-14
 waves: [76]
-gaps: []
+gaps: [GAP-530, GAP-531, GAP-532]
 ---
 
 <!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
@@ -256,4 +256,5 @@ Per existing rules (`gap-done-discipline.md`, `feedback_post_merge_doc_sync.md`,
 
 ## 9. Log
 
+- **2026-05-14** (complete): Wave 76 SHIPPED. 7 PRs: #1332 plan, #1333 A audits-index, #1334 D rule-staleness, #1335 C wave-plan-CI, #1336 E rule-streamline, #1337 B script-tests, #TBD F closure. Wave 75 outside-in benchmark 5 patterns absorbed (NEW-1 deprecation lifecycle / NEW-2 split criterion / NEW-3 count ceiling / SHARPEN-3 atomic-unique / ARCH-2 CSV-canonical ADR-030). Phase 1 BETA persona audit fold-in: 3 NEW gaps filed (GAP-530 P0 email e2e / GAP-531 P1 tenant init handoff / GAP-532 P1 multi-tenant switch) + 3 P0→P1 downgrades (GAP-412/447/005) + Plan 1 invite scope tightened to 2-3 trusted users. **Meta steady-state declared** — Wave 77+ moves to quarterly retro cadence; product debt (audit-gate.py coverage + GAP-530 + GAP-518 verify) separate scope. rule-change-process.md 3 PATCH bumps (1.1.0 → 1.1.1 → 1.1.2 → 1.1.3) chained across parallel buckets — coordination cost noted. 5 rules streamlined -172 lines total. 7 script-tests + new CI jobs `audits-index-csv`, `script-tests`, `rule-staleness`, `rule-count-ceiling`, `wave-plan-completeness`. 35-35-35 (35 test cases, 35 audit categories indexed, 35 wave-plans audited).
 - **2026-05-14** (draft): Plan created in response to user direction "làm luôn wave 76 trước và task này [Phase 1 BETA blockers re-audit] trong session này". Scope dẫn xuất TRỰC TIẾP từ Wave 75 meta-system outside-in benchmark artifact (5 HIGH-confidence patterns) + Wave 75 closure artifact §"Wave 76 plan stub". Per `outside-in-coverage-trigger.md` §4 — outside-in skipped (Wave 75 benchmark same domain ~30 min ago). Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (Wave 75 closure catalogued residual scope) → Classify ✓ (5 hygiene gaps) → Rule+Enforce ✓ (this wave delivers) → Self-Test (Bucket F audit artifact) → Retro Log (Bucket F + wave-history). Solo-dev MINOR per `rule-change-process.md` §5 — closes governance hygiene gap class, no constraint loosening. **Stopping criterion declared:** after Wave 76 ships, meta moves to quarterly retro cadence; Wave 77+ for product debt (audit-gate.py coverage) + external triggers only.
