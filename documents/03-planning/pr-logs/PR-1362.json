@@ -1,0 +1,37 @@
+{
+  "pr": 1362,
+  "title": "fix(GAP-495): disable Vercel preview builds for non-main branches",
+  "branch": "fix/GAP-495-vercel-disable-non-main",
+  "created_at": null,
+  "merged_at": "2026-05-14T17:52:03Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "ui-review"
+    ],
+    "audits_run": [
+      "ui-review"
+    ],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-14T17:52:09.540851",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 4,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "1/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-4495"
+  }
+}
