@@ -1,10 +1,17 @@
+---
+paths:
+  - "**/*Controller.java"
+  - "application*.yml"
+  - "**/security/**"
+---
+
 # Pre-Launch OWASP REST Hardening Checklist — security-audit Cat 3 per-check rubric (A01-A06/A08-A10)
 
 **Priority:** 🟠 MANDATORY — pre-launch security gate (Cat 3 force-multiplier)
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-14
 **Last-Reviewed:** 2026-05-14
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (9-item per-check rubric per OWASP Top 10 (2021) item ex-A07 + extends security-audit skill Category 3 + worked self-test catches OWASP gaps on current main) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-vague Cat 3 per-OWASP-item enforcement closing GAP-522)
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; adds `paths:` frontmatter per Wave 73 Bucket A4 path-scope batch — no constraint change, rule still applies same scope, just deferred-load when no Controller.java / application yml / security file in context. v1.0.0 (kept): MINOR self-approve per §5; new rule with built-in enforcement (9-item per-check rubric per OWASP Top 10 (2021) item ex-A07 + extends security-audit skill Category 3 + worked self-test catches OWASP gaps on current main) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-vague Cat 3 per-OWASP-item enforcement closing GAP-522)
 **Applies to:** Any release tag `v0.9.0-beta-staging.*` → first `v1.0.0-rc.*` transition; every PR touching `Controller.java`, `application*.yml` security config, exception handlers, SQL/JPQL query builders, public-facing endpoints
 
 ---
@@ -213,4 +220,5 @@ Future: `scripts/check-owasp-rest-hardening.sh` greps per-OWASP-item patterns. D
 
 ## 7. Log
 
+- **2026-05-14 (v1.0.1):** PATCH — adds `paths:` frontmatter (`**/*Controller.java`, `application*.yml`, `**/security/**`) per Wave 73 Bucket A4 path-scope batch (5 pre-launch security rules consolidated). Mục đích: giảm session token cost — rule chỉ auto-load khi diff/context chạm controller code / application yml / security package; ngoài scope đó context bộ nhớ được giải phóng. Không thay đổi constraint, không grandfather work cũ; rule vẫn fire ở mọi pre-launch tag promotion (`v0.9.0-beta-staging.*` → `v1.0.0-rc.*`) per §1. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — frontmatter additive, no constraint loosening). Cited Bucket 0 worked example: `.claude/rules/aws-sg-description-ascii.md` v1.0.1 (paired-PR pilot).
 - **2026-05-14 (v1.0.0):** Rule created closing Cat 3 slice of GAP-522. Triggered by user-flagged miss "skill audit phải là lớp phòng vệ tin tưởng" + Wave 71c PR #1278 already fixed Cat 4; extending same fix to Cat 3 with one check per OWASP item. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (GAP-522 filed 2026-05-13) → Classify ✓ (Cat 3 rubric was vague "XSS/SQLi/CSRF/SSRF guards per Wave 4" bundling 9 OWASP items in single bucket; allowed averaging that hid per-item gaps) → Rule+Enforce ✓ (this file + security-audit/SKILL.md Cat 3 row update + worked §4 self-test + paired with 3 sister rules per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§4 worked example on current main — 3 FAIL + 3 PARTIAL surface, validating rubric is concrete) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds per-OWASP-item Cat 3 coverage to previously-vague rubric; no constraint loosening; existing tags grandfathered; rule applies prospectively to `v1.0.0-rc` promotion).

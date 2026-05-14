@@ -1,10 +1,17 @@
+---
+paths:
+  - "kitehub/**/auth/**"
+  - "kitehub/**/security/**"
+  - ".github/workflows/release*.yml"
+---
+
 # Pre-Launch Auth Hardening Checklist — OWASP A07 mandatory gate
 
 **Priority:** 🟠 MANDATORY — pre-launch security gate
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-13
-**Last-Reviewed:** 2026-05-13
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (8-item checklist + extends security-audit skill rubric + worked self-test catches Wave 71b auth surface gaps) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-uncovered OWASP A07 enforcement)
+**Last-Reviewed:** 2026-05-14
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; adds `paths:` frontmatter per Wave 73 Bucket A4 path-scope batch — no constraint change, rule still applies same scope, just deferred-load when no auth/security/release-workflow file in context. v1.0.0 (kept): MINOR self-approve per §5; new rule with built-in enforcement (8-item checklist + extends security-audit skill rubric + worked self-test catches Wave 71b auth surface gaps) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-uncovered OWASP A07 enforcement)
 **Applies to:** Any release tag `v0.9.0-beta-staging.*` → first `v1.0.0-rc.*` transition; every public auth surface (login, register, refresh, verify-email, resend-verification, password-reset)
 
 ---
@@ -173,4 +180,5 @@ Future: `scripts/check-auth-hardening.sh` parses gateway YAML + greps service co
 
 ## 7. Log
 
+- **2026-05-14 (v1.0.1):** PATCH — adds `paths:` frontmatter (`kitehub/**/auth/**`, `kitehub/**/security/**`, `.github/workflows/release*.yml`) per Wave 73 Bucket A4 path-scope batch (5 pre-launch security rules consolidated). Mục đích: giảm session token cost — rule chỉ auto-load khi diff/context chạm code auth/security hoặc release workflow; ngoài scope đó context bộ nhớ được giải phóng. Không thay đổi constraint, không grandfather lại work cũ; rule vẫn fire ở mọi pre-launch tag promotion (`v0.9.0-beta-staging.*` → `v1.0.0-rc.*`) per §1. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — frontmatter additive, no constraint loosening). Cited Bucket 0 worked example: `.claude/rules/aws-sg-description-ascii.md` v1.0.1 (paired-PR pilot).
 - **2026-05-13 (v1.0.0):** Rule created in response to user-flagged miss — security-audit skill scored 87/100 at Wave 40 milestone but missed 5 confirmed + 3 likely OWASP A07 gaps. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user "audit không review ra các gaps đơn giản này") → Classify ✓ (security-audit Category 4 rubric was vague — "JWT validation, role checks, rate limiting" with no per-endpoint enforcement check; rubric allowed averaging that hid auth gaps) → Rule+Enforce ✓ (this file + security-audit/SKILL.md rubric extension + 8 gap files + worked §4 self-test + paired with `pre-handoff-self-test-completeness.md` per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§4 worked example on current main — 5 confirmed FAIL surfaced, file GAP-514..521) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds per-endpoint OWASP A07 coverage to previously-vague rubric; no constraint loosening for prior tags; existing v0.9.0-beta-staging.* tags grandfathered; rule applies prospectively to v1.0.0-rc promotion).

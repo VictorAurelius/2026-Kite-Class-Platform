@@ -1,10 +1,18 @@
+---
+paths:
+  - "application*.yml"
+  - "docker-compose*.yml"
+  - "infrastructure/**"
+  - "scripts/fetch-secrets.sh"
+---
+
 # Pre-Launch Secrets Hardening Checklist — security-audit Cat 2 per-check rubric
 
 **Priority:** 🟠 MANDATORY — pre-launch security gate (Cat 2 force-multiplier)
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-14
 **Last-Reviewed:** 2026-05-14
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (8-item per-check rubric + extends security-audit skill Category 2 + worked self-test catches secret-store drift on current main) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-vague Cat 2 per-check enforcement closing GAP-522)
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; adds `paths:` frontmatter per Wave 73 Bucket A4 path-scope batch — no constraint change, rule still applies same scope, just deferred-load when no application yml / compose / infrastructure / fetch-secrets file in context. v1.0.0 (kept): MINOR self-approve per §5; new rule with built-in enforcement (8-item per-check rubric + extends security-audit skill Category 2 + worked self-test catches secret-store drift on current main) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-vague Cat 2 per-check enforcement closing GAP-522)
 **Applies to:** Any release tag `v0.9.0-beta-staging.*` → first `v1.0.0-rc.*` transition; every PR touching `application*.yml`, `docker-compose*.yml`, `.env*`, `scripts/fetch-secrets.sh`, AWS Secrets Manager terraform, IAM secret-access policies
 
 ---
@@ -212,4 +220,5 @@ Future: `scripts/check-secrets-hardening.sh` runs gitleaks + `grep` patterns + `
 
 ## 7. Log
 
+- **2026-05-14 (v1.0.1):** PATCH — adds `paths:` frontmatter (`application*.yml`, `docker-compose*.yml`, `infrastructure/**`, `scripts/fetch-secrets.sh`) per Wave 73 Bucket A4 path-scope batch (5 pre-launch security rules consolidated). Mục đích: giảm session token cost — rule chỉ auto-load khi diff/context chạm config secrets / compose / infra / fetch-secrets script; ngoài scope đó context bộ nhớ được giải phóng. Không thay đổi constraint, không grandfather work cũ; rule vẫn fire ở mọi pre-launch tag promotion (`v0.9.0-beta-staging.*` → `v1.0.0-rc.*`) per §1. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — frontmatter additive, no constraint loosening). Cited Bucket 0 worked example: `.claude/rules/aws-sg-description-ascii.md` v1.0.1 (paired-PR pilot).
 - **2026-05-14 (v1.0.0):** Rule created closing Cat 2 slice of GAP-522. Triggered by user-flagged miss "skill audit phải là lớp phòng vệ tin tưởng" + Wave 71c PR #1278 already fixed Cat 4; extending same fix to Cat 2. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (GAP-522 filed 2026-05-13) → Classify ✓ (Cat 2 rubric was "no hardcoded secrets, .env gitignored, rotation policy" with no per-mechanism check; rubric allowed averaging that hid rotation/KMS/history/isolation classes; `production-env-config-registry.md` covers env-var coverage but not full secret lifecycle) → Rule+Enforce ✓ (this file + security-audit/SKILL.md Cat 2 row update + worked §4 self-test + paired with 3 sister rules per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§4 worked example on current main — likely 3-4 P1/P2 follow-ups surface for KMS CMK, gitleaks baseline, automated rotation, credential isolation) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds per-mechanism Cat 2 coverage to previously-vague rubric; no constraint loosening; existing tags grandfathered; rule applies prospectively to `v1.0.0-rc` promotion).
