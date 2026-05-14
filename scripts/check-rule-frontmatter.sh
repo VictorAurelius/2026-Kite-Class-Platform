@@ -213,6 +213,10 @@ else
     exit 2
   fi
   while IFS= read -r -d '' f; do
+    # Skip README.md — folder index, not a rule (per rule-change-process.md §3)
+    if [[ "$(basename "$f")" == "README.md" ]]; then
+      continue
+    fi
     files+=("$f")
   done < <(find "$RULES_DIR" -maxdepth 1 -name '*.md' -type f -print0 | sort -z)
 fi
