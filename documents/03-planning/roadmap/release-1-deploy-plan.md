@@ -181,7 +181,13 @@ sudo -u kite docker exec kiteclass-core java -jar app.jar --command=seed-product
 gh workflow run e2e-pre-release.yml
 gh workflow run zap-baseline.yml
 
-# 12. Send invite emails to 10-20 trusted beta tenants
+# 12. Send invite emails — TIGHTLY-CONTROLLED HANDFUL ONLY (Wave 76 audit-tightened)
+# Initial wave: 2-3 trusted users ONLY, expand to 10-20 ONLY after 4 must-close blockers verified live
+# Must-close pre-broader-invite (per Phase 1 BETA persona audit 2026-05-14):
+#   - GAP-530 P0: Email-driven flow end-to-end live verify §2.3
+#   - GAP-518: Admin role mismatch (AC 1-2 live verify)
+#   - GAP-502: kh_backend stability ≥80% acceptable for handful, ≥95% for broader
+#   - GAP-372: Beta invite mechanism live walkthrough
 # Via admin endpoint /admin/beta-requests (Wave 33 Bucket C BetaAccessRequest flow)
 ```
 
@@ -459,7 +465,7 @@ Tag conventions:
 - [ ] Decide DNS registrar + hosting (Vercel? Cloudflare? Direct domain?) — per GAP-369
 - [ ] Decide payment processor primary (VNPay vs MoMo first) — per GAP-NEW-payment-processor-init
 - [ ] Counsel engagement timeline confirmation
-- [ ] Beta tenant invite list curation (10-20 trusted contacts)
+- [ ] Beta tenant invite list — **TIGHTENED Wave 76 (2026-05-14)**: 2-3 trusted contacts ONLY for initial wave; expand to 10-20 ONLY after 4 must-close blockers verified (GAP-530 email e2e + GAP-518 admin role + GAP-502 stability + GAP-372 invite walkthrough). Per Phase 1 BETA persona audit verdict "tightly-controlled handful".
 - [ ] Marketing content for v1.0.0 launch announcement
 - [ ] Onboarding tour script (per GAP-288)
 
