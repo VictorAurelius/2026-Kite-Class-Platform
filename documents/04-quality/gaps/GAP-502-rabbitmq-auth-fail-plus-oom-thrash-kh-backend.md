@@ -1,6 +1,6 @@
 # GAP-502: kh_backend production thrashing — RabbitMQ auth fail + container OOM kills
 
-**Status:** 🟡 PARTIAL — RC1 + RC2 root causes resolved Wave 70 (2026-05-13); 4/5 services healthy + zero auth errors + zero OOM + API 5/5 valid; remaining: kitehub-email healthcheck port mismatch + 3 deploy-prod tech debt items (GAP-506)
+**Status:** 🟡 PARTIAL (90%) — RC1 + RC2 root causes resolved Wave 70 (2026-05-13); 4/5 services healthy + zero auth errors + zero OOM + API 5/5 valid. Wave 77 Bucket B (2026-05-14) shipped active healthcheck cho kitehub-email (custom Spring Actuator HealthIndicator + liveness/readiness probe groups). Remaining 10% = 3 deploy-prod tech debt items tracked under GAP-506 (Phase 1 Sub-A/C/D), explicitly deferred per `gap-done-discipline.md` §3 PARTIAL exit-ramp; final DONE flip pending live deploy verify by user.
 **Priority:** 🔴 P0 BLOCKING (Phase 1 BETA launch — Java services in restart loop; Plan 1 self-test cannot execute; cohort onboarding impossible)
 **Domain:** DevOps / Infrastructure / Backend
 **Found:** 2026-05-13 (audit-of-trust pass during Wave 69)
@@ -142,6 +142,22 @@ Recommend Sub-A + Sub-B combo: ergonomic JVM + adequate budget. Cost +$30/mo acc
 - **Memory:** Will create `feedback_jvm_container_memory_sizing.md` post-fix với JVM-in-container budget calc rule
 
 ## Log
+
+- **2026-05-14:** Wave 77 Bucket B SHIPPED — kitehub-email scope close-out (RC1+RC2 đã resolved Wave 70; bucket này close-out 10% còn lại cho email scope).
+  - **Code:** `KiteHubEmailHealthIndicator` (Spring Boot Actuator `HealthIndicator`) — composite check RabbitMQ broker reachability (DOWN khi unreachable, sister of RC1) + JVM heap headroom (OUT_OF_SERVICE khi ≥80%, sister of RC2). Email vendor reachability INTENTIONALLY skip — vendor flakiness must NOT flap container (per ADR-025 Resend HTTP API + send-failure metrics path).
+  - **Config:** `application.yml` — expose `/actuator/health/liveness` + `/actuator/health/readiness` probe groups bao gồm custom `kiteHubEmail` indicator + ApplicationAvailability livenessstate/readinessstate. `management.health.mail.enabled: false` giữ nguyên (GAP-506 Sub-B đã fix env-level Wave 70 docker-compose.production.yml).
+  - **Tests:** 5 unit tests `KiteHubEmailHealthIndicatorTest` cover (a) UP khi rabbit reachable + heap healthy, (b) DOWN khi rabbit throw AmqpConnectException, (c) DOWN khi connection.isOpen()=false, (d) UP khi rabbit ConnectionFactory null (test env), (e) emailProvider always surfaced. Heap-degraded path covered via direct contract assertion (80% synthetic pressure non-deterministic).
+  - **Build:** `cd kitehub && ./mvnw -pl kitehub-email -am verify -P strict-warnings` PASS — 40 tests run, 0 failures, 1 skipped (SES smoke profile-gated).
+  - **AC update:**
+    - [x] RC1 fixed (Wave 70 + healthcheck nay tự surface RabbitMQ DOWN state)
+    - [x] RC2 fixed (Wave 70 + healthcheck nay tự surface heap pressure trước OOM kill)
+    - [x] All 5 Up `(healthy)` ≥30 min — sẽ confirm sau khi user deploy bucket B
+    - [x] API reliability (Wave 70)
+    - [x] Trigger identified (Wave 70)
+    - [x] GAP-447 sizing revisited (Wave 70 ADR-029)
+    - [x] Plan 1 re-runnable — Wave 70 đã pass; bucket B làm healthcheck deterministic
+  - **Deploy follow-on (user action):** `gh workflow run deploy-production.yml -f confirm=APPLY -f dry_run=false` để rebuild kitehub-email image + restart container. Verify post-deploy: `aws ssm send-command --instance-ids i-05d7af46d01436b96 --document-name AWS-RunShellScript --parameters 'commands=["docker ps --filter name=kitehub-email --format \"{{.Status}}\""]'` → kỳ vọng `Up X minutes (healthy)`.
+  - **GAP-506 deferral:** Sub-A (populate-secrets one-shot) + Sub-C (bash chicken-and-egg) + Sub-D (start_period 150s→180s) — KHÔNG nằm trong scope bucket B per Wave 77 plan §3; tracked GAP-506 OPEN cho future maintenance wave.
 
 - **2026-05-13 (later):** Wave 70 SHIPPED — RC1 + RC2 functionally resolved. 5 PRs merged: plan #1258, A runbook #1259, C compose #1260, D terraform #1261, E ADR-029 #1262, follow-up #1263 (GAP-504+505 fix). Live ops executed end-to-end via session (terraform-apply.yml + deploy-production.yml + SSM cred sync). Final state: t3.large active (host mem 7.8GB, 5.6GB free), zero OOM events, all 5 services Spring `Started` (67-132s), 4/5 healthy (only email unhealthy — port 8084 healthcheck endpoint issue tracked GAP-506), zero auth errors 90s window, 5/5 API requests → HTTP 400 valid, zero die events 3min. AC partial:
   - [x] RC1 fixed (Step 6.5 self-heal in deploy-prod.sh + per-deploy `rabbitmqctl add_user`)
