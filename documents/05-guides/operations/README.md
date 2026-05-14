@@ -13,6 +13,7 @@ SRE/on-call procedures: disaster recovery, incident triage, per-alert runbooks. 
 | `disaster-recovery-plan.md` | DR strategy + recovery scenarios (xem cũng `dr-rto-rpo-matrix.md`) |
 | `dr-rto-rpo-matrix.md` | RTO/RPO targets per service tier |
 | `incident-response-runbook.md` | SEV1-SEV3 triage procedure (GAP-086) |
+| `beta-invite-flow.md` | End-to-end Beta invite luồng 5 bước: request → admin review → email → signup → first login (GAP-480) |
 | `runbooks/` | 23 per-alert runbooks (mỗi alert trong Prometheus có 1 runbook) |
 
 ---

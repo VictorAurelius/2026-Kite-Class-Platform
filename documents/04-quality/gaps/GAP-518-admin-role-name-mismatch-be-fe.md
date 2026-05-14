@@ -31,10 +31,11 @@ Choose ONE option per Wave 71c plan (likely Option B for least churn):
 
 ## Acceptance Criteria
 
-- [ ] Login admin@kitehub.me → redirects to `/admin` (live verify pending — code shipped)
-- [ ] `/admin/beta-requests` renders without 403/redirect (live verify pending — code shipped)
+- [ ] Login admin@kitehub.me → redirects to `/admin` (live verify pending — code shipped + runbook §4 documents flow)
+- [ ] `/admin/beta-requests` renders without 403/redirect (live verify pending — code shipped + runbook §4 documents flow)
 - [ ] Approve/reject buttons fire correct endpoint (separate scope — not in FE role-guard PR)
 - [x] Unit test added for role-guard accepting both values
+- [x] Dedicated `auth-helpers.test.ts` regression-safe suite (10 cases: canonical + alias + rejections) — Wave 78 Bucket D
 
 ## Related
 
@@ -44,4 +45,5 @@ Choose ONE option per Wave 71c plan (likely Option B for least churn):
 
 ## Log
 
+- **2026-05-14 (Wave 78 Bucket D)** — Regression-safe test suite `lib/__tests__/auth-helpers.test.ts` added (10 cases covering canonical PLATFORM_ADMIN, legacy ADMIN alias, OWNER rejection, empty/null/undefined, case sensitivity, partial-match rejections like `SCHOOL_ADMIN` / `PLATFORM`). CSV row `completion_pct` bumped 80 → 90. Live browser walkthrough on prod still pending (gated per `pre-handoff-self-test-completeness.md` §2.4 (b)(c) — documented step-by-step in `documents/05-guides/operations/beta-invite-flow.md` §4.2 + §4.3 runbook).
 - **2026-05-14 (Wave 72a Bucket C)** — FE-only Option B shipped. `auth-store.ts` union widened to `'OWNER' | 'ADMIN' | 'PLATFORM_ADMIN'`; `lib/auth-helpers.ts` adds `isPlatformAdmin()` helper accepting both legacy ADMIN and canonical PLATFORM_ADMIN. `AdminLayout.tsx:20,33` + `login/page.tsx:38` consume helper. `AccountTab.tsx:26` widened for consistency. `(school-admin)/layout.tsx` untouched — that route group uses tenant-scoped ADMIN role (different semantics) and authenticates by login alone (no role gate). Tests: extended `auth-store.test.ts` with PLATFORM_ADMIN case; new `AdminLayout.test.tsx` covers (a) PLATFORM_ADMIN accepted, (b) legacy ADMIN accepted, (c) OWNER rejected → redirect /login, (d) unauthenticated rejected. Local verify GREEN: 664/664 tests + lint (warnings only, pre-existing) + production build. Status PARTIAL pending user live walk: login as admin@kitehub.me → expect `/admin` → expect /admin/beta-requests page (sidebar nav added by GAP-519 same PR).
