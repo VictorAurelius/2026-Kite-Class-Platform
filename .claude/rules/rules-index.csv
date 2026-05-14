@@ -33,6 +33,7 @@ mcp-first-with-fallback,MANDATORY,1.1.0,2026-04-18,2026-05-05,mcp-first-with-fal
 meta-csv-index-pattern,MANDATORY,1.0.0,2026-05-12,2026-05-12,meta-csv-index-pattern.md
 meta-gap-priority,CRITICAL,1.0.0,2026-04-18,2026-04-28,meta-gap-priority.md
 output-review-mandate,CRITICAL,1.6.0,2026-04-14,2026-05-14,output-review-mandate.md
+outside-in-coverage-trigger,CRITICAL,1.0.0,2026-05-14,2026-05-14,outside-in-coverage-trigger.md
 planning-docs-structure,MANDATORY,1.0.0,2026-04-18,2026-04-28,planning-docs-structure.md
 post-wave-audit-mandate,MANDATORY,1.1.0,2026-04-19,2026-05-06,post-wave-audit-mandate.md
 post-wave-cleanup,MANDATORY,1.0.0,2026-05-06,2026-05-06,post-wave-cleanup.md
