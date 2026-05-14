@@ -32,14 +32,43 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const response = await apiClient.post(endpoints.auth.login, data);
-      const { user, accessToken, refreshToken } = response.data;
+      const body = response.data ?? {};
+
+      // GAP-516 Wave 72b: branch on 2FA flags before consuming tokens.
+      // Per `documents/01-business/kitehub/auth/api-contract.md` login response extension,
+      // backend may return one of 3 shapes:
+      //   (a) { access_token, refresh_token, user }                        — no 2FA enrolled
+      //   (b) { requires2fa: true, challenge_token }                       — TOTP gate
+      //   (c) { requires2fa_enrollment: true, challenge_token }            — first-time admin
+      // Existing production responses may still use camelCase accessToken/refreshToken;
+      // we keep that compatibility branch alongside the contract-spec snake_case.
+      if (body.requires2fa_enrollment === true && body.challenge_token) {
+        router.push(`/2fa-setup?token=${encodeURIComponent(body.challenge_token)}`);
+        return;
+      }
+      if (body.requires2fa === true && body.challenge_token) {
+        router.push(`/2fa-challenge?token=${encodeURIComponent(body.challenge_token)}`);
+        return;
+      }
+
+      const user = body.user;
+      const accessToken = body.access_token ?? body.accessToken;
+      const refreshToken = body.refresh_token ?? body.refreshToken;
+      if (!user || !accessToken || !refreshToken) {
+        throw new Error('Invalid login response shape');
+      }
       setAuth(user, accessToken, refreshToken);
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
       // GAP-518: route both PLATFORM_ADMIN (canonical) and legacy ADMIN to /admin.
       router.push(isPlatformAdmin(user.role) ? '/admin' : '/dashboard');
-    } catch {
-      setError('Email hoặc mật khẩu không đúng');
+    } catch (err) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 423) {
+        setError('Tài khoản đã bị khóa tạm thời do nhập sai mật khẩu nhiều lần. Vui lòng thử lại sau.');
+      } else {
+        setError('Email hoặc mật khẩu không đúng');
+      }
     } finally {
       setLoading(false);
     }
