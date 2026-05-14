@@ -1,0 +1,52 @@
+# Onboarding Progress — Business Rules
+
+**Domain:** Tenant onboarding checklist tracking (Wave 78 — GAP-538)
+**Last verified:** 2026-05-14 (Wave 78 Bucket 0 Foundation)
+**Config prefix:** `kitehub.onboarding`
+
+File này document business values cho onboarding checklist flow. Mỗi rule có 5 attributes theo `.claude/rules/business-logic-review.md` §2.
+
+> **Bucket 0 stub status:** rules ở dưới là stub form (≥1 đầy đủ 5 attributes + ≥1 placeholder). Bucket B (GAP-538) sẽ enrich thêm theo final implementation.
+
+---
+
+## BR-ONBOARD-001 — Onboarding checklist là per-tenant, persist BE-side
+
+- **Value:** Mỗi tenant có MỘT row `onboarding_progress` (1:1 với `tenant_id`). State persist trong DB Postgres (table `onboarding_progress`), KHÔNG dùng localStorage. Cross-device sync mặc định.
+- **Source:** Wave 78 outside-in audit (per `outside-in-coverage-trigger.md` Wave 73) + decision Q3 trong wave plan §1 Brainstorm — "localStorage vs BE table → chọn BE table cho cross-device persistence + admin tracking".
+- **Rationale:** Beta tenant (P1 solo teacher, P2 center owner) thường dùng nhiều thiết bị (laptop tại trường + điện thoại di chuyển). LocalStorage không sync → user confused tại sao checklist "reset" khi đổi browser. BE persistence cũng cho phép platform admin track completion % across cohort (analytics future scope Wave 79+).
+- **Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-05-14). Formal stakeholder review queued post-Phase-1 BETA.
+- **Compliance check:** **Considered** — onboarding state KHÔNG phải PII per PDPL 2023 Art 2(3) (chỉ chứa step completion flags, không có name/email/ID). Tuy nhiên `tenant_id` link tới tenant data → retention rule kế thừa retention chung của tenant (per BR-TENANT-DATA-RETENTION).
+- **Review cadence:** Quarterly. **Next review:** 2026-08-14. Event triggers: cross-device sync complaints, ≥10% drop-off tại bước IMPORT_DATA.
+- **Code reference:** (planned) `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/onboarding/entity/OnboardingProgress.java` (Bucket B — Wave 78 GAP-538).
+
+## BR-ONBOARD-002 — Sample/demo data seed opt-in only
+
+- **Value:** Step `IMPORT_DATA` mark complete CHỈ khi user explicit opt-in trong UI (checkbox + button "Tạo dữ liệu mẫu"). Server-side validate `tenant.metadata.is_beta_demo_data=true` trước khi emit `onboarding.demo-data.requested` event.
+- **Source:** Wave 78 plan §3 Risks — "Bucket B sample data seed risk dữ liệu seed leak vào prod tenant".
+- **Rationale:** Beta tenant có thể trở thành paid tenant; demo data nếu không gated dễ persist vào production records → data hygiene issue. Explicit opt-in + flag gating ensure user awareness + admin auditability.
+- **Reviewer:** @nguyenvankiet (acting Product Owner + Data hygiene scout, solo-dev, 2026-05-14).
+- **Compliance check:** N/A — demo data scope là tenant's own data namespace; không touch PII của bên thứ ba.
+- **Review cadence:** Quarterly. **Next review:** 2026-08-14.
+- **Code reference:** (planned) Bucket B Sample-data seeder + `is_beta_demo_data` flag check.
+
+## BR-ONBOARD-003 — Completion 100% triggers retention pipeline
+
+- **Value:** Khi tenant đạt `completionPercent=100%` lần đầu, BE emit `onboarding.completed` event qua outbox. Retention pipeline subscribe event → schedule email day-7 survey + day-14 retention check-in (Bucket E + Bucket F scope).
+- **Source:** Wave 78 outside-in audit Tier 1 — beta tenant retention insight cần survey trigger predictable.
+- **Rationale:** *(placeholder — Bucket B sẽ enrich với data từ analytics khi available)*
+- **Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-05-14). Formal review post-Wave-78 close.
+- **Compliance check:** N/A — event metadata KHÔNG chứa PII.
+- **Review cadence:** Quarterly. **Next review:** 2026-08-14.
+- **Code reference:** (planned) Bucket B outbox emit + Bucket F event subscriber.
+
+---
+
+## Config
+
+| Key | Default | Purpose |
+|-----|---------|---------|
+| `kitehub.onboarding.step-ids` | `PROFILE_SETUP,INVITE_TEAM,IMPORT_DATA,CREATE_FIRST_CLASS,EXPLORE_FEATURES` | Hardcoded enum whitelist; FE render dynamic |
+| `kitehub.onboarding.put-rate-limit-per-min` | `60` | Per-tenant PUT rate limit tại gateway |
+
+Config keys nằm trong `application.yml` BE module (Bucket B).
