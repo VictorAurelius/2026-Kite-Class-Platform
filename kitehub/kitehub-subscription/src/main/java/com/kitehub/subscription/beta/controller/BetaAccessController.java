@@ -11,6 +11,7 @@ import com.kitehub.subscription.beta.dto.BetaSignupCommand;
 import com.kitehub.subscription.beta.dto.BetaTokenValidationResponse;
 import com.kitehub.subscription.beta.entity.BetaAccessRequest;
 import com.kitehub.subscription.beta.entity.BetaAccessRequestStatus;
+import com.kitehub.subscription.audit.Auditable;
 import com.kitehub.subscription.beta.service.BetaAccessService;
 import com.kitehub.subscription.beta.service.BetaRateLimitExceededException;
 import com.kitehub.subscription.service.AuthService;
@@ -172,6 +173,7 @@ public class BetaAccessController {
     @Operation(summary = "Approve a beta access request (coordinator)",
                description = "Issues invite token, +24h expiry, publishes invite-sent event via Outbox.")
     @PreAuthorize("hasRole('PLATFORM_ADMIN')")
+    @Auditable(action = "BETA_REQUEST_APPROVE", entityType = "beta_access_request")
     @PostMapping("/api/v1/admin/beta-requests/{id}/approve")
     public ResponseEntity<BetaRequestResponse> approve(
             @PathVariable Long id,
@@ -189,6 +191,7 @@ public class BetaAccessController {
 
     @Operation(summary = "Reject a beta access request (coordinator)")
     @PreAuthorize("hasRole('PLATFORM_ADMIN')")
+    @Auditable(action = "BETA_REQUEST_REJECT", entityType = "beta_access_request")
     @PostMapping("/api/v1/admin/beta-requests/{id}/reject")
     public ResponseEntity<BetaRequestResponse> reject(
             @PathVariable Long id,

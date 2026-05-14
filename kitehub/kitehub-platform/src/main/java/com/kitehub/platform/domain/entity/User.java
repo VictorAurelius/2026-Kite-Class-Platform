@@ -47,6 +47,30 @@ public class User {
     @Column(name = "token_expires_at")
     private LocalDateTime tokenExpiresAt;
 
+    /**
+     * Account lockout state (GAP-515 / OWASP A07).
+     * Reset to 0 on successful login. Incremented per failed login.
+     * When >= 5 within window, sets {@link #lockedUntil} with exponential backoff.
+     */
+    @Column(name = "failed_login_attempts", nullable = false)
+    @Builder.Default
+    private int failedLoginAttempts = 0;
+
+    @Column(name = "last_failed_login_at")
+    private LocalDateTime lastFailedLoginAt;
+
+    /** Account is locked until this timestamp (UTC). NULL when not locked. */
+    @Column(name = "locked_until")
+    private LocalDateTime lockedUntil;
+
+    /**
+     * Number of times this account has hit the lockout threshold.
+     * Used for exponential backoff: 1st = 15min, 2nd = 1hr, 3rd+ = 24hr.
+     */
+    @Column(name = "lockout_count", nullable = false)
+    @Builder.Default
+    private int lockoutCount = 0;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
