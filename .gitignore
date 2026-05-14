@@ -118,3 +118,9 @@ documents/image*.png
 # Wave 64: deleted to resolve 26 stale Dependabot alerts (next 15.5.15 → 15.5.18)
 kitehub/kitehub-frontend/pnpm-lock.yaml
 kiteclass/kiteclass-frontend/pnpm-lock.yaml
+
+# Wave 75 Bucket E — coverage.py data files / HTML / XML artifacts (.coveragerc kept in repo)
+.coverage
+.coverage.*
+.claude/hooks/tests/coverage-html/
+.claude/hooks/tests/coverage.xml
