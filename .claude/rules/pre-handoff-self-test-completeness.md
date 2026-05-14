@@ -1,11 +1,11 @@
 # Pre-Handoff Self-Test Completeness — verify the FLOW, not the endpoint
 
 **Priority:** 🔴 CRITICAL — verification governance
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Created:** 2026-05-13
-**Last-Reviewed:** 2026-05-13
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (mandatory verify checklist + worked self-test on Wave 71b admin-login bug) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds coverage for a previously-uncovered class)
-**Applies to:** Every "verify live" / "self-test PASS" claim coordinator makes when handing off a wave/gap closure to user OR another session. Scope explicitly includes any artifact marked `🟢 DONE` whose AC mentions a user-facing path (URL, button, form, login redirect, dashboard, email link).
+**Last-Reviewed:** 2026-05-14
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; adds 7 new flow classes §2.5-§2.11 (file-upload, payment, multi-tenant tenant-switch, SSE/WebSocket, background job, time-sensitive, i18n) closing GAP-524 — no constraint loosening, prospectively extends coverage of "user-facing flow" classes. v1.0.0 (kept): new rule with mandatory verify checklist + worked self-test on Wave 71b admin-login bug per §6.5 Enforcement Parity Mandate)
+**Applies to:** Every "verify live" / "self-test PASS" claim coordinator makes when handing off a wave/gap closure to user OR another session. Scope explicitly includes any artifact marked `🟢 DONE` whose AC mentions a user-facing path (URL, button, form, login redirect, dashboard, email link, file upload, payment redirect, tenant switch, real-time connection, background job, time-sensitive action, i18n content).
 
 ---
 
@@ -69,6 +69,98 @@ For non-auth-gated flows (e.g., signup, public page):
 | (b) Admin sees admin dashboard | Post-login navigation lands on admin home (not user home) |
 | (c) Admin can navigate to target page | UI link in admin nav/sidebar OR documented direct URL |
 | (d) Admin action triggers correct backend | Network tab shows POST to correct service (not 404 / wrong service) |
+
+### 2.5 File-upload flow gap (added v1.1.0 — GAP-524)
+
+When AC mentions "user uploads file" (image, document, CSV, ZIP):
+
+| Check | Pass criterion |
+|---|---|
+| (a) MIME validation enforced server-side | Upload rejects forbidden types with 415; reject `text/html` even if extension `.png` |
+| (b) Size limit enforced + documented | Server returns 413 when exceeded; limit cited in `api-contract.md` |
+| (c) Virus/malware scan present (when applicable) | ClamAV or equivalent in pipeline OR documented exemption with risk acceptance |
+| (d) Storage location correct (MinIO/S3 bucket per env, NOT local FS) | Uploaded file appears in bucket; bucket policy verified non-public unless intended |
+| (e) Retrieval URL works | Issued signed/pre-signed URL returns 200 + expected `Content-Type` |
+| (f) Failed upload UI surface visible | Browser shows error toast/inline message — not silent fail |
+| (g) Audit log entry created (`uploaded_by`, `uploaded_at`, `file_hash`) | DB row exists OR log line emitted |
+
+### 2.6 Payment flow gap (added v1.1.0 — GAP-524)
+
+When AC mentions "user pays / subscribes / charges card":
+
+| Check | Pass criterion |
+|---|---|
+| (a) Gateway redirect URL correct | Browser redirected to actual provider (Stripe/MoMo/VNPay), not a stub |
+| (b) Return URL handled (success + cancel paths) | Both paths render the right post-payment UI |
+| (c) Webhook signature verified server-side | Webhook handler rejects unsigned/invalid-signature requests with 400 |
+| (d) Idempotency key honored | Same key replayed → no double-charge; row in `payment_attempts` table with idempotency state |
+| (e) Reconciliation table updated | `payments` / `invoices` row matches gateway-side state after webhook |
+| (f) Failed payment UI clear | User sees actionable error (insufficient funds, card declined) — not generic 500 |
+| (g) Audit log: amount, currency, gateway_txn_id, user_id, timestamp | Row exists in `payment_audit_log` |
+
+### 2.7 Multi-tenant tenant-switch flow gap (added v1.1.0 — GAP-524)
+
+When AC mentions "user with N tenants switches workspace / login picks tenant":
+
+| Check | Pass criterion |
+|---|---|
+| (a) Login as user-with-N-tenants returns tenant picker | UI shows picker; user with 1 tenant skips automatically |
+| (b) Picker selection issues new JWT scoped to chosen tenant | DevTools network tab shows new `Authorization: Bearer <token>` with `tenantId` claim |
+| (c) Data isolation verified (no cross-tenant leak) | Switch tenant A → tenant B; verify tenant A's records do NOT appear in tenant B's lists |
+| (d) Switching back doesn't carry stale cache | Repeat A→B→A; tenant A's data correct (not from B's response cache) |
+| (e) URL reflects tenant context (`/t/<slug>/...` or header-based) | URL OR header consistent with active tenant |
+| (f) Logout clears all tenant tokens | Subsequent request requires re-login |
+
+### 2.8 SSE / WebSocket / long-polling flow gap (added v1.1.0 — GAP-524)
+
+When AC mentions "real-time updates / live data / push notification":
+
+| Check | Pass criterion |
+|---|---|
+| (a) Connection establishes via correct protocol (`wss://` not `ws://` in prod) | DevTools network tab shows protocol upgrade |
+| (b) Heartbeat / keepalive prevents 30s connection idle drop | Connection stays open >60s in idle test |
+| (c) Reconnect-on-drop works (browser network throttle simulation) | Connection re-establishes within 10s after simulated drop |
+| (d) Auth-on-reconnect: re-uses valid JWT, rejects expired | New connection rejected if token expired since first connect |
+| (e) Server message delivery verified end-to-end | Trigger server-side event → client UI updates within 5s |
+| (f) Graceful degradation when WebSocket blocked (proxy/firewall) | Falls back to polling OR shows "real-time unavailable" notice |
+
+### 2.9 Background job / async flow gap (added v1.1.0 — GAP-524)
+
+When AC mentions "queue / async / job / worker / batch":
+
+| Check | Pass criterion |
+|---|---|
+| (a) Enqueue: caller receives jobId immediately (no blocking wait) | Response time <500ms for enqueue endpoint |
+| (b) Worker picks up job (verify via RabbitMQ admin UI or queue depth) | Queue depth decrements; worker log emits "processing jobId=..." |
+| (c) Retry on failure (max-attempt configured) | Manually fail job once; verify automatic retry; exhausted retries → DLQ |
+| (d) Dead-letter queue (DLQ) collects exhausted jobs | DLQ visible in admin UI; alert fires on DLQ non-empty per `audit-skill-rubric-ops-readiness-audit.md` §2.4 |
+| (e) Status query endpoint returns correct state (`pending\|running\|success\|failed`) | Client polls jobId → state transitions visible |
+| (f) Completion notification fires (email/webhook/SSE) | Recipient receives notification within SLA window |
+
+### 2.10 Time-sensitive flow gap (added v1.1.0 — GAP-524)
+
+When AC mentions "token expires / clock / TTL / time-based":
+
+| Check | Pass criterion |
+|---|---|
+| (a) Token expiry honored (no infinite TTL) | Wait past TTL → API returns 401; UI prompts re-login |
+| (b) Refresh-token rotation works | Old refresh blacklisted on use; reuse triggers force-logout per `pre-launch-auth-hardening-checklist.md` §2.8 |
+| (c) Clock skew tolerance ±60s (server vs client) | Simulate ±60s skew → JWT still validates within tolerance window |
+| (d) Time-sensitive UI countdown accurate (e.g., trial ends in N days) | Countdown matches server-issued `valid_until` timestamp |
+| (e) Edge cases: TZ boundary, DST, leap second | Test 23:59→00:00 boundary; UTC stored in DB, displayed in user TZ |
+
+### 2.11 i18n flow gap (added v1.1.0 — GAP-524)
+
+When AC mentions "Vietnamese / English / multi-language / localization":
+
+| Check | Pass criterion |
+|---|---|
+| (a) Locale detection works (`Accept-Language` header OR explicit toggle) | Browser language→matching locale rendered |
+| (b) Fallback to default locale (vi) when key missing in user locale | No raw key string visible (e.g., `t('users.title')` literal) |
+| (c) Content variant renders for ≥2 locales (vi + en) tested end-to-end | Manual switch + verify both renderings |
+| (d) Date/number/currency formatted per locale (`Intl` / `DateTimeFormatter`) | vi: `1.234,56 ₫`; en: `$1,234.56` |
+| (e) Pluralization rules correct (vi has 1 form, en has 2) | "1 user" vs "2 users"; vi: "1 người dùng" vs "2 người dùng" |
+| (f) Right-to-left support N/A unless Arabic/Hebrew added | Document N/A explicitly when scope only vi+en |
 
 ---
 
@@ -184,5 +276,7 @@ Future: `audit-gate.py` rule scanning PR body for `LIVE VERIFY` / `verified live
 ---
 
 ## 8. Log
+
+- **2026-05-14 (v1.1.0):** MINOR — added 7 new flow class checklists §2.5-§2.11 closing GAP-524 META P1 (Wave 72b Bucket E): §2.5 File-upload (MIME/size/scan/storage/retrieval), §2.6 Payment (gateway redirect/webhook signature/idempotency/reconciliation), §2.7 Multi-tenant tenant-switch (picker/JWT swap/data isolation/cache invalidation), §2.8 SSE/WebSocket/long-polling (protocol/heartbeat/reconnect/auth-on-reconnect/degradation), §2.9 Background job/async (enqueue/worker pick/retry/DLQ/notification), §2.10 Time-sensitive (TTL/refresh rotation/clock skew/countdown), §2.11 i18n (locale detection/fallback/format/pluralization). Each class mirrors §2.1-§2.4 4-row checklist structure adapted to its class. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (GAP-524 Wave 71c-meta-Phase-2 discovery — 7 classes likely to cause future verify-claimed-but-flow-broken incidents) → Classify ✓ (existing v1.0.0 covered 4 classes; 7 more enumerable from incident-likely surfaces) → Rule+Enforce ✓ (this v1.1.0 + same-PR sister 6 audit-rubric rules per `rule-change-process.md` §6.5) → Self-Test ✓ (each class's required check is grep-able / observable / verifiable — not aspirational; e.g., 2.5 (c) virus scan = ClamAV presence verifiable) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds prospective coverage for 7 previously-uncovered flow classes; no constraint loosening for prior gap closures; rule applies prospectively from Wave 72b Bucket E forward).
 
 - **2026-05-13 (v1.0.0):** Rule created in response to user-flagged miss — Wave 71b closure claimed "verified live" but admin@kitehub.me UI flow had 3 unblocked bugs (no nav button, no credential in handoff, role-name mismatch). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user "self-test quá tệ") → Classify ✓ (no existing rule mandates flow-level verify; `gap-done-discipline.md` covers DONE flip mechanics; `audit-to-gap-pipeline.md` covers state-check at file time, not flow at closure time) → Rule+Enforce ✓ (this file + paired same-PR with `pre-launch-auth-hardening-checklist.md` + 8 gap files + ROADMAP Wave 71c queue + worked self-test §4 per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§4 worked example on Wave 71b incident — rule fires correctly + 3 checklist items FAIL retroactively, file GAP-518/519/520) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new coverage class, no constraint loosening; existing DONE flips grandfathered, rule applies prospectively).

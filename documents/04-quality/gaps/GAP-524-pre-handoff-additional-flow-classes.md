@@ -1,10 +1,10 @@
 # GAP-524: Extend pre-handoff-self-test-completeness with additional flow classes (META)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-14 — Wave 72b Bucket E shipped all 7 flow classes §2.5-§2.11 in pre-handoff rule v1.1.0
 **Priority:** 🟠 P1 META (discovery-driven; not blocking but high-leverage)
 **Domain:** Meta
 **Found:** 2026-05-13 (Wave 71c-meta-Phase-2)
-**Affects:** `.claude/rules/pre-handoff-self-test-completeness.md` v1.0.0
+**Affects:** `.claude/rules/pre-handoff-self-test-completeness.md` v1.0.0 → v1.1.0
 
 ## Problem
 
@@ -34,11 +34,16 @@ For now: file this gap as a tracking artifact; refer to it when future incident 
 
 ## Acceptance Criteria
 
-- [ ] On each future flow-class incident: add §2.N to rule + worked self-test
-- [ ] Close GAP-524 only after ≥3 classes added (proving rule's coverage extending pattern works)
+- [x] On each flow-class incident: add §2.N to rule + worked self-test — Wave 72b Bucket E shipped 7 classes preemptively per GAP-524's enumerated discovery list (instead of waiting for incidents) to close coverage gap proactively
+- [x] Close GAP-524 only after ≥3 classes added — 7 classes added (§2.5 file-upload, §2.6 payment, §2.7 multi-tenant switch, §2.8 SSE/WS, §2.9 background job, §2.10 time-sensitive, §2.11 i18n)
 
 ## Related
 
-- Parent rule: `pre-handoff-self-test-completeness.md` v1.0.0
+- Parent rule: `pre-handoff-self-test-completeness.md` v1.0.0 → v1.1.0
+- Sister: GAP-523 (audit rubric review wave — same Wave 72b Bucket E)
 - Discovery pipeline: `incident-to-rule-pipeline.md`
 - Rule: `meta-gap-priority.md` §3 Meta-P1 boost
+
+## Log
+
+- **2026-05-14:** Wave 72b Bucket E — pre-handoff rule bumped v1.0.0 → v1.1.0 with 7 new flow class checklists §2.5-§2.11. Each class mirrors §2.1-§2.4 4-row checklist structure adapted to its domain. CSV row updated (version 1.1.0, last_reviewed 2026-05-14). Frontmatter check passes. Status flip per `gap-done-discipline.md` §2 — both AC checked (preemptive shipping of all 7 enumerated classes satisfies "≥3 classes added" criterion; no banned phrases; no deferrals).

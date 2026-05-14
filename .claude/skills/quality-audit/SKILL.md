@@ -67,6 +67,8 @@ kiteclass/scripts/monitor.sh health    # hoặc kitehub/scripts/status.sh
 
 ### Bước 2: Chấm điểm 11 categories (110 điểm)
 
+> **Per-check scoring (Wave 72b Bucket E):** Every category below uses per-check pass/fail rubric per `.claude/rules/audit-skill-rubric-quality-audit.md` §2 (5+ sub-checks per category, P0/P1 severity). Any P0 sub-check FAIL caps category total ≤ (max - 4) AND audit-level verdict = FAIL regardless of total score. The bug list (every FAIL) precedes the score table. See bound rule for primacy + concrete sub-check enumeration mirroring Wave 71c security-audit pattern.
+
 > **Scale change 2026-04-29 (v1.1):** Cat 11 (Persona Coverage) added as 11th /10 category, raising max from 100 → 110. This preserves the relative weight of the original 10 tech categories (no rebalancing) while adding business-correctness signal that tech-only audits miss. Grade scale below adjusted proportionally. When citing a "score" in shorthand, use `X/110` form.
 
 #### 1. E2E Functionality (10 điểm)

@@ -30,19 +30,41 @@ grep -rn "^### \|^## \|GET \|POST \|PUT \|DELETE \|PATCH " \
   documents/01-business/*/api-contract.md | head -50
 ```
 
-### 3. Score 5 Categories
+### 3. Primacy: bug-finding > scoring (BLOCKING)
 
-| # | Category (20pts) | Key Checks |
-|---|-----------------|------------|
-| 1 | **Endpoint Coverage** | Every @Mapping has api-contract.md entry |
-| 2 | **Request/Response Match** | DTO fields match documented schema |
-| 3 | **Error Code Consistency** | Error codes in code match docs |
-| 4 | **Versioning & Deprecation** | No undocumented breaking changes |
-| 5 | **Integration Test Coverage** | Each documented endpoint has IT |
+> **An audit's purpose is to surface API-contract drift BEFORE consumers (mobile app, third-party, partners) hit it. A `/100` score with hidden undocumented endpoints is WORSE than a low score listing each with `Controller.java:line` evidence.** Per `.claude/rules/audit-skill-rubric-api-contract-audit.md` §4 (mirror of Wave 71c security-audit primacy pattern).
 
-Scoring details: `reference/scoring-guide.md`
+Rules for every audit run:
+1. Enumerate ALL §4 sub-checks per category. NEVER skip "obviously fine."
+2. Each sub-check returns: PASS / FAIL / N/A-with-reason / `❓ UNCHECKED`. No partial credit.
+3. Final output starts with **bug list** (every undocumented/drifted endpoint with `file:line` + severity) BEFORE the score.
+4. Score is descriptive only; audit-level verdict = FAIL if ANY P0 sub-check FAILS.
+5. If audit time-budget runs out, mark `❓ UNCHECKED` — do NOT default to PASS.
 
-### 4. Output
+### 4. Score 5 Categories with per-check rubric
+
+Per Wave 72b Bucket E (GAP-523 closure), every category binds to per-check pass/fail rule.
+
+| # | Category (20pts) | Per-check rubric file |
+|---|-----------------|-----------------------|
+| 1 | **Endpoint Coverage** | **`.claude/rules/audit-skill-rubric-api-contract-audit.md` §2.1 (6 sub-checks)** |
+| 2 | **Request/Response Match** | **`.claude/rules/audit-skill-rubric-api-contract-audit.md` §2.2 (6 sub-checks)** |
+| 3 | **Error Code Consistency** | **`.claude/rules/audit-skill-rubric-api-contract-audit.md` §2.3 (5 sub-checks)** |
+| 4 | **Versioning & Deprecation** | **`.claude/rules/audit-skill-rubric-api-contract-audit.md` §2.4 (5 sub-checks)** |
+| 5 | **Integration Test Coverage** | **`.claude/rules/audit-skill-rubric-api-contract-audit.md` §2.5 (5 sub-checks)** |
+
+#### Per-check scoring (all 5 categories)
+
+For each Category N:
+1. Walk through every §2 sub-check in the bound rule.
+2. Mark each sub-check PASS / FAIL / N/A-with-reason / `❓ UNCHECKED`.
+3. Score = `20 - (failed_P0_count * 6) - (failed_P1_count * 3) - (failed_P2_count * 1)`, floor 0; cap 20 if all PASS.
+4. If ANY P0 sub-check fails → category total CAPPED at 16/20 AND audit-level verdict = FAIL.
+5. Each FAIL surfaces in bug list per §3 primacy.
+
+Legacy scoring narrative: `reference/scoring-guide.md` retained for backward-compat only.
+
+### 5. Output
 
 Save to `documents/04-quality/audits/api/api-contract-audit-[date].md`
 

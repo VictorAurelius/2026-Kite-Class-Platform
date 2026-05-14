@@ -120,7 +120,7 @@ git diff main --name-only | grep -E '\.(tsx|css|scss)$'
 # Chỉ capture + score affected screens
 ```
 
-### 4. Score Dimensions (/128)
+### 4. Score Dimensions (/128) with per-check rubric
 
 5 dimensions, mỗi screen độc lập:
 
@@ -129,6 +129,20 @@ git diff main --name-only | grep -E '\.(tsx|css|scss)$'
 - **Visual Aesthetics /28** — color, typography, spacing, hierarchy, polish
 - **User Friendliness /20** — first impression, navigation, action clarity
 - **WCAG /20** — contrast, touch targets, labels, screen reader, keyboard
+
+#### Per-check scoring (Wave 72b Bucket E — GAP-523 closure)
+
+Per `.claude/rules/audit-skill-rubric-ui-review.md`, each Dimension binds to per-check pass/fail sub-checks. The /4 narrative scoring (§"Scoring Rubric" below) remains for human judgment, but the bound rule adds binary fail semantics for P0/P1 sub-checks:
+
+| Dimension | Per-check rubric |
+|---|---|
+| Technical /20 | `.claude/rules/audit-skill-rubric-ui-review.md` §2.1 (6 sub-checks: responsive, dark, theme, console, semantic, anti-patterns) |
+| Design Heuristics /40 | §2.2 (10 Nielsen heuristics, each /4) |
+| Visual /28 | §2.3 (7 sub-checks: palette, type, spacing, hierarchy, polish, icons, images) |
+| User Friendliness /20 | §2.4 (6 sub-checks: first impression, nav, CTA, empty, loading, mobile menu) |
+| WCAG /20 | §2.5 (6 sub-checks: contrast, touch, labels, headings, keyboard, skip link) |
+
+**Primacy:** Bug list (every screen below threshold + dimension causing it) precedes per-screen scores. Audit-level verdict = FAIL if ANY P0 sub-check FAILS on a sampled screen. Mirror of Wave 71c security-audit pattern.
 
 Report LOWEST screen — đây là quality bar thực sự.
 
