@@ -624,6 +624,46 @@ public class EmailServiceClient {
     }
 
     /**
+     * Send admin-new-login-alert email (GAP-517 / OWASP A07 §2.5).
+     *
+     * <p>Dispatched by {@code AdminLoginAlertEventListener} when a PLATFORM_ADMIN
+     * logs in from a fingerprint not seen within the last 24h. Best-effort —
+     * email failure must NEVER propagate back to the login flow (caller wraps
+     * this in try/catch).</p>
+     *
+     * <p>Template {@code admin-new-login-alert} configuration in Resend is an
+     * ops follow-up (deploy gap); if absent, the underlying email-service will
+     * log a warning and the call is a no-op.</p>
+     *
+     * @param to admin email address (recipient)
+     * @param ip source IP of the new login
+     * @param userAgent User-Agent string of the new login
+     * @param loginAt timestamp of the new login (formatted for display)
+     */
+    public void sendAdminNewLoginAlert(String to, String ip, String userAgent,
+                                       LocalDateTime loginAt) {
+        log.info("Sending admin-new-login-alert to {} (ip={})", to, ip);
+
+        try {
+            EmailRequest request = EmailRequest.builder()
+                .to(to)
+                .subject("[KiteHub] New admin login from unrecognized device")
+                .templateName("admin-new-login-alert")
+                .variables(Map.of(
+                    "ip", ip == null ? "unknown" : ip,
+                    "userAgent", userAgent == null ? "unknown" : userAgent,
+                    "loginAt", loginAt == null ? "" : loginAt.toString(),
+                    "supportUrl", "https://kitehub.me/support"
+                ))
+                .build();
+
+            dispatchEmail(null, "admin-new-login-alert", request);
+        } catch (Exception e) {
+            log.warn("Failed to send admin-new-login-alert to {}: {}", to, e.getMessage());
+        }
+    }
+
+    /**
      * Check if an email of the given type was already sent today.
      *
      * @param instanceId Instance ID (nullable)

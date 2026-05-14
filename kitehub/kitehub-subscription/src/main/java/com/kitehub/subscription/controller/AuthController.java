@@ -4,6 +4,7 @@ import com.kitehub.subscription.dto.*;
 import com.kitehub.subscription.service.AuthService;
 import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -48,8 +49,11 @@ public class AuthController {
      * @return login response with tokens
      */
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        LoginResponse response = authService.login(request);
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request,
+                                               HttpServletRequest httpRequest) {
+        // httpRequest is threaded through so AuthService can record per-login
+        // audit context (IP, User-Agent) for GAP-517 new-fingerprint detection.
+        LoginResponse response = authService.login(request, httpRequest);
         return ResponseEntity.ok(response);
     }
 
