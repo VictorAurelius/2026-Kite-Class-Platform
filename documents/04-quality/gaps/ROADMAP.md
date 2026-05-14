@@ -8,7 +8,9 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-14 — 🎉 Wave 72a SHIPPED — self-test unblock + OWASP A07 hardening, 1 DONE + 7 PARTIAL)
+## 🎯 Current Status Snapshot (2026-05-14 — 🎉 Wave 72a SHIPPED + Wave 72b 6/7 SHIPPED + 3 outside-in audits — 30+ gaps surfaced cho Wave 73 revision)
+
+> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-14-session-handoff.md`](../../03-planning/session-handoffs/2026-05-14-session-handoff.md) — full state + pending PR #1301 (Bucket A DIRTY) + 3 audit reports → Wave 73 plan revision needed.
 
 ### ✅ Wave 68 SHIPPED 2026-05-13 (verification pass + bonus drift fix)
 
