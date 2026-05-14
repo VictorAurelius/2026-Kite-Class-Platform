@@ -75,10 +75,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public auth + actuator + openapi surface
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/beta-status/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // Admin endpoints require authentication; role enforced per-method via @PreAuthorize
                         .requestMatchers("/api/v1/admin/**").authenticated()
+                        // Tenant-scoped endpoints require authentication
+                        .requestMatchers("/api/v1/onboarding-progress/**").authenticated()
                         // Default-deny everything else not explicitly opened
                         .anyRequest().permitAll()
                 )
