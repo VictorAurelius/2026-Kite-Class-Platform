@@ -35,6 +35,13 @@ Full evidence: [`audits/aws-verification/2026-05-13-audit-of-trust-production-in
 3. Re-run audit-of-trust pass → unblock Plan 1
 4. Phase 1.5 prep: terraform Architecture A (single t3.large) ready cho trigger gate ≥30 paying tenants
 
+### Wave 72a Bucket D 2026-05-14 — GAP-525 credential rotation runbook + incident artifact (PARTIAL)
+
+- 🟡 **GAP-525 → PARTIAL** — `credential-rotation-runbook.md` (general procedure for admin password / JWT secret / 3rd-party API tokens) + incident artifact `documents/04-quality/audits/credential-rotation/2026-05-14-wave-72a-3-credentials.md` shipped. Procedure DONE; actual rotation = user-action pending per `agent-aws-access.md` §4 (Tier 3 mutations + vendor portal revocations are user-execute only).
+- New audit category folder `documents/04-quality/audits/credential-rotation/` + README created.
+- 3 credentials covered: admin@kitehub.me production password (AWS Secrets Manager) + Cloudflare API token (read-only) + Resend API key (sending). All referenced by class/ID only — no credential values stored in repo per `agent-aws-access.md` §2.2.
+- User-action checklist tracked in artifact §"Next steps"; flip GAP-525 → 🟢 DONE when rows 1–3 of rotation-status table show `verified`.
+
 ### 🚀 Next Action (Wave 71c — meta + auth hardening bundle, P0)
 
 **Wave 71b "verify live" was incomplete** — claimed DONE at curl-level (HTTP 201) without walking user-facing flow. User-flagged 2 cascading bugs at Plan 1 Bước 4 attempt: (1) no UI nav button to /admin/beta-requests, (2) BE seed role `PLATFORM_ADMIN` vs FE role-guard `'ADMIN'` → admin UI 100% unusable in production. Plus parallel meta audit per `pre-launch-auth-hardening-checklist.md` v1.0.0 surfaced 5 confirmed + 3 likely OWASP A07 gaps that security-audit skill at 87/100 score missed.
