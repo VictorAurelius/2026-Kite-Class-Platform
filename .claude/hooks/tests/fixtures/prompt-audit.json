@@ -1,0 +1,7 @@
+{
+  "session_id": "test-session-audit",
+  "transcript_path": "/tmp/test-transcript.jsonl",
+  "cwd": "/tmp/test-cwd",
+  "hook_event_name": "UserPromptSubmit",
+  "prompt": "Run a quality check audit on the latest wave to verify ready to merge."
+}
