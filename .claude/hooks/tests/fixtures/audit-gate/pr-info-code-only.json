@@ -1,0 +1,11 @@
+{
+  "title": "feat: backend controller change",
+  "headRefName": "feature/code-bar",
+  "body": "Code-only.",
+  "mergedAt": "2026-05-14T10:00:00Z",
+  "state": "MERGED",
+  "files": [
+    "kitehub/kitehub-subscription/src/main/java/Foo.java",
+    "kitehub/kitehub-subscription/src/main/java/Bar.java"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "title": "docs: update CLAUDE.md governance",
+  "headRefName": "docs/claude-md-update",
+  "body": "Pure docs PR.",
+  "mergedAt": "2026-05-14T10:00:00Z",
+  "state": "MERGED",
+  "files": [
+    "documents/03-planning/foo.md",
+    "CLAUDE.md",
+    ".claude/rules/some-rule.md"
+  ]
+}
