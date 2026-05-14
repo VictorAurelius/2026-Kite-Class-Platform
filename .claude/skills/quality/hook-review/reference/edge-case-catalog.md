@@ -6,6 +6,10 @@ Reviewer cross-check khi 1+ rubric point ❌ trong `rubric-checklist.md` — ent
 
 Mới phát hiện edge case → append entry mới với date + worked example.
 
+**Version:**
+- v1.0 (Wave 74) — 9 entries EC-001 → EC-009 covering original 8 rubric points
+- v1.1 (Wave 75 Bucket B) — added 6 entries EC-010 → EC-015 covering new 13-point rubric (Points 9-13) per Wave 74 outside-in benchmark fold-in
+
 ---
 
 ## EC-001 — Rule text says X, hook checks Y (divergence)
@@ -261,6 +265,201 @@ Reference `pre-tool-guard.py` `AWS_TIER3_RE`: currently uses command-boundary an
 
 ---
 
+## EC-010 — stdin malformed JSON crashes hook
+
+**Rubric point affected:** 11 (stdin malformed JSON handling test), 4 (fail-safe degradation)
+
+**Class:** Hook reads stdin and calls `json.loads(raw)` without try/except. When Claude Code (or test fixture) feeds malformed JSON, empty string, partial JSON, or non-UTF-8 bytes, hook raises `JSONDecodeError` / `UnicodeDecodeError` → exit non-zero → harness treats as BLOCK → user workflow broken silently.
+
+**Reproduction (anticipated based on Wave 74 outside-in benchmark — Claude Code docs note "hook receives stdin even when not parsed"):**
+
+1. Hook implements: `payload = json.loads(sys.stdin.read())` (no try/except).
+2. Test fixture or Claude Code edge case feeds `"{invalid"` or empty string or EOF mid-stream.
+3. `json.JSONDecodeError` raised → uncaught → Python exits 1.
+4. Harness interprets exit 1 as non-blocking warn (per Point 9 trap) OR as BLOCK depending on event type → either way, hook intent broken.
+
+**Detection signal:**
+- CI hook test logs show `json.JSONDecodeError: Expecting value` traceback
+- Hook never seems to fire on certain tool calls — investigation reveals stdin format edge case
+- New deployment of Claude Code version changes stdin format → hook crashes silently
+
+**Fix patterns:**
+- Wrap `json.loads` in try/except returning `{}` (fail-safe per `pre-tool-guard.py` pattern)
+- Test fixture suite include 6 stdin variants: malformed / empty / EOF-mid-stream / missing-fields / nested-malformed / very-large
+- Catch specifically `json.JSONDecodeError` + `UnicodeDecodeError` + `OSError`; avoid bare `except Exception` if possible
+
+**Cross-ref:** `pre-tool-guard.py` `parse_stdin()` (if implemented per Point 11) + rubric Point 11 §How to verify 6 test commands
+
+---
+
+## EC-011 — `exit 1` trap from un-trapped subprocess
+
+**Rubric point affected:** 9 (exit code matrix + `exit 1` trap callout)
+
+**Class:** Hook author uses `subprocess.run([...], check=True)` which raises `CalledProcessError` on non-zero exit. Without try/except, Python script inherits the non-zero exit code → hook process exits 1 → Claude Code treats as NON-BLOCKING WARN (per documented exit code semantics) → BLOCK intent silently fails open.
+
+**Reproduction (anticipated):**
+
+1. Hook calls `subprocess.run(["git", "log", "-1"], check=True, capture_output=True)`.
+2. In CI sandbox or worktree without git initialized, `git log` returns non-zero.
+3. `check=True` raises `CalledProcessError`.
+4. Uncaught → Python's default exception handler prints traceback to stderr → exits 1.
+5. Author intended BLOCK on rule violation but actual exit is 1 (warn, non-blocking) → user proceeds with violating action.
+
+**Detection signal:**
+- Hook stderr shows `CalledProcessError: Command ... returned non-zero exit status N`
+- Reviewer notices `sys.exit(1)` in BLOCK code path
+- Audit: `grep -nE "sys\.exit\(1\)|exit \"?1\"?" .claude/hooks/*.py` finds intent mismatch
+
+**Fix patterns:**
+- Use `check=False` and inspect `.returncode` explicitly
+- Wrap subprocess calls in try/except handling `CalledProcessError` + `FileNotFoundError` + `TimeoutExpired`
+- For BLOCK intent, use `sys.exit(2)` explicitly — never `exit(1)`
+- Named constants: `EXIT_PASS = 0; EXIT_WARN = 1; EXIT_BLOCK = 2`
+
+**Cross-ref:** rubric Point 9 §Edge cases + `pre-tool-guard.py` `_commit_body()` try/except pattern (correct)
+
+---
+
+## EC-012 — Cold-start vs steady-state perf drift
+
+**Rubric point affected:** 13 (hardware-pinned performance baseline)
+
+**Class:** Hook PR ships with timing benchmark "~80ms" measured on author's M2 Mac steady-state. Production / CI sees 500ms cold-start. Author has no diagnostic when user complains "Claude feels sluggish" — looks identical to author's local measurement.
+
+**Reproduction (anticipated based on Lefthook benchmark research + Husky/Python cold-start data):**
+
+1. Author runs `time python3 hook.py < fixture` once after some warm-up → 80ms result.
+2. PR ships claiming "<500ms target met."
+3. CI runs hook for the first time on each fresh runner image → 600ms (Python startup ~100ms + imports ~150ms + first regex compile ~30ms + first subprocess ~250ms + actual work ~70ms).
+4. User on slow workstation also sees ~600ms cold-start; complaint surfaces.
+5. Author cannot reproduce because their cache is warm.
+
+**Detection signal:**
+- User reports latency that author cannot reproduce
+- CI hook timing job (if exists) shows variance >2× between p50 and p95
+- New environment (fresh container, new dev machine) consistently slow on first hook invocation
+
+**Fix patterns:**
+- Document baseline with EXPLICIT hardware + cold-start separation per Point 13
+- Use `pytest-benchmark` or equivalent for hot-path timing (multiple iterations, statistical summary)
+- Measure both: `for i in {1..10}; do time python3 hook.py < fixture; done` capture distribution
+- If cold-start dominates: optimize imports (lazy import expensive deps; skip unused imports)
+- Track baseline in `.claude/hooks/data/timing-baseline.json` — committed, updated when significant change
+
+**Cross-ref:** rubric Point 13 + Lefthook/Husky benchmark data + Wave 74 outside-in benchmark Section 5
+
+---
+
+## EC-013 — BLOCK condition tested only positively
+
+**Rubric point affected:** 10 (true-positive + true-negative fixture parity), 2 (BLOCK vs WARN), 6 (false-positive)
+
+**Class:** Hook test suite verifies "hook BLOCKs when input X is provided" (true positive) but lacks paired test "hook ALLOWs when input Y is similar but safe" (true negative). Without negative cases, hook can drift to fail-open without test failure: refactor causes `sys.exit(2)` to be skipped, all positive tests still pass.
+
+**Reproduction (anticipated based on ESLint RuleTester mandate + Semgrep test conventions):**
+
+1. PR adds new rule + hook check + test:
+   ```python
+   def test_block_admin_merge():
+       result = run_hook(stdin='{...gh pr merge --admin...}')
+       self.assertEqual(result.returncode, 2)  # ✅ BLOCK
+   ```
+2. Test passes; PR ships.
+3. Later refactor: someone changes `if violation: sys.exit(2)` to `if violation: sys.exit(1)` (mistakenly thinking it's "warning").
+4. Test STILL passes because `assertEqual(returncode, 2)` was the original assertion — but new code returns 1 which... wait, that would fail. Let me reframe:
+5. Refactor: someone changes early-return logic such that hook never reaches the BLOCK condition for the test input. Test fails.
+6. BUT if refactor changes regex slightly such that the test input no longer matches → no BLOCK → test FAILS (caught). However: if author updates the positive test to match new behavior but doesn't add a NEGATIVE test, then hook may now over-block other inputs without any test catching it.
+
+**Detection signal:**
+- Test file has many `assertEqual(returncode, 2)` lines but few `assertEqual(returncode, 0)` lines
+- Per Point 10 grep: `grep -c "returncode, 2" tests/*.py` >> `grep -c "returncode, 0" tests/*.py`
+- Code coverage tool shows BLOCK branch covered but ALLOW branch underexposed
+
+**Fix patterns:**
+- Mandate per-rule fixture parity: ≥1 positive + ≥1 negative per BLOCK condition
+- Use Semgrep-style annotations (`# ruleid:` / `# ok:`) to make intent explicit
+- ESLint RuleTester convention: `tests = { valid: [...], invalid: [...] }`
+- Coverage measurement: aim for ≥80% branch coverage per hook (Point 13 bonus)
+
+**Cross-ref:** rubric Point 10 §Implementation pattern + Wave 74 outside-in benchmark Section 1 (ESLint RuleTester)
+
+---
+
+## EC-014 — stdout schema mismatch with Anthropic spec
+
+**Rubric point affected:** 12 (JSON stdout contract schema compliance)
+
+**Class:** Hook author writes `print(json.dumps({"message": "warn text"}))` based on intuition. Anthropic spec requires `{"systemMessage": "warn text"}` (different key) for the message to surface to Claude. Hook output is valid JSON but semantic field name wrong → Claude Code parser silently ignores the intended effect → hook intent lost.
+
+**Reproduction (anticipated based on Wave 74 outside-in vs Claude Code official docs Section 7):**
+
+1. Hook intends to inject context: `print(json.dumps({"context": "Rule X applies: ..."}))`.
+2. Anthropic spec requires (for UserPromptSubmit): `{"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": "..."}}`.
+3. Hook stdout is valid JSON, exit 0 → parser doesn't error.
+4. But `context` is not a recognized key → parser drops it → Claude never sees the context.
+5. Author and reviewer think hook works ("no errors!"); actual injection silently fails.
+
+**Detection signal:**
+- Hook intent not surfacing (Claude doesn't reference injected context, doesn't show warn message)
+- jq schema validate fails: `jq -e '.hookSpecificOutput.hookEventName' < hook-output.json` returns null
+- Claude Code spec changes (vd new fields added) — older hooks may have stale field names
+
+**Fix patterns:**
+- Pipe hook stdout through `jq` schema validator in test fixture
+- Use dataclasses / Pydantic models to construct output (compile-time schema check)
+- Reference Anthropic docs Section 7 keys: `continue` / `hookSpecificOutput.hookEventName` / `permissionDecision` / `permissionDecisionReason` / `systemMessage` / `additionalContext`
+- Document hook's stdout shape in module docstring with worked example
+- Test against actual Claude Code parser if possible (golden file pattern)
+
+**Cross-ref:** rubric Point 12 §Documented schema + Wave 74 outside-in benchmark Section 7 (Claude Code docs)
+
+---
+
+## EC-015 — Settings precedence override silently disables hook
+
+**Rubric point affected:** 5 (`settings.local.json` wiring verification)
+
+**Class:** Project ships `.claude/settings.json` (committed) wiring critical hook `pre-tool-guard.py`. User adds personal `.claude/settings.local.json` for their preferences (vd custom matcher pattern, disabled flag, or override of hooks array). Per Claude Code documented precedence chain, local settings OVERRIDE project settings → critical enforcement disabled per-user with no team visibility.
+
+**Reproduction (anticipated based on Wave 74 outside-in vs pre-commit / Lefthook precedence patterns):**
+
+1. Project `.claude/settings.json` (committed):
+   ```json
+   {
+     "hooks": {
+       "PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": "python3 .claude/hooks/pre-tool-guard.py"}]}]
+     }
+   }
+   ```
+2. User creates `.claude/settings.local.json` (gitignored) to customize:
+   ```json
+   {
+     "hooks": {
+       "PreToolUse": []  // ← user accidentally overrides with empty
+     }
+   }
+   ```
+3. Per precedence: `settings.local.json` > `settings.json` → effective hooks for user = empty.
+4. User's PreToolUse hooks never fire → admin-merge guard / terraform retry guard / aws Tier3 BLOCK all silent.
+5. Team unaware until production incident where rule violation slips through.
+
+**Detection signal:**
+- Audit: every PR adding/modifying hooks should list effective wiring at all 4 layers (user / project / local / managed)
+- User reports hook "didn't fire on my machine" but works for others — likely local override
+- Code review of `.claude/settings.local.json` (when shared in PR description) reveals override
+
+**Fix patterns:**
+- Document hook wiring intent in module docstring (so override is intentional, not accidental)
+- Reviewer checklist line: "Settings precedence verified — local override absent OR explicitly intended?"
+- Per Wave 75 audit recommend listing all hook wiring across layers for any hook PR
+- For critical hooks (security, audit), consider using managed policy layer (highest precedence) if org supports
+- CI script (deferred) that diffs effective settings vs project settings → flags local-only overrides for review
+
+**Cross-ref:** rubric Point 5 §v1.1 sharpening — Settings precedence chain test + Lefthook `lefthook-local.yml` pattern (similar override mechanism)
+
+---
+
 ## Catalog coverage matrix
 
 | Rubric point | Entries with test |
@@ -268,13 +467,18 @@ Reference `pre-tool-guard.py` `AWS_TIER3_RE`: currently uses command-boundary an
 | 1. Event matcher correctness | EC-003 |
 | 2. BLOCK vs WARN gradient | EC-002 |
 | 3. Override trailer recognition | EC-001, EC-004 |
-| 4. Fail-safe degradation | EC-005 |
-| 5. `settings.local.json` wiring | EC-006 |
+| 4. Fail-safe degradation | EC-005, EC-010 |
+| 5. `settings.local.json` wiring | EC-006, EC-015 |
 | 6. False-positive testing | EC-007 |
 | 7. Idempotency | EC-008 |
 | 8. Performance budget | EC-009 |
+| **9. Exit code matrix + exit 1 trap (v1.1)** | EC-011 |
+| **10. True-pos + true-neg fixture parity (v1.1)** | EC-013 |
+| **11. stdin malformed JSON handling (v1.1)** | EC-010 |
+| **12. stdout JSON schema compliance (v1.1)** | EC-014 |
+| **13. Hardware-pinned perf baseline (v1.1)** | EC-012 |
 
-All 8 points covered ✅ (per skill creation Wave 74 acceptance criteria).
+All 13 points covered ✅ (per skill v1.1 Wave 75 Bucket B acceptance criteria).
 
 ---
 
@@ -308,6 +512,7 @@ Then update §"Catalog coverage matrix" if new point covered.
 
 ## Related
 
-- `rubric-checklist.md` — Full 8-point criteria; this catalog supports per-point edge case awareness
+- `rubric-checklist.md` — Full 13-point criteria (v1.1); this catalog supports per-point edge case awareness
 - `SKILL.md` — Entry point; guides reviewer to this catalog after rubric run
 - `.claude/rules/incident-to-rule-pipeline.md` — 5-stage pipeline; each EC entry typically corresponds to a Detect→Classify outcome
+- `documents/04-quality/audits/meta/2026-05-14-wave-74-outside-in-benchmark.md` — Wave 74 outside-in benchmark source for v1.1 additions (EC-010 → EC-015)

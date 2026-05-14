@@ -1,12 +1,15 @@
 ---
 name: hook-review
-description: "Dùng khi PR thêm/sửa `.claude/hooks/*.py`, 'review hook', 'kiểm tra hook coverage', 'hook test missing', 'audit hook', 'hook BLOCK false-positive'. 8-point rubric covering event matcher + BLOCK/WARN gradient + override trailer + fail-safe + wiring + false-positive + idempotency + performance budget. Reference rubric-checklist.md cho full criteria + edge-case-catalog.md cho known patterns."
+version: 1.1.0
+description: "Dùng khi PR thêm/sửa `.claude/hooks/*.py`, 'review hook', 'kiểm tra hook coverage', 'hook test missing', 'audit hook', 'hook BLOCK false-positive'. 13-point rubric (Wave 75 outside-in fold-in): event matcher + BLOCK/WARN gradient + override trailer + fail-safe + wiring + false-positive + idempotency + performance budget + exit code matrix + fixture parity + stdin malformed JSON + stdout JSON schema + cold-start vs steady-state. Reference rubric-checklist.md cho full criteria + edge-case-catalog.md cho 15 known patterns."
 user-invocable: true
 ---
 
 # Hook Review Skill
 
 Reviewer checklist cho mọi PR thêm hoặc sửa `.claude/hooks/*.py`. Specialization của `quality/script-review-checklist.md` cho deterministic enforcement hooks — hooks không chỉ là Python scripts, mà là **gates** chạy mỗi tool call → blast radius lớn hơn nhiều so với một script ad-hoc.
+
+**Version 1.1.0 (Wave 75 Bucket B):** rubric mở rộng từ 8 → 13 points dựa trên outside-in benchmark vs ESLint RuleTester / Semgrep / OPA / pre-commit / Claude Code official docs. 5 NEW points cover exit code matrix (counterintuitive `exit 1` trap), fixture parity, stdin malformed handling, stdout JSON schema, hardware-pinned perf baseline. 5 existing points sharpened. 6 NEW EC entries (EC-010 → EC-015).
 
 ## When to use
 
@@ -23,18 +26,23 @@ Reviewer checklist cho mọi PR thêm hoặc sửa `.claude/hooks/*.py`. Special
 4. **Verify tests + wiring** — chạy `python3 -m unittest .claude/hooks/tests/test-<hook>.py` PASS; verify hook được wire trong `.claude/settings.local.json` (nếu hook mới).
 5. **Sign off** — PR review comment cite per-point verdict (PASS/FAIL/N/A) + rubric anchor.
 
-## 8-point rubric summary
+## 13-point rubric summary
 
 | # | Point | Quick test |
 |---|---|---|
-| 1 | Event matcher correctness | Regex covers đủ tool calls intended? |
-| 2 | BLOCK vs WARN gradient | Severity match blast radius? BLOCK reserved for irreversible/shared-state |
-| 3 | Override trailer recognition | Regex parses trailer trong commit body chính xác (case, whitespace, multi-line) |
-| 4 | Fail-safe degradation | Hook crash → silent allow (exit 0), không BLOCK trên dep error |
-| 5 | `settings.local.json` wiring | Hook file tồn tại NHƯNG không wired = 0% enforcement; grep verify |
-| 6 | False-positive testing | Commit body / PR body chứa banned keyword KHÔNG được trigger BLOCK |
-| 7 | Idempotency | Cùng input → cùng output, không log spam, không state mutation ngoài intent |
+| 1 | Event matcher correctness | Regex covers đủ tool calls intended? + 4 Anthropic event types enumerated (PreToolUse/PostToolUse/UserPromptSubmit/Stop) |
+| 2 | BLOCK vs WARN gradient | Severity match blast radius? + map to exit code matrix (Point 9) |
+| 3 | Override trailer recognition | Regex parses trailer chính xác (case, whitespace, multi-line) + Semgrep-style fixture annotations |
+| 4 | Fail-safe degradation | Hook crash → silent allow; 6 specific cases enumerated (missing dep / malformed input / timeout / permission / env unset / wrong pwd) |
+| 5 | `settings.local.json` wiring | Hook wired? + settings precedence chain (project → local → user) |
+| 6 | False-positive testing | Banned keyword in benign context KHÔNG trigger BLOCK |
+| 7 | Idempotency | Cùng input → cùng output, không log spam |
 | 8 | Performance budget | PreToolUse < 500ms; PostToolUse < 1s; UserPromptSubmit < 500ms |
+| **9** | **Exit code matrix + `exit 1` trap** | exit 0 / 1 / 2 semantics explicit; `exit 1` counterintuitive (non-blocking trong Claude Code!) |
+| **10** | **True-pos + true-neg fixture parity** | Mỗi BLOCK condition có ≥1 valid fixture + ≥1 invalid fixture (ESLint RuleTester mandate) |
+| **11** | **stdin malformed JSON handling** | Hook fail-safe silent allow trên malformed stdin, không crash |
+| **12** | **stdout JSON contract schema** | Output keys match Anthropic spec (`hookSpecificOutput.permissionDecision`, `systemMessage`, etc.) |
+| **13** | **Hardware-pinned perf baseline (cold vs warm)** | Cold-start tách khỏi steady-state; target ms per dev hardware documented |
 
 Đọc `reference/rubric-checklist.md` cho từng point chi tiết với edge cases + grep snippets.
 
@@ -49,8 +57,8 @@ Reviewer checklist cho mọi PR thêm hoặc sửa `.claude/hooks/*.py`. Special
 
 ## Skill Contents
 
-- `reference/rubric-checklist.md` — Full 8-point rubric với grep snippets + per-point examples + bonus checks
-- `reference/edge-case-catalog.md` — Known false-positive/false-negative patterns; each entry tracks 1 incident class with reproduction recipe + recommended fix
+- `reference/rubric-checklist.md` — Full 13-point rubric với grep snippets + per-point examples + bonus checks (8 original + 5 v1.1.0 additions; 5 existing sharpened per Wave 74 outside-in benchmark)
+- `reference/edge-case-catalog.md` — 15 known patterns (9 original + 6 v1.1.0 additions covering Points 9-13)
 
 ## Related
 
