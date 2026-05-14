@@ -1,10 +1,18 @@
+---
+paths:
+  - "pom.xml"
+  - "package.json"
+  - "pnpm-lock.yaml"
+  - ".github/dependabot.yml"
+---
+
 # Pre-Launch Dependency Hardening Checklist — security-audit Cat 1 per-check rubric
 
 **Priority:** 🟠 MANDATORY — pre-launch security gate (Cat 1 force-multiplier)
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-14
 **Last-Reviewed:** 2026-05-14
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (8-item per-check rubric + extends security-audit skill Category 1 + worked self-test catches dependency drift on current main) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-vague Cat 1 per-check enforcement closing GAP-522)
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; adds `paths:` frontmatter per Wave 73 Bucket A4 path-scope batch — no constraint change, rule still applies same scope, just deferred-load when no pom.xml / package.json / pnpm-lock / dependabot file in context. v1.0.0 (kept): MINOR self-approve per §5; new rule with built-in enforcement (8-item per-check rubric + extends security-audit skill Category 1 + worked self-test catches dependency drift on current main) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-vague Cat 1 per-check enforcement closing GAP-522)
 **Applies to:** Any release tag `v0.9.0-beta-staging.*` → first `v1.0.0-rc.*` transition; every PR touching `pom.xml`, `package.json`, `pnpm-lock.yaml`, `requirements*.txt`, `Dockerfile*`, dependabot config
 
 ---
@@ -190,4 +198,5 @@ Future: `scripts/check-dependency-hardening.sh` parses `pnpm audit --json` + `mv
 
 ## 7. Log
 
+- **2026-05-14 (v1.0.1):** PATCH — adds `paths:` frontmatter (`pom.xml`, `package.json`, `pnpm-lock.yaml`, `.github/dependabot.yml`) per Wave 73 Bucket A4 path-scope batch (5 pre-launch security rules consolidated). Mục đích: giảm session token cost — rule chỉ auto-load khi diff/context chạm dependency manifest hoặc dependabot config; ngoài scope đó context bộ nhớ được giải phóng. Không thay đổi constraint, không grandfather work cũ; rule vẫn fire ở mọi pre-launch tag promotion (`v0.9.0-beta-staging.*` → `v1.0.0-rc.*`) per §1. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — frontmatter additive, no constraint loosening). Cited Bucket 0 worked example: `.claude/rules/aws-sg-description-ascii.md` v1.0.1 (paired-PR pilot).
 - **2026-05-14 (v1.0.0):** Rule created closing Cat 1 slice of GAP-522. Triggered by user-flagged miss "skill audit phải là lớp phòng vệ tin tưởng" + Wave 71c PR #1278 already fixed Cat 4 via per-check rubric; extending same fix to Cat 1/2/3/5. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (GAP-522 filed 2026-05-13) → Classify ✓ (security-audit Cat 1 rubric was "npm audit critical/high count" with no per-pattern check; rubric allowed averaging that hid transitive CVE / lockfile drift / unpinned version classes) → Rule+Enforce ✓ (this file + security-audit/SKILL.md Cat 1 row update + worked §4 self-test + paired with 3 sister rules per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§4 worked example on current main — likely 2-3 P1/P2 follow-ups surface, validating rubric is concrete not aspirational) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds per-pattern OWASP A06 coverage to previously-vague Cat 1 rubric; no constraint loosening for prior tags; existing `v0.9.0-beta-staging.*` tags grandfathered; rule applies prospectively to `v1.0.0-rc` promotion).
