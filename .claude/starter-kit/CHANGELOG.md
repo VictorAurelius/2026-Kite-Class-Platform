@@ -7,6 +7,35 @@ Quản lý theo Semantic Versioning: `MAJOR.MINOR.PATCH`
 
 ---
 
+## [2.5.0] — 2026-05-14 — Production Hardening + Verification family retro-sync batch 2
+
+### Added (12 new rules from downstream meta-governance)
+
+- `rules/business-logic-review.md` (v1.0.0) — every business rule MUST document 5 attributes (Source / Rationale / Reviewer / Compliance check / Review cadence); per-PR + quarterly cadence
+- `rules/design-patterns.md` (v1.3.0) — project-wide design pattern rules + §3 anti-patterns + §3.5.1 Outbox bypass policy with Exception A/B/C/D matrix
+- `rules/logs-format-standard.md` (v1.0.0) — structured JSON logs on stdout with fixed schema, required + contextual fields, PII scrubber at logger level, retention tiers
+- `rules/pre-handoff-self-test-completeness.md` (v1.0.0) — "API returns 201" ≠ "user can do this"; verify FLOW end-to-end (credential / login / role-guard / navigation / action / confirmation) before claiming DONE on user-facing AC
+- `rules/pre-launch-auth-hardening-checklist.md` (v1.0.0) — OWASP A07 mandatory gate; 8 checks (rate limit / lockout / complexity / 2FA / login alerts / JWT rotation / admin audit log / session+refresh rotation)
+- `rules/pre-launch-dependency-hardening-checklist.md` (v1.0.0) — OWASP A06 Cat 1 rubric; 8 checks (FE/BE audit clean / version pin / SBOM / image base / dependabot / known-CVE board)
+- `rules/pre-launch-infra-hardening-checklist.md` (v1.0.0) — Cat 5 rubric; 9 checks (TLS 1.2+ / CORS strict / CSP / Docker non-root / k8s security context / network policy / secrets at rest / IAM least priv / WAF)
+- `rules/pre-launch-owasp-rest-hardening-checklist.md` (v1.0.0) — Cat 3 rubric; 9 OWASP Top 10 (2021) per-item checks ex-A07 (A01/A02/A03/A04/A05/A06/A08/A09/A10)
+- `rules/pre-launch-secrets-hardening-checklist.md` (v1.0.0) — Cat 2 rubric; 8 checks (zero hardcoded / .env gitignored / secret manager backend / rotation policy / git-history pickaxe clean / per-service isolation / KMS encryption / shared-secret cross-service hygiene)
+- `rules/pre-mutation-state-check.md` (v1.1.0) — read state + search prior actions + document findings in audit artifact BEFORE production mutation runs; §1.5 terraform-specific cross-reference matrix workflow
+- `rules/production-env-config-registry.md` (v1.1.0) — every suspect `${VAR:default}` (localhost/mock/noreply@localhost) in prod code MUST be overridden + tracked in centralized registry; 4 audit scripts (env coverage / gateway routes / service ports / Spring profiles)
+- `rules/readme-content-discipline.md` (v1.0.0) — root README is for STABLE info only; volatile metrics (scores, PR refs, wave names, version pins) belong in ROADMAP / gaps / audit reports
+
+### Notes
+
+- Source: downstream project retro-sync continuing v2.3.0 → v2.4.0 → v2.5.0. This batch v2.5.0 = production-hardening + verification family (12 new rules; cumulative kit total grows from 26 governance rules → 38 governance rules).
+- All shipped rules pass triage 4-question checklist (Generalize / Stable / No project paths / Battle-tested). Light-scrub applied — project terms (`kitehub`/`kiteclass`/`KiteHub`/`KiteClass`/AWS account ID/production domains) replaced with generic placeholders (e.g., `<frontend-service-1>`, `<backend-service-prefix>-`, `<aws-account-id>`, `<production-domain>`); cross-rule references kept; worked self-tests retained where illustrative.
+- Reviewer maintainer line standardized: `@nguyenvankiet (starter-kit upstream maintainer)`.
+- **Deferred to v2.6.0+ (skill batches + provider-narrow rules):**
+  - Skills: `quality/security-audit/`, `quality/business-logic-audit/`, `quality/pre-flight-check/`, `quality/wave-pack-planner/`, `quality/release-deploy/`, `workflow/wave-completion-check/` — retro-sync separately once stabilization signal confirmed
+  - Provider-specific rules: `terraform-apply-retry-reconfirm.md`, `terraform-partial-backend-public-repo.md` — coherent only with terraform context; consider generic-framing migration later
+- **Explicitly NOT shipped (provider-neutral kit philosophy):** AWS-narrow rules `agent-aws-access.md`, `aws-observability-first.md`, `aws-sg-description-ascii.md` — vendor-specific governance belongs in project repos, not the cross-project starter kit.
+
+---
+
 ## [2.4.0] — 2026-05-14 — Governance + Deploy Core retro-sync batch 1
 
 ### Added (17 new rules from downstream meta-governance)
