@@ -83,6 +83,7 @@ on drift between disk and this index.
 | `quality/marketing-legal-review/SKILL.md` | Use when PR touches marketing copy or legal docs (TOS, Privacy, DPA) — VN PDPL + GDPR/CAN-SPAM compliance |
 | `quality/gap-review/SKILL.md` | Dùng khi PR thêm/sửa GAP files — peer-review checklist trước status flip |
 | `quality/rule-review/SKILL.md` | Dùng khi PR thêm/sửa `.claude/rules/*.md` — ADR-like checklist |
+| `quality/hook-review/SKILL.md` | Dùng khi PR thêm/sửa `.claude/hooks/*.py` — 8-point rubric (matcher correctness + BLOCK/WARN gradient + override trailer + fail-safe + wiring + false-positive + idempotency + perf budget) |
 
 ---
 
