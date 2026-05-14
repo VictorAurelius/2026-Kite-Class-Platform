@@ -1,11 +1,20 @@
 ---
-title: Plan 1 — Self-Test E2E Flow (follow-along guide + Playwright automation scaffold)
-status: draft
+title: Plan 1 — Self-Test E2E Flow (Wave 69 — SUPERSEDED 2026-05-14)
+status: superseded
 created: 2026-05-13
-updated: 2026-05-13
+updated: 2026-05-14
 wave: 69
 gaps: [GAP-372, GAP-480, GAP-370]
+superseded_by: documents/05-guides/operations/phase-1-beta-acceptance-self-test.csv
 prs: []
+---
+
+> **🟠 SUPERSEDED 2026-05-14 (Wave 72a Bucket F):** This 7-step E2E checklist scope is too narrow for Phase 1 BETA acceptance. Replaced by exhaustive CSV matrix covering ALL beta-user-accessible flows across all personas (Anonymous / Pre-tenant / Owner / Teacher / Parent / Admin) — see [`documents/05-guides/operations/phase-1-beta-acceptance-self-test.csv`](../../05-guides/operations/phase-1-beta-acceptance-self-test.csv) + companion [`README.md`](../../05-guides/operations/phase-1-beta-acceptance-self-test.md). New CSV format is tick-trackable in any spreadsheet (LibreOffice/Excel/Sheets) with every `input_data` field pre-filled — zero data composition required. Wave 72a in-flight blocker gaps (GAP-514..525) referenced in CSV `blocker_gap` column.
+>
+> **Why superseded:** This file scoped only request→approve→signup→create-class (7 steps). Phase 1 BETA acceptance requires testing Owner provisioning wizard, AI branding regenerate, attendance/grades/billing tier, admin ops, off-boarding — none covered here. Markdown checkbox format also failed user requirement for spreadsheet tick-tracking workflow.
+>
+> **For historical reference only.** Original content below.
+
 ---
 
 > **Wave 69 scope (rescoped 2026-05-13):** Wave này deliver **tooling** chứ không phải execution. 2 deliverables:
@@ -218,3 +227,4 @@ Mỗi bug phát hiện trong khi self-test:
 
 - **2026-05-13:** Plan created. Triggered by user-flagged audit during Wave 68 closure: "GAP-372 code path shipped nhưng chưa từng test thật end-to-end". Wave 69 scope rebased from original "rollback drill + first beta invite + SES decision" → focus solo trên self-test E2E. Real cohort + rollback drill + SES re-submit move to Plan 2/3/4 hoặc parallel passive actions.
 - **2026-05-13** (path fix pre-execution): User probed `kitehub.me/auth/request-beta-access` → 404. Root cause: Next.js App Router `(auth)` là **route group** (folder ngoặc đơn) — không thêm vào URL path. Source `src/app/(auth)/request-beta-access/page.tsx` deploy thành route `/request-beta-access`. Plan 1 + Playwright spec dùng path `/auth/*` sai → fixed. Live probe verified routes correct: `/request-beta-access` 200 (Bước 2), `/login` 200 (Bước 3+7), `/beta-signup` 200 (Bước 5), `/admin/beta-requests` 200 (Bước 3). `/register` 404 (source có nhưng deploy thiếu — separate finding ngoài scope Plan 1).
+- **2026-05-14** (Wave 72a Bucket F — SUPERSEDED): Replaced by [`phase-1-beta-acceptance-self-test.csv`](../../05-guides/operations/phase-1-beta-acceptance-self-test.csv) (126 rows covering all P1+P2 personas + admin ops + email-driven flows). Reason: 7-step E2E scope too narrow for Phase 1 BETA acceptance gate; markdown checkbox format incompatible with user's spreadsheet tick-tracking workflow. File retained for historical reference; new walks use CSV.
