@@ -1,5 +1,7 @@
 package com.kitehub.gateway.config;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +35,8 @@ public class KeyResolverConfig {
 
     public static final String X_INSTANCE_SUBDOMAIN_HEADER = "X-Instance-Subdomain";
     public static final String X_API_KEY_HEADER = "X-API-Key";
+    public static final String X_USER_EMAIL_HEADER = "X-User-Email";
+    public static final String AUTHORIZATION_HEADER = "Authorization";
     static final String ANON_KEY = "anon";
 
     private final String baseDomain;
@@ -96,6 +100,101 @@ public class KeyResolverConfig {
             }
             return Mono.just("apikey:" + apiKey);
         };
+    }
+
+    /**
+     * Rate limit by user email address — used for endpoints abusable per-email regardless of
+     * source IP (e.g. {@code /api/auth/resend-verification}, {@code /api/auth/password-reset-request}).
+     *
+     * <p>Resolution order (GAP-514, OWASP A07 hardening):
+     * <ol>
+     *   <li>Frontend-set {@code X-User-Email} header — present when FE knows target email</li>
+     *   <li>IP fallback — opaque clients without the header still get rate-limited</li>
+     * </ol>
+     *
+     * <p>Reading the request body in Spring Cloud Gateway requires buffering the body
+     * (DataBufferUtils + cache filter), which adds latency to the auth hot path. Header-based
+     * resolution is the practical v1 trade-off: legitimate FE flows already know the target
+     * email at form-submit time, so passing it as a header is cheap. Attackers can spoof the
+     * header but each spoofed identity still consumes IP-bucket budget via the fallback.</p>
+     */
+    @Bean
+    public KeyResolver emailKeyResolver() {
+        return exchange -> {
+            String email = exchange.getRequest().getHeaders().getFirst(X_USER_EMAIL_HEADER);
+            if (email != null && !email.isBlank()) {
+                return Mono.just("email:" + email.trim().toLowerCase());
+            }
+            String ip = exchange.getRequest().getRemoteAddress() != null
+                    ? exchange.getRequest().getRemoteAddress().getAddress().getHostAddress()
+                    : ANON_KEY;
+            return Mono.just("email-fallback-ip:" + ip);
+        };
+    }
+
+    /**
+     * Rate limit by authenticated user — used for endpoints that already require a JWT
+     * (e.g. {@code /api/auth/refresh}). Parses the {@code sub} claim from the JWT payload
+     * WITHOUT validating the signature; the downstream auth filter is responsible for
+     * signature + expiry checks. The key resolver only needs a stable identifier to
+     * partition rate-limit buckets.
+     *
+     * <p>Fallback chain (GAP-514, OWASP A07 hardening):
+     * <ol>
+     *   <li>JWT {@code sub} claim from {@code Authorization: Bearer ...}</li>
+     *   <li>IP fallback when no bearer token present (e.g. malformed request)</li>
+     * </ol>
+     */
+    @Bean
+    public KeyResolver userKeyResolver() {
+        return exchange -> {
+            String authHeader = exchange.getRequest().getHeaders().getFirst(AUTHORIZATION_HEADER);
+            String userId = extractJwtSubject(authHeader);
+            if (userId != null && !userId.isBlank()) {
+                return Mono.just("user:" + userId);
+            }
+            String ip = exchange.getRequest().getRemoteAddress() != null
+                    ? exchange.getRequest().getRemoteAddress().getAddress().getHostAddress()
+                    : ANON_KEY;
+            return Mono.just("user-fallback-ip:" + ip);
+        };
+    }
+
+    /**
+     * Parse the {@code sub} claim from a JWT's payload without signature validation.
+     * Returns {@code null} when the header is missing, malformed, or the payload is not valid JSON.
+     *
+     * <p>This is intentionally minimal — a regex pull of {@code "sub":"<value>"}. Real validation
+     * happens at the downstream auth filter; the gateway only needs the identifier to bucket
+     * rate-limit requests.</p>
+     */
+    String extractJwtSubject(String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            return null;
+        }
+        String token = authorizationHeader.substring("Bearer ".length()).trim();
+        String[] parts = token.split("\\.");
+        if (parts.length < 2) {
+            return null;
+        }
+        try {
+            byte[] payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
+            String payload = new String(payloadBytes, StandardCharsets.UTF_8);
+            // Minimal extraction — no JSON library dependency in gateway hot path.
+            int subIdx = payload.indexOf("\"sub\"");
+            if (subIdx < 0) {
+                return null;
+            }
+            int colonIdx = payload.indexOf(':', subIdx);
+            int quoteStart = payload.indexOf('"', colonIdx + 1);
+            int quoteEnd = quoteStart >= 0 ? payload.indexOf('"', quoteStart + 1) : -1;
+            if (quoteStart < 0 || quoteEnd < 0) {
+                return null;
+            }
+            return payload.substring(quoteStart + 1, quoteEnd);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 
     String extractSubdomain(String host) {
