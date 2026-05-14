@@ -26,7 +26,6 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any
 
 # ── Paths ────────────────────────────────────────────────────────
 
@@ -104,9 +103,12 @@ def _extract_head(lines: list[str], max_lines: int) -> str:
     """Skip frontmatter (lines starting with **) + return first max_lines content."""
     skipped = 0
     for i, line in enumerate(lines):
-        if line.startswith("**") or line.startswith("---") or not line.strip():
-            skipped = i + 1
-        elif line.startswith("# "):
+        if (
+            line.startswith("**")
+            or line.startswith("---")
+            or not line.strip()
+            or line.startswith("# ")
+        ):
             skipped = i + 1
         else:
             break
