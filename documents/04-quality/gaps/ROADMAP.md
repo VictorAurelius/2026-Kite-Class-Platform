@@ -92,8 +92,8 @@ Recommend close GAP-518 (admin UI unblock) + GAP-514/515 (auth surface) in paral
 
 **Next session signpost:**
 
-- User runs Plan 1 self-test E2E end-to-end (or single-step manual)
-- File any bugs surfaced → Wave 72
+- User runs Phase 1 BETA acceptance self-test ([`documents/05-guides/operations/phase-1-beta-acceptance-self-test.csv`](../../05-guides/operations/phase-1-beta-acceptance-self-test.csv) — 126 rows, CSV format with pre-filled `input_data`; supersedes `plan-1-self-test-e2e.md` 2026-05-14)
+- File any bugs surfaced → Wave 72b+
 - **GAP-506 Phase 1** (P1 — deploy-prod tech debt: chicken-and-egg fix + start_period bump) — defer to next maintenance wave
 - **Post-release downsize evaluation** (≥4 weeks): if avg MemoryUtilization <60% + zero OOM → t3.large → t3.medium
 
