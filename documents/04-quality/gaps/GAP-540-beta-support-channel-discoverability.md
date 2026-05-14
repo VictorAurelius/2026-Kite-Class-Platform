@@ -1,6 +1,6 @@
 # GAP-540: Beta support channel discoverability (support@ + chat widget + footer)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (80% — Wave 78 Bucket F shipped footer mailto: + Help + beta-status; paid chat widget vendor Wave 79)
 **Priority:** 🔴 P0
 **Domain:** Frontend
 **Detected:** 2026-05-14
@@ -78,3 +78,4 @@ Outside-in 3-agent audit 2026-05-14 N7 finding. Comparable SaaS: Stripe support 
 ## Log
 
 - 2026-05-14 — Initial write-up (state-check completed; footer partial / chat widget + Help nav missing; Wave 78 Bucket F owner).
+- 2026-05-14 — Wave 78 Bucket F shipped (PR pending): `Footer.tsx` extracted from `PublicLayout.tsx` with new "Hỗ trợ" section — support@kitehub.me mailto: link + Trung tâm trợ giúp `/help` link + Trạng thái Beta `/beta-status` link + Privacy + Terms in Contact column. Tests cover all 4 testid'd links. Status flip to 🟡 PARTIAL (80%) — paid chat widget vendor (Crisp/Tawk.to) deferred Wave 79 per plan §1 Q4 MVP decision.

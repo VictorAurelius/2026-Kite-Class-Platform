@@ -64,9 +64,12 @@ describe('PublicLayout', () => {
     });
 
     it('renders footer sections', () => {
+      // GAP-540 Wave 78 Bucket F: Footer extracted to Footer.tsx with new
+      // "Hỗ trợ" column replacing legacy "Tính năng" — support channel
+      // discoverability per outside-in N7 retention signal.
       render(<PublicLayout><div>Content</div></PublicLayout>);
       expect(screen.getByText('Sản phẩm')).toBeInTheDocument();
-      expect(screen.getByText('Tính năng')).toBeInTheDocument();
+      expect(screen.getByText('Hỗ trợ')).toBeInTheDocument();
       expect(screen.getByText('Liên hệ')).toBeInTheDocument();
     });
 
@@ -82,18 +85,22 @@ describe('PublicLayout', () => {
       expect(loginLinks.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('renders feature list', () => {
+    it('renders support links (GAP-540 Wave 78)', () => {
       render(<PublicLayout><div>Content</div></PublicLayout>);
-      expect(screen.getByText('Quản lý học viên')).toBeInTheDocument();
-      expect(screen.getByText('Quản lý khóa học')).toBeInTheDocument();
-      expect(screen.getByText('Điểm danh tự động')).toBeInTheDocument();
-      expect(screen.getByText('Thanh toán online')).toBeInTheDocument();
+      expect(screen.getByTestId('footer-support-email')).toBeInTheDocument();
+      expect(screen.getByTestId('footer-help-link')).toBeInTheDocument();
+      expect(screen.getByTestId('footer-status-link')).toBeInTheDocument();
     });
 
-    it('renders contact info', () => {
+    it('renders contact column links', () => {
+      // Contact column now has: support email (mailto:) + Privacy + Terms.
+      // Phone hotline removed pending PR Phase 1.5 (placeholder until real
+      // hotline contracted).
       render(<PublicLayout><div>Content</div></PublicLayout>);
-      expect(screen.getByText('support@kitehub.me')).toBeInTheDocument();
-      expect(screen.getByText('1900 xxxx xx')).toBeInTheDocument();
+      const links = screen.getAllByRole('link');
+      const hrefs = links.map((l) => l.getAttribute('href'));
+      expect(hrefs).toContain('/legal/privacy');
+      expect(hrefs).toContain('/legal/terms');
     });
 
     it('renders copyright with current year', () => {

@@ -1,10 +1,10 @@
 # GAP-542: Feedback channel — in-app widget + email survey day-7/14
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (80% — Wave 78 Bucket F ship; email template wire deferred to Bucket E)
 **Priority:** 🔴 P0 (effective for Phase 1 BETA RETAIN)
 **Domain:** Mixed (FE + BE)
 **Detected:** 2026-05-14
-**Related PRs:** (Wave 78 plan PR pending)
+**Related PRs:** Wave 78 Bucket F (this PR)
 **Related Docs:** `documents/03-planning/waves/wave-2026-05-14-78-beta-invite-launch-retain.md`
 
 ## Current State (verified 2026-05-14)
@@ -79,3 +79,4 @@ User confirm 2026-05-14: "Feedback channel vào Wave 78" (1 trong 3 inside-out a
 ## Log
 
 - 2026-05-14 — Initial write-up (state-check completed; 0 widget/controller/migration found; Wave 78 Bucket F owner).
+- 2026-05-14 — Wave 78 Bucket F shipped (PR pending): FE `FeedbackWidget.tsx` floating button + 5-star + textarea + category + honeypot; BE `FeedbackController` POST /api/v1/feedback + service + entity + repository + DTOs; Flyway V44 `create_feedback_submissions_table`; `FeedbackSurveyScheduler` daily 09:00 UTC digest for day-7/day-14 windows (MVP: logs digest payload — Bucket E will wire email template). FE tests (component + footer) + BE tests (service + scheduler). Status flip to 🟡 PARTIAL (80%) — DONE pending Bucket E email send wire + live walkthrough.

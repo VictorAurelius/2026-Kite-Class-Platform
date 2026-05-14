@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ConsentBanner } from '@kite/shared-ui';
 import { KiteLogo } from '@/components/brand/KiteLogo';
+import { Footer } from './Footer';
 
 export function PublicLayout({ children }: { children: ReactNode }) {
   return (
@@ -40,55 +41,8 @@ export function PublicLayout({ children }: { children: ReactNode }) {
       {/* Main content */}
       <main className="flex-1">{children}</main>
 
-      {/* Footer */}
-      <footer className="border-t bg-muted/30">
-        <div className="container py-12">
-          <div className="grid gap-8 md:grid-cols-4">
-            {/* Brand */}
-            <div className="space-y-4">
-              <KiteLogo size="md" />
-              <p className="text-sm text-muted-foreground">
-                Nền tảng quản lý trung tâm giáo dục thông minh.
-                Giúp bạn bay cao cùng học viên.
-              </p>
-            </div>
-
-            {/* Product */}
-            <div>
-              <h4 className="mb-4 text-sm font-semibold">Sản phẩm</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/pricing" className="hover:text-foreground transition-colors">Bảng giá</Link></li>
-                <li><Link href="/register" className="hover:text-foreground transition-colors">Đăng ký</Link></li>
-                <li><Link href="/login" className="hover:text-foreground transition-colors">Đăng nhập</Link></li>
-              </ul>
-            </div>
-
-            {/* Features */}
-            <div>
-              <h4 className="mb-4 text-sm font-semibold">Tính năng</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>Quản lý học viên</li>
-                <li>Quản lý khóa học</li>
-                <li>Điểm danh tự động</li>
-                <li>Thanh toán online</li>
-              </ul>
-            </div>
-
-            {/* Contact */}
-            <div>
-              <h4 className="mb-4 text-sm font-semibold">Liên hệ</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>support@kitehub.me</li>
-                <li>1900 xxxx xx</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-12 border-t pt-8 text-center text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} KiteHub. All rights reserved.
-          </div>
-        </div>
-      </footer>
+      {/* Footer — GAP-540 Wave 78 Bucket F: support channel discoverability */}
+      <Footer />
 
       {/* PDPL 2023 Articles 11-13 cookie/consent — GAP-353 Wave 23 Bucket BC */}
       <ConsentBanner
