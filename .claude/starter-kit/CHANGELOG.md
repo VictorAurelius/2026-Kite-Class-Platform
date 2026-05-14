@@ -7,6 +7,44 @@ Quản lý theo Semantic Versioning: `MAJOR.MINOR.PATCH`
 
 ---
 
+## [2.4.0] — 2026-05-14 — Governance + Deploy Core retro-sync batch 1
+
+### Added (17 new rules from downstream meta-governance)
+
+- `rules/admin-merge-discipline.md` (v1.0.0) — guardrail for `gh pr merge --admin`; require local verify before bypass + override trailer
+- `rules/agent-action-bias.md` (v1.0.0) — agent does work itself + prefers command over UI; decision flow + exception list
+- `rules/agent-background-spawn-default.md` (v1.0.0) — always spawn agents with `run_in_background: true` unless documented exception
+- `rules/concurrent-production-mutation-ops.md` (v1.0.0) — serialize mutation ops on shared production resources; decision matrix + override trailer
+- `rules/contract-first-for-cross-layer.md` (v1.0.0) — cross-layer wave plans MUST ship api-contract foundation bucket FIRST before FE consumers
+- `rules/design-layer-coverage.md` (v1.0.0) — 4-layer Japanese V-model SI design completeness check (要件/基本/詳細/コンポーネント)
+- `rules/deployment-naming-convention.md` (v1.0.1) — folder taxonomy (account-prep/deploy/operations/runbooks) + filename patterns for deployment artifacts
+- `rules/docs-only-pr-auto-merge.md` (v1.0.0) — auto-merge docs-only PRs after CI green; skip redundant "check CI? merge?" prompts
+- `rules/gap-architecture-v2.md` (v1.0.3) — CSV-canonical pattern specialized for gap status (sister rule to meta-csv-index-pattern)
+- `rules/meta-csv-index-pattern.md` (v1.0.0) — generic CSV-canonical pattern for meta enumerations (rules/ADRs/skills/audits) with 4-artifact ship rule
+- `rules/post-merge-sync-completeness.md` (v1.0.0) — 4-target sync rule (CSV row + ROADMAP + wave-history + MEMORY index) per status flip
+- `rules/post-wave-audit-mandate.md` (v1.1.0) — audit cadence after wave merge (≤3 days); domain-milestone deferral with stricter milestone obligation
+- `rules/post-wave-cleanup.md` (v1.0.0) — wave closure prunes worktree husks + merged branches; cleanup is part of closure protocol
+- `rules/release-deploy-standard.md` (v1.1.0) — generic deploy artifact + process baseline per bump type (PRE-RELEASE/PATCH/MINOR/MAJOR); grounded in AWS Well-Architected + Twelve-Factor + DORA + OWASP + NIST
+- `rules/release-fix-retry-budget.md` (v1.1.0) — pivot to "remove the gate" at retry #2 of same release-tag CI gate; tooling-visibility-gap signal
+- `rules/session-currentdate-check.md` (v1.0.0) — read harness `currentDate` first for all date-stamped artifacts; ban forward-date inference
+- `rules/third-party-platform-automation-discovery.md` (v1.0.0) — discovery checklist (CLI/SDK/MCP/skill bundle) at first encounter; setup-effort × frequency matrix
+
+### Updated (3 rules)
+
+- `rules/audit-to-gap-pipeline.md` (v1.0.0 → v1.4.1) — adds §2.5 state-check at gap-filing time, §2.6 wave-plan pre-flight state-check, §2.7 decision-doc code-sync, §2.8 fix-time state-check (with §2.8 step 0 canonical CSV lookup); 6 worked self-tests and 5 recurrence-tracked incidents
+- `rules/mcp-first-with-fallback.md` (v1.0.0 → v1.1.0) — extends from MCP-vs-CLI binary to 3-tier hierarchy (MCP → dedicated tools Glob/Grep/Read/Edit/Write → Bash); §2.2 in-repo file-ops matrix banning bash for ls/grep/find/head/cat/sed; §6.5 Enforcement Parity Mandate via memory auto-load
+- `rules/output-review-mandate.md` (v1.2.0 → v1.5.0) — adds §3 matrix rows: HTML/JSX prototypes (review standard + integration smoke test + landing parity), Root README (content discipline), UI/Design 4-layer V-model coverage, Meta CSV indexes (rules/ADRs/gaps)
+
+### Notes
+
+- Source: downstream project (private), 2026-04-30 → 2026-05-14 meta-governance evolution. This batch v2.4.0 = governance + deploy core (17 new + 3 updated = 20 rules total).
+- All shipped rules pass triage 4-question checklist (Generalize / Stable / No project paths / Battle-tested). Light-scrub applied via `scripts/migrate-rules-to-kit.py` style helper — project terms (`kitehub`/`kiteclass`/`KiteHub`/`KiteClass`/`906286017800`/`kitehub.me`) replaced with generic placeholders; cross-rule references kept.
+- **Deferred to v2.5.0 (production hardening batch):** `pre-launch-auth-hardening-checklist.md`, `pre-launch-dependency-hardening-checklist.md`, `pre-launch-secrets-hardening-checklist.md`, `pre-launch-owasp-rest-hardening-checklist.md`, `pre-launch-infra-hardening-checklist.md`, `pre-handoff-self-test-completeness.md`, `pre-mutation-state-check.md`, `production-env-config-registry.md`, `readme-content-discipline.md`, `business-logic-review.md`, `logs-format-standard.md`, `design-patterns.md`.
+- **Explicitly NOT shipped (provider-neutral kit philosophy):** AWS-narrow rules `agent-aws-access.md`, `aws-observability-first.md`, `aws-sg-description-ascii.md`, `terraform-partial-backend-public-repo.md`, `terraform-apply-retry-reconfirm.md` — vendor-specific governance belongs in project repos, not the cross-project starter kit.
+- Reviewer maintainer line standardized across all shipped rule files: `@nguyenvankiet (starter-kit upstream maintainer)`.
+
+---
+
 ## [2.3.0] — 2026-04-29 — Q2 retro-sync, rules batch
 
 ### Added (9 rules from downstream meta-governance)

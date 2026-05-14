@@ -1,6 +1,6 @@
 # Claude Code Starter Kit
 
-**Version:** 2.3.0 (xem CHANGELOG.md)
+**Version:** 2.4.0 (xem CHANGELOG.md)
 
 Bộ skills, scripts, templates rút ra từ kinh nghiệm phát triển dự án thực tế (~200+ PRs, 10+ waves). Được quản lý như internal package với versioning và review process.
 
