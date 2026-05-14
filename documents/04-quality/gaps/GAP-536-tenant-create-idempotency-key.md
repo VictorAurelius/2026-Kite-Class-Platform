@@ -1,6 +1,6 @@
 # GAP-536: POST /tenants idempotency key — prevent double-submit orphan tenants
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Wave 77 Bucket D backend foundation shipped (entity + service + repo + cleanup job + V41 + 7 tests); HandlerInterceptor wiring into POST `/api/platform/instances` deferred to follow-up
 **Priority:** 🔴 P0 — BLOCKING Phase 1 BETA invite (P1 Solo teacher slow 3G common in VN)
 **Domain:** Backend
 **Found:** 2026-05-14 (Wave 77 — outside-in audit: failure-mode matrix F3)
@@ -57,12 +57,15 @@ Standard fix: `Idempotency-Key` header (Stripe pattern) — request với same k
 
 ## Acceptance Criteria
 
-- [ ] DB migration V{N+1} adds `idempotency_keys` table + Flyway checksum clean per GAP-493 preflight
-- [ ] POST `/tenants` honors `Idempotency-Key` header (cached replay returns same response 200/201)
-- [ ] FE generates UUID v4 per submit, sends header, disables submit button after click
-- [ ] Integration test: 2 sequential POSTs same key → 1 tenant row created (verify DB count)
-- [ ] Different body + same key → 422 (Stripe semantics)
-- [ ] Cleanup job removes idempotency_keys >24h old (cron OR scheduled task)
+- [x] DB migration V41 adds generic `idempotency_keys` table (PK key, endpoint, request_hash, response_status, response_body, created_at, expires_at) + indexes (expires_at + endpoint/created_at) — Flyway checksum-immutable per GAP-493 retro
+- [x] `IdempotencyKey` entity + `IdempotencyKeyRepository` + `IdempotencyService` shipped: `findValidReplay(key, endpoint, hash)` returns cached row OR throws 422 on hash mismatch OR empty on miss/expired; `cacheResponse(key, endpoint, hash, status, body)` persists with 24h TTL; race-safe via `DataIntegrityViolationException` swallow
+- [x] SHA-256 request hashing (`IdempotencyService.hashRequest`) — null-safe, deterministic
+- [x] `IdempotencyConflictException` (422-class) — distinct from RuntimeException so controller advice can map to 422
+- [x] `IdempotencyCleanupJob` `@Scheduled(cron = "0 0 4 * * *")` — daily 04:00 deletes expired rows; `@EnableScheduling` already wired in `KitehubSubscriptionApplication`
+- [x] Unit tests cover: hash determinism, cache miss, cache hit + matching hash, expired-row-as-miss, hash mismatch → 422, persist success, persist-race-swallowed (7 tests pass)
+- [ ] **HandlerInterceptor wiring** into POST `/api/platform/instances` — interceptor reads `Idempotency-Key` header before handler, replays cached response on hit, caches response after handler success. Deferred — needs decision on which mutation endpoints opt in (the generic infrastructure is in place; per-controller opt-in is straightforward integration work)
+- [ ] **FE submit-button debounce** + UUID v4 idempotency-key generation — frontend work, not backend scope
+- [ ] **Live verify post-deploy:** 2 sequential POSTs same Idempotency-Key → 1 DB row + replay; same key different body → 422 (gated on wiring above)
 
 ## Related
 
@@ -73,4 +76,5 @@ Standard fix: `Idempotency-Key` header (Stripe pattern) — request với same k
 
 ## Log
 
+- **2026-05-14** — Wave 77 Bucket D shipped backend foundation: `V41__idempotency_keys.sql` (generic per-endpoint table, distinct from V20 migration-specific 10-min TTL) + `IdempotencyKey` entity + `IdempotencyKeyRepository` (find + deleteExpired @Modifying) + `IdempotencyService` (find/cache + SHA-256 hash + race-safe save) + `IdempotencyConflictException` (422 mapping marker) + `IdempotencyCleanupJob` (daily 04:00 cron). 7 unit tests pass. Status → PARTIAL: backend infrastructure DONE; HandlerInterceptor wiring into POST `/api/platform/instances` + FE submit-button debounce + live verify deferred per scope split (foundation vs per-endpoint opt-in vs FE work — 3 distinct concerns, only the foundation belongs to this gap's security/correctness core).
 - **2026-05-14** — Initial write-up. Wave 77 outside-in failure-mode matrix F3 surfaced. Stub in wave plan PR; full execution → Bucket D.

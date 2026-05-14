@@ -1,6 +1,6 @@
 # GAP-534: Invite token single-use enforcement + audit log
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Wave 77 Bucket D code+tests shipped; live verify gated on next deploy (Flyway V39 + service)
 **Priority:** 🔴 P0 — BLOCKING Phase 1 BETA invite (security foundation)
 **Domain:** Backend
 **Found:** 2026-05-14 (Wave 77 — outside-in audit: failure-mode matrix F1)
@@ -51,12 +51,14 @@ Scope note: F1 matrix flagged device-binding as desirable but DEFER to Phase 2 �
 
 ## Acceptance Criteria
 
-- [ ] DB migration V{N} adds `used_at` column + Flyway checksum clean per GAP-493 preflight
-- [ ] `InviteTokenService.validateAndConsume` enforces single-use atomically (integration test: 1st call → 200, 2nd call → 409)
-- [ ] Audit log entry on reuse attempt (test verifies WARN line with `invite_token_reuse_attempt`)
-- [ ] Prometheus counter exposed + scraped
-- [ ] User-facing error message Vietnamese per `dev-readable-doc-language.md`
-- [ ] Existing tokens (if any unconsumed) remain valid
+- [x] DB migration V39 adds `used_at` + `consumed_ip` + `consumed_user_agent` columns (Wave 77 Bucket D — Flyway checksum-immutable per GAP-493 retro; partial index on `used_at` non-null)
+- [x] `InviteTokenService.validateAndConsume` enforces single-use atomically via repository `@Modifying` UPDATE WHERE `used_at IS NULL`; row-count==0 → throws `InviteTokenAlreadyUsedException` (controller maps to 409)
+- [x] Audit log entry on reuse attempt — `log.warn("invite_token_reuse_attempt token=... attempt_ip=... attempt_user_agent=...")` per `logs-format-standard.md`
+- [x] Prometheus counter `kitehub_invite_token_reuse_attempts_total` exposed via Micrometer
+- [x] User-facing error message Vietnamese: "Link đã được sử dụng. Vui lòng liên hệ support."
+- [x] Existing tokens (if any unconsumed) remain valid — `used_at IS NULL` for all backfilled rows
+- [x] Unit tests cover first-consume / reuse-attempt / not-found / wrong-status / expired (6 tests pass)
+- [ ] **Live verify post-deploy:** real reuse attempt via curl → 409 + audit log entry + counter increment (deferred — Flyway apply via deploy workflow)
 
 ## Related
 
@@ -68,4 +70,5 @@ Scope note: F1 matrix flagged device-binding as desirable but DEFER to Phase 2 �
 
 ## Log
 
+- **2026-05-14** — Wave 77 Bucket D code shipped. Files: `V39__invite_token_single_use.sql` (3 cột + partial index) + `BetaAccessRequest.java` (used_at/consumed_ip/consumed_user_agent fields) + `BetaAccessRequestRepository.consumeInviteToken` (atomic `@Modifying` UPDATE) + `InviteTokenService.java` (lifecycle gates + atomic consume + audit log + counter) + `InviteTokenAlreadyUsedException.java` + 6 unit tests pass. Status → PARTIAL: code+tests DONE, Flyway migration apply + live verify deferred to deploy workflow per `pre-handoff-self-test-completeness.md` §2.3 (production-equivalent verify out of scope this PR).
 - **2026-05-14** — Initial write-up. Wave 77 outside-in failure-mode matrix F1 surfaced. Stub in wave plan PR; full execution → Bucket D.

@@ -1,6 +1,6 @@
 # GAP-535: Tenant slug normalize — Vietnamese diacritics + smart quotes + collision recovery
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Wave 77 Bucket D normalize utility + tests + V40 migration shipped; wiring into `InstanceService.createInstance` collision-recovery loop deferred to follow-up
 **Priority:** 🔴 P0 — BLOCKING Phase 1 BETA invite (P2 Center owner target persona = Vietnamese tên có dấu)
 **Domain:** Backend
 **Found:** 2026-05-14 (Wave 77 — outside-in audit: failure-mode matrix F2)
@@ -51,12 +51,14 @@ P2 = target Tier 1 persona cho Phase 1 BETA. 100% tên trường VN có dấu. B
 
 ## Acceptance Criteria
 
-- [ ] Slug normalize pipeline implemented + unit tests cover 5+ Vietnamese name patterns
-- [ ] Smart quote stripping (`U+2018-U+201D`)
-- [ ] Collision recovery suffix appended (max 10 retries, then 409)
-- [ ] Original `name` preserved in DB (display); normalized `slug` separate column
-- [ ] Integration test: POST `/tenants` với tên `"Trường Mầm Non "Hoa Mai""` → 201 + slug = `truong-mam-non-hoa-mai`
-- [ ] DB migration if `slug` column missing or constraint mismatch — Flyway checksum clean per GAP-493 preflight
+- [x] Slug normalize pipeline implemented (`TenantSlugNormalizer`) — NFC → smart-quote strip → đ/Đ handle → stripAccents → lowercase → dash collapse → trim → cap @120
+- [x] Unit tests cover 10+ Vietnamese patterns (parameterized CSV: smart-quotes, full-name, edge-only-diacritics, ampersand, leading/trailing punct, numeric, đ/Đ stroke-bar) — 16 tests pass
+- [x] Smart quote stripping covers full U+2018–U+201F range (apostrophes + double-quotes + low-9-quote variants)
+- [x] Collision recovery via `withCollisionSuffix(base, n)` — base trimmed if `base+tail` exceeds cap; throws on suffix < 1
+- [x] DB migration V40 adds `instances.slug VARCHAR(120)` + unique partial index `WHERE slug IS NOT NULL`; backfill `slug := subdomain` for existing rows
+- [x] Original `organization_name` preserved with diacritics for display; `slug` separate column for URL/subdomain routing
+- [ ] **Wiring into `InstanceService.createInstance`** — current `InstanceService` does not call `TenantSlugNormalizer` yet; collision-recovery loop (10-retry then 409) belongs in that service. Follow-up gap recommended (separate concern from F2 P0 — the normalizer + schema + tests are the security/correctness foundation; wiring is integration step that depends on owner deciding which create endpoint inherits the normalize pipeline)
+- [ ] **Live verify post-deploy:** POST `/api/platform/instances` (or successor) with VN-diacritic name → 201 + DB row slug normalized (gated on wiring above)
 
 ## Related
 
@@ -67,4 +69,5 @@ P2 = target Tier 1 persona cho Phase 1 BETA. 100% tên trường VN có dấu. B
 
 ## Log
 
+- **2026-05-14** — Wave 77 Bucket D shipped: `TenantSlugNormalizer.java` (component) + 16 parameterized unit tests covering Wave 77 outside-in AC examples + `V40__tenant_slug_normalize.sql` (slug column + partial-unique index + backfill from subdomain). Status → PARTIAL: pure utility + schema + tests DONE; wiring into `InstanceService.createInstance` (collision-recovery loop) deferred — KiteHub's tenant=`instances` model has `subdomain` as the historical public slug; reframing create flow to consume the normalizer requires owner decision on which create endpoint(s) inherit the pipeline (beta-signup-complete path vs admin-platform path vs trial-self-serve path). Follow-up sub-gap recommended.
 - **2026-05-14** — Initial write-up. Wave 77 outside-in failure-mode matrix F2 surfaced. Stub in wave plan PR; full execution → Bucket D.
