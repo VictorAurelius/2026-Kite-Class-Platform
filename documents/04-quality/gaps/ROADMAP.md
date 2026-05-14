@@ -144,6 +144,40 @@ Full evidence: [`audits/aws-verification/2026-05-13-audit-of-trust-production-in
 
 ---
 
+### 🚀 Next Action (Wave 78 — Beta Invite Launch Retain UX/trust, 2026-05-14 draft — pipelined on Wave 77)
+
+**Wave 78 plan drafted** — `documents/03-planning/waves/wave-2026-05-14-78-beta-invite-launch-retain.md` — 6 buckets parallel + Bucket 0 Foundation (cross-layer YES — 4 NEW endpoints `/feedback` + `/api/v1/beta-status` + `/api/v1/onboarding-progress` + `/api/v1/support-tickets`). 14 P0/P1 items total. Estimated wall-clock ~6-8h longest bucket. Stake tier HIGH → Opus 4.7 full.
+
+**Inside-out close-out (8 existing):**
+- 🟡 GAP-428 (Prospects UI kit P1 → P0 effective RETAIN) — landing/pricing/signup pages first-touch
+- 🟡 GAP-480 (beta invite flow doc) — runbook covering end-to-end pipeline
+- 🟡 GAP-508 PARTIAL 60% (env config registry meta) — extend with 4 NEW endpoints
+- 🟡 GAP-514 PARTIAL 66% (rate limit live 429 + `/api/auth/password-reset-request` route)
+- 🟡 GAP-515 PARTIAL 80% (FE Retry-After UX)
+- 🟡 GAP-518 PARTIAL 80% (role mismatch live walkthrough verify)
+- 🔵 GAP-527 (kitehub-email actuator + E2E smoke)
+- 🔵 GAP-531 (tenant init handoff post-approve walkthrough)
+
+**6 NEW gaps filed Wave 78:**
+- 🔵 GAP-538 P0 — Day-1 onboarding checklist + sample/demo data seed (outside-in N1)
+- 🔵 GAP-539 P0 — Beta disclaimer banner + /beta-status page (outside-in N2)
+- 🔵 GAP-540 P0 — Beta support channel discoverability (support@ + widget + footer) (outside-in N7)
+- 🔵 GAP-541 P0 — Customer-facing VN i18n audit (TOS + email + banner) (outside-in N8)
+- 🔵 GAP-542 P0 — Feedback channel (in-app widget + email survey day-7/14) (inside-out — user confirmed)
+- 🔵 GAP-543 P0 — Email content audit 5 critical email types (inside-out — user confirmed)
+
+**Buckets:** 0 Foundation api-contract.md + MSW · A FE Polish (GAP-428+541) · B UX onboarding (GAP-538+539) · C Backend close-out (GAP-508+514+515) · D Admin/security (GAP-518+480) · E Email + smoke (GAP-527+543+531) · F Beta business (GAP-542+540).
+
+**Wave 79 queue (polish + defer):**
+- Premium plan implementation (DEFERRED from Wave 78 per user confirm)
+- GAP-040 (support impersonation — defer; not Phase 1 BETA RETAIN blocker)
+- UI kit polish remaining gaps (post-Wave 78 Bucket A baseline)
+- GAP-537 user manual Vietnamese — screenshots-based per persona (deferred to Wave 79)
+
+**Draft PR pipelined on top of Wave 77 PR #1339** — do NOT auto-merge until Wave 77 lands + user reviews Wave 78 plan.
+
+---
+
 ### 🚀 Next Action — historical (Wave 72b — 2FA + audit rubric review + admin verify, post-Plan 1 user walkthrough) [SUPERSEDED by Wave 77]
 
 **Wave 72a P0 BLOCKERS unblocked** — admin UI now usable (GAP-518/519 PARTIAL 80%); auth surface protected (GAP-514 rate limit + GAP-515 lockout PARTIAL); credentials covered by runbook (GAP-525 PARTIAL 50%); meta rubric extended (GAP-522 DONE).
