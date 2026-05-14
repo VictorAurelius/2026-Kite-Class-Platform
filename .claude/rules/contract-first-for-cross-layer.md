@@ -1,10 +1,16 @@
+---
+paths:
+  - "documents/03-planning/waves/**"
+  - "documents/01-business/**/api-contract.md"
+---
+
 # Contract-First for Cross-Layer Waves
 
 **Priority:** 🟠 MANDATORY — governance khi wave touch cả Frontend + Backend
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-07
-**Last-Reviewed:** 2026-05-07
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với enforcement parity = reviewer-checklist line + State-Check Evidence row + worked example self-test; detector wiring deferred to follow-up gap per §6.5 light-parity option)
+**Last-Reviewed:** 2026-05-14
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; thêm `paths:` frontmatter cho path-scoped auto-load qua Wave 73 Bucket A5 — không thay đổi scope rule, chỉ defer-load khi không đọc wave plan / api-contract.md trong context. v1.0.0 (kept): MINOR self-approve per §5; new rule với enforcement parity = reviewer-checklist line + State-Check Evidence row + worked example self-test; detector wiring deferred to follow-up gap per §6.5 light-parity option)
 **Applies to:** Mọi wave plan có scope chạm CẢ FE (`*frontend/**`) VÀ BE (`*-core/**`, `kitehub-*/**` non-frontend) trong cùng một bucket OR khác bucket cùng wave
 
 ---
@@ -210,4 +216,5 @@ Outcome (planned):
 
 ## 10. Log
 
+- **2026-05-14** (v1.0.1): PATCH — thêm `paths: ["documents/03-planning/waves/**", "documents/01-business/**/api-contract.md"]` frontmatter qua Wave 73 Bucket A5. Per Anthropic native `paths:` mechanism, rule giờ chỉ auto-load khi Claude đọc wave plan hoặc api-contract.md. Không thay đổi rule content/scope; reduces base context auto-load per Wave 73 Meta Context Optimization plan. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive frontmatter, no constraint change).
 - **2026-05-07 (v1.0.0):** Rule created sau Wave 32 v1 endpoint proliferation incident (1 GAP → 6+ sub-letters ad-hoc do FE-first không có contract). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged 4 questions audit 2026-05-07) → Classify ✓ (no existing rule cover cross-layer contract-first; `audit-to-gap-pipeline.md` §2.6 cover state-check generic, không enforce contract-first specifically) → Rule+Enforce ✓ (this rule + reviewer-checklist + State-Check Evidence row + paired memories `feedback_fe_first_endpoint_proliferation.md` + `feedback_kitehub_frontend_msw_missing.md` + `wave-pack-planner/SKILL.md` §Step 4.5 update + template compact — all same PR per `rule-change-process.md` §6.5 light-parity option) → Self-Test ✓ (§7 worked examples Wave 32 violated + Wave 34 satisfy) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint, no constraint loosening; existing pure-FE và pure-BE waves grandfathered, rule áp dụng cho cross-layer waves từ Wave 33 trở đi). Detector wiring deferred to follow-up gap (~7 ngày stabilization period); enforcement = reviewer-checklist + worked-example self-test sufficient for v1.0.0 per light-parity option.

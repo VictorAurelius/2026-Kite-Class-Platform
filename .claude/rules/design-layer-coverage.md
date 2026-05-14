@@ -1,10 +1,16 @@
+---
+paths:
+  - "documents/02-architecture/design-system/**"
+  - "documents/02-architecture/design-system/ui_kits/**"
+---
+
 # Design Layer Coverage — Japanese 4-layer V-model SI methodology
 
 **Priority:** 🔴 CRITICAL — design completeness governance, prevents docs miss
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-04-30
-**Last-Reviewed:** 2026-04-30
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (PR template + reviewer-checklist + dossier mapping doc + worked self-test) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds completeness guard for previously-uncovered scope-completeness gap)
+**Last-Reviewed:** 2026-05-14
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; thêm `paths:` frontmatter cho path-scoped auto-load qua Wave 73 Bucket A5 — chuyển từ CRITICAL auto-load mọi session sang path-scoped vì rule chỉ apply khi Claude đọc file design-system/ui_kits — phù hợp với scope-completeness use case "Per UI/design GAP/kit/wave/Track 2 port" (per §1.7 When to Invoke). v1.0.0 (kept): MINOR self-approve per §5; new rule with built-in enforcement per §6.5 Enforcement Parity Mandate)
 **Applies to:** Every PR/wave that touches UI / design / kit / business-flow / persona scope. Scope explicitly includes: filing new GAPs, building HTML kits, porting Track 2 to production, designing new features, deprecating screens, refactoring component lib.
 
 ---
@@ -232,4 +238,5 @@ If unsure: **default to apply §2 matrix.** Cost of unnecessary check is minutes
 
 ## 10. Log
 
+- **2026-05-14** (v1.0.1): PATCH — thêm `paths: ["documents/02-architecture/design-system/**", "documents/02-architecture/design-system/ui_kits/**"]` frontmatter qua Wave 73 Bucket A5. Per Anthropic native `paths:` mechanism, rule giờ chỉ auto-load khi Claude đọc file trong design-system/ui_kits scope. Không thay đổi rule content/scope; reduces base context auto-load per Wave 73 Meta Context Optimization plan. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive frontmatter, no constraint change; rule's per-context invocation matrix per §7.2 already gated by UI/design scope, path-scope mechanism aligns with that gating).
 - **2026-04-30 (v1.0.0):** Rule created at user request "tôi mong muốn sử dụng 4 layer này để tránh miss docs như vừa rồi" — direct response to 2026-04-29 UI Coverage Audit incident. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged miss + audit confirmed 32% missing coverage) → Classify ✓ (no existing rule mandates 4-layer completeness; existing layered docs but no enforcement that ALL 4 must coexist per scope) → Rule+Enforce ✓ (this file + paired same-PR `dossier/16-design-layer-mapping.md` + `output-review-mandate.md` §3 row update + PR template extension per §6.5) → Self-test ✓ (§6 worked example on UI Coverage Audit incident demonstrates rule would catch ⚠️ flags at 2 of 3 contexts checked) → Retro Log ✓ (this entry). Solo-dev MINOR self-approve per `rule-change-process.md` §5 — new rule with built-in enforcement, no constraint loosening for prior work. Existing artifacts grandfathered (no retroactive 4-layer audit until quarterly cycle).
