@@ -44,14 +44,19 @@ File này document business values cho feedback widget flow. Mỗi rule có 5 at
 
 ## Config
 
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `kitehub.feedback.rating-range-min` | `1` | Lower bound for rating |
-| `kitehub.feedback.rating-range-max` | `5` | Upper bound for rating |
-| `kitehub.feedback.comment-min-chars` | `5` | Min comment length |
-| `kitehub.feedback.comment-max-chars` | `2000` | Max comment length |
-| `kitehub.feedback.public-rate-limit-per-min-per-ip` | `10` | Public rate limit at gateway |
-| `kitehub.feedback.auth-rate-limit-per-min-per-user` | `30` | Authenticated rate limit |
-| `kitehub.feedback.categories` | `BUG,USABILITY,FEATURE_REQUEST,GENERAL` | Enum whitelist |
+Tracking `@Value` wiring status per GAP-555 (Wave 78 Business Logic audit P0 — 15+ config keys documented không wired qua `@Value`).
+
+| Key | Default | Purpose | Wired |
+|-----|---------|---------|:-----:|
+| `kitehub.feedback.rating-range-min` | `1` | Lower bound for rating | 🆕 Wave 79 Bucket A target |
+| `kitehub.feedback.rating-range-max` | `5` | Upper bound for rating | 🆕 Wave 79 Bucket A target |
+| `kitehub.feedback.comment-min-chars` | `5` | Min comment length | 🆕 Wave 79 Bucket A target |
+| `kitehub.feedback.comment-max-chars` | `2000` | Max comment length | 🆕 Wave 79 Bucket A target |
+| `kitehub.feedback.public-rate-limit-per-min-per-ip` | `10` | Public rate limit at gateway | 🆕 Wave 79 Bucket A target |
+| `kitehub.feedback.auth-rate-limit-per-min-per-user` | `30` | Authenticated rate limit | 🆕 Wave 79 Bucket A target |
+| `kitehub.feedback.categories` | `BUG,USABILITY,FEATURE_REQUEST,GENERAL` | Enum whitelist | 🆕 Wave 79 Bucket A target |
+| `kitehub.feedback.survey-cron` | (existing) | Day-7 survey cron schedule | ✅ Wave 78 |
+
+**Wave 79 Bucket A scope (GAP-555):** Add `@Value` injection cho 7 unwired keys ở column "Wired" trên. Survey-cron đã wired Wave 78. Total: 14 remaining keys cross 4 domain modules (feedback/onboarding/beta-status/support) — Bucket A grep target `@Value("\${kitehub.feedback...")` post-Bucket-A → ≥7 matches in feedback module alone.
 
 Config keys nằm trong `application.yml` BE module (Bucket F).

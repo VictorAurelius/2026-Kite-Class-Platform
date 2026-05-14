@@ -34,17 +34,21 @@ File này document business values cho support ticket flow. Mỗi rule có 5 att
 
 ## Config
 
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `kitehub.support.subject-min-chars` | `5` | Min subject length |
-| `kitehub.support.subject-max-chars` | `200` | Max subject length |
-| `kitehub.support.body-min-chars` | `10` | Min body length |
-| `kitehub.support.body-max-chars` | `5000` | Max body length |
-| `kitehub.support.public-rate-limit-per-min-per-ip` | `5` | Public rate limit |
-| `kitehub.support.auth-rate-limit-per-min-per-user` | `20` | Authenticated rate limit |
-| `kitehub.support.categories` | `AUTH_ISSUE,BILLING,BUG,FEATURE_REQUEST,DATA_ISSUE,OTHER` | Category enum |
-| `kitehub.support.priorities` | `LOW,NORMAL,HIGH,URGENT` | Priority enum |
-| `kitehub.support.ticket-number-prefix` | `KH-` | Human-readable ticket number prefix |
-| `kitehub.support.sla-first-response-hours` | `24` | Advertised first-response SLA Phase 1 |
+Tracking `@Value` wiring status per GAP-555 (Wave 78 Business Logic audit P0).
+
+| Key | Default | Purpose | Wired |
+|-----|---------|---------|:-----:|
+| `kitehub.support.subject-min-chars` | `5` | Min subject length | 🆕 Wave 79 Bucket A target |
+| `kitehub.support.subject-max-chars` | `200` | Max subject length | 🆕 Wave 79 Bucket A target |
+| `kitehub.support.body-min-chars` | `10` | Min body length | 🆕 Wave 79 Bucket A target |
+| `kitehub.support.body-max-chars` | `5000` | Max body length | 🆕 Wave 79 Bucket A target |
+| `kitehub.support.public-rate-limit-per-min-per-ip` | `5` | Public rate limit | 🆕 Wave 79 Bucket A target |
+| `kitehub.support.auth-rate-limit-per-min-per-user` | `20` | Authenticated rate limit | 🆕 Wave 79 Bucket A target |
+| `kitehub.support.categories` | `AUTH_ISSUE,BILLING,BUG,FEATURE_REQUEST,DATA_ISSUE,OTHER` | Category enum | 🆕 Wave 79 Bucket A target |
+| `kitehub.support.priorities` | `LOW,NORMAL,HIGH,URGENT` | Priority enum | 🆕 Wave 79 Bucket A target |
+| `kitehub.support.ticket-number-prefix` | `KH-` | Human-readable ticket number prefix | 🆕 Wave 79 Bucket A target |
+| `kitehub.support.sla-first-response-hours` | `24` | Advertised first-response SLA Phase 1 | 🆕 Wave 79 Bucket A target |
+
+**Wave 79 Bucket A scope (GAP-555):** Add `@Value` injection cho 10 keys above ở module `kitehub-subscription/support/service`. Total across 4 domains = 7 (feedback) + 2 (onboarding) + 3 (beta-status) + 10 (support) = **22 keys** to wire (exceeds plan §3 estimate "15+"); Bucket A grep verify post-fix: `grep -c "@Value(.\${kitehub" kitehub/kitehub-subscription/src/main/java -r` → ≥22 matches expected.
 
 Config keys nằm trong `application.yml` BE module (Bucket F).
