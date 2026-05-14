@@ -1,7 +1,12 @@
+---
+paths:
+  - "documents/04-quality/audits/ui/**"
+---
+
 # Audit Skill Rubric — ui-review (5 dimensions per screen, per-check pass/fail)
 
 **Priority:** 🟠 MANDATORY — audit primacy + per-check rubric for `ui-review` skill
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-14
 **Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (5-dimension per-check rubric for per-screen /128 + bug-finding-primacy + extends `ui-review/SKILL.md` + worked self-test on current main surfaces ≥1 finding) per §6.5 Enforcement Parity Mandate; no constraint loosening — generalizes Wave 71c security-audit pattern closing GAP-523)
@@ -156,4 +161,5 @@ Future `scripts/check-ui-review-rubric.sh` parsing audit report markdown — def
 
 ## 7. Log
 
+- **2026-05-14 (v1.0.1):** PATCH — added `paths:` frontmatter per Wave 73 Bucket A1 path-scope. No constraint change; rule auto-loads only when matching files in context.
 - **2026-05-14 (v1.0.0):** Rule created closing GAP-523 META P0 (Wave 72b Bucket E). Generalizes Wave 71c security-audit per-check pattern to ui-review's 5 dimensions /128. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (GAP-523 Wave 71c retro) → Classify ✓ (no rule enforces per-sub-check pass/fail for ui-review dimensions 1-5; existing 0-4 narrative in `ui-review/SKILL.md` allows averaging hide P0) → Rule+Enforce ✓ (this file + ui-review/SKILL.md §"Per-check scoring" extension paired same PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§5 worked example on current main — 1 confirmed FAIL: 5.1 WCAG contrast on 3 PARTIAL kits per Wave 53 GAP-429 carry-forward) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — no constraint loosening). Detector deferred per premature-rule guard ≥7 days.

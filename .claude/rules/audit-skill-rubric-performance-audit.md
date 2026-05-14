@@ -1,7 +1,12 @@
+---
+paths:
+  - "documents/04-quality/audits/performance/**"
+---
+
 # Audit Skill Rubric — performance-audit (5 categories, per-check pass/fail)
 
 **Priority:** 🟠 MANDATORY — audit primacy + per-check rubric for `performance-audit` skill
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-14
 **Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (5-category per-check rubric + bug-finding-primacy + extends `performance-audit/SKILL.md` + worked self-test on current main surfaces ≥1 finding) per §6.5 Enforcement Parity Mandate; no constraint loosening — generalizes Wave 71c security-audit pattern closing GAP-523)
@@ -148,4 +153,5 @@ Future `scripts/check-performance-rubric.sh` — defer until 2nd recurrence per 
 
 ## 7. Log
 
+- **2026-05-14 (v1.0.1):** PATCH — added `paths:` frontmatter per Wave 73 Bucket A1 path-scope. No constraint change; rule auto-loads only when matching files in context.
 - **2026-05-14 (v1.0.0):** Rule created closing GAP-523 META P0 (Wave 72b Bucket E). Generalizes Wave 71c security-audit per-check pattern to performance-audit's 5 categories. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (Wave 71c retro identified 6 audit skills with averaging risk) → Classify ✓ (no rule enforces per-check pass/fail for performance audit Cat 1-5) → Rule+Enforce ✓ (this file + performance-audit/SKILL.md §"Per-check scoring" extension paired same PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§5 worked example on current main — 3 likely findings surfaced: 1.1 findAll, 2.2 pagination, 4.2 TTL) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — no constraint loosening). Detector wiring deferred per premature-rule guard ≥7 days.
