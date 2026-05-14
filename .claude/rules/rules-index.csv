@@ -44,3 +44,7 @@ concurrent-production-mutation-ops,CRITICAL,1.0.0,2026-05-12,2026-05-12,concurre
 production-env-config-registry,MANDATORY,1.1.0,2026-05-13,2026-05-13,production-env-config-registry.md
 pre-handoff-self-test-completeness,CRITICAL,1.0.0,2026-05-13,2026-05-13,pre-handoff-self-test-completeness.md
 pre-launch-auth-hardening-checklist,MANDATORY,1.0.0,2026-05-13,2026-05-13,pre-launch-auth-hardening-checklist.md
+pre-launch-dependency-hardening-checklist,MANDATORY,1.0.0,2026-05-14,2026-05-14,pre-launch-dependency-hardening-checklist.md
+pre-launch-infra-hardening-checklist,MANDATORY,1.0.0,2026-05-14,2026-05-14,pre-launch-infra-hardening-checklist.md
+pre-launch-owasp-rest-hardening-checklist,MANDATORY,1.0.0,2026-05-14,2026-05-14,pre-launch-owasp-rest-hardening-checklist.md
+pre-launch-secrets-hardening-checklist,MANDATORY,1.0.0,2026-05-14,2026-05-14,pre-launch-secrets-hardening-checklist.md
