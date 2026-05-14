@@ -1,12 +1,26 @@
 # Support Tickets — Business Rules
 
 **Domain:** Support inquiry / ticket submission (Wave 78 — GAP-540)
-**Last verified:** 2026-05-14 (Wave 78 Bucket 0 Foundation)
+**Last verified:** 2026-05-14 (Wave 79 Bucket E — scope clarification per GAP-556)
 **Config prefix:** `kitehub.support`
 
 File này document business values cho support ticket flow. Mỗi rule có 5 attributes theo `.claude/rules/business-logic-review.md` §2.
 
-> **Bucket 0 stub status:** rules dưới là stub form. Bucket F (GAP-540) sẽ enrich theo final implementation.
+> **⚠️ Wave 78 scope: DISCOVERABILITY ONLY (per GAP-556)** — Wave 78 chỉ ship:
+> - Footer `mailto:support@kitehub.me` link discoverable trên public + dashboard layout
+> - Tài liệu mention `support@kitehub.me` channel
+>
+> **CHƯA implement trong Wave 78 / 79:**
+> - Backend table `support_tickets` (mô tả ở rules.md dưới là **PLANNED**, không phải đã ship)
+> - `POST /api/v1/support-tickets` endpoint
+> - Admin ticket queue management UI / triage workflow
+> - SLA tracking, auto-reply, status updates
+>
+> **Khi nào implement?** Full ticket/queue management deferred Wave 80+ — tracked cùng GAP-040 (support impersonation BE). Tham khảo `release-1-plan-2026.md` §3 cho phase scope.
+>
+> **Mục đích note:** Tránh future reader hiểu nhầm bảng `support_tickets` mô tả ở §1-§2 đã được implement. Hiện tại chỉ là **design intent + planned BE scope** cho release sau.
+
+> **Bucket 0 stub status:** rules dưới là stub form cho design intent. Bucket F (GAP-540) đã ship discoverability slice; full implementation defer Wave 80+.
 
 ---
 

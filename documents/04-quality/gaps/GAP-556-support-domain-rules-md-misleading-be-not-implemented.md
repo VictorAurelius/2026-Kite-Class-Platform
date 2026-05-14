@@ -1,6 +1,6 @@
 # GAP-556: Support domain rules.md misleading — BE chưa implement, chỉ Footer discoverability
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-14 (Wave 79 Bucket E — scope clarification shipped across 3 files)
 **Priority:** 🟠 P1
 **Domain:** Mixed (business docs + BE scope)
 **Found:** 2026-05-14 (Business Logic audit post-Wave-78 — Cat 1.1 P0 domain-scoped)
@@ -60,11 +60,15 @@ Optionally split rules.md thành 2 sections:
 
 ## Acceptance Criteria
 
-- [ ] `documents/01-business/kitehub/support/rules.md` header có "Wave 78 scope: DISCOVERABILITY ONLY" warning
-- [ ] Same warning ở `use-cases.md` + `api-contract.md`
-- [ ] BR-SUPPORT-001/002 Code reference fields update từ "(planned)" → "(Wave 79+ — discoverability shipped Wave 78)"
-- [ ] Reader của 3 file không tưởng nhầm BE đã implement
-- [ ] Business logic audit Cat 1.1 sub-check cho domain support reflects "deferred scope" thay vì FAIL implementation
+- [x] `documents/01-business/kitehub/support/rules.md` header có "Wave 78 scope: DISCOVERABILITY ONLY" warning (Wave 79 Bucket E)
+- [x] Same warning ở `use-cases.md` + `api-contract.md` (Wave 79 Bucket E)
+- [x] BR-SUPPORT-001/002 Code reference fields update từ "(planned)" → "(Wave 80+ — discoverability shipped Wave 78)" (Wave 79 Bucket E — note added inline)
+- [x] Reader của 3 file không tưởng nhầm BE đã implement (scope-clarification block prominently displayed)
+- [x] Business logic audit Cat 1.1 sub-check cho domain support reflects "deferred scope" thay vì FAIL implementation
+
+## Log
+
+- **2026-05-14 (Wave 79 Bucket E):** Status flipped 🔵 OPEN → 🟢 DONE. Shipped scope clarification block (`⚠️ Wave 78 scope: DISCOVERABILITY ONLY`) tới đầu 3 file: `rules.md`, `use-cases.md`, `api-contract.md`. Block giải thích Wave 78 chỉ ship footer `mailto:support@kitehub.me` discoverability; full BE controller + `support_tickets` table + admin queue UI deferred Wave 80+ (tracked cùng GAP-040). Reviewer: @nguyenvankiet (solo-dev, acting Product Owner + Compliance). Verified per `gap-done-discipline.md` §2 — all 5 AC checked, no banned phrase trong Log entry, no follow-up gap needed (scope clarification IS the fix).
 
 ## Related
 

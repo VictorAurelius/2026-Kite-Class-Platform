@@ -16,8 +16,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.UUID;
 
@@ -28,14 +33,42 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for InstanceController.
  *
+ * <p>Uses Testcontainers PostgreSQL (per GAP-544) to provide production-equivalent
+ * database isolation instead of H2. Docker daemon required at runtime — CI runners
+ * have Docker available; local dev needs Docker Desktop / kite-dev WSL.</p>
+ *
  * @author KiteHub Team
  * @since 1.0.0
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Testcontainers
 @DisplayName("InstanceController Integration Tests")
 class InstanceControllerIntegrationTest {
+
+    /**
+     * Testcontainers Postgres — replaces hardcoded localhost:5433 dependency
+     * (GAP-544 Wave 79 Bucket E). Alpine image keeps pull time minimal.
+     */
+    @Container
+    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
+        .withDatabaseName("kitehub_test")
+        .withUsername("test")
+        .withPassword("test")
+        .withReuse(true);
+
+    @DynamicPropertySource
+    static void registerDatasourceProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
+        registry.add("spring.datasource.username", POSTGRES::getUsername);
+        registry.add("spring.datasource.password", POSTGRES::getPassword);
+        registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.jpa.properties.hibernate.dialect",
+            () -> "org.hibernate.dialect.PostgreSQLDialect");
+        // Override the application-test.yml H2 dialect when testcontainers active
+    }
 
     @Autowired
     private MockMvc mockMvc;
