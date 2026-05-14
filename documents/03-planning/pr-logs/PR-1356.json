@@ -1,0 +1,40 @@
+{
+  "pr": 1356,
+  "title": "feat(wave-78-B): onboarding checklist + sample data seed + beta disclaimer + /beta-status (GAP-538/539)",
+  "branch": "wave/78-bucket-b-ux-onboarding",
+  "created_at": null,
+  "merged_at": "2026-05-14T15:32:29Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": false,
+    "audits_required": [
+      "ui-review",
+      "api-contract-audit"
+    ],
+    "audits_run": [
+      "ui-review"
+    ],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-14T15:32:34.677950",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 34,
+        "java_files": 15,
+        "test_files": 3,
+        "business_docs": false,
+        "missing_audits": [
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "1/5",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-92381"
+  }
+}

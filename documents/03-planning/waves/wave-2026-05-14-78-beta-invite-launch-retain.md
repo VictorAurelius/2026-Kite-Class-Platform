@@ -1,6 +1,6 @@
 ---
 title: Wave 78 — Beta Invite Launch Retain (UX/trust scope — 6 buckets / 14 P0 items)
-status: draft
+status: complete
 created: 2026-05-14
 updated: 2026-05-14
 waves: [78]
