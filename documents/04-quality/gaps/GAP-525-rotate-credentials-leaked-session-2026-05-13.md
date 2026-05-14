@@ -1,6 +1,6 @@
 # GAP-525: Rotate 3 credentials leaked in 2026-05-13 session transcript
 
-**Status:** 🟡 PARTIAL — runbook + incident artifact shipped Wave 72a Bucket D 2026-05-14; actual rotation = user-action pending
+**Status:** 🟡 PARTIAL 85% — runbook + incident artifact (Wave 72a) + automation wrapper + dedicated runbook (Wave 77 Bucket C) shipped; remaining 15% = user executes rotation outside Claude
 **Priority:** 🔴 P0 (operational security — credentials appeared in transcript log)
 **Domain:** DevOps / Security
 **Found:** 2026-05-13 (Wave 71c-meta-Phase-2 — self-audit of residual session items)
@@ -28,20 +28,39 @@ Run after Wave 71c Phase 1 P0s land + admin UI verified working:
 
 ## Acceptance Criteria
 
-- [ ] Admin password rotated; old password no longer works
-- [ ] CF token revoked (verify via Cloudflare dashboard audit log)
-- [ ] Resend API key rotated; kitehub-email container picks up new key (SSM verify length=35 prefix differs from `re_ho`)
-- [ ] Session transcript local file optionally redacted/deleted post-rotation
+Code-side (shipped):
+
+- [x] General runbook published — `documents/05-guides/operations/credential-rotation-runbook.md` (Wave 72a Bucket D)
+- [x] Incident artifact published — `documents/04-quality/audits/credential-rotation/2026-05-14-wave-72a-3-credentials.md` (Wave 72a Bucket D)
+- [x] Automation wrapper script — `scripts/rotate-leaked-credentials.sh` (Wave 77 Bucket C this PR; shellcheck PASS; `--dry-run` exit 0)
+- [x] Dedicated incident runbook — `documents/05-guides/operations/credential-rotation-2026-05-13.md` (Wave 77 Bucket C this PR; step-by-step Vietnamese + verification commands)
+- [x] Closure trailer format documented — `GAP-525_USER_ROTATED: admin-pwd YYYY-MM-DD / cloudflare YYYY-MM-DD / resend YYYY-MM-DD`
+
+User-action (pending — outside Claude session per `agent-action-bias.md` §3 row 5 + `agent-aws-access.md` §4.3):
+
+- [ ] **#1 Admin password rotated** — old password no longer works (verified via login UI flow per `pre-handoff-self-test-completeness.md` §2.4)
+- [ ] **#2 Cloudflare API token revoked** — Cloudflare dashboard audit log shows "API Token Deleted" event; old token returns HTTP 401 from `/user/tokens/verify`
+- [ ] **#3 Resend API key rotated** — kitehub-email container picks up new key (verify logs show zero 401/unauthorized post-redeploy); old key returns HTTP 401 from POST `/emails`
+- [ ] **3 audit skeleton files filled** — `documents/04-quality/audits/credential-rotation/YYYY-MM-DD-credential-rotation-{admin-password,cloudflare-token,resend-api-key}.md` rotation-status tables verified + `status: complete`
+- [ ] **Parent incident artifact updated** — `2026-05-14-wave-72a-3-credentials.md` rotation-status 3 rows → `verified`
+- [ ] **Session transcript** optionally redacted/deleted: `~/.claude/projects/.../7517e076-d175-4fb2-bbdf-23bb355763d9.jsonl`
+- [ ] **Memory entry filed** — `feedback_credential_leak_session_2026_05_13.md` + MEMORY.md index update per `incident-to-rule-pipeline.md` Stage 5
 
 ## Related
 
 - Triggered by: 2026-05-13 session pattern of "Option B paste in chat" + Tier 2 confirmed AWS read for self-test enablement
 - Meta lesson: `pre-handoff-self-test-completeness.md` §2.1 row (a) credential delivery — Option A (user-runs-locally) preferred to avoid this; user explicitly chose B for speed; file this gap as the cost
 - Rotation cadence going forward: `pre-launch-auth-hardening-checklist.md` §2.6 (JWT) + GAP-520 (JWT runbook) — extend to all platform secrets quarterly
-- Runbook: [`documents/05-guides/operations/credential-rotation-runbook.md`](../../05-guides/operations/credential-rotation-runbook.md) (shipped Wave 72a Bucket D)
+- General runbook: [`documents/05-guides/operations/credential-rotation-runbook.md`](../../05-guides/operations/credential-rotation-runbook.md) (shipped Wave 72a Bucket D)
+- Dedicated incident runbook: [`documents/05-guides/operations/credential-rotation-2026-05-13.md`](../../05-guides/operations/credential-rotation-2026-05-13.md) (shipped Wave 77 Bucket C)
+- Automation wrapper: [`scripts/rotate-leaked-credentials.sh`](../../../scripts/rotate-leaked-credentials.sh) (shipped Wave 77 Bucket C)
 - Incident artifact: [`documents/04-quality/audits/credential-rotation/2026-05-14-wave-72a-3-credentials.md`](../audits/credential-rotation/2026-05-14-wave-72a-3-credentials.md)
 
 ## Log
 
+- **2026-05-14** (Wave 77 Bucket C): completion_pct 50 → 85. Code-side automation shipped:
+  - `scripts/rotate-leaked-credentials.sh` — wrapper script với `--dry-run` reachability check + per-credential Vietnamese step-by-step instructions + audit log skeleton generation. Shellcheck PASS. `--dry-run` exit 0 verified (4/5 reachability OK; admin-seed-password secret absent — OK for first-time create).
+  - `documents/05-guides/operations/credential-rotation-2026-05-13.md` — dedicated incident runbook bám parent runbook §2.1/§2.3.1/§2.3.2 với incident-specific values (secret IDs, vendor portal URLs, consumers, estimated time per credential).
+  - Closure trailer format codified: `GAP-525_USER_ROTATED: admin-pwd YYYY-MM-DD / cloudflare YYYY-MM-DD / resend YYYY-MM-DD` (per `gap-done-discipline.md` §2). User chạy rotation outside Claude session per `agent-action-bias.md` §3 row 5 (destructive shared-state) + `agent-aws-access.md` §4.3 (Tier 3 mutations user-execute only). Wrapper KHÔNG tự call mutation APIs.
 - **2026-05-14** (Wave 72a Bucket D): Status flipped 🔵 OPEN → 🟡 PARTIAL. Runbook `documents/05-guides/operations/credential-rotation-runbook.md` + incident audit artifact `documents/04-quality/audits/credential-rotation/2026-05-14-wave-72a-3-credentials.md` shipped. Procedure ready; actual rotation steps deferred to user-action per `agent-aws-access.md` §4 (Tier 3 mutations are user-execute only) + vendor portal revocations (Cloudflare, Resend) require user login. Per `gap-done-discipline.md` §3 PARTIAL exit ramp: AC items 1–4 remain unchecked until user completes the rotation per the incident artifact §"Next steps" checklist. Gap stays PARTIAL until rows 1–3 of the artifact's rotation-status table show `verified` status, at which point user flips to 🟢 DONE.
 - **2026-05-13** (Wave 71c-meta-Phase-2): Gap filed. 3 credentials surfaced in session transcript identified.
