@@ -1,11 +1,11 @@
 # GAP-541: Customer-facing Vietnamese i18n audit (TOS + approval email + dashboard banner)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Wave 78 Bucket A landing + pricing + TOS placeholder + signup redirect ✅ (100% VN narrative); email body + dashboard banner sync sister buckets E/B
 **Priority:** 🔴 P0
 **Domain:** Frontend
 **Detected:** 2026-05-14
-**Related PRs:** (Wave 78 plan PR pending)
-**Related Docs:** `documents/03-planning/waves/wave-2026-05-14-78-beta-invite-launch-retain.md`
+**Related PRs:** Wave 78 Bucket A FE Polish (this PR)
+**Related Docs:** `documents/03-planning/waves/wave-2026-05-14-78-beta-invite-launch-retain.md`; audit report `documents/04-quality/audits/i18n/2026-05-14-customer-facing-vi-audit.md`
 
 ## Current State (verified 2026-05-14)
 
@@ -76,4 +76,5 @@ Outside-in audit 2026-05-14 N8 finding. Per `dev-readable-doc-language.md` §2 +
 
 ## Log
 
+- **2026-05-14 (Wave 78 Bucket A — flip OPEN → PARTIAL):** Customer-facing surface audit shipped trong `documents/04-quality/audits/i18n/2026-05-14-customer-facing-vi-audit.md`. State-check finding: kitehub-frontend KHÔNG dùng i18n library (no next-intl/i18next/formatjs), Vietnamese content hardcoded inline trong .tsx — `src/i18n/locales/vi/` mà gap mô tả KHÔNG tồn tại. AC reframed: thay vì audit locale files, audit hardcoded strings trực tiếp. Findings: landing (1015 LOC) + pricing + TOS placeholder banner + signup redirect tất cả 100% Vietnamese narrative tone tự nhiên; mixed-language với English token (Provider/Customer/HTTP/JWT/brand names) inline OK per `dev-readable-doc-language.md` §4; format VND đúng (`Intl.NumberFormat('vi-VN')`). Bugs fixed same PR: `LandingClient.tsx` line 382/1003/1007 — replace `kiteclass.com` showcase domain + `1900-xxxx` placeholder + `support@kiteclass.com` với `kitehub.me` brand đồng bộ. Out-of-scope (PARTIAL exit ramp per `gap-done-discipline.md` §3): dashboard banner content (Bucket B GAP-539), approval email subjects + bodies (Bucket E GAP-543); i18n library integration (deferred per CLAUDE.md "EN deferred to GAP-182 Phase 2 counsel-reviewed"). Reviewer: @nguyenvankiet (Wave 78 Bucket A agent).
 - 2026-05-14 — Initial write-up (state-check completed; i18n locale files exist but coverage/quality chưa audit; Wave 78 Bucket A owner).
