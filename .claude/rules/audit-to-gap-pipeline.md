@@ -1,9 +1,15 @@
+---
+paths:
+  - "documents/04-quality/gaps/**/*.md"
+  - "documents/04-quality/audits/**"
+---
+
 # Audit → Gap → Fix Pipeline
 
 **Priority:** 🟠 MANDATORY — audit findings governance
-**Version:** 1.4.1
+**Version:** 1.4.2
 **Created:** 2026-04-16
-**Last-Reviewed:** 2026-05-11
+**Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.4.1 PATCH self-approve per `rule-change-process.md` §5; §2.8 step 0 added — "Canonical-status lookup first" recommends querying `gap-status.csv` via `query-gaps.sh` before heavier state-check, per `gap-architecture-v2.md` Phase 4 integration. No constraint change; additive efficiency note. v1.4.0 (kept): adds §2.8 Fix-Time State-Check extending state-check family from gap-filing (§2.5) + wave-planning (§2.6) + decision-doc (§2.7) to **fix pick-up time**; paired same-PR with memory `feedback_gap_state_check_required.md` extension + worked self-test on 2026-05-11 GAP-450 session per §6.5 Enforcement Parity Mandate; no constraint loosening. v1.3.0 (kept): paired same-PR with PR-template Output Review Checklist row + memory `feedback_decision_doc_code_sync.md` + worked self-test on 2026-05-09 GAP-458 → GAP-459 cascade per §6.5 Enforcement Parity Mandate)
 **Applies to:** Every audit run (UI /128, Quality /100, Security /100, Performance /100, API Contract /100, Ops Readiness /100, Business Logic /100), every wave plan drafting, every decision-doc PR (gap closure with config-shaped value, ADR, runbook with new domain/email/brand/env-var/region), and the gap files / fix PRs they produce
 
@@ -412,6 +418,7 @@ Sau khi meta-boost áp dụng, fix gaps theo thứ tự:
 
 ## 6. Log
 
+- **2026-05-14** (v1.4.2): PATCH — added `paths:` frontmatter per Wave 73 Bucket A1 path-scope. No constraint change; rule auto-loads only when matching files in context.
 - **2026-05-11** (v1.4.1): PATCH — added §2.8 step 0 "Canonical-status lookup first" recommending `bash scripts/query-gaps.sh <prefix>` against `gap-status.csv` before heavier state-check. Reduces token cost ~50× per session per `gap-architecture-v2.md` token analysis. Closes the last remaining Phase 4 follow-up from `gap-architecture-v2.md` §10 for this rule. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — additive efficiency note, no constraint change).
 
 - **2026-05-11** (v1.4.0): MINOR — added §2.8 Fix-Time State-Check extending state-check family từ filing-time (§2.5) + planning-time (§2.6) + decision-doc-time (§2.7) to **fix pick-up time**. Triggered by 2026-05-11 user-flagged retro after GAP-450 fix session: GAP-450 filed 2026-05-08 mô tả terraform state drift; fix session 2026-05-11 (3 ngày sau) proposed Option A surgery via PR #1154 (Path B+C combined: lifecycle ignore_changes + runbook + audit artifact, ~1.5h effort) **TRƯỚC KHI** state-check confirm symptom còn tồn tại. Phase 1 investigation post-PR-#1154 với dev-admin credentials revealed: state đã self-correct via terraform refresh runs over 3 ngày → Option A surgery is no-op. Cost: ~1.5h PR + ~10-15k tokens + EC2/RDS stop wait — preventable nếu state-check tại fix pick-up. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged "lần fix gaps này chưa state-check trước khi tốn token để đưa ra solution đúng không?") → Classify ✓ (no existing rule covers fix-time direction; §2.5 covers filing-time, §2.6 wave-planning, §2.7 decision-doc — all input-time checks; fix pick-up was uncovered) → Rule+Enforce ✓ (this §2.8 + paired same-PR memory `feedback_gap_state_check_required.md` extension + worked self-test on GAP-450 incident + reviewer-checklist line per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§2.8 worked example on 2026-05-11 GAP-450 — rule fires correctly + would have caught miss at step 2 instead of step 5) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds new constraint covering previously-uncovered direction of state-check; no constraint loosening for prior work; existing fix PRs grandfathered, rule applies prospectively cho gaps ≥ 7 ngày tuổi OR drift-class từ session sau). Detector wiring deferred to 2nd recurrence per `incident-to-rule-pipeline.md` premature-rule guard ≥7 ngày; v1.4.0 enforcement = reviewer-checklist + memory auto-load + worked self-test sufficient.

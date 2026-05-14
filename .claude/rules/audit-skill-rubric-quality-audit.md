@@ -1,7 +1,12 @@
+---
+paths:
+  - "documents/04-quality/audits/quality/**"
+---
+
 # Audit Skill Rubric — quality-audit (11 categories, per-check pass/fail)
 
 **Priority:** 🟠 MANDATORY — audit primacy + per-check rubric for `quality-audit` skill
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-14
 **Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (11-category per-check rubric + bug-finding-primacy section + extends `quality-audit/SKILL.md` Cat 1-11 + worked self-test on current main surfaces ≥1 finding) per §6.5 Enforcement Parity Mandate; no constraint loosening — generalizes Wave 71c security-audit pattern to comprehensive 11-category rubric closing GAP-523)
@@ -212,4 +217,5 @@ Future `scripts/check-quality-audit-rubric.sh` parses audit report markdown + ve
 
 ## 7. Log
 
+- **2026-05-14 (v1.0.1):** PATCH — added `paths:` frontmatter per Wave 73 Bucket A1 path-scope. No constraint change; rule auto-loads only when matching files in context.
 - **2026-05-14 (v1.0.0):** Rule created closing GAP-523 META P0 (Wave 72b Bucket E). Triggered by Wave 71c security-audit pattern (`pre-launch-auth-hardening-checklist.md` + security-audit/SKILL.md §2 primacy) — Wave 71b incident `87/100` averaged sub-checks hiding 5 P0 OWASP A07 gaps. `quality-audit` skill /110 11 categories has same averaging risk; this rule generalizes per-check pass/fail + bug-finding-primacy pattern. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (Wave 71c retro identified 6 audit skills with same flaw) → Classify ✓ (no rule enforces per-check pass/fail for quality-audit Cat 1-11) → Rule+Enforce ✓ (this file + quality-audit/SKILL.md §"Per-check scoring" extension paired same PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§5 worked example on current main — 3 P0/P1 FAILs surfaced: 2.3 hardcoded-secret-defaults, 9.5 Outbox bypass, 11.1 persona reviews) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds previously-vague per-check enforcement, no constraint loosening for prior audits; existing `85/110` baseline grandfathered; rule applies prospectively from Wave 72b forward). Detector wiring deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 days; v1.0.0 enforcement = skill rubric extension + reviewer-checklist sufficient.
