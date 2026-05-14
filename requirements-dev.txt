@@ -1,0 +1,12 @@
+# Dev/test Python dependencies for repo-local scripts + .claude/hooks/*.py tests.
+#
+# Install:
+#   pip install --user -r requirements-dev.txt
+#
+# Or on PEP 668 systems (Debian/Ubuntu 24.04+ with --break-system-packages),
+# or via apt: `apt install python3-coverage`.
+#
+# Used by:
+#   - .claude/hooks/tests/run-coverage.sh  (Wave 75 Bucket E)
+
+coverage>=7.0,<8.0

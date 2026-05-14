@@ -1,0 +1,32 @@
+# Coverage.py config for .claude/hooks/*.py — Wave 75 Bucket E baseline.
+# Run via: bash .claude/hooks/tests/run-coverage.sh
+# Doc: documents/04-quality/audits/meta/2026-05-14-wave-75-hook-coverage-baseline.md
+
+[run]
+source = .claude/hooks
+omit =
+    .claude/hooks/tests/*
+    .claude/hooks/__pycache__/*
+    .claude/hooks/data/*
+branch = True
+parallel = True
+# Track subprocess invocations of hooks too (test-pre-tool-guard.py +
+# test-stop-handoff-check.py + test-inject-rule-digest.py spawn `python3 hook.py`).
+# Requires COVERAGE_PROCESS_START env var + sitecustomize.py shim (set by run-coverage.sh).
+concurrency = multiprocessing
+
+[report]
+show_missing = True
+precision = 1
+skip_covered = False
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+
+[html]
+directory = .claude/hooks/tests/coverage-html
+
+[xml]
+output = .claude/hooks/tests/coverage.xml
