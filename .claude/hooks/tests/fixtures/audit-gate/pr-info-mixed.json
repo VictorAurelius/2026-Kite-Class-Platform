@@ -1,0 +1,11 @@
+{
+  "title": "feat: add controller + docs",
+  "headRefName": "feature/foo",
+  "body": "Mixed docs + code PR.",
+  "mergedAt": "2026-05-14T10:00:00Z",
+  "state": "MERGED",
+  "files": [
+    "documents/01-business/users/rules.md",
+    "kitehub/kitehub-subscription/src/main/java/UserController.java"
+  ]
+}
