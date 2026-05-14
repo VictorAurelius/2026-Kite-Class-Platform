@@ -1,10 +1,10 @@
 # Rule Change Process — ADR-Like Governance for `.claude/rules/**`
 
 **Priority:** 🔴 CRITICAL — meta-governance for project DNA
-**Version:** 1.1.1
+**Version:** 1.1.2
 **Created:** 2026-04-20
 **Last-Reviewed:** 2026-05-14
-**Reviewer-Approver:** @nguyenvankiet (author self-approved — self-referential bootstrap; v1.1.1 PATCH self-approve per §5 — adds §3.5 Last-Reviewed staleness policy paired with `scripts/check-rule-staleness.sh` + CI job in WARN mode + §3 row in `.claude/rules/README.md` count ceiling, Wave 76 Bucket D, no constraint loosening; v1.1.0 MINOR self-approve per §5 — adds §6.5 Enforcement Parity Mandate paired with `incident-to-rule-pipeline.md` + `gap-done-discipline.md` in same PR, no constraint loosening)
+**Reviewer-Approver:** @nguyenvankiet (author self-approved — self-referential bootstrap; v1.1.2 PATCH self-approve per §5 — Wave 76 Bucket D adds §3.5 Last-Reviewed staleness policy paired with `scripts/check-rule-staleness.sh` + CI job in WARN mode + `.claude/rules/README.md` count ceiling section + `scripts/check-rule-count-ceiling.sh`, no constraint loosening; v1.1.1 PATCH self-approve per §5 — Wave 76 Bucket A adds §6.1 Deprecation lifecycle; v1.1.0 MINOR self-approve per §5 — adds §6.5 Enforcement Parity Mandate paired with `incident-to-rule-pipeline.md` + `gap-done-discipline.md` in same PR, no constraint loosening)
 **Supersedes:** ad-hoc rule edits (no prior formal process)
 **Applies to:** Every `.md` file under `.claude/rules/` and every rule-like top-level file the team decides is meta-governance (CLAUDE.md §rules, `.claude/skills/_README-skills-index.md` conventions)
 
@@ -134,6 +134,40 @@ Every rule MUST include a §Enforcement (or §6 Enforcement) section that descri
 
 Rules without enforcement = advisory fiction and WILL be rejected. If enforcement is deferred, the rule ships with a **tracking gap** cited inline so the clock is on.
 
+### 6.1 Deprecation lifecycle (added v1.1.1 — Wave 76 Bucket A)
+
+Rules don't live forever. When a rule's scope becomes obsolete, contradicts a newer rule, or is superseded by an automated detection, it transitions through this lifecycle:
+
+| Stage | `rules-index.csv` `lifecycle_status` | Allowed action | Timeline |
+|-------|--------------------------------------|----------------|----------|
+| **Active** | `active` (default for all new + existing rules) | Rule is enforced; PRs must comply | Indefinite |
+| **Deprecated** | `deprecated` + `deprecated_at` ISO date | Rule body keeps `## 13. DEPRECATED` banner; new code MAY ignore it; reviewer manual no longer blocks | **60-day WARN window** between `deprecated_at` and removal |
+| **Removed** | (row deleted from CSV; file moved to `.claude/rules/archived/` OR deleted entirely) | Rule no longer applies; replaced rule (if any) cited via `replaced_by` column at deprecation time | After 60 days minimum |
+
+#### Required artifacts when transitioning Active → Deprecated
+
+1. **Bump rule version** MINOR (constraint change — `Last-Reviewed` updated, body gains DEPRECATED banner)
+2. **Edit `rules-index.csv`** — set `lifecycle_status=deprecated`, `deprecated_at=YYYY-MM-DD` (today), `replaced_by=<successor-rule-slug>` (or empty if no successor)
+3. **Add DEPRECATED banner** at top of rule body:
+   ```markdown
+   > ⚠️ **DEPRECATED 2026-XX-XX** — see `<replaced-by-rule>.md` for current guidance. This rule will be REMOVED after 2026-YY-YY (60-day window).
+   ```
+4. **Append Log entry** describing deprecation rationale + replacement pointer
+5. **Update cross-links** in other rules (replace `<this-rule>` references with `<replaced-by>` where applicable)
+
+#### After 60 days — Removed
+
+Either:
+- **Archive** — move file to `.claude/rules/archived/<original-name>.md` + remove CSV row (preserves history)
+- **Hard delete** — `rm` the file + remove CSV row (only if zero remaining references)
+
+CI `check-rules-index-csv.sh` enforces:
+- `lifecycle_status=deprecated` requires `deprecated_at` date set
+- `deprecated_at` cannot be set when `lifecycle_status=active` (inconsistent)
+- Validator runs on every PR touching `.claude/rules/**` per `script-quality.yml` workflow
+
+Initially **WARN mode** for new rule edits ≥7 days; transition to **HARD STOP** (CI BLOCK) for late edits past 60-day grace once first deprecation lands per `incident-to-rule-pipeline.md` premature-rule guard.
+
 ---
 
 ## 6.5. Enforcement Parity Mandate (added v1.1.0 — paired with `incident-to-rule-pipeline.md`)
@@ -260,6 +294,7 @@ Never skipped: enforcement section, log entry, version bump.
 
 ## 13. Log
 
-- **2026-05-14** (v1.1.1): PATCH — added §3.5 Last-Reviewed staleness policy with WARN/FAIL thresholds (60d/180d), CI enforcement via `scripts/check-rule-staleness.sh` + `script-quality.yml` job `rule-staleness` (WARN mode initially; HARD STOP after 30-day grace period from Wave 76 Bucket D merge). Paired same-PR with `scripts/check-rule-count-ceiling.sh` + `rule-count-ceiling` CI job + `.claude/rules/README.md` "Rule count ceiling policy" section per `rule-change-process.md` §6.5 Enforcement Parity Mandate. Self-test: script reports 55 fresh / 0 stale across current rule set. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — codifies existing implicit Last-Reviewed expectation, adds machine-enforced threshold; no constraint loosening; existing rules grandfathered until next refresh).
+- **2026-05-14** (v1.1.2): PATCH — Wave 76 Bucket D — added §3.5 Last-Reviewed staleness policy with WARN/FAIL thresholds (60d/180d), CI enforcement via `scripts/check-rule-staleness.sh` + `script-quality.yml` job `rule-staleness` (WARN mode initially; HARD STOP after 30-day grace period from Wave 76 Bucket D merge). Paired same-PR with `scripts/check-rule-count-ceiling.sh` + `rule-count-ceiling` CI job + `.claude/rules/README.md` "Rule count ceiling policy" section per `rule-change-process.md` §6.5 Enforcement Parity Mandate. Self-test: script reports 55 fresh / 0 stale across current rule set. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — codifies existing implicit Last-Reviewed expectation, adds machine-enforced threshold; no constraint loosening; existing rules grandfathered until next refresh).
+- **2026-05-14** (v1.1.1): PATCH — Wave 76 Bucket A — added §6.1 Deprecation lifecycle (active → deprecated → removed, 60-day WARN window, paired same-PR with `rules-index.csv` 3 new columns `lifecycle_status` + `deprecated_at` + `replaced_by` + `check-rules-index-csv.sh` validator extension per `rule-change-process.md` §6.5 Enforcement Parity Mandate). All 55 existing rule rows backfilled `active`; rule applies prospectively to next deprecation transition. PATCH bump per §5 — additive process documentation, no existing constraint loosened. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5).
 - **2026-04-27** (v1.1.0): MINOR — added §6.5 Enforcement Parity Mandate (rule + detection same PR; self-test mandate; tracking-gap exception). Paired in same PR with new sister-rule `incident-to-rule-pipeline.md` (governs how misses become rules) and `gap-done-discipline.md` (the first concrete application — rule + Rule 13 detector + 3-fixture self-test all shipped together). Triggered by user feedback "có quy trình khi thêm 1 skill, 1 rules vào dự án chưa, mà vẫn miss kiểu này" surfacing that prior process governed rule edits but not enforcement parity at addition time. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5; new constraint on rule authors but does not loosen any existing constraint).
 - **2026-04-20** (v1.0.0): Rule created (GAP-171). Closes `output-review-mandate.md` §4 VIOLATION #2 ("Rules docs — meta governance without meta review"). Self-referential bootstrap: author self-approved v1.0 as there was no prior process; subsequent versions require §5 matrix reviewers. Paired with `.claude/skills/quality/rule-review/SKILL.md` and the gap-review skill (GAP-170 / Wave 8b-A).

@@ -54,6 +54,8 @@ on:
       - 'scripts/check-rules-index-csv.sh'
       - 'scripts/check-rule-staleness.sh'
       - 'scripts/check-rule-count-ceiling.sh'
+      - 'documents/04-quality/audits/**'
+      - 'scripts/check-audits-index-csv.sh'
 
 permissions:
   contents: read
@@ -431,3 +433,23 @@ jobs:
           #   ≤50 free growth, 51-75 INFO, 76-100 WARN, >100 HARD STOP.
           # Exit 1 only when count > 100 (consolidation required before add).
           bash scripts/check-rule-count-ceiling.sh
+
+  audits-index-csv:
+    name: Audits index CSV (`documents/04-quality/audits/audits-index.csv`)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate audits-index.csv (100% coverage)
+        run: |
+          # Per `.claude/rules/meta-csv-index-pattern.md` (Wave 76 Bucket A,
+          # GAP-490 Tier 3): every audit file under
+          # documents/04-quality/audits/**/*.md (excluding README/template)
+          # MUST have a CSV row; every row MUST point to an existing file.
+          # CSV is canonical for audit enumeration (id, category, date,
+          # status, score). Schema + enums documented in CSV header.
+          bash scripts/check-audits-index-csv.sh

@@ -5,11 +5,15 @@
 # enumeration (name, priority, version, dates pointer). Every rule file MUST
 # have a CSV row; every CSV row MUST point to an existing rule file.
 #
-# Schema: name,priority,version,created,last_reviewed,file,path_trigger
-# Enums: CRITICAL | MANDATORY | ADVISORY
+# Schema: name,priority,version,created,last_reviewed,file,path_trigger,lifecycle_status,deprecated_at,replaced_by
+# Enums (priority): CRITICAL | MANDATORY | ADVISORY
+# Enums (lifecycle_status): active | deprecated | superseded
 # path_trigger column added Wave 73 Bucket 0 (2026-05-14): comma-separated globs
 #   for native Anthropic `paths:` frontmatter scoping. Quoted-CSV cells used when
 #   value contains a comma (multi-glob). Empty = no path-scope (auto-load).
+# lifecycle columns added Wave 76 Bucket A (2026-05-14, GAP-490 Tier 3):
+#   deprecation lifecycle per `rule-change-process.md` §6 — 60-day WARN
+#   between deprecated_at and removal; replaced_by cites successor rule slug.
 #
 # Note: this validator covers the INDEX layer only. Rule frontmatter content
 # (Last-Reviewed ≤ today, etc.) is enforced by `scripts/check-rule-frontmatter.sh`.
@@ -44,6 +48,7 @@ csv_path = sys.argv[1]
 rules_dir = sys.argv[2]
 
 valid_priorities = {"CRITICAL", "MANDATORY", "ADVISORY"}
+valid_lifecycle = {"active", "deprecated", "superseded", ""}
 errors = 0
 seen_names = set()
 records = []
@@ -66,14 +71,18 @@ for row in records:
         print(f"FAIL: row too short: {row}")
         errors += 1
         continue
-    if len(row) > 7:
-        print(f"FAIL: row too long (expected 6 or 7 cols): {row}")
+    if len(row) > 10:
+        print(f"FAIL: row too long (expected 6-10 cols): {row}")
         errors += 1
         continue
 
     name, priority, version, created, reviewed, file_field = row[:6]
     # path_trigger is row[6] when present (Wave 73 Bucket 0+); empty allowed
     path_trigger = row[6] if len(row) >= 7 else ""
+    # Wave 76 Bucket A: lifecycle columns 8-10
+    lifecycle_status = row[7] if len(row) >= 8 else ""
+    deprecated_at = row[8] if len(row) >= 9 else ""
+    replaced_by = row[9] if len(row) >= 10 else ""
 
     if not name or not name[0].islower():
         continue
@@ -107,6 +116,20 @@ for row in records:
 
     if date_re.match(created) and date_re.match(reviewed) and reviewed < created:
         print(f"FAIL: {name} — last_reviewed ({reviewed}) before created ({created})")
+        errors += 1
+
+    # Wave 76 Bucket A: validate lifecycle columns
+    if lifecycle_status not in valid_lifecycle:
+        print(f"FAIL: {name} — invalid lifecycle_status '{lifecycle_status}' (allowed: active|deprecated|superseded|empty)")
+        errors += 1
+    if deprecated_at and not date_re.match(deprecated_at):
+        print(f"FAIL: {name} — bad deprecated_at date '{deprecated_at}' (expect YYYY-MM-DD or empty)")
+        errors += 1
+    if lifecycle_status == "deprecated" and not deprecated_at:
+        print(f"FAIL: {name} — lifecycle_status=deprecated requires deprecated_at date")
+        errors += 1
+    if deprecated_at and lifecycle_status == "active":
+        print(f"FAIL: {name} — deprecated_at set but lifecycle_status=active (inconsistent)")
         errors += 1
 
 # Coverage check: every rule .md file (excluding README.md) has a CSV row

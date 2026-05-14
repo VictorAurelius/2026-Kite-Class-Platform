@@ -9,7 +9,7 @@ paths:
 # Meta CSV Index Pattern — canonical CSV for enumerations
 
 **Priority:** 🟠 MANDATORY — codifies CSV-canonical pattern for meta enumerations
-**Version:** 1.0.1
+**Version:** 1.0.2
 **Created:** 2026-05-12
 **Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (4 worked CSV indexes shipped same PR + ADR + rules validators + CI wire + PR template row) per §6.5 Enforcement Parity Mandate; no constraint loosening — generalizes proven pattern from `gap-architecture-v2.md` to other meta enumerations per GAP-485)
@@ -112,9 +112,9 @@ Current canonical CSV indexes in this repo:
 |-------|-----|--------------|-----------|--------|------|
 | **Gaps** | `documents/04-quality/gaps/gap-status.csv` | `scripts/query-gaps.sh` | `scripts/check-gap-status-csv.sh` | 100% coverage (289 rows) | `gap-architecture-v2.md` |
 | **ADRs** | `documents/02-architecture/adr/adrs-index.csv` | `scripts/query-adrs.sh` | `scripts/check-adrs-index-csv.sh` | 100% coverage (28 rows) | this rule (GAP-485 Tier 1) |
-| **Rules** | `.claude/rules/rules-index.csv` | `scripts/query-rules.sh` | `scripts/check-rules-index-csv.sh` | 100% coverage (35 rows) | this rule (GAP-485 Tier 2) |
-| **Skills** | DEFERRED to follow-up gap | DEFERRED | DEFERRED | not yet shipped (~50 SKILL.md files) | future scope |
-| **Audits** | DEFERRED to follow-up gap | DEFERRED | DEFERRED | not yet shipped | future scope |
+| **Rules** | `.claude/rules/rules-index.csv` | `scripts/query-rules.sh` | `scripts/check-rules-index-csv.sh` | 100% coverage (55 rows; +3 lifecycle columns Wave 76 Bucket A) | this rule (GAP-485 Tier 2 + GAP-490 lifecycle extension) |
+| **Audits** | `documents/04-quality/audits/audits-index.csv` | `scripts/query-audits.sh` | `scripts/check-audits-index-csv.sh` | 100% coverage (127 rows) | this rule (GAP-490 Tier 3 — Wave 76 Bucket A) |
+| **Skills** | DEFERRED to follow-up gap | DEFERRED | DEFERRED | not yet shipped (~50 SKILL.md files) | future scope (GAP-490 Tier 3 Skills) |
 
 Adding a new index to this registry requires same-PR landing of all 4 artifacts per §3 + entry in this table.
 
@@ -245,5 +245,6 @@ When 2nd recurrence (i.e., a 4th index becomes worthwhile), the bulk-migrator pa
 
 ## 13. Log
 
+- **2026-05-14** (v1.0.2): PATCH — Wave 76 Bucket A — §6 Index registry updated: Audits index Tier 3 shipped (audits-index.csv + query-audits.sh + check-audits-index-csv.sh + CI wire); Rules index extended with 3 lifecycle columns (lifecycle_status + deprecated_at + replaced_by) backfilled `active` cho 55 existing rows. Pattern parity validated (see `rule-change-process.md` §6 deprecation policy paired same-PR). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — registry row updates + lifecycle column documentation extension; no constraint loosening; Tier 3 Audits closes GAP-490 Audits portion).
 - **2026-05-14** (v1.0.1): PATCH — thêm `paths:` frontmatter — Wave 73 miss fix (rule này nằm trong 13 MANDATORY rules wave plan §3 Scope bỏ sót, vẫn auto-load base context dù scope rule có path trigger rõ ràng). PATCH bump per `rule-change-process.md` §5 — additive frontmatter, no constraint change, deferred-load khi no matching file in context. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve). Scope: CSV meta index work.
 - **2026-05-12 (v1.0.0):** Rule created. Closes GAP-485 Tier 1 + Tier 2 (rule + ADRs CSV + Rules CSV + helpers + validators + CI wire + PR template). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (GAP-485 filed 2026-05-12 user-flagged generalization opportunity from proven gap pattern) → Classify ✓ (no existing rule generalizes CSV-canonical pattern; `gap-architecture-v2.md` covers gaps only) → Rule+Enforce ✓ (this file + 2 CSV indexes + 2 query helpers + 2 validators + CI wire + PR template row + `output-review-mandate.md` §3 cross-link per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§10 worked example — 2 validators PASS + 4 query commands verified) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new rule with built-in enforcement, no constraint loosening for prior work; existing rule/ADR markdown frontmatter grandfathered; rule applies prospectively to new index additions). Skills + Audits indexes (Tier 3) deferred to GAP-490 per §12.
