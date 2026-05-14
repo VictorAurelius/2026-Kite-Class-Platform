@@ -1,14 +1,14 @@
 # GAP-528 — Wave 73 Bucket B: 8 deterministic enforcement hooks (deferred from Wave 73)
 
 **Title:** Wave 73 Bucket B: 8 deterministic enforcement hooks (META)
-**Status:** OPEN
+**Status:** DONE
 **Priority:** P1
 **Category:** Meta
 **Phase:** phase-1-beta
-**Completion:** 0%
+**Completion:** 100%
 **Found:** 2026-05-14
 **Last-Updated:** 2026-05-14
-**Notes:** Wave 73 Bucket B agent worktree auto-cleaned (no commit); files lost. Re-implement in standalone PR.
+**Notes:** Re-implemented same session as PR after stub-first unblock; 30/30 hook tests pass.
 
 ---
 
@@ -59,4 +59,5 @@ Standalone PR `feat/wave-73-B2-hooks-deterministic-enforcement`:
 
 ## Log
 
+- **2026-05-14 (DONE):** Re-implemented same session via Wave 73 Bucket B2 PR. 3 hook files shipped: `pre-tool-guard.py` (Rules 1-5: admin-merge, agent-aws Tier 3, sg-ascii, terraform-retry, concurrent-mutation), `stop-handoff-check.py` (Rule 8: pre-handoff WARN), `post-tool-guard.py` (Rules 6-7: post-merge sync + release retry budget). 30/30 unittest pass (test-pre-tool-guard 14 + test-stop-handoff-check 7 + test-post-tool-guard 6 + 3 shared smoke). settings.local.json wiring documented in PR body (per-user gitignored — each contributor wires locally).
 - **2026-05-14 (Created):** Filed as follow-up after Wave 73 Bucket B agent's worktree auto-cleaned (deadlock from settings.local.json wiring scripts before they exist). 7/8 rules' enforcement still relies on reviewer-checklist + memory until this gap closes. Stub-first pattern lessons-learned codified for future hook PRs.
