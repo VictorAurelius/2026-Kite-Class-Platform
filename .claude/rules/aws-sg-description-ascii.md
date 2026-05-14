@@ -1,10 +1,15 @@
+---
+paths:
+  - "infrastructure/**/*.tf"
+---
+
 # AWS Security Group Description ASCII-Only
 
 **Priority:** 🟠 MANDATORY — terraform pre-apply guard
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-07
-**Last-Reviewed:** 2026-05-07
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement; no constraint loosening for prior work; migrated from session memory `feedback_aws_sg_description_ascii_only.md` for git-tracked durability)
+**Last-Reviewed:** 2026-05-14
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — PATCH self-approve per `rule-change-process.md` §5; v1.0.1 adds `paths:` frontmatter per Wave 73 Bucket 0 pilot — no constraint change, rule still applies same scope, just deferred-load when no .tf file in context. v1.0.0 (kept): MINOR self-approve per §5; new rule with built-in enforcement; no constraint loosening for prior work; migrated from session memory `feedback_aws_sg_description_ascii_only.md` for git-tracked durability)
 **Applies to:** Every `aws_security_group` resource in `infrastructure/terraform-aws/**`, plus copy-paste sites where `description` arguments enter terraform from architecture docs / markdown
 
 ---
@@ -120,4 +125,5 @@ Pattern frequency >0% per quarter triggers meta-review (rule should have caught 
 
 ## 9. Log
 
+- **2026-05-14 (v1.0.1):** PATCH — added `paths:` frontmatter `["infrastructure/**/*.tf"]` per Wave 73 Bucket 0 pilot. No constraint change; rule still applies same scope, just deferred-load when no `.tf` file in context (per Anthropic native `paths:` frontmatter feature — rules with `paths:` only auto-load when Claude reads matching files). Pilot test for Wave 73 base-context optimization (~250k → ~100k token target). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — `paths:` field is loading-mechanism only, no rule-content change).
 - **2026-05-07 (v1.0.0):** Migrated from session memory `feedback_aws_sg_description_ascii_only.md` per user request "memory persistence strategy = migrate to .claude/rules/ for git-tracked durability". Original incident: 2026-05-08 Phase 2.3 production apply (account 906286017800) failed mid-run at `security-groups.tf:83` em-dash + 2 more matches in `staging.tf`; pattern confirmed AWS API enforces ASCII-only on SG description. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5). Enforcement: reviewer manual + memory auto-load now; pre-commit hook deferred.
