@@ -180,3 +180,21 @@
 - 400: instanceId null hoặc emailType blank
 - 404: instance not found
 - 409: email đã được gửi hôm nay (idempotency check)
+
+---
+
+## Transactional Email Templates Registry
+
+> Source-of-truth list of template names invoked via `EmailServiceClient.send*(...)`. Each row maps to a Resend template that ops/marketing maintains. Missing templates → email-service logs a warning; calling flow is NEVER blocked.
+
+| Template name | Trigger | Recipient | Variables | Status |
+|---|---|---|---|---|
+| `welcome` | New tenant signup | Tenant owner | `orgName`, `trialDays`, `expiryDate` | Live |
+| `trial-warning` | T-3 before trial expiry | Tenant owner | `organizationName`, `daysRemaining` | Live |
+| `trial-expired` | Trial period end | Tenant owner | `organizationName` | Live |
+| `subscription-suspended` | Subscription suspend | Tenant owner | `organizationName`, `renewUrl` | Live |
+| `renewal-reminder` | T-7 before renewal | Tenant owner | `organizationName`, `renewalDate` | Live |
+| `retention-warning` | Data retention countdown | Tenant owner | `organizationName`, `daysLeft` | Live |
+| `dsar-new-ticket-dpo` | DSAR ticket filed | DPO | `ticketUuid`, `rightType`, `requesterEmail`, `slaDeadline`, `dpoQueueUrl` | Live |
+| `dsar-acknowledgement-requester` | DSAR ticket ack | Requester | `ticketUuid`, `requesterName`, `rightType`, `slaDeadline`, `statusCheckUrl` | Live |
+| `admin-new-login-alert` | PLATFORM_ADMIN login from new IP/UA fingerprint (GAP-517) | Admin email | `ip`, `userAgent`, `loginAt`, `supportUrl` | ⚠️ Template config in Resend = ops follow-up (BE event listener wired Wave 72b Bucket C) |

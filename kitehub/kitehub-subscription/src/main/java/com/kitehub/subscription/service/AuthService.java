@@ -4,12 +4,14 @@ import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.entity.User;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
+import com.kitehub.subscription.audit.login.LoginAuditService;
 import com.kitehub.subscription.dto.*;
 import com.kitehub.subscription.exception.AccountLockedException;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import jakarta.annotation.PostConstruct;
@@ -42,7 +44,27 @@ public class AuthService {
     private final CaptchaService captchaService;
     private final EmailSenderService emailSenderService;
     private final JwtKeyService jwtKeyService;
+    /**
+     * Per-login audit + new-fingerprint alert (GAP-517 / Wave 72b Bucket C).
+     * Nullable to allow existing unit tests that pre-date this dependency
+     * to construct {@link AuthService} via the 6-arg constructor below.
+     */
+    private final LoginAuditService loginAuditService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    /**
+     * Legacy 6-arg constructor for unit tests written before Wave 72b Bucket C.
+     * Tests that don't exercise the login-audit path can keep their setup.
+     */
+    public AuthService(InstanceRepository instanceRepository,
+                       InstanceService instanceService,
+                       UserRepository userRepository,
+                       CaptchaService captchaService,
+                       EmailSenderService emailSenderService,
+                       JwtKeyService jwtKeyService) {
+        this(instanceRepository, instanceService, userRepository,
+             captchaService, emailSenderService, jwtKeyService, null);
+    }
 
     @Value("${jwt.secret:#{null}}")
     private String jwtSecret;
@@ -325,8 +347,27 @@ public class AuthService {
      * <p>Non-existent email also returns generic "invalid email or password" to
      * avoid user enumeration (per OWASP A07 §1 password complexity sister-rule).</p>
      */
+    /**
+     * Legacy single-arg overload — used by unit tests that pre-date the
+     * per-login audit dependency (GAP-517 / Wave 72b Bucket C). Delegates to
+     * the two-arg form with a null {@link HttpServletRequest}; the audit
+     * service treats null as "no request context available" and writes a row
+     * with empty IP/UA (still useful for non-admin login auditing).
+     */
     @Transactional
     public LoginResponse login(LoginRequest request) {
+        return login(request, null);
+    }
+
+    /**
+     * Authenticate + record per-login audit context (GAP-517 / Wave 72b Bucket C).
+     *
+     * <p>{@code httpRequest} is captured AFTER password verification and
+     * BEFORE the JWT is returned. Audit failures NEVER block authentication
+     * — see {@link LoginAuditService#recordLogin} contract.</p>
+     */
+    @Transactional
+    public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest) {
         log.info("Login attempt for: {}", request.getEmail());
 
         User user = userRepository.findByEmail(request.getEmail())
@@ -353,6 +394,13 @@ public class AuthService {
             user.setFailedLoginAttempts(0);
             user.setLastFailedLoginAt(null);
             userRepository.save(user);
+        }
+
+        // (4) Per-login audit + new-fingerprint admin alert (GAP-517). Runs regardless
+        // of 2FA enrollment so fingerprint is tracked from password verification.
+        // Failures inside recordLogin are swallowed; login proceeds.
+        if (loginAuditService != null) {
+            loginAuditService.recordLogin(user, httpRequest);
         }
 
         List<InstanceResponse> instances = instanceService.getInstancesByOwner(user.getId());
