@@ -44,9 +44,13 @@ File này document business values cho onboarding checklist flow. Mỗi rule có
 
 ## Config
 
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `kitehub.onboarding.step-ids` | `PROFILE_SETUP,INVITE_TEAM,IMPORT_DATA,CREATE_FIRST_CLASS,EXPLORE_FEATURES` | Hardcoded enum whitelist; FE render dynamic |
-| `kitehub.onboarding.put-rate-limit-per-min` | `60` | Per-tenant PUT rate limit tại gateway |
+Tracking `@Value` wiring status per GAP-555 (Wave 78 Business Logic audit P0).
+
+| Key | Default | Purpose | Wired |
+|-----|---------|---------|:-----:|
+| `kitehub.onboarding.step-ids` | `PROFILE_SETUP,INVITE_TEAM,IMPORT_DATA,CREATE_FIRST_CLASS,EXPLORE_FEATURES` | Hardcoded enum whitelist; FE render dynamic | 🆕 Wave 79 Bucket A target |
+| `kitehub.onboarding.put-rate-limit-per-min` | `60` | Per-tenant PUT rate limit tại gateway | 🆕 Wave 79 Bucket A target |
+
+**Wave 79 Bucket A scope (GAP-555):** Add `@Value` injection cho 2 keys above ở module `kitehub-subscription/onboarding/service`.
 
 Config keys nằm trong `application.yml` BE module (Bucket B).

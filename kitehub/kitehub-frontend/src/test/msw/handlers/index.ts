@@ -13,8 +13,10 @@ import { authHandlers } from './auth';
 import { betaAccessHandlers } from './beta-access';
 import { betaStatusHandlers } from './beta-status';
 import { brandingHandlers } from './branding';
+import { cookieConsentHandlers } from './cookie-consent';
 import { feedbackHandlers } from './feedback';
 import { onboardingHandlers } from './onboarding';
+import { staffInvitationsHandlers } from './staff-invitations';
 import { supportHandlers } from './support';
 
 export const handlers: HttpHandler[] = [
@@ -25,6 +27,8 @@ export const handlers: HttpHandler[] = [
   ...feedbackHandlers,
   ...onboardingHandlers,
   ...supportHandlers,
+  ...staffInvitationsHandlers,
+  ...cookieConsentHandlers,
 ];
 
 export {
@@ -32,7 +36,9 @@ export {
   betaAccessHandlers,
   betaStatusHandlers,
   brandingHandlers,
+  cookieConsentHandlers,
   feedbackHandlers,
   onboardingHandlers,
+  staffInvitationsHandlers,
   supportHandlers,
 };

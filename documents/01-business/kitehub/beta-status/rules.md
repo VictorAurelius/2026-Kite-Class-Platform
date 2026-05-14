@@ -34,10 +34,14 @@ File này document business values cho beta status page. Mỗi rule có 5 attrib
 
 ## Config
 
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `kitehub.beta-status.content-source` | `classpath:beta-status/beta-status.md` | Source file path |
-| `kitehub.beta-status.cache-ttl-seconds` | `300` | HTTP cache TTL |
-| `kitehub.beta-status.rate-limit-per-min-per-ip` | `60` | Gateway rate limit |
+Tracking `@Value` wiring status per GAP-555 (Wave 78 Business Logic audit P0).
+
+| Key | Default | Purpose | Wired |
+|-----|---------|---------|:-----:|
+| `kitehub.beta-status.content-source` | `classpath:beta-status/beta-status.md` | Source file path | 🆕 Wave 79 Bucket A target |
+| `kitehub.beta-status.cache-ttl-seconds` | `300` | HTTP cache TTL | 🆕 Wave 79 Bucket A target |
+| `kitehub.beta-status.rate-limit-per-min-per-ip` | `60` | Gateway rate limit | 🆕 Wave 79 Bucket A target |
+
+**Wave 79 Bucket A scope (GAP-555):** Add `@Value` injection cho 3 keys above ở module `kitehub-subscription/beta-status/service`.
 
 Config keys nằm trong `application.yml` BE module (Bucket B).
