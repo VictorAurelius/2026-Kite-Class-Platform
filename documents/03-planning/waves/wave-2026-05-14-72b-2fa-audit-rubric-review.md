@@ -161,6 +161,32 @@ Per `.claude/rules/contract-first-for-cross-layer.md` v1.0.0:
   - Each new §2.X: 4-row checklist (a-d minimum) similar to existing §2.1-2.4 pattern
   - Worked self-test §4 extension — apply 1 new class retroactively to a prior incident if findable
 
+### Bucket G — Self-Test CSV Rework + 2 Meta Rules (post-hoc addition after Wave 72a Bucket F user-flagged 4 issues)
+
+Added post-Wave-72a closure 2026-05-14 per user retro on PR #1288 self-test CSV. Wave plan PR #1292 already shipped — this Bucket G note documents the in-flight addition. Bucket G ships from this same wave to keep meta-rule rollout cluster (Bucket E rubric review + G test artifact format) co-located.
+
+- **Files:**
+  - Relocate `documents/05-guides/operations/phase-1-beta-acceptance-self-test.csv` → `documents/05-guides/operations/acceptance-tests/` + companion README
+  - Translate 126 CSV rows narrative content to Vietnamese (column names + identifiers + enums stay English)
+  - Prepend UTF-8 BOM to CSV
+  - NEW `scripts/render-acceptance-test-xlsx.sh` — CSV → XLSX render (openpyxl preferred, libreoffice fallback)
+  - NEW folder `documents/05-guides/operations/acceptance-tests/{README.md, .gitignore}` (XLSX gitignored)
+  - Archive old `documents/03-planning/end-user/plan-1-self-test-e2e.md` → `documents/07-archived/planning-2026/plan-1-self-test-e2e-superseded.md`; delete now-empty `end-user/` folder
+  - NEW `.claude/rules/test-artifact-format-standard.md` v1.0.0 — CSV canonical + XLSX generated + per-artifact-type matrix
+  - NEW `.claude/rules/dev-readable-doc-language.md` v1.0.0 — Vietnamese narrative + English identifier split
+  - Update `.claude/rules/rules-index.csv` — 2 new rows
+  - Update `.claude/rules/output-review-mandate.md` §3 — add "Acceptance test CSVs" row
+  - Update ROADMAP + Wave 72b plan with new paths
+- **Acceptance:**
+  - [ ] CSV at `acceptance-tests/` with UTF-8 BOM verified
+  - [ ] 126 rows narrative translated to Vietnamese; column names + enums English
+  - [ ] Old Plan 1 archived; `end-user/` folder deleted
+  - [ ] Render script + folder README + .gitignore shipped
+  - [ ] 2 meta rules shipped per `rule-change-process.md` §6.5 (worked self-test + cross-refs + paired enforcement)
+  - [ ] Rules-index CSV validator PASS (47 rows)
+  - [ ] `output-review-mandate.md` §3 row added for acceptance test CSVs
+  - [ ] `bash .claude/skills/workflow/session-docs-check/scripts/check-docs.sh` PASS
+
 ---
 
 ## 4. State-Check Evidence (per `audit-to-gap-pipeline.md` §2.6)

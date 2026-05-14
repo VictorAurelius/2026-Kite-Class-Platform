@@ -1,0 +1,3 @@
+# XLSX là artifact generated từ CSV canonical — không commit
+# Generate locally: bash scripts/render-acceptance-test-xlsx.sh <csv>
+*.xlsx

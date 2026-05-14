@@ -49,7 +49,7 @@ Full evidence: [`audits/aws-verification/2026-05-13-audit-of-trust-production-in
 - 🟡 **GAP-521 PARTIAL 70%** — V36 admin_audit_log + AOP aspect + @Auditable annotation on 2 endpoints; other controllers + FE review page deferred
 - 🟡 **GAP-525 PARTIAL 50%** — credential-rotation-runbook + incident artifact (3 credentials by class/ID only); actual rotation = user-action
 
-**New artifacts:** `phase-1-beta-acceptance-self-test.csv` 126 rows pre-filled (supersedes `plan-1-self-test-e2e.md`) — user opens in spreadsheet, ticks `status` column, surfaces blocker gaps per row.
+**New artifacts:** [`documents/05-guides/operations/acceptance-tests/phase-1-beta-acceptance-self-test.csv`](../../05-guides/operations/acceptance-tests/phase-1-beta-acceptance-self-test.csv) 126 rows pre-filled in Vietnamese with UTF-8 BOM (Wave 72b Bucket G relocated + translated; supersedes archived `plan-1-self-test-e2e-superseded.md`) — user opens in spreadsheet, ticks `status` column, surfaces blocker gaps per row. Render XLSX: `bash scripts/render-acceptance-test-xlsx.sh <csv>`.
 
 ### 🚀 Next Action (Wave 72b — 2FA + audit rubric review + admin verify, post-Plan 1 user walkthrough)
 
@@ -67,7 +67,7 @@ Full evidence: [`audits/aws-verification/2026-05-13-audit-of-trust-production-in
 
 **Pre-Wave-72b user-action (Plan 1 walkthrough first):**
 
-- Open `documents/05-guides/operations/phase-1-beta-acceptance-self-test.csv` in spreadsheet
+- Open `documents/05-guides/operations/acceptance-tests/phase-1-beta-acceptance-self-test.csv` in spreadsheet (run `bash scripts/render-acceptance-test-xlsx.sh <csv>` for Excel UX)
 - Tick each row's `status` column (pass/fail/blocked/-)
 - File bugs surfaced per row's `blocker_gap` column → Wave 72b scope OR new gap
 - 3 user-action items pending: GAP-525 credential rotation × 3 (admin password / Cloudflare token / Resend key)
@@ -86,7 +86,7 @@ Full evidence: [`audits/aws-verification/2026-05-13-audit-of-trust-production-in
 
 **Next session signpost:**
 
-- User runs Phase 1 BETA acceptance self-test ([`documents/05-guides/operations/phase-1-beta-acceptance-self-test.csv`](../../05-guides/operations/phase-1-beta-acceptance-self-test.csv) — 126 rows, CSV format with pre-filled `input_data`; supersedes `plan-1-self-test-e2e.md` 2026-05-14)
+- User runs Phase 1 BETA acceptance self-test ([`documents/05-guides/operations/acceptance-tests/phase-1-beta-acceptance-self-test.csv`](../../05-guides/operations/acceptance-tests/phase-1-beta-acceptance-self-test.csv) — 126 rows, Vietnamese narrative + UTF-8 BOM, CSV format with pre-filled `input_data`; Plan 1 archived to `documents/07-archived/planning-2026/plan-1-self-test-e2e-superseded.md` 2026-05-14 per Wave 72b Bucket G)
 - File any bugs surfaced → Wave 72b+
 - **GAP-506 Phase 1** (P1 — deploy-prod tech debt: chicken-and-egg fix + start_period bump) — defer to next maintenance wave
 - **Post-release downsize evaluation** (≥4 weeks): if avg MemoryUtilization <60% + zero OOM → t3.large → t3.medium
@@ -100,7 +100,7 @@ Full evidence: [`audits/aws-verification/2026-05-13-audit-of-trust-production-in
 GAP-372 (invite mechanism) marked DONE per checkbox nhưng **chưa từng test thật end-to-end trên production**. User chốt self-test 100% bằng tay lần đầu (có guide chi tiết) + ship Playwright scaffold cho lần re-test sau.
 
 **Wave 69 deliverables (tooling, không phải execution):**
-1. **Follow-along guide** — [`end-user/plan-1-self-test-e2e.md`](../../03-planning/end-user/plan-1-self-test-e2e.md) enhanced với evidence log template + helper commands + setup checklist
+1. **Follow-along guide** — [`plan-1-self-test-e2e-superseded.md`](../../07-archived/planning-2026/plan-1-self-test-e2e-superseded.md) (archived 2026-05-14 per Wave 72b Bucket G; superseded by acceptance test CSV) — originally enhanced với evidence log template + helper commands + setup checklist
 2. **Playwright scaffold** — `kitehub/kitehub-frontend/e2e/production-self-test/full-flow.spec.ts` (7 tests, `.skip`-ed by default; selectors cần calibrate sau khi user manual-run lần đầu); `playwright.config.ts` `testIgnore` để CI không pick up; README hướng dẫn run on-demand
 
 **Post-Wave-69 (user manual execute):**
