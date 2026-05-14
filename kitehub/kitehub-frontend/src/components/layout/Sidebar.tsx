@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, CreditCard, Palette, Settings, Building2, TrendingUp, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, CreditCard, Palette, Settings, Building2, TrendingUp, ClipboardList, type LucideIcon } from 'lucide-react';
 import { KiteLogo } from '@/components/brand/KiteLogo';
 
 interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
+  testId?: string;
 }
 
 const customerNav: NavItem[] = [
@@ -19,11 +20,13 @@ const customerNav: NavItem[] = [
   { href: '/settings', label: 'Cài đặt', icon: Settings },
 ];
 
+// GAP-519: admin sidebar nav — 4 testid'd links so PLATFORM_ADMIN can navigate
+// to beta-requests / instances / payments / revenue from /admin home.
 const adminNav: NavItem[] = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/instances', label: 'Instances', icon: Building2 },
-  { href: '/admin/payments', label: 'Thanh toán', icon: CreditCard },
-  { href: '/admin/revenue', label: 'Doanh thu', icon: TrendingUp },
+  { href: '/admin/beta-requests', label: 'Beta Requests', icon: ClipboardList, testId: 'admin-nav-beta-requests' },
+  { href: '/admin/instances', label: 'Instances', icon: Building2, testId: 'admin-nav-instances' },
+  { href: '/admin/payments', label: 'Payments', icon: CreditCard, testId: 'admin-nav-payments' },
+  { href: '/admin/revenue', label: 'Revenue', icon: TrendingUp, testId: 'admin-nav-revenue' },
 ];
 
 export function Sidebar({ variant = 'customer' }: { variant?: 'customer' | 'admin' }) {
@@ -51,6 +54,7 @@ export function Sidebar({ variant = 'customer' }: { variant?: 'customer' | 'admi
             <Link
               key={item.href}
               href={item.href}
+              data-testid={item.testId}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all',
                 isActive

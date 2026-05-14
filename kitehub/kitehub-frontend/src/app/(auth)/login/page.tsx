@@ -11,6 +11,7 @@ import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { KiteLogo } from '@/components/brand/KiteLogo';
+import { isPlatformAdmin } from '@/lib/auth-helpers';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,7 +36,8 @@ export default function LoginPage() {
       setAuth(user, accessToken, refreshToken);
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
-      router.push(user.role === 'ADMIN' ? '/admin' : '/dashboard');
+      // GAP-518: route both PLATFORM_ADMIN (canonical) and legacy ADMIN to /admin.
+      router.push(isPlatformAdmin(user.role) ? '/admin' : '/dashboard');
     } catch {
       setError('Email hoặc mật khẩu không đúng');
     } finally {

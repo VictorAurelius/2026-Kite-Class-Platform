@@ -5,7 +5,7 @@ interface User {
   id: string;  // UUID from backend
   email: string;
   name: string;
-  role: 'OWNER' | 'ADMIN';
+  role: 'OWNER' | 'ADMIN' | 'PLATFORM_ADMIN';
 }
 
 interface AuthState {

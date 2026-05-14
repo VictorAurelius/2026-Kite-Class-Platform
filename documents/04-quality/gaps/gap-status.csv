@@ -355,8 +355,8 @@ GAP-514,GAP-514-auth-endpoints-gateway-rate-limit.md,Auth endpoints missing gate
 GAP-515,GAP-515-account-lockout-missing.md,Account lockout missing (OWASP A07),OPEN,P0,Backend,phase-1-beta,0,2026-05-13,2026-05-13,Wave 71c — 0 failedLoginAttempts/accountLocked columns; Spring Security default no lockout
 GAP-516,GAP-516-2fa-platform-admin-totp.md,2FA TOTP mandatory for PLATFORM_ADMIN,OPEN,P1,Backend,phase-1-beta,0,2026-05-13,2026-05-13,Wave 72 — TOTP enrollment + login challenge for admin role
 GAP-517,GAP-517-admin-login-new-ip-alert.md,PLATFORM_ADMIN login alert from new IP/UA,OPEN,P2,Backend,phase-1-beta,0,2026-05-13,2026-05-13,defense-in-depth; passive detection
-GAP-518,GAP-518-admin-role-name-mismatch-be-fe.md,BE seed PLATFORM_ADMIN vs FE guard ADMIN mismatch,OPEN,P0,Mixed,phase-1-beta,0,2026-05-13,2026-05-13,Wave 71c — admin UI 100% unusable in production; Plan 1 Bước 4 blocker
-GAP-519,GAP-519-admin-dashboard-nav-missing.md,Admin dashboard nav sidebar missing links,OPEN,P1,Frontend,phase-1-beta,0,2026-05-13,2026-05-13,UX blocker after GAP-518 fix
+GAP-518,GAP-518-admin-role-name-mismatch-be-fe.md,BE seed PLATFORM_ADMIN vs FE guard ADMIN mismatch,PARTIAL,P0,Mixed,phase-1-beta,80,2026-05-13,2026-05-14,Wave 72a Bucket C — FE Option B shipped; live admin walk pending
+GAP-519,GAP-519-admin-dashboard-nav-missing.md,Admin dashboard nav sidebar missing links,PARTIAL,P1,Frontend,phase-1-beta,80,2026-05-13,2026-05-14,Wave 72a Bucket C — sidebar nav + testids shipped; live click-through pending
 GAP-520,GAP-520-jwt-secret-rotation-runbook.md,JWT signing secret rotation runbook + dual-key,OPEN,P1,Backend,phase-1-beta,0,2026-05-13,2026-05-13,leak response capability; quarterly cadence
 GAP-521,GAP-521-admin-audit-log.md,Admin action audit log,OPEN,P1,Backend,phase-1-beta,0,2026-05-13,2026-05-13,PDPL compliance + incident forensics
 GAP-522,GAP-522-security-audit-all-categories-rubric.md,Extend per-check rubric to all 5 security-audit categories (META),OPEN,P0,Meta,phase-1-beta,0,2026-05-13,2026-05-13,4 sister rules + skill §3 binds; same fix mode as Cat 4 auth-hardening
