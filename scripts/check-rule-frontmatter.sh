@@ -234,6 +234,13 @@ for file in "${files[@]}"; do
   if [[ "$(basename "$file")" == "README.md" ]]; then
     continue
   fi
+  # Skip _examples/ subdirectory — deferred-load companion files per Wave 76 Bucket E
+  # streamline (context-budget-mandate.md §3). Companion files reference their
+  # parent rule via YAML frontmatter (parent_rule:) but don't carry full rule
+  # frontmatter themselves.
+  if [[ "$file" == *"/_examples/"* ]]; then
+    continue
+  fi
   total=$((total + 1))
   if ! validate_file "$file"; then
     fail_total=$((fail_total + 1))
