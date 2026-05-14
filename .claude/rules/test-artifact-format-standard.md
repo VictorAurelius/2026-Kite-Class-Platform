@@ -1,10 +1,16 @@
+---
+paths:
+  - "documents/05-guides/operations/acceptance-tests/**"
+  - "**/*acceptance*.csv"
+---
+
 # Test Artifact Format Standard — CSV canonical, XLSX generated
 
 **Priority:** 🟠 MANDATORY — test artifact format governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-14
 **Last-Reviewed:** 2026-05-14
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (artifact-type matrix + CSV format requirements + companion-files mandate + reviewer-checklist + worked self-test on Wave 72a Bucket F incident) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies previously-implicit acceptance test convention)
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; Wave 73 Bucket A3 thêm `paths:` frontmatter — không đổi constraint, scope rule giữ nguyên, deferred-load khi không có file acceptance-test CSV trong context. v1.0.0 (giữ): MINOR self-approve per §5; new rule với built-in enforcement (artifact-type matrix + CSV format requirements + companion-files mandate + reviewer-checklist + worked self-test on Wave 72a Bucket F incident) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies previously-implicit acceptance test convention)
 **Applies to:** Every test artifact lifecycle — acceptance test matrix, regression test plan, smoke test checklist, manual QA script. Scope explicitly includes folder `documents/05-guides/operations/acceptance-tests/**` and any other location storing per-release manual walkthrough docs.
 
 ---
@@ -237,4 +243,5 @@ Trailer logged trong quarterly retro. Pattern frequency >5%/quarter triggers met
 
 ## 10. Log
 
+- **2026-05-14 (v1.0.1):** Wave 73 Bucket A3 — thêm `paths:` frontmatter (`documents/05-guides/operations/acceptance-tests/**`, `**/*acceptance*.csv`) cho Anthropic native deferred-loading. Path-scope MANDATORY rule giúp tiết kiệm token context khi session không động chạm acceptance test artifacts. Không đổi constraint, scope rule giữ nguyên. Sync `rules-index.csv` path_trigger column. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-05-14 (v1.0.0):** Rule created. Triggered by Wave 72a Bucket F user-flagged 4 issues on `phase-1-beta-acceptance-self-test.csv` (folder placement, old Plan 1 not archived, English content, no UTF-8 BOM). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged 4 specific issues in same matrix) → Classify ✓ (no existing rule covers test artifact format; `deployment-naming-convention.md` covers deploy/operations folders but not acceptance test specifically; `docs-folder-structure.md` generic) → Rule+Enforce ✓ (this file + sister rule `dev-readable-doc-language.md` + paired same-PR with: CSV BOM + Vietnamese translation of 126 rows + render script `scripts/render-acceptance-test-xlsx.sh` + folder-level README + `.gitignore` + dedicated subfolder relocation + Plan 1 archive + `output-review-mandate.md` §3 row + rules-index.csv 2 new rows per `rule-change-process.md` §6.5) → Self-Test ✓ (§7 worked example — 6/8 checks FAIL retroactively on Wave 72a state) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — new constraint codifying previously-implicit convention; no constraint loosening; existing acceptance test matrices grandfathered until next refresh; rule applies prospectively to new matrices). Pre-commit hook deferred per premature-rule guard ≥7 ngày.

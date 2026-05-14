@@ -1,10 +1,16 @@
+---
+paths:
+  - "documents/**/*.md"
+  - "documents/05-guides/operations/acceptance-tests/**/*.csv"
+---
+
 # Dev-Readable Doc Language — Vietnamese for narrative, English for identifiers
 
 **Priority:** 🟠 MANDATORY — communication language governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-14
 **Last-Reviewed:** 2026-05-14
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (artifact-type classification + protected paths + reviewer-checklist + worked self-test on Wave 72a Bucket F incident) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies CLAUDE.md §"CRITICAL: Communication Language" cho previously-uncovered class)
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; Wave 73 Bucket A3 thêm `paths:` frontmatter — không đổi constraint, scope rule giữ nguyên, deferred-load khi không có file docs/CSV trong context. v1.0.0 (giữ): MINOR self-approve per §5; new rule với built-in enforcement (artifact-type classification + protected paths + reviewer-checklist + worked self-test on Wave 72a Bucket F incident) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies CLAUDE.md §"CRITICAL: Communication Language" cho previously-uncovered class)
 **Applies to:** Every dev-readable doc artifact a developer reads during work (gap files, runbooks, acceptance tests, end-user guides, planning docs body, audit reports, guide READMEs, business docs prose). Scope explicitly EXCLUDES code source, code comments, commit messages, PR titles, technical identifiers/enums/config keys (those follow standard English convention per CLAUDE.md "Code comments can be in English / Commit messages should be in English").
 
 ---
@@ -218,4 +224,5 @@ Test data in code (Java/TS) tự do dùng English variable names + Vietnamese sa
 
 ## 11. Log
 
+- **2026-05-14 (v1.0.1):** Wave 73 Bucket A3 — thêm `paths:` frontmatter (`documents/**/*.md`, `documents/05-guides/operations/acceptance-tests/**/*.csv`) cho Anthropic native deferred-loading. Path-scope MANDATORY rule giúp tiết kiệm token context khi session không động chạm dev-readable docs hoặc acceptance test CSV. Không đổi constraint, scope rule giữ nguyên. Sync `rules-index.csv` path_trigger column. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-05-14 (v1.0.0):** Rule created. Triggered by Wave 72a Bucket F user-flagged Q3 (English content trong acceptance test CSV) — user wrote "ALL responses, explanations, and documentation should be in Vietnamese (theo CLAUDE.md); CSV content English (`Open KiteHub landing page`, `View pricing page`, `View Terms of Service`, etc.) — Vietnamese devs cannot read fluidly". Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged specific English narrative violations) → Classify ✓ (no existing rule codifies CLAUDE.md mandate cho dev-readable doc scope; mandate sits in top-level CLAUDE.md but no enforcement parity, no scope clarification, no column-vs-value split rule for test artifacts) → Rule+Enforce ✓ (this file + sister rule `test-artifact-format-standard.md` cross-references §3.2 + paired same-PR with: 126-row CSV translation + folder relocation + `output-review-mandate.md` §3 row + rules-index.csv 2 new rows per `rule-change-process.md` §6.5) → Self-Test ✓ (§6 worked example on Wave 72a CSV row PUB-LAND-001 — 3 cells FAIL, 2 partial, 3 identifier-cells PASS) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — new constraint codifying previously-implicit CLAUDE.md mandate for dev-readable scope; no constraint loosening; existing English-narrative docs grandfathered until next refresh; rule applies prospectively to new artifacts từ session sau). CI grep detector + memory auto-load deferred per premature-rule guard ≥7 ngày; enforcement = reviewer-checklist + self-detection + worked self-test sufficient cho v1.0.0.
