@@ -1,0 +1,86 @@
+{
+  "_comment": "Wave 73 Bucket C — UserPromptSubmit dynamic rule digest injection mapping. Keyword patterns are case-insensitive regex (Python re). Each match injects §1 The Rule + earliest Anti-patterns section (capped by max_lines). Total cap across all matches: 5000 tokens (~20000 chars).",
+  "_schema_version": "1.0",
+  "global_cap_chars": 20000,
+  "keywords": [
+    {
+      "pattern": "\\baudit\\b|\\bquality check\\b|\\bki[eể]m tra ch[aấ]t l[uư][oợ]ng\\b|\\bready to merge\\?",
+      "rules": [
+        ".claude/skills/quality-audit/SKILL.md",
+        ".claude/rules/output-review-mandate.md"
+      ],
+      "max_lines": 30,
+      "label": "Audit + output-review"
+    },
+    {
+      "pattern": "\\bdeploy\\b|\\brelease tag\\b|\\bstaging\\.|\\brc\\.[0-9]|v[0-9]+\\.[0-9]+\\.[0-9]+",
+      "rules": [
+        ".claude/rules/release-deploy-standard.md",
+        ".claude/rules/release-fix-retry-budget.md"
+      ],
+      "max_lines": 30,
+      "label": "Deploy + retry budget"
+    },
+    {
+      "pattern": "\\bmerge\\b|gh pr merge|--admin|squash merge",
+      "rules": [
+        ".claude/rules/admin-merge-discipline.md",
+        ".claude/rules/docs-only-pr-auto-merge.md"
+      ],
+      "max_lines": 30,
+      "label": "Merge discipline"
+    },
+    {
+      "pattern": "\\bgap closure\\b|\\bflip done\\b|\\bflip.*🟢\\b|\\bDONE flip\\b|\\bclose gap\\b",
+      "rules": [
+        ".claude/rules/gap-done-discipline.md"
+      ],
+      "max_lines": 40,
+      "label": "Gap closure"
+    },
+    {
+      "pattern": "\\bterraform\\b|\\baws apply\\b|terraform apply|terraform plan",
+      "rules": [
+        ".claude/rules/terraform-apply-retry-reconfirm.md",
+        ".claude/rules/concurrent-production-mutation-ops.md",
+        ".claude/rules/agent-aws-access.md"
+      ],
+      "max_lines": 25,
+      "label": "Terraform + AWS"
+    },
+    {
+      "pattern": "\\bwave plan\\b|\\bbucket [A-Z]\\b|\\bwave-pack\\b",
+      "rules": [
+        ".claude/rules/outside-in-coverage-trigger.md"
+      ],
+      "max_lines": 35,
+      "label": "Wave plan + outside-in"
+    },
+    {
+      "pattern": "\\boutside-in\\b|\\binside-out\\b|\\bpersona\\b|\\bbeta\\b|\\bbeta cohort\\b",
+      "rules": [
+        ".claude/rules/outside-in-coverage-trigger.md"
+      ],
+      "max_lines": 35,
+      "label": "Outside-in trigger"
+    },
+    {
+      "pattern": "\\bsecrets?\\b|secret value|AWS Secrets Manager|secretsmanager",
+      "rules": [
+        ".claude/rules/agent-aws-access.md",
+        ".claude/rules/pre-launch-secrets-hardening-checklist.md"
+      ],
+      "max_lines": 30,
+      "label": "Secrets handling"
+    },
+    {
+      "pattern": "\\bmutation\\b|kubectl apply prod|aws.*create-|aws.*delete-|aws.*put-",
+      "rules": [
+        ".claude/rules/pre-mutation-state-check.md",
+        ".claude/rules/concurrent-production-mutation-ops.md"
+      ],
+      "max_lines": 30,
+      "label": "Mutation ops"
+    }
+  ]
+}
