@@ -1,10 +1,10 @@
 # Rule Change Process — ADR-Like Governance for `.claude/rules/**`
 
 **Priority:** 🔴 CRITICAL — meta-governance for project DNA
-**Version:** 1.1.1
+**Version:** 1.1.2
 **Created:** 2026-04-20
 **Last-Reviewed:** 2026-05-14
-**Reviewer-Approver:** @nguyenvankiet (author self-approved — self-referential bootstrap; v1.1.0 MINOR self-approve per §5 — adds §6.5 Enforcement Parity Mandate paired with `incident-to-rule-pipeline.md` + `gap-done-discipline.md` in same PR, no constraint loosening)
+**Reviewer-Approver:** @nguyenvankiet (author self-approved — self-referential bootstrap; v1.1.2 PATCH self-approve per §5 — Wave 76 Bucket D adds §3.5 Last-Reviewed staleness policy paired with `scripts/check-rule-staleness.sh` + CI job in WARN mode + `.claude/rules/README.md` count ceiling section + `scripts/check-rule-count-ceiling.sh`, no constraint loosening; v1.1.1 PATCH self-approve per §5 — Wave 76 Bucket A adds §6.1 Deprecation lifecycle; v1.1.0 MINOR self-approve per §5 — adds §6.5 Enforcement Parity Mandate paired with `incident-to-rule-pipeline.md` + `gap-done-discipline.md` in same PR, no constraint loosening)
 **Supersedes:** ad-hoc rule edits (no prior formal process)
 **Applies to:** Every `.md` file under `.claude/rules/` and every rule-like top-level file the team decides is meta-governance (CLAUDE.md §rules, `.claude/skills/_README-skills-index.md` conventions)
 
@@ -54,6 +54,38 @@ Optional fields:
 ### Backfill policy
 
 Existing rules without `Version` / `Last-Reviewed` / `Reviewer-Approver` fields: backfill on the NEXT edit to that file (not a mass migration). A dedicated tracking gap may be filed if needed.
+
+### 3.5 Last-Reviewed staleness policy (added v1.1.1 — Wave 76 Bucket D)
+
+`Last-Reviewed` field MUST be updated when:
+- Rule content changes (any version bump — auto-paired with §7 Log entry)
+- Rule's enforcement mechanism changes (hook, CI script, skill, PR template)
+- During quarterly retro audit (forced review even without content change → PATCH bump)
+
+**CI enforcement** (`scripts/check-rule-staleness.sh`, job `rule-staleness` in `script-quality.yml`):
+
+| Age (days since Last-Reviewed) | Status | CI behavior |
+|---|---|---|
+| 0-59 | Fresh | PASS (silent) |
+| 60-179 | WARN | Informational message in CI output; PR does not fail |
+| ≥180 | FAIL | WARN-mode: reported but exit 0 (currently active); HARD STOP at FAIL after 30-day grace period from Wave 76 Bucket D merge — target re-enable date 2026-06-13 |
+| Missing or invalid `Last-Reviewed` | FAIL-MISSING | Always blocking (exit 1) — overlaps with `check-rule-frontmatter.sh` |
+
+**Stale rule action paths** (when WARN or FAIL surfaces):
+1. Re-read rule + verify still applicable → bump `Last-Reviewed` to today + PATCH version + Log entry
+2. Rule no longer applicable → deprecate per `rule-change-process.md` Open Items (future §6 deprecation lifecycle)
+3. Rule needs major rewrite → MAJOR version bump, full §5 review
+
+**Override mechanism** (rare exception — rule genuinely cannot be reviewed in current window):
+
+```
+git commit -m "...
+RULE_STALENESS_OVERRIDE: <rule-slug> — <reason + follow-up review date>"
+```
+
+Trailer logged; pattern frequency >5% per quarter triggers meta-review of thresholds.
+
+**Self-test:** Wave 76 Bucket D merge → script reports `55 fresh / 0 stale-WARN / 0 stale-FAIL / 0 missing-or-invalid` (all rules recently refreshed during Wave 73). Future sessions adding rules without timely re-review will surface WARN at 60 days.
 
 ---
 
@@ -262,6 +294,7 @@ Never skipped: enforcement section, log entry, version bump.
 
 ## 13. Log
 
+- **2026-05-14** (v1.1.2): PATCH — Wave 76 Bucket D — added §3.5 Last-Reviewed staleness policy with WARN/FAIL thresholds (60d/180d), CI enforcement via `scripts/check-rule-staleness.sh` + `script-quality.yml` job `rule-staleness` (WARN mode initially; HARD STOP after 30-day grace period from Wave 76 Bucket D merge). Paired same-PR with `scripts/check-rule-count-ceiling.sh` + `rule-count-ceiling` CI job + `.claude/rules/README.md` "Rule count ceiling policy" section per `rule-change-process.md` §6.5 Enforcement Parity Mandate. Self-test: script reports 55 fresh / 0 stale across current rule set. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — codifies existing implicit Last-Reviewed expectation, adds machine-enforced threshold; no constraint loosening; existing rules grandfathered until next refresh).
 - **2026-05-14** (v1.1.1): PATCH — Wave 76 Bucket A — added §6.1 Deprecation lifecycle (active → deprecated → removed, 60-day WARN window, paired same-PR with `rules-index.csv` 3 new columns `lifecycle_status` + `deprecated_at` + `replaced_by` + `check-rules-index-csv.sh` validator extension per `rule-change-process.md` §6.5 Enforcement Parity Mandate). All 55 existing rule rows backfilled `active`; rule applies prospectively to next deprecation transition. PATCH bump per §5 — additive process documentation, no existing constraint loosened. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5).
 - **2026-04-27** (v1.1.0): MINOR — added §6.5 Enforcement Parity Mandate (rule + detection same PR; self-test mandate; tracking-gap exception). Paired in same PR with new sister-rule `incident-to-rule-pipeline.md` (governs how misses become rules) and `gap-done-discipline.md` (the first concrete application — rule + Rule 13 detector + 3-fixture self-test all shipped together). Triggered by user feedback "có quy trình khi thêm 1 skill, 1 rules vào dự án chưa, mà vẫn miss kiểu này" surfacing that prior process governed rule edits but not enforcement parity at addition time. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5; new constraint on rule authors but does not loosen any existing constraint).
 - **2026-04-20** (v1.0.0): Rule created (GAP-171). Closes `output-review-mandate.md` §4 VIOLATION #2 ("Rules docs — meta governance without meta review"). Self-referential bootstrap: author self-approved v1.0 as there was no prior process; subsequent versions require §5 matrix reviewers. Paired with `.claude/skills/quality/rule-review/SKILL.md` and the gap-review skill (GAP-170 / Wave 8b-A).

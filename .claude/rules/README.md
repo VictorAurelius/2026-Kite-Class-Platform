@@ -33,6 +33,27 @@ Query helper: `bash scripts/query-rules.sh <priority> [date-prefix]` (vd `bash s
 
 ---
 
+## Rule count ceiling policy (Wave 76 Bucket D — paired với `rule-change-process.md` §3.5)
+
+Để giữ rule set maintainable + tránh "everything is a rule" drift, total count of `.claude/rules/*.md` (excluding `README.md`) governed bởi staged thresholds:
+
+| Range | Status | Action required |
+|---|---|---|
+| 0-50 | Free growth | No constraint — below industry maintainability ceiling (per outside-in benchmark Wave 75) |
+| 51-75 | INFO | Quarterly review trigger; audit overlap candidates |
+| 76-100 | WARN | Consolidation review MANDATORY before adding next rule (CI surfaces warning; reviewer-checklist) |
+| >100 | HARD STOP | Must consolidate, deprecate, or merge sister rules BEFORE adding new (CI exit 1) |
+
+**Current count (2026-05-14, post-Wave-76):** 55 rules — INFO band (between free-growth max 50 và quarterly-review trigger 75). Next consolidation pass scheduled when count reaches 75 OR quarterly retro (whichever first).
+
+**CI enforcement:** `scripts/check-rule-count-ceiling.sh` runs in `script-quality.yml` job `rule-count-ceiling` on every PR touching `.claude/rules/**`. WARN/INFO emit informational messages (exit 0); HARD STOP returns exit 1.
+
+**Staleness sister-policy:** `rule-change-process.md` §3.5 + `scripts/check-rule-staleness.sh` (job `rule-staleness`) ensure individual rule freshness (`Last-Reviewed` ≤180d). Together: count ceiling caps quantity, staleness check ensures quality.
+
+**When count approaches 75:** apply `meta-gap-priority.md` §3 force-multiplier logic — meta-rule consolidation = Meta-P0 (touches every future session); prefer merging overlapping rules over deprecating useful ones.
+
+---
+
 ## How auto-load works (Anthropic native feature)
 
 Per Anthropic docs (https://code.claude.com/docs/en/memory) — "Path-specific rules":
@@ -160,4 +181,5 @@ Wave plan: [`documents/03-planning/waves/wave-2026-05-14-73-meta-context-optimiz
 
 ## Log
 
+- **2026-05-14** (Wave 76 Bucket D): added "Rule count ceiling policy" section (free-growth ≤50 / INFO 51-75 / WARN 76-100 / HARD STOP >100) paired với `scripts/check-rule-count-ceiling.sh` + CI job `rule-count-ceiling` in `script-quality.yml`. Cross-link to sister `rule-change-process.md` §3.5 Last-Reviewed staleness policy (same PR). Current count: 55 rules (INFO band). Reviewer: @nguyenvankiet (solo-dev).
 - **2026-05-14**: thêm `paths: [".claude/rules/**"]` frontmatter (Wave 73 miss fix). Folder index giờ load on-demand khi browse rules folder. Reviewer: @nguyenvankiet (solo-dev).
