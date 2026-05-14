@@ -43,7 +43,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "com.kitehub.subscription.auth.twofactor",
         // Wave 78 Bucket B (GAP-538): OnboardingProgressRepository — admin context @ComponentScan
         // pulls OnboardingProgressService → OnboardingProgressRepository.
-        "com.kitehub.subscription.onboarding.repository"
+        "com.kitehub.subscription.onboarding.repository",
+        // Wave 78 Bucket F (GAP-542): FeedbackRepository — admin context @ComponentScan
+        // pulls FeedbackService + FeedbackSurveyScheduler → FeedbackRepository.
+        "com.kitehub.subscription.feedback.repository"
 })
 @EntityScan(basePackages = {
         // GAP-240: include all subscription entity packages — must mirror subscription's
@@ -67,7 +70,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         // platform User entity via V37 migration — no separate entity scan needed for User).
         "com.kitehub.subscription.auth.twofactor",
         // Wave 78 Bucket B (GAP-538): OnboardingProgress entity.
-        "com.kitehub.subscription.onboarding.entity"
+        "com.kitehub.subscription.onboarding.entity",
+        // Wave 78 Bucket F (GAP-542): FeedbackSubmission entity.
+        "com.kitehub.subscription.feedback.entity"
 })
 public class KiteHubAdminApplication {
 
