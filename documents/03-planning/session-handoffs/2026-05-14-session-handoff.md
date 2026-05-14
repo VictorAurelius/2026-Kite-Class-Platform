@@ -75,16 +75,40 @@ Session này shipped Wave 72a (6 buckets) + Wave 72b (7 buckets ngoại trừ Bu
 
 ## ACTION FOR NEXT SESSION — convert audits → gaps → Wave 73 plan
 
-### Phase 1: File gaps (60-90 min)
+### Phase 1: File gaps (90-120 min — extended do state-check required)
+
+**⚠️ CRITICAL FIX từ retrospective session này (2026-05-14):**
+
+User flagged — 3 audit agents (persona/benchmark/simulation) tôi spawn KHÔNG được instructed chạy state-check per `audit-to-gap-pipeline.md` §2.5. **Concrete miss example**: persona audit flagged "Personalized banner preview — Thuý muốn upload logo trung tâm" là gap MỚI, nhưng thực ra overlap với:
+- `ai-branding-guidelines.md` §4.1 wizard step 2 = "Upload logo (optional)" + step 6 = "Preview + approve" — codified
+- `kitehub-branding/src/main/java/.../controller/AssetStorageController.java` — endpoint scaffolded
+- GAP-225 umbrella — scaffold-as-DONE cluster covers AI Branding
+- GAP-033 PARTIAL 57% — Branding Version History
+- GAP-068 OPEN — KiteHub Admin AI-Branding Console
+
+→ "New" finding thực ra là OVERLAP. Filed as new gap = duplicate work, wasted reviewer time.
+
+**MANDATORY state-check protocol per candidate** (before filing as new gap):
+
+1. `bash scripts/query-gaps.sh "" "" ""` — search gap-status.csv keyword match
+2. `grep -rln "<keyword>" kitehub/ kiteclass/` — search codebase (no `| head` per §2.5)
+3. `find documents/01-business -iname "*<topic>*"` — search domain docs
+4. `Read` overlapping gap files in FULL (not just grep)
+5. **Decision per §2.5 table:**
+   - Nothing exists → file 🔵 OPEN new gap
+   - Partial implementation → file 🟡 PARTIAL with `## Current State (verified 2026-05-15)` section + grep evidence + narrowed AC delta
+   - Fully implemented → SKIP file new; update existing gap if needed
+
+**Expected dedupe of 53 candidates:**
+- ~15-25 overlap với existing → SKIP file new OR update existing
+- ~30-35 truly new → file as new GAP-NNN per §3 template
+- ~5-10 partial overlaps → file 🟡 PARTIAL với scope narrowed
+
 Cross-reference 3 audit reports:
 - 30 persona gaps
-- 23 simulation gaps  
+- 23 simulation gaps
 - 5+5 benchmark recommendations
-= ~58 distinct gap candidates (some overlap)
-
-Action: file each as new GAP-NNN trong `documents/04-quality/gaps/` per `audit-to-gap-pipeline.md` Step 3 template. Update `gap-status.csv` per `meta-csv-index-pattern.md`. ROADMAP entry.
-
-Dedupe: ~58 → ~40-45 unique gaps expected.
+= ~53 distinct candidates → after state-check, ~30-35 truly new gaps
 
 ### Phase 2: Wave 73 plan REVISION (30 min)
 Edit `documents/03-planning/waves/wave-2026-05-14-72b-2fa-audit-rubric-review.md` (stub) → expand to full Wave 73 with:
@@ -145,9 +169,11 @@ None — all 3 outside-in agents completed. No worktree husks (will prune ở cl
 
 1. **outside-in-coverage-trigger.md** rule shipped — Claude PHẢI tự động hỏi outside-in khi dev inside-out brainstorm. Auto-loads via memory.
 2. **Wave 73 plan stub là cũ** — đề xuất 4 buckets dựa trên dev inside-out. Audit reports cho thấy under-scoped 80%. Cần REVISION trước khi spawn agents.
-3. **AWS stack đang UP** từ session này — nếu next session pause lâu → `bash scripts/aws/stop-stack.sh --force` để save Free Tier hours.
+3. **AWS stack STOPPED** — đã `stop-stack.sh --force` cuối session 2026-05-14 do next session 3 phases (rebase + file gaps + plan revision) đều docs-only. Nếu cần dùng AWS → `bash scripts/aws/start-stack.sh`.
 4. **Bucket A 2FA BE PR base** đã được thay đổi main (từ wave/72b-bucket-0-foundation). Rebase sẽ resolve gap-status.csv GAP-516 row (Bucket B đã update với PARTIAL 50%; Bucket A sẽ bump tới ~80%).
 5. **Audit-of-trust mandate** — Wave 72b BE changes (V37/V38 migrations, 2FA, login audit, admin audit) cần audit suite chạy ≤3 ngày per `post-wave-audit-mandate.md`. Security audit + business-logic audit pending.
+6. **⚠️ State-check NGHIÊM TÚC ở Phase 2** — user flagged retro 2026-05-14: audit agents skip `audit-to-gap-pipeline.md` §2.5 → "Personalized banner preview" persona finding overlap với AI Branding wizard codified + AssetStorageController scaffolded + GAP-225 umbrella + GAP-033 + GAP-068. Mỗi 53 candidates PHẢI state-check trước khi file new gap. Expected: ~30-35 truly new, ~15-25 update/skip existing.
+7. **Wave 75+ meta TODO**: extend `outside-in-coverage-trigger.md` v1.0.0 → v1.1.0 với mandate "audit agent prompts MUST include §2.5 state-check instruction" để prevent recurrence.
 
 ## Memory entries to copy to user-memory dir
 
