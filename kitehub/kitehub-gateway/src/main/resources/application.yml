@@ -23,6 +23,11 @@ spring:
 
       routes:
         # Auth APIs - handled by Subscription Service
+        # GAP-514 — OWASP A07 hardening: per-endpoint RequestRateLimiter on every auth
+        # surface (login/refresh/verify-email/resend) to bound brute-force +
+        # credential-stuffing + Resend-quota-burn vectors. Rates per
+        # `pre-launch-auth-hardening-checklist.md` §2.1.
+        # Specific paths MUST precede the `auth` catch-all so they win on path match.
         - id: auth-register
           uri: http://kitehub-subscription:8080
           predicates:
@@ -35,6 +40,73 @@ spring:
                 redis-rate-limiter.burstCapacity: 5
                 redis-rate-limiter.requestedTokens: 1
                 key-resolver: "#{@ipKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+
+        - id: auth-login
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/auth/login
+            - Method=POST
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@ipKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+
+        - id: auth-refresh
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/auth/refresh
+            - Method=POST
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+
+        - id: auth-verify-email
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/auth/verify-email
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 15
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@ipKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+
+        - id: auth-resend-verification
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/auth/resend-verification
+            - Method=POST
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 1
+                redis-rate-limiter.burstCapacity: 2
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@emailKeyResolver}"
             - name: CircuitBreaker
               args:
                 name: authCircuitBreaker
@@ -209,6 +281,24 @@ spring:
             - Path=/docs/email/**
           filters:
             - RewritePath=/docs/email(?<segment>/?.*), ${segment}
+
+        # GAP-514 — rate-limit on public beta signup endpoint (must precede catch-all)
+        - id: kitehub-auth-v1-request-beta-access
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/auth/request-beta-access
+            - Method=POST
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 2
+                redis-rate-limiter.burstCapacity: 5
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@ipKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
 
         # GAP-509 — kitehub auth v1 (beta signup + verification) routes
         # to subscription service. Must precede instance-apis catch-all so

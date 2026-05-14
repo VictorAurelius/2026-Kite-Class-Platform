@@ -152,9 +152,9 @@ class KeyResolverConfigTest {
     @DisplayName("ipKeyResolver — annotated @Primary so Spring Cloud Gateway autoconfig picks it (GAP-419)")
     void ipKeyResolverIsPrimary() throws NoSuchMethodException {
         // Spring Cloud Gateway's RequestRateLimiterGatewayFilterFactory autoconfig requires
-        // a single KeyResolver bean. We declare three (ip/tenant/apiKey) — without @Primary
-        // on the default, the gateway crashes at startup with NoUniqueBeanDefinitionException.
-        // tenantKeyResolver and apiKeyResolver remain accessible by name via SpEL in routes.
+        // a single KeyResolver bean. We declare five (ip/tenant/apiKey/email/user) — without
+        // @Primary on the default, the gateway crashes at startup with NoUniqueBeanDefinitionException.
+        // Non-primary resolvers remain accessible by name via SpEL in routes.
         assertThat(KeyResolverConfig.class.getMethod("ipKeyResolver").isAnnotationPresent(Primary.class))
                 .as("ipKeyResolver must be @Primary to satisfy SCG autoconfig single-bean requirement")
                 .isTrue();
@@ -164,6 +164,98 @@ class KeyResolverConfigTest {
         assertThat(KeyResolverConfig.class.getMethod("apiKeyResolver").isAnnotationPresent(Primary.class))
                 .as("apiKeyResolver must NOT be @Primary (only one default allowed)")
                 .isFalse();
+        assertThat(KeyResolverConfig.class.getMethod("emailKeyResolver").isAnnotationPresent(Primary.class))
+                .as("emailKeyResolver must NOT be @Primary (GAP-514, only one default allowed)")
+                .isFalse();
+        assertThat(KeyResolverConfig.class.getMethod("userKeyResolver").isAnnotationPresent(Primary.class))
+                .as("userKeyResolver must NOT be @Primary (GAP-514, only one default allowed)")
+                .isFalse();
+    }
+
+    @Test
+    @DisplayName("emailKeyResolver — returns email:<lowercase> from X-User-Email header (GAP-514)")
+    void emailResolverUsesHeader() {
+        KeyResolver resolver = config.emailKeyResolver();
+        MockServerHttpRequest request = MockServerHttpRequest
+                .get("http://example.com/api/auth/resend-verification")
+                .header(KeyResolverConfig.X_USER_EMAIL_HEADER, "User@Example.COM")
+                .remoteAddress(new java.net.InetSocketAddress("10.0.0.1", 0))
+                .build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+        StepVerifier.create(resolver.resolve(exchange))
+                .expectNext("email:user@example.com")
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("emailKeyResolver — falls back to IP when header missing (GAP-514)")
+    void emailResolverFallsBackToIp() {
+        KeyResolver resolver = config.emailKeyResolver();
+        MockServerHttpRequest request = MockServerHttpRequest
+                .get("http://example.com/api/auth/resend-verification")
+                .remoteAddress(new java.net.InetSocketAddress("203.0.113.9", 0))
+                .build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+        StepVerifier.create(resolver.resolve(exchange))
+                .expectNext("email-fallback-ip:203.0.113.9")
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("userKeyResolver — extracts sub claim from Bearer JWT (GAP-514)")
+    void userResolverExtractsJwtSub() {
+        KeyResolver resolver = config.userKeyResolver();
+        // Synthetic JWT — header.payload.signature; payload base64url-encodes {"sub":"user-123"}.
+        String header = base64Url("{\"alg\":\"none\"}");
+        String payload = base64Url("{\"sub\":\"user-123\",\"iat\":1700000000}");
+        String token = header + "." + payload + ".sig";
+        MockServerHttpRequest request = MockServerHttpRequest
+                .get("http://example.com/api/auth/refresh")
+                .header(KeyResolverConfig.AUTHORIZATION_HEADER, "Bearer " + token)
+                .build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+        StepVerifier.create(resolver.resolve(exchange))
+                .expectNext("user:user-123")
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("userKeyResolver — falls back to IP when Authorization header missing (GAP-514)")
+    void userResolverFallsBackToIp() {
+        KeyResolver resolver = config.userKeyResolver();
+        MockServerHttpRequest request = MockServerHttpRequest
+                .get("http://example.com/api/auth/refresh")
+                .remoteAddress(new java.net.InetSocketAddress("198.51.100.7", 0))
+                .build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+        StepVerifier.create(resolver.resolve(exchange))
+                .expectNext("user-fallback-ip:198.51.100.7")
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("userKeyResolver — falls back to IP when JWT payload malformed (GAP-514)")
+    void userResolverFallsBackOnMalformedJwt() {
+        KeyResolver resolver = config.userKeyResolver();
+        MockServerHttpRequest request = MockServerHttpRequest
+                .get("http://example.com/api/auth/refresh")
+                .header(KeyResolverConfig.AUTHORIZATION_HEADER, "Bearer not-a-jwt")
+                .remoteAddress(new java.net.InetSocketAddress("198.51.100.8", 0))
+                .build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+        StepVerifier.create(resolver.resolve(exchange))
+                .expectNext("user-fallback-ip:198.51.100.8")
+                .verifyComplete();
+    }
+
+    private static String base64Url(String json) {
+        return java.util.Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
     }
 
     @Test
