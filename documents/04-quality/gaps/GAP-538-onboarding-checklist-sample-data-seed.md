@@ -1,0 +1,76 @@
+# GAP-538: Day-1 onboarding checklist + sample/demo data seed
+
+**Status:** 🔵 OPEN
+**Priority:** 🔴 P0
+**Domain:** Mixed (FE + BE)
+**Detected:** 2026-05-14
+**Related PRs:** (Wave 78 plan PR pending)
+**Related Docs:** `documents/03-planning/waves/wave-2026-05-14-78-beta-invite-launch-retain.md`
+
+## Current State (verified 2026-05-14)
+
+| Piece | File / Path | Status |
+|-------|-------------|--------|
+| Onboarding checklist FE component | `kitehub/kitehub-frontend/src/app/(dashboard)/onboarding/` | ❌ missing (no folder) |
+| Onboarding progress BE endpoint | `kitehub/kitehub-subscription/src/main/java/.../onboarding/` | ❌ missing |
+| Flyway migration `onboarding_progress` table | `kitehub/kitehub-subscription/src/main/resources/db/migration/V*__create_onboarding_progress_table.sql` | ❌ missing |
+| Sample/demo data seed gated by `is_beta_demo_data` flag | tenant metadata schema + seed scripts | ❌ missing |
+| api-contract.md cho onboarding-progress endpoints | `documents/01-business/onboarding/api-contract.md` | ❌ missing |
+
+**Grep commands run:**
+```bash
+find kitehub/kitehub-frontend/src/app -type d -name "onboarding*"  # 0 matches
+find kitehub/kitehub-subscription -name "OnboardingProgress*"       # 0 matches
+ls documents/01-business/onboarding/ 2>&1                            # folder absent
+```
+
+## Problem
+
+Beta user nhận invite → click email link → đăng nhập lần đầu → **không có guidance** về việc cần làm gì tiếp theo. Per outside-in 3-agent audit 2026-05-14 (N1 finding): Tier 1 beta tenant onboarding fail = first-touch UX miss → user bounce. Cần checklist 5 bước hiển thị + opt-in sample/demo data để tenant có data ban đầu để khám phá.
+
+## Context
+
+Wave 77 SEND foundation đóng email delivery + 2026-05-14 outside-in 3-agent audit surface 4 P0 NEW cho RETAIN scope. N1 (onboarding checklist + sample data) là first item — user nhận invite không thể chỉ "đăng nhập rồi thôi"; cần lộ trình rõ ràng + dữ liệu mẫu để test ngay.
+
+## Evidence
+
+- Outside-in audit 2026-05-14 (`documents/04-quality/audits/persona/2026-05-14-outside-in-3-agent-beta-retain.md` — to be filed Wave 78 audit cycle) N1 finding
+- Comparable SaaS benchmark: Linear / Notion / Vercel — all gửi welcome email với checklist nhúng + sample workspace data
+- Inside-out completeness audit 2026-05-14 surface 5 BLOCKING items missed Wave 77 (separate gaps)
+
+## Proposed Fix
+
+1. Bucket 0 Foundation (cross-layer prereq): `documents/01-business/onboarding/api-contract.md` CREATE với `GET /api/v1/onboarding-progress` + `PUT /api/v1/onboarding-progress` endpoints
+2. BE module: `kitehub-subscription/.../onboarding/` package
+   - `OnboardingProgress` entity (tenant_id, step_completed JSON array, created_at, updated_at)
+   - Flyway migration `V[N]__create_onboarding_progress_table.sql`
+   - `OnboardingProgressController` với GET/PUT endpoints + DTO
+   - Integration test cover happy path + multi-tenant isolation
+3. FE component: `kitehub-frontend/src/app/(dashboard)/onboarding/`
+   - `OnboardingChecklist.tsx` component 5 bước (welcome / profile / sample-data-opt-in / first-action / done)
+   - Step completion persist qua `PUT /api/v1/onboarding-progress`
+   - Sample data seed gated by user opt-in trên step 3 → call `POST /api/v1/tenant/seed-demo-data` (existing endpoint hoặc new)
+4. Sample data seed implementation: tenant.metadata flag `is_beta_demo_data=true` → seed sample students/courses/classes (5-10 entries) qua existing seed mechanism
+5. MSW handler `kitehub-frontend/src/test/msw/handlers/onboarding.ts` cho Bucket 0 Foundation
+
+## Acceptance Criteria
+
+- [ ] api-contract.md cho onboarding-progress endpoints ship trong Bucket 0 Foundation
+- [ ] BE `OnboardingProgressController` + entity + migration applied (verified `\d onboarding_progress` returns table schema)
+- [ ] FE checklist 5 bước hiển thị on first login + step completion persist qua API
+- [ ] Sample data seed gated by user opt-in (step 3); KHÔNG auto-seed mà không hỏi user
+- [ ] Live walkthrough verify per `pre-handoff-self-test-completeness.md` §2.1 auth-gated user-flow (credential available → login → checklist visible → step click → step completed)
+- [ ] No cross-tenant data leak (tenant A login không thấy tenant B onboarding state)
+- [ ] FE unit test cover checklist component + BE integration test cover endpoints
+- [ ] Sample seed data Vietnamese-friendly (per `dev-readable-doc-language.md` — student names như "Nguyễn Văn An", course names tiếng Việt)
+
+## Related
+
+- Wave 78 plan: `documents/03-planning/waves/wave-2026-05-14-78-beta-invite-launch-retain.md` Bucket B
+- Sister gap GAP-539 (N2 beta disclaimer + /beta-status — same Bucket B)
+- Rules: `contract-first-for-cross-layer.md` v1.0.1 (Bucket 0 Foundation prereq); `pre-handoff-self-test-completeness.md` §2.1 (live walkthrough)
+- Outside-in 3-agent audit 2026-05-14 N1 finding
+
+## Log
+
+- 2026-05-14 — Initial write-up (state-check completed; 0 onboarding folder/controller/migration found; api-contract.md absent; Wave 78 Bucket B owner).
