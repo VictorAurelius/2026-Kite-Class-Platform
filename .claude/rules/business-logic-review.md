@@ -1,10 +1,15 @@
+---
+paths:
+  - "documents/01-business/**/rules.md"
+---
+
 # Business Logic Correctness Review
 
 **Priority:** 🔴 CRITICAL — every business rule (constraint, threshold, pricing tier, compliance check) MUST pass review before merge
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-04-29
-**Last-Reviewed:** 2026-04-29
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — new-rule with built-in enforcement; per `rule-change-process.md` §5 self-approve allowed because no prior process — "thing right vs right thing" violation #7 in `output-review-mandate.md` §3 had no review standard at all)
+**Last-Reviewed:** 2026-05-14
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; adds `paths:` frontmatter per Wave 73 Bucket A2 — no constraint change, rule still applies same scope, just deferred-load when no per-domain rules.md in context. v1.0.0 (kept): new-rule with built-in enforcement; per §5 self-approve allowed because no prior process — "thing right vs right thing" violation #7 in `output-review-mandate.md` §3 had no review standard at all)
 **Applies to:** Every per-domain `documents/01-business/*/rules.md` file (currently 45 across kiteclass + kitehub) AND every code constant encoding business value (timeouts, limits, thresholds, prices, tiers, quotas, periods)
 **Closes:** Phase 1 of GAP-049 (rule file shipped + matrix-row flip); Phase 2 audit + stakeholder sign-offs tracked in GAP-156
 
@@ -311,4 +316,5 @@ Override does NOT exempt the rule from the 5 attributes long-term. It exempts on
 
 ## 10. Log
 
+- **2026-05-14 (v1.0.1):** PATCH — added `paths:` frontmatter `documents/01-business/**/rules.md` per Wave 73 Bucket A2 (path-scope context optimization). Rule chỉ auto-load khi session chạm vào per-domain rules.md — giảm token overhead các session khác. No constraint change; rule scope unchanged. Paired same-PR với rules-index.csv path_trigger column update. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — frontmatter addition only, no constraint loosening).
 - **2026-04-29 (v1.0.0):** Rule created. Phase 1 of GAP-049 closure (rule file shipped + `output-review-mandate.md` §3 matrix-row flip from ❌ VIOLATION → ⚠️ PARTIAL). Phase 2 (audit execution against existing 45 per-domain `rules.md` files + stakeholder sign-offs against representative sample) tracked in GAP-156. Reviewer: @nguyenvankiet (solo-dev, acting Product Owner + Legal scout) self-approve per `rule-change-process.md` §5 — new rule with built-in enforcement (PR template checkbox + `audit-gate.py` partial warn-mode detector + quarterly cadence schedule + reviewer-checklist line); no constraint loosening for prior work. Existing rules in `documents/01-business/` are grandfathered (no retroactive 5-attribute audit until GAP-156 quarterly run). Self-approve permitted because §3 review-process VIOLATION existed without standard at all — this rule establishes the standard solo-dev would otherwise route through. Motivation: `output-review-mandate.md` §4 VIOLATION row "Business logic CORRECTNESS" was the last unaddressed CRITICAL violation; GAP-049 sliced into Phase 1 (this rule, Wave Business Correctness 2026-04-29) + Phase 2 (audit + sign-offs, GAP-156) per `gap-done-discipline.md` §3 PARTIAL exit ramp.
