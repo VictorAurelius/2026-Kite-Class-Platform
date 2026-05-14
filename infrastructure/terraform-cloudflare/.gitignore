@@ -1,0 +1,10 @@
+# Cloudflare terraform — do NOT commit secrets or local state
+terraform.tfvars
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+tfplan
+*.tfplan
+crash.log
+crash.*.log
