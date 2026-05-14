@@ -1,6 +1,6 @@
 # GAP-523: Audit skill rubric review wave — apply primacy + per-check to 6 audit skills (META)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-14 — Wave 72b Bucket E shipped 6 sister rules + 6 SKILL.md edits + CSV sync
 **Priority:** 🔴 P0 META (force-multiplier; recurrence prevention)
 **Domain:** Meta / Skills
 **Found:** 2026-05-13 (Wave 71c-meta-Phase-2 — security-audit incident generalization)
@@ -42,13 +42,17 @@ Estimated 2-3 days work (parallelizable into 6 agents).
 
 ## Acceptance Criteria
 
-- [ ] All 6 skills have "bug-finding > scoring" primacy section
-- [ ] All 6 skills have per-check pass/fail rubric (no averaging within category)
-- [ ] Worked self-test in each skill update PR shows ≥1 new finding surfaced
+- [x] All 6 skills have "bug-finding > scoring" primacy section (via bound rule §4)
+- [x] All 6 skills have per-check pass/fail rubric (no averaging within category) — bound to 6 new sister rules `audit-skill-rubric-<skill>.md`
+- [x] Worked self-test in each new rule §5 shows ≥1 finding surfaced on current main HEAD
 
 ## Related
 
 - Parent: PR #1278 (security-audit fix; this gap generalizes to 6 sister skills)
-- Sibling: GAP-522 (security-audit remaining 4 categories)
+- Sibling: GAP-522 (security-audit remaining 4 categories — closed Wave 72a Bucket E)
 - Rule: `meta-gap-priority.md` §3 Meta-P0 boost; `output-review-mandate.md` §3 multiple rows affected
-- Wave candidate: 72 (post-Phase 1 BETA stabilize)
+- Wave: 72b Bucket E
+
+## Log
+
+- **2026-05-14:** Wave 72b Bucket E — shipped 6 new sister rules `.claude/rules/audit-skill-rubric-{quality-audit, ops-readiness-audit, performance-audit, api-contract-audit, business-logic-audit, ui-review}.md` v1.0.0; 6 SKILL.md edits citing respective rule + adding §"Per-check scoring" subsection + bug-finding primacy section; 6 rows added to `rules-index.csv`. CI checks pass: `check-rule-frontmatter.sh` 51 files 0 FAIL; `check-rules-index-csv.sh` 51 rows PASS; `check-skill-conventions.sh` 52 PASS / 13 WARN / 0 FAIL (warns are pre-existing eval-fixture warnings unrelated to this scope). Detector wiring deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 days; v1.0.0 enforcement = skill rubric extension + reviewer-checklist sufficient. Status flip per `gap-done-discipline.md` §2 — all 3 AC checked, no banned phrases, no deferrals beyond detector wiring (tracked separately).

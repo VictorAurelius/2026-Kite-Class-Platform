@@ -16,25 +16,45 @@ Score /100. Walk through every domain in `documents/01-business/`, verify code i
 ls documents/01-business/kiteclass/ documents/01-business/kitehub/ | grep -v README
 ```
 
-### 2. Per-Domain: 5 Checks
+### 2. Primacy: bug-finding > scoring (BLOCKING)
 
-For EACH domain folder, read `rules.md`, `use-cases.md`, `api-contract.md`, then verify in code:
+> **An audit's purpose is to surface code-rules drift BEFORE production violates documented business policy (wrong pricing, wrong retention, wrong consent flow). A `/100` score is less actionable than the same score + list of unimplemented BR-xxx + config-key drifts with file:line evidence.** Per `.claude/rules/audit-skill-rubric-business-logic-audit.md` §4 (mirror of Wave 71c security-audit primacy pattern).
 
-| # | Category (20pts) | How |
-|---|-----------------|-----|
-| 1 | **Rule Coverage** | Each BR-xxx → grep codebase for implementation. Missing = -4/rule |
-| 2 | **Config Accuracy** | Config keys in rules.md → match `application.yml` values |
-| 3 | **Edge Case Tests** | Each UC error path → has *Test.java. Missing = -4/path |
-| 4 | **Cross-Domain Consistency** | No contradicting rules between domains |
-| 5 | **Stakeholder Alignment** | Rules reflect VN education market + law. Flag for human review |
+Rules for every audit run:
+1. Enumerate ALL §3 sub-checks per category. NEVER skip.
+2. Each sub-check returns: PASS / FAIL / N/A-with-reason / `❓ UNCHECKED`. No partial credit.
+3. Final output starts with **bug list** (every BR/config FAIL with `rules.md:line` + `*.java:line` evidence) BEFORE the score.
+4. Score is descriptive only; audit-level verdict = FAIL if ANY P0 sub-check FAILS.
+5. Cat 5 Stakeholder rules require human review — Claude flags FAIL, human decides closure.
 
-Scoring details: `reference/scoring-guide.md`
+### 3. Per-Domain: 5 Categories with per-check rubric
 
-### 3. Output
+Per Wave 72b Bucket E (GAP-523 closure), every category binds to per-check pass/fail rule. For EACH domain folder, read `rules.md`, `use-cases.md`, `api-contract.md`, then verify in code:
+
+| # | Category (20pts) | Per-check rubric file |
+|---|-----------------|-----------------------|
+| 1 | **Rule Coverage** | **`.claude/rules/audit-skill-rubric-business-logic-audit.md` §2.1 (6 sub-checks)** |
+| 2 | **Config Accuracy** | **`.claude/rules/audit-skill-rubric-business-logic-audit.md` §2.2 (5 sub-checks)** |
+| 3 | **Edge Case Tests** | **`.claude/rules/audit-skill-rubric-business-logic-audit.md` §2.3 (5 sub-checks)** |
+| 4 | **Cross-Domain Consistency** | **`.claude/rules/audit-skill-rubric-business-logic-audit.md` §2.4 (5 sub-checks)** |
+| 5 | **Stakeholder Alignment** | **`.claude/rules/audit-skill-rubric-business-logic-audit.md` §2.5 (5 sub-checks)** |
+
+#### Per-check scoring (all 5 categories)
+
+For each Category N:
+1. Walk through every §2 sub-check in the bound rule.
+2. Mark each sub-check PASS / FAIL / N/A-with-reason / `❓ UNCHECKED`.
+3. Score = `20 - (failed_P0_count * 6) - (failed_P1_count * 3) - (failed_P2_count * 1)`, floor 0; cap 20 if all PASS.
+4. If ANY P0 sub-check fails → category total CAPPED at 16/20 AND audit-level verdict = FAIL.
+5. Each FAIL surfaces in bug list per §2 primacy.
+
+Legacy scoring narrative: `reference/scoring-guide.md` retained for backward-compat only.
+
+### 4. Output
 
 Save to `documents/04-quality/audits/business/business-logic-audit-[date].md`
 
-### 4. Scripts
+### 5. Scripts
 
 ```bash
 # Existing — checks 3-layer structure exists

@@ -31,19 +31,41 @@ grep -rn "livenessProbe\|readinessProbe\|startupProbe" infrastructure/ | head -1
 ls infrastructure/*/alerting* infrastructure/*/alerts* 2>/dev/null
 ```
 
-### 2. Score 5 Categories
+### 2. Primacy: bug-finding > scoring (BLOCKING)
 
-| # | Category (20pts) | Key Checks |
-|---|-----------------|------------|
-| 1 | **Monitoring & Observability** | Actuator, Prometheus, Grafana dashboards |
-| 2 | **Logging Standards** | Structured JSON, required fields, PII scrubbing |
-| 3 | **Backup & Recovery** | DB backup strategy, DR plan, RTO/RPO defined |
-| 4 | **Alerting** | Alert rules, on-call process, runbooks |
-| 5 | **Deployment Pipeline** | Rolling/blue-green, rollback, health checks |
+> **An audit's purpose is to surface ops-operational gaps the dev team cannot trust other layers to catch. A `60/100 D` score with hidden P0 gaps (no restore drill, no PII scrubber, no alert rules) is WORSE than `40/100` listing every gap honestly.** Per `.claude/rules/audit-skill-rubric-ops-readiness-audit.md` §4 (mirror of Wave 71c security-audit primacy pattern).
 
-Scoring details: `reference/scoring-guide.md`
+Rules for every audit run:
+1. Enumerate ALL §3 sub-checks per category. NEVER skip "obviously fine."
+2. Each sub-check returns: PASS / FAIL / N/A-with-reason / `❓ UNCHECKED`. No partial credit.
+3. Final output starts with **bug list** (every FAIL surfaces) BEFORE the score.
+4. Score is descriptive only; audit-level verdict = FAIL if ANY P0 sub-check FAILS.
+5. If audit time-budget runs out, mark `❓ UNCHECKED` — do NOT default to PASS.
 
-### 3. Output
+### 3. Score 5 Categories with per-check rubric
+
+Per Wave 72b Bucket E (GAP-523 closure), every category binds to per-check pass/fail rule. Within each 20-pt category: any P0/P1 sub-check FAIL caps category total ≤ 16/20.
+
+| # | Category (20pts) | Per-check rubric file |
+|---|-----------------|-----------------------|
+| 1 | **Monitoring & Observability** | **`.claude/rules/audit-skill-rubric-ops-readiness-audit.md` §2.1 (6 sub-checks, per-check pass/fail)** |
+| 2 | **Logging Standards** | **`.claude/rules/audit-skill-rubric-ops-readiness-audit.md` §2.2 (6 sub-checks, per-check pass/fail)** |
+| 3 | **Backup & Recovery** | **`.claude/rules/audit-skill-rubric-ops-readiness-audit.md` §2.3 (6 sub-checks, per-check pass/fail)** |
+| 4 | **Alerting** | **`.claude/rules/audit-skill-rubric-ops-readiness-audit.md` §2.4 (6 sub-checks, per-check pass/fail)** |
+| 5 | **Deployment Pipeline** | **`.claude/rules/audit-skill-rubric-ops-readiness-audit.md` §2.5 (6 sub-checks, per-check pass/fail)** |
+
+#### Per-check scoring (all 5 categories)
+
+For each Category N:
+1. Walk through every §2 sub-check in the bound rule.
+2. Mark each sub-check PASS / FAIL / N/A-with-reason / `❓ UNCHECKED` (no partial credit).
+3. Score = `20 - (failed_P0_count * 6) - (failed_P1_count * 3) - (failed_P2_count * 1)`, floor 0; cap 20 if all PASS.
+4. If ANY P0 sub-check fails → category total CAPPED at 16/20 AND audit-level verdict = FAIL regardless of total score.
+5. Each FAIL surfaces in the audit-report bug list per §2 primacy.
+
+Legacy scoring narrative: `reference/scoring-guide.md` retained for backward-compat only — bound rule §2 IS the canonical rubric per Wave 72b Bucket E.
+
+### 4. Output
 
 Save to `documents/04-quality/audits/ops/ops-readiness-audit-[date].md`
 

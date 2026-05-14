@@ -28,19 +28,41 @@ grep -rn "RedisTemplate\|@Cacheable\|cache" --include="*.java" | grep -v test | 
 grep -rn "pool-size\|max-connections\|timeout\|thread" --include="*.yml" | grep -v target | head -20
 ```
 
-### 2. Score 5 Categories
+### 2. Primacy: bug-finding > scoring (BLOCKING)
 
-| # | Category (20pts) | Key Checks |
-|---|-----------------|------------|
-| 1 | **DB Query Efficiency** | N+1 patterns, missing indexes, @Query optimization |
-| 2 | **API Response Time** | E2E timing, slow endpoints, pagination |
-| 3 | **Frontend Bundle** | Build size, tree-shaking, lazy loading |
-| 4 | **Caching Strategy** | Redis usage, TTL config, cache-aside pattern |
-| 5 | **Resource Utilization** | Connection pools, thread pools, memory limits |
+> **An audit's purpose is to surface performance bombs (N+1, missing pagination, missing bulkhead) BEFORE prod. A `/100` score with hidden P0 bombs is WORSE than a low score listing every bomb honestly.** Per `.claude/rules/audit-skill-rubric-performance-audit.md` §4 (mirror of Wave 71c security-audit primacy pattern).
 
-Scoring details: `reference/scoring-guide.md`
+Rules for every audit run:
+1. Enumerate ALL §3 sub-checks per category. NEVER skip "obviously fine."
+2. Each sub-check returns: PASS / FAIL / N/A-with-reason / `❓ UNCHECKED`. No partial credit.
+3. Final output starts with **bug list** (every FAIL with `file:line` evidence) BEFORE the score.
+4. Score is descriptive only; audit-level verdict = FAIL if ANY P0 sub-check FAILS.
+5. If audit time-budget runs out, mark `❓ UNCHECKED` — do NOT default to PASS.
 
-### 3. Output
+### 3. Score 5 Categories with per-check rubric
+
+Per Wave 72b Bucket E (GAP-523 closure), every category binds to per-check pass/fail rule.
+
+| # | Category (20pts) | Per-check rubric file |
+|---|-----------------|-----------------------|
+| 1 | **DB Query Efficiency** | **`.claude/rules/audit-skill-rubric-performance-audit.md` §2.1 (6 sub-checks)** |
+| 2 | **API Response Time** | **`.claude/rules/audit-skill-rubric-performance-audit.md` §2.2 (6 sub-checks)** |
+| 3 | **Frontend Bundle** | **`.claude/rules/audit-skill-rubric-performance-audit.md` §2.3 (6 sub-checks)** |
+| 4 | **Caching Strategy** | **`.claude/rules/audit-skill-rubric-performance-audit.md` §2.4 (6 sub-checks)** |
+| 5 | **Resource Utilization** | **`.claude/rules/audit-skill-rubric-performance-audit.md` §2.5 (6 sub-checks)** |
+
+#### Per-check scoring (all 5 categories)
+
+For each Category N:
+1. Walk through every §2 sub-check in the bound rule.
+2. Mark each sub-check PASS / FAIL / N/A-with-reason / `❓ UNCHECKED`.
+3. Score = `20 - (failed_P0_count * 6) - (failed_P1_count * 3) - (failed_P2_count * 1)`, floor 0; cap 20 if all PASS.
+4. If ANY P0 sub-check fails → category total CAPPED at 16/20 AND audit-level verdict = FAIL.
+5. Each FAIL surfaces in bug list per §2 primacy.
+
+Legacy scoring narrative: `reference/scoring-guide.md` retained for backward-compat only.
+
+### 4. Output
 
 Save to `documents/04-quality/audits/performance/performance-audit-[date].md`
 

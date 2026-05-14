@@ -8,6 +8,12 @@ agent-action-bias,MANDATORY,1.0.0,2026-05-07,2026-05-07,agent-action-bias.md
 agent-aws-access,MANDATORY,1.0.1,2026-05-07,2026-05-08,agent-aws-access.md
 agent-background-spawn-default,MANDATORY,1.0.0,2026-04-29,2026-04-29,agent-background-spawn-default.md
 ai-branding-guidelines,MANDATORY,1.2.0,2026-04-14,2026-04-28,ai-branding-guidelines.md
+audit-skill-rubric-api-contract-audit,MANDATORY,1.0.0,2026-05-14,2026-05-14,audit-skill-rubric-api-contract-audit.md
+audit-skill-rubric-business-logic-audit,MANDATORY,1.0.0,2026-05-14,2026-05-14,audit-skill-rubric-business-logic-audit.md
+audit-skill-rubric-ops-readiness-audit,MANDATORY,1.0.0,2026-05-14,2026-05-14,audit-skill-rubric-ops-readiness-audit.md
+audit-skill-rubric-performance-audit,MANDATORY,1.0.0,2026-05-14,2026-05-14,audit-skill-rubric-performance-audit.md
+audit-skill-rubric-quality-audit,MANDATORY,1.0.0,2026-05-14,2026-05-14,audit-skill-rubric-quality-audit.md
+audit-skill-rubric-ui-review,MANDATORY,1.0.0,2026-05-14,2026-05-14,audit-skill-rubric-ui-review.md
 audit-to-gap-pipeline,MANDATORY,1.4.1,2026-04-16,2026-05-11,audit-to-gap-pipeline.md
 aws-observability-first,CRITICAL,1.0.0,2026-05-07,2026-05-07,aws-observability-first.md
 aws-sg-description-ascii,MANDATORY,1.0.0,2026-05-07,2026-05-07,aws-sg-description-ascii.md
@@ -42,7 +48,7 @@ third-party-platform-automation-discovery,MANDATORY,1.0.0,2026-05-10,2026-05-10,
 post-merge-sync-completeness,MANDATORY,1.0.0,2026-05-12,2026-05-12,post-merge-sync-completeness.md
 concurrent-production-mutation-ops,CRITICAL,1.0.0,2026-05-12,2026-05-12,concurrent-production-mutation-ops.md
 production-env-config-registry,MANDATORY,1.1.0,2026-05-13,2026-05-13,production-env-config-registry.md
-pre-handoff-self-test-completeness,CRITICAL,1.0.0,2026-05-13,2026-05-13,pre-handoff-self-test-completeness.md
+pre-handoff-self-test-completeness,CRITICAL,1.1.0,2026-05-13,2026-05-14,pre-handoff-self-test-completeness.md
 pre-launch-auth-hardening-checklist,MANDATORY,1.0.0,2026-05-13,2026-05-13,pre-launch-auth-hardening-checklist.md
 pre-launch-dependency-hardening-checklist,MANDATORY,1.0.0,2026-05-14,2026-05-14,pre-launch-dependency-hardening-checklist.md
 pre-launch-infra-hardening-checklist,MANDATORY,1.0.0,2026-05-14,2026-05-14,pre-launch-infra-hardening-checklist.md
