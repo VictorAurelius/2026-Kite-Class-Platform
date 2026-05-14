@@ -12,11 +12,10 @@ HOOK = Path(__file__).resolve().parent.parent / "stop-handoff-check.py"
 
 def write_transcript(messages: list) -> str:
     """Write JSONL transcript with given assistant messages, return path."""
-    fd = tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False)
-    for msg in messages:
-        fd.write(json.dumps({"role": "assistant", "content": [{"type": "text", "text": msg}]}) + "\n")
-    fd.close()
-    return fd.name
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as fd:
+        for msg in messages:
+            fd.write(json.dumps({"role": "assistant", "content": [{"type": "text", "text": msg}]}) + "\n")
+        return fd.name
 
 
 def run_hook(transcript_path: str) -> dict:
