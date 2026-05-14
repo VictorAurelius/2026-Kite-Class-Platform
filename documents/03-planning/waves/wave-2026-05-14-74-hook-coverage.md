@@ -1,10 +1,10 @@
 ---
 title: Wave 74 — Hook Coverage (rubric + audit-gate tests + edge cases)
-status: in_progress
+status: complete
 created: 2026-05-14
 updated: 2026-05-14
 waves: [74]
-gaps: []
+gaps: [GAP-529]
 ---
 
 # Wave 74 — Hook Coverage
@@ -193,4 +193,5 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `post-merge-s
 
 ## 9. Log
 
+- **2026-05-14** (complete): Wave 74 SHIPPED. 4 PRs merged: #1320 plan, #1321 Bucket B audit-gate.py 23 tests, #1322 Bucket A hook-review skill + 8-point rubric + 9 EC entries, #1323 Bucket C 17 edge tests. Outside-in benchmark artifact filed surfacing 32% coverage gap vs industry (5 HIGH-conf additions + 5 sharpening + 3 CRITICAL classes). Bucket C empirical discovered hook trailer scope bug → GAP-529 P1 filed. Closure (this PR): audit artifact + GAP-529 + plan flip + wave-history append + worktree prune. Outside-in audit was added MID-wave after user flagged miss of `outside-in-coverage-trigger.md` §3 — fold-in strategy: HIGH-conf Wave 75 quick follow-up; CRITICAL classes Wave 75 dedicated gaps. Hook trailer scope bug severity P1 (not P0) confirmed post-verify: main HEAD `45efea57` does NOT have stale trailer → hook BLOCKS correctly trên main; bug per-branch-derivation only. Per `incident-to-rule-pipeline.md` 5-stage applied to both rule miss + hook bug.
 - **2026-05-14** (draft): Plan created in response to user-flagged miss after Wave 73 closure: "có meta để review hook chưa? tôi hiểu là đã test hook rồi? nhưng tôi lo lắng về coverage của nó để giảm risk." Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged) → Classify ✓ (no rule covers; `script-review-checklist.md` generic không cover hook-specific concerns; audit-gate.py 779 lines 0 unit tests) → Rule+Enforce (this wave delivers skill + tests; rule itself optional Phase 2) → Self-Test (Bucket D audit artifact) → Retro Log (Bucket D + wave-history). Solo-dev MINOR per `rule-change-process.md` §5 — adds previously-uncovered hook governance + closes risk gap.
