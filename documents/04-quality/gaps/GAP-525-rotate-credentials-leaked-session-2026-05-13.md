@@ -1,6 +1,6 @@
 # GAP-525: Rotate 3 credentials leaked in 2026-05-13 session transcript
 
-**Status:** 🔵 OPEN (user-action)
+**Status:** 🟡 PARTIAL — runbook + incident artifact shipped Wave 72a Bucket D 2026-05-14; actual rotation = user-action pending
 **Priority:** 🔴 P0 (operational security — credentials appeared in transcript log)
 **Domain:** DevOps / Security
 **Found:** 2026-05-13 (Wave 71c-meta-Phase-2 — self-audit of residual session items)
@@ -38,3 +38,10 @@ Run after Wave 71c Phase 1 P0s land + admin UI verified working:
 - Triggered by: 2026-05-13 session pattern of "Option B paste in chat" + Tier 2 confirmed AWS read for self-test enablement
 - Meta lesson: `pre-handoff-self-test-completeness.md` §2.1 row (a) credential delivery — Option A (user-runs-locally) preferred to avoid this; user explicitly chose B for speed; file this gap as the cost
 - Rotation cadence going forward: `pre-launch-auth-hardening-checklist.md` §2.6 (JWT) + GAP-520 (JWT runbook) — extend to all platform secrets quarterly
+- Runbook: [`documents/05-guides/operations/credential-rotation-runbook.md`](../../05-guides/operations/credential-rotation-runbook.md) (shipped Wave 72a Bucket D)
+- Incident artifact: [`documents/04-quality/audits/credential-rotation/2026-05-14-wave-72a-3-credentials.md`](../audits/credential-rotation/2026-05-14-wave-72a-3-credentials.md)
+
+## Log
+
+- **2026-05-14** (Wave 72a Bucket D): Status flipped 🔵 OPEN → 🟡 PARTIAL. Runbook `documents/05-guides/operations/credential-rotation-runbook.md` + incident audit artifact `documents/04-quality/audits/credential-rotation/2026-05-14-wave-72a-3-credentials.md` shipped. Procedure ready; actual rotation steps deferred to user-action per `agent-aws-access.md` §4 (Tier 3 mutations are user-execute only) + vendor portal revocations (Cloudflare, Resend) require user login. Per `gap-done-discipline.md` §3 PARTIAL exit ramp: AC items 1–4 remain unchecked until user completes the rotation per the incident artifact §"Next steps" checklist. Gap stays PARTIAL until rows 1–3 of the artifact's rotation-status table show `verified` status, at which point user flips to 🟢 DONE.
+- **2026-05-13** (Wave 71c-meta-Phase-2): Gap filed. 3 credentials surfaced in session transcript identified.
