@@ -59,6 +59,7 @@ on:
       - 'documents/03-planning/waves/**'
       - 'scripts/check-wave-plan-completeness.sh'
       - 'scripts/tests/fixtures/wave-plan/**'
+      - 'scripts/tests/**'
 
 permissions:
   contents: read
