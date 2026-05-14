@@ -1,6 +1,6 @@
 ---
 title: Wave 75 — Meta Hook Coverage Finish (close residual from Wave 74 + GAP-529)
-status: in_progress
+status: complete
 created: 2026-05-14
 updated: 2026-05-14
 waves: [75]
@@ -229,4 +229,5 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `post-merge-s
 
 ## 9. Log
 
+- **2026-05-14** (complete): Wave 75 SHIPPED. 6 PRs merged: #1325 plan, #1326 Bucket C ordering (SAFE), #1327 Bucket D race (SAFE), #1328 Bucket B skill v1.1.0, #1329 Bucket E coverage 50.2%, #1330 Bucket A GAP-529 fix. Meta outside-in benchmark artifact filed (67% industry coverage). Closure (this PR): audit artifact `2026-05-14-wave-75-closure-meta-finish.md` + Wave 76 plan stub + wave-history append. GAP-529 closed. 2 of 3 Wave 74 outside-in CRITICAL claims empirically REFUTED (ordering + race SAFE); coverage 28% confirmed real concern. Codified lesson: outside-in findings need empirical verification before P0 treatment. Wave 76 candidate scope: 5-bucket meta-meta governance hygiene (audits-index + script tests + wave-plan CI + rule staleness + rule body streamline) + benchmark fold-in (deprecation lifecycle + split criterion + count ceiling + atomic-unique + CSV-canonical ADR). audit-gate.py runtime coverage P0 follow-up filed separately (Wave 77 candidate, different concern).
 - **2026-05-14** (draft): Plan created in response to user direction "vậy là meta vẫn chưa fix xong... làm luôn trong session này, mục tiêu là hoàn chỉnh meta" after Wave 74 closure. Scope dẫn xuất TRỰC TIẾP từ Wave 74 outside-in benchmark artifact + GAP-529 + Bucket C empirical findings. Per `outside-in-coverage-trigger.md` §4 row "User đã trải qua outside-in ≤30 ngày" — outside-in skipped (just ran 1h earlier same domain). Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (Wave 74 audit catalogued residual scope) → Classify ✓ (5 distinct findings) → Rule+Enforce ✓ (this wave delivers) → Self-Test (Bucket F audit artifact) → Retro Log (Bucket F + wave-history). Solo-dev MINOR per `rule-change-process.md` §5 — extends meta-governance coverage, no constraint loosening.
