@@ -56,6 +56,9 @@ on:
       - 'scripts/check-rule-count-ceiling.sh'
       - 'documents/04-quality/audits/**'
       - 'scripts/check-audits-index-csv.sh'
+      - 'documents/03-planning/waves/**'
+      - 'scripts/check-wave-plan-completeness.sh'
+      - 'scripts/tests/fixtures/wave-plan/**'
 
 permissions:
   contents: read
@@ -453,3 +456,28 @@ jobs:
           # CSV is canonical for audit enumeration (id, category, date,
           # status, score). Schema + enums documented in CSV header.
           bash scripts/check-audits-index-csv.sh
+
+  wave-plan-completeness:
+    name: Wave plan completeness (documents/03-planning/waves/**)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (3 fixtures — 1 good + 2 bad)
+        run: |
+          # Self-test asserts script behavior on synthetic fixtures
+          # (good-plan.md → PASS; bad-missing-brainstorm.md + bad-missing-state-check.md → FAIL).
+          # Fails fast if section-matching logic regresses.
+          bash scripts/check-wave-plan-completeness.sh --self-test
+
+      - name: Validate wave plan completeness (blocking on FAIL)
+        run: |
+          # Per Wave 76 Bucket C: every wave-*.md in documents/03-planning/waves/
+          # MUST follow _TEMPLATE.md required sections (§1 Brainstorm → §8 Log)
+          # + frontmatter fields (title/status/created/waves). Pre-Wave-76 legacy
+          # plans grandfathered via `<!-- wave-plan-completeness-exempt: ... -->` comment.
+          bash scripts/check-wave-plan-completeness.sh

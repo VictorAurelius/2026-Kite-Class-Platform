@@ -9,6 +9,8 @@ approved_by: nguyenvankiet
 approved_at: 2026-04-24
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 5 — Decision Guide (tiếng Việt)
 
 **Mục đích:** Giúp reviewer (hoặc user) trả lời 6 câu hỏi mở trong `wave-05-document-generation.md` §9 trước khi Sub-PR 5.0 start. Mỗi câu hỏi có: bối cảnh, kiến thức technical, so sánh lựa chọn, và **default khuyến nghị** theo best practice cho SaaS giáo dục.

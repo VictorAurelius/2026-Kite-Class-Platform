@@ -11,6 +11,8 @@ actual_outputs: 6 PRs merged (#756 plan + #757 audit + #758 Bucket C + #759 Buck
 strategy: Phase-1 wave-pack (Legal-BRD precedent) — 3 disjoint buckets, parallel agents
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 18a — Cross-Persona Keystones Phase 1
 
 **Wave kickoff readiness:** 🟢 ALL preconditions met (Wave 17 closed 2026-05-04 SHIPPED; 4 persona reviews available; 0 blocker gaps for Phase 1 scope).

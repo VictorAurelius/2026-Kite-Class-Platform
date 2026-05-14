@@ -8,6 +8,8 @@ gaps: []
 audit_cluster: release-deploy-artifacts
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 40 — Audit milestone cho cụm `release-deploy-artifacts`
 
 **Mục tiêu:** Chạy bộ kiểm tra audit đầy đủ cho cụm domain `release-deploy-artifacts` sau khi 5 wave (33+34+37+38+39) đã hoãn audit theo `AUDIT_DEFER_DOMAIN_MILESTONE`. Kích hoạt cổng nâng cấp Phase 1 BETA per `post-wave-audit-mandate.md` §2.4.2.

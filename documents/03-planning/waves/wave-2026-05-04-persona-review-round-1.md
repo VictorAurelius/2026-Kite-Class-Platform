@@ -11,6 +11,8 @@ actual_outputs: 4 review reports (P1=36.2/100 / P2=36.8 / P3=9.6 / P5=8.3) + 57 
 shipped_prs: [739, 745, 747, 748, 749, 751]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 17 — Persona Review Round 1 Execution (GAP-152)
 
 **Wave kickoff readiness:** 🟢 ALL preconditions met (GAP-151 + GAP-153 shipped 2026-04-30; 12 AC docs available; `persona-based-business-review.md` skill exists).

@@ -8,6 +8,8 @@ deferred_to_next_wave: [GAP-122]
 deferred_separate_track: [GAP-114, GAP-115]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave Observability — Cluster Pack 1
 
 **Wave date:** 2026-04-29 (kicked off 2026-04-28 evening)

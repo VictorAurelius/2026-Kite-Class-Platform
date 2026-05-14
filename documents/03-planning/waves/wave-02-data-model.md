@@ -1,3 +1,5 @@
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 2: Data Model Foundation
 
 **Branch:** `wave/02-data-model`

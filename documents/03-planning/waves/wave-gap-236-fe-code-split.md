@@ -10,6 +10,8 @@ shipped_prs: [600, 601, 602, 603]
 total_pages_converted: 33
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave GAP-236 — FE code-splitting completion
 
 **Status:** ✅ COMPLETE 2026-04-28 — 4 agents shipped 33 pages across PRs #600/601/602/603. AC ≥30 met. KC max 217 KB / KH max 200 KB First Load JS, all within 250 KB CI budget.

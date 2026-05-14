@@ -8,6 +8,8 @@ gaps: [GAP-272o, GAP-430, GAP-431, GAP-432, GAP-433, GAP-115, GAP-135]
 audit_cluster: release-deploy-artifacts
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 41 — Fix-cluster post Wave 40 audit milestone
 
 **Mục tiêu:** Đóng các P0/P1 gap mới phát hiện ở Wave 40 audit + GAP-272o (Wave 34 follow-up) trong 1 wave-pack 5-7 ngăn parallel để giải phóng đường găng tới Phase 7 production deploy.

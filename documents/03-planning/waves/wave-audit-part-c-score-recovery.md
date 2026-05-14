@@ -7,6 +7,8 @@ waves: [C]
 gaps: [GAP-132, GAP-134, GAP-146, GAP-148, GAP-127, GAP-126, GAP-043, GAP-144, GAP-143, GAP-119, GAP-108, GAP-109, GAP-110, GAP-149-meta]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave Audit Part C — Score Recovery Sprint
 
 **Owner:** TBD (currently drafted by parent session 2026-04-20)

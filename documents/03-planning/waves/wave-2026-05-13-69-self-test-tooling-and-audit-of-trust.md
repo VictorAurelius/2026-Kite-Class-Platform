@@ -9,6 +9,8 @@ prs: [1250, 1251, 1252, 1253, 1254, 1255, 1256]
 outcome: Tooling shipped (Plan 1 follow-along guide + Playwright scaffold + route paths fix); audit-of-trust pass uncovered GAP-502 P0 BLOCKING (RabbitMQ auth + OOM thrash); Plan 1 execution DEFERRED to Wave 70 post-GAP-502 fix
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 69 — Self-Test Tooling + Audit-of-Trust (rescoped multiple times)
 
 **Goal evolution (3 rescopes trong session 2026-05-13):**

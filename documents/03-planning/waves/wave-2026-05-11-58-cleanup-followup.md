@@ -7,6 +7,8 @@ waves: [58]
 gaps: [GAP-467, GAP-463, GAP-464]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 58 — Cleanup follow-up wave-pack
 
 **Goal:** Đóng 3 disjoint follow-up gaps cuối Phase 1 BETA pre-launch cleanup queue: helm CI guard (Wave 57 AC #5 deferred) + infrastructure README sync Phase 1 BETA reality + ECS Fargate vs EKS ADR (ADR-025 §5 commitment unfulfilled).

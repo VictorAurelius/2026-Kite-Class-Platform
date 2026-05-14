@@ -8,6 +8,8 @@ gaps: [GAP-512]
 parent: wave-2026-05-13-71-pre-launch-hardening.md
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 71b — Gateway routing scope extension
 
 **Trigger:** Wave 71 Bucket E `scripts/audit-gateway-routes.sh` reported 22 wrong-service routings + 1 orphan after Wave 71 SHIPPED. Wave 71 Bucket A unblocked only Plan 1 Bước 2 (auth); Plan 1 Bước 4 (admin approve) + Bước 6/7 (consent/branding/notification) still blocked.

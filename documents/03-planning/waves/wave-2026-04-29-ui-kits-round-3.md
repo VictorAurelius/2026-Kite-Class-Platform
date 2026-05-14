@@ -8,6 +8,8 @@ gaps: []
 predecessor: wave-2026-04-29-ui-kits-round-2.md
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave UI Kits Round 3 — kiteclass-student + kitehub-admin + 7 remaining components
 
 **Type:** HTML prototype wave (Track 1 extension, NOT gap-closing) — sister of Round 2

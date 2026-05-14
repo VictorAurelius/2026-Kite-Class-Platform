@@ -10,6 +10,8 @@ shipped_pr: 638
 shipped_at: 2026-04-28
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # GAP-122 — Single-gap parallel wave
 
 Single-gap focus per `pr-next-session-single-gap-handoff.md`, but internally sliced into 3 disjoint slices for parallel agent execution per `feedback_wave_plan_before_serial_prs.md`.

@@ -11,6 +11,8 @@ actual_outputs: 5 PRs merged (#763 GAP-285 fix + #764 plan + #765 Bucket F + #76
 strategy: Phase-1A wave-pack (Wave Legal-BRD precedent applied to K-12 LEGAL trio) — 3 disjoint buckets, parallel agents
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 18b1 — K-12 LEGAL Trio Phase 1A skeleton wave-pack
 
 **Wave kickoff readiness:** 🟢 ALL preconditions met

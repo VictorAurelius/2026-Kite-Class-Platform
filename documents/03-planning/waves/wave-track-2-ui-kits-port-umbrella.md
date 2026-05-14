@@ -15,6 +15,8 @@ deferred_separate_track: []
 adr_reference: ADR-024
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave Track 2 UI Kits Production Port — Multi-week Umbrella
 
 **Wave date range:** 2026-04-30 (Phase 1 ADR + scaffolding DONE) → MVP launch (~4-6 weeks projected)

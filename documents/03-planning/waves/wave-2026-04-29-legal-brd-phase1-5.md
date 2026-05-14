@@ -15,6 +15,8 @@ wall_clock_min: 30
 milestone: "7/7 BRD legal mandate skeletons DONE — Phase 1 of GAP-154 umbrella complete"
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave Legal-BRD Phase 1.5 — Cluster Pack 14 (10th wave-pack, 2nd legal-BRD slice)
 
 **Wave date:** 2026-04-29 (kicked off this session, ~1h after Wave 13 closure)

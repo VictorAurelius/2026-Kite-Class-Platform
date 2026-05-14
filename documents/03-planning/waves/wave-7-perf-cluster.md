@@ -9,6 +9,8 @@ parent_session: 20260426-164325
 consolidation_pr: 575
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 7-Perf — Performance Audit Follow-ups
 
 **Status:** ✅ COMPLETE (closed 2026-04-26 via consolidation PR #575)

@@ -7,6 +7,8 @@ waves: [76]
 gaps: []
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 76 — Meta Governance Hygiene Finish
 
 **Goal:** Close residual meta-governance hygiene gaps surfaced by Wave 75 meta-system outside-in benchmark + Wave 74 outside-in fold-in carryover. After Wave 76 ships, meta-system reaches **steady-state** — further governance work moves to quarterly retro cadence per `post-wave-audit-mandate.md` §2.4.

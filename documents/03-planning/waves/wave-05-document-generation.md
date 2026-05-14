@@ -9,6 +9,8 @@ approved_by: nguyenvankiet
 approved_at: 2026-04-24
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 5: Document Generation Skills (GAP-047)
 
 **Branch:** `wave/05-document-generation`

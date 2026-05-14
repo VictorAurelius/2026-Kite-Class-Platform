@@ -7,6 +7,8 @@ waves: [66]
 gaps: [GAP-494, GAP-493, GAP-482, GAP-447, GAP-369, GAP-398, GAP-399]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 66 — Phase 1 BETA P0 cluster
 
 **Goal:** Discharge 7 Phase 1 BETA P0/P2 gaps — 2 real implementation buckets (Lighthouse CI fix + GAP-493 Path B preflight) + 1 coordinator-driven docs-flip sweep for 5 gaps that state-check confirms are DONE / PARTIAL-with-§3-exit-ramp.

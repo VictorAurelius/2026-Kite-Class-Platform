@@ -1,3 +1,5 @@
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave: Mock Data for Local Development
 
 **Trạng thái:** 🟡 PLANNING — chờ user review

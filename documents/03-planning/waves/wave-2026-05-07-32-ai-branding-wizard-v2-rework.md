@@ -8,6 +8,8 @@ gaps: [GAP-272]
 supersedes: documents/03-planning/waves/wave-2026-05-06-32-ai-branding-wizard-v2.md
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 32 REWORK — AI Branding Wizard v2 (post-audit hardening)
 
 **Goal:** Re-execute Wave 32 (4 buckets A/B/C/D) sau khi audit 3 PRs (#883/884/885) đã shipped 2026-05-06 phát hiện scaffold-quality ship + AI Branding rules vi phạm + tests không chạy local. Original plan AC + scope vẫn giữ; rework brief này thêm **anti-pattern guards**, **stricter verification gates**, và **Opus model mandate** để tránh recurrence.

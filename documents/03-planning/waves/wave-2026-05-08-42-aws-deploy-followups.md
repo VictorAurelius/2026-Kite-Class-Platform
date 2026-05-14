@@ -8,6 +8,8 @@ gaps: [GAP-438, GAP-436, GAP-117]
 audit_cluster: release-deploy-artifacts
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave 42 — AWS deploy follow-ups (post Phase 2.3)
 
 **Mục tiêu:** Đóng follow-ups còn lại sau Phase 2.3 production apply. 5 buckets parallel disjoint, ~30-45min wall-clock cho longest path. Wave-pack methodology per `feedback_parallel_agent_strategy.md` rule #9 (max 5 agents) + `agent-background-spawn-default.md`.

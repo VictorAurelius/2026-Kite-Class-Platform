@@ -7,6 +7,8 @@ waves: [meta-gov-1]
 gaps: [GAP-249, GAP-250, GAP-251, GAP-252, GAP-253, GAP-254, GAP-255, GAP-256]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave Meta-Governance 1
 
 **Status:** 🟢 DONE 2026-04-28 — 6 PRs merged in sequence (#607 foundation → #608 Move 1 → #609 Move 2 → #610 Sub-PR C → #611 retro → #612 GAP-255). **7/8 wave gaps DONE** (GAP-249/250/251/252/253/254/255); 1 gap **gated** (GAP-256 — eligible after GAP-255 active ≥7d per `incident-to-rule-pipeline.md` premature-rule guard, timer 2026-04-28). Total wall-clock ~2-3h. Per `gap-done-discipline.md` §2 — Status flip clean across all closing PRs (no banned phrases in any Log entry).

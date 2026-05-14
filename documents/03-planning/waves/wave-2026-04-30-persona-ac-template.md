@@ -9,6 +9,8 @@ deferred_separate_track: [GAP-152, GAP-153]
 sister_waves: [wave-2026-04-29-business-correctness, wave-2026-04-29-legal-brd-phase1, wave-2026-04-29-legal-brd-phase1-5]
 ---
 
+<!-- wave-plan-completeness-exempt: Pre-Wave-76 legacy plan — predates current _TEMPLATE.md structure -->
+
 # Wave Persona-AC-Template — Cluster Pack 15 (11th wave-pack)
 
 **Wave date:** 2026-04-30 (resumed 2026-04-30 after foundation paused 2026-04-29 evening due to transient skill-Edit errors; rebased onto current main b81e67d9 after 14 unrelated commits merged during pause)
