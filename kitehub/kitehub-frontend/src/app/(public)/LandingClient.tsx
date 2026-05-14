@@ -379,7 +379,7 @@ function HeroMockup() {
           </div>
           <div>
             <p className="text-xs font-medium">AI đã tạo website</p>
-            <p className="text-[10px] text-muted-foreground">skylight.kiteclass.com</p>
+            <p className="text-[10px] text-muted-foreground">skylight.kitehub.me</p>
           </div>
         </div>
       </motion.div>
@@ -1000,11 +1000,11 @@ export default function LandingClient() {
             <motion.div variants={fadeInUp} className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
               <span className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-primary" />
-                Hotline: 1900-xxxx
+                Hỗ trợ qua email (Beta giai đoạn 1)
               </span>
               <span className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-primary" />
-                support@kiteclass.com
+                support@kitehub.me
               </span>
             </motion.div>
           </motion.div>
