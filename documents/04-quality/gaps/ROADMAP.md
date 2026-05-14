@@ -8,9 +8,22 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-14 — 🎉 Wave 72a SHIPPED + Wave 72b 6/7 SHIPPED + 3 outside-in audits — 30+ gaps surfaced cho Wave 73 revision)
+## 🎯 Current Status Snapshot (2026-05-14 — 🎉 Wave 73 SHIPPED Meta Context Optimization — base context ~237k → ~87k rules; Bucket B deferred GAP-528)
 
 > **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-14-session-handoff.md`](../../03-planning/session-handoffs/2026-05-14-session-handoff.md) — full state + pending PR #1301 (Bucket A DIRTY) + 3 audit reports → Wave 73 plan revision needed.
+
+### ✅ Wave 73 SHIPPED 2026-05-14 — Meta Context Optimization (path-scope 30 rules + UserPromptSubmit dynamic inject + context-budget-mandate)
+
+**9 PRs merged:** #1308 plan + #1309 Bucket 0 + #1310/#1311/#1312/#1313/#1314 Buckets A1-A5 (path-scope ~30 MANDATORY rules) + #1315 Bucket C (UserPromptSubmit hook inject-rule-digest.py + 20 tests pass) + #1316 Bucket D (context-budget-mandate.md v1.0.0 + output-review-mandate v1.6→v1.7 + rules-index 54→55).
+
+**Outcome:**
+- ~30 MANDATORY rules path-scoped via Anthropic native `paths:` frontmatter — auto-load chỉ khi Claude đọc file matching glob
+- UserPromptSubmit hook live-verified injecting rule digests on keyword match (audit, deploy, merge, terraform, gap closure, etc.)
+- `context-budget-mandate.md` codifies <120k base mandate
+- Estimated context savings: ~150k tokens per session
+
+**Deferred (filed):**
+- 🔵 **GAP-528 OPEN P1 Meta** — Bucket B (8 deterministic enforcement hooks) agent worktree self-deadlocked + auto-cleaned; needs re-implement via stub-first pattern. Lessons-learned codified in GAP-528 AC.
 
 ### ✅ Wave 68 SHIPPED 2026-05-13 (verification pass + bonus drift fix)
 
