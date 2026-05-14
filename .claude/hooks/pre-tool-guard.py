@@ -2,12 +2,17 @@
 """
 PreToolUse hook — deterministic enforcement of 5 rules per Wave 73 Bucket B.
 
-Rules enforced (BLOCK on violation unless override trailer in HEAD commit body):
-1. admin-merge-discipline — `gh pr merge.*--admin` requires ADMIN_MERGE_OVERRIDE: trailer
+Rules enforced (BLOCK on violation unless override trailer in PR body — per-PR-scoped):
+1. admin-merge-discipline — `gh pr merge.*--admin` requires ADMIN_MERGE_OVERRIDE: trailer in PR body
 2. agent-aws-access Tier 3 — `aws (create-|delete-|put-|update-|modify-|terminate-|...)` requires AGENT_AWS_TIER3_OK: trailer
 3. aws-sg-description-ascii — Edit/Write to infrastructure/**/*.tf with non-ASCII in `description = "..."` lines
 4. terraform-apply-retry-reconfirm — 2nd `terraform apply` <5min after previous (state in .claude/hooks/data/)
 5. concurrent-production-mutation-ops — BLOCK if `gh workflow run terraform-apply|deploy-production|rollback` while another in_progress
+
+Trailer scoping (Wave 75 GAP-529 fix): for `gh pr merge <N> --admin`, read the SPECIFIC PR's
+body via `gh pr view <N> --json body` instead of the current branch HEAD body — prevents stale
+trailer leak across PRs / branches / sessions. Falls back to HEAD body only when PR number
+not extractable from command (terraform retry, AWS Tier 3, concurrent ops).
 
 Fail-safe: any internal error → exit 0 (allow), don't break user workflow.
 Hook contract: reads JSON from stdin {"tool_name": "...", "tool_input": {...}}, returns
@@ -46,7 +51,12 @@ def _deny(reason: str):
 
 
 def _commit_body() -> str:
-    """Get HEAD commit message body (for override trailer detection)."""
+    """Get HEAD commit message body (legacy fallback for override trailer detection).
+
+    Wave 75 GAP-529: prefer `_pr_body(pr_num)` for per-PR scoping when PR number is
+    extractable from the command. This function remains as fallback for commands
+    that don't carry a PR number (terraform apply, AWS CLI, gh workflow run).
+    """
     try:
         result = subprocess.run(
             ["git", "log", "-1", "--format=%B"],
@@ -57,7 +67,58 @@ def _commit_body() -> str:
         return ""
 
 
+def _pr_body(pr_num: str) -> str:
+    """Read PR body via `gh pr view <N> --json body`. Empty on any error (fail-safe).
+
+    Per Wave 75 GAP-529 fix — replaces HEAD-scoped trailer reads with per-PR scoping
+    for `gh pr merge <N>` style commands. See .claude/rules/admin-merge-discipline.md §4.
+    """
+    try:
+        result = subprocess.run(
+            ["gh", "pr", "view", pr_num, "--json", "body"],
+            cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=5,
+        )
+        if result.returncode != 0:
+            return ""
+        data = json.loads(result.stdout or "{}")
+        return data.get("body", "") or ""
+    except Exception:
+        return ""
+
+
+# Match `gh pr merge <N>` with optional flags interleaved before/after N
+# (covers `gh pr merge 1234 --admin`, `gh pr merge --squash 5678 --admin`, etc.)
+PR_NUM_RE = re.compile(
+    r"gh\s+pr\s+merge\b(?:\s+-{1,2}\S+(?:=\S+)?)*\s+(\d+)\b"
+)
+
+
+def _extract_pr_num(command: str) -> str | None:
+    """Extract PR number from `gh pr merge <N>` command. Returns None if not found."""
+    m = PR_NUM_RE.search(command)
+    return m.group(1) if m else None
+
+
+def _has_trailer_in_pr(pr_num, trailer: str) -> bool:
+    """Check trailer in PR body (per-PR scope) with HEAD commit body fallback.
+
+    Per Wave 75 GAP-529 fix — primary path queries the specific PR being merged
+    via `gh pr view`. Falls back to HEAD commit body only when pr_num is None
+    (commands that don't carry a PR number — terraform retry, AWS Tier 3, etc.).
+    """
+    if pr_num:
+        body = _pr_body(pr_num)
+    else:
+        body = _commit_body()
+    return bool(re.search(rf"^{re.escape(trailer)}:\s+\S", body, re.MULTILINE))
+
+
 def _has_trailer(trailer: str, body: str = "") -> bool:
+    """Legacy helper — HEAD-scoped trailer detection.
+
+    DEPRECATED for PR-context rules per Wave 75 GAP-529. Retained for backward
+    compatibility with any external callers; new code should use `_has_trailer_in_pr`.
+    """
     if not body:
         body = _commit_body()
     return bool(re.search(rf"^{re.escape(trailer)}:\s+\S", body, re.MULTILINE))
@@ -73,12 +134,13 @@ ADMIN_MERGE_RE = re.compile(
 def check_admin_merge(command: str):
     if not ADMIN_MERGE_RE.search(command):
         return
-    if _has_trailer("ADMIN_MERGE_OVERRIDE"):
+    pr_num = _extract_pr_num(command)
+    if _has_trailer_in_pr(pr_num, "ADMIN_MERGE_OVERRIDE"):
         return
     _deny(
-        "admin-merge-discipline: `gh pr merge --admin` BANNED unless commit body has "
+        "admin-merge-discipline: `gh pr merge --admin` BANNED unless PR body has "
         "`ADMIN_MERGE_OVERRIDE: <reason>` trailer. See .claude/rules/admin-merge-discipline.md §4. "
-        "Use `gh pr merge --squash` (no --admin) and wait for CI, OR add override trailer with reason + follow-up gap."
+        "Use `gh pr merge --squash` (no --admin) and wait for CI, OR add override trailer to PR body with reason + follow-up gap."
     )
 
 
@@ -97,7 +159,11 @@ AWS_TIER3_RE = re.compile(
 def check_aws_tier3(command: str):
     if not AWS_TIER3_RE.search(command):
         return
-    if _has_trailer("AGENT_AWS_TIER3_OK"):
+    # AWS Tier 3 commands don't carry a PR number — HEAD-scoped trailer per current
+    # rule contract (user pre-authorizes via commit body trailer). Migrating AWS
+    # rule to PR-scope would require a different override mechanism (e.g.,
+    # session-scoped state file) — out of scope for GAP-529.
+    if _has_trailer_in_pr(None, "AGENT_AWS_TIER3_OK"):
         return
     _deny(
         "agent-aws-access Tier 3: AWS mutation verb (create/delete/put/update/modify/terminate/start/stop/reboot/restore/attach/detach) "
@@ -157,7 +223,9 @@ def check_terraform_retry(command: str):
     with contextlib.suppress(Exception):
         TF_APPLY_STATE.write_text(str(now))
     if last_ts > 0 and (now - last_ts) < TF_APPLY_WINDOW_SEC:
-        if _has_trailer("TERRAFORM_RETRY_PREAPPROVED"):
+        # terraform apply doesn't carry a PR number; keep HEAD-scoped trailer check
+        # via _has_trailer_in_pr(None, ...) which falls back to _commit_body().
+        if _has_trailer_in_pr(None, "TERRAFORM_RETRY_PREAPPROVED"):
             return
         elapsed = now - last_ts
         _deny(
@@ -197,7 +265,8 @@ def check_concurrent_mutation(command: str):
     ]
     if not runs:
         return
-    if _has_trailer("CONCURRENT_OPS_OK"):
+    # `gh workflow run` doesn't have a PR number — keep HEAD-scoped trailer check.
+    if _has_trailer_in_pr(None, "CONCURRENT_OPS_OK"):
         return
     active = ", ".join(f"{r.get('workflowName', r.get('name', '?'))}#{r.get('databaseId', '?')}" for r in runs)
     _deny(

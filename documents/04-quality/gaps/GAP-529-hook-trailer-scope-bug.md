@@ -1,6 +1,6 @@
 # GAP-529: Hook trailer scope bug — `_has_trailer()` reads HEAD allowing trailer leak across PRs
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-14 (Wave 75 Bucket A — `pre-tool-guard.py` migrated to per-PR scoping; `audit-gate.py` already per-PR scoped)
 **Priority:** 🟠 P1
 **Domain:** Meta (governance hook)
 **Found:** 2026-05-14 (Wave 74 Bucket C — Agent C empirical test discovery)
@@ -60,14 +60,14 @@ Existing test `test_admin_merge_blocked` should not depend on HEAD environmental
 
 ## Acceptance Criteria
 
-- [ ] `_has_trailer_in_pr(pr_num, trailer)` helper added to `pre-tool-guard.py` (or shared module)
-- [ ] `check_admin_merge` uses PR-scoped trailer detection
-- [ ] `check_aws_tier3` + `check_terraform_retry` same migration if they use trailer
-- [ ] `audit-gate.py` `has_audit_override` + `has_domain_milestone_defer` migrated
-- [ ] `test_admin_merge_blocked` refactored to stub trailer detection (no HEAD dependency)
-- [ ] New tests cover: PR body has trailer / first commit body has trailer / no trailer / PR not found
-- [ ] Worked self-test: replay PR #1320 incident — branch derived from trailer commit + clean PR body → BLOCK correctly
-- [ ] Update `admin-merge-discipline.md` §4 to clarify "trailer applied to PR body" (current text says "applied to SQUASH commit" — same intent, different mechanism)
+- [x] `_has_trailer_in_pr(pr_num, trailer)` helper added to `pre-tool-guard.py` (or shared module) — added inline in `pre-tool-guard.py` per Wave 75 Bucket A scope; consolidating to shared module deferred (only 1 file uses it; `audit-gate.py` already per-PR-scoped natively via `gh_run`)
+- [x] `check_admin_merge` uses PR-scoped trailer detection — calls `_extract_pr_num` + `_has_trailer_in_pr(pr_num, "ADMIN_MERGE_OVERRIDE")`
+- [x] `check_aws_tier3` + `check_terraform_retry` same migration if they use trailer — migrated to `_has_trailer_in_pr(None, ...)` (HEAD fallback path, since commands don't carry PR number); legacy `_has_trailer()` retained for backward compat
+- [x] `audit-gate.py` `has_audit_override` + `has_domain_milestone_defer` migrated — verified ALREADY per-PR-scoped via `gh_run(["pr", "view", pr, "--json", "body"])` (line 428 + 452); no migration needed
+- [x] `test_admin_merge_blocked` refactored to stub trailer detection (no HEAD dependency) — Wave 75 Bucket A rewrote test to assert deterministic BLOCK for nonexistent PR (gh returns empty body); added `TestAdminMergePerPrTrailerScoping` class with 5 new tests using `unittest.mock.patch.object` to stub `_pr_body` / `_commit_body`
+- [x] New tests cover: PR body has trailer / first commit body has trailer / no trailer / PR not found — `test_trailer_in_pr_body_allows_admin_merge` (trailer present → ALLOW), `test_clean_pr_body_blocks_admin_merge` (empty body → BLOCK), `test_stale_head_trailer_does_not_leak_when_pr_num_present` (stale HEAD + clean PR → BLOCK — Wave 74 Bucket C incident replay), `test_pr_num_extracted_from_command` (regex coverage)
+- [x] Worked self-test: replay PR #1320 incident — branch derived from trailer commit + clean PR body → BLOCK correctly — `test_stale_head_trailer_does_not_leak_when_pr_num_present` exercises this exact scenario (stubbed stale HEAD + clean PR body → SystemExit raised)
+- [x] Update `admin-merge-discipline.md` §4 to clarify "trailer applied to PR body" (current text says "applied to SQUASH commit" — same intent, different mechanism) — v1.0.1 PATCH: §4 prose updated to "trailer applied to the **PR body** (read by hook via `gh pr view <N> --json body`)"; Log entry added
 
 ## Related
 
@@ -78,4 +78,5 @@ Existing test `test_admin_merge_blocked` should not depend on HEAD environmental
 
 ## Log
 
+- **2026-05-14 (DONE — Wave 75 Bucket A):** Fix shipped. `pre-tool-guard.py` migrated to per-PR trailer scoping: new helpers `_pr_body(pr_num)` (reads target PR via `gh pr view <N> --json body`) + `_has_trailer_in_pr(pr_num, trailer)` + `_extract_pr_num(command)` (regex parses `gh pr merge <N>` commands). `check_admin_merge` now extracts PR number from command, queries target PR's body specifically, falls back to HEAD commit body only when PR number not extractable. `check_aws_tier3`, `check_terraform_retry`, `check_concurrent_mutation` migrated to call `_has_trailer_in_pr(None, ...)` (HEAD fallback path) — these commands don't carry PR numbers, so HEAD-scope retained semantically but consolidated through single helper. Verified `audit-gate.py` `has_audit_override` + `has_domain_milestone_defer` ALREADY per-PR-scoped via `gh_run(["pr", "view", pr, ...])` — no migration needed. Tests: 21 original pre-tool-guard tests + 23 audit-gate tests PASS; added 5 new GAP-529 regression tests in `TestAdminMergePerPrTrailerScoping` class (clean PR → BLOCK, trailer in PR body → ALLOW, regex coverage, stale-HEAD-with-clean-PR replay = Wave 74 Bucket C incident, deterministic subprocess assertion replacing the original allow-or-deny Wave 74 documentation test). Ruff clean. Companion changes: `admin-merge-discipline.md` v1.0.1 §4 prose updated (trailer in PR body, not SQUASH commit body); `gap-status.csv` row sync (status OPEN→DONE, completion_pct 0→100, last_verified 2026-05-14).
 - **2026-05-14:** Gap filed during Wave 74 closure. Discovered Bucket C 2026-05-14 ~07:43 UTC when existing test `test_admin_merge_blocked` failed unexpectedly. Bonus test added documenting bug. Severity downgraded P0 → P1 after verification: main HEAD `45efea57` does NOT carry trailer (Bucket A + B merges since `c09b675d` moved main past it) — bug per-branch-derivation, not "stuck-forever". Fix Wave 75 candidate; meanwhile main hook works correctly.
