@@ -168,7 +168,13 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 - `## Release Plan Progress` section in closure PR body — per `feedback_wave_closure_release_progress_report.md` rules #1-6
 - Sub-wave B (Wave 78) queued: GAP-508, GAP-514, GAP-515, GAP-518, GAP-428, + 4 outside-in P0 (N1 onboarding+sample, N2 disclaimer+status, N7 support channel, N8 VN i18n)
 
-## 8. Post-Wave Audit Mandate
+## 8. Log
+
+- **2026-05-14** (draft): Plan created. Inside-out (4 P0 PARTIAL from ROADMAP) + outside-in (3 parallel agents: persona, benchmark, failure-matrix → 4 new gaps GAP-533/534/535/536 SEND-scope) merged via `outside-in-coverage-trigger.md` §3 5-step flow. Sub-wave A scope locked at 4 buckets / 8 P0 items (Sub-wave B Wave 78 queued for RETAIN scope). Coordinator: @nguyenvankiet.
+
+---
+
+## 9. Post-Wave Audit Mandate
 
 Per `.claude/rules/post-wave-audit-mandate.md` §2.1 — Bucket A touches `infrastructure/`, Bucket B touches BE module, Bucket D touches Java + Flyway migrations. Required audits within 3 days post-merge:
 - **Security /100** (deps + secret-rotation surface — Bucket C)
@@ -177,9 +183,3 @@ Per `.claude/rules/post-wave-audit-mandate.md` §2.1 — Bucket A touches `infra
 - **Quality /100** refresh (post-wave mandatory checkpoint)
 
 No domain-milestone deferral — buckets touch multiple domains.
-
----
-
-## 9. Log
-
-- **2026-05-14** (draft): Plan created. Inside-out (4 P0 PARTIAL from ROADMAP) + outside-in (3 parallel agents: persona, benchmark, failure-matrix → 4 new gaps GAP-533/534/535/536 SEND-scope) merged via `outside-in-coverage-trigger.md` §3 5-step flow. Sub-wave A scope locked at 4 buckets / 8 P0 items (Sub-wave B Wave 78 queued for RETAIN scope). Coordinator: @nguyenvankiet.
