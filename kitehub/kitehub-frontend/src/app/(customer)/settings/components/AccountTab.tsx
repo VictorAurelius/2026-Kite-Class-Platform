@@ -23,7 +23,7 @@ interface AccountTabProps {
     id?: string;
     email?: string;
     name?: string;
-    role?: 'OWNER' | 'ADMIN';
+    role?: 'OWNER' | 'ADMIN' | 'PLATFORM_ADMIN';
   } | null;
   // Additional fields from instance (to be fetched separately)
   phone?: string;

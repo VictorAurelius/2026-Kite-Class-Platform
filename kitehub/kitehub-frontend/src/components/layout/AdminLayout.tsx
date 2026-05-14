@@ -5,6 +5,7 @@ import { Sidebar } from './Sidebar';
 import { useAuthStore } from '@/stores/auth-store';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { isPlatformAdmin } from '@/lib/auth-helpers';
 
 export function AdminLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated, user, clearAuth } = useAuthStore();
@@ -17,7 +18,8 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (isHydrated && (!isAuthenticated || user?.role !== 'ADMIN')) {
+    // GAP-518: accept both PLATFORM_ADMIN (canonical) and legacy ADMIN role.
+    if (isHydrated && (!isAuthenticated || !isPlatformAdmin(user?.role))) {
       router.replace('/login');
     }
   }, [isHydrated, isAuthenticated, user, router]);
@@ -30,7 +32,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   };
 
   // Show loading while hydrating or redirecting
-  if (!isHydrated || !isAuthenticated || user?.role !== 'ADMIN') {
+  if (!isHydrated || !isAuthenticated || !isPlatformAdmin(user?.role)) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <LoadingSpinner />

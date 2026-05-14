@@ -76,6 +76,14 @@ describe('auth-store', () => {
       const state = useAuthStore.getState();
       expect(state.user?.role).toBe('ADMIN');
     });
+
+    it('can set PLATFORM_ADMIN role user (GAP-518: backend canonical role)', () => {
+      const platformAdminUser = { ...mockUser, role: 'PLATFORM_ADMIN' as const };
+      useAuthStore.getState().setAuth(platformAdminUser, mockAccessToken, mockRefreshToken);
+
+      const state = useAuthStore.getState();
+      expect(state.user?.role).toBe('PLATFORM_ADMIN');
+    });
   });
 
   describe('clearAuth', () => {

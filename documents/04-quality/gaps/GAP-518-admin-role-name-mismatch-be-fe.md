@@ -1,6 +1,6 @@
 # GAP-518: BE seed role PLATFORM_ADMIN vs FE role-guard 'ADMIN' mismatch
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — FE-side code shipped (Wave 72a Bucket C); live admin login walkthrough pending
 **Priority:** 🔴 P0 (Plan 1 Bước 4 launch blocker — admin UI completely unusable)
 **Domain:** Backend ↔ Frontend contract
 **Found:** 2026-05-13 (Wave 71c per `pre-handoff-self-test-completeness.md` §2.4 retroactive check)
@@ -31,12 +31,17 @@ Choose ONE option per Wave 71c plan (likely Option B for least churn):
 
 ## Acceptance Criteria
 
-- [ ] Login admin@kitehub.me → redirects to `/admin`
-- [ ] `/admin/beta-requests` renders without 403/redirect
-- [ ] Approve/reject buttons fire correct endpoint
-- [ ] Unit test added for role-guard accepting both values
+- [ ] Login admin@kitehub.me → redirects to `/admin` (live verify pending — code shipped)
+- [ ] `/admin/beta-requests` renders without 403/redirect (live verify pending — code shipped)
+- [ ] Approve/reject buttons fire correct endpoint (separate scope — not in FE role-guard PR)
+- [x] Unit test added for role-guard accepting both values
 
 ## Related
 
 - Rule: `pre-handoff-self-test-completeness.md` §2.4 (originating)
 - Wave 71c candidate
+- Wave 72a Bucket C — FE Option B implementation (this PR)
+
+## Log
+
+- **2026-05-14 (Wave 72a Bucket C)** — FE-only Option B shipped. `auth-store.ts` union widened to `'OWNER' | 'ADMIN' | 'PLATFORM_ADMIN'`; `lib/auth-helpers.ts` adds `isPlatformAdmin()` helper accepting both legacy ADMIN and canonical PLATFORM_ADMIN. `AdminLayout.tsx:20,33` + `login/page.tsx:38` consume helper. `AccountTab.tsx:26` widened for consistency. `(school-admin)/layout.tsx` untouched — that route group uses tenant-scoped ADMIN role (different semantics) and authenticates by login alone (no role gate). Tests: extended `auth-store.test.ts` with PLATFORM_ADMIN case; new `AdminLayout.test.tsx` covers (a) PLATFORM_ADMIN accepted, (b) legacy ADMIN accepted, (c) OWNER rejected → redirect /login, (d) unauthenticated rejected. Local verify GREEN: 664/664 tests + lint (warnings only, pre-existing) + production build. Status PARTIAL pending user live walk: login as admin@kitehub.me → expect `/admin` → expect /admin/beta-requests page (sidebar nav added by GAP-519 same PR).
