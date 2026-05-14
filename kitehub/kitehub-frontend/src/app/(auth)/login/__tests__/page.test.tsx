@@ -83,4 +83,24 @@ describe('LoginPage — 2FA branching (Wave 72b Bucket B)', () => {
     });
     expect(mockPush).not.toHaveBeenCalled();
   });
+
+  // GAP-515 Wave 78 Bucket C — Retry-After UX: countdown timer + submit disabled.
+  it('parses Retry-After header on 423 and renders countdown + disables submit', async () => {
+    render(<LoginPage />);
+    await fillAndSubmit('locked@example.com');
+
+    // MSW handler stubs Retry-After: 900 (15 minutes). Initial countdown shows "15:00".
+    const countdown = await screen.findByTestId('login-retry-countdown');
+    expect(countdown).toBeInTheDocument();
+    expect(countdown.textContent).toMatch(/15:00/);
+
+    const submit = screen.getByTestId('login-submit');
+    expect(submit).toBeDisabled();
+    expect(submit.textContent).toMatch(/Tạm khóa/);
+    expect(submit.textContent).toMatch(/15:00/);
+
+    // Inline error message includes the countdown.
+    const errorMsg = screen.getByTestId('login-error-message');
+    expect(errorMsg.textContent).toMatch(/Thử lại sau 15:00/);
+  });
 });

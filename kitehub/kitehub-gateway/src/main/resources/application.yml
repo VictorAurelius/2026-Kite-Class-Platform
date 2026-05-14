@@ -112,6 +112,30 @@ spring:
                 name: authCircuitBreaker
                 fallbackUri: forward:/fallback/auth
 
+        # Wave 78 Bucket C / GAP-514 close-out — preemptive rate-limit on
+        # /api/auth/password-reset-request per `pre-launch-auth-hardening-checklist.md`
+        # §2.1 (1/sec replenish, 2 burst, email-keyed to bound spam-via-reset).
+        # Subscription service does not yet implement the password-reset feature;
+        # until the route lands the gateway forwards to subscription which returns
+        # 404 — but the rate-limit guard is in place defense-in-depth so the rate
+        # cannot be bypassed once the feature ships.
+        - id: auth-password-reset-request
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/auth/password-reset-request
+            - Method=POST
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 1
+                redis-rate-limiter.burstCapacity: 2
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@emailKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+
         - id: auth
           uri: http://kitehub-subscription:8080
           predicates:

@@ -1,6 +1,6 @@
 # GAP-508: Production env config registry meta-gap (governance class)
 
-**Status:** 🟡 PARTIAL — Phase 1 (rule + registry + scan + 4 P0 overrides) DONE; Phase 2 (RESEND_API_KEY + CI gate) OPEN
+**Status:** 🟡 PARTIAL — Phase 1 (rule + registry + scan + 4 P0 overrides) DONE; Phase 1b (registry extended for Wave 78 Bucket 0 4 NEW endpoints) DONE 2026-05-14 (this PR); Phase 2 (RESEND_API_KEY user-action) + Phase 3 (CI gate) OPEN
 **Priority:** 🔴 P0 (Phase 1 BETA launch blocker — systemic class of bugs)
 **Domain:** Meta / DevOps / Governance
 **Found:** 2026-05-13 (Plan 1 self-test surfaced CORS GAP-507 + 5 sibling env-config bugs)
@@ -62,7 +62,8 @@ Per `incident-to-rule-pipeline.md` premature-rule guard:
 - [x] Phase 1: rule + registry + scan + 3 P0 overrides shipped
 - [x] Scan script runnable: `bash scripts/audit-env-coverage.sh` produces FAIL/PASS verdict
 - [x] Registry has 14 known vars + 6 accepted-defaults
-- [ ] Phase 2: RESEND_API_KEY in production (separate user-action gap)
+- [x] Phase 1b (Wave 78 Bucket C 2026-05-14): registry extended with 4 NEW endpoint families from Wave 78 Bucket 0 (PR #1349): `onboarding`, `feedback`, `beta-status`, `support`. Per-endpoint row includes required gateway route id, target rate-limit, cache policy, env-var implications (BETA_STATUS_DEFAULT_CONTENT, FEEDBACK_HONEYPOT_FIELD, SUPPORT_TICKET_NUMBER_PREFIX, SUPPORT_NOTIFY_EMAIL, ONBOARDING_TOTAL_STEPS). Required gateway-route additions explicitly enumerated for the BE-implementation PRs in Buckets A/B/F so they land same-PR per `production-env-config-registry.md` §11 `audit-gateway-routes.sh`.
+- [ ] Phase 2: RESEND_API_KEY in production (separate user-action gap — provision Resend account + DKIM/SPF/DMARC + AWS Secrets Manager + extend fetch-secrets.sh)
 - [ ] Phase 3: CI gate wired (~7 days post-stabilization)
 - [ ] Post-merge: re-run Plan 1 Bước 5 (email send) succeeds
 
@@ -76,4 +77,5 @@ Per `incident-to-rule-pipeline.md` premature-rule guard:
 
 ## Log
 
+- **2026-05-14 (Wave 78 Bucket C):** Phase 1b — registry extended with Wave 78 Bucket 0 4 NEW endpoint families (`onboarding`, `feedback`, `beta-status`, `support`) per PR #1349 contract docs. Each family documented with required gateway route id, target rate-limit, cache policy, env-var implications. Lays the groundwork for Bucket A/B/F BE implementations to add the matching `application.yml` gateway routes + rate-limit filters in their PRs (same-PR per `production-env-config-registry.md` §11). Status 60% → 75%.
 - **2026-05-13:** Filed retroactively from Plan 1 self-test 17:00Z. User-flagged systemic governance gap. Phase 1 (rule + registry + scan + 3 P0 overrides) shipped same PR. Phase 2 (Resend API key user-action) + Phase 3 (CI gate) deferred per `incident-to-rule-pipeline.md` premature-rule guard.
