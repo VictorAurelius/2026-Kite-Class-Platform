@@ -8,9 +8,26 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-14 — 🎉 Wave 73 SHIPPED Meta Context Optimization — base context ~237k → ~87k rules; Bucket B deferred GAP-528)
+## 🎯 Current Status Snapshot (2026-05-14 EOD — 🎉 Wave 77 SHIPPED Beta Invite Launch SEND foundation + GitHub suspension survived + GitLab mirror permanent)
 
-> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-14-session-handoff.md`](../../03-planning/session-handoffs/2026-05-14-session-handoff.md) — full state + pending PR #1301 (Bucket A DIRTY) + 3 audit reports → Wave 73 plan revision needed.
+> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-14-eod-session-handoff.md`](../../03-planning/session-handoffs/2026-05-14-eod-session-handoff.md) — full EOD state + Wave 77 user-action deploy pickup order + 3 pending PRs (#1340/#1341/#1342)
+
+### ✅ Wave 77 SHIPPED 2026-05-14 EOD — Beta Invite Launch Foundation SEND (4 buckets + 1 hotfix)
+
+**5 PRs merged:** #1339 plan + #1347 hotfix (AuthService DI + V42 ALTER) + #1343 Bucket A (Email SEND DNS+runbook+smoke) + #1344 Bucket B (kitehub-email actuator healthcheck) + #1345 Bucket C (cred rotation automation) + #1346 Bucket D (V39/V40/V41 + invite token single-use + slug normalize VN + idempotency).
+
+**Outcome (gap-status.csv canonical):**
+- GAP-370 60% → 95% / GAP-502 80% → 90% / GAP-525 50% → 85% / GAP-530 0% → 10%
+- 4 new outside-in P0 gaps filed + advanced: GAP-533 80% / GAP-534 80% / GAP-535 70% / GAP-536 65%
+- 12 active Phase 1 BETA P0 PARTIAL (no OPEN remaining)
+- 51/51 Bucket D tests PASS; AuthService DI + login_audit_log schema bugs hotfixed
+
+**Mid-session incident survived:** GitHub account `VictorAurelius` suspended ~10:15 UTC → restored ~12:55 UTC via appeal (~2h40m downtime). Zero data loss. Permanent insurance shipped:
+- Multi-pushurl mirror (`origin` pushes BOTH GitHub + GitLab)
+- GitLab project `gitlab.com/victoraurelius/kite-class-platform` (private, full 112 branches + 13 tags)
+- Self-hosted runner `kite-dev-wsl2-shell` (unlimited free CI failover)
+- Weekly tarball cron Sunday 02:00 UTC
+- Incident log [`2026-05-14-github-account-suspension-and-gitlab-migration.md`](../audits/incidents/2026-05-14-github-account-suspension-and-gitlab-migration.md)
 
 ### ✅ Wave 73 SHIPPED 2026-05-14 — Meta Context Optimization (path-scope 30 rules + UserPromptSubmit dynamic inject + context-budget-mandate)
 
@@ -66,25 +83,64 @@ Full evidence: [`audits/aws-verification/2026-05-13-audit-of-trust-production-in
 
 **New artifacts:** [`documents/05-guides/operations/acceptance-tests/phase-1-beta-acceptance-self-test.csv`](../../05-guides/operations/acceptance-tests/phase-1-beta-acceptance-self-test.csv) 126 rows pre-filled in Vietnamese with UTF-8 BOM (Wave 72b Bucket G relocated + translated; supersedes archived `plan-1-self-test-e2e-superseded.md`) — user opens in spreadsheet, ticks `status` column, surfaces blocker gaps per row. Render XLSX: `bash scripts/render-acceptance-test-xlsx.sh <csv>`.
 
-### 🚀 Next Action (Wave 77 — Beta Invite Launch Foundation SEND, 2026-05-14 draft)
+### 🚀 Next Action (Wave 77 SHIPPED EOD 2026-05-14 — user-action deploy follow-ons + Wave 78 queued)
 
-**Wave 77 plan drafted** — `documents/03-planning/waves/wave-2026-05-14-77-beta-invite-launch-foundation.md` — 4 buckets parallel, ~3-4h. Scope = Sub-wave A SEND foundation (8 P0 items chặn "gửi invite an toàn"):
+📍 **Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-14-eod-session-handoff.md`](../../03-planning/session-handoffs/2026-05-14-eod-session-handoff.md) — full state + pickup order
 
-**Inside-out (4 PARTIAL from ROADMAP):**
-- 🟡 GAP-370 (Resend infra 60%) → close PARTIAL with deliverability path
-- 🟡 GAP-502 (kh_backend thrashing 80%) → close 20% remaining for kitehub-email scope; GAP-506 defer
-- 🟡 GAP-525 (cred rotate 50%) → ship automation + user-action checklist
-- 🔵 GAP-530 (email flow live verify 0%) → end-to-end §2.3 post Bucket A
+**Wave 77 SHIPPED** — Beta Invite Launch Foundation SEND. 4/4 buckets MERGED + 1 hotfix:
+- ✅ PR #1339 plan + #1347 hotfix (AuthService DI + V42 ALTER login_audit_log)
+- ✅ PR #1343 Bucket A — Email SEND foundation (terraform-cloudflare DNS + deliverability runbook + 2 smoke scripts) — GAP-370 95% / GAP-533 80% / GAP-530 10%
+- ✅ PR #1344 Bucket B — kitehub-email actuator healthcheck — GAP-502 90%
+- ✅ PR #1345 Bucket C — Credential rotation automation wrapper — GAP-525 85%
+- ✅ PR #1346 Bucket D — Tenant signup security (V39/V40/V41 + InviteTokenService + TenantSlugNormalizer + IdempotencyService + 51/51 tests) — GAP-534 80% / GAP-535 70% / GAP-536 65%
 
-**Outside-in NEW (4 P0 from 3-agent convergence persona+benchmark+matrix 2026-05-14):**
-- 🔵 GAP-533 OPEN P0 — Resend deliverability warm-up DKIM/DMARC/SPF + spam-score ≥8/10 (persona+benchmark convergence)
-- 🔵 GAP-534 OPEN P0 — Invite token single-use enforcement + audit log (matrix F1 — share-link hijack)
-- 🔵 GAP-535 OPEN P0 — Tenant slug normalize VN diacritics + smart quotes + collision recovery (matrix F2 — P2 100% target persona block)
-- 🔵 GAP-536 OPEN P0 — POST /tenants idempotency key (matrix F3 — slow 3G double-submit orphan tenants)
+**Phase 1 BETA P0 state (gap-status.csv canonical):** 12 active PARTIAL items (no OPEN remaining) — see EOD handoff for table.
 
-**Buckets:** A Email SEND foundation (GAP-370+533+530) · B Backend stability close (GAP-502) · C Cred rotation execution (GAP-525) · D Tenant signup security (GAP-534+535+536). Cross-layer check: NO FE work → no Bucket 0 Foundation.
+**User-action follow-ons for Wave 77 deploy (next session):**
 
-**Sub-wave B (Wave 78) queued — RETAIN scope** — 9 P0 (GAP-508 env meta, GAP-514 rate limit live, GAP-515 lockout UX, GAP-518 role mismatch live verify, GAP-428 Prospects UI kit, + 4 outside-in NEW: N1 onboarding+sample data, N2 beta disclaimer+status page, N7 support channel, N8 VN i18n customer-facing). 14 P1/P2 outside-in items defer Sub-wave C or Phase 2.
+1. **Bucket A deploy** (~30min user time):
+   - Resend dashboard: add domain `kitehub.me` → capture 3 DKIM CNAME values
+   - `cp infrastructure/terraform-cloudflare/terraform.tfvars.example terraform.tfvars` → fill values
+   - Pre-apply audit artifact `documents/04-quality/audits/cloudflare-verification/YYYY-MM-DD-bucket-a-email-dns.md`
+   - `cd infrastructure/terraform-cloudflare && terraform init && terraform plan -out=tfplan && terraform apply tfplan`
+   - `dig` verify 5 DNS records propagated
+   - Warm-up Day 1-7 per `documents/05-guides/deploy/email-deliverability-runbook.md`
+   - Mail-tester ≥8/10 × 3 consecutive runs → flip GAP-533 toward DONE
+
+2. **Bucket B deploy** (~5min):
+   - `gh workflow run deploy-production.yml -f confirm=APPLY -f dry_run=false`
+   - Post-deploy (~150s start_period): `aws ssm send-command` → verify `docker ps --filter name=kitehub-email --format "{{.Status}}"` shows `Up X minutes (healthy)`
+
+3. **Bucket C rotation execution** (~25min, 3 creds):
+   - `bash scripts/rotate-leaked-credentials.sh --cred=admin-password` (~10min)
+   - `bash scripts/rotate-leaked-credentials.sh --cred=resend-api-key` (~10min)
+   - `bash scripts/rotate-leaked-credentials.sh --cred=cloudflare-token` (~5min)
+   - Fill 3 audit skeleton files (wrapper-generated)
+   - Commit trailer to flip GAP-525 DONE: `GAP-525_USER_ROTATED: admin-pwd YYYY-MM-DD / cloudflare YYYY-MM-DD / resend YYYY-MM-DD`
+
+4. **Bucket D deploy** (auto via deploy workflow):
+   - Flyway V39 → V40 → V41 will apply on next `deploy-production.yml` run
+   - Live verify per `pre-handoff-self-test-completeness.md` §2.4 → flip GAP-534/535/536 toward DONE
+
+5. **GAP-530 5-email-type live verify** post-Bucket-A warm-up (final blocker for Plan 1 invite send)
+
+**Pending PRs (open from this session):**
+- 🟢 **PR #1340** Meta inside-out-completeness-trigger rule (ready for merge if CI green)
+- 🟡 **PR #1341** Wave 78 plan (DRAFT) — Sub-wave B RETAIN scope (6 buckets / 14 P0); promote to ready after Wave 77 deploy
+- 🟢 **PR #1342** Incident log + backup script + GitLab CI smoke (ready for merge if CI green)
+
+**Sub-wave B (Wave 78) DRAFT PR #1341** — RETAIN UX/trust scope (6 buckets / 14 P0 items):
+- Inside-out close-out: GAP-508 env config registry meta + GAP-514 rate limit live 429 smoke + GAP-515 lockout FE Retry-After UX + GAP-518 live admin walkthrough + GAP-428 Prospects UI kit (P0 effective)
+- Outside-in NEW P0: GAP-538 onboarding+sample data + GAP-539 beta disclaimer+/beta-status page + GAP-540 support channel discoverability + GAP-541 customer-facing VN i18n audit + GAP-542 feedback channel widget + GAP-543 email content audit 5 types
+- Cross-layer YES → Bucket 0 Foundation required (api-contract.md + MSW handlers for 4 NEW endpoints)
+- Defer Wave 79: GAP-348 + GAP-364 UI kit polish + GAP-537 user manual + GAP-040 support impersonation + Premium plan disclaimer
+
+**GitHub suspension incident permanent insurance shipped:**
+- Multi-pushurl mirror (origin → GitHub + GitLab simultaneously)
+- Self-hosted GitLab runner `kite-dev-wsl2-shell` (failover ready)
+- Weekly tarball cron Sunday 02:00 UTC → `~/backups/`
+- Incident log `documents/04-quality/audits/incidents/2026-05-14-github-account-suspension-and-gitlab-migration.md`
+- 5 follow-up gaps tracked (off-device backup automation / workflow translation / AWS OIDC dual-issuer / burst push throttle / migration runbook)
 
 ---
 
