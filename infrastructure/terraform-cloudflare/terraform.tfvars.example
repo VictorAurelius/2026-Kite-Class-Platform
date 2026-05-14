@@ -1,0 +1,29 @@
+# Cloudflare DNS — example tfvars
+# Copy to terraform.tfvars (gitignored) and replace placeholder values.
+# DO NOT commit terraform.tfvars to git — contains API token.
+
+# Cloudflare API token with scopes: Zone:Read + DNS:Edit on kitehub.me zone
+# Create at: https://dash.cloudflare.com/profile/api-tokens
+cloudflare_api_token = "REPLACE-WITH-CLOUDFLARE-API-TOKEN"
+
+# Cloudflare zone ID for kitehub.me — fetch once via:
+# curl -H "Authorization: Bearer $TOKEN" https://api.cloudflare.com/client/v4/zones?name=kitehub.me | jq -r '.result[0].id'
+cloudflare_zone_id = "REPLACE-WITH-ZONE-ID"
+
+# Email provider — 'resend' (Phase 1 BETA primary) or 'ses' (fallback)
+email_provider = "resend"
+
+# Resend DKIM CNAME targets (3 selectors) — fetch from Resend dashboard:
+# Dashboard → Domains → kitehub.me → DNS Records → copy CNAME "Value" column
+resend_dkim_selector_1 = "REPLACE.resend._domainkey.<account>.resend.com"
+resend_dkim_selector_2 = "REPLACE.resend2._domainkey.<account>.resend.com"
+resend_dkim_selector_3 = "REPLACE.resend3._domainkey.<account>.resend.com"
+
+# DMARC reporting — use a real inbox monitored weekly during warm-up
+dmarc_rua_email = "dmarc-reports@kitehub.me"
+dmarc_ruf_email = "dmarc-reports@kitehub.me"
+
+# DMARC policy — Phase 1 BETA defaults quarantine per email-deliverability-runbook.md §4
+# Set to 'none' during very first 1-2 days of warm-up if signals look uncertain, then promote to quarantine.
+dmarc_policy = "quarantine"
+dmarc_pct    = 100

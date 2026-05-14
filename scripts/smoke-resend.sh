@@ -1,0 +1,184 @@
+#!/usr/bin/env bash
+# smoke-resend.sh - Resend API runtime health check (read-only state + optional send)
+#
+# Tier 1 (read-only) per .claude/rules/agent-aws-access.md when called without
+# --send; with --send it dispatches exactly 1 email to a self-loop address.
+#
+# Usage:
+#   bash scripts/smoke-resend.sh                      # read-only state check
+#   bash scripts/smoke-resend.sh --send <to_addr>     # send 1 test email
+#
+# Behaviour:
+#   - Verifies RESEND_API_KEY env present + non-empty
+#   - GET /domains -> list domains the API key can see
+#   - Verifies kitehub.me appears + status (pending vs verified)
+#   - Optional: send 1 transactional email if --send <addr> provided
+#
+# Wave 77 Bucket A - GAP-370 + GAP-533 + GAP-530.
+#
+# Reference:
+#   - documents/05-guides/deploy/resend-provisioning-runbook.md
+#   - documents/05-guides/deploy/email-deliverability-runbook.md
+#   - https://resend.com/docs/api-reference
+
+set -euo pipefail
+
+DOMAIN="${RESEND_DOMAIN:-kitehub.me}"
+FROM_ADDR="${RESEND_FROM:-noreply@kitehub.me}"
+RESEND_ENDPOINT="https://api.resend.com"
+
+SEND_TO=""
+PASS=0
+FAIL=0
+WARN=0
+
+if [ -t 1 ]; then
+  C_OK="\033[0;32m"; C_FAIL="\033[0;31m"; C_WARN="\033[0;33m"
+  C_INFO="\033[0;36m"; C_RST="\033[0m"
+else
+  C_OK=""; C_FAIL=""; C_WARN=""; C_INFO=""; C_RST=""
+fi
+
+ok()   { printf "  ${C_OK}PASS${C_RST}  %s\n" "$1"; PASS=$((PASS + 1)); }
+fail() { printf "  ${C_FAIL}FAIL${C_RST}  %s\n" "$1"; FAIL=$((FAIL + 1)); }
+warn() { printf "  ${C_WARN}WARN${C_RST}  %s\n" "$1"; WARN=$((WARN + 1)); }
+info() { printf "${C_INFO}==>${C_RST} %s\n" "$1"; }
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --send)
+      SEND_TO="${2:-}"
+      if [ -z "$SEND_TO" ]; then
+        fail "--send requires a recipient address"
+        exit 2
+      fi
+      shift 2
+      ;;
+    -h|--help)
+      sed -n '1,30p' "$0"
+      exit 0
+      ;;
+    *) fail "Unknown arg: $1"; exit 2;;
+  esac
+done
+
+# ---------------------------------------------------------------------------
+# 0. Pre-flight
+# ---------------------------------------------------------------------------
+info "Pre-flight"
+
+if ! command -v curl >/dev/null 2>&1; then
+  fail "curl not on PATH"
+  exit 1
+fi
+ok "curl available"
+
+if ! command -v jq >/dev/null 2>&1; then
+  fail "jq not on PATH"
+  exit 1
+fi
+ok "jq available"
+
+if [ -z "${RESEND_API_KEY:-}" ]; then
+  fail "RESEND_API_KEY env var not set"
+  fail "Resolve via: export RESEND_API_KEY=\$(aws secretsmanager get-secret-value --secret-id kitehub/production/resend --query SecretString --output text | jq -r .api_key)"
+  exit 1
+fi
+
+# Mask key in display (show only first 8 chars)
+KEY_MASKED="$(printf '%s' "$RESEND_API_KEY" | cut -c1-8)..."
+ok "RESEND_API_KEY present ($KEY_MASKED)"
+
+# ---------------------------------------------------------------------------
+# 1. List domains - verify kitehub.me appears
+# ---------------------------------------------------------------------------
+info "GET /domains - verify $DOMAIN registered"
+
+DOMAINS_JSON=$(curl -fsS -H "Authorization: Bearer $RESEND_API_KEY" \
+  "$RESEND_ENDPOINT/domains" 2>&1) || {
+  fail "GET /domains failed: $DOMAINS_JSON"
+  exit 1
+}
+
+DOMAIN_NAMES=$(echo "$DOMAINS_JSON" | jq -r '.data[]?.name // empty' 2>/dev/null | sort -u)
+if [ -z "$DOMAIN_NAMES" ]; then
+  fail "Resend API returned no domains (account empty or API key scope insufficient)"
+  fail "Raw response: $DOMAINS_JSON"
+  exit 1
+fi
+
+info "Domains visible to this API key:"
+# shellcheck disable=SC2086  # intentional word-splitting for one-line-per-domain output
+printf '  %s\n' $DOMAIN_NAMES
+
+if echo "$DOMAIN_NAMES" | grep -qx "$DOMAIN"; then
+  ok "$DOMAIN is registered"
+else
+  fail "$DOMAIN NOT in Resend account - add via dashboard per resend-provisioning-runbook.md sec 2.2"
+  exit 1
+fi
+
+DOMAIN_STATUS=$(echo "$DOMAINS_JSON" | jq -r --arg d "$DOMAIN" '.data[]? | select(.name == $d) | .status // "unknown"')
+case "$DOMAIN_STATUS" in
+  verified)
+    ok "Domain status = verified"
+    ;;
+  pending|"not_started")
+    warn "Domain status = $DOMAIN_STATUS (DNS records may still be propagating)"
+    ;;
+  *)
+    fail "Domain status = $DOMAIN_STATUS"
+    ;;
+esac
+
+DOMAIN_REGION=$(echo "$DOMAINS_JSON" | jq -r --arg d "$DOMAIN" '.data[]? | select(.name == $d) | .region // "unknown"')
+info "Domain region: $DOMAIN_REGION"
+
+# ---------------------------------------------------------------------------
+# 2. Optional: send 1 test email
+# ---------------------------------------------------------------------------
+if [ -n "$SEND_TO" ]; then
+  info "Send mode - dispatching 1 test email to $SEND_TO"
+
+  if [ "$DOMAIN_STATUS" != "verified" ]; then
+    fail "Refusing to send while domain status != verified (current: $DOMAIN_STATUS)"
+    exit 1
+  fi
+
+  SUBJECT="KiteHub smoke test - $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  HTML_BODY='<html><body><h2>KiteHub Resend Smoke</h2><p>This message confirms the production Resend integration is healthy. No action required.</p><p>Generated by scripts/smoke-resend.sh.</p><hr><small>Phase 1 BETA - kitehub.me</small></body></html>'
+
+  SEND_PAYLOAD=$(jq -nc \
+    --arg from "$FROM_ADDR" \
+    --arg to "$SEND_TO" \
+    --arg subj "$SUBJECT" \
+    --arg html "$HTML_BODY" \
+    '{from: $from, to: [$to], subject: $subj, html: $html}')
+
+  SEND_RESP=$(curl -fsS -X POST "$RESEND_ENDPOINT/emails" \
+    -H "Authorization: Bearer $RESEND_API_KEY" \
+    -H "Content-Type: application/json" \
+    --data-binary "$SEND_PAYLOAD" 2>&1) || {
+    fail "POST /emails failed: $SEND_RESP"
+    exit 1
+  }
+
+  MSG_ID=$(echo "$SEND_RESP" | jq -r '.id // empty')
+  if [ -n "$MSG_ID" ]; then
+    ok "Message dispatched (id=$MSG_ID)"
+    info "Verify delivery: Resend dashboard -> Logs -> filter by message id"
+  else
+    fail "Response missing id: $SEND_RESP"
+    exit 1
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# Summary
+# ---------------------------------------------------------------------------
+printf '\nSummary: %d PASS, %d WARN, %d FAIL\n' "$PASS" "$WARN" "$FAIL"
+
+if [ "$FAIL" -gt 0 ]; then
+  exit 1
+fi
+exit 0

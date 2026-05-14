@@ -1,6 +1,6 @@
 # GAP-530: Email-driven flow end-to-end live verify per `pre-handoff-self-test-completeness.md` §2.3
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 10% — Wave 77 Bucket A shipped verification automation scripts; 5-email-type live verify per §2.3 + audit artifact remain user-action post GAP-370/533 dashboard verify + apply + warm-up
 **Priority:** 🔴 P0 — BLOCKING Plan 1 BETA invite
 **Domain:** Backend + DevOps
 **Found:** 2026-05-14 (Wave 76 — Phase 1 BETA persona audit)
@@ -70,4 +70,5 @@ Plan 1 deploy plan has §2.4 manual checklist "Beta invite email received + sign
 
 ## Log
 
+- **2026-05-14** (Wave 77 Bucket A code-side context): Verification automation `scripts/verify-email-deliverability.sh` + `scripts/smoke-resend.sh` ship in same wave Bucket A. Once GAP-533 user-action follow-on (Resend dashboard verified + DNS applied + warm-up Day 5+ spam-score green) completes, operator runs §2.3 Phase 1 5-email-type live verify per `pre-handoff-self-test-completeness.md` §2.3 to flip this gap. Status stays 🔵 OPEN — code shipped to enable verification, but the verification itself remains user-action and the audit artifact `documents/04-quality/audits/email/2026-05-14-phase-1-beta-email-flow-e2e.md` has not yet been authored.
 - **2026-05-14:** Gap filed Wave 76 Bucket F closure from Phase 1 BETA persona audit. Surfaced as NEW-001 (P0) — not previously in P0 list. Email infrastructure is cross-cutting risk affecting 5/5 personas; must close before Plan 1 invite per audit verdict "tightly-controlled handful (2-3 trusted users)".
