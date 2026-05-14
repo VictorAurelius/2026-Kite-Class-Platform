@@ -1,7 +1,7 @@
 # Output Review Mandate
 
 **Priority:** 🔴 CRITICAL — project-wide governance rule
-**Version:** 1.7.0
+**Version:** 1.7.1
 **Created:** 2026-04-14
 **Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; v1.2.0 → v1.3.0 extends §3 row "HTML/JSX prototypes" Process column with integration smoke test + landing parity script per `incident-to-rule-pipeline.md` Stage 3 paired with same-PR enforcement: Tier 1 script `_shared/scripts/check-ui-kits-landing.sh` ships in same wave foundation; Tier 2 ui-review-prototype skill GAP-264 + Tier 3 hook/CI GAP-265 ship same wave by parallel agents)
@@ -137,70 +137,9 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 
 ---
 
-## 5. Remediation Plan
+## 5. Remediation Plan (historical — Wave 8b closed)
 
-Create **GAP-048: Output Review Standards Coverage** to track closing all violations.
-
-Each violation → dedicated action:
-
-### 5.1 Gap Reports (meta-level)
-- Add peer review step trong `gap-to-pr-converter.md`
-- Template cho gap review: validates Problem clear, AC measurable, dependencies identified
-- Gap không được status 🟡 PLANNED cho đến khi peer-reviewed
-
-### 5.2 Rules + Skills (meta-governance)
-- ADR template cho rules changes
-- Lead + 1 dev review trước merge
-- Changelog per rule file
-- Version + last-reviewed date trong front-matter
-
-### 5.3 Architecture Docs (ADR)
-- `documents/02-architecture/adr/` folder
-- ADR template (context, decision, consequences)
-- Link ADR từ docs referencing decisions
-- Reviewed in architecture meeting
-
-### 5.4 Database Migrations
-- Migration review checklist:
-  - [ ] Backward compatible?
-  - [ ] Rollback script provided?
-  - [ ] Index impact assessed?
-  - [ ] Data migration safe (no lock holds)?
-  - [ ] Tested on staging with production-like data?
-- DBA approval required for V-migrations
-
-### 5.5 Scripts
-- Script linting (shellcheck for bash, ruff for Python)
-- Security review (no `eval`, no hardcoded secrets)
-- Test coverage or at least `--dry-run` mode
-- Documentation: purpose, usage, edge cases
-
-### 5.6 API Contracts
-- OpenAPI spec updates in same PR as controller changes
-- Contract tests (Pact or similar)
-- Backward compat check automated
-- Breaking change requires version bump + deprecation notice
-
-### 5.7 Email Templates
-- Review checklist:
-  - [ ] Brand colors + logo applied
-  - [ ] Legal footer included (unsubscribe, address)
-  - [ ] i18n (Vietnamese + English if needed)
-  - [ ] Variables work (preview with sample data)
-  - [ ] Mobile-responsive
-- Marketing + legal sign-off for customer-facing
-
-### 5.8 Marketing & Legal Docs
-- Legal counsel review
-- Compliance checklist
-- Version control + dated signatures
-- Archive previous versions
-
-### 5.9 Logs Standard
-- Structured logging (JSON)
-- Required fields: timestamp, service, level, tenantId, traceId
-- Retention policy documented
-- PII scrubbing rules
+See `_examples/output-review-mandate-examples.md` §Remediation Plan (original 2026-04-14 scoping artifact drove GAP-170..175 + GAP-048; all 6 CRITICAL violations closed Wave 8b 2026-04-20). Current matrix state lives in §3.
 
 ---
 
@@ -306,6 +245,7 @@ Cases khi review có thể lighter:
 
 ## 11. Log
 
+- **2026-05-14** (v1.7.1): PATCH — Wave 76 Bucket E body streamline. §5 Remediation Plan (historical Wave 8b scoping artifact, all 6 violations closed 2026-04-20) moved to `_examples/output-review-mandate-examples.md`; body replaced with 1-line stub pointer. No constraint change; canonical §3 matrix retained in body. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-05-14** (v1.7.0): MINOR — added §3 matrix row "Context budget" tracking `.claude/rules/context-budget-mandate.md` v1.0.0 (new rule, paired same-PR Wave 73 Bucket D). Triggered by user-flagged 2026-05-14 miss "/start-session tốn ~34% context" — Wave 73 Meta Context Optimization. Per `incident-to-rule-pipeline.md` 5-stage + `rule-change-process.md` §6.5 Enforcement Parity: new rule + matrix row + rules-index.csv row + memory entry text in PR body all paired same PR. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds coverage row for previously-uncovered output type "context budget"; no constraint loosening; existing rules grandfathered until path-scope refresh).
 - **2026-05-14** (v1.6.0): MINOR — added §3 matrix rows: "Acceptance test CSVs" (per-release manual walkthrough matrix; references new rule `.claude/rules/test-artifact-format-standard.md`) and "Dev-readable doc language" (Vietnamese narrative + English identifier split; references new rule `.claude/rules/dev-readable-doc-language.md`). Triggered by Wave 72a Bucket F PR #1288 user-flagged 4 issues on `phase-1-beta-acceptance-self-test.csv` (folder placement, old Plan 1 not archived, English content, no UTF-8 BOM). Per `incident-to-rule-pipeline.md` 5-stage + `rule-change-process.md` §6.5 Enforcement Parity Mandate: 2 new rules + same-PR CSV translation + folder relocation + render script + Plan 1 archive + rules-index.csv 2 new rows. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds coverage rows for previously-uncovered output types; no constraint loosening; existing English-narrative test artifacts grandfathered until next refresh).
 - **2026-04-30** (v1.5.0): MINOR — added §3 matrix row "UI/Design scope completeness (4-layer V-model)" referencing new rule `.claude/rules/design-layer-coverage.md` v1.0.0 + paired-PR `dossier/16-design-layer-mapping.md` reference doc + PR template checkbox. Triggered by user request "tôi mong muốn sử dụng 4 layer này để tránh miss docs như vừa rồi" — direct response to 2026-04-29 UI Coverage Audit incident (32% missing coverage caught at audit, not at gap-filing). Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ Classify ✓ Rule+Enforce ✓ (this matrix row + design-layer-coverage rule + dossier mapping doc + PR template paired same PR per §6.5 Enforcement Parity Mandate) Self-test ✓ (worked example in design-layer-coverage.md §6 applied to 2026-04-29 incident — surfaces ⚠️ flags at 2 of 3 contexts checked) Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds completeness guard for previously-uncovered scope-completeness gap, no constraint loosening for prior work; existing artifacts grandfathered).
