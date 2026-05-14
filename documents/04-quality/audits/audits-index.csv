@@ -1,0 +1,133 @@
+# Audits Index — canonical CSV per `.claude/rules/meta-csv-index-pattern.md`
+# Schema: id,filename,category,phase,wave,date,status,score,note
+# Categories: ui-review | quality-audit | security | performance | api-contract | ops-readiness | business-logic | meta | aws-verification | outside-in-benchmark
+# Status enums: complete | partial | draft | superseded
+# Pattern source: gap-architecture-v2.md (proven for gaps; generalized per GAP-485)
+id,filename,category,phase,wave,date,status,score,note
+AUDIT-2026-04-26-business-logic-baseline,ai-branding/2026-04-26-baseline.md,business-logic,,,2026-04-26,complete,,
+AUDIT-2026-05-07-api-contract-wave-34-ai-branding-api-contract,api/2026-05-07-wave-34-ai-branding-api-contract.md,api-contract,,34,2026-05-07,complete,72/100,
+AUDIT-2026-04-17-api-contract-api-contract-audit-2026-04-17-saas,api/api-contract-audit-2026-04-17-saas.md,api-contract,,,2026-04-17,complete,82/100,
+AUDIT-2026-04-25-api-contract-api-contract-audit-2026-04-25-wave5,api/api-contract-audit-2026-04-25-wave5.md,api-contract,,5,2026-04-25,complete,,
+AUDIT-2026-04-26-api-contract-api-contract-audit-2026-04-26-post-wave7,api/api-contract-audit-2026-04-26-post-wave7.md,api-contract,,7,2026-04-26,complete,42/100,
+AUDIT-2026-05-07-api-contract-post-wave-35,api-contract/2026-05-07-post-wave-35.md,api-contract,,35,2026-05-07,complete,71/100,
+AUDIT-2026-05-08-api-contract-wave-40-milestone,api-contract/2026-05-08-wave-40-milestone.md,api-contract,,40,2026-05-08,complete,72/100,
+AUDIT-2026-05-14-api-contract-wave-72b-bucket-d-admin-subpages-verify,api-contract/2026-05-14-wave-72b-bucket-d-admin-subpages-verify.md,api-contract,wave-72b,72b,2026-05-14,complete,,API Contract — Wave 72b Bucket D admin subpages verify (code-path)
+AUDIT-2026-02-27-meta-architecture-gaps-analysis-2026-02-27,architecture/architecture-gaps-analysis-2026-02-27.md,meta,,,2026-02-27,complete,,
+AUDIT-2026-01-01-meta-architecture-gaps-report,architecture/architecture-gaps-report.md,meta,,,2026-01-01,complete,,
+AUDIT-2026-01-01-meta-architecture-qa,architecture/architecture-qa.md,meta,,,2026-01-01,complete,,
+AUDIT-2026-05-08-aws-verification-current-state,aws-verification/2026-05-08-current-state.md,aws-verification,post-Wave-46,43,2026-05-08,complete,,AWS Verification — Current state inventory (post Wave 43-46 + key rotation)
+AUDIT-2026-05-08-aws-verification-github-deployments-cleanup,aws-verification/2026-05-08-github-deployments-cleanup.md,aws-verification,post-Wave-46,46,2026-05-08,complete,,GitHub Deployments page cleanup — Vercel preview prune
+AUDIT-2026-05-08-aws-verification-key-rotation-readonly-wsl,aws-verification/2026-05-08-key-rotation-readonly-wsl.md,aws-verification,post-Wave-43-44,43,2026-05-08,complete,,AWS Verification — kite-readonly-wsl access key rotation
+AUDIT-2026-05-08-aws-verification-orphan-key-delete-solo-dev-admin,aws-verification/2026-05-08-orphan-key-delete-solo-dev-admin.md,aws-verification,post-Wave-46,46,2026-05-08,complete,,AWS Verification — solo-dev-admin orphan exposed key deletion
+AUDIT-2026-05-08-aws-verification-phase-2-3-post-apply,aws-verification/2026-05-08-phase-2-3-post-apply.md,aws-verification,2.3,,2026-05-08,complete,,AWS Verification — Phase 2.3 post-apply
+AUDIT-2026-05-08-aws-verification-wave-43-44-bootstrap-apply,aws-verification/2026-05-08-wave-43-44-bootstrap-apply.md,aws-verification,1-beta-bootstrap,43,2026-05-08,complete,,AWS Verification — Wave 43+44 Bootstrap Apply
+AUDIT-2026-05-11-aws-verification-actual-cost-vs-estimate,aws-verification/2026-05-11-actual-cost-vs-estimate.md,aws-verification,Phase 1 BETA pre-launch,41,2026-05-11,complete,,AWS Verification — Actual cost Apr-May 2026 vs Architecture B estimate
+AUDIT-2026-05-11-aws-verification-gap-450-investigation-option-a-skipped,aws-verification/2026-05-11-gap-450-investigation-option-a-skipped.md,aws-verification,cleanup / state-drift verification,,2026-05-11,complete,,AWS Verification — GAP-450 Phase 1 investigation reveals state already in-sync; Option A skipped
+AUDIT-2026-05-11-aws-verification-gap-450-option-a-blocked-pivot-option-b,aws-verification/2026-05-11-gap-450-option-a-blocked-pivot-option-b.md,aws-verification,cleanup,,2026-05-11,complete,,"AWS Verification — GAP-450 Option A pre-flight blocked, pivot Option B + runbook"
+AUDIT-2026-05-11-aws-verification-kite-readonly-key-rotation,aws-verification/2026-05-11-kite-readonly-key-rotation.md,aws-verification,cleanup,,2026-05-11,complete,,AWS Verification — kite-readonly-wsl key rotation (orphan cleanup + create + verify)
+AUDIT-2026-05-11-aws-verification-wave-61-bucket-a-dns-state,aws-verification/2026-05-11-wave-61-bucket-a-dns-state.md,aws-verification,wave-61,61,2026-05-11,complete,,AWS Verification — Wave 61 Bucket A DNS bind + SSL state-check
+AUDIT-2026-05-12-aws-verification-gap-493-path-b-preflight,aws-verification/2026-05-12-gap-493-path-b-preflight.md,aws-verification,wave-66-bucket-a,66,2026-05-12,complete,,AWS Verification — GAP-493 Path B preflight + IAM rds:DescribeDBInstances
+AUDIT-2026-05-12-aws-verification-wave-64-pre-apply-plan-investigation,aws-verification/2026-05-12-wave-64-pre-apply-plan-investigation.md,aws-verification,wave-64-cutover,64,2026-05-12,complete,,AWS Verification — Wave 64 pre-apply plan investigation (terraform-apply run 25712117342)
+AUDIT-2026-05-12-aws-verification-wave-65-bucket-e-pre-apply,aws-verification/2026-05-12-wave-65-bucket-e-pre-apply.md,aws-verification,phase-1-beta,65,2026-05-12,complete,,AWS Verification — Wave 65 Bucket E pre-apply (GAP-483 EC2 user_data)
+AUDIT-2026-05-12-aws-verification-wave-65-pre-stop-state-check,aws-verification/2026-05-12-wave-65-pre-stop-state-check.md,aws-verification,wave-65-cleanup,65,2026-05-12,complete,,AWS Verification — Wave 65 pre-stop state-check (per pre-mutation-state-check.md v1.1.0)
+AUDIT-2026-05-13-aws-verification-audit-of-trust-production-instability,aws-verification/2026-05-13-audit-of-trust-production-instability.md,aws-verification,phase-1-beta,69,2026-05-13,complete,,AWS Verification — Audit-of-Trust Pass uncovers production thrashing (Plan 1 self-test BLOCKED)
+AUDIT-2026-05-13-aws-verification-gap-501-pre-apply-kc-app-tg-removal,aws-verification/2026-05-13-gap-501-pre-apply-kc-app-tg-removal.md,aws-verification,phase-1-beta,68,2026-05-13,complete,,AWS Verification — GAP-501 pre-apply (remove kc_app ALB TG + listener rule + attachment)
+AUDIT-2026-05-13-aws-verification-wave-70-pre-apply-d-terraform,aws-verification/2026-05-13-wave-70-pre-apply-d-terraform.md,aws-verification,wave-70-gap-502,70,2026-05-13,complete,,AWS Verification — Wave 70 Bucket D pre-apply (kh_backend t3.medium → t3.large)
+AUDIT-2026-05-13-aws-verification-wave-71b-post-deploy-verify,aws-verification/2026-05-13-wave-71b-post-deploy-verify.md,aws-verification,Wave 71b closure,71b,2026-05-13,complete,,Wave 71b post-deploy verify — GAP-512 routing + GAP-513 RESEND_API_KEY
+AUDIT-2026-05-07-business-logic-wave-34-ai-branding-business-logic,business/2026-05-07-wave-34-ai-branding-business-logic.md,business-logic,,34,2026-05-07,complete,78/100,
+AUDIT-2026-04-20-business-logic-brd-simulation-gap-finder-2026-04-20,business/brd-simulation-gap-finder-2026-04-20.md,business-logic,,,2026-04-20,complete,,BRD Simulation Gap Finder Report
+AUDIT-2026-03-23-business-logic-business-gap-check-2026-03-23-kiteclass,business/business-gap-check-2026-03-23-kiteclass.md,business-logic,,,2026-03-23,complete,,
+AUDIT-2026-03-23-business-logic-business-gap-check-2026-03-23-kitehub,business/business-gap-check-2026-03-23-kitehub.md,business-logic,,,2026-03-23,complete,,
+AUDIT-2026-04-19-business-logic-business-logic-audit-2026-04-19,business/business-logic-audit-2026-04-19.md,business-logic,,2,2026-04-19,complete,65/100,
+AUDIT-2026-04-20-business-logic-business-logic-audit-2026-04-20,business/business-logic-audit-2026-04-20.md,business-logic,,,2026-04-20,complete,72/100,
+AUDIT-2026-05-07-business-logic-post-wave-35,business-logic/2026-05-07-post-wave-35.md,business-logic,,35,2026-05-07,complete,,
+AUDIT-2026-05-08-business-logic-wave-40-milestone,business-logic/2026-05-08-wave-40-milestone.md,business-logic,,40,2026-05-08,complete,68/100,
+AUDIT-2026-05-13-aws-verification-resend-dns-prep,cloudflare-verification/2026-05-13-resend-dns-prep.md,aws-verification,Wave 71b parallel — GAP-513 user-action prep,71b,2026-05-13,complete,,Cloudflare DNS audit — Resend prep state-check
+AUDIT-2026-05-14-meta-wave-72a-3-credentials,credential-rotation/2026-05-14-wave-72a-3-credentials.md,meta,,72a,2026-05-14,complete,,Credential Rotation — Wave 72a (3 credentials from 2026-05-13 session)
+AUDIT-2026-04-26-meta-audit-2026-04-26-closure,design-patterns/audit-2026-04-26-closure.md,meta,,6,2026-04-26,complete,,
+AUDIT-2026-04-26-meta-audit-2026-04-26-post-wave7,design-patterns/audit-2026-04-26-post-wave7.md,meta,,7,2026-04-26,complete,16/20,
+AUDIT-2026-04-26-meta-audit-2026-04-26,design-patterns/audit-2026-04-26.md,meta,,,2026-04-26,complete,70/100,
+AUDIT-2026-05-14-outside-in-benchmark-beta-cohort-saas-comparison,external-benchmark/2026-05-14-beta-cohort-saas-comparison.md,outside-in-benchmark,pre-wave-73,73,2026-05-14,complete,,Benchmark — Beta Cohort Practices in VN-friendly EdTech SaaS
+AUDIT-2026-05-11-meta-wave-60-bucket-d2,gap-closure/2026-05-11-wave-60-bucket-d2.md,meta,,60,2026-05-11,complete,,Wave 60 Bucket D-2 — PR# Backfill + Flip Eligible Gaps
+AUDIT-2026-05-11-ops-readiness-staleness-audit,helm-k8s/2026-05-11-staleness-audit.md,ops-readiness,,64,2026-05-11,complete,,Helm + K8s Artifacts Staleness Audit (Wave 64 Bucket D)
+AUDIT-2026-05-14-meta-wave-73-miss-fix-baseline,meta/2026-05-14-wave-73-miss-fix-baseline.md,meta,post-wave-73-fix,73,2026-05-14,complete,,Wave 73 Miss Fix — Base Context Baseline Audit
+AUDIT-2026-05-14-meta-wave-74-closure-coverage-audit,meta/2026-05-14-wave-74-closure-coverage-audit.md,meta,post-wave-74,74,2026-05-14,complete,,Wave 74 Closure — Hook Coverage Audit (inside-out + outside-in)
+AUDIT-2026-05-14-meta-wave-74-outside-in-benchmark,meta/2026-05-14-wave-74-outside-in-benchmark.md,meta,post-wave-74-fix,74,2026-05-14,complete,,Wave 74 Outside-In Benchmark — Hook Coverage Industry Standards
+AUDIT-2026-05-14-meta-wave-75-closure-meta-finish,meta/2026-05-14-wave-75-closure-meta-finish.md,meta,post-wave-75,75,2026-05-14,complete,,Wave 75 Closure — Meta Hook Coverage Finish
+AUDIT-2026-05-14-meta-wave-75-concurrent-race,meta/2026-05-14-wave-75-concurrent-race.md,meta,wave-75,75,2026-05-14,complete,,Wave 75 Bucket D — Concurrent Race Investigation on Hook State Writes
+AUDIT-2026-05-14-meta-wave-75-hook-coverage-baseline,meta/2026-05-14-wave-75-hook-coverage-baseline.md,meta,wave-75,75,2026-05-14,complete,,Wave 75 Bucket E — Hook Coverage Baseline (`.claude/hooks/*.py`)
+AUDIT-2026-05-14-meta-wave-75-hook-ordering-empirical,meta/2026-05-14-wave-75-hook-ordering-empirical.md,meta,wave-75,75,2026-05-14,complete,,Wave 75 Bucket C — Hook Ordering Empirical Test
+AUDIT-2026-05-14-meta-wave-75-meta-system-outside-in-benchmark,meta/2026-05-14-wave-75-meta-system-outside-in-benchmark.md,meta,pre-wave-76-planning,75,2026-05-14,complete,,Wave 75 — Meta-System Outside-In Benchmark
+AUDIT-2026-05-07-ops-readiness-wave-33-beta-deploy-ops-readiness,ops/2026-05-07-wave-33-beta-deploy-ops-readiness.md,ops-readiness,,33,2026-05-07,complete,50/100,
+AUDIT-2026-04-19-ops-readiness-ops-readiness-audit-2026-04-19,ops/ops-readiness-audit-2026-04-19.md,ops-readiness,,,2026-04-19,complete,49/100,Ops Readiness Audit — Baseline 2026-04-19
+AUDIT-2026-04-25-ops-readiness-ops-readiness-audit-2026-04-25-wave5,ops/ops-readiness-audit-2026-04-25-wave5.md,ops-readiness,,5,2026-04-25,complete,,
+AUDIT-2026-05-07-ops-readiness-post-wave-35,ops-readiness/2026-05-07-post-wave-35.md,ops-readiness,,35,2026-05-07,complete,53/100,
+AUDIT-2026-05-08-ops-readiness-wave-40-milestone,ops-readiness/2026-05-08-wave-40-milestone.md,ops-readiness,,40,2026-05-08,complete,53/100,
+AUDIT-2026-05-11-ops-readiness-wave-54-observability-state-check,ops-readiness/2026-05-11-wave-54-observability-state-check.md,ops-readiness,,54,2026-05-11,complete,,Wave 54 Bucket B — Production Observability State-Check
+AUDIT-2026-05-07-performance-post-wave-35,performance/2026-05-07-post-wave-35.md,performance,,35,2026-05-07,complete,71/100,
+AUDIT-2026-05-07-performance-wave-33-and-34,performance/2026-05-07-wave-33-and-34.md,performance,,33,2026-05-07,complete,58/100,
+AUDIT-2026-05-08-performance-wave-40-milestone,performance/2026-05-08-wave-40-milestone.md,performance,,40,2026-05-08,complete,75/100,
+AUDIT-2026-05-11-performance-rls-baseline-methodology,performance/2026-05-11-rls-baseline-methodology.md,performance,,57,2026-05-11,complete,,RLS Performance Baseline Methodology
+AUDIT-2026-05-11-performance-wave-54-performance-redux,performance/2026-05-11-wave-54-performance-redux.md,performance,,54,2026-05-11,complete,18/20,
+AUDIT-2026-04-19-performance-performance-audit-2026-04-19,performance/performance-audit-2026-04-19.md,performance,,,2026-04-19,complete,58/100,
+AUDIT-2026-04-20-performance-performance-audit-2026-04-20,performance/performance-audit-2026-04-20.md,performance,,,2026-04-20,complete,,
+AUDIT-2026-04-25-performance-performance-audit-2026-04-25-wave5,performance/performance-audit-2026-04-25-wave5.md,performance,,5,2026-04-25,complete,,
+AUDIT-2026-05-14-meta-phase-1-beta-persona-walkthrough,persona-review/2026-05-14-phase-1-beta-persona-walkthrough.md,meta,pre-wave-73,73,2026-05-14,complete,,Persona Review — Phase 1 BETA walkthrough
+AUDIT-2026-05-07-quality-audit-post-wave-35,quality/2026-05-07-post-wave-35.md,quality-audit,,35,2026-05-07,complete,,
+AUDIT-2026-05-07-quality-audit-wave-32-33-34-quality-checkpoint,quality/2026-05-07-wave-32-33-34-quality-checkpoint.md,quality-audit,,32,2026-05-07,complete,,
+AUDIT-2026-05-08-quality-audit-wave-40-milestone,quality/2026-05-08-wave-40-milestone.md,quality-audit,,40,2026-05-08,complete,80/100,
+AUDIT-2026-05-10-quality-audit-wave-53-quality-refresh,quality/2026-05-10-wave-53-quality-refresh.md,quality-audit,,53,2026-05-10,complete,86/100,
+AUDIT-2026-03-22-quality-audit-quality-audit-2026-03-22-kitehub,quality/quality-audit-2026-03-22-kitehub.md,quality-audit,,,2026-03-22,complete,,
+AUDIT-2026-03-23-quality-audit-quality-audit-2026-03-23-kiteclass,quality/quality-audit-2026-03-23-kiteclass.md,quality-audit,,,2026-03-23,complete,,
+AUDIT-2026-03-23-quality-audit-quality-audit-2026-03-23-kitehub,quality/quality-audit-2026-03-23-kitehub.md,quality-audit,,,2026-03-23,complete,,
+AUDIT-2026-03-24-quality-audit-quality-audit-2026-03-24-comprehensive,quality/quality-audit-2026-03-24-comprehensive.md,quality-audit,,,2026-03-24,complete,,
+AUDIT-2026-03-24-quality-audit-quality-audit-2026-03-24-kiteclass-final,quality/quality-audit-2026-03-24-kiteclass-final.md,quality-audit,,10,2026-03-24,complete,94/100,
+AUDIT-2026-03-24-quality-audit-quality-audit-2026-03-24-kiteclass-wave10,quality/quality-audit-2026-03-24-kiteclass-wave10.md,quality-audit,,10,2026-03-24,complete,,
+AUDIT-2026-03-24-quality-audit-quality-audit-2026-03-24-kiteclass,quality/quality-audit-2026-03-24-kiteclass.md,quality-audit,,,2026-03-24,complete,93/100,
+AUDIT-2026-03-24-quality-audit-quality-audit-2026-03-24-kitehub,quality/quality-audit-2026-03-24-kitehub.md,quality-audit,,,2026-03-24,complete,96/100,
+AUDIT-2026-03-24-quality-audit-quality-audit-2026-03-24-wave12,quality/quality-audit-2026-03-24-wave12.md,quality-audit,,10,2026-03-24,complete,,
+AUDIT-2026-03-25-quality-audit-quality-audit-2026-03-25-wave13,quality/quality-audit-2026-03-25-wave13.md,quality-audit,,13,2026-03-25,complete,,
+AUDIT-2026-03-26-quality-audit-quality-audit-2026-03-26,quality/quality-audit-2026-03-26.md,quality-audit,,,2026-03-26,complete,,
+AUDIT-2026-03-27-quality-audit-quality-audit-2026-03-27,quality/quality-audit-2026-03-27.md,quality-audit,,13,2026-03-27,complete,,
+AUDIT-2026-04-04-quality-audit-quality-audit-2026-04-04,quality/quality-audit-2026-04-04.md,quality-audit,,,2026-04-04,complete,,
+AUDIT-2026-04-12-quality-audit-quality-audit-2026-04-12,quality/quality-audit-2026-04-12.md,quality-audit,,,2026-04-12,complete,,
+AUDIT-2026-04-14-quality-audit-quality-audit-2026-04-14-wave3,quality/quality-audit-2026-04-14-wave3.md,quality-audit,,3,2026-04-14,complete,,
+AUDIT-2026-04-14-quality-audit-quality-audit-2026-04-14-wave4,quality/quality-audit-2026-04-14-wave4.md,quality-audit,,4,2026-04-14,complete,,
+AUDIT-2026-04-14-quality-audit-quality-audit-2026-04-14,quality/quality-audit-2026-04-14.md,quality-audit,,2,2026-04-14,complete,,
+AUDIT-2026-04-19-quality-audit-quality-audit-2026-04-19,quality/quality-audit-2026-04-19.md,quality-audit,,,2026-04-19,complete,,Quality Audit Refresh — 2026-04-19
+AUDIT-2026-04-25-quality-audit-quality-audit-2026-04-25-wave5,quality/quality-audit-2026-04-25-wave5.md,quality-audit,,5,2026-04-25,complete,,
+AUDIT-2026-04-26-quality-audit-quality-audit-2026-04-26-post-wave7,quality/quality-audit-2026-04-26-post-wave7.md,quality-audit,,7,2026-04-26,complete,81/100,
+AUDIT-2026-05-07-security-post-wave-35,security/2026-05-07-post-wave-35.md,security,,35,2026-05-07,complete,84/100,
+AUDIT-2026-05-07-security-wave-33-beta-deploy,security/2026-05-07-wave-33-beta-deploy.md,security,,33,2026-05-07,complete,72/100,
+AUDIT-2026-05-08-security-wave-40-milestone,security/2026-05-08-wave-40-milestone.md,security,,40,2026-05-08,complete,87/100,
+AUDIT-2026-05-09-security-cve-triage,security/2026-05-09-cve-triage.md,security,pre-deploy (Phase 1 BETA pre-launch checklist),,2026-05-09,complete,,Security Audit — CVE triage 2026-05-09
+AUDIT-2026-05-11-security-pentest-light-owasp,security/2026-05-11-pentest-light-owasp.md,security,,60,2026-05-11,complete,76/100,
+AUDIT-2026-04-17-security-security-audit-2026-04-17-saas,security/security-audit-2026-04-17-saas.md,security,,,2026-04-17,complete,76/100,
+AUDIT-2026-04-25-security-security-audit-2026-04-25-wave5,security/security-audit-2026-04-25-wave5.md,security,,5,2026-04-25,complete,,
+AUDIT-2026-04-14-meta-simulation-wave-03-2026-04-14,simulation/simulation-wave-03-2026-04-14.md,meta,,3,2026-04-14,complete,,
+AUDIT-2026-04-20-meta-simulation-action-1-2026-04-20,simulation-action-1-2026-04-20.md,meta,,,2026-04-20,complete,,Simulation Audit — action-1 reorganization + plan coverage
+AUDIT-2026-05-14-meta-phase-1-beta-failure-modes,simulation-gap-finder/2026-05-14-phase-1-beta-failure-modes.md,meta,pre-wave-73,73,2026-05-14,complete,,Simulation Gap Finder — Phase 1 BETA Failure Modes (3-Axis Matrix)
+AUDIT-2026-04-29-meta-retro-sync-triage-2026-04-29,starter-kit/retro-sync-triage-2026-04-29.md,meta,,,2026-04-29,complete,,Starter-Kit Retro-Sync Triage Report
+AUDIT-2026-05-07-ui-review-post-wave-35,ui/2026-05-07-post-wave-35.md,ui-review,,35,2026-05-07,complete,102/128,
+AUDIT-2026-05-07-ui-review-wave-32-rework-and-wave-34-ai-branding-wizard,ui/2026-05-07-wave-32-rework-and-wave-34-ai-branding-wizard.md,ui-review,,32,2026-05-07,complete,97/128,
+AUDIT-2026-05-08-ui-review-wave-40-milestone,ui/2026-05-08-wave-40-milestone.md,ui-review,,40,2026-05-08,complete,,
+AUDIT-2026-05-10-ui-review-wave-53-phase-4-milestone,ui/2026-05-10-wave-53-phase-4-milestone.md,ui-review,,53,2026-05-10,complete,,UI Review /128 — Wave 53 Bucket A — Phase 4 Milestone Audit
+AUDIT-2026-04-11-ui-review-ui-audit-issues-2026-04-11,ui/ui-audit-issues-2026-04-11.md,ui-review,,,2026-04-11,complete,,
+AUDIT-2026-04-19-ui-review-ui-review-2026-04-19,ui/ui-review-2026-04-19.md,ui-review,,4,2026-04-19,complete,,
+AUDIT-2026-01-01-ui-review-ui-review-latest,ui/ui-review-latest.md,ui-review,,4,2026-01-01,complete,,
+AUDIT-2026-01-01-ui-review-ui-review-wave3-4-missed,ui/ui-review-wave3-4-missed.md,ui-review,,3,2026-01-01,complete,76/128,
+AUDIT-2026-04-29-ui-review-frontend-ui-coverage-audit,ui-review/2026-04-29-frontend-ui-coverage-audit.md,ui-review,,2026,2026-04-29,complete,,
+AUDIT-2026-04-29-ui-review-wave-1-add-ons-review,ui-review/2026-04-29-wave-1-add-ons-review.md,ui-review,,1,2026-04-29,complete,,Wave UI Kits Round 2 — Wave 1 Add-ons Review (PRs #673 + #674 + #675)
+AUDIT-2026-05-05-ui-review-round-3-kiteclass-student-review,ui-review/2026-05-05-round-3-kiteclass-student-review.md,ui-review,,20,2026-05-05,complete,,Round 3 UI Kits — kiteclass-student External /128 Review
+AUDIT-2026-05-05-ui-review-round-3-kitehub-admin-review,ui-review/2026-05-05-round-3-kitehub-admin-review.md,ui-review,,20,2026-05-05,complete,107.2/128,Wave UI Kits Round 3 — kitehub-admin External Review (Bucket B)
+AUDIT-2026-01-01-meta-kiteclass-wave10-progress,waves/kiteclass-wave10-progress.md,meta,,10,2026-01-01,complete,,
+AUDIT-2026-01-01-meta-kitehub-wave11-progress,waves/kitehub-wave11-progress.md,meta,,11,2026-01-01,complete,,
+AUDIT-2026-01-01-meta-wave-1-completion-check,waves/wave-1-completion-check.md,meta,,1,2026-01-01,complete,,
+AUDIT-2026-01-01-meta-wave-11-completion-check,waves/wave-11-completion-check.md,meta,,11,2026-01-01,complete,,
+AUDIT-2026-01-01-meta-wave-12-phase-a-audit,waves/wave-12-phase-a-audit.md,meta,,12,2026-01-01,complete,,
+AUDIT-2026-01-01-meta-wave-13-review,waves/wave-13-review.md,meta,,13,2026-01-01,complete,,
+AUDIT-2026-01-01-meta-wave-2-completion-check,waves/wave-2-completion-check.md,meta,,2,2026-01-01,complete,,
+AUDIT-2026-01-01-meta-wave-3-completion-check,waves/wave-3-completion-check.md,meta,,3,2026-01-01,complete,,
+AUDIT-2026-01-01-meta-wave-4-completion-check,waves/wave-4-completion-check.md,meta,,4,2026-01-01,complete,,
+AUDIT-2026-01-01-meta-wave-5-completion-check,waves/wave-5-completion-check.md,meta,,5,2026-01-01,complete,17/17,
+AUDIT-2026-01-01-meta-wave-saas-data-safety-completion-check,waves/wave-saas-data-safety-completion-check.md,meta,,,2026-01-01,complete,,
