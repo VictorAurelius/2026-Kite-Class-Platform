@@ -1,10 +1,15 @@
+---
+paths:
+  - "documents/03-planning/**/*.md"
+---
+
 # Planning Docs Structure — `documents/03-planning/`
 
 **Priority:** 🟠 MANDATORY — governance for all planning artifacts
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-04-18
-**Last-Reviewed:** 2026-04-28
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — backfill per `rule-change-process.md` §3)
+**Last-Reviewed:** 2026-05-14
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; adds `paths:` frontmatter per Wave 73 Bucket A2 — no constraint change, rule still applies same scope, just deferred-load when no planning doc in context. v1.0.0 (kept): backfill per `rule-change-process.md` §3)
 **Applies to:** Every file under `documents/03-planning/`
 
 ---
@@ -165,5 +170,6 @@ Existing files without frontmatter: backfill on next edit, no mass migration req
 
 ## 9. Log
 
+- **2026-05-14 (v1.0.1):** PATCH — added `paths:` frontmatter `documents/03-planning/**/*.md` per Wave 73 Bucket A2 (path-scope context optimization). Rule chỉ auto-load khi session chạm vào planning docs — giảm token overhead các session khác. No constraint change; rule scope unchanged. Paired same-PR với rules-index.csv path_trigger column update. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — frontmatter addition only, no constraint loosening).
 - **2026-04-28** (v1.0.0 backfill): Frontmatter backfill per GAP-249 — added Version + Last-Reviewed + Reviewer-Approver fields. No content change. Solo-dev PATCH self-approve per `rule-change-process.md` §5.
 - **2026-04-18:** Rule created during restructure of `documents/03-planning/`. 15 root-level `.md` files consolidated into `waves/`, `plans/`, `roadmap/` subdirs.

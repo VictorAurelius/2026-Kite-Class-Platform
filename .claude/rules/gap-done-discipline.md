@@ -1,10 +1,15 @@
+---
+paths:
+  - "documents/04-quality/gaps/**"
+---
+
 # Gap DONE Discipline — what counts as fully closed
 
 **Priority:** 🟠 MANDATORY — governance for gap status discipline
-**Version:** 1.0
+**Version:** 1.0.1
 **Created:** 2026-04-27
-**Last-Reviewed:** 2026-04-27
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule, paired with check-docs.sh Rule 13 same-PR)
+**Last-Reviewed:** 2026-05-14
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; adds `paths:` frontmatter per Wave 73 Bucket A2 — no constraint change, rule still applies same scope, just deferred-load when no gap file in context. v1.0 (kept): MINOR self-approve per §5; new rule, paired with check-docs.sh Rule 13 same-PR)
 **Applies to:** Every transition of `documents/04-quality/gaps/GAP-*.md` Status field to `🟢 DONE`
 
 ---
@@ -166,4 +171,5 @@ Detector greps the commit log of the diff range; presence of a properly-formed t
 
 ## 9. Log
 
+- **2026-05-14 (v1.0.1):** PATCH — added `paths:` frontmatter `documents/04-quality/gaps/**` per Wave 73 Bucket A2 (path-scope context optimization). Rule chỉ auto-load khi session chạm vào gap files — giảm token overhead các session khác. No constraint change; rule scope unchanged. Paired same-PR với rules-index.csv path_trigger column update. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — frontmatter addition only, no constraint loosening).
 - **2026-04-27 (v1.0):** Rule created after GAP-235 Sub-PR G live-screenshot deferred-but-DONE pattern surfaced. Paired with `session-docs-check` Rule 13 in same PR for enforcement. Solo-dev MINOR self-approve per `rule-change-process.md` §5 — new rule with concrete enforcement attached, no constraint loosening for existing work. User decision: "thêm rules hoặc hooks để cảnh báo cấm đánh done cho gap chưa fix triệt để" — direct mapping into this rule + Rule 13 detector.

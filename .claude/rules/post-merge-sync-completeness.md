@@ -1,10 +1,15 @@
+---
+paths:
+  - "documents/04-quality/gaps/**"
+---
+
 # Post-Merge Sync Completeness — every status flip syncs 4 targets
 
 **Priority:** 🟠 MANDATORY — sync-completeness governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-12
-**Last-Reviewed:** 2026-05-12
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement per §6.5 Enforcement Parity Mandate — `session-docs-check` Rule 17 (status flip → CSV row sync) + 3 fixtures + PR template checkbox + worked self-test on Wave 64 4-miss incident; no constraint loosening — extends existing per-target rules (Rule 4/15, `feedback_post_merge_doc_sync.md`) to enumerate ALL 4 sync targets in single place)
+**Last-Reviewed:** 2026-05-14
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; adds `paths:` frontmatter per Wave 73 Bucket A2 — no constraint change, rule still applies same scope, just deferred-load when no gap file in context. v1.0.0 (kept): MINOR self-approve per §5; new rule with built-in enforcement per §6.5 Enforcement Parity Mandate — `session-docs-check` Rule 17 (status flip → CSV row sync) + 3 fixtures + PR template checkbox + worked self-test on Wave 64 4-miss incident; no constraint loosening — extends existing per-target rules (Rule 4/15, `feedback_post_merge_doc_sync.md`) to enumerate ALL 4 sync targets in single place)
 **Applies to:** Every PR that flips a `documents/04-quality/gaps/GAP-*.md` Status field, closes wave-scoped work, or adds a new memory entry under `~/.claude/projects/.../memory/`
 
 ---
@@ -180,4 +185,5 @@ Counterfactual: with Rule 17 active at the time, the coordinator either updates 
 
 ## 10. Log
 
+- **2026-05-14 (v1.0.1):** PATCH — added `paths:` frontmatter `documents/04-quality/gaps/**` per Wave 73 Bucket A2 (path-scope context optimization). Rule chỉ auto-load khi session chạm vào gap files — giảm token overhead các session khác. No constraint change; rule scope unchanged. Paired same-PR với rules-index.csv path_trigger column update (previously empty for this rule). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — frontmatter addition only, no constraint loosening).
 - **2026-05-12 (v1.0.0):** Rule created. Triggered by Wave 64 session-close audit 2026-05-12 (user-flagged 4 sync misses in ONE session: GAP-482 status flip without CSV sync, cutover missing from ROADMAP §🚀, Wave 64 not in wave-history.jsonl, `feedback_pre_mutation_state_check.md` not indexed in MEMORY.md). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged systemic 4-miss pattern in single session) → Classify ✓ (no existing rule enumerated all 4 sync targets; `feedback_post_merge_doc_sync.md` covered ROADMAP slice, `gap-architecture-v2.md` covered CSV slice, `feedback_wave_history_append_required.md` covered wave-history slice — none combined into per-PR checklist) → Rule+Enforce ✓ (this rule + `session-docs-check` Rule 17 detector + 3 fixtures + PR-template Output Review row + reviewer-checklist all paired same-PR per `rule-change-process.md` §6.5; Rule 18 memory mirror deferred per §5 scope clarification) → Self-Test ✓ (§8 worked example on Wave 64 GAP-482 incident — Rule 17 fires correctly; counterfactual: 4 misses eliminated) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — extends existing per-target rules into single enforced checklist; no constraint loosening; existing PRs grandfathered, rule applies prospectively from next session).

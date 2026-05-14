@@ -1,10 +1,16 @@
+---
+paths:
+  - "documents/04-quality/gaps/**"
+  - "documents/04-quality/gaps/gap-status.csv"
+---
+
 # Gap Architecture v2 — single canonical source (Design A)
 
 **Priority:** 🟠 MANDATORY — gap docs governance
-**Version:** 1.0.3
+**Version:** 1.0.4
 **Created:** 2026-05-11
-**Last-Reviewed:** 2026-05-11
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.3 PATCH self-approve per `rule-change-process.md` §5; Phase 2.1 partial auto-fill (richer keyword + `GAP-NNN-p3-*` filename pattern → phase-3 K-12; n/a dropped 246→219, +26 phase-3 gaps) + Phase 4 doc closeout (`audit-to-gap-pipeline.md` §2.8 step 0 CSV query recommendation + wave plan template §3 gap-ref-via-CSV convention). v1.0.2 (kept): `collect-state.sh` queries CSV + surfaces Phase 1 BETA P0 count. v1.0.1: Phase 2 bulk migration closeout. v1.0.0: new rule with built-in enforcement per `rule-change-process.md` §6.5; no constraint loosening across versions)
+**Last-Reviewed:** 2026-05-14
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.4 PATCH self-approve per `rule-change-process.md` §5; adds `paths:` frontmatter per Wave 73 Bucket A2 — no constraint change, rule still applies same scope, just deferred-load when no gap file/CSV in context. v1.0.3 (kept): PATCH self-approve per §5; Phase 2.1 partial auto-fill (richer keyword + `GAP-NNN-p3-*` filename pattern → phase-3 K-12; n/a dropped 246→219, +26 phase-3 gaps) + Phase 4 doc closeout (`audit-to-gap-pipeline.md` §2.8 step 0 CSV query recommendation + wave plan template §3 gap-ref-via-CSV convention). v1.0.2 (kept): `collect-state.sh` queries CSV + surfaces Phase 1 BETA P0 count. v1.0.1: Phase 2 bulk migration closeout. v1.0.0: new rule with built-in enforcement per `rule-change-process.md` §6.5; no constraint loosening across versions)
 **Applies to:** `documents/04-quality/gaps/*.md` files + `documents/04-quality/gaps/gap-status.csv` canonical store + tools that query/update gap status
 
 ---
@@ -248,6 +254,7 @@ Phase 1 pilot + Phase 2 bulk migration + Phase 4 governance integration shipped 
 
 ## 11. Log
 
+- **2026-05-14 (v1.0.4):** PATCH — added `paths:` frontmatter (`documents/04-quality/gaps/**` + `documents/04-quality/gaps/gap-status.csv`) per Wave 73 Bucket A2 (path-scope context optimization). Rule chỉ auto-load khi session chạm vào gap files hoặc canonical CSV — giảm token overhead các session khác. No constraint change; rule scope unchanged. Paired same-PR với rules-index.csv path_trigger column update. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — frontmatter addition only, no constraint loosening).
 - **2026-05-11 (v1.0.3):** PATCH — Phase 2.1 auto-fill + Phase 4 doc closeout. `migrate-gaps-to-csv.py` `infer_phase()` extended with richer keyword set + filename pattern (`GAP-NNN-p3-*` → phase-3 K-12 LEGAL, captures author convention). Re-ran extractor: 27 gaps reclassified from `n/a` to specific phase (mostly phase-3 K-12). Final distribution: phase-1-beta 35 / phase-1.5-paid 4 / phase-2 1 / **phase-3 30** (was 3) / n/a 219 (was 246). `audit-to-gap-pipeline.md` v1.4.0 → v1.4.1 — adds §2.8 step 0 "Canonical-status lookup first" recommending `query-gaps.sh` before heavier state-check. `documents/03-planning/waves/_TEMPLATE.md` §3 — adds gap-referencing convention note (use CSV canonical id + `query-gaps.sh` to verify status before wave plan references). §10 Open Items updated: only ROADMAP auto-derive + Phase 3 frontmatter strip + Phase 2.2 completion refinement + filename rename remain (all genuinely lower priority or risky). No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive automation + doc cross-references).
 
 - **2026-05-11 (v1.0.2):** PATCH — Phase 4 partial integration. `collect-state.sh` (used by `/start-session`) now queries `gap-status.csv` as fallback for blocker IDs (replacing the slower grep-each-gap-file path) and surfaces a new line `Phase 1 BETA P0: N active (M PARTIAL)` per session start. JSON output adds `phase_1_beta_p0_active` + `phase_1_beta_p0_partial` keys. §4 Phase 4 marked partial; remaining items (audit-pipeline §2.8 CSV query, wave plans by CSV id, ROADMAP §🚀 auto-derive) tracked. No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive tool integration, no constraint loosening).

@@ -1,10 +1,15 @@
+---
+paths:
+  - "documents/04-quality/audits/ops-readiness/**"
+---
+
 # Audit Skill Rubric — ops-readiness-audit (5 categories, per-check pass/fail)
 
 **Priority:** 🟠 MANDATORY — audit primacy + per-check rubric for `ops-readiness-audit` skill
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-14
 **Last-Reviewed:** 2026-05-14
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (5-category per-check rubric + bug-finding-primacy + extends `ops-readiness-audit/SKILL.md` + worked self-test on current main surfaces ≥1 finding) per §6.5 Enforcement Parity Mandate; no constraint loosening — generalizes Wave 71c security-audit pattern closing GAP-523)
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; adds `paths:` frontmatter per Wave 73 Bucket A2 — no constraint change, rule still applies same scope, just deferred-load when no ops-readiness audit file in context. v1.0.0 (kept): MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (5-category per-check rubric + bug-finding-primacy + extends `ops-readiness-audit/SKILL.md` + worked self-test on current main surfaces ≥1 finding) per §6.5 Enforcement Parity Mandate; no constraint loosening — generalizes Wave 71c security-audit pattern closing GAP-523)
 **Applies to:** Every invocation of `.claude/skills/quality/ops-readiness-audit/SKILL.md` (/100 production operations readiness — monitoring, logging, backup, alerting, deployment)
 
 ---
@@ -148,4 +153,5 @@ Future `scripts/check-ops-readiness-rubric.sh` — defer until 2nd recurrence pe
 
 ## 7. Log
 
+- **2026-05-14 (v1.0.1):** PATCH — added `paths:` frontmatter `documents/04-quality/audits/ops-readiness/**` per Wave 73 Bucket A2 (path-scope context optimization). Rule chỉ auto-load khi session chạm vào ops-readiness audit reports — giảm token overhead các session khác. No constraint change; rule scope unchanged. Paired same-PR với rules-index.csv path_trigger column update. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — frontmatter addition only, no constraint loosening).
 - **2026-05-14 (v1.0.0):** Rule created closing GAP-523 META P0 (Wave 72b Bucket E). Generalizes Wave 71c security-audit per-check pattern to ops-readiness-audit's 5 categories. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (GAP-523 surfaced 6 audit skills with averaging risk) → Classify ✓ (no rule enforces per-check pass/fail for ops audit Cat 1-5) → Rule+Enforce ✓ (this file + ops-readiness-audit/SKILL.md §"Per-check scoring" extension paired same PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§5 worked example on current main — 3 P0 FAILs surfaced: 1.5 tracing, 2.4 log aggregation, 3.4 restore drill) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds previously-vague per-check enforcement, no constraint loosening). Detector wiring deferred per premature-rule guard ≥7 days.
