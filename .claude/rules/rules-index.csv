@@ -22,12 +22,12 @@ aws-observability-first,CRITICAL,1.0.0,2026-05-07,2026-05-07,aws-observability-f
 aws-sg-description-ascii,MANDATORY,1.0.1,2026-05-07,2026-05-14,aws-sg-description-ascii.md,infrastructure/**/*.tf
 business-logic-review,CRITICAL,1.0.0,2026-04-29,2026-04-29,business-logic-review.md,documents/01-business/**/rules.md
 contract-first-for-cross-layer,MANDATORY,1.0.1,2026-05-07,2026-05-14,contract-first-for-cross-layer.md,"documents/03-planning/waves/**,documents/01-business/**/api-contract.md"
-deployment-naming-convention,MANDATORY,1.0.1,2026-05-08,2026-05-08,deployment-naming-convention.md,"documents/05-guides/{deploy,operations,account-prep}/**,infrastructure/**"
+deployment-naming-convention,MANDATORY,1.0.2,2026-05-08,2026-05-14,deployment-naming-convention.md,"documents/05-guides/{deploy,operations,account-prep}/**,infrastructure/**,.github/workflows/*deploy*,.github/workflows/*terraform*"
 design-layer-coverage,CRITICAL,1.0.1,2026-04-30,2026-05-14,design-layer-coverage.md,"documents/02-architecture/design-system/**,documents/02-architecture/design-system/ui_kits/**"
 design-patterns,MANDATORY,1.3.1,2026-04-14,2026-05-14,design-patterns.md,"**/*.java,**/*.tsx,**/*.ts"
-dev-readable-doc-language,MANDATORY,1.0.0,2026-05-14,2026-05-14,dev-readable-doc-language.md,documents/**/*.md
-docs-folder-structure,MANDATORY,1.0.0,2026-04-18,2026-04-28,docs-folder-structure.md,documents/**/*.md
-docs-only-pr-auto-merge,MANDATORY,1.0.0,2026-05-11,2026-05-11,docs-only-pr-auto-merge.md,
+dev-readable-doc-language,MANDATORY,1.0.1,2026-05-14,2026-05-14,dev-readable-doc-language.md,"documents/**/*.md,documents/05-guides/operations/acceptance-tests/**/*.csv"
+docs-folder-structure,MANDATORY,1.0.1,2026-04-18,2026-05-14,docs-folder-structure.md,"documents/**/README.md,documents/**/*.md"
+docs-only-pr-auto-merge,MANDATORY,1.0.1,2026-05-11,2026-05-14,docs-only-pr-auto-merge.md,"documents/**/*.md,.claude/rules/**/*.md,.claude/skills/**/*.md"
 gap-architecture-v2,MANDATORY,1.0.3,2026-05-11,2026-05-11,gap-architecture-v2.md,"documents/04-quality/gaps/**,**/*.csv"
 gap-done-discipline,MANDATORY,1.0.0,2026-04-27,2026-04-27,gap-done-discipline.md,documents/04-quality/gaps/**
 incident-to-rule-pipeline,CRITICAL,1.0.0,2026-04-27,2026-04-27,incident-to-rule-pipeline.md,
@@ -41,7 +41,7 @@ planning-docs-structure,MANDATORY,1.0.0,2026-04-18,2026-04-28,planning-docs-stru
 post-wave-audit-mandate,MANDATORY,1.1.1,2026-04-19,2026-05-14,post-wave-audit-mandate.md,"documents/03-planning/waves/**,documents/04-quality/audits/**"
 post-wave-cleanup,MANDATORY,1.0.1,2026-05-06,2026-05-14,post-wave-cleanup.md,documents/03-planning/waves/**
 pre-mutation-state-check,CRITICAL,1.1.0,2026-05-12,2026-05-12,pre-mutation-state-check.md,
-readme-content-discipline,MANDATORY,1.0.0,2026-04-29,2026-04-29,readme-content-discipline.md,README.md
+readme-content-discipline,MANDATORY,1.0.1,2026-04-29,2026-05-14,readme-content-discipline.md,README.md
 release-deploy-standard,CRITICAL,1.1.0,2026-05-06,2026-05-11,release-deploy-standard.md,
 release-fix-retry-budget,CRITICAL,1.1.0,2026-05-08,2026-05-12,release-fix-retry-budget.md,
 rule-change-process,CRITICAL,1.1.0,2026-04-20,2026-04-27,rule-change-process.md,
@@ -49,7 +49,7 @@ session-currentdate-check,MANDATORY,1.0.0,2026-05-07,2026-05-07,session-currentd
 skill-conventions,MANDATORY,1.0.0,2026-04-01,2026-04-28,skill-conventions.md,
 terraform-apply-retry-reconfirm,MANDATORY,1.0.0,2026-05-07,2026-05-07,terraform-apply-retry-reconfirm.md,
 terraform-partial-backend-public-repo,MANDATORY,1.0.0,2026-05-07,2026-05-07,terraform-partial-backend-public-repo.md,
-test-artifact-format-standard,MANDATORY,1.0.0,2026-05-14,2026-05-14,test-artifact-format-standard.md,"documents/05-guides/operations/acceptance-tests/**,**/*.csv"
+test-artifact-format-standard,MANDATORY,1.0.1,2026-05-14,2026-05-14,test-artifact-format-standard.md,"documents/05-guides/operations/acceptance-tests/**,**/*acceptance*.csv"
 third-party-platform-automation-discovery,MANDATORY,1.0.0,2026-05-10,2026-05-10,third-party-platform-automation-discovery.md,
 post-merge-sync-completeness,MANDATORY,1.0.0,2026-05-12,2026-05-12,post-merge-sync-completeness.md,
 concurrent-production-mutation-ops,CRITICAL,1.0.0,2026-05-12,2026-05-12,concurrent-production-mutation-ops.md,

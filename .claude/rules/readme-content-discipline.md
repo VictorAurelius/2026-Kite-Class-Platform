@@ -1,10 +1,15 @@
+---
+paths:
+  - "README.md"
+---
+
 # README Content Discipline
 
 **Priority:** 🟠 MANDATORY — root README is the project's first impression
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-04-29
-**Last-Reviewed:** 2026-04-29
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — new rule with built-in enforcement; per `rule-change-process.md` §5 self-approve allowed; new constraint, no constraint loosening)
+**Last-Reviewed:** 2026-05-14
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; Wave 73 Bucket A3 thêm `paths:` frontmatter — không đổi constraint, scope rule giữ nguyên, deferred-load khi không có file `README.md` root trong context. v1.0.0 (giữ): new rule with built-in enforcement; per `rule-change-process.md` §5 self-approve allowed; new constraint, no constraint loosening)
 **Applies to:** Root `README.md` of the repository (and any equivalent visitor-first index page)
 
 ---
@@ -175,4 +180,5 @@ Self-test on current root README (post-rewrite 2026-04-29) should yield ≤ 5 ma
 
 ## 12. Log
 
+- **2026-05-14** (v1.0.1): Wave 73 Bucket A3 — thêm `paths:` frontmatter (`README.md`) cho Anthropic native deferred-loading. Path-scope MANDATORY rule giúp tiết kiệm token context khi session không động chạm root `README.md`. Không đổi constraint, scope rule giữ nguyên. Sync `rules-index.csv` path_trigger column. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-04-29** (v1.0.0): Rule created as direct output of `incident-to-rule-pipeline.md` 5-stage applied to user feedback "readme vẫn quá xấu" with 4 specific complaints: (1) too much project-specific info, (2) ugly UI table, (3) pixel art logo, (4) volatile metrics. Same-PR enforcement: root README rewritten to pass §3 anti-list + use SVG logo + list-not-table for screens + remove all volatile metrics. Phase 2 (CI script) + Phase 3 (hook) deferred per §8 Open Items, premature-rule guard ≥7 days. Reviewer: @nguyenvankiet (solo-dev MINOR — new constraint, no loosening; new rule with built-in enforcement via same-PR README rewrite + reviewer manual until Phase 2 lands).

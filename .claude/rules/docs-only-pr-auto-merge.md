@@ -1,10 +1,17 @@
+---
+paths:
+  - "documents/**/*.md"
+  - ".claude/rules/**/*.md"
+  - ".claude/skills/**/*.md"
+---
+
 # Docs-Only PR Auto-Merge — skip "check CI? merge?" prompts
 
 **Priority:** 🟠 MANDATORY — workflow friction reduction
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-11
-**Last-Reviewed:** 2026-05-11
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (memory auto-load + worked self-test on 2026-05-11 session PRs #1151 + #1152) per §6.5 Enforcement Parity Mandate; no constraint loosening — sharpens `agent-action-bias.md` §1 Part A "do it yourself" for known-safe docs-only merge path)
+**Last-Reviewed:** 2026-05-14
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; Wave 73 Bucket A3 thêm `paths:` frontmatter — không đổi constraint, scope rule giữ nguyên, deferred-load khi không có file docs/rule/skill trong context. v1.0.0 (giữ): MINOR self-approve per §5; new rule with built-in enforcement (memory auto-load + worked self-test on 2026-05-11 session PRs #1151 + #1152) per §6.5 Enforcement Parity Mandate; no constraint loosening — sharpens `agent-action-bias.md` §1 Part A "do it yourself" for known-safe docs-only merge path)
 **Applies to:** Every PR Claude creates whose diff is contained within the §2 docs-only scope, AND CI passes all required checks
 
 ---
@@ -189,4 +196,5 @@ Future enhancement: scan recent session transcripts for "check CI?" + "merge?" t
 
 ## 11. Log
 
+- **2026-05-14 (v1.0.1):** Wave 73 Bucket A3 — thêm `paths:` frontmatter (`documents/**/*.md`, `.claude/rules/**/*.md`, `.claude/skills/**/*.md`) cho Anthropic native deferred-loading. Path-scope MANDATORY rule giúp tiết kiệm token context khi session không động chạm docs/rule/skill files. Không đổi constraint, scope rule giữ nguyên. Sync `rules-index.csv` path_trigger column. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-05-11 (v1.0.0):** Rule created at user request "thêm rules, nếu PR docs-only thì không hỏi check CI mà merge luôn" — direct response to 2026-05-11 session friction (3 docs-only PRs #1151 + #1152 + earlier each prompted "check CI?" + "merge?" two-step despite zero-risk scope). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged friction) → Classify ✓ (no existing rule covers; `agent-action-bias.md` §1 Part A covers general "do it yourself" but không specific cho merge gate timing) → Rule+Enforce ✓ (this file + memory `feedback_docs_only_pr_auto_merge.md` paired same-PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§8 worked examples PR #1151 + #1152 + counter-example #1150) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint sharpening existing "do it yourself" rule, no constraint loosening; existing 3-prompt pattern grandfathered for non-docs PRs; rule applies prospectively cho docs-only scope từ next session forward). Detector wiring (§9.4) deferred per premature-rule guard ≥7 ngày.
