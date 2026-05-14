@@ -1,9 +1,16 @@
+---
+paths:
+  - "infrastructure/**/backend.tf"
+  - "infrastructure/**/backend.config*"
+  - ".github/workflows/terraform-*.yml"
+---
+
 # Terraform Partial Backend Config for Public Repos
 
 **Priority:** 🟠 MANDATORY — defense-in-depth against AWS account ID exposure
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-07
-**Last-Reviewed:** 2026-05-07
+**Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement; no constraint loosening for prior work; migrated from session memory `feedback_terraform_partial_backend_public_repo.md` for git-tracked durability)
 **Applies to:** Every `terraform { backend "s3" { ... } }` block in this repo (currently `infrastructure/terraform-aws/backend.tf`); applies whenever the repo is or could become PUBLIC
 
@@ -173,4 +180,5 @@ Trailer logged in quarterly retro. Pattern frequency >5% triggers meta-review.
 
 ## 10. Log
 
+- **2026-05-14** (v1.0.1): PATCH — thêm `paths:` frontmatter — Wave 73 miss fix (rule này nằm trong 13 MANDATORY rules wave plan §3 Scope bỏ sót, vẫn auto-load base context dù scope rule có path trigger rõ ràng). PATCH bump per `rule-change-process.md` §5 — additive frontmatter, no constraint change, deferred-load khi no matching file in context. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve). Scope: terraform backend config context.
 - **2026-05-07 (v1.0.0):** Migrated from session memory `feedback_terraform_partial_backend_public_repo.md` per user request "memory persistence strategy = migrate to .claude/rules/ for git-tracked durability". Original incident: 2026-05-08 PR #989 closed (hardcoded predecessor exposed account ID `906286017800` in public repo) → PR #990 merged (partial config pattern with `backend.config` gitignored + `backend.config.example` template + GitHub Variable `TERRAFORM_STATE_BUCKET` for CI) → PR #992 verified end-to-end via OIDC + real plan post. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5). Enforcement: reviewer manual + memory auto-load + visible template now; CI guard deferred.

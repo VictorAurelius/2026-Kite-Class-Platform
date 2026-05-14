@@ -1,9 +1,9 @@
 # MCP-First, Dedicated-Tools-Second, Bash-Last — Tool Selection Rule
 
 **Priority:** 🟠 MANDATORY — applies to all workflow skills + agent tool-calls
-**Version:** 1.1.0
+**Version:** 1.1.1
 **Created:** 2026-04-18
-**Last-Reviewed:** 2026-05-05
+**Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; v1.1.0 extends scope from MCP-vs-CLI to 3-tier hierarchy MCP → dedicated tools → Bash; paired same-PR with memory `feedback_dedicated_tools_first.md` (auto-load enforcement) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds tier-2 coverage that CLAUDE.md system prompt mentioned but no project rule enforced)
 **Applies to:** GitHub ops, in-repo file ops (search/read/list), database introspection, any repeatable external system interaction, plus skill authors writing tool-call examples
 
@@ -190,8 +190,24 @@ until gh run list --branch <branch> --limit 1 --json conclusion \
 
 ---
 
-## 8. Log
+## 8. Auto-load justification (per `context-budget-mandate.md` §3.2)
 
+Rule này KHÔNG dùng `paths:` frontmatter — luôn auto-load mỗi session. Lý do:
+
+- **Cross-cuts mọi tool-call decision** — rule áp dụng cho mọi lúc Claude chọn MCP vs dedicated tool vs Bash. Quyết định happen tại mọi turn, không tại file-read time → no natural path-scope.
+- **Wave 73 plan §3 path-trigger table đã ghi "(CRITICAL) — keep auto-load"** — wave plan author đã review và quyết định always-load là correct cho rule này; mâu thuẫn với frontmatter Priority MANDATORY (xét lại §6 phía dưới).
+- **Path-scope sẽ miss case quan trọng** — nếu scope `.claude/skills/**` + `.claude/hooks/**` + `.claude/rules/**`, rule sẽ vắng mặt khi user nhờ Claude làm task production (GitHub MCP, AWS, DB introspection) — đúng case cần fire nhất.
+- **Hook-cover không khả thi v1** — phát hiện "Claude sắp dùng Bash thay vì Glob/Grep" cần inspect tool-call args tại boundary, có thể làm nhưng cost-benefit chưa qua per `incident-to-rule-pipeline.md` premature-rule guard.
+- **Token cost chấp nhận được** — ~1.4k tokens × mọi session; force-multiplier (mỗi session tiết kiệm subprocess overhead + permission prompts khi rule fires đúng).
+- **Re-evaluate Priority:** có thể nâng lên 🔴 CRITICAL vì always-load + cross-cutting governance, nhưng giữ MANDATORY hiện tại để không làm CRITICAL count vượt 15 (per `.claude/rules/README.md` Tier convention) — defer Priority bump cho meta-review riêng.
+
+Re-evaluate nếu: (a) Anthropic publishes pre-tool-call NLP hook, (b) rule grows >300 lines (cost tăng), (c) CRITICAL count <14 và muốn nâng cấp Priority.
+
+---
+
+## 9. Log
+
+- **2026-05-14** (v1.1.1): PATCH — added §8 Auto-load justification per `context-budget-mandate.md` §3.2 (closes Wave 73 miss fix). Rule giữ always-load (no `paths:` frontmatter) vì cross-cut mọi tool-call decision; Wave 73 plan §3 path-trigger table đã đánh dấu "(CRITICAL) — keep auto-load" align với quyết định này. Section explain rationale + Priority CRITICAL bump deferred to meta-review. Renumbered §8 Log→§9. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive section, no constraint change).
 - **2026-05-05** (v1.1.0): MINOR — extended scope from MCP-vs-CLI binary to 3-tier hierarchy (MCP → dedicated tools → Bash). Added §2.2 In-repo file ops matrix (Glob/Grep/Read/Edit/Write vs ls/grep/find/head/cat/sed) + §2.3 legitimate Bash use cases. §6 Enforcement extended with reviewer-checklist + memory-auto-load tier-2 enforcement. §7 Anti-Patterns prepended with 4 in-repo-file-op rows. Triggered by 2026-05-05 user-flagged miss: pick-UI-kit-gaps session used `ls | grep` + `grep -rilE` + `head -80` for in-repo search instead of Glob/Grep/Read tools (CLAUDE.md system prompt says it but project rule didn't enforce). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user "vừa rồi pick gaps đã dùng lệnh gì?") → Classify ✓ (rule existed in CLAUDE.md, no project-rule enforcement; `mcp-first-with-fallback.md` covered MCP-vs-CLI but NOT dedicated-tools-vs-Bash) → Rule+Enforce ✓ (this v1.1.0 + memory `feedback_dedicated_tools_first.md` paired same-PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (worked example below) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds tier-2 coverage, no constraint loosening). Detector deferred (session-transcript scanning expensive; cost-benefit per `incident-to-rule-pipeline.md` §3 advisory-rule guard); enforcement = memory auto-load + reviewer checklist sufficient for solo-dev mode.
 
   **Self-test (worked example) — apply v1.1.0 to 2026-05-05 pick-UI-kit-gaps session:**

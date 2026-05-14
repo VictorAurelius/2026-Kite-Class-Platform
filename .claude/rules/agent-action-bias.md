@@ -1,9 +1,9 @@
 # Agent Action Bias — do it yourself, prefer command over UI
 
 **Priority:** 🟠 MANDATORY — agent behavior governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-07
-**Last-Reviewed:** 2026-05-07
+**Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — new rule with built-in enforcement; per `rule-change-process.md` §5 MINOR self-approve allowed; new constraint, no constraint loosening; paired same-PR with memory `feedback_agent_action_bias.md` per §6.5 Enforcement Parity Mandate; self-test §6 documents the originating incident)
 **Applies to:** Every Claude turn that involves environment setup, configuration, file editing, system administration, repo state inspection, or any action where Claude has tool access AND the user could reasonably expect Claude to perform it
 
@@ -144,7 +144,21 @@ Pattern frequency >5% of agent actions per session triggers meta-review of §3 e
 
 ---
 
-## 8. Relationship to other rules
+## 8. Auto-load justification (per `context-budget-mandate.md` §3.2)
+
+Rule này KHÔNG dùng `paths:` frontmatter — luôn auto-load mỗi session. Lý do:
+
+- **Cross-cuts mọi turn** — rule áp dụng cho mọi action Claude có thể delegate cho user hoặc đề xuất UI walkthrough. Không có natural file-scope trigger (rule chạy tại decision-time, không tại file-read time).
+- **Path-scope sẽ miss case quan trọng** — nếu scope `.claude/skills/**` hoặc `.claude/rules/**`, rule sẽ vắng mặt khi user nhờ Claude setup môi trường, cài đặt tool, sửa config WSL/Docker, v.v. — đúng những lúc rule cần fire nhất.
+- **Hook-cover không khả thi v1** — phát hiện "Claude sắp đề xuất UI walkthrough" cần NLP trên response candidate, vượt khả năng deterministic hook (PreToolUse/PostToolUse hooks fire ở tool-call boundary, không ở text-output composition).
+- **Token cost chấp nhận được** — ~1.1k tokens × mọi session, force-multiplier lớn (mỗi session tiết kiệm 1+ user round-trip khi rule fires đúng — xem §6 worked self-test 2026-05-07 Docker WSL).
+- **Priority 🟠 MANDATORY giữ nguyên** — không nâng lên CRITICAL vì §3 exception list cho phép defer; nhưng auto-load áp dụng theo `context-budget-mandate.md` §3.2 row 2.
+
+Re-evaluate nếu: (a) Anthropic publishes hook event cho text-output composition pre-send, (b) > 5 false-positive trên session/quarter, (c) rule grows >300 lines (cost tăng).
+
+---
+
+## 9. Relationship to other rules
 
 - **`mcp-first-with-fallback.md`** — same family of rule (tool-selection priority); this rule is broader (action delegation), that rule is narrower (which tool flavor). Both apply: prefer MCP/dedicated tools over Bash AND prefer command over UI.
 - **CLAUDE.md "Executing actions with care"** — risk gate prevents destructive/shared-state actions without confirmation. This rule does NOT override that gate; §3 row 5 explicitly defers.
@@ -155,6 +169,7 @@ Pattern frequency >5% of agent actions per session triggers meta-review of §3 e
 
 ---
 
-## 9. Log
+## 10. Log
 
+- **2026-05-14 (v1.0.1):** PATCH — added §8 Auto-load justification per `context-budget-mandate.md` §3.2 (closes Wave 73 miss fix). Rule giữ always-load (no `paths:` frontmatter) vì cross-cut mọi turn; section explain rationale + re-evaluation triggers. Renumbered §8 Relationship→§9, §9 Log→§10. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive section, no constraint change).
 - **2026-05-07 (v1.0.0):** Rule created at user request "thêm rules, cái gì bạn làm được thì cấm không bắt user tự làm; cái gì làm được bằng lệnh thì cấm đề xuất làm bằng UI" — direct response to Docker Desktop WSL Integration UI-loop incident in the same session. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged miss when UI walkthrough looped) → Classify ✓ (no existing rule covers offload-to-user OR UI-vs-command tool selection bias; `mcp-first-with-fallback.md` is closest but covers tool flavor not action delegation) → Rule+Enforce ✓ (this file + memory `feedback_agent_action_bias.md` paired same-PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§6 worked example on the originating incident) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — new constraint, no constraint loosening; existing patterns grandfathered, rule applies prospectively from this PR forward).

@@ -1,7 +1,14 @@
+---
+paths:
+  - ".claude/rules/**"
+  - "CLAUDE.md"
+  - ".claude/skills/**/SKILL.md"
+---
+
 # Context Budget Mandate — base auto-load < 120k tokens
 
 **Priority:** 🟠 MANDATORY — meta-governance for base context size
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-14
 **Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (PR template + reviewer-checklist + worked self-test on Wave 73 baseline) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies Wave 73 Meta Context Optimization outcome)
@@ -157,4 +164,5 @@ Trailer logged in quarterly retro. Pattern frequency >5%/quarter triggers meta-r
 
 ## 9. Log
 
+- **2026-05-14** (v1.0.1): PATCH — thêm `paths:` frontmatter — Wave 73 miss fix (rule này nằm trong 13 MANDATORY rules wave plan §3 Scope bỏ sót, vẫn auto-load base context dù scope rule có path trigger rõ ràng). PATCH bump per `rule-change-process.md` §5 — additive frontmatter, no constraint change, deferred-load khi no matching file in context. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve). Scope: context budget governance (rule/skill edits).
 - **2026-05-14 (v1.0.0):** Rule created. Triggered by user-flagged 2026-05-14 miss "/start-session tốn ~34% context (~347k tokens)" — Wave 73 Meta Context Optimization (per `meta-gap-priority.md` §3 Meta-P0 force-multiplier). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged) → Classify ✓ (no rule mandates context budget; CLAUDE.md + 54 rules + memory bloat) → Rule+Enforce ✓ (this file + paired same-PR with `output-review-mandate.md` §3 row + `rules-index.csv` row + CLAUDE.md tier note + memory entry per `rule-change-process.md` §6.5) → Self-Test ✓ (§5 worked example on Wave 73 baseline 237k → target <120k) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifies Wave 73 outcome; no constraint loosening; existing rules grandfathered until next refresh; rule applies prospectively to new rules từ next session). Detector wiring deferred ≥7 days per `incident-to-rule-pipeline.md` premature-rule guard; enforcement = reviewer-checklist + memory + worked self-test sufficient cho v1.0.0.

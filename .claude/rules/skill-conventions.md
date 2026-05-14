@@ -1,9 +1,16 @@
+---
+paths:
+  - ".claude/skills/**/SKILL.md"
+  - ".claude/skills/**/*.md"
+  - ".claude/starter-kit/**"
+---
+
 # Skill Conventions — Based on Anthropic Internal Best Practices
 
 **Priority:** 🟠 MANDATORY — governance for `.claude/skills/**`
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-04-01
-**Last-Reviewed:** 2026-04-28
+**Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — backfill per `rule-change-process.md` §3)
 **Applies to:** Every skill file under `.claude/skills/**` (SKILL.md, references, scripts, fixtures) and the starter-kit copies under `.claude/starter-kit/`
 
@@ -262,4 +269,5 @@ Tương tự cho **Quality Audit**: chỉ re-score categories bị ảnh hưởn
 
 ## Log
 
+- **2026-05-14** (v1.0.1): PATCH — thêm `paths:` frontmatter — Wave 73 miss fix (rule này nằm trong 13 MANDATORY rules wave plan §3 Scope bỏ sót, vẫn auto-load base context dù scope rule có path trigger rõ ràng). PATCH bump per `rule-change-process.md` §5 — additive frontmatter, no constraint change, deferred-load khi no matching file in context. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve). Scope: skill authoring context.
 - **2026-04-28** (v1.0.0 backfill): Frontmatter backfill per GAP-249 — added Priority + Version + Created + Last-Reviewed + Reviewer-Approver + Applies-to fields, plus this Log section (rule originally lacked one). No content change. Solo-dev PATCH self-approve per `rule-change-process.md` §5. Created date 2026-04-01 derived from git history (first commit of file).

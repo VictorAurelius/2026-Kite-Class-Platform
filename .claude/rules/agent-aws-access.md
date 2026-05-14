@@ -1,9 +1,17 @@
+---
+paths:
+  - "infrastructure/**/*.tf"
+  - "scripts/aws/**"
+  - "documents/04-quality/audits/aws-verification/**"
+  - ".github/workflows/*aws*.yml"
+---
+
 # Agent AWS Access — read-only allowlist + mandatory logging
 
 **Priority:** 🟠 MANDATORY — bounds blast radius for agent AWS interactions
-**Version:** 1.0.1
+**Version:** 1.0.2
 **Created:** 2026-05-07
-**Last-Reviewed:** 2026-05-08
+**Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (allowlist + log requirement + self-test) per §6.5; new constraint, no constraint loosening; paired same-PR with first audit artifact `documents/04-quality/audits/aws-verification/2026-05-08-phase-2-3-post-apply.md`)
 **Applies to:** Every Claude session that issues `aws` CLI commands, `curl` against AWS-hosted endpoints, or terraform actions affecting AWS account 906286017800. Scope includes Bash tool invocations + sub-agents.
 
@@ -266,5 +274,6 @@ Future: `audit-gate.py` AUDIT_RULES rule scanning Bash invocations for Tier 3 pa
 
 ## 11. Log
 
+- **2026-05-14** (v1.0.2): PATCH — thêm `paths:` frontmatter — Wave 73 miss fix (rule này nằm trong 13 MANDATORY rules wave plan §3 Scope bỏ sót, vẫn auto-load base context dù scope rule có path trigger rõ ràng). PATCH bump per `rule-change-process.md` §5 — additive frontmatter, no constraint change, deferred-load khi no matching file in context. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve). Scope: AWS work scope.
 - **2026-05-08 (v1.0.1):** PATCH — §4.3 reframed "Banned terraform actions" → "Banned terraform actions (agent-initiated only)" + lead-in clarifying scope = AGENT-INITIATED apply per `release-deploy-standard.md` §9 (revised v1.0.1 same wave). Existing BAN clauses preserved verbatim; added "User-triggered (allowed)" sub-section listing workflow_dispatch + chicken-and-egg bootstrap as carve-outs. No constraint loosening for agent-initiated cases. Cross-link aligned với Wave 44 Bucket A. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — clarification of existing rule scope, paired with `release-deploy-standard.md` §9 revision in same wave). Closes Wave 44 Bucket A part of GAP-449 Phase 1.
 - **2026-05-08 (v1.0.0):** Rule created in response to user-flagged retro after Phase 2.3 apply session ("lệnh check có vẻ là lệnh tự do, cần bổ sung workflow cho agent aws theo chuẩn đã đề cập chưa? báo cáo chi tiết như này có lưu logs tại repo không?"). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged) → Classify ✓ (no existing rule covers; `release-deploy-standard.md` §9 high-level only) → Rule+Enforce ✓ (this file + first audit artifact `2026-05-08-phase-2-3-post-apply.md` + folder README + `output-review-mandate.md` §3 row update — all paired same-PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§7 worked example on the originating session — 5/6 commands Tier 1 OK, logging requirement violated and now remediated) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — new constraint, no loosening). Phase 2 (skill + script) + Phase 4 (memory) deferred to follow-up per GAP-438.

@@ -1,9 +1,16 @@
+---
+paths:
+  - ".claude/skills/quality/wave-pack-planner/**"
+  - ".claude/skills/**/SKILL.md"
+  - "documents/03-planning/waves/**"
+---
+
 # Agent Background-Spawn Default
 
 **Priority:** 🟠 MANDATORY — agent invocation pattern
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-04-29
-**Last-Reviewed:** 2026-04-29
+**Last-Reviewed:** 2026-05-14
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — new rule with built-in enforcement; per `rule-change-process.md` §5 self-approve allowed; no constraint loosening — adds default guardrail for previously-uncovered invocation pattern)
 **Applies to:** Every `Agent` tool invocation (subagent spawn) by Claude in this project — Explore, general-purpose, Plan, statusline-setup, or any future subagent type
 
@@ -139,4 +146,5 @@ Rare case; rate higher than ~5% of agent spawns triggers meta-review of §3 cate
 
 ## 9. Log
 
+- **2026-05-14** (v1.0.1): PATCH — thêm `paths:` frontmatter — Wave 73 miss fix (rule này nằm trong 13 MANDATORY rules wave plan §3 Scope bỏ sót, vẫn auto-load base context dù scope rule có path trigger rõ ràng). PATCH bump per `rule-change-process.md` §5 — additive frontmatter, no constraint change, deferred-load khi no matching file in context. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve). Scope: agent spawn context (wave-pack + skill authoring).
 - **2026-04-29 (v1.0.0):** Rule created at user request "thêm rules agent luôn được spawn ở dạng background task" immediately following Wave UI Kits Round 3 SHIPPED (which used 4 background agents — worked example). Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user flagged the missing default) → Classify ✓ (no existing rule covers; memory `feedback_parallel_agent_strategy.md` 10 rules don't mention foreground/background) → Rule+Enforce ✓ (this file + memory rule #11 paired same PR per `rule-change-process.md` §6.5) → Self-test ✓ (Wave UI Kits R3 4-agent worked example, ~21 min vs ~84 min foreground serial) → Retro Log ✓ (this entry). Solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint, no constraint loosening.
