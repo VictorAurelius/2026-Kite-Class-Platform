@@ -1,10 +1,10 @@
 ---
 title: Wave 73 — Meta Context Optimization (auto-load tier + hook coverage)
-status: draft
+status: complete
 created: 2026-05-14
 updated: 2026-05-14
 waves: [73]
-gaps: []
+gaps: [GAP-528]
 ---
 
 # Wave 73 — Meta Context Optimization
@@ -310,4 +310,5 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `post-merge-s
 
 ## 10. Log
 
+- **2026-05-14** (complete): Wave 73 SHIPPED. Bucket 0 (PR #1309) + Bucket A1-A5 (#1310/1311/1312/1313/1314) + Bucket C UserPromptSubmit hook (PR #1315) + Bucket D context-budget-mandate (PR #1316) all merged to main. ~30 MANDATORY rules path-scoped via Anthropic native `paths:` frontmatter. Estimated base context savings: ~150k tokens (~237k → ~87k rules alone). Bucket B (8 deterministic enforcement hooks) deferred to GAP-528 — agent worktree self-deadlocked by wiring `pre-tool-guard.py` in `settings.local.json` BEFORE script existed; lesson-learned codified as "stub-first pattern" trong GAP-528 acceptance criteria. Bucket E closure: this entry + ROADMAP entry + wave-history.jsonl + worktree pruning. UserPromptSubmit hook (Bucket C) live-verified this session — injected rule digests for `release-deploy-standard`, `admin-merge-discipline`, `outside-in-coverage-trigger`, `release-fix-retry-budget`, `docs-only-pr-auto-merge` keywords correctly.
 - **2026-05-14** (draft): Plan created. Per `incident-to-rule-pipeline.md` 5-stage Detect (user-flagged ~34% context per /start-session) → Classify (no rule mandates context budget; force-multiplier per `meta-gap-priority.md`) → Rule+Enforce ✓ (this wave + Bucket D `context-budget-mandate.md` paired same wave per `rule-change-process.md` §6.5) → Self-Test (Bucket E baseline measurement) → Retro Log (this entry + Bucket E closure update). Per `outside-in-coverage-trigger.md` v1.0.0 — internal scope, outside-in N/A documented in §1. Per `meta-gap-priority.md` Meta-P0 priority — every future session benefits permanently.
