@@ -12,9 +12,10 @@
 #
 # Pre-requisites trên EC2:
 #   - Amazon Linux 2023 (hoặc Ubuntu 22.04 — adjust dnf → apt nếu cần)
-#   - IAM role attached: SSM read + Secrets Manager read + CloudWatch put-metric
-#   - SSM Parameter Store có /kitehub/production/cloudflare-api-token
-#     (token với scope Zone:DNS:Edit cho kitehub.me zone)
+#   - IAM role attached: secretsmanager:GetSecretValue + CloudWatch put-metric
+#   - AWS Secrets Manager có secret `kitehub/production/cloudflare-api-token`
+#     populated với token scope Zone:DNS:Edit cho kitehub.me zone
+#     (managed by terraform aws_secretsmanager_secret.placeholders trong secrets.tf)
 #   - nginx đã install (cho deploy-hook reload)
 #
 # Triển khai:
@@ -45,10 +46,11 @@ readonly DOMAIN_WILDCARD="*.kitehub.me"
 # Admin email Let's Encrypt account — nhận expiry warning từ LE side.
 readonly LE_ADMIN_EMAIL="admin@kitehub.me"
 
-# Cloudflare API token location: SSM Parameter Store SecureString.
-# Tạo trước qua: aws ssm put-parameter --name /kitehub/production/cloudflare-api-token \
-#   --value "$CF_TOKEN" --type SecureString --tier Standard
-readonly CF_TOKEN_SSM_PATH="/kitehub/production/cloudflare-api-token"
+# Cloudflare API token location: AWS Secrets Manager (managed via terraform
+# aws_secretsmanager_secret.placeholders["cloudflare-api-token"] in secrets.tf).
+# User populate qua: aws secretsmanager put-secret-value \
+#   --secret-id kitehub/production/cloudflare-api-token --secret-string "$CF_TOKEN"
+readonly CF_TOKEN_SECRET_ID="kitehub/production/cloudflare-api-token"
 readonly AWS_REGION="ap-southeast-1"  # Singapore (per ADR-025)
 
 # Local credential file — mode 0600 để certbot đọc, root-only.
@@ -107,25 +109,25 @@ install_certbot() {
 }
 
 # -----------------------------------------------------------------------------
-# Step 2: Fetch Cloudflare API token từ SSM Parameter Store
+# Step 2: Fetch Cloudflare API token từ AWS Secrets Manager
 # -----------------------------------------------------------------------------
-# Token là SecureString → SSM tự decrypt khi IAM role có ssm:GetParameter +
-# kms:Decrypt cho CMK SSM dùng. Token NEVER chứa trong code/git/env file
-# committed — chỉ tồn tại trong AWS-side encrypted store + /root/.secrets/ local.
+# Token được encrypt server-side trong Secrets Manager. IAM role có
+# secretsmanager:GetSecretValue → fetch + decrypt một call. Token NEVER chứa
+# trong code/git/env file committed — chỉ tồn tại trong AWS-side encrypted store
+# + /root/.secrets/ local.
 fetch_cf_token() {
-  log "Step 2: Fetch Cloudflare API token từ SSM ($CF_TOKEN_SSM_PATH)"
+  log "Step 2: Fetch Cloudflare API token từ Secrets Manager ($CF_TOKEN_SECRET_ID)"
 
   local cf_token
-  cf_token=$(aws ssm get-parameter \
-    --name "$CF_TOKEN_SSM_PATH" \
-    --with-decryption \
+  cf_token=$(aws secretsmanager get-secret-value \
+    --secret-id "$CF_TOKEN_SECRET_ID" \
     --region "$AWS_REGION" \
-    --query 'Parameter.Value' \
+    --query 'SecretString' \
     --output text 2>&1) \
-    || die "Cannot fetch SSM parameter $CF_TOKEN_SSM_PATH — verify IAM role has ssm:GetParameter + kms:Decrypt"
+    || die "Cannot fetch secret $CF_TOKEN_SECRET_ID — verify IAM role has secretsmanager:GetSecretValue"
 
   if [[ -z "$cf_token" || "$cf_token" == "None" ]]; then
-    die "SSM parameter $CF_TOKEN_SSM_PATH empty or not found"
+    die "Secrets Manager $CF_TOKEN_SECRET_ID empty or not found"
   fi
 
   # Write credentials file mode 0600 (root-only read).
@@ -137,7 +139,7 @@ fetch_cf_token() {
   sudo tee "$CF_CREDENTIALS_FILE" > /dev/null <<EOF
 # Cloudflare API token cho certbot DNS-01 challenge
 # Scope: Zone:DNS:Edit on kitehub.me zone only
-# Source: AWS SSM Parameter Store $CF_TOKEN_SSM_PATH
+# Source: AWS Secrets Manager $CF_TOKEN_SECRET_ID
 # Generated: $(date -u +'%Y-%m-%dT%H:%M:%SZ')
 dns_cloudflare_api_token = $cf_token
 EOF
