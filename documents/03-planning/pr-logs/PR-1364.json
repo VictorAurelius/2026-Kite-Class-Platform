@@ -1,0 +1,42 @@
+{
+  "pr": 1364,
+  "title": "feat(wave-79-0): foundation \u2014 3 new domains (auth-2fa+roles+cookie-consent) + 15-key config registry + 2 MSW handlers",
+  "branch": "wave/79-bucket-0-foundation",
+  "created_at": null,
+  "merged_at": "2026-05-14T18:29:24Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "ui-review",
+      "business-logic-audit",
+      "api-contract-audit"
+    ],
+    "audits_run": [
+      "ui-review"
+    ],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-14T18:29:29.627939",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 16,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": [
+          "business-logic-audit",
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/3",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-34173"
+  }
+}
