@@ -25,7 +25,6 @@ os.environ.setdefault("ENVIRONMENT", "test")
 
 import handler  # noqa: E402
 
-
 # ---------- recommend() ----------
 
 def test_recommend_downsize_low_cpu():

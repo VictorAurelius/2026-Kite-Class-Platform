@@ -26,7 +26,7 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -109,7 +109,7 @@ def get_monthly_cost_by_instance(ce_client, start: str, end: str) -> dict[str, D
 
 def get_avg_cpu(cw_client, instance_id: str, days: int = 30) -> float | None:
     """Average CPUUtilization over last N days. None if no data."""
-    end = datetime.now(timezone.utc)
+    end = datetime.now(UTC)
     start = end - timedelta(days=days)
     resp = cw_client.get_metric_statistics(
         Namespace="AWS/EC2",
@@ -134,7 +134,7 @@ def get_avg_mem(cw_client, instance_id: str, days: int = 30) -> float | None:
     pre-Wave 81+; alarms in cloudwatch.tf stay in INSUFFICIENT_DATA until agent
     configured). See cloudwatch.tf header comment.
     """
-    end = datetime.now(timezone.utc)
+    end = datetime.now(UTC)
     start = end - timedelta(days=days)
     resp = cw_client.get_metric_statistics(
         Namespace="CWAgent",
@@ -244,7 +244,7 @@ def lambda_handler(event: dict, context) -> dict:  # noqa: ARG001
     ce = boto3.client("ce", region_name=AWS_REGION_CE)
 
     # Last calendar-month window
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(UTC).date()
     first_of_this_month = today.replace(day=1)
     last_month_end = first_of_this_month  # CE end is exclusive
     last_month_start = (first_of_this_month - timedelta(days=1)).replace(day=1)
