@@ -12,6 +12,9 @@
 **Actor:** Mọi user (authenticated tenant member HOẶC anonymous public visitor).
 **Trigger:** User click link "Liên hệ hỗ trợ" trong footer / dashboard nav → modal hoặc page `/support` mở → fill form → submit.
 **Endpoint:** `POST /api/v1/support-tickets`
+**Business rules:** BR-SUPPORT-001 (in-house route MVP Phase 1, defer external Zendesk), BR-SUPPORT-002 (email REQUIRED — admin reply route)
+
+> **⚠️ Scope clarification (Wave 79 Bucket E per GAP-556):** UC-SUPPORT-001 mô tả flow ý định (intent) — Wave 78 chỉ ship footer `mailto:support@kitehub.me` discoverability. Backend `POST /api/v1/support-tickets` + `support_tickets` table deferred Wave 80+. Use-case dưới là design specification cho release sau, không phải đã implement.
 
 ### Happy path
 
@@ -53,3 +56,11 @@
 - Modal sau success có CTA "Đóng" + "Gửi yêu cầu khác" (reset form).
 - Footer link "Liên hệ hỗ trợ" hiển thị trên mọi page (Bucket F footer responsibility).
 - Page route `/support` (nếu page-based thay vì modal) cũng public — KHÔNG redirect khi unauthenticated.
+
+### Business rule mapping (verification chain)
+
+| UC step | BR ref | Verification |
+|---|---|---|
+| 2 (POST endpoint) | BR-SUPPORT-001 (in-house route MVP Phase 1) | Endpoint exists at `kitehub-subscription` BE (deferred Wave 80+) |
+| 3 (email field required + validated) | BR-SUPPORT-002 (email REQUIRED — admin reply route) | `@Email @NotBlank` annotation on SupportTicketRequest.email |
+| 31 (subject 5-200, body 10-5000) | BR-SUPPORT-001 config keys (subject-min/max, body-min/max) | `@Value("${kitehub.support.subject-min-chars}")` injection (Wave 79 Bucket A target) |

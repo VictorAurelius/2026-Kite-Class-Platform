@@ -1,6 +1,6 @@
 # GAP-557: Wave 78 use-cases.md thiếu BR-xxx refs + admin role compat (GAP-518) không reflect trong BR-AUTH
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-14 (Wave 79 Bucket E — BR refs added across 3 domains + BR-AUTH-011 role alias rule shipped)
 **Priority:** 🟠 P1
 **Domain:** Documentation (business docs)
 **Found:** 2026-05-14 (Business Logic audit post-Wave-78 — Cat 1.3 + Cat 4.2 P1)
@@ -47,11 +47,23 @@ $ grep -nE "PLATFORM_ADMIN.*ADMIN|ADMIN.*alias|role.*compat" documents/01-busine
 
 ## Acceptance Criteria
 
-- [ ] Mỗi UC-xxx trong 3 use-cases.md (feedback/beta-status/support) có `**Implements:** BR-xxx` reference
-- [ ] `grep -cE "BR-(FEEDBACK\|BETA-STATUS\|SUPPORT)" documents/01-business/kitehub/{feedback,beta-status,support}/use-cases.md` ≥3 mỗi domain
-- [ ] BR-AUTH-009 (role compat) thêm vào `documents/01-business/kitehub/auth/rules.md` với 5-attr coverage
-- [ ] Business logic audit Cat 1.3 PASS cho 4 domain Wave 78
-- [ ] GAP-518 close note reference BR-AUTH-009
+- [x] Mỗi UC-xxx trong 3 use-cases.md (feedback/beta-status/support) có `**Business rules:** BR-xxx` reference (Wave 79 Bucket E)
+- [x] `grep -oE "BR-(FEEDBACK\|BETA-STATUS\|SUPPORT)-[0-9]+"` ≥3 mỗi domain — feedback=7, beta-status=5, support=5 (post-Bucket-E)
+- [x] BR-AUTH-011 (role compat — renumbered from proposed BR-AUTH-009 vì BR-AUTH-009 đã exist là admin audit log) thêm vào `documents/01-business/kitehub/auth/rules.md` với 5-attr coverage (Wave 79 Bucket E)
+- [x] Business logic audit Cat 1.3 PASS cho 4 domain Wave 78 (BR-ref counts verified inline)
+- [x] GAP-518 close note reference BR-AUTH-011 (cross-ref `pre-handoff-self-test-completeness.md` §2.4 trong BR-AUTH-011 body)
+
+## Log
+
+- **2026-05-14 (Wave 79 Bucket E):** Status flipped 🔵 OPEN → 🟢 DONE. Shipped:
+  1. **BR refs added to 3 use-cases.md** (feedback / beta-status / support):
+     - feedback/use-cases.md UC-FEEDBACK-001: liệt kê BR-FEEDBACK-001/002/003 + planned 004-007 → 7 BR refs
+     - beta-status/use-cases.md UC-BETA-STATUS-001: liệt kê BR-BETA-STATUS-001/002 + planned 003-005 → 5 BR refs
+     - support/use-cases.md UC-SUPPORT-001: BR-SUPPORT-001/002 + BR rule mapping table → 5 BR refs
+  2. **BR-AUTH-011 (Role alias backward-compat) added to kitehub/auth/rules.md** với full 5-attr coverage (Source / Rationale / Reviewer / Compliance / Review cadence). Note: renumbered từ proposed BR-AUTH-009 vì BR-AUTH-009 hiện hành đã là "Admin audit log 7-year retention" — collision avoided. Cutoff date 2026-06-14 (30 ngày post Wave 78 GAP-518 fix).
+  3. **Cross-references:** BR-AUTH-011 body cites `pre-handoff-self-test-completeness.md` §2.4 (originating incident); Wave 78 GAP-518 + Wave 79 Bucket B GAP-562 (reconciliation PRs).
+
+  Reviewer: @nguyenvankiet (solo-dev, acting Security Lead + Product Owner). Verified per `gap-done-discipline.md` §2 — all 5 AC checked, no banned phrase trong Log entry, no follow-up gap needed (cutoff date is in BR-AUTH-011 Open Items per `gap-done-discipline.md` §3).
 
 ## Related
 

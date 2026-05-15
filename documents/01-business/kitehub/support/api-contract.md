@@ -1,8 +1,10 @@
 # Support Tickets — API Contract
 
 **Domain:** Support inquiry / ticket submission (Wave 78 — GAP-540)
-**Source-of-truth controller:** (planned) `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/support/controller/SupportTicketController.java`
-**Last verified:** 2026-05-14 (Wave 78 Bucket 0 Foundation)
+**Source-of-truth controller:** (planned, deferred Wave 80+) `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/support/controller/SupportTicketController.java`
+**Last verified:** 2026-05-14 (Wave 79 Bucket E — scope clarification per GAP-556)
+
+> **⚠️ Wave 78 scope: DISCOVERABILITY ONLY (per GAP-556)** — endpoints document dưới là **planned future scope**, KHÔNG phải đã implement. Wave 78 chỉ ship footer `mailto:support@kitehub.me` discoverability. Full BE controller + `support_tickets` table + admin queue UI deferred Wave 80+ (tracked cùng GAP-040 support impersonation BE). Future readers: KHÔNG tưởng nhầm `POST /api/v1/support-tickets` đã hoạt động.
 
 This contract là source-of-truth cross-layer cho Wave 78 Bucket F, consumed by:
 - FE Bucket F (GAP-540) — Footer "Liên hệ hỗ trợ" link → modal hoặc page `/support` → submit form

@@ -12,6 +12,8 @@
 **Actor:** Mọi visitor (anonymous public OR authenticated tenant).
 **Trigger:** User truy cập URL `https://kitehub.me/beta-status` HOẶC click link "Beta Status" trong footer/dashboard.
 **Endpoint:** `GET /api/v1/beta-status`
+**Business rules:** BR-BETA-STATUS-001 (static MVP, manual update qua git PR), BR-BETA-STATUS-002 (cache TTL 5 phút)
+**Planned rules (Bucket B enrich, GAP-539):** BR-BETA-STATUS-003 (known-issues structured schema), BR-BETA-STATUS-004 (changelog versioning), BR-BETA-STATUS-005 (incident severity classification)
 
 ### Happy path
 

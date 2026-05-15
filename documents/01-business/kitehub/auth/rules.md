@@ -234,6 +234,28 @@ Cross-references:
 
 ---
 
+## BR-AUTH-011 — Role alias backward-compat (PLATFORM_ADMIN ↔ ADMIN ↔ OWNER)
+
+- **Value:**
+  - **Canonical role names** (Phase 1 BETA forward): `PLATFORM_ADMIN`, `OWNER`, `TEACHER`, `PARENT`, `STUDENT`
+  - **Backward-compat aliases recognized by FE role-guard:** `ADMIN` → maps to `PLATFORM_ADMIN`; legacy `OWNER` JWT claim continues working unchanged
+  - **Scope:** Wave 78 GAP-518 fix + Wave 79 Bucket B GAP-562 reconciled BE seed (`PLATFORM_ADMIN`) ↔ FE role-guard literal (`'ADMIN'`); alias bridge added at FE side to accept both literals for backward compat with already-seeded JWT tokens
+  - **Cutoff date:** Alias support deprecates **2026-06-14** (30 days post-Wave 78 GAP-518 fix shipped 2026-05-14). After cutoff, only canonical `PLATFORM_ADMIN` literal accepted; legacy `ADMIN` tokens force re-login
+  - **Migration path:** Quiet rotation — JWT refresh issues `PLATFORM_ADMIN` claim going forward; cookie/localStorage `ADMIN` literal mapped to canonical at FE boundary
+- **Source:** Wave 71b GAP-518 root-cause analysis (`pre-handoff-self-test-completeness.md` §2.4 admin-flow checklist — role-guard literal mismatch) + Wave 78 + Wave 79 closeout retros
+- **Rationale:** BE seed used `PLATFORM_ADMIN` (canonical per `release-deploy-standard.md` §9 Claude-agent role matrix); FE Wave 1-77 role-guard hardcoded literal `'ADMIN'`. Reconciliation could break in-flight admin sessions if cutoff immediate → 30-day grace window with alias bridge avoids forced re-login storm. Cutoff = 30d post-fix gives time for any deployed admin JWT to rotate naturally (Wave 79 Bucket A JWT refresh-token rotation TTL ≤ 7d means most tokens rotate in 1 week; 30d covers stragglers).
+- **Reviewer:** @nguyenvankiet (acting Security Lead + Product Owner, solo-dev, 2026-05-14).
+- **Compliance check:** **N/A** — naming convention, not regulated. Cross-ref `pre-launch-auth-hardening-checklist.md` §2.4 role-isolation check satisfied since both literals map to single `PLATFORM_ADMIN` privilege set.
+- **Review cadence:** Event-driven. **Next review:** 2026-06-14 (cutoff date) — flip FE to canonical-only OR extend deprecation window 1 cycle if rotation incomplete.
+- **Config keys:**
+  - `kitehub.auth.role-aliases.platform-admin=ADMIN` (legacy alias list, removed 2026-06-14)
+  - `kitehub.auth.role-aliases.deprecation-cutoff=2026-06-14`
+- **FE code reference:** `kitehub-frontend/src/lib/auth/role-guard.ts` (alias mapping function)
+- **BE code reference:** JWT claim issuer in `kitehub-subscription/auth/JwtTokenProvider.java` issues canonical `PLATFORM_ADMIN`
+- **Cross-ref:** Wave 78 GAP-518 (initial fix); Wave 79 Bucket B GAP-562 (backward-compat shim + cutoff); `pre-handoff-self-test-completeness.md` §2.4
+
+---
+
 ## Open Items / Follow-ups
 
 Per `gap-done-discipline.md` §3 PARTIAL exit ramp — these are framing rules; implementation tracked per-gap:
@@ -244,9 +266,11 @@ Per `gap-done-discipline.md` §3 PARTIAL exit ramp — these are framing rules; 
 - [ ] BR-AUTH-008 implementation — GAP-517 Wave 72a (LoginAuditService + outbox + email template)
 - [ ] BR-AUTH-009 implementation — GAP-521 Wave 72a (admin_audit_log entity + interceptor)
 - [ ] BR-AUTH-010 implementation — Future scope, file follow-up gap when picking up
+- [ ] BR-AUTH-011 cutoff — Wave 80+ session sẽ verify alias drop 2026-06-14 + grep `'ADMIN'` literal trên FE codebase = 0 hits sau cutoff
 
 ---
 
 ## Log
 
+- **2026-05-14 (v1.1.0):** Wave 79 Bucket E — added **BR-AUTH-011** (Role alias backward-compat `PLATFORM_ADMIN ↔ ADMIN ↔ OWNER`) closing GAP-557 part 2. Documents 30-day deprecation window cho FE role-guard literal mismatch surfaced Wave 71b GAP-518 + reconciled Wave 78 + Wave 79 Bucket B GAP-562; cutoff 2026-06-14. Reviewer: @nguyenvankiet (solo-dev, acting Security Lead + Product Owner). Cross-ref `pre-handoff-self-test-completeness.md` §2.4 (admin-flow checklist surfaced the original mismatch).
 - **2026-05-14 (v1.0.0):** rules.md created as part of Wave 72b Bucket 0 Foundation paired with use-cases.md + api-contract.md + MSW handlers. 10 business rules (BR-AUTH-001..010) frame the OWASP A07 auth-hardening checklist (`pre-launch-auth-hardening-checklist.md` §2.1-§2.8 + BR-AUTH-010 password complexity for §2.3). Each rule has 5-attribute structure per `.claude/rules/business-logic-review.md` (Source / Rationale / Reviewer / Compliance / Review cadence). Reviewer: @nguyenvankiet (solo-dev, acting Security Lead + Product Owner — flagged for legal counsel review queued GAP-521 follow-up where compliance-touching). Cross-references: Wave 72a (BE + DB schema) + Wave 72c (FE consumer screens) + `pre-launch-auth-hardening-checklist.md` (canonical security baseline). Source-of-truth code path: `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/auth/**` (paths created by Wave 72a Bucket A backend).

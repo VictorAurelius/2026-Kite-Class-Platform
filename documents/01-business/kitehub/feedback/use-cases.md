@@ -12,6 +12,8 @@
 **Actor:** Mọi user (authenticated tenant member HOẶC anonymous public visitor).
 **Trigger:** User click nút feedback widget góc dưới phải màn hình → modal mở → fill rating + comment → click "Gửi".
 **Endpoint:** `POST /api/v1/feedback`
+**Business rules:** BR-FEEDBACK-001 (rating scale 1-5 Likert), BR-FEEDBACK-002 (anonymous submit allowed, PII opt-in only), BR-FEEDBACK-003 (comment length 5-2000 chars)
+**Planned rules (Bucket F enrich, GAP-542):** BR-FEEDBACK-004 (rate limit per IP/user), BR-FEEDBACK-005 (in-house storage Phase 1, defer external SurveyMonkey/Hotjar), BR-FEEDBACK-006 (PDPL consent — explicit opt-in cho contact follow-up), BR-FEEDBACK-007 (admin queue placement, status workflow)
 
 ### Happy path
 
