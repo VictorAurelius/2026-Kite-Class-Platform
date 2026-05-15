@@ -1,6 +1,6 @@
 ---
 title: Wave 84 — Ops Observability + Account-prep Runbooks + Secrets Rotation
-status: draft
+status: active
 created: 2026-05-15
 phase: phase-1-beta
 wave: 84
@@ -138,4 +138,5 @@ Per `gap-done-discipline.md` + `post-wave-cleanup.md` + `post-merge-sync-complet
 
 ## 8. Log
 
+- **2026-05-15** (active): Status flip `draft → active` post Wave 83 closure (PR #1416 merged into main at 476d42b7). State-check 7 scope gaps confirmed no drift since draft (GAP-437/394/423/424 OPEN; GAP-379/431/414 PARTIAL). Inside-out 3-source completeness per `inside-out-completeness-trigger.md` ✓ (ROADMAP + inside-out-queue.md + AskUserQuestion explicit — user confirmed scope đủ). Outside-in §4 internal-ops exception preserved per draft Log entry. Spawn pattern: 6 parallel background agents (Buckets A-G) per `agent-background-spawn-default.md` + `feedback_parallel_agent_strategy.md` rule #9 (max 5 concurrent → batch 5 first, G after one frees). Bucket H sequential post-merge.
 - **2026-05-15** (draft): Plan drafted in batch PR #1406 covering 49 Phase 1 BETA remaining gaps → v1.0.0-rc.1 roadmap. Outside-in audit per `outside-in-coverage-trigger.md` §3 — Wave 83/84 SKIP per §4 exception (bug-fix + internal ops); Wave 85/86 FIRE (user-facing security + first cohort). Sections §5-7 + §8 appended PR #1409 post wave-plan-completeness CI fail.
