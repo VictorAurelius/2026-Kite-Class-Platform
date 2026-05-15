@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_DB: ${DB_NAME:-kiteclass_dev}
       POSTGRES_USER: ${DB_USERNAME:-kiteclass}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-kiteclass123}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-CHANGE-ME-dev-only}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -49,14 +49,14 @@ services:
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-kiteclass_dev}
       DB_USERNAME: ${DB_USERNAME:-kiteclass}
-      DB_PASSWORD: ${DB_PASSWORD:-kiteclass123}
+      DB_PASSWORD: ${DB_PASSWORD:-CHANGE-ME-dev-only}
 
       # Redis
       REDIS_HOST: redis
       REDIS_PORT: 6379
 
       # JWT
-      JWT_SECRET: ${JWT_SECRET:-development-only-secret-change-in-production}
+      JWT_SECRET: ${JWT_SECRET:-CHANGE-ME-dev-only-jwt-secret}
       JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION:-3600000}
       JWT_REFRESH_TOKEN_EXPIRATION: ${JWT_REFRESH_TOKEN_EXPIRATION:-604800000}
 

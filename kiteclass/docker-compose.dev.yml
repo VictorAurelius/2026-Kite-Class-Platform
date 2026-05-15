@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: kiteclass_dev
       POSTGRES_USER: kiteclass
-      POSTGRES_PASSWORD: kiteclass123
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-CHANGE-ME-dev-only}
     ports:
       - "5432:5432"
     volumes:
@@ -48,7 +48,7 @@ services:
       - "15672:15672"  # Management UI port
     environment:
       RABBITMQ_DEFAULT_USER: kiteclass
-      RABBITMQ_DEFAULT_PASS: kiteclass123
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-CHANGE-ME-dev-only}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
@@ -67,8 +67,8 @@ services:
       - "9000:9000"  # API
       - "9001:9001"  # Console
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio-dev-user}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-CHANGE-ME-dev-only}
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
@@ -89,7 +89,7 @@ services:
         condition: service_healthy
     entrypoint: >
       /bin/sh -c "
-      mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      mc alias set myminio http://minio:9000 $${MINIO_ROOT_USER:-minio-dev-user} $${MINIO_ROOT_PASSWORD:-CHANGE-ME-dev-only};
       mc mb myminio/kiteclass-files --ignore-existing;
       mc anonymous set download myminio/kiteclass-files;
       exit 0;
@@ -109,19 +109,19 @@ services:
       SPRING_PROFILES_ACTIVE: dev
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kiteclass_dev
       SPRING_DATASOURCE_USERNAME: kiteclass
-      SPRING_DATASOURCE_PASSWORD: kiteclass123
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-CHANGE-ME-dev-only}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: kiteclass
-      SPRING_RABBITMQ_PASSWORD: kiteclass123
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-CHANGE-ME-dev-only}
       # Internal API secret for HMAC authentication
-      INTERNAL_API_SECRET: dev-internal-secret-change-in-production
+      INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:-CHANGE-ME-dev-only-hmac-secret}
       # MinIO/S3 Configuration
       STORAGE_S3_ENDPOINT: http://minio:9000
-      STORAGE_S3_ACCESS_KEY: minioadmin
-      STORAGE_S3_SECRET_KEY: minioadmin
+      STORAGE_S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minio-dev-user}
+      STORAGE_S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-CHANGE-ME-dev-only}
       STORAGE_S3_BUCKET: kiteclass-files
       # Disable Flyway (Gateway manages all migrations)
       SPRING_FLYWAY_ENABLED: false
@@ -159,7 +159,7 @@ services:
       # JDBC for Flyway migrations
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kiteclass_dev
       SPRING_DATASOURCE_USERNAME: kiteclass
-      SPRING_DATASOURCE_PASSWORD: kiteclass123
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-CHANGE-ME-dev-only}
       SPRING_FLYWAY_ENABLED: true
       SPRING_FLYWAY_LOCATIONS: classpath:db/migration
       SPRING_FLYWAY_BASELINE_ON_MIGRATE: true
@@ -168,7 +168,7 @@ services:
       DB_PORT: 5432
       DB_NAME: kiteclass_dev
       DB_USERNAME: kiteclass
-      DB_PASSWORD: kiteclass123
+      DB_PASSWORD: ${DB_PASSWORD:-CHANGE-ME-dev-only}
       # Redis
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -178,7 +178,7 @@ services:
       KITECLASS_CORE_URL: http://core:8081
       CORE_SERVICE_URL: http://core:8081
       # Internal API secret for HMAC authentication (must match Core service)
-      INTERNAL_API_SECRET: dev-internal-secret-change-in-production
+      INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:-CHANGE-ME-dev-only-hmac-secret}
       # Disable mail health check in development (no Gmail configured)
       MANAGEMENT_HEALTH_MAIL_ENABLED: false
     depends_on:
@@ -258,7 +258,7 @@ services:
     ports:
       - "3001:3000"
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-CHANGE-ME-dev-only}
     volumes:
       - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
       - grafana_data:/var/lib/grafana
