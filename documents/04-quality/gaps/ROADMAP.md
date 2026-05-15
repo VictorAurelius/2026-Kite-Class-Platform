@@ -89,6 +89,18 @@
 - Agent design assumed SSM Parameter Store but user pre-populated Secrets Manager → PR #1403 align.
 - Hot-fixes on EC2 surface 3 PM2 ecosystem.config.js bugs + AL2023 certbot no systemd units → repo source bugs tracked GAP-572..574.
 
+### 🚀 Next Action — Phase 1 BETA acceptance walk-through 2026-05-15 (post-Wave-82 FE + post-Wave-84 Bucket H)
+
+Full 126-row triage shipped: [`documents/05-guides/operations/acceptance-tests/phase-1-beta-walkthrough-2026-05-15.md`](../../05-guides/operations/acceptance-tests/phase-1-beta-walkthrough-2026-05-15.md). Summary: **14 PASS / 79 TESTABLE-USER / 6 BLOCKED-FE-PARTIAL / 27 BLOCKED-FOLLOWUP**. Beta-readiness **~58%** — đủ cho cohort 1-2 invite nếu chấp nhận apex Vercel `kitehub.me` làm primary UX + manual workaround admin flow (GAP-518/519/525).
+
+**Critical blocker class:** [GAP-574](GAP-574-pm2-ecosystem-config-3-bugs.md) **P1** PM2 (`app.kitehub.me` 502) — KHÔNG chặn cứng (Vercel apex serve 200 OK trên mọi route). Phải đóng trước cohort 3+ scale hoặc trước khi shrink Vercel.
+
+**New findings filed:** [GAP-576](GAP-576-gateway-auth-routes-404-login-verify-email-password-reset.md) **P0** (gateway auth routes 404: `/api/v1/auth/login` + `/verify-email` + `/password-reset` — chặn admin login + email verify + password reset flows). Sister candidate (`/api/v1/branding` 404) — file Wave 85 sau verify gateway route config (will claim next free GAP id ≥ 582 since GAP-577..581 used Wave 85 Bucket A integration 2026-05-15).
+
+**Wave 85 expanded scope post Bucket A outside-in audits 2026-05-15** ([wave plan](../../03-planning/waves/wave-2026-05-15-85-multi-tenant-security-perf.md), [persona audit](../audits/persona-review/2026-05-15-pre-wave-85-persona-outside-in.md), [simulation audit](../audits/persona-review/2026-05-15-pre-wave-85-simulation-3axis.md)): integrated **4 P0 CRITICAL ACs** (B-AC1 RLS unit-test/B-AC6 HikariCP cross-tenant leak prevention/B-AC8 NULL force-fail/E-AC1 MaxRAMPercentage=60% override t3.small for GAP-502 RC2 recurrence prevention) + 14 additional ACs = **18 total enhancements** (8B + 1C + 1D + 3E + 1F + 4G + 1H); wall-clock 12-16h → 20-24h. **5 NEW gaps defer Wave 86:** [GAP-577](GAP-577-platform-admin-hardening-wave-86.md) P0 admin hardening (MFA + IP allowlist + 30min session + immutable admin audit) + [GAP-578](GAP-578-p2-owner-2fa-mandatory.md) P0 P2 owner 2FA + new-device alert + [GAP-579](GAP-579-soft-delete-restore-window.md) P1 soft-delete 30-day restore + [GAP-580](GAP-580-email-send-idempotency-key.md) P1 email idempotency + [GAP-581](GAP-581-per-tenant-rate-limit.md) P1 per-tenant rate limit gateway. Wave 85 cell-5 OOM scenario phải validate production 14-day post-deploy trước khi flip GAP-502 PARTIAL 90→95→DONE.
+
+**Phase 1 BETA full launch gate (cohort 3+, ≥10 tenants):** (1) GAP-574 PM2 (2) GAP-525 invite E2E (3) GAP-518+519 admin role-guard + nav (4) GAP-524 email-verify pipeline (5) GAP-576+577 gateway routes (6) GAP-144 AlertManager (Wave 84 carry-forward P1). ETA: 2-3 waves (~2-3 tuần).
+
 ### 🚀 Next Action — Wave 82 Bucket B/C follow-ups (4 non-blocking — file 2026-05-15 post Wave 82 closure)
 
 Wave 82 Bucket B + C deployed thành công on production 2026-05-15. 4 known follow-ups filed cho future closure:
