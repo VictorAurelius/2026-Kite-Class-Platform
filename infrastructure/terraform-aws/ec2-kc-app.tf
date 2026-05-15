@@ -193,6 +193,13 @@ resource "aws_iam_instance_profile" "kc_app_fe" {
 
 # --- Cloud-init user_data: nginx + Node 20 LTS + PM2 + certbot + swapfile ---
 # (P0 GAP-566 swap mitigation cho t3.small 2GB tight RAM)
+#
+# GAP-573 fix 2026-05-15: extend user_data wire systemd timer + publisher script
+# cho CertDaysToExpire metric. Align namespace+dimension (KiteHub/FE +
+# InstanceId) voi terraform alarm kc_app_fe_cert_expiry (line 305) — fixes
+# Wave 82 GAP-567 gap khi setup script ship only as standalone file, not wired
+# into user_data. Idempotent — re-run safe; publisher exit 0 khi cert chua
+# co (avoid timer-failure trong window pre-issuance).
 locals {
   kc_app_fe_user_data = <<-USERDATA
     #!/bin/bash
@@ -227,7 +234,98 @@ locals {
     chown ec2-user:ec2-user /opt/kite-fe
     sudo -u ec2-user git clone https://github.com/VictorAurelius/2026-Kite-Class-Platform.git /opt/kite-fe
 
-    echo "Wave 82 Bucket B FE self-host bootstrap complete" > /var/log/kite-fe-bootstrap.log
+    # =========================================================================
+    # GAP-573: cert-days-to-expire publisher + systemd timer
+    # =========================================================================
+    # Publish CertDaysToExpire metric vao CloudWatch namespace KiteHub/FE
+    # dimension InstanceId=<self>. Match terraform alarm kc_app_fe_cert_expiry
+    # (line 305 cua file nay). Timer chay daily — publisher idempotent + tolerant
+    # khi cert chua issued (exit 0 + WARN log de timer khong fail).
+
+    cat > /usr/local/bin/cert-days-to-expire.sh <<'PUBLISHER_EOF'
+    #!/usr/bin/env bash
+    # CertDaysToExpire publisher — GAP-573 wire (Wave 82 GAP-567 follow-up)
+    # Cross-link: ec2-kc-app.tf alarm kc_app_fe_cert_expiry namespace KiteHub/FE
+    set -euo pipefail
+
+    DOMAIN="$${1:-kitehub.me}"
+    CERT_FILE="/etc/letsencrypt/live/$DOMAIN/cert.pem"
+    NAMESPACE="KiteHub/FE"
+    METRIC_NAME="CertDaysToExpire"
+    REGION="ap-southeast-1"
+
+    # Fetch instance ID via IMDSv2 (http_tokens=required per ec2-kc-app.tf)
+    TOKEN=$(curl -s -X PUT 'http://169.254.169.254/latest/api/token' \
+      -H 'X-aws-ec2-metadata-token-ttl-seconds: 300')
+    INSTANCE_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" \
+      http://169.254.169.254/latest/meta-data/instance-id)
+
+    if [[ -z "$INSTANCE_ID" ]]; then
+      echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] ERROR: Cannot fetch InstanceId from IMDSv2" >&2
+      exit 1
+    fi
+
+    # Tolerant of pre-issuance window — exit 0 + log WARN khi cert chua co.
+    # Timer chay daily; first run sau cert issuance se push baseline data point.
+    if [[ ! -f "$CERT_FILE" ]]; then
+      echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] WARN: Cert not found ($CERT_FILE) — skip metric publish (pre-issuance window)"
+      exit 0
+    fi
+
+    EXPIRY_EPOCH=$(date -d "$(openssl x509 -enddate -noout -in "$CERT_FILE" | cut -d= -f2)" +%s)
+    NOW_EPOCH=$(date +%s)
+    DAYS=$(( (EXPIRY_EPOCH - NOW_EPOCH) / 86400 ))
+
+    echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] $DOMAIN cert expires in $DAYS days (InstanceId=$INSTANCE_ID)"
+
+    aws cloudwatch put-metric-data \
+      --namespace "$NAMESPACE" \
+      --metric-name "$METRIC_NAME" \
+      --dimensions "InstanceId=$INSTANCE_ID" \
+      --value "$DAYS" \
+      --unit Count \
+      --region "$REGION"
+    PUBLISHER_EOF
+    chmod 755 /usr/local/bin/cert-days-to-expire.sh
+
+    # systemd service oneshot — run publisher once per timer trigger
+    cat > /etc/systemd/system/cert-days-monitor.service <<'SVC_EOF'
+    [Unit]
+    Description=Publish cert days-to-expire metric to CloudWatch KiteHub/FE
+    After=network-online.target
+    Wants=network-online.target
+
+    [Service]
+    Type=oneshot
+    ExecStart=/usr/local/bin/cert-days-to-expire.sh kitehub.me
+    User=root
+    StandardOutput=journal
+    StandardError=journal
+    SVC_EOF
+
+    # systemd timer daily fire — provides datapoint vao alarm period 86400s
+    cat > /etc/systemd/system/cert-days-monitor.timer <<'TMR_EOF'
+    [Unit]
+    Description=Daily cert days-to-expire push to CloudWatch KiteHub/FE
+    After=network-online.target
+
+    [Timer]
+    OnCalendar=daily
+    Persistent=true
+    RandomizedDelaySec=300
+
+    [Install]
+    WantedBy=timers.target
+    TMR_EOF
+
+    systemctl daemon-reload
+    systemctl enable --now cert-days-monitor.timer
+
+    # First-run push 1 baseline data point ngay (avoid 24h wait cho first timer fire).
+    # Tolerant if cert chua co — publisher exit 0 + log WARN, timer se retry daily.
+    /usr/local/bin/cert-days-to-expire.sh kitehub.me || true
+
+    echo "Wave 82 Bucket B FE self-host bootstrap complete (GAP-573 cert-monitor wired $(date -u +%FT%TZ))" > /var/log/kite-fe-bootstrap.log
   USERDATA
 }
 
