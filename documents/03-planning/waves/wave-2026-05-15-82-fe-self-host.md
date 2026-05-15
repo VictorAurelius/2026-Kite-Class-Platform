@@ -1,7 +1,8 @@
 ---
 title: Wave 82 — FE self-host kc-app + Wave 81 follow-ups
-status: draft
+status: complete
 created: 2026-05-15
+closed: 2026-05-15
 phase: phase-1-beta
 wave: 82
 waves: [82]
@@ -176,6 +177,18 @@ Per `post-wave-cleanup.md` mandate:
 - **2026-05-15** (draft): Wave 82 plan created post Wave 81 closure. Bucket A spawned 2 outside-in agents (external benchmark + failure-mode matrix); both converged on Vercel Pro recommendation. User locked AWS EC2 self-host (cost-priority, AWS vendor lock). Bucket F shipped same session via PR #1396 — 5 follow-up items DONE + 7 audit-surfaced gateway routing bugs fixed (15-bug class total: beta-status + staff-invitations × 4 + admin-impersonate × 3).
 - **2026-05-15** (Bucket F6 in-flight): user feedback "fix Spring profile silent-skip Wave 82, not Wave 83 defer" — fixed in same PR. Added 3 application-production.yml (admin/branding/email) + audit-spring-profiles.sh + audit-service-ports.sh both fix unbound FINDINGS array trip. All 3 audit scripts now PASS clean.
 - **2026-05-15** (Bucket E scope revised): user proposed conditional CI runner fallback rule. Per `incident-to-rule-pipeline.md` §3 advisory-rule guard, defer rule until ≥7 days measurement data. Bucket E scope narrowed: install WSL runner only, DO NOT sed workflows. Opt-in via `vars.RUNNER_OVERRIDE` pattern. Wave 83 deliverable: rule với threshold OR "no rule needed" decision based on baseline metrics.
+
+- **2026-05-15 (closure SHIPPED):** Wave 82 8 buckets shipped trong cùng session. 10 PRs merged: #1396 (Bucket F+A 8 gateway routing fixes + Spring config + script rename + ADR-031 + GAP-565..568) + #1397 (OTel CVE-2026-45292 BOM 1.49→1.62) + #1398 (Bucket B drafts terraform + nginx + PM2 + certbot + runbook + CORS audit) + #1399 (GAP-570/571 + runbook SSM/Secrets Manager fix) + #1400 (AMI pin prevent surprise EC2 replacement) + #1401 (IAM TagInstanceProfile) + #1402 (post-apply audit) + #1403 (CF token Secrets Manager align) + #1404 (4 follow-up gaps GAP-572..575) + closure PR (this).
+
+  **Apply sequence:** plan #1 DESTRUCTIVE (AMI drift 3 EC2 replace) → pivot AMI pin PR #1400 → plan #2 CLEAN 9 add/0 destroy → apply attempt 1 FAIL iam:TagInstanceProfile → PR #1401 → attempt 2 FAIL STS session cache → attempt 3 SUCCESS 11:33 UTC. Subsequent: IAM Secrets Manager update apply success 11:47 UTC.
+
+  **SSM bootstrap sequence:** certbot DNS-01 (cert acquired wildcard `*.kitehub.me` exp 2026-08-13; Step 4-5 fail → GAP-572/573 follow-up) → state verify (nginx 1.28.3 active + Node 20.20.2 + PM2 + swap 2GB) → FE build (pnpm install 28s + pnpm build:kh ~3min; 420MB `.next`) → deploy nginx + PM2 (3 hot-fixes per GAP-574: `1.2G→1200M` + cwd path monorepo + `/var/log/pm2` perm).
+
+  **End state:** `https://kitehub.me/` HTTP 200 in 360ms (DNS cutover Vercel→EC2 54.179.70.37 via CF API); `/api/health` 200; PM2 kitehub-frontend online 122.9MB; cert verify OK (X509_V_OK). Vercel Free Tier cap no longer a blocker.
+
+  **Bucket H dev 126-row walk-through UNBLOCKED.** Dev có thể start self-test any time against live production.
+
+  **Outcome:** 5 gap closures (GAP-565/568/569 DONE + GAP-566/567 PARTIAL) + 4 follow-ups filed (GAP-572/573/574/575). Bucket G (P2/P3 user manual) defer Wave 83+ per ADR-031 phase split.
 
 ## 9. Wave 81 follow-up gaps consolidated (Bucket F — ✅ ALL DONE)
 

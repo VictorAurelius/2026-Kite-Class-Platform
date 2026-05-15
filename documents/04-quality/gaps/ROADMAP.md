@@ -8,9 +8,48 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-15 — 🎉 Wave 81 DEPLOY+SMOKE SHIPPED Backend production-ready + Wave 80 SHIPPED v1.0.0-rc Blockers + Wave 79 Beta Invite Close-Out + Wave 78 Beta Invite Launch Retain + Wave 77 SEND foundation)
+## 🎯 Current Status Snapshot (2026-05-15 — 🎉 Wave 82 FE SELF-HOST SHIPPED + Wave 81 DEPLOY+SMOKE Backend + Wave 80 v1.0.0-rc Blockers + Wave 79 Beta Invite Close-Out + Wave 78 Beta Invite Launch Retain)
 
-> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-15-post-wave-81-handoff.md`](../../03-planning/session-handoffs/2026-05-15-post-wave-81-handoff.md) — post-Wave-81 state + Wave 82 FE self-host queued + FE Vercel STALE ~38h blocks dev full 126-row walk-through + Wave 81 follow-up bugs (beta-status 400 + CSV doc sync + wrapper script naming).
+> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-15-post-wave-82-handoff.md`](../../03-planning/session-handoffs/2026-05-15-post-wave-82-handoff.md) — post-Wave-82 state: FE LIVE trên AWS EC2 t3.small (kitehub.me → 54.179.70.37); DNS cutover off Vercel complete; Bucket H dev 126-row walk-through UNBLOCKED. 4 follow-up gaps GAP-572..575 filed for cert auto-renewal + PM2 config + kiteclass-frontend Phase 7 defer.
+
+### 🎉 Wave 82 SHIPPED 2026-05-15 — FE Self-Host AWS EC2 + Wave 81 follow-ups (8 buckets + 10 PRs + 4 follow-up gaps)
+
+**10 PRs merged:** #1396 (Bucket F+A — 8 gateway routing fixes + Spring config + script rename + ADR-031 + GAP-565..568) + #1397 (OTel CVE-2026-45292 BOM 1.49→1.62) + #1398 (Bucket B drafts — terraform + nginx + PM2 + certbot + runbook + CORS audit) + #1399 (GAP-570/571 + runbook SSM/Secrets Manager fix) + #1400 (AMI pin prevent surprise EC2 replacement) + #1401 (IAM TagInstanceProfile fix) + #1402 (post-apply audit) + #1403 (CF token Secrets Manager align) + #1404 (4 follow-up gaps) + closure PR.
+
+**Production state:**
+- ✅ BE kh-backend v0.9.0-beta-staging.16 (api.kitehub.me) — F4 gateway routing fix LIVE (beta-status 200 was 400) + OTel CVE patched
+- ✅ FE kc-app-fe NEW EC2 `i-05cfda7c6c60b683f` t3.small ap-southeast-1 @ public IP `54.179.70.37`
+- ✅ DNS cutover via Cloudflare API: `kitehub.me` CNAME Vercel → A record EC2 (proxied=false, ttl=300)
+- ✅ Cert wildcard `*.kitehub.me` Let's Encrypt exp 2026-08-13
+- ✅ nginx 1.28.3 + Node 20.20.2 + PM2 fork mode (kitehub-frontend port 4701, 122.9MB)
+- ✅ `https://kitehub.me/` HTTP 200 in 360ms + `/api/health` 200 + cert_verify=0 OK
+- ✅ Vercel Free Tier cap no longer a blocker (off DNS path)
+
+**5 gap closures:**
+- GAP-565 DONE (F6 SG ASCII descriptions verified) · GAP-568 DONE (BE CORS gateway pre-allowlist verified post-flip) · GAP-569 DONE (OTel 1.62.0 deployed)
+- GAP-566 PARTIAL 60 (swap + alarm armed; PM2 hot-fix on EC2; repo bugs → GAP-574)
+- GAP-567 PARTIAL 50 (cert acquired; auto-renewal timer + CW metric fail AL2023 → GAP-572/573)
+
+**Wave 82 lessons learned:**
+- Pre-mutation state-check per `pre-mutation-state-check.md` §3 caught AMI drift DESTRUCTIVE plan (3 EC2 replace) → pivot AMI pin PR #1400 saved kh-backend.
+- STS session credential cache: IAM policy update + apply needs new workflow_dispatch session (cached perms ≠ refreshed mid-run).
+- Agent design assumed SSM Parameter Store but user pre-populated Secrets Manager → PR #1403 align.
+- Hot-fixes on EC2 surface 3 PM2 ecosystem.config.js bugs + AL2023 certbot no systemd units → repo source bugs tracked GAP-572..574.
+
+### 🚀 Next Action — Wave 82 Bucket B/C follow-ups (4 non-blocking — file 2026-05-15 post Wave 82 closure)
+
+Wave 82 Bucket B + C deployed thành công on production 2026-05-15. 4 known follow-ups filed cho future closure:
+
+- **[GAP-572](GAP-572-certbot-systemd-timer-al2023-not-shipped.md)** P2 — Certbot systemd timer setup fails on AL2023 (package không ship unit files). Manual cert renew works; cert valid 90d until 2026-08-13. Script fix needed (inline unit creation OR cron fallback).
+- **[GAP-573](GAP-573-cloudwatch-cert-days-to-expire-publisher-not-installed.md)** P2 — CloudWatch `CertDaysToExpire` metric publisher chưa install (Step 5 abort do GAP-572 Step 4 fail). Alarm stuck `INSUFFICIENT_DATA`. Fix unblock when GAP-572 fixed.
+- **[GAP-574](GAP-574-pm2-ecosystem-config-3-bugs.md)** **P1** — `pm2-ecosystem.config.js` 3 bugs (max_memory_restart `'1.2G'` invalid → use `'1200M'`; cwd path wrong cho monorepo standalone; `/var/log/pm2` perm). Hot-fix manual applied on EC2; repo source bugs persist — **future deploys fail without fix**.
+- **[GAP-575](GAP-575-kiteclass-frontend-defer-phase-7.md)** P2 — `kiteclass-frontend` deploy defer Phase 7 per ADR-031 (tenant FE scope post-MVP).
+
+**Order:** GAP-574 P1 ưu tiên cao nhất — affects mọi future FE deploy. GAP-572 + GAP-573 cùng class (auto-renewal); fix together. GAP-575 = future scope, defer until tenant signup live.
+
+Pre-Wave-82 4 P0 prerequisites (GAP-565..568) now closed per Wave 82 Bucket B implementation. Pre-existing follow-ups still tracked: GAP-570 P2 F5 Spring 500→404 incomplete + GAP-571 P1 2 validation endpoints 500-instead-400.
+
+### 🎉 Wave 81 SHIPPED 2026-05-15 — DEPLOY+SMOKE Backend production-ready (7 buckets + 4-attempt Bucket F fail-fast secret saga)
 
 ### 🎉 Wave 81 SHIPPED 2026-05-15 — DEPLOY+SMOKE Backend production-ready (7 buckets + 4-attempt Bucket F fail-fast secret saga)
 
