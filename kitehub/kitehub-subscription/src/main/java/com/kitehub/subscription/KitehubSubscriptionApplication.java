@@ -29,7 +29,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     // Wave 72a Bucket B — GAP-521 admin action audit log (OWASP A07)
     "com.kitehub.subscription.audit",
     // Wave 72b Bucket A — GAP-516 TOTP 2FA + recovery codes (OWASP A07)
-    "com.kitehub.subscription.auth.twofactor"
+    "com.kitehub.subscription.auth.twofactor",
+    // Wave 78 Bucket B — GAP-538 onboarding progress tracker
+    "com.kitehub.subscription.onboarding.entity",
+    // Wave 78 Bucket F — GAP-542 feedback widget + survey scheduler
+    "com.kitehub.subscription.feedback.entity",
+    // Wave 79 Bucket B — GAP-561/562 staff invitation + RBAC (OWNER/STAFF)
+    "com.kitehub.subscription.staff.entity"
 })
 @EnableJpaAuditing
 @EnableScheduling
