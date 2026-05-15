@@ -1,6 +1,6 @@
 # GAP-437: AWS observability baseline — CloudTrail + dashboard
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (Phase 1 DONE Wave 81; Phase 2-3 terraform plan ready Wave 84 Bucket A, apply pending coordinator)
 **Priority:** 🟠 P1 (compliance + security baseline gap)
 **Domain:** DevOps / Security / Compliance
 **Found:** 2026-05-08 (user-flagged during Phase 2.2 review — "tera đã được chạy nhưng không có logs hay dashboard kiểm soát")
@@ -90,4 +90,5 @@ Out of scope here — GAP-115 covers app-level Loki/Promtail.
 
 ## Log
 
+- **2026-05-15 (Wave 84 Bucket A):** Status flip OPEN → 🟡 PARTIAL. Phase 1 CloudTrail trail `kitehub-main` shipped Wave 81 (`IsLogging=true` verified per `aws-observability-first.md` §8 self-test). Phase 2-3 terraform plan ready in this PR — 4 metric filters (failed IAM auth, root account use, SG changes, secrets access) + CloudWatch log group + IAM delivery role + dashboard extension (3 new EC2 metrics on kc_app_fe + ALB health/latency widgets + RDS IOPS + 4 security event widgets) + SNS topic `kitehub-security-alerts` + 4 alarms. Pre-mutation state-check artifact: `documents/04-quality/audits/aws-verification/2026-05-15-wave-84-bucket-a-cloudtrail-observability-plan.md`. Apply deferred to coordinator per task spec ("DO NOT run terraform apply") — coordinator triggers `terraform-apply.yml` `dry_run=true` first then `confirm=APPLY`. Files: `cloudtrail.tf` (edit — wire CWL delivery), `cloudtrail-metric-filters.tf` (new), `cloudwatch-dashboard.tf` (edit — extend widgets), `cloudwatch-security-alarms.tf` (new). Terraform `validate` PASS; `fmt -check` clean. Cost projection: ~$0.03/mo within Free Tier. AC remaining: live verify post-apply (trail CWL delivery, metric filter firing, dashboard renders, SNS subscription confirmed). Phase 4 (AWS Config drift) deferred per original scope.
 - **2026-05-08:** GAP filed during user review of Phase 2.2 — observability gap noted ("không có logs hay dashboard kiểm soát"). Phase 1 scope = CloudTrail only, target ~30min.
