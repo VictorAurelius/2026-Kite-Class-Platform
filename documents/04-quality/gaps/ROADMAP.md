@@ -8,9 +8,30 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-15 — 🎉 Wave 80 SHIPPED v1.0.0-rc Blockers + Wave 79 Beta Invite Close-Out + Wave 78 Beta Invite Launch Retain + Wave 77 SEND foundation)
+## 🎯 Current Status Snapshot (2026-05-15 — 🎉 Wave 81 DEPLOY+SMOKE SHIPPED Backend production-ready + Wave 80 SHIPPED v1.0.0-rc Blockers + Wave 79 Beta Invite Close-Out + Wave 78 Beta Invite Launch Retain + Wave 77 SEND foundation)
 
-> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-15-post-wave-80-handoff.md`](../../03-planning/session-handoffs/2026-05-15-post-wave-80-handoff.md) — post-Wave-80 state + Wave 81 DEPLOY+SMOKE queued + GAP-537c P2/P3 screenshots + kitehub-branding @PreAuthorize Wave 81 + post-wave audit suite v2 format ≤3 ngày.
+> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-15-post-wave-81-handoff.md`](../../03-planning/session-handoffs/2026-05-15-post-wave-81-handoff.md) — post-Wave-81 state + Wave 82 FE self-host queued + FE Vercel STALE ~38h blocks dev full 126-row walk-through + Wave 81 follow-up bugs (beta-status 400 + CSV doc sync + wrapper script naming).
+
+### 🎉 Wave 81 SHIPPED 2026-05-15 — DEPLOY+SMOKE Backend production-ready (7 buckets + 4-attempt Bucket F fail-fast secret saga)
+
+**9 PRs merged:** #1387 (ECR matrix fix kitehub-frontend) + #1388 JWT_CHALLENGE_SECRET + #1389 TOTP+STAFF_INVITATION+KITE_VERSION + #1390 TOTP Spring relaxed binding admin yaml-less + #1391 heredoc env expansion hotfix + #1392 Bucket G spot check audit + #1393 audits-index backfill + #1394 closure cleanup + (this PR closure protocol sync).
+
+**Outcome:**
+- ✅ Backend production-ready: api.kitehub.me/actuator/health 200 UP (db/redis/disk/ssl); 7 services on tag `0.9.0-beta-staging.14`
+- ✅ Admin seeded: `admin@kitehub.me` PLATFORM_ADMIN
+- ✅ Infrastructure: CF DNS active + SES sandbox + Resend DKIM verified + 3 leaked creds rotated (GAP-525 closure)
+- ✅ Bucket G 10/126 spot check: 8 PASS + 1 PARTIAL (beta-status 400 → Wave 82 P1) + 2 doc bugs surfaced
+- ⚠️ FE Vercel STALE ~38h (Free Tier build cap hit ~2026-05-13) — Wave 78-81 contracts không reflect → full 126-row dev walk-through BLOCKED until Wave 82 Bucket B+C FE rebuild
+- 4 new follow-ups → Wave 82 Bucket F: `/api/v1/beta-status` 400 + CSV row IDs mismatch + CSV `/api/v1/auth/login` path drift + `rotate-leaked-credentials.sh` wrapper name
+- 4 new fail-fast guard env vars documented `.env.production.template`: JWT_CHALLENGE_SECRET + TOTP_ENCRYPTION_KEY + KITEHUB_AUTH_TOTP_ENCRYPTION_KEY + KITEHUB_STAFF_INVITATION_SIGNING_SECRET
+
+**Wave 81 lessons learned (Bucket F 4-attempt saga):** root scope sweep at retry #2 per `release-fix-retry-budget.md` §4 — 3 fail-fast guards in `kitehub-subscription` (ChallengeTokenService + TotpSecretCipher + InvitationTokenService); KITE_VERSION stale default in fetch-secrets.sh caused /etc/kite/.env corruption; TOTP env name yaml-explicit vs Spring relaxed binding mismatch for admin yaml-less = dual-write fix; heredoc body `${ENV}` expansion = set -u trip + secret leak risk. Documented `documents/05-guides/operations/2026-05-15-wave-81-jwt-secret-fix-runbook.md`.
+
+**Session housekeeping:** CI history 690 → 52; local branches 22 → 1. PRs 1388-1394 admin-merge bypass per `admin-merge-discipline.md` §3 GitHub Free Tier throttle context — Wave 82 Bucket E self-hosted GitHub runner on WSL eliminates class.
+
+**Wave 82 queued:** [`documents/03-planning/waves/wave-2026-05-15-82-fe-self-host.md`](../../03-planning/waves/wave-2026-05-15-82-fe-self-host.md) 8 buckets — FE rebuild architecture (CF Pages/EC2/Vercel Pro) → deploy infra → FE build với Wave 78-81 contracts → DNS cutover → self-hosted runner → Wave 81 follow-ups → user manual P2/P3/Admin → full 126-row walk-through.
+
+
 
 ### 🎉 Wave 80 SHIPPED 2026-05-15 — v1.0.0-rc Blockers (4 buckets + 1 fix-cycle + 1 gitignore pre-add)
 

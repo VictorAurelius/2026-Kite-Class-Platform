@@ -1,6 +1,6 @@
 ---
 title: Wave 81 — Deploy + Smoke (Phase 1 BETA production rollout for self-test)
-status: draft
+status: complete
 created: 2026-05-14
 updated: 2026-05-14
 waves: [81]
@@ -245,4 +245,5 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 
 ## 8. Log
 
+- **2026-05-15** (closure): All 7 buckets DONE + 1 hotfix-cycle (Bucket F 4-attempt fail-fast secret fix saga). Backend production-ready (api.kitehub.me/actuator/health 200 UP — db/redis/disk/ssl). 8 PRs shipped: #1387 (ECR matrix fix kitehub-frontend) + #1388 JWT_CHALLENGE_SECRET + #1389 TOTP+STAFF_INVITATION+KITE_VERSION + #1390 TOTP Spring relaxed binding admin yaml-less + #1391 heredoc env expansion hotfix + #1392 Bucket G spot check audit + #1393 audits-index backfill + #1394 closure cleanup. Bucket G 10/126 row spot check: 8 PASS + 1 PARTIAL (beta-status 400 → Wave 82 P1) + 2 doc bugs (CSV row IDs vs wave plan + /api/v1/auth/login path drift). FE Vercel STALE ~38h (Free Tier build cap hit ~2026-05-13) — backend ready but full 126-row dev walk-through BLOCKED until Wave 82 Bucket B+C FE rebuild. Session housekeeping: CI history 690 → 52 runs; local branches 22 → 1. PRs 1388-1394 admin-merge bypass per `admin-merge-discipline.md` §3 (GitHub Free Tier throttle context) — follow-up Wave 82 Bucket E self-hosted GitHub runner eliminates class. Wave 82 plan drafted same session: `documents/03-planning/waves/wave-2026-05-15-82-fe-self-host.md`.
 - **2026-05-14** (draft): Plan created. Wave 80 100% internal ops scope → outside-in audit SKIP per `outside-in-coverage-trigger.md` §4 exception. Buckets sequential per `concurrent-production-mutation-ops.md`. Spawn pattern atypical (mix user-action + coordinator verify, no parallel worktree). Trigger: gate giữa Wave 79 code-complete ↔ dev self-test 126-row CSV walkthrough.
