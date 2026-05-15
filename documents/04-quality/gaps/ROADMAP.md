@@ -8,9 +8,39 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-15 — 🎉 Wave 83 SHIPPED (7 buckets executed + audit suite 90/100 sec A-) + Wave 82 FE SELF-HOST + Wave 81 DEPLOY+SMOKE + Wave 80 v1.0.0-rc Blockers + Wave 79 Beta Invite Close-Out)
+## 🎯 Current Status Snapshot (2026-05-15 — 🎉 Wave 84 SHIPPED (7 buckets + terraform apply LIVE 35-add/2-change/0-destroy) + Wave 83 SHIPPED + Wave 82 FE SELF-HOST + Wave 81 DEPLOY+SMOKE + Wave 80 v1.0.0-rc Blockers)
 
-> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-15-post-wave-83-handoff.md`](../../03-planning/session-handoffs/2026-05-15-post-wave-83-handoff.md) — Wave 83 all 7 buckets executed (6.5 DONE; full E2E email delivery test defers admin-approve flow Wave 84+); Bucket F essentials shipped PR #1414 dual-schema fix; audit suite PR #1413 (Security 90/100 PASS); Wave 84 queued (ops observability).
+> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-15-post-wave-84-handoff.md`](../../03-planning/session-handoffs/2026-05-15-post-wave-84-handoff.md) — Wave 84 ops observability shipped: 6 bucket PRs #1417-1422 merged + Bucket H audit refresh + terraform apply executed live via dev-authorized override (new rule `dev-authorized-terraform-trigger.md`). RDS db-password rotation bootstrap pending user console action. Pre-existing `kc-app-fe-cert-expiry` ALARM unrelated to Wave 84, needs separate investigation.
+
+### 🎉 Wave 84 SHIPPED 2026-05-15 — Ops Observability + Secrets Rotation + Account-Prep + Terraform Apply LIVE (7/7 buckets executed)
+
+**7 PRs merged:** #1417 (F GAP-431 helm startupProbe verified) + #1418 (G GAP-414 EC2 right-sizing) + #1419 (DE GAP-423/424 VN overlays) + #1420 (A GAP-437 CloudTrail observability) + #1421 (B GAP-379 secrets rotation) + #1422 (C GAP-394 account-prep runbooks) + closure PR (Bucket H Ops Readiness audit).
+
+**Live-applied infrastructure** (workflow run 25929212198, 2026-05-15 16:33 UTC, ~1m30s):
+- Plan: 35 added / 2 changed / 0 destroyed → Apply complete clean
+- ✅ CloudWatch dashboard `kitehub-phase-1-overview` extended với 4 security widgets + ALB/RDS rows
+- ✅ 4 security alarms (failed_iam_auth OK / root_account_use INSUFFICIENT_DATA / sg_changes_burst INSUFFICIENT_DATA / secrets_access_burst OK)
+- ✅ 3 EC2 low-CPU alarms (INSUFFICIENT_DATA — 7d baseline pending)
+- ✅ Lambda `kitehub-production-rotate-secret-handler` Active, 3 secrets RotationEnabled (next 2026-08-13)
+- ✅ Lambda `kitehub-ec2-cost-report` Active, monthly cron 1st-of-month 08:00 UTC
+- ✅ 2 SNS topics: `kitehub-security-alerts` + `kitehub-cost-alerts`
+
+**Governance side-effects:**
+- New rule `.claude/rules/dev-authorized-terraform-trigger.md` v1.0.0 — codifies dev-authorized override of `release-deploy-standard.md` §9 BAN
+- New rule `.claude/rules/claude-md-content-discipline.md` v1.0.0 — CLAUDE.md content ceiling + banned-content list
+- CLAUDE.md trimmed (30-line override section → 3-line pointer)
+
+**Pending user-action:**
+- RDS db-password rotation bootstrap qua AWS console (Serverless Application Repository, ~5-10 min, per `secrets-rotation-runbook.md` §5.2.1)
+- Pre-existing `kitehub-kc-app-fe-cert-expiry` ALARM investigation (unrelated to Wave 84)
+- Follow-up gap: GitHub Actions sync-event delivery on force-push (per Bucket B saga ADMIN_MERGE_FOLLOWUP)
+
+**Audit artifacts:**
+- 3 pre-apply: `documents/04-quality/audits/aws-verification/2026-05-15-wave-84-bucket-{a,b,g}-*-plan.md`
+- 1 post-apply: `2026-05-15-wave-84-buckets-abg-post-apply.md`
+- 1 Ops Readiness refresh: `documents/04-quality/audits/ops-readiness/2026-05-15-wave-84-post-apply.md` (Bucket H)
+
+### 🎉 Wave 83 SHIPPED 2026-05-15 — Hot-fix + PDPL Cookie Consent + Email schema fix (7/7 executed)
 
 ### 🎉 Wave 83 SHIPPED 2026-05-15 — Hot-fix + PDPL Cookie Consent + Email schema fix (7/7 executed)
 

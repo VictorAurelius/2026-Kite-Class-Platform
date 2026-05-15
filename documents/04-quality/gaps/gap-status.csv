@@ -265,7 +265,7 @@ GAP-374,GAP-374-tag-based-release-automation-ci.md,Tag-based Release Automation 
 GAP-375,GAP-375-github-release-template-changelog-folder.md,GitHub Release Template + Changelog Folder,OPEN,P2,DevOps,phase-1-beta,0,2026-05-06,2026-05-11,
 GAP-376,GAP-376-production-data-seed.md,Production Data Seed (Admin User + System Config),DONE,P0,DevOps,phase-1-beta,100,2026-05-06,2026-05-13,E2E shipped via GAP-500 Path B direct SQL seed (PR #1247); admin@kitehub.me PLATFORM_ADMIN inserted; run 25782010115 wall-clock 52s
 GAP-377,GAP-377-followup-auth-route-checks.md,GAP-377-followup: Smoke test auth-route checks (`/auth/signup`; `/auth/reques...,OPEN,P3,DevOps,n/a,0,2026-05-06,2026-05-11,
-GAP-379,GAP-379-secrets-management-rotation.md,Secrets Management — AWS Secrets Manager + Rotation Policy,PARTIAL,P1,DevOps,phase-1-beta,95,2026-05-06,2026-05-15,Wave 84 Bucket B apply-ready; awaits user terraform apply + RDS rotation bootstrap
+GAP-379,GAP-379-secrets-management-rotation.md,Secrets Management — AWS Secrets Manager + Rotation Policy,PARTIAL,P1,DevOps,phase-1-beta,95,2026-05-06,2026-05-15,Wave 84 Bucket B applied 2026-05-15 — Lambda + 3 secrets rotation enabled (next 2026-08-13); RDS db-password bootstrap user-action pending
 GAP-380,GAP-380-staging-environment-activation.md,Staging Environment Activation + Parity Validation,PARTIAL,P1,DevOps,phase-1-beta,50,2026-05-06,2026-05-11,
 GAP-394,GAP-394-phase-1-beta-account-prep-checklist.md,Phase 1 BETA Account Prep Checklist (7 runbooks shipped — Cloudflare+Resend+Vercel),DONE,P1,Backend,phase-1-beta,100,2026-05-07,2026-05-15,Wave 84 Bucket C closure
 GAP-398,GAP-398-docker-build-kitehub-services-6-modules.md,Docker Build kitehub Services Production Images (5 deployable modules),DONE,P0,DevOps,phase-1-beta,100,2026-05-07,2026-05-12,Wave 66 Bucket Z: ECR has 10 kite/<svc> repos in ap-southeast-1; Wave 64 v0.9.0-beta-staging.9 push verified live
@@ -292,7 +292,7 @@ GAP-433,GAP-433-rules-md-5-attr-coverage-backfill.md,backfill 5-attribute frontm
 GAP-434,GAP-434-loki-promtail-stack-phase2.md,Loki/Promtail Stack (Phase 2 of GAP-115),PARTIAL,P1,DevOps,n/a,50,2026-05-08,2026-05-11,
 GAP-435,GAP-435-promtool-alert-rule-unit-test.md,promtool alert-rule unit test fixture,OPEN,P2,DevOps,n/a,0,2026-05-08,2026-05-11,
 GAP-436,GAP-436-oidc-deploy-ecr-restore-roles.md,OIDC roles for deploy + ECR push + restore drill workflows,PARTIAL,P1,DevOps,n/a,50,2026-05-08,2026-05-11,
-GAP-437,GAP-437-aws-observability-baseline.md,AWS observability baseline — CloudTrail + dashboard,PARTIAL,P1,Mixed,phase-1-beta,60,2026-05-08,2026-05-15,Wave 84 Bucket A terraform plan ready apply pending coordinator
+GAP-437,GAP-437-aws-observability-baseline.md,AWS observability baseline — CloudTrail + dashboard,DONE,P1,Mixed,phase-1-beta,100,2026-05-08,2026-05-15,Wave 84 Bucket A applied 2026-05-15 — dashboard + 4 metric filters + 4 alarms + SNS live (run 25929212198)
 GAP-438,GAP-438-agent-aws-access-workflow.md,Agent AWS access workflow + verification log artifacts,OPEN,P1,Meta,n/a,0,2026-05-08,2026-05-11,
 GAP-440,GAP-440-spring-boot-dep-bump-before-prod.md,Spring Boot 3.5.14 → latest dep bump before v1.0.0 prod tag,PARTIAL,P1,Mixed,phase-1-beta,50,2026-05-08,2026-05-11,
 GAP-441,GAP-441-per-service-pom-override-hygiene.md,Per-service pom.xml dep override hygiene,OPEN,P2,DevOps,n/a,0,2026-05-08,2026-05-11,

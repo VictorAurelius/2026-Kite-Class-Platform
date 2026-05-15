@@ -38,6 +38,8 @@ bash scripts/aws/stop-stack.sh --force  # stop khi idle/EOD để save Free Tier
 
 Scripts auto-resolve current EC2 IDs qua tag `Name=kitehub-{kh-backend,kc-app}`. Default profile `dev-admin`.
 
+**Solo-dev override:** khi dev nói "claude trigger" / "tôi cho phép" → claude được phép `gh workflow run terraform-apply.yml` (override `release-deploy-standard.md` §9 BANNED). Quy trình chi tiết: `.claude/rules/dev-authorized-terraform-trigger.md`.
+
 ---
 
 ## Project Overview
