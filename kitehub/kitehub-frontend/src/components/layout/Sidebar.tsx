@@ -5,23 +5,32 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { LayoutDashboard, CreditCard, Palette, Settings, Building2, TrendingUp, ClipboardList, Rocket, type LucideIcon } from 'lucide-react';
 import { KiteLogo } from '@/components/brand/KiteLogo';
+import { useRole, type PlatformRole } from '@/hooks/use-role';
 
 interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
   testId?: string;
+  /**
+   * GAP-562b (Wave 80 Bucket C): role gate for nav visibility.
+   * Omit → visible for every authenticated customer role.
+   * Listed → only visible when current role matches one in the set.
+   */
+  requiresRole?: readonly PlatformRole[];
 }
 
 // GAP-559 (Wave 79 Bucket D): Onboarding entry visible cho Owner persona.
-// Customer (OWNER) layout chỉ hiển thị nav này — Staff/Admin dùng variants khác.
+// GAP-562b (Wave 80 Bucket C): Owner-only sections (billing / branding / settings)
+// gated by `requiresRole: ['OWNER']` so STAFF users see a clean nav with only
+// Dashboard + Onboarding. RoleGuard layouts close the URL-bar attack path.
 // "Bắt đầu" đặt ở đầu để first-login users thấy ngay điểm khởi đầu.
 const customerNav: NavItem[] = [
   { href: '/dashboard', label: 'Tổng quan', icon: LayoutDashboard },
   { href: '/onboarding', label: 'Bắt đầu', icon: Rocket, testId: 'customer-nav-onboarding' },
-  { href: '/billing', label: 'Thanh toán', icon: CreditCard },
-  { href: '/branding', label: 'AI Branding', icon: Palette },
-  { href: '/settings', label: 'Cài đặt', icon: Settings },
+  { href: '/billing', label: 'Thanh toán', icon: CreditCard, testId: 'customer-nav-billing', requiresRole: ['OWNER'] },
+  { href: '/branding', label: 'AI Branding', icon: Palette, testId: 'customer-nav-branding', requiresRole: ['OWNER'] },
+  { href: '/settings', label: 'Cài đặt', icon: Settings, testId: 'customer-nav-settings', requiresRole: ['OWNER'] },
 ];
 
 // GAP-519: admin sidebar nav — 4 testid'd links so PLATFORM_ADMIN can navigate
@@ -35,7 +44,16 @@ const adminNav: NavItem[] = [
 
 export function Sidebar({ variant = 'customer' }: { variant?: 'customer' | 'admin' }) {
   const pathname = usePathname();
-  const navItems = variant === 'admin' ? adminNav : customerNav;
+  const { hasRole, isLoading: isRoleLoading } = useRole();
+  // GAP-562b: filter customerNav by role; admin nav unchanged (admin layout
+  // already gates access via PLATFORM_ADMIN check upstream).
+  const rawNavItems = variant === 'admin' ? adminNav : customerNav;
+  const navItems = rawNavItems.filter((item) => {
+    if (!item.requiresRole || item.requiresRole.length === 0) return true;
+    // During hydration, hide role-gated items to prevent flash of forbidden links.
+    if (isRoleLoading) return false;
+    return hasRole(item.requiresRole);
+  });
 
   return (
     <aside className="w-64 border-r bg-muted/30 dark:bg-muted/50 min-h-screen p-4">

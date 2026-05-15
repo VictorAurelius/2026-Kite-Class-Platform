@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,6 +44,25 @@ import java.util.UUID;
        extraTags = {"slo", "tier-c", "controller", "payment"})
 public class PaymentController {
 
+    /**
+     * GAP-562b (Wave 80 Bucket C): mutation endpoints require OWNER role.
+     *
+     * <p>Wave 79 introduces OWNER / STAFF role separation; legacy
+     * {@code PLATFORM_ADMIN} and {@code ADMIN} aliases stay accepted until
+     * Wave 81 cutoff (2026-06-14) per
+     * {@code com.kitehub.subscription.auth.role.PlatformRole}.</p>
+     */
+    static final String OWNER_AUTHZ =
+            "hasAnyRole('OWNER','PLATFORM_ADMIN','ADMIN')";
+
+    /**
+     * Read endpoints accessible to OWNER + STAFF + legacy admin aliases.
+     * STAFF needs read access for operational visibility per
+     * {@code documents/01-business/roles/use-cases.md}.
+     */
+    static final String OWNER_OR_STAFF_AUTHZ =
+            "hasAnyRole('OWNER','STAFF','PLATFORM_ADMIN','ADMIN')";
+
     private final PaymentService paymentService;
 
     /**
@@ -52,6 +72,7 @@ public class PaymentController {
      * @return Created payment response
      */
     @PostMapping
+    @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<PaymentResponse> createPayment(
         @Valid @RequestBody CreatePaymentRequest request
     ) {
@@ -78,6 +99,7 @@ public class PaymentController {
      * @return Page of payment responses
      */
     @GetMapping
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
     public ResponseEntity<Page<PaymentResponse>> getAllPayments(
         @RequestParam(required = false) PaymentStatus status,
         @RequestParam(defaultValue = "0") int page,
@@ -98,6 +120,7 @@ public class PaymentController {
      * @return Payment response
      */
     @GetMapping("/{id}")
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
     public ResponseEntity<PaymentResponse> getPayment(@PathVariable UUID id) {
         PaymentResponse response = paymentService.getPayment(id);
         return ResponseEntity.ok(response);
@@ -110,6 +133,7 @@ public class PaymentController {
      * @return List of payment responses
      */
     @GetMapping("/subscription/{subscriptionId}")
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
     public ResponseEntity<List<PaymentResponse>> getPaymentsBySubscription(@PathVariable UUID subscriptionId) {
         List<PaymentResponse> responses = paymentService.getPaymentsBySubscription(subscriptionId);
         return ResponseEntity.ok(responses);
@@ -122,6 +146,7 @@ public class PaymentController {
      * @return QR code URL
      */
     @GetMapping("/{id}/qr-code")
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
     public ResponseEntity<Map<String, String>> getQRCode(@PathVariable UUID id) {
         String qrCodeUrl = paymentService.getQRCode(id);
         return ResponseEntity.ok(Map.of("qrCodeUrl", qrCodeUrl));

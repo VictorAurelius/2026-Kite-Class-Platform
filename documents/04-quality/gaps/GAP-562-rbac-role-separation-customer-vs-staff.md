@@ -138,6 +138,8 @@ Tham chiếu: industry standard SaaS multi-tenant (Notion, Linear, Stripe) — r
 
 ## Log
 
+- **2026-05-15 (Wave 80 Bucket C):** Upgrade to **PARTIAL 90%** via GAP-562b PR. FE RoleGuard + 3 layouts + role-aware Sidebar + auth-store STAFF type + BE @PreAuthorize on PaymentController + SubscriptionController + RbacAccessDeniedHandler audit log. 15 BE security tests + 13 FE component tests + 8 Playwright e2e all pass. Remaining 10% = `kitehub-branding` `@PreAuthorize` (module needs spring-security dep first, Wave 81 follow-up) + `TenantSettingsController` dangerzone split (controller doesn't exist yet). Main attack surface (URL bar + Sidebar leak) closed.
+
 - **2026-05-14:** PARTIAL 50% — Wave 79 Bucket B closure. V46__create_rbac_roles.sql + PlatformRole enum + @PreAuthorize on staff endpoints shipped via PR #1366. FE role-guard + full @PreAuthorize coverage (billing/branding) deferred to GAP-562b (Wave 80+). Sister gap to GAP-561.
 
 - 2026-05-14 — Filed via Wave 79 outside-in audit (Persona 2 N2-P0). State-check confirmed no staff sub-role enum / no @PreAuthorize / no FE role gating. Priority P0 vì multi-user beta tenant trust + PDPL data isolation. Sister gap GAP-561 phải ship cùng để Manager invite + login an toàn.
