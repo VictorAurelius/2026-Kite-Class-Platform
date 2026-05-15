@@ -1,6 +1,7 @@
 package com.kitehub.subscription.controller;
 
 import com.kitehub.subscription.dto.CreateInstanceRequest;
+import com.kitehub.subscription.dto.CursorPage;
 import com.kitehub.subscription.dto.InstanceResponse;
 import com.kitehub.subscription.dto.PurgeResult;
 import com.kitehub.subscription.dto.RegisterInstanceRequest;
@@ -82,6 +83,29 @@ public class InstanceController {
             Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<InstanceResponse> responses = instanceService.listAllInstances(pageable);
         return ResponseEntity.ok(responses);
+    }
+
+    /**
+     * Cursor (keyset) variant for very large instance lists — Wave 85 Bucket D D-AC1.
+     *
+     * <p>When the platform exceeds ~1M instance rows, OFFSET pagination incurs
+     * a linear skip cost. This endpoint accepts an opaque base64 cursor (decoded
+     * into the last-seen {@code id}) and returns the next page via keyset query.
+     * Order is fixed {@code id ASC}.</p>
+     *
+     * @param cursor opaque cursor token from prior response (null/blank for first page)
+     * @param size   page size (defaults 50, capped at 200)
+     * @return CursorPage envelope of {@link InstanceResponse}
+     */
+    @GetMapping(params = "cursor")
+    public ResponseEntity<CursorPage<InstanceResponse>> listInstancesByCursor(
+        @RequestParam(required = false) String cursor,
+        @RequestParam(defaultValue = "" + DEFAULT_PAGE_SIZE) int size
+    ) {
+        int safeSize = Math.min(Math.max(1, size), MAX_PAGE_SIZE);
+        UUID cursorId = CursorPage.decodeCursor(cursor);
+        CursorPage<InstanceResponse> page = instanceService.listInstancesByCursor(cursorId, safeSize);
+        return ResponseEntity.ok(page);
     }
 
     @PostMapping

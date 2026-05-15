@@ -98,4 +98,18 @@ public interface InstanceRepository extends JpaRepository<Instance, UUID> {
         }
         return result;
     }
+
+    // =========================================================
+    // Wave 85 Bucket D D-AC1: cursor-based (keyset) pagination
+    // for instance lists >1M rows. Order fixed id ASC.
+    // =========================================================
+
+    /**
+     * Keyset-paginate non-deleted instances starting AFTER the given cursor id.
+     * Pass {@code cursorId = null} for the first page.
+     */
+    @Query("SELECT i FROM Instance i WHERE i.deleted = false "
+        + "AND (:cursorId IS NULL OR i.id > :cursorId) "
+        + "ORDER BY i.id ASC")
+    List<Instance> findAfterCursor(@Param("cursorId") UUID cursorId, Pageable pageable);
 }

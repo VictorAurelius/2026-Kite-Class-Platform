@@ -27,14 +27,41 @@ export function useAdminDashboard() {
 }
 
 /**
- * Get all instances for admin.
+ * Spring Data `Page` response envelope — Wave 85 Bucket D.
+ *
+ * Backend returns `Page<T>` from `JpaRepository.findAll(Pageable)`; this matches
+ * the on-wire shape so callers can read pagination metadata + content together.
  */
-export function useAdminInstances() {
+export interface PageEnvelope<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;     // current page index (0-based)
+  size: number;
+  first: boolean;
+  last: boolean;
+}
+
+export interface AdminInstancesPageParams {
+  page?: number;
+  size?: number;
+}
+
+/**
+ * Get a paginated page of instances for admin (Wave 85 Bucket D).
+ *
+ * Returns the full `Page<InstanceSummary>` envelope so the UI can render
+ * "page N of M" + next/prev controls. Default size 50, max 200 (server-capped).
+ */
+export function useAdminInstances(params: AdminInstancesPageParams = {}) {
+  const page = params.page ?? 0;
+  const size = Math.min(params.size ?? 50, 200);
   return useQuery({
-    queryKey: ['admin', 'instances'],
+    queryKey: ['admin', 'instances', page, size],
     queryFn: async () => {
-      const { data } = await apiClient.get<AdminInstanceSummary[]>(
-        endpoints.admin.instances
+      const { data } = await apiClient.get<PageEnvelope<AdminInstanceSummary>>(
+        endpoints.admin.instances,
+        { params: { page, size } }
       );
       return data;
     },

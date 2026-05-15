@@ -4,12 +4,14 @@ import com.kitehub.platform.domain.entity.Payment;
 import com.kitehub.platform.domain.enums.PaymentMethod;
 import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.subscription.dto.CreatePaymentRequest;
+import com.kitehub.subscription.dto.CursorPage;
 import com.kitehub.subscription.dto.PaymentResponse;
 import com.kitehub.subscription.repository.PaymentRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -130,6 +132,40 @@ public class PaymentService {
             : paymentRepository.findAllNotDeleted(pageable);
 
         return payments.map(PaymentResponse::fromEntity);
+    }
+
+    /**
+     * Keyset-paginate payments after the given cursor — Wave 85 Bucket D D-AC1.
+     *
+     * <p>Use this variant when expected dataset exceeds ~1M rows; avoids
+     * {@code OFFSET N} cliff cost. Order is fixed {@code id ASC}.</p>
+     *
+     * @param status   optional status filter
+     * @param cursorId UUID of the last row from the prior page (null for first page)
+     * @param size     page size (caller-capped to 1..200)
+     * @return cursor page with content + nextCursor + hasNext
+     */
+    @Transactional(readOnly = true)
+    public CursorPage<PaymentResponse> getPaymentsByCursor(PaymentStatus status,
+                                                            UUID cursorId,
+                                                            int size) {
+        // Fetch size+1 to detect hasNext without a separate count query.
+        Pageable pageable = PageRequest.of(0, size + 1);
+        List<Payment> rows = (status != null)
+            ? paymentRepository.findByStatusAfterCursor(status, cursorId, pageable)
+            : paymentRepository.findAfterCursor(cursorId, pageable);
+
+        boolean hasNext = rows.size() > size;
+        List<Payment> trimmed = hasNext ? rows.subList(0, size) : rows;
+        List<PaymentResponse> content = trimmed.stream()
+            .map(PaymentResponse::fromEntity)
+            .toList();
+
+        String nextCursor = (hasNext && !trimmed.isEmpty())
+            ? CursorPage.encodeCursor(trimmed.get(trimmed.size() - 1).getId())
+            : null;
+
+        return new CursorPage<>(content, size, nextCursor, hasNext);
     }
 
     /**

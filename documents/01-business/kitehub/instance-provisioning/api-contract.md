@@ -3,7 +3,42 @@
 ## GET /api/platform/instances
 **Use case:** UC-INS-04
 **Auth:** Bearer token (Admin)
-**Response 200:** `[InstanceResponse]`
+**Query params (offset pagination — default):**
+- `page` (int, default `0`) — zero-based page index
+- `size` (int, default `50`, max `200`) — page size; values >200 capped server-side
+- `sort` (optional, default `createdAt,desc`)
+
+**Query params (cursor pagination — Wave 85 Bucket D D-AC1, recommended cho dataset >1M rows để tránh OFFSET cliff):**
+- `cursor` (string, opaque base64-encoded `id` of last row from prior page; mutually exclusive với `page`)
+- `size` (int, default `50`, max `200`)
+- Sort fixed `id ASC` khi cursor mode active (cho stable keyset traversal)
+
+**Response 200 (offset mode):**
+```json
+{
+  "content": [/* InstanceResponse[] */],
+  "totalElements": 1234,
+  "totalPages": 25,
+  "page": 0,
+  "size": 50,
+  "first": true,
+  "last": false
+}
+```
+
+**Response 200 (cursor mode):**
+```json
+{
+  "content": [/* InstanceResponse[] */],
+  "size": 50,
+  "nextCursor": "eyJpZCI6ImFiYy0xMjMifQ==",
+  "hasNext": true
+}
+```
+
+**Errors:** 400 `size > 200` (auto-capped instead — no error), 400 cả `page` lẫn `cursor` cùng truyền
+
+**Performance note (GAP-432 Wave 41 + Wave 85 D-AC1):** prior unbounded `findAll()` đã eliminated; default size 50 + max 200 hard cap ngăn OOM scan. Cursor mode khuyến nghị cho list admin >1M rows để tránh OFFSET N skip-cost.
 
 ---
 
