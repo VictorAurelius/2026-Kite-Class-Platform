@@ -66,4 +66,42 @@ public class EmailSenderService {
             log.info("[EMAIL-FALLBACK] Verification link for {}: {}", to, verifyUrl);
         }
     }
+
+    /**
+     * Send password-reset email (GAP-548 / Wave 79 Bucket C).
+     *
+     * <p>Best-effort delivery — failure does not surface to caller so that the
+     * {@code POST /api/auth/password-reset-request} endpoint can stay constant-time
+     * regardless of email-service availability. Email-existence enumeration is
+     * mitigated upstream by returning 202 unconditionally.</p>
+     *
+     * @param to recipient email
+     * @param resetUrl absolute URL containing single-use token (TTL ~1h)
+     */
+    public void sendPasswordResetEmail(String to, String resetUrl) {
+        if (!emailEnabled) {
+            log.info("[EMAIL-MOCK] Password-reset email for {}: {}", to, resetUrl);
+            return;
+        }
+
+        try {
+            Map<String, Object> request = Map.of(
+                    "to", to,
+                    "subject", "Đặt lại mật khẩu - KiteHub",
+                    "templateName", "password-reset",
+                    "variables", Map.of("resetUrl", resetUrl)
+            );
+
+            restTemplate.postForEntity(
+                    emailServiceUrl + "/api/platform/emails/send",
+                    request,
+                    Map.class
+            );
+
+            log.info("Password-reset email sent to: {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send password-reset email to {}: {}", to, e.getMessage());
+            log.info("[EMAIL-FALLBACK] Password-reset link for {}: {}", to, resetUrl);
+        }
+    }
 }

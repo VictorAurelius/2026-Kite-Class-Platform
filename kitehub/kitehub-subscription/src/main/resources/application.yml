@@ -107,6 +107,11 @@ kitehub:
     # pre-launch-secrets-hardening-checklist.md §2.4).
     totp:
       encryption-key: ${TOTP_ENCRYPTION_KEY:dev-key-32-chars-pad-pad-pad-pad-pad}
+    # GAP-548 Wave 79 — password-reset token TTL (minutes). Aligns with
+    # email-deliverability + replay-protection trade-off; sister-rule for
+    # gateway rate-limit (1/sec email-keyed) shipped Wave 78 (PR #1354).
+    password-reset:
+      token-ttl-minutes: ${PASSWORD_RESET_TOKEN_TTL_MINUTES:60}
   trial:
     duration-days: 14
     max-per-owner: 1
