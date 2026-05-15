@@ -8,9 +8,32 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-15 — 🎉 Wave 82 FE SELF-HOST SHIPPED + Wave 81 DEPLOY+SMOKE Backend + Wave 80 v1.0.0-rc Blockers + Wave 79 Beta Invite Close-Out + Wave 78 Beta Invite Launch Retain)
+## 🎯 Current Status Snapshot (2026-05-15 — 🎉 Wave 83 HOT-FIX PARTIAL SHIPPED 5/7 + Wave 82 FE SELF-HOST + Wave 81 DEPLOY+SMOKE + Wave 80 v1.0.0-rc Blockers + Wave 79 Beta Invite Close-Out)
 
-> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-15-post-wave-82-handoff.md`](../../03-planning/session-handoffs/2026-05-15-post-wave-82-handoff.md) — post-Wave-82 state: FE LIVE trên AWS EC2 t3.small (kitehub.me → 54.179.70.37); DNS cutover off Vercel complete; Bucket H dev 126-row walk-through UNBLOCKED. 4 follow-up gaps GAP-572..575 filed for cert auto-renewal + PM2 config + kiteclass-frontend Phase 7 defer.
+> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-15-post-wave-83-handoff.md`](../../03-planning/session-handoffs/2026-05-15-post-wave-83-handoff.md) — Wave 83 5/7 buckets DONE live-verified staging.18; Bucket F BLOCKED user Resend rotate → GAP-572 deferred (P0 schema mismatch + key leak Task #73 agent-aws-access §2.2 violation); Wave 84 queued (ops observability).
+
+### 🎉 Wave 83 SHIPPED PARTIAL 2026-05-15 — Hot-fix + PDPL Cookie Consent (5/7 buckets + 1 deferred GAP-572)
+
+**4 PRs merged:** #1407 (Bucket A GAP-571 — 6 Spring exception handlers RFC 7807) + #1408 (Bucket E GAP-558 cookie consent ConsentGatedAnalytics + Footer link) + #1409 (wave plan §5-8 sections fix) + #1410 (Bucket B GAP-570 NoHandlerFoundException → 404). Tags: staging.17 + staging.18 deployed AWS.
+
+**Live-verified post-deploy:**
+- POST `/api/v1/auth/nonexistent` → **404** ✅ (NoHandlerFoundException + NoResourceFoundException both mapped)
+- POST `/api/auth/verify-email` empty → **400** ✅ (MissingServletRequestParameterException RFC 7807)
+- POST `/api/v1/auth/beta-signup/validate` wrong method → **405** ✅ (HttpRequestMethodNotSupportedException + Allow header)
+- POST request-beta-access correct DTO → **201** ✅
+
+**Bucket outcomes (5 DONE + 1 deferred + 1 in-flight):**
+- ✅ A — GAP-571 validation 500 → 400/401/405 (PR #1407, live-verified)
+- ✅ B — GAP-570 NoHandlerFoundException 404 (PR #1410 follow-up, live-verified)
+- ✅ C — beta-status (self-healed 200, no fix needed)
+- ✅ D — gateway `/kitehub-subscription/*` (false-positive finding, expected 404)
+- ✅ E — GAP-558 cookie consent (PR #1408 ConsentGatedAnalytics + Footer; 80% scope subsumed Wave 23 GAP-353/368)
+- 🚨 **F — GAP-370 email production E2E BLOCKED** → GAP-572 deferred (Resend schema JSON vs plain-string mismatch + agent-aws-access §2.2 violation Task #73 — user rotate pending)
+- ⏳ G — Closure protocol + audit suite in-flight (background agent 4 reports — API Contract + Business Logic + Security v2 + UI /128)
+
+**Wave 84 queued:** ops observability + runbooks (~10-14h) — CloudTrail GAP-437, secrets rotation GAP-379, 4 account-prep runbooks GAP-394, VN overlays GAP-423/424, startupProbe GAP-431, EC2 right-sizing GAP-414. Target: Ops Readiness /100 ≥80 (vs 60 baseline).
+
+
 
 ### 🎉 Wave 82 SHIPPED 2026-05-15 — FE Self-Host AWS EC2 + Wave 81 follow-ups (8 buckets + 10 PRs + 4 follow-up gaps)
 
