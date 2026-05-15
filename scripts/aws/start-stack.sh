@@ -36,7 +36,7 @@ lookup_ec2_instance_ids() {
   AWS_PROFILE="${AWS_PROFILE_START}" aws ec2 describe-instances \
     --region "${AWS_REGION}" \
     --filters \
-      "Name=tag:Name,Values=kitehub-kh-backend,kitehub-kc-app" \
+      "Name=tag:Name,Values=kitehub-kh-backend,kitehub-kc-app,kitehub-kc-app-fe" \
       "Name=instance-state-name,Values=stopped,running" \
     --query 'Reservations[].Instances[].InstanceId' \
     --output text 2>/dev/null

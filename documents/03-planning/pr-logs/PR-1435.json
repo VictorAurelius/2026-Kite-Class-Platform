@@ -1,0 +1,33 @@
+{
+  "pr": 1435,
+  "title": "docs(wave-86): integrate Bucket A outside-in audits \u2014 4 P0 BLOCKERS + 21 AC + 17 NEW gaps",
+  "branch": "wave-86-bucket-a-integration-add-4-p0-21-ac-17-new-gaps",
+  "created_at": null,
+  "merged_at": "2026-05-15T19:15:44Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-15T19:15:49.805831",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 20,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1167736"
+  }
+}
