@@ -92,9 +92,16 @@ RESEND_API_KEY=""
 AWS_SES_FROM_EMAIL_FROM_SECRET=""
 AWS_SES_FROM_NAME_FROM_SECRET=""
 if RESEND_PAYLOAD=$(fetch_secret resend-api-key 2>/dev/null); then
-  RESEND_API_KEY=$(echo "$RESEND_PAYLOAD" | jq -r .api_key 2>/dev/null || echo "")
-  AWS_SES_FROM_EMAIL_FROM_SECRET=$(echo "$RESEND_PAYLOAD" | jq -r .from_email 2>/dev/null || echo "")
-  AWS_SES_FROM_NAME_FROM_SECRET=$(echo "$RESEND_PAYLOAD" | jq -r .from_name 2>/dev/null || echo "")
+  # GAP-572 — accept BOTH schemas: JSON wrapper {api_key,from_email,from_name} OR plain string re_...
+  # Detect first char: '{' = JSON parse; else = treat entire value as api_key (defaults for from_*).
+  if [[ "${RESEND_PAYLOAD:0:1}" == "{" ]]; then
+    RESEND_API_KEY=$(echo "$RESEND_PAYLOAD" | jq -r '.api_key // empty' 2>/dev/null || echo "")
+    AWS_SES_FROM_EMAIL_FROM_SECRET=$(echo "$RESEND_PAYLOAD" | jq -r '.from_email // empty' 2>/dev/null || echo "")
+    AWS_SES_FROM_NAME_FROM_SECRET=$(echo "$RESEND_PAYLOAD" | jq -r '.from_name // empty' 2>/dev/null || echo "")
+  else
+    RESEND_API_KEY="$RESEND_PAYLOAD"
+    log "INFO: Resend secret stored as plain string; api_key extracted; from_email/from_name use defaults. Re-store as JSON to override defaults."
+  fi
 fi
 # Fail-safe: allow caller-provided env override (legacy / dev path)
 RESEND_API_KEY="${RESEND_API_KEY:-${RESEND_API_KEY_FALLBACK:-}}"
