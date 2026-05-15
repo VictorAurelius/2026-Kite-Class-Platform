@@ -8,13 +8,13 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-15 — 🎉 Wave 83 HOT-FIX PARTIAL SHIPPED 5/7 + Wave 82 FE SELF-HOST + Wave 81 DEPLOY+SMOKE + Wave 80 v1.0.0-rc Blockers + Wave 79 Beta Invite Close-Out)
+## 🎯 Current Status Snapshot (2026-05-15 — 🎉 Wave 83 SHIPPED (7 buckets executed + audit suite 90/100 sec A-) + Wave 82 FE SELF-HOST + Wave 81 DEPLOY+SMOKE + Wave 80 v1.0.0-rc Blockers + Wave 79 Beta Invite Close-Out)
 
-> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-15-post-wave-83-handoff.md`](../../03-planning/session-handoffs/2026-05-15-post-wave-83-handoff.md) — Wave 83 5/7 buckets DONE live-verified staging.18; Bucket F BLOCKED user Resend rotate → GAP-572 deferred (P0 schema mismatch + key leak Task #73 agent-aws-access §2.2 violation); Wave 84 queued (ops observability).
+> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-15-post-wave-83-handoff.md`](../../03-planning/session-handoffs/2026-05-15-post-wave-83-handoff.md) — Wave 83 all 7 buckets executed (6.5 DONE; full E2E email delivery test defers admin-approve flow Wave 84+); Bucket F essentials shipped PR #1414 dual-schema fix; audit suite PR #1413 (Security 90/100 PASS); Wave 84 queued (ops observability).
 
-### 🎉 Wave 83 SHIPPED PARTIAL 2026-05-15 — Hot-fix + PDPL Cookie Consent (5/7 buckets + 1 deferred GAP-572)
+### 🎉 Wave 83 SHIPPED 2026-05-15 — Hot-fix + PDPL Cookie Consent + Email schema fix (7/7 executed)
 
-**4 PRs merged:** #1407 (Bucket A GAP-571 — 6 Spring exception handlers RFC 7807) + #1408 (Bucket E GAP-558 cookie consent ConsentGatedAnalytics + Footer link) + #1409 (wave plan §5-8 sections fix) + #1410 (Bucket B GAP-570 NoHandlerFoundException → 404). Tags: staging.17 + staging.18 deployed AWS.
+**7 PRs merged:** #1407 (Bucket A GAP-571 — 6 Spring exception handlers RFC 7807) + #1408 (Bucket E GAP-558 cookie consent + Footer link) + #1409 (wave plan §5-8 sections fix) + #1410 (Bucket B GAP-570 NoHandlerFoundException → 404) + #1412 (Bucket G closure protocol) + #1413 (audit suite 4 reports: API 82 / BL 71 / Sec v2 90 PASS / UI 112/128) + #1414 (GAP-572 Phase 4 dual-schema fetch-secrets.sh). Tags: staging.17 + staging.18 deployed AWS.
 
 **Live-verified post-deploy:**
 - POST `/api/v1/auth/nonexistent` → **404** ✅ (NoHandlerFoundException + NoResourceFoundException both mapped)

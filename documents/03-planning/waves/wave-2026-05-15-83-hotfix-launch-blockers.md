@@ -1,6 +1,6 @@
 ---
 title: Wave 83 — Hot-fix Wave 82 post-deploy bugs + Launch Blockers (PDPL + Email production)
-status: complete-partial
+status: complete
 created: 2026-05-15
 phase: phase-1-beta
 wave: 83
