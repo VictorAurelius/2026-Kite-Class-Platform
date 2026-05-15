@@ -18,6 +18,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
@@ -283,6 +284,29 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
             HttpStatus.NOT_FOUND,
             "Endpoint not found: " + ex.getResourcePath()
+        );
+        problemDetail.setTitle("Not Found");
+        return problemDetail;
+    }
+
+    /**
+     * Handle Spring legacy NoHandlerFoundException (GAP-570 Wave 83 Bucket B follow-up).
+     *
+     * <p>PR #1407 added {@link NoResourceFoundException} handler (Spring 6.1+ for static
+     * resources) but Spring throws {@link NoHandlerFoundException} (legacy, from
+     * DispatcherServlet) when {@code spring.mvc.throw-exception-if-no-handler-found=true}.
+     * Different class — without this handler, unknown endpoints fall through to
+     * {@link #handleGenericException} → 500.</p>
+     *
+     * @param ex Exception raised when no controller matches the request
+     * @return 404 ProblemDetail
+     */
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ProblemDetail handleNoHandlerFound(NoHandlerFoundException ex) {
+        log.warn("No handler found: {} {}", ex.getHttpMethod(), ex.getRequestURL());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.NOT_FOUND,
+            "Endpoint not found: " + ex.getHttpMethod() + " " + ex.getRequestURL()
         );
         problemDetail.setTitle("Not Found");
         return problemDetail;
