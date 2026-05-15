@@ -288,14 +288,27 @@ scp -i ~/.ssh/kite-keypair.pem \
   ubuntu@$KC_APP_IP:/tmp/certbot-dns-01-setup.sh
 ```
 
-Run certbot DNS-01 bootstrap (cần Cloudflare API token):
+Run certbot DNS-01 bootstrap (cần Cloudflare API token).
+
+**Lưu ý:** `certbot-dns-01-setup.sh` fetch token từ **SSM Parameter Store** (`/kitehub/production/cloudflare-api-token` per terraform `ec2-kc-app.tf` IAM scope). User PHẢI put parameter trước:
 
 ```bash
-# Fetch CF API token từ Secrets Manager
-CF_TOKEN=$(aws secretsmanager get-secret-value \
+# One-time setup (user, local từ máy có dev-admin profile):
+aws ssm put-parameter \
   --profile dev-admin --region ap-southeast-1 \
-  --secret-id kitehub/production/cloudflare-api-token \
-  --query SecretString --output text)
+  --name /kitehub/production/cloudflare-api-token \
+  --type SecureString \
+  --value '<CLOUDFLARE_TOKEN_VALUE>' \
+  --description 'Wave 82 GAP-567 — Certbot DNS-01 challenge token'
+
+# Generate token tại https://dash.cloudflare.com/profile/api-tokens
+# Template: "Edit zone DNS" → Zone Resources: include kitehub.me
+```
+
+After SSM parameter set, cert script reads it directly via IAM role attached to EC2:
+
+```bash
+# Inside EC2 (post-SSM bootstrap):
 
 aws ssm send-command \
   --profile dev-admin --region ap-southeast-1 \
