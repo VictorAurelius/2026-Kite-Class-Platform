@@ -286,7 +286,7 @@ GAP-427,GAP-427-exchange-claim-code-undocumented.md,POST /api/v1/auth/beta-signu
 GAP-428,GAP-428-prospect-public-pages-missing-kit.md,Prospects / Public Pages Have No UI Kit Coverage,PARTIAL,P1,Frontend,phase-1-beta,70,2026-05-08,2026-05-14,Wave 78 Bucket A — production pages VN-polished + brand sync; HTML kit prototype deferred
 GAP-429,GAP-429-transient-state-ux-skeleton-pattern.md,Transient-State UX Skeleton Pattern — Loading/Empty/Error States Below 105/128,OPEN,P1,Frontend,n/a,0,2026-05-08,2026-05-11,
 GAP-430,closed/GAP-430-backup-alert-metric-mismatch.md,`BackupJobFailure` alert metric name mismatch — alert chưa từng fire,DONE,P0,DevOps,phase-1-beta,100,2026-05-08,2026-05-11,Wave 60 Bucket C DONE flip — Wave 41 root-cause fix verified; promtool fixture scope-cut to GAP-435
-GAP-431,GAP-431-helm-startupprobe-missing.md,thiếu `startupProbe` trong Helm deployment templates,PARTIAL,P1,DevOps,phase-1-beta,50,2026-05-08,2026-05-11,
+GAP-431,GAP-431-helm-startupprobe-missing.md,thiếu `startupProbe` trong Helm deployment templates,DONE,P1,DevOps,phase-1-beta,100,2026-05-08,2026-05-15,Wave 84 Bucket F — helm lint clean + helm template render verified 7/7 Spring Boot Deployments; live k8s self-test deferred GAP-431b (k8s Phase 2)
 GAP-432,GAP-432-unbounded-findall-services.md,3 service `findAll()` không bounded — performance cliff post-launch,PARTIAL,P1,Backend,phase-1-beta,50,2026-05-08,2026-05-11,
 GAP-433,GAP-433-rules-md-5-attr-coverage-backfill.md,backfill 5-attribute frontmatter cho rules.md (40% thiếu Reviewer + Review ca...,PARTIAL,P1,Meta,phase-3,50,2026-05-08,2026-05-11,
 GAP-434,GAP-434-loki-promtail-stack-phase2.md,Loki/Promtail Stack (Phase 2 of GAP-115),PARTIAL,P1,DevOps,n/a,50,2026-05-08,2026-05-11,
