@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2059,SC2016
+# SC2059: color escape codes in printf format are intentional
+# SC2016: AWS JMESPath queries use backticks for string literals; single-quote required
 # smoke-aws-phase-4.sh — Phase 4 staging environment read-only verification
 #
 # Usage: bash scripts/smoke-aws-phase-4.sh

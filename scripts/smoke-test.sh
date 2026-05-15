@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2059,SC2155
+# SC2059: color escape codes (${BOLD}/${RED}/${NC}) in printf format are intentional
+# SC2155: local declare+assign acceptable; failure case rare in helper construction
 # =========================================================================
 # smoke-test.sh — Post-deploy verification (GAP-089 baseline + GAP-377 ext)
 # =========================================================================
