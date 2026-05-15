@@ -90,6 +90,19 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- GAP-569: CVE-2026-45292 OpenTelemetry Unbounded Memory Allocation in W3C Baggage Propagation (MEDIUM).
+                 Spring Boot 3.5.14 BOM pins OTel 1.49.0 (affected); bump via opentelemetry-bom 1.62.0.
+                 Affected artifacts (transitive via opentelemetry-exporter-otlp + micrometer-tracing-bridge-otel):
+                   - io.opentelemetry:opentelemetry-api
+                   - io.opentelemetry:opentelemetry-extension-trace-propagators -->
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-bom</artifactId>
+                <version>1.62.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <!-- SpringDoc OpenAPI -->
             <dependency>
                 <groupId>org.springdoc</groupId>
