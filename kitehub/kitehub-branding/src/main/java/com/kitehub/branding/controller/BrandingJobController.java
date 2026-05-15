@@ -25,6 +25,15 @@ import java.util.UUID;
  * <p>SLO Tier B (job CRUD; AI execution is async per Tier E queue SLOs).
  * See {@code documents/05-guides/api-performance-slo.md}.
  *
+ * <p><strong>GAP-562b (Wave 80 Bucket C):</strong> Branding endpoints SHOULD be
+ * OWNER-only per business rule (STAFF has no branding access).
+ * {@code kitehub-branding} module does NOT yet have {@code spring-boot-starter-security}
+ * on classpath, so {@code @PreAuthorize} is not enforceable here in Wave 80. Defense
+ * comes from (a) FE {@code RoleGuard} at {@code /branding/*} route layout, (b) gateway
+ * path-level auth filter. Adding spring-security dependency + {@code @EnableMethodSecurity}
+ * to this module is tracked as Wave 81 follow-up under GAP-562b §"BE @PreAuthorize coverage"
+ * deferred portion.</p>
+ *
  * @since 1.0
  */
 @Slf4j

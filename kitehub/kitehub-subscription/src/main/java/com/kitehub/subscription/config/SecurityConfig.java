@@ -19,6 +19,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -74,7 +76,14 @@ public class SecurityConfig {
 
     @Bean
     @Profile("!test")
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            ObjectProvider<AccessDeniedHandler> accessDeniedHandlerProvider) throws Exception {
+        // GAP-562b (Wave 80 Bucket C): if a RbacAccessDeniedHandler bean is present
+        // (production profile), wire it so privilege-escalation attempts (STAFF →
+        // OWNER endpoints) write an admin_audit_log row before returning 403.
+        AccessDeniedHandler accessDeniedHandler = accessDeniedHandlerProvider.getIfAvailable();
+
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -112,8 +121,14 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 // Anonymous access to authenticated endpoints → 401 (not the default 403)
-                .exceptionHandling(eh -> eh
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                // GAP-562b: authenticated-but-insufficient-role → 403 via RbacAccessDeniedHandler
+                // which also writes an admin_audit_log row for forensics.
+                .exceptionHandling(eh -> {
+                    eh.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
+                    if (accessDeniedHandler != null) {
+                        eh.accessDeniedHandler(accessDeniedHandler);
+                    }
+                })
                 .addFilterBefore(new XUserRolesHeaderFilter(),
                         UsernamePasswordAuthenticationFilter.class);
 

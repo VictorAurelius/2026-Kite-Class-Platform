@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,6 +34,18 @@ import java.util.UUID;
        extraTags = {"slo", "tier-b", "controller", "subscription"})
 public class SubscriptionController {
 
+    /**
+     * GAP-562b (Wave 80 Bucket C): subscription mutations require OWNER role.
+     * Read endpoints accept OWNER + STAFF + legacy admin aliases. Wave 81
+     * cutoff (2026-06-14) collapses to canonical OWNER per
+     * {@code com.kitehub.subscription.auth.role.PlatformRole}.
+     */
+    static final String OWNER_AUTHZ =
+            "hasAnyRole('OWNER','PLATFORM_ADMIN','ADMIN')";
+
+    static final String OWNER_OR_STAFF_AUTHZ =
+            "hasAnyRole('OWNER','STAFF','PLATFORM_ADMIN','ADMIN')";
+
     private final SubscriptionService subscriptionService;
     private final SubscriptionRenewalService renewalService;
 
@@ -43,6 +56,7 @@ public class SubscriptionController {
      * @return Created subscription response
      */
     @PostMapping
+    @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<SubscriptionResponse> createSubscription(
         @Valid @RequestBody CreateSubscriptionRequest request
     ) {
@@ -57,6 +71,7 @@ public class SubscriptionController {
      * @return Subscription response
      */
     @GetMapping("/{id}")
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
     public ResponseEntity<SubscriptionResponse> getSubscription(@PathVariable UUID id) {
         SubscriptionResponse response = subscriptionService.getSubscription(id);
         return ResponseEntity.ok(response);
@@ -69,6 +84,7 @@ public class SubscriptionController {
      * @return Subscription response
      */
     @GetMapping("/instance/{instanceId}/active")
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
     public ResponseEntity<SubscriptionResponse> getActiveSubscription(@PathVariable UUID instanceId) {
         SubscriptionResponse response = subscriptionService.getActiveSubscription(instanceId);
         return ResponseEntity.ok(response);
@@ -81,6 +97,7 @@ public class SubscriptionController {
      * @return List of subscription responses
      */
     @GetMapping("/instance/{instanceId}")
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
     public ResponseEntity<List<SubscriptionResponse>> getSubscriptionsByInstance(@PathVariable UUID instanceId) {
         List<SubscriptionResponse> responses = subscriptionService.getSubscriptionsByInstance(instanceId);
         return ResponseEntity.ok(responses);
@@ -94,6 +111,7 @@ public class SubscriptionController {
      * @return Updated subscription response
      */
     @PatchMapping("/{id}/upgrade")
+    @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<SubscriptionResponse> upgradeSubscription(
         @PathVariable UUID id,
         @Valid @RequestBody TierChangeRequest request
@@ -110,6 +128,7 @@ public class SubscriptionController {
      * @return Updated subscription response
      */
     @PatchMapping("/{id}/downgrade")
+    @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<SubscriptionResponse> downgradeSubscription(
         @PathVariable UUID id,
         @Valid @RequestBody TierChangeRequest request
@@ -126,6 +145,7 @@ public class SubscriptionController {
      * @return No content
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<Void> cancelSubscription(
         @PathVariable UUID id,
         @RequestParam(defaultValue = "false") boolean immediate
@@ -142,6 +162,7 @@ public class SubscriptionController {
      * @return No content
      */
     @PostMapping("/{id}/renew")
+    @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<Void> renewSubscription(@PathVariable UUID id) {
         renewalService.manualRenewal(id);
         return ResponseEntity.noContent().build();
@@ -154,6 +175,7 @@ public class SubscriptionController {
      * @return List of expiring subscription responses
      */
     @GetMapping("/expiring")
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
     public ResponseEntity<List<SubscriptionResponse>> getExpiringSubscriptions() {
         List<SubscriptionResponse> responses = subscriptionService.getExpiringSubscriptions();
         return ResponseEntity.ok(responses);

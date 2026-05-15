@@ -5,7 +5,9 @@ interface User {
   id: string;  // UUID from backend
   email: string;
   name: string;
-  role: 'OWNER' | 'ADMIN' | 'PLATFORM_ADMIN';
+  // GAP-562b (Wave 80 Bucket C): STAFF added for tenant manager role separation.
+  // Legacy PLATFORM_ADMIN / ADMIN map to OWNER via lib/auth-helpers + use-role hook.
+  role: 'OWNER' | 'STAFF' | 'ADMIN' | 'PLATFORM_ADMIN';
 }
 
 interface AuthState {

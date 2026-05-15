@@ -66,18 +66,36 @@ export async function isAuthenticated(page: Page): Promise<boolean> {
  * Set up mock auth state in localStorage (skips registration flow).
  * Useful for testing pages that need auth but don't need real API data.
  */
-export async function setupMockAuth(page: Page, role: 'OWNER' | 'ADMIN' = 'OWNER'): Promise<void> {
+export async function setupMockAuth(
+  page: Page,
+  // GAP-562b (Wave 80 Bucket C): STAFF added for tenant-manager role separation.
+  // PLATFORM_ADMIN retained alias for platform-admin scope.
+  role: 'OWNER' | 'STAFF' | 'ADMIN' | 'PLATFORM_ADMIN' = 'OWNER',
+): Promise<void> {
   const currentUrl = page.url();
   if (currentUrl === 'about:blank' || !currentUrl.startsWith('http')) {
     await page.goto('/');
   }
 
+  const emailByRole: Record<typeof role, string> = {
+    OWNER: 'mock@kitehub.com',
+    STAFF: 'staff@kitehub.com',
+    ADMIN: 'admin@kitehub.com',
+    PLATFORM_ADMIN: 'admin@kitehub.com',
+  };
+  const nameByRole: Record<typeof role, string> = {
+    OWNER: 'Mock User',
+    STAFF: 'Staff User',
+    ADMIN: 'Admin User',
+    PLATFORM_ADMIN: 'Admin User',
+  };
+
   const authState = {
     state: {
       user: {
         id: '00000000-0000-0000-0000-000000000099',
-        email: role === 'ADMIN' ? 'admin@kitehub.com' : 'mock@kitehub.com',
-        name: role === 'ADMIN' ? 'Admin User' : 'Mock User',
+        email: emailByRole[role],
+        name: nameByRole[role],
         role,
       },
       accessToken: 'mock-access-token',

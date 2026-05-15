@@ -23,7 +23,9 @@ interface AccountTabProps {
     id?: string;
     email?: string;
     name?: string;
-    role?: 'OWNER' | 'ADMIN' | 'PLATFORM_ADMIN';
+    // GAP-562b (Wave 80 Bucket C): STAFF added to align with auth-store role
+    // union; legacy ADMIN / PLATFORM_ADMIN retained until Wave 81 cutoff.
+    role?: 'OWNER' | 'STAFF' | 'ADMIN' | 'PLATFORM_ADMIN';
   } | null;
   // Additional fields from instance (to be fetched separately)
   phone?: string;
