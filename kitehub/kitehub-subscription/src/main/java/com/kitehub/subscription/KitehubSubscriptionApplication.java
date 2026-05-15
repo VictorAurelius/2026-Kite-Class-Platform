@@ -35,7 +35,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     // Wave 78 Bucket F — GAP-542 feedback widget + survey scheduler
     "com.kitehub.subscription.feedback.entity",
     // Wave 79 Bucket B — GAP-561/562 staff invitation + RBAC (OWNER/STAFF)
-    "com.kitehub.subscription.staff.entity"
+    "com.kitehub.subscription.staff.entity",
+    // Wave 79 Bucket F-bis — GAP-040 admin "View as tenant" impersonation
+    "com.kitehub.subscription.impersonation"
 })
 @EnableJpaAuditing
 @EnableScheduling
