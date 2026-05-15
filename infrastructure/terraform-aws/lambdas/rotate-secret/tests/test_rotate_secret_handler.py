@@ -94,15 +94,19 @@ class TestDispatch(unittest.TestCase):
 
     def test_test_step_skipped_when_no_probe_url(self):
         client = _build_client()
-        with patch.object(handler, "boto3", MagicMock(client=MagicMock(return_value=client))):
-            with patch.dict("os.environ", {}, clear=True):
-                handler.lambda_handler({**self.EVENT, "Step": "testSecret"}, None)
+        with (
+            patch.object(handler, "boto3", MagicMock(client=MagicMock(return_value=client))),
+            patch.dict("os.environ", {}, clear=True),
+        ):
+            handler.lambda_handler({**self.EVENT, "Step": "testSecret"}, None)
 
     def test_unknown_step_raises(self):
         client = _build_client()
-        with patch.object(handler, "boto3", MagicMock(client=MagicMock(return_value=client))):
-            with self.assertRaises(ValueError):
-                handler.lambda_handler({**self.EVENT, "Step": "bogus"}, None)
+        with (
+            patch.object(handler, "boto3", MagicMock(client=MagicMock(return_value=client))),
+            self.assertRaises(ValueError),
+        ):
+            handler.lambda_handler({**self.EVENT, "Step": "bogus"}, None)
 
     def test_rotation_disabled_raises(self):
         client = _build_client()
@@ -110,9 +114,11 @@ class TestDispatch(unittest.TestCase):
             "RotationEnabled": False,
             "VersionIdsToStages": {"tok": ["AWSPENDING"]},
         }
-        with patch.object(handler, "boto3", MagicMock(client=MagicMock(return_value=client))):
-            with self.assertRaises(ValueError):
-                handler.lambda_handler({**self.EVENT, "Step": "createSecret"}, None)
+        with (
+            patch.object(handler, "boto3", MagicMock(client=MagicMock(return_value=client))),
+            self.assertRaises(ValueError),
+        ):
+            handler.lambda_handler({**self.EVENT, "Step": "createSecret"}, None)
 
     def test_finish_step_promotes_pending(self):
         client = MagicMock()
