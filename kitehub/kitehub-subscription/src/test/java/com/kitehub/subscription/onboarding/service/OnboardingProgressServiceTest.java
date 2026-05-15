@@ -2,6 +2,7 @@ package com.kitehub.subscription.onboarding.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.kitehub.subscription.onboarding.config.OnboardingConfig;
 import com.kitehub.subscription.onboarding.domain.OnboardingStepId;
 import com.kitehub.subscription.onboarding.dto.OnboardingProgressResponse;
 import com.kitehub.subscription.onboarding.dto.OnboardingProgressUpdateCommand;
@@ -35,7 +36,9 @@ class OnboardingProgressServiceTest {
         repository = mock(OnboardingProgressRepository.class);
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
-        service = new OnboardingProgressService(repository, mapper);
+        OnboardingConfig onboardingConfig = new OnboardingConfig(
+                "PROFILE_SETUP,INVITE_TEAM,IMPORT_DATA,CREATE_FIRST_CLASS,EXPLORE_FEATURES", 60);
+        service = new OnboardingProgressService(repository, mapper, onboardingConfig);
     }
 
     @Test

@@ -25,27 +25,32 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * REST endpoints for 2FA enrollment + verification (GAP-516).
+ * REST endpoints for 2FA enrollment + verification (GAP-516 / GAP-547).
  *
  * <p>Five endpoints per
- * {@code documents/01-business/kitehub/auth/api-contract.md}:</p>
+ * {@code documents/01-business/kitehub/auth-2fa/api-contract.md}:</p>
  * <ul>
- *   <li>{@code POST /api/auth/2fa/enroll-init} — generate secret + recovery codes (response shown once)</li>
- *   <li>{@code POST /api/auth/2fa/enroll-confirm} — verify first TOTP code, persist enrollment</li>
- *   <li>{@code POST /api/auth/2fa/verify} — login-time TOTP / recovery code challenge</li>
- *   <li>{@code POST /api/auth/2fa/recovery-codes/regenerate} — invalidate + reissue recovery codes</li>
- *   <li>{@code POST /api/auth/2fa/disable} — non-admin opt-out</li>
+ *   <li>{@code POST /api/v1/auth/2fa/enroll-init} — generate secret + recovery codes (response shown once)</li>
+ *   <li>{@code POST /api/v1/auth/2fa/enroll-confirm} — verify first TOTP code, persist enrollment</li>
+ *   <li>{@code POST /api/v1/auth/2fa/verify} — login-time TOTP / recovery code challenge</li>
+ *   <li>{@code POST /api/v1/auth/2fa/recovery-codes/regenerate} — invalidate + reissue recovery codes</li>
+ *   <li>{@code POST /api/v1/auth/2fa/disable} — non-admin opt-out</li>
  * </ul>
+ *
+ * <p>Versioning (Wave 79 Bucket A / GAP-547): canonical path
+ * {@code /api/v1/auth/2fa/*} with backward-compat alias {@code /api/auth/2fa/*}
+ * honored until 2026-06-14 (30-day deprecation window per BR-AUTH-2FA-007).
+ * Each {@code @PostMapping} below lists BOTH paths so the controller answers
+ * either form with identical request/response shape.</p>
  *
  * <p>Auth model: the first three endpoints accept a {@code Bearer
  * <challenge_token>} issued by {@code POST /api/auth/login} when 2FA is
  * required. {@code regenerate} / {@code disable} accept a regular access token
  * + require recent TOTP possession (re-prove freshness).</p>
  *
- * @since 1.0.0 (Wave 72b GAP-516)
+ * @since 1.0.0 (Wave 72b GAP-516); v1 path Wave 79 Bucket A GAP-547
  */
 @RestController
-@RequestMapping("/api/auth/2fa")
 @RequiredArgsConstructor
 @Tag(name = "2FA", description = "TOTP enrollment + recovery code endpoints")
 @Slf4j
@@ -97,7 +102,7 @@ public class TwoFactorController {
 
     // ---- endpoints ---------------------------------------------------------
 
-    @PostMapping("/enroll-init")
+    @PostMapping({"/api/v1/auth/2fa/enroll-init", "/api/auth/2fa/enroll-init"})
     public ResponseEntity<?> enrollInit(
         @RequestHeader(value = "Authorization", required = false) String authHeader) {
         UUID userId = requireChallenge(authHeader, Purpose.TWO_FACTOR_ENROLL);
@@ -108,7 +113,7 @@ public class TwoFactorController {
         }
     }
 
-    @PostMapping("/enroll-confirm")
+    @PostMapping({"/api/v1/auth/2fa/enroll-confirm", "/api/auth/2fa/enroll-confirm"})
     public ResponseEntity<?> enrollConfirm(
         @RequestHeader(value = "Authorization", required = false) String authHeader,
         @Valid @RequestBody EnrollConfirmRequest req) {
@@ -120,7 +125,7 @@ public class TwoFactorController {
         }
     }
 
-    @PostMapping("/verify")
+    @PostMapping({"/api/v1/auth/2fa/verify", "/api/auth/2fa/verify"})
     public ResponseEntity<?> verify(@Valid @RequestBody VerifyRequest req) {
         UUID userId;
         try {
@@ -135,7 +140,7 @@ public class TwoFactorController {
         }
     }
 
-    @PostMapping("/recovery-codes/regenerate")
+    @PostMapping({"/api/v1/auth/2fa/recovery-codes/regenerate", "/api/auth/2fa/recovery-codes/regenerate"})
     public ResponseEntity<?> regenerate(
         @RequestHeader(value = "Authorization", required = false) String authHeader,
         @Valid @RequestBody RegenerateRequest req) {
@@ -147,7 +152,7 @@ public class TwoFactorController {
         }
     }
 
-    @PostMapping("/disable")
+    @PostMapping({"/api/v1/auth/2fa/disable", "/api/auth/2fa/disable"})
     public ResponseEntity<?> disable(
         @RequestHeader(value = "Authorization", required = false) String authHeader,
         @Valid @RequestBody DisableRequest req) {

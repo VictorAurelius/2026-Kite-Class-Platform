@@ -1,12 +1,13 @@
 package com.kitehub.subscription.feedback.service;
 
+import com.kitehub.subscription.feedback.config.FeedbackConfig;
 import com.kitehub.subscription.feedback.dto.FeedbackSubmissionRequest;
 import com.kitehub.subscription.feedback.entity.FeedbackSubmission;
 import com.kitehub.subscription.feedback.repository.FeedbackSubmissionRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -32,8 +33,16 @@ class FeedbackServiceTest {
     @Mock
     private FeedbackSubmissionRepository repository;
 
-    @InjectMocks
     private FeedbackService service;
+
+    @BeforeEach
+    void setUp() {
+        // Wave 79 Bucket A GAP-555 — FeedbackConfig wires kitehub.feedback.* keys.
+        // Use real config with defaults so tests exercise the same whitelist as prod.
+        FeedbackConfig config = new FeedbackConfig(1, 5, 5, 2000, 10, 30,
+                "BUG,USABILITY,FEATURE_REQUEST,GENERAL");
+        service = new FeedbackService(repository, config);
+    }
 
     @Test
     void shouldPersistSubmissionWithAllFields() {

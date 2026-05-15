@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -52,9 +53,10 @@ public class FeedbackController {
     @PostMapping("/api/v1/feedback")
     public ResponseEntity<FeedbackSubmissionResponse> submit(
             @Valid @RequestBody FeedbackSubmissionRequest request,
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
             HttpServletRequest httpRequest) {
 
-        String tenantId = currentTenantId();
+        String tenantId = currentTenantId(tenantHeader);
         String userId = currentUserId();
         String clientIp = resolveClientIp(httpRequest);
 
@@ -71,11 +73,19 @@ public class FeedbackController {
         return auth.getName();
     }
 
-    private static String currentTenantId() {
-        // Gateway forwards X-Tenant-Id via SecurityContext extension; absent for
-        // anonymous submits. For now return null — auth filter populates when
-        // JWT carries tenantId claim (Wave 33+ infrastructure).
-        return null;
+    /**
+     * Wire {@code X-Tenant-Id} header forwarded by gateway. GAP-551 fix
+     * (Wave 79 Bucket A): previously hard-coded to null even when JWT carried
+     * tenantId; now reads the header set by
+     * {@code SecurityConfig.XUserRolesHeaderFilter} infrastructure (Wave 33).
+     * Anonymous feedback (no JWT, no header) still returns null — service
+     * accepts unscoped submissions.
+     */
+    private static String currentTenantId(String tenantHeader) {
+        if (tenantHeader == null || tenantHeader.isBlank()) {
+            return null;
+        }
+        return tenantHeader.trim();
     }
 
     /**

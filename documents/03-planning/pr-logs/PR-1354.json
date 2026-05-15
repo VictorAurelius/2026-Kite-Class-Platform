@@ -1,0 +1,40 @@
+{
+  "pr": 1354,
+  "title": "feat(wave-78-C): backend close-out \u2014 auth rate limit + Retry-After UX + env config (GAP-508/514/515)",
+  "branch": "wave/78-bucket-c-backend-closeout",
+  "created_at": null,
+  "merged_at": "2026-05-14T15:13:38Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "ui-review",
+      "business-logic-audit"
+    ],
+    "audits_run": [
+      "ui-review"
+    ],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-14T15:13:45.703017",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 9,
+        "java_files": 0,
+        "test_files": 1,
+        "business_docs": true,
+        "missing_audits": [
+          "business-logic-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/3",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-74474"
+  }
+}

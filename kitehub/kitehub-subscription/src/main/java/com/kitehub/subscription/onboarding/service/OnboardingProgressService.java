@@ -3,6 +3,7 @@ package com.kitehub.subscription.onboarding.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kitehub.subscription.onboarding.config.OnboardingConfig;
 import com.kitehub.subscription.onboarding.domain.OnboardingStepId;
 import com.kitehub.subscription.onboarding.dto.OnboardingProgressResponse;
 import com.kitehub.subscription.onboarding.dto.OnboardingProgressUpdateCommand;
@@ -44,6 +45,11 @@ public class OnboardingProgressService {
 
     private final OnboardingProgressRepository repository;
     private final ObjectMapper objectMapper;
+    // GAP-555: wired but informational — OnboardingStepId enum already enforces
+    // the step whitelist at compile time. Injecting OnboardingConfig keeps the
+    // rules.md key grep-discoverable + allows FE-render lists to be sourced from
+    // config without code change.
+    private final OnboardingConfig onboardingConfig;
 
     /** GET — return current tenant's checklist; lazy-init on first call. */
     @Transactional
