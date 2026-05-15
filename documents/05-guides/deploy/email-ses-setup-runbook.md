@@ -1,8 +1,8 @@
 # AWS SES Production Setup Runbook
 
 **Audience:** Solo dev / SRE provisioning AWS SES for KiteHub email transactional traffic
-**Status:** Active runbook (Wave 33 Bucket B — GAP-370; Wave 61 Bucket B refresh — production approval prep)
-**Last reviewed:** 2026-05-11
+**Status:** Active runbook (Wave 33 Bucket B — GAP-370; Wave 61 Bucket B refresh — production approval prep; Wave 84 Bucket D — Vietnamese quick-start overlay GAP-423)
+**Last reviewed:** 2026-05-15
 **Cross-refs:**
 - `documents/04-quality/gaps/GAP-370-email-transactional-infrastructure.md`
 - `documents/05-guides/deploy/dns-setup-runbook.md` (Bucket D — TXT records)
@@ -10,6 +10,97 @@
 - `.claude/rules/release-deploy-standard.md` §3.4 (MAJOR release email checklist)
 - `kitehub/kitehub-email/src/test/java/com/kitehub/email/integration/SesIntegrationSmokeTest.java` (Wave 45 — profile-gated JUnit smoke test)
 - `scripts/smoke-ses.sh` (Wave 61 — read-only AWS SES state verification)
+
+---
+
+## 🇻🇳 Hướng dẫn nhanh — Tiếng Việt
+
+> Section này là tóm tắt tiếng Việt cho dev VN chưa quen AWS SES. Phần technical chi tiết bên dưới (Wave 61 Verification, §0 §1-§7) giữ English/mixed để cross-locale stable cho terminology AWS.
+
+**AWS SES là gì:** AWS Simple Email Service — dịch vụ gửi email transactional có tích hợp sẵn với AWS infra (CloudWatch metrics, IAM, SNS feedback). KiteHub dùng SES để gửi email welcome / xác thực / khôi phục MFA / hoá đơn / DSAR cho tenant Phase 1 BETA. Region `ap-southeast-1` (Singapore) per ADR-025.
+
+**Khi nào dùng runbook này:**
+
+- Lần đầu setup SES cho môi trường production mới (1 lần / cloud account).
+- Verify lại domain `kitehub.me` (DKIM + SPF + DMARC) sau khi đổi DNS provider.
+- Submit request mở **Production access** (thoát Sandbox 200 email/24h → Free Tier 62k email/tháng).
+- Cấu hình SNS topic cho bounce + complaint feedback loops trước khi go live.
+- Refresh sau incident về deliverability (bounce rate spike, complaint rate vượt ngưỡng).
+
+**Quy trình tóm tắt (6 bước, ~30 phút thao tác + 24-48h chờ AWS approval):**
+
+1. Verify domain identity `kitehub.me` trong SES Console region `ap-southeast-1` → SES sinh 3 DKIM CNAME tokens. Chi tiết: §3 "Sender domain verification" + §3.1 CLI commands.
+2. Add DNS records vào Cloudflare DNS: 3 DKIM CNAME + 1 SPF TXT + 1 DMARC TXT + 1 verification TXT. Đợi propagation 5-30 phút → SES auto-verify status `Success`. Chi tiết: §3.2 bảng records.
+3. Submit Production access request qua AWS Support Center → form template Wave 61 sẵn ở §4.1.1 copy-paste verbatim (mail type / website / use case description ≥30 words / volume forecast). Chi tiết: §4 "Sandbox → Production access request".
+4. Đợi AWS review 24-48h calendar (giờ VN GMT+7 vs AWS UTC chênh ~16h khi notification gửi 09:00 UTC). Có thể bị reject lần đầu — re-submit với specifics. Chi tiết: §4.2 + §0 "KYC pitfalls cho user VN" bên dưới.
+5. Sau khi approve: verify Production limits (62k email/tháng default Free Tier) trong "Account dashboard" tab. Chi tiết: §4.4 "Verify production approval".
+6. Configure SNS topic cho bounce + complaint feedback loops → wire vào `kitehub-email` service via `application.yml` (`aws.ses.notification-topic-arn`) → smoke test. Chi tiết: §5 + §7.
+
+**Bẫy thường gặp:**
+
+- ❌ Sai region — verify domain ở `us-east-1` nhưng app stack ở `ap-southeast-1`. DKIM keys khác nhau giữa region → phải re-verify. Verify bằng: `aws ses get-identity-verification-attributes --region ap-southeast-1 --identities kitehub.me`.
+- ❌ DMARC policy quá strict ngay từ đầu — set `p=reject` trước khi DKIM/SPF settle → email hợp lệ bị block. Phase 1 BETA bắt đầu `p=quarantine`, sau 30 ngày review report → cân nhắc `p=reject`.
+- ❌ Quên enable 2FA trên AWS root account trước khi submit Production request — AWS reject vì security posture chưa đủ.
+- ❌ Use case description form bằng tiếng Việt — AWS form bắt buộc English ≥30 từ. Dùng template §4.1.1 copy verbatim.
+- ❌ Bounce rate vượt 5% → AWS tự pause account, phải mở support ticket giải trình. Verify weekly: AWS SES Console → Reputation tab.
+
+**Khi gặp lỗi:** xem §0 "Hỏi đáp thường gặp (Vietnamese FAQ)" H1-H8 bên dưới, hoặc reject reasons §0 "KYC pitfalls cho user VN" — đã liệt kê 4 reject reasons phổ biến + remediation. Nếu vẫn stuck: cross-link tới `documents/05-guides/operations/incident-comms-runbook.md` để escalate qua status page Instatus.
+
+**Thuật ngữ AWS SES nhanh (tham chiếu chéo English ↔ Việt):**
+
+| Thuật ngữ EN | Nghĩa Việt | Ghi chú thực tế |
+|--------------|------------|-----------------|
+| Sandbox mode | Chế độ thử nghiệm | Mặc định khi mở SES — chỉ gửi tới địa chỉ verified, giới hạn 200 email/24h |
+| Production access | Cấp quyền sản xuất | Sau khi AWS review request — gửi tự do, Free Tier 62k email/tháng |
+| Domain identity | Định danh tên miền | Cần verify ownership qua DNS records (TXT + DKIM CNAME) |
+| Easy DKIM | Chữ ký số đơn giản | AWS tự sinh 3 CNAME tokens — recommended cho mọi domain mới |
+| SPF record | Bản ghi cho phép gửi | Khai báo `amazonses.com` được gửi mail thay cho `kitehub.me` |
+| DMARC policy | Chính sách xác thực email | `p=none` (collect) → `p=quarantine` (suspicious vào spam) → `p=reject` (block) |
+| Bounce rate | Tỉ lệ thư không tới được | Mục tiêu <2%, AWS cảnh báo ở 5%, khoá account ở 10% |
+| Complaint rate | Tỉ lệ người nhận đánh dấu spam | Mục tiêu <0.1% — vượt là AWS pause account ngay |
+| Suppression list | Danh sách chặn tự động | Địa chỉ hard bounce SES tự cho vào — phải xoá trước khi gửi lại |
+| SNS topic | Chủ đề SNS | AWS pub-sub queue nhận bounce + complaint notification |
+| Warmup schedule | Lịch hâm nóng tài khoản | Tăng dần volume để build reputation, tránh spam flag |
+| Throttling | Giới hạn tốc độ gửi | AWS limit ~14 email/giây sau khi production approve |
+| Reputation | Uy tín người gửi | Tính dựa trên bounce rate + complaint rate — quan trọng cho deliverability |
+
+**Lưu ý vận hành quan trọng cho dev VN solo:**
+
+- Theo dõi reputation hàng ngày trong tuần đầu sau approval — AWS SES Console → "Reputation" tab. Nếu thấy bounce rate spike → kiểm tra suppression list + remove email không hợp lệ.
+- Compliance VN: Luật Quảng cáo 2012 + Decree 91/2020/NĐ-CP yêu cầu marketing email phải có `List-Unsubscribe` header. Transactional email (welcome / password reset / MFA / billing) miễn requirement này, nhưng nên include cho consistency cross-locale.
+- Email gửi tới gateway VN (Viettel, VNPT, FPT mail) đôi khi bị flag spam — verify bằng `mail-tester.com` score ≥9/10 trước khi go production. Score thấp thường do thiếu DKIM hoặc DMARC sai.
+- Quota tracking hàng tháng: AWS Cost Explorer filter Service = "Simple Email Service" — đảm bảo không vượt 62k email/tháng Free Tier. Nếu sắp vượt → xin tăng quota qua Support Center (cùng thủ tục như production access request).
+- Kiểm tra DKIM CNAME records định kỳ mỗi 90 ngày qua `dig CNAME <token>._domainkey.kitehub.me` — Cloudflare đôi khi xoá nhầm khi user dọn dẹp DNS. KHÔNG xoá record bắt đầu bằng `<selector>._domainkey.kitehub.me`.
+
+**Cross-link tiếng Việt mở rộng:**
+
+- §0 "Hướng Dẫn Nhanh (Vietnamese)" chi tiết bên dưới — bảng 6 bước + KYC pitfalls + region warning + thuật ngữ EN→VI + FAQ H1-H8 + lưu ý vận hành sau approval.
+- Cloudflare DNS records add hướng dẫn VN: `documents/05-guides/vietnamese/cloudflare-setup.md`.
+- AWS account prep prerequisite: `documents/05-guides/account-prep/01-aws-account-creation.md`.
+- Domain registrar prerequisite: `documents/05-guides/account-prep/02-domain-registrar.md`.
+- Incident comms runbook (Instatus VN overlay): `documents/05-guides/operations/incident-comms-runbook.md`.
+- Email deliverability runbook (DKIM/SPF/DMARC chi tiết): `documents/05-guides/deploy/email-deliverability-runbook.md`.
+
+**Workflow gợi ý cho dev VN solo (cô đọng):**
+
+Buổi đầu (~2h thao tác + 24-48h chờ): chuẩn bị account AWS với 2FA enabled → tạo IAM user/role với SES permissions → verify domain `kitehub.me` qua SES Console → add 6 DNS records vào Cloudflare → đợi SES auto-verify (≤30 phút) → submit Production access request với form template Wave 61 (§4.1.1) → đợi AWS review.
+
+Buổi tiếp theo (sau khi nhận email approve): verify Production limits trong dashboard → tạo SNS topic cho bounce/complaint → subscribe email/SQS → wire `aws.ses.notification-topic-arn` vào `kitehub-email` service → smoke test bằng `aws ses send-email` từ địa chỉ verified → check inbox + spam folder → verify DKIM-Signature header có + valid → run `mail-tester.com` score ≥9/10.
+
+Sau khi go production (theo dõi tuần đầu): kiểm tra Reputation tab hàng ngày → setup CloudWatch alarm khi bounce rate >2% hoặc complaint rate >0.1% → document suppression list policy (auto-suppress vs manual review) → schedule Phase 2 plan tăng quota khi cohort tenant mở rộng (Phase 1.5 PAID có thể cần 200k+ email/tháng).
+
+Nếu có thay đổi domain (vd: `kitehub.me` → `kitehub.vn` Phase 2): re-verify identity mới + re-add 6 DNS records + đợi propagation → KHÔNG xoá identity cũ ngay (giữ ít nhất 30 ngày để tránh email đang in-flight bị reject) → update `application.yml` `aws.ses.from-address` sau khi verify xong.
+
+**Checklist nhanh trước khi submit Production access request:**
+
+- [ ] Domain identity `kitehub.me` status = `Verified` (kiểm tra qua SES Console hoặc `aws ses get-identity-verification-attributes`).
+- [ ] 3 DKIM CNAME records đã propagate (kiểm tra `dig CNAME <token>._domainkey.kitehub.me` trả về `<token>.dkim.amazonses.com`).
+- [ ] SPF TXT record `v=spf1 include:amazonses.com -all` đã add vào root domain.
+- [ ] DMARC TXT record bắt đầu với `p=quarantine` (KHÔNG `p=reject` ngay từ đầu — sẽ block email hợp lệ nếu DKIM/SPF chưa settle).
+- [ ] AWS root account đã enable MFA (TOTP / hardware key) — bắt buộc cho security posture khi AWS review.
+- [ ] Form template Wave 61 §4.1.1 đã copy-paste đầy đủ — use case description ≥30 từ tiếng Anh, volume forecast realistic Phase 1 BETA (2k email/tháng).
+- [ ] Bounce handling plan đã sẵn sàng — SNS topic ARN có thể cite trong form nếu AWS hỏi.
+- [ ] Test email Sandbox đã pass — gửi tới địa chỉ verified, nhận trong inbox + check Spam folder, DKIM-Signature header có + valid.
 
 ---
 
