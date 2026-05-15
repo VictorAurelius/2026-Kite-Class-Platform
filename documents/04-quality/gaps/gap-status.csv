@@ -278,7 +278,7 @@ GAP-406,GAP-406-pen-test-light-owasp-top-10.md,Pen-test Light (OWASP Top 10 + Se
 GAP-408,GAP-408-jvm-heap-cap-dev-profile.md,JVM Heap Cap trong Dev Profile,PARTIAL,P2,Mixed,n/a,50,2026-05-07,2026-05-11,
 GAP-412,GAP-412-aws-activate-founders-pack-application.md,AWS Activate Founders Pack Application ($1k credit),PARTIAL,P1,Mixed,phase-1-beta,50,2026-05-07,2026-05-11,
 GAP-413,GAP-413-aws-budgets-cost-monitoring.md,AWS Budgets Cost Monitoring + Alerting,PARTIAL,P1,Mixed,n/a,50,2026-05-07,2026-05-11,
-GAP-414,GAP-414-ec2-right-sizing-monthly-review.md,EC2 Right-Sizing Monthly Review,PARTIAL,P2,Mixed,phase-1-beta,50,2026-05-07,2026-05-11,
+GAP-414,GAP-414-ec2-right-sizing-monthly-review.md,EC2 Right-Sizing Monthly Review,DONE,P2,Mixed,phase-1-beta,100,2026-05-07,2026-05-15,Wave 84 Bucket G terraform + Lambda + runbook + audit shipped; apply deferred to coordinator
 GAP-415,GAP-415-phase-2-eks-migration-plan.md,Phase 2 EKS Migration Plan,PARTIAL,P2,DevOps,phase-1.5-paid,50,2026-05-07,2026-05-11,
 GAP-423,GAP-423-ses-runbook-vietnamese-overlay.md,AWS SES runbook Vietnamese quick-start overlay,DONE,P1,Mixed,phase-1-beta,100,2026-05-07,2026-05-15,Wave 84 Bucket D
 GAP-424,GAP-424-statuspage-runbook-vietnamese-overlay.md,Statuspage / Instatus runbook Vietnamese quick-start overlay,DONE,P1,Mixed,phase-1-beta,100,2026-05-07,2026-05-15,Wave 84 Bucket E
