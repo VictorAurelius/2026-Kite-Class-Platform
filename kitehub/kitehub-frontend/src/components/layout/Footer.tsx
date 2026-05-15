@@ -109,6 +109,18 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                {/* Cookie policy link — GAP-558 Wave 83 Bucket E (PDPL Art 11 +
+                    Decree 13/2023 Art 4) — pairs with <ConsentBanner /> opt-in
+                    UI so user can re-read the policy before changing consent. */}
+                <Link
+                  href="/legal/cookies"
+                  className="hover:text-foreground transition-colors"
+                  data-testid="footer-cookie-policy-link"
+                >
+                  Chính sách Cookie
+                </Link>
+              </li>
+              <li>
                 <Link
                   href="/legal/terms"
                   className="hover:text-foreground transition-colors"

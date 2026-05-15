@@ -1,15 +1,18 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { GoogleAnalytics } from '@next/third-parties/google';
 import './globals.css';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
+import { ConsentGatedAnalytics } from '@/components/legal/ConsentGatedAnalytics';
 import { Toaster } from 'sonner';
 import { SITE_URL } from '@/lib/site-config';
 
 const inter = Inter({ subsets: ['latin', 'vietnamese'] });
 
-// GA4 measurement ID (format: G-XXXXXXXXXX). When unset, <GoogleAnalytics> is skipped.
+// GA4 measurement ID (format: G-XXXXXXXXXX). When unset, <ConsentGatedAnalytics>
+// renders nothing. When set, GA script tag is mounted ONLY after the user opts
+// into analytics via <ConsentBanner /> per PDPL Art 11 + Decree 13/2023 Art 4
+// (GAP-558 Wave 83 Bucket E).
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 export const metadata: Metadata = {
@@ -53,7 +56,7 @@ export default function RootLayout({
             <Toaster position="top-right" richColors />
           </ReactQueryProvider>
         </ThemeProvider>
-        {GA_ID ? <GoogleAnalytics gaId={GA_ID} /> : null}
+        <ConsentGatedAnalytics gaId={GA_ID} />
       </body>
     </html>
   );
