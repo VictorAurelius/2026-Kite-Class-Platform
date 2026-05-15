@@ -49,6 +49,7 @@ public class OnboardingProgressService {
     // the step whitelist at compile time. Injecting OnboardingConfig keeps the
     // rules.md key grep-discoverable + allows FE-render lists to be sourced from
     // config without code change.
+    @SuppressWarnings("unused") // future @Value wiring per GAP-555 (Wave 80+)
     private final OnboardingConfig onboardingConfig;
 
     /** GET — return current tenant's checklist; lazy-init on first call. */

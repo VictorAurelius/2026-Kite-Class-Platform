@@ -44,6 +44,7 @@ public class BetaStatusService {
     // Phase 1 BETA the classpath resource path is hardcoded. Cache TTL not yet
     // honored here (in-process AtomicReference cache); rate-limit enforced at
     // gateway. Injecting for grep-discoverability + future wiring.
+    @SuppressWarnings("unused") // future @Value wiring per GAP-555 (Wave 80+)
     private final BetaStatusConfig config;
 
     public BetaStatusService(BetaStatusConfig config) {

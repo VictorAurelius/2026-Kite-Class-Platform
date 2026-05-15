@@ -1,6 +1,5 @@
 package com.kitehub.subscription.auth.passwordreset;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.subscription.auth.passwordreset.PasswordResetService.PasswordResetTokenInvalidException;
 import com.kitehub.subscription.auth.passwordreset.PasswordResetService.WeakPasswordException;
 import com.kitehub.subscription.config.SecurityConfig;
@@ -36,7 +35,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PasswordResetControllerTest {
 
     @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper mapper;
 
     @MockitoBean private PasswordResetService service;
     @MockitoBean private JpaMetamodelMappingContext jpaMetamodelMappingContext;
