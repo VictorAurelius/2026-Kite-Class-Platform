@@ -18,6 +18,11 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+      # Wave 85 Bucket B B-AC6 (P0 CRITICAL): RESET app.current_tenant_id +
+      # app.is_platform_admin on every new physical connection created in pool.
+      # Defense-in-depth against cross-tenant leak via stale GUC. See kc-core
+      # application.yml + V59 migration header for full rationale.
+      connection-init-sql: "SELECT set_config('app.current_tenant_id', '', false), set_config('app.is_platform_admin', 'false', false);"
 
   jpa:
     hibernate:
