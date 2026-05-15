@@ -80,10 +80,31 @@ trigger: Wave 81 backend deploy CLOSED; FE Vercel stale ~38h + Free Tier daily l
 - Flip CF DNS record → new EC2 IP (proxied)
 - Verify `dig kitehub.me` returns new host within 5min
 
-### Bucket E — Self-hosted GitHub runner (see §7 for setup steps)
+### Bucket E — Self-hosted GitHub runner (install only, conditional usage measurement)
 
-- Install on WSL + register + systemd service
-- Sweep `runs-on: ubuntu-latest` → `runs-on: self-hosted` cho 19 workflows
+**Scope revised 2026-05-15 per user direction:** install WSL runner + register + systemd service, NHƯNG **KHÔNG sweep `runs-on: ubuntu-latest` → `runs-on: self-hosted`** across workflows yet. Keep GitHub-hosted as default cho measurement period.
+
+**Rationale:** premature default-flip to self-hosted = ops burden (WSL up/down, security with untrusted PR code per §7 caveat) without proven need. Solo-dev mode CI usage may stay well within Free Tier 2000min/mo. Per `incident-to-rule-pipeline.md` §3 advisory-rule guard — need data ≥7 days before filing rule with concrete threshold.
+
+**Measurement period:** Wave 82 + Wave 83 (1-2 waves baseline). Metrics to collect:
+
+| Metric | Query | Threshold of concern |
+|---|---|---|
+| Free Tier minute consumption | `gh api repos/{owner}/{repo}/actions/billing/usage` | >75% mid-month |
+| Queue wait time p95 per workflow | `gh run list --json createdAt,startedAt` → compute delta | >5min p95 |
+| Concurrent runs queued >2min | `gh run list --json status,createdAt` overlap analysis | ≥3 incidents/wave |
+| Self-hosted opt-in ad-hoc usage | Manual `workflow_dispatch` with `runs-on: self-hosted` override | reactive availability test |
+
+**Wave 83 deliverable:** file new rule `.claude/rules/ci-runner-fallback-policy.md` với data-backed thresholds OR explicit decision "no rule needed, GitHub-hosted sufficient for solo-dev scope". Either outcome closes meta-gap per `incident-to-rule-pipeline.md` 5-stage pipeline.
+
+**This Wave 82 Bucket E scope (revised):**
+
+1. Install WSL runner per §7 setup steps (USER ACTION ~30min)
+2. Register runner với labels `self-hosted,Linux,X64,wsl,available-on-demand`
+3. systemd service + monitoring
+4. **DO NOT sed workflows** — leave 19 workflows on `ubuntu-latest`
+5. Document opt-in pattern: add `if: vars.RUNNER_OVERRIDE == 'self-hosted'` checkbox cho ad-hoc switch via repo variable
+6. Baseline metric collection script `scripts/measure-ci-runner-usage.sh` (Wave 82 closure or Wave 83 init)
 
 ### Bucket F — Wave 81 follow-up bug fixes (see §6 — ✅ ALL DONE)
 
@@ -152,7 +173,9 @@ Per `post-wave-cleanup.md` mandate:
 
 ## 8. Log
 
-- **2026-05-15** (draft): Wave 82 plan created post Wave 81 closure. Bucket A spawned 2 outside-in agents (external benchmark + failure-mode matrix); both converged on Vercel Pro recommendation. User locked AWS EC2 self-host (cost-priority, AWS vendor lock). Bucket F shipped same session via PR #1396 — 5 follow-up items DONE + 7 audit-surfaced gateway routing bugs fixed (15-bug class total: beta-status + staff-invitations × 4 + admin-impersonate × 3). 2 audit-surfaced findings defer Wave 83 (3 services missing application-production.yml, audit-service-ports.sh script bug).
+- **2026-05-15** (draft): Wave 82 plan created post Wave 81 closure. Bucket A spawned 2 outside-in agents (external benchmark + failure-mode matrix); both converged on Vercel Pro recommendation. User locked AWS EC2 self-host (cost-priority, AWS vendor lock). Bucket F shipped same session via PR #1396 — 5 follow-up items DONE + 7 audit-surfaced gateway routing bugs fixed (15-bug class total: beta-status + staff-invitations × 4 + admin-impersonate × 3).
+- **2026-05-15** (Bucket F6 in-flight): user feedback "fix Spring profile silent-skip Wave 82, not Wave 83 defer" — fixed in same PR. Added 3 application-production.yml (admin/branding/email) + audit-spring-profiles.sh + audit-service-ports.sh both fix unbound FINDINGS array trip. All 3 audit scripts now PASS clean.
+- **2026-05-15** (Bucket E scope revised): user proposed conditional CI runner fallback rule. Per `incident-to-rule-pipeline.md` §3 advisory-rule guard, defer rule until ≥7 days measurement data. Bucket E scope narrowed: install WSL runner only, DO NOT sed workflows. Opt-in via `vars.RUNNER_OVERRIDE` pattern. Wave 83 deliverable: rule với threshold OR "no rule needed" decision based on baseline metrics.
 
 ## 9. Wave 81 follow-up gaps consolidated (Bucket F — ✅ ALL DONE)
 
@@ -204,15 +227,31 @@ sudo ./svc.sh status
 gh api "repos/VictorAurelius/2026-Kite-Class-Platform/actions/runners" --jq '.runners[] | {name,status,labels:[.labels[].name]}'
 ```
 
-### Workflow migration
+### Workflow migration (DEFERRED Wave 83)
+
+**Original plan:** sweep all 19 workflows `runs-on: ubuntu-latest` → `runs-on: self-hosted` mass-rename.
+
+**Revised 2026-05-15 (per §3 Bucket E):** **DO NOT run this sed.** Keep GitHub-hosted default cho measurement period. Self-hosted runner installed for opt-in availability only.
 
 ```bash
-# Coordinator runs this after runner online:
-find .github/workflows -name "*.yml" -exec sed -i 's/runs-on: ubuntu-latest/runs-on: [self-hosted, Linux, X64]/' {} \;
-git diff .github/workflows/
+# BANNED Wave 82 — KHÔNG run this command yet:
+# find .github/workflows -name "*.yml" -exec sed -i 's/runs-on: ubuntu-latest/runs-on: [self-hosted, Linux, X64]/' {} \;
 ```
 
-**Caveat:** Self-hosted runner runs untrusted PR code (PR từ forks). Solo-dev mode acceptable; team mode cần GitHub branch protection + workflow approval.
+**Opt-in pattern instead** (manual flip per workflow when queue/quota concern):
+
+```yaml
+# In workflow YAML, replace static runs-on with var-driven:
+jobs:
+  test:
+    runs-on: ${{ vars.RUNNER_OVERRIDE || 'ubuntu-latest' }}
+```
+
+Then `gh variable set RUNNER_OVERRIDE -b "self-hosted"` to flip; unset to revert.
+
+**Wave 83 deliverable:** based on measurement data, either (a) file rule với threshold + sed workflows OR (b) document decision "Free Tier sufficient, keep GitHub-hosted permanent".
+
+**Caveat:** Self-hosted runner runs untrusted PR code (PR từ forks). Solo-dev mode acceptable hôm nay; team mode cần GitHub branch protection + workflow approval.
 
 ## 8. Risk + mitigation (consolidated)
 
