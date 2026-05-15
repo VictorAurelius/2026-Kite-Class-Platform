@@ -1,13 +1,13 @@
 ---
-title: Wave 80 — Deploy + Smoke (Phase 1 BETA production rollout for self-test)
+title: Wave 81 — Deploy + Smoke (Phase 1 BETA production rollout for self-test)
 status: draft
 created: 2026-05-14
 updated: 2026-05-14
-waves: [80]
+waves: [81]
 gaps: [GAP-370, GAP-372, GAP-502, GAP-514, GAP-525, GAP-527, GAP-530, GAP-533]
 ---
 
-# Wave 80 — Deploy + Smoke
+# Wave 81 — Deploy + Smoke
 
 **Goal:** Đưa code Wave 77+78+79 lên production environment + smoke test endpoints + pre-self-test spot check 10/126 rows → hand off cho dev tự test 126 rows. Sau Wave 80, dev có thể chạy `phase-1-beta-acceptance-self-test.csv` từ đầu tới cuối với real production URLs.
 **Trigger:** Wave 79 close v1.0.0-rc gate (3 P0 audit + 3 P0 outside-in). Code đã ready trên main nhưng AWS stack stopped, kitehub-email chưa deploy, Resend DKIM chưa verify, V39-V46 migrations chưa apply. Self-test CSV (Wave 72b Bucket G ship) yêu cầu live production endpoints.
