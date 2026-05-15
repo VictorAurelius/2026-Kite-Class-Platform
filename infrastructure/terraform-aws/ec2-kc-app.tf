@@ -157,14 +157,18 @@ resource "aws_iam_role_policy" "kc_app_fe_certbot_metrics" {
     Version = "2012-10-17"
     Statement = [
       {
-        # Certbot DNS-01: đọc Cloudflare API token (scoped tới đúng 1 parameter)
+        # Certbot DNS-01: đọc Cloudflare API token từ AWS Secrets Manager.
+        # Token được quản lý qua `aws_secretsmanager_secret.placeholders["cloudflare-api-token"]`
+        # trong secrets.tf (placeholder pattern — user populate manually post-apply).
+        # Wave 82 Bucket B fix 2026-05-15: switched from SSM Parameter Store sang
+        # Secrets Manager để match existing user setup (token đã set trong Secrets Manager,
+        # không phải Parameter Store như Agent 1+2 designs giả định).
         Effect = "Allow"
         Action = [
-          "ssm:GetParameter",
-          "ssm:GetParameters",
+          "secretsmanager:GetSecretValue",
         ]
         Resource = [
-          "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.project_name}/${var.environment}/cloudflare-api-token",
+          aws_secretsmanager_secret.placeholders["cloudflare-api-token"].arn,
         ]
       },
       {
