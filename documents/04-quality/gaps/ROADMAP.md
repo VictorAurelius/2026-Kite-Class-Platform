@@ -8,9 +8,46 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-14 EOD — 🎉 Wave 79 SHIPPED Beta Invite Close-Out v1.0.0-rc gate + RBAC + PDPL + Wave 78 SHIPPED Beta Invite Launch Retain + Wave 77 SEND foundation)
+## 🎯 Current Status Snapshot (2026-05-15 — 🎉 Wave 80 SHIPPED v1.0.0-rc Blockers + Wave 79 Beta Invite Close-Out + Wave 78 Beta Invite Launch Retain + Wave 77 SEND foundation)
 
-> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-15-post-wave-79-handoff.md`](../../03-planning/session-handoffs/2026-05-15-post-wave-79-handoff.md) — post-Wave-79 state + Wave 80 DEPLOY+SMOKE queued + GAP-561b/562b/564 outside-in-expanded follow-ups + post-wave audit suite ≤3 ngày.
+> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-15-post-wave-80-handoff.md`](../../03-planning/session-handoffs/2026-05-15-post-wave-80-handoff.md) — post-Wave-80 state + Wave 81 DEPLOY+SMOKE queued + GAP-537c P2/P3 screenshots + kitehub-branding @PreAuthorize Wave 81 + post-wave audit suite v2 format ≤3 ngày.
+
+### 🎉 Wave 80 SHIPPED 2026-05-15 — v1.0.0-rc Blockers (4 buckets + 1 fix-cycle + 1 gitignore pre-add)
+
+**6 PRs merged:** #1378 plan + #1379 Bucket A (META audit format v2 ALL 5 cats per SOC2/ISO27001/OWASP ASVS) + #1380 chore(gitignore) user-manual PDF pre-add + #1381 Bucket C (RBAC FE RoleGuard + BE @PreAuthorize PaymentController + SubscriptionController + audit handler) + #1382 Bucket D (F2 user manual 15 sources P2/P3/Admin + Puppeteer PDF script + Playwright capture script + 10/20 screenshots) + #1383 Bucket B (invite-staff email + InvitationController real impl + HMAC token TTL 7d + 3 FE routes + V49 audit log + Suspense boundary fix).
+
+**Outcome (gap-status.csv canonical):**
+- 3 gaps DONE 100%: GAP-561 (invite-staff full flow) · GAP-561b (Wave 80 closure) · GAP-564 (META audit v2 ALL 5 cats)
+- 3 gaps PARTIAL: GAP-537→75 (F2 sources + scripts + 10/20 screenshots; P2/P3 placeholder → GAP-537c) · GAP-562→90 (kitehub-branding @PreAuthorize defer Wave 81) · GAP-562b→85 (FE RoleGuard + most BE; kitehub-branding defer Wave 81)
+- 1 NEW gap filed: GAP-537c P1 (P2 Owner + P3 Manager screenshots + Tier 2 annotation — Wave 81)
+- **v1.0.0-rc gate cleared:** 2FA versioning + RBAC enforcement + audit v2 format + invite flow all shipped → Wave 81 DEPLOY+SMOKE unblocked
+
+**Infra changes:**
+- V49__create_staff_invitation_audit_log.sql (audit trail per state transition CREATED/SENT/ACCEPTED/REVOKED/RESENT)
+- `RbacAccessDeniedHandler` wired into SecurityConfig (writes admin_audit_log on every 403 — IP + UA + denied role)
+- `InvitationTokenService` HMAC-SHA256 TTL 7d + `@PostConstruct` fail-fast production dev-default guard
+- Frontend: `RoleGuard` component + `useRole` hook + 3 layout wraps (billing/branding/settings) + Sidebar customerNav role filter
+- Frontend: `/admin/staff` list + `/admin/staff/invite` form + `/staff/accept-invite` public Suspense-wrapped landing + 3 help/{p2-owner,p3-manager,platform-admin} persona landings
+- `scripts/render-user-manual-pdf.{sh,mjs}` Puppeteer A4 portrait header/footer
+- `scripts/capture-user-manual-screenshots.{sh,mjs}` Playwright vi-VN 1440×900 desktop + 375×812 mobile fallback
+- 5 Wave 78 audit reports annotated "v1 format" banner cross-link to GAP-564 v2 template
+
+**Wave 80 closure protocol satisfied per `gap-done-discipline.md` + `post-merge-sync-completeness.md` + `post-wave-cleanup.md`:**
+- ✅ Wave plan `status: draft` → `status: complete` flipped + Bucket D retroactive note
+- ✅ `wave-history.jsonl` Wave 80 entry appended (Rule 15)
+- ✅ ROADMAP §🚀 Next Action updated (this section)
+- ✅ Worktree prune scheduled (this closure PR)
+- ✅ 4 gap markdown Log entries + gap-status.csv 7 row updates (6 affected + 1 new GAP-537c)
+- ✅ GAP-537c follow-up filed Wave 81 target
+
+**Post-wave audit suite due ≤3 ngày (per `post-wave-audit-mandate.md` §2.2) — MUST use v2 format per GAP-564:**
+- UI /128 across admin staff routes (invite + list + accept) + customer billing/branding/settings RoleGuard + help/{p2,p3,admin} persona landings
+- API Contract /100 across 5 staff invitation endpoints + 14 RBAC-protected billing+subscription endpoints
+- Business Logic /100 (RBAC enforcement + invite flow + audit log)
+- Security /100 **v2 format** (per-control evidence Command/Output/Verdict/EvidenceID per SOC2/ISO27001/OWASP ASVS) — verify RBAC + HMAC token + audit handler
+- Ops Readiness /100 (V49 migration + Puppeteer/Playwright dev deps)
+- Quality /100 weekly refresh
+
 
 ### 🎉 Wave 79 SHIPPED 2026-05-14 — Beta Invite Close-Out v1.0.0-rc gate (8 buckets + 4 cleanup PRs + 1 META gap filed)
 

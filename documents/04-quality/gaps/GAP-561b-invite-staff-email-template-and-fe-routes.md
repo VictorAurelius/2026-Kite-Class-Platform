@@ -99,3 +99,5 @@ Result: P3 Center Manager invite flow not functional — Owner cannot send staff
   - Smoke test `scripts/smoke-email-actuator.sh` extended with `--template invite-staff` variant
   - All existing tests pass: 630 BE tests + 738 FE tests green
 - **2026-05-14:** Filed as Wave 79 Bucket B PARTIAL exit-ramp per `gap-done-discipline.md` §3. Sister to GAP-562b. P0 BLOCKING v0.9.0-beta tenant invite flow.
+
+- **2026-05-15:** OPEN 0% → DONE 100% — Wave 80 Bucket B closure. Full impl shipped per spec (PR #1383). CI initial fail rebound: EmailTypeTest catalog 15→16 (INVITE_STAFF added) + `/staff/accept-invite` wrapped Suspense boundary for Next.js SSG prerender (fix commit 28af2869 merged into PR rebase). Parent GAP-561 upgraded PARTIAL 50 → DONE 100.

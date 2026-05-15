@@ -1,6 +1,6 @@
 ---
 title: Wave 80 — v1.0.0-rc Blockers (GAP-561b invite + GAP-562b RBAC + GAP-564 META audit v2)
-status: draft
+status: complete
 created: 2026-05-15
 updated: 2026-05-15
 waves: [80]
@@ -192,3 +192,5 @@ Per `feedback_parallel_agent_strategy.md` rule #9: 3 concurrent agents fine (max
 ## 8. Log
 
 - **2026-05-15:** Wave plan drafted in response to user request "draft wave để fix hết các gaps này luôn" sau Wave 79 closure PR #1376 b06cff67. 3 P0 follow-up gaps: GAP-561b (Manager invite flow) + GAP-562b (RBAC privilege escalation) + GAP-564 (META audit format v2 outside-in expanded). Pre-existing Wave 80 DEPLOY+SMOKE renamed → Wave 81 DEPLOY+SMOKE (was status:draft, no shipped artifacts impacted). Cross-layer YES — contract-first satisfied via Wave 79 Bucket 0 + pre-existing api-contract.md. Outside-in skip per §4 row "audit ≤30 days recent" + parent gap audits Wave 79 already covered. 3 buckets parallel pattern (~6-10h wall-clock). HIGH stake tier — Opus 4.7 full subagents. v0.9.0-beta tenant invite unblocked after Wave 80 ships → Wave 81 DEPLOY+SMOKE → v0.9.0-beta tag.
+
+- **2026-05-15 (Wave 80 CLOSURE):** Wave 80 COMPLETE — 4 buckets shipped (A/B/C/D). 4 PRs merged: #1379 Bucket A META audit v2 (GAP-564 DONE 100) + #1381 Bucket C RBAC (GAP-562/562b PARTIAL 90/85, kitehub-branding @PreAuthorize defer Wave 81) + #1382 Bucket D F2 manual full retrofit (GAP-537 PARTIAL 25→75, P2/P3 screenshots placeholder defer GAP-537c Wave 81) + #1383 Bucket B invite-staff (GAP-561/561b DONE 100, fix-cycle EmailTypeTest 15→16 + Suspense boundary). **Bucket D added post-spawn** per user-flagged miss "chưa có manual à?" — inside-out-completeness-trigger.md rule fired retroactively, scope expanded với Bucket D before agents finished. **GAP-561b CI fix-cycle:** initial Bucket B push had 2 fails (EmailTypeTest expected catalog size 15 → INVITE_STAFF made 16; `/staff/accept-invite` useSearchParams without Suspense → SSG prerender failure). Fix shipped same PR via force-push rebase. **Worktree contamination noted in 3/4 buckets** (Edit tool wrote to main repo path instead of worktree branch context — per `feedback_worktree_absolute_path_contamination.md`): main path restored clean each time; pattern indicates Edit tool absolute path resolution issue when worktree active. **Vercel rate-limit class** (GAP-495): residual intermittent failure across PRs; `git.deploymentEnabled: {main: true}` whitelist working (some PRs show "Canceled by Ignored Build Step" = SUCCESS) but counter reset behavior inconsistent (rate-limit appears + clears). NOT a required check on branch protection so MCP merge succeeded without `--admin` flag. Plus follow-ups filed: GAP-537c (P2/P3 screenshots + Tier 2 annotation Wave 81). Next: Wave 81 DEPLOY+SMOKE unblocked.
