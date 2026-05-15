@@ -280,8 +280,8 @@ GAP-412,GAP-412-aws-activate-founders-pack-application.md,AWS Activate Founders 
 GAP-413,GAP-413-aws-budgets-cost-monitoring.md,AWS Budgets Cost Monitoring + Alerting,PARTIAL,P1,Mixed,n/a,50,2026-05-07,2026-05-11,
 GAP-414,GAP-414-ec2-right-sizing-monthly-review.md,EC2 Right-Sizing Monthly Review,PARTIAL,P2,Mixed,phase-1-beta,50,2026-05-07,2026-05-11,
 GAP-415,GAP-415-phase-2-eks-migration-plan.md,Phase 2 EKS Migration Plan,PARTIAL,P2,DevOps,phase-1.5-paid,50,2026-05-07,2026-05-11,
-GAP-423,GAP-423-ses-runbook-vietnamese-overlay.md,AWS SES runbook Vietnamese quick-start overlay,OPEN,P1,Mixed,phase-1-beta,0,2026-05-07,2026-05-11,
-GAP-424,GAP-424-statuspage-runbook-vietnamese-overlay.md,Statuspage / Instatus runbook Vietnamese quick-start overlay,OPEN,P1,Mixed,phase-1-beta,0,2026-05-07,2026-05-11,
+GAP-423,GAP-423-ses-runbook-vietnamese-overlay.md,AWS SES runbook Vietnamese quick-start overlay,DONE,P1,Mixed,phase-1-beta,100,2026-05-07,2026-05-15,Wave 84 Bucket D
+GAP-424,GAP-424-statuspage-runbook-vietnamese-overlay.md,Statuspage / Instatus runbook Vietnamese quick-start overlay,DONE,P1,Mixed,phase-1-beta,100,2026-05-07,2026-05-15,Wave 84 Bucket E
 GAP-427,GAP-427-exchange-claim-code-undocumented.md,POST /api/v1/auth/beta-signup/exchange-claim-code not documented in api-contr...,OPEN,P1,Frontend,n/a,0,2026-05-08,2026-05-11,
 GAP-428,GAP-428-prospect-public-pages-missing-kit.md,Prospects / Public Pages Have No UI Kit Coverage,PARTIAL,P1,Frontend,phase-1-beta,70,2026-05-08,2026-05-14,Wave 78 Bucket A — production pages VN-polished + brand sync; HTML kit prototype deferred
 GAP-429,GAP-429-transient-state-ux-skeleton-pattern.md,Transient-State UX Skeleton Pattern — Loading/Empty/Error States Below 105/128,OPEN,P1,Frontend,n/a,0,2026-05-08,2026-05-11,

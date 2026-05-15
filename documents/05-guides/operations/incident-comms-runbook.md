@@ -1,9 +1,53 @@
 # Incident Communication Runbook
 
-**Wave:** 38 Bucket C (GAP-373)
-**Status:** Active 2026-05-07
+**Wave:** 38 Bucket C (GAP-373) + Wave 84 Bucket E (GAP-424 — Vietnamese quick-start overlay refresh)
+**Status:** Active 2026-05-15
+**Last reviewed:** 2026-05-15
 **Owner:** @nguyenvankiet (solo-dev, acting incident commander)
 **Related:** [`post-mortem-template.md`](post-mortem-template.md), [`ADR-027 statuspage vendor`](../../../02-architecture/adr/ADR-027-statuspage-vendor.md), GAP-370 email infra
+
+---
+
+## 🇻🇳 Hướng dẫn nhanh — Tiếng Việt
+
+> Section này là tóm tắt tiếng Việt cho dev VN chưa quen Instatus / status page. Phần technical chi tiết bên dưới (§0 quy trình incident + §0.1 signup walkthrough + §1-§6 EN procedure) giữ English/mixed để cross-locale stable cho terminology vendor.
+
+**Instatus / Status page là gì:** Status page = trang public hiển thị health của các component dịch vụ (KH-API, KC-API, Marketing site, Auth, Email). Khi có sự cố, tenant invite-only (10-20 trường học Phase 1 BETA) check `status.kitehub.vn` để biết "đang fix" thay vì gửi support email loạn. Vendor đã chốt theo ADR-027 = **Instatus** (Free tier $0/tháng — đủ cho Phase 1 BETA, upgrade Starter $20/tháng khi cần custom CSS hoặc private page Phase 2).
+
+**Khi nào dùng runbook này:**
+
+- Lần đầu signup Instatus + custom domain `status.kitehub.vn` setup (1 lần / vendor account). Chi tiết: §0.1 Instatus Signup Walkthrough.
+- Khi xảy ra incident production (P0/P1/P2/P3 per §3) → đăng status update theo 6-step quy trình (Detect → Triage → Post Initial → Update Cadence → Resolve → Post-mortem). Chi tiết: §0 bảng 6 bước + §4 EN chi tiết.
+- Cấu hình severity level + subscriber email template khi onboard cohort tenant mới.
+- Tham khảo template Vietnamese cho incident message body (status page hỗ trợ UTF-8 đầy đủ, subject + body Việt OK).
+- Post-mortem RCA trong 5 ngày làm việc sau incident — dùng `post-mortem-template.md`.
+
+**Quy trình tóm tắt (6 bước incident response, mỗi bước cross-link xuống §4):**
+
+1. **Detect** (<5 phút) — phát hiện sự cố qua alert Cloudflare / CloudWatch / user report. Trực ca / on-call nhận page. Chi tiết: §4 Step 1.
+2. **Triage** (5-10 phút) — đánh giá severity P0/P1/P2/P3 + phạm vi tenant ảnh hưởng. Chi tiết: §3 severity matrix + §4 Step 2.
+3. **Post Initial** (<10 phút cho P0/P1) — đăng incident lên Instatus với severity + impact + ETA điều tra. Chi tiết: §4 Step 3 + sample message body Vietnamese.
+4. **Update Cadence** (P0 = 30 phút / P1 = 60 phút / P2 = 4h) — cập nhật progress đều đặn để giảm tenant anxiety. Chi tiết: §4 Step 4.
+5. **Resolve** (<15 phút sau verify fix) — đăng "Resolved" với root-cause summary 1-2 câu. Chi tiết: §4 Step 5.
+6. **Post-mortem** (1-3h, trong 5 ngày làm việc) — viết RCA theo `post-mortem-template.md`, share team + tenant nếu P0. Chi tiết: §4 Step 6.
+
+**Bẫy thường gặp:**
+
+- ❌ Set timezone Instatus mặc định UTC → tenant VN thấy "incident at 02:00" hôm sau nhầm hôm trước. Phải set **(UTC+07:00) Asia/Ho_Chi_Minh** ở Bước 2 signup. Verify: dashboard → Settings → Timezone.
+- ❌ Custom domain `status.kitehub.vn` proxy qua Cloudflare orange-cloud → SSL cert Instatus không issue được. Phải để **DNS only (gray cloud)** ở Cloudflare CNAME record. Verify: `dig CNAME status.kitehub.vn` trả về `<slug>.instatus.com` (không phải Cloudflare IP).
+- ❌ Quên enable 2FA Instatus account → security posture không đủ khi cần grant team access Phase 2. Enable TOTP qua Bitwarden ngay sau signup.
+- ❌ Post incident bằng tiếng Anh thuần khi tenant VN-only → tenant không hiểu impact. Dùng template Vietnamese (subject + body), Instatus subscriber email auto-render Vietnamese OK.
+- ❌ Severity nhầm — P2 nhưng đăng "Major outage" tạo panic không cần thiết. Severity matrix §3 rõ: P0 = down hoàn toàn, P1 = phần lớn tenant, P2 = 1 component / 1 tenant, P3 = cosmetic.
+
+**Khi gặp lỗi:** xem §0.1 Bước 7 "Test incident sample → resolve → verify subscriber email" để test setup, hoặc §6 "Troubleshooting" bên dưới. Nếu Instatus dashboard tự nó down: fallback Twitter/X account `@KiteHubStatus` (Phase 2 prep) hoặc tenant email blast qua AWS SES (cross-link `email-ses-setup-runbook.md`).
+
+**Cross-link tiếng Việt mở rộng:**
+
+- §0 quy trình 6-step Vietnamese đầy đủ (bảng + severity nhanh) chi tiết bên dưới.
+- §0.1 Instatus Signup Walkthrough Vietnamese (Bước 1-7) — từ tạo account → custom domain → 5 components → severity config → test incident sample.
+- Cloudflare CNAME setup Vietnamese: `documents/05-guides/vietnamese/cloudflare-setup.md` §DNS records.
+- Post-mortem template: `post-mortem-template.md` (cùng folder).
+- ADR vendor decision: `documents/02-architecture/adr/ADR-027-statuspage-vendor.md`.
 
 ---
 
