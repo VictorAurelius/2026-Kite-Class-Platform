@@ -22,10 +22,10 @@ class EmailTypeTest {
     }
 
     @Test
-    @DisplayName("Should cover all existing 13 templates (Wave 18a) + 2 new beta templates")
+    @DisplayName("Should cover 13 (Wave 18a) + 2 beta (Wave 33) + INVITE_STAFF (Wave 80 B)")
     void shouldCoverFullCatalog() {
-        // 15 = 13 existing (Wave 18a) + 2 new (Wave 33 BETA)
-        assertThat(EmailType.values()).hasSize(15);
+        // 16 = 13 existing (Wave 18a) + 2 beta (Wave 33) + 1 INVITE_STAFF (Wave 80 Bucket B)
+        assertThat(EmailType.values()).hasSize(16);
 
         // Spot-check a representative subset across categories
         assertThat(EmailType.WELCOME.getTemplateName()).isEqualTo("welcome");

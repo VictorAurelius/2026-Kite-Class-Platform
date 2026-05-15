@@ -13,7 +13,7 @@
  */
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
@@ -37,6 +37,14 @@ interface ApiError {
 const PASSWORD_RULE_LEN = 12;
 
 export default function StaffAcceptInvitePage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-md py-16 text-center text-muted-foreground">Đang tải...</div>}>
+      <StaffAcceptInviteContent />
+    </Suspense>
+  );
+}
+
+function StaffAcceptInviteContent() {
   const params = useSearchParams();
   const router = useRouter();
   const token = params.get('token');
