@@ -38,8 +38,17 @@ spec:
           ports:
             - containerPort: {{ $svc.port }}
           env:
+            # GAP-503 / Wave 85 Bucket E — JVM container ergonomics (E-AC1).
+            # MaxRAMPercentage=60.0 (override 75% per Bucket A simulation cell 5):
+            #   - 60% of 2GB container limit (t3.small) → 1.2GB heap + 400MB non-heap
+            #     = 1.6GB total, leaves 400MB headroom (avoid OOM thrash GAP-502).
+            #   - 75% would leave ZERO headroom (1.5GB heap + 400MB non-heap = 1.9GB / 2GB).
+            # InitialRAMPercentage matches MaxRAMPercentage to avoid heap resize churn.
+            # UseContainerSupport: respect cgroup memory limit (default since JDK 10+ but explicit).
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=60.0 -XX:InitialRAMPercentage=60.0"
             - name: SPRING_PROFILES_ACTIVE
-              value: "prod"
+              value: "production"
             - name: SERVER_PORT
               value: "{{ $svc.port }}"
             - name: SPRING_DATASOURCE_URL
@@ -128,15 +137,17 @@ spec:
             limits:
               cpu: {{ $svc.resources.limits.cpu }}
               memory: {{ $svc.resources.limits.memory }}
-          # GAP-431 — startupProbe protects against Flyway migration cold-start delay
-          # (15-45s typical). Window = failureThreshold × periodSeconds = 30 × 5s = 150s.
+          # GAP-431 — startupProbe protects against Flyway migration cold-start delay.
+          # GAP-503 / Wave 85 Bucket E: initialDelaySeconds bumped 30s → 120s matching
+          # Wave 81 Bucket F observed Spring Boot startup 25-46s + JVM 60% memory ramp-up.
+          # Window = initialDelay + (failureThreshold × periodSeconds) = 120 + 30 × 5s = 270s.
           # While startupProbe is failing, liveness/readiness probes are disabled, so a
           # slow Spring Boot + Flyway boot cannot trigger restart loops on first deploy.
           startupProbe:
             httpGet:
               path: /actuator/health
               port: {{ $svc.port }}
-            initialDelaySeconds: 30
+            initialDelaySeconds: 120
             failureThreshold: 30
             periodSeconds: 5
             timeoutSeconds: 3
