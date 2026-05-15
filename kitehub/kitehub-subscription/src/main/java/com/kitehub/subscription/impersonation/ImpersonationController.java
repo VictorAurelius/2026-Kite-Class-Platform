@@ -52,7 +52,7 @@ import java.util.UUID;
 @Tag(name = "Admin Impersonation", description = "GAP-040: admin 'View as tenant' support tool (30s sessions + audit log)")
 public class ImpersonationController {
 
-    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final String DEFAULT_PAGE_SIZE = "20";
     private static final int MAX_PAGE_SIZE = 100;
 
     private final ImpersonationService service;
@@ -93,7 +93,7 @@ public class ImpersonationController {
     @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<Page<ImpersonationAuditEntryDto>> auditLog(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int size) {
 
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         int safePage = Math.max(page, 0);

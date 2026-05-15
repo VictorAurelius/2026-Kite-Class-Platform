@@ -52,6 +52,7 @@ class InstanceControllerIntegrationTest {
      * (GAP-544 Wave 79 Bucket E). Alpine image keeps pull time minimal.
      */
     @Container
+    @SuppressWarnings("resource") // Testcontainers @Container manages lifecycle (JUnit extension)
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
         .withDatabaseName("kitehub_test")
         .withUsername("test")
