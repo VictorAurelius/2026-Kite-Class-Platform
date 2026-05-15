@@ -31,7 +31,7 @@ import logging
 import os
 import secrets
 import string
-from typing import Any, Dict, Optional
+from typing import Any
 
 try:
     import boto3  # type: ignore[import-not-found]
@@ -42,7 +42,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 # Secret name suffix -> generator strategy.
-SECRET_GENERATORS: Dict[str, Dict[str, Any]] = {
+SECRET_GENERATORS: dict[str, dict[str, Any]] = {
     "jwt-secret": {"kind": "alphanum", "length": 64},
     "encryption-key": {"kind": "base64-bytes", "byte_length": 32},
     "seed-admin-password": {"kind": "strong", "length": 32},
@@ -90,7 +90,7 @@ def _generate_secret_value(secret_identifier: str) -> str:
     raise ValueError(f"Unknown generator kind: {kind}")
 
 
-def lambda_handler(event: Dict[str, Any], context: Any) -> None:
+def lambda_handler(event: dict[str, Any], context: Any) -> None:
     """AWS Secrets Manager rotation entry point."""
     arn = event["SecretId"]
     token = event["ClientRequestToken"]
@@ -168,7 +168,7 @@ def _test_secret(client, arn: str, token: str) -> None:
     check loop. When PROBE_URL set, expect HTTP 200; non-200 raises and rotation
     aborts (AWSPENDING NOT promoted to AWSCURRENT).
     """
-    probe_url: Optional[str] = os.environ.get("PROBE_URL")
+    probe_url: str | None = os.environ.get("PROBE_URL")
     if not probe_url:
         logger.info("testSecret: PROBE_URL unset; skipping probe for %s", arn)
         return
@@ -196,7 +196,7 @@ def _test_secret(client, arn: str, token: str) -> None:
 def _finish_secret(client, arn: str, token: str) -> None:
     """Promote AWSPENDING -> AWSCURRENT; demote previous AWSCURRENT to AWSPREVIOUS."""
     metadata = client.describe_secret(SecretId=arn)
-    current_version: Optional[str] = None
+    current_version: str | None = None
     for version_id, stages in metadata.get("VersionIdsToStages", {}).items():
         if "AWSCURRENT" in stages:
             if version_id == token:
