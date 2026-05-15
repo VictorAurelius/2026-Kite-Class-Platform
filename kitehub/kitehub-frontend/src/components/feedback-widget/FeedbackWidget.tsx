@@ -13,11 +13,15 @@
  *
  * UX:
  *  - Floating "💬 Góp ý" pill button anchored bottom-right
- *  - Click → modal with 5-star rating + textarea + optional email + category
+ *  - Click → Radix Dialog (focus-trap + Escape + auto-focus per WCAG 2.1.1 + 2.4.3)
+ *  - 5-star rating + textarea + optional email + category
  *  - Submit success → toast / inline success message + auto-close ~2s
  *  - Submit error → inline error message; retry available
  *
- * @since Wave 78 — GAP-542
+ * Wave 79 Bucket D (GAP-545): migrated from hand-rolled `<div role="dialog">`
+ * to `@radix-ui/react-dialog` primitive for focus-trap + Escape + scroll lock.
+ *
+ * @since Wave 78 — GAP-542; @updated Wave 79 — GAP-545
  */
 
 import { useCallback, useEffect, useId, useState } from 'react';
@@ -25,6 +29,13 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
 const ENDPOINT = '/api/v1/feedback';
@@ -134,7 +145,7 @@ export function FeedbackWidget({ className, endpoint = ENDPOINT }: FeedbackWidge
 
   return (
     <>
-      {/* Floating trigger button — bottom-right */}
+      {/* Floating trigger button — bottom-right (rendered when modal closed) */}
       {!open && (
         <button
           type="button"
@@ -154,175 +165,158 @@ export function FeedbackWidget({ className, endpoint = ENDPOINT }: FeedbackWidge
         </button>
       )}
 
-      {/* Modal — controlled, no portal (simpler test) */}
-      {open && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={`${formId}-title`}
+      {/* Radix Dialog — focus-trap + Escape + auto-focus per WCAG 2.1.1 + 2.4.3 (GAP-545) */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent
           data-testid="feedback-widget-dialog"
-          className="fixed inset-0 z-50 flex items-end justify-end p-4 sm:items-center sm:justify-center sm:bg-background/60 sm:backdrop-blur-sm"
+          className="sm:max-w-md"
+          aria-labelledby={`${formId}-title`}
         >
-          <div
-            className={cn(
-              'w-full max-w-md rounded-xl border bg-background p-6 shadow-xl',
-              'sm:w-[28rem]'
-            )}
-          >
-            <div className="mb-4 flex items-start justify-between">
-              <h2 id={`${formId}-title`} className="text-lg font-semibold">
-                Góp ý cho KiteHub
-              </h2>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                data-testid="feedback-widget-close"
-                aria-label="Đóng form góp ý"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                ✕
-              </button>
+          <DialogHeader>
+            <DialogTitle id={`${formId}-title`}>Góp ý cho KiteHub</DialogTitle>
+            <DialogDescription>
+              Chia sẻ trải nghiệm của bạn — đánh giá 1-5 sao và mô tả ngắn gọn.
+            </DialogDescription>
+          </DialogHeader>
+
+          {submitState.kind === 'success' ? (
+            <div
+              data-testid="feedback-widget-success"
+              role="status"
+              className="rounded-lg bg-green-50 p-4 text-sm text-green-700"
+            >
+              Cảm ơn bạn đã gửi góp ý! Chúng tôi đã ghi nhận và sẽ phản hồi sớm.
             </div>
-
-            {submitState.kind === 'success' ? (
-              <div
-                data-testid="feedback-widget-success"
-                role="status"
-                className="rounded-lg bg-green-50 p-4 text-sm text-green-700"
-              >
-                Cảm ơn bạn đã gửi góp ý! Chúng tôi đã ghi nhận và sẽ phản hồi sớm.
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Rating — 5 stars */}
-                <div>
-                  <Label htmlFor={`${formId}-rating`}>Đánh giá trải nghiệm</Label>
-                  <div
-                    id={`${formId}-rating`}
-                    role="radiogroup"
-                    aria-label="Đánh giá 1-5 sao"
-                    className="mt-2 flex gap-2"
-                  >
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        role="radio"
-                        aria-checked={rating === star}
-                        aria-label={`${star} sao`}
-                        data-testid={`feedback-widget-star-${star}`}
-                        onClick={() => setRating(star)}
-                        className={cn(
-                          'text-2xl transition-colors',
-                          rating >= star ? 'text-yellow-400' : 'text-muted-foreground'
-                        )}
-                      >
-                        ★
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Category */}
-                <div>
-                  <Label htmlFor={`${formId}-category`}>Loại góp ý</Label>
-                  <select
-                    id={`${formId}-category`}
-                    data-testid="feedback-widget-category"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value as Category)}
-                    className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  >
-                    {CATEGORIES.map((c) => (
-                      <option key={c.value} value={c.value}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Comment */}
-                <div>
-                  <Label htmlFor={`${formId}-comment`}>
-                    Nội dung ({commentLen}/{MAX_COMMENT})
-                  </Label>
-                  <Textarea
-                    id={`${formId}-comment`}
-                    data-testid="feedback-widget-comment"
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder="Bạn nghĩ gì? (tối thiểu 5 ký tự)"
-                    rows={4}
-                    maxLength={MAX_COMMENT}
-                    required
-                    className="mt-1"
-                  />
-                </div>
-
-                {/* Email — optional */}
-                <div>
-                  <Label htmlFor={`${formId}-email`}>
-                    Email (không bắt buộc — nếu cần phản hồi)
-                  </Label>
-                  <Input
-                    id={`${formId}-email`}
-                    data-testid="feedback-widget-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="ban@truonghoc.edu.vn"
-                    className="mt-1"
-                  />
-                </div>
-
-                {/* Honeypot — visually hidden, must stay empty */}
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Rating — 5 stars */}
+              <div>
+                <Label htmlFor={`${formId}-rating`}>Đánh giá trải nghiệm</Label>
                 <div
-                  aria-hidden="true"
-                  style={{ position: 'absolute', left: '-9999px', top: 'auto', width: 1, height: 1, overflow: 'hidden' }}
+                  id={`${formId}-rating`}
+                  role="radiogroup"
+                  aria-label="Đánh giá 1-5 sao"
+                  className="mt-2 flex gap-2"
                 >
-                  <label htmlFor={`${formId}-honeypot`}>Để trống</label>
-                  <input
-                    id={`${formId}-honeypot`}
-                    type="text"
-                    tabIndex={-1}
-                    autoComplete="off"
-                    value={honeypot}
-                    onChange={(e) => setHoneypot(e.target.value)}
-                  />
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      role="radio"
+                      aria-checked={rating === star}
+                      aria-label={`${star} sao`}
+                      data-testid={`feedback-widget-star-${star}`}
+                      onClick={() => setRating(star)}
+                      className={cn(
+                        'text-2xl transition-colors',
+                        rating >= star ? 'text-yellow-400' : 'text-muted-foreground'
+                      )}
+                    >
+                      ★
+                    </button>
+                  ))}
                 </div>
+              </div>
 
-                {submitState.kind === 'error' && (
-                  <div
-                    data-testid="feedback-widget-error"
-                    role="alert"
-                    className="rounded-md bg-destructive/10 p-3 text-sm text-destructive"
-                  >
-                    {submitState.message}
-                  </div>
-                )}
+              {/* Category */}
+              <div>
+                <Label htmlFor={`${formId}-category`}>Loại góp ý</Label>
+                <select
+                  id={`${formId}-category`}
+                  data-testid="feedback-widget-category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as Category)}
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  {CATEGORIES.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => setOpen(false)}
-                    data-testid="feedback-widget-cancel"
-                  >
-                    Hủy
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={!canSubmit}
-                    data-testid="feedback-widget-submit"
-                  >
-                    {submitState.kind === 'submitting' ? 'Đang gửi...' : 'Gửi góp ý'}
-                  </Button>
+              {/* Comment */}
+              <div>
+                <Label htmlFor={`${formId}-comment`}>
+                  Nội dung ({commentLen}/{MAX_COMMENT})
+                </Label>
+                <Textarea
+                  id={`${formId}-comment`}
+                  data-testid="feedback-widget-comment"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Bạn nghĩ gì? (tối thiểu 5 ký tự)"
+                  rows={4}
+                  maxLength={MAX_COMMENT}
+                  required
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Email — optional */}
+              <div>
+                <Label htmlFor={`${formId}-email`}>
+                  Email (không bắt buộc — nếu cần phản hồi)
+                </Label>
+                <Input
+                  id={`${formId}-email`}
+                  data-testid="feedback-widget-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="ban@truonghoc.edu.vn"
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Honeypot — visually hidden, must stay empty */}
+              <div
+                aria-hidden="true"
+                style={{ position: 'absolute', left: '-9999px', top: 'auto', width: 1, height: 1, overflow: 'hidden' }}
+              >
+                <label htmlFor={`${formId}-honeypot`}>Để trống</label>
+                <input
+                  id={`${formId}-honeypot`}
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                />
+              </div>
+
+              {submitState.kind === 'error' && (
+                <div
+                  data-testid="feedback-widget-error"
+                  role="alert"
+                  className="rounded-md bg-destructive/10 p-3 text-sm text-destructive"
+                >
+                  {submitState.message}
                 </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
+              )}
+
+              <div className="flex items-center justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setOpen(false)}
+                  data-testid="feedback-widget-cancel"
+                >
+                  Hủy
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={!canSubmit}
+                  data-testid="feedback-widget-submit"
+                >
+                  {submitState.kind === 'submitting' ? 'Đang gửi...' : 'Gửi góp ý'}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

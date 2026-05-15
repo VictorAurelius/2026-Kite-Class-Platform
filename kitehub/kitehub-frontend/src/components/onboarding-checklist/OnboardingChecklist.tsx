@@ -19,6 +19,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { CheckCircle2, Circle, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   getOnboardingProgress,
   updateOnboardingStep,
   ONBOARDING_STEP_LABELS_VI,
@@ -205,36 +213,32 @@ export function OnboardingChecklist({ initialState }: OnboardingChecklistProps =
         </p>
       )}
 
-      {showDemoConfirm && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="demo-confirm-title"
+      {/* GAP-545: Radix Dialog provides focus-trap + Escape + scroll-lock per WCAG 2.1.1 + 2.4.3 */}
+      <Dialog open={showDemoConfirm} onOpenChange={setShowDemoConfirm}>
+        <DialogContent
           data-testid="onboarding-demo-confirm"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
+          className="sm:max-w-md"
         >
-          <div className="w-full max-w-md rounded-xl border bg-card p-6 shadow-xl">
-            <div className="flex items-center gap-2">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
               <Sparkles className="size-5 text-primary" aria-hidden />
-              <h3 id="demo-confirm-title" className="text-base font-semibold">
-                Bật dữ liệu mẫu cho tài khoản?
-              </h3>
-            </div>
-            <p className="mt-3 text-sm text-muted-foreground">
+              Bật dữ liệu mẫu cho tài khoản?
+            </DialogTitle>
+            <DialogDescription>
               KiteHub sẽ tạo một bộ dữ liệu mẫu (lớp học, học viên, lịch học) để bạn khám phá nhanh
               tính năng. Bạn có thể xoá dữ liệu mẫu này bất kỳ lúc nào trong phần Cài đặt.
-            </p>
-            <div className="mt-5 flex justify-end gap-2">
-              <Button variant="ghost" onClick={() => setShowDemoConfirm(false)}>
-                Bỏ qua
-              </Button>
-              <Button onClick={handleImportDataOptIn} data-testid="onboarding-demo-confirm-cta">
-                Bật dữ liệu mẫu
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowDemoConfirm(false)}>
+              Bỏ qua
+            </Button>
+            <Button onClick={handleImportDataOptIn} data-testid="onboarding-demo-confirm-cta">
+              Bật dữ liệu mẫu
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { getTenantUrl, getTenantDisplayUrl } from '@/lib/tenant-url';
 import { useOnboardingWizard } from '@/components/onboarding/OnboardingWizard';
+import { OnboardingDashboardCTA } from '@/components/onboarding-checklist';
 import {
   KPICard,
   useCommandPalette,
@@ -212,6 +213,11 @@ export default function DashboardPage() {
           </div>
         </div>
       </header>
+
+      {/* GAP-559 (Wave 79 Bucket D) — Onboarding entry-point CTA card.
+          Auto-hides when checklist reaches 100% so returning Owners
+          don't see a redundant nudge. */}
+      <OnboardingDashboardCTA />
 
       {/* KPI strip — Wave 31 Bucket A: 6 KPI cards spec-mapped from
           kitehub-pro v2 dashboard-default.html § "Chỉ số chính" */}

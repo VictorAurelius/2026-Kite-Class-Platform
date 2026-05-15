@@ -51,15 +51,21 @@ describe('FeedbackWidget — GAP-542 Wave 78 Bucket F', () => {
       render(<FeedbackWidget />);
       await user.click(screen.getByTestId('feedback-widget-trigger'));
       expect(screen.getByTestId('feedback-widget-dialog')).toBeInTheDocument();
-      expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true');
+      // Radix Dialog applies modal semantics via focus-trap + role="dialog" —
+      // it does NOT set aria-modal="true" because focus management is the
+      // accessible source of truth (per Radix docs).
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
 
-    it('closes dialog on close button click', async () => {
+    it('closes dialog on Radix built-in close button (X)', async () => {
       const user = userEvent.setup();
       render(<FeedbackWidget />);
       await user.click(screen.getByTestId('feedback-widget-trigger'));
-      await user.click(screen.getByTestId('feedback-widget-close'));
-      expect(screen.queryByTestId('feedback-widget-dialog')).not.toBeInTheDocument();
+      // Radix Dialog ships a built-in close button with sr-only "Close" label.
+      await user.click(screen.getByRole('button', { name: /close/i }));
+      await waitFor(() => {
+        expect(screen.queryByTestId('feedback-widget-dialog')).not.toBeInTheDocument();
+      });
     });
 
     it('closes dialog on cancel button click', async () => {
@@ -67,7 +73,33 @@ describe('FeedbackWidget — GAP-542 Wave 78 Bucket F', () => {
       render(<FeedbackWidget />);
       await user.click(screen.getByTestId('feedback-widget-trigger'));
       await user.click(screen.getByTestId('feedback-widget-cancel'));
-      expect(screen.queryByTestId('feedback-widget-dialog')).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.queryByTestId('feedback-widget-dialog')).not.toBeInTheDocument();
+      });
+    });
+
+    // GAP-545 — WCAG 2.1.1 (Keyboard) — Escape key MUST close modal.
+    it('closes dialog on Escape key (WCAG 2.1.1)', async () => {
+      const user = userEvent.setup();
+      render(<FeedbackWidget />);
+      await user.click(screen.getByTestId('feedback-widget-trigger'));
+      expect(screen.getByTestId('feedback-widget-dialog')).toBeInTheDocument();
+      await user.keyboard('{Escape}');
+      await waitFor(() => {
+        expect(screen.queryByTestId('feedback-widget-dialog')).not.toBeInTheDocument();
+      });
+    });
+
+    // GAP-545 — Radix Dialog provides focus-trap: focus must enter the modal on open.
+    it('moves focus into the dialog on open (WCAG 2.4.3 focus order)', async () => {
+      const user = userEvent.setup();
+      render(<FeedbackWidget />);
+      await user.click(screen.getByTestId('feedback-widget-trigger'));
+      await waitFor(() => {
+        const dialog = screen.getByTestId('feedback-widget-dialog');
+        // Active element should be inside the dialog (focus trap entered).
+        expect(dialog.contains(document.activeElement)).toBe(true);
+      });
     });
   });
 
