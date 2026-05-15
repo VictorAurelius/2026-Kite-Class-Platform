@@ -142,9 +142,15 @@ SPRING_RABBITMQ_USERNAME=${RMQ_USER}
 SPRING_RABBITMQ_PASSWORD=${RMQ_PASS}
 
 # Auth secrets
+# Wave 81 Bucket F attempt 3 — dual-write TOTP key cho cả 2 binding paths:
+#   - TOTP_ENCRYPTION_KEY: matches kitehub-subscription/application.yml line 109 explicit ${ENV} binding
+#   - KITEHUB_AUTH_TOTP_ENCRYPTION_KEY: Spring relaxed binding cho kitehub-admin (admin yaml-less)
+# Both names point to same secret value. Future Wave 82+ refactor: rename
+# subscription yaml line 109 → ${KITEHUB_AUTH_TOTP_ENCRYPTION_KEY} + drop legacy alias.
 JWT_SECRET=${JWT_SECRET}
 JWT_CHALLENGE_SECRET=${JWT_CHALLENGE_SECRET}
 TOTP_ENCRYPTION_KEY=${TOTP_ENCRYPTION_KEY_VALUE}
+KITEHUB_AUTH_TOTP_ENCRYPTION_KEY=${TOTP_ENCRYPTION_KEY_VALUE}
 KITEHUB_STAFF_INVITATION_SIGNING_SECRET=${STAFF_INVITATION_SIGNING_SECRET}
 ENCRYPTION_MASTER_KEY=${ENCRYPTION_KEY}
 
