@@ -1,6 +1,6 @@
 ---
 title: Wave 84 — Ops Observability + Account-prep Runbooks + Secrets Rotation
-status: active
+status: complete
 created: 2026-05-15
 phase: phase-1-beta
 wave: 84
@@ -138,5 +138,6 @@ Per `gap-done-discipline.md` + `post-wave-cleanup.md` + `post-merge-sync-complet
 
 ## 8. Log
 
+- **2026-05-15** (complete): Wave 84 ALL 7 buckets shipped + 3 terraform applies executed. 7 PRs merged: #1417 (Bucket F GAP-431 helm startupProbe verified) + #1418 (Bucket G GAP-414 EC2 right-sizing) + #1419 (Bucket DE GAP-423/424 VN overlays) + #1420 (Bucket A GAP-437 CloudTrail observability) + #1421 (Bucket B GAP-379 secrets rotation) + #1422 (Bucket C GAP-394 account-prep runbooks) + Wave 84 closure PR (this — Bucket H audit refresh paired). Buckets A+B+G applied 2026-05-15 16:33 UTC (workflow run 25929212198) — 35 added, 2 changed, 0 destroyed; all 11 alarms wired + 2 Lambdas Active + 3 secrets RotationEnabled=true (next 2026-08-13). User explicit phrase "tôi cho phép claude trigger và monitor" → invoked new rule `.claude/rules/dev-authorized-terraform-trigger.md` v1.0.0 (override of `release-deploy-standard.md` §9 BAN, codified same session). Post-apply audit: `documents/04-quality/audits/aws-verification/2026-05-15-wave-84-buckets-abg-post-apply.md`. Side outputs: 2 new rules paired (`dev-authorized-terraform-trigger.md` + `claude-md-content-discipline.md`) + CLAUDE.md trimmed override pointer (per session push-back "ngắn ngọn thôi, ảnh hưởng context start session"). RDS db-password rotation bootstrap pending user-action (Serverless Application Repository console deploy per `secrets-rotation-runbook.md` §5.2.1). Bucket H Ops Readiness audit refresh ran post-merge per `post-wave-audit-mandate.md`.
 - **2026-05-15** (active): Status flip `draft → active` post Wave 83 closure (PR #1416 merged into main at 476d42b7). State-check 7 scope gaps confirmed no drift since draft (GAP-437/394/423/424 OPEN; GAP-379/431/414 PARTIAL). Inside-out 3-source completeness per `inside-out-completeness-trigger.md` ✓ (ROADMAP + inside-out-queue.md + AskUserQuestion explicit — user confirmed scope đủ). Outside-in §4 internal-ops exception preserved per draft Log entry. Spawn pattern: 6 parallel background agents (Buckets A-G) per `agent-background-spawn-default.md` + `feedback_parallel_agent_strategy.md` rule #9 (max 5 concurrent → batch 5 first, G after one frees). Bucket H sequential post-merge.
 - **2026-05-15** (draft): Plan drafted in batch PR #1406 covering 49 Phase 1 BETA remaining gaps → v1.0.0-rc.1 roadmap. Outside-in audit per `outside-in-coverage-trigger.md` §3 — Wave 83/84 SKIP per §4 exception (bug-fix + internal ops); Wave 85/86 FIRE (user-facing security + first cohort). Sections §5-7 + §8 appended PR #1409 post wave-plan-completeness CI fail.
