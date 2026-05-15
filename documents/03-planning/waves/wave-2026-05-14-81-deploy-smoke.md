@@ -149,11 +149,11 @@ gaps: [GAP-370, GAP-372, GAP-502, GAP-514, GAP-525, GAP-527, GAP-530, GAP-533]
   1. Coordinator (Claude) walk 10 rows from `documents/05-guides/operations/acceptance-tests/phase-1-beta-acceptance-self-test.csv` critical path:
      - PUB-LAND-001/002/003 (3 anonymous landing rows)
      - OWNER-SIGNUP-001/002 (2 owner signup rows)
-     - OWNER-ONBOARD-001 (onboarding entry)
-     - OWNER-INVITE-001 (P3 Manager invite send)
-     - MANAGER-LOGIN-001 (P3 Manager first login)
-     - ADMIN-APPROVE-001 (admin approve beta-request)
-     - FEEDBACK-001 (feedback widget submit)
+     - OWNER-PROVISION-001 (onboarding entry — was `OWNER-ONBOARD-001`, sync Wave 82 Bucket F3)
+     - OWNER-TEACHER-001 (staff invite send — was `OWNER-INVITE-001`, sync Wave 82 Bucket F3)
+     - TEACH-LOGIN-001 (staff first login after invite-accept — was `MANAGER-LOGIN-001`, sync Wave 82 Bucket F3)
+     - ADM-BETA-APPROVE-001 (admin approve beta-request — was `ADMIN-APPROVE-001`, sync Wave 82 Bucket F3)
+     - PARENT-LOGIN-001 (parent persona coverage — was `FEEDBACK-001`; feedback widget rows not yet in CSV, defer Wave 83+)
   2. Coordinator: mark each row status PASS/FAIL/BLOCKED in spot-check audit
   3. Coordinator: file P0 gaps cho any FAIL/BLOCKED → resolve before hand-off
 - Acceptance: 10/10 rows PASS OR any FAIL has P0 gap filed + hot-fix Wave 81 candidate

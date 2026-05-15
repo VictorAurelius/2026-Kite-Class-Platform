@@ -4,6 +4,7 @@ status: draft
 created: 2026-05-15
 phase: phase-1-beta
 wave: 82
+waves: [82]
 estimated_wall_clock: 12-18h
 risk_profile: MEDIUM (FE migration touches user-facing, DNS cutover)
 trigger: Wave 81 backend deploy CLOSED; FE Vercel stale ~38h + Free Tier daily limit hit
@@ -11,13 +12,11 @@ trigger: Wave 81 backend deploy CLOSED; FE Vercel stale ~38h + Free Tier daily l
 
 # Wave 82 — FE Self-Host + Wave 81 Follow-ups
 
-## 1. Goal
+## 1. Brainstorm (5-10 min)
 
-Migrate FE serving từ Vercel (Free Tier rate-limited) sang self-hosted on AWS EC2 (architecture B kh-backend or new kc-app instance) để bypass build/deploy quota. Đồng thời resolve các Wave 81 follow-ups còn lại.
+**Q1 (goal + alignment):** Migrate FE serving từ Vercel (Free Tier rate-limited) sang self-hosted on AWS EC2 (architecture B kh-backend hoặc new kc-app instance) để bypass build/deploy quota. Đồng thời resolve các Wave 81 follow-ups còn lại. Wave 81 backend deploy CLOSED 2026-05-15. FE Vercel stale ~38h (build cap hit ~2026-05-13). Backend đã có Wave 78+79+80+81 contract changes (Beta Status, Onboarding wizard, Staff Invitation, 2FA) nhưng FE chưa rebuild → dev test full 126 rows hit FE-BE drift, không phải code bugs.
 
-**Trigger:** Wave 81 backend deploy CLOSED 2026-05-15. FE Vercel stale ~38h (build cap hit ~2026-05-13). Backend đã có Wave 78+79+80+81 contract changes (Beta Status, Onboarding wizard, Staff Invitation, 2FA) nhưng FE chưa rebuild → dev test full 126 rows hit FE-BE drift, không phải code bugs.
-
-## 2. Decision context
+**Q2 (trade-offs / decision context):**
 
 | Constraint | State |
 |---|---|
@@ -27,34 +26,96 @@ Migrate FE serving từ Vercel (Free Tier rate-limited) sang self-hosted on AWS 
 | New EC2 (kc-app t3.medium) | $30/mo (Phase 1 BETA tier) — within budget |
 | Cloudflare Pages migration | Free tier; requires DNS change + Next.js compat verify |
 
-**Phase 1 BETA recommendation:** Cloudflare Pages free tier OR new t3.small EC2 (~$15/mo) — defer commit to §3 brainstorm.
+**Bucket A decision (2026-05-15):** Outside-in audit ran 2 agent parallel (external benchmark + failure-mode matrix); both converged on Vercel Pro recommendation. User locked **AWS EC2 self-host** (cost-priority, lock vendor on AWS). 4 P0 mitigation gaps surface từ failure matrix cần preempt trong Bucket B: F6 (SG description audit) / F7 (PM2 + swapfile + memory alarm, t3.small NEW instance — không co-host kh-backend) / F10 (certbot DNS-01 cert renewal) / F11 (BE CORS sweep pre-flip).
 
-## 3. Scope — Bucket list
+**Q3 (risks):**
 
-| # | Bucket | Item | Owner | Risk | Wall-clock |
-|---|---|---|---|---|---|
-| 1 | **A** | FE rebuild architecture decision (CF Pages vs EC2 self-host vs Vercel Pro) | coordinator + user | Low | 1h |
-| 2 | **B** | FE deploy infrastructure setup (CF Pages config OR EC2 + nginx OR Vercel Pro) | user actions + coordinator | Med | 3-4h |
-| 3 | **C** | FE build + deploy với Wave 78+79+80+81 changes | CI + verify | Med | 2-3h |
-| 4 | **D** | DNS cutover `kitehub.me` → new FE host | user (CF DNS edit) + coordinator verify | High (DNS prop ~5min TTL) | 1h |
-| 5 | **E** | Self-hosted GitHub runner setup trên WSL (Task #64) — bypass CI Free Tier minutes throttle | user actions trên WSL | Low | 1h |
-| 6 | **F** | Wave 81 follow-up bug fixes: `/api/v1/beta-status` 400, CSV doc sync (row IDs + login path), rotate-leaked-credentials.sh wrapper name | coordinator | Low | 2h |
-| 7 | **G** | User manual P2/P3/Admin pages (defer từ Wave 79 F1) | optional defer Wave 83 | Med | 2-4h |
-| 8 | **H** | Post-FE-rebuild full 126-row dev walk-through | user (USER ACTION) | Med | 2-3h (dev side) |
+- DNS cutover breaks public site mid-deploy → Mitigation: blue-green deploy + DNS gradual TTL drop (60s) 24h pre-cutover
+- Self-hosted runner offline on WSL reboot → Mitigation: systemd service auto-restart + monitoring
+- FE-BE contract drift post-rebuild còn surface → Mitigation: Bucket G full 126-row dev walk-through phát hiện remaining
+- New EC2 cost exceeds Phase 1 BETA budget → Mitigation: t3.small (~$15/mo) primary; t3.medium fallback only nếu RAM proves tight
+- t3.small 2GB RAM tight cho 2 Next standalone + nginx + PM2 → Mitigation: swapfile + OOM alarm (F7 P0)
+- Cert renewal failure silent → 100% outage → Mitigation: certbot DNS-01 + monitoring (F10 P0)
+- Cross-host CORS reject post-DNS flip → Mitigation: BE allowed-origins sweep + verify pre-flip (F11 P0)
 
-## 4. Outside-in audit (per `outside-in-coverage-trigger.md` — applied to Wave 82 scope)
+## 2. Task Breakdown
 
-Inside-out brainstorm trong §3 đề xuất bucket list từ goc nhin dev. **Outside-in audit cần spawn trước khi lock Wave 82 plan:**
+| Bucket | Item | Owner | Effort | Sequential? |
+|---|---|---|---|---|
+| **A** | FE rebuild architecture decision (✅ DONE — AWS self-host locked) | coordinator + user | ~30min | First |
+| **B** | FE deploy infrastructure setup (new EC2 t3.small + nginx + PM2 + certbot DNS-01 + SG with description + BE CORS sweep) | user actions + coordinator | 3-4h | After A |
+| **C** | FE build + deploy với Wave 78+79+80+81 changes | CI + verify | 2-3h | After B |
+| **D** | DNS cutover `kitehub.me` → new FE host (gradual TTL drop) | user (CF DNS edit) + coordinator verify | 1h | After C |
+| **E** | Self-hosted GitHub runner setup trên WSL (Task #64) | user actions trên WSL | 1h | Parallel B-D |
+| **F** | Wave 81 follow-up bug fixes (✅ DONE — see §6) | coordinator | 2h | Parallel |
+| **G** | User manual P2/P3/Admin pages (defer từ Wave 79 F1) | optional defer Wave 83 | 2-4h | Parallel D-E |
+| **H** | Post-FE-rebuild full 126-row dev walk-through | user (USER ACTION) | 2-3h dev side | After D |
 
-| Method | Skill | Phù hợp |
+**Sequential check:** A→B→C→D→H. E parallel after A. F (already done) parallel. G optional defer.
+
+## 3. Scope — Bucket detail
+
+### Bucket A — Architecture decision (✅ DONE 2026-05-15)
+
+- 2 outside-in agents (external benchmark + failure-mode matrix) ran parallel
+- Both recommended Vercel Pro $20/mo; user locked **AWS EC2 self-host** for vendor consistency
+- ADR draft `ADR-XXX-fe-self-host.md` defer to Bucket B start
+- 4 P0 mitigations identified (F6/F7/F10/F11) tracked as Bucket B pre-flight requirements
+
+### Bucket B — FE deploy infrastructure (new EC2 t3.small)
+
+- Files: `infrastructure/terraform-aws/ec2-kc-app.tf` (NEW), nginx config, PM2 ecosystem file, certbot DNS-01 setup
+- Pre-flight P0 mitigations: SG description audit, PM2 + swapfile + memory alarm, certbot DNS-01 (avoid HTTP-01 race), BE allowed-origins sweep
+- ADR-XXX-fe-self-host.md drafted same bucket
+
+### Bucket C — FE build + deploy
+
+- Build kitehub-frontend + kiteclass-frontend với Wave 78-81 contracts
+- Deploy to new EC2 via CI workflow OR manual SSM
+- Smoke test pre-DNS-flip via direct IP
+
+### Bucket D — DNS cutover
+
+- TTL drop 60s on `kitehub.me` 24h pre-flip
+- Flip CF DNS record → new EC2 IP (proxied)
+- Verify `dig kitehub.me` returns new host within 5min
+
+### Bucket E — Self-hosted GitHub runner (install only, conditional usage measurement)
+
+**Scope revised 2026-05-15 per user direction:** install WSL runner + register + systemd service, NHƯNG **KHÔNG sweep `runs-on: ubuntu-latest` → `runs-on: self-hosted`** across workflows yet. Keep GitHub-hosted as default cho measurement period.
+
+**Rationale:** premature default-flip to self-hosted = ops burden (WSL up/down, security with untrusted PR code per §7 caveat) without proven need. Solo-dev mode CI usage may stay well within Free Tier 2000min/mo. Per `incident-to-rule-pipeline.md` §3 advisory-rule guard — need data ≥7 days before filing rule with concrete threshold.
+
+**Measurement period:** Wave 82 + Wave 83 (1-2 waves baseline). Metrics to collect:
+
+| Metric | Query | Threshold of concern |
 |---|---|---|
-| Persona simulation | `.claude/skills/quality/persona-based-business-review/SKILL.md` | Anonymous + P2 owner + P3 manager khi tenant đầu tiên truy cập post-Wave-82 |
-| External benchmark | WebSearch | CF Pages vs Vercel vs self-host EC2 — VN SaaS market |
-| Failure-mode matrix | `.claude/skills/quality/simulation-gap-finder/SKILL.md` | FE-BE drift modes; DNS cutover failure modes |
+| Free Tier minute consumption | `gh api repos/{owner}/{repo}/actions/billing/usage` | >75% mid-month |
+| Queue wait time p95 per workflow | `gh run list --json createdAt,startedAt` → compute delta | >5min p95 |
+| Concurrent runs queued >2min | `gh run list --json status,createdAt` overlap analysis | ≥3 incidents/wave |
+| Self-hosted opt-in ad-hoc usage | Manual `workflow_dispatch` with `runs-on: self-hosted` override | reactive availability test |
 
-→ AskUserQuestion before locking scope: spawn outside-in audit không (per rule)?
+**Wave 83 deliverable:** file new rule `.claude/rules/ci-runner-fallback-policy.md` với data-backed thresholds OR explicit decision "no rule needed, GitHub-hosted sufficient for solo-dev scope". Either outcome closes meta-gap per `incident-to-rule-pipeline.md` 5-stage pipeline.
 
-## 5. State-Check Evidence (BẮT BUỘC per `audit-to-gap-pipeline.md` §2.6)
+**This Wave 82 Bucket E scope (revised):**
+
+1. Install WSL runner per §7 setup steps (USER ACTION ~30min)
+2. Register runner với labels `self-hosted,Linux,X64,wsl,available-on-demand`
+3. systemd service + monitoring
+4. **DO NOT sed workflows** — leave 19 workflows on `ubuntu-latest`
+5. Document opt-in pattern: add `if: vars.RUNNER_OVERRIDE == 'self-hosted'` checkbox cho ad-hoc switch via repo variable
+6. Baseline metric collection script `scripts/measure-ci-runner-usage.sh` (Wave 82 closure or Wave 83 init)
+
+### Bucket F — Wave 81 follow-up bug fixes (see §6 — ✅ ALL DONE)
+
+### Bucket G — User manual pages (optional Wave 83 defer)
+
+### Bucket H — Post-rebuild dev walk-through
+
+- User runs full 126-row CSV walk-through against deployed FE+BE
+- Output: bug list → defines Wave 83 scope
+
+## 4. State-Check Evidence (BẮT BUỘC per `audit-to-gap-pipeline.md` §2.6)
 
 | Symbol | Type | Verification | Verdict |
 |---|---|---|---|
@@ -62,20 +123,76 @@ Inside-out brainstorm trong §3 đề xuất bucket list từ goc nhin dev. **Ou
 | `kiteclass-frontend/` source | FE codebase | `ls kiteclass/kiteclass-frontend/` | ✅ exists |
 | Vercel project config | Vercel deploy state | `cat .vercel/project.json` | ✅ exists (stale 38h) |
 | `actions/runner` self-hosted setup | Runner host | `ls ~/actions-runner` | 🆕 to-be-created (Bucket E) |
-| `infrastructure/terraform-aws/ec2-kc-app.tf` | TF kc-app EC2 | `ls infrastructure/terraform-aws/ec2-kc-app*` | 🆕 to-be-created (Bucket B if EC2 path) |
+| `infrastructure/terraform-aws/ec2-kc-app.tf` | TF kc-app EC2 | `ls infrastructure/terraform-aws/ec2-kc-app*` | 🆕 to-be-created (Bucket B) |
 | `documents/05-guides/deploy/fe-self-host-runbook.md` | Runbook | `ls documents/05-guides/deploy/fe-self-host-runbook.md` | 🆕 to-be-created (Bucket B) |
+| `documents/02-architecture/adr/ADR-XXX-fe-self-host.md` | ADR | `find documents/02-architecture/adr -iname '*fe-self-host*'` | 🆕 to-be-created (Bucket B) |
 
-## 6. Wave 81 follow-up gaps consolidated (Bucket F)
+## 5. Verification Gates (Wave 82 close acceptance)
 
-1. **`/api/v1/beta-status` 400 empty body** — Wave 81 Bucket G spot check P1. Endpoint reachable nhưng return 400 thay vì 200 với content. Hypothesis: missing required header / gateway route predicate mismatch / rate-limit config issue. Investigate + fix.
+| Criterion | Met when |
+|---|---|
+| FE rebuilt với Wave 78+79+80+81 contracts | `kitehub.me` returns Wave 81-version HTML + new components |
+| FE-BE contract integration | Browse onboarding wizard works; staff invite renders; 2FA challenge UI shows |
+| DNS cutover successful (no downtime >5 min) | `dig kitehub.me` returns new host; no Cloudflare cache miss for >1h |
+| Self-hosted runner active | Future PR CI runs on `self-hosted` không hit Free Tier minutes |
+| Wave 81 follow-ups closed | 5 Bucket F items DONE (see §6); 2 audit-surfaced findings filed Wave 83 |
+| Full 126-row dev walk-through completes | User reports walk-through outcome — defines Wave 83 scope |
+| Bucket A 4 P0 mitigations addressed | SG description audit + PM2/swapfile/memory alarm + certbot DNS-01 + BE CORS sweep all verified |
 
-2. **CSV row IDs mismatch Wave plan §G** — Wave 81 plan referenced OWNER-ONBOARD-001 / OWNER-INVITE-001 / MANAGER-LOGIN-001 / FEEDBACK-001 nhưng CSV không có. Sync CSV + plan để 10-row spot check tương lai dùng đúng IDs.
+## 6. Agent Spawn Pattern
 
-3. **CSV references `/api/v1/auth/login` nhưng deployed path = `/api/auth/login`** — Wave 78 contract refactor đổi path mà không update test artifact. Sweep CSV cho tất cả `/api/v1/auth/*` references.
+**Stake tier (per `wave-pack-planner/SKILL.md` §Step 4.6):** HIGH (production cutover; user-facing DNS flip) → model: Opus 4.7 full coordinator.
 
-4. **`scripts/rotate-leaked-credentials.sh` wrapper name bug** — Task #59 pending. Fix name + alias.
+**Cross-layer (per `wave-pack-planner/SKILL.md` §Step 4.5):** YES (FE rebuild + BE contract sync). Bucket A foundation = ADR + decision lock (DONE 2026-05-15). Bucket B-D sequential serial (deploy ops cannot parallelize per `concurrent-production-mutation-ops.md`).
 
-5. **Spring Boot returns 500 thay vì 404 cho POST static-not-found** — minor framework noise (Wave 81 Bucket G spot check finding #4). Configure `spring.web.resources.add-mappings=false` hoặc custom 404 handler.
+**Bucket A:** 2 parallel background agents (external benchmark via WebSearch + failure-mode matrix via simulation-gap-finder) — convergence pattern. ✅ DONE 2026-05-15.
+
+**Bucket B-D:** User-executed (terraform apply / DNS edit / deploy workflow_dispatch). Coordinator verify-only via Tier 1 read-only AWS commands.
+
+**Bucket E:** User-action trên WSL (runner install). Coordinator runs sed workflow migration after runner online.
+
+**Bucket F (✅ DONE):** Coordinator single-thread (5 bug fixes serial within scope). Outside-in mode for Bucket A2 (failure-mode matrix surface 7 additional same-class gateway routing bugs).
+
+**Bucket G:** Defer Wave 83 (optional scope).
+
+**Bucket H:** User self-test (full 126-row walk-through). Coordinator runs ~60-row API contract sweep post-deploy (per Task #10).
+
+## 7. Closure Protocol
+
+Per `post-wave-cleanup.md` mandate:
+- [ ] All Bucket A-H verified PASS or explicit defer documented
+- [ ] Bucket A ADR draft `ADR-XXX-fe-self-host.md` shipped
+- [ ] DNS cutover verified `dig kitehub.me` post-flip
+- [ ] FE-BE integration smoke verified via dev walk-through Bucket H
+- [ ] 4 P0 mitigations (F6/F7/F10/F11 from failure-matrix) verified addressed
+- [ ] Wave 83 follow-up gaps filed (3 missing application-production.yml, audit-service-ports.sh bug, FEEDBACK CSV rows)
+- [ ] `bash scripts/prune-merged-worktrees.sh --yes` clean
+- [ ] ROADMAP §🎯 Current Status Snapshot updated → Wave 82 SHIPPED
+- [ ] `wave-history.jsonl` Wave 82 entry appended
+- [ ] Wave 83 plan draft started OR explicit "no Wave 83 needed" closure note
+
+## 8. Log
+
+- **2026-05-15** (draft): Wave 82 plan created post Wave 81 closure. Bucket A spawned 2 outside-in agents (external benchmark + failure-mode matrix); both converged on Vercel Pro recommendation. User locked AWS EC2 self-host (cost-priority, AWS vendor lock). Bucket F shipped same session via PR #1396 — 5 follow-up items DONE + 7 audit-surfaced gateway routing bugs fixed (15-bug class total: beta-status + staff-invitations × 4 + admin-impersonate × 3).
+- **2026-05-15** (Bucket F6 in-flight): user feedback "fix Spring profile silent-skip Wave 82, not Wave 83 defer" — fixed in same PR. Added 3 application-production.yml (admin/branding/email) + audit-spring-profiles.sh + audit-service-ports.sh both fix unbound FINDINGS array trip. All 3 audit scripts now PASS clean.
+- **2026-05-15** (Bucket E scope revised): user proposed conditional CI runner fallback rule. Per `incident-to-rule-pipeline.md` §3 advisory-rule guard, defer rule until ≥7 days measurement data. Bucket E scope narrowed: install WSL runner only, DO NOT sed workflows. Opt-in via `vars.RUNNER_OVERRIDE` pattern. Wave 83 deliverable: rule với threshold OR "no rule needed" decision based on baseline metrics.
+
+## 9. Wave 81 follow-up gaps consolidated (Bucket F — ✅ ALL DONE)
+
+1. **`/api/v1/beta-status` 400 empty body** — ✅ DONE Wave 82 Bucket F4: root cause = gateway routing bug. `/api/v1/beta-status` fell through `/api/v1/**` catch-all → kiteclass-core (wrong service) → TenantResolver rejected as 400 (no tenant header on public path). Fix: added explicit route `kitehub-beta-status` → kitehub-subscription:8080 trong `kitehub-gateway/src/main/resources/application.yml`. `audit-gateway-routes.sh` surface 7 same-class drift: 4 staff-invitations + 3 admin-impersonate → all 8 fixed same PR (audit clean: 45 routes, 91 endpoints, zero wrong-service).
+
+2. **CSV row IDs mismatch Wave plan §G** — ✅ DONE Wave 82 Bucket F3: Wave 81 plan §G updated to use existing CSV IDs (OWNER-PROVISION-001 / OWNER-TEACHER-001 / TEACH-LOGIN-001 / ADM-BETA-APPROVE-001 / PARENT-LOGIN-001 substitutes). FEEDBACK widget rows defer Wave 83 (no CSV equivalent yet).
+
+3. **CSV references `/api/v1/auth/login` nhưng deployed path = `/api/auth/login`** — ✅ DONE Wave 82 Bucket F2: state-check verified zero `/api/v1/auth/login` refs trong CSV (only `/api/v1/auth/request-beta-access` x2 matching deployed `BetaAccessController.java:79`). Symptom not present per `audit-to-gap-pipeline.md` §2.8 decision matrix.
+
+4. **`scripts/rotate-leaked-credentials.sh` wrapper name bug** — Task #59 ✅ DONE Wave 82 Bucket F1: renamed `scripts/rotate-credentials.sh` (general-purpose); backward-compat symlink `rotate-leaked-credentials.sh` kept; header tone updated.
+
+5. **Spring Boot returns 500 thay vì 404 cho POST static-not-found** — ✅ DONE Wave 82 Bucket F5: added `spring.web.resources.add-mappings: false` vào 4 WebMVC services (kitehub-admin / kitehub-branding / kitehub-subscription / kiteclass-core). Skipped gateway services (WebFlux) + email (WebFlux) + platform (shared lib).
+
+### New audit findings surfaced Bucket F4 (defer Wave 83 follow-ups)
+
+- **3 services missing `application-production.yml`** (kitehub-admin, kitehub-branding, kitehub-email) — `audit-spring-profiles.sh` flagged: `SPRING_PROFILES_ACTIVE=production` env set but no matching file → Spring silently ignores profile, production overrides never apply. Per `production-env-config-registry.md` §11.3.
+- **`scripts/audit-service-ports.sh` script bug** — line 129 unbound variable error trips script before completing. Per `audit-to-gap-pipeline.md` Step 3, file as P2 follow-up gap.
 
 ## 7. Self-hosted GitHub runner setup (Bucket E reference)
 
@@ -110,43 +227,53 @@ sudo ./svc.sh status
 gh api "repos/VictorAurelius/2026-Kite-Class-Platform/actions/runners" --jq '.runners[] | {name,status,labels:[.labels[].name]}'
 ```
 
-### Workflow migration
+### Workflow migration (DEFERRED Wave 83)
+
+**Original plan:** sweep all 19 workflows `runs-on: ubuntu-latest` → `runs-on: self-hosted` mass-rename.
+
+**Revised 2026-05-15 (per §3 Bucket E):** **DO NOT run this sed.** Keep GitHub-hosted default cho measurement period. Self-hosted runner installed for opt-in availability only.
 
 ```bash
-# Coordinator runs this after runner online:
-find .github/workflows -name "*.yml" -exec sed -i 's/runs-on: ubuntu-latest/runs-on: [self-hosted, Linux, X64]/' {} \;
-git diff .github/workflows/
+# BANNED Wave 82 — KHÔNG run this command yet:
+# find .github/workflows -name "*.yml" -exec sed -i 's/runs-on: ubuntu-latest/runs-on: [self-hosted, Linux, X64]/' {} \;
 ```
 
-**Caveat:** Self-hosted runner runs untrusted PR code (PR từ forks). Solo-dev mode acceptable; team mode cần GitHub branch protection + workflow approval.
+**Opt-in pattern instead** (manual flip per workflow when queue/quota concern):
 
-## 8. Acceptance gate (Wave 82 close)
+```yaml
+# In workflow YAML, replace static runs-on with var-driven:
+jobs:
+  test:
+    runs-on: ${{ vars.RUNNER_OVERRIDE || 'ubuntu-latest' }}
+```
 
-| Criterion | Met when |
-|---|---|
-| FE rebuilt với Wave 78+79+80+81 contracts | `kitehub.me` returns Wave 81-version HTML + new components |
-| FE-BE contract integration | Browse onboarding wizard works; staff invite renders; 2FA challenge UI shows |
-| DNS cutover successful (no downtime >5 min) | `dig kitehub.me` returns new host; no Cloudflare cache miss for >1h |
-| Self-hosted runner active | Future PR CI runs on `self-hosted` không hit Free Tier minutes |
-| 4 Wave 81 follow-ups fixed OR deferred với tracking gap | Each item DONE / GAP filed |
-| Full 126-row dev walk-through completes | User reports walk-through outcome — defines next Wave 83 |
+Then `gh variable set RUNNER_OVERRIDE -b "self-hosted"` to flip; unset to revert.
 
-## 9. Risk + mitigation
+**Wave 83 deliverable:** based on measurement data, either (a) file rule với threshold + sed workflows OR (b) document decision "Free Tier sufficient, keep GitHub-hosted permanent".
+
+**Caveat:** Self-hosted runner runs untrusted PR code (PR từ forks). Solo-dev mode acceptable hôm nay; team mode cần GitHub branch protection + workflow approval.
+
+## 8. Risk + mitigation (consolidated)
 
 | Risk | Mitigation |
 |---|---|
-| DNS cutover breaks public site mid-deploy | CF Pages có rollback button; EC2 path = blue-green deploy + DNS gradual TTL drop |
+| DNS cutover breaks public site mid-deploy | EC2 path = blue-green deploy + DNS gradual TTL drop (60s) 24h pre-flip |
 | Self-hosted runner offline on WSL reboot | systemd service auto-restart + monitoring dashboard alert |
-| FE-BE contract drift post-rebuild còn surface | Bucket G full 126-row test phát hiện remaining; tail follow-ups vào Wave 83 |
-| New EC2 cost exceeds Phase 1 BETA budget | CF Pages free tier as primary; EC2 fallback only nếu CF compat issues |
+| FE-BE contract drift post-rebuild còn surface | Bucket H full 126-row test phát hiện remaining; tail follow-ups vào Wave 83 |
+| t3.small 2GB RAM OOM under ISR regen | swapfile + memory alarm; fallback t3.medium nếu sustained pressure |
+| SSL cert renewal silent failure (90d expire) | certbot DNS-01 (avoid HTTP-01 race) + cert expiry monitor 30d ahead |
+| EC2 SG misconfig → port 4701 internet-exposed | SG with description audit per `aws-sg-description-ascii.md` enforcement |
+| Cross-host CORS reject post-DNS flip | BE allowed-origins config pre-allowlist NEW EC2 IP/domain + verify via curl pre-flip |
 
-## 10. Cross-link
+## 9. Cross-link
 
 - Wave 81 closure: `documents/03-planning/waves/wave-2026-05-14-81-deploy-smoke.md`
 - Wave 81 Bucket G audit: `documents/04-quality/audits/pre-self-test/2026-05-15-wave-81-spot-check.md`
-- FE migration ADR (to-be-created Bucket A): `documents/02-architecture/adr/ADR-XXX-fe-self-host.md`
-- Task #59 (rotate-leaked-credentials.sh wrapper bug)
-- Task #61 (Vercel redeploy BLOCKED)
+- Bucket F PR: #1396 (gateway routing + spring 404 + script rename)
+- FE migration ADR (to-be-created Bucket B): `documents/02-architecture/adr/ADR-XXX-fe-self-host.md`
+- Task #59 (rotate-leaked-credentials.sh wrapper bug — ✅ DONE Bucket F1)
+- Task #61 (Vercel redeploy BLOCKED → AWS self-host instead)
 - Task #63 (Wave 82 plan draft — THIS DOC)
-- Task #64 (Self-hosted GitHub runner setup)
-- `.claude/rules/outside-in-coverage-trigger.md` — apply §4 before locking scope
+- Task #64 (Self-hosted GitHub runner setup — Bucket E)
+- `.claude/rules/outside-in-coverage-trigger.md` — applied 2 agent audit Bucket A
+- `.claude/rules/production-env-config-registry.md` §11.3 — 3 services missing application-production.yml (Wave 83 defer)

@@ -1,0 +1,41 @@
+# =============================================================================
+# PRODUCTION PROFILE - kitehub-admin
+# =============================================================================
+# Activated by: SPRING_PROFILES_ACTIVE=production
+# Wave 82 Bucket F6 (post-F4 audit-spring-profiles.sh finding): closes Spring
+# profile silent-skip risk per production-env-config-registry.md §11.3 — base
+# application.yml has com.kitehub.admin: DEBUG + org.hibernate.SQL: DEBUG +
+# BasicBinder: TRACE which leak PII (bound params) to logs in production.
+#
+# Characteristics:
+#   - Tighten logging (DEBUG → INFO, TRACE → WARN; no SQL params)
+#   - Hide stacktrace + error message in API responses
+#   - Scope actuator exposure (drop metrics from public)
+#   - Hide health details unless authorized
+
+spring:
+  jpa:
+    show-sql: false
+
+management:
+  endpoint:
+    health:
+      show-details: when_authorized
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+server:
+  error:
+    include-stacktrace: never
+    include-message: never
+
+logging:
+  level:
+    root: WARN
+    com.kitehub: INFO
+    com.kitehub.admin: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework.web: WARN

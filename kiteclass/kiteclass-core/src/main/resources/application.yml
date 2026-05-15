@@ -2,6 +2,11 @@ spring:
   application:
     name: kiteclass-core
 
+  # Wave 82 Bucket F5: REST API service — disable default static resource handler so POST to non-existent path returns 404 (NoHandlerFoundException) not 500 (NoResourceFoundException)
+  web:
+    resources:
+      add-mappings: false
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
 

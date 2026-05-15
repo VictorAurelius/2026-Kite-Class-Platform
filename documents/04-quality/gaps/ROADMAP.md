@@ -31,6 +31,17 @@
 
 **Wave 82 queued:** [`documents/03-planning/waves/wave-2026-05-15-82-fe-self-host.md`](../../03-planning/waves/wave-2026-05-15-82-fe-self-host.md) 8 buckets — FE rebuild architecture (CF Pages/EC2/Vercel Pro) → deploy infra → FE build với Wave 78-81 contracts → DNS cutover → self-hosted runner → Wave 81 follow-ups → user manual P2/P3/Admin → full 126-row walk-through.
 
+### 🚀 Next Action — Wave 82 Bucket B prerequisites (4 P0 BLOCKING — file 2026-05-15 via Bucket A outside-in failure-mode matrix audit)
+
+User locked AWS EC2 t3.small self-host (vs Vercel Pro recommended by 2 outside-in agents). Failure-mode matrix audit surface 4 P0 mitigations PHẢI address TRƯỚC khi provision EC2 kc-app (Bucket B) hoặc DNS flip (Bucket D):
+
+- **[GAP-565](GAP-565-wave-82-ec2-security-group-description-port-restriction.md)** P0 — EC2 security group description audit + port 4701 SG self-reference (KHÔNG public). Failure matrix F6.
+- **[GAP-566](GAP-566-wave-82-t3-small-ram-tuning-pm2-swapfile-memory-alarm.md)** P0 — t3.small 2GB RAM tuning: PM2 max_memory_restart=1.2G + 2GB swapfile + CloudWatch memory alarm >85% 5min. Failure matrix F7 (ISR regen `/beta-status` OOM risk).
+- **[GAP-567](GAP-567-wave-82-certbot-dns-01-cert-renewal-30d-expiry-monitor.md)** P0 — Certbot DNS-01 (Cloudflare API token) + systemd timer auto-renewal + CloudWatch CertDaysToExpire metric + alarm <30d. Failure matrix F10 (HTTP-01 race với nginx port 80, silent 90d expire → 100% outage).
+- **[GAP-568](GAP-568-wave-82-be-cors-allowlist-sweep-pre-dns-flip.md)** P0 — BE `CORS_ALLOWED_ORIGINS` sweep 7 services (kitehub-{admin,branding,email,gateway,subscription} + kiteclass-{core,gateway}) + preflight OPTIONS verify từng endpoint trước khi flip DNS. Failure matrix F11 (silent CORS reject post-cutover).
+
+**Order:** GAP-565/566/567 ship trong Bucket B EC2 provisioning (cùng terraform apply); GAP-568 ship sau Bucket B (new origin xác định) NHƯNG trước Bucket D DNS flip. Mỗi gap require AWS verification artifact per `pre-mutation-state-check.md` §3 trước khi user trigger terraform apply / DNS edit.
+
 
 
 ### 🎉 Wave 80 SHIPPED 2026-05-15 — v1.0.0-rc Blockers (4 buckets + 1 fix-cycle + 1 gitignore pre-add)
