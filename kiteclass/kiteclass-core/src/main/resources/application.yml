@@ -26,6 +26,19 @@ spring:
       maximum-pool-size: 20
       minimum-idle: 5
       connection-timeout: 30000
+      # Wave 85 Bucket B B-AC6 (P0 CRITICAL): RESET app.current_tenant_id on every
+      # new connection added to the pool. Defense-in-depth against cross-tenant leak
+      # via stale GUC carry-over on connection reuse (Postgres GUC persists across
+      # SET LOCAL boundary on close-not-disconnect — pool reuse path).
+      #
+      # `SET LOCAL` from TenantAwareDataSourceInterceptor auto-clears at txn commit/rollback
+      # which is the primary defense; this is the SECONDARY defense for any non-tx code path
+      # (raw JDBC, native query outside @Transactional, etc.).
+      #
+      # `SELECT 1;` placeholder is needed because HikariCP `connection-init-sql` must
+      # return a row; combining the RESET + SELECT in a single statement keeps the
+      # connection-pool init cost to a single round-trip.
+      connection-init-sql: "SELECT set_config('app.current_tenant_id', '', false), set_config('app.is_platform_admin', 'false', false);"
 
   jpa:
     hibernate:
