@@ -1,0 +1,33 @@
+{
+  "pr": 1402,
+  "title": "docs(wave-82-bucket-b): post-apply audit \u2014 EC2 kc-app-fe LIVE",
+  "branch": "chore/wave-82-bucket-b-post-apply-audit",
+  "created_at": null,
+  "merged_at": "2026-05-15T11:43:38Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-15T11:43:43.892556",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 3,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-609761"
+  }
+}

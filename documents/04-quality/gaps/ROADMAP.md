@@ -42,7 +42,16 @@ User locked AWS EC2 t3.small self-host (vs Vercel Pro recommended by 2 outside-i
 
 **Order:** GAP-565/566/567 ship trong Bucket B EC2 provisioning (cùng terraform apply); GAP-568 ship sau Bucket B (new origin xác định) NHƯNG trước Bucket D DNS flip. Mỗi gap require AWS verification artifact per `pre-mutation-state-check.md` §3 trước khi user trigger terraform apply / DNS edit.
 
+### 🚀 Next Action — Wave 82 Bucket B/C follow-ups (4 non-blocking — file 2026-05-15 post Wave 82 closure)
 
+Wave 82 Bucket B + C deployed thành công on production 2026-05-15. 4 known follow-ups filed cho future closure:
+
+- **[GAP-572](GAP-572-certbot-systemd-timer-al2023-not-shipped.md)** P2 — Certbot systemd timer setup fails on AL2023 (package không ship unit files). Manual cert renew works; cert valid 90d until 2026-08-13. Script fix needed (inline unit creation OR cron fallback).
+- **[GAP-573](GAP-573-cloudwatch-cert-days-to-expire-publisher-not-installed.md)** P2 — CloudWatch `CertDaysToExpire` metric publisher chưa install (Step 5 abort do GAP-572 Step 4 fail). Alarm stuck `INSUFFICIENT_DATA`. Fix unblock when GAP-572 fixed.
+- **[GAP-574](GAP-574-pm2-ecosystem-config-3-bugs.md)** P1 — `pm2-ecosystem.config.js` 3 bugs (max_memory_restart `'1.2G'` invalid → use `'1200M'`; cwd path wrong cho monorepo standalone; `/var/log/pm2` perm). Hot-fix manual applied on EC2; repo source bugs persist — future deploys fail without fix.
+- **[GAP-575](GAP-575-kiteclass-frontend-defer-phase-7.md)** P2 — `kiteclass-frontend` deploy defer Phase 7 per ADR-031 (tenant FE scope post-MVP). PM2 ecosystem block exists but not started; nginx subdomain routing wired.
+
+**Order:** GAP-574 (P1 repo source bug) ưu tiên cao nhất — affects mọi future FE deploy. GAP-572 + GAP-573 cùng class (auto-renewal); fix together. GAP-575 = future scope, defer until tenant signup live.
 
 ### 🎉 Wave 80 SHIPPED 2026-05-15 — v1.0.0-rc Blockers (4 buckets + 1 fix-cycle + 1 gitignore pre-add)
 
