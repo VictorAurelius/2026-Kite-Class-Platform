@@ -111,3 +111,20 @@ Production READY cho dev tự test 126 rows từ CSV:
 - Wave 81 Bucket F closure runbook: `documents/05-guides/operations/2026-05-15-wave-81-jwt-secret-fix-runbook.md`
 - PRs landed Wave 81: #1387 (FE ECR push fix), #1388 (JWT_CHALLENGE_SECRET), #1389 (TOTP + STAFF_INVITATION + KITE_VERSION), #1390 (TOTP Spring relaxed binding), #1391 (heredoc env expansion hotfix)
 - Follow-up gaps: GAP-XXX beta-status 400, GAP-XXX CSV doc sync, GAP-XXX Wave 82 FE self-host migration
+
+
+## Correction (2026-05-15 post-handoff)
+
+User flagged: spot-check kết luận "production READY full 126 rows" KHÔNG chính xác. Backend ready, NHƯNG FE Vercel stale ~38h (build cap hit ~2026-05-13) → FE chưa có Wave 78+79+80+81 contracts changes (Beta Status, Onboarding wizard, Staff Invite UI, 2FA UI).
+
+**Realistic post-Wave-81 testable scope:**
+- ✅ Anonymous landing pages (PUB-LAND-*) — FE-only flows, Vercel serves stale OK
+- ✅ Backend-only API curl tests (BETA-REQ POST, admin endpoint reachability, gateway health)
+- ❌ FE UI flows requiring Wave 78+ components: onboarding wizard, staff invite render, beta-status banner display, 2FA challenge UI
+
+**Full 126-row walk-through BLOCKED until Wave 82 Bucket B+C (FE rebuild + deploy).** Wave 81 closure scope = BACKEND production-ready only.
+
+Updated Wave 81 handoff state:
+- Backend: ✅ READY
+- Frontend: ⚠️ STALE — Wave 82 rebuild required
+- Acceptance gate (Wave 82): full 126-row walk-through happens after FE rebuild
