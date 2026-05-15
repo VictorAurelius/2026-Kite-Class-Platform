@@ -216,6 +216,11 @@ resource "aws_iam_role_policy" "github_apply_iam_management" {
         "iam:CreateInstanceProfile", "iam:DeleteInstanceProfile", "iam:GetInstanceProfile",
         "iam:AddRoleToInstanceProfile", "iam:RemoveRoleFromInstanceProfile",
         "iam:ListInstanceProfilesForRole",
+        # Wave 82 Bucket B fix — apply failed 2026-05-15 11:08 UTC at
+        # aws_iam_instance_profile.kc_app_fe creation: default_tags require
+        # iam:TagInstanceProfile not in the original policy. Parallel pattern
+        # to TagRole/UntagRole/ListRoleTags above.
+        "iam:TagInstanceProfile", "iam:UntagInstanceProfile", "iam:ListInstanceProfileTags",
         "iam:CreateOpenIDConnectProvider", "iam:DeleteOpenIDConnectProvider",
         "iam:GetOpenIDConnectProvider", "iam:UpdateOpenIDConnectProviderThumbprint",
         "iam:TagOpenIDConnectProvider", "iam:ListOpenIDConnectProviderTags"
