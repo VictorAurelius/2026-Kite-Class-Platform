@@ -76,7 +76,7 @@ export async function getManualPage(
 
   // Extract H1 as title (fallback to topic)
   const h1Match = content.match(/^#\s+(.+)$/m);
-  const title = h1Match ? h1Match[1].trim() : data.topic || slug;
+  const title = h1Match && h1Match[1] ? h1Match[1].trim() : String(data.topic || slug);
 
   // Render markdown → HTML
   const processed = await remark().use(html).process(content);
@@ -104,11 +104,11 @@ export function getAllManualPagesForPersona(persona: string): UserManualPageMeta
       const { data, content } = matter(fileContent);
 
       const h1Match = content.match(/^#\s+(.+)$/m);
-      const title = h1Match ? h1Match[1].trim() : String(data.topic || slug);
+      const title = h1Match && h1Match[1] ? h1Match[1].trim() : String(data.topic || slug);
 
       // Extract first paragraph after TL;DR as summary (≤200 chars)
       const summaryMatch = content.match(/##\s+TL;DR[\s\S]*?\n\n([^\n#]+)/);
-      const summary = (summaryMatch ? summaryMatch[1] : '').trim().slice(0, 200);
+      const summary = (summaryMatch && summaryMatch[1] ? summaryMatch[1] : '').trim().slice(0, 200);
 
       return {
         slug,
@@ -152,14 +152,14 @@ export function getSearchIndexForPersona(persona: string): ManualSearchIndexEntr
     const { content } = matter(fileContent);
 
     const h1Match = content.match(/^#\s+(.+)$/m);
-    const title = h1Match ? h1Match[1].trim() : slug;
+    const title = h1Match && h1Match[1] ? h1Match[1].trim() : slug;
 
-    const headings = Array.from(content.matchAll(/^##\s+(.+)$/gm)).map((m) =>
-      m[1].trim()
-    );
+    const headings = Array.from(content.matchAll(/^##\s+(.+)$/gm))
+      .map((m) => (m[1] ? m[1].trim() : ''))
+      .filter((h) => h.length > 0);
 
     const summaryMatch = content.match(/##\s+TL;DR[\s\S]*?\n\n([^\n#]+)/);
-    const summary = (summaryMatch ? summaryMatch[1] : '').trim().slice(0, 200);
+    const summary = (summaryMatch && summaryMatch[1] ? summaryMatch[1] : '').trim().slice(0, 200);
 
     return { slug, persona, title, summary, headings };
   });
