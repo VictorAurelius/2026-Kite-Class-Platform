@@ -71,3 +71,7 @@ Per domain:
 - Rubric: `.claude/rules/audit-skill-rubric-business-logic-audit.md` §2.2 Cat 2 Config Accuracy
 - Rules referenced: BR-FEEDBACK-001/003, BR-ONBOARD-001, BR-BETA-STATUS-001/002
 - Sister gap: GAP-556 (support BE absent), GAP-557 (UC ↔ BR traceability)
+
+## Log
+
+- **2026-05-14:** DONE — Wave 79 Bucket A closure. 22 @Value annotations wiring 15+ config keys across 4 domains (auth + onboarding + feedback + beta-status). Cat 2.1 P0 cleared (PR #1365).

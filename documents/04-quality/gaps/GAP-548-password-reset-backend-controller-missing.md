@@ -64,4 +64,6 @@ Migrate cùng `/api/auth/**` namespace sang `/api/v1/auth/**` per `versioning-po
 
 ## Log
 
+- **2026-05-14:** DONE — Wave 79 Bucket C closure. PasswordResetController + V47__add_user_password_reset_columns.sql migration shipped; gateway rate-limit forwards real 200/429 path now (PR #1367).
+
 - **2026-05-14:** Filed from post-Wave-78 API contract audit. P1 — defense-in-depth gateway ready, but end-to-end UX requires BE controller. Wave 79 candidate; non-blocking cho Phase 1 BETA admin-managed reset fallback nhưng cần ship trước public Phase 1.5 PAID launch.

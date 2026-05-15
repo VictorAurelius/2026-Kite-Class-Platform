@@ -138,4 +138,6 @@ Tham chiếu: industry standard SaaS multi-tenant (Notion, Linear, Stripe) — r
 
 ## Log
 
+- **2026-05-14:** PARTIAL 50% — Wave 79 Bucket B closure. V46__create_rbac_roles.sql + PlatformRole enum + @PreAuthorize on staff endpoints shipped via PR #1366. FE role-guard + full @PreAuthorize coverage (billing/branding) deferred to GAP-562b (Wave 80+). Sister gap to GAP-561.
+
 - 2026-05-14 — Filed via Wave 79 outside-in audit (Persona 2 N2-P0). State-check confirmed no staff sub-role enum / no @PreAuthorize / no FE role gating. Priority P0 vì multi-user beta tenant trust + PDPL data isolation. Sister gap GAP-561 phải ship cùng để Manager invite + login an toàn.

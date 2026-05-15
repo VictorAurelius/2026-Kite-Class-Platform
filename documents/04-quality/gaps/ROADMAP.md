@@ -8,9 +8,57 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-14 EOD — 🎉 Wave 78 SHIPPED Beta Invite Launch Retain UX/trust + Wave 77 SEND foundation + GitHub suspension survived + GitLab mirror permanent)
+## 🎯 Current Status Snapshot (2026-05-14 EOD — 🎉 Wave 79 SHIPPED Beta Invite Close-Out v1.0.0-rc gate + RBAC + PDPL + Wave 78 SHIPPED Beta Invite Launch Retain + Wave 77 SEND foundation)
 
-> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-14-post-wave-78-handoff.md`](../../03-planning/session-handoffs/2026-05-14-post-wave-78-handoff.md) — post-Wave-78 state + post-wave audit suite (≤3 ngày) + Plan 1 invite deploy verify + GAP-544 follow-up. Supersedes EOD handoff.
+> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-15-post-wave-79-handoff.md`](../../03-planning/session-handoffs/2026-05-15-post-wave-79-handoff.md) — post-Wave-79 state + Wave 80 DEPLOY+SMOKE queued + GAP-561b/562b/564 outside-in-expanded follow-ups + post-wave audit suite ≤3 ngày.
+
+### 🎉 Wave 79 SHIPPED 2026-05-14 — Beta Invite Close-Out v1.0.0-rc gate (8 buckets + 4 cleanup PRs + 1 META gap filed)
+
+**12 PRs merged:** #1364 Bucket 0 Foundation (3 new domains 3-layer auth-2fa+roles+cookie-consent + 15-key config registry + 2 MSW handlers) · #1365 Bucket A P0 v1.0.0-rc gate (2FA versioning + feedback gateway+tenantId + 22-key @Value wiring) · #1366 Bucket B P0 outside-in invite (V45/V46 + RBAC OWNER/STAFF + staff invitation skeleton — PARTIAL self-declared, GAP-558 cookie consent split out) · #1367 Bucket C P1 cluster security (password-reset BE + default-deny + TOTP/JWT fail-fast + tenant JWT cross-check) · #1368 Bucket D P1 UX retention (Radix Dialog focus-trap + onboarding nav + disclaimer specificity + data-reset-policy) · #1369 Bucket E P1 docs+tests (testcontainers + support scope note + BR-AUTH-009 + BR-refs audit) · #1370 + #1371 Bucket F1 P1 META user-manual-content-standard rule v1.0.0 + 5 anonymous-prospect MDX pages · #1372 Bucket F-bis P1 admin impersonation + V48 audit log + 30s TTL + cleanup unused imports · #1373 docker-compose hardcoded password placeholders (GitHub Secret Scanning fix) · #1374 cleanup unused fields + resource leak · #1375 GAP-564 META filed.
+
+**Outcome (gap-status.csv canonical):**
+- 13 gaps DONE 100%: GAP-040 (impersonation) · GAP-545 (Dialog focus-trap) · GAP-547 (2FA versioning) · GAP-548 (password-reset BE) · GAP-551 (feedback gateway+tenantId) · GAP-552 (default-deny) · GAP-553 (TOTP/JWT fail-fast) · GAP-554 (onboarding tenant cross-check) · GAP-555 (15-key config wiring) · GAP-556 (support scope clarification) · GAP-557 (BR-refs audit) · GAP-559 (onboarding nav) · GAP-560 (data-reset policy) · GAP-563 (META user-manual-content-standard rule)
+- 4 gaps PARTIAL: GAP-537→25% (F1 anonymous sample only; F2 P2/P3/Admin defer Wave 80+) · GAP-544→80% (testcontainers IntegrationTest migrated; DatabaseBackupServiceTest mock-kept) · GAP-561→50% (V45 + 501 stubs; email+FE deferred GAP-561b) · GAP-562→50% (V46 + PlatformRole + @PreAuthorize staff; FE role-guard+billing/branding @PreAuthorize deferred GAP-562b)
+- 1 NEW gap filed: GAP-564 META P0 (outside-in expanded) — security-audit skill ALL 5 categories must mandate per-control evidence (Command run + Output + Verdict + Evidence artifact ID) per SOC2/ISO27001/OWASP ASVS baseline; bumped P1 → P0 block v1.0.0-rc promotion
+- 1 NEW gap deferred: GAP-558 cookie consent banner FE+BE (PDPL deadline 2026-07-01 still in window — Wave 80+ Bucket TBD)
+- Phase 1 BETA Plan 1 invite-ready: v1.0.0-rc gate cleared (2FA versioning + 15-key config wired + RBAC P0 + 4 OWASP P0 closed) — Wave 80 DEPLOY next
+
+**Infra changes:**
+- V45__create_staff_invitations.sql + V46__create_rbac_roles.sql + V47__add_user_password_reset_columns.sql + V48__create_impersonation_audit_log.sql (4 NEW migrations)
+- KitehubSubscriptionApplication @EntityScan extended +feedback.entity +onboarding.entity +staff.entity +impersonation (latent Wave 78 bug catch + Wave 79 new modules)
+- KiteHubAdminApplication @EnableJpaRepositories + @EntityScan extended +staff.repository +staff.entity +impersonation
+- kitehub-gateway: +kitehub-feedback-v1 route + 6 2FA routes (v1 + legacy alias) with circuit-breaker + rate-limit
+- SecurityConfig: anyRequest().authenticated() default-deny + explicit allowlist + 2FA endpoints carved out
+- TotpSecretCipher + ChallengeTokenService @PostConstruct fail-fast guard for production dev-default
+- OnboardingProgressController X-Tenant-Id × JWT claim cross-check via TenantHeaderJwtMismatchException
+- ImpersonationService + ImpersonationAuditEntry + 30s TTL hard-limit + audit log ip+user_agent
+- StaffInvitation entity + PlatformRole enum (OWNER/STAFF) + @PreAuthorize staff endpoints
+- Vercel git.deploymentEnabled main-only whitelist (GAP-495 closed — non-main PRs skip Vercel)
+- kiteclass/docker-compose*.yml 11 hardcoded passwords → ${VAR:-CHANGE-ME-dev-only} placeholders (GitHub Secret Scanning fix)
+
+**Rules shipped:**
+- `user-manual-content-standard.md` v1.0.0 (META P1 force-multiplier) — 15-item checklist + persona discoverability matrix + reviewer-checklist + worked self-test on F1 5-page anonymous sample; paired same-PR `output-review-mandate.md` §3 matrix row + `rules-index.csv` row
+
+**Wave 79 closure protocol satisfied per `gap-done-discipline.md` + `post-merge-sync-completeness.md` §2 + `post-wave-cleanup.md`:**
+- ✅ Wave plan frontmatter `status: complete` flipped
+- ✅ `wave-history.jsonl` appended (Rule 15)
+- ✅ ROADMAP §🚀 Next Action updated (this section)
+- ✅ Worktree prune scheduled (this closure PR)
+- ✅ 14 gap markdown Log entries + gap-status.csv 16 rows synced (this closure PR)
+- ✅ ADMIN_MERGE_OVERRIDE trailer cited on each bucket PR — Vercel rate-limit GAP-495 class + local test pass evidence per `admin-merge-discipline.md` §4
+- ✅ AUDIT_OVERRIDE trailer cited — closure-audit deferred to ≤3-day window per `post-wave-audit-mandate.md` §2.2 (Wave 79 multi-domain ineligible for §2.4 milestone deferral)
+
+**Post-wave audit suite due ≤3 ngày (per `post-wave-audit-mandate.md` §2.2):**
+- UI /128 across kitehub-frontend admin (impersonation + onboarding nav) + auth (2FA flow) + public (Footer/Disclaimer)
+- API Contract /100 across 2FA endpoints + staff endpoints + impersonation endpoints + feedback gateway
+- Business Logic /100 across 3 NEW rules.md (auth-2fa + roles + cookie-consent) + BR-refs audit
+- Security /100 (default-deny + fail-fast + tenant cross-check + RBAC + impersonation TTL) — **NEW format v2 per GAP-564 expanded** (per-control evidence template Command run + Output + Verdict + Evidence artifact ID)
+- Ops Readiness /100 (V45/V46/V47/V48 + Docker non-root + SecurityConfig default-deny)
+- Quality /100 weekly refresh
+
+**Outside-in audit findings (paired same-PR with closure):**
+- `documents/04-quality/audits/persona-review/2026-05-14-gap-564-outside-in-audit-skill-trust.md` — 3 personas (Legal Counsel K-12 / Insurance & Compliance Auditor / Beta Tenant Security Officer) verdicts REJECT 5/5 categories Wave 78 audit format; expand GAP-564 → all 5 categories; bump P1 → P0; format v2 template required forward
+
 
 ### 🎉 Wave 78 SHIPPED 2026-05-14 — Beta Invite Launch Retain UX/trust (7 buckets + 1 hotfix + GAP-544 filed)
 

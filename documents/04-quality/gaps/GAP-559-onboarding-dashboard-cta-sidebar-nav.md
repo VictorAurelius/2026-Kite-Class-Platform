@@ -84,4 +84,6 @@ Inside-out queue 13 items không có gap riêng cho discoverability — focus au
 
 ## Log
 
+- **2026-05-14:** DONE — Wave 79 Bucket D closure. OnboardingDashboardCTA component + Sidebar customerNav entry shipped; /onboarding now reachable from 2 in-app entry points (PR #1368).
+
 - 2026-05-14 — Filed via Wave 79 outside-in audit (Persona 1 N1-P1). State-check confirmed UI exists nhưng entry point hidden. Priority P1 vì degrades activation rate (not blocker, user vẫn login OK).

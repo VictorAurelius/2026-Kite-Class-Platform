@@ -119,4 +119,6 @@ Update GAP-537 §Proposed Fix:
 
 ## Log
 
+- **2026-05-14:** DONE — Wave 79 Bucket F1 closure. user-manual-content-standard.md rule v1.0.0 shipped (META P1 force-multiplier). 15-item checklist + persona discoverability matrix + reviewer-checklist + worked self-test on F1 5-page anonymous sample. `output-review-mandate.md` §3 matrix row added + rules-index.csv row added. Per `incident-to-rule-pipeline.md` 5-stage applied (PR #1371).
+
 - **2026-05-14:** Gap filed via Wave 79 Bucket F1 outside-in audit (Persona 1/2/3/4 walkthrough × 5 questions = format/media/discoverability/cognitive/VN/trust). Outside-in caught format+discoverability blind spot mà GAP-537 inside-out scope chỉ liệt kê "5-10 screenshots per persona" thiếu enforcement. META P0 force-multiplier per `meta-gap-priority.md` §3 — ship standard same PR với Bucket F1 sample để F1 demonstrably apply standard (avoid F2/F3 rework Wave 80+). Reviewer: @nguyenvankiet (solo-dev). Closing PR will demonstrate Wave 79 Bucket F1 5-page anonymous-prospect prototype passes 15-item checklist as self-test.

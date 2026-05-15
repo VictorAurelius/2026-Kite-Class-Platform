@@ -117,4 +117,6 @@ Apply trong cả 2 dialogs. Bonus: restore focus tới previously-focused elemen
 
 ## Log
 
+- **2026-05-14:** DONE — Wave 79 Bucket D closure. Radix Dialog focus-trap migration applied to FeedbackWidget + OnboardingChecklist demo-confirm. WCAG 2.1.1 + 2.4.3 + 4.1.3 satisfied via radix-ui/react-dialog primitives (PR #1368).
+
 - **2026-05-14:** Filed from Wave 78 post-wave ui-review audit. WCAG sub-check 5.5 (keyboard nav) failed on 2 sampled modals; P0 sub-check threshold not breached (other P0 a11y items PASS) → file as P1 follow-up per `audit-skill-rubric-ui-review.md` §4. Static-analysis evidence: 0 grep hits cho focus-trap / Escape handler trong 2 component files. Proposed paths A/B documented; Path A preferred (Radix battle-tested). Effort estimate ~2-3h cho Path A, ~3-4h cho Path B + tests.
