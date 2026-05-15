@@ -113,4 +113,6 @@ Support có thể (with audit):
 
 ## Log
 
+- **2026-05-14:** DONE — Wave 79 Bucket F-bis closure. ImpersonationService + ImpersonationAuditEntry + V48__create_impersonation_audit_log.sql + 30s TTL hard-limit + audit log ip+user_agent shipped via PR #1372. KitehubSubscriptionApplication @EntityScan extended +impersonation package.
+
 - 2026-04-14 — Support journey uncovered

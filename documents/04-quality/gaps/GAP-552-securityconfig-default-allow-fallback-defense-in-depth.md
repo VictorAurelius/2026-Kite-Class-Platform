@@ -92,4 +92,6 @@ Plus add comment ghi rõ tại sao default-allow + reference gap này cho future
 
 ## Log
 
+- **2026-05-14:** DONE — Wave 79 Bucket C closure. SecurityConfig anyRequest().authenticated() default-deny + explicit allowlist (actuator/health, signup, 2FA) shipped; defense-in-depth defense for missed endpoints (PR #1367).
+
 - **2026-05-14**: Filed from Wave 78 post-wave Security audit (89/100 B+).

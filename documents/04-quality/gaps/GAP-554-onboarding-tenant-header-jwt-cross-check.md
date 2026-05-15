@@ -106,4 +106,6 @@ Option B lighter scope; recommended cho Phase 1 BETA. Option A là long-term tar
 
 ## Log
 
+- **2026-05-14:** DONE — Wave 79 Bucket C closure. OnboardingProgressController X-Tenant-Id × JWT claim cross-check via TenantHeaderJwtMismatchException — gateway-bypass scenario blocked (OWASP A01) (PR #1367).
+
 - **2026-05-14**: Filed from Wave 78 post-wave Security audit (89/100 B+).

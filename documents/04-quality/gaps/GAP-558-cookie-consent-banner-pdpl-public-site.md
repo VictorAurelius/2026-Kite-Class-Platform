@@ -83,4 +83,6 @@ Tham chiếu rule: `.claude/rules/business-logic-review.md` (compliance scope) +
 
 ## Log
 
+- **2026-05-14:** OPEN — split out from Wave 79 Bucket B as PARTIAL self-declaration. Cookie consent banner FE+BE not shipped this wave; PDPL deadline 2026-07-01 still in window. Tracked for Wave 80+ Bucket TBD. Inside-out queue updated.
+
 - 2026-05-14 — Filed via Wave 79 outside-in audit (Persona 3 Anonymous Prospect N1-P0). State-check confirmed no existing cookie banner component. Compliance gap NGOÀI inside-out queue 13 items. Priority P0 vì PDPL deadline ~7 tuần + legal/financial risk.

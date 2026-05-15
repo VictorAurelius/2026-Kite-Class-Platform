@@ -1,6 +1,6 @@
 ---
 title: Wave 79 — Beta Invite Close-Out (v1.0.0-rc gate + multi-user RBAC + PDPL compliance)
-status: draft
+status: complete
 created: 2026-05-14
 updated: 2026-05-14
 waves: [79]

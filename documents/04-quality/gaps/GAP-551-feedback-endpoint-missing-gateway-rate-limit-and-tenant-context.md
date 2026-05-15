@@ -98,4 +98,6 @@ Verify:
 
 ## Log
 
+- **2026-05-14:** DONE — Wave 79 Bucket A closure. kitehub-feedback-v1 gateway route + tenant header propagation X-Tenant-Id × JWT claim cross-check shipped; OWASP A01+A04 closed (PR #1365).
+
 - **2026-05-14**: Filed from Wave 78 post-wave Security audit /100 (89/100 B+ aggregate; P0-1 surface).

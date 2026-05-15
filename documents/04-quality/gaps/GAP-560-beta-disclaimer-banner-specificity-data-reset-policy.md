@@ -93,4 +93,6 @@ Phase 1 BETA cần policy CỤ THỂ về reset cadence + backup + advance notic
 
 ## Log
 
+- **2026-05-14:** DONE — Wave 79 Bucket D closure. Beta disclaimer banner specificity update (P2 Owner anxiety) + data-reset-policy.md runbook shipped (PR #1368).
+
 - 2026-05-14 — Filed via Wave 79 outside-in audit (Persona 1 N1-P1). Banner UI exists nhưng copy không actionable + thiếu policy doc. Priority P1 vì degrades retention (not block invite) nhưng critical cho data trust.

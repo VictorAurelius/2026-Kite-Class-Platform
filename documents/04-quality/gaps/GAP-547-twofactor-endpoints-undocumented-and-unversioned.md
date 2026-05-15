@@ -67,4 +67,6 @@ Pre-release `v1.0.0-rc.*` gate per `audit-skill-rubric-api-contract-audit.md` §
 
 ## Log
 
+- **2026-05-14:** DONE — Wave 79 Bucket A closure. /v1/auth/2fa/* versioned routes shipped via gateway+kitehub-subscription dual-mapping (unversioned legacy alias kept for backwards compat); api-contract.md 6 endpoints documented; v1.0.0-rc promotion blocker cleared (PR #1365).
+
 - **2026-05-14:** Filed from post-Wave-78 API contract audit. Verdict FAIL (P0). Block `v1.0.0-rc.*` pre-release gate. Phase 1 (docs) recommended next wave; Phase 2 (versioning) defer-able to Wave 79+.

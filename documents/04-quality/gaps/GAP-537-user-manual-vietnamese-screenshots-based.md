@@ -82,4 +82,6 @@ Phase 1 BETA invite-only launch (5-20 tenants Linear cohort playbook). Sau khi t
 
 ## Log
 
+- **2026-05-14:** PARTIAL 25% — Wave 79 Bucket F1 shipped anonymous-prospect 5-page MDX sample (`index/pricing/beta-access/terms/faq`) at `/help/anonymous/[slug]` route via PR #1371. F2 (P2 Owner + P3 Manager + Platform Admin) deferred Wave 80+ gated on F1 dev review. Inside-out scope refined per `user-manual-content-standard.md` v1.0.0 (sister rule shipped same wave Bucket F1).
+
 - **2026-05-14** — Initial write-up. User-flagged Wave 78 planning convo (2026-05-14): manual depends on UI kit chốt → queued post-Wave 79. Stub created tách rời Wave 78 RETAIN scope.

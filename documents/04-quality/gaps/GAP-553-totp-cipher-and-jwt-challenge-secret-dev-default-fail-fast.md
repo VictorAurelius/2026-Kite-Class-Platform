@@ -113,4 +113,6 @@ File new gap GAP-XXX-totp-kms-migration tracking Phase 1.5+ work per `pre-launch
 
 ## Log
 
+- **2026-05-14:** DONE — Wave 79 Bucket C closure. TotpSecretCipher + ChallengeTokenService @PostConstruct fail-fast guard for production dev-default fallback shipped (OWASP A02) (PR #1367).
+
 - **2026-05-14**: Filed from Wave 78 post-wave Security audit (89/100 B+).
