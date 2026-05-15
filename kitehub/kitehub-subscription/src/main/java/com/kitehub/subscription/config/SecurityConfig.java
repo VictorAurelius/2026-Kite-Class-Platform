@@ -40,10 +40,16 @@ import java.util.stream.Collectors;
  * {@code ROLE_<role>} authorities, so {@code hasRole('PLATFORM_ADMIN')} resolves correctly.</p>
  *
  * <p>Public endpoints under {@code /api/v1/auth/**} (beta signup + token validation +
- * request-beta-access) remain anonymous; only {@code /api/v1/admin/**} requires
- * authentication AND the matching role enforced by per-method {@code @PreAuthorize}.</p>
+ * request-beta-access) and the small anonymous surface listed in the chain stay
+ * anonymous; everything else (including 2FA endpoints under {@code /api/auth/2fa/**}
+ * and {@code /api/v1/auth/2fa/**}, all admin / staff / onboarding paths, and any
+ * future controller that doesn't explicitly opt in via the allowlist) defaults to
+ * {@code authenticated()} — the {@code anyRequest().authenticated()} default-deny
+ * tail closes GAP-552 (was previously {@code permitAll()} which silently let new
+ * controllers ship public). Method-level {@code @PreAuthorize} still enforces
+ * per-role checks for admin paths.</p>
  *
- * @since Wave 35 — GAP-384
+ * @since Wave 35 — GAP-384; default-deny migration Wave 79 — GAP-552
  */
 @Configuration
 @EnableWebSecurity
@@ -73,17 +79,37 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Public auth + actuator + openapi surface
+                        // ── Public surface — explicit allowlist (GAP-552 default-deny migration) ──
+                        // Legacy /api/auth/** (register, login, refresh, verify-email,
+                        // resend-verification, password-reset-*, change-password, profile).
+                        // 2FA endpoints under /api/auth/2fa/** carved out below as authenticated.
+                        .requestMatchers("/api/auth/2fa/**").authenticated()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        // Versioned auth surface (per versioning-policy.md migration target).
+                        .requestMatchers("/api/v1/auth/2fa/**").authenticated()
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        // PDPL cookie consent (Wave 79 Bucket B GAP-558 — anonymous OK).
+                        .requestMatchers("/api/v1/consent/cookie").permitAll()
+                        .requestMatchers("/api/v1/consent/cookie/**").permitAll()
+                        // Beta status + feedback (Wave 78 GAP-540/542) — anonymous OK.
                         .requestMatchers("/api/v1/beta-status/**").permitAll()
+                        .requestMatchers("/api/v1/feedback").permitAll()
+                        .requestMatchers("/api/v1/feedback/**").permitAll()
+                        // Public config / actuator / openapi surface.
+                        .requestMatchers("/api/v1/public-config/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        // Admin endpoints require authentication; role enforced per-method via @PreAuthorize
+                        // Payment webhook (Stripe-style signature validation in controller).
+                        .requestMatchers("/api/v1/payments/webhook").permitAll()
+                        .requestMatchers("/api/v1/payments/webhook/**").permitAll()
+                        // ── Authenticated surface — role enforced per-method via @PreAuthorize ──
                         .requestMatchers("/api/v1/admin/**").authenticated()
-                        // Tenant-scoped endpoints require authentication
                         .requestMatchers("/api/v1/onboarding-progress/**").authenticated()
-                        // Default-deny everything else not explicitly opened
-                        .anyRequest().permitAll()
+                        .requestMatchers("/api/v1/staff/**").authenticated()
+                        .requestMatchers("/api/v1/notifications/**").authenticated()
+                        .requestMatchers("/api/v1/dsar/**").authenticated()
+                        // ── Default-deny everything else (GAP-552 / OWASP A05 + A01) ──
+                        .anyRequest().authenticated()
                 )
                 // Anonymous access to authenticated endpoints → 401 (not the default 403)
                 .exceptionHandling(eh -> eh

@@ -9,12 +9,14 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 
@@ -64,11 +66,27 @@ public class ChallengeTokenService {
 
     private static final long TTL_SECONDS = 5 * 60L;
 
+    /**
+     * Hard-coded dev fallback documented in this file's javadoc. Production MUST
+     * override via {@code JWT_CHALLENGE_SECRET} env — equality to this string
+     * triggers fail-fast in production profile (GAP-553).
+     */
+    static final String DEV_DEFAULT_SECRET = "dev-challenge-secret-pad-pad-pad-pad-pad";
+
     private final SecretKey key;
+    private final boolean productionProfile;
+    private final boolean usingDevDefault;
+    private final int configuredSecretLength;
 
     public ChallengeTokenService(
-        @Value("${jwt.challenge-secret:dev-challenge-secret-pad-pad-pad-pad-pad}") String secret) {
-        // HS256 requires at least 256 bits (32 bytes); pad short config values.
+        @Value("${jwt.challenge-secret:dev-challenge-secret-pad-pad-pad-pad-pad}") String secret,
+        Environment environment) {
+        this.productionProfile = isProduction(environment);
+        this.usingDevDefault = DEV_DEFAULT_SECRET.equals(secret);
+        this.configuredSecretLength = secret.getBytes(StandardCharsets.UTF_8).length;
+
+        // HS256 requires at least 256 bits (32 bytes); pad short config values
+        // (non-prod only; production fail-fast handled in #validate).
         byte[] raw = secret.getBytes(StandardCharsets.UTF_8);
         if (raw.length < 32) {
             byte[] padded = new byte[32];
@@ -78,11 +96,30 @@ public class ChallengeTokenService {
         this.key = Keys.hmacShaKeyFor(raw);
     }
 
+    private static boolean isProduction(Environment environment) {
+        if (environment == null) {
+            return false;
+        }
+        String[] active = environment.getActiveProfiles();
+        return active != null && Arrays.stream(active)
+            .anyMatch(p -> "production".equalsIgnoreCase(p) || "prod".equalsIgnoreCase(p));
+    }
+
     @PostConstruct
     public void validate() {
+        // GAP-553 fail-fast: refuse to boot in production if secret matches the
+        // hard-coded dev default OR if config supplied < 32 bytes of entropy.
+        if (productionProfile && (usingDevDefault || configuredSecretLength < 32)) {
+            throw new IllegalStateException(
+                "JWT challenge secret MUST be set via jwt.challenge-secret (JWT_CHALLENGE_SECRET) "
+                + "(>=32 bytes, not the dev default) in production profile. "
+                + "Got length=" + configuredSecretLength + ", isDevDefault=" + usingDevDefault);
+        }
+
         String tok = issue(UUID.randomUUID(), Purpose.TWO_FACTOR_VERIFY);
         verify(tok); // throws if smoke-test fails
-        log.info("ChallengeTokenService initialised — sign+verify round-trip OK");
+        log.info("ChallengeTokenService initialised — sign+verify round-trip OK (production={}, devDefault={})",
+            productionProfile, usingDevDefault);
     }
 
     public String issue(UUID userId, Purpose purpose) {

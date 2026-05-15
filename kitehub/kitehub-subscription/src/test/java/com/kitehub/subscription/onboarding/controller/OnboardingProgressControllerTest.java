@@ -7,6 +7,9 @@ import com.kitehub.subscription.onboarding.dto.OnboardingProgressResponse;
 import com.kitehub.subscription.onboarding.dto.OnboardingProgressUpdateCommand;
 import com.kitehub.subscription.onboarding.dto.OnboardingStepDto;
 import com.kitehub.subscription.onboarding.service.OnboardingProgressService;
+import com.kitehub.subscription.service.JwtKeyService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +28,9 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -55,13 +60,30 @@ class OnboardingProgressControllerTest {
     private OnboardingProgressService service;
 
     @MockitoBean
+    private JwtKeyService jwtKeyService;
+
+    @MockitoBean
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     private static final UUID TENANT_ID = UUID.fromString("11111111-2222-3333-4444-555555555555");
+    private static final UUID OTHER_TENANT_ID = UUID.fromString("99999999-8888-7777-6666-555555555555");
 
     @BeforeEach
     void setUp() {
-        Mockito.reset(service);
+        Mockito.reset(service, jwtKeyService);
+    }
+
+    /**
+     * Build a mocked {@link Jws} carrying a {@code tenantId} claim. Used to
+     * simulate JwtKeyService.parse() output in GAP-554 cross-check tests.
+     */
+    @SuppressWarnings("unchecked")
+    private void stubJwtTenantClaim(String tenantClaim) {
+        Jws<Claims> jws = (Jws<Claims>) mock(Jws.class);
+        Claims claims = mock(Claims.class);
+        when(jws.getPayload()).thenReturn(claims);
+        when(claims.get("tenantId")).thenReturn(tenantClaim);
+        when(jwtKeyService.parse(anyString())).thenReturn(jws);
     }
 
     private OnboardingProgressResponse sampleResponse(int completionPercent) {
@@ -159,5 +181,76 @@ class OnboardingProgressControllerTest {
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("ONBOARDING_INVALID_PAYLOAD"));
+    }
+
+    // ── GAP-554 — JWT tenant claim cross-check ──
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET — 403 TENANT_HEADER_JWT_MISMATCH when JWT tenantId claim differs from header (GAP-554)")
+    void getRejectsMismatchedJwtTenantClaim() throws Exception {
+        stubJwtTenantClaim(OTHER_TENANT_ID.toString());
+
+        mockMvc.perform(get("/api/v1/onboarding-progress")
+                        .header("X-Tenant-Id", TENANT_ID.toString())
+                        .header("Authorization", "Bearer dummy.jwt.token"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("TENANT_HEADER_JWT_MISMATCH"));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("PUT — 403 TENANT_HEADER_JWT_MISMATCH when JWT tenantId claim differs from header (GAP-554)")
+    void putRejectsMismatchedJwtTenantClaim() throws Exception {
+        stubJwtTenantClaim(OTHER_TENANT_ID.toString());
+        OnboardingProgressUpdateCommand cmd =
+                new OnboardingProgressUpdateCommand(OnboardingStepId.PROFILE_SETUP, true);
+
+        mockMvc.perform(put("/api/v1/onboarding-progress")
+                        .with(csrf())
+                        .header("X-Tenant-Id", TENANT_ID.toString())
+                        .header("Authorization", "Bearer dummy.jwt.token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(cmd)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("TENANT_HEADER_JWT_MISMATCH"));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET — 200 when JWT tenantId claim matches header (happy path GAP-554)")
+    void getAllowsMatchingJwtTenantClaim() throws Exception {
+        stubJwtTenantClaim(TENANT_ID.toString());
+        when(service.getProgress(eq(TENANT_ID))).thenReturn(sampleResponse(0));
+
+        mockMvc.perform(get("/api/v1/onboarding-progress")
+                        .header("X-Tenant-Id", TENANT_ID.toString())
+                        .header("Authorization", "Bearer dummy.jwt.token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tenantId").value(TENANT_ID.toString()));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET — 200 when JWT absent (no cross-check available — GAP-554 incremental scope)")
+    void getAllowsWhenJwtAbsent() throws Exception {
+        when(service.getProgress(eq(TENANT_ID))).thenReturn(sampleResponse(0));
+
+        mockMvc.perform(get("/api/v1/onboarding-progress")
+                        .header("X-Tenant-Id", TENANT_ID.toString()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET — 200 when JWT has no tenantId claim (claim absent → allow)")
+    void getAllowsWhenJwtMissingTenantClaim() throws Exception {
+        stubJwtTenantClaim(null);
+        when(service.getProgress(eq(TENANT_ID))).thenReturn(sampleResponse(0));
+
+        mockMvc.perform(get("/api/v1/onboarding-progress")
+                        .header("X-Tenant-Id", TENANT_ID.toString())
+                        .header("Authorization", "Bearer no-claim.jwt.token"))
+                .andExpect(status().isOk());
     }
 }

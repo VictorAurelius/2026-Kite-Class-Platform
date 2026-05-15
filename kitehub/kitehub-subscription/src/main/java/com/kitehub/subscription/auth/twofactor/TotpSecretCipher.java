@@ -3,6 +3,7 @@ package com.kitehub.subscription.auth.twofactor;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
@@ -11,6 +12,7 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Base64;
 
 /**
@@ -33,33 +35,68 @@ public class TotpSecretCipher {
     private static final int GCM_TAG_BITS = 128;
     private static final String TRANSFORM = "AES/GCM/NoPadding";
 
+    /**
+     * Hard-coded dev fallback documented in this file's javadoc. Production MUST
+     * override via {@code kitehub.auth.totp.encryption-key} env — equality to this
+     * string triggers fail-fast in production profile (GAP-553).
+     */
+    static final String DEV_DEFAULT_KEY = "dev-key-32-chars-pad-pad-pad-pad-pad";
+
     private final SecretKey key;
     private final SecureRandom rng = new SecureRandom();
+    private final boolean productionProfile;
+    private final boolean usingDevDefault;
+    private final int configuredKeyLength;
 
     public TotpSecretCipher(
-        @Value("${kitehub.auth.totp.encryption-key:dev-key-32-chars-pad-pad-pad-pad-pad}") String configuredKey) {
+        @Value("${kitehub.auth.totp.encryption-key:dev-key-32-chars-pad-pad-pad-pad-pad}") String configuredKey,
+        Environment environment) {
+        // Detect production profile up-front so #validate() can fail-fast (GAP-553).
+        this.productionProfile = isProduction(environment);
+        this.usingDevDefault = DEV_DEFAULT_KEY.equals(configuredKey);
+        this.configuredKeyLength = configuredKey.getBytes(StandardCharsets.UTF_8).length;
+
         // We want a 32-byte AES-256 key. If the config value is shorter we pad
         // with the ASCII representation; if longer we truncate. In production the
         // config MUST supply ≥32 bytes — checked in #validate().
         byte[] keyBytes = new byte[32];
         byte[] src = configuredKey.getBytes(StandardCharsets.UTF_8);
-        if (src.length < 32) {
-            log.warn("TOTP encryption key length {} < 32; padding with zeros. "
-                + "MUST set kitehub.auth.totp.encryption-key in production.", src.length);
+        if (src.length < 32 && !productionProfile) {
+            log.warn("TOTP encryption key length {} < 32; padding with zeros (non-prod profile only). "
+                + "MUST set kitehub.auth.totp.encryption-key (≥32 bytes) in production.", src.length);
         }
         System.arraycopy(src, 0, keyBytes, 0, Math.min(src.length, 32));
         this.key = new SecretKeySpec(keyBytes, "AES");
     }
 
+    private static boolean isProduction(Environment environment) {
+        if (environment == null) {
+            return false;
+        }
+        String[] active = environment.getActiveProfiles();
+        return active != null && Arrays.stream(active)
+            .anyMatch(p -> "production".equalsIgnoreCase(p) || "prod".equalsIgnoreCase(p));
+    }
+
     @PostConstruct
     public void validate() {
+        // GAP-553 fail-fast: refuse to boot in production if key matches the
+        // hard-coded dev default OR if config supplied < 32 bytes of entropy.
+        if (productionProfile && (usingDevDefault || configuredKeyLength < 32)) {
+            throw new IllegalStateException(
+                "TOTP encryption key MUST be set via kitehub.auth.totp.encryption-key "
+                + "(>=32 bytes, not the dev default) in production profile. "
+                + "Got length=" + configuredKeyLength + ", isDevDefault=" + usingDevDefault);
+        }
+
         // Smoke test: encrypt+decrypt a known plaintext at boot to catch
         // misconfiguration before any real secret is processed.
         String roundTrip = decrypt(encrypt("totp-cipher-smoke"));
         if (!"totp-cipher-smoke".equals(roundTrip)) {
             throw new IllegalStateException("TotpSecretCipher self-test failed");
         }
-        log.info("TotpSecretCipher initialised — AES/GCM round-trip OK");
+        log.info("TotpSecretCipher initialised — AES/GCM round-trip OK (production={}, devDefault={})",
+            productionProfile, usingDevDefault);
     }
 
     /** Encrypt a UTF-8 plaintext (typically a base32 TOTP secret). */

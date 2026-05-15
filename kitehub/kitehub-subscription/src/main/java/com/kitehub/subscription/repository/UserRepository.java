@@ -20,4 +20,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByEmail(String email);
 
     Optional<User> findByVerificationToken(String verificationToken);
+
+    /**
+     * Lookup for password-reset confirm (GAP-548). Token is opaque URL-safe random
+     * string scoped to one in-flight reset per user — single-use, cleared on confirm.
+     */
+    Optional<User> findByPasswordResetToken(String passwordResetToken);
 }

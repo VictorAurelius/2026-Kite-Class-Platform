@@ -3,7 +3,10 @@ package com.kitehub.subscription.onboarding.controller;
 import com.kitehub.subscription.onboarding.dto.OnboardingProgressResponse;
 import com.kitehub.subscription.onboarding.dto.OnboardingProgressUpdateCommand;
 import com.kitehub.subscription.onboarding.exception.TenantContextMissingException;
+import com.kitehub.subscription.onboarding.exception.TenantHeaderJwtMismatchException;
 import com.kitehub.subscription.onboarding.service.OnboardingProgressService;
+import com.kitehub.subscription.service.JwtKeyService;
+import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -51,13 +54,15 @@ import java.util.UUID;
 public class OnboardingProgressController {
 
     private final OnboardingProgressService service;
+    private final JwtKeyService jwtKeyService;
 
     @GetMapping
     @Operation(summary = "Get onboarding progress for current tenant (lazy-init)")
     public ResponseEntity<OnboardingProgressResponse> getProgress(
-            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader
     ) {
-        UUID tenantId = resolveTenant(tenantHeader);
+        UUID tenantId = resolveTenant(tenantHeader, authorizationHeader);
         return ResponseEntity.ok(service.getProgress(tenantId));
     }
 
@@ -65,20 +70,71 @@ public class OnboardingProgressController {
     @Operation(summary = "Update one step completion (idempotent on equal value)")
     public ResponseEntity<OnboardingProgressResponse> updateStep(
             @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
             @Valid @RequestBody OnboardingProgressUpdateCommand command
     ) {
-        UUID tenantId = resolveTenant(tenantHeader);
+        UUID tenantId = resolveTenant(tenantHeader, authorizationHeader);
         return ResponseEntity.ok(service.updateStep(tenantId, command));
     }
 
-    private UUID resolveTenant(String tenantHeader) {
+    /**
+     * Resolve tenant context from {@code X-Tenant-Id} header AND cross-check
+     * against the JWT {@code tenantId} claim (GAP-554 — defense-in-depth against
+     * gateway bypass that would otherwise let an attacker spoof tenant context
+     * by setting the header directly on an internal call).
+     *
+     * <p>Cross-check policy:</p>
+     * <ul>
+     *   <li>Header missing → {@code 403 TENANT_CONTEXT_MISSING} (unchanged).</li>
+     *   <li>Header present, JWT absent OR has no {@code tenantId} claim → ALLOW
+     *       (Phase 1 BETA — gateway is trusted boundary, JWT may pre-date claim).</li>
+     *   <li>Both present + mismatch → {@code 403 TENANT_HEADER_JWT_MISMATCH}.</li>
+     *   <li>JWT unparseable / invalid signature → ALLOW (auth filter is the canonical
+     *       gate; this controller does not duplicate that responsibility).</li>
+     * </ul>
+     */
+    private UUID resolveTenant(String tenantHeader, String authorizationHeader) {
         if (tenantHeader == null || tenantHeader.isBlank()) {
             throw new TenantContextMissingException("X-Tenant-Id header missing");
         }
+        final UUID tenantId;
         try {
-            return UUID.fromString(tenantHeader);
+            tenantId = UUID.fromString(tenantHeader);
         } catch (IllegalArgumentException ex) {
             throw new TenantContextMissingException("X-Tenant-Id header malformed (not a UUID)");
+        }
+
+        String jwtTenant = extractJwtTenantClaim(authorizationHeader);
+        if (jwtTenant != null && !jwtTenant.isBlank() && !jwtTenant.equals(tenantHeader)) {
+            log.warn("Tenant header/JWT mismatch: header={} jwt={}",
+                tenantHeader, jwtTenant);
+            throw new TenantHeaderJwtMismatchException(
+                "X-Tenant-Id header does not match JWT tenantId claim");
+        }
+        return tenantId;
+    }
+
+    /**
+     * Best-effort extraction of {@code tenantId} claim from a Bearer token.
+     * Returns {@code null} for any failure path (no token, unparseable, no claim).
+     * Authentication itself is enforced by {@code XUserRolesHeaderFilter}; this
+     * helper is only concerned with the cross-check value.
+     */
+    private String extractJwtTenantClaim(String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            return null;
+        }
+        String token = authorizationHeader.substring("Bearer ".length()).trim();
+        if (token.isEmpty()) {
+            return null;
+        }
+        try {
+            Claims claims = jwtKeyService.parse(token).getPayload();
+            Object claim = claims.get("tenantId");
+            return claim == null ? null : claim.toString();
+        } catch (Exception ex) {
+            // JWT invalid / expired / wrong signature → cross-check is no-op.
+            return null;
         }
     }
 
@@ -88,6 +144,13 @@ public class OnboardingProgressController {
     public ResponseEntity<ProblemDetail> handleTenantMissing(TenantContextMissingException ex) {
         ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
         body.setProperty("error", "TENANT_CONTEXT_MISSING");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    @ExceptionHandler(TenantHeaderJwtMismatchException.class)
+    public ResponseEntity<ProblemDetail> handleTenantMismatch(TenantHeaderJwtMismatchException ex) {
+        ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        body.setProperty("error", "TENANT_HEADER_JWT_MISMATCH");
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
     }
 

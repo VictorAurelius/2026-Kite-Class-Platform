@@ -4,6 +4,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.env.MockEnvironment;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -22,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 class ChallengeTokenServiceTest {
 
     private final ChallengeTokenService svc =
-        new ChallengeTokenService("test-challenge-secret-32-chars-aaaaaa");
+        new ChallengeTokenService("test-challenge-secret-32-chars-aaaaaa", new MockEnvironment());
 
     @Test
     @DisplayName("issue + verify happy path returns same userId + purpose")

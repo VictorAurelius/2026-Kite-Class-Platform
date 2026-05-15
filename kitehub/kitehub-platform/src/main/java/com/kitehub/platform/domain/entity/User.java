@@ -48,6 +48,19 @@ public class User {
     private LocalDateTime tokenExpiresAt;
 
     /**
+     * Password-reset token (GAP-548 / Wave 79 Bucket C).
+     * Opaque URL-safe random string issued by
+     * {@code POST /api/auth/password-reset-request}. Single-use: cleared in the
+     * same transaction that resets the password hash. NULL = no reset pending.
+     */
+    @Column(name = "password_reset_token")
+    private String passwordResetToken;
+
+    /** TTL boundary for {@link #passwordResetToken}. NULL when no reset pending. */
+    @Column(name = "password_reset_token_expires")
+    private LocalDateTime passwordResetTokenExpires;
+
+    /**
      * Account lockout state (GAP-515 / OWASP A07).
      * Reset to 0 on successful login. Incremented per failed login.
      * When >= 5 within window, sets {@link #lockedUntil} with exponential backoff.
