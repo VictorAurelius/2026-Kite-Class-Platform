@@ -1,14 +1,24 @@
 #!/usr/bin/env bash
 #
-# deploy-prod.sh — Phase 1 BETA production deploy bootstrap
+# deploy-prod.sh — Phase 1 BETA production routine deploy (POST-BOOTSTRAP)
+#
+# GAP-506 Bucket F (Wave 85): refactored to remove bootstrap concerns
+# (initial clone, repo seed). This script now ASSUMES /opt/kite-prod is
+# already cloned + initial compose file present (via deploy-bootstrap.sh
+# run one time). Subsequent routine deploys use OIDC ephemeral credentials
+# only — no static admin keys.
 #
 # Runs ON kh-backend EC2 (i-0b65c3947d36cae61) via SSM session OR
 # `aws ssm send-command`. NOT for agent execution per agent-aws-access.md
 # §4.3 — production EC2 mutation = user-only.
 #
+# Env guards (per Bucket F AC F-AC1):
+#   - Refuses to run when KITE_FIRST_APPLY=true (force user to use
+#     deploy-bootstrap.sh for first-apply path).
+#
 # What it does (idempotent):
-#   1. cd /opt/kite-prod (creates dir if missing)
-#   2. git pull docker-compose.production.yml + scripts/ (or wget from S3)
+#   1. cd /opt/kite-prod (errors if missing — bootstrap must have run)
+#   2. git pull docker-compose.production.yml + scripts/
 #   3. ECR login via /etc/ecr-login.sh (set up by terraform user_data)
 #   4. fetch-secrets.sh → /etc/kite/.env
 #   5. docker compose pull (latest tag)
@@ -25,8 +35,22 @@
 #     --parameters 'commands=["sudo KITE_VERSION=v0.9.0-beta-staging.8 bash /opt/kite-prod/scripts/deploy-prod.sh"]' \
 #     --timeout-seconds 600 \
 #     --region ap-southeast-1
+#
+# Related:
+#   - scripts/deploy-bootstrap.sh (first-apply path)
+#   - documents/05-guides/deploy/post-bootstrap-deploy-runbook.md
+#   - .claude/rules/release-deploy-standard.md §9
+#   - GAP-506
 
 set -euo pipefail
+
+# --- Env guard: KITE_FIRST_APPLY must NOT be set for routine deploys (Bucket F AC F-AC1) ---
+if [[ "${KITE_FIRST_APPLY:-false}" == "true" ]]; then
+  echo "ERROR: deploy-prod.sh refusing to run with KITE_FIRST_APPLY=true." >&2
+  echo "ERROR: For first-time bootstrap, use scripts/deploy-bootstrap.sh instead." >&2
+  echo "ERROR: deploy-prod.sh is for routine deploys (post-bootstrap) only." >&2
+  exit 2
+fi
 
 # Strip leading "v" prefix — Docker metadata-action `type=semver,pattern={{version}}`
 # emits ECR tags WITHOUT v (e.g., `0.9.0-beta-staging.8`, not `v0.9.0-beta-staging.8`).
@@ -34,57 +58,54 @@ set -euo pipefail
 # we normalize to the no-v form for docker compose pull.
 KITE_VERSION="${KITE_VERSION:-v0.9.0-beta-staging.8}"
 KITE_VERSION="${KITE_VERSION#v}"
-DEPLOY_DIR="/opt/kite-prod"
+DEPLOY_DIR="${DEPLOY_DIR:-/opt/kite-prod}"
 COMPOSE_FILE="${DEPLOY_DIR}/docker-compose.production.yml"
-LOG="/var/log/kite-deploy.log"
+LOG="${KITE_DEPLOY_LOG:-/var/log/kite-deploy.log}"
 
-log() { echo "[$(date -u +%FT%TZ)] $*" | tee -a "$LOG"; }
+# Logging: write to stdout always; append to $LOG when writable (no-op otherwise).
+# Avoids `sudo tee` so script stays testable in non-root contexts.
+log() {
+  local line
+  line="[$(date -u +%FT%TZ)] $*"
+  echo "$line"
+  if [[ -w "$(dirname "$LOG")" ]] || [[ -w "$LOG" ]] 2>/dev/null; then
+    echo "$line" >> "$LOG" 2>/dev/null || true
+  fi
+}
 
 log "==================== deploy-prod.sh START ===================="
 log "KITE_VERSION=${KITE_VERSION}"
 log "DEPLOY_DIR=${DEPLOY_DIR}"
 
-# Step 1: Ensure deploy directory + permissions
-sudo mkdir -p "$DEPLOY_DIR"
-sudo chown ec2-user:ec2-user "$DEPLOY_DIR"
-
-cd "$DEPLOY_DIR"
-
-# Step 2: Pull / sync repo artifacts
-# Operator initial bootstrap: clone repo to /opt/kite-prod
-# Subsequent deploys: git pull
+# --- Step 1: Verify bootstrap has happened (deploy-prod assumes /opt/kite-prod ready) ---
 if [[ ! -d "$DEPLOY_DIR/.git" ]]; then
-  log "Initial bootstrap: cloning repo (shallow)..."
-  if [[ -n "${KITE_REPO_URL:-}" ]]; then
-    git clone --depth 1 "$KITE_REPO_URL" "$DEPLOY_DIR" || {
-      log "ERROR: git clone failed — set KITE_REPO_URL env or upload manually"
-      exit 1
-    }
-  else
-    log "WARN: \$DEPLOY_DIR/.git missing AND \$KITE_REPO_URL unset"
-    log "WARN: Skipping git pull. Operator must scp/aws-s3-cp compose file + scripts manually."
-    log "WARN: Required files: $COMPOSE_FILE + scripts/fetch-secrets.sh"
-  fi
-else
-  log "Updating repo..."
-  cd "$DEPLOY_DIR"
-  # Bootstrap clone via SSM ran as root, so .git ownership is root.
-  # deploy-prod.sh runs as ec2-user via sudo; git refuses cross-uid ops without
-  # explicit safe.directory. Marking trusted for both root + ec2-user contexts.
-  sudo git config --global --add safe.directory "$DEPLOY_DIR" 2>/dev/null || true
-  git config --global --add safe.directory "$DEPLOY_DIR" 2>/dev/null || true
-  sudo git -C "$DEPLOY_DIR" fetch --depth 1 origin main \
-    && sudo git -C "$DEPLOY_DIR" reset --hard origin/main \
-    || log "WARN: git pull failed, using existing artifacts"
+  log "ERROR: $DEPLOY_DIR/.git missing — bootstrap has not run."
+  log "ERROR: Run scripts/deploy-bootstrap.sh ONCE first."
+  log "ERROR: See documents/05-guides/deploy/bootstrap-runbook.md"
+  exit 3
 fi
 
 if [[ ! -f "$COMPOSE_FILE" ]]; then
-  log "ERROR: $COMPOSE_FILE not found. Bootstrap manually:"
-  log "ERROR:   sudo cp /path/to/docker-compose.production.yml $COMPOSE_FILE"
-  exit 1
+  log "ERROR: $COMPOSE_FILE not found. Bootstrap state corrupted."
+  log "ERROR: Inspect $DEPLOY_DIR manually; may need re-bootstrap."
+  exit 4
 fi
 
-# Step 3: ECR login (uses instance profile, no static keys)
+# Bootstrap clone via SSM ran as root, so .git ownership may be root.
+# deploy-prod.sh runs as ec2-user via sudo; git refuses cross-uid ops without
+# explicit safe.directory. Marking trusted for both root + ec2-user contexts.
+sudo git config --global --add safe.directory "$DEPLOY_DIR" 2>/dev/null || true
+git config --global --add safe.directory "$DEPLOY_DIR" 2>/dev/null || true
+
+# --- Step 2: Pull / sync repo artifacts (post-bootstrap routine update) ---
+cd "$DEPLOY_DIR"
+log "Updating repo..."
+# shellcheck disable=SC2015  # intentional: WARN-only fallback if fetch fails
+sudo git -C "$DEPLOY_DIR" fetch --depth 1 origin main \
+  && sudo git -C "$DEPLOY_DIR" reset --hard origin/main \
+  || log "WARN: git pull failed, using existing artifacts"
+
+# --- Step 3: ECR login (uses instance profile, no static keys) ---
 log "ECR login..."
 if [[ -x /etc/ecr-login.sh ]]; then
   sudo /etc/ecr-login.sh | tee -a "$LOG"
@@ -95,27 +116,27 @@ else
       906286017800.dkr.ecr.ap-southeast-1.amazonaws.com
 fi
 
-# Step 4: Fetch secrets from AWS Secrets Manager
+# --- Step 4: Fetch secrets from AWS Secrets Manager ---
 log "Fetching secrets..."
 if [[ -x "$DEPLOY_DIR/scripts/fetch-secrets.sh" ]]; then
   KITE_VERSION="$KITE_VERSION" sudo --preserve-env=KITE_VERSION,RESEND_API_KEY \
     bash "$DEPLOY_DIR/scripts/fetch-secrets.sh"
 else
   log "ERROR: fetch-secrets.sh not found at $DEPLOY_DIR/scripts/"
-  exit 1
+  exit 5
 fi
 
-# Step 5: Pull latest images
+# --- Step 5: Pull latest images ---
 log "docker compose pull (KITE_VERSION=$KITE_VERSION)..."
 KITE_VERSION="$KITE_VERSION" sudo --preserve-env=KITE_VERSION \
   docker compose -f "$COMPOSE_FILE" pull
 
-# Step 6: Up
+# --- Step 6: Up ---
 log "docker compose up -d --remove-orphans..."
 KITE_VERSION="$KITE_VERSION" sudo --preserve-env=KITE_VERSION \
   docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
 
-# Step 6.5: Sync RabbitMQ user (GAP-502 RC1 self-heal)
+# --- Step 6.5: Sync RabbitMQ user (GAP-502 RC1 self-heal) ---
 #
 # fetch-secrets.sh may generate ephemeral rabbit creds when
 # kitehub/production/rabbitmq-default-creds secret is empty (see fetch-secrets.sh
@@ -154,7 +175,9 @@ else
   log "WARN: RABBITMQ_USER/PASS not in /etc/kite/.env — skipping rabbit user sync"
 fi
 
-# Step 7: Wait + healthcheck
+# --- Step 7: Wait + healthcheck ---
+# Bucket F: extended wait honors kitehub-email cold start ~30s + Spring Boot
+# warm-up window (start_period: 150s per docker-compose.production.yml).
 log "Waiting 60s for stack to settle..."
 sleep 60
 
