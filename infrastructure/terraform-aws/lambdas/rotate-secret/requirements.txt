@@ -1,0 +1,6 @@
+# Runtime dependencies for rotate-secret Lambda.
+#
+# boto3 + botocore ship with the AWS-managed python3.12 runtime; no bundled
+# install needed for production. This file is intentionally kept (empty modulo
+# this comment) as a hook for future pinned versions (e.g., if boto3 behavior
+# drift becomes an issue) and to make the Lambda package layout obvious.
