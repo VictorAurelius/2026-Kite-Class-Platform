@@ -4,6 +4,7 @@ import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.subscription.dto.CreateInstanceRequest;
+import com.kitehub.subscription.dto.CursorPage;
 import com.kitehub.subscription.dto.InstanceResponse;
 import com.kitehub.subscription.dto.RegisterInstanceRequest;
 import com.kitehub.subscription.dto.RegisterInstanceResponse;
@@ -14,6 +15,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -345,6 +347,33 @@ public class InstanceService {
     public Page<InstanceResponse> listAllInstances(Pageable pageable) {
         return instanceRepository.findByDeletedFalse(pageable)
             .map(this::toResponse);
+    }
+
+    /**
+     * Keyset-paginate non-deleted instances after the given cursor — Wave 85
+     * Bucket D D-AC1. Use when the instance count is projected to exceed ~1M
+     * (avoids OFFSET cliff). Order fixed {@code id ASC}.
+     *
+     * @param cursorId UUID of the last instance from the prior page (null = first page)
+     * @param size     page size (caller-capped to 1..200)
+     * @return cursor page with content + nextCursor + hasNext
+     */
+    @Transactional(readOnly = true)
+    public CursorPage<InstanceResponse> listInstancesByCursor(UUID cursorId, int size) {
+        Pageable pageable = PageRequest.of(0, size + 1);
+        List<Instance> rows = instanceRepository.findAfterCursor(cursorId, pageable);
+
+        boolean hasNext = rows.size() > size;
+        List<Instance> trimmed = hasNext ? rows.subList(0, size) : rows;
+        List<InstanceResponse> content = trimmed.stream()
+            .map(this::toResponse)
+            .toList();
+
+        String nextCursor = (hasNext && !trimmed.isEmpty())
+            ? CursorPage.encodeCursor(trimmed.get(trimmed.size() - 1).getId())
+            : null;
+
+        return new CursorPage<>(content, size, nextCursor, hasNext);
     }
 
     /**

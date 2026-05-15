@@ -58,4 +58,27 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
         countQuery = "SELECT COUNT(p) FROM Payment p WHERE p.status = :status AND p.deleted = false"
     )
     Page<Payment> findByStatusNotDeleted(@Param("status") PaymentStatus status, Pageable pageable);
+
+    // =========================================================
+    // Wave 85 Bucket D D-AC1: cursor-based (keyset) pagination
+    // for datasets >1M rows. Avoids OFFSET cliff cost.
+    // Order is fixed id ASC for stable keyset traversal.
+    // =========================================================
+
+    /**
+     * Keyset-paginate non-deleted payments starting AFTER the given cursor id.
+     * First page should pass {@code cursorId = null} to start from beginning.
+     */
+    @Query("SELECT p FROM Payment p WHERE p.deleted = false "
+        + "AND (:cursorId IS NULL OR p.id > :cursorId) "
+        + "ORDER BY p.id ASC")
+    List<Payment> findAfterCursor(@Param("cursorId") UUID cursorId, Pageable pageable);
+
+    /** Keyset variant with status filter. */
+    @Query("SELECT p FROM Payment p WHERE p.deleted = false AND p.status = :status "
+        + "AND (:cursorId IS NULL OR p.id > :cursorId) "
+        + "ORDER BY p.id ASC")
+    List<Payment> findByStatusAfterCursor(@Param("status") PaymentStatus status,
+                                          @Param("cursorId") UUID cursorId,
+                                          Pageable pageable);
 }

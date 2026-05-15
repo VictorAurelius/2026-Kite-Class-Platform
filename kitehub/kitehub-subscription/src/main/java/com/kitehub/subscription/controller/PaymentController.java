@@ -2,6 +2,7 @@ package com.kitehub.subscription.controller;
 
 import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.subscription.dto.CreatePaymentRequest;
+import com.kitehub.subscription.dto.CursorPage;
 import com.kitehub.subscription.dto.PaymentResponse;
 import com.kitehub.subscription.service.PaymentService;
 import io.micrometer.core.annotation.Timed;
@@ -111,6 +112,35 @@ public class PaymentController {
             Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<PaymentResponse> responses = paymentService.getAllPayments(status, pageable);
         return ResponseEntity.ok(responses);
+    }
+
+    /**
+     * Cursor (keyset) variant for very large payment ledgers — Wave 85 Bucket D D-AC1.
+     *
+     * <p>When the payment table grows beyond ~1M rows, OFFSET pagination starts
+     * to pay a linear skip-cost. This endpoint accepts an opaque base64 cursor
+     * (decoded into the last-seen {@code id}) and returns the next page using a
+     * keyset query (no OFFSET). Order is fixed {@code id ASC}.</p>
+     *
+     * <p>Clients should NOT mix {@code page} and {@code cursor}; the controller
+     * returns 400 if both are supplied.</p>
+     *
+     * @param status optional status filter
+     * @param cursor opaque cursor from prior response (null/blank for first page)
+     * @param size   page size (defaults 50, capped at 200)
+     * @return CursorPage envelope
+     */
+    @GetMapping(params = "cursor")
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
+    public ResponseEntity<CursorPage<PaymentResponse>> getPaymentsByCursor(
+        @RequestParam(required = false) PaymentStatus status,
+        @RequestParam(required = false) String cursor,
+        @RequestParam(defaultValue = "" + DEFAULT_PAGE_SIZE) int size
+    ) {
+        int safeSize = Math.min(Math.max(1, size), MAX_PAGE_SIZE);
+        UUID cursorId = CursorPage.decodeCursor(cursor);
+        CursorPage<PaymentResponse> page = paymentService.getPaymentsByCursor(status, cursorId, safeSize);
+        return ResponseEntity.ok(page);
     }
 
     /**
