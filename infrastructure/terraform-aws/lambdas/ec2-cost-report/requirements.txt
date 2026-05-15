@@ -1,0 +1,4 @@
+# Runtime dependencies for ec2-cost-report Lambda (GAP-414).
+# boto3 is bundled in the Python 3.12 AWS Lambda runtime — no need to package.
+# Pinned here for local test execution only.
+boto3>=1.34.0
