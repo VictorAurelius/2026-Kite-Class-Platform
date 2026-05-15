@@ -84,6 +84,12 @@ infrastructure/terraform-oracle/backend.hcl
 # manifest.md = auto-generated index per capture run, useful for audit history
 documents/screenshots/**/*.png
 
+# User manual PDFs — regen-on-demand per scripts/render-user-manual-pdf.sh
+# Source-of-truth = Markdown in documents/05-guides/user-manual/{persona}/*.md
+# Per `.claude/rules/user-manual-content-standard.md` §2 item 15 + test-artifact-format-standard.md §4.2
+documents/05-guides/user-manual/*-manual.pdf
+documents/05-guides/user-manual/**/*-manual.pdf
+
 # Python cache
 __pycache__/
 *.pyc
