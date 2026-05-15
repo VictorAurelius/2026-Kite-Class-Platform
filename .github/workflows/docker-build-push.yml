@@ -228,6 +228,14 @@ jobs:
             ecr_repo: kite/kitehub-gateway
             context: kitehub
             dockerfile: kitehub/kitehub-gateway/Dockerfile
+          # kitehub-frontend — restored to push matrix per Wave 81 Bucket H investigation
+          # (was missing while build-test matrix had it with optional:'true').
+          # Bug surfaced 2026-05-15 when staging.14 tag failed to push FE image to ECR.
+          - service: kitehub-frontend
+            ecr_repo: kite/kitehub-frontend
+            context: .
+            dockerfile: kitehub/kitehub-frontend/Dockerfile
+            optional: 'true'
 
     steps:
       - name: Checkout code
@@ -240,6 +248,10 @@ jobs:
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
+            if [ "${{ matrix.optional }}" = "true" ]; then
+              echo "::warning ::Optional Dockerfile not present: ${{ matrix.dockerfile }} — skipping push"
+              exit 0
+            fi
             echo "::error ::Required Dockerfile missing: ${{ matrix.dockerfile }}"
             exit 1
           fi
