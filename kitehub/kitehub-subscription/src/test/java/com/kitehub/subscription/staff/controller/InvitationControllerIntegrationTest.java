@@ -1,7 +1,6 @@
 package com.kitehub.subscription.staff.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kitehub.platform.domain.entity.User;
 import com.kitehub.subscription.client.EmailServiceClient;
 import com.kitehub.subscription.repository.UserRepository;
 import com.kitehub.subscription.staff.dto.AcceptStaffInvitationRequest;
@@ -28,7 +27,6 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -144,7 +142,7 @@ class InvitationControllerIntegrationTest {
                 .fullName("Nguyễn Văn Mẫu")
                 .build();
 
-        MvcResult result = mockMvc.perform(post("/api/v1/staff-invitations")
+        mockMvc.perform(post("/api/v1/staff-invitations")
                         .header("X-Tenant-Id", TENANT_ID.toString())
                         .header("X-User-Id", OWNER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -152,8 +150,7 @@ class InvitationControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email").value("staff.new@example.edu.vn"))
                 .andExpect(jsonPath("$.role").value("STAFF"))
-                .andExpect(jsonPath("$.status").value("PENDING"))
-                .andReturn();
+                .andExpect(jsonPath("$.status").value("PENDING"));
 
         // Two audit rows expected: CREATED + SENT.
         assertThat(auditRepository.findAllByTenantIdOrderByOccurredAtDesc(TENANT_ID))

@@ -64,3 +64,15 @@ User-action (pending — outside Claude session per `agent-action-bias.md` §3 r
   - Closure trailer format codified: `GAP-525_USER_ROTATED: admin-pwd YYYY-MM-DD / cloudflare YYYY-MM-DD / resend YYYY-MM-DD` (per `gap-done-discipline.md` §2). User chạy rotation outside Claude session per `agent-action-bias.md` §3 row 5 (destructive shared-state) + `agent-aws-access.md` §4.3 (Tier 3 mutations user-execute only). Wrapper KHÔNG tự call mutation APIs.
 - **2026-05-14** (Wave 72a Bucket D): Status flipped 🔵 OPEN → 🟡 PARTIAL. Runbook `documents/05-guides/operations/credential-rotation-runbook.md` + incident audit artifact `documents/04-quality/audits/credential-rotation/2026-05-14-wave-72a-3-credentials.md` shipped. Procedure ready; actual rotation steps deferred to user-action per `agent-aws-access.md` §4 (Tier 3 mutations are user-execute only) + vendor portal revocations (Cloudflare, Resend) require user login. Per `gap-done-discipline.md` §3 PARTIAL exit ramp: AC items 1–4 remain unchecked until user completes the rotation per the incident artifact §"Next steps" checklist. Gap stays PARTIAL until rows 1–3 of the artifact's rotation-status table show `verified` status, at which point user flips to 🟢 DONE.
 - **2026-05-13** (Wave 71c-meta-Phase-2): Gap filed. 3 credentials surfaced in session transcript identified.
+
+- **2026-05-15:** PARTIAL 85% → DONE 100% — Wave 81 Bucket C closure. All 3 creds verified:
+  - **#1 `seed-admin-password`** — pre-existing TF-managed (created 2026-05-13T04:29:21Z via prior Wave 72a/77 Bucket C automation). Wrapper script naming bug (`admin-seed-password` vs actual `seed-admin-password`) caused false-WARN; verified via `aws secretsmanager describe-secret`. No action needed.
+  - **#2 `cloudflare-api-token`** — rotated 2026-05-15 06:45:13Z via Cloudflare dashboard `Roll` button (atomic mint-new + auto-revoke-old). AWSCURRENT version `9a648505`. Smoke test `curl GET /zones` returned `success: true`. Audit: `documents/04-quality/audits/credential-rotation/2026-05-15-credential-rotation-cloudflare-token.md`.
+  - **#3 `resend-api-key`** — rotated 2026-05-15 06:50:15Z via Resend dashboard mint-new + manual revoke-old. AWSCURRENT version `e35c5b89` + AWSPREVIOUS `abb18020` (30d retention). Audit: `documents/04-quality/audits/credential-rotation/2026-05-15-credential-rotation-resend-api-key.md`. Smoke test transactional email end-to-end DEFER → Bucket D post-deploy verification queue.
+
+Old session jsonl files (5 matched files) still contain plain-text creds nhưng creds đã chết → no further risk. Optional cleanup: `rm` jsonl files post-Bucket-D verified.
+
+Commit trailer cho Wave 81 closure PR:
+```
+GAP-525_USER_ROTATED: admin-pwd 2026-05-13 (TF pre-existing) / cloudflare 2026-05-15 / resend 2026-05-15
+```
