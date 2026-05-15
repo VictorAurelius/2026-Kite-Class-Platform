@@ -1,6 +1,6 @@
 # GAP-394: Phase 1 BETA Account Prep Checklist (4 missing runbooks)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-15 (Wave 84 Bucket C — 7 runbooks shipped covering Phase 1 BETA account-prep matrix)
 **Priority:** 🟠 P1 STRONGLY recommend (Phase 1 BETA — không block code ship nhưng block first-deploy execution)
 **Domain:** Operations / Documentation
 **Found:** 2026-05-07 (coverage audit — Wave 35 prep session)
@@ -50,14 +50,17 @@ Mỗi runbook:
 
 ## Acceptance Criteria
 
-- [ ] `documents/05-guides/account-prep/README.md` — index + sequence diagram T-7 → T-0
-- [ ] `01-aws-account-creation.md` — covers root signup → MFA → billing alarm $5/$50/$200 thresholds → 1st IAM admin user (no console access for service users) → AWS CLI profile config
-- [ ] `02-domain-registrar.md` — comparison table 3 registrars (Namecheap / Cloudflare Registrar / Mắt Bão) — KYC docs needed, payment methods accepting VN cards, transfer-lock default state, WHOIS privacy, expiry auto-renewal
-- [ ] `03-password-manager.md` — vault structure (Personal / Kite-Production / Kite-Staging vaults), credential inventory list (~30 items Phase 1), 1Password/Bitwarden setup walkthrough, recovery code policy
-- [ ] `04-kitehub-superadmin-first-login.md` — runbook from seed execution → email delivery verify → first-login → MFA TOTP enroll → password complexity validation → ops-admin invite chain
-- [ ] All 4 docs cross-link với secrets-management-runbook.md + dns-setup-runbook.md + email-ses-setup-runbook.md
-- [ ] `output-review-mandate.md` §3 matrix row "Account prep guides" added (if applicable) — atau tracked under "Logs format" / "Runbooks" existing rows
-- [ ] ROADMAP §🚀 Next Action updated với this gap link
+- [x] `documents/05-guides/account-prep/README.md` — index + sequence diagram T-7 → T-0 (extended Wave 84 với 7 runbooks + ownership matrix + file placement rules)
+- [x] `01-aws-account-creation.md` — covers root signup → MFA → billing alarm $5/$50/$200 thresholds → 1st IAM admin user → AWS CLI profile config (Wave 33 ship)
+- [x] `02-domain-registrar.md` — comparison table 3 registrars + `02b-github-student-pack-free-domain.md` alternative Free path Porkbun (Wave 33 ship)
+- [x] `03-password-manager.md` — vault structure + credential inventory + 1Password/Bitwarden setup (Wave 33 ship)
+- [x] `04-kitehub-superadmin-first-login.md` — runbook seed → first-login → MFA TOTP enroll → invite chain (Wave 33 ship)
+- [x] `05-cloudflare-account-setup.md` — Cloudflare Free signup + add zone `kitehub.me` + nameserver migration + SSL/TLS Full strict + DNS records + API token least-privilege (Wave 84 Bucket C ship 2026-05-15)
+- [x] `06-resend-account-setup.md` — Resend Free signup + add domain + DKIM 3 CNAME + SPF + DMARC + API key full-access + test send (Wave 84 Bucket C ship 2026-05-15)
+- [x] `07-vercel-account-setup.md` — Vercel Hobby signup via GitHub OAuth + import repo + build config + env vars + custom domain `app.kitehub.me` + Pro upgrade trigger (Wave 84 Bucket C ship 2026-05-15)
+- [x] All 7 docs cross-link với deploy/secrets-seeding-runbook.md + deploy/dns-setup-runbook.md + deploy/cloudflare-setup.md + deploy/resend-provisioning-runbook.md + deploy/vercel-production-setup.md + operations/email-deliverability-runbook.md
+- [x] README index ownership matrix + file placement rules per `docs-folder-structure.md` §3 + `deployment-naming-convention.md` §2
+- [x] ROADMAP §🚀 Next Action updated với this gap link — sync per `post-merge-sync-completeness.md` target 2 (gap-status.csv updated DONE/100/2026-05-15)
 
 ## Out-of-scope (track separately)
 
@@ -87,4 +90,5 @@ Mỗi runbook:
 
 ## Log
 
+- **2026-05-15** Wave 84 Bucket C ship 3 final runbooks (`05-cloudflare-account-setup.md` + `06-resend-account-setup.md` + `07-vercel-account-setup.md`) closing GAP-394 100%. Scope reflects actual Phase 1 BETA vendor stack (Cloudflare DNS + Resend transactional email per ADR-025 Stream A pivot + Vercel FE hosting); original 4 runbooks (01-04 Wave 33) preserved + extended to 7 total. README index updated với ownership matrix RACI + file placement rules per `.claude/rules/docs-folder-structure.md` §3 + cross-link to `.claude/rules/deployment-naming-convention.md` §2. AC verification: 8 files exist under `documents/05-guides/account-prep/` (`README.md` + 01 + 02 + 02b + 03 + 04 + 05 + 06 + 07). Per `pre-handoff-self-test-completeness.md` — docs-only scope, no live UI flow → §2 flow-checklist not applicable; AC verified via filesystem listing. Per `gap-done-discipline.md` §2: all AC `[x]`, no banned phrases in this Log, no deferred items (scope expanded to fully cover Phase 1 BETA vendor matrix). Per `post-merge-sync-completeness.md` target 1 — gap-status.csv row synced (status=DONE, completion=100, last_verified=2026-05-15). PR: wave/84-bucket-c-account-prep-runbooks → main.
 - **2026-05-07** Filed during Wave 35 prep session. Coverage audit identified 4 missing runbooks blocking actual first-deploy execution post-Wave-33 ship. State-check confirmed all 4 absent. Pairs với deploy artifact cluster Phase 1 BETA P0 BLOCKING (already PARTIAL per ROADMAP).

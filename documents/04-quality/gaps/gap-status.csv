@@ -267,7 +267,7 @@ GAP-376,GAP-376-production-data-seed.md,Production Data Seed (Admin User + Syste
 GAP-377,GAP-377-followup-auth-route-checks.md,GAP-377-followup: Smoke test auth-route checks (`/auth/signup`; `/auth/reques...,OPEN,P3,DevOps,n/a,0,2026-05-06,2026-05-11,
 GAP-379,GAP-379-secrets-management-rotation.md,Secrets Management — AWS Secrets Manager + Rotation Policy,PARTIAL,P1,DevOps,phase-1-beta,50,2026-05-06,2026-05-11,
 GAP-380,GAP-380-staging-environment-activation.md,Staging Environment Activation + Parity Validation,PARTIAL,P1,DevOps,phase-1-beta,50,2026-05-06,2026-05-11,
-GAP-394,GAP-394-phase-1-beta-account-prep-checklist.md,Phase 1 BETA Account Prep Checklist (4 missing runbooks),OPEN,P1,Backend,phase-1-beta,0,2026-05-07,2026-05-11,
+GAP-394,GAP-394-phase-1-beta-account-prep-checklist.md,Phase 1 BETA Account Prep Checklist (7 runbooks shipped — Cloudflare+Resend+Vercel),DONE,P1,Backend,phase-1-beta,100,2026-05-07,2026-05-15,Wave 84 Bucket C closure
 GAP-398,GAP-398-docker-build-kitehub-services-6-modules.md,Docker Build kitehub Services Production Images (5 deployable modules),DONE,P0,DevOps,phase-1-beta,100,2026-05-07,2026-05-12,Wave 66 Bucket Z: ECR has 10 kite/<svc> repos in ap-southeast-1; Wave 64 v0.9.0-beta-staging.9 push verified live
 GAP-399,GAP-399-ecr-region-pin-ap-southeast-1.md,ECR Region Pin `us-east-1` → `ap-southeast-1`,DONE,P0,DevOps,phase-1-beta,100,2026-05-07,2026-05-12,Wave 66 Bucket Z: zero us-east-1 config refs (only 2 in cloudtrail.tf COMMENTS); ECR Singapore live
 GAP-400,GAP-400-trivy-image-vulnerability-scan.md,Trivy Image Vulnerability Scan Post-Build,PARTIAL,P1,DevOps,n/a,50,2026-05-07,2026-05-11,
