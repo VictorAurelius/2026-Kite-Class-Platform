@@ -1,0 +1,121 @@
+# =========================================================================
+# smoke-tests.yml — Wave 85 Bucket G (GAP-475)
+# =========================================================================
+# Aggregates 6 smoke test scripts. Default = dry-run (zero network/DB).
+# Real exec via workflow_dispatch input `mode=execute` (manual gate).
+# =========================================================================
+
+name: Smoke Tests (Bucket G)
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'dry-run (default) or execute (real staging hits)'
+        type: choice
+        options: [dry-run, execute]
+        default: dry-run
+      scenario:
+        description: 'all | login | email-verify | totp | k6 | migration | rls'
+        type: choice
+        options: [all, login, email-verify, totp, k6, migration, rls]
+        default: all
+  pull_request:
+    paths:
+      - 'scripts/smoke-*.sh'
+      - '.github/workflows/smoke-tests.yml'
+
+jobs:
+  dry-run:
+    name: Dry-run smoke scripts
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event.inputs.mode == 'dry-run'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shellcheck all smoke scripts
+        run: |
+          for f in scripts/smoke-*.sh; do
+            echo "::group::shellcheck $f"
+            shellcheck "$f"
+            echo "::endgroup::"
+          done
+
+      - name: Run dry-run on each script
+        run: |
+          set -e
+          SCENARIO="${{ github.event.inputs.scenario || 'all' }}"
+          run_one() {
+            local s="$1"
+            echo "::group::dry-run $s"
+            bash "$s"
+            echo "::endgroup::"
+          }
+          case "$SCENARIO" in
+            all|login)         run_one scripts/smoke-login-happy-path.sh ;;
+          esac
+          case "$SCENARIO" in
+            all|email-verify)  run_one scripts/smoke-email-verify-loop.sh ;;
+          esac
+          case "$SCENARIO" in
+            all|totp)          run_one scripts/smoke-2fa-totp.sh ;;
+          esac
+          case "$SCENARIO" in
+            all|k6)            run_one scripts/smoke-p95-latency-k6.sh ;;
+          esac
+          case "$SCENARIO" in
+            all|migration)     run_one scripts/smoke-migration-rollback.sh ;;
+          esac
+          case "$SCENARIO" in
+            all|rls)           run_one scripts/smoke-tenant-isolation-rls.sh ;;
+          esac
+
+  execute:
+    name: Execute smoke scripts (staging only)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'execute'
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client oathtool
+          # k6 install
+          curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6.gpg
+          echo "deb [signed-by=/usr/share/keyrings/k6.gpg] https://dl.k6.io/deb stable main" \
+            | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update && sudo apt-get install -y k6
+
+      - name: Run scenario(s)
+        env:
+          SMOKE_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+          SMOKE_USER: ${{ secrets.STAGING_SMOKE_USER }}
+          SMOKE_PASS: ${{ secrets.STAGING_SMOKE_PASS }}
+          SMOKE_ADMIN_JWT: ${{ secrets.STAGING_ADMIN_JWT }}
+          PG_HOST: ${{ secrets.STAGING_PG_HOST }}
+          PG_USER: ${{ secrets.STAGING_PG_USER }}
+          PGPASSWORD: ${{ secrets.STAGING_PG_PASSWORD }}
+        run: |
+          set -e
+          SCENARIO="${{ github.event.inputs.scenario }}"
+          run_exec() { bash "$1" --execute; }
+          case "$SCENARIO" in
+            all|login)         run_exec scripts/smoke-login-happy-path.sh ;;
+          esac
+          case "$SCENARIO" in
+            all|email-verify)  run_exec scripts/smoke-email-verify-loop.sh ;;
+          esac
+          case "$SCENARIO" in
+            all|totp)          run_exec scripts/smoke-2fa-totp.sh ;;
+          esac
+          case "$SCENARIO" in
+            all|k6)            run_exec scripts/smoke-p95-latency-k6.sh ;;
+          esac
+          case "$SCENARIO" in
+            all|migration)     run_exec scripts/smoke-migration-rollback.sh ;;
+          esac
+          case "$SCENARIO" in
+            all|rls)           run_exec scripts/smoke-tenant-isolation-rls.sh ;;
+          esac
