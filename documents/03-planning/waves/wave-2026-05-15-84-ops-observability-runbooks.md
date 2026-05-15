@@ -117,3 +117,21 @@ estimated_wall_clock: 10-14h
 - `post-wave-audit-mandate.md` §2.1 ops scope
 - `dev-readable-doc-language.md` §2 VN narrative
 - `docs-folder-structure.md` §3 README template
+
+## 5. Verification Gates
+
+See §5 Acceptance Gate table above — bucket-level criteria. Post-wave audit per `post-wave-audit-mandate.md` §2.1 (Backend/FE/Security/Performance categories) per bucket scope.
+
+## 6. Agent Spawn Pattern
+
+Sequential coordinator execution where buckets share files (deploy state, gateway config). Parallel background agents for isolated FE work (cookie consent banner, screenshots capture) per `agent-background-spawn-default.md` §1. Outside-in audit agents (per `outside-in-coverage-trigger.md` §3) spawn parallel background when wave triggers (Wave 85/86 mark §1 Q4).
+
+## 7. Closure Protocol
+
+Per `gap-done-discipline.md` + `post-wave-cleanup.md` + `post-merge-sync-completeness.md`:
+- Wave plan frontmatter `status: complete` flip
+- `wave-history.jsonl` append (Rule 15)
+- ROADMAP §🎯 Snapshot prepend
+- gap-status.csv sync per bucket DONE flips
+- `bash scripts/prune-merged-worktrees.sh --yes` cleanup
+- Session handoff `2026-05-XX-post-wave-NN-handoff.md` NEW
