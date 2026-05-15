@@ -155,3 +155,7 @@ Per `gap-done-discipline.md` + `post-wave-cleanup.md` + `post-merge-sync-complet
 - gap-status.csv sync per bucket DONE flips
 - `bash scripts/prune-merged-worktrees.sh --yes` cleanup
 - Session handoff `2026-05-XX-post-wave-NN-handoff.md` NEW
+
+## 8. Log
+
+- **2026-05-15** (draft): Plan drafted in batch PR #1406 covering 49 Phase 1 BETA remaining gaps → v1.0.0-rc.1 roadmap. Outside-in audit per `outside-in-coverage-trigger.md` §3 — Wave 83/84 SKIP per §4 exception (bug-fix + internal ops); Wave 85/86 FIRE (user-facing security + first cohort). Sections §5-7 + §8 appended PR #1409 post wave-plan-completeness CI fail.
