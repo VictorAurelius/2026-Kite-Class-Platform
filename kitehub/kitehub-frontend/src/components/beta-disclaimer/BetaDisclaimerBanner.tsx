@@ -76,9 +76,20 @@ export function BetaDisclaimerBanner({ forceShow }: BetaDisclaimerBannerProps = 
     >
       <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden />
       <div className="flex-1">
-        <p className="font-medium">KiteHub đang trong giai đoạn Beta.</p>
+        <p className="font-medium">KiteHub đang trong giai đoạn Beta — không reset tự động.</p>
         <p className="mt-1 text-amber-800 dark:text-amber-200">
-          Dữ liệu có thể bị reset trong quá trình nâng cấp. Gặp vấn đề?{' '}
+          KiteHub <strong>không tự ý reset</strong> dữ liệu tenant; mọi reset (migration breaking
+          hoặc exit-BETA cutover) sẽ được báo trước tối thiểu <strong>7 ngày</strong> qua email và
+          dashboard banner, kèm <strong>backup 30 ngày</strong>. Dữ liệu audit log + payment +
+          subscription không bao giờ bị reset. Chi tiết:{' '}
+          <Link
+            href="/docs/data-reset-policy"
+            data-testid="beta-disclaimer-policy-link"
+            className="font-medium underline underline-offset-2"
+          >
+            Chính sách reset dữ liệu Beta
+          </Link>
+          . Gặp vấn đề?{' '}
           <Link href="/beta-status" className="font-medium underline underline-offset-2">
             Xem trạng thái Beta
           </Link>{' '}

@@ -37,6 +37,24 @@ describe('BetaDisclaimerBanner', () => {
     expect(link).toHaveAttribute('href', '/beta-status');
   });
 
+  // GAP-560 (Wave 79 Bucket D) — specificity check: banner cites 7-day notice + 30-day backup
+  // and links to the data-reset policy doc so Owners can verify reset semantics.
+  it('cites specific reset cadence + advance notice + backup window', () => {
+    render(<BetaDisclaimerBanner />);
+    const banner = screen.getByTestId('beta-disclaimer-banner');
+    expect(banner).toHaveTextContent(/không tự ý reset/i);
+    expect(banner).toHaveTextContent(/7 ngày/i);
+    expect(banner).toHaveTextContent(/backup 30 ngày/i);
+  });
+
+  it('links to /docs/data-reset-policy for full policy detail (GAP-560)', () => {
+    render(<BetaDisclaimerBanner />);
+    const policyLink = screen.getByTestId('beta-disclaimer-policy-link');
+    expect(policyLink).toBeInTheDocument();
+    expect(policyLink).toHaveAttribute('href', '/docs/data-reset-policy');
+    expect(policyLink).toHaveTextContent(/Chính sách reset dữ liệu Beta/i);
+  });
+
   it('writes dismissal cookie + hides banner when X button clicked', async () => {
     const user = userEvent.setup();
     render(<BetaDisclaimerBanner />);

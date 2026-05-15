@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, CreditCard, Palette, Settings, Building2, TrendingUp, ClipboardList, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, CreditCard, Palette, Settings, Building2, TrendingUp, ClipboardList, Rocket, type LucideIcon } from 'lucide-react';
 import { KiteLogo } from '@/components/brand/KiteLogo';
 
 interface NavItem {
@@ -13,8 +13,12 @@ interface NavItem {
   testId?: string;
 }
 
+// GAP-559 (Wave 79 Bucket D): Onboarding entry visible cho Owner persona.
+// Customer (OWNER) layout chỉ hiển thị nav này — Staff/Admin dùng variants khác.
+// "Bắt đầu" đặt ở đầu để first-login users thấy ngay điểm khởi đầu.
 const customerNav: NavItem[] = [
   { href: '/dashboard', label: 'Tổng quan', icon: LayoutDashboard },
+  { href: '/onboarding', label: 'Bắt đầu', icon: Rocket, testId: 'customer-nav-onboarding' },
   { href: '/billing', label: 'Thanh toán', icon: CreditCard },
   { href: '/branding', label: 'AI Branding', icon: Palette },
   { href: '/settings', label: 'Cài đặt', icon: Settings },

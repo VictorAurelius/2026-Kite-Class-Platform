@@ -117,4 +117,48 @@ describe('OnboardingChecklist', () => {
     });
     expect(screen.getByText(/Nhập dữ liệu mẫu/i)).toBeInTheDocument();
   });
+
+  // GAP-545 — Wave 79 Bucket D — WCAG 2.1.1 + 2.4.3
+  it('closes demo-confirm dialog on Escape key (WCAG 2.1.1)', async () => {
+    const user = userEvent.setup();
+    render(<OnboardingChecklist />);
+    await waitFor(() => {
+      expect(screen.getByTestId('onboarding-checklist')).toBeInTheDocument();
+    });
+
+    const importItem = document.querySelector('li[data-step-id="IMPORT_DATA"]');
+    const toggleBtn = importItem!.querySelector('button');
+    await act(async () => {
+      await user.click(toggleBtn!);
+    });
+
+    expect(screen.getByTestId('onboarding-demo-confirm')).toBeInTheDocument();
+
+    await act(async () => {
+      await user.keyboard('{Escape}');
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('onboarding-demo-confirm')).not.toBeInTheDocument();
+    });
+  });
+
+  it('traps focus inside demo-confirm dialog when opened (WCAG 2.4.3)', async () => {
+    const user = userEvent.setup();
+    render(<OnboardingChecklist />);
+    await waitFor(() => {
+      expect(screen.getByTestId('onboarding-checklist')).toBeInTheDocument();
+    });
+
+    const importItem = document.querySelector('li[data-step-id="IMPORT_DATA"]');
+    const toggleBtn = importItem!.querySelector('button');
+    await act(async () => {
+      await user.click(toggleBtn!);
+    });
+
+    await waitFor(() => {
+      const dialog = screen.getByTestId('onboarding-demo-confirm');
+      expect(dialog.contains(document.activeElement)).toBe(true);
+    });
+  });
 });
