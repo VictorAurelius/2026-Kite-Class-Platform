@@ -61,6 +61,10 @@ DB_PORT=$(echo "$DB_PAYLOAD" | jq -r .port)
 DB_NAME=$(echo "$DB_PAYLOAD" | jq -r .dbname)
 
 JWT_SECRET=$(fetch_secret jwt-secret)
+# JWT_CHALLENGE_SECRET — Wave 79 Bucket C ChallengeTokenService fail-fast guard
+# requires production-set value (>=32 bytes, NOT dev default). Wave 81 Bucket F fix:
+# secret created in AWS Secrets Manager 2026-05-15 via Wave 81 jwt-secret-fix runbook.
+JWT_CHALLENGE_SECRET=$(fetch_secret jwt-challenge-secret)
 ENCRYPTION_KEY=$(fetch_secret encryption-key)
 
 # RabbitMQ creds (populated by populate-secrets.sh — may be empty if not yet run)
@@ -130,6 +134,7 @@ SPRING_RABBITMQ_PASSWORD=${RMQ_PASS}
 
 # Auth secrets
 JWT_SECRET=${JWT_SECRET}
+JWT_CHALLENGE_SECRET=${JWT_CHALLENGE_SECRET}
 ENCRYPTION_MASTER_KEY=${ENCRYPTION_KEY}
 
 # Email (Resend — Stream A per ADR-025)

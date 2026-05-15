@@ -32,6 +32,7 @@ Single source of truth listing every `${VAR:<default>}` env-var reference whose 
 | 12 | all kitehub-* | `SPRING_RABBITMQ_USERNAME/PASSWORD` | various | guest | fetch-secrets.sh + deploy-prod.sh Step 6.5 self-heal (GAP-504) | ✅ Overridden | Dynamic per deploy until populate-secrets.sh stabilizes (done 2026-05-13) |
 | 13 | all kitehub-* | `SPRING_DATA_REDIS_HOST` | various | localhost | fetch-secrets.sh writes SPRING_DATA_REDIS_HOST=kite-redis | ✅ Overridden | Internal docker host |
 | 14 | all kitehub-* | `JWT_SECRET` / `ENCRYPTION_KEY` | various | (no default) | fetch-secrets.sh → /etc/kite/.env | ✅ Overridden | AWS Secrets Manager (terraform random_password) |
+| 15 | kitehub-subscription, kitehub-admin | `JWT_CHALLENGE_SECRET` | `kitehub-subscription/application.yml` (2FA challenge token) | dev default ≤40 bytes | fetch-secrets.sh → /etc/kite/.env (Wave 81 Bucket F fix) | ✅ Overridden | AWS Secrets Manager `kitehub/production/jwt-challenge-secret` (created 2026-05-15 manual via Wave 81 jwt-secret-fix-runbook). Wave 79 Bucket C `ChallengeTokenService.@PostConstruct` fail-fast guard enforces non-dev-default in production profile |
 
 ## Wave 78 Bucket 0 — 4 NEW endpoints (added 2026-05-14, GAP-508)
 
