@@ -324,6 +324,136 @@ spring:
                 name: authCircuitBreaker
                 fallbackUri: forward:/fallback/auth
 
+        # GAP-547 (Wave 79 Bucket A) — 2FA endpoints versioned at /api/v1/auth/2fa/*
+        # with backward-compat alias /api/auth/2fa/* (30-day deprecation per
+        # BR-AUTH-2FA-007; alias 410 Gone after 2026-06-14). Rate limits per
+        # `documents/01-business/kitehub/auth-2fa/api-contract.md` §Rate limits.
+        # Must precede kitehub-auth-v1 catch-all + auth catch-all so specific
+        # path predicates win on path match.
+        - id: kitehub-auth-v1-2fa-verify
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/auth/2fa/verify
+            - Method=POST
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@ipKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+
+        - id: kitehub-auth-v1-2fa-recovery-regenerate
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/auth/2fa/recovery-codes/regenerate
+            - Method=POST
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 3
+                redis-rate-limiter.burstCapacity: 5
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+
+        - id: kitehub-auth-v1-2fa
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/auth/2fa/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+
+        # GAP-547 backward-compat alias: /api/auth/2fa/** (deprecated path).
+        # Mirrored rate limits; specific subpaths precede the catch-all.
+        - id: auth-2fa-verify-alias
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/auth/2fa/verify
+            - Method=POST
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@ipKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+
+        - id: auth-2fa-recovery-regenerate-alias
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/auth/2fa/recovery-codes/regenerate
+            - Method=POST
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 3
+                redis-rate-limiter.burstCapacity: 5
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+
+        - id: auth-2fa-alias
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/auth/2fa/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+
+        # GAP-551 (Wave 79 Bucket A) — feedback widget public endpoint owned by
+        # kitehub-subscription. Previously fell through to /api/v1/** instance-apis
+        # catch-all → kiteclass-core (404). Explicit route + rate limit per
+        # `documents/01-business/kitehub/feedback/api-contract.md` §Rate limits.
+        # Must precede instance-apis catch-all.
+        - id: kitehub-feedback-v1
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/feedback
+            - Method=POST
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@ipKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
+
         # GAP-509 — kitehub auth v1 (beta signup + verification) routes
         # to subscription service. Must precede instance-apis catch-all so
         # /api/v1/auth/** is captured before falling through to kiteclass-core.

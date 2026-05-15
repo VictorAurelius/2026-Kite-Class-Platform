@@ -125,6 +125,38 @@ kitehub:
     premium: 60
     enterprise: 90
     warning-count: 2
+  # GAP-555 (Wave 79 Bucket A) — wire 22 config keys for feedback / onboarding /
+  # beta-status / support domains documented in documents/01-business/kitehub/*/rules.md.
+  # Defaults mirror rules.md "Default" column; production overrides land via env
+  # vars per production-env-config-registry.md v1.1.1.
+  feedback:
+    rating-range-min: ${FEEDBACK_RATING_MIN:1}
+    rating-range-max: ${FEEDBACK_RATING_MAX:5}
+    comment-min-chars: ${FEEDBACK_COMMENT_MIN:5}
+    comment-max-chars: ${FEEDBACK_COMMENT_MAX:2000}
+    public-rate-limit-per-min-per-ip: ${FEEDBACK_PUB_RATE:10}
+    auth-rate-limit-per-min-per-user: ${FEEDBACK_AUTH_RATE:30}
+    categories: ${FEEDBACK_CATEGORIES:BUG,USABILITY,FEATURE_REQUEST,GENERAL}
+    survey-scheduler-enabled: ${FEEDBACK_SURVEY_SCHEDULER_ENABLED:true}
+    survey-cron: ${FEEDBACK_SURVEY_CRON:0 0 9 * * *}
+  onboarding:
+    step-ids: ${ONBOARDING_STEP_IDS:PROFILE_SETUP,INVITE_TEAM,IMPORT_DATA,CREATE_FIRST_CLASS,EXPLORE_FEATURES}
+    put-rate-limit-per-min: ${ONBOARDING_PUT_RATE:60}
+  beta-status:
+    content-source: ${BETA_STATUS_CONTENT_SOURCE:classpath:beta-status/beta-status.md}
+    cache-ttl-seconds: ${BETA_STATUS_CACHE_TTL:300}
+    rate-limit-per-min-per-ip: ${BETA_STATUS_RATE:60}
+  support:
+    subject-min-chars: ${SUPPORT_SUBJECT_MIN:5}
+    subject-max-chars: ${SUPPORT_SUBJECT_MAX:200}
+    body-min-chars: ${SUPPORT_BODY_MIN:10}
+    body-max-chars: ${SUPPORT_BODY_MAX:5000}
+    public-rate-limit-per-min-per-ip: ${SUPPORT_PUB_RATE:5}
+    auth-rate-limit-per-min-per-user: ${SUPPORT_AUTH_RATE:20}
+    categories: ${SUPPORT_CATEGORIES:AUTH_ISSUE,BILLING,BUG,FEATURE_REQUEST,DATA_ISSUE,OTHER}
+    priorities: ${SUPPORT_PRIORITIES:LOW,NORMAL,HIGH,URGENT}
+    ticket-number-prefix: ${SUPPORT_TICKET_PREFIX:KH-}
+    sla-first-response-hours: ${SUPPORT_SLA_HOURS:24}
   email-verification:
     enabled: ${EMAIL_VERIFICATION_ENABLED:false}
     base-url: ${VERIFICATION_BASE_URL:http://localhost:3001}

@@ -1,5 +1,6 @@
 package com.kitehub.subscription.betastatus.service;
 
+import com.kitehub.subscription.betastatus.config.BetaStatusConfig;
 import com.kitehub.subscription.betastatus.dto.BetaStatusKnownIssue;
 import com.kitehub.subscription.betastatus.dto.BetaStatusResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,18 @@ public class BetaStatusService {
 
     /** Cached content snapshot; loaded at first request and reused. */
     private final AtomicReference<BetaStatusResponse> cached = new AtomicReference<>();
+
+    // GAP-555 (Wave 79 Bucket A): BetaStatusConfig wires kitehub.beta-status.*
+    // keys (content-source / cache-ttl-seconds / rate-limit-per-min-per-ip).
+    // Content-source key parsing TBD when admin-edit UI lands (Wave 80+); for
+    // Phase 1 BETA the classpath resource path is hardcoded. Cache TTL not yet
+    // honored here (in-process AtomicReference cache); rate-limit enforced at
+    // gateway. Injecting for grep-discoverability + future wiring.
+    private final BetaStatusConfig config;
+
+    public BetaStatusService(BetaStatusConfig config) {
+        this.config = config;
+    }
 
     public BetaStatusResponse getStatus() {
         BetaStatusResponse existing = cached.get();
