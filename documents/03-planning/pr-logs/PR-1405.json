@@ -1,0 +1,33 @@
+{
+  "pr": 1405,
+  "title": "docs(wave-82): closure protocol \u2014 Wave 82 SHIPPED FE self-host",
+  "branch": "chore/wave-82-closure-protocol",
+  "created_at": null,
+  "merged_at": "2026-05-15T12:24:41Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-15T12:24:49.242681",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 5,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-662188"
+  }
+}
