@@ -1,0 +1,38 @@
+# =============================================================================
+# PRODUCTION PROFILE - kitehub-branding
+# =============================================================================
+# Activated by: SPRING_PROFILES_ACTIVE=production
+# Wave 82 Bucket F6 (post-F4 audit-spring-profiles.sh finding): closes Spring
+# profile silent-skip risk per production-env-config-registry.md §11.3.
+#
+# Characteristics:
+#   - Tighten logging (no SQL, no debug)
+#   - Hide stacktrace + error message
+#   - Scope actuator exposure
+#   - Hide health details unless authorized
+
+spring:
+  jpa:
+    show-sql: false
+
+management:
+  endpoint:
+    health:
+      show-details: when_authorized
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+server:
+  error:
+    include-stacktrace: never
+    include-message: never
+
+logging:
+  level:
+    root: WARN
+    com.kitehub: INFO
+    com.kitehub.branding: INFO
+    org.hibernate.SQL: WARN
+    org.springframework.web: WARN

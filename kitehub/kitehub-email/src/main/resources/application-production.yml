@@ -1,0 +1,46 @@
+# =============================================================================
+# PRODUCTION PROFILE - kitehub-email
+# =============================================================================
+# Activated by: SPRING_PROFILES_ACTIVE=production
+# Wave 82 Bucket F6 (post-F4 audit-spring-profiles.sh finding): closes Spring
+# profile silent-skip risk per production-env-config-registry.md §11.3.
+#
+# CRITICAL — override 3 base defaults that are unsafe in production:
+#   - email.provider: 'mock' → 'ses' (silent log-only fallback eliminated)
+#   - aws.ses.mock-mode: true → false (real send by default)
+#   - aws.ses.from-email: 'noreply@localhost' → 'noreply@kitehub.me'
+# Production env vars (EMAIL_PROVIDER, AWS_SES_MOCK_MODE, AWS_SES_FROM_EMAIL)
+# still override these production defaults if explicitly set in compose.
+
+spring:
+  thymeleaf:
+    cache: true
+
+email:
+  provider: ${EMAIL_PROVIDER:ses}
+
+aws:
+  ses:
+    mock-mode: ${AWS_SES_MOCK_MODE:false}
+    from-email: ${AWS_SES_FROM_EMAIL:noreply@kitehub.me}
+
+management:
+  endpoint:
+    health:
+      show-details: when_authorized
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+server:
+  error:
+    include-stacktrace: never
+    include-message: never
+
+logging:
+  level:
+    root: WARN
+    com.kitehub: INFO
+    com.kitehub.email: INFO
+    org.springframework.web: WARN

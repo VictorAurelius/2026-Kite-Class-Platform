@@ -27,8 +27,8 @@ if [[ ! -f "$COMPOSE" ]]; then
   exit 1
 fi
 
-declare -a FINDINGS
-declare -a CHECKED
+declare -a FINDINGS=()  # explicit empty init — bash strict mode `set -u` trips on reference before any append
+declare -a CHECKED=()
 
 current_service=""
 in_env=0

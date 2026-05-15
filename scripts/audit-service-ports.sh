@@ -90,7 +90,7 @@ if [[ -f "$GATEWAY_YAML" ]]; then
   done < "$GATEWAY_YAML"
 fi
 
-declare -a FINDINGS
+declare -a FINDINGS=()  # explicit empty init — bash strict mode `set -u` trips on reference before any append
 
 for service in "${!EFFECTIVE_PORT[@]}"; do
   eff="${EFFECTIVE_PORT[$service]}"
