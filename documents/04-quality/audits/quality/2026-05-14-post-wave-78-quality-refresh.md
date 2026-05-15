@@ -8,6 +8,8 @@ baseline: 2026-05-10-wave-53-quality-refresh.md (85/110 → 87/100 → 80 tech-o
 gaps_filed: []
 ---
 
+> ⚠️ **v1 audit format** — written before GAP-564 outside-in expansion (2026-05-14). Findings + scores valid. Format does NOT include per-control evidence blocks per SOC2/ISO27001/OWASP ASVS baseline. Future audits use v2 template per `.claude/skills/quality/security-audit/reference/audit-report-template-v2.md`. Retroactive evidence collection NOT planned (cost-benefit) — flag at Phase 3 K-12 counsel review if needed.
+
 # Quality /110 Audit — Post-Wave-78 Refresh
 
 **Scope:** Cross-system refresh sau Wave 78 (Beta Invite Launch — Retain UX/trust). 7 buckets shipped (Bucket 0 Foundation + A FE polish + B onboarding/sample-data + C BE rate-limit + D admin-role + E email content + F feedback widget) + Wave 78 closure.

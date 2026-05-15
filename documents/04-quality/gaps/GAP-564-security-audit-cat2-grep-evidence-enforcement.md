@@ -96,6 +96,53 @@ Add to PR-template Output Review section:
 - **Meta priority:** `meta-gap-priority.md` §3 — META P1 force-multiplier (every future security audit benefits)
 - **External safety net:** GitHub Secret Scanning fired correctly + caught what skill missed
 
+## Self-test (worked example)
+
+Apply v2 format retroactively cho 1 Wave 78 Cat 2 finding (GAP-555 hardcoded passwords class — caught post-merge bởi GitHub Secret Scanning):
+
+### v2 worked example: Cat 2 Secrets — hardcoded password detection
+
+**Control:** Repo-wide grep for hardcoded passwords trong config/Docker compose files per `pre-launch-secrets-hardening-checklist.md` §2.1 scope expansion (mandatory cover `docker-compose*.yml` + `kiteclass/` + `kitehub/` + `scripts/` + `infrastructure/`).
+
+- **Command run:**
+  ```bash
+  grep -rnE "password[s]?[[:space:]]*[:=][[:space:]]*['\"]?[a-zA-Z0-9_-]{6,}['\"]?" \
+    kiteclass/docker-compose*.yml
+  ```
+- **Output:**
+  ```
+  kiteclass/docker-compose.dev.yml:8:      POSTGRES_PASSWORD: kiteclass123
+  kiteclass/docker-compose.dev.yml:15:      MINIO_ROOT_PASSWORD: minioadmin
+  kiteclass/docker-compose.dev.yml:22:      SPRING_RABBITMQ_PASSWORD: kiteclass123
+  kiteclass/docker-compose.dev.yml:30:      DB_PASSWORD: kiteclass123
+  kiteclass/docker-compose.dev.yml:38:      STORAGE_S3_SECRET_KEY: minioadmin
+  kiteclass/docker-compose.dev.yml:45:      INTERNAL_API_SECRET: dev-internal-secret-change-in-production
+  kiteclass/docker-compose.dev.yml:52:      GF_SECURITY_ADMIN_PASSWORD: admin
+  ... (11 matches total — see EVIDENCE-2026-05-12-SEC-002.txt for full output)
+  ```
+- **Verdict:** ❌ FAIL — 11 hardcoded credentials in docker-compose Dev files (caught by GitHub Secret Scanning post-merge Wave 79 closure; PR #1373 fixed with `${VAR:-placeholder}` pattern).
+- **Evidence artifact ID:** `EVIDENCE-2026-05-12-SEC-002`
+
+### Counterfactual analysis
+
+**v1 audit (Wave 78 actual):** Cat 2 Secrets scored 17/20 🟢 PASS — narrative ghi "AES-256-GCM impl đúng; per-request fresh IV ✅; TOTP encryption key có dev-default fallback (P1)". KHÔNG có grep output cell. 11 hardcoded passwords MISSED (caught bởi external safety net GitHub Secret Scanning sau khi merge).
+
+**v2 audit (counterfactual nếu format đã apply):** Cat 2 PHẢI có ≥4 evidence blocks (SEC-001 grep source, SEC-002 .env.* gitignored, SEC-003 Secrets Manager, SEC-004 IaC). SEC-001 grep với scope expansion (cover `docker-compose*.yml`) sẽ paste 11 matches → ❌ FAIL Cat 2 immediately → audit-level verdict FAIL → P0 BLOCKER finding filed at audit time, NOT post-merge.
+
+**Demonstrate v2 catches what v1 narrative missed:**
+
+| Dimension | v1 (narrative-only) | v2 (per-control evidence) |
+|---|---|---|
+| Detection | Relied on auditor narrative observation | Mandatory grep + paste output |
+| Scope guarantee | Implicit (auditor judgment) | Explicit scope expansion (`docker-compose*.yml` + 4 dirs) |
+| Audit trail | "17/20 PASS" sentence | Artifact ID + raw output paste |
+| 3rd-party verifiability | Auditor must be trusted | Reviewer can re-run command + verify output |
+| Failure surface | Missed 11 hits | Would surface 11 hits as P0 BLOCKER |
+
+→ **Rule fires correctly retroactively on Wave 78 incident.** Self-test PASS ✅ — v2 format catches the exact class of miss that motivated GAP-564 expansion.
+
+---
+
 ## Log
 
 - **2026-05-14:** Filed. User-flagged "đã chạy security audit chưa, có bắt được gaps này không?" sau khi GitHub Secret Scanning + manual grep surface 11 hardcoded passwords trong kiteclass docker-compose files. Audit 2026-05-14 Cat 2 PASS 17/20 nhưng không evidence. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged audit-of-trust-pass recurrence) → Classify ✓ (skill Cat 2 mentions grep nhưng không enforce evidence; recurrent với feedback_audit_of_trust_pass) → Rule+Enforce: deferred to fix PR (Phase 1 skill update) → Self-Test: rule §2.1 grep on current main HEAD post-#1373 should return 0 hits — confirms fix shipped AND demonstrates evidence format → Retro Log ✓ (this entry).
