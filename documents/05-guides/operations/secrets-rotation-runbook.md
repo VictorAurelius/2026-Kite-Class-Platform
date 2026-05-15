@@ -164,9 +164,63 @@ kubectl rollout restart deployment -n kitehub
 
 **Downtime expected:** zero (Hikari connection pool retries with refreshed secret on connection failure). Verify in Grafana — error rate spike should subside <1 min.
 
-### 5.2 Lambda automated rotation (Wave 34 scope)
+### 5.2 Lambda automated rotation (Wave 84 Bucket B — landed 2026-05-15)
 
-AWS provides built-in rotation Lambda template `SecretsManagerRDSPostgreSQLRotationSingleUser`. Setup tracked separately — not Phase 1 BETA.
+90-day automated rotation cho 4 in-house secrets đã được wired qua Wave 84 Bucket B (GAP-379 → DONE 100%):
+
+| Secret | Rotation strategy | Provisioned by |
+|---|---|---|
+| `kitehub/<env>/db-password` | AWS-managed `SecretsManagerRDSPostgreSQLRotationSingleUser` | Bootstrap manual sau first `terraform apply` — xem §5.2.1 |
+| `kitehub/<env>/jwt-secret` | Custom Lambda `kitehub-<env>-rotate-secret-handler` | `aws_secretsmanager_secret_rotation.jwt` (terraform-aws/secrets-rotation.tf) |
+| `kitehub/<env>/encryption-key` | Custom Lambda (cùng function) | `aws_secretsmanager_secret_rotation.encryption` |
+| `kitehub/<env>/seed-admin-password` | Custom Lambda (cùng function) | `aws_secretsmanager_secret_rotation.seed_admin` |
+
+Custom Lambda code: `infrastructure/terraform-aws/lambdas/rotate-secret/rotate_secret_handler.py`. Implement 4-step AWS lifecycle (createSecret → setSecret → testSecret → finishSecret). `setSecret` no-op cho in-house secrets (services reload qua env-var injection at next boot / SSM refresh). `testSecret` skip nếu env var `PROBE_URL` không set.
+
+#### 5.2.1 Bootstrap AWS-managed RDS rotation (one-time per environment)
+
+Sau khi `terraform apply` ship Wave 84 Bucket B, RDS db-password chưa được wire vì AWS-managed Lambda (`SecretsManagerRDSPostgreSQLRotationSingleUser`) cần Serverless Application Repository deploy hoặc AWS console bootstrap. Chạy ONCE per environment:
+
+```bash
+# Option A — AWS console (recommended cho solo-dev):
+# 1. Console > Secrets Manager > kitehub/production/db-password
+# 2. "Edit rotation" > "Use AWS-managed rotation"
+# 3. Single-user rotation strategy, 90 days
+# 4. Console auto-creates Lambda + IAM + invocation permission
+
+# Option B — CLI (advanced, nếu cần IaC purity):
+aws secretsmanager rotate-secret \
+  --secret-id kitehub/production/db-password \
+  --rotation-lambda-arn arn:aws:lambda:ap-southeast-1:<acct-id>:function:SecretsManagerRDSPostgreSQLRotationSingleUser \
+  --rotation-rules AutomaticallyAfterDays=90
+```
+
+#### 5.2.2 Test rotation manually (post-apply verify)
+
+```bash
+bash scripts/test-secret-rotation.sh jwt-secret
+# expect: PASS — AWSCURRENT advanced, AWSPREVIOUS == pre-rotation version
+```
+
+Script supports `jwt-secret` / `encryption-key` / `seed-admin-password`. Refuses to rotate `db-password` (AWS-managed) hoặc vendor API keys.
+
+#### 5.2.3 Service reload after rotation
+
+Spring Boot services đọc secrets qua env-var injection at boot (`fetch-secrets.sh` chạy trong EC2 user_data). Sau rotation, services chưa pick up new value cho đến lần restart kế tiếp. Phase 1 BETA: trigger restart qua SSM SendCommand sau rotation alarm fire (CloudWatch alarm on `Secrets Manager RotationOccurred` event → SNS → Lambda → SSM). Phase 1.5+: implement Spring Cloud AWS auto-refresh via `RefreshScope`.
+
+### 5.2.B External API keys — manual quarterly rotation
+
+Vendor API keys (Cloudflare, Resend, OpenAI, Anthropic, SES SMTP) KHÔNG auto-rotate (vendor portal là source of truth, không cho remote API rotate). Quarterly cadence:
+
+| Secret | Rotation procedure |
+|---|---|
+| `cloudflare-api-token` | Cloudflare dashboard → My Profile → API Tokens → rotate → `aws secretsmanager put-secret-value` |
+| `resend-api-key` | Resend dashboard → API Keys → revoke + create → `aws secretsmanager put-secret-value` |
+| `ai-openai-api-key` | OpenAI dashboard → API keys → rotate → `aws secretsmanager put-secret-value` |
+| `ai-anthropic-api-key` | Anthropic console → API keys → rotate → `aws secretsmanager put-secret-value` |
+| `ses-smtp-credentials` | AWS console → IAM → smtp user → access keys → rotate → `aws secretsmanager put-secret-value` |
+
+Track next-rotate date trong 1Password vault note. After rotation, trigger EC2 service restart (`kc-app` cho Cloudflare, `kh-backend` cho Resend / AI / SES) qua SSM SendCommand để pick up new value.
 
 ### 5.3 Emergency rotation (suspected compromise)
 
