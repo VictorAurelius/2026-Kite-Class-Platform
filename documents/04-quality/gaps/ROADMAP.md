@@ -89,6 +89,24 @@
 - Agent design assumed SSM Parameter Store but user pre-populated Secrets Manager → PR #1403 align.
 - Hot-fixes on EC2 surface 3 PM2 ecosystem.config.js bugs + AL2023 certbot no systemd units → repo source bugs tracked GAP-572..574.
 
+### 🚀 Next Action — Wave 86 expanded scope post Bucket A outside-in audits 2026-05-15 (4 P0 BLOCKERS + 21 AC additions + 17 NEW gaps GAP-582..598)
+
+Per [`wave-2026-05-15-86-rc1-tag-preflight.md`](../../03-planning/waves/wave-2026-05-15-86-rc1-tag-preflight.md) integration shipped this PR. 3 outside-in audit artifacts merged main qua PR #1432 (persona-outside-in 5×5 / benchmark-vn-saas-edu 10Qs / simulation-3axis 28 cells) converged **4 P0 BLOCKERS** + **21 AC additions distributed Bucket B-H** + **17 NEW gaps** filed.
+
+**🚨 4 P0 BLOCKERS chặn tag `v1.0.0-rc.1`:**
+1. **[GAP-584](GAP-584-magic-link-cloudflare-cache-bypass.md)** Magic-link Cloudflare cache bypass — cross-tenant invite redirect leak risk (sim cell 19); chặn Bucket E pass + Bucket G invite
+2. **[GAP-585](GAP-585-cookie-consent-pdpl-decree-13-granular.md)** Cookie consent banner PDPL Decree 13 granular — compliance + first-impression damage (benchmark Q7); chặn Bucket E pass
+3. **GAP-144 AlertManager receivers wired BEFORE invite** (Wave 84 P1 → Wave 86 P0 escalation cohort-invite context) — silent restart loop, MTTR <2h impossible; chặn Bucket H + Bucket G
+4. **Spring Boot bump regression suite** (B-AC1+AC2+AC3 to GAP-440) — @Async/webhook/heap regression; cascades chặn Bucket G invite
+
+**17 NEW gaps filed (Wave 86 OR defer):**
+- Bucket-paired (Wave 86): GAP-582 OAuth idempotency P1, GAP-583 RDS storage alarm P1, GAP-584 CF magic-link **P0**, GAP-585 cookie consent **P0**, GAP-586 P1 invite email P1, GAP-587 P3 invite email P1, GAP-588 P2 onboarding wizard P1, GAP-589 admin bounce+impersonate P1, GAP-590 email expiry policy P1, GAP-591 cohort retention D7/D14/D30 P1, GAP-592 SLA published P2
+- Defer Wave 87+: GAP-593 Most Popular badge P3, GAP-594 refund policy P2, GAP-595 landing CTA+demo P1, GAP-596 form inline validation P2, GAP-597 P2 invite management P2, GAP-598 P3 edit-window+P2 unlock P2
+
+**Wave 86 scope expansion:** AC count B(3) + C(3) + D(1) + E(7) + F(2) + G(7) + H(14) = **37 ACs** (was 9 acceptance gates). `estimated_wall_clock` 14-20h → 24-30h.
+
+**Carry-forwards still tracked:** GAP-576 P0 gateway auth 404, GAP-574 P1 PM2 bugs, GAP-257 P0 restore drill, GAP-144 P1 AlertManager (escalated P0 Wave 86 cohort-invite context).
+
 ### 🚀 Next Action — Phase 1 BETA acceptance walk-through 2026-05-15 (post-Wave-82 FE + post-Wave-84 Bucket H)
 
 Full 126-row triage shipped: [`documents/05-guides/operations/acceptance-tests/phase-1-beta-walkthrough-2026-05-15.md`](../../05-guides/operations/acceptance-tests/phase-1-beta-walkthrough-2026-05-15.md). Summary: **14 PASS / 79 TESTABLE-USER / 6 BLOCKED-FE-PARTIAL / 27 BLOCKED-FOLLOWUP**. Beta-readiness **~58%** — đủ cho cohort 1-2 invite nếu chấp nhận apex Vercel `kitehub.me` làm primary UX + manual workaround admin flow (GAP-518/519/525).
