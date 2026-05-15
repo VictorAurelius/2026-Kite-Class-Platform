@@ -1,18 +1,24 @@
 package com.kitehub.subscription.exception;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * Global exception handler for REST controllers.
@@ -194,6 +200,91 @@ public class GlobalExceptionHandler {
             "Authentication required"
         );
         problemDetail.setTitle("Unauthorized");
+        return problemDetail;
+    }
+
+    // GAP-571 (Wave 83 Bucket A) — Spring web framework exceptions previously fell
+    // through to handleGenericException → 500. Map to correct RFC 7807 statuses.
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ProblemDetail handleMissingParameter(MissingServletRequestParameterException ex) {
+        log.warn("Missing parameter: {}", ex.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.BAD_REQUEST,
+            "Required parameter '" + ex.getParameterName() + "' is missing"
+        );
+        problemDetail.setTitle("Missing Parameter");
+        problemDetail.setProperty("parameterName", ex.getParameterName());
+        problemDetail.setProperty("parameterType", ex.getParameterType());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ProblemDetail> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        log.warn("Method not allowed: {} {}", ex.getMethod(), ex.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.METHOD_NOT_ALLOWED,
+            "HTTP method " + ex.getMethod() + " not supported for this endpoint"
+        );
+        problemDetail.setTitle("Method Not Allowed");
+        if (ex.getSupportedMethods() != null) {
+            problemDetail.setProperty("supportedMethods", ex.getSupportedMethods());
+        }
+        return ResponseEntity
+            .status(HttpStatus.METHOD_NOT_ALLOWED)
+            .header(HttpHeaders.ALLOW, ex.getSupportedHttpMethods() == null ? ""
+                : String.join(", ", ex.getSupportedMethods()))
+            .body(problemDetail);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail handleMessageNotReadable(HttpMessageNotReadableException ex) {
+        log.warn("Malformed request body: {}", ex.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.BAD_REQUEST,
+            "Request body is malformed or unreadable"
+        );
+        problemDetail.setTitle("Malformed Request");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ProblemDetail handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
+        log.warn("Unsupported media type: {}", ex.getContentType());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+            "Content type not supported: " + ex.getContentType()
+        );
+        problemDetail.setTitle("Unsupported Media Type");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ProblemDetail handleConstraintViolation(ConstraintViolationException ex) {
+        log.warn("Constraint violation: {}", ex.getMessage());
+        StringBuilder errors = new StringBuilder();
+        ex.getConstraintViolations().forEach(v ->
+            errors.append(v.getPropertyPath())
+                .append(": ")
+                .append(v.getMessage())
+                .append("; ")
+        );
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.BAD_REQUEST,
+            errors.toString()
+        );
+        problemDetail.setTitle("Validation Error");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ProblemDetail handleNoResourceFound(NoResourceFoundException ex) {
+        log.warn("No resource found: {}", ex.getResourcePath());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.NOT_FOUND,
+            "Endpoint not found: " + ex.getResourcePath()
+        );
+        problemDetail.setTitle("Not Found");
         return problemDetail;
     }
 }
