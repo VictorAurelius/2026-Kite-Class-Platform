@@ -292,7 +292,7 @@ GAP-433,GAP-433-rules-md-5-attr-coverage-backfill.md,backfill 5-attribute frontm
 GAP-434,GAP-434-loki-promtail-stack-phase2.md,Loki/Promtail Stack (Phase 2 of GAP-115),PARTIAL,P1,DevOps,n/a,50,2026-05-08,2026-05-11,
 GAP-435,GAP-435-promtool-alert-rule-unit-test.md,promtool alert-rule unit test fixture,OPEN,P2,DevOps,n/a,0,2026-05-08,2026-05-11,
 GAP-436,GAP-436-oidc-deploy-ecr-restore-roles.md,OIDC roles for deploy + ECR push + restore drill workflows,PARTIAL,P1,DevOps,n/a,50,2026-05-08,2026-05-11,
-GAP-437,GAP-437-aws-observability-baseline.md,AWS observability baseline — CloudTrail + dashboard,OPEN,P1,Mixed,phase-1-beta,0,2026-05-08,2026-05-11,
+GAP-437,GAP-437-aws-observability-baseline.md,AWS observability baseline — CloudTrail + dashboard,PARTIAL,P1,Mixed,phase-1-beta,60,2026-05-08,2026-05-15,Wave 84 Bucket A terraform plan ready apply pending coordinator
 GAP-438,GAP-438-agent-aws-access-workflow.md,Agent AWS access workflow + verification log artifacts,OPEN,P1,Meta,n/a,0,2026-05-08,2026-05-11,
 GAP-440,GAP-440-spring-boot-dep-bump-before-prod.md,Spring Boot 3.5.14 → latest dep bump before v1.0.0 prod tag,PARTIAL,P1,Mixed,phase-1-beta,50,2026-05-08,2026-05-11,
 GAP-441,GAP-441-per-service-pom-override-hygiene.md,Per-service pom.xml dep override hygiene,OPEN,P2,DevOps,n/a,0,2026-05-08,2026-05-11,

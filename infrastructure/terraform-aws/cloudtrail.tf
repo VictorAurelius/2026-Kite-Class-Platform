@@ -143,11 +143,21 @@ resource "aws_cloudtrail" "main" {
     include_management_events = true
   }
 
+  # CloudWatch Logs delivery (Wave 84 Bucket A - GAP-437 Phase 2).
+  # Enables metric filters in cloudtrail-metric-filters.tf to extract security
+  # signals from CloudTrail event stream. Role + log group are defined in
+  # cloudtrail-metric-filters.tf.
+  cloud_watch_logs_group_arn = "${aws_cloudwatch_log_group.cloudtrail_events.arn}:*"
+  cloud_watch_logs_role_arn  = aws_iam_role.cloudtrail_logs_delivery.arn
+
   tags = {
     Project   = var.project_name
     ManagedBy = "Terraform"
     Purpose   = "audit-trail"
   }
 
-  depends_on = [aws_s3_bucket_policy.cloudtrail_logs]
+  depends_on = [
+    aws_s3_bucket_policy.cloudtrail_logs,
+    aws_iam_role_policy.cloudtrail_logs_delivery,
+  ]
 }
