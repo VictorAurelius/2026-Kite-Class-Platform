@@ -61,10 +61,17 @@ DB_PORT=$(echo "$DB_PAYLOAD" | jq -r .port)
 DB_NAME=$(echo "$DB_PAYLOAD" | jq -r .dbname)
 
 JWT_SECRET=$(fetch_secret jwt-secret)
-# JWT_CHALLENGE_SECRET — Wave 79 Bucket C ChallengeTokenService fail-fast guard
-# requires production-set value (>=32 bytes, NOT dev default). Wave 81 Bucket F fix:
-# secret created in AWS Secrets Manager 2026-05-15 via Wave 81 jwt-secret-fix runbook.
+# Wave 81 Bucket F — 3 fail-fast guards trong kitehub-subscription mandate
+# production-set values (>=32 bytes, NOT dev default). Per code sweep
+# `grep -rnE "isDevDefault|MUST be set" kitehub/*/src/main/java`:
+#   1. ChallengeTokenService (Wave 79 GAP-509) → JWT_CHALLENGE_SECRET
+#   2. TotpSecretCipher (Wave 72b GAP-516) → TOTP_ENCRYPTION_KEY
+#   3. InvitationTokenService (Wave 78 GAP-548) → KITEHUB_STAFF_INVITATION_SIGNING_SECRET
+# Secrets được tạo manual qua AWS Secrets Manager `--secret-string file:///dev/stdin`
+# (stdin pipe pattern — không leak qua chat). Reference: Wave 81 jwt-secret-fix runbook.
 JWT_CHALLENGE_SECRET=$(fetch_secret jwt-challenge-secret)
+TOTP_ENCRYPTION_KEY_VALUE=$(fetch_secret totp-encryption-key)
+STAFF_INVITATION_SIGNING_SECRET=$(fetch_secret staff-invitation-signing-secret)
 ENCRYPTION_KEY=$(fetch_secret encryption-key)
 
 # RabbitMQ creds (populated by populate-secrets.sh — may be empty if not yet run)
@@ -104,8 +111,10 @@ sudo tee "$ENV_FILE" > /dev/null <<ENVEOF
 # Regenerate: bash scripts/fetch-secrets.sh
 # Generated at: $(date -u +%FT%TZ)
 
-# Image version (set by deploy-prod.sh)
-KITE_VERSION=${KITE_VERSION:-v0.9.0-beta-staging.8}
+# Image version (set by deploy-prod.sh — default = current Wave 81 deployed tag
+# without the "v" prefix per ECR convention; Wave 81 fix: stale "v0.9.0-beta-staging.8"
+# default caused /etc/kite/.env corruption when fetch-secrets.sh re-run standalone)
+KITE_VERSION=${KITE_VERSION:-0.9.0-beta-staging.14}
 
 # Database (RDS — Phase 2.3 outputs)
 DB_HOST=${DB_HOST}
@@ -135,6 +144,8 @@ SPRING_RABBITMQ_PASSWORD=${RMQ_PASS}
 # Auth secrets
 JWT_SECRET=${JWT_SECRET}
 JWT_CHALLENGE_SECRET=${JWT_CHALLENGE_SECRET}
+TOTP_ENCRYPTION_KEY=${TOTP_ENCRYPTION_KEY_VALUE}
+KITEHUB_STAFF_INVITATION_SIGNING_SECRET=${STAFF_INVITATION_SIGNING_SECRET}
 ENCRYPTION_MASTER_KEY=${ENCRYPTION_KEY}
 
 # Email (Resend — Stream A per ADR-025)
