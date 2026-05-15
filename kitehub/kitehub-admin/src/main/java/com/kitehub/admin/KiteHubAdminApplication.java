@@ -49,7 +49,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "com.kitehub.subscription.feedback.repository",
         // Wave 79 Bucket B (GAP-561/562): StaffInvitationRepository — admin context @ComponentScan
         // pulls StaffInvitationService → StaffInvitationRepository.
-        "com.kitehub.subscription.staff.repository"
+        "com.kitehub.subscription.staff.repository",
+        // Wave 79 Bucket F-bis (GAP-040): ImpersonationAuditRepository — admin context @ComponentScan
+        // pulls ImpersonationService → ImpersonationAuditRepository.
+        "com.kitehub.subscription.impersonation"
 })
 @EntityScan(basePackages = {
         // GAP-240: include all subscription entity packages — must mirror subscription's
@@ -77,7 +80,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         // Wave 78 Bucket F (GAP-542): FeedbackSubmission entity.
         "com.kitehub.subscription.feedback.entity",
         // Wave 79 Bucket B (GAP-561/562): StaffInvitation entity.
-        "com.kitehub.subscription.staff.entity"
+        "com.kitehub.subscription.staff.entity",
+        // Wave 79 Bucket F-bis (GAP-040): ImpersonationAuditEntry entity.
+        "com.kitehub.subscription.impersonation"
 })
 public class KiteHubAdminApplication {
 
