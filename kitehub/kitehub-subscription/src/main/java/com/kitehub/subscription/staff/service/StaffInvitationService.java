@@ -46,6 +46,58 @@ public class StaffInvitationService {
     private final StaffInvitationRepository repository;
     private final SecureRandom secureRandom = new SecureRandom();
 
+    /** Lookup by id (controller layer wraps with audit emit). */
+    @Transactional(readOnly = true)
+    public Optional<StaffInvitation> findById(UUID invitationId) {
+        return repository.findById(invitationId);
+    }
+
+    /**
+     * Accept an invitation: flip status to {@code ACCEPTED}, record the user id
+     * created from this invite (caller orchestrates User row creation), and
+     * stamp {@code acceptedAt}. Idempotent guard — already-accepted throws
+     * {@code INVITATION_ALREADY_USED}; expired throws {@code INVITATION_EXPIRED}.
+     */
+    @Transactional
+    public StaffInvitation accept(UUID invitationId, UUID createdUserId) {
+        StaffInvitation inv = repository.findById(invitationId)
+                .orElseThrow(() -> new IllegalArgumentException("INVITATION_NOT_FOUND"));
+        if (inv.getStatus() == StaffInvitationStatus.ACCEPTED) {
+            throw new IllegalStateException("INVITATION_ALREADY_USED");
+        }
+        if (inv.getStatus() == StaffInvitationStatus.REVOKED) {
+            throw new IllegalStateException("INVITATION_REVOKED");
+        }
+        if (inv.isExpired()) {
+            throw new IllegalStateException("INVITATION_EXPIRED");
+        }
+        inv.setStatus(StaffInvitationStatus.ACCEPTED);
+        inv.setAcceptedAt(OffsetDateTime.now());
+        inv.setAcceptedUserId(createdUserId);
+        return repository.save(inv);
+    }
+
+    /**
+     * Resend the invitation email by rotating the token hash (BR-ROLE-INVITE-RESEND).
+     * Same invitation row, new token; old token-hash invalidated. Only PENDING
+     * invitations can be re-sent. Returns the new raw token to email.
+     */
+    @Transactional
+    public InvitationIssued resend(UUID invitationId) {
+        StaffInvitation inv = repository.findById(invitationId)
+                .orElseThrow(() -> new IllegalArgumentException("INVITATION_NOT_FOUND"));
+        if (inv.getStatus() != StaffInvitationStatus.PENDING) {
+            throw new IllegalStateException("INVITATION_NOT_RESENDABLE");
+        }
+        if (inv.isExpired()) {
+            throw new IllegalStateException("INVITATION_EXPIRED");
+        }
+        String newRawToken = generateRawToken();
+        inv.setTokenHash(hashToken(newRawToken));
+        StaffInvitation saved = repository.save(inv);
+        return new InvitationIssued(saved, newRawToken);
+    }
+
     /**
      * Issue a new staff invitation.
      *

@@ -29,6 +29,9 @@ public enum EmailType {
     BETA_INVITE("beta-invite"),
     BETA_REQUEST_CONFIRM("beta-request-confirmation"),
 
+    // ---- Staff invitation (GAP-561b — Wave 80 Bucket B) ----
+    INVITE_STAFF("invite-staff"),
+
     // ---- Subscription lifecycle ----
     SUBSCRIPTION_CREATED("subscription-created"),
     SUBSCRIPTION_RENEWAL_REMINDER("subscription-renewal-reminder"),

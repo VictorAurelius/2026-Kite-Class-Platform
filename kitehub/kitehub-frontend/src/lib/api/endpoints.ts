@@ -110,4 +110,14 @@ export const endpoints = {
     approve: (id: number) => `/api/v1/admin/beta-requests/${id}/approve`,
     reject: (id: number) => `/api/v1/admin/beta-requests/${id}/reject`,
   },
+
+  // Staff invitations (GAP-561b Wave 80 — Owner→Staff invite flow)
+  staffInvitations: {
+    list: '/api/v1/staff-invitations',
+    create: '/api/v1/staff-invitations',
+    byToken: (token: string) => `/api/v1/staff-invitations/by-token/${token}`,
+    accept: (token: string) => `/api/v1/staff-invitations/${token}/accept`,
+    resend: (id: string) => `/api/v1/staff-invitations/${id}/resend`,
+    revoke: (id: string) => `/api/v1/staff-invitations/${id}`,
+  },
 } as const;

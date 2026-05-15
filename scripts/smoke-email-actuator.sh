@@ -24,14 +24,50 @@ EMAIL_BASE="${EMAIL_BASE:-http://localhost:8084}"
 SEND_LIVE="${SEND_LIVE:-false}"
 TARGET_EMAIL="${TARGET_EMAIL:-vannkite@outlook.com}"
 TIMEOUT="${TIMEOUT:-10}"
+TEMPLATE="welcome"
 
 color() { printf "\033[%sm%s\033[0m\n" "$1" "$2"; }
 green() { color "32" "$1"; }
 red() { color "31" "$1"; }
 yellow() { color "33" "$1"; }
 
+# Parse optional --template argument (Wave 80 GAP-561b: invite-staff variant)
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --template)
+            TEMPLATE="$2"
+            shift 2
+            ;;
+        --template=*)
+            TEMPLATE="${1#*=}"
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+# Known template-to-payload mapping. Add new templates here when introduced.
+case "$TEMPLATE" in
+    welcome)
+        SMOKE_ENDPOINT="/api/v1/emails/welcome"
+        SMOKE_PAYLOAD='{"to":"'"$TARGET_EMAIL"'","organizationName":"Wave 80 Smoke Test","trialDays":14,"expiryDate":"2026-05-28","loginUrl":"https://kitehub.me/login"}'
+        ;;
+    invite-staff)
+        # GAP-561b — staff invitation email variant
+        SMOKE_ENDPOINT="/api/v1/emails/invite-staff"
+        SMOKE_PAYLOAD='{"to":"'"$TARGET_EMAIL"'","recipientName":"Trần Thị Hồng","ownerName":"Nguyễn Văn An","tenantName":"Trung tâm Anh ngữ Sky Education","role":"STAFF","inviteUrl":"https://kitehub.me/staff/accept-invite?token=smoke-test-token","expiresAt":"Thứ Hai, 22/05/2026"}'
+        ;;
+    *)
+        red "Unknown --template value: $TEMPLATE (supported: welcome, invite-staff)"
+        exit 2
+        ;;
+esac
+
 echo "===== kitehub-email actuator smoke ====="
 echo "Target: $EMAIL_BASE"
+echo "Template: $TEMPLATE"
 echo "Live send: $SEND_LIVE (TARGET_EMAIL=$TARGET_EMAIL)"
 echo ""
 
@@ -82,11 +118,11 @@ if [[ "$SEND_LIVE" != "true" ]]; then
     exit 0
 fi
 
-echo "[4/4] POST /api/v1/emails/welcome (live send to $TARGET_EMAIL)"
+echo "[4/4] POST $SMOKE_ENDPOINT (live send to $TARGET_EMAIL, template=$TEMPLATE)"
 SEND_HTTP=$(curl -s -o /tmp/send.json -w "%{http_code}" --max-time 30 \
     -X POST -H "Content-Type: application/json" \
-    -d "{\"to\":\"$TARGET_EMAIL\",\"organizationName\":\"Wave 78 Smoke Test\",\"trialDays\":14,\"expiryDate\":\"2026-05-28\",\"loginUrl\":\"https://kitehub.me/login\"}" \
-    "$EMAIL_BASE/api/v1/emails/welcome" || echo "000")
+    -d "$SMOKE_PAYLOAD" \
+    "$EMAIL_BASE$SMOKE_ENDPOINT" || echo "000")
 
 if [[ "$SEND_HTTP" =~ ^(200|201|202)$ ]]; then
     green "  PASS — send accepted (HTTP $SEND_HTTP)"

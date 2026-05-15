@@ -122,6 +122,7 @@ Reference business doc: `documents/01-business/kitehub/auth/` rules.md likely ch
 
 ## Log
 
+- **2026-05-15 (Wave 80 Bucket B):** 🟢 DONE 100% (upgrade from PARTIAL 50%) — GAP-561b closed in this wave via wave-80-b/invite-staff-flow branch: email templates + `InvitationTokenService` HMAC + real InvitationController endpoints (replaces 501 stubs) + audit log table V49 + FE routes (`/admin/staff`, `/admin/staff/invite`, `/staff/accept-invite`) + 9 BE integration tests + Playwright E2E + smoke-email template variant. See [GAP-561b](GAP-561b-invite-staff-email-template-and-fe-routes.md) §Log.
 - **2026-05-14:** PARTIAL 50% — Wave 79 Bucket B closure. V45__create_staff_invitations.sql + StaffInvitation entity + InvitationController skeleton stubs (501 NOT_IMPLEMENTED) shipped via PR #1366. Email template + FE invite-staff UI + actual implementation deferred to GAP-561b (Wave 80+). KitehubSubscriptionApplication + KiteHubAdminApplication @EntityScan extended.
 
 - 2026-05-14 — Filed via Wave 79 outside-in audit (Persona 2 N2-P0). State-check confirmed all 4 layers (DB / BE / Email template / FE UI) missing. Priority P0 vì block Phase 1 BETA P3 Manager flow ngay từ ngày đầu invite cohort.
