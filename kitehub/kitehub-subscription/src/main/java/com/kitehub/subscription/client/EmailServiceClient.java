@@ -664,6 +664,50 @@ public class EmailServiceClient {
     }
 
     /**
+     * Send invite-staff email (GAP-561b Wave 80).
+     *
+     * <p>Dispatches {@code invite-staff} template with VN-locale variables.
+     * Best-effort — email failure must NEVER propagate back to invitation
+     * creation flow (caller wraps in try/catch). When dispatch fails, the
+     * invitation row is still valid; the owner can re-send via the
+     * {@code /api/v1/staff-invitations/{id}/resend} endpoint.</p>
+     *
+     * @param to recipient email
+     * @param recipientName recipient full name (for greeting)
+     * @param ownerName owner full name (issuer)
+     * @param tenantName tenant display name (e.g. "Trung tâm Sky Education")
+     * @param role role label rendered in email (defaults to STAFF)
+     * @param inviteUrl absolute accept-invite URL (carries opaque HMAC token)
+     * @param expiresAt human-readable expiry (e.g. "Thứ Hai, 22/05/2026")
+     */
+    public void sendInviteStaffEmail(String to, String recipientName, String ownerName,
+                                     String tenantName, String role, String inviteUrl,
+                                     String expiresAt) {
+        log.info("Sending invite-staff email to {} for tenant {}", to, tenantName);
+
+        try {
+            EmailRequest request = EmailRequest.builder()
+                .to(to)
+                .subject(String.format("Bạn được mời tham gia %s trên KiteHub",
+                    tenantName == null ? "trung tâm" : tenantName))
+                .templateName("invite-staff")
+                .variables(Map.of(
+                    "recipientName", recipientName == null ? "bạn" : recipientName,
+                    "ownerName", ownerName == null ? "Chủ trung tâm" : ownerName,
+                    "tenantName", tenantName == null ? "KiteHub" : tenantName,
+                    "role", role == null ? "STAFF" : role,
+                    "inviteUrl", inviteUrl == null ? "" : inviteUrl,
+                    "expiresAt", expiresAt == null ? "" : expiresAt
+                ))
+                .build();
+
+            dispatchEmail(null, "invite-staff", request);
+        } catch (Exception e) {
+            log.warn("Failed to send invite-staff email to {}: {}", to, e.getMessage());
+        }
+    }
+
+    /**
      * Check if an email of the given type was already sent today.
      *
      * @param instanceId Instance ID (nullable)

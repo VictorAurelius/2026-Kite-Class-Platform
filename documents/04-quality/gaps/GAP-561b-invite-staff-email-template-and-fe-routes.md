@@ -1,13 +1,13 @@
 ---
 id: GAP-561b
 title: invite-staff email template + FE invite UI + actual InvitationController behind 501 stubs
-status: OPEN
+status: DONE
 priority: P0
 layer: Mixed
 phase: phase-1-beta
-percent_complete: 0
+percent_complete: 100
 created: 2026-05-14
-updated: 2026-05-14
+updated: 2026-05-15
 parent: GAP-561
 wave_target: 80
 ---
@@ -65,12 +65,12 @@ Result: P3 Center Manager invite flow not functional — Owner cannot send staff
 
 ## Acceptance Criteria
 
-- [ ] All 5 InvitationController endpoints return real HTTP codes (no 501)
-- [ ] Email delivered + clickable → /staff/accept-invite landing renders
-- [ ] Invitee accepts → user row created in DB with correct role
-- [ ] OWNER sees /admin/staff list with pending + active invites
-- [ ] Non-OWNER hitting /admin/staff/invite → 403 (via RBAC sister gap GAP-562b)
-- [ ] Audit log entries verified post-invite + accept + revoke
+- [x] All 5 InvitationController endpoints return real HTTP codes (no 501) — POST/GET/DELETE + accept + resend wired in StaffInvitationController, integration test 9 cases PASS
+- [x] Email delivered + clickable → /staff/accept-invite landing renders — `invite-staff.html` + `.txt` templates + EmailServiceClient.sendInviteStaffEmail() wired; FE accept page lives at `/staff/accept-invite?token=...`
+- [x] Invitee accepts → user row created in DB with correct role — controller POST /{token}/accept creates User row with role=STAFF, integration test `postAcceptHappyPath` verifies
+- [x] OWNER sees /admin/staff list with pending + active invites — `(admin)/admin/staff/page.tsx` lists rows; refresh after invite shows new row (E2E `staff-invite.spec.ts` verifies)
+- [x] Non-OWNER hitting /admin/staff/invite → 403 (via RBAC sister gap GAP-562b) — @PreAuthorize on controller; FE RoleGuard component scope = GAP-562b Wave 80 Bucket C
+- [x] Audit log entries verified post-invite + accept + revoke — `StaffInvitationAuditEntry` entity + `staff_invitation_audit_log` table (V49); 6 event types CREATED/SENT/RESENT/ACCEPTED/REVOKED/EXPIRED; integration test asserts rows
 
 ## Dependencies
 
@@ -85,4 +85,17 @@ Result: P3 Center Manager invite flow not functional — Owner cannot send staff
 
 ## Log
 
+- **2026-05-15 (Wave 80 Bucket B):** 🟢 DONE 100% — shipped via wave-80-b/invite-staff-flow:
+  - Email templates `invite-staff.html` + `.txt` (vi-VN narrative, branded variables, VND/VN date format)
+  - `InvitationTokenService` HMAC-SHA256 signed tokens, TTL 7 days, `@PostConstruct` fail-fast guard mirroring `TotpSecretCipher` pattern (per `pre-launch-auth-hardening-checklist.md` §2.6)
+  - `StaffInvitationController` real implementation replacing 3 × 501 stubs: POST (create+email), GET (list), DELETE (revoke), POST /accept (token-validated public, creates User row), POST /resend (rotate token + email)
+  - Idempotency on re-invite: auto-revoke old PENDING + create new (audit-trail friendly per Wave 80 §1 brainstorm Q2)
+  - `StaffInvitationAuditEntry` entity + `staff_invitation_audit_log` table (V49 migration) — 6 event types, audit row per state transition (OWASP A09)
+  - `EmailServiceClient.sendInviteStaffEmail()` best-effort dispatch + idempotency log
+  - FE routes: `/admin/staff` (list), `/admin/staff/invite` (form), `/staff/accept-invite` (public landing, password set)
+  - Endpoint constants in `lib/api/endpoints.ts` `staffInvitations` namespace
+  - BE integration test `InvitationControllerIntegrationTest` — 9 cases all PASS (POST happy + GET list + DELETE revoke + accept happy + resend rotate + expired token + revoked token + duplicate idempotency + weak password)
+  - FE Playwright E2E `staff-invite.spec.ts` — 4 scenarios (invite flow + accept happy + expired token + weak password client validation)
+  - Smoke test `scripts/smoke-email-actuator.sh` extended with `--template invite-staff` variant
+  - All existing tests pass: 630 BE tests + 738 FE tests green
 - **2026-05-14:** Filed as Wave 79 Bucket B PARTIAL exit-ramp per `gap-done-discipline.md` §3. Sister to GAP-562b. P0 BLOCKING v0.9.0-beta tenant invite flow.

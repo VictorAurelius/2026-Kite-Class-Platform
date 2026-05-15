@@ -1,0 +1,24 @@
+Xin chào [(${recipientName ?: 'bạn'})],
+
+[(${ownerName ?: 'Chủ trung tâm'})] mời bạn tham gia trung tâm
+"[(${tenantName ?: 'KiteHub'})]" trên nền tảng KiteHub với vai trò [(${role ?: 'STAFF'})].
+
+Sau khi chấp nhận, bạn sẽ có thể:
+  - Quản lý học sinh và lớp học trong trung tâm
+  - Theo dõi điểm danh và lịch dạy
+  - Xem báo cáo hoạt động (theo phân quyền)
+
+Bấm vào liên kết sau để chấp nhận lời mời:
+[(${inviteUrl})]
+
+Lưu ý bảo mật:
+  - Lời mời có hiệu lực đến [(${expiresAt ?: '7 ngày kể từ thời điểm gửi'})].
+  - Chỉ sử dụng được 1 lần để tạo tài khoản.
+  - Nếu bạn không mong đợi lời mời này, vui lòng bỏ qua email.
+
+Nếu cần hỗ trợ, vui lòng liên hệ [(${branding?.contactEmail ?: 'support@kitehub.me'})].
+
+Trân trọng,
+Đội ngũ [(${branding?.displayName ?: 'KiteHub'})]
+
+© 2026 [(${branding?.displayName ?: 'KiteHub'})]. Email này được gửi tự động, vui lòng không trả lời.
