@@ -67,15 +67,20 @@ Inside-out brainstorm trong §3 đề xuất bucket list từ goc nhin dev. **Ou
 
 ## 6. Wave 81 follow-up gaps consolidated (Bucket F)
 
-1. **`/api/v1/beta-status` 400 empty body** — Wave 81 Bucket G spot check P1. Endpoint reachable nhưng return 400 thay vì 200 với content. Hypothesis: missing required header / gateway route predicate mismatch / rate-limit config issue. Investigate + fix.
+1. **`/api/v1/beta-status` 400 empty body** — ✅ DONE Wave 82 Bucket F4: root cause = gateway routing bug. `/api/v1/beta-status` fell through `/api/v1/**` catch-all → kiteclass-core (wrong service) → TenantResolver rejected as 400 (no tenant header on public path). Fix: added explicit route `kitehub-beta-status` → kitehub-subscription:8080 trong `kitehub-gateway/src/main/resources/application.yml`. `audit-gateway-routes.sh` surface 7 same-class drift: 4 staff-invitations + 3 admin-impersonate → all 8 fixed same PR (audit clean: 45 routes, 91 endpoints, zero wrong-service).
 
-2. **CSV row IDs mismatch Wave plan §G** — Wave 81 plan referenced OWNER-ONBOARD-001 / OWNER-INVITE-001 / MANAGER-LOGIN-001 / FEEDBACK-001 nhưng CSV không có. Sync CSV + plan để 10-row spot check tương lai dùng đúng IDs.
+2. **CSV row IDs mismatch Wave plan §G** — ✅ DONE Wave 82 Bucket F3: Wave 81 plan §G updated to use existing CSV IDs (OWNER-PROVISION-001 / OWNER-TEACHER-001 / TEACH-LOGIN-001 / ADM-BETA-APPROVE-001 / PARENT-LOGIN-001 substitutes). FEEDBACK widget rows defer Wave 83 (no CSV equivalent yet).
 
-3. **CSV references `/api/v1/auth/login` nhưng deployed path = `/api/auth/login`** — Wave 78 contract refactor đổi path mà không update test artifact. Sweep CSV cho tất cả `/api/v1/auth/*` references.
+3. **CSV references `/api/v1/auth/login` nhưng deployed path = `/api/auth/login`** — ✅ DONE Wave 82 Bucket F2: state-check verified zero `/api/v1/auth/login` refs trong CSV (only `/api/v1/auth/request-beta-access` x2 matching deployed `BetaAccessController.java:79`). Symptom not present per `audit-to-gap-pipeline.md` §2.8 decision matrix.
 
-4. **`scripts/rotate-leaked-credentials.sh` wrapper name bug** — Task #59 pending. Fix name + alias.
+4. **`scripts/rotate-leaked-credentials.sh` wrapper name bug** — Task #59 ✅ DONE Wave 82 Bucket F1: renamed `scripts/rotate-credentials.sh` (general-purpose); backward-compat symlink `rotate-leaked-credentials.sh` kept; header tone updated.
 
-5. **Spring Boot returns 500 thay vì 404 cho POST static-not-found** — minor framework noise (Wave 81 Bucket G spot check finding #4). Configure `spring.web.resources.add-mappings=false` hoặc custom 404 handler.
+5. **Spring Boot returns 500 thay vì 404 cho POST static-not-found** — ✅ DONE Wave 82 Bucket F5: added `spring.web.resources.add-mappings: false` vào 4 WebMVC services (kitehub-admin / kitehub-branding / kitehub-subscription / kiteclass-core). Skipped gateway services (WebFlux) + email (WebFlux) + platform (shared lib).
+
+### New audit findings surfaced Bucket F4 (defer Wave 83 follow-ups)
+
+- **3 services missing `application-production.yml`** (kitehub-admin, kitehub-branding, kitehub-email) — `audit-spring-profiles.sh` flagged: `SPRING_PROFILES_ACTIVE=production` env set but no matching file → Spring silently ignores profile, production overrides never apply. Per `production-env-config-registry.md` §11.3.
+- **`scripts/audit-service-ports.sh` script bug** — line 129 unbound variable error trips script before completing. Per `audit-to-gap-pipeline.md` Step 3, file as P2 follow-up gap.
 
 ## 7. Self-hosted GitHub runner setup (Bucket E reference)
 

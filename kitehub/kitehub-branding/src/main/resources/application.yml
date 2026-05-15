@@ -2,6 +2,11 @@ spring:
   application:
     name: kitehub-branding
 
+  # Wave 82 Bucket F5: REST API service — disable default static resource handler so POST to non-existent path returns 404 (NoHandlerFoundException) not 500 (NoResourceFoundException)
+  web:
+    resources:
+      add-mappings: false
+
   # Database Configuration
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/kitehub}

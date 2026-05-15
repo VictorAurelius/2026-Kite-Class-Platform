@@ -480,6 +480,20 @@ spring:
                 name: authCircuitBreaker
                 fallbackUri: forward:/fallback/auth
 
+        # Wave 79 admin-impersonate endpoints on kitehub-subscription
+        # (ImpersonationController @RequestMapping("/api/v1/admin/impersonate")).
+        # Wave 82 Bucket F4 fix (audit-gateway-routes.sh): must precede /api/v1/admin/**
+        # since impersonate lives on kitehub-subscription, not kitehub-admin.
+        - id: kitehub-admin-impersonate
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/admin/impersonate/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
+
         # GAP-509 — kitehub admin v1 (beta-requests approve/reject) routes
         # to admin service. Must precede instance-apis catch-all.
         - id: kitehub-admin-v1
@@ -533,6 +547,33 @@ spring:
               args:
                 name: brandingCircuitBreaker
                 fallbackUri: forward:/fallback/branding
+
+        # GAP-539 (Wave 78) — Public beta-status endpoint on kitehub-subscription.
+        # Wave 82 Bucket F4 fix: route was missing → fell through to instance-apis
+        # catch-all → TenantResolver rejected as 400 (no tenant header on public path).
+        - id: kitehub-beta-status
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/beta-status
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
+
+        # Wave 80 staff-invitations endpoints on kitehub-subscription
+        # (StaffInvitationController @RequestMapping("/api/v1/staff-invitations")).
+        # Wave 82 Bucket F4 fix: surfaced by audit-gateway-routes.sh — was falling
+        # through /api/v1/** catch-all → kiteclass-core (wrong service).
+        - id: kitehub-staff-invitations
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/staff-invitations/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
 
         # Instance APIs - Route to KiteClass Core (via TenantResolver)
         - id: instance-apis
