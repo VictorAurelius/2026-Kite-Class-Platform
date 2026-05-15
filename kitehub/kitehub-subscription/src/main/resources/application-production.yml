@@ -22,6 +22,25 @@ spring:
       hibernate:
         use_sql_comments: false
 
+  # GAP-503 / Wave 85 Bucket E — HikariCP right-size (E-AC3 alarm guards exhaustion).
+  # 7 services × 10 connections = 70 total < RDS db.t3.micro cap 87 (max_connections).
+  datasource:
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+server:
+  # GAP-503 / Wave 85 Bucket E — Tomcat thread pool right-size (E-AC2 alarm guards).
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    accept-count: 100
+    connection-timeout: 20000
+
 management:
   endpoint:
     health:

@@ -1,23 +1,22 @@
 # =============================================================================
-# PRODUCTION PROFILE - kitehub-email
+# PRODUCTION PROFILE - kiteclass-core
 # =============================================================================
 # Activated by: SPRING_PROFILES_ACTIVE=production
-# Wave 82 Bucket F6 (post-F4 audit-spring-profiles.sh finding): closes Spring
-# profile silent-skip risk per production-env-config-registry.md §11.3.
+# Wave 85 Bucket E (GAP-503): Tier 2 config — JVM 60% + Tomcat + HikariCP.
+# Closes audit-spring-profiles.sh finding for kiteclass-core (silent profile skip).
 #
-# CRITICAL — override 3 base defaults that are unsafe in production:
-#   - email.provider: 'mock' → 'ses' (silent log-only fallback eliminated)
-#   - aws.ses.mock-mode: true → false (real send by default)
-#   - aws.ses.from-email: 'noreply@localhost' → 'noreply@kitehub.me'
-# Production env vars (EMAIL_PROVIDER, AWS_SES_MOCK_MODE, AWS_SES_FROM_EMAIL)
-# still override these production defaults if explicitly set in compose.
+# Characteristics:
+#   - Tighten logging (no SQL, no debug)
+#   - Hide stacktrace + error message
+#   - Scope actuator exposure
+#   - HikariCP + Tomcat thread pool right-sized for t3.small + RDS db.t3.micro
 
 spring:
-  thymeleaf:
-    cache: true
+  jpa:
+    show-sql: false
 
   # GAP-503 / Wave 85 Bucket E — HikariCP right-size (E-AC3 alarm guards exhaustion).
-  # 7 services × 10 connections = 70 total < RDS db.t3.micro cap 87.
+  # 7 services × 10 connections = 70 total < RDS db.t3.micro cap 87 (max_connections).
   datasource:
     hikari:
       maximum-pool-size: 10
@@ -25,14 +24,6 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
-
-email:
-  provider: ${EMAIL_PROVIDER:ses}
-
-aws:
-  ses:
-    mock-mode: ${AWS_SES_MOCK_MODE:false}
-    from-email: ${AWS_SES_FROM_EMAIL:noreply@kitehub.me}
 
 management:
   endpoint:
@@ -58,6 +49,6 @@ server:
 logging:
   level:
     root: WARN
-    com.kitehub: INFO
-    com.kitehub.email: INFO
+    com.kiteclass: INFO
+    org.hibernate.SQL: WARN
     org.springframework.web: WARN
