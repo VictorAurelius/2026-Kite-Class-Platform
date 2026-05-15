@@ -130,3 +130,4 @@ kiteclass/kiteclass-frontend/pnpm-lock.yaml
 .coverage.*
 .claude/hooks/tests/coverage-html/
 .claude/hooks/tests/coverage.xml
+.vercel/
