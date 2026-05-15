@@ -10,19 +10,23 @@
 # pulling images from ECR. Detailed bootstrap shipped in Bucket B Dockerfiles
 # + GitHub Actions docker-build-push workflow.
 
-# Latest Amazon Linux 2023 AMI (ARM-friendly, supports SSM agent OOTB)
+# Pinned Amazon Linux 2023 AMI (ap-southeast-1).
+#
+# Wave 82 Bucket B prep 2026-05-15: changed from `most_recent = true` + name-glob filter
+# to specific `image-id` lookup. AWS releases new AL2023 AMIs ~monthly; with `most_recent`
+# every `terraform apply` would replace EXISTING `aws_instance.kh_backend` + `aws_instance.kc_app`
+# whenever a new AMI lands → 5-10min downtime + force-redeploy. Wave 82 Bucket B adds
+# `aws_instance.kc_app_fe` which would cascade the same replacement on first apply.
+#
+# Pinning to current AMI ID gives explicit "AMI bump = separate wave with planned maintenance"
+# semantics. Update value below to bump AMI; replacement is then intentional, not surprise.
 data "aws_ami" "al2023" {
   most_recent = true
   owners      = ["amazon"]
 
   filter {
-    name   = "name"
-    values = ["al2023-ami-2023.*-x86_64"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
+    name   = "image-id"
+    values = ["ami-04a8a2b994a2a7176"]
   }
 }
 
