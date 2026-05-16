@@ -1,13 +1,13 @@
 ---
 id: GAP-537c
 title: P2 Owner + P3 Manager screenshots capture + Tier 2 annotation overlay
-status: OPEN
+status: PARTIAL
 priority: P1
 layer: Frontend
 phase: phase-1-beta
-percent_complete: 0
+percent_complete: 50
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-16
 parent: GAP-537
 wave_target: 81
 ---
@@ -56,3 +56,4 @@ Wave 80 Bucket D shipped 20 F1+F2 source pages + PDF generation script + Playwri
 ## Log
 
 - **2026-05-15:** Filed as Wave 80 Bucket D PARTIAL exit-ramp per `gap-done-discipline.md` §3. Deferred to Wave 81 to bundle with DEPLOY+SMOKE post-deploy verification self-test (logical sequence: screenshots capture live UI after deploy verify).
+- **2026-05-16:** Wave 86 Bucket C — flipped OPEN → PARTIAL (50%). Shipped: 5 new user manual pages (P2: signup.md, onboarding-wizard.md, first-class.md; P3: invite-accept.md, daily-ops.md) với placeholder screenshot HTML comments per `user-manual-content-standard.md` §2 row 6 allowance + audit doc `documents/04-quality/audits/persona-review/2026-05-15-p2-onboarding-wizard-audit.md` documenting C-AC1/2/3 verdicts (1 PASS + 2 PARTIAL). Screenshots directories created (empty, .gitkeep placeholder). EC2 backend stopped during this session → live capture deferred. Real screenshot capture + Tier 2 annotation tracked GAP-537c-followup-screenshot-capture (P1 wave 87+). C-AC1 wizard step count verified 4 steps via code reading `OnboardingWizard.tsx`. C-AC2 permission matrix explicit via existing `permissions.md` + new `invite-accept.md` §4. C-AC3 ≤5 phút verified via step-time analysis in `first-class.md` §7 (median ~4 phút).

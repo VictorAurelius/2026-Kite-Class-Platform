@@ -1,14 +1,14 @@
 ---
 persona: p3-center-manager
 topic: index
-last-updated: 2026-05-15
+last-updated: 2026-05-16
 version: v0.9.0-beta
 effort_minutes: 4
 ---
 
 # Hướng dẫn Quản lý trung tâm — Tổng quan
 
-> 📅 Cập nhật lần cuối: **2026-05-15** · Phiên bản KiteHub: **v0.9.0-beta** · Đọc khoảng **4 phút**
+> 📅 Cập nhật lần cuối: **2026-05-16** · Phiên bản KiteHub: **v0.9.0-beta** · Đọc khoảng **4 phút**
 
 ## TL;DR
 
@@ -72,7 +72,11 @@ Biết rõ mình KHÔNG quyền gì → xem [Quyền hạn STAFF](permissions.md
 
 ### 3.4 Accept invite (lần đầu)
 
-Xem [Quy trình nhận invite từ Owner](accept-invite.md).
+Xem [Quy trình nhận invite từ Owner](accept-invite.md) hoặc [Hướng dẫn chi tiết invite-accept](invite-accept.md).
+
+### 3.5 Daily ops workflow tóm tắt
+
+Xem [Daily Operations workflow 1 ngày](daily-ops.md) cho tóm tắt 30-phút-mỗi-sáng.
 
 ---
 

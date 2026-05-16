@@ -1,14 +1,14 @@
 ---
 persona: p2-center-owner
 topic: index
-last-updated: 2026-05-15
+last-updated: 2026-05-16
 version: v0.9.0-beta
 effort_minutes: 4
 ---
 
 # Hướng dẫn Chủ trung tâm — Tổng quan
 
-> 📅 Cập nhật lần cuối: **2026-05-15** · Phiên bản KiteHub: **v0.9.0-beta** · Đọc khoảng **4 phút**
+> 📅 Cập nhật lần cuối: **2026-05-16** · Phiên bản KiteHub: **v0.9.0-beta** · Đọc khoảng **4 phút**
 
 ## TL;DR
 
@@ -86,6 +86,9 @@ Anh Tâm làm 80% việc hành chính hàng ngày — chị Hằng chỉ duyệt
 
 ## 4. Tiếp theo
 
+- 📝 [Đăng ký tài khoản](signup.md) (nếu chưa đăng ký xong)
+- 🎯 [Onboarding Wizard 4 bước](onboarding-wizard.md)
+- 🎓 [Tạo lớp học đầu tiên](first-class.md)
 - 💳 [Bảng giá + Thanh toán](pricing-billing.md)
 - 👥 [Mời Manager + Giáo viên](invite-staff.md)
 - 🎨 [Tuỳ chỉnh logo + màu](branding.md)
