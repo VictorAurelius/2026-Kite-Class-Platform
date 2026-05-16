@@ -1,0 +1,57 @@
+{
+  "pr": 1462,
+  "title": "docs(wave-86): pre-tag acceptance self-test results (5 PASS / 94 USER-VERIFY / 27 SPEC)",
+  "branch": "wave-86-pretag-self-test-results",
+  "created_at": null,
+  "merged_at": "2026-05-16T07:01:20Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-16T06:59:24.551127",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 2,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    },
+    {
+      "time": "2026-05-16T07:01:24.319367",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 2,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    },
+    {
+      "time": "2026-05-16T07:01:34.446870",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 2,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1831248"
+  }
+}
