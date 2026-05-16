@@ -290,6 +290,95 @@ Pattern TTR >5 min trong 2 incidents liên tiếp = file follow-up gap để ret
 
 ---
 
+## 9. Pre-launch dry-run (Wave 86 Bucket H H-AC7)
+
+Pre-tag-v1.0.0-rc.1 mandate: chạy 1 dry-run incident response scenario để measure baseline MTTD (Mean Time To Detect) + MTTR (Mean Time To Recovery) trước khi invite Phase 1.5 tenants. Mục đích: validate on-call procedures + verify monitoring/alerting kích hoạt đúng cách + identify gaps trước khi production traffic blast.
+
+### 9.1 Scenario — "Email không gửi" (Resend API down / DKIM fail / SPF reject)
+
+**Bối cảnh:** Beta tenant tạo signup → kỳ vọng email verification trong 30s → email không tới. Tenant submits support ticket.
+
+**Why this scenario:** Email là điểm rủi ro cao trong Phase 1 BETA workflow (signup verification, password reset, beta invite). Resend Free tier 100/day = single-point dependency; DKIM/SPF/DMARC propagation Cloudflare cũng có thể drift. Mock scenario này covers 3 layers: vendor (Resend) + DNS (Cloudflare) + downstream (kitehub-email service).
+
+### 9.2 Dry-run procedure
+
+**Setup:** Pick maintenance window (low-traffic period); notify team (solo-dev → log to memory) before starting.
+
+**Detect (target MTTD < 5 min):**
+
+1. Trigger mock failure (one of):
+   - **Option A — Resend API simulation:** Suspend Resend API key trong Resend dashboard tạm thời (Settings → API Keys → click revoke → revoke for 10 min)
+   - **Option B — Bad DNS:** Update Cloudflare SPF record → invalid value (e.g. remove `include:amazonses.com`) → Resend send fails authentication
+   - **Option C — kitehub-email crash:** SSM `docker stop kitehub-email-container` on EC2 (only kitehub-email — gateway sẽ route requests but no consumer)
+2. Trigger ≥3 test signups (simulating real user traffic) → email send attempts fail
+3. **Detect mechanism**: monitor:
+   - CloudWatch dashboard `KiteHub/Email/SendFailureRate` alarm fires (per Wave 84 Bucket H GAP-437)
+   - Grafana panel "Resend API status" turns red
+   - Application log `kitehub-email` shows `RESEND_API_ERROR` repeated
+   - **Manual alternative:** Resend dashboard "Activity" tab shows `failed` status
+4. Record timestamp `T_detect` — first signal received
+
+**Diagnose (target 5-10 min):**
+
+5. Apply §3 First Responder Checklist:
+   - Step 1: Severity P1 (email broken — degraded user signup, not complete outage)
+   - Step 2: Communicate — log to incident channel (solo-dev: memory entry + status page draft)
+   - Step 3: Inspect — `aws ssm send-command` to EC2 instance to check `kitehub-email` container logs
+6. Identify root cause via 5-Whys per §6:
+   - Why email fails? → Resend API returns 401 / DNS fails / container down
+   - Why? → API key revoked / SPF invalid / process crashed
+   - Verify with `curl https://api.resend.com/domains -H "Authorization: Bearer $KEY"` OR `dig +short TXT kitehub.me` OR `docker ps | grep email`
+
+**Recover (target 10-30 min):**
+
+7. Apply mitigation (matches scenario):
+   - **A:** Re-enable Resend API key trong dashboard
+   - **B:** Restore Cloudflare SPF record correct value
+   - **C:** `docker start kitehub-email-container` via SSM
+8. Verify recovery:
+   - Re-trigger test signup → email arrives <30s
+   - CloudWatch alarm clears
+   - Grafana panel "Resend API status" returns green
+9. Record timestamp `T_recover` — first successful email post-fix
+
+**Postmortem (target within 24h):**
+
+10. MTTD = `T_detect - T_inject` (target < 5 min — alarm fire to operator notice)
+11. MTTR = `T_recover - T_detect` (target < 30 min for P1 — including diagnose + apply fix)
+12. Write postmortem per §6 template → save to `documents/04-quality/audits/incidents/2026-MM-DD-dry-run-email-failure.md`
+13. Action items: gaps surfaced trong drill → file follow-up gaps
+
+### 9.3 Expected baseline ranges (calibration)
+
+| Metric | Target | Acceptable Phase 1 BETA | Action if exceeded |
+|---|---|---|---|
+| MTTD (alarm fire → operator notice) | < 5 min | < 10 min | Tune CloudWatch alarm thresholds + PagerDuty/SNS routing |
+| MTTR (diagnose + fix) | < 30 min for P1 | < 60 min | File gap to add runbook automation (e.g. failover script, restart playbook) |
+| False-positive alarm rate | 0 | < 1/week | Tune alarm sensitivity |
+| Recovery verify (smoke test) | < 5 min | < 10 min | Automate smoke per `scripts/smoke-test.sh` |
+
+### 9.4 Cadence
+
+| Trigger | Cadence | Scenario rotation |
+|---|---|---|
+| Pre-tag v1.0.0-rc.1 | 1 time (mandatory) | "Email không gửi" (this scenario) |
+| Quarterly (after v1.0.0) | Every 90d | Rotate scenarios: Email fail / DB connection pool exhausted / Gateway 502 / EC2 instance unhealthy |
+| Post-major-deploy regression | Optional | Re-run last-quarter scenario for regression check |
+| New team member onboard | First week | Run dry-run as training |
+
+### 9.5 Acceptance criteria for H-AC7
+
+- [ ] Dry-run scenario procedure documented (§9.1-§9.2) ✅
+- [ ] Baseline MTTD + MTTR ranges defined (§9.3) ✅
+- [ ] Cadence schedule documented (§9.4) ✅
+- [ ] Actual dry-run executed pre-tag-v1.0.0-rc.1 → MTTD/MTTR measured + within target → ⏳ defer to pre-tag run
+- [ ] Postmortem template ready (§6 existing) ✅
+- [ ] Follow-up gap mechanism ready (`audit-to-gap-pipeline.md`) ✅
+
+**Status:** doc shipped Wave 86 Bucket H; actual dry-run execution + timing measure = pre-tag-rc1 task.
+
+---
+
 ## Related
 
 - [Rollback Procedure](./rollback-procedure.md)
