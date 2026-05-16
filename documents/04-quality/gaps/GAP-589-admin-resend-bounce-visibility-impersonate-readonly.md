@@ -1,6 +1,6 @@
 # GAP-589: Admin Resend bounce visibility + impersonate-read-only debugging path
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (25%) — Wave 86 docs-cluster spec planning shipped (`documents/04-quality/audits/persona-review/2026-05-16-gap-589-admin-bounce-visibility-spec.md`). Implementation = Wave 87+ multi-phase (Phase 1 webhook + persistence, Phase 2 admin dashboard tab, Phase 3 impersonate flow + JWT + audit log + FE guard, Phase 4 runbook + training). H-AC13 spec scope only docs-cluster; implementation gap files Wave 87+ planning.
 **Priority:** 🟠 P1
 **Domain:** Backend / Admin Dashboard
 **Phase:** phase-1-beta
@@ -37,12 +37,17 @@ Wave 84 ops baseline focused infrastructure observability (CloudTrail, CloudWatc
 
 ## Acceptance Criteria
 
-- [ ] Resend webhook handler shipped + bounce events persisted
-- [ ] Admin "Email Delivery" tab live với filter + resend
-- [ ] Impersonate read-only endpoint shipped + JWT enforces role check
-- [ ] FE mutation buttons disabled khi impersonate session active
-- [ ] Audit log every impersonate session với reason
-- [ ] Wave 86 Bucket H runbook reference này cho incident response
+- [x] Spec planning shipped — `documents/04-quality/audits/persona-review/2026-05-16-gap-589-admin-bounce-visibility-spec.md` defines: webhook schema + email-delivery tab spec + impersonate endpoint + JWT claims + audit log table + FE guard pattern + runbook section
+- [ ] Resend webhook handler shipped + bounce events persisted — defer Wave 87+ Phase 1 implementation
+- [ ] Admin "Email Delivery" tab live với filter + resend — defer Wave 87+ Phase 2 implementation
+- [ ] Impersonate read-only endpoint shipped + JWT enforces role check — defer Wave 88+ Phase 3 (higher security risk; needs review)
+- [ ] FE mutation buttons disabled khi impersonate session active — defer Wave 88+ Phase 3
+- [ ] Audit log every impersonate session với reason — defer Wave 88+ Phase 3
+- [ ] Wave 86 Bucket H runbook reference này cho incident response — defer Wave 88+ Phase 4 (synced với Phase 3 impersonate flow implementation)
+
+## Log
+
+- **2026-05-16** Wave 86 docs-cluster — spec planning shipped. Status flipped OPEN → PARTIAL (25%). Per `gap-done-discipline.md` §3 PARTIAL exit ramp: 1 AC verified (spec doc); 6 ACs deferred to Wave 87+/88+ implementation phases. Verification artifact: `documents/04-quality/audits/persona-review/2026-05-16-gap-589-admin-bounce-visibility-spec.md`. Follow-up gaps to file Wave 87 planning: `GAP-XXX wave-87-resend-bounce-webhook-handler` (P1) + `GAP-XXX wave-87-admin-email-delivery-tab` (P2) + `GAP-XXX wave-87-admin-impersonate-readonly` (P1 — security review required).
 
 ## Related
 

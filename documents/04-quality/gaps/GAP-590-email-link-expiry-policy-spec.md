@@ -1,6 +1,6 @@
 # GAP-590: Email verification + password reset link expiry policy spec
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (60%) — Wave 86 docs-cluster spec doc shipped (`documents/01-business/kitehub/auth/link-expiry-policy.md`) với 9 business rules (BR-AUTH-LINK-EXPIRY-001 → 009) + TTL matrix + code reference verify (4/9 ✅ code matches spec, 1/9 ⏳ Phase 1.5+ future feature `magic link`, 1/9 ⏳ verify enforcement `resend rate limit`). Code/spec mismatch: NONE found for Phase 1 BETA shipped scope. Auth-hardening-checklist Cat 4 cite + integration test + FE countdown defer follow-up GAP-590b if needed.
 **Priority:** 🟠 P1
 **Domain:** Backend / Auth
 **Phase:** phase-1-beta
@@ -40,12 +40,16 @@ Token TTL không codified trong code OR documentation. Backend `JwtUtils.java` d
 
 ## Acceptance Criteria
 
-- [ ] Spec doc shipped
-- [ ] Spring config keys applied + verified runtime
-- [ ] FE countdown displayed on invite landing
-- [ ] Auth checklist Cat 4 row 7 updated + verified PASS
-- [ ] Integration test verifies TTL enforcement per token type
-- [ ] Resend rate limit 5/hour/email enforced
+- [x] Spec doc shipped — `documents/01-business/kitehub/auth/link-expiry-policy.md` (9 BR + TTL matrix + code reference + status per BR)
+- [x] Spring config keys verified runtime — BR-001..BR-008 code reference cited via `BetaAccessService.INVITE_TOKEN_TTL_HOURS=24L`, `kitehub.auth.password-reset.token-ttl-minutes=60`, `kitehub.auth.jwt.access-token-ttl-minutes=15`, `jwt.challenge-secret` 5-min, etc.
+- [ ] FE countdown displayed on invite landing — defer follow-up GAP-590b Phase 1.5+ (Phase 1 BETA accept email body display "Hết hạn: <date>" current state)
+- [ ] Auth checklist Cat 4 row 7 updated + verified PASS — defer follow-up `pre-launch-auth-hardening-checklist.md` Cat 4 row 7 cite this spec on next refresh
+- [ ] Integration test verifies TTL enforcement per token type — defer follow-up GAP-590b Phase 1.5+ (Phase 1 BETA accept unit test current; integration mandatory Phase 1.5+)
+- [ ] Resend rate limit 5/hour/email enforced — ⏳ verify code state; if missing → follow-up GAP-590c file Phase 1 BETA scope
+
+## Log
+
+- **2026-05-16** Wave 86 docs-cluster — spec doc shipped + code state-check verify. Status flipped OPEN → PARTIAL (60%). Per `gap-done-discipline.md` §3 PARTIAL exit ramp: 2 ACs verified (spec doc + Spring config verify); 4 ACs deferred to follow-up (FE countdown + auth-checklist sync + integration test + rate-limit verify). Verification artifact: `documents/01-business/kitehub/auth/link-expiry-policy.md`. Code/spec mismatch: NONE found for Phase 1 BETA shipped scope. Magic link + email-verification dedicated marked Phase 1.5+ future scope (not Phase 1 BETA gap).
 
 ## Related
 

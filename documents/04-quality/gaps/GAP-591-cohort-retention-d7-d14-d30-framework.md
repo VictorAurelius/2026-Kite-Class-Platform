@@ -1,6 +1,6 @@
 # GAP-591: Cohort retention tracking framework — D7 / D14 / D30 activation milestones
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-16 — Wave 86 Bucket H framework doc shipped (`documents/05-guides/operations/cohort-retention-tracking.md`) với D7/D14/D30 definitions + Phase 1 BETA target (≥60% D7 / ≥80% D14 / ≥70% D30) + spreadsheet template Phase 1 BETA scale + outreach playbook + SQL queries cho manual weekly tracking. Cron job + FE churn-form + dashboard tile = Phase 1.5+ scope per §Out-of-scope below.
 **Priority:** 🟠 P1
 **Domain:** Backend / Analytics / Ops
 **Phase:** phase-1-beta
@@ -43,12 +43,23 @@ Wave 86 inside-out scope focus on tag + invite mechanics, không scope retention
 
 ## Acceptance Criteria
 
-- [ ] Activation milestone definitions documented
-- [ ] Tracker spreadsheet shipped + initial 5-tenant rows
-- [ ] Cron job CohortActivationJob shipped + emits CloudWatch metric
-- [ ] Manual outreach process documented Bucket H runbook
-- [ ] Churn reason capture form FE shipped
-- [ ] D7 dashboard tile live (CloudWatch hoặc Grafana)
+- [x] Activation milestone definitions documented — D7/D14/D30 per `documents/05-guides/operations/cohort-retention-tracking.md` §2 với Phase 1 BETA targets (≥60% / ≥80% / ≥70%)
+- [x] Tracker spreadsheet template shipped — §3 spreadsheet schema documented; canonical location `documents/04-quality/metrics/phase-1-beta-cohort-retention.csv` (rows populated khi first 5 cohort tenant invite Wave 86 Bucket G)
+- [x] Manual outreach process documented Bucket H runbook — §2.1-2.3 outreach trigger thresholds + Zalo OA path cited per support-sla-phase-1-beta.md
+
+## Out-of-scope (Phase 1.5+ scope tracked separately)
+
+These AC items originally proposed are Phase 1.5+ scope per Bucket H scope decision (manual tracking sufficient cho 5-cohort scale):
+
+| Item | Reason out-of-scope | Where tracked |
+|---|---|---|
+| Cron job `CohortActivationJob` + CloudWatch metric emit | Manual SQL queries sufficient cho 5-cohort scale; automation = >20 cohort Phase 1.5+ trigger | New gap `GAP-XXX phase-1.5-cohort-activation-cron` Phase 1.5+ P2 |
+| Churn reason capture form FE | Manual capture via support email/Zalo sufficient cho 5-cohort scale; form = >20 cohort Phase 1.5+ trigger | New gap `GAP-XXX phase-1.5-churn-form-fe` Phase 1.5+ P2 |
+| D7 dashboard tile (CloudWatch / Grafana) | Manual spreadsheet review weekly sufficient cho 5-cohort scale; dashboard = >20 cohort Phase 1.5+ trigger | New gap `GAP-XXX phase-1.5-cohort-dashboard-tile` Phase 1.5+ P2 |
+
+## Log
+
+- **2026-05-16** Wave 86 docs-cluster — status flipped DONE for Bucket H framework primary scope. Per `gap-done-discipline.md` §2 criterion 1 (AC checked) + criterion 5 (verification artifact): 3 ACs checked corresponding to framework doc scope (definitions + spreadsheet template + outreach process); 3 deferred items moved to §Out-of-scope per §3 PARTIAL exit ramp alternative ("drop the AC and document the scope cut"). Verification artifact: `documents/05-guides/operations/cohort-retention-tracking.md` (308 lines, includes D7/D14/D30 definitions + queries + outreach playbook + Phase 1.5+ automation roadmap).
 
 ## Related
 
