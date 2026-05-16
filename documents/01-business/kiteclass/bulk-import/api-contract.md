@@ -114,13 +114,15 @@ xlsx binary; columns:
 | HTTP | Code | When |
 |------|------|------|
 | 400 | `BULK_IMPORT_EMPTY_FILE` | Missing `file` part or empty upload |
-| 400 | `BULK_IMPORT_ROW_LIMIT_EXCEEDED` | `totalRows > 10_000` |
+| 413 | `BULK_IMPORT_ROW_LIMIT_EXCEEDED` | `totalRows > 1_000` (Wave 86 E-AC5 — giảm từ 10_000 → 1_000; FE phải chunk client-side nếu file > 1000 dòng) |
 | 400 | `FILE_TOO_LARGE` (advice) | Multipart size exceeds 5 MB |
 | 400 | `VALIDATION_ERROR` | Row-level validation errors returned INLINE (not thrown) |
 | 401 | `UNAUTHENTICATED` | Missing/invalid Bearer token |
 | 403 | `FORBIDDEN` | Admin lacks `STUDENT_WRITE` |
 | 405 | `METHOD_NOT_ALLOWED` | GET on `/jobs/{id}/errors` |
 | 500 | `INTERNAL_ERROR` | Unexpected parse error — should never happen; audit log |
+
+> **Wave 86 E-AC5 (2026-05-16):** `BULK_IMPORT_ROW_LIMIT_EXCEEDED` chuyển HTTP 400 → **413 PAYLOAD_TOO_LARGE** và `MAX_ROWS` giảm `10_000 → 1_000`. Lý do: spec §3 Bucket E E-AC5 mandate cap = 1000 rows/request để align với Phase 1 BETA performance envelope (t3.micro RAM 1GB) + RFC 7231 §6.5.11 semantic (413 = request entity too large, semantically đúng hơn 400 cho row-cap exceeded). FE phải implement client-side chunking nếu user upload file > 1000 dòng.
 
 Row-level errors are NOT thrown — they're collected into the `errors` array of the 2xx response. This matches skip-and-report behavior (BR-BI-032).
 

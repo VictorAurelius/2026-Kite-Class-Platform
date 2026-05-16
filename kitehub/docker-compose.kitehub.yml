@@ -37,6 +37,14 @@ services:
     image: redis:7-alpine
     container_name: kite-redis
     profiles: ["infra-only", "branding-only", "branding-only-no-ai", "beta-funnel", "kc-only", "full"]
+    # E-AC2 Wave 86 (PR #1445 Cat 5 Infra sweep): enforce maxmemory + LRU eviction
+    # Default Redis policy = noeviction → cache stampede risk khi memory đầy → RDS spike.
+    # 256mb baseline match t3.micro context (REDIS_MEM_LIMIT=512m); allkeys-lru
+    # evicts least-recently-used keys khi đạt maxmemory thay vì reject writes.
+    command: >
+      redis-server
+      --maxmemory ${REDIS_MAXMEMORY:-256mb}
+      --maxmemory-policy ${REDIS_MAXMEMORY_POLICY:-allkeys-lru}
     ports:
       - "6380:6379"
     healthcheck:

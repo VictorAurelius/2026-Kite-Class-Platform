@@ -13,9 +13,9 @@ Admin-facing bulk create of students via xlsx upload. Two phases: dry-run `previ
 |----|------|-------|----------------|
 | BR-BI-001 | Supported format | `.xlsx` only (Apache POI) | `XlsxParser` |
 | BR-BI-002 | Max file size | 5 MB (request 6 MB) | `spring.servlet.multipart.max-file-size` in `kiteclass-core/application.yml` |
-| BR-BI-003 | Hard upper bound on rows per upload | 10 000 data rows | `StudentBulkImportService.MAX_ROWS` |
+| BR-BI-003 | Hard upper bound on rows per upload | **1 000 data rows** (Wave 86 E-AC5 — giảm từ 10 000) | `StudentBulkImportService.MAX_ROWS` |
 | BR-BI-004 | Header row required | Row 1 = header, data starts row 2 | `XlsxParser` |
-| BR-BI-005 | Error code on row limit exceeded | `BULK_IMPORT_ROW_LIMIT_EXCEEDED` + HTTP 400 | `StudentBulkImportService.assertRowLimit` |
+| BR-BI-005 | Error code on row limit exceeded | `BULK_IMPORT_ROW_LIMIT_EXCEEDED` + **HTTP 413 PAYLOAD_TOO_LARGE** (Wave 86 E-AC5 — từ HTTP 400) | `StudentBulkImportService.assertRowLimit` |
 | BR-BI-006 | Error code on empty upload | `BULK_IMPORT_EMPTY_FILE` + HTTP 400 | `StudentBulkImportService.assertFilePresent` |
 
 ### Per-row validation (mirrors `CreateStudentRequest`)
