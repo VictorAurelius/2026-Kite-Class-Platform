@@ -2,7 +2,21 @@
 
 **Domain:** Beta tenant invite mechanism (Wave 33 — GAP-372 + Wave 35 PDPL consent — GAP-385)
 **Source-of-truth controller:** `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/beta/controller/BetaAccessController.java`
-**Last verified:** 2026-05-08 (Wave 35 Bucket 0 Foundation)
+**Last verified:** 2026-05-16 (Wave 86 — GAP-584 AC#2 origin Cache-Control wiring)
+
+---
+
+## Cache-Control policy (Wave 86 GAP-584 AC#2)
+
+All `/api/v1/auth/beta-signup/**` endpoints (and any future `/api/v1/auth/{magic,invite}/**` siblings) MUST include these response headers per `MagicLinkCacheControlInterceptor`:
+
+```
+Cache-Control: no-store, no-cache, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+```
+
+Origin defense-in-depth pairing the edge layer Cloudflare Page Rule (`cache_level=bypass`). Prevents any intermediate cache (browser, CDN, proxy) from storing a single-use invite token response.
 
 This contract is the cross-layer source-of-truth consumed by:
 - BE Bucket B (GAP-385) — `BetaRequestDto` + `BetaAccessRequest` entity + V32 migration
