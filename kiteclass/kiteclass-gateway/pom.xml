@@ -41,7 +41,7 @@
         <!-- postgresql 42.7.11 fixes CVE-2026-42198 (Spring Boot 3.5.14 BOM ships 42.7.10) -->
         <postgresql.version>42.7.11</postgresql.version>
         <!-- commons-lang3 3.18.0 fixes CVE-2025-48924 (Spring Boot 3.5.14 ships 3.17.0) -->
-        <commons-lang3.version>3.18.0</commons-lang3.version>
+        <commons-lang3.version>3.20.0</commons-lang3.version>
     </properties>
 
     <dependencyManagement>
