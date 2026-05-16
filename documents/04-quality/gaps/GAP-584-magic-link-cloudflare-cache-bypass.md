@@ -1,6 +1,6 @@
 # GAP-584: Magic-link endpoints bypass Cloudflare cache — cross-tenant invite redirect leak prevention
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (60%) — terraform Page Rules + pre-apply audit artifact shipped Wave 86 Bucket E-AC4; apply gated on operator human-trigger per `release-deploy-standard.md` §9; AC#2 (Spring Boot `Cache-Control: no-store` header) + post-apply self-test pending
 **Priority:** 🔴 **P0 BLOCKER** (chặn Wave 86 Bucket G invite)
 **Domain:** DevOps / Backend
 **Phase:** phase-1-beta
@@ -56,6 +56,11 @@ curl -sI "https://kitehub.me/auth/magic?token=test456" | grep -E '(cf-cache-stat
 ## Related
 
 - Audit: `documents/04-quality/audits/persona-review/2026-05-15-pre-wave-86-simulation-3axis.md` §3 cell 19 + §5 E-AC4 + §6 NEW gap proposals
+- Pre-apply state-check audit: `documents/04-quality/audits/cloudflare-verification/2026-05-16-wave-86-magic-link-bypass-page-rule.md`
 - Wave 86 plan §3 Bucket E AC E-AC4 (P0 BLOCKER)
 - Cloudflare runbook GAP-394 (Wave 84)
 - `pre-launch-infra-hardening-checklist.md` Cat 5
+
+## Log
+
+- **2026-05-16** Wave 86 Bucket E-AC4 — shipped terraform `infrastructure/terraform-cloudflare/page_rules.tf` (2 Page Rules: `*kitehub.me/auth/magic*` + `*kitehub.me/auth/invite/*` với `cache_level = bypass`, priority 1+2) + pre-apply audit artifact per `pre-mutation-state-check.md` §3. Status flipped OPEN → 🟡 PARTIAL (60%). Apply gated on operator human-trigger per `release-deploy-standard.md` §9. Pending: (1) operator runs `terraform plan` + verify Free tier 2/3 quota; (2) operator triggers apply via human workflow; (3) post-apply self-test verify `CF-Cache-Status: BYPASS` per audit §Self-test; (4) AC#2 Spring Boot `Cache-Control: no-store` header (origin-layer defense-in-depth) — file follow-up sub-task; (5) cross-link `pre-launch-infra-hardening-checklist.md` Cat 5 row "Magic-link endpoints bypass CF cache verified" post-apply.
