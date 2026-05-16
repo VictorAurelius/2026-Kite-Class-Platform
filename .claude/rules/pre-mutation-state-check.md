@@ -1,9 +1,9 @@
 # Pre-Mutation State-Check — investigate before applying production changes
 
 **Priority:** 🔴 CRITICAL — production mutation discipline
-**Version:** 1.1.1
+**Version:** 1.2.0
 **Created:** 2026-05-12
-**Last-Reviewed:** 2026-05-14
+**Last-Reviewed:** 2026-05-16
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (PR template + reviewer-checklist + memory + worked self-test on Wave 64 cutover) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-uncovered pre-mutation investigation log mandate)
 **Applies to:** Every production-grade mutation operation — `terraform apply` (whether via workflow_dispatch or local), `aws acm import-certificate`, `aws ses verify-*`, `aws iam create-*`, AWS Secrets Manager rotate, Cloudflare DNS POST/PATCH/DELETE on production zones, GitHub Variable/Secret create/update on `production` environment, Kubernetes `kubectl apply` against prod cluster
 
@@ -174,6 +174,25 @@ gaps: [GAP-XXX, GAP-YYY]
 - ❌ Audit artifact in non-canonical location (PR description, ad-hoc note) — must be repo file
 - ❌ "Phantom changes" claim without explaining WHY phantom (state ignore_changes, attribute count, etc.)
 
+### 3.5 Plan-vs-predicted reconciliation (added v1.2.0)
+
+Pre-apply audit (§3) often predicts diff based on **PR scope** alone (e.g., "this PR adds 2 CF Page Rules → expect 2 add / 0 change / 0 destroy"). But real `terraform plan` covers the **entire workspace** including drift from prior un-applied work in other `.tf` files.
+
+> **Before flipping `dry_run=true → false`, the audit's `## Pending` or `## Verdict` section MUST reconcile predicted-diff vs actual plan output. Every line of `terraform plan` (X add / Y change / Z destroy) classified by Wave-source + Intent (Real / Phantom / Backlog-accumulated).**
+
+Required reconciliation table appended before apply:
+
+| Resource | Plan action | Wave-source | Intent | Decision |
+|---|---|---|---|---|
+| `<addr>` | create/update/replace/destroy | Wave N (PR #M) | Real / Phantom / Backlog | Apply / Defer / Investigate |
+
+Banned: triggering `dry_run=false` when actual summary (e.g. `7 add / 8 change / 4 destroy`) ≠ predicted (e.g. `2 add / 0 change / 0 destroy`) without reconciliation. Mismatch = STOP, write table, then choose:
+- (a) Use workflow `targets` input apply only PR-scoped subset (matches prediction)
+- (b) Extend audit covering full backlog + user confirm
+- (c) Defer apply, file follow-up gap for backlog drift
+
+Origin: 2026-05-16 PR #1437 — audit predicted 2 add (CF Page Rules), actual plan 7/8/4 incl 3 EC2 force-replace from Wave 37 backlog 9 days un-applied. Without reconciliation gate, applying would have triggered unintended EC2 replace.
+
 ---
 
 ## 4. Concrete examples
@@ -256,6 +275,7 @@ See `_examples/pre-mutation-state-check-examples.md` §Self-test (Wave 64 Step E
 
 ## 9. Log
 
+- **2026-05-16 (v1.2.0):** MINOR — added §3.5 Plan-vs-predicted reconciliation mandate. Triggered by Wave 86 PR #1437 incident: agent audit predicted `2 add` based on PR scope; actual `terraform plan` returned `7 add / 8 change / 4 destroy` incl 3 EC2 force-replace from Wave 37 backlog un-applied. Without reconciliation gate, applying `dry_run=false` would have triggered unintended EC2 replace. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ Classify ✓ (existing §3 audit mandate but no reconciliation rule) Rule+Enforce ✓ (this §3.5 + paired same-PR workflow `targets` input enabling subset apply) Self-Test ✓ (PR #1437 reconciliation: EC2 = Wave 37 backlog / alarms = Wave 85 / Page Rules = Wave 86 / cascade; targeted apply ships PR-scope only) Retro Log ✓. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5).
 - **2026-05-14 (v1.1.1):** PATCH — Wave 76 Bucket E body streamline. §4 Concrete examples + §7 Self-test moved to `_examples/pre-mutation-state-check-examples.md`; body replaced with 1-line stub pointers. No constraint change; content preserved (deferred-load). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-05-12 (v1.1.0):** MINOR — added §1.5 Terraform-specific workflow mandate. Triggered by user-flagged meta-gap during Wave 64 Step F deploy retry: "bổ sung đúng workflow khi động đến terraform" — 3 cascading IAM bugs (tag mismatch + missing ec2:DescribeInstances + secret prefix mismatch) shipped in 2+ retry cycles instead of 1 review pass. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged) → Classify ✓ (existing §3 audit artifact mandate but no explicit "terraform-review cross-reference matrix" workflow) → Rule+Enforce ✓ (this §1.5 + matrix template + companion file scan mandate paired same-PR with concrete fix) → Self-Test ✓ (matrix applied retroactively to Wave 64 Step F caught all 3 bugs in 1 pass) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint adds terraform-specific cross-reference workflow, no constraint loosening). Detector deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 days.
 - **2026-05-12 (v1.0.0):** Rule created. Triggered by user comment during Wave 64 Step E: "thao tác deploy cũng giống như fix gaps, phải lưu logs và state check chứ?" (mid-session, after agent shipped investigation log organically but user flagged that existing rules didn't MANDATE the discipline for deploy ops). Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged meta-gap during ongoing mutation session) → Classify ✓ (`audit-to-gap-pipeline.md` covers GAP/wave/decision/fix-time state-check; `agent-aws-access.md` covers verification logging; NO rule explicitly mandated pre-mutation audit log) → Rule+Enforce ✓ (this rule + paired same-PR PR template checkbox + memory `feedback_pre_mutation_state_check.md` + Wave 64 investigation log as worked self-test per `rule-change-process.md` §6.5) → Self-Test ✓ (§7 worked example on the originating Wave 64 Step E session — rule fires correctly + investigation written organically matches all §3 sections) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — new constraint adding previously-uncovered pre-mutation investigation log mandate, no constraint loosening for prior work; existing audit artifacts grandfathered, rule applies prospectively from this PR). Detector deferred per premature-rule guard ≥7 days.

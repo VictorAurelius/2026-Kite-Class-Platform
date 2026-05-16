@@ -47,7 +47,7 @@ inside-out-completeness-trigger,CRITICAL,1.0.0,2026-05-14,2026-05-14,inside-out-
 planning-docs-structure,MANDATORY,1.0.1,2026-04-18,2026-05-14,planning-docs-structure.md,documents/03-planning/**/*.md,active,,
 post-wave-audit-mandate,MANDATORY,1.1.1,2026-04-19,2026-05-14,post-wave-audit-mandate.md,"documents/03-planning/waves/**,documents/04-quality/audits/**",active,,
 post-wave-cleanup,MANDATORY,1.0.1,2026-05-06,2026-05-14,post-wave-cleanup.md,documents/03-planning/waves/**,active,,
-pre-mutation-state-check,CRITICAL,1.1.1,2026-05-12,2026-05-14,pre-mutation-state-check.md,,active,,
+pre-mutation-state-check,CRITICAL,1.2.0,2026-05-12,2026-05-16,pre-mutation-state-check.md,,active,,
 readme-content-discipline,MANDATORY,1.0.1,2026-04-29,2026-05-14,readme-content-discipline.md,README.md,active,,
 release-deploy-standard,CRITICAL,1.1.1,2026-05-06,2026-05-14,release-deploy-standard.md,,active,,
 release-fix-retry-budget,CRITICAL,1.1.0,2026-05-08,2026-05-12,release-fix-retry-budget.md,,active,,

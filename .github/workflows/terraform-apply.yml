@@ -26,6 +26,11 @@ on:
         required: true
         type: boolean
         default: true
+      targets:
+        description: 'Optional space-separated -target=<addr> flags (e.g. "cloudflare_page_rule.foo aws_cloudwatch_metric_alarm.bar"). Empty = full plan. Use when audit reconciles only a subset of the diff per pre-mutation-state-check.md §3.5.'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   id-token: write       # OIDC token for AWS STS AssumeRoleWithWebIdentity
@@ -96,8 +101,17 @@ jobs:
           # Inject TF_VAR_* from GitHub Variables. Wave 64 cutover (GAP-369): ALB HTTPS:443 listener.
           # Empty fallback → terraform variable default (null) → no HTTPS listener created.
           TF_VAR_alb_acm_certificate_arn: ${{ vars.ALB_ACM_CERTIFICATE_ARN }}
+          TARGETS_INPUT: ${{ github.event.inputs.targets }}
         run: |
-          terraform plan -no-color -input=false -out=tfplan 2>&1 | tee plan-output.txt
+          TARGET_FLAGS=""
+          if [ -n "${TARGETS_INPUT}" ]; then
+            for t in ${TARGETS_INPUT}; do
+              TARGET_FLAGS="${TARGET_FLAGS} -target=${t}"
+            done
+            echo "::notice ::Targeted plan — flags:${TARGET_FLAGS}"
+          fi
+          # shellcheck disable=SC2086
+          terraform plan -no-color -input=false -out=tfplan ${TARGET_FLAGS} 2>&1 | tee plan-output.txt
 
       - name: Upload plan output
         uses: actions/upload-artifact@v7
