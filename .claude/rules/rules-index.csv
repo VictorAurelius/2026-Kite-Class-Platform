@@ -68,3 +68,5 @@ pre-launch-infra-hardening-checklist,MANDATORY,1.0.1,2026-05-14,2026-05-14,pre-l
 pre-launch-owasp-rest-hardening-checklist,MANDATORY,1.0.1,2026-05-14,2026-05-14,pre-launch-owasp-rest-hardening-checklist.md,"**/*Controller.java,application*.yml,**/security/**",active,,
 pre-launch-secrets-hardening-checklist,MANDATORY,1.0.1,2026-05-14,2026-05-14,pre-launch-secrets-hardening-checklist.md,"application*.yml,docker-compose*.yml,infrastructure/**,scripts/fetch-secrets.sh",active,,
 user-manual-content-standard,MANDATORY,1.0.0,2026-05-14,2026-05-14,user-manual-content-standard.md,"documents/05-guides/user-manual/**,kitehub/kitehub-frontend/src/app/help/**",active,,
+audit-service-isolation,MANDATORY,1.0.0,2026-05-16,2026-05-16,audit-service-isolation.md,**/*Service.java;**/*Service*.java,active,,
+postgres-specific-type-testcontainers,MANDATORY,1.0.0,2026-05-16,2026-05-16,postgres-specific-type-testcontainers.md,**/*.java,active,,

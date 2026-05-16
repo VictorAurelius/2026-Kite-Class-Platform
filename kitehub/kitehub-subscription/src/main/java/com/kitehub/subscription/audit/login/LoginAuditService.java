@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
@@ -56,10 +57,17 @@ public class LoginAuditService {
      * BEFORE the JWT is returned. Never throws — audit failures are logged
      * and swallowed so they cannot block authentication.</p>
      *
+     * <p>Runs in {@link Propagation#REQUIRES_NEW REQUIRES_NEW} so a SQL
+     * failure here cannot poison the caller's transaction. Without this,
+     * Spring marks the outer login transaction rollback-only when our
+     * statement fails, causing the caller to throw {@code
+     * UnexpectedRollbackException} at commit even though we caught the
+     * exception locally (production 500 incident 2026-05-16).</p>
+     *
      * @param user the user that just authenticated
      * @param request the incoming servlet request (used to extract IP + UA)
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void recordLogin(User user, HttpServletRequest request) {
         try {
             String ip = extractClientIp(request);

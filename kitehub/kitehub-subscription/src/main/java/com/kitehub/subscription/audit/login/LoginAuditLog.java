@@ -40,8 +40,11 @@ public class LoginAuditLog {
     @Column(name = "login_at", nullable = false)
     private LocalDateTime loginAt;
 
-    /** Source IP. PostgreSQL INET type; mapped as String for portability. */
-    @Column(name = "ip", columnDefinition = "inet")
+    /**
+     * Source IP (IPv4 or IPv6 textual form). Backed by VARCHAR(45) as of V52
+     * — see migration commentary for the INET→VARCHAR rationale.
+     */
+    @Column(name = "ip", length = 45)
     private String ip;
 
     @Column(name = "user_agent", length = 512)
