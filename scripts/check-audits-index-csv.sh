@@ -23,7 +23,7 @@ set -euo pipefail
 CSV="documents/04-quality/audits/audits-index.csv"
 AUDIT_DIR="documents/04-quality/audits"
 
-VALID_CATEGORIES="ui-review quality-audit security performance api-contract ops-readiness business-logic meta aws-verification outside-in-benchmark"
+VALID_CATEGORIES="ui-review quality-audit security performance api-contract ops-readiness business-logic meta aws-verification cloudflare-verification outside-in-benchmark persona-review"
 VALID_STATUSES="complete partial draft superseded"
 
 if [[ ! -f "$CSV" ]]; then

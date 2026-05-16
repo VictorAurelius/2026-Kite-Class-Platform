@@ -1,6 +1,6 @@
 # Audits Index — canonical CSV per `.claude/rules/meta-csv-index-pattern.md`
 # Schema: id,filename,category,phase,wave,date,status,score,note
-# Categories: ui-review | quality-audit | security | performance | api-contract | ops-readiness | business-logic | meta | aws-verification | outside-in-benchmark
+# Categories: ui-review | quality-audit | security | performance | api-contract | ops-readiness | business-logic | meta | aws-verification | cloudflare-verification | outside-in-benchmark | persona-review
 # Status enums: complete | partial | draft | superseded
 # Pattern source: gap-architecture-v2.md (proven for gaps; generalized per GAP-485)
 id,filename,category,phase,wave,date,status,score,note
@@ -171,3 +171,4 @@ AUDIT-2026-05-15-wave-85-rls-perf-baseline,performance/2026-05-15-rls-baseline.m
 AUDIT-2026-05-15-wave-85-performance,performance/2026-05-15-wave-85-post-apply.md,performance,phase-1-beta,85,2026-05-15,complete,86/100,Wave 85 Bucket H post-apply — +5 vs Wave 54 baseline 81 B; Cat 1 +1 RLS NULL force-fail + HikariCP reset; Cat 2 +2 cursor pagination 2 endpoints + 3 findAll Pageable; Cat 5 +2 Tier 2 prod profile 7 services + JVM 60% + 3 CloudWatch alarms; PASS Phase 1 BETA ≥80
 AUDIT-2026-05-15-wave-85-security-v2,security/2026-05-15-wave-85-post-apply-v2.md,security,phase-1-beta,85,2026-05-15,complete,93/100,Wave 85 Bucket H post-apply v2 format — +3 vs Wave 83 baseline 90 A-; Cat 3 +2 A01 RLS NULL force-fail + A09 V60 immutable admin_audit_logs PDPL Art 11; Cat 4 +1 admin-bypass multi-layer defense; v2 evidence 5/5; PASS Phase 1 BETA ≥80 + v1.0.0-rc ≥85
 AUDIT-2026-05-15-cert-days-monitor-user-data-wiring,aws-verification/2026-05-15-cert-days-monitor-user-data-wiring.md,aws-verification,phase-1-beta,84,2026-05-15,complete,,GAP-573 cert-days-monitor systemd timer user_data wiring pre-mutation audit
+AUDIT-2026-05-16-wave-86-magic-link-bypass,cloudflare-verification/2026-05-16-wave-86-magic-link-bypass-page-rule.md,cloudflare-verification,phase-1-beta,86,2026-05-16,complete,,Wave 86 E-AC4 P0 BLOCKER pre-apply audit — 2 CF Page Rules for /auth/magic + /auth/invite cache=bypass; GAP-584 PARTIAL 60%; apply gated on operator terraform trigger
