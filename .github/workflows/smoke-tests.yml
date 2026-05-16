@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' || github.event.inputs.mode == 'dry-run'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Shellcheck all smoke scripts
         run: |
@@ -76,7 +76,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'execute'
     environment: staging
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup tools
         run: |
