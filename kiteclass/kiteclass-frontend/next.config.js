@@ -44,10 +44,23 @@ const nextConfig = {
       '@radix-ui/react-tooltip',
     ],
   },
-  // Wave 49 Bucket 0 — PWA infra. Service worker must be served with the
-  // proper scope header; manifest must not be aggressively cached so
-  // updates propagate quickly. Offline fallback can cache forever.
+  // Wave 49 Bucket 0 — PWA infra + Wave 86 Bucket E Fix 3 CSP per OWASP A05.
+  // Service worker scope header; manifest cache; CSP Report-Only Phase 1 BETA.
   async headers() {
+    const cspDirectives = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel-scripts.com https://va.vercel-scripts.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "img-src 'self' data: https: blob: https://cdn.kiteclass.com",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "connect-src 'self' https://kiteclass.com https://*.kiteclass.com wss://*.kiteclass.com https://vercel.live https://vitals.vercel-insights.com",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
+      "worker-src 'self' blob:",
+      "upgrade-insecure-requests",
+    ].join('; ');
     return [
       {
         source: '/sw.js',
@@ -62,6 +75,19 @@ const nextConfig = {
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=300, must-revalidate' },
           { key: 'Content-Type', value: 'application/manifest+json; charset=utf-8' },
+        ],
+      },
+      // Wave 86 Bucket E Fix 3 — CSP + security headers per OWASP A05.
+      // Phase 1 BETA Report-Only mode; flip to enforce after 1 week clean.
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'Content-Security-Policy-Report-Only', value: cspDirectives },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=()' },
+          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
         ],
       },
     ];

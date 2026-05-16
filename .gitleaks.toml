@@ -1,0 +1,87 @@
+# Gitleaks Configuration — Wave 86 Bucket E Fix 2
+#
+# Extends the gitleaks default rules with allowlist for documented false positives.
+# Baseline scan run 2026-05-16 surfaced 108 findings; all 108 triaged as false
+# positives (test fixtures + documentation samples + rotated AWS Access Key IDs
+# already public). See documents/04-quality/audits/security/2026-05-16-wave-86-gitleaks-baseline.md.
+#
+# Run locally:
+#   gitleaks detect --source . --config .gitleaks.toml --verbose
+# Expected exit: 0 (all baseline findings allowlisted; new secrets fail).
+#
+# When a new secret is legitimately needed (e.g., new sample JWT in api-contract.md),
+# add either: (a) a path entry to allowlist.paths, or (b) the exact regex to
+# allowlist.regexes with a comment citing why.
+
+[extend]
+# Inherit gitleaks built-in rules (covers AWS, GitHub, Stripe, Slack, etc.)
+useDefault = true
+
+[allowlist]
+description = "Wave 86 baseline allowlist — documented false positives"
+
+# === Paths fully exempt (documentation samples + test fixtures) ===
+paths = [
+    # Test fixtures / unit test resources
+    '''kitehub/kitehub-admin/src/test/resources/application-test\.yml''',
+    '''kitehub/kitehub-email/src/test/java/com/kitehub/email/template/.*Test\.java''',
+    '''kitehub/kitehub-frontend/src/lib/validations/__tests__/.*\.test\.ts''',
+    '''kitehub/kitehub-subscription/src/test/java/com/kitehub/subscription/service/.*Test\.java''',
+    '''kitehub/kitehub-subscription/src/test/resources/application-test\.yml''',
+    '''kitehub/kitehub-platform/src/test/java/com/kitehub/shared/logging/.*Test\.java''',
+    '''kiteclass/kiteclass-core/src/test/java/com/kiteclass/core/module/payment/gateway/impl/.*Test\.java''',
+    '''packages/shared-ui/src/components/.*/__tests__/.*\.test\.tsx''',
+
+    # Security audit eval fixtures — INTENTIONAL secret strings for skill self-test
+    '''\.claude/skills/quality/security-audit/data/eval-fixtures/.*''',
+
+    # Business documentation containing sample JWT/token strings (api-contract.md)
+    '''documents/01-business/.*/api-contract\.md''',
+    '''documents/02-architecture/design-system/.*/spec\.md''',
+
+    # Archived legacy documentation (frozen historical artifacts)
+    '''documents/07-archived/.*''',
+    '''documents/07-guides/vietnamese/huong-dan-trien-khai-production\.md''',
+    '''documents/08-thesis/.*''',
+
+    # Planning/testing docs containing sample tokens
+    '''documents/03-planning/testing/integration-testing-strategy\.md''',
+    '''documents/testing/integration-testing-strategy\.md''',
+    '''documents/05-guides/tenant-onboarding-checklist\.md''',
+    '''documents/05-guides/vietnamese/huong-dan-trien-khai-production\.md''',
+
+    # AWS verification audits documenting rotated AccessKeyId values (AKID public, not secret)
+    '''documents/04-quality/audits/aws-verification/.*\.md''',
+
+    # Security audit reports (baseline scans + lockout verification) — INTENTIONAL false-positive fixtures
+    '''documents/04-quality/audits/security/.*\.md''',
+
+    # IAM rotation script — references AKID parameter, not embedded secret
+    '''scripts/rotate-iam-access-key\.sh''',
+
+    # Skill files containing example JWT/auth tokens
+    '''\.claude/skills/auth-module\.md''',
+    '''\.claude/skills/api-design\.md''',
+
+    # KiteClass legacy auth-module docs (sample tokens)
+    '''kiteclass/kiteclass-core/docs/modules/auth-module.*\.md''',
+    '''kiteclass/kiteclass-gateway/PR-1\.4-SUMMARY\.md''',
+    '''kiteclass/kiteclass-gateway/docs/implementation/CONTINUE-DEVELOPMENT-PROMPT\.md''',
+
+    # KiteHub frontend marketing/auth PR summary (sample tokens)
+    '''kitehub/kitehub-frontend/docs/PR-5\.2-MARKETING-AUTH\.md''',
+
+    # K8s manifests with REPLACE_WITH_BASE64 placeholder (NOT real secrets)
+    '''infrastructure/k8s/kitehub/secrets\.yaml''',
+    '''k8s/kitehub/secrets\.yaml''',
+]
+
+# === Regex patterns exempt globally (placeholder strings) ===
+regexes = [
+    # REPLACE_WITH_BASE64 / CHANGE_ME / TODO placeholders in k8s manifests + env templates
+    '''REPLACE_WITH_BASE64''',
+    '''CHANGE_ME_IN_PROD''',
+    '''<YOUR_.*_HERE>''',
+    # Sample JWT prefix used in api-contract docs (signature stripped → ...)
+    '''eyJhbGciOi[A-Za-z0-9_-]+\.\.\.''',
+]
