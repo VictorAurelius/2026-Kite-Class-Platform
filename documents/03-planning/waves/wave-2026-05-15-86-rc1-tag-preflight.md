@@ -71,15 +71,17 @@ Final pre-launch checklist execution + tag `v1.0.0-rc.1` + invite first 5 beta t
 
 ### Bucket B — GAP-440 Spring Boot bump (P0 BLOCKER — Bucket G gated on B pass)
 
-- Check latest Spring Boot 3.5.x patch release (security fixes only, no 3.6.x jump pre-launch)
-- Pin `pom.xml` parent + dependencies; run mvn dependency:tree để verify transitive consistency
-- Full smoke test post-bump per Wave 81 Bucket F pattern
-- Dependabot vulnerability sweep: target 0 HIGH CVE per `pre-launch-dependency-hardening-checklist.md`
+> **🔄 RE-SCOPED 2026-05-16** — Bucket B prior agent confirmed Maven Central does NOT publish Spring Boot 3.5.15+ yet (3.5.14 IS latest 3.5.x patch). Real dep bump deferred to `GAP-451` upstream wait. Bucket B re-scoped to ship baseline test scaffold + heap procedure doc against current 3.5.14 baseline. NO dep bump. GAP-440 stays 🟡 PARTIAL per `gap-done-discipline.md` §3 PARTIAL exit ramp. When GAP-451 resolves, baseline scaffold + heap procedure are pre-built for the actual upgrade verification cycle.
 
-**AC additions từ Bucket A simulation audit (3 new):**
-- [ ] **B-AC1** Verify `@Async` annotation processing post-bump — smoke test bulk-import endpoint returns 202 Accepted (not 200 sync) post-bump per sim cell 7
-- [ ] **B-AC2** Webhook idempotency replay test — POST same `idempotency_key` 2× to payment webhook; 2nd request returns 200 with original payment record (per sim cell 11)
-- [ ] **B-AC3** Heap baseline post-bump comparison — `jcmd <pid> VM.native_memory baseline` BEFORE bump + AFTER bump; alert if delta > 10% non-heap (per sim cell 17 GAP-502 OOM regression prevention)
+- ~~Check latest Spring Boot 3.5.x patch release~~ — verified: 3.5.14 IS latest
+- ~~Pin `pom.xml` parent + dependencies~~ — defer GAP-451
+- Ship 2 baseline regression tests pinning Spring 3.5.14 semantics for post-bump retest
+- Ship `documents/05-guides/operations/heap-baseline-procedure.md` — 7-step NMT procedure cho Ops chạy pre/post any future bump
+
+**AC re-scoped 2026-05-16 (against 3.5.14 baseline):**
+- [x] **B-AC1** Baseline scaffold — `BulkImportAsyncBaselineTest` (2 tests PASS) pinning 202 ACCEPTED async-accept semantic (via `AdminMigrationController.forceConvert` — closest async-accept endpoint in current codebase; project does not ship literal `@Async` bulk-import endpoint)
+- [x] **B-AC2** Baseline scaffold — `WebhookIdempotencyReplayBaselineTest` (2 tests PASS) pinning HMAC-SHA256 signature verification + replay handling semantic (project does not ship explicit `idempotency_key` column yet; baseline pins controller-level "same signed payload → same downstream call" semantic for future idempotency-key migration diff)
+- [x] **B-AC3** Heap baseline procedure doc — `documents/05-guides/operations/heap-baseline-procedure.md` (7-step NMT procedure + alert >10% non-heap delta threshold + Ops cadence)
 
 ### Bucket C — GAP-537c P2/P3 screenshots + onboarding audit (scope expand per Bucket A)
 
