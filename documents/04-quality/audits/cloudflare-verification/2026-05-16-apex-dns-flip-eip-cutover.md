@@ -1,6 +1,6 @@
 ---
 title: Cloudflare Verification - apex kitehub.me DNS flip to EIP (post-Wave-82 recovery)
-status: in-progress
+status: draft
 created: 2026-05-16
 phase: phase-1-beta
 wave: post-86

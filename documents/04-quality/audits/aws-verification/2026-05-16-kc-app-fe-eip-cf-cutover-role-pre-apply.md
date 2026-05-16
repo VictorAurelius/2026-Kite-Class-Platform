@@ -1,6 +1,6 @@
 ---
 title: AWS Verification - kc-app-fe EIP + github_cloudflare_cutover IAM role pre-apply
-status: in-progress
+status: draft
 created: 2026-05-16
 phase: phase-1-beta
 wave: post-86
