@@ -89,7 +89,7 @@ GAP-139,GAP-139-parent-dashboard-mvp-placeholder.md,Parent Dashboard MVP is Plac
 GAP-140,GAP-140-form-select-placeholder-english-fallback.md,"`form-select` Default Placeholder Hardcoded English ""Select an option""",OPEN,P2,Frontend,n/a,0,2026-04-19,2026-05-11,
 GAP-141,GAP-141-register-student-date-input-locale-forced.md,Register-Student Date Input Locale-Forced (dd/mm/yyyy not enforced),OPEN,P2,Mixed,n/a,0,2026-04-19,2026-05-11,
 GAP-142,GAP-142-parent-invite-native-select-inconsistent.md,Parent-Invite Uses Native `<select>` — Inconsistent with Shadcn,OPEN,P2,Mixed,n/a,0,2026-04-19,2026-05-11,
-GAP-144,GAP-144-alertmanager-production-receivers.md,Alertmanager Production Receivers (Slack + PagerDuty + SMTP),PARTIAL,P0,DevOps,n/a,50,2026-04-20,2026-05-11,
+GAP-144,GAP-144-alertmanager-production-receivers.md,Alertmanager Production Receivers (Slack + PagerDuty + SMTP),DONE,P0,DevOps,phase-1-beta,100,2026-04-20,2026-05-16,Wave 86 Bucket H H-AC4 SNS-direct adaptation closes P0 BLOCKER; Helm AlertManager deferred Phase 1.5+ EKS
 GAP-145,GAP-145-loki-tracing-stack.md,Loki Log Aggregation + Tempo Tracing Stack,OPEN,P2,DevOps,n/a,0,2026-04-20,2026-05-11,
 GAP-154,GAP-154-brd-scope-expansion-umbrella.md,BRD Scope Expansion (Umbrella — 22 Missing BRD Docs),OPEN,P0,Mixed,n/a,0,2026-04-20,2026-05-11,
 GAP-155,GAP-155-brd-content-fill.md,BRD Content Fill (Phase 2 of GAP-150),OPEN,P1,Mixed,n/a,0,2026-04-29,2026-05-11,
