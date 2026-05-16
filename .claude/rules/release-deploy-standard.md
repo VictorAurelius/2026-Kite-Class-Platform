@@ -1,10 +1,10 @@
 # Release Deploy Standard — Generic deploy artifact + process baseline
 
 **Priority:** 🔴 CRITICAL — every production release must satisfy this standard
-**Version:** 1.1.1
+**Version:** 1.2.0
 **Created:** 2026-05-06
-**Last-Reviewed:** 2026-05-14
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; adds §4.4 Rollback execution + §9 matrix Rollback execution row per Wave 63 GAP-477 (rollback.yml + smoke-rollback-cycle.sh landing). Extends existing §9 carve-out for human-triggered workflow_dispatch to rollback scope — no constraint loosening.)
+**Last-Reviewed:** 2026-05-16
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.2.0 MINOR self-approve per `rule-change-process.md` §5; adds §3.1 "Smoke admin-login" PRE-RELEASE checklist item paired same-PR with new sister-rules `audit-service-isolation.md` v1.0.0 + `postgres-specific-type-testcontainers.md` v1.0.0 + `design-patterns.md` §3.11 anti-pattern triggered by 2026-05-16 production admin login 500 incident per `incident-to-rule-pipeline.md` 5-stage; no constraint loosening — adds previously-uncovered post-deploy smoke gate for admin role login. v1.1.1 (kept): PATCH — Wave 76 Bucket E body streamline. v1.1.0 (kept): MINOR — added §4.4 Rollback execution per Wave 63 GAP-477.)
 **Applies to:** Every git tag matching `v[0-9]+.[0-9]+.[0-9]+*` (per `versioning-policy.md`); every production deploy; every pre-release (alpha/beta/rc) shipping to invite tenants
 
 ---
@@ -53,6 +53,7 @@ Pre-release tags (e.g., `v0.9.0-beta`, `v1.0.0-rc.1`) ship to invite tenants / s
 - [ ] **HTTPS / TLS** active on all endpoints
 - [ ] **Pre-release disclaimer** trên signup + dashboard banner (per beta-only requirement)
 - [ ] **Auth flow** tested end-to-end
+- [ ] **Smoke admin-login** — `POST /api/auth/login` với seeded `PLATFORM_ADMIN` credential (test-only env) trả `200 + JWT` (NOT 500). Asserts post-credential-match path (audit insert + 2FA challenge issue + JWT generation) healthy on real Postgres + production secrets. Required after every deploy. Motivation: 2026-05-16 admin login 500 incident — RCA in `documents/04-quality/audits/aws-verification/2026-05-16-admin-login-500-rca.md`; root cause invisible to H2 + Mockito tests, surfaced only post-deploy.
 
 #### Reliability (Well-Architected pillar 3)
 - [ ] **Database backup** taken pre-deploy
@@ -282,6 +283,7 @@ If unsure: default to apply per-bump-type checklist; skipping requires override 
 
 ## 13. Log
 
+- **2026-05-16 (v1.2.0):** MINOR — added §3.1 PRE-RELEASE "Smoke admin-login" checklist item. Triggered by 2026-05-16 production admin login 500 incident (RCA: `documents/04-quality/audits/aws-verification/2026-05-16-admin-login-500-rca.md`). Bug class invisible to H2 + Mockito tests; only surfaced post-deploy on real Postgres. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged P0) → Classify ✓ (existing §3.1 had generic "Auth flow tested end-to-end" but không mandate admin-role smoke specifically) → Rule+Enforce ✓ (this entry + paired same-PR sister-rules `audit-service-isolation.md` v1.0.0 + `postgres-specific-type-testcontainers.md` v1.0.0 + `design-patterns.md` §3.11 per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (if smoke ran post-deploy 2026-05-13 GAP-517 ship, would have caught 500 immediately) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds previously-uncovered post-deploy gate, no constraint loosening for prior releases; existing PRE-RELEASE checklists grandfathered).
 - **2026-05-14 (v1.1.1):** PATCH — Wave 76 Bucket E body streamline. §11 Self-test moved to `_examples/release-deploy-standard-examples.md`; body replaced with 1-line stub pointer. No constraint change; content preserved (deferred-load). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-05-11 (v1.1.0):** MINOR — added §4.4 Rollback execution section + §9 matrix row "Rollback execution — human-triggered workflow_dispatch" per Wave 63 GAP-477 rollback.yml landing. Also added monthly `--dry-run` + quarterly `--execute` cadence bullets to §4.3 post-deploy. Sister-mechanism của terraform-apply.yml pattern; reuses confirm-input gate + ephemeral OIDC pattern; scope = ECS service rollback (narrow role `kitehub-rollback-role`). Cross-link added: `documents/05-guides/operations/incident-response-runbook.md` §8 for invocation details + troubleshooting. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — extends existing §9 carve-out to rollback scope; no constraint loosening; consistent with v1.0.1 expansion pattern).
 

@@ -8,10 +8,10 @@ paths:
 # Design Patterns — Project Rules
 
 **Priority:** 🟠 MANDATORY
-**Version:** 1.3.1
+**Version:** 1.4.0
 **Created:** 2026-04-14
-**Last-Reviewed:** 2026-05-14
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.3.1 PATCH self-approve per `rule-change-process.md` §5; thêm `paths:` frontmatter cho path-scoped auto-load qua Wave 73 Bucket A5 — không thay đổi scope rule, chỉ defer-load khi không có Java/TS file trong context. v1.3.0 (kept): MINOR self-approve per §5)
+**Last-Reviewed:** 2026-05-16
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.4.0 MINOR self-approve per `rule-change-process.md` §5; adds §3.11 "Audit/log service joining parent @Transactional" anti-pattern, paired same-PR with new sister-rule `audit-service-isolation.md` v1.0.0 + worked self-test on 2026-05-16 admin login 500 incident per §6.5 Enforcement Parity Mandate; no constraint loosening for prior work; existing audit services grandfathered, anti-pattern applies prospectively. v1.3.1 (kept): thêm `paths:` frontmatter cho path-scoped auto-load qua Wave 73 Bucket A5. v1.3.0 (kept): MINOR self-approve per §5)
 **Applies to:** All `*.java` and `*.tsx`/`*.ts` source under `kiteclass/**`, `kitehub/**`, plus PR review / refactor decisions
 
 Project-wide rules for applying design patterns. **Mandatory** khi develop new feature, refactor, review PR.
@@ -265,6 +265,48 @@ Change requires modifying ≥5 files → pattern violation (likely missing abstr
   }
 ```
 
+### 3.11 Audit/Log Service Joining Parent `@Transactional`
+
+```java
+❌ BAD:
+  @Service
+  public class LoginAuditService {
+    @Transactional                                    // joins parent txn (REQUIRED)
+    public void recordLogin(User u, HttpServletRequest req) {
+      try {
+        repository.save(new LoginAuditLog(...));      // SQLException → Spring sets rollback-only
+      } catch (Exception ex) {
+        log.warn("audit failed: {}", ex.getMessage()); // swallow, but flag persists
+      }
+    }
+  }
+  // Caller's @Transactional commit phase throws UnexpectedRollbackException → HTTP 500.
+  // Javadoc claim "never blocks caller" is FALSE as implemented.
+
+✅ GOOD:
+  @Service
+  public class LoginAuditService {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)   // own physical txn
+    public void recordLogin(User u, HttpServletRequest req) {
+      try {
+        repository.save(new LoginAuditLog(...));
+      } catch (Exception ex) {
+        log.warn("audit failed: {}", ex.getMessage());        // truly isolated now
+      }
+    }
+  }
+```
+
+**Why this is a separate anti-pattern from §3.5 Outbox bypass:** Outbox enforces same-txn writes for delivery guarantees. Audit/log/notification services have the **opposite** requirement — caller's success must NOT depend on the side-effect, so the side-effect must run in its own txn boundary.
+
+Trigger this anti-pattern when:
+- Service class name suffix is `*AuditService` / `*LogService` / `*NotificationService` / `*TrackingService`
+- Method named `record*`, `log*`, `audit*`, `track*`, `notify*`
+- Javadoc claims "never blocks caller" / "best-effort" / "audit failure swallowed"
+- BUT `@Transactional` uses default propagation (joins parent)
+
+Authoritative rule: `.claude/rules/audit-service-isolation.md` (mandates `Propagation.REQUIRES_NEW` for every method matching scope). Companion incident: 2026-05-16 production admin login 500 (audit RCA `documents/04-quality/audits/aws-verification/2026-05-16-admin-login-500-rca.md`).
+
 ---
 
 ## 4. PR Review Checklist
@@ -344,6 +386,7 @@ Team goal: majority Level 2, architects Level 3.
 
 ## 9. Log
 
+- **2026-05-16** (v1.4.0): MINOR — added §3.11 "Audit/Log Service Joining Parent @Transactional" anti-pattern. Triggered by 2026-05-16 production admin login 500 incident (`LoginAuditService.recordLogin` join parent txn → SQLException → `UnexpectedRollbackException` → 500). Paired same-PR with new sister-rule `.claude/rules/audit-service-isolation.md` v1.0.0 (positive form mandating `Propagation.REQUIRES_NEW`) + `postgres-specific-type-testcontainers.md` v1.0.0 (Bug 1 of same incident) + `release-deploy-standard.md` smoke admin-login extension per `rule-change-process.md` §6.5 Enforcement Parity Mandate. MINOR bump per §4 — adds anti-pattern that BLOCKS prior-passing PRs (any new audit service `@Transactional` w/o REQUIRES_NEW will now be flagged). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — no constraint loosening; existing 15+ audit/log services grandfathered, anti-pattern applies prospectively to new code + edits).
 - **2026-05-14** (v1.3.1): PATCH — thêm `paths: ["**/*.java", "**/*.tsx", "**/*.ts"]` frontmatter qua Wave 73 Bucket A5 (path-scope 6 design/wave/AI rules). Per Anthropic native `paths:` mechanism, rule giờ chỉ auto-load khi Claude đọc file Java/TypeScript/TSX. Không thay đổi rule content/scope; reduces base context auto-load per Wave 73 Meta Context Optimization plan. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive frontmatter, no constraint change).
 - **2026-04-26** (v1.3.0): MINOR — added §3.5.1 Exception D (Dedicated dispatcher infrastructure) with 4-criterion test (naming + caller contract + no business logic + marker phrase) + AIQueueDispatcher example. Updated anti-pattern wording from A/B/C → A/B/C/D. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — paired with AIQueueDispatcher javadoc marker application + GAP-230 closure in same PR). Closes GAP-230. Motivation: GAP-222a Phase 2 found `AIQueueDispatcher` did not fit Exception A (no co-located domain transaction; class IS the dispatcher). Wrapping a dispatcher in outbox adds latency to the operation the dispatcher exists to make fast. Exception D legitimizes "dedicated dispatcher infrastructure" pattern under strict 4-criterion test that prevents abuse as escape hatch.
 - **2026-04-26** (v1.2.0): MINOR — extended §3.5.1 default-rule paragraph to cite per-module domain outbox precedents (`MigrationOutboxRepository`, `BrandingEventEmitter`) alongside `OutboxEventWriter`, and added one-paragraph guidance pointing to ADR-021 for module-by-module choice. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — paired with ADR-021 acceptance + GAP-222a Phase 2 implementation in same wave). Closes part of GAP-222a Phase 3 (rule clarification AC). Motivation: original §3.5.1 mentioned MigrationOutboxRepository only as a parenthetical example; ADR-021 elevates per-module pattern to primary path for cross-product modules — rule must reflect.
