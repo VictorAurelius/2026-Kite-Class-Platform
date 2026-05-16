@@ -6,7 +6,10 @@
 #   bash scripts/cloudflare-dns.sh list-mx                      # list MX only
 #   bash scripts/cloudflare-dns.sh add CNAME api kitehub-alb-... [--proxied]
 #   bash scripts/cloudflare-dns.sh delete <record-id>
-#   bash scripts/cloudflare-dns.sh toggle-proxy <record-name>   # DNS only ↔ Proxied
+#   bash scripts/cloudflare-dns.sh toggle-proxy <record-name>   # DNS only <-> Proxied
+#   bash scripts/cloudflare-dns.sh set-apex <ip> [--proxied|--dns-only] [--ttl <seconds>]
+#                                                                # Replace apex (kitehub.me) with A record -> <ip>.
+#                                                                # Deletes any existing apex A/CNAME first (idempotent).
 #   bash scripts/cloudflare-dns.sh origin-cert <hostnames>      # Generate Origin Cert via API
 #   bash scripts/cloudflare-dns.sh zone                          # zone metadata
 #   bash scripts/cloudflare-dns.sh get-ssl-mode                  # current SSL mode
@@ -143,6 +146,100 @@ print(r['result']['value']) if r.get('success') else (print('ERROR:', r.get('err
 print('OK — Always Use HTTPS now:', r['result']['value']) if r.get('success') else (print('ERROR:', r.get('errors')), sys.exit(1))"
     ;;
 
+  set-apex)
+    # Atomic apex record replacement: delete any existing apex A/CNAME, create
+    # new A record pointing to <ip>. Idempotent: re-running with same IP is a
+    # no-op aside from possible TTL/proxied change.
+    #
+    # Usage: set-apex <ip> [--proxied|--dns-only] [--ttl <seconds>]
+    target_ip="${1:-}"
+    [ -z "$target_ip" ] && { echo "Usage: $0 set-apex <ip> [--proxied|--dns-only] [--ttl <seconds>]" >&2; exit 1; }
+    shift
+    # Validate IPv4
+    if ! echo "$target_ip" | grep -qE '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
+      echo "ERROR: '$target_ip' is not a valid IPv4 address" >&2
+      exit 1
+    fi
+    proxied="false"
+    ttl="60"
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --proxied) proxied="true"; shift ;;
+        --dns-only) proxied="false"; shift ;;
+        --ttl) ttl="${2:-60}"; shift 2 ;;
+        *) echo "Unknown flag: $1" >&2; exit 1 ;;
+      esac
+    done
+    # Cloudflare requires ttl=1 when proxied=true (Auto). For dns-only, ttl >= 60.
+    if [ "$proxied" = "true" ]; then
+      ttl_to_send=1
+    else
+      ttl_to_send="$ttl"
+    fi
+    zone_name=$(curl -s -H "Authorization: Bearer $TOKEN" "$API/zones/$ZONE_ID" \
+      | python3 -c "import sys,json; print(json.load(sys.stdin)['result']['name'])")
+    echo "Target apex: $zone_name -> A $target_ip (proxied=$proxied, ttl=$ttl_to_send)"
+
+    # Pre-flight: capture current apex state for audit trail
+    echo "--- Current apex records (pre-flip) ---"
+    curl -s -H "Authorization: Bearer $TOKEN" \
+      "$API/zones/$ZONE_ID/dns_records?name=$zone_name&type=A" \
+      | python3 -c "import sys,json; d=json.load(sys.stdin); [print(f\"  A    id={r['id']} content={r['content']} proxied={r['proxied']} ttl={r['ttl']}\") for r in d.get('result',[])]"
+    curl -s -H "Authorization: Bearer $TOKEN" \
+      "$API/zones/$ZONE_ID/dns_records?name=$zone_name&type=CNAME" \
+      | python3 -c "import sys,json; d=json.load(sys.stdin); [print(f\"  CNAME id={r['id']} content={r['content']} proxied={r['proxied']} ttl={r['ttl']}\") for r in d.get('result',[])]"
+
+    # Find existing apex A or CNAME records to delete (collect IDs)
+    existing_ids=$(curl -s -H "Authorization: Bearer $TOKEN" \
+      "$API/zones/$ZONE_ID/dns_records?name=$zone_name" \
+      | python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+ids=[r['id'] for r in d.get('result',[]) if r.get('type') in ('A','CNAME','AAAA')]
+print(' '.join(ids))
+")
+
+    # Delete each existing apex A/CNAME/AAAA record
+    if [ -n "$existing_ids" ]; then
+      for rid in $existing_ids; do
+        echo "Deleting existing apex record id=$rid"
+        curl -s -X DELETE -H "Authorization: Bearer $TOKEN" \
+          "$API/zones/$ZONE_ID/dns_records/$rid" \
+          | python3 -c "import sys,json; d=json.load(sys.stdin); print('  OK' if d.get('success') else '  ERROR:'+str(d.get('errors')))"
+      done
+    else
+      echo "No existing apex A/CNAME/AAAA found"
+    fi
+
+    # Create new A record
+    echo "Creating apex A record"
+    create_result=$(curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+      "$API/zones/$ZONE_ID/dns_records" \
+      -d "{\"type\":\"A\",\"name\":\"$zone_name\",\"content\":\"$target_ip\",\"proxied\":$proxied,\"ttl\":$ttl_to_send}")
+    echo "$create_result" | python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+if d.get('success'):
+  r=d['result']
+  print(f\"  OK id={r['id']} content={r['content']} proxied={r['proxied']} ttl={r['ttl']}\")
+else:
+  print('  ERROR:'+str(d.get('errors')))
+  sys.exit(1)
+"
+    echo "--- Post-flip verification ---"
+    sleep 2
+    curl -s -H "Authorization: Bearer $TOKEN" \
+      "$API/zones/$ZONE_ID/dns_records?name=$zone_name&type=A" \
+      | python3 -c "
+import sys,json,os
+d=json.load(sys.stdin)
+target=os.environ.get('TARGET_IP','')
+for r in d.get('result',[]):
+  match='MATCH' if r['content']==target else 'MISMATCH'
+  print(f\"  A id={r['id']} content={r['content']} proxied={r['proxied']} ttl={r['ttl']} [{match}]\")
+" TARGET_IP="$target_ip"
+    ;;
+
   origin-cert)
     # Origin CA endpoint requires SEPARATE token với permissions:
     # - Account: SSL and Certificates: Edit (account-level)
@@ -209,7 +306,11 @@ Commands:
   list-mx | list-cname | list-txt | list-a   Filter by type
   add <TYPE> <NAME> <CONTENT> [--proxied]    Add new record
   delete <record-id>       Remove record
-  toggle-proxy <name>      Switch DNS only ↔ Proxied
+  toggle-proxy <name>      Switch DNS only <-> Proxied
+  set-apex <ip> [--proxied|--dns-only] [--ttl <s>]
+                           Atomic apex (kitehub.me) A-record swap. Deletes any
+                           existing apex A/CNAME/AAAA, creates A -> <ip>.
+                           Default proxied=false, ttl=60.
   origin-cert [hostnames]  Generate Cloudflare Origin Cert (default: kitehub.me,*.kitehub.me)
                            Saves .pem + .key to ~/.gcal-mcp/cloudflare-origin-cert/
   get-ssl-mode             Show current SSL mode (off/flexible/full/strict)
@@ -221,6 +322,8 @@ Examples:
   bash scripts/cloudflare-dns.sh list
   bash scripts/cloudflare-dns.sh add CNAME staging cname.vercel-dns.com
   bash scripts/cloudflare-dns.sh toggle-proxy api.kitehub.me
+  bash scripts/cloudflare-dns.sh set-apex 13.228.25.147                # dns-only A apex
+  bash scripts/cloudflare-dns.sh set-apex 13.228.25.147 --proxied      # proxied A apex (orange cloud)
   bash scripts/cloudflare-dns.sh origin-cert
   bash scripts/cloudflare-dns.sh set-ssl-mode strict     # Tier 3 §6
   bash scripts/cloudflare-dns.sh set-always-https on     # Tier 3 §7

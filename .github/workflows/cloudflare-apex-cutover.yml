@@ -1,0 +1,293 @@
+name: Cloudflare Apex Cutover (kitehub.me)
+
+# workflow_dispatch only - human-triggered apex DNS flip via Cloudflare API.
+# Implements release-deploy-standard.md §9 workflow_dispatch pattern + confirm
+# input gate + ephemeral OIDC. Reads CF token from AWS Secrets Manager via
+# narrow IAM role (kitehub-github-cloudflare-cutover) per
+# pre-launch-infra-hardening-checklist.md §2.5 least-privilege.
+#
+# References:
+#   .claude/rules/release-deploy-standard.md §9
+#   .claude/rules/pre-mutation-state-check.md §3
+#   .claude/rules/concurrent-production-mutation-ops.md §6
+#   .claude/rules/release-deploy-standard.md §3.1 v1.2.0 (smoke admin-login)
+#   GAP-573 EIP binding (companion terraform change in ec2-kc-app.tf)
+#   documents/04-quality/audits/cloudflare-verification/2026-05-16-apex-dns-flip-eip-cutover.md
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode'
+        required: true
+        type: choice
+        default: 'verify-only'
+        options:
+          - verify-only       # List current CF apex + EIP allocation + EC2 state. No mutation.
+          - apply             # Flip apex A record to target IP. Requires confirm=APPLY.
+          - smoke-only        # Run post-flip smoke checks (health + admin-login). No mutation.
+          - apply-and-smoke   # Flip apex then run smoke checks atomically.
+      confirm:
+        description: "Type APPLY verbatim (case-sensitive) to authorize mutation. Ignored for verify-only / smoke-only."
+        required: true
+        type: string
+        default: ''
+      target_ip:
+        description: '(apply only) Override target IPv4. Leave blank to auto-detect EIP from kitehub-kc-app-fe-eip tag.'
+        required: false
+        type: string
+        default: ''
+      proxied:
+        description: '(apply only) Cloudflare proxy mode (orange cloud).'
+        required: true
+        type: choice
+        default: 'false'
+        options:
+          - 'false'
+          - 'true'
+      ttl:
+        description: '(apply only) DNS TTL seconds. Ignored when proxied=true (forced to 1=Auto).'
+        required: false
+        type: string
+        default: '60'
+
+permissions:
+  id-token: write   # OIDC token for AWS STS AssumeRoleWithWebIdentity
+  contents: read    # Checkout repo
+
+env:
+  AWS_REGION: 'ap-southeast-1'
+  PROJECT_NAME: 'kitehub'
+  ZONE_NAME: 'kitehub.me'
+  EIP_TAG_NAME: 'kitehub-kc-app-fe-eip'
+  CF_SECRET_NAME: 'kitehub/production/cloudflare-api-token'
+
+jobs:
+  validate:
+    name: Validate inputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject empty confirm for mutation modes
+        if: ${{ (github.event.inputs.mode == 'apply' || github.event.inputs.mode == 'apply-and-smoke') && github.event.inputs.confirm != 'APPLY' }}
+        run: |
+          echo "::error ::Confirm input must be 'APPLY' verbatim (got: '${{ github.event.inputs.confirm }}')"
+          exit 1
+
+      - name: Validate target_ip format if provided
+        if: ${{ github.event.inputs.target_ip != '' }}
+        run: |
+          if ! echo "${{ github.event.inputs.target_ip }}" | grep -qE '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
+            echo "::error ::target_ip '${{ github.event.inputs.target_ip }}' is not a valid IPv4"
+            exit 1
+          fi
+
+      - name: Echo run summary
+        run: |
+          echo "Mode:         ${{ github.event.inputs.mode }}"
+          echo "Target IP:    ${{ github.event.inputs.target_ip || '(auto-detect from EIP tag)' }}"
+          echo "Proxied:      ${{ github.event.inputs.proxied }}"
+          echo "TTL:          ${{ github.event.inputs.ttl }}"
+          echo "Zone:         ${{ env.ZONE_NAME }}"
+          echo "Region:       ${{ env.AWS_REGION }}"
+
+  cutover:
+    name: cloudflare-apex-cutover (${{ github.event.inputs.mode }})
+    runs-on: ubuntu-latest
+    needs: validate
+    environment: production   # Requires GitHub Environment reviewer approval before job runs
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_CLOUDFLARE_CUTOVER_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: github-cloudflare-cutover-${{ github.run_id }}
+
+      # ---------------------------------------------------------------- VERIFY
+      - name: Resolve EIP allocation
+        id: eip
+        run: |
+          EIP_PUBLIC_IP=$(aws ec2 describe-addresses \
+            --filters "Name=tag:Name,Values=${{ env.EIP_TAG_NAME }}" \
+            --query 'Addresses[0].PublicIp' --output text)
+          EIP_ALLOC_ID=$(aws ec2 describe-addresses \
+            --filters "Name=tag:Name,Values=${{ env.EIP_TAG_NAME }}" \
+            --query 'Addresses[0].AllocationId' --output text)
+          EIP_INSTANCE=$(aws ec2 describe-addresses \
+            --filters "Name=tag:Name,Values=${{ env.EIP_TAG_NAME }}" \
+            --query 'Addresses[0].InstanceId' --output text)
+          echo "EIP public IP:    $EIP_PUBLIC_IP"
+          echo "EIP allocation:   $EIP_ALLOC_ID"
+          echo "EIP attached to:  $EIP_INSTANCE"
+          if [ "$EIP_PUBLIC_IP" = "None" ] || [ -z "$EIP_PUBLIC_IP" ]; then
+            echo "::error ::EIP with tag Name=${{ env.EIP_TAG_NAME }} not found. Run terraform apply first to provision."
+            exit 1
+          fi
+          if [ "$EIP_INSTANCE" = "None" ] || [ -z "$EIP_INSTANCE" ]; then
+            echo "::warning ::EIP is allocated but NOT associated with any instance. aws_eip_association may be drift."
+          fi
+          echo "eip_public_ip=$EIP_PUBLIC_IP" >> "$GITHUB_OUTPUT"
+          echo "eip_alloc_id=$EIP_ALLOC_ID" >> "$GITHUB_OUTPUT"
+          echo "eip_instance=$EIP_INSTANCE" >> "$GITHUB_OUTPUT"
+
+      - name: Verify EC2 instance state (kc-app-fe)
+        if: ${{ steps.eip.outputs.eip_instance != 'None' && steps.eip.outputs.eip_instance != '' }}
+        run: |
+          aws ec2 describe-instances \
+            --instance-ids "${{ steps.eip.outputs.eip_instance }}" \
+            --query 'Reservations[0].Instances[0].[InstanceId,State.Name,PublicIpAddress,PrivateIpAddress]' \
+            --output table
+
+      - name: Resolve Cloudflare API token
+        id: cf
+        run: |
+          CF_TOKEN=$(aws secretsmanager get-secret-value \
+            --secret-id "${{ env.CF_SECRET_NAME }}" \
+            --query 'SecretString' --output text)
+          if [ -z "$CF_TOKEN" ] || [ "$CF_TOKEN" = "None" ]; then
+            echo "::error ::Cloudflare API token not found in Secrets Manager (${{ env.CF_SECRET_NAME }})"
+            exit 1
+          fi
+          # Resolve zone ID
+          ZONE_ID=$(curl -sf -H "Authorization: Bearer $CF_TOKEN" \
+            "https://api.cloudflare.com/client/v4/zones?name=${{ env.ZONE_NAME }}" \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['result'][0]['id'] if d.get('result') else '')")
+          if [ -z "$ZONE_ID" ]; then
+            echo "::error ::Failed to resolve zone ID for ${{ env.ZONE_NAME }}"
+            exit 1
+          fi
+          # Mask token in subsequent logs
+          echo "::add-mask::$CF_TOKEN"
+          echo "cf_token=$CF_TOKEN" >> "$GITHUB_OUTPUT"
+          echo "zone_id=$ZONE_ID" >> "$GITHUB_OUTPUT"
+          echo "Zone ID: $ZONE_ID"
+
+      - name: Verify current apex DNS state
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ steps.cf.outputs.cf_token }}
+          CLOUDFLARE_ZONE_ID_KITEHUB_ME: ${{ steps.cf.outputs.zone_id }}
+        run: |
+          echo "=== Current apex records for ${{ env.ZONE_NAME }} ==="
+          bash scripts/cloudflare-dns.sh list 2>&1 | grep -E "^[0-9a-f]{32}|TYPE|---" | head -30
+          echo ""
+          echo "=== Cloudflare zone settings ==="
+          bash scripts/cloudflare-dns.sh get-ssl-mode
+          bash scripts/cloudflare-dns.sh get-always-https
+
+      # ------------------------------------------------------- APPLY (CUTOVER)
+      - name: Resolve effective target IP
+        id: target
+        if: ${{ github.event.inputs.mode == 'apply' || github.event.inputs.mode == 'apply-and-smoke' }}
+        run: |
+          if [ -n "${{ github.event.inputs.target_ip }}" ]; then
+            TARGET="${{ github.event.inputs.target_ip }}"
+            echo "Using override target_ip: $TARGET"
+            if [ "$TARGET" != "${{ steps.eip.outputs.eip_public_ip }}" ]; then
+              echo "::warning ::Override IP ($TARGET) differs from EIP (${{ steps.eip.outputs.eip_public_ip }}) - intentional?"
+            fi
+          else
+            TARGET="${{ steps.eip.outputs.eip_public_ip }}"
+            echo "Auto-detected EIP target: $TARGET"
+          fi
+          echo "target_ip=$TARGET" >> "$GITHUB_OUTPUT"
+
+      - name: Apply apex DNS flip
+        if: ${{ github.event.inputs.mode == 'apply' || github.event.inputs.mode == 'apply-and-smoke' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ steps.cf.outputs.cf_token }}
+          CLOUDFLARE_ZONE_ID_KITEHUB_ME: ${{ steps.cf.outputs.zone_id }}
+        run: |
+          PROXY_FLAG=$([ "${{ github.event.inputs.proxied }}" = "true" ] && echo "--proxied" || echo "--dns-only")
+          echo "Flipping apex ${{ env.ZONE_NAME }} -> A ${{ steps.target.outputs.target_ip }} (proxied=${{ github.event.inputs.proxied }}, ttl=${{ github.event.inputs.ttl }})"
+          bash scripts/cloudflare-dns.sh set-apex \
+            "${{ steps.target.outputs.target_ip }}" \
+            $PROXY_FLAG \
+            --ttl "${{ github.event.inputs.ttl }}"
+
+      - name: Post-flip propagation check
+        if: ${{ github.event.inputs.mode == 'apply' || github.event.inputs.mode == 'apply-and-smoke' }}
+        run: |
+          echo "=== DNS propagation via public resolvers (post-flip) ==="
+          sudo apt-get install -y dnsutils >/dev/null 2>&1 || true
+          for resolver in 1.1.1.1 8.8.8.8 9.9.9.9; do
+            result=$(dig +short "@$resolver" "${{ env.ZONE_NAME }}" A | head -3 | tr '\n' ',' | sed 's/,$//')
+            echo "  $resolver -> $result"
+          done
+          echo ""
+          if [ "${{ github.event.inputs.proxied }}" = "false" ]; then
+            echo "Expected: direct EIP ${{ steps.target.outputs.target_ip }}"
+          else
+            echo "Expected: Cloudflare anycast IPs (104.* / 172.* / etc.) - proxied"
+          fi
+
+      # ----------------------------------------------------------- SMOKE TESTS
+      # Per release-deploy-standard.md §3.1 v1.2.0: post-deploy smoke admin-login
+      # mandatory. Health endpoint + admin-login both run.
+      - name: Smoke - public health endpoint
+        if: ${{ github.event.inputs.mode == 'smoke-only' || github.event.inputs.mode == 'apply-and-smoke' }}
+        run: |
+          echo "=== Health check via public DNS ==="
+          # Allow short propagation window
+          sleep 10
+          for attempt in 1 2 3 4 5; do
+            code=$(curl -sSf -o /dev/null -w "%{http_code}" "https://${{ env.ZONE_NAME }}/api/health" || echo "000")
+            echo "  Attempt $attempt: HTTP $code"
+            if [ "$code" = "200" ]; then
+              echo "  Health OK"
+              break
+            fi
+            if [ "$attempt" = "5" ]; then
+              echo "::error ::Health check failed after 5 attempts (last code: $code)"
+              exit 1
+            fi
+            sleep 15
+          done
+
+      - name: Smoke - admin login (release-deploy-standard.md §3.1 v1.2.0)
+        if: ${{ github.event.inputs.mode == 'smoke-only' || github.event.inputs.mode == 'apply-and-smoke' }}
+        env:
+          ADMIN_EMAIL: ${{ vars.SMOKE_ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.SMOKE_ADMIN_PASSWORD }}
+        run: |
+          if [ -z "$ADMIN_EMAIL" ] || [ -z "$ADMIN_PASSWORD" ]; then
+            echo "::warning ::SMOKE_ADMIN_EMAIL var or SMOKE_ADMIN_PASSWORD secret missing - skip admin-login smoke. Set in GitHub repo settings."
+            exit 0
+          fi
+          echo "=== Smoke admin-login via public endpoint ==="
+          response=$(curl -sS -X POST "https://${{ env.ZONE_NAME }}/api/auth/login" \
+            -H "Content-Type: application/json" \
+            -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" \
+            -w "\n%{http_code}")
+          http_code=$(echo "$response" | tail -1)
+          body=$(echo "$response" | sed '$d')
+          echo "HTTP code: $http_code"
+          if [ "$http_code" = "500" ]; then
+            echo "::error ::Admin login returned 500 - regression of GAP-517 class. Investigate post-deploy logs."
+            exit 1
+          fi
+          if [ "$http_code" != "200" ]; then
+            echo "::error ::Admin login expected 200, got $http_code. Body: $body"
+            exit 1
+          fi
+          # Verify response shape - must have either token or requires2fa_enrollment
+          has_signal=$(echo "$body" | python3 -c "import sys,json;d=json.load(sys.stdin);print('OK' if d.get('token') or d.get('requires2fa_enrollment') or d.get('requires_2fa') else 'EMPTY')" 2>&1 || echo "PARSE_ERROR")
+          if [ "$has_signal" != "OK" ]; then
+            echo "::error ::Admin login 200 but response missing token / requires2fa_enrollment signal: $has_signal"
+            exit 1
+          fi
+          echo "Admin login smoke PASS"
+
+      - name: Final summary
+        if: always()
+        run: |
+          echo "Mode:         ${{ github.event.inputs.mode }}"
+          echo "EIP target:   ${{ steps.eip.outputs.eip_public_ip }} (alloc=${{ steps.eip.outputs.eip_alloc_id }})"
+          echo "Applied IP:   ${{ steps.target.outputs.target_ip }}"
+          echo "Proxied:      ${{ github.event.inputs.proxied }}"
+          echo ""
+          echo "Next steps:"
+          echo "  - File post-mutation audit at documents/04-quality/audits/cloudflare-verification/$(date +%F)-apex-dns-flip-post.md"
+          echo "  - If mode=apply (no smoke), re-run workflow with mode=smoke-only to verify health + admin-login"
