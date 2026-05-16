@@ -130,12 +130,31 @@
             Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email — không có hành động nào được thực thi.
         </p>
 
+        <!-- GAP-586 Wave 86 docs-cluster: human sender name + feedback CTA explicit
+             per persona cell 2.2 (chị Hồng P1 Solo Teacher: thiếu tên thật người duyệt
+             → cảm thấy spam). Add named-sender block. -->
+        <p style="margin-top: 24px; padding: 12px 16px; background: #F0F9FF; border-left: 4px solid #2563EB; border-radius: 4px; font-size: 14px;">
+            👋 Chị Mai từ KiteHub đây — em là người duyệt yêu cầu của
+            <strong th:text="${orgName}">${orgName}</strong>.
+            Có thắc mắc gì cứ reply email này; mình sẽ phản hồi trong 4 giờ giờ hành chính (T2–T6, 08:00–18:00).
+        </p>
+
         <p><strong th:text="|Đội ngũ ${branding?.displayName ?: 'KiteClass'}|">Đội ngũ KiteClass</strong></p>
     </div>
 
     <div class="footer">
         <p th:text="|© 2026 ${branding?.displayName ?: 'KiteClass'}. All rights reserved.|">© 2026 KiteClass.</p>
-        <p>Email này được gửi tự động, vui lòng không trả lời.</p>
+        <!-- GAP-586 Wave 86 docs-cluster: replace "vui lòng không trả lời" với reply-friendly
+             text (`support@kitehub.me` IS reply-friendly) — sender is human, không phải noreply bot. -->
+        <p>📧 Reply email này nếu cần hỗ trợ — chị Mai sẽ trả lời trong 4 giờ giờ hành chính.</p>
+        <!-- GAP-586 Wave 86 docs-cluster: status page + help link footers per persona cell 2.2
+             trust signal + welcome guide entry. /status = Wave 84 GAP-424 Statuspage;
+             /help/anonymous = Wave 79 user manual landing (P1 persona page Wave 80+ Bucket F2). -->
+        <p style="font-size: 12px; color: #6B7280; margin-top: 8px;">
+            📊 Trạng thái dịch vụ Beta: <a th:href="@{https://kitehub.me/status}" style="color: #2563EB;">kitehub.me/status</a>
+            &nbsp;|&nbsp;
+            📖 Hướng dẫn: <a th:href="@{https://kitehub.me/help/anonymous}" style="color: #2563EB;">kitehub.me/help</a>
+        </p>
     </div>
 </body>
 </html>

@@ -1,6 +1,6 @@
 # GAP-586: Beta invite email template content audit — tone + sender + feedback CTA (P1 Solo Teacher)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (70%) — Wave 86 docs-cluster audit complete + 3 template fixes applied (human sender block + reply-friendly footer + status/help link footers). Audit verdict: 1/5 PASS, 2/5 PARTIAL, 2/5 FAIL on original 5-criterion checklist before fixes. Post-fix verdict: 4/5 PASS, 1/5 FAIL (Criterion 5 `/help/p1-solo-teacher` page pending Wave 80+ Bucket F2; interim `/help/anonymous` link used). Mail-Tester live verify deferred Wave 86 Bucket G send.
 **Priority:** 🟠 P1
 **Domain:** Frontend / Email / Content
 **Phase:** phase-1-beta
@@ -39,11 +39,15 @@ Wave 83 Bucket F Resend production verified focused on **delivery infrastructure
 
 ## Acceptance Criteria
 
-- [ ] Email template audit checklist documented
-- [ ] Resend template applied checklist; rendering verified với 2 sample P1 personas
-- [ ] Mail-Tester score ≥ 8/10
-- [ ] Wave 86 Bucket G first 2 P1 invites use this template
-- [ ] Post-send dashboard verify: open rate >70%, no spam complaints
+- [x] Email template audit checklist documented — `documents/04-quality/audits/email-template/2026-05-16-gap-586-p1-solo-teacher-invite.md` ships 5-criterion audit verdict + per-criterion analysis + 3 recommended fixes
+- [x] Resend template applied checklist edits — 3 fixes applied to `kitehub/kitehub-email/src/main/resources/templates/emails/beta-invite.html` (human sender block + reply-friendly footer + status/help footer links)
+- [ ] Mail-Tester score ≥ 8/10 — defer Wave 86 Bucket G live send verification (requires Resend production env + actual send)
+- [ ] Wave 86 Bucket G first 2 P1 invites use this template — execution scope Wave 86 Bucket G (this gap = template audit; Bucket G = send mechanism)
+- [ ] Post-send dashboard verify: open rate >70%, no spam complaints — execution scope Wave 86 Bucket G post-send
+
+## Log
+
+- **2026-05-16** Wave 86 docs-cluster — audit shipped + 3 template fixes applied. Status flipped OPEN → PARTIAL (70%). Per `gap-done-discipline.md` §3 PARTIAL exit ramp: 2 ACs verified (audit doc + template edits); 3 ACs (Mail-Tester score + Bucket G first-send + post-send dashboard) deferred to Wave 86 Bucket G live execution scope. Verification artifact: `documents/04-quality/audits/email-template/2026-05-16-gap-586-p1-solo-teacher-invite.md`. Follow-up: file `GAP-586b template-criterion-5-p1-page-link` Phase 1.5+ if P1-specific `/help/p1-solo-teacher` page ship requires template link backfill.
 
 ## Related
 

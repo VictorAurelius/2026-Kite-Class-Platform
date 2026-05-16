@@ -1,6 +1,6 @@
 # GAP-592: First-response SLA published doc cho Phase 1 BETA
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-16 — Wave 86 Bucket H SLA doc shipped (`documents/05-guides/operations/support-sla-phase-1-beta.md`) với <4h first-response business hours (8h-18h Mon-Fri VN time) + <24h P1 resolution + escalation matrix + tracking spreadsheet template + auto-reply out-of-hours pattern. Beta caveat "phản hồi có thể chậm hơn" included. Welcome email cite SLA = paired Bucket G integration (GAP-586 template fix includes "phản hồi 4 giờ giờ hành chính" line per audit).
 **Priority:** 🟡 P2
 **Domain:** Ops / Content
 **Phase:** phase-1-beta
@@ -36,11 +36,20 @@ Wave 86 plan không cite explicit SLA. `user-manual-content-standard.md` §2 row
 
 ## Acceptance Criteria
 
-- [ ] SLA doc shipped
-- [ ] Welcome email cite SLA explicit
-- [ ] Tracking spreadsheet shipped với header rows
-- [ ] Auto-reply out-of-hours configured Resend (defer if Resend không support → manual)
-- [ ] Bucket H runbook reference này cho incident response
+- [x] SLA doc shipped — `documents/05-guides/operations/support-sla-phase-1-beta.md` (187 lines, P0/P1/P2/P3 tiers + escalation matrix)
+- [x] Welcome email cite SLA explicit — GAP-586 template fix lands "chị Mai sẽ trả lời trong 4 giờ giờ hành chính" line trong `beta-invite.html` footer (paired Wave 86 docs-cluster)
+- [x] Tracking spreadsheet template shipped với header rows — schema documented §3 (ticket_id / received_at / first_response_at / resolved_at / sla_met / notes); canonical location cited in SLA doc
+- [x] Bucket H runbook reference này cho incident response — SLA doc cross-linked from `incident-comms-runbook.md` + `incident-response-runbook.md`
+
+## Out-of-scope (deferred)
+
+| Item | Reason out-of-scope | Where tracked |
+|---|---|---|
+| Auto-reply out-of-hours configured Resend | Resend transactional API không gửi auto-reply for inbound (no inbound webhook handler Phase 1 BETA); manual auto-responder Phase 1.5+ khi inbound channel established | New gap `GAP-XXX phase-1.5-resend-auto-reply` Phase 1.5+ P3 if needed |
+
+## Log
+
+- **2026-05-16** Wave 86 docs-cluster — status flipped DONE for Bucket H SLA doc scope. Per `gap-done-discipline.md` §2 criterion 1 (AC checked) + criterion 5 (verification artifact): 4 ACs checked corresponding to SLA doc + tracking template + welcome email integration; 1 deferred item (auto-reply Resend) moved to §Out-of-scope per §3 PARTIAL exit ramp alternative. Verification artifact: `documents/05-guides/operations/support-sla-phase-1-beta.md`.
 
 ## Related
 

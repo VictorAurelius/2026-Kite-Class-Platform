@@ -1,6 +1,6 @@
 # GAP-587: P3 invite email content audit — P2 owner name + center context + role explicit
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (40%) — Wave 86 docs-cluster audit shipped. Verdict: 5/6 FAIL, 1/6 PARTIAL — P3 invite infrastructure incomplete (template fork + EmailServiceClient overload + Resend `replyTo` param). Wave 86 cohort = P1-only (2 tenants); P3 invite path NOT exercised in Bucket G first sends. Follow-up GAP-587b track Wave 87+ implementation (template fork + send overload + Wave 80+ Bucket F2 `/help/p3-manager/permissions` page).
 **Priority:** 🟠 P1
 **Domain:** Frontend / Email / Content
 **Phase:** phase-1-beta
@@ -39,12 +39,17 @@ Wave 86 Bucket G scope cover "invite send mechanism" generic, không split P1 vs
 
 ## Acceptance Criteria
 
-- [ ] P3 invite template separate từ P1/P2 template
-- [ ] Email body cite P2 owner name + center name + role explicit
-- [ ] Permission matrix link working
-- [ ] reply-to set correctly to P2 owner email
-- [ ] Mail-Tester score ≥ 8/10
-- [ ] Wave 86 Bucket G — first P3 invite (chờ P2 chị Hằng invite) uses này
+- [x] Audit checklist documented — `documents/04-quality/audits/email-template/2026-05-16-gap-587-p3-manager-invite.md` ships 6-criterion verdict + per-criterion analysis + implementation phasing
+- [ ] P3 invite template separate từ P1/P2 template — defer Wave 87+ GAP-587b implementation
+- [ ] Email body cite P2 owner name + center name + role explicit — defer Wave 87+ GAP-587b implementation
+- [ ] Permission matrix link working — defer Wave 87+ GAP-587b implementation; depends Wave 80+ Bucket F2 `/help/p3-manager/permissions` page
+- [ ] reply-to set correctly to P2 owner email — defer Wave 87+ GAP-587b implementation (Resend API `replyTo` param + per-invite contextual override)
+- [ ] Mail-Tester score ≥ 8/10 — defer Wave 87+ post-implementation live send verify
+- [ ] Wave 86 Bucket G — first P3 invite uses này — N/A Wave 86 (cohort P1-only); first P3 invite trigger = Wave 87+ when P2 chị Hằng invites anh Tâm
+
+## Log
+
+- **2026-05-16** Wave 86 docs-cluster — audit shipped. Status flipped OPEN → PARTIAL (40%). Per `gap-done-discipline.md` §3 PARTIAL exit ramp: 1 AC verified (audit doc); 6 ACs deferred to follow-up gap GAP-587b Wave 87+ implementation. Wave 86 cohort = P1-only (2 tenants); P3 invite path NOT exercised this wave. Verification artifact: `documents/04-quality/audits/email-template/2026-05-16-gap-587-p3-manager-invite.md`. Implementation roadmap: Phase A (Wave 87+) template fork + EmailServiceClient overload + Resend replyTo; Phase B (Wave 80+ Bucket F2) `/help/p3-manager/permissions` page → backfill template Criterion 5 link.
 
 ## Related
 
