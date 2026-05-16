@@ -38,6 +38,11 @@ server:
       min-spare: 10
     accept-count: 100
     connection-timeout: 20000
+  # OWASP A05 Security Misconfiguration — hide stacktrace + error message in production
+  # (per pre-launch-owasp-rest-hardening-checklist.md §2.5)
+  error:
+    include-stacktrace: never
+    include-message: never
 
 management:
   endpoint:
@@ -47,11 +52,6 @@ management:
     web:
       exposure:
         include: health,info,prometheus
-
-server:
-  error:
-    include-stacktrace: never
-    include-message: never
 
 logging:
   level:
