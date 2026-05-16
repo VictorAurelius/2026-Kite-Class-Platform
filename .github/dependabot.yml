@@ -221,3 +221,270 @@ updates:
       all-deps:
         patterns: ["*"]
         update-types: ["minor", "patch", "major"]
+
+  # ==========================================================================
+  # DOCKER — base image patch bumps (Wave 86 E P0 — per pre-launch-dependency-hardening-checklist.md §2.7)
+  # ==========================================================================
+  # Wave 86 PR #1445 Cat 1 sweep surfaced docker ecosystem missing — base images
+  # not monitored cho CVE/security patches. Pre-launch Cat 1 dep-hardening rubric
+  # §2.7 mandates docker coverage. Each service dir below contains a `Dockerfile`
+  # that Dependabot will scan for FROM directive updates.
+  #
+  # Patch-only update-types per pre-MVP lock policy (consistent với maven/npm).
+  # Major base-image bumps (eclipse-temurin:21 → :25) defer to dedicated triage
+  # wave post-launch.
+  #
+  # 11 Dockerfile total — 9 service-dir + 2 frontend dev variant (kiteclass-frontend
+  # has both Dockerfile + Dockerfile.dev; Dependabot scans both via same directory).
+
+  - package-ecosystem: docker
+    directory: "/kiteclass/kiteclass-core"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "02:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 1
+    labels:
+      - dependencies
+      - docker
+      - kiteclass
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      all-base-images:
+        patterns: ["*"]
+        update-types: ["patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+
+  - package-ecosystem: docker
+    directory: "/kiteclass/kiteclass-frontend"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "02:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 1
+    labels:
+      - dependencies
+      - docker
+      - frontend
+      - kiteclass
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      all-base-images:
+        patterns: ["*"]
+        update-types: ["patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+
+  - package-ecosystem: docker
+    directory: "/kiteclass/kiteclass-gateway"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "02:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 1
+    labels:
+      - dependencies
+      - docker
+      - kiteclass
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      all-base-images:
+        patterns: ["*"]
+        update-types: ["patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+
+  - package-ecosystem: docker
+    directory: "/kitehub/kitehub-admin"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "02:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 1
+    labels:
+      - dependencies
+      - docker
+      - kitehub
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      all-base-images:
+        patterns: ["*"]
+        update-types: ["patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+
+  - package-ecosystem: docker
+    directory: "/kitehub/kitehub-base"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "02:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 1
+    labels:
+      - dependencies
+      - docker
+      - kitehub
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      all-base-images:
+        patterns: ["*"]
+        update-types: ["patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+
+  - package-ecosystem: docker
+    directory: "/kitehub/kitehub-branding"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "02:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 1
+    labels:
+      - dependencies
+      - docker
+      - kitehub
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      all-base-images:
+        patterns: ["*"]
+        update-types: ["patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+
+  - package-ecosystem: docker
+    directory: "/kitehub/kitehub-email"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "02:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 1
+    labels:
+      - dependencies
+      - docker
+      - kitehub
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      all-base-images:
+        patterns: ["*"]
+        update-types: ["patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+
+  - package-ecosystem: docker
+    directory: "/kitehub/kitehub-frontend"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "02:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 1
+    labels:
+      - dependencies
+      - docker
+      - frontend
+      - kitehub
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      all-base-images:
+        patterns: ["*"]
+        update-types: ["patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+
+  - package-ecosystem: docker
+    directory: "/kitehub/kitehub-gateway"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "02:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 1
+    labels:
+      - dependencies
+      - docker
+      - kitehub
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      all-base-images:
+        patterns: ["*"]
+        update-types: ["patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+
+  - package-ecosystem: docker
+    directory: "/kitehub/kitehub-subscription"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "02:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 1
+    labels:
+      - dependencies
+      - docker
+      - kitehub
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      all-base-images:
+        patterns: ["*"]
+        update-types: ["patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"

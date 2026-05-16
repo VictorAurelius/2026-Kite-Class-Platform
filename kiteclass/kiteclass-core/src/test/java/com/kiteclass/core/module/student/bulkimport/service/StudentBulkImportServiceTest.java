@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.ByteArrayOutputStream;
@@ -197,9 +198,15 @@ class StudentBulkImportServiceTest {
     }
 
     @Test
-    @DisplayName("commit() rejects files exceeding MAX_ROWS")
+    @DisplayName("commit() rejects files exceeding MAX_ROWS with HTTP 413 PAYLOAD_TOO_LARGE")
     void rejectsOverMaxRows() throws IOException {
+        // Wave 86 E-AC5: MAX_ROWS=1_000 cap with PAYLOAD_TOO_LARGE (413) status
+        // (spec: "HTTP 413 if exceeded; FE chunk client-side if > 1000")
         int dataRows = StudentBulkImportService.MAX_ROWS + 1;
+        assertThat(StudentBulkImportService.MAX_ROWS)
+                .as("Wave 86 E-AC5 cap")
+                .isEqualTo(1_000);
+
         String[][] data = new String[dataRows + 1][];
         data[0] = new String[]{"name", "email"};
         for (int i = 1; i <= dataRows; i++) {
@@ -209,7 +216,9 @@ class StudentBulkImportServiceTest {
 
         assertThatThrownBy(() -> service.commit(file, tenantId))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("BULK_IMPORT_ROW_LIMIT_EXCEEDED");
+                .hasMessageContaining("BULK_IMPORT_ROW_LIMIT_EXCEEDED")
+                .extracting("status")
+                .isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE);
         verify(jobRepository, times(0)).save(any());
     }
 

@@ -48,8 +48,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class StudentBulkImportService {
 
-    /** Hard upper bound on rows per upload. */
-    public static final int MAX_ROWS = 10_000;
+    /**
+     * Hard upper bound on rows per upload.
+     *
+     * <p>Wave 86 E-AC5: lowered from 10_000 → 1_000 per spec
+     * "Bulk-import endpoint cap = 1000 rows/request (HTTP 413 if exceeded);
+     * FE chunk client-side if > 1000". Aligns with Phase 1 BETA performance
+     * envelope (t3.micro) and prevents single-request memory blow-up.</p>
+     */
+    public static final int MAX_ROWS = 1_000;
 
     /** Rows persisted per transaction. */
     public static final int CHUNK_SIZE = 500;
@@ -184,8 +191,10 @@ public class StudentBulkImportService {
 
     private static void assertRowLimit(int rowCount) {
         if (rowCount > MAX_ROWS) {
+            // Wave 86 E-AC5: PAYLOAD_TOO_LARGE (HTTP 413) per spec
+            // "HTTP 413 if exceeded; FE chunk client-side if > 1000".
             throw new BusinessException(
-                    "BULK_IMPORT_ROW_LIMIT_EXCEEDED", HttpStatus.BAD_REQUEST,
+                    "BULK_IMPORT_ROW_LIMIT_EXCEEDED", HttpStatus.PAYLOAD_TOO_LARGE,
                     "Số dòng vượt quá giới hạn " + MAX_ROWS + " (thực tế: " + rowCount + ")");
         }
     }

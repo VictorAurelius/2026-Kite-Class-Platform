@@ -68,17 +68,18 @@
 ## UC-BI-05 — System rejects row-count overflow
 
 - **Actor:** Any admin
-- **Trigger:** xlsx with >10 000 data rows
+- **Trigger:** xlsx with >1 000 data rows (Wave 86 E-AC5 — giảm từ 10 000)
 - **Steps:**
   1. `XlsxParser.parse` returns all rows
-  2. `StudentBulkImportService.assertRowLimit` throws `BusinessException("BULK_IMPORT_ROW_LIMIT_EXCEEDED", 400)`
-- **FE behavior:** alert "Số dòng vượt quá giới hạn 10000"
+  2. `StudentBulkImportService.assertRowLimit` throws `BusinessException("BULK_IMPORT_ROW_LIMIT_EXCEEDED", 413)` — HTTP 413 PAYLOAD_TOO_LARGE
+- **FE behavior:** alert "Số dòng vượt quá giới hạn 1000 — vui lòng chia file thành nhiều file ≤ 1000 dòng và upload từng file" + (Phase 1.5+) tự động chunk client-side nếu rowCount > 1000
 - **Postcondition:** no side effects, no `BulkImportJob` row
 
 ## Notes
 
-- No async / queued processing: commit blocks the HTTP connection until all chunks complete. 10 000 rows × 500-row chunks ≈ 20 round-trips; staged under 60 s in practice.
+- No async / queued processing: commit blocks the HTTP connection until all chunks complete. 1 000 rows × 500-row chunks = 2 round-trips; staged under 10 s in practice (Wave 86 E-AC5 cap = 1000 rows/request thay vì 10 000).
 - Rate-limit per admin is NOT enforced at the application layer today — relies on gateway throttling. Track as future enhancement if admins abuse.
 
 ## Log
+- 2026-05-16 — Wave 86 Bucket E E-AC5: row cap lowered 10_000 → 1_000; HTTP 400 → HTTP 413 PAYLOAD_TOO_LARGE per spec; FE chunk client-side mandate. Same-PR test extended `StudentBulkImportServiceTest#rejectsOverMaxRows` to assert `HttpStatus.PAYLOAD_TOO_LARGE`. Cross-ref api-contract.md row + rules.md BR-BI-003/BR-BI-005.
 - 2026-04-21 — GAP-109: UC-BI-01..05 captured from shipped code.
