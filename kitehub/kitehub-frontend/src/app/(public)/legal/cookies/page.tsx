@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OpenConsentBannerButton } from '@/components/legal/OpenConsentBannerButton';
 
 /**
  * Cookie Policy page — KiteHub.
@@ -6,6 +7,10 @@ import type { Metadata } from 'next';
  * Phase 1 v1 (Wave 23 Bucket F, GAP-368) — Vietnamese-first, EN deferred to GAP-182 Phase 2.
  * Source content: `documents/00-brd/cookie-policy.md` (8 sections per PDPL Decree 13/2023 Art 11 + 13(3)).
  * Companion to Privacy Policy §15. Counsel review pending — see GAP-182 Phase 2.
+ *
+ * Wave 86 GAP-585 — §6.1 item 2 wired to OpenConsentBannerButton để close
+ * PDPL Decree 13/2023 Art 12 withdraw mechanism gap (audit flagged button
+ * documented but not rendered).
  */
 export const metadata: Metadata = {
   title: 'Chính sách Cookie | KiteHub',
@@ -213,9 +218,14 @@ export default function CookiePolicyPage() {
               tạo audit log entry.
             </li>
             <li>
-              <strong>Cookie banner (re-trigger)</strong> — Click link &quot;Quản lý
-              cookie&quot; ở footer: mở lại banner ConsentBanner; user có thể đổi
-              quyết định bất kỳ lúc nào.
+              <strong>Cookie banner (re-trigger)</strong> — Click nút bên dưới
+              để xoá lựa chọn hiện tại và mở lại{' '}
+              <code>ConsentBanner</code>; user có thể đổi quyết định bất kỳ lúc
+              nào (PDPL Decree 13/2023 Art 12 — withdraw with same ease as
+              consent).
+              <div className="mt-3">
+                <OpenConsentBannerButton />
+              </div>
             </li>
             <li>
               <strong>Browser-level</strong> — User có thể xoá cookies +
