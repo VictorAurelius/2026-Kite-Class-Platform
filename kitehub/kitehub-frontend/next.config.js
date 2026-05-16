@@ -35,6 +35,40 @@ const nextConfig = {
       { source: '/auth/verify-email', destination: '/verify-email', permanent: true },
     ];
   },
+  // Wave 86 Bucket E Fix 3 — CSP + security headers per OWASP A05 + threat-model
+  // 2026-05-16-auth-flow-magic-link §I3 (Referrer-Policy). Phase 1 BETA ships
+  // Report-Only mode so we collect violations without breaking BETA users; flip
+  // to enforce after 1 week zero P0 violations.
+  async headers() {
+    const cspDirectives = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel-scripts.com https://va.vercel-scripts.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "img-src 'self' data: https: blob:",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "connect-src 'self' https://kitehub.me https://*.kitehub.me wss://*.kitehub.me https://vercel.live https://vitals.vercel-insights.com",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
+      "upgrade-insecure-requests",
+    ].join('; ');
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          // Phase 1 BETA: Report-Only mode — log violations, don't block. Flip
+          // header name to 'Content-Security-Policy' after 1 week clean Phase 1.5.
+          { key: 'Content-Security-Policy-Report-Only', value: cspDirectives },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=()' },
+          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
+        ],
+      },
+    ];
+  },
   // GAP-127 Wave 7-Perf — barrel optimization to shrink First Load JS.
   // `optimizePackageImports` enables Next.js modular re-exports for these
   // libraries so only consumed icons/components ship to the client.

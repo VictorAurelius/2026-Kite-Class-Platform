@@ -1,0 +1,53 @@
+name: Gitleaks Secret Scan
+
+# Wave 86 Bucket E Fix 2 — gitleaks baseline scan per OWASP A02 Cryptographic
+# Failures / A07 Identification & Authentication Failures secret hygiene.
+# Config: .gitleaks.toml allowlists 108 baseline false positives (test fixtures,
+# documentation samples, rotated AWS Access Key IDs). New secret detections fail.
+#
+# Runbook: documents/05-guides/operations/gitleaks-baseline-scan-runbook.md
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      # Trigger only when code/config/secret-sensitive paths change. Doc-only
+      # PRs (e.g., gap status flips) skip to save CI minutes per solo-dev mode.
+      - '**/*.java'
+      - '**/*.ts'
+      - '**/*.tsx'
+      - '**/*.js'
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '**/*.json'
+      - '**/*.env*'
+      - '**/*.sh'
+      - '**/*.py'
+      - '**/Dockerfile*'
+      - '.gitleaks.toml'
+      - '.github/workflows/gitleaks-scan.yml'
+  push:
+    branches: [main]
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          # Full history required for gitleaks commit scan
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Use repo's .gitleaks.toml config (allowlist for documented FPs)
+          GITLEAKS_CONFIG: .gitleaks.toml
+          # No GITLEAKS_LICENSE — using OSS mode (no SaaS uploading)
+          GITLEAKS_ENABLE_SUMMARY: true
+          GITLEAKS_ENABLE_COMMENTS: true
