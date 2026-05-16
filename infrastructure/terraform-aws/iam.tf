@@ -787,3 +787,76 @@ output "github_rollback_role_arn" {
   description = "ARN of GitHub OIDC role for rollback.yml workflow_dispatch (GAP-477)"
   value       = aws_iam_role.github_rollback.arn
 }
+
+# =============================================================================
+# GitHub OIDC - Cloudflare DNS apex cutover role (cloudflare-apex-cutover.yml)
+# =============================================================================
+# Per release-deploy-standard.md §9 + agent-aws-access.md §4.3 (workflow_dispatch
+# carve-out) + pre-launch-infra-hardening-checklist.md §2.5 (least-priv).
+#
+# Stack: workflow fetches CF API token from Secrets Manager, optionally reads
+# kc-app-fe EIP via ec2:DescribeAddresses, calls Cloudflare REST API to flip
+# apex A record. NO terraform apply, NO AWS mutation. Trust scoped to
+# Environment production for reviewer-approval gate.
+#
+# Cross-reference matrix per pre-mutation-state-check.md §1.5:
+#   secretsmanager:GetSecretValue -> kitehub/production/cloudflare-api-token-*
+#       (resource pattern matches aws_secretsmanager_secret.placeholders key)
+#   ec2:DescribeAddresses          -> all (no tag-condition support on read)
+#   ec2:DescribeInstances          -> all (Tier 1 read-only per agent-aws-access)
+
+resource "aws_iam_role" "github_cloudflare_cutover" {
+  name = "${var.project_name}-github-cloudflare-cutover"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Federated = aws_iam_openid_connect_provider.github.arn }
+      Action    = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+        StringLike = {
+          "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:environment:production"
+        }
+      }
+    }]
+  })
+
+  tags = { Name = "${var.project_name}-github-cloudflare-cutover" }
+}
+
+resource "aws_iam_role_policy" "github_cloudflare_cutover_inline" {
+  name = "${var.project_name}-github-cloudflare-cutover-inline"
+  role = aws_iam_role.github_cloudflare_cutover.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      # Read CF API token from Secrets Manager (scoped to single secret ARN)
+      {
+        Sid      = "ReadCloudflareToken"
+        Effect   = "Allow"
+        Action   = "secretsmanager:GetSecretValue"
+        Resource = aws_secretsmanager_secret.placeholders["cloudflare-api-token"].arn
+      },
+      # Read EIP allocation (lookup public IP for apex A record content)
+      {
+        Sid    = "DescribeEipAndInstance"
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeAddresses",
+          "ec2:DescribeInstances",
+        ]
+        Resource = "*"
+      },
+    ]
+  })
+}
+
+output "github_cloudflare_cutover_role_arn" {
+  description = "ARN of GitHub OIDC role for cloudflare-apex-cutover.yml workflow_dispatch"
+  value       = aws_iam_role.github_cloudflare_cutover.arn
+}

@@ -426,6 +426,26 @@ resource "aws_cloudwatch_metric_alarm" "kc_app_fe_cert_expiry" {
   }
 }
 
+# --- Elastic IP for FE self-host (GAP-573 / Wave 82 follow-up) ---
+# Auto-assigned public IP `54.179.70.37` lost when instance stop/start; EIP locks
+# DNS target for kitehub.me apex regardless of instance lifecycle. Association
+# does NOT replace instance (associate_public_ip_address stays true; EIP takes
+# over routing transparently per AWS docs).
+resource "aws_eip" "kc_app_fe" {
+  domain = "vpc"
+
+  tags = {
+    Name = "${var.project_name}-kc-app-fe-eip"
+    Role = "fe-self-host"
+    GAP  = "GAP-573"
+  }
+}
+
+resource "aws_eip_association" "kc_app_fe" {
+  instance_id   = aws_instance.kc_app_fe.id
+  allocation_id = aws_eip.kc_app_fe.id
+}
+
 # --- Outputs ---
 output "kc_app_fe_instance_id" {
   description = "EC2 instance ID of FE self-host instance"
@@ -433,8 +453,13 @@ output "kc_app_fe_instance_id" {
 }
 
 output "kc_app_fe_public_ip" {
-  description = "Public IP for DNS A record kitehub.me cutover"
-  value       = aws_instance.kc_app_fe.public_ip
+  description = "Public IP (EIP) for DNS A record kitehub.me cutover - stable across instance restart"
+  value       = aws_eip.kc_app_fe.public_ip
+}
+
+output "kc_app_fe_eip_allocation_id" {
+  description = "EIP allocation ID (for terraform reference + manual reassociation if needed)"
+  value       = aws_eip.kc_app_fe.id
 }
 
 output "kc_app_fe_private_ip" {
