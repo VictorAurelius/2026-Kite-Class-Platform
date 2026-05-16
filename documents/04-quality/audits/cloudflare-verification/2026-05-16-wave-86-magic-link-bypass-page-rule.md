@@ -1,11 +1,57 @@
 ---
 title: Cloudflare Verification — Magic-link + invite endpoint cache bypass Page Rules
-status: pre-apply-audit
+status: complete
 created: 2026-05-16
+applied_at: 2026-05-16T04:32:00Z
 phase: phase-1-beta
 wave: 86
 bucket: E-AC4
 gaps: [GAP-584]
+---
+
+## 🟢 APPLIED 2026-05-16
+
+**Apply method:** Local `terraform apply` trong `infrastructure/terraform-cloudflare/` (cross-workspace; `terraform-apply.yml` workflow chỉ chạy `terraform-aws/`).
+
+**Pre-flight checks per `dev-authorized-terraform-trigger.md` §2:**
+- §2.1 Concurrent ops: empty ✅
+- §2.2 Audit artifact: this doc ✅
+- §2.3 Targeted plan: `terraform plan -target=cloudflare_page_rule.magic_link_bypass_cache -target=cloudflare_page_rule.invite_bypass_cache` → `Plan: 2 to add, 0 to change, 0 to destroy` ✅ match prediction
+- §2.4 Real apply: `terraform apply tfplan.cf-pagerules` → `Apply complete! Resources: 2 added, 0 changed, 0 destroyed.` ✅
+- §2.5 Post-apply Tier 1 verify (below) ✅
+
+**Reconciliation table per `pre-mutation-state-check.md` §3.5:**
+
+| Resource | Plan action | Wave-source | Intent | Decision |
+|---|---|---|---|---|
+| cloudflare_page_rule.magic_link_bypass_cache | create | Wave 86 (PR #1437) | Real | ✅ Apply |
+| cloudflare_page_rule.invite_bypass_cache | create | Wave 86 (PR #1437) | Real | ✅ Apply |
+
+Other resources in workspace (DNS records / DMARC) NOT in scope: Wave 77 Bucket A with placeholder DKIM selectors — defer to that wave's apply.
+
+**Credential source:** AWS Secrets Manager `kitehub/production/cloudflare-api-token` (Tier 2 read) + zone ID resolved via Cloudflare API.
+
+**Post-apply Tier 1 verify (Cloudflare API):**
+
+```bash
+curl -H "Authorization: Bearer $CF_TOKEN" \
+  "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/pagerules" | \
+  python3 -c "..."
+```
+
+Result:
+```
+id=1240d9cd935a prio=2 status=active target=*kitehub.me/auth/invite/*  actions=cache_level=bypass
+id=9da36ffad57f prio=1 status=active target=*kitehub.me/auth/magic*    actions=cache_level=bypass
+```
+
+✅ Both Page Rules **active** + `cache_level=bypass`.
+
+**Open follow-ups:**
+1. State backend migration — `providers.tf` backend block commented out → state currently local-only at `infrastructure/terraform-cloudflare/terraform.tfstate` (gitignored per `.gitignore`). Risk: state loss → next plan re-create resources. File follow-up gap to uncomment backend + `terraform init -migrate-state`.
+2. `curl -sI` smoke test khi EC2 backend back up → verify `CF-Cache-Status: BYPASS` from origin response (currently EC2 stopped; redirect chain not testable until cohort window).
+3. Defense-in-depth B-layer (`Cache-Control: no-store` header trong Spring Boot AuthController) — separate GAP-584 AC #2 follow-up.
+
 ---
 
 # Cloudflare Verification — Magic-link + Invite Cache Bypass Page Rules (Wave 86 Bucket E-AC4)
