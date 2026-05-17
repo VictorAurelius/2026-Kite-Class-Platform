@@ -1,0 +1,33 @@
+{
+  "pr": 1475,
+  "title": "docs(wave-87): closure protocol \u2014 status:complete + history + ROADMAP",
+  "branch": "wave/87-closure",
+  "created_at": null,
+  "merged_at": "2026-05-17T09:49:44Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-17T16:49:57.129116",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 4,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-108464"
+  }
+}
