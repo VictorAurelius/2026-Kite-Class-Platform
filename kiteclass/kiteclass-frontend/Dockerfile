@@ -30,8 +30,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Closes CodeQL HIGH alerts: CVE-2026-29111 (libudev1/libsystemd0) + CVE-2026-4878 (libcap2).
 # Re-evaluate at next Dockerfile review whether upstream image has rebuilt with patched bases.
 RUN apt-get update \
- && apt-get upgrade -y libudev1 libsystemd0 libcap2 \
- && apt-get clean
+ && apt-get install -y --only-upgrade --no-install-recommends libudev1 libsystemd0 libcap2 \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 --gid nodejs --no-create-home --shell /usr/sbin/nologin nextjs
 
