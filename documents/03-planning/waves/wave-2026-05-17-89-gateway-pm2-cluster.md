@@ -1,10 +1,12 @@
 ---
 title: Wave 89 — Gateway JWT + PM2 Ops Cluster
-status: draft
+status: complete
 created: 2026-05-17
 updated: 2026-05-17
+closed: 2026-05-17
 waves: [89]
 gaps: [GAP-604, GAP-576, GAP-602, GAP-603]
+prs: [1478, 1479, 1480]
 ---
 
 # Wave 89 — Gateway JWT + PM2 Ops Cluster
@@ -238,4 +240,5 @@ Per `post-wave-cleanup.md` + `gap-done-discipline.md` + `post-merge-sync-complet
 
 ## 8. Log
 
+- **2026-05-17 (closure):** Wave 89 SHIPPED. Batch 1 = 2 bucket PRs merged (B #1479 → A #1480) sau plan PR #1478. **Bucket A (PR #1480):** `JwtAuthenticationGatewayFilter` ship (jjwt 0.13.0 pinned-match `kitehub-subscription`); 56/56 tests PASS incl 7 JWT filter cases. GAP-576 state-check verdict = CLOSED no-code-needed (routes ALREADY exist `application.yml:459-467` Wave 79 GAP-509 + 2FA 327-370 GAP-547; Wave 88 walkthrough confirmed `ADM-LOGIN-001..004 PASS`). **Bucket B (PR #1479):** `pm2-ecosystem.config.js` cwd fix (monorepo nested standalone path) + `pm2 startup systemd` wired vào `ec2-kc-app.tf` user_data (+12 lines) + `scripts/deploy-fe.sh` defensive + `documents/05-guides/deploy/pm2-systemd-auto-start.md` runbook. **Gap status:** GAP-576 DONE 100% (no-code verdict), GAP-604 PARTIAL 85%, GAP-602 PARTIAL 80%, GAP-603 PARTIAL 70% — live verify deferred per `gap-done-discipline.md` §3 (stack STOPPED + terraform apply requires user dev-trigger per `dev-authorized-terraform-trigger.md` + EC2 reboot needs maintenance window). **Wave 90 follow-up queue:** GAP-601 ops-readiness audit (scheduled by 2026-05-20) + 3 PARTIAL live verifies + pre-tenant cluster GAP-525/514/524/515/521.
 - **2026-05-17:** Wave 89 plan drafted. Scope locked via AskUserQuestion explicit (option 4: 2 cluster buckets merging overlap candidates). Inside-out audit 3-source (ROADMAP + inside-out-queue.md + CSV phase-1-beta non-DONE) confirmed: GAP-574 phantom (drop), GAP-576 overlap với GAP-604 same gateway scope (merge Bucket A), pre-tenant cluster defer Wave 90+, Manual split queue item defer Wave 90+. Outside-in audit SKIPPED per `outside-in-coverage-trigger.md` §4 exception (backend infra fixes, no user-facing flow new). Cross-layer check: NOT cross-layer (gateway + PM2 disjoint, no FE consumer). Stack STOPPED — live verify deferred to user post-merge.

@@ -1,0 +1,37 @@
+{
+  "pr": 1479,
+  "title": "feat(wave-89 bucket B): PM2 ecosystem cwd fix + systemd auto-start (GAP-602+603)",
+  "branch": "wave/89-bucket-b-pm2-ops",
+  "created_at": null,
+  "merged_at": "2026-05-17T15:25:29Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "ops-readiness-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-17T22:25:44.691720",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 7,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": [
+          "ops-readiness-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/4",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-319471"
+  }
+}
