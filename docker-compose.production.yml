@@ -213,7 +213,12 @@ services:
       SERVER_PORT: 8080
       # GAP-507 CORS — production origins (default localhost-only triggers
       # 403 preflight from kitehub.me FE → API on api.kitehub.me)
-      CORS_ALLOWED_ORIGINS: "https://kitehub.me,https://www.kitehub.me,https://kitehub-victoraurelius-projects.vercel.app"
+      # Wave 87 Bucket D (GAP-523 CORS scope): bổ sung app subdomain +
+      # Vercel primary hostname để cover các deployment FE đang dùng.
+      # Note: Spring Cloud Gateway `allowedOrigins` không hỗ trợ wildcard "*";
+      # preview deploy wildcard cần `allowedOriginPatterns` riêng — defer
+      # nếu Phase 1 BETA cần Vercel preview chains.
+      CORS_ALLOWED_ORIGINS: "https://kitehub.me,https://www.kitehub.me,https://app.kitehub.me,https://kitehub.vercel.app,https://kitehub-victoraurelius-projects.vercel.app"
     ports:
       - "8080:8080"  # ALB target group kh_backend points here
     depends_on:
