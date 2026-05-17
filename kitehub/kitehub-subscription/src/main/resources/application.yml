@@ -68,6 +68,14 @@ spring:
   cache:
     type: caffeine
 
+# GAP-605 — outbox dispatcher poll + backoff config (Wave 91 Bucket A)
+outbox:
+  dispatcher:
+    enabled: ${OUTBOX_DISPATCHER_ENABLED:true}
+    poll-interval-ms: ${OUTBOX_DISPATCHER_POLL_INTERVAL_MS:10000}
+    backoff-min-minutes: ${OUTBOX_DISPATCHER_BACKOFF_MIN_MINUTES:5}
+    batch-size: ${OUTBOX_DISPATCHER_BATCH_SIZE:50}
+
 server:
   port: ${SERVER_PORT:8081}
 
