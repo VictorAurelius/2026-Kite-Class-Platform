@@ -371,8 +371,24 @@ jobs:
       # - release-tag.yml fires first → creates GitHub Release shell
       # - docker-build-push.yml then attaches SBOMs/signs to that Release
       # - Trivy SARIF gates production strictly (exit-code 1)
-      - name: Upload Trivy SARIF to GitHub Security
+      # Skip SARIF upload if Trivy scan didn't run (e.g. earlier step failed
+      # due to OIDC/AWS auth — common when AWS account is suspended). Without
+      # this guard, GitHub UI surfaces "Code scanning configuration error —
+      # Trivy is reporting errors" because upload-sarif fails on missing file.
+      # Wave 91 GAP-612 incident 2026-05-17 surfaced cascade pattern.
+      - name: Check Trivy SARIF exists
+        id: check_sarif
         if: ${{ always() && !contains(github.ref, '-staging.') }}
+        run: |
+          if [[ -f "trivy-results-${{ matrix.service }}.sarif" ]]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning ::Trivy SARIF missing (likely earlier step failed); skipping upload"
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload Trivy SARIF to GitHub Security
+        if: ${{ always() && !contains(github.ref, '-staging.') && steps.check_sarif.outputs.exists == 'true' }}
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-results-${{ matrix.service }}.sarif'
