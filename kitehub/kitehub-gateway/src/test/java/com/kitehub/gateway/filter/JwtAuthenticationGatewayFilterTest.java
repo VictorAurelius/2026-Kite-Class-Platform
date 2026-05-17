@@ -183,9 +183,75 @@ class JwtAuthenticationGatewayFilterTest {
         assertThat(filter.isPublicPath("/actuator/health")).isTrue();
         assertThat(filter.isPublicPath("/docs/swagger.json")).isTrue();
         assertThat(filter.isPublicPath("/fallback/auth")).isTrue();
+        // GAP-610 / GAP-611 (Wave 91 Bucket D) — lock down beta signup public paths.
+        // GAP-610: GET /api/v1/auth/beta-signup/validate?token=... — invitee pre-fill.
+        // GAP-611: POST /api/v1/auth/beta-signup — invitee redeems token + provisions tenant.
+        // Both must be public (no JWT) so the gateway filter does NOT short-circuit them.
+        assertThat(filter.isPublicPath("/api/v1/auth/beta-signup")).isTrue();
+        assertThat(filter.isPublicPath("/api/v1/auth/beta-signup/validate")).isTrue();
+        assertThat(filter.isPublicPath("/api/v1/auth/beta-signup/exchange-claim-code")).isTrue();
         // Private paths
         assertThat(filter.isPublicPath("/api/v1/admin/beta-requests")).isFalse();
         assertThat(filter.isPublicPath("/api/v1/instances")).isFalse();
+    }
+
+    /**
+     * GAP-611 (Wave 91 Bucket D) — explicit live-request bypass test for
+     * {@code POST /api/v1/auth/beta-signup}. Prevents future filter regression
+     * where {@link JwtAuthenticationGatewayFilter#isPublicPath} could be
+     * tightened (e.g., switched to exact-match prefix matrix) without noticing
+     * that the beta signup completion path stops bypassing.
+     *
+     * <p>The endpoint is unauthenticated by design: invitees do not have a JWT
+     * yet — they are redeeming a single-use {@code invite_token} UUID to
+     * create their first tenant + owner account.</p>
+     */
+    @Test
+    @DisplayName("GAP-611: POST /api/v1/auth/beta-signup bypasses JWT filter (no Authorization header)")
+    void postBetaSignupBypassesFilter() {
+        MockServerHttpRequest req = MockServerHttpRequest
+                .post("http://localhost/api/v1/auth/beta-signup")
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(req);
+        CapturingChain chain = new CapturingChain();
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        assertThat(chain.captured).isNotNull();
+        ServerHttpRequest forwarded = chain.captured.getRequest();
+        // Public path bypass MUST NOT inject identity headers.
+        assertThat(forwarded.getHeaders().getFirst(JwtAuthenticationGatewayFilter.HEADER_USER_ID))
+                .isNull();
+        assertThat(forwarded.getHeaders().getFirst(JwtAuthenticationGatewayFilter.HEADER_USER_ROLES))
+                .isNull();
+        // Filter MUST NOT short-circuit with 401/403.
+        assertThat(exchange.getResponse().getStatusCode()).isNull();
+    }
+
+    /**
+     * GAP-610 (Wave 91 Bucket D) — explicit live-request bypass test for
+     * {@code GET /api/v1/auth/beta-signup/validate?token=...}. Same rationale
+     * as the GAP-611 case above; this is the deep-link entry point invitees
+     * land on from the email magic link.
+     */
+    @Test
+    @DisplayName("GAP-610: GET /api/v1/auth/beta-signup/validate bypasses JWT filter")
+    void getBetaSignupValidateBypassesFilter() {
+        MockServerHttpRequest req = MockServerHttpRequest
+                .get("http://localhost/api/v1/auth/beta-signup/validate"
+                        + "?token=98446443-e5cc-43e9-9498-6799d460d2db")
+                .build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(req);
+        CapturingChain chain = new CapturingChain();
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        assertThat(chain.captured).isNotNull();
+        ServerHttpRequest forwarded = chain.captured.getRequest();
+        assertThat(forwarded.getHeaders().getFirst(JwtAuthenticationGatewayFilter.HEADER_USER_ID))
+                .isNull();
+        assertThat(exchange.getResponse().getStatusCode()).isNull();
     }
 
     @Test
