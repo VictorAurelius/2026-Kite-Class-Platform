@@ -83,4 +83,5 @@ User responds to AWS verification request. Wait approval.
 
 ## Log
 
+- **2026-05-17 (case opened):** AWS Support case **177903869600100** opened by user via Account Activation flow with full reinstate request body (use case details + cross-ref to existing case 177857212400418). AWS responded with first correspondence within 5 minutes (likely auto-acknowledge OR agent first-pass). User must login Support Center to read response content (suspension blocks resources but NOT support console access). Existing SES case 177857212400418 also received new correspondence same window — likely AWS consolidating both cases. Awaiting user-pasted reply content for next-step analysis.
 - **2026-05-17:** Gap filed during Wave 90 walkthrough. Recovery sequence documented for user resume. Session ended mid-walkthrough; 7 walkthrough gaps (GAP-605..611) parked until AWS restoration.
