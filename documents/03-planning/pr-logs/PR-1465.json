@@ -1,0 +1,33 @@
+{
+  "pr": 1465,
+  "title": "fix(kitehub-admin): YAML duplicate `server:` key + GAP-517 post-deploy audit",
+  "branch": "claude/wave-87-yaml-fix-and-audit",
+  "created_at": null,
+  "merged_at": "2026-05-17T11:01:36Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-17T18:01:52.478283",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 3,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-181934"
+  }
+}

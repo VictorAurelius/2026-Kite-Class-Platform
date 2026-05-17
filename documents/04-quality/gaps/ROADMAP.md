@@ -89,6 +89,32 @@
 - Agent design assumed SSM Parameter Store but user pre-populated Secrets Manager → PR #1403 align.
 - Hot-fixes on EC2 surface 3 PM2 ecosystem.config.js bugs + AL2023 certbot no systemd units → repo source bugs tracked GAP-572..574.
 
+### 🚀 Next Action — Wave 88 SHIPPED + Wave 89 GAP-604 P0 gateway JWT propagation (2026-05-17)
+
+**Wave 88 — Vercel decommission + cutover (CLOSED 2026-05-17):**
+- All 3 workflows executed under user "claude trigger" authorization
+- Gates A+B+C all green: deploy-production (gateway CORS) + terraform-apply (EIP + IAM + SNS) + cloudflare-apex-cutover (DNS flip)
+- Production cutover complete: `kitehub.me` + `app.kitehub.me` → EIP `52.221.161.175` (NOT Vercel)
+- FE rebuild với `NEXT_PUBLIC_API_URL=https://api.kitehub.me` (Wave 82 Bucket C miss fixed)
+- Admin YAML duplicate `server:` key fixed (PR #1465 merge + tag staging.20)
+- Claude Playwright walkthrough: Anonymous 11/11 PASS, Platform_Admin 10/24 PASS + 9 BLOCKED by GAP-604
+- Audit: `documents/04-quality/audits/aws-verification/2026-05-17-wave-88-cutover-post-apply.md`
+- Vercel auto-deploy disabled (PR #1474). User actions Wave 88 step 2-3 (dashboard + GitHub App) still pending — không block production
+
+**Wave 89 — P0 BLOCKER (must fix before beta cohort invite):**
+- **GAP-604 P0 Backend** — Gateway thiếu `JwtAuthenticationGatewayFilter`. Admin endpoints all 401 dù JWT valid. `kitehub-gateway` cần implement filter convert `Authorization: Bearer <JWT>` → `X-User-Id` + `X-User-Roles` headers cho `XUserRolesHeaderFilter` downstream. Production admin operations completely non-functional.
+
+**Wave 89 P1 follow-ups:**
+- GAP-602 P1 — `pm2-ecosystem.config.js` cwd path mismatch monorepo
+- GAP-603 P1 — PM2 systemd auto-start on EC2 reboot
+- GAP-601 P2 — Ops-readiness audit deferred (run by 2026-05-20)
+
+**Pre-tenant gap cluster (defer Wave 90+ post GAP-604):** GAP-525 / GAP-514 / GAP-524 / GAP-515 / GAP-521
+
+**Manual split queue:** `documents/03-planning/inside-out-queue.md` 5th item — Wave 90+
+
+---
+
 ### 🚀 Next Action — Wave 87 SHIPPED + Wave 88 Vercel decommission queued (2026-05-17)
 
 **Wave 87 — Dev Self-Test Enablement (CLOSED 2026-05-17):**
