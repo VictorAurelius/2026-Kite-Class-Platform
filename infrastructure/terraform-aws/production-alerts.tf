@@ -25,7 +25,7 @@ resource "aws_sns_topic" "production_alerts" {
 
   tags = {
     Name    = "${var.project_name}-production-alerts"
-    Purpose = "Phase 1 BETA production-grade alerts (GAP-144 SNS-direct adaptation + GAP-583 RDS storage)"
+    Purpose = "Phase-1-BETA-production-alerts-GAP-144-SNS-direct-GAP-583-RDS-storage"
   }
 }
 

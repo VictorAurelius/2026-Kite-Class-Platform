@@ -3,7 +3,7 @@
   "ignoreCommand": "git diff --quiet HEAD^ HEAD -- :/kitehub/kitehub-frontend :/packages/shared-ui :/pnpm-lock.yaml :/package.json && exit 0 || exit 1",
   "git": {
     "deploymentEnabled": {
-      "main": true
+      "main": false
     }
   },
   "github": {

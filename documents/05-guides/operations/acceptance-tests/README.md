@@ -2,9 +2,19 @@
 
 **Rules:** [`.claude/rules/docs-folder-structure.md`](../../../../.claude/rules/docs-folder-structure.md) + [`.claude/rules/test-artifact-format-standard.md`](../../../../.claude/rules/test-artifact-format-standard.md) + [`.claude/rules/dev-readable-doc-language.md`](../../../../.claude/rules/dev-readable-doc-language.md)
 
-**Last Updated:** 2026-05-14
+**Last Updated:** 2026-05-17
 
 Folder này chứa các **acceptance test matrices** cho mỗi release tag. Mỗi matrix là file CSV canonical với hàng = bước test, cột = thuộc tính (persona, hành động, kết quả mong đợi, verify, status). User mở CSV trong spreadsheet, walk qua từng row, tick status — không cần soạn dữ liệu (mọi `input_data` đã pre-fill).
+
+---
+
+## Phase 1 BETA workaround — Vercel direct URL trong `verify_via`
+
+Trong Wave 87 Bucket C, cột `verify_via` đã được patch để dùng `https://kitehub.vercel.app/<path>` thay cho `https://kitehub.me/<path>` vì CF→origin proxy chain trên apex `kitehub.me` đang TIMEOUT (xem audit Wave 86 `documents/04-quality/audits/acceptance-tests/2026-05-16-wave-86-pretag-self-test-results.md` §3.2 endpoint baseline). API endpoints `api.kitehub.me` vẫn dùng CF bình thường — chỉ FE TLD bị broken.
+
+Cột `action` + `input_data` giữ nguyên URL `kitehub.me` vì đó là URL mà user **sẽ visit** sau khi CF cutover (PR #1466 5-gate workflow); cột `verify_via` chỉ rõ Vercel direct URL = endpoint actually-working hôm nay.
+
+**Revert plan:** sau khi PR #1466 (EIP + Cloudflare apex cutover) execute thành công ở Wave 88+, revert `verify_via` về `kitehub.me` để align cả 3 cột (`action` / `input_data` / `verify_via`).
 
 ---
 
@@ -88,6 +98,26 @@ Move sang `documents/07-archived/acceptance-tests-YYYY/` khi:
 
 - [Phase 1 BETA Acceptance Self-Test Matrix](phase-1-beta-acceptance-self-test.csv) — 126 rows, cover P1+P2 owner + admin + email-driven flows. Companion README: [`phase-1-beta-acceptance-self-test.md`](phase-1-beta-acceptance-self-test.md)
 - Render script: [`scripts/render-acceptance-test-xlsx.sh`](../../../../scripts/render-acceptance-test-xlsx.sh)
+
+---
+
+## ⚠️ Concurrent browser session — multi-actor walkthrough
+
+Khi acceptance test yêu cầu mở nhiều tab cùng lúc (vd admin tab A + tenant owner tab B để verify multi-actor flow), **PHẢI dùng 2 browser profiles riêng biệt** (Chrome profile 1 + Chrome profile 2, hoặc Chrome + Firefox), **KHÔNG mở 2 tab trên cùng domain** `kitehub.me`.
+
+**Lý do** (per [GAP-599](../../../04-quality/gaps/GAP-599-jwt-tab-collide-storage-isolation.md) P0):
+
+- FE auth storage hiện dùng `localStorage['accessToken']` single-key per origin
+- Browser invariant: `localStorage` shared across mọi tab cùng origin
+- → Tab A login admin → tab B login tenant → JWT của tab A bị ghi đè → tab A submit form sau đó dùng JWT của tab B → 403 hoặc cross-tenant data leak
+
+**Workaround pre-fix:**
+
+1. **Option A (preferred):** Mở Chrome → click avatar góc phải → "Add" → tạo profile thứ 2 → mỗi profile cho 1 actor
+2. **Option B:** Dùng 2 browser khác nhau (Chrome cho admin + Firefox cho tenant)
+3. **Option C (incognito):** Profile thường + Incognito window — 2 storage scope tách biệt (cẩn thận: incognito clear khi đóng window)
+
+Cleanup giữa các session walkthrough: nếu abort flow giữa chừng và gặp `409 Conflict` khi re-submit cùng email → chạy `bash scripts/dev/self-test-reset.sh` (Wave 87 Bucket B) HOẶC chờ scheduled cleanup landing (per [GAP-600](../../../04-quality/gaps/GAP-600-beta-request-abort-cleanup.md) P1, Wave 88+).
 
 ---
 

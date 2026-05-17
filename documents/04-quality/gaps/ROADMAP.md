@@ -89,6 +89,31 @@
 - Agent design assumed SSM Parameter Store but user pre-populated Secrets Manager → PR #1403 align.
 - Hot-fixes on EC2 surface 3 PM2 ecosystem.config.js bugs + AL2023 certbot no systemd units → repo source bugs tracked GAP-572..574.
 
+### 🚀 Next Action — Wave 87 SHIPPED + Wave 88 Vercel decommission queued (2026-05-17)
+
+**Wave 87 — Dev Self-Test Enablement (CLOSED 2026-05-17):**
+- 5 batch-1 PRs merged: A seed+creds #1470 / B preflight+reset #1469 / C CSV refine #1472 / D CORS+state-check sync #1471 / E new gaps #1468
+- Walkthrough audit PR #1473 (11 Anonymous Vercel URLs PASS + API health UP + GAP-523 CORS apex `kitehub.me` ✅ nhưng subdomain `app.kitehub.me` + `kitehub.vercel.app` còn 403)
+- Wave 88 PR #1474 ship: rule `no-vercel-references.md` v1.0.0 + `vercel.json` `deploymentEnabled: false` × 2 (auto-deploy disabled)
+- Dev self-test toolchain ready: `bash scripts/dev/self-test-preflight.sh && bash scripts/dev/seed-personas.sh && bash scripts/render-acceptance-test-xlsx.sh phase-1-beta-acceptance-self-test`
+- Bucket F (Playwright storageState) defer Wave 88+
+- 2 new gaps filed: GAP-599 (P0 JWT tab collide) + GAP-600 (P1 beta_request abort cleanup)
+
+**Wave 88 — Vercel decommission + cutover queue:**
+- Step 1/3: ✅ DONE (vercel.json `deploymentEnabled: false` × 2 — auto-deploy off)
+- Step 2/3: ⏳ USER ACTION — disconnect repo trong Vercel dashboard
+- Step 3/3: ⏳ USER ACTION — uninstall Vercel GitHub App / scope khỏi repo
+- Bucket B (sweep planning docs Vercel refs) — defer agent spawn
+- Bucket C (sweep code Vercel refs) — defer agent spawn
+- Bucket D (PR #1466 5-gate cutover execute): ⏳ DEV TRIGGER required (per `dev-authorized-terraform-trigger.md`)
+- Bucket E (post-cutover Tier 1 verify) — gates after D
+
+**Pre-tenant gap cluster (queue Wave 88+):** GAP-525 beta signup / GAP-514 rate-limit / GAP-524 email verify / GAP-515 lockout / GAP-521 audit log entity — defer post-walkthrough-1 để prioritize đúng
+
+**Manual split queue (Wave 88+):** professional vs end-user manual track per `documents/03-planning/inside-out-queue.md` (5th item)
+
+---
+
 ### 🚀 Next Action — Wave 86 expanded scope post Bucket A outside-in audits 2026-05-15 (4 P0 BLOCKERS + 21 AC additions + 17 NEW gaps GAP-582..598)
 
 Per [`wave-2026-05-15-86-rc1-tag-preflight.md`](../../03-planning/waves/wave-2026-05-15-86-rc1-tag-preflight.md) integration shipped this PR. 3 outside-in audit artifacts merged main qua PR #1432 (persona-outside-in 5×5 / benchmark-vn-saas-edu 10Qs / simulation-3axis 28 cells) converged **4 P0 BLOCKERS** + **21 AC additions distributed Bucket B-H** + **17 NEW gaps** filed.
@@ -102,6 +127,7 @@ Per [`wave-2026-05-15-86-rc1-tag-preflight.md`](../../03-planning/waves/wave-202
 **17 NEW gaps filed (Wave 86 OR defer):**
 - Bucket-paired (Wave 86): GAP-582 OAuth idempotency P1, GAP-583 RDS storage alarm P1, GAP-584 CF magic-link **P0**, GAP-585 cookie consent **P0**, GAP-586 P1 invite email P1, GAP-587 P3 invite email P1, GAP-588 P2 onboarding wizard P1, GAP-589 admin bounce+impersonate P1, GAP-590 email expiry policy P1, GAP-591 cohort retention D7/D14/D30 P1, GAP-592 SLA published P2
 - Defer Wave 87+: GAP-593 Most Popular badge P3, GAP-594 refund policy P2, GAP-595 landing CTA+demo P1, GAP-596 form inline validation P2, GAP-597 P2 invite management P2, GAP-598 P3 edit-window+P2 unlock P2
+- Defer Wave 88+: **[GAP-599](GAP-599-jwt-tab-collide-storage-isolation.md) P0 JWT tab collide** (FE localStorage single-key → multi-actor walkthrough flaky; Wave 87 Bucket E docs mitigation shipped, sessionStorage fix Wave 88+), **[GAP-600](GAP-600-beta-request-abort-cleanup.md) P1 beta_requests abort cleanup** (no scheduled job cho stale PENDING rows; Bucket B reset script partial mitigation, @Scheduled fix Wave 88+) — Wave 87 outside-in audit #3 failure-mode matrix new finds
 
 **Wave 86 scope expansion:** AC count B(3) + C(3) + D(1) + E(7) + F(2) + G(7) + H(14) = **37 ACs** (was 9 acceptance gates). `estimated_wall_clock` 14-20h → 24-30h.
 
