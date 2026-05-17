@@ -17,7 +17,10 @@ import org.springframework.test.context.TestPropertySource;
         "spring.datasource.driver-class-name=org.h2.Driver",
         "spring.jpa.hibernate.ddl-auto=create-drop",
         "spring.cloud.gateway.enabled=false",
-        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration"
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration",
+        // GAP-604 (Wave 89 Bucket A): JwtAuthenticationGatewayFilter fail-fast tại
+        // startup nếu JWT_SECRET không set hoặc <32 bytes. Test secret đủ length cho HS256.
+        "jwt.secret=test-secret-32-bytes-minimum-1234"
 })
 class KiteHubGatewayApplicationTest {
 
