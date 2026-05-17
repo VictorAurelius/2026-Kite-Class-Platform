@@ -1,10 +1,12 @@
 ---
 title: Wave 87 — Dev Self-Test Enablement
-status: draft
+status: complete
 created: 2026-05-17
 updated: 2026-05-17
+closed: 2026-05-17
 waves: [87]
-gaps: [GAP-518, GAP-519, GAP-523]
+gaps: [GAP-518, GAP-519, GAP-523, GAP-599, GAP-600]
+prs: [1467, 1468, 1469, 1470, 1471, 1472, 1473, 1474]
 ---
 
 # Wave 87 — Dev Self-Test Enablement
@@ -262,4 +264,5 @@ Per `post-wave-cleanup.md` + `gap-done-discipline.md` + `post-merge-sync-complet
 
 ## 8. Log
 
+- **2026-05-17 (closure):** Wave 87 SHIPPED. Batch 1 = 5 PRs merged (E #1468 + C #1472 + B #1469 + A #1470 + D #1471). Bucket F (Playwright storageState) defer Wave 88+ — không spawn vì stack/browser unavailable in sandbox + scope đã đủ unblock dev walkthrough. Bucket D agent surprise finding: GAP-518 PARTIAL 90% + GAP-519 PARTIAL 80% (đã shipped code-side Wave 72a+78); GAP-523 CSV row = META audit-rubric DONE (ID collision với plan reference) — actual CORS scope landed via `docker-compose.production.yml` env override. Claude walkthrough audit (PR #1473) phát hiện GAP-523 CORS fix PARTIAL — `kitehub.me` apex PASS nhưng `app.kitehub.me` + `kitehub.vercel.app` subdomain vẫn 403 (production chưa pull commit bb615fba OR Spring Cloud Gateway reads CORS từ path khác). Wave 88 PR #1474 đã ship: new rule `no-vercel-references.md` + `vercel.json` `deploymentEnabled: false` × 2 (Vercel auto-deploy disabled). Inside-out queue +1 item "manual split professional vs end-user" appended same wave. Pre-tenant gaps GAP-525/514/524/515/521 defer Wave 88. CF apex cutover (PR #1466 5-gate) defer Wave 88 Bucket D. Net new gaps filed: GAP-599 (P0 JWT tab collide), GAP-600 (P1 beta_request abort cleanup).
 - **2026-05-17:** Wave 87 plan drafted. Scope locked via AskUserQuestion explicit (4 buckets recommended + Bucket E + F, defer pre-tenant gaps Wave 88). Outside-in audit 3-agent parallel run (persona / external-benchmark / failure-matrix) consolidated trong §1 Brainstorm Q1. Inside-out queue file (4 items) cross-referenced — non-overlap với Wave 87 scope, defer Wave 88+. CF apex cutover (PR #1466 5-gate) separate dev-execute track, not in this wave.
