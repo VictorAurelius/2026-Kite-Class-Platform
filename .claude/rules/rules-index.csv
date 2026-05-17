@@ -70,3 +70,4 @@ pre-launch-secrets-hardening-checklist,MANDATORY,1.0.1,2026-05-14,2026-05-14,pre
 user-manual-content-standard,MANDATORY,1.0.0,2026-05-14,2026-05-14,user-manual-content-standard.md,"documents/05-guides/user-manual/**,kitehub/kitehub-frontend/src/app/help/**",active,,
 audit-service-isolation,MANDATORY,1.0.0,2026-05-16,2026-05-16,audit-service-isolation.md,**/*Service.java;**/*Service*.java,active,,
 postgres-specific-type-testcontainers,MANDATORY,1.0.0,2026-05-16,2026-05-16,postgres-specific-type-testcontainers.md,**/*.java,active,,
+no-vercel-references,MANDATORY,1.0.0,2026-05-17,2026-05-17,no-vercel-references.md,"documents/03-planning/**,documents/01-business/**,documents/02-architecture/adr/**,documents/05-guides/**,documents/04-quality/gaps/GAP-*.md,.claude/rules/**,.claude/skills/**,**/vercel.json,.github/workflows/*.yml,kitehub/kitehub-frontend/src/**,kiteclass/kiteclass-frontend/src/**",active,,
