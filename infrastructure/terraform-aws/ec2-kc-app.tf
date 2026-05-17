@@ -223,6 +223,18 @@ locals {
     dnf install -y nodejs
     npm install -g pm2 pnpm
 
+    # =========================================================================
+    # GAP-603 (Wave 89 Bucket B 2026-05-17): wire pm2 startup systemd
+    # =========================================================================
+    # Generate /etc/systemd/system/pm2-ec2-user.service va enable boot-start.
+    # `pm2 startup systemd` output sudo command; pipe |sh execute. Idempotent —
+    # re-run safe (overwrites existing service file). pm2 save chay sau khi
+    # deploy script start cac process (KHONG run o day vi PM2 chua co process).
+    sudo -u ec2-user pm2 startup systemd -u ec2-user --hp /home/ec2-user \
+      2>&1 | grep -E '^sudo ' | sh || true
+    # Verify unit installed (idempotent log marker; alarm noisy nhung debug-friendly)
+    systemctl list-unit-files pm2-ec2-user.service >> /var/log/kite-fe-bootstrap.log 2>&1 || true
+
     # Certbot + Cloudflare DNS plugin (GAP-567)
     pip3 install --upgrade certbot certbot-dns-cloudflare
 

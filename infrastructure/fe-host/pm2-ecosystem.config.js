@@ -21,13 +21,21 @@
 //   Per app cap    = 1.2 GB (max_memory_restart)
 //   Nominal cap    = 2.4 GB total → swapfile 2GB gánh overhead (GAP-566)
 //
-// Triển khai:
+// Triển khai (Wave 89 Bucket B GAP-602 fix — monorepo nested standalone layout):
 //   sudo mkdir -p /var/www/{kitehub,kiteclass}-frontend
-//   # rsync .next/standalone + .next/static + public từ build artifact
+//   # rsync FULL monorepo workspace tree từ build artifact (preserves
+//   # workspace structure that Next.js standalone bake-output reproduces).
 //   sudo cp infrastructure/fe-host/pm2-ecosystem.config.js /var/www/pm2-ecosystem.config.js
 //   sudo -u ec2-user pm2 start /var/www/pm2-ecosystem.config.js
 //   sudo -u ec2-user pm2 save             # persist process list
-//   sudo pm2 startup systemd -u ec2-user  # auto-start on reboot
+//   sudo pm2 startup systemd -u ec2-user  # auto-start on reboot (GAP-603 wired
+//                                         # vào ec2-kc-app.tf user_data — re-runnable safe)
+//
+// GAP-602 fix (Wave 89 Bucket B 2026-05-17): cwd path đã sửa từ
+// `/var/www/<app>/.next/standalone` (non-monorepo layout giả định) sang
+// `/var/www/<app>/<workspace>/<app>` (monorepo nested standalone layout) để
+// match thực tế `pnpm --filter <app> build` standalone output preserve
+// workspace structure. Wave 88 manual deploy bypass đã verify path đúng.
 //
 // Graceful deploy (zero-downtime reload sau khi rsync artifact mới):
 //   pm2 reload pm2-ecosystem.config.js --update-env
@@ -48,10 +56,13 @@ module.exports = {
       name: 'kitehub-frontend',
 
       // cwd: thư mục chứa server.js standalone Next.js generate.
-      // .next/standalone/ là output của `output: 'standalone'` (next.config.js).
-      // Trước khi PM2 start phải rsync .next/static + public vào đây
+      // GAP-602 fix (Wave 89 Bucket B 2026-05-17): monorepo nested layout.
+      // `pnpm --filter kitehub-frontend build` với `output: 'standalone'`
+      // preserve workspace tree → server.js ở `<root>/kitehub/kitehub-frontend/server.js`
+      // (KHÔNG phải `<root>/.next/standalone/server.js` non-monorepo giả định).
+      // Trước khi PM2 start phải rsync .next/static + public vào folder này
       // (Next standalone KHÔNG tự copy 2 folder này — bug-by-design).
-      cwd: '/var/www/kitehub-frontend/.next/standalone',
+      cwd: '/var/www/kitehub-frontend/kitehub/kitehub-frontend',
 
       // script: file Node.js entrypoint. Next standalone generate `server.js`
       // tại root của standalone folder. PM2 chạy `node server.js`.
@@ -155,7 +166,8 @@ module.exports = {
     {
       name: 'kiteclass-frontend',
 
-      cwd: '/var/www/kiteclass-frontend/.next/standalone',
+      // GAP-602 fix (Wave 89 Bucket B): monorepo nested layout — see comment trên kitehub-frontend
+      cwd: '/var/www/kiteclass-frontend/kiteclass/kiteclass-frontend',
       script: 'server.js',
 
       exec_mode: 'fork',

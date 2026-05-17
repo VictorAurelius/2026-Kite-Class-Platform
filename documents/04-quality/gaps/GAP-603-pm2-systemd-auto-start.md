@@ -1,6 +1,6 @@
 # GAP-603: PM2 systemd auto-start on EC2 reboot chưa wired
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** DevOps
 **Found:** 2026-05-17 (Wave 88 Bucket D FE deploy)
@@ -65,3 +65,4 @@ aws ssm send-command --instance-ids i-05cfda7c6c60b683f --document-name AWS-RunS
 ## Log
 
 - **2026-05-17:** Gap filed during Wave 88 closure. Manual PM2 process list saved via `pm2 save` but no systemd resurrect → reboot will lose state.
+- **2026-05-17 (Wave 89 Bucket B PARTIAL):** Code ship — `infrastructure/terraform-aws/ec2-kc-app.tf` user_data block extended với `pm2 startup systemd -u ec2-user --hp /home/ec2-user | grep '^sudo ' | sh` (idempotent re-run safe). Approach: `pm2 startup systemd` (PM2 best practice — generates `/etc/systemd/system/pm2-ec2-user.service` automatically) chứ KHÔNG tạo separate systemd unit files cho từng app (avoid duplication; PM2-managed resurrect là canonical pattern). Runbook ship. **Terraform apply deferred** — needs user trigger `terraform-apply.yml` workflow_dispatch per `dev-authorized-terraform-trigger.md`; sẽ trigger EC2 user_data update cycle (per `concurrent-production-mutation-ops.md` §2 — `aws_instance.user_data` requires stop→ModifyInstanceAttribute→start). **Live reboot verify deferred** per `gap-done-discipline.md` §3 — chờ user maintenance window. Status PARTIAL ~70% (code complete; AC #1-#4 chờ user trigger terraform apply + EC2 reboot test).

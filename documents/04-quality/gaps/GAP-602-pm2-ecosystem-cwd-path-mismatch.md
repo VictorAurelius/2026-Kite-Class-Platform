@@ -1,6 +1,6 @@
 # GAP-602: pm2-ecosystem.config.js cwd path mismatch monorepo standalone
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** DevOps
 **Found:** 2026-05-17 (Wave 88 Bucket D FE deploy)
@@ -73,3 +73,4 @@ Update fe-self-host-runbook.md §4.2 to reflect monorepo standalone layout.
 ## Log
 
 - **2026-05-17:** Gap filed during Wave 88 closure. Manual `pm2 start server.js` workaround active on kc-app-fe. Reboot will lose PM2 state.
+- **2026-05-17 (Wave 89 Bucket B PARTIAL):** Code ship — `infrastructure/fe-host/pm2-ecosystem.config.js` cwd field updated cho cả 2 apps (kitehub-frontend + kiteclass-frontend) sang monorepo nested path. `scripts/deploy-fe.sh` defensive script paired (explicit absolute config path). Runbook `documents/05-guides/deploy/pm2-systemd-auto-start.md` ship. **Live verify deferred** per `gap-done-discipline.md` §3 PARTIAL exit ramp — yêu cầu user trigger SSM re-deploy với new config (rsync + `pm2 reload`) + maintenance window. Companion GAP-603 systemd wire same PR. Status PARTIAL ~80% (code complete; live AC #2-#5 chờ user execute).
