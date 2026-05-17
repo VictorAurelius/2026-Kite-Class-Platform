@@ -44,7 +44,7 @@
         <postgresql.version>42.7.11</postgresql.version>
         <bouncycastle.version>1.84</bouncycastle.version>
         <!-- commons-lang3 3.18.0 fixes CVE-2025-48924 (Spring Boot 3.5.14 ships 3.17.0) -->
-        <commons-lang3.version>3.18.0</commons-lang3.version>
+        <commons-lang3.version>3.20.0</commons-lang3.version>
     </properties>
 
     <dependencyManagement>
