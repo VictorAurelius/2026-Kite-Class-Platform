@@ -2,9 +2,19 @@
 
 **Rules:** [`.claude/rules/docs-folder-structure.md`](../../../../.claude/rules/docs-folder-structure.md) + [`.claude/rules/test-artifact-format-standard.md`](../../../../.claude/rules/test-artifact-format-standard.md) + [`.claude/rules/dev-readable-doc-language.md`](../../../../.claude/rules/dev-readable-doc-language.md)
 
-**Last Updated:** 2026-05-14
+**Last Updated:** 2026-05-17
 
 Folder này chứa các **acceptance test matrices** cho mỗi release tag. Mỗi matrix là file CSV canonical với hàng = bước test, cột = thuộc tính (persona, hành động, kết quả mong đợi, verify, status). User mở CSV trong spreadsheet, walk qua từng row, tick status — không cần soạn dữ liệu (mọi `input_data` đã pre-fill).
+
+---
+
+## Phase 1 BETA workaround — Vercel direct URL trong `verify_via`
+
+Trong Wave 87 Bucket C, cột `verify_via` đã được patch để dùng `https://kitehub.vercel.app/<path>` thay cho `https://kitehub.me/<path>` vì CF→origin proxy chain trên apex `kitehub.me` đang TIMEOUT (xem audit Wave 86 `documents/04-quality/audits/acceptance-tests/2026-05-16-wave-86-pretag-self-test-results.md` §3.2 endpoint baseline). API endpoints `api.kitehub.me` vẫn dùng CF bình thường — chỉ FE TLD bị broken.
+
+Cột `action` + `input_data` giữ nguyên URL `kitehub.me` vì đó là URL mà user **sẽ visit** sau khi CF cutover (PR #1466 5-gate workflow); cột `verify_via` chỉ rõ Vercel direct URL = endpoint actually-working hôm nay.
+
+**Revert plan:** sau khi PR #1466 (EIP + Cloudflare apex cutover) execute thành công ở Wave 88+, revert `verify_via` về `kitehub.me` để align cả 3 cột (`action` / `input_data` / `verify_via`).
 
 ---
 
