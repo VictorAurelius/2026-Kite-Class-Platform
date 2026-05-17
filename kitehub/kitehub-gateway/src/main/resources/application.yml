@@ -676,6 +676,15 @@ resilience4j:
         baseConfig: default
         failureRateThreshold: 60
 
+# GAP-604 (Wave 89 Bucket A): JWT signing secret cho JwtAuthenticationGatewayFilter.
+# Phải match JWT_SECRET trong kitehub-subscription (issuer side) để gateway verify
+# được tokens subscription issue. Khi không set → filter throws IllegalStateException
+# tại startup (fail-fast, không silent skip). Per `pre-launch-secrets-hardening-checklist.md`
+# §2.1: env-var pull only, không hardcode default. Per `production-env-config-registry.md`
+# §3.1: registry tracks JWT_SECRET coverage qua AWS Secrets Manager.
+jwt:
+  secret: ${JWT_SECRET:}
+
 # Actuator endpoints
 management:
   endpoints:

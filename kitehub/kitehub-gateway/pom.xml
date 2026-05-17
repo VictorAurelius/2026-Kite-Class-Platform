@@ -101,6 +101,29 @@
             <artifactId>opentelemetry-exporter-otlp</artifactId>
         </dependency>
 
+        <!-- GAP-604 (Wave 89 Bucket A): JWT parsing tại gateway-edge để propagate
+             X-User-Id + X-User-Roles + X-User-Email headers xuống downstream services.
+             Version 0.13.0 pinned-match kitehub-subscription (issuer side) để parse
+             cùng token format. Per `pre-launch-dependency-hardening-checklist.md` §2.5
+             explicit version pin (BOM-OVERRIDE not applicable — jjwt outside Spring BOM). -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.13.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.13.0</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.13.0</version>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
