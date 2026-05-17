@@ -1,0 +1,33 @@
+{
+  "pr": 1467,
+  "title": "docs(wave-87): dev self-test enablement plan \u2014 6 buckets",
+  "branch": "wave/87-dev-self-test-enablement",
+  "created_at": null,
+  "merged_at": "2026-05-17T07:58:58Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-17T14:59:11.876525",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 2,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-20914"
+  }
+}
