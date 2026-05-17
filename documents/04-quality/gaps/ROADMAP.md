@@ -89,7 +89,26 @@
 - Agent design assumed SSM Parameter Store but user pre-populated Secrets Manager → PR #1403 align.
 - Hot-fixes on EC2 surface 3 PM2 ecosystem.config.js bugs + AL2023 certbot no systemd units → repo source bugs tracked GAP-572..574.
 
-### 🚀 Next Action — Wave 88 SHIPPED + Wave 89 GAP-604 P0 gateway JWT propagation (2026-05-17)
+### 🚀 Next Action — Wave 89 SHIPPED + Wave 90 user-action live verifies queued (2026-05-17)
+
+**Wave 89 — Gateway JWT + PM2 Ops Cluster (CLOSED 2026-05-17):**
+- 2 buckets parallel shipped via plan PR #1478 → Bucket A PR #1480 (gateway) → Bucket B PR #1479 (PM2)
+- **Bucket A:** `JwtAuthenticationGatewayFilter` (jjwt 0.13.0 pinned-match `kitehub-subscription`) + 7 unit test cases (56/56 mvn verify PASS); GAP-576 state-check verdict no-code-needed (routes already exist Wave 79+); GAP-604 PARTIAL 85% (live verify deferred)
+- **Bucket B:** `pm2-ecosystem.config.js` cwd fix (monorepo nested) + `pm2 startup systemd` wired vào `ec2-kc-app.tf` user_data + defensive `scripts/deploy-fe.sh` + runbook `documents/05-guides/deploy/pm2-systemd-auto-start.md`; GAP-602 PARTIAL 80% + GAP-603 PARTIAL 70% (terraform apply + EC2 reboot test deferred)
+- GAP-576 DONE 100% (no-code verdict)
+
+**Wave 90 — user-action live verifies (BLOCKER beta cohort onboarding):**
+- **GAP-604 live verify (P0):** `bash scripts/aws/start-stack.sh` → login admin → `curl -H "Authorization: Bearer $JWT" https://api.kitehub.me/api/v1/admin/beta-requests` → 200 expected (was 401)
+- **GAP-602 + GAP-603 live verify (P1):** `gh workflow run terraform-apply.yml -f confirm=APPLY` (dev-trigger per `dev-authorized-terraform-trigger.md`) → triggers EC2 user_data update → `pm2 startup systemd` runs; verify via `aws ec2 reboot-instances` + curl `https://kitehub.me/` returns 200 sans manual `pm2 start`
+- **GAP-601 ops-readiness audit (P2):** scheduled by 2026-05-20 per AUDIT_OVERRIDE Wave 88 trailer
+
+**Pre-tenant gap cluster (defer Wave 91+ post GAP-604 live verify):** GAP-525 / GAP-514 / GAP-524 / GAP-515 / GAP-521
+
+**Manual split queue:** `documents/03-planning/inside-out-queue.md` 5th item — Wave 91+
+
+---
+
+### 🚀 Next Action — Wave 88 SHIPPED + Wave 89 GAP-604 P0 gateway JWT propagation (2026-05-17) [historical]
 
 **Wave 88 — Vercel decommission + cutover (CLOSED 2026-05-17):**
 - All 3 workflows executed under user "claude trigger" authorization
