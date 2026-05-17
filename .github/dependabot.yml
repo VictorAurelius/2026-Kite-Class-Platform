@@ -261,6 +261,11 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
+      # Wave 91 closure (2026-05-18): Java 26 preview not aligned with Spring Boot
+      # 3.x stable (max Java 23). Pin maven base ≤ Java 17 LTS until Java 25 LTS
+      # ships + Spring certifies support. Revisit Q3 2026.
+      - dependency-name: "maven"
+        versions: ["3.9-eclipse-temurin-1[89]-*", "3.9-eclipse-temurin-2[0-9]-*"]
 
   - package-ecosystem: docker
     directory: "/kiteclass/kiteclass-frontend"
@@ -312,6 +317,11 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
+      # Wave 91 closure (2026-05-18): Java 26 preview not aligned with Spring Boot
+      # 3.x stable (max Java 23). Pin maven base ≤ Java 17 LTS until Java 25 LTS
+      # ships + Spring certifies support. Revisit Q3 2026.
+      - dependency-name: "maven"
+        versions: ["3.9-eclipse-temurin-1[89]-*", "3.9-eclipse-temurin-2[0-9]-*"]
 
   - package-ecosystem: docker
     directory: "/kitehub/kitehub-admin"
@@ -337,6 +347,11 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
+      # Wave 91 closure (2026-05-18): Java 26 preview not aligned with Spring Boot
+      # 3.x stable (max Java 23). Pin maven base ≤ Java 17 LTS until Java 25 LTS
+      # ships + Spring certifies support. Revisit Q3 2026.
+      - dependency-name: "maven"
+        versions: ["3.9-eclipse-temurin-1[89]-*", "3.9-eclipse-temurin-2[0-9]-*"]
 
   - package-ecosystem: docker
     directory: "/kitehub/kitehub-base"
@@ -362,6 +377,11 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
+      # Wave 91 closure (2026-05-18): Java 26 preview not aligned with Spring Boot
+      # 3.x stable (max Java 23). Pin maven base ≤ Java 17 LTS until Java 25 LTS
+      # ships + Spring certifies support. Revisit Q3 2026.
+      - dependency-name: "maven"
+        versions: ["3.9-eclipse-temurin-1[89]-*", "3.9-eclipse-temurin-2[0-9]-*"]
 
   - package-ecosystem: docker
     directory: "/kitehub/kitehub-branding"
@@ -387,6 +407,11 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
+      # Wave 91 closure (2026-05-18): Java 26 preview not aligned with Spring Boot
+      # 3.x stable (max Java 23). Pin maven base ≤ Java 17 LTS until Java 25 LTS
+      # ships + Spring certifies support. Revisit Q3 2026.
+      - dependency-name: "maven"
+        versions: ["3.9-eclipse-temurin-1[89]-*", "3.9-eclipse-temurin-2[0-9]-*"]
 
   - package-ecosystem: docker
     directory: "/kitehub/kitehub-email"
@@ -412,6 +437,11 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
+      # Wave 91 closure (2026-05-18): Java 26 preview not aligned with Spring Boot
+      # 3.x stable (max Java 23). Pin maven base ≤ Java 17 LTS until Java 25 LTS
+      # ships + Spring certifies support. Revisit Q3 2026.
+      - dependency-name: "maven"
+        versions: ["3.9-eclipse-temurin-1[89]-*", "3.9-eclipse-temurin-2[0-9]-*"]
 
   - package-ecosystem: docker
     directory: "/kitehub/kitehub-frontend"
@@ -463,6 +493,11 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
+      # Wave 91 closure (2026-05-18): Java 26 preview not aligned with Spring Boot
+      # 3.x stable (max Java 23). Pin maven base ≤ Java 17 LTS until Java 25 LTS
+      # ships + Spring certifies support. Revisit Q3 2026.
+      - dependency-name: "maven"
+        versions: ["3.9-eclipse-temurin-1[89]-*", "3.9-eclipse-temurin-2[0-9]-*"]
 
   - package-ecosystem: docker
     directory: "/kitehub/kitehub-subscription"
@@ -488,3 +523,8 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
+      # Wave 91 closure (2026-05-18): Java 26 preview not aligned with Spring Boot
+      # 3.x stable (max Java 23). Pin maven base ≤ Java 17 LTS until Java 25 LTS
+      # ships + Spring certifies support. Revisit Q3 2026.
+      - dependency-name: "maven"
+        versions: ["3.9-eclipse-temurin-1[89]-*", "3.9-eclipse-temurin-2[0-9]-*"]
