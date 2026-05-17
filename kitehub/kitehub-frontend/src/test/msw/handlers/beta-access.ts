@@ -146,6 +146,53 @@ export const betaAccessHandlers: HttpHandler[] = [
   }),
 
   // ---------------------------------------------------------------
+  // POST /api/v1/auth/beta-signup/exchange-claim-code (GAP-609 Wave 91)
+  // ---------------------------------------------------------------
+  // Stub behavior keyed by claim code value for deterministic test cases:
+  //   "123456" → valid → returns inviteToken UUID
+  //   "000000" → CODE_EXPIRED
+  //   "111111" → ALREADY_USED
+  //   anything else → CODE_NOT_FOUND
+  http.post('*/api/v1/auth/beta-signup/exchange-claim-code', async ({ request }) => {
+    let body: { claimCode?: string };
+    try {
+      body = (await request.json()) as { claimCode?: string };
+    } catch {
+      return HttpResponse.json(
+        { valid: false, errorCode: 'CODE_NOT_FOUND' },
+        { status: 400 },
+      );
+    }
+    const code = body.claimCode ?? '';
+    if (code === '123456') {
+      return HttpResponse.json({
+        valid: true,
+        inviteToken: '00000000-0000-0000-0000-000000000001',
+        email: 'owner@example.edu.vn',
+        name: 'Trần Thị Hồng',
+        orgName: 'Trung tâm Anh ngữ Sky Education',
+        persona: 'P2_CENTER_OWNER',
+      });
+    }
+    if (code === '000000') {
+      return HttpResponse.json(
+        { valid: false, errorCode: 'CODE_EXPIRED' },
+        { status: 404 },
+      );
+    }
+    if (code === '111111') {
+      return HttpResponse.json(
+        { valid: false, errorCode: 'ALREADY_USED' },
+        { status: 404 },
+      );
+    }
+    return HttpResponse.json(
+      { valid: false, errorCode: 'CODE_NOT_FOUND' },
+      { status: 404 },
+    );
+  }),
+
+  // ---------------------------------------------------------------
   // GET /api/v1/admin/beta-requests (admin list stub — Bucket A guard target)
   // ---------------------------------------------------------------
   http.get('*/api/v1/admin/beta-requests', ({ request }) => {

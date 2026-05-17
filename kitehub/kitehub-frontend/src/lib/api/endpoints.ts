@@ -102,6 +102,8 @@ export const endpoints = {
     requestBetaAccess: '/api/v1/auth/request-beta-access',
     validateBetaToken: '/api/v1/auth/beta-signup/validate',
     completeBetaSignup: '/api/v1/auth/beta-signup',
+    // GAP-609 Wave 91 — claim code exchange (alternate path when email link unavailable)
+    exchangeClaimCode: '/api/v1/auth/beta-signup/exchange-claim-code',
   },
 
   // Admin coordinator endpoints (GAP-372 Wave 33)
