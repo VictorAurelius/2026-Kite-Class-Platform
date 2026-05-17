@@ -1,0 +1,33 @@
+{
+  "pr": 1482,
+  "title": "docs(wave-90): live verify \u2014 Wave 89 PRs all DONE (GAP-604+602+603)",
+  "branch": "wave/90-live-verify-closure",
+  "created_at": null,
+  "merged_at": "2026-05-17T16:31:15Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-17T23:31:29.475635",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 6,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-388186"
+  }
+}

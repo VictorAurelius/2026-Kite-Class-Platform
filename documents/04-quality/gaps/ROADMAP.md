@@ -89,7 +89,49 @@
 - Agent design assumed SSM Parameter Store but user pre-populated Secrets Manager → PR #1403 align.
 - Hot-fixes on EC2 surface 3 PM2 ecosystem.config.js bugs + AL2023 certbot no systemd units → repo source bugs tracked GAP-572..574.
 
-### 🚀 Next Action — Wave 90 SHIPPED (live verify all DONE) + Wave 91 backlog (2026-05-17)
+### 🚀 Next Action — AWS account SUSPENDED — production OUTAGE + Wave 91 BLOCKED until restore (2026-05-17)
+
+🔴 **GAP-612 AWS account 906286017800 suspended** mid-Wave-90 walkthrough phase 2. Production stack force-stopped (CF 522). Beta cohort onboarding fully blocked.
+
+**User action required (NOT Claude):**
+1. Check email `vannkite@outlook.com` + spam folder cho AWS verification request
+2. Reply to AWS với requested info
+3. Wait approval (24-72h typical)
+4. After restore: `aws sts get-caller-identity` → `bash scripts/aws/start-stack.sh` → resume Wave 91
+
+**Wave 90 walkthrough phase 2 surfaced 8 bugs (filed, queued Wave 91):**
+- GAP-605 P0 outbox dispatcher chưa implement (events stuck NULL)
+- GAP-606 P0 email template `admin-new-login-alert.html` MISSING
+- GAP-607 P1 RMQ DLQ chưa configured (poison messages infinite retry)
+- GAP-608 P0 EC2 IAM thiếu `ses:SendEmail`
+- GAP-609 P1 FE thiếu UI nhập claim code (chỉ accept ?token=UUID)
+- GAP-610 P0 GET validate token TOKEN_NOT_FOUND (RLS suspect)
+- GAP-611 P0 POST beta-signup 404 (gateway/security shadow OR Wave 89 JWT filter regression)
+- GAP-612 P0 AWS account suspension (account-level blocker)
+
+**Wave 90 phase 1 (live verify) DID succeed pre-suspension:**
+- GAP-604 admin endpoint 401→200 ✅
+- GAP-602 PM2 cwd ✅
+- GAP-603 PM2 systemd auto-start ✅
+
+**Walkthrough verified end-to-end PRE-suspension:**
+- Submit beta request → DB row PENDING ✅
+- Admin login → JWT ✅
+- Admin approve → DB row APPROVED + claim_code generated ✅
+- Email delivery → blocked by 4 infra bugs ❌
+- FE signup deep-link → blocked by 2 BE bugs ❌
+
+**Wave 91 sequence khi AWS restored:**
+1. Verify production state (curl + SSM)
+2. Plan Wave 91 cluster với 8 gaps (parallel buckets)
+3. Cluster A email infra (605/606/607/608)
+4. Cluster B beta signup (609/610/611)
+5. Live verify all → flip DONE
+6. Long-term follow-ups: P2 uptime monitoring + P2 DR plan
+
+---
+
+### 🚀 Next Action — Wave 90 SHIPPED (live verify all DONE) + Wave 91 backlog (2026-05-17) [historical — pre-suspension]
 
 **Wave 90 — Live verify Wave 89 (CLOSED 2026-05-17):**
 - Deploy `v0.9.0-beta-staging.21` (Wave 89 gateway + PM2 code) via `deploy-production.yml` ✅
