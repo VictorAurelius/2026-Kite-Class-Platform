@@ -67,6 +67,26 @@ resource "aws_iam_role_policy" "ec2_secrets_s3" {
           "${aws_s3_bucket.assets.arn}/*",
         ]
       },
+      # GAP-608 (Wave 91 Bucket B): SES SendEmail permission for kitehub-email
+      # service running on EC2. Required for beta-access signup confirmation +
+      # admin notification emails per Wave 91 plan §3 Bucket B.
+      # Resources scoped to kitehub.me domain identity + configuration-sets.
+      {
+        Sid    = "SesSendEmail"
+        Effect = "Allow"
+        Action = [
+          "ses:SendEmail",
+          "ses:SendRawEmail",
+          "ses:SendTemplatedEmail",
+          "ses:GetSendQuota",
+        ]
+        Resource = [
+          "arn:aws:ses:${var.aws_region}:${data.aws_caller_identity.current.account_id}:identity/kitehub.me",
+          "arn:aws:ses:${var.aws_region}:${data.aws_caller_identity.current.account_id}:identity/*@kitehub.me",
+          "arn:aws:ses:${var.aws_region}:${data.aws_caller_identity.current.account_id}:identity/*",
+          "arn:aws:ses:${var.aws_region}:${data.aws_caller_identity.current.account_id}:configuration-set/*",
+        ]
+      },
     ]
   })
 }
