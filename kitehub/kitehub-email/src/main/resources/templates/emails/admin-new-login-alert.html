@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="|Cảnh báo đăng nhập Admin - ${branding?.displayName ?: 'KiteHub'}|">Cảnh báo đăng nhập Admin</title>
+    <style th:inline="text">
+        :root {
+            --brand-primary: [[${branding?.primaryColor ?: '#667eea'}]];
+            --brand-secondary: [[${branding?.secondaryColor ?: '#764ba2'}]];
+            --alert-color: #DC2626;
+            --alert-bg: #FEF2F2;
+            --alert-border: #FCA5A5;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--alert-color) 0%, #991B1B 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header img.logo {
+            max-height: 60px;
+            margin-bottom: 12px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .alert-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #FFFFFF;
+            color: var(--alert-color);
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .login-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .login-table th,
+        .login-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #E5E7EB;
+            font-size: 14px;
+        }
+        .login-table th {
+            background: #F3F4F6;
+            font-weight: 600;
+            color: #374151;
+            width: 35%;
+        }
+        .login-table tr:last-child th,
+        .login-table tr:last-child td {
+            border-bottom: none;
+        }
+        .login-table td {
+            font-family: 'Courier New', monospace;
+            color: #111827;
+            word-break: break-all;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: var(--alert-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+        .action-box {
+            background: var(--alert-bg);
+            border-left: 4px solid var(--alert-color);
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 4px;
+        }
+        .action-box strong {
+            color: #991B1B;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+        .ok-box {
+            background: #F0FDF4;
+            border-left: 4px solid #16A34A;
+            padding: 12px 16px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #166534;
+            border-radius: 4px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+        .meta {
+            font-size: 13px;
+            color: #6B7280;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img class="logo" th:if="${branding?.logoUrl}" th:src="${branding.logoUrl}" alt="Logo"/>
+        <span class="alert-badge">🚨 Security Alert</span>
+        <h1>Đăng nhập mới vào tài khoản Admin</h1>
+    </div>
+
+    <div class="content">
+        <p>Xin chào Quản trị viên,</p>
+
+        <p th:text="|Hệ thống ${branding?.displayName ?: 'KiteHub'} vừa ghi nhận một lượt đăng nhập thành công vào tài khoản Admin của bạn từ một thiết bị hoặc địa chỉ IP chưa được nhận diện trong 24 giờ qua.|">
+            Hệ thống vừa ghi nhận một lượt đăng nhập mới vào tài khoản Admin.
+        </p>
+
+        <h3 style="margin-top: 24px; color: #111827;">Chi tiết phiên đăng nhập</h3>
+
+        <table class="login-table" role="presentation">
+            <tr>
+                <th scope="row">⏰ Thời gian</th>
+                <td th:text="${loginAt} ?: 'Không rõ'">2026-05-18 09:30:00</td>
+            </tr>
+            <tr>
+                <th scope="row">🌐 Địa chỉ IP</th>
+                <td th:text="${ip} ?: 'unknown'">203.0.113.7</td>
+            </tr>
+            <tr>
+                <th scope="row">💻 Trình duyệt / Thiết bị</th>
+                <td th:text="${userAgent} ?: 'unknown'">Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)</td>
+            </tr>
+        </table>
+
+        <div class="action-box">
+            <strong>⚠️ Nếu đây KHÔNG phải là bạn:</strong>
+            <p style="margin: 8px 0 0 0;">
+                Vui lòng đổi mật khẩu Admin ngay lập tức và liên hệ đội ngũ hỗ trợ để rà soát tài khoản:
+            </p>
+            <p style="text-align: center; margin-top: 16px;">
+                <a th:href="${supportUrl} ?: 'https://kitehub.me/support'"
+                   class="button">Liên hệ hỗ trợ ngay</a>
+            </p>
+        </div>
+
+        <div class="ok-box">
+            ✅ <strong>Nếu đây là bạn:</strong> Có thể bỏ qua email này. Hệ thống chỉ gửi cảnh báo khi phát hiện thiết bị / IP mới để bảo vệ tài khoản Admin (theo OWASP A07 — Identification &amp; Authentication Failures).
+        </div>
+
+        <p class="meta" style="margin-top: 24px;">
+            Email này được gửi tự động — bạn nhận được vì có quyền PLATFORM_ADMIN trên hệ thống.
+        </p>
+
+        <p><strong th:text="|Đội ngũ Bảo mật ${branding?.displayName ?: 'KiteHub'}|">Đội ngũ Bảo mật KiteHub</strong></p>
+    </div>
+
+    <div class="footer">
+        <p th:text="|© 2026 ${branding?.displayName ?: 'KiteHub'}. All rights reserved.|">© 2026 KiteHub.</p>
+        <p>📧 Email bảo mật — KHÔNG reply email này. Liên hệ qua
+            <a th:href="${supportUrl} ?: 'https://kitehub.me/support'" style="color: #2563EB;">trang hỗ trợ</a>.
+        </p>
+        <p style="font-size: 12px; color: #6B7280; margin-top: 8px;">
+            📊 Trạng thái dịch vụ: <a th:href="@{https://kitehub.me/status}" style="color: #2563EB;">kitehub.me/status</a>
+        </p>
+    </div>
+</body>
+</html>
