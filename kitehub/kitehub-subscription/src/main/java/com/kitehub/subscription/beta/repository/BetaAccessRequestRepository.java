@@ -29,8 +29,29 @@ public interface BetaAccessRequestRepository extends JpaRepository<BetaAccessReq
     /** Coordinator dashboard query: paginated by status, newest first. */
     Page<BetaAccessRequest> findByStatusOrderByCreatedAtDesc(BetaAccessRequestStatus status, Pageable pageable);
 
-    /** Token validation lookup at signup time. */
-    Optional<BetaAccessRequest> findByInviteToken(UUID inviteToken);
+    /**
+     * Token validation lookup at signup time.
+     *
+     * <p>GAP-610 (Wave 91 Bucket D) — defensive hardening: explicit JPQL with
+     * named parameter eliminates any chance of Spring Data method-derivation
+     * ambiguity around the {@code UUID → PostgreSQL uuid} type binding.
+     * Equivalent to the prior method-derived query
+     * {@code SELECT b FROM BetaAccessRequest b WHERE b.inviteToken = ?1},
+     * but the explicit form guarantees Hibernate emits
+     * {@code WHERE invite_token = :token} with the parameter bound as the
+     * native Postgres {@code uuid} type — matching the column declaration in
+     * {@code V28__create_beta_access_request.sql} and the entity field
+     * {@code @Column(name = "invite_token") private UUID inviteToken}.</p>
+     *
+     * <p>State-check on 2026-05-18 (Wave 91 Bucket D — see PR body §"Phase 1
+     * state-check verdicts") confirmed: (a) no RLS policy on
+     * {@code beta_access_request} table (V34 enables RLS only on
+     * {@code instance_id}-keyed tables; V50 only on {@code admin_audit_logs}),
+     * (b) UUID encoding via Hibernate native, (c) JPA query method-derived
+     * was correct in theory but explicit JPQL adds defense in depth.</p>
+     */
+    @Query("SELECT b FROM BetaAccessRequest b WHERE b.inviteToken = :token")
+    Optional<BetaAccessRequest> findByInviteToken(@Param("token") UUID token);
 
     /** Claim-code → invite_token exchange (GAP-388 Wave 36 Bucket A 2FA). */
     Optional<BetaAccessRequest> findByClaimCode(String claimCode);
