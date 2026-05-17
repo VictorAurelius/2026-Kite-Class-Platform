@@ -91,6 +91,26 @@ Move sang `documents/07-archived/acceptance-tests-YYYY/` khi:
 
 ---
 
+## ⚠️ Concurrent browser session — multi-actor walkthrough
+
+Khi acceptance test yêu cầu mở nhiều tab cùng lúc (vd admin tab A + tenant owner tab B để verify multi-actor flow), **PHẢI dùng 2 browser profiles riêng biệt** (Chrome profile 1 + Chrome profile 2, hoặc Chrome + Firefox), **KHÔNG mở 2 tab trên cùng domain** `kitehub.me`.
+
+**Lý do** (per [GAP-599](../../../04-quality/gaps/GAP-599-jwt-tab-collide-storage-isolation.md) P0):
+
+- FE auth storage hiện dùng `localStorage['accessToken']` single-key per origin
+- Browser invariant: `localStorage` shared across mọi tab cùng origin
+- → Tab A login admin → tab B login tenant → JWT của tab A bị ghi đè → tab A submit form sau đó dùng JWT của tab B → 403 hoặc cross-tenant data leak
+
+**Workaround pre-fix:**
+
+1. **Option A (preferred):** Mở Chrome → click avatar góc phải → "Add" → tạo profile thứ 2 → mỗi profile cho 1 actor
+2. **Option B:** Dùng 2 browser khác nhau (Chrome cho admin + Firefox cho tenant)
+3. **Option C (incognito):** Profile thường + Incognito window — 2 storage scope tách biệt (cẩn thận: incognito clear khi đóng window)
+
+Cleanup giữa các session walkthrough: nếu abort flow giữa chừng và gặp `409 Conflict` khi re-submit cùng email → chạy `bash scripts/dev/self-test-reset.sh` (Wave 87 Bucket B) HOẶC chờ scheduled cleanup landing (per [GAP-600](../../../04-quality/gaps/GAP-600-beta-request-abort-cleanup.md) P1, Wave 88+).
+
+---
+
 ## Relationship to Other Folders
 
 | Folder | Relationship |

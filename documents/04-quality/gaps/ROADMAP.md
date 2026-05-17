@@ -102,6 +102,7 @@ Per [`wave-2026-05-15-86-rc1-tag-preflight.md`](../../03-planning/waves/wave-202
 **17 NEW gaps filed (Wave 86 OR defer):**
 - Bucket-paired (Wave 86): GAP-582 OAuth idempotency P1, GAP-583 RDS storage alarm P1, GAP-584 CF magic-link **P0**, GAP-585 cookie consent **P0**, GAP-586 P1 invite email P1, GAP-587 P3 invite email P1, GAP-588 P2 onboarding wizard P1, GAP-589 admin bounce+impersonate P1, GAP-590 email expiry policy P1, GAP-591 cohort retention D7/D14/D30 P1, GAP-592 SLA published P2
 - Defer Wave 87+: GAP-593 Most Popular badge P3, GAP-594 refund policy P2, GAP-595 landing CTA+demo P1, GAP-596 form inline validation P2, GAP-597 P2 invite management P2, GAP-598 P3 edit-window+P2 unlock P2
+- Defer Wave 88+: **[GAP-599](GAP-599-jwt-tab-collide-storage-isolation.md) P0 JWT tab collide** (FE localStorage single-key → multi-actor walkthrough flaky; Wave 87 Bucket E docs mitigation shipped, sessionStorage fix Wave 88+), **[GAP-600](GAP-600-beta-request-abort-cleanup.md) P1 beta_requests abort cleanup** (no scheduled job cho stale PENDING rows; Bucket B reset script partial mitigation, @Scheduled fix Wave 88+) — Wave 87 outside-in audit #3 failure-mode matrix new finds
 
 **Wave 86 scope expansion:** AC count B(3) + C(3) + D(1) + E(7) + F(2) + G(7) + H(14) = **37 ACs** (was 9 acceptance gates). `estimated_wall_clock` 14-20h → 24-30h.
 
