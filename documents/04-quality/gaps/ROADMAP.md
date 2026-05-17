@@ -89,7 +89,29 @@
 - Agent design assumed SSM Parameter Store but user pre-populated Secrets Manager → PR #1403 align.
 - Hot-fixes on EC2 surface 3 PM2 ecosystem.config.js bugs + AL2023 certbot no systemd units → repo source bugs tracked GAP-572..574.
 
-### 🚀 Next Action — Wave 89 SHIPPED + Wave 90 user-action live verifies queued (2026-05-17)
+### 🚀 Next Action — Wave 90 SHIPPED (live verify all DONE) + Wave 91 backlog (2026-05-17)
+
+**Wave 90 — Live verify Wave 89 (CLOSED 2026-05-17):**
+- Deploy `v0.9.0-beta-staging.21` (Wave 89 gateway + PM2 code) via `deploy-production.yml` ✅
+- Terraform apply targeted `aws_instance.kc_app_fe` (user_data hash from PR #1479) ✅
+- EC2 reboot test: boot 16:26 UTC → pm2-ec2-user.service active 16:26:27 (17s) → both FE online no manual
+- Admin endpoint `/api/v1/admin/beta-requests` baseline 401 → post-deploy **HTTP 200** với PLATFORM_ADMIN JWT ✅
+- Audit: `documents/04-quality/audits/aws-verification/2026-05-17-wave-90-live-verify.md`
+- 3 PARTIAL flipped DONE: **GAP-604 DONE 100%** (gateway JWT filter) + **GAP-602 DONE 100%** (PM2 cwd) + **GAP-603 DONE 100%** (PM2 systemd)
+- One incidental DB realign: SQL UPDATE admin password hash (Wave 88 §8 same workaround) — recurring pattern flagged for hygiene gap
+
+**Production state:** Stack RUNNING (kept up per user request — XLSX `phase-1-beta-acceptance-self-test.xlsx` rendered ready for walkthrough). User stops via `bash scripts/aws/stop-stack.sh --force` when done.
+
+**Wave 91 backlog candidates:**
+- (P1) Admin endpoints `/api/v1/admin/{instances,payments,revenue}` return 404 — route map missing OR controller not implemented (sub-finding from GAP-604 verify, not GAP-604 scope)
+- (P3) `seed-admin-password` secret rotation hygiene — automate DB realign OR document SQL UPDATE in runbook (recurring class: Wave 88 + Wave 90)
+- (P2) GAP-601 ops-readiness audit (deadline 2026-05-20)
+- Pre-tenant cluster: GAP-525 / GAP-514 / GAP-524 / GAP-515 / GAP-521 — unblocked (admin endpoints now work)
+- Manual split queue: `documents/03-planning/inside-out-queue.md` 5th item
+
+---
+
+### 🚀 Next Action — Wave 89 SHIPPED + Wave 90 user-action live verifies queued (2026-05-17) [historical]
 
 **Wave 89 — Gateway JWT + PM2 Ops Cluster (CLOSED 2026-05-17):**
 - 2 buckets parallel shipped via plan PR #1478 → Bucket A PR #1480 (gateway) → Bucket B PR #1479 (PM2)
