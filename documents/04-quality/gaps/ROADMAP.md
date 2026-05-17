@@ -89,7 +89,35 @@
 - Agent design assumed SSM Parameter Store but user pre-populated Secrets Manager → PR #1403 align.
 - Hot-fixes on EC2 surface 3 PM2 ecosystem.config.js bugs + AL2023 certbot no systemd units → repo source bugs tracked GAP-572..574.
 
-### 🚀 Next Action — AWS account SUSPENDED — production OUTAGE + Wave 91 BLOCKED until restore (2026-05-17)
+### 🚀 Next Action — Wave 91 code shipped (5/5 buckets + CVE) — Coordinator F BLOCKED by GAP-612 AWS suspension (2026-05-17/18)
+
+**Wave 91 batch-1 SHIPPED (5/6 PRs merged offline despite AWS suspension):**
+- ✅ #1486 Bucket C — admin-new-login-alert email template (GAP-606)
+- ✅ #1488 Bucket E — FE claim code redemption page (GAP-609)
+- ✅ #1490 Bucket D — beta signup BE defensive hardening (GAP-610+611; all 7 hypotheses NOT confirmed static, shipped @Query + filter test + RLS testcontainer IT; runtime bug investigation pending Coordinator F)
+- ✅ #1487 Bucket A — outbox dispatcher + RMQ DLQ (GAP-605+607)
+- ✅ #1489 sister fix — 3 HIGH CVEs FE base image (CodeQL alerts CVE-2026-29111 + CVE-2026-4878)
+- ⏳ #1485 Bucket B — EC2 IAM ses:SendEmail — PARKED OPEN (terraform-plan CI fails do `sts:AssumeRoleWithWebIdentity` denied khi AWS suspended; code OK, fmt+validate pass; re-run CI khi AWS active → merge ngay)
+
+**Coordinator F sequence (POST-AWS-RESTORE):**
+1. User responds AWS case `177903869600100` + waits AWS approval
+2. `aws sts get-caller-identity` returns identity (not suspended)
+3. Re-run CI on PR #1485 (terraform-plan passes) → merge PR
+4. `bash scripts/aws/start-stack.sh`
+5. GAP-613 Phase 1 (CloudWatch reduce) — disable non-critical alarms + shorten log retention
+6. Tag `v0.9.0-beta-staging.22` → docker-build-push wait
+7. `terraform-apply.yml -f targets='aws_iam_role_policy.ec2_secrets_s3' -f confirm=APPLY -f dry_run=true` → reconcile → `dry_run=false` (Bucket B IAM apply)
+8. `deploy-production.yml -f version=v0.9.0-beta-staging.22 -f confirm=DEPLOY` (Bucket A+C+D+E code deploy)
+9. Backfill stuck outbox rows: SSM SQL `UPDATE subscription_outbox SET dispatched_at = NULL` (one-time)
+10. Live verify all 7 code gaps + sub-finding admin endpoints
+11. Flip GAP-604/602/603/605/606/607/608/609/610/611/612/613 DONE (or PARTIAL với follow-up)
+12. Closure docs PR (final Wave 91)
+
+**Stake risk:** Coordinator F sequence dài 8-10 steps, requires careful serialization per `concurrent-production-mutation-ops.md` §3.1 (Bucket B terraform apply + Bucket A+C+D+E deploy MUST serial — IAM first).
+
+---
+
+### 🚀 Next Action — AWS account SUSPENDED — production OUTAGE + Wave 91 BLOCKED until restore (2026-05-17) [historical]
 
 🔴 **GAP-612 AWS account 906286017800 suspended** mid-Wave-90 walkthrough phase 2. Production stack force-stopped (CF 522). Beta cohort onboarding fully blocked.
 
