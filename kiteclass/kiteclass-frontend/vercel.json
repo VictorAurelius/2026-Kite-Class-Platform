@@ -3,7 +3,7 @@
   "ignoreCommand": "git diff --quiet $VERCEL_GIT_PREVIOUS_SHA HEAD -- :/kiteclass/kiteclass-frontend :/packages/shared-ui :/pnpm-lock.yaml :/package.json && exit 0 || exit 1",
   "git": {
     "deploymentEnabled": {
-      "main": true
+      "main": false
     }
   },
   "github": {
