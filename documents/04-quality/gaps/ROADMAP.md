@@ -175,9 +175,14 @@
 **Wave 91 backlog candidates:**
 - (P1) Admin endpoints `/api/v1/admin/{instances,payments,revenue}` return 404 — route map missing OR controller not implemented (sub-finding from GAP-604 verify, not GAP-604 scope)
 - (P3) `seed-admin-password` secret rotation hygiene — automate DB realign OR document SQL UPDATE in runbook (recurring class: Wave 88 + Wave 90)
-- (P2) GAP-601 ops-readiness audit (deadline 2026-05-20)
+- ~~(P2) GAP-601 ops-readiness audit (deadline 2026-05-20)~~ ✅ **DONE 2026-05-18** — ops audit shipped, score 75/100 C delta -3 vs Wave 84, GAP-614 filed
 - Pre-tenant cluster: GAP-525 / GAP-514 / GAP-524 / GAP-515 / GAP-521 — unblocked (admin endpoints now work)
 - Manual split queue: `documents/03-planning/inside-out-queue.md` 5th item
+
+**Wave 92 queue (from Wave 91 ops audit + Wave 91 plan §7):**
+- (P1) GAP-614 — Wave 91 Bucket D V60 RLS migration verify (filed 2026-05-18 by Wave 91 ops audit OPS-W91-010)
+- (P1) GAP-613 — CloudWatch Free Tier reduce plan (Wave 91 plan Bucket F prerequisite)
+- (P1) Monthly synthetic alert drill cadence — setup `alertmanager-mock-fire.yml` workflow (carry-forward Wave 84)
 
 ---
 
