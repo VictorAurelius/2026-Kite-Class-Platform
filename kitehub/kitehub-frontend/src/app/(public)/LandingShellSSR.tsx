@@ -87,6 +87,16 @@ export default function LandingShellSSR() {
             ✓ Không cần thẻ tín dụng &nbsp; ✓ Hủy bất kỳ lúc nào &nbsp; ✓ Hỗ trợ
             tiếng Việt
           </p>
+
+          {/* GAP-609 Wave 91 — alternate entry cho user nhận claim code qua kênh khác */}
+          <p className="mt-3 text-sm">
+            <Link
+              href="/beta-signup/code"
+              className="text-primary underline-offset-4 hover:underline"
+            >
+              Tôi đã có mã invite →
+            </Link>
+          </p>
         </section>
 
         <section className="mx-auto max-w-5xl px-6 pb-20">
