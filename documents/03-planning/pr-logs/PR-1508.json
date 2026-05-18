@@ -1,0 +1,33 @@
+{
+  "pr": 1508,
+  "title": "docs(GAP-614): DONE flip \u2014 Bucket D verdict = V60 RLS migration NOT needed + FE runtime/CVE-gate investigation",
+  "branch": "docs/GAP-614-done-flip-bucket-d-verdict-resolved",
+  "created_at": null,
+  "merged_at": "2026-05-18T02:42:37Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-18T02:42:42.627479",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 4,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-37326"
+  }
+}
