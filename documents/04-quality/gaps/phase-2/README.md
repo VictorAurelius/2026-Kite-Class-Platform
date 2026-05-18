@@ -1,23 +1,17 @@
-# `phase-2/` — OPEN + PLANNED, phase = phase-2
+# `phase-2/` — gaps scoped to Phase 2 (any non-DONE status)
 
-**Rule:** [`.claude/rules/gap-folder-organization.md`](../../../.claude/rules/gap-folder-organization.md) §2 row 7
+**Rule:** [`.claude/rules/gap-folder-organization.md`](../../../.claude/rules/gap-folder-organization.md) §2 v2.0.0
 
 ## Contract
 
-Files matching CSV row condition: `status ∈ {OPEN, PLANNED}` AND `phase == phase-2`.
+Files matching: `phase == phase-2` AND `status != DONE`.
 
-Phase 2 scope = post-Phase-1-BETA growth (medium-center P3 tenants, regional rollout). Trigger Phase 2 entry per `release-1-plan-2026.md` §Phase 1 → Phase 2.
+## Subdir
 
-## Auto-trigger moves
+- `closed/` — DONE archive
 
-Same lifecycle as `phase-1-beta/`. See `../phase-1-beta/README.md`.
+## Target count
 
-## Volume budget
-
-Target ~66 files. Under Rule 3 cap.
-
-## Sibling subdirs
-
-See `../closed/README.md` for full taxonomy map.
+~83 active gaps.
 
 **Last Updated:** 2026-05-18

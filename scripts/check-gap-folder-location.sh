@@ -1,20 +1,18 @@
 #!/usr/bin/env bash
-# check-gap-folder-location.sh — validate gap file location mirrors CSV status+phase
+# check-gap-folder-location.sh — validate gap file location mirrors CSV phase
 #
-# Per `.claude/rules/gap-folder-organization.md` §2: file location is a
-# projection of CSV `status` + `phase` columns onto the filesystem.
+# Per `.claude/rules/gap-folder-organization.md` v2.0.0 §2:
+#   - File location is a projection of CSV `phase` column.
+#   - Status changes (OPEN/PARTIAL/etc.) do NOT move file — except DONE which
+#     archives to `phase-X/closed/` one-way.
+#   - Legacy root `closed/` orphans (no CSV row) are tolerated per §2.1.
 #
 # Modes:
-#   --strict       Exit 1 on any mismatch (target mode after PR2 mass migration)
-#   --warn         Print mismatches, exit 0 (initial mode through PR1 → PR2)
-#   --report-only  Print full table + counts, exit 0 (manual analysis)
+#   --strict       Exit 1 on any mismatch (target after PR2 mass migration)
+#   --warn         Print mismatches, exit 0 (initial through PR1.5 → PR2)
+#   --report-only  Print full table + counts, exit 0
 #
-# Default: --warn (transition mode).
-#
-# Exit codes:
-#   0 — all OK OR warn/report mode
-#   1 — strict mode + mismatches found OR script error
-#   2 — CSV malformed / missing
+# Default: --warn.
 
 set -euo pipefail
 
@@ -35,26 +33,28 @@ if [[ ! -f "$CSV" ]]; then
   exit 2
 fi
 
-# Compute expected subdir per §2 taxonomy
-expected_subdir() {
-  local status="$1" phase="$2"
-  case "$status" in
-    DONE)        echo "closed" ;;
-    PENDING)     echo "pending" ;;
-    PARTIAL|IN_PROGRESS) echo "partial" ;;
-    WONTFIX)     echo "wontfix" ;;
-    OPEN|PLANNED)
-      case "$phase" in
-        phase-1-beta)   echo "phase-1-beta" ;;
-        phase-1.5-paid) echo "phase-1.5-paid" ;;
-        phase-2)        echo "phase-2" ;;
-        phase-3)        echo "phase-3" ;;
-        n/a)            echo "unclassified" ;;
-        *)              echo "UNKNOWN-PHASE" ;;
-      esac
-      ;;
-    *) echo "UNKNOWN-STATUS" ;;
+# Map CSV phase value → top-level phase subdir name
+phase_subdir() {
+  case "$1" in
+    phase-1-beta)   echo "phase-1-beta" ;;
+    phase-1.5-paid) echo "phase-1.5-paid" ;;
+    phase-2)        echo "phase-2" ;;
+    phase-3)        echo "phase-3" ;;
+    n/a)            echo "unclassified" ;;
+    *)              echo "UNKNOWN-PHASE" ;;
   esac
+}
+
+# Compute expected file path given (status, phase) per rule v2.0.0 §2.1
+expected_path() {
+  local status="$1" phase="$2" filename_only="$3"
+  local subdir
+  subdir=$(phase_subdir "$phase")
+  if [[ "$status" == "DONE" ]]; then
+    echo "$subdir/closed/$filename_only"
+  else
+    echo "$subdir/$filename_only"
+  fi
 }
 
 # Counters
@@ -62,9 +62,8 @@ TOTAL_ROWS=0
 OK_COUNT=0
 MISMATCH_COUNT=0
 MISSING_FILE_COUNT=0
-declare -A MISMATCH_BY_SUBDIR
+declare -A MISMATCH_BY_TARGET
 
-# Collect mismatches
 MISMATCHES=()
 MISSING_FILES=()
 
@@ -72,24 +71,21 @@ while IFS=, read -r ID FILENAME TITLE STATUS PRIORITY DOMAIN PHASE COMPLETION FO
   [[ "$ID" =~ ^GAP- ]] || continue
   TOTAL_ROWS=$((TOTAL_ROWS + 1))
 
-  EXPECTED_SUBDIR=$(expected_subdir "$STATUS" "$PHASE")
+  # Extract bare filename (last path segment)
+  FILENAME_ONLY="${FILENAME##*/}"
 
-  # Extract actual subdir from filename column (first path segment, or "" if no /)
-  if [[ "$FILENAME" == */* ]]; then
-    ACTUAL_SUBDIR="${FILENAME%%/*}"
-  else
-    ACTUAL_SUBDIR=""
-  fi
+  EXPECTED=$(expected_path "$STATUS" "$PHASE" "$FILENAME_ONLY")
 
-  if [[ "$ACTUAL_SUBDIR" != "$EXPECTED_SUBDIR" ]]; then
-    MISMATCHES+=("$ID|status=$STATUS phase=$PHASE|csv-says=${ACTUAL_SUBDIR:-<root>}|expected=$EXPECTED_SUBDIR")
+  if [[ "$FILENAME" != "$EXPECTED" ]]; then
+    MISMATCHES+=("$ID|status=$STATUS phase=$PHASE|csv-says=$FILENAME|expected=$EXPECTED")
     MISMATCH_COUNT=$((MISMATCH_COUNT + 1))
-    MISMATCH_BY_SUBDIR["$EXPECTED_SUBDIR"]=$((${MISMATCH_BY_SUBDIR["$EXPECTED_SUBDIR"]:-0} + 1))
+    EXPECTED_SUBDIR="${EXPECTED%/*}"
+    MISMATCH_BY_TARGET["$EXPECTED_SUBDIR"]=$((${MISMATCH_BY_TARGET["$EXPECTED_SUBDIR"]:-0} + 1))
   else
     OK_COUNT=$((OK_COUNT + 1))
   fi
 
-  # File existence check (CSV filename column → actual filesystem)
+  # File existence check
   FULLPATH="$GAPS_DIR/$FILENAME"
   if [[ ! -f "$FULLPATH" ]]; then
     MISSING_FILES+=("$ID|csv-points-to=$FILENAME")
@@ -97,19 +93,37 @@ while IFS=, read -r ID FILENAME TITLE STATUS PRIORITY DOMAIN PHASE COMPLETION FO
   fi
 done < <(grep -v '^#' "$CSV" | grep -v '^$' || true)
 
+# Count legacy orphans in root closed/ (files present, no CSV row)
+LEGACY_ORPHAN_COUNT=0
+if [[ -d "$GAPS_DIR/closed" ]]; then
+  while IFS= read -r fpath; do
+    bare="${fpath##*/}"
+    if ! grep -qE "^GAP-[^,]*,closed/$bare," "$CSV" 2>/dev/null; then
+      LEGACY_ORPHAN_COUNT=$((LEGACY_ORPHAN_COUNT + 1))
+    fi
+  done < <(find "$GAPS_DIR/closed" -maxdepth 1 -type f -name 'GAP-*.md' 2>/dev/null)
+fi
+
 # Report
 echo "=== Gap folder location report ($(date +%Y-%m-%d)) ==="
+echo "Rule: gap-folder-organization.md v2.0.0 (phase-only + per-phase closed/)"
 echo "CSV rows total:           $TOTAL_ROWS"
-echo "Files at expected subdir: $OK_COUNT"
+echo "Files at expected path:   $OK_COUNT"
 echo "Files MISPLACED:          $MISMATCH_COUNT"
 echo "CSV→file missing:         $MISSING_FILE_COUNT"
+echo "Legacy orphans (root closed/, no CSV row): $LEGACY_ORPHAN_COUNT (tolerated per rule §2.1)"
 echo ""
 
 if [[ "$MISMATCH_COUNT" -gt 0 ]]; then
-  echo "--- Mismatch breakdown by expected subdir ---"
-  for subdir in closed pending partial wontfix phase-1-beta phase-1.5-paid phase-2 phase-3 unclassified UNKNOWN-PHASE UNKNOWN-STATUS; do
-    count="${MISMATCH_BY_SUBDIR[$subdir]:-0}"
-    [[ "$count" -gt 0 ]] && printf "  · should be in %-18s: %d\n" "$subdir/" "$count"
+  echo "--- Mismatch breakdown by expected location ---"
+  for target in phase-1-beta phase-1-beta/closed \
+                phase-1.5-paid phase-1.5-paid/closed \
+                phase-2 phase-2/closed \
+                phase-3 phase-3/closed \
+                unclassified unclassified/closed \
+                UNKNOWN-PHASE UNKNOWN-PHASE/closed; do
+    count="${MISMATCH_BY_TARGET[$target]:-0}"
+    [[ "$count" -gt 0 ]] && printf "  · should be in %-30s: %d\n" "$target/" "$count"
   done
   echo ""
 fi
@@ -128,21 +142,21 @@ fi
 
 # Exit decision
 if [[ "$MISMATCH_COUNT" -eq 0 ]] && [[ "$MISSING_FILE_COUNT" -eq 0 ]]; then
-  echo "✅ PASS — all gap files at correct location per gap-folder-organization.md §2"
+  echo "✅ PASS — all gap files at correct location per gap-folder-organization.md v2.0.0 §2"
   exit 0
 fi
 
 case "$MODE" in
   --strict)
     echo "❌ FAIL (strict mode) — $MISMATCH_COUNT misplaced + $MISSING_FILE_COUNT missing"
-    echo "   Fix: git mv files to correct subdir + update CSV filename column"
+    echo "   Fix: git mv files to correct phase-X/[closed/] + update CSV filename column"
     echo "   Reference: .claude/rules/gap-folder-organization.md §3 lifecycle events"
     exit 1
     ;;
   --warn)
     echo "⚠️  WARN — $MISMATCH_COUNT misplaced + $MISSING_FILE_COUNT missing"
     echo "   Initial WARN mode active. Strict mode flips after Wave 95 PR2 mass migration."
-    echo "   Reference: .claude/rules/gap-folder-organization.md §5.1"
+    echo "   Reference: .claude/rules/gap-folder-organization.md v2.0.0 §5.1"
     exit 0
     ;;
   --report-only)

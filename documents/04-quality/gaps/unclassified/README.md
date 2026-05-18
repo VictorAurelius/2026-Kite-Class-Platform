@@ -1,30 +1,24 @@
-# `unclassified/` — OPEN + PLANNED, phase = n/a
+# `unclassified/` — gaps with phase=n/a (meta + foundation scope)
 
-**Rule:** [`.claude/rules/gap-folder-organization.md`](../../../.claude/rules/gap-folder-organization.md) §2 row 9
+**Rule:** [`.claude/rules/gap-folder-organization.md`](../../../.claude/rules/gap-folder-organization.md) §2 v2.0.0
 
 ## Contract
 
-Files matching CSV row condition: `status ∈ {OPEN, PLANNED}` AND `phase == n/a`.
+Files matching: `phase == n/a` AND `status != DONE`.
 
-Scope = meta gaps (skills, rules, workflow) + foundation work that doesn't tie to a specific release phase. Examples: gap on documentation review process, rule about agent behavior, etc.
+Typical content: meta gaps (skill/rule/workflow improvements per `meta-gap-priority.md`), cross-phase foundation work, undetermined-scope gaps awaiting classification.
 
-## Auto-trigger moves
+## Subdir
 
-- New meta gap detected → file lands here at creation
-- If gap gains phase assignment later (e.g., user decides this only matters in Phase 2): `git mv unclassified/GAP-NNN.md phase-2/GAP-NNN.md` + update CSV `phase`
-- Other transitions same as `phase-1-beta/`
+- `closed/` — DONE archive
 
-## Why "unclassified/" not "n-a/" or "meta/"?
+## Target count
 
-- POSIX folder name (no slash in `n/a`)
-- "unclassified" describes the CSV phase value `n/a` more accurately than "meta" (some unclassified gaps aren't meta)
+~35 active gaps.
 
-## Volume budget
+## Why "unclassified" (not "n-a" or "meta")
 
-Target ~22 files. Well under Rule 3 cap.
-
-## Sibling subdirs
-
-See `../closed/README.md` for full taxonomy map.
+- POSIX folder name (no `/` in path)
+- "Unclassified" describes the CSV phase value `n/a` more accurately than "meta" (some n/a gaps aren't meta)
 
 **Last Updated:** 2026-05-18
