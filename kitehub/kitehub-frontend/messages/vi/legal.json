@@ -1,0 +1,147 @@
+{
+  "_meta": {
+    "description": "Vietnamese strings cho legal pages (Điều khoản, Quyền riêng tư, Cookie, DMCA, Quyền chủ thể dữ liệu).",
+    "scope": "Tóm tắt headings + key blocks cho TOS + Privacy + Cookie + DPA. Full content vẫn ở src/app/(public)/legal/{terms,privacy,cookies,dmca,data-rights}/page.tsx (15 sections TOS Wave 23 + 16 sections Privacy PDPL Art 11). Catalog này phục vụ audit reference + future i18n migration GAP-182 Phase 2.",
+    "version": "1.0.0",
+    "last_updated": "2026-05-18",
+    "wave": "Wave 98 Bucket B4 GAP-541",
+    "disclaimer_note": "v1 đang chờ pháp lý review per CLAUDE.md decision context 2026-05-06 (Moderate risk tolerance, no legal counsel engaged); counsel review tracked GAP-180/182/184 Phase 2."
+  },
+  "disclaimer": {
+    "title": "v1 — đang chờ legal counsel review",
+    "body": "Bản chính thức sẽ được cập nhật sau khi luật sư rà soát.",
+    "tracking_terms": "Theo dõi qua GAP-180 / GAP-154 Phase 2.",
+    "tracking_privacy": "Theo dõi qua GAP-182 / GAP-184 Phase 2.",
+    "last_updated_label": "Cập nhật lần cuối",
+    "effective_date_label": "Hiệu lực"
+  },
+  "terms": {
+    "page_title": "Điều khoản dịch vụ | KiteHub",
+    "h1": "Điều khoản dịch vụ",
+    "meta_description": "Điều khoản dịch vụ áp dụng cho KiteHub (SaaS quản lý) và KiteClass (multi-tenant education). Căn cứ Bộ luật Dân sự 2015, Luật Giao dịch điện tử 2023, Luật Bảo vệ Quyền lợi Người tiêu dùng 2023.",
+    "preamble": "Áp dụng giữa Provider (đơn vị vận hành KiteHub/KiteClass) và Customer (tenant đăng ký dịch vụ). Căn cứ pháp lý: Bộ luật Dân sự 2015, Luật Giao dịch điện tử 2023, Luật Bảo vệ Quyền lợi Người tiêu dùng 2023. Acceptance mechanism: Click-wrap tại signup, re-accept khi modification.",
+    "glossary_title": "Thuật ngữ định nghĩa",
+    "glossary": {
+      "provider": "Provider — đơn vị pháp nhân vận hành nền tảng KiteHub (SaaS quản lý) và KiteClass (multi-tenant education).",
+      "customer": "Customer (hoặc Tenant) — chủ thể đăng ký subscription cho Service: trung tâm giáo dục, trường học, gia sư tự do.",
+      "end_user": "End User — người dùng cuối truy cập Service qua tenant của Customer: teacher, student, parent, accountant, admin.",
+      "service": "Service — toàn bộ phần mềm + hạ tầng + tính năng + AI Branding + storage + support do Provider cung cấp.",
+      "content": "Content — bất kỳ data, văn bản, hình ảnh, file đính kèm, AI-generated assets, mà Customer hoặc End Users upload/tạo/lưu trên Service.",
+      "confidential_information": "Confidential Information — non-public business information mỗi bên disclose cho bên kia trong quá trình thực thi TOS.",
+      "effective_date": "Effective Date — ngày Customer click-wrap accept TOS lần đầu, hoặc ngày accept revised TOS.",
+      "term": "Term — khoảng thời gian TOS có hiệu lực, từ Effective Date cho đến termination."
+    },
+    "sections": {
+      "1_parties_definitions": "1. Phạm vi áp dụng và các bên ký kết",
+      "2_service_description": "2. Mô tả dịch vụ",
+      "3_customer_obligations": "3. Nghĩa vụ của Customer",
+      "4_provider_obligations": "4. Nghĩa vụ của Provider",
+      "5_acceptable_use": "5. Quy định sử dụng (Acceptable Use)",
+      "6_intellectual_property": "6. Quyền sở hữu trí tuệ",
+      "7_payment_terms": "7. Điều khoản thanh toán (phí và hóa đơn)",
+      "8_confidentiality_data_protection": "8. Bảo mật và bảo vệ dữ liệu cá nhân",
+      "9_term_termination": "9. Thời hạn và chấm dứt",
+      "10_warranties_disclaimers": "10. Bảo đảm và miễn trừ",
+      "11_limitation_of_liability": "11. Giới hạn trách nhiệm pháp lý",
+      "12_indemnification": "12. Bồi thường",
+      "13_dispute_resolution": "13. Giải quyết tranh chấp",
+      "14_modifications": "14. Sửa đổi điều khoản",
+      "15_governing_law": "15. Điều khoản chung — Severability, Force Majeure, Luật áp dụng"
+    },
+    "related_pages_title": "Trang pháp lý liên quan",
+    "related_pages": {
+      "cookies": "Chính sách Cookie",
+      "privacy": "Chính sách quyền riêng tư",
+      "dmca": "DMCA Takedown Notice"
+    }
+  },
+  "privacy": {
+    "page_title": "Chính sách quyền riêng tư | KiteHub",
+    "h1": "Chính sách quyền riêng tư",
+    "meta_description": "Chính sách quyền riêng tư áp dụng cho dịch vụ KiteHub theo Nghị định 13/2023/NĐ-CP (PDPL) — bảo vệ dữ liệu cá nhân của tenant admin, end-users và khách hàng.",
+    "preamble": "Áp dụng cho cả nền tảng KiteHub (SaaS quản lý instance) và KiteClass (multi-tenant education delivery). Căn cứ pháp lý: Nghị định 13/2023/NĐ-CP (PDPL — hiệu lực 2026-07-01) Điều 11, 14, 23; Luật An ninh mạng 2018; Luật Giao dịch điện tử 2023.",
+    "sections": {
+      "1_data_controller": "1. Đơn vị Kiểm soát Dữ liệu (Data Controller)",
+      "2_dpo": "2. Cán bộ Bảo vệ Dữ liệu (Data Protection Officer)",
+      "3_data_subject_categories": "3. Nhóm Chủ thể Dữ liệu",
+      "4_data_categories": "4. Loại dữ liệu xử lý",
+      "5_processing_purposes": "5. Mục đích xử lý",
+      "6_legal_basis": "6. Căn cứ pháp lý",
+      "7_data_sharing": "7. Chia sẻ dữ liệu với bên thứ ba",
+      "8_cross_border": "8. Chuyển dữ liệu xuyên biên giới",
+      "9_retention": "9. Thời hạn lưu trữ",
+      "10_data_subject_rights": "10. Quyền của chủ thể dữ liệu (PDPL Art 9-15)",
+      "11_request_channel_sla": "11. Kênh thực thi quyền và SLA",
+      "12_minor_data": "12. Trẻ em dưới 16 tuổi (Minor Data — PDPL Art 20)",
+      "13_security_measures": "13. Biện pháp bảo mật",
+      "14_breach_notification": "14. Thông báo sự cố (PDPL Art 23)",
+      "15_cookie_policy": "15. Chính sách Cookie",
+      "16_changes_to_policy": "16. Thay đổi chính sách"
+    },
+    "data_subject_rights": {
+      "right_to_know": "Quyền được biết (PDPL Art 9) — Đọc Privacy Policy này + dashboard \"Quyền của tôi\". SLA: tức thời.",
+      "right_to_access": "Quyền truy cập (PDPL Art 10) — Tự xuất từ dashboard hoặc gửi yêu cầu DPO. SLA: 20 ngày (gia hạn tối đa 10 ngày).",
+      "right_to_rectify": "Quyền chỉnh sửa (PDPL Art 11) — Self-edit profile hoặc gửi DPO. SLA: 20 ngày.",
+      "right_to_delete": "Quyền xóa (PDPL Art 12) — Gửi DPO + xác minh danh tính. SLA: 20 ngày. Có ngoại lệ legal-hold (hóa đơn, audit log).",
+      "right_to_restrict": "Quyền hạn chế xử lý (PDPL Art 13) — Gửi DPO. SLA: 20 ngày.",
+      "right_to_object": "Quyền phản đối (PDPL Art 14) — Marketing: opt-out tức thời.",
+      "right_to_portability": "Quyền chuyển dữ liệu (PDPL Art 15) — Self-export (theo dõi GAP-188).",
+      "right_to_complain": "Quyền khiếu nại — Gửi A05 (Cục An ninh mạng, Bộ Công an)."
+    },
+    "data_categories": {
+      "identification": "Định danh — Họ tên, ngày sinh, giới tính, số CCCD/CMND/hộ chiếu (chỉ thu thập cho Tenant Owner phục vụ xuất hóa đơn — PDPL Art 11.1.c).",
+      "contact": "Liên hệ — Email, số điện thoại, địa chỉ thường trú/tạm trú, địa chỉ cha mẹ (đối với học sinh dưới 16 tuổi).",
+      "educational": "Giáo dục — Điểm số, điểm danh, bài tập, đánh giá hạnh kiểm, tiến độ học tập, lịch học. Với học sinh K-12, là dữ liệu trẻ em (bảo vệ bổ sung tại §12).",
+      "financial": "Tài chính — Thông tin thanh toán (token cổng thanh toán — KiteHub/KiteClass KHÔNG lưu số thẻ thật), hóa đơn, lịch sử giao dịch. PDPL Art 3.4: dữ liệu nhạy cảm.",
+      "technical": "Kỹ thuật — IP address, user-agent, device fingerprint, session id, cookies, log truy cập, audit trail.",
+      "sensitive": "Nhạy cảm (special handling) — Sức khỏe (lý do vắng học), trẻ em dưới 16 tuổi (toàn bộ dữ liệu), tài chính."
+    },
+    "related_pages_title": "Trang pháp lý liên quan",
+    "related_pages": {
+      "terms": "Điều khoản dịch vụ",
+      "cookies": "Chính sách Cookie",
+      "dmca": "DMCA Takedown Notice"
+    }
+  },
+  "cookies": {
+    "page_title": "Chính sách Cookie | KiteHub",
+    "h1": "Chính sách Cookie",
+    "preamble": "Mô tả cookie KiteHub sử dụng, mục đích và cách quản lý — phù hợp PDPL Art 11 + ePrivacy thực tiễn.",
+    "categories": {
+      "essential": "Cookie cần thiết — session id, CSRF token, language preference. KHÔNG yêu cầu consent.",
+      "analytics": "Cookie analytics — chỉ enable sau khi user opt-in. Mặc định tắt cho EU/EEA và người chưa thành niên.",
+      "third_party": "Cookie bên thứ ba — TẮT mặc định trên app chính. KiteHub không gắn pixel quảng cáo."
+    },
+    "duration": "Thời hạn cookie: session cookies tắt khi đóng browser; persistent cookies tối đa 12 tháng."
+  },
+  "data_processing_agreement": {
+    "page_title": "Thỏa thuận Xử lý Dữ liệu (DPA) | KiteHub",
+    "h1": "Thỏa thuận Xử lý Dữ liệu",
+    "scope_note": "Phase 2 deliverable (Wave Counsel-Review). Hiện tại theo Điều khoản dịch vụ §8 + Chính sách quyền riêng tư + PDPL Decree 13/2023/NĐ-CP.",
+    "sections": {
+      "1_roles": "1. Vai trò Controller / Processor",
+      "2_data_categories": "2. Loại dữ liệu xử lý",
+      "3_purposes": "3. Mục đích xử lý",
+      "4_subprocessors": "4. Bên xử lý phụ (sub-processors)",
+      "5_security_measures": "5. Biện pháp bảo mật theo PDPL Art 21",
+      "6_breach_notification": "6. Thông báo sự cố theo PDPL Art 23",
+      "7_termination": "7. Trả lại hoặc hủy dữ liệu khi kết thúc"
+    }
+  },
+  "data_rights_form": {
+    "page_title": "Yêu cầu quyền chủ thể dữ liệu | KiteHub",
+    "h1": "Yêu cầu thực thi quyền chủ thể dữ liệu",
+    "preamble": "Form gửi yêu cầu theo PDPL Điều 9-15. Vui lòng cung cấp đầy đủ thông tin để chúng tôi xác minh danh tính + xử lý trong vòng 20 ngày làm việc (gia hạn tối đa 10 ngày).",
+    "right_options": {
+      "access": "Quyền truy cập dữ liệu (Điều 10)",
+      "rectify": "Quyền chỉnh sửa dữ liệu (Điều 11)",
+      "delete": "Quyền xóa dữ liệu (Điều 12)",
+      "restrict": "Quyền hạn chế xử lý (Điều 13)",
+      "object": "Quyền phản đối xử lý (Điều 14)",
+      "portability": "Quyền chuyển dữ liệu (Điều 15)"
+    },
+    "submit_button": "Gửi yêu cầu",
+    "success_title": "Đã nhận yêu cầu",
+    "success_body": "Mã ticket: {ticket_id}. Bạn sẽ nhận email phản hồi trong vòng 20 ngày làm việc."
+  }
+}
