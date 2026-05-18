@@ -51,3 +51,4 @@ Wave 86 scope (3 sub-tasks):
 ## Log
 
 - **2026-05-15** Filed via Wave 85 Bucket A persona outside-in audit integration. Defer Wave 86 — P2 owner trust gap critical pre GA Phase 2 nhưng Wave 85 scope locked. Status OPEN.
+- **2026-05-18 — Cross-ref Wave 93 GAP-625 KYC dependency** per Wave 93 re-triage audit (`documents/04-quality/audits/persona-review/2026-05-18-phase-1-5-26-gaps-re-triage.md`). GAP-625 (Phase 1.5a P0 — Owner KYC + bank account ownership verification at QR setup) is **Owner identity verification baseline**. GAP-578 (P2 Owner 2FA + new-device email alert) builds on identity-verified baseline. Recommended sequential ordering: GAP-625 KYC infrastructure ships Phase 1.5a (Wave 31-32) → GAP-578 2FA layer leverages identity-verified Owner record + extends with TOTP/SMS factor. Cross-ref complementary, NOT duplicate (KYC = identity proof; 2FA = continuous auth strengthening). User decision Wave 86 vs paired Phase 1.5a continued in wave plan §6 follow-up.

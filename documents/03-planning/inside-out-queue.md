@@ -100,8 +100,27 @@ updated: 2026-05-18
 
 ---
 
+### 2026-05-18 — QR upload approach Phase 1.5 payment
+
+- **Source:** user direct (in-chat 2026-05-18 during Phase 1.5 brainstorm)
+- **Phase relevance:** phase-1.5-paid
+- **Status:** consumed (Wave 93)
+- **Wave (if consumed):** wave-93 — 11 new gaps GAP-625..635 + 4 re-scope GAP-108/183/185/594 + base audit `documents/04-quality/audits/persona-review/2026-05-18-phase-1-5-qr-payment-outside-in.md`
+- **Description:** "Cho phép Owner có role hợp lý được phép chỉnh sửa mã QR nhận tiền học phí, thay vì thiết lập 1 hệ thống thanh toán phức tạp cho kiteclass — chỉ áp dụng cho đối tượng giáo viên đơn lẻ?" Outside-in audit (3-agent: persona + benchmark + failure-mode) reveals QR approach mandatory cho cả P1+P2 do compliance VN (PSP license + KYC merchant onboarding barrier). Industry norm 80%+ VN edu SaaS dùng QR. Phase 2 pivot VietQR EduPay partnership khi PH > 100. Pure SaaS subscription model preserved.
+
+### 2026-05-18 — OCR auto-confirm receipt upload evolution
+
+- **Source:** user direct (in-chat 2026-05-18 — evolution proposal sau QR base chốt)
+- **Phase relevance:** phase-1.5-paid (initial); pivot phase-1.5b webhook
+- **Status:** consumed (Wave 93 — REJECTED via outside-in audit; pivoted Casso/SePay webhook)
+- **Wave (if consumed):** wave-93 — OCR audit `documents/04-quality/audits/persona-review/2026-05-18-phase-1-5-ocr-auto-confirm-outside-in.md` + GAP-636 P1 Casso/SePay webhook investigation (replaces OCR proposal)
+- **Description:** "Phát triển feature upload ảnh chuyển khoản cho hệ thống nhận diện số tiền, tài khoản, ngày tháng để hệ thống tự xác nhận, thay vì user phải tự check. Tiền mặt vẫn manual tick." Outside-in audit (3-agent OCR-specific) — Persona + Failure-mode evaluated OCR conditional Phase 1.5b/2; **Benchmark agent OVERRIDES** — VN edu SaaS 0/7 dùng OCR; Casso/SePay webhook là dominant pattern 2026 với ~0% fraud risk. OCR REJECTED primary; deferred Phase 2 fallback optional. Pivot Casso/SePay webhook Phase 1.5b.
+
+---
+
 ## Log
 
+- **2026-05-18 (later)** — Wave 93 consumed 2 items: (a) "QR upload approach Phase 1.5 payment" (canonical Phase 1.5 path); (b) "OCR auto-confirm receipt upload" (REJECTED via 3-agent outside-in audit benchmark OVERRIDE; pivoted Casso/SePay webhook GAP-636). Queue now 4 queued + 3 consumed. Both items demonstrate `outside-in-coverage-trigger.md` §3 5-Bước flow applied lần thứ 2+3 trong cùng session — closes `feedback_outside_in_recurring_miss.md` recurrence pattern.
 - **2026-05-18** — Wave 92 Bucket D consumed "Manual split: professional vs end-user" item via sister rule path (option b): `professional-manual-content-standard.md` v1.0.0 shipped paired same-PR với `output-review-mandate.md` §3 row + `rules-index.csv` row + 3 retroactive self-test samples. End-user scope `user-manual-content-standard.md` v1.0.0 đã exist từ Wave 79. Queue now 4 queued + 1 consumed.
 - **2026-05-17** — Appended item "Manual split: professional vs end-user" surfaced in-chat during Wave 87 planning session. Queue now 5 items (4 prior + 1 new). Wave 87 không consume; defer Wave 88+.
 - **2026-05-14** — File created. Codified user inside-out queue per [`outside-in-coverage-trigger.md`](../../.claude/rules/outside-in-coverage-trigger.md) sister rule `inside-out-completeness-trigger.md`. Triggered by 2026-05-14 audit hole — Claude missed Premium plan / Feedback channel / Email content audit / user manual when planning Wave 78 because only pulled inside-out from ROADMAP §🚀.

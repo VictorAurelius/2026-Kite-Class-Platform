@@ -46,3 +46,13 @@ Wave 86 scope = rc1 tag + 5 beta cohort invite. Refund policy không scope vào 
 
 - Audit: `documents/04-quality/audits/persona-review/2026-05-15-pre-wave-86-benchmark-vn-saas-edu.md` §3 Q10 + §6 GAP-NEW-7
 - Wave 88+ launch readiness scope
+
+## Scope Refinement (2026-05-18 audit)
+
+- **Kept in scope unchanged:** 30-day money-back specific policy text (Wave 86 Bucket A benchmark Q10 +21% sales lift confirmation)
+- **Newly paired same-phase:** GAP-629 (manual refund SOP), GAP-630 (evidence storage), GAP-183 (high-level policy)
+- **Implementation note:** since KiteHub non-PSP, "money-back" = Owner manual bank transfer; KiteHub UI shows refund record + PH confirmation receipt only
+
+## Log
+
+- **2026-05-18** — Scope confirmed (no major change) per outside-in audit Wave 93. This gap remains: 30-day money-back specific policy document. Now explicitly paired with GAP-183 (high-level refund policy) + GAP-629 (manual refund workflow SOP) + GAP-630 (evidence storage). All flow off-platform (Owner-side bank transfer); KiteHub tracks audit + policy enforcement only.
