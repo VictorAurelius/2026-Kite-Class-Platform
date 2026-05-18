@@ -45,3 +45,7 @@ Bây giờ có 1 task cực kỳ quan trọng, làm báo cáo đồ án tốt ng
 Vậy cần bổ sung thêm outside
 
 À, đáng ra phải chốt plan của release 2 trước rồi mới chốt được plan thesis nhỉ?
+
+vậy bỏ việc move file vào closed và partial đi, chỉ phân loại theo phase thì sao?
+
+PR 3 làm gì? Có nên quét lại 1 lượt các gaps để xem chúng có bị outdated, cần update theo inside mới, có thể closed được hay không => tối ưu agents

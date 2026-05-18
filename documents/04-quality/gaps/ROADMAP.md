@@ -8,13 +8,44 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-18 — 🎉 Wave 93/94b/94c ALL SHIPPED same session + GAP-619 DONE 3 ngày trước deadline + 23 new gaps filed)
+## 🎯 Current Status Snapshot (2026-05-18 — 🎉 Wave 93/94b/94c/95/96 ALL SHIPPED — 10 PRs merged + 5 architecture reports + 2 new rules + GAP-001/145 closed + kiteclass-gateway service removed + diagram format rule v1.0.0)
 
 > **📍 Next session ĐỌC TRƯỚC:**
-> 1. **GAP-637 P0 admin v1 @PreAuthorize missing** — Wave 95 URGENT fix queue (OWASP A01 BLOCKER cho Phase 1 BETA gate path)
-> 2. **GAP-612 AWS suspension** restoration pending D+4 = 2026-05-21 trigger escalate
-> 3. **GAP-645 Wave 96 gap folder reorg** stub plan ready — user inside-out proposal phase subdirs (defer post Phase 1 BETA gate close + outside-in audit per Rule v1.1.0)
-> 4. Wave 94c audit suite (5 reports: UI 104.7 B+ / API 79 C+ FAIL / Business 70 C / Security 93 A / Ops 77 C+) + 8 new gaps GAP-637..644 + Wave 93/94b/94c closure logs (`wave-history.jsonl`)
+> 1. **GAP-637 P0 admin v1 @PreAuthorize missing** — URGENT fix queue (OWASP A01 BLOCKER cho Phase 1 BETA gate path; unchanged from Wave 94c)
+> 2. **GAP-612 AWS suspension** restoration pending D+4 = 2026-05-21 trigger escalate (unchanged)
+> 3. **Wave 96 sweep batch B-F follow-ups** (post Wave 96 PR1/PR2):
+>    - Action B: markdown frontmatter strip 34 gaps (defer Phase 3 per gap-architecture-v2)
+>    - Action C: UPDATE_SCOPE 4 gaps (GAP-203/220/052/155/438)
+>    - Action F: human triage 12 UNCLEAR + AMBIGUOUS gaps (incl GAP-040 anomaly)
+> 4. **Thesis report (Release 2)** — large scope; Release 2 plan prerequisite; action-2.md scratchpad has user directives
+> 5. Wave 95+96 closure artifacts: `wave-history.jsonl` (this commit) + 5 PR-logs JSON + 5 architecture reports (kitehub-arch / kiteclass-arch / multi-tenant-arch / email-arch / AWS recreation estimate)
+
+### 🎉 Wave 96 SHIPPED 2026-05-18 — gap re-triage batch A+D + kiteclass-gateway removal + diagram rule + 3 architecture reports
+
+**PRs:** #1535 (Wave 96 PR1 — re-phase 9 gaps + GAP-145 WONTFIX + 3 audit reports), #1536 (Wave 96 PR2 — kiteclass-gateway removal + ADR-032 + diagram-format-selection rule v1.0.0 + kitehub/kiteclass/multi-tenant arch reports).
+
+**Highlights:**
+- 5-agent parallel re-triage 661 gaps (~30 min vs ~3-5h serial) — `documents/04-quality/audits/meta/2026-05-18-wave-96-gap-retriage-full-sweep.md`
+- Batch A: 9 gaps re-phased (7 phase-2→phase-1-beta + 2 phase-2→phase-1.5-paid)
+- Batch D: GAP-145 WONTFIX (consolidated by GAP-434+111+112)
+- kiteclass-gateway REMOVED per ADR-032 / GAP-001 Option A (154 files + 9 ref sweeps + backup branch `archive/kiteclass-gateway-pre-removal-2026-05-18`)
+- NEW rule `diagram-format-selection.md` v1.0.0 + self-test (`email-architecture.md` ASCII → Mermaid)
+- 3 NEW arch reports (Mermaid): `kitehub-architecture.md` (517L/5 diagrams) + `kiteclass-architecture.md` UPDATE (451L/5) + `multi-tenant-architecture.md` (529L/5 dev runbook)
+- `output-review-mandate.md` v1.10.0 → v1.12.0 (+2 matrix rows)
+
+### 🎉 Wave 95 SHIPPED 2026-05-18 — gap folder organization (v1.0.0 → v2.0.0 + mass migration 466 files)
+
+**PRs:** #1532 (v1.0.0 status-driven — superseded same session), #1533 (PR1.5 v2.0.0 forward-fix phase-only), #1534 (mass migration 466 files + CI strict).
+
+**Highlights:**
+- NEW rule `gap-folder-organization.md` v2.0.0 (phase-only design + per-phase `closed/` archive)
+- 466 files migrated phase-X/[closed/] layout
+- 3-agent outside-in audit caught v1.0.0 status-driven design wrong → v2.0.0 forward-fix
+- Cost reduction: ~1,200 git mv over 6 months → ~120-150 (24x)
+- Sister-tool fix `check-gap-status-csv.sh` recursive walk (Agent 3 Class 4 prediction validated)
+- CI `gap-folder-location.sh` strict mode active
+
+### 🎉 Wave 94c SHIPPED 2026-05-18 — GAP-619 Wave 92 post-wave audit suite (5 categories)
 
 ### 🎉 Wave 94c SHIPPED 2026-05-18 — GAP-619 Wave 92 post-wave audit suite (5 categories)
 
