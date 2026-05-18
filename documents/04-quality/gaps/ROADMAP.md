@@ -8,9 +8,39 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-18 — 🎉 Wave 92 SHIPPED (5 buckets pre-tenant cluster offline-safe) + GAP-612 AWS suspension blocker pending D+4 response)
+## 🎯 Current Status Snapshot (2026-05-18 — 🎉 Wave 93/94b/94c ALL SHIPPED same session + GAP-619 DONE 3 ngày trước deadline + 23 new gaps filed)
 
-> **📍 Next session ĐỌC TRƯỚC:** Wave 92 closure PR + 3 thesis outside-in audit artifacts (persona / benchmark / failure-matrix tại `documents/04-quality/audits/persona-review/2026-05-18-thesis-plan-*.md`) + thesis plan task in-flight cho Wave 93 candidate (NEW skill `thesis-report` + rule `thesis-report-content-standard` + folder `documents/08-thesis/figures/` + V5.0 đề cương regen per release v2.0.0).
+> **📍 Next session ĐỌC TRƯỚC:**
+> 1. **GAP-637 P0 admin v1 @PreAuthorize missing** — Wave 95 URGENT fix queue (OWASP A01 BLOCKER cho Phase 1 BETA gate path)
+> 2. **GAP-612 AWS suspension** restoration pending D+4 = 2026-05-21 trigger escalate
+> 3. **GAP-645 Wave 96 gap folder reorg** stub plan ready — user inside-out proposal phase subdirs (defer post Phase 1 BETA gate close + outside-in audit per Rule v1.1.0)
+> 4. Wave 94c audit suite (5 reports: UI 104.7 B+ / API 79 C+ FAIL / Business 70 C / Security 93 A / Ops 77 C+) + 8 new gaps GAP-637..644 + Wave 93/94b/94c closure logs (`wave-history.jsonl`)
+
+### 🎉 Wave 94c SHIPPED 2026-05-18 — GAP-619 Wave 92 post-wave audit suite (5 categories)
+
+**PR #1531 merged** (21 files / 2984 insertions). 5 audit agents parallel + 1 gap-drafting agent. 3-day deadline 2026-05-21 met 3 ngày trước. Audit scores + 8 new gaps + 1 Wave 96 stub + GAP-619 DONE flip. Path Phase 1 BETA gate 80 via GAP-637 fix + GAP-612 AWS restore.
+
+### 🎉 Wave 94b SHIPPED 2026-05-18 — waves/ subdir split per Rule 3 volume budget
+
+**PR #1530 merged** (85 files: 81 git mv + 3 READMEs + 1 plan). Split `documents/03-planning/waves/` 108 files → 3 wave-range subdirs (wave-01-30 / wave-31-60 / wave-61-90) + 27 active at root. All subdirs under 50-file Rule 3 cap.
+
+### 🎉 Wave 93 SHIPPED 2026-05-18 — Phase 1.5 PAID payment outside-in audit + 12 gaps + 4 re-scope + §7 follow-up
+
+**PR #1528 merged** (~37 files atomic). 3-agent QR base audit + 3-agent OCR audit (Casso/SePay webhook pivot) + 26-gap re-triage. 11 new gaps GAP-625..636 + GAP-636 webhook + 4 re-scope GAP-108/183/185/594 + 5 cross-ref + Wave 93 §7 follow-up DONE (close GAP-581 DUPLICATE + phase moves GAP-123/124/415 → phase-2 + pair GAP-625↔GAP-578 Phase 1.5a sequential).
+
+### Session 2026-05-18 totals
+
+| Metric | Count |
+|---|---|
+| PRs shipped | 4 (#1528 + #1529 rule v1.1.0 + #1530 + #1531) |
+| New gaps | 21 (GAP-625..645) |
+| Re-scope existing | 4 (GAP-108/183/185/594) |
+| Audit reports | 8 (3 Wave 93 + 5 Wave 94c) |
+| Rules version bumps | 2 (outside-in v1.0.0→v1.1.0 / output-review-mandate v1.9.0→v1.9.1) |
+| Phase 1.5 active gap count | 30 → 36 (+10 new -1 DUPLICATE -3 phase moved) |
+| waves/ folder utilization | 216% → 54% (Rule 3 cap restored) |
+
+### 🎉 Wave 92 SHIPPED 2026-05-18 — Pre-Tenant Cluster + Audit Follow-ups (preserved for historical context below)
 
 ### 🎉 Wave 92 SHIPPED 2026-05-18 — Pre-Tenant Cluster + Audit Follow-ups (5/5 buckets parallel offline-safe)
 
