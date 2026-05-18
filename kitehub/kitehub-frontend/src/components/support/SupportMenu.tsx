@@ -12,7 +12,7 @@
  * Dropdown items (4):
  *  1. "Hướng dẫn nhanh" → persona-aware help route
  *  2. "Liên hệ hỗ trợ" → mailto:support@kitehub.me
- *  3. "Gửi phản hồi" → opens FeedbackForm modal placeholder (B5 wires actual)
+ *  3. "Gửi phản hồi" → opens FeedbackForm Radix Dialog (Wave 98 B5 — GAP-540 + GAP-542 merge)
  *  4. "Trạng thái beta" → /beta-status
  *
  * Accessibility:
@@ -30,7 +30,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { HelpCircle, Mail, MessageSquare, Activity, X } from 'lucide-react';
+import { HelpCircle, Mail, MessageSquare, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -41,14 +41,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { OnboardingPhase } from '@/hooks/useOnboardingPhase';
+import { FeedbackForm } from '@/components/feedback/FeedbackForm';
 
 export interface SupportMenuProps {
   /** Phase from useOnboardingPhase — drives help route persona mapping. */
   phase?: OnboardingPhase;
   /** Override CSS positioning (testing only). */
   className?: string;
-  /** Callback when user clicks "Gửi phản hồi" — Bucket B5 will wire to actual form modal. */
+  /**
+   * Optional callback when user clicks "Gửi phản hồi". When provided, the parent
+   * controls the modal open state (advanced wiring). When omitted (default),
+   * SupportMenu manages its own FeedbackForm modal — recommended path.
+   */
   onFeedbackClick?: () => void;
+  /** Pre-fill email field in FeedbackForm (e.g., logged-in user's address). */
+  defaultEmail?: string;
 }
 
 /**
@@ -64,7 +71,12 @@ function helpRouteForPhase(phase: OnboardingPhase | undefined): string {
   return '/help';
 }
 
-export function SupportMenu({ phase, className, onFeedbackClick }: SupportMenuProps) {
+export function SupportMenu({
+  phase,
+  className,
+  onFeedbackClick,
+  defaultEmail,
+}: SupportMenuProps) {
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
 
   const helpRoute = helpRouteForPhase(phase);
@@ -73,7 +85,7 @@ export function SupportMenu({ phase, className, onFeedbackClick }: SupportMenuPr
     if (onFeedbackClick) {
       onFeedbackClick();
     } else {
-      // B5 placeholder: open in-place stub modal (actual FeedbackForm by Bucket B5).
+      // Wave 98 B5: open the actual FeedbackForm Radix Dialog (GAP-540 + GAP-542 merge).
       setFeedbackModalOpen(true);
     }
   };
@@ -159,37 +171,15 @@ export function SupportMenu({ phase, className, onFeedbackClick }: SupportMenuPr
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Placeholder modal — Bucket B5 sẽ replace với actual FeedbackForm wire */}
-      {feedbackModalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="feedback-placeholder-title"
-          data-testid="support-menu-feedback-modal-placeholder"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={() => setFeedbackModalOpen(false)}
-        >
-          <div
-            className="relative w-full max-w-md rounded-lg bg-background p-6 shadow-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setFeedbackModalOpen(false)}
-              aria-label="Đóng modal"
-              className="absolute right-4 top-4 rounded p-1 hover:bg-muted"
-            >
-              <X className="h-4 w-4" aria-hidden />
-            </button>
-            <h2 id="feedback-placeholder-title" className="text-lg font-semibold">
-              Gửi phản hồi
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Form phản hồi sẽ được Bucket B5 wire. Tạm thời, vui lòng gửi email
-              tới <a href="mailto:support@kitehub.me" className="underline">support@kitehub.me</a>.
-            </p>
-          </div>
-        </div>
+      {/* Wave 98 B5: actual FeedbackForm Radix Dialog (GAP-540 + GAP-542 merge).
+       * Only mount when the parent did NOT supply onFeedbackClick — otherwise
+       * the parent controls its own feedback flow. */}
+      {!onFeedbackClick && (
+        <FeedbackForm
+          open={feedbackModalOpen}
+          onClose={() => setFeedbackModalOpen(false)}
+          defaultEmail={defaultEmail}
+        />
       )}
     </>
   );
