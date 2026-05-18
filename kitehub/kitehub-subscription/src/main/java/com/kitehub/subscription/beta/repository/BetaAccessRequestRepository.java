@@ -78,4 +78,38 @@ public interface BetaAccessRequestRepository extends JpaRepository<BetaAccessReq
                             @Param("usedAt") OffsetDateTime usedAt,
                             @Param("consumedIp") String consumedIp,
                             @Param("consumedUserAgent") String consumedUserAgent);
+
+    /**
+     * GAP-600 Wave 92 Bucket C — bulk mark stale PENDING requests as ABORTED.
+     *
+     * <p>Cleanup sweep query used by
+     * {@link com.kitehub.subscription.beta.scheduler.BetaRequestAbortCleanupScheduler}.
+     * Sweeps rows with status PENDING created before the threshold cutoff →
+     * flips to ABORTED (terminal state preserving audit trail).</p>
+     *
+     * <p>Index support: V53 composite index {@code (status, created_at)} cho
+     * planner index-only scan. Default cron mỗi 6h, threshold 24h —
+     * configurable via {@code kitehub.beta.cleanup.*}.</p>
+     *
+     * @param threshold rows với {@code created_at < threshold} đủ điều kiện sweep
+     * @param now       timestamp set into {@code updated_at}
+     * @return số rows flipped PENDING → ABORTED
+     */
+    @Modifying
+    @Query("UPDATE BetaAccessRequest b SET b.status = "
+            + "com.kitehub.subscription.beta.entity.BetaAccessRequestStatus.ABORTED, "
+            + "b.updatedAt = :now "
+            + "WHERE b.status = com.kitehub.subscription.beta.entity.BetaAccessRequestStatus.PENDING "
+            + "AND b.createdAt < :threshold")
+    int markStaleAsAborted(@Param("threshold") OffsetDateTime threshold,
+                            @Param("now") OffsetDateTime now);
+
+    /**
+     * GAP-600 Wave 92 Bucket C — count stale PENDING rows (used for logging
+     * before bulk update fires, and by metrics if wired later).
+     */
+    @Query("SELECT COUNT(b) FROM BetaAccessRequest b "
+            + "WHERE b.status = com.kitehub.subscription.beta.entity.BetaAccessRequestStatus.PENDING "
+            + "AND b.createdAt < :threshold")
+    long countStalePending(@Param("threshold") OffsetDateTime threshold);
 }
