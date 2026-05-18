@@ -1,6 +1,6 @@
 # GAP-543: Email content audit — 5 email types content/tone Vietnamese
 
-**Status:** 🟡 PARTIAL (Wave 78 Bucket E — 5 audit notes shipped; 3 templates MISSING tracked follow-up; plain-text fallback + content rewrite defer Wave 79)
+**Status:** 🟡 PARTIAL 80% (Wave 98 B1 — deliverability + tone foundation shipped via GAP-657 + GAP-659; per-tone variants + native VN copywriter Wave 99)
 **Priority:** 🔴 P0
 **Domain:** Mixed (Content + Backend templates)
 **Detected:** 2026-05-14
@@ -87,3 +87,10 @@ User confirm 2026-05-14: "Email content audit vào Wave 78" (1 trong 3 inside-ou
 
 - 2026-05-14 — Initial write-up (state-check completed; 5 template files partial; audit notes folder absent; Wave 78 Bucket E owner).
 - **2026-05-14 (Wave 78 Bucket E):** PARTIAL — 5 audit notes ship: welcome PASS (8/10 tone, plain-text gap), beta-invite PASS (9/10 tone, security claim code OK), approve-tenant intentional consolidate với beta-invite (Option A), reset-password MISSING (P1 follow-up GAP-543.1.A), day-7-survey MISSING (sync GAP-542). Aggregate: 0 PII leak subject (an toàn); plain-text fallback 0/2 (gap); cross-client render 0/2 (gap). Per `gap-done-discipline.md` §3 PARTIAL exit ramp — 3 template tạo mới + content rewrite + plain-text = wave riêng (Wave 79+).
+- **2026-05-18 (Wave 98 B1 — PARTIAL 40% → 80%):** Deliverability + tone portions DONE via paired gaps GAP-657 + GAP-659:
+  - 5/5 critical templates now have `.txt` plain-text siblings (welcome, beta-invite, email-verification, password-reset, invite-staff). `password-reset.html` newly created (was missing).
+  - `Tone` enum + `EmailTemplateRenderer` central renderer wired for FORMAL_SAFE_DEFAULT salutation; per-tone variants Wave 99.
+  - `SESEmailService.sendEmail(to, subject, html, text)` overload + ResendEmailService stub wire multipart/alternative + Reply-To + List-Unsubscribe headers per BR-EMAIL-002/003 (`documents/01-business/kitehub/email/rules.md`).
+  - Business docs created: `documents/01-business/kitehub/email/{rules.md,api-contract.md}` (3-layer docs first 2 layers).
+  - Tests: 5 new `EmailTemplateRendererTest` cases PASS via `mvnw verify -P strict-warnings`.
+  - Remaining 20% (per-tone template variants + native VN copywriter pass) tracked Wave 99.

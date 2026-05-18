@@ -1,6 +1,6 @@
 # GAP-657: Email layer hardening — plain-text + List-Unsubscribe + Reply-To + render verify
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (80% — Wave 98 B1)
 **Priority:** 🔴 P0
 **Domain:** Backend (kitehub-email service)
 **Detected:** 2026-05-18 (Wave 98 prep — outside-in audit 3-agent convergence)
@@ -111,3 +111,27 @@ After this gap DONE → GAP-543 §AC update:
 - **Sister gap:** GAP-543 PARTIAL — this gap closes deliverability portion; GAP-659 closes content/tone portion
 - **Related:** GAP-572 PARTIAL 40% Resend secret schema; GAP-533 PARTIAL 80% Resend warm-up DKIM/DMARC
 - **Wave 98 bucket:** B1
+
+## Log
+
+- **2026-05-18 (Wave 98 B1 PARTIAL 80%):** Shipped deliverability core:
+  - 5/5 critical templates now have `.txt` siblings (`welcome.txt`, `beta-invite.txt`, `email-verification.txt`, `password-reset.txt`, `invite-staff.txt` pre-existing).
+  - `password-reset.html` template newly created (was missing entirely).
+  - `Tone` enum (`com.kitehub.email.api.Tone`) with role-based resolution; Wave 98 default = FORMAL_SAFE_DEFAULT.
+  - `EmailTemplateRenderer` central renderer emits BOTH HTML + plain-text bodies via dual Thymeleaf resolvers (HTML default + TEXT registered post-construct).
+  - `SESEmailService.sendEmail(to, subject, htmlBody, textBody)` overload — wires multipart/alternative + ReplyToAddresses; SMTP path mirrors via `helper.setText(text, html)`.
+  - `ResendEmailService` stub (activated `@ConditionalOnProperty(email.provider=resend)`) — HTTP API payload includes `html` + `text` + `reply_to` + `headers.List-Unsubscribe` + `headers.List-Unsubscribe-Post`.
+  - `SESConfig.SESProperties` extended: `replyToEmail` (default `support@kitehub.me`), `unsubscribeMailto`, `unsubscribeUrlTemplate`.
+  - `EmailTemplateResolverConfig`: TEXT resolver registered via `@PostConstruct` (avoids circular DI) + RestTemplate bean for Resend.
+  - 5 new tests `EmailTemplateRendererTest` — render HTML+text for welcome / beta-invite / password-reset / email-verification + Tone resolution. ALL PASS via `mvnw -pl kitehub-email verify -P strict-warnings` (49 tests run, 0 failures, 1 skipped existing SES integration).
+  - Business docs: `documents/01-business/kitehub/email/rules.md` (7 BRs: plain-text mandate, Reply-To, List-Unsubscribe policy, Tone register, sender identity, provider routing, scheduler observability) + `api-contract.md` (POST /api/email/send + 5 template variable schemas + auto-wired headers).
+  - GAP-543 PARTIAL 40 → 80% (CSV synced).
+- **2026-05-18 — Deferred items (carry-over to follow-up GAP):**
+  - **`SchedulerEmailWireIT`** integration test (Step 5) — Spring Boot test triggering scheduled job + SMTP mock assertion deferred (existing service has no scheduled jobs wired; tracked when scheduler ships).
+  - **CloudWatch alarm `email-scheduler-silent-fail`** wiring (Step 5 §3 §Recommendations 2) — Terraform out of scope for B1; tracked as separate ops gap.
+  - **Manual 2-client render verify** (Step 4 §4 checklist) — code path ready; physical send to gmail/outlook test inboxes requires production SES sender approval + DKIM live. To be executed at deploy time per `release-deploy-standard.md` §3.1 "Smoke admin-login" precedent.
+  - **Native VN copywriter pass** (paired GAP-659 §Step 3) — content audit by external VN reviewer deferred Wave 99 (shared GAP-658 budget).
+  - **Per-tone variant templates** (GAP-659 §Step 2) — `welcome.formal.html` / `welcome.informal.html` etc. deferred Wave 99; renderer `resolveTemplatePath()` has TODO Wave 99 marker.
+- **2026-05-18 — Verification commands run:**
+  - `cd kitehub && ./mvnw -pl kitehub-email verify -P strict-warnings` → BUILD SUCCESS, 49 tests pass.
+  - File state: `ls kitehub/kitehub-email/src/main/resources/templates/emails/*.txt` → 5 files (beta-invite, email-verification, invite-staff, password-reset, welcome).
