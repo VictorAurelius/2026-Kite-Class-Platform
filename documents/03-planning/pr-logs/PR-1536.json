@@ -1,0 +1,44 @@
+{
+  "pr": 1536,
+  "title": "feat(meta): Wave 96 PR2 \u2014 kiteclass-gateway removal + diagram rule + 3 architecture reports",
+  "branch": "wave/96-pr2-gap-001-kiteclass-gateway-removal",
+  "created_at": null,
+  "merged_at": "2026-05-18T10:38:21Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": true,
+    "audits_required": [
+      "business-logic-audit",
+      "api-contract-audit",
+      "security-audit",
+      "ops-readiness-audit"
+    ],
+    "audits_run": [
+      "security-audit"
+    ],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-18T10:38:29.518858",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 100,
+        "java_files": 53,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": [
+          "business-logic-audit",
+          "api-contract-audit",
+          "ops-readiness-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "1/5",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-559132"
+  }
+}
