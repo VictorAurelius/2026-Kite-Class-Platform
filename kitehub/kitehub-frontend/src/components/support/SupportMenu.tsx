@@ -31,7 +31,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { HelpCircle, Mail, MessageCircle, MessageSquare, Activity, X } from 'lucide-react';
+import { HelpCircle, Mail, MessageCircle, MessageSquare, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
