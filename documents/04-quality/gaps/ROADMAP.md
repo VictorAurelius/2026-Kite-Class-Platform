@@ -36,9 +36,11 @@
 **Pending:**
 - GAP-612 AWS suspension restoration (D+4 = 2026-05-21 trigger escalate)
 - GAP-521 + GAP-599 PARTIAL → Wave 93 candidates
-- Post-Wave-92 audit suite ≤3 days per post-wave-audit-mandate §2.2
+- **GAP-619** Wave 92 post-wave audit suite ≤3 days deadline 2026-05-21 per `post-wave-audit-mandate.md` §2.2 + new rule `wave-closure-scope-completeness.md` §3
+- **GAP-620** Wave 92 Bucket D live verify 3 admin v1 controllers post-AWS-restore (gated GAP-612)
+- **GAP-621** Wave 92 Bucket B+C live verify prod-equivalent env post-AWS-restore (gated GAP-612)
 - 6 CodeQL HIGH FE container CVEs — gate Wave 88 cutover (post AWS restore + base image refresh node:22-trixie-slim → bookworm-slim option)
-- Thesis plan task — outside-in audits done; merge findings + scope lock + Wave 93 thesis-1 spawn
+- Thesis plan task — outside-in audits done; merge findings + scope lock + Wave 93 thesis-1 spawn (blocked-on release 2 plan lock per user 2026-05-18 decision)
 
 ### 🎉 Wave 84 SHIPPED 2026-05-15 — Ops Observability + Secrets Rotation + Account-Prep + Terraform Apply LIVE (7/7 buckets executed)
 
