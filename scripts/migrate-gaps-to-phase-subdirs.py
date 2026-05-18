@@ -113,7 +113,7 @@ def main(write: bool = False) -> int:
         new_rows.append([gap_id, new_filename, title, status, priority, domain, phase, completion, found, last_verified, notes])
 
     # Report
-    print(f"=== Migration plan (rule v2.0.0 §2.1) ===")
+    print("=== Migration plan (rule v2.0.0 §2.1) ===")
     print(f"Total CSV rows: {len(new_rows)}")
     print(f"Moves required: {len(moves)}")
     print(f"Already at correct location: {skipped}")
@@ -139,7 +139,7 @@ def main(write: bool = False) -> int:
     if not write:
         print("=== DRY-RUN — re-run with --write to execute ===")
         print("Sample moves (first 10):")
-        for gap_id, old, new in moves[:10]:
+        for _gap_id, old, new in moves[:10]:
             print(f"  git mv {old} -> {new}")
         return 0
 
