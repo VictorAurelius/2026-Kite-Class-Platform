@@ -157,6 +157,14 @@
 5. Live verify all → flip DONE
 6. Long-term follow-ups: P2 uptime monitoring + P2 DR plan
 
+### Long-term P2/P3 backlog (filed 2026-05-18 via Wave 92 Bucket E — formalize Wave 90 line 158 carry-forward)
+
+| Gap | Title | Priority | Phase | Defer rationale |
+|---|---|---|---|---|
+| [GAP-616](GAP-616-uptime-monitoring-external.md) | Uptime monitoring external (UptimeRobot / BetterStack integration) | 🟡 P2 | Phase 1.5+ | Outside-in observability — surfaced bởi GAP-612 (in-account monitoring đi cùng production khi account-level fail); BetterStack free tier recommend; defer khi chưa có tenant onboarded |
+| [GAP-617](GAP-617-disaster-recovery-plan.md) | Disaster recovery plan (multi-region OR backup mechanism + RTO/RPO targets) | 🟢 P3 | Phase 1.5+ | Single-account single-region blast radius exposed bởi GAP-612; deprioritize P2→P3 vì chưa có tenant data đáng protect; nâng lên P2/P1 khi 5+ tenant live; cross-link GAP-257 restore drill |
+| [GAP-618](GAP-618-aws-health-dashboard-daily-check.md) | AWS Service Health Dashboard daily check (automated scrape + alert) | 🟡 P2 | Phase 1.5+ | Lesson-learned từ GAP-612 (account suspension chỉ tới email manual); RSS feed ap-southeast-1 free tier + GitHub Actions scheduled workflow; solo-dev mode acceptable manual email check Phase 1 BETA |
+
 ---
 
 ### 🚀 Next Action — Wave 90 SHIPPED (live verify all DONE) + Wave 91 backlog (2026-05-17) [historical — pre-suspension]
