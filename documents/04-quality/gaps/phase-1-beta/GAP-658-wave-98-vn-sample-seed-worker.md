@@ -111,3 +111,5 @@ After this gap DONE → GAP-538 §AC update:
     - Native VN copywriter review pass — paired Wave 98 Bucket B4 i18n (parallel execution; pre-merge integration)
     - `seed.locale` config key trong `application.yml` — kitehub-platform là shared module, no application.yml; consumer modules add key per BR-SEED-001
   - **AC7 GAP-538 closed via shipped foundation:** GAP-538 progress 85% → 90%
+
+- **2026-05-18 (PR #1550 merged)** — Post-merge sync per `post-merge-sync-completeness.md` §4. Foundation shipped + 3-layer business doc `documents/01-business/kitehub/seed/{rules,use-cases,api-contract}.md` paired bonus. SeedWorkerService + OnboardingChecklistService wiring deferred to consumer module when service materializes; native VN copywriter pass paired Wave 98 Bucket B4 (PR #1549).
