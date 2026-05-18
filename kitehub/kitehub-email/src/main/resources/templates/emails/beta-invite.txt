@@ -22,7 +22,9 @@ Lưu ý:
     bất kỳ vấn đề nào qua email hỗ trợ.
   - Nếu anh/chị không đăng ký, vui lòng bỏ qua email này.
 
-Cần hỗ trợ? Liên hệ [(${branding?.contactEmail ?: 'support@kitehub.me'})].
+Cần hỗ trợ?
+  - Email: [(${branding?.contactEmail ?: 'support@kitehub.me'})]
+  - Zalo OA: https://zalo.me/[(${zaloOaId ?: 'kitehub'})] (phản hồi nhanh hơn cho câu hỏi gấp, T2-T6 8h-18h)
 
 Trân trọng,
 Đội ngũ [(${branding?.displayName ?: 'KiteHub'})]

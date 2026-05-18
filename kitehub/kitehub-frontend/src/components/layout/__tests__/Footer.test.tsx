@@ -40,6 +40,16 @@ describe('Footer — GAP-540 support channel discoverability', () => {
     expect(link).toHaveTextContent('Trạng thái Beta');
   });
 
+  it('shows Zalo OA link (Wave 98 B6 GAP-660)', () => {
+    render(<Footer />);
+    const link = screen.getByTestId('footer-zalo-oa-link');
+    // Default placeholder fallback when NEXT_PUBLIC_KITEHUB_ZALO_OA_ID not set
+    expect(link).toHaveAttribute('href', expect.stringMatching(/^https:\/\/zalo\.me\//));
+    expect(link).toHaveTextContent('Hỗ trợ qua Zalo OA');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
   it('shows privacy + terms legal links', () => {
     render(<Footer />);
     // Privacy and terms links by href (no testid needed)

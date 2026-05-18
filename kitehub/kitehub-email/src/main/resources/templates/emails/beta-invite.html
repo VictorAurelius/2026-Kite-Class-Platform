@@ -126,6 +126,16 @@
                th:text="${branding?.contactEmail ?: 'support@kiteclass.com'}">support@kiteclass.com</a>.
         </div>
 
+        <!-- Wave 98 B6 GAP-660 — Zalo OA fast-path CTA. Inline link (QR code defer Wave 99).
+             zaloOaId model var injected from kitehub-email service; placeholder fallback 'kitehub'. -->
+        <p style="margin-top: 20px; padding: 12px 16px; background: #ECFDF5; border-left: 4px solid #10B981; border-radius: 4px; font-size: 14px;">
+            💬 <strong>Thêm chúng tôi trên Zalo:</strong>
+            <a th:href="|https://zalo.me/${zaloOaId ?: 'kitehub'}|"
+               th:text="|zalo.me/${zaloOaId ?: 'kitehub'}|"
+               style="color: #047857; text-decoration: underline;">zalo.me/kitehub</a>
+            — phản hồi nhanh hơn email cho câu hỏi gấp (T2-T6, 8h-18h).
+        </p>
+
         <p style="margin-top: 24px;">
             Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email — không có hành động nào được thực thi.
         </p>
@@ -154,6 +164,12 @@
             📊 Trạng thái dịch vụ Beta: <a th:href="@{https://kitehub.me/status}" style="color: #2563EB;">kitehub.me/status</a>
             &nbsp;|&nbsp;
             📖 Hướng dẫn: <a th:href="@{https://kitehub.me/help/anonymous}" style="color: #2563EB;">kitehub.me/help</a>
+        </p>
+        <!-- Wave 98 B6 GAP-660 — Zalo OA fast-path inline trong footer (alongside status + help). -->
+        <p style="font-size: 12px; color: #6B7280; margin-top: 4px;">
+            💬 Zalo OA: <a th:href="|https://zalo.me/${zaloOaId ?: 'kitehub'}|"
+                          th:text="|zalo.me/${zaloOaId ?: 'kitehub'}|"
+                          style="color: #047857;">zalo.me/kitehub</a>
         </p>
     </div>
 </body>

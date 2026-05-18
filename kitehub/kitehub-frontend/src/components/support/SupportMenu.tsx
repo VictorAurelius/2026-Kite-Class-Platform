@@ -9,11 +9,12 @@
  * floating buttons with ONE shared entry point. Per outside-in audit F-NEW-2
  * + F-NEW-4 + failure-mode matrix M-NEW-7.
  *
- * Dropdown items (4):
+ * Dropdown items (5):
  *  1. "Hướng dẫn nhanh" → persona-aware help route
- *  2. "Liên hệ hỗ trợ" → mailto:support@kitehub.me
- *  3. "Gửi phản hồi" → opens FeedbackForm Radix Dialog (Wave 98 B5 — GAP-540 + GAP-542 merge)
- *  4. "Trạng thái beta" → /beta-status
+ *  2. "Liên hệ qua email" → mailto:support@kitehub.me
+ *  3. "Liên hệ Zalo OA" → https://zalo.me/{oa_id} (web) + zalo://chat?oa_id={oa_id} (mobile deep-link)
+ *  4. "Gửi phản hồi" → opens FeedbackForm Radix Dialog (Wave 98 B5 — GAP-540 + GAP-542 merge)
+ *  5. "Trạng thái beta" → /beta-status
  *
  * Accessibility:
  *  - Floating button ≥44×44px (WCAG 2.5.5 touch target)
@@ -30,7 +31,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { HelpCircle, Mail, MessageSquare, Activity } from 'lucide-react';
+import { HelpCircle, Mail, MessageCircle, MessageSquare, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -42,6 +43,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { OnboardingPhase } from '@/hooks/useOnboardingPhase';
 import { FeedbackForm } from '@/components/feedback/FeedbackForm';
+
+// Zalo OA fast-path (Wave 98 B6 GAP-660) — env-var-driven OA ID with placeholder
+// fallback per documents/05-guides/account-prep/zalo-oa-setup-runbook.md §2.2.
+// Default `kitehub` is a placeholder slug; production deploys MUST set the real
+// OA ID (13-16 digit) via NEXT_PUBLIC_KITEHUB_ZALO_OA_ID env var.
+const ZALO_OA_ID = process.env.NEXT_PUBLIC_KITEHUB_ZALO_OA_ID ?? 'kitehub';
+const ZALO_OA_WEB_URL = `https://zalo.me/${ZALO_OA_ID}`;
+const ZALO_OA_DEEPLINK = `zalo://chat?oa_id=${ZALO_OA_ID}`;
 
 export interface SupportMenuProps {
   /** Phase from useOnboardingPhase — drives help route persona mapping. */
@@ -144,9 +153,37 @@ export function SupportMenu({
               className="cursor-pointer"
             >
               <Mail className="mr-2 h-4 w-4" aria-hidden />
-              <span>Liên hệ hỗ trợ</span>
+              <span>Liên hệ qua email</span>
             </a>
-            {/* TODO B6 Zalo OA link — defer until Zalo OA hoạt động per GAP-660 */}
+          </DropdownMenuItem>
+
+          {/* Wave 98 B6 GAP-660 — Zalo OA fast-path. Mobile clicks try deep-link
+              first (zalo://chat?oa_id=...), then fall back to web (zalo.me/...)
+              after 300ms if Zalo app không cài. Desktop always uses web link. */}
+          <DropdownMenuItem asChild>
+            <a
+              href={ZALO_OA_WEB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="support-menu-zalo-oa-link"
+              className="cursor-pointer"
+              onClick={(e) => {
+                // Mobile UA heuristic — attempt deep-link, browser falls back to
+                // web link if Zalo app KHÔNG cài (default href takes over).
+                if (typeof window !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                  e.preventDefault();
+                  // Try Zalo app deep-link first
+                  window.location.href = ZALO_OA_DEEPLINK;
+                  // Fallback to web after 500ms if deep-link didn't navigate
+                  setTimeout(() => {
+                    window.location.href = ZALO_OA_WEB_URL;
+                  }, 500);
+                }
+              }}
+            >
+              <MessageCircle className="mr-2 h-4 w-4" aria-hidden />
+              <span>Liên hệ Zalo OA</span>
+            </a>
           </DropdownMenuItem>
 
           <DropdownMenuItem

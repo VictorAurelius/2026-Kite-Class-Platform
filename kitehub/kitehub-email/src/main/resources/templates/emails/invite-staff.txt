@@ -16,7 +16,9 @@ Lưu ý bảo mật:
   - Chỉ sử dụng được 1 lần để tạo tài khoản.
   - Nếu bạn không mong đợi lời mời này, vui lòng bỏ qua email.
 
-Nếu cần hỗ trợ, vui lòng liên hệ [(${branding?.contactEmail ?: 'support@kitehub.me'})].
+Nếu cần hỗ trợ:
+  - Email: [(${branding?.contactEmail ?: 'support@kitehub.me'})]
+  - Zalo OA: https://zalo.me/[(${zaloOaId ?: 'kitehub'})] (phản hồi nhanh hơn cho câu hỏi gấp, T2-T6 8h-18h)
 
 Trân trọng,
 Đội ngũ [(${branding?.displayName ?: 'KiteHub'})]
