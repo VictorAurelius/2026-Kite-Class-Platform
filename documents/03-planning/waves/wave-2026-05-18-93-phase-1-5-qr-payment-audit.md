@@ -111,41 +111,39 @@ audit_reports: [2026-05-18-phase-1-5-qr-payment-outside-in.md, 2026-05-18-phase-
 | gap-status.csv | `documents/04-quality/gaps/gap-status.csv` | Coordinator | 12 new rows + 4 last_verified updates |
 | audits-index.csv | `documents/04-quality/audits/audits-index.csv` | Coordinator | 3 new audit rows |
 
-### 3.3 State-Check Evidence (per `audit-to-gap-pipeline.md` §2.6)
+---
+
+## 4. State-Check Evidence (per `audit-to-gap-pipeline.md` §2.6)
 
 | Symbol | Verification | Verdict |
 |---|---|---|
-| 12 new GAP-IDs unique | `bash scripts/query-gaps.sh GAP-62 ""` returns 0 hits before Wave 93 | ✅ canonical free |
+| 12 new GAP-IDs unique (GAP-625..636) | `bash scripts/query-gaps.sh GAP-62 ""` returns 0 hits before Wave 93 | ✅ canonical free |
 | Casso webhook code references | `grep -rl "casso\|sepay" kitehub/ kiteclass/` returns 0 hits | ✅ greenfield Phase 1.5b scope |
 | 4 re-scope target files exist | `ls documents/04-quality/gaps/GAP-{108,183,594}*.md pending/GAP-185*.md` | ✅ all exist |
 | 5 cross-ref target files exist | `ls documents/04-quality/gaps/GAP-{259,581,577,578}*.md pending/GAP-301*.md` | ✅ all exist |
 | Inside-out queue file exists + accepts append | `ls documents/03-planning/inside-out-queue.md` | ✅ exists, format follows §Format |
+| Wave 93 governance scope = docs-only | All artifact paths under `documents/**` + `.claude/rules/**` — KHÔNG code change | ✅ docs-only per `docs-only-pr-auto-merge.md` §2 |
 
 ---
 
-## 4. Audit reports verdict
+## 5. Verification Gates (per bucket)
 
-### 4.1 QR base audit (3-agent convergence)
+Wave 93 ship criteria + per-bucket verification:
 
-> ✅ **PROCEED with QR approach cho cả P1 + P2 Phase 1.5** — mandatory do compliance VN (PSP license + KYC barrier). Phase 2 pivot VietQR EduPay partnership khi PH > 100.
+### 5.1 Bucket-level gates
 
-Score: N/A (persona-review category — non-scoring).
+| Bucket | Verification | Status |
+|---|---|---|
+| Bucket 0 (Coordinator audit report) | 3 audit reports exist + cite 3-agent transcripts inline | ✅ |
+| Bucket A (3 P0 new gaps) | 3 files exist + measurable AC + Vietnamese narrative + state-check section | ✅ |
+| Bucket B (5 P1 new gaps) | 5 files exist + measurable AC + Vietnamese narrative + state-check section | ✅ |
+| Bucket C (3 P2 new gaps) | 3 files exist + measurable AC + cross-references | ✅ |
+| Bucket D (4 re-scope) | 4 files amended + `## Scope Refinement (2026-05-18 audit)` section + Log entry | ✅ |
+| Bucket 5 (Re-triage 26 gaps) | Re-triage report exists + verdict matrix + §6 follow-up surfaced | ✅ |
+| Bucket OCR (3 OCR agents) | OCR audit report exists + 22 failure scenarios + benchmark OVERRIDE finding | ✅ |
+| Coordinator consolidation | 5 cross-ref Log entries + CSV updates + queue update + wave plan | ✅ |
 
-### 4.2 Re-triage 26 gaps audit
-
-> ✅ 12 KEEP / 8 RE-SCOPE / 4 MOVE-PHASE / 2 OVERLAP / 0 CANCEL. 1 DUPLICATE merge candidate GAP-259≈GAP-581. KYC audit-log dependency GAP-625↔GAP-577/578. Phase ambiguity GAP-123/124/125/415 (user decision §6).
-
-### 4.3 OCR audit (3-agent convergence override)
-
-> 🔴 **OCR auto-confirm REJECTED Phase 1.5+** — benchmark agent OVERRIDES persona + failure-mode conditional verdicts. VN edu SaaS 0/7 dùng OCR; Casso/SePay webhook là dominant pattern 2026; ~0% fraud risk; better path adopted.
-
-Pivot: GAP-636 P1 Casso/SePay webhook investigation Phase 1.5b. OCR optional fallback Phase 2.
-
----
-
-## 5. Quality bar + acceptance
-
-Wave 93 ship criteria:
+### 5.2 Wave-level gates
 
 - [x] All 11 new gap files written với measurable AC + Vietnamese narrative + cross-references
 - [x] 4 re-scope gap files amended với scope refinement section + Log entry
@@ -154,57 +152,104 @@ Wave 93 ship criteria:
 - [x] gap-status.csv 12 new rows + 4 last_verified updates
 - [x] audits-index.csv 3 new audit rows
 - [x] Inside-out queue 2 consumed entries
-- [x] Wave plan (this file)
+- [x] Wave plan (this file) — frontmatter + state-check + verification + agent pattern + closure protocol
 - [ ] CI `gap-status-csv` validator PASS post-merge
 - [ ] CI `audits-index-csv` validator PASS post-merge
-- [ ] PR description cites 3 audit reports + 11 new gaps + 4 re-scope + 5 cross-ref + Agent 5 follow-up §6
+- [ ] CI `wave-plan-completeness` validator PASS post-merge (this file's section structure)
+- [ ] PR description cites 3 audit reports + 11 new gaps + 4 re-scope + 5 cross-ref + Agent 5 follow-up §7
 
 ---
 
-## 6. Follow-up actions (post-merge user decisions)
+## 6. Agent Spawn Pattern
 
-### 6.1 Agent 5 re-triage findings requiring user decision
+### 6.1 Agent invocation summary
 
-| # | Action | Recommendation | Status |
+Wave 93 = governance + audit work. 6 outside-in agents spawned background per `agent-background-spawn-default.md`:
+
+**Wave 93 base (3-agent QR audit, ~25 min wall-clock):**
+- Persona agent — Explore subagent — role-play P1 thầy Tâm + P2 chị Hằng × 6 scenarios
+- External benchmark agent — general-purpose subagent + WebSearch — 7 VN edu SaaS competitor matrix
+- Failure-mode agent — Explore subagent — 3-axis matrix 21 scenarios
+
+**Wave 93 follow-up (3-agent OCR audit, ~10 min wall-clock):**
+- OCR persona agent — Explore subagent — 6-scenario decision matrix (PH self / Owner self / Hybrid)
+- OCR external benchmark agent — general-purpose + WebSearch — Casso/SePay alternative path surfaced
+- OCR failure-mode agent — Explore subagent — 22 OCR-specific scenarios
+
+**Wave 93 gap-drafting (5 agents parallel, ~10 min wall-clock):**
+- Agent A — general-purpose — draft 3 P0 new gaps (GAP-625/626/627)
+- Agent B — general-purpose — draft 5 P1 new gaps (GAP-628..632)
+- Agent C — general-purpose — draft 3 P2 new gaps (GAP-633/634/635)
+- Agent D — general-purpose — re-scope 4 existing gaps (GAP-108/183/185/594)
+- Agent 5 — Explore — re-triage 26 phase-1.5-paid gaps (ngoài Wave 93 payment scope)
+
+Total: **11 background agents** in 3 parallel waves. Coordinator sequential consolidation post-completion notifications.
+
+### 6.2 Agent findings → wave plan integration
+
+3 outside-in audit reports represent canonical findings:
+
+**QR base audit verdict:** ✅ PROCEED with QR cho cả P1 + P2 Phase 1.5 — mandatory do compliance VN (PSP license + KYC barrier). Phase 2 pivot VietQR EduPay partnership khi PH > 100.
+
+**Re-triage 26 gaps verdict:** ✅ 12 KEEP / 8 RE-SCOPE / 4 MOVE-PHASE / 2 OVERLAP / 0 CANCEL. 1 DUPLICATE merge candidate GAP-259≈GAP-581. KYC audit-log dependency GAP-625↔GAP-577/578. Phase ambiguity GAP-123/124/125/415 (user decision §7).
+
+**OCR audit verdict:** 🔴 OCR auto-confirm REJECTED Phase 1.5+ — benchmark agent OVERRIDES persona + failure-mode conditional verdicts. VN edu SaaS 0/7 dùng OCR; Casso/SePay webhook là dominant pattern 2026; ~0% fraud risk; better path adopted. Pivot: GAP-636 P1 Casso/SePay webhook investigation Phase 1.5b. OCR optional fallback Phase 2.
+
+---
+
+## 7. Closure Protocol
+
+### 7.1 Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` §3)
+
+| # | Plan §3 Scope item | Verdict | Follow-up |
 |---|---|---|---|
-| 1 | **MERGE GAP-581 → GAP-259 DUPLICATE** | Close GAP-581 as DUPLICATE in CSV; GAP-259 retains canonical scope (PARTIAL 50%, P1, since 2026-04-28). Cross-ref Log entries already added BOTH files Wave 93. | ⏳ Pending user decision post-merge |
-| 2 | **Phase mismatch decision GAP-123/124/125/415** | Infrastructure gaps assigned phase-1.5-paid không có payment dependency. Options: (a) confirm phase-1.5-paid là deployment prerequisite, (b) move phase-1-beta, (c) move phase-2 EKS migration. Need user judgment. | ⏳ Pending user decision |
-| 3 | **GAP-625↔GAP-577 sequential ordering** | KYC infrastructure (GAP-625 Phase 1.5a) ships before Wave 86 admin audit log (GAP-577) → shared immutable log pattern. Document sequential dependency. | ✅ Cross-ref Log entries added Wave 93 — no decision needed |
-| 4 | **GAP-625↔GAP-578 KYC + 2FA ordering** | KYC identity-verified baseline (GAP-625 Phase 1.5a) → GAP-578 2FA layer leverages identity. User decision: defer GAP-578 Wave 86 OR pair Phase 1.5a sequential | ⏳ Pending user decision |
-| 5 | **GAP-301 vs GAP-626 DSAR scope clarification** | Tenant-DSAR (GAP-301) vs PH-DSAR (GAP-626) distinct. Both retained pending legal counsel. | ✅ Cross-ref Log entries added Wave 93 — no decision needed |
+| 1 | 12 new gap files (GAP-625..636) | ✅ DONE | All files exist + verified state-check |
+| 2 | 4 re-scope amendments (GAP-108/183/185/594) | ✅ DONE | Agent D verdict: all 4 successful |
+| 3 | 5 cross-ref Log entries (GAP-259/581/577/578/301) | ✅ DONE | Coordinator applied additive Log entries only |
+| 4 | 3 audit reports persona-review/2026-05-18-phase-1-5-* | ✅ DONE | All in `documents/04-quality/audits/persona-review/` |
+| 5 | CSV updates (gap-status.csv +12 / audits-index.csv +3) | ✅ DONE | Both validators PASS post-edit |
+| 6 | Inside-out queue 2 consumed entries (QR + OCR) | ✅ DONE | `documents/03-planning/inside-out-queue.md` |
+| 7 | Wave plan (this file) | ✅ DONE | This file |
+| 8 | CI validators PASS | ⏳ post-merge | gap-status-csv + audits-index-csv + wave-plan-completeness |
+| 9 | §7.2 follow-up user decisions | 🟡 PARTIAL | 3/5 require user decision post-merge — see §7.2 |
 
-### 6.2 Wave 93 deliverables NOT in scope (defer Wave 94+)
+### 7.2 Follow-up actions (post-merge user decisions)
+
+Agent 5 re-triage findings requiring user decision:
+
+| # | Action | Recommendation | Status | Tracked |
+|---|---|---|---|---|
+| 1 | MERGE GAP-581 → GAP-259 DUPLICATE | Close GAP-581 as WONTFIX/DUPLICATE; GAP-259 retains canonical scope. Cross-ref Log entries already added BOTH files Wave 93. | ⏳ User decision post-merge | Wave 94 follow-up PR candidate |
+| 2 | Phase mismatch decision GAP-123/124/125/415 | Infrastructure gaps assigned phase-1.5-paid không có payment dependency. Options: (a) confirm phase-1.5-paid, (b) move phase-1-beta, (c) move phase-2. | ⏳ User decision | Wave 94 candidate |
+| 3 | GAP-625↔GAP-577 sequential ordering | KYC infrastructure (GAP-625 Phase 1.5a) ships before Wave 86 admin audit log (GAP-577) → shared immutable log pattern. | ✅ Cross-ref Log entries Wave 93 | No decision needed |
+| 4 | GAP-625↔GAP-578 KYC + 2FA ordering | KYC identity-verified baseline (GAP-625 Phase 1.5a) → GAP-578 2FA layer. Option: defer Wave 86 OR pair Phase 1.5a sequential. | ⏳ User decision | Wave 94 candidate |
+| 5 | GAP-301 vs GAP-626 DSAR scope clarification | Tenant-DSAR (GAP-301) vs PH-DSAR (GAP-626) distinct. Both retained pending legal counsel. | ✅ Cross-ref Log entries Wave 93 | No decision needed |
+
+### 7.3 Wave 93 deliverables NOT in scope (defer Wave 94+)
 
 | Item | Defer to | Reason |
 |---|---|---|
 | Casso vs SePay vendor evaluation execute | Wave 94+ via GAP-636 | Wave 93 = file gap only; execution defers Phase 1.5b trigger |
 | Webhook receiver implementation | Wave 94+ via GAP-636 | Same as above |
-| GAP-625/626/627 P0 foundation implementation | Wave 31-32 Phase 1.5a trigger | Wave 93 = file gaps only |
+| GAP-625/626/627 P0 foundation implementation | Wave 31-32 Phase 1.5a trigger (post Phase 1 BETA gate close) | Wave 93 = file gaps only |
 | 11 new gaps' code implementation | Phase 1.5a/1.5b execution waves | Wave 93 = governance + planning only |
+| OCR fallback Phase 2 investigation | Phase 2 trigger | OCR rejected Phase 1.5; revisit nếu Casso/SePay coverage incomplete |
 
-### 6.3 OCR proposal residual
+### 7.4 Post-wave cleanup (per `post-wave-cleanup.md`)
 
-OCR rejected primary. Optional Phase 2 fallback path:
-- If Casso/SePay coverage incomplete cho some VN banks → may revisit OCR-only Phase 2 fallback
-- File new gap nếu user wants explicit Phase 2 OCR follow-up tracking; defer for now
+```bash
+bash scripts/prune-merged-worktrees.sh --yes
+```
 
----
+Wave 93 spawned 11 background agents but used worktree-less general-purpose + Explore agents (no `.claude/worktrees/` artifacts to prune). Local branches: `wave/qr-payment-phase-1-5-audit` will auto-cleanup post-merge via `gh pr merge --delete-branch`.
 
-## 7. Audit closure protocol
+### 7.5 Post-merge audit cadence (per `post-wave-audit-mandate.md` §2.4)
 
-Per `wave-closure-scope-completeness.md` §3 — every §3 scope item categorized DONE / PARTIAL / NOT-IMPLEMENTED:
+Wave 93 scope = META meta-governance (rules + gap files + audit reports + wave plan). Per §2.4.1 registry row "meta-governance" → **NO AUDIT REQUIRED** (governance is its own quality gate). Closure commit trailer:
 
-| §3 item | Category | Reference |
-|---|---|---|
-| 12 new gap files | ✅ DONE | All files exist + verified state-check |
-| 4 re-scope amendments | ✅ DONE | Agent D verdict: all 4 successful |
-| 5 cross-ref Log entries | ✅ DONE | Coordinator applied |
-| 3 audit reports | ✅ DONE | All in `documents/04-quality/audits/persona-review/` |
-| CSV updates | ✅ DONE | gap-status.csv + audits-index.csv |
-| Inside-out queue | ✅ DONE | 2 consumed entries |
-| Wave plan | ✅ DONE | This file |
-| CI validators PASS | ⏳ post-merge | Will verify in PR checks |
-| §6 follow-up user decisions | 🟡 PARTIAL | 3/5 require user decision post-merge (documented above) |
+```
+AUDIT_DEFER_DOMAIN_MILESTONE: meta-governance — Wave 93 governance scope; quality verified via CI validators + reviewer-checklist
+```
 
 Wave 93 status: **complete** post-PR-merge.
 
