@@ -1,6 +1,6 @@
 # GAP-645: Wave 96 gap folder reorg per user inside-out proposal — phase subdirs + creation-time enforcement
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (~25% — Wave 95 PR1 Bucket E DONE; Buckets B/C/D queued Wave 95 PR2/PR3; Bucket A SKIPPED per user)
 **Priority:** 🟠 P1 (META force-multiplier per `meta-gap-priority.md` §3 — addresses active Rule 3 cap violation)
 **Domain:** Meta
 **Detected:** 2026-05-18 (user inside-out 2026-05-18 — reorganize gaps folder per phase + status + creation-time enforcement)
