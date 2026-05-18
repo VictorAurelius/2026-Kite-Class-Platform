@@ -112,3 +112,4 @@ After this gap DONE → GAP-543 §AC update:
 - **2026-05-18 — Verification commands run:**
   - `cd kitehub && ./mvnw -pl kitehub-email verify -P strict-warnings` → BUILD SUCCESS.
   - Tone resolution test: 6 assertions PASS (PLATFORM_ADMIN, CENTER_OWNER, center_manager, TEACHER, null, UNKNOWN_ROLE).
+- **2026-05-18 (PR #1553 merged)** — Post-merge sync per `post-merge-sync-completeness.md` §4. Paired with GAP-657 (B1). business-logic-audit + api-contract-audit DEFER to Wave 98 closure audit suite. Persona-tone send-site wiring + per-tone variant templates defer Wave 99. GAP-543 PARTIAL 40 → 80% (sister sync).
