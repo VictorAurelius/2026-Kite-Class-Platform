@@ -47,6 +47,7 @@ on:
       - 'scripts/check-helm-lint.sh'
       - 'documents/04-quality/gaps/**'
       - 'scripts/check-gap-status-csv.sh'
+      - 'scripts/check-gap-folder-location.sh'
       - 'scripts/migrate-gaps-to-csv.py'
       - 'documents/02-architecture/adr/**'
       - 'scripts/check-adrs-index-csv.sh'
@@ -370,6 +371,24 @@ jobs:
           # status / priority / phase / completion_pct per
           # `.claude/rules/gap-architecture-v2.md`.
           bash scripts/check-gap-status-csv.sh
+
+  gap-folder-location:
+    name: Gap folder location (mirrors CSV status+phase)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate gap folder location (WARN mode initial)
+        run: |
+          # Per `.claude/rules/gap-folder-organization.md` §2: file location
+          # must mirror CSV `status` + `phase` columns. WARN mode initially
+          # (Wave 95 PR1 — rule + scaffolding); flips to --strict after PR2
+          # mass migration lands. Reference rule §5.1 enforcement modes.
+          bash scripts/check-gap-folder-location.sh --warn
 
   meta-csv-indexes:
     name: Meta CSV indexes (ADRs + Rules)

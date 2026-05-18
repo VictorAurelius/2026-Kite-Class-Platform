@@ -77,3 +77,4 @@ docs-subfolder-maturity,MANDATORY,1.0.0,2026-05-18,2026-05-18,docs-subfolder-mat
 docs-archival-cadence,MANDATORY,1.0.0,2026-05-18,2026-05-18,docs-archival-cadence.md,"documents/**/*.md,documents/**/*.json",active,,
 docs-folder-volume-budget,MANDATORY,1.0.0,2026-05-18,2026-05-18,docs-folder-volume-budget.md,"documents/**",active,,
 docs-filename-prefix-convention,MANDATORY,1.0.0,2026-05-18,2026-05-18,docs-filename-prefix-convention.md,"documents/**,.claude/rules/**,.claude/skills/**",active,,
+gap-folder-organization,MANDATORY,1.0.0,2026-05-18,2026-05-18,gap-folder-organization.md,"documents/04-quality/gaps/**,documents/04-quality/gaps/gap-status.csv",active,,
