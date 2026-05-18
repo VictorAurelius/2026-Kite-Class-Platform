@@ -136,10 +136,17 @@
         </div>
 
         <p>
-            Nếu bạn cần hỗ trợ, vui lòng liên hệ
-            <a th:href="|mailto:${branding?.contactEmail ?: 'support@kitehub.me'}|"
-               th:text="${branding?.contactEmail ?: 'support@kitehub.me'}">support@kitehub.me</a>.
+            Nếu bạn cần hỗ trợ, vui lòng liên hệ qua một trong các kênh:
         </p>
+        <ul>
+            <li>📧 Email: <a th:href="|mailto:${branding?.contactEmail ?: 'support@kitehub.me'}|"
+                            th:text="${branding?.contactEmail ?: 'support@kitehub.me'}">support@kitehub.me</a></li>
+            <!-- Wave 98 B6 GAP-660 — Zalo OA fast-path CTA. zaloOaId model var injected
+                 from kitehub-email service; placeholder fallback 'kitehub'. -->
+            <li>💬 Zalo OA: <a th:href="|https://zalo.me/${zaloOaId ?: 'kitehub'}|"
+                               th:text="|zalo.me/${zaloOaId ?: 'kitehub'}|">zalo.me/kitehub</a>
+                (phản hồi nhanh hơn cho câu hỏi gấp, T2-T6 8h-18h)</li>
+        </ul>
 
         <p style="margin-top: 24px;">
             Trân trọng,<br>

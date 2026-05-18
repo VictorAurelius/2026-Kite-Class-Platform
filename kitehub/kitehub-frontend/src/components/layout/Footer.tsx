@@ -17,6 +17,10 @@ import Link from 'next/link';
 import { KiteLogo } from '@/components/brand/KiteLogo';
 
 const SUPPORT_EMAIL = 'support@kitehub.me';
+// Zalo OA fast-path (Wave 98 B6 GAP-660) — see
+// documents/05-guides/account-prep/zalo-oa-setup-runbook.md §4
+const ZALO_OA_ID = process.env.NEXT_PUBLIC_KITEHUB_ZALO_OA_ID ?? 'kitehub';
+const ZALO_OA_URL = `https://zalo.me/${ZALO_OA_ID}`;
 
 export function Footer() {
   return (
@@ -65,6 +69,18 @@ export function Footer() {
                   data-testid="footer-support-email"
                 >
                   {SUPPORT_EMAIL}
+                </a>
+              </li>
+              <li>
+                {/* Wave 98 B6 GAP-660 — Zalo OA fast-path inline với email + status */}
+                <a
+                  href={ZALO_OA_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-foreground transition-colors"
+                  data-testid="footer-zalo-oa-link"
+                >
+                  Hỗ trợ qua Zalo OA
                 </a>
               </li>
               <li>
