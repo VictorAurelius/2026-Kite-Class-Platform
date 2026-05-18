@@ -1,6 +1,6 @@
 # GAP-642: V54 JSONB columns Testcontainers IT missing
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-18 (Wave 97 Bucket D salvage — `AdminAuditLogJsonbPostgresIT.java` created 318 lines Testcontainers PostgreSQL 16; mvn verify -P strict-warnings PASS 684 tests / 0 failures)
 **Priority:** 🟠 P1
 **Domain:** Backend (Testing)
 **Detected:** 2026-05-18 (Wave 92 post-wave audit suite per GAP-619)

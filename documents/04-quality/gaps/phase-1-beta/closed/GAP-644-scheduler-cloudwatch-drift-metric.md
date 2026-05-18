@@ -1,6 +1,6 @@
 # GAP-644: BetaRequestAbortCleanupScheduler CloudWatch drift metric (silent failure detection)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-18 (Wave 97 Bucket D salvage — Scheduler edited MeterRegistry drift counter 55 ins + Test updated 93 ins + `scheduler-drift-runbook.md` 146 lines; mvn verify PASS)
 **Priority:** 🟡 P2
 **Domain:** Backend / Observability
 **Detected:** 2026-05-18 (Wave 92 post-wave Security audit v2 P2-2 NEW finding per GAP-619)

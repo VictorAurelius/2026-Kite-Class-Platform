@@ -1,7 +1,8 @@
 package com.kitehub.subscription.beta.scheduler;
 
 import com.kitehub.subscription.beta.repository.BetaAccessRequestRepository;
-import lombok.RequiredArgsConstructor;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -43,14 +44,33 @@ import java.time.OffsetDateTime;
  * top-level invoker (no parent txn), nên {@code @Transactional} default OK.
  * Side effect (mark ABORTED) atomic per batch via bulk UPDATE.</p>
  *
- * @since Wave 92 — GAP-600
+ * <h2>Observability (GAP-644)</h2>
+ * <p>Khi drift được phát hiện ({@code staleCount != aborted}), scheduler emit
+ * Micrometer counter {@code kitehub.scheduler.beta_request.abort.drift_count}
+ * với tag dimensions {@code expected_count} + {@code actual_count}. Counter
+ * được export sang CloudWatch qua existing Micrometer CloudWatch publisher.
+ * CloudWatch Alarm threshold: {@code drift_count > 0} trong 3 consecutive
+ * evaluations → SNS notification. Xem runbook:
+ * {@code documents/05-guides/operations/scheduler-drift-runbook.md}.</p>
+ *
+ * @since Wave 92 — GAP-600 (scheduler), Wave 97 — GAP-644 (drift metric)
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class BetaRequestAbortCleanupScheduler {
 
+    /** Metric name cho drift counter (GAP-644). */
+    static final String METRIC_DRIFT_COUNT =
+            "kitehub.scheduler.beta_request.abort.drift_count";
+
     private final BetaAccessRequestRepository repository;
+    private final MeterRegistry meterRegistry;
+
+    public BetaRequestAbortCleanupScheduler(BetaAccessRequestRepository repository,
+                                             MeterRegistry meterRegistry) {
+        this.repository = repository;
+        this.meterRegistry = meterRegistry;
+    }
 
     @Value("${kitehub.beta.cleanup.stale-threshold-hours:24}")
     private int staleThresholdHours;
@@ -96,7 +116,36 @@ public class BetaRequestAbortCleanupScheduler {
                             + "but markStaleAsAborted updated {} rows. Possible race condition "
                             + "(concurrent admin approve/reject between count + update).",
                     staleCount, aborted);
+
+            // GAP-644 — emit Micrometer CloudWatch drift metric.
+            // Dimension tags allow CloudWatch Metric Math để cross-correlate với
+            // admin approval throughput. Counter accumulates across scheduler runs;
+            // CloudWatch Alarm threshold: drift_count > 0 trong 3 consecutive
+            // evaluation periods → SNS alert. Xem runbook:
+            // documents/05-guides/operations/scheduler-drift-runbook.md
+            driftCounter(staleCount, aborted).increment();
         }
+    }
+
+    /**
+     * Micrometer counter cho scheduler drift detection (GAP-644).
+     *
+     * <p>Lazy-build pattern (nhất quán với {@code InviteTokenService}) để tránh
+     * eager registration trước khi MeterRegistry ready. Micrometer dedup-register
+     * tự động nên multiple calls an toàn.</p>
+     *
+     * @param expectedCount {@code staleCount} từ {@code countStalePending()}
+     * @param actualCount   {@code aborted} từ {@code markStaleAsAborted()}
+     */
+    private Counter driftCounter(long expectedCount, int actualCount) {
+        return Counter.builder(METRIC_DRIFT_COUNT)
+                .description("Số lần scheduler abort sweep phát hiện drift giữa "
+                        + "countStalePending() và markStaleAsAborted() (GAP-644). "
+                        + "Thường do concurrent admin approve/reject. "
+                        + "Alarm khi > 0 trong 3 consecutive runs.")
+                .tag("expected_count", String.valueOf(expectedCount))
+                .tag("actual_count", String.valueOf(actualCount))
+                .register(meterRegistry);
     }
 
     /**

@@ -1,7 +1,7 @@
 # Beta Access — Use Cases
 
 **Domain:** Beta tenant invite mechanism
-**Last verified:** 2026-05-08 (Wave 35 Bucket 0 Foundation)
+**Last verified:** 2026-05-18 (Wave 97 Bucket C — GAP-639 ABORTED enum sync)
 
 ---
 
@@ -48,6 +48,46 @@
 - FE checkbox is unticked by default (PDPL Art 11 — Decree 13/2023/NĐ-CP).
 - FE submit button is disabled until checkbox is ticked.
 - Audit log entry `beta.consent.given` emitted via outbox.
+
+---
+
+## UC-BETA-007 — Tự động hủy yêu cầu beta stale (BetaRequestAbortCleanupScheduler)
+
+**Actor:** `BetaRequestAbortCleanupScheduler` (scheduled system actor — Spring `@Scheduled`, không phải human).
+**Trigger:** Scheduler cron chạy định kỳ (mặc định mỗi giờ). Phát hiện PENDING request tồn tại lâu hơn `kitehub.beta-access.abort-threshold-hours` giờ (mặc định `24h`) mà không có coordinator action.
+**Business rule:** BR-BETA-004.
+
+### Happy path
+
+1. Scheduler khởi động theo cron interval.
+2. Scheduler query tất cả `BetaAccessRequest` có `status=PENDING` và `created_at < now() - abort-threshold-hours`.
+3. Với mỗi stale request: cập nhật `status=ABORTED`.
+4. Row được giữ lại trong DB (không xóa) — audit trail bảo tồn `email`, `consent_at`, `created_at`.
+5. Scheduler emit log entry cho mỗi request bị abort (không emit public event — internal op).
+6. Sau khi bị ABORTED, email của requester được phép gửi lại yêu cầu mới per BR-BETA-002.
+
+### Error branches
+
+| Bước | Lỗi | Xử lý |
+|------|-----|-------|
+| 2 | DB query timeout | Scheduler log error; retry lần chạy cron tiếp theo |
+| 3 | Update lỗi (DB lock) | Skip row hiện tại; continue với row khác; log warning |
+| (nói chung) | Scheduler exception | Log full stacktrace; không crash app; retry lần chạy tiếp theo |
+
+### FE behavior
+
+Không có FE surface cho hành động này. Requester có thể phát hiện:
+- Email không có invite sau 24h+ → resubmit (form không hiển thị lý do tự động; requester sẽ nhận `BETA_DUPLICATE_EMAIL` nếu PENDING row vẫn còn, hoặc có thể resubmit nếu đã ABORTED).
+
+### Acceptance criteria
+
+- Scheduler tự động chạy theo cron interval.
+- PENDING request quá threshold bị chuyển sang `ABORTED`.
+- Row không bị xóa — `consent_at`, `email`, `created_at` giữ nguyên.
+- Email được phép resubmit sau khi ABORTED (duplicate check per BR-BETA-002 pass với terminal state).
+- Scheduler log số lượng request bị abort mỗi lần chạy.
+
+**Code reference:** `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/beta/scheduler/BetaRequestAbortCleanupScheduler.java` (Wave 92 — GAP-600).
 
 ---
 
