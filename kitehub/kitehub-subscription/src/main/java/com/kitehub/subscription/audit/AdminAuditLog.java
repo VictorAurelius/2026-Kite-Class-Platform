@@ -2,6 +2,8 @@ package com.kitehub.subscription.audit;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -67,6 +69,54 @@ public class AdminAuditLog {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    /**
+     * Wave 92 Bucket A — GAP-521 Phase 2 enrichment.
+     *
+     * <p>Correlation key với gateway {@code X-Request-Id} / OTel {@code trace_id}.
+     * Cho phép join với access logs + APM traces khi forensic investigate.</p>
+     */
+    @Column(name = "request_id", length = 64)
+    private String requestId;
+
+    /**
+     * Wave 92 Bucket A — GAP-521 Phase 2 enrichment.
+     *
+     * <p>Semantic resource type tách biệt với {@link #targetEntityType} (JPA entity
+     * name). Vd: {@code config_key}, {@code rbac_role}, {@code system_flag}.</p>
+     */
+    @Column(name = "target_resource_type", length = 64)
+    private String targetResourceType;
+
+    /**
+     * Wave 92 Bucket A — GAP-521 Phase 2 enrichment.
+     *
+     * <p>Fully-qualified resource id (vd {@code tenant/UUID},
+     * {@code config/kite.foo.bar}). Tách biệt với {@link #targetEntityId} (chỉ
+     * chứa JPA entity PK).</p>
+     */
+    @Column(name = "target_resource_id", length = 256)
+    private String targetResourceId;
+
+    /**
+     * Wave 92 Bucket A — GAP-521 Phase 2 enrichment.
+     *
+     * <p>JSONB snapshot of resource state TRƯỚC action. Nullable for CREATE
+     * actions. Pair với {@link #afterState} cho complete forensic diff.</p>
+     */
+    @Column(name = "before_state", columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private String beforeState;
+
+    /**
+     * Wave 92 Bucket A — GAP-521 Phase 2 enrichment.
+     *
+     * <p>JSONB snapshot of resource state SAU action. Nullable for DELETE
+     * actions. Pair với {@link #beforeState} cho complete forensic diff.</p>
+     */
+    @Column(name = "after_state", columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private String afterState;
 
     @PrePersist
     void onCreate() {

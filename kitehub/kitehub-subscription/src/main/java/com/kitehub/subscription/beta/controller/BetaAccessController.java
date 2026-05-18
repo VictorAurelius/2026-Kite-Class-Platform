@@ -173,7 +173,11 @@ public class BetaAccessController {
     @Operation(summary = "Approve a beta access request (coordinator)",
                description = "Issues invite token, +24h expiry, publishes invite-sent event via Outbox.")
     @PreAuthorize("hasRole('PLATFORM_ADMIN')")
-    @Auditable(action = "BETA_REQUEST_APPROVE", entityType = "beta_access_request")
+    @Auditable(
+        action = "BETA_REQUEST_APPROVE",
+        entityType = "beta_access_request",
+        resourceType = "beta_access_request",
+        resourceIdSource = "arg0")
     @PostMapping("/api/v1/admin/beta-requests/{id}/approve")
     public ResponseEntity<BetaRequestResponse> approve(
             @PathVariable Long id,
@@ -191,7 +195,11 @@ public class BetaAccessController {
 
     @Operation(summary = "Reject a beta access request (coordinator)")
     @PreAuthorize("hasRole('PLATFORM_ADMIN')")
-    @Auditable(action = "BETA_REQUEST_REJECT", entityType = "beta_access_request")
+    @Auditable(
+        action = "BETA_REQUEST_REJECT",
+        entityType = "beta_access_request",
+        resourceType = "beta_access_request",
+        resourceIdSource = "arg0")
     @PostMapping("/api/v1/admin/beta-requests/{id}/reject")
     public ResponseEntity<BetaRequestResponse> reject(
             @PathVariable Long id,
