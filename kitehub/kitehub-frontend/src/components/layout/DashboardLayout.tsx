@@ -5,6 +5,7 @@ import { Sidebar } from './Sidebar';
 import { useAuthStore } from '@/stores/auth-store';
 import { useRouter } from 'next/navigation';
 import { clearTokens, clearLegacyLocalStorageTokens } from '@/lib/auth/jwt-storage';
+import { BetaDisclaimerBanner } from '@/components/beta-disclaimer';
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated, user, clearAuth } = useAuthStore();
@@ -41,7 +42,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             </button>
           </div>
         </header>
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6">
+          {/* Wave 98 Bucket B3 GAP-539 finishing stroke — dashboard-wide beta banner.
+              Dismissible via cookie (1y); see BetaDisclaimerBanner.tsx. */}
+          <div className="mb-4">
+            <BetaDisclaimerBanner />
+          </div>
+          {children}
+        </main>
       </div>
     </div>
   );
