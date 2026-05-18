@@ -1,0 +1,95 @@
+# GAP-658: VN sample seed worker — replace English placeholder data with Vietnamese-friendly content
+
+**Status:** 🔵 OPEN
+**Priority:** 🔴 P0
+**Domain:** Backend (seed-worker + sample-data service)
+**Detected:** 2026-05-18 (Wave 98 prep — outside-in audit persona walkthrough P2 Hằng + failure-mode M-NEW-15)
+**Parent audit:** `documents/04-quality/audits/persona-review/2026-05-18-wave-98-cluster-b-beta-cohort-outside-in.md` F-NEW-3 + failure-mode matrix M-NEW-15 (native VN copywriter pass)
+
+## Problem
+
+GAP-538 PARTIAL 85% (Day-1 onboarding checklist + sample/demo data seed) explicit defer Vietnamese-friendly seed worker. Persona walkthrough P2 Center Owner (chị Hằng, 45, Q.1 TP.HCM English center) revealed:
+
+| First-touch element | Current state | Trust impact |
+|---|---|---|
+| Sample student names | `John Doe`, `Jane Smith` | ❌ Hằng nghĩ "đây là phần mềm Mỹ, không phù hợp VN" |
+| Sample class names | `Class A1`, `Class B2` | ❌ Không khớp VN edu convention (`Lớp 5A1`, `Lớp Anh ngữ 9B`) |
+| Sample center name | `Example Center`, `Demo School` | ❌ Generic placeholder |
+| Sample currency | `$60.00`, `60 USD` | ❌ VN phải VND `1.500.000đ` |
+| Sample dates | `Mon May 14, 2026` | ❌ VN convention `Thứ Hai, 14/05/2026` |
+| Sample address | `123 Main St, Anytown` | ❌ Không VN format |
+
+Per `user-manual-content-standard.md` §2 row 7 (VN sample data mandate) + `dev-readable-doc-language.md` §2 (VN narrative). Sample data là first-touch trust signal — wrong tone từ giây đầu = bounce.
+
+## Root Cause
+
+Seed-worker service ship MVP với English Lorem-Ipsum-style placeholders. Không có:
+- VN-friendly name pool (300+ Vietnamese names regions Bắc/Trung/Nam)
+- VN edu class naming convention generator (lớp + grade-level + section)
+- VND currency formatter inline
+- VN date/time/address formatters
+
+## Proposed Fix
+
+### Step 1: VN data pool
+
+`kitehub/kitehub-platform/src/main/resources/seed-data/vn-friendly/`:
+- `student-names.csv` — 300 rows (full name + diacritics) regional balance
+- `teacher-names.csv` — 100 rows
+- `center-names.csv` — 50 rows (educational center patterns: "Trung tâm Anh ngữ Sky Education", "Trung tâm Toán Quang Minh")
+- `class-names.csv` — 50 rows (`Lớp Anh ngữ 5A1`, `Lớp Toán 9B`)
+- `addresses.csv` — 100 rows (HCM + Hà Nội + Đà Nẵng districts)
+- `subject-names.csv` — 30 rows (Anh ngữ, Toán, Lý, Hóa, Văn, Sử, Địa, Tin học...)
+
+Source: native VN copywriter pass (P0 deliverable Wave 98 paired GAP-659 staff-invite/persona-tone email).
+
+### Step 2: VN data generator service
+
+`kitehub/kitehub-platform/.../VietnamSampleDataGenerator.java`:
+- `generateStudent()` → random row từ student-names + random class enrollment
+- `generateClass()` → random class-name + 15-30 students + teacher
+- `generateCenter()` → random center-name + 1-3 classes + 1 owner
+- `formatVND(BigDecimal)` → `1.500.000đ`
+- `formatVNDate(LocalDate)` → `Thứ Hai, 14/05/2026` (using `Locale("vi", "VN")`)
+
+### Step 3: Replace English placeholders trong seed-worker
+
+`kitehub-platform/.../SeedWorkerService.java`:
+- Remove all `John Doe` / `Class A1` / `Example Center` / `$60.00` constants
+- Inject `VietnamSampleDataGenerator` for default tenant seeding
+- Add `seed.locale` config (default `vi-VN`; allow `en-US` cho test fixtures)
+
+### Step 4: Onboarding checklist sample-data integration
+
+`kitehub-platform/.../OnboardingChecklistService.java`:
+- Day-1 checklist item "Tạo lớp đầu tiên" → pre-fills sample class với VN naming
+- "Thêm học sinh đầu tiên" → pre-fills sample student với VN name
+- User edit (acceptance: minimal edits required → trust signal)
+
+### Step 5: GAP-538 sync
+
+After this gap DONE → GAP-538 §AC update:
+- AC7 VN sample seed ✅ (Steps 1-4)
+- GAP-538 PARTIAL 85 → 95%
+
+## Acceptance Criteria
+
+- [ ] 6 VN data CSV files trong `seed-data/vn-friendly/` (≥300 students, 100 teachers, 50 centers, 50 classes, 100 addresses, 30 subjects)
+- [ ] `VietnamSampleDataGenerator` service implement + unit tests
+- [ ] `SeedWorkerService` migration replace English placeholders
+- [ ] `OnboardingChecklistService` pre-fill VN sample data
+- [ ] Native VN copywriter review pass (P0 — pair với GAP-659)
+- [ ] `cd kitehub && ./mvnw -pl kitehub-platform verify -P strict-warnings` PASS
+- [ ] GAP-538 PARTIAL 85 → 95% updated
+
+## Effort estimate
+
+~1 wave bucket + 0.5 day native VN copywriter review (paired GAP-659). Parallel-safe.
+
+## Related
+
+- **Parent audits:** outside-in persona F-NEW-3 + failure-mode M-NEW-15
+- **Sister gap:** GAP-538 PARTIAL 85% (onboarding checklist) — this gap closes seed-data portion
+- **Pair:** GAP-659 (staff-invite email + persona-tone) — shared native VN copywriter pass
+- **Standards referenced:** `user-manual-content-standard.md` §2 row 7 VN sample data; `dev-readable-doc-language.md` §2
+- **Wave 98 bucket:** B2 (extends GAP-538)
