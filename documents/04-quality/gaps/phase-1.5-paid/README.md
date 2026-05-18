@@ -1,23 +1,19 @@
-# `phase-1.5-paid/` — OPEN + PLANNED, phase = phase-1.5-paid
+# `phase-1.5-paid/` — gaps scoped to Phase 1.5 PAID (any non-DONE status)
 
-**Rule:** [`.claude/rules/gap-folder-organization.md`](../../../.claude/rules/gap-folder-organization.md) §2 row 6
+**Rule:** [`.claude/rules/gap-folder-organization.md`](../../../.claude/rules/gap-folder-organization.md) §2 v2.0.0
 
 ## Contract
 
-Files matching CSV row condition: `status ∈ {OPEN, PLANNED}` AND `phase == phase-1.5-paid`.
+Files matching: `phase == phase-1.5-paid` AND `status != DONE`.
 
-Phase 1.5 PAID scope = paid tier rollout, billing/payment foundation, VAT/eInvoice partnership (per Wave 93 outside-in audit re-scope decisions).
+Status changes do NOT move file. DONE → `closed/`.
 
-## Auto-trigger moves
+## Subdir
 
-Same lifecycle as `phase-1-beta/` — see `../phase-1-beta/README.md` for `git mv` patterns.
+- `closed/` — DONE archive
 
-## Volume budget
+## Target count
 
-Target ~24 files. Well under Rule 3 cap.
-
-## Sibling subdirs
-
-See `../closed/README.md` for full taxonomy map.
+~37 active gaps (Total 38 - 1 DONE).
 
 **Last Updated:** 2026-05-18

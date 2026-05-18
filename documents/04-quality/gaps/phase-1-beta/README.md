@@ -1,26 +1,31 @@
-# `phase-1-beta/` — OPEN + PLANNED, phase = phase-1-beta
+# `phase-1-beta/` — gaps scoped to Phase 1 BETA (any non-DONE status)
 
-**Rule:** [`.claude/rules/gap-folder-organization.md`](../../../.claude/rules/gap-folder-organization.md) §2 row 5
+**Rule:** [`.claude/rules/gap-folder-organization.md`](../../../.claude/rules/gap-folder-organization.md) §2 v2.0.0 phase-only design
 
 ## Contract
 
-Files matching CSV row condition: `status ∈ {OPEN, PLANNED}` AND `phase == phase-1-beta`.
+Files matching CSV row condition: `phase == phase-1-beta` AND `status != DONE`.
 
-Phase 1 BETA scope = solo dev + invite-only beta tenants per `documents/03-planning/roadmap/release-1-plan-2026.md` §3.
+Statuses included: `OPEN`, `PARTIAL`, `IN_PROGRESS`, `PENDING`, `PLANNED`, `WONTFIX`.
 
-## Auto-trigger moves
+**Status changes (OPEN → PARTIAL → PENDING etc.) DO NOT move file.** Only CSV row updates. File stays at `phase-1-beta/GAP-NNN-*.md`.
 
-- New gap detected in Phase 1 BETA scope → file lands here at creation
-- Status flip OPEN → PARTIAL: `git mv phase-1-beta/GAP-NNN.md partial/GAP-NNN.md`
-- Status flip OPEN → DONE: `git mv phase-1-beta/GAP-NNN.md closed/GAP-NNN.md`
-- Phase re-scope (phase-1-beta → phase-2): `git mv phase-1-beta/GAP-NNN.md phase-2/GAP-NNN.md` + update CSV `phase`
+**Status → DONE:** `git mv` to `closed/` subdir (one-way archive).
 
-## Volume budget
+## Subdir
 
-Per `docs-folder-volume-budget.md` Rule 3 cap 200. Current target ~70 files at PR2 mass migration. Headroom for Phase 1 BETA close-out wave growth.
+- `closed/` — DONE archive (see `closed/README.md`)
 
-## Sibling subdirs
+## Target count (post Wave 95 PR2 migration)
 
-See `../closed/README.md` for full taxonomy map.
+~151 active gaps (Total phase-1-beta 232 - 81 DONE in closed/ = 151).
+
+## Sibling phase folders
+
+- `../phase-1.5-paid/`, `../phase-2/`, `../phase-3/`, `../unclassified/` (phase=n/a)
+
+## Lifecycle event mapping
+
+See [parent rule §3 Required actions per lifecycle event](../../../.claude/rules/gap-folder-organization.md).
 
 **Last Updated:** 2026-05-18
