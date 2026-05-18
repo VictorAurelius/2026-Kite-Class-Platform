@@ -1,6 +1,6 @@
 # GAP-658: VN sample seed worker — replace English placeholder data with Vietnamese-friendly content
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (80%)
 **Priority:** 🔴 P0
 **Domain:** Backend (seed-worker + sample-data service)
 **Detected:** 2026-05-18 (Wave 98 prep — outside-in audit persona walkthrough P2 Hằng + failure-mode M-NEW-15)
@@ -89,7 +89,25 @@ After this gap DONE → GAP-538 §AC update:
 ## Related
 
 - **Parent audits:** outside-in persona F-NEW-3 + failure-mode M-NEW-15
-- **Sister gap:** GAP-538 PARTIAL 85% (onboarding checklist) — this gap closes seed-data portion
+- **Sister gap:** GAP-538 PARTIAL 90% (onboarding checklist) — Wave 98 B2 ship closes AC7 seed-data portion (85→90%)
 - **Pair:** GAP-659 (staff-invite email + persona-tone) — shared native VN copywriter pass
 - **Standards referenced:** `user-manual-content-standard.md` §2 row 7 VN sample data; `dev-readable-doc-language.md` §2
 - **Wave 98 bucket:** B2 (extends GAP-538)
+
+---
+
+## Log
+
+- **2026-05-18 (PARTIAL 80%) — Wave 98 Bucket B2:** Foundation shipped via wave/98-b2-vn-sample-seed branch:
+  - ✅ 6 CSV files trong `kitehub/kitehub-platform/src/main/resources/seed-data/vn-friendly/` với UTF-8 BOM: student-names.csv (300 rows, 295 unique full names), teacher-names.csv (100 rows + specialty), center-names.csv (50 rows), class-names.csv (50 rows), addresses.csv (104 rows across 8 VN cities), subject-names.csv (30 rows VN name + EN abbreviation)
+  - ✅ `VietnamSampleDataGenerator` Spring `@Component` (`com.kitehub.platform.seed`) — 7 generator methods + formatVND/formatVNDate/formatVNTime + 6 DTO records (SampleStudent/Teacher/Center/Class/Address/Subject) + locale fallback `seed.locale=en-US`
+  - ✅ 15 unit tests PASS (`VietnamSampleDataGeneratorTest`) — CSV load, diversity (≥80 unique trên 200 calls), Vietnamese diacritics presence, VND format, VN date day-of-week, 24h time format, English fallback
+  - ✅ `documents/01-business/kitehub/seed/{rules,use-cases,api-contract}.md` 3-layer business doc — 10 BR rules + 3 use cases + Java API contract
+  - ✅ `cd kitehub && ./mvnw -pl kitehub-platform verify -P strict-warnings` PASS (39 tests total, 0 failures)
+  - ✅ Generator Python scripts `scripts/seed-data/generate-vn-{student,teacher}-names.py` (deterministic seed=20260518 cho reproducibility)
+  - **DEFERRED:**
+    - SeedWorkerService refactor — service does NOT exist trong kitehub-platform (domain-only module); zero English placeholder constants currently grep-able. Integration tracked future scope khi SeedWorker service materializes in kitehub-platform OR migrates từ kitehub-subscription
+    - OnboardingChecklistService pre-fill integration — service does NOT exist trong kitehub-platform; defer paired-Bucket follow-up
+    - Native VN copywriter review pass — paired Wave 98 Bucket B4 i18n (parallel execution; pre-merge integration)
+    - `seed.locale` config key trong `application.yml` — kitehub-platform là shared module, no application.yml; consumer modules add key per BR-SEED-001
+  - **AC7 GAP-538 closed via shipped foundation:** GAP-538 progress 85% → 90%

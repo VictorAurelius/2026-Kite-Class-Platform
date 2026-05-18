@@ -1,0 +1,101 @@
+﻿first_name,last_name,full_name,gender,region,specialty
+Thanh,Lý,Lý Ngọc Thanh,F,Nam,Anh ngữ
+Bích,Phạm,Phạm Thúy Bích,F,Bắc,Anh ngữ
+Tuấn,Huỳnh,Huỳnh Đức Tuấn,M,Bắc,Anh ngữ
+An,Vũ,Vũ Quốc An,M,Bắc,Anh ngữ
+Vân,Bùi,Bùi Ngọc Vân,F,Bắc,Hóa
+Thu,Dương,Dương Thị Thu,F,Trung,Hóa
+Nhung,Lê,Lê Thúy Nhung,F,Trung,Hóa
+Thắng,Bùi,Bùi Văn Thắng,M,Bắc,Hóa
+Hùng,Dương,Dương Văn Hùng,M,Bắc,Hóa
+Nam,Huỳnh,Huỳnh Văn Nam,M,Bắc,Hóa
+Vũ,Lê,Lê Đức Vũ,M,Nam,Hóa
+Trung,Lê,Lê Văn Trung,M,Nam,Hóa
+Thành,Phạm,Phạm Đức Thành,M,Trung,Hóa
+Tài,Đặng,Đặng Văn Tài,M,Trung,Hóa
+Nhung,Lê,Lê Ngọc Nhung,F,Bắc,Lý
+Linh,Lý,Lý Kim Linh,F,Bắc,Lý
+Lan,Vũ,Vũ Thị Lan,F,Nam,Lý
+Quỳnh,Đỗ,Đỗ Thị Quỳnh,F,Nam,Lý
+Thành,Hoàng,Hoàng Minh Thành,M,Nam,Lý
+Quang,Lê,Lê Văn Quang,M,Bắc,Lý
+Phong,Nguyễn,Nguyễn Đức Phong,M,Nam,Lý
+Đức,Nguyễn,Nguyễn Quốc Đức,M,Nam,Lý
+Việt,Phạm,Phạm Văn Việt,M,Trung,Lý
+Hải,Vũ,Vũ Đức Hải,M,Nam,Lý
+Vân,Vũ,Vũ Kim Vân,F,Nam,Sinh học
+Đức,Dương,Dương Văn Đức,M,Nam,Sinh học
+An,Lý,Lý Văn An,M,Bắc,Sinh học
+Dũng,Ngô,Ngô Văn Dũng,M,Nam,Sinh học
+Việt,Phan,Phan Quốc Việt,M,Trung,Sinh học
+Tuấn,Phan,Phan Văn Tuấn,M,Trung,Sinh học
+Thanh,Lý,Lý Thị Thanh,F,Trung,Sử
+Hương,Phan,Phan Thị Hương,F,Nam,Sử
+Loan,Vũ,Vũ Thị Loan,F,Nam,Sử
+Hà,Vũ,Vũ Ngọc Hà,F,Trung,Sử
+Tài,Bùi,Bùi Quốc Tài,M,Bắc,Sử
+Bình,Dương,Dương Minh Bình,M,Bắc,Sử
+Tuấn,Phan,Phan Đức Tuấn,M,Bắc,Sử
+Huyền,Dương,Dương Thị Huyền,F,Trung,Tin học
+Vân,Hoàng,Hoàng Thúy Vân,F,Bắc,Tin học
+Phương,Lê,Lê Thúy Phương,F,Trung,Tin học
+Quỳnh,Phan,Phan Kim Quỳnh,F,Bắc,Tin học
+An,Vũ,Vũ Thị An,F,Trung,Tin học
+Hương,Lê,Lê Ngọc Hương,F,Bắc,Tiếng Hàn
+Nhung,Lê,Lê Thị Nhung,F,Trung,Tiếng Hàn
+Hồng,Phan,Phan Kim Hồng,F,Trung,Tiếng Hàn
+Hà,Đỗ,Đỗ Thúy Hà,F,Bắc,Tiếng Hàn
+Bình,Bùi,Bùi Đức Bình,M,Trung,Tiếng Hàn
+Đức,Lý,Lý Văn Đức,M,Nam,Tiếng Hàn
+Thắng,Nguyễn,Nguyễn Minh Thắng,M,Nam,Tiếng Hàn
+Nam,Ngô,Ngô Đức Nam,M,Bắc,Tiếng Hàn
+Thảo,Bùi,Bùi Ngọc Thảo,F,Bắc,Tiếng Nhật
+Thảo,Huỳnh,Huỳnh Kim Thảo,F,Trung,Tiếng Nhật
+Diệu,Lê,Lê Thị Diệu,F,Bắc,Tiếng Nhật
+Quỳnh,Ngô,Ngô Thị Quỳnh,F,Trung,Tiếng Nhật
+Hằng,Phan,Phan Kim Hằng,F,Bắc,Tiếng Nhật
+Yến,Phạm,Phạm Thị Yến,F,Bắc,Tiếng Nhật
+Tâm,Trần,Trần Kim Tâm,F,Trung,Tiếng Nhật
+Thanh,Vũ,Vũ Thị Thanh,F,Trung,Tiếng Nhật
+An,Đỗ,Đỗ Kim An,F,Bắc,Tiếng Nhật
+Trung,Huỳnh,Huỳnh Văn Trung,M,Trung,Tiếng Nhật
+Minh,Lê,Lê Quốc Minh,M,Trung,Tiếng Nhật
+An,Nguyễn,Nguyễn Văn An,M,Bắc,Tiếng Nhật
+Thắng,Trần,Trần Quốc Thắng,M,Nam,Tiếng Nhật
+Diệu,Phan,Phan Thị Diệu,F,Bắc,Tiếng Trung
+Việt,Bùi,Bùi Văn Việt,M,Bắc,Tiếng Trung
+Hùng,Hoàng,Hoàng Văn Hùng,M,Nam,Tiếng Trung
+Cường,Ngô,Ngô Đức Cường,M,Trung,Tiếng Trung
+An,Vũ,Vũ Văn An,M,Trung,Tiếng Trung
+Tiến,Đặng,Đặng Đức Tiến,M,Trung,Tiếng Trung
+Loan,Lý,Lý Thị Loan,F,Trung,Toán
+Sơn,Dương,Dương Minh Sơn,M,Bắc,Toán
+Tài,Lê,Lê Đức Tài,M,Trung,Toán
+Hùng,Lê,Lê Quốc Hùng,M,Bắc,Toán
+Quang,Lý,Lý Văn Quang,M,Nam,Toán
+Dũng,Phan,Phan Minh Dũng,M,Trung,Toán
+Tâm,Dương,Dương Thị Tâm,F,Bắc,Văn
+Phương,Dương,Dương Ngọc Phương,F,Trung,Văn
+Thanh,Lê,Lê Ngọc Thanh,F,Nam,Văn
+Hà,Lê,Lê Kim Hà,F,Bắc,Văn
+Mai,Nguyễn,Nguyễn Ngọc Mai,F,Bắc,Văn
+Hà,Trần,Trần Thúy Hà,F,Nam,Văn
+Tâm,Vũ,Vũ Kim Tâm,F,Bắc,Văn
+Thu,Đỗ,Đỗ Kim Thu,F,Bắc,Văn
+Nam,Huỳnh,Huỳnh Văn Nam,M,Bắc,Văn
+Long,Nguyễn,Nguyễn Minh Long,M,Bắc,Văn
+Quang,Ngô,Ngô Minh Quang,M,Trung,Văn
+Tuấn,Phan,Phan Văn Tuấn,M,Trung,Văn
+Đức,Phạm,Phạm Đức Đức,M,Trung,Văn
+Trung,Phạm,Phạm Đức Trung,M,Nam,Văn
+Thảo,Bùi,Bùi Kim Thảo,F,Trung,Địa
+Quỳnh,Lê,Lê Thúy Quỳnh,F,Trung,Địa
+An,Lê,Lê Thị An,F,Bắc,Địa
+Trang,Lý,Lý Kim Trang,F,Trung,Địa
+Diệu,Phan,Phan Kim Diệu,F,Trung,Địa
+Bích,Phạm,Phạm Ngọc Bích,F,Trung,Địa
+Tâm,Hoàng,Hoàng Văn Tâm,M,Nam,Địa
+Đức,Hoàng,Hoàng Văn Đức,M,Bắc,Địa
+Hải,Hoàng,Hoàng Đức Hải,M,Bắc,Địa
+Quang,Lý,Lý Quốc Quang,M,Bắc,Địa
+Thành,Đỗ,Đỗ Quốc Thành,M,Trung,Địa
