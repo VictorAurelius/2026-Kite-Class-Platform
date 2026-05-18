@@ -1,6 +1,6 @@
 # GAP-647: Thesis bibliography — IEEE citation style + refs.md canonical
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 50% — Step 1 IEEE style + Step 2 ~30 refs seed shipped Wave 97 PR #1541; Step 3 citation-extract skill tracked **GAP-655** (Wave 98+ thesis tooling)
 **Priority:** 🔴 P0 (META — paired GAP-646)
 **Domain:** Meta
 **Phase:** phase-1-beta

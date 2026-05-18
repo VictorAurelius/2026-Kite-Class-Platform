@@ -8,7 +8,22 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-18 — Wave 97 Bucket A SHIPPED + B/C/D parallel in flight + Release 1.5 thesis-scope LOCKED + 8 META thesis gaps queued)
+## 🎯 Current Status Snapshot (2026-05-18 — Wave 97 PARTIAL ship 3.5/4 buckets + 2 orphan-cleanup gaps GAP-654/655 + Release 1.5 thesis-scope LOCKED + 8 META thesis gaps queued)
+
+### 🟡 Wave 97 PARTIAL ship 2026-05-18 — audit P0+P1 gate-closing (3.5/4 buckets delivered)
+
+| Bucket | Gap(s) | Wave-plan delivery | Gap status | PR |
+|---|---|---|---|---|
+| A | GAP-637 | ✅ DONE (3 controllers + 6 tests + SecurityConfig per plan §3) | PARTIAL 60% (gap AC > wave scope; defers GAP-638+GAP-612) | #1540 |
+| B | GAP-638 | 🟡 PARTIAL (B1 docs only; B2 DTOs + B3 deprecation DEFER) | PARTIAL 30% (defers **GAP-654** + GAP-612) | #1543 |
+| C | GAP-639+640 | ✅ DONE | DONE both | #1542 |
+| D | GAP-642+644 | ✅ DONE | DONE both | #1542 |
+
+**Wave 97 status:** 🟡 PARTIAL ship (NOT status: complete) — Bucket B incomplete vs plan §3. Closure PR cần Scope-Completeness Reconciliation table per `wave-closure-scope-completeness.md` §3.
+
+**2 orphan-cleanup gaps filed 2026-05-18 (compliance with `gap-done-discipline.md` §3):**
+- **GAP-654** Admin v1 typed DTOs + controller refactor + legacy @Deprecated (Wave 98 candidate — completes Bucket B2/B3 scope)
+- **GAP-655** Thesis citation-extract skill (Wave 98+ thesis tooling — completes GAP-647 Step 3)
 
 > **📍 Next session ĐỌC TRƯỚC:**
 > 1. **Wave 97 Bucket B/C/D status** — 3 bg-agents in flight per `wave-2026-05-18-97-audit-p0p1-gate-closing.md`; check PRs base=main filtered title "Wave 97 Bucket"
