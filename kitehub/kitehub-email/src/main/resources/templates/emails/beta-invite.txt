@@ -1,0 +1,35 @@
+Kính gửi anh/chị [(${orgName ?: 'Quý khách'})],
+
+Cảm ơn anh/chị đã đăng ký quan tâm đến chương trình beta của
+[(${branding?.displayName ?: 'KiteHub'})].
+
+Chúng tôi vui mừng thông báo yêu cầu của anh/chị đã được duyệt.
+Vui lòng hoàn tất đăng ký theo các bước sau:
+
+  1. Mở liên kết bên dưới để truy cập trang đăng ký.
+  2. Nhập mã 6 chữ số bên dưới để xác minh email (bảo mật 2FA).
+  3. Hoàn tất thông tin trung tâm và bắt đầu trải nghiệm.
+
+Liên kết đăng ký:
+[(${inviteUrl ?: 'https://kitehub.me/beta/accept'})]
+
+Mã xác minh (6 chữ số):
+[(${verificationCode ?: '------'})]
+
+Lưu ý:
+  - Liên kết và mã có hiệu lực đến [(${expiresAt ?: '24 giờ kể từ thời điểm gửi'})].
+  - Chương trình beta đang trong giai đoạn thử nghiệm — vui lòng phản hồi
+    bất kỳ vấn đề nào qua email hỗ trợ.
+  - Nếu anh/chị không đăng ký, vui lòng bỏ qua email này.
+
+Cần hỗ trợ? Liên hệ [(${branding?.contactEmail ?: 'support@kitehub.me'})].
+
+Trân trọng,
+Đội ngũ [(${branding?.displayName ?: 'KiteHub'})]
+
+---
+© 2026 [(${branding?.displayName ?: 'KiteHub'})]. Email này được gửi tự động,
+vui lòng không trả lời trực tiếp.
+
+Để ngừng nhận email, truy cập:
+[(${unsubscribeUrl ?: 'https://kitehub.me/unsubscribe'})]

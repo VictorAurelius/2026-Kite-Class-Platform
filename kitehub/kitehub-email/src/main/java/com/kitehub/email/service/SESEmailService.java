@@ -124,7 +124,10 @@ public class SESEmailService implements NotificationChannel {
     }
 
     /**
-     * Send email with plain HTML body.
+     * Send email with HTML body only (legacy entry point — kept for backward
+     * compatibility). New callers SHOULD use {@link #sendEmail(String, String, String, String)}
+     * which emits both HTML + plain-text bodies per GAP-657 deliverability
+     * hardening (Wave 98 Bucket B1).
      *
      * @param to Recipient email
      * @param subject Email subject
@@ -132,16 +135,48 @@ public class SESEmailService implements NotificationChannel {
      * @return Email response
      */
     public EmailResponse sendEmail(String to, String subject, String htmlBody) {
-        log.info("Sending email to: {}, subject: {}", to, subject);
+        return sendEmail(to, subject, htmlBody, null);
+    }
+
+    /**
+     * Send email with HTML body + optional plain-text fallback (GAP-657).
+     *
+     * <p>When {@code textBody} is non-null/non-blank, the SES message is sent
+     * as {@code multipart/alternative} with both parts. Mail clients that strip
+     * HTML (Gmail Promotions surface, Outlook plain mode) render the plain-text
+     * fallback — projected to reduce silent-churn ~20% per external Resend
+     * deliverability benchmark.</p>
+     *
+     * <p>Headers wired alongside (per GAP-657 §Step 3):</p>
+     * <ul>
+     *   <li>{@code Reply-To: support@kitehub.me} — every transactional email</li>
+     *   <li>{@code List-Unsubscribe} — mailto + one-click (CSA / Gmail bulk-sender
+     *       requirement). Wired by upstream caller via {@link #sendWithHeaders}.</li>
+     * </ul>
+     *
+     * @param to       Recipient email
+     * @param subject  Email subject
+     * @param htmlBody HTML body (required)
+     * @param textBody Plain-text body (optional — empty/null = HTML-only)
+     * @return Email response
+     * @since Wave 98 Bucket B1 (GAP-657)
+     */
+    public EmailResponse sendEmail(String to, String subject, String htmlBody, String textBody) {
+        log.info("Sending email to: {}, subject: {}, textBody present: {}",
+                to, subject, textBody != null && !textBody.isBlank());
 
         // Route to correct provider
         if ("smtp".equalsIgnoreCase(emailProvider)) {
-            return sendViaSMTP(to, subject, htmlBody);
+            return sendViaSMTP(to, subject, htmlBody, textBody);
         }
 
         if ("mock".equalsIgnoreCase(emailProvider) || sesProperties.isMockMode()) {
-            log.info("[MOCK] Email to: {} | Subject: {}", to, subject);
-            log.debug("[MOCK] Body: {}", htmlBody);
+            log.info("[MOCK] Email to: {} | Subject: {} | text-part: {}",
+                    to, subject, textBody != null && !textBody.isBlank() ? "yes" : "no");
+            log.debug("[MOCK] HTML: {}", htmlBody);
+            if (textBody != null && !textBody.isBlank()) {
+                log.debug("[MOCK] Text: {}", textBody);
+            }
             return EmailResponse.builder()
                     .messageId("mock-" + UUID.randomUUID())
                     .status("MOCK")
@@ -149,9 +184,15 @@ public class SESEmailService implements NotificationChannel {
                     .build();
         }
 
-        // SES sending
+        // SES sending — multipart/alternative when textBody present
         try {
-            SendEmailRequest emailRequest = SendEmailRequest.builder()
+            Body.Builder bodyBuilder = Body.builder()
+                    .html(Content.builder().data(htmlBody).build());
+            if (textBody != null && !textBody.isBlank()) {
+                bodyBuilder.text(Content.builder().data(textBody).build());
+            }
+
+            SendEmailRequest.Builder requestBuilder = SendEmailRequest.builder()
                     .source(String.format("%s <%s>",
                             sesProperties.getFromName(),
                             sesProperties.getFromEmail()))
@@ -160,11 +201,16 @@ public class SESEmailService implements NotificationChannel {
                             .build())
                     .message(Message.builder()
                             .subject(Content.builder().data(subject).build())
-                            .body(Body.builder()
-                                    .html(Content.builder().data(htmlBody).build())
-                                    .build())
-                            .build())
-                    .build();
+                            .body(bodyBuilder.build())
+                            .build());
+
+            // Reply-To header per GAP-657 §Step 3
+            String replyTo = sesProperties.getReplyToEmail();
+            if (replyTo != null && !replyTo.isBlank()) {
+                requestBuilder.replyToAddresses(replyTo);
+            }
+
+            SendEmailRequest emailRequest = requestBuilder.build();
 
             SendEmailResponse response = sesClient.sendEmail(emailRequest);
 
@@ -190,19 +236,32 @@ public class SESEmailService implements NotificationChannel {
 
     /**
      * Send email via SMTP (MailHog for local, real SMTP for production).
+     *
+     * <p>When {@code textBody} is non-blank, sends multipart/alternative via
+     * {@link MimeMessageHelper#setText(String, String)} 2-arg form (plain +
+     * HTML). Reply-To header wired when configured.</p>
      */
-    private EmailResponse sendViaSMTP(String to, String subject, String htmlBody) {
+    private EmailResponse sendViaSMTP(String to, String subject, String htmlBody, String textBody) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(sesProperties.getFromEmail());
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(htmlBody, true);
+            if (textBody != null && !textBody.isBlank()) {
+                helper.setText(textBody, htmlBody);
+            } else {
+                helper.setText(htmlBody, true);
+            }
+            String replyTo = sesProperties.getReplyToEmail();
+            if (replyTo != null && !replyTo.isBlank()) {
+                helper.setReplyTo(replyTo);
+            }
 
             mailSender.send(message);
             String messageId = "smtp-" + UUID.randomUUID();
-            log.info("[SMTP] Email sent to: {} ({})", to, messageId);
+            log.info("[SMTP] Email sent to: {} ({}), text-part: {}", to, messageId,
+                    textBody != null && !textBody.isBlank() ? "yes" : "no");
 
             return EmailResponse.builder()
                     .messageId(messageId)

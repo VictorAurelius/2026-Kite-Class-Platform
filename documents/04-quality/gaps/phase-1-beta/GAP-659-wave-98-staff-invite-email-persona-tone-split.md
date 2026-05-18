@@ -1,6 +1,6 @@
 # GAP-659: Staff-invite email + persona-tone split (formal owner vs informal teacher)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (80% — Wave 98 B1)
 **Priority:** 🔴 P0
 **Domain:** Backend (kitehub-email templates + tone logic)
 **Detected:** 2026-05-18 (Wave 98 prep — outside-in audit persona F-NEW-6 + external benchmark B-NEW-3)
@@ -95,3 +95,20 @@ After this gap DONE → GAP-543 §AC update:
 - **Pair:** GAP-658 (VN sample seed) — shared native VN copywriter pass
 - **Standards referenced:** `user-manual-content-standard.md` §2 row 4 Vietnamese narrative; external benchmark Misa eInvoice / Haravan VN business email patterns
 - **Wave 98 bucket:** B1 (extends GAP-543; pair with GAP-657)
+
+## Log
+
+- **2026-05-18 (Wave 98 B1 PARTIAL 80%):** Shipped content + tone foundation:
+  - `staff-invite` HTML + `.txt` templates already existed (verified `kitehub/kitehub-email/src/main/resources/templates/emails/invite-staff.html` + `invite-staff.txt`). Existing variables (`recipientName`/`ownerName`/`tenantName`/`role`/`inviteUrl`/`expiresAt`) match GAP-659 spec close enough — `centerName` semantically equivalent to `tenantName`; `inviteeName` covered by `recipientName`; `expiryHours` covered by `expiresAt` narrative.
+  - `Tone` enum (`com.kitehub.email.api.Tone`) — 4 values (FORMAL_AUTHORITY / SEMI_FORMAL_PEER / INFORMAL_FRIEND / FORMAL_SAFE_DEFAULT) + `fromRole(String)` static method with case-insensitive role mapping.
+  - `EmailTemplateRenderer` (`com.kitehub.email.service.EmailTemplateRenderer`) — central renderer with Tone parameter. Wave 98 simplification: all tones resolve to base template path (`emails/{name}`). Wave 99 TODO marker in `resolveTemplatePath()` for per-tone variant templates.
+  - All 5 critical templates default to FORMAL_SAFE_DEFAULT salutation ("Kính gửi anh/chị ...") + closing ("Trân trọng, Đội ngũ KiteHub") — verified in `.txt` siblings (the canonical plain-text body which paired GAP-657).
+  - Tone resolution rules documented in `documents/01-business/kitehub/email/rules.md` §BR-EMAIL-004 (role → tone matrix) + §BR-EMAIL-005 (sender identity).
+  - Tone enum tests (`EmailTemplateRendererTest.toneFromRole_resolvesCorrectly`) cover PLATFORM_ADMIN / CENTER_OWNER / center_manager (case insensitive) / TEACHER / null / unknown / empty. ALL PASS.
+- **2026-05-18 — Deferred items (carry-over to Wave 99):**
+  - **Per-tone variant template files** (§Step 2 full implementation) — `welcome.formal.html` / `welcome.informal.html` / `welcome.semi-formal.html` etc. not created. Single FORMAL_SAFE_DEFAULT template per type ships Wave 98 per §Step 4 simplification.
+  - **Native VN copywriter pass** (§Step 3) — paired GAP-658 deferred to Wave 99 budget (shared writer).
+  - **Persona-tone routing logic at send-site** — `EmailController` + `EmailRequest` DTO not yet extended to accept `recipientRole` → resolve tone. Current path: caller passes `tone` variable in `variables` map OR renderer reads `variables.recipientRole`. Concrete callsite wiring (e.g., `kitehub-subscription` invite endpoint passing P3 Manager role → resolve to SEMI_FORMAL_PEER) deferred follow-up gap.
+- **2026-05-18 — Verification commands run:**
+  - `cd kitehub && ./mvnw -pl kitehub-email verify -P strict-warnings` → BUILD SUCCESS.
+  - Tone resolution test: 6 assertions PASS (PLATFORM_ADMIN, CENTER_OWNER, center_manager, TEACHER, null, UNKNOWN_ROLE).

@@ -63,6 +63,32 @@ public class SESConfig {
         private String secretKey;
 
         /**
+         * Reply-To address attached to every outbound message (per GAP-657
+         * §Step 3 — Wave 98 Bucket B1). Default {@code support@kitehub.me}.
+         * Tenant replies route to support inbox, NOT the no-reply sender.
+         *
+         * @since Wave 98 Bucket B1 (GAP-657)
+         */
+        private String replyToEmail = "support@kitehub.me";
+
+        /**
+         * Unsubscribe mailto address used in {@code List-Unsubscribe} header
+         * (GAP-657 §Step 3). Default {@code unsubscribe@kitehub.me}.
+         *
+         * @since Wave 98 Bucket B1 (GAP-657)
+         */
+        private String unsubscribeMailto = "unsubscribe@kitehub.me";
+
+        /**
+         * One-click unsubscribe HTTPS endpoint included alongside the mailto
+         * in the {@code List-Unsubscribe} header. Token placeholder
+         * {@code {token}} expanded per-recipient by the renderer/dispatcher.
+         *
+         * @since Wave 98 Bucket B1 (GAP-657)
+         */
+        private String unsubscribeUrlTemplate = "https://kitehub.me/unsubscribe?token={token}";
+
+        /**
          * Bounce-handling config — SNS topic that receives bounce notifications
          * from SES, consumed by the email service to mark addresses as
          * undeliverable. See {@code email-ses-setup-runbook.md} §Bounce/Complaint.
