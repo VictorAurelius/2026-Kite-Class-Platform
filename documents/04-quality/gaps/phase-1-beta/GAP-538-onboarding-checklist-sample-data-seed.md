@@ -1,6 +1,6 @@
 # GAP-538: Day-1 onboarding checklist + sample/demo data seed
 
-**Status:** 🟡 PARTIAL — Wave 78 Bucket B code+tests shipped; live verify gated on next deploy + sample-data seed BE worker deferred
+**Status:** 🟡 PARTIAL (90%) — Wave 78 Bucket B FE/BE shipped; Wave 98 B2 GAP-658 closed AC7 VN seed worker foundation; live verify + integration gated on next deploy
 **Priority:** 🔴 P0
 **Domain:** Mixed (FE + BE)
 **Detected:** 2026-05-14
@@ -75,3 +75,4 @@ Wave 77 SEND foundation đóng email delivery + 2026-05-14 outside-in 3-agent au
 
 - 2026-05-14 — Initial write-up (state-check completed; 0 onboarding folder/controller/migration found; api-contract.md absent; Wave 78 Bucket B owner).
 - 2026-05-14 — Wave 78 Bucket B shipped 85%: FE `OnboardingChecklist` component (5 steps, opt-in dialog for IMPORT_DATA), `(customer)/onboarding/page.tsx` route, BE `OnboardingProgressController` + `OnboardingProgressService` + `OnboardingProgress` entity + repo + Flyway `V43__create_onboarding_progress_table.sql`. 6 FE component tests + 6 BE controller tests + 5 BE service unit tests all PASS. Tenant scoping via `X-Tenant-Id` header (403 on missing/malformed). Remaining items: (a) live walkthrough verify post next deploy per `pre-handoff-self-test-completeness.md` §2.1, (b) sample-data seed BE worker (Vietnamese-friendly content) — deferred to follow-up seed-worker gap because this PR ships the toggle + opt-in UI but not the actual seed worker.
+- 2026-05-18 — Wave 98 Bucket B2 ship GAP-658 (`wave/98-b2-vn-sample-seed` branch) closes AC7 VN seed worker foundation: 6 VN CSV files trong `kitehub/kitehub-platform/src/main/resources/seed-data/vn-friendly/` (student×300 / teacher×100 / center×50 / class×50 / address×104 / subject×30, UTF-8 BOM), `VietnamSampleDataGenerator` Spring @Component với 7 generator methods + 6 DTO records + locale fallback `seed.locale=en-US`, 15 unit tests PASS, 3-layer business doc `documents/01-business/kitehub/seed/{rules,use-cases,api-contract}.md` codifying BR-SEED-001..010. Progress 85% → 90%. Remaining items: (a) live walkthrough still gated on next deploy, (b) SeedWorker/OnboardingChecklist integration wiring (kitehub-platform là shared domain module, no SeedWorkerService hiện tại — track follow-up khi service materializes), (c) native VN copywriter pass paired Wave 98 Bucket B4 i18n.
