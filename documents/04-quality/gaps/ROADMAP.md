@@ -8,9 +8,37 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-15 — 🎉 Wave 84 SHIPPED (7 buckets + terraform apply LIVE 35-add/2-change/0-destroy) + Wave 83 SHIPPED + Wave 82 FE SELF-HOST + Wave 81 DEPLOY+SMOKE + Wave 80 v1.0.0-rc Blockers)
+## 🎯 Current Status Snapshot (2026-05-18 — 🎉 Wave 92 SHIPPED (5 buckets pre-tenant cluster offline-safe) + GAP-612 AWS suspension blocker pending D+4 response)
 
-> **📍 Next session ĐỌC TRƯỚC:** [`documents/03-planning/session-handoffs/2026-05-15-post-wave-84-handoff.md`](../../03-planning/session-handoffs/2026-05-15-post-wave-84-handoff.md) — Wave 84 ops observability shipped: 6 bucket PRs #1417-1422 merged + Bucket H audit refresh + terraform apply executed live via dev-authorized override (new rule `dev-authorized-terraform-trigger.md`). RDS db-password rotation bootstrap pending user console action. Pre-existing `kc-app-fe-cert-expiry` ALARM unrelated to Wave 84, needs separate investigation.
+> **📍 Next session ĐỌC TRƯỚC:** Wave 92 closure PR + 3 thesis outside-in audit artifacts (persona / benchmark / failure-matrix tại `documents/04-quality/audits/persona-review/2026-05-18-thesis-plan-*.md`) + thesis plan task in-flight cho Wave 93 candidate (NEW skill `thesis-report` + rule `thesis-report-content-standard` + folder `documents/08-thesis/figures/` + V5.0 đề cương regen per release v2.0.0).
+
+### 🎉 Wave 92 SHIPPED 2026-05-18 — Pre-Tenant Cluster + Audit Follow-ups (5/5 buckets parallel offline-safe)
+
+**7 PRs merged:** #1510 (collision-fix gap ID renumber 614/615/616 → 616/617/618) + #1511 (E meta backlog 3 new gaps) + #1512 (C beta_request abort cleanup) + #1513 (A admin audit enrichment Phase 2 V54) + #1514 (D professional-manual rule + 3 admin v1 controllers) + #1515 (B BE findAll bounded + FE JWT tab-scoped storage) + #1516 (thesis sync: action-2 + khung báo cáo move 07-archived → 08-thesis + PR-logs).
+
+**Bucket outcomes:**
+- ✅ A — GAP-521 PARTIAL 70→85% Phase 2 enrichment (V54 + 5 columns + AdminAuditAspect + 3 IT). Remaining: other admin controllers + FE admin UI defer Wave 93+
+- ✅ B — GAP-432 DONE (symptom self-corrected Wave 41 PR #1000; Bucket B added 5 boundary tests hardening per audit-to-gap-pipeline §2.8 fix-time state-check) + GAP-599 PARTIAL 0→85% (sessionStorage facade `jwt-storage.ts` + 7 production sites migrated + 17 unit tests + 3 two-tab simulation PASS). Live multi-tab UX verify pending AWS restore GAP-612
+- ✅ C — GAP-600 DONE (BetaRequestAbortCleanupScheduler + V53 composite index + ABORTED terminal status + 11 tests)
+- ✅ D — NEW rule `professional-manual-content-standard.md` v1.0.0 sister cho user-manual-content-standard + 3 admin v1 controllers (Instances/Payments/Revenue fix Wave 90 walkthrough 404) + 14 unit tests + Manual split queue item consumed
+- ✅ E — 3 NEW gaps filed: GAP-616 P2 uptime monitoring + GAP-617 P3 disaster recovery + GAP-618 P2 AWS health dashboard (all phase-1.5-paid backlog)
+
+**Side artifacts:**
+- 1 new rule `professional-manual-content-standard.md` v1.0.0 + paired same-PR enforcement
+- 1 investigation audit `2026-05-18-fe-runtime-state-and-cve-gate-investigation.md` (6 CodeQL HIGH paper-tiger gate analysis — Vercel runtime serving, container chưa serve, gate Wave 88 cutover post-AWS-restore)
+- 3 thesis outside-in audits (T1 persona / T2 benchmark / T3 failure-mode) in-flight cho Wave 93+ thesis plan
+- 5 worktree husks pruned + 5 Wave 92 bucket branches deleted
+
+**Hotfix landed mid-flight:**
+- V53 collision Bucket A vs C — rebased Bucket A + renamed V53 → V54 (force-push 1dd67f50 → 5fc24a88; CI re-ran clean trên rebased HEAD per admin-merge-discipline §3)
+- Wave 92 plan §3 Bucket E gap ID collision 614/615/616 → 616/617/618 (PR #1510 — pre-spawn fix; recurrence #6 of audit-to-gap-pipeline §2.6 symbol verify miss class)
+
+**Pending:**
+- GAP-612 AWS suspension restoration (D+4 = 2026-05-21 trigger escalate)
+- GAP-521 + GAP-599 PARTIAL → Wave 93 candidates
+- Post-Wave-92 audit suite ≤3 days per post-wave-audit-mandate §2.2
+- 6 CodeQL HIGH FE container CVEs — gate Wave 88 cutover (post AWS restore + base image refresh node:22-trixie-slim → bookworm-slim option)
+- Thesis plan task — outside-in audits done; merge findings + scope lock + Wave 93 thesis-1 spawn
 
 ### 🎉 Wave 84 SHIPPED 2026-05-15 — Ops Observability + Secrets Rotation + Account-Prep + Terraform Apply LIVE (7/7 buckets executed)
 
