@@ -105,26 +105,26 @@ while IFS=, read -r ID FILENAME TITLE STATUS PRIORITY DOMAIN PHASE COMPLETION FO
   fi
 done <<< "$ROWS"
 
-# Phase 2 check: every active gap file has CSV row.
-# Match by exact filename in column 2 — handles collision-stem ids
-# (e.g. multiple files sharing GAP-116 prefix).
+# Phase 2 check: every gap file under v2.0.0 phase-X/[closed/] layout has CSV row.
+# Per `gap-folder-organization.md` v2.0.0: gap files live in
+#   - phase-X/GAP-*.md (active) or phase-X/closed/GAP-*.md (DONE archive)
+#   - unclassified/GAP-*.md (phase=n/a active) or unclassified/closed/ (DONE)
+#   - closed/GAP-*.md (LEGACY orphans, no CSV row required — pre-migration)
+# Match by exact relative path from $GAPS_DIR.
 if [[ "$GAP_FILES_OPTIONAL" == "false" ]]; then
-  # Active (top-level) — coverage required, match by exact filename
-  ACTIVE_FILES=$(find "$GAPS_DIR" -maxdepth 1 -name "GAP-*.md" -type f | xargs -n1 basename)
-  for FILE in $ACTIVE_FILES; do
-    if ! awk -F, -v f="$FILE" '$2==f {found=1} END {exit !found}' "$CSV"; then
-      echo "FAIL: $FILE missing CSV row (Phase 2 100%-coverage mode)"
-      ERRORS=$((ERRORS + 1))
-    fi
+  # Walk v2.0.0 layout: phase-X/[closed/]/ + unclassified/[closed/]/
+  for SUBDIR in phase-1-beta phase-1.5-paid phase-2 phase-3 unclassified; do
+    while IFS= read -r FULLPATH; do
+      [[ -z "$FULLPATH" ]] && continue
+      REL_PATH="${FULLPATH#$GAPS_DIR/}"
+      if ! awk -F, -v f="$REL_PATH" '$2==f {found=1} END {exit !found}' "$CSV"; then
+        echo "FAIL: $REL_PATH missing CSV row (Phase 2 100%-coverage mode)"
+        ERRORS=$((ERRORS + 1))
+      fi
+    done < <(find "$GAPS_DIR/$SUBDIR" -name "GAP-*.md" -type f 2>/dev/null)
   done
-  # Pending (deferred legal) — coverage required, match by pending/<filename>
-  PENDING_FILES=$(find "$GAPS_DIR/pending" -maxdepth 1 -name "GAP-*.md" -type f 2>/dev/null | xargs -n1 basename)
-  for FILE in $PENDING_FILES; do
-    if ! awk -F, -v f="pending/$FILE" '$2==f {found=1} END {exit !found}' "$CSV"; then
-      echo "FAIL: pending/$FILE missing CSV row (Phase 2 100%-coverage mode)"
-      ERRORS=$((ERRORS + 1))
-    fi
-  done
+  # Legacy root closed/ — orphan files tolerated (no CSV row required)
+  # per `gap-folder-organization.md` v2.0.0 §2.1 last row
 fi
 
 if [[ "$ERRORS" -gt 0 ]]; then

@@ -1,0 +1,33 @@
+{
+  "pr": 1533,
+  "title": "fix(meta): gap-folder-organization v2.0.0 \u2014 phase-only design (revert v1.0.0 post 3-agent outside-in audit)",
+  "branch": "wave/95-pr1-5-fix-taxonomy",
+  "created_at": null,
+  "merged_at": "2026-05-18T09:19:03Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-18T09:19:11.447568",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 19,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/3",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-447196"
+  }
+}

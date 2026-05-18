@@ -382,13 +382,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Validate gap folder location (WARN mode initial)
+      - name: Validate gap folder location (STRICT mode — phase-only per v2.0.0)
         run: |
-          # Per `.claude/rules/gap-folder-organization.md` §2: file location
-          # must mirror CSV `status` + `phase` columns. WARN mode initially
-          # (Wave 95 PR1 — rule + scaffolding); flips to --strict after PR2
-          # mass migration lands. Reference rule §5.1 enforcement modes.
-          bash scripts/check-gap-folder-location.sh --warn
+          # Per `.claude/rules/gap-folder-organization.md` v2.0.0 §2: file location
+          # must mirror CSV `phase` column (status NOT projected to filesystem;
+          # only DONE flip archives to phase-X/closed/). STRICT mode active after
+          # Wave 95 PR2 mass migration (this commit). Reference rule §5.1.
+          bash scripts/check-gap-folder-location.sh --strict
 
   meta-csv-indexes:
     name: Meta CSV indexes (ADRs + Rules)
