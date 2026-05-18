@@ -10,6 +10,7 @@ import { isPlatformAdmin } from '@/lib/auth-helpers';
 import { KiteLogo } from '@/components/brand/KiteLogo';
 import { TotpInput } from '@/components/auth/TotpInput';
 import { RecoveryCodesDisplay } from '@/components/auth/RecoveryCodesDisplay';
+import { setTokens } from '@/lib/auth/jwt-storage';
 
 /**
  * 2FA Setup page (mandatory enrollment landing for PLATFORM_ADMIN first-login).
@@ -105,8 +106,8 @@ function TwoFactorSetupPageContent() {
 
       // Map snake_case API response to camelCase store shape
       setAuth(user, access_token, refresh_token);
-      localStorage.setItem('accessToken', access_token);
-      localStorage.setItem('refreshToken', refresh_token);
+      // GAP-599 Wave 92 Bucket B: sessionStorage (per-tab isolation).
+      setTokens(access_token, refresh_token);
 
       router.push(isPlatformAdmin(user.role) ? '/admin' : '/dashboard');
     } catch (err) {

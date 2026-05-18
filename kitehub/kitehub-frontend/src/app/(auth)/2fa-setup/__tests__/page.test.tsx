@@ -92,6 +92,7 @@ describe('TwoFactorSetupPage', () => {
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/admin');
     });
-    expect(localStorage.getItem('accessToken')).toBe('stub-access-token-2fa-enrolled');
+    // GAP-599 Wave 92 Bucket B: tokens persist in sessionStorage (per-tab isolation).
+    expect(sessionStorage.getItem('accessToken')).toBe('stub-access-token-2fa-enrolled');
   });
 });

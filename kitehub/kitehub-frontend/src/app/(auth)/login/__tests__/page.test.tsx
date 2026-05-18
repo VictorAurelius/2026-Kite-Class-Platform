@@ -39,6 +39,7 @@ describe('LoginPage — 2FA branching (Wave 72b Bucket B)', () => {
   beforeEach(() => {
     mockPush.mockClear();
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   it('redirects to /2fa-challenge when response is requires2fa', async () => {
@@ -50,7 +51,8 @@ describe('LoginPage — 2FA branching (Wave 72b Bucket B)', () => {
         expect.stringMatching(/^\/2fa-challenge\?token=stub-challenge-token-2fa-required$/)
       );
     });
-    expect(localStorage.getItem('accessToken')).toBeNull();
+    // GAP-599 Wave 92 Bucket B: tokens persist in sessionStorage (per-tab isolation).
+    expect(sessionStorage.getItem('accessToken')).toBeNull();
   });
 
   it('redirects to /2fa-setup when response is requires2fa_enrollment', async () => {
@@ -71,7 +73,8 @@ describe('LoginPage — 2FA branching (Wave 72b Bucket B)', () => {
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/dashboard');
     });
-    expect(localStorage.getItem('accessToken')).toBe('stub-access-token-no-2fa');
+    // GAP-599 Wave 92 Bucket B: tokens persist in sessionStorage.
+    expect(sessionStorage.getItem('accessToken')).toBe('stub-access-token-no-2fa');
   });
 
   it('shows lockout message on 423', async () => {

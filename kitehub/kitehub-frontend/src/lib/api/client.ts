@@ -1,5 +1,12 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
+import {
+  getAccessToken,
+  getRefreshToken,
+  setAccessToken,
+  clearTokens,
+} from '@/lib/auth/jwt-storage';
+
 export const apiClient: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000',
   timeout: 15000,
@@ -11,11 +18,10 @@ export const apiClient: AxiosInstance = axios.create({
 
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    if (typeof window !== 'undefined') {
-      const accessToken = localStorage.getItem('accessToken');
-      if (accessToken && config.headers) {
-        config.headers.Authorization = `Bearer ${accessToken}`;
-      }
+    // GAP-599 Wave 92 Bucket B: JWT stored in sessionStorage (per-tab isolation).
+    const accessToken = getAccessToken();
+    if (accessToken && config.headers) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
   },
@@ -31,7 +37,7 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
+        const refreshToken = getRefreshToken();
         if (!refreshToken) {
           throw new Error('No refresh token');
         }
@@ -42,16 +48,17 @@ apiClient.interceptors.response.use(
         );
 
         const { accessToken: newAccessToken } = response.data;
-        localStorage.setItem('accessToken', newAccessToken);
+        setAccessToken(newAccessToken);
 
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         }
         return apiClient(originalRequest);
       } catch {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        clearTokens();
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
         return Promise.reject(error);
       }
     }

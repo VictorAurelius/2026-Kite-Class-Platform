@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { endpoints } from '@/lib/api/endpoints';
 import axios from 'axios';
+import { setTokens } from '@/lib/auth/jwt-storage';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -30,8 +31,8 @@ function VerifyEmailContent() {
 
         const data = response.data;
         if (data.accessToken) {
-          localStorage.setItem('accessToken', data.accessToken);
-          localStorage.setItem('refreshToken', data.refreshToken);
+          // GAP-599 Wave 92 Bucket B: sessionStorage (per-tab isolation).
+          setTokens(data.accessToken, data.refreshToken);
         }
 
         setStatus('success');
