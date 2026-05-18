@@ -211,9 +211,9 @@ gaps: [GAP-521, GAP-514, GAP-432, GAP-600, GAP-599]
 
 - Files:
   - VERIFY: `documents/04-quality/gaps/GAP-601-wave-88-ops-readiness-audit-deferred.md` Status (if DONE by parallel Agent A → SKIP; else INCLUDE follow-up)
-  - NEW: `documents/04-quality/gaps/GAP-614-uptime-monitoring-external.md` — UptimeRobot / BetterStack integration P2
-  - NEW: `documents/04-quality/gaps/GAP-615-disaster-recovery-plan.md` — multi-region OR backup mechanism + RTO/RPO targets P3
-  - NEW: `documents/04-quality/gaps/GAP-616-aws-health-dashboard-daily-check.md` — automated AWS Service Health Dashboard scrape + alert P2
+  - NEW: `documents/04-quality/gaps/GAP-616-uptime-monitoring-external.md` — UptimeRobot / BetterStack integration P2
+  - NEW: `documents/04-quality/gaps/GAP-617-disaster-recovery-plan.md` — multi-region OR backup mechanism + RTO/RPO targets P3
+  - NEW: `documents/04-quality/gaps/GAP-618-aws-health-dashboard-daily-check.md` — automated AWS Service Health Dashboard scrape + alert P2
   - EDIT: `documents/04-quality/gaps/gap-status.csv` — add 3 NEW rows per `gap-architecture-v2.md` §3
   - EDIT: `documents/04-quality/gaps/ROADMAP.md` — add 3 gaps under "Long-term P2/P3 backlog" section
 - Pre-implementation state-check:
@@ -253,6 +253,9 @@ gaps: [GAP-521, GAP-514, GAP-432, GAP-600, GAP-599]
 | `jwt-storage.ts` FE auth | TypeScript | `grep -rn "jwt\|access_token\|sessionStorage\|localStorage" kitehub/kitehub-frontend/src/lib/auth/ 2>/dev/null` | verify-at-spawn | ⚠️ verify-at-spawn (Bucket B) |
 | 3 `findAll()` services | Java | `grep -rn "findAll()" kitehub/{kitehub-subscription,kitehub-admin,kitehub-branding}/src/main --include="*.java"` | per GAP-432 audit Wave 5 | ✅ exists (Bucket B refactor) |
 | Manual split queue item | Queue file | `grep -A 5 "Manual split" documents/03-planning/inside-out-queue.md` | exists status=queued 2026-05-17 | ✅ exists (Bucket D consumes) |
+| `GAP-616-uptime-monitoring-external.md` ID availability | Gap file (NEW) | `ls documents/04-quality/gaps/GAP-616*.md documents/04-quality/gaps/closed/GAP-616*.md documents/04-quality/gaps/pending-legal-2026-05-11/GAP-616*.md 2>/dev/null` | 0 results (verified 2026-05-18 post PR #1508 merge) | 🆕 to-be-created (Bucket E owns creation) |
+| `GAP-617-disaster-recovery-plan.md` ID availability | Gap file (NEW) | `ls documents/04-quality/gaps/GAP-617*.md` | 0 results | 🆕 to-be-created (Bucket E owns creation) |
+| `GAP-618-aws-health-dashboard-daily-check.md` ID availability | Gap file (NEW) | `ls documents/04-quality/gaps/GAP-618*.md` | 0 results | 🆕 to-be-created (Bucket E owns creation) |
 
 **Banned shortcuts:** `| head` truncation; skipping verify-at-spawn entries (Bucket A/B/D/E); aspirational refs without 🆕 flag.
 
@@ -292,7 +295,7 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 - [ ] GAP-521 flip DONE (per `gap-done-discipline.md` §2 — all AC checked + integration test verified)
 - [ ] GAP-432 + GAP-599 flip DONE (Bucket B)
 - [ ] GAP-600 flip DONE (Bucket C)
-- [ ] GAP-614/615/616 filed PLANNED (Bucket E new gaps remain OPEN until Wave 93+ fix)
+- [ ] GAP-616/617/618 filed PLANNED (Bucket E new gaps remain OPEN until Wave 93+ fix)
 - [ ] GAP-601 status sync (DONE flip if Bucket E verified Agent A closed, else PARTIAL update)
 - [ ] Manual split queue item `inside-out-queue.md` marked consumed
 - [ ] `gap-status.csv` rows updated per `post-merge-sync-completeness.md` §2 target 1
@@ -307,4 +310,5 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 
 ## 8. Log
 
+- **2026-05-18 (PATCH — gap ID collision fix per `audit-to-gap-pipeline.md` §2.6):** Bucket E gap IDs renumbered 614/615/616 → 616/617/618 sau session-start verify phát hiện collision: GAP-614 already used (Wave 91 Bucket D V60 RLS verify, DONE 2026-05-18 PR #1508 paired same session); GAP-615 already used (Wave 86 process retro PR cascade prevention, OPEN P1 PR #1507). Wave 92 §2.6 state-check evidence ban đầu liệt kê 16 symbols nhưng MISS verify NEW gap ID availability — extending evidence với 3 rows mới (GAP-616/617/618 = 0 results = 🆕 to-be-created). §3 Bucket E + §7 Closure Protocol renumbered consistently. Reviewer: @nguyenvankiet (solo-dev). No scope content change; ID-only patch. Catches one of the recurrences `audit-to-gap-pipeline.md` v1.2.0 wave-plan pre-flight state-check designed to prevent (this is the 6th recurrence class — symbol verify miss for NEW gap IDs specifically; recommend rule tightening if 7th occurs).
 - **2026-05-18 (draft):** Wave 92 plan drafted by background Agent B parallel với Coordinator F BLOCKED (GAP-612 AWS suspension). Scope locked via 3-source inside-out audit per `inside-out-completeness-trigger.md` §3: ROADMAP (pre-tenant cluster recheck — 2 DONE drop / 2 PARTIAL defer / 1 PARTIAL include + 3 long-term observability + admin 404 sub-finding) + inside-out-queue.md (Manual split queue item 5th) + CSV phase-1-beta non-DONE (GAP-432/599/600/481 cross-check). Outside-in audit SKIPPED per `outside-in-coverage-trigger.md` §4 exception — Wave 92 = mixed backend hardening + meta scope; admin user-facing (Bucket F) covered by Wave 90 walkthrough outside-in evidence (≤30 ngày). 5-bucket lean (A admin audit + B BE/FE auth + C beta cleanup + D rule+admin404 + E meta gaps); Bucket E GAP-601 verify-at-spawn để avoid duplicate với parallel Agent A. Cross-layer check: NOT cross-layer (no new endpoint contract). Concurrent ops check: zero AWS mutation in Wave 92 — no serialization needed. Offline-safe design: all buckets touch code/docs/rules only (Wave 91 Coordinator F unaffected).
