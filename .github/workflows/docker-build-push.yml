@@ -45,9 +45,8 @@ concurrency:
 env:
   AWS_REGION: ap-southeast-1
   # ECR repo naming convention: kite/<service> (per CLAUDE.md Docker Naming Convention)
-  # KiteClass services
+  # KiteClass services (kiteclass-gateway removed per ADR-032 / GAP-001)
   ECR_REPO_KC_CORE: kite/kiteclass-core
-  ECR_REPO_KC_GATEWAY: kite/kiteclass-gateway
   ECR_REPO_KC_FRONTEND: kite/kiteclass-frontend
   # KiteHub services
   ECR_REPO_KH_SUBSCRIPTION: kite/kitehub-subscription
@@ -76,10 +75,6 @@ jobs:
             ecr_repo: kite/kiteclass-core
             context: kiteclass/kiteclass-core
             dockerfile: kiteclass/kiteclass-core/Dockerfile
-          - service: kiteclass-gateway
-            ecr_repo: kite/kiteclass-gateway
-            context: kiteclass/kiteclass-gateway
-            dockerfile: kiteclass/kiteclass-gateway/Dockerfile
           - service: kiteclass-frontend
             ecr_repo: kite/kiteclass-frontend
             context: .
@@ -200,10 +195,6 @@ jobs:
             ecr_repo: kite/kiteclass-core
             context: kiteclass/kiteclass-core
             dockerfile: kiteclass/kiteclass-core/Dockerfile
-          - service: kiteclass-gateway
-            ecr_repo: kite/kiteclass-gateway
-            context: kiteclass/kiteclass-gateway
-            dockerfile: kiteclass/kiteclass-gateway/Dockerfile
           - service: kiteclass-frontend
             ecr_repo: kite/kiteclass-frontend
             context: .

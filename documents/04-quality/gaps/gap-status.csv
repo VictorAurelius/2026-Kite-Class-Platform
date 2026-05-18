@@ -17,7 +17,7 @@
 #   notes           — Optional 1-line context (DEFERRED reason, blocked-by ref, etc.)
 #
 id,filename,title_short,status,priority,domain,phase,completion_pct,found_date,last_verified,notes
-GAP-001,unclassified/GAP-001-kiteclass-gateway-decision.md,Quyết định giữ/xóa kiteclass-gateway service,OPEN,P2,Backend,n/a,0,2026-04-14,2026-05-11,
+GAP-001,unclassified/closed/GAP-001-kiteclass-gateway-decision.md,Quyết định giữ/xóa kiteclass-gateway service,DONE,P2,Backend,n/a,100,2026-04-14,2026-05-18,Wave 96 PR2 — Option A executed per ADR-032. Folder deleted (154 files); CI/scripts/infra/docs swept. Backup branch archive/kiteclass-gateway-pre-removal-2026-05-18.
 GAP-003,phase-2/GAP-003-ai-multi-tier-image-generation.md,Multi-tier image generation strategy,OPEN,P2,Backend,phase-2,0,2026-04-14,2026-05-11,
 GAP-004,phase-2/GAP-004-template-based-image-composition.md,Template-based image composition (Canva-like),OPEN,P2,Frontend,phase-2,0,2026-04-14,2026-05-11,
 GAP-005,phase-1-beta/GAP-005-ai-queue-fair-scheduling.md,AI queue fair scheduling + horizontal scaling,IN_PROGRESS,P1,AI,phase-1-beta,40,2026-04-14,2026-05-11,Phase 1 MVP done Wave 3; Phase 2 production scale open

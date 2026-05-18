@@ -8,10 +8,10 @@ paths:
 # Docs-Only PR Auto-Merge — skip "check CI? merge?" prompts
 
 **Priority:** 🟠 MANDATORY — workflow friction reduction
-**Version:** 1.0.1
+**Version:** 1.0.2
 **Created:** 2026-05-11
-**Last-Reviewed:** 2026-05-14
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; Wave 73 Bucket A3 thêm `paths:` frontmatter — không đổi constraint, scope rule giữ nguyên, deferred-load khi không có file docs/rule/skill trong context. v1.0.0 (giữ): MINOR self-approve per §5; new rule with built-in enforcement (memory auto-load + worked self-test on 2026-05-11 session PRs #1151 + #1152) per §6.5 Enforcement Parity Mandate; no constraint loosening — sharpens `agent-action-bias.md` §1 Part A "do it yourself" for known-safe docs-only merge path)
+**Last-Reviewed:** 2026-05-18
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.2 PATCH self-approve per `rule-change-process.md` §5; Wave 96 PR2 sync §8.3 counter-example PR #1150 — remove `kiteclass/kiteclass-gateway/pom.xml` reference per ADR-032 / GAP-001 Option A (service decommissioned, folder removed); historical counter-example structure preserved with annotation. No constraint change; rule scope still excludes pom.xml diffs. v1.0.1 (giữ): PATCH self-approve per §5; Wave 73 Bucket A3 thêm `paths:` frontmatter — không đổi constraint, scope rule giữ nguyên, deferred-load khi không có file docs/rule/skill trong context. v1.0.0 (giữ): MINOR self-approve per §5; new rule with built-in enforcement (memory auto-load + worked self-test on 2026-05-11 session PRs #1151 + #1152) per §6.5 Enforcement Parity Mandate; no constraint loosening — sharpens `agent-action-bias.md` §1 Part A "do it yourself" for known-safe docs-only merge path)
 **Applies to:** Every PR Claude creates whose diff is contained within the §2 docs-only scope, AND CI passes all required checks
 
 ---
@@ -151,7 +151,7 @@ Nếu ANY override → revert to default "check CI? merge?" pattern.
 
 ### 8.3 PR #1150 — postgresql + commons-lang3 fix (counter-example)
 
-**Diff scope:** 3 files: `kitehub/pom.xml` + `kiteclass/kiteclass-core/pom.xml` + `kiteclass/kiteclass-gateway/pom.xml`.
+**Diff scope (historical — Wave 96 PR2 sync):** 2 files: `kitehub/pom.xml` + `kiteclass/kiteclass-core/pom.xml` (PR #1150 originally included `kiteclass/kiteclass-gateway/pom.xml` — service decommissioned per ADR-032 / GAP-001 Wave 96; file no longer exists; counter-example structure preserved).
 
 **§3 check:** ALL files match `pom.xml` (out-of-scope BANNED). ❌
 **Verdict:** Rule N/A. Default "check CI? merge?" pattern correct cho PR này (dep change = blast radius higher).
@@ -196,5 +196,6 @@ Future enhancement: scan recent session transcripts for "check CI?" + "merge?" t
 
 ## 11. Log
 
+- **2026-05-18 (v1.0.2):** PATCH — sync §8.3 counter-example PR #1150 diff scope removing `kiteclass/kiteclass-gateway/pom.xml` reference per ADR-032 / GAP-001 Option A (Wave 96 PR2). Service `kiteclass-gateway` đã decommission tại Wave 96 (folder removed). Historical counter-example structure preserved với annotation rõ ràng — verdict ("rule N/A cho pom.xml diff") unchanged vì rule logic không phụ thuộc số file. Không đổi constraint — rule vẫn exclude mọi `pom.xml` / dep change khỏi auto-merge scope. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — factual scope sync post-ADR-032, no constraint loosening).
 - **2026-05-14 (v1.0.1):** Wave 73 Bucket A3 — thêm `paths:` frontmatter (`documents/**/*.md`, `.claude/rules/**/*.md`, `.claude/skills/**/*.md`) cho Anthropic native deferred-loading. Path-scope MANDATORY rule giúp tiết kiệm token context khi session không động chạm docs/rule/skill files. Không đổi constraint, scope rule giữ nguyên. Sync `rules-index.csv` path_trigger column. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-05-11 (v1.0.0):** Rule created at user request "thêm rules, nếu PR docs-only thì không hỏi check CI mà merge luôn" — direct response to 2026-05-11 session friction (3 docs-only PRs #1151 + #1152 + earlier each prompted "check CI?" + "merge?" two-step despite zero-risk scope). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged friction) → Classify ✓ (no existing rule covers; `agent-action-bias.md` §1 Part A covers general "do it yourself" but không specific cho merge gate timing) → Rule+Enforce ✓ (this file + memory `feedback_docs_only_pr_auto_merge.md` paired same-PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§8 worked examples PR #1151 + #1152 + counter-example #1150) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint sharpening existing "do it yourself" rule, no constraint loosening; existing 3-prompt pattern grandfathered for non-docs PRs; rule applies prospectively cho docs-only scope từ next session forward). Detector wiring (§9.4) deferred per premature-rule guard ≥7 ngày.

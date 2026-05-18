@@ -228,7 +228,7 @@ Sequence (per `concurrent-production-mutation-ops.md` — mọi mutation serial,
 2. SSH/SSM setup: Node.js 22 LTS + nginx + PM2 + certbot
 3. Configure 1GB swapfile + CloudWatch memory alarm @ 80% (F7 mitigation)
 4. certbot DNS-01 challenge với Cloudflare DNS API token (F10 mitigation)
-5. BE CORS allowlist sweep — add new EC2 origin vào `allowed-origins` config của kitehub-gateway + kiteclass-gateway (F11 mitigation)
+5. BE CORS allowlist sweep — add new EC2 origin vào `allowed-origins` config của kitehub-gateway + kiteclass-core (F11 mitigation; `kiteclass-gateway` removed Wave 96 per ADR-032 — auth moved into kiteclass-core)
 6. Build + deploy FE qua CI workflow OR SSM SendCommand
 7. Smoke test pre-DNS-flip qua direct IP
 

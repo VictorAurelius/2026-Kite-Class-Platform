@@ -180,14 +180,13 @@ run_backend_kiteclass() {
     skip "KiteClass backend tests (--skip-backend)"; return
   fi
 
-  echo -e "  Chạy: kiteclass-core + kiteclass-gateway..."
+  echo -e "  Chạy: kiteclass-core..."
   local output exit_code=0
 
   output=$(cd "$ROOT_DIR/kiteclass/kiteclass-core" && ./mvnw test -q 2>&1) || exit_code=$?
   parse_mvn_results "$output" "KiteClass core"
 
-  output=$(cd "$ROOT_DIR/kiteclass/kiteclass-gateway" && ./mvnw test -q 2>&1) || true
-  parse_mvn_results "$output" "KiteClass gateway"
+  # kiteclass-gateway removed per ADR-032 / GAP-001
 }
 
 # ════════════════════════════════════════════════════════════

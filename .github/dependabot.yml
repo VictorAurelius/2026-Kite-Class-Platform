@@ -99,34 +99,7 @@ updates:
       - dependency-name: "ognl:ognl"
         versions: [">=3.4.0"]
 
-  - package-ecosystem: maven
-    directory: "/kiteclass/kiteclass-gateway"
-    schedule:
-      interval: weekly
-      day: monday
-      time: "02:00"
-      timezone: "Asia/Ho_Chi_Minh"
-    open-pull-requests-limit: 1
-    labels:
-      - dependencies
-      - kiteclass
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    groups:
-      all-deps:
-        patterns: ["*"]
-        # Pre-MVP lock 2026-04-30: patch-only (blocks minor bumps).
-        # See GAP-283 — revisit after MVP soft launch ready (~4-6 weeks).
-        update-types: ["patch"]
-    ignore:
-      - dependency-name: "*"
-        update-types:
-          - "version-update:semver-major"
-      # GAP-213: same as /kitehub — Spring Cloud 2025.1.x removed the old
-      # `spring-cloud-starter-gateway` artifact. Pin BOM to 2025.0.x until
-      # migration PR lands.
-      - dependency-name: "org.springframework.cloud:spring-cloud-dependencies"
+  # Note: kiteclass-gateway maven block removed per ADR-032 / GAP-001 (Wave 96)
 
   # ==========================================================================
   # NPM — 2 frontends
@@ -293,35 +266,7 @@ updates:
           - "version-update:semver-major"
           - "version-update:semver-minor"
 
-  - package-ecosystem: docker
-    directory: "/kiteclass/kiteclass-gateway"
-    schedule:
-      interval: weekly
-      day: monday
-      time: "02:00"
-      timezone: "Asia/Ho_Chi_Minh"
-    open-pull-requests-limit: 1
-    labels:
-      - dependencies
-      - docker
-      - kiteclass
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    groups:
-      all-base-images:
-        patterns: ["*"]
-        update-types: ["patch"]
-    ignore:
-      - dependency-name: "*"
-        update-types:
-          - "version-update:semver-major"
-          - "version-update:semver-minor"
-      # Wave 91 closure (2026-05-18): Java 26 preview not aligned with Spring Boot
-      # 3.x stable (max Java 23). Pin maven base ≤ Java 17 LTS until Java 25 LTS
-      # ships + Spring certifies support. Revisit Q3 2026.
-      - dependency-name: "maven"
-        versions: ["3.9-eclipse-temurin-1[89]-*", "3.9-eclipse-temurin-2[0-9]-*"]
+  # Note: kiteclass-gateway docker block removed per ADR-032 / GAP-001 (Wave 96)
 
   - package-ecosystem: docker
     directory: "/kitehub/kitehub-admin"

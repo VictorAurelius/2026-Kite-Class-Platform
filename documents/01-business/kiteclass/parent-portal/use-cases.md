@@ -166,27 +166,27 @@
 
 ---
 
-### UC-PARENT-06: Internal Gateway JWT Enrichment
+### UC-PARENT-06: Parent JWT Enrichment (internal)
 
-**Actor:** kiteclass-gateway (system-to-system)
-**Precondition:** HMAC signed request via `InternalRequestFilter`
+> **Note (Wave 96, ADR-032):** `kiteclass-gateway` đã removed; auth + JWT issuance chuyển vào `kiteclass-core` trực tiếp. HMAC internal-request layer cũ (gateway↔core) loại bỏ. Use case này giờ là internal-call trong `kiteclass-core` auth module.
+
+**Actor:** `kiteclass-core` auth module (internal)
+**Precondition:** Parent đã authenticate bằng password trong login flow
 
 **Steps:**
-1. Login flow Wave 5: Gateway authenticate parent bằng password
-2. Gateway: Cần `linked_student_ids` cho JWT claim + display profile
-3. Gateway → Core: `GET /internal/parents/{id}` kèm HMAC signature
-4. Core `InternalParentController`: Verify HMAC qua filter
-5. Core: Load Parent → load `linkRepository.findStudentIdsByParentId(parentId)`
-6. Core: Trả `ParentInternalResponse { id, email, fullName, phoneNumber, relationship, status, linkedStudentIds }`
-7. Gateway: Mint JWT với `linked_student_ids`, populate `LoginResponse.profile = ParentProfileResponse`
+1. Login flow: Core auth module authenticate parent bằng password
+2. Auth module: Cần `linked_student_ids` cho JWT claim + display profile
+3. Auth module → Parent service (in-process): Load Parent → load `linkRepository.findStudentIdsByParentId(parentId)`
+4. Parent service trả `ParentInternalResponse { id, email, fullName, phoneNumber, relationship, status, linkedStudentIds }`
+5. Auth module: Mint JWT với `linked_student_ids`, populate `LoginResponse.profile = ParentProfileResponse`
 
-**Postcondition:** Gateway có đủ data để issue JWT cho parent
+**Postcondition:** JWT issued cho parent kèm linked_student_ids claim
 
 **Errors:**
 | Code | Condition | Message |
 |------|-----------|---------|
-| 401 | HMAC sai | "INVALID_SIGNATURE" (filter-level) |
 | 404 | Parent không tồn tại | "PARENT_NOT_FOUND" |
+| 500 | Load failure | "INTERNAL_ERROR" |
 
 **Hidden từ public Swagger** (`@Hidden`).
 

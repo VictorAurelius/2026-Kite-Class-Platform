@@ -52,7 +52,6 @@ if $AUTO_DETECT; then
     CHANGED=$(git diff --cached --name-only 2>/dev/null || git diff HEAD --name-only 2>/dev/null || echo "")
 
     HAS_KC_CORE=false
-    HAS_KC_GATEWAY=false
     HAS_KC_FRONTEND=false
     HAS_KH_BACKEND=false
     HAS_KH_FRONTEND=false
@@ -62,7 +61,6 @@ if $AUTO_DETECT; then
         [[ -z "$file" ]] && continue
         case "$file" in
             kiteclass/kiteclass-core/*) HAS_KC_CORE=true; HAS_DOCS_ONLY=false ;;
-            kiteclass/kiteclass-gateway/*) HAS_KC_GATEWAY=true; HAS_DOCS_ONLY=false ;;
             kiteclass/kiteclass-frontend/*) HAS_KC_FRONTEND=true; HAS_DOCS_ONLY=false ;;
             kitehub/kitehub-frontend/*) HAS_KH_FRONTEND=true; HAS_DOCS_ONLY=false ;;
             kitehub/*) HAS_KH_BACKEND=true; HAS_DOCS_ONLY=false ;;
@@ -78,14 +76,13 @@ if $AUTO_DETECT; then
 
     if [[ -z "$CHANGED" ]]; then
         echo -e "${YELLOW}⚠️  No changed files detected. Run with explicit args:${NC}"
-        echo "  $0 kiteclass core|gateway|frontend|all"
+        echo "  $0 kiteclass core|frontend|all"
         echo "  $0 kitehub all"
         exit 0
     fi
 
     echo -e "${BLUE}Changed files detected:${NC}"
     $HAS_KC_CORE && echo "  📦 kiteclass-core"
-    $HAS_KC_GATEWAY && echo "  🚪 kiteclass-gateway"
     $HAS_KC_FRONTEND && echo "  ⚛️  kiteclass-frontend"
     $HAS_KH_BACKEND && echo "  📦 kitehub backend"
     $HAS_KH_FRONTEND && echo "  ⚛️  kitehub-frontend"
@@ -127,15 +124,7 @@ if $AUTO_DETECT && $HAS_KC_CORE || [[ "$PROJECT" == "kiteclass" && ("$SERVICE" =
     fi
 fi
 
-# ─── KiteClass Gateway ───
-if $AUTO_DETECT && $HAS_KC_GATEWAY || [[ "$PROJECT" == "kiteclass" && ("$SERVICE" == "gateway" || "$SERVICE" == "all") ]]; then
-    if $QUICK_MODE; then
-        run_step "KC Gateway: Checkstyle" "./mvnw checkstyle:check -q 2>&1" "kiteclass/kiteclass-gateway"
-    else
-        run_step "KC Gateway: Compile + Checkstyle" "./mvnw compile -q 2>&1" "kiteclass/kiteclass-gateway"
-        run_step "KC Gateway: Unit Tests" "./mvnw test -q 2>&1" "kiteclass/kiteclass-gateway"
-    fi
-fi
+# ─── KiteClass Gateway: REMOVED per ADR-032 / GAP-001 ───
 
 # ─── KiteClass Frontend ───
 if $AUTO_DETECT && $HAS_KC_FRONTEND || [[ "$PROJECT" == "kiteclass" && ("$SERVICE" == "frontend" || "$SERVICE" == "all") ]]; then
