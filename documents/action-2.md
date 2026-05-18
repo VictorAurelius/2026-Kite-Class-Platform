@@ -44,3 +44,4 @@ Bây giờ có 1 task cực kỳ quan trọng, làm báo cáo đồ án tốt ng
 
 Vậy cần bổ sung thêm outside
 
+À, đáng ra phải chốt plan của release 2 trước rồi mới chốt được plan thesis nhỉ?

@@ -158,7 +158,8 @@ class AdminAuditLogEnrichmentPostgresIT {
                 .createdAt(LocalDateTime.now().minusHours(2))
                 .build());
 
-        AdminAuditLog action2 = repository.save(AdminAuditLog.builder()
+        // Bystander row (different resource) — verifies composite filter excludes correctly
+        repository.save(AdminAuditLog.builder()
                 .adminUserId(admin2)
                 .action("BETA_REQUEST_REJECT")
                 .targetResourceType("beta_access_request")
