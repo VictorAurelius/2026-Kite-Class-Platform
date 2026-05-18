@@ -33,9 +33,9 @@ SERVICES=(
   "kitehub-branding"
   "kitehub-email"
   "kitehub-admin"
-  "kiteclass-gateway"
   "kiteclass-core"
 )
+# Note: kiteclass-gateway removed per ADR-032 / GAP-001 (Wave 96)
 
 # Gateway endpoints để preflight test (cover ≥6 distinct backends)
 # Mapping: endpoint path → upstream backend (delegated via gateway routes)
@@ -162,9 +162,9 @@ mode_audit() {
   echo "  → Chỉ cần update CORS_ALLOWED_ORIGINS env trên kitehub-gateway"
   echo "    trong docker-compose.production.yml."
   echo ""
-  echo "  KC stack: kiteclass-core DELEGATE CORS cho kiteclass-gateway."
-  echo "  → KC stack hiện DEFERRED Phase 7 (comment docker-compose.production.yml L7)."
-  echo "    Khi Phase 7 enable, add CORS_ALLOWED_ORIGINS env vào kiteclass-gateway block."
+  echo "  KC stack: kiteclass-core handles CORS directly (kiteclass-gateway removed"
+  echo "    per ADR-032 / GAP-001 Wave 96). When KC stack enable production,"
+  echo "    add CORS_ALLOWED_ORIGINS env vào kiteclass-core service block."
   echo ""
   echo "## 4. Next steps"
   echo ""
@@ -319,9 +319,9 @@ EOF
   echo "  ($(color_yellow 'TODO Wave 83+') — remove Vercel domain post-stable)"
   echo ""
 
-  echo "## kiteclass-gateway (deferred Phase 7 KC stack bring-up)"
+  echo "## kiteclass-core (deferred Phase 7 KC stack bring-up; kiteclass-gateway removed Wave 96)"
   echo ""
-  echo "  Khi enable KC stack production, add vào kiteclass-gateway service block:"
+  echo "  Khi enable KC stack production, add vào kiteclass-core service block:"
   echo ""
   cat <<'EOF'
       CORS_ALLOWED_ORIGINS: "https://kitehub.me,https://kiteclass.kitehub.me"

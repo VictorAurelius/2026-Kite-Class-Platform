@@ -111,7 +111,7 @@ case "$COMMAND" in
         docker-compose -f "$COMPOSE_FILE" ps
 
         echo -e "\n${BLUE}🏥 Health status:${NC}"
-        for container in kiteclass-postgres kiteclass-redis kiteclass-core kiteclass-gateway kiteclass-frontend; do
+        for container in kiteclass-postgres kiteclass-redis kiteclass-core kiteclass-frontend; do
             if docker ps --format '{{.Names}}' | grep -q "^${container}$"; then
                 health=$(docker inspect --format='{{.State.Health.Status}}' "$container" 2>/dev/null || echo "no healthcheck")
                 if [ "$health" = "healthy" ]; then

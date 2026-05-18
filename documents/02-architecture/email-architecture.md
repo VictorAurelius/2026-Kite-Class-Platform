@@ -64,70 +64,39 @@ KiteHub có **2 email vendor independent**: AWS SES (production primary) + Resen
 
 ## 3. Email send flow diagram
 
+Diagram dưới đây dùng Mermaid `flowchart` per `.claude/rules/diagram-format-selection.md` v1.0.0 §2.2 row "Architecture (box + arrow)" — GitHub render trực tiếp; sender → vendor → recipient MX → DNS verify chain hiển thị rõ.
+
+```mermaid
+flowchart TD
+    App["App service<br/>AuthService.resendVerification<br/>StaffInvitation, etc."]
+    App -->|"HTTP POST /api/email/send"| EmailSvc["kitehub-email microservice<br/>provider = ${EMAIL_PROVIDER:ses}"]
+    EmailSvc --> Channel{"NotificationChannel<br/>interface (port pattern)<br/>Spring picks impl per config"}
+
+    Channel -->|"provider=ses<br/>(DEFAULT)"| SES["SESEmailService<br/>✅ EXISTS"]
+    Channel -->|"provider=resend<br/>(NOT WIRED — dormant)"| Resend["ResendEmailService<br/>❌ NOT IN CODE YET"]
+
+    SES -->|"AWS SDK<br/>SesV2Client.sendEmail()"| AWS["AWS SES service<br/>ap-southeast-1<br/>Signs với AWS SES<br/>private DKIM key"]
+    Resend -->|"HTTP POST<br/>api.resend.com"| ResendVendor["Resend service<br/>(Vendor cloud)<br/>Signs với Resend<br/>private DKIM key"]
+
+    AWS -->|"SMTP via vendor<br/>relay servers"| MX["Recipient MX server<br/>(Gmail / Outlook / etc.)"]
+    ResendVendor -->|"SMTP via vendor<br/>relay servers"| MX
+
+    MX -->|"DNS lookup"| DNS["Cloudflare DNS for kitehub.me<br/><br/>SES path:<br/>• _amazonses TXT (verify token)<br/>• ses1-3._domainkey CNAMEs<br/>• SPF include:amazonses.com<br/>• _dmarc TXT (policy)<br/><br/>Resend path:<br/>• resend._domainkey CNAME<br/>• SPF include:_spf.resend.com"]
+
+    DNS -->|"Returns vendor<br/>public DKIM key"| Verify{"Verify DKIM<br/>signature against<br/>vendor public key"}
+
+    Verify -->|"PASS"| Inbox["📧 Inbox delivery"]
+    Verify -->|"FAIL"| Spam["🚫 Spam / rejected"]
+
+    classDef wired fill:#d4edda,stroke:#28a745,color:#000
+    classDef dormant fill:#f8d7da,stroke:#dc3545,color:#000
+    classDef terminal fill:#e7f3ff,stroke:#0066cc,color:#000
+    class SES,AWS wired
+    class Resend,ResendVendor dormant
+    class Inbox,Spam terminal
 ```
-   [App service: AuthService.resendVerification, StaffInvitation, etc.]
-                                │
-                                │  HTTP POST /api/email/send
-                                ▼
-              ┌──────────────────────────────────────────┐
-              │       kitehub-email microservice          │
-              │   (provider = ${EMAIL_PROVIDER:ses})      │
-              └──────────────────────────────────────────┘
-                                │
-                                │ NotificationChannel interface (port pattern)
-                                ▼
-                ┌──────────────────────────────────┐
-                │  Spring picks implementation     │
-                │  based on email.provider config  │
-                └──────────────────────────────────┘
-                       │                    │
-                       │ provider=ses       │ provider=resend
-                       │ (DEFAULT)          │ (NOT WIRED — dormant)
-                       ▼                    ▼
-        ┌──────────────────────┐  ┌──────────────────────┐
-        │  SESEmailService     │  │ ResendEmailService   │
-        │  (✅ EXISTS)         │  │ (❌ NOT IN CODE YET) │
-        └──────────────────────┘  └──────────────────────┘
-                       │                    │
-                       │ AWS SDK            │ HTTP POST
-                       │ SesV2Client        │ api.resend.com
-                       ▼                    ▼
-        ┌──────────────────────┐  ┌──────────────────────┐
-        │ AWS SES service      │  │ Resend service       │
-        │ ap-southeast-1       │  │ (Vendor cloud)       │
-        │                      │  │                      │
-        │ Signs email with     │  │ Signs email with     │
-        │ AWS SES private DKIM │  │ Resend private DKIM  │
-        │ key (vendor-owned)   │  │ key (vendor-owned)   │
-        └──────────────────────┘  └──────────────────────┘
-                       │                    │
-                       │   SMTP via vendor  │
-                       │   relay servers    │
-                       ▼                    ▼
-              ┌────────────────────────────────────┐
-              │  Recipient MX server (Gmail, etc.) │
-              │                                     │
-              │  DNS lookup:                        │
-              │    1. _amazonses.kitehub.me TXT     │ ← SES verify token
-              │    2. ses1._domainkey.kitehub.me    │ ← SES DKIM CNAME
-              │       ses2._domainkey...            │
-              │       ses3._domainkey...            │
-              │    3. kitehub.me SPF TXT            │ ← include:amazonses.com
-              │    4. _dmarc.kitehub.me TXT         │ ← DMARC policy
-              │                                     │
-              │  (OR Resend equivalents:            │
-              │    resend._domainkey.kitehub.me     │
-              │    SPF include:_spf.resend.com)     │
-              │                                     │
-              │  Verifies DKIM signature against    │
-              │  vendor's published public key      │
-              └────────────────────────────────────┘
-                                │
-                       PASS ────┴──── FAIL
-                        │              │
-                        ▼              ▼
-                   📧 Inbox       🚫 Spam / rejected
-```
+
+**Caption:** Mỗi vendor (SES + Resend) độc lập về DKIM key. Recipient MX verify signature bằng public key tại DNS path vendor đặc thù. Vendor identity verification độc lập = vì sao verify Resend KHÔNG transfer sang SES (và ngược lại).
 
 ---
 

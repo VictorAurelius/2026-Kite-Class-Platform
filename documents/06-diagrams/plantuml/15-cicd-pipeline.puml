@@ -38,10 +38,8 @@ package "GitHub Actions — CI Pipelines" as CI #FFF3E0 {
         component "ESLint + Type Check" as CI_FE_LINT
     }
 
-    package "gateway-ci.yml" as GW_CI #FFE0B2 {
-        component "Build Gateway\n(Spring Cloud Gateway)" as CI_GW_BUILD
-        component "Route Tests" as CI_GW_TEST
-    }
+    ' Note: gateway-ci.yml removed Wave 96 per ADR-032 (kiteclass-gateway service deleted).
+    ' Routing handled by shared kite-gateway per ADR-023.
 }
 
 ' ==================== DOCKER BUILD ====================
@@ -92,8 +90,6 @@ CI_KH_TEST --> CI_KH_LINT
 CI_FE_BUILD --> CI_FE_TEST
 CI_FE_TEST --> CI_FE_LINT
 
-CI_GW_BUILD --> CI_GW_TEST
-
 REPO --> MAIN : Merge PR\n(requires CI pass)
 MAIN --> DOCKER_BUILD : Trigger build
 DOCKER_BUILD --> DOCKER_TAG
@@ -121,17 +117,16 @@ legend right
 | core-ci | PR to main | Build, test, lint (KiteClass) |
 | kitehub-ci | PR to main | Build, test, lint (KiteHub) |
 | frontend-ci | PR to main | Build, test, lint (Next.js) |
-| gateway-ci | PR to main | Build, test (Gateway) |
 | docker-build-push | Merge to main | Build images, push GHCR |
 | deploy-staging | After docker push | Auto deploy + E2E |
 | deploy-production | Manual | SSH + docker compose |
 
-|= Docker Images (13 containers) |
+|= Docker Images (12 containers, post-Wave-96 ADR-032) |
 | kitehub-gateway, kitehub-subscription |
 | kitehub-payment, kitehub-branding |
 | kitehub-email, kitehub-admin |
 | kitehub-frontend, kiteclass-core |
-| kiteclass-gateway, kiteclass-frontend |
+| kiteclass-frontend |
 | postgresql, redis, rabbitmq |
 endlegend
 

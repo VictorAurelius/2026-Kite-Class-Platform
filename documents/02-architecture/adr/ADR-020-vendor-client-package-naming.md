@@ -15,7 +15,7 @@
 ```
 kitehub-branding/.../client/OllamaClient.java         (Ollama adapter, but named "Client")
 kitehub-subscription/.../client/EmailServiceClient.java (HTTP-side calls, RabbitMQ-side bypass)
-kiteclass-gateway/.../client/...                       (downstream service clients)
+kiteclass-gateway/.../client/...                       (downstream service clients — historical; service removed Wave 96 per ADR-032)
 ```
 
 Sub-PR 6.1 design-pattern-audit Cat 4 (Vendor Leak) flagged `OllamaClient` because the calibrated grep pattern only excluded `/adapter/` paths. This was flagged as a **false-positive** during baseline review — the class genuinely isolates Ollama types from the domain layer; the package name is the only "wrong" thing.
@@ -32,7 +32,7 @@ Two ways to fix the false-positive:
 
 ### Positive
 - **Zero code churn** — no package moves, no import path changes across 5+ files in 3 modules
-- **Honors existing convention** — every existing service that wraps an external API was named `*Client` (Ollama, EmailService, gateway clients). Renaming creates a temporary inconsistency until all are migrated, while accepting the convention is consistent immediately
+- **Honors existing convention** — every existing service that wraps an external API was named `*Client` (Ollama, EmailService, historical gateway clients). Renaming creates a temporary inconsistency until all are migrated, while accepting the convention is consistent immediately
 - **Detector now accurate** — Sub-PR 6.4 calibration baked the `/client/` allowance into `anti-pattern-detectors.md`; future audits won't re-flag this
 - **Aligns with Spring ecosystem** — Spring's `@FeignClient`, `RestClient`, `WebClient`, `RestTemplate` all use "Client" naming for vendor API wrappers. Java/Spring devs read `OllamaClient` correctly without translation
 
