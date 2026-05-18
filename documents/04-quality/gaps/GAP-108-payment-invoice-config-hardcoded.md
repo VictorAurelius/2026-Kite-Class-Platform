@@ -98,3 +98,15 @@ Tests: verify config override works (`@TestPropertySource(properties = "invoice.
 - Previous audit (2026-03-23): `business-gap-check-2026-03-23-kiteclass.md` §Configuration #12, #13 (carry-forward)
 - Related gap: GAP-049 (business-correctness review — broader stakeholder validation)
 - Marketing rules.md drift included as batch (no separate gap)
+
+## Scope Refinement (2026-05-18 audit)
+
+Per outside-in audit Wave 93 — 3-agent convergence:
+- **Kept in scope (P1):** Config keys cho QR display metadata, reconcile workflow tier-multiplier, manual mark-paid behaviors
+- **Moved to GAP-634:** VAT eInvoice config (MISA MeInvoice partnership integration)
+- **Moved to GAP-633:** Payment processor config (cancelled Phase 1.5; defer Phase 2 VietQR EduPay partnership)
+- **Out of scope:** Self-build payment broker engine (KiteHub stays non-PSP per VN compliance constraint surfaced by benchmark agent)
+
+## Log
+
+- **2026-05-18** — Scope refined per outside-in audit Wave 93 (`documents/04-quality/audits/persona-review/2026-05-18-phase-1-5-qr-payment-outside-in.md`). Original scope (12 hardcoded keys for payment-invoice engine self-build) re-scoped narrower: 12 keys cover QR display metadata + reconcile workflow only, NOT processor integration. VAT eInvoice config moved to GAP-634 (MISA MeInvoice partnership). Related: GAP-625/626/627 P0 foundation + GAP-628 batch reconcile.

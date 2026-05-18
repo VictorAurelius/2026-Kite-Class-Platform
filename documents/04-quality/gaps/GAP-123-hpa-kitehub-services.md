@@ -65,3 +65,4 @@ Helm chart được thiết kế cho MVP fixed replicas. HPA thêm sau chưa đ�
 ## Log
 
 - 2026-04-19 — Discovered in ops-readiness baseline audit
+- **2026-05-18 (Wave 93 §7.2 row 2 user decision)** — **Phase corrected: phase-1.5-paid → phase-2.** Per Wave 93 re-triage audit — HPA là K8s-specific; EC2 hiện tại không K8s; cần khi migrate EKS Phase 2 per GAP-415. Original phase-1.5-paid assignment incorrect (no payment dependency). CSV row updated.

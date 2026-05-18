@@ -54,3 +54,8 @@ P2 review evidence: AC-EXIT-003 PARTIAL.
 - Parent review: `documents/00-brd/persona-reviews/P2-small-center-round-1-2026-05-04.md` AC-EXIT-003
 - Cross-link: [GAP-184](GAP-184-data-retention-deletion-policy.md) for retention/deletion side
 - Cross-link: [GAP-057](GAP-057-payroll-teacher-commission.md) — commission history will need to be added to export when ready
+- Cross-link (added 2026-05-18 per Wave 93 re-triage): **GAP-626 (PH PDPL transaction PII consent + DSAR)** — distinct scope. GAP-301 = **tenant-level export** (P2 owner closes center → exports center-scoped data: students roster + attendance + grades + invoices). GAP-626 = **PH-level DSAR** (individual PH requests deletion of their payment metadata: name + STK + transaction record). Same PDPL family (Nghị định 13/2023 Art 14-17) but different actor scope. No overlap, complementary; both PARTIAL pending legal counsel engagement.
+
+## Log
+
+- **2026-05-18** — Cross-ref GAP-626 PH-DSAR clarification per Wave 93 re-triage audit (`documents/04-quality/audits/persona-review/2026-05-18-phase-1-5-26-gaps-re-triage.md`). Re-triage flagged scope ambiguity between tenant-DSAR (this gap) vs PH-DSAR (GAP-626). Clarification: distinct actor scopes; both retained pending legal engagement. No status change.

@@ -76,3 +76,4 @@ Security hardening + reliability features chưa được add vào Helm chart bas
 ## Log
 
 - 2026-04-19 — Discovered in ops-readiness baseline audit
+- **2026-05-18 (Wave 93 §7.2 row 2 user decision)** — **Phase corrected: phase-1.5-paid → phase-2.** Per Wave 93 re-triage audit — PDB + NetworkPolicy là K8s-specific; cần khi migrate EKS Phase 2 per GAP-415. Same family GAP-123. Original phase-1.5-paid assignment incorrect. CSV row updated.

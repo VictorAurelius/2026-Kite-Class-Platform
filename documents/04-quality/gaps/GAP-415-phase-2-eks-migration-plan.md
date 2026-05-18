@@ -35,6 +35,7 @@ NOTE: Architecture C trong GAP-411 sizing matrix là target post-migration.
 ## Log
 
 - **2026-05-07** — PARTIAL. Migration plan `documents/03-planning/roadmap/phase-2-eks-migration.md` shipped với trigger gates + pre-migration checklist + blue-green cutover sequence + cost projection + DNS rollback runbook + Phase 1 decommission steps. Terraform module + Helm audit + dress-rehearsal deferred Phase 1.5 mid-cycle. Wave 37 Bucket E.
+- **2026-05-18 (Wave 93 §7.2 row 2 user decision)** — **Phase corrected: phase-1.5-paid → phase-2.** Title đã rõ "Phase 2 EKS Migration"; phase assignment phase-1.5-paid sai từ đầu (assignment artifact). Sister-gaps GAP-123 (HPA) + GAP-124 (PDB+NetworkPolicy) cũng move phase-2 same family. GAP-125 (Canary Deployment) kept phase-1.5-paid (canary EC2-based blue-green feasible cho Phase 1.5 paid launch — distinct from K8s-specific scope). CSV row updated phase-1.5-paid → phase-2.
 
 ## Related
 
