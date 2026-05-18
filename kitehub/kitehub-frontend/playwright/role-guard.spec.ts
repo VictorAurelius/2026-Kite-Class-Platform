@@ -45,7 +45,7 @@ interface MockUser {
  */
 async function seedAuthStorage(
   page: import('@playwright/test').Page,
-  user: MockUser | null,
+  user: MockUser | null | undefined,
 ): Promise<void> {
   const payload =
     user === null
