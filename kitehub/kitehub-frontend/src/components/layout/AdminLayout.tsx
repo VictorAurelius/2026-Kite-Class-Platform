@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { isPlatformAdmin } from '@/lib/auth-helpers';
 import { clearTokens, clearLegacyLocalStorageTokens } from '@/lib/auth/jwt-storage';
+import { BetaDisclaimerBanner } from '@/components/beta-disclaimer';
 
 export function AdminLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated, user, clearAuth } = useAuthStore();
@@ -58,7 +59,14 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             </button>
           </div>
         </header>
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6">
+          {/* Wave 98 Bucket B3 GAP-539 finishing stroke — admin dashboard banner.
+              Dismissible via cookie (1y); see BetaDisclaimerBanner.tsx. */}
+          <div className="mb-4">
+            <BetaDisclaimerBanner />
+          </div>
+          {children}
+        </main>
       </div>
     </div>
   );

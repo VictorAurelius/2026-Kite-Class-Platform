@@ -28,7 +28,9 @@ describe('BetaDisclaimerBanner', () => {
     render(<BetaDisclaimerBanner />);
     expect(screen.getByTestId('beta-disclaimer-banner')).toBeInTheDocument();
     expect(screen.getByText(/đang trong giai đoạn Beta/i)).toBeInTheDocument();
-    expect(screen.getByText(/support@kitehub.me/)).toBeInTheDocument();
+    // Wave 98 B3: support@kitehub.me appears multiple times (main body + PDPL
+    // consent rút-đồng-ý mailto). Use getAllByText to assert at least one.
+    expect(screen.getAllByText(/support@kitehub.me/).length).toBeGreaterThan(0);
   });
 
   it('shows link to /beta-status page', () => {
@@ -78,5 +80,37 @@ describe('BetaDisclaimerBanner', () => {
     document.cookie = `${BETA_DISCLAIMER_COOKIE}=1; path=/`;
     render(<BetaDisclaimerBanner forceShow />);
     expect(screen.getByTestId('beta-disclaimer-banner')).toBeInTheDocument();
+  });
+
+  // Wave 98 Bucket B3 GAP-539 finishing-stroke tests — version chip + PDPL consent.
+
+  it('renders version chip with default app version fallback', () => {
+    render(<BetaDisclaimerBanner />);
+    const chip = screen.getByTestId('beta-disclaimer-version-chip');
+    expect(chip).toBeInTheDocument();
+    expect(chip).toHaveTextContent(/v\d+\.\d+\.\d+-beta/i);
+  });
+
+  it('honours appVersion prop override for version chip', () => {
+    render(<BetaDisclaimerBanner appVersion="v0.9.1-beta" />);
+    const chip = screen.getByTestId('beta-disclaimer-version-chip');
+    expect(chip).toHaveTextContent('v0.9.1-beta');
+  });
+
+  it('renders PDPL consent line citing Luật BVDLCN 2023 Art 9-15', () => {
+    render(<BetaDisclaimerBanner />);
+    const consent = screen.getByTestId('beta-disclaimer-pdpl-consent');
+    expect(consent).toBeInTheDocument();
+    expect(consent).toHaveTextContent(/đồng ý với việc xử lý dữ liệu cá nhân/i);
+    expect(consent).toHaveTextContent(/Lu(ật|at) B(ả|a)o v(ệ|e) d(ữ|u) li(ệ|e)u c(á|a) nh(â|a)n 2023/i);
+    expect(consent).toHaveTextContent(/Điều 9-15|Dieu 9-15/);
+  });
+
+  it('PDPL consent line links to /legal/privacy', () => {
+    render(<BetaDisclaimerBanner />);
+    const privacyLink = screen.getByTestId('beta-disclaimer-privacy-link');
+    expect(privacyLink).toBeInTheDocument();
+    expect(privacyLink).toHaveAttribute('href', '/legal/privacy');
+    expect(privacyLink).toHaveTextContent(/Chính sách Bảo mật/i);
   });
 });
