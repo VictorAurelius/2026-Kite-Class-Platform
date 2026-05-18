@@ -1,10 +1,11 @@
 ---
 title: Wave 98 — Cluster B Beta-Cohort Polish (closure run cho 6 PARTIAL gaps + 5 NEW outside-in gaps)
-status: draft
+status: complete
+closed_at: 2026-05-18
 created: 2026-05-18
 updated: 2026-05-18
 waves: [98]
-gaps: [GAP-538, GAP-539, GAP-540, GAP-541, GAP-542, GAP-543, GAP-656, GAP-657, GAP-658, GAP-659, GAP-660]
+gaps: [GAP-518, GAP-538, GAP-539, GAP-540, GAP-541, GAP-542, GAP-543, GAP-656, GAP-657, GAP-658, GAP-659, GAP-660]
 ---
 
 # Wave 98 — Cluster B Beta-Cohort Polish
@@ -238,3 +239,27 @@ Per `gap-done-discipline.md` + `wave-closure-scope-completeness.md` v1.0.0 + `po
 ## 8. Log
 
 - **2026-05-18** (draft): Plan created. Triggered by Wave 97 closure + user accepted Cluster B 8-bucket scope after 3-agent outside-in audit (PR #1546 5 new gaps + 3 audit artifacts). Inside-out 4-source pull confirmed no queue items missed. Cross-layer = NO per single-bucket full-stack pattern. Reviewer: @nguyenvankiet (solo-dev).
+
+---
+
+## 9. Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` v1.0.0 §3)
+
+| # | Plan §3 Scope item | Verdict | Outcome / Follow-up |
+|---|---|---|---|
+| 1 | B0 GAP-656 UI Coordinator (`useOnboardingPhase` + `SupportMenu` + `OnboardingCoordinator` + `PreferencesController` + Playwright mobile + `documents/01-business/kitehub/preferences/api-contract.md`) | ✅ DONE per plan §3 + 🟡 PARTIAL 80% per GAP-656 AC | PR #1548 merged. GAP-656 PARTIAL 80% — live verify gated GAP-612 AWS per `pre-handoff-self-test-completeness.md` §5.4 |
+| 2 | B1 GAP-657 + GAP-659 paired email layer + persona-tone | ✅ DONE per plan §3 + 🟡 PARTIAL 80% both gaps | PR #1553 merged. PARTIAL 80% — live 2-client render verify gated SES prod approval; per-tone variants Wave 99 |
+| 3 | B2 GAP-658 + GAP-538 AC7 VN sample seed | ✅ DONE per plan §3 + 🟡 PARTIAL 80% / 90% | PR #1550 merged. GAP-658 PARTIAL 80% — `SeedWorkerService` consumer not materialized in `kitehub-platform` (shared lib JAR); foundation shipped; GAP-538 PARTIAL 85→90% |
+| 4 | B3 GAP-539 banner close | ✅ DONE 100% | PR #1551 merged. Dashboard mount + version chip + PDPL consent + /beta-status freshness. File moved `phase-1-beta/closed/` |
+| 5 | B4 GAP-541 Vietnamese i18n close | ✅ DONE 100% | PR #1549 merged. 4 canonical VI catalogs + TOS + Privacy v1 disclaimer + zero raw `t()` fallback. File moved `phase-1-beta/closed/` |
+| 6 | B5 GAP-540 + GAP-542 merged FeedbackForm modal | ✅ DONE 100% both | PR #1555 merged. SupportMenu → FeedbackForm Radix Dialog; standalone legacy widgets removed. Both files moved `phase-1-beta/closed/` |
+| 7 | B6 GAP-660 + GAP-540 95% Zalo OA fast-path | ✅ DONE 100% (GAP-660); GAP-540 already DONE 100% from B5 (sister-close) | PR #1557 merged. SupportMenu Zalo item + footer + email CTA + remove "coming 1.5" deferment. Setup runbook `documents/05-guides/account-prep/zalo-oa-setup-runbook.md` shipped |
+| 8 | B7 GAP-518 P3 role-guard verify | 🟡 PARTIAL 95% (live verify gated AWS) | PR #1556 merged. BE role enum + `RoleGuardMatrixIT` 8 MockMvc tests + Playwright `role-guard.spec.ts`. **Key finding documented:** Wave 79 GAP-562 migrated BE to canonical OWNER/STAFF + legacy aliases (PLATFORM_ADMIN/ADMIN resolve until 2026-06-14); audit F-NEW-7 framing was outdated |
+| 9 | Wave 98 post-closure audit suite per `post-wave-audit-mandate.md` §2.2 (UI /128 + Quality /100 within 3 days) | ❌ NOT-IMPLEMENTED (deferred per cadence) | **GAP-661 filed** scheduling audit ≤2026-05-21. AUDIT_OVERRIDE trailers on PRs #1548/#1553 already cite this deferral path |
+
+**Final tally:**
+- ✅ DONE per plan §3: 8/8 buckets
+- DONE 100% (per-gap AC closure): 5 gaps (GAP-539, GAP-540, GAP-541, GAP-542, GAP-660)
+- 🟡 PARTIAL ≥80% with documented exit-ramp: 5 gaps (GAP-518, GAP-538, GAP-543, GAP-656, GAP-657, GAP-658, GAP-659)
+- ❌ NOT-IMPLEMENTED (Plan §7 closure protocol item): 1 — post-wave audit suite → **GAP-661 filed**
+
+**Wave 98 verdict:** SHIPPED per plan §3. Per `wave-closure-scope-completeness.md` §3, follow-up gap GAP-661 captures only orphan item (audit suite cadence).

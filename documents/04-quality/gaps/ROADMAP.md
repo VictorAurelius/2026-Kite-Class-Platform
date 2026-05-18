@@ -8,7 +8,36 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-18 — Wave 97 PARTIAL ship 3.5/4 buckets + 2 orphan-cleanup gaps GAP-654/655 + Release 1.5 thesis-scope LOCKED + 8 META thesis gaps queued)
+## 🎯 Current Status Snapshot (2026-05-18 — Wave 98 SHIPPED 8/8 buckets — Cluster B beta-cohort polish closure; Wave 99 plan drafted thesis META 5-bucket)
+
+### 🎉 Wave 98 SHIPPED 2026-05-18 — Cluster B beta-cohort polish (8/8 buckets)
+
+| Bucket | Gap(s) | Outcome | PR |
+|---|---|---|---|
+| B0 PREREQ | GAP-656 | UI Coordinator (`useOnboardingPhase` + `SupportMenu` + `OnboardingCoordinator` + `PreferencesController` + mobile spec) — PARTIAL 80% (live verify gated GAP-612 AWS) | #1548 |
+| B1 | GAP-657 + GAP-659 | Email layer hardening + Tone enum + 5 plain-text siblings + staff-invite template — PARTIAL 80% (live render verify gated SES prod approval) | #1553 |
+| B2 | GAP-658 + GAP-538 | VN sample seed worker (6 VN data CSVs + `VietnamSampleDataGenerator` + 3-layer business doc) — PARTIAL 80% / GAP-538 PARTIAL 90% (consumer wiring gated service materializing) | #1550 |
+| B3 | GAP-539 | Banner close — dashboard mount + version chip + PDPL consent + /beta-status freshness — **DONE 100%** | #1551 |
+| B4 | GAP-541 | Vietnamese i18n close — 4 canonical VI catalogs + TOS + Privacy v1 disclaimer — **DONE 100%** | #1549 |
+| B5 | GAP-540 + GAP-542 | SupportMenu wiring — FeedbackForm modal + legacy widget cleanup — **DONE 100% both** | #1555 |
+| B6 | GAP-660 | Zalo OA fast-path — SupportMenu Zalo item + footer + email CTA + remove "coming Phase 1.5" copy — **DONE 100%** | #1557 |
+| B7 | GAP-518 | P3 role-guard verify — BE role enum + RoleGuardMatrixIT + Playwright spec — PARTIAL 95% (live browser verify gated GAP-612 AWS) | #1556 |
+
+**Wave 98 status:** 🟢 SHIPPED 8/8 buckets per plan §3 Scope. **5 gaps DONE 100% + 5 gaps PARTIAL ≥80%** (3 gated by GAP-612 AWS suspension live-verify portion per `pre-handoff-self-test-completeness.md` §5.4 PARTIAL exit ramp). Post-merge sync rounds 1+2 (PR #1552 + #1554) covered Wave 1 gap drift; this closure PR covers Wave 2 (B5/B6/B7) gap drift + closure reconciliation.
+
+**Post-Wave-98 audit suite cadence per `post-wave-audit-mandate.md` §2.2:** UI /128 sample + Quality /100 refresh due within 3 days (≤2026-05-21). Filed **GAP-661** to schedule.
+
+> **📍 Next session ĐỌC TRƯỚC (Wave 98 SHIPPED):**
+> 1. **Wave 99 plan PR open** — branch `wave/99-plan` drafted (5-bucket thesis META: GAP-646 DOCX pipeline + GAP-647 IEEE bib + GAP-650 Ch.1 lit review + GAP-651 image curation skill + GAP-655 citation-extract skill). Rebase on current main → open PR.
+> 2. **GAP-661 post-Wave-98 audit suite** — UI /128 + Quality /100 refresh within 3 days (≤2026-05-21).
+> 3. **5 PARTIAL Wave 98 gaps gated GAP-612 AWS** (656/657/658/518 live verify + 543 manual render verify) — close-out post-restore: GAP-518 95→100%, GAP-656 80→95%, GAP-657 80→95% (manual 2-client render), GAP-543 80→100%, GAP-658 80→95% (consumer wiring trigger).
+> 4. **bg-agent lesson learned** (carry-forward Wave 97) — context-thrashing rate-limited 4 agents this wave (B1/B3/B6/B7 first attempts). 2-concurrent retry pattern PROVEN safe. 3-concurrent threshold hit Anthropic throttle.
+> 5. **Wave 96 sweep batch B-F follow-ups** (carry-forward unchanged):
+>    - Action B: markdown frontmatter strip 34 gaps (defer Phase 3)
+>    - Action C: UPDATE_SCOPE 4 gaps (GAP-203/220/052/155/438)
+>    - Action F: human triage 12 UNCLEAR (incl GAP-040 anomaly)
+> 6. **GAP-612 AWS suspension** restoration pending D+4 = 2026-05-21 escalate (unchanged)
+> 7. **Wave 97 PARTIAL close-outs** (carry): GAP-637/638/647 await GAP-654/655 execution
 
 ### 🟡 Wave 97 PARTIAL ship 2026-05-18 — audit P0+P1 gate-closing (3.5/4 buckets delivered)
 
