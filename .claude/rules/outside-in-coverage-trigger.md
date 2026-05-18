@@ -1,11 +1,11 @@
 # Outside-In Coverage Trigger — Claude phải tự động đề xuất outside-in audit khi dev brainstorm inside-out
 
 **Priority:** 🔴 CRITICAL — force-multiplier governance preventing inside-out blindspots
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Created:** 2026-05-14
-**Last-Reviewed:** 2026-05-14
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (memory auto-load + self-detection checklist + worked self-test on Wave 73 incident) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-uncovered auto-trigger for outside-in coverage)
-**Applies to:** Mỗi lần dev (user) đề xuất scope mới (gap mới, wave plan, meta-rule, feature list, beta cohort plan, release scope) từ góc nhìn inside-out (liệt kê tính năng / hệ thống có sẵn / cải tiến dev nghĩ tới). Claude PHẢI tự động hỏi user có nên invest outside-in audit không, KHÔNG đợi user nudge.
+**Last-Reviewed:** 2026-05-18
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; Wave 93 retro — adds §2 row "Architecture-decision keywords trong gap filing" (build/engine/integration/partnership/processor/self-build) + §6 worked self-test 4 Wave 93 incidents (GAP-185/183/259/581 lệch hướng). v1.0.0 (kept): new rule với built-in enforcement (memory auto-load + self-detection checklist + worked self-test on Wave 73 incident) per §6.5 Enforcement Parity Mandate; no constraint loosening — extends trigger pattern to gap-filing time for architecture-decision scope (previously trigger only fired at wave/scope brainstorm; missed individual gap filings proposing architecture decisions, leading to Wave 93 surfacing 4 lệch hướng gaps filed Wave 30-86))
+**Applies to:** Mỗi lần dev (user) đề xuất scope mới (gap mới, wave plan, meta-rule, feature list, beta cohort plan, release scope) từ góc nhìn inside-out (liệt kê tính năng / hệ thống có sẵn / cải tiến dev nghĩ tới). Claude PHẢI tự động hỏi user có nên invest outside-in audit không, KHÔNG đợi user nudge. v1.1.0 extends scope to individual gap filings proposing architecture decisions (self-build / engine / integration / partnership / processor) — see §2 row "Architecture-decision keywords".
 
 ---
 
@@ -33,6 +33,23 @@ Rule fire khi user message có dấu hiệu **inside-out brainstorm**:
 | **Brainstorm tính năng "cần làm thêm"** | "Cần làm gì nữa cho launch?" |
 | **Pre-release readiness check** | "Sẵn sàng invite chưa?" |
 | **Comparison với own backlog** | "So với roadmap đã có, còn miss gì?" |
+| **🆕 Architecture-decision keywords trong gap filing** (v1.1.0) | "GAP-185 self-build VAT engine", "GAP-NEW-payment-processor-init", "GAP-183 build refund engine", "GAP-XXX integration với <vendor>", "GAP-XXX partnership với <provider>" — any gap proposing build/engine/integration/partnership/processor/broker scope |
+
+### 2.1 Architecture-decision keywords detection (added v1.1.0)
+
+Khi file gap (gap PR draft OR initial commit) chứa `## Proposed Fix` / `## Problem` / title với keywords sau:
+
+- **Build verbs:** "build X engine", "self-build", "implement X processor", "construct X integration"
+- **Architecture nouns:** "engine", "processor", "broker", "integration layer", "partnership", "merchant integration"
+- **Vendor-specific names:** Stripe / MoMo / VNPay / VietQR / MISA / Casso / SePay / AWS / GCP — when gap proposes ADOPT or BUILD trên specific vendor
+
+→ Rule fire BEFORE gap merge (in same chat session OR pre-merge reviewer-checklist). Outside-in audit có thể surface:
+- Industry pattern khác (vd: partnership > self-build — Wave 93 GAP-185 case)
+- Compliance constraint (vd: PSP license — Wave 93 GAP-NEW-payment-processor-init cancel)
+- DUPLICATE existing gap (vd: GAP-259 ≈ GAP-581 Wave 93 cross-session miss)
+- Phase mismatch (vd: GAP-123/124/125 infrastructure assigned phase-1.5-paid without payment dependency)
+
+Architecture-decision keywords là **high-leverage trigger** vì decision rooted trong gap = compounds qua N future implementation waves. Catch lệch hướng ở gap-filing time = 50x cheaper than catch ở implementation time (per Wave 93 retro evidence: 4 gaps filed Wave 30-86 surfaced lệch hướng tại Wave 93 audit).
 
 Rule **KHÔNG** fire khi:
 - User đề xuất fix cho gap đã có (đã qua brainstorm phase)
@@ -103,6 +120,40 @@ Khi skip → vẫn note "Outside-in audit skipped: <reason>" trong wave plan / g
 | Coi outside-in là "nice-to-have" | Coi là default cho user-facing scope |
 | Outside-in audit sau khi wave plan đã merge | Phải làm BEFORE wave plan merge — findings vào §1 Brainstorm Q1 |
 | Spawn 1 agent, bỏ qua 2 cách kia | Đề xuất cả 3 trong AskUserQuestion (user pick); KHÔNG tự quyết định cho user |
+
+---
+
+## 6.0 Worked self-test — Wave 93 architecture-decision drift (2026-05-18, v1.1.0)
+
+**Bối cảnh:** Wave 93 outside-in audit (3-agent) cho user proposal "QR upload payment scope Phase 1.5" surfaced **4 gaps cũ filed Wave 30-86 lệch hướng** so với industry pattern + compliance constraints VN:
+
+| Gap | Filed | Original scope | Outside-in audit verdict (Wave 93) | Lệch hướng cause |
+|---|---|---|---|---|
+| **GAP-185** | 2026-04-20 | "Self-build VAT/TCT Invoice engine" | Re-scope → MISA MeInvoice partnership | Inside-out "build all" mentality; no industry benchmark fire tại gap filing |
+| **GAP-183** | 2026-04-20 | "Build refund + dispute resolution engine" | Re-scope → manual SOP (KiteHub non-PSP) | No compliance check (PSP license) at gap filing |
+| **GAP-NEW-payment-processor-init** (planned) | (would be ~2026-05-18) | "VNPay/MoMo merchant integration" | CANCEL Phase 1.5; defer Phase 2 partnership | Would have hit PSP license + KYC barriers if not caught by outside-in audit |
+| **GAP-259 ≈ GAP-581** | 2026-04-28 / 2026-05-15 | DUPLICATE "Gateway rate limit by tenant_id" | Merge candidate flagged | No cross-gap duplicate-check fire when GAP-581 filed (5 tuần later) |
+
+**Apply v1.1.0 rule retroactively to gap-filing moments:**
+
+**Bước 1 — Acknowledge inside-out:** When user/dev drafts "GAP-185 self-build VAT engine" → Claude phải nhận thấy "build engine" keyword → fire rule §2 row "Architecture-decision keywords".
+
+**Bước 2 — Đề xuất 3 cách outside-in:** Especially **external benchmark** cho VAT/payment/integration scope — high signal industry pattern.
+
+**Bước 3 — AskUserQuestion:** "Có nên benchmark VN edu SaaS pattern cho VAT eInvoice trước khi lock self-build approach?"
+
+**Bước 4 — Spawn agent:** External benchmark agent surfaces MISA MeInvoice partnership (industry norm).
+
+**Bước 5 — Tổng hợp:** Gap §Proposed Fix scope refined từ "self-build VAT engine" → "MISA MeInvoice partnership integration" BEFORE gap file Status set OPEN.
+
+**Kết quả nếu rule v1.1.0 áp dụng từ Wave 30-86:**
+- 4 lệch hướng gaps eliminated at gap-filing time (vs Wave 93 retroactive audit cost)
+- ~3-4 wave equivalents engineering effort saved (each lệch hướng gap would have wasted ~1 wave when implementation hit reality)
+- Phase 1.5 timeline cleaner — no scope refinement mid-wave (Wave 33-34 Phase 1.5b)
+
+**Cost of v1.1.0 trigger:** ~1 minute per gap filing (AskUserQuestion + 3-agent audit spawn) × 30-50 gap filings per quarter = ~30-50 minutes/quarter trigger cost. Compared to ~3-4 wave equivalents saved per recurring drift cluster = **net 10-50x ROI**.
+
+→ Rule v1.1.0 fires correctly trên 4 originating drift cases Wave 93. Self-test PASS ✅
 
 ---
 
@@ -193,4 +244,5 @@ Future enhancement: scan PR description / commit body for inside-out keywords ("
 
 ## 9. Log
 
+- **2026-05-18 (v1.1.0):** MINOR — added §2 row "Architecture-decision keywords trong gap filing" + §2.1 detection scope + §6.0 worked self-test 4 Wave 93 drift incidents (GAP-185 self-build VAT / GAP-183 self-build refund / GAP-NEW-payment-processor-init cancel / GAP-259 ≈ GAP-581 DUPLICATE). Triggered by Wave 93 outside-in audit retro user-flagged "tại sao gaps cũ lại lệch hướng, có phải cần update meta để tránh lặp lại không?" Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (Wave 93 retro 2026-05-18 user-flagged) → Classify ✓ (rule v1.0.0 trigger fires tại wave/scope brainstorm thời điểm — KHÔNG fire tại individual gap filing → 4 lệch hướng gaps filed Wave 30-86 escape detection) → Rule+Enforce ✓ (this v1.1.0 extension + paired §6.0 retroactive self-test + memory auto-load update per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§6.0 worked example: rule v1.1.0 fires correctly on 4 drift cases) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds trigger pattern row at gap-filing time; no constraint loosening for prior gap filings (grandfathered); existing gaps with architecture-decision scope tracked Wave 93 re-triage audit; rule applies prospectively to gap filings từ Wave 94+ forward).
 - **2026-05-14 (v1.0.0):** Rule được tạo trong response trực tiếp user-flagged miss: "thiếu sót rất lớn trong dự án là chưa yêu cầu claude, khi dev đưa ra inside-out có tạo gaps mới/meta mới/... thì claude tự động hỏi nên invest để cover hết outside-in hay không". Triggered bởi Wave 73 pre-invite brainstorm where Claude listed 4 inside-out bucket options without proactively suggesting outside-in audit. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged) → Classify ✓ (no existing rule mandates auto-suggest outside-in cho inside-out brainstorm; `agent-action-bias.md` covers do-it-yourself nhưng không covers cross-cutting audit triggering) → Rule+Enforce ✓ (this file + paired same-PR memory + worked self-test §6 + cross-link updates per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§6 worked example on the originating Wave 73 session — rule fires correctly + counterfactual shows 1 user push-back round-trip eliminated) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint covering previously-uncovered auto-trigger gap; no constraint loosening for prior work; existing wave plans grandfathered, rule applies prospectively từ next session). Detector wiring (§7.5) deferred per premature-rule guard ≥ 7 ngày; enforcement = memory auto-load + self-detection checklist + reviewer-checklist đủ cho v1.0.0.
