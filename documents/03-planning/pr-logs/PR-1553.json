@@ -1,0 +1,39 @@
+{
+  "pr": 1553,
+  "title": "feat(wave-98 B1): GAP-657+659 email layer hardening \u2014 plain-text + Tone enum + headers",
+  "branch": "wave/98-b1-email-hardening-retry",
+  "created_at": null,
+  "merged_at": "2026-05-18T20:04:40Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": true,
+    "audits_required": [
+      "business-logic-audit",
+      "api-contract-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-18T20:04:43.849121",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 18,
+        "java_files": 6,
+        "test_files": 1,
+        "business_docs": true,
+        "missing_audits": [
+          "business-logic-audit",
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "2/5",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-948893"
+  }
+}

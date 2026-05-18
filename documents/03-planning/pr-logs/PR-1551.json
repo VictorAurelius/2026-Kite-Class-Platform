@@ -1,0 +1,37 @@
+{
+  "pr": 1551,
+  "title": "feat(wave-98 B3): GAP-539 banner close \u2014 dashboard mount + version chip + PDPL consent + /beta-status",
+  "branch": "wave/98-b3-banner-close-retry",
+  "created_at": null,
+  "merged_at": "2026-05-18T20:12:09Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "ui-review"
+    ],
+    "audits_run": [
+      "ui-review"
+    ],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-18T20:12:21.770456",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 7,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "1/3",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-955285"
+  }
+}

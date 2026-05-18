@@ -94,3 +94,5 @@ User confirm 2026-05-14: "Email content audit vào Wave 78" (1 trong 3 inside-ou
   - Business docs created: `documents/01-business/kitehub/email/{rules.md,api-contract.md}` (3-layer docs first 2 layers).
   - Tests: 5 new `EmailTemplateRendererTest` cases PASS via `mvnw verify -P strict-warnings`.
   - Remaining 20% (per-tone template variants + native VN copywriter pass) tracked Wave 99.
+
+- **2026-05-18 (PR #1553 merged — Wave 98 B1 paired close)** — GAP-657 + GAP-659 sister gaps closed deliverability + content portions. GAP-543 status PARTIAL 40 → 80% (only manual 2-client render verify + per-tone variants Wave 99 remaining). Sync per `post-merge-sync-completeness.md` §4.
