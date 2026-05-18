@@ -48,7 +48,7 @@ async function seedAuthStorage(
   user: MockUser | null | undefined,
 ): Promise<void> {
   const payload =
-    user === null
+    !user
       ? null
       : {
           state: {
