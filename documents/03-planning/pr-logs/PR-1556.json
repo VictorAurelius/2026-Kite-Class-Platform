@@ -1,0 +1,33 @@
+{
+  "pr": 1556,
+  "title": "feat(wave-98 B7): GAP-518 P3 Center Manager role-guard verify \u2014 BE + FE consistency + IT",
+  "branch": "wave/98-b7-p3-roleguard-verify-retry",
+  "created_at": null,
+  "merged_at": "2026-05-18T20:52:02Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-18T20:52:12.446088",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 5,
+        "java_files": 0,
+        "test_files": 1,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-992451"
+  }
+}
