@@ -1,10 +1,10 @@
 # GAP-614: Wave 91 Bucket D V60 RLS migration not found in codebase
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-18 — false-positive audit finding; Bucket D verdict = migration NOT needed (RLS hypothesis REJECTED via static analysis per `audit-to-gap-pipeline.md` §2.8 fix-time state-check)
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-05-18 (Wave 91 post-batch1 ops-readiness audit OPS-W91-010)
-**Affects:** Beta signup BE bugs GAP-610/611 (Wave 91 Bucket D) — possibly unresolved if migration not shipped
+**Affects:** Beta signup BE bugs GAP-610/611 (Wave 91 Bucket D) — RESOLVED: GAP-610/611 stay PARTIAL với root-cause hypothesis "data state mismatch (~70%)" hoặc "image promotion drift (~10%)" per PR #1495 deep-investigation, KHÔNG phải missing migration
 
 ## Problem
 
@@ -69,11 +69,11 @@ Per `pre-launch-owasp-rest-hardening-checklist.md` §2.1 RLS defense-in-depth �
 
 ## Acceptance Criteria
 
-- [ ] Phase 1 verify-state commands run; output documented trong this gap §Log
-- [ ] Outcome-based action per Phase 2 matrix executed
-- [ ] Wave 91 Bucket D status synchronized (DONE rationale OR PARTIAL with follow-up filed per `gap-done-discipline.md` §3)
-- [ ] If RLS migration genuinely missing: ship migration in Wave 92 Bucket A; live verify POST /api/v1/auth/beta-signup → 200 + tenant created (was 404 Wave 90)
-- [ ] Update GAP-610/611 status per verify outcome
+- [x] Phase 1 verify-state commands run; output documented trong this gap §Log
+- [x] Outcome-based action per Phase 2 matrix executed — outcome = "Migration NOT needed (hypothesis rejected)"
+- [x] Wave 91 Bucket D status synchronized — PR #1490 body + PR #1495 audit document rationale
+- [x] RLS migration NOT genuinely missing (condition FALSE — hypothesis rejected via static analysis); migration ship sẽ vi phạm `pre-mutation-state-check.md` §3.5 (speculative apply không evidence)
+- [x] GAP-610/611 status updated qua PR #1495 (stay PARTIAL với deep-investigation hypothesis ranking; root cause likely data-state mismatch / image promotion drift — chờ Coordinator F live verify post AWS restore GAP-612)
 
 ## Related
 
@@ -85,4 +85,12 @@ Per `pre-launch-owasp-rest-hardening-checklist.md` §2.1 RLS defense-in-depth �
 
 ## Log
 
-- **2026-05-18:** Gap filed by Wave 91 post-batch1 ops-readiness audit (OPS-W91-010). Bucket D V60 RLS migration claim trong Wave 91 plan §3 KHÔNG verify được trong codebase (`find -name "V60*"` returns 0; highest V-prefix = V52). 3 hypotheses (different name / PR pending / PARTIAL execution) cần verify Phase 1. Wave 92 queue.
+- **2026-05-18 (DONE flip — false-positive audit finding resolved):** Phase 1 verify-state commands run (session post /clear /start-session 02:19 UTC). 3 hypothesis verdicts:
+  - **H1: Migration shipped as different name** → ❌ FALSE. `find -name "V*beta*rls*"`, `grep "beta_access_public_token_lookup\|beta_access_public_bypass"`, `grep "CREATE POLICY.*beta_access"` đều trả 0 kết quả. Highest V-prefix vẫn là V52.
+  - **H2: Bucket D PR chưa merge** → ❌ FALSE. PR #1490 `fix(wave-91 bucket D): beta signup BE — defensive hardening + JWT filter regression tests (GAP-610+611)` đã MERGED 2026-05-17 18:05 UTC. PR #1495 `audit(wave-91-D): deep investigation GAP-610+611 hypothesis verdicts` đã MERGED 2026-05-17 18:56 UTC.
+  - **H3: Bucket D PARTIAL — code shipped, migration deferred** → ⚠️ NEAR but framed sai. Actual: Bucket D **chủ động KHÔNG ship V60 migration** sau khi static code analysis bác bỏ RLS hypothesis. PR #1490 body §Phase 1 ghi: *"V34 enables RLS chỉ trên `instance_id`-keyed tables ... `beta_access_request` KHÔNG có RLS policy nào"* → hypothesis 1 (RLS blocks anonymous query) REJECTED. PR #1495 deep audit xác nhận lại verdict REJECTED (strong) + đề xuất root cause khác = "data state mismatch (~70%)" hoặc "image promotion drift (~10%)" — cần Coordinator F debug live post AWS restore.
+- **Verdict:** GAP-614 = audit-filed expectation MISMATCH với actual Bucket D scope. Ops-readiness audit OPS-W91-010 trông vào sự vắng mặt của V60 mà không cross-reference Bucket D verdict + PR #1495 → false-positive. Wave 91 plan §3 Bucket D `V60__beta_access_request_public_bypass_rls.sql` là **implementation hypothesis-driven candidate** không phải mandatory output; Bucket D đã apply `audit-to-gap-pipeline.md` §2.8 fix-time state-check + bác bỏ hypothesis đúng cách → KHÔNG ship migration là đúng. Ship V60 RLS speculative sẽ vi phạm `pre-mutation-state-check.md` §3.5.
+- **Lesson for ops-readiness audit:** before file gap "claimed deliverable X missing", cross-reference Bucket-D-execution PR body + companion audit PRs trong cùng wave để xem hypothesis có được bác bỏ không. Audit OPS-W91-010 sẽ tránh được false-positive này nếu đọc PR #1495 body trước khi file gap.
+- **Status flip:** OPEN → DONE. All AC satisfied or N/A (AC4 conditional FALSE). Per `gap-done-discipline.md` §2 + `post-merge-sync-completeness.md` §2 — flip docs synced với `gap-status.csv` row trong cùng PR.
+- **Investigation artifact:** finding cross-referenced từ `documents/04-quality/audits/aws-verification/2026-05-18-fe-runtime-state-and-cve-gate-investigation.md` (same session).
+- **2026-05-18 (gap filed):** Filed by Wave 91 post-batch1 ops-readiness audit (OPS-W91-010). Bucket D V60 RLS migration claim trong Wave 91 plan §3 KHÔNG verify được trong codebase (`find -name "V60*"` returns 0; highest V-prefix = V52). 3 hypotheses (different name / PR pending / PARTIAL execution) cần verify Phase 1. Wave 92 queue.
