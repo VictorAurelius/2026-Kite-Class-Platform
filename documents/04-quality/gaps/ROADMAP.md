@@ -8,17 +8,33 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-18 — 🎉 Wave 93/94b/94c/95/96 ALL SHIPPED — 10 PRs merged + 5 architecture reports + 2 new rules + GAP-001/145 closed + kiteclass-gateway service removed + diagram format rule v1.0.0)
+## 🎯 Current Status Snapshot (2026-05-18 — Wave 97 Bucket A SHIPPED + B/C/D parallel in flight + Release 1.5 thesis-scope LOCKED + 8 META thesis gaps queued)
 
 > **📍 Next session ĐỌC TRƯỚC:**
-> 1. **GAP-637 P0 admin v1 @PreAuthorize missing** — URGENT fix queue (OWASP A01 BLOCKER cho Phase 1 BETA gate path; unchanged from Wave 94c)
-> 2. **GAP-612 AWS suspension** restoration pending D+4 = 2026-05-21 trigger escalate (unchanged)
-> 3. **Wave 96 sweep batch B-F follow-ups** (post Wave 96 PR1/PR2):
+> 1. **Wave 97 Bucket B/C/D status** — 3 bg-agents in flight per `wave-2026-05-18-97-audit-p0p1-gate-closing.md`; check PRs base=main filtered title "Wave 97 Bucket"
+> 2. **Wave 98 next (thesis infrastructure foundation)** — per `release-1.5-thesis-scope.md` §3 Wave 98 row; spawn after Wave 97 closure; 4 buckets (GAP-646 docx / GAP-647 biblio / GAP-650 ch1 / GAP-648 NFR k6)
+> 3. **Release 1.5 thesis-scope locked 2026-05-18** — 8 META gaps GAP-646..653 + 7 product demo-blocker re-prioritized (GAP-287/297/293/562/518/286/538). Decision-point cuối Phase 1 ~2026-07-15 cho upgrade Release 2 option
+> 4. **GAP-637 P0 PARTIAL 60% Wave 97 Bucket A SHIPPED** — 3/5 AC done (@PreAuthorize 3 controllers + SecurityConfig + 6 @WithMockUser tests + mvn verify PASS). Remaining 2 AC defer GAP-638 (Bucket B in flight) + GAP-612 (AWS live verify blocker unchanged)
+> 5. **GAP-612 AWS suspension** restoration pending D+4 = 2026-05-21 trigger escalate (unchanged)
+> 6. **Wave 96 sweep batch B-F follow-ups** (carry-forward):
 >    - Action B: markdown frontmatter strip 34 gaps (defer Phase 3 per gap-architecture-v2)
 >    - Action C: UPDATE_SCOPE 4 gaps (GAP-203/220/052/155/438)
 >    - Action F: human triage 12 UNCLEAR + AMBIGUOUS gaps (incl GAP-040 anomaly)
-> 4. **Thesis report (Release 2)** — large scope; Release 2 plan prerequisite; action-2.md scratchpad has user directives
-> 5. Wave 95+96 closure artifacts: `wave-history.jsonl` (this commit) + 5 PR-logs JSON + 5 architecture reports (kitehub-arch / kiteclass-arch / multi-tenant-arch / email-arch / AWS recreation estimate)
+> 7. Wave 97 + Plan 1.5 closure artifacts: `wave-history.jsonl` (post Bucket B/C/D merge) + 3 outside-in audit artifacts `documents/04-quality/audits/persona-review/2026-05-18-thesis-*.md`
+
+### 🎉 Wave 97 Bucket A SHIPPED 2026-05-18 — GAP-637 admin @PreAuthorize + SecurityConfig + 6 security tests
+
+**PR #1540 merged** (10 files: 3 controllers + SecurityConfig 114L + 3 SecurityTest classes + pom.xml + GAP file + CSV). Local `mvn verify -P strict-warnings` PASS 50 tests / 0 failures. CI 25 checks PASS. Status PARTIAL 60% — wave plan §3 Bucket A scope delivered fully; AC ≥18 endpoint tests + api-contract docs + AWS live verify defer companion gaps. NOTE: bg-agent first run failed context-thrashing 21min; salvaged working tree quality-verified.
+
+### 🎉 PR #1539 MERGED 2026-05-18 — 8 thesis META gaps + Plan 1.5 thesis-scope + 3 outside-in audits
+
+**Highlights:**
+- Release 1.5 thesis scope LOCKED (Phase 1 BETA + Phase 1.5 paid features); defense window 2026-08-15 → 2026-10-15
+- 3 outside-in audit agents (persona / VN benchmark / failure-mode) consolidated findings
+- VN benchmark verdict: scope AMBITIOUS top 5-10% VN CS thesis 2026
+- 8 META gaps filed: GAP-646 thesis-docx-pipeline (P0) / GAP-647 thesis-bibliography-ieee (P0) / GAP-648 thesis-nfr-data-capture (P0) / GAP-649 thesis-beta-cohort-execution (P0) / GAP-650 thesis-chapter-1-literature (P0) / GAP-651 thesis-image-curation (P1) / GAP-652 multi-tenant-isolation-demo (P1) / GAP-653 thesis-defense-prep-deck (P1)
+- Plan 1.5 4 work tracks: META infra / NFR data / beta cohort / 7 product demo-blockers
+- Decision-point cuối Phase 1 ~2026-07-15 cho upgrade Release 2 option
 
 ### 🎉 Wave 96 SHIPPED 2026-05-18 — gap re-triage batch A+D + kiteclass-gateway removal + diagram rule + 3 architecture reports
 
