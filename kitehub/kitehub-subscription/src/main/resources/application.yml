@@ -152,6 +152,14 @@ kitehub:
   # beta-status / support domains documented in documents/01-business/kitehub/*/rules.md.
   # Defaults mirror rules.md "Default" column; production overrides land via env
   # vars per production-env-config-registry.md v1.1.1.
+  # GAP-600 Wave 92 Bucket C — beta_access_request abort cleanup scheduler
+  # Sweeps stale PENDING rows older than threshold → marks ABORTED (NOT delete;
+  # audit trail preserved). Re-submit từ user cùng email được phép.
+  beta:
+    cleanup:
+      enabled: ${BETA_CLEANUP_ENABLED:true}
+      stale-threshold-hours: ${BETA_CLEANUP_STALE_THRESHOLD_HOURS:24}
+      poll-cron: ${BETA_CLEANUP_POLL_CRON:0 0 */6 * * *}
   feedback:
     rating-range-min: ${FEEDBACK_RATING_MIN:1}
     rating-range-max: ${FEEDBACK_RATING_MAX:5}

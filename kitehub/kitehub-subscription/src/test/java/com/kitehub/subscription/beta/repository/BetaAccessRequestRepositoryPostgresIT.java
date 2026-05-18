@@ -141,6 +141,194 @@ class BetaAccessRequestRepositoryPostgresIT {
         assertThat(repository.findByInviteToken(unknown)).isEmpty();
     }
 
+    // -----------------------------------------------------------------------
+    // GAP-600 Wave 92 Bucket C — abort cleanup query tests
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("GAP-600: markStaleAsAborted flips PENDING rows older than threshold → ABORTED")
+    void markStaleAsAborted_flipsPendingOlderThanThreshold() {
+        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime stale = now.minusHours(30); // older than 24h threshold
+
+        BetaAccessRequest staleRow = repository.save(BetaAccessRequest.builder()
+                .email("stale@example.com")
+                .name("Stale User")
+                .orgName("Stale Org")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.PENDING)
+                .consentGiven(true)
+                .consentAt(stale)
+                .createdAt(stale)
+                .updatedAt(stale)
+                .build());
+        repository.flush();
+
+        OffsetDateTime threshold = now.minusHours(24);
+        int aborted = repository.markStaleAsAborted(threshold, now);
+
+        assertThat(aborted).as("1 stale row should be flipped").isEqualTo(1);
+
+        BetaAccessRequest reloaded = repository.findById(staleRow.getId()).orElseThrow();
+        assertThat(reloaded.getStatus()).isEqualTo(BetaAccessRequestStatus.ABORTED);
+        // Audit trail preserved — row NOT deleted
+        assertThat(reloaded.getEmail()).isEqualTo("stale@example.com");
+    }
+
+    @Test
+    @DisplayName("GAP-600: markStaleAsAborted leaves PENDING rows newer than threshold untouched")
+    void markStaleAsAborted_leavesFreshPendingUntouched() {
+        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime fresh = now.minusHours(6); // within 24h threshold
+
+        BetaAccessRequest freshRow = repository.save(BetaAccessRequest.builder()
+                .email("fresh@example.com")
+                .name("Fresh User")
+                .orgName("Fresh Org")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.PENDING)
+                .consentGiven(true)
+                .consentAt(fresh)
+                .createdAt(fresh)
+                .updatedAt(fresh)
+                .build());
+        repository.flush();
+
+        OffsetDateTime threshold = now.minusHours(24);
+        int aborted = repository.markStaleAsAborted(threshold, now);
+
+        assertThat(aborted).as("fresh row should NOT be swept").isZero();
+        assertThat(repository.findById(freshRow.getId()).orElseThrow().getStatus())
+                .isEqualTo(BetaAccessRequestStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("GAP-600: markStaleAsAborted leaves APPROVED/REJECTED/SIGNED_UP untouched (status filter)")
+    void markStaleAsAborted_leavesNonPendingUntouched() {
+        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime stale = now.minusHours(30);
+
+        // APPROVED row stale — should NOT be swept (only PENDING swept)
+        BetaAccessRequest approvedStale = repository.save(BetaAccessRequest.builder()
+                .email("approved-stale@example.com")
+                .name("Approved Stale")
+                .orgName("Org")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.APPROVED)
+                .inviteToken(UUID.randomUUID())
+                .inviteTokenExpiry(stale.plusHours(24))
+                .approvedAt(stale)
+                .inviteSentAt(stale)
+                .consentGiven(true)
+                .consentAt(stale)
+                .createdAt(stale)
+                .updatedAt(stale)
+                .build());
+        repository.flush();
+
+        OffsetDateTime threshold = now.minusHours(24);
+        int aborted = repository.markStaleAsAborted(threshold, now);
+
+        assertThat(aborted).as("APPROVED row must NOT be swept regardless of age").isZero();
+        assertThat(repository.findById(approvedStale.getId()).orElseThrow().getStatus())
+                .isEqualTo(BetaAccessRequestStatus.APPROVED);
+    }
+
+    @Test
+    @DisplayName("GAP-600: countStalePending returns accurate count before bulk update")
+    void countStalePending_returnsAccurateCount() {
+        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime stale = now.minusHours(30);
+        OffsetDateTime fresh = now.minusHours(6);
+
+        // 2 stale PENDING
+        for (int i = 0; i < 2; i++) {
+            repository.save(BetaAccessRequest.builder()
+                    .email("stale-" + i + "@example.com")
+                    .name("Stale " + i)
+                    .orgName("Org")
+                    .persona("P2_CENTER_OWNER")
+                    .status(BetaAccessRequestStatus.PENDING)
+                    .consentGiven(true)
+                    .consentAt(stale)
+                    .createdAt(stale)
+                    .updatedAt(stale)
+                    .build());
+        }
+        // 1 fresh PENDING (should not count)
+        repository.save(BetaAccessRequest.builder()
+                .email("fresh@example.com")
+                .name("Fresh")
+                .orgName("Org")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.PENDING)
+                .consentGiven(true)
+                .consentAt(fresh)
+                .createdAt(fresh)
+                .updatedAt(fresh)
+                .build());
+        repository.flush();
+
+        long count = repository.countStalePending(now.minusHours(24));
+
+        assertThat(count).as("only the 2 stale PENDING rows should count").isEqualTo(2L);
+    }
+
+    @Test
+    @DisplayName("GAP-600 unique-constraint regression: ABORTED row → user re-submit cùng email succeeds")
+    void aborted_row_allows_resubmit_same_email() {
+        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime stale = now.minusHours(30);
+
+        // Step 1: PENDING row stale → swept ABORTED
+        BetaAccessRequest aborted = repository.save(BetaAccessRequest.builder()
+                .email("resubmit@example.com")
+                .name("Resubmit User")
+                .orgName("Org")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.PENDING)
+                .consentGiven(true)
+                .consentAt(stale)
+                .createdAt(stale)
+                .updatedAt(stale)
+                .build());
+        repository.flush();
+
+        repository.markStaleAsAborted(now.minusHours(24), now);
+        repository.flush();
+
+        BetaAccessRequest reloaded = repository.findById(aborted.getId()).orElseThrow();
+        assertThat(reloaded.getStatus()).isEqualTo(BetaAccessRequestStatus.ABORTED);
+
+        // Step 2: user re-submit cùng email — phải success (NOT 409 unique violation)
+        // Unique constraint chỉ on (invite_token) — KHÔNG on email. Service-level guard
+        // (findFirstByEmailAndStatusOrderByCreatedAtDesc) chỉ catch active PENDING.
+        // Sau khi ABORTED, không còn active PENDING với email đó → re-submit OK.
+        BetaAccessRequest resubmit = repository.save(BetaAccessRequest.builder()
+                .email("resubmit@example.com")
+                .name("Resubmit User Again")
+                .orgName("Org")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.PENDING)
+                .consentGiven(true)
+                .consentAt(now)
+                .createdAt(now)
+                .updatedAt(now)
+                .build());
+        repository.flush();
+
+        assertThat(resubmit.getId()).as("re-submit must succeed with new row id").isNotEqualTo(aborted.getId());
+
+        // Verify: 2 rows tổng với cùng email; 1 ABORTED + 1 PENDING
+        // (Service code chỉ query active PENDING khi check duplicate, nên ABORTED không block)
+        assertThat(repository.findFirstByEmailAndStatusOrderByCreatedAtDesc(
+                "resubmit@example.com", BetaAccessRequestStatus.PENDING))
+                .as("active PENDING row should be the fresh re-submit").isPresent()
+                .get()
+                .extracting(BetaAccessRequest::getId)
+                .isEqualTo(resubmit.getId());
+    }
+
     @Test
     @DisplayName("findByInviteToken finds non-APPROVED rows too (lifecycle filter is service-level)")
     void findByInviteToken_findsRegardlessOfStatus() {
