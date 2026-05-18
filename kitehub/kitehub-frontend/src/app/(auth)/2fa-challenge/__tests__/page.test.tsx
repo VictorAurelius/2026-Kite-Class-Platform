@@ -55,7 +55,8 @@ describe('TwoFactorChallengePage', () => {
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/admin');
     });
-    expect(localStorage.getItem('accessToken')).toBe('stub-access-token-2fa-verified');
+    // GAP-599 Wave 92 Bucket B: tokens persist in sessionStorage (per-tab isolation).
+    expect(sessionStorage.getItem('accessToken')).toBe('stub-access-token-2fa-verified');
   });
 
   it('shows error on wrong TOTP (000000) and clears input', async () => {
@@ -89,7 +90,8 @@ describe('TwoFactorChallengePage', () => {
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/admin');
     });
-    expect(localStorage.getItem('accessToken')).toBe('stub-access-token-recovery-used');
+    // GAP-599 Wave 92 Bucket B: tokens persist in sessionStorage (per-tab isolation).
+    expect(sessionStorage.getItem('accessToken')).toBe('stub-access-token-recovery-used');
     // Recovery used → handler sets regenerate_recommended=true; we stored in sessionStorage
     expect(sessionStorage.getItem('recovery_codes_remaining')).toBe('9');
   });

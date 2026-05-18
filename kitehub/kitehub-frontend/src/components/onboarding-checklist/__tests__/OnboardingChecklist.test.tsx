@@ -16,8 +16,9 @@ import { OnboardingChecklist } from '../OnboardingChecklist';
 beforeEach(() => {
   resetOnboardingHandlerState();
   // Provide a bearer token so MSW handler doesn't 401.
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem('accessToken', 'test-jwt');
+  // GAP-599 Wave 92 Bucket B: api client reads from sessionStorage (per-tab isolation).
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.setItem('accessToken', 'test-jwt');
   }
 });
 

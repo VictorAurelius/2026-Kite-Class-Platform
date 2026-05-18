@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { isPlatformAdmin } from '@/lib/auth-helpers';
 import { KiteLogo } from '@/components/brand/KiteLogo';
 import { TotpInput } from '@/components/auth/TotpInput';
+import { setTokens } from '@/lib/auth/jwt-storage';
 
 /**
  * 2FA Challenge page (subsequent-login TOTP gate).
@@ -83,8 +84,8 @@ function TwoFactorChallengePageContent() {
       const { access_token, refresh_token, user, regenerate_recommended, codes_remaining } = response.data;
 
       setAuth(user, access_token, refresh_token);
-      localStorage.setItem('accessToken', access_token);
-      localStorage.setItem('refreshToken', refresh_token);
+      // GAP-599 Wave 92 Bucket B: sessionStorage (per-tab isolation).
+      setTokens(access_token, refresh_token);
 
       if (regenerate_recommended) {
         // Surface info briefly via setInfo so user knows before redirect — keep in sessionStorage

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { useAuthStore } from '@/stores/auth-store';
 import { useRouter } from 'next/navigation';
+import { clearTokens, clearLegacyLocalStorageTokens } from '@/lib/auth/jwt-storage';
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated, user, clearAuth } = useAuthStore();
@@ -11,8 +12,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   const handleLogout = () => {
     clearAuth();
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    // GAP-599 Wave 92 Bucket B: sessionStorage-backed tokens + sweep legacy localStorage.
+    clearTokens();
+    clearLegacyLocalStorageTokens();
     router.push('/login');
   };
 

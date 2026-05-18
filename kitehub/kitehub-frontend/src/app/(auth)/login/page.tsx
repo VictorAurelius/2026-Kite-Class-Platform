@@ -12,6 +12,7 @@ import { endpoints } from '@/lib/api/endpoints';
 import { AlertCircle, Clock, Loader2 } from 'lucide-react';
 import { KiteLogo } from '@/components/brand/KiteLogo';
 import { isPlatformAdmin } from '@/lib/auth-helpers';
+import { setTokens, clearLegacyLocalStorageTokens } from '@/lib/auth/jwt-storage';
 
 /**
  * GAP-515 Wave 78 Bucket C — parse Retry-After (RFC 7231 §7.1.3) which may be:
@@ -65,6 +66,12 @@ export default function LoginPage() {
     return () => window.clearInterval(handle);
   }, [lockoutSecondsRemaining]);
 
+  // GAP-599 Wave 92 Bucket B: sweep legacy localStorage tokens left over from
+  // pre-migration builds. One-shot per mount; safe to call repeatedly.
+  useEffect(() => {
+    clearLegacyLocalStorageTokens();
+  }, []);
+
   const {
     register,
     handleSubmit,
@@ -104,8 +111,8 @@ export default function LoginPage() {
         throw new Error('Invalid login response shape');
       }
       setAuth(user, accessToken, refreshToken);
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
+      // GAP-599 Wave 92 Bucket B: sessionStorage (per-tab isolation).
+      setTokens(accessToken, refreshToken);
       // GAP-518: route both PLATFORM_ADMIN (canonical) and legacy ADMIN to /admin.
       router.push(isPlatformAdmin(user.role) ? '/admin' : '/dashboard');
     } catch (err) {

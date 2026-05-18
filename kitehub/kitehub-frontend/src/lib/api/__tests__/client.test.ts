@@ -33,9 +33,10 @@ vi.mock('axios', () => {
 describe('apiClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset localStorage
+    // GAP-599 Wave 92 Bucket B: clear both storages so legacy + new isolated.
     if (typeof window !== 'undefined') {
       localStorage.clear();
+      sessionStorage.clear();
     }
   });
 
@@ -74,8 +75,8 @@ describe('apiClient', () => {
 
   describe('request interceptor', () => {
     it('adds Authorization header when accessToken exists', async () => {
-      // Setup localStorage mock
-      const localStorageMock = {
+      // GAP-599 Wave 92 Bucket B: api client reads from sessionStorage now.
+      const sessionStorageMock = {
         getItem: vi.fn((key: string) => {
           if (key === 'accessToken') return 'test-token';
           return null;
@@ -84,7 +85,7 @@ describe('apiClient', () => {
         removeItem: vi.fn(),
         clear: vi.fn(),
       };
-      Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+      Object.defineProperty(window, 'sessionStorage', { value: sessionStorageMock });
 
       vi.resetModules();
       await import('../client');
@@ -104,13 +105,14 @@ describe('apiClient', () => {
     });
 
     it('does not add Authorization header when accessToken is missing', async () => {
-      const localStorageMock = {
+      // GAP-599 Wave 92 Bucket B: api client reads from sessionStorage.
+      const sessionStorageMock = {
         getItem: vi.fn(() => null),
         setItem: vi.fn(),
         removeItem: vi.fn(),
         clear: vi.fn(),
       };
-      Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+      Object.defineProperty(window, 'sessionStorage', { value: sessionStorageMock });
 
       vi.resetModules();
       await import('../client');
