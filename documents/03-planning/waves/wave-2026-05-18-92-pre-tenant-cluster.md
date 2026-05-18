@@ -1,6 +1,6 @@
 ---
 title: Wave 92 — Pre-Tenant Cluster + Audit Follow-ups
-status: draft
+status: complete
 created: 2026-05-18
 updated: 2026-05-18
 waves: [92]
