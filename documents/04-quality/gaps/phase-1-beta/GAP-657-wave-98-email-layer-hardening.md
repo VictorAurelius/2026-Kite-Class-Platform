@@ -135,3 +135,4 @@ After this gap DONE → GAP-543 §AC update:
 - **2026-05-18 — Verification commands run:**
   - `cd kitehub && ./mvnw -pl kitehub-email verify -P strict-warnings` → BUILD SUCCESS, 49 tests pass.
   - File state: `ls kitehub/kitehub-email/src/main/resources/templates/emails/*.txt` → 5 files (beta-invite, email-verification, invite-staff, password-reset, welcome).
+- **2026-05-18 (PR #1553 merged)** — Post-merge audit-gate flagged: (a) business-logic-audit + api-contract-audit required (new `documents/01-business/kitehub/email/{rules,api-contract}.md`) — DEFER to Wave 98 post-closure audit suite per `post-wave-audit-mandate.md` §2.2; (b) PARTIAL exit-ramp items per gap §Deferred section — SchedulerEmailWireIT + CloudWatch alarm + manual 2-client render verify + per-tone variants + persona-tone send-site wiring. Sync per `post-merge-sync-completeness.md` §4.
