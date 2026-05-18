@@ -76,3 +76,4 @@ wave-closure-scope-completeness,MANDATORY,1.0.0,2026-05-18,2026-05-18,wave-closu
 docs-subfolder-maturity,MANDATORY,1.0.0,2026-05-18,2026-05-18,docs-subfolder-maturity.md,"documents/**",active,,
 docs-archival-cadence,MANDATORY,1.0.0,2026-05-18,2026-05-18,docs-archival-cadence.md,"documents/**/*.md,documents/**/*.json",active,,
 docs-folder-volume-budget,MANDATORY,1.0.0,2026-05-18,2026-05-18,docs-folder-volume-budget.md,"documents/**",active,,
+docs-filename-prefix-convention,MANDATORY,1.0.0,2026-05-18,2026-05-18,docs-filename-prefix-convention.md,"documents/**,.claude/rules/**,.claude/skills/**",active,,
