@@ -1,6 +1,6 @@
 # GAP-656: UI Coordinator — widget collision prereq + staggered first-login reveal
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (80% — Wave 98 Bucket B0 ships foundation + 6 files; B5 wires actual FeedbackForm modal + B6 Zalo OA link)
 **Priority:** 🔴 P0
 **Domain:** Mixed (Frontend coordinator + Backend persona-aware state)
 **Detected:** 2026-05-18 (Wave 98 prep — outside-in audit 3-agent convergence)
@@ -95,3 +95,19 @@ Banner dismiss state lưu trong httpOnly cookie (server-set sau client POST `/ap
 - **Blocks:** GAP-540 (support discoverability), GAP-542 (feedback channel)
 - **Sister gaps:** GAP-538 (onboarding checklist), GAP-539 (banner) — both consume `useOnboardingPhase` hook
 - **Wave 98 bucket:** B0 (PREREQ — blocks B5)
+
+## Log
+
+- **2026-05-18** — Initial filing post outside-in audit 3-agent convergence; Wave 98 Bucket B0 PREREQ.
+- **2026-05-18** — Bucket B0 PARTIAL 80% ship. Files added:
+  - `kitehub/kitehub-frontend/src/hooks/useOnboardingPhase.ts` (5-phase hook + JWT claim reader + cookie dismissal sync)
+  - `kitehub/kitehub-frontend/src/components/support/SupportMenu.tsx` (Radix DropdownMenu, 4 items: Hướng dẫn / Liên hệ / Phản hồi / Trạng thái beta)
+  - `kitehub/kitehub-frontend/src/components/onboarding/OnboardingCoordinator.tsx` (sequences banner + SupportMenu visibility per modal state)
+  - `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/preferences/controller/PreferencesController.java` (POST /api/v1/preferences/dismiss-banner-state — Set-Cookie 30-day, in-memory Phase 1)
+  - `kitehub/kitehub-frontend/playwright/onboarding-mobile.spec.ts` (375×812 + 360×640 + Zalo WebView UA simulation)
+  - `documents/01-business/kitehub/preferences/api-contract.md` (cross-layer contract per `contract-first-for-cross-layer.md`)
+  - **Scope deviation logged:** PreferencesController placed in `kitehub-subscription` (NOT `kitehub-platform`) — `kitehub-platform` is shared library JAR (no REST surface); sister public-write controllers (FeedbackController, BetaAccessController) already live in subscription. No AC change.
+  - Verify: FE lint PASS (warnings only, all pre-existing), FE build PASS, FE tests 774/774 PASS, BE compile + test-compile PASS.
+  - Playwright spec written but not executed (Playwright requires browser binaries install + dev server — deferred; spec exercised by future CI).
+  - Deferred to Bucket B5/B6: actual FeedbackForm modal wiring (currently placeholder), Zalo OA link wiring (currently TODO comment per GAP-660 unblock), persona-aware help routing beyond `/help/anonymous` + `/help` defaults.
+  - Phase 2 (Wave 99+) deferred: user_preferences table persistence (currently in-memory ConcurrentHashMap).
