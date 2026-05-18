@@ -1,0 +1,31 @@
+{
+  "pr": 1538,
+  "title": "wave-97: audit P0+P1 gate-closing \u2014 draft (Wave 94c follow-up)",
+  "branch": "wave/97",
+  "created_at": "2026-05-18T16:52:29Z",
+  "merged_at": "2026-05-18T16:57:49Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-18T18:46:38.386039",
+      "type": "PR_MERGED_BACKFILLED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 2,
+        "java_files": 0,
+        "test_files": 0,
+        "script_files": 0,
+        "business_docs": null,
+        "note": "Reconstructed via backfill-pr-logs.py \u2014 audits_run not verified"
+      }
+    }
+  ],
+  "compliance_score": "0/2"
+}

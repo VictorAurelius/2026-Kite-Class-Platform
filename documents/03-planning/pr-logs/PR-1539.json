@@ -1,0 +1,31 @@
+{
+  "pr": 1539,
+  "title": "docs(thesis): 8 META gaps + Plan 1.5 thesis-scope + 3 outside-in audits",
+  "branch": "feature/thesis-meta-gaps-and-plan-1.5",
+  "created_at": "2026-05-18T17:34:05Z",
+  "merged_at": "2026-05-18T17:35:14Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-18T18:46:40.304819",
+      "type": "PR_MERGED_BACKFILLED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 14,
+        "java_files": 0,
+        "test_files": 0,
+        "script_files": 0,
+        "business_docs": null,
+        "note": "Reconstructed via backfill-pr-logs.py \u2014 audits_run not verified"
+      }
+    }
+  ],
+  "compliance_score": "0/1"
+}
