@@ -1,0 +1,361 @@
+{
+  "_meta": {
+    "description": "In-app preview của email template Vietnamese subject + body — cho admin xem trước khi gửi, audit reference, marketing review.",
+    "scope": "Mirror nội dung Vietnamese của 20 email templates tại kitehub-email/src/main/resources/templates/emails/. Source-of-truth vẫn là Thymeleaf .html templates; catalog này phục vụ in-app email preview UI + audit cross-check.",
+    "version": "1.0.0",
+    "last_updated": "2026-05-18",
+    "wave": "Wave 98 Bucket B4 GAP-541 — paired với Wave 98 B1 GAP-657/659 (email content audit + sync). Nếu B1 đã ship Vietnamese narrative cho email templates, catalog này map 1-1; nếu B1 chưa ship, catalog này là canonical reference để B1 áp dụng.",
+    "rules": [
+      "dev-readable-doc-language.md §2 — Vietnamese narrative",
+      "user-manual-content-standard.md §2 row 7 + 8 — VN sample data + VND/date VN"
+    ]
+  },
+  "preview": {
+    "from_label": "Từ",
+    "to_label": "Đến",
+    "subject_label": "Tiêu đề",
+    "preview_label": "Đoạn preview",
+    "body_label": "Nội dung",
+    "footer_label": "Chân trang",
+    "test_send_button": "Gửi email thử",
+    "test_send_modal_title": "Gửi email thử nghiệm",
+    "test_send_modal_email_label": "Email nhận thử",
+    "test_send_success": "Đã gửi email thử nghiệm tới {email}.",
+    "test_send_error": "Không gửi được email thử. Kiểm tra lại địa chỉ và thử lại.",
+    "render_with_sample_button": "Xem với dữ liệu mẫu",
+    "view_html_source_button": "Xem nguồn HTML",
+    "template_metadata_label": "Thông tin template",
+    "last_modified_label": "Sửa lần cuối",
+    "category_label": "Phân loại",
+    "trigger_label": "Sự kiện kích hoạt"
+  },
+  "common_footer": {
+    "signature": "Đội ngũ KiteHub",
+    "support_line": "Cần hỗ trợ? Email {support_email} hoặc truy cập {help_url}.",
+    "unsubscribe_line": "Bạn nhận email này vì là người dùng đăng ký KiteHub. {unsubscribe_link} nếu không muốn nhận email marketing.",
+    "address_line": "KiteHub — TP. Hồ Chí Minh, Việt Nam",
+    "copyright": "© {year} KiteHub. Bảo lưu mọi quyền."
+  },
+  "templates": {
+    "welcome": {
+      "category": "Onboarding",
+      "trigger": "Sau khi tenant kích hoạt instance KiteHub lần đầu",
+      "subject": "Chào mừng {organization_name} đến với KiteHub",
+      "preview": "Tài khoản KiteHub của bạn đã sẵn sàng. Đây là các bước tiếp theo.",
+      "greeting": "Chào {contact_name},",
+      "body_intro": "Cảm ơn {organization_name} đã chọn KiteHub. Tài khoản của bạn đã sẵn sàng và có thể đăng nhập tại {tenant_url}.",
+      "next_steps_title": "3 việc nên làm đầu tiên",
+      "next_steps": [
+        "Mời 3-5 thành viên đầu tiên (giáo viên, kế toán).",
+        "Tạo lớp học đầu tiên và thêm danh sách học viên.",
+        "Cấu hình logo và bảng màu thương hiệu của trung tâm."
+      ],
+      "cta_label": "Mở bảng điều khiển",
+      "help_line": "Cần hướng dẫn? Xem {help_url} hoặc trả lời email này, đội ngũ sẽ phản hồi trong vòng 1 ngày làm việc."
+    },
+    "email_verification": {
+      "category": "Account",
+      "trigger": "Sau khi user đăng ký tài khoản",
+      "subject": "Xác nhận email tại KiteHub",
+      "preview": "Vui lòng nhấn nút bên dưới để xác nhận email của bạn.",
+      "greeting": "Chào {full_name},",
+      "body_intro": "Vui lòng xác nhận địa chỉ email {email} để kích hoạt tài khoản KiteHub.",
+      "cta_label": "Xác nhận email",
+      "expiry_note": "Liên kết này có hiệu lực trong 24 giờ.",
+      "fallback_line": "Nếu nút không hoạt động, sao chép liên kết này vào trình duyệt: {verify_url}",
+      "ignore_line": "Nếu bạn không đăng ký KiteHub, vui lòng bỏ qua email này."
+    },
+    "beta_request_confirmation": {
+      "category": "Beta",
+      "trigger": "Sau khi gửi form Yêu cầu truy cập Beta",
+      "subject": "Đã nhận yêu cầu Beta — {organization_name}",
+      "preview": "Cảm ơn {organization_name}. Đội ngũ sẽ phản hồi trong 1-3 ngày làm việc.",
+      "greeting": "Chào {contact_name},",
+      "body_intro": "Chúng tôi đã nhận yêu cầu tham gia Beta KiteHub của {organization_name}. Mã yêu cầu: {request_id}.",
+      "what_next_title": "Bước tiếp theo",
+      "what_next": [
+        "Đội ngũ sẽ rà soát yêu cầu trong 1-3 ngày làm việc.",
+        "Khi được phê duyệt, bạn sẽ nhận email với link kích hoạt tài khoản.",
+        "Trong thời gian chờ, bạn có thể đọc Hướng dẫn nhanh tại {help_url}."
+      ],
+      "estimated_response_time": "Thời gian phản hồi dự kiến: 1-3 ngày làm việc",
+      "support_line": "Có thắc mắc? Trả lời email này hoặc liên hệ {support_email}."
+    },
+    "beta_invite": {
+      "category": "Beta",
+      "trigger": "Khi admin phê duyệt yêu cầu Beta",
+      "subject": "Lời mời truy cập KiteHub Beta — {organization_name}",
+      "preview": "Yêu cầu Beta của bạn đã được phê duyệt. Kích hoạt tài khoản ngay.",
+      "greeting": "Chào {contact_name},",
+      "body_intro": "Tin vui! Yêu cầu Beta của {organization_name} đã được phê duyệt. Bạn có thể kích hoạt tài khoản KiteHub ngay bây giờ.",
+      "cta_label": "Kích hoạt tài khoản",
+      "credentials_section_title": "Thông tin đăng nhập tạm thời",
+      "credentials_help": "Vui lòng đổi mật khẩu sau khi đăng nhập lần đầu.",
+      "expiry_note": "Liên kết kích hoạt có hiệu lực trong 7 ngày.",
+      "trial_terms_title": "Quyền lợi Beta",
+      "trial_terms": [
+        "Sử dụng đầy đủ tính năng KiteHub miễn phí trong giai đoạn Beta.",
+        "Hỗ trợ ưu tiên qua email trong giờ hành chính.",
+        "Mọi phản hồi của bạn sẽ ảnh hưởng trực tiếp tới sản phẩm."
+      ]
+    },
+    "trial_midpoint": {
+      "category": "Trial",
+      "trigger": "Khi tenant đến giữa thời gian dùng thử",
+      "subject": "Bạn đã đi được nửa chặng đường dùng thử KiteHub",
+      "preview": "{remaining_days} ngày dùng thử còn lại. Tận dụng tối đa.",
+      "greeting": "Chào {contact_name},",
+      "body_intro": "Còn {remaining_days} ngày dùng thử KiteHub. Đây là tóm tắt tiến độ của {organization_name}.",
+      "usage_stats_title": "Hoạt động đến nay",
+      "usage_stats_template": "{class_count} lớp học · {student_count} học viên · {payment_count} giao dịch",
+      "tips_title": "Mẹo để khai thác tối đa Beta",
+      "tips": [
+        "Mời thêm thành viên để chia sẻ khối lượng quản lý.",
+        "Cấu hình lớp học mẫu để dùng lại cho học kỳ sau.",
+        "Bật AI Branding để tạo banner và logo nhanh."
+      ],
+      "cta_label": "Xem báo cáo chi tiết",
+      "support_line": "Có câu hỏi về dùng thử? Liên hệ {support_email}."
+    },
+    "trial_expiration_warning": {
+      "category": "Trial",
+      "trigger": "3 ngày trước khi trial hết hạn",
+      "subject": "Còn {days_left} ngày — dùng thử KiteHub sắp kết thúc",
+      "preview": "Nâng cấp ngay để giữ dữ liệu và tiếp tục sử dụng.",
+      "greeting": "Chào {contact_name},",
+      "body_intro": "Thời gian dùng thử KiteHub của {organization_name} sẽ kết thúc trong {days_left} ngày, vào ngày {expiry_date}.",
+      "options_title": "Bạn có thể chọn",
+      "options": [
+        "Nâng cấp lên gói trả phí để tiếp tục dùng đầy đủ tính năng.",
+        "Chuyển sang gói Free (giới hạn tính năng) để dữ liệu được giữ lại.",
+        "Xuất toàn bộ dữ liệu nếu không tiếp tục sử dụng."
+      ],
+      "cta_label": "Xem các gói trả phí",
+      "data_retention_note": "Sau khi trial hết hạn, dữ liệu sẽ được giữ thêm 30 ngày trong gói Free trước khi xóa vĩnh viễn."
+    },
+    "trial_expired": {
+      "category": "Trial",
+      "trigger": "Ngay khi trial hết hạn",
+      "subject": "Dùng thử KiteHub đã kết thúc",
+      "preview": "Tài khoản chuyển sang gói Free. Dữ liệu vẫn an toàn trong 30 ngày.",
+      "greeting": "Chào {contact_name},",
+      "body_intro": "Thời gian dùng thử KiteHub của {organization_name} đã kết thúc. Tài khoản tự động chuyển sang gói Free (giới hạn tính năng).",
+      "current_status_title": "Trạng thái hiện tại",
+      "current_status_items": [
+        "Đăng nhập vẫn hoạt động bình thường.",
+        "Một số tính năng nâng cao (AI Branding cao cấp, multi-instance) đã bị tạm khóa.",
+        "Dữ liệu được lưu giữ trong 30 ngày tới."
+      ],
+      "cta_label": "Nâng cấp ngay",
+      "data_retention_note": "Sau {retention_days} ngày kể từ hôm nay ({deletion_date}), nếu không nâng cấp, dữ liệu sẽ bị xóa vĩnh viễn theo chính sách giữ dữ liệu."
+    },
+    "subscription_created": {
+      "category": "Billing",
+      "trigger": "Sau khi subscription được tạo thành công",
+      "subject": "Đã kích hoạt gói {plan_name} — KiteHub",
+      "preview": "Gói {plan_name} đã sẵn sàng. Hóa đơn đính kèm.",
+      "greeting": "Chào {contact_name},",
+      "body_intro": "Cảm ơn {organization_name} đã đăng ký gói {plan_name} của KiteHub. Subscription đã được kích hoạt và hóa đơn điện tử đính kèm.",
+      "summary_title": "Tóm tắt đơn hàng",
+      "summary_items": {
+        "plan": "Gói: {plan_name}",
+        "billing_cycle": "Chu kỳ thanh toán: {billing_cycle}",
+        "amount": "Số tiền: {amount}",
+        "next_billing_date": "Lần thu phí tiếp theo: {next_billing_date}"
+      },
+      "cta_label": "Mở bảng điều khiển",
+      "invoice_attached_note": "Hóa đơn điện tử (VND) đính kèm email này theo Nghị định 123/2020/NĐ-CP."
+    },
+    "subscription_renewal_reminder": {
+      "category": "Billing",
+      "trigger": "7 ngày trước khi subscription gia hạn",
+      "subject": "Còn {days_left} ngày — gia hạn gói {plan_name}",
+      "preview": "Gói {plan_name} sẽ tự động gia hạn vào {renewal_date}.",
+      "greeting": "Chào {contact_name},",
+      "body_intro": "Gói {plan_name} của {organization_name} sẽ tự động gia hạn trong {days_left} ngày, vào ngày {renewal_date}. Số tiền: {amount}.",
+      "options_title": "Bạn có thể",
+      "options": [
+        "Để gia hạn tự động (không cần làm gì).",
+        "Cập nhật phương thức thanh toán nếu cần.",
+        "Hủy gia hạn nếu không muốn tiếp tục (gói vẫn hoạt động đến hết kỳ hiện tại)."
+      ],
+      "cta_label": "Quản lý subscription"
+    },
+    "subscription_expired": {
+      "category": "Billing",
+      "trigger": "Khi subscription hết hạn và không gia hạn",
+      "subject": "Subscription {plan_name} đã hết hạn",
+      "preview": "Tài khoản chuyển sang gói Free. Nâng cấp lại bất kỳ lúc nào.",
+      "greeting": "Chào {contact_name},",
+      "body_intro": "Subscription {plan_name} của {organization_name} đã hết hạn vào {expiry_date}. Tài khoản đã chuyển sang gói Free.",
+      "cta_label": "Nâng cấp lại"
+    },
+    "subscription_suspended": {
+      "category": "Billing",
+      "trigger": "Sau khi thanh toán bị từ chối nhiều lần",
+      "subject": "Đã tạm ngưng subscription — cập nhật thanh toán",
+      "preview": "Subscription tạm ngưng do thanh toán không thành công. Cập nhật để khôi phục.",
+      "greeting": "Chào {contact_name},",
+      "body_intro": "Subscription của {organization_name} đã bị tạm ngưng do thanh toán không thành công sau {retry_count} lần thử. Truy cập của bạn vẫn được giữ ở chế độ chỉ đọc trong 14 ngày tới.",
+      "cta_label": "Cập nhật thanh toán",
+      "support_line": "Nếu có vấn đề về thanh toán, liên hệ {support_email} để được hỗ trợ."
+    },
+    "invite_staff": {
+      "category": "Account",
+      "trigger": "Khi admin mời thành viên mới vào trung tâm",
+      "subject": "{inviter_name} mời bạn tham gia {organization_name} trên KiteHub",
+      "preview": "Chấp nhận lời mời để tham gia trung tâm.",
+      "greeting": "Chào {invitee_name},",
+      "body_intro": "{inviter_name} ({inviter_role}) đã mời bạn tham gia {organization_name} trên nền tảng KiteHub với vai trò {role_name}.",
+      "what_can_do_title": "Với vai trò {role_name}, bạn có thể",
+      "cta_label": "Chấp nhận lời mời",
+      "expiry_note": "Lời mời có hiệu lực trong 7 ngày.",
+      "ignore_line": "Nếu bạn không quen biết {inviter_name} hoặc không muốn tham gia, vui lòng bỏ qua email này."
+    },
+    "onboarding_tips": {
+      "category": "Onboarding",
+      "trigger": "3 ngày sau khi tenant kích hoạt instance",
+      "subject": "Mẹo hữu ích để bắt đầu nhanh với KiteHub",
+      "preview": "5 mẹo dành cho trung tâm mới sử dụng KiteHub.",
+      "greeting": "Chào {contact_name},",
+      "body_intro": "Cảm ơn {organization_name} đã trải nghiệm KiteHub 3 ngày qua. Đây là 5 mẹo phổ biến mà các trung tâm thành công thường áp dụng.",
+      "tips_title": "5 mẹo bắt đầu nhanh",
+      "tips": [
+        "Tạo nhóm lớp theo lịch (sáng/chiều/tối) để dễ thống kê.",
+        "Bật thông báo Zalo để học viên không bỏ lỡ điểm danh.",
+        "Mời kế toán vào hệ thống để tự động hóa hóa đơn.",
+        "Cấu hình AI Branding tạo banner Facebook chỉ trong 2 phút.",
+        "Sử dụng template lớp học sẵn có khi mở lớp mới (tiết kiệm 80% thời gian)."
+      ],
+      "cta_label": "Đọc đầy đủ Hướng dẫn"
+    },
+    "data_retention_warning": {
+      "category": "Data Lifecycle",
+      "trigger": "30 ngày trước khi dữ liệu bị xóa (sau khi subscription hết hạn)",
+      "subject": "Cảnh báo — dữ liệu sẽ bị xóa trong {days_left} ngày",
+      "preview": "Để giữ dữ liệu, vui lòng nâng cấp hoặc xuất dữ liệu.",
+      "greeting": "Chào {contact_name},",
+      "body_intro": "Dữ liệu của {organization_name} đang trong giai đoạn lưu giữ sau khi subscription hết hạn. Theo chính sách của KiteHub, dữ liệu sẽ bị xóa vĩnh viễn trong {days_left} ngày nữa, vào {deletion_date}.",
+      "options_title": "Để giữ dữ liệu, bạn có thể",
+      "options": [
+        "Nâng cấp lại lên gói trả phí.",
+        "Xuất toàn bộ dữ liệu xuống file (CSV/Excel/PDF) trước thời hạn xóa."
+      ],
+      "cta_label": "Hành động ngay"
+    },
+    "data_retention_final_warning": {
+      "category": "Data Lifecycle",
+      "trigger": "3 ngày trước khi xóa dữ liệu vĩnh viễn",
+      "subject": "Cảnh báo CUỐI CÙNG — dữ liệu sẽ bị xóa trong 3 ngày",
+      "preview": "Đây là email nhắc nhở cuối cùng trước khi xóa dữ liệu vĩnh viễn.",
+      "greeting": "Chào {contact_name},",
+      "body_intro": "Đây là email cảnh báo CUỐI CÙNG trước khi dữ liệu của {organization_name} bị xóa vĩnh viễn vào ngày {deletion_date}. Sau thời điểm này, dữ liệu không thể khôi phục được.",
+      "options_title": "Hành động ngay",
+      "options": [
+        "Nâng cấp lên gói trả phí (mất khoảng 5 phút).",
+        "Xuất toàn bộ dữ liệu xuống file backup."
+      ],
+      "cta_label": "Xử lý ngay"
+    },
+    "data_deleted": {
+      "category": "Data Lifecycle",
+      "trigger": "Ngay sau khi dữ liệu đã bị xóa vĩnh viễn",
+      "subject": "Đã xóa dữ liệu — {organization_name}",
+      "preview": "Dữ liệu đã được xóa theo chính sách giữ dữ liệu.",
+      "greeting": "Chào {contact_name},",
+      "body_intro": "Theo chính sách giữ dữ liệu của KiteHub, dữ liệu của {organization_name} đã được xóa vĩnh viễn vào {deletion_date} sau giai đoạn lưu giữ.",
+      "what_remains_title": "Thông tin vẫn được giữ lại theo luật định",
+      "what_remains_items": [
+        "Hóa đơn điện tử và lịch sử thanh toán (10 năm theo Luật Quản lý Thuế).",
+        "Audit log truy cập (24 tháng theo Luật An ninh mạng).",
+        "Thông tin tài khoản pháp lý đại diện."
+      ],
+      "support_line": "Nếu bạn cho rằng có sai sót, liên hệ DPO {dpo_email} trong vòng 30 ngày."
+    },
+    "admin_new_login_alert": {
+      "category": "Security",
+      "trigger": "Khi có đăng nhập admin từ thiết bị hoặc địa điểm mới",
+      "subject": "Đăng nhập mới — tài khoản admin {organization_name}",
+      "preview": "Đăng nhập từ {device} tại {location} lúc {login_time}.",
+      "greeting": "Chào {admin_name},",
+      "body_intro": "Chúng tôi ghi nhận đăng nhập mới vào tài khoản admin của {organization_name}.",
+      "details_title": "Chi tiết đăng nhập",
+      "details": {
+        "time": "Thời gian: {login_time}",
+        "ip": "Địa chỉ IP: {ip_address}",
+        "device": "Thiết bị: {device}",
+        "location": "Địa điểm dự đoán: {location}"
+      },
+      "verify_title": "Đây có phải là bạn không?",
+      "verify_yes": "Nếu đúng là bạn, hãy bỏ qua email này.",
+      "verify_no": "Nếu KHÔNG phải là bạn, vui lòng đổi mật khẩu ngay và bật 2FA.",
+      "cta_label": "Đổi mật khẩu ngay",
+      "security_tips_title": "Mẹo bảo mật"
+    },
+    "dsar_acknowledgement_requester": {
+      "category": "PDPL",
+      "trigger": "Sau khi user gửi DSAR (Data Subject Access Request)",
+      "subject": "Đã nhận yêu cầu quyền chủ thể dữ liệu — Ticket {ticket_id}",
+      "preview": "Ticket {ticket_id} đã được tạo. SLA phản hồi: 20 ngày làm việc.",
+      "greeting": "Chào {requester_name},",
+      "body_intro": "Chúng tôi đã nhận yêu cầu thực thi quyền chủ thể dữ liệu của bạn theo PDPL Decree 13/2023/NĐ-CP.",
+      "ticket_info_title": "Thông tin ticket",
+      "ticket_info": {
+        "id": "Mã ticket: {ticket_id}",
+        "right_type": "Loại quyền: {right_type}",
+        "submitted_at": "Thời gian gửi: {submitted_at}",
+        "sla_response_by": "Hạn phản hồi: {sla_date} (20 ngày làm việc kể từ hôm nay)"
+      },
+      "next_steps_title": "Bước tiếp theo",
+      "next_steps": [
+        "Đội DPO sẽ xác minh danh tính bằng OTP qua email/SĐT đã đăng ký.",
+        "Sau khi xác minh, yêu cầu sẽ được xử lý trong vòng 20 ngày làm việc (gia hạn tối đa 10 ngày bổ sung — PDPL Art 14).",
+        "Bạn sẽ nhận email cập nhật khi có tiến triển."
+      ],
+      "support_line": "Câu hỏi? Liên hệ DPO tại {dpo_email}."
+    },
+    "dsar_new_ticket_dpo": {
+      "category": "PDPL",
+      "trigger": "Khi user gửi DSAR — thông báo nội bộ tới DPO",
+      "subject": "[DSAR] Yêu cầu mới — Ticket {ticket_id} ({right_type})",
+      "preview": "Ticket DSAR mới cần xử lý trong 20 ngày làm việc.",
+      "greeting": "Chào DPO,",
+      "body_intro": "Yêu cầu DSAR mới đã được gửi tới hệ thống.",
+      "ticket_info_title": "Thông tin yêu cầu",
+      "ticket_info": {
+        "id": "Ticket ID: {ticket_id}",
+        "right_type": "Loại quyền: {right_type}",
+        "requester": "Người yêu cầu: {requester_name} ({requester_email})",
+        "tenant": "Tenant: {tenant_name}",
+        "submitted_at": "Thời gian: {submitted_at}",
+        "sla_deadline": "Hạn xử lý: {sla_deadline}"
+      },
+      "cta_label": "Mở ticket trong dashboard",
+      "verification_note": "Lưu ý: phải xác minh danh tính người yêu cầu trước khi cung cấp dữ liệu."
+    }
+  },
+  "test_data_samples": {
+    "organization_names": [
+      "Trung tâm Anh ngữ Sky Education",
+      "Trung tâm Toán Quang Minh",
+      "Học viện IELTS Future Path",
+      "Lớp Tiếng Nhật Sakura"
+    ],
+    "person_names": [
+      "Trần Thị Hồng",
+      "Nguyễn Văn An",
+      "Phạm Thị Mai",
+      "Lê Đức Anh"
+    ],
+    "addresses": [
+      "123 Lê Lợi, Q.1, TP.HCM",
+      "45 Hai Bà Trưng, Hoàn Kiếm, Hà Nội",
+      "789 Nguyễn Văn Cừ, Quận 5, TP.HCM"
+    ],
+    "phone_numbers": [
+      "0901234567",
+      "0987654321",
+      "0912345678"
+    ]
+  }
+}
