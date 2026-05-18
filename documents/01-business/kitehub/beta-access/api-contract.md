@@ -137,7 +137,7 @@ This contract is the cross-layer source-of-truth consumed by:
 **Use case:** UC-BETA-004 — Coordinator listing
 **Auth:** **Bearer + role `PLATFORM_ADMIN`** (Bucket A — GAP-384 ships `@PreAuthorize`)
 
-**Query params:** `?status=PENDING&page=0&size=20`
+**Query params:** `?status=PENDING&page=0&size=20` — giá trị hợp lệ cho `status`: `PENDING` | `APPROVED` | `REJECTED` | `SIGNED_UP` | `ABORTED`
 
 **Response 200 OK (`BetaRequestPage`):**
 ```json
@@ -195,7 +195,7 @@ This contract is the cross-layer source-of-truth consumed by:
 | `APPROVED` | Coordinator approved, invite token issued, awaiting signup |
 | `REJECTED` | Coordinator rejected (terminal) |
 | `SIGNED_UP` | Token redeemed, tenant provisioning kicked off (terminal) |
-| `EXPIRED` | Approved but token not redeemed within 24h |
+| `ABORTED` | Tự động hủy bởi scheduler sau `kitehub.beta-access.abort-threshold-hours` giờ không có coordinator action (terminal) — BR-BETA-004, UC-BETA-007 |
 
 ---
 
@@ -210,8 +210,8 @@ This contract is the cross-layer source-of-truth consumed by:
 
 ## Related
 
-- BR-BETA-001..003: `documents/01-business/kitehub/beta-access/rules.md`
-- UC-BETA-001..006: `documents/01-business/kitehub/beta-access/use-cases.md`
+- BR-BETA-001..004: `documents/01-business/kitehub/beta-access/rules.md`
+- UC-BETA-001..007: `documents/01-business/kitehub/beta-access/use-cases.md`
 - Source DTOs: `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/beta/dto/`
 - Wave 35 plan: `documents/03-planning/waves/wave-2026-05-08-35-audit-p0-blockers-sprint.md`
 - Cross-layer rule: `.claude/rules/contract-first-for-cross-layer.md`

@@ -1,7 +1,7 @@
 # Beta Access — Business Rules
 
 **Domain:** Beta tenant invite mechanism (Wave 33 — GAP-372 + Wave 35 PDPL — GAP-385)
-**Last verified:** 2026-05-08 (Wave 35 Bucket 0 Foundation)
+**Last verified:** 2026-05-18 (Wave 97 Bucket C — GAP-639 ABORTED enum sync)
 **Config prefix:** `kitehub.beta`
 
 This file documents the substantive business values for the beta-access flow. Each rule has the 5 attributes mandated by `.claude/rules/business-logic-review.md` §2.
@@ -22,7 +22,7 @@ This file documents the substantive business values for the beta-access flow. Ea
 
 - **Value:** Only ONE active request per email at a time. "Active" = `PENDING` or `APPROVED`. Duplicate submit returns HTTP 409 + `BETA_DUPLICATE_EMAIL`.
 - **Source:** Informed gut + Wave 33 design discussion (PR #802 BetaAccessService). No public competitor data point; rationale below stands without external data.
-- **Rationale:** Allowing multiple PENDING rows per email creates coordinator confusion (which to approve?) and lets requesters game the queue. Once `REJECTED` or `EXPIRED`, the email may resubmit (those are terminal states; the requester may have addressed the rejection reason).
+- **Rationale:** Allowing multiple PENDING rows per email creates coordinator confusion (which to approve?) and lets requesters game the queue. Once `REJECTED`, `ABORTED`, or `SIGNED_UP`, the email may resubmit (những trạng thái này là terminal — người dùng có thể đã giải quyết lý do bị từ chối hoặc gửi lại sau khi bị hủy tự động).
 - **Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-05-08).
 - **Compliance check:** N/A — no PDPL / Consumer Protection trigger; uniqueness is a coordinator-UX optimization, not regulated.
 - **Review cadence:** Quarterly. **Next review:** 2026-08-08. Event triggers: ≥10 duplicate-email complaints in any month.
@@ -38,6 +38,16 @@ This file documents the substantive business values for the beta-access flow. Ea
 - **Review cadence:** Quarterly. **Next review:** 2026-08-08. Event triggers: any beta-related security incident; addition of new admin endpoints.
 - **Code reference:** `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/beta/controller/BetaAccessController.java` (Bucket A — Wave 35 GAP-384 will add `@PreAuthorize`).
 
+## BR-BETA-004 — Tự động hủy yêu cầu beta stale sau ngưỡng thời gian
+
+- **Value:** PENDING request quá `kitehub.beta-access.abort-threshold-hours` giờ (mặc định `24`) không được coordinator xử lý sẽ bị tự động chuyển sang `ABORTED`. Row giữ lại trong DB cho audit trail; email được phép gửi lại yêu cầu mới (per BR-BETA-002).
+- **Source:** Wave 92 — GAP-600 BetaRequestAbortCleanupScheduler implementation (quyết định thiết kế nội bộ nhằm ngăn coordinator queue bị ô nhiễm bởi PENDING rows cũ).
+- **Rationale:** PENDING rows không giới hạn thời gian chiếm slot trong coordinator view, gây nhầm lẫn và queue pollution. Threshold 24h = 1× `kitehub.beta.invite-token-ttl-hours` — sau khi invite-token hết hạn, việc giữ PENDING request thêm không mang giá trị coordinator. Sau abort, email có thể resubmit per BR-BETA-002 (ABORTED là terminal state).
+- **Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-05-18).
+- **Compliance check:** N/A — internal queue management; không có trigger PDPL/Consumer Protection. Audit row được giữ lại per BR-BETA-001 (consent_at retained). ABORTED state không xóa personal data — chỉ thay đổi trạng thái request.
+- **Review cadence:** Quarterly. **Next review:** 2026-08-18. Event triggers: coordinator phàn nàn về premature abort; yêu cầu điều chỉnh threshold; số lượng ABORTED requests > 20% tổng requests trong 1 tháng.
+- **Code reference:** `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/beta/scheduler/BetaRequestAbortCleanupScheduler.java` (Wave 92 — GAP-600).
+
 ---
 
 ## Config
@@ -46,6 +56,7 @@ This file documents the substantive business values for the beta-access flow. Ea
 |-----|---------|---------|
 | `kitehub.beta.invite-token-ttl-hours` | `24` | Approved-token expiry (existing Wave 33 config) |
 | `kitehub.beta.allowed-personas` | `P1_SOLO_TEACHER,P2_CENTER_OWNER` | Phase 1 BETA scope (P3/P5 deferred to Phase 2/3) |
+| `kitehub.beta-access.abort-threshold-hours` | `24` | Stale PENDING request auto-abort threshold (BR-BETA-004; Wave 92 GAP-600) |
 
 These config keys are the source-of-truth values mirrored into `application.yml` per service.
 

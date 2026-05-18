@@ -1,6 +1,6 @@
 # GAP-640: Admin audit domain 3-layer docs missing
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-18 (Wave 97 Bucket C salvage — `documents/01-business/kitehub/admin-audit/` created with 4 files: README + rules + use-cases + api-contract; BR-ADMIN-AUDIT-001..003 + UC-ADMIN-AUDIT-001..005; PDPL Art 11 satisfied)
 **Priority:** 🟠 P1 (META P1 force-multiplier per `.claude/rules/meta-gap-priority.md` §3)
 **Domain:** Meta (Business docs structure)
 **Detected:** 2026-05-18 (Wave 92 post-wave audit suite per GAP-619)

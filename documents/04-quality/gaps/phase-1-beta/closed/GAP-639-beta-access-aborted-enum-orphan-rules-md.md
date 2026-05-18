@@ -1,6 +1,6 @@
 # GAP-639: ABORTED enum orphan trong beta-access/rules.md
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-18 (Wave 97 Bucket C salvage — beta-access/{rules,api-contract,use-cases}.md edited with ABORTED + SIGNED_UP enum sync, 58 insertions)
 **Priority:** 🟠 P1
 **Domain:** Backend (Living Docs sync)
 **Detected:** 2026-05-18 (Wave 92 post-wave audit suite per GAP-619)
