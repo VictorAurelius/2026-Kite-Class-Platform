@@ -1,0 +1,34 @@
+{
+  "pr": 1542,
+  "title": "feat(wave-97): Bucket C+D salvage \u2014 4 gaps DONE (GAP-639/640/642/644)",
+  "branch": "feature/wave-97-bucket-cd-salvage",
+  "created_at": "2026-05-18T18:19:30Z",
+  "merged_at": "2026-05-18T18:24:41Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "business-logic-audit",
+      "api-contract-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-18T18:46:46.332821",
+      "type": "PR_MERGED_BACKFILLED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 16,
+        "java_files": 1,
+        "test_files": 2,
+        "script_files": 0,
+        "business_docs": null,
+        "note": "Reconstructed via backfill-pr-logs.py \u2014 audits_run not verified"
+      }
+    }
+  ],
+  "compliance_score": "1/3"
+}

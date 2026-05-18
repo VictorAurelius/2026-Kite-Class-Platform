@@ -25,17 +25,18 @@
 - **GAP-654** Admin v1 typed DTOs + controller refactor + legacy @Deprecated (Wave 98 candidate — completes Bucket B2/B3 scope)
 - **GAP-655** Thesis citation-extract skill (Wave 98+ thesis tooling — completes GAP-647 Step 3)
 
-> **📍 Next session ĐỌC TRƯỚC:**
-> 1. **Wave 97 Bucket B/C/D status** — 3 bg-agents in flight per `wave-2026-05-18-97-audit-p0p1-gate-closing.md`; check PRs base=main filtered title "Wave 97 Bucket"
-> 2. **Wave 98 next (thesis infrastructure foundation)** — per `release-1.5-thesis-scope.md` §3 Wave 98 row; spawn after Wave 97 closure; 4 buckets (GAP-646 docx / GAP-647 biblio / GAP-650 ch1 / GAP-648 NFR k6)
-> 3. **Release 1.5 thesis-scope locked 2026-05-18** — 8 META gaps GAP-646..653 + 7 product demo-blocker re-prioritized (GAP-287/297/293/562/518/286/538). Decision-point cuối Phase 1 ~2026-07-15 cho upgrade Release 2 option
-> 4. **GAP-637 P0 PARTIAL 60% Wave 97 Bucket A SHIPPED** — 3/5 AC done (@PreAuthorize 3 controllers + SecurityConfig + 6 @WithMockUser tests + mvn verify PASS). Remaining 2 AC defer GAP-638 (Bucket B in flight) + GAP-612 (AWS live verify blocker unchanged)
-> 5. **GAP-612 AWS suspension** restoration pending D+4 = 2026-05-21 trigger escalate (unchanged)
-> 6. **Wave 96 sweep batch B-F follow-ups** (carry-forward):
+> **📍 Next session ĐỌC TRƯỚC (Wave 97 PARTIAL closed):**
+> 1. **Wave 98 plan draft** — thesis infrastructure foundation per `release-1.5-thesis-scope.md` §3 Wave 98 row; 4 buckets candidates: GAP-646 thesis-docx pipeline / GAP-647 bibliography Phase 2 (via GAP-655 citation-extract skill) / GAP-650 chapter 1 literature Part 1 / GAP-648 NFR k6 baseline
+> 2. **GAP-654 Wave 98 candidate** — Admin v1 typed DTOs + controller refactor + legacy @Deprecated (~1-1.5 bucket scope; completes Wave 97 Bucket B2+B3 deferred portion)
+> 3. **GAP-655 Wave 98+ candidate** — Thesis citation-extract skill (~0.5-1 bucket; completes GAP-647 Step 3 deferred portion)
+> 4. **bg-agent lesson learned** — context-thrashing 2x failure cho Java code scope > 6 file ops. Wave 98 spawn pattern: docs-heavy buckets parallel bg-agent OK; code-heavy buckets prefer foreground OR mini-agent surgical split (B1 + B2 pattern per Wave 97 Bucket B retry)
+> 5. **Release 1.5 thesis-scope LOCKED 2026-05-18** — 8 META gaps GAP-646..653 + 7 product demo-blocker re-prioritized (GAP-287/297/293/562/518/286/538). Decision-point cuối Phase 1 ~2026-07-15 cho upgrade Release 2 option
+> 6. **GAP-612 AWS suspension** restoration pending D+4 = 2026-05-21 trigger escalate (unchanged from Wave 96)
+> 7. **Wave 97 PARTIAL gap close-out** post-AWS-restore: GAP-637 60% → 100% + GAP-638 30% → 90% (via GAP-654) + GAP-647 50% → 100% (via GAP-655). All 3 PARTIAL blocked by AWS live verify portion OR follow-up scope.
+> 8. **Wave 96 sweep batch B-F follow-ups** (carry-forward unchanged):
 >    - Action B: markdown frontmatter strip 34 gaps (defer Phase 3 per gap-architecture-v2)
 >    - Action C: UPDATE_SCOPE 4 gaps (GAP-203/220/052/155/438)
 >    - Action F: human triage 12 UNCLEAR + AMBIGUOUS gaps (incl GAP-040 anomaly)
-> 7. Wave 97 + Plan 1.5 closure artifacts: `wave-history.jsonl` (post Bucket B/C/D merge) + 3 outside-in audit artifacts `documents/04-quality/audits/persona-review/2026-05-18-thesis-*.md`
 
 ### 🎉 Wave 97 Bucket A SHIPPED 2026-05-18 — GAP-637 admin @PreAuthorize + SecurityConfig + 6 security tests
 
