@@ -74,3 +74,4 @@ no-vercel-references,MANDATORY,1.0.0,2026-05-17,2026-05-17,no-vercel-references.
 professional-manual-content-standard,MANDATORY,1.0.0,2026-05-18,2026-05-18,professional-manual-content-standard.md,"documents/05-guides/professional-manual/**,documents/05-guides/dev/**,documents/05-guides/integration/**,documents/05-guides/operations/**/*-runbook.md",active,,
 wave-closure-scope-completeness,MANDATORY,1.0.0,2026-05-18,2026-05-18,wave-closure-scope-completeness.md,"documents/03-planning/waves/**",active,,
 docs-subfolder-maturity,MANDATORY,1.0.0,2026-05-18,2026-05-18,docs-subfolder-maturity.md,"documents/**",active,,
+docs-archival-cadence,MANDATORY,1.0.0,2026-05-18,2026-05-18,docs-archival-cadence.md,"documents/**/*.md,documents/**/*.json",active,,
