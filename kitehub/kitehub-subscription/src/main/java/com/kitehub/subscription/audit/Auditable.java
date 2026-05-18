@@ -48,4 +48,22 @@ public @interface Auditable {
      * empty → arg0.toString(), or {@code "arg0.id"} → invokes {@code getId()}.</p>
      */
     String entityIdSource() default "arg0";
+
+    /**
+     * Wave 92 Bucket A — GAP-521 Phase 2 enrichment.
+     *
+     * <p>Optional semantic resource type when the action targets a resource that
+     * is NOT a JPA entity (config key, RBAC role mapping, system flag). Tách
+     * biệt với {@link #entityType()} (vd "beta_access_request" — JPA entity).
+     * Default empty — aspect persists null.</p>
+     */
+    String resourceType() default "";
+
+    /**
+     * Wave 92 Bucket A — GAP-521 Phase 2 enrichment.
+     *
+     * <p>Optional fully-qualified resource id source — same SpEL-lite subset as
+     * {@link #entityIdSource()}. Default empty — aspect persists null.</p>
+     */
+    String resourceIdSource() default "";
 }

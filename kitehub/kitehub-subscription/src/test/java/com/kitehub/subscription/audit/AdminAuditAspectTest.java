@@ -46,11 +46,12 @@ class AdminAuditAspectTest {
                 adminId.toString(), null,
                 List.of(new SimpleGrantedAuthority("ROLE_PLATFORM_ADMIN"))));
 
-        // Wire a fake servlet request so the aspect can read IP + UA.
+        // Wire a fake servlet request so the aspect can read IP + UA + request-id.
         MockHttpServletRequest req = new MockHttpServletRequest();
         req.setRemoteAddr("203.0.113.42");
         req.addHeader("User-Agent", "TestRunner/1.0");
         req.addHeader("X-Forwarded-For", "203.0.113.42, 10.0.0.1");
+        req.addHeader("X-Request-Id", "req-test-correlation-123");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(req));
 
         // Build an AspectJ proxy that runs the real aspect against a mock-backed
@@ -84,6 +85,44 @@ class AdminAuditAspectTest {
         assertThat(row.getUserAgent()).isEqualTo("TestRunner/1.0");
         assertThat(row.isSuccess()).isTrue();
         assertThat(row.getPayloadJson()).contains("\"id\":42").contains("\"notes\":\"Looks good\"");
+    }
+
+    @Test
+    @DisplayName("Wave 92 GAP-521 Phase 2 — enrichment fields captured (requestId + resourceType + resourceId)")
+    void enrichmentFieldsPopulated() {
+        proxy.approveWithEnrichment(99L, "Approved with enrichment");
+
+        ArgumentCaptor<AdminAuditLog> captor = ArgumentCaptor.forClass(AdminAuditLog.class);
+        verify(repository).save(captor.capture());
+
+        AdminAuditLog row = captor.getValue();
+        assertThat(row.getAction()).isEqualTo("BETA_REQUEST_APPROVE_ENRICHED");
+        // legacy entity fields giữ nguyên
+        assertThat(row.getTargetEntityType()).isEqualTo("beta_access_request");
+        assertThat(row.getTargetEntityId()).isEqualTo("99");
+        // Phase 2 enrichment
+        assertThat(row.getTargetResourceType()).isEqualTo("beta_access_request");
+        assertThat(row.getTargetResourceId()).isEqualTo("99");
+        assertThat(row.getRequestId()).isEqualTo("req-test-correlation-123");
+    }
+
+    @Test
+    @DisplayName("Wave 92 GAP-521 Phase 2 — annotation without resourceType keeps fields null")
+    void enrichmentOptionalWhenAnnotationOmitsFields() {
+        proxy.approve(7L, "Legacy call site");
+
+        ArgumentCaptor<AdminAuditLog> captor = ArgumentCaptor.forClass(AdminAuditLog.class);
+        verify(repository).save(captor.capture());
+
+        AdminAuditLog row = captor.getValue();
+        // Backward compat: legacy @Auditable không khai báo resourceType / resourceIdSource
+        // → enrichment fields null (chỉ requestId từ header still captured)
+        assertThat(row.getTargetResourceType()).isNull();
+        assertThat(row.getTargetResourceId()).isNull();
+        assertThat(row.getBeforeState()).isNull();
+        assertThat(row.getAfterState()).isNull();
+        // requestId vẫn capture qua header
+        assertThat(row.getRequestId()).isEqualTo("req-test-correlation-123");
     }
 
     @Test
@@ -129,6 +168,19 @@ class AdminAuditAspectTest {
         @Auditable(action = "WILL_FAIL", entityType = "thing")
         public void failing(Long id) {
             throw new IllegalStateException("bang");
+        }
+
+        /**
+         * Wave 92 Bucket A — GAP-521 Phase 2 fixture: site declares enrichment
+         * {@code resourceType} + {@code resourceIdSource} per new annotation API.
+         */
+        @Auditable(
+            action = "BETA_REQUEST_APPROVE_ENRICHED",
+            entityType = "beta_access_request",
+            resourceType = "beta_access_request",
+            resourceIdSource = "arg0")
+        public String approveWithEnrichment(Long id, String notes) {
+            return "enriched-" + id;
         }
     }
 }

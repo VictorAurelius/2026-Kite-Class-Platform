@@ -69,7 +69,12 @@ public class AdminAuditAspect {
         AdminAuditLog.AdminAuditLogBuilder logBuilder = AdminAuditLog.builder()
             .action(annotation.action())
             .targetEntityType(annotation.entityType().isBlank() ? null : annotation.entityType())
-            .targetEntityId(resolveEntityId(annotation, pjp.getArgs()))
+            .targetEntityId(resolveEntityId(annotation, pjp.getArgs(), annotation.entityIdSource()))
+            // Wave 92 Bucket A — GAP-521 Phase 2 enrichment.
+            .targetResourceType(annotation.resourceType().isBlank() ? null : annotation.resourceType())
+            .targetResourceId(annotation.resourceIdSource().isBlank()
+                ? null
+                : resolveEntityId(annotation, pjp.getArgs(), annotation.resourceIdSource()))
             .createdAt(LocalDateTime.now());
 
         populateAdmin(logBuilder);
@@ -124,6 +129,16 @@ public class AdminAuditAspect {
         HttpServletRequest req = sra.getRequest();
         builder.requestIp(extractClientIp(req));
         builder.userAgent(truncate(req.getHeader("User-Agent"), 512));
+        // Wave 92 Bucket A — GAP-521 Phase 2: capture X-Request-Id / traceparent
+        // for correlation với access logs + APM traces. Prefer explicit
+        // X-Request-Id; fallback traceparent (OTel header).
+        String requestId = req.getHeader("X-Request-Id");
+        if (requestId == null || requestId.isBlank()) {
+            requestId = req.getHeader("traceparent");
+        }
+        if (requestId != null && !requestId.isBlank()) {
+            builder.requestId(truncate(requestId, 64));
+        }
     }
 
     private String extractClientIp(HttpServletRequest req) {
@@ -139,17 +154,20 @@ public class AdminAuditAspect {
     }
 
     /**
-     * Resolve the target entity id from method args per {@link Auditable#entityIdSource()}.
-     * Supports a minimal SpEL-lite subset:
+     * Resolve a target id from method args per a SpEL-lite source string.
+     * Supports a minimal subset:
      * <ul>
      *   <li>{@code "arg0"} (default) — first arg's {@code toString()}</li>
      *   <li>{@code "argN"} — N-th arg's {@code toString()}</li>
      *   <li>{@code "argN.id"} — invokes {@code getId()} on the N-th arg</li>
      * </ul>
+     *
+     * <p>Wave 92 Bucket A — signature accepts explicit {@code source} so the
+     * same parser can resolve both {@link Auditable#entityIdSource()} and
+     * {@link Auditable#resourceIdSource()}.</p>
      */
     @SuppressWarnings("squid:S3011") // reflective access to getId is intentional
-    private String resolveEntityId(Auditable annotation, Object[] args) {
-        String source = annotation.entityIdSource();
+    private String resolveEntityId(Auditable annotation, Object[] args, String source) {
         if (source == null || source.isBlank() || args.length == 0) {
             return null;
         }
