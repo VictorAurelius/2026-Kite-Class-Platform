@@ -1,6 +1,6 @@
 # GAP-145: Loki Log Aggregation + Tempo Tracing Stack
 
-**Status:** 🔵 OPEN
+**Status:** ⚫ WONTFIX (Wave 96 — scope consolidated by GAP-434+111+112)
 **Priority:** 🟡 P2
 **Domain:** DevOps / Observability
 **Found:** 2026-04-20 (split from GAP-111 follow-up scope)
@@ -50,5 +50,14 @@ proves stable.
 - Audit: `documents/04-quality/audits/ops/ops-readiness-audit-2026-04-19.md` §4 §5
 
 ## Log
+
+- **2026-05-18 (Wave 96 PR1 — WONTFIX DUPLICATE):** Per Wave 96 gap re-triage full sweep (Agent 1 finding), scope của GAP-145 (Loki + Tempo combined stack) đã được consolidated bởi 3 gap riêng biệt:
+  - **GAP-434** — Loki / Promtail log aggregation stack (Phase 2 deferred)
+  - **GAP-111** — Distributed tracing missing (Tempo OpenTelemetry foundation)
+  - **GAP-112** — Frontend error tracking missing (separate FE scope)
+
+  Original GAP-145 đã propose combined "Loki + Tempo" 2026-04-20 — sau đó scope tách thành 3 gap riêng theo concern. GAP-145 trở thành duplicate umbrella. Mark WONTFIX per `audit-to-gap-pipeline.md` §3 (1 gap = 1 issue rõ ràng); cross-link sang 3 gap kế thừa.
+
+  No actual work lost — chỉ là cleanup duplicate filing. Future work tracked qua sister gaps.
 
 - 2026-04-20 — Split from GAP-111 follow-up scope; logs + tracing deferred until metrics foundation proves stable.

@@ -1,0 +1,154 @@
+gap_id,filename,current_status,current_completion,verdict,recommended_action,evidence_summary,related_gaps,notes
+GAP-003,phase-2/GAP-003-ai-multi-tier-image-generation.md,OPEN,0,KEEP_CURRENT,No change,AI multi-tier image gen — genuine Phase 2 AI scope post-BETA,GAP-002,Deferred until Ollama GPU available
+GAP-004,phase-2/GAP-004-template-based-image-composition.md,OPEN,0,KEEP_CURRENT,No change,Template-based composition — Phase 2 AI scope,GAP-003 GAP-011,Image composition not in BETA
+GAP-006,phase-2/GAP-006-upgrade-to-gemma-4.md,OPEN,0,KEEP_CURRENT,No change,Gemma 4 upgrade explicitly DEFERRED 2026-04-28 until Ollama+Docker GPU,GAP-003,Status field already cites deferral
+GAP-017,phase-2/GAP-017-ai-usage-billing-integration.md,OPEN,0,KEEP_CURRENT,No change,AI usage billing — Phase 2 monetization,GAP-005 GAP-026,Requires AI cost monitor first
+GAP-019,phase-2/GAP-019-ai-observability-cost-monitoring.md,OPEN,0,KEEP_CURRENT,No change,AI observability — Phase 2 ops,GAP-017 GAP-115,Cost monitor post-BETA scale
+GAP-022,phase-2/GAP-022-template-analytics-optimization.md,OPEN,0,KEEP_CURRENT,No change,Template analytics — Phase 2 product growth,GAP-011 GAP-004,Premium analytics post-BETA
+GAP-024,phase-2/GAP-024-asset-lifecycle-storage-cleanup.md,OPEN,0,KEEP_CURRENT,No change,Asset lifecycle cleanup — Phase 2 storage ops,GAP-019,MinIO retention policy post-scale
+GAP-025,phase-2/GAP-025-mobile-first-wizard-ux.md,OPEN,0,KEEP_CURRENT,No change,Mobile-first wizard — Phase 2 UX growth,GAP-272 GAP-287,P2/P3 mobile post-BETA
+GAP-026,phase-2/GAP-026-trial-freemium-ai-mechanics.md,OPEN,0,KEEP_CURRENT,No change,Trial freemium AI quotas — Phase 2 monetization tuning,GAP-017,Post-BETA pricing
+GAP-027,phase-2/GAP-027-multi-brand-per-tenant.md,OPEN,0,KEEP_CURRENT,No change,Multi-brand per tenant — Enterprise Phase 2 feature,GAP-068 GAP-071,Multi-campus support
+GAP-028,phase-2/GAP-028-model-versioning-migration-strategy.md,OPEN,0,KEEP_CURRENT,No change,Model versioning — Phase 2 AI ops,GAP-006 GAP-003,Required when 2nd model lands
+GAP-029,phase-2/GAP-029-quality-gate-calibration.md,OPEN,0,KEEP_CURRENT,No change,Quality gate calibration — Phase 2 AI tuning,GAP-228 GAP-272c,Post-BETA quality bar
+GAP-030,phase-2/GAP-030-disaster-recovery-ai-branding.md,OPEN,0,KEEP_CURRENT,No change,DR for AI branding — Phase 2 ops resilience,GAP-117 GAP-019,Backup AI assets
+GAP-034,phase-2/GAP-034-branding-export-pack.md,OPEN,0,KEEP_CURRENT,No change,Branding export pack — Phase 2 enterprise feature,GAP-022 GAP-011,Self-serve export
+GAP-035,phase-2/GAP-035-wizard-team-collaboration.md,OPEN,0,KEEP_CURRENT,No change,Wizard team collab — Phase 2 enterprise,GAP-027 GAP-068,Multi-user wizard editing
+GAP-036,phase-2/GAP-036-tier-upgrade-reveal-ux.md,OPEN,0,KEEP_CURRENT,No change,Tier upgrade reveal UX — Phase 2 monetization,GAP-026,Upgrade prompts in app
+GAP-038,phase-2/GAP-038-developer-api-docs-sdk.md,OPEN,0,KEEP_CURRENT,No change,Public API docs+SDK — Phase 2 developer ecosystem,GAP-039 GAP-075,B2D2C scope
+GAP-039,phase-2/GAP-039-webhook-reliability-versioning.md,OPEN,0,KEEP_CURRENT,No change,Webhook reliability+versioning — Phase 2 integration,GAP-038 GAP-633,Required for partnerships
+GAP-044,phase-2/GAP-044-synthetic-monitoring-feature-flags.md,OPEN,0,KEEP_CURRENT,No change,Synthetic monitoring + feature flags — Phase 2 ops,GAP-115 GAP-019,Production observability tier 2
+GAP-052,phase-3/GAP-052-parent-portal.md,IN_PROGRESS,40,UPDATE_SCOPE,Update Status line — Wave 2 reference is stale (current Wave 94+); cite GAP-321 trilogy as authoritative Phase 3 split,Wave 2/5 reference outdated; Phase 1A/1B/1C already split into GAP-321/321b/321c which are PARTIAL,GAP-321 GAP-321b GAP-321c GAP-361,Status text mentions Wave 5 but actual delivery split is via GAP-321 series
+GAP-055,phase-3/GAP-055-official-report-card-vn.md,OPEN,0,KEEP_CURRENT,No change,VN official report card (học bạ) — Phase 3 K-12 LEGAL scope,GAP-343 GAP-336,K-12 trio scope
+GAP-056,phase-3/GAP-056-homeroom-teacher-gvcn.md,OPEN,0,KEEP_CURRENT,No change,Homeroom teacher (GVCN) — Phase 3 K-12 scope,GAP-324 GAP-323,K-12 role hierarchy
+GAP-057,phase-2/GAP-057-payroll-teacher-commission.md,PARTIAL,50,KEEP_CURRENT,No change,Phase 1 HOURLY shipped Wave 18a; Phase 2 enrichment correctly scoped phase-2,GAP-057b GAP-306,Phase split documented
+GAP-057b,phase-3/GAP-057b-payroll-phase-2-types-tax-bhxh-pdf-bank.md,OPEN,0,KEEP_CURRENT,No change,Payroll Phase 2 tax/BHXH/PDF — sister of GAP-057 Phase 2 (named phase-2-types but K-12 LEGAL tax thus phase-3),GAP-057 GAP-306 GAP-062,Filename says phase-2 but K-12 tax scope phase-3 correct
+GAP-059,phase-3/GAP-059-student-conduct-tracking.md,OPEN,0,KEEP_CURRENT,No change,Student conduct (hạnh kiểm) — Phase 3 K-12 scope,GAP-055,MOET conduct grading
+GAP-060,phase-3/GAP-060-period-based-attendance.md,OPEN,0,KEEP_CURRENT,No change,Period-based attendance — Phase 3 K-12,GAP-323 GAP-323b,Multi-tiết attendance
+GAP-061,phase-3/GAP-061-promotion-retention-logic.md,OPEN,0,KEEP_CURRENT,No change,Promotion/retention (lên lớp/ở lại) — Phase 3 K-12,GAP-340,Academic year transition
+GAP-062,phase-3/GAP-062-payroll-bank-integration.md,OPEN,0,KEEP_CURRENT,No change,Payroll bank integration — Phase 3 (P3 medium+),GAP-313 GAP-057b,Bank API integration
+GAP-063b,phase-2/GAP-063b-notification-phase-2-zalo-sms-quiet-hours-fallback.md,OPEN,0,KEEP_CURRENT,No change,Notification Phase 2 Zalo/SMS quiet-hours — sister of GAP-063 Phase 1,GAP-063 GAP-337,Notification engine enrichment
+GAP-066,phase-2/GAP-066-kitehub-unified-reports-dashboard.md,OPEN,0,KEEP_CURRENT,No change,KiteHub unified reports — Phase 2 multi-tenant dashboard,GAP-067 GAP-312,KiteHub admin scope
+GAP-067,phase-2/GAP-067-kitehub-instance-control-plane.md,OPEN,0,KEEP_CURRENT,No change,KiteHub instance control plane — Phase 2 admin tooling,GAP-066 GAP-271,KiteHub control plane
+GAP-068,phase-2/GAP-068-kitehub-admin-branding-console.md,OPEN,0,KEEP_CURRENT,No change,KiteHub admin branding console — Phase 2,GAP-067 GAP-027,Cross-tenant branding admin
+GAP-071,phase-2/GAP-071-branding-migration-on-tier-change.md,OPEN,0,KEEP_CURRENT,No change,Branding migration on tier change — Phase 2 monetization,GAP-026 GAP-027,Tier upgrade rebrand
+GAP-072,phase-2/GAP-072-scheduled-rebrand-academic-year-refresh.md,OPEN,0,KEEP_CURRENT,No change,Scheduled rebrand academic year — Phase 2/3 K-12 ops,GAP-071,Year-end refresh
+GAP-074,phase-2/GAP-074-ai-alt-text-accessibility.md,OPEN,0,KEEP_CURRENT,No change,AI alt-text — Phase 2 accessibility,GAP-226 GAP-352,WCAG growth scope
+GAP-075,phase-2/GAP-075-developer-sandbox-tenant.md,OPEN,0,KEEP_CURRENT,No change,Developer sandbox tenant — Phase 2 ecosystem,GAP-038 GAP-039,Sandbox API access
+GAP-099,phase-3/GAP-099-structured-class-schedule.md,PARTIAL,40,KEEP_CURRENT,No change,Structured class schedule Phase 1 foundation shipped; Phase 2-3 K-12 deferred,GAP-307 GAP-323,Multi-axis schedule
+GAP-123,phase-2/GAP-123-hpa-kitehub-services.md,OPEN,0,KEEP_CURRENT,No change,HPA KiteHub services — Phase 2 EKS scale-out,GAP-415 GAP-479 GAP-124,Helm HPA configs
+GAP-124,phase-2/GAP-124-pdb-networkpolicy-hardening.md,OPEN,0,KEEP_CURRENT,No change,PDB+NetworkPolicy hardening — Phase 2 EKS,GAP-123 GAP-479,K8s security
+GAP-155,phase-2/GAP-155-brd-content-fill.md,OPEN,0,UPDATE_SCOPE,Review against current BRD state — may overlap with shipped content,BRD content fill P1 business-logic; check if some sections shipped post-Wave 23 BRD effort,GAP-156 GAP-049,State-check vs current BRD docs needed
+GAP-176,phase-3/GAP-176-ui-ux-pro-max-skill-integration.md,OPEN,0,KEEP_CURRENT,No change,UI/UX Pro Max skill integration — Phase 3 meta + feature,GAP-348 GAP-272,Meta skill upgrade scope
+GAP-200,phase-3/GAP-200-school-mis-integration.md,PARTIAL,50,KEEP_CURRENT,No change,School MIS integration Phase 1 shipped; Phase 2 K-12 MIS deferred,GAP-340 GAP-326,MOET MIS sync
+GAP-200,phase-3/GAP-200-school-mis-sms-integration.md,OPEN,0,DUPLICATE,Filename ID collision — both files use GAP-200 stem; rename one per gap-architecture-v2.md filename-collision cleanup,Two files share GAP-200 prefix — second is SMS scope distinct,GAP-200 GAP-063b GAP-286,Filename collision flagged in gap-architecture-v2.md §10
+GAP-226,phase-2/GAP-226-real-wcag-contrast-measurement.md,OPEN,0,KEEP_CURRENT,No change,Real WCAG contrast measurement — Phase 2 quality bar,GAP-352 GAP-074,Tool integration post-scaffold
+GAP-227,phase-2/GAP-227-real-visual-regression-diff.md,OPEN,0,KEEP_CURRENT,No change,Real visual regression diff — Phase 2 quality bar,GAP-272f GAP-355,Visual regression infra
+GAP-228,phase-2/GAP-228-real-ml-content-classifier.md,OPEN,0,KEEP_CURRENT,No change,Real ML content classifier — Phase 2 quality bar,GAP-029 GAP-018,Content moderation tier 3
+GAP-266,phase-2/GAP-266-track-2-port-kiteclass-pro-v2.md,PARTIAL,50,KEEP_CURRENT,No change,Track 2 KC Pro v2 Wave 30 shipped foundation; full port Phase 2,GAP-270 GAP-273,Design system port multi-wave
+GAP-267,phase-2/GAP-267-track-2-port-kiteclass-parent.md,PARTIAL,50,KEEP_CURRENT,No change,Track 2 KC Parent Wave 49 shell shipped; full port Phase 2,GAP-267a GAP-321,Parent persona UI
+GAP-267a,phase-2/GAP-267a-parent-e2e-lighthouse-verification.md,PARTIAL,60,KEEP_CURRENT,No change,Parent E2E Lighthouse Wave 51 spec shipped; verification run Phase 2,GAP-267 GAP-269c,E2E verification sister gap
+GAP-268,phase-2/GAP-268-track-2-port-kiteclass-teacher.md,PARTIAL,60,KEEP_CURRENT,No change,Track 2 KC Teacher Wave 49 24-screen port shipped; remaining polish Phase 2,GAP-268a,Teacher persona UI
+GAP-268a,phase-3/GAP-268a-teacher-attendance-overview-api.md,PARTIAL,70,KEEP_CURRENT,No change,Teacher attendance overview BE Wave 51 shipped; FE wiring Phase 2/3,GAP-268 GAP-323,BE endpoint exists; FE deferred
+GAP-269,phase-2/GAP-269-track-2-port-kiteclass-student.md,PARTIAL,50,KEEP_CURRENT,No change,Track 2 KC Student Wave 49 shell+11 screens shipped; full port Phase 2,GAP-269c GAP-363,Student persona UI
+GAP-269c,phase-2/GAP-269c-student-e2e-lighthouse-verification.md,PARTIAL,60,KEEP_CURRENT,No change,Student E2E Lighthouse Wave 51 spec shipped; verification Phase 2,GAP-269 GAP-267a,E2E verification sister gap
+GAP-270,phase-2/GAP-270-track-2-port-kitehub-pro-v2.md,PARTIAL,50,KEEP_CURRENT,No change,Track 2 KH Pro v2 Wave 31 foundation shipped; full port Phase 2,GAP-266 GAP-273,Owner persona UI
+GAP-271,phase-3/GAP-271-track-2-port-kitehub-admin.md,PARTIAL,30,KEEP_CURRENT,No change,Track 2 KH Admin Phase 3 P5 K-12 LEGAL scope,GAP-345 GAP-321,Internal admin port
+GAP-272,phase-2/GAP-272-track-2-port-ai-branding-wizard-v2.md,PARTIAL,80,KEEP_CURRENT,No change,Track 2 AI Branding Wizard Wave 32+34+50 FE port DONE; 5 sub-letters PARTIAL,GAP-272c GAP-272e GAP-272f GAP-272g GAP-272k GAP-272m GAP-272n,Direction C wizard
+GAP-272c,phase-2/GAP-272c-quality-gate-score-aggregator-endpoint.md,PARTIAL,50,KEEP_CURRENT,No change,Quality gate aggregator Wave 34 orchestration shipped; full integration Phase 2,GAP-272 GAP-029,AI Branding wizard step 6
+GAP-272e,phase-2/GAP-272e-sse-deploying-log-endpoint.md,PARTIAL,50,KEEP_CURRENT,No change,SSE deploying log Wave 34 endpoint+hook shipped; production integration Phase 2,GAP-272 GAP-006,AI Branding wizard step 6
+GAP-272f,phase-2/GAP-272f-wave-32-visual-regression-baseline.md,OPEN,0,KEEP_CURRENT,No change,Visual regression baseline depends on GAP-227 infra (Phase 2),GAP-227 GAP-272 GAP-355,Wave 8+ infra dep
+GAP-272g,phase-2/GAP-272g-e2e-test-welcome-to-deploy-happy-path.md,OPEN,0,KEEP_CURRENT,No change,E2E happy-path for AI Branding wizard — Phase 2 quality bar,GAP-272 GAP-267a,Playwright E2E
+GAP-272k,phase-2/GAP-272k-live-brand-colors-from-generate-endpoint.md,PARTIAL,50,KEEP_CURRENT,No change,Live brand colors Wave 34 DTO+FE shipped; full theme propagation Phase 2,GAP-272 GAP-027,Generate endpoint integration
+GAP-272m,phase-2/GAP-272m-advanced-mode-server-side-persistence.md,OPEN,0,KEEP_CURRENT,No change,Advanced mode server-side persistence — Phase 2,GAP-272,Wizard advanced mode
+GAP-272n,phase-2/GAP-272n-regenerate-response-shape-mismatch.md,OPEN,0,KEEP_CURRENT,No change,Regenerate response shape mismatch — Phase 2 contract drift non-blocking,GAP-272 GAP-272k,Contract polish
+GAP-273,phase-2/GAP-273-track-2-port-12-components-shared-lib.md,PARTIAL,30,KEEP_CURRENT,No change,Shared UI lib ADR-024+pnpm workspace shipped; 12 components migration Phase 2,GAP-266 GAP-270 GAP-351,Cross-cutting shared lib
+GAP-274,phase-2/GAP-274-track-2-coverage-kc-public-marketing.md,OPEN,0,KEEP_CURRENT,No change,KC public marketing coverage — Phase 2 prospect UX,GAP-275 GAP-276,Marketing site port
+GAP-275,phase-2/GAP-275-track-2-coverage-kh-public-marketing-blog.md,OPEN,0,KEEP_CURRENT,No change,KH public marketing+blog — Phase 2 prospect UX,GAP-274 GAP-276,Marketing site port
+GAP-276,phase-2/GAP-276-track-2-coverage-auth-flows.md,OPEN,0,KEEP_CURRENT,No change,Auth flows coverage — Phase 2 cross-persona,GAP-286 GAP-274,Auth UX hardening
+GAP-277,phase-2/GAP-277-track-2-coverage-error-pages.md,OPEN,0,KEEP_CURRENT,No change,Error pages coverage P1 — Phase 2 UX hardening,GAP-276,Error UX
+GAP-278,phase-2/GAP-278-track-2-coverage-kh-platform-admin.md,OPEN,0,KEEP_CURRENT,No change,KH platform admin coverage — Phase 2 internal,GAP-271 GAP-067,Internal admin UX
+GAP-279,phase-2/GAP-279-track-2-coverage-modals-dialogs-catalog.md,OPEN,0,KEEP_CURRENT,No change,Modals/dialogs catalog — Phase 2 UX cross-cutting,GAP-273,Component catalog
+GAP-280,phase-2/GAP-280-track-2-coverage-onboarding-wizard.md,OPEN,0,KEEP_CURRENT,No change,Onboarding wizard coverage — Phase 2 first-time UX,GAP-286 GAP-287,Tenant onboarding
+GAP-281,phase-2/GAP-281-secondary-persona-ac-phase-2-p1-cells.md,OPEN,0,KEEP_CURRENT,No change,Secondary persona AC Phase 2 P1 cells — business-logic enrichment,GAP-282 GAP-152,Persona AC matrix Phase 2
+GAP-282,phase-3/GAP-282-secondary-persona-ac-phase-3-p2-cells.md,OPEN,0,KEEP_CURRENT,No change,Secondary persona AC Phase 3 P2 cells — business-logic K-12,GAP-281 GAP-321,Persona AC matrix Phase 3
+GAP-286,phase-2/GAP-286-mobile-otp-signup-zalo-sms.md,OPEN,0,RE-PHASE,Move to phase-1-beta — P0 blocks P1 Solo Teacher onboarding (Phase 1 BETA persona) per AC-ONBOARD-001 FAIL,Mobile OTP signup P0 — Phase 1 BETA core persona blocker; status header explicitly cites BETA persona violation,GAP-287 GAP-063b GAP-276,RE-PHASE candidate per filing context — P1 Solo Teacher = Phase 1 BETA persona
+GAP-287,phase-2/GAP-287-branding-wizard-skip-default.md,OPEN,0,RE-PHASE,Move to phase-1-beta — P0 blocks P1 Solo Teacher onboarding,Branding wizard skip P0 — Phase 1 BETA persona blocker,GAP-286 GAP-280,RE-PHASE candidate — BETA persona blocker
+GAP-291,phase-2/GAP-291-reschedule-lesson-session.md,OPEN,0,RE-PHASE,Move to phase-1-beta — P0 blocks P1 Solo Teacher daily ops (AC-OPS-006 FAIL),Reschedule lesson P0 — Phase 1 BETA core persona daily ops gap,GAP-294 GAP-295 GAP-296,RE-PHASE candidate — BETA persona blocker
+GAP-292,phase-2/GAP-292-per-session-pricing-model.md,OPEN,0,RE-PHASE,Move to phase-1-beta — P0 blocks P1 Solo Teacher financial workflow (AC-FIN-001 FAIL),Per-session pricing P0 — Phase 1 BETA dominant pricing model for Solo persona,GAP-297 GAP-293 GAP-298,RE-PHASE candidate — BETA persona blocker
+GAP-293,phase-2/GAP-293-monthly-income-summary-dashboard.md,OPEN,0,RE-PHASE,Move to phase-1-beta — P1 blocks P1 Solo financial AC-FIN-003 FAIL,Monthly income summary P1 — Phase 1 BETA financial UX,GAP-292 GAP-297,RE-PHASE candidate — BETA persona UX
+GAP-294,phase-2/GAP-294-attendance-no-show-status.md,OPEN,0,RE-PHASE,Move to phase-1-beta — P1 blocks AC-EDGE-001 Phase 1 BETA persona,Attendance no-show P1 — BETA edge case,GAP-291 GAP-295,RE-PHASE candidate
+GAP-295,phase-2/GAP-295-late-cancel-policy-workflow.md,OPEN,0,KEEP_CURRENT,No change,Late-cancel policy P2 — UX polish acceptable Phase 2,GAP-291 GAP-294,P2 not blocking
+GAP-296,phase-2/GAP-296-substitute-teacher-attribution.md,OPEN,0,KEEP_CURRENT,No change,Substitute teacher attribution P1 — P2/P3 multi-teacher scope,GAP-310 GAP-291,P2 center+ scope
+GAP-297,phase-2/GAP-297-batch-monthly-invoice-generation.md,OPEN,0,RE-PHASE,Move to phase-1-beta — P0 affects every multi-student tenant Phase 1 BETA (Solo 15HS+),Batch invoice gen P0 — even Solo has 15 students/month requiring batch,GAP-292 GAP-299 GAP-298,RE-PHASE candidate — multi-student tenant blocker even at Solo scale
+GAP-298,phase-2/GAP-298-manual-bank-transfer-reconciliation.md,OPEN,0,RE-PHASE,Move to phase-1.5-paid — bank reconcile is Phase 1.5 PAID scope per ROADMAP,Manual bank reconcile P1 — payment Phase 1.5 trigger,GAP-292 GAP-633 GAP-635,RE-PHASE phase-1.5-paid candidate
+GAP-299,phase-2/GAP-299-payment-reminder-scheduler.md,OPEN,0,RE-PHASE,Move to phase-1.5-paid — payment reminders are 1.5 PAID payment scope,Payment reminder P1 — Phase 1.5 payment scope,GAP-297 GAP-298 GAP-633,RE-PHASE phase-1.5-paid candidate
+GAP-300,phase-2/GAP-300-mid-term-class-transfer-prorate.md,OPEN,0,KEEP_CURRENT,No change,Mid-term class transfer prorate P2 — Phase 2 enrichment,GAP-291 GAP-292,P2 not blocking
+GAP-302,phase-2/GAP-302-homework-receipt-mobile-ux.md,OPEN,0,KEEP_CURRENT,No change,Homework receipt mobile UX P2 — Phase 2,GAP-332 GAP-303,Mobile UX growth
+GAP-303,phase-3/GAP-303-parent-absence-request-flow.md,OPEN,0,KEEP_CURRENT,No change,Parent absence request flow — Phase 3 K-12 parent UX,GAP-321 GAP-338,K-12 parent scope
+GAP-306,phase-3/GAP-306-p3-teacher-commission-engine-bhxh-bhyt-tncn.md,OPEN,0,KEEP_CURRENT,No change,P3 commission engine BHXH/BHYT/TNCN — Phase 3 K-12 P3 medium-center P0 GA blocker,GAP-057b GAP-062 GAP-314,K-12 P3 LEGAL
+GAP-307,phase-3/GAP-307-p3-multi-class-schedule-conflict-3axis.md,OPEN,0,KEEP_CURRENT,No change,P3 multi-class schedule conflict — Phase 3 K-12 P0 GA blocker,GAP-099 GAP-330 GAP-311,K-12 P3 scope
+GAP-308,phase-3/GAP-308-p3-rbac-audit-log-unauthorized-403.md,OPEN,0,KEEP_CURRENT,No change,P3 RBAC audit log 403 — Phase 3 K-12 LEGAL P0 security+compliance,GAP-319 GAP-324 GAP-329,K-12 P3 LEGAL
+GAP-309,phase-3/GAP-309-p3-multi-scale-gradebook-unified-view.md,OPEN,0,KEEP_CURRENT,No change,P3 multi-scale gradebook — Phase 3 K-12 P1,GAP-323 GAP-360 GAP-099,K-12 P3 scope
+GAP-310,phase-3/GAP-310-p3-substitute-teacher-leave-workflow.md,OPEN,0,KEEP_CURRENT,No change,P3 substitute teacher leave workflow — Phase 3 K-12 P1,GAP-296 GAP-329 GAP-317,K-12 P3 scope
+GAP-311,phase-3/GAP-311-p3-room-resource-management.md,OPEN,0,KEEP_CURRENT,No change,P3 room resource management — Phase 3 K-12 P2,GAP-307 GAP-330,K-12 P3 scope
+GAP-312,phase-3/GAP-312-p3-director-daily-ops-dashboard.md,OPEN,0,KEEP_CURRENT,No change,P3 director daily ops dashboard — Phase 3 K-12 P1,GAP-066 GAP-293 GAP-067,K-12 P3 scope
+GAP-313,phase-3/GAP-313-p3-bank-mt940-vnpay-momo-reconcile.md,OPEN,0,KEEP_CURRENT,No change,P3 bank MT940/VNPay/MoMo reconcile — Phase 3 K-12 P1,GAP-062 GAP-298 GAP-314,K-12 P3 payment
+GAP-314,phase-3/GAP-314-p3-monthly-pl-financial-reports.md,OPEN,0,KEEP_CURRENT,No change,P3 monthly P&L financial reports — Phase 3 K-12 P1,GAP-336 GAP-066 GAP-313,K-12 P3 scope
+GAP-315,phase-3/GAP-315-p3-vat-einvoice-nd123-tct-integration.md,OPEN,0,KEEP_CURRENT,No change,P3 VAT eInvoice ND123 TCT — Phase 3 K-12 LEGAL P0 (TCT compliance),GAP-185 GAP-336 GAP-633,K-12 P3 LEGAL
+GAP-316,phase-3/GAP-316-p3-complaint-workflow-sla-escalation.md,OPEN,0,KEEP_CURRENT,No change,P3 complaint workflow SLA — Phase 3 K-12 P1,GAP-339 GAP-322,K-12 P3 scope
+GAP-317,phase-3/GAP-317-p3-staff-offboard-wizard.md,OPEN,0,KEEP_CURRENT,No change,P3 staff offboard wizard — Phase 3 K-12 P1,GAP-310 GAP-329,K-12 P3 scope
+GAP-318,phase-3/GAP-318-p3-stress-test-peak-enrollment.md,OPEN,0,KEEP_CURRENT,No change,P3 stress test peak enrollment — Phase 3 K-12 P2,GAP-307 GAP-324,K-12 P3 perf
+GAP-319,phase-3/GAP-319-p3-worm-audit-log-10-year-retention.md,OPEN,0,KEEP_CURRENT,No change,P3 WORM audit log 10y — Phase 3 K-12 LEGAL P0 (Luật An ninh mạng),GAP-308 GAP-344 GAP-433,K-12 P3 LEGAL
+GAP-320,phase-3/GAP-320-p3-completion-certificate-transcript-qr.md,OPEN,0,KEEP_CURRENT,No change,P3 completion certificate+transcript QR — Phase 3 K-12 P2,GAP-343 GAP-055,K-12 P3 scope
+GAP-321,phase-3/GAP-321-parent-portal-v1-legal-mandate.md,PARTIAL,40,KEEP_CURRENT,No change,Parent portal v1 LEGAL Phase 1A GAP-052a MVP shipped Wave 2; Phase 1B/1C deferred K-12,GAP-052 GAP-321b GAP-321c GAP-361,K-12 P0 LEGAL multi-phase
+GAP-321b,phase-3/GAP-321b-parent-portal-phase-1b-facets-zalo-audit.md,PARTIAL,40,KEEP_CURRENT,No change,Parent portal Phase 1B foundation Wave 18b2 shipped; remaining K-12 deferred,GAP-321 GAP-321b-1 GAP-321c,K-12 LEGAL Phase 1B
+GAP-321b-1,phase-3/GAP-321b-1-fees-instalment-payment-history.md,OPEN,0,KEEP_CURRENT,No change,Parent fees+instalment+payment history — Phase 3 K-12 P2 enrichment,GAP-321b GAP-321b-1 GAP-292,K-12 LEGAL parent v2
+GAP-321b-1,phase-3/GAP-321b-1-notifications-engine-wiring.md,OPEN,0,DUPLICATE,Filename ID collision with sister fees gap — rename per filename-collision cleanup,Two files share GAP-321b-1 stem,GAP-321b GAP-321b-1 GAP-063b,Filename collision flagged in gap-architecture-v2.md §10
+GAP-321c,phase-3/GAP-321c-parent-portal-phase-1c-pdpl-consent-write-actions.md,PARTIAL,50,KEEP_CURRENT,No change,Parent portal Phase 1C PDPL Wave 19 v1 shipped; remaining K-12 LEGAL,GAP-321 GAP-361 GAP-322c,K-12 LEGAL Phase 1C
+GAP-322,phase-3/GAP-322-child-protection-workflow.md,PARTIAL,40,KEEP_CURRENT,No change,Child protection workflow Phase 1A Wave 18b1 shipped; remaining K-12 LEGAL P0,GAP-322b GAP-322c GAP-359,K-12 P0 LEGAL multi-phase
+GAP-322b,phase-3/GAP-322b-child-protection-phase-1b-vetting-minio-rbac.md,PARTIAL,40,KEEP_CURRENT,No change,Child protection Phase 1B foundation Wave 18b2 shipped,GAP-322 GAP-322c,K-12 LEGAL Phase 1B
+GAP-322c,phase-3/GAP-322c-child-protection-phase-1c-mandatory-reporting-hash-audit.md,PARTIAL,50,KEEP_CURRENT,No change,Child protection Phase 1C Wave 19 v1 shipped; remaining K-12 LEGAL,GAP-322 GAP-359,K-12 LEGAL Phase 1C
+GAP-323,phase-3/GAP-323-period-attendance-multi-subject-gradebook.md,PARTIAL,40,KEEP_CURRENT,No change,Period attendance+multi-subject gradebook Phase 1A K-12 multi-subject infra shipped,GAP-323b GAP-323c GAP-360 GAP-099,K-12 P0 multi-phase
+GAP-323b,phase-3/GAP-323b-period-attendance-phase-1b-write-mobile-rollup.md,PARTIAL,40,KEEP_CURRENT,No change,Period attendance Phase 1B write+rollup shipped,GAP-323 GAP-323c,K-12 Phase 1B
+GAP-323c,phase-3/GAP-323c-period-attendance-phase-1c-formula-state-machine-gradebook.md,PARTIAL,50,KEEP_CURRENT,No change,Period attendance Phase 1C Wave 19 v1 shipped,GAP-323 GAP-360,K-12 Phase 1C
+GAP-324,phase-3/GAP-324-k12-role-hierarchy-bulk-onboarding.md,OPEN,0,KEEP_CURRENT,No change,K-12 role hierarchy+bulk onboarding P0 — Phase 3 K-12,GAP-325 GAP-056 GAP-308,K-12 onboarding
+GAP-325,phase-3/GAP-325-parent-student-bulk-import-link.md,OPEN,0,KEEP_CURRENT,No change,Parent-student bulk import link P0 — Phase 3 K-12,GAP-324 GAP-321,K-12 onboarding
+GAP-326,phase-3/GAP-326-moet-school-license-verification.md,OPEN,0,KEEP_CURRENT,No change,MOET school license verification — Phase 3 K-12 P1,GAP-200 GAP-340,K-12 MOET
+GAP-327,phase-3/GAP-327-moet-subject-taxonomy-seed.md,OPEN,0,KEEP_CURRENT,No change,MOET subject taxonomy seed — Phase 3 K-12 P1,GAP-326 GAP-309 GAP-099,K-12 MOET
+GAP-328,phase-3/GAP-328-exam-workflow-approval-chain.md,OPEN,0,KEEP_CURRENT,No change,Exam workflow approval chain P0 — Phase 3 K-12,GAP-331 GAP-342 GAP-309,K-12 exam
+GAP-329,phase-3/GAP-329-substitute-teacher-rbac-time-bound.md,OPEN,0,KEEP_CURRENT,No change,Substitute teacher RBAC time-bound P1 — Phase 3 K-12,GAP-296 GAP-310 GAP-308,K-12 scope
+GAP-330,phase-3/GAP-330-classroom-resource-scheduling.md,OPEN,0,KEEP_CURRENT,No change,Classroom resource scheduling P2 — Phase 3 K-12,GAP-311 GAP-307,K-12 scope
+GAP-331,phase-3/GAP-331-exam-invigilation-roster.md,OPEN,0,KEEP_CURRENT,No change,Exam invigilation roster P2 — Phase 3 K-12,GAP-328 GAP-342,K-12 exam
+GAP-332,phase-3/GAP-332-homework-module.md,OPEN,0,KEEP_CURRENT,No change,Homework module P1 — Phase 3 K-12,GAP-302 GAP-360,K-12 scope
+GAP-333,phase-3/GAP-333-so-dau-bai-digital.md,OPEN,0,KEEP_CURRENT,No change,Sổ đầu bài digital P0 LEGAL — Phase 3 K-12,GAP-323 GAP-308,K-12 MOET mandatory log
+GAP-334,phase-3/GAP-334-multi-fee-structure.md,OPEN,0,KEEP_CURRENT,No change,Multi-fee structure P1 — Phase 3 K-12,GAP-292 GAP-335 GAP-297,K-12 fee scope
+GAP-335,phase-3/GAP-335-public-private-fee-compliance.md,OPEN,0,KEEP_CURRENT,No change,Public/private fee compliance P1 LEGAL — Phase 3 K-12,GAP-334 GAP-336,K-12 LEGAL
+GAP-336,phase-3/GAP-336-moet-financial-report-tt107-tt200.md,OPEN,0,KEEP_CURRENT,No change,MOET financial report TT107/TT200 P1 — Phase 3 K-12 LEGAL,GAP-314 GAP-335 GAP-315,K-12 MOET
+GAP-337,phase-3/GAP-337-emergency-broadcast-multi-channel.md,OPEN,0,KEEP_CURRENT,No change,Emergency broadcast multi-channel P1 — Phase 3 K-12,GAP-063b GAP-322 GAP-339,K-12 ops
+GAP-338,phase-3/GAP-338-parent-teacher-meeting-coordination.md,OPEN,0,KEEP_CURRENT,No change,Parent-teacher meeting coordination P2 — Phase 3 K-12,GAP-321 GAP-303,K-12 parent
+GAP-339,phase-3/GAP-339-complaint-escalation-4-level.md,OPEN,0,KEEP_CURRENT,No change,Complaint escalation 4-level P0 LEGAL — Phase 3 K-12,GAP-316 GAP-322 GAP-337,K-12 LEGAL
+GAP-340,phase-3/GAP-340-moet-inter-school-transfer-api.md,OPEN,0,KEEP_CURRENT,No change,MOET inter-school transfer API P2 — Phase 3 K-12,GAP-200 GAP-061 GAP-326,K-12 MOET
+GAP-341,phase-3/GAP-341-phocap-escalation-mandatory.md,OPEN,0,KEEP_CURRENT,No change,Phổ cập escalation mandatory P0 LEGAL — Phase 3 K-12,GAP-339 GAP-061,K-12 MOET LEGAL
+GAP-342,phase-3/GAP-342-exam-retake-workflow.md,OPEN,0,KEEP_CURRENT,No change,Exam retake workflow P2 — Phase 3 K-12,GAP-328 GAP-331,K-12 exam
+GAP-343,phase-3/GAP-343-hocba-bangtotnghiep-sealed-pdf-qr.md,OPEN,0,KEEP_CURRENT,No change,Học bạ+bằng tốt nghiệp sealed PDF QR P1 — Phase 3 K-12 LEGAL,GAP-055 GAP-320 GAP-319,K-12 MOET LEGAL
+GAP-344,phase-3/GAP-344-school-closure-30y-archive.md,OPEN,0,KEEP_CURRENT,No change,School closure 30y archive P3 — Phase 3 K-12 LEGAL,GAP-319 GAP-433,K-12 LEGAL retention
+GAP-345,phase-3/GAP-345-wave-17-k12-legal-trio-state-check-audit.md,PARTIAL,60,KEEP_CURRENT,No change,Wave 17 K-12 LEGAL trio state-check META audit; downstream fixes deferred,GAP-321 GAP-322 GAP-323 GAP-356,K-12 META audit
+GAP-348,phase-2/GAP-348-round-3-ui-kits-persona-driven-review.md,PARTIAL,50,KEEP_CURRENT,No change,Round 3 UI kits Wave external reviews Bucket A+B shipped; full port quality gate Phase 2,GAP-272 GAP-176,UI kit external review
+GAP-349,phase-3/GAP-349-track-2-phase-2-wave-pack-plan.md,OPEN,0,KEEP_CURRENT,No change,Track 2 Phase 2 wave-pack plan — kicks off Phase 2 production scope,GAP-266 GAP-270 GAP-273 GAP-271,Phase 2 entry plan
+GAP-351,phase-3/GAP-351-shared-ui-semver-breaking-change-policy.md,OPEN,0,KEEP_CURRENT,No change,Shared UI semver breaking-change policy — gates Phase 2 component churn,GAP-273 GAP-349,Phase 2 gate policy
+GAP-352,phase-2/GAP-352-wcag-third-party-audit-pre-production.md,OPEN,0,KEEP_CURRENT,No change,WCAG third-party audit pre-prod — gates Track 2 Phase 4,GAP-074 GAP-226 GAP-349,Phase 2/3 quality gate
+GAP-354,phase-2/GAP-354-per-kit-bundle-budget.md,OPEN,0,KEEP_CURRENT,No change,Per-kit bundle budget P2 — Phase 2 performance,GAP-348 GAP-352,Phase 2 perf budget
+GAP-355,phase-2/GAP-355-visual-regression-drift-policy.md,OPEN,0,KEEP_CURRENT,No change,Visual regression drift policy P2 — Phase 2 ops,GAP-227 GAP-272f,Phase 2 ops policy
+GAP-359,phase-3/GAP-359-child-protection-phase-1c-remainder.md,OPEN,0,KEEP_CURRENT,No change,Child protection Phase 1C remainder P1 LEGAL — Phase 3 K-12,GAP-322c GAP-322,K-12 LEGAL completion
+GAP-360,phase-3/GAP-360-multi-subject-gradebook-phase-1c-remainder.md,OPEN,0,KEEP_CURRENT,No change,Multi-subject gradebook Phase 1C remainder P1 — Phase 3 K-12,GAP-323c GAP-323 GAP-309,K-12 completion
+GAP-361,phase-3/GAP-361-parent-portal-phase-1c-remainder.md,OPEN,0,KEEP_CURRENT,No change,Parent portal Phase 1C remainder P1 — Phase 3 K-12,GAP-321c GAP-321,K-12 completion
+GAP-363,phase-2/GAP-363-kiteclass-student-polish-payments-persona-violation.md,PARTIAL,50,KEEP_CURRENT,No change,KC Student polish payments Wave 22 Option polish shipped; full Track 2 polish Phase 2,GAP-269 GAP-363b GAP-292,Track 2 polish blocking
+GAP-363b,phase-2/GAP-363b-kiteclass-student-external-reaudit-delta-to-105.md,OPEN,0,KEEP_CURRENT,No change,KC Student external reaudit delta to 105 — Phase 2 kit avg target,GAP-363 GAP-348,Phase 2 quality target
+GAP-364,phase-2/GAP-364-kitehub-admin-polish-school-profile-rebuild.md,PARTIAL,40,KEEP_CURRENT,No change,KH Admin polish school profile Wave 22 shipped; full polish Phase 2,GAP-364b GAP-271,Track 2 polish
+GAP-364b,phase-2/GAP-364b-kitehub-admin-cross-screen-polish.md,OPEN,0,KEEP_CURRENT,No change,KH Admin cross-screen polish — Phase 2,GAP-364 GAP-271,Track 2 polish
+GAP-415,phase-2/GAP-415-phase-2-eks-migration-plan.md,PARTIAL,50,KEEP_CURRENT,No change,Phase 2 EKS migration plan shipped; Terraform+Helm+rehearsal deferred Phase 1.5 mid-cycle,GAP-479 GAP-123 GAP-124 GAP-411,Phase 2 infra plan
+GAP-433,phase-3/GAP-433-rules-md-5-attr-coverage-backfill.md,PARTIAL,40,KEEP_CURRENT,No change,Rules.md 5-attr coverage Phase 1 Wave 41 shipped; Phase 2/3 K-12 deferred,GAP-156 GAP-049 GAP-308,Business-logic META
+GAP-479,phase-2/GAP-479-phase-2-eks-helm-batch.md,OPEN,0,KEEP_CURRENT,No change,Phase 2 EKS Helm batch — Phase 2 deploy,GAP-415 GAP-123 GAP-124,Phase 2 deploy
+GAP-633,phase-2/GAP-633-vietqr-edupay-napas-partnership-phase-2.md,OPEN,0,KEEP_CURRENT,No change,VietQR EduPay NAPAS partnership Phase 2 pivot — outside-in audit 2026-05-18,GAP-635 GAP-298 GAP-315,Phase 2 payment scale partnership
+GAP-635,phase-2/GAP-635-qr-installment-payment-support-phase-2.md,OPEN,0,KEEP_CURRENT,No change,QR installment payment Phase 2 — outside-in audit 2026-05-18,GAP-633 GAP-292 GAP-298,Phase 2 payment enrichment
