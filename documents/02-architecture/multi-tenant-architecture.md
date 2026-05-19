@@ -114,7 +114,7 @@ sequenceDiagram
     FE->>Gateway: POST /api/auth/login
     Gateway->>Service: Forward request (no X-Tenant-Id yet)
     Service->>DB: SELECT * FROM users WHERE email = ?
-    Note over Service,DB: Login flow chưa có tenant context;<br/>users table có RLS bypass cho lookup theo email
+    Note over Service,DB: Login flow chưa có tenant context; users table có RLS bypass cho lookup theo email
     DB-->>Service: User row (chứa tenant_id)
     Service->>Service: Verify password + generate JWT<br/>claims = {sub, tenantId, role, exp}
     Service-->>FE: JWT trong response body
@@ -129,7 +129,7 @@ sequenceDiagram
     Service->>Service: @PreAuthorize check role
     Service->>DB: BEGIN TRANSACTION<br/>SET LOCAL app.current_tenant_id = '<tenant-uuid>'
     Service->>DB: SELECT * FROM classes
-    Note over DB: RLS policy filter:<br/>WHERE tenant_id = current_setting('app.current_tenant_id')
+    Note over DB: RLS policy filter — WHERE tenant_id = current_setting app.current_tenant_id
     DB-->>Service: Chỉ classes thuộc tenant này
     Service-->>Gateway: 200 OK + JSON
     Gateway-->>FE: 200 OK + JSON

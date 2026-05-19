@@ -9,9 +9,9 @@ paths:
 # Diagram Format Selection — Mermaid / PlantUML / ASCII per use case
 
 **Priority:** 🟠 MANDATORY — documentation visual-aid governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-18
-**Last-Reviewed:** 2026-05-18
+**Last-Reviewed:** 2026-05-19
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (selection matrix + reviewer-checklist + self-test rewriting `email-architecture.md` ASCII → Mermaid same PR) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies previously-implicit "use right tool for right diagram" guidance; existing ASCII diagrams grandfathered cho tới next refresh per `rule-change-process.md` Phase 3 strip pattern)
 **Applies to:** Mọi markdown file dưới `documents/**`, `.claude/rules/**`, `.claude/skills/**`, và root README.md có chứa diagram (flowchart, sequence, ER, class, state, gantt, pie, hoặc architecture box-arrow visualization). Scope = nội dung diagram content; KHÔNG cover screenshots/PNG, photos, hoặc icon emoji.
 
@@ -183,6 +183,9 @@ Use sequenceDiagram khi muốn show ORDER (signup → verify → send → render
 | ASCII diagram cho architecture với ≥10 service | Mermaid flowchart subgraph |
 | Khi project đã có PlantUML pipeline → switch sang Mermaid không lý do | Match existing convention; chỉ migrate khi clear benefit |
 | Đặt diagram dưới H1 mà không có context | TL;DR + context paragraph TRƯỚC diagram + caption SAU |
+| `<br/>` trong `Note over X,Y: text<br/>more` (sequenceDiagram) | Replace `<br/>` với ` — ` separator OR break into 2 separate `Note over` lines. **Mermaid Note text KHÔNG accept HTML break** (vs flowchart node labels + sequence message labels both DO accept). Recurrence #6 2026-05-19 user-flagged multi-tenant-architecture.md §3. |
+| `<br/>` trong `stateDiagram-v2` transition labels (`A --> B: msg<br/>more`) | Replace `<br/>` với space. **Mermaid stateDiagram syntax strict — no HTML breaks**. Recurrence #5 2026-05-19 fixed multi-tenant-architecture.md §2 (PR #1562). |
+| `<br/>` trong `flowchart` node labels OR sequence message labels | ✅ OK — Mermaid supports HTML breaks in these contexts. Don't refactor unnecessarily. |
 
 ---
 
@@ -293,4 +296,5 @@ Rule files (`.claude/rules/*.md`) — diagram nên minimal vì rules auto-load v
 
 ## 9. Log
 
+- **2026-05-19 (v1.0.1):** PATCH — Wave 99B add 3 §4 anti-pattern rows for Mermaid `<br/>` context-specificity. User-flagged recurrence #6 2026-05-19: multi-tenant-architecture.md §3 sequenceDiagram `Note over X,Y: text<br/>more` fails parser with `got 'INVALID'` error. Distinct from recurrence #5 (`stateDiagram-v2` transition labels, fixed PR #1562). Codifies which Mermaid contexts accept `<br/>`: ✅ flowchart node labels + sequence message labels / ❌ Note over text + stateDiagram transition labels. Same PR fix 5 instances (multi-tenant + kiteclass arch). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive anti-pattern documentation closing recurrence-driven coverage gap; no constraint loosening). Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user) → Classify ✓ (rule existed but didn't cover Note context) → Rule+Enforce ✓ (anti-pattern rows + fix paired same PR) → Self-Test ✓ (verify scan 0 remaining Note `<br/>` post-fix) → Retro Log ✓ (this entry).
 - **2026-05-18 (v1.0.0):** Rule created. Triggered by user-flagged miss recurrence #5 2026-05-18: email-architecture.md (vừa ship Wave 95 PR1) dùng plain ASCII ~30 nodes thay vì Mermaid. User: "thêm rule tạo diagram thì phải dùng hợp lý trong 3 định dạng này, không phải text thuần như báo cáo kiến trúc email vừa rồi". Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged) → Classify ✓ (no existing rule codifies diagram format choice; `docs-folder-structure.md` covers folder placement, `dev-readable-doc-language.md` covers narrative language, none cover diagram format) → Rule+Enforce ✓ (this file + §2 selection matrix + reviewer-checklist + self-test §6 rewriting email-architecture.md ASCII → Mermaid same PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§6 + actual rewrite of email-architecture.md §3 ASCII block to ```mermaid flowchart TD this PR) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying previously-implicit best practice; no constraint loosening; existing ASCII diagrams grandfathered per next-refresh policy; rule applies prospectively từ this PR forward). CI detector (§5.3) + memory auto-load (§5.4) deferred per premature-rule guard ≥7 ngày; reviewer-checklist + self-test sufficient cho v1.0.0. Recurrence pattern logged in `feedback_outside_in_recurring_miss.md` memory entry (cross-link).
