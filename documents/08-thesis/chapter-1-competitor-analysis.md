@@ -21,7 +21,7 @@ Phân tích đối thủ cạnh tranh KiteHub trong thị trường phần mềm
 
 ## 1. Bối cảnh thị trường giáo dục SaaS Việt Nam
 
-Thị trường phần mềm quản lý trung tâm giáo dục Việt Nam tăng trưởng mạnh giai đoạn 2020-2025, được thúc đẩy bởi 3 yếu tố chính. Thứ nhất, ngành dạy thêm (trung tâm ngoại ngữ + tin học + năng khiếu) bùng nổ sau Thông tư 29/2024/TT-BGDĐT chính thức hóa hoạt động dạy thêm có thu phí, ước tính hơn 50.000 trung tâm hoạt động trên toàn quốc theo báo cáo Magenest 2024 [3]. Thứ hai, phụ huynh Việt Nam có thói quen đầu tư mạnh cho giáo dục con cái, với mức chi trung bình 15-20% thu nhập hộ gia đình cho học thêm con (theo 6Wresearch [4]). Thứ ba, sau đại dịch COVID-19, các trung tâm buộc phải số hóa quy trình quản lý (điểm danh, học phí, lịch học, communication với phụ huynh) để duy trì hoạt động khi switching giữa online + offline mode liên tục.
+Thị trường phần mềm quản lý trung tâm giáo dục Việt Nam tăng trưởng mạnh giai đoạn 2020-2025, được thúc đẩy bởi 3 yếu tố chính. Thứ nhất, ngành dạy thêm (trung tâm ngoại ngữ + tin học + năng khiếu) bùng nổ sau Thông tư 29/2024/TT-BGDĐT chính thức hóa hoạt động dạy thêm có thu phí [33], ước tính hơn 50.000 trung tâm hoạt động trên toàn quốc theo báo cáo Magenest 2024 [3]. Thứ hai, phụ huynh Việt Nam có thói quen đầu tư mạnh cho giáo dục con cái, với mức chi trung bình 15-20% thu nhập hộ gia đình cho học thêm con (theo 6Wresearch [4]) — chỉ số này phù hợp với báo cáo Kinh tế Số Việt Nam 2024 của VECITA về tăng trưởng chi tiêu EdTech trong cấu phần kinh tế số [34]. Thứ ba, sau đại dịch COVID-19, các trung tâm buộc phải số hóa quy trình quản lý (điểm danh, học phí, lịch học, communication với phụ huynh) để duy trì hoạt động khi switching giữa online + offline mode liên tục.
 
 Tuy nhiên, đa số trung tâm nhỏ và vừa (1-3 chi nhánh, dưới 500 học viên) vẫn dùng Excel + Zalo group chat + thậm chí số ghi tay để quản lý. Lý do chính: phần mềm hiện có hoặc quá phức tạp (Cyber School, MISA EMIS targeting trường công lập K-12), hoặc thiếu Vietnamese-first UX (LMS quốc tế như Moodle, Canvas), hoặc chi phí cao không phù hợp với tier trung tâm tự phát (Speed Manager, EduCom với mức $50-100/tháng/cơ sở).
 
@@ -51,9 +51,9 @@ MISA AMIS Trường Học có **integration sâu với MISA MeInvoice** (hóa đ
 
 MISA AMIS định vị enterprise B2B với deal size lớn, sales cycle 3-6 tháng. KiteHub định vị product-led growth (PLG) tiered SaaS với self-service signup + freemium trial — model khác hoàn toàn. Hai sản phẩm không phải direct competitor mà targeting different ICP (Ideal Customer Profile). MISA: trường công lập + chuỗi trung tâm lớn cần integration kế toán doanh nghiệp. KiteHub: trung tâm tự phát, owner đơn lẻ hoặc franchise model nhỏ cần ship nhanh + chi phí thấp.
 
-## 3. Đối thủ #2 — Mona eLMS
+## 3. Đối thủ #2 — Mona eLMS [31]
 
-Mona Software là công ty công nghệ giáo dục Việt Nam thành lập 2017, tập trung exclusively vào segment trung tâm ngoại ngữ + tin học. Mona eLMS có khoảng 800 khách hàng trung tâm tại Việt Nam (số liệu công ty công bố 2024).
+Mona Software là công ty công nghệ giáo dục Việt Nam thành lập 2017, tập trung exclusively vào segment trung tâm ngoại ngữ + tin học. Mona eLMS có khoảng 800 khách hàng trung tâm tại Việt Nam (số liệu công ty công bố 2024) [31].
 
 ### Thế mạnh
 
@@ -100,9 +100,9 @@ Easy Edu có **distribution mạnh tại miền Bắc + miền Trung** thông qu
 
 Easy Edu là competitor mạnh nhất trong segment KiteHub đang target. Differentiator KiteHub: (1) AI Branding eliminate cost thuê designer cho logo/banner = save 2-5 triệu/lần cho owner mới mở trung tâm, (2) multi-tenant architecture cho phép scale franchise mà không re-architect, (3) PDPL 2023 compliance ready trước deadline 2026-07-01 (Easy Edu mới đang chuẩn bị), (4) self-service signup giảm friction onboarding từ "liên hệ sales chờ 1 tuần" xuống "click signup là dùng được".
 
-## 5. Đối thủ #4 — DotB
+## 5. Đối thủ #4 — DotB [32]
 
-DotB là sản phẩm phần mềm quản lý giáo dục đa năng (trung tâm + trường tư thục K-12) của công ty DotB Vietnam, ra mắt 2019. DotB target segment cao hơn Easy Edu một chút, với deal size trung bình 3-8 triệu/tháng.
+DotB là sản phẩm phần mềm quản lý giáo dục đa năng (trung tâm + trường tư thục K-12) của công ty DotB Vietnam, ra mắt 2019 [32]. DotB target segment cao hơn Easy Edu một chút, với deal size trung bình 3-8 triệu/tháng.
 
 ### Thế mạnh
 
@@ -202,6 +202,10 @@ Trích dẫn IEEE format đầy đủ trong [bibliography.md](./references/bibli
 - [21] Luật Bảo vệ Dữ liệu Cá nhân (PDPL 2023)
 - [23] Luật An ninh mạng 2018
 - [24] Nghị định 53/2022/NĐ-CP
+- [31] Mona Software — Mona eLMS Product Page
+- [32] DotB Vietnam — DotB EduSoft Product Page
+- [33] Bộ GD&ĐT — Thông tư 29/2024/TT-BGDĐT Dạy thêm Học thêm
+- [34] VECITA — Báo cáo Kinh tế Số Việt Nam 2024
 
 ## Related
 
