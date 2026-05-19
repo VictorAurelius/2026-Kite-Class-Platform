@@ -8,7 +8,31 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-19 — Wave 99B 7/7 SHIPPED + closure: arch docs sweep complete + GAP-661 audit suite + Wave 99C META synthesis + output-review-mandate v1.12.3 streamline)
+## 🎯 Current Status Snapshot (2026-05-19 — Wave 100 PARTIAL ship 3/6 buckets D+F+META + Wave 100.5 SHIPPED isolation patterns ADR + Wave 99B closure)
+
+### 🎉 Wave 100 PARTIAL ship 2026-05-19 — Bucket D + F + META cross-cut (3/6 buckets shipped Phase 1)
+
+Wave 100 thesis push 3-audit consensus baked into scope (persona+benchmark+failure-mode). Phase 1 docs-heavy parallel ship:
+
+| # | Bucket | Gap | PR | Status |
+|---|---|---|---|---|
+| 1 | D thesis Ch.1 Part 1 (competitor + AI techniques) | GAP-650 Part 1 | #1584 | ✅ DONE Part 1 (Part 2 defer Wave 101) |
+| 2 | F database-architecture-map v2 rewrite | GAP-681 | #1583 | ✅ DONE 100% (16 sections, 11 Mermaid, Vietnamese narrative) |
+| 3 | META VN-localization audit checklist | GAP-680 | #1584 (paired) | ✅ DONE v1.0.0 (4 sections cross-bucket) |
+| 4 | C email-only signup phased | GAP-286 | TBD | ⏳ DEFER next session (code-heavy multi-PR) |
+| 5 | A batch invoice UX | GAP-297 | TBD | ⏳ DEFER (x-large, sequential before B) |
+| 6 | B income dashboard | GAP-293 | TBD | ⏳ DEFER (sequential sau A) |
+| E (extra) | Bucket E close-out GAP-518/538 | — | TBD | ⏳ DEFER Wave 101+ (AWS GAP-612 blocked) |
+
+**Sync PR shipped same session:** session-end-context-check.md v1.0.1 → v1.1.0 (new §4.5 docs-sync 5-target check at session-end decision moment) + GAP-680 CSV+file DONE sync + ROADMAP + wave-history backfill + session-handoff note.
+
+### 🎉 Wave 100.5 SHIPPED 2026-05-19 — Multi-tenant Isolation Patterns ADR (PR #1581)
+
+Single-bucket standalone ADR-style report `documents/02-architecture/multi-tenant-isolation-patterns.md` v1.0.0 (~15-20 pages, 12 sections, 6 patterns P1-P6 evaluated × 6 axes, 4 Mermaid flowchart, 7 IEEE references) — thesis Chapter 2 source material per user direction "tạo documents thôi chứ, còn trong thesis thì phải trình bày hợp lý với số trang 60". GAP-682 DONE 100%. Section 7 trong `multi-tenant-architecture.md` cross-link footer pointer added.
+
+---
+
+## 🎯 Previous Status Snapshot (2026-05-19 — Wave 99B 7/7 SHIPPED + closure: arch docs sweep complete + GAP-661 audit suite + Wave 99C META synthesis + output-review-mandate v1.12.3 streamline)
 
 ### 🎉 Wave 99C META synthesis SHIPPED 2026-05-19 — 2 detectors + 2 META-META gaps (PR #1566)
 

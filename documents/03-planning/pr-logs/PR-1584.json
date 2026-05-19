@@ -1,0 +1,33 @@
+{
+  "pr": 1584,
+  "title": "feat(wave-100-d): thesis Ch.1 Part 1 + META GAP-680 VN-localization rule",
+  "branch": "wave/100-d-thesis-ch1-part1",
+  "created_at": null,
+  "merged_at": "2026-05-19T09:53:16Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-19T09:53:20.807974",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 9,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-50521"
+  }
+}
