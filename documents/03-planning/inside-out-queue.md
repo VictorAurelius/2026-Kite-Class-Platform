@@ -124,3 +124,22 @@ updated: 2026-05-18
 - **2026-05-18** — Wave 92 Bucket D consumed "Manual split: professional vs end-user" item via sister rule path (option b): `professional-manual-content-standard.md` v1.0.0 shipped paired same-PR với `output-review-mandate.md` §3 row + `rules-index.csv` row + 3 retroactive self-test samples. End-user scope `user-manual-content-standard.md` v1.0.0 đã exist từ Wave 79. Queue now 4 queued + 1 consumed.
 - **2026-05-17** — Appended item "Manual split: professional vs end-user" surfaced in-chat during Wave 87 planning session. Queue now 5 items (4 prior + 1 new). Wave 87 không consume; defer Wave 88+.
 - **2026-05-14** — File created. Codified user inside-out queue per [`outside-in-coverage-trigger.md`](../../.claude/rules/outside-in-coverage-trigger.md) sister rule `inside-out-completeness-trigger.md`. Triggered by 2026-05-14 audit hole — Claude missed Premium plan / Feedback channel / Email content audit / user manual when planning Wave 78 because only pulled inside-out from ROADMAP §🚀.
+
+### 2026-05-19 — Thesis V1 DOCX format MUST match báo cáo thực tập UTC spec
+
+**Source:** User post-Wave-101 retro 2026-05-19 — "có inside yêu cầu bản docx phải có format tương đương như báo cáo thực tập chưa nhỉ, sao format của nó lại dở như vậy?"
+**Status:** consumed (GAP-688 filed same session)
+
+**Codified requirement:**
+- Mọi DOCX academic deliverable trong dự án (báo cáo thực tập / khảo sát / đề cương / **khóa luận tốt nghiệp** / báo cáo defense) PHẢI match UTC official spec
+- Reference path canonical: `documents/07-archived/academic/word-reports/templates/*.pdf` (3 official UTC PDF templates)
+- Existing production pipeline: `create_bao_cao_thuc_tap.py` + `create_de_cuong_datn_v4.py` (Python python-docx)
+- Format: Times New Roman 13pt body / 14pt heading / 18pt cover title; margins per artifact type (TTTN 25-20-25-30mm / DATN 20-20-20-25mm — verify per PDF template)
+- Components: bìa chính + bìa phụ + nhận xét (nếu applicable) + lời cảm ơn + mục lục + danh mục hình/bảng/từ viết tắt + 4 chương + IEEE refs + phụ lục
+
+**Anti-pattern this codifies:**
+- ❌ Scoping new DOCX pipeline from scratch without checking `documents/07-archived/academic/word-reports/` existing tooling first
+- ❌ Choosing pandoc default OR Java POI Create-from-scratch when production-quality Python pipeline exists
+- ❌ Audit a generated DOCX without referencing the canonical UTC PDF template spec as scoring baseline
+
+**Force-multiplier:** GAP-646 + GAP-687 + PR #1606 wasted scope choosing wrong pipeline path. 1 inside-out item codified → all future academic DOCX generation auto-reuses existing pattern.
