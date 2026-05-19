@@ -1,0 +1,33 @@
+{
+  "pr": 1560,
+  "title": "chore: java lint fixes + output-review-mandate streamline + wave-98 PR-log sync",
+  "branch": "chore/lint-fix-and-output-review-mandate-streamline",
+  "created_at": null,
+  "merged_at": "2026-05-19T02:23:05Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": false,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-19T02:23:10.130303",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 7,
+        "java_files": 3,
+        "test_files": 0,
+        "business_docs": false,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/3",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-24402"
+  }
+}
