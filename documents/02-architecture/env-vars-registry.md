@@ -1,3 +1,11 @@
+---
+title: Production Env Vars Registry
+audience: dev
+created: 2026-05-14
+last-reviewed: 2026-05-19
+status: living
+---
+
 # Production Env Vars Registry
 
 **Owner:** DevOps + Tech Lead
