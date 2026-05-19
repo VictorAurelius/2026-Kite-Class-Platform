@@ -57,12 +57,34 @@ Foundation bucket of Wave 99B — archive 6 stale/superseded files (`living-docs
 
 **Post-Wave-98 audit suite cadence per `post-wave-audit-mandate.md` §2.2:** UI /128 sample + Quality /100 refresh due within 3 days (≤2026-05-21). Filed **GAP-661** to schedule.
 
-> **📍 Next session ĐỌC TRƯỚC (META + docs arch focus per user pivot 2026-05-19):**
-> 1. **Wave 99B B0-B5 execute** (6 remaining buckets, B6 foundation already merged): B0 sweep (Last-Reviewed + Mermaid audit) → B1 Service Catalog + Auth Flow + B2 Compliance×Code Map + B3 Database Architecture Map + B4 C4 Context+Container (parallel 4) → B5 Onboarding Tour README. Per Wave 99B plan §6 coordinator order. GAP IDs 669-674 pre-assigned.
-> 2. **GAP-675 META-META implement** (P1) — audit 6 deferred detectors (docs-archival-cadence / docs-folder-volume-budget / docs-subfolder-maturity / docs-filename-prefix-convention / diagram-format-selection / dev-readable-doc-language) → ship OR honest-defer; tighten `incident-to-rule-pipeline.md` §3 guard wording.
-> 3. **4 violations from 3-layer detector** (WARN-mode caught Wave 99C): `kitehub/email` missing use-cases.md (GAP-664 covers) + `kitehub/marketing` missing use-cases.md + `kitehub/preferences` missing rules+use-cases (GAP-664 covers) + `kiteclass/multi-tenancy` missing use-cases+api-contract. Fix before HARD STOP 2026-06-19.
-> 4. **GAP-662..667 cluster (Phase 1 BETA gate fixes)** — DEFER per user pivot priority; will queue Wave 100+ after META + arch complete.
-> 5. **Wave 99 thesis META plan PR #1559** — DEFER per user pivot priority; thesis scope queue Wave 100+.
+> **📍 Next session ĐỌC TRƯỚC (Wave 99B 5/7 SHIPPED; pause point 2026-05-19 mid-session for /clear):**
+>
+> **Wave 99B execution status (post 5 PR merge batch this session):**
+> - ✅ B6 PR #1565 — Architecture archive sweep (root 16→10, GAP-668)
+> - ✅ B0 PR #1568 — Last-Reviewed backfill + Mermaid migration audit (GAP-669)
+> - ✅ B1 PR #1569 — Service Catalog + Auth Flow + Dependency Graph (GAP-670)
+> - ✅ B2 PR #1574 — Compliance × Code Map + SLO Registry + NFR + Risk Register (GAP-671)
+> - ✅ B3 PR #1573 — Database Architecture Map consolidated 91-entity catalog (GAP-672) + GAP-677 follow-up
+> - ✅ B4 PR #1571 — C4 Context + Container Diagram L1+L2 (GAP-673)
+> - ⏸️ **B5 PENDING** — Onboarding Tour README rewrite (GAP-674) — orchestrates B1-B4 reading order
+>
+> **Other shipped this session (out-of-wave):**
+> - ✅ PR #1572 — Mermaid `<br/>` recurrence #6+#7 fix (sequence/state diagrams) + new detector `check-mermaid-sequence-state-br.sh`
+> - ✅ Wave 99C META synthesis PR #1566 — 2 detectors (3-layer + cross-layer drift) + 2 META-META gaps GAP-675/676
+>
+> **Pending work for next session (tracked TaskList):**
+> 1. **Spawn B5** (Onboarding Tour README, GAP-674) — depends on B1-B4 file paths existing ✅ all merged
+> 2. **Wave 99B closure PR** — flip wave plan `status: draft → complete` + wave-history.jsonl append + Scope-Completeness Reconciliation table + ROADMAP sync + `scripts/prune-merged-worktrees.sh --yes`
+> 3. **PR #1570 rebase** — GAP-675 META PR conflicts with Wave 99B merges (script-quality.yml + rules-index.csv) + GAP-677 collision (rename to GAP-678; B3 already used GAP-677). Complex rebase ~30 min careful work.
+> 4. **4 real-repo 3-layer violations** (caught by Wave 99C detector WARN mode, HARD STOP 2026-06-19):
+>    - `kitehub/email` missing `use-cases.md` (GAP-664 partial covers)
+>    - `kitehub/marketing` missing `use-cases.md` (file follow-up gap)
+>    - `kitehub/preferences` missing `rules.md` + `use-cases.md` (GAP-664 covers)
+>    - `kiteclass/multi-tenancy` missing `use-cases.md` + `api-contract.md` (file follow-up gap)
+> 5. **GAP-662..667 cluster (Phase 1 BETA gate fixes)** — DEFER Wave 100+ per user pivot priority
+> 6. **Wave 99 thesis META plan PR #1559** — DEFER Wave 100+ per user pivot priority
+>
+> **After Tasks 1-4 complete → /clear + new session → thesis pivot per user 2026-05-19 plan.**
 > 3. **5 PARTIAL Wave 98 gaps gated GAP-612 AWS** (656/657/658/518 live verify + 543 manual render verify) — close-out post-restore: GAP-518 95→100%, GAP-656 80→95%, GAP-657 80→95% (manual 2-client render), GAP-543 80→100%, GAP-658 80→95% (consumer wiring trigger).
 > 4. **Post-wave-98 audit suite verdicts** — UI ✅ 110.6 A + Quality ✅ 90/110 B+ PASS (no follow-up); API 🔴 76 C FAIL + Business 🔴 73 C+ FAIL (item 1 cluster fixes both).
 > 4. **bg-agent lesson learned** (carry-forward Wave 97) — context-thrashing rate-limited 4 agents this wave (B1/B3/B6/B7 first attempts). 2-concurrent retry pattern PROVEN safe. 3-concurrent threshold hit Anthropic throttle.
