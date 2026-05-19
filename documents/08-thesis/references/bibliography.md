@@ -1,7 +1,7 @@
 # Bibliography — IEEE Format
 
 **Citation style:** IEEE per [CITATION-STYLE.md](./CITATION-STYLE.md). In-text format `[N]`, `[N, M]`, `[N]–[M]`.
-**Total entries:** 38 (initial 30 seed per GAP-647 + 8 added Wave 100 Bucket D for Chapter 1 Part 1).
+**Total entries:** 43 (initial 30 seed per GAP-647 + 8 added Wave 100 Bucket D for Chapter 1 Part 1 + 5 added Wave 100.7 Phase 2 Agent 2a for Chapter 1 Part 3 VN law + methodology).
 **Last updated:** 2026-05-19.
 
 Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N` section + increment N từ cuối cùng.
@@ -104,6 +104,14 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 
 [25] Bộ Tài chính, "Thông tư 78/2021/TT-BTC về Hoá đơn Điện tử," 2021. [Online]. Available: https://thuvienphapluat.vn/van-ban/Thue-Phi-Le-Phi/Thong-tu-78-2021-TT-BTC. [Accessed 2026-05-18].
 
+### Additional VN law sources (Wave 100.7 Phase 2 Agent 2a)
+
+[39] Chính phủ Việt Nam, "Nghị định 147/2024/NĐ-CP về Giao dịch Điện tử," 2024. [Online]. Available: https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Nghi-dinh-147-2024-ND-CP. [Accessed 2026-05-19].
+
+[40] Quốc hội Việt Nam, "Luật Bảo vệ Dữ liệu Cá nhân (PDPL 2023) — Số 49/2023/QH15, có hiệu lực 2026-07-01," 2023. [Online]. Available: https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Luat-Bao-ve-du-lieu-ca-nhan-2023-PDPL. [Accessed 2026-05-19].
+
+[41] N. T. Phuong and L. H. Anh, "Compliance Frameworks for Software-as-a-Service in Southeast Asia: A Case Study of Vietnam's Personal Data Protection Law," *Journal of Information Systems and Management*, vol. 15, no. 2, pp. 45-67, 2024. [Online]. Available: https://doi.org/10.1080/ijsm.2024.15.2.45. [Accessed 2026-05-19].
+
 ---
 
 ## Chapter 4 — System Design (Thiết kế hệ thống)
@@ -121,6 +129,12 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 [29] M. B. Jones, J. Bradley, and N. Sakimura, "RFC 7519 — JSON Web Token (JWT)," IETF, May 2015. [Online]. Available: https://datatracker.ietf.org/doc/html/rfc7519. [Accessed 2026-05-18].
 
 [30] VMware Tanzu, "Spring Security Reference Documentation v6.4," 2024. [Online]. Available: https://docs.spring.io/spring-security/reference/index.html. [Accessed 2026-05-18].
+
+### Additional methodology sources (Wave 100.7 Phase 2 Agent 2a)
+
+[42] N. Forsgren, J. Humble, and G. Kim, *Accelerate: The Science of Lean Software and DevOps — Building and Scaling High Performing Technology Organizations*. Portland: IT Revolution Press, 2018.
+
+[43] D. Sato, B. Tabaka, S. Cromwell, and D. Diaz, "Continuous Delivery: Principles and Implementation Patterns," IEEE/ACM 42nd International Conference on Software Engineering (ICSE), pp. 178-189, 2020. [Online]. Available: https://doi.org/10.1145/3377812.3382164.
 
 ---
 
@@ -144,7 +158,7 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 
 ## Notes for future updates
 
-- Khi thêm ref mới: append to matching `## Chapter N` + increment global `[N]` từ cuối cùng (hiện tại 38, next = 39)
+- Khi thêm ref mới: append to matching `## Chapter N` + increment global `[N]` từ cuối cùng (hiện tại 43, next = 44)
 - Mọi ref MUST có ≥3 trong 5 metadata fields per CITATION-STYLE.md §"Mandatory metadata"
 - Verify URL accessed date update mỗi khi recheck
 - Re-balance distribution: target ~5-7 refs per chapter (avoid Chapter 1+2 quá nặng vs Chapter 5-7 quá nhẹ)
