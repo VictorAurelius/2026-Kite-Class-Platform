@@ -49,3 +49,15 @@ Vậy cần bổ sung thêm outside
 vậy bỏ việc move file vào closed và partial đi, chỉ phân loại theo phase thì sao?
 
 PR 3 làm gì? Có nên quét lại 1 lượt các gaps để xem chúng có bị outdated, cần update theo inside mới, có thể closed được hay không => tối ưu agents
+
+tại sao audit lại vẫn bắt được nhiều gaps như vậy => cần cập nhật meta không?
+
+discuss: tạo agents quét lại toàn bộ báo cáo trong documents/02-architecture để xử lý các vấn đề sau:
+1. lỗi render diagram: documents/02-architecture/multi-tenant-architecture.md => Section 2 — Tenant lifecycle: Parse error on line 2:
+...L: signup<br/>(TR-01: 14 ngày)    TRIAL
+-----------------------^
+Expecting 'SPACE', 'NL', 'HIDE_EMPTY', 'scale', 'COMPOSIT_STATE', 'STRUCT_STOP', 'STATE_DESCR', 'ID', 'FORK', 'JOIN', 'CHOICE', 'CONCURRENT', 'note', 'acc_title', 'acc_descr', 'acc_descr_multiline_value', 'CLICK', 'classDef', 'style', 'class', 'direction_tb', 'direction_bt', 'direction_rl', 'direction_lr', 'EDGE_STATE', got 'DESCR'
+
+2. check lại các báo cáo cũ xem có bị outdated hay không và cập nhật nội dung + diagram theo rule mới
+3. có báo cáo về phân bổ và thiết kế database của toàn dự án chưa? có báo cáo về sự khác biệt giữa user của các gói đăng ký chưa? thực hiện tạo nếu chưa có
+4. bạn có đề xuất cần thêm các báo cáo nào không? cho dev hiểu rõ hơn về hệ thống
