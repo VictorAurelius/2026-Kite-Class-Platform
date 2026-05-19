@@ -41,7 +41,7 @@ logs-format-standard,MANDATORY,1.0.1,2026-04-20,2026-05-14,logs-format-standard.
 mcp-first-with-fallback,MANDATORY,1.1.1,2026-04-18,2026-05-14,mcp-first-with-fallback.md,,active,,
 meta-csv-index-pattern,MANDATORY,1.0.2,2026-05-12,2026-05-14,meta-csv-index-pattern.md,"**/*-index.csv,**/*-status.csv,scripts/query-*.sh,scripts/check-*-csv.sh",active,,
 meta-gap-priority,CRITICAL,1.0.0,2026-04-18,2026-04-28,meta-gap-priority.md,,active,,
-output-review-mandate,CRITICAL,1.9.1,2026-04-14,2026-05-18,output-review-mandate.md,,active,,
+output-review-mandate,CRITICAL,1.12.1,2026-04-14,2026-05-19,output-review-mandate.md,,active,,
 outside-in-coverage-trigger,CRITICAL,1.1.0,2026-05-14,2026-05-18,outside-in-coverage-trigger.md,,active,,
 inside-out-completeness-trigger,CRITICAL,1.0.0,2026-05-14,2026-05-14,inside-out-completeness-trigger.md,"documents/03-planning/waves/**,documents/03-planning/inside-out-queue.md",active,,
 planning-docs-structure,MANDATORY,1.0.1,2026-04-18,2026-05-14,planning-docs-structure.md,documents/03-planning/**/*.md,active,,
