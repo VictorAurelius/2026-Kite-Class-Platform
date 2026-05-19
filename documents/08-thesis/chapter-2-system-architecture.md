@@ -147,7 +147,7 @@ VN compliance baseline Phase 1:
 
 ### 2.2.4 Scalability
 
-Multi-tenant scaling pattern **single-bucket + RLS** (Pool model per AWS Well-Architected SaaS Lens — chi tiết §2.3.3):
+Multi-tenant scaling pattern **single-bucket + RLS** (Pool model per AWS Well-Architected SaaS Lens [9] + comprehensive analysis trong Pothon [43] — chi tiết §2.3.3):
 
 - Phase 1 BETA: 10-50 tenant ×50-500 student/tenant = ~5k-25k total user
 - Phase 2: 50-200 tenant ×100-1000 student/tenant = ~50k-200k user → vertical scale RDS sang `db.r5.large`
@@ -183,6 +183,8 @@ Quyết định kiến trúc neo cost constraint: chọn single-bucket multi-ten
 ## 2.3 Kiến trúc (Architecture)
 
 ### 2.3.1 C4 Model — Level 1 System Context
+
+Mô hình C4 (Context / Container / Component / Code) của Brown [44] là framework chuẩn để visualize software architecture ở 4 mức độ chi tiết tăng dần. Khoá luận này dùng Level 1 (System Context) + Level 2 (Container) để mô tả Kite Platform; Level 3 + Level 4 defer Chapter 3 implementation.
 
 Kite Platform tương tác với 8 actor + 6 hệ thống ngoài. Per `c4-context-container.md` §1 (verify-at-spawn 2026-05-19):
 

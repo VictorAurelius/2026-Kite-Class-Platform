@@ -1,6 +1,6 @@
 # GAP-647: Thesis bibliography — IEEE citation style + refs.md canonical
 
-**Status:** 🟡 PARTIAL 50% — Step 1 IEEE style + Step 2 ~30 refs seed shipped Wave 97 PR #1541; Step 3 citation-extract skill tracked **GAP-655** (Wave 98+ thesis tooling)
+**Status:** 🟡 PARTIAL 80% — Step 1 IEEE style + Step 2 44 refs bibliography (Wave 97 + Wave 100 + Wave 100.7 Phase 2 + Phase 4) shipped + Phase 4 V1 cross-ref polish 89% inline utilization. Step 3 citation-extract skill tracked **GAP-655** (Wave 98+ thesis tooling)
 **Priority:** 🔴 P0 (META — paired GAP-646)
 **Domain:** Meta
 **Phase:** phase-1-beta
@@ -95,4 +95,5 @@ Future: `scripts/check-thesis-citations.sh` — scan thesis source markdown for 
 
 ## Log
 
+- **2026-05-19 (PARTIAL 50% → 80%):** Wave 100.7 Phase 4 V1 closure boosted bibliography quality: 44 refs IEEE compliant (Wave 97 30 + Wave 100 D 8 + Wave 100.7 Phase 2 5 + Phase 4 Bucket B 2 new − Phase 4 Foundation dedup 1 = 44 net). 89% inline cite utilization across Ch.1+2+3+4 (was 39% pre-Phase-4). `cross-ref-audit-2026-05-19.md` Round 3 confirms production-ready cho V1 thesis. Step 3 citation-extract skill (deferred GAP-655) remaining 20%.
 - **2026-05-18 (created):** Filed per Release 1.5 thesis scope outside-in audit. Failure-mode aggregate P0 #5 + VN benchmark §3 Q3 examiner concern.

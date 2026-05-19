@@ -1,0 +1,33 @@
+{
+  "pr": 1598,
+  "title": "docs(wave-100.7-phase-4-bucket-b): Ch.2 LOCAL\u2192global ref migration (8 entries) + PDPL [5] number fix",
+  "branch": "wave/100.7-phase-4-bucket-b-ch2-local-migration",
+  "created_at": null,
+  "merged_at": "2026-05-19T12:30:33Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-19T12:30:39.405627",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 2,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-73303"
+  }
+}

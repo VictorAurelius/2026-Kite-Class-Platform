@@ -246,7 +246,54 @@ Chapters without citations:         2 (Ch3, Ch4 — placeholder)
 
 ---
 
-## 10. Note for future audit cycles
+## 10. Round 3 — Phase 4 V1 closure (final state 2026-05-19)
+
+Sau khi Phase 4 Foundation + Buckets A/B/C/D ship, re-run audit:
+
+### Stats final post-Phase-4
+
+| Metric | Pre-Phase-4 | Post-Phase-4 | Delta |
+|---|:---:|:---:|:---:|
+| Total bibliography refs | 43 | **44** | +1 net (`[40]` merged + 2 new `[43]`+`[44]`) |
+| Refs cited inline (any chapter) | 17 (39%) | **39** (89%) | +22 refs |
+| Orphan refs | 24 (56%) | **5** (11%) | -19 refs (-79% orphan reduction) |
+| Ch.2 LOCAL numbering collision | 8 LOCAL refs | **0** | Resolved (Bucket B deleted LOCAL section) |
+| Ch.2 `[5]` PDPL số inconsistency | 3 narrative occurrences sai | **0** | Resolved (Bucket B fixed `91/2025/QH15` → `49/2023/QH15`) |
+| `[40]` duplicate `[21]` | Present | **Resolved** | Foundation merge |
+
+### Remaining 5 orphan refs (intentional + deferred)
+
+| Ref | Description | Reason left orphan | Action |
+|---|---|---|---|
+| `[5]` | UIT microservices thesis (KLTN HTTT) | Per §9 P3 #10 — quyết định optional; reference cho VN academic context nhưng narrative không cite trực tiếp | Defer — keep as VN thesis reference; can drop in V2 nếu Ch.1 không reference VN thesis section |
+| `[6]` | UIT thesis catalog | Cùng `[5]` — VN academic context | Defer — same as `[5]` |
+| `[8]` | M. Fowler, *Patterns of Enterprise Application Architecture* | Ch.2 architecture chưa anchor inline; theoretical reference được giữ cho V2 expansion | Defer — Ch.2 V2 expansion candidate |
+| `[30]` | VMware Tanzu Spring Security 6.4 docs | Ch.3 implementation có JWT snippet ([29] RFC cited) nhưng không có inline cite cho Spring Security framework cụ thể; Ch.2 OWASP table cites `[28]` directly | Defer — Spring Security reference, optional inline cite |
+| `[36]` | OpenAI GPT-4 technical report | Per Bucket A + C reports — Ch.1 AI section cite Anthropic `[35]` only; Ch.3+4 không có LLM scope match | Defer Wave 101+ if Ch.5-7 expansion scope mở rộng AI |
+
+**Verdict:** 5 orphans là acceptable lvl cho V1 ship. All 5 are "reserve-for-future" refs (VN academic context + Ch.2/Ch.5-7 V2 expansion targets), không phải missing-cite risk.
+
+### Ch.2 inline cite improvement
+
+Bucket B note: Ch.2 narrative had **0 in-text `[N]` citations** pre-Phase-4 (LOCAL list was unused). Bucket D (coordinator) added 2 inline cites:
+- §2.2.4 Scalability — `[9]` AWS SaaS Lens + `[43]` Pothon multi-tenant scaling rationale
+- §2.3.1 C4 Model Level 1 — `[44]` Brown C4 model framework anchor
+
+### Quality gates trước defense — final status
+
+- [x] **Resolve Chapter 2 local numbering collision** — DONE Phase 4 Bucket B
+- [x] **Cite retroactively orphan refs** — DONE Phase 4 Buckets A/C/D (24 → 5 orphans, -79%)
+- [x] **Verify PDPL số hiệu** — DONE Phase 4 Bucket B (3 narrative fixes Ch.2)
+- [x] **Dedupe `[40]`** — DONE Phase 4 Foundation
+- [x] **Chapter 3+4 cite refs reserved** — DONE Phase 4 Bucket C (9 inline citations across Ch.3+4)
+
+### Round 3 verdict
+
+Bibliography + chapter citation discipline production-ready cho V1 thesis ship. Defense risk (examiner check citation accuracy + completeness) significantly reduced. Round 4 audit defer Wave 101+ nếu Ch.5-7 (Implementation roadmap / Testing / Conclusion) ship.
+
+---
+
+## 11. Note for future audit cycles
 
 - **Re-run audit này khi:** Chapter 3 hoặc Chapter 4 finalize content (sẽ thêm nhiều refs); khi append entry mới vào bibliography (re-verify orphan list).
 - **Tool tiềm năng:** `scripts/check-thesis-citations.sh` (mentioned in CITATION-STYLE.md §Tooling, hiện deferred Phase 2 per `incident-to-rule-pipeline.md` premature-rule guard) — sẽ replace audit thủ công này khi shipped.

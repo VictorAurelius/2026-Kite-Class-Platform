@@ -1,11 +1,12 @@
 # GAP-683: Thesis chapter citation polish — Ch.2 numbering collision + PDPL inconsistency + orphan retro-cite
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-19 — Phase 4 V1 closure (Foundation + Buckets A/B/C/D). Orphan 24 → 5 (-79%); Ch.2 LOCAL collision resolved; PDPL [5] fix shipped; [40] dedup
 **Priority:** 🔴 P0 (defense risk — surfaced bởi cross-ref audit 2026-05-19)
 **Domain:** Meta
 **Phase:** phase-1-beta
 **Found:** 2026-05-19 (Wave 100.7 Phase 3a cross-ref audit)
-**Related Audits:** [`cross-ref-audit-2026-05-19.md`](../../../08-thesis/references/cross-ref-audit-2026-05-19.md)
+**Closed:** 2026-05-19 (Wave 100.7 Phase 4 V1 ship)
+**Related Audits:** [`cross-ref-audit-2026-05-19.md`](../../../08-thesis/references/cross-ref-audit-2026-05-19.md) Round 3 final state
 
 ## Current State (verified 2026-05-19 — Wave 100.7 Phase 3a Agent 3a findings)
 
@@ -88,13 +89,23 @@ Update `documents/08-thesis/references/cross-ref-audit-2026-05-19.md` với "Rou
 
 ## Acceptance Criteria
 
-- [ ] `[40]` merged into `[21]`; `[41]-[43]` renumbered `[40]-[42]`; all in-text shifted
-- [ ] Chapter 2 LOCAL `[1]-[8]` section deleted; entries migrated to global bibliography (dedup); in-text Ch.2 numbering uses global refs
-- [ ] Chapter 2 `[5]` PDPL số fixed: `91/2025/QH15` → `49/2023/QH15` matching global `[21]`
-- [ ] Orphan refs retro-cite: 24 → ≤8 (≥80% utilization)
-- [ ] cross-ref-audit-2026-05-19.md updated với Round 2 results
-- [ ] No new orphan refs introduced; no new missing-refs in chapters
-- [ ] Phase 4 V1 PR (next session) bundles these fixes if not earlier — natural venue per parent wave plan
+- [x] `[40]` merged into `[21]`; `[41]-[43]` renumbered `[40]-[42]`; all in-text shifted — DONE Phase 4 Foundation `b3a7361a` (PR #1595)
+- [x] Chapter 2 LOCAL `[1]-[8]` section deleted; entries migrated to global bibliography (dedup); in-text Ch.2 numbering uses global refs — DONE Phase 4 Bucket B (PR #1598). Mapping: `[1]`→`[9]` AWS SaaS Lens / `[2]`→`[10]` Azure / `[3]`→new `[43]` Pothon / `[4]`→`[12]` PostgreSQL / `[5]`→`[21]` PDPL / `[6]`→`[23]` Cybersecurity / `[7]`→new `[44]` Brown C4 / `[8]`→`[28]` OWASP. Bibliography 42 → 44 net refs.
+- [x] Chapter 2 `[5]` PDPL số fixed: `91/2025/QH15` → `49/2023/QH15` matching global `[21]` — DONE Phase 4 Bucket B (3 narrative fixes lines 29/144/659)
+- [x] Orphan refs retro-cite: 24 → ≤8 (≥80% utilization) — **EXCEEDED:** Phase 4 final state 24 → **5 orphans** (89% inline utilization). Buckets A/C cited 15+ orphans; Bucket D added Ch.2 inline cites cho new refs `[43]` + `[44]`.
+- [x] cross-ref-audit-2026-05-19.md updated với Round 2 + Round 3 results — DONE (Round 2 banner Foundation; Round 3 §10 final state Bucket D)
+- [x] No new orphan refs introduced; no new missing-refs in chapters — VERIFIED (Round 3 audit confirms 5 remaining orphans là intentional defer for VN academic context + V2 expansion candidates)
+- [x] Phase 4 V1 PR bundles these fixes — DONE this PR (Phase 4 V1 closure)
+
+## Remaining intentional orphans (≤ target ≤8) — defer rationale per Round 3 audit
+
+| Ref | Reason left orphan |
+|---|---|
+| `[5]` UIT microservices thesis | VN academic context reserve; optional cite trong Ch.1 V2 expansion |
+| `[6]` UIT thesis catalog | Same as `[5]` |
+| `[8]` M. Fowler *Patterns of Enterprise Application Architecture* | Ch.2 V2 expansion candidate |
+| `[30]` VMware Tanzu Spring Security 6.4 | Ch.3 implementation reference; optional inline cite (Ch.2 OWASP table cites `[28]` directly) |
+| `[36]` OpenAI GPT-4 technical report | Defer Wave 101+ if Ch.5-7 expansion mở rộng AI scope (Ch.1 AI section cites Anthropic `[35]` only) |
 
 ## Related
 
@@ -106,4 +117,5 @@ Update `documents/08-thesis/references/cross-ref-audit-2026-05-19.md` với "Rou
 
 ## Log
 
+- **2026-05-19 (DONE flip):** Status `🔵 OPEN` → `🟢 DONE`. All 7 AC checked. Phase 4 V1 closure shipped: Foundation `b3a7361a` (`[40]`→`[21]` dedup + renumber) + Bucket A `34c863ee` (Ch.1 retro-cite 6 refs) + Bucket B `b113e646` (Ch.2 LOCAL→global migration + PDPL fix) + Bucket C `5279cbbd` (Ch.3+4 retro-cite 9 refs) + Bucket D (this V1 closure PR — Ch.2 inline `[43]`+`[44]` + Round 3 audit). Orphan 24 → 5 (-79%, target ≤8 EXCEEDED). 5 remaining orphans documented as intentional defer (VN academic / V2 expansion / Wave 101+ scope).
 - **2026-05-19 (created):** Filed per Wave 100.7 Phase 3a cross-ref audit findings (Agent 3a PR #1592). 4 P0 issues surfaced: Ch.2 LOCAL numbering collision + `[40]` duplicate `[21]` + Ch.2 `[5]` PDPL số sai + 24/43 orphan refs. Filed per `audit-to-gap-pipeline.md` Step 3. Defense risk — examiner check citation discipline sẽ catch ngay. Natural fix venue = Wave 100.7 Phase 4 V1 PR (next session) sweeping chapter files for final polish.
