@@ -1,3 +1,11 @@
+---
+title: Deployment Strategy — Single Source
+audience: dev
+created: 2026-04-18
+last-reviewed: 2026-05-19
+status: living
+---
+
 # Deployment Strategy — Single Source
 
 **Status:** 🟢 ACCEPTED (2026-04-18, GAP-103) — **REVISED 2026-05-07** per [ADR-025](adr/ADR-025-aws-only-deploy-phase-1-free-tier.md): Phase 1 BETA shifts to **AWS Singapore Free Tier thuần** (Oracle Cloud archived to `documents/07-archived/oracle-deploy-2026/`). VN-resident migration deferred Phase 3 GA pending counsel review.

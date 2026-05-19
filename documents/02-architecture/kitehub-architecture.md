@@ -1,5 +1,9 @@
 ---
+title: KiteHub Architecture
 audience: dev
+created: 2026-05-18
+last-reviewed: 2026-05-19
+status: living
 ---
 
 # KiteHub Architecture

@@ -1,3 +1,11 @@
+---
+title: 02-architecture — Technical Architecture
+audience: mixed
+created: 2026-04-18
+last-reviewed: 2026-05-19
+status: living
+---
+
 # 02-architecture — Technical Architecture
 
 **Rules:** [`.claude/rules/docs-folder-structure.md`](../../.claude/rules/docs-folder-structure.md)

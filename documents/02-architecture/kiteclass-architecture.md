@@ -2,6 +2,7 @@
 title: KiteClass Architecture
 audience: mixed
 last-updated: 2026-05-18
+last-reviewed: 2026-05-19
 status: living
 related:
   - documents/02-architecture/kitehub-architecture.md

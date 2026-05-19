@@ -1,3 +1,11 @@
+---
+title: SSL Automation Strategy
+audience: dev
+created: 2026-03-24
+last-reviewed: 2026-05-19
+status: living
+---
+
 # SSL Automation Strategy
 
 ## Overview

@@ -1,3 +1,11 @@
+---
+title: KiteHub Domain Management — Business & Technical Guide
+audience: mixed
+created: 2026-03-23
+last-reviewed: 2026-05-19
+status: living
+---
+
 # KiteHub Domain Management — Business & Technical Guide
 
 **Ngày tạo:** 2026-03-23
