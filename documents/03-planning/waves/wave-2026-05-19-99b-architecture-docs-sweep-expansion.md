@@ -177,18 +177,48 @@ gaps: [GAP-668, GAP-669, GAP-670, GAP-671, GAP-672, GAP-673, GAP-674]
 
 ---
 
-## 5. Coordinator merge order
+## 5. Verification Gates (per bucket)
 
-1. **B6** ship FIRST → archive >6 stale arch docs → volume cap compliant 50 → unblocks B0-B5 file adds
-2. **B0** ship SECOND → Last-Reviewed backfill + Mermaid audit → baseline for new docs
-3. **B1, B2, B3, B4** parallel after B0 merge → 4 concurrent agent spawns (NOT 5 — per `feedback_parallel_agent_strategy.md` 3-concurrent safe / 4+ rate-limit risk; stagger if Anthropic throttle hit)
-4. **B5** ship LAST → references new file paths from B1-B4
+| Bucket | Local verify command | CI gate |
+|--------|---------------------|---------|
+| B6 | `bash scripts/check-docs-folder-volume-budget.sh documents/02-architecture/` (manual, script deferred per rule §6.3) + `find documents/02-architecture -maxdepth 1 -name "*.md" \| wc -l` ≤ 50 | docs-archival-cadence reviewer-checklist + volume-budget reviewer-checklist |
+| B0 | `grep -L "last-reviewed:" documents/02-architecture/*.md` returns empty + `grep -rn "<br/>" documents/02-architecture/ --include="*.md"` zero hits inside stateDiagram blocks | rule-frontmatter (adapt to arch docs) + Mermaid render manual check |
+| B1 | Mermaid render preview on GitHub (open file in PR) + cross-link verify (all referenced services + ADRs exist) | docs-only-pr-auto-merge eligible |
+| B2 | Compliance table cross-link verify (PDPL Art × code path × test — all `@see` Java refs resolve) + SLO table cross-link verify | docs-only-pr-auto-merge eligible |
+| B3 | Entity catalog cross-verify against actual Flyway migrations (`ls **/db/migration/V*.sql \| wc -l` match catalog count) | docs-only-pr-auto-merge eligible |
+| B4 | Mermaid render preview both C4 L1 + L2 diagrams on GitHub | docs-only-pr-auto-merge eligible |
+| B5 | README cross-link verify (all 7 step targets B1-B4 files + existing arch docs exist post-merge) | docs-only-pr-auto-merge eligible |
 
 Per `concurrent-production-mutation-ops.md` — N/A (docs-only, no production mutation).
 
 ---
 
-## 6. Outside-in audit findings (informing scope)
+## 6. Agent Spawn Pattern
+
+Per `agent-background-spawn-default.md` + `feedback_parallel_agent_strategy.md` Wave 97 lesson:
+
+- **B6 (foundation):** foreground agent (sequential, blocks B0-B5) — archive scan + folder moves, ~30min, no rate-limit risk
+- **B0 (sweep):** bg-agent `run_in_background: true` — 24 file frontmatter edits + Mermaid scan, low context budget
+- **B1+B3 (heaviest):** foreground agents — service catalog + DB map need code scan (Java + Flyway), >6 file ops risk per Wave 97 lesson
+- **B2+B4 (medium):** bg-agents `run_in_background: true` — compliance map (table-heavy hand-write) + C4 diagrams (Mermaid only)
+- **B5 (lightest):** bg-agent OR foreground — README rewrite (~89 lines), depends on B1-B4 file paths existing
+
+**Coordinator merge order:**
+1. **B6** FIRST (foundation — archive ≥6 stale → volume cap 56→≤50 compliant)
+2. **B0** SECOND (baseline — Last-Reviewed backfill)
+3. **B1+B2+B3+B4** parallel after B0 merge (4 concurrent — at threshold per `feedback_parallel_agent_strategy.md` 3-safe / 4-stagger-if-throttled)
+4. **B5** LAST (depends on B1-B4 file paths existing)
+
+**Worktree isolation:** `isolation: "worktree"` for B1-B4 parallel agents per `feedback_worktree_absolute_path_contamination.md`. B6 + B0 sequential — main repo OK.
+
+**Stake tier model selection** per `wave-pack-planner/SKILL.md` §Step 4.6:
+- HIGH stake (B1 + B2 — cross-cutting governance): Opus full
+- MEDIUM stake (B3 + B4): Opus medium
+- LOW stake (B0 + B5 + B6): Opus medium (default)
+
+---
+
+## 7. Outside-in audit findings (informing scope)
 
 3-agent outside-in run 2026-05-19 (per `outside-in-coverage-trigger.md` v1.1.0 Bước 1-5):
 
@@ -206,7 +236,7 @@ Audit artifacts (defer to actual file save in Wave 99B execution; outputs preser
 
 ---
 
-## 7. Closure Protocol
+## 8. Closure Protocol
 
 Per `gap-done-discipline.md` + `wave-closure-scope-completeness.md` v1.0.0 + `post-merge-sync-completeness.md` + `post-wave-cleanup.md`:
 
@@ -222,6 +252,6 @@ Per `gap-done-discipline.md` + `wave-closure-scope-completeness.md` v1.0.0 + `po
 
 ---
 
-## 8. Log
+## 9. Log
 
 - **2026-05-19** (draft): Plan created. Triggered by user 2026-05-19 4-bucket arch sweep request (Item 1 Mermaid fix shipped PR #1562; this wave handles Items 2+3+4). Per `outside-in-coverage-trigger.md` v1.1.0 §2 — 3-agent outside-in audit ran first (Persona + External Benchmark + Failure-Mode); consensus 5-report scope + 4-report defer. Per `feedback_wave_plan_through_pr.md` — wave plan PR FIRST before agent spawn. Reviewer: @nguyenvankiet (solo-dev).
