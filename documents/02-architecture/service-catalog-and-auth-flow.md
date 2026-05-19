@@ -183,15 +183,15 @@ sequenceDiagram
     PG-->>Sub: user row + bcrypt hash
     Sub->>Sub: BCrypt verify password
     Sub->>PG: INSERT admin_audit_log (login event)
-    Sub->>Sub: Generate JWT HS256<br/>claims {sub, tenantId, role}
+    Sub->>Sub: Generate JWT HS256 — claims {sub, tenantId, role}
     Sub->>Redis: SET refresh:{userId}:{jti} TTL 30d
     Sub-->>GW: 200 {accessToken, refreshToken}
     GW-->>FE: 200 + tokens
-    FE->>FE: Store tokens<br/>(httpOnly cookie facade per GAP-643)
+    FE->>FE: Store tokens (httpOnly cookie facade per GAP-643)
 
     Note over User,RLS: 2️⃣ Authenticated request (admin endpoint)
     User->>FE: Click "Admin → Instances"
-    FE->>GW: GET /api/admin/v1/instances<br/>Authorization: Bearer eyJ...
+    FE->>GW: GET /api/admin/v1/instances — Authorization Bearer eyJ...
     GW->>GW: Verify JWT signature (HS256)
     alt JWT invalid / expired
         GW-->>FE: 401 Unauthorized
@@ -199,7 +199,7 @@ sequenceDiagram
         GW->>GW: Extract {sub, tenantId, role}
         GW->>Admin: Forward + X-User-Id + X-Tenant-Id + X-User-Role
         Note over Admin: 3️⃣ Role-guard gate
-        Admin->>Admin: @PreAuthorize("hasRole('PLATFORM_ADMIN')")<br/>check X-User-Role
+        Admin->>Admin: @PreAuthorize hasRole PLATFORM_ADMIN — check X-User-Role
         alt Role mismatch (GAP-518/GAP-637 incident class)
             Admin-->>GW: 403 Forbidden
             GW-->>FE: 403
