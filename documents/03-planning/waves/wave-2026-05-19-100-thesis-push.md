@@ -4,7 +4,7 @@ status: active
 created: 2026-05-19
 updated: 2026-05-19
 phase: phase-1-beta
-wave: 100
+waves: [100]
 gaps: [GAP-650, GAP-286, GAP-297, GAP-293, GAP-680, GAP-681]
 audits: [2026-05-18-thesis-persona-demo-audit, 2026-05-18-thesis-vn-saas-benchmark, 2026-05-18-thesis-defense-failure-mode-matrix]
 audience: dev
@@ -129,7 +129,22 @@ Per `audit-to-gap-pipeline.md` §2.6 wave-plan state-check:
 
 ---
 
-## 5. Execution Strategy
+## 5. Verification Gates
+
+Pre-merge gates per bucket — CI + reviewer + audit:
+
+| Bucket | Pre-merge gates |
+|---|---|
+| **D** | CI script-quality green + reviewer verify IEEE format ≥5 sources + `dev-readable-doc-language.md` §7.1 narrative VN reviewer check |
+| **C** | CI green + 6 IT test (OtpService deprecate path + email-only signup) + Playwright E2E signup flow + smoke test SES Gmail/Outlook deliverability |
+| **A** | CI green + IT test BatchInvoiceGenerator concurrency (race + idempotency + rollback) + Playwright batch-invoice page + load test 100-invoice batch |
+| **B** | CI green + IT test IncomeService RLS NULL force-fail + per-class/per-branch aggregation accuracy + Playwright dashboard render mobile ≥360px + WCAG AA contrast |
+| **F** | CI script-quality + `diagram-format-selection.md` §5.1 Mermaid render verify + `dev-readable-doc-language.md` §7.1 narrative ratio measure (≥40% Vietnamese từ baseline 5-8%) |
+| **META** | CI rule-frontmatter + rules-index-csv green + reviewer-checklist atomic-unique-bar pass (`rule-change-process.md` §5.1) |
+
+Post-merge gate (all buckets): `post-wave-audit-mandate.md` §2.2 audit suite cadence ≤3 ngày.
+
+## 6. Agent Spawn Pattern
 
 **Thứ tự ship D → C → A → B + F parallel → META (cross-cut):**
 - D thứ 1 — disjoint scope, agent độc lập có thể start ngay không blocker
@@ -144,7 +159,29 @@ Per `audit-to-gap-pipeline.md` §2.6 wave-plan state-check:
 
 ---
 
-## 6. Audit Refresh Schedule
+## 7. Closure Protocol
+
+Per `wave-closure-scope-completeness.md` §3 Scope-Completeness Reconciliation:
+
+1. **Per-bucket DONE flip** per `gap-done-discipline.md` §2 — AC checked + CSV row updated + git mv to `phase-1-beta/closed/` per `gap-folder-organization.md` v2.0.0
+2. **Wave plan frontmatter** flip `status: active` → `status: complete` + add `closed_at: YYYY-MM-DD`
+3. **ROADMAP §🎯 Current Status Snapshot** add Wave 100 closure entry
+4. **Scope-Completeness Reconciliation** table (per `wave-closure-scope-completeness.md`) — verify 5 buckets D/C/A/B/F + META all shipped (or PARTIAL with follow-up gap link); Bucket E deferred Wave 101+ documented inline
+5. **post-wave audit suite** trigger ≤3 ngày per `post-wave-audit-mandate.md`:
+   - **Quality audit /110** refresh (last 90/110 B+ Wave 98 2026-05-19) — expected delta from Bucket A/B business logic depth + META rule landing
+   - **Business Logic audit /100** refresh required (last 73/100 C+ PARTIAL FAIL Cat 1 Wave 98) — path to 80 PASS via Bucket A `invoice_batch_audit` + Bucket B aggregator code ↔ rules.md verify
+   - **Deferred per usual cadence:** Performance (last 86/100 Wave 85, refresh Wave 102+), Security (last 93/100 v2 Wave 94c, refresh Wave 102+), UI (last 110.6/128 Wave 98, refresh Wave 102+), Ops Readiness (last 77/100 Wave 94c, blocked AWS restore GAP-612)
+6. **Wave 101 handoff note** trong session-handoff: Bucket E (GAP-518/538 AWS restore) + Bucket D Part 2 (Chapter 1 VN law + methodology) + Bucket F follow-up nếu maturity gaps mới surface
+
+## 8. Log
+
+- **2026-05-19** — Wave 100 plan created. Inside-out scope 4 buckets + 3-audit outside-in consensus consolidated. Bucket F added post user feedback trên `database-architecture-map.md` v1 quality concerns (GAP-681 filed). PR #1580 shipped.
+
+## 9. References
+
+- Canonical: [`release-1.5-thesis-scope.md`](../roadmap/release-1.5-thesis-scope.md)
+- 3 outside-in audit reports (2026-05-19): `documents/04-quality/audits/persona-review/2026-05-18-thesis-{persona-demo,vn-saas-benchmark,defense-failure-mode-matrix}.md`
+- Sister rules: `outside-in-coverage-trigger.md` v1.1.0 §3, `audit-to-gap-pipeline.md` §2.6 wave-plan state-check, `concurrent-production-mutation-ops.md`, `post-wave-audit-mandate.md`, `dev-readable-doc-language.md`, `diagram-format-selection.md`, `vn-localization-audit-checklist.md` (GAP-680 v1.0.0 deferred Bucket D PR)
 
 Per `post-wave-audit-mandate.md` ≤3 ngày after Wave 100 close:
 
