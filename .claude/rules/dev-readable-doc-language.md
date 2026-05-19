@@ -131,9 +131,15 @@ Pre-merge review cho PR touching dev-readable artifacts (per §2 scope):
 - [ ] Mixed-language sentences tự nhiên (Vietnamese narrative + inline English token)?
 - [ ] Acceptable English class (per §3) đúng scope (code source / commit / identifier)?
 
-### 7.2 CI grep detector (optional, deferred ≥7 ngày per `incident-to-rule-pipeline.md` premature-rule guard)
+### 7.2 CI grep detector (HONEST DEFER — heuristic FP risk inherently high)
 
-Heuristic regex tìm common English narrative patterns trong dev-readable scope:
+Per Wave 99C META-META GAP-675 audit (2026-05-19): detector HONEST-deferred per `incident-to-rule-pipeline.md` §3 tightened legitimate-deferral conditions:
+- **Detector complexity:** English narrative detection in mixed Vietnamese+English context inherently ambiguous — code-switching natural per §4 mixed-language rule (`HTTP 201`, `JWT`, `CORS` valid English tokens trong Vietnamese sentences)
+- **Recurrence count:** 0 post-merge (rule shipped 2026-05-14, ~5 days at audit time; no recurrence of English-narrative-only artifact yet)
+- **FP risk:** Very high — any acceptable English token (per §3 acceptable English class) trigger false positive
+- **Decision:** Reviewer-checklist §7.1 + worked self-test §6 (Wave 72a Bucket F CSV translation) sufficient cho v1.0.0; revisit detector when recurrence-count ≥2 OR proven NLP language classifier available
+
+Heuristic regex (when eventually implemented):
 
 ```bash
 # Trong .github/workflows/script-quality.yml hoặc .husky/pre-commit

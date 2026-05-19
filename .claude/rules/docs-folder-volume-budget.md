@@ -6,10 +6,10 @@ paths:
 # Docs Folder Volume Budget — per-folder active file caps
 
 **Priority:** 🟠 MANDATORY — docs scaling governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-18
-**Last-Reviewed:** 2026-05-18
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (reviewer-checklist + worked self-test trên hiện trạng `documents/03-planning/` + `documents/04-quality/`) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-uncovered per-folder volume cap để prevent "865-file folder" un-browsable state; Rule 3 of 4 trong docs scaling pack (paired same-wave với `docs-archival-cadence.md` Rule 1, `gap-architecture-v2.md` v1.0.4 Rule 2 đã ship, Rule 4 pending))
+**Last-Reviewed:** 2026-05-19
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; Wave 99C META-META GAP-675 SHIP-NOW — `scripts/check-docs-folder-volume.sh` shipped (138 LOC bash) + wired CI job `docs-scaling-detectors`; self-test PASS (60 over-cap + 30 safe counter logic); real-repo scan surfaces 2 confirmed over-cap (pr-logs 148/50 + gap-active 385/200) — actionable; closes deferred-detector debt §6.3 within 1 day of rule landing per `incident-to-rule-pipeline.md` Stage 3 paired-enforcement. No constraint change — detector enforces existing §2 caps prospectively. v1.0.0 (kept): MINOR self-approve per §5; new rule with built-in enforcement (reviewer-checklist + worked self-test trên hiện trạng `documents/03-planning/` + `documents/04-quality/`) per §6.5)
 **Applies to:** Mọi folder dưới `documents/**` chứa artifact markdown / JSON; mọi PR thêm file mới vào folder đã > cap; mọi reviewer kiểm tra folder hygiene
 
 ---
@@ -172,18 +172,16 @@ DOCS_VOLUME_FOLLOWUP: <link to gap scheduling archive/split within Ndays>"
 
 Trailer logged trong quarterly retro. Pattern frequency > 5%/quarter triggers meta-review of caps.
 
-### 6.3 Monitoring script (deferred ≥ 7 days per premature-rule guard)
+### 6.3 Monitoring script (SHIPPED Wave 99C GAP-675)
 
-Future enhancement — `scripts/check-docs-folder-volume.sh`:
+Script `scripts/check-docs-folder-volume.sh` shipped 2026-05-19 per Wave 99C META-META audit (GAP-675 SHIP-NOW verdict — trivial bash ~138 LOC, hardcoded folder→cap table, low FP risk). Wired CI job `docs-scaling-detectors` trong `script-quality.yml`:
+- WARN-mode initially (current 2 over-cap folders surface as actionable WARN, no merge block)
+- Self-test PASS (counter logic verified: 60 over-cap + 30 safe)
+- Real-repo scan surfaces: `documents/03-planning/pr-logs` 148/50 (296%) + gap-active 385/200 (192%)
+- Override trailer: `DOCS_VOLUME_OVERRIDE: <folder> <count>/<cap> — <reason>`
+- HARD STOP target Wave 100+ after triage PRs reduce known over-cap folders
 
-```bash
-#!/bin/bash
-# Iterate all folder classes per §2 + §2.1
-# Emit WARN if count >= 0.9 * cap, FAIL if count > cap
-# Output: table folder | class | count | cap | status
-```
-
-Defer per `incident-to-rule-pipeline.md` §3 premature-rule guard: reviewer-checklist + count commands inline §3.2 sufficient cho v1.0.0. Implement script khi (a) 2nd recurrence of "added file to over-cap folder" OR (b) Rule 1 `docs-archival-cadence.md` lands its cron — pair monitoring.
+Re-enable HARD STOP follow-up tracked GAP-679.
 
 ### 6.4 Memory auto-load (deferred)
 
@@ -276,4 +274,5 @@ Apply rule §3.2 count commands lên repo hiện tại, identify folders exceed 
 
 ## 10. Log
 
+- **2026-05-19 (v1.0.1):** PATCH — Wave 99C META-META GAP-675 SHIP-NOW closure of deferred-detector debt §6.3. `scripts/check-docs-folder-volume.sh` shipped (138 LOC bash; self-test 60/30 counter logic PASS); wired CI job `docs-scaling-detectors`. WARN-mode initially per `incident-to-rule-pipeline.md` premature-rule guard tightened §3 conditions (Stage 3 paired-enforcement compliance). Real-repo scan surfaces 2 actionable over-cap folders (pr-logs 296% + gap-active 192%) — triage follow-up tracked. No constraint change; detector enforces existing §2 caps prospectively. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — additive enforcement, no constraint loosening).
 - **2026-05-18 (v1.0.0):** Rule created in response to user-flagged 2026-05-18 miss: `documents/04-quality` 865 files + `documents/03-planning` 331 files → folder volume scale impossible to browse, ngay cả Claude struggle khi locate specific artifact. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged volume miss) → Classify ✓ (no existing rule mandates per-folder volume cap; `gap-architecture-v2.md` covers gap-specific only; `docs-folder-structure.md` covers structure not volume; `docs-archival-cadence.md` Rule 1 paired addresses age-based archive but no volume cap) → Rule+Enforce ✓ (this file + reviewer-checklist + paired same-wave với Rule 1 `docs-archival-cadence.md` + Rule 2 `gap-architecture-v2.md` đã ship + Rule 4 cross-cutting matrix per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§8 worked example trên hiện trạng repo — 3 folder classes confirmed over-cap: pr-logs 116/50, waves 106/50, gap active 351/200; rule fires correctly + counterfactual demonstrates force-multiplier value) → Retro Log ✓ (this entry). Rule 3 of 4 trong docs scaling pack (Rule 1 `docs-archival-cadence.md` paired wave parallel; Rule 2 `gap-architecture-v2.md` v1.0.4 đã ship; Rule 4 pending). META P1 force-multiplier per `meta-gap-priority.md` §3 — fix ngưỡng 1 lần → mọi folder under `documents/**` auto-comply prospectively. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint adding previously-uncovered per-folder volume cap; no constraint loosening for prior artifacts; existing over-cap folders grandfathered until next wave touching them; rule applies prospectively từ this PR forward). Monitoring script (§6.3) + memory auto-load (§6.4) deferred ≥ 7 days per premature-rule guard; reviewer-checklist + count commands inline §3.2 + worked self-test §8 đủ cho v1.0.0. Path-scoped (`documents/**`) per `context-budget-mandate.md` §3 — deferred-load only khi PR touch `documents/`.

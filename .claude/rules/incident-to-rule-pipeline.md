@@ -1,10 +1,10 @@
 # Incident → Rule Pipeline — turning misses into permanent guards
 
 **Priority:** 🔴 CRITICAL — meta-governance preventing the same miss twice
-**Version:** 1.0
+**Version:** 1.1
 **Created:** 2026-04-27
-**Last-Reviewed:** 2026-04-27
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MAJOR scope but self-approve per `rule-change-process.md` §5; new sister-rule with built-in enforcement; paired with `gap-done-discipline.md` + Rule 13 detector + `output-review-mandate.md` §3 row in same PR)
+**Last-Reviewed:** 2026-05-19
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1 PATCH self-approve per `rule-change-process.md` §5; Wave 99C META-META GAP-675 — tightens §3 premature-rule guard wording into explicit legitimate-deferral conditions (non-trivial detector + low recurrence + honest defer documentation) + banned shortcut "boilerplate copy-paste detector deferred ≥7 days". Failure-Mode Matrix agent surfaced 6 recent rules misused guard as escape hatch; this PATCH tightens wording so escape hatch becomes harder to abuse. No constraint loosening — clarifies existing intent + adds explicit 3-condition test. v1.0 (kept): MAJOR scope but self-approve per §5; new sister-rule with built-in enforcement; paired with `gap-done-discipline.md` + Rule 13 detector + `output-review-mandate.md` §3 row in same PR)
 **Applies to:** Every user-flagged miss, regression, "we caught this manually," or "should have a rule for this" comment in conversation, PR review, or retro
 
 ---
@@ -110,6 +110,24 @@ After the rule lands, three updates close the loop:
 
 The line: if you can imagine the same class of miss happening again with different specifics, run the pipeline. If it's a one-off, don't.
 
+### 3.1 Premature-rule guard — legitimate detector deferral (tightened v1.1, Wave 99C GAP-675)
+
+Stage 3 mandates rule + detection same PR. Detector deferral is a legitimate escape hatch ONLY when ALL THREE conditions hold:
+
+1. **Non-trivial detector** — detector requires AST walk / parser / external tool integration / NLP classification / multi-tier classification logic. NOT a trivial grep/file-exist check that fits in <50 LOC bash.
+2. **Low recurrence + cost-of-next-miss < detector-build-cost** — recurrence count <2 since rule landed AND/OR estimated cost of catching the next instance manually is less than the cost of building the detector.
+3. **Honest defer documented** — rule body MUST contain explicit subsection naming the deferral with concrete reason. Acceptable form:
+
+   > "Reviewer-checklist + memory auto-load + worked self-test sufficient cho v1.0.0 because <specific reason — e.g., NLP detection inherently ambiguous, AST parser not yet integrated, etc.>"
+
+   PLUS one of:
+   - Concrete revisit trigger (e.g., "revisit when recurrence-count ≥2 OR AST classifier available"), OR
+   - Follow-up gap tracking detector landing deadline (GAP-NNN with explicit ETA)
+
+**Banned shortcut:** copy-paste boilerplate text `"detector deferred ≥7 days per premature-rule guard"` without per-rule cost-benefit analysis + concrete revisit trigger. Wave 99C META audit (2026-05-19) found 6 recent rules using this boilerplate pattern with zero follow-through; all 6 audited via GAP-675 — 3 detectors shipped immediately (trivial scope), 3 HONEST-deferred with explicit per-rule rationale per §3.1 conditions.
+
+**Stage 3 Self-application check:** before merging any rule with deferred detector, verify ALL THREE §3.1 conditions hold. If any condition fails → ship detector instead (Stage 3 hard requirement).
+
 ---
 
 ## 4. The "rule about rules" anti-pattern (and why this one is OK)
@@ -202,4 +220,5 @@ This is a genuine PARTIAL — per `gap-done-discipline.md` §3, Rule 14 deferred
 
 ## 10. Log
 
+- **2026-05-19 (v1.1):** PATCH — tightened §3 premature-rule guard via new §3.1 subsection with 3 explicit legitimate-deferral conditions (non-trivial detector + low recurrence + honest defer documentation) + banned shortcut "boilerplate copy-paste detector deferred ≥7 days". Triggered by Wave 99C META-META GAP-675 audit (2026-05-19): Failure-Mode Matrix agent surfaced 6 recent rules (docs-archival-cadence / docs-folder-volume-budget / docs-subfolder-maturity / docs-filename-prefix-convention / diagram-format-selection / dev-readable-doc-language) misused premature-rule guard as escape hatch — boilerplate copy-paste without per-rule cost-benefit. GAP-675 audit verdict: 3 detectors shipped immediately (trivial bash scope; matching tightened condition 1+2+3 failed cho "defer"), 3 HONEST-deferred with §3.1-conformant rationale + concrete revisit triggers. PATCH not MINOR because: clarifies existing Stage 3 intent (rule + detection same PR) — does NOT loosen any constraint, only adds explicit test to prevent abuse. Self-application check: this v1.1 itself is a doc-only patch (no detector needed); paired with 3 detectors shipped same PR per §3.1 condition 3 (Stage 3 paired-enforcement compliance). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-04-27 (v1.0):** Rule created. Triggered by user comment "có quy trình khi thêm 1 skill, 1 rules vào dự án chưa, mà vẫn miss kiểu này" — pointing out that we have processes to ADD rules but no process to DETECT what rules are missing. Paired in same PR with `gap-done-discipline.md`, `rule-change-process.md` §6.5, `output-review-mandate.md` §3 row, and `session-docs-check` Rule 13 detector. Rule 14 (PR-description scan) explicitly deferred to follow-up gap to demonstrate `gap-done-discipline.md` §3 PARTIAL exit-ramp working in practice.

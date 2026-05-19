@@ -7,10 +7,10 @@ paths:
 # Docs Archival Cadence — auto-archive time-bound artifacts to prevent docs accumulation
 
 **Priority:** 🟠 MANDATORY — docs lifecycle + volume governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-18
-**Last-Reviewed:** 2026-05-18
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (reviewer-checklist + worked self-test on 2026-05-18 baseline + memory pointer) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-uncovered cadence governance for time-bound artifacts; CI detector script `scripts/check-docs-archival-stale.sh` deferred ≥7 ngày per `incident-to-rule-pipeline.md` premature-rule guard)
+**Last-Reviewed:** 2026-05-19
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; Wave 99C META-META GAP-675 SHIP-NOW — `scripts/check-docs-archival-stale.sh` shipped + wired in `script-quality.yml` job `docs-scaling-detectors`; self-test PASS on 3 synthetic fixtures (audit + handoff stale, 1 fresh-exempt); WARN-mode initially; closes deferred-detector debt §4.3 within 1 day of rule landing per `incident-to-rule-pipeline.md` Stage 3 paired-enforcement. No constraint change — detector enforces existing §2 cadence prospectively. v1.0.0 (kept): MINOR self-approve per §5; new rule with built-in enforcement (reviewer-checklist + worked self-test on 2026-05-18 baseline) per §6.5)
 **Applies to:** Time-bound artifacts trong `documents/04-quality/audits/**` + `documents/03-planning/session-handoffs/**` + `documents/03-planning/waves/**` + `documents/03-planning/pr-logs/**`. KHÔNG áp dụng cho: `ROADMAP.md`, gap files (`documents/04-quality/gaps/**` — đã có separate flow per `audit-to-gap-pipeline.md`), READMEs, canonical living docs (CLAUDE.md, business/*/rules.md).
 
 ---
@@ -125,14 +125,15 @@ done | wc -l
 
 Pattern stale count >20 files → file batch-archive gap trong wave kế tiếp.
 
-### 4.3 Future detector script (deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 ngày)
+### 4.3 CI detector script (SHIPPED Wave 99C GAP-675)
 
-Script `scripts/check-docs-archival-stale.sh` (NOT shipped this PR):
-- WARN-mode khi any artifact loại nào vượt cadence
-- HARD STOP sau 30-day grace period từ rule merge — target re-enable 2026-06-17
-- Wire vào CI job `docs-archival-stale` trong `script-quality.yml`
+Script `scripts/check-docs-archival-stale.sh` shipped 2026-05-19 per Wave 99C META-META audit (GAP-675 SHIP-NOW verdict — trivial bash <130 LOC, low FP risk, complements §2 cadence). Wired vào CI job `docs-scaling-detectors` trong `script-quality.yml`:
+- WARN-mode initially (existing files grandfathered; rule prospective)
+- Self-test PASS 3 synthetic fixtures (100d audit stale + 40d handoff stale + 10d fresh exempt)
+- Override trailer: `DOCS_ARCHIVAL_OVERRIDE: <path> — <reason>` per §5
+- HARD STOP target Wave 100+ after 30-day grace period + first batch archive PR triages legacy violations
 
-Track follow-up gap để re-enable HARD STOP khi script stabilize.
+Re-enable HARD STOP follow-up tracked GAP-679 (Wave 99C META-META Steps 3-4).
 
 ### 4.4 Memory auto-load (optional, deferred)
 
@@ -234,4 +235,5 @@ Apply §2 cadence retroactively vào current repo state:
 
 ## 8. Log
 
+- **2026-05-19 (v1.0.1):** PATCH — Wave 99C META-META GAP-675 SHIP-NOW closure of deferred-detector debt §4.3. `scripts/check-docs-archival-stale.sh` shipped (124 LOC bash; 3-fixture self-test PASS); wired CI job `docs-scaling-detectors` in `script-quality.yml`. WARN-mode initially per `incident-to-rule-pipeline.md` premature-rule guard tightened §3 conditions (Stage 3 paired-enforcement compliance achieved within 1 day of rule landing — cycle time benchmark). No constraint change; detector enforces existing §2 cadence prospectively. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — additive enforcement, no constraint loosening; HARD STOP follow-up GAP-679 tracking).
 - **2026-05-18 (v1.0.0):** Rule created in response to user-flagged 2026-05-18 docs scaling miss — `documents/04-quality/` accumulating 865 files (39% của 2,201 total); audit + PR-logs + session-handoffs accumulating without cadence guard. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged "documents/04-quality has 865 files, cognitive load too high") → Classify ✓ (existing rules cover format/structure `docs-folder-structure.md` + planning-specific archival `planning-docs-structure.md` NHƯNG KHÔNG cover generic cadence cho time-bound artifacts cross-folder; `audit-to-gap-pipeline.md` covers gap closure flow only) → Rule+Enforce ✓ (this file + reviewer-checklist §4.1 + worked self-test §6 + paired same-PR sister rules Rule 2/3/4 docs scaling pack — coordinator sync atomic post-merge cho `rules-index.csv` + `output-review-mandate.md` per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§6 worked example trên 2026-05-18 baseline — 4 artifact types × cadence table = 0 quá tuổi today (project mới, active history start 2026-02-27); rule applies prospectively từ ~2026-05-27 first batch trigger; counterfactual: 12-month accumulation projected ~200+ low-value files) → Retro Log ✓ (this entry). META P0 force-multiplier per `meta-gap-priority.md` §3 — fix cadence 1 lần → force-multiplier mọi artifact subsequent (Wave 92+ audit + session-handoff + wave + PR-log). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying previously-uncovered lifecycle governance for time-bound artifacts; no constraint loosening; existing artifacts grandfathered (baseline 0 quá tuổi today); rule applies prospectively từ first cadence trigger 2026-05-27 forward). Detector script `scripts/check-docs-archival-stale.sh` deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 ngày; reviewer-checklist §4.1 + quarterly retro check §4.2 + worked self-test §6 đủ cho v1.0.0. Path-scoped per `context-budget-mandate.md` §3.1 — `paths: ["documents/**/*.md", "documents/**/*.json"]` deferred-load chỉ khi `documents/**` trong context.
