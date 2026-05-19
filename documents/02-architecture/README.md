@@ -14,17 +14,18 @@ Technical architecture documentation — system design, component interactions, 
 |------|---------|---------------|
 | `README.md` | This index | 1 |
 | [`adr/`](adr/) | Architectural Decision Records (MADR format) | `ADR-NNN-*.md` + `TEMPLATE.md` + `README.md` |
-| [`ai-branding-v2-redesign.md`](ai-branding-v2-redesign.md) | AI Branding system architecture (key feature) | 1 |
-| [`ai-branding-design-patterns.md`](ai-branding-design-patterns.md) | Design patterns applied in AI Branding | 1 |
-| [`kiteclass-architecture.md`](kiteclass-architecture.md) | KiteClass core module architecture | 1 |
-| [`docker-platform-architecture.md`](docker-platform-architecture.md) | Docker stack + service topology | 1 |
+| [`threat-models/`](threat-models/) | Per-domain threat models | 4 |
+| [`design-system/`](design-system/) | UI kits + design dossier | (nested) |
+| [`integrations/`](integrations/) | External integration architecture (Resend, MISA, etc.) | (varies) |
+| [`kitehub-architecture.md`](kitehub-architecture.md) | KiteHub SaaS platform architecture (Wave 96 PR2) | 1 |
+| [`kiteclass-architecture.md`](kiteclass-architecture.md) | KiteClass core module architecture (Wave 96 PR2) | 1 |
+| [`multi-tenant-architecture.md`](multi-tenant-architecture.md) | Multi-tenant strategy DB-level isolation + RLS (Wave 96 PR2) | 1 |
+| [`email-architecture.md`](email-architecture.md) | Email vendor architecture SES + Resend dual-vendor | 1 |
 | [`domain-management.md`](domain-management.md) | Domain/DNS architecture (kitehub.vn + tenant subdomains) | 1 |
-| [`email-lifecycle.md`](email-lifecycle.md) | Email sending architecture + RabbitMQ flow | 1 |
-| [`backup-strategy.md`](backup-strategy.md) | Backup architecture (PostgreSQL, MinIO, Redis) | 1 |
 | [`data-retention-policy.md`](data-retention-policy.md) | Data retention + deletion architecture | 1 |
 | [`ssl-automation.md`](ssl-automation.md) | SSL cert automation (Let's Encrypt wildcard) | 1 |
-| [`living-docs-audit-2026-04.md`](living-docs-audit-2026-04.md) | Living docs audit snapshot (Apr 2026) | 1 |
 | [`deployment-strategy.md`](deployment-strategy.md) | Deployment philosophy single-source (5 principles + env matrix) | 1 |
+| [`env-vars-registry.md`](env-vars-registry.md) | Production env config registry (single source of truth) | 1 |
 
 ---
 
@@ -52,10 +53,15 @@ Technical architecture documentation — system design, component interactions, 
 
 ## Key Documents (start here)
 
-- **AI Branding (key feature):** [`ai-branding-v2-redesign.md`](ai-branding-v2-redesign.md) → [`ai-branding-design-patterns.md`](ai-branding-design-patterns.md)
-- **Service topology:** [`docker-platform-architecture.md`](docker-platform-architecture.md)
+- **KiteHub SaaS platform:** [`kitehub-architecture.md`](kitehub-architecture.md) (canonical Wave 96 PR2)
+- **KiteClass tenant platform:** [`kiteclass-architecture.md`](kiteclass-architecture.md) (canonical Wave 96 PR2)
+- **Multi-tenant isolation:** [`multi-tenant-architecture.md`](multi-tenant-architecture.md) (canonical Wave 96 PR2)
+- **Email vendor topology:** [`email-architecture.md`](email-architecture.md)
 - **Deployment philosophy:** [`deployment-strategy.md`](deployment-strategy.md)
 - **Domain/DNS:** [`domain-management.md`](domain-management.md)
+- **Production env config:** [`env-vars-registry.md`](env-vars-registry.md)
+
+> **AI Branding architecture:** archived to [`07-archived/architecture-2026-Q2/`](../07-archived/architecture-2026-Q2/) (Wave 99B B6 sweep) — shipped implementation reality now reflected in `kitehub-architecture.md` + `kiteclass-architecture.md` per-module ownership; design patterns enforced via [`.claude/rules/design-patterns.md`](../../.claude/rules/design-patterns.md). Older snapshots (`docker-platform-architecture.md`, `email-lifecycle.md`, `backup-strategy.md`, `living-docs-audit-2026-04.md`) also moved there — content now covered by Wave 96 PR2 reports + operations runbooks + business-layer 3-layer docs.
 
 ---
 
