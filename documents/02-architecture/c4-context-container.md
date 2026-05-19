@@ -1,6 +1,6 @@
 ---
 title: C4 Model — Level 1 (System Context) + Level 2 (Container) cho Kite Platform
-audience: dev
+audience: mixed
 last-reviewed: 2026-05-19
 status: active
 wave: 99b

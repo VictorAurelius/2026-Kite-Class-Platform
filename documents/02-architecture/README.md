@@ -1,6 +1,6 @@
 ---
 title: 02-architecture — Technical Architecture
-audience: dev
+audience: mixed
 created: 2026-04-18
 last-reviewed: 2026-05-19
 status: living

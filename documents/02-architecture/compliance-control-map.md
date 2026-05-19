@@ -1,6 +1,6 @@
 ---
 title: Compliance × Code Map + SLO Registry + Risk Register
-audience: dev
+audience: mixed
 created: 2026-05-19
 last-reviewed: 2026-05-19
 status: living

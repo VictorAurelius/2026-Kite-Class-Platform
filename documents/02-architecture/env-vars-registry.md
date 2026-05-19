@@ -1,6 +1,6 @@
 ---
 title: Production Env Vars Registry
-audience: dev
+audience: mixed
 created: 2026-05-14
 last-reviewed: 2026-05-19
 status: living

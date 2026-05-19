@@ -1,6 +1,6 @@
 ---
 title: Database Architecture Map — Entity catalog, FK graph, RLS coverage, migration history
-audience: dev
+audience: mixed
 status: active
 created: 2026-05-19
 last-reviewed: 2026-05-19
