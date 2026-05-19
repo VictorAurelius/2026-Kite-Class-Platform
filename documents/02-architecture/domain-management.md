@@ -315,20 +315,29 @@ server {
 
 ## 7. Tenant Resolution — Technical Flow
 
-```
-Request: https://anh-van-abc.kiteclass.com/api/v1/students
+```mermaid
+flowchart TD
+    REQ["Request<br/>https://anh-van-abc.kiteclass.com/api/v1/students"]
+    DNS["Browser → DNS<br/>*.kiteclass.com → Server IP"]
+    NGX["Nginx<br/>SSL terminate · proxy_pass gateway:9000"]
+    GW[Gateway TenantResolverFilter]
+    ROUTE["Route to kiteclass-core:8080/api/v1/students"]
+    READ[Core reads X-Tenant-Id header]
+    QRY["SELECT FROM students WHERE tenant_id = uuid"]
 
-Browser → DNS (*.kiteclass.com → Server IP)
-       → Nginx (SSL terminate, proxy_pass gateway:9000)
-       → Gateway TenantResolverFilter:
-           1. Host header: "anh-van-abc.kiteclass.com"
-           2. Extract: "anh-van-abc" (before .kiteclass.com)
-           3. DB query: findBySubdomain("anh-van-abc")
-           4. Verify: status IN (ACTIVE, TRIAL)
-           5. Inject: X-Tenant-Id = {instance-uuid}
-       → Route to kiteclass-core:8080/api/v1/students
-       → Core service reads X-Tenant-Id header
-       → Query: SELECT * FROM students WHERE tenant_id = {uuid}
+    REQ --> DNS --> NGX --> GW
+    GW --> ROUTE --> READ --> QRY
+
+    subgraph Filter [TenantResolverFilter — 5 steps]
+      F1["1. Host header — anh-van-abc.kiteclass.com"]
+      F2["2. Extract subdomain — anh-van-abc"]
+      F3["3. DB query — findBySubdomain anh-van-abc"]
+      F4["4. Verify status IN ACTIVE,TRIAL"]
+      F5["5. Inject X-Tenant-Id = instance-uuid"]
+      F1 --> F2 --> F3 --> F4 --> F5
+    end
+
+    GW -.->|filter chain| F1
 ```
 
 ---

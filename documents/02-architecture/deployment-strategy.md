@@ -64,35 +64,28 @@ Mọi deployment decision phải justify được trong graduation thesis với 
 ## 3. Deployment Workflow
 
 ### 3.1 Feature → Staging
-```
-PR merged to main
- ↓
-GitHub Actions build images (per-service)
- ↓
-Push to ghcr.io với tag :main-{sha7}
- ↓
-Trigger deploy-staging.yml
- ↓
-helm upgrade --install -n kite-staging --values staging.yaml
- ↓
-Smoke tests (GAP-089 — future)
- ↓
-Ready for manual promote to prod
+```mermaid
+flowchart TD
+    A[PR merged to main]
+    B[GitHub Actions build images — per-service]
+    C["Push to ghcr.io tag :main-sha7"]
+    D[Trigger deploy-staging.yml]
+    E["helm upgrade --install -n kite-staging --values staging.yaml"]
+    F[Smoke tests — GAP-089 future]
+    G[Ready for manual promote to prod]
+    A --> B --> C --> D --> E --> F --> G
 ```
 
 ### 3.2 Staging → Production (planned)
-```
-Manual approval on GitHub environment "production"
- ↓
-Retag ghcr.io image :stable-{date}
- ↓
-Trigger deploy-production.yml
- ↓
-helm upgrade với --atomic (rollback nếu fail)
- ↓
-Smoke tests + synthetic monitoring
- ↓
-Announce in #releases Slack channel (future)
+```mermaid
+flowchart TD
+    A["Manual approval on GitHub environment production"]
+    B["Retag ghcr.io image :stable-date"]
+    C[Trigger deploy-production.yml]
+    D["helm upgrade --atomic — rollback if fail"]
+    E[Smoke tests + synthetic monitoring]
+    F["Announce in #releases Slack channel — future"]
+    A --> B --> C --> D --> E --> F
 ```
 
 ### 3.3 Emergency rollback
