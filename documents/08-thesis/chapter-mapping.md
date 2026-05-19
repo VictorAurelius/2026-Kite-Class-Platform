@@ -6,7 +6,7 @@ Maps existing project documents to thesis chapter structure for easy reference e
 
 | Chapter | Title | Primary Sources | Supplementary |
 |---------|-------|-----------------|---------------|
-| Ch1 | Introduction | `01-business/` (domain overview, problem statement) | `07-archived/research/competitive/` (market analysis) |
+| Ch1 | Introduction | `01-business/` (domain overview, problem statement) + `chapter-1-competitor-analysis.md` Part 1 ✅ Wave 100 + `chapter-1-ai-techniques.md` Part 1 ✅ Wave 100 | `07-archived/research/competitive/` (market analysis); Part 2 (threat-to-validity + IEEE 15+ + cross-jurisdiction) defer Wave 101 |
 | Ch2 | Theoretical Background | `07-archived/research/technology/` (tech evaluation) | `08-thesis/references/technology-stack.md` (stack rationale) |
 | Ch3 | Requirements Analysis | `01-business/` (business rules per domain) | `06-diagrams/` (use case diagrams, ERD) |
 | Ch4 | System Design | `02-architecture/` (architecture decisions) | `06-diagrams/` (architecture diagrams, class diagrams) |
@@ -19,9 +19,13 @@ Maps existing project documents to thesis chapter structure for easy reference e
 ### Chapter 1: Introduction
 - **Problem statement**: Multi-tenant SaaS platform for education management
 - **Scope**: KiteHub (SaaS platform) + KiteClass (tenant application)
+- **Status**: Part 1 ✅ Wave 100 (Bucket D) — competitor analysis + AI techniques + bibliography seed; Part 2 ⏳ defer Wave 101 (threat-to-validity + 15+ IEEE sources + cross-jurisdiction + PDPL 2025 timeline)
 - **Sources**:
+  - `chapter-1-competitor-analysis.md` — Phần 1: phân tích 4 đối thủ VN edu SaaS (MISA/Mona/Easy Edu/DotB)
+  - `chapter-1-ai-techniques.md` — Phần 2: kỹ thuật AI tích hợp trong KiteHub (AI Branding + Quality Gate + roadmap)
   - `01-business/README.md` — Business rules overview
   - `07-archived/research/competitive/` — Competitive landscape analysis
+  - `references/bibliography.md` — 38 IEEE sources (Wave 100 added 8 new for Chapter 1)
 
 ### Chapter 2: Theoretical Background
 - **Technology foundations**: Microservices, Spring Boot, Next.js, Docker

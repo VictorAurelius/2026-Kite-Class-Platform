@@ -80,3 +80,4 @@ docs-filename-prefix-convention,MANDATORY,1.0.0,2026-05-18,2026-05-18,docs-filen
 gap-folder-organization,MANDATORY,1.0.0,2026-05-18,2026-05-18,gap-folder-organization.md,"documents/04-quality/gaps/**,documents/04-quality/gaps/gap-status.csv",active,,
 diagram-format-selection,MANDATORY,1.0.2,2026-05-18,2026-05-19,diagram-format-selection.md,"documents/**/*.md,.claude/rules/**/*.md,.claude/skills/**/*.md,**/README.md",active,,
 session-end-context-check,MANDATORY,1.0.1,2026-05-19,2026-05-19,session-end-context-check.md,,active,,
+vn-localization-audit-checklist,MANDATORY,1.0.0,2026-05-19,2026-05-19,vn-localization-audit-checklist.md,"kitehub/kitehub-frontend/**,kitehub/kiteclass-frontend/**,kitehub/*/src/main/resources/templates/email/**,kitehub/*/src/main/resources/i18n/**,documents/05-guides/user-manual/**",active,,
