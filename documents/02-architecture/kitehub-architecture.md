@@ -191,7 +191,7 @@ sequenceDiagram
     alt Password match + email verified
         Sub->>PG: INSERT admin_audit_log (login event)
         Sub->>Sub: Generate JWT (HS256) với claims {sub, tenantId, role}
-        Sub->>Redis: Store refresh token<br/>(SET refresh:{userId}:{jti} TTL 30d)
+        Sub->>Redis: Store refresh token — SET refresh userId jti TTL 30d
         Sub-->>GW: 200 + {accessToken, refreshToken}
         GW-->>FE: 200 + {accessToken, refreshToken}
         FE->>FE: Store tokens (httpOnly cookie facade per GAP-643)
@@ -211,18 +211,18 @@ sequenceDiagram
     actor User
     participant FE as kitehub-frontend
     participant GW as kite-gateway
-    participant Service as Downstream service<br/>(subscription / branding / admin / email)
+    participant Service as Downstream service
     participant PG as kite-postgres
 
     User->>FE: Click "View dashboard"
-    FE->>GW: GET /api/admin/beta-requests<br/>Authorization: Bearer eyJ...
+    FE->>GW: GET /api/admin/beta-requests — Authorization Bearer eyJ
     GW->>GW: Verify JWT signature (HS256)
     alt JWT invalid / expired
         GW-->>FE: 401 Unauthorized
     else JWT valid
         GW->>GW: Extract claims {sub, tenantId, role}
-        GW->>Service: Forward request<br/>+ X-User-Id: {sub}<br/>+ X-Tenant-Id: {tenantId}<br/>+ X-User-Role: {role}
-        Service->>Service: @PreAuthorize("hasAuthority('PLATFORM_ADMIN')")<br/>check from X-User-Role header (GAP-604)
+        GW->>Service: Forward request — headers X-User-Id X-Tenant-Id X-User-Role
+        Service->>Service: @PreAuthorize hasAuthority PLATFORM_ADMIN — check from X-User-Role header per GAP-604
         alt Role lacks authority
             Service-->>GW: 403 Forbidden
             GW-->>FE: 403

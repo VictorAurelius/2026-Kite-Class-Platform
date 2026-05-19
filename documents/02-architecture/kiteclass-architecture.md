@@ -135,8 +135,8 @@ sequenceDiagram
 
     Owner->>KCFE: Open onboarding wizard
     KCFE->>KCCore: POST /api/v1/classes (Bearer JWT)
-    Note over KCCore: JwtAuthenticationFilter validate signature<br/>Extract tenantId, userId, role
-    Note over KCCore: TenantContext.set(tenantId)<br/>SET LOCAL app.current_tenant_id = <uuid>
+    Note over KCCore: JwtAuthenticationFilter validate signature — Extract tenantId, userId, role
+    Note over KCCore: TenantContext.set(tenantId) — SET LOCAL app.current_tenant_id = uuid
     KCCore->>DB: INSERT class WHERE RLS policy USING (instance_id = current_tenant)
     DB-->>KCCore: 201 + class.id
     KCCore-->>KCFE: 201 Created
@@ -157,13 +157,13 @@ sequenceDiagram
     Gateway->>Gateway: Resolve subdomain → tenantId (per ADR-023)
     Gateway->>Core: GET /api/v1/students (Bearer JWT, X-Tenant-Id: <uuid>)
 
-    Core->>Core: JwtAuthenticationFilter — validate signature<br/>Extract userId, role, claims tenantId
+    Core->>Core: JwtAuthenticationFilter — validate signature — Extract userId, role, claims tenantId
     Core->>Core: Assert JWT.tenantId == X-Tenant-Id (prevent header spoofing)
     Core->>Core: @PreAuthorize check role
     Core->>Core: TenantContext.set + SET LOCAL app.current_tenant_id
 
     Core->>DB: SELECT * FROM students
-    Note over DB: RLS policy: USING (instance_id = current_setting('app.current_tenant_id')::uuid)<br/>NULL GUC → deny (force-fail)
+    Note over DB: RLS policy USING instance_id = current_setting app.current_tenant_id uuid — NULL GUC deny force-fail
     DB-->>Core: Tenant-scoped rows only
 
     Core-->>Gateway: 200 OK + JSON
