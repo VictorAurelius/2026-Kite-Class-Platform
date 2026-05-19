@@ -8,7 +8,28 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-19 — Wave 100.7 COMPLETE 4.5/5 phases DONE + Wave 100 PARTIAL D+F+META + Wave 100.5 SHIPPED + Wave 99B closure)
+## 🎯 Current Status Snapshot (2026-05-19 — Wave 101 SHIPPED 4 buckets + Wave 100.7 COMPLETE + Wave 100 PARTIAL D+F+META + Wave 100.5 + Wave 99B)
+
+### 🎉 Wave 101 SHIPPED 2026-05-19 — Product Demo-Blockers cluster (4 buckets close-out)
+
+Wave 101 = direct continuation of Wave 100.7 thesis V1 closure into Track D Product demo-blockers per `release-1.5-thesis-scope.md` §2. User direction "ship 4-bucket plan now, accept PARTIAL exits if AWS GAP-612 blocks live walk".
+
+| Bucket | Gap | Verdict | PR |
+|---|---|---|---|
+| A | GAP-518 admin role BE/FE | 🟡 PARTIAL 95→97 (live walk gated GAP-684/GAP-612) | #1603 |
+| B | GAP-562 + GAP-562b kitehub-branding @PreAuthorize | ✅ DONE 90/85→100 (spring-security + 4 controllers + 7 IT) | #1607 |
+| C | GAP-287 wizard "Sử dụng mặc định" | ✅ DONE 0→100 (10 unit + 3 Playwright; FE-only clean) | #1605 |
+| D | GAP-538 onboarding seed + E2E spec | 🟡 PARTIAL 90→95 (live walkthrough gated GAP-612) | #1604 |
+| — | thesis-v1-draft.docx pandoc convert (side-quest) | ✅ shipped 113K (60/100 D+ self-audit) | #1606 |
+| plan | Wave 101 plan PR | — | #1602 |
+
+**Bucket B fix cycle:** SecurityConfig broke 5 pre-existing `@WebMvcTest` classes (11 test failures). 2 fix commits `a967249f` + `7c28c2f3` added `@AutoConfigureMockMvc(addFilters = false)` to 4 broken test classes. Final state 31/31 CI PASS.
+
+**3 follow-up gaps filed (this closure PR):** GAP-685 (Wave 101 audit suite — deadline 2026-05-22 per `post-wave-audit-mandate.md` §2.2) / GAP-686 (3-layer business doc sync kitehub-branding RBAC) / GAP-687 (thesis V1 DOCX audit 3-phase follow-ups).
+
+**Cleanup:** 4 worktree husks + 3 merged branches pruned via `scripts/prune-merged-worktrees.sh` per `post-wave-cleanup.md`. Scope-Completeness Reconciliation table per `wave-closure-scope-completeness.md` §3 in wave plan §7.1.
+
+---
 
 ### 🎉 Wave 100.7 Phase 3b V2 SHIPPED 2026-05-19 — Full DOCX pipeline (GAP-646 DONE)
 
