@@ -7,9 +7,24 @@ phase: phase-1-beta
 gaps: [GAP-688, GAP-687, GAP-651]
 audit_id: AUDIT-2026-05-19-thesis-v1-python-pipeline-docx
 artifact: documents/08-thesis/thesis-v1.docx
-pr: TBD (Wave 102 GAP-688)
+pr: 1611 (Wave 102 GAP-688 merged commit 355c1f61)
 supersedes: AUDIT-2026-05-19-thesis-v1-draft-docx
+superseded-by-rubric: thesis-content-standard.md v1.0.0 rubric v2 (9-category) — see §RETROACTIVE annotation below
 ---
+
+> ⚠️ **RETROACTIVE ANNOTATION (2026-05-19 post Wave 102 META PR):**
+> This audit used ad-hoc 6-category rubric (rubric v1). User inspection post-merge surfaced 7 substantial content-quality issues NOT covered by rubric v1 (academic tone "đối thủ" / Claude refs / Mermaid as code / danh mục thuật ngữ tách / logo UTC chưa chèn / TL;DR sections / repo jargon Wave/GAP/Phase BETA / 110 trang vs 60-70 target). Plus 43 additional findings từ persona simulation outside-in agent `2026-05-19-thesis-v1-persona-simulation-outside-in.md`.
+>
+> Rule `.claude/rules/thesis-content-standard.md` v1.0.0 (Wave 102 META, shipped same session) codified comprehensive **rubric v2 (9-category /100)** addressing rubric v1 blind spots:
+> - C1 Format (15) | C2 Content+page count (15) | C3 Bibliography (15) | C4 Academic tone NEW (15) | C5 Project-internal scrub NEW (10) | C6 Draft-marker scrub NEW (5) | C7 Diagram+figure (10) | C8 Examiner readiness (10) | C9 Compliance+legal NEW (5)
+>
+> **Rubric v1 score: 82/100 B-** ← inflated (this audit)
+> **Rubric v2 score: ~42/100 F** ← realistic (per `thesis-content-standard.md` §5 retroactive self-test)
+> **Delta: -40 points** (rubric v1 missed 40% of evaluation surface; 5 NEW categories introduced)
+>
+> **Original audit body BELOW preserved for historical record.** Rubric v2 applies prospectively từ Wave 102.1 fix PR forward. Path to ≥75 C+ documented in `thesis-content-standard.md` §5: 87/100 B+ target post-bundled-fix scope (7 user issues + 43 agent findings).
+>
+> **Future thesis V2+ audits MUST use rubric v2** per `thesis-content-standard.md` §6.2 + `output-review-mandate.md` §3 matrix row "Thesis report / academic deliverable" (v1.15.0).
 
 # Thesis V1 Python Pipeline DOCX Audit
 
