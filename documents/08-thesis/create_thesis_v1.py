@@ -96,11 +96,10 @@ CHAPTER_TITLES = {
     4: "KẾT QUẢ TRIỂN KHAI",
 }
 BIBLIOGRAPHY_FILE = THESIS_DIR / "references" / "bibliography.md"
-LOGO_FILE = THESIS_DIR / "documents" / "07-archived" / "academic" / "word-reports" / "templates" / "logo_utc.png"
-# Fallback: also check root templates path
+# PROJECT_ROOT = THESIS_DIR.parent.parent (documents/08-thesis → documents → project root)
+PROJECT_ROOT = THESIS_DIR.parent.parent
 LOGO_FALLBACKS = [
-    LOGO_FILE,
-    Path("/home/nguyenvankiet/projects/2026-Kite-Class-Platform/documents/07-archived/academic/word-reports/templates/logo_utc.png"),
+    PROJECT_ROOT / "documents" / "07-archived" / "academic" / "word-reports" / "templates" / "logo_utc.png",
 ]
 OUTPUT_FILE = THESIS_DIR / "thesis-v1.docx"
 
@@ -466,7 +465,7 @@ def parse_markdown(doc, md_text, skip_top_heading=True):
         lines = lines[end + 1:]
 
     # Collect content excluding top-level # heading and trailing metadata sections
-    SKIP_SECTIONS = {"🆘 Cần hỗ trợ?", "Tài liệu tham khảo", "Related", "Cảm ơn"}
+    SKIP_SECTIONS = {"🆘 Cần hỗ trợ?", "Tài liệu tham khảo", "Related", "Cảm ơn", "TL;DR"}
     cleaned_lines = []
     top_seen = not skip_top_heading
     skip_until_h2 = False
@@ -477,14 +476,15 @@ def parse_markdown(doc, md_text, skip_top_heading=True):
             continue
         if stripped.startswith("## "):
             sec_title = stripped[3:].strip()
-            if sec_title in SKIP_SECTIONS:
+            # Match TL;DR with optional suffix; emoji prefix sections also skip
+            if sec_title in SKIP_SECTIONS or sec_title.startswith("TL;DR") or sec_title.startswith("🆘"):
                 skip_until_h2 = True
                 continue
             else:
                 skip_until_h2 = False
         if skip_until_h2:
             continue
-        # Skip date blockquote metadata line
+        # Skip date blockquote metadata line ("> 📅 Cập nhật lần cuối: ...")
         if stripped.startswith("> 📅"):
             continue
         cleaned_lines.append(line)
@@ -731,7 +731,11 @@ def add_cover_page(doc):
 
 # ============== TRANG BÌA PHỤ ==============
 def add_secondary_cover_page(doc):
-    """Bìa phụ: same as bìa chính + GVHD signature block + GV phản biện stub."""
+    """Bìa phụ: title page với 6-field info table (Sinh viên/MSSV/Lớp/Khóa/GVHD/GVPB).
+
+    Per agent GVHD-01 finding — bìa phụ PHẢI có khung info chuẩn UTC, NOT trùng bìa chính.
+    """
+    # Header (less prominent than bìa chính — info-focused page)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = p.add_run("BỘ GIÁO DỤC VÀ ĐÀO TẠO")
@@ -744,103 +748,71 @@ def add_secondary_cover_page(doc):
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_after = Pt(24)
     run = p.add_run("KHOA CÔNG NGHỆ THÔNG TIN")
     set_font(run, Pt(14), bold=True)
     run.font.underline = True
 
-    # Spacer for logo position
-    p = doc.add_paragraph()
-    p.paragraph_format.space_before = Pt(36)
-    p.paragraph_format.space_after = Pt(36)
-
+    # KHÓA LUẬN TỐT NGHIỆP (smaller than bìa chính — info-focused)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(12)
     run = p.add_run("KHÓA LUẬN TỐT NGHIỆP")
-    set_font(run, Pt(24), bold=True, color=RGBColor(184, 134, 11))
+    set_font(run, Pt(18), bold=True, color=RGBColor(184, 134, 11))
     run.font.underline = True
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_after = Pt(24)
+    p.paragraph_format.space_after = Pt(18)
     run = p.add_run("CỬ NHÂN")
-    set_font(run, Pt(18), bold=True)
+    set_font(run, Pt(14), bold=True)
 
-    # Đề tài
+    # Tên đề tài
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(12)
+    p.paragraph_format.space_before = Pt(6)
     run = p.add_run("Đề tài:")
-    set_font(run, Pt(14), italic=True)
+    set_font(run, Pt(13), italic=True)
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_after = Pt(36)
+    p.paragraph_format.space_after = Pt(24)
     run = p.add_run(THESIS_INFO["title"])
-    set_font(run, Pt(20), bold=True)
+    set_font(run, Pt(16), bold=True)
 
-    # 2 cột signature: Sinh viên | GVHD
-    table = doc.add_table(rows=2, cols=2)
+    # 6-field info table per UTC convention (agent GVHD-01)
+    table = doc.add_table(rows=6, cols=2)
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table.style = 'Table Grid'
 
-    # Header row
-    for i, label in enumerate(["Sinh viên thực hiện", "Giáo viên hướng dẫn"]):
-        cell = table.rows[0].cells[i]
-        cell.text = label
-        cell.width = Cm(7.5)
-        for paragraph in cell.paragraphs:
-            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    info_rows = [
+        ("Sinh viên thực hiện", STUDENT_INFO["name"]),
+        ("Mã số sinh viên", STUDENT_INFO["student_id"]),
+        ("Lớp", STUDENT_INFO["class"]),
+        ("Khóa", STUDENT_INFO["course"]),
+        ("Giáo viên hướng dẫn", THESIS_INFO["advisor"]),
+        ("Giáo viên phản biện", "(Cập nhật khi Khoa phân công)"),
+    ]
+    for i, (label, value) in enumerate(info_rows):
+        row = table.rows[i]
+        row.cells[0].text = label
+        row.cells[0].width = Cm(5.5)
+        for paragraph in row.cells[0].paragraphs:
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
             for run in paragraph.runs:
                 set_font(run, Pt(13), bold=True)
-        # Remove borders
-        tcPr = cell._tc.get_or_add_tcPr()
-        tcBorders = OxmlElement('w:tcBorders')
-        for b in ['top', 'left', 'bottom', 'right']:
-            border = OxmlElement(f'w:{b}')
-            border.set(qn('w:val'), 'nil')
-            tcBorders.append(border)
-        tcPr.append(tcBorders)
+        row.cells[1].text = value
+        row.cells[1].width = Cm(9.0)
+        for paragraph in row.cells[1].paragraphs:
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            for run in paragraph.runs:
+                # GV phản biện stub italic gray
+                if "(Cập nhật" in value:
+                    set_font(run, Pt(12), italic=True, color=RGBColor(128, 128, 128))
+                else:
+                    set_font(run, Pt(13))
 
-    # Names row (after blank space)
-    for _ in range(3):
-        doc.add_paragraph()
-
-    # Names row
-    cell_sv = table.rows[1].cells[0]
-    cell_sv.text = STUDENT_INFO["name"]
-    for paragraph in cell_sv.paragraphs:
-        paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        for run in paragraph.runs:
-            set_font(run, Pt(13), bold=True)
-
-    cell_gv = table.rows[1].cells[1]
-    cell_gv.text = THESIS_INFO["advisor"]
-    for paragraph in cell_gv.paragraphs:
-        paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        for run in paragraph.runs:
-            set_font(run, Pt(13), bold=True)
-
-    # Remove borders for name row
-    for cell in [cell_sv, cell_gv]:
-        tcPr = cell._tc.get_or_add_tcPr()
-        tcBorders = OxmlElement('w:tcBorders')
-        for b in ['top', 'left', 'bottom', 'right']:
-            border = OxmlElement(f'w:{b}')
-            border.set(qn('w:val'), 'nil')
-            tcBorders.append(border)
-        tcPr.append(tcBorders)
-
-    # GV phản biện (TBD)
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(36)
-    run = p.add_run("Giáo viên phản biện")
-    set_font(run, Pt(13), bold=True)
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run("(Sẽ cập nhật khi có quyết định phân công của Khoa)")
-    set_font(run, Pt(11), italic=True, color=RGBColor(128, 128, 128))
-
-    # Hà Nội – 2026
+    # Spacer + Hà Nội – Năm
     for _ in range(2):
         doc.add_paragraph()
     p = doc.add_paragraph()
@@ -870,9 +842,9 @@ def add_acknowledgment_page(doc):
         f"Trước hết, em xin bày tỏ lòng biết ơn sâu sắc đến {THESIS_INFO['advisor']}, "
         f"giảng viên hướng dẫn thuộc {THESIS_INFO['advisor_dept']}, {THESIS_INFO['advisor_university']}. "
         "Thầy đã tận tình hướng dẫn em từ giai đoạn xác định đề tài, định hướng phạm vi nghiên cứu, "
-        "phương pháp luận audit-driven cho dự án, đến việc đóng góp ý kiến chuyên môn quan trọng "
-        "trong suốt quá trình thực hiện. Sự nghiêm túc trong học thuật và tư duy phản biện mà thầy "
-        "truyền đạt đã giúp em nâng cao chất lượng khóa luận một cách rõ rệt.")
+        "phương pháp luận phát triển phần mềm theo nguyên tắc chất lượng, đến việc đóng góp ý kiến "
+        "chuyên môn quan trọng trong suốt quá trình thực hiện. Sự nghiêm túc trong học thuật và tư duy "
+        "phản biện mà thầy truyền đạt đã giúp em nâng cao chất lượng khóa luận một cách rõ rệt.")
 
     add_paragraph_text(doc,
         f"Em xin chân thành cảm ơn {STUDENT_INFO['department']}, {STUDENT_INFO['university']} đã tạo "
@@ -1004,23 +976,85 @@ def add_list_of_figures_tables(doc):
     run._r.append(fldChar2)
 
 
+def _add_table_2col(doc, rows_data, col0_width_cm=4.0, col1_width_cm=12.0,
+                    header_row=("Mục", "Giải thích")):
+    """Helper — render 2-column table with header shading."""
+    table = doc.add_table(rows=1, cols=2)
+    table.style = 'Table Grid'
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    col_widths = [Cm(col0_width_cm), Cm(col1_width_cm)]
+
+    for i, h in enumerate(header_row):
+        cell = table.rows[0].cells[i]
+        cell.text = h
+        cell.width = col_widths[i]
+        for paragraph in cell.paragraphs:
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            for run in paragraph.runs:
+                set_font(run, FONT_SIZE_TABLE, bold=True)
+        set_cell_shading(cell, 'D9E2F3')
+
+    for col0_val, col1_val in rows_data:
+        row = table.add_row()
+        row.cells[0].text = col0_val
+        row.cells[0].width = col_widths[0]
+        for paragraph in row.cells[0].paragraphs:
+            for run in paragraph.runs:
+                set_font(run, FONT_SIZE_TABLE, bold=True)
+        row.cells[1].text = col1_val
+        row.cells[1].width = col_widths[1]
+        for paragraph in row.cells[1].paragraphs:
+            for run in paragraph.runs:
+                set_font(run, FONT_SIZE_TABLE)
+
+
 def add_abbreviations(doc):
+    """Danh mục THUẬT NGỮ + DANH MỤC TỪ VIẾT TẮT — 2 sub-sections per UTC sample BAO_CAO convention."""
     doc.add_page_break()
 
+    # Main heading
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(18)
     run = p.add_run("DANH MỤC THUẬT NGỮ VÀ TỪ VIẾT TẮT")
     set_font(run, Pt(16), bold=True)
 
+    # ============ Sub-section 1: THUẬT NGỮ ============
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(12)
+    p.paragraph_format.space_after = Pt(6)
+    run = p.add_run("1. THUẬT NGỮ")
+    set_font(run, FONT_SIZE_NORMAL, bold=True)
+
+    terms = [
+        ("Multi-tenant", "Kiến trúc phần mềm cho phép nhiều tổ chức (tenant) dùng chung một hệ thống với dữ liệu cách ly"),
+        ("Row-Level Security", "Cơ chế cách ly dữ liệu cấp dòng trên PostgreSQL — DB enforces filtering theo tenant context"),
+        ("Software as a Service", "Mô hình triển khai phần mềm dạng dịch vụ điện toán đám mây, người dùng truy cập qua web"),
+        ("Domain-Driven Design", "Phương pháp thiết kế phần mềm hướng theo miền nghiệp vụ — chia hệ thống theo bounded contexts"),
+        ("Test-Driven Development", "Phương pháp phát triển dựa trên kiểm thử — viết test trước khi viết code (Red-Green-Refactor)"),
+        ("Continuous Integration", "Quy trình tích hợp code thường xuyên vào nhánh chung kèm automated build + test"),
+        ("Continuous Deployment", "Quy trình triển khai tự động từ code lên môi trường production sau khi pass CI"),
+        ("Outbox Pattern", "Mẫu thiết kế đảm bảo tính nhất quán giữa lưu DB + phát message qua message broker"),
+        ("Defense-in-depth", "Chiến lược bảo mật nhiều lớp — mỗi lớp độc lập kiểm tra tránh single-point failure"),
+        ("Pool model", "Mô hình multi-tenant chia sẻ tài nguyên hạ tầng dùng RLS để cách ly dữ liệu"),
+    ]
+    _add_table_2col(doc, terms, col0_width_cm=4.5, col1_width_cm=11.5,
+                    header_row=("Thuật ngữ", "Giải thích"))
+
+    # ============ Sub-section 2: TỪ VIẾT TẮT ============
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(18)
+    p.paragraph_format.space_after = Pt(6)
+    run = p.add_run("2. TỪ VIẾT TẮT")
+    set_font(run, FONT_SIZE_NORMAL, bold=True)
+
     abbrevs = [
-        ("SaaS", "Software as a Service — phần mềm dạng dịch vụ điện toán đám mây"),
-        ("Multi-tenant", "Kiến trúc cho phép nhiều tổ chức (tenant) dùng chung một hệ thống với dữ liệu cách ly"),
-        ("RLS", "Row-Level Security — cơ chế cách ly dữ liệu cấp dòng trên PostgreSQL"),
-        ("JWT", "JSON Web Token — chuẩn token xác thực không trạng thái"),
-        ("API", "Application Programming Interface — giao diện lập trình ứng dụng"),
-        ("REST", "Representational State Transfer — kiến trúc thiết kế web API"),
-        ("CI/CD", "Continuous Integration / Continuous Deployment — tích hợp + triển khai liên tục"),
+        ("SaaS", "Software as a Service"),
+        ("RLS", "Row-Level Security"),
+        ("JWT", "JSON Web Token"),
+        ("API", "Application Programming Interface"),
+        ("REST", "Representational State Transfer"),
+        ("CI/CD", "Continuous Integration / Continuous Deployment"),
         ("PDPL", "Personal Data Protection Law — Luật Bảo vệ Dữ liệu Cá nhân 2023 (Số 49/2023/QH15)"),
         ("DPO", "Data Protection Officer — Cán bộ Bảo vệ Dữ liệu theo PDPL"),
         ("DPIA", "Data Protection Impact Assessment — Đánh giá Tác động Bảo vệ Dữ liệu"),
@@ -1031,45 +1065,19 @@ def add_abbreviations(doc):
         ("ECS", "Elastic Container Service — dịch vụ điều phối container AWS"),
         ("RDS", "Relational Database Service — dịch vụ cơ sở dữ liệu quan hệ AWS"),
         ("SES", "Simple Email Service — dịch vụ gửi email AWS"),
-        ("OWASP", "Open Worldwide Application Security Project — tổ chức bảo mật ứng dụng web"),
+        ("OWASP", "Open Worldwide Application Security Project"),
         ("OIDC", "OpenID Connect — chuẩn xác thực OAuth 2.0 mở rộng"),
-        ("TDD", "Test-Driven Development — phát triển dựa trên kiểm thử"),
-        ("DDD", "Domain-Driven Design — thiết kế hướng miền nghiệp vụ"),
+        ("TDD", "Test-Driven Development"),
+        ("DDD", "Domain-Driven Design"),
         ("MVP", "Minimum Viable Product — sản phẩm tối thiểu khả dụng"),
         ("KPI", "Key Performance Indicator — chỉ số hiệu suất chính"),
         ("LMS", "Learning Management System — hệ quản lý học tập"),
+        ("ISO", "International Organization for Standardization"),
+        ("IEEE", "Institute of Electrical and Electronics Engineers"),
         ("UTC GTVT", "Trường Đại học Giao thông Vận tải — University of Transport and Communications"),
     ]
-
-    table = doc.add_table(rows=1, cols=2)
-    table.style = 'Table Grid'
-    table.alignment = WD_TABLE_ALIGNMENT.CENTER
-
-    # Header
-    headers = ["Từ viết tắt", "Giải thích"]
-    col_widths = [Cm(4.0), Cm(12.0)]
-    for i, h in enumerate(headers):
-        cell = table.rows[0].cells[i]
-        cell.text = h
-        cell.width = col_widths[i]
-        for paragraph in cell.paragraphs:
-            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            for run in paragraph.runs:
-                set_font(run, FONT_SIZE_TABLE, bold=True)
-        set_cell_shading(cell, 'D9E2F3')
-
-    for abbr, meaning in abbrevs:
-        row = table.add_row()
-        row.cells[0].text = abbr
-        row.cells[0].width = col_widths[0]
-        for paragraph in row.cells[0].paragraphs:
-            for run in paragraph.runs:
-                set_font(run, FONT_SIZE_TABLE, bold=True)
-        row.cells[1].text = meaning
-        row.cells[1].width = col_widths[1]
-        for paragraph in row.cells[1].paragraphs:
-            for run in paragraph.runs:
-                set_font(run, FONT_SIZE_TABLE)
+    _add_table_2col(doc, abbrevs, col0_width_cm=3.5, col1_width_cm=12.5,
+                    header_row=("Từ viết tắt", "Nghĩa đầy đủ"))
 
 
 # ============== MỞ ĐẦU ==============
@@ -1165,9 +1173,47 @@ def add_conclusion(doc):
     add_bullet_list_item(doc, "AI Branding mới được tích hợp ở mức MVP với 1 nhà cung cấp (Replicate Stable Diffusion XL); các phương án multi-vendor failover sẽ được triển khai trong Phase 2.")
 
     add_section_title(doc, "3. Hướng phát triển tiếp theo")
-    add_bullet_list_item(doc, "Phase 1.5: tích hợp thanh toán (VNPay/MoMo), partnership MISA MeInvoice cho hóa đơn điện tử, mở rộng tenant cohort beta lên 30-50 trung tâm.")
-    add_bullet_list_item(doc, "Phase 2: kiến trúc đa-region (Singapore + Hà Nội data localization VN), AI Quality Gate phiên bản nâng cao với multi-vendor failover, mobile app native iOS + Android.")
-    add_bullet_list_item(doc, "Phase 3: mở rộng sang persona K-12 (trường công lập) với DPO chính thức + DPIA cho dữ liệu trẻ em theo PDPL Art 26.")
+    add_bullet_list_item(doc,
+        "Giai đoạn trả phí (paid tier): tích hợp thanh toán (VNPay, MoMo), partnership MISA MeInvoice cho "
+        "hóa đơn điện tử theo Thông tư 78/2021/TT-BTC, mở rộng tenant cohort beta lên 30-50 trung tâm.")
+    add_bullet_list_item(doc,
+        "Giai đoạn GA (General Availability): kiến trúc đa-region (Singapore + Hà Nội data localization "
+        "Việt Nam theo Nghị định 53/2022), AI Quality Gate phiên bản nâng cao với multi-vendor failover, "
+        "mobile app native iOS + Android.")
+    add_bullet_list_item(doc,
+        "Giai đoạn mở rộng K-12: mở rộng sang persona trường công lập với DPO chính thức + DPIA cho dữ "
+        "liệu trẻ em theo Luật Bảo vệ Dữ liệu Cá nhân Điều 26.")
+
+    add_section_title(doc, "4. Đóng góp khoa học")
+    add_paragraph_text(doc,
+        "Khóa luận đóng góp ba kết quả khoa học chính:")
+
+    add_subsection_title(doc, "4.1. Pattern Row-Level Security NULL force-fail cho multi-tenant SaaS giáo dục")
+    add_paragraph_text(doc,
+        "Khóa luận đề xuất và hiện thực hóa pattern Row-Level Security NULL force-fail trên PostgreSQL "
+        "áp dụng cho ngữ cảnh multi-tenant SaaS giáo dục Việt Nam. Pattern này nâng cao defense-in-depth "
+        "bằng cách thiết lập tenant context dạng GUC `is_local := true` (session-scoped), trong đó nếu "
+        "tenant_id NULL trên session, mọi truy vấn đều force-fail thay vì trả về toàn bộ dữ liệu. "
+        "Cách tiếp cận này khác với mô hình row-filter mặc định (silent leak nếu thiếu context) và "
+        "đã được kiểm chứng qua bộ test integration thuộc Chương 3.")
+
+    add_subsection_title(doc, "4.2. Đánh giá thực nghiệm thị trường phần mềm quản lý trung tâm giáo dục Việt Nam")
+    add_paragraph_text(doc,
+        "Khóa luận thực hiện phân tích cạnh tranh có hệ thống bốn hệ thống tương tự (MISA AMIS Trường "
+        "Học, Mona eLMS, Easy Edu, DotB) trong segment trung tâm dạy thêm Việt Nam, đối chiếu với khung "
+        "pháp lý Việt Nam (Thông tư 29/2024/TT-BGDĐT, PDPL 2023, Luật An ninh mạng 2018). Kết quả phân "
+        "tích định lượng đặc điểm thị trường (giá, tính năng multi-tenant, AI integration, mức tuân thủ "
+        "pháp luật), được trình bày tại Chương 1 Phần 1, cung cấp tham chiếu cho các công trình "
+        "nghiên cứu kế tiếp về EdTech Việt Nam.")
+
+    add_subsection_title(doc, "4.3. Kiến trúc tham chiếu multi-tenant SaaS giáo dục B2B áp dụng audit-driven approach")
+    add_paragraph_text(doc,
+        "Khóa luận đề xuất kiến trúc tham chiếu (reference architecture) cho nền tảng multi-tenant SaaS "
+        "phục vụ ngành giáo dục thương mại Việt Nam tích hợp các yêu cầu phi chức năng đặc thù: tuân thủ "
+        "PDPL 2023 + Luật An ninh mạng 2018, hỗ trợ Vietnamese-first UX (VND format, niên khóa 9-5, "
+        "thanh toán VietQR/MoMo), AI Branding tự động sinh nội dung. Kiến trúc được mô tả chi tiết qua "
+        "Chương 2 + Chương 3, kèm phương pháp luận Quality-Driven Development bốn trụ cột (Chương 1 Phần "
+        "3) hỗ trợ duy trì chất lượng code + tài liệu trong điều kiện phát triển dài hạn.")
 
 
 # ============== TÀI LIỆU THAM KHẢO ==============

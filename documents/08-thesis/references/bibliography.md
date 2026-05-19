@@ -1,7 +1,7 @@
 # Bibliography — IEEE Format
 
 **Citation style:** IEEE per [CITATION-STYLE.md](./CITATION-STYLE.md). In-text format `[N]`, `[N, M]`, `[N]–[M]`.
-**Total entries:** 44 (initial 30 seed per GAP-647 + 8 added Wave 100 Bucket D for Chapter 1 Part 1 + 5 added Wave 100.7 Phase 2 Agent 2a for Chapter 1 Part 3 VN law + methodology + 2 added Wave 100.7 Phase 4 Bucket B for Chapter 2 LOCAL → global migration).
+**Total entries:** 48 (initial 30 seed + 8 + 5 + 2 + **4 added Wave 102.1 for Ch.1 Phần 3 Quality-Driven Development methodology + Ch.2 NFR ISO 25010 standards**).
 **Last updated:** 2026-05-19.
 **Last cross-ref audit:** 2026-05-19 Wave 100.7 Phase 3a — see [cross-ref-audit-2026-05-19.md](./cross-ref-audit-2026-05-19.md).
 
@@ -142,6 +142,16 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 ### Additional design methodology sources (Wave 100.7 Phase 4 Bucket B — Ch.2 LOCAL migration)
 
 [44] S. Brown, "The C4 model for visualising software architecture," 2024. [Online]. Available: https://c4model.com/. [Accessed 2026-05-19].
+
+### Additional methodology + NFR standards (Wave 102.1 — Quality-Driven Development + ISO 25010 citations)
+
+[45] W. E. Deming, *Out of the Crisis*. Cambridge, MA: MIT Center for Advanced Engineering Study, 1986.
+
+[46] M. Poppendieck and T. Poppendieck, *Lean Software Development: An Agile Toolkit*. Boston: Addison-Wesley Professional, 2003.
+
+[47] IEEE, "IEEE 730-2014 — Standard for Software Quality Assurance Processes," IEEE Standards Association, 2014. [Online]. Available: https://standards.ieee.org/ieee/730/5284/. [Accessed 2026-05-19].
+
+[48] ISO/IEC, "ISO/IEC 25010:2011 — Systems and software engineering — Systems and software Quality Requirements and Evaluation (SQuaRE) — System and software quality models," International Organization for Standardization, 2011. [Online]. Available: https://www.iso.org/standard/35733.html. [Accessed 2026-05-19].
 
 ---
 
