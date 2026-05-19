@@ -1,0 +1,33 @@
+{
+  "pr": 1590,
+  "title": "docs(wave-100.7-phase-2-sync): post-Phase-2 sync \u2014 ROADMAP + wave-history + handoff + PR-logs",
+  "branch": "wave/100.7-phase-2-closure-sync",
+  "created_at": null,
+  "merged_at": "2026-05-19T10:58:06Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-19T10:58:11.408033",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 5,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-14841"
+  }
+}
