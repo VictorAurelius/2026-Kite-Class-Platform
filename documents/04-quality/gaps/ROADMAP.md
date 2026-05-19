@@ -8,7 +8,20 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-18 — Wave 98 SHIPPED 8/8 buckets — Cluster B beta-cohort polish closure; Wave 99 plan drafted thesis META 5-bucket)
+## 🎯 Current Status Snapshot (2026-05-19 — Wave 98 SHIPPED 8/8 buckets + GAP-661 post-wave audit suite DONE T-2 (4 audits + 6 follow-up gaps GAP-662..667); Wave 99 plan drafted thesis META 5-bucket)
+
+### 🎉 GAP-661 SHIPPED 2026-05-19 — Wave 98 post-closure audit suite (4 audits + 6 follow-up gaps)
+
+| Audit | Score | Δ vs baseline | Phase 1 BETA gate | New gaps |
+|---|---|---|:---:|---|
+| **UI /128** | 110.6 A | -1.4 vs Wave 83 baseline 112.0 A+ (within sample noise) | ✅ PASS | GAP-665 (P1 /legal/terms restructure) + GAP-667 (P2 UI hygiene) |
+| **Quality /100** | 90/110 (83 tech) B+ | +5 raw vs Wave 53 baseline 85/110 | ✅ PASS +10 buffer | 0 new |
+| **API Contract /100** | 76 C 🔴 FAIL | -3 vs Wave 92 baseline 79 C+ | 🔴 FAIL -4 | GAP-662 (P0 EmailController URL drift) + GAP-663 (P0 PreferencesController zero IT) |
+| **Business Logic /100** | 73 C+ PARTIAL FAIL | +3 vs Wave 92 baseline 70 C | 🔴 FAIL -7 | GAP-664 (P1 3-layer doc — shared BL+API) + GAP-666 (P2 BR-ID javadoc + README index) |
+
+**Status:** 🟢 SHIPPED T-2 from 2026-05-21 deadline. 4 parallel agents converged in ~6 min wall-clock. `audits-index.csv` +4 rows. `output-review-mandate.md` §3 matrix 4 REFRESHED markers + body streamline round 2 (v1.12.1→v1.12.2 PATCH, size 40.5k→38.6k under threshold). `gap-status.csv` +6 new rows + GAP-661 DONE flip + file moved `phase-1-beta/closed/`.
+
+**Path to Phase 1 BETA gate ≥80:** API +4 via GAP-662+663+664 cluster (~3.25h) → 80 PASS; Business +7 via GAP-664+666 (shared GAP-664) → 80 PASS. Both unblock together — 1 wave can clear both gates.
 
 ### 🎉 Wave 98 SHIPPED 2026-05-18 — Cluster B beta-cohort polish (8/8 buckets)
 
@@ -27,10 +40,11 @@
 
 **Post-Wave-98 audit suite cadence per `post-wave-audit-mandate.md` §2.2:** UI /128 sample + Quality /100 refresh due within 3 days (≤2026-05-21). Filed **GAP-661** to schedule.
 
-> **📍 Next session ĐỌC TRƯỚC (Wave 98 SHIPPED):**
-> 1. **Wave 99 plan PR open** — branch `wave/99-plan` drafted (5-bucket thesis META: GAP-646 DOCX pipeline + GAP-647 IEEE bib + GAP-650 Ch.1 lit review + GAP-651 image curation skill + GAP-655 citation-extract skill). Rebase on current main → open PR.
-> 2. **GAP-661 post-Wave-98 audit suite** — UI /128 + Quality /100 refresh within 3 days (≤2026-05-21).
+> **📍 Next session ĐỌC TRƯỚC (Wave 98 + GAP-661 audit suite SHIPPED):**
+> 1. **GAP-661 audit suite findings cluster** (Wave 99 candidate or split bucket) — fix GAP-662 (P0 EmailController URL) + GAP-663 (P0 PreferencesController IT) + GAP-664 (P1 3-layer doc) → unlocks Phase 1 BETA gate ≥80 on BOTH API + Business audits (GAP-664 shared dep). ~3.25h scope. GAP-665 (P1 /legal/terms restructure) + GAP-666/667 (P2) can defer Wave 100+.
+> 2. **Wave 99 plan PR open** — branch `wave/99-plan` drafted (5-bucket thesis META: GAP-646 DOCX pipeline + GAP-647 IEEE bib + GAP-650 Ch.1 lit review + GAP-651 image curation skill + GAP-655 citation-extract skill). Rebase on current main → open PR.
 > 3. **5 PARTIAL Wave 98 gaps gated GAP-612 AWS** (656/657/658/518 live verify + 543 manual render verify) — close-out post-restore: GAP-518 95→100%, GAP-656 80→95%, GAP-657 80→95% (manual 2-client render), GAP-543 80→100%, GAP-658 80→95% (consumer wiring trigger).
+> 4. **Post-wave-98 audit suite verdicts** — UI ✅ 110.6 A + Quality ✅ 90/110 B+ PASS (no follow-up); API 🔴 76 C FAIL + Business 🔴 73 C+ FAIL (item 1 cluster fixes both).
 > 4. **bg-agent lesson learned** (carry-forward Wave 97) — context-thrashing rate-limited 4 agents this wave (B1/B3/B6/B7 first attempts). 2-concurrent retry pattern PROVEN safe. 3-concurrent threshold hit Anthropic throttle.
 > 5. **Wave 96 sweep batch B-F follow-ups** (carry-forward unchanged):
 >    - Action B: markdown frontmatter strip 34 gaps (defer Phase 3)

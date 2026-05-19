@@ -1,12 +1,16 @@
-# output-review-mandate — Log History (v1.8.1 .. v1.0.0)
+# output-review-mandate — Log History (v1.8.3 .. v1.0.0)
 
-Companion to `.claude/rules/output-review-mandate.md` §11 Log. Pre-v1.8.2 entries moved here per Wave 99 streamline (rule body was exceeding 40k char Anthropic threshold).
+Companion to `.claude/rules/output-review-mandate.md` §11 Log. Pre-v1.8.4 entries moved here per Wave 99 streamline rounds 1+2 (rule body was exceeding 40k char Anthropic threshold).
 
-Body retains v1.12.1 → v1.8.2 (recent ~6 months). This file holds historical entries v1.8.1 → v1.0.0 (rule genesis 2026-04-14 through Wave 80 v1.8.1 2026-05-15).
+Body retains v1.12.2 → v1.8.4 (recent). This file holds historical entries v1.8.3 → v1.0.0 (rule genesis 2026-04-14 through Wave 84 v1.8.3 2026-05-15).
 
 ---
 
 ## Log entries (newest-first within this archive)
+
+- **2026-05-15** (v1.8.3): PATCH — Wave 84 Bucket H post-apply ops-readiness audit refresh. §3 matrix row "Ops readiness" updated: 60/100 D Wave 40 milestone → 78/100 C+ Wave 84 post-apply (+18 delta). Deltas: CloudTrail observability baseline (GAP-437 DONE — 4 metric filters + dashboard + 4 security alarms + SNS topic), startupProbe wired Helm 7/7 (GAP-431 DONE — fixes Wave 40 regression), secrets rotation 90-day cadence (GAP-379 95% — Lambda Active + EventBridge wirings), EC2 cost monitoring (GAP-414 DONE — Lambda + 3 low-CPU alarms + monthly cron + SNS), 4 new account-prep runbooks (GAP-394 DONE Cloudflare/Resend/Vercel), SES + Statuspage VN overlays (GAP-423/424 DONE). 1 new row added to `audits-index.csv` (AUDIT-2026-05-15-wave-84-ops-readiness). 1 P0 carry (GAP-257 restore drill) + 1 P1 carry (GAP-144 AlertManager receivers) chặn Phase 1 BETA gate 80; path +2 pts trong 2-3 tuần. No new P0 filed (Wave 84 chỉ surface existing carries). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — factual REFRESHED marker sync post-Wave-84-Bucket-H audit, no constraint loosening).
+
+- **2026-05-15** (v1.8.2): PATCH — Wave 83 post-wave audit suite refresh shipped 4 audit reports (api-contract 82/100, business-logic 71/100, security 90/100 v2 format, UI sample 112.0/128). §3 matrix 4 rows updated với new scores + delta annotations: UI screens 111.7→112.0 A+ (+0.3 sample-level), Security 89→90 A- v2 format (+1, A05+A09 hardening), Business logic 68→71 C (+3, error semantic mapping + PDPL Art 11), API contracts 76→82 B (+6, RFC 7807 surface 11 handlers). 4 new rows added to `audits-index.csv`. No P0/P1 new gaps filed in audit scope (Wave 78 P1 carry-forward unchanged). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — factual REFRESHED marker sync post-audit suite, no constraint loosening).
 
 - **2026-05-15** (v1.8.1): PATCH — Wave 80 Bucket A — §3 matrix row "Security baseline" Process column extended để cite v2 audit format mandate per GAP-564 (per-control evidence block: Command run + Output + Verdict + Evidence artifact ID). Reference tới `.claude/skills/quality/security-audit/reference/audit-report-template-v2.md`. v2 áp dụng prospectively Wave 80+ (Wave 78 5 audit reports retroactively annotated "v1 format" cost-benefit không re-run). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — reference addition only, no constraint loosening; existing audits grandfathered with v1 banner).
 
