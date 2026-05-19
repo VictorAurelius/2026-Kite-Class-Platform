@@ -26,7 +26,7 @@ related:
 Chương này trình bày kiến trúc của Kite Platform — nền tảng SaaS giáo dục đa-tenant gồm hai sản phẩm chia chung infrastructure: **KiteHub** (control-plane quản lý lifecycle tenant, subscription, billing, branding) và **KiteClass** (data-plane domain giáo dục per-tenant — student / class / attendance / grade / payment). Chương được tổ chức theo 5 góc nhìn:
 
 1. **Yêu cầu chức năng (FR)** — capabilities mà platform cung cấp cho 4 nhóm persona (Solo Teacher / Center Owner / Center Manager / Student-Parent)
-2. **Yêu cầu phi chức năng (NFR)** — performance P95 < 500ms, availability 99.5% Phase 1 BETA, security OWASP Top 10 + PDPL 2025, scalability multi-tenant, maintainability per-service deploy
+2. **Yêu cầu phi chức năng (NFR)** — performance P95 < 500ms, availability 99.5% Phase 1 BETA, security OWASP Top 10 + PDPL 2023, scalability multi-tenant, maintainability per-service deploy
 3. **Kiến trúc** — C4 Level 1 + Level 2, multi-tenant single-bucket pattern (Pool model), service decomposition (gateway + 6 KiteHub services + KiteClass core + Postgres RLS), database isolation với NULL force-fail policy
 4. **Mô hình SaaS** — subscription lifecycle (TRIAL → ACTIVE → SUSPENDED → CANCELLED), tenant provisioning, plan tier FREE / STARTER / PRO / PRO_PLUS, VietQR primary payment Phase 1.5
 5. **Bối cảnh Blended Learning** — đặc thù thị trường VN (trung tâm dạy thêm Mon-Sat, niên khóa 9-5, Zalo culture, mother-primary parent comms)
@@ -141,7 +141,7 @@ OWASP Top 10 (2021) baseline + VN compliance:
 
 VN compliance baseline Phase 1:
 
-- **PDPL 2025** (Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15) — Phase 1 disclaimer "v1 pending counsel review" cho non-K-12 acceptable
+- **PDPL 2023** (Luật Bảo vệ Dữ liệu Cá nhân số 49/2023/QH15, có hiệu lực 2026-07-01) — Phase 1 disclaimer "v1 pending counsel review" cho non-K-12 acceptable
 - **Luật An ninh mạng 2018 + Nghị định 53/2022** — data localization VN region (RDS pin `ap-southeast-1`)
 - **Phase 3 K-12 gate:** DPO engagement + MPS A05 + DPIA + counsel review trước launch
 
@@ -656,7 +656,7 @@ Chương này đã trình bày kiến trúc Kite Platform theo 5 góc nhìn:
 
 1. **Functional Requirements** — 6 nhóm capability (tenant onboarding / subscription billing / customization / education domain core / compliance audit / platform admin) phân bổ giữa KiteHub control-plane và KiteClass data-plane, phục vụ 4 persona Phase 1 BETA (P1 Solo Teacher + P2 Center Owner + Student + Parent), mở rộng P3 Phase 2 + P5 Phase 3.
 
-2. **Non-Functional Requirements** — performance P95 < 500ms (RLS overhead 6-8% acceptable per Wave 85 audit 86/100 B+), availability 99.5% Phase 1 BETA single-region AWS Singapore, security OWASP Top 10 baseline + PDPL 2025 + Luật An ninh mạng 2018, scalability single-bucket multi-tenant pattern hỗ trợ 10-200 tenant Phase 1-2 trước khi re-evaluate Hybrid, maintainability per-service deploy độc lập + 3-layer business doc mandate, cost $15-30/tháng Phase 1 BETA Free Tier.
+2. **Non-Functional Requirements** — performance P95 < 500ms (RLS overhead 6-8% acceptable per Wave 85 audit 86/100 B+), availability 99.5% Phase 1 BETA single-region AWS Singapore, security OWASP Top 10 baseline + PDPL 2023 + Luật An ninh mạng 2018, scalability single-bucket multi-tenant pattern hỗ trợ 10-200 tenant Phase 1-2 trước khi re-evaluate Hybrid, maintainability per-service deploy độc lập + 3-layer business doc mandate, cost $15-30/tháng Phase 1 BETA Free Tier.
 
 3. **Architecture** — C4 Level 1 (8 actor + 6 hệ thống ngoài) + Level 2 (4 cluster: Frontend + Gateway + Service + Shared Infrastructure); quyết định kiến trúc canonical là Pool model (Shared DB + tenant_id + Postgres RLS) win 26/30 score vs 5 alternative patterns; defense-in-depth 5 layers (Gateway JWT + Service @PreAuthorize + DB SET LOCAL + Postgres RLS policy + tenant_id FK column NOT NULL); RLS coverage 51/91 bảng (56% raw, 89% tenant-scoped); NULL force-fail + HikariCP GUC reset hardening Wave 85 eliminate silent cross-tenant leak.
 
@@ -682,21 +682,9 @@ Chương này đã trình bày kiến trúc Kite Platform theo 5 góc nhìn:
 
 ## Tài liệu tham khảo
 
-[1] AWS Architecture Center, "SaaS Lens — AWS Well-Architected Framework," AWS, 2024. [Online]. Available: https://docs.aws.amazon.com/wellarchitected/latest/saas-lens/saas-lens.html
+Per Wave 100.7 Phase 4 Bucket B (2026-05-19): Chương 2 không duy trì local bibliography section nữa — mọi reference đã được hợp nhất vào **global bibliography** tại [`references/bibliography.md`](./references/bibliography.md) §"Chapter 2 — Theoretical Background" + §"Chapter 4 — System Design" (cho ref C4 model methodology).
 
-[2] Microsoft Azure Architecture Center, "Multi-tenant SaaS database tenancy patterns," Microsoft, 2024. [Online]. Available: https://learn.microsoft.com/en-us/azure/azure-sql/database/saas-tenancy-app-design-patterns
-
-[3] F. Pothon, "Architecting Multi-Tenant SaaS Solutions," in *Patterns for Cloud-Native Architectures*, O'Reilly Media, 2023, ch. 7, pp. 145-198.
-
-[4] PostgreSQL Global Development Group, "Row Security Policies — PostgreSQL 15 Documentation," 2024. [Online]. Available: https://www.postgresql.org/docs/15/ddl-rowsecurity.html
-
-[5] Quốc hội Việt Nam, "Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 (PDPL)," Cổng thông tin điện tử Chính phủ, 2025. [Online]. Available: https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Luat-Bao-ve-du-lieu-ca-nhan-2025
-
-[6] Quốc hội Việt Nam, "Luật An ninh mạng số 24/2018/QH14," Cổng thông tin điện tử Chính phủ, 2018. [Online]. Available: https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Luat-an-ninh-mang-2018
-
-[7] S. Brown, "The C4 model for visualising software architecture," 2024. [Online]. Available: https://c4model.com/
-
-[8] OWASP Foundation, "OWASP Top 10 2021," 2021. [Online]. Available: https://owasp.org/Top10/
+Refs liên quan đến nội dung Chương 2: `[7]` Newman *Building Microservices* / `[8]` Fowler *Patterns of Enterprise Application Architecture* / `[9]` AWS SaaS Lens / `[10]` Azure multi-tenant data architecture / `[11]` Spring Boot 3.5 / `[12]` PostgreSQL 16 Documentation (gồm Row Security Policies) / `[13]` Next.js 15 / `[14]` GPT (Brown et al. NeurIPS 2020) / `[15]` RAG (Lewis et al. NeurIPS 2020) / `[16]` Stable Diffusion / `[17]` LLaVA / `[18]` Beck TDD / `[19]` Evans DDD / `[20]` Martin Clean Architecture / `[21]` PDPL Luật Số 49/2023/QH15 (có hiệu lực 2026-07-01) / `[23]` Luật An ninh mạng Số 24/2018/QH14 / `[28]` OWASP Top 10 2021 / `[43]` Pothon *Architecting Multi-Tenant SaaS Solutions* / `[44]` Brown C4 model.
 
 ---
 

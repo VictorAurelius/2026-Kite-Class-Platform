@@ -1,11 +1,11 @@
 # Bibliography — IEEE Format
 
 **Citation style:** IEEE per [CITATION-STYLE.md](./CITATION-STYLE.md). In-text format `[N]`, `[N, M]`, `[N]–[M]`.
-**Total entries:** 43 (initial 30 seed per GAP-647 + 8 added Wave 100 Bucket D for Chapter 1 Part 1 + 5 added Wave 100.7 Phase 2 Agent 2a for Chapter 1 Part 3 VN law + methodology).
+**Total entries:** 44 (initial 30 seed per GAP-647 + 8 added Wave 100 Bucket D for Chapter 1 Part 1 + 5 added Wave 100.7 Phase 2 Agent 2a for Chapter 1 Part 3 VN law + methodology + 2 added Wave 100.7 Phase 4 Bucket B for Chapter 2 LOCAL → global migration).
 **Last updated:** 2026-05-19.
 **Last cross-ref audit:** 2026-05-19 Wave 100.7 Phase 3a — see [cross-ref-audit-2026-05-19.md](./cross-ref-audit-2026-05-19.md).
 
-Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N` section + increment N từ cuối cùng. Hiện tại `max(N) = 43`, next = **44**.
+Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N` section + increment N từ cuối cùng. Hiện tại `max(N) = 44`, next = **45**.
 
 ---
 
@@ -89,6 +89,10 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 
 [20] R. C. Martin, *Clean Architecture: A Craftsman's Guide to Software Structure and Design*. Upper Saddle River: Prentice Hall, 2017.
 
+### Additional architecture sources (Wave 100.7 Phase 4 Bucket B — Ch.2 LOCAL migration)
+
+[43] F. Pothon, "Architecting Multi-Tenant SaaS Solutions," in *Patterns for Cloud-Native Architectures*, Sebastopol: O'Reilly Media, 2023, ch. 7, pp. 145-198.
+
 ---
 
 ## Chapter 3 — Requirements Analysis (Phân tích yêu cầu)
@@ -135,6 +139,10 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 
 [42] D. Sato, B. Tabaka, S. Cromwell, and D. Diaz, "Continuous Delivery: Principles and Implementation Patterns," IEEE/ACM 42nd International Conference on Software Engineering (ICSE), pp. 178-189, 2020. [Online]. Available: https://doi.org/10.1145/3377812.3382164.
 
+### Additional design methodology sources (Wave 100.7 Phase 4 Bucket B — Ch.2 LOCAL migration)
+
+[44] S. Brown, "The C4 model for visualising software architecture," 2024. [Online]. Available: https://c4model.com/. [Accessed 2026-05-19].
+
 ---
 
 ## Chapter 5 — Implementation (Triển khai)
@@ -157,21 +165,25 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 
 ## Notes for future updates
 
-### Current state (last reviewed 2026-05-19, Wave 100.7 Phase 4 Foundation — post-renumber)
+### Current state (last reviewed 2026-05-19, Wave 100.7 Phase 4 Bucket B — Ch.2 LOCAL migration)
 
-- **Total:** 42 IEEE-formatted refs (was 43; `[40]` duplicate merged into `[21]` per Phase 4 Foundation), chapter-grouped (Ch.1 / Ch.2 / Ch.3 / Ch.4-7)
+- **Total:** 44 IEEE-formatted refs (was 42 post Phase 4 Foundation; +2 added Phase 4 Bucket B for Ch.2 LOCAL [3] Pothon → global `[43]` + Ch.2 LOCAL [7] Brown C4 → global `[44]`), chapter-grouped (Ch.1 / Ch.2 / Ch.3 / Ch.4-7)
 - **Cited inline (pre-Phase-4):** 17 unique refs (40%) — toàn bộ tập trung ở Chương 1 (3 parts)
 - **Orphan refs (pre-Phase-4):** 24 refs (57%) — đang được Phase 4 Buckets A/C retro-cite (target ≤8 orphans post-Phase-4)
-- **Phase 4 Foundation renumber applied (2026-05-19):**
+- **Phase 4 Bucket B applied (2026-05-19) — Ch.2 LOCAL → global migration:**
+  - Ch.2 LOCAL `## Tài liệu tham khảo` section (8 entries `[1]-[8]`) DELETED
+  - Mapping: LOCAL [1] → global `[9]` (AWS SaaS Lens) ; LOCAL [2] → `[10]` (Azure multi-tenant) ; LOCAL [3] → `[43]` NEW (Pothon book) ; LOCAL [4] → `[12]` (PostgreSQL 16 Documentation — covers RLS section) ; LOCAL [5] PDPL 91/2025/QH15 INCORRECT → `[21]` canonical PDPL 49/2023/QH15 ; LOCAL [6] → `[23]` (Cybersecurity Law) ; LOCAL [7] → `[44]` NEW (Brown C4 model) ; LOCAL [8] → `[28]` (OWASP Top 10)
+  - Ch.2 narrative `PDPL 2025` (3 occurrences) + `số 91/2025/QH15` (1 occurrence) fixed → `PDPL 2023` + `số 49/2023/QH15, có hiệu lực 2026-07-01` per canonical `[21]`
+- **Phase 4 Foundation renumber (2026-05-19):**
   - `[40]` (was duplicate PDPL) merged into `[21]` (canonical PDPL 49/2023/QH15 + có hiệu lực 2026-07-01 note appended)
   - `[41]` (Phuong+Anh SaaS compliance) → `[40]`
   - `[42]` (Forsgren Accelerate) → `[41]`
   - `[43]` (Sato et al. CD ICSE 2020) → `[42]`
-- **Distribution per chapter target (post-renumber):**
+- **Distribution per chapter target (post-Bucket-B):**
   - Chương 1 — Introduction: refs [1]-[6], [31]-[34] (10 refs) + cross-chapter refs từ Ch.2 reuse
-  - Chương 2 — Theoretical: refs [7]-[20], [35]-[38] (18 refs)
-  - Chương 3 — Requirements (VN law + methodology): refs [21]-[25], [39]-[40] (7 refs — was 8 pre-dedup)
-  - Chương 4 — System Design: refs [26]-[30], [41]-[42] (7 refs)
+  - Chương 2 — Theoretical: refs [7]-[20], [35]-[38], [43] (19 refs — was 18 pre-Bucket-B)
+  - Chương 3 — Requirements (VN law + methodology): refs [21]-[25], [39]-[40] (7 refs)
+  - Chương 4 — System Design: refs [26]-[30], [41]-[42], [44] (8 refs — was 7 pre-Bucket-B)
   - Chương 5-7 — Implementation/Testing/Conclusion: (chưa thêm refs)
 
 ### Numbering scheme rationale
@@ -193,9 +205,7 @@ Khi cần thêm ref mới cho chương:
 
 ### Trạng thái bất nhất Chapter 2 (P0 fix trước defense)
 
-- **Chapter 2 (`chapter-2-system-architecture.md` line 683-699)** có 1 section `## Tài liệu tham khảo` riêng với 8 entries local `[1]-[8]` **TÁCH RỜI** khỏi global bibliography này.
-- Hệ quả: examiner nhìn `[1]` trong Chương 2 (= AWS SaaS Lens) vs `[1]` global (= EasyEdu) → conflict.
-- **Action P0:** consolidate về 1 hệ thống — Option C khuyên (xóa local section Chapter 2, dùng global bibliography này thống nhất). Xem [cross-ref-audit-2026-05-19.md §5](./cross-ref-audit-2026-05-19.md) cho mapping chi tiết.
+- **✅ RESOLVED 2026-05-19 Phase 4 Bucket B:** Ch.2 LOCAL `## Tài liệu tham khảo` section (8 entries `[1]-[8]`) đã được DELETED. Mapping LOCAL → global đã apply: 6 entries reuse existing global refs ([9]/[10]/[12]/[21]/[23]/[28]); 2 entries appended global mới ([43] Pothon + [44] Brown C4). Ch.2 hiện thống nhất với global bibliography. Examiner không còn risk conflict `[1]` Ch.2 vs `[1]` global.
 
 ### Trạng thái duplicate entry
 
@@ -203,9 +213,9 @@ Khi cần thêm ref mới cho chương:
 
 ### Quality gates trước defense
 
-- [ ] Resolve Chapter 2 local numbering collision (Option C khuyên) — IN PROGRESS Phase 4 Bucket B
+- [x] ✅ Resolve Chapter 2 local numbering collision (Option C — delete LOCAL section + map to global) — DONE Phase 4 Bucket B 2026-05-19
 - [ ] Cite retroactively orphan refs Wave 100 D ([31]-[38]) và Phase 2 ([39]-[42] post-renumber) — IN PROGRESS Phase 4 Buckets A/C
-- [ ] Verify số hiệu pháp lý PDPL chính xác (49/2023/QH15 vs 91/2025/QH15 — sync về một con số) — IN PROGRESS Phase 4 Bucket B (Ch.2 `[5]` → global `[21]`)
+- [x] ✅ Verify số hiệu pháp lý PDPL chính xác (49/2023/QH15 canonical) — DONE Phase 4 Bucket B 2026-05-19 (Ch.2 narrative 3 occurrences fixed: line 29 `PDPL 2025`→`PDPL 2023`; line 144 `số 91/2025/QH15`→`số 49/2023/QH15`; line 659 `PDPL 2025`→`PDPL 2023`)
 - [x] ✅ Dedupe `[40]` hoặc clarify role distinct from `[21]` — DONE Phase 4 Foundation 2026-05-19
 - [ ] Chapter 3-4 finalize content + cite refs đã reserved ([26]-[30], [41]-[42] post-renumber, etc.)
 
