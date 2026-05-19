@@ -18,7 +18,7 @@ audience: dev
 
 ---
 
-## §1 Brainstorm
+## 1. Brainstorm
 
 ### Q1 Inside-out (dev liệt kê)
 
@@ -43,7 +43,60 @@ A+B sequential cùng touch `kitehub-subscription`; D + C + F disjoint scope (`do
 
 ---
 
-## §2 State-Check Evidence
+## 2. Task Breakdown
+
+Per-bucket task list với estimate (5-10 phút planning per `task-breakdown-guide.md`):
+
+### Bucket D — GAP-650 Part 1 (medium ~3-4 ngày)
+
+1. Read existing `documents/08-thesis/chapter-mapping.md` + `methodology.md` để xác định baseline structure
+2. Draft `documents/08-thesis/chapter-1-competitor-analysis.md` (≥1500 từ Vietnamese narrative + ≥3 competitor comparison: MISA / Mona / Easy Edu)
+3. Draft `documents/08-thesis/chapter-1-ai-techniques.md` (≥1500 từ + AI usage trong KiteHub overview)
+4. Update `documents/08-thesis/references/bibliography.md` với ≥5 IEEE-format sources verified
+5. Update `chapter-mapping.md` Chapter 1 row status
+
+### Bucket C — GAP-286 (medium ~3-4 ngày)
+
+1. Read `kitehub-platform/auth/OtpService.java` + identify `/otp/send` endpoint + dependencies
+2. Add `Deprecation:` header + `Sunset:` date response interceptor (2 tuần window)
+3. Update FE/mobile signup flow remove SMS option + force email verify path
+4. Draft `documents/05-guides/operations/email-only-migration.md`
+5. Gmail/Outlook deliverability smoke test pre-launch
+6. Publish landing FAQ "Vì sao chỉ email?"
+
+### Bucket A — GAP-297 (x-large ~5-7 ngày)
+
+1. DB migration `V61__invoice_batch_audit.sql` + per-tenant sequence `invoice_seq_${tenantId}` SELECT FOR UPDATE
+2. BE `BatchInvoiceGenerator` service + `@Scheduled` cron monthly + idempotency key
+3. FE batch-invoice management page + preview-modal + dry-run mode
+4. Email send hook + SES batch cap 50/run + RabbitMQ spill-over queue
+5. eInvoice VAT integration hook stub (MISA partnership defer Wave 101+)
+6. IT test + Playwright E2E + load test 100-invoice batch
+
+### Bucket B — GAP-293 (medium-large ~4-5 ngày, sequential sau A merge)
+
+1. BE `IncomeService` aggregator + `/api/v1/income/monthly` endpoint
+2. RLS NULL force-fail pattern (per Wave 85 Cat 1 GAP-664 precedent) + admin cross-tenant audit log V60 reuse
+3. FE 3 KPI cards + 12-month bar chart + Solo simplified variant (1 KPI + sparkline)
+4. Per-class + per-branch breakdown drill-down
+5. VND format + Vietnamese label + MoM/YoY delta computation
+
+### Bucket F — GAP-681 (medium ~3-4 ngày, parallel với D)
+
+1. Read existing `documents/02-architecture/database-architecture-map.md` v1 (446 LOC, 9 sections) + identify Vietnamese rewrite scope
+2. Rewrite §1-§9 narrative Vietnamese per `dev-readable-doc-language.md` §2 row Architecture docs (target ≥40% Vietnamese từ baseline ~5-8%)
+3. Draft §10 Per-service Table Mapping (≥7 services × tables matrix + hot operations column)
+4. Draft §11 Service Data Flow ≥5 Mermaid sequenceDiagram (login + trial→paid + tenant provision + class enrollment + email outbox)
+5. Draft §12 Database Design Principles (RLS rationale + type choice + FK convention + migration discipline + naming) với historical Wave/GAP cite
+6. Draft §13 Maturity Assessment + Wave 101+ roadmap
+
+### META — GAP-680 (small ~0.5 ngày, embedded Bucket D)
+
+1. Write `.claude/rules/vn-localization-audit-checklist.md` v1.0.0 (4 sections: VND/date + Vietnamese label + VN sample + cultural awareness)
+2. `rules-index.csv` row + `output-review-mandate.md` §3 matrix row
+3. Reviewer-checklist embed Wave 100 buckets pre-merge
+
+## 4. State-Check Evidence
 
 Per `audit-to-gap-pipeline.md` §2.6 wave-plan state-check:
 
@@ -63,7 +116,7 @@ Per `audit-to-gap-pipeline.md` §2.6 wave-plan state-check:
 
 ---
 
-## §3 Scope (per-bucket AC)
+## 3. Scope (per-bucket AC)
 
 | Bucket | Gap | AC ngắn (full AC trong gap files) |
 |---|---|---|
@@ -76,7 +129,7 @@ Per `audit-to-gap-pipeline.md` §2.6 wave-plan state-check:
 
 ---
 
-## §4 Execution Strategy
+## 5. Execution Strategy
 
 **Thứ tự ship D → C → A → B + F parallel → META (cross-cut):**
 - D thứ 1 — disjoint scope, agent độc lập có thể start ngay không blocker
@@ -91,7 +144,7 @@ Per `audit-to-gap-pipeline.md` §2.6 wave-plan state-check:
 
 ---
 
-## §5 Audit Refresh Schedule
+## 6. Audit Refresh Schedule
 
 Per `post-wave-audit-mandate.md` ≤3 ngày after Wave 100 close:
 
