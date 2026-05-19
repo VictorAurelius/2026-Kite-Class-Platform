@@ -1,10 +1,12 @@
 ---
 title: Wave 99B — Architecture docs sweep + expansion (7 buckets)
-status: draft
+status: complete
 created: 2026-05-19
 updated: 2026-05-19
+closed_at: 2026-05-19
 waves: [99b]
 gaps: [GAP-668, GAP-669, GAP-670, GAP-671, GAP-672, GAP-673, GAP-674]
+prs: ["#1565", "#1568", "#1569", "#1571", "#1573", "#1574", "#1577"]
 ---
 
 # Wave 99B — Architecture Docs Sweep + Expansion
@@ -230,10 +232,47 @@ Per `gap-done-discipline.md` + `wave-closure-scope-completeness.md` v1.0.0 + `po
 - Sub-gaps filed cho any deferral; PARTIAL exit-ramp per `gap-done-discipline.md` §3
 - Run `bash scripts/prune-merged-worktrees.sh --yes` after all bucket PRs merged
 
-**Post-wave audit suite cadence per `post-wave-audit-mandate.md` §2.2:** within 3 days post-Wave-99B-closure — UI /128 N/A (docs-only) + Quality /100 refresh + Business Logic /100 (compliance map B2 directly impacts).
+**Post-wave audit suite cadence per `post-wave-audit-mandate.md` §2.2:** within 3 days post-Wave-99B-closure — UI /128 N/A (docs-only) + Quality /100 refresh + Business Logic /100 (compliance map B2 directly impacts). Tracked via **GAP-678** filed this closure PR (audit suite cadence deadline ≤2026-05-22).
+
+---
+
+## 7.1 Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` §3)
+
+| # | Plan §3 Scope item | Gap | PR | Verdict | Follow-up |
+|---|---|---|---|---|---|
+| 1 | **B6** — Archive sweep (FOUNDATION) — 6 stale arch files → `07-archived/architecture-2026-Q2/`; root 16 → 10 (volume cap 50 compliant) | GAP-668 | [#1565](https://github.com/VictorAurelius/2026-Kite-Class-Platform/pull/1565) | ✅ DONE | — |
+| 2 | **B0** — Last-Reviewed backfill + Mermaid migration audit (24 non-ADR arch files frontmatter) | GAP-669 | [#1568](https://github.com/VictorAurelius/2026-Kite-Class-Platform/pull/1568) | ✅ DONE | — |
+| 3 | **B1** — Service Catalog + Dependency Graph + Auth Flow (18 services + Mermaid flowchart + sequenceDiagram + role-guard matrix) | GAP-670 | [#1569](https://github.com/VictorAurelius/2026-Kite-Class-Platform/pull/1569) | ✅ DONE | — |
+| 4 | **B2** — Compliance × Code Map + SLO Registry + NFR + Risk Register (19 compliance rows + 11-service SLO + 35+ NFR + 5-row Risk) | GAP-671 | [#1574](https://github.com/VictorAurelius/2026-Kite-Class-Platform/pull/1574) | ✅ DONE | — |
+| 5 | **B3** — Database Architecture Map consolidated (91 entities + RLS 51/91 + FK Mermaid erDiagram + Flyway 114 V-files) | GAP-672 | [#1573](https://github.com/VictorAurelius/2026-Kite-Class-Platform/pull/1573) | ✅ DONE | [GAP-677](../../04-quality/gaps/phase-1-beta/GAP-677-auto-gen-database-architecture-map.md) — auto-gen from Flyway parser (Wave 100+ tooling) |
+| 6 | **B4** — C4 Context + Container Diagram L1+L2 (8 actors + 6 external + 2 FE + 1 gateway + 7 services + 4 infra subgraph) | GAP-673 | [#1571](https://github.com/VictorAurelius/2026-Kite-Class-Platform/pull/1571) | ✅ DONE | — |
+| 7 | **B5** — Golden-path Onboarding Tour (REWRITE `02-architecture/README.md` 103 → 204 lines orchestrator + 7-step reading tour + Trace-one-request tutorial + per-persona index) | GAP-674 | [#1577](https://github.com/VictorAurelius/2026-Kite-Class-Platform/pull/1577) | ✅ DONE | — |
+| 8 | **Post-wave audit suite** (≤3 days; Quality /100 + Business Logic /100 — UI/128 N/A docs-only) | n/a | n/a | 🟡 PENDING | GAP-678 (filed this closure PR; cadence deadline 2026-05-22) |
+
+**Verdict:** 7/7 buckets ✅ DONE + 1 audit cadence obligation tracked as GAP-678 follow-up. Wave plan §3 Scope reconciled fully per `wave-closure-scope-completeness.md` §3.
+
+---
+
+## 7.2 Cleanup (per `post-wave-cleanup.md` §2)
+
+Run before closure PR drafted:
+
+```
+$ bash scripts/prune-merged-worktrees.sh --yes
+Worktree husks (branch deleted/merged):  0
+Local branches merged to origin/main:    4
+    - worktree-agent-a071b83d704bb3570
+    - worktree-agent-a6f52857b0fa6e417
+    - worktree-agent-a8cb6a1d857e5b79c
+    - worktree-agent-a928551bc54704124
+✅ Cleanup complete.
+```
+
+Post-cleanup state: 0 worktree husks, 0 merged-to-main worktree-agent branches remaining.
 
 ---
 
 ## 8. Log
 
+- **2026-05-19** (complete): Wave 99B closure shipped. 7/7 buckets DONE in single mid-session sprint (6 PRs merged earlier session: #1565 B6 + #1568 B0 + #1569 B1 + #1574 B2 + #1573 B3 + #1571 B4; this closure session ships #1577 B5 + closure PR). All 7 origin gaps GAP-668..674 DONE 100%. 1 follow-up filed GAP-677 (auto-gen DB map Phase 1 parser, Wave 100+). 1 audit cadence obligation filed GAP-678 (post-wave audit suite ≤2026-05-22 — Quality /100 + Business Logic /100 refresh). Cleanup: 4 merged worktree-agent branches deleted, 0 husks. ROADMAP §🚀 Next Action synced. Reviewer: @nguyenvankiet (solo-dev).
 - **2026-05-19** (draft): Plan created. Triggered by user 2026-05-19 4-bucket arch sweep request (Item 1 Mermaid fix shipped PR #1562; this wave handles Items 2+3+4). Per `outside-in-coverage-trigger.md` v1.1.0 §2 — 3-agent outside-in audit ran first (Persona top 3: Service Catalog + Runbook Index + Data Architecture; External Benchmark top 3: C4 + Backstage Service Catalog + Quality Registry; Failure-Mode top 3: Service Dep Graph + Compliance Map + Per-tenant Cost). Consensus convergent: Service catalog/dependency + Compliance/SLO + Volume-cap anti-pattern. Defer per consensus: User tier matrix / Per-tenant cost / AI orchestration / Full sequence catalog. Audit artifacts preserved in agent transcripts; full table in §1 Brainstorm Q2. Per `feedback_wave_plan_through_pr.md` — wave plan PR FIRST before agent spawn. Reviewer: @nguyenvankiet (solo-dev).

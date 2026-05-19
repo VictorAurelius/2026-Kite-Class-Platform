@@ -8,7 +8,7 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-19 — META + docs arch focus session: GAP-661 audit suite + Wave 99B B6 arch archive + Wave 99C META synthesis all SHIPPED)
+## 🎯 Current Status Snapshot (2026-05-19 — Wave 99B 7/7 SHIPPED + closure: arch docs sweep complete + GAP-661 audit suite + Wave 99C META synthesis + output-review-mandate v1.12.3 streamline)
 
 ### 🎉 Wave 99C META synthesis SHIPPED 2026-05-19 — 2 detectors + 2 META-META gaps (PR #1566)
 
@@ -57,34 +57,43 @@ Foundation bucket of Wave 99B — archive 6 stale/superseded files (`living-docs
 
 **Post-Wave-98 audit suite cadence per `post-wave-audit-mandate.md` §2.2:** UI /128 sample + Quality /100 refresh due within 3 days (≤2026-05-21). Filed **GAP-661** to schedule.
 
-> **📍 Next session ĐỌC TRƯỚC (Wave 99B 5/7 SHIPPED; pause point 2026-05-19 mid-session for /clear):**
+### 🎉 Wave 99B SHIPPED 2026-05-19 — Architecture docs sweep + expansion (7/7 buckets DONE)
+
+Foundation + expansion sweep of `documents/02-architecture/` — closure PR ships all 7 buckets DONE:
+
+| # | Bucket | Gap | PR | Outcome |
+|---|---|---|---|---|
+| 1 | B6 Archive sweep (FOUNDATION) | GAP-668 | #1565 | ✅ 6 stale files → `07-archived/architecture-2026-Q2/`; root 16 → 10 (volume cap 50 compliant) |
+| 2 | B0 Last-Reviewed backfill + Mermaid migration | GAP-669 | #1568 | ✅ 24 non-ADR arch files frontmatter synced |
+| 3 | B1 Service Catalog + Dependency Graph + Auth Flow | GAP-670 | #1569 | ✅ 18-service catalog + Mermaid flowchart + sequenceDiagram + 10-controller role-guard matrix |
+| 4 | B2 Compliance Map + SLO Registry + NFR + Risk Register | GAP-671 | #1574 | ✅ 19 compliance rows + 11-service SLO + 35+ NFR + 5-row Risk per arc42 §10 |
+| 5 | B3 Database Architecture Map (consolidated) | GAP-672 | #1573 | ✅ 91 entities + RLS 51/91 + FK erDiagram + Flyway 114 V-files; GAP-677 auto-gen follow-up Wave 100+ |
+| 6 | B4 C4 Context + Container (L1+L2) | GAP-673 | #1571 | ✅ Mermaid L1 8 actors + 6 external + L2 2 FE + 1 gateway + 7 services + 4 infra subgraph |
+| 7 | B5 Golden-path Onboarding Tour README orchestrator | GAP-674 | #1577 | ✅ REWRITE 103 → 204 lines + 7-step reading order tour + Trace-one-request 8-layer tutorial + per-persona index P1/P2/P3/P4 |
+
+**Wave 99B closure status:** 🟢 SHIPPED 7/7 buckets DONE 100%. Cleanup: 4 merged worktree-agent branches deleted, 0 husks per `post-wave-cleanup.md` §2. Scope-Completeness Reconciliation per `wave-closure-scope-completeness.md` §3 in wave plan §7.1.
+
+**Post-wave audit suite cadence (≤2026-05-22):** filed **GAP-678** P1 — Quality /110 + Business Logic /100 refresh; 2 bg-agents parallel; expected positive deltas Cat 1 Rule Coverage (Wave 99C detectors closing recurrence #2) + Cat 9 Architecture (4 NEW canonical artifacts) + Business Logic Cat 1 (B2 compliance row verdict).
+
+**Out-of-wave shipped same session:**
+- ✅ PR #1572 — Mermaid `<br/>` recurrence #6+#7 fix (sequence/state diagrams) + new detector `check-mermaid-sequence-state-br.sh`
+- ✅ Wave 99C META synthesis PR #1566 — 2 detectors (3-layer + cross-layer drift) + 2 META-META gaps GAP-675/676
+- ✅ PR #1576 — `output-review-mandate.md` v1.12.3 streamline round 3 (53k → 33k char Claude-metric, well under 40k threshold)
+
+> **📍 Next session ĐỌC TRƯỚC (Wave 99B SHIPPED; remaining pending → thesis pivot):**
 >
-> **Wave 99B execution status (post 5 PR merge batch this session):**
-> - ✅ B6 PR #1565 — Architecture archive sweep (root 16→10, GAP-668)
-> - ✅ B0 PR #1568 — Last-Reviewed backfill + Mermaid migration audit (GAP-669)
-> - ✅ B1 PR #1569 — Service Catalog + Auth Flow + Dependency Graph (GAP-670)
-> - ✅ B2 PR #1574 — Compliance × Code Map + SLO Registry + NFR + Risk Register (GAP-671)
-> - ✅ B3 PR #1573 — Database Architecture Map consolidated 91-entity catalog (GAP-672) + GAP-677 follow-up
-> - ✅ B4 PR #1571 — C4 Context + Container Diagram L1+L2 (GAP-673)
-> - ⏸️ **B5 PENDING** — Onboarding Tour README rewrite (GAP-674) — orchestrates B1-B4 reading order
->
-> **Other shipped this session (out-of-wave):**
-> - ✅ PR #1572 — Mermaid `<br/>` recurrence #6+#7 fix (sequence/state diagrams) + new detector `check-mermaid-sequence-state-br.sh`
-> - ✅ Wave 99C META synthesis PR #1566 — 2 detectors (3-layer + cross-layer drift) + 2 META-META gaps GAP-675/676
->
-> **Pending work for next session (tracked TaskList):**
-> 1. **Spawn B5** (Onboarding Tour README, GAP-674) — depends on B1-B4 file paths existing ✅ all merged
-> 2. **Wave 99B closure PR** — flip wave plan `status: draft → complete` + wave-history.jsonl append + Scope-Completeness Reconciliation table + ROADMAP sync + `scripts/prune-merged-worktrees.sh --yes`
-> 3. **PR #1570 rebase** — GAP-675 META PR conflicts with Wave 99B merges (script-quality.yml + rules-index.csv) + GAP-677 collision (rename to GAP-678; B3 already used GAP-677). Complex rebase ~30 min careful work.
-> 4. **4 real-repo 3-layer violations** (caught by Wave 99C detector WARN mode, HARD STOP 2026-06-19):
+> **Pending work carry-forward to next session:**
+> 1. **GAP-678 — Wave 99B post-wave audit suite** (cadence ≤2026-05-22) — Quality /110 + Business Logic /100 refresh; spawn 2 bg-agents parallel
+> 2. **PR #1570 rebase** — GAP-675 META-META, conflicts với Wave 99B merges (script-quality.yml + rules-index.csv). Complex rebase ~30 min careful work
+> 3. **4 real-repo 3-layer violations** (Wave 99C detector WARN mode, HARD STOP 2026-06-19):
 >    - `kitehub/email` missing `use-cases.md` (GAP-664 partial covers)
 >    - `kitehub/marketing` missing `use-cases.md` (file follow-up gap)
 >    - `kitehub/preferences` missing `rules.md` + `use-cases.md` (GAP-664 covers)
 >    - `kiteclass/multi-tenancy` missing `use-cases.md` + `api-contract.md` (file follow-up gap)
-> 5. **GAP-662..667 cluster (Phase 1 BETA gate fixes)** — DEFER Wave 100+ per user pivot priority
-> 6. **Wave 99 thesis META plan PR #1559** — DEFER Wave 100+ per user pivot priority
+> 4. **GAP-662..667 cluster (Phase 1 BETA gate fixes)** — DEFER Wave 100+ per user pivot priority
+> 5. **Wave 99 thesis META plan PR #1559** — pivot to thesis after audit suite + Phase 1 BETA gate cluster
 >
-> **After Tasks 1-4 complete → /clear + new session → thesis pivot per user 2026-05-19 plan.**
+> **After GAP-678 audit + PR #1570 rebase + 4 violations → /clear + thesis pivot per user 2026-05-19 plan.**
 > 3. **5 PARTIAL Wave 98 gaps gated GAP-612 AWS** (656/657/658/518 live verify + 543 manual render verify) — close-out post-restore: GAP-518 95→100%, GAP-656 80→95%, GAP-657 80→95% (manual 2-client render), GAP-543 80→100%, GAP-658 80→95% (consumer wiring trigger).
 > 4. **Post-wave-98 audit suite verdicts** — UI ✅ 110.6 A + Quality ✅ 90/110 B+ PASS (no follow-up); API 🔴 76 C FAIL + Business 🔴 73 C+ FAIL (item 1 cluster fixes both).
 > 4. **bg-agent lesson learned** (carry-forward Wave 97) — context-thrashing rate-limited 4 agents this wave (B1/B3/B6/B7 first attempts). 2-concurrent retry pattern PROVEN safe. 3-concurrent threshold hit Anthropic throttle.
