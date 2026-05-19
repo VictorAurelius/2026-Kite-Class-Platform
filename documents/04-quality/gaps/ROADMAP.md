@@ -8,7 +8,33 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-19 — Wave 100.7 V1 SHIPPED (4/5 phases DONE) + Wave 100 PARTIAL D+F+META + Wave 100.5 SHIPPED + Wave 99B closure)
+## 🎯 Current Status Snapshot (2026-05-19 — Wave 100.7 COMPLETE 4.5/5 phases DONE + Wave 100 PARTIAL D+F+META + Wave 100.5 SHIPPED + Wave 99B closure)
+
+### 🎉 Wave 100.7 Phase 3b V2 SHIPPED 2026-05-19 — Full DOCX pipeline (GAP-646 DONE)
+
+Phase 3b implementation pivoted Edit-Fill → **Create pipeline** because LibreOffice/Word not on-stack. ThesisReportBuilder mirrors `TeacherContractBuilder` Wave 5 pattern — POI XWPF programmatically builds thesis skeleton without binary template.
+
+| Deliverable | Path | Lines |
+|---|---|---|
+| ThesisReportBuilder Java (POI Create pipeline) | `kiteclass/kiteclass-core/.../docx/ThesisReportBuilder.java` | ~250 |
+| ThesisReportBuilder JUnit (17 tests, all PASS) | `kiteclass/kiteclass-core/.../docx/ThesisReportBuilderTest.java` | ~270 |
+| DocxGenerator route (`thesis-report` templateId) | `kiteclass/kiteclass-core/.../docx/DocxGenerator.java` | +11 |
+| Assembly script V2 (dry-run validation) | `scripts/assemble-thesis-docx.sh` | rewrite ~90 |
+| Skill docs (Thesis pipeline section) | `.claude/skills/document-generation/word/SKILL.md` | +30 |
+| GAP-646 → DONE + git mv to `phase-1-beta/closed/` | — | — |
+
+**VN academic norms applied (HUST/UIT/UET):**
+- A4 portrait (11906 × 16838 twips)
+- Margins 3-2-2-3 cm binding gutter (3cm left = 1701 twips, others 2cm = 1134 twips)
+- Times New Roman 13pt body / 14pt heading / 18pt cover title
+
+**CI result:** 27 SUCCESS + 1 NEUTRAL (Trivy no-op), zero FAILURE. 31/31 unit tests PASS local (17 new + 14 existing DocxGenerator).
+
+**PR sequence Wave 100.7 entire run** (13 PRs `#1591`-`#1600`): PR-log sync + bibliography master consolidation + DOCX scoping + Phase 3 closeout + Phase 4 Foundation + Buckets A/B/C/D V1 closure + Phase 3b V2 implementation.
+
+**Wave 100.7 final state:** 4.5/5 phases DONE (Phase 1 + 2 + 3a + 3b V2 + 4 ✅; Phase 5 defense prep DEFER Wave 110+ per GAP-653). Phase 3b V3 production `--execute` mode (Spring Boot CLI runner + MD parser + figure inject + bibliography auto-format) defer follow-up gap.
+
+---
 
 ### 🎉 Wave 100.7 V1 SHIPPED 2026-05-19 — Thesis V1 milestone (4 of 5 phases DONE; Phase 5 defer Wave 110+)
 
