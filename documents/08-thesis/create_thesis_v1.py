@@ -332,7 +332,13 @@ INLINE_PATTERN = re.compile(
 
 
 def add_inline_runs(paragraph, text):
-    """Parse inline markdown (**bold**, *italic*, `code`, [link](url)) → runs."""
+    """Parse inline markdown (**bold**, *italic*, `code`, [link](url)) → runs.
+
+    Per thesis-content-standard.md v1.0.2 §3 No-font-swap principle:
+    UTC §2.3 mandate TNR 13pt cho mọi đoạn văn body — KHÔNG đổi font inline.
+    Inline `code` markdown rendered TNR 13pt italic (NOT Courier New monospace)
+    to keep typographic consistency with UTC academic convention.
+    """
     pos = 0
     for m in INLINE_PATTERN.finditer(text):
         if m.start() > pos:
@@ -346,9 +352,9 @@ def add_inline_runs(paragraph, text):
             run = paragraph.add_run(italic_text)
             set_font(run, FONT_SIZE_NORMAL, italic=True)
         elif code_text:
+            # No-font-swap: inline `code` → TNR italic (NOT Courier New)
             run = paragraph.add_run(code_text)
-            run.font.name = 'Courier New'
-            run.font.size = Pt(11)
+            set_font(run, FONT_SIZE_NORMAL, italic=True)
         elif link_text:
             run = paragraph.add_run(link_text)
             set_font(run, FONT_SIZE_NORMAL)
@@ -390,8 +396,69 @@ def add_blockquote(doc, text):
     return p
 
 
+def _render_mermaid_to_png(mermaid_src: str, cache_dir: Path) -> Path | None:
+    """Render Mermaid diagram → PNG via kroki.io HTTP API. Cached locally.
+
+    Args:
+        mermaid_src: raw Mermaid syntax (without ``` fences)
+        cache_dir: directory to save rendered PNG (gitignored)
+
+    Returns:
+        Path to PNG file on success, None on failure.
+    """
+    import base64
+    import hashlib
+    import urllib.error
+    import urllib.request
+    import zlib
+
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    digest = hashlib.sha256(mermaid_src.encode()).hexdigest()[:16]
+    png_path = cache_dir / f"mermaid-{digest}.png"
+    if png_path.exists() and png_path.stat().st_size > 0:
+        return png_path  # cache hit
+
+    try:
+        compressed = zlib.compress(mermaid_src.encode(), 9)
+        encoded = base64.urlsafe_b64encode(compressed).decode().rstrip('=')
+        url = f"https://kroki.io/mermaid/png/{encoded}"
+        req = urllib.request.Request(url, headers={'User-Agent': 'thesis-pipeline/1.0'})
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            data = resp.read()
+            if not data or len(data) < 100:
+                return None
+            png_path.write_bytes(data)
+            return png_path
+    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as e:
+        print(f"  WARN: Mermaid render failed via kroki.io: {e}")
+        return None
+
+
 def add_code_block(doc, code_text, lang=""):
-    """Render fenced code block: Courier New 11pt, no indent, gray bg."""
+    """Render fenced code block.
+
+    Mermaid blocks → render as PNG via kroki.io HTTP API, embed via add_picture
+    (per thesis-content-standard.md v1.0.2 C7 diagram rendering mandate).
+
+    Other code blocks → TNR 11pt italic (NOT Courier New per v1.0.2 No-font-swap principle).
+    """
+    if lang and lang.lower() in ('mermaid',):
+        cache_dir = THESIS_DIR / ".mermaid-cache"
+        png_path = _render_mermaid_to_png(code_text, cache_dir)
+        if png_path:
+            # Embed PNG centered
+            p = doc.add_paragraph()
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p.paragraph_format.space_before = Pt(6)
+            p.paragraph_format.space_after = Pt(6)
+            run = p.add_run()
+            # Constrain width to fit page (~14cm)
+            run.add_picture(str(png_path), width=Cm(14.0))
+            return
+        # Fallback: render as TNR italic text if PNG unavailable
+        print("  WARN: Mermaid PNG unavailable; falling back to text")
+
+    # Non-Mermaid OR Mermaid fallback: render as text (TNR italic per v1.0.2)
     for line in code_text.split('\n'):
         p = doc.add_paragraph()
         p.paragraph_format.left_indent = Cm(0.5)
@@ -399,8 +466,8 @@ def add_code_block(doc, code_text, lang=""):
         p.paragraph_format.space_before = Pt(0)
         p.paragraph_format.space_after = Pt(0)
         run = p.add_run(line if line else " ")
-        run.font.name = 'Courier New'
-        run.font.size = FONT_SIZE_CODE
+        # TNR italic per UTC §2.3 + thesis-content-standard.md v1.0.2 No-font-swap
+        set_font(run, FONT_SIZE_CODE, italic=True)
 
 
 def add_md_table(doc, headers, rows):
@@ -1009,22 +1076,15 @@ def _add_table_2col(doc, rows_data, col0_width_cm=4.0, col1_width_cm=12.0,
 
 
 def add_abbreviations(doc):
-    """Danh mục THUẬT NGỮ + DANH MỤC TỪ VIẾT TẮT — 2 sub-sections per UTC sample BAO_CAO convention."""
+    """Danh mục THUẬT NGỮ + Danh mục TỪ VIẾT TẮT — 2 H1 danh mục riêng biệt per UTC §2 mandate."""
+    # ============ Danh mục 1: THUẬT NGỮ (H1 riêng biệt) ============
     doc.add_page_break()
 
-    # Main heading
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(18)
-    run = p.add_run("DANH MỤC THUẬT NGỮ VÀ TỪ VIẾT TẮT")
+    run = p.add_run("DANH MỤC THUẬT NGỮ")
     set_font(run, Pt(16), bold=True)
-
-    # ============ Sub-section 1: THUẬT NGỮ ============
-    p = doc.add_paragraph()
-    p.paragraph_format.space_before = Pt(12)
-    p.paragraph_format.space_after = Pt(6)
-    run = p.add_run("1. THUẬT NGỮ")
-    set_font(run, FONT_SIZE_NORMAL, bold=True)
 
     terms = [
         ("Multi-tenant", "Kiến trúc phần mềm cho phép nhiều tổ chức (tenant) dùng chung một hệ thống với dữ liệu cách ly"),
@@ -1041,12 +1101,14 @@ def add_abbreviations(doc):
     _add_table_2col(doc, terms, col0_width_cm=4.5, col1_width_cm=11.5,
                     header_row=("Thuật ngữ", "Giải thích"))
 
-    # ============ Sub-section 2: TỪ VIẾT TẮT ============
+    # ============ Danh mục 2: TỪ VIẾT TẮT (H1 riêng biệt, page break) ============
+    doc.add_page_break()
+
     p = doc.add_paragraph()
-    p.paragraph_format.space_before = Pt(18)
-    p.paragraph_format.space_after = Pt(6)
-    run = p.add_run("2. TỪ VIẾT TẮT")
-    set_font(run, FONT_SIZE_NORMAL, bold=True)
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_after = Pt(18)
+    run = p.add_run("DANH MỤC TỪ VIẾT TẮT")
+    set_font(run, Pt(16), bold=True)
 
     abbrevs = [
         ("SaaS", "Software as a Service"),

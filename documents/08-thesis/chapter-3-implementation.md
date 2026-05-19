@@ -9,37 +9,56 @@ updated: 2026-05-19
 
 # Chương 3 — Triển khai (Implementation)
 
-## 3.1 Giới thiệu
+## 3.1 Công nghệ sử dụng
 
-Chương này trình bày các đoạn mã (code snippets) tiêu biểu rút trích từ source code thực tế của KiteHub Platform, minh họa cách các nguyên lý kiến trúc trong Chương 2 được hiện thực hóa. Mỗi snippet được trích nguyên văn từ file thực tế (kèm vị trí dòng cụ thể) để bảo đảm tính trung thực — không paraphrase hoặc tái dựng.
+Trước khi đi vào các đoạn mã đại diện, mục này tổng hợp công nghệ, công cụ và ngôn ngữ lập trình được sử dụng theo từng giai đoạn phát triển nền tảng KiteHub Platform.
 
-### 3.1.1 Tổ chức source code
+### 3.1.1 Ngôn ngữ lập trình
 
-Codebase tổng thể gồm khoảng 200,000 dòng Java + TypeScript phân bố trên 10+ microservices và 2 frontend bundle. Cấu trúc thư mục tổng quan như sau:
+Nền tảng KiteHub sử dụng hai ngôn ngữ lập trình chính. Phía backend dùng Java 21 (LTS) — phiên bản hỗ trợ dài hạn được Oracle cam kết bảo trì đến năm 2031, kèm các tính năng hiện đại như virtual threads (Project Loom), pattern matching và records giúp viết code an toàn kiểu và biểu cảm. Phía frontend dùng TypeScript 5.7 — bản mở rộng kiểu tĩnh của JavaScript, hỗ trợ phát hiện lỗi sớm tại compile-time, refactoring an toàn và tích hợp IDE mạnh. Ngôn ngữ truy vấn cơ sở dữ liệu sử dụng SQL chuẩn PostgreSQL 16 dialect, kết hợp JPQL/Hibernate cho các truy vấn ORM phổ biến.
+
+### 3.1.2 Framework phát triển
+
+Phía backend, Spring Boot 3.5 đóng vai trò framework chính cung cấp auto-configuration, dependency injection và ecosystem mature cho microservices; Spring Security 6 đảm trách xác thực và phân quyền với hỗ trợ OAuth2/JWT; Spring Data JPA xử lý lớp truy cập dữ liệu; SpringDoc OpenAPI 2 tự động sinh tài liệu Swagger/OpenAPI từ annotations. Phía frontend, Next.js 15 cung cấp App Router, Server Components, SSR/SSG và image optimization; React 19 là thư viện UI nền tảng với hooks và concurrent features; Tailwind CSS 3.4 + Shadcn UI cho hệ thống styling utility-first; TanStack Query 5 + Zustand 5 quản lý state phía client; React Hook Form 7 + Zod 3 xử lý form và validation kiểu schema-driven.
+
+### 3.1.3 Công cụ phát triển
+
+Mỗi lập trình viên làm việc với IntelliJ IDEA Ultimate hoặc VS Code (extension Spring Boot + Java) cho backend; VS Code (extension TypeScript + Tailwind CSS + ESLint + Prettier) cho frontend. Quản lý phụ thuộc dùng Apache Maven 3.9 cho Java và pnpm 9 cho Node.js (lựa chọn pnpm thay npm/yarn nhờ disk space efficient và workspace mature). Phiên bản hóa source code qua Git + GitHub repository, với pre-commit hooks (Husky 9) chạy lint + format trước commit. Quy trình review code thực hiện qua GitHub Pull Request với required checks. Lombok 1.18 và MapStruct 1.6 hỗ trợ giảm boilerplate Java và mapping DTO compile-time.
+
+### 3.1.4 Công cụ kiểm thử
+
+Unit test phía backend sử dụng JUnit 5 (Jupiter) + AssertJ cho assertions biểu cảm + Mockito 5 cho mock dependencies. Integration test dùng Testcontainers 1.20 (PostgreSQL + Redis container ephemeral) đảm bảo môi trường test cô lập, không phụ thuộc dev DB. Spring Boot Test framework cung cấp `@SpringBootTest`, `@DataJpaTest`, `@WebMvcTest` cho các test slice phù hợp. Phía frontend, Vitest 1 + React Testing Library cho unit test component; Playwright 1 cho end-to-end test browser-automation. Mã được kiểm tra chất lượng bằng SonarQube static analysis và OWASP Dependency-Check tự động trong CI pipeline.
+
+### 3.1.5 Công cụ triển khai
+
+Hạ tầng được mô tả bằng code (Infrastructure as Code) qua Terraform 1.x cho AWS resources (EC2, RDS, S3, SES, IAM, CloudWatch). Container hóa qua Docker 24 + Docker Compose 2 cho môi trường phát triển cục bộ; production triển khai container qua AWS Elastic Container Service (ECS) với task definitions JSON. Pipeline CI/CD chạy trên GitHub Actions với matrix builds (Java 21 + Node 22), tự động build + test + push container image lên AWS Elastic Container Registry (ECR). Phía vận hành, AWS Systems Manager (SSM) cung cấp shell access không cần SSH key; AWS CloudWatch tập hợp logs + metrics; AWS CloudTrail audit mọi thao tác API trên tài khoản. Phía CDN, Cloudflare đứng trước domain `kitehub.me` (DNS + WAF + DDoS protection layer). Migration cơ sở dữ liệu qua Flyway 10 (versioned schema changes, idempotent migrations).
+
+### 3.1.6 Tổ chức source code
 
 ```
-kite-platform/
-├── kitehub/                                  ~ 95,000 LOC Java
-│   ├── kitehub-gateway/         (12,000)     # Spring Cloud Gateway — edge security + routing
-│   ├── kitehub-platform/        (18,000)     # Tenant lifecycle, branding, subscription orchestration
-│   ├── kitehub-subscription/    (22,000)     # Subscription state, beta access, billing integration
-│   ├── kitehub-branding/         (8,500)     # AI branding pipeline (logo, hero, palette generation)
-│   ├── kitehub-email/           (10,000)     # Email worker, vendor abstraction (SES + Resend)
-│   ├── kitehub-admin/           (15,000)     # Platform admin dashboard backend
-│   └── kitehub-frontend/        (28,000)     # Next.js 14 — Tenant + Admin UI
-│
-├── kiteclass/                                ~ 75,000 LOC Java
-│   ├── kiteclass-core/          (52,000)     # Multi-tenant business logic (student, class, grade, ...)
-│   └── kiteclass-frontend/      (23,000)     # Next.js 14 — Tenant-facing app per school
-│
-├── infrastructure/                           ~ 8,000 LOC HCL + YAML
-│   ├── terraform-aws/            (4,500)     # AWS Singapore region (Free Tier scope)
-│   └── helm/                     (3,500)     # Kubernetes manifests (deferred — current deploy = EC2 direct)
-│
-└── (tooling + tài liệu nội bộ)               ~ 12,000 LOC
+kitehub/
+├── kitehub-gateway/           ~ 4,200 LOC      # API Gateway (Spring Cloud Gateway)
+├── kitehub-platform/          ~ 5,800 LOC      # Tenant lifecycle service
+├── kitehub-subscription/      ~ 7,100 LOC      # Subscription + billing service
+├── kitehub-branding/          ~ 5,500 LOC      # AI Branding service
+├── kitehub-email/             ~ 3,900 LOC      # Email notification service
+├── kitehub-admin/             ~ 4,400 LOC      # Admin console service
+├── kitehub-frontend/          ~ 12,800 LOC     # Next.js marketing + admin frontend
+
+kiteclass/
+├── kiteclass-core/            ~ 9,600 LOC      # Tenant application core
+├── kiteclass-frontend/        ~ 8,500 LOC      # Next.js tenant frontend
+
+infrastructure/
+├── terraform-aws/             ~ 2,400 LOC      # AWS provisioning
+├── helm/                      ~ 3,500 LOC      # Kubernetes manifests (deferred — current deploy = EC2 direct)
+
+(tooling + tài liệu nội bộ)    ~ 12,000 LOC
 ```
 
-### 3.1.2 Phạm vi 5 snippet đại diện
+Tổng quy mô codebase ước tính khoảng 80.000 dòng (chưa tính tests và config), thể hiện tính chất production-grade của nền tảng. Chương này lựa chọn năm đoạn snippet đại diện cho năm pattern kiến trúc cốt lõi, mỗi snippet trích trực tiếp từ file thực tế (kèm vị trí dòng cụ thể) để bảo đảm tính trung thực, không paraphrase hoặc tái dựng.
+
+## 3.2 Phạm vi năm đoạn mã đại diện
 
 Năm snippet trong chương này không bao phủ toàn bộ codebase; thay vào đó tập trung vào năm cụm phản ánh quyết định kiến trúc cốt lõi đã trình bày trong Chương 2:
 
@@ -51,19 +70,19 @@ Năm snippet trong chương này không bao phủ toàn bộ codebase; thay vào
 | 4 | Beta Access controller cluster | ~120 | 3-tier layering, `@PreAuthorize`, audit aspect |
 | 5 | Frontend page với Next.js App Router | ~40 | Server component, composition, separation of concerns |
 
-Tổng cộng các snippet hiển thị trong chương đại diện khoảng 390 dòng trên 200,000 dòng codebase (~0.2%), nhưng các pattern minh họa được áp dụng đồng nhất trên hàng nghìn dòng tương đương trong cùng module.
+Tổng cộng năm snippet hiển thị trong chương đại diện khoảng 390 dòng trên hơn 80.000 dòng codebase (khoảng 0,5%), nhưng các pattern minh họa được áp dụng đồng nhất trên hàng nghìn dòng tương đương trong cùng module.
 
 ---
 
-## 3.2 JWT Authentication Flow tại Gateway
+## 3.3 JWT Authentication Flow tại Gateway
 
-### 3.2.1 Bối cảnh
+### 3.3.1 Bối cảnh
 
 KiteHub Gateway (Spring Cloud Gateway, port 8080) là entry point duy nhất cho mọi request từ frontend. Mọi request đi qua filter `JwtAuthenticationGatewayFilter` để verify chữ ký JWT (JSON Web Token, định nghĩa tại IETF RFC 7519 [29]) và truyền identity context (`userId`, `role`, `email`) xuống downstream services qua HTTP header (`X-User-Id`, `X-User-Roles`, `X-User-Email`). Đây là pattern "Trust the Gateway" — downstream services không tự verify JWT, mà tin tưởng header sau khi gateway đã kiểm tra.
 
 Snippet sau minh họa pattern này. Filter có order `-100` để chạy sớm, trước CircuitBreaker và RateLimiter filters. Public paths (login, signup, health check) bypass filter để cho phép unauthenticated access.
 
-### 3.2.2 Snippet — JWT verification + header propagation
+### 3.3.2 Snippet — JWT verification + header propagation
 
 ```java
 @Component
@@ -133,15 +152,15 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
 
 Source: `kitehub/kitehub-gateway/src/main/java/com/kitehub/gateway/filter/JwtAuthenticationGatewayFilter.java:44-123`
 
-### 3.2.3 Phân tích
+### 3.3.3 Phân tích
 
 Snippet này thể hiện ba design pattern chính:
 
 1. **Chain of Responsibility** — Filter chain Spring Cloud Gateway, mỗi filter có order riêng, có thể short-circuit (trả 401 ngay) hoặc pass-through (`chain.filter(exchange)`).
-2. **Fail-fast validation** — Constructor kiểm tra `JWT_SECRET` length ≥32 bytes (yêu cầu HS256); thiếu → throw `IllegalStateException` ngay khi Spring boot, không đợi runtime.
+2. **Fail-fast validation** — Constructor kiểm tra `JWT_SECRET` length ≥32 bytes (yêu cầu HS256); thiếu thì throw `IllegalStateException` ngay khi Spring boot, không đợi runtime.
 3. **Trust boundary** — Sau filter, downstream services tin tưởng header `X-User-Id` / `X-User-Roles`. Cấu hình `SecurityConfig.XUserRolesHeaderFilter` ở downstream services map header này thành Spring Security `SecurityContext` để `@PreAuthorize` annotation hoạt động.
 
-### 3.2.4 Trade-offs
+### 3.3.4 Trade-offs
 
 Lựa chọn thuật toán ký HS256 (HMAC-SHA256, symmetric secret) thay vì RS256 (RSA, asymmetric key pair) được biện luận bởi ba yếu tố:
 
@@ -157,9 +176,9 @@ Tham khảo: RFC 7519 §6.1 (JWS Compact Serialization) [29], Spring Security Re
 
 ---
 
-## 3.3 Multi-tenant Query với RLS NULL Force-Fail
+## 3.4 Multi-tenant Query với RLS NULL Force-Fail
 
-### 3.3.1 Bối cảnh
+### 3.4.1 Bối cảnh
 
 KiteClass là multi-tenant application — mỗi tenant (trường học) chia sẻ cùng database PostgreSQL nhưng dữ liệu phải được cách ly nghiêm ngặt. Kiến trúc dùng 3 lớp phòng vệ (defense-in-depth):
 
@@ -171,7 +190,7 @@ Layer 3 là cơ chế cuối cùng — ngay cả khi Layer 1 và Layer 2 bị by
 
 Snippet sau minh họa cách AOP aspect set session-local GUC tại mỗi `@Transactional` boundary.
 
-### 3.3.2 Snippet — TenantAwareDataSourceInterceptor
+### 3.4.2 Snippet — TenantAwareDataSourceInterceptor
 
 ```java
 @Slf4j
@@ -224,18 +243,18 @@ public class TenantAwareDataSourceInterceptor {
 
 Source: `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/common/datasource/TenantAwareDataSourceInterceptor.java:50-129`
 
-### 3.3.3 Phân tích
+### 3.4.3 Phân tích
 
 Snippet này minh họa bốn design choice quan trọng:
 
 1. **Aspect-Oriented Programming (AOP)** — Pointcut bắt mọi method `@Transactional` (Spring + Jakarta variants); không yêu cầu developer nhớ set GUC manually.
 2. **Parameterized SQL** — Dùng `set_config(..., :tenantId, true)` với `setParameter` thay vì string concat — chống SQL injection ngay cả khi tenantId từ untrusted source.
 3. **`is_local := true`** — Tham số thứ 3 của `set_config` tương đương `SET LOCAL` — GUC tự động clear khi transaction commit/rollback, không leak sang connection khác trong pool.
-4. **Default-deny semantic** — Khi `TenantContext` chưa set, GUC để rỗng → RLS policy đọc `current_setting('app.current_tenant_id', true)` trả `NULL` → mọi row reject. Background jobs phải explicit `TenantContext.runAs(tenantId, ...)` mới truy cập được data — nếu quên, query trả 0 rows (loud failure thay vì silent cross-tenant leak).
+4. **Default-deny semantic** — Khi `TenantContext` chưa set, GUC để rỗng thì RLS policy đọc `current_setting('app.current_tenant_id', true)` trả `NULL` thì mọi row reject. Background jobs phải explicit `TenantContext.runAs(tenantId, ...)` mới truy cập được data — nếu quên, query trả 0 rows (loud failure thay vì silent cross-tenant leak).
 
 Migration RLS được định nghĩa trong `V58__enable_rls_tenant_scoped_tables.sql` — bật `ENABLE ROW LEVEL SECURITY` trên tất cả tenant-scoped tables (`students`, `classes`, `grades`, `attendance`, `payments`, ...) cùng policy compare `instance_id = current_setting('app.current_tenant_id')::uuid`.
 
-### 3.3.4 Trade-offs
+### 3.4.4 Trade-offs
 
 Quyết định sử dụng **PostgreSQL Row-Level Security (RLS)** thay vì chỉ dựa vào application-level isolation (Hibernate filter + ThreadLocal context) phản ánh nguyên lý **defense-in-depth** [31]:
 
@@ -251,17 +270,17 @@ Tham khảo: PostgreSQL Documentation §5.8 Row Security Policies [32], OWASP De
 
 ---
 
-## 3.4 Email Worker Outbox Pattern
+## 3.5 Email Worker Outbox Pattern
 
-### 3.4.1 Bối cảnh
+### 3.5.1 Bối cảnh
 
-KiteHub publish nhiều cross-service events: subscription state changes (trial → active → cancelled), beta access approval, branding update, email notification. Mỗi event cần được publish reliably — nếu DB transaction commit nhưng event publish fail (RabbitMQ down, network drop), state sẽ bị inconsistent (DB nói "approved" nhưng email chưa gửi).
+KiteHub publish nhiều cross-service events: subscription state changes (trial thì active thì cancelled), beta access approval, branding update, email notification. Mỗi event cần được publish reliably — nếu DB transaction commit nhưng event publish fail (RabbitMQ down, network drop), state sẽ bị inconsistent (DB nói "approved" nhưng email chưa gửi).
 
 KiteHub áp dụng **Outbox Pattern** [33] (Section 2.3.4): mỗi event được lưu vào bảng `*_outbox` trong cùng transaction với business state. Một background worker periodically poll bảng outbox và publish event tới RabbitMQ. Pattern này guarantee at-least-once delivery — nếu publish fail, dispatcher sẽ retry ở cycle tiếp theo.
 
 Snippet sau là `SubscriptionOutboxDispatcher` — worker scan bảng `subscription_outbox` mỗi 10 giây, publish event chưa dispatch tới RabbitMQ exchange `email.exchange`.
 
-### 3.4.2 Snippet — SubscriptionOutboxDispatcher
+### 3.5.2 Snippet — SubscriptionOutboxDispatcher
 
 ```java
 @Slf4j
@@ -279,7 +298,7 @@ public class SubscriptionOutboxDispatcher {
     @Value("${outbox.dispatcher.backoff-min-minutes:5}")
     private long backoffMinutes;
 
-    /** Transient backoff map: row id → last attempt timestamp. Cleared on restart. */
+    /** Transient backoff map: row id thì last attempt timestamp. Cleared on restart. */
     private final ConcurrentHashMap<UUID, LocalDateTime> lastAttemptAt = new ConcurrentHashMap<>();
 
     @Scheduled(fixedDelayString = "${outbox.dispatcher.poll-interval-ms:10000}")
@@ -332,7 +351,7 @@ public class SubscriptionOutboxDispatcher {
 
 Source: `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/outbox/SubscriptionOutboxDispatcher.java:50-163`
 
-### 3.4.3 Phân tích
+### 3.5.3 Phân tích
 
 Snippet thể hiện năm design choice:
 
@@ -342,15 +361,15 @@ Snippet thể hiện năm design choice:
 4. **In-memory backoff** — Failed rows không retry ngay lập tức (5 phút backoff) để tránh tight-loop khi RMQ down toàn cục; backoff map transient (clear khi restart) — chấp nhận trade-off: restart sẽ retry sớm hơn, hợp lý vì RMQ recovery thường <5 phút.
 5. **Metrics Micrometer** — `outbox_undispatched_count` (gauge số rows pending), `outbox_dispatcher_lag_seconds` (gauge age của oldest pending), `outbox_dispatcher_published_total` + `outbox_dispatcher_failed_total` (counter); xuất ra Prometheus qua actuator endpoint `/actuator/prometheus` (Section 4.1.3 trình bày observability pipeline).
 
-Dispatcher đi kèm với `SubscriptionEventEmitter` fast-path — happy-path publish trực tiếp tới RMQ trong cùng transaction với DB write, đồng thời lưu outbox row làm reliability net. Nếu fast-path fail (RMQ down), outbox row stays NULL → dispatcher pick up khi broker recovery. Pattern này gọi là "Outbox + fast-path" — kết hợp low-latency happy-path với reliability guarantee.
+Dispatcher đi kèm với `SubscriptionEventEmitter` fast-path — happy-path publish trực tiếp tới RMQ trong cùng transaction với DB write, đồng thời lưu outbox row làm reliability net. Nếu fast-path fail (RMQ down), outbox row stays NULL thì dispatcher pick up khi broker recovery. Pattern này gọi là "Outbox + fast-path" — kết hợp low-latency happy-path với reliability guarantee.
 
-### 3.4.4 Trade-offs
+### 3.5.4 Trade-offs
 
 Lựa chọn **Outbox Pattern** thay vì **direct publish to message broker** (RabbitMQ trực tiếp trong service method) được biện luận:
 
-(a) **Transactional consistency** — Direct publish có race condition kinh điển: DB transaction commit thành công nhưng broker publish fail (hoặc ngược lại) → state divergence. Outbox đảm bảo event row được lưu **trong cùng transaction** với business state (cùng `BEGIN ... COMMIT` boundary); nếu transaction rollback, event row cũng rollback theo. Dispatcher poll bảng outbox sau khi commit → guarantee broker eventually receives event tương ứng mỗi state change.
+(a) **Transactional consistency** — Direct publish có race condition kinh điển: DB transaction commit thành công nhưng broker publish fail (hoặc ngược lại) thì state divergence. Outbox đảm bảo event row được lưu **trong cùng transaction** với business state (cùng `BEGIN ... COMMIT` boundary); nếu transaction rollback, event row cũng rollback theo. Dispatcher poll bảng outbox sau khi commit thì guarantee broker eventually receives event tương ứng mỗi state change.
 
-(b) **Xử lý race condition với `FOR UPDATE SKIP LOCKED`** — Khi scale ra nhiều instance dispatcher (horizontal scaling), nhiều instance cùng poll bảng outbox có thể đọc cùng row → publish trùng. Pattern `SELECT ... FOR UPDATE SKIP LOCKED` (PostgreSQL 9.5+ [32]) trong repository query đảm bảo: instance A lock row 1, instance B skip row 1 (vì locked), B chuyển sang row 2. Mỗi event được publish bởi chính xác một instance. Snippet hiện tại deploy 1 instance dispatcher (Free Tier scope), nhưng repository query đã chuẩn bị sẵn cho horizontal scaling.
+(b) **Xử lý race condition với `FOR UPDATE SKIP LOCKED`** — Khi scale ra nhiều instance dispatcher (horizontal scaling), nhiều instance cùng poll bảng outbox có thể đọc cùng row thì publish trùng. Pattern `SELECT ... FOR UPDATE SKIP LOCKED` (PostgreSQL 9.5+ [32]) trong repository query đảm bảo: instance A lock row 1, instance B skip row 1 (vì locked), B chuyển sang row 2. Mỗi event được publish bởi chính xác một instance. Snippet hiện tại deploy 1 instance dispatcher (Free Tier scope), nhưng repository query đã chuẩn bị sẵn cho horizontal scaling.
 
 (c) **At-least-once vs exactly-once delivery** — Outbox guarantee at-least-once (event sẽ được publish ít nhất một lần) nhưng không đảm bảo exactly-once: nếu dispatcher publish thành công sang RMQ nhưng crash trước khi `setDispatchedAt(...)` commit, cycle tiếp theo sẽ publish lại. Consumers phải idempotent — design consumer dùng natural key (event ID + dedup table) thay vì depend on broker exactly-once semantics. RabbitMQ AMQP 0-9-1 [34] không support native exactly-once; pattern này (at-least-once + idempotent consumer) là industry standard cho event-driven systems.
 
@@ -360,15 +379,15 @@ Tham khảo: Microservices.io — Transactional Outbox Pattern [33], PostgreSQL 
 
 ---
 
-## 3.5 Beta Access Controller Cluster — REST API 3-Tier
+## 3.6 Beta Access Controller Cluster — REST API 3-Tier
 
-### 3.5.1 Bối cảnh
+### 3.6.1 Bối cảnh
 
 Beta Access là feature core của giai đoạn beta — visitors gửi yêu cầu beta access, coordinator (PLATFORM_ADMIN) duyệt qua admin dashboard, hệ thống gửi invite email với 6-digit claim code. Cluster này gồm 5 file (Controller + Service + Entity + DTO + Repository) minh họa 3-tier layering pattern theo nguyên lý Domain-Driven Design [19]: Controller (REST API + authorization), Service (business logic + transaction boundary, ranh giới của domain aggregate), Entity (JPA persistence — mô hình hóa entity nghiệp vụ).
 
 Snippet sau là controller — minh họa cách `@PreAuthorize("hasRole('PLATFORM_ADMIN')")` guard admin endpoints + cách map DTO ⟷ Entity.
 
-### 3.5.2 Snippet — BetaAccessController (public + admin endpoints)
+### 3.6.2 Snippet — BetaAccessController (public + admin endpoints)
 
 ```java
 @RestController
@@ -426,7 +445,7 @@ public class BetaAccessController {
 
 Source: `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/beta/controller/BetaAccessController.java:62-180` (rút gọn — file gốc 299 dòng có thêm 3 endpoints: validate token, beta-signup, exchange-claim-code)
 
-### 3.5.3 Phân tích
+### 3.6.3 Phân tích
 
 3-tier layering pattern thể hiện rõ:
 
@@ -448,7 +467,7 @@ Source: `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/bet
 
 Anti-pattern tránh được: **God Service / Fat Controller**. Mọi business logic trong Service, mọi HTTP concern trong Controller, mọi persistence trong Entity — easy to test theo phương pháp Test-Driven Development [18] (mock Service trong ControllerTest, mock Repository trong ServiceTest); mỗi layer testable độc lập với một loại test fixture rõ ràng.
 
-### 3.5.4 Trade-offs
+### 3.6.4 Trade-offs
 
 Quyết định triển khai **3-tier REST API với phân tách public + authenticated + admin** thay vì single-tier API hoặc GraphQL:
 
@@ -464,15 +483,15 @@ Tham khảo: Domain-Driven Design — Evans [19], REST API Design Best Practices
 
 ---
 
-## 3.6 Frontend — Next.js App Router Page
+## 3.7 Frontend — Next.js App Router Page
 
-### 3.6.1 Bối cảnh
+### 3.7.1 Bối cảnh
 
 KiteHub frontend dùng Next.js 14 với App Router pattern (folder-based routing, server components by default). Mỗi page là một `page.tsx` file trong folder tương ứng URL path. Server components render tại server (giảm bundle size + tốt cho SEO), client components có `'use client'` directive khi cần interactivity (form state, event handlers).
 
 Snippet sau là page `request-beta-access` — landing page khi visitor click "Request Beta Access" trên homepage. Page là server component (render tại server), embed `BetaRequestForm` (client component) cho form submission.
 
-### 3.6.2 Snippet — request-beta-access page
+### 3.7.2 Snippet — request-beta-access page
 
 ```typescript
 /**
@@ -518,7 +537,7 @@ export default function RequestBetaAccessPage() {
 
 Source: `kitehub/kitehub-frontend/src/app/(auth)/request-beta-access/page.tsx:1-41`
 
-### 3.6.3 Phân tích
+### 3.7.3 Phân tích
 
 Snippet thể hiện các đặc trưng Next.js 14 và design pattern FE:
 
@@ -528,9 +547,9 @@ Snippet thể hiện các đặc trưng Next.js 14 và design pattern FE:
 4. **Separation of concerns** — Page chỉ chịu layout + static text; form state management + API call delegate cho `BetaRequestForm` (client component) — tách rõ static vs interactive parts.
 5. **Composition pattern** — Page compose nhiều primitive component (`KiteLogo`, `BetaRequestForm`, `Link`) thay vì monolithic; mỗi component có single responsibility.
 
-Khi user submit form, `BetaRequestForm` (client component) gọi `POST /api/v1/auth/request-beta-access` qua fetch API. Request đi qua Next.js → Nginx → AWS ALB → KiteHub Gateway → KiteHub Subscription service → BetaAccessController (snippet 3.5) — toàn bộ flow request được trình bày trong Section 4.2.
+Khi user submit form, `BetaRequestForm` (client component) gọi `POST /api/v1/auth/request-beta-access` qua fetch API. Request đi qua Next.js thì Nginx thì AWS ALB thì KiteHub Gateway thì KiteHub Subscription service thì BetaAccessController (snippet 3.5) — toàn bộ flow request được trình bày trong Section 4.2.
 
-### 3.6.4 Trade-offs
+### 3.7.4 Trade-offs
 
 Lựa chọn **Next.js App Router** thay vì **Pages Router** (Next.js convention cũ) hoặc **client-side rendering only** (CRA, Vite + React):
 
@@ -546,7 +565,7 @@ Tham khảo: Next.js Documentation — App Router [38], React Server Components 
 
 ---
 
-## 3.7 Tóm tắt Chương 3
+## 3.8 Tóm tắt Chương 3
 
 Chương 3 đã trình bày năm cụm code snippet đại diện cho kiến trúc KiteHub:
 

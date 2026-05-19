@@ -90,13 +90,13 @@ AI Quality Gate sử dụng 3-layer approach:
 
 **Layer 1 — Content safety (NSFW classifier):**
 - Mô hình: NSFW image classifier pretrained trên Hugging Face
-- Action: reject image nếu confidence score > 0.7 → trigger regenerate với prompt refined
+- Action: reject image nếu confidence score > 0.7 thì trigger regenerate với prompt refined
 - Coverage: ~99% NSFW content (theo benchmark internal trên 10.000 test images)
 
 **Layer 2 — Brand fit heuristic:**
 - Color extraction từ image dùng `node-vibrant` library
 - So sánh dominant colors với brand color tenant provided
-- Threshold: nếu deltaE > 30 (CIE Lab color space) → FAIL → regenerate
+- Threshold: nếu deltaE > 30 (CIE Lab color space) thì FAIL thì regenerate
 
 **Layer 3 — Education context classifier (giai đoạn mở rộng):**
 - Custom classifier fine-tuned trên dataset 5000 education-appropriate images (school logos, classroom photos, education icons)
@@ -109,10 +109,10 @@ AI Quality Gate sử dụng 3-layer approach:
 Nếu image FAIL bất kỳ layer nào, Worker retry với prompt refined:
 
 ```
-Original prompt FAIL → 
+Original prompt FAIL thì 
   Refined prompt: original + ", education-appropriate, professional, 
-  brand color #1E40AF dominant" → 
-    If still FAIL after 3 retries → 
+  brand color #1E40AF dominant" thì 
+    If still FAIL after 3 retries thì 
       Fallback: notify Owner "Tạo lại logo không thành công, 
       vui lòng thử với prompt khác hoặc liên hệ support"
 ```
@@ -127,7 +127,7 @@ KiteHub roadmap defer các AI features sau cho giai đoạn mở rộng (sau khi
 
 **Mô hình:** LLM API thương mại cost-efficient tier (Anthropic / OpenAI), với context tenant-specific (course catalog + FAQ + lịch học).
 
-**Architecture:** RAG (Retrieval-Augmented Generation) [15] dùng PostgreSQL pgvector extension cho vector search course content + FAQ embeddings. Khi học viên hỏi "Lớp Anh ngữ 5A1 học vào thứ mấy?", system retrieve relevant context từ tenant database → feed vào LLM → generate response Vietnamese natural.
+**Architecture:** RAG (Retrieval-Augmented Generation) [15] dùng PostgreSQL pgvector extension cho vector search course content + FAQ embeddings. Khi học viên hỏi "Lớp Anh ngữ 5A1 học vào thứ mấy?", system retrieve relevant context từ tenant database thì feed vào LLM thì generate response Vietnamese natural.
 
 **Use cases:** trả lời câu hỏi về lịch học, giáo viên, học phí; hướng dẫn quy trình đăng ký lớp mới; reminder ngày thi sắp tới; translate giữa tiếng Việt và tiếng Anh cho lớp ngoại ngữ.
 
@@ -139,7 +139,7 @@ KiteHub roadmap defer các AI features sau cho giai đoạn mở rộng (sau khi
 
 **Use cases:** multiple-choice exam auto-grade (English vocab, grammar quiz); short-answer math problems (with explanation generation); reading comprehension Q&A scoring.
 
-**Considerations:** bias risk (model có thể bias theo training data → cần human review sample); pedagogical correctness (auto-grade không thay thế teacher feedback chi tiết); cost ~$0.005-0.02 per question, scale tùy số lượng student × questions.
+**Considerations:** bias risk (model có thể bias theo training data thì cần human review sample); pedagogical correctness (auto-grade không thay thế teacher feedback chi tiết); cost ~$0.005-0.02 per question, scale tùy số lượng student × questions.
 
 ### 4.3 Personalized learning path (giai đoạn GA)
 
@@ -159,7 +159,7 @@ KiteHub áp dụng test-driven development (TDD) [18] và domain-driven design (
 
 3. **Continuous quality monitoring:** AI Quality Gate audit log hàng tuần để track false-positive rate + false-negative rate.
 
-4. **Cost monitoring:** mỗi AI API call log cost (estimated từ token count hoặc image count) → dashboard real-time alert nếu vượt budget threshold ($10/tháng cho Replicate, $20/tháng cho LLM API thương mại).
+4. **Cost monitoring:** mỗi AI API call log cost (estimated từ token count hoặc image count) thì dashboard real-time alert nếu vượt budget threshold ($10/tháng cho Replicate, $20/tháng cho LLM API thương mại).
 
 ## 6. Ethical considerations
 
@@ -174,7 +174,7 @@ Theo Luật Bảo vệ Dữ liệu Cá nhân Việt Nam 2023 [21] và Nghị đ�
 - **Right to opt-out** — học viên có thể từ chối AI features, system fallback sang manual workflow
 - **Data minimization** — chỉ collect dữ liệu thực sự cần thiết cho AI feature, không over-collect
 
-AI Branding trong giai đoạn đầu của KiteHub không xử lý dữ liệu cá nhân học viên (chỉ generate logo/banner cho trung tâm) → low PDPL risk. Các AI feature giai đoạn mở rộng (chatbot + auto-grading) sẽ cần consent flow + opt-out toggle trước khi launch.
+AI Branding trong giai đoạn đầu của KiteHub không xử lý dữ liệu cá nhân học viên (chỉ generate logo/banner cho trung tâm) thì low PDPL risk. Các AI feature giai đoạn mở rộng (chatbot + auto-grading) sẽ cần consent flow + opt-out toggle trước khi launch.
 
 ### 6.2 Bias mitigation
 

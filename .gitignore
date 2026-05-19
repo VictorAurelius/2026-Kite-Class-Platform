@@ -138,3 +138,6 @@ kiteclass/kiteclass-frontend/pnpm-lock.yaml
 documents/08-thesis/.venv/
 documents/08-thesis/__pycache__/
 documents/08-thesis/*.pyc
+
+# Wave 102.2 — Mermaid PNG cache (regenerated via kroki.io)
+documents/08-thesis/.mermaid-cache/
