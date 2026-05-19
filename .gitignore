@@ -133,3 +133,8 @@ kiteclass/kiteclass-frontend/pnpm-lock.yaml
 .claude/hooks/tests/coverage-html/
 .claude/hooks/tests/coverage.xml
 .vercel/
+
+# Wave 102 GAP-688 thesis V1 Python pipeline (local venv + build artifacts)
+documents/08-thesis/.venv/
+documents/08-thesis/__pycache__/
+documents/08-thesis/*.pyc
