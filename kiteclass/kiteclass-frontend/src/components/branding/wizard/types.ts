@@ -106,7 +106,25 @@ export type WizardEvent =
   | { type: 'SUBMIT_OK'; instanceId: number }
   | { type: 'SUBMIT_FAIL'; message: string }
   | { type: 'REGENERATE' }
+  | { type: 'USE_DEFAULTS' }
   | { type: 'RESET' };
+
+/**
+ * Default branding inputs applied khi user click "Sử dụng mặc định" (GAP-287).
+ *
+ * Per AC-ONBOARD-002: Solo teacher (FREE tier) cần escape ramp khỏi 6-step wizard.
+ * Defaults được chọn an toàn cho mọi segment (templateId universal) và tone trung tính.
+ * AI branding pipeline sẽ chạy với inputs này; user có thể quay lại Settings → Branding
+ * để re-run wizard với custom inputs sau.
+ */
+export const DEFAULT_BRAND_INPUTS: Required<Pick<BrandInputs, 'audiences' | 'tone' | 'templateId'>> & {
+  segment: Segment;
+} = {
+  segment: 'OTHER',
+  audiences: ['students'],
+  tone: 'professional',
+  templateId: 'default-template-v1',
+};
 
 export const ORDERED_STEPS: StepName[] = [
   'welcome',

@@ -2,6 +2,7 @@
 
 import type { ChangeEvent } from 'react';
 import type { WizardContext, WizardEvent } from '../types';
+import { UseDefaultsButton } from '../UseDefaultsButton';
 
 interface Props {
   context: WizardContext;
@@ -36,17 +37,20 @@ export function LogoStep({ context, send }: Props) {
         <div className="text-xs text-muted-foreground">SVG hoặc PNG, tối đa 2 MB</div>
       </label>
 
-      <div className="flex justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <button type="button" onClick={() => send({ type: 'BACK' })} className="text-sm text-muted-foreground">
           ← Quay lại
         </button>
-        <button
-          type="button"
-          onClick={() => send({ type: 'NEXT' })}
-          className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
-        >
-          Tiếp tục →
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <UseDefaultsButton send={send} />
+          <button
+            type="button"
+            onClick={() => send({ type: 'NEXT' })}
+            className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
+          >
+            Tiếp tục →
+          </button>
+        </div>
       </div>
     </div>
   );

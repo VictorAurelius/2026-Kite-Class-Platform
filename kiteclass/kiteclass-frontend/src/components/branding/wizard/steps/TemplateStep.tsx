@@ -1,6 +1,7 @@
 'use client';
 
 import type { WizardContext, WizardEvent, TemplateCandidate, Segment } from '../types';
+import { UseDefaultsButton } from '../UseDefaultsButton';
 
 interface Props {
   context: WizardContext;
@@ -93,18 +94,21 @@ export function TemplateStep({ context, send }: Props) {
         ))}
       </div>
 
-      <div className="flex justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <button type="button" onClick={() => send({ type: 'BACK' })} className="text-sm text-muted-foreground">
           ← Quay lại
         </button>
-        <button
-          type="button"
-          disabled={!selected}
-          onClick={() => send({ type: 'NEXT' })}
-          className="rounded-md bg-primary px-4 py-2 text-primary-foreground disabled:opacity-40"
-        >
-          Xem preview →
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <UseDefaultsButton send={send} />
+          <button
+            type="button"
+            disabled={!selected}
+            onClick={() => send({ type: 'NEXT' })}
+            className="rounded-md bg-primary px-4 py-2 text-primary-foreground disabled:opacity-40"
+          >
+            Xem preview →
+          </button>
+        </div>
       </div>
     </div>
   );

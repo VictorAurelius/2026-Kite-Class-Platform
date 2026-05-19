@@ -14,7 +14,11 @@ import type {
   WizardEvent,
   WizardState,
 } from './types';
-import { ORDERED_STEPS, REGENERATE_LIMIT_BY_TIER } from './types';
+import {
+  DEFAULT_BRAND_INPUTS,
+  ORDERED_STEPS,
+  REGENERATE_LIMIT_BY_TIER,
+} from './types';
 
 export function initialState(
   tier: WizardContext['tier'],
@@ -123,6 +127,8 @@ function handleStepEvent(state: WizardState, event: WizardEvent): WizardState {
       return withInputs(state, { [event.field]: event.value as never });
     case 'SUBMIT':
       return { name: 'submitting', context: { ...ctx, errorMessage: undefined } };
+    case 'USE_DEFAULTS':
+      return applyDefaultsAndSubmit(ctx);
     case 'REGENERATE':
       if (ctx.regenerateCount >= ctx.regenerateLimit) return state;
       return {
@@ -181,4 +187,39 @@ function withInputs(state: WizardState, patch: Partial<BrandInputs>): WizardStat
     name: state.name,
     context: { ...state.context, inputs: { ...state.context.inputs, ...patch } },
   } as WizardState;
+}
+
+/**
+ * Fills any unset required inputs với default brand values + transitions to 'submitting'.
+ *
+ * Per GAP-287 (AC-ONBOARD-002): "Sử dụng mặc định" escape ramp cho solo teacher persona.
+ * User-provided fields preserved (vd nếu đã chọn segment K12 + audience parents thì giữ);
+ * chỉ unset fields được fill bằng defaults. Pipeline AI sau đó nhận inputs hoàn chỉnh
+ * và chạy như Triển khai bình thường.
+ *
+ * Used by:
+ *   - LogoStep "Sử dụng mặc định" button (skip from step 2)
+ *   - AudienceStep / ToneStep / TemplateStep equivalent buttons (skip from step 3-5)
+ */
+function applyDefaultsAndSubmit(ctx: WizardContext): WizardState {
+  // Spread user inputs first (preserve colorHint, customPrompt, brandKeywords, ...),
+  // then overwrite required fields với defaults when unset.
+  const merged: BrandInputs = {
+    ...ctx.inputs,
+    segment: ctx.inputs.segment ?? DEFAULT_BRAND_INPUTS.segment,
+    audiences:
+      ctx.inputs.audiences.length > 0
+        ? ctx.inputs.audiences
+        : DEFAULT_BRAND_INPUTS.audiences,
+    tone: ctx.inputs.tone ?? DEFAULT_BRAND_INPUTS.tone,
+    templateId: ctx.inputs.templateId ?? DEFAULT_BRAND_INPUTS.templateId,
+  };
+  return {
+    name: 'submitting',
+    context: {
+      ...ctx,
+      inputs: merged,
+      errorMessage: undefined,
+    },
+  };
 }
