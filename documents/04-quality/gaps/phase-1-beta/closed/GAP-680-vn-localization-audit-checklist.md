@@ -1,11 +1,11 @@
 # GAP-680: VN-localization audit checklist pre-merge (Wave 100 cross-bucket META)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-19
 **Priority:** 🟠 P1
 **Domain:** Meta
 **Detected:** 2026-05-19
-**Related PRs:** (none yet)
-**Related Docs:** `documents/03-planning/roadmap/release-1.5-thesis-scope.md`, `.claude/rules/dev-readable-doc-language.md`, `.claude/rules/user-manual-content-standard.md` §2 row 7-8
+**Related PRs:** Wave 100 Bucket D (this PR)
+**Related Docs:** `documents/03-planning/roadmap/release-1.5-thesis-scope.md`, `.claude/rules/dev-readable-doc-language.md`, `.claude/rules/user-manual-content-standard.md` §2 row 7-8, `.claude/rules/vn-localization-audit-checklist.md` v1.0.0 (SHIPPED)
 
 ## Current State (verified 2026-05-19)
 
@@ -96,11 +96,11 @@ Plus enforcement:
 
 ## Acceptance Criteria
 
-- [ ] Rule `.claude/rules/vn-localization-audit-checklist.md` v1.0.0 created với 4 sections + enforcement section + worked self-test trên 4 Wave 100 buckets
-- [ ] `output-review-mandate.md` §3 matrix thêm row "VN-localization audit checklist (cross-bucket)" reference new rule
-- [ ] `.claude/rules/_meta/rules-index.csv` thêm row mới với correct lifecycle_status=active
-- [ ] Reviewer-checklist active cho Wave 100 4 buckets pre-merge (checklist embedded vào Wave 100 plan PR §1 Brainstorm Q2 + §3 per-bucket AC section)
-- [ ] Memory entry `feedback_vn_localization_audit_checklist.md` (optional, defer per premature-rule guard nếu reviewer-checklist + self-test đủ)
+- [x] Rule `.claude/rules/vn-localization-audit-checklist.md` v1.0.0 created với 4 sections + enforcement section + worked self-test trên 4 Wave 100 buckets (§5 worked example 16/16 PASS)
+- [x] `output-review-mandate.md` §3 matrix thêm row "VN-localization audit checklist (cross-bucket)" reference new rule (v1.13.0 → v1.14.0 paired same PR)
+- [x] `.claude/rules/rules-index.csv` thêm row mới với correct lifecycle_status=active (row 83 paired same PR)
+- [x] Reviewer-checklist active cho Wave 100 4 buckets pre-merge (rule §4.1 reviewer-checklist + §4.2 PR template row embedded; sister rules cross-reference complete)
+- [ ] Memory entry `feedback_vn_localization_audit_checklist.md` (optional, defer per `incident-to-rule-pipeline.md` §3.1 premature-rule guard ≥7 ngày — reviewer-checklist + worked self-test đủ cho v1.0.0; revisit khi recurrence-count ≥2)
 
 ## Related
 
@@ -117,4 +117,5 @@ Plus enforcement:
 
 ## Log
 
+- **2026-05-19 (DONE)** — Wave 100 Bucket D shipped rule body `.claude/rules/vn-localization-audit-checklist.md` v1.0.0 (4 sections: VND format / Vietnamese label + persona tone matrix / VN sample data / VN cultural awareness Zalo + niên khóa + GVCN + Tết) + §4 enforcement (reviewer-checklist + PR template row + CI detector HONEST defer per §3.1) + §5 worked self-test 4 Wave 100 buckets × 4 sections = 16/16 applicable PASS. Paired same-PR: `output-review-mandate.md` §3 matrix row "VN-localization audit checklist (cross-bucket)" v1.13.0 → v1.14.0 + `rules-index.csv` row 83 (lifecycle_status=active, path_trigger 5 globs cover tenant-facing scope). 4/5 AC checked; Memory entry deferred per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions (heuristic FP risk inherently high cho English-narrative-in-VN-context detection; revisit khi recurrence-count ≥2 OR proven NLP classifier available). Pre-handoff verify per `pre-handoff-self-test-completeness.md` §2 — N/A (rule-only ship, no user-facing flow). DONE flip per `gap-done-discipline.md` §2 (AC checked + no banned phrases + 1 deferred AC documented với follow-up trigger). git mv to phase-1-beta/closed/ per `gap-folder-organization.md` v2.0.0.
 - **2026-05-19** — Initial write-up. Step 0 canonical-status lookup completed (Max GAP-679 → GAP-680; ROADMAP §Dropped no match; duplicate scan 2 hits = GAP-423/424 closed narrow scope). State-check §2.5 completed (4 paths grep'd, checklist genuinely new). Filed per 3-audit consensus Wave 100 (persona + failure-mode + benchmark 2026-05-19). Defer rule body write to Wave 100 plan PR draft session để paired same-PR with reviewer-checklist embed.

@@ -1,8 +1,8 @@
 # Bibliography — IEEE Format
 
 **Citation style:** IEEE per [CITATION-STYLE.md](./CITATION-STYLE.md). In-text format `[N]`, `[N, M]`, `[N]–[M]`.
-**Total entries:** 30 (initial seed per GAP-647). Will grow as thesis chapters write.
-**Last updated:** 2026-05-18.
+**Total entries:** 38 (initial 30 seed per GAP-647 + 8 added Wave 100 Bucket D for Chapter 1 Part 1).
+**Last updated:** 2026-05-19.
 
 Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N` section + increment N từ cuối cùng.
 
@@ -25,6 +25,16 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 [5] UIT, "Phát triển hệ thống phân tán microservices cho ứng dụng chia sẻ video," Khóa luận tốt nghiệp, 2025. [Online]. Available: https://nc.uit.edu.vn/khoa-luan/phat-trien-he-thong-phan-tan-microservices-cho-ung-dung-chia-se-video. [Accessed 2026-05-18].
 
 [6] UIT, "Danh sách khóa luận tốt nghiệp HTTT — UIT 2020-2025," Department Catalog, 2025. [Online]. Available: https://httt.uit.edu.vn/en_US/nghien-cuu-khoa-hoc/danh-sach-khoa-luan-tot-nghiep-dai-hoc/. [Accessed 2026-05-18].
+
+### Additional competitor analysis sources (Wave 100 Bucket D)
+
+[31] Mona Software, "Mona eLMS — Phần mềm quản lý trung tâm ngoại ngữ + tin học," Product Page, 2024. [Online]. Available: https://mona.media/phan-mem-quan-ly-trung-tam-ngoai-ngu/. [Accessed 2026-05-19].
+
+[32] DotB Vietnam, "DotB EduSoft — Phần mềm quản lý trường học + trung tâm giáo dục," Product Page, 2024. [Online]. Available: https://dotb.vn/. [Accessed 2026-05-19].
+
+[33] Bộ Giáo dục và Đào tạo, "Thông tư 29/2024/TT-BGDĐT về Dạy thêm Học thêm," 2024. [Online]. Available: https://thuvienphapluat.vn/van-ban/Giao-duc/Thong-tu-29-2024-TT-BGDDT. [Accessed 2026-05-19].
+
+[34] VECITA (Vietnam E-commerce and Digital Economy Agency), "Báo cáo Kinh tế Số Việt Nam 2024 — Chương EdTech," 2024. [Online]. Available: https://vecita.gov.vn/. [Accessed 2026-05-19].
 
 ---
 
@@ -59,6 +69,16 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 [16] R. Rombach, A. Blattmann, D. Lorenz, P. Esser, and B. Ommer, "High-Resolution Image Synthesis with Latent Diffusion Models," in *Proc. IEEE/CVF Conf. on Computer Vision and Pattern Recognition (CVPR)*, pp. 10684-10695, 2022. [Online]. Available: https://arxiv.org/abs/2112.10752.
 
 [17] H. Liu, C. Li, Q. Wu, and Y. J. Lee, "Visual Instruction Tuning (LLaVA)," in *NeurIPS*, vol. 36, 2023. [Online]. Available: https://arxiv.org/abs/2304.08485.
+
+### Additional AI integration sources (Wave 100 Bucket D)
+
+[35] Anthropic, "Claude API Documentation — Prompt Engineering Best Practices," 2024. [Online]. Available: https://docs.anthropic.com/claude/docs/prompt-engineering. [Accessed 2026-05-19].
+
+[36] OpenAI, "GPT-4 Technical Report," arXiv preprint, 2023. [Online]. Available: https://arxiv.org/abs/2303.08774. [Accessed 2026-05-19].
+
+[37] Hugging Face, "Inference API Documentation — NSFW Image Classifier Model Card," 2024. [Online]. Available: https://huggingface.co/Falconsai/nsfw_image_detection. [Accessed 2026-05-19].
+
+[38] Replicate Inc., "Stable Diffusion XL API Documentation," 2024. [Online]. Available: https://replicate.com/stability-ai/sdxl. [Accessed 2026-05-19].
 
 ### Development methodology — TDD + DDD + Continuous Improvement
 
@@ -124,7 +144,7 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 
 ## Notes for future updates
 
-- Khi thêm ref mới: append to matching `## Chapter N` + increment global `[N]` từ cuối cùng (hiện tại 30, next = 31)
+- Khi thêm ref mới: append to matching `## Chapter N` + increment global `[N]` từ cuối cùng (hiện tại 38, next = 39)
 - Mọi ref MUST có ≥3 trong 5 metadata fields per CITATION-STYLE.md §"Mandatory metadata"
 - Verify URL accessed date update mỗi khi recheck
 - Re-balance distribution: target ~5-7 refs per chapter (avoid Chapter 1+2 quá nặng vs Chapter 5-7 quá nhẹ)
