@@ -8,7 +8,29 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-19 — Wave 100.7 Phase 2 SHIPPED + Wave 100 PARTIAL D+F+META + Wave 100.5 SHIPPED + Wave 99B closure)
+## 🎯 Current Status Snapshot (2026-05-19 — Wave 100.7 Phase 3 PARTIAL SHIPPED + Phase 2 SHIPPED + Wave 100 PARTIAL D+F+META + Wave 100.5 SHIPPED + Wave 99B closure)
+
+### 🎉 Wave 100.7 Phase 3a + 3b PARTIAL SHIPPED 2026-05-19 — bibliography master consolidation + DOCX pipeline scoping
+
+Phase 3 of 5-phase orchestration plan (Wave 100.7) — user split scope per `outside-in-coverage-trigger.md` §4 (Wave 100 audits cited; sub-wave exempt). Phase 3a fully shipped; Phase 3b scoping-only (Step 1-3 GAP-646 implementation defer focused session).
+
+| # | Track | Scope | PR | Status |
+|---|---|---|---|---|
+| 1 | 3a Bibliography | IEEE format audit 43/43 PASS + cross-ref audit (17 cited / 24 orphan / 8 collision in Ch.2) + notes section update | #1592 | ✅ MERGED `c3fad990` |
+| 2 | 3b DOCX scoping | docx-pipeline-scoping.md (Apache POI XWPF recommended over Pandoc/LibreOffice) + scaffold script placeholder + GAP-646 → PARTIAL 20% | #1593 | ✅ MERGED `01a0667b` |
+| 3 | Closeout sync | GAP-683 filed (Ch.2 numbering collision + PDPL inconsistency + orphan retro-cite) + ROADMAP + wave-history sync | this PR | ⏳ in-flight |
+
+**Phase 3a defense-risk findings (filed GAP-683 P0 follow-up):**
+- Chapter 2 LOCAL `[1]-[8]` section conflicts global `[1]-[43]` bibliography
+- `[40]` semantically duplicates `[21]` (PDPL 49/2023/QH15) — needs merge
+- Chapter 2 `[5]` PDPL số sai (`91/2025/QH15` ≠ canonical `49/2023/QH15`)
+- 24/43 orphan refs (56%) — Wave 100 + Wave 100.7 Phase 2 additions chưa retro-cite
+
+**Phase 3b DOCX path locked:** Apache POI XWPF Edit-Fill pipeline. Rationale = zero setup (Java + Maven already on-stack) + existing skill foundation (Wave 5 teacher-contract Create pipeline + ADR-019 Facade+Strategy) + VN typography fidelity (fine-grained CTPageSz + CTPageMar + CTFonts control). Implementation roadmap ~6-8h focused session: Sub-task A template authoring 2-3h + B `ThesisReportBuilder` extends `Builder` 2h + C assembly script 1-2h + D skill docs 1h.
+
+**Phase progression next sessions:** Phase 4 (coordinator review V1 + ship V1 PR + GAP-650 DONE — natural venue for GAP-683 chapter polish sweep) → Phase 5 defer Wave 110+ (defense Q&A + slide deck GAP-653).
+
+---
 
 ### 🎉 Wave 100.7 Phase 2 SHIPPED 2026-05-19 — Thesis V1 content draft 4 chapters (3 parallel bg-agents)
 
