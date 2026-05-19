@@ -3,8 +3,9 @@
 **Citation style:** IEEE per [CITATION-STYLE.md](./CITATION-STYLE.md). In-text format `[N]`, `[N, M]`, `[N]–[M]`.
 **Total entries:** 43 (initial 30 seed per GAP-647 + 8 added Wave 100 Bucket D for Chapter 1 Part 1 + 5 added Wave 100.7 Phase 2 Agent 2a for Chapter 1 Part 3 VN law + methodology).
 **Last updated:** 2026-05-19.
+**Last cross-ref audit:** 2026-05-19 Wave 100.7 Phase 3a — see [cross-ref-audit-2026-05-19.md](./cross-ref-audit-2026-05-19.md).
 
-Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N` section + increment N từ cuối cùng.
+Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N` section + increment N từ cuối cùng. Hiện tại `max(N) = 43`, next = **44**.
 
 ---
 
@@ -158,15 +159,64 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 
 ## Notes for future updates
 
-- Khi thêm ref mới: append to matching `## Chapter N` + increment global `[N]` từ cuối cùng (hiện tại 43, next = 44)
-- Mọi ref MUST có ≥3 trong 5 metadata fields per CITATION-STYLE.md §"Mandatory metadata"
+### Current state (last reviewed 2026-05-19, Wave 100.7 Phase 3a)
+
+- **Total:** 43 IEEE-formatted refs, chapter-grouped (Ch.1 / Ch.2 / Ch.3 / Ch.4-7)
+- **Cited inline:** 17 unique refs (39%) — toàn bộ tập trung ở Chương 1 (3 parts)
+- **Orphan refs (chưa được chương nào cite):** 24 refs (56%) — phần lớn là refs Wave 100 D + Wave 100.7 Phase 2 thêm muộn (Ch1) + refs chờ Ch2-4 hoàn thành content
+- **Distribution per chapter target:**
+  - Chương 1 — Introduction: refs [1]-[6], [31]-[34] (10 refs) + cross-chapter refs từ Ch.2 reuse
+  - Chương 2 — Theoretical: refs [7]-[20], [35]-[38] (18 refs)
+  - Chương 3 — Requirements (VN law + methodology): refs [21]-[25], [39]-[41] (8 refs)
+  - Chương 4 — System Design: refs [26]-[30], [42]-[43] (7 refs)
+  - Chương 5-7 — Implementation/Testing/Conclusion: (chưa thêm refs)
+
+### Numbering scheme rationale
+
+**Chapter-grouped IEEE numbering (giữ nguyên):**
+- Mỗi chương có 1 section trong bibliography với refs theo waves shipping (Wave 97 seed [1]-[30], Wave 100 D append [31]-[38], Wave 100.7 Phase 2 append [39]-[43])
+- Refs [N] interleave giữa các chương (vd Chương 1 dùng [1]-[6] + [31]-[34]; Chương 2 dùng [7]-[20] + [35]-[38]) — IEEE convention cho phép numbering toàn cục NHƯNG nhóm theo chapter section thì OK miễn là global sequential
+- **KHÔNG flatten-to-sequential** — sẽ phá vỡ ref numbers đã cite inline trong chapter files (Wave 97 + Wave 100 + Wave 100.7 ships). Chi phí re-cite cao + risk break citations đã có.
+
+### Append-new-refs convention
+
+Khi cần thêm ref mới cho chương:
+
+1. Identify chương target (1/2/3/4-7).
+2. `next_N = max(existing_refs) + 1` — kiểm tra số cuối cùng đang dùng (hiện tại = 43, next = **44**).
+3. Append entry vào cuối section chapter tương ứng (vd: thêm cho Ch.2 → append vào `## Chapter 2 — Theoretical Background` cuối section).
+4. Format IEEE per `CITATION-STYLE.md` — verify ≥3 trong 5 mandatory metadata fields.
+5. Cite inline `[N]` trong chapter source markdown ngay khi append (tránh tạo orphan ref mới).
+
+### Trạng thái bất nhất Chapter 2 (P0 fix trước defense)
+
+- **Chapter 2 (`chapter-2-system-architecture.md` line 683-699)** có 1 section `## Tài liệu tham khảo` riêng với 8 entries local `[1]-[8]` **TÁCH RỜI** khỏi global bibliography này.
+- Hệ quả: examiner nhìn `[1]` trong Chương 2 (= AWS SaaS Lens) vs `[1]` global (= EasyEdu) → conflict.
+- **Action P0:** consolidate về 1 hệ thống — Option C khuyên (xóa local section Chapter 2, dùng global bibliography này thống nhất). Xem [cross-ref-audit-2026-05-19.md §5](./cross-ref-audit-2026-05-19.md) cho mapping chi tiết.
+
+### Trạng thái duplicate entry
+
+- **[40] ≈ [21]** — cùng văn bản "Luật BVDLCN Số 49/2023/QH15" (PDPL 2023), format khác nhẹ. Action: dedupe hoặc clarify [40] role (vd: implementation guide trên PDPL) → P1 trước revision V2.
+
+### Quality gates trước defense
+
+- [ ] Resolve Chapter 2 local numbering collision (Option C khuyên)
+- [ ] Cite retroactively orphan refs Wave 100 D ([31]-[38]) và Phase 2 ([40]-[43])
+- [ ] Verify số hiệu pháp lý PDPL chính xác (49/2023/QH15 vs 91/2025/QH15 — sync về một con số)
+- [ ] Dedupe [40] hoặc clarify role distinct from [21]
+- [ ] Chapter 3-4 finalize content + cite refs đã reserved ([26]-[30], [42]-[43], etc.)
+
+### General principles
+
+- Mọi ref MUST có ≥3 trong 5 metadata fields per [CITATION-STYLE.md](./CITATION-STYLE.md) §"Mandatory metadata"
 - Verify URL accessed date update mỗi khi recheck
-- Re-balance distribution: target ~5-7 refs per chapter (avoid Chapter 1+2 quá nặng vs Chapter 5-7 quá nhẹ)
-- Sample VN-friendly: ưu tiên cite VN sources cho Vietnamese-specific topics (PDPL / edu SaaS market) + international academic cho theory
+- Sample VN-friendly: ưu tiên cite VN sources cho Vietnamese-specific topics (PDPL / VN edu SaaS market) + international academic cho theory
+- Re-balance distribution: target ~5-7 refs per chapter (hiện Ch.1 = 10 refs, Ch.2 = 18 refs đã hơi dày → check khi finalize Ch.5-7 để không thiếu)
 
 ## Related
 
 - [CITATION-STYLE.md](./CITATION-STYLE.md) — IEEE format rules
+- [cross-ref-audit-2026-05-19.md](./cross-ref-audit-2026-05-19.md) — Wave 100.7 Phase 3a audit findings (orphans / collisions / per-chapter ref count)
 - [GAP-647](../../04-quality/gaps/phase-1-beta/GAP-647-thesis-bibliography-ieee.md) — parent gap
 - [chapter-mapping.md](../chapter-mapping.md) — chapter source mapping
 - [GAP-650](../../04-quality/gaps/phase-1-beta/GAP-650-thesis-chapter-1-literature.md) — Chapter 1 literature consumer
