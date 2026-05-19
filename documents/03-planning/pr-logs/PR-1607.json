@@ -1,0 +1,40 @@
+{
+  "pr": 1607,
+  "title": "feat(wave-101-bucket-b): GAP-562+562b kitehub-branding @PreAuthorize close-out (PARTIAL 90/85\u2192100)",
+  "branch": "worktree-agent-a69d63f5814aa815f",
+  "created_at": null,
+  "merged_at": "2026-05-19T16:00:30Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": false,
+    "audits_required": [
+      "api-contract-audit",
+      "security-audit"
+    ],
+    "audits_run": [
+      "security-audit"
+    ],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-19T16:00:35.972381",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 14,
+        "java_files": 5,
+        "test_files": 5,
+        "business_docs": false,
+        "missing_audits": [
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "1/4",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-15016"
+  }
+}

@@ -1,12 +1,13 @@
 ---
 title: Wave 101 — Product Demo-Blockers cluster (4 buckets)
-status: draft
+status: complete
 created: 2026-05-19
 updated: 2026-05-19
+closed_at: 2026-05-19
 phase: phase-1-beta
 waves: [101]
-gaps: [GAP-518, GAP-562, GAP-562b, GAP-287, GAP-538]
-audits: [2026-05-18-thesis-persona-demo-audit]
+gaps: [GAP-518, GAP-562, GAP-562b, GAP-287, GAP-538, GAP-684, GAP-685, GAP-686, GAP-687]
+audits: [2026-05-18-thesis-persona-demo-audit, 2026-05-19-thesis-v1-draft-docx-audit]
 audience: dev
 ---
 
@@ -205,9 +206,34 @@ Per `gap-done-discipline.md` + `wave-closure-scope-completeness.md` + `feedback_
 
 ---
 
+## 7.1 Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` §3)
+
+| # | Plan §3 Scope item | Verdict | PR / Follow-up |
+|---|---|---|---|
+| 1 | Bucket A — GAP-518 admin role close-out 95→100 | 🟡 PARTIAL 97 | PR #1603 — code/test shipped; live walk blocked GAP-612 AWS restore → GAP-684 OPEN follow-up |
+| 2 | Bucket B — GAP-562 + GAP-562b close-out 90/85→100 | ✅ DONE 100/100 | PR #1607 (initial #1607 + 2 follow-up commits a967249f + 7c28c2f3 fixing 5 @WebMvcTest tests broken by SecurityConfig) — kitehub-branding spring-security + 4 controllers @PreAuthorize + 7-case IT |
+| 3 | Bucket C — GAP-287 OPEN 0→100 | ✅ DONE 100 | PR #1605 — "Sử dụng mặc định" button + 10 unit tests + 3 Playwright; clean FE-only close-out |
+| 4 | Bucket D — GAP-538 close-out 90→100 | 🟡 PARTIAL 95 | PR #1604 — E2E spec + VN sample verified; live walkthrough blocked GAP-612 → no new follow-up gap (existing GAP-612 dependency) |
+| 5 | Wave 101 post-wave audit suite ≤3 days | 🔵 OPEN | GAP-685 filed this closure PR (deadline 2026-05-22) |
+| 6 | 3-layer business doc sync kitehub-branding | 🔵 OPEN | GAP-686 filed this closure PR (post-merge hook flagged) |
+| 7 | Thesis V1 draft DOCX audit follow-ups | 🔵 OPEN | GAP-687 filed this closure PR (audit 60/100 baseline) — covers 3 phases (immediate scrub + production V1 format + content evidence) |
+
+**Wave 101 outcome:** 4/4 buckets shipped via 5 PRs (#1603 A / #1604 D / #1605 C / #1606 thesis docx side-quest / #1607 B). 2 DONE 100% + 2 PARTIAL (gated GAP-612 AWS restore). 3 follow-up gaps filed (GAP-685/686/687) tracking deferred work per `wave-closure-scope-completeness.md` mandate.
+
+**Side artifacts:**
+- `documents/08-thesis/thesis-v1-draft.docx` shipped PR #1606 (user-requested pandoc convert; 60/100 D+ self-audit)
+- `documents/04-quality/audits/persona-review/2026-05-19-thesis-v1-draft-docx-audit.md` (this closure PR)
+- 3 follow-up gap files GAP-685/686/687 (this closure PR)
+- Worktree prune: 4 husks + 3 merged branches pruned via `scripts/prune-merged-worktrees.sh`
+
+---
+
 ## 8. Log
 
 - **2026-05-19** (draft): Plan created. User direction "Ship 4-bucket plan now, accept PARTIAL exits" sau 2 AskUserQuestion (direction + strategy). 4-bucket scope subset from `release-1.5-thesis-scope.md` §2 Track D Product demo-blockers. PARTIAL exit ramp accepted cho A/B/D nếu AWS GAP-612 còn block live walk. Bucket C (GAP-287 wizard) FE-only clean close-out expected 100%.
+- **2026-05-19** (in-progress): 4 bg-agents spawned worktree-isolated. 3 of 4 initial spawns hit transient API 529; all recovered via retry. PR #1603 (A) + #1604 (D) + #1605 (C) + #1607 (B) created.
+- **2026-05-19** (in-progress): PR #1607 fix iteration — SecurityConfig broke 5 pre-existing @WebMvcTest classes (11 failures total); fix added `@AutoConfigureMockMvc(addFilters = false)` to ContentGeneration/TemplateGallery/LifecycleEvents/BrandingWizard test classes (kept BrandingRoleAuthorizationTest filters-on by design). 28/28 PASS local; CI 31/31 PASS.
+- **2026-05-19** (complete): All 5 PRs merged (#1602 plan + #1603 A + #1604 D + #1605 C + #1606 thesis docx + #1607 B). Wave-history.jsonl appended. Worktrees pruned. 3 follow-up gaps GAP-685/686/687 filed. Closure PR (this).
 
 ---
 
