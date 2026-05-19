@@ -529,6 +529,27 @@ jobs:
           # WARN mode initially; target HARD STOP 2026-06-19 (30-day grace).
           bash scripts/check-3-layer-completeness.sh --warn
 
+  mermaid-sequence-state-br:
+    name: Mermaid `<br/>` in sequence/state diagrams (recurrence #6+#7 prevention)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (bad sequence + bad state + good flowchart fixtures)
+        run: bash scripts/check-mermaid-sequence-state-br.sh --self-test
+
+      - name: Detect `<br/>` in sequence/state diagrams (WARN mode 7-day grace)
+        run: |
+          # Per `diagram-format-selection.md` v1.0.2 §4 HARD RULE:
+          # Mermaid sequence/state parsers unreliable với HTML breaks.
+          # flowchart blocks DO support <br/> (not flagged).
+          # Triggered by Wave 99B recurrence #6+#7 (multi-tenant §3 + kitehub admin §3.3).
+          bash scripts/check-mermaid-sequence-state-br.sh --warn
+
   cross-layer-contract-drift:
     name: Cross-layer contract drift (controller vs api-contract.md)
     runs-on: ubuntu-latest

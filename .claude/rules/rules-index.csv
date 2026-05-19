@@ -78,4 +78,4 @@ docs-archival-cadence,MANDATORY,1.0.0,2026-05-18,2026-05-18,docs-archival-cadenc
 docs-folder-volume-budget,MANDATORY,1.0.0,2026-05-18,2026-05-18,docs-folder-volume-budget.md,"documents/**",active,,
 docs-filename-prefix-convention,MANDATORY,1.0.0,2026-05-18,2026-05-18,docs-filename-prefix-convention.md,"documents/**,.claude/rules/**,.claude/skills/**",active,,
 gap-folder-organization,MANDATORY,1.0.0,2026-05-18,2026-05-18,gap-folder-organization.md,"documents/04-quality/gaps/**,documents/04-quality/gaps/gap-status.csv",active,,
-diagram-format-selection,MANDATORY,1.0.1,2026-05-18,2026-05-19,diagram-format-selection.md,"documents/**/*.md,.claude/rules/**/*.md,.claude/skills/**/*.md,**/README.md",active,,
+diagram-format-selection,MANDATORY,1.0.2,2026-05-18,2026-05-19,diagram-format-selection.md,"documents/**/*.md,.claude/rules/**/*.md,.claude/skills/**/*.md,**/README.md",active,,

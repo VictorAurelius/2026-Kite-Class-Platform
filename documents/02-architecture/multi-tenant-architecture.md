@@ -105,10 +105,10 @@ Trong mọi state, **tenant_id vẫn tồn tại** trong DB (cho audit log + rec
 sequenceDiagram
     autonumber
     participant User
-    participant FE as Frontend<br/>(Next.js)
+    participant FE as Frontend
     participant Gateway as kite-gateway
-    participant Service as kitehub-subscription<br/>(hoặc service khác)
-    participant DB as PostgreSQL<br/>(RLS enabled)
+    participant Service as kitehub-subscription
+    participant DB as PostgreSQL
 
     User->>FE: Submit login form (email + password)
     FE->>Gateway: POST /api/auth/login
@@ -116,18 +116,18 @@ sequenceDiagram
     Service->>DB: SELECT * FROM users WHERE email = ?
     Note over Service,DB: Login flow chưa có tenant context; users table có RLS bypass cho lookup theo email
     DB-->>Service: User row (chứa tenant_id)
-    Service->>Service: Verify password + generate JWT<br/>claims = {sub, tenantId, role, exp}
+    Service->>Service: Verify password + generate JWT — claims sub tenantId role exp
     Service-->>FE: JWT trong response body
     FE->>FE: Lưu JWT (httpOnly cookie hoặc sessionStorage facade per Wave 85)
 
     Note over User,DB: Request tiếp theo (có tenant context)
 
     User->>FE: Click "Xem danh sách lớp"
-    FE->>Gateway: GET /api/classes<br/>Authorization: Bearer <JWT>
-    Gateway->>Gateway: Verify JWT signature<br/>Extract claim "tenantId"
-    Gateway->>Service: GET /api/classes<br/>X-Tenant-Id: <tenant-uuid><br/>X-User-Id: <user-uuid>
+    FE->>Gateway: GET /api/classes — Authorization Bearer JWT
+    Gateway->>Gateway: Verify JWT signature — Extract claim tenantId
+    Gateway->>Service: GET /api/classes — X-Tenant-Id + X-User-Id headers
     Service->>Service: @PreAuthorize check role
-    Service->>DB: BEGIN TRANSACTION<br/>SET LOCAL app.current_tenant_id = '<tenant-uuid>'
+    Service->>DB: BEGIN TRANSACTION — SET LOCAL app.current_tenant_id
     Service->>DB: SELECT * FROM classes
     Note over DB: RLS policy filter — WHERE tenant_id = current_setting app.current_tenant_id
     DB-->>Service: Chỉ classes thuộc tenant này
