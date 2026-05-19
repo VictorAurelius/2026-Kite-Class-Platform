@@ -330,6 +330,8 @@ Trước khi chọn shared DB + RLS, project đã xem xét 4 patterns. Bảng so
 
 **Re-evaluate trigger:** chuyển sang hybrid (per-tenant DB cho enterprise tenant) khi có khách hàng K-12 enterprise (Phase 3 gated per [`documents/03-planning/roadmap/release-1-plan-2026.md`](../03-planning/roadmap/release-1-plan-2026.md)) yêu cầu strong physical isolation + SLA dedicated.
 
+> **→ Full deep-dive:** xem standalone ADR-style report [`multi-tenant-isolation-patterns.md`](multi-tenant-isolation-patterns.md) (Wave 100.5 GAP-682) — 6 patterns evaluated × 6 axes + comparative matrix + decision narrative + re-evaluate triggers + migration paths + implementation lessons learned (GAP-466 / GAP-538 / GAP-664) + compliance risk register + IEEE references. Section 7 này là summary; full thesis Chapter 2 source material trong report kia.
+
 ---
 
 ## Section 8 — K-12 specific isolation (Phase 3 gated)
