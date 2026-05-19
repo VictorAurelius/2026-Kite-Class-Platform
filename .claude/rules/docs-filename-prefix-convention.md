@@ -244,9 +244,15 @@ Pre-merge PR review cho PR touching `documents/**`, `.claude/rules/**`, `.claude
 - [ ] Tier 5 (plain slug): lowercase-kebab-case, ≥2 word descriptive?
 - [ ] Audience frontmatter set (recommended cho new files)?
 
-### 7.2 CI grep detector (deferred ≥7 ngày per `incident-to-rule-pipeline.md` premature-rule guard)
+### 7.2 CI grep detector (HONEST DEFER — heuristic complexity high, FP risk >5%)
 
-Future enhancement — heuristic regex tìm common anti-patterns:
+Per Wave 99C META-META GAP-675 audit (2026-05-19): detector HONEST-deferred per `incident-to-rule-pipeline.md` §3 tightened legitimate-deferral conditions, not boilerplate copy-paste:
+- **Detector complexity:** 5-tier classification logic (Tier 1 ID format + Tier 2 ISO 8601 strict + Tier 3 multi-prefix detection + Tier 4 exact-case + Tier 5 kebab-case) — NOT trivial <50 LOC bash
+- **Recurrence count:** 0 post-merge (rule shipped 2026-05-18, ~1 day at audit time)
+- **FP risk:** Legitimate cases trigger false positives — `_TEMPLATE.md` UPPERCASE valid + composite ID `AUDIT-2026-05-18-*` mixed Tier 1+2 valid
+- **Decision:** Reviewer-checklist §7.1 + 30-file retroactive self-test §6 sufficient cho v1.0.0; revisit detector when recurrence-count ≥2 OR proven AST classifier available
+
+Future detector heuristic regex (when implemented):
 
 ```bash
 # Detect mixed-case prefixes

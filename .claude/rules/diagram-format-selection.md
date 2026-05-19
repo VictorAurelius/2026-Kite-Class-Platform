@@ -206,9 +206,15 @@ Pre-merge review cho PR touching `documents/**/*.md`, `.claude/rules/**/*.md`, `
 
 Rule landing PR PHẢI rewrite `documents/02-architecture/email-architecture.md` ASCII diagram → Mermaid `flowchart` (the originating trigger artifact). Self-test demonstrates rule fires correctly.
 
-### 5.3 CI grep detector (deferred ≥7 ngày per `incident-to-rule-pipeline.md` premature-rule guard)
+### 5.3 CI grep detector (HONEST DEFER — heuristic FP risk >5%)
 
-Future enhancement — `scripts/check-diagram-format.sh`:
+Per Wave 99C META-META GAP-675 audit (2026-05-19): detector HONEST-deferred per `incident-to-rule-pipeline.md` §3 tightened legitimate-deferral conditions:
+- **Detector complexity:** Markdown box-drawing chars `┌─┐│└┘` used BOTH for ASCII diagrams AND for tables — distinguishing requires AST parsing, NOT trivial grep
+- **Recurrence count:** 0 post-merge (rule shipped 2026-05-18, ~1 day at audit time)
+- **FP risk:** High — every markdown table containing borders triggers false positive
+- **Decision:** Reviewer-checklist §5.1 + mandatory self-test §5.2 (email-architecture.md rewrite) sufficient cho v1.0.0; revisit detector when recurrence-count ≥2 OR proven AST-based diagram classifier available
+
+Future detector heuristic regex (when implemented):
 
 ```bash
 # Heuristic: detect markdown files với 10+ ASCII box-drawing chars cluster

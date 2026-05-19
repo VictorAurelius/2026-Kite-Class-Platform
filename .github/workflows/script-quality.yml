@@ -64,6 +64,9 @@ on:
       - 'documents/01-business/**'
       - 'scripts/check-3-layer-completeness.sh'
       - 'scripts/check-cross-layer-contract-drift.sh'
+      - 'scripts/check-docs-archival-stale.sh'
+      - 'scripts/check-docs-folder-volume.sh'
+      - 'scripts/check-docs-subfolder-maturity.sh'
       - 'kitehub/**/*.java'
       - 'kiteclass/**/*.java'
 
@@ -568,6 +571,45 @@ jobs:
           # vs documented Endpoint /api/email — 3-way drift code/doc/test.
           # Heuristic v1; manual review still recommended for complex paths.
           bash scripts/check-cross-layer-contract-drift.sh --warn
+
+  docs-scaling-detectors:
+    name: Docs scaling detectors (archival cadence + folder volume + subfolder maturity)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Self-test docs-archival-stale
+        run: bash scripts/check-docs-archival-stale.sh --self-test
+
+      - name: Self-test docs-folder-volume
+        run: bash scripts/check-docs-folder-volume.sh --self-test
+
+      - name: Self-test docs-subfolder-maturity
+        run: bash scripts/check-docs-subfolder-maturity.sh --self-test
+
+      - name: Detect archival cadence violations (WARN)
+        run: |
+          # Per `docs-archival-cadence.md` §2 cadence table (GAP-675 SHIP-NOW).
+          # Closes deferred-detector debt for §4.3.
+          bash scripts/check-docs-archival-stale.sh --warn
+
+      - name: Detect folder volume violations (WARN)
+        run: |
+          # Per `docs-folder-volume-budget.md` §2 thresholds (GAP-675 SHIP-NOW).
+          # Closes deferred-detector debt for §6.3.
+          bash scripts/check-docs-folder-volume.sh --warn
+
+      - name: Detect subfolder maturity violations (WARN)
+        run: |
+          # Per `docs-subfolder-maturity.md` §2 threshold (GAP-675 SHIP-NOW).
+          # Closes deferred-detector debt for §5.3.
+          # Existing 177 grandfathered subdirs surface as WARN — rule applies
+          # prospectively per `rule-change-process.md` convention.
+          bash scripts/check-docs-subfolder-maturity.sh --warn
 
   script-tests:
     name: Script tests (`scripts/tests/test-*.sh` fixture-based)

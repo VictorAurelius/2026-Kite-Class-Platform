@@ -6,10 +6,10 @@ paths:
 # Docs Subfolder Maturity — chỉ tạo subdir khi thresholds match
 
 **Priority:** 🟠 MANDATORY — folder structure discipline preventing subdir sprawl
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-18
-**Last-Reviewed:** 2026-05-18
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (path-scoped auto-load + reviewer-checklist + PR template + worked self-test trên `documents/05-guides/` 17 subdirs retroactive) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies subdir maturity criteria, existing single-file subdirs grandfathered; sister rule docs-folder-structure.md governs README/folder shape, this rule governs WHEN to create subdir)
+**Last-Reviewed:** 2026-05-19
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; Wave 99C META-META GAP-675 SHIP-NOW — `scripts/check-docs-subfolder-maturity.sh` shipped (115 LOC bash) + wired CI job `docs-scaling-detectors`; self-test PASS (2 below-threshold flagged + 5-file/README exempted); real-repo scan surfaces 177 grandfathered subdirs as WARN (rule prospective per §4 migration policy); closes deferred-detector debt §5.3 within 1 day of rule landing per `incident-to-rule-pipeline.md` Stage 3 paired-enforcement. No constraint change. v1.0.0 (kept): MINOR self-approve per §5; new rule với built-in enforcement (path-scoped auto-load + reviewer-checklist + PR template + worked self-test trên `documents/05-guides/` 17 subdirs retroactive) per §6.5)
 **Applies to:** Mọi PR thêm subdirectory mới (hoặc nested subdirectory) dưới `documents/**`. Scope = subdir creation discipline; KHÔNG cover file placement bên trong subdir (đó là `docs-folder-structure.md` §file-placement-rules).
 
 ---
@@ -99,21 +99,16 @@ Thêm row vào `.github/PULL_REQUEST_TEMPLATE.md` Output Review Checklist:
 - [ ] **Docs subfolder maturity** — nếu PR thêm new subdirectory under `documents/**`, MỘT trong §2 thresholds thỏa (Volume ≥5 files / cross-author ≥2 / reviewer approval / sister-pattern) per `.claude/rules/docs-subfolder-maturity.md`
 ```
 
-### 5.3 CI grep detector (deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 ngày)
+### 5.3 CI detector script (SHIPPED Wave 99C GAP-675)
 
-Future enhancement — `scripts/check-docs-subfolder-maturity.sh`:
+Script `scripts/check-docs-subfolder-maturity.sh` shipped 2026-05-19 per Wave 99C META-META audit (GAP-675 SHIP-NOW verdict — trivial bash ~115 LOC, low FP risk). Wired CI job `docs-scaling-detectors`:
+- WARN-mode initially (177 existing grandfathered subdirs surface — rule prospective)
+- Self-test PASS (single-file + 3-file flagged; 5-file at threshold + README+5 exempted)
+- Excludes `archived/`, `closed/`, `07-archived/` per §2 exemptions
+- Override trailer: `DOCS_SUBFOLDER_MATURITY_OVERRIDE: <subdir> — <reason>`
+- HARD STOP target Wave 100+ after consolidation pass for grandfathered violations
 
-```bash
-# Find subdirs trong documents/** với <5 files (excluding README.md)
-find documents -mindepth 2 -type d | while read d; do
-  count=$(find "$d" -maxdepth 1 -type f -name '*.md' ! -name 'README.md' | wc -l)
-  if [ "$count" -lt 5 ]; then
-    echo "WARN: $d has $count files (<5 threshold per docs-subfolder-maturity.md §2)"
-  fi
-done
-```
-
-WARN-only initially (existing subdirs grandfathered); track follow-up gap stabilize. Defer wiring CI job đến Wave 93+ khi pattern frequency stabilize.
+Re-enable HARD STOP follow-up tracked GAP-679.
 
 ### 5.4 Memory auto-load (optional, deferred)
 
@@ -220,4 +215,5 @@ Nếu rule áp dụng từ đầu khi `documents/05-guides/` đầu tiên đư�
 
 ## 9. Log
 
+- **2026-05-19 (v1.0.1):** PATCH — Wave 99C META-META GAP-675 SHIP-NOW closure of deferred-detector debt §5.3. `scripts/check-docs-subfolder-maturity.sh` shipped (115 LOC bash; 3-fixture self-test PASS); wired CI job `docs-scaling-detectors`. WARN-mode initially per `incident-to-rule-pipeline.md` premature-rule guard tightened §3 conditions; 177 grandfathered subdirs surface as actionable WARN. No constraint change; detector enforces existing §2 threshold prospectively. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — additive enforcement, no constraint loosening).
 - **2026-05-18 (v1.0.0):** Rule created — Rule 2 of 4 docs scaling pack. Triggered by user-flagged 2026-05-18 miss "documents/05-guides có 17 subdirs nhưng nhiều subdir chỉ 1-2 files (vd `professional-manual/` mới có 1 file đã tách subdir); subdir sprawl tăng cognitive load không add navigation value". Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged sprawl pattern) → Classify ✓ (no existing rule codifies subdir maturity criteria; `docs-folder-structure.md` covers WHAT subdir contains, không covers WHEN subdir warranted; `planning-docs-structure.md` specific cho 03-planning only) → Rule+Enforce ✓ (this file + path-scoped frontmatter `documents/**` + reviewer-checklist + PR template row + worked self-test trên 17 retroactive subdirs per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§7 worked example — 9/17 subdirs would FAIL threshold retroactive, validates rule fires correctly on originating concern) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying folder structure discipline; no constraint loosening for prior work; existing 17 subdirs grandfathered per `rule-change-process.md` convention; rule applies prospectively từ Wave 92 forward). CI grep detector + memory auto-load deferred per premature-rule guard ≥7 ngày; v1.0.0 enforcement = path-scoped auto-load + reviewer-checklist + PR template + worked self-test sufficient. Atomic-unique-bar §5.1 check passed: atomic concept (subdir creation discipline) / unique scope (no overlap với `docs-folder-structure.md` shape rules) / widely applicable (mọi `documents/**` subdir creation) / body discipline ≤2 "and" conjunctions in §1.
