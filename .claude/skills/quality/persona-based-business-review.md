@@ -23,6 +23,33 @@ description: "Dùng khi review business logic correctness, user nói 'persona re
 
 ## Process
 
+### Step 0 — Canonical-status lookup TRƯỚC khi emit candidates (BẮT BUỘC)
+
+Persona role-play là speculative — generate candidates based on "what a persona would want", KHÔNG phải "what's missing from code". Step 3.5 (state-check before file gap) chặn ở filing time NHƯNG candidate vẫn đã liệt kê trong persona report → user/Claude vẫn phải triage thủ công. Step 0 chặn ngay tại emission time.
+
+**Mandatory commands (read full output, KHÔNG `| head` truncate per `audit-to-gap-pipeline.md` §2.5 hardened protocol):**
+
+```bash
+# 1. List items đã shipped (skip nếu candidate match)
+bash scripts/query-gaps.sh "" DONE ""
+
+# 2. List items active scope (cross-ref candidate)
+bash scripts/query-gaps.sh "" PARTIAL ""
+bash scripts/query-gaps.sh "" OPEN ""
+bash scripts/query-gaps.sh "" IN_PROGRESS ""
+
+# 3. List items user-rejected
+grep -E "Dropped:.*GAP-" documents/04-quality/gaps/ROADMAP.md
+```
+
+**Filter rule:** Emit candidate (trong persona report Coverage Analysis table) CHỈ khi:
+- Title/scope KHÔNG match existing CSV row (any status)
+- ID KHÔNG appear trong ROADMAP §Dropped section
+- Đã shipped → note "coverage confirmed" thay vì list as gap
+- Attach evidence inline: "Verified against gap-status.csv YYYY-MM-DD: GAP-XXX absent → genuinely new"
+
+**Why mandatory:** 2026-04-20 audit `simulation-gap-finder` (sister skill) emit 12 candidates với 66% noise (7 shipped same week + 1 user-rejected). Pattern lặp lại bất cứ khi nào persona/simulation skill scan codebase mà skip canonical CSV lookup. Memory `feedback_audit_candidate_pre_filing_state_check.md` documents incident. Reference: `audit-to-gap-pipeline.md` §2.5 + `gap-architecture-v2.md` §1 + `pre-mutation-state-check.md` §1.
+
 ### Step 1: Identify All Personas
 
 Reference: `documents/00-brd/personas-catalog.md`

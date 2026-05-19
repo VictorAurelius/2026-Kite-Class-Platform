@@ -33,6 +33,33 @@ user-invocable: true
 
 ## Instructions
 
+### Bước 0 — Canonical-status lookup TRƯỚC khi emit candidates (BẮT BUỘC)
+
+Skill này emit gap list (Failed Checks table) sau khi scan business domains → MUST chạy state-check qua canonical CSV + ROADMAP §Dropped TRƯỚC khi output, KHÔNG phải sau (Bước 2C hiện tại chặn ở filing time, quá muộn — candidate đã liệt kê trong report).
+
+**Mandatory commands (read full output, KHÔNG `| head` truncate per `audit-to-gap-pipeline.md` §2.5 hardened protocol):**
+
+```bash
+# 1. List items đã shipped (skip nếu candidate match)
+bash scripts/query-gaps.sh "" DONE ""
+
+# 2. List items active scope (cross-ref candidate)
+bash scripts/query-gaps.sh "" PARTIAL ""
+bash scripts/query-gaps.sh "" OPEN ""
+bash scripts/query-gaps.sh "" IN_PROGRESS ""
+
+# 3. List items user-rejected
+grep -E "Dropped:.*GAP-" documents/04-quality/gaps/ROADMAP.md
+```
+
+**Filter rule:** Emit failed check (trong report) CHỈ khi:
+- Domain check fail thực sự (verified via grep code)
+- KHÔNG match existing CSV row tracking issue tương tự (status nào cũng count)
+- ID KHÔNG appear trong ROADMAP §Dropped section
+- Attach evidence inline: "Verified against gap-status.csv YYYY-MM-DD: GAP-XXX absent → genuinely new business gap"
+
+**Why mandatory:** 2026-04-20 audit `simulation-gap-finder` (sister skill) emit 12 candidates với 66% noise (7 shipped same week + 1 user-rejected). Pattern recurrence: bất cứ khi nào audit skill scan codebase mà skip canonical CSV lookup. Memory `feedback_audit_candidate_pre_filing_state_check.md` documents incident. Reference: `audit-to-gap-pipeline.md` §2.5 + `gap-architecture-v2.md` §1 + `pre-mutation-state-check.md` §1.
+
 ### Bước 1: Thu thập business rules từ code
 
 Chạy song song:

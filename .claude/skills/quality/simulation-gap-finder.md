@@ -72,7 +72,36 @@ user-invocable: true
 
 ---
 
-## Methodology (7 steps)
+## Methodology (8 steps — Step 0 mandatory)
+
+### Step 0 — Canonical-status lookup TRƯỚC khi emit candidates (BẮT BUỘC)
+
+Skill này emit candidate list cho gap filing → MUST chạy state-check qua canonical CSV + ROADMAP §Dropped TRƯỚC khi output, KHÔNG phải sau khi user thấy report. Khác biệt:
+
+- ❌ State-check AT filing time (legacy Step 7 / Pre-Flight line 124) = quá muộn — candidate đã emit ra report, user/Claude phải triage thủ công
+- ✅ State-check AT emission time = filter trước khi emit, chỉ output genuinely new items
+
+**Mandatory commands (read full output, KHÔNG `| head` truncate per `audit-to-gap-pipeline.md` §2.5 hardened protocol):**
+
+```bash
+# 1. List items đã shipped (skip nếu candidate match)
+bash scripts/query-gaps.sh "" DONE ""
+
+# 2. List items active scope (cross-ref candidate)
+bash scripts/query-gaps.sh "" PARTIAL ""
+bash scripts/query-gaps.sh "" OPEN ""
+bash scripts/query-gaps.sh "" IN_PROGRESS ""
+
+# 3. List items user-rejected
+grep -E "Dropped:.*GAP-" documents/04-quality/gaps/ROADMAP.md
+```
+
+**Filter rule:** Emit candidate CHỈ khi:
+- Title/scope KHÔNG match existing CSV row (any status)
+- ID KHÔNG appear trong ROADMAP §Dropped section
+- Attach evidence inline trong report: "Verified against gap-status.csv YYYY-MM-DD: GAP-XXX absent → genuinely new"
+
+**Why mandatory:** 2026-04-20 audit `simulation-gap-finder` emit 12 candidates với 66% noise (7 shipped same week + 1 user-rejected vẫn list). Memory `feedback_audit_candidate_pre_filing_state_check.md` documents incident. Reference: `audit-to-gap-pipeline.md` §2.5 + `gap-architecture-v2.md` §1 + `pre-mutation-state-check.md` §1.
 
 ### Step 1: Define feature boundary
 - What's in scope, what's not
