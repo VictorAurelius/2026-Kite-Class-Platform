@@ -126,7 +126,6 @@ fi
 # For each controller path, check if its prefix exists in ANY doc
 while IFS= read -r ctrl_path; do
   [[ -z "$ctrl_path" ]] && continue
-  prefix=$(echo "$ctrl_path" | cut -d'/' -f1-3)
   # Skip if path appears verbatim in docs OR has common alias (api/v1 ↔ api/platform tolerated by override)
   if echo "$DOC_PATHS" | grep -qF "$ctrl_path"; then
     [[ "$MODE" == "--report-only" ]] && echo "  ✓ $ctrl_path → matched in api-contract"
@@ -139,7 +138,8 @@ while IFS= read -r ctrl_path; do
       # Check if just the prefix differs
       stripped="${ctrl_path#/api/v1}"
       stripped="${stripped#/api}"
-      if ! echo "$DOC_PATHS" | grep -qE "$stripped$|$stripped[^a-zA-Z0-9_]"; then
+      pattern_alt="${stripped}[^a-zA-Z0-9_]"
+      if ! echo "$DOC_PATHS" | grep -qE "${stripped}$|${pattern_alt}"; then
         DRIFTS+=1
         DRIFT_LIST+=("controller: $ctrl_path → no matching api-contract Endpoint")
       else
