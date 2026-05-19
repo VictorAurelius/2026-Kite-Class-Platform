@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -54,6 +55,13 @@ public class AIBrandingController {
     private final AIInputCapService aiInputCapService;
 
     /**
+     * GAP-562/562b Wave 101 Bucket B — OWNER-only write authorization.
+     * Mirrors kitehub-subscription pattern. STAFF/MANAGER/TEACHER → 403.
+     */
+    private static final String OWNER_AUTHZ =
+            "hasAnyRole('OWNER','PLATFORM_ADMIN','ADMIN')";
+
+    /**
      * Analyze logo and extract brand identity.
      *
      * @param request Logo analysis request
@@ -62,6 +70,7 @@ public class AIBrandingController {
      * @return Logo analysis result
      */
     @PostMapping("/analyze-logo")
+    @PreAuthorize(OWNER_AUTHZ)
     public Mono<ResponseEntity<Object>> analyzeLogo(
             @Valid @RequestBody AnalyzeLogoRequest request,
             @RequestHeader(value = "X-Instance-Id", required = false) String instanceId,
@@ -93,6 +102,7 @@ public class AIBrandingController {
      * @return Generated image URL
      */
     @PostMapping("/generate-image")
+    @PreAuthorize(OWNER_AUTHZ)
     public Mono<ResponseEntity<Object>> generateImage(
             @Valid @RequestBody GenerateImageRequest request,
             @RequestHeader(value = "X-Instance-Id", required = false) String instanceId,
@@ -128,6 +138,7 @@ public class AIBrandingController {
      * @return Generated marketing copy
      */
     @PostMapping("/generate-text")
+    @PreAuthorize(OWNER_AUTHZ)
     public Mono<ResponseEntity<Object>> generateText(
             @Valid @RequestBody GenerateTextRequest request,
             @RequestHeader(value = "X-Instance-Id", required = false) String instanceId,
@@ -164,6 +175,7 @@ public class AIBrandingController {
      * @return Complete theme configuration ready for KiteClass frontend
      */
     @PostMapping("/generate-theme")
+    @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<Object> generateTheme(
             @Valid @RequestBody LogoAnalysis analysis,
             @RequestHeader(value = "X-Instance-Id", required = false) String instanceId,

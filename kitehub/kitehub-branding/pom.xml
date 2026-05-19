@@ -72,6 +72,19 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
+        <!-- Spring Security (GAP-562/562b Wave 101 Bucket B): @PreAuthorize support for
+             RBAC role separation Customer (OWNER) vs Staff. Mirrors kitehub-subscription pattern. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- RabbitMQ for Job Queue -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
