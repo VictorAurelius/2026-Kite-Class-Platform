@@ -10,7 +10,11 @@ parent_gap: GAP-647
 
 # Báo cáo kiểm chéo bibliography ↔ chapter citations
 
-Kiểm tra **bibliography.md** (43 IEEE refs, chapter-grouped) đối chiếu với các trích dẫn `[N]` thực tế xuất hiện trong các file chương khóa luận. Mục tiêu: phát hiện (1) refs mồ côi (orphan — không chương nào cite), (2) `[N]` trong chương không resolve được sang bibliography (missing-ref — examiner sẽ catch), (3) bất nhất numbering scheme giữa các chương.
+> 🔄 **Round 2 update — Wave 100.7 Phase 4 Foundation 2026-05-19:**
+> - **Renumber applied:** `[40]` (was PDPL duplicate) merged vào `[21]` canonical (PDPL Số 49/2023/QH15 + "có hiệu lực 2026-07-01" note appended). `[41]`→`[40]` Phuong+Anh, `[42]`→`[41]` Forsgren, `[43]`→`[42]` Sato et al. Total bibliography refs: **43 → 42**.
+> - **Original Phase 3a findings preserved below** — body audit content (orphan list, collision map, per-chapter counts) reflects pre-renumber snapshot. Use this Round 2 banner để map old→new ref numbers khi đọc body audit content. Phase 4 Bucket B (Ch.2 LOCAL migration) + Buckets A/C (orphan retro-cite) sẽ ship Round 3 audit khi closure PR ready.
+
+Kiểm tra **bibliography.md** (43 IEEE refs pre-renumber → 42 post-renumber, chapter-grouped) đối chiếu với các trích dẫn `[N]` thực tế xuất hiện trong các file chương khóa luận. Mục tiêu: phát hiện (1) refs mồ côi (orphan — không chương nào cite), (2) `[N]` trong chương không resolve được sang bibliography (missing-ref — examiner sẽ catch), (3) bất nhất numbering scheme giữa các chương.
 
 ## TL;DR (đọc 30 giây)
 

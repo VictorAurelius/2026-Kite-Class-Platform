@@ -95,7 +95,7 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 
 ### Vietnamese law — Data protection + cybersecurity + VAT
 
-[21] Quốc hội Việt Nam, "Luật Bảo vệ Dữ liệu Cá nhân (PDPL 2023)," Số 49/2023/QH15, 2023. [Online]. Available: https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Luat-Bao-ve-du-lieu-ca-nhan-2023. [Accessed 2026-05-18].
+[21] Quốc hội Việt Nam, "Luật Bảo vệ Dữ liệu Cá nhân (PDPL 2023)," Số 49/2023/QH15, có hiệu lực 2026-07-01, 2023. [Online]. Available: https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Luat-Bao-ve-du-lieu-ca-nhan-2023. [Accessed 2026-05-19].
 
 [22] Chính phủ Việt Nam, "Nghị định 13/2023/NĐ-CP về Bảo vệ Dữ liệu Cá nhân," 2023. [Online]. Available: https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Nghi-dinh-13-2023-ND-CP. [Accessed 2026-05-18].
 
@@ -109,9 +109,7 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 
 [39] Chính phủ Việt Nam, "Nghị định 147/2024/NĐ-CP về Giao dịch Điện tử," 2024. [Online]. Available: https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Nghi-dinh-147-2024-ND-CP. [Accessed 2026-05-19].
 
-[40] Quốc hội Việt Nam, "Luật Bảo vệ Dữ liệu Cá nhân (PDPL 2023) — Số 49/2023/QH15, có hiệu lực 2026-07-01," 2023. [Online]. Available: https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Luat-Bao-ve-du-lieu-ca-nhan-2023-PDPL. [Accessed 2026-05-19].
-
-[41] N. T. Phuong and L. H. Anh, "Compliance Frameworks for Software-as-a-Service in Southeast Asia: A Case Study of Vietnam's Personal Data Protection Law," *Journal of Information Systems and Management*, vol. 15, no. 2, pp. 45-67, 2024. [Online]. Available: https://doi.org/10.1080/ijsm.2024.15.2.45. [Accessed 2026-05-19].
+[40] N. T. Phuong and L. H. Anh, "Compliance Frameworks for Software-as-a-Service in Southeast Asia: A Case Study of Vietnam's Personal Data Protection Law," *Journal of Information Systems and Management*, vol. 15, no. 2, pp. 45-67, 2024. [Online]. Available: https://doi.org/10.1080/ijsm.2024.15.2.45. [Accessed 2026-05-19].
 
 ---
 
@@ -133,9 +131,9 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 
 ### Additional methodology sources (Wave 100.7 Phase 2 Agent 2a)
 
-[42] N. Forsgren, J. Humble, and G. Kim, *Accelerate: The Science of Lean Software and DevOps — Building and Scaling High Performing Technology Organizations*. Portland: IT Revolution Press, 2018.
+[41] N. Forsgren, J. Humble, and G. Kim, *Accelerate: The Science of Lean Software and DevOps — Building and Scaling High Performing Technology Organizations*. Portland: IT Revolution Press, 2018.
 
-[43] D. Sato, B. Tabaka, S. Cromwell, and D. Diaz, "Continuous Delivery: Principles and Implementation Patterns," IEEE/ACM 42nd International Conference on Software Engineering (ICSE), pp. 178-189, 2020. [Online]. Available: https://doi.org/10.1145/3377812.3382164.
+[42] D. Sato, B. Tabaka, S. Cromwell, and D. Diaz, "Continuous Delivery: Principles and Implementation Patterns," IEEE/ACM 42nd International Conference on Software Engineering (ICSE), pp. 178-189, 2020. [Online]. Available: https://doi.org/10.1145/3377812.3382164.
 
 ---
 
@@ -159,16 +157,21 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 
 ## Notes for future updates
 
-### Current state (last reviewed 2026-05-19, Wave 100.7 Phase 3a)
+### Current state (last reviewed 2026-05-19, Wave 100.7 Phase 4 Foundation — post-renumber)
 
-- **Total:** 43 IEEE-formatted refs, chapter-grouped (Ch.1 / Ch.2 / Ch.3 / Ch.4-7)
-- **Cited inline:** 17 unique refs (39%) — toàn bộ tập trung ở Chương 1 (3 parts)
-- **Orphan refs (chưa được chương nào cite):** 24 refs (56%) — phần lớn là refs Wave 100 D + Wave 100.7 Phase 2 thêm muộn (Ch1) + refs chờ Ch2-4 hoàn thành content
-- **Distribution per chapter target:**
+- **Total:** 42 IEEE-formatted refs (was 43; `[40]` duplicate merged into `[21]` per Phase 4 Foundation), chapter-grouped (Ch.1 / Ch.2 / Ch.3 / Ch.4-7)
+- **Cited inline (pre-Phase-4):** 17 unique refs (40%) — toàn bộ tập trung ở Chương 1 (3 parts)
+- **Orphan refs (pre-Phase-4):** 24 refs (57%) — đang được Phase 4 Buckets A/C retro-cite (target ≤8 orphans post-Phase-4)
+- **Phase 4 Foundation renumber applied (2026-05-19):**
+  - `[40]` (was duplicate PDPL) merged into `[21]` (canonical PDPL 49/2023/QH15 + có hiệu lực 2026-07-01 note appended)
+  - `[41]` (Phuong+Anh SaaS compliance) → `[40]`
+  - `[42]` (Forsgren Accelerate) → `[41]`
+  - `[43]` (Sato et al. CD ICSE 2020) → `[42]`
+- **Distribution per chapter target (post-renumber):**
   - Chương 1 — Introduction: refs [1]-[6], [31]-[34] (10 refs) + cross-chapter refs từ Ch.2 reuse
   - Chương 2 — Theoretical: refs [7]-[20], [35]-[38] (18 refs)
-  - Chương 3 — Requirements (VN law + methodology): refs [21]-[25], [39]-[41] (8 refs)
-  - Chương 4 — System Design: refs [26]-[30], [42]-[43] (7 refs)
+  - Chương 3 — Requirements (VN law + methodology): refs [21]-[25], [39]-[40] (7 refs — was 8 pre-dedup)
+  - Chương 4 — System Design: refs [26]-[30], [41]-[42] (7 refs)
   - Chương 5-7 — Implementation/Testing/Conclusion: (chưa thêm refs)
 
 ### Numbering scheme rationale
@@ -183,7 +186,7 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 Khi cần thêm ref mới cho chương:
 
 1. Identify chương target (1/2/3/4-7).
-2. `next_N = max(existing_refs) + 1` — kiểm tra số cuối cùng đang dùng (hiện tại = 43, next = **44**).
+2. `next_N = max(existing_refs) + 1` — kiểm tra số cuối cùng đang dùng (hiện tại = 42 post-Phase-4-Foundation, next = **43**).
 3. Append entry vào cuối section chapter tương ứng (vd: thêm cho Ch.2 → append vào `## Chapter 2 — Theoretical Background` cuối section).
 4. Format IEEE per `CITATION-STYLE.md` — verify ≥3 trong 5 mandatory metadata fields.
 5. Cite inline `[N]` trong chapter source markdown ngay khi append (tránh tạo orphan ref mới).
@@ -196,15 +199,15 @@ Khi cần thêm ref mới cho chương:
 
 ### Trạng thái duplicate entry
 
-- **[40] ≈ [21]** — cùng văn bản "Luật BVDLCN Số 49/2023/QH15" (PDPL 2023), format khác nhẹ. Action: dedupe hoặc clarify [40] role (vd: implementation guide trên PDPL) → P1 trước revision V2.
+- **✅ RESOLVED 2026-05-19 Phase 4 Foundation:** `[40]` duplicate đã được merge vào `[21]` (canonical PDPL Số 49/2023/QH15 + có hiệu lực 2026-07-01 note appended). Refs `[41]-[43]` renumbered `[40]-[42]`. Total refs: 43 → 42.
 
 ### Quality gates trước defense
 
-- [ ] Resolve Chapter 2 local numbering collision (Option C khuyên)
-- [ ] Cite retroactively orphan refs Wave 100 D ([31]-[38]) và Phase 2 ([40]-[43])
-- [ ] Verify số hiệu pháp lý PDPL chính xác (49/2023/QH15 vs 91/2025/QH15 — sync về một con số)
-- [ ] Dedupe [40] hoặc clarify role distinct from [21]
-- [ ] Chapter 3-4 finalize content + cite refs đã reserved ([26]-[30], [42]-[43], etc.)
+- [ ] Resolve Chapter 2 local numbering collision (Option C khuyên) — IN PROGRESS Phase 4 Bucket B
+- [ ] Cite retroactively orphan refs Wave 100 D ([31]-[38]) và Phase 2 ([39]-[42] post-renumber) — IN PROGRESS Phase 4 Buckets A/C
+- [ ] Verify số hiệu pháp lý PDPL chính xác (49/2023/QH15 vs 91/2025/QH15 — sync về một con số) — IN PROGRESS Phase 4 Bucket B (Ch.2 `[5]` → global `[21]`)
+- [x] ✅ Dedupe `[40]` hoặc clarify role distinct from `[21]` — DONE Phase 4 Foundation 2026-05-19
+- [ ] Chapter 3-4 finalize content + cite refs đã reserved ([26]-[30], [41]-[42] post-renumber, etc.)
 
 ### General principles
 
