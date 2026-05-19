@@ -8,7 +8,24 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-19 — Wave 98 SHIPPED 8/8 buckets + GAP-661 post-wave audit suite DONE T-2 (4 audits + 6 follow-up gaps GAP-662..667); Wave 99 plan drafted thesis META 5-bucket)
+## 🎯 Current Status Snapshot (2026-05-19 — META + docs arch focus session: GAP-661 audit suite + Wave 99B B6 arch archive + Wave 99C META synthesis all SHIPPED)
+
+### 🎉 Wave 99C META synthesis SHIPPED 2026-05-19 — 2 detectors + 2 META-META gaps (PR #1566)
+
+3-agent outside-in META audit (Persona + External Benchmark + Failure-Mode Matrix) consensus implementation:
+
+| Action | Outcome |
+|---|---|
+| **Action 1** — `check-3-layer-completeness.sh` CI detector | ✅ shipped (real-repo 4 violations surface WARN: `kitehub/email`+`marketing`+`preferences`+`kiteclass/multi-tenancy`); closes Wave 92 GAP-640 + Wave 98 GAP-664 recurrence #2 |
+| **Action 2** — `check-cross-layer-contract-drift.sh` CI detector | ✅ shipped (heuristic v1 WARN); closes Wave 98 GAP-662 incident + `contract-first-for-cross-layer.md` §6.2 deferred-detector debt (12 ngày) |
+| **Action 3** — GAP-675 META-META filed (P1) | ✅ filed — audit `incident-to-rule-pipeline.md` §3 premature-rule guard usage; 6 recent rules deferred detectors never landed |
+| **Action 4** — GAP-676 META filed (P2) | ✅ filed — Quality Gate vs Issue Tracking classification per SonarQube pattern (defer ship per Benchmark consensus avoid scope creep) |
+
+Rule edits: `audit-to-gap-pipeline.md` v1.4.3 + `contract-first-for-cross-layer.md` v1.0.2 PATCH (close deferred-detector debt).
+
+### 🎉 Wave 99B B6 SHIPPED 2026-05-19 — Architecture archive sweep (PR #1565)
+
+Foundation bucket of Wave 99B — archive 6 stale/superseded files (`living-docs-audit-2026-04` + `ai-branding-v2-redesign` + `ai-branding-design-patterns` + `backup-strategy` + `docker-platform-architecture` + `email-lifecycle`) → `documents/07-archived/architecture-2026-Q2/`. Root-level count **16 → 10** (volume cap 50 compliant). README index synced (Wave 96 PR2 canonical pivot). **GAP-668 DONE 100%.** Unblocks B0-B5 buckets per Wave 99B plan §6.
 
 ### 🎉 GAP-661 SHIPPED 2026-05-19 — Wave 98 post-closure audit suite (4 audits + 6 follow-up gaps)
 
@@ -40,9 +57,12 @@
 
 **Post-Wave-98 audit suite cadence per `post-wave-audit-mandate.md` §2.2:** UI /128 sample + Quality /100 refresh due within 3 days (≤2026-05-21). Filed **GAP-661** to schedule.
 
-> **📍 Next session ĐỌC TRƯỚC (Wave 98 + GAP-661 audit suite SHIPPED):**
-> 1. **GAP-661 audit suite findings cluster** (Wave 99 candidate or split bucket) — fix GAP-662 (P0 EmailController URL) + GAP-663 (P0 PreferencesController IT) + GAP-664 (P1 3-layer doc) → unlocks Phase 1 BETA gate ≥80 on BOTH API + Business audits (GAP-664 shared dep). ~3.25h scope. GAP-665 (P1 /legal/terms restructure) + GAP-666/667 (P2) can defer Wave 100+.
-> 2. **Wave 99 plan PR open** — branch `wave/99-plan` drafted (5-bucket thesis META: GAP-646 DOCX pipeline + GAP-647 IEEE bib + GAP-650 Ch.1 lit review + GAP-651 image curation skill + GAP-655 citation-extract skill). Rebase on current main → open PR.
+> **📍 Next session ĐỌC TRƯỚC (META + docs arch focus per user pivot 2026-05-19):**
+> 1. **Wave 99B B0-B5 execute** (6 remaining buckets, B6 foundation already merged): B0 sweep (Last-Reviewed + Mermaid audit) → B1 Service Catalog + Auth Flow + B2 Compliance×Code Map + B3 Database Architecture Map + B4 C4 Context+Container (parallel 4) → B5 Onboarding Tour README. Per Wave 99B plan §6 coordinator order. GAP IDs 669-674 pre-assigned.
+> 2. **GAP-675 META-META implement** (P1) — audit 6 deferred detectors (docs-archival-cadence / docs-folder-volume-budget / docs-subfolder-maturity / docs-filename-prefix-convention / diagram-format-selection / dev-readable-doc-language) → ship OR honest-defer; tighten `incident-to-rule-pipeline.md` §3 guard wording.
+> 3. **4 violations from 3-layer detector** (WARN-mode caught Wave 99C): `kitehub/email` missing use-cases.md (GAP-664 covers) + `kitehub/marketing` missing use-cases.md + `kitehub/preferences` missing rules+use-cases (GAP-664 covers) + `kiteclass/multi-tenancy` missing use-cases+api-contract. Fix before HARD STOP 2026-06-19.
+> 4. **GAP-662..667 cluster (Phase 1 BETA gate fixes)** — DEFER per user pivot priority; will queue Wave 100+ after META + arch complete.
+> 5. **Wave 99 thesis META plan PR #1559** — DEFER per user pivot priority; thesis scope queue Wave 100+.
 > 3. **5 PARTIAL Wave 98 gaps gated GAP-612 AWS** (656/657/658/518 live verify + 543 manual render verify) — close-out post-restore: GAP-518 95→100%, GAP-656 80→95%, GAP-657 80→95% (manual 2-client render), GAP-543 80→100%, GAP-658 80→95% (consumer wiring trigger).
 > 4. **Post-wave-98 audit suite verdicts** — UI ✅ 110.6 A + Quality ✅ 90/110 B+ PASS (no follow-up); API 🔴 76 C FAIL + Business 🔴 73 C+ FAIL (item 1 cluster fixes both).
 > 4. **bg-agent lesson learned** (carry-forward Wave 97) — context-thrashing rate-limited 4 agents this wave (B1/B3/B6/B7 first attempts). 2-concurrent retry pattern PROVEN safe. 3-concurrent threshold hit Anthropic throttle.
