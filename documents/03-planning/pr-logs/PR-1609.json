@@ -1,0 +1,33 @@
+{
+  "pr": 1609,
+  "title": "docs(gap-688): thesis V1 pipeline pivot to Python create_*.py pattern + inside-out format codification",
+  "branch": "feat/gap-688-thesis-python-pipeline",
+  "created_at": null,
+  "merged_at": "2026-05-19T16:25:13Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-19T16:25:18.159310",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 4,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-34347"
+  }
+}
