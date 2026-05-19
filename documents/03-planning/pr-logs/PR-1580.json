@@ -1,0 +1,33 @@
+{
+  "pr": 1580,
+  "title": "docs(wave-100): Release 1.5 thesis plan + 2 META rules + 2 gaps + Step 0 skill patches",
+  "branch": "wave/100-thesis-push",
+  "created_at": null,
+  "merged_at": "2026-05-19T09:00:37Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-19T09:00:43.660889",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 10,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-3632"
+  }
+}
