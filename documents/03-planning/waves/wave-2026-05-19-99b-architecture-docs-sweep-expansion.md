@@ -218,25 +218,7 @@ Per `agent-background-spawn-default.md` + `feedback_parallel_agent_strategy.md` 
 
 ---
 
-## 7. Outside-in audit findings (informing scope)
-
-3-agent outside-in run 2026-05-19 (per `outside-in-coverage-trigger.md` v1.1.0 Bước 1-5):
-
-| Agent | Top 3 reports | Key finding |
-|---|---|---|
-| **Persona simulation** | Service Catalog + Auth / Runbook Index / Data Architecture | 4 personas converge on Service Catalog + Compliance map. Blind spots: Auth Flow Diagram + Bounded-Context map |
-| **External benchmark** | C4 Context + Container / Backstage Service Catalog / Quality Attribute Registry | KiteHub MISSING C4 + Service Catalog (industry pillars); STRONG on ADRs + Deployment |
-| **Failure-mode matrix** | Service Dependency Graph / Compliance Control Map / Per-tenant Unit Cost | 3am incident MTTR + compliance violation = highest blast radius. Volume cap warning. |
-
-**Convergent (3-of-3):** Service catalog/dependency + Compliance/SLO registry + Anti-pattern warning (volume cap)
-**2-of-3:** Database Map + Onboarding tour + C4 diagram
-**Defer per consensus:** User tier matrix / Per-tenant cost / AI orchestration / Full sequence catalog
-
-Audit artifacts (defer to actual file save in Wave 99B execution; outputs preserved in agent transcripts at `/tmp/.../tasks/{agentId}.output`).
-
----
-
-## 8. Closure Protocol
+## 7. Closure Protocol
 
 Per `gap-done-discipline.md` + `wave-closure-scope-completeness.md` v1.0.0 + `post-merge-sync-completeness.md` + `post-wave-cleanup.md`:
 
@@ -252,6 +234,6 @@ Per `gap-done-discipline.md` + `wave-closure-scope-completeness.md` v1.0.0 + `po
 
 ---
 
-## 9. Log
+## 8. Log
 
-- **2026-05-19** (draft): Plan created. Triggered by user 2026-05-19 4-bucket arch sweep request (Item 1 Mermaid fix shipped PR #1562; this wave handles Items 2+3+4). Per `outside-in-coverage-trigger.md` v1.1.0 §2 — 3-agent outside-in audit ran first (Persona + External Benchmark + Failure-Mode); consensus 5-report scope + 4-report defer. Per `feedback_wave_plan_through_pr.md` — wave plan PR FIRST before agent spawn. Reviewer: @nguyenvankiet (solo-dev).
+- **2026-05-19** (draft): Plan created. Triggered by user 2026-05-19 4-bucket arch sweep request (Item 1 Mermaid fix shipped PR #1562; this wave handles Items 2+3+4). Per `outside-in-coverage-trigger.md` v1.1.0 §2 — 3-agent outside-in audit ran first (Persona top 3: Service Catalog + Runbook Index + Data Architecture; External Benchmark top 3: C4 + Backstage Service Catalog + Quality Registry; Failure-Mode top 3: Service Dep Graph + Compliance Map + Per-tenant Cost). Consensus convergent: Service catalog/dependency + Compliance/SLO + Volume-cap anti-pattern. Defer per consensus: User tier matrix / Per-tenant cost / AI orchestration / Full sequence catalog. Audit artifacts preserved in agent transcripts; full table in §1 Brainstorm Q2. Per `feedback_wave_plan_through_pr.md` — wave plan PR FIRST before agent spawn. Reviewer: @nguyenvankiet (solo-dev).
