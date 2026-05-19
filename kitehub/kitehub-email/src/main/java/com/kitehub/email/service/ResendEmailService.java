@@ -131,8 +131,10 @@ public class ResendEmailService implements NotificationChannel {
 
         try {
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, httpHeaders);
-            ResponseEntity<Map> response = restTemplate.postForEntity(
-                    RESEND_API_URL, entity, Map.class);
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            ResponseEntity<Map<String, Object>> response =
+                    (ResponseEntity<Map<String, Object>>) (ResponseEntity) restTemplate.postForEntity(
+                            RESEND_API_URL, entity, Map.class);
 
             String messageId = response.getBody() != null
                     ? String.valueOf(response.getBody().get("id"))

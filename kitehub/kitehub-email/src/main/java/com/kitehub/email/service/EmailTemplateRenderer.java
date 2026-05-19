@@ -64,7 +64,6 @@ public class EmailTemplateRenderer {
 
         Tone effectiveTone = tone != null ? tone : Tone.FORMAL_SAFE_DEFAULT;
         String htmlPath = resolveTemplatePath(templateName, effectiveTone);
-        String textPath = htmlPath + ".txt"; // sibling resolved by Thymeleaf .txt suffix lookup
 
         Context ctx = buildContext(variables, effectiveTone);
 

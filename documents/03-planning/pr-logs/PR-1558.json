@@ -1,0 +1,33 @@
+{
+  "pr": 1558,
+  "title": "docs(wave-98 closure): SHIPPED 8/8 buckets \u2014 Scope-Completeness Reconciliation + GAP-661 audit + 5 Log syncs",
+  "branch": "wave/98-closure",
+  "created_at": null,
+  "merged_at": "2026-05-18T21:17:38Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-18T21:17:50.522233",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 12,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1011857"
+  }
+}
