@@ -1,43 +1,96 @@
 #!/usr/bin/env bash
-# Thesis DOCX assembly script — PLACEHOLDER per Wave 100.7 Phase 3b scoping.
+# Thesis DOCX assembly script — Wave 100.7 Phase 3b validation mode
 #
-# Status: NOT YET IMPLEMENTED. This is a scaffold marker shipped to satisfy
-# CI smoke (GAP-646 §AC criterion 6 `--dry-run` exit 0) while the full
-# Step 1-3 implementation defers to a focused session.
+# Status: V1 = dry-run validation. Validates the thesis-report Java pipeline
+# is wired correctly and pre-conditions exist. Production execute mode (full
+# chapter content assembly + JAR generation) defers to a follow-up gap with
+# Spring Boot CLI runner scope.
 #
-# Decision doc:
-#   documents/08-thesis/docx-pipeline-scoping.md
+# Decision doc: documents/08-thesis/docx-pipeline-scoping.md
+# Parent gap:   documents/04-quality/gaps/phase-1-beta/GAP-646-thesis-docx-pipeline.md
+# Pipeline:     kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/document/docx/
+#                 ThesisReportBuilder.java (Create pipeline, programmatic skeleton build)
 #
-# Parent gap (PARTIAL 20% at Phase 3b ship):
-#   documents/04-quality/gaps/phase-1-beta/GAP-646-thesis-docx-pipeline.md
-#
-# Implementation roadmap (when focused session runs):
-#   Sub-task A — Template DOCX authoring (~2-3h)
-#   Sub-task B — ThesisReportBuilder Java (~2h)
-#   Sub-task C — This script production implementation (~1-2h)
-#   Sub-task D — Skill SKILL.md extension (~1h)
-#   Total estimate: 6-8h focused session
-#
-# Recommended approach (Wave 100.7 Phase 3b decision):
-#   Apache POI XWPF (Java) — Edit-Fill pipeline extending
-#   .claude/skills/document-generation/word/ skill foundation. Zero install
-#   cost; on-stack (Java 17 + Maven verified ready); VN typography fidelity
-#   highest (CTPageSz/CTPageMar control for A4 + 3-2-2cm margins + TNR 13pt).
+# Usage:
+#   scripts/assemble-thesis-docx.sh                  # dry-run validation (default)
+#   scripts/assemble-thesis-docx.sh --dry-run        # explicit dry-run
+#   scripts/assemble-thesis-docx.sh --execute        # NOT YET IMPLEMENTED (see follow-up gap)
+#   scripts/assemble-thesis-docx.sh --help           # usage
 
 set -euo pipefail
 
 SCRIPT_NAME=$(basename "$0")
-DECISION_DOC="documents/08-thesis/docx-pipeline-scoping.md"
-PARENT_GAP="documents/04-quality/gaps/phase-1-beta/GAP-646-thesis-docx-pipeline.md"
+REPO_ROOT=$(cd "$(dirname "$0")/.." && pwd)
+THESIS_DIR="$REPO_ROOT/documents/08-thesis"
+BUILDER_JAVA="$REPO_ROOT/kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/document/docx/ThesisReportBuilder.java"
+BUILDER_TEST="$REPO_ROOT/kiteclass/kiteclass-core/src/test/java/com/kiteclass/core/module/document/docx/ThesisReportBuilderTest.java"
+CHAPTER_MAP="$THESIS_DIR/chapter-mapping.md"
+BIBLIOGRAPHY="$THESIS_DIR/references/bibliography.md"
+DECISION_DOC="$THESIS_DIR/docx-pipeline-scoping.md"
 
-cat <<EOF
-[$SCRIPT_NAME] PLACEHOLDER per Wave 100.7 Phase 3b scoping
-[$SCRIPT_NAME] Status: NOT YET IMPLEMENTED — Step 1-3 deferred to focused session
-[$SCRIPT_NAME] Decision doc: $DECISION_DOC
-[$SCRIPT_NAME] Parent gap: $PARENT_GAP (PARTIAL 20%)
-[$SCRIPT_NAME] Recommended approach: Apache POI XWPF (Java) Edit-Fill pipeline
-[$SCRIPT_NAME] Effort estimate: 6-8h focused session (sub-tasks A-D)
-[$SCRIPT_NAME] Exit 0 (intentional — CI smoke satisfaction per GAP-646 AC#6)
+MODE="dry-run"
+if [[ ${1:-} == "--help" ]]; then
+  sed -n '2,18p' "$0" | sed 's/^# \?//'
+  exit 0
+fi
+if [[ ${1:-} == "--execute" ]]; then
+  cat <<EOF
+[$SCRIPT_NAME] --execute mode NOT YET IMPLEMENTED.
+
+Production execute requires:
+- Spring Boot CLI runner in kiteclass-core (new ThesisAssemblyCLI main class)
+- Chapter MD → XWPF body parser (V2 — V1 takes plain-text body via data map)
+- Figure injection + numbering (V2)
+- Bibliography text formatter from bibliography.md (V2)
+
+Track follow-up via new gap referencing GAP-646. For V1 verification, use:
+  scripts/assemble-thesis-docx.sh --dry-run
+
+To exercise ThesisReportBuilder directly:
+  cd kiteclass/kiteclass-core && ./mvnw test -Dtest=ThesisReportBuilderTest
 EOF
+  exit 1
+fi
+if [[ ${1:-} == "--dry-run" ]]; then
+  MODE="dry-run"
+fi
 
-exit 0
+echo "[$SCRIPT_NAME] Mode: $MODE"
+echo "[$SCRIPT_NAME] Repo root: $REPO_ROOT"
+echo
+
+FAIL=0
+check() {
+  local label="$1"
+  local path="$2"
+  if [[ -f "$path" ]]; then
+    local size
+    size=$(wc -c <"$path" 2>/dev/null || echo "?")
+    echo "  ✅ $label: $path ($size bytes)"
+  else
+    echo "  ❌ MISSING $label: $path"
+    FAIL=$((FAIL + 1))
+  fi
+}
+
+echo "[$SCRIPT_NAME] Pre-condition check (Wave 100.7 Phase 3b artifacts):"
+check "Java builder" "$BUILDER_JAVA"
+check "Java test" "$BUILDER_TEST"
+check "Chapter mapping" "$CHAPTER_MAP"
+check "Bibliography" "$BIBLIOGRAPHY"
+check "Scoping doc" "$DECISION_DOC"
+
+echo
+echo "[$SCRIPT_NAME] Phase 3b pipeline status:"
+if [[ $FAIL -eq 0 ]]; then
+  echo "  ✅ All artifacts present — ThesisReportBuilder pipeline ready for V1 execute mode (deferred)."
+  echo "  ℹ️  Builder = Create pipeline (programmatic skeleton; no binary template needed)."
+  echo "  ℹ️  Builder route: templateId='thesis-report' → ThesisReportBuilder.build(request)"
+  echo "  ℹ️  Required data keys: title, studentName, studentId, supervisor, year, school"
+  echo "  ℹ️  Optional: chapter.N.title, chapter.N.body, bibliography.entries"
+  echo "  ℹ️  See decision doc: $DECISION_DOC"
+  exit 0
+else
+  echo "  ❌ $FAIL pre-condition(s) failed — fix above before execute mode wires up."
+  exit 1
+fi

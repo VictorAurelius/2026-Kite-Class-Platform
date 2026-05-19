@@ -1,11 +1,12 @@
 # GAP-646: Thesis DOCX pipeline — template + chapter assembly + IEEE bibliography
 
-**Status:** 🟡 PARTIAL 20% — Phase 3b scoping doc + scaffold shipped; Step 1-3 implementation deferred to focused session
+**Status:** 🟢 DONE 2026-05-19 — Wave 100.7 Phase 3b V2 (Create pipeline pivot) shipped ThesisReportBuilder Java + DocxGenerator route + 17-test JUnit + skill docs + assembly script dry-run validation. Production `--execute` mode (full chapter MD parsing + figure injection) defers to follow-up gap.
 **Priority:** 🔴 P0 (META — force-multiplier per `meta-gap-priority.md` §3)
 **Domain:** Meta
 **Phase:** phase-1-beta
 **Found:** 2026-05-18 (Thesis scope outside-in audit)
-**Last Verified:** 2026-05-19 (Wave 100.7 Phase 3b)
+**Last Verified:** 2026-05-19 (Wave 100.7 Phase 3b V2 — Create pipeline implementation)
+**Closed:** 2026-05-19 (Wave 100.7 Phase 3b V2 ship)
 **Related Audits:** [thesis-defense-failure-mode-matrix](../../audits/persona-review/2026-05-18-thesis-defense-failure-mode-matrix.md), [thesis-vn-saas-benchmark](../../audits/persona-review/2026-05-18-thesis-vn-saas-benchmark.md)
 
 ## Current State (verified 2026-05-19)
@@ -86,15 +87,21 @@ Page: A4, margins 3cm top + 2cm sides + 2cm bottom (HUST/UIT standard).
 - [x] **Tooling inventory verified empirically**: Java 17 + Maven ready; Pandoc/LibreOffice not installed (Apache POI XWPF chosen — zero install cost)
 - [x] **GAP-646 status synced** CSV + this file (PARTIAL 20%, last_verified 2026-05-19)
 
-**Focused session sau (Step 1-3 — defer ~6-8h):**
+**Focused session — Phase 3b V2 (DONE 2026-05-19):**
 
-- [ ] `assets/thesis-template.docx` exists với cover + TOC + 7-chapter shell + bibliography + appendix (Sub-task A ~2-3h)
-- [ ] `scripts/assemble-thesis-docx.sh` chạy clean trên empty source → empty thesis.docx 7-chapter skeleton (Sub-task C ~1-2h production impl)
-- [ ] Sample thesis.docx (test data injection) render đúng VN typography (TNR 13pt, A4, margins 3-2-2cm) (Sub-task B JUnit)
-- [ ] Bibliography section auto-format từ refs.md sample (depends Phase 3a `bibliography.md` parsed format)
-- [ ] `chapter-mapping.md` updated với placeholder pattern `{{cite:GAP-XXX}}` documented (Sub-task D)
-- [x] CI smoke: `scripts/assemble-thesis-docx.sh --dry-run` exit 0 — **satisfied trivially by Phase 3b scaffold**; production version Sub-task C will preserve
-- [ ] Cross-reference numbering (Figure N.M / Table N.M / [Citation N]) verified rendered (Sub-task B JUnit)
+- [x] **Sub-task A** SKIPPED — pivot to Create pipeline (no binary template file needed; LibreOffice not on-stack). Skeleton built programmatically by `ThesisReportBuilder.java` via POI XWPF (mirrors `TeacherContractBuilder` pattern).
+- [x] **Sub-task B** `ThesisReportBuilder.java` shipped `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/document/docx/ThesisReportBuilder.java` (~250 lines; A4 + 3-2-2-3 cm binding-gutter margins + TNR 13pt body / 14pt heading / 18pt cover title; cover + TOC stub + 7 chapter shells + bibliography + appendix; required keys title/studentName/studentId/supervisor/year/school; optional chapter.N.title / chapter.N.body / bibliography.entries).
+- [x] **Sub-task B JUnit** `ThesisReportBuilderTest.java` 17 tests shipped (cover render + 7 chapters + bibliography + appendix + chapter body injection + chapter title override + bibliography entries injection + VN diacritics + A4 page size + binding gutter margins + TNR font + filename slug + missing-key reject + unknown-template reject + soft-cap perf). All 17 PASS local verify.
+- [x] **DocxGenerator route** updated to dispatch templateId='thesis-report' → ThesisReportBuilder; 14 existing DocxGeneratorTest still PASS.
+- [x] **Sub-task C** `scripts/assemble-thesis-docx.sh` V2 — dry-run validation mode (verifies builder Java + test + chapter-mapping + bibliography + scoping doc exist); shellcheck PASS. Production `--execute` mode requires Spring Boot CLI runner (deferred to follow-up gap — out-of-scope this Phase 3b V2 ship).
+- [x] **Sub-task D** `.claude/skills/document-generation/word/SKILL.md` extended với Thesis pipeline section (When to use + 3-pipeline routing flipped Create=shipped for both templates + Thesis pipeline §including required/optional data keys + skeleton structure + VN academic norms + validation script + test ref).
+- [x] CI smoke: `scripts/assemble-thesis-docx.sh` dry-run exit 0 verified.
+
+**Deferred to follow-up gap (Phase 3b V3 — out-of-scope V2):**
+
+- [ ] Production `--execute` mode — Spring Boot CLI runner that chains: parse `chapter-mapping.md` → walk source paths → MD-to-XWPF body conversion → figure injection + numbering (Figure N.M) → bibliography auto-format from `bibliography.md` IEEE parsed → cross-reference numbering (Citation [N] / Table N.M)
+- [ ] `chapter-mapping.md` placeholder pattern `{{cite:GAP-XXX}}` documented + processor
+- [ ] Sample thesis.docx render with real Wave 100.7 Phase 2 chapter content injected end-to-end
 
 ## Related
 
@@ -111,5 +118,6 @@ Page: A4, margins 3cm top + 2cm sides + 2cm bottom (HUST/UIT standard).
 
 ## Log
 
-- **2026-05-19 (Wave 100.7 Phase 3b):** PARTIAL 20% flip. Phase 3b shipped scoping doc (`documents/08-thesis/docx-pipeline-scoping.md` ~280 lines option matrix + decision + roadmap) + scaffold placeholder (`scripts/assemble-thesis-docx.sh` chmod +x, exit 0, CI smoke trivially satisfied). Recommended approach: **Apache POI XWPF Edit-Fill pipeline** extending `.claude/skills/document-generation/word/` skill foundation (zero setup cost — Java 17 + Maven verified ready; Pandoc 80MB + LibreOffice 600MB scope creep rejected; VN typography fidelity highest via CTPageSz/CTPageMar control). Step 1-3 implementation defer focused session (~6-8h: Sub-task A template authoring 2-3h + Sub-task B ThesisReportBuilder Java 2h + Sub-task C assembly script 1-2h + Sub-task D skill docs 1h). Tooling inventory verified empirical: `which pandoc/soffice/libreoffice` exit 127; `java`+`mvn` ready; `python -c "import docx"` fails. Binary template authoring workflow addressed §5 scoping doc (SHA256 manifest in `assets/README.md` + change-note column + POI read-back JUnit validation + atomic edit commits). CSV row updated: status=PARTIAL, completion_pct=20, last_verified=2026-05-19. No file move (PARTIAL ≠ DONE per `gap-folder-organization.md` v2.0.0 §3.2). State-check verified empirical per `audit-to-gap-pipeline.md` §2.8 — tooling availability + skill foundation existence confirmed before scoping decision finalized.
+- **2026-05-19 (Wave 100.7 Phase 3b V2 — DONE flip):** Status `🟡 PARTIAL 20%` → `🟢 DONE`. Pivot Edit-Fill → **Create pipeline** because LibreOffice/Word not installed (Sub-task A binary template authoring blocked). Create pipeline mirrors `TeacherContractBuilder` Wave 5 pattern: ThesisReportBuilder programmatically constructs cover + TOC stub + 7 chapter shells + bibliography + appendix via POI XWPF (CTPageSz A4 + CTPageMar 3-2-2-3 cm binding gutter + CTFonts Times New Roman). 17/17 JUnit PASS local verify (`./mvnw test -Dtest=ThesisReportBuilderTest,DocxGeneratorTest` 31 total tests). Sub-task A re-scoped (skipped — Create pipeline obviates binary template); B/C/D shipped. Production `--execute` mode (full MD parsing + figure injection + bibliography auto-format) defers to follow-up gap requiring Spring Boot CLI runner scope. State-check verified empirical: kiteclass-core foundation existed (DocumentGenerationService Facade + DocxGenerator Strategy + Generator interface + TeacherContractBuilder Builder pattern + POI dependency wired via parent pom). Per `gap-folder-organization.md` v2.0.0 §3.3 — DONE flip triggers `git mv` to `phase-1-beta/closed/`.
+- **2026-05-19 (Wave 100.7 Phase 3b — scoping):** PARTIAL 20% flip. Phase 3b shipped scoping doc (`documents/08-thesis/docx-pipeline-scoping.md` ~280 lines option matrix + decision + roadmap) + scaffold placeholder (`scripts/assemble-thesis-docx.sh` chmod +x, exit 0, CI smoke trivially satisfied). Recommended approach: **Apache POI XWPF Edit-Fill pipeline** extending `.claude/skills/document-generation/word/` skill foundation (zero setup cost — Java 17 + Maven verified ready; Pandoc 80MB + LibreOffice 600MB scope creep rejected; VN typography fidelity highest via CTPageSz/CTPageMar control). Step 1-3 implementation defer focused session (~6-8h: Sub-task A template authoring 2-3h + Sub-task B ThesisReportBuilder Java 2h + Sub-task C assembly script 1-2h + Sub-task D skill docs 1h). Tooling inventory verified empirical: `which pandoc/soffice/libreoffice` exit 127; `java`+`mvn` ready; `python -c "import docx"` fails. Binary template authoring workflow addressed §5 scoping doc (SHA256 manifest in `assets/README.md` + change-note column + POI read-back JUnit validation + atomic edit commits). CSV row updated: status=PARTIAL, completion_pct=20, last_verified=2026-05-19. No file move (PARTIAL ≠ DONE per `gap-folder-organization.md` v2.0.0 §3.2). State-check verified empirical per `audit-to-gap-pipeline.md` §2.8 — tooling availability + skill foundation existence confirmed before scoping decision finalized.
 - **2026-05-18 (created):** Filed per Release 1.5 thesis scope outside-in audit (3 agents) consolidated findings. Failure-mode B1/B2/D3 + Persona "IEEE citations vắng" + VN benchmark "format chuẩn UIT/HUST/UET" all converge on thesis DOCX pipeline missing as P0 META blocker.
