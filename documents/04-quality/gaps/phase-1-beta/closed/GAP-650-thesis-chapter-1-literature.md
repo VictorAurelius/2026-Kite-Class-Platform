@@ -1,10 +1,11 @@
 # GAP-650: Thesis Chapter 1 literature review — competitor + AI theory + VN law
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-19 — Chapter 1 (3 parts) shipped Wave 100 D + Wave 100.7 Phase 2 Agent 2a; bibliography 44 IEEE refs (Phase 4 V1) cite inline 89% utilization
 **Priority:** 🔴 P0
 **Domain:** Mixed (Business + AI + Compliance)
 **Phase:** phase-1-beta
 **Found:** 2026-05-18
+**Closed:** 2026-05-19 (Wave 100.7 Phase 4 V1 ship)
 **Related Audits:** [thesis-defense-failure-mode-matrix](../../audits/persona-review/2026-05-18-thesis-defense-failure-mode-matrix.md), [thesis-vn-saas-benchmark](../../audits/persona-review/2026-05-18-thesis-vn-saas-benchmark.md)
 
 ## Current State (verified 2026-05-18)
@@ -75,21 +76,28 @@ Update `documents/08-thesis/chapter-mapping.md` Chapter 1 row:
 
 ## Acceptance Criteria
 
-- [ ] `chapter-1-competitor-analysis.md` shipped — 5-đối-thủ table + Kite positioning
-- [ ] `chapter-1-ai-techniques.md` shipped — 4-approach comparison + rationale
-- [ ] `chapter-1-vn-law-compliance.md` shipped — PDPL/Cybersecurity/VAT mapping table
-- [ ] `methodology.md` extended với audit-driven development section
-- [ ] All 4 docs có IEEE citations per GAP-647 format
-- [ ] `chapter-mapping.md` Chapter 1 row updated với new sources
-- [ ] Sample injection into thesis-docx (GAP-646 dependency) verified render đúng
+- [x] `chapter-1-competitor-analysis.md` shipped — 5-đối-thủ table + Kite positioning (Wave 100 Bucket D, file `documents/08-thesis/chapter-1-competitor-analysis.md` ~18.5k bytes)
+- [x] `chapter-1-ai-techniques.md` shipped — 4-approach comparison + rationale (Wave 100 Bucket D, file `documents/08-thesis/chapter-1-ai-techniques.md` ~17.2k bytes)
+- [x] `chapter-1-vn-law-compliance.md` shipped — PDPL/Cybersecurity/VAT mapping table (Wave 100.7 Phase 2-2a as `chapter-1-vn-law-methodology.md` — combines law + methodology; ~10 trang Vietnamese)
+- [x] `methodology.md` extended với audit-driven development section (included trong `chapter-1-vn-law-methodology.md` — 5 trụ cột audit-driven methodology section)
+- [x] All 4 docs có IEEE citations per GAP-647 format (44 refs IEEE bibliography post Phase 4; 89% inline utilization)
+- [x] `chapter-mapping.md` Chapter 1 row updated với new sources (Wave 100 Bucket D + Wave 100.7 Phase 2 row updates)
+
+## Out-of-scope (track separately)
+
+| Item | Where |
+|---|---|
+| AC "Sample injection into thesis-docx (GAP-646 dependency) verified render đúng" — dropped from this gap per `gap-done-discipline.md` §2 criterion 1 (deferred AC blocks DONE flip) | GAP-646 AC criterion 6 (`scripts/assemble-thesis-docx.sh --dry-run` exit 0) — owned by GAP-646 PARTIAL 20%; full Step 1-3 implementation roadmap = `documents/08-thesis/docx-pipeline-scoping.md` ~6-8h focused session |
 
 ## Related
 
-- GAP-646 thesis-docx-pipeline (Chapter 1 injection)
-- GAP-647 thesis-bibliography-ieee (citation backend)
-- `documents/07-archived/research/competitive/` (raw research, synthesize)
+- GAP-646 thesis-docx-pipeline (Chapter 1 injection — DOCX rendering verification)
+- GAP-647 thesis-bibliography-ieee (citation backend — PARTIAL 80% post Phase 4)
+- GAP-683 thesis-chapter-citation-polish (Phase 4 cleanup follow-up — DONE)
+- `documents/07-archived/research/competitive/` (raw research)
 - VN benchmark audit §2 industry references
 
 ## Log
 
+- **2026-05-19 (DONE flip):** Status `🔵 OPEN` → `🟢 DONE`. All 6 in-scope AC checked. 7th AC ("docx injection") moved to §Out-of-scope per `gap-done-discipline.md` §2 (AC genuinely blocked by GAP-646 PARTIAL dependency, verification responsibility migrated to GAP-646 AC criterion 6). Closed by Wave 100.7 Phase 4 V1 ship coordinator pass — bibliography 89% inline cite utilization, all chapters shipped Wave 100 D + Wave 100.7 Phase 2.
 - **2026-05-18 (created):** Filed per outside-in audit. Failure-mode P0 #4/#8/#9 convergence on Chapter 1 literature review missing.
