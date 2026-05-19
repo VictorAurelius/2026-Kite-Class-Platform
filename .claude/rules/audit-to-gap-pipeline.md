@@ -7,9 +7,9 @@ paths:
 # Audit → Gap → Fix Pipeline
 
 **Priority:** 🟠 MANDATORY — audit findings governance
-**Version:** 1.4.2
+**Version:** 1.4.3
 **Created:** 2026-04-16
-**Last-Reviewed:** 2026-05-14
+**Last-Reviewed:** 2026-05-19
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.4.1 PATCH self-approve per `rule-change-process.md` §5; §2.8 step 0 added — "Canonical-status lookup first" recommends querying `gap-status.csv` via `query-gaps.sh` before heavier state-check, per `gap-architecture-v2.md` Phase 4 integration. No constraint change; additive efficiency note. v1.4.0 (kept): adds §2.8 Fix-Time State-Check extending state-check family from gap-filing (§2.5) + wave-planning (§2.6) + decision-doc (§2.7) to **fix pick-up time**; paired same-PR with memory `feedback_gap_state_check_required.md` extension + worked self-test on 2026-05-11 GAP-450 session per §6.5 Enforcement Parity Mandate; no constraint loosening. v1.3.0 (kept): paired same-PR with PR-template Output Review Checklist row + memory `feedback_decision_doc_code_sync.md` + worked self-test on 2026-05-09 GAP-458 → GAP-459 cascade per §6.5 Enforcement Parity Mandate)
 **Applies to:** Every audit run (UI /128, Quality /100, Security /100, Performance /100, API Contract /100, Ops Readiness /100, Business Logic /100), every wave plan drafting, every decision-doc PR (gap closure with config-shaped value, ADR, runbook with new domain/email/brand/env-var/region), and the gap files / fix PRs they produce
 
@@ -78,6 +78,10 @@ Expected outcomes + how to proceed:
 **If filing 🟡 PARTIAL**, the gap file MUST contain:
 - A `## Current State (verified YYYY-MM-DD)` section with file paths + line counts (or symbol names) as evidence
 - A Log entry: "Scope revised after state-check. Found: ..."
+
+**Domain-specific CI detectors (active 2026-05-19, Wave 99C closes deferred-detector debt per GAP-675):**
+- **Business domain 3-layer completeness:** `scripts/check-3-layer-completeness.sh` (CI job `three-layer-completeness`) — verify every `documents/01-business/{project}/{domain}/` has all 3 layers (rules.md + use-cases.md + api-contract.md). Closes Wave 92 GAP-640 + Wave 98 GAP-664 recurrence #2.
+- **Cross-layer contract drift:** `scripts/check-cross-layer-contract-drift.sh` (CI job `cross-layer-contract-drift`) — verify Java `@RequestMapping` URL literals match `api-contract.md` Endpoint declarations. Closes Wave 98 GAP-662 incident class.
 
 **Anti-pattern detected 2026-04-20:** GAP-190 (SEO) and GAP-197 (attendance calendar) were filed without state-check; both had substantial implementations already (sitemap/robots/OG/JsonLd/blog MDX; enhanced-attendance-calendar 315 LOC PR 3.8.1). Both required follow-up rewrite PRs. Rule added to prevent recurrence.
 
@@ -418,6 +422,7 @@ Sau khi meta-boost áp dụng, fix gaps theo thứ tự:
 
 ## 6. Log
 
+- **2026-05-19** (v1.4.3): PATCH — Wave 99C added §2.5 "Domain-specific CI detectors" subsection referencing 2 new CI scripts shipped same PR: `check-3-layer-completeness.sh` (closes Wave 92+98 GAP-664 recurrence #2 — business 3-layer completeness) + `check-cross-layer-contract-drift.sh` (closes Wave 98 GAP-662 — Java @RequestMapping vs api-contract.md URL match). Closes deferred-detector debt per GAP-675 META-META audit. No constraint loosening — additive enforcement layer. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-05-14** (v1.4.2): PATCH — added `paths:` frontmatter per Wave 73 Bucket A1 path-scope. No constraint change; rule auto-loads only when matching files in context.
 - **2026-05-11** (v1.4.1): PATCH — added §2.8 step 0 "Canonical-status lookup first" recommending `bash scripts/query-gaps.sh <prefix>` against `gap-status.csv` before heavier state-check. Reduces token cost ~50× per session per `gap-architecture-v2.md` token analysis. Closes the last remaining Phase 4 follow-up from `gap-architecture-v2.md` §10 for this rule. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — additive efficiency note, no constraint change).
 
