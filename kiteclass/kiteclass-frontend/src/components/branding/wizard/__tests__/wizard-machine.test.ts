@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { initialState, reducer } from '../wizard-machine';
+import { DEFAULT_BRAND_INPUTS } from '../types';
 
 describe('wizard-machine', () => {
   it('starts at welcome step with empty inputs', () => {
@@ -133,6 +134,85 @@ describe('wizard-machine', () => {
     const next = reducer(err, { type: 'SUBMIT' });
     expect(next.name).toBe('submitting');
     expect(next.context.errorMessage).toBeUndefined();
+  });
+
+  // ─── GAP-287: USE_DEFAULTS escape ramp ───────────────────────────────
+  describe('USE_DEFAULTS — Sử dụng mặc định escape ramp (GAP-287)', () => {
+    it('USE_DEFAULTS from logo (step 2) → submitting với defaults', () => {
+      let s = initialState('FREE');
+      s = reducer(s, { type: 'SET_SEGMENT', segment: 'K12' });
+      s = reducer(s, { type: 'NEXT' }); // logo
+
+      s = reducer(s, { type: 'USE_DEFAULTS' });
+
+      expect(s.name).toBe('submitting');
+      // segment user đã chọn được giữ lại
+      expect(s.context.inputs.segment).toBe('K12');
+      // unset fields được fill bằng defaults
+      expect(s.context.inputs.audiences).toEqual(DEFAULT_BRAND_INPUTS.audiences);
+      expect(s.context.inputs.tone).toBe(DEFAULT_BRAND_INPUTS.tone);
+      expect(s.context.inputs.templateId).toBe(DEFAULT_BRAND_INPUTS.templateId);
+    });
+
+    it('USE_DEFAULTS from audience (step 3) → submitting với user audiences preserved', () => {
+      let s = initialState('FREE');
+      s = reducer(s, { type: 'SET_SEGMENT', segment: 'CENTER' });
+      s = reducer(s, { type: 'NEXT' }); // logo
+      s = reducer(s, { type: 'NEXT' }); // audience
+      s = reducer(s, { type: 'TOGGLE_AUDIENCE', audience: 'parents' });
+
+      s = reducer(s, { type: 'USE_DEFAULTS' });
+
+      expect(s.name).toBe('submitting');
+      expect(s.context.inputs.segment).toBe('CENTER');
+      // User-provided audience giữ nguyên (KHÔNG bị override bằng defaults)
+      expect(s.context.inputs.audiences).toEqual(['parents']);
+      // Unset tone + templateId được fill defaults
+      expect(s.context.inputs.tone).toBe(DEFAULT_BRAND_INPUTS.tone);
+      expect(s.context.inputs.templateId).toBe(DEFAULT_BRAND_INPUTS.templateId);
+    });
+
+    it('USE_DEFAULTS from tone (step 4) → submitting; tone user-chose preserved', () => {
+      let s = initialState('PRO');
+      s = reducer(s, { type: 'SET_SEGMENT', segment: 'UNIV' });
+      s = reducer(s, { type: 'TOGGLE_AUDIENCE', audience: 'teachers' });
+      s = reducer(s, { type: 'SET_TONE', tone: 'academic' });
+
+      s = reducer(s, { type: 'USE_DEFAULTS' });
+
+      expect(s.name).toBe('submitting');
+      expect(s.context.inputs.tone).toBe('academic'); // user chose → preserved
+      expect(s.context.inputs.templateId).toBe(DEFAULT_BRAND_INPUTS.templateId); // unset → default
+    });
+
+    it('USE_DEFAULTS from template (step 5) → submitting', () => {
+      let s = initialState('FREE');
+      s = reducer(s, { type: 'SET_SEGMENT', segment: 'K12' });
+      s = reducer(s, { type: 'TOGGLE_AUDIENCE', audience: 'students' });
+      s = reducer(s, { type: 'SET_TONE', tone: 'friendly' });
+
+      s = reducer(s, { type: 'USE_DEFAULTS' });
+
+      expect(s.name).toBe('submitting');
+      expect(s.context.inputs.templateId).toBe(DEFAULT_BRAND_INPUTS.templateId);
+    });
+
+    it('USE_DEFAULTS clears errorMessage (skip after retry path)', () => {
+      let s = initialState('FREE');
+      s.context.errorMessage = 'previous failure';
+
+      s = reducer(s, { type: 'USE_DEFAULTS' });
+
+      expect(s.context.errorMessage).toBeUndefined();
+    });
+
+    it('USE_DEFAULTS fills segment default khi user chưa pick (defensive)', () => {
+      const s = initialState('FREE');
+      // Note: button hidden trên welcome trong UI nhưng reducer phải an toàn
+      const next = reducer(s, { type: 'USE_DEFAULTS' });
+      expect(next.name).toBe('submitting');
+      expect(next.context.inputs.segment).toBe(DEFAULT_BRAND_INPUTS.segment);
+    });
   });
 
   it('RESET returns to initial state keeping tier', () => {
