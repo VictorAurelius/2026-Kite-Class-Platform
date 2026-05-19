@@ -13,7 +13,7 @@ status: living
 **Rule:** [`.claude/rules/production-env-config-registry.md`](../../.claude/rules/production-env-config-registry.md)
 **Audit:** `bash scripts/audit-env-coverage.sh`
 
-Single source of truth listing every `${VAR:<default>}` env-var reference whose default would not function in production, plus its override mechanism. Per rule §1, every suspect default MUST be overridden in production OR explicitly listed as `ACCEPTED-default` with rationale.
+Nguồn dữ liệu chính thức duy nhất liệt kê mọi reference env-var `${VAR:<default>}` mà default không hoạt động được trong production, kèm cơ chế override. Per rule §1, mọi suspect default PHẢI được override trong production HOẶC explicit liệt kê là `ACCEPTED-default` kèm rationale.
 
 ## Status legend
 

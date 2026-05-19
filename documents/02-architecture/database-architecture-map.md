@@ -15,7 +15,7 @@ related:
 
 # Database Architecture Map
 
-**TL;DR:** Tài liệu này consolidate toàn bộ database architecture cho KiteHub Platform — 91 tables phân chia giữa `kitehub-subscription` (32 tables, control-plane) và `kiteclass-core` (59 tables, multi-tenant domain) — kèm FK graph, RLS coverage (51/91 tables = 56%), Flyway migration history (114 V-files), tenant_id propagation map, sizing baseline Phase 1 BETA, và Postgres-specific type inventory (15 JSONB columns + 6 Testcontainers IT). Sister-doc của [`multi-tenant-architecture.md`](multi-tenant-architecture.md) — file này KHÔNG duplicate RLS narrative, chỉ extend §3 với entity-level map.
+**TL;DR:** Tài liệu này hợp nhất toàn bộ database architecture cho KiteHub Platform — 91 table phân chia giữa `kitehub-subscription` (32 table, control-plane) và `kiteclass-core` (59 table, multi-tenant domain) — kèm FK graph, RLS coverage (51/91 table = 56%), lịch sử Flyway migration (114 V-file), tenant_id propagation map, sizing baseline Phase 1 BETA, và inventory type Postgres-specific (15 JSONB column + 6 Testcontainers IT). Sister-doc của [`multi-tenant-architecture.md`](multi-tenant-architecture.md) — file này KHÔNG duplicate RLS narrative, chỉ mở rộng §3 với map entity-level.
 
 **Audience:** Backend dev (debug "table X có RLS chưa?"), SRE (capacity planning), tech lead (compliance review).
 
@@ -23,9 +23,9 @@ related:
 
 ## Section 1 — Entity Catalog
 
-91 tables tổng cộng, phân chia theo owner service:
+91 table tổng cộng, phân chia theo service owner:
 
-### 1.1 `kitehub-subscription` (32 tables — control-plane / shared infrastructure)
+### 1.1 `kitehub-subscription` (32 table — control-plane / shared infrastructure)
 
 | # | Table | tenant column | RLS enabled? | Phase 1 BETA row estimate |
 |:--|---|:---:|:---:|---:|
@@ -62,11 +62,11 @@ related:
 | 31 | `login_audit_log` | TBD | ❌ (audit immutable) | ~1k-10k |
 | 32 | `admin_audit_log(s)` | (admin scope) | ✅ (immutable per V50) | ~100-1k |
 
-Phụ trợ entities (V37-V51 add columns/indexes inline): `recovery_codes`, `impersonation_audit_log`, account_lockout columns (trên `users`).
+Entity phụ trợ (V37-V51 thêm column/index inline): `recovery_codes`, `impersonation_audit_log`, các column account_lockout (trên `users`).
 
-### 1.2 `kiteclass-core` (59 tables — multi-tenant domain)
+### 1.2 `kiteclass-core` (59 table — multi-tenant domain)
 
-Mọi tenant-scoped tables dùng column `instance_id` (alias semantic của `tenant_id` — per [multi-tenant §1](multi-tenant-architecture.md)). V58 ENABLE + FORCE RLS trên 51 tables.
+Mọi table tenant-scoped dùng column `instance_id` (alias semantic của `tenant_id` — per [multi-tenant §1](multi-tenant-architecture.md)). V58 ENABLE + FORCE RLS trên 51 table.
 
 | # | Table | RLS enabled? | Phase 1 BETA row estimate |
 |:--|---|:---:|---:|
@@ -130,25 +130,25 @@ Mọi tenant-scoped tables dùng column `instance_id` (alias semantic của `ten
 | 58 | `student_badges` | ⚠️ M2M join | ~100-1k per tenant |
 | 59 | `teacher_courses` | ⚠️ M2M join | ~50-500 per tenant |
 
-### 1.3 RLS Coverage Summary
+### 1.3 Tổng kết RLS Coverage
 
-- **Total tables:** 91 (32 kh-sub + 59 kc-core)
+- **Tổng số table:** 91 (32 kh-sub + 59 kc-core)
 - **RLS enabled:** 51 (12 kh-sub non-forced + 39 kc-core forced — per V58 + V34)
-  - kh-sub: 12 (`subscriptions`, `branding_jobs`, etc. — non-forced vì control-plane service không propagate `TenantContext`)
-  - kc-core: 39 (FORCED — per V58 lists 51 candidates, ~39 actual deploy after `IF NOT EXISTS` skip)
-- **Auto-excluded (intentional):** ~30
-  - `instances` (root tenant table — no parent)
-  - M2M join tables (cascade via FK)
-  - Shared catalogs (`branding_templates`, `system_config`)
-  - Audit immutable (`*_audit_log` — separate immutability policy)
+  - kh-sub: 12 (`subscriptions`, `branding_jobs`, v.v. — non-forced vì service control-plane không propagate `TenantContext`)
+  - kc-core: 39 (FORCED — V58 list 51 ứng viên, ~39 deploy thực tế sau khi `IF NOT EXISTS` skip)
+- **Auto-excluded (cố ý):** ~30
+  - `instances` (table tenant gốc — không có parent)
+  - Table M2M join (cascade qua FK)
+  - Catalog chia sẻ (`branding_templates`, `system_config`)
+  - Audit immutable (`*_audit_log` — policy immutability riêng)
   - Per-user/per-request (`idempotency_keys`, `oauth_attempts`)
-- **RLS Coverage %:** 56% (51/91); 89% nếu loại trừ auto-excluded scope (51/57 tenant-scoped tables)
+- **RLS Coverage %:** 56% (51/91); 89% nếu loại trừ scope auto-excluded (51/57 table tenant-scoped)
 
 ---
 
 ## Section 2 — FK Graph (Mermaid erDiagram)
 
-Sample 25 high-value entities + relationships (KHÔNG exhaustive — full graph 91 tables would overflow render). Auto-gen full FK graph từ Flyway parser tracked Wave 100+ follow-up (xem §7).
+Sample 25 entity + relationship giá trị cao (KHÔNG exhaustive — full graph 91 table sẽ overflow render). Auto-gen full FK graph từ Flyway parser tracked Wave 100+ follow-up (xem §7).
 
 ```mermaid
 erDiagram
@@ -195,7 +195,7 @@ erDiagram
     semesters ||--o{ classes : "spans"
 ```
 
-**Top FK targets** (most-referenced entities):
+**Top FK target** (entity được reference nhiều nhất):
 
 | Rank | Target table | Inbound FK count |
 |:---:|---|:---:|
@@ -208,13 +208,13 @@ erDiagram
 | 7 | `parents` | 3 |
 | 8 | `academic_years` | 3 |
 
-`students` là central entity của KiteClass domain — hầu hết FE/BE feature paths đi qua students; tối ưu index trên `(instance_id, id)` critical cho query perf.
+`students` là entity trung tâm của domain KiteClass — hầu hết feature path FE/BE đi qua students; index tối ưu trên `(instance_id, id)` critical cho perf query.
 
 ---
 
 ## Section 3 — Migration History Index
 
-Tổng **114 Flyway V-files** active (54 kh-sub + 60 kc-core), 0 trong các non-DB services (kitehub-platform, branding, email, admin, base, gateway — đều dùng kh-subscription DB hoặc stateless).
+Tổng **114 V-file Flyway** active (54 kh-sub + 60 kc-core), 0 trong các service non-DB (kitehub-platform, branding, email, admin, base, gateway — đều dùng DB kh-subscription hoặc stateless).
 
 | Service | V-file count | Latest V | Breaking changes |
 |---|:---:|:---:|:---:|
@@ -228,53 +228,53 @@ Tổng **114 Flyway V-files** active (54 kh-sub + 60 kc-core), 0 trong các non-
 | `kitehub-gateway` | 0 | — | 0 |
 | **Total** | **114** | — | **5** |
 
-### 3.1 Breaking change migrations (require data migration / forward-only)
+### 3.1 Migration breaking change (cần data migration / forward-only)
 
-| V-file | Service | Change type | Data migration risk |
+| V-file | Service | Loại thay đổi | Rủi ro data migration |
 |---|---|---|---|
-| `V15__alter_branding_templates_theme_config_to_text.sql` | kh-sub | ALTER COLUMN TYPE | Low — text expansion |
-| `V22__generalize_migration_outbox_to_subscription_outbox.sql` | kh-sub | RENAME TO | Medium — rename touches references |
-| `V42__login_audit_fingerprint_varchar.sql` | kh-sub | ALTER COLUMN TYPE | Low — inet → varchar(45) |
-| `V46__align_audit_columns_to_bigint.sql` | kh-sub | ALTER COLUMN TYPE | Medium — int → bigint width |
-| `V52__login_audit_ip_varchar.sql` | kh-sub | ALTER COLUMN TYPE | Low — same pattern V42 |
+| `V15__alter_branding_templates_theme_config_to_text.sql` | kh-sub | ALTER COLUMN TYPE | Thấp — text expansion |
+| `V22__generalize_migration_outbox_to_subscription_outbox.sql` | kh-sub | RENAME TO | Trung bình — rename chạm reference |
+| `V42__login_audit_fingerprint_varchar.sql` | kh-sub | ALTER COLUMN TYPE | Thấp — inet → varchar(45) |
+| `V46__align_audit_columns_to_bigint.sql` | kh-sub | ALTER COLUMN TYPE | Trung bình — int → bigint width |
+| `V52__login_audit_ip_varchar.sql` | kh-sub | ALTER COLUMN TYPE | Thấp — cùng pattern V42 |
 
-**Pattern observation:** Breaking changes cluster trên audit log columns (V42/V46/V52) — root cause là Postgres INET type không match Hibernate varchar binding natively. Mitigation pattern: switch sang VARCHAR(45) cho IPv4-mapped-IPv6 max length. Xem [§6 Postgres-Specific Type Inventory](#section-6--postgres-specific-type-inventory) cho IT coverage gap.
+**Pattern observation:** Breaking change cluster trên các column audit log (V42/V46/V52) — root cause là Postgres INET type không khớp Hibernate varchar binding natively. Pattern mitigation: switch sang VARCHAR(45) cho IPv4-mapped-IPv6 max length. Xem [§6 Postgres-Specific Type Inventory](#section-6--postgres-specific-type-inventory) cho gap IT coverage.
 
-### 3.2 Recent significant migrations (last 10 per service)
+### 3.2 Migration đáng kể gần đây (10 lần cuối per service)
 
 **kh-subscription V45-V54 (Wave 56-92):**
-- V45-V48: Staff invitations + RBAC seed + impersonation audit
-- V49: Staff invitation audit log
-- V50: RLS admin bypass NULL force-fail (admin_audit_logs immutability)
-- V51-V52: OAuth attempts + login audit IP type fix
-- V53: Beta request abort cleanup index
-- V54: Admin audit log enrichment (5 cols + composite index)
+- V45-V48: Staff invitation + RBAC seed + impersonation audit
+- V49: Audit log staff invitation
+- V50: RLS admin bypass NULL force-fail (immutability `admin_audit_logs`)
+- V51-V52: OAuth attempt + fix type IP login audit
+- V53: Index cleanup beta request abort
+- V54: Enrichment admin audit log (5 column + composite index)
 
 **kc-core V51-V60 (Wave 56-92):**
-- V57: (unknown — verify)
-- V58: ENABLE + FORCE RLS trên 51 tables (GAP-466 Phase 1)
+- V57: (chưa rõ — cần verify)
+- V58: ENABLE + FORCE RLS trên 51 table (GAP-466 Phase 1)
 - V59: RLS admin bypass + NULL force-fail
-- V60: admin_audit_logs (multi-tenant audit immutable)
+- V60: `admin_audit_logs` (audit multi-tenant immutable)
 
 ---
 
 ## Section 4 — Tenant_id Propagation Map
 
-Extends [`multi-tenant-architecture.md` §3](multi-tenant-architecture.md) — KHÔNG duplicate RLS narrative đầy đủ. Section này focus trên **column naming patterns** + **RLS policy snippet** per cluster.
+Mở rộng [`multi-tenant-architecture.md` §3](multi-tenant-architecture.md) — KHÔNG duplicate đầy đủ RLS narrative. Section này focus trên **pattern naming column** + **snippet RLS policy** per cluster.
 
-### 4.1 Column naming conventions
+### 4.1 Convention naming column
 
-| Convention | Used in | Tables |
+| Convention | Dùng trong | Table |
 |---|---|---|
-| `instance_id UUID NOT NULL` | kh-sub (11 tables) + kc-core (51 tables FORCED + ~8 M2M cascade) | 70 tables |
-| `tenant_id UUID NOT NULL` | kh-sub semantic alias (3 tables) | 3 tables (`consent_record`, `onboarding_progress`, `staff_invitation_audit_log`) |
-| (no tenant column) | Control-plane shared catalogs + audit logs | ~17 tables |
+| `instance_id UUID NOT NULL` | kh-sub (11 table) + kc-core (51 table FORCED + ~8 M2M cascade) | 70 table |
+| `tenant_id UUID NOT NULL` | alias semantic kh-sub (3 table) | 3 table (`consent_record`, `onboarding_progress`, `staff_invitation_audit_log`) |
+| (không có column tenant) | Catalog chia sẻ control-plane + audit log | ~17 table |
 
-`tenant_id` = `instance_id` semantically per [multi-tenant §1](multi-tenant-architecture.md). Column alias drift là technical debt — GAP candidate Wave 100+ cho unification (rename `tenant_id` → `instance_id` HOẶC standardize new tables on `tenant_id`).
+`tenant_id` = `instance_id` về mặt semantic per [multi-tenant §1](multi-tenant-architecture.md). Drift alias column là technical debt — ứng viên GAP Wave 100+ cho unification (rename `tenant_id` → `instance_id` HOẶC standardize table mới dùng `tenant_id`).
 
-### 4.2 RLS policy snippets per cluster
+### 4.2 Snippet RLS policy per cluster
 
-**Cluster A — `instance_id`-keyed (kh-sub non-forced, 11 tables):**
+**Cluster A — keyed theo `instance_id` (kh-sub non-forced, 11 table):**
 
 ```sql
 ALTER TABLE <table> ENABLE ROW LEVEL SECURITY;
@@ -284,7 +284,7 @@ CREATE POLICY tenant_isolation ON <table>
   WITH CHECK (instance_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid);
 ```
 
-**Cluster B — `instance_id`-keyed FORCED (kc-core, 51 tables):**
+**Cluster B — keyed theo `instance_id` FORCED (kc-core, 51 table):**
 
 ```sql
 ALTER TABLE <table> ENABLE ROW LEVEL SECURITY;
@@ -294,11 +294,11 @@ CREATE POLICY tenant_isolation ON <table>
   WITH CHECK (instance_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid);
 ```
 
-**Cluster C — `tenant_id`-keyed (kh-sub non-forced, 1 table `consent_record`):**
+**Cluster C — keyed theo `tenant_id` (kh-sub non-forced, 1 table `consent_record`):**
 
-Identical pattern with `tenant_id` column reference.
+Pattern giống hệt nhưng reference column `tenant_id`.
 
-**Cluster D — admin_audit_logs (immutable per V50 + V60):**
+**Cluster D — `admin_audit_logs` (immutable per V50 + V60):**
 
 ```sql
 ALTER TABLE admin_audit_logs ENABLE ROW LEVEL SECURITY;
@@ -309,59 +309,59 @@ CREATE POLICY admin_audit_no_update ON admin_audit_logs FOR UPDATE USING (false)
 CREATE POLICY admin_audit_no_delete ON admin_audit_logs FOR DELETE USING (false);
 ```
 
-Audit immutability (no UPDATE/DELETE) là PDPL Art 11 compliance — tampering prevention.
+Immutability cho audit (cấm UPDATE/DELETE) là compliance PDPL Art 11 — ngăn tampering.
 
-### 4.3 NULL force-fail pattern (Wave 85)
+### 4.3 Pattern NULL force-fail (Wave 85)
 
-`NULLIF(current_setting('app.current_tenant_id', true), '')::uuid` — nếu GUC unset hoặc empty string, expression evaluates NULL → policy predicate evaluates NULL → row invisible (default-deny preserved). Đây là defense-in-depth Layer 4 chống lại bug code quên `SET LOCAL app.current_tenant_id` trong transaction.
+`NULLIF(current_setting('app.current_tenant_id', true), '')::uuid` — nếu GUC unset hoặc empty string, expression evaluate ra NULL → policy predicate evaluate NULL → row vô hình (giữ default-deny). Đây là defense-in-depth Layer 4 chống bug code quên `SET LOCAL app.current_tenant_id` trong transaction.
 
-Per [multi-tenant §Defense-in-depth](multi-tenant-architecture.md) — Layer 1 (gateway JWT) + Layer 2 (@PreAuthorize) + Layer 3 (TenantContext propagate) + Layer 4 (RLS NULL force-fail) + Layer 5 (FK column NOT NULL).
+Per [multi-tenant §Defense-in-depth](multi-tenant-architecture.md) — Layer 1 (gateway JWT) + Layer 2 (@PreAuthorize) + Layer 3 (propagate TenantContext) + Layer 4 (RLS NULL force-fail) + Layer 5 (FK column NOT NULL).
 
 ---
 
-## Section 5 — DB Sizing Baseline (Phase 1 BETA → Phase 2 trajectory)
+## Section 5 — DB Sizing Baseline (quỹ đạo Phase 1 BETA → Phase 2)
 
-**Phase 1 BETA assumptions:**
-- 5-10 beta tenants (per ROADMAP §🎯)
-- ~50-100 students per tenant average
-- ~5-10 classes per tenant
-- ~2-3 month active history before Phase 2 cutover
+**Giả định Phase 1 BETA:**
+- 5-10 beta tenant (per ROADMAP §🎯)
+- ~50-100 student per tenant trung bình
+- ~5-10 class per tenant
+- ~2-3 tháng active history trước cutover Phase 2
 
-### 5.1 Top-10 row count drivers
+### 5.1 Top-10 driver row count
 
-| Rank | Table | Rows per tenant | Total 10-tenant estimate | Growth rate |
+| Rank | Table | Row per tenant | Tổng ước tính 10-tenant | Tốc độ tăng |
 |:---:|---|---:|---:|:---:|
-| 1 | `attendance` | ~10k-100k | ~100k-1M | High (daily inserts) |
-| 2 | `grades` | ~1k-10k | ~10k-100k | Medium (weekly) |
-| 3 | `subject_grades` | ~500-5k | ~5k-50k | Medium |
-| 4 | `submissions` | ~500-5k | ~5k-50k | Medium |
-| 5 | `student_points` | ~1k-10k | ~10k-100k | High (event-driven) |
-| 6 | `parent_read_audit_log` | ~500-5k | ~5k-50k | High (read event) |
-| 7 | `email_logs` | ~1k-10k | ~10k-100k (kh-sub scope) | Medium |
-| 8 | `outbox_events` | ~100-1k | ~1k-10k | Medium (retention 7-30d) |
-| 9 | `audit_log` | ~1k-10k | ~10k-100k | High (immutable) |
-| 10 | `idempotency_keys` | ~1k-10k | ~10k-100k (kh-sub scope) | High (TTL 24h) |
+| 1 | `attendance` | ~10k-100k | ~100k-1M | Cao (insert hàng ngày) |
+| 2 | `grades` | ~1k-10k | ~10k-100k | Trung bình (hàng tuần) |
+| 3 | `subject_grades` | ~500-5k | ~5k-50k | Trung bình |
+| 4 | `submissions` | ~500-5k | ~5k-50k | Trung bình |
+| 5 | `student_points` | ~1k-10k | ~10k-100k | Cao (event-driven) |
+| 6 | `parent_read_audit_log` | ~500-5k | ~5k-50k | Cao (event read) |
+| 7 | `email_logs` | ~1k-10k | ~10k-100k (scope kh-sub) | Trung bình |
+| 8 | `outbox_events` | ~100-1k | ~1k-10k | Trung bình (retention 7-30d) |
+| 9 | `audit_log` | ~1k-10k | ~10k-100k | Cao (immutable) |
+| 10 | `idempotency_keys` | ~1k-10k | ~10k-100k (scope kh-sub) | Cao (TTL 24h) |
 
-**Total Phase 1 BETA DB size estimate:** ~50-200 MB (50% growth/quarter trajectory)
-**Phase 2 trajectory (50-200 tenants):** ~5-20 GB — bắt đầu cần read-replica + partition strategy cho top-3 hot tables.
+**Ước tính tổng kích thước DB Phase 1 BETA:** ~50-200 MB (quỹ đạo tăng 50%/quý)
+**Quỹ đạo Phase 2 (50-200 tenant):** ~5-20 GB — bắt đầu cần read-replica + strategy partition cho top-3 hot table.
 
-### 5.2 Index hot-path coverage
+### 5.2 Coverage index hot-path
 
-Critical indexes shipped per migration history (V31, V46, V53, V54):
+Index critical đã ship per lịch sử migration (V31, V46, V53, V54):
 - `branding_jobs(instance_id, status)` — V31
-- `audit columns BIGINT` — V46
-- `beta_request abort cleanup` — V53
-- `admin_audit_log composite (instance_id, occurred_at DESC)` — V54
+- Các column audit BIGINT — V46
+- Cleanup beta_request abort — V53
+- Composite `admin_audit_log (instance_id, occurred_at DESC)` — V54
 
-Gap: `students(instance_id, id)` composite index — verify Wave 100+ (top FK target, hot path cho mọi feature query).
+Gap: composite index `students(instance_id, id)` — verify Wave 100+ (top FK target, hot path cho mọi query feature).
 
 ---
 
 ## Section 6 — Postgres-Specific Type Inventory
 
-Per [`postgres-specific-type-testcontainers.md`](../../.claude/rules/postgres-specific-type-testcontainers.md) — Postgres-specific types KHÔNG match H2 + Mockito tests; cần Testcontainers IT cho fidelity.
+Per [`postgres-specific-type-testcontainers.md`](../../.claude/rules/postgres-specific-type-testcontainers.md) — type Postgres-specific KHÔNG khớp test H2 + Mockito; cần Testcontainers IT cho fidelity.
 
-### 6.1 Type inventory
+### 6.1 Inventory type
 
 | Type | Usage count | Tables / Columns | Testcontainers IT covered? |
 |---|:---:|---|:---:|
@@ -374,73 +374,73 @@ Per [`postgres-specific-type-testcontainers.md`](../../.claude/rules/postgres-sp
 | `hstore` | 0 | (none) | N/A |
 | `interval` | TBD | Subscription billing periods possibly | TBD |
 
-### 6.2 Testcontainers IT coverage
+### 6.2 Coverage Testcontainers IT
 
-**Total Testcontainers @Testcontainers IT classes:** 6 (4 kh-sub + 2 kc-core — verify)
+**Tổng số class @Testcontainers IT:** 6 (4 kh-sub + 2 kc-core — cần verify)
 
-**Coverage gap analysis:**
-- 15 JSONB columns spread across ~10 entities
-- 6 IT cover ~3-4 JSONB hot paths (admin_audit_log, branding, outbox)
-- **Estimated coverage:** ~30-40% (3-4 of ~10 JSONB-using entities)
-- **Recommendation:** Add IT cho `moderation_queue`, `submissions.snapshot_json`, `students.parental_consent`, `class_schedule_slots.recurrence_rule` (high-value PDPL/business logic surfaces)
+**Phân tích coverage gap:**
+- 15 column JSONB rải trên ~10 entity
+- 6 IT cover ~3-4 hot path JSONB (admin_audit_log, branding, outbox)
+- **Coverage ước tính:** ~30-40% (3-4 trong ~10 entity dùng JSONB)
+- **Khuyến nghị:** Thêm IT cho `moderation_queue`, `submissions.snapshot_json`, `students.parental_consent`, `class_schedule_slots.recurrence_rule` (surface PDPL/business logic giá trị cao)
 
-### 6.3 INET → VARCHAR migration lessons
+### 6.3 Bài học migration INET → VARCHAR
 
-V42 (kh-sub fingerprint) + V52 (kh-sub IP) đã migrate `INET` → `VARCHAR(45)` do Hibernate binding mismatch (SQLState 42804 cast varchar→inet). Pattern lesson:
-- Postgres INET là semantically correct cho IP storage
-- Hibernate native binding requires `@JdbcTypeCode(SqlTypes.INET)` (Hibernate 6.2+) hoặc custom converter
-- Trade-off: VARCHAR(45) accept-friendly with Hibernate; loses Postgres INET indexing/containment query benefit
-- Verdict: For Phase 1 BETA, VARCHAR(45) acceptable; Phase 2 reconsider khi cần CIDR-range query
+V42 (fingerprint kh-sub) + V52 (IP kh-sub) đã migrate `INET` → `VARCHAR(45)` do Hibernate binding mismatch (SQLState 42804 cast varchar→inet). Pattern lesson:
+- Postgres INET là chính xác về semantic cho IP storage
+- Hibernate native binding yêu cầu `@JdbcTypeCode(SqlTypes.INET)` (Hibernate 6.2+) hoặc custom converter
+- Trade-off: VARCHAR(45) thân thiện với Hibernate; mất lợi ích indexing/containment query của Postgres INET
+- Verdict: Cho Phase 1 BETA, VARCHAR(45) chấp nhận được; Phase 2 reconsider khi cần CIDR-range query
 
 ---
 
-## Section 7 — Auto-gen Follow-up (Wave 100+ scope)
+## Section 7 — Follow-up auto-gen (scope Wave 100+)
 
-Per outside-in Benchmark agent recommendation (wave plan §1 Brainstorm Q3) — FK graph hand-maintain rủi ro drift sau ~3-6 months. Backstage-pattern auto-gen tooling exists:
+Per outside-in Benchmark agent recommendation (wave plan §1 Brainstorm Q3) — FK graph hand-maintain có rủi ro drift sau ~3-6 tháng. Tooling auto-gen pattern Backstage đã tồn tại:
 
-**Proposal: GAP-XXX — Auto-gen DB architecture map from Flyway parser**
+**Đề xuất: GAP-XXX — Auto-gen DB architecture map từ Flyway parser**
 
 Concept:
-- Parse Flyway V*.sql via SQL AST library (vd `sqlparse` Python, JSqlParser Java)
+- Parse Flyway V*.sql qua library SQL AST (vd `sqlparse` Python, JSqlParser Java)
 - Extract: CREATE TABLE → table list; FOREIGN KEY → edge list; @Column columnDefinition → type inventory
-- Emit Mermaid `erDiagram` block + tables for Sections 1, 2, 3, 6
-- Pre-commit hook re-run khi `db/migration/V*.sql` change
-- Output drift CI check: `documents/02-architecture/database-architecture-map.md` regenerated section matches generated baseline
+- Emit block Mermaid `erDiagram` + bảng cho Section 1, 2, 3, 6
+- Pre-commit hook re-run khi `db/migration/V*.sql` thay đổi
+- CI check drift output: section regenerate của `documents/02-architecture/database-architecture-map.md` khớp với baseline generated
 
-**Defer to Wave 100+:** Phase 1 BETA scope không cần auto-gen; baseline hand-write này đủ cho 5-10 tenant scale. Re-eval khi (a) 3rd manual refresh in 90 days (drift cost > automation cost), (b) >5 services có own DB migrations, (c) Backstage adoption decision.
+**Hoãn sang Wave 100+:** scope Phase 1 BETA chưa cần auto-gen; baseline hand-write này đủ cho scale 5-10 tenant. Re-eval khi (a) refresh manual lần 3 trong 90 ngày (chi phí drift > chi phí automation), (b) >5 service có DB migration riêng, (c) Quyết định adopt Backstage.
 
 ---
 
 ## Section 8 — Related Documents
 
-- **Sister architecture docs:**
-  - [`multi-tenant-architecture.md`](multi-tenant-architecture.md) — Tenant isolation defense-in-depth 5 layers (source of truth cho RLS narrative)
-  - [`kitehub-architecture.md`](kitehub-architecture.md) — kitehub-subscription + service catalog context
-  - [`kiteclass-architecture.md`](kiteclass-architecture.md) — kiteclass-core domain context
+- **Sister architecture doc:**
+  - [`multi-tenant-architecture.md`](multi-tenant-architecture.md) — Tenant isolation defense-in-depth 5 layer (nguồn dữ liệu chính thức cho RLS narrative)
+  - [`kitehub-architecture.md`](kitehub-architecture.md) — context kitehub-subscription + service catalog
+  - [`kiteclass-architecture.md`](kiteclass-architecture.md) — context domain kiteclass-core
 
-- **ADRs:**
-  - [`ADR-001-k12-data-model.md`](adr/ADR-001-k12-data-model.md) — k12 entity design rationale
+- **ADR:**
+  - [`ADR-001-k12-data-model.md`](adr/ADR-001-k12-data-model.md) — rationale design entity k12
   - [`ADR-002-academic-year-structure.md`](adr/ADR-002-academic-year-structure.md)
   - [`ADR-003-role-hierarchy.md`](adr/ADR-003-role-hierarchy.md)
   - [`ADR-004-instance-lifecycle.md`](adr/ADR-004-instance-lifecycle.md)
 
-- **Closed gaps:**
-  - GAP-466 — RLS implementation Phase 1 (V58 + V34 ship) — `documents/04-quality/gaps/closed/`
-  - GAP-432 — RLS boundary test coverage (Wave 91+)
-  - GAP-600 — JSONB Testcontainers IT prod-equiv
+- **Gap đã đóng:**
+  - GAP-466 — Triển khai RLS Phase 1 (ship V58 + V34) — `documents/04-quality/gaps/closed/`
+  - GAP-432 — Coverage test boundary RLS (Wave 91+)
+  - GAP-600 — Testcontainers IT JSONB prod-equiv
 
-- **Wave plans:**
-  - [Wave 99B plan](../03-planning/waves/wave-2026-05-19-99b-architecture-docs-sweep-expansion.md) — original scope cho this doc
-  - Wave 56 — V58 RLS Phase 1 ship
-  - Wave 85 — NULL force-fail hardening
-  - Wave 92 — admin_audit_log enrichment (V54)
+- **Wave plan:**
+  - [Wave 99B plan](../03-planning/waves/wave-2026-05-19-99b-architecture-docs-sweep-expansion.md) — scope gốc cho doc này
+  - Wave 56 — ship V58 RLS Phase 1
+  - Wave 85 — hardening NULL force-fail
+  - Wave 92 — enrichment admin_audit_log (V54)
 
-- **Rules:**
-  - [`postgres-specific-type-testcontainers.md`](../../.claude/rules/postgres-specific-type-testcontainers.md) — IT mandate
-  - [`pre-mutation-state-check.md`](../../.claude/rules/pre-mutation-state-check.md) — schema migration discipline
+- **Rule:**
+  - [`postgres-specific-type-testcontainers.md`](../../.claude/rules/postgres-specific-type-testcontainers.md) — mandate IT
+  - [`pre-mutation-state-check.md`](../../.claude/rules/pre-mutation-state-check.md) — discipline schema migration
 
 ---
 
 ## Section 9 — Log
 
-- **2026-05-19** (v1.0.0): Initial database architecture map created per Wave 99B Bucket B3 (GAP-672). Consolidates entity catalog (91 tables) + FK graph (top 25 sample, full graph deferred Wave 100+ auto-gen) + migration history index (114 V-files) + tenant_id propagation map + sizing baseline + Postgres-specific type inventory (15 JSONB + 6 Testcontainers IT). Sister-doc của [`multi-tenant-architecture.md`](multi-tenant-architecture.md) — extends §3 với entity-level map. Per `outside-in-coverage-trigger.md` v1.1.0 §3 + `diagram-format-selection.md` Mermaid default mandate. Reviewer: @nguyenvankiet (Wave 99B B3 agent worktree isolation).
+- **2026-05-19** (v1.0.0): Database architecture map khởi tạo per Wave 99B Bucket B3 (GAP-672). Hợp nhất entity catalog (91 table) + FK graph (top 25 sample, full graph hoãn Wave 100+ auto-gen) + migration history index (114 V-file) + tenant_id propagation map + sizing baseline + inventory type Postgres-specific (15 JSONB + 6 Testcontainers IT). Sister-doc của [`multi-tenant-architecture.md`](multi-tenant-architecture.md) — mở rộng §3 với map entity-level. Per `outside-in-coverage-trigger.md` v1.1.0 §3 + mandate Mermaid default của `diagram-format-selection.md`. Reviewer: @nguyenvankiet (Wave 99B B3 agent worktree isolation).
