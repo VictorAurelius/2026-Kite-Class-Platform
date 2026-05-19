@@ -406,11 +406,11 @@ def _render_mermaid_to_png(mermaid_src: str, cache_dir: Path) -> Path | None:
     Returns:
         Path to PNG file on success, None on failure.
     """
-    import hashlib
-    import urllib.request
-    import urllib.error
-    import zlib
     import base64
+    import hashlib
+    import urllib.error
+    import urllib.request
+    import zlib
 
     cache_dir.mkdir(parents=True, exist_ok=True)
     digest = hashlib.sha256(mermaid_src.encode()).hexdigest()[:16]
@@ -456,7 +456,7 @@ def add_code_block(doc, code_text, lang=""):
             run.add_picture(str(png_path), width=Cm(14.0))
             return
         # Fallback: render as TNR italic text if PNG unavailable
-        print(f"  WARN: Mermaid PNG unavailable; falling back to text")
+        print("  WARN: Mermaid PNG unavailable; falling back to text")
 
     # Non-Mermaid OR Mermaid fallback: render as text (TNR italic per v1.0.2)
     for line in code_text.split('\n'):
