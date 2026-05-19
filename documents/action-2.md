@@ -61,3 +61,7 @@ Expecting 'SPACE', 'NL', 'HIDE_EMPTY', 'scale', 'COMPOSIT_STATE', 'STRUCT_STOP',
 2. check lại các báo cáo cũ xem có bị outdated hay không và cập nhật nội dung + diagram theo rule mới
 3. có báo cáo về phân bổ và thiết kế database của toàn dự án chưa? có báo cáo về sự khác biệt giữa user của các gói đăng ký chưa? thực hiện tạo nếu chưa có
 4. bạn có đề xuất cần thêm các báo cáo nào không? cho dev hiểu rõ hơn về hệ thống
+
+Tài liệu trong documents/02-architecture  và để cho claude và dev đều đọc được đúng không, vậy nó có vấn đề:
+1. cho claude đọc thì vẫn có tiếng việt
+2. cho dev đọc thì không chuẩn rule ngôn ngữ
