@@ -7,7 +7,7 @@ Maps existing project documents to thesis chapter structure for easy reference e
 | Chapter | Title | Primary Sources | Supplementary |
 |---------|-------|-----------------|---------------|
 | Ch1 | Introduction | `01-business/` (domain overview, problem statement) + `chapter-1-competitor-analysis.md` Part 1 ✅ Wave 100 + `chapter-1-ai-techniques.md` Part 2 ✅ Wave 100 + `chapter-1-vn-law-methodology.md` Part 3 ✅ Wave 100.7 Phase 2 Agent 2a | `07-archived/research/competitive/` (market analysis); cross-jurisdiction extension (GDPR vs PDPL vs PDPA SG) defer Wave 101 |
-| Ch2 | Theoretical Background | `07-archived/research/technology/` (tech evaluation) | `08-thesis/references/technology-stack.md` (stack rationale) |
+| Ch2 | System Architecture | `02-architecture/{multi-tenant-architecture, multi-tenant-isolation-patterns, service-catalog-and-auth-flow, c4-context-container, database-architecture-map}.md` + `chapter-2-system-architecture.md` ✅ Wave 100.7 Phase 2-2b | `04-quality/audits/persona-review/2026-05-18-thesis-vn-saas-benchmark.md` (VN edu SaaS positioning); `08-thesis/references/technology-stack.md` (stack rationale) |
 | Ch3 | Requirements Analysis | `01-business/` (business rules per domain) | `06-diagrams/` (use case diagrams, ERD) |
 | Ch4 | System Design | `02-architecture/` (architecture decisions) | `06-diagrams/` (architecture diagrams, class diagrams) |
 | Ch5 | Implementation | `05-guides/` (operations guides) | `03-planning/kitehub-saas-implementation-plan.md` (wave strategy) |
@@ -28,13 +28,16 @@ Maps existing project documents to thesis chapter structure for easy reference e
   - `07-archived/research/competitive/` — Competitive landscape analysis
   - `references/bibliography.md` — 43 IEEE sources (Wave 100 added 8 new + Wave 100.7 Phase 2 added 5 new for Chapter 1)
 
-### Chapter 2: Theoretical Background
-- **Technology foundations**: Microservices, Spring Boot, Next.js, Docker
-- **Methodology**: Superpowers, Agile, TDD
+### Chapter 2: System Architecture
+- **Scope**: Functional Requirements + Non-Functional Requirements + Architecture (C4 L1+L2, multi-tenant single-bucket RLS, service decomposition, defense-in-depth 5 layers) + SaaS Model (lifecycle + billing + plan tier) + Blended Learning Context (VN edu market characteristics)
+- **Status**: ✅ Wave 100.7 Phase 2-2b shipped (`chapter-2-system-architecture.md` ~12-15 pages Vietnamese narrative compressed from 5 source architecture docs)
 - **Sources**:
-  - `07-archived/research/technology/` — Technology evaluation and comparison
-  - `08-thesis/references/technology-stack.md` — Final stack with rationale
-  - `08-thesis/references/methodology.md` — Development methodology
+  - `chapter-2-system-architecture.md` — Compressed narrative (this chapter)
+  - `02-architecture/multi-tenant-architecture.md` — Defense-in-depth 5 layers + RLS implementation + cross-tenant leak prevention
+  - `02-architecture/multi-tenant-isolation-patterns.md` — ADR-style 6 patterns comparative matrix (Pool model adopted Phase 1 BETA)
+  - `02-architecture/service-catalog-and-auth-flow.md` — Backstage service catalog + dependency graph + auth sequence
+  - `02-architecture/c4-context-container.md` — C4 Level 1 + Level 2 diagrams + narrative per cluster
+  - `02-architecture/database-architecture-map.md` — 91 entity catalog + RLS coverage 56% + per-service mapping
 
 ### Chapter 3: Requirements Analysis
 - **Functional requirements**: Business rules per domain (subscription, billing, etc.)
