@@ -1,13 +1,13 @@
 ---
 id: GAP-562b
 title: FE role-guard component + @PreAuthorize coverage extension billing/branding
-status: PARTIAL
+status: DONE
 priority: P0
 layer: Mixed
 phase: phase-1-beta
-percent_complete: 85
+percent_complete: 100
 created: 2026-05-14
-updated: 2026-05-15
+updated: 2026-05-19
 parent: GAP-562
 wave_target: 80
 ---

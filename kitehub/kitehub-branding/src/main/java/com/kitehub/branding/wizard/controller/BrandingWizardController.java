@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,10 +50,21 @@ public class BrandingWizardController {
     private final SlugAvailabilityService slugService;
     private final RegenerateQuotaService quotaService;
 
+    /**
+     * GAP-562/562b Wave 101 Bucket B — OWNER-only write authorization.
+     * Mirrors kitehub-subscription pattern.
+     */
+    private static final String OWNER_AUTHZ =
+            "hasAnyRole('OWNER','PLATFORM_ADMIN','ADMIN')";
+
+    private static final String OWNER_OR_STAFF_AUTHZ =
+            "hasAnyRole('OWNER','MANAGER','TEACHER','ACCOUNTANT','PLATFORM_ADMIN','ADMIN','STAFF')";
+
     // ---------------------------------------------------------------------
     // GET /api/v1/branding/slug-availability  (sub-GAP-272i)
     // ---------------------------------------------------------------------
     @GetMapping("/slug-availability")
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
     public ResponseEntity<Object> checkSlug(@RequestParam("slug") String slug) {
         String formatErr = slugService.validateFormat(slug);
         if (formatErr != null) {
@@ -70,6 +82,7 @@ public class BrandingWizardController {
     // GET /api/v1/branding/regenerate-quota  (sub-GAP-272d, read)
     // ---------------------------------------------------------------------
     @GetMapping("/regenerate-quota")
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
     public ResponseEntity<RegenerateQuotaResponse> getQuota(
             @RequestHeader(value = "X-User-Id", required = false, defaultValue = "anonymous")
             String userId,
@@ -82,6 +95,7 @@ public class BrandingWizardController {
     // POST /api/v1/branding/jobs/{jobId}/regenerate  (sub-GAP-272d, write)
     // ---------------------------------------------------------------------
     @PostMapping("/jobs/{jobId}/regenerate")
+    @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<Object> regenerate(
             @PathVariable UUID jobId,
             @RequestHeader(value = "X-Instance-Id", required = false) UUID instanceId,

@@ -1,6 +1,6 @@
 # GAP-562: RBAC role separation Customer vs Staff — staff layout + permission guard missing
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-19 (Wave 101 Bucket B closes kitehub-branding @PreAuthorize deferred portion)
 **Priority:** 🔴 P0
 **Domain:** Mixed
 **Detected:** 2026-05-14
@@ -137,6 +137,8 @@ Tham chiếu: industry standard SaaS multi-tenant (Notion, Linear, Stripe) — r
 - Sister audit 2026-05-14 phase-1-beta-walkthrough PR-THUY-14
 
 ## Log
+
+- **2026-05-19 (Wave 101 Bucket B):** Flip to **🟢 DONE 100%** — kitehub-branding @PreAuthorize coverage shipped (the deferred Wave 80 portion). Spring-security dep added to `kitehub-branding/pom.xml` (mirrors kitehub-subscription pattern). `SecurityConfig.java` wired with `@EnableMethodSecurity` + `XUserRolesHeaderFilter` (gateway X-User-Roles header → ROLE_* authorities). 4 controllers annotated: `AIBrandingController` (4 write endpoints OWNER-only), `BrandingJobController` (POST/DELETE OWNER, GET multi-role), `BrandingWizardController` (POST regenerate OWNER, GET quota/slug multi-role), `BrandingJobV1Controller` (GET multi-role). IT test `BrandingRoleAuthorizationTest` covers 7 scenarios: OWNER create/read PASS, STAFF MANAGER/TEACHER create/delete 403, STAFF MANAGER read 200, PLATFORM_ADMIN legacy alias PASS, anonymous 401. All 7 tests PASS locally (`./mvnw -pl kitehub-branding test -Dtest=BrandingRoleAuthorizationTest` → 7/7).
 
 - **2026-05-15 (Wave 80 Bucket C):** Upgrade to **PARTIAL 90%** via GAP-562b PR. FE RoleGuard + 3 layouts + role-aware Sidebar + auth-store STAFF type + BE @PreAuthorize on PaymentController + SubscriptionController + RbacAccessDeniedHandler audit log. 15 BE security tests + 13 FE component tests + 8 Playwright e2e all pass. Remaining 10% = `kitehub-branding` `@PreAuthorize` (module needs spring-security dep first, Wave 81 follow-up) + `TenantSettingsController` dangerzone split (controller doesn't exist yet). Main attack surface (URL bar + Sidebar leak) closed.
 

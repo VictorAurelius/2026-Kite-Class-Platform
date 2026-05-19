@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,6 +49,20 @@ public class BrandingJobController {
     private final BrandingJobService jobService;
 
     /**
+     * GAP-562/562b Wave 101 Bucket B — OWNER-only write authorization.
+     * STAFF/MANAGER/TEACHER → 403 (no branding access per business rule).
+     */
+    private static final String OWNER_AUTHZ =
+            "hasAnyRole('OWNER','PLATFORM_ADMIN','ADMIN')";
+
+    /**
+     * Multi-role READ — OWNER + STAFF subroles can view branding job status
+     * (read-only inspection of own tenant's jobs).
+     */
+    private static final String OWNER_OR_STAFF_AUTHZ =
+            "hasAnyRole('OWNER','MANAGER','TEACHER','ACCOUNTANT','PLATFORM_ADMIN','ADMIN','STAFF')";
+
+    /**
      * Create new branding job.
      *
      * @param instanceId instance ID from header
@@ -57,6 +72,7 @@ public class BrandingJobController {
      * @return created job
      */
     @PostMapping
+    @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<BrandingJob> createJob(
             @RequestHeader("X-Instance-Id") UUID instanceId,
             @RequestParam String organizationName,
@@ -78,6 +94,7 @@ public class BrandingJobController {
      * @return job or 404
      */
     @GetMapping("/{id}")
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
     public ResponseEntity<BrandingJob> getJob(
             @RequestHeader("X-Instance-Id") UUID instanceId,
             @PathVariable UUID id) {
@@ -98,6 +115,7 @@ public class BrandingJobController {
      * @return list of jobs
      */
     @GetMapping
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
     public ResponseEntity<List<BrandingJob>> listJobs(
             @RequestHeader("X-Instance-Id") UUID instanceId) {
 
@@ -121,6 +139,7 @@ public class BrandingJobController {
      * @return list of generated assets
      */
     @GetMapping("/{id}/assets")
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
     public ResponseEntity<?> getJobAssets(
             @RequestHeader("X-Instance-Id") UUID instanceId,
             @PathVariable UUID id) {
@@ -134,6 +153,7 @@ public class BrandingJobController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<Void> cancelJob(
             @RequestHeader("X-Instance-Id") UUID instanceId,
             @PathVariable UUID id) {
