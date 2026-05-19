@@ -1,6 +1,6 @@
 ---
 audience: dev
-last-updated: 2026-05-18
+last-updated: 2026-05-19
 status: living
 sister-docs:
   - documents/02-architecture/kiteclass-architecture.md
@@ -74,15 +74,15 @@ Tenant state machine do `kitehub-subscription` quản lý. Reference business ru
 
 ```mermaid
 stateDiagram-v2
-    [*] --> TRIAL: signup<br/>(TR-01: 14 ngày)
+    [*] --> TRIAL: signup (TR-01 14 ngày)
     TRIAL --> ACTIVE: pay (SUB-03 VietQR)
-    TRIAL --> SUSPENDED: trial expire<br/>(TR-04 auto-suspend)
-    ACTIVE --> ACTIVE: auto-renew<br/>(SUB-03)
-    ACTIVE --> SUSPENDED: payment fail<br/>+ grace 3 ngày (SUB-04)
-    ACTIVE --> CANCELLED: user cancel<br/>(SUB-12 / SUB-13)
+    TRIAL --> SUSPENDED: trial expire (TR-04 auto-suspend)
+    ACTIVE --> ACTIVE: auto-renew (SUB-03)
+    ACTIVE --> SUSPENDED: payment fail + grace 3 ngày (SUB-04)
+    ACTIVE --> CANCELLED: user cancel (SUB-12 / SUB-13)
     SUSPENDED --> ACTIVE: reactivate + pay
-    SUSPENDED --> CANCELLED: retention expire<br/>(TR-05: 7 ngày sau suspend)
-    CANCELLED --> [*]: data purge<br/>(off-boarding flow)
+    SUSPENDED --> CANCELLED: retention expire (TR-05 7 ngày sau suspend)
+    CANCELLED --> [*]: data purge (off-boarding flow)
 ```
 
 **Đọc diagram:**
