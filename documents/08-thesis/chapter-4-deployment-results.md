@@ -78,9 +78,9 @@ flowchart TB
 
 **Lớp compute (EC2):** Hai instance `t3.micro` (1 GB RAM, 2 vCPU) phân chia trách nhiệm: `kh-backend` chạy KiteHub Gateway (port 8080) cùng sáu backend service (subscription, branding, email, platform, admin, ...); `kc-app` chạy KiteClass core (port 8082) và KiteClass frontend Next.js (port 3001). Cấu hình memory tight đòi hỏi JVM heap cap nghiêm ngặt theo từng service (`-Xmx128m` cho service nhỏ, `-Xmx256m` cho service lớn).
 
-**Lớp dữ liệu (RDS + S3):** PostgreSQL 16 chạy trên `db.t3.micro` (1 GB RAM, 20 GB SSD), backup snapshot tự động hàng ngày, retention 7 ngày, network đặt trong private subnet chỉ chấp nhận kết nối từ security group của EC2. KiteHub áp dụng mô hình multi-tenant shared database (đã trình bày tại Chương 2 §2.3.2) — toàn bộ tenant dùng chung instance, cách ly thông qua cột `tenant_id` kết hợp Row-Level Security (Chương 3 §3.3). Một bucket S3 duy nhất `kitehub-prod-storage` phục vụ mọi tenant, partition theo prefix `tenant-{uuid}/` (branding, document, exports) và `platform/` (system assets). Trade-off chính: cost-efficient và đơn giản về IAM, đổi lại phải verify prefix isolation tại application layer.
+**Lớp dữ liệu (RDS + S3):** PostgreSQL 16 chạy trên `db.t3.micro` (1 GB RAM, 20 GB SSD), backup snapshot tự động hàng ngày, retention 7 ngày, network đặt trong private subnet chỉ chấp nhận kết nối từ security group của EC2. KiteHub áp dụng mô hình multi-tenant shared database (đã trình bày tại Chương 2 §2.3.2) — toàn bộ tenant dùng chung instance, cách ly thông qua cột `tenant_id` kết hợp Row-Level Security (Chương 3 §3.4). Một bucket S3 duy nhất `kitehub-prod-storage` phục vụ mọi tenant, partition theo prefix `tenant-{uuid}/` (branding, document, exports) và `platform/` (system assets). Trade-off chính: cost-efficient và đơn giản về IAM, đổi lại phải verify prefix isolation tại application layer.
 
-**Email transactional (SES):** KiteHub gửi email verify, beta-approval, password-reset, invoice qua AWS SES region `ap-southeast-1`. Domain `kitehub.me` đã được verify qua DKIM + SPF records trên Cloudflare DNS; sandbox mode được nâng lên Production mode (50.000 emails/day) thông qua AWS Support ticket. Mỗi email đi qua flow Outbox Pattern (Chương 3 §3.4): service ghi event vào bảng `*_outbox` cùng business state (transactional) → dispatcher poll 10 giây → publish tới RabbitMQ → `kitehub-email` service consume → render template → gọi SES API.
+**Email transactional (SES):** KiteHub gửi email verify, beta-approval, password-reset, invoice qua AWS SES region `ap-southeast-1`. Domain `kitehub.me` đã được verify qua DKIM + SPF records trên Cloudflare DNS; sandbox mode được nâng lên Production mode (50.000 emails/day) thông qua AWS Support ticket. Mỗi email đi qua flow Outbox Pattern (Chương 3 §3.5): service ghi event vào bảng `*_outbox` cùng business state (transactional) thì dispatcher poll 10 giây thì publish tới RabbitMQ thì `kitehub-email` service consume thì render template thì gọi SES API.
 
 **Observability (3 lớp):** CloudTrail log mọi AWS API call (terraform apply, console, SDK) — captured trước khi production resources apply để đảm bảo audit baseline; CloudWatch tổng hợp application logs JSON structured cùng custom metric, alarm wired cho CPU >80%, RDS connections >80%, ALB 5xx >1%, EC2 status check fail; Prometheus self-hosted thu thập application metric (`outbox_dispatcher_lag_seconds`, `http_server_requests_seconds`, `jvm_memory_used_bytes`) qua endpoint `/actuator/prometheus`, visualize qua Grafana.
 
@@ -134,7 +134,7 @@ Billing alarm được set tại các ngưỡng $5 / $50 / $150. Khi vượt $50
 
 ### 4.1.6 Trạng thái triển khai
 
-Tính đến thời điểm khóa luận: 71 resources terraform đã apply (CloudTrail captured); hai EC2 instance + RDS PostgreSQL multi-tenant schema RLS đã chạy; Cloudflare DNS đã cutover (kitehub.me → ALB); AWS SES production mode đã được approve; CI/CD pipeline OIDC + ECR + SSM hoạt động đầy đủ; beta tenant invite mechanism đã sẵn sàng nhận yêu cầu.
+Tính đến thời điểm khóa luận: 71 resources terraform đã apply (CloudTrail captured); hai EC2 instance + RDS PostgreSQL multi-tenant schema RLS đã chạy; Cloudflare DNS đã cutover (kitehub.me thì ALB); AWS SES production mode đã được approve; CI/CD pipeline OIDC + ECR + SSM hoạt động đầy đủ; beta tenant invite mechanism đã sẵn sàng nhận yêu cầu.
 
 ---
 
@@ -230,7 +230,7 @@ KiteHub giai đoạn beta track sáu KPI chính, chia ba category. Category 3 (S
 |---|---|---|
 | Signup Conversion Rate | (Beta request) / (Visitor unique landing page) | ≥3% |
 | Beta Approval Rate | (Request APPROVED) / (Request submitted) | ≥60% |
-| Claim → Active Conversion | (Tenant ACTIVE) / (Request APPROVED) | ≥70% |
+| Claim thì Active Conversion | (Tenant ACTIVE) / (Request APPROVED) | ≥70% |
 
 **Category 2: Engagement + Retention**
 
@@ -283,7 +283,7 @@ KPI mapping tới data source:
 
 Ba dashboard chính được thiết kế (structure đã document, hiển thị số liệu cụ thể sẽ hoàn thiện sau khi cohort beta tích lũy đủ dữ liệu):
 
-- **Dashboard Business KPI (Grafana):** card Beta Requests / Active Tenants / Doanh thu; chart conversion funnel Visitor → Request → Active; chart 12-month retention cohort.
+- **Dashboard Business KPI (Grafana):** card Beta Requests / Active Tenants / Doanh thu; chart conversion funnel Visitor thì Request thì Active; chart 12-month retention cohort.
 - **Dashboard System Health (CloudWatch):** CPU + Memory mỗi EC2; RDS connections + free storage; ALB request count + 5xx rate; SES bounce + complaint rate.
 - **Dashboard Application Metrics (Grafana):** HTTP latency histogram P50/P95/P99; JVM memory + GC count; outbox dispatcher lag; active sessions.
 
@@ -303,7 +303,7 @@ Các KPI System Health đã có số liệu sơ bộ thu thập được từ pu
 Khi đủ dữ liệu, phân tích sẽ áp dụng ba cách tiếp cận:
 
 1. **Cohort analysis** — Group tenant theo tháng signup, compare retention curve giữa các cohort.
-2. **Funnel analysis** — Visitor → Landing → Request → Approved → Active → 30-day retained.
+2. **Funnel analysis** — Visitor thì Landing thì Request thì Approved thì Active thì 30-day retained.
 3. **Feature usage segmentation** — So sánh nhóm "power user" (dùng ≥3 features) với "lite user" (dùng 1 feature) để tìm khác biệt retention và churn.
 
 ---
@@ -312,7 +312,7 @@ Khi đủ dữ liệu, phân tích sẽ áp dụng ba cách tiếp cận:
 
 ### 4.4.1 Beta cohort target
 
-Mục tiêu beta của khóa luận: ≥4 tenant ký thử nghiệm trước cửa sổ bảo vệ (2026-08-15 → 2026-10-15).
+Mục tiêu beta của khóa luận: ≥4 tenant ký thử nghiệm trước cửa sổ bảo vệ (2026-08-15 thì 2026-10-15).
 
 **Tenant profile target:**
 
@@ -331,7 +331,7 @@ Mục tiêu beta của khóa luận: ≥4 tenant ký thử nghiệm trước c�
 
 **Feature core đã ship trong giai đoạn beta:**
 
-- Kiến trúc multi-tenant với Row-Level Security isolation (Chương 3 §3.3).
+- Kiến trúc multi-tenant với Row-Level Security isolation (Chương 3 §3.4).
 - Cơ chế beta access invite (4.2 ở trên).
 - KiteClass core: Students + Classes + Grades + Attendance + Payments (CRUD cơ bản).
 - AI Branding — tenant tự generate logo và theme color qua AI; image generation pipeline tham chiếu Stable Diffusion XL [38]; NSFW content moderation gate trước khi publish dùng image classifier Hugging Face [37].
@@ -359,17 +359,17 @@ Mục tiêu beta của khóa luận: ≥4 tenant ký thử nghiệm trước c�
 |---|---|---|
 | AWS Singapore chưa kích hoạt ngưỡng quy định Việt Nam | Cần lộ trình migrate trước GA | User consent explicit + roadmap migrate VN cloud trước GA gated by counsel review |
 | RAM tight 1 GB/instance | Có thể OOM khi nhiều tenant concurrent | JVM heap cap strict + hard cap 20 tenant beta + force upgrade trước giai đoạn paid |
-| Single-region SPOF (Singapore) | Latency Việt Nam → Singapore 50-80 ms; outage = downtime toàn phần | Acceptable cho beta; multi-region sẽ triển khai giai đoạn GA |
+| Single-region SPOF (Singapore) | Latency Việt Nam thì Singapore 50-80 ms; outage = downtime toàn phần | Acceptable cho beta; multi-region sẽ triển khai giai đoạn GA |
 | RDS Multi-AZ disabled | Single point of failure cho database | Daily automated snapshot; Multi-AZ kế hoạch giai đoạn paid |
 | Manual approval beta request | Admin nền tảng là bottleneck | Acceptable scale ≤20 tenant; auto-approval rule kế hoạch sau beta |
-| RabbitMQ self-hosted EC2 | Memory cap 256 MB; restart có thể mất in-flight message | Outbox pattern (Chương 3 §3.4) đảm bảo at-least-once delivery; missed message → retry |
+| RabbitMQ self-hosted EC2 | Memory cap 256 MB; restart có thể mất in-flight message | Outbox pattern (Chương 3 §3.5) đảm bảo at-least-once delivery; missed message thì retry |
 
 ### 4.4.4 Bài học rút ra
 
 Một số bài học sơ bộ rút ra từ quá trình phát triển (sẽ được hoàn thiện trong Kết luận chương cuối sau khi cohort beta cung cấp feedback định lượng):
 
 1. **Outside-in audit pattern** (Chương 2 §2.5) chứng tỏ hiệu quả: persona simulation kết hợp benchmark và failure-mode matrix giúp catch design gap mà brainstorm inside-out thường bỏ sót.
-2. **Outbox Pattern kết hợp fast-path** (Chương 3 §3.4) cân bằng tốt latency và reliability — happy-path publish trực tiếp tới RMQ giúp giảm độ trễ; khi RMQ down, dispatcher catch-up khi recovery.
+2. **Outbox Pattern kết hợp fast-path** (Chương 3 §3.5) cân bằng tốt latency và reliability — happy-path publish trực tiếp tới RMQ giúp giảm độ trễ; khi RMQ down, dispatcher catch-up khi recovery.
 3. **Lựa chọn AWS Singapore** đã được risk-managed theo lộ trình: trong scope beta ~10-20 tenant chưa kích hoạt ngưỡng pháp luật; lộ trình migrate sang VN cloud cần ~2-3 tuần và counsel approval trước GA.
 
 ### 4.4.5 Định hướng tương lai
@@ -408,7 +408,7 @@ Chương này đã trình bày bốn phần kết quả triển khai giai đoạ
 | Phần | Nội dung chính | Trạng thái |
 |---|---|---|
 | 4.1 Cloud AWS | AWS Singapore, 2 EC2 + RDS + S3 + SES + CloudTrail + CloudWatch + Prometheus + CI/CD OIDC | Triển khai hoàn tất |
-| 4.2 User Onboarding | 5 bước: Visitor → Beta Request → Admin Approve → Tenant Provision → First Login | Implementation hoàn tất |
+| 4.2 User Onboarding | 5 bước: Visitor thì Beta Request thì Admin Approve thì Tenant Provision thì First Login | Implementation hoàn tất |
 | 4.3 KPI Measurement | 6 KPI thuộc 3 category + Grafana + CloudWatch | Structure đã document; số liệu sơ bộ cập nhật trước defense |
 | 4.4 Beta Scope | ≥4 tenant + ưu tiên feature + bài học sơ bộ + định hướng tương lai | Scope đã lock; evidence cohort cập nhật trước defense |
 
