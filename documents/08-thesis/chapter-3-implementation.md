@@ -31,7 +31,7 @@ Các snippet sau đây không phải toàn bộ codebase — codebase đầy đ�
 
 ### Bối cảnh
 
-KiteHub Gateway (Spring Cloud Gateway, port 8080) là entry point duy nhất cho mọi request từ frontend. Mọi request đi qua filter `JwtAuthenticationGatewayFilter` để verify chữ ký JWT và truyền identity context (`userId`, `role`, `email`) xuống downstream services qua HTTP header (`X-User-Id`, `X-User-Roles`, `X-User-Email`). Đây là pattern "Trust the Gateway" — downstream services không tự verify JWT, mà tin tưởng header sau khi gateway đã kiểm tra.
+KiteHub Gateway (Spring Cloud Gateway, port 8080) là entry point duy nhất cho mọi request từ frontend. Mọi request đi qua filter `JwtAuthenticationGatewayFilter` để verify chữ ký JWT (JSON Web Token, định nghĩa tại IETF RFC 7519 [29]) và truyền identity context (`userId`, `role`, `email`) xuống downstream services qua HTTP header (`X-User-Id`, `X-User-Roles`, `X-User-Email`). Đây là pattern "Trust the Gateway" — downstream services không tự verify JWT, mà tin tưởng header sau khi gateway đã kiểm tra.
 
 Snippet sau minh họa pattern này. Filter có order `-100` để chạy SỚM, trước CircuitBreaker và RateLimiter filters. Public paths (login, signup, health check) bypass filter để cho phép unauthenticated access.
 
@@ -297,7 +297,7 @@ Per Wave 91 Bucket A (GAP-605 closes outbox Phase 2): dispatcher đi kèm với 
 
 ### Bối cảnh
 
-Beta Access là feature core của Phase 1 BETA launch — visitors gửi yêu cầu beta access, coordinator (PLATFORM_ADMIN) duyệt qua admin dashboard, hệ thống gửi invite email với 6-digit claim code. Cluster này gồm 5 file (Controller + Service + Entity + DTO + Repository) minh họa 3-tier layering pattern: Controller (REST API + authorization), Service (business logic + transaction boundary), Entity (JPA persistence).
+Beta Access là feature core của Phase 1 BETA launch — visitors gửi yêu cầu beta access, coordinator (PLATFORM_ADMIN) duyệt qua admin dashboard, hệ thống gửi invite email với 6-digit claim code. Cluster này gồm 5 file (Controller + Service + Entity + DTO + Repository) minh họa 3-tier layering pattern theo nguyên lý Domain-Driven Design [19]: Controller (REST API + authorization), Service (business logic + transaction boundary, ranh giới của domain aggregate), Entity (JPA persistence — mô hình hóa entity nghiệp vụ).
 
 Snippet sau là controller — minh họa cách `@PreAuthorize("hasRole('PLATFORM_ADMIN')")` guard admin endpoints + cách map DTO ⟷ Entity.
 
@@ -379,7 +379,7 @@ Source: `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/bet
    - Field mapping (`@Id`, `@Column`, `@Enumerated(EnumType.STRING)`)
    - Audit trail (`@CreationTimestamp` + `@UpdateTimestamp`)
 
-Anti-pattern tránh được: **God Service / Fat Controller**. Mọi business logic trong Service, mọi HTTP concern trong Controller, mọi persistence trong Entity — easy to test (mock Service trong ControllerTest, mock Repository trong ServiceTest).
+Anti-pattern tránh được: **God Service / Fat Controller**. Mọi business logic trong Service, mọi HTTP concern trong Controller, mọi persistence trong Entity — easy to test theo phương pháp Test-Driven Development [18] (mock Service trong ControllerTest, mock Repository trong ServiceTest); mỗi layer testable độc lập với một loại test fixture rõ ràng.
 
 ---
 
