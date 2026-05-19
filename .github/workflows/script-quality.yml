@@ -61,6 +61,11 @@ on:
       - 'scripts/check-wave-plan-completeness.sh'
       - 'scripts/tests/fixtures/wave-plan/**'
       - 'scripts/tests/**'
+      - 'documents/01-business/**'
+      - 'scripts/check-3-layer-completeness.sh'
+      - 'scripts/check-cross-layer-contract-drift.sh'
+      - 'kitehub/**/*.java'
+      - 'kiteclass/**/*.java'
 
 permissions:
   contents: read
@@ -501,6 +506,49 @@ jobs:
           # + frontmatter fields (title/status/created/waves). Pre-Wave-76 legacy
           # plans grandfathered via `<!-- wave-plan-completeness-exempt: ... -->` comment.
           bash scripts/check-wave-plan-completeness.sh
+
+  three-layer-completeness:
+    name: 3-layer doc completeness (`documents/01-business/**`)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (3 synthetic fixtures — 1 good + 2 bad)
+        run: bash scripts/check-3-layer-completeness.sh --self-test
+
+      - name: Validate 3-layer completeness (WARN mode — 30-day grace per GAP-664)
+        run: |
+          # Per CLAUDE.md §"CRITICAL: Business Logic Documents — 3-Layer Structure":
+          # every domain MUST have rules.md + use-cases.md + api-contract.md.
+          # Wave 92 GAP-640 + Wave 98 GAP-664 = recurrence #2 trigger per
+          # `incident-to-rule-pipeline.md` premature-rule guard.
+          # WARN mode initially; target HARD STOP 2026-06-19 (30-day grace).
+          bash scripts/check-3-layer-completeness.sh --warn
+
+  cross-layer-contract-drift:
+    name: Cross-layer contract drift (controller vs api-contract.md)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (match + drift fixtures)
+        run: bash scripts/check-cross-layer-contract-drift.sh --self-test
+
+      - name: Detect drift (WARN mode — heuristic v1)
+        run: |
+          # Per `contract-first-for-cross-layer.md` §6.2 (closes deferred-detector debt)
+          # + Wave 98 GAP-662 incident: EmailController @RequestMapping("/api/platform/emails")
+          # vs documented Endpoint /api/email — 3-way drift code/doc/test.
+          # Heuristic v1; manual review still recommended for complex paths.
+          bash scripts/check-cross-layer-contract-drift.sh --warn
 
   script-tests:
     name: Script tests (`scripts/tests/test-*.sh` fixture-based)
