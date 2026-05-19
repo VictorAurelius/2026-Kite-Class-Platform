@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Script tạo Khóa luận tốt nghiệp Đại học GTVT V1 — KiteHub SaaS Platform.
 
@@ -37,19 +36,16 @@ Usage:
 Output: documents/08-thesis/thesis-v1.docx
 """
 
-import os
 import re
-import sys
 from pathlib import Path
 
 from docx import Document
-from docx.shared import Pt, Cm, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.section import WD_SECTION
-from docx.oxml.ns import qn
+from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
-
+from docx.oxml.ns import qn
+from docx.shared import Cm, Pt, RGBColor
 
 # ============== THÔNG TIN SINH VIÊN (từ thesis-info.md §4) ==============
 STUDENT_INFO = {
@@ -343,7 +339,7 @@ def add_inline_runs(paragraph, text):
         if m.start() > pos:
             run = paragraph.add_run(text[pos:m.start()])
             set_font(run, FONT_SIZE_NORMAL)
-        bold_text, italic_text, code_text, link_text, link_url = m.group(2), m.group(3), m.group(4), m.group(5), m.group(6)
+        bold_text, italic_text, code_text, link_text = m.group(2), m.group(3), m.group(4), m.group(5)
         if bold_text:
             run = paragraph.add_run(bold_text)
             set_font(run, FONT_SIZE_NORMAL, bold=True)
