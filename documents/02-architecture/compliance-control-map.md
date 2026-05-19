@@ -1,6 +1,6 @@
 ---
 title: Compliance × Code Map + SLO Registry + Risk Register
-audience: dev
+audience: mixed
 created: 2026-05-19
 last-reviewed: 2026-05-19
 status: living
@@ -10,7 +10,7 @@ gaps: [GAP-671]
 
 # Compliance × Code Map + SLO Registry + Risk Register
 
-**Mục đích:** Một trang tra cứu cho Tech Lead Persona 4 (review PR có liên quan compliance/billing/PDPL) và SRE Persona 3 (verify SLO + risk surface) — map regulatory obligation → enforcement code path → test evidence, plus per-service SLO + NFR + Risk Register consolidated từ scattered audit reports.
+**Mục đích:** Một trang tra cứu cho Tech Lead Persona 4 (review PR có liên quan compliance/billing/PDPL) và SRE Persona 3 (verify SLO + risk surface) — map nghĩa vụ pháp lý → enforcement code path → test evidence, kèm theo per-service SLO + NFR + Risk Register tổng hợp từ các audit report rải rác.
 
 **Cross-references:**
 - BRD: [`compliance-scope.md`](../00-brd/compliance-scope.md) (legal framework mapping skeleton)
@@ -25,7 +25,7 @@ gaps: [GAP-671]
 
 ## 1. Section 1 — Compliance Control Table
 
-Mỗi row map: **regulatory article → obligation → enforcing code path → test evidence**. Tech Lead Persona 4 self-test: "review billing PR" → find applicable compliance rule trong ≤5 min.
+Mỗi row map: **điều luật → nghĩa vụ → enforcement code path → test evidence**. Self-test Tech Lead Persona 4: "review billing PR" → tìm compliance rule áp dụng trong ≤5 phút.
 
 **Severity legend:** 🔴 BLOCKING — không tuân thủ = không launch; 🟠 MANDATORY — vi phạm có hình phạt admin/financial; 🟡 ADVISORY — best practice.
 
@@ -82,9 +82,9 @@ Mỗi row map: **regulatory article → obligation → enforcing code path → t
 
 ## 2. Section 2 — SLO Registry
 
-Per-service SLO targets consolidated từ ops-readiness audits + `nfr-catalog.md` skeleton + ADR-028 ECS Fargate baseline. **NOTE:** Phase 1 BETA = solo tenant invite-only scale; SLO numbers below là Phase 1.5+ PAID targets, không phải current Phase 1 BETA enforcement.
+Target SLO per-service tổng hợp từ ops-readiness audit + skeleton `nfr-catalog.md` + baseline ADR-028 ECS Fargate. **LƯU Ý:** Phase 1 BETA = scale tenant invite-only; số SLO dưới đây là target Phase 1.5+ PAID, không phải enforcement cho Phase 1 BETA hiện tại.
 
-**Measurement caveat:** Hầu hết SLO numbers Phase 1 BETA = `TBD` (synthetic monitor + RUM chưa active; baseline measurement deferred GAP-135 Phase 2 trigger). Numbers dưới đây inherit từ NFR catalog targets + Wave 84/85/91/92 ops audit observations.
+**Measurement caveat:** đa số số SLO Phase 1 BETA = `TBD` (synthetic monitor + RUM chưa active; baseline measurement hoãn theo trigger Phase 2 GAP-135). Các số dưới đây kế thừa từ target NFR catalog + quan sát ops audit Wave 84/85/91/92.
 
 ### 2.1 Per-service SLO matrix
 
@@ -102,9 +102,9 @@ Per-service SLO targets consolidated từ ops-readiness audits + `nfr-catalog.md
 | **kitehub-frontend** (Next.js SSR) | Platform-wide | 99.9% (CDN + EC2 self-host per Wave 82 pivot) | LCP <2.5s P75 / INP <200ms P75 / CLS <0.1 (per `nfr-catalog.md` §4.3 Web Vitals) | <0.5% client errors | CDN cache hit ratio TBD; Lighthouse CI gate planned Phase 2 |
 | **kiteclass-frontend** (per-tenant Next.js) | Per-tenant | 99.5% PRO / 99.9% PREMIUM | Same as kitehub-frontend §4.3 | <0.5% client errors | Per-tenant deploy isolation; subdomain routing via gateway |
 
-**SLO registry per-service count:** 11 services (10 active + 1 library N/A).
+**Số service trong SLO registry:** 11 service (10 active + 1 library N/A).
 
-**TBD count:** 17 (mostly P99 latency + cache hit ratio — measurement instrumentation deferred GAP-135 Phase 2 RUM trigger).
+**Số TBD:** 17 (chủ yếu P99 latency + cache hit ratio — instrumentation measurement hoãn theo trigger Phase 2 RUM GAP-135).
 
 ### 2.2 Platform-wide composite SLO
 
@@ -120,7 +120,7 @@ Per-service SLO targets consolidated từ ops-readiness audits + `nfr-catalog.md
 
 ## 3. Section 3 — NFR + Quality Attribute Registry
 
-Consolidated từ scattered BRD `nfr-catalog.md` + post-wave audit reports. Per arc42 §10 "Quality Goals" pattern.
+Tổng hợp từ BRD `nfr-catalog.md` rải rác + audit report post-wave. Theo pattern arc42 §10 "Quality Goals".
 
 ### 3.1 Performance NFRs
 
@@ -211,9 +211,9 @@ Consolidated từ scattered BRD `nfr-catalog.md` + post-wave audit reports. Per 
 
 ## 4. Section 4 — Risk Register
 
-Top risks consolidated từ threat models + Wave 91/92 ops audit P0 carry-forward + decision-doc rationale. Per `output-review-mandate.md` §3 "Risk Register" tracking convention.
+Top rủi ro tổng hợp từ threat model + carry-forward P0 ops audit Wave 91/92 + rationale decision-doc. Theo convention tracking "Risk Register" `output-review-mandate.md` §3.
 
-### 4.1 Top 5 known risks (Phase 1 BETA scope)
+### 4.1 Top 5 rủi ro đã biết (scope Phase 1 BETA)
 
 | # | Risk | Likelihood | Impact | Mitigation status | Owner | Link |
 |:-:|---|:---:|:---:|---|---|---|
@@ -223,55 +223,55 @@ Top risks consolidated từ threat models + Wave 91/92 ops audit P0 carry-forwar
 | **R4** | **Production restore drill never executed** — backup script runs daily nhưng never verified restore-from-backup actually works | High | 🔴 Critical | ❌ BLOCKED — GAP-257 restore drill carry-forward; AWS account suspension GAP-612 blocks live verify path (2026-05-17 16:50 UTC); unblock 24-72h post-restore window | SRE | GAP-257 + GAP-612 |
 | **R5** | **Phase 1.5+ scale jump no proven scale path** — 10 BETA tenants → 50-200 PAID tenants mid-cycle without battle-tested orchestration (ECS Fargate not yet deployed; EKS deferred Phase 2) | Medium | 🟠 High | ⚠️ ACCEPTED RISK per ADR-028 — ECS Fargate target chosen; Phase 1.5 trigger gate = file follow-up migration plan when concurrent users >50; rollback path = stay on EC2 self-host (current Phase 1 BETA pattern) | Tech Lead + SRE | ADR-028 + GAP-415 (Phase 2 EKS Migration Plan) |
 
-### 4.2 Risk register row count
+### 4.2 Số row Risk register
 
-**Top 5 entries** (per task spec). Additional medium-priority risks tracked trong:
-- Compliance scope skeleton TODO items (~15 carry-forward gaps quarterly)
-- Wave 92 ops audit 3 P0 FAIL carry-forward (restore drill + alertmanager + rollback drill — all GAP-612 blocked)
-- Performance baseline gaps (GAP-126..135 ten items)
-
----
-
-## 5. Tech Lead Persona 4 self-test — "review billing PR" walkthrough
-
-**Scenario:** Tech Lead receives PR adding new endpoint `POST /api/subscription/upgrade` (tier change PRO → PREMIUM).
-
-**Apply Compliance × Code Map (§1) — find applicable rules trong ≤5 min:**
-
-1. **PDPL Art 8** Lawful basis — verify endpoint references documented lawful basis (contract — user upgrades subscription). Code path: `SubscriptionController.upgrade()` calls `SubscriptionService.changeTier()`. ✅ contract basis (subscription agreement).
-2. **PDPL Art 11** Audit log — verify admin audit log fires on tier change. Code path: `AdminAuditLogService.log("TIER_CHANGE", before, after)`. ✅ V54 enrichment captures before/after values.
-3. **ISO A.9** Access control — verify `@PreAuthorize("hasRole('USER') || hasRole('CENTER_OWNER')")` annotation. ⚠️ check `SubscriptionController.java`.
-4. **Payment compliance** — verify no card data stored locally; gateway tokenization only. ✅ Phase 1.5+ scope (Phase 1 BETA = trial-only, no real payment).
-5. **NFR §4.1** Write API P95 <800ms — verify endpoint baseline meets target (run perf test). ⚠️ measurement TBD until RUM baseline.
-
-**Verdict:** All 5 applicable rules surfaced trong ≤5 min via single-page lookup. Self-test PASS ✅ per task spec.
+**Top 5 entry** (per task spec). Rủi ro medium-priority bổ sung tracked trong:
+- TODO của skeleton compliance scope (~15 carry-forward gap mỗi quý)
+- 3 P0 FAIL carry-forward từ ops audit Wave 92 (restore drill + alertmanager + rollback drill — đều bị GAP-612 block)
+- Gap performance baseline (GAP-126..135 ten item)
 
 ---
 
-## 6. Open follow-ups (next refresh triggers)
+## 5. Tech Lead Persona 4 self-test — walkthrough "review billing PR"
+
+**Scenario:** Tech Lead nhận PR thêm endpoint mới `POST /api/subscription/upgrade` (đổi tier PRO → PREMIUM).
+
+**Áp dụng Compliance × Code Map (§1) — tìm rule liên quan trong ≤5 phút:**
+
+1. **PDPL Art 8** Lawful basis — verify endpoint reference cơ sở pháp lý đã document (contract — user upgrade subscription). Code path: `SubscriptionController.upgrade()` gọi `SubscriptionService.changeTier()`. ✅ contract basis (subscription agreement).
+2. **PDPL Art 11** Audit log — verify admin audit log fire khi đổi tier. Code path: `AdminAuditLogService.log("TIER_CHANGE", before, after)`. ✅ V54 enrichment capture before/after value.
+3. **ISO A.9** Access control — verify annotation `@PreAuthorize("hasRole('USER') || hasRole('CENTER_OWNER')")`. ⚠️ check `SubscriptionController.java`.
+4. **Payment compliance** — verify không lưu card data local; chỉ gateway tokenization. ✅ scope Phase 1.5+ (Phase 1 BETA = trial-only, không có payment thật).
+5. **NFR §4.1** Write API P95 <800ms — verify baseline endpoint đạt target (chạy perf test). ⚠️ measurement TBD cho đến khi có RUM baseline.
+
+**Verdict:** Cả 5 rule áp dụng đều surface trong ≤5 phút qua single-page lookup. Self-test PASS ✅ per task spec.
+
+---
+
+## 6. Follow-up đang mở (trigger refresh kế tiếp)
 
 | Item | Trigger | Owner |
 |---|---|---|
-| Counsel sign-off Phase 3 K-12 (PDPL Art 9 + Art 23 + Luật ANM Art 26) | K-12 launch ≥1 school | Legal + PM |
-| GAP-156 quarterly business audit refresh | Phase 2 transition | Auditor |
-| GAP-637 admin v1 @PreAuthorize 3 P0 fix | Wave 93+ | Backend Lead |
-| GAP-257 restore drill execute | GAP-612 AWS unblock 24-72h | SRE |
-| RUM baseline measurement (Web Vitals + API P99) | Phase 1.5+ traffic ≥100 daily users | SRE |
-| ECS Fargate migration plan (per ADR-028) | Phase 1.5+ concurrent users >50 | Tech Lead + SRE |
-| User-erasure endpoint UI (PDPL Art 14) | Phase 1.5+ | Backend Lead + FE Lead |
-| Quarterly DR drill (PDPL Art 15) | Post-AWS restore + team grows beyond solo | SRE |
+| Counsel sign-off Phase 3 K-12 (PDPL Art 9 + Art 23 + Luật ANM Art 26) | K-12 launch ≥1 trường | Legal + PM |
+| Refresh GAP-156 quarterly business audit | Chuyển giao Phase 2 | Auditor |
+| Fix GAP-637 admin v1 @PreAuthorize 3 P0 | Wave 93+ | Backend Lead |
+| Execute GAP-257 restore drill | GAP-612 unblock AWS 24-72h | SRE |
+| RUM baseline measurement (Web Vitals + API P99) | Phase 1.5+ traffic ≥100 user/ngày | SRE |
+| Plan migration ECS Fargate (per ADR-028) | Phase 1.5+ concurrent user >50 | Tech Lead + SRE |
+| UI endpoint user-erasure (PDPL Art 14) | Phase 1.5+ | Backend Lead + FE Lead |
+| Quarterly DR drill (PDPL Art 15) | Sau khi restore AWS + team mở rộng beyond solo | SRE |
 
 ---
 
 ## 7. Maintenance
 
-**Refresh cadence:** quarterly (per `post-wave-audit-mandate.md` §2.4 Domain-Milestone Audit Cadence — meta-governance domain).
+**Cadence refresh:** quarterly (per `post-wave-audit-mandate.md` §2.4 Domain-Milestone Audit Cadence — domain meta-governance).
 
-**Update triggers:**
-- New PDPL article enforcement requirement
-- New service shipped (add SLO row)
-- Wave post-audit refresh (Wave 92+ baseline)
-- ADR landed touching compliance/SLO scope
-- Risk surface change (new threat model file shipped)
+**Trigger update:**
+- Yêu cầu enforcement điều luật PDPL mới
+- Service mới ship (thêm row SLO)
+- Refresh audit post-wave (Wave 92+ baseline)
+- ADR mới landing chạm scope compliance/SLO
+- Thay đổi risk surface (file threat model mới ship)
 
-**Cross-link discipline:** mọi update to this file → update matching row trong `output-review-mandate.md` §3 matrix khi applicable (compliance / SLO / risk rows).
+**Discipline cross-link:** mọi update file này → update row tương ứng trong matrix `output-review-mandate.md` §3 khi applicable (row compliance / SLO / risk).

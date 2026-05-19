@@ -1,6 +1,6 @@
 ---
 title: KiteHub Architecture
-audience: dev
+audience: mixed
 created: 2026-05-18
 last-reviewed: 2026-05-19
 status: living
@@ -101,7 +101,7 @@ flowchart TB
 
 ## 2. Services
 
-KiteHub gồm **4 backend services deployable** + **1 shared library** + **1 gateway** + **1 frontend**. Source-of-truth: `kitehub/docker-compose.kitehub.yml` + `kitehub/*/pom.xml`.
+KiteHub gồm **4 backend service deployable** + **1 shared library** + **1 gateway** + **1 frontend**. Nguồn dữ liệu chính thức: `kitehub/docker-compose.kitehub.yml` + `kitehub/*/pom.xml`.
 
 ### 2.1 Per-service breakdown
 
@@ -510,7 +510,7 @@ Per `release-deploy-standard.md` §9 + `agent-aws-access.md`:
 
 ## 8. References
 
-- **Source-of-truth files:** `kitehub/docker-compose.kitehub.yml`, `kitehub/*/pom.xml`, `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/`
+- **File nguồn dữ liệu chính thức:** `kitehub/docker-compose.kitehub.yml`, `kitehub/*/pom.xml`, `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/`
 - **CLAUDE.md** project instructions — Docker naming convention, scripts mandatory, Wave Branch Strategy
 - **ROADMAP.md** — current Phase 1 BETA status snapshot
 - **`documents/01-business/auth/`** — auth business rules + use cases + API contract (3-layer)

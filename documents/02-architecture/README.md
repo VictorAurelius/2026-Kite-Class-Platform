@@ -1,6 +1,6 @@
 ---
 title: 02-architecture — Technical Architecture
-audience: dev
+audience: mixed
 created: 2026-04-18
 last-reviewed: 2026-05-19
 status: living
@@ -10,29 +10,29 @@ status: living
 
 **Rules:** [`.claude/rules/docs-folder-structure.md`](../../.claude/rules/docs-folder-structure.md)
 
-Technical architecture documentation — system design, component interactions, data flow, cross-cutting concerns, và Architectural Decision Records (ADRs). Chứa "what + how" của system ở tầng architecture; "why" (rationale decisions) thuộc [`adr/`](adr/).
+Tài liệu technical architecture — system design, tương tác component, data flow, cross-cutting concern, và Architectural Decision Record (ADR). Chứa "what + how" của system ở tầng architecture; "why" (rationale của decision) thuộc [`adr/`](adr/).
 
-**Audience:** Backend engineers, Frontend engineers, SRE/DevOps, Tech Leads, Architects. Secondary: thesis reviewers, new contributors onboarding.
+**Audience:** Backend engineer, Frontend engineer, SRE/DevOps, Tech Lead, Architect. Secondary: thesis reviewer, contributor mới onboarding.
 
 > 📅 **Last reviewed:** **2026-05-19** · Wave 99B B5 — Onboarding Tour orchestrator landing
 
 ---
 
-## 🚀 Reading Order — Golden-Path Onboarding Tour
+## 🚀 Thứ tự đọc — Golden-Path Onboarding Tour
 
 Đọc theo thứ tự 7 bước này để build mental model architecture của Kite Platform end-to-end (~60-90 phút):
 
-| # | Step | File | What you'll learn |
+| # | Bước | File | Bạn sẽ học |
 |---|---|---|---|
-| 1 | **System boundary (L1) + Container topology (L2)** | [`c4-context-container.md`](c4-context-container.md) | 8 actor personas + 6 external systems (Resend/SES/VietQR/Zalo/CF/Statuspage); 2 FE + 1 gateway + 7 services + 4 infra subgraph |
-| 2 | **Service catalog + Dependency graph + Auth flow** | [`service-catalog-and-auth-flow.md`](service-catalog-and-auth-flow.md) | 18-service catalog (8 BE + 2 FE + 8 infra); Mermaid dependency graph ~37 edges; auth sequence ~24 steps; 10-controller role-guard matrix |
-| 3 | **Database entity catalog + FK graph + RLS map + Flyway history** | [`database-architecture-map.md`](database-architecture-map.md) | 91 entities (32 kh-subscription + 59 kc-core); RLS coverage 51/91; 114 V-files migration history; top-10 row drivers Phase 1 BETA |
-| 4 | **Multi-tenant strategy + DB-level isolation + RLS implementation** | [`multi-tenant-architecture.md`](multi-tenant-architecture.md) | tenant_id propagation 4 RLS clusters; tenant lifecycle (trial → subscription → off-boarding); per-tenant subdomain routing |
-| 5 | **Compliance × Code Map + SLO Registry + NFR + Risk Register** | [`compliance-control-map.md`](compliance-control-map.md) | 19 compliance rows (PDPL Art 7 + Luật ANM + ISO27001); 11-service SLO registry + 5 platform-wide composite SLO; 35+ NFR rows; 5-row Risk Register |
-| 6 | **Why-decisions — ADR index** | [`adr/README.md`](adr/README.md) | 31 ADRs (MADR format): K12 data model, role hierarchy, instance lifecycle, AWS Singapore Free Tier, FE self-host EC2, kiteclass-gateway removal |
-| 7 | **Threat models per domain** | [`threat-models/`](threat-models/) | Per-domain threat models — STRIDE analysis for auth, payment, AI branding, tenant isolation |
+| 1 | **System boundary (L1) + Container topology (L2)** | [`c4-context-container.md`](c4-context-container.md) | 8 persona actor + 6 hệ thống ngoài (Resend/SES/VietQR/Zalo/CF/Statuspage); 2 FE + 1 gateway + 7 service + 4 infra subgraph |
+| 2 | **Service catalog + Dependency graph + Auth flow** | [`service-catalog-and-auth-flow.md`](service-catalog-and-auth-flow.md) | 18-service catalog (8 BE + 2 FE + 8 infra); Mermaid dependency graph ~37 edge; auth sequence ~24 bước; matrix role-guard 10-controller |
+| 3 | **Database entity catalog + FK graph + RLS map + lịch sử Flyway** | [`database-architecture-map.md`](database-architecture-map.md) | 91 entity (32 kh-subscription + 59 kc-core); RLS coverage 51/91; lịch sử migration 114 V-file; top-10 driver row Phase 1 BETA |
+| 4 | **Strategy multi-tenant + cô lập DB-level + triển khai RLS** | [`multi-tenant-architecture.md`](multi-tenant-architecture.md) | Propagation tenant_id qua 4 cluster RLS; lifecycle tenant (trial → subscription → off-boarding); routing subdomain per-tenant |
+| 5 | **Compliance × Code Map + SLO Registry + NFR + Risk Register** | [`compliance-control-map.md`](compliance-control-map.md) | 19 row compliance (PDPL Art 7 + Luật ANM + ISO27001); SLO registry 11 service + 5 composite SLO platform-wide; 35+ row NFR; Risk Register 5 row |
+| 6 | **Why-decision — ADR index** | [`adr/README.md`](adr/README.md) | 31 ADR (MADR format): K12 data model, role hierarchy, instance lifecycle, AWS Singapore Free Tier, FE self-host EC2, kiteclass-gateway removal |
+| 7 | **Threat model per domain** | [`threat-models/`](threat-models/) | Threat model per-domain — phân tích STRIDE cho auth, payment, AI branding, tenant isolation |
 
-**Total reading:** ~60-90 phút (depends persona — see Per-Persona Reading List dưới). Sau khi đọc xong 7 bước, bạn có thể trace 1 user request end-to-end qua mọi tầng architecture.
+**Tổng thời gian đọc:** ~60-90 phút (tuỳ persona — xem Per-Persona Reading List bên dưới). Sau khi đọc xong 7 bước, bạn có thể trace 1 user request end-to-end qua mọi tầng architecture.
 
 ---
 
@@ -42,83 +42,83 @@ Walk-through cụ thể: **"Anonymous prospect submit beta-access form trên `ki
 
 Mỗi tầng architecture có file để đọc:
 
-| Layer | What happens | Read this |
+| Layer | Chuyện gì xảy ra | Đọc cái này |
 |---|---|---|
-| **1. Browser (FE)** | User mở `https://kitehub.me/request-beta` → React `RequestBetaForm` component validates input (email, fullName, organizationName, organizationType, message) | [`c4-context-container.md`](c4-context-container.md) L2 — locates `kitehub-frontend` container |
-| **2. CDN → EC2 self-host** | Cloudflare proxy (`A record → 54.179.70.37`) serves static FE assets; form submit → `POST /api/platform/auth/beta-signup/validate` via api.kitehub.me | [`adr/ADR-031-fe-self-host-aws-ec2.md`](adr/) — FE hosting decision; [`ssl-automation.md`](ssl-automation.md) — TLS cert flow |
-| **3. Gateway** | `kitehub-gateway` routes `/api/platform/auth/beta-signup/*` → `kitehub-subscription` service (port 4710); JWT propagation per [`adr/ADR-021-gateway-jwt-propagation.md`](adr/) | [`service-catalog-and-auth-flow.md`](service-catalog-and-auth-flow.md) §Gateway routing |
-| **4. Service** | `BetaSignupController.submitRequest()` → `BetaSignupService.create()` validates business rule (max 3 requests per email per 7 days per `business/subscription/rules.md`) → emits `BetaRequestCreated` event | [`service-catalog-and-auth-flow.md`](service-catalog-and-auth-flow.md) §kitehub-subscription |
-| **5. Database** | INSERT vào `beta_request` table (RLS bypassed — anonymous public endpoint; row visible to admin only via service role) with status='PENDING' + audit_log entry | [`database-architecture-map.md`](database-architecture-map.md) §kh-subscription entities (32 entities catalog) + §RLS map (51/91 coverage) |
-| **6. Async — Email** | RabbitMQ outbox dispatcher picks `BetaRequestCreated` event → kitehub-email service → SES `kite-noreply@kitehub.me` template `beta-request-confirmation` → tenant inbox | [`email-architecture.md`](email-architecture.md) — dual-vendor SES + Resend topology + DKIM signing |
-| **7. Compliance + Audit** | PDPL Art 7 (lawful processing): consent flag stored; admin_audit_log row immutable (V60 migration); GDPR-equivalent retention 7 năm per data-retention-policy | [`compliance-control-map.md`](compliance-control-map.md) §PDPL + [`data-retention-policy.md`](data-retention-policy.md) |
-| **8. SLO + Risk** | P99 endpoint latency target ≤500ms tracked per [`compliance-control-map.md`](compliance-control-map.md) §SLO Registry; failure mode = email queue depth alert (R1 Risk Register row) | [`compliance-control-map.md`](compliance-control-map.md) §Risk Register R1 |
+| **1. Browser (FE)** | User mở `https://kitehub.me/request-beta` → React component `RequestBetaForm` validate input (email, fullName, organizationName, organizationType, message) | [`c4-context-container.md`](c4-context-container.md) L2 — định vị container `kitehub-frontend` |
+| **2. CDN → EC2 self-host** | Cloudflare proxy (`A record → 54.179.70.37`) serve static FE asset; submit form → `POST /api/platform/auth/beta-signup/validate` qua api.kitehub.me | [`adr/ADR-031-fe-self-host-aws-ec2.md`](adr/) — quyết định FE hosting; [`ssl-automation.md`](ssl-automation.md) — flow TLS cert |
+| **3. Gateway** | `kitehub-gateway` route `/api/platform/auth/beta-signup/*` → service `kitehub-subscription` (port 4710); JWT propagation per [`adr/ADR-021-gateway-jwt-propagation.md`](adr/) | [`service-catalog-and-auth-flow.md`](service-catalog-and-auth-flow.md) §Gateway routing |
+| **4. Service** | `BetaSignupController.submitRequest()` → `BetaSignupService.create()` validate business rule (tối đa 3 request mỗi email trong 7 ngày per `business/subscription/rules.md`) → emit event `BetaRequestCreated` | [`service-catalog-and-auth-flow.md`](service-catalog-and-auth-flow.md) §kitehub-subscription |
+| **5. Database** | INSERT vào table `beta_request` (RLS bypass — endpoint public anonymous; row chỉ admin thấy được qua service role) với status='PENDING' + entry `audit_log` | [`database-architecture-map.md`](database-architecture-map.md) §kh-subscription entity (catalog 32 entity) + §RLS map (coverage 51/91) |
+| **6. Async — Email** | RabbitMQ outbox dispatcher pick event `BetaRequestCreated` → service kitehub-email → SES `kite-noreply@kitehub.me` template `beta-request-confirmation` → inbox tenant | [`email-architecture.md`](email-architecture.md) — topology dual-vendor SES + Resend + DKIM signing |
+| **7. Compliance + Audit** | PDPL Art 7 (lawful processing): lưu consent flag; row `admin_audit_log` immutable (V60 migration); retention 7 năm tương đương GDPR per data-retention-policy | [`compliance-control-map.md`](compliance-control-map.md) §PDPL + [`data-retention-policy.md`](data-retention-policy.md) |
+| **8. SLO + Risk** | Target P99 endpoint latency ≤500ms tracked per [`compliance-control-map.md`](compliance-control-map.md) §SLO Registry; failure mode = alert email queue depth (row R1 Risk Register) | [`compliance-control-map.md`](compliance-control-map.md) §Risk Register R1 |
 
-**Hands-on follow-up:** sau khi đọc 8 layer trên, mở [`service-catalog-and-auth-flow.md`](service-catalog-and-auth-flow.md) §Auth Flow sequenceDiagram để xem 24-step authenticated equivalent (login + role-guard + RLS) — same pattern khác là endpoint authenticated thay vì anonymous.
+**Hands-on follow-up:** sau khi đọc 8 layer trên, mở [`service-catalog-and-auth-flow.md`](service-catalog-and-auth-flow.md) §Auth Flow sequenceDiagram để xem 24-step authenticated tương đương (login + role-guard + RLS) — cùng pattern nhưng cho endpoint authenticated thay vì anonymous.
 
 ---
 
 ## 👥 Per-Persona Reading List
 
-Recommended reading depending on your role + onboarding goal:
+Khuyến nghị reading tuỳ vào role + mục tiêu onboarding:
 
-### P1 — Backend Engineer (joining team to write Java services)
+### P1 — Backend Engineer (gia nhập team viết service Java)
 
-**Goal:** understand service boundaries + data model + write your first endpoint within 1 week.
+**Mục tiêu:** hiểu boundary service + data model + viết được endpoint đầu tiên trong 1 tuần.
 
-**Priority reading (~3-4 hours):**
-1. [`service-catalog-and-auth-flow.md`](service-catalog-and-auth-flow.md) — 18 service catalog (mandatory; know which service owns what)
-2. [`database-architecture-map.md`](database-architecture-map.md) — 91 entity catalog + FK + RLS (mandatory; know which table belongs where)
-3. [`multi-tenant-architecture.md`](multi-tenant-architecture.md) — tenant_id propagation pattern (mandatory; every query needs RLS context)
-4. [`adr/README.md`](adr/README.md) — skim 31 ADRs (mandatory; understand prior decisions)
-5. [`kitehub-architecture.md`](kitehub-architecture.md) — KiteHub SaaS platform specifics
-6. [`kiteclass-architecture.md`](kiteclass-architecture.md) — KiteClass tenant platform specifics
+**Reading ưu tiên (~3-4 giờ):**
+1. [`service-catalog-and-auth-flow.md`](service-catalog-and-auth-flow.md) — catalog 18 service (bắt buộc; biết service nào owns cái gì)
+2. [`database-architecture-map.md`](database-architecture-map.md) — catalog 91 entity + FK + RLS (bắt buộc; biết table nào thuộc đâu)
+3. [`multi-tenant-architecture.md`](multi-tenant-architecture.md) — pattern propagation tenant_id (bắt buộc; mọi query cần RLS context)
+4. [`adr/README.md`](adr/README.md) — skim 31 ADR (bắt buộc; hiểu decision đã có trước)
+5. [`kitehub-architecture.md`](kitehub-architecture.md) — specific cho KiteHub SaaS platform
+6. [`kiteclass-architecture.md`](kiteclass-architecture.md) — specific cho KiteClass tenant platform
 
-**Skip first pass:** UI design system, threat models (revisit Week 2+)
+**Skip lần đọc đầu:** UI design system, threat model (revisit Week 2+)
 
-### P2 — Frontend Engineer (joining team to write React/Next.js)
+### P2 — Frontend Engineer (gia nhập team viết React/Next.js)
 
-**Goal:** understand gateway API surface + tenant subdomain routing + auth flow within 1 week.
+**Mục tiêu:** hiểu surface API gateway + routing subdomain tenant + auth flow trong 1 tuần.
 
-**Priority reading (~2-3 hours):**
-1. [`c4-context-container.md`](c4-context-container.md) L1+L2 — system boundary + FE container topology (mandatory)
-2. [`service-catalog-and-auth-flow.md`](service-catalog-and-auth-flow.md) §Gateway routing + §Auth flow sequence (mandatory; know endpoint contracts + JWT lifecycle)
-3. [`domain-management.md`](domain-management.md) — DNS + tenant subdomain pattern (mandatory; know URL strategy)
-4. [`design-system/dossier/01-personas.md`](design-system/dossier/01-personas.md) — UI persona catalog (P1/P2/P3 + Anonymous Vy + Platform Admin Mai)
-5. [`design-system/`](design-system/) UI kits + dossier — design system reference
+**Reading ưu tiên (~2-3 giờ):**
+1. [`c4-context-container.md`](c4-context-container.md) L1+L2 — boundary hệ thống + topology container FE (bắt buộc)
+2. [`service-catalog-and-auth-flow.md`](service-catalog-and-auth-flow.md) §Gateway routing + §Auth flow sequence (bắt buộc; biết endpoint contract + lifecycle JWT)
+3. [`domain-management.md`](domain-management.md) — pattern DNS + tenant subdomain (bắt buộc; biết strategy URL)
+4. [`design-system/dossier/01-personas.md`](design-system/dossier/01-personas.md) — catalog persona UI (P1/P2/P3 + Anonymous Vy + Platform Admin Mai)
+5. [`design-system/`](design-system/) UI kit + dossier — reference design system
 
-**Skip first pass:** Backend service internals, threat models, ADRs (revisit Week 2+)
+**Skip lần đọc đầu:** Service backend internal, threat model, ADR (revisit Week 2+)
 
-### P3 — SRE / DevOps Engineer (joining team to operate Phase 1 BETA)
+### P3 — SRE / DevOps Engineer (gia nhập team vận hành Phase 1 BETA)
 
-**Goal:** understand SLO targets + deployment pipeline + incident response within 1 week.
+**Mục tiêu:** hiểu target SLO + pipeline deployment + incident response trong 1 tuần.
 
-**Priority reading (~3-4 hours):**
-1. [`compliance-control-map.md`](compliance-control-map.md) §SLO Registry + §NFR + §Risk Register (mandatory; know targets + measurement gaps)
-2. [`deployment-strategy.md`](deployment-strategy.md) — 5 principles + env matrix (mandatory; understand deploy philosophy)
-3. [`adr/ADR-025-aws-singapore-free-tier.md`](adr/) + [`adr/ADR-031-fe-self-host-aws-ec2.md`](adr/) — AWS topology decisions (mandatory)
-4. [`ssl-automation.md`](ssl-automation.md) — Let's Encrypt wildcard + cert renewal cadence
-5. [`env-vars-registry.md`](env-vars-registry.md) — production env config (mandatory; canonical source for all env vars)
-6. [`../05-guides/operations/`](../05-guides/operations/) — operational runbooks (incident response, secrets rotation, restore drill)
+**Reading ưu tiên (~3-4 giờ):**
+1. [`compliance-control-map.md`](compliance-control-map.md) §SLO Registry + §NFR + §Risk Register (bắt buộc; biết target + gap measurement)
+2. [`deployment-strategy.md`](deployment-strategy.md) — 5 nguyên tắc + matrix env (bắt buộc; hiểu philosophy deploy)
+3. [`adr/ADR-025-aws-singapore-free-tier.md`](adr/) + [`adr/ADR-031-fe-self-host-aws-ec2.md`](adr/) — quyết định topology AWS (bắt buộc)
+4. [`ssl-automation.md`](ssl-automation.md) — Let's Encrypt wildcard + cadence renewal cert
+5. [`env-vars-registry.md`](env-vars-registry.md) — config env production (bắt buộc; nguồn dữ liệu chính thức cho mọi env var)
+6. [`../05-guides/operations/`](../05-guides/operations/) — runbook operation (incident response, secrets rotation, restore drill)
 
-**Skip first pass:** Domain business logic, UI design, ADRs unrelated to ops (revisit when on-call)
+**Skip lần đọc đầu:** Business logic domain, UI design, ADR không liên quan ops (revisit khi on-call)
 
-### P4 — Tech Lead / Architect (joining team to lead architecture decisions)
+### P4 — Tech Lead / Architect (gia nhập team dẫn dắt decision architecture)
 
-**Goal:** comprehensive cross-cutting view + ADR contribution capability within 2 weeks.
+**Mục tiêu:** view cross-cutting toàn diện + năng lực đóng góp ADR trong 2 tuần.
 
-**Priority reading (~6-8 hours, full sweep):**
-1. **All 7 steps of Reading Order Tour above** — full mental model end-to-end
-2. [`adr/`](adr/) — read ALL 31 ADRs cover-to-cover (rationale + alternatives + consequences)
-3. [`threat-models/`](threat-models/) — all per-domain threat models (STRIDE analysis)
-4. [`../03-planning/roadmap/release-1-plan-2026.md`](../03-planning/roadmap/release-1-plan-2026.md) — Release 1 Phase 1+2+3 strategy
-5. [`../04-quality/audits/`](../04-quality/audits/) — recent audit reports (Quality 90/110 + Security 93/100 + Ops 77/100 + Performance 86/100)
-6. [`../../.claude/rules/`](../../.claude/rules/) — 70 governance rules (skim CRITICAL + MANDATORY tier)
+**Reading ưu tiên (~6-8 giờ, full sweep):**
+1. **Cả 7 bước của Reading Order Tour ở trên** — mental model end-to-end
+2. [`adr/`](adr/) — đọc TẤT CẢ 31 ADR cover-to-cover (rationale + alternative + consequence)
+3. [`threat-models/`](threat-models/) — toàn bộ threat model per-domain (phân tích STRIDE)
+4. [`../03-planning/roadmap/release-1-plan-2026.md`](../03-planning/roadmap/release-1-plan-2026.md) — strategy Release 1 Phase 1+2+3
+5. [`../04-quality/audits/`](../04-quality/audits/) — audit report gần đây (Quality 90/110 + Security 93/100 + Ops 77/100 + Performance 86/100)
+6. [`../../.claude/rules/`](../../.claude/rules/) — 70 rule governance (skim tier CRITICAL + MANDATORY)
 
-**No skip:** Tech Lead needs full picture.
+**Không skip:** Tech Lead cần full picture.
 
-### Anonymous / Thesis Reviewer (browsing repo for first time)
+### Anonymous / Thesis Reviewer (duyệt repo lần đầu)
 
-Start với [`c4-context-container.md`](c4-context-container.md) L1 (system boundary) → [`kitehub-architecture.md`](kitehub-architecture.md) overview → optional deep-dive theo curiosity.
+Bắt đầu với [`c4-context-container.md`](c4-context-container.md) L1 (system boundary) → overview [`kitehub-architecture.md`](kitehub-architecture.md) → deep-dive tuỳ chọn theo curiosity.
 
 ---
 
@@ -147,58 +147,58 @@ Start với [`c4-context-container.md`](c4-context-container.md) L1 (system boun
 
 ---
 
-## File Placement Rules
+## Quy tắc đặt file
 
-- ✅ **Belongs here:**
-  - System architecture (how services interact)
-  - Cross-cutting concerns (SSL, email, backup, retention, domains)
-  - Design patterns catalog (applied patterns per feature)
-  - Technology stack decisions + component topology
+- ✅ **Thuộc đây:**
+  - System architecture (cách service tương tác)
+  - Cross-cutting concern (SSL, email, backup, retention, domain)
+  - Catalog design pattern (pattern áp dụng per feature)
+  - Quyết định technology stack + topology component
 
-- ✅ **Belongs in [`adr/`](adr/):**
-  - Why-decisions với alternatives considered (MADR format)
-  - Example: "Why RabbitMQ over Spring Batch", "Why Helm over plain K8s manifests"
+- ✅ **Thuộc [`adr/`](adr/):**
+  - Why-decision với các alternative đã cân nhắc (MADR format)
+  - Ví dụ: "Why RabbitMQ over Spring Batch", "Why Helm over plain K8s manifests"
 
-- ❌ **Does NOT belong here:**
-  - Operational runbooks → [`documents/05-guides/`](../05-guides/) (how to operate, not how it's designed)
-  - Implementation plans per wave → [`documents/03-planning/waves/`](../03-planning/waves/)
-  - Per-domain business rules → [`documents/01-business/`](../01-business/)
-  - Diagrams source → [`documents/06-diagrams/`](../06-diagrams/) (PlantUML, rendered PNG)
+- ❌ **KHÔNG thuộc đây:**
+  - Runbook operation → [`documents/05-guides/`](../05-guides/) (cách operate, không phải cách design)
+  - Plan implementation per wave → [`documents/03-planning/waves/`](../03-planning/waves/)
+  - Business rule per-domain → [`documents/01-business/`](../01-business/)
+  - Source diagram → [`documents/06-diagrams/`](../06-diagrams/) (PlantUML, rendered PNG)
 
-- Naming: `kebab-case.md`, ADRs `ADR-NNN-kebab-title.md` (zero-padded 3-digit)
+- Naming: `kebab-case.md`, ADR `ADR-NNN-kebab-title.md` (zero-padded 3-digit)
 
 ---
 
 ## ADR Process
 
-`adr/` chứa 31 ADRs (Michael Nygard format). Index: [`adr/README.md`](adr/README.md). CSV: [`adr/adrs-index.csv`](adr/adrs-index.csv). Template: [`adr/_TEMPLATE.md`](adr/_TEMPLATE.md).
+`adr/` chứa 31 ADR (Michael Nygard format). Index: [`adr/README.md`](adr/README.md). CSV: [`adr/adrs-index.csv`](adr/adrs-index.csv). Template: [`adr/_TEMPLATE.md`](adr/_TEMPLATE.md).
 
-**Status:** ADRs 001-013 shipped 2026-04-14 (initial architecture sweep). ADR-014 (Async Jobs Queue over Batch) + ADR-015 (AWS Agent Plugins defer) shipped 2026-04-18. Recent: ADR-025 AWS Singapore Free Tier, ADR-028 Phase 1 BETA scale acceptance, ADR-031 FE self-host AWS EC2, ADR-032 kiteclass-gateway removal.
+**Status:** ADR 001-013 ship 2026-04-14 (initial architecture sweep). ADR-014 (Async Jobs Queue over Batch) + ADR-015 (AWS Agent Plugins defer) ship 2026-04-18. Gần đây: ADR-025 AWS Singapore Free Tier, ADR-028 chấp nhận scale Phase 1 BETA, ADR-031 FE self-host AWS EC2, ADR-032 kiteclass-gateway removal.
 
-Mọi architectural decision với ≥2 options considered PHẢI có ADR mới.
+Mọi architectural decision với ≥2 option cân nhắc PHẢI có ADR mới.
 
 ---
 
 ## Archive Policy
 
-Move to `documents/07-archived/architecture-YYYY-QN/` khi:
-- Architecture superseded (vd. AI Branding v2 → v3) — keep both until v3 merged, then archive v2
-- Component removed (vd. service decommissioned — see kiteclass-gateway per ADR-032)
-- Audit snapshot >180 days old (living-docs-audit-*.md files)
+Move sang `documents/07-archived/architecture-YYYY-QN/` khi:
+- Architecture superseded (vd. AI Branding v2 → v3) — giữ cả 2 cho tới khi v3 merge, sau đó archive v2
+- Component removed (vd. service decommissioned — xem kiteclass-gateway per ADR-032)
+- Audit snapshot >180 ngày tuổi (file `living-docs-audit-*.md`)
 
-**Recent archive batch (Wave 99B B6, 2026-05-19):** 6 stale/superseded files moved to [`07-archived/architecture-2026-Q2/`](../07-archived/architecture-2026-Q2/) — `living-docs-audit-2026-04` + `ai-branding-v2-redesign` + `ai-branding-design-patterns` + `backup-strategy` + `docker-platform-architecture` + `email-lifecycle`. Root-level count 16 → 10 (volume cap 50 compliant per `docs-folder-volume-budget.md`).
+**Archive batch gần đây (Wave 99B B6, 2026-05-19):** 6 file stale/superseded move sang [`07-archived/architecture-2026-Q2/`](../07-archived/architecture-2026-Q2/) — `living-docs-audit-2026-04` + `ai-branding-v2-redesign` + `ai-branding-design-patterns` + `backup-strategy` + `docker-platform-architecture` + `email-lifecycle`. Count root-level 16 → 10 (compliant với volume cap 50 per `docs-folder-volume-budget.md`).
 
-ADRs NEVER archived — append `superseded_by:` trong frontmatter, keep in place.
+ADR KHÔNG BAO GIỜ archive — append `superseded_by:` trong frontmatter, giữ in place.
 
 ---
 
 ## Related
 
-- **Rules:** [`.claude/rules/design-patterns.md`](../../.claude/rules/design-patterns.md) enforces patterns trong code; this folder documents WHERE they apply
-- **Rules:** [`.claude/rules/diagram-format-selection.md`](../../.claude/rules/diagram-format-selection.md) — Mermaid default for architecture diagrams (GitHub native render)
-- **Diagrams:** [`documents/06-diagrams/`](../06-diagrams/) PlantUML source for visualizations referenced here
-- **Quality audits:** [`documents/04-quality/audits/`](../04-quality/audits/) — Quality /110 + Security /100 + Performance /100 + Ops /100 reports tracking architecture health
-- **Planning:** [`documents/03-planning/`](../03-planning/) — wave plans + roadmap; current wave: 99B (this orchestrator)
-- **GAP-046** — design patterns applied systematically
-- **GAP-102** — ADR kickoff (populates `adr/`)
-- **Wave 99B B1-B5 origin gaps:** GAP-670 (B1 Service Catalog) · GAP-671 (B2 Compliance Map) · GAP-672 (B3 Database Map) · GAP-673 (B4 C4 Diagram) · GAP-674 (B5 this Onboarding Tour)
+- **Rule:** [`.claude/rules/design-patterns.md`](../../.claude/rules/design-patterns.md) enforce pattern trong code; folder này document NƠI pattern áp dụng
+- **Rule:** [`.claude/rules/diagram-format-selection.md`](../../.claude/rules/diagram-format-selection.md) — Mermaid default cho architecture diagram (GitHub native render)
+- **Diagram:** [`documents/06-diagrams/`](../06-diagrams/) source PlantUML cho visualization được reference ở đây
+- **Quality audit:** [`documents/04-quality/audits/`](../04-quality/audits/) — report Quality /110 + Security /100 + Performance /100 + Ops /100 tracking sức khoẻ architecture
+- **Planning:** [`documents/03-planning/`](../03-planning/) — wave plan + roadmap; wave hiện tại: 99B (orchestrator này)
+- **GAP-046** — design pattern áp dụng có hệ thống
+- **GAP-102** — ADR kickoff (populate `adr/`)
+- **Gap gốc Wave 99B B1-B5:** GAP-670 (B1 Service Catalog) · GAP-671 (B2 Compliance Map) · GAP-672 (B3 Database Map) · GAP-673 (B4 C4 Diagram) · GAP-674 (B5 Onboarding Tour)

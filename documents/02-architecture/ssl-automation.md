@@ -1,6 +1,6 @@
 ---
 title: SSL Automation Strategy
-audience: dev
+audience: mixed
 created: 2026-03-24
 last-reviewed: 2026-05-19
 status: living
@@ -72,20 +72,23 @@ POST /zones/{zone_id}/custom_hostnames
 
 ## Custom Domain SSL Flow (End-to-End)
 
-```
-Tenant UI          Backend              DNS Provider       SSL Provider
-   |                  |                      |                  |
-   |-- Add domain --->|                      |                  |
-   |                  |-- Create record ---->|                  |
-   |<-- DNS config ---|                      |                  |
-   |                  |                      |                  |
-   | (tenant updates DNS)                    |                  |
-   |                  |                      |                  |
-   |-- Verify ------->|-- Check DNS -------->|                  |
-   |                  |<-- DNS OK -----------|                  |
-   |                  |-- Request cert ------|----------------->|
-   |                  |<-- Cert issued ------|------------------|
-   |<-- SSL Active ---|                      |                  |
+```mermaid
+sequenceDiagram
+    participant Tenant as Tenant UI
+    participant BE as Backend
+    participant DNS as DNS Provider
+    participant SSL as SSL Provider
+
+    Tenant->>BE: Add domain
+    BE->>DNS: Create record
+    BE-->>Tenant: DNS config
+    Note over Tenant: Tenant updates DNS manually
+    Tenant->>BE: Verify
+    BE->>DNS: Check DNS
+    DNS-->>BE: DNS OK
+    BE->>SSL: Request cert (via DNS challenge)
+    SSL-->>BE: Cert issued
+    BE-->>Tenant: SSL Active
 ```
 
 ## Certificate Renewal Automation

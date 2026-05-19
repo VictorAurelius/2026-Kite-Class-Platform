@@ -1,5 +1,5 @@
 ---
-audience: dev
+audience: mixed
 last-updated: 2026-05-19
 last-reviewed: 2026-05-19
 status: living
@@ -114,7 +114,7 @@ sequenceDiagram
     FE->>Gateway: POST /api/auth/login
     Gateway->>Service: Forward request (no X-Tenant-Id yet)
     Service->>DB: SELECT * FROM users WHERE email = ?
-    Note over Service,DB: Login flow chưa có tenant context; users table có RLS bypass cho lookup theo email
+    Note over Service,DB: Login flow chưa có tenant context — users table có RLS bypass cho lookup theo email
     DB-->>Service: User row (chứa tenant_id)
     Service->>Service: Verify password + generate JWT — claims sub tenantId role exp
     Service-->>FE: JWT trong response body

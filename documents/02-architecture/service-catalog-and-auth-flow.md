@@ -1,5 +1,5 @@
 ---
-audience: dev
+audience: mixed
 last-reviewed: 2026-05-19
 status: living
 sister-docs:
@@ -20,7 +20,7 @@ Báo cáo phục vụ 3 nhu cầu cao tần suất:
 2. **SRE on-call** (Persona 3) — định vị health endpoint, runbook, dependency graph để triage.
 3. **Tech lead review** (Persona 4) — kiểm tra auth flow + role-guard matrix khi review PR có endpoint mới.
 
-Source-of-truth (verified 2026-05-19 worktree): `kitehub/docker-compose.kitehub.yml`, `kitehub/*/src/main/resources/application.yml`, `kiteclass/kiteclass-core/src/main/resources/application.yml`, `kitehub/*/pom.xml`.
+Nguồn dữ liệu chính thức (đã xác minh 2026-05-19 trên worktree): `kitehub/docker-compose.kitehub.yml`, `kitehub/*/src/main/resources/application.yml`, `kiteclass/kiteclass-core/src/main/resources/application.yml`, `kitehub/*/pom.xml`.
 
 ---
 
@@ -69,7 +69,7 @@ Mỗi service = một row. Cột bao gồm: name + repo path + port (host:contai
 
 ## 2. Dependency Graph (Mermaid flowchart)
 
-Inter-service HTTP + RabbitMQ + DB + S3 dependencies. Grep-verified từ `@FeignClient` / `RestTemplate` / `WebClient` / `@RabbitListener` / `rabbitTemplate.convertAndSend` usage trong source.
+Phụ thuộc inter-service HTTP + RabbitMQ + DB + S3. Đã grep-verify qua usage `@FeignClient` / `RestTemplate` / `WebClient` / `@RabbitListener` / `rabbitTemplate.convertAndSend` trong source.
 
 ```mermaid
 flowchart TB
@@ -154,9 +154,9 @@ flowchart TB
     Core -->|S3 SDK| MinIO
 ```
 
-**Edge count:** 8 frontend→gateway/CF + 5 gateway→service (forward) + 1 gateway→redis (rate-limit) + 12 service→infra (PG/Redis/MQ/MinIO) + 6 service→external (SES/VietQR/Ollama/MiniMax/Captcha) + 5 inter-service (sub→email REST + email→branding WebClient + email→MQ + sub→MQ exchanges + admin→sub) = **~37 edges across 18 nodes**.
+**Số edge:** 8 frontend→gateway/CF + 5 gateway→service (forward) + 1 gateway→redis (rate-limit) + 12 service→infra (PG/Redis/MQ/MinIO) + 6 service→external (SES/VietQR/Ollama/MiniMax/Captcha) + 5 inter-service (sub→email REST + email→branding WebClient + email→MQ + sub→MQ exchanges + admin→sub) = **~37 edge trên 18 node**.
 
-> **Auto-gen flag:** Backstage Service Catalog convention recommends auto-gen từ `@FeignClient` parser + Maven POM scanner. Phase 1 BETA hand-maintain; tracked cho Wave 100+ follow-up gap nếu inventory grows >25 services.
+> **Auto-gen flag:** convention Backstage Service Catalog khuyến nghị auto-gen từ parser `@FeignClient` + Maven POM scanner. Phase 1 BETA hand-maintain; tracked cho Wave 100+ follow-up gap nếu inventory vượt 25 service.
 
 ---
 
@@ -183,15 +183,15 @@ sequenceDiagram
     PG-->>Sub: user row + bcrypt hash
     Sub->>Sub: BCrypt verify password
     Sub->>PG: INSERT admin_audit_log (login event)
-    Sub->>Sub: Generate JWT HS256<br/>claims {sub, tenantId, role}
+    Sub->>Sub: Generate JWT HS256 — claims {sub, tenantId, role}
     Sub->>Redis: SET refresh:{userId}:{jti} TTL 30d
     Sub-->>GW: 200 {accessToken, refreshToken}
     GW-->>FE: 200 + tokens
-    FE->>FE: Store tokens<br/>(httpOnly cookie facade per GAP-643)
+    FE->>FE: Store tokens (httpOnly cookie facade per GAP-643)
 
     Note over User,RLS: 2️⃣ Authenticated request (admin endpoint)
     User->>FE: Click "Admin → Instances"
-    FE->>GW: GET /api/admin/v1/instances<br/>Authorization: Bearer eyJ...
+    FE->>GW: GET /api/admin/v1/instances — Authorization Bearer eyJ...
     GW->>GW: Verify JWT signature (HS256)
     alt JWT invalid / expired
         GW-->>FE: 401 Unauthorized
@@ -199,7 +199,7 @@ sequenceDiagram
         GW->>GW: Extract {sub, tenantId, role}
         GW->>Admin: Forward + X-User-Id + X-Tenant-Id + X-User-Role
         Note over Admin: 3️⃣ Role-guard gate
-        Admin->>Admin: @PreAuthorize("hasRole('PLATFORM_ADMIN')")<br/>check X-User-Role
+        Admin->>Admin: @PreAuthorize hasRole PLATFORM_ADMIN — check X-User-Role
         alt Role mismatch (GAP-518/GAP-637 incident class)
             Admin-->>GW: 403 Forbidden
             GW-->>FE: 403
@@ -216,19 +216,19 @@ sequenceDiagram
     end
 ```
 
-**Step count:** 4 phases (login → request → role-guard → tenant-context+RLS) × ~6 messages each = **~24 sequence steps**.
+**Số step:** 4 phase (login → request → role-guard → tenant-context+RLS) × ~6 message mỗi phase = **~24 sequence step**.
 
-Reference chain:
+Chuỗi reference:
 - **JWT spec** — HS256, claims `{sub, tenantId, role}`, access 15min / refresh 30d rotation per `pre-launch-auth-hardening-checklist.md` §2.8
 - **Header propagation** — `X-User-Id` / `X-Tenant-Id` / `X-User-Role` set bởi gateway per GAP-604 (Wave 89)
-- **Service-side role verify** — mỗi service trust headers (zero-trust intra-cluster) per `audit-service-isolation.md`
+- **Verify role phía service** — mỗi service trust header (zero-trust intra-cluster) per `audit-service-isolation.md`
 - **RLS policy** — `SET LOCAL app.current_tenant_id` per request → Postgres RLS enforce per `multi-tenant-architecture.md` §3
 
 ---
 
 ## 4. Role-Guard Matrix
 
-Mapping `@PreAuthorize` annotations → controller paths → permitted roles. Verified 2026-05-19 grep trong `kitehub-admin/src/main/java` + `kitehub-subscription/src/main/java`.
+Mapping annotation `@PreAuthorize` → controller path → role được phép. Đã verify qua grep 2026-05-19 trong `kitehub-admin/src/main/java` + `kitehub-subscription/src/main/java`.
 
 | Controller | Path prefix | Method | `@PreAuthorize` | Permitted role(s) | Reference incident |
 |---|---|---|---|---|---|
@@ -252,24 +252,24 @@ Mapping `@PreAuthorize` annotations → controller paths → permitted roles. Ve
 | `P3_CENTER_MANAGER` | Tenant manager — limited admin (no billing, no offboard) | Invite từ P2 | `documents/01-business/auth/rules.md` |
 | `P1_SOLO_TEACHER` | Solo teacher — chỉ scope cá nhân + own classes | Tenant signup hoặc invite | `documents/01-business/auth/rules.md` |
 
-### 4.2 Recent incident references
+### 4.2 Incident reference gần đây
 
-- **GAP-518 (Wave 71b)** — BE seed role name mismatch với FE role-guard literal → 403 redirect loop. Fix: reconciled `PLATFORM_ADMIN` literal cả BE seed + FE `RoleGuard.tsx` + JWT claim. Closed via `pre-handoff-self-test-completeness.md` §2.4 admin-flow checklist.
-- **GAP-604 (Wave 89)** — Gateway JWT → headers propagation missing cho admin v1 routes → service-side `@PreAuthorize` không có role để verify → 403. Fix: gateway extract `role` claim + set `X-User-Role` header.
-- **GAP-637 (Wave 92)** — Admin v1 controllers missing `@PreAuthorize` (OWASP A01 broken access control). Fix: all 3 admin v1 controllers (Instances + Payments + Revenue) got `hasRole('PLATFORM_ADMIN')` annotation + MockMvc IT.
-- **GAP-638 (Wave 92)** — 6 admin v1 endpoints undocumented trong `api-contract.md`. Phase 1 BETA gate prerequisite.
+- **GAP-518 (Wave 71b)** — tên role seed BE không khớp literal FE role-guard → 403 redirect loop. Fix: đồng bộ literal `PLATFORM_ADMIN` ở cả BE seed + FE `RoleGuard.tsx` + JWT claim. Đóng qua checklist `pre-handoff-self-test-completeness.md` §2.4 admin-flow.
+- **GAP-604 (Wave 89)** — Gateway thiếu propagation JWT → header cho route admin v1 → `@PreAuthorize` phía service không có role để verify → 403. Fix: gateway extract claim `role` + set header `X-User-Role`.
+- **GAP-637 (Wave 92)** — controller admin v1 thiếu `@PreAuthorize` (OWASP A01 broken access control). Fix: cả 3 controller admin v1 (Instances + Payments + Revenue) thêm annotation `hasRole('PLATFORM_ADMIN')` + MockMvc IT.
+- **GAP-638 (Wave 92)** — 6 endpoint admin v1 chưa document trong `api-contract.md`. Điều kiện tiên quyết cho Phase 1 BETA gate.
 
 ---
 
 ## 5. References
 
-- **Source-of-truth files:** `kitehub/docker-compose.kitehub.yml` + `kitehub/*/pom.xml` + `kitehub/*/src/main/resources/application.yml` + `kiteclass/kiteclass-core/src/main/resources/application.yml`
-- **Sister docs:** [`kitehub-architecture.md`](kitehub-architecture.md), [`kiteclass-architecture.md`](kiteclass-architecture.md), [`multi-tenant-architecture.md`](multi-tenant-architecture.md)
-- **ADRs:** ADR-011 (tenant isolation defense-in-depth), ADR-023 (gateway key resolver), ADR-031 (FE self-host AWS EC2), ADR-032 (kiteclass-gateway removal)
-- **Rules:** `audit-service-isolation.md` (zero-trust intra-cluster), `pre-launch-auth-hardening-checklist.md` (refresh rotation), `diagram-format-selection.md` (Mermaid mandate)
-- **Business docs:** [`01-business/auth/`](../01-business/auth/) (3-layer rules + use-cases + api-contract)
-- **Recent gaps:** GAP-518 / GAP-604 / GAP-637 / GAP-638 / GAP-643
+- **File nguồn dữ liệu chính thức:** `kitehub/docker-compose.kitehub.yml` + `kitehub/*/pom.xml` + `kitehub/*/src/main/resources/application.yml` + `kiteclass/kiteclass-core/src/main/resources/application.yml`
+- **Sister doc:** [`kitehub-architecture.md`](kitehub-architecture.md), [`kiteclass-architecture.md`](kiteclass-architecture.md), [`multi-tenant-architecture.md`](multi-tenant-architecture.md)
+- **ADR:** ADR-011 (tenant isolation defense-in-depth), ADR-023 (gateway key resolver), ADR-031 (FE self-host AWS EC2), ADR-032 (kiteclass-gateway removal)
+- **Rule:** `audit-service-isolation.md` (zero-trust intra-cluster), `pre-launch-auth-hardening-checklist.md` (refresh rotation), `diagram-format-selection.md` (Mermaid mandate)
+- **Business doc:** [`01-business/auth/`](../01-business/auth/) (3-layer rules + use-cases + api-contract)
+- **Gap gần đây:** GAP-518 / GAP-604 / GAP-637 / GAP-638 / GAP-643
 
 ---
 
-*Audience: dev. Diagram format: Mermaid per `diagram-format-selection.md` §2.2. Narrative language: Vietnamese per `dev-readable-doc-language.md`.*
+*Audience: dev. Diagram format: Mermaid per `diagram-format-selection.md` §2.2. Narrative language: tiếng Việt per `dev-readable-doc-language.md`.*
