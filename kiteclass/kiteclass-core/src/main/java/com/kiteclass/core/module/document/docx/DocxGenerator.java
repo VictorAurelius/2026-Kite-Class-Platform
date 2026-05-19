@@ -29,13 +29,15 @@ import org.springframework.stereotype.Component;
 public class DocxGenerator implements Generator {
 
     private final TeacherContractBuilder contractBuilder;
+    private final ThesisReportBuilder thesisBuilder;
 
     public DocxGenerator() {
-        this(new TeacherContractBuilder());
+        this(new TeacherContractBuilder(), new ThesisReportBuilder());
     }
 
-    DocxGenerator(TeacherContractBuilder contractBuilder) {
+    DocxGenerator(TeacherContractBuilder contractBuilder, ThesisReportBuilder thesisBuilder) {
         this.contractBuilder = contractBuilder;
+        this.thesisBuilder = thesisBuilder;
     }
 
     @Override
@@ -57,9 +59,12 @@ public class DocxGenerator implements Generator {
         if ("teacher-contract".equals(templateId)) {
             return contractBuilder.build(request);
         }
+        if ("thesis-report".equals(templateId)) {
+            return thesisBuilder.build(request);
+        }
 
         throw new IllegalArgumentException(
                 "Unknown DOCX templateId: '" + templateId
-                        + "'. Supported templates: [teacher-contract]");
+                        + "'. Supported templates: [teacher-contract, thesis-report]");
     }
 }
