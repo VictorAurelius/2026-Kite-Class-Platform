@@ -28,7 +28,7 @@ Phần lớn KPI metrics trong chương này được mark với placeholder `<!
 
 ### 4.1.1 Tổng quan kiến trúc AWS Phase 1 BETA
 
-KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast-1`) theo quyết định ADR-025 (2026-05-07). Lý do chọn AWS Singapore thay vì Oracle Cloud VN-HAN (ban đầu là primary trong `deployment-strategy.md` GAP-103):
+KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast-1`) theo quyết định ADR-025 (2026-05-07) — Architecture Decision Record được trình bày theo phương pháp Tyree & Akerman [26] (gồm context + decision + consequences) và Microsoft ADR template [27]. Lý do chọn AWS Singapore thay vì Oracle Cloud VN-HAN (ban đầu là primary trong `deployment-strategy.md` GAP-103):
 
 1. **Time pressure** — Solo-dev đăng ký Oracle Cloud Always Free fail (reject rate ~50% với user VN 2024+), không thể stuck account creation khi PDPL deadline 2026-07-01 đang đếm ngược
 2. **Ecosystem maturity** — AWS có ECR + Secrets Manager + SES + ALB + CloudFront integration sẵn; Oracle Always Free thiếu managed Redis + managed RabbitMQ
@@ -158,7 +158,7 @@ Mỗi email được gửi qua flow Outbox Pattern (Section 3.4):
 
 ### 4.1.4 CI/CD Pipeline
 
-CI/CD được triển khai qua GitHub Actions với pattern OIDC + workflow_dispatch + confirm-input (per `release-deploy-standard.md` §9):
+CI/CD được triển khai qua GitHub Actions với pattern OIDC + workflow_dispatch + confirm-input (per `release-deploy-standard.md` §9), tham chiếu nguyên tắc Continuous Delivery hiện đại [42] — kết hợp build artifact bất biến (Docker image tag theo SHA commit) + deployment gate có cognitive checkpoint (workflow input `confirm=APPLY`) thay cho auto-deploy mechanic:
 
 ```mermaid
 sequenceDiagram
@@ -350,7 +350,7 @@ Sau khi đăng nhập lần đầu, user (Center Owner persona) thấy dashboard
 
 ### 4.3.1 Định nghĩa KPI
 
-KiteHub Phase 1 BETA track 6 KPI chính, chia 3 category:
+KiteHub Phase 1 BETA track 6 KPI chính, chia 3 category. Category 3 (System Health) tham khảo framework DORA do Forsgren et al. [41] đề xuất — gồm 4 metric đo lường hiệu năng vận hành phần mềm (deployment frequency, lead time for changes, mean time to recovery, change failure rate) — được dùng làm baseline so sánh production-readiness của Phase 1 BETA với chuẩn ngành:
 
 #### Category 1: Acquisition + Conversion
 
@@ -537,7 +537,7 @@ Phase 1 BETA bao gồm:
 - Multi-tenant architecture với RLS isolation (Section 3.3)
 - Beta access invite mechanism (Section 4.2)
 - KiteClass core: Students + Classes + Grades + Attendance + Payments (CRUD basic)
-- AI Branding feature (Wave 22-30) — tenant tự generate logo + theme color qua AI
+- AI Branding feature (Wave 22-30) — tenant tự generate logo + theme color qua AI (image generation pipeline tham chiếu Stable Diffusion XL [38]; NSFW content moderation gate trước khi publish asset dùng image classifier Hugging Face [37])
 - Email transactional via AWS SES (verify-email, beta-approval, password-reset, invoice)
 - Admin dashboard (PLATFORM_ADMIN role) cho coordinator review tenants + beta requests
 - Custom domain support (`{tenant-slug}.kitehub.me` subdomain)
