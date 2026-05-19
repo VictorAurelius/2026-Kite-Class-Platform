@@ -71,7 +71,7 @@ suitable for parents of K-12 students in Vietnam.
 
 Quan trọng: prompt explicit negation các elements không mong muốn (NO text, NO realistic photos, NO mascots) để giảm noise output, tăng tỷ lệ first-attempt PASS từ ~40% lên ~75% theo testing internal.
 
-Tham khảo nghiên cứu prompt engineering trong [14] (Brown et al., GPT-3 few-shot learning) và [17] (LLaVA — visual instruction tuning) cho phương pháp luận xây dựng prompt hiệu quả cho multimodal models.
+Tham khảo nghiên cứu prompt engineering trong [14] (Brown et al., GPT-3 few-shot learning) và [17] (LLaVA — visual instruction tuning) cho phương pháp luận xây dựng prompt hiệu quả cho multimodal models. Tài liệu thực hành prompt engineering từ Anthropic Claude API documentation [35] cũng cung cấp pattern cụ thể về negative prompting (explicit `NO text` / `NO mascots`) — pattern này được áp dụng trực tiếp trong template ở trên để tăng first-attempt PASS rate.
 
 ### 2.3 Lựa chọn mô hình text-to-image
 
@@ -250,6 +250,7 @@ Trích dẫn IEEE format đầy đủ trong [bibliography.md](./references/bibli
 - [19] Evans — Domain-Driven Design
 - [21] Luật Bảo vệ Dữ liệu Cá nhân (PDPL 2023)
 - [22] Nghị định 13/2023/NĐ-CP về Bảo vệ Dữ liệu Cá nhân
+- [35] Anthropic — Claude API Documentation: Prompt Engineering Best Practices
 
 ## Related
 

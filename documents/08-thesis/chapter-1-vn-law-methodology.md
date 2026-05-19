@@ -144,7 +144,7 @@ KiteHub triển khai 2FA cho Owner login (Wave 78 GAP-XXX), audit log immutable 
 
 ### A.6 Cross-jurisdiction notes — phạm vi defer Wave 101+
 
-KiteHub Phase 1 BETA scope chỉ phục vụ tenant Việt Nam. Tuy nhiên, kế hoạch dài hạn (Phase 4+, 2028+) có thể mở rộng sang ASEAN và các thị trường tương tự (Indonesia, Philippines, Thailand — có data protection laws tương tự PDPL). Phân tích cross-jurisdiction chi tiết (GDPR comparison, PDPA Singapore, PDPA Philippines, PIPL China) sẽ defer Wave 101+ chương 1 phần mở rộng — không nằm trong scope V1 thesis này. Hiện chỉ note rằng KiteHub thiết kế consent + audit log + DPIA template **PDPL-first** nhưng kiến trúc cho phép evolve sang GDPR-compliant (thêm right to portability + DPO independent + 72h breach notification cũng align với GDPR) nếu cần.
+KiteHub Phase 1 BETA scope chỉ phục vụ tenant Việt Nam. Tuy nhiên, kế hoạch dài hạn (Phase 4+, 2028+) có thể mở rộng sang ASEAN và các thị trường tương tự (Indonesia, Philippines, Thailand — có data protection laws tương tự PDPL). Phân tích cross-jurisdiction chi tiết (GDPR comparison, PDPA Singapore, PDPA Philippines, PIPL China) sẽ defer Wave 101+ chương 1 phần mở rộng — không nằm trong scope V1 thesis này. Hiện chỉ note rằng KiteHub thiết kế consent + audit log + DPIA template **PDPL-first** nhưng kiến trúc cho phép evolve sang GDPR-compliant (thêm right to portability + DPO independent + 72h breach notification cũng align với GDPR) nếu cần. Nghiên cứu compliance framework cho SaaS Đông Nam Á của Phuong & Anh [40] cũng đề xuất pattern tương tự (PDPL-first + cross-jurisdiction evolve) làm best practice cho SaaS multi-tenant hoạt động khu vực ASEAN — củng cố hướng đi kiến trúc của KiteHub.
 
 ---
 
