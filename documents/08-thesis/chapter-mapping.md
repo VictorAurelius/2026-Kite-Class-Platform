@@ -8,9 +8,9 @@ Maps existing project documents to thesis chapter structure for easy reference e
 |---------|-------|-----------------|---------------|
 | Ch1 | Introduction | `01-business/` (domain overview, problem statement) + `chapter-1-competitor-analysis.md` Part 1 ✅ Wave 100 + `chapter-1-ai-techniques.md` Part 2 ✅ Wave 100 + `chapter-1-vn-law-methodology.md` Part 3 ✅ Wave 100.7 Phase 2 Agent 2a | `07-archived/research/competitive/` (market analysis); cross-jurisdiction extension (GDPR vs PDPL vs PDPA SG) defer Wave 101 |
 | Ch2 | System Architecture | `02-architecture/{multi-tenant-architecture, multi-tenant-isolation-patterns, service-catalog-and-auth-flow, c4-context-container, database-architecture-map}.md` + `chapter-2-system-architecture.md` ✅ Wave 100.7 Phase 2-2b | `04-quality/audits/persona-review/2026-05-18-thesis-vn-saas-benchmark.md` (VN edu SaaS positioning); `08-thesis/references/technology-stack.md` (stack rationale) |
-| Ch3 | Requirements Analysis | `01-business/` (business rules per domain) | `06-diagrams/` (use case diagrams, ERD) |
-| Ch4 | System Design | `02-architecture/` (architecture decisions) | `06-diagrams/` (architecture diagrams, class diagrams) |
-| Ch5 | Implementation | `05-guides/` (operations guides) | `03-planning/kitehub-saas-implementation-plan.md` (wave strategy) |
+| Ch3 | Implementation (Code Snippets) | `chapter-3-implementation.md` ✅ Wave 100.7 Phase 2 Agent 2c — 5 code snippets representative từ JWT filter + Tenant RLS + Outbox dispatcher + Beta controller + Next.js page | `01-business/` (business rules per domain); `06-diagrams/` (use case diagrams + ERD); merge với Requirements Analysis bằng cross-reference Section 2 |
+| Ch4 | Deployment Results + KPI | `chapter-4-deployment-results.md` ✅ Wave 100.7 Phase 2 Agent 2c — AWS Singapore Free Tier + User onboarding flow + KPI structure + Beta scope (TODO placeholders cho real numbers GAP-648/649) | `02-architecture/adr/ADR-025-aws-only-deploy-phase-1-free-tier.md`; `02-architecture/deployment-strategy.md`; `06-diagrams/` |
+| Ch5 | Implementation roadmap (defer Wave 102+) | `05-guides/` (operations guides) | `03-planning/kitehub-saas-implementation-plan.md` (wave strategy) |
 | Ch6 | Testing & Evaluation | `04-quality/` (audit reports, completion checks) | `08-thesis/references/testing-results.md` (test metrics) |
 | Ch7 | Conclusion | `04-quality/` (final quality audit reports) | `08-thesis/references/quality-metrics.md` (score timeline) |
 
@@ -39,21 +39,24 @@ Maps existing project documents to thesis chapter structure for easy reference e
   - `02-architecture/c4-context-container.md` — C4 Level 1 + Level 2 diagrams + narrative per cluster
   - `02-architecture/database-architecture-map.md` — 91 entity catalog + RLS coverage 56% + per-service mapping
 
-### Chapter 3: Requirements Analysis
-- **Functional requirements**: Business rules per domain (subscription, billing, etc.)
-- **Non-functional requirements**: Performance, security, scalability
+### Chapter 3: Implementation (Code Snippets) ✅ Wave 100.7 Phase 2 Agent 2c
+- **Scope**: 5 đoạn code snippet đại diện từ source code thực tế (cite file:line)
+- **Status**: ✅ DONE Wave 100.7 Phase 2 Agent 2c
 - **Sources**:
-  - `01-business/` — All domain business rule files
-  - `06-diagrams/plantuml/` — Use case diagrams, ERD
+  - `chapter-3-implementation.md` — 5 snippets: JWT Auth (kitehub-gateway) + Tenant RLS Interceptor (kiteclass-core) + Outbox Dispatcher (kitehub-subscription) + Beta Access Controller (kitehub-subscription) + Next.js page (kitehub-frontend)
+  - Snippets pull từ source code thực — không paraphrase
+  - Mỗi snippet kèm phân tích design pattern + cite file path + line range
 
-### Chapter 4: System Design
-- **Architecture**: Microservices with API Gateway
-- **Database design**: Multi-tenant PostgreSQL with schema isolation
+### Chapter 4: Deployment Results + KPI ✅ Wave 100.7 Phase 2 Agent 2c
+- **Scope**: Triển khai AWS Singapore Free Tier + User onboarding + KPI structure + Beta scope
+- **Status**: ✅ DONE Wave 100.7 Phase 2 Agent 2c với TODO placeholders cho real numbers (defer Wave 102+ GAP-648 + GAP-649)
 - **Sources**:
-  - `02-architecture/` — Architecture decisions, data retention, SSL, domain management
-  - `06-diagrams/plantuml/` — Architecture diagrams, class diagrams, sequence diagrams
+  - `chapter-4-deployment-results.md` — 4 sections (4.1 Cloud AWS + 4.2 User Onboarding + 4.3 KPI + 4.4 Beta Scope)
+  - `02-architecture/adr/ADR-025-aws-only-deploy-phase-1-free-tier.md` — Singapore Free Tier rationale
+  - `02-architecture/deployment-strategy.md` — Architecture B 5 nguyên tắc deploy
+  - Pending: real cost numbers (GAP-648), beta evidence ≥4 tenants (GAP-649), lessons learned post-tenant interview (Wave 102+)
 
-### Chapter 5: Implementation
+### Chapter 5: Implementation Roadmap (defer Wave 102+)
 - **Wave execution**: 5 waves of parallel implementation
 - **Key features**: Subscription management, email lifecycle, custom domains, billing
 - **Sources**:
