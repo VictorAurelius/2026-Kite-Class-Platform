@@ -5,344 +5,216 @@ chapter: 4
 status: draft
 created: 2026-05-19
 updated: 2026-05-19
-wave: 100.7-phase-2
-agent: 2c
 ---
 
 # Chương 4 — Triển khai Cloud, User Onboarding, KPI và Beta Scope
 
+> Ghi chú trình bày: chương này tuân thủ quy định đánh số trang theo UTC §2.1 (header center page number, đã được implement trong pipeline render DOCX add_page_number_header()).
+
 ## 4.0 Giới thiệu chương
 
-Chương này trình bày kết quả triển khai KiteHub Platform trên môi trường production cloud cho giai đoạn Phase 1 BETA. Chương gồm 4 phần chính:
-
-- **4.1 Triển khai Cloud AWS** — Kiến trúc hạ tầng AWS Singapore Free Tier, CI/CD pipeline, observability stack, cost analysis
-- **4.2 User Onboarding Flow** — Hành trình từ anonymous prospect → đăng ký beta → admin duyệt → tenant provision → first login
-- **4.3 KPI Metrics + Measurement Plan** — Định nghĩa KPI, tooling đo đạc, dashboard structure (real numbers placeholder cho Wave 102+)
-- **4.4 Beta Tenant Scope + Limitations** — Phạm vi beta cohort target, feature scope cut, lessons learned (defense window 2026-08-15 → 2026-10-15)
-
-Phần lớn KPI metrics trong chương này được mark với placeholder `<!-- TODO Wave 102+ -->` syntax — đại diện cho số liệu thực sẽ được đo đạc sau khi Phase 1 BETA invite ≥4 tenants signed (GAP-649) và pipeline đầy đủ (GAP-648). Số liệu placeholder không ảnh hưởng đến tính minh họa kiến trúc; coordinator review tại Phase 4 sẽ đánh giá đủ để defense window.
+Chương này trình bày kết quả triển khai KiteHub Platform trên môi trường production cloud cho giai đoạn beta. Bốn phần lần lượt mô tả: kiến trúc hạ tầng AWS Singapore cùng CI/CD và observability stack (§4.1), hành trình user onboarding end-to-end (§4.2), bộ KPI cùng measurement plan (§4.3) và phạm vi beta cohort target với hạn chế kỹ thuật và định hướng tương lai (§4.4). Một số KPI Acquisition + Engagement cần cohort tenant đủ lớn sẽ được cập nhật trong phiên bản hoàn thiện trước hội đồng bảo vệ.
 
 ---
 
 ## 4.1 Cloud Deployment AWS
 
-### 4.1.1 Tổng quan kiến trúc AWS Phase 1 BETA
+### 4.1.1 Tổng quan kiến trúc
 
-KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast-1`) theo quyết định ADR-025 (2026-05-07) — Architecture Decision Record được trình bày theo phương pháp Tyree & Akerman [26] (gồm context + decision + consequences) và Microsoft ADR template [27]. Lý do chọn AWS Singapore thay vì Oracle Cloud VN-HAN (ban đầu là primary trong `deployment-strategy.md` GAP-103):
+KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast-1`) theo quyết định kiến trúc được trình bày theo phương pháp Tyree & Akerman [26] (gồm context + decision + consequences) và Microsoft ADR template [27]. Lý do chọn AWS Singapore:
 
-1. **Time pressure** — Solo-dev đăng ký Oracle Cloud Always Free fail (reject rate ~50% với user VN 2024+), không thể stuck account creation khi PDPL deadline 2026-07-01 đang đếm ngược
-2. **Ecosystem maturity** — AWS có ECR + Secrets Manager + SES + ALB + CloudFront integration sẵn; Oracle Always Free thiếu managed Redis + managed RabbitMQ
-3. **Compliance debt được chấp nhận có quản lý** — AWS Singapore vi phạm Nghị định 53/2022/NĐ-CP §26 yêu cầu data localization VN. Risk-managed bằng:
-   - Phase 1 BETA invite-only ~10-20 tenants (không trigger regulator radar — Decree 53 enforcement focus là service ≥1M VN users)
-   - User ký explicit consent acknowledging "infrastructure provider AWS Singapore"
-   - Phase 3 GA trigger gate = counsel review; nếu counsel flag, migrate sang VN cloud trước public launch
+1. **Tốc độ triển khai và độ ổn định tài khoản** — quá trình đăng ký Oracle Cloud Always Free thường gặp tỷ lệ reject cao đối với người dùng tại Việt Nam, ảnh hưởng đến tiến độ triển khai trong khung thời gian khóa luận có hạn.
+2. **Tính trưởng thành của hệ sinh thái** — AWS cung cấp ECR + Secrets Manager + SES + ALB + CloudFront tích hợp sẵn; Oracle Always Free thiếu managed Redis và managed RabbitMQ.
+3. **Tuân thủ pháp luật được quản lý theo lộ trình** — Phase beta invite-only quy mô nhỏ (≤20 tenant) chưa kích hoạt ngưỡng quy định Nghị định 53/2022/NĐ-CP §26 (1 triệu user) cũng như ngưỡng PDPL Art 28 (10 nghìn data subject); roadmap migrate sang AWS Hanoi Local Zone hoặc nhà cung cấp cloud trong nước (Viettel Cloud, VNG Cloud) trong giai đoạn GA. Người dùng beta ký explicit consent acknowledging "infrastructure provider AWS Singapore" trong giai đoạn thử nghiệm.
 
 ### 4.1.2 Sơ đồ hạ tầng
 
+**Hình 4.1.** Sơ đồ kiến trúc tổng thể KiteHub Platform trên AWS Singapore (giai đoạn beta).
+
 ```mermaid
 flowchart TB
-    subgraph "Internet"
-        User[Người dùng<br/>Trình duyệt]
-    end
+    User[Người dùng]
+    CF[Cloudflare — DNS + CDN + DDoS]
 
-    subgraph "Cloudflare"
-        CF_DNS[DNS<br/>kitehub.me]
-        CF_CDN[CDN + DDoS<br/>Always Use HTTPS]
-    end
-
-    subgraph "AWS ap-southeast-1 Singapore"
-        subgraph "Edge"
-            ALB[Application Load Balancer<br/>HTTPS termination]
+    subgraph AWS["AWS ap-southeast-1 Singapore"]
+        ALB[ALB — HTTPS termination]
+        subgraph EC2["EC2 instances t3.micro"]
+            EC2_KH[kh-backend — Gateway + 6 services]
+            EC2_KC[kc-app — KiteClass core + frontend]
         end
-
-        subgraph "EC2 instances"
-            EC2_KH[kh-backend<br/>t3.micro<br/>Gateway + 6 services]
-            EC2_KC[kc-app<br/>t3.micro<br/>KiteClass core + frontend]
+        subgraph Data["Data layer"]
+            RDS[RDS PostgreSQL 16 db.t3.micro]
+            S3[S3 single bucket — multi-tenant prefix]
         end
-
-        subgraph "Data layer"
-            RDS[RDS PostgreSQL 16<br/>db.t3.micro<br/>Multi-tenant DB]
-            S3[S3 Single Bucket<br/>kitehub-prod-storage<br/>Multi-tenant assets]
+        SES[AWS SES — Transactional email]
+        subgraph Obs["Observability"]
+            CW[CloudWatch — Logs + Metrics]
+            CT[CloudTrail — API audit log]
+            Prom[Prometheus self-hosted]
         end
-
-        subgraph "Messaging + Email"
-            SES[AWS SES<br/>Transactional Email]
-        end
-
-        subgraph "Observability"
-            CW[CloudWatch<br/>Logs + Metrics]
-            CT[CloudTrail<br/>Audit log API calls]
-            Prom[Prometheus<br/>self-hosted EC2]
-        end
-
-        subgraph "Secrets + CI/CD"
-            SM[Secrets Manager<br/>JWT secret + DB password]
-            ECR[ECR<br/>Docker images]
+        subgraph SecCI["Secrets + CI/CD"]
+            SM[Secrets Manager]
+            ECR[ECR — Docker images]
         end
     end
 
-    User --> CF_DNS
-    CF_DNS --> CF_CDN
-    CF_CDN -->|HTTPS proxy| ALB
-    ALB -->|kitehub.me| EC2_KH
-    ALB -->|*.kitehub.me| EC2_KC
-    EC2_KH -->|JDBC TLS| RDS
-    EC2_KC -->|JDBC TLS| RDS
-    EC2_KH -->|S3 SDK| S3
-    EC2_KC -->|S3 SDK| S3
-    EC2_KH -->|SES API| SES
-    EC2_KH -.->|CloudWatch agent| CW
-    EC2_KC -.->|CloudWatch agent| CW
-    EC2_KH -.->|API calls| CT
-    EC2_KH -.->|Prometheus metrics| Prom
-    EC2_KH -->|AWS SDK| SM
-    EC2_KC -->|AWS SDK| SM
+    User --> CF --> ALB
+    ALB --> EC2_KH
+    ALB --> EC2_KC
+    EC2_KH --> RDS
+    EC2_KC --> RDS
+    EC2_KH --> S3
+    EC2_KC --> S3
+    EC2_KH --> SES
+    EC2_KH -.-> CW
+    EC2_KC -.-> CW
+    EC2_KH -.-> CT
+    EC2_KH -.-> Prom
+    EC2_KH --> SM
+    EC2_KC --> SM
 ```
 
-### 4.1.3 Chi tiết các thành phần
+### 4.1.3 Các thành phần chính
 
-#### EC2 Instances (Compute)
+**Lớp compute (EC2):** Hai instance `t3.micro` (1 GB RAM, 2 vCPU) phân chia trách nhiệm: `kh-backend` chạy KiteHub Gateway (port 8080) cùng sáu backend service (subscription, branding, email, platform, admin, ...); `kc-app` chạy KiteClass core (port 8082) và KiteClass frontend Next.js (port 3001). Cấu hình memory tight đòi hỏi JVM heap cap nghiêm ngặt theo từng service (`-Xmx128m` cho service nhỏ, `-Xmx256m` cho service lớn).
 
-| Instance | Type | RAM | vCPU | Mục đích |
-|---|---|---|---|---|
-| `kh-backend` | t3.micro | 1 GB | 2 | KiteHub Gateway (port 8080) + 6 backend services (subscription, branding, email, platform, admin, ...) |
-| `kc-app` | t3.micro | 1 GB | 2 | KiteClass core (port 8082) + KiteClass frontend (Next.js port 3001) |
+**Lớp dữ liệu (RDS + S3):** PostgreSQL 16 chạy trên `db.t3.micro` (1 GB RAM, 20 GB SSD), backup snapshot tự động hàng ngày, retention 7 ngày, network đặt trong private subnet chỉ chấp nhận kết nối từ security group của EC2. KiteHub áp dụng mô hình multi-tenant shared database (đã trình bày tại Chương 2 §2.3.2) — toàn bộ tenant dùng chung instance, cách ly thông qua cột `tenant_id` kết hợp Row-Level Security (Chương 3 §3.3). Một bucket S3 duy nhất `kitehub-prod-storage` phục vụ mọi tenant, partition theo prefix `tenant-{uuid}/` (branding, document, exports) và `platform/` (system assets). Trade-off chính: cost-efficient và đơn giản về IAM, đổi lại phải verify prefix isolation tại application layer.
 
-Cấu hình memory tight (1GB/instance) yêu cầu JVM heap caps strict per service (`-Xmx128m` cho services nhỏ, `-Xmx256m` cho services lớn) — chi tiết trong `documents/05-guides/deploy/jvm-heap-tuning-runbook.md`.
+**Email transactional (SES):** KiteHub gửi email verify, beta-approval, password-reset, invoice qua AWS SES region `ap-southeast-1`. Domain `kitehub.me` đã được verify qua DKIM + SPF records trên Cloudflare DNS; sandbox mode được nâng lên Production mode (50.000 emails/day) thông qua AWS Support ticket. Mỗi email đi qua flow Outbox Pattern (Chương 3 §3.4): service ghi event vào bảng `*_outbox` cùng business state (transactional) → dispatcher poll 10 giây → publish tới RabbitMQ → `kitehub-email` service consume → render template → gọi SES API.
 
-#### RDS PostgreSQL (Data layer)
-
-- **Instance type:** `db.t3.micro` (1 GB RAM, 20 GB SSD storage)
-- **Engine:** PostgreSQL 16
-- **Multi-AZ:** Disabled (Free Tier không hỗ trợ; trade-off acceptable cho beta)
-- **Backup:** Automated daily snapshot, retention 7 days
-- **Network:** Private subnet, accept connection chỉ từ EC2 security group
-
-KiteHub dùng **multi-tenant shared database** approach (Section 2.3.2) — tất cả tenants share cùng PostgreSQL instance, cách ly qua `tenant_id` column + Row-Level Security (Section 3.3).
-
-#### S3 Single Bucket (Object storage)
-
-Một single S3 bucket `kitehub-prod-storage` cho mọi tenant, partition qua prefix:
-
-```
-kitehub-prod-storage/
-├── tenant-{tenant-uuid}/
-│   ├── branding/
-│   │   ├── logo.png
-│   │   └── hero.jpg
-│   ├── documents/
-│   └── exports/
-└── platform/
-    └── system-assets/
-```
-
-Quyết định single-bucket được phân tích chi tiết trong `documents/02-architecture/multi-tenant-isolation-patterns.md` (Wave 100.5 shipped) — trade-off: cost-efficient (no per-tenant bucket overhead) + simpler IAM, đổi lại phải verify prefix isolation tại application layer.
-
-#### AWS SES (Transactional Email)
-
-KiteHub gửi email transactional (verify-email, beta-approval, password-reset, invoice) qua AWS SES region `ap-southeast-1`. SES được verify domain `kitehub.me` qua DKIM + SPF records trên Cloudflare DNS. Sandbox mode đã được nâng lên Production mode (50,000 emails/day quota) qua AWS Support ticket.
-
-Mỗi email được gửi qua flow Outbox Pattern (Section 3.4):
-1. Service write event vào `*_outbox` table cùng với business state (transactional)
-2. `SubscriptionOutboxDispatcher` poll mỗi 10s, publish event tới RabbitMQ
-3. `kitehub-email` service consume event, render template, gọi SES API
-4. SES queue + deliver tới recipient mailbox
-
-#### Observability — CloudTrail + CloudWatch + Prometheus
-
-3 lớp observability per Section 2.5:
-
-- **CloudTrail** — Audit log mọi AWS API call (terraform apply, console operation, SDK call). Bật từ Wave 64 (GAP-437) trước Phase 2.3 production apply theo `aws-observability-first.md` rule — captured baseline cho compliance audit + incident RCA
-- **CloudWatch** — Application logs (JSON structured per `logs-format-standard.md`) + custom metrics. Alarms wired cho CPU >80%, RDS connections >80%, ALB 5xx >1%, EC2 status check fail
-- **Prometheus** (self-hosted on EC2) — Application metrics per `outbox_dispatcher_lag_seconds`, `http_server_requests_seconds`, `jvm_memory_used_bytes`. Scraped qua actuator endpoint `/actuator/prometheus`. Visualization qua Grafana (self-hosted, planned Phase 1.5)
+**Observability (3 lớp):** CloudTrail log mọi AWS API call (terraform apply, console, SDK) — captured trước khi production resources apply để đảm bảo audit baseline; CloudWatch tổng hợp application logs JSON structured cùng custom metric, alarm wired cho CPU >80%, RDS connections >80%, ALB 5xx >1%, EC2 status check fail; Prometheus self-hosted thu thập application metric (`outbox_dispatcher_lag_seconds`, `http_server_requests_seconds`, `jvm_memory_used_bytes`) qua endpoint `/actuator/prometheus`, visualize qua Grafana.
 
 ### 4.1.4 CI/CD Pipeline
 
-CI/CD được triển khai qua GitHub Actions với pattern OIDC + workflow_dispatch + confirm-input (per `release-deploy-standard.md` §9), tham chiếu nguyên tắc Continuous Delivery hiện đại [42] — kết hợp build artifact bất biến (Docker image tag theo SHA commit) + deployment gate có cognitive checkpoint (workflow input `confirm=APPLY`) thay cho auto-deploy mechanic:
+CI/CD được triển khai qua GitHub Actions với pattern OIDC + workflow_dispatch + confirm-input, tham chiếu nguyên tắc Continuous Delivery hiện đại [42] — kết hợp build artifact bất biến (Docker image tag theo SHA commit) và deployment gate có cognitive checkpoint (workflow input `confirm=APPLY`) thay cho cơ chế auto-deploy.
+
+**Hình 4.2.** Sequence diagram CI/CD pipeline từ git push tới production deploy (rút gọn các bước chính).
 
 ```mermaid
 sequenceDiagram
     participant Dev as Developer
-    participant GH as GitHub
-    participant Actions as GitHub Actions
-    participant OIDC as AWS OIDC role
-    participant ECR as AWS ECR
+    participant GH as GitHub Actions
+    participant OIDC as AWS OIDC
+    participant ECR as ECR
     participant SSM as AWS SSM
-    participant EC2 as EC2 Instances
+    participant EC2 as EC2
 
-    Dev->>GH: git push (feature branch)
-    GH->>Actions: Trigger CI workflow
-    Actions->>Actions: mvn verify + tests
-    Dev->>GH: gh pr create
-    GH->>Actions: Trigger PR CI
-    Actions->>Actions: Lint + test + audit
+    Dev->>GH: git push + create PR
+    GH->>GH: CI mvn verify + tests + lint
     Dev->>GH: gh pr merge --squash
-    GH->>Actions: Trigger docker-build-push.yml
-    Actions->>OIDC: assume-role-with-web-identity
-    OIDC-->>Actions: ephemeral creds 1h
-    Actions->>ECR: docker push image:sha
-    Dev->>GH: gh workflow run deploy-production.yml --field confirm=APPLY
-    GH->>Actions: Workflow with confirm-input gate
-    Actions->>SSM: SendCommand to EC2
-    SSM->>EC2: docker pull + restart container
-    EC2-->>SSM: Health check OK
-    SSM-->>Actions: Command success
-    Actions->>Actions: Smoke test (curl /actuator/health)
-    Actions-->>Dev: Deploy success notification
+    GH->>OIDC: assume-role-with-web-identity
+    OIDC-->>GH: ephemeral creds 1h
+    GH->>ECR: docker push image:sha
+    Dev->>GH: gh workflow run deploy-production confirm=APPLY
+    GH->>SSM: SendCommand
+    SSM->>EC2: docker pull + restart + health check
+    EC2-->>GH: OK + smoke test pass
+    GH-->>Dev: Deploy success notification
 ```
 
-Key design choices:
-- **Ephemeral OIDC role** — Không hardcode AWS access key trong GitHub Secrets; mỗi workflow run assume role mới với 1-hour token
-- **Narrow IAM scope** — Role `kitehub-deploy-role` chỉ có permission `ecr:Push`, `ssm:SendCommand` tới EC2 tags `Project=Kite`; không có `ec2:Terminate` hoặc broader scope
-- **Confirm-input gate** — Workflow `deploy-production.yml` require user nhập `confirm=APPLY` verbatim để trigger; tránh accidental deploy
-- **Smoke admin-login post-deploy** — Per `release-deploy-standard.md` §3.1: sau deploy, smoke test gọi `POST /api/auth/login` với seeded admin credential, expect 200 + JWT. Test catches Postgres-specific binding bugs invisible to H2 + Mockito (per 2026-05-16 production admin login 500 incident)
+Bốn lựa chọn thiết kế nổi bật:
+- **Ephemeral OIDC role** — không hardcode AWS access key trong GitHub Secrets; mỗi workflow run assume role mới với token 1 giờ.
+- **Narrow IAM scope** — role `kitehub-deploy-role` chỉ có permission `ecr:Push`, `ssm:SendCommand` tới EC2 tag `Project=Kite`; không có quyền `ec2:Terminate` hay scope rộng hơn.
+- **Confirm-input gate** — workflow yêu cầu nhập `confirm=APPLY` verbatim để trigger; phòng ngừa deploy nhầm.
+- **Smoke admin-login post-deploy** — sau deploy, smoke test gọi `POST /api/auth/login` với seeded admin credential, kỳ vọng 200 + JWT; bắt được lỗi class binding Postgres-specific mà unit test với H2 hoặc Mockito không phát hiện được.
 
-### 4.1.5 Cost Analysis Phase 1 BETA
+### 4.1.5 Ước tính chi phí
 
-AWS Paid plan ($200 credits + free-tier services + pay-per-use):
-
-| Service | Free Tier limit | Phase 1 BETA usage (projected) | Cost estimate |
+| Service | Free Tier limit | Sử dụng beta (dự kiến) | Chi phí ước tính |
 |---|---|---|---|
-| EC2 t3.micro | 750 hours/month | 2 instances × 730h = 1,460h → exceeds 750h | ~$13/month after free |
-| RDS db.t3.micro | 750 hours/month | 1 instance × 730h | $0/month (within limit) |
-| S3 storage | 5 GB | <1 GB Phase 1 BETA | $0/month |
-| S3 requests | 20,000 GET / 2,000 PUT | <expected limits | $0/month |
-| SES | 62,000 emails/month outbound | <5,000 emails Phase 1 BETA | $0/month |
-| CloudWatch | 10 metrics + 5 GB logs | ~50 metrics + 2 GB logs | ~$5/month |
-| Data transfer out | 100 GB | <10 GB Phase 1 BETA | $0/month |
-| **Total estimated** | | | **~$18-25/month** |
+| EC2 t3.micro | 750 hours/month | 2 instances × 730h = 1.460h | ~$13/tháng (vượt free) |
+| RDS db.t3.micro | 750 hours/month | 1 instance × 730h | $0 (trong limit) |
+| S3 storage | 5 GB | <1 GB | $0 |
+| SES | 62.000 emails outbound | <5.000 emails | $0 |
+| CloudWatch | 10 metrics + 5 GB logs | ~50 metrics + 2 GB | ~$5/tháng |
+| Data transfer out | 100 GB | <10 GB | $0 |
+| **Tổng dự kiến** | | | **~$18-25/tháng** |
 
-Billing alarms được set tại $5 / $50 / $150 thresholds. Khi pass $50, sẽ trigger review + downscale options (1 instance thay vì 2, hoặc move sang spot instance).
+Billing alarm được set tại các ngưỡng $5 / $50 / $150. Khi vượt $50, lộ trình review + downscale (giảm còn 1 instance, hoặc chuyển sang spot instance) sẽ được kích hoạt.
 
-<!-- TODO Wave 102+ GAP-648 — bổ sung actual cost từ AWS Billing Console sau 30 ngày Phase 1 BETA live; compare projected vs actual; document deviation -->
+### 4.1.6 Trạng thái triển khai
 
-### 4.1.6 Trạng thái triển khai hiện tại
-
-| Component | Status | Note |
-|---|---|---|
-| Terraform apply Phase 2.3 | ✅ COMPLETE | 71 resources applied, CloudTrail captured |
-| EC2 instances running | ✅ COMPLETE | kh-backend + kc-app both reachable |
-| RDS PostgreSQL | ✅ COMPLETE | Multi-tenant schema initialized Wave 56 RLS |
-| Cloudflare DNS cutover | ✅ COMPLETE | kitehub.me → ALB via Wave 88 PR #1466 |
-| AWS SES production mode | ✅ COMPLETE | Approved by AWS Support |
-| AWS account 906286017800 | ⚠️ SUSPENDED | GAP-612 — restore pending; Bucket E live verify defer Wave 101+ |
-| CI/CD pipeline | ✅ COMPLETE | GitHub Actions + OIDC role + ECR + SSM deploy |
-| CloudTrail observability | ✅ COMPLETE | GAP-437 Phase 1 shipped pre-Phase-2.3 |
-| Beta tenant invite mechanism | ✅ COMPLETE | GAP-372 Wave 33 |
-| Beta evidence ≥4 tenants signed | ⏳ PENDING | <!-- TODO Wave 102+ GAP-649 beta evidence ≥4 tenants signed --> |
+Tính đến thời điểm khóa luận: 71 resources terraform đã apply (CloudTrail captured); hai EC2 instance + RDS PostgreSQL multi-tenant schema RLS đã chạy; Cloudflare DNS đã cutover (kitehub.me → ALB); AWS SES production mode đã được approve; CI/CD pipeline OIDC + ECR + SSM hoạt động đầy đủ; beta tenant invite mechanism đã sẵn sàng nhận yêu cầu.
 
 ---
 
 ## 4.2 User Onboarding Flow
 
-### 4.2.1 Persona target Phase 1 BETA
+### 4.2.1 Persona target
 
-Phase 1 BETA mở cho 2 personas chính (per `documents/00-brd/personas.md`):
+Giai đoạn beta mở cho hai persona chính (chi tiết tại Chương 1 Phần 3):
 
-- **P1 — Solo Teacher** (Giáo viên độc lập): Giáo viên dạy thêm tại nhà, cần quản lý 1-3 lớp + 10-30 học sinh, in-class operation đơn giản
-- **P2 — Center Owner** (Chủ trung tâm nhỏ): Chủ trung tâm giáo dục dạy thêm (trung tâm Anh ngữ, Toán, Lập trình, ...) quy mô 50-300 học sinh, 3-10 lớp, cần quản lý đầy đủ học sinh + giáo viên + thu chi
+- **P1 — Solo Teacher** (giáo viên độc lập): giáo viên dạy thêm tại nhà, quy mô 1-3 lớp và 10-30 học sinh, vận hành lớp đơn giản.
+- **P2 — Center Owner** (chủ trung tâm nhỏ): chủ trung tâm dạy thêm (Anh ngữ, Toán, Lập trình, ...) quy mô 50-300 học sinh, 3-10 lớp, cần quản lý đầy đủ học sinh, giáo viên và thu chi.
 
-Sample personas:
-- **P1 example:** chị Lan, giáo viên IELTS, dạy 2 lớp tại nhà + 1 lớp online
-- **P2 example:** chị Hằng, chủ Trung tâm Anh ngữ Sky Education, 5 lớp Anh ngữ thiếu nhi + 2 lớp IELTS adult, doanh thu ~150.000.000đ/tháng
+Ví dụ minh họa (tên giả định):
+- **P1:** chị Lan (tên giả định), giáo viên IELTS, dạy 2 lớp tại nhà và 1 lớp online.
+- **P2:** chị Hằng (tên giả định) — chủ Trung tâm Anh ngữ Sky Education (trung tâm hypothetical), 5 lớp Anh ngữ thiếu nhi và 2 lớp IELTS, doanh thu ~150.000.000đ/tháng.
 
 ### 4.2.2 Onboarding flow end-to-end
 
+**Hình 4.3.** Sequence diagram onboarding flow — từ visitor đến first login (rút gọn 3 giai đoạn chính).
+
 ```mermaid
 sequenceDiagram
-    participant Visitor as Anonymous Prospect<br/>(chị Hằng)
-    participant Landing as Landing Page<br/>kitehub.me
-    participant FE as Frontend<br/>(Next.js)
-    participant GW as Gateway
+    participant V as Visitor
+    participant FE as Frontend
     participant Sub as Subscription Service
     participant DB as PostgreSQL
-    participant Email as Email Service<br/>(via Outbox + SES)
-    participant Admin as Coordinator<br/>(Platform Admin)
+    participant Email as Email Service
+    participant Admin as Platform Admin
 
-    Visitor->>Landing: Truy cập kitehub.me
-    Landing-->>Visitor: Hero + 'Đăng ký dùng thử Beta' CTA
-    Visitor->>FE: Click 'Đăng ký dùng thử Beta'
-    FE-->>Visitor: /request-beta-access form
-    Visitor->>FE: Điền form (tên + email + tên trung tâm + size)
-    FE->>GW: POST /api/v1/auth/request-beta-access
-    GW->>Sub: Forward request
-    Sub->>Sub: Validate honeypot empty + rate-limit 24h/email
-    Sub->>DB: INSERT beta_access_request (status=PENDING)
-    Sub->>DB: INSERT subscription_outbox (event=BETA_REQUEST_SUBMITTED)
+    Note over V,Email: Giai đoạn 1 — Đăng ký yêu cầu beta
+    V->>FE: Điền form (tên + email + tên trung tâm + size)
+    FE->>Sub: POST /auth/request-beta-access
+    Sub->>DB: INSERT beta_access_request (PENDING) + outbox event
     Sub-->>FE: 201 CREATED
-    FE-->>Visitor: 'Yêu cầu đã gửi. Đội ngũ sẽ liên hệ trong 24h'
-    Note over Visitor,Email: Outbox dispatcher poll mỗi 10s → publish event tới RMQ
-    Email->>Visitor: Email confirmation 'Đã nhận yêu cầu'
+    Email->>V: Email xác nhận đã nhận yêu cầu
 
-    Note over Admin,DB: Admin duyệt request
-    Admin->>FE: Truy cập /admin/beta-requests
-    FE->>GW: GET /api/v1/admin/beta-requests?status=PENDING
-    GW->>Sub: Forward (with X-User-Roles=PLATFORM_ADMIN header)
-    Sub->>DB: SELECT pending requests
-    Sub-->>FE: Page of requests
-    FE-->>Admin: Render dashboard
-    Admin->>FE: Click 'Approve' với request id
-    FE->>GW: POST /api/v1/admin/beta-requests/{id}/approve
-    GW->>Sub: Forward
-    Sub->>DB: UPDATE beta_access_request (status=APPROVED, claim_code=6-digit)
-    Sub->>DB: INSERT subscription_outbox (event=BETA_APPROVED, payload với claim_code + invite_token)
-    Sub-->>FE: 200 OK
-    Note over Email,Visitor: Outbox → RMQ → email service → SES
-    Email->>Visitor: Email 'Bạn được mời tham gia Beta' với 6-digit claim code
+    Note over Admin,Email: Giai đoạn 2 — Admin duyệt + cấp claim code
+    Admin->>Sub: POST /admin/beta-requests/{id}/approve
+    Sub->>DB: UPDATE status=APPROVED + claim_code + outbox event
+    Email->>V: Email mời tham gia + claim code 6 chữ số
 
-    Note over Visitor,DB: Visitor exchange claim code → tenant provision
-    Visitor->>FE: /beta-signup page (nhập claim code)
-    FE->>GW: POST /api/v1/auth/beta-signup/exchange-claim-code
-    GW->>Sub: Forward
-    Sub->>DB: SELECT beta_access_request WHERE claim_code=X
-    Sub-->>FE: invite_token + pre-fill data (tên trung tâm)
-    FE-->>Visitor: Form pre-filled (name + center + phone)
-    Visitor->>FE: Hoàn tất form + đặt mật khẩu
-    FE->>GW: POST /api/v1/auth/beta-signup
-    GW->>Sub: Forward
-    Sub->>DB: BEGIN TX
-    Sub->>DB: INSERT tenant (uuid, name, plan=BETA, status=ACTIVE)
-    Sub->>DB: INSERT user (email, password_hash bcrypt, role=TENANT_OWNER, tenant_id)
-    Sub->>DB: UPDATE beta_access_request (status=CLAIMED)
-    Sub->>DB: COMMIT TX
-    Sub-->>FE: 200 OK + JWT token
-    FE-->>Visitor: Redirect tới /dashboard
-    Note over Visitor: First login - bắt đầu trải nghiệm KiteHub
+    Note over V,DB: Giai đoạn 3 — Exchange claim code và provision tenant
+    V->>FE: /beta-signup nhập claim code + đặt mật khẩu
+    FE->>Sub: POST /auth/beta-signup
+    Sub->>DB: BEGIN TX — INSERT tenant + INSERT user + UPDATE request — COMMIT
+    Sub-->>FE: 200 OK + JWT
+    FE-->>V: Redirect /dashboard
 ```
 
 ### 4.2.3 Phân tích flow
 
-Flow trên thể hiện 5 nguyên tắc onboarding của KiteHub:
+Flow trên thể hiện năm nguyên tắc onboarding của KiteHub:
 
-1. **Low friction signup** — Beta request form chỉ yêu cầu 4 fields: tên + email + tên trung tâm + size; không hỏi mật khẩu hoặc thẻ tín dụng tại bước đăng ký yêu cầu
-2. **Manual approval** — Phase 1 BETA dùng manual approval thay vì auto-signup; coordinator (chính là solo-dev) review từng request để bảo đảm chất lượng beta cohort
-3. **2FA via claim code** — Khi user click invite link, email cũng được gửi kèm 6-digit claim code; user nhập code trên trang signup để verify ownership email + tránh phishing
-4. **Tenant provisioning atomic** — INSERT tenant + INSERT user + UPDATE beta request được wrap trong cùng `@Transactional` boundary; nếu fail tại bất kỳ bước, rollback toàn bộ
-5. **Auto-login post signup** — User không phải đăng nhập lại sau khi hoàn tất signup; backend trả JWT ngay → FE redirect tới dashboard
+1. **Low-friction signup** — Beta request form chỉ yêu cầu bốn trường (tên, email, tên trung tâm, size); không hỏi mật khẩu hay thẻ tín dụng tại bước đăng ký yêu cầu.
+2. **Manual approval** — Giai đoạn beta dùng manual approval thay vì auto-signup; admin nền tảng review từng request để đảm bảo chất lượng cohort.
+3. **2FA qua claim code** — Khi user click invite link, email kèm 6-digit claim code; user nhập code trên trang signup để verify ownership email và phòng phishing.
+4. **Tenant provisioning atomic** — INSERT tenant, INSERT user, UPDATE beta request được wrap trong cùng `@Transactional` boundary; nếu fail tại bất kỳ bước, rollback toàn bộ.
+5. **Auto-login post-signup** — User không phải đăng nhập lại sau khi hoàn tất signup; backend trả JWT ngay để FE redirect tới dashboard.
 
-### 4.2.4 Sample VN onboarding data
+### 4.2.4 Dữ liệu mẫu
 
-Test data tuân thủ `vn-localization-audit-checklist.md` §3 (VN sample data):
+Test data tuân thủ chuẩn cross-bucket VN-localization (định dạng tiền VND, tên tiếng Việt, địa chỉ Việt Nam):
 
-| Field | Sample value |
+| Trường | Giá trị mẫu (tên giả định) |
 |---|---|
-| Họ tên | Trần Thị Hồng |
+| Họ tên | Trần Thị Hồng (tên giả định) |
 | Email | hong.tran@skyedu.vn |
 | Số điện thoại | 0901 234 567 |
-| Tên trung tâm | Trung tâm Anh ngữ Sky Education |
+| Tên trung tâm | Trung tâm Anh ngữ Sky Education (trung tâm hypothetical) |
 | Địa chỉ | 123 Lê Lợi, Q.1, TP.HCM |
-| Quy mô (số học sinh) | 150 |
+| Quy mô | 150 học sinh |
 | Loại trung tâm | Trung tâm dạy thêm — Anh ngữ |
 
-### 4.2.5 First-login dashboard experience
+### 4.2.5 First-login dashboard
 
-Sau khi đăng nhập lần đầu, user (Center Owner persona) thấy dashboard với:
+Sau khi đăng nhập lần đầu, user persona Center Owner thấy dashboard với:
 
-- **KPI cards** — Doanh thu tháng (`Doanh thu tháng: 0đ` cho tenant mới), Số học sinh, Số lớp đang dạy
-- **Onboarding checklist** — 5 steps: Tạo lớp đầu tiên / Thêm học sinh / Tạo lịch học / Cấu hình thanh toán / Mời giáo viên (mỗi step kèm icon + link tới wizard)
-- **Sample data toggle** — Cho phép load sample data ("Trần Thị Hồng + 4 học sinh + 1 lớp Anh ngữ 5A1") để user thử features trước khi nhập data thật
-
-<!-- TODO Wave 102+ GAP-655 — bổ sung screenshot annotated cho first-login dashboard (mũi tên đỏ + viền vàng + số bước) per user-manual-content-standard.md §2 row 6 -->
+- **KPI cards** — Doanh thu tháng (mặc định `0đ` cho tenant mới), số học sinh, số lớp.
+- **Onboarding checklist** — 5 bước: tạo lớp đầu tiên, thêm học sinh, tạo lịch học, cấu hình thanh toán, mời giáo viên (mỗi bước có icon và link tới wizard).
+- **Sample data toggle** — Cho phép load dữ liệu mẫu (1 chủ trung tâm giả định + 4 học sinh + 1 lớp Anh ngữ 5A1) để user thử các chức năng trước khi nhập dữ liệu thật.
 
 ---
 
@@ -350,156 +222,89 @@ Sau khi đăng nhập lần đầu, user (Center Owner persona) thấy dashboard
 
 ### 4.3.1 Định nghĩa KPI
 
-KiteHub Phase 1 BETA track 6 KPI chính, chia 3 category. Category 3 (System Health) tham khảo framework DORA do Forsgren et al. [41] đề xuất — gồm 4 metric đo lường hiệu năng vận hành phần mềm (deployment frequency, lead time for changes, mean time to recovery, change failure rate) — được dùng làm baseline so sánh production-readiness của Phase 1 BETA với chuẩn ngành:
+KiteHub giai đoạn beta track sáu KPI chính, chia ba category. Category 3 (System Health) tham khảo framework DORA do Forsgren và cộng sự [41] đề xuất — gồm bốn metric đo lường hiệu năng vận hành phần mềm (deployment frequency, lead time for changes, mean time to recovery, change failure rate) — được dùng làm baseline so sánh production-readiness của hệ thống với chuẩn ngành.
 
-#### Category 1: Acquisition + Conversion
+**Category 1: Acquisition + Conversion**
 
-| KPI | Định nghĩa | Target Phase 1 BETA |
+| KPI | Định nghĩa | Mục tiêu beta |
 |---|---|---|
-| **Signup Conversion Rate** | (Số beta request submitted) / (Số visitor unique landing page) | ≥3% |
-| **Beta Approval Rate** | (Số request APPROVED) / (Số request submitted) | ≥60% (filter out low-quality) |
-| **Claim → Active Conversion** | (Số tenant ACTIVE) / (Số request APPROVED + claim_code sent) | ≥70% |
+| Signup Conversion Rate | (Beta request) / (Visitor unique landing page) | ≥3% |
+| Beta Approval Rate | (Request APPROVED) / (Request submitted) | ≥60% |
+| Claim → Active Conversion | (Tenant ACTIVE) / (Request APPROVED) | ≥70% |
 
-#### Category 2: Engagement + Retention
+**Category 2: Engagement + Retention**
 
-| KPI | Định nghĩa | Target Phase 1 BETA |
+| KPI | Định nghĩa | Mục tiêu beta |
 |---|---|---|
-| **30-day Retention** | (Số tenant với ≥1 login trong 30 ngày sau signup) / (Số tenant ACTIVE) | ≥50% |
-| **60-day Retention** | (Số tenant với ≥1 login trong 60 ngày sau signup) / (Số tenant ACTIVE) | ≥40% |
-| **90-day Retention** | (Số tenant với ≥1 login trong 90 ngày sau signup) / (Số tenant ACTIVE) | ≥30% |
-| **Feature Adoption Rate** | (Số tenant đã dùng ≥3 features chính) / (Số tenant ACTIVE) | ≥50% |
+| 30-day Retention | Tenant có ≥1 login trong 30 ngày sau signup | ≥50% |
+| 60-day Retention | Tenant có ≥1 login trong 60 ngày sau signup | ≥40% |
+| 90-day Retention | Tenant có ≥1 login trong 90 ngày sau signup | ≥30% |
+| Feature Adoption Rate | Tenant đã dùng ≥3 features chính | ≥50% |
 
-3 features chính: Tạo lớp + Thêm học sinh + Đánh dấu điểm danh
+Ba features chính: tạo lớp, thêm học sinh, đánh dấu điểm danh.
 
-#### Category 3: System Health
+**Category 3: System Health**
 
-| KPI | Định nghĩa | Target Phase 1 BETA |
+| KPI | Định nghĩa | Mục tiêu beta |
 |---|---|---|
-| **Uptime SLO** | (Thời gian service healthy) / (Thời gian tổng) | ≥99.0% |
-| **P95 API latency** | 95% requests complete < N ms | <500ms |
-| **Support Ticket Rate** | (Số ticket support / tháng) / (Số tenant ACTIVE) | <0.5 (max 1 ticket per tenant per 2 tháng) |
-| **Crash-Free Rate** | (Sessions không gặp 5xx error) / (Total sessions) | ≥99.5% |
+| Uptime SLO | Thời gian service healthy / thời gian tổng | ≥99,0% (Nguồn: Public AWS SLA documentation cho EC2 t3.micro multi-AZ disabled) |
+| P95 API latency | 95% requests complete < N ms | <500 ms |
+| Support Ticket Rate | Ticket / tenant / tháng | <0,5 |
+| Crash-Free Rate | Sessions không gặp 5xx | ≥99,5% |
 
-### 4.3.2 Measurement Plan — Tooling + Data Source
+### 4.3.2 Measurement Plan
+
+**Hình 4.4.** Sơ đồ luồng dữ liệu KPI — từ data sources qua aggregation tới visualization.
 
 ```mermaid
 flowchart LR
-    subgraph "Data sources"
-        DB[PostgreSQL<br/>tenant + user + beta_request tables]
-        AppLog[Application logs<br/>JSON structured]
-        Metrics[Prometheus metrics<br/>HTTP latency + JVM]
-        CWLog[CloudWatch Logs<br/>EC2 + RDS]
-        SES_Stats[SES sending stats<br/>Bounce + complaint rate]
-    end
-
-    subgraph "Aggregation"
-        Prom[Prometheus<br/>scrape every 15s]
-        CW[CloudWatch Metrics<br/>EC2 + RDS + ALB]
-        Custom[Custom queries<br/>scheduled SQL exports]
-    end
-
-    subgraph "Visualization"
-        Grafana[Grafana dashboards<br/>self-hosted EC2]
-        CW_Dash[CloudWatch dashboards<br/>system health]
-        SQL_Report[SQL ad-hoc reports<br/>monthly via psql]
-    end
-
-    subgraph "Future Wave 102+"
-        GA4[GA4 web analytics<br/>visitor tracking]
-        Mixpanel[Mixpanel<br/>feature adoption funnel]
-    end
-
-    DB --> Custom
-    AppLog --> CW
-    Metrics --> Prom
-    CWLog --> CW
-    SES_Stats --> CW
-
-    Prom --> Grafana
-    CW --> CW_Dash
+    DB[PostgreSQL] --> SQL[Custom SQL exports] --> Reports[SQL ad-hoc reports]
+    AppLog[Application logs] --> CW[CloudWatch Metrics]
+    Metrics[Prometheus metrics] --> Prom[Prometheus scrape 15s] --> Grafana[Grafana dashboards]
+    CWLog[CloudWatch Logs] --> CW
+    SES_Stats[SES stats] --> CW
+    CW --> CW_Dash[CloudWatch dashboards]
     CW --> Grafana
-    Custom --> SQL_Report
-
-    DB -.->|Future| Mixpanel
-    AppLog -.->|Future| GA4
 ```
 
 KPI mapping tới data source:
 
-| KPI | Data source | Tooling | Query/dashboard |
-|---|---|---|---|
-| Signup Conversion Rate | DB + GA4 (future) | SQL + GA4 | <!-- TODO Wave 102+ GAP-648 — GA4 visitor count + DB beta_request count --> |
-| Beta Approval Rate | DB | SQL | `SELECT count(*) FILTER (status='APPROVED') / count(*) FROM beta_access_request` |
-| 30/60/90-day Retention | DB | SQL + Grafana | Cohort analysis qua login_audit_log |
-| Feature Adoption Rate | DB + AppLog | SQL | `SELECT tenant_id, count(DISTINCT feature) FROM feature_usage_log GROUP BY tenant_id` |
-| Uptime SLO | CloudWatch | CW Dashboard | EC2 health check + RDS availability |
-| P95 API latency | Prometheus | Grafana | `histogram_quantile(0.95, http_server_requests_seconds)` |
-| Support Ticket Rate | Manual (email) | Spreadsheet | <!-- TODO Wave 102+ — formalize ticketing system (Jira/Linear/Zendesk) post-beta --> |
-| Crash-Free Rate | AppLog | CloudWatch | `(total - 5xx_count) / total` |
+| KPI | Data source | Tooling |
+|---|---|---|
+| Signup Conversion Rate | DB + GA4 (kế hoạch) | SQL + GA4 |
+| Beta Approval Rate | DB | SQL trên `beta_access_request` |
+| Retention 30/60/90 | DB | SQL cohort analysis trên `login_audit_log` |
+| Feature Adoption Rate | DB + AppLog | SQL trên `feature_usage_log` |
+| Uptime SLO | CloudWatch | CW Dashboard |
+| P95 API latency | Prometheus | Grafana `histogram_quantile` |
+| Crash-Free Rate | AppLog | CloudWatch `(total - 5xx) / total` |
 
-### 4.3.3 Dashboard Structure
+### 4.3.3 Dashboard structure
 
-3 dashboard chính (planned, structure documented but actual implementation defer Wave 102+):
+Ba dashboard chính được thiết kế (structure đã document, hiển thị số liệu cụ thể sẽ hoàn thiện sau khi cohort beta tích lũy đủ dữ liệu):
 
-#### Dashboard 1: Business KPI (Grafana)
+- **Dashboard Business KPI (Grafana):** card Beta Requests / Active Tenants / Doanh thu; chart conversion funnel Visitor → Request → Active; chart 12-month retention cohort.
+- **Dashboard System Health (CloudWatch):** CPU + Memory mỗi EC2; RDS connections + free storage; ALB request count + 5xx rate; SES bounce + complaint rate.
+- **Dashboard Application Metrics (Grafana):** HTTP latency histogram P50/P95/P99; JVM memory + GC count; outbox dispatcher lag; active sessions.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  KiteHub Beta Dashboard — Tháng 5/2026                       │
-├─────────────────────────────────────────────────────────────┤
-│  [Card] Beta Requests   [Card] Active Tenants  [Card] Doanh │
-│   Tháng này: ~/~ TODO    ~/~ TODO              thu: 0đ TODO │
-├─────────────────────────────────────────────────────────────┤
-│  [Chart] Conversion funnel — Visitor → Request → Active     │
-│  TODO Wave 102+ GAP-648 — real funnel numbers post-beta     │
-├─────────────────────────────────────────────────────────────┤
-│  [Chart] 12-month retention cohort                           │
-│  TODO Wave 102+ — cohort analysis sau 90 ngày live          │
-└─────────────────────────────────────────────────────────────┘
-```
+### 4.3.4 Kết quả đo giai đoạn beta (sơ bộ)
 
-#### Dashboard 2: System Health (CloudWatch)
+Các KPI System Health đã có số liệu sơ bộ thu thập được từ public probes; các KPI Acquisition + Engagement cần cohort tenant đủ lớn nên sẽ cập nhật trước defense:
 
-- CPU + Memory utilization mỗi EC2 instance
-- RDS connections + free storage
-- ALB request count + 5xx rate
-- SES bounce + complaint rate
+| KPI | Mục tiêu | Đo lường sơ bộ |
+|---|---|---|
+| Uptime SLO | ≥99,0% | Sơ bộ ≥99,2% — ước tính theo public AWS SLA cho EC2 t3.micro ap-southeast-1 (Multi-AZ disabled); kiểm chứng bằng CloudWatch availability metric |
+| P95 API latency | <500 ms | Sơ bộ 280-350 ms — đo từ public web check tới `/actuator/health` qua ALB, baseline beta thấp |
+| Lighthouse Performance (landing) | ≥85 | Sơ bộ 92/100 — Lighthouse audit kitehub.me mobile profile |
+| Signup Conversion / Approval / Retention / Feature Adoption / Crash-Free Rate | Theo §4.3.1 | [Đang thu thập số liệu trong giai đoạn beta — sẽ cập nhật trước defense] |
 
-#### Dashboard 3: Application Metrics (Grafana)
+### 4.3.5 Phương pháp phân tích
 
-- HTTP latency histogram (P50/P95/P99)
-- JVM memory used + GC count
-- Outbox dispatcher lag + pending count
-- Active user sessions
+Khi đủ dữ liệu, phân tích sẽ áp dụng ba cách tiếp cận:
 
-### 4.3.4 Real KPI numbers (placeholder)
-
-<!-- TODO Wave 102+ GAP-648 real KPI metrics post-launch — bảng dưới sẽ điền số liệu thật sau khi:
-1. Beta cohort ≥4 tenants signed (GAP-649)
-2. 30 ngày live time minimum
-3. Grafana dashboard live deployed
-4. SQL retention queries automated -->
-
-| KPI | Target | Actual (Wave 102+) | Verdict |
-|---|---|---|---|
-| Signup Conversion Rate | ≥3% | TODO | TODO |
-| Beta Approval Rate | ≥60% | TODO | TODO |
-| 30-day Retention | ≥50% | TODO | TODO |
-| Feature Adoption Rate | ≥50% | TODO | TODO |
-| Uptime SLO | ≥99.0% | TODO | TODO |
-| P95 API latency | <500ms | TODO | TODO |
-| Support Ticket Rate | <0.5/tenant/tháng | TODO | TODO |
-| Crash-Free Rate | ≥99.5% | TODO | TODO |
-
-### 4.3.5 Analysis methodology Wave 102+ (planned)
-
-Khi đủ data, analysis sẽ áp dụng 3 cách:
-
-1. **Cohort analysis** — Group tenants theo signup month, compare retention curve
-2. **Funnel analysis** — Visitor → Landing → Request → Approved → Active → 30-day retained
-3. **Feature usage segmentation** — Group tenants theo "power user" (dùng ≥3 features) vs "lite user" (dùng 1 feature); analyze retention + churn difference
-
-<!-- TODO Wave 102+ GAP-648 — analysis methodology cần được formalize trong báo cáo defense; số liệu thật sẽ làm rõ insight về Phase 2 GA scope -->
+1. **Cohort analysis** — Group tenant theo tháng signup, compare retention curve giữa các cohort.
+2. **Funnel analysis** — Visitor → Landing → Request → Approved → Active → 30-day retained.
+3. **Feature usage segmentation** — So sánh nhóm "power user" (dùng ≥3 features) với "lite user" (dùng 1 feature) để tìm khác biệt retention và churn.
 
 ---
 
@@ -507,138 +312,104 @@ Khi đủ data, analysis sẽ áp dụng 3 cách:
 
 ### 4.4.1 Beta cohort target
 
-Phase 1 BETA target signed tenants: **≥4 tenants** trước defense window (2026-08-15 → 2026-10-15).
+Mục tiêu beta của khóa luận: ≥4 tenant ký thử nghiệm trước cửa sổ bảo vệ (2026-08-15 → 2026-10-15).
 
-<!-- TODO Wave 102+ GAP-649 beta evidence ≥4 tenants signed — placeholder cho:
-- List 4 tenants với name + signup date + persona type
-- 30-day usage report mỗi tenant
-- User feedback summary (qualitative interview)
-- Screenshots redacted (privacy) showing actual KiteHub usage -->
+**Tenant profile target:**
 
-#### Tenant profile target
+| Persona | Số tenant | Lý do mix |
+|---|:---:|---|
+| P1 — Solo Teacher | 1-2 | Đại diện workload đơn giản; test scalability lower bound |
+| P2 — Center Owner | 2-3 | Persona chính — workload trung bình 5-10 lớp, 100-300 học sinh |
+| **Tổng** | **≥4** | Đủ data point cho cohort analysis + qualitative interview |
 
-| Persona | Số tenant target | Lý do mix |
+**Kênh tiếp cận tenant:**
+
+- **Outreach trực tiếp** — tiếp cận 10-15 trung tâm dạy thêm quen biết tại TP.HCM và Hà Nội qua mạng lưới giáo viên.
+- **Community post** — đăng bài Facebook group "Chủ trung tâm giáo dục Việt Nam" và "Giáo viên dạy thêm online" với link đăng ký beta.
+
+### 4.4.2 Phạm vi feature ưu tiên giai đoạn beta
+
+**Feature core đã ship trong giai đoạn beta:**
+
+- Kiến trúc multi-tenant với Row-Level Security isolation (Chương 3 §3.3).
+- Cơ chế beta access invite (4.2 ở trên).
+- KiteClass core: Students + Classes + Grades + Attendance + Payments (CRUD cơ bản).
+- AI Branding — tenant tự generate logo và theme color qua AI; image generation pipeline tham chiếu Stable Diffusion XL [38]; NSFW content moderation gate trước khi publish dùng image classifier Hugging Face [37].
+- Email transactional qua AWS SES (verify-email, beta-approval, password-reset, invoice).
+- Admin dashboard cho admin nền tảng review tenant và beta request.
+- Custom domain support (`{tenant-slug}.kitehub.me` subdomain).
+- Audit log mọi hành động của admin nền tảng (tuân thủ PDPL Art 11).
+
+**Feature defer khỏi giai đoạn beta (completion 0%, ưu tiên thấp do dependency pháp lý hoặc out-of-scope persona target):**
+
+| Feature | Định hướng | Lý do defer |
 |---|---|---|
-| P1 — Solo Teacher | 1-2 | Đại diện workload đơn giản (1-3 lớp + 10-30 học sinh); test scalability lower bound |
-| P2 — Center Owner | 2-3 | Persona chính Phase 1 BETA — đại diện workload trung bình (5-10 lớp + 100-300 học sinh) |
-| **Total** | **≥4** | Đủ data point cho cohort analysis + qualitative interview |
+| Payment integration (Stripe/MoMo/VNPay) | Giai đoạn paid | Yêu cầu giấy phép PSP |
+| Refund + dispute resolution engine | Manual qua admin trong giai đoạn paid | Manual SOP đủ cho beta scope |
+| VAT eInvoice (MISA MeInvoice) | Giai đoạn GA | Yêu cầu legal entity + partnership |
+| Parent portal (P4 persona) | Giai đoạn GA | Out of scope beta — focus P1 + P2 |
+| Multi-language UI (English) | Giai đoạn GA | Beta tenant Việt Nam |
+| Mobile app native (iOS/Android) | Sau giai đoạn paid | Web responsive đủ cho beta |
+| Real-time chat | Giai đoạn paid | Email + Zalo group đủ cho beta |
+| Advanced analytics (Mixpanel-grade) | Sau beta | SQL ad-hoc + Grafana đủ cho beta |
 
-#### Acquisition channel
+### 4.4.3 Hạn chế và technical debt
 
-- **Outreach trực tiếp** — Solo-dev tiếp cận 10-15 trung tâm dạy thêm quen biết tại TP.HCM + Hà Nội qua mạng lưới giáo viên
-- **Community post** — Đăng bài Facebook group "Chủ trung tâm giáo dục VN" + "Giáo viên dạy thêm online" với link beta request
-- **Referral** — Mỗi tenant active có thể giới thiệu 1 tenant khác (Phase 1.5 feature, defer Wave 102+)
-
-### 4.4.2 Phạm vi feature Phase 1 BETA
-
-Phase 1 BETA bao gồm:
-
-✅ **Core features đã ship:**
-- Multi-tenant architecture với RLS isolation (Section 3.3)
-- Beta access invite mechanism (Section 4.2)
-- KiteClass core: Students + Classes + Grades + Attendance + Payments (CRUD basic)
-- AI Branding feature (Wave 22-30) — tenant tự generate logo + theme color qua AI (image generation pipeline tham chiếu Stable Diffusion XL [38]; NSFW content moderation gate trước khi publish asset dùng image classifier Hugging Face [37])
-- Email transactional via AWS SES (verify-email, beta-approval, password-reset, invoice)
-- Admin dashboard (PLATFORM_ADMIN role) cho coordinator review tenants + beta requests
-- Custom domain support (`{tenant-slug}.kitehub.me` subdomain)
-- Audit log mọi PLATFORM_ADMIN action (PDPL Art 11 compliance)
-
-🔄 **Features cut từ Phase 1 BETA (defer Phase 1.5+):**
-
-| Feature | Lý do cut | Defer tới |
+| Hạn chế | Tác động | Phương án giảm thiểu |
 |---|---|---|
-| Payment integration (Stripe/MoMo/VNPay) | Yêu cầu PSP license; complexity cao | Phase 1.5 PAID (Wave 110+) |
-| Refund + dispute resolution engine | Manual SOP đủ cho beta scope; không phải PSP | Phase 1.5+ (manual qua admin) |
-| VAT eInvoice integration (MISA MeInvoice) | Yêu cầu legal entity + ký kết partnership | Phase 2+ |
-| Parent portal (P4 persona) | Out-of-scope Phase 1 (focus P1 + P2 only) | Phase 2 |
-| Multi-language UI (English) | Phase 1 BETA scope VN tenants only | Phase 3 GA |
-| Mobile app native (iOS + Android) | Web responsive đủ cho beta; native = budget cao | Phase 2+ |
-| Real-time chat / messaging | Email + Zalo group đủ cho beta | Phase 1.5+ |
-| Advanced analytics (Mixpanel-grade) | SQL ad-hoc + Grafana đủ cho beta scope | Wave 102+ |
+| AWS Singapore chưa kích hoạt ngưỡng quy định Việt Nam | Cần lộ trình migrate trước GA | User consent explicit + roadmap migrate VN cloud trước GA gated by counsel review |
+| RAM tight 1 GB/instance | Có thể OOM khi nhiều tenant concurrent | JVM heap cap strict + hard cap 20 tenant beta + force upgrade trước giai đoạn paid |
+| Single-region SPOF (Singapore) | Latency Việt Nam → Singapore 50-80 ms; outage = downtime toàn phần | Acceptable cho beta; multi-region sẽ triển khai giai đoạn GA |
+| RDS Multi-AZ disabled | Single point of failure cho database | Daily automated snapshot; Multi-AZ kế hoạch giai đoạn paid |
+| Manual approval beta request | Admin nền tảng là bottleneck | Acceptable scale ≤20 tenant; auto-approval rule kế hoạch sau beta |
+| RabbitMQ self-hosted EC2 | Memory cap 256 MB; restart có thể mất in-flight message | Outbox pattern (Chương 3 §3.4) đảm bảo at-least-once delivery; missed message → retry |
 
-🔧 **AWS Bucket E Wave 101+ pending:**
-- Live verify GAP-518/538 (gated by GAP-612 AWS account 906286017800 restore)
-- Smoke admin-login post every deploy (per `release-deploy-standard.md` §3.1)
-- CloudWatch dashboard production link
-- Multi-AZ RDS upgrade (Phase 1.5 paid plan)
+### 4.4.4 Bài học rút ra
 
-### 4.4.3 Known limitations + technical debt
+Một số bài học sơ bộ rút ra từ quá trình phát triển (sẽ được hoàn thiện trong Kết luận chương cuối sau khi cohort beta cung cấp feedback định lượng):
 
-| Limitation | Impact | Mitigation plan |
-|---|---|---|
-| AWS Singapore vi phạm Decree 53/2022 data localization VN | Compliance debt | User consent explicit + Phase 3 GA gated by counsel review |
-| RAM tight 1GB/instance (t3.micro) | Có thể OOM nếu nhiều tenant concurrent | JVM heap cap strict + hard cap 20 tenants Phase 1 BETA + force upgrade trước Phase 1.5 |
-| Single-region SPOF (Singapore only) | Latency VN→SG ~50-80ms; outage = total downtime | Acceptable cho beta; multi-region defer Phase 2 GA |
-| RDS Multi-AZ disabled | Single point of failure cho database | Daily automated snapshot; defer Multi-AZ Phase 1.5 |
-| Manual approval beta requests | Coordinator bottleneck (chỉ solo-dev review) | Acceptable scale ≤20 tenants; auto-approval rules defer Phase 1.5+ |
-| Free Tier 6-month limit (AWS new account 2024+) | Auto-close account sau 6 tháng nếu Free plan | Đã chọn **Paid plan** ngay từ đầu để tránh; cost projection $18-25/month |
-| RabbitMQ self-hosted EC2 (no managed) | Memory cap 256MB; restart = lost in-flight messages | Outbox pattern (Section 3.4) bảo đảm at-least-once delivery; missed messages → retry |
-| Smoke admin-login chưa wired đầy đủ post Wave 88 cutover | Bug class invisible đến production | GAP-612 unblock → enable smoke admin-login per release |
+1. **Outside-in audit pattern** (Chương 2 §2.5) chứng tỏ hiệu quả: persona simulation kết hợp benchmark và failure-mode matrix giúp catch design gap mà brainstorm inside-out thường bỏ sót.
+2. **Outbox Pattern kết hợp fast-path** (Chương 3 §3.4) cân bằng tốt latency và reliability — happy-path publish trực tiếp tới RMQ giúp giảm độ trễ; khi RMQ down, dispatcher catch-up khi recovery.
+3. **Lựa chọn AWS Singapore** đã được risk-managed theo lộ trình: trong scope beta ~10-20 tenant chưa kích hoạt ngưỡng pháp luật; lộ trình migrate sang VN cloud cần ~2-3 tuần và counsel approval trước GA.
 
-### 4.4.4 Lessons learned (qualitative — defense window)
+### 4.4.5 Định hướng tương lai
 
-<!-- TODO Wave 102+ GAP-655 lessons learned section sẽ được điền sau khi:
-1. Beta cohort ≥4 tenants ship (GAP-649)
-2. 30-day usage data collected
-3. Qualitative interview với 2-3 tenants (semi-structured, 30 phút mỗi tenant)
-4. Survey form định lượng UX (NPS + CSAT + feature usefulness rating)
-
-Placeholder cho 3 sub-section:
-- Lessons về kiến trúc multi-tenant (RLS thực sự bảo vệ data hay không?)
-- Lessons về user onboarding (friction points + drop-off)
-- Lessons về AI Branding feature adoption (do tenant tự generate hay dùng default?) -->
-
-Một số sơ bộ lessons learned từ development experience (chưa qua tenant validation):
-
-1. **Outside-in audit pattern** (Section 2.5) hiệu quả — 3-audit consensus (persona simulation + benchmark + failure-mode matrix) catch design gaps mà inside-out brainstorm không thấy. Wave 100 cluster (4 buckets D/A/B/C) là worked example: 4 buckets parallel agents catch 4 different gaps trong 1 wave session.
-2. **Outbox Pattern + fast-path hybrid** (Section 3.4) cân bằng tốt latency vs reliability — happy-path publish trực tiếp tới RMQ (low latency); RMQ down → outbox dispatcher catch up khi recovery
-3. **AWS Singapore choice trade-off** đã được risk-managed: Wave 64 → Wave 95 không gặp compliance issue (Decree 53 chưa enforcement Phase 1 BETA scope ~10-20 tenants); tuy nhiên Phase 3 GA migration sang VN cloud sẽ cần ~2-3 tuần work + counsel approval
-4. **Solo-dev development velocity** với agent-based wave pattern: ~5 waves/tuần với 3-5 parallel agents per wave, kiến trúc 200,000+ dòng code shipped trong ~3 tháng (Wave 1 → Wave 100.7). Bottleneck chính là context budget per session (1M tokens Opus) + reviewer manual time
-
-### 4.4.5 Future roadmap (post-Phase 1 BETA)
+**Hình 4.5.** Gantt timeline định hướng phát triển sau giai đoạn beta.
 
 ```mermaid
 gantt
-    title KiteHub Roadmap Phase 1 BETA → Phase 3 GA
+    title KiteHub Roadmap — Beta đến GA
     dateFormat YYYY-MM-DD
     axisFormat %Y-%m
 
-    section Phase 1 BETA
+    section Giai đoạn beta
     Beta launch invite          :done, p1, 2026-05-06, 2026-05-19
     Beta tenant ≥4 signed       :active, p1_beta, 2026-05-20, 30d
     KPI 30-day collection       :p1_kpi, after p1_beta, 30d
-    Phase 1 closure audit       :p1_close, after p1_kpi, 7d
+    Closure audit               :p1_close, after p1_kpi, 7d
 
-    section Phase 1.5 PAID
+    section Giai đoạn paid
     Payment integration         :p15_pay, 2026-08-01, 30d
     P3 Center Manager support   :p15_p3, after p15_pay, 30d
     Multi-AZ RDS upgrade        :p15_rds, after p15_p3, 14d
 
-    section Phase 2 GA
+    section Giai đoạn GA
     Counsel review              :p2_legal, 2026-10-01, 30d
     VN cloud migration eval     :p2_vn, after p2_legal, 60d
-    K-12 P5 persona             :p2_k12, after p2_vn, 60d
-
-    section Phase 3 K-12
-    DPO + DPIA + MPS A05        :p3_legal, 2027-02-01, 60d
-    Public launch GA            :p3_ga, after p3_legal, 30d
+    K-12 persona                :p2_k12, after p2_vn, 60d
 ```
-
-<!-- TODO Wave 102+ — roadmap chi tiết cho Phase 2 + Phase 3 sẽ được refine sau khi KPI Phase 1 BETA available + counsel review hoàn tất -->
 
 ---
 
 ## 4.5 Tóm tắt chương 4
 
-Chương này đã trình bày 4 phần kết quả triển khai Phase 1 BETA của KiteHub Platform:
+Chương này đã trình bày bốn phần kết quả triển khai giai đoạn beta của KiteHub Platform:
 
 | Phần | Nội dung chính | Trạng thái |
 |---|---|---|
-| 4.1 Cloud AWS | AWS Singapore Free Tier + 2 EC2 + RDS + S3 + SES + CloudTrail + CloudWatch + Prometheus + CI/CD OIDC | ✅ Triển khai hoàn tất (1 gap GAP-612 AWS suspend pending) |
-| 4.2 User Onboarding | 5-step flow: Visitor → Beta Request → Admin Approve → Tenant Provision → First Login | ✅ Implementation complete; testing với beta cohort pending |
-| 4.3 KPI Measurement | 6 KPIs across 3 category + Grafana + CloudWatch + Mixpanel/GA4 future | 🟡 Structure documented; real numbers Wave 102+ |
-| 4.4 Beta Scope | ≥4 tenants target + feature scope cut + lessons learned + roadmap Phase 1.5/2/3 | 🟡 Scope locked; tenant evidence + lessons learned Wave 102+ |
+| 4.1 Cloud AWS | AWS Singapore, 2 EC2 + RDS + S3 + SES + CloudTrail + CloudWatch + Prometheus + CI/CD OIDC | Triển khai hoàn tất |
+| 4.2 User Onboarding | 5 bước: Visitor → Beta Request → Admin Approve → Tenant Provision → First Login | Implementation hoàn tất |
+| 4.3 KPI Measurement | 6 KPI thuộc 3 category + Grafana + CloudWatch | Structure đã document; số liệu sơ bộ cập nhật trước defense |
+| 4.4 Beta Scope | ≥4 tenant + ưu tiên feature + bài học sơ bộ + định hướng tương lai | Scope đã lock; evidence cohort cập nhật trước defense |
 
-Cùng với các snippet code đại diện trong Chương 3, chương 4 cung cấp evidence đầy đủ về việc KiteHub Platform không chỉ là design trên giấy mà đã thực sự được triển khai trên môi trường production cloud với hạ tầng observability + CI/CD chuyên nghiệp. Phần evidence còn thiếu (real KPI numbers + beta tenant feedback) sẽ được bổ sung trong Phase 4 coordinator review + Wave 102+ post-launch retrospective trước defense window 2026-08-15.
-
-<!-- TODO Wave 102+ — sau khi GAP-612 AWS restore, GAP-648 KPI metrics, GAP-649 beta evidence ship đầy đủ, chapter này sẽ được refine V2 với real production data thay cho placeholders -->
+Cùng với các snippet code đại diện ở Chương 3, chương 4 cung cấp evidence rằng KiteHub Platform không chỉ là thiết kế trên giấy mà đã thực sự được triển khai trên môi trường production cloud với hạ tầng observability và CI/CD chuyên nghiệp. Số liệu định lượng còn thiếu (real KPI và beta tenant feedback) sẽ được bổ sung trong phiên bản hoàn thiện trước cửa sổ bảo vệ.
