@@ -1058,30 +1058,49 @@ def add_acknowledgment_page(doc):
     run = p.add_run("LỜI CẢM ƠN")
     set_font(run, Pt(16), bold=True)
 
-    # Wave 102.5 Item 1d + G25 — 3-part structure 1 trang ~250 từ
-    # Phần 1 — GVHD (2-3 câu)
+    # Wave 102.5 follow-up 2026-05-20 — expanded 5-paragraph structure ~450 từ
+    # Phần 1 — Mở đầu
+    add_paragraph_text(doc,
+        "Trong suốt quá trình nghiên cứu, thiết kế và thực hiện đồ án tốt nghiệp này, tôi đã nhận "
+        "được sự quan tâm, hướng dẫn và giúp đỡ quý báu từ nhiều tập thể và cá nhân. Đây là nguồn "
+        "động viên to lớn, giúp tôi có thêm động lực và kiến thức để hoàn thành tốt đề tài. Tôi "
+        "xin được gửi những lời cảm ơn chân thành nhất đến tất cả những người đã đồng hành cùng "
+        "tôi trên hành trình này.")
+
+    # Phần 2 — GVHD chi tiết
     add_paragraph_text(doc,
         f"Trước hết, tôi xin bày tỏ lòng biết ơn sâu sắc đến {THESIS_INFO['advisor']}, "
         f"giảng viên hướng dẫn thuộc {THESIS_INFO['advisor_dept']}, {THESIS_INFO['advisor_university']}. "
         "Thầy đã tận tình hướng dẫn tôi từ giai đoạn xác định đề tài, định hướng phạm vi nghiên cứu "
         "và phương pháp luận, đến việc đóng góp ý kiến chuyên môn quan trọng trong suốt quá trình "
-        "thực hiện. Tư duy nghiêm túc trong học thuật và tinh thần phản biện mà thầy truyền đạt đã "
-        "giúp tôi nâng cao chất lượng đồ án một cách rõ rệt.")
+        "thực hiện. Những kiến thức chuyên sâu, kinh nghiệm thực tiễn cũng như tư duy nghiêm túc "
+        "trong học thuật và tinh thần phản biện mà thầy truyền đạt đã giúp tôi nâng cao chất lượng "
+        "đồ án một cách rõ rệt, đồng thời rèn luyện cho tôi tác phong nghiên cứu khoa học cần thiết.")
 
-    # Phần 2 — Khoa + Trường (2 câu)
+    # Phần 3 — Khoa + Trường
     add_paragraph_text(doc,
         f"Tôi xin chân thành cảm ơn Khoa {STUDENT_INFO['department']} và "
         f"{STUDENT_INFO['university']} đã tạo điều kiện thuận lợi để tôi được tiếp cận với các kiến "
-        "thức nền tảng về Công nghệ phần mềm, Kiến trúc hệ thống phân tán và các công nghệ thực "
-        "tiễn trong ngành. Sự hỗ trợ của quý thầy cô là nền tảng quan trọng giúp tôi có đủ năng "
-        "lực thực hiện đề tài này.")
+        "thức nền tảng về Công nghệ phần mềm, Kiến trúc hệ thống phân tán, Cơ sở dữ liệu, An toàn "
+        "thông tin và các công nghệ thực tiễn trong ngành công nghiệp phần mềm. Môi trường học tập "
+        "chuyên nghiệp cùng với chương trình đào tạo bài bản là nền tảng quan trọng giúp tôi có "
+        "đủ năng lực và sự tự tin thực hiện đề tài này.")
 
-    # Phần 3 — Gia đình + bạn bè (1-2 câu)
+    # Phần 4 — Quý thầy cô bộ môn
     add_paragraph_text(doc,
-        "Cuối cùng, tôi xin gửi lời cảm ơn tới gia đình, bạn bè và những người thân đã luôn quan "
-        "tâm, động viên và hỗ trợ tôi cả về tinh thần lẫn vật chất trong suốt thời gian học tập và "
-        "thực hiện đồ án. Do thời gian và kinh nghiệm còn hạn chế, đồ án không tránh khỏi những "
-        "thiếu sót; tôi rất mong nhận được ý kiến đóng góp từ quý thầy cô để đồ án được hoàn thiện hơn.")
+        "Bên cạnh đó, tôi xin gửi lời cảm ơn chân thành đến quý thầy cô trong Bộ môn Công nghệ "
+        "phần mềm và toàn thể giảng viên Khoa Công nghệ thông tin đã nhiệt tình giảng dạy, chia "
+        "sẻ kinh nghiệm chuyên môn trong suốt bốn năm học, qua đó giúp tôi xây dựng được tư duy "
+        "kỹ thuật vững vàng và phương pháp tiếp cận vấn đề có hệ thống — những phẩm chất thiết "
+        "yếu cho hành trình phát triển nghề nghiệp sau này.")
+
+    # Phần 5 — Gia đình + bạn bè + đóng kết
+    add_paragraph_text(doc,
+        "Cuối cùng, tôi xin gửi lời cảm ơn sâu sắc tới gia đình, bạn bè và những người thân đã "
+        "luôn quan tâm, động viên và hỗ trợ tôi cả về tinh thần lẫn vật chất trong suốt thời gian "
+        "học tập và thực hiện đồ án. Mặc dù đã rất cố gắng, song do thời gian và kinh nghiệm thực "
+        "tiễn còn hạn chế, đồ án không tránh khỏi những thiếu sót; tôi rất mong nhận được sự đóng "
+        "góp ý kiến từ quý thầy cô để đồ án được hoàn thiện hơn. Tôi xin chân thành cảm ơn!")
 
     for _ in range(3):
         doc.add_paragraph()
