@@ -492,7 +492,12 @@ def add_image_inline(doc, image_path, caption=None, width_cm=14.0):
 
 
 def _render_mermaid_to_png(mermaid_src: str, cache_dir: Path) -> Path | None:
-    """Render Mermaid diagram → PNG via kroki.io HTTP API. Cached locally.
+    """Render Mermaid diagram → PNG. Cached locally.
+
+    Strategy (Wave 102.5 follow-up Item 9c fix — multi-tier fallback):
+      1. kroki.io HTTP API (fastest, no local deps) — fails on long-source HTTP 400
+      2. mmdc (mermaid-cli) local — works for any size, requires npm install
+      3. None (caller falls back to italic-text rendering)
 
     Args:
         mermaid_src: raw Mermaid syntax (without ``` fences)
@@ -503,6 +508,8 @@ def _render_mermaid_to_png(mermaid_src: str, cache_dir: Path) -> Path | None:
     """
     import base64
     import hashlib
+    import shutil
+    import subprocess
     import urllib.error
     import urllib.request
     import zlib
@@ -513,6 +520,7 @@ def _render_mermaid_to_png(mermaid_src: str, cache_dir: Path) -> Path | None:
     if png_path.exists() and png_path.stat().st_size > 0:
         return png_path  # cache hit
 
+    # Tier 1: kroki.io HTTP API
     try:
         compressed = zlib.compress(mermaid_src.encode(), 9)
         encoded = base64.urlsafe_b64encode(compressed).decode().rstrip('=')
@@ -520,12 +528,39 @@ def _render_mermaid_to_png(mermaid_src: str, cache_dir: Path) -> Path | None:
         req = urllib.request.Request(url, headers={'User-Agent': 'thesis-pipeline/1.0'})
         with urllib.request.urlopen(req, timeout=20) as resp:
             data = resp.read()
-            if not data or len(data) < 100:
-                return None
-            png_path.write_bytes(data)
-            return png_path
+            if data and len(data) >= 100:
+                png_path.write_bytes(data)
+                return png_path
     except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as e:
-        print(f"  WARN: Mermaid render failed via kroki.io: {e}")
+        print(f"  WARN: kroki.io render failed ({e}); trying mmdc local fallback")
+
+    # Tier 2: mmdc (mermaid-cli) local fallback
+    mmdc = shutil.which("mmdc")
+    if not mmdc:
+        print("  WARN: mmdc not installed; install via `npm install -g @mermaid-js/mermaid-cli`")
+        return None
+    try:
+        mmd_path = cache_dir / f"mermaid-{digest}.mmd"
+        mmd_path.write_text(mermaid_src, encoding="utf-8")
+        result = subprocess.run(
+            [
+                mmdc,
+                "-i", str(mmd_path),
+                "-o", str(png_path),
+                "-w", "1440",
+                "-H", "900",
+                "-b", "white",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        if result.returncode == 0 and png_path.exists() and png_path.stat().st_size > 0:
+            return png_path
+        print(f"  WARN: mmdc render failed (rc={result.returncode}); stderr: {result.stderr[:200]}")
+        return None
+    except (subprocess.TimeoutExpired, OSError) as e:
+        print(f"  WARN: mmdc fallback failed: {e}")
         return None
 
 

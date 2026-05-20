@@ -1,0 +1,33 @@
+{
+  "pr": 1633,
+  "title": "chore(wave-102.5): closure \u2014 thesis V1 fix bundle SHIPPED (27/31 DONE + 4 PARTIAL \u2192 GAP-689)",
+  "branch": "wave/102.5-closure",
+  "created_at": null,
+  "merged_at": "2026-05-20T05:41:11Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-20T05:41:20.682684",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 9,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-29641"
+  }
+}
