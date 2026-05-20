@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Script tạo Khóa luận tốt nghiệp Đại học GTVT V1 — KiteHub SaaS Platform.
+Script tạo Đồ án tốt nghiệp Đại học GTVT V1 — KiteHub SaaS Platform.
 
 Pivot từ documents/07-archived/academic/word-reports/bao-cao-thuc-tap/create_bao_cao_thuc_tap.py
 per GAP-688 (Wave 102) — Python pipeline thay thế pandoc default thesis-v1-draft.docx
 (60/100 D+) bằng UTC-spec-compliant DOCX target ≥75/100 C+.
 
-Cấu trúc khóa luận:
-1. Bìa chính (UTC GTVT + "KHÓA LUẬN TỐT NGHIỆP" + title + advisor)
+Cấu trúc đồ án:
+1. Bìa chính (UTC GTVT + "ĐỒ ÁN TỐT NGHIỆP" + title + advisor)
 2. Bìa phụ (same + GVHD signature block)
 3. Lời cảm ơn
 4. Mục lục (auto via TOC field)
@@ -686,7 +686,7 @@ def parse_markdown(doc, md_text, skip_top_heading=True):
 
 # ============== TRANG BÌA CHÍNH ==============
 def add_cover_page(doc):
-    """Bìa chính: BỘ GIÁO DỤC + UTC + KHÓA LUẬN TỐT NGHIỆP + title + student info + year."""
+    """Bìa chính: BỘ GIÁO DỤC + UTC + ĐỒ ÁN TỐT NGHIỆP + title + student info + year."""
     # Bộ Giáo dục và Đào tạo
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -729,12 +729,12 @@ def add_cover_page(doc):
         run = p.add_run("[LOGO UTC]")
         set_font(run, Pt(12), italic=True, color=RGBColor(128, 128, 128))
 
-    # KHÓA LUẬN TỐT NGHIỆP
+    # ĐỒ ÁN TỐT NGHIỆP
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(12)
     p.paragraph_format.space_after = Pt(0)
-    run = p.add_run("KHÓA LUẬN TỐT NGHIỆP")
+    run = p.add_run("ĐỒ ÁN TỐT NGHIỆP")
     set_font(run, Pt(24), bold=True, color=RGBColor(184, 134, 11))  # Gold
     run.font.underline = True
 
@@ -825,11 +825,11 @@ def add_secondary_cover_page(doc):
     set_font(run, Pt(14), bold=True)
     run.font.underline = True
 
-    # KHÓA LUẬN TỐT NGHIỆP (smaller than bìa chính — info-focused)
+    # ĐỒ ÁN TỐT NGHIỆP (smaller than bìa chính — info-focused)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(12)
-    run = p.add_run("KHÓA LUẬN TỐT NGHIỆP")
+    run = p.add_run("ĐỒ ÁN TỐT NGHIỆP")
     set_font(run, Pt(18), bold=True, color=RGBColor(184, 134, 11))
     run.font.underline = True
 
@@ -906,41 +906,41 @@ def add_acknowledgment_page(doc):
     set_font(run, Pt(16), bold=True)
 
     add_paragraph_text(doc,
-        "Trong suốt quá trình nghiên cứu, thiết kế và thực hiện khóa luận tốt nghiệp này, "
-        "em đã nhận được sự quan tâm, hướng dẫn và giúp đỡ tận tình từ nhiều tập thể và cá nhân. "
-        "Đây là nguồn động viên to lớn giúp em hoàn thành đề tài đúng tiến độ và đạt chất lượng mong muốn.")
+        "Trong suốt quá trình nghiên cứu, thiết kế và thực hiện đồ án tốt nghiệp này, "
+        "tôi đã nhận được sự quan tâm, hướng dẫn và giúp đỡ tận tình từ nhiều tập thể và cá nhân. "
+        "Đây là nguồn động viên to lớn giúp tôi hoàn thành đề tài đúng tiến độ và đạt chất lượng mong muốn.")
 
     add_paragraph_text(doc,
-        f"Trước hết, em xin bày tỏ lòng biết ơn sâu sắc đến {THESIS_INFO['advisor']}, "
+        f"Trước hết, tôi xin bày tỏ lòng biết ơn sâu sắc đến {THESIS_INFO['advisor']}, "
         f"giảng viên hướng dẫn thuộc {THESIS_INFO['advisor_dept']}, {THESIS_INFO['advisor_university']}. "
-        "Thầy đã tận tình hướng dẫn em từ giai đoạn xác định đề tài, định hướng phạm vi nghiên cứu, "
+        "Thầy đã tận tình hướng dẫn tôi từ giai đoạn xác định đề tài, định hướng phạm vi nghiên cứu, "
         "phương pháp luận phát triển phần mềm theo nguyên tắc chất lượng, đến việc đóng góp ý kiến "
         "chuyên môn quan trọng trong suốt quá trình thực hiện. Sự nghiêm túc trong học thuật và tư duy "
-        "phản biện mà thầy truyền đạt đã giúp em nâng cao chất lượng khóa luận một cách rõ rệt.")
+        "phản biện mà thầy truyền đạt đã giúp tôi nâng cao chất lượng đồ án một cách rõ rệt.")
 
     add_paragraph_text(doc,
-        f"Em xin chân thành cảm ơn Khoa {STUDENT_INFO['department']}, {STUDENT_INFO['university']} đã tạo "
-        "điều kiện thuận lợi để em được tiếp cận với các kiến thức nền tảng về Công nghệ phần mềm, "
+        f"Tôi xin chân thành cảm ơn Khoa {STUDENT_INFO['department']}, {STUDENT_INFO['university']} đã tạo "
+        "điều kiện thuận lợi để tôi được tiếp cận với các kiến thức nền tảng về Công nghệ phần mềm, "
         "Kiến trúc hệ thống phân tán, và các công nghệ thực tiễn trong ngành. Sự hỗ trợ của Khoa "
-        "là nền tảng quan trọng giúp em có đủ năng lực để thực hiện đề tài SaaS multi-tenant này.")
+        "là nền tảng quan trọng giúp tôi có đủ năng lực để thực hiện đề tài SaaS multi-tenant này.")
 
     add_paragraph_text(doc,
-        "Em cũng xin cảm ơn các thầy cô đã giảng dạy trong suốt 4 năm học tại trường, đặc biệt "
+        "Tôi cũng xin cảm ơn các thầy cô đã giảng dạy trong suốt 4 năm học tại trường, đặc biệt "
         "là các môn chuyên ngành về Kiến trúc phần mềm, Cơ sở dữ liệu, Phát triển web, và Bảo mật "
         "thông tin — những kiến thức này đã được áp dụng trực tiếp vào quá trình xây dựng nền tảng "
-        "KiteHub trong khóa luận.")
+        "KiteHub trong đồ án.")
 
     add_paragraph_text(doc,
-        "Cuối cùng, em xin cảm ơn gia đình, bạn bè và những người thân đã luôn quan tâm, động viên, "
-        "hỗ trợ em cả về tinh thần lẫn vật chất trong suốt thời gian học tập và thực hiện khóa luận.")
+        "Cuối cùng, tôi xin cảm ơn gia đình, bạn bè và những người thân đã luôn quan tâm, động viên, "
+        "hỗ trợ tôi cả về tinh thần lẫn vật chất trong suốt thời gian học tập và thực hiện đồ án.")
 
     add_paragraph_text(doc,
         "Mặc dù đã rất cố gắng trong việc thiết kế và triển khai hệ thống cũng như viết báo cáo, "
-        "song do thời gian và kinh nghiệm thực tiễn còn hạn chế, khóa luận không tránh khỏi những "
-        "thiếu sót. Em rất mong nhận được sự đóng góp ý kiến từ quý thầy cô để khóa luận được "
+        "song do thời gian và kinh nghiệm thực tiễn còn hạn chế, đồ án không tránh khỏi những "
+        "thiếu sót. Tôi rất mong nhận được sự đóng góp ý kiến từ quý thầy cô để đồ án được "
         "hoàn thiện hơn.")
 
-    add_paragraph_text(doc, "Em xin chân thành cảm ơn!")
+    add_paragraph_text(doc, "Tôi xin chân thành cảm ơn!")
 
     for _ in range(3):
         doc.add_paragraph()
@@ -1164,7 +1164,7 @@ def add_introduction(doc):
         "số trung tâm nhỏ và vừa (1-10 chi nhánh, 100-2000 học viên) vẫn dùng Excel hoặc các "
         "phần mềm enterprise không phù hợp về giá và độ phức tạp. Khoảng trống này tạo cơ hội "
         "cho một giải pháp SaaS multi-tenant gốc, Vietnamese-first UX, và tự động hóa các tác "
-        "vụ branding bằng AI — đây chính là động lực để em chọn đề tài \"" + THESIS_INFO["title"] + "\".")
+        "vụ branding bằng AI — đây chính là động lực để tôi chọn đề tài \"" + THESIS_INFO["title"] + "\".")
 
     add_section_title(doc, "2. Mục tiêu nghiên cứu")
     add_bullet_list_item(doc, "Xây dựng nền tảng SaaS multi-tenant cho trung tâm giáo dục Việt Nam, hỗ trợ scale từ 1 chi nhánh lên 100+ chi nhánh không cần re-architect.")
@@ -1174,7 +1174,7 @@ def add_introduction(doc):
 
     add_section_title(doc, "3. Phạm vi nghiên cứu")
     add_paragraph_text(doc,
-        "Khóa luận tập trung vào Phase 1 BETA của nền tảng KiteHub: 6 microservice backend "
+        "Đồ án tập trung vào giai đoạn beta tenant của nền tảng KiteHub: 6 microservice backend "
         "(kitehub-admin, kitehub-branding, kitehub-email, kitehub-gateway, kitehub-platform, "
         "kitehub-subscription) + 1 core tenant application (kiteclass-core) + 2 frontend Next.js "
         "(kitehub-frontend, kiteclass-frontend). Phạm vi triển khai cloud sử dụng AWS Singapore "
@@ -1186,12 +1186,12 @@ def add_introduction(doc):
     add_bullet_list_item(doc, "Áp dụng Test-Driven Development (TDD) + Domain-Driven Design (DDD) trong quá trình phát triển.")
     add_bullet_list_item(doc, "Phương pháp luận audit-driven: mỗi miss được ghi nhận và chuyển thành rule + enforcement mechanism trong cùng PR.")
 
-    add_section_title(doc, "5. Cấu trúc khóa luận")
-    add_paragraph_text(doc, "Khóa luận gồm 4 chương:")
-    add_bullet_list_item(doc, "Chương 1 — Tổng quan: phân tích đối thủ cạnh tranh, kỹ thuật AI tích hợp, và khung pháp lý Việt Nam tác động đến nền tảng.")
+    add_section_title(doc, "5. Cấu trúc đồ án")
+    add_paragraph_text(doc, "Đồ án gồm 4 chương:")
+    add_bullet_list_item(doc, "Chương 1 — Tổng quan: phân tích đối tượng tham khảo trên thị trường, kỹ thuật AI tích hợp, và khung pháp lý Việt Nam tác động đến nền tảng.")
     add_bullet_list_item(doc, "Chương 2 — Kiến trúc hệ thống: yêu cầu chức năng + phi chức năng, C4 Model L1/L2, multi-tenant single-bucket pattern, defense-in-depth 5 layers.")
     add_bullet_list_item(doc, "Chương 3 — Triển khai: 5 đoạn code snippet đại diện cho các pattern cốt lõi (JWT auth, tenant RLS, outbox dispatcher, REST controller, Next.js page).")
-    add_bullet_list_item(doc, "Chương 4 — Kết quả triển khai: cloud AWS Phase 1 BETA, user onboarding flow, KPI metrics, beta scope.")
+    add_bullet_list_item(doc, "Chương 4 — Kết quả triển khai: cloud AWS giai đoạn beta tenant, user onboarding flow, KPI metrics, beta scope.")
 
 
 # ============== CHAPTER LOADER (MD parser) ==============
@@ -1221,7 +1221,7 @@ def add_conclusion(doc):
 
     add_section_title(doc, "1. Tổng kết kết quả đạt được")
     add_paragraph_text(doc,
-        "Khóa luận đã hoàn thành các mục tiêu đặt ra ban đầu trong phạm vi Phase 1 BETA của "
+        "Đồ án đã hoàn thành các mục tiêu đặt ra ban đầu trong phạm vi giai đoạn beta tenant của "
         "nền tảng KiteHub. Cụ thể, hệ thống được triển khai trên AWS Singapore Free Tier với "
         "kiến trúc multi-tenant single-bucket RLS-protected, 7 microservice cùng 2 ứng dụng "
         "frontend, đảm bảo tuân thủ các yêu cầu pháp lý Việt Nam (PDPL 2023, Luật An ninh mạng "
@@ -1235,9 +1235,9 @@ def add_conclusion(doc):
         "coverage tối thiểu yêu cầu cho production-ready.")
 
     add_section_title(doc, "2. Hạn chế")
-    add_bullet_list_item(doc, "Phạm vi Phase 1 BETA chỉ phục vụ 3 persona tenant (Solo Teacher, Center Owner, Center Manager); persona K-12 Parent + Student được hoãn sang Phase 3 do yêu cầu DPO + DPIA bổ sung theo PDPL.")
+    add_bullet_list_item(doc, "Phạm vi giai đoạn beta tenant chỉ phục vụ 3 persona tenant (Solo Teacher, Center Owner, Center Manager); persona K-12 Parent + Student được hoãn sang giai đoạn K-12 expansion do yêu cầu DPO + DPIA bổ sung theo PDPL.")
     add_bullet_list_item(doc, "Một số KPI thực tế (Time to First Value, Daily Active Users, Monthly Recurring Revenue) chưa có số liệu thực tế do beta cohort 7-10 tenant đang trong giai đoạn triển khai 9 tuần.")
-    add_bullet_list_item(doc, "AI Branding mới được tích hợp ở mức MVP với 1 nhà cung cấp (Replicate Stable Diffusion XL); các phương án multi-vendor failover sẽ được triển khai trong Phase 2.")
+    add_bullet_list_item(doc, "AI Branding mới được tích hợp ở mức MVP với 1 nhà cung cấp (Replicate Stable Diffusion XL); các phương án multi-vendor failover sẽ được triển khai trong giai đoạn production.")
 
     add_section_title(doc, "3. Hướng phát triển tiếp theo")
     add_bullet_list_item(doc,
@@ -1253,11 +1253,11 @@ def add_conclusion(doc):
 
     add_section_title(doc, "4. Đóng góp khoa học")
     add_paragraph_text(doc,
-        "Khóa luận đóng góp ba kết quả khoa học chính:")
+        "Đồ án đóng góp ba kết quả khoa học chính:")
 
     add_subsection_title(doc, "4.1. Pattern Row-Level Security NULL force-fail cho multi-tenant SaaS giáo dục")
     add_paragraph_text(doc,
-        "Khóa luận đề xuất và hiện thực hóa pattern Row-Level Security NULL force-fail trên PostgreSQL "
+        "Đồ án đề xuất và hiện thực hóa pattern Row-Level Security NULL force-fail trên PostgreSQL "
         "áp dụng cho ngữ cảnh multi-tenant SaaS giáo dục Việt Nam. Pattern này nâng cao defense-in-depth "
         "bằng cách thiết lập tenant context dạng GUC `is_local := true` (session-scoped), trong đó nếu "
         "tenant_id NULL trên session, mọi truy vấn đều force-fail thay vì trả về toàn bộ dữ liệu. "
@@ -1266,7 +1266,7 @@ def add_conclusion(doc):
 
     add_subsection_title(doc, "4.2. Đánh giá thực nghiệm thị trường phần mềm quản lý trung tâm giáo dục Việt Nam")
     add_paragraph_text(doc,
-        "Khóa luận thực hiện phân tích cạnh tranh có hệ thống bốn hệ thống tương tự (MISA AMIS Trường "
+        "Đồ án thực hiện phân tích so sánh có hệ thống bốn hệ thống tương tự (MISA AMIS Trường "
         "Học, Mona eLMS, Easy Edu, DotB) trong segment trung tâm dạy thêm Việt Nam, đối chiếu với khung "
         "pháp lý Việt Nam (Thông tư 29/2024/TT-BGDĐT, PDPL 2023, Luật An ninh mạng 2018). Kết quả phân "
         "tích định lượng đặc điểm thị trường (giá, tính năng multi-tenant, AI integration, mức tuân thủ "
@@ -1275,7 +1275,7 @@ def add_conclusion(doc):
 
     add_subsection_title(doc, "4.3. Kiến trúc tham chiếu multi-tenant SaaS giáo dục B2B áp dụng audit-driven approach")
     add_paragraph_text(doc,
-        "Khóa luận đề xuất kiến trúc tham chiếu (reference architecture) cho nền tảng multi-tenant SaaS "
+        "Đồ án đề xuất kiến trúc tham chiếu (reference architecture) cho nền tảng multi-tenant SaaS "
         "phục vụ ngành giáo dục thương mại Việt Nam tích hợp các yêu cầu phi chức năng đặc thù: tuân thủ "
         "PDPL 2023 + Luật An ninh mạng 2018, hỗ trợ Vietnamese-first UX (VND format, niên khóa 9-5, "
         "thanh toán VietQR/MoMo), AI Branding tự động sinh nội dung. Kiến trúc được mô tả chi tiết qua "
@@ -1379,7 +1379,7 @@ def add_appendix(doc):
     add_paragraph_text(doc,
         "Cấu hình chi tiết hạ tầng AWS Singapore Free Tier, các biến môi trường, các secret "
         "được lưu tại AWS Secrets Manager — xem chi tiết tại `documents/05-guides/deploy/` "
-        "trong repository project. Phần này không in trực tiếp vào khóa luận để tránh lộ lọt "
+        "trong repository project. Phần này không in trực tiếp vào đồ án để tránh lộ lọt "
         "thông tin nhạy cảm.")
 
     add_section_title(doc, "Phụ lục B. Mã nguồn dự án")
@@ -1394,13 +1394,13 @@ def add_appendix(doc):
         "API Contract / Business Logic / Ops Readiness) được lưu tại "
         "`documents/04-quality/audits/` và `documents/04-quality/audits/audits-index.csv`. "
         "Phiên bản beta hiện tại đạt: Quality 90/110 B+, Security 93/100 A, Performance 86/100 B+, "
-        "UI 110.6/128 A — đáp ứng yêu cầu Phase 1 BETA gate ≥80.")
+        "UI 110.6/128 A — đáp ứng yêu cầu giai đoạn beta tenant gate ≥80.")
 
 
 # ============== MAIN ENTRY POINT ==============
 def create_thesis():
     print("=" * 60)
-    print(f"Đang tạo khóa luận tốt nghiệp: {THESIS_INFO['title'][:60]}")
+    print(f"Đang tạo đồ án tốt nghiệp: {THESIS_INFO['title'][:60]}")
     print("=" * 60)
 
     doc = Document()
