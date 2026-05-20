@@ -68,8 +68,6 @@ Ghi chú về hình ảnh: trong phiên bản đồ án này, các hình minh h�
 
 ### 3.2.1 Trang chủ marketing KiteHub
 
-<!-- screenshot placeholder: capture kitehub-marketing-landing.png 1440×900 vi-VN — show hero section + value proposition + CTA "Yêu cầu truy cập Beta" -->
-
 ![Trang chủ marketing KiteHub](screenshots/01-marketing-landing.png)
 
 **Hình 3.1.** Trang chủ marketing KiteHub (`kitehub.me/`) — giao diện đầu tiên anonymous visitor tiếp xúc với nền tảng.
@@ -79,8 +77,6 @@ Mockup source: `documents/02-architecture/design-system/ui_kits/kitehub-story-v2
 Trang chủ marketing đóng vai trò "first impression" của KiteHub đối với anonymous prospect persona. Layout 3-fold: hero section với tagline "Nền tảng quản lý trung tâm dạy thêm" cùng value proposition 3 bullet (Multi-tenant isolation, AI Branding, Bộ tính năng quản lý lớp đầy đủ) và CTA chính "Yêu cầu truy cập Beta". Tone tiếng Việt formal-friendly, sample data Việt Nam (Trung tâm Anh ngữ Sky Education tên giả định, Lớp Anh ngữ 5A1). Tiếp theo là 3 phần: "Vì sao chọn KiteHub" (so sánh với 3 đối tượng tham khảo — chi tiết tại Chương 1), "Cho ai" (P1 Solo Teacher + P2 Center Owner profile), và footer minh bạch về giai đoạn beta cùng đường dẫn liên hệ qua email và Zalo.
 
 ### 3.2.2 Wizard đăng ký yêu cầu beta dành cho Chủ trung tâm
-
-<!-- screenshot placeholder: capture p2-signup-wizard-step-1.png 1440×900 vi-VN — show 4-field form (tên, email, tên trung tâm, quy mô) + progress bar 1/3 + tone Vietnamese friendly -->
 
 ![Wizard đăng ký chủ trung tâm](screenshots/02-signup-wizard-step1.png)
 
@@ -92,8 +88,6 @@ Wizard đăng ký bao gồm 4 trường: họ tên, email, tên trung tâm dự 
 
 ### 3.2.3 Dashboard chính của Chủ trung tâm
 
-<!-- screenshot placeholder: capture p2-owner-dashboard.png 1440×900 vi-VN — show 3 KPI cards (doanh thu tháng, số học sinh, số lớp) + 5-step onboarding checklist + sample data toggle -->
-
 ![Dashboard chủ trung tâm](screenshots/03-owner-dashboard-first-login.png)
 
 **Hình 3.3.** Dashboard chính của Chủ trung tâm sau lần đăng nhập đầu tiên — 3 KPI card và onboarding checklist 5 bước.
@@ -103,8 +97,6 @@ Mockup source: `documents/02-architecture/design-system/ui_kits/kitehub-pro-v2/s
 Sau lần đăng nhập đầu tiên, dashboard hiển thị 3 thành phần chính cho Chủ trung tâm: thứ nhất, KPI cards với 3 thẻ "Doanh thu tháng", "Số học sinh", "Số lớp" — mặc định hiển thị `0đ`, `0`, `0` cho tenant mới chưa nhập dữ liệu; thứ hai, onboarding checklist 5 bước với icon và link tới wizard tương ứng — "Tạo lớp đầu tiên", "Thêm học sinh", "Tạo lịch học", "Cấu hình thanh toán", "Mời giáo viên đồng nghiệp"; thứ ba, sample data toggle cho phép load dữ liệu mẫu (1 chủ trung tâm giả định Trần Thị Hồng + 4 học sinh + 1 lớp Anh ngữ 5A1) để người dùng thử các chức năng trước khi nhập dữ liệu thật. Format VND `1.500.000đ` cùng date tiếng Việt `Thứ Hai, 20/05/2026` áp dụng đồng nhất.
 
 ### 3.2.4 Trang xác nhận provisioning tenant thành công
-
-<!-- screenshot placeholder: capture tenant-provisioning-success.png 1440×900 vi-VN — show success message + tenant subdomain link + first-login CTA -->
 
 ![Tenant provisioning success](screenshots/04-tenant-provisioning-success.png)
 
@@ -116,8 +108,6 @@ Sau khi người dùng exchange claim code thành công, hệ thống tạo tena
 
 ### 3.2.5 Quản lý lớp học
 
-<!-- screenshot placeholder: capture class-management-list.png 1440×900 vi-VN — show class list table + filter by status/teacher + bulk actions + create new class CTA -->
-
 ![Quản lý lớp học](screenshots/05-class-management.png)
 
 **Hình 3.5.** Giao diện quản lý lớp học — danh sách lớp với filter, bulk actions và CTA tạo lớp mới.
@@ -127,8 +117,6 @@ Mockup source: `documents/02-architecture/design-system/ui_kits/kitehub-admin/sc
 Giao diện quản lý lớp hiển thị danh sách tất cả các lớp của tenant với các cột: Mã lớp, Tên lớp (ví dụ `Lớp Anh ngữ 5A1`), Giáo viên chủ nhiệm, Số học sinh, Lịch học, Trạng thái (Đang hoạt động / Tạm nghỉ / Đã kết thúc), Hành động (Xem chi tiết / Sửa / Lưu trữ). Bảng hỗ trợ filter combo (theo trạng thái + theo giáo viên + theo môn học) và search theo tên hoặc mã lớp. Bulk actions cho phép chọn nhiều lớp để gửi thông báo Zalo group hoặc export Excel danh sách điểm danh. CTA "Tạo lớp mới" góc trên phải mở wizard 4 bước: thông tin cơ bản → lịch học (Mon-Sat theo VN edu convention) → danh sách học sinh → cấu hình học phí.
 
 ### 3.2.6 Tạo và phát hành hóa đơn
-
-<!-- screenshot placeholder: capture invoice-generation.png 1440×900 vi-VN — show invoice form with VND format + auto-calculated total + preview pane + send actions -->
 
 ![Trình tạo hóa đơn](screenshots/06-invoice-generation.png)
 
@@ -140,8 +128,6 @@ Form tạo hóa đơn cho phép Chủ trung tâm hoặc Manager tạo hóa đơn
 
 ### 3.2.7 Preview template email
 
-<!-- screenshot placeholder: capture email-template-preview-beta-approve.png 1440×900 vi-VN — show email rendering preview with subject + greeting tone + CTA button + footer + variable substitution -->
-
 ![Email chào mừng](screenshots/07-welcome-email.png)
 
 **Hình 3.7.** Preview template email "Beta access approved" — giao diện admin xem trước email gửi cho tenant trước khi phát hành.
@@ -151,8 +137,6 @@ Mockup source: `documents/02-architecture/design-system/ui_kits/kitehub-admin/sc
 Admin nền tảng có thể preview template email trước khi gửi cho tenant beta. Layout 2 cột: cột trái — form input các biến (tên người nhận, tên trung tâm, claim code, link kích hoạt, deadline kích hoạt); cột phải — rendering preview email cho desktop và mobile responsive. Subject line tone tiếng Việt formal-respectful (`Chào mừng anh/chị đến KiteHub — Tài khoản đã được kích hoạt`), greeting `Em chào chị Hồng,` theo persona tone matrix. Email body bao gồm 3 phần: lời mời sử dụng, hướng dẫn nhập claim code, CTA "Kích hoạt tài khoản ngay" và footer minh bạch "Bạn đang trong cohort beta khép kín 20 tenant — đội ngũ KiteHub sẽ liên hệ phản hồi hàng tuần". Nút "Gửi thử cho admin" cho phép admin test email rendering trước khi phát hành cho tenant. Email được sign DKIM + SPF + DMARC qua AWS SES + Cloudflare DNS records để đảm bảo deliverability cao.
 
 ### 3.2.8 Audit log của Admin nền tảng
-
-<!-- screenshot placeholder: capture admin-audit-log.png 1440×900 vi-VN — show audit log table with timestamp, admin user, action type, target entity, IP address, PDPL compliance banner -->
 
 ![Trang nhật ký audit](screenshots/08-admin-audit-log.png)
 

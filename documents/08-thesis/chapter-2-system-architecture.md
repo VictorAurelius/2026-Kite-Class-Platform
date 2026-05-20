@@ -584,20 +584,20 @@ Sơ đồ ERD (Entity Relationship Diagram) cung cấp góc nhìn ở tầng lư
 ```mermaid
 erDiagram
     TENANT ||--o{ USER : has
-    TENANT ||--o{ CLASS : owns
+    TENANT ||--o{ CLASSES : owns
     TENANT ||--o{ STUDENT : registers
     TENANT ||--o{ PAYMENT : bills
-    CLASS ||--o{ STUDENT_CLASS : enrolls
+    CLASSES ||--o{ STUDENT_CLASS : enrolls
     STUDENT ||--o{ STUDENT_CLASS : participates
     STUDENT ||--o{ GRADE : receives
     STUDENT ||--o{ ATTENDANCE : tracks
-    CLASS ||--o{ GRADE : grades
-    CLASS ||--o{ ATTENDANCE : records
+    CLASSES ||--o{ GRADE : grades
+    CLASSES ||--o{ ATTENDANCE : records
 ```
 
-**Hình 2.7.** ERD high-level — quan hệ giữa các entity chính.
+**Hình 2.7.** ERD high-level — quan hệ giữa các entity chính (`CLASSES` = bảng `class`/lớp học; rename để tránh xung đột với từ khóa `class` reserved trong cú pháp Mermaid erDiagram).
 
-ERD nhấn mạnh quan hệ many-to-many giữa `STUDENT` và `CLASS` qua bảng nối `STUDENT_CLASS` (một học sinh có thể đăng ký nhiều lớp, một lớp có nhiều học sinh) — chi tiết quan hệ này bị che giấu ở class diagram cấp độ runtime. Mọi quan hệ xuất phát từ `TENANT` đều có cardinality `1..N` thể hiện ranh giới đa tenant: không có entity nghiệp vụ nào tồn tại ngoài ngữ cảnh tenant.
+ERD nhấn mạnh quan hệ many-to-many giữa `STUDENT` và `CLASSES` qua bảng nối `STUDENT_CLASS` (một học sinh có thể đăng ký nhiều lớp, một lớp có nhiều học sinh) — chi tiết quan hệ này bị che giấu ở class diagram cấp độ runtime. Mọi quan hệ xuất phát từ `TENANT` đều có cardinality `1..N` thể hiện ranh giới đa tenant: không có entity nghiệp vụ nào tồn tại ngoài ngữ cảnh tenant.
 
 ### 2.3.9 Sequence Diagram — Luồng cấp phát tenant
 
