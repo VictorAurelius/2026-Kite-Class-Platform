@@ -27,8 +27,6 @@ KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast
 
 ### 4.1.2 Sơ đồ hạ tầng
 
-**Hình 4.1.** Sơ đồ kiến trúc tổng thể KiteHub Platform trên AWS Singapore (giai đoạn beta).
-
 ```mermaid
 flowchart TB
     User[Người dùng]
@@ -72,6 +70,8 @@ flowchart TB
     EC2_KC --> SM
 ```
 
+**Hình 4.1.** Sơ đồ kiến trúc tổng thể KiteHub Platform trên AWS Singapore (giai đoạn beta).
+
 ### 4.1.3 Các thành phần chính
 
 **Lớp compute (EC2):** Hai instance `t3.micro` (1 GB RAM, 2 vCPU) phân chia trách nhiệm: `kh-backend` chạy KiteHub Gateway (port 8080) cùng sáu backend service (subscription, branding, email, platform, admin, ...); `kc-app` chạy KiteClass core (port 8082) và KiteClass frontend Next.js (port 3001). Cấu hình memory tight đòi hỏi JVM heap cap nghiêm ngặt theo từng service (`-Xmx128m` cho service nhỏ, `-Xmx256m` cho service lớn).
@@ -85,8 +85,6 @@ flowchart TB
 ### 4.1.4 CI/CD Pipeline
 
 CI/CD được triển khai qua GitHub Actions với pattern OIDC + workflow_dispatch + confirm-input, tham chiếu nguyên tắc Continuous Delivery hiện đại [38, tr.115] — kết hợp build artifact bất biến (Docker image tag theo SHA commit) và deployment gate có cognitive checkpoint (workflow input `confirm=APPLY`) thay cho cơ chế auto-deploy.
-
-**Hình 4.2.** Sequence diagram CI/CD pipeline từ git push tới production deploy (rút gọn các bước chính).
 
 ```mermaid
 sequenceDiagram
@@ -109,6 +107,8 @@ sequenceDiagram
     EC2-->>GH: OK + smoke test pass
     GH-->>Dev: Deploy success notification
 ```
+
+**Hình 4.2.** Sequence diagram CI/CD pipeline từ git push tới production deploy (rút gọn các bước chính).
 
 Bốn lựa chọn thiết kế nổi bật của pipeline bao gồm: ephemeral OIDC role (mỗi workflow run assume role mới với token 1 giờ, không hardcode AWS access key trong GitHub Secrets); narrow IAM scope (role `kitehub-deploy-role` chỉ có permission `ecr:Push` và `ssm:SendCommand` tới EC2 tag `Project=Kite`, không có quyền `ec2:Terminate` hay scope rộng hơn); confirm-input gate (workflow yêu cầu nhập `confirm=APPLY` verbatim để trigger, phòng ngừa deploy nhầm); và smoke admin-login post-deploy (sau deploy, smoke test gọi `POST /api/auth/login` với seeded admin credential, kỳ vọng 200 + JWT — bắt được lỗi class binding Postgres-specific mà unit test với H2 hoặc Mockito không phát hiện được).
 
@@ -140,8 +140,6 @@ Giai đoạn beta mở cho hai persona chính (chi tiết tại Chương 1 Phầ
 
 ### 4.2.2 Onboarding flow end-to-end
 
-**Hình 4.3.** Sequence diagram onboarding flow — từ visitor đến first login (rút gọn 3 giai đoạn chính).
-
 ```mermaid
 sequenceDiagram
     participant V as Visitor
@@ -170,6 +168,8 @@ sequenceDiagram
     Sub-->>FE: 200 OK + JWT
     FE-->>V: Redirect /dashboard
 ```
+
+**Hình 4.3.** Sequence diagram onboarding flow — từ visitor đến first login (rút gọn 3 giai đoạn chính).
 
 ### 4.2.3 Phân tích flow
 
@@ -237,8 +237,6 @@ Ba features chính: tạo lớp, thêm học sinh, đánh dấu điểm danh.
 
 ### 4.3.2 Measurement Plan
 
-**Hình 4.4.** Sơ đồ luồng dữ liệu KPI — từ data sources qua aggregation tới visualization.
-
 ```mermaid
 flowchart LR
     DB[PostgreSQL] --> SQL[Custom SQL exports] --> Reports[SQL ad-hoc reports]
@@ -249,6 +247,8 @@ flowchart LR
     CW --> CW_Dash[CloudWatch dashboards]
     CW --> Grafana
 ```
+
+**Hình 4.4.** Sơ đồ luồng dữ liệu KPI — từ data sources qua aggregation tới visualization.
 
 KPI mapping tới data source:
 
@@ -337,8 +337,6 @@ Ba bài học sơ bộ rút ra từ quá trình phát triển (sẽ được ho�
 
 ### 4.4.5 Định hướng tương lai
 
-**Hình 4.5.** Gantt timeline định hướng phát triển sau giai đoạn beta.
-
 ```mermaid
 gantt
     title KiteHub Roadmap — Beta đến GA
@@ -361,6 +359,8 @@ gantt
     VN cloud migration eval     :p2_vn, after p2_legal, 60d
     K-12 persona                :p2_k12, after p2_vn, 60d
 ```
+
+**Hình 4.5.** Gantt timeline định hướng phát triển sau giai đoạn beta.
 
 ---
 
