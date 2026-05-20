@@ -1,0 +1,33 @@
+{
+  "pr": 1639,
+  "title": "fix(wave-102.5-followup): tone \u2014 b\u1ecf ng\u00f4n t\u1eeb t\u1ef1-h\u1ea1 th\u1ea5p 'm\u1ed9t sinh vi\u00ean' + 'ch\u01b0a c\u00f3 kh\u00e1ch h\u00e0ng'",
+  "branch": "wave/102.5-tone-fix",
+  "created_at": null,
+  "merged_at": "2026-05-20T06:46:02Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-20T06:46:10.268147",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 4,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-90297"
+  }
+}

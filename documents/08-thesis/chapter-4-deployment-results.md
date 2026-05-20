@@ -30,44 +30,43 @@ KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast
 ```mermaid
 flowchart TB
     User[Người dùng]
-    CF[Cloudflare — DNS + CDN + DDoS]
+    CF[Cloudflare<br/>DNS + CDN + DDoS]
+    ALB[AWS ALB<br/>HTTPS termination<br/>ap-southeast-1 Singapore]
 
-    subgraph AWS["AWS ap-southeast-1 Singapore"]
-        ALB[ALB — HTTPS termination]
-        subgraph EC2["EC2 instances t3.micro"]
-            EC2_KH[kh-backend — Gateway + 6 services]
-            EC2_KC[kc-app — KiteClass core + frontend]
-        end
-        subgraph Data["Data layer"]
-            RDS[RDS PostgreSQL 16 db.t3.micro]
-            S3[S3 single bucket — multi-tenant prefix]
-        end
-        SES[AWS SES — Transactional email]
-        subgraph Obs["Observability"]
-            CW[CloudWatch — Logs + Metrics]
-            CT[CloudTrail — API audit log]
-            Prom[Prometheus self-hosted]
-        end
-        subgraph SecCI["Secrets + CI/CD"]
-            SM[Secrets Manager]
-            ECR[ECR — Docker images]
-        end
+    subgraph Compute["EC2 — Compute layer (2× t3.micro)"]
+        direction LR
+        EC2_KH[kh-backend<br/>Gateway + 6 services]
+        EC2_KC[kc-app<br/>KiteClass core + frontend]
     end
 
-    User --> CF --> ALB
-    ALB --> EC2_KH
-    ALB --> EC2_KC
-    EC2_KH --> RDS
-    EC2_KC --> RDS
-    EC2_KH --> S3
-    EC2_KC --> S3
-    EC2_KH --> SES
-    EC2_KH -.-> CW
-    EC2_KC -.-> CW
-    EC2_KH -.-> CT
-    EC2_KH -.-> Prom
-    EC2_KH --> SM
-    EC2_KC --> SM
+    subgraph DataLayer["Data layer"]
+        direction LR
+        RDS[(RDS PostgreSQL 16<br/>db.t3.micro)]
+        S3[(S3 single bucket<br/>multi-tenant prefix)]
+    end
+
+    SES[AWS SES<br/>Transactional email]
+
+    subgraph Obs["Observability stack"]
+        direction LR
+        CW[CloudWatch<br/>Logs + Metrics]
+        CT[CloudTrail<br/>API audit log]
+        Prom[Prometheus<br/>self-hosted]
+    end
+
+    subgraph SecCI["Secrets + Image registry"]
+        direction LR
+        SM[Secrets Manager]
+        ECR[ECR<br/>Docker images]
+    end
+
+    User --> CF
+    CF --> ALB
+    ALB --> Compute
+    Compute --> DataLayer
+    Compute --> SES
+    Compute -.-> Obs
+    Compute --> SecCI
 ```
 
 **Hình 4.1.** Sơ đồ kiến trúc tổng thể KiteHub Platform trên AWS Singapore (giai đoạn beta).
