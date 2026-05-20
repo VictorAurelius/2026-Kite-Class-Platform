@@ -36,9 +36,10 @@ Maps existing project documents to thesis chapter structure for easy reference e
 - **Scope**: KiteHub (SaaS platform) + KiteClass (tenant application)
 - **Status**: Part 1 + Part 2 + Part 3 ✅ Wave 100 + Wave 100.7 Phase 2 — competitor analysis + AI techniques + VN law + audit-driven methodology; cross-jurisdiction extension (GDPR vs PDPL vs PDPA SG) ⏳ defer Wave 101+
 - **Sources**:
-  - `chapter-1-competitor-analysis.md` — Phần 1: phân tích 4 đối thủ VN edu SaaS (MISA/Mona/Easy Edu/DotB)
-  - `chapter-1-ai-techniques.md` — Phần 2: kỹ thuật AI tích hợp trong KiteHub (AI Branding + Quality Gate + roadmap)
-  - `chapter-1-vn-law-methodology.md` — Phần 3: khung pháp lý VN (PDPL 2023 + Cybersecurity 2018 + Thông tư 78 + Decree 13/147) + phương pháp luận audit-driven 5 trụ cột
+  - `chapter-1-competitor-analysis.md` — §1.1 Giới thiệu chung đề tài + §1.2 Cơ sở chuyên ngành + §1.3 Khảo sát thị trường + 5 hệ thống tham khảo (BeeClass + MISA + Mona + Easy Edu + DotB) — restructured Wave 102.5 Bucket C per khung-chuẩn UTC numbering 1.X.Y.Z (G11 + G15)
+  - `chapter-1-ai-techniques.md` — §1.4 Kỹ thuật AI tích hợp (AI Branding + Quality Gate + roadmap) — renumbered Wave 102.5 Bucket C
+  - `chapter-1-vn-law-methodology.md` — §1.5 Khung pháp lý VN (PDPL 2023 + Cybersecurity 2018 + Thông tư 78) + §1.6 Phương pháp luận Quality-Driven Development 4 trụ cột + §1.7 Phạm vi đề tài (Item 10 phase intro hybrid) + Kết luận Chương 1 thống nhất — restructured Wave 102.5 Bucket C
+  - `chapter-1-conclusion-backup-2026-05-20.md` — backup §1.7 conclusion (Item 5) per docs-archival-cadence.md Tier 2 timestamp
   - `01-business/README.md` — Business rules overview
   - `07-archived/research/competitive/` — Competitive landscape analysis
   - `references/bibliography.md` — 43 IEEE sources (Wave 100 added 8 new + Wave 100.7 Phase 2 added 5 new for Chapter 1)
