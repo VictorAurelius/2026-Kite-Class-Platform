@@ -1,0 +1,33 @@
+{
+  "pr": 1619,
+  "title": "feat(wave-102.3-bucket-a): Ch.2 polish (trim + cite order + page-num)",
+  "branch": "worktree-agent-acec0b1562697830f",
+  "created_at": null,
+  "merged_at": "2026-05-20T03:27:51Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-20T03:28:06.590568",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 1,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-66505"
+  }
+}
