@@ -1,0 +1,33 @@
+{
+  "pr": 1628,
+  "title": "feat(wave-102.5-bucket-a): pipeline (cover + acknowledgement + page numbering + 9 P0 + 3 P1)",
+  "branch": "wave/102.5-bucket-a-pipeline-fix",
+  "created_at": null,
+  "merged_at": "2026-05-20T05:32:57Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-20T05:33:03.768627",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 3,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/3",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-16543"
+  }
+}
