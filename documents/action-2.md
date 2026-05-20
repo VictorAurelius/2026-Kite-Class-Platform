@@ -65,3 +65,10 @@ Expecting 'SPACE', 'NL', 'HIDE_EMPTY', 'scale', 'COMPOSIT_STATE', 'STRUCT_STOP',
 Tài liệu trong documents/02-architecture  và để cho claude và dev đều đọc được đúng không, vậy nó có vấn đề:
 1. cho claude đọc thì vẫn có tiếng việt
 2. cho dev đọc thì không chuẩn rule ngôn ngữ
+
+1. check lại việc tạo account mới, free credits 100 đô của account này đang sử dụng hết gần 60 đô rồi, tôi có 1 thẻ khác có thể tạo acc aws với định danh khác Thuy Duong để tiếp tục tận dụng 100 đô credit mới => liệu có hợp lý
+2. việc có acc aws mới sẽ dẫn đến công số sửa documents, vậy nên có kế hoạch sửa luôn việc hard code id, giống như code java vậy, md cũng có tham chiếu biến đúng không? sau này mở rộng thì sẽ có thêm môi trường aws test, v1, v2, ... nên sửa để theo biến tham chiếu luôn => check cả các dữ liệu khác cần tham chiếu
+3. việc rebuild lại trên aws, cần có kế hoạch rõ ràng, làm sao lên nhanh nhất mà không mắc phải nhiều lỗi deploy cũ như self-test frontend không lên, DNS routing sai, ... => đưa ra được quy trình triển khai hoàn hảo hơn
+4. việc đưa lại lên aws mới để user có thể beta được ngay, nên quyết định sẽ phải self-test full ở local xong (với docker-desktop) mới lên aws có hợp lý không => dev vẫn chưa self-test được
+
+để dự án đạt được tiêu chí self-test thì cần có kế hoạch fix những gaps nào => điều tra và tạo kế hoạch, mục tiêu là có thể self-test sớm nhất
