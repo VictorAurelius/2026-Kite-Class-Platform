@@ -63,33 +63,51 @@ Wave 102.5 user AskUserQuestion 2026-05-20 chốt scope 19 gaps (9 P0 + 10 P1) c
 1. **G4 direct quote sweep:** Cross-chapter grep `"[^"]+"` Vietnamese direct quotes Ch.2 + Ch.4 → verify each cites `[N, tr.NNN]`. Convert paraphrase nếu thiếu page-num source.
 2. **G9 derived figure source cite:** Sweep ~25 figures/tables Ch.1 + Ch.2 + Ch.4 → add `*Nguồn: [N] hoặc URL*` italic cho derived. Author-original không cần cite.
 
-### Phase 2 (P0 bibliography polish — ship trong Wave 102.6 Bucket B')
+### Phase 2 (Tooling-bake — ship trong Wave 102.6 Bucket C')
 
-3. **G5 UTC giáo trình refs:** Add [42] UTC giáo trình CSDL + [43] UTC giáo trình Công nghệ phần mềm (verify ISBN từ thư viện UTC).
-4. **G6 TOC F9:** Document `documents/08-thesis/README.md` post-render task: user runs `libreoffice --headless --convert-to pdf thesis-v1.docx` HOẶC opens in Word + Ctrl+A + F9 → save → ship to GVHD.
+3. ~~**G5 UTC giáo trình refs**~~ → ❌ **WONTFIX 2026-05-20** (user direction): không cần thêm 2 ref `[42]/[43]` vào bibliography. Bibliography hiện tại 39 entries đã đủ cho defense scope.
+4. **G6 TOC F9 auto-populate via LibreOffice headless bake:** Update `documents/08-thesis/create_thesis_v1.py` cuối render pipeline thêm bước `subprocess.run(["libreoffice", "--headless", "--convert-to", "docx", "thesis-v1.docx", "--outdir", OUT_DIR])` để populate field TOC + SEQ tự động mỗi lần re-render. Document `08-thesis/README.md` §Prerequisites: yêu cầu LibreOffice binary có sẵn (cài via `apt install libreoffice`). Bucket C' Wave 102.6.
 
-### Phase 3 (Bucket F pre-thesis deliverables — ship Wave 102.7 nếu cần)
+### Phase 3 (Bucket F pre-thesis deliverables — DEFER indefinite per user direction 2026-05-20)
 
-5. **G23 đề cương:** Adapt `create_de_cuong_datn.py` template → render `de-cuong-datn-kitehub.docx` + in + ký với GVHD.
-6. **G24 in ấn quy trình:** Document `documents/08-thesis/README.md` §"In ấn + đóng quyển".
-7. **G27 Phụ lục expand:** Update `add_appendix()` với 5 sub-section thực sự.
-8. **G29 NHẬN XÉT page:** Add `add_advisor_review_page()` post Phụ lục.
+5. ~~**G23 đề cương:**~~ → 🟡 **PLANNED defer** — không cần ngay; trigger khi GVHD yêu cầu ký đề cương.
+6. ~~**G24 in ấn quy trình:**~~ → 🟡 **PLANNED defer** — trigger khi chuẩn bị in chính thức.
+7. ~~**G27 Phụ lục expand:**~~ → 🟡 **PLANNED defer** — trigger khi nội dung Phụ lục cần expand (post-feedback GVHD).
+8. ~~**G29 NHẬN XÉT page:**~~ → 🟡 **PLANNED defer** — trigger sau khi verify yêu cầu cụ thể với GVHD.
 
-### Phase 4 (Polish — ship Wave 102.8 pre-defense)
+### Phase 4 (Polish — DEFER indefinite per user direction 2026-05-20)
 
-9. **G21 page count measure:** Render + measure; trim nếu >80.
-10. **G22 screenshot source verify:** Post-screenshot capture follow-up.
-11. **G26 bullet→prose:** Sample 3-5 sections per chapter convert.
+9. ~~**G21 page count measure:**~~ → 🟡 **PLANNED defer** — trigger pre-defense T-2 tuần.
+10. ~~**G22 screenshot source verify:**~~ → 🟡 **PLANNED defer** — trigger sau khi capture screenshot thực tế.
+11. ~~**G26 bullet→prose:**~~ → 🟡 **PLANNED defer** — trigger pre-defense polish.
 
 ---
 
-## Acceptance Criteria
+## Acceptance Criteria (revised 2026-05-20 per user scope decisions)
 
-- [ ] **Phase 1 ship (Wave 102.6 Bucket A'):** G4 + G9 swept; verify grep `grep -rE "Hình [0-9]+\.[0-9]+\." documents/08-thesis/chapter-*.md` shows source cite cho derived figures
-- [ ] **Phase 2 ship:** G5 [42]+[43] UTC giáo trình added; G6 post-render TOC F9 instruction in README
-- [ ] **Phase 3 ship (Wave 102.7):** G23 đề cương docx + GVHD ký; G24 README quy trình in ấn; G27 Phụ lục expand; G29 NHẬN XÉT page (after GVHD requirement verify)
-- [ ] **Phase 4 ship (Wave 102.8 pre-defense):** G21 page count ≤80; G22 screenshot cite verify; G26 bullet ratio <40%
-- [ ] Closure verify: rubric v2 9-category score ≥95/100 A maintained post all Phases
+### Active (Wave 102.6)
+
+- [ ] **Bucket A' G4 quote sweep:** Cross-chapter grep Vietnamese direct quotes `"..."` Ch.2 + Ch.4 → mỗi quote cite `[N, tr.NNN]` đầy đủ HOẶC chuyển paraphrase
+- [ ] **Bucket B' G9 derived figure source cite:** Sweep ~25 figures + tables Ch.1 + Ch.2 + Ch.4 → thêm `*Nguồn: [N] hoặc URL*` italic cho derived figures
+- [ ] **Bucket C' G6 LibreOffice headless bake:** `create_thesis_v1.py` cuối pipeline tự động chạy LibreOffice convert để populate field TOC + SEQ; `README.md` document prerequisite libreoffice binary
+- [ ] Closure verify: rubric v2 9-category score ≥95/100 A maintained post Wave 102.6
+
+### Closed (no further action)
+
+- [x] ~~**G5 UTC giáo trình refs**~~ → ❌ WONTFIX (user direction 2026-05-20: bibliography 39 entries đã đủ defense scope)
+- [x] **G12** + **G20** → ✅ informational (đã có / đã đúng từ Wave 102.5)
+
+### Deferred (PLANNED — trigger khi cần)
+
+- [ ] **G23 đề cương docx + GVHD ký** — trigger khi GVHD yêu cầu
+- [ ] **G24 quy trình in ấn README** — trigger pre-in chính thức
+- [ ] **G27 Phụ lục expand 5 sub-section** — trigger post-feedback GVHD
+- [ ] **G29 NHẬN XÉT page** — trigger sau verify với GVHD
+- [ ] **G21 page count ≤80** — trigger pre-defense T-2 tuần
+- [ ] **G22 screenshot cite verify** — trigger sau capture thực tế
+- [ ] **G26 bullet ratio <40%** — trigger pre-defense polish
+- [ ] **G28 TT 8.1 verify GVHD** — informational, defer
+- [ ] **G30 character spacing edge case** — polish defer
 
 ---
 
@@ -105,5 +123,12 @@ Wave 102.5 user AskUserQuestion 2026-05-20 chốt scope 19 gaps (9 P0 + 10 P1) c
 ---
 
 ## Log
+
+- **2026-05-20 (scope revision):** User direction 2026-05-20 sau Wave 102.5 closure handoff readout. 3 quyết định lock scope:
+  1. **G5 → WONTFIX** — bỏ, không cần thêm UTC giáo trình refs vào bibliography (39 entries hiện tại đủ defense scope)
+  2. **G6 → active via tooling bake** — bake LibreOffice headless vào `create_thesis_v1.py` render pipeline (không chỉ document README), Bucket C' Wave 102.6
+  3. **Phase 3 + Phase 4 → PLANNED defer indefinite** — 4 Bucket F + 4 polish items không cần ngay, trigger khi rõ deadline GVHD / pre-defense window
+
+   Wave 102.6 scope co lại: 3 buckets parallel (A' G4 + B' G9 + C' G6 LibreOffice bake) thay vì 4 phase sequential. Effort ước ~3-4h tổng cộng (2-3h Phase 1 P0 + 30-60p Phase 2 G6 tooling).
 
 - **2026-05-20:** GAP filed via Wave 102.5 closure protocol. 11 deferred audit gaps grouped into 4 phases for Wave 102.6 → 102.8 follow-up. P0 priority items (G4/G5/G6/G9) ship Phase 1+2 (Wave 102.6); P2 Bucket F items ship Phase 3 (Wave 102.7); polish ship Phase 4 (Wave 102.8 pre-defense).
