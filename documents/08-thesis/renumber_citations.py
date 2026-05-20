@@ -83,7 +83,6 @@ def reorder_bibliography(mapping, first_appearance):
     current_entry = []
     header_lines = []  # lines before first entry
     entry_started = False
-    inter_lines = {}  # old_N -> list of lines AFTER this entry (until next entry)
 
     for line in lines:
         m = re.match(r'^\[(\d+)\]\s', line)
@@ -142,8 +141,8 @@ def reorder_bibliography(mapping, first_appearance):
     new_lines.append("")
     new_lines.append("## Notes")
     new_lines.append("")
-    new_lines.append(f"- 9 orphan refs dropped Wave 102.4 (old [5, 6, 7, 8, 10, 11, 12, 13, 20] — not cited in body chapters or Mở đầu/Kết luận).")
-    new_lines.append(f"- Renumber by first-appearance per UTC §3 citation order convention.")
+    new_lines.append("- 9 orphan refs dropped Wave 102.4 (old [5, 6, 7, 8, 10, 11, 12, 13, 20] — not cited in body chapters or Mở đầu/Kết luận).")
+    new_lines.append("- Renumber by first-appearance per UTC §3 citation order convention.")
     new_lines.append(f"- Total active refs: {len(first_appearance)}.")
 
     BIB_FILE.write_text("\n".join(new_lines), encoding="utf-8")
