@@ -1,72 +1,15 @@
 ---
-title: Chương 1 §1.5 §1.6 §1.7 — Khung pháp lý VN, phương pháp luận Quality-Driven và phạm vi đề tài
+title: Chương 1 §1.4 — Phạm vi đề tài và lộ trình triển khai
 chapter: 1
-section: vn-law-methodology
+section: scope-roadmap
 audience: mixed
 last-updated: 2026-05-20
 status: draft
 ---
 
-# Chương 1 §1.5 §1.6 §1.7 — Khung pháp lý Việt Nam, phương pháp luận và phạm vi đề tài
+# Chương 1 §1.4 — Phạm vi đề tài và lộ trình triển khai
 
-Phần này trình bày ba chủ đề bổ sung cho Chương 1: khung pháp lý Việt Nam tác động đến kiến trúc nền tảng đề xuất (§1.5), phương pháp luận Quality-Driven Development áp dụng trong quá trình phát triển dưới điều kiện solo-developer với deadline pháp lý cứng (§1.6), và phạm vi triển khai của đề tài tách thành các giai đoạn (§1.7).
-
-## 1.5 Khung pháp lý Việt Nam tác động đến nền tảng đề xuất
-
-### 1.5.1 Bối cảnh tuân thủ pháp luật trong SaaS giáo dục Việt Nam
-
-Khác với SaaS thông thường ở các thị trường phương Tây nơi GDPR hoặc CCPA là chuẩn tham chiếu chính, SaaS hoạt động tại Việt Nam phải tuân thủ một tập hợp văn bản pháp luật riêng được ban hành giai đoạn 2018-2024 thiết lập khung pháp lý cho không gian mạng, dữ liệu cá nhân và giao dịch điện tử. Đối với nền tảng giáo dục B2B SaaS, các văn bản này ảnh hưởng đến lựa chọn vendor hạ tầng, cấu trúc database, thiết kế consent flow, pipeline xuất hóa đơn và format hợp đồng tenant. Đề tài định hướng tiếp cận theo nguyên tắc compliance built-in — mọi quyết định kiến trúc đều xem xét tác động pháp lý trước khi cố định phạm vi, khác với mô hình "ship trước, compliance retrofit sau" phổ biến ở các startup giai đoạn 2018-2022.
-
-### 1.5.2 Luật Bảo vệ Dữ liệu Cá nhân (Số 49/2023/QH15)
-
-Luật Bảo vệ Dữ liệu Cá nhân Số 49/2023/QH15 [9] được Quốc hội thông qua tháng 11/2023, là văn bản pháp lý đầu tiên ở cấp độ Luật quy định riêng về bảo vệ dữ liệu cá nhân tại Việt Nam, hiệu lực từ 2026-07-01. Luật áp dụng cho mọi tổ chức xử lý dữ liệu cá nhân của công dân Việt Nam không phụ thuộc trụ sở (extraterritorial scope tương tự GDPR). Điều 11 và Điều 17 quy định Controller phải có consent cụ thể-riêng lẻ-rút lại được cho mỗi mục đích xử lý; bổ nhiệm Data Protection Officer (DPO) khi xử lý dữ liệu nhạy cảm hoặc dữ liệu của ≥10.000 chủ thể; thực hiện Data Protection Impact Assessment (DPIA) trước mỗi tính năng tác động cao; thông báo vi phạm dữ liệu trong vòng 72 giờ; và đảm bảo các quyền của data subject (truy cập, chỉnh sửa, xóa, hạn chế xử lý). Bảng 1.5.1 liệt kê các thành phần kỹ thuật được triển khai tuân thủ Luật trong giai đoạn beta nội bộ:
-
-| Yêu cầu Luật | Thiết kế nền tảng |
-|---|---|
-| Consent cụ thể, riêng lẻ | Form đăng ký có 3 checkbox riêng (Terms / Privacy / Marketing optional) — không tích sẵn |
-| Quyền truy cập (Điều 7) | API trả về JSON đầy đủ dữ liệu cá nhân của chủ thể |
-| Quyền xóa (Điều 9) | API kích hoạt soft-delete 30 ngày + hard-delete sau retention |
-| DPIA template | Tài liệu chuẩn hóa cho mọi tính năng mới |
-| Audit log immutable | Bảng nhật ký quản trị với database trigger immutable (Điều 11 tamper-proof) |
-| Data breach notification SOP | Runbook ứng phó với quy trình thông báo 72 giờ |
-
-Giai đoạn beta nội bộ ≤10 tenant chưa kích hoạt ngưỡng Điều 28 (10.000 data subject) yêu cầu DPO bắt buộc; roadmap dự kiến bổ nhiệm DPO part-time + thực hiện DPIA cho mọi tính năng nhạy cảm trước giai đoạn General Availability khi nền tảng mở rộng quy mô ≥50 trung tâm. Mở rộng K-12 sẽ kích hoạt yêu cầu DPO ngay lập tức do dữ liệu trẻ em thuộc loại nhạy cảm cao theo Điều 17.
-
-### 1.5.3 Luật An ninh mạng 2018 và Nghị định 53/2022/NĐ-CP — data localization
-
-Luật An ninh mạng Số 24/2018/QH14 [10] hiệu lực từ 2019-01-01 đặt nền tảng pháp lý đảm bảo an ninh không gian mạng Việt Nam; tác động trực tiếp đến SaaS là yêu cầu localize dữ liệu tại Điều 26, được hướng dẫn chi tiết bởi Nghị định 53/2022/NĐ-CP [11] (hiệu lực 2022-10-01) với khoản lưu trữ dữ liệu người dùng Việt Nam tại Việt Nam tối thiểu 24 tháng cho nhà cung cấp dịch vụ có người dùng Việt Nam ≥1 triệu hoặc hoạt động trong lĩnh vực lưu trữ dữ liệu trực tuyến. Nền tảng giáo dục B2B SaaS thuộc danh mục Điều 26 nên cần chuẩn bị data localization từ trước. Đề tài chọn AWS Singapore region (ap-southeast-1) cho giai đoạn beta nội bộ thay vì AWS Hà Nội (chưa available cho Free Tier 2026) hoặc AWS US (không phù hợp dài hạn), với phân kỳ: giai đoạn beta nội bộ ≤50 tenant chấp nhận AWS Singapore do Singapore là quốc gia ASEAN có điều ước hợp tác data sharing thuận lợi với Việt Nam và giai đoạn này chưa kích hoạt ngưỡng Decree 53; giai đoạn General Availability 50-500 tenant migrate sang AWS Hà Nội Local Zone hoặc VN cloud provider khi đạt ngưỡng kích hoạt; giai đoạn K-12 mở rộng bắt buộc hosting tại Việt Nam. Ngoài data localization, Luật An ninh mạng 2018 yêu cầu các tổ chức áp dụng biện pháp kỹ thuật bảo vệ thông tin (mã hóa, kiểm soát truy cập, audit log) và thiết lập phương án ứng phó sự cố; nền tảng đáp ứng qua HTTPS mandatory với TLS 1.3, JWT signed, password Argon2id hashing theo OWASP Top 10 baseline [20], runbook ứng phó chuẩn hóa, và audit log immutable 90 ngày retention.
-
-### 1.5.4 Thông tư 78/2021/TT-BTC — Hóa đơn điện tử
-
-Thông tư 78/2021/TT-BTC [21] của Bộ Tài chính (hiệu lực 2022-07-01) bắt buộc mọi doanh nghiệp hoạt động tại Việt Nam xuất hóa đơn điện tử (eInvoice) theo định dạng XML chuẩn của Tổng cục Thuế, có chữ ký số và nộp về Tổng cục Thuế thông qua nhà cung cấp dịch vụ trung gian được cấp phép. Nền tảng hỗ trợ tenant xuất hóa đơn cho học viên và doanh nghiệp; đề tài đánh giá hai phương án self-build eInvoice engine và partnership với nhà cung cấp được cấp phép (MISA MeInvoice). Phương pháp external benchmark (trình bày chi tiết §1.6) cho thấy partnership là lựa chọn industry-norm cho VN edu SaaS với bốn lý do: nhà cung cấp được Tổng cục Thuế cấp phép có network distribution thiết lập sẵn tránh quy trình apply giấy phép trung gian phức tạp; API hỗ trợ XML format chuẩn, chữ ký số, retry on failure tiết kiệm 3-4 tháng engineering effort; compliance maintenance ongoing khi Tổng cục Thuế cập nhật format; cost-benefit khoảng 2.000-5.000đ mỗi invoice rẻ hơn đáng kể so với chi phí self-build và maintain 50-100 triệu đồng mỗi năm engineering ở quy mô beta và early General Availability.
-
-## 1.6 Phương pháp luận Quality-Driven Development cho nền tảng đề xuất
-
-### 1.6.1 Bối cảnh phương pháp luận
-
-Phát triển nền tảng SaaS multi-tenant trong môi trường solo-developer với deadline pháp lý cứng đặt ra thách thức quản lý chất lượng khác biệt so với team SaaS truyền thống: không có code reviewer thứ hai, không có đội QA riêng, không có architecture review board, mọi quyết định kiến trúc và nghiệp vụ và chất lượng đều dồn lên một người. Trong bối cảnh đó, đề tài áp dụng phương pháp luận Quality-Driven Development kết hợp bốn nguyên tắc đã được nghiên cứu trong văn liệu khoa học phần mềm: Plan-Do-Check-Act (PDCA) cycle của Deming [22] cho vòng lặp liên tục phát hiện sai lệch và cải tiến quy trình, Test-Driven Development của Beck [17] cho nguyên tắc viết test trước implementation, Lean Software Development của Poppendieck [23] cho ba trụ cột eliminate waste và build quality in và amplify learning, IEEE 730-2014 Software Quality Assurance Standard [24] cho chuẩn quy trình đảm bảo chất lượng. Khác với TDD truyền thống tập trung unit test trước implementation cho từng chức năng cụ thể, phương pháp luận của đề tài tập trung vào Quality Management Process ở cấp meta-governance — đảm bảo bản thân quy trình phát triển không drift theo thời gian, không bỏ sót các lớp lỗi nghiệp vụ, và mọi sai lệch đều convert thành quy trình kèm enforcement vĩnh viễn thay vì chỉ ghi chú tạm thời. Quy trình này bù trừ điểm yếu cố hữu của mô hình solo-developer bằng cách codify mọi miss thành rule có enforcement tự động. Bốn trụ cột chính của phương pháp luận, mỗi trụ cột địa chỉ một lớp lỗi đặc trưng, được trình bày sau đây.
-
-### 1.6.2 Trụ cột 1 — Quy trình Incident-to-Rule
-
-Trụ cột này áp dụng PDCA cycle của Deming [22] ở mức process governance: mọi sai lệch mà nhà phát triển hoặc người review phát hiện phải được chuyển hóa thành rule kèm enforcement vĩnh viễn trong cùng phiên làm việc phát hiện, không để dồn vào backlog. Quy trình gồm năm giai đoạn tuần tự DETECT phát hiện sai lệch, CLASSIFY phân loại rule thiếu hay rule có nhưng thiếu enforcement hay rule conflict, RULE kèm ENFORCE viết rule mới kèm cơ chế phát hiện tự động trong cùng pull request, SELF-TEST chạy detection mới trên sai lệch gốc bằng synthetic fixture xác nhận rule fire đúng, và RETRO LOG ghi nhận incident-to-rule chain vào lịch sử dự án. Nguyên tắc cốt lõi: không cho phép advisory-only rules vì rule không có cơ chế enforcement tự động sẽ drift bị quên và re-trigger sai lệch tương tự sau vài tuần. Yêu cầu rule kèm enforcement same-PR là biến thể của nguyên tắc build quality in của Poppendieck [23] — chất lượng phải được nhúng vào quy trình ngay tại thời điểm xây dựng không phải retrofit sau.
-
-### 1.6.3 Trụ cột 2 — Meta-Index Governance Pattern
-
-Trụ cột này áp dụng nguyên tắc Single Source of Truth từ IEEE 730 [24] §6 Quality Management documentation: mọi tập hợp artifact có ID tuần tự (gap, Architecture Decision Record, rule, audit report) phải có một CSV index canonical kèm query helper, CI validator và 100% coverage parity giữa file và index. Vấn đề được giải quyết: khi codebase scale ≥100 gap và ≥30 ADR và ≥60 rule, mọi truy vấn dạng "artifact nào còn open" hoặc "rule nào touching scope X" trở nên expensive nếu scan toàn bộ file system mỗi lần, và tệ hơn status thường drift giữa file body và tài liệu kế hoạch khi không có single source of truth. Pattern giải quyết: mỗi loại artifact có một CSV index lưu metadata cốt lõi gồm id, title, status, phase, owner, last-updated, kèm CI validator quét cả hai hướng file kèm CSV row và fail nếu drift, tránh được lớp lỗi ghost artifact (file tồn tại nhưng không trong index) hoặc phantom row (row CSV trỏ về file đã xóa).
-
-### 1.6.4 Trụ cột 3 — Outside-In Coverage Trigger
-
-Trụ cột này áp dụng nguyên tắc amplify learning của Lean Software Development [23]: khi nhà phát triển đề xuất phạm vi mới theo lối inside-out brainstorm (liệt kê tính năng có sẵn hoặc build engine X), quy trình phải proactively yêu cầu bổ sung outside-in audit trước khi cố định phạm vi. Inside-out là góc nhìn dev liệt kê tính năng dev có hoặc dev nghĩ tới từ trong hệ thống ra ngoài, trong khi outside-in là góc nhìn user thực sự cần gì kỳ vọng gì bị cản ở đâu từ ngoài (user và ngành) vào hệ thống; hai góc nhìn bù trừ nhau, dev giỏi inside-out nhưng yếu outside-in do đã quá quen có blind spot tâm lý user. Quy trình đề xuất ba phương pháp outside-in chạy song song: persona simulation phù hợp phạm vi user-facing (signup, onboarding, daily use), external benchmark phù hợp pre-launch và beta cohort và business model decisions, và failure-mode matrix phù hợp quy trình phức tạp với nhiều failure modes. Trụ cột này đã trực tiếp tạo ra một re-scoping quan trọng của đề tài: gap ban đầu đề xuất self-build VAT engine theo Thông tư 78 (trình bày §1.5.4) được external benchmark surface là không đúng industry-norm, dẫn đến quyết định partnership với MISA MeInvoice tiết kiệm 3-4 tháng engineering effort và tránh quy trình xin giấy phép trung gian phức tạp.
-
-### 1.6.5 Trụ cột 4 — Audit-to-Gap Pipeline
-
-Trụ cột này áp dụng nguyên tắc traceability của IEEE 730 [24] §7 Quality Assurance Records: mỗi audit finding phải có một gap file tương ứng với template chuẩn, được index trong CSV, có memory pointer nếu là lớp lỗi recurring, và được close bằng fix PR theo lifecycle OPEN tiến đến PARTIAL tiến đến DONE. Quy trình cụ thể gồm sáu bước run audit emit findings vào audit category folder với date prefix chuẩn, triage findings phân loại P0 BLOCKING và P1 và P2 và informational, file gap per finding theo template canonical với các trường Problem và Root Cause và Proposed Fix và Acceptance Criteria và Status và Log và Related, add row vào CSV gap status với status OPEN, memory pointer optional nếu finding là lớp lỗi recurring cần cross-session awareness, và fix PR đẩy gap qua lifecycle. Trước khi filing gap mới, quy trình mandate state-check trên bốn trục đọc prior audit reports cùng category để tránh duplicate finding, verify gap pending từ wave trước đã được file đầy đủ, verify Architecture Decision Record liên quan đã được approved, và verify state environment match expectation trước khi đề xuất mutation. State-check eliminate hai lớp lỗi phổ biến: duplicate gap filing và phantom gap referencing non-existent state.
-
-### 1.6.6 Tổng hợp lưới an toàn meta-governance
-
-Bốn trụ cột không hoạt động độc lập mà tạo thành lưới an toàn nhiều lớp, mỗi trụ cột địa chỉ một lớp lỗi cụ thể: Trụ cột 1 Incident-to-Rule pipeline địa chỉ sai lệch được catch nhưng không codify thành quy trình, Trụ cột 2 Meta-Index governance địa chỉ drift giữa file body và index, Trụ cột 3 Outside-In coverage trigger địa chỉ phạm vi cố định bỏ qua nhu cầu user thực, và Trụ cột 4 Audit-to-Gap pipeline địa chỉ audit finding bị quên không track. Đóng góp phương pháp luận của đề tài nằm ở việc kế thừa và mở rộng các phương pháp cổ điển (PDCA, TDD, Lean, IEEE 730) sang một class problem chưa được nghiên cứu chuyên sâu trong văn liệu là quản lý chất lượng dưới điều kiện solo-developer với deadline pháp lý cứng. Hiệu quả định lượng của phương pháp luận được trình bày chi tiết trong Chương 3 Triển khai và Kiểm thử gồm Quality audit cải thiện từ baseline 65 trên 100 lên 90 trên 100, Security audit từ 85 trên 100 lên 93 trên 100, và trung bình 3-5 gap closure mỗi iteration với 0 P0 incident production trong hai tuần liên tiếp pre-launch giai đoạn beta nội bộ.
-
-## 1.7 Phạm vi đề tài và lộ trình triển khai
+## 1.4 Phạm vi đề tài và lộ trình triển khai
 
 Đề tài chia thành các giai đoạn triển khai để cân bằng giữa độ phức tạp kỹ thuật, ngưỡng tuân thủ pháp lý và quy mô thị trường mục tiêu. Giai đoạn beta tenant gồm thử nghiệm với khoảng 5-10 tenant pilot tại các trung tâm thí điểm, tập trung kiểm chứng onboarding wizard, AI Branding, kiến trúc multi-tenant và compliance baseline; phạm vi triển khai trong giai đoạn này không thu phí và chấp nhận chính sách giảm thiểu chi phí hạ tầng. Giai đoạn paid beta mở rộng tenant cohort lên 30-50 trung tâm với chính sách thu phí giới thiệu thấp hơn giá niêm yết, mục đích chính là validation pricing model, onboarding flow chính thức và hệ thống thanh toán chuyển khoản kèm đối soát tự động; giai đoạn này tích hợp eInvoice qua partnership với nhà cung cấp được Tổng cục Thuế cấp phép. Giai đoạn production launch chính thức mở cho mọi trung tâm tự đăng ký không qua quy trình mời, đi kèm SLA cam kết uptime ≥99,5% và bổ sung các kênh hỗ trợ (live chat, Zalo OA support), ứng dụng di động native cho học viên và phụ huynh, đa cổng thanh toán tích hợp. Giai đoạn K-12 expansion mở rộng sang phân khúc trường công lập và tư thục cấp 1-2 với yêu cầu bổ nhiệm DPO chính thức, DPIA cho dữ liệu trẻ em theo Luật Bảo vệ Dữ liệu Cá nhân Điều 17 và Điều 26, hợp tác với Bộ Giáo dục và Đào tạo cùng các sở/phòng giáo dục địa phương cho phân phối.
 

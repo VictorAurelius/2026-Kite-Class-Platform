@@ -840,16 +840,3 @@ Tham khảo phân tích Chương 1, Kite Platform đối sánh với hệ thốn
 Định vị tổng quát: nền tảng SaaS đa tenant nguyên bản cho trung tâm dạy thêm SMB Việt Nam, AI-powered branding, giao tiếp Zalo-native (GA), mức giá khởi điểm `500.000đ/tháng`.
 
 ---
-
-## 2.7 Tổng kết Chương 2
-
-Chương 2 đã trình bày kiến trúc Kite Platform theo sáu góc nhìn:
-
-1. **Yêu cầu chức năng** — 6 nhóm năng lực (cấp phát tenant, đăng ký dịch vụ, tùy biến, lõi nghiệp vụ giáo dục, tuân thủ và audit, quản trị nền tảng) phân bổ giữa KiteHub (control-plane) và KiteClass (data-plane), phục vụ các persona giáo viên độc lập, chủ trung tâm, quản lý trung tâm, học sinh và phụ huynh.
-2. **Yêu cầu phi chức năng** — ánh xạ sang ISO/IEC 25010:2011 với mục tiêu hiệu năng P95 < 500ms, uptime 99.5% trên một vùng AWS Singapore, an toàn theo OWASP Top 10 và pháp luật Việt Nam (PDPL 2023, Luật An ninh mạng 2018), mở rộng theo mô hình single-bucket multi-tenant, bảo trì qua microservice triển khai độc lập, và chi phí ~$15-30/tháng trong giai đoạn beta.
-3. **Kiến trúc** — C4 Level 1 (8 actor + 6 hệ thống bên ngoài) và Level 2 (4 cụm: Frontend, Gateway, Service, Hạ tầng dùng chung); quyết định kiến trúc trọng tâm là Pool model (Shared DB + `tenant_id` + RLS) với điểm tổng 26/30 vượt 5 pattern thay thế; phòng thủ chiều sâu 5 lớp với RLS phủ 51/91 bảng (89% bảng thuộc phạm vi tenant); NULL force-fail + HikariCP GUC reset loại trừ leak ngầm. Đồ án bổ sung 4 sơ đồ UML truyền thống (use case 5 persona × 6 năng lực, class diagram core domain, ERD high-level, sequence diagram luồng cấp phát tenant) để đáp ứng cả khung-chuẩn đào tạo UTC lẫn industry-standard C4.
-4. **Thiết kế cơ sở dữ liệu** — schema chi tiết của 3 bảng cốt lõi (`instances` control-plane; `classes` và `students` domain-plane) với 15 cột mỗi bảng được pull canonical từ chuỗi migration Flyway; mọi bảng domain mang cột `instance_id` (UUID) bắt buộc cho chính sách RLS.
-5. **Mô hình SaaS** — máy trạng thái 5 trạng thái vòng đời tenant; quy trình cấp phát 8 bước; 4 gói dịch vụ (FREE/STARTER/PRO/PRO_PLUS) với enforcement quota; thanh toán VietQR thủ công beta + MISA MeInvoice + VNPay/MoMo cho GA.
-6. **Bối cảnh Blended Learning** — đặc thù thị trường giáo dục Việt Nam (lịch học Mon-Sat, niên khóa 9-5, khung Tết, văn hóa Zalo, mẹ làm đầu mối phụ huynh); phân tích 4 persona; tuân thủ localization VN; định vị cạnh tranh tập trung trung tâm dạy thêm SMB.
-
-Chương 3 tiếp theo sẽ trình bày chi tiết triển khai: cấu trúc mã nguồn theo Spring Boot, chuỗi migration Flyway, kiến trúc component Next.js 15 và đi qua một số luồng tính năng đại diện (đăng ký magic-link, AI Branding Studio, điểm danh). Chương 4 trình bày triển khai, kiểm thử và đánh giá chất lượng.
