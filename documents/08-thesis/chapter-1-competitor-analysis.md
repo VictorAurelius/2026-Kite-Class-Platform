@@ -51,7 +51,7 @@ Khoảng trống thị trường mà đề tài hướng đến là *trung tâm 
 
 *BeeClass* [26] là sản phẩm phần mềm quản lý trung tâm ngoại ngữ phổ biến tại thị trường Việt Nam, được vận hành bởi nhóm phát triển trong nước, định vị phục vụ các trung tâm tiếng Anh quy mô vừa. Sản phẩm cung cấp các module quản lý học viên, lớp học, điểm danh, học phí, gửi thông báo cho phụ huynh qua Zalo và email, kèm dashboard tổng quan doanh thu cho chủ trung tâm. Theo thông tin công bố trên website chính thức, BeeClass có hàng trăm trung tâm khách hàng tại nhiều tỉnh thành.
 
-<!-- screenshot placeholder: beeclass-homepage.png — Capture: trang chu https://beeclass.com 1440x900 vi-VN; show hero section + CTA -->
+![Giao diện trang chủ BeeClass](screenshots/competitors/beeclass-homepage.png)
 
 **Hình 1.1.** Giao diện trang chủ BeeClass — phần mềm quản lý trung tâm tiếng Anh phổ biến tại Việt Nam.
 *Nguồn: https://beeclass.com, truy cập ngày 20/05/2026.*
@@ -62,10 +62,10 @@ Thế mạnh chính của BeeClass là giao diện tiếng Việt thân thiện 
 
 *MISA AMIS Trường Học* [5] là sản phẩm giáo dục của công ty phần mềm MISA — một trong những công ty phần mềm Việt Nam lâu đời nhất với hơn 25 năm hoạt động trong lĩnh vực kế toán và thuế. Sản phẩm MISA EMIS đã triển khai tại hơn 30.000 trường tiểu học và trung học cơ sở công lập toàn quốc, phục vụ hơn 12 triệu học sinh.
 
-<!-- screenshot placeholder: misa-amis-truong-hoc.png — Capture: trang sn phm MISA AMIS Trng Hc 1440x900 vi-VN -->
+![Giao diện MISA EMIS](screenshots/competitors/misa-amis-truong-hoc.png)
 
-**Hình 1.2.** Giao diện trang sản phẩm MISA AMIS Trường Học — sản phẩm B2B phục vụ trường công lập của công ty MISA.
-*Nguồn: https://amis.misa.vn/truong-hoc, truy cập ngày 20/05/2026.*
+**Hình 1.2.** Giao diện trang sản phẩm MISA EMIS — sản phẩm B2B phục vụ trường công lập của công ty MISA.
+*Nguồn: https://emis.misa.vn, truy cập ngày 20/05/2026.*
 
 Thế mạnh chính của MISA AMIS Trường Học là tích hợp sâu với MISA MeInvoice (hóa đơn điện tử theo Thông tư 78/2021/TT-BTC) và mạng lưới phân phối qua hệ thống đại lý tại 63 tỉnh thành. Điểm yếu: định vị B2B trường công lập với chu kỳ bán hàng 3-6 tháng, phí thiết lập 50-200 triệu đồng và mức giá 2-5 triệu/tháng/trường, không phù hợp với trung tâm tự phát quy mô nhỏ cần triển khai nhanh.
 
@@ -73,7 +73,7 @@ Thế mạnh chính của MISA AMIS Trường Học là tích hợp sâu với M
 
 *Mona eLMS* [6] là sản phẩm của công ty Mona Software thành lập năm 2017, tập trung chuyên biệt vào phân khúc trung tâm ngoại ngữ và tin học. Mona eLMS có khoảng 800 khách hàng trung tâm tại Việt Nam tính đến năm 2024.
 
-<!-- screenshot placeholder: mona-elms.png — Capture: trang chu Mona eLMS 1440x900 vi-VN -->
+![Giao diện trang chủ Mona eLMS](screenshots/competitors/mona-elms.png)
 
 **Hình 1.3.** Giao diện trang chủ Mona eLMS — phần mềm quản lý trung tâm ngoại ngữ và tin học.
 *Nguồn: https://mona.solutions, truy cập ngày 20/05/2026.*
@@ -84,7 +84,7 @@ Thế mạnh nổi bật của Mona là ứng dụng di động native iOS và A
 
 *Easy Edu* [7] là hệ thống lớn nhất trên thị trường trong phân khúc trung tâm ngoại ngữ vừa và nhỏ với hơn 1.400 trung tâm khách hàng. Sản phẩm ra mắt năm 2018, có hệ thống phân phối mạnh tại miền Bắc và miền Trung thông qua các sự kiện ngành giáo dục và hợp tác với hiệp hội trung tâm ngoại ngữ.
 
-<!-- screenshot placeholder: easy-edu.png — Capture: trang chu Easy Edu 1440x900 vi-VN -->
+![Giao diện trang chủ Easy Edu](screenshots/competitors/easy-edu.png)
 
 **Hình 1.4.** Giao diện trang chủ Easy Edu — phần mềm quản lý trung tâm ngoại ngữ phổ biến phân khúc vừa và nhỏ.
 *Nguồn: https://easyedu.vn, truy cập ngày 20/05/2026.*
@@ -95,7 +95,7 @@ Tập tính năng đầy đủ gồm quản lý học viên, lớp học, học 
 
 *DotB* [8] là sản phẩm phần mềm quản lý giáo dục đa năng của công ty DotB Vietnam ra mắt năm 2019, hướng đến phân khúc trung tâm tầm trung và trường tư thục với giá trị thương vụ trung bình 3-8 triệu đồng/tháng.
 
-<!-- screenshot placeholder: dotb.png — Capture: trang chu DotB 1440x900 vi-VN -->
+![Giao diện trang chủ DotB](screenshots/competitors/dotb.png)
 
 **Hình 1.5.** Giao diện trang chủ DotB — phần mềm quản lý giáo dục đa năng phân khúc tầm trung.
 *Nguồn: https://dotb.vn, truy cập ngày 20/05/2026.*
