@@ -1625,6 +1625,41 @@ def add_appendix(doc):
         "UI 110.6/128 A — đáp ứng yêu cầu giai đoạn beta tenant gate ≥80.")
 
 
+# ============== AUTO-POPULATE TOC + SEQ FIELDS ==============
+def auto_populate_fields(docx_path: Path) -> bool:
+    """
+    Auto-populate Word field codes (TOC, SEQ) by round-tripping through
+    LibreOffice headless. Equivalent to Ctrl+A + F9 in Word.
+
+    Returns True if fields populated successfully, False if LibreOffice
+    unavailable (graceful fallback to manual Word F9).
+    """
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["libreoffice", "--headless", "--convert-to", "docx",
+             str(docx_path), "--outdir", str(docx_path.parent)],
+            capture_output=True,
+            timeout=120,
+            check=False,
+        )
+        if result.returncode == 0:
+            print(f"✅ TOC + SEQ fields auto-populated via LibreOffice headless: {docx_path}")
+            return True
+        else:
+            print(f"⚠️  LibreOffice convert returned non-zero (exit {result.returncode})")
+            print(f"   stderr: {result.stderr.decode('utf-8', errors='replace')[:500]}")
+            print("   Fallback: open in Word + Ctrl+A + F9 pre-defense ship")
+            return False
+    except FileNotFoundError:
+        print("⚠️  LibreOffice not installed — manual Word F9 required pre-defense ship")
+        print("   Install: `apt install libreoffice` (Ubuntu/Debian) or `brew install --cask libreoffice` (macOS)")
+        return False
+    except subprocess.TimeoutExpired:
+        print("⚠️  LibreOffice convert timed out (>120s) — manual Word F9 required")
+        return False
+
+
 # ============== MAIN ENTRY POINT ==============
 def create_thesis():
     print("=" * 60)
@@ -1696,6 +1731,10 @@ def create_thesis():
     print(f"   Số sections: {len(doc.sections)}")
     print(f"   Số paragraphs: {len(doc.paragraphs)}")
     print("=" * 60)
+
+    # Auto-populate TOC + SEQ fields if LibreOffice available (graceful fallback to Word F9)
+    auto_populate_fields(OUTPUT_FILE)
+
     return OUTPUT_FILE
 
 

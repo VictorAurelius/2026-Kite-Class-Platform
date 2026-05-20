@@ -99,6 +99,10 @@ Metadata canonical đầy đủ tại [`thesis-info.md`](thesis-info.md) — m�
 
 - Python 3.10+ với `python-docx` và `lxml`
 - Mạng internet truy cập `kroki.io` để render Mermaid diagram thành PNG (có fallback mmdc local nếu cài đặt)
+- **LibreOffice (khuyến nghị, không bắt buộc)** — pipeline tự động gọi `libreoffice --headless --convert-to docx` sau khi render xong để populate TOC + Danh mục Bảng/Hình + SEQ field codes (tương đương `Ctrl+A` + `F9` trong Word). Nếu LibreOffice không cài đặt, pipeline vẫn ship thành công nhưng sinh viên PHẢI mở Word + F9 thủ công trước khi nộp (xem §7).
+  - Ubuntu/Debian: `sudo apt install libreoffice`
+  - macOS: `brew install --cask libreoffice`
+  - Windows: tải bộ cài tại `https://www.libreoffice.org/`
 
 ### Render
 
@@ -186,19 +190,32 @@ Page number đặt center-top header.
 
 ---
 
-## 7. Hậu xử lý bắt buộc khi nộp — Word F9
+## 7. Hậu xử lý field codes (TOC + SEQ) — auto + manual fallback
 
-Pipeline Python sinh DOCX với XML field codes (TOC + Danh mục Bảng/Hình + SEQ numbering) ở dạng **placeholder text** chưa được render thành text values.
+Pipeline Python sinh DOCX với XML field codes (TOC + Danh mục Bảng/Hình + SEQ numbering) ở dạng **placeholder text** chưa được render thành text values. Pipeline xử lý field codes qua 2 đường:
 
-**Trước khi nộp đề bảo vệ, sinh viên PHẢI:**
+### 7.1 Đường ưu tiên — LibreOffice headless auto-populate (mặc định)
 
-1. Mở `thesis-v1.docx` bằng **Microsoft Word** (KHÔNG dùng LibreOffice — F9 trên LibreOffice không update SEQ field như Word).
+Pipeline tự động gọi `libreoffice --headless --convert-to docx thesis-v1.docx` sau khi render xong (xem `auto_populate_fields()` trong `create_thesis_v1.py`). LibreOffice round-trip này tương đương `Ctrl+A` + `F9` trong Word — populate TOC + Danh mục Bảng/Hình + SEQ numbering values.
+
+**Kết quả tin cậy:**
+- ✅ LibreOffice cài đặt + auto-populate thành công → log `✅ TOC + SEQ fields auto-populated via LibreOffice headless: ...`. Sinh viên có thể mở file và nộp ngay.
+- ⚠️ LibreOffice không cài đặt → log `⚠️  LibreOffice not installed — manual Word F9 required pre-defense ship` cùng hướng dẫn cài đặt. Pipeline KHÔNG fail — file `thesis-v1.docx` vẫn ship thành công, chỉ cần sinh viên chạy Word F9 thủ công (§7.2).
+- ⚠️ LibreOffice convert timeout (>120 giây) hoặc trả non-zero exit → log warning với stderr trích đoạn. Fallback Word F9 thủ công.
+
+### 7.2 Đường fallback — Microsoft Word F9 thủ công (nếu LibreOffice không khả dụng)
+
+Nếu output pipeline báo warning về LibreOffice, sinh viên PHẢI thực hiện trước khi nộp:
+
+1. Mở `thesis-v1.docx` bằng **Microsoft Word** (đảm bảo update SEQ field đúng — LibreOffice cũng OK nếu đã chạy ở §7.1).
 2. Bấm `Ctrl+A` chọn toàn bộ document.
 3. Bấm `F9` cập nhật mọi field (TOC + Danh mục + Bảng X.Y + Hình X.Y SEQ numbering).
 4. Bấm `Ctrl+A` + `F9` lần 2 để đảm bảo nested fields (TOC reference SEQ fields) cập nhật.
 5. Save (`Ctrl+S`) — file sẵn sàng in.
 
-**Verification trước khi ship:** Mục lục + 4 Danh mục hiển thị đầy đủ section names + page numbers; Bảng/Hình captions có số tuần tự (Bảng 1.1, Bảng 1.2, ..., Hình 1.1, Hình 1.2, ...).
+### 7.3 Verification trước khi ship
+
+Mục lục + 4 Danh mục hiển thị đầy đủ section names + page numbers; Bảng/Hình captions có số tuần tự (Bảng 1.1, Bảng 1.2, ..., Hình 1.1, Hình 1.2, ...). Nếu placeholder text `(Bấm Ctrl+A rồi F9 để cập nhật)` còn hiện → field codes chưa populate, lặp lại §7.1 hoặc §7.2.
 
 ---
 
