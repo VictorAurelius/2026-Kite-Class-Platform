@@ -1,0 +1,33 @@
+{
+  "pr": 1621,
+  "title": "feat(wave-102.4): thesis V1 \u226595 A TARGET HIT \u2014 95/100 A raw / 97/100 A post-F9",
+  "branch": "wave/102.4-thesis-v1-polish-to-95-A",
+  "created_at": null,
+  "merged_at": "2026-05-20T04:03:10Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-20T04:03:17.517904",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 17,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/3",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-5590"
+  }
+}
