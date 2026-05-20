@@ -8,10 +8,10 @@ paths:
 # Thesis Content Standard — academic-quality review rubric cho khóa luận tốt nghiệp
 
 **Priority:** 🟠 MANDATORY — academic deliverable governance
-**Version:** 1.0.2
+**Version:** 1.1.0
 **Created:** 2026-05-19
-**Last-Reviewed:** 2026-05-19
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.2 PATCH self-approve per `rule-change-process.md` §5; Wave 102.2 user-flagged extension — adds §3 banned pattern rows: (a) **No-icon/special-char principle** — banned ✅/✗/❌/⚠️/🎉/🚀/📅/🆘/🔴/🟢/🟡/🟠/▪️/◆/■/▲ + arrow chars ⇒/⇐/→/← trong body narrative (committee có thể không có font hỗ trợ; báo cáo in giấy không render emoji); chỉ dùng ký tự gõ được bình thường (Vietnamese alphabet + Latin + standard punctuation . , ; : ! ? " ' ( ) [ ] { } - – —); (b) **No-font-swap principle** — KHÔNG đổi font inline (e.g., Courier New cho `inline code`, Cambria cho equations) — UTC §2.3 mandate TNR 13pt cho mọi đoạn văn; nhấn mạnh dùng *italic* / **bold** / UPPERCASE / "ngoặc kép" thay vì font swap. v1.0.1 (kept): standalone-document principle (KHÔNG documents/** path refs body; bibliography refs CHỈ public sources). v1.0.0 (kept): 9-category rubric grounded UTC spec + BAO_CAO sample + DE_CUONG sample + 43 persona-simulation findings + 7 user-flagged issues.)
+**Last-Reviewed:** 2026-05-20
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; Wave 102.7.0 META extension — adds §10 "Version 1.1 extensions" với 8 new rules (3 user-flagged + 5 outside-in META) per 3-agent outside-in audit 2026-05-20 (persona simulation + UTC benchmark + failure-mode matrix = 82 NEW findings beyond 14 user items). 3 user rules: single-child heading ban (S1) + cấm chapter intro/summary (S2) + VN-narrative-strict 100% mô tả tiếng Việt (S3). 5 outside-in META rules: citation evidence mandate cho numeric/factual claims (S4) + measurement methodology mandate cho benchmarks (S5) + cross-reference integrity verify anchors exist (S6) + acronym defined at first use (S7) + figure source attribution mandatory (S8). Per `rule-change-process.md` §6.5 Enforcement Parity Mandate: rule extensions + reviewer-checklist + worked self-test on 82 outside-in findings + rules-index.csv version bump all paired same PR. No constraint loosening — codifies UTC convention + persona insights surfaced khi thesis-v1.docx ship Wave 102.6; existing thesis V1 grandfathered until Wave 102.7.1+ content fix waves apply prospectively. v1.0.2 (kept): banned patterns §3 — no-icon + no-font-swap principles. v1.0.1 (kept): standalone-document principle. v1.0.0 (kept): 9-category rubric grounded UTC spec + samples + persona findings.)
 **Applies to:** Mọi file dưới `documents/08-thesis/**` được render thành DOCX/PDF deliverable cho academic submission. Scope = chapter MDs (`chapter-*.md`) + thesis-v1.docx + bibliography + persona-review audit reports thesis-related. Out-of-scope: source code, internal runbooks, non-academic project docs.
 
 ---
@@ -436,8 +436,279 @@ Trailer logged. Pattern frequency >10%/quarter triggers meta-review.
 
 ---
 
+## 10. Version 1.1 extensions (Wave 102.7.0 — 3 user rules + 5 outside-in META)
+
+8 new rules ship trong Wave 102.7.0 MINOR bump (v1.0.2 → v1.1.0). Trigger: 3-agent outside-in audit 2026-05-20 (persona simulation + UTC benchmark + failure-mode matrix) surfaced 82 NEW findings beyond 14 user items shipped Wave 102.5. User direction 2026-05-20 lock META scope = "3 user rules + 5 outside-in META" trước khi ship content fixes Wave 102.7.1+.
+
+### S1 — Single-child heading ban (user rule 4)
+
+**Rule:** Mọi heading cấp con (H3/H4/H5) phải có ≥2 sibling cùng cha. Nếu chỉ có 1 sub-heading → merge content lên parent heading HOẶC add sibling thực sự cùng cấp.
+
+**Banned example (thesis-v1.docx Wave 102.5 baseline):**
+```
+2.1 Domain capabilities
+  2.1.1 Tenant lifecycle      ← single child, no 2.1.2!
+2.2 NFR
+```
+
+**✅ Required:**
+- Option A: gộp `2.1.1 Tenant lifecycle` content lên `2.1 Domain capabilities` (drop sub-heading)
+- Option B: thêm sibling thực sự `2.1.2 Per-tenant data isolation` cùng category
+
+**Verify:** grep `^### \\d+\\.\\d+\\.1\\.` mỗi chapter file → if `\\.1` exists but `\\.2` doesn't → FAIL.
+
+**Rationale:** Single-child heading vi phạm Aristotle's principle of subdivision (dividing into 1 part = no division). UTC convention + IEEE technical writing convention đều mandate ≥2 children per parent heading.
+
+**Applies to:** Mọi `## H2 → ### H3 → #### H4` chains trong chapter MDs. Affects C1 Format category.
+
+---
+
+### S2 — Cấm chapter intro + summary sections (user rule 13)
+
+**Rule:** Mỗi chapter MD KHÔNG được có section `## 4.0 Giới thiệu chương` / `## N.0 Mục đích chương` / `## Tóm tắt chương N` / `## Kết luận chương N`. Nội dung intro/summary nếu cần phải nằm trong section nội dung thực (vd `## 4.1 ...`) hoặc trong KẾT LUẬN chapter cuối.
+
+**Banned example (thesis-v1.docx Wave 102.5 baseline — Ch.4):**
+```
+## 4.0 Giới thiệu chương    ← banned
+Chương 4 trình bày kết quả triển khai...
+
+## 4.1 Hạ tầng triển khai
+...
+
+## Tóm tắt chương 4         ← banned
+Chương 4 đã trình bày...
+```
+
+**✅ Required:**
+- Drop §4.0 hoàn toàn → content có thể gộp vào §4.1 nếu cần
+- Drop §Tóm tắt → content có thể gộp vào KẾT LUẬN chương cuối (§Tổng kết kết quả đạt được)
+
+**Verify:** grep `^## \\d+\\.0 |^## (Giới thiệu|Tóm tắt|Mục đích) chương` mỗi chapter file → 0 match required.
+
+**Rationale:** UTC convention `BAO_CAO_THUC_TAP.docx` sample không có chapter intro/summary sections — narrative flows directly từ section thực. Intro/summary tạo redundancy (committee đọc 2-3 lần cùng thông tin) + lãng phí page count budget.
+
+**Applies to:** Mọi chapter MD body. Affects C2 Content category.
+
+---
+
+### S3 — Ngôn ngữ tiếng Việt 100% narrative (user rule 14)
+
+**Rule:** Mọi narrative content trong chapter body PHẢI tiếng Việt 100%. English term CHỈ được dùng khi:
+1. Không có Vietnamese equivalent đúng nghĩa (vd: `JWT`, `HTTP`, `REST`, `SaaS`, `Docker`)
+2. Vendor/product proper noun (vd: `AWS`, `Cloudflare`, `Spring Boot`, `Next.js`, `Resend`)
+3. Code identifier inline (vd: `instance_id`, `tenant_id`, `kitehub-platform`)
+
+Heading **PHẢI 100% tiếng Việt** — KHÔNG English heading (vd: `## 2.1.1 Domain capabilities` BANNED → `## 2.1.1 Năng lực miền`).
+
+Khi dùng English term lần đầu → mở ngoặc bổ sung Vietnamese (vd: `JWT (JSON Web Token, mã xác thực web)`).
+
+**Banned example (Wave 102.5 baseline):**
+- Heading `## 2.1.1 Domain capabilities` → English heading
+- Body listing pattern: "Kiến trúc hệ thống bao gồm 6 microservice backend (kitehub-admin, kitehub-branding, kitehub-email, kitehub-gateway, kitehub-platform, kitehub-subscription), 1 core tenant application (kiteclass-core) và 2 frontend Next.js (kitehub-frontend, kiteclass-frontend)."
+
+**✅ Required pattern:**
+- Heading: `## 2.1.1 Năng lực miền nghiệp vụ`
+- Body uyển chuyển: "Hệ thống được cấu thành từ ba lớp dịch vụ chính. Lớp nền tảng (KiteHub) gồm sáu dịch vụ độc lập đảm nhận các trách nhiệm khác nhau: quản trị (`kitehub-admin`), nhận diện thương hiệu (`kitehub-branding`), thư điện tử (`kitehub-email`), điều phối yêu cầu (`kitehub-gateway`), thư viện dùng chung (`kitehub-platform`) và quản lý đăng ký (`kitehub-subscription`). Lớp nghiệp vụ tenant (KiteClass) tập trung tại dịch vụ `kiteclass-core`. Lớp giao diện gồm hai ứng dụng Next.js phục vụ cho từng tập người dùng."
+
+**Verify:** grep `^### [A-Z][a-z]+ [A-Z]` (English-style heading) → 0 match required. Body narrative scan for listing patterns ("bao gồm X, Y, Z, A, B, C") → flag for rewrite (≥5 items in single sentence = listing-style anti-pattern).
+
+**Rationale:** Per `dev-readable-doc-language.md` (project rule) + UTC §1.3 thesis convention. Mixed-language narrative breaks reader flow + signals immaturity to GVPB/Defense committee. Listing pattern reads as technical inventory không phải academic prose.
+
+**Applies to:** Mọi chapter heading + narrative body. Affects C4 Academic tone category.
+
+---
+
+### S4 — Citation evidence mandate (outside-in: persona F-A1 + benchmark)
+
+**Rule:** Mọi numeric/factual claim trong narrative body PHẢI có citation `[N, tr.NNN]` hoặc `[N]` (nếu page không applicable, vd web URL). Page-num bắt buộc cho:
+1. Direct quote `"..."` từ source
+2. Specific number/percentage cited as fact (vd "80% trung tâm chuyển khoản", "92/100 Lighthouse")
+3. Specific vendor stat (vd "MISA EMIS 30,000 trường", "BeeClass hàng trăm trung tâm")
+
+Cite format `[N, tr.NNN]` cho document page-num; `[N]` cho web với access date `, truy cập DD/MM/YYYY` inline italic.
+
+**Banned example (Wave 102.5 baseline Ch.1 §1.3):**
+- "MISA EMIS đã triển khai tại hơn 30.000 trường + 12 triệu học sinh" — KHÔNG cite
+- "BeeClass có hàng trăm trung tâm" — KHÔNG cite
+- "80% trung tâm chuyển khoản thủ công, 4-6 giờ/tuần" — KHÔNG cite (chỉ generic "VECITA 2024 [4]" không page)
+
+**✅ Required:**
+- "MISA EMIS đã triển khai tại hơn 30.000 trường + 12 triệu học sinh [5, tr.NN]"
+- "BeeClass có hàng trăm trung tâm theo công bố trang chủ [URL, truy cập 20/05/2026]"
+- "80% trung tâm chuyển khoản thủ công với thời gian xử lý 4-6 giờ/tuần [4, tr.42]"
+
+**Verify:** grep `[0-9]+%|[0-9]+\\.[0-9]+|[0-9]{3,}` (numeric patterns) trong chapter body → cross-check sentence có `[N` hoặc `[N, tr` cite trong cùng paragraph.
+
+**Rationale:** Per outside-in audit Agent 1 P1-03 + Agent 3 F-A1 cluster — GVPB/Defense committee sẽ catch unverified numeric claims ngay. Citation = academic integrity baseline.
+
+**Applies to:** Mọi numeric/factual narrative. Affects C3 Bibliography + C8 Examiner readiness.
+
+---
+
+### S5 — Measurement methodology mandate (outside-in: persona P2-01/02/09 + F-B4)
+
+**Rule:** Mọi performance/benchmark/measurement claim PHẢI có methodology block trong cùng section:
+1. **Tool**: tool/script đo (vd "Lighthouse 11.0", "JMeter 5.5", "wc -l", "cloc")
+2. **N (sample size)**: số measurement (vd "N=50 requests", "N=12 chapter files")
+3. **Date**: thời gian đo (vd "đo 20/05/2026 lúc 14:00 UTC+7")
+4. **Env**: môi trường (vd "production endpoint api.kitehub.me", "4G mobile Saigon", "production EC2 t3.micro Singapore")
+
+**Banned example (Wave 102.5 baseline):**
+- "Performance &lt;500ms p95" — no tool/N/date/env
+- "Sơ bộ 92/100 Lighthouse" — single measurement không reproducible
+- "Uptime ≥99.2% ước tính" — "ước tính" = không phải đo thật
+
+**✅ Required:**
+```
+Hiệu năng truy vấn API đạt 280-350ms ở phân vị p95
+(đo bằng JMeter 5.5, N=500 requests, ngày 20/05/2026 14:00 UTC+7,
+production endpoint api.kitehub.me từ Vietnam mobile 4G).
+```
+
+**Verify:** grep performance numbers (`[0-9]+\\s*ms|[0-9]+%\\s*uptime|[0-9]+/100`) → check next ≤3 sentences có methodology keywords (`tool|đo|N=|môi trường|sample`).
+
+**Rationale:** Per outside-in audit Agent 1 P2-01/02/09 + Agent 3 F-B4 cluster — committee sẽ chất vấn "đo thế nào? bao lâu? mẫu N=? statistical method?". Methodology block = reproducibility evidence.
+
+**Applies to:** Mọi performance/benchmark/test count claim. Affects C8 Examiner readiness.
+
+---
+
+### S6 — Cross-reference integrity mandate (outside-in: persona P2-08 + P3-13/16 + F-B2-01 + F-C5-02..05)
+
+**Rule:** Mọi cross-reference `§X.Y.Z` / `Chương N §X.Y` / `Hình X.Y` / `Bảng X.Y` trong narrative PHẢI verify anchor tồn tại trong same file hoặc reference chapter:
+1. Self-reference: chapter ref `§X.Y` → grep `^## X.Y |^### X.Y` mỗi chapter MD must exist
+2. Cross-chapter ref: `Chương N §X.Y` → check chapter-N MD có `## X.Y`
+3. Figure ref: `Hình X.Y` → check `**Hình X.Y.**` caption exists
+4. Banned: self-reference recursion (vd `§1.5` mention "trình bày chi tiết trong Chương 1 mục 1.5")
+
+**Banned example (Wave 102.5 baseline):**
+- Ch.2 line 534 "khác với class diagram §2.3.7" — class diagram thực ở §2.3.6, ERD ở §2.3.7 → swapped
+- Ch.4 §4.4.4 "outside-in audit pattern (Chương 2 §2.5)" — §2.5 = Mô hình SaaS, không phải outside-in audit
+- Ch.3 §3.5 cross-ref Outbox Pattern — Ch.3 không có §3.5 (chỉ có §3.1, §3.2, §3.3)
+
+**✅ Required pattern:** trước khi ship chapter MD, run:
+```bash
+# Self-anchor verify
+for ref in $(grep -oE "§[0-9]+\\.[0-9]+(\\.[0-9]+)?" chapter-N.md); do
+  grep -q "^## ${ref#§}\\|^### ${ref#§}" chapter-N.md || echo "BROKEN: $ref"
+done
+```
+
+**Rationale:** Per outside-in audit cluster 5 findings — committee sẽ catch broken cross-refs immediately khi đọc thesis. Anchor integrity = basic editing quality.
+
+**Applies to:** Mọi `§X.Y` / `Chương N §X.Y` / `Hình X.Y` / `Bảng X.Y` references. Affects C1 Format + C6 Draft-marker scrub.
+
+---
+
+### S7 — Acronym defined at first use (outside-in: persona F-C2 cluster)
+
+**Rule:** Mọi acronym 2+ ký tự (vd `GVCN`, `OIDC`, `DPO`, `DPIA`, `MRR`, `ARR`, `LMS`, `K-12`, `SaaS`, `OLTP`, `SLA`, `SLO`) PHẢI được define tại first occurrence trong narrative — với format `<Acronym> (<full name VN>, <full name EN nếu cần>)`.
+
+**Banned example (Wave 102.5 baseline):**
+- Ch.2 §2.1.1 first appearance `GVCN` — define mãi tại Ch.2 §2.6.3 line 769 "GVCN (giáo viên chủ nhiệm)" — 700+ lines later
+- Ch.4 §4.1.4 `OIDC + workflow_dispatch` — `OIDC` chưa define
+- Ch.2 §2.1.1 `DSAR` defined ✅ nhưng `DPO`, `DPIA`, `MRR`, `ARR`, `LMS`, `K-12`, `SaaS`, `OLTP` chưa define
+
+**✅ Required pattern:**
+```
+... áp dụng GVCN (giáo viên chủ nhiệm) để quản lý lớp học ...
+... triển khai OIDC (OpenID Connect, giao thức xác thực mở) cho CI/CD ...
+... đáp ứng yêu cầu DPO (Data Protection Officer, cán bộ bảo vệ dữ liệu) ...
+```
+
+Sau khi định nghĩa lần đầu → các lần sau dùng acronym tự do (không lặp lại định nghĩa).
+
+**Verify:** grep acronym patterns `[A-Z]{2,}` (2+ uppercase chars) trong mỗi chapter → first occurrence phải có `(...)` parenthetical define ngay sau.
+
+**Rationale:** Per outside-in audit Agent 3 F-C2 cluster — committee đọc tuyến tính từ Ch.1 → Ch.4; undefined acronyms break comprehension flow. Danh mục từ viết tắt riêng tốt nhưng KHÔNG thay được first-use definition.
+
+**Applies to:** Mọi acronym 2+ ký tự lần đầu xuất hiện mỗi chapter. Affects C4 Academic tone.
+
+---
+
+### S8 — Figure source attribution mandatory (outside-in: persona F-C4 cluster + UTC §2.4)
+
+**Rule:** Mọi figure (markdown image `![]()`, Mermaid block, embedded PNG) PHẢI có dòng italic source attribution NGAY SAU caption `**Hình X.Y.** ...`:
+
+| Figure type | Required attribution |
+|---|---|
+| **Derived from external source** | `*Nguồn: [N, tr.NNN]*` (citing bibliography) HOẶC `*Nguồn: <URL>, truy cập DD/MM/YYYY*` (web) |
+| **Author-original** (drawn by author) | `*Nguồn: tác giả tự xây dựng*` HOẶC `*Nguồn: tác giả tự xây dựng dựa trên [N, tr.NNN]*` (composite reference) |
+| **Screenshot of own product** | `*Nguồn: ảnh chụp giao diện KiteHub Platform, truy cập DD/MM/YYYY*` |
+
+**Banned example (Wave 102.5 baseline Ch.2):**
+- Hình 2.1-2.8 (C4 Context/Container/ERD/Class/Sequence/State diagrams) — captions present ✅ NHƯNG missing source attribution
+- Hình 3.1-3.8 (UI screenshots Ch.3) — missing attribution
+
+**✅ Required pattern:**
+```markdown
+```mermaid
+flowchart TD
+    ...
+```
+**Hình 2.1.** Sơ đồ ngữ cảnh C4 Level 1 của hệ thống KiteHub
+*Nguồn: tác giả tự xây dựng dựa trên mô hình C4 [N, tr.NNN]*
+```
+
+**Verify:** Sau mỗi `**Hình X.Y.**` caption line → next non-empty line PHẢI match `^\\*Nguồn:.*\\*$` italic pattern.
+
+**Rationale:** Per outside-in audit Agent 3 F-C4 cluster + UTC §2.4 mandate. Attribution preserves academic integrity (derived vs original) + provides traceability cho fact-check.
+
+**Applies to:** Mọi figure caption `**Hình X.Y.**` trong chapter body. Affects C7 Diagram+figure rendering.
+
+---
+
+### Cross-rule interactions
+
+| Rule | Interacts với | Note |
+|---|---|---|
+| S1 single-child heading | C1 Format | Heading structure validation |
+| S2 no chapter intro/summary | C2 Content + C5 Project-internal scrub | Drop content khỏi chapter intro/summary |
+| S3 VN-narrative-strict | `dev-readable-doc-language.md` §2 row "Thesis report" | Project-wide rule extension cho thesis scope |
+| S4 citation evidence | C3 Bibliography + C8 Examiner readiness | Numeric claims need cite |
+| S5 measurement methodology | C8 Examiner readiness | Reproducibility evidence |
+| S6 cross-ref integrity | C1 Format + C6 Draft-marker scrub | Anchor validation pre-ship |
+| S7 acronym first-use | C4 Academic tone + danh mục từ viết tắt | Parenthetical define, not glossary substitute |
+| S8 figure source attribution | C7 Diagram + UTC §2.4 | Author-original vs derived mandatory marker |
+
+---
+
+### Self-test (worked example — apply 8 rules retroactively to outside-in 82 findings)
+
+Map mỗi rule với outside-in finding cluster:
+
+| Rule | Finding cluster covered | Sample finding | Counterfactual với rule |
+|---|---|---|---|
+| **S1** | F-B1-01, user item 4 | thesis-v1 §2.1.1 single child | Reviewer catch at write time, merge content lên §2.1 |
+| **S2** | User item 13, P3-03 (committee chất vấn intro), P3-07 (Ch.3 figure-to-page ratio) | §4.0 Giới thiệu chương + §Tóm tắt chương 4 | Drop sections; content folded into §4.1 + KẾT LUẬN |
+| **S3** | User item 14, P1-04 (OWASP English block), P3-09 (English prompt block), F-C6-01/02 | Listing pattern Ch.2 + English headings | Rewrite uyển chuyển, headings 100% VN |
+| **S4** | F-A1-01..06 (Ch.1 §1.3 stats unverified), P1-03/05/10 (vendor scale claims), F-A3-01 | "BeeClass hàng trăm trung tâm" without cite | Cite vendor URL + truy cập date |
+| **S5** | P2-01/02/09 (uptime/latency/Lighthouse measurement methodology), F-B4-01/02 | "92/100 Lighthouse" single measurement | Add tool/N/date/env block |
+| **S6** | P2-08/13/16 (broken cross-refs), F-B2-01 (§2.3.6/7 swap), F-C5-02..05 (Ch.3 §3.4/§3.5 anchors broken) | Ch.4 cite "Chương 3 §3.4" but no §3.4 exists | Pre-ship anchor verify script catches |
+| **S7** | F-C2-01..04 (acronym defined late) | GVCN first @ §2.1.1 line 42, defined @ §2.6.3 line 769 | Define at first use |
+| **S8** | F-C4-01/02 (Ch.2 + Ch.3 figures missing attribution) | Hình 2.1-2.8 + Hình 3.1-3.8 no `*Nguồn:*` | Add `*Nguồn: tác giả tự xây dựng*` |
+
+**Coverage analysis:**
+- 8 rules cover ~37 P0 findings (out of 28 P0 outside-in + 14 user — combined ~42 P0)
+- Remaining P0 findings (Bucket A B1-01/02/03 structural pages + Ch.4 §4.2/4.4/4.5 user items + math errors) = content fixes scope Wave 102.7.1+, NOT rule scope
+- 8 rules cover ~30 P1 findings via cluster effect (S1/S2 trigger structural simplification, S3 triggers narrative rewrite, S4-S7 trigger systematic content fixes)
+
+**Verdict:** 8 rules fire correctly trên originating outside-in audit findings. Self-test PASS ✅
+
+---
+
+### Enforcement (per `rule-change-process.md` §6.5 Enforcement Parity)
+
+- **Reviewer-checklist extended §6.1:** add 8 sub-bullets verifying S1-S8 compliance per chapter MD pre-ship
+- **CI detector deferred** ≥7 ngày per `incident-to-rule-pipeline.md` premature-rule guard (heuristic regex FP risk high — Vietnamese narrative parsing requires NLP)
+- **Memory auto-load deferred** — `feedback_thesis_content_standard_v1_1.md` could remind tại thesis editing session start; defer until 2nd recurrence
+- **Wave 102.7.1+ content fixes** = paired enforcement (rules ship Wave 102.7.0 + content sweep apply rules retroactively Wave 102.7.1+)
+
+---
+
 ## 9. Log
 
+- **2026-05-20 (v1.1.0):** MINOR — Wave 102.7.0 META extension shipping 8 new rules in §10: 3 user rules (S1 single-child heading ban + S2 cấm chapter intro/summary + S3 VN-narrative-strict) + 5 outside-in META rules (S4 citation evidence mandate + S5 measurement methodology mandate + S6 cross-reference integrity + S7 acronym defined at first use + S8 figure source attribution). Triggered by 2026-05-20 outside-in audit 3-agent (persona simulation + UTC benchmark + failure-mode matrix = 82 NEW findings beyond 14 user items Wave 102.5 baseline). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user direction 2026-05-20 lock META scope post outside-in audit findings consolidation) → Classify ✓ (3 user rules previously implicit/uncovered; 5 outside-in META covering acronym/citation/measurement/cross-ref/figure clusters previously implicit in C-rubric but not separately rule-enforced) → Rule+Enforce ✓ (this §10 extension + reviewer-checklist §6.1 extension referenced + worked self-test 82-finding coverage analysis + rules-index.csv version bump 1.0.2 → 1.1.0 + paired same-PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§10 self-test maps 8 rules to outside-in finding clusters — ~37 P0 + ~30 P1 covered; coverage analysis verified rules fire correctly on originating findings) → Retro Log ✓ (this entry). Wave 102.7.1+ content fix waves = paired enforcement (rules ship Wave 102.7.0 + content sweep apply rules retroactively). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying 8 META rules previously implicit; no constraint loosening; existing thesis-v1.docx grandfathered until Wave 102.7.1+ apply rules prospectively). CI detector + memory auto-load deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 ngày — reviewer-checklist + worked self-test §10 sufficient cho v1.1.0.
 - **2026-05-19 (v1.0.2):** PATCH — Wave 102.2 user-flagged extension: "thêm rule để không có icon hoặc ký tự không thể gõ bình thường trong báo cáo" + "vẫn còn những icon như ✅" + "rất nhiều chỗ sử dụng font chữ khác Times New Roman để nhấn mạnh như instance_id, nếu cần thiết thì viết in hoa, không được đổi font chữ". §3 Banned patterns extended với 4 NEW rows codifying: (a) **No-icon/special-char principle** — banned ✅/✗/❌/⚠️/🎉/🚀/📅/🆘/🔴/🟢/🟡/🟠/▪️/◆/■/▲ + arrow chars trong body (committee in giấy không render emoji); character set allowed = Vietnamese alphabet + Latin + chữ số + standard punctuation. (b) **No-font-swap principle** — KHÔNG đổi font inline cho code/equations; UTC §2.3 strict TNR 13pt mọi đoạn văn body; emphasis dùng *italic*/**bold**/UPPERCASE/"ngoặc kép" thay vì font swap. Affects C1 + C4 categories. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive banned pattern documentation; no existing constraint loosened; existing chapter MDs với 54 icon hits + 341 inline code refs grandfathered với Wave 102.2 fix PR sweep mandate; rule applies prospectively).
 - **2026-05-19 (v1.0.1):** PATCH — Wave 102.1 user-flagged extension: "thêm rule: không đề cập đến các tài liệu nằm trong documents để tham khảo => docx thesis là 1 tài liệu độc lập được báo cáo trước hội đồng, Tài liệu tham khảo chỉ lấy từ các tài liệu công khai uy tín". §3 Banned patterns extended với 2 NEW rows codifying **Standalone-document principle**: (1) KHÔNG reference internal repo `documents/**` paths trong body narrative (committee không thấy được repo; thesis docx phải standalone); (2) Bibliography refs CHỈ từ sources công khai uy tín (peer-reviewed papers / standards ISO/IEEE/RFC / official vendor docs / regulator gov.vn) — KHÔNG cite `04-quality/audits/*.md` / chapter MD cross-refs / `03-planning/*.md` plans. Affects C5 Project-internal scrub category — extended sub-criteria coverage. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive banned pattern documentation; no existing constraint loosened; existing thesis-v1.docx body refs grandfathered with Wave 102.1 fix PR sweep mandate; rule applies prospectively).
 - **2026-05-19 (v1.0.0):** Rule created in response to user-flagged miss post Wave 102 GAP-688 closure: "tôi thấy ngôn từ sử dụng trong v1 này chưa phù hợp với khóa luận tốt nghiệp như: đối thủ?... + 7 issues khác" — rubric v1 (6 categories) gave 82/100 B- nhưng MISSED 7 substantial content-quality dimensions. Plus 43 additional findings từ persona simulation outside-in agent (`2026-05-19-thesis-v1-persona-simulation-outside-in.md` — GVHD 13 + GVPB 15 + Defense committee 15) — total 50 issues missed bởi rubric v1.
