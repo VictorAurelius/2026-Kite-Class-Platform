@@ -162,17 +162,9 @@ Snippet này thể hiện ba design pattern chính:
 
 ### 3.3.4 Trade-offs
 
-Lựa chọn thuật toán ký HS256 (HMAC-SHA256, symmetric secret) thay vì RS256 (RSA, asymmetric key pair) được biện luận bởi ba yếu tố:
+Lựa chọn HS256 (HMAC-SHA256, symmetric secret) thay vì RS256 (RSA, asymmetric key pair) được biện luận: (a) **cùng vùng tin cậy** — Gateway và downstream services cùng VPC AWS Singapore, chia sẻ secret HMAC chấp nhận được; RS256 phù hợp khi verifier là bên thứ ba độc lập với issuer; (b) **giảm phức tạp triển khai** — RS256 yêu cầu key management overhead (rotation, JWKS endpoint), HS256 với shared secret qua AWS Secrets Manager đáp ứng đủ yêu cầu bảo mật giai đoạn beta; (c) **lộ trình nâng cấp** — khi mở rộng multi-region hoặc tích hợp third-party OIDC federation, kế hoạch migrate RS256 với key rotation 90 ngày.
 
-(a) **Cùng vùng tin cậy (trust boundary)** — Gateway và downstream services nằm trong cùng cluster mạng nội bộ (cùng VPC AWS Singapore, không expose public). Khi mọi service đều thuộc cùng vùng tin cậy, việc chia sẻ secret HMAC chấp nhận được; RS256 chỉ thực sự cần thiết khi token được verify bởi bên thứ ba không chia sẻ trust với issuer.
-
-(b) **Giảm độ phức tạp triển khai trong giai đoạn beta** — RS256 yêu cầu key management (rotation policy, public key distribution endpoint, JWKS publication). Trong giai đoạn beta (tenant số lượng thấp, infrastructure simple), HS256 với shared secret qua AWS Secrets Manager đáp ứng đủ yêu cầu bảo mật mà không thêm overhead operations.
-
-(c) **Lộ trình nâng cấp RS256 cho giai đoạn GA** — Khi platform mở rộng sang scenario multi-region hoặc tích hợp third-party identity provider (OIDC federation), kế hoạch là migrate sang RS256 với key rotation 90 ngày. Decision này được document trong roadmap kiến trúc; HS256 hiện tại không phải technical debt mà là phù hợp với scale hiện tại.
-
-Trade-off chính là **flexibility (RS256) vs simplicity (HS256)**: HS256 yêu cầu mọi service verify token phải có access tới secret (single point of failure nếu secret leak); RS256 cho phép verify-only services chỉ cần public key. Quyết định ưu tiên simplicity được hỗ trợ bởi tài liệu chuẩn của Spring Security [30] và RFC 7519 §6 [29] khuyến nghị "use HS256 when symmetric trust is acceptable".
-
-Tham khảo: RFC 7519 §6.1 (JWS Compact Serialization) [29], Spring Security Reference §11.3 (OAuth 2.0 Resource Server) [30].
+Trade-off chính là **flexibility (RS256) vs simplicity (HS256)**. Quyết định ưu tiên simplicity được hỗ trợ bởi RFC 7519 §6 [29, tr.21]: "use HS256 when symmetric trust is acceptable". Tham khảo: RFC 7519 §6.1 [29], Spring Security Reference §11.3 [30].
 
 ---
 
@@ -256,17 +248,9 @@ Migration RLS được định nghĩa trong `V58__enable_rls_tenant_scoped_table
 
 ### 3.4.4 Trade-offs
 
-Quyết định sử dụng **PostgreSQL Row-Level Security (RLS)** thay vì chỉ dựa vào application-level isolation (Hibernate filter + ThreadLocal context) phản ánh nguyên lý **defense-in-depth** [31]:
+Quyết định sử dụng **PostgreSQL Row-Level Security (RLS)** thay vì chỉ application-level isolation (Hibernate filter + ThreadLocal context) phản ánh nguyên lý **defense-in-depth** [31]: (a) **database enforces ngay cả khi application có bug** — raw SQL thiếu `WHERE tenant_id`, test fixture quên set context, hoặc background job invoke repository ngoài request boundary đều có thể gây cross-tenant leak; với RLS, Postgres áp policy `USING (instance_id = current_setting('app.current_tenant_id')::uuid)` ở storage layer trả 0 rows thay vì rò rỉ; (b) **performance overhead chấp nhận được** — PostgreSQL Documentation [32, tr.158] khẳng định overhead RLS thường <5% với indexed column; benchmark nội bộ trên 100K rows cho thấy 2-3ms trung bình; (c) **GUC `set_config(..., is_local := true)`** — HikariCP reuse physical connections cross-request, session-scope `SET` sẽ leak tenant sang request kế tiếp; `is_local := true` tương đương `SET LOCAL` — GUC chỉ tồn tại trong transaction hiện tại, tự clear khi commit/rollback.
 
-(a) **Database enforces ngay cả khi application code có bug** — Trong kiến trúc chỉ application-level isolation, một dòng raw SQL (`@Query("SELECT * FROM students")` thiếu predicate `WHERE tenant_id`), một test fixture quên set context, hoặc một background job invoke repository ngoài request boundary đều có thể gây cross-tenant data leak. Với RLS, kể cả khi câu query không filter tenant, Postgres vẫn áp policy `USING (instance_id = current_setting('app.current_tenant_id')::uuid)` ở storage layer — query trả 0 rows thay vì rò rỉ.
-
-(b) **Chi phí ngầm cho mỗi query** — RLS không miễn phí: mỗi query có thêm predicate check tại executor stage. PostgreSQL documentation [32] cho biết overhead thực tế thường <5% với simple equality predicate trên indexed column (`instance_id` được index trong V58 migration). Benchmark nội bộ trên dataset 100K rows cho thấy overhead trung bình 2-3ms trên query trả 50 rows — chấp nhận được so với lợi ích bảo mật.
-
-(c) **GUC `set_config(..., is_local := true)` thay vì `SET` thông thường** — Connection pool (HikariCP) reuse physical connections cross-request. Nếu dùng `SET app.current_tenant_id = 'A'` (session-scope), connection bị bind tenant A vĩnh viễn cho đến khi explicit reset; request tiếp theo dùng connection đó (cho tenant B) sẽ leak. `is_local := true` tương đương `SET LOCAL` — GUC chỉ tồn tại trong transaction hiện tại; commit/rollback tự clear.
-
-Trade-off chính: **performance overhead (~2-3ms/query)** đổi lấy **multi-layer defense + audit-grade isolation guarantee**. Đối với education SaaS lưu trữ dữ liệu học sinh dưới tuổi vị thành niên (compliance PDPL 2023 + Luật Trẻ em 2016), trade-off này được coi là bắt buộc về mặt tuân thủ pháp luật, không phải tùy chọn về mặt kỹ thuật.
-
-Tham khảo: PostgreSQL Documentation §5.8 Row Security Policies [32], OWASP Defense-in-Depth principle [31].
+Trade-off chính: **performance overhead (~2-3ms/query)** đổi lấy **multi-layer defense + audit-grade isolation guarantee**. Đối với education SaaS lưu trữ dữ liệu học sinh dưới tuổi vị thành niên (compliance PDPL 2023 + Luật Trẻ em 2016), trade-off này bắt buộc về mặt tuân thủ pháp luật. Tham khảo: PostgreSQL Documentation §5.8 [32], OWASP Defense-in-Depth principle [31].
 
 ---
 
@@ -365,17 +349,9 @@ Dispatcher đi kèm với `SubscriptionEventEmitter` fast-path — happy-path pu
 
 ### 3.5.4 Trade-offs
 
-Lựa chọn **Outbox Pattern** thay vì **direct publish to message broker** (RabbitMQ trực tiếp trong service method) được biện luận:
+Lựa chọn **Outbox Pattern** thay vì direct publish to message broker được biện luận: (a) **transactional consistency** — direct publish có race condition kinh điển: DB commit thành công nhưng broker publish fail (hoặc ngược lại) → state divergence; outbox đảm bảo event row lưu trong cùng transaction với business state, nếu rollback thì event cũng rollback; (b) **race condition với `FOR UPDATE SKIP LOCKED`** — khi horizontal scale, nhiều instance dispatcher có thể publish trùng; pattern `SELECT ... FOR UPDATE SKIP LOCKED` (PostgreSQL 9.5+ [32]) đảm bảo mỗi event được publish bởi chính xác một instance; (c) **at-least-once delivery** — nếu dispatcher publish thành công nhưng crash trước khi `setDispatchedAt(...)` commit, cycle tiếp theo sẽ publish lại; consumers phải idempotent. RabbitMQ AMQP 0-9-1 [34, tr.47] xác định "exactly-once delivery is not natively supported"; at-least-once + idempotent consumer là industry standard cho event-driven systems.
 
-(a) **Transactional consistency** — Direct publish có race condition kinh điển: DB transaction commit thành công nhưng broker publish fail (hoặc ngược lại) thì state divergence. Outbox đảm bảo event row được lưu **trong cùng transaction** với business state (cùng `BEGIN ... COMMIT` boundary); nếu transaction rollback, event row cũng rollback theo. Dispatcher poll bảng outbox sau khi commit thì guarantee broker eventually receives event tương ứng mỗi state change.
-
-(b) **Xử lý race condition với `FOR UPDATE SKIP LOCKED`** — Khi scale ra nhiều instance dispatcher (horizontal scaling), nhiều instance cùng poll bảng outbox có thể đọc cùng row thì publish trùng. Pattern `SELECT ... FOR UPDATE SKIP LOCKED` (PostgreSQL 9.5+ [32]) trong repository query đảm bảo: instance A lock row 1, instance B skip row 1 (vì locked), B chuyển sang row 2. Mỗi event được publish bởi chính xác một instance. Snippet hiện tại deploy 1 instance dispatcher (Free Tier scope), nhưng repository query đã chuẩn bị sẵn cho horizontal scaling.
-
-(c) **At-least-once vs exactly-once delivery** — Outbox guarantee at-least-once (event sẽ được publish ít nhất một lần) nhưng không đảm bảo exactly-once: nếu dispatcher publish thành công sang RMQ nhưng crash trước khi `setDispatchedAt(...)` commit, cycle tiếp theo sẽ publish lại. Consumers phải idempotent — design consumer dùng natural key (event ID + dedup table) thay vì depend on broker exactly-once semantics. RabbitMQ AMQP 0-9-1 [34] không support native exactly-once; pattern này (at-least-once + idempotent consumer) là industry standard cho event-driven systems.
-
-Trade-off chính: **complexity overhead (extra outbox table + dispatcher process + retry logic)** đổi lấy **guaranteed eventual consistency**. Đối với business event critical như subscription state change hoặc payment confirmation, complexity được biện minh; cho event low-importance như UI analytics, direct publish có thể acceptable.
-
-Tham khảo: Microservices.io — Transactional Outbox Pattern [33], PostgreSQL Documentation §SELECT ... FOR UPDATE SKIP LOCKED [32], AMQP 0-9-1 Specification §4 [34].
+Trade-off chính: **complexity overhead (extra outbox table + dispatcher process + retry logic)** đổi lấy **guaranteed eventual consistency**. Đối với business event critical như subscription state change hoặc payment confirmation, complexity được biện minh; cho event low-importance như UI analytics, direct publish có thể acceptable. Tham khảo: Microservices.io — Transactional Outbox Pattern [33], PostgreSQL §SELECT ... FOR UPDATE SKIP LOCKED [32], AMQP 0-9-1 §4 [34].
 
 ---
 
@@ -469,17 +445,9 @@ Anti-pattern tránh được: **God Service / Fat Controller**. Mọi business l
 
 ### 3.6.4 Trade-offs
 
-Quyết định triển khai **3-tier REST API với phân tách public + authenticated + admin** thay vì single-tier API hoặc GraphQL:
+Quyết định triển khai **3-tier REST API với phân tách public + authenticated + admin** thay vì single-tier API hoặc GraphQL: (a) **3-tier separation phù hợp 3 audience khác nhau** — public endpoint (rate-limit + honeypot + Cloudflare Turnstile), authenticated endpoint (JWT tenant scope), admin endpoint (RBAC + `@PreAuthorize` + audit log); mỗi tier có security model riêng; (b) **REST thay vì GraphQL** — GraphQL [35] flexible query nhưng kéo theo phức tạp security (query depth limit, N+1 problem) và caching (no native HTTP caching); REST với explicit endpoint dễ document (OpenAPI 3.1 [36]), dễ rate-limit, dễ cache, phù hợp team size nhỏ; client phải gọi nhiều endpoint cho composite views — chấp nhận được vì React Server Components aggregate calls tại server; (c) **`@PreAuthorize` declarative thay vì manual permission check** — manual check duplicate code + dễ quên; KiteHub giữ SpEL expressions đơn giản (chỉ role check), đẩy complex rules xuống Service layer.
 
-(a) **3-tier separation phù hợp với 3 audience khác nhau** — Public endpoint (`/api/v1/auth/request-beta-access`) đáp ứng visitor chưa đăng nhập, yêu cầu rate-limit + honeypot anti-bot. Authenticated endpoint (chưa hiển thị trong snippet, vd `/api/v1/auth/me`) đáp ứng user đã login, dùng JWT để authorize. Admin endpoint (`/api/v1/admin/beta-requests/*`) chỉ cho coordinator có role `PLATFORM_ADMIN`, dùng `@PreAuthorize` guard. Mỗi tier có security model riêng biệt: public dùng IP-based rate limit + Cloudflare Turnstile, authenticated dùng JWT tenant scope, admin dùng role-based access control (RBAC) + audit log.
-
-(b) **REST thay vì GraphQL** — GraphQL [35] có ưu điểm flexible query (client tự chỉ định field cần lấy), nhưng kéo theo phức tạp về security (query depth limit, complexity analysis, N+1 problem) và caching (no native HTTP caching). REST với explicit endpoint per use-case dễ document (OpenAPI 3.1 [36]), dễ rate-limit per endpoint, dễ cache (HTTP cache headers), và phù hợp với team size nhỏ. Trade-off: client phải gọi nhiều endpoint hơn cho composite views — chấp nhận được vì frontend dùng React Server Components có thể aggregate calls tại server.
-
-(c) **`@PreAuthorize` SpEL expressions thay vì manual permission check** — Approach manual (`if (user.getRole() != PLATFORM_ADMIN) throw new ForbiddenException()` ở đầu method) bị duplicate code + dễ quên. Spring Security `@PreAuthorize` declarative — authorization rule visible ngay tại method signature, AOP enforce trước khi method body chạy, integrates với Spring Security audit. Trade-off: SpEL expression complex sẽ khó debug (vd `@PreAuthorize("#tenantId == authentication.principal.tenantId")` ); pattern dùng trong KiteHub giữ expressions đơn giản (chỉ role check) và đẩy complex rules xuống Service layer.
-
-Trade-off chính: **rigidity (3-tier separation, REST verbose)** đổi lấy **clarity + security boundary explicit + audit-friendly**. Đối với SaaS multi-tenant cần audit compliance (PDPL Art 11 admin action log), explicit boundary được ưu tiên hơn flexibility.
-
-Tham khảo: Domain-Driven Design — Evans [19], REST API Design Best Practices — Roy Fielding [37], GraphQL Specification [35], OpenAPI 3.1 [36].
+Trade-off chính: **rigidity (3-tier separation, REST verbose)** đổi lấy **clarity + security boundary explicit + audit-friendly**. Đối với SaaS multi-tenant cần audit compliance (PDPL Art 11 admin action log), explicit boundary được ưu tiên hơn flexibility. Tham khảo: Domain-Driven Design — Evans [19], REST API Design Best Practices — Roy Fielding [37], GraphQL Specification [35], OpenAPI 3.1 [36].
 
 ---
 
@@ -551,17 +519,9 @@ Khi user submit form, `BetaRequestForm` (client component) gọi `POST /api/v1/a
 
 ### 3.7.4 Trade-offs
 
-Lựa chọn **Next.js App Router** thay vì **Pages Router** (Next.js convention cũ) hoặc **client-side rendering only** (CRA, Vite + React):
+Lựa chọn **Next.js App Router** thay vì Pages Router hoặc client-side rendering only (CRA / Vite + React): (a) **App Router enable server components by default** — landing page như `request-beta-access` không ship React runtime về client, benchmark cho thấy chỉ ship ~12KB JavaScript thay vì ~85KB nếu dùng Pages Router với client-side rendering; (b) **Pages Router trade-off** — đơn giản hơn nhưng Next.js 14+ document App Router là direction primary, Pages Router maintenance mode; App Router cho phép granular client-server split (`'use client'` chỉ ở component cần interactivity); (c) **CRA + SPA trade-off** — đơn giản về deployment nhưng SEO yếu (cần SSR/SSG bổ sung), TTFB chậm, bundle size lớn; Next.js tích hợp SSR + SSG + ISR phù hợp education SaaS có cả landing pages và authenticated dashboard.
 
-(a) **App Router enable server components by default** — Server components render tại server, không ship JavaScript về client. Đối với landing page như `request-beta-access` chứa chủ yếu static markup (logo, heading, paragraph, link), việc không phải ship React runtime + component code về client giảm bundle size đáng kể (benchmark cho thấy page này chỉ ship ~12KB JavaScript thay vì ~85KB nếu dùng Pages Router với client-side rendering). Lợi ích: First Contentful Paint nhanh hơn, SEO bot index dễ hơn, low-end mobile device tải nhẹ hơn.
-
-(b) **Trade-off với Pages Router** — Pages Router (`pages/` directory) đơn giản hơn, learning curve thấp, ecosystem mature (`getServerSideProps` / `getStaticProps` API ổn định). App Router (`app/` directory) phức tạp hơn với khái niệm mới (server vs client components, server actions, streaming) và một số library third-party chưa support đầy đủ. Quyết định chọn App Router được biện luận: (i) Next.js 14+ document App Router là direction primary, Pages Router maintenance mode; (ii) team đã quen với React Server Components qua việc benchmark; (iii) khả năng granular client-server split (`'use client'` chỉ ở component nhỏ) phù hợp với architecture composition đã chọn.
-
-(c) **Trade-off với client-side rendering only (CRA + REST API)** — CRA hoặc Vite + React SPA đơn giản hơn về deployment (chỉ cần static file host), nhưng phải trả giá về SEO (SPA cần SSR/SSG bổ sung cho indexable content), TTFB chậm (client phải fetch JS + execute + fetch data), và bundle size lớn (toàn bộ application code ship một lần). Next.js cung cấp tooling tích hợp cho cả SSR (server-rendered HTML), SSG (statically pre-rendered pages), và ISR (incremental static regeneration) — phù hợp với education SaaS có cả landing pages (cần SEO) và authenticated dashboard (cần interactivity). Trade-off: build pipeline phức tạp hơn, deployment yêu cầu Node.js runtime thay vì pure static host.
-
-Trade-off chính: **complexity (server vs client component model, Next.js opinionated architecture)** đổi lấy **performance + SEO + developer ergonomics**. Đối với education SaaS multi-tenant cần landing pages SEO-friendly + authenticated dashboard interactive, Next.js App Router cân bằng tốt.
-
-Tham khảo: Next.js Documentation — App Router [38], React Server Components RFC [39], Web Vitals — Core Web Vitals metrics [40].
+Trade-off chính: **complexity (server vs client component model, Next.js opinionated architecture)** đổi lấy **performance + SEO + developer ergonomics**. Đối với education SaaS multi-tenant, Next.js App Router cân bằng tốt. Tham khảo: Next.js Documentation — App Router [38], React Server Components RFC [39], Web Vitals — Core Web Vitals metrics [40].
 
 ---
 
