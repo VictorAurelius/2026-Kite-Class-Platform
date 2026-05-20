@@ -1,0 +1,33 @@
+{
+  "pr": 1614,
+  "title": "feat(wave-102.2): thesis V1 \u2014 8 user fixes + Mermaid PNG + C\u00f4ng ngh\u1ec7 section (82.5\u2192~90 A-)",
+  "branch": "wave/102.2-thesis-v1-icons-fonts-khao-sat",
+  "created_at": null,
+  "merged_at": "2026-05-19T19:19:39Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-19T19:19:45.607283",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 13,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/3",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-67867"
+  }
+}
