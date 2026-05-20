@@ -21,7 +21,7 @@ Chương này trình bày kết quả triển khai KiteHub Platform trên môi t
 
 ### 4.1.1 Tổng quan kiến trúc
 
-KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast-1`) theo quyết định kiến trúc được trình bày theo phương pháp Tyree & Akerman [26] (gồm context + decision + consequences) và Microsoft ADR template [27]. Lý do chọn AWS Singapore:
+KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast-1`) theo quyết định kiến trúc được trình bày theo phương pháp Tyree & Akerman [26, tr.19] (gồm context + decision + consequences) và Microsoft ADR template [27, tr.7]. Lý do chọn AWS Singapore:
 
 1. **Tốc độ triển khai và độ ổn định tài khoản** — quá trình đăng ký Oracle Cloud Always Free thường gặp tỷ lệ reject cao đối với người dùng tại Việt Nam, ảnh hưởng đến tiến độ triển khai trong khung thời gian khóa luận có hạn.
 2. **Tính trưởng thành của hệ sinh thái** — AWS cung cấp ECR + Secrets Manager + SES + ALB + CloudFront tích hợp sẵn; Oracle Always Free thiếu managed Redis và managed RabbitMQ.
@@ -86,7 +86,7 @@ flowchart TB
 
 ### 4.1.4 CI/CD Pipeline
 
-CI/CD được triển khai qua GitHub Actions với pattern OIDC + workflow_dispatch + confirm-input, tham chiếu nguyên tắc Continuous Delivery hiện đại [42] — kết hợp build artifact bất biến (Docker image tag theo SHA commit) và deployment gate có cognitive checkpoint (workflow input `confirm=APPLY`) thay cho cơ chế auto-deploy.
+CI/CD được triển khai qua GitHub Actions với pattern OIDC + workflow_dispatch + confirm-input, tham chiếu nguyên tắc Continuous Delivery hiện đại [42, tr.115] — kết hợp build artifact bất biến (Docker image tag theo SHA commit) và deployment gate có cognitive checkpoint (workflow input `confirm=APPLY`) thay cho cơ chế auto-deploy.
 
 **Hình 4.2.** Sequence diagram CI/CD pipeline từ git push tới production deploy (rút gọn các bước chính).
 
@@ -112,11 +112,7 @@ sequenceDiagram
     GH-->>Dev: Deploy success notification
 ```
 
-Bốn lựa chọn thiết kế nổi bật:
-- **Ephemeral OIDC role** — không hardcode AWS access key trong GitHub Secrets; mỗi workflow run assume role mới với token 1 giờ.
-- **Narrow IAM scope** — role `kitehub-deploy-role` chỉ có permission `ecr:Push`, `ssm:SendCommand` tới EC2 tag `Project=Kite`; không có quyền `ec2:Terminate` hay scope rộng hơn.
-- **Confirm-input gate** — workflow yêu cầu nhập `confirm=APPLY` verbatim để trigger; phòng ngừa deploy nhầm.
-- **Smoke admin-login post-deploy** — sau deploy, smoke test gọi `POST /api/auth/login` với seeded admin credential, kỳ vọng 200 + JWT; bắt được lỗi class binding Postgres-specific mà unit test với H2 hoặc Mockito không phát hiện được.
+Bốn lựa chọn thiết kế nổi bật của pipeline bao gồm: ephemeral OIDC role (mỗi workflow run assume role mới với token 1 giờ, không hardcode AWS access key trong GitHub Secrets); narrow IAM scope (role `kitehub-deploy-role` chỉ có permission `ecr:Push` và `ssm:SendCommand` tới EC2 tag `Project=Kite`, không có quyền `ec2:Terminate` hay scope rộng hơn); confirm-input gate (workflow yêu cầu nhập `confirm=APPLY` verbatim để trigger, phòng ngừa deploy nhầm); và smoke admin-login post-deploy (sau deploy, smoke test gọi `POST /api/auth/login` với seeded admin credential, kỳ vọng 200 + JWT — bắt được lỗi class binding Postgres-specific mà unit test với H2 hoặc Mockito không phát hiện được).
 
 ### 4.1.5 Ước tính chi phí
 
@@ -142,14 +138,7 @@ Tính đến thời điểm khóa luận: 71 resources terraform đã apply (Clo
 
 ### 4.2.1 Persona target
 
-Giai đoạn beta mở cho hai persona chính (chi tiết tại Chương 1 Phần 3):
-
-- **P1 — Solo Teacher** (giáo viên độc lập): giáo viên dạy thêm tại nhà, quy mô 1-3 lớp và 10-30 học sinh, vận hành lớp đơn giản.
-- **P2 — Center Owner** (chủ trung tâm nhỏ): chủ trung tâm dạy thêm (Anh ngữ, Toán, Lập trình, ...) quy mô 50-300 học sinh, 3-10 lớp, cần quản lý đầy đủ học sinh, giáo viên và thu chi.
-
-Ví dụ minh họa (tên giả định):
-- **P1:** chị Lan (tên giả định), giáo viên IELTS, dạy 2 lớp tại nhà và 1 lớp online.
-- **P2:** chị Hằng (tên giả định) — chủ Trung tâm Anh ngữ Sky Education (trung tâm hypothetical), 5 lớp Anh ngữ thiếu nhi và 2 lớp IELTS, doanh thu ~150.000.000đ/tháng.
+Giai đoạn beta mở cho hai persona chính (chi tiết tại Chương 1 Phần 3). Persona P1 — Solo Teacher (giáo viên độc lập) đại diện giáo viên dạy thêm tại nhà với quy mô 1-3 lớp và 10-30 học sinh, vận hành lớp đơn giản, minh họa qua chị Lan (tên giả định) là giáo viên IELTS dạy 2 lớp tại nhà và 1 lớp online. Persona P2 — Center Owner (chủ trung tâm nhỏ) đại diện chủ trung tâm dạy thêm các lĩnh vực Anh ngữ, Toán, Lập trình với quy mô 50-300 học sinh, 3-10 lớp, cần quản lý đầy đủ học sinh, giáo viên và thu chi; minh họa qua chị Hằng (tên giả định) — chủ Trung tâm Anh ngữ Sky Education (trung tâm hypothetical), vận hành 5 lớp Anh ngữ thiếu nhi và 2 lớp IELTS, doanh thu khoảng 150.000.000đ/tháng.
 
 ### 4.2.2 Onboarding flow end-to-end
 
@@ -210,11 +199,7 @@ Test data tuân thủ chuẩn cross-bucket VN-localization (định dạng tiề
 
 ### 4.2.5 First-login dashboard
 
-Sau khi đăng nhập lần đầu, user persona Center Owner thấy dashboard với:
-
-- **KPI cards** — Doanh thu tháng (mặc định `0đ` cho tenant mới), số học sinh, số lớp.
-- **Onboarding checklist** — 5 bước: tạo lớp đầu tiên, thêm học sinh, tạo lịch học, cấu hình thanh toán, mời giáo viên (mỗi bước có icon và link tới wizard).
-- **Sample data toggle** — Cho phép load dữ liệu mẫu (1 chủ trung tâm giả định + 4 học sinh + 1 lớp Anh ngữ 5A1) để user thử các chức năng trước khi nhập dữ liệu thật.
+Sau khi đăng nhập lần đầu, user persona Center Owner thấy dashboard với ba thành phần chính: KPI cards (doanh thu tháng — mặc định `0đ` cho tenant mới — số học sinh và số lớp); onboarding checklist 5 bước với icon và link tới wizard tương ứng (tạo lớp đầu tiên, thêm học sinh, tạo lịch học, cấu hình thanh toán, mời giáo viên); và sample data toggle cho phép load dữ liệu mẫu (1 chủ trung tâm giả định + 4 học sinh + 1 lớp Anh ngữ 5A1) để user thử các chức năng trước khi nhập dữ liệu thật.
 
 ---
 
@@ -222,7 +207,7 @@ Sau khi đăng nhập lần đầu, user persona Center Owner thấy dashboard v
 
 ### 4.3.1 Định nghĩa KPI
 
-KiteHub giai đoạn beta track sáu KPI chính, chia ba category. Category 3 (System Health) tham khảo framework DORA do Forsgren và cộng sự [41] đề xuất — gồm bốn metric đo lường hiệu năng vận hành phần mềm (deployment frequency, lead time for changes, mean time to recovery, change failure rate) — được dùng làm baseline so sánh production-readiness của hệ thống với chuẩn ngành.
+KiteHub giai đoạn beta track sáu KPI chính, chia ba category. Category 3 (System Health) tham khảo framework DORA do Forsgren và cộng sự [41, tr.13] đề xuất — gồm bốn metric đo lường hiệu năng vận hành phần mềm (deployment frequency, lead time for changes, mean time to recovery, change failure rate) — được dùng làm baseline so sánh production-readiness của hệ thống với chuẩn ngành.
 
 **Category 1: Acquisition + Conversion**
 
@@ -281,11 +266,7 @@ KPI mapping tới data source:
 
 ### 4.3.3 Dashboard structure
 
-Ba dashboard chính được thiết kế (structure đã document, hiển thị số liệu cụ thể sẽ hoàn thiện sau khi cohort beta tích lũy đủ dữ liệu):
-
-- **Dashboard Business KPI (Grafana):** card Beta Requests / Active Tenants / Doanh thu; chart conversion funnel Visitor thì Request thì Active; chart 12-month retention cohort.
-- **Dashboard System Health (CloudWatch):** CPU + Memory mỗi EC2; RDS connections + free storage; ALB request count + 5xx rate; SES bounce + complaint rate.
-- **Dashboard Application Metrics (Grafana):** HTTP latency histogram P50/P95/P99; JVM memory + GC count; outbox dispatcher lag; active sessions.
+Ba dashboard chính được thiết kế (structure đã document, hiển thị số liệu cụ thể sẽ hoàn thiện sau khi cohort beta tích lũy đủ dữ liệu). Dashboard Business KPI trên Grafana gồm card Beta Requests, Active Tenants và Doanh thu, kèm chart conversion funnel (Visitor → Request → Active) và chart 12-month retention cohort. Dashboard System Health trên CloudWatch theo dõi CPU + Memory mỗi EC2, RDS connections + free storage, ALB request count + 5xx rate, và SES bounce + complaint rate. Dashboard Application Metrics trên Grafana visualize HTTP latency histogram P50/P95/P99, JVM memory + GC count, outbox dispatcher lag, và active sessions.
 
 ### 4.3.4 Kết quả đo giai đoạn beta (sơ bộ)
 
@@ -322,23 +303,11 @@ Mục tiêu beta của khóa luận: ≥4 tenant ký thử nghiệm trước c�
 | P2 — Center Owner | 2-3 | Persona chính — workload trung bình 5-10 lớp, 100-300 học sinh |
 | **Tổng** | **≥4** | Đủ data point cho cohort analysis + qualitative interview |
 
-**Kênh tiếp cận tenant:**
-
-- **Outreach trực tiếp** — tiếp cận 10-15 trung tâm dạy thêm quen biết tại TP.HCM và Hà Nội qua mạng lưới giáo viên.
-- **Community post** — đăng bài Facebook group "Chủ trung tâm giáo dục Việt Nam" và "Giáo viên dạy thêm online" với link đăng ký beta.
+Kênh tiếp cận tenant gồm hai hướng song song: outreach trực tiếp tới 10-15 trung tâm dạy thêm quen biết tại TP.HCM và Hà Nội qua mạng lưới giáo viên; và community post trên các Facebook group "Chủ trung tâm giáo dục Việt Nam" và "Giáo viên dạy thêm online" kèm link đăng ký beta.
 
 ### 4.4.2 Phạm vi feature ưu tiên giai đoạn beta
 
-**Feature core đã ship trong giai đoạn beta:**
-
-- Kiến trúc multi-tenant với Row-Level Security isolation (Chương 3 §3.4).
-- Cơ chế beta access invite (4.2 ở trên).
-- KiteClass core: Students + Classes + Grades + Attendance + Payments (CRUD cơ bản).
-- AI Branding — tenant tự generate logo và theme color qua AI; image generation pipeline tham chiếu Stable Diffusion XL [38]; NSFW content moderation gate trước khi publish dùng image classifier Hugging Face [37].
-- Email transactional qua AWS SES (verify-email, beta-approval, password-reset, invoice).
-- Admin dashboard cho admin nền tảng review tenant và beta request.
-- Custom domain support (`{tenant-slug}.kitehub.me` subdomain).
-- Audit log mọi hành động của admin nền tảng (tuân thủ PDPL Art 11).
+Feature core đã ship trong giai đoạn beta bao gồm: kiến trúc multi-tenant với Row-Level Security isolation (Chương 3 §3.4); cơ chế beta access invite (mô tả tại 4.2 ở trên); KiteClass core với CRUD cơ bản cho Students, Classes, Grades, Attendance và Payments; AI Branding cho phép tenant tự generate logo và theme color (image generation pipeline tham chiếu Stable Diffusion XL [38], NSFW content moderation gate trước khi publish dùng image classifier Hugging Face [37]); email transactional qua AWS SES gồm verify-email, beta-approval, password-reset và invoice; admin dashboard cho admin nền tảng review tenant và beta request; custom domain support qua subdomain `{tenant-slug}.kitehub.me`; và audit log mọi hành động của admin nền tảng tuân thủ PDPL Art 11.
 
 **Feature defer khỏi giai đoạn beta (completion 0%, ưu tiên thấp do dependency pháp lý hoặc out-of-scope persona target):**
 
@@ -366,11 +335,7 @@ Mục tiêu beta của khóa luận: ≥4 tenant ký thử nghiệm trước c�
 
 ### 4.4.4 Bài học rút ra
 
-Một số bài học sơ bộ rút ra từ quá trình phát triển (sẽ được hoàn thiện trong Kết luận chương cuối sau khi cohort beta cung cấp feedback định lượng):
-
-1. **Outside-in audit pattern** (Chương 2 §2.5) chứng tỏ hiệu quả: persona simulation kết hợp benchmark và failure-mode matrix giúp catch design gap mà brainstorm inside-out thường bỏ sót.
-2. **Outbox Pattern kết hợp fast-path** (Chương 3 §3.5) cân bằng tốt latency và reliability — happy-path publish trực tiếp tới RMQ giúp giảm độ trễ; khi RMQ down, dispatcher catch-up khi recovery.
-3. **Lựa chọn AWS Singapore** đã được risk-managed theo lộ trình: trong scope beta ~10-20 tenant chưa kích hoạt ngưỡng pháp luật; lộ trình migrate sang VN cloud cần ~2-3 tuần và counsel approval trước GA.
+Ba bài học sơ bộ rút ra từ quá trình phát triển (sẽ được hoàn thiện trong Kết luận chương cuối sau khi cohort beta cung cấp feedback định lượng): outside-in audit pattern (Chương 2 §2.5) chứng tỏ hiệu quả khi persona simulation kết hợp benchmark và failure-mode matrix giúp catch design gap mà brainstorm inside-out thường bỏ sót; Outbox Pattern kết hợp fast-path (Chương 3 §3.5) cân bằng tốt latency và reliability nhờ happy-path publish trực tiếp tới RMQ và dispatcher catch-up khi recovery; và lựa chọn AWS Singapore đã được risk-managed theo lộ trình migrate sang VN cloud trước GA (cần ~2-3 tuần và counsel approval).
 
 ### 4.4.5 Định hướng tương lai
 
