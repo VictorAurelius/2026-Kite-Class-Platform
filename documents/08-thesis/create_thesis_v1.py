@@ -164,6 +164,30 @@ def remove_page_border(section):
         sectPr.remove(pgBorders)
 
 
+def add_horizontal_line(doc, width_pt=2, color='000000', space_after=Pt(6)):
+    """Thêm đường kẻ ngang (horizontal rule) dưới đoạn văn liền trước.
+
+    Per user direction 2026-05-20: bìa "KHOA CÔNG NGHỆ THÔNG TIN" không dùng
+    text-underline (font.underline=True) mà dùng đường kẻ ngang riêng biệt dưới
+    paragraph. Reference UTC convention: bottom border trên paragraph kế tiếp
+    rộng full content width (giữa lề trái + phải).
+    """
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = space_after
+    pPr = p._p.get_or_add_pPr()
+    pBdr = OxmlElement('w:pBdr')
+    bottom = OxmlElement('w:bottom')
+    bottom.set(qn('w:val'), 'single')
+    bottom.set(qn('w:sz'), str(width_pt * 4))  # eighths of a point
+    bottom.set(qn('w:space'), '1')
+    bottom.set(qn('w:color'), color)
+    pBdr.append(bottom)
+    pPr.append(pBdr)
+    return p
+
+
 def _set_pg_num_type(section, fmt, start=None):
     """Set <w:pgNumType w:fmt="lowerRoman" w:start="1"/> per Wave 102.5 G17."""
     sectPr = section._sectPr
@@ -835,14 +859,16 @@ def add_cover_page(doc):
     run = p.add_run("TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI")
     set_font(run, Pt(14), bold=True)
 
-    # KHOA CÔNG NGHỆ THÔNG TIN
+    # KHOA CÔNG NGHỆ THÔNG TIN — Wave 102.7.1 Bucket P Fix 1:
+    # Đổi text-underline (font.underline=True) sang đường kẻ ngang riêng biệt
+    # (bottom border) dưới đoạn văn — đúng convention UTC bìa cứng đồ án.
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(0)
     p.paragraph_format.space_after = Pt(0)
     run = p.add_run("KHOA CÔNG NGHỆ THÔNG TIN")
     set_font(run, Pt(14), bold=True)
-    run.font.underline = True
+    add_horizontal_line(doc, width_pt=2, color='000000', space_after=Pt(0))
 
     # Logo
     p = doc.add_paragraph()
@@ -892,17 +918,16 @@ def add_cover_page(doc):
     run = p.add_run(THESIS_INFO["title"])
     set_font(run, Pt(20), bold=True)
 
-    # Bảng thông tin 9-field per Wave 102.5 Bucket A Item 1a (BAO_CAO_THUC_TAP.pdf page 1 ref)
+    # Bảng thông tin 7-field — Wave 102.7.1 Bucket P Fix 2: bỏ "Chuyên ngành" + "Năm bảo vệ"
+    # (per user direction 2026-05-20). Năm bảo vệ vẫn hiển thị qua dòng "Hà Nội – 2026" cuối bìa.
     info_rows = [
         ("Sinh viên thực hiện", STUDENT_INFO["name"]),
         ("Mã số sinh viên", STUDENT_INFO["student_id"]),
         ("Lớp", STUDENT_INFO["class"]),
         ("Khóa", STUDENT_INFO["course"]),
         ("Ngành đào tạo", STUDENT_INFO["major"]),
-        ("Chuyên ngành", STUDENT_INFO["specialization"]),
         ("Hệ đào tạo", STUDENT_INFO["training_mode"]),
         ("Giảng viên hướng dẫn", THESIS_INFO["advisor"]),
-        ("Năm bảo vệ", THESIS_INFO["year"]),
     ]
     table = doc.add_table(rows=len(info_rows), cols=2)
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -954,14 +979,14 @@ def add_secondary_cover_page(doc):
     run = p.add_run("TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI")
     set_font(run, Pt(14), bold=True)
 
-    # KHOA CÔNG NGHỆ THÔNG TIN
+    # KHOA CÔNG NGHỆ THÔNG TIN — Wave 102.7.1 Bucket P Fix 1 (bìa phụ tương tự bìa chính)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(0)
     p.paragraph_format.space_after = Pt(0)
     run = p.add_run("KHOA CÔNG NGHỆ THÔNG TIN")
     set_font(run, Pt(14), bold=True)
-    run.font.underline = True
+    add_horizontal_line(doc, width_pt=2, color='000000', space_after=Pt(0))
 
     # Khoảng trắng tương đương logo position trên bìa chính
     # Logo bìa chính: space_before=Pt(36), height ~Cm(3.5)≈Pt(99), space_after=Pt(36)
@@ -1004,17 +1029,16 @@ def add_secondary_cover_page(doc):
     run = p.add_run(THESIS_INFO["title"])
     set_font(run, Pt(20), bold=True)
 
-    # Bảng 9-field Y HỆT bìa chính (per user direction 2026-05-20)
+    # Bảng 7-field Y HỆT bìa chính — Wave 102.7.1 Bucket P Fix 2:
+    # bỏ "Chuyên ngành" + "Năm bảo vệ" (per user direction 2026-05-20)
     info_rows = [
         ("Sinh viên thực hiện", STUDENT_INFO["name"]),
         ("Mã số sinh viên", STUDENT_INFO["student_id"]),
         ("Lớp", STUDENT_INFO["class"]),
         ("Khóa", STUDENT_INFO["course"]),
         ("Ngành đào tạo", STUDENT_INFO["major"]),
-        ("Chuyên ngành", STUDENT_INFO["specialization"]),
         ("Hệ đào tạo", STUDENT_INFO["training_mode"]),
         ("Giảng viên hướng dẫn", THESIS_INFO["advisor"]),
-        ("Năm bảo vệ", THESIS_INFO["year"]),
     ]
     table = doc.add_table(rows=len(info_rows), cols=2)
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -1049,6 +1073,259 @@ def add_secondary_cover_page(doc):
     doc.add_section(WD_SECTION.NEW_PAGE)
 
 
+# ============== NHẬN XÉT CỦA GIẢNG VIÊN HƯỚNG DẪN ==============
+def add_advisor_review_page(doc):
+    """Wave 102.7.1 Bucket P Fix 4 — B1-01 NHẬN XÉT CỦA GIẢNG VIÊN HƯỚNG DẪN.
+
+    Trang riêng đặt sau bìa phụ, trước LỜI CẢM ƠN. Để GVHD ký vật lý sau khi
+    đọc bản nháp khóa luận. Placeholder cho các trường: họ tên GVHD, ý kiến
+    đánh giá, điểm số, chữ ký, ngày.
+    """
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_after = Pt(24)
+    run = p.add_run("NHẬN XÉT CỦA GIẢNG VIÊN HƯỚNG DẪN")
+    set_font(run, Pt(16), bold=True)
+
+    # Khung ý kiến đánh giá (placeholder để GVHD viết tay sau khi đọc)
+    add_paragraph_text(doc,
+        f"Họ và tên giảng viên hướng dẫn: {THESIS_INFO['advisor']}")
+    add_paragraph_text(doc,
+        f"Đơn vị công tác: {THESIS_INFO['advisor_dept']}, {THESIS_INFO['advisor_university']}")
+    add_paragraph_text(doc,
+        f"Họ và tên sinh viên: {STUDENT_INFO['name']} — Mã số sinh viên: {STUDENT_INFO['student_id']}")
+    add_paragraph_text(doc,
+        f"Lớp: {STUDENT_INFO['class']} — Ngành đào tạo: {STUDENT_INFO['major']}")
+    add_paragraph_text(doc,
+        f"Tên đề tài: {THESIS_INFO['title']}")
+
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(12)
+    run = p.add_run("Ý kiến nhận xét của giảng viên hướng dẫn:")
+    set_font(run, Pt(13), bold=True)
+
+    # 6 dòng kẻ trống cho GVHD viết ý kiến
+    for _ in range(8):
+        p = doc.add_paragraph()
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after = Pt(0)
+        pPr = p._p.get_or_add_pPr()
+        pBdr = OxmlElement('w:pBdr')
+        bottom = OxmlElement('w:bottom')
+        bottom.set(qn('w:val'), 'dotted')
+        bottom.set(qn('w:sz'), '4')
+        bottom.set(qn('w:space'), '8')
+        bottom.set(qn('w:color'), '808080')
+        pBdr.append(bottom)
+        pPr.append(pBdr)
+        run = p.add_run(" ")
+        set_font(run, Pt(13))
+
+    # Đánh giá kết luận + điểm
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(18)
+    run = p.add_run("Kết luận: Sinh viên ☐ đủ điều kiện / ☐ chưa đủ điều kiện bảo vệ đồ án tốt nghiệp.")
+    set_font(run, Pt(13))
+
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(6)
+    run = p.add_run("Điểm chấm của giảng viên hướng dẫn: ……… / 10 điểm")
+    set_font(run, Pt(13))
+
+    # Chữ ký + ngày
+    for _ in range(2):
+        doc.add_paragraph()
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    run = p.add_run(f"Hà Nội, ngày … tháng … năm {THESIS_INFO['year']}")
+    set_font(run, Pt(13), italic=True)
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    run = p.add_run("Giảng viên hướng dẫn")
+    set_font(run, Pt(13), bold=True)
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    run = p.add_run("(Ký và ghi rõ họ tên)")
+    set_font(run, Pt(13), italic=True)
+
+    for _ in range(3):
+        doc.add_paragraph()
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    run = p.add_run(THESIS_INFO["advisor"])
+    set_font(run, Pt(13), bold=True)
+
+    doc.add_page_break()
+
+
+# ============== LỜI CAM ĐOAN ==============
+def add_oath_page(doc):
+    """Wave 102.7.1 Bucket P Fix 5 — B1-02 LỜI CAM ĐOAN.
+
+    Trang chuẩn academic VN cam đoan tính trung thực + độc lập của công trình
+    nghiên cứu. Đặt sau NHẬN XÉT GVHD, trước TÓM TẮT.
+    """
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_after = Pt(24)
+    run = p.add_run("LỜI CAM ĐOAN")
+    set_font(run, Pt(16), bold=True)
+
+    add_paragraph_text(doc,
+        "Em xin cam đoan rằng đồ án tốt nghiệp này là công trình nghiên cứu của riêng em, được "
+        "thực hiện dưới sự hướng dẫn khoa học của " + THESIS_INFO['advisor'] + ". Các số liệu, "
+        "kết quả và mã nguồn trình bày trong đồ án là trung thực, do em tự xây dựng và kiểm chứng "
+        "trên hệ thống triển khai thực tế, chưa từng được ai khác công bố trong bất kỳ công trình "
+        "nghiên cứu nào trước đây.")
+
+    add_paragraph_text(doc,
+        "Em xin cam đoan rằng mọi trích dẫn, tham khảo từ các tài liệu khác đều đã được ghi rõ "
+        "nguồn gốc tại danh mục tài liệu tham khảo theo chuẩn IEEE. Các đoạn nội dung dẫn lại "
+        "nguyên văn đều được đặt trong ngoặc kép và có chú dẫn trang cụ thể. Các sơ đồ kiến trúc, "
+        "biểu đồ và hình minh họa do em tự xây dựng đều được ghi chú nguồn là tác giả tự thiết kế; "
+        "các hình từ nguồn ngoài đều được dẫn nguồn rõ ràng.")
+
+    add_paragraph_text(doc,
+        "Em xin chịu trách nhiệm hoàn toàn về tính chính xác và trung thực của nội dung đồ án "
+        "tốt nghiệp này. Nếu phát hiện bất kỳ sự gian lận hay sao chép nào, em xin chịu mọi hình "
+        "thức kỷ luật theo quy định của Trường Đại học Giao thông Vận tải.")
+
+    for _ in range(3):
+        doc.add_paragraph()
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    run = p.add_run(f"Hà Nội, ngày … tháng … năm {THESIS_INFO['year']}")
+    set_font(run, Pt(13), italic=True)
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    run = p.add_run("Sinh viên thực hiện")
+    set_font(run, Pt(13), bold=True)
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    run = p.add_run("(Ký và ghi rõ họ tên)")
+    set_font(run, Pt(13), italic=True)
+
+    for _ in range(3):
+        doc.add_paragraph()
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    run = p.add_run(STUDENT_INFO["name"])
+    set_font(run, Pt(13), bold=True)
+
+    doc.add_page_break()
+
+
+# ============== TÓM TẮT (TIẾNG VIỆT) ==============
+def add_abstract_vi(doc):
+    """Wave 102.7.1 Bucket P Fix 6 — B1-03a TÓM TẮT.
+
+    Trang tóm tắt tiếng Việt 200-300 từ, đặt sau LỜI CAM ĐOAN, trước ABSTRACT.
+    """
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_after = Pt(24)
+    run = p.add_run("TÓM TẮT")
+    set_font(run, Pt(16), bold=True)
+
+    add_paragraph_text(doc,
+        f"Đồ án \"{THESIS_INFO['title']}\" trình bày quá trình xây dựng nền tảng phần mềm dịch "
+        "vụ (SaaS) đa người dùng (multi-tenant) phục vụ thị trường trung tâm giáo dục Việt Nam. "
+        "Bài toán xuất phát từ thực trạng phân mảnh của thị trường: hơn 80% trung tâm vừa và nhỏ "
+        "(1-10 chi nhánh, 100-2.000 học viên) vẫn quản lý vận hành trên Excel hoặc các phần mềm "
+        "doanh nghiệp không phù hợp về giá và độ phức tạp, trong khi khung pháp lý Việt Nam "
+        "(PDPL 2023, Luật An ninh mạng 2018, Thông tư 29/2024/TT-BGDĐT) yêu cầu mức tuân thủ "
+        "cao hơn về bảo vệ dữ liệu cá nhân và minh bạch hoạt động dạy thêm có thu phí.")
+
+    add_paragraph_text(doc,
+        "Đồ án đề xuất kiến trúc nền tảng KiteHub theo mô hình SaaS multi-tenant single-bucket "
+        "Row-Level Security (RLS) NULL force-fail, kết hợp các pattern industry-standard "
+        "(defense-in-depth 5 lớp, Outbox Pattern, JWT propagation) với các yêu cầu phi chức năng "
+        "đặc thù Việt Nam (Vietnamese-first UX, VND format, VietQR/MoMo, niên khóa 9-5). Hệ "
+        "thống được triển khai trên AWS Singapore Free Tier theo ADR-025, gồm 6 microservice "
+        "backend, 1 lõi tenant và 2 frontend Next.js. Bộ kiểm thử 3 lớp (unit + integration + "
+        "E2E) đảm bảo tính đúng đắn của các pattern cốt lõi.")
+
+    add_paragraph_text(doc,
+        "Kết quả giai đoạn beta tenant đạt các chỉ số chất lượng: Quality 90/110 B+, Security "
+        "93/100 A, Performance 86/100 B+, UI 110.6/128 A — đáp ứng yêu cầu gate ≥80 của giai "
+        "đoạn beta. Đồ án đóng góp ba kết quả khoa học: (1) pattern RLS NULL force-fail cho "
+        "multi-tenant SaaS giáo dục, (2) phân tích thực nghiệm thị trường edu SaaS Việt Nam "
+        "với 4 hệ thống tham chiếu, (3) kiến trúc tham chiếu B2B multi-tenant áp dụng phương "
+        "pháp luận Quality-Driven Development bốn trụ cột (TDD, DDD, PDCA, Lean).")
+
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(18)
+    run = p.add_run("Từ khóa: ")
+    set_font(run, Pt(13), bold=True)
+    run = p.add_run(
+        "SaaS multi-tenant, EdTech Việt Nam, Row-Level Security, AI Branding, "
+        "Quality-Driven Development, AWS, PDPL 2023, Thông tư 29/2024/TT-BGDĐT.")
+    set_font(run, Pt(13), italic=True)
+
+    doc.add_page_break()
+
+
+# ============== ABSTRACT (ENGLISH) ==============
+def add_abstract_en(doc):
+    """Wave 102.7.1 Bucket P Fix 6 — B1-03b ABSTRACT.
+
+    English abstract 200-300 words, paired with TÓM TẮT.
+    """
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_after = Pt(24)
+    run = p.add_run("ABSTRACT")
+    set_font(run, Pt(16), bold=True)
+
+    add_paragraph_text(doc,
+        f"This thesis, \"{THESIS_INFO['title_en']}\", presents the design and implementation of "
+        "a multi-tenant Software-as-a-Service (SaaS) platform tailored for the Vietnamese "
+        "education service provider market. The problem stems from market fragmentation: over "
+        "80% of small-to-medium education centers (1-10 branches, 100-2,000 students) still "
+        "rely on Excel or enterprise software that mismatches their price and complexity needs, "
+        "while the Vietnamese legal framework (PDPL 2023, Cybersecurity Law 2018, Circular "
+        "29/2024/TT-BGDĐT) imposes higher compliance demands on personal data protection and "
+        "paid tutoring transparency.")
+
+    add_paragraph_text(doc,
+        "The thesis proposes the KiteHub platform architecture following a SaaS multi-tenant "
+        "single-bucket Row-Level Security (RLS) NULL force-fail model, combining industry-"
+        "standard patterns (5-layer defense-in-depth, Outbox Pattern, JWT propagation) with "
+        "Vietnam-specific non-functional requirements (Vietnamese-first UX, VND currency "
+        "format, VietQR/MoMo payment, September-May academic calendar). The system is deployed "
+        "on AWS Singapore Free Tier per ADR-025, comprising 6 backend microservices, 1 tenant "
+        "core, and 2 Next.js frontends. A 3-layer testing suite (unit + integration + E2E) "
+        "ensures correctness of the core patterns.")
+
+    add_paragraph_text(doc,
+        "Beta tenant phase results achieve quality metrics: Quality 90/110 B+, Security 93/100 "
+        "A, Performance 86/100 B+, UI 110.6/128 A — meeting the ≥80 gate for the beta phase. "
+        "The thesis contributes three scientific outcomes: (1) the RLS NULL force-fail pattern "
+        "for multi-tenant education SaaS, (2) empirical analysis of the Vietnamese edu SaaS "
+        "market against 4 reference systems, (3) a B2B multi-tenant reference architecture "
+        "applying the four-pillar Quality-Driven Development methodology (TDD, DDD, PDCA, "
+        "Lean).")
+
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(18)
+    run = p.add_run("Keywords: ")
+    set_font(run, Pt(13), bold=True)
+    run = p.add_run(
+        "SaaS multi-tenant, Vietnamese EdTech, Row-Level Security, AI Branding, "
+        "Quality-Driven Development, AWS, PDPL 2023, Circular 29/2024/TT-BGDĐT.")
+    set_font(run, Pt(13), italic=True)
+
+    doc.add_page_break()
+
+
 # ============== LỜI CẢM ƠN ==============
 def add_acknowledgment_page(doc):
     # NOTE: page break đã được xử lý bởi add_secondary_cover_page() khi exit
@@ -1059,48 +1336,50 @@ def add_acknowledgment_page(doc):
     set_font(run, Pt(16), bold=True)
 
     # Wave 102.5 follow-up 2026-05-20 — expanded 5-paragraph structure ~450 từ
+    # Wave 102.7.1 Bucket P Fix 3: đổi đại từ "tôi" → "em" cho phù hợp khóa luận
+    # tốt nghiệp (sinh viên perspective formal-respectful trước GVHD + hội đồng).
     # Phần 1 — Mở đầu
     add_paragraph_text(doc,
-        "Trong suốt quá trình nghiên cứu, thiết kế và thực hiện đồ án tốt nghiệp này, tôi đã nhận "
+        "Trong suốt quá trình nghiên cứu, thiết kế và thực hiện đồ án tốt nghiệp này, em đã nhận "
         "được sự quan tâm, hướng dẫn và giúp đỡ quý báu từ nhiều tập thể và cá nhân. Đây là nguồn "
-        "động viên to lớn, giúp tôi có thêm động lực và kiến thức để hoàn thành tốt đề tài. Tôi "
+        "động viên to lớn, giúp em có thêm động lực và kiến thức để hoàn thành tốt đề tài. Em "
         "xin được gửi những lời cảm ơn chân thành nhất đến tất cả những người đã đồng hành cùng "
-        "tôi trên hành trình này.")
+        "em trên hành trình này.")
 
     # Phần 2 — GVHD chi tiết
     add_paragraph_text(doc,
-        f"Trước hết, tôi xin bày tỏ lòng biết ơn sâu sắc đến {THESIS_INFO['advisor']}, "
+        f"Trước hết, em xin bày tỏ lòng biết ơn sâu sắc đến {THESIS_INFO['advisor']}, "
         f"giảng viên hướng dẫn thuộc {THESIS_INFO['advisor_dept']}, {THESIS_INFO['advisor_university']}. "
-        "Thầy đã tận tình hướng dẫn tôi từ giai đoạn xác định đề tài, định hướng phạm vi nghiên cứu "
+        "Thầy đã tận tình hướng dẫn em từ giai đoạn xác định đề tài, định hướng phạm vi nghiên cứu "
         "và phương pháp luận, đến việc đóng góp ý kiến chuyên môn quan trọng trong suốt quá trình "
         "thực hiện. Những kiến thức chuyên sâu, kinh nghiệm thực tiễn cũng như tư duy nghiêm túc "
-        "trong học thuật và tinh thần phản biện mà thầy truyền đạt đã giúp tôi nâng cao chất lượng "
-        "đồ án một cách rõ rệt, đồng thời rèn luyện cho tôi tác phong nghiên cứu khoa học cần thiết.")
+        "trong học thuật và tinh thần phản biện mà thầy truyền đạt đã giúp em nâng cao chất lượng "
+        "đồ án một cách rõ rệt, đồng thời rèn luyện cho em tác phong nghiên cứu khoa học cần thiết.")
 
     # Phần 3 — Khoa + Trường
     add_paragraph_text(doc,
-        f"Tôi xin chân thành cảm ơn Khoa {STUDENT_INFO['department']} và "
-        f"{STUDENT_INFO['university']} đã tạo điều kiện thuận lợi để tôi được tiếp cận với các kiến "
+        f"Em xin chân thành cảm ơn Khoa {STUDENT_INFO['department']} và "
+        f"{STUDENT_INFO['university']} đã tạo điều kiện thuận lợi để em được tiếp cận với các kiến "
         "thức nền tảng về Công nghệ phần mềm, Kiến trúc hệ thống phân tán, Cơ sở dữ liệu, An toàn "
         "thông tin và các công nghệ thực tiễn trong ngành công nghiệp phần mềm. Môi trường học tập "
-        "chuyên nghiệp cùng với chương trình đào tạo bài bản là nền tảng quan trọng giúp tôi có "
+        "chuyên nghiệp cùng với chương trình đào tạo bài bản là nền tảng quan trọng giúp em có "
         "đủ năng lực và sự tự tin thực hiện đề tài này.")
 
     # Phần 4 — Quý thầy cô bộ môn
     add_paragraph_text(doc,
-        "Bên cạnh đó, tôi xin gửi lời cảm ơn chân thành đến quý thầy cô trong Bộ môn Công nghệ "
+        "Bên cạnh đó, em xin gửi lời cảm ơn chân thành đến quý thầy cô trong Bộ môn Công nghệ "
         "phần mềm và toàn thể giảng viên Khoa Công nghệ thông tin đã nhiệt tình giảng dạy, chia "
-        "sẻ kinh nghiệm chuyên môn trong suốt bốn năm học, qua đó giúp tôi xây dựng được tư duy "
+        "sẻ kinh nghiệm chuyên môn trong suốt bốn năm học, qua đó giúp em xây dựng được tư duy "
         "kỹ thuật vững vàng và phương pháp tiếp cận vấn đề có hệ thống — những phẩm chất thiết "
         "yếu cho hành trình phát triển nghề nghiệp sau này.")
 
     # Phần 5 — Gia đình + bạn bè + đóng kết
     add_paragraph_text(doc,
-        "Cuối cùng, tôi xin gửi lời cảm ơn sâu sắc tới gia đình, bạn bè và những người thân đã "
-        "luôn quan tâm, động viên và hỗ trợ tôi cả về tinh thần lẫn vật chất trong suốt thời gian "
+        "Cuối cùng, em xin gửi lời cảm ơn sâu sắc tới gia đình, bạn bè và những người thân đã "
+        "luôn quan tâm, động viên và hỗ trợ em cả về tinh thần lẫn vật chất trong suốt thời gian "
         "học tập và thực hiện đồ án. Mặc dù đã rất cố gắng, song do thời gian và kinh nghiệm thực "
-        "tiễn còn hạn chế, đồ án không tránh khỏi những thiếu sót; tôi rất mong nhận được sự đóng "
-        "góp ý kiến từ quý thầy cô để đồ án được hoàn thiện hơn. Tôi xin chân thành cảm ơn!")
+        "tiễn còn hạn chế, đồ án không tránh khỏi những thiếu sót; em rất mong nhận được sự đóng "
+        "góp ý kiến từ quý thầy cô để đồ án được hoàn thiện hơn. Em xin chân thành cảm ơn!")
 
     for _ in range(3):
         doc.add_paragraph()
@@ -1316,12 +1595,25 @@ def add_abbreviations(doc):
 
 # ============== MỞ ĐẦU ==============
 def add_introduction(doc):
+    """Wave 102.7.1 Bucket P Fix 7 — wrap 6 mục dưới MỞ ĐẦU như H1 chapter-style
+    title (Heading 1 style, 18pt bold center, page break trước) để 6 mục
+    1. Lý do / 2. Mục tiêu / 3. Phạm vi / 4. Phương pháp / 5. Tóm tắt / 6. Cấu trúc
+    trở thành H2 children dưới MỞ ĐẦU H1, đúng UTC structure.
+    """
     # NOTE: section break (Section 2→3) đã advance page automatically — KHÔNG cần page break dư
-    p = doc.add_paragraph()
+    # Tuy nhiên thêm explicit page break để chắc chắn MỞ ĐẦU bắt đầu trang mới
+    doc.add_page_break()
+
+    p = doc.add_paragraph(style='Heading 1')
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(18)
     run = p.add_run("MỞ ĐẦU")
-    set_font(run, FONT_SIZE_CHAPTER, bold=True)
+    run.font.name = FONT_NAME
+    if run._element.rPr is not None:
+        run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
+    run.font.size = FONT_SIZE_CHAPTER
+    run.font.bold = True
+    run.font.color.rgb = RGBColor(0, 0, 0)
 
     add_section_title(doc, "1. Lý do chọn đề tài")
     add_paragraph_text(doc,
@@ -1330,7 +1622,7 @@ def add_introduction(doc):
         "số trung tâm nhỏ và vừa (1-10 chi nhánh, 100-2000 học viên) vẫn dùng Excel hoặc các "
         "phần mềm enterprise không phù hợp về giá và độ phức tạp. Khoảng trống này tạo cơ hội "
         "cho một giải pháp SaaS multi-tenant gốc, Vietnamese-first UX, và tự động hóa các tác "
-        "vụ branding bằng AI — đây chính là động lực để tôi chọn đề tài \"" + THESIS_INFO["title"] + "\".")
+        "vụ branding bằng AI — đây chính là động lực để em chọn đề tài \"" + THESIS_INFO["title"] + "\".")
 
     add_section_title(doc, "2. Mục tiêu nghiên cứu")
     add_bullet_list_item(doc, "Xây dựng nền tảng SaaS multi-tenant cho trung tâm giáo dục Việt Nam, hỗ trợ scale từ 1 chi nhánh lên 100+ chi nhánh không cần re-architect.")
@@ -1419,13 +1711,23 @@ def add_chapter_from_md(doc, chapter_num, chapter_title, md_paths):
 
 # ============== KẾT LUẬN ==============
 def add_conclusion(doc):
+    """Wave 102.7.1 Bucket P Fix 8 — wrap 5 mục (Tổng kết / Hạn chế / Hướng
+    phát triển / Đóng góp khoa học / Kiến nghị) dưới KẾT LUẬN VÀ KIẾN NGHỊ
+    H1 chapter-style title (Heading 1, 18pt bold center, page break trước).
+    5 mục trở thành H2 children dưới KẾT LUẬN H1, đúng UTC structure.
+    """
     doc.add_page_break()
 
-    p = doc.add_paragraph()
+    p = doc.add_paragraph(style='Heading 1')
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(18)
     run = p.add_run("KẾT LUẬN VÀ KIẾN NGHỊ")
-    set_font(run, FONT_SIZE_CHAPTER, bold=True)
+    run.font.name = FONT_NAME
+    if run._element.rPr is not None:
+        run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
+    run.font.size = FONT_SIZE_CHAPTER
+    run.font.bold = True
+    run.font.color.rgb = RGBColor(0, 0, 0)
 
     add_section_title(doc, "1. Tổng kết kết quả đạt được")
     add_paragraph_text(doc,
@@ -1493,7 +1795,7 @@ def add_conclusion(doc):
     # Wave 102.5 Bucket A G1 — §"Kiến nghị" 2-3 ý: hướng phát triển + chuyển giao
     add_section_title(doc, "5. Kiến nghị")
     add_paragraph_text(doc,
-        "Trên cơ sở kết quả đạt được và những hạn chế đã nêu, tôi xin đề xuất một số kiến nghị "
+        "Trên cơ sở kết quả đạt được và những hạn chế đã nêu, em xin đề xuất một số kiến nghị "
         "cho hướng phát triển và chuyển giao đề tài như sau:")
     add_bullet_list_item(doc,
         "Tiếp tục mở rộng phạm vi nghiên cứu sang giai đoạn paid beta và GA: tích hợp thanh toán "
@@ -1676,6 +1978,20 @@ def create_thesis():
     # 2. Bìa phụ
     print("[2/8] Trang bìa phụ")
     add_secondary_cover_page(doc)
+
+    # Wave 102.7.1 Bucket P Fix 4-6 — B1 structural frontmatter pages
+    # Thứ tự: NHẬN XÉT GVHD → LỜI CAM ĐOAN → TÓM TẮT → ABSTRACT → LỜI CẢM ƠN
+    print("[2.1/8] Nhận xét của Giảng viên hướng dẫn")
+    add_advisor_review_page(doc)
+
+    print("[2.2/8] Lời cam đoan")
+    add_oath_page(doc)
+
+    print("[2.3/8] Tóm tắt (tiếng Việt)")
+    add_abstract_vi(doc)
+
+    print("[2.4/8] Abstract (English)")
+    add_abstract_en(doc)
 
     # 3. Lời cảm ơn
     print("[3/8] Lời cảm ơn")
