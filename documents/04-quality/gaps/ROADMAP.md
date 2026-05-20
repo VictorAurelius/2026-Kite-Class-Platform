@@ -353,7 +353,7 @@ Foundation + expansion sweep of `documents/02-architecture/` — closure PR ship
 >    - Action B: markdown frontmatter strip 34 gaps (defer Phase 3)
 >    - Action C: UPDATE_SCOPE 4 gaps (GAP-203/220/052/155/438)
 >    - Action F: human triage 12 UNCLEAR (incl GAP-040 anomaly)
-> 6. **GAP-612 AWS suspension** restoration pending D+4 = 2026-05-21 escalate (unchanged)
+> 6. **GAP-612 AWS suspension** Day 4 96h+ no response 2026-05-21 — escalation executed: alt contacts set (Billing/Operations/Security) + case 177903869600100 replied 9-bullet evidence ($0 balance + 0 notification + identity-verify willingness); 6-agent outside-in synthesis spawned filed **3 follow-up gaps**: GAP-691 P0 local self-test investigation (Phase 0 blocks Item 4 + rebuild Gates 2/3), GAP-692 P1 META env-reference.yaml multi-env refactor (eliminates Class 4 config-drift permanently), GAP-693 P0 META AWS rebuild SOP playbook 13 steps + 5 gates + 8 failure-mode prevention (BLOCKED on 612+691+692). Status flipped OPEN → PARTIAL 5%. Decision: Item 1 LEGIT chính danh account #2 sau khi #1 resolved (no duplicate detect + ToS-compliant); sequencing Phase 0 → Item 2 → rebuild.
 > 7. **Wave 97 PARTIAL close-outs** (carry): GAP-637/638/647 await GAP-654/655 execution
 
 ### 🟡 Wave 97 PARTIAL ship 2026-05-18 — audit P0+P1 gate-closing (3.5/4 buckets delivered)
