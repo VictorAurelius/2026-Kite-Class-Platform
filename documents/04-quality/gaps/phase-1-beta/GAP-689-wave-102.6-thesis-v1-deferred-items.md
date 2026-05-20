@@ -1,9 +1,10 @@
 # GAP-689: Wave 102.6 thesis V1 deferred items (Bucket F pre-thesis + P1/P2 audit remaining)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (Phase 1+2 DONE Wave 102.6; Phase 3+4 PLANNED defer indefinite)
 **Priority:** 🟠 P1
 **Domain:** Meta (thesis academic deliverable)
 **Found:** 2026-05-20 (Wave 102.5 closure)
+**Last updated:** 2026-05-20 (Wave 102.6 closure)
 **Affects:** Thesis V1 defense readiness August 2026 (UTC University, ngành CNTT)
 
 ---
@@ -123,6 +124,16 @@ Wave 102.5 user AskUserQuestion 2026-05-20 chốt scope 19 gaps (9 P0 + 10 P1) c
 ---
 
 ## Log
+
+- **2026-05-20 (Wave 102.6 closure — Phase 1+2 SHIPPED):** 4-bucket parallel wave-pack ship in ~75min wall-clock (3 P0 buckets longest + tooling). Outcomes:
+  - **Bucket A Ch.1 G9 figure cite** — DONE 0 edits (5 derived figures already cited from Wave 102.5; 1 author-original Mermaid AI Branding pipeline correctly uncited)
+  - **Bucket B Ch.2 G4 + G9 sweep** — DONE PR #1649 (1 fix: Line 311 AWS SaaS Lens quote `[27, tr.21]` page-num added; 8 figures all author-original Kite Platform notation diagrams)
+  - **Bucket C Ch.4 G4 + G9 sweep** — DONE PR #1648 (0 chapter edits; 5 quotes non-citation context + 5 figures author-original; audit artifact `2026-05-20-thesis-v1-chapter-4-g4-g9-sweep.md` documents compliance evidence)
+  - **Bucket D G6 LibreOffice headless bake** — DONE PR #1650 (`auto_populate_fields()` defensive function with 3 graceful-fail paths added to `create_thesis_v1.py`; `README.md` §4 prereq + §7 LibreOffice path documented; verified locally — LibreOffice fallback fires correctly with helpful install hints when binary missing)
+  - **Coordinator re-render** — DONE locally; `thesis-v1.docx` 4.1 MB / 4 sections / 616 paragraphs; LibreOffice fallback WARN fires correctly (binary not installed dev env)
+  - **Bucket A audit artifact** — `2026-05-20-thesis-v1-chapter-4-g4-g9-sweep.md` shipped via Bucket C scope (consolidated audit artifact for Ch.4 covers G4 + G9 evidence)
+
+  Status flipped OPEN → PARTIAL (completion_pct 50). Phase 3+4 PLANNED defer indefinite — trigger when GVHD requires đề cương ký / pre-defense T-2 tuần polish window. Per `wave-closure-scope-completeness.md` §3 reconciliation: 6/6 Wave 102.6 active scope items ✅ DONE.
 
 - **2026-05-20 (scope revision):** User direction 2026-05-20 sau Wave 102.5 closure handoff readout. 3 quyết định lock scope:
   1. **G5 → WONTFIX** — bỏ, không cần thêm UTC giáo trình refs vào bibliography (39 entries hiện tại đủ defense scope)
