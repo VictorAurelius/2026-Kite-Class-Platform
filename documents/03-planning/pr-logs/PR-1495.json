@@ -1,0 +1,33 @@
+{
+  "pr": 1495,
+  "title": "audit(wave-91-D): deep investigation GAP-610+611 hypothesis verdicts",
+  "branch": "wait/wave-91-bucket-d-deep-investigation",
+  "created_at": null,
+  "merged_at": "2026-05-17T18:56:42Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-18T01:56:55.687971",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 4,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-595000"
+  }
+}
