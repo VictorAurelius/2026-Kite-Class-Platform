@@ -78,7 +78,7 @@ Tổng cộng năm snippet hiển thị trong chương đại diện khoảng 39
 
 ### 3.3.1 Bối cảnh
 
-KiteHub Gateway (Spring Cloud Gateway, port 8080) là entry point duy nhất cho mọi request từ frontend. Mọi request đi qua filter `JwtAuthenticationGatewayFilter` để verify chữ ký JWT (JSON Web Token, định nghĩa tại IETF RFC 7519 [29]) và truyền identity context (`userId`, `role`, `email`) xuống downstream services qua HTTP header (`X-User-Id`, `X-User-Roles`, `X-User-Email`). Đây là pattern "Trust the Gateway" — downstream services không tự verify JWT, mà tin tưởng header sau khi gateway đã kiểm tra.
+KiteHub Gateway (Spring Cloud Gateway, port 8080) là entry point duy nhất cho mọi request từ frontend. Mọi request đi qua filter `JwtAuthenticationGatewayFilter` để verify chữ ký JWT (JSON Web Token, định nghĩa tại IETF RFC 7519 [30]) và truyền identity context (`userId`, `role`, `email`) xuống downstream services qua HTTP header (`X-User-Id`, `X-User-Roles`, `X-User-Email`). Đây là pattern "Trust the Gateway" — downstream services không tự verify JWT, mà tin tưởng header sau khi gateway đã kiểm tra.
 
 Snippet sau minh họa pattern này. Filter có order `-100` để chạy sớm, trước CircuitBreaker và RateLimiter filters. Public paths (login, signup, health check) bypass filter để cho phép unauthenticated access.
 
@@ -164,7 +164,7 @@ Snippet này thể hiện ba design pattern chính:
 
 Lựa chọn HS256 (HMAC-SHA256, symmetric secret) thay vì RS256 (RSA, asymmetric key pair) được biện luận: (a) **cùng vùng tin cậy** — Gateway và downstream services cùng VPC AWS Singapore, chia sẻ secret HMAC chấp nhận được; RS256 phù hợp khi verifier là bên thứ ba độc lập với issuer; (b) **giảm phức tạp triển khai** — RS256 yêu cầu key management overhead (rotation, JWKS endpoint), HS256 với shared secret qua AWS Secrets Manager đáp ứng đủ yêu cầu bảo mật giai đoạn beta; (c) **lộ trình nâng cấp** — khi mở rộng multi-region hoặc tích hợp third-party OIDC federation, kế hoạch migrate RS256 với key rotation 90 ngày.
 
-Trade-off chính là **flexibility (RS256) vs simplicity (HS256)**. Quyết định ưu tiên simplicity được hỗ trợ bởi RFC 7519 §6 [29, tr.21]: "use HS256 when symmetric trust is acceptable". Tham khảo: RFC 7519 §6.1 [29], Spring Security Reference §11.3 [30].
+Trade-off chính là **flexibility (RS256) vs simplicity (HS256)**. Quyết định ưu tiên simplicity được hỗ trợ bởi RFC 7519 §6 [30, tr.21]: "use HS256 when symmetric trust is acceptable". Tham khảo: RFC 7519 §6.1 [30], Spring Security Reference §11.3 [31].
 
 ---
 
@@ -248,9 +248,9 @@ Migration RLS được định nghĩa trong `V58__enable_rls_tenant_scoped_table
 
 ### 3.4.4 Trade-offs
 
-Quyết định sử dụng **PostgreSQL Row-Level Security (RLS)** thay vì chỉ application-level isolation (Hibernate filter + ThreadLocal context) phản ánh nguyên lý **defense-in-depth** [31]: (a) **database enforces ngay cả khi application có bug** — raw SQL thiếu `WHERE tenant_id`, test fixture quên set context, hoặc background job invoke repository ngoài request boundary đều có thể gây cross-tenant leak; với RLS, Postgres áp policy `USING (instance_id = current_setting('app.current_tenant_id')::uuid)` ở storage layer trả 0 rows thay vì rò rỉ; (b) **performance overhead chấp nhận được** — PostgreSQL Documentation [32, tr.158] khẳng định overhead RLS thường <5% với indexed column; benchmark nội bộ trên 100K rows cho thấy 2-3ms trung bình; (c) **GUC `set_config(..., is_local := true)`** — HikariCP reuse physical connections cross-request, session-scope `SET` sẽ leak tenant sang request kế tiếp; `is_local := true` tương đương `SET LOCAL` — GUC chỉ tồn tại trong transaction hiện tại, tự clear khi commit/rollback.
+Quyết định sử dụng **PostgreSQL Row-Level Security (RLS)** thay vì chỉ application-level isolation (Hibernate filter + ThreadLocal context) phản ánh nguyên lý **defense-in-depth** [6]: (a) **database enforces ngay cả khi application có bug** — raw SQL thiếu `WHERE tenant_id`, test fixture quên set context, hoặc background job invoke repository ngoài request boundary đều có thể gây cross-tenant leak; với RLS, Postgres áp policy `USING (instance_id = current_setting('app.current_tenant_id')::uuid)` ở storage layer trả 0 rows thay vì rò rỉ; (b) **performance overhead chấp nhận được** — PostgreSQL Documentation [8, tr.158] khẳng định overhead RLS thường <5% với indexed column; benchmark nội bộ trên 100K rows cho thấy 2-3ms trung bình; (c) **GUC `set_config(..., is_local := true)`** — HikariCP reuse physical connections cross-request, session-scope `SET` sẽ leak tenant sang request kế tiếp; `is_local := true` tương đương `SET LOCAL` — GUC chỉ tồn tại trong transaction hiện tại, tự clear khi commit/rollback.
 
-Trade-off chính: **performance overhead (~2-3ms/query)** đổi lấy **multi-layer defense + audit-grade isolation guarantee**. Đối với education SaaS lưu trữ dữ liệu học sinh dưới tuổi vị thành niên (compliance PDPL 2023 + Luật Trẻ em 2016), trade-off này bắt buộc về mặt tuân thủ pháp luật. Tham khảo: PostgreSQL Documentation §5.8 [32], OWASP Defense-in-Depth principle [31].
+Trade-off chính: **performance overhead (~2-3ms/query)** đổi lấy **multi-layer defense + audit-grade isolation guarantee**. Đối với education SaaS lưu trữ dữ liệu học sinh dưới tuổi vị thành niên (compliance PDPL 2023 + Luật Trẻ em 2016), trade-off này bắt buộc về mặt tuân thủ pháp luật. Tham khảo: PostgreSQL Documentation §5.8 [8], OWASP Defense-in-Depth principle [6].
 
 ---
 
@@ -260,7 +260,7 @@ Trade-off chính: **performance overhead (~2-3ms/query)** đổi lấy **multi-l
 
 KiteHub publish nhiều cross-service events: subscription state changes (trial thì active thì cancelled), beta access approval, branding update, email notification. Mỗi event cần được publish reliably — nếu DB transaction commit nhưng event publish fail (RabbitMQ down, network drop), state sẽ bị inconsistent (DB nói "approved" nhưng email chưa gửi).
 
-KiteHub áp dụng **Outbox Pattern** [33] (Section 2.3.4): mỗi event được lưu vào bảng `*_outbox` trong cùng transaction với business state. Một background worker periodically poll bảng outbox và publish event tới RabbitMQ. Pattern này guarantee at-least-once delivery — nếu publish fail, dispatcher sẽ retry ở cycle tiếp theo.
+KiteHub áp dụng **Outbox Pattern** [1] (Section 2.3.4): mỗi event được lưu vào bảng `*_outbox` trong cùng transaction với business state. Một background worker periodically poll bảng outbox và publish event tới RabbitMQ. Pattern này guarantee at-least-once delivery — nếu publish fail, dispatcher sẽ retry ở cycle tiếp theo.
 
 Snippet sau là `SubscriptionOutboxDispatcher` — worker scan bảng `subscription_outbox` mỗi 10 giây, publish event chưa dispatch tới RabbitMQ exchange `email.exchange`.
 
@@ -349,9 +349,9 @@ Dispatcher đi kèm với `SubscriptionEventEmitter` fast-path — happy-path pu
 
 ### 3.5.4 Trade-offs
 
-Lựa chọn **Outbox Pattern** thay vì direct publish to message broker được biện luận: (a) **transactional consistency** — direct publish có race condition kinh điển: DB commit thành công nhưng broker publish fail (hoặc ngược lại) → state divergence; outbox đảm bảo event row lưu trong cùng transaction với business state, nếu rollback thì event cũng rollback; (b) **race condition với `FOR UPDATE SKIP LOCKED`** — khi horizontal scale, nhiều instance dispatcher có thể publish trùng; pattern `SELECT ... FOR UPDATE SKIP LOCKED` (PostgreSQL 9.5+ [32]) đảm bảo mỗi event được publish bởi chính xác một instance; (c) **at-least-once delivery** — nếu dispatcher publish thành công nhưng crash trước khi `setDispatchedAt(...)` commit, cycle tiếp theo sẽ publish lại; consumers phải idempotent. RabbitMQ AMQP 0-9-1 [34, tr.47] xác định "exactly-once delivery is not natively supported"; at-least-once + idempotent consumer là industry standard cho event-driven systems.
+Lựa chọn **Outbox Pattern** thay vì direct publish to message broker được biện luận: (a) **transactional consistency** — direct publish có race condition kinh điển: DB commit thành công nhưng broker publish fail (hoặc ngược lại) → state divergence; outbox đảm bảo event row lưu trong cùng transaction với business state, nếu rollback thì event cũng rollback; (b) **race condition với `FOR UPDATE SKIP LOCKED`** — khi horizontal scale, nhiều instance dispatcher có thể publish trùng; pattern `SELECT ... FOR UPDATE SKIP LOCKED` (PostgreSQL 9.5+ [8]) đảm bảo mỗi event được publish bởi chính xác một instance; (c) **at-least-once delivery** — nếu dispatcher publish thành công nhưng crash trước khi `setDispatchedAt(...)` commit, cycle tiếp theo sẽ publish lại; consumers phải idempotent. RabbitMQ AMQP 0-9-1 [4, tr.47] xác định "exactly-once delivery is not natively supported"; at-least-once + idempotent consumer là industry standard cho event-driven systems.
 
-Trade-off chính: **complexity overhead (extra outbox table + dispatcher process + retry logic)** đổi lấy **guaranteed eventual consistency**. Đối với business event critical như subscription state change hoặc payment confirmation, complexity được biện minh; cho event low-importance như UI analytics, direct publish có thể acceptable. Tham khảo: Microservices.io — Transactional Outbox Pattern [33], PostgreSQL §SELECT ... FOR UPDATE SKIP LOCKED [32], AMQP 0-9-1 §4 [34].
+Trade-off chính: **complexity overhead (extra outbox table + dispatcher process + retry logic)** đổi lấy **guaranteed eventual consistency**. Đối với business event critical như subscription state change hoặc payment confirmation, complexity được biện minh; cho event low-importance như UI analytics, direct publish có thể acceptable. Tham khảo: Microservices.io — Transactional Outbox Pattern [1], PostgreSQL §SELECT ... FOR UPDATE SKIP LOCKED [8], AMQP 0-9-1 §4 [4].
 
 ---
 
@@ -359,7 +359,7 @@ Trade-off chính: **complexity overhead (extra outbox table + dispatcher process
 
 ### 3.6.1 Bối cảnh
 
-Beta Access là feature core của giai đoạn beta — visitors gửi yêu cầu beta access, coordinator (PLATFORM_ADMIN) duyệt qua admin dashboard, hệ thống gửi invite email với 6-digit claim code. Cluster này gồm 5 file (Controller + Service + Entity + DTO + Repository) minh họa 3-tier layering pattern theo nguyên lý Domain-Driven Design [19]: Controller (REST API + authorization), Service (business logic + transaction boundary, ranh giới của domain aggregate), Entity (JPA persistence — mô hình hóa entity nghiệp vụ).
+Beta Access là feature core của giai đoạn beta — visitors gửi yêu cầu beta access, coordinator (PLATFORM_ADMIN) duyệt qua admin dashboard, hệ thống gửi invite email với 6-digit claim code. Cluster này gồm 5 file (Controller + Service + Entity + DTO + Repository) minh họa 3-tier layering pattern theo nguyên lý Domain-Driven Design [18]: Controller (REST API + authorization), Service (business logic + transaction boundary, ranh giới của domain aggregate), Entity (JPA persistence — mô hình hóa entity nghiệp vụ).
 
 Snippet sau là controller — minh họa cách `@PreAuthorize("hasRole('PLATFORM_ADMIN')")` guard admin endpoints + cách map DTO ⟷ Entity.
 
@@ -441,13 +441,13 @@ Source: `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/bet
    - Field mapping (`@Id`, `@Column`, `@Enumerated(EnumType.STRING)`).
    - Audit trail (`@CreationTimestamp` + `@UpdateTimestamp`).
 
-Anti-pattern tránh được: **God Service / Fat Controller**. Mọi business logic trong Service, mọi HTTP concern trong Controller, mọi persistence trong Entity — easy to test theo phương pháp Test-Driven Development [18] (mock Service trong ControllerTest, mock Repository trong ServiceTest); mỗi layer testable độc lập với một loại test fixture rõ ràng.
+Anti-pattern tránh được: **God Service / Fat Controller**. Mọi business logic trong Service, mọi HTTP concern trong Controller, mọi persistence trong Entity — easy to test theo phương pháp Test-Driven Development [17] (mock Service trong ControllerTest, mock Repository trong ServiceTest); mỗi layer testable độc lập với một loại test fixture rõ ràng.
 
 ### 3.6.4 Trade-offs
 
-Quyết định triển khai **3-tier REST API với phân tách public + authenticated + admin** thay vì single-tier API hoặc GraphQL: (a) **3-tier separation phù hợp 3 audience khác nhau** — public endpoint (rate-limit + honeypot + Cloudflare Turnstile), authenticated endpoint (JWT tenant scope), admin endpoint (RBAC + `@PreAuthorize` + audit log); mỗi tier có security model riêng; (b) **REST thay vì GraphQL** — GraphQL [35] flexible query nhưng kéo theo phức tạp security (query depth limit, N+1 problem) và caching (no native HTTP caching); REST với explicit endpoint dễ document (OpenAPI 3.1 [36]), dễ rate-limit, dễ cache, phù hợp team size nhỏ; client phải gọi nhiều endpoint cho composite views — chấp nhận được vì React Server Components aggregate calls tại server; (c) **`@PreAuthorize` declarative thay vì manual permission check** — manual check duplicate code + dễ quên; KiteHub giữ SpEL expressions đơn giản (chỉ role check), đẩy complex rules xuống Service layer.
+Quyết định triển khai **3-tier REST API với phân tách public + authenticated + admin** thay vì single-tier API hoặc GraphQL: (a) **3-tier separation phù hợp 3 audience khác nhau** — public endpoint (rate-limit + honeypot + Cloudflare Turnstile), authenticated endpoint (JWT tenant scope), admin endpoint (RBAC + `@PreAuthorize` + audit log); mỗi tier có security model riêng; (b) **REST thay vì GraphQL** — GraphQL [15] flexible query nhưng kéo theo phức tạp security (query depth limit, N+1 problem) và caching (no native HTTP caching); REST với explicit endpoint dễ document (OpenAPI 3.1 [32]), dễ rate-limit, dễ cache, phù hợp team size nhỏ; client phải gọi nhiều endpoint cho composite views — chấp nhận được vì React Server Components aggregate calls tại server; (c) **`@PreAuthorize` declarative thay vì manual permission check** — manual check duplicate code + dễ quên; KiteHub giữ SpEL expressions đơn giản (chỉ role check), đẩy complex rules xuống Service layer.
 
-Trade-off chính: **rigidity (3-tier separation, REST verbose)** đổi lấy **clarity + security boundary explicit + audit-friendly**. Đối với SaaS multi-tenant cần audit compliance (PDPL Art 11 admin action log), explicit boundary được ưu tiên hơn flexibility. Tham khảo: Domain-Driven Design — Evans [19], REST API Design Best Practices — Roy Fielding [37], GraphQL Specification [35], OpenAPI 3.1 [36].
+Trade-off chính: **rigidity (3-tier separation, REST verbose)** đổi lấy **clarity + security boundary explicit + audit-friendly**. Đối với SaaS multi-tenant cần audit compliance (PDPL Art 11 admin action log), explicit boundary được ưu tiên hơn flexibility. Tham khảo: Domain-Driven Design — Evans [18], REST API Design Best Practices — Roy Fielding [33], GraphQL Specification [15], OpenAPI 3.1 [32].
 
 ---
 
@@ -521,7 +521,7 @@ Khi user submit form, `BetaRequestForm` (client component) gọi `POST /api/v1/a
 
 Lựa chọn **Next.js App Router** thay vì Pages Router hoặc client-side rendering only (CRA / Vite + React): (a) **App Router enable server components by default** — landing page như `request-beta-access` không ship React runtime về client, benchmark cho thấy chỉ ship ~12KB JavaScript thay vì ~85KB nếu dùng Pages Router với client-side rendering; (b) **Pages Router trade-off** — đơn giản hơn nhưng Next.js 14+ document App Router là direction primary, Pages Router maintenance mode; App Router cho phép granular client-server split (`'use client'` chỉ ở component cần interactivity); (c) **CRA + SPA trade-off** — đơn giản về deployment nhưng SEO yếu (cần SSR/SSG bổ sung), TTFB chậm, bundle size lớn; Next.js tích hợp SSR + SSG + ISR phù hợp education SaaS có cả landing pages và authenticated dashboard.
 
-Trade-off chính: **complexity (server vs client component model, Next.js opinionated architecture)** đổi lấy **performance + SEO + developer ergonomics**. Đối với education SaaS multi-tenant, Next.js App Router cân bằng tốt. Tham khảo: Next.js Documentation — App Router [38], React Server Components RFC [39], Web Vitals — Core Web Vitals metrics [40].
+Trade-off chính: **complexity (server vs client component model, Next.js opinionated architecture)** đổi lấy **performance + SEO + developer ergonomics**. Đối với education SaaS multi-tenant, Next.js App Router cân bằng tốt. Tham khảo: Next.js Documentation — App Router [34], React Server Components RFC [35], Web Vitals — Core Web Vitals metrics [36].
 
 ---
 

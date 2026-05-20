@@ -124,7 +124,11 @@ MARGIN_BOTTOM = Cm(2.5)
 
 # ============== HELPER FUNCTIONS (preserved from bao-cao-thuc-tap.py) ==============
 def set_document_margins(doc):
-    """Set A4 page size + UTC margins per Quy dinh trinh bay do an tot nghiep.pdf §2.1."""
+    """Set A4 page size + UTC margins per Quy dinh trinh bay do an tot nghiep.pdf §2.1.
+
+    Binding gutter 0.5cm added per `thesis-content-standard.md` C1 row "Binding gutter":
+    offset for binding edge when in giấy in bìa cứng cho thesis defense submission.
+    """
     for section in doc.sections:
         section.page_width = Cm(21.0)   # A4 width
         section.page_height = Cm(29.7)  # A4 height
@@ -132,6 +136,7 @@ def set_document_margins(doc):
         section.bottom_margin = MARGIN_BOTTOM
         section.left_margin = MARGIN_LEFT
         section.right_margin = MARGIN_RIGHT
+        section.gutter = Cm(0.5)  # Binding gutter for hardcover bind edge
 
 
 def set_cell_shading(cell, color):
@@ -914,7 +919,7 @@ def add_acknowledgment_page(doc):
         "phản biện mà thầy truyền đạt đã giúp em nâng cao chất lượng khóa luận một cách rõ rệt.")
 
     add_paragraph_text(doc,
-        f"Em xin chân thành cảm ơn {STUDENT_INFO['department']}, {STUDENT_INFO['university']} đã tạo "
+        f"Em xin chân thành cảm ơn Khoa {STUDENT_INFO['department']}, {STUDENT_INFO['university']} đã tạo "
         "điều kiện thuận lợi để em được tiếp cận với các kiến thức nền tảng về Công nghệ phần mềm, "
         "Kiến trúc hệ thống phân tán, và các công nghệ thực tiễn trong ngành. Sự hỗ trợ của Khoa "
         "là nền tảng quan trọng giúp em có đủ năng lực để thực hiện đề tài SaaS multi-tenant này.")

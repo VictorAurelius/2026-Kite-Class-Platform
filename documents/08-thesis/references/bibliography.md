@@ -1,41 +1,28 @@
 # Bibliography — IEEE Format
 
 **Citation style:** IEEE per [CITATION-STYLE.md](./CITATION-STYLE.md). In-text format `[N]`, `[N, M]`, `[N]–[M]`.
-**Total entries:** 48 (initial 30 seed + 8 + 5 + 2 + **4 added Wave 102.1 for Ch.1 Phần 3 Quality-Driven Development methodology + Ch.2 NFR ISO 25010 standards**).
-**Last updated:** 2026-05-19.
-**Last cross-ref audit:** 2026-05-19 Wave 100.7 Phase 3a — see [cross-ref-audit-2026-05-19.md](./cross-ref-audit-2026-05-19.md).
+**Total entries:** 39 (renumbered Wave 102.4 by first-appearance + 9 orphan refs dropped).
+**Last updated:** 2026-05-20.
+**Last cross-ref audit:** 2026-05-20 Wave 102.4 — see `cross-ref-audit-2026-05-19.md` (pre-renumber baseline).
 
-Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N` section + increment N từ cuối cùng. Hiện tại `max(N) = 44`, next = **45**.
+Numbers `[N]` chạy global theo first-appearance trong body. Bibliography hiện flat list (post Wave 102.4 renumber); section grouping by chapter dropped (multiple sections same chapter cause non-sequential numbering).
 
 ---
 
-## Chapter 1 — Introduction (Tổng quan)
+## Tài liệu tham khảo
 
-### Competitor analysis — VN edu SaaS
+[1] Bộ Giáo dục và Đào tạo, "Thông tư 29/2024/TT-BGDĐT về Dạy thêm Học thêm," 2024. [Online]. Available: [https://thuvienphapluat.vn/van-ban/Giao-duc/Thong-tu-29-2024-TT-BGDDT](https://thuvienphapluat.vn/van-ban/Giao-duc/Thong-tu-29-2024-TT-BGDDT). [Accessed 2026-05-19].
 
-[1] EasyEdu, "Tính năng EasyEdu — Phần mềm quản lý trung tâm ngoại ngữ 1,400+ trung tâm," 2024. [Online]. Available: https://easyedu.vn/tinh-nang/. [Accessed 2026-05-18].
 
-[2] MISA, "MISA EMIS — Hệ thống quản lý giáo dục K-12 tích hợp công lập," 2024. [Online]. Available: https://emis.misa.vn/emisconglap/. [Accessed 2026-05-18].
+[2] Magenest, "Top 15 phần mềm quản lý trung tâm ngoại ngữ tốt nhất Việt Nam 2024," Industry Review, 2024. [Online]. Available: [https://magenest.com/vi/phan-mem-quan-ly-trung-tam-ngoai-ngu/](https://magenest.com/vi/phan-mem-quan-ly-trung-tam-ngoai-ngu/). [Accessed 2026-05-18].
 
-[3] Magenest, "Top 15 phần mềm quản lý trung tâm ngoại ngữ tốt nhất Việt Nam 2024," Industry Review, 2024. [Online]. Available: https://magenest.com/vi/phan-mem-quan-ly-trung-tam-ngoai-ngu/. [Accessed 2026-05-18].
 
-[4] 6Wresearch, "Vietnam Learning Management System Market Report 2024-2030," Industry Report, 2024. [Online]. Available: https://www.6wresearch.com/industry-report/vietnam-learning-management-system-market. [Accessed 2026-05-18].
+[3] 6Wresearch, "Vietnam Learning Management System Market Report 2024-2030," Industry Report, 2024. [Online]. Available: [https://www.6wresearch.com/industry-report/vietnam-learning-management-system-market](https://www.6wresearch.com/industry-report/vietnam-learning-management-system-market). [Accessed 2026-05-18].
 
 ### Reference VN thesis projects
 
-[5] UIT, "Phát triển hệ thống phân tán microservices cho ứng dụng chia sẻ video," Khóa luận tốt nghiệp, 2025. [Online]. Available: https://nc.uit.edu.vn/khoa-luan/phat-trien-he-thong-phan-tan-microservices-cho-ung-dung-chia-se-video. [Accessed 2026-05-18].
 
-[6] UIT, "Danh sách khóa luận tốt nghiệp HTTT — UIT 2020-2025," Department Catalog, 2025. [Online]. Available: https://httt.uit.edu.vn/en_US/nghien-cuu-khoa-hoc/danh-sach-khoa-luan-tot-nghiep-dai-hoc/. [Accessed 2026-05-18].
-
-### Additional competitor analysis sources (Wave 100 Bucket D)
-
-[31] Mona Software, "Mona eLMS — Phần mềm quản lý trung tâm ngoại ngữ + tin học," Product Page, 2024. [Online]. Available: https://mona.media/phan-mem-quan-ly-trung-tam-ngoai-ngu/. [Accessed 2026-05-19].
-
-[32] DotB Vietnam, "DotB EduSoft — Phần mềm quản lý trường học + trung tâm giáo dục," Product Page, 2024. [Online]. Available: https://dotb.vn/. [Accessed 2026-05-19].
-
-[33] Bộ Giáo dục và Đào tạo, "Thông tư 29/2024/TT-BGDĐT về Dạy thêm Học thêm," 2024. [Online]. Available: https://thuvienphapluat.vn/van-ban/Giao-duc/Thong-tu-29-2024-TT-BGDDT. [Accessed 2026-05-19].
-
-[34] VECITA (Vietnam E-commerce and Digital Economy Agency), "Báo cáo Kinh tế Số Việt Nam 2024 — Chương EdTech," 2024. [Online]. Available: https://vecita.gov.vn/. [Accessed 2026-05-19].
+[4] VECITA (Vietnam E-commerce and Digital Economy Agency), "Báo cáo Kinh tế Số Việt Nam 2024 — Chương EdTech," 2024. [Online]. Available: [https://vecita.gov.vn/](https://vecita.gov.vn/). [Accessed 2026-05-19].
 
 ---
 
@@ -43,115 +30,72 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 
 ### Microservices + multi-tenant SaaS architecture
 
-[7] S. Newman, *Building Microservices: Designing Fine-Grained Systems*, 2nd ed. Sebastopol: O'Reilly Media, 2021.
 
-[8] M. Fowler, *Patterns of Enterprise Application Architecture*. Boston: Addison-Wesley, 2002.
+[5] MISA, "MISA EMIS — Hệ thống quản lý giáo dục K-12 tích hợp công lập," 2024. [Online]. Available: [https://emis.misa.vn/emisconglap/](https://emis.misa.vn/emisconglap/). [Accessed 2026-05-18].
 
-[9] AWS, "SaaS Lens — AWS Well-Architected Framework," Whitepaper, 2024. [Online]. Available: https://docs.aws.amazon.com/wellarchitected/latest/saas-lens/welcome.html. [Accessed 2026-05-18].
 
-[10] J. Krishnan, "Multi-Tenant Data Architecture," Microsoft Architecture Center, 2024. [Online]. Available: https://learn.microsoft.com/en-us/azure/architecture/guide/multitenant/considerations/data. [Accessed 2026-05-18].
+[6] Mona Software, "Mona eLMS — Phần mềm quản lý trung tâm ngoại ngữ + tin học," Product Page, 2024. [Online]. Available: [https://mona.media/phan-mem-quan-ly-trung-tam-ngoai-ngu/](https://mona.media/phan-mem-quan-ly-trung-tam-ngoai-ngu/). [Accessed 2026-05-19].
 
-### Spring Boot + PostgreSQL
 
-[11] VMware Tanzu, "Spring Boot Reference Documentation v3.5," 2024. [Online]. Available: https://docs.spring.io/spring-boot/docs/3.5.x/reference/htmlsingle/. [Accessed 2026-05-18].
+[7] EasyEdu, "Tính năng EasyEdu — Phần mềm quản lý trung tâm ngoại ngữ 1,400+ trung tâm," 2024. [Online]. Available: [https://easyedu.vn/tinh-nang/](https://easyedu.vn/tinh-nang/). [Accessed 2026-05-18].
 
-[12] PostgreSQL Global Development Group, "PostgreSQL 16 Documentation," 2024. [Online]. Available: https://www.postgresql.org/docs/16/. [Accessed 2026-05-18].
 
-### Frontend — Next.js + React
+[8] DotB Vietnam, "DotB EduSoft — Phần mềm quản lý trường học + trung tâm giáo dục," Product Page, 2024. [Online]. Available: [https://dotb.vn/](https://dotb.vn/). [Accessed 2026-05-19].
 
-[13] Vercel, "Next.js Documentation v15," 2024. [Online]. Available: https://nextjs.org/docs. [Accessed 2026-05-18].
 
-### AI integration — Prompt engineering vs RAG vs fine-tuning
+[9] Quốc hội Việt Nam, "Luật Bảo vệ Dữ liệu Cá nhân (PDPL 2023)," Số 49/2023/QH15, có hiệu lực 2026-07-01, 2023. [Online]. Available: [https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Luat-Bao-ve-du-lieu-ca-nhan-2023](https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Luat-Bao-ve-du-lieu-ca-nhan-2023). [Accessed 2026-05-19].
 
-[14] T. Brown, B. Mann, N. Ryder, et al., "Language Models are Few-Shot Learners," in *Advances in Neural Information Processing Systems (NeurIPS)*, vol. 33, pp. 1877-1901, Dec. 2020. [Online]. Available: https://arxiv.org/abs/2005.14165.
 
-[15] P. Lewis, E. Perez, A. Piktus, et al., "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks," in *NeurIPS*, vol. 33, pp. 9459-9474, Dec. 2020. [Online]. Available: https://arxiv.org/abs/2005.11401.
+[10] Quốc hội Việt Nam, "Luật An ninh mạng," Số 24/2018/QH14, 2018. [Online]. Available: [https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Luat-An-ninh-mang-2018](https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Luat-An-ninh-mang-2018). [Accessed 2026-05-18].
 
-[16] R. Rombach, A. Blattmann, D. Lorenz, P. Esser, and B. Ommer, "High-Resolution Image Synthesis with Latent Diffusion Models," in *Proc. IEEE/CVF Conf. on Computer Vision and Pattern Recognition (CVPR)*, pp. 10684-10695, 2022. [Online]. Available: https://arxiv.org/abs/2112.10752.
 
-[17] H. Liu, C. Li, Q. Wu, and Y. J. Lee, "Visual Instruction Tuning (LLaVA)," in *NeurIPS*, vol. 36, 2023. [Online]. Available: https://arxiv.org/abs/2304.08485.
+[11] Chính phủ Việt Nam, "Nghị định 53/2022/NĐ-CP về Bảo đảm An ninh Mạng," 2022. [Online]. Available: [https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Nghi-dinh-53-2022-ND-CP](https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Nghi-dinh-53-2022-ND-CP). [Accessed 2026-05-18].
+
+
+[12] T. Brown, B. Mann, N. Ryder, et al., "Language Models are Few-Shot Learners," in *Advances in Neural Information Processing Systems (NeurIPS)*, vol. 33, pp. 1877-1901, Dec. 2020. [Online]. Available: [https://arxiv.org/abs/2005.14165](https://arxiv.org/abs/2005.14165).
+
+
+[13] R. Rombach, A. Blattmann, D. Lorenz, P. Esser, and B. Ommer, "High-Resolution Image Synthesis with Latent Diffusion Models," in *Proc. IEEE/CVF Conf. on Computer Vision and Pattern Recognition (CVPR)*, pp. 10684-10695, 2022. [Online]. Available: [https://arxiv.org/abs/2112.10752](https://arxiv.org/abs/2112.10752).
+
+
+[14] H. Liu, C. Li, Q. Wu, and Y. J. Lee, "Visual Instruction Tuning (LLaVA)," in *NeurIPS*, vol. 36, 2023. [Online]. Available: [https://arxiv.org/abs/2304.08485](https://arxiv.org/abs/2304.08485).
 
 ### Additional AI integration sources (Wave 100 Bucket D)
 
-[35] Anthropic, "Claude API Documentation — Prompt Engineering Best Practices," 2024. [Online]. Available: https://docs.anthropic.com/claude/docs/prompt-engineering. [Accessed 2026-05-19].
 
-[36] OpenAI, "GPT-4 Technical Report," arXiv preprint, 2023. [Online]. Available: https://arxiv.org/abs/2303.08774. [Accessed 2026-05-19].
+[15] Anthropic, "Claude API Documentation — Prompt Engineering Best Practices," 2024. [Online]. Available: [https://docs.anthropic.com/claude/docs/prompt-engineering](https://docs.anthropic.com/claude/docs/prompt-engineering). [Accessed 2026-05-19].
 
-[37] Hugging Face, "Inference API Documentation — NSFW Image Classifier Model Card," 2024. [Online]. Available: https://huggingface.co/Falconsai/nsfw_image_detection. [Accessed 2026-05-19].
 
-[38] Replicate Inc., "Stable Diffusion XL API Documentation," 2024. [Online]. Available: https://replicate.com/stability-ai/sdxl. [Accessed 2026-05-19].
+[16] P. Lewis, E. Perez, A. Piktus, et al., "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks," in *NeurIPS*, vol. 33, pp. 9459-9474, Dec. 2020. [Online]. Available: [https://arxiv.org/abs/2005.11401](https://arxiv.org/abs/2005.11401).
 
-### Development methodology — TDD + DDD + Continuous Improvement
 
-[18] K. Beck, *Test-Driven Development: By Example*. Boston: Addison-Wesley, 2002.
+[17] K. Beck, *Test-Driven Development: By Example*. Boston: Addison-Wesley, 2002.
 
-[19] E. Evans, *Domain-Driven Design: Tackling Complexity in the Heart of Software*. Boston: Addison-Wesley, 2003.
 
-[20] R. C. Martin, *Clean Architecture: A Craftsman's Guide to Software Structure and Design*. Upper Saddle River: Prentice Hall, 2017.
+[18] E. Evans, *Domain-Driven Design: Tackling Complexity in the Heart of Software*. Boston: Addison-Wesley, 2003.
 
-### Additional architecture sources (Wave 100.7 Phase 4 Bucket B — Ch.2 LOCAL migration)
 
-[43] F. Pothon, "Architecting Multi-Tenant SaaS Solutions," in *Patterns for Cloud-Native Architectures*, Sebastopol: O'Reilly Media, 2023, ch. 7, pp. 145-198.
+[19] Chính phủ Việt Nam, "Nghị định 13/2023/NĐ-CP về Bảo vệ Dữ liệu Cá nhân," 2023. [Online]. Available: [https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Nghi-dinh-13-2023-ND-CP](https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Nghi-dinh-13-2023-ND-CP). [Accessed 2026-05-18].
 
----
 
-## Chapter 3 — Requirements Analysis (Phân tích yêu cầu)
+[20] OWASP Foundation, "OWASP Top 10 Web Application Security Risks 2021," 2021. [Online]. Available: [https://owasp.org/Top10/](https://owasp.org/Top10/). [Accessed 2026-05-18].
 
-### Vietnamese law — Data protection + cybersecurity + VAT
 
-[21] Quốc hội Việt Nam, "Luật Bảo vệ Dữ liệu Cá nhân (PDPL 2023)," Số 49/2023/QH15, có hiệu lực 2026-07-01, 2023. [Online]. Available: https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Luat-Bao-ve-du-lieu-ca-nhan-2023. [Accessed 2026-05-19].
-
-[22] Chính phủ Việt Nam, "Nghị định 13/2023/NĐ-CP về Bảo vệ Dữ liệu Cá nhân," 2023. [Online]. Available: https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Nghi-dinh-13-2023-ND-CP. [Accessed 2026-05-18].
-
-[23] Quốc hội Việt Nam, "Luật An ninh mạng," Số 24/2018/QH14, 2018. [Online]. Available: https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Luat-An-ninh-mang-2018. [Accessed 2026-05-18].
-
-[24] Chính phủ Việt Nam, "Nghị định 53/2022/NĐ-CP về Bảo đảm An ninh Mạng," 2022. [Online]. Available: https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Nghi-dinh-53-2022-ND-CP. [Accessed 2026-05-18].
-
-[25] Bộ Tài chính, "Thông tư 78/2021/TT-BTC về Hoá đơn Điện tử," 2021. [Online]. Available: https://thuvienphapluat.vn/van-ban/Thue-Phi-Le-Phi/Thong-tu-78-2021-TT-BTC. [Accessed 2026-05-18].
+[21] Bộ Tài chính, "Thông tư 78/2021/TT-BTC về Hoá đơn Điện tử," 2021. [Online]. Available: [https://thuvienphapluat.vn/van-ban/Thue-Phi-Le-Phi/Thong-tu-78-2021-TT-BTC](https://thuvienphapluat.vn/van-ban/Thue-Phi-Le-Phi/Thong-tu-78-2021-TT-BTC). [Accessed 2026-05-18].
 
 ### Additional VN law sources (Wave 100.7 Phase 2 Agent 2a)
 
-[39] Chính phủ Việt Nam, "Nghị định 147/2024/NĐ-CP về Giao dịch Điện tử," 2024. [Online]. Available: https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Nghi-dinh-147-2024-ND-CP. [Accessed 2026-05-19].
 
-[40] N. T. Phuong and L. H. Anh, "Compliance Frameworks for Software-as-a-Service in Southeast Asia: A Case Study of Vietnam's Personal Data Protection Law," *Journal of Information Systems and Management*, vol. 15, no. 2, pp. 45-67, 2024. [Online]. Available: https://doi.org/10.1080/ijsm.2024.15.2.45. [Accessed 2026-05-19].
+[22] W. E. Deming, *Out of the Crisis*. Cambridge, MA: MIT Center for Advanced Engineering Study, 1986.
 
----
 
-## Chapter 4 — System Design (Thiết kế hệ thống)
+[23] M. Poppendieck and T. Poppendieck, *Lean Software Development: An Agile Toolkit*. Boston: Addison-Wesley Professional, 2003.
 
-### Architecture decision records — methodology
 
-[26] J. Tyree and A. Akerman, "Architecture Decisions: Demystifying Architecture," *IEEE Software*, vol. 22, no. 2, pp. 19-27, Mar.-Apr. 2005. [Online]. Available: https://doi.org/10.1109/MS.2005.27.
+[24] IEEE, "IEEE 730-2014 — Standard for Software Quality Assurance Processes," IEEE Standards Association, 2014. [Online]. Available: [https://standards.ieee.org/ieee/730/5284/](https://standards.ieee.org/ieee/730/5284/). [Accessed 2026-05-19].
 
-[27] Microsoft, "Architecture Decision Records (ADR) Template," 2024. [Online]. Available: https://learn.microsoft.com/en-us/azure/well-architected/architect-role/architecture-decision-record. [Accessed 2026-05-18].
 
-### Security — OWASP + JWT + Spring Security
-
-[28] OWASP Foundation, "OWASP Top 10 Web Application Security Risks 2021," 2021. [Online]. Available: https://owasp.org/Top10/. [Accessed 2026-05-18].
-
-[29] M. B. Jones, J. Bradley, and N. Sakimura, "RFC 7519 — JSON Web Token (JWT)," IETF, May 2015. [Online]. Available: https://datatracker.ietf.org/doc/html/rfc7519. [Accessed 2026-05-18].
-
-[30] VMware Tanzu, "Spring Security Reference Documentation v6.4," 2024. [Online]. Available: https://docs.spring.io/spring-security/reference/index.html. [Accessed 2026-05-18].
-
-### Additional methodology sources (Wave 100.7 Phase 2 Agent 2a)
-
-[41] N. Forsgren, J. Humble, and G. Kim, *Accelerate: The Science of Lean Software and DevOps — Building and Scaling High Performing Technology Organizations*. Portland: IT Revolution Press, 2018.
-
-[42] D. Sato, B. Tabaka, S. Cromwell, and D. Diaz, "Continuous Delivery: Principles and Implementation Patterns," IEEE/ACM 42nd International Conference on Software Engineering (ICSE), pp. 178-189, 2020. [Online]. Available: https://doi.org/10.1145/3377812.3382164.
-
-### Additional design methodology sources (Wave 100.7 Phase 4 Bucket B — Ch.2 LOCAL migration)
-
-[44] S. Brown, "The C4 model for visualising software architecture," 2024. [Online]. Available: https://c4model.com/. [Accessed 2026-05-19].
-
-### Additional methodology + NFR standards (Wave 102.1 — Quality-Driven Development + ISO 25010 citations)
-
-[45] W. E. Deming, *Out of the Crisis*. Cambridge, MA: MIT Center for Advanced Engineering Study, 1986.
-
-[46] M. Poppendieck and T. Poppendieck, *Lean Software Development: An Agile Toolkit*. Boston: Addison-Wesley Professional, 2003.
-
-[47] IEEE, "IEEE 730-2014 — Standard for Software Quality Assurance Processes," IEEE Standards Association, 2014. [Online]. Available: https://standards.ieee.org/ieee/730/5284/. [Accessed 2026-05-19].
-
-[48] ISO/IEC, "ISO/IEC 25010:2011 — Systems and software engineering — Systems and software Quality Requirements and Evaluation (SQuaRE) — System and software quality models," International Organization for Standardization, 2011. [Online]. Available: https://www.iso.org/standard/35733.html. [Accessed 2026-05-19].
+[25] ISO/IEC, "ISO/IEC 25010:2011 — Systems and software engineering — Systems and software Quality Requirements and Evaluation (SQuaRE) — System and software quality models," International Organization for Standardization, 2011. [Online]. Available: [https://www.iso.org/standard/35733.html](https://www.iso.org/standard/35733.html). [Accessed 2026-05-19].
 
 ---
 
@@ -243,3 +187,76 @@ Khi cần thêm ref mới cho chương:
 - [GAP-647](../../04-quality/gaps/phase-1-beta/GAP-647-thesis-bibliography-ieee.md) — parent gap
 - [chapter-mapping.md](../chapter-mapping.md) — chapter source mapping
 - [GAP-650](../../04-quality/gaps/phase-1-beta/GAP-650-thesis-chapter-1-literature.md) — Chapter 1 literature consumer
+
+
+[26] Microsoft, "Architecture Decision Records (ADR) Template," 2024. [Online]. Available: [https://learn.microsoft.com/en-us/azure/well-architected/architect-role/architecture-decision-record](https://learn.microsoft.com/en-us/azure/well-architected/architect-role/architecture-decision-record). [Accessed 2026-05-18].
+
+### Security — OWASP + JWT + Spring Security
+
+
+[27] AWS, "SaaS Lens — AWS Well-Architected Framework," Whitepaper, 2024. [Online]. Available: [https://docs.aws.amazon.com/wellarchitected/latest/saas-lens/welcome.html](https://docs.aws.amazon.com/wellarchitected/latest/saas-lens/welcome.html). [Accessed 2026-05-18].
+
+
+[28] F. Pothon, "Architecting Multi-Tenant SaaS Solutions," in *Patterns for Cloud-Native Architectures*, Sebastopol: O'Reilly Media, 2023, ch. 7, pp. 145-198.
+
+---
+
+## Chapter 3 — Requirements Analysis (Phân tích yêu cầu)
+
+### Vietnamese law — Data protection + cybersecurity + VAT
+
+
+[29] S. Brown, "The C4 model for visualising software architecture," 2024. [Online]. Available: [https://c4model.com/](https://c4model.com/). [Accessed 2026-05-19].
+
+### Additional methodology + NFR standards (Wave 102.1 — Quality-Driven Development + ISO 25010 citations)
+
+
+[30] M. B. Jones, J. Bradley, and N. Sakimura, "RFC 7519 — JSON Web Token (JWT)," IETF, May 2015. [Online]. Available: [https://datatracker.ietf.org/doc/html/rfc7519](https://datatracker.ietf.org/doc/html/rfc7519). [Accessed 2026-05-18].
+
+
+[31] VMware Tanzu, "Spring Security Reference Documentation v6.4," 2024. [Online]. Available: [https://docs.spring.io/spring-security/reference/index.html](https://docs.spring.io/spring-security/reference/index.html). [Accessed 2026-05-18].
+
+### Additional methodology sources (Wave 100.7 Phase 2 Agent 2a)
+
+
+[32] OpenAI, "GPT-4 Technical Report," arXiv preprint, 2023. [Online]. Available: [https://arxiv.org/abs/2303.08774](https://arxiv.org/abs/2303.08774). [Accessed 2026-05-19].
+
+
+[33] Hugging Face, "Inference API Documentation — NSFW Image Classifier Model Card," 2024. [Online]. Available: [https://huggingface.co/Falconsai/nsfw_image_detection](https://huggingface.co/Falconsai/nsfw_image_detection). [Accessed 2026-05-19].
+
+
+[34] Replicate Inc., "Stable Diffusion XL API Documentation," 2024. [Online]. Available: [https://replicate.com/stability-ai/sdxl](https://replicate.com/stability-ai/sdxl). [Accessed 2026-05-19].
+
+### Development methodology — TDD + DDD + Continuous Improvement
+
+
+[35] Chính phủ Việt Nam, "Nghị định 147/2024/NĐ-CP về Giao dịch Điện tử," 2024. [Online]. Available: [https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Nghi-dinh-147-2024-ND-CP](https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Nghi-dinh-147-2024-ND-CP). [Accessed 2026-05-19].
+
+
+[36] N. T. Phuong and L. H. Anh, "Compliance Frameworks for Software-as-a-Service in Southeast Asia: A Case Study of Vietnam's Personal Data Protection Law," *Journal of Information Systems and Management*, vol. 15, no. 2, pp. 45-67, 2024. [Online]. Available: [https://doi.org/10.1080/ijsm.2024.15.2.45](https://doi.org/10.1080/ijsm.2024.15.2.45). [Accessed 2026-05-19].
+
+---
+
+## Chapter 4 — System Design (Thiết kế hệ thống)
+
+### Architecture decision records — methodology
+
+
+[37] J. Tyree and A. Akerman, "Architecture Decisions: Demystifying Architecture," *IEEE Software*, vol. 22, no. 2, pp. 19-27, Mar.-Apr. 2005. [Online]. Available: [https://doi.org/10.1109/MS.2005.27](https://doi.org/10.1109/MS.2005.27).
+
+
+[38] D. Sato, B. Tabaka, S. Cromwell, and D. Diaz, "Continuous Delivery: Principles and Implementation Patterns," IEEE/ACM 42nd International Conference on Software Engineering (ICSE), pp. 178-189, 2020. [Online]. Available: [https://doi.org/10.1145/3377812.3382164](https://doi.org/10.1145/3377812.3382164).
+
+### Additional design methodology sources (Wave 100.7 Phase 4 Bucket B — Ch.2 LOCAL migration)
+
+
+[39] N. Forsgren, J. Humble, and G. Kim, *Accelerate: The Science of Lean Software and DevOps — Building and Scaling High Performing Technology Organizations*. Portland: IT Revolution Press, 2018.
+
+
+---
+
+## Notes
+
+- 9 orphan refs dropped Wave 102.4 (old [5, 6, 7, 8, 10, 11, 12, 13, 20] — not cited in body chapters or Mở đầu/Kết luận).
+- Renumber by first-appearance per UTC §3 citation order convention.
+- Total active refs: 39.
