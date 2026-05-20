@@ -611,6 +611,39 @@ jobs:
           # prospectively per `rule-change-process.md` convention.
           bash scripts/check-docs-subfolder-maturity.sh --warn
 
+  env-vars-render-validator:
+    name: env-reference YAML render + validator (GAP-692 Phase 1)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python (PyYAML fallback for render)
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Render self-test fixture (env=prod)
+        run: |
+          # Per `.claude/rules/markdown-variable-reference.md` §8 self-test.
+          # Render fixture + validate exit 0 (zero unresolved {{var}} refs).
+          mkdir -p build/rendered-docs
+          bash scripts/render-env-vars.sh prod \
+            .claude/rules/_examples/env-reference-self-test.md \
+            build/rendered-docs/env-reference-self-test-prod.md
+
+      - name: Validate no unresolved env-var references
+        run: |
+          # Per `.claude/rules/markdown-variable-reference.md` §4 validation.
+          # Closes Phase 1 of GAP-692 CI wire.
+          bash scripts/check-unresolved-env-vars.sh build/rendered-docs/
+
   script-tests:
     name: Script tests (`scripts/tests/test-*.sh` fixture-based)
     runs-on: ubuntu-latest

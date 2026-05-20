@@ -1,6 +1,6 @@
 # GAP-692: env-reference.yaml multi-env refactor (docs + scripts + terraform hardcoded values)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (~30%) — Phase 1 tooling shipped 2026-05-21; Phase 2 opportunistic refactor + Phase 3 pre-commit enforcement pending
 **Priority:** 🟠 P1 (META — force-multiplier per `meta-gap-priority.md` §3; eliminates Class 4 config-drift recurrence)
 **Domain:** DevOps + Meta
 **Detected:** 2026-05-21
@@ -113,11 +113,11 @@ Pre-commit hook `.husky/check-hardcoded-env-values.sh`:
 
 ## Acceptance Criteria
 
-- [ ] Phase 1 — `env-reference.yaml` shipped với 10+ rows (prod/test/dev values)
-- [ ] Phase 1 — `render-env-vars.sh` + `check-unresolved-env-vars.sh` shipped + self-test PASS
-- [ ] Phase 1 — `.claude/rules/markdown-variable-reference.md` v1.0.0 with usage examples
-- [ ] Phase 1 — TF `var.domain_name` STALE mismatch fixed (`kiteclass.com` → `kitehub.me`) + `var.aws_account_id` + `var.secrets_prefix` added
-- [ ] Phase 1 — CI job `env-vars-render` validates 1 sample rendered doc identical
+- [x] Phase 1 — `env-reference.yaml` shipped với 10+ rows (prod/test/dev values) — 10 vars × 3 envs landed
+- [x] Phase 1 — `render-env-vars.sh` + `check-unresolved-env-vars.sh` shipped + self-test PASS
+- [x] Phase 1 — `.claude/rules/markdown-variable-reference.md` v1.0.0 with usage examples
+- [x] Phase 1 — TF `var.domain_name` STALE mismatch fixed (`kiteclass.com` → `kitehub.me`) + `var.aws_account_id` + `var.secrets_prefix` added
+- [x] Phase 1 — CI job `env-vars-render-validator` validates rendered self-test fixture (`.github/workflows/script-quality.yml`)
 - [ ] Phase 2 — Top 10 high-leverage files refactored với `{{var}}` syntax; render for prod = byte-identical to current
 - [ ] Phase 2 — 5,500+ S3/region/account/domain occurrences reduced ≥40% (target audit re-run shows count drop)
 - [ ] Phase 3 — Pre-commit hook `check-hardcoded-env-values.sh` shipped (WARN mode); grace 30 ngày
@@ -140,3 +140,4 @@ Pre-commit hook `.husky/check-hardcoded-env-values.sh`:
 ## Log
 
 - **2026-05-21** — Gap filed from outside-in audit synthesis (Agents A + B + C). Existing `production-env-config-registry.md` v1.1.1 covers application*.yml runtime scope (17/45 candidates indexed per rule §2.1 audit); this gap extends scope to docs/scripts/terraform hardcoded values (broader 95 files × ~5,500+ occurrences). Critical insight: Phase 1 ship BEFORE rebuild eliminates Class 4 config-drift recurrence permanently. Phase 2 refactor opportunistic parallel feature work. Phase 3 pre-commit hook = HARD STOP post-grace.
+- **2026-05-21** — Phase 1 SHIPPED (this PR `feature/gap-692-phase-1-env-reference-yaml`). 5/9 ACs checked off (Phase 1 group complete). 7 artifacts landed cùng PR: `documents/02-architecture/env-reference.yaml` (canonical, 10 vars × 3 envs) + `scripts/render-env-vars.sh` (mkdocs-macros render, yq + Python YAML fallback) + `scripts/check-unresolved-env-vars.sh` (CI validator) + `.claude/rules/markdown-variable-reference.md` v1.0.0 (rule + reviewer-checklist + self-test §8) + `.claude/rules/_examples/env-reference-self-test.md` (fixture) + CI job `env-vars-render-validator` wire trong `.github/workflows/script-quality.yml` + `.claude/rules/rules-index.csv` row + `infrastructure/terraform-aws/variables.tf` domain_name `kiteclass.com` → `kitehub.me` + new vars `aws_account_id` (no default — force explicit) + `secrets_prefix` (default `kitehub/production`). Status flipped OPEN → PARTIAL ~30% completion per `gap-done-discipline.md` §3 PARTIAL exit ramp (Phase 2 + Phase 3 pending). Verification evidence: `bash scripts/render-env-vars.sh prod .claude/rules/_examples/env-reference-self-test.md /tmp/rendered-prod.md` → render OK; `bash scripts/check-unresolved-env-vars.sh /tmp/rendered-prod.md` → exit 0 PASS; `bash scripts/check-rules-index-csv.sh` → 74 rule rows validated; `bash scripts/check-rule-frontmatter.sh --paths ".claude/rules/markdown-variable-reference.md"` → PASS.

@@ -26,9 +26,20 @@ variable "project_name" {
 }
 
 variable "domain_name" {
-  description = "Primary platform domain (used for ALB cert hint + Route53 if managed here)"
+  description = "Primary platform domain (used for ALB cert hint + Route53 if managed here). Default tracks documents/02-architecture/env-reference.yaml prod.domain_root."
   type        = string
-  default     = "kiteclass.com"
+  default     = "kitehub.me"
+}
+
+variable "aws_account_id" {
+  description = "AWS account ID (per documents/02-architecture/env-reference.yaml prod.aws_account_id). No default — force explicit set via tfvars or env to avoid stale account drift."
+  type        = string
+}
+
+variable "secrets_prefix" {
+  description = "AWS Secrets Manager namespace prefix (per documents/02-architecture/env-reference.yaml prod.secret_prefix)."
+  type        = string
+  default     = "kitehub/production"
 }
 
 # --- VPC ---

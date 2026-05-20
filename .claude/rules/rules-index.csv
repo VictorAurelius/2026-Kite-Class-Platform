@@ -83,3 +83,4 @@ session-end-context-check,MANDATORY,1.1.0,2026-05-19,2026-05-19,session-end-cont
 vn-localization-audit-checklist,MANDATORY,1.0.0,2026-05-19,2026-05-19,vn-localization-audit-checklist.md,"kitehub/kitehub-frontend/**,kitehub/kiteclass-frontend/**,kitehub/*/src/main/resources/templates/email/**,kitehub/*/src/main/resources/i18n/**,documents/05-guides/user-manual/**",active,,
 thesis-content-standard,MANDATORY,1.1.0,2026-05-19,2026-05-20,thesis-content-standard.md,"documents/08-thesis/**;documents/04-quality/audits/persona-review/*-thesis-*;.claude/rules/thesis-content-standard.md",active,,
 always-commit-action-scratchpad,MANDATORY,1.0.0,2026-05-20,2026-05-20,always-commit-action-scratchpad.md,"documents/action-*.md",active,,
+markdown-variable-reference,MANDATORY,1.0.0,2026-05-20,2026-05-20,markdown-variable-reference.md,"documents/**/*.md;documents/02-architecture/env-reference.yaml;scripts/render-env-vars.sh;scripts/check-unresolved-env-vars.sh",active,,

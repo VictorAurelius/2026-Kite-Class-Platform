@@ -1,0 +1,59 @@
+# Canonical env reference per .claude/rules/markdown-variable-reference.md
+# Schema versioning: see scripts/check-unresolved-env-vars.sh
+# Single source of truth cho env-specific values referenced từ markdown docs
+# qua mkdocs-macros syntax {{var_name}}.
+#
+# Migration policy (Phase 1 — GAP-692): tooling-only — KHÔNG migrate existing docs.
+# Phase 2+: opportunistic refactor when docs touched.
+schema_version: 1.0
+envs: [prod, test, dev]
+vars:
+  aws_account_id:
+    description: AWS account ID (Phase 1 BETA primary account; will swap on rebuild)
+    prod: "906286017800"
+    test: "906286017800"
+    dev: "000000000000"
+    notes: shared account; isolation via tags + IAM
+  aws_region:
+    description: Primary AWS region
+    prod: ap-southeast-1
+    test: ap-southeast-1
+    dev: ap-southeast-1
+  domain_root:
+    description: Apex domain
+    prod: kitehub.me
+    test: test.kitehub.me
+    dev: localhost:3000
+  support_email:
+    description: Tenant-facing support inbox
+    prod: support@kitehub.me
+    test: support+test@kitehub.me
+    dev: dev@example.com
+  db_name:
+    description: Application database name (RDS instance + JDBC URL)
+    prod: kitehub_prod
+    test: kitehub_test
+    dev: kitehub
+  db_user:
+    description: Spring Boot DB user (least-privilege application role)
+    prod: kitehub_app
+    test: kitehub_app
+    dev: kitehub
+  secret_prefix:
+    description: AWS Secrets Manager namespace prefix
+    prod: kitehub/production
+    test: kitehub/test
+    dev: kitehub/dev
+  ecr_uri:
+    description: ECR registry URI for image push/pull
+    prod: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com
+    test: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com
+    dev: localhost:5000
+  iam_deploy_role:
+    description: IAM role assumed by deploy-production.yml workflow
+    prod: arn:aws:iam::906286017800:role/kitehub-deploy-role
+    test: arn:aws:iam::906286017800:role/kitehub-test-deploy-role
+  cloudtrail_name:
+    description: CloudTrail trail name (audit baseline per aws-observability-first.md)
+    prod: kitehub-main
+    test: kitehub-test
