@@ -252,6 +252,12 @@ Khi cần thêm ref mới cho chương:
 
 [39] N. Forsgren, J. Humble, and G. Kim, *Accelerate: The Science of Lean Software and DevOps — Building and Scaling High Performing Technology Organizations*. Portland: IT Revolution Press, 2018.
 
+### Additional sources (Wave 102.5 Bucket C — Ch.1 frame + market survey BeeClass)
+
+[40] F. Chong and G. Carraro, "Architecture Strategies for Catching the Long Tail," Microsoft Corporation, Apr. 2006. [Online]. Available: [https://learn.microsoft.com/en-us/previous-versions/dotnet/articles/aa479069(v=msdn.10)](https://learn.microsoft.com/en-us/previous-versions/dotnet/articles/aa479069(v=msdn.10)). [Accessed 2026-05-20].
+
+[41] BeeClass, "BeeClass — Phần mềm quản lý trung tâm ngoại ngữ và đào tạo tư nhân," BeeClass Vietnam, 2024. [Online]. Available: [https://beeclass.com](https://beeclass.com). [Accessed 2026-05-20].
+
 
 ---
 
@@ -259,4 +265,4 @@ Khi cần thêm ref mới cho chương:
 
 - 9 orphan refs dropped Wave 102.4 (old [5, 6, 7, 8, 10, 11, 12, 13, 20] — not cited in body chapters or Mở đầu/Kết luận).
 - Renumber by first-appearance per UTC §3 citation order convention.
-- Total active refs: 39.
+- Total active refs: 41 (39 + Wave 102.5 [40] Chong/Carraro multi-tenant SaaS + [41] BeeClass competitor analysis).
