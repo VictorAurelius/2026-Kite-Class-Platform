@@ -308,7 +308,7 @@ Prefix `kite-` (thay vì `kitehub-` hay `kiteclass-`) phản ánh bản chất d
 
 ### 2.3.3 Quyết định kiến trúc đa tenant — single-bucket pattern
 
-Quyết định kiến trúc trọng tâm của đồ án là chọn mô hình cô lập đa tenant. Tôi đã đánh giá 6 pattern khác nhau trên 6 trục tiêu chí và lựa chọn **Shared Database + cột `tenant_id` UUID + PostgreSQL Row-Level Security (RLS)** — tương ứng "Pool" model theo AWS Well-Architected SaaS Lens [27, tr.21] (đối lập với "Silo" per-tenant DB và "Bridge" per-tenant schema). AWS định nghĩa: *"Pool isolation enables tenants to share infrastructure but rely on logical mechanisms (such as row-level security policies in databases) to ensure data isolation between tenants; this model often yields the lowest operational cost but requires careful design of the isolation layer."*
+Quyết định kiến trúc trọng tâm của đồ án là chọn mô hình cô lập đa tenant. Tôi đã đánh giá 6 pattern khác nhau trên 6 trục tiêu chí và lựa chọn **Shared Database + cột `tenant_id` UUID + PostgreSQL Row-Level Security (RLS)** — tương ứng "Pool" model theo AWS Well-Architected SaaS Lens [27, tr.21] (đối lập với "Silo" per-tenant DB và "Bridge" per-tenant schema). AWS định nghĩa [27, tr.21]: *"Pool isolation enables tenants to share infrastructure but rely on logical mechanisms (such as row-level security policies in databases) to ensure data isolation between tenants; this model often yields the lowest operational cost but requires careful design of the isolation layer."*
 
 **Bảng 2.3.** Sáu pattern đa tenant và lý do chọn/loại.
 
