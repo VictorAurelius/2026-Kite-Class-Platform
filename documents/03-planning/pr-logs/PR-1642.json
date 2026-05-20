@@ -1,0 +1,33 @@
+{
+  "pr": 1642,
+  "title": "docs(thesis): vi\u1ebft README.md thu\u1ea7n ti\u1ebfng Vi\u1ec7t gi\u1edbi thi\u1ec7u \u0111\u1ed3 \u00e1n",
+  "branch": "docs/thesis-readme-vn",
+  "created_at": null,
+  "merged_at": "2026-05-20T07:13:47Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-20T07:13:55.597111",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 2,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-13324"
+  }
+}

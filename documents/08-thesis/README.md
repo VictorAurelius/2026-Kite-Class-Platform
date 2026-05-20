@@ -36,7 +36,7 @@ Metadata canonical đầy đủ tại [`thesis-info.md`](thesis-info.md) — m�
 | **Mục lục + 4 danh mục** | Mục lục chính + Danh mục Bảng biểu + Danh mục Hình ảnh + Danh mục Thuật ngữ + Danh mục Từ viết tắt |
 | **Mở đầu** | 2 trang ~700-800 từ: Lý do chọn đề tài / Mục tiêu / Phạm vi / Phương pháp / Tóm tắt nội dung / Cấu trúc đồ án |
 | **Chương 1 — Tổng quan đề tài** | §1.1 Giới thiệu chung + §1.2 Cơ sở chuyên ngành + §1.3 Khảo sát thị trường (5 phần mềm tham chiếu BeeClass / MISA EMIS / Mona eLMS / Easy Edu / DotB) + §1.4 Phạm vi đề tài và lộ trình triển khai |
-| **Chương 2 — Kiến trúc hệ thống** | C4 model (Context + Container + Component + Code) + UML (Use Case + Class + ERD + Sequence diagrams) + Thiết kế cơ sở dữ liệu (schema 3 entity chính theo định dạng UTC §2.4) + SaaS pool model với Row-Level Security |
+| **Chương 2 — Kiến trúc hệ thống** | C4 model (Context + Container + Component + Code) + UML (Class + ERD + Sequence diagrams) + Thiết kế cơ sở dữ liệu (schema 3 entity chính theo định dạng UTC §2.4) + SaaS pool model với Row-Level Security |
 | **Chương 3 — Triển khai** | §3.1 Công nghệ sử dụng (Java + Spring Boot + Next.js + PostgreSQL + AWS) + §3.2 Kết quả triển khai sản phẩm (8 UI screen lấy từ ui_kits) + §3.3 Kiểm thử và đánh giá chất lượng (test pyramid Cohn + coverage Jacoco) |
 | **Chương 4 — Kết quả triển khai và đánh giá** | §4.1 Cloud deployment AWS Singapore (hạ tầng hình dọc) + §4.2 User onboarding flow end-to-end + §4.3 KPI metrics + measurement plan + §4.4 Beta tenant scope + limitations |
 | **Kết luận và kiến nghị** | Tổng kết kết quả đạt được + đề xuất hướng phát triển |

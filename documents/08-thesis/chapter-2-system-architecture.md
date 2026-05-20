@@ -162,7 +162,7 @@ Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: tôi chọn 
 
 ## 2.3 Kiến trúc (Architecture)
 
-Đồ án áp dụng C4 model (Context / Container / Component / Code) của Simon Brown — industry-standard cho cloud-native microservices architecture documentation, đã được sử dụng tại các SaaS provider lớn (Spotify, GitHub, Stripe). C4 model phù hợp hơn UML class diagram truyền thống cho hệ thống multi-tenant phân tán vì tập trung vào ranh giới container/component thay vì class-level details. Đồ án KẾT HỢP C4 với UML/ERD/Use Case truyền thống (Booch et al. [30]) để đáp ứng cả tiêu chí kiến trúc hiện đại lẫn yêu cầu mô tả của khung-chuẩn đào tạo UTC: §2.3.1-§2.3.5 trình bày C4 Level 1+Level 2 và quy trình xác thực; §2.3.6-§2.3.9 bổ sung use case diagram, class diagram, ERD và sequence diagram cho luồng nghiệp vụ trọng tâm; §2.3.10 tổng kết phân rã service.
+Đồ án áp dụng C4 model (Context / Container / Component / Code) của Simon Brown — industry-standard cho cloud-native microservices architecture documentation, đã được sử dụng tại các SaaS provider lớn (Spotify, GitHub, Stripe). C4 model phù hợp hơn UML class diagram truyền thống cho hệ thống multi-tenant phân tán vì tập trung vào ranh giới container/component thay vì class-level details. Đồ án KẾT HỢP C4 với UML/ERD truyền thống (Booch et al. [30]) để đáp ứng cả tiêu chí kiến trúc hiện đại lẫn yêu cầu mô tả của khung-chuẩn đào tạo UTC: §2.3.1-§2.3.5 trình bày C4 Level 1+Level 2 và quy trình xác thực; §2.3.6-§2.3.8 bổ sung class diagram, ERD và sequence diagram cho luồng nghiệp vụ trọng tâm; §2.3.9 tổng kết phân rã service.
 
 ### 2.3.1 C4 Model — Level 1 System Context
 
@@ -445,57 +445,9 @@ sequenceDiagram
 
 Một nguyên tắc thiết kế quan trọng được áp dụng: service KHÔNG được tự đọc claim `tenantId` từ JWT body. Gateway là biên trust duy nhất cho việc xác thực JWT; downstream service tin tưởng header `X-Tenant-Id` do gateway phát ra. Nếu mỗi service tự parse JWT, hệ thống phải duy trì public key ở nhiều nơi và lặp logic xác thực, tăng rủi ro an toàn và chi phí bảo trì.
 
-### 2.3.6 Sơ đồ Use Case — 5 persona × 6 nhóm năng lực
+### 2.3.6 Class Diagram — Core Domain
 
-Để bổ sung góc nhìn lấy người dùng làm trung tâm bên cạnh C4 model, đồ án trình bày sơ đồ Use Case của Kite Platform theo ký pháp UML truyền thống [30]. Hình 2.5 ánh xạ 5 nhóm actor chính lên 6 nhóm năng lực sản phẩm.
-
-```mermaid
-flowchart LR
-    Vy[Người dùng tiềm năng<br/>Anonymous Prospect]
-    P1[P1 Giáo viên độc lập]
-    P2[P2 Chủ trung tâm]
-    P3[P3 Quản lý trung tâm]
-    Admin[Quản trị nền tảng]
-
-    UC1((Đăng ký +<br/>Onboarding))
-    UC2((Cấu hình<br/>Branding))
-    UC3((Quản lý<br/>Lớp học))
-    UC4((Quản lý học sinh<br/>+ giáo viên))
-    UC5((Thanh toán +<br/>Hóa đơn))
-    UC6((Phân tích +<br/>Báo cáo))
-    UC7((Audit log +<br/>Compliance))
-    UC8((Vòng đời<br/>Tenant))
-
-    Vy --> UC1
-    P1 --> UC3
-    P1 --> UC4
-    P1 --> UC6
-    P2 --> UC1
-    P2 --> UC2
-    P2 --> UC3
-    P2 --> UC4
-    P2 --> UC5
-    P2 --> UC6
-    P3 --> UC3
-    P3 --> UC4
-    P3 --> UC6
-    Admin --> UC7
-    Admin --> UC8
-    Admin --> UC5
-
-    classDef actor fill:#dbeafe,stroke:#1e40af
-    classDef usecase fill:#fef3c7,stroke:#92400e
-    class Vy,P1,P2,P3,Admin actor
-    class UC1,UC2,UC3,UC4,UC5,UC6,UC7,UC8 usecase
-```
-
-**Hình 2.5.** Use case diagram — 5 persona × 6 nhóm chức năng.
-
-Mỗi persona truy cập một tập con các use case theo vai trò: Anonymous Prospect chỉ thấy luồng đăng ký; P1 Solo Teacher tập trung vào lớp học và học sinh trực tiếp; P2 Center Owner có quyền toàn phần trong trung tâm (bao gồm thanh toán và branding); P3 Center Manager bị giới hạn ở quản lý vận hành (không thấy mục thanh toán); Platform Admin chỉ thao tác trên các use case quản trị nền tảng (audit log, vòng đời tenant, đối soát thanh toán nội bộ).
-
-### 2.3.7 Class Diagram — Core Domain
-
-Sơ đồ lớp UML mô tả các entity nghiệp vụ cốt lõi của Kite Platform cùng quan hệ giữa chúng. Hình 2.6 trình bày các lớp chính trong miền giáo dục đa tenant.
+Sơ đồ lớp UML mô tả các entity nghiệp vụ cốt lõi của Kite Platform cùng quan hệ giữa chúng. Hình 2.5 trình bày các lớp chính trong miền giáo dục đa tenant.
 
 ```mermaid
 classDiagram
@@ -573,11 +525,11 @@ classDiagram
     Student "1" --> "many" Attendance : tracks
 ```
 
-**Hình 2.6.** Class diagram — core domain entities và quan hệ.
+**Hình 2.5.** Class diagram — core domain entities và quan hệ.
 
 Class diagram tập trung vào hành vi runtime cùng các phương thức nghiệp vụ chính: `Tenant.provision()` khởi tạo instance mới khi quản trị duyệt yêu cầu beta; `Tenant.suspend()` được gọi khi thanh toán thất bại quá thời gian ân hạn; `Tenant.cancel()` đánh dấu off-boarding sau cửa sổ lưu giữ 7 ngày. Cột `tenantId` UUID xuất hiện ở mọi entity domain — đây là cột khoá ngoại bắt buộc cho chính sách RLS PostgreSQL được mô tả ở §2.3.4.
 
-### 2.3.8 ERD — Sơ đồ quan hệ thực thể
+### 2.3.7 ERD — Sơ đồ quan hệ thực thể
 
 Sơ đồ ERD (Entity Relationship Diagram) cung cấp góc nhìn ở tầng lưu trữ, tập trung vào tính cardinality giữa các bảng — khác với class diagram §2.3.7 vốn tập trung vào hành vi runtime và phương thức.
 
@@ -595,13 +547,13 @@ erDiagram
     CLASSES ||--o{ ATTENDANCE : records
 ```
 
-**Hình 2.7.** ERD high-level — quan hệ giữa các entity chính (`CLASSES` = bảng `class`/lớp học; rename để tránh xung đột với từ khóa `class` reserved trong cú pháp Mermaid erDiagram).
+**Hình 2.6.** ERD high-level — quan hệ giữa các entity chính (`CLASSES` = bảng `class`/lớp học; rename để tránh xung đột với từ khóa `class` reserved trong cú pháp Mermaid erDiagram).
 
 ERD nhấn mạnh quan hệ many-to-many giữa `STUDENT` và `CLASSES` qua bảng nối `STUDENT_CLASS` (một học sinh có thể đăng ký nhiều lớp, một lớp có nhiều học sinh) — chi tiết quan hệ này bị che giấu ở class diagram cấp độ runtime. Mọi quan hệ xuất phát từ `TENANT` đều có cardinality `1..N` thể hiện ranh giới đa tenant: không có entity nghiệp vụ nào tồn tại ngoài ngữ cảnh tenant.
 
-### 2.3.9 Sequence Diagram — Luồng cấp phát tenant
+### 2.3.8 Sequence Diagram — Luồng cấp phát tenant
 
-Luồng cấp phát tenant từ lúc người dùng tiềm năng gửi yêu cầu beta đến khi chủ trung tâm đăng nhập lần đầu trải qua nhiều bước phối hợp giữa frontend, backend và các dịch vụ ngoài. Hình 2.8 trình bày tuần tự các bước theo ký pháp UML.
+Luồng cấp phát tenant từ lúc người dùng tiềm năng gửi yêu cầu beta đến khi chủ trung tâm đăng nhập lần đầu trải qua nhiều bước phối hợp giữa frontend, backend và các dịch vụ ngoài. Hình 2.7 trình bày tuần tự các bước theo ký pháp UML.
 
 ```mermaid
 sequenceDiagram
@@ -628,11 +580,11 @@ sequenceDiagram
     FE-->>U: Redirect /dashboard wizard 5 bước
 ```
 
-**Hình 2.8.** Sequence diagram — luồng cấp phát tenant beta.
+**Hình 2.7.** Sequence diagram — luồng cấp phát tenant beta.
 
-Tuần tự cho thấy ranh giới giữa pha PENDING (chờ duyệt thủ công) và pha TRIAL (sau khi quản trị kích hoạt) — đây là điểm chuyển trạng thái quan trọng được tham chiếu lại tại Hình 2.9 §2.4.1 (máy trạng thái vòng đời tenant). Việc phát sự kiện fanout `branding.deploy.exchange` qua RabbitMQ song song với gửi email cho phép `kitehub-branding` dựng template mặc định trong khi chờ chủ trung tâm xác thực — giảm thời gian onboarding khi user click magic-link.
+Tuần tự cho thấy ranh giới giữa pha PENDING (chờ duyệt thủ công) và pha TRIAL (sau khi quản trị kích hoạt) — đây là điểm chuyển trạng thái quan trọng được tham chiếu lại tại Hình 2.8 §2.4.1 (máy trạng thái vòng đời tenant). Việc phát sự kiện fanout `branding.deploy.exchange` qua RabbitMQ song song với gửi email cho phép `kitehub-branding` dựng template mặc định trong khi chờ chủ trung tâm xác thực — giảm thời gian onboarding khi user click magic-link.
 
-### 2.3.10 Phân rã service — 6 service KiteHub + 1 KiteClass core
+### 2.3.9 Phân rã service — 6 service KiteHub + 1 KiteClass core
 
 Danh mục service được tổng hợp theo mô hình Backstage [22] (mỗi service đóng vai một component có metadata + ownership + dependency).
 
@@ -737,7 +689,7 @@ Bảng `students` chứa thông tin cá nhân nhạy cảm và do đó phải tu
 
 ### 2.5.1 Máy trạng thái vòng đời tenant
 
-Vòng đời tenant do service `kitehub-subscription` quản lý theo máy trạng thái 5 trạng thái biểu diễn trong Hình 2.9.
+Vòng đời tenant do service `kitehub-subscription` quản lý theo máy trạng thái 5 trạng thái biểu diễn trong Hình 2.8.
 
 ```mermaid
 stateDiagram-v2
@@ -753,7 +705,7 @@ stateDiagram-v2
     CANCELLED --> [*]: xóa dữ liệu theo quy trình off-boarding
 ```
 
-**Hình 2.9.** Máy trạng thái vòng đời tenant.
+**Hình 2.8.** Máy trạng thái vòng đời tenant.
 
 Diễn giải các bước chuyển trạng thái: PENDING → TRIAL khi quản trị duyệt yêu cầu beta và kích hoạt cấp phát (tạo `instance_id` UUID, khởi tạo `P2_CENTER_OWNER`, gửi magic-link) — dùng thử 14 ngày. TRIAL → ACTIVE khi thanh toán thành công + hệ thống phát hành hóa đơn. ACTIVE → SUSPENDED sau khi gia hạn thất bại + ân hạn 3 ngày — tenant không đăng nhập được, dữ liệu lưu giữ 7 ngày. SUSPENDED → CANCELLED sau 7 ngày lưu giữ — dữ liệu domain xóa theo off-boarding; audit log lưu theo PDPL Điều 11 [9]. Cột `tenant_id` tồn tại đến khi CANCELLED + cửa sổ lưu giữ kết thúc; chính sách RLS lọc dựa trên `tenant_id` KHÔNG dựa trên trạng thái — tầng service tự enforce kiểm tra trạng thái (tenant SUSPENDED hiển thị "Tài khoản bị tạm khóa, vui lòng liên hệ hỗ trợ").
 
