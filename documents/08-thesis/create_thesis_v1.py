@@ -1860,7 +1860,7 @@ def add_references_from_md(doc):
 
     p = doc.add_paragraph(style='Heading 1')
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run("DANH MỤC TÀI LIỆU THAM KHẢO")
+    run = p.add_run("TÀI LIỆU THAM KHẢO")
     run.font.name = FONT_NAME
     if run._element.rPr is not None:
         run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
