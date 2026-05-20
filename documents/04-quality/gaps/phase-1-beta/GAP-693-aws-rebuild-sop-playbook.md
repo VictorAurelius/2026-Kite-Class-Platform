@@ -157,6 +157,7 @@ Document worked example trong runbook §9.
 
 - **GAP-612** AWS account suspension (trigger event; rebuild gated on resolve)
 - **GAP-694** local self-test investigation (prerequisite — Gate 2/3 require working local stack)
+- **GAP-695** self-test readiness comprehensive plan (parent catalog cho local self-test execution; Gate 2 local stack health + Gate 3 local smoke E2E reference GAP-695 4-tier plan)
 - **GAP-692** env-reference.yaml refactor (prerequisite — Gate 4 plan classifier reads env vars)
 - `.claude/rules/release-deploy-standard.md` v1.2.0 (existing deploy standard; this gap = specialization for rebuild scope)
 - `.claude/rules/concurrent-production-mutation-ops.md` (Class 1 prevention — Gate 4 + Step 9)

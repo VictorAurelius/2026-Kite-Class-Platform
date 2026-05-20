@@ -558,6 +558,28 @@ Foundation + expansion sweep of `documents/02-architecture/` — closure PR ship
 - Agent design assumed SSM Parameter Store but user pre-populated Secrets Manager → PR #1403 align.
 - Hot-fixes on EC2 surface 3 PM2 ecosystem.config.js bugs + AL2023 certbot no systemd units → repo source bugs tracked GAP-572..574.
 
+### 🚀 Next Action — Self-test readiness 4-tier plan SHIPPED (2026-05-21) — Tier 0 unlock pending
+
+**GAP-695 SHIPPED 2026-05-21** — comprehensive parent catalog cho self-test execution:
+- 📋 [`GAP-695`](phase-1-beta/GAP-695-self-test-readiness-comprehensive-plan.md) — 4-tier gap catalog với dependency order + effort estimate
+- 📋 [`documents/05-guides/local-dev/self-test-readiness-plan.md`](../../05-guides/local-dev/self-test-readiness-plan.md) — TL;DR + dependency graph + ordered fix sequence
+
+**Critical path ~6-7h dev effort (1-2 dev days):**
+- **Tier 0** Stack startup (~1-1.5h) gated [`GAP-694`](phase-1-beta/GAP-694-local-self-test-investigation-fix.md) — Docker Desktop launch (user action) + `.env` 9 keys populate + (optional META) preflight `check-docker.sh`
+- **Tier 1** Endpoint + auth (~2h) — GAP-518 closure local + GAP-519 sidebar nav + GAP-481 routing verify + GAP-520 JWT rotation
+- **Tier 2** Business flow (~3-4h) — GAP-538 onboarding E2E + GAP-637 `@PreAuthorize` backfill + GAP-531 tenant init walk + GAP-516 2FA flow
+- **Tier 3** Data realism (~5-6h optional) — GAP-658 VN seed + GAP-543/659 email tone + GAP-657 email hardening + GAP-269b student endpoints
+
+**User action required (next session):**
+1. Launch Docker Desktop trên Windows host (`powershell.exe Start-Process` per `agent-action-bias.md` §1 Part B) — ~5min
+2. Append 9 missing keys vào `kitehub/.env` per Phase 0A audit findings — ~10min
+3. `bash kitehub/scripts/up.sh --profile infra-only` → exit gate Phase 1 Tier 0
+4. Spawn Wave-pack agents parallel cho Tier 1 + Tier 2 fixes per plan §3
+
+**Force-multiplier:** 1 catalog eliminate 30+ gap cross-reference overhead per session restart. Bypass AWS dependency (GAP-612) cho code-side closure local.
+
+---
+
 ### 🚀 Next Action — Wave 91 code shipped (5/5 buckets + CVE) — Coordinator F BLOCKED by GAP-612 AWS suspension (2026-05-17/18)
 
 **Wave 91 batch-1 SHIPPED (5/6 PRs merged offline despite AWS suspension):**

@@ -107,6 +107,7 @@ After 0A+0B working: ship `.claude/rules/local-self-test-before-aws-deploy.md` v
 - `.claude/rules/agent-action-bias.md` §1 Part A (do it yourself, automation > manual)
 - `meta-gap-priority.md` §3 — Meta-P0 force-multiplier (every future rebuild/deploy benefits)
 - Outside-in audit synthesis 2026-05-21 (this gap origin)
+- **[`GAP-695`](GAP-695-self-test-readiness-comprehensive-plan.md)** — parent catalog cho self-test readiness (this gap = Tier 0 sub-scope: Docker + .env + preflight); Tier 1-3 execution paths enumerate trong GAP-695 §Current State catalog
 
 ## Log
 
