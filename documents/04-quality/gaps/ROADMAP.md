@@ -18,7 +18,7 @@
 
 ### 🎉 Wave 102.3 SHIPPED 2026-05-20 — Thesis V1 polish path to ≥95 A (~91.5/100 A-, +5 vs Wave 102.2)
 
-4 PRs merged: #1616 plan + #1617 Ch.4 (bullet 43%→0% + trim §4.4) + #1618 Ch.3 (trade-offs trim) + #1619 Ch.2 (§2.4/§2.5 trim + orphan `[49]`→`[34]` VECITA fix). Bucket D bibliography UTC giáo trình refs DROPPED per user direction. DOCX re-rendered 1.3MB / ~72 trang (within 60-80 cap). 10 page-num cites `[N, tr.X]` added across 3 chapters. Audit `AUDIT-2026-05-20-thesis-v1-wave-102-3-polish-docx`.
+**4 PRs merged:** #1616 plan + Bucket D drop + #1617 Ch.4 (bullet 43%→0% + trim §4.4) + #1618 Ch.3 (trade-offs trim) + #1619 Ch.2 (§2.4/§2.5 trim + orphan `[49]`→`[34]` VECITA fix). Bucket D bibliography UTC giáo trình refs DROPPED per user direction "giáo trình UTC không cần thiết". DOCX re-rendered 1.3MB / ~72 trang (within 60-80 cap, down từ ~94-96). 10 page-num cites `[N, tr.X]` added across 3 chapters. Audit `AUDIT-2026-05-20-thesis-v1-wave-102-3-polish-docx`.
 
 ---
 
