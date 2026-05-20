@@ -64,7 +64,6 @@ Tổng quy mô codebase ước tính khoảng 80.000 dòng (chưa tính tests v�
 
 Phần này trình bày kết quả triển khai 8 giao diện cốt lõi của KiteHub Platform giai đoạn beta, đại diện cho hành trình end-to-end của người dùng từ khám phá sản phẩm đến vận hành tenant. Mỗi giao diện được mô tả kèm hình minh họa, persona target và mục tiêu nghiệp vụ.
 
-Ghi chú về hình ảnh: trong phiên bản đồ án này, các hình minh họa giao diện đang ở dạng placeholder tham chiếu mockup HTML/JSX tại `documents/02-architecture/design-system/ui_kits/`. Trước cửa sổ bảo vệ, PNG snapshot độ phân giải 1440×900 (browser locale vi-VN) sẽ được capture và nhúng inline.
 
 ### 3.2.1 Trang chủ marketing KiteHub
 
@@ -72,7 +71,6 @@ Ghi chú về hình ảnh: trong phiên bản đồ án này, các hình minh h�
 
 **Hình 3.1.** Trang chủ marketing KiteHub (`kitehub.me/`) — giao diện đầu tiên anonymous visitor tiếp xúc với nền tảng.
 
-Mockup source: `documents/02-architecture/design-system/ui_kits/kitehub-story-v2/index.html`
 
 Trang chủ marketing đóng vai trò "first impression" của KiteHub đối với anonymous prospect persona. Layout 3-fold: hero section với tagline "Nền tảng quản lý trung tâm dạy thêm" cùng value proposition 3 bullet (Multi-tenant isolation, AI Branding, Bộ tính năng quản lý lớp đầy đủ) và CTA chính "Yêu cầu truy cập Beta". Tone tiếng Việt formal-friendly, sample data Việt Nam (Trung tâm Anh ngữ Sky Education tên giả định, Lớp Anh ngữ 5A1). Tiếp theo là 3 phần: "Vì sao chọn KiteHub" (so sánh với 3 đối tượng tham khảo — chi tiết tại Chương 1), "Cho ai" (P1 Solo Teacher + P2 Center Owner profile), và footer minh bạch về giai đoạn beta cùng đường dẫn liên hệ qua email và Zalo.
 
@@ -82,7 +80,6 @@ Trang chủ marketing đóng vai trò "first impression" của KiteHub đối v�
 
 **Hình 3.2.** Wizard đăng ký yêu cầu beta giai đoạn 1 (`/auth/request-beta-access`) — form 4 trường thiết kế tối thiểu để giảm friction.
 
-Mockup source: `documents/02-architecture/design-system/ui_kits/kitehub-pro-v2/screens/branding-wizard-step1-welcome.html`
 
 Wizard đăng ký bao gồm 4 trường: họ tên, email, tên trung tâm dự kiến, quy mô (combobox: dưới 50 học sinh / 50-150 / 150-500 / trên 500 học sinh). Form không yêu cầu mật khẩu tại bước này — admin nền tảng review request và gửi claim code 6 chữ số qua email sau khi duyệt. Field "tên trung tâm" đính kèm hint text "Ví dụ: Trung tâm Anh ngữ Sky Education". Form validation client-side bằng React Hook Form + Zod (định dạng email + tên không trống + quy mô bắt buộc); validation server-side bổ sung honeypot field chống bot và rate-limit 24 giờ per email. Sau submit thành công, page hiển thị banner xác nhận "Yêu cầu đã được gửi — đội ngũ KiteHub sẽ phản hồi trong 1-2 ngày làm việc qua email".
 
@@ -92,7 +89,6 @@ Wizard đăng ký bao gồm 4 trường: họ tên, email, tên trung tâm dự 
 
 **Hình 3.3.** Dashboard chính của Chủ trung tâm sau lần đăng nhập đầu tiên — 3 KPI card và onboarding checklist 5 bước.
 
-Mockup source: `documents/02-architecture/design-system/ui_kits/kitehub-pro-v2/screens/dashboard-default.html`
 
 Sau lần đăng nhập đầu tiên, dashboard hiển thị 3 thành phần chính cho Chủ trung tâm: thứ nhất, KPI cards với 3 thẻ "Doanh thu tháng", "Số học sinh", "Số lớp" — mặc định hiển thị `0đ`, `0`, `0` cho tenant mới chưa nhập dữ liệu; thứ hai, onboarding checklist 5 bước với icon và link tới wizard tương ứng — "Tạo lớp đầu tiên", "Thêm học sinh", "Tạo lịch học", "Cấu hình thanh toán", "Mời giáo viên đồng nghiệp"; thứ ba, sample data toggle cho phép load dữ liệu mẫu (1 chủ trung tâm giả định Trần Thị Hồng + 4 học sinh + 1 lớp Anh ngữ 5A1) để người dùng thử các chức năng trước khi nhập dữ liệu thật. Format VND `1.500.000đ` cùng date tiếng Việt `Thứ Hai, 20/05/2026` áp dụng đồng nhất.
 
@@ -102,7 +98,6 @@ Sau lần đăng nhập đầu tiên, dashboard hiển thị 3 thành phần ch�
 
 **Hình 3.4.** Trang xác nhận provisioning tenant thành công sau khi người dùng nhập claim code 6 chữ số và đặt mật khẩu.
 
-Mockup source: `documents/02-architecture/design-system/ui_kits/kitehub-pro-v2/screens/dashboard-success.html`
 
 Sau khi người dùng exchange claim code thành công, hệ thống tạo tenant mới với atomic transaction (INSERT tenant + INSERT user + UPDATE beta_request status — chi tiết tại Chương 4). Trang xác nhận hiển thị: tiêu đề "Chào mừng đến với KiteHub", subdomain tenant được cấp `https://sky-edu.kitehub.me`, danh sách 3 bước tiếp theo gợi ý ("Khám phá dashboard", "Cài đặt thông tin trung tâm", "Tạo lớp học đầu tiên"), và CTA "Đăng nhập ngay" tự động redirect tới `/dashboard` với JWT đã có sẵn (không yêu cầu re-login). Banner phía dưới notify "Bạn đang trong giai đoạn beta — vui lòng phản hồi qua Zalo `zalo.me/kitehub` nếu gặp vấn đề".
 
@@ -112,7 +107,6 @@ Sau khi người dùng exchange claim code thành công, hệ thống tạo tena
 
 **Hình 3.5.** Giao diện quản lý lớp học — danh sách lớp với filter, bulk actions và CTA tạo lớp mới.
 
-Mockup source: `documents/02-architecture/design-system/ui_kits/kitehub-admin/screens/multi-class-roster.html`
 
 Giao diện quản lý lớp hiển thị danh sách tất cả các lớp của tenant với các cột: Mã lớp, Tên lớp (ví dụ `Lớp Anh ngữ 5A1`), Giáo viên chủ nhiệm, Số học sinh, Lịch học, Trạng thái (Đang hoạt động / Tạm nghỉ / Đã kết thúc), Hành động (Xem chi tiết / Sửa / Lưu trữ). Bảng hỗ trợ filter combo (theo trạng thái + theo giáo viên + theo môn học) và search theo tên hoặc mã lớp. Bulk actions cho phép chọn nhiều lớp để gửi thông báo Zalo group hoặc export Excel danh sách điểm danh. CTA "Tạo lớp mới" góc trên phải mở wizard 4 bước: thông tin cơ bản → lịch học (Mon-Sat theo VN edu convention) → danh sách học sinh → cấu hình học phí.
 
@@ -122,7 +116,6 @@ Giao diện quản lý lớp hiển thị danh sách tất cả các lớp của
 
 **Hình 3.6.** Giao diện tạo hóa đơn — form với định dạng VND, preview bên phải và các action gửi qua email và Zalo.
 
-Mockup source: `documents/02-architecture/design-system/ui_kits/kitehub-pro-v2/screens/billing-payment.html`
 
 Form tạo hóa đơn cho phép Chủ trung tâm hoặc Manager tạo hóa đơn cho học sinh (cá nhân) hoặc batch (nhiều học sinh trong cùng lớp). Layout 2 cột: cột trái — form nhập (Học sinh nhận hóa đơn, Lớp, Tháng/Kỳ học, Học phí gốc, Giảm giá, Phụ thu, Hạn thanh toán); cột phải — preview hóa đơn realtime với header "HÓA ĐƠN ĐIỆN TỬ" theo convention VN, mã số thuế tenant (nếu có), tổng tiền `Tổng cộng: 1.500.000đ` VND format. Preview bao gồm QR code VietQR để học sinh quét chuyển khoản trực tiếp (Vietcombank/Techcombank/MB merchant code). Sau khi tạo, hóa đơn được gửi qua 3 kênh: email PDF chính thức cho phụ huynh, link xem trực tuyến qua Zalo group cha mẹ, và lưu trong tài khoản học sinh trên dashboard. Trong giai đoạn beta, payment gateway integration (Stripe / MoMo / VNPay) defer sang giai đoạn paid do yêu cầu giấy phép PSP; tenant đối soát thủ công qua chuyển khoản ngân hàng.
 
@@ -132,7 +125,6 @@ Form tạo hóa đơn cho phép Chủ trung tâm hoặc Manager tạo hóa đơn
 
 **Hình 3.7.** Preview template email "Beta access approved" — giao diện admin xem trước email gửi cho tenant trước khi phát hành.
 
-Mockup source: `documents/02-architecture/design-system/ui_kits/kitehub-admin/screens/dashboard.html`
 
 Admin nền tảng có thể preview template email trước khi gửi cho tenant beta. Layout 2 cột: cột trái — form input các biến (tên người nhận, tên trung tâm, claim code, link kích hoạt, deadline kích hoạt); cột phải — rendering preview email cho desktop và mobile responsive. Subject line tone tiếng Việt formal-respectful (`Chào mừng anh/chị đến KiteHub — Tài khoản đã được kích hoạt`), greeting `Em chào chị Hồng,` theo persona tone matrix. Email body bao gồm 3 phần: lời mời sử dụng, hướng dẫn nhập claim code, CTA "Kích hoạt tài khoản ngay" và footer minh bạch "Bạn đang trong cohort beta khép kín 20 tenant — đội ngũ KiteHub sẽ liên hệ phản hồi hàng tuần". Nút "Gửi thử cho admin" cho phép admin test email rendering trước khi phát hành cho tenant. Email được sign DKIM + SPF + DMARC qua AWS SES + Cloudflare DNS records để đảm bảo deliverability cao.
 
@@ -142,13 +134,12 @@ Admin nền tảng có thể preview template email trước khi gửi cho tenan
 
 **Hình 3.8.** Trang audit log của Admin nền tảng — danh sách hành động admin tuân thủ PDPL Article 11 tamper-proof immutable log.
 
-Mockup source: `documents/02-architecture/design-system/ui_kits/kitehub-admin/screens/dashboard.html`
 
-Audit log hiển thị toàn bộ hành động sensitive của admin nền tảng dưới dạng bảng immutable (chỉ INSERT, không UPDATE/DELETE theo migration `V60__make_admin_audit_logs_immutable.sql` — đảm bảo tamper-proof theo PDPL 2023 Article 11). Các cột: Thời gian (`Thứ Hai, 20/05/2026 09:30`), Admin user (`admin@kitehub.me`), Loại hành động (`BETA_APPROVE`, `TENANT_SUSPEND`, `EMAIL_TEMPLATE_UPDATE`), Đối tượng tác động (Tenant `Sky Education` / Beta request `req_uuid`), IP address (rút gọn an toàn), Chi tiết (JSON expandable). Filter combo cho phép tìm theo loại hành động, theo admin user, theo khoảng thời gian. Top banner notify compliance "Trang này được bảo vệ bởi PDPL Article 11 — mọi hành động admin được lưu vĩnh viễn và không thể chỉnh sửa". Retention 5 năm theo PDPL Art 11.2; export CSV / PDF cho compliance audit định kỳ hằng quý.
+Audit log hiển thị toàn bộ hành động sensitive của admin nền tảng dưới dạng bảng immutable (chỉ INSERT, không UPDATE/DELETE theo migration cơ sở dữ liệu áp dụng database trigger immutable — đảm bảo tamper-proof theo PDPL 2023 Article 11). Các cột: Thời gian (`Thứ Hai, 20/05/2026 09:30`), Admin user (`admin@kitehub.me`), Loại hành động (`BETA_APPROVE`, `TENANT_SUSPEND`, `EMAIL_TEMPLATE_UPDATE`), Đối tượng tác động (Tenant `Sky Education` / Beta request `req_uuid`), IP address (rút gọn an toàn), Chi tiết (JSON expandable). Filter combo cho phép tìm theo loại hành động, theo admin user, theo khoảng thời gian. Top banner notify compliance "Trang này được bảo vệ bởi PDPL Article 11 — mọi hành động admin được lưu vĩnh viễn và không thể chỉnh sửa". Retention 5 năm theo PDPL Art 11.2; export CSV / PDF cho compliance audit định kỳ hằng quý.
 
 ### 3.2.9 Phạm vi và hạn chế giao diện trình bày
 
-8 giao diện trên đại diện cho happy path của 2 persona target P1 và P2 trong giai đoạn beta. Các giao diện sau chưa được trình bày trong phiên bản này do thuộc scope giai đoạn tiếp theo hoặc do giới hạn không gian báo cáo: giao diện admin xử lý chargeback (giai đoạn paid khi tích hợp payment gateway), giao diện parent portal (giai đoạn GA — P4 persona), giao diện mobile app native (sau giai đoạn paid — chưa triển khai), giao diện K-12 transcript management (giai đoạn GA — P5 persona). Các mockup mở rộng có thể tham khảo tại `documents/02-architecture/design-system/ui_kits/`.
+8 giao diện trên đại diện cho happy path của 2 persona target P1 và P2 trong giai đoạn beta. Các giao diện sau chưa được trình bày trong phiên bản này do thuộc scope giai đoạn tiếp theo hoặc do giới hạn không gian báo cáo: giao diện admin xử lý chargeback (giai đoạn paid khi tích hợp payment gateway), giao diện parent portal (giai đoạn GA — P4 persona), giao diện mobile app native (sau giai đoạn paid — chưa triển khai), giao diện K-12 transcript management (giai đoạn GA — P5 persona).
 
 ---
 
