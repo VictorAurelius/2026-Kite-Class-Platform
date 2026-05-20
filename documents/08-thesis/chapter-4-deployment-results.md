@@ -7,13 +7,7 @@ created: 2026-05-19
 updated: 2026-05-19
 ---
 
-# Chương 4 — Triển khai Cloud, User Onboarding, KPI và Beta Scope
-
-## 4.0 Giới thiệu chương
-
-Chương này trình bày kết quả triển khai KiteHub Platform trên môi trường production cloud cho giai đoạn beta. Bốn phần lần lượt mô tả: kiến trúc hạ tầng AWS Singapore cùng CI/CD và observability stack (§4.1), hành trình user onboarding end-to-end (§4.2), bộ KPI cùng measurement plan (§4.3) và phạm vi beta cohort target với hạn chế kỹ thuật và định hướng tương lai (§4.4). Một số KPI Acquisition + Engagement cần cohort tenant đủ lớn sẽ được cập nhật trong phiên bản hoàn thiện trước hội đồng bảo vệ.
-
----
+# Chương 4 — Triển khai Cloud, Kết quả tương tác end-user, KPI và Beta Scope
 
 ## 4.1 Cloud Deployment AWS
 
@@ -75,9 +69,9 @@ flowchart TB
 
 **Lớp compute (EC2):** Hai instance `t3.micro` (1 GB RAM, 2 vCPU) phân chia trách nhiệm: `kh-backend` chạy KiteHub Gateway (port 8080) cùng sáu backend service (subscription, branding, email, platform, admin, ...); `kc-app` chạy KiteClass core (port 8082) và KiteClass frontend Next.js (port 3001). Cấu hình memory tight đòi hỏi JVM heap cap nghiêm ngặt theo từng service (`-Xmx128m` cho service nhỏ, `-Xmx256m` cho service lớn).
 
-**Lớp dữ liệu (RDS + S3):** PostgreSQL 16 chạy trên `db.t3.micro` (1 GB RAM, 20 GB SSD), backup snapshot tự động hàng ngày, retention 7 ngày, network đặt trong private subnet chỉ chấp nhận kết nối từ security group của EC2. KiteHub áp dụng mô hình multi-tenant shared database (đã trình bày tại Chương 2 §2.3.2) — toàn bộ tenant dùng chung instance, cách ly thông qua cột `tenant_id` kết hợp Row-Level Security (Chương 3 §3.4). Một bucket S3 duy nhất `kitehub-prod-storage` phục vụ mọi tenant, partition theo prefix `tenant-{uuid}/` (branding, document, exports) và `platform/` (system assets). Trade-off chính: cost-efficient và đơn giản về IAM, đổi lại phải verify prefix isolation tại application layer.
+**Lớp dữ liệu (RDS + S3):** PostgreSQL 16 chạy trên `db.t3.micro` (1 GB RAM, 20 GB SSD), backup snapshot tự động hàng ngày, retention 7 ngày, network đặt trong private subnet chỉ chấp nhận kết nối từ security group của EC2. KiteHub áp dụng mô hình multi-tenant shared database (đã trình bày tại Chương 2 §2.3.2) — toàn bộ tenant dùng chung instance, cách ly thông qua cột `tenant_id` kết hợp Row-Level Security (Chương 2 §2.3.4). Một bucket S3 duy nhất `kitehub-prod-storage` phục vụ mọi tenant, partition theo prefix `tenant-{uuid}/` (branding, document, exports) và `platform/` (system assets). Trade-off chính: cost-efficient và đơn giản về IAM, đổi lại phải verify prefix isolation tại application layer.
 
-**Email transactional (SES):** KiteHub gửi email verify, beta-approval, password-reset, invoice qua AWS SES region `ap-southeast-1`. Domain `kitehub.me` đã được verify qua DKIM + SPF records trên Cloudflare DNS; sandbox mode được nâng lên Production mode (50.000 emails/day) thông qua AWS Support ticket. Mỗi email đi qua flow Outbox Pattern (Chương 3 §3.5): service ghi event vào bảng `*_outbox` cùng business state (transactional) thì dispatcher poll 10 giây thì publish tới RabbitMQ thì `kitehub-email` service consume thì render template thì gọi SES API.
+**Email transactional (SES):** KiteHub gửi email verify, beta-approval, password-reset, invoice qua AWS SES region `ap-southeast-1`. Domain `kitehub.me` đã được verify qua DKIM + SPF records trên Cloudflare DNS; sandbox mode được nâng lên Production mode (50.000 emails/day) thông qua AWS Support ticket. Mỗi email đi qua flow Outbox Pattern: service ghi event vào bảng `*_outbox` cùng business state (transactional) thì dispatcher poll 10 giây thì publish tới RabbitMQ thì `kitehub-email` service consume thì render template thì gọi SES API.
 
 **Observability (3 lớp):** CloudTrail log mọi AWS API call (terraform apply, console, SDK) — captured trước khi production resources apply để đảm bảo audit baseline; CloudWatch tổng hợp application logs JSON structured cùng custom metric, alarm wired cho CPU >80%, RDS connections >80%, ALB 5xx >1%, EC2 status check fail; Prometheus self-hosted thu thập application metric (`outbox_dispatcher_lag_seconds`, `http_server_requests_seconds`, `jvm_memory_used_bytes`) qua endpoint `/actuator/prometheus`, visualize qua Grafana.
 
@@ -115,15 +109,15 @@ Bốn lựa chọn thiết kế nổi bật của pipeline bao gồm: ephemeral 
 
 | Service | Free Tier limit | Sử dụng beta (dự kiến) | Chi phí ước tính |
 |---|---|---|---|
-| EC2 t3.micro | 750 hours/month | 2 instances × 730h = 1.460h | ~$13/tháng (vượt free) |
+| EC2 t3.micro | 750 hours/month | 2 instances × 730h = 1.460h | ~$7,38/tháng (710h vượt free × 0,0104 USD/h) |
 | RDS db.t3.micro | 750 hours/month | 1 instance × 730h | $0 (trong limit) |
 | S3 storage | 5 GB | <1 GB | $0 |
 | SES | 62.000 emails outbound | <5.000 emails | $0 |
 | CloudWatch | 10 metrics + 5 GB logs | ~50 metrics + 2 GB | ~$5/tháng |
 | Data transfer out | 100 GB | <10 GB | $0 |
-| **Tổng dự kiến** | | | **~$18-25/tháng** |
+| **Tổng dự kiến** | | | **~$12-15/tháng** |
 
-Billing alarm được set tại các ngưỡng $5 / $50 / $150. Khi vượt $50, lộ trình review + downscale (giảm còn 1 instance, hoặc chuyển sang spot instance) sẽ được kích hoạt.
+Chi phí EC2 t3.micro được tính chi tiết như sau: hai instance chạy liên tục 24/7 ứng với 2 × 730 giờ = 1.460 giờ/tháng. AWS Free Tier cung cấp 750 giờ EC2 t3.micro/tháng, do đó phần vượt là 1.460 − 750 = 710 giờ. Với đơn giá 0,0104 USD/giờ, chi phí EC2 thực tế khoảng 710 × 0,0104 = 7,38 USD/tháng. Billing alarm được set tại các ngưỡng $5 / $50 / $150. Khi vượt $50, lộ trình review + downscale (giảm còn 1 instance, hoặc chuyển sang spot instance) sẽ được kích hoạt.
 
 ### 4.1.6 Trạng thái triển khai
 
@@ -131,72 +125,16 @@ Tính đến thời điểm thực hiện đồ án: 71 resources terraform đã
 
 ---
 
-## 4.2 User Onboarding Flow
+## 4.2 Kết quả tương tác end-user + minh chứng
 
-### 4.2.1 Persona target
+[Placeholder — phần này sẽ điền sau khi thu thập feedback từ beta tenants trong giai đoạn launch invite (từ 2026-05-19 trở đi). Nội dung dự kiến:
 
-Giai đoạn beta mở cho hai persona chính (chi tiết tại Chương 1 Phần 3). Persona P1 — Solo Teacher (giáo viên độc lập) đại diện giáo viên dạy thêm tại nhà với quy mô 1-3 lớp và 10-30 học sinh, vận hành lớp đơn giản, minh họa qua chị Lan (tên giả định) là giáo viên IELTS dạy 2 lớp tại nhà và 1 lớp online. Persona P2 — Center Owner (chủ trung tâm nhỏ) đại diện chủ trung tâm dạy thêm các lĩnh vực Anh ngữ, Toán, Lập trình với quy mô 50-300 học sinh, 3-10 lớp, cần quản lý đầy đủ học sinh, giáo viên và thu chi; minh họa qua chị Hằng (tên giả định) — chủ Trung tâm Anh ngữ Sky Education (trung tâm hypothetical), vận hành 5 lớp Anh ngữ thiếu nhi và 2 lớp IELTS, doanh thu khoảng 150.000.000đ/tháng.
+- Tổng kết các thao tác key đã được end-user thực hiện thành công (đăng ký tenant, cấu hình AI branding, quản lý lớp học, phát hành hóa đơn, theo dõi audit log).
+- Trích dẫn feedback xác nhận từ chủ trung tâm và quản lý trung tâm về độ phù hợp của hệ thống với quy trình vận hành hiện tại.
+- Số liệu sử dụng thực tế (active users, AI branding generations, payment processed) trong cửa sổ 2-4 tuần đầu sau khi mời beta.
+- Screenshot minh chứng các luồng nghiệp vụ then chốt đã được tenant ký xác nhận đạt yêu cầu.
 
-### 4.2.2 Onboarding flow end-to-end
-
-```mermaid
-sequenceDiagram
-    participant V as Visitor
-    participant FE as Frontend
-    participant Sub as Subscription Service
-    participant DB as PostgreSQL
-    participant Email as Email Service
-    participant Admin as Platform Admin
-
-    Note over V,Email: Giai đoạn 1 — Đăng ký yêu cầu beta
-    V->>FE: Điền form (tên + email + tên trung tâm + size)
-    FE->>Sub: POST /auth/request-beta-access
-    Sub->>DB: INSERT beta_access_request (PENDING) + outbox event
-    Sub-->>FE: 201 CREATED
-    Email->>V: Email xác nhận đã nhận yêu cầu
-
-    Note over Admin,Email: Giai đoạn 2 — Admin duyệt + cấp claim code
-    Admin->>Sub: POST /admin/beta-requests/{id}/approve
-    Sub->>DB: UPDATE status=APPROVED + claim_code + outbox event
-    Email->>V: Email mời tham gia + claim code 6 chữ số
-
-    Note over V,DB: Giai đoạn 3 — Exchange claim code và provision tenant
-    V->>FE: /beta-signup nhập claim code + đặt mật khẩu
-    FE->>Sub: POST /auth/beta-signup
-    Sub->>DB: BEGIN TX — INSERT tenant + INSERT user + UPDATE request — COMMIT
-    Sub-->>FE: 200 OK + JWT
-    FE-->>V: Redirect /dashboard
-```
-
-**Hình 4.3.** Sequence diagram onboarding flow — từ visitor đến first login (rút gọn 3 giai đoạn chính).
-
-### 4.2.3 Phân tích flow
-
-Flow trên thể hiện năm nguyên tắc onboarding của KiteHub:
-
-1. **Low-friction signup** — Beta request form chỉ yêu cầu bốn trường (tên, email, tên trung tâm, size); không hỏi mật khẩu hay thẻ tín dụng tại bước đăng ký yêu cầu.
-2. **Manual approval** — Giai đoạn beta dùng manual approval thay vì auto-signup; admin nền tảng review từng request để đảm bảo chất lượng cohort.
-3. **2FA qua claim code** — Khi user click invite link, email kèm 6-digit claim code; user nhập code trên trang signup để verify ownership email và phòng phishing.
-4. **Tenant provisioning atomic** — INSERT tenant, INSERT user, UPDATE beta request được wrap trong cùng `@Transactional` boundary; nếu fail tại bất kỳ bước, rollback toàn bộ.
-5. **Auto-login post-signup** — User không phải đăng nhập lại sau khi hoàn tất signup; backend trả JWT ngay để FE redirect tới dashboard.
-
-### 4.2.4 Dữ liệu mẫu
-
-Test data tuân thủ chuẩn cross-bucket VN-localization (định dạng tiền VND, tên tiếng Việt, địa chỉ Việt Nam):
-
-| Trường | Giá trị mẫu (tên giả định) |
-|---|---|
-| Họ tên | Trần Thị Hồng (tên giả định) |
-| Email | hong.tran@skyedu.vn |
-| Số điện thoại | 0901 234 567 |
-| Tên trung tâm | Trung tâm Anh ngữ Sky Education (trung tâm hypothetical) |
-| Địa chỉ | 123 Lê Lợi, Q.1, TP.HCM |
-| Quy mô | 150 học sinh |
-| Loại trung tâm | Trung tâm dạy thêm — Anh ngữ |
-
-### 4.2.5 First-login dashboard
-
-Sau khi đăng nhập lần đầu, user persona Center Owner thấy dashboard với ba thành phần chính: KPI cards (doanh thu tháng — mặc định `0đ` cho tenant mới — số học sinh và số lớp); onboarding checklist 5 bước với icon và link tới wizard tương ứng (tạo lớp đầu tiên, thêm học sinh, tạo lịch học, cấu hình thanh toán, mời giáo viên); và sample data toggle cho phép load dữ liệu mẫu (1 chủ trung tâm giả định + 4 học sinh + 1 lớp Anh ngữ 5A1) để user thử các chức năng trước khi nhập dữ liệu thật.
+Pre-defense: hoàn thiện sau khi đạt ≥3 beta tenants ký xác nhận hoặc cho đến trước cửa sổ bảo vệ 2026-08-15.]
 
 ---
 
@@ -304,7 +242,7 @@ Kênh tiếp cận tenant gồm hai hướng song song: outreach trực tiếp t
 
 ### 4.4.2 Phạm vi feature ưu tiên giai đoạn beta
 
-Feature core đã ship trong giai đoạn beta bao gồm: kiến trúc multi-tenant với Row-Level Security isolation (Chương 3 §3.4); cơ chế beta access invite (mô tả tại 4.2 ở trên); KiteClass core với CRUD cơ bản cho Students, Classes, Grades, Attendance và Payments; AI Branding cho phép tenant tự generate logo và theme color (image generation pipeline tham chiếu Stable Diffusion XL [34], NSFW content moderation gate trước khi publish dùng image classifier Hugging Face [33]); email transactional qua AWS SES gồm verify-email, beta-approval, password-reset và invoice; admin dashboard cho admin nền tảng review tenant và beta request; custom domain support qua subdomain `{tenant-slug}.kitehub.me`; và audit log mọi hành động của admin nền tảng tuân thủ PDPL Art 11.
+Feature core đã ship trong giai đoạn beta bao gồm: kiến trúc multi-tenant với Row-Level Security isolation (Chương 2 §2.3.4); cơ chế beta access invite (mô tả tại 4.2 ở trên); KiteClass core với CRUD cơ bản cho Students, Classes, Grades, Attendance và Payments; AI Branding cho phép tenant tự generate logo và theme color (image generation pipeline tham chiếu Stable Diffusion XL [34], NSFW content moderation gate trước khi publish dùng image classifier Hugging Face [33]); email transactional qua AWS SES gồm verify-email, beta-approval, password-reset và invoice; admin dashboard cho admin nền tảng review tenant và beta request; custom domain support qua subdomain `{tenant-slug}.kitehub.me`; và audit log mọi hành động của admin nền tảng tuân thủ PDPL Art 11.
 
 **Feature defer khỏi giai đoạn beta (completion 0%, ưu tiên thấp do dependency pháp lý hoặc out-of-scope persona target):**
 
@@ -328,11 +266,11 @@ Feature core đã ship trong giai đoạn beta bao gồm: kiến trúc multi-ten
 | Single-region SPOF (Singapore) | Latency Việt Nam thì Singapore 50-80 ms; outage = downtime toàn phần | Acceptable cho beta; multi-region sẽ triển khai giai đoạn GA |
 | RDS Multi-AZ disabled | Single point of failure cho database | Daily automated snapshot; Multi-AZ kế hoạch giai đoạn paid |
 | Manual approval beta request | Admin nền tảng là bottleneck | Acceptable scale ≤20 tenant; auto-approval rule kế hoạch sau beta |
-| RabbitMQ self-hosted EC2 | Memory cap 256 MB; restart có thể mất in-flight message | Outbox pattern (Chương 3 §3.5) đảm bảo at-least-once delivery; missed message thì retry |
+| RabbitMQ self-hosted EC2 | Memory cap 256 MB; restart có thể mất in-flight message | Outbox pattern đảm bảo at-least-once delivery; missed message thì retry |
 
 ### 4.4.4 Bài học rút ra
 
-Ba bài học sơ bộ rút ra từ quá trình phát triển (sẽ được hoàn thiện trong Kết luận chương cuối sau khi cohort beta cung cấp feedback định lượng): outside-in audit pattern (Chương 2 §2.5) chứng tỏ hiệu quả khi persona simulation kết hợp benchmark và failure-mode matrix giúp catch design gap mà brainstorm inside-out thường bỏ sót; Outbox Pattern kết hợp fast-path (Chương 3 §3.5) cân bằng tốt latency và reliability nhờ happy-path publish trực tiếp tới RMQ và dispatcher catch-up khi recovery; và lựa chọn AWS Singapore đã được risk-managed theo lộ trình migrate sang VN cloud trước GA (cần ~2-3 tuần và counsel approval).
+Ba bài học sơ bộ rút ra từ quá trình phát triển (sẽ được hoàn thiện trong Kết luận chương cuối sau khi cohort beta cung cấp feedback định lượng): outside-in audit pattern chứng tỏ hiệu quả khi persona simulation kết hợp benchmark và failure-mode matrix giúp catch design gap mà brainstorm inside-out thường bỏ sót; Outbox Pattern kết hợp fast-path cân bằng tốt latency và reliability nhờ happy-path publish trực tiếp tới RMQ và dispatcher catch-up khi recovery; và lựa chọn AWS Singapore đã được risk-managed theo lộ trình migrate sang VN cloud trước GA (cần ~2-3 tuần và counsel approval).
 
 ### 4.4.5 Định hướng tương lai
 
