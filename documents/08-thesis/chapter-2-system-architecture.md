@@ -654,7 +654,7 @@ Các phụ thuộc liên service được tổng hợp gồm: `kitehub-subscript
 
 ## 2.4 Thiết kế cơ sở dữ liệu (Database Design)
 
-Phần này trình bày schema chi tiết của 3 bảng cốt lõi đại diện cho miền đa tenant của Kite Platform. ERD tổng quan đã được giới thiệu tại §2.3.8; phần này bổ sung thông tin từng cột phục vụ phát triển và bảo trì. Schema được pull canonical từ chuỗi migration Flyway (`kitehub/kitehub-subscription/src/main/resources/db/migration/V1__create_instances_table.sql`, `kiteclass/kiteclass-core/src/main/resources/db/migration/V1__create_core_schema.sql`).
+Phần này trình bày schema chi tiết của 3 bảng cốt lõi đại diện cho miền đa tenant của Kite Platform. ERD tổng quan đã được giới thiệu tại §2.3.8; phần này bổ sung thông tin từng cột phục vụ phát triển và bảo trì. Schema được pull canonical từ chuỗi migration Flyway của hai cụm dịch vụ (cụm subscription quản lý control-plane và cụm core quản lý domain-plane).
 
 ### 2.4.1 Bảng `instances` (kitehub-subscription control-plane)
 

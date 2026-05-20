@@ -209,34 +209,32 @@ def _set_header_page_field(section, show_number=True):
 
 
 def add_page_number_header(doc):
-    """Page numbering 3-section scheme per Wave 102.5 G17 + khung-chuẩn UTC.
+    """Page numbering scheme per Wave 102.5 G17 + khung-chuẩn UTC.
 
-    - Section 1 (Bìa chính + Bìa phụ + Lời cảm ơn) — sections 0..N1: NO page number, empty header
-    - Section 2 (Mục lục + Danh mục bảng/hình/thuật ngữ/viết tắt) — sections N1+1..N2: lowerRoman i, ii, iii
-    - Section 3 (Mở đầu + chapters + Kết luận + TLTK + Phụ lục) — sections N2+1..end: arabic 1, 2, 3
+    - Group 1 (Bìa chính + Bìa phụ + Lời cảm ơn) — NO page number, empty header
+    - Group 2 (Mục lục + Danh mục bảng/hình/thuật ngữ/viết tắt) — lowerRoman i, ii, iii
+    - Group 3 (Mở đầu + chapters + Kết luận + TLTK + Phụ lục) — arabic 1, 2, 3
 
     Section boundaries are determined by add_section(NEW_PAGE) calls in:
-      - add_cover_page (after Bìa chính)
-      - add_secondary_cover_page (after Bìa phụ)
-      - add_acknowledgment_page (after Lời cảm ơn — Wave 102.5)
-      - add_abbreviations (after Danh mục từ viết tắt — Wave 102.5)
+      - add_secondary_cover_page (after Bìa phụ — Section 0→1, border boundary)
+      - add_acknowledgment_page (after Lời cảm ơn — Section 1→2, roman starts)
+      - add_abbreviations (after Danh mục từ viết tắt — Section 2→3, arabic starts)
 
-    Expected layout (5 sections trong doc.sections):
-      [0] Bìa chính         → no number
-      [1] Bìa phụ           → no number
-      [2] Lời cảm ơn        → no number
-      [3] TOC + 4 danh mục  → lowerRoman i, ii, iii, ...
-      [4..] Mở đầu + chapters + TLTK + Phụ lục → arabic 1, 2, 3, ...
+    Expected layout (4 sections trong doc.sections post border-leak fix 2026-05-20):
+      [0] Bìa chính + Bìa phụ  → no number (bordered)
+      [1] Lời cảm ơn           → no number (no border)
+      [2] TOC + 4 danh mục     → lowerRoman i, ii, iii, ... (no border)
+      [3] Mở đầu + chapters + TLTK + Phụ lục → arabic 1, 2, 3, ... (no border)
     """
     sections = doc.sections
     n_total = len(sections)
-    # Heuristic boundaries: bìa+bìa phụ+lời cảm ơn = 3 sections; danh mục = 1 section; rest = 1+ sections
-    # Section indices 0,1,2 → Section group 1 (no number)
-    # Section index 3 → Section group 2 (roman)
-    # Section index 4+ → Section group 3 (arabic)
-    sect1_no_num_end = min(3, n_total)         # sections 0..2 (no number)
-    sect2_roman_end = min(4, n_total)          # section 3 (roman)
-    # sections 4..end (arabic)
+    # Heuristic boundaries cho 4-section layout:
+    # Section [0,1]: no number (Bìa + Lời cảm ơn)
+    # Section [2]: roman (Danh mục)
+    # Section [3+]: arabic (Mở đầu + chapters)
+    sect1_no_num_end = min(2, n_total)         # sections 0..1 (no number)
+    sect2_roman_end = min(3, n_total)          # section 2 (roman)
+    # sections 3..end (arabic)
 
     for i, section in enumerate(sections):
         if i < sect1_no_num_end:
@@ -1046,8 +1044,9 @@ def add_secondary_cover_page(doc):
     run = p.add_run(f"Hà Nội – {THESIS_INFO['year']}")
     set_font(run, Pt(14), bold=True, italic=True)
 
-    # Page break (NOT section break) — vẫn trong Section 1 (no page numbering)
-    doc.add_page_break()
+    # Section break Section 0 (Bìa chính + Bìa phụ — bordered) → Section 1 (Lời cảm ơn — no border)
+    # Per user direction 2026-05-20: border của bìa KHÔNG leak sang Lời cảm ơn + Danh mục
+    doc.add_section(WD_SECTION.NEW_PAGE)
 
 
 # ============== LỜI CẢM ƠN ==============
@@ -1654,13 +1653,14 @@ def create_thesis():
     add_references_from_md(doc)
     add_appendix(doc)
 
-    # Apply borders: section 0 + 1 = bìa chính + bìa phụ, section 2+ = no border
-    # Wave 102.5 G17 — section count expanded to 5+ (added breaks after Lời cảm ơn + Danh mục)
+    # Apply borders: chỉ section 0 = Bìa chính + Bìa phụ (border)
+    # Wave 102.5 follow-up 2026-05-20 border-leak fix: bìa + bìa phụ giờ cùng Section 0
+    # (NEW_PAGE break giữa bìa chính+bìa phụ chỉ là page break, không phải section break);
+    # section 1+ = Lời cảm ơn / Danh mục / Mở đầu — KHÔNG có border
     print(f"DEBUG: Total sections = {len(doc.sections)}")
-    if len(doc.sections) >= 3:
+    if len(doc.sections) >= 2:
         add_page_border(doc.sections[0])
-        add_page_border(doc.sections[1])
-        for i in range(2, len(doc.sections)):
+        for i in range(1, len(doc.sections)):
             remove_page_border(doc.sections[i])
 
     # Apply margins to all sections
