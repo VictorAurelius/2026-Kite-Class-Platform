@@ -80,10 +80,9 @@ THESIS_INFO = {
 # ============== PATHS ==============
 THESIS_DIR = Path(__file__).parent
 CHAPTER_FILES = {
-    1: [  # Chapter 1 — combined 3 parts
+    1: [  # Chapter 1 — combined 2 parts (Wave 102.5 follow-up: §1.4 AI + §1.5 Law + §1.6 QDD removed per user direction)
         THESIS_DIR / "chapter-1-competitor-analysis.md",
-        THESIS_DIR / "chapter-1-ai-techniques.md",
-        THESIS_DIR / "chapter-1-vn-law-methodology.md",
+        THESIS_DIR / "chapter-1-vn-law-methodology.md",  # only §1.7 → renumbered §1.4
     ],
     2: [THESIS_DIR / "chapter-2-system-architecture.md"],
     3: [THESIS_DIR / "chapter-3-implementation.md"],

@@ -363,16 +363,3 @@ gantt
 **Hình 4.5.** Gantt timeline định hướng phát triển sau giai đoạn beta.
 
 ---
-
-## 4.5 Tóm tắt chương 4
-
-Chương này đã trình bày bốn phần kết quả triển khai giai đoạn beta của KiteHub Platform:
-
-| Phần | Nội dung chính | Trạng thái |
-|---|---|---|
-| 4.1 Cloud AWS | AWS Singapore, 2 EC2 + RDS + S3 + SES + CloudTrail + CloudWatch + Prometheus + CI/CD OIDC | Triển khai hoàn tất |
-| 4.2 User Onboarding | 5 bước: Visitor thì Beta Request thì Admin Approve thì Tenant Provision thì First Login | Implementation hoàn tất |
-| 4.3 KPI Measurement | 6 KPI thuộc 3 category + Grafana + CloudWatch | Structure đã document; số liệu sơ bộ cập nhật trước defense |
-| 4.4 Beta Scope | ≥4 tenant + ưu tiên feature + bài học sơ bộ + định hướng tương lai | Scope đã lock; evidence cohort cập nhật trước defense |
-
-Cùng với các snippet code đại diện ở Chương 3, chương 4 cung cấp evidence rằng KiteHub Platform không chỉ là thiết kế trên giấy mà đã thực sự được triển khai trên môi trường production cloud với hạ tầng observability và CI/CD chuyên nghiệp. Số liệu định lượng còn thiếu (real KPI và beta tenant feedback) sẽ được bổ sung trong phiên bản hoàn thiện trước cửa sổ bảo vệ.
