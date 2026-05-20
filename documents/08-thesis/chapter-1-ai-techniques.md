@@ -11,7 +11,7 @@ status: draft
 
 ## 1. Bối cảnh AI trong giáo dục SaaS
 
-Trí tuệ nhân tạo, đặc biệt là các mô hình ngôn ngữ lớn (LLM) như GPT-3 [14] và các mô hình diffusion sinh ảnh như Stable Diffusion [16], đã tạo ra cuộc cách mạng trong nhiều ngành công nghiệp giai đoạn 2022-2026. Ngành giáo dục không ngoại lệ. Theo báo cáo 6Wresearch [4], thị trường EdTech Việt Nam dự báo tăng trưởng CAGR 12-15% giai đoạn 2024-2030, trong đó AI-powered features là yếu tố khác biệt cạnh tranh quan trọng cho SaaS phân khúc tier trung và cao.
+Trí tuệ nhân tạo, đặc biệt là các mô hình ngôn ngữ lớn (LLM) như GPT-3 [12] và các mô hình diffusion sinh ảnh như Stable Diffusion [13], đã tạo ra cuộc cách mạng trong nhiều ngành công nghiệp giai đoạn 2022-2026. Ngành giáo dục không ngoại lệ. Theo báo cáo 6Wresearch [3], thị trường EdTech Việt Nam dự báo tăng trưởng CAGR 12-15% giai đoạn 2024-2030, trong đó AI-powered features là yếu tố khác biệt cạnh tranh quan trọng cho SaaS phân khúc tier trung và cao.
 
 Tuy nhiên, đa số phần mềm quản lý trung tâm giáo dục tại Việt Nam (MISA AMIS, Mona eLMS, Easy Edu, DotB — phân tích chi tiết trong Phần 1) hiện chưa tích hợp AI features. Đây là khoảng trống KiteHub khai thác qua chiến lược tích hợp AI từ giai đoạn đầu (AI Branding) và mở rộng dần qua các giai đoạn tiếp theo.
 
@@ -61,7 +61,7 @@ suitable for parents of K-12 students in Vietnam.
 
 Quan trọng: prompt explicit negation các elements không mong muốn (NO text, NO realistic photos, NO mascots) để giảm noise output, tăng tỷ lệ first-attempt PASS từ ~40% lên ~75% theo testing internal.
 
-Tham khảo nghiên cứu prompt engineering trong [14] (Brown et al., GPT-3 few-shot learning) và [17] (LLaVA — visual instruction tuning) cho phương pháp luận xây dựng prompt hiệu quả cho multimodal models. Tài liệu thực hành prompt engineering từ tài liệu API LLM thương mại [35] cũng cung cấp pattern cụ thể về negative prompting (explicit `NO text` / `NO mascots`) — pattern này được áp dụng trực tiếp trong template ở trên để tăng first-attempt PASS rate.
+Tham khảo nghiên cứu prompt engineering trong [12] (Brown et al., GPT-3 few-shot learning) và [14] (LLaVA — visual instruction tuning) cho phương pháp luận xây dựng prompt hiệu quả cho multimodal models. Tài liệu thực hành prompt engineering từ tài liệu API LLM thương mại [15] cũng cung cấp pattern cụ thể về negative prompting (explicit `NO text` / `NO mascots`) — pattern này được áp dụng trực tiếp trong template ở trên để tăng first-attempt PASS rate.
 
 ### 2.3 Lựa chọn mô hình text-to-image
 
@@ -74,7 +74,7 @@ KiteHub đánh giá 4 options chính cho text-to-image generation:
 | **DALL-E 3** | OpenAI API | ~$0.04 | Rất cao | 8-12s | Cost cao quá cho giai đoạn thử nghiệm |
 | **Midjourney v6** | (no public API) | N/A | Rất cao | N/A | Loại vì không có API |
 
-Lý do chọn Stable Diffusion XL [16] làm primary: balance tốt giữa quality + cost + latency. SDXL Turbo làm fallback khi primary rate-limited hoặc lỗi 5xx. Tránh DALL-E 3 vì cost cao 30 lần SDXL, không phù hợp budget giai đoạn thử nghiệm với target $0 infrastructure cost (Free Tier AWS + Replicate free credits).
+Lý do chọn Stable Diffusion XL [13] làm primary: balance tốt giữa quality + cost + latency. SDXL Turbo làm fallback khi primary rate-limited hoặc lỗi 5xx. Tránh DALL-E 3 vì cost cao 30 lần SDXL, không phù hợp budget giai đoạn thử nghiệm với target $0 infrastructure cost (Free Tier AWS + Replicate free credits).
 
 ### 2.4 Cost analysis
 
@@ -127,7 +127,7 @@ KiteHub roadmap defer các AI features sau cho giai đoạn mở rộng (sau khi
 
 **Mô hình:** LLM API thương mại cost-efficient tier (Anthropic / OpenAI), với context tenant-specific (course catalog + FAQ + lịch học).
 
-**Architecture:** RAG (Retrieval-Augmented Generation) [15] dùng PostgreSQL pgvector extension cho vector search course content + FAQ embeddings. Khi học viên hỏi "Lớp Anh ngữ 5A1 học vào thứ mấy?", system retrieve relevant context từ tenant database thì feed vào LLM thì generate response Vietnamese natural.
+**Architecture:** RAG (Retrieval-Augmented Generation) [16] dùng PostgreSQL pgvector extension cho vector search course content + FAQ embeddings. Khi học viên hỏi "Lớp Anh ngữ 5A1 học vào thứ mấy?", system retrieve relevant context từ tenant database thì feed vào LLM thì generate response Vietnamese natural.
 
 **Use cases:** trả lời câu hỏi về lịch học, giáo viên, học phí; hướng dẫn quy trình đăng ký lớp mới; reminder ngày thi sắp tới; translate giữa tiếng Việt và tiếng Anh cho lớp ngoại ngữ.
 
@@ -143,15 +143,15 @@ KiteHub roadmap defer các AI features sau cho giai đoạn mở rộng (sau khi
 
 ### 4.3 Personalized learning path (giai đoạn GA)
 
-**Mô hình:** Multi-modal LLM (LLaVA [17] hoặc successor) cho phân tích visual content (homework photos, video bài giảng) kết hợp với student performance data.
+**Mô hình:** Multi-modal LLM (LLaVA [14] hoặc successor) cho phân tích visual content (homework photos, video bài giảng) kết hợp với student performance data.
 
 **Use cases:** suggest next topics dựa trên student weakness identified từ quiz scores; adaptive difficulty cho practice exercises (như Khan Academy approach); identify at-risk students sớm dựa trên pattern (giảm điểm + giảm tham gia + comment teacher tiêu cực).
 
-**Lý do defer:** cần dataset student performance đủ lớn (≥1 năm operation × 1000+ students) + đảm bảo PDPL compliance cho cá nhân hóa (cần explicit consent từ phụ huynh per [21] PDPL Art 11).
+**Lý do defer:** cần dataset student performance đủ lớn (≥1 năm operation × 1000+ students) + đảm bảo PDPL compliance cho cá nhân hóa (cần explicit consent từ phụ huynh per [9] PDPL Art 11).
 
 ## 5. AI development methodology
 
-KiteHub áp dụng test-driven development (TDD) [18] và domain-driven design (DDD) [19] cho AI feature development, tránh approach "ship first, fix later" thường thấy ở các AI startup. Cụ thể:
+KiteHub áp dụng test-driven development (TDD) [17] và domain-driven design (DDD) [18] cho AI feature development, tránh approach "ship first, fix later" thường thấy ở các AI startup. Cụ thể:
 
 1. **Test-first cho AI integration:** mọi AI API call có integration test với mock response + edge case (rate limit 429, timeout 504, malformed response).
 
@@ -167,7 +167,7 @@ Tích hợp AI cần xem xét nghiêm túc các yếu tố đạo đức + pháp
 
 ### 6.1 PDPL 2023 compliance
 
-Theo Luật Bảo vệ Dữ liệu Cá nhân Việt Nam 2023 [21] và Nghị định 13/2023/NĐ-CP [22], xử lý dữ liệu cá nhân bằng AI yêu cầu:
+Theo Luật Bảo vệ Dữ liệu Cá nhân Việt Nam 2023 [9] và Nghị định 13/2023/NĐ-CP [19], xử lý dữ liệu cá nhân bằng AI yêu cầu:
 
 - **Consent explicit** từ data subject (học viên / phụ huynh) trước khi đưa data vào training hoặc inference
 - **Right to explanation** — học viên có quyền yêu cầu giải thích quyết định AI (vd: lý do bị auto-grade điểm thấp)
@@ -194,8 +194,8 @@ Mọi AI-generated content phải có disclosure rõ ràng:
 
 ## 7. Kết luận chương 1 phần 2
 
-KiteHub tích hợp AI thông qua 3 phương pháp chính ở giai đoạn đầu: AI Branding (text-to-image với SDXL [16]), AI Quality Gate (multi-layer classifier + heuristic), và development methodology nghiêm túc (TDD + DDD + cost monitoring). Approach API-first thay vì self-host phù hợp với startup tier, scale linh hoạt theo nhu cầu thực tế khách hàng.
+KiteHub tích hợp AI thông qua 3 phương pháp chính ở giai đoạn đầu: AI Branding (text-to-image với SDXL [13]), AI Quality Gate (multi-layer classifier + heuristic), và development methodology nghiêm túc (TDD + DDD + cost monitoring). Approach API-first thay vì self-host phù hợp với startup tier, scale linh hoạt theo nhu cầu thực tế khách hàng.
 
-Roadmap giai đoạn mở rộng và giai đoạn GA bao phủ thêm chatbot hỗ trợ học viên (RAG architecture với pgvector [15]), auto-grading bài tập, và personalized learning path. Mọi feature AI tuân thủ PDPL 2023 [21] với consent flow + transparency + bias mitigation.
+Roadmap giai đoạn mở rộng và giai đoạn GA bao phủ thêm chatbot hỗ trợ học viên (RAG architecture với pgvector [16]), auto-grading bài tập, và personalized learning path. Mọi feature AI tuân thủ PDPL 2023 [9] với consent flow + transparency + bias mitigation.
 
 So với 4 đối tượng tham khảo phân tích trong Phần 1 (MISA AMIS, Mona eLMS, Easy Edu, DotB), KiteHub là sản phẩm đầu tiên tại thị trường edu SaaS Việt Nam có AI Branding tích hợp gốc — differentiator quan trọng cho giai đoạn thử nghiệm target trung tâm tier nhỏ và vừa.
