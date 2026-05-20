@@ -729,6 +729,19 @@ def parse_markdown(doc, md_text, skip_top_heading=True):
             i += 1
             continue
 
+        # Markdown image: ![alt](path) — embed PNG via add_image_inline
+        # Relative path resolved against THESIS_DIR
+        image_match = re.match(r'^!\[([^\]]*)\]\(([^)]+)\)\s*$', stripped)
+        if image_match:
+            flush_paragraph()
+            img_path_str = image_match.group(2).strip()
+            img_path = Path(img_path_str)
+            if not img_path.is_absolute():
+                img_path = THESIS_DIR / img_path
+            add_image_inline(doc, img_path, caption=None, width_cm=14.0)
+            i += 1
+            continue
+
         # Section title ## or ### or ####
         if stripped.startswith("## "):
             flush_paragraph()
