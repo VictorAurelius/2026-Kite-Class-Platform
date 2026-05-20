@@ -165,36 +165,95 @@ def remove_page_border(section):
         sectPr.remove(pgBorders)
 
 
+def _set_pg_num_type(section, fmt, start=None):
+    """Set <w:pgNumType w:fmt="lowerRoman" w:start="1"/> per Wave 102.5 G17."""
+    sectPr = section._sectPr
+    pgNumType = sectPr.find(qn('w:pgNumType'))
+    if pgNumType is None:
+        pgNumType = OxmlElement('w:pgNumType')
+        sectPr.append(pgNumType)
+    if fmt is not None:
+        pgNumType.set(qn('w:fmt'), fmt)
+    if start is not None:
+        pgNumType.set(qn('w:start'), str(start))
+
+
+def _set_header_page_field(section, show_number=True):
+    """Set header with centered PAGE field, OR clear header if show_number=False."""
+    header = section.header
+    header.is_linked_to_previous = False
+    # Clear any inherited paragraphs first
+    if header.paragraphs:
+        p = header.paragraphs[0]
+        # Clear existing runs in header paragraph
+        for run in list(p.runs):
+            run._element.getparent().remove(run._element)
+    else:
+        p = header.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    if not show_number:
+        return  # empty header — no PAGE field
+
+    run = p.add_run()
+    fldChar1 = OxmlElement('w:fldChar')
+    fldChar1.set(qn('w:fldCharType'), 'begin')
+    instrText = OxmlElement('w:instrText')
+    instrText.text = "PAGE"
+    fldChar2 = OxmlElement('w:fldChar')
+    fldChar2.set(qn('w:fldCharType'), 'end')
+    run._r.append(fldChar1)
+    run._r.append(instrText)
+    run._r.append(fldChar2)
+    run.font.name = FONT_NAME
+    run.font.size = FONT_SIZE_NORMAL
+
+
 def add_page_number_header(doc):
-    """Số trang ở giữa header. Skip 2 trang bìa đầu (section 0-1)."""
-    for i, section in enumerate(doc.sections):
-        if i < 2:
-            continue
-        header = section.header
-        header.is_linked_to_previous = False
-        p = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
-        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        run = p.add_run()
-        fldChar1 = OxmlElement('w:fldChar')
-        fldChar1.set(qn('w:fldCharType'), 'begin')
-        instrText = OxmlElement('w:instrText')
-        instrText.text = "PAGE"
-        fldChar2 = OxmlElement('w:fldChar')
-        fldChar2.set(qn('w:fldCharType'), 'end')
-        run._r.append(fldChar1)
-        run._r.append(instrText)
-        run._r.append(fldChar2)
-        for r in p.runs:
-            r.font.name = FONT_NAME
-            r.font.size = FONT_SIZE_NORMAL
-        if i == 2:
-            section.start_type = 0
-            sectPr = section._sectPr
-            pgNumType = sectPr.find(qn('w:pgNumType'))
-            if pgNumType is None:
-                pgNumType = OxmlElement('w:pgNumType')
-                sectPr.append(pgNumType)
-            pgNumType.set(qn('w:start'), '1')
+    """Page numbering 3-section scheme per Wave 102.5 G17 + khung-chuẩn UTC.
+
+    - Section 1 (Bìa chính + Bìa phụ + Lời cảm ơn) — sections 0..N1: NO page number, empty header
+    - Section 2 (Mục lục + Danh mục bảng/hình/thuật ngữ/viết tắt) — sections N1+1..N2: lowerRoman i, ii, iii
+    - Section 3 (Mở đầu + chapters + Kết luận + TLTK + Phụ lục) — sections N2+1..end: arabic 1, 2, 3
+
+    Section boundaries are determined by add_section(NEW_PAGE) calls in:
+      - add_cover_page (after Bìa chính)
+      - add_secondary_cover_page (after Bìa phụ)
+      - add_acknowledgment_page (after Lời cảm ơn — Wave 102.5)
+      - add_abbreviations (after Danh mục từ viết tắt — Wave 102.5)
+
+    Expected layout (5 sections trong doc.sections):
+      [0] Bìa chính         → no number
+      [1] Bìa phụ           → no number
+      [2] Lời cảm ơn        → no number
+      [3] TOC + 4 danh mục  → lowerRoman i, ii, iii, ...
+      [4..] Mở đầu + chapters + TLTK + Phụ lục → arabic 1, 2, 3, ...
+    """
+    sections = doc.sections
+    n_total = len(sections)
+    # Heuristic boundaries: bìa+bìa phụ+lời cảm ơn = 3 sections; danh mục = 1 section; rest = 1+ sections
+    # Section indices 0,1,2 → Section group 1 (no number)
+    # Section index 3 → Section group 2 (roman)
+    # Section index 4+ → Section group 3 (arabic)
+    sect1_no_num_end = min(3, n_total)         # sections 0..2 (no number)
+    sect2_roman_end = min(4, n_total)          # section 3 (roman)
+    # sections 4..end (arabic)
+
+    for i, section in enumerate(sections):
+        if i < sect1_no_num_end:
+            # Group 1 — no page number, empty header
+            _set_header_page_field(section, show_number=False)
+        elif i < sect2_roman_end:
+            # Group 2 — roman lowercase, start from i
+            _set_pg_num_type(section, fmt='lowerRoman', start=1)
+            _set_header_page_field(section, show_number=True)
+        else:
+            # Group 3 — arabic decimal, start from 1 at first section of group
+            if i == sect2_roman_end:
+                _set_pg_num_type(section, fmt='decimal', start=1)
+            else:
+                _set_pg_num_type(section, fmt='decimal', start=None)  # continue numbering
+            _set_header_page_field(section, show_number=True)
 
 
 def set_heading_font(style, font_name, font_size, bold=True, italic=False):
@@ -401,6 +460,37 @@ def add_blockquote(doc, text):
     return p
 
 
+def add_image_inline(doc, image_path, caption=None, width_cm=14.0):
+    """Insert image centered inline + optional caption underneath.
+
+    Wave 102.5 Bucket A Item 5 — helper cho Bucket C/E screenshots embed flow.
+
+    Args:
+        doc: docx Document
+        image_path: Path or str to PNG/JPG file
+        caption: optional Bold caption rendered below image
+        width_cm: image width in centimeters (default 14cm = page-fit)
+    """
+    image_path = Path(image_path) if not isinstance(image_path, Path) else image_path
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_after = Pt(3)
+    if image_path.exists():
+        run = p.add_run()
+        run.add_picture(str(image_path), width=Cm(width_cm))
+    else:
+        run = p.add_run(f"[Hình minh hoạ: {image_path.name} — chưa có file]")
+        set_font(run, FONT_SIZE_NORMAL, italic=True, color=RGBColor(128, 128, 128))
+
+    if caption:
+        cap = doc.add_paragraph()
+        cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        cap.paragraph_format.space_after = Pt(6)
+        run = cap.add_run(caption)
+        set_font(run, FONT_SIZE_CAPTION, bold=True)
+
+
 def _render_mermaid_to_png(mermaid_src: str, cache_dir: Path) -> Path | None:
     """Render Mermaid diagram → PNG via kroki.io HTTP API. Cached locally.
 
@@ -491,7 +581,7 @@ def add_md_table(doc, headers, rows):
             for run in paragraph.runs:
                 run.font.bold = True
                 run.font.size = FONT_SIZE_TABLE
-        set_cell_shading(cell, 'D9E2F3')
+        # Item 1b Wave 102.5 — remove blue shading; keep white default per user direction
     for row_data in rows:
         row = table.add_row()
         for i, cell_text in enumerate(row_data):
@@ -761,18 +851,21 @@ def add_cover_page(doc):
     run = p.add_run(THESIS_INFO["title"])
     set_font(run, Pt(20), bold=True)
 
-    # Bảng thông tin
-    table = doc.add_table(rows=6, cols=2)
-    table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    table.style = 'Table Grid'
+    # Bảng thông tin 9-field per Wave 102.5 Bucket A Item 1a (BAO_CAO_THUC_TAP.pdf page 1 ref)
     info_rows = [
         ("Sinh viên thực hiện", STUDENT_INFO["name"]),
-        ("Mã sinh viên", STUDENT_INFO["student_id"]),
+        ("Mã số sinh viên", STUDENT_INFO["student_id"]),
         ("Lớp", STUDENT_INFO["class"]),
         ("Khóa", STUDENT_INFO["course"]),
         ("Ngành đào tạo", STUDENT_INFO["major"]),
+        ("Chuyên ngành", STUDENT_INFO["specialization"]),
+        ("Hệ đào tạo", STUDENT_INFO["training_mode"]),
         ("Giảng viên hướng dẫn", THESIS_INFO["advisor"]),
+        ("Năm bảo vệ", THESIS_INFO["year"]),
     ]
+    table = doc.add_table(rows=len(info_rows), cols=2)
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table.style = 'Table Grid'
     for i, (label, value) in enumerate(info_rows):
         row = table.rows[i]
         row.cells[0].text = label
@@ -905,42 +998,30 @@ def add_acknowledgment_page(doc):
     run = p.add_run("LỜI CẢM ƠN")
     set_font(run, Pt(16), bold=True)
 
-    add_paragraph_text(doc,
-        "Trong suốt quá trình nghiên cứu, thiết kế và thực hiện đồ án tốt nghiệp này, "
-        "tôi đã nhận được sự quan tâm, hướng dẫn và giúp đỡ tận tình từ nhiều tập thể và cá nhân. "
-        "Đây là nguồn động viên to lớn giúp tôi hoàn thành đề tài đúng tiến độ và đạt chất lượng mong muốn.")
-
+    # Wave 102.5 Item 1d + G25 — 3-part structure 1 trang ~250 từ
+    # Phần 1 — GVHD (2-3 câu)
     add_paragraph_text(doc,
         f"Trước hết, tôi xin bày tỏ lòng biết ơn sâu sắc đến {THESIS_INFO['advisor']}, "
         f"giảng viên hướng dẫn thuộc {THESIS_INFO['advisor_dept']}, {THESIS_INFO['advisor_university']}. "
-        "Thầy đã tận tình hướng dẫn tôi từ giai đoạn xác định đề tài, định hướng phạm vi nghiên cứu, "
-        "phương pháp luận phát triển phần mềm theo nguyên tắc chất lượng, đến việc đóng góp ý kiến "
-        "chuyên môn quan trọng trong suốt quá trình thực hiện. Sự nghiêm túc trong học thuật và tư duy "
-        "phản biện mà thầy truyền đạt đã giúp tôi nâng cao chất lượng đồ án một cách rõ rệt.")
+        "Thầy đã tận tình hướng dẫn tôi từ giai đoạn xác định đề tài, định hướng phạm vi nghiên cứu "
+        "và phương pháp luận, đến việc đóng góp ý kiến chuyên môn quan trọng trong suốt quá trình "
+        "thực hiện. Tư duy nghiêm túc trong học thuật và tinh thần phản biện mà thầy truyền đạt đã "
+        "giúp tôi nâng cao chất lượng đồ án một cách rõ rệt.")
 
+    # Phần 2 — Khoa + Trường (2 câu)
     add_paragraph_text(doc,
-        f"Tôi xin chân thành cảm ơn Khoa {STUDENT_INFO['department']}, {STUDENT_INFO['university']} đã tạo "
-        "điều kiện thuận lợi để tôi được tiếp cận với các kiến thức nền tảng về Công nghệ phần mềm, "
-        "Kiến trúc hệ thống phân tán, và các công nghệ thực tiễn trong ngành. Sự hỗ trợ của Khoa "
-        "là nền tảng quan trọng giúp tôi có đủ năng lực để thực hiện đề tài SaaS multi-tenant này.")
+        f"Tôi xin chân thành cảm ơn Khoa {STUDENT_INFO['department']} và "
+        f"{STUDENT_INFO['university']} đã tạo điều kiện thuận lợi để tôi được tiếp cận với các kiến "
+        "thức nền tảng về Công nghệ phần mềm, Kiến trúc hệ thống phân tán và các công nghệ thực "
+        "tiễn trong ngành. Sự hỗ trợ của quý thầy cô là nền tảng quan trọng giúp tôi có đủ năng "
+        "lực thực hiện đề tài này.")
 
+    # Phần 3 — Gia đình + bạn bè (1-2 câu)
     add_paragraph_text(doc,
-        "Tôi cũng xin cảm ơn các thầy cô đã giảng dạy trong suốt 4 năm học tại trường, đặc biệt "
-        "là các môn chuyên ngành về Kiến trúc phần mềm, Cơ sở dữ liệu, Phát triển web, và Bảo mật "
-        "thông tin — những kiến thức này đã được áp dụng trực tiếp vào quá trình xây dựng nền tảng "
-        "KiteHub trong đồ án.")
-
-    add_paragraph_text(doc,
-        "Cuối cùng, tôi xin cảm ơn gia đình, bạn bè và những người thân đã luôn quan tâm, động viên, "
-        "hỗ trợ tôi cả về tinh thần lẫn vật chất trong suốt thời gian học tập và thực hiện đồ án.")
-
-    add_paragraph_text(doc,
-        "Mặc dù đã rất cố gắng trong việc thiết kế và triển khai hệ thống cũng như viết báo cáo, "
-        "song do thời gian và kinh nghiệm thực tiễn còn hạn chế, đồ án không tránh khỏi những "
-        "thiếu sót. Tôi rất mong nhận được sự đóng góp ý kiến từ quý thầy cô để đồ án được "
-        "hoàn thiện hơn.")
-
-    add_paragraph_text(doc, "Tôi xin chân thành cảm ơn!")
+        "Cuối cùng, tôi xin gửi lời cảm ơn tới gia đình, bạn bè và những người thân đã luôn quan "
+        "tâm, động viên và hỗ trợ tôi cả về tinh thần lẫn vật chất trong suốt thời gian học tập và "
+        "thực hiện đồ án. Do thời gian và kinh nghiệm còn hạn chế, đồ án không tránh khỏi những "
+        "thiếu sót; tôi rất mong nhận được ý kiến đóng góp từ quý thầy cô để đồ án được hoàn thiện hơn.")
 
     for _ in range(3):
         doc.add_paragraph()
@@ -962,6 +1043,10 @@ def add_acknowledgment_page(doc):
     p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     run = p.add_run(STUDENT_INFO["name"])
     set_font(run, Pt(13), bold=True)
+
+    # Wave 102.5 G17 — end of Section 1 (no page number group)
+    # Next section (TOC + danh mục) starts với roman lowercase numbering
+    doc.add_section(WD_SECTION.NEW_PAGE)
 
 
 # ============== MỤC LỤC ==============
@@ -1064,7 +1149,7 @@ def _add_table_2col(doc, rows_data, col0_width_cm=4.0, col1_width_cm=12.0,
             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             for run in paragraph.runs:
                 set_font(run, FONT_SIZE_TABLE, bold=True)
-        set_cell_shading(cell, 'D9E2F3')
+        # Item 1b Wave 102.5 — remove blue shading; keep white default per user direction
 
     for col0_val, col1_val in rows_data:
         row = table.add_row()
@@ -1146,6 +1231,10 @@ def add_abbreviations(doc):
     _add_table_2col(doc, abbrevs, col0_width_cm=3.5, col1_width_cm=12.5,
                     header_row=("Từ viết tắt", "Nghĩa đầy đủ"))
 
+    # Wave 102.5 G17 — end of Section 2 (roman group)
+    # Next section (Mở đầu + chapters) starts với arabic numbering từ 1
+    doc.add_section(WD_SECTION.NEW_PAGE)
+
 
 # ============== MỞ ĐẦU ==============
 def add_introduction(doc):
@@ -1174,23 +1263,65 @@ def add_introduction(doc):
 
     add_section_title(doc, "3. Phạm vi nghiên cứu")
     add_paragraph_text(doc,
-        "Đồ án tập trung vào giai đoạn beta tenant của nền tảng KiteHub: 6 microservice backend "
-        "(kitehub-admin, kitehub-branding, kitehub-email, kitehub-gateway, kitehub-platform, "
-        "kitehub-subscription) + 1 core tenant application (kiteclass-core) + 2 frontend Next.js "
-        "(kitehub-frontend, kiteclass-frontend). Phạm vi triển khai cloud sử dụng AWS Singapore "
-        "(ap-southeast-1) Free Tier theo ADR-025.")
+        "Đồ án tập trung vào giai đoạn beta tenant của nền tảng KiteHub, được giới hạn theo ba "
+        "chiều: không gian, thời gian và đối tượng. Về không gian, hệ thống triển khai cloud trên "
+        "AWS Singapore (ap-southeast-1) Free Tier theo ADR-025, phục vụ nhóm trung tâm giáo dục "
+        "thương mại tại Việt Nam (Hà Nội, TP. Hồ Chí Minh và các tỉnh lân cận). Về thời gian, "
+        "phạm vi triển khai kéo dài từ tháng 5/2026 đến hết giai đoạn beta tenant (~tháng 9/2026), "
+        "với cohort 7-10 trung tâm dùng miễn phí trong 9 tuần đầu để thu thập phản hồi.")
+    add_paragraph_text(doc,
+        "Về đối tượng, đồ án phục vụ ba persona chính: Solo Teacher (giáo viên độc lập, 1-50 học "
+        "viên), Center Owner (chủ trung tâm, 1-10 chi nhánh, 100-2.000 học viên), và Center "
+        "Manager (quản lý vận hành trung tâm). Persona K-12 Parent + Student được hoãn sang giai "
+        "đoạn mở rộng K-12 do yêu cầu bổ sung DPO + DPIA theo Điều 26 Luật Bảo vệ Dữ liệu Cá "
+        "nhân 2023. Kiến trúc hệ thống bao gồm 6 microservice backend (kitehub-admin, "
+        "kitehub-branding, kitehub-email, kitehub-gateway, kitehub-platform, kitehub-subscription), "
+        "1 core tenant application (kiteclass-core) và 2 frontend Next.js (kitehub-frontend, "
+        "kiteclass-frontend).")
 
     add_section_title(doc, "4. Phương pháp nghiên cứu")
-    add_bullet_list_item(doc, "Phân tích thị trường VN edu SaaS qua phân tích 4 đối thủ chính: MISA AMIS Trường Học, Mona eLMS, Easy Edu, DotB.")
-    add_bullet_list_item(doc, "Thiết kế kiến trúc multi-tenant theo các pattern industry-standard (single-bucket RLS, defense-in-depth 5 layers).")
-    add_bullet_list_item(doc, "Áp dụng Test-Driven Development (TDD) + Domain-Driven Design (DDD) trong quá trình phát triển.")
-    add_bullet_list_item(doc, "Phương pháp luận audit-driven: mỗi miss được ghi nhận và chuyển thành rule + enforcement mechanism trong cùng PR.")
+    add_paragraph_text(doc,
+        "Đồ án kết hợp phương pháp nghiên cứu lý thuyết (literature review) với phương pháp thực "
+        "nghiệm (experimental design + implementation):")
+    add_bullet_list_item(doc,
+        "Phân tích thị trường VN edu SaaS qua so sánh có hệ thống 4 hệ thống tương tự "
+        "(MISA AMIS Trường Học, Mona eLMS, Easy Edu, DotB) trên các tiêu chí giá, tính năng "
+        "multi-tenant, mức tích hợp AI và mức tuân thủ pháp luật Việt Nam.")
+    add_bullet_list_item(doc,
+        "Thiết kế kiến trúc multi-tenant theo các pattern industry-standard (single-bucket "
+        "Row-Level Security, defense-in-depth 5 lớp) đối chiếu với AWS SaaS Lens và Azure "
+        "multi-tenant whitepaper.")
+    add_bullet_list_item(doc,
+        "Áp dụng phương pháp luận Quality-Driven Development bốn trụ cột (TDD per Beck 2002, "
+        "DDD per Evans 2003, PDCA per Deming 1986, Lean per Poppendieck 2003) — mỗi miss "
+        "được chuyển thành rule + cơ chế enforcement trong cùng pull request.")
+    add_bullet_list_item(doc,
+        "Đánh giá chất lượng hệ thống qua bộ audit bảy chiều (Quality, UI, Security, "
+        "Performance, API Contract, Business Logic, Ops Readiness) chấm điểm /100 hoặc /128 "
+        "định kỳ sau mỗi wave.")
 
-    add_section_title(doc, "5. Cấu trúc đồ án")
-    add_paragraph_text(doc, "Đồ án gồm 4 chương:")
+    add_section_title(doc, "5. Tóm tắt nội dung")
+    add_paragraph_text(doc,
+        "Đồ án trình bày bốn đóng góp chính tương ứng bốn chương nội dung. Thứ nhất, đồ án "
+        "phân tích thị trường EdTech Việt Nam và khung pháp lý liên quan (PDPL 2023, Luật An "
+        "ninh mạng 2018, Thông tư 29/2024/TT-BGDĐT) làm cơ sở xác định khoảng trống và nhu cầu "
+        "của nhóm trung tâm vừa và nhỏ. Thứ hai, đồ án thiết kế và mô tả kiến trúc hệ thống "
+        "multi-tenant SaaS với mô hình C4 bốn cấp, kết hợp Use Case + Class + ERD và sơ đồ "
+        "tuần tự cho các luồng quan trọng (đăng ký, kích hoạt subscription).")
+    add_paragraph_text(doc,
+        "Thứ ba, đồ án triển khai và kiểm thử hệ thống trên AWS Singapore Free Tier, với các "
+        "pattern cốt lõi (Row-Level Security NULL force-fail, Outbox Pattern, JWT propagation, "
+        "REST 3-tier) được kiểm chứng qua unit test, integration test và E2E test. Thứ tư, đồ "
+        "án trình bày kết quả triển khai thực tế trong giai đoạn beta tenant kèm các KPI đo "
+        "lường, đánh giá độ trưởng thành và đề xuất hướng phát triển tiếp theo. Kết quả của "
+        "đồ án vừa là sản phẩm phần mềm hoạt động được, vừa là tài liệu tham chiếu cho các "
+        "công trình nghiên cứu kế tiếp về EdTech multi-tenant tại Việt Nam.")
+
+    add_section_title(doc, "6. Cấu trúc đồ án")
+    add_paragraph_text(doc, "Đồ án gồm bốn chương nội dung chính:")
     add_bullet_list_item(doc, "Chương 1 — Tổng quan: phân tích đối tượng tham khảo trên thị trường, kỹ thuật AI tích hợp, và khung pháp lý Việt Nam tác động đến nền tảng.")
-    add_bullet_list_item(doc, "Chương 2 — Kiến trúc hệ thống: yêu cầu chức năng + phi chức năng, C4 Model L1/L2, multi-tenant single-bucket pattern, defense-in-depth 5 layers.")
-    add_bullet_list_item(doc, "Chương 3 — Triển khai: 5 đoạn code snippet đại diện cho các pattern cốt lõi (JWT auth, tenant RLS, outbox dispatcher, REST controller, Next.js page).")
+    add_bullet_list_item(doc, "Chương 2 — Kiến trúc hệ thống: yêu cầu chức năng + phi chức năng, mô hình hóa C4 + Use Case + Class + ERD, thiết kế cơ sở dữ liệu, multi-tenant single-bucket, defense-in-depth 5 lớp.")
+    add_bullet_list_item(doc, "Chương 3 — Triển khai: kết quả triển khai giao diện sản phẩm và bộ kiểm thử ba lớp (unit / integration / E2E) với các sample test case cụ thể.")
     add_bullet_list_item(doc, "Chương 4 — Kết quả triển khai: cloud AWS giai đoạn beta tenant, user onboarding flow, KPI metrics, beta scope.")
 
 
@@ -1216,7 +1347,7 @@ def add_conclusion(doc):
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(18)
-    run = p.add_run("KẾT LUẬN")
+    run = p.add_run("KẾT LUẬN VÀ KIẾN NGHỊ")
     set_font(run, FONT_SIZE_CHAPTER, bold=True)
 
     add_section_title(doc, "1. Tổng kết kết quả đạt được")
@@ -1282,6 +1413,26 @@ def add_conclusion(doc):
         "Chương 2 + Chương 3, kèm phương pháp luận Quality-Driven Development bốn trụ cột (Chương 1 Phần "
         "3) hỗ trợ duy trì chất lượng code + tài liệu trong điều kiện phát triển dài hạn.")
 
+    # Wave 102.5 Bucket A G1 — §"Kiến nghị" 2-3 ý: hướng phát triển + chuyển giao
+    add_section_title(doc, "5. Kiến nghị")
+    add_paragraph_text(doc,
+        "Trên cơ sở kết quả đạt được và những hạn chế đã nêu, tôi xin đề xuất một số kiến nghị "
+        "cho hướng phát triển và chuyển giao đề tài như sau:")
+    add_bullet_list_item(doc,
+        "Tiếp tục mở rộng phạm vi nghiên cứu sang giai đoạn paid beta và GA: tích hợp thanh toán "
+        "trong nước (VNPay, MoMo, VietQR), partnership MISA MeInvoice cho hóa đơn điện tử theo "
+        "Thông tư 78/2021/TT-BTC, đồng thời xây dựng quy trình DPO + DPIA chuẩn PDPL 2023 trước "
+        "khi mở rộng tới 1.000+ tenant.")
+    add_bullet_list_item(doc,
+        "Nâng cấp kiến trúc đa-region (Singapore + Hà Nội Local Zone) để bảo đảm tuân thủ Nghị "
+        "định 53/2022/NĐ-CP về lưu trữ dữ liệu cá nhân tại Việt Nam, đồng thời cải thiện độ trễ "
+        "truy cập cho người dùng cuối trong nước.")
+    add_bullet_list_item(doc,
+        "Chuyển giao kết quả nghiên cứu cho cộng đồng học thuật và doanh nghiệp giáo dục Việt Nam "
+        "thông qua công bố mã nguồn mở (open-source) các pattern Row-Level Security NULL force-fail "
+        "và Quality-Driven Development workflow, làm tài liệu tham khảo cho các đồ án và đề tài "
+        "nghiên cứu kế tiếp về EdTech multi-tenant trong nước.")
+
 
 # ============== TÀI LIỆU THAM KHẢO ==============
 def parse_bibliography_md(md_text):
@@ -1330,7 +1481,7 @@ def add_references_from_md(doc):
 
     p = doc.add_paragraph(style='Heading 1')
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run("TÀI LIỆU THAM KHẢO")
+    run = p.add_run("DANH MỤC TÀI LIỆU THAM KHẢO")
     run.font.name = FONT_NAME
     if run._element.rPr is not None:
         run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
@@ -1444,7 +1595,8 @@ def create_thesis():
     add_references_from_md(doc)
     add_appendix(doc)
 
-    # Apply borders: section 0 + 1 = bìa, section 2+ = no border
+    # Apply borders: section 0 + 1 = bìa chính + bìa phụ, section 2+ = no border
+    # Wave 102.5 G17 — section count expanded to 5+ (added breaks after Lời cảm ơn + Danh mục)
     print(f"DEBUG: Total sections = {len(doc.sections)}")
     if len(doc.sections) >= 3:
         add_page_border(doc.sections[0])
