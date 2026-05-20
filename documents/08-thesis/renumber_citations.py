@@ -155,7 +155,7 @@ def main():
     print()
 
     mapping = build_mapping(first_appearance)
-    print(f"Mapping built. Sample (top 5):")
+    print("Mapping built. Sample (top 5):")
     for old, new in sorted(mapping.items())[:5]:
         print(f"  [{old}] -> [{new}]")
     print()
