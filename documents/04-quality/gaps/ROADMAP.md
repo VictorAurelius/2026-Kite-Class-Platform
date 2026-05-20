@@ -8,7 +8,13 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-20 — Wave 102.7.1 SHIPPED thesis V1 Structural P0 + Wave 102.7.0 META + Wave 102.6 + Wave 102.5 fix bundle + Wave 102.4 ≥95 A + Wave 102.3 + Wave 102.2 + Wave 102.1 + Wave 102 META + Wave 102 GAP-688)
+## 🎯 Current Status Snapshot (2026-05-20 — Wave 102.7.2 SHIPPED thesis V1 Content P0 + Wave 102.7.1 + Wave 102.7.0 META + Wave 102.6 + Wave 102.5 fix bundle + Wave 102.4 ≥95 A + Wave 102.3 + Wave 102.2 + Wave 102.1 + Wave 102 META + Wave 102 GAP-688)
+
+### 🎉 Wave 102.7.2 SHIPPED 2026-05-20 — Thesis V1 Content P0 (Ch.2 rename + Ch.3 shared-flow + Ch.4 §4.2 reframe + cross-ref + math)
+
+**4 buckets parallel ~1h:** Bucket A Ch.2 rename `KIẾN TRÚC` → `PHÂN TÍCH THIẾT KẾ HỆ THỐNG` + H2 restructure (2.1 Phân tích / 2.2 Thiết kế tổng thể / 2.3 Thiết kế chi tiết) + 13 internal cross-ref sync + math F-B2-02 17 (not 18) + F-B2-03 HikariCP 60 (not 70). Bucket B Ch.3 screenshot **9→4 composite figures** (Hình 3.1 Discovery+Onboarding 4 screens / 3.2 Daily ops 2 / 3.3 Admin ops 2 / 3.4 Test pyramid) + S8 source attribution 100% + ~4-5 trang saved. Bucket C Ch.4 §4.2 reframe (65 lines User Onboarding → placeholder "Kết quả end-user pre-defense") + §4.0 drop per S2 + F-B4-02 math $13 → $7.38 + cross-ref F-C5-04/05 (Ch.3 §3.4/§3.5 anchors broken → fix to Ch.2 §2.3.4 RLS + drop Outbox cite) + P2-08 §2.5 outside-in drop. Bucket D B1-08 bibliography rename `DANH MỤC TÀI LIỆU THAM KHẢO` → `TÀI LIỆU THAM KHẢO` (UTC convention). thesis-v1.docx re-rendered 4 sections / **631 paragraphs** (Wave 102.7.1 673 → -42 từ trim Ch.3 + Ch.4). PRs: #1656 D + #1657 B + #1658 C + #1659 A. Net ~5-7 trang saved.
+
+---
 
 ### 🎉 Wave 102.7.1 SHIPPED 2026-05-20 — Thesis V1 Structural P0 (4 new pages + bìa + đại từ + H1 wraps)
 
