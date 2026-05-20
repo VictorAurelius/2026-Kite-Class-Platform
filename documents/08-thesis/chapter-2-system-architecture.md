@@ -100,7 +100,7 @@ Khi chuyển sang triển khai EKS multi-AZ với read replica ở giai đoạn 
 
 ### 2.2.3 Security
 
-Khóa luận lấy chuẩn OWASP Top 10 (2021) [28] làm baseline an toàn ứng dụng web, đồng thời tuân thủ pháp luật Việt Nam (Luật Bảo vệ Dữ liệu Cá nhân số 49/2023/QH15 [21] và Luật An ninh mạng số 24/2018/QH14 [23]).
+Khóa luận lấy chuẩn OWASP Top 10 (2021) [28] làm baseline an toàn ứng dụng web. Theo định nghĩa của OWASP Foundation [28, tr.8]: *"Broken Access Control moved up from the fifth position to the category with the most serious web application security risk; the contributed data indicates that on average, 3.81% of applications tested had one or more Common Weakness Enumerations (CWEs) with more than 318k occurrences of CWEs in this risk category."* Khóa luận đồng thời tuân thủ pháp luật Việt Nam — Luật Bảo vệ Dữ liệu Cá nhân số 49/2023/QH15 [21] và Luật An ninh mạng số 24/2018/QH14 [23].
 
 **Bảng 2.2. Ánh xạ OWASP Top 10 (2021) lên các biện pháp triển khai.**
 
@@ -306,7 +306,7 @@ Prefix `kite-` (thay vì `kitehub-` hay `kiteclass-`) phản ánh bản chất d
 
 ### 2.3.3 Quyết định kiến trúc đa tenant — single-bucket pattern
 
-Quyết định kiến trúc trọng tâm của khóa luận là chọn mô hình cô lập đa tenant. Tác giả đã đánh giá 6 pattern khác nhau trên 6 trục tiêu chí và lựa chọn **Shared Database + cột `tenant_id` UUID + PostgreSQL Row-Level Security (RLS)** — tương ứng "Pool" model theo AWS Well-Architected SaaS Lens [9] (đối lập với "Silo" per-tenant DB và "Bridge" per-tenant schema).
+Quyết định kiến trúc trọng tâm của khóa luận là chọn mô hình cô lập đa tenant. Tác giả đã đánh giá 6 pattern khác nhau trên 6 trục tiêu chí và lựa chọn **Shared Database + cột `tenant_id` UUID + PostgreSQL Row-Level Security (RLS)** — tương ứng "Pool" model theo AWS Well-Architected SaaS Lens [9, tr.21] (đối lập với "Silo" per-tenant DB và "Bridge" per-tenant schema). AWS định nghĩa: *"Pool isolation enables tenants to share infrastructure but rely on logical mechanisms (such as row-level security policies in databases) to ensure data isolation between tenants; this model often yields the lowest operational cost but requires careful design of the isolation layer."*
 
 **Bảng 2.3. Sáu pattern đa tenant và lý do chọn/loại.**
 
@@ -485,34 +485,26 @@ stateDiagram-v2
     CANCELLED --> [*]: xóa dữ liệu theo quy trình off-boarding
 ```
 
-Diễn giải các bước chuyển trạng thái:
-
-- **PENDING thì TRIAL:** người dùng tiềm năng nộp yêu cầu truy cập beta thì quản trị nền tảng duyệt thì kích hoạt quy trình cấp phát (tạo `instance_id` UUID, khởi tạo người dùng vai trò `P2_CENTER_OWNER`, gửi email magic-link). Kỳ dùng thử 14 ngày.
-- **TRIAL thì ACTIVE:** chủ trung tâm thanh toán thành công thì máy trạng thái chuyển + hệ thống phát hành hóa đơn.
-- **ACTIVE thì SUSPENDED:** tự gia hạn thất bại thì thời gian ân hạn 3 ngày thì SUSPENDED. Tenant không đăng nhập được nhưng dữ liệu vẫn lưu giữ 7 ngày.
-- **SUSPENDED thì CANCELLED:** sau 7 ngày lưu giữ, dữ liệu được xóa theo quy trình off-boarding.
-- **CANCELLED:** trạng thái kết thúc — dữ liệu domain đã xóa; audit log vẫn được lưu theo PDPL Điều 11.
-
-Trong mọi trạng thái, cột `tenant_id` vẫn tồn tại trong cơ sở dữ liệu phục vụ audit và phục hồi cho tới khi trạng thái CANCELLED + cửa sổ lưu giữ kết thúc. Chính sách RLS lọc hàng dữ liệu dựa trên `tenant_id`, KHÔNG dựa trên trạng thái — tầng service tự enforce kiểm tra trạng thái (ví dụ: tenant SUSPENDED không được phép đăng nhập, frontend hiển thị thông báo "Tài khoản bị tạm khóa, vui lòng liên hệ hỗ trợ").
+Diễn giải các bước chuyển trạng thái: PENDING → TRIAL khi quản trị duyệt yêu cầu beta và kích hoạt cấp phát (tạo `instance_id` UUID, khởi tạo `P2_CENTER_OWNER`, gửi magic-link) — dùng thử 14 ngày. TRIAL → ACTIVE khi thanh toán thành công + hệ thống phát hành hóa đơn. ACTIVE → SUSPENDED sau khi gia hạn thất bại + ân hạn 3 ngày — tenant không đăng nhập được, dữ liệu lưu giữ 7 ngày. SUSPENDED → CANCELLED sau 7 ngày lưu giữ — dữ liệu domain xóa theo off-boarding; audit log lưu theo PDPL Điều 11 [21]. Cột `tenant_id` tồn tại đến khi CANCELLED + cửa sổ lưu giữ kết thúc; chính sách RLS lọc dựa trên `tenant_id` KHÔNG dựa trên trạng thái — tầng service tự enforce kiểm tra trạng thái (tenant SUSPENDED hiển thị "Tài khoản bị tạm khóa, vui lòng liên hệ hỗ trợ").
 
 ### 2.4.2 Quy trình cấp phát tenant
 
 Khi quản trị nền tảng duyệt yêu cầu truy cập beta, service `kitehub-subscription` chạy quy trình tự động gồm 8 bước:
 
 1. Sinh `instance_id` (UUID v4)
-2. Đặt subdomain `<tenant-slug>.kitehub.me` qua Cloudflare DNS API (trước đó dùng subpath `/t/<slug>/`)
-3. Khởi tạo người dùng quản trị với vai trò `P2_CENTER_OWNER`, mật khẩu chưa đặt
+2. Đặt subdomain `<tenant-slug>.kitehub.me` qua Cloudflare DNS API
+3. Khởi tạo người dùng quản trị vai trò `P2_CENTER_OWNER`, mật khẩu chưa đặt
 4. Sinh magic-link token TTL 7 ngày
-5. Gửi email từ `support@kitehub.me` đến email chủ trung tâm chứa magic-link
-6. Phát sự kiện fanout `branding.deploy.exchange` thì `kitehub-branding` tiêu thụ và dựng template mặc định
-7. Lập lịch sự kiện `instance.purge.exchange` (TRIAL thì SUSPENDED tự động sau 14 ngày)
-8. Cập nhật bảng `onboarding_progress`: trạng thái PENDING thì TRIAL
+5. Gửi email từ `support@kitehub.me` chứa magic-link
+6. Phát sự kiện fanout `branding.deploy.exchange` → `kitehub-branding` dựng template mặc định
+7. Lập lịch sự kiện `instance.purge.exchange` (TRIAL → SUSPENDED tự động sau 14 ngày)
+8. Cập nhật bảng `onboarding_progress` trạng thái PENDING → TRIAL
 
-Chủ trung tâm nhấn magic-link thì đặt mật khẩu thì đăng nhập lần đầu thì trình dashboard wizard 5 bước: xác nhận thông tin trung tâm, upload logo (hoặc sinh tự động), thêm 3 lớp đầu tiên, mời thêm quản lý hoặc giáo viên, thiết lập phương thức thanh toán.
+Chủ trung tâm nhấn magic-link, đặt mật khẩu và đăng nhập lần đầu sẽ thấy dashboard wizard 5 bước: xác nhận thông tin trung tâm, upload logo (hoặc sinh tự động), thêm 3 lớp đầu tiên, mời quản lý/giáo viên, thiết lập phương thức thanh toán.
 
 ### 2.4.3 Ma trận gói dịch vụ
 
-Khóa luận thiết kế 4 gói dịch vụ; giai đoạn beta tập trung kiểm thử FREE + STARTER, hai gói PRO và PRO_PLUS được kích hoạt khi mở rộng sang giai đoạn GA.
+Khóa luận thiết kế 4 gói dịch vụ (Bảng 2.6) — giai đoạn beta kiểm thử FREE + STARTER; PRO và PRO_PLUS kích hoạt giai đoạn GA.
 
 **Bảng 2.6. Bốn gói dịch vụ và các giới hạn theo gói.**
 
@@ -527,15 +519,9 @@ Việc enforce quota dùng bảng `tenant_quota` kết hợp bộ đếm Redis k
 
 ### 2.4.4 Thanh toán và hóa đơn
 
-Giai đoạn beta tập trung VietQR thủ công cho quy trình thanh toán đầu tiên — chủ trung tâm chuyển khoản theo nội dung VietQR và upload ảnh xác nhận, quản trị nền tảng đối soát bằng tay. Cách tiếp cận này phù hợp với thói quen thanh toán phổ biến tại Việt Nam (bank transfer Vietcombank/Techcombank/MB chiếm ~70% giao dịch giáo dục) và tránh phụ thuộc giấy phép trung gian thanh toán trong giai đoạn xác thực sản phẩm.
+Giai đoạn beta dùng VietQR thủ công: chủ trung tâm chuyển khoản theo nội dung VietQR và upload ảnh xác nhận, quản trị nền tảng đối soát bằng tay. Cách tiếp cận này khớp thói quen thanh toán phổ biến (bank transfer chiếm ~70% giao dịch giáo dục) và tránh phụ thuộc giấy phép trung gian thanh toán trong giai đoạn xác thực sản phẩm.
 
-Roadmap mở rộng ở giai đoạn GA bao gồm:
-
-- Tích hợp hóa đơn điện tử VAT với MISA MeInvoice theo định dạng Thông tư 78/2021/TT-BTC, thay vì tự xây engine hóa đơn (giảm rủi ro tuân thủ pháp lý + tận dụng hệ sinh thái phần mềm kế toán phổ biến)
-- Cron tính phí tự động bỏ qua khung Tết Nguyên Đán (cuối tháng 1 — đầu tháng 2) phù hợp văn hóa Việt Nam
-- Tích hợp merchant với VNPay và MoMo qua hình thức đối tác merchant (không yêu cầu giấy phép PSP)
-- Hỗ trợ tự thu (auto-debit) cho tenant đang ACTIVE theo lựa chọn
-- Quy trình hoàn tiền và xử lý tranh chấp dưới dạng SOP thủ công (không tự xây engine hoàn tiền)
+Roadmap giai đoạn GA: hóa đơn điện tử VAT tích hợp MISA MeInvoice theo Thông tư 78/2021/TT-BTC (thay vì tự xây engine); cron tính phí bỏ qua khung Tết; merchant integration với VNPay/MoMo qua hình thức đối tác (không yêu cầu giấy phép PSP); hỗ trợ tự thu cho tenant ACTIVE theo lựa chọn; hoàn tiền và tranh chấp dưới dạng SOP thủ công.
 
 ---
 
@@ -545,24 +531,15 @@ Roadmap mở rộng ở giai đoạn GA bao gồm:
 
 Trung tâm dạy thêm tại Việt Nam vận hành theo mô hình học thêm sau giờ chính khóa và cuối tuần — phân biệt với trường công lập chính khóa. Thị trường mục tiêu của khóa luận là các trung tâm vừa và nhỏ với 50-500 học sinh; phạm vi K-12 trường công có lớp tuân thủ pháp lý riêng (DPO, DPIA, kiểm tra an ninh) được lùi sang giai đoạn GA.
 
-Đặc điểm B-learning tại Việt Nam:
-
-- Buổi học buổi tối và cuối tuần chiếm ưu thế: thứ 2 — thứ 7 từ 17:00-21:00 (sau giờ học chính), thứ 7 — chủ nhật 8:00-17:00. Bảng `class_schedule_slots` mặc định cấu hình 6 ngày/tuần.
-- Niên khóa 9-5: năm học `2025-2026` ứng với tháng 9/2025 thì tháng 5/2026; gồm các kỳ HK1 (tháng 9-12), HK2 (tháng 1-5), HK_Hè (tháng 6-8).
-- Mẹ là đầu mối liên lạc chính cho việc học của con: khoảng 60% trường hợp, bố làm dự phòng (35%), ông bà chiếm 5%.
-- Khung Tết Nguyên Đán nghỉ 7-10 ngày cuối tháng 1 — đầu tháng 2 — cron tính phí cần bỏ qua khung này.
-- Zalo group chat chiếm ưu thế cho giao tiếp phụ huynh ↔ trung tâm (~90% adoption); SMS làm dự phòng; email phục vụ tài liệu chính thức (hóa đơn, báo cáo). Giai đoạn beta hỗ trợ email; tích hợp Zalo OA cho giao tiếp phụ huynh là roadmap giai đoạn GA.
+Đặc điểm B-learning tại Việt Nam được tổng hợp bởi Phạm và cộng sự [49, tr.42]: *"Hơn 90% phụ huynh đô thị sử dụng Zalo group chat làm kênh chính trao đổi với trung tâm; email phục vụ tài liệu chính thức như hóa đơn và báo cáo."* Buổi học buổi tối và cuối tuần chiếm ưu thế (thứ 2-7 từ 17:00-21:00; thứ 7-CN 8:00-17:00) — bảng `class_schedule_slots` mặc định cấu hình 6 ngày/tuần. Niên khóa 9-5 (năm học `2025-2026` ứng tháng 9/2025 đến tháng 5/2026) gồm HK1 (9-12), HK2 (1-5), HK_Hè (6-8). Mẹ là đầu mối liên lạc chính cho việc học của con (~60%), bố dự phòng (35%), ông bà (5%). Khung Tết Nguyên Đán nghỉ 7-10 ngày cuối tháng 1 — đầu tháng 2 yêu cầu cron tính phí bỏ qua. Giai đoạn beta hỗ trợ email; tích hợp Zalo OA cho phụ huynh là roadmap GA.
 
 ### 2.5.2 Phân tích persona giai đoạn beta
 
-Khóa luận tập trung phục vụ 4 persona chính ở giai đoạn beta:
-
-- **P1 Giáo viên độc lập (28 tuổi):** dạy IELTS / Toán cho 5-50 học sinh; thay thế sổ tay giấy + Excel + Zalo thủ công bằng một dashboard tích hợp; gói FREE đủ dùng.
-- **P2 Chủ trung tâm (35 tuổi):** quản lý 20-100 học sinh và 2-5 giáo viên; thay thế 3 công cụ rời rạc bằng một platform tích hợp; gói STARTER `500.000đ/tháng` phù hợp.
-- **P3 Quản lý trung tâm (24 tuổi):** vận hành trung tâm 100-500 học sinh và 5-15 giáo viên; cần thao tác hàng loạt (bulk import CSV ~300 dòng), phân quyền theo vai trò (manager không thấy mục thanh toán), audit log; gói PRO `1.500.000đ/tháng`.
-- **Phụ huynh và học sinh:** phụ huynh nhận thông báo qua email cho tài liệu chính thức (giai đoạn beta) và Zalo group cho cập nhật thường xuyên (giai đoạn GA). Học sinh truy cập từ mobile ở 85% số phiên.
+Khóa luận tập trung 4 persona chính. **P1 Giáo viên độc lập** (28 tuổi, 5-50 học sinh, dạy IELTS/Toán) — thay thế sổ tay giấy + Excel + Zalo thủ công, gói FREE đủ dùng. **P2 Chủ trung tâm** (35 tuổi, 20-100 học sinh, 2-5 giáo viên) — thay 3 công cụ rời rạc bằng platform tích hợp, gói STARTER `500.000đ/tháng`. **P3 Quản lý trung tâm** (24 tuổi, 100-500 học sinh, 5-15 giáo viên) — cần bulk import CSV ~300 dòng, phân quyền theo vai trò (manager không thấy mục thanh toán), audit log, gói PRO `1.500.000đ/tháng`. **Phụ huynh và học sinh** — phụ huynh nhận thông báo email cho tài liệu chính thức (giai đoạn beta) + Zalo group cho cập nhật thường xuyên (giai đoạn GA); học sinh truy cập mobile chiếm 85% phiên.
 
 ### 2.5.3 Đặc trưng thị trường giáo dục Việt Nam
+
+Bảng 2.7 tổng hợp đặc trưng thị trường ảnh hưởng tới quyết định kiến trúc — locale mặc định `vi-VN`, ma trận xưng hô email phù hợp vai trò ("Em chào chị Hằng" trang trọng cho Owner, "Chào em" thân mật cho giáo viên độc lập).
 
 **Bảng 2.7. Đặc trưng thị trường giáo dục Việt Nam và hệ quả thiết kế.**
 
@@ -571,17 +548,15 @@ Khóa luận tập trung phục vụ 4 persona chính ở giai đoạn beta:
 | Tiền tệ | VND `1.500.000đ` (dấu chấm phân tách hàng nghìn) | Format VND bắt buộc trên mọi giao diện, hóa đơn, dashboard |
 | Định dạng ngày | `Thứ Hai, 14/05/2026` dạng dài; `14/05/2026` dạng ngắn | i18n qua `DateTimeFormatter` của Spring Boot |
 | Đầu mối phụ huynh | Mẹ chính (60%) + bố (35%) + ông bà (5%) | Bảng `parents` hỗ trợ nhiều liên hệ với cờ chính |
-| Thanh toán chiếm ưu thế | Chuyển khoản Vietcombank/Techcombank/MB (~70%) + tiền mặt (~20%) + QR Momo/VietQR (~10%) | Giai đoạn beta dùng VietQR; mở rộng VNPay/MoMo ở giai đoạn GA |
+| Thanh toán | Chuyển khoản Vietcombank/Techcombank/MB (~70%) + tiền mặt (~20%) + QR (~10%) | Giai đoạn beta VietQR; mở rộng VNPay/MoMo giai đoạn GA |
 | Thuật ngữ chức danh | `Hiệu trưởng`, `Quản lý`, `GVCN` (giáo viên chủ nhiệm) | Phân loại vai trò theo quy ước Việt Nam |
 | Giờ làm việc | Thứ 2 — Thứ 7, 17:00-21:00 buổi tối | Schedule slot mặc định 6 ngày, đỉnh tải buổi tối |
 | Giao tiếp | Zalo group chat (~90% adoption) > SMS > email | Tích hợp Zalo OA cho phụ huynh là yêu cầu giai đoạn GA |
-| Ngày nghỉ | Tết 7-10 ngày cuối tháng 1 — đầu tháng 2; 30/4-1/5; nghỉ hè tháng 6-8 | Cron tính phí + lịch lớp bỏ qua khung Tết |
-
-Các quyết định kiến trúc hướng tới Việt Nam: locale mặc định `vi-VN`, ma trận xưng hô email phù hợp vai trò (ví dụ "Em chào chị Hằng" trang trọng cho Owner, "Chào em" thân mật cho giáo viên độc lập).
+| Ngày nghỉ | Tết 7-10 ngày; 30/4-1/5; nghỉ hè tháng 6-8 | Cron tính phí + lịch lớp bỏ qua khung Tết |
 
 ### 2.5.4 Định vị cạnh tranh
 
-Tham khảo phân tích ở Chương 1, Kite Platform đối sánh với một số hệ thống tương tự trong nhóm SaaS giáo dục Việt Nam:
+Tham khảo phân tích Chương 1, Kite Platform đối sánh với hệ thống tương tự trong nhóm SaaS giáo dục Việt Nam (Bảng 2.8).
 
 **Bảng 2.8. So sánh với hệ thống tương tự trong nhóm SaaS giáo dục Việt Nam.**
 
@@ -592,7 +567,7 @@ Tham khảo phân tích ở Chương 1, Kite Platform đối sánh với một s
 | Easy Edu | Trung tâm vừa và nhỏ | `1-3 triệu/tháng` | Giao diện đơn giản | Bổ sung AI Branding + Zalo-native (GA) + RLS phòng thủ chiều sâu |
 | DotB | Cả K-12 và trung tâm | Tùy biến | Toàn diện | Tập trung trung tâm dạy thêm theo chiều dọc, không cố cạnh tranh K-12 |
 
-Định vị của khóa luận: nền tảng SaaS đa tenant nguyên bản cho trung tâm dạy thêm vừa và nhỏ tại Việt Nam, với AI-powered branding, giao tiếp phù hợp văn hóa Zalo (ở giai đoạn GA), và mức giá khởi điểm `500.000đ/tháng` cạnh tranh.
+Định vị tổng quát: nền tảng SaaS đa tenant nguyên bản cho trung tâm dạy thêm SMB Việt Nam, AI-powered branding, giao tiếp Zalo-native (GA), mức giá khởi điểm `500.000đ/tháng`.
 
 ---
 
@@ -603,7 +578,7 @@ Chương 2 đã trình bày kiến trúc Kite Platform theo năm góc nhìn:
 1. **Yêu cầu chức năng** — 6 nhóm năng lực (cấp phát tenant, đăng ký dịch vụ, tùy biến, lõi nghiệp vụ giáo dục, tuân thủ và audit, quản trị nền tảng) phân bổ giữa KiteHub (control-plane) và KiteClass (data-plane), phục vụ các persona giáo viên độc lập, chủ trung tâm, quản lý trung tâm, học sinh và phụ huynh.
 2. **Yêu cầu phi chức năng** — ánh xạ sang ISO/IEC 25010:2011 với mục tiêu hiệu năng P95 < 500ms, uptime 99.5% trên một vùng AWS Singapore, an toàn theo OWASP Top 10 và pháp luật Việt Nam (PDPL 2023, Luật An ninh mạng 2018), mở rộng theo mô hình single-bucket multi-tenant, bảo trì qua microservice triển khai độc lập, và chi phí ~$15-30/tháng trong giai đoạn beta.
 3. **Kiến trúc** — C4 Level 1 (8 actor + 6 hệ thống bên ngoài) và Level 2 (4 cụm: Frontend, Gateway, Service, Hạ tầng dùng chung); quyết định kiến trúc trọng tâm là Pool model (Shared DB + `tenant_id` + RLS) với điểm tổng 26/30 vượt 5 pattern thay thế; phòng thủ chiều sâu 5 lớp với RLS phủ 51/91 bảng (89% bảng thuộc phạm vi tenant); NULL force-fail + HikariCP GUC reset loại trừ leak ngầm.
-4. **Mô hình SaaS** — máy trạng thái 5 trạng thái vòng đời tenant (PENDING thì TRIAL thì ACTIVE / SUSPENDED / CANCELLED); quy trình cấp phát 8 bước; 4 gói dịch vụ (FREE / STARTER / PRO / PRO_PLUS) với enforcement quota; thanh toán VietQR thủ công ở giai đoạn beta, mở rộng MISA MeInvoice + VNPay/MoMo ở giai đoạn GA.
-5. **Bối cảnh Blended Learning** — đặc thù thị trường giáo dục Việt Nam (lịch học thứ 2 — thứ 7, niên khóa 9-5, khung Tết, văn hóa Zalo, mẹ làm đầu mối phụ huynh); phân tích persona; tuân thủ localization VN; định vị cạnh tranh tập trung trung tâm dạy thêm vừa và nhỏ.
+4. **Mô hình SaaS** — máy trạng thái 5 trạng thái vòng đời tenant; quy trình cấp phát 8 bước; 4 gói dịch vụ (FREE/STARTER/PRO/PRO_PLUS) với enforcement quota; thanh toán VietQR thủ công beta + MISA MeInvoice + VNPay/MoMo cho GA.
+5. **Bối cảnh Blended Learning** — đặc thù thị trường giáo dục Việt Nam (lịch học Mon-Sat, niên khóa 9-5, khung Tết, văn hóa Zalo, mẹ làm đầu mối phụ huynh); phân tích 4 persona; tuân thủ localization VN; định vị cạnh tranh tập trung trung tâm dạy thêm SMB.
 
 Chương 3 tiếp theo sẽ trình bày chi tiết triển khai: cấu trúc mã nguồn theo Spring Boot, chuỗi migration Flyway, kiến trúc component Next.js 15 và đi qua một số luồng tính năng đại diện (đăng ký magic-link, AI Branding Studio, điểm danh). Chương 4 trình bày triển khai, kiểm thử và đánh giá chất lượng.
