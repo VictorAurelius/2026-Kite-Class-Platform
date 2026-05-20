@@ -205,13 +205,21 @@ Ba dashboard chính được thiết kế (structure đã document, hiển thị
 
 ### 4.3.4 Kết quả đo giai đoạn beta (sơ bộ)
 
+> **Phương pháp đo lường (giai đoạn sơ bộ).** Các số liệu dưới đây là *ước tính / đo sơ bộ* dùng cho mục đích validation kiến trúc giai đoạn beta; **chưa thay thế production benchmark**. Tool / N / Date / Env per KPI:
+>
+> - **Uptime SLO ≥99,2%:** *ước tính* theo public AWS SLA cho EC2 t3.micro `ap-southeast-1` single-AZ — KHÔNG phải đo thực từ CloudWatch availability metric (cohort beta chưa đủ dữ liệu khoảng thời gian tối thiểu để baseline). Cập nhật khi có ≥30 ngày uptime data.
+> - **P95 API latency 280-350 ms:** *probe-endpoint sample* — 5 lượt web-probe từ TP.HCM → ALB → `/actuator/health`. Lưu ý: `/actuator/health` là probe endpoint trả về JSON 200 OK đơn giản, KHÔNG đại diện cho controller path nghiệp vụ (DB lookup + tenant context resolve). Sẽ thay bằng production endpoint sampling khi cohort beta active.
+> - **Lighthouse Performance 92/100:** *single measurement* — Chrome DevTools Lighthouse audit, mobile profile, URL `https://kitehub.me`, Date 2026-05-15, throttling default. Chưa lặp N≥5 để baseline reproducibility — cần lặp + median khi định kỳ benchmark.
+>
+> Các KPI Acquisition + Engagement (Signup conversion / Approval rate / Retention / Feature adoption / Crash-free rate) cần cohort tenant đủ lớn để thu thập số liệu — sẽ cập nhật trước defense.
+
 Các KPI System Health đã có số liệu sơ bộ thu thập được từ public probes; các KPI Acquisition + Engagement cần cohort tenant đủ lớn nên sẽ cập nhật trước defense:
 
 | KPI | Mục tiêu | Đo lường sơ bộ |
 |---|---|---|
-| Uptime SLO | ≥99,0% | Sơ bộ ≥99,2% — ước tính theo public AWS SLA cho EC2 t3.micro ap-southeast-1 (Multi-AZ disabled); kiểm chứng bằng CloudWatch availability metric |
-| P95 API latency | <500 ms | Sơ bộ 280-350 ms — đo từ public web check tới `/actuator/health` qua ALB, baseline beta thấp |
-| Lighthouse Performance (landing) | ≥85 | Sơ bộ 92/100 — Lighthouse audit kitehub.me mobile profile |
+| Uptime SLO | ≥99,0% | Ước tính ≥99,2% (theo SLA — xem phương pháp đo lường ở trên) |
+| P95 API latency | <500 ms | Probe-endpoint sample 280-350 ms (xem phương pháp đo lường ở trên) |
+| Lighthouse Performance (landing) | ≥85 | Single audit 92/100 (xem phương pháp đo lường ở trên) |
 | Signup Conversion / Approval / Retention / Feature Adoption / Crash-Free Rate | Theo §4.3.1 | [Đang thu thập số liệu trong giai đoạn beta — sẽ cập nhật trước defense] |
 
 ### 4.3.5 Phương pháp phân tích
