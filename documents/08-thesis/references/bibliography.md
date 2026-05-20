@@ -153,18 +153,6 @@ Numbers `[N]` chạy global. Thêm refs mới: append to matching `## Chapter N`
 
 [48] ISO/IEC, "ISO/IEC 25010:2011 — Systems and software engineering — Systems and software Quality Requirements and Evaluation (SQuaRE) — System and software quality models," International Organization for Standardization, 2011. [Online]. Available: https://www.iso.org/standard/35733.html. [Accessed 2026-05-19].
 
-### Giáo trình Khoa Công nghệ thông tin — Đại học Giao thông Vận tải
-
-(Tham khảo nội bộ — phục vụ chuẩn chương trình đào tạo Khoa CNTT UTC; trích dẫn rải rác Ch.1 Phần 3 + Ch.2 + Ch.3.)
-
-[49] T. Đ. Quỳ, *Kiến trúc phần mềm và mẫu thiết kế*, Nhà xuất bản Giao thông Vận tải, Hà Nội, 2020.
-
-[50] P. H. Đức, *Phân tích và thiết kế hệ thống thông tin*, Nhà xuất bản Đại học Quốc gia Hà Nội, Hà Nội, 2018.
-
-[51] P. V. Ất, *Lập trình hướng đối tượng với C++*, Nhà xuất bản Khoa học và Kỹ thuật, Hà Nội, 2017.
-
-[52] N. T. Thủy, *Cơ sở dữ liệu*, Nhà xuất bản Đại học Quốc gia Hà Nội, Hà Nội, 2019.
-
 ---
 
 ## Chapter 5 — Implementation (Triển khai)
