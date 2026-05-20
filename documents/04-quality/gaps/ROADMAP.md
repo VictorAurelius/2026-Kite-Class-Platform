@@ -8,7 +8,32 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-19 — Wave 102 GAP-688 SHIPPED thesis V1 Python pipeline + Wave 101 SHIPPED 4 buckets + Wave 100.7 COMPLETE)
+## 🎯 Current Status Snapshot (2026-05-19 — Wave 102.2 SHIPPED thesis V1 ~90.5/100 A- + Wave 102.1 fix-pass + Wave 102 META + Wave 102 GAP-688 + Wave 101 + Wave 100.7)
+
+### 🎉 Wave 102.2 SHIPPED 2026-05-19 — Thesis V1 polish (8 user fixes + Mermaid PNG + Công nghệ section)
+
+Wave 102.2 closes 8 user-flagged issues post Wave 102.1 review qua **3 parallel agents** + outside-in research. Final score estimate ~90.5/100 A- (+8 vs Wave 102.1 82.5 B-).
+
+| Issue | Fix | Status |
+|---|---|---|
+| 1. Mermaid as code text | PNG render pipeline kroki.io HTTP API + cache | ✅ 11 Mermaid PNGs embedded (12 inline shapes total with logo) |
+| 2. Icons ✅/✗/❌/⚠️ + arrows | Strip all + rule v1.0.2 No-icon principle | ✅ 54 icon + 49 arrow hits → 0 |
+| 3. Khảo sát reorg + cut tables | Ch.1.1 174→70 (-60%); 4 tables → 1 + add §3 Khảo sát nhu cầu end-user 5 personas | ✅ Agent 7 done |
+| 4. Tách 2 danh mục riêng | Danh mục THUẬT NGỮ + Danh mục TỪ VIẾT TẮT → 2 H1 riêng biệt | ✅ Coordinator script edit |
+| 5. No font swap inline code | `add_inline_runs()` TNR italic (NOT Courier New 11pt); rule v1.0.2 No-font-swap principle | ✅ 0 Courier New runs |
+| 6. BRD Ch.2 (outside-in) | Verdict: NOT mandated by UTC; §2.1 FR + §2.2 NFR sufficient | ✅ No change needed |
+| 7. Công nghệ section (outside-in) | MANDATORY per UTC blank template; ADD Ch.3 §3.1 6 sub-sections | ✅ Coordinator add ~60 lines |
+| 8. Cut Phần A+B Ch.1.3 (outside-in) | COMPRESS (not cut); Ch.1.3 171→81 (-53%) preserve C8+C9 categories | ✅ Agent 8 done |
+
+**PR:** #1614 (commit `a94ceaf6`). Rule v1.0.2 PATCH same-PR. CI 21/22 SUCCESS (1 Vercel cosmetic GAP-495).
+
+### 🎉 Wave 102.1 SHIPPED 2026-05-19 — Thesis V1 fix-pass (42→82.5/100 B-, 6 parallel agents)
+
+Wave 102.1 closes 7 user-flagged + 39+ persona-simulation findings via 6 parallel chapter agents (~50 min wall-clock vs 3-4h serial). Score 42→82.5 (+40.5). PR #1613 (commit `b896ad9b`). Rule v1.0.1 standalone-document principle same-PR.
+
+### 🎉 Wave 102 META SHIPPED 2026-05-19 — thesis-content-standard.md v1.0.0 9-category rubric
+
+Rule META closes coverage gap exposed bởi Wave 102 GAP-688 audit (rubric v1 82 inflated vs v2 42 baseline; -40 delta). PR #1612 (commit `1b93e325`). 9-category rubric grounded UTC spec + BAO_CAO sample + DE_CUONG sample + 43 persona findings + 7 user issues.
 
 ### 🎉 Wave 102 GAP-688 SHIPPED 2026-05-19 — Thesis V1 Python Pipeline (production V1 milestone)
 
