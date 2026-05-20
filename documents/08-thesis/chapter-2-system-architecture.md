@@ -1,16 +1,16 @@
 ---
-title: "Chương 2 — Kiến trúc hệ thống KiteHub / KiteClass Platform"
+title: "Chương 2 — Phân tích thiết kế hệ thống KiteHub / KiteClass Platform"
 audience: thesis
 status: active
 created: 2026-05-19
-last-reviewed: 2026-05-19
+last-reviewed: 2026-05-20
 ---
 
-# Chương 2 — Kiến trúc hệ thống KiteHub / KiteClass Platform
+# CHƯƠNG 2. PHÂN TÍCH THIẾT KẾ HỆ THỐNG
 
-## 2.1 Yêu cầu chức năng (Functional Requirements)
+## 2.1 Phân tích yêu cầu hệ thống
 
-### 2.1.1 Domain capabilities
+### 2.1.1 Yêu cầu chức năng
 
 Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm dạy thêm vừa-nhỏ Việt Nam, bao gồm 6 nhóm capability chính được phân bổ giữa KiteHub (control-plane) và KiteClass (data-plane).
 
@@ -19,7 +19,7 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 - Người dùng tiềm năng truy cập landing thì đăng ký yêu cầu truy cập beta qua form 4 trường (họ tên / email / số điện thoại / tên trung tâm)
 - Quản trị nền tảng duyệt yêu cầu thì kích hoạt quy trình cấp phát (tạo `instance_id` UUID, khởi tạo người dùng quản trị với vai trò `P2_CENTER_OWNER`, gửi email magic-link)
 - Chủ trung tâm nhấn magic-link thì đặt mật khẩu lần đầu thì đăng nhập dashboard thì bắt đầu kỳ dùng thử 14 ngày
-- Trạng thái vòng đời: PENDING thì TRIAL thì ACTIVE / SUSPENDED / CANCELLED (chi tiết §2.4)
+- Trạng thái vòng đời: PENDING thì TRIAL thì ACTIVE / SUSPENDED / CANCELLED (chi tiết §2.3.4)
 
 **Nhóm 2 — Đăng ký dịch vụ & thanh toán (KiteHub `kitehub-subscription` + `kitehub-admin`):**
 
@@ -56,9 +56,7 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 - Quy trình impersonation `/api/impersonate/start` — quản trị đăng nhập with tư cách tenant để hỗ trợ (được log trong `impersonation_audit_log`)
 - Dashboard doanh thu MRR/ARR/churn theo tháng
 
----
-
-## 2.2 Yêu cầu phi chức năng (Non-Functional Requirements)
+### 2.1.2 Yêu cầu phi chức năng
 
 Đồ án phân loại các yêu cầu phi chức năng (NFR) theo chuẩn ISO/IEC 25010:2011 *Software Product Quality Model* [25] — mô hình chất lượng phần mềm bao gồm 8 đặc trưng: Functional Suitability, Performance Efficiency, Compatibility, Usability, Reliability, Security, Maintainability, và Portability. Bảng 2.1 ánh xạ 6 hạng mục NFR được đồ án này tập trung trình bày sang các đặc trưng tương ứng theo ISO/IEC 25010.
 
@@ -66,16 +64,14 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 
 | Hạng mục NFR của đồ án | Đặc trưng ISO/IEC 25010 tương ứng |
 |---|---|
-| Performance (§2.2.1) | Performance Efficiency (Time Behaviour, Resource Utilization) |
-| Availability (§2.2.2) | Reliability (Availability sub-characteristic) |
-| Security (§2.2.3) | Security (Confidentiality, Integrity, Non-repudiation, Authenticity) |
-| Scalability (§2.2.4) | Performance Efficiency (Capacity) + Maintainability (Scalability sub-aspect) |
-| Maintainability (§2.2.5) | Maintainability (Modularity, Reusability, Modifiability, Testability) |
-| Cost (§2.2.6) | (Bổ sung ngoài ISO 25010, ràng buộc kinh tế của giai đoạn beta) |
+| Performance | Performance Efficiency (Time Behaviour, Resource Utilization) |
+| Availability | Reliability (Availability sub-characteristic) |
+| Security | Security (Confidentiality, Integrity, Non-repudiation, Authenticity) |
+| Scalability | Performance Efficiency (Capacity) + Maintainability (Scalability sub-aspect) |
+| Maintainability | Maintainability (Modularity, Reusability, Modifiability, Testability) |
+| Cost | (Bổ sung ngoài ISO 25010, ràng buộc kinh tế của giai đoạn beta) |
 
-### 2.2.1 Performance
-
-Tác giả đặt mục tiêu hiệu năng cho giai đoạn beta như sau:
+**Performance.** Tác giả đặt mục tiêu hiệu năng cho giai đoạn beta như sau:
 
 | Chỉ số | Mục tiêu | Phương pháp đo |
 |---|---|---|
@@ -87,9 +83,7 @@ Tác giả đặt mục tiêu hiệu năng cho giai đoạn beta như sau:
 
 Khi quy mô tiến tới 50-200 tenant trong giai đoạn GA, hệ thống cần đánh giá lại khi connection pool đạt ngưỡng của instance cơ sở dữ liệu (~150 kết nối hoạt động).
 
-### 2.2.2 Availability
-
-Mục tiêu uptime của giai đoạn beta là **99.5%** (tương đương khoảng 3,6 giờ downtime/tháng có thể chấp nhận), theo SLA mặc định của AWS cho instance EC2 và RDS đơn vùng [26]. Mục tiêu này được duy trì thông qua:
+**Availability.** Mục tiêu uptime của giai đoạn beta là **99.5%** (tương đương khoảng 3,6 giờ downtime/tháng có thể chấp nhận), theo SLA mặc định của AWS cho instance EC2 và RDS đơn vùng [26]. Mục tiêu này được duy trì thông qua:
 
 - Triển khai trên một vùng AWS duy nhất `ap-southeast-1` (Singapore) phù hợp ràng buộc kinh tế giai đoạn đầu
 - Health check `/actuator/health` cho từng service + ALB health probe
@@ -98,9 +92,7 @@ Mục tiêu uptime của giai đoạn beta là **99.5%** (tương đương kho�
 
 Khi chuyển sang triển khai EKS multi-AZ với read replica ở giai đoạn GA, mục tiêu sẽ được nâng lên **99.9%**. Việc theo dõi uptime thực tế qua Statuspage được lập kế hoạch cho giai đoạn GA.
 
-### 2.2.3 Security
-
-Đồ án lấy chuẩn OWASP Top 10 (2021) [20] làm baseline an toàn ứng dụng web. Theo định nghĩa của OWASP Foundation [20, tr.8]: *"Broken Access Control moved up from the fifth position to the category with the most serious web application security risk; the contributed data indicates that on average, 3.81% of applications tested had one or more Common Weakness Enumerations (CWEs) with more than 318k occurrences of CWEs in this risk category."* Đồ án đồng thời tuân thủ pháp luật Việt Nam — Luật Bảo vệ Dữ liệu Cá nhân số 49/2023/QH15 [9] và Luật An ninh mạng số 24/2018/QH14 [10].
+**Security.** Đồ án lấy chuẩn OWASP Top 10 (2021) [20] làm baseline an toàn ứng dụng web. Theo định nghĩa của OWASP Foundation [20, tr.8]: *"Broken Access Control moved up from the fifth position to the category with the most serious web application security risk; the contributed data indicates that on average, 3.81% of applications tested had one or more Common Weakness Enumerations (CWEs) with more than 318k occurrences of CWEs in this risk category."* Đồ án đồng thời tuân thủ pháp luật Việt Nam — Luật Bảo vệ Dữ liệu Cá nhân số 49/2023/QH15 [9] và Luật An ninh mạng số 24/2018/QH14 [10].
 
 **Bảng 2.2.** Ánh xạ OWASP Top 10 (2021) lên các biện pháp triển khai.
 
@@ -123,9 +115,7 @@ Tuân thủ pháp lý phía Việt Nam ở giai đoạn beta:
 - Luật An ninh mạng 2018 (Luật số 24/2018/QH14) + Nghị định 53/2022/NĐ-CP — RDS chốt vùng `ap-southeast-1` để giảm thiểu rủi ro vận chuyển dữ liệu qua biên giới
 - Trước khi mở rộng sang phạm vi K-12 ở giai đoạn GA: DPO engagement, đánh giá tác động bảo vệ dữ liệu (DPIA), và rà soát pháp lý chuyên sâu cần được hoàn tất
 
-### 2.2.4 Scalability
-
-Mô hình mở rộng đa tenant dạng **single-bucket + RLS** (Pool model theo AWS SaaS Lens [27] và phân tích chi tiết của Pothon [28] — xem §2.3.3):
+**Scalability.** Mô hình mở rộng đa tenant dạng **single-bucket + RLS** (Pool model theo AWS SaaS Lens [27] và phân tích chi tiết của Pothon [28] — xem §2.2.3):
 
 - Giai đoạn beta: 10-50 tenant × 50-500 học sinh/tenant ≈ 5k-25k người dùng
 - Giai đoạn GA: 50-200 tenant × 100-1000 học sinh/tenant ≈ 50k-200k người dùng thì mở rộng theo chiều dọc instance RDS
@@ -133,22 +123,18 @@ Mô hình mở rộng đa tenant dạng **single-bucket + RLS** (Pool model theo
 
 Khả năng mở rộng theo chiều ngang qua sub-split:
 
-- Connection pool: HikariCP 10 kết nối/service × 7 service = 70 baseline; tối đa 150 với RDS GA
+- Connection pool: HikariCP 10 kết nối/service × 6 service = 60 baseline; tối đa 150 với RDS GA (kitehub-platform là thư viện JAR dùng chung, không có pool kết nối riêng)
 - Cache: Redis 7 chính sách LRU 256MB; làm nóng session + rate-limit counter
 - Bất đồng bộ: RabbitMQ event bus phân tải (`branding.deploy`, `email.queue`, `instance.purge.fanout`) thì consumer service mở rộng độc lập
 
-### 2.2.5 Maintainability
-
-Kiến trúc microservice cho phép triển khai từng service một cách độc lập:
+**Maintainability.** Kiến trúc microservice cho phép triển khai từng service một cách độc lập:
 
 - Build image Docker từng service + đẩy lên ECR + cập nhật ECS service (mục tiêu thời gian triển khai < 30 phút/service)
 - Migration Flyway theo schema từng service (subscription / branding / email / admin / kiteclass-core mỗi service có chuỗi migration riêng)
 - API ổn định ngược: định phiên bản theo URL `/api/v1/...` thì breaking change đòi hỏi tăng major version
 - Quy ước Living docs: tài liệu nghiệp vụ 3-layer (rules.md / use-cases.md / api-contract.md) đi cùng PR với code change
 
-### 2.2.6 Cost
-
-Giai đoạn beta vận hành dưới ràng buộc AWS Free Tier 12 tháng:
+**Cost.** Giai đoạn beta vận hành dưới ràng buộc AWS Free Tier 12 tháng:
 
 - 2 EC2 `t3.micro` (KiteHub backend + KiteClass app), 1 RDS `db.t3.micro`, 5 GB S3
 - Cloudflare: gói miễn phí DNS + CDN + DDoS protection
@@ -156,15 +142,51 @@ Giai đoạn beta vận hành dưới ràng buộc AWS Free Tier 12 tháng:
 - AI: Ollama tự host cho môi trường phát triển; MiniMax vận hành ~$0.001/yêu cầu
 - **Tổng chi phí ước tính giai đoạn beta: $15-30/tháng** (~360.000đ-720.000đ/tháng)
 
-Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: em chọn mô hình single-bucket multi-tenant với RLS (Pattern 4) thay vì per-tenant DB (Pattern 1) — chênh lệch chi phí khoảng 20× và chi phí vận hành tăng tuyến tính theo số tenant, không phù hợp với phân khúc trung tâm SMB ở giai đoạn beta (chi tiết §2.3.3).
+Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: em chọn mô hình single-bucket multi-tenant với RLS (Pattern 4) thay vì per-tenant DB (Pattern 1) — chênh lệch chi phí khoảng 20× và chi phí vận hành tăng tuyến tính theo số tenant, không phù hợp với phân khúc trung tâm SMB ở giai đoạn beta (chi tiết §2.2.3).
+
+### 2.1.3 Bối cảnh thị trường mục tiêu
+
+**Mô hình B-learning Việt Nam.** Trung tâm dạy thêm tại Việt Nam vận hành theo mô hình học thêm sau giờ chính khóa và cuối tuần — phân biệt với trường công lập chính khóa. Thị trường mục tiêu của đồ án là các trung tâm vừa và nhỏ với 50-500 học sinh; phạm vi K-12 trường công có lớp tuân thủ pháp lý riêng (DPO, DPIA, kiểm tra an ninh) được lùi sang giai đoạn GA.
+
+Đặc điểm B-learning tại Việt Nam theo Báo cáo Kinh tế Số Việt Nam 2024 [4, tr.42]: *"Hơn 90% phụ huynh đô thị sử dụng Zalo group chat làm kênh chính trao đổi với trung tâm; email phục vụ tài liệu chính thức như hóa đơn và báo cáo."* Buổi học buổi tối và cuối tuần chiếm ưu thế (thứ 2-7 từ 17:00-21:00; thứ 7-CN 8:00-17:00) — bảng `class_schedule_slots` mặc định cấu hình 6 ngày/tuần. Niên khóa 9-5 (năm học `2025-2026` ứng tháng 9/2025 đến tháng 5/2026) gồm HK1 (9-12), HK2 (1-5), HK_Hè (6-8). Mẹ là đầu mối liên lạc chính cho việc học của con (~60%), bố dự phòng (35%), ông bà (5%). Khung Tết Nguyên Đán nghỉ 7-10 ngày cuối tháng 1 — đầu tháng 2 yêu cầu cron tính phí bỏ qua. Giai đoạn beta hỗ trợ email; tích hợp Zalo OA cho phụ huynh là roadmap GA.
+
+**Phân tích persona giai đoạn beta.** Đồ án tập trung 4 persona chính. **P1 Giáo viên độc lập** (28 tuổi, 5-50 học sinh, dạy IELTS/Toán) — thay thế sổ tay giấy + Excel + Zalo thủ công, gói FREE đủ dùng. **P2 Chủ trung tâm** (35 tuổi, 20-100 học sinh, 2-5 giáo viên) — thay 3 công cụ rời rạc bằng platform tích hợp, gói STARTER `500.000đ/tháng`. **P3 Quản lý trung tâm** (24 tuổi, 100-500 học sinh, 5-15 giáo viên) — cần bulk import CSV ~300 dòng, phân quyền theo vai trò (manager không thấy mục thanh toán), audit log, gói PRO `1.500.000đ/tháng`. **Phụ huynh và học sinh** — phụ huynh nhận thông báo email cho tài liệu chính thức (giai đoạn beta) + Zalo group cho cập nhật thường xuyên (giai đoạn GA); học sinh truy cập mobile chiếm 85% phiên.
+
+**Đặc trưng thị trường giáo dục Việt Nam.** Bảng 2.3 tổng hợp đặc trưng thị trường ảnh hưởng tới quyết định kiến trúc — locale mặc định `vi-VN`, ma trận xưng hô email phù hợp vai trò ("Em chào chị Hằng" trang trọng cho Owner, "Chào em" thân mật cho giáo viên độc lập).
+
+**Bảng 2.3.** Đặc trưng thị trường giáo dục Việt Nam và hệ quả thiết kế.
+
+| Khía cạnh | Quy ước Việt Nam | Hệ quả thiết kế |
+|---|---|---|
+| Tiền tệ | VND `1.500.000đ` (dấu chấm phân tách hàng nghìn) | Format VND bắt buộc trên mọi giao diện, hóa đơn, dashboard |
+| Định dạng ngày | `Thứ Hai, 14/05/2026` dạng dài; `14/05/2026` dạng ngắn | i18n qua `DateTimeFormatter` của Spring Boot |
+| Đầu mối phụ huynh | Mẹ chính (60%) + bố (35%) + ông bà (5%) | Bảng `parents` hỗ trợ nhiều liên hệ với cờ chính |
+| Thanh toán | Chuyển khoản Vietcombank/Techcombank/MB (~70%) + tiền mặt (~20%) + QR (~10%) | Giai đoạn beta VietQR; mở rộng VNPay/MoMo giai đoạn GA |
+| Thuật ngữ chức danh | `Hiệu trưởng`, `Quản lý`, `GVCN` (giáo viên chủ nhiệm) | Phân loại vai trò theo quy ước Việt Nam |
+| Giờ làm việc | Thứ 2 — Thứ 7, 17:00-21:00 buổi tối | Schedule slot mặc định 6 ngày, đỉnh tải buổi tối |
+| Giao tiếp | Zalo group chat (~90% adoption) > SMS > email | Tích hợp Zalo OA cho phụ huynh là yêu cầu giai đoạn GA |
+| Ngày nghỉ | Tết 7-10 ngày; 30/4-1/5; nghỉ hè tháng 6-8 | Cron tính phí + lịch lớp bỏ qua khung Tết |
+
+**Định vị cạnh tranh.** Tham khảo phân tích Chương 1, Kite Platform đối sánh với hệ thống tương tự trong nhóm SaaS giáo dục Việt Nam (Bảng 2.4).
+
+**Bảng 2.4.** So sánh với hệ thống tương tự trong nhóm SaaS giáo dục Việt Nam.
+
+| Hệ thống tham khảo | Đối tượng chính | Mức phí | Điểm mạnh | Hướng tiếp cận của đồ án |
+|---|---|---|---|---|
+| MISA EMIS | Trường công + tư K-12 | Báo giá doanh nghiệp | Tích hợp Bộ Giáo dục | Tập trung trung tâm dạy thêm SMB, không cạnh tranh K-12 ở giai đoạn beta |
+| Mona Media | Chuỗi trung tâm Anh ngữ | `2-5 triệu/tháng` | Marketing + CRM | Multi-tenant SaaS từ gốc + AI Branding + STARTER `500.000đ/tháng` hợp lý |
+| Easy Edu | Trung tâm vừa và nhỏ | `1-3 triệu/tháng` | Giao diện đơn giản | Bổ sung AI Branding + Zalo-native (GA) + RLS phòng thủ chiều sâu |
+| DotB | Cả K-12 và trung tâm | Tùy biến | Toàn diện | Tập trung trung tâm dạy thêm theo chiều dọc, không cố cạnh tranh K-12 |
+
+Định vị tổng quát: nền tảng SaaS đa tenant nguyên bản cho trung tâm dạy thêm SMB Việt Nam, AI-powered branding, giao tiếp Zalo-native (GA), mức giá khởi điểm `500.000đ/tháng`.
 
 ---
 
-## 2.3 Kiến trúc (Architecture)
+## 2.2 Thiết kế kiến trúc tổng thể
 
-Đồ án áp dụng C4 model (Context / Container / Component / Code) của Simon Brown — industry-standard cho cloud-native microservices architecture documentation, đã được sử dụng tại các SaaS provider lớn (Spotify, GitHub, Stripe). C4 model phù hợp hơn UML class diagram truyền thống cho hệ thống multi-tenant phân tán vì tập trung vào ranh giới container/component thay vì class-level details. Đồ án KẾT HỢP C4 với UML/ERD truyền thống (Booch et al. [30]) để đáp ứng cả tiêu chí kiến trúc hiện đại lẫn yêu cầu mô tả của khung-chuẩn đào tạo UTC: §2.3.1-§2.3.5 trình bày C4 Level 1+Level 2 và quy trình xác thực; §2.3.6-§2.3.8 bổ sung class diagram, ERD và sequence diagram cho luồng nghiệp vụ trọng tâm; §2.3.9 tổng kết phân rã service.
+Đồ án áp dụng C4 model (Context / Container / Component / Code) của Simon Brown — industry-standard cho cloud-native microservices architecture documentation, đã được sử dụng tại các SaaS provider lớn (Spotify, GitHub, Stripe). C4 model phù hợp hơn UML class diagram truyền thống cho hệ thống multi-tenant phân tán vì tập trung vào ranh giới container/component thay vì class-level details. Đồ án KẾT HỢP C4 với UML/ERD truyền thống (Booch et al. [30]) để đáp ứng cả tiêu chí kiến trúc hiện đại lẫn yêu cầu mô tả của khung-chuẩn đào tạo UTC: §2.2.1 và §2.2.2 trình bày C4 Level 1 và Level 2; §2.2.3 trình bày quyết định pattern đa tenant; §2.2.4 trình bày phòng thủ chiều sâu cô lập cơ sở dữ liệu; §2.2.5 trình bày quy trình xác thực với truyền ngữ cảnh tenant.
 
-### 2.3.1 C4 Model — Level 1 System Context
+### 2.2.1 Sơ đồ ngữ cảnh — C4 Level 1
 
 Mô hình C4 (Context / Container / Component / Code) của Brown [29] là framework chuẩn để mô tả kiến trúc phần mềm ở 4 mức độ chi tiết tăng dần. Đồ án sử dụng Level 1 (System Context) và Level 2 (Container) để trình bày Kite Platform; Level 3 và Level 4 dành cho phần triển khai ở Chương 3.
 
@@ -217,7 +239,7 @@ flowchart TB
 
 Hình 2.1 cho thấy mọi actor đều truy cập Kite Platform qua HTTPS (TLS 1.2+); các hệ thống bên ngoài được cô lập qua adapter pattern (interface `NotificationChannel` cho email, `PaymentProcessor` cho VietQR). Không có actor nào truy cập trực tiếp cơ sở dữ liệu; mọi truy cập đều đi qua biên trust của gateway.
 
-### 2.3.2 C4 Model — Level 2 Container
+### 2.2.2 Sơ đồ container — C4 Level 2
 
 Phóng to vào nội bộ Kite Platform cho thấy 4 cụm container: Frontend (2 ứng dụng Next.js), Gateway (Spring Cloud Gateway), Service (6 service KiteHub + 1 KiteClass core), và hạ tầng dùng chung (4 container với prefix `kite-`). Hình 2.2 trình bày bố cục container theo C4 Level 2.
 
@@ -296,21 +318,21 @@ Hình 2.2 cho thấy bố cục theo 4 cụm:
   - `kitehub-email` (8084) — điều phối gửi email với adapter pattern `NotificationChannel` (`SESEmailService` chính + `ResendEmailService` dự phòng)
   - `kitehub-admin` (8083 alias) — thao tác quản trị nền tảng: duyệt yêu cầu beta, quản lý instance, đọc audit log, impersonation
   - `kitehub-platform` (thư viện JAR) — starter dùng chung: auth filter, tenant context, OpenTelemetry, DTO + error handler chung — không triển khai độc lập
-  - `kiteclass-core` (8088) — lõi nghiệp vụ giáo dục: Student / Class / Attendance / Grade / Payment / Notification. Cô lập đa tenant qua PostgreSQL RLS (chi tiết §2.3.4)
+  - `kiteclass-core` (8088) — lõi nghiệp vụ giáo dục: Student / Class / Attendance / Grade / Payment / Notification. Cô lập đa tenant qua PostgreSQL RLS (chi tiết §2.2.4)
 
 - **Hạ tầng dùng chung (4 container, prefix `kite-`):**
-  - `kite-postgres` (PostgreSQL 15, cổng 5433) — cơ sở dữ liệu OLTP chính, schema `kitehub` + `kiteclass_shared`, RLS phủ 51/91 bảng (56%) — chi tiết §2.3.4
+  - `kite-postgres` (PostgreSQL 15, cổng 5433) — cơ sở dữ liệu OLTP chính, schema `kitehub` + `kiteclass_shared`, RLS phủ 51/91 bảng (56%) — chi tiết §2.2.4
   - `kite-redis` (Redis 7, cổng 6380) — cache + session store + rate-limit counter, chính sách LRU 256MB
   - `kite-rabbitmq` (RabbitMQ 3-management, cổng 5673) — event bus bất đồng bộ: `email.exchange`, `branding.deploy.*`, `instance.purge.exchange` (fanout)
   - `kite-minio` (tương thích S3, cổng 9100) — lưu trữ object cho AI asset + template SVG + upload từ người dùng; ánh xạ sang AWS S3 ở môi trường vận hành
 
 Prefix `kite-` (thay vì `kitehub-` hay `kiteclass-`) phản ánh bản chất dùng chung của hạ tầng giữa hai sản phẩm KiteHub và KiteClass.
 
-### 2.3.3 Quyết định kiến trúc đa tenant — single-bucket pattern
+### 2.2.3 Quyết định pattern đa tenant — single-bucket + RLS
 
 Quyết định kiến trúc trọng tâm của đồ án là chọn mô hình cô lập đa tenant. Em đã đánh giá 6 pattern khác nhau trên 6 trục tiêu chí và lựa chọn **Shared Database + cột `tenant_id` UUID + PostgreSQL Row-Level Security (RLS)** — tương ứng "Pool" model theo AWS Well-Architected SaaS Lens [27, tr.21] (đối lập với "Silo" per-tenant DB và "Bridge" per-tenant schema). AWS định nghĩa [27, tr.21]: *"Pool isolation enables tenants to share infrastructure but rely on logical mechanisms (such as row-level security policies in databases) to ensure data isolation between tenants; this model often yields the lowest operational cost but requires careful design of the isolation layer."*
 
-**Bảng 2.3.** Sáu pattern đa tenant và lý do chọn/loại.
+**Bảng 2.5.** Sáu pattern đa tenant và lý do chọn/loại.
 
 | Pattern | Lý do chọn/loại |
 |---|---|
@@ -321,7 +343,7 @@ Quyết định kiến trúc trọng tâm của đồ án là chọn mô hình c
 | P5 Hybrid (Pool mặc định + Silo cho khách doanh nghiệp) | Sẽ phát triển khi mở rộng K-12 doanh nghiệp ở giai đoạn GA và có yêu cầu cụ thể về cô lập vật lý từ khách hàng |
 | P6 Serverless (Aurora Serverless v2 / DynamoDB) | Aurora Serverless v2 chi phí tối thiểu ~$45/tháng vượt Free Tier; DynamoDB không phù hợp với dữ liệu quan hệ giáo dục (Student/Class/Grade/Attendance JOIN-heavy) |
 
-**Bảng 2.4.** Ma trận so sánh 6 pattern trên 6 trục (Pattern 4 đạt tổng 26/30 cho giai đoạn beta).
+**Bảng 2.6.** Ma trận so sánh 6 pattern trên 6 trục (Pattern 4 đạt tổng 26/30 cho giai đoạn beta).
 
 | Trục đánh giá | P1 Per-DB | P2 Per-schema | P3 ID only | **P4 RLS** | P5 Hybrid | P6 Serverless |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -333,9 +355,9 @@ Quyết định kiến trúc trọng tâm của đồ án là chọn mô hình c
 | Chi phí chuyển đổi từ hiện trạng | 1 | 3 | 5 | **5** | 3 | 2 |
 | **Tổng** | 15 | 20 | 23 | **26** | 18 | 18 |
 
-Pool model với RLS được chọn vì cân bằng giữa độ cô lập chấp nhận được (được tăng cường bởi chính sách NULL force-fail mô tả ở §2.3.4), chi phí vận hành thấp nhất, độ phù hợp với phạm vi giai đoạn beta, và lộ trình chuyển đổi sang Hybrid Path A khi mở rộng đến nhóm khách hàng doanh nghiệp ở giai đoạn GA.
+Pool model với RLS được chọn vì cân bằng giữa độ cô lập chấp nhận được (được tăng cường bởi chính sách NULL force-fail mô tả ở §2.2.4), chi phí vận hành thấp nhất, độ phù hợp với phạm vi giai đoạn beta, và lộ trình chuyển đổi sang Hybrid Path A khi mở rộng đến nhóm khách hàng doanh nghiệp ở giai đoạn GA.
 
-### 2.3.4 Cô lập cơ sở dữ liệu — phòng thủ chiều sâu 5 lớp + RLS
+### 2.2.4 Phòng thủ chiều sâu — 5 lớp cô lập cơ sở dữ liệu
 
 Ngữ cảnh tenant (`tenantId`) được truyền xuyên suốt quy trình xử lý yêu cầu qua chuỗi 5 lớp; mỗi lớp là một cơ chế bảo vệ độc lập. Hình 2.3 minh họa quá trình này.
 
@@ -396,7 +418,7 @@ Hai cơ chế hardening quan trọng:
 1. **NULL force-fail policy:** nếu GUC `app.current_tenant_id` chưa được set, `current_setting('...', true)` trả về NULL, khiến mệnh đề `tenant_id = NULL` rơi vào logic SQL ternary trả NULL — không filter row, gây leak ngầm. Thêm `AND current_setting(...) IS NOT NULL` khiến truy vấn trả 0 row thay vì tất cả, buộc bug lộ ra ngay trong test.
 2. **HikariCP GUC reset:** HikariCP tái sử dụng kết nối từ pool. Nếu kết nối N được set `app.current_tenant_id = A` rồi trả về pool, kết nối kế tiếp có thể "kế thừa" ngữ cảnh tenant A. Tác giả khắc phục bằng `SET LOCAL` (giới hạn theo transaction, tự reset khi commit/rollback) cùng `connectionInitSql: RESET app.current_tenant_id` mỗi khi kết nối quay về pool.
 
-### 2.3.5 Quy trình xác thực — JWT + role-guard + truyền ngữ cảnh tenant
+### 2.2.5 Quy trình xác thực — JWT + role-guard + truyền ngữ cảnh tenant
 
 Hình 2.4 trình bày tuần tự đăng nhập và một yêu cầu được xác thực sau đó cho luồng quản trị nền tảng.
 
@@ -445,7 +467,13 @@ sequenceDiagram
 
 Một nguyên tắc thiết kế quan trọng được áp dụng: service KHÔNG được tự đọc claim `tenantId` từ JWT body. Gateway là biên trust duy nhất cho việc xác thực JWT; downstream service tin tưởng header `X-Tenant-Id` do gateway phát ra. Nếu mỗi service tự parse JWT, hệ thống phải duy trì public key ở nhiều nơi và lặp logic xác thực, tăng rủi ro an toàn và chi phí bảo trì.
 
-### 2.3.6 Class Diagram — Core Domain
+---
+
+## 2.3 Thiết kế chi tiết
+
+Phần này trình bày các sơ đồ thiết kế chi tiết theo ký pháp UML (Booch et al. [30]) bổ sung cho C4 model ở §2.2, cùng thiết kế cơ sở dữ liệu chi tiết và mô hình SaaS. §2.3.1 và §2.3.2 trình bày class diagram và ERD cho miền nghiệp vụ; §2.3.3 trình bày sequence diagram luồng cấp phát tenant; §2.3.4 trình bày máy trạng thái vòng đời tenant; §2.3.5 tổng kết phân rã service; §2.3.6 trình bày thiết kế cơ sở dữ liệu chi tiết; §2.3.7 trình bày mô hình SaaS (gói dịch vụ, thanh toán).
+
+### 2.3.1 Class Diagram — Core Domain
 
 Sơ đồ lớp UML mô tả các entity nghiệp vụ cốt lõi của Kite Platform cùng quan hệ giữa chúng. Hình 2.5 trình bày các lớp chính trong miền giáo dục đa tenant.
 
@@ -527,11 +555,11 @@ classDiagram
 
 **Hình 2.5.** Class diagram — core domain entities và quan hệ.
 
-Class diagram tập trung vào hành vi runtime cùng các phương thức nghiệp vụ chính: `Tenant.provision()` khởi tạo instance mới khi quản trị duyệt yêu cầu beta; `Tenant.suspend()` được gọi khi thanh toán thất bại quá thời gian ân hạn; `Tenant.cancel()` đánh dấu off-boarding sau cửa sổ lưu giữ 7 ngày. Cột `tenantId` UUID xuất hiện ở mọi entity domain — đây là cột khoá ngoại bắt buộc cho chính sách RLS PostgreSQL được mô tả ở §2.3.4.
+Class diagram tập trung vào hành vi runtime cùng các phương thức nghiệp vụ chính: `Tenant.provision()` khởi tạo instance mới khi quản trị duyệt yêu cầu beta; `Tenant.suspend()` được gọi khi thanh toán thất bại quá thời gian ân hạn; `Tenant.cancel()` đánh dấu off-boarding sau cửa sổ lưu giữ 7 ngày. Cột `tenantId` UUID xuất hiện ở mọi entity domain — đây là cột khoá ngoại bắt buộc cho chính sách RLS PostgreSQL được mô tả ở §2.2.4.
 
-### 2.3.7 ERD — Sơ đồ quan hệ thực thể
+### 2.3.2 ERD — Sơ đồ quan hệ thực thể
 
-Sơ đồ ERD (Entity Relationship Diagram) cung cấp góc nhìn ở tầng lưu trữ, tập trung vào tính cardinality giữa các bảng — khác với class diagram §2.3.7 vốn tập trung vào hành vi runtime và phương thức.
+Sơ đồ ERD (Entity Relationship Diagram) cung cấp góc nhìn ở tầng lưu trữ, tập trung vào tính cardinality giữa các bảng — khác với class diagram §2.3.1 vốn tập trung vào hành vi runtime và phương thức.
 
 ```mermaid
 erDiagram
@@ -551,7 +579,7 @@ erDiagram
 
 ERD nhấn mạnh quan hệ many-to-many giữa `STUDENT` và `CLASSES` qua bảng nối `STUDENT_CLASS` (một học sinh có thể đăng ký nhiều lớp, một lớp có nhiều học sinh) — chi tiết quan hệ này bị che giấu ở class diagram cấp độ runtime. Mọi quan hệ xuất phát từ `TENANT` đều có cardinality `1..N` thể hiện ranh giới đa tenant: không có entity nghiệp vụ nào tồn tại ngoài ngữ cảnh tenant.
 
-### 2.3.8 Sequence Diagram — Luồng cấp phát tenant
+### 2.3.3 Sequence Diagram — Luồng cấp phát tenant
 
 Luồng cấp phát tenant từ lúc người dùng tiềm năng gửi yêu cầu beta đến khi chủ trung tâm đăng nhập lần đầu trải qua nhiều bước phối hợp giữa frontend, backend và các dịch vụ ngoài. Hình 2.7 trình bày tuần tự các bước theo ký pháp UML.
 
@@ -582,112 +610,9 @@ sequenceDiagram
 
 **Hình 2.7.** Sequence diagram — luồng cấp phát tenant beta.
 
-Tuần tự cho thấy ranh giới giữa pha PENDING (chờ duyệt thủ công) và pha TRIAL (sau khi quản trị kích hoạt) — đây là điểm chuyển trạng thái quan trọng được tham chiếu lại tại Hình 2.8 §2.4.1 (máy trạng thái vòng đời tenant). Việc phát sự kiện fanout `branding.deploy.exchange` qua RabbitMQ song song với gửi email cho phép `kitehub-branding` dựng template mặc định trong khi chờ chủ trung tâm xác thực — giảm thời gian onboarding khi user click magic-link.
+Tuần tự cho thấy ranh giới giữa pha PENDING (chờ duyệt thủ công) và pha TRIAL (sau khi quản trị kích hoạt) — đây là điểm chuyển trạng thái quan trọng được tham chiếu lại tại Hình 2.8 §2.3.4 (máy trạng thái vòng đời tenant). Việc phát sự kiện fanout `branding.deploy.exchange` qua RabbitMQ song song với gửi email cho phép `kitehub-branding` dựng template mặc định trong khi chờ chủ trung tâm xác thực — giảm thời gian onboarding khi user click magic-link.
 
-### 2.3.9 Phân rã service — 6 service KiteHub + 1 KiteClass core
-
-Danh mục service được tổng hợp theo mô hình Backstage [22] (mỗi service đóng vai một component có metadata + ownership + dependency).
-
-**Bảng 2.5.** Danh mục service của Kite Platform.
-
-| Service | Cổng | Trách nhiệm | Cơ sở dữ liệu |
-|---|---|---|---|
-| `kite-gateway` | 9000 | Xác thực JWT + định danh tenant + truyền ngữ cảnh + rate-limit | Bộ đếm trên Redis |
-| `kitehub-subscription` | 8081 | Xác thực + dùng thử + đăng ký dịch vụ + thanh toán + onboarding + DSAR + audit + outbox + webhook + impersonation | Schema `kitehub` (32 bảng) |
-| `kitehub-admin` | 8083 | Quản trị nền tảng — CRUD instance + thanh toán + dashboard doanh thu | Schema `kitehub` (chung) |
-| `kitehub-branding` | 8083 alias | Sinh AI asset (logo/hero/banner) + upload S3 + tích hợp Ollama/MiniMax | Bảng `kitehub.branding_*` |
-| `kitehub-email` | 8084 | Email giao dịch — adapter NotificationChannel (SES chính + Resend dự phòng) | Bảng `kitehub.email_logs` |
-| `kitehub-platform` | thư viện JAR | Starter dùng chung — auth filter + tenant context + OpenTelemetry + DTO | — |
-| `kiteclass-core` | 8088 | Nghiệp vụ giáo dục theo tenant — student/course/class/attendance/grade/payment | Schema `kiteclass_shared` (59 bảng) |
-
-Các phụ thuộc liên service được tổng hợp gồm: `kitehub-subscription` gọi `kitehub-email` qua REST + sự kiện RabbitMQ `email.exchange`; `kitehub-subscription` phát sự kiện `branding.deploy.*` để `kitehub-branding` tiêu thụ; `kitehub-email` lấy gói branding qua WebClient để dựng template; `kiteclass-core` lưu trữ ảnh đại diện và bài nộp trên MinIO S3 và phát thông báo bất đồng bộ qua RabbitMQ. Tổng cộng có 7 service backend (6 triển khai độc lập + 1 thư viện), 2 ứng dụng frontend và 8 container hạ tầng — tương đương 18 thành phần tách biệt.
-
----
-
-## 2.4 Thiết kế cơ sở dữ liệu (Database Design)
-
-Phần này trình bày schema chi tiết của 3 bảng cốt lõi đại diện cho miền đa tenant của Kite Platform. ERD tổng quan đã được giới thiệu tại §2.3.8; phần này bổ sung thông tin từng cột phục vụ phát triển và bảo trì. Schema được pull canonical từ chuỗi migration Flyway của hai cụm dịch vụ (cụm subscription quản lý control-plane và cụm core quản lý domain-plane).
-
-### 2.4.1 Bảng `instances` (kitehub-subscription control-plane)
-
-Bảng `instances` lưu metadata cấp tenant: mỗi dòng tương ứng với một trung tâm dạy thêm có dùng nền tảng. Bảng này thuộc service `kitehub-subscription` và là source-of-truth cho vòng đời tenant (TRIAL / ACTIVE / SUSPENDED / CANCELLED).
-
-**Bảng 2.6.** Schema chi tiết bảng `instances` (microservice `kitehub-subscription`).
-
-| TT | Tên cột | Kiểu dữ liệu | Mô tả |
-|:--:|---|---|---|
-| 1 | `id` | UUID | Khoá chính, định danh tenant (UUID v4) |
-| 2 | `subdomain` | VARCHAR(50) UNIQUE | Subdomain riêng `<subdomain>.kitehub.me`, dùng cho routing |
-| 3 | `custom_domain` | VARCHAR(255) | Tên miền riêng (chỉ áp dụng gói PRO trở lên) |
-| 4 | `organization_name` | VARCHAR(200) | Tên hiển thị trung tâm (ví dụ `Trung tâm Anh ngữ Sky Education`) |
-| 5 | `owner_id` | UUID | Tham chiếu tới user vai trò `P2_CENTER_OWNER` |
-| 6 | `tier` | VARCHAR(20) | Gói dịch vụ: FREE / STARTER / PRO / PRO_PLUS |
-| 7 | `status` | VARCHAR(20) | Trạng thái vòng đời: TRIAL / ACTIVE / SUSPENDED / CANCELLED |
-| 8 | `database_url` | VARCHAR(500) | URL kết nối cơ sở dữ liệu của tenant |
-| 9 | `database_password` | VARCHAR(255) | Mật khẩu DB đã mã hoá AES-256-GCM (không lưu plaintext) |
-| 10 | `trial_started_at` | TIMESTAMP | Thời điểm bắt đầu dùng thử |
-| 11 | `trial_expires_at` | TIMESTAMP | Thời điểm hết hạn dùng thử (mặc định 14 ngày) |
-| 12 | `subscription_expires_at` | TIMESTAMP | Thời điểm hết hạn gói đang sử dụng |
-| 13 | `created_at` | TIMESTAMP | Thời điểm tạo bản ghi |
-| 14 | `updated_at` | TIMESTAMP | Thời điểm cập nhật gần nhất |
-| 15 | `deleted` | BOOLEAN | Cờ xoá mềm (soft delete) phục vụ cửa sổ lưu giữ 7 ngày |
-
-Các chỉ mục trên `subdomain`, `owner_id`, `status`, `tier`, và partial index `deleted=false` đảm bảo truy vấn dashboard quản trị (lọc theo gói + trạng thái) đạt P95 dưới 100ms ngay cả khi quy mô lên 200 tenant.
-
-### 2.4.2 Bảng `classes` (kiteclass-core domain-plane)
-
-Bảng `classes` đại diện cho lớp học cụ thể tại tenant (ví dụ `Lớp Anh ngữ 5A1` mở từ tháng 9/2025 đến tháng 5/2026). Bảng này thuộc service `kiteclass-core` và là entity domain trung tâm cho các tính năng điểm danh, chấm điểm, thanh toán học phí.
-
-**Bảng 2.7.** Schema chi tiết bảng `classes` (microservice `kiteclass-core`).
-
-| TT | Tên cột | Kiểu dữ liệu | Mô tả |
-|:--:|---|---|---|
-| 1 | `id` | BIGSERIAL | Khoá chính (tự tăng) |
-| 2 | `instance_id` | UUID NOT NULL | Khoá ngoại tới `instances.id` — cột tenant scoping, bắt buộc cho RLS |
-| 3 | `course_id` | BIGINT NOT NULL | Khoá ngoại tới `courses.id` (mỗi lớp thuộc một khoá học) |
-| 4 | `code` | VARCHAR(50) | Mã lớp (ví dụ `ANH-5A1-2025`) |
-| 5 | `name` | VARCHAR(255) | Tên hiển thị (ví dụ `Lớp Anh ngữ 5A1 buổi tối`) |
-| 6 | `teacher_id` | BIGINT | Khoá ngoại tới `teachers.id` (giáo viên phụ trách lớp) |
-| 7 | `start_date` | DATE | Ngày khai giảng |
-| 8 | `end_date` | DATE | Ngày kết thúc dự kiến |
-| 9 | `max_students` | INTEGER | Sĩ số tối đa (mặc định 30) |
-| 10 | `tuition_amount` | DECIMAL(12,2) | Mức học phí (đơn vị VND, ví dụ `1500000.00`) |
-| 11 | `tuition_type` | VARCHAR(20) | Cách tính phí: `fixed` (cố định/khoá) hoặc `per_session` (theo buổi) |
-| 12 | `status` | VARCHAR(50) | Trạng thái lớp: upcoming / ongoing / completed / cancelled |
-| 13 | `created_at` | TIMESTAMP | Thời điểm tạo |
-| 14 | `updated_at` | TIMESTAMP | Thời điểm cập nhật gần nhất |
-
-Bảng `classes` được bật RLS với chính sách `tenant_isolation_classes` (xem mẫu SQL tại §2.3.4) — mọi truy vấn không có ngữ cảnh `app.current_tenant_id` hợp lệ sẽ trả về 0 row, ngăn chặn rò rỉ chéo tenant ngay tại tầng cơ sở dữ liệu.
-
-### 2.4.3 Bảng `students` (kiteclass-core domain-plane)
-
-Bảng `students` lưu hồ sơ học sinh đã đăng ký tại tenant. Bảng này có volume lớn nhất trong các bảng domain (mục tiêu 50-500 học sinh/tenant ở giai đoạn beta).
-
-**Bảng 2.8.** Schema chi tiết bảng `students` (microservice `kiteclass-core`).
-
-| TT | Tên cột | Kiểu dữ liệu | Mô tả |
-|:--:|---|---|---|
-| 1 | `id` | BIGSERIAL | Khoá chính (tự tăng) |
-| 2 | `instance_id` | UUID NOT NULL | Khoá ngoại tới `instances.id` — bắt buộc cho RLS |
-| 3 | `name` | VARCHAR(100) | Họ tên đầy đủ (ví dụ `Trần Thị Hồng`) |
-| 4 | `email` | VARCHAR(255) | Email liên lạc (có thể NULL nếu phụ huynh chưa cung cấp) |
-| 5 | `phone` | VARCHAR(20) | Số điện thoại VN (ví dụ `0901 234 567`) |
-| 6 | `date_of_birth` | DATE | Ngày sinh |
-| 7 | `gender` | VARCHAR(10) | Giới tính |
-| 8 | `address` | TEXT | Địa chỉ liên lạc |
-| 9 | `avatar_url` | VARCHAR(500) | Đường dẫn ảnh đại diện trên MinIO S3 |
-| 10 | `status` | VARCHAR(20) | Trạng thái: PENDING / ACTIVE / INACTIVE / GRADUATED / DROPPED |
-| 11 | `note` | TEXT | Ghi chú nội bộ của trung tâm |
-| 12 | `created_at` | TIMESTAMP | Thời điểm tạo hồ sơ |
-| 13 | `updated_at` | TIMESTAMP | Thời điểm cập nhật gần nhất |
-
-Bảng `students` chứa thông tin cá nhân nhạy cảm và do đó phải tuân thủ PDPL 2023 Điều 11 [9] về quyền của chủ thể dữ liệu. Trong giai đoạn beta cho trung tâm dạy thêm SMB, các trường nhạy cảm cao (CMND/CCCD, mã định danh học sinh quốc gia) không được lưu trữ; khi mở rộng sang K-12 ở giai đoạn GA, các yêu cầu của DPO/DPIA sẽ bổ sung trường mã hoá riêng cho thông tin trẻ vị thành niên.
-
----
-
-## 2.5 Mô hình SaaS (SaaS Model)
-
-### 2.5.1 Máy trạng thái vòng đời tenant
+### 2.3.4 Máy trạng thái vòng đời tenant
 
 Vòng đời tenant do service `kitehub-subscription` quản lý theo máy trạng thái 5 trạng thái biểu diễn trong Hình 2.8.
 
@@ -709,9 +634,100 @@ stateDiagram-v2
 
 Diễn giải các bước chuyển trạng thái: PENDING → TRIAL khi quản trị duyệt yêu cầu beta và kích hoạt cấp phát (tạo `instance_id` UUID, khởi tạo `P2_CENTER_OWNER`, gửi magic-link) — dùng thử 14 ngày. TRIAL → ACTIVE khi thanh toán thành công + hệ thống phát hành hóa đơn. ACTIVE → SUSPENDED sau khi gia hạn thất bại + ân hạn 3 ngày — tenant không đăng nhập được, dữ liệu lưu giữ 7 ngày. SUSPENDED → CANCELLED sau 7 ngày lưu giữ — dữ liệu domain xóa theo off-boarding; audit log lưu theo PDPL Điều 11 [9]. Cột `tenant_id` tồn tại đến khi CANCELLED + cửa sổ lưu giữ kết thúc; chính sách RLS lọc dựa trên `tenant_id` KHÔNG dựa trên trạng thái — tầng service tự enforce kiểm tra trạng thái (tenant SUSPENDED hiển thị "Tài khoản bị tạm khóa, vui lòng liên hệ hỗ trợ").
 
-### 2.5.2 Quy trình cấp phát tenant
+### 2.3.5 Phân rã service — 6 service KiteHub + 1 KiteClass core
 
-Khi quản trị nền tảng duyệt yêu cầu truy cập beta, service `kitehub-subscription` chạy quy trình tự động gồm 8 bước:
+Danh mục service được tổng hợp theo mô hình Backstage [22] (mỗi service đóng vai một component có metadata + ownership + dependency).
+
+**Bảng 2.7.** Danh mục service của Kite Platform.
+
+| Service | Cổng | Trách nhiệm | Cơ sở dữ liệu |
+|---|---|---|---|
+| `kite-gateway` | 9000 | Xác thực JWT + định danh tenant + truyền ngữ cảnh + rate-limit | Bộ đếm trên Redis |
+| `kitehub-subscription` | 8081 | Xác thực + dùng thử + đăng ký dịch vụ + thanh toán + onboarding + DSAR + audit + outbox + webhook + impersonation | Schema `kitehub` (32 bảng) |
+| `kitehub-admin` | 8083 | Quản trị nền tảng — CRUD instance + thanh toán + dashboard doanh thu | Schema `kitehub` (chung) |
+| `kitehub-branding` | 8083 alias | Sinh AI asset (logo/hero/banner) + upload S3 + tích hợp Ollama/MiniMax | Bảng `kitehub.branding_*` |
+| `kitehub-email` | 8084 | Email giao dịch — adapter NotificationChannel (SES chính + Resend dự phòng) | Bảng `kitehub.email_logs` |
+| `kitehub-platform` | thư viện JAR | Starter dùng chung — auth filter + tenant context + OpenTelemetry + DTO | — |
+| `kiteclass-core` | 8088 | Nghiệp vụ giáo dục theo tenant — student/course/class/attendance/grade/payment | Schema `kiteclass_shared` (59 bảng) |
+
+Các phụ thuộc liên service được tổng hợp gồm: `kitehub-subscription` gọi `kitehub-email` qua REST + sự kiện RabbitMQ `email.exchange`; `kitehub-subscription` phát sự kiện `branding.deploy.*` để `kitehub-branding` tiêu thụ; `kitehub-email` lấy gói branding qua WebClient để dựng template; `kiteclass-core` lưu trữ ảnh đại diện và bài nộp trên MinIO S3 và phát thông báo bất đồng bộ qua RabbitMQ. Tổng cộng có 7 service backend (6 triển khai độc lập + 1 thư viện), 2 ứng dụng frontend và 8 container hạ tầng — tương đương 17 thành phần tách biệt.
+
+### 2.3.6 Thiết kế cơ sở dữ liệu
+
+Phần này trình bày schema chi tiết của 3 bảng cốt lõi đại diện cho miền đa tenant của Kite Platform. ERD tổng quan đã được giới thiệu tại §2.3.2; phần này bổ sung thông tin từng cột phục vụ phát triển và bảo trì. Schema được pull canonical từ chuỗi migration Flyway của hai cụm dịch vụ (cụm subscription quản lý control-plane và cụm core quản lý domain-plane).
+
+**Bảng `instances` (kitehub-subscription control-plane).** Bảng `instances` lưu metadata cấp tenant: mỗi dòng tương ứng với một trung tâm dạy thêm có dùng nền tảng. Bảng này thuộc service `kitehub-subscription` và là source-of-truth cho vòng đời tenant (TRIAL / ACTIVE / SUSPENDED / CANCELLED).
+
+**Bảng 2.8.** Schema chi tiết bảng `instances` (microservice `kitehub-subscription`).
+
+| TT | Tên cột | Kiểu dữ liệu | Mô tả |
+|:--:|---|---|---|
+| 1 | `id` | UUID | Khoá chính, định danh tenant (UUID v4) |
+| 2 | `subdomain` | VARCHAR(50) UNIQUE | Subdomain riêng `<subdomain>.kitehub.me`, dùng cho routing |
+| 3 | `custom_domain` | VARCHAR(255) | Tên miền riêng (chỉ áp dụng gói PRO trở lên) |
+| 4 | `organization_name` | VARCHAR(200) | Tên hiển thị trung tâm (ví dụ `Trung tâm Anh ngữ Sky Education`) |
+| 5 | `owner_id` | UUID | Tham chiếu tới user vai trò `P2_CENTER_OWNER` |
+| 6 | `tier` | VARCHAR(20) | Gói dịch vụ: FREE / STARTER / PRO / PRO_PLUS |
+| 7 | `status` | VARCHAR(20) | Trạng thái vòng đời: TRIAL / ACTIVE / SUSPENDED / CANCELLED |
+| 8 | `database_url` | VARCHAR(500) | URL kết nối cơ sở dữ liệu của tenant |
+| 9 | `database_password` | VARCHAR(255) | Mật khẩu DB đã mã hoá AES-256-GCM (không lưu plaintext) |
+| 10 | `trial_started_at` | TIMESTAMP | Thời điểm bắt đầu dùng thử |
+| 11 | `trial_expires_at` | TIMESTAMP | Thời điểm hết hạn dùng thử (mặc định 14 ngày) |
+| 12 | `subscription_expires_at` | TIMESTAMP | Thời điểm hết hạn gói đang sử dụng |
+| 13 | `created_at` | TIMESTAMP | Thời điểm tạo bản ghi |
+| 14 | `updated_at` | TIMESTAMP | Thời điểm cập nhật gần nhất |
+| 15 | `deleted` | BOOLEAN | Cờ xoá mềm (soft delete) phục vụ cửa sổ lưu giữ 7 ngày |
+
+Các chỉ mục trên `subdomain`, `owner_id`, `status`, `tier`, và partial index `deleted=false` đảm bảo truy vấn dashboard quản trị (lọc theo gói + trạng thái) đạt P95 dưới 100ms ngay cả khi quy mô lên 200 tenant.
+
+**Bảng `classes` (kiteclass-core domain-plane).** Bảng `classes` đại diện cho lớp học cụ thể tại tenant (ví dụ `Lớp Anh ngữ 5A1` mở từ tháng 9/2025 đến tháng 5/2026). Bảng này thuộc service `kiteclass-core` và là entity domain trung tâm cho các tính năng điểm danh, chấm điểm, thanh toán học phí.
+
+**Bảng 2.9.** Schema chi tiết bảng `classes` (microservice `kiteclass-core`).
+
+| TT | Tên cột | Kiểu dữ liệu | Mô tả |
+|:--:|---|---|---|
+| 1 | `id` | BIGSERIAL | Khoá chính (tự tăng) |
+| 2 | `instance_id` | UUID NOT NULL | Khoá ngoại tới `instances.id` — cột tenant scoping, bắt buộc cho RLS |
+| 3 | `course_id` | BIGINT NOT NULL | Khoá ngoại tới `courses.id` (mỗi lớp thuộc một khoá học) |
+| 4 | `code` | VARCHAR(50) | Mã lớp (ví dụ `ANH-5A1-2025`) |
+| 5 | `name` | VARCHAR(255) | Tên hiển thị (ví dụ `Lớp Anh ngữ 5A1 buổi tối`) |
+| 6 | `teacher_id` | BIGINT | Khoá ngoại tới `teachers.id` (giáo viên phụ trách lớp) |
+| 7 | `start_date` | DATE | Ngày khai giảng |
+| 8 | `end_date` | DATE | Ngày kết thúc dự kiến |
+| 9 | `max_students` | INTEGER | Sĩ số tối đa (mặc định 30) |
+| 10 | `tuition_amount` | DECIMAL(12,2) | Mức học phí (đơn vị VND, ví dụ `1500000.00`) |
+| 11 | `tuition_type` | VARCHAR(20) | Cách tính phí: `fixed` (cố định/khoá) hoặc `per_session` (theo buổi) |
+| 12 | `status` | VARCHAR(50) | Trạng thái lớp: upcoming / ongoing / completed / cancelled |
+| 13 | `created_at` | TIMESTAMP | Thời điểm tạo |
+| 14 | `updated_at` | TIMESTAMP | Thời điểm cập nhật gần nhất |
+
+Bảng `classes` được bật RLS với chính sách `tenant_isolation_classes` (xem mẫu SQL tại §2.2.4) — mọi truy vấn không có ngữ cảnh `app.current_tenant_id` hợp lệ sẽ trả về 0 row, ngăn chặn rò rỉ chéo tenant ngay tại tầng cơ sở dữ liệu.
+
+**Bảng `students` (kiteclass-core domain-plane).** Bảng `students` lưu hồ sơ học sinh đã đăng ký tại tenant. Bảng này có volume lớn nhất trong các bảng domain (mục tiêu 50-500 học sinh/tenant ở giai đoạn beta).
+
+**Bảng 2.10.** Schema chi tiết bảng `students` (microservice `kiteclass-core`).
+
+| TT | Tên cột | Kiểu dữ liệu | Mô tả |
+|:--:|---|---|---|
+| 1 | `id` | BIGSERIAL | Khoá chính (tự tăng) |
+| 2 | `instance_id` | UUID NOT NULL | Khoá ngoại tới `instances.id` — bắt buộc cho RLS |
+| 3 | `name` | VARCHAR(100) | Họ tên đầy đủ (ví dụ `Trần Thị Hồng`) |
+| 4 | `email` | VARCHAR(255) | Email liên lạc (có thể NULL nếu phụ huynh chưa cung cấp) |
+| 5 | `phone` | VARCHAR(20) | Số điện thoại VN (ví dụ `0901 234 567`) |
+| 6 | `date_of_birth` | DATE | Ngày sinh |
+| 7 | `gender` | VARCHAR(10) | Giới tính |
+| 8 | `address` | TEXT | Địa chỉ liên lạc |
+| 9 | `avatar_url` | VARCHAR(500) | Đường dẫn ảnh đại diện trên MinIO S3 |
+| 10 | `status` | VARCHAR(20) | Trạng thái: PENDING / ACTIVE / INACTIVE / GRADUATED / DROPPED |
+| 11 | `note` | TEXT | Ghi chú nội bộ của trung tâm |
+| 12 | `created_at` | TIMESTAMP | Thời điểm tạo hồ sơ |
+| 13 | `updated_at` | TIMESTAMP | Thời điểm cập nhật gần nhất |
+
+Bảng `students` chứa thông tin cá nhân nhạy cảm và do đó phải tuân thủ PDPL 2023 Điều 11 [9] về quyền của chủ thể dữ liệu. Trong giai đoạn beta cho trung tâm dạy thêm SMB, các trường nhạy cảm cao (CMND/CCCD, mã định danh học sinh quốc gia) không được lưu trữ; khi mở rộng sang K-12 ở giai đoạn GA, các yêu cầu của DPO/DPIA sẽ bổ sung trường mã hoá riêng cho thông tin trẻ vị thành niên.
+
+### 2.3.7 Mô hình SaaS — gói dịch vụ + thanh toán
+
+**Quy trình cấp phát tenant.** Khi quản trị nền tảng duyệt yêu cầu truy cập beta, service `kitehub-subscription` chạy quy trình tự động gồm 8 bước:
 
 1. Sinh `instance_id` (UUID v4)
 2. Đặt subdomain `<tenant-slug>.kitehub.me` qua Cloudflare DNS API
@@ -724,11 +740,9 @@ Khi quản trị nền tảng duyệt yêu cầu truy cập beta, service `kiteh
 
 Chủ trung tâm nhấn magic-link, đặt mật khẩu và đăng nhập lần đầu sẽ thấy dashboard wizard 5 bước: xác nhận thông tin trung tâm, upload logo (hoặc sinh tự động), thêm 3 lớp đầu tiên, mời quản lý/giáo viên, thiết lập phương thức thanh toán.
 
-### 2.5.3 Ma trận gói dịch vụ
+**Ma trận gói dịch vụ.** Đồ án thiết kế 4 gói dịch vụ (Bảng 2.11) — giai đoạn beta kiểm thử FREE + STARTER; PRO và PRO_PLUS kích hoạt giai đoạn GA.
 
-Đồ án thiết kế 4 gói dịch vụ (Bảng 2.9) — giai đoạn beta kiểm thử FREE + STARTER; PRO và PRO_PLUS kích hoạt giai đoạn GA.
-
-**Bảng 2.9.** Bốn gói dịch vụ và các giới hạn theo gói.
+**Bảng 2.11.** Bốn gói dịch vụ và các giới hạn theo gói.
 
 | Gói | Giá tháng | Số học sinh | Số lớp | AI tạo lại/ngày | Subdomain riêng | Email DKIM-verified |
 |---|---|---|---|---|---|---|
@@ -739,56 +753,6 @@ Chủ trung tâm nhấn magic-link, đặt mật khẩu và đăng nhập lần 
 
 Việc enforce quota dùng bảng `tenant_quota` kết hợp bộ đếm Redis kiểm tra ở mỗi request. Khi vượt quota, hệ thống trả HTTP 429 cùng banner UI hướng dẫn nâng gói.
 
-### 2.5.4 Thanh toán và hóa đơn
-
-Giai đoạn beta dùng VietQR thủ công: chủ trung tâm chuyển khoản theo nội dung VietQR và upload ảnh xác nhận, quản trị nền tảng đối soát bằng tay. Cách tiếp cận này khớp thói quen thanh toán phổ biến (bank transfer chiếm ~70% giao dịch giáo dục) và tránh phụ thuộc giấy phép trung gian thanh toán trong giai đoạn xác thực sản phẩm.
+**Thanh toán và hóa đơn.** Giai đoạn beta dùng VietQR thủ công: chủ trung tâm chuyển khoản theo nội dung VietQR và upload ảnh xác nhận, quản trị nền tảng đối soát bằng tay. Cách tiếp cận này khớp thói quen thanh toán phổ biến (bank transfer chiếm ~70% giao dịch giáo dục) và tránh phụ thuộc giấy phép trung gian thanh toán trong giai đoạn xác thực sản phẩm.
 
 Roadmap giai đoạn GA: hóa đơn điện tử VAT tích hợp MISA MeInvoice theo Thông tư 78/2021/TT-BTC (thay vì tự xây engine); cron tính phí bỏ qua khung Tết; merchant integration với VNPay/MoMo qua hình thức đối tác (không yêu cầu giấy phép PSP); hỗ trợ tự thu cho tenant ACTIVE theo lựa chọn; hoàn tiền và tranh chấp dưới dạng SOP thủ công.
-
----
-
-## 2.6 Bối cảnh Blended Learning (Blended Learning Context)
-
-### 2.6.1 Mô hình B-learning Việt Nam
-
-Trung tâm dạy thêm tại Việt Nam vận hành theo mô hình học thêm sau giờ chính khóa và cuối tuần — phân biệt với trường công lập chính khóa. Thị trường mục tiêu của đồ án là các trung tâm vừa và nhỏ với 50-500 học sinh; phạm vi K-12 trường công có lớp tuân thủ pháp lý riêng (DPO, DPIA, kiểm tra an ninh) được lùi sang giai đoạn GA.
-
-Đặc điểm B-learning tại Việt Nam theo Báo cáo Kinh tế Số Việt Nam 2024 [4, tr.42]: *"Hơn 90% phụ huynh đô thị sử dụng Zalo group chat làm kênh chính trao đổi với trung tâm; email phục vụ tài liệu chính thức như hóa đơn và báo cáo."* Buổi học buổi tối và cuối tuần chiếm ưu thế (thứ 2-7 từ 17:00-21:00; thứ 7-CN 8:00-17:00) — bảng `class_schedule_slots` mặc định cấu hình 6 ngày/tuần. Niên khóa 9-5 (năm học `2025-2026` ứng tháng 9/2025 đến tháng 5/2026) gồm HK1 (9-12), HK2 (1-5), HK_Hè (6-8). Mẹ là đầu mối liên lạc chính cho việc học của con (~60%), bố dự phòng (35%), ông bà (5%). Khung Tết Nguyên Đán nghỉ 7-10 ngày cuối tháng 1 — đầu tháng 2 yêu cầu cron tính phí bỏ qua. Giai đoạn beta hỗ trợ email; tích hợp Zalo OA cho phụ huynh là roadmap GA.
-
-### 2.6.2 Phân tích persona giai đoạn beta
-
-Đồ án tập trung 4 persona chính. **P1 Giáo viên độc lập** (28 tuổi, 5-50 học sinh, dạy IELTS/Toán) — thay thế sổ tay giấy + Excel + Zalo thủ công, gói FREE đủ dùng. **P2 Chủ trung tâm** (35 tuổi, 20-100 học sinh, 2-5 giáo viên) — thay 3 công cụ rời rạc bằng platform tích hợp, gói STARTER `500.000đ/tháng`. **P3 Quản lý trung tâm** (24 tuổi, 100-500 học sinh, 5-15 giáo viên) — cần bulk import CSV ~300 dòng, phân quyền theo vai trò (manager không thấy mục thanh toán), audit log, gói PRO `1.500.000đ/tháng`. **Phụ huynh và học sinh** — phụ huynh nhận thông báo email cho tài liệu chính thức (giai đoạn beta) + Zalo group cho cập nhật thường xuyên (giai đoạn GA); học sinh truy cập mobile chiếm 85% phiên.
-
-### 2.6.3 Đặc trưng thị trường giáo dục Việt Nam
-
-Bảng 2.10 tổng hợp đặc trưng thị trường ảnh hưởng tới quyết định kiến trúc — locale mặc định `vi-VN`, ma trận xưng hô email phù hợp vai trò ("Em chào chị Hằng" trang trọng cho Owner, "Chào em" thân mật cho giáo viên độc lập).
-
-**Bảng 2.10.** Đặc trưng thị trường giáo dục Việt Nam và hệ quả thiết kế.
-
-| Khía cạnh | Quy ước Việt Nam | Hệ quả thiết kế |
-|---|---|---|
-| Tiền tệ | VND `1.500.000đ` (dấu chấm phân tách hàng nghìn) | Format VND bắt buộc trên mọi giao diện, hóa đơn, dashboard |
-| Định dạng ngày | `Thứ Hai, 14/05/2026` dạng dài; `14/05/2026` dạng ngắn | i18n qua `DateTimeFormatter` của Spring Boot |
-| Đầu mối phụ huynh | Mẹ chính (60%) + bố (35%) + ông bà (5%) | Bảng `parents` hỗ trợ nhiều liên hệ với cờ chính |
-| Thanh toán | Chuyển khoản Vietcombank/Techcombank/MB (~70%) + tiền mặt (~20%) + QR (~10%) | Giai đoạn beta VietQR; mở rộng VNPay/MoMo giai đoạn GA |
-| Thuật ngữ chức danh | `Hiệu trưởng`, `Quản lý`, `GVCN` (giáo viên chủ nhiệm) | Phân loại vai trò theo quy ước Việt Nam |
-| Giờ làm việc | Thứ 2 — Thứ 7, 17:00-21:00 buổi tối | Schedule slot mặc định 6 ngày, đỉnh tải buổi tối |
-| Giao tiếp | Zalo group chat (~90% adoption) > SMS > email | Tích hợp Zalo OA cho phụ huynh là yêu cầu giai đoạn GA |
-| Ngày nghỉ | Tết 7-10 ngày; 30/4-1/5; nghỉ hè tháng 6-8 | Cron tính phí + lịch lớp bỏ qua khung Tết |
-
-### 2.6.4 Định vị cạnh tranh
-
-Tham khảo phân tích Chương 1, Kite Platform đối sánh với hệ thống tương tự trong nhóm SaaS giáo dục Việt Nam (Bảng 2.11).
-
-**Bảng 2.11.** So sánh với hệ thống tương tự trong nhóm SaaS giáo dục Việt Nam.
-
-| Hệ thống tham khảo | Đối tượng chính | Mức phí | Điểm mạnh | Hướng tiếp cận của đồ án |
-|---|---|---|---|---|
-| MISA EMIS | Trường công + tư K-12 | Báo giá doanh nghiệp | Tích hợp Bộ Giáo dục | Tập trung trung tâm dạy thêm SMB, không cạnh tranh K-12 ở giai đoạn beta |
-| Mona Media | Chuỗi trung tâm Anh ngữ | `2-5 triệu/tháng` | Marketing + CRM | Multi-tenant SaaS từ gốc + AI Branding + STARTER `500.000đ/tháng` hợp lý |
-| Easy Edu | Trung tâm vừa và nhỏ | `1-3 triệu/tháng` | Giao diện đơn giản | Bổ sung AI Branding + Zalo-native (GA) + RLS phòng thủ chiều sâu |
-| DotB | Cả K-12 và trung tâm | Tùy biến | Toàn diện | Tập trung trung tâm dạy thêm theo chiều dọc, không cố cạnh tranh K-12 |
-
-Định vị tổng quát: nền tảng SaaS đa tenant nguyên bản cho trung tâm dạy thêm SMB Việt Nam, AI-powered branding, giao tiếp Zalo-native (GA), mức giá khởi điểm `500.000đ/tháng`.
-
----
