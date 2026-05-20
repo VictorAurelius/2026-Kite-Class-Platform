@@ -9,8 +9,6 @@ updated: 2026-05-19
 
 # Chương 4 — Triển khai Cloud, User Onboarding, KPI và Beta Scope
 
-> Ghi chú trình bày: chương này tuân thủ quy định đánh số trang theo UTC §2.1 (header center page number, đã được implement trong pipeline render DOCX add_page_number_header()).
-
 ## 4.0 Giới thiệu chương
 
 Chương này trình bày kết quả triển khai KiteHub Platform trên môi trường production cloud cho giai đoạn beta. Bốn phần lần lượt mô tả: kiến trúc hạ tầng AWS Singapore cùng CI/CD và observability stack (§4.1), hành trình user onboarding end-to-end (§4.2), bộ KPI cùng measurement plan (§4.3) và phạm vi beta cohort target với hạn chế kỹ thuật và định hướng tương lai (§4.4). Một số KPI Acquisition + Engagement cần cohort tenant đủ lớn sẽ được cập nhật trong phiên bản hoàn thiện trước hội đồng bảo vệ.
@@ -23,7 +21,7 @@ Chương này trình bày kết quả triển khai KiteHub Platform trên môi t
 
 KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast-1`) theo quyết định kiến trúc được trình bày theo phương pháp Tyree & Akerman [37, tr.19] (gồm context + decision + consequences) và Microsoft ADR template [26, tr.7]. Lý do chọn AWS Singapore:
 
-1. **Tốc độ triển khai và độ ổn định tài khoản** — quá trình đăng ký Oracle Cloud Always Free thường gặp tỷ lệ reject cao đối với người dùng tại Việt Nam, ảnh hưởng đến tiến độ triển khai trong khung thời gian khóa luận có hạn.
+1. **Tốc độ triển khai và độ ổn định tài khoản** — quá trình đăng ký Oracle Cloud Always Free thường gặp tỷ lệ reject cao đối với người dùng tại Việt Nam, ảnh hưởng đến tiến độ triển khai trong khung thời gian đồ án có hạn.
 2. **Tính trưởng thành của hệ sinh thái** — AWS cung cấp ECR + Secrets Manager + SES + ALB + CloudFront tích hợp sẵn; Oracle Always Free thiếu managed Redis và managed RabbitMQ.
 3. **Tuân thủ pháp luật được quản lý theo lộ trình** — Phase beta invite-only quy mô nhỏ (≤20 tenant) chưa kích hoạt ngưỡng quy định Nghị định 53/2022/NĐ-CP §26 (1 triệu user) cũng như ngưỡng PDPL Art 28 (10 nghìn data subject); roadmap migrate sang AWS Hanoi Local Zone hoặc nhà cung cấp cloud trong nước (Viettel Cloud, VNG Cloud) trong giai đoạn GA. Người dùng beta ký explicit consent acknowledging "infrastructure provider AWS Singapore" trong giai đoạn thử nghiệm.
 
@@ -130,7 +128,7 @@ Billing alarm được set tại các ngưỡng $5 / $50 / $150. Khi vượt $50
 
 ### 4.1.6 Trạng thái triển khai
 
-Tính đến thời điểm khóa luận: 71 resources terraform đã apply (CloudTrail captured); hai EC2 instance + RDS PostgreSQL multi-tenant schema RLS đã chạy; Cloudflare DNS đã cutover (kitehub.me thì ALB); AWS SES production mode đã được approve; CI/CD pipeline OIDC + ECR + SSM hoạt động đầy đủ; beta tenant invite mechanism đã sẵn sàng nhận yêu cầu.
+Tính đến thời điểm thực hiện đồ án: 71 resources terraform đã apply (CloudTrail captured); hai EC2 instance + RDS PostgreSQL multi-tenant schema RLS đã chạy; Cloudflare DNS đã cutover (kitehub.me thì ALB); AWS SES production mode đã được approve; CI/CD pipeline OIDC + ECR + SSM hoạt động đầy đủ; beta tenant invite mechanism đã sẵn sàng nhận yêu cầu.
 
 ---
 
@@ -293,7 +291,7 @@ Khi đủ dữ liệu, phân tích sẽ áp dụng ba cách tiếp cận:
 
 ### 4.4.1 Beta cohort target
 
-Mục tiêu beta của khóa luận: ≥4 tenant ký thử nghiệm trước cửa sổ bảo vệ (2026-08-15 thì 2026-10-15).
+Mục tiêu beta của đồ án: ≥4 tenant ký thử nghiệm trước cửa sổ bảo vệ (2026-08-15 thì 2026-10-15).
 
 **Tenant profile target:**
 

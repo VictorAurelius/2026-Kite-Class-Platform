@@ -15,11 +15,11 @@ Thị trường phần mềm quản lý trung tâm giáo dục Việt Nam tăng 
 
 Tuy nhiên, đa số trung tâm nhỏ và vừa (1-3 chi nhánh, dưới 500 học viên) vẫn dùng Excel kết hợp Zalo group chat, thậm chí sổ ghi tay để quản lý. Lý do chính: phần mềm hiện có hoặc quá phức tạp (Cyber School, MISA EMIS hướng đến trường công lập K-12), hoặc thiếu UX tiếng Việt (LMS quốc tế như Moodle, Canvas), hoặc chi phí cao không phù hợp với phân khúc trung tâm tự phát (Speed Manager, EduCom với mức 50-100 USD/tháng/cơ sở).
 
-Khoảng trống thị trường mà khóa luận hướng đến là *trung tâm nhỏ và vừa (1-10 chi nhánh, 100-2000 học viên/cơ sở)* với mức giá 500.000-1.500.000đ/tháng, giao diện tiếng Việt, kiến trúc multi-tenant gốc cho phép mở rộng nhanh khi thành lập chi nhánh mới, và khả năng tự sinh tài nguyên branding bằng AI thay vì phải thuê thiết kế viên.
+Khoảng trống thị trường mà đồ án hướng đến là *trung tâm nhỏ và vừa (1-10 chi nhánh, 100-2000 học viên/cơ sở)* với mức giá 500.000-1.500.000đ/tháng, giao diện tiếng Việt, kiến trúc multi-tenant gốc cho phép mở rộng nhanh khi thành lập chi nhánh mới, và khả năng tự sinh tài nguyên branding bằng AI thay vì phải thuê thiết kế viên.
 
 ## 2. Khảo sát bốn hệ thống tham khảo trên thị trường
 
-Khóa luận khảo sát bốn hệ thống tham khảo nổi bật trong phân khúc quản lý trung tâm giáo dục Việt Nam: MISA AMIS Trường Học, Mona eLMS, Easy Edu và DotB. Mỗi hệ thống có lịch sử thị trường, phân khúc khách hàng và điểm mạnh khác nhau, cùng nhau phủ phần lớn nhu cầu hiện hữu của các trung tâm vừa và lớn.
+Đồ án khảo sát bốn hệ thống tham khảo nổi bật trong phân khúc quản lý trung tâm giáo dục Việt Nam: MISA AMIS Trường Học, Mona eLMS, Easy Edu và DotB. Mỗi hệ thống có lịch sử thị trường, phân khúc khách hàng và điểm mạnh khác nhau, cùng nhau phủ phần lớn nhu cầu hiện hữu của các trung tâm vừa và lớn.
 
 *MISA AMIS Trường Học* [5] là sản phẩm giáo dục của công ty phần mềm MISA — một trong những công ty phần mềm Việt Nam lâu đời nhất với hơn 25 năm hoạt động trong lĩnh vực kế toán và thuế. Sản phẩm MISA EMIS đã triển khai tại hơn 30.000 trường tiểu học và trung học cơ sở công lập toàn quốc, phục vụ hơn 12 triệu học sinh. Thế mạnh chính của MISA AMIS Trường Học là tích hợp sâu với MISA MeInvoice (hóa đơn điện tử theo Thông tư 78/2021/TT-BTC) và mạng lưới phân phối qua hệ thống đại lý tại 63 tỉnh thành. Điểm yếu: định vị B2B trường công lập với chu kỳ bán hàng 3-6 tháng, phí thiết lập 50-200 triệu đồng và mức giá 2-5 triệu/tháng/trường, không phù hợp với trung tâm tự phát quy mô nhỏ cần triển khai nhanh.
 
@@ -27,11 +27,11 @@ Khóa luận khảo sát bốn hệ thống tham khảo nổi bật trong phân 
 
 *Easy Edu* [7] là hệ thống lớn nhất trên thị trường trong phân khúc trung tâm ngoại ngữ vừa và nhỏ với hơn 1.400 trung tâm khách hàng. Sản phẩm ra mắt năm 2018, có hệ thống phân phối mạnh tại miền Bắc và miền Trung thông qua các sự kiện ngành giáo dục và hợp tác với hiệp hội trung tâm ngoại ngữ. Tập tính năng đầy đủ gồm quản lý học viên, lớp học, học phí, điểm danh, báo cáo, tích hợp Zalo OA, ứng dụng di động cho phụ huynh, với mức giá phải chăng từ 800.000 đồng/tháng cho gói cơ bản phục vụ 200 học viên. Điểm yếu chính: kiến trúc single-tenant theo từng trung tâm (khó mở rộng nhượng quyền), không có khả năng tự sinh tài nguyên branding bằng AI, onboarding yêu cầu liên hệ bộ phận kinh doanh chứ chưa tự phục vụ.
 
-*DotB* [8] là sản phẩm phần mềm quản lý giáo dục đa năng của công ty DotB Vietnam ra mắt năm 2019, hướng đến phân khúc trung tâm tầm trung và trường tư thục với giá trị thương vụ trung bình 3-8 triệu đồng/tháng. Thế mạnh đặc thù của DotB là module CRM tích hợp phục vụ quản lý khách hàng tiềm năng (theo dõi học viên triển vọng từ biểu mẫu hỏi thông tin, qua lớp học thử, đến đăng ký chính thức) và tích hợp sẵn ba cổng thanh toán VNPay, MoMo, ZaloPay — giải quyết điểm đau của khoảng 80% trung tâm vẫn dùng chuyển khoản ngân hàng kèm đối soát thủ công. Điểm yếu: mức giá cao gấp 3-5 lần Easy Edu, định vị tầm trung không phục vụ phân khúc trung tâm tự phát quy mô nhỏ — không cạnh tranh trực tiếp với khoảng trống thị trường mà khóa luận hướng đến.
+*DotB* [8] là sản phẩm phần mềm quản lý giáo dục đa năng của công ty DotB Vietnam ra mắt năm 2019, hướng đến phân khúc trung tâm tầm trung và trường tư thục với giá trị thương vụ trung bình 3-8 triệu đồng/tháng. Thế mạnh đặc thù của DotB là module CRM tích hợp phục vụ quản lý khách hàng tiềm năng (theo dõi học viên triển vọng từ biểu mẫu hỏi thông tin, qua lớp học thử, đến đăng ký chính thức) và tích hợp sẵn ba cổng thanh toán VNPay, MoMo, ZaloPay — giải quyết điểm đau của khoảng 80% trung tâm vẫn dùng chuyển khoản ngân hàng kèm đối soát thủ công. Điểm yếu: mức giá cao gấp 3-5 lần Easy Edu, định vị tầm trung không phục vụ phân khúc trung tâm tự phát quy mô nhỏ — không cạnh tranh trực tiếp với khoảng trống thị trường mà đồ án hướng đến.
 
 ## 3. Khảo sát nhu cầu sử dụng từ phía người dùng cuối
 
-Bên cạnh khảo sát các hệ thống đang có trên thị trường, khóa luận tổng hợp nhu cầu sử dụng từ năm nhóm người dùng cuối (end-user) dựa trên các báo cáo ngành công khai. Phân tích này giúp xác định những tính năng cốt lõi cần ưu tiên trong giai đoạn đầu của hệ thống đề xuất.
+Bên cạnh khảo sát các hệ thống đang có trên thị trường, đồ án tổng hợp nhu cầu sử dụng từ năm nhóm người dùng cuối (end-user) dựa trên các báo cáo ngành công khai. Phân tích này giúp xác định những tính năng cốt lõi cần ưu tiên trong giai đoạn đầu của hệ thống đề xuất.
 
 *Nhóm 1 — Chủ trung tâm (Owner):* theo báo cáo Magenest 2024 [2] và 6Wresearch 2024 [3], chủ trung tâm vừa và nhỏ (1-10 chi nhánh, 100-2000 học viên) ưu tiên ba nhu cầu chính: (i) quản lý học phí và đối chiếu thanh toán tự động (80% trung tâm vẫn dùng chuyển khoản ngân hàng kèm đối soát thủ công, chiếm 4-6 giờ/tuần làm việc văn phòng); (ii) báo cáo doanh thu — tỷ lệ giữ chân học viên — chi phí vận hành theo thời gian thực để ra quyết định mở/đóng lớp; (iii) chi phí phần mềm thấp dưới 1,5 triệu đồng/tháng phù hợp biên lợi nhuận hiện hành 25-30%.
 
@@ -47,7 +47,7 @@ Tổng hợp năm nhóm end-user cho thấy nhu cầu chung là một nền tả
 
 ## 4. Bảng so sánh tổng hợp
 
-Bảng tổng hợp so sánh bốn hệ thống tham khảo với hệ thống đề xuất trong khóa luận theo các tiêu chí quan trọng:
+Bảng tổng hợp so sánh bốn hệ thống tham khảo với hệ thống đề xuất trong đồ án theo các tiêu chí quan trọng:
 
 | Tiêu chí | MISA AMIS | Mona eLMS | Easy Edu | DotB | Hệ thống đề xuất |
 |---|---|---|---|---|---|
@@ -65,7 +65,7 @@ Bảng tổng hợp so sánh bốn hệ thống tham khảo với hệ thống �
 
 ## 5. Định vị hệ thống đề xuất và yếu tố khác biệt
 
-Dựa trên phân tích bốn hệ thống tham khảo, hệ thống đề xuất trong khóa luận có bốn yếu tố khác biệt chính. *Thứ nhất, kiến trúc multi-tenant gốc:* cả bốn hệ thống tham khảo đều dùng triển khai single-tenant với mỗi khách hàng tương ứng một instance cơ sở dữ liệu riêng. Khi trung tâm mở rộng lên năm chi nhánh trở lên, chủ trung tâm phải cấp phát thêm instance, đồng bộ dữ liệu thủ công và sao chép cấu hình. Hệ thống đề xuất sử dụng kiến trúc multi-tenant gốc với cô lập ở mức cơ sở dữ liệu (schema-per-tenant), cho phép một trung tâm có 100 chi nhánh trên cùng một instance, tiết kiệm khoảng 80% chi phí hạ tầng khi mở rộng.
+Dựa trên phân tích bốn hệ thống tham khảo, hệ thống đề xuất trong đồ án có bốn yếu tố khác biệt chính. *Thứ nhất, kiến trúc multi-tenant gốc:* cả bốn hệ thống tham khảo đều dùng triển khai single-tenant với mỗi khách hàng tương ứng một instance cơ sở dữ liệu riêng. Khi trung tâm mở rộng lên năm chi nhánh trở lên, chủ trung tâm phải cấp phát thêm instance, đồng bộ dữ liệu thủ công và sao chép cấu hình. Hệ thống đề xuất sử dụng kiến trúc multi-tenant gốc với cô lập ở mức cơ sở dữ liệu (schema-per-tenant), cho phép một trung tâm có 100 chi nhánh trên cùng một instance, tiết kiệm khoảng 80% chi phí hạ tầng khi mở rộng.
 
 *Thứ hai, AI Branding tự động:* chủ trung tâm mới khai trương thường tốn 2-5 triệu đồng thuê thiết kế viên cho logo, banner và hero image marketing. AI Branding của hệ thống đề xuất tự động sinh các tài nguyên này từ prompt văn bản và màu thương hiệu, giảm thời gian sẵn sàng vận hành từ 1-2 tuần xuống còn vài giờ. Cả bốn hệ thống tham khảo đều không có tính năng này.
 

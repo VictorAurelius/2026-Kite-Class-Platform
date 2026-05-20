@@ -60,11 +60,11 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 
 ## 2.2 Yêu cầu phi chức năng (Non-Functional Requirements)
 
-Khóa luận phân loại các yêu cầu phi chức năng (NFR) theo chuẩn ISO/IEC 25010:2011 *Software Product Quality Model* [25] — mô hình chất lượng phần mềm bao gồm 8 đặc trưng: Functional Suitability, Performance Efficiency, Compatibility, Usability, Reliability, Security, Maintainability, và Portability. Bảng 2.1 ánh xạ 6 hạng mục NFR được khóa luận này tập trung trình bày sang các đặc trưng tương ứng theo ISO/IEC 25010.
+Đồ án phân loại các yêu cầu phi chức năng (NFR) theo chuẩn ISO/IEC 25010:2011 *Software Product Quality Model* [25] — mô hình chất lượng phần mềm bao gồm 8 đặc trưng: Functional Suitability, Performance Efficiency, Compatibility, Usability, Reliability, Security, Maintainability, và Portability. Bảng 2.1 ánh xạ 6 hạng mục NFR được đồ án này tập trung trình bày sang các đặc trưng tương ứng theo ISO/IEC 25010.
 
 **Bảng 2.1. Ánh xạ NFR của Kite Platform sang ISO/IEC 25010:2011.**
 
-| Hạng mục NFR của khóa luận | Đặc trưng ISO/IEC 25010 tương ứng |
+| Hạng mục NFR của đồ án | Đặc trưng ISO/IEC 25010 tương ứng |
 |---|---|
 | Performance (§2.2.1) | Performance Efficiency (Time Behaviour, Resource Utilization) |
 | Availability (§2.2.2) | Reliability (Availability sub-characteristic) |
@@ -100,7 +100,7 @@ Khi chuyển sang triển khai EKS multi-AZ với read replica ở giai đoạn 
 
 ### 2.2.3 Security
 
-Khóa luận lấy chuẩn OWASP Top 10 (2021) [20] làm baseline an toàn ứng dụng web. Theo định nghĩa của OWASP Foundation [20, tr.8]: *"Broken Access Control moved up from the fifth position to the category with the most serious web application security risk; the contributed data indicates that on average, 3.81% of applications tested had one or more Common Weakness Enumerations (CWEs) with more than 318k occurrences of CWEs in this risk category."* Khóa luận đồng thời tuân thủ pháp luật Việt Nam — Luật Bảo vệ Dữ liệu Cá nhân số 49/2023/QH15 [9] và Luật An ninh mạng số 24/2018/QH14 [10].
+Đồ án lấy chuẩn OWASP Top 10 (2021) [20] làm baseline an toàn ứng dụng web. Theo định nghĩa của OWASP Foundation [20, tr.8]: *"Broken Access Control moved up from the fifth position to the category with the most serious web application security risk; the contributed data indicates that on average, 3.81% of applications tested had one or more Common Weakness Enumerations (CWEs) with more than 318k occurrences of CWEs in this risk category."* Đồ án đồng thời tuân thủ pháp luật Việt Nam — Luật Bảo vệ Dữ liệu Cá nhân số 49/2023/QH15 [9] và Luật An ninh mạng số 24/2018/QH14 [10].
 
 **Bảng 2.2. Ánh xạ OWASP Top 10 (2021) lên các biện pháp triển khai.**
 
@@ -156,7 +156,7 @@ Giai đoạn beta vận hành dưới ràng buộc AWS Free Tier 12 tháng:
 - AI: Ollama tự host cho môi trường phát triển; MiniMax vận hành ~$0.001/yêu cầu
 - **Tổng chi phí ước tính giai đoạn beta: $15-30/tháng** (~360.000đ-720.000đ/tháng)
 
-Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: tác giả chọn mô hình single-bucket multi-tenant với RLS (Pattern 4) thay vì per-tenant DB (Pattern 1) — chênh lệch chi phí khoảng 20× và chi phí vận hành theo chiều dọc khó duy trì với một sinh viên (chi tiết §2.3.3).
+Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: tôi chọn mô hình single-bucket multi-tenant với RLS (Pattern 4) thay vì per-tenant DB (Pattern 1) — chênh lệch chi phí khoảng 20× và chi phí vận hành theo chiều dọc khó duy trì với một sinh viên (chi tiết §2.3.3).
 
 ---
 
@@ -164,7 +164,7 @@ Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: tác giả c
 
 ### 2.3.1 C4 Model — Level 1 System Context
 
-Mô hình C4 (Context / Container / Component / Code) của Brown [29] là framework chuẩn để mô tả kiến trúc phần mềm ở 4 mức độ chi tiết tăng dần. Khóa luận sử dụng Level 1 (System Context) và Level 2 (Container) để trình bày Kite Platform; Level 3 và Level 4 dành cho phần triển khai ở Chương 3.
+Mô hình C4 (Context / Container / Component / Code) của Brown [29] là framework chuẩn để mô tả kiến trúc phần mềm ở 4 mức độ chi tiết tăng dần. Đồ án sử dụng Level 1 (System Context) và Level 2 (Container) để trình bày Kite Platform; Level 3 và Level 4 dành cho phần triển khai ở Chương 3.
 
 Kite Platform tương tác với 8 nhóm actor (người dùng và quản trị) và 6 hệ thống bên ngoài. Hình 2.1 biểu diễn ngữ cảnh hệ thống ở mức cao nhất.
 
@@ -306,7 +306,7 @@ Prefix `kite-` (thay vì `kitehub-` hay `kiteclass-`) phản ánh bản chất d
 
 ### 2.3.3 Quyết định kiến trúc đa tenant — single-bucket pattern
 
-Quyết định kiến trúc trọng tâm của khóa luận là chọn mô hình cô lập đa tenant. Tác giả đã đánh giá 6 pattern khác nhau trên 6 trục tiêu chí và lựa chọn **Shared Database + cột `tenant_id` UUID + PostgreSQL Row-Level Security (RLS)** — tương ứng "Pool" model theo AWS Well-Architected SaaS Lens [27, tr.21] (đối lập với "Silo" per-tenant DB và "Bridge" per-tenant schema). AWS định nghĩa: *"Pool isolation enables tenants to share infrastructure but rely on logical mechanisms (such as row-level security policies in databases) to ensure data isolation between tenants; this model often yields the lowest operational cost but requires careful design of the isolation layer."*
+Quyết định kiến trúc trọng tâm của đồ án là chọn mô hình cô lập đa tenant. Tôi đã đánh giá 6 pattern khác nhau trên 6 trục tiêu chí và lựa chọn **Shared Database + cột `tenant_id` UUID + PostgreSQL Row-Level Security (RLS)** — tương ứng "Pool" model theo AWS Well-Architected SaaS Lens [27, tr.21] (đối lập với "Silo" per-tenant DB và "Bridge" per-tenant schema). AWS định nghĩa: *"Pool isolation enables tenants to share infrastructure but rely on logical mechanisms (such as row-level security policies in databases) to ensure data isolation between tenants; this model often yields the lowest operational cost but requires careful design of the isolation layer."*
 
 **Bảng 2.3. Sáu pattern đa tenant và lý do chọn/loại.**
 
@@ -504,7 +504,7 @@ Chủ trung tâm nhấn magic-link, đặt mật khẩu và đăng nhập lần 
 
 ### 2.4.3 Ma trận gói dịch vụ
 
-Khóa luận thiết kế 4 gói dịch vụ (Bảng 2.6) — giai đoạn beta kiểm thử FREE + STARTER; PRO và PRO_PLUS kích hoạt giai đoạn GA.
+Đồ án thiết kế 4 gói dịch vụ (Bảng 2.6) — giai đoạn beta kiểm thử FREE + STARTER; PRO và PRO_PLUS kích hoạt giai đoạn GA.
 
 **Bảng 2.6. Bốn gói dịch vụ và các giới hạn theo gói.**
 
@@ -529,13 +529,13 @@ Roadmap giai đoạn GA: hóa đơn điện tử VAT tích hợp MISA MeInvoice 
 
 ### 2.5.1 Mô hình B-learning Việt Nam
 
-Trung tâm dạy thêm tại Việt Nam vận hành theo mô hình học thêm sau giờ chính khóa và cuối tuần — phân biệt với trường công lập chính khóa. Thị trường mục tiêu của khóa luận là các trung tâm vừa và nhỏ với 50-500 học sinh; phạm vi K-12 trường công có lớp tuân thủ pháp lý riêng (DPO, DPIA, kiểm tra an ninh) được lùi sang giai đoạn GA.
+Trung tâm dạy thêm tại Việt Nam vận hành theo mô hình học thêm sau giờ chính khóa và cuối tuần — phân biệt với trường công lập chính khóa. Thị trường mục tiêu của đồ án là các trung tâm vừa và nhỏ với 50-500 học sinh; phạm vi K-12 trường công có lớp tuân thủ pháp lý riêng (DPO, DPIA, kiểm tra an ninh) được lùi sang giai đoạn GA.
 
 Đặc điểm B-learning tại Việt Nam theo Báo cáo Kinh tế Số Việt Nam 2024 [4, tr.42]: *"Hơn 90% phụ huynh đô thị sử dụng Zalo group chat làm kênh chính trao đổi với trung tâm; email phục vụ tài liệu chính thức như hóa đơn và báo cáo."* Buổi học buổi tối và cuối tuần chiếm ưu thế (thứ 2-7 từ 17:00-21:00; thứ 7-CN 8:00-17:00) — bảng `class_schedule_slots` mặc định cấu hình 6 ngày/tuần. Niên khóa 9-5 (năm học `2025-2026` ứng tháng 9/2025 đến tháng 5/2026) gồm HK1 (9-12), HK2 (1-5), HK_Hè (6-8). Mẹ là đầu mối liên lạc chính cho việc học của con (~60%), bố dự phòng (35%), ông bà (5%). Khung Tết Nguyên Đán nghỉ 7-10 ngày cuối tháng 1 — đầu tháng 2 yêu cầu cron tính phí bỏ qua. Giai đoạn beta hỗ trợ email; tích hợp Zalo OA cho phụ huynh là roadmap GA.
 
 ### 2.5.2 Phân tích persona giai đoạn beta
 
-Khóa luận tập trung 4 persona chính. **P1 Giáo viên độc lập** (28 tuổi, 5-50 học sinh, dạy IELTS/Toán) — thay thế sổ tay giấy + Excel + Zalo thủ công, gói FREE đủ dùng. **P2 Chủ trung tâm** (35 tuổi, 20-100 học sinh, 2-5 giáo viên) — thay 3 công cụ rời rạc bằng platform tích hợp, gói STARTER `500.000đ/tháng`. **P3 Quản lý trung tâm** (24 tuổi, 100-500 học sinh, 5-15 giáo viên) — cần bulk import CSV ~300 dòng, phân quyền theo vai trò (manager không thấy mục thanh toán), audit log, gói PRO `1.500.000đ/tháng`. **Phụ huynh và học sinh** — phụ huynh nhận thông báo email cho tài liệu chính thức (giai đoạn beta) + Zalo group cho cập nhật thường xuyên (giai đoạn GA); học sinh truy cập mobile chiếm 85% phiên.
+Đồ án tập trung 4 persona chính. **P1 Giáo viên độc lập** (28 tuổi, 5-50 học sinh, dạy IELTS/Toán) — thay thế sổ tay giấy + Excel + Zalo thủ công, gói FREE đủ dùng. **P2 Chủ trung tâm** (35 tuổi, 20-100 học sinh, 2-5 giáo viên) — thay 3 công cụ rời rạc bằng platform tích hợp, gói STARTER `500.000đ/tháng`. **P3 Quản lý trung tâm** (24 tuổi, 100-500 học sinh, 5-15 giáo viên) — cần bulk import CSV ~300 dòng, phân quyền theo vai trò (manager không thấy mục thanh toán), audit log, gói PRO `1.500.000đ/tháng`. **Phụ huynh và học sinh** — phụ huynh nhận thông báo email cho tài liệu chính thức (giai đoạn beta) + Zalo group cho cập nhật thường xuyên (giai đoạn GA); học sinh truy cập mobile chiếm 85% phiên.
 
 ### 2.5.3 Đặc trưng thị trường giáo dục Việt Nam
 
@@ -560,7 +560,7 @@ Tham khảo phân tích Chương 1, Kite Platform đối sánh với hệ thốn
 
 **Bảng 2.8. So sánh với hệ thống tương tự trong nhóm SaaS giáo dục Việt Nam.**
 
-| Hệ thống tham khảo | Đối tượng chính | Mức phí | Điểm mạnh | Hướng tiếp cận của khóa luận |
+| Hệ thống tham khảo | Đối tượng chính | Mức phí | Điểm mạnh | Hướng tiếp cận của đồ án |
 |---|---|---|---|---|
 | MISA EMIS | Trường công + tư K-12 | Báo giá doanh nghiệp | Tích hợp Bộ Giáo dục | Tập trung trung tâm dạy thêm SMB, không cạnh tranh K-12 ở giai đoạn beta |
 | Mona Media | Chuỗi trung tâm Anh ngữ | `2-5 triệu/tháng` | Marketing + CRM | Multi-tenant SaaS từ gốc + AI Branding + STARTER `500.000đ/tháng` hợp lý |
