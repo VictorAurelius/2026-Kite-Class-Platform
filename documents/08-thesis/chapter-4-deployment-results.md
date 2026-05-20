@@ -19,7 +19,7 @@ Chương này trình bày kết quả triển khai KiteHub Platform trên môi t
 
 ### 4.1.1 Tổng quan kiến trúc
 
-KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast-1`) theo quyết định kiến trúc được trình bày theo phương pháp Tyree & Akerman [37, tr.19] (gồm context + decision + consequences) và Microsoft ADR template [26, tr.7]. Lý do chọn AWS Singapore:
+KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast-1`) theo quyết định kiến trúc được trình bày theo phương pháp Tyree & Akerman [37, tr.19] (gồm context + decision + consequences) và Microsoft ADR template [23, tr.7]. Lý do chọn AWS Singapore:
 
 1. **Tốc độ triển khai và độ ổn định tài khoản** — quá trình đăng ký Oracle Cloud Always Free thường gặp tỷ lệ reject cao đối với người dùng tại Việt Nam, ảnh hưởng đến tiến độ triển khai trong khung thời gian đồ án có hạn.
 2. **Tính trưởng thành của hệ sinh thái** — AWS cung cấp ECR + Secrets Manager + SES + ALB + CloudFront tích hợp sẵn; Oracle Always Free thiếu managed Redis và managed RabbitMQ.
