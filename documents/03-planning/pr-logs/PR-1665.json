@@ -1,0 +1,33 @@
+{
+  "pr": 1665,
+  "title": "feat(wave-102.7.3-bucket-c): Ch.2 \u00a72.2.3 B\u1ea3ng 2.6 RLS rubric methodology",
+  "branch": "wave/102.7.3-bucket-c",
+  "created_at": null,
+  "merged_at": "2026-05-20T17:14:36Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-20T17:14:43.171362",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 3,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-86407"
+  }
+}
