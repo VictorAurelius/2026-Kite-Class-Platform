@@ -823,16 +823,13 @@ def parse_markdown(doc, md_text, skip_top_heading=True):
 
 # ============== TRANG BÌA CHÍNH ==============
 def add_cover_page(doc):
-    """Bìa chính: BỘ GIÁO DỤC + UTC + ĐỒ ÁN TỐT NGHIỆP + title + student info + year."""
-    # Bộ Giáo dục và Đào tạo
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(0)
-    p.paragraph_format.space_after = Pt(0)
-    run = p.add_run("BỘ GIÁO DỤC VÀ ĐÀO TẠO")
-    set_font(run, Pt(13), bold=True)
+    """Bìa chính: UTC + KHOA CNTT + LOGO + ĐỒ ÁN TỐT NGHIỆP + title + 9-field info + year.
 
-    # TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI
+    Per BAO_CAO_THUC_TAP.pdf reference + user direction 2026-05-20:
+    - NO "BỘ GIÁO DỤC VÀ ĐÀO TẠO" line (báo cáo thực tập không có)
+    - "ĐỒ ÁN TỐT NGHIỆP" plain black bold (NO gold + NO underline)
+    """
+    # TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI (header line 1)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(0)
@@ -866,14 +863,13 @@ def add_cover_page(doc):
         run = p.add_run("[LOGO UTC]")
         set_font(run, Pt(12), italic=True, color=RGBColor(128, 128, 128))
 
-    # ĐỒ ÁN TỐT NGHIỆP
+    # ĐỒ ÁN TỐT NGHIỆP (plain black, no underline per user direction 2026-05-20)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(12)
     p.paragraph_format.space_after = Pt(0)
     run = p.add_run("ĐỒ ÁN TỐT NGHIỆP")
-    set_font(run, Pt(24), bold=True, color=RGBColor(184, 134, 11))  # Gold
-    run.font.underline = True
+    set_font(run, Pt(24), bold=True)
 
     # CỬ NHÂN
     p = doc.add_paragraph()
@@ -938,73 +934,93 @@ def add_cover_page(doc):
     run = p.add_run(f"Hà Nội – {THESIS_INFO['year']}")
     set_font(run, Pt(14), bold=True, italic=True)
 
-    doc.add_section(WD_SECTION.NEW_PAGE)
+    # Page break (NOT section break) — Bìa chính + Bìa phụ + Lời cảm ơn cùng Section 1
+    doc.add_page_break()
 
 
 # ============== TRANG BÌA PHỤ ==============
 def add_secondary_cover_page(doc):
-    """Bìa phụ: title page với 6-field info table (Sinh viên/MSSV/Lớp/Khóa/GVHD/GVPB).
+    """Bìa phụ: layout y hệt bìa chính trừ logo (thay bằng khoảng trắng cùng kích thước).
 
-    Per agent GVHD-01 finding — bìa phụ PHẢI có khung info chuẩn UTC, NOT trùng bìa chính.
+    Per user direction 2026-05-20:
+    - NO "BỘ GIÁO DỤC VÀ ĐÀO TẠO" line (báo cáo thực tập không có)
+    - "ĐỒ ÁN TỐT NGHIỆP" plain black bold (NO gold + NO underline)
+    - Bảng info 9 fields y hệt bìa chính (NO Giáo viên phản biện)
+    - Khoảng trắng vị trí logo same as bìa chính (logo width Cm(3.5) + spacing Pt(36)×2)
     """
-    # Header (less prominent than bìa chính — info-focused page)
+    # TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run("BỘ GIÁO DỤC VÀ ĐÀO TẠO")
-    set_font(run, Pt(13), bold=True)
-
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = Pt(0)
     run = p.add_run("TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI")
     set_font(run, Pt(14), bold=True)
 
+    # KHOA CÔNG NGHỆ THÔNG TIN
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_after = Pt(24)
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = Pt(0)
     run = p.add_run("KHOA CÔNG NGHỆ THÔNG TIN")
     set_font(run, Pt(14), bold=True)
     run.font.underline = True
 
-    # ĐỒ ÁN TỐT NGHIỆP (smaller than bìa chính — info-focused)
+    # Khoảng trắng tương đương logo position trên bìa chính
+    # Logo bìa chính: space_before=Pt(36), height ~Cm(3.5)≈Pt(99), space_after=Pt(36)
+    # → tổng vertical ~Pt(171) cho logo block. Replicate via 3 empty paragraphs với spacing.
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(36)
+    p.paragraph_format.space_after = Pt(36)
+    run = p.add_run("")
+    set_font(run, Pt(99))  # invisible spacer ≈ logo height Cm(3.5)
+
+    # ĐỒ ÁN TỐT NGHIỆP (plain black, no underline)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(12)
+    p.paragraph_format.space_after = Pt(0)
     run = p.add_run("ĐỒ ÁN TỐT NGHIỆP")
-    set_font(run, Pt(18), bold=True, color=RGBColor(184, 134, 11))
-    run.font.underline = True
+    set_font(run, Pt(24), bold=True)
 
+    # CỬ NHÂN
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_after = Pt(18)
+    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_after = Pt(24)
     run = p.add_run("CỬ NHÂN")
-    set_font(run, Pt(14), bold=True)
+    set_font(run, Pt(18), bold=True)
 
     # Tên đề tài
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_before = Pt(12)
+    p.paragraph_format.space_after = Pt(12)
     run = p.add_run("Đề tài:")
-    set_font(run, Pt(13), italic=True)
+    set_font(run, Pt(14), italic=True)
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(0)
     p.paragraph_format.space_after = Pt(24)
     run = p.add_run(THESIS_INFO["title"])
-    set_font(run, Pt(16), bold=True)
+    set_font(run, Pt(20), bold=True)
 
-    # 6-field info table per UTC convention (agent GVHD-01)
-    table = doc.add_table(rows=6, cols=2)
-    table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    table.style = 'Table Grid'
-
+    # Bảng 9-field Y HỆT bìa chính (per user direction 2026-05-20)
     info_rows = [
         ("Sinh viên thực hiện", STUDENT_INFO["name"]),
         ("Mã số sinh viên", STUDENT_INFO["student_id"]),
         ("Lớp", STUDENT_INFO["class"]),
         ("Khóa", STUDENT_INFO["course"]),
-        ("Giáo viên hướng dẫn", THESIS_INFO["advisor"]),
-        ("Giáo viên phản biện", "(Cập nhật khi Khoa phân công)"),
+        ("Ngành đào tạo", STUDENT_INFO["major"]),
+        ("Chuyên ngành", STUDENT_INFO["specialization"]),
+        ("Hệ đào tạo", STUDENT_INFO["training_mode"]),
+        ("Giảng viên hướng dẫn", THESIS_INFO["advisor"]),
+        ("Năm bảo vệ", THESIS_INFO["year"]),
     ]
+    table = doc.add_table(rows=len(info_rows), cols=2)
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table.style = 'Table Grid'
     for i, (label, value) in enumerate(info_rows):
         row = table.rows[i]
         row.cells[0].text = label
@@ -1018,27 +1034,25 @@ def add_secondary_cover_page(doc):
         for paragraph in row.cells[1].paragraphs:
             paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
             for run in paragraph.runs:
-                # GV phản biện stub italic gray
-                if "(Cập nhật" in value:
-                    set_font(run, Pt(12), italic=True, color=RGBColor(128, 128, 128))
-                else:
-                    set_font(run, Pt(13))
+                set_font(run, Pt(13))
 
     # Spacer + Hà Nội – Năm
     for _ in range(2):
-        doc.add_paragraph()
+        p = doc.add_paragraph()
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after = Pt(0)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = p.add_run(f"Hà Nội – {THESIS_INFO['year']}")
     set_font(run, Pt(14), bold=True, italic=True)
 
-    doc.add_section(WD_SECTION.NEW_PAGE)
+    # Page break (NOT section break) — vẫn trong Section 1 (no page numbering)
+    doc.add_page_break()
 
 
 # ============== LỜI CẢM ƠN ==============
 def add_acknowledgment_page(doc):
-    doc.add_page_break()
-
+    # NOTE: page break đã được xử lý bởi add_secondary_cover_page() khi exit
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(24)
@@ -1098,8 +1112,7 @@ def add_acknowledgment_page(doc):
 
 # ============== MỤC LỤC ==============
 def add_toc_page(doc):
-    doc.add_page_break()
-
+    # NOTE: section break (Section 1→2) đã advance page automatically — KHÔNG cần page break dư
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(18)
@@ -1285,8 +1298,7 @@ def add_abbreviations(doc):
 
 # ============== MỞ ĐẦU ==============
 def add_introduction(doc):
-    doc.add_page_break()
-
+    # NOTE: section break (Section 2→3) đã advance page automatically — KHÔNG cần page break dư
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(18)
