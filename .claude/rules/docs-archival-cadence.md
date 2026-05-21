@@ -1,16 +1,18 @@
 ---
 paths:
-  - "documents/**/*.md"
-  - "documents/**/*.json"
+  - "documents/04-quality/audits/**/*.md"
+  - "documents/03-planning/session-handoffs/**/*.md"
+  - "documents/03-planning/waves/**/*.md"
+  - "documents/03-planning/pr-logs/**/*.json"
 ---
 
 # Docs Archival Cadence — auto-archive time-bound artifacts to prevent docs accumulation
 
 **Priority:** 🟠 MANDATORY — docs lifecycle + volume governance
-**Version:** 1.0.1
+**Version:** 1.0.2
 **Created:** 2026-05-18
-**Last-Reviewed:** 2026-05-19
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; Wave 99C META-META GAP-675 SHIP-NOW — `scripts/check-docs-archival-stale.sh` shipped + wired in `script-quality.yml` job `docs-scaling-detectors`; self-test PASS on 3 synthetic fixtures (audit + handoff stale, 1 fresh-exempt); WARN-mode initially; closes deferred-detector debt §4.3 within 1 day of rule landing per `incident-to-rule-pipeline.md` Stage 3 paired-enforcement. No constraint change — detector enforces existing §2 cadence prospectively. v1.0.0 (kept): MINOR self-approve per §5; new rule with built-in enforcement (reviewer-checklist + worked self-test on 2026-05-18 baseline) per §6.5)
+**Last-Reviewed:** 2026-05-21
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.2 PATCH self-approve per `rule-change-process.md` §5; narrow `paths:` từ broad `documents/**/*.md` + `documents/**/*.json` xuống 4 time-bound subdirs khớp §2 cadence table (audits 90d + session-handoffs 30d + waves 60d post-closure + pr-logs 180d) — broad patterns fired trên mọi document read without cadence relevance. Wave 102.7.5 meta cleanup. No constraint change; §2 cadence table + §3 archive destination unchanged. v1.0.1 (kept): Wave 99C detector ship. v1.0.0 (kept): new rule per `rule-change-process.md` §6.5)
 **Applies to:** Time-bound artifacts trong `documents/04-quality/audits/**` + `documents/03-planning/session-handoffs/**` + `documents/03-planning/waves/**` + `documents/03-planning/pr-logs/**`. KHÔNG áp dụng cho: `ROADMAP.md`, gap files (`documents/04-quality/gaps/**` — đã có separate flow per `audit-to-gap-pipeline.md`), READMEs, canonical living docs (CLAUDE.md, business/*/rules.md).
 
 ---
@@ -235,5 +237,6 @@ Apply §2 cadence retroactively vào current repo state:
 
 ## 8. Log
 
+- **2026-05-21 (v1.0.2):** PATCH — Wave 102.7.5 meta cleanup: narrow `paths:` từ broad `documents/**/*.md` + `documents/**/*.json` xuống 4 time-bound subdirs khớp §2 cadence table (audits 90d + session-handoffs 30d + waves 60d post-closure + pr-logs 180d). Broad patterns fired trên mọi document read without cadence relevance. Sync `rules-index.csv`. No constraint change; §2 cadence table + §3 archive destination unchanged. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — path-scope narrowing per `context-budget-mandate.md` §3.1 broad-glob anti-pattern).
 - **2026-05-19 (v1.0.1):** PATCH — Wave 99C META-META GAP-675 SHIP-NOW closure of deferred-detector debt §4.3. `scripts/check-docs-archival-stale.sh` shipped (124 LOC bash; 3-fixture self-test PASS); wired CI job `docs-scaling-detectors` in `script-quality.yml`. WARN-mode initially per `incident-to-rule-pipeline.md` premature-rule guard tightened §3 conditions (Stage 3 paired-enforcement compliance achieved within 1 day of rule landing — cycle time benchmark). No constraint change; detector enforces existing §2 cadence prospectively. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — additive enforcement, no constraint loosening; HARD STOP follow-up GAP-679 tracking).
 - **2026-05-18 (v1.0.0):** Rule created in response to user-flagged 2026-05-18 docs scaling miss — `documents/04-quality/` accumulating 865 files (39% của 2,201 total); audit + PR-logs + session-handoffs accumulating without cadence guard. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged "documents/04-quality has 865 files, cognitive load too high") → Classify ✓ (existing rules cover format/structure `docs-folder-structure.md` + planning-specific archival `planning-docs-structure.md` NHƯNG KHÔNG cover generic cadence cho time-bound artifacts cross-folder; `audit-to-gap-pipeline.md` covers gap closure flow only) → Rule+Enforce ✓ (this file + reviewer-checklist §4.1 + worked self-test §6 + paired same-PR sister rules Rule 2/3/4 docs scaling pack — coordinator sync atomic post-merge cho `rules-index.csv` + `output-review-mandate.md` per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§6 worked example trên 2026-05-18 baseline — 4 artifact types × cadence table = 0 quá tuổi today (project mới, active history start 2026-02-27); rule applies prospectively từ ~2026-05-27 first batch trigger; counterfactual: 12-month accumulation projected ~200+ low-value files) → Retro Log ✓ (this entry). META P0 force-multiplier per `meta-gap-priority.md` §3 — fix cadence 1 lần → force-multiplier mọi artifact subsequent (Wave 92+ audit + session-handoff + wave + PR-log). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying previously-uncovered lifecycle governance for time-bound artifacts; no constraint loosening; existing artifacts grandfathered (baseline 0 quá tuổi today); rule applies prospectively từ first cadence trigger 2026-05-27 forward). Detector script `scripts/check-docs-archival-stale.sh` deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 ngày; reviewer-checklist §4.1 + quarterly retro check §4.2 + worked self-test §6 đủ cho v1.0.0. Path-scoped per `context-budget-mandate.md` §3.1 — `paths: ["documents/**/*.md", "documents/**/*.json"]` deferred-load chỉ khi `documents/**` trong context.
