@@ -1,0 +1,33 @@
+{
+  "pr": 1694,
+  "title": "feat(wave-102.8-D): live admin Tier 1 verify + close GAP-518/519/481 (GAP-695 25%->50%)",
+  "branch": "wave/102.8-bucket-d-tier-1-live-verify",
+  "created_at": null,
+  "merged_at": "2026-05-21T04:59:17Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-21T04:59:22.553455",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 5,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-73741"
+  }
+}
