@@ -93,8 +93,14 @@ jobs:
 
       - name: Install ShellCheck
         run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck
+          # Self-hosted runner: shellcheck pre-installed in user PATH; skip apt
+          # (sudo apt-get needs NOPASSWD which the runner doesn't have).
+          if command -v shellcheck >/dev/null 2>&1; then
+            echo "shellcheck already on PATH: $(command -v shellcheck)"
+          else
+            sudo apt-get update
+            sudo apt-get install -y shellcheck
+          fi
           shellcheck --version
 
       - name: Determine changed shell scripts
