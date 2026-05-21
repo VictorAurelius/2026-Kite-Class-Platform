@@ -1,9 +1,10 @@
 # GAP-481: Gateway path routing `/kitehub-subscription/*` returns 404
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-21 (Wave 102.8 Bucket D — local stack live verify: `/api/v1/admin/*` routes return 400 NOT 404; explicit gateway route predicates `kitehub-admin-beta-requests-v1` + `kitehub-admin-impersonate` + `platform-instances` registered in `application.yml` precede catch-all `/api/v1/**`; route registry confirmed via `/actuator/gateway/routes`)
 **Priority:** 🟠 P1 (blocks proper service routing post-cutover; smoke tests may pass `/actuator/health` but fail per-service paths)
 **Domain:** Backend / DevOps
 **Found:** 2026-05-12 (Wave 64 deploy simulation probe)
+**Closed:** 2026-05-21 (Wave 102.8 Bucket D live verify on local stack)
 **Affects:** Spring Cloud Gateway routing — kitehub-gateway service path predicates
 
 ## Problem
@@ -77,5 +78,7 @@ Then fix based on findings:
 - **May relate to:** GAP-419 P0 gateway 3-KeyResolver disambiguation (per memory `feedback_dev_stack_cold_setup_5_gaps.md`)
 
 ## Log
+
+- **2026-05-21 (Wave 102.8 Bucket D)** — Status OPEN → 🟢 DONE 100%. Live verify on local stack (beta-funnel profile up Wave 102.8 Bucket A unlocks Docker preflight): gateway returns HTTP 400 (validation error from missing required headers/params), NOT 404 — routing predicates working correctly. Per `audit-to-gap-pipeline.md` §2.8 fix-time state-check: gap age 9 days; symptom claim "gateway path-routed health checks fail" verified against current `application.yml` which has explicit route predicates `kitehub-admin-beta-requests-v1` (line 473-481 → kitehub-subscription:8080), `kitehub-admin-impersonate` (line 487-495), `kitehub-admin-v1` (line 499-507 → kitehub-admin:8080), `platform-instances` (line 150-158) all precede catch-all `/api/v1/**` instance-apis route (line 579-588). Wave 79 Bucket A + Wave 82 Bucket F4 + Wave 99B audit-gateway-routes.sh runs eliminated wrong-service routing class. Evidence: `for path in /api/v1/admin/beta-requests /api/v1/admin/instances /api/v1/admin/impersonate/start; do curl -s -o /dev/null -w "%{http_code}" http://localhost:9000${path} -H "Authorization: Bearer $JWT"; done` → 400 / 400 / 400 (NOT 404). Per `gap-done-discipline.md` §2 — symptom no longer present; closure complete. Note: original gap mentioned `/kitehub-subscription/*` path-based routing (pre-Wave 79 architecture); current architecture uses `/api/v1/{domain}/**` routing instead — path schema redesign already shipped. Files moved: gap file `git mv` to `phase-1-beta/closed/` per `gap-folder-organization.md` §3.3. CSV row updated: status OPEN→DONE, completion_pct 0→100, last_verified 2026-05-21.
 
 - **2026-05-12:** Filed during Wave 64 deploy simulation. State-check needed before fix proposal.
