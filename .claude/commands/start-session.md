@@ -17,10 +17,11 @@ Slash-command entry point. Full spec lives in the skill:
    ./.claude/skills/workflow/start-session/scripts/collect-state.sh
    ```
 
-2. If collector output insufficient, read (top 50 lines only):
-   - `CLAUDE.md` — rules, wave strategy
-   - Newest file in `documents/03-planning/waves/` — current wave
-   - `documents/04-quality/gaps/ROADMAP.md` — status snapshot
+2. If collector output insufficient, prefer script queries (skip file reads to minimize path-trigger rules):
+   - **Gaps:** `bash scripts/query-gaps.sh <prefix>` (NOT Read ROADMAP — triggers ~10 gap-* rules ~150k bytes)
+   - **Recent waves:** `tail -3 .claude/skills/quality/wave-pack-planner/data/wave-history.jsonl | jq -r '.wave + " — " + .outcome'`
+   - **CLAUDE.md** auto-loads — NEVER Read explicitly
+   - Read `documents/03-planning/waves/<specific>.md` ONLY khi cần plan detail for current task
 
 3. **Session-lock check** (skip if `--no-lock`):
    - `ls .claude/session-locks/` — look for active locks

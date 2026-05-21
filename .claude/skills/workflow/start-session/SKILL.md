@@ -26,16 +26,22 @@ Prepare fresh session bằng cách load đúng context + detect conflicts với 
 
 Script output: active branch, open PRs count, failing CI runs, top 3 blocker gaps, current wave, last /compact timestamp (if logged).
 
-### Step 2 — Read digest sources
+### Step 2 — Read digest sources (CONTEXT-AWARE — minimize path-trigger rules)
 
-Nếu script không đủ context, đọc theo thứ tự:
+**Fix 2026-05-21 context bloat:** mỗi file read vào `documents/04-quality/gaps/**` HOẶC `documents/03-planning/**` HOẶC `documents/**` generic kích auto-load 10+ path-scoped rules (~150-240k bytes per session). Default = CSV/script queries thay vì narrative reads.
 
-1. `CLAUDE.md` (top 50 lines — rules, wave strategy, naming)
-2. `documents/03-planning/waves/` → file newest (current wave plan)
-3. `documents/04-quality/gaps/ROADMAP.md` (top 30 lines — current status snapshot)
-4. `documents/03-planning/MASTER-GAPS-FIX-PLAN.md` (if planning horizon needed)
+Default flow (skip file reads):
+1. **Wave / blockers / Phase 1 BETA P0:** đã có trong collect-state.sh output. Không cần read thêm.
+2. **Detail gap inspection:** `bash scripts/query-gaps.sh <GAP-prefix>` thay vì Read gap file
+3. **Recent waves:** `tail -3 .claude/skills/quality/wave-pack-planner/data/wave-history.jsonl | jq -r '.wave + " — " + .outcome'`
 
-KHÔNG đọc toàn bộ ROADMAP/plan — chỉ header + current section.
+Chỉ Read files khi user explicit ask OR script output không đủ cho current task:
+1. `CLAUDE.md` — auto-load mọi session, KHÔNG cần Read lại
+2. `documents/03-planning/waves/<specific-wave>.md` — chỉ khi cần plan detail (touches `documents/03-planning/waves/**` path-scoped rules)
+3. `documents/04-quality/gaps/ROADMAP.md` — **AVOID** (triggers ~10 gap-* rules); query CSV instead
+4. `documents/03-planning/MASTER-GAPS-FIX-PLAN.md` — chỉ khi cần multi-quarter horizon
+
+KHÔNG đọc toàn bộ ROADMAP/plan — chỉ header + current section khi unavoidable.
 
 ### Step 3 — Session-lock check (optional, `--no-lock` skips)
 

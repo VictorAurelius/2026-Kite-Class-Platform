@@ -81,16 +81,17 @@ if [ -f scripts/repo-status.sh ]; then
   fi
 fi
 
-# Current wave — parse ROADMAP.md "Next recommended wave" (fallback to mtime)
+# Current wave — primary: wave-history.jsonl tail (canonical per wave-pack-planner Rule 15).
+# Fix 2026-05-21 context bloat: skip ROADMAP read (was triggering 10+ path-scoped rules per
+# session start, ~150k bytes auto-loaded — see feedback_meta_context_optimization.md).
 CURRENT_WAVE=""
-ROADMAP="documents/04-quality/gaps/ROADMAP.md"
-if [ -f "$ROADMAP" ]; then
-  # Look for line like: "**Next recommended wave:** Wave 5 **GAP-047** document generation..."
-  CURRENT_WAVE="$(grep -m1 'Next recommended wave' "$ROADMAP" 2>/dev/null \
-    | sed -E 's/.*Next recommended wave[:\*]*\s*//; s/\*\*//g' \
-    | head -c 120 | xargs 2>/dev/null || echo '')"
+WAVE_HISTORY=".claude/skills/quality/wave-pack-planner/data/wave-history.jsonl"
+if [ -f "$WAVE_HISTORY" ] && command -v jq >/dev/null 2>&1; then
+  CURRENT_WAVE="$(tail -1 "$WAVE_HISTORY" 2>/dev/null \
+    | jq -r '"Wave \(.wave) — \(.outcome[0:80])"' 2>/dev/null \
+    | head -c 140 || echo '')"
 fi
-# Fallback: mtime newest (legacy behavior, labeled explicitly)
+# Fallback: mtime newest filename (legacy behavior, labeled explicitly)
 if [ -z "$CURRENT_WAVE" ] && [ -d documents/03-planning/waves ]; then
   CURRENT_WAVE="(mtime fallback) $(ls -t documents/03-planning/waves/*.md 2>/dev/null | head -1 \
     | xargs -I{} basename {} .md 2>/dev/null || echo '')"
@@ -118,22 +119,14 @@ if [ -d ".claude/worktrees" ]; then
     | wc -l | tr -d ' ')"
 fi
 
-# Blocker gaps — primary path: ROADMAP §GA Blockers table (human-curated priority order).
-# GAP-224: regex bumped to handle sub-IDs (GAP-222a/b/c); column-2 extraction skips
-# prose cross-refs (e.g. "BLOCKS GAP-006"); awk dedup preserves table order vs sort -u.
-BLOCKERS=""
-if [ -f "$ROADMAP" ]; then
-  BLOCKERS="$(awk '/GA Blockers remaining/,/Priority rule|Epics fully closed/' "$ROADMAP" 2>/dev/null \
-    | awk -F'|' 'NF>=4 {print $3}' \
-    | grep -oE 'GAP-[0-9]+[a-z]?' \
-    | awk '!seen[$0]++' \
-    | head -6 | tr '\n' ';' || echo '')"
-fi
-# Fallback: query gap-status.csv (canonical per gap-architecture-v2.md) — P0 + active.
-# CSV is faster + more reliable than grepping individual gap files (Phase 4 integration).
+# Blocker gaps — primary path: gap-status.csv (canonical per gap-architecture-v2.md).
+# Fix 2026-05-21 context bloat: switched from ROADMAP-primary to CSV-primary to eliminate
+# the ROADMAP file read at session start (was triggering ~10 gap-* path-scoped rules).
+# CSV is faster + more reliable + smaller trigger surface than awking ROADMAP table.
 GAP_CSV="documents/04-quality/gaps/gap-status.csv"
-if [ -z "$BLOCKERS" ] && [ -f "$GAP_CSV" ]; then
-  BLOCKERS="(csv) $(awk -F, '/^GAP-/ && $5=="P0" && ($4=="OPEN" || $4=="PARTIAL" || $4=="IN_PROGRESS") {print $1}' "$GAP_CSV" \
+BLOCKERS=""
+if [ -f "$GAP_CSV" ]; then
+  BLOCKERS="$(awk -F, '/^GAP-/ && $5=="P0" && ($4=="OPEN" || $4=="PARTIAL" || $4=="IN_PROGRESS") {print $1}' "$GAP_CSV" \
     | head -6 | tr '\n' ';' || echo '')"
 fi
 
@@ -474,8 +467,9 @@ Merges gần đây (3 ngày):
 $(echo "${RECENT_MERGES:-<none>}" | tr '§' '\n' | sed 's/^/  · /')
 
 Ghi chú:
-  · Wave + blockers primary: documents/04-quality/gaps/ROADMAP.md; CSV fallback per gap-architecture-v2.md
+  · Wave primary: wave-pack-planner/data/wave-history.jsonl (Rule 15 canonical); blockers primary: gap-status.csv (Phase 4 per gap-architecture-v2.md)
   · Phase 1 BETA P0 count: query gap-status.csv (canonical); per CLAUDE.md §CURRENT PHASE focus
+  · Context budget fix 2026-05-21: ROADMAP.md NO longer read at session start (saves ~150k bytes auto-loaded rules)
   · Mức repo qua scripts/repo-status.sh --json (4 yếu tố)
   · Lock dir: $LOCK_DIR (auto-purge sau 4h stale)
   · Các field cần gh — đảm bảo 'gh auth status' OK
