@@ -8,7 +8,19 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-20 — Wave 102.7.2 SHIPPED thesis V1 Content P0 + Wave 102.7.1 + Wave 102.7.0 META + Wave 102.6 + Wave 102.5 fix bundle + Wave 102.4 ≥95 A + Wave 102.3 + Wave 102.2 + Wave 102.1 + Wave 102 META + Wave 102 GAP-688)
+## 🎯 Current Status Snapshot (2026-05-21 — Wave 102.7.4 SHIPPED thesis V1 project-jargon scrub + Wave 102.7.3 Academic Integrity + Wave 102.7.2 Content + Wave 102.7.1 Structural + Wave 102.7.0 META + Wave 102.6 + Wave 102.5..1 + Wave 102 META + Wave 102 GAP-688)
+
+### 🎉 Wave 102.7.4 SHIPPED 2026-05-21 — Thesis V1 Project-jargon Scrub (32 hits → 0 across 3 chapters)
+
+**Consolidated single bucket (3-parallel rate-limited, salvage approach):** Coordinator finished project-jargon scrub Ch.2 (22→0) + Ch.3 (1→0) + Ch.4 (9→0) = **32/32 hits BETA/GA/Phase → 0** academic synonyms (giai đoạn thử nghiệm / giai đoạn vận hành chính thức / nhóm tenant thử nghiệm / Tenant Requests / APPROVE_TENANT_REQUEST enum + 14 context-specific patterns). thesis-v1.docx re-baked clean, **653 paragraphs preserved**. Closes action-2.md §4 line 38 inside missed ("giảng viên không nhận GAP ID/wave"). PR: #1677 consolidated (after rate-limited 3-bucket parallel from PR #1676 closed superseded). **Deferred Wave 102.7.5 (GAP-696 filed):** 8 items — Bucket A task A2 (Nhóm separator) + A3 (listing rewrite) + Bucket C Phụ lục A/B/C cleanup + ABC sort + figures folder + personal data lookup đề cương.
+
+---
+
+### 🎉 Wave 102.7.3 SHIPPED 2026-05-20 — Thesis V1 Academic Integrity P0 (citations + measurement methodology + RLS rubric)
+
+**3 buckets parallel ~2h:** Bucket A Ch.1 §1.3 vendor stats citation 8 blocks (F-A1-01..04 + P1-03) — page-num + URL+access-date evidence ([2] Magenest / [3] 6Wresearch / [4] VECITA / [5] MISA / [6] Mona / [7] Easy Edu / [8] DotB / [26] BeeClass); web-only sources use `[N] (truy cập DD/MM/YYYY)` (no fabricated page-nums). Bucket B Ch.4 §4.3.4 measurement methodology block (P2-01/02/09 + F-B4-01) — 3 KPI reframed Sơ bộ → Ước tính (Uptime per SLA) / Probe-endpoint sample (P95 latency) / Single audit (Lighthouse) + explicit tool/N/date/env caveat. Bucket C Ch.2 §2.2.3 Bảng 2.6 RLS scoring rubric (P2-03 + F-B1-01) — 1-5 scale + AWS SaaS Lens [27 tr.21] + Pothon [28] source anchor + author-defined rubric ownership + Pattern 4 per-trục rationale 3+5+4+5+4+5=26 self-consistent. **Audit handoff numbering correction:** Wave 102.7.0 audit said "Bảng 2.4 RLS" — actual is **Bảng 2.6** post Wave 102.7.2 restructure. thesis-v1.docx re-rendered single coordinator pipeline bake → **653 paragraphs** (Wave 102.7.2 631 → +22 net). PRs: #1663 plan + #1666 A + #1664 B + #1665 C + #1667 closure. LibreOffice headless unavailable — manual Word F9 pre-defense per Wave 102.6 Bucket D fallback. **14 P0 academic-integrity findings closed.** Follow-up GAP-691 filed for post-wave audit suite cadence ≤2026-05-23. Coordinator lesson: 3 agents over-created `audits/thesis/` subfolder + README; recovery via per-branch rebase + git mv to existing `persona-review/` category per CSV enum.
+
+---
 
 ### 🎉 Wave 102.7.2 SHIPPED 2026-05-20 — Thesis V1 Content P0 (Ch.2 rename + Ch.3 shared-flow + Ch.4 §4.2 reframe + cross-ref + math)
 
