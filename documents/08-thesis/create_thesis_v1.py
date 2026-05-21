@@ -1256,7 +1256,7 @@ def add_abstract_vi(doc):
     add_paragraph_text(doc,
         "Kết quả giai đoạn thử nghiệm tenant đạt các chỉ số chất lượng: Quality 90/110 B+, Security "
         "93/100 A, Performance 86/100 B+, UI 110.6/128 A — đáp ứng yêu cầu gate ≥80 của giai "
-        "đoạn beta. Đồ án đóng góp ba kết quả khoa học: (1) pattern RLS NULL force-fail cho "
+        "đoạn thử nghiệm. Đồ án đóng góp ba kết quả khoa học: (1) pattern RLS NULL force-fail cho "
         "multi-tenant SaaS giáo dục, (2) phân tích thực nghiệm thị trường edu SaaS Việt Nam "
         "với 4 hệ thống tham chiếu, (3) kiến trúc tham chiếu B2B multi-tenant áp dụng phương "
         "pháp luận Quality-Driven Development bốn trụ cột (TDD, DDD, PDCA, Lean).")
