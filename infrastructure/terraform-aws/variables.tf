@@ -26,9 +26,20 @@ variable "project_name" {
 }
 
 variable "domain_name" {
-  description = "Primary platform domain (used for ALB cert hint + Route53 if managed here)"
+  description = "Primary platform domain (used for ALB cert hint + Route53 if managed here). Per GAP-458 (Path C Free GitHub Student Pack 2026-05-09) + GAP-692 Phase 1 STALE mismatch fix (2026-05-21): default flipped from kiteclass.com to kitehub.me to match real apex domain. Multi-env override via terraform.tfvars OR -var flag."
   type        = string
-  default     = "kiteclass.com"
+  default     = "kitehub.me"
+}
+
+variable "aws_account_id" {
+  description = "AWS account ID per environment (Phase 1 BETA Singapore Free Tier per ADR-025). No default - MUST be explicit via terraform.tfvars OR -var flag to prevent cross-env contamination. Per GAP-692 Phase 1 env-reference.yaml integration (Wave 102.8 Bucket B 2026-05-21)."
+  type        = string
+}
+
+variable "secrets_prefix" {
+  description = "AWS Secrets Manager prefix per environment (default kitehub/production for backward compat with fetch-secrets.sh + production-env-config-registry.md scope). Override for test/dev envs via terraform.tfvars. Per GAP-692 Phase 1 env-reference.yaml integration (Wave 102.8 Bucket B 2026-05-21)."
+  type        = string
+  default     = "kitehub/production"
 }
 
 # --- VPC ---
