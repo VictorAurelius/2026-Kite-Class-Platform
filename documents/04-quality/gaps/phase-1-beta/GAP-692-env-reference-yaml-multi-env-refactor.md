@@ -1,10 +1,10 @@
 # GAP-692: env-reference.yaml multi-env refactor (docs + scripts + terraform hardcoded values)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (33% — Phase 1 tooling DONE; Phase 2 top-10 refactor + Phase 3 pre-commit hook defer Wave 103+)
 **Priority:** 🟠 P1 (META — force-multiplier per `meta-gap-priority.md` §3; eliminates Class 4 config-drift recurrence)
 **Domain:** DevOps + Meta
 **Detected:** 2026-05-21
-**Related PRs:** TBD
+**Related PRs:** Wave 102.8 Bucket B 2026-05-21 (Phase 1)
 **Related Docs:** Outside-in audit synthesis 2026-05-21; `.claude/rules/production-env-config-registry.md`; `.claude/rules/audit-to-gap-pipeline.md` §2.7
 
 ## Current State (verified 2026-05-21 via 3 parallel audit agents)
@@ -113,16 +113,16 @@ Pre-commit hook `.husky/check-hardcoded-env-values.sh`:
 
 ## Acceptance Criteria
 
-- [ ] Phase 1 — `env-reference.yaml` shipped với 10+ rows (prod/test/dev values)
-- [ ] Phase 1 — `render-env-vars.sh` + `check-unresolved-env-vars.sh` shipped + self-test PASS
-- [ ] Phase 1 — `.claude/rules/markdown-variable-reference.md` v1.0.0 with usage examples
-- [ ] Phase 1 — TF `var.domain_name` STALE mismatch fixed (`kiteclass.com` → `kitehub.me`) + `var.aws_account_id` + `var.secrets_prefix` added
-- [ ] Phase 1 — CI job `env-vars-render` validates 1 sample rendered doc identical
-- [ ] Phase 2 — Top 10 high-leverage files refactored với `{{var}}` syntax; render for prod = byte-identical to current
-- [ ] Phase 2 — 5,500+ S3/region/account/domain occurrences reduced ≥40% (target audit re-run shows count drop)
-- [ ] Phase 3 — Pre-commit hook `check-hardcoded-env-values.sh` shipped (WARN mode); grace 30 ngày
-- [ ] Phase 3 — Hook HARD STOP enabled post-grace; documented exemption trailer mechanism
-- [ ] Integration verified — `production-env-config-registry.md` v1.1.1 still applies (runtime YAML scope) + this gap covers broader scope (docs/scripts/terraform); no duplicate enforcement; cross-link added
+- [x] Phase 1 — `env-reference.yaml` shipped với 10+ rows (prod/test/dev values) — Wave 102.8 Bucket B 2026-05-21
+- [x] Phase 1 — `render-env-vars.sh` + `check-unresolved-env-vars.sh` shipped + self-test PASS — Wave 102.8 Bucket B 2026-05-21
+- [x] Phase 1 — `.claude/rules/markdown-variable-reference.md` v1.0.0 with usage examples — Wave 102.8 Bucket B 2026-05-21
+- [x] Phase 1 — TF `var.domain_name` STALE mismatch fixed (`kiteclass.com` → `kitehub.me`) + `var.aws_account_id` + `var.secrets_prefix` added — Wave 102.8 Bucket B 2026-05-21
+- [x] Phase 1 — CI job `env-vars-render` validates 1 sample rendered doc identical — Wave 102.8 Bucket B 2026-05-21
+- [ ] Phase 2 — Top 10 high-leverage files refactored với `{{var}}` syntax; render for prod = byte-identical to current — defer Wave 103+ (per `gap-done-discipline.md` §3 PARTIAL exit ramp)
+- [ ] Phase 2 — 5,500+ S3/region/account/domain occurrences reduced ≥40% (target audit re-run shows count drop) — defer Wave 103+
+- [ ] Phase 3 — Pre-commit hook `check-hardcoded-env-values.sh` shipped (WARN mode); grace 30 ngày — defer Wave 103+
+- [ ] Phase 3 — Hook HARD STOP enabled post-grace; documented exemption trailer mechanism — defer Wave 103+
+- [x] Integration verified — `production-env-config-registry.md` v1.1.1 still applies (runtime YAML scope) + this gap covers broader scope (docs/scripts/terraform); no duplicate enforcement; cross-link added (markdown-variable-reference.md §8) — Wave 102.8 Bucket B 2026-05-21
 
 ## Related
 
@@ -139,4 +139,16 @@ Pre-commit hook `.husky/check-hardcoded-env-values.sh`:
 
 ## Log
 
-- **2026-05-21** — Gap filed from outside-in audit synthesis (Agents A + B + C). Existing `production-env-config-registry.md` v1.1.1 covers application*.yml runtime scope (17/45 candidates indexed per rule §2.1 audit); this gap extends scope to docs/scripts/terraform hardcoded values (broader 95 files × ~5,500+ occurrences). Critical insight: Phase 1 ship BEFORE rebuild eliminates Class 4 config-drift recurrence permanently. Phase 2 refactor opportunistic parallel feature work. Phase 3 pre-commit hook = HARD STOP post-grace.
+- **2026-05-21 (Phase 1 DONE)** — Wave 102.8 Bucket B shipped Phase 1 tooling foundation. 6 deliverables landed:
+  1. `documents/02-architecture/env-reference.yaml` canonical schema (10 rows × 3 envs: production/test/dev)
+  2. `scripts/render-env-vars.sh` (Python+yaml-based, ~120 LOC, shellcheck-clean) — substitute `{{var_name}}` with values per env; escape `\{{...\}}` for literal pass-through
+  3. `scripts/check-unresolved-env-vars.sh` (~30 LOC, shellcheck-clean) — fail when rendered output contains unresolved `{{...}}` placeholder
+  4. `.claude/rules/markdown-variable-reference.md` v1.0.0 — codifies `{{var}}` syntax + when-to-use matrix + worked self-test + sister-rule cross-link với `production-env-config-registry.md` v1.1.1 + paired rules-index.csv row
+  5. `infrastructure/terraform-aws/variables.tf` — fixed STALE `var.domain_name = "kiteclass.com"` → `"kitehub.me"` (per GAP-458 Path C domain decision) + added `var.aws_account_id` (no default, force explicit) + `var.secrets_prefix` (default `"kitehub/production"` backward-compat). `terraform validate` PASS (with `TF_VAR_aws_account_id=906286017800`).
+  6. `.github/workflows/script-quality.yml` — new CI job `env-vars-render` validates roundtrip render (`_examples/env-reference-self-test.md` → byte-identical vs `_examples/env-reference-self-test-expected-production.md` control file) + check-unresolved exit 0.
+
+  Self-test PASS: render production output matches control byte-identical; check-unresolved exit 0; check-unresolved correctly FAILS on synthetic unresolved placeholder; terraform validate PASS; shellcheck PASS on both scripts; rules-index.csv `check-rules-index-csv.sh` PASS (75 rows); rule-frontmatter PASS (75/75); gap-status.csv `check-gap-status-csv.sh` PASS (518 rows).
+
+  Status flip OPEN 0% → PARTIAL 33% per `gap-done-discipline.md` §3 PARTIAL exit ramp. Phase 2 opportunistic refactor top 10 high-leverage files (~3 tuần parallel với feature work) + Phase 3 pre-commit hook forbid new hardcoded values (~1 tuần) defer Wave 103+. Phase 1 alone unlocks: (a) future env-clone / test-env spin-up via `bash scripts/render-env-vars.sh test ...` zero manual sweep; (b) GAP-693 AWS rebuild SOP can consume env-reference.yaml as canonical input.
+
+- **2026-05-21 (filed)** — Gap filed from outside-in audit synthesis (Agents A + B + C). Existing `production-env-config-registry.md` v1.1.1 covers application*.yml runtime scope (17/45 candidates indexed per rule §2.1 audit); this gap extends scope to docs/scripts/terraform hardcoded values (broader 95 files × ~5,500+ occurrences). Critical insight: Phase 1 ship BEFORE rebuild eliminates Class 4 config-drift recurrence permanently. Phase 2 refactor opportunistic parallel feature work. Phase 3 pre-commit hook = HARD STOP post-grace.

@@ -1,4 +1,4 @@
-name: Script Quality (ShellCheck + Ruff + Rule Frontmatter + Skill Conventions + README Freshness + Alert Runbook URL + Helm Lint + Gap Status CSV + Rule Staleness + Rule Count Ceiling)
+name: Script Quality (ShellCheck + Ruff + Rule Frontmatter + Skill Conventions + README Freshness + Alert Runbook URL + Helm Lint + Gap Status CSV + Rule Staleness + Rule Count Ceiling + Env Vars Render)
 
 # Closes GAP-194 — CI enforcement of script standard defined in
 # `.claude/skills/quality/script-review/SKILL.md` + `output-review-mandate.md` §5.5.
@@ -67,6 +67,10 @@ on:
       - 'scripts/check-docs-archival-stale.sh'
       - 'scripts/check-docs-folder-volume.sh'
       - 'scripts/check-docs-subfolder-maturity.sh'
+      - 'documents/02-architecture/env-reference.yaml'
+      - 'scripts/render-env-vars.sh'
+      - 'scripts/check-unresolved-env-vars.sh'
+      - '.claude/rules/_examples/env-reference-self-test*.md'
       - 'kitehub/**/*.java'
       - 'kiteclass/**/*.java'
 
@@ -610,6 +614,46 @@ jobs:
           # Existing 177 grandfathered subdirs surface as WARN — rule applies
           # prospectively per `rule-change-process.md` convention.
           bash scripts/check-docs-subfolder-maturity.sh --warn
+
+  env-vars-render:
+    name: Env-vars render roundtrip (env-reference.yaml + render-env-vars.sh)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python (for YAML parsing in render-env-vars.sh)
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install PyYAML
+        run: pip install PyYAML
+
+      - name: Render self-test fixture for production env
+        run: |
+          # Per `markdown-variable-reference.md` v1.0.0 §5.2 CI gate
+          # + GAP-692 Phase 1 (Wave 102.8 Bucket B 2026-05-21).
+          # Render must produce byte-identical output vs committed control file.
+          bash scripts/render-env-vars.sh production \
+            documents/02-architecture/env-reference.yaml \
+            .claude/rules/_examples/env-reference-self-test.md \
+            /tmp/env-reference-rendered.md
+
+      - name: Verify no unresolved {{var}} placeholders
+        run: |
+          # Per `markdown-variable-reference.md` v1.0.0 §5.1 tooling.
+          bash scripts/check-unresolved-env-vars.sh /tmp/env-reference-rendered.md
+
+      - name: Diff vs committed expected control file (byte-identical mandate)
+        run: |
+          # Per `markdown-variable-reference.md` v1.0.0 §7 self-test —
+          # ensure env-reference.yaml drift surfaces immediately.
+          # FAIL if render output differs from control; update control + re-commit if intentional.
+          diff -u .claude/rules/_examples/env-reference-self-test-expected-production.md /tmp/env-reference-rendered.md
 
   script-tests:
     name: Script tests (`scripts/tests/test-*.sh` fixture-based)

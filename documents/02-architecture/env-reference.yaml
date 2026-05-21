@@ -1,0 +1,90 @@
+# =============================================================================
+# Canonical env variable reference (multi-env)
+# =============================================================================
+#
+# Per .claude/rules/markdown-variable-reference.md v1.0.0
+# Source of truth for {{var_name}} substitution in docs/scripts/terraform.
+# Update this file when env-specific value changes; render scripts re-derive.
+#
+# Sister rule:
+#   .claude/rules/production-env-config-registry.md v1.1.1
+#   - Scope: runtime application*.yml + docker-compose env-var defaults
+#
+# This file scope: docs/scripts/terraform/markdown hardcoded values needing
+# parameterization for multi-env (production / test / dev).
+#
+# Per GAP-692 Phase 1 (Wave 102.8 Bucket B 2026-05-21):
+#   - Eliminates Class 4 config-drift recurrence (GAP-458 → GAP-459 pattern)
+#   - 5,500+ hardcoded occurrences targeted for Phase 2 opportunistic refactor
+#   - Phase 3 pre-commit hook forbid new hardcoded values
+#
+# Audit-to-gap pipeline mandate:
+#   .claude/rules/audit-to-gap-pipeline.md §2.7 Decision-Doc Code-Sync
+#
+# Usage:
+#   bash scripts/render-env-vars.sh production env-reference.yaml input.md output.md
+#   bash scripts/check-unresolved-env-vars.sh < rendered-output.md
+#
+# Escape literal {{...}} in source: use \{{var_name}}
+# =============================================================================
+
+variables:
+  aws_account_id:
+    description: AWS account ID per environment (Phase 1 BETA Singapore Free Tier per ADR-025)
+    production: "906286017800"
+    test: "906286017800"           # same account, different IAM role (until multi-account split Phase 2)
+    dev: "906286017800"
+
+  aws_region:
+    description: AWS region for Phase 1 BETA (pinned per ADR-025 + variables.tf validation)
+    production: "ap-southeast-1"
+    test: "ap-southeast-1"
+    dev: "ap-southeast-1"
+
+  domain_root:
+    description: Apex domain (Path C GitHub Student Pack per GAP-458; supersedes kiteclass.com STALE)
+    production: "kitehub.me"
+    test: "test.kitehub.me"         # future test-env subdomain
+    dev: "localhost"
+
+  support_email:
+    description: Support email from address (AWS SES verified per Wave 45 Bucket C)
+    production: "support@kitehub.me"
+    test: "test-support@kitehub.me"
+    dev: "support@kitehub.local"
+
+  db_name:
+    description: Postgres database name (RDS instance + Flyway target)
+    production: "kitehub"
+    test: "kitehub_test"
+    dev: "kitehub"
+
+  db_user:
+    description: Postgres database user (RDS master credential)
+    production: "kitehub_prod"
+    test: "kitehub_test"
+    dev: "kitehub"
+
+  secret_prefix:
+    description: AWS Secrets Manager prefix per environment (per fetch-secrets.sh convention)
+    production: "kitehub/production"
+    test: "kitehub/test"
+    dev: "kitehub/dev"
+
+  ecr_uri:
+    description: ECR registry URI for Docker image push/pull
+    production: "906286017800.dkr.ecr.ap-southeast-1.amazonaws.com"
+    test: "906286017800.dkr.ecr.ap-southeast-1.amazonaws.com"
+    dev: ""                         # local docker-compose builds, no ECR
+
+  iam_deploy_role:
+    description: OIDC deploy IAM role ARN (per terraform-apply.yml + deploy-production.yml)
+    production: "arn:aws:iam::906286017800:role/kitehub-deploy-role"
+    test: "arn:aws:iam::906286017800:role/kitehub-deploy-role-test"
+    dev: ""                         # local terraform uses admin key (one-time bootstrap per release-deploy-standard.md §9)
+
+  cloudtrail_name:
+    description: CloudTrail trail name (per aws-observability-first.md mandate)
+    production: "kitehub-main"
+    test: "kitehub-main-test"
+    dev: ""                         # no CloudTrail in dev
