@@ -58,7 +58,7 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 
 ### 2.1.2 Yêu cầu phi chức năng
 
-Đồ án phân loại các yêu cầu phi chức năng (NFR) theo chuẩn ISO/IEC 25010:2011 *Software Product Quality Model* [25] — mô hình chất lượng phần mềm bao gồm 8 đặc trưng: Functional Suitability, Performance Efficiency, Compatibility, Usability, Reliability, Security, Maintainability, và Portability. Bảng 2.1 ánh xạ 6 hạng mục NFR được đồ án này tập trung trình bày sang các đặc trưng tương ứng theo ISO/IEC 25010.
+Đồ án phân loại các yêu cầu phi chức năng (NFR) theo chuẩn ISO/IEC 25010:2011 *Software Product Quality Model* [24] — mô hình chất lượng phần mềm bao gồm 8 đặc trưng: Functional Suitability, Performance Efficiency, Compatibility, Usability, Reliability, Security, Maintainability, và Portability. Bảng 2.1 ánh xạ 6 hạng mục NFR được đồ án này tập trung trình bày sang các đặc trưng tương ứng theo ISO/IEC 25010.
 
 **Bảng 2.1.** Ánh xạ NFR của Kite Platform sang ISO/IEC 25010:2011.
 
@@ -83,7 +83,7 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 
 Khi quy mô tiến tới 50-200 tenant trong giai đoạn vận hành chính thức, hệ thống cần đánh giá lại khi connection pool đạt ngưỡng của instance cơ sở dữ liệu (~150 kết nối hoạt động).
 
-**Availability.** Mục tiêu uptime của giai đoạn thử nghiệm là **99.5%** (tương đương khoảng 3,6 giờ downtime/tháng có thể chấp nhận), theo SLA mặc định của AWS cho instance EC2 và RDS đơn vùng [26]. Mục tiêu này được duy trì thông qua:
+**Availability.** Mục tiêu uptime của giai đoạn thử nghiệm là **99.5%** (tương đương khoảng 3,6 giờ downtime/tháng có thể chấp nhận), theo SLA mặc định của AWS cho instance EC2 và RDS đơn vùng [25]. Mục tiêu này được duy trì thông qua:
 
 - Triển khai trên một vùng AWS duy nhất `ap-southeast-1` (Singapore) phù hợp ràng buộc kinh tế giai đoạn đầu
 - Health check `/actuator/health` cho từng service + ALB health probe
@@ -92,7 +92,7 @@ Khi quy mô tiến tới 50-200 tenant trong giai đoạn vận hành chính th�
 
 Khi chuyển sang triển khai EKS multi-AZ với read replica ở giai đoạn vận hành chính thức, mục tiêu sẽ được nâng lên **99.9%**. Việc theo dõi uptime thực tế qua Statuspage được lập kế hoạch cho giai đoạn vận hành chính thức.
 
-**Security.** Đồ án lấy chuẩn OWASP Top 10 (2021) [20] làm baseline an toàn ứng dụng web. Theo định nghĩa của OWASP Foundation [20, tr.8]: *"Broken Access Control moved up from the fifth position to the category with the most serious web application security risk; the contributed data indicates that on average, 3.81% of applications tested had one or more Common Weakness Enumerations (CWEs) with more than 318k occurrences of CWEs in this risk category."* Đồ án đồng thời tuân thủ pháp luật Việt Nam — Luật Bảo vệ Dữ liệu Cá nhân số 49/2023/QH15 [9] và Luật An ninh mạng số 24/2018/QH14 [10].
+**Security.** Đồ án lấy chuẩn OWASP Top 10 (2021) [19] làm baseline an toàn ứng dụng web. Theo định nghĩa của OWASP Foundation [19, tr.8]: *"Broken Access Control moved up from the fifth position to the category with the most serious web application security risk; the contributed data indicates that on average, 3.81% of applications tested had one or more Common Weakness Enumerations (CWEs) with more than 318k occurrences of CWEs in this risk category."* Đồ án đồng thời tuân thủ pháp luật Việt Nam — Luật Bảo vệ Dữ liệu Cá nhân số 49/2023/QH15 [9] và Luật An ninh mạng số 24/2018/QH14 [10].
 
 **Bảng 2.2.** Ánh xạ OWASP Top 10 (2021) lên các biện pháp triển khai.
 
@@ -115,7 +115,7 @@ Tuân thủ pháp lý phía Việt Nam ở giai đoạn thử nghiệm:
 - Luật An ninh mạng 2018 (Luật số 24/2018/QH14) + Nghị định 53/2022/NĐ-CP — RDS chốt vùng `ap-southeast-1` để giảm thiểu rủi ro vận chuyển dữ liệu qua biên giới
 - Trước khi mở rộng sang phạm vi K-12 ở giai đoạn vận hành chính thức: DPO engagement, đánh giá tác động bảo vệ dữ liệu (DPIA), và rà soát pháp lý chuyên sâu cần được hoàn tất
 
-**Scalability.** Mô hình mở rộng đa tenant dạng **single-bucket + RLS** (Pool model theo AWS SaaS Lens [27] và phân tích chi tiết của Pothon [28] — xem §2.2.3):
+**Scalability.** Mô hình mở rộng đa tenant dạng **single-bucket + RLS** (Pool model theo AWS SaaS Lens [26] và phân tích chi tiết của Pothon [27] — xem §2.2.3):
 
 - Giai đoạn thử nghiệm: 10-50 tenant × 50-500 học sinh/tenant ≈ 5k-25k người dùng
 - Giai đoạn vận hành chính thức: 50-200 tenant × 100-1000 học sinh/tenant ≈ 50k-200k người dùng thì mở rộng theo chiều dọc instance RDS
@@ -184,11 +184,11 @@ Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: em chọn m�
 
 ## 2.2 Thiết kế kiến trúc tổng thể
 
-Đồ án áp dụng C4 model (Context / Container / Component / Code) của Simon Brown — industry-standard cho cloud-native microservices architecture documentation, đã được sử dụng tại các SaaS provider lớn (Spotify, GitHub, Stripe). C4 model phù hợp hơn UML class diagram truyền thống cho hệ thống multi-tenant phân tán vì tập trung vào ranh giới container/component thay vì class-level details. Đồ án KẾT HỢP C4 với UML/ERD truyền thống (Booch et al. [30]) để đáp ứng cả tiêu chí kiến trúc hiện đại lẫn yêu cầu mô tả của khung-chuẩn đào tạo UTC: §2.2.1 và §2.2.2 trình bày C4 Level 1 và Level 2; §2.2.3 trình bày quyết định pattern đa tenant; §2.2.4 trình bày phòng thủ chiều sâu cô lập cơ sở dữ liệu; §2.2.5 trình bày quy trình xác thực với truyền ngữ cảnh tenant.
+Đồ án áp dụng C4 model (Context / Container / Component / Code) của Simon Brown — industry-standard cho cloud-native microservices architecture documentation, đã được sử dụng tại các SaaS provider lớn (Spotify, GitHub, Stripe). C4 model phù hợp hơn UML class diagram truyền thống cho hệ thống multi-tenant phân tán vì tập trung vào ranh giới container/component thay vì class-level details. Đồ án KẾT HỢP C4 với UML/ERD truyền thống (Booch et al. [29]) để đáp ứng cả tiêu chí kiến trúc hiện đại lẫn yêu cầu mô tả của khung-chuẩn đào tạo UTC: §2.2.1 và §2.2.2 trình bày C4 Level 1 và Level 2; §2.2.3 trình bày quyết định pattern đa tenant; §2.2.4 trình bày phòng thủ chiều sâu cô lập cơ sở dữ liệu; §2.2.5 trình bày quy trình xác thực với truyền ngữ cảnh tenant.
 
 ### 2.2.1 Sơ đồ ngữ cảnh — C4 Level 1
 
-Mô hình C4 (Context / Container / Component / Code) của Brown [29] là framework chuẩn để mô tả kiến trúc phần mềm ở 4 mức độ chi tiết tăng dần. Đồ án sử dụng Level 1 (System Context) và Level 2 (Container) để trình bày Kite Platform; Level 3 và Level 4 dành cho phần triển khai ở Chương 3.
+Mô hình C4 (Context / Container / Component / Code) của Brown [28] là framework chuẩn để mô tả kiến trúc phần mềm ở 4 mức độ chi tiết tăng dần. Đồ án sử dụng Level 1 (System Context) và Level 2 (Container) để trình bày Kite Platform; Level 3 và Level 4 dành cho phần triển khai ở Chương 3.
 
 Kite Platform tương tác với 8 nhóm actor (người dùng và quản trị) và 6 hệ thống bên ngoài. Hình 2.1 biểu diễn ngữ cảnh hệ thống ở mức cao nhất.
 
@@ -330,7 +330,7 @@ Prefix `kite-` (thay vì `kitehub-` hay `kiteclass-`) phản ánh bản chất d
 
 ### 2.2.3 Quyết định pattern đa tenant — single-bucket + RLS
 
-Quyết định kiến trúc trọng tâm của đồ án là chọn mô hình cô lập đa tenant. Em đã đánh giá 6 pattern khác nhau trên 6 trục tiêu chí và lựa chọn **Shared Database + cột `tenant_id` UUID + PostgreSQL Row-Level Security (RLS)** — tương ứng "Pool" model theo AWS Well-Architected SaaS Lens [27, tr.21] (đối lập với "Silo" per-tenant DB và "Bridge" per-tenant schema). AWS định nghĩa [27, tr.21]: *"Pool isolation enables tenants to share infrastructure but rely on logical mechanisms (such as row-level security policies in databases) to ensure data isolation between tenants; this model often yields the lowest operational cost but requires careful design of the isolation layer."*
+Quyết định kiến trúc trọng tâm của đồ án là chọn mô hình cô lập đa tenant. Em đã đánh giá 6 pattern khác nhau trên 6 trục tiêu chí và lựa chọn **Shared Database + cột `tenant_id` UUID + PostgreSQL Row-Level Security (RLS)** — tương ứng "Pool" model theo AWS Well-Architected SaaS Lens [26, tr.21] (đối lập với "Silo" per-tenant DB và "Bridge" per-tenant schema). AWS định nghĩa [26, tr.21]: *"Pool isolation enables tenants to share infrastructure but rely on logical mechanisms (such as row-level security policies in databases) to ensure data isolation between tenants; this model often yields the lowest operational cost but requires careful design of the isolation layer."*
 
 **Bảng 2.5.** Sáu pattern đa tenant và lý do chọn/loại.
 
@@ -343,7 +343,7 @@ Quyết định kiến trúc trọng tâm của đồ án là chọn mô hình c
 | P5 Hybrid (Pool mặc định + Silo cho khách doanh nghiệp) | Sẽ phát triển khi mở rộng K-12 doanh nghiệp ở giai đoạn vận hành chính thức và có yêu cầu cụ thể về cô lập vật lý từ khách hàng |
 | P6 Serverless (Aurora Serverless v2 / DynamoDB) | Aurora Serverless v2 chi phí tối thiểu ~$45/tháng vượt Free Tier; DynamoDB không phù hợp với dữ liệu quan hệ giáo dục (Student/Class/Grade/Attendance JOIN-heavy) |
 
-**Phương pháp chấm điểm.** Mỗi pattern được đánh giá trên thang **1-5** ở từng trục (1 = không phù hợp / 5 = phù hợp nhất với phạm vi giai đoạn thử nghiệm SMB của đồ án). Tổng điểm tối đa 30 (6 trục × 5 điểm). Rubric này **do tác giả tự thiết kế** cho ngữ cảnh trung tâm dạy thêm SMB giai đoạn thử nghiệm của Kite Platform — tham khảo phương pháp luận đánh giá Pool/Bridge/Silo của AWS Well-Architected SaaS Lens [27, tr.21] và pattern comparison của Pothon [28], nhưng các trọng số trục cụ thể (chi phí ưu tiên cao do ràng buộc Free Tier, độ phức tạp vận hành ưu tiên cao do mô hình solo-dev) phản ánh ràng buộc kinh tế / nhân lực cụ thể của đồ án.
+**Phương pháp chấm điểm.** Mỗi pattern được đánh giá trên thang **1-5** ở từng trục (1 = không phù hợp / 5 = phù hợp nhất với phạm vi giai đoạn thử nghiệm SMB của đồ án). Tổng điểm tối đa 30 (6 trục × 5 điểm). Rubric này **do tác giả tự thiết kế** cho ngữ cảnh trung tâm dạy thêm SMB giai đoạn thử nghiệm của Kite Platform — tham khảo phương pháp luận đánh giá Pool/Bridge/Silo của AWS Well-Architected SaaS Lens [26, tr.21] và pattern comparison của Pothon [27], nhưng các trọng số trục cụ thể (chi phí ưu tiên cao do ràng buộc Free Tier, độ phức tạp vận hành ưu tiên cao do mô hình solo-dev) phản ánh ràng buộc kinh tế / nhân lực cụ thể của đồ án.
 
 *Tiêu chí chấm điểm 1-5 cho từng trục:*
 - **Độ mạnh cô lập:** 5 = enforce ở tầng cơ sở dữ liệu (vật lý hoặc chính sách RLS) / 3 = enforce ở tầng ứng dụng (qua bộ lọc trong code) / 1 = chỉ phụ thuộc kỷ luật code, không có cơ chế chặn ở DB.
@@ -489,7 +489,7 @@ Một nguyên tắc thiết kế quan trọng được áp dụng: service KHÔN
 
 ## 2.3 Thiết kế chi tiết
 
-Phần này trình bày các sơ đồ thiết kế chi tiết theo ký pháp UML (Booch et al. [30]) bổ sung cho C4 model ở §2.2, cùng thiết kế cơ sở dữ liệu chi tiết và mô hình SaaS. §2.3.1 và §2.3.2 trình bày class diagram và ERD cho miền nghiệp vụ; §2.3.3 trình bày sequence diagram luồng cấp phát tenant; §2.3.4 trình bày máy trạng thái vòng đời tenant; §2.3.5 tổng kết phân rã service; §2.3.6 trình bày thiết kế cơ sở dữ liệu chi tiết; §2.3.7 trình bày mô hình SaaS (gói dịch vụ, thanh toán).
+Phần này trình bày các sơ đồ thiết kế chi tiết theo ký pháp UML (Booch et al. [29]) bổ sung cho C4 model ở §2.2, cùng thiết kế cơ sở dữ liệu chi tiết và mô hình SaaS. §2.3.1 và §2.3.2 trình bày class diagram và ERD cho miền nghiệp vụ; §2.3.3 trình bày sequence diagram luồng cấp phát tenant; §2.3.4 trình bày máy trạng thái vòng đời tenant; §2.3.5 tổng kết phân rã service; §2.3.6 trình bày thiết kế cơ sở dữ liệu chi tiết; §2.3.7 trình bày mô hình SaaS (gói dịch vụ, thanh toán).
 
 ### 2.3.1 Class Diagram — Core Domain
 
@@ -654,7 +654,7 @@ Diễn giải các bước chuyển trạng thái: PENDING → TRIAL khi quản 
 
 ### 2.3.5 Phân rã service — 6 service KiteHub + 1 KiteClass core
 
-Danh mục service được tổng hợp theo mô hình Backstage [22] (mỗi service đóng vai một component có metadata + ownership + dependency).
+Danh mục service được tổng hợp theo mô hình Backstage [21] (mỗi service đóng vai một component có metadata + ownership + dependency).
 
 **Bảng 2.7.** Danh mục service của Kite Platform.
 
