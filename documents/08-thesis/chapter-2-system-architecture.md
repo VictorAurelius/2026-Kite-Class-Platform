@@ -24,7 +24,7 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 **Nhóm 2 — Đăng ký dịch vụ & thanh toán (KiteHub `kitehub-subscription` + `kitehub-admin`):**
 
 - Chủ trung tâm chọn gói dịch vụ (FREE / STARTER / PRO / PRO_PLUS) — ví dụ STARTER khoảng `500.000đ/tháng` cho 100 học sinh
-- Thanh toán qua VietQR là phương thức mặc định cho giai đoạn beta thủ công; tích hợp MoMo/VNPay roadmap giai đoạn GA
+- Thanh toán qua VietQR là phương thức mặc định cho giai đoạn thử nghiệm thủ công; tích hợp MoMo/VNPay theo lộ trình giai đoạn vận hành chính thức
 - Gia hạn hằng tháng với thời gian ân hạn 3 ngày khi thanh toán thất bại; tenant SUSPENDED không đăng nhập được nhưng giữ dữ liệu 7 ngày
 - Quản trị nền tảng có dashboard `/admin/v1/revenue` để xem doanh thu, MRR, tỷ lệ churn
 
@@ -41,7 +41,7 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 - **Điểm danh:** GVCN điểm danh từng `attendance_period` (mỗi buổi học), trạng thái Có/Vắng/Nghỉ phép
 - **Chấm điểm:** Nhập điểm `grades` cho `assignments` / `subject_grades`, xuất bảng điểm theo `grading_scales` (thang 10); báo cáo cuối kỳ HK1/HK2/HK_Hè
 - **Thanh toán theo tenant:** Chủ trung tâm phát hành hóa đơn `invoices` cho phụ huynh (ví dụ `Học phí tháng 5/2026 — 1.500.000đ`), theo dõi chuyển khoản/tiền mặt, xuất hóa đơn điện tử VAT tích hợp với MISA MeInvoice
-- **Thông báo:** Gửi thông báo qua email formal cho phụ huynh khi có điểm mới, sự cố, nhắc hóa đơn; tích hợp Zalo OA mở rộng giai đoạn GA
+- **Thông báo:** Gửi thông báo qua email formal cho phụ huynh khi có điểm mới, sự cố, nhắc hóa đơn; tích hợp Zalo OA mở rộng giai đoạn vận hành chính thức
 
 **Nhóm 5 — Tuân thủ & nhật ký kiểm toán (cross-service):**
 
@@ -69,9 +69,9 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 | Security | Security (Confidentiality, Integrity, Non-repudiation, Authenticity) |
 | Scalability | Performance Efficiency (Capacity) + Maintainability (Scalability sub-aspect) |
 | Maintainability | Maintainability (Modularity, Reusability, Modifiability, Testability) |
-| Cost | (Bổ sung ngoài ISO 25010, ràng buộc kinh tế của giai đoạn beta) |
+| Cost | (Bổ sung ngoài ISO 25010, ràng buộc kinh tế của giai đoạn thử nghiệm) |
 
-**Performance.** Tác giả đặt mục tiêu hiệu năng cho giai đoạn beta như sau:
+**Performance.** Tác giả đặt mục tiêu hiệu năng cho giai đoạn thử nghiệm như sau:
 
 | Chỉ số | Mục tiêu | Phương pháp đo |
 |---|---|---|
@@ -81,16 +81,16 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 | Độ trễ truy vấn cơ sở dữ liệu P95 | < 100ms | `pg_stat_statements` |
 | Số người dùng đồng thời trên mỗi tenant | ~50 hoạt động | Kịch bản tải |
 
-Khi quy mô tiến tới 50-200 tenant trong giai đoạn GA, hệ thống cần đánh giá lại khi connection pool đạt ngưỡng của instance cơ sở dữ liệu (~150 kết nối hoạt động).
+Khi quy mô tiến tới 50-200 tenant trong giai đoạn vận hành chính thức, hệ thống cần đánh giá lại khi connection pool đạt ngưỡng của instance cơ sở dữ liệu (~150 kết nối hoạt động).
 
-**Availability.** Mục tiêu uptime của giai đoạn beta là **99.5%** (tương đương khoảng 3,6 giờ downtime/tháng có thể chấp nhận), theo SLA mặc định của AWS cho instance EC2 và RDS đơn vùng [26]. Mục tiêu này được duy trì thông qua:
+**Availability.** Mục tiêu uptime của giai đoạn thử nghiệm là **99.5%** (tương đương khoảng 3,6 giờ downtime/tháng có thể chấp nhận), theo SLA mặc định của AWS cho instance EC2 và RDS đơn vùng [26]. Mục tiêu này được duy trì thông qua:
 
 - Triển khai trên một vùng AWS duy nhất `ap-southeast-1` (Singapore) phù hợp ràng buộc kinh tế giai đoạn đầu
 - Health check `/actuator/health` cho từng service + ALB health probe
 - Khai báo startupProbe trong Helm chart đảm bảo container không nhận traffic trước khi sẵn sàng
 - CloudWatch SNS alarm với 4 ngưỡng (CPU >80% / memory >85% / 5xx rate >1% / DB connection >120) gọi on-call
 
-Khi chuyển sang triển khai EKS multi-AZ với read replica ở giai đoạn GA, mục tiêu sẽ được nâng lên **99.9%**. Việc theo dõi uptime thực tế qua Statuspage được lập kế hoạch cho giai đoạn GA.
+Khi chuyển sang triển khai EKS multi-AZ với read replica ở giai đoạn vận hành chính thức, mục tiêu sẽ được nâng lên **99.9%**. Việc theo dõi uptime thực tế qua Statuspage được lập kế hoạch cho giai đoạn vận hành chính thức.
 
 **Security.** Đồ án lấy chuẩn OWASP Top 10 (2021) [20] làm baseline an toàn ứng dụng web. Theo định nghĩa của OWASP Foundation [20, tr.8]: *"Broken Access Control moved up from the fifth position to the category with the most serious web application security risk; the contributed data indicates that on average, 3.81% of applications tested had one or more Common Weakness Enumerations (CWEs) with more than 318k occurrences of CWEs in this risk category."* Đồ án đồng thời tuân thủ pháp luật Việt Nam — Luật Bảo vệ Dữ liệu Cá nhân số 49/2023/QH15 [9] và Luật An ninh mạng số 24/2018/QH14 [10].
 
@@ -109,21 +109,21 @@ Khi chuyển sang triển khai EKS multi-AZ với read replica ở giai đoạn 
 | A09 Security Logging Failures | Log dạng JSON có cấu trúc + CloudTrail multi-region được bật trước khi triển khai vận hành |
 | A10 Server-Side Request Forgery | WebClient với allowlist URL tường minh (MiniMax + VietQR + Ollama cho môi trường phát triển) |
 
-Tuân thủ pháp lý phía Việt Nam ở giai đoạn beta:
+Tuân thủ pháp lý phía Việt Nam ở giai đoạn thử nghiệm:
 
-- PDPL 2023 (Luật số 49/2023/QH15, có hiệu lực 2026-07-01) — giai đoạn beta không thuộc nhóm K-12 với một disclaimer phù hợp về việc rà soát pháp lý tiếp tục trước GA
+- PDPL 2023 (Luật số 49/2023/QH15, có hiệu lực 2026-07-01) — giai đoạn thử nghiệm không thuộc nhóm K-12 với một disclaimer phù hợp về việc rà soát pháp lý tiếp tục trước khi phát hành chính thức
 - Luật An ninh mạng 2018 (Luật số 24/2018/QH14) + Nghị định 53/2022/NĐ-CP — RDS chốt vùng `ap-southeast-1` để giảm thiểu rủi ro vận chuyển dữ liệu qua biên giới
-- Trước khi mở rộng sang phạm vi K-12 ở giai đoạn GA: DPO engagement, đánh giá tác động bảo vệ dữ liệu (DPIA), và rà soát pháp lý chuyên sâu cần được hoàn tất
+- Trước khi mở rộng sang phạm vi K-12 ở giai đoạn vận hành chính thức: DPO engagement, đánh giá tác động bảo vệ dữ liệu (DPIA), và rà soát pháp lý chuyên sâu cần được hoàn tất
 
 **Scalability.** Mô hình mở rộng đa tenant dạng **single-bucket + RLS** (Pool model theo AWS SaaS Lens [27] và phân tích chi tiết của Pothon [28] — xem §2.2.3):
 
-- Giai đoạn beta: 10-50 tenant × 50-500 học sinh/tenant ≈ 5k-25k người dùng
-- Giai đoạn GA: 50-200 tenant × 100-1000 học sinh/tenant ≈ 50k-200k người dùng thì mở rộng theo chiều dọc instance RDS
+- Giai đoạn thử nghiệm: 10-50 tenant × 50-500 học sinh/tenant ≈ 5k-25k người dùng
+- Giai đoạn vận hành chính thức: 50-200 tenant × 100-1000 học sinh/tenant ≈ 50k-200k người dùng thì mở rộng theo chiều dọc instance RDS
 - Khi mở rộng sang phạm vi K-12 doanh nghiệp 200-1000 tenant: đánh giá lại hướng Hybrid Path A (per-tenant DB) cho nhóm tenant doanh nghiệp
 
 Khả năng mở rộng theo chiều ngang qua sub-split:
 
-- Connection pool: HikariCP 10 kết nối/service × 6 service = 60 baseline; tối đa 150 với RDS GA (kitehub-platform là thư viện JAR dùng chung, không có pool kết nối riêng)
+- Connection pool: HikariCP 10 kết nối/service × 6 service = 60 baseline; tối đa 150 với RDS giai đoạn vận hành chính thức (kitehub-platform là thư viện JAR dùng chung, không có pool kết nối riêng)
 - Cache: Redis 7 chính sách LRU 256MB; làm nóng session + rate-limit counter
 - Bất đồng bộ: RabbitMQ event bus phân tải (`branding.deploy`, `email.queue`, `instance.purge.fanout`) thì consumer service mở rộng độc lập
 
@@ -134,23 +134,23 @@ Khả năng mở rộng theo chiều ngang qua sub-split:
 - API ổn định ngược: định phiên bản theo URL `/api/v1/...` thì breaking change đòi hỏi tăng major version
 - Quy ước Living docs: tài liệu nghiệp vụ 3-layer (rules.md / use-cases.md / api-contract.md) đi cùng PR với code change
 
-**Cost.** Giai đoạn beta vận hành dưới ràng buộc AWS Free Tier 12 tháng:
+**Cost.** Giai đoạn thử nghiệm vận hành dưới ràng buộc AWS Free Tier 12 tháng:
 
 - 2 EC2 `t3.micro` (KiteHub backend + KiteClass app), 1 RDS `db.t3.micro`, 5 GB S3
 - Cloudflare: gói miễn phí DNS + CDN + DDoS protection
 - Email: Resend gói miễn phí 3k thư/tháng cho môi trường phát triển; AWS SES vận hành ~$0.10/1000 thư
 - AI: Ollama tự host cho môi trường phát triển; MiniMax vận hành ~$0.001/yêu cầu
-- **Tổng chi phí ước tính giai đoạn beta: $15-30/tháng** (~360.000đ-720.000đ/tháng)
+- **Tổng chi phí ước tính giai đoạn thử nghiệm: $15-30/tháng** (~360.000đ-720.000đ/tháng)
 
-Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: em chọn mô hình single-bucket multi-tenant với RLS (Pattern 4) thay vì per-tenant DB (Pattern 1) — chênh lệch chi phí khoảng 20× và chi phí vận hành tăng tuyến tính theo số tenant, không phù hợp với phân khúc trung tâm SMB ở giai đoạn beta (chi tiết §2.2.3).
+Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: em chọn mô hình single-bucket multi-tenant với RLS (Pattern 4) thay vì per-tenant DB (Pattern 1) — chênh lệch chi phí khoảng 20× và chi phí vận hành tăng tuyến tính theo số tenant, không phù hợp với phân khúc trung tâm SMB ở giai đoạn thử nghiệm (chi tiết §2.2.3).
 
 ### 2.1.3 Bối cảnh thị trường mục tiêu
 
-**Mô hình B-learning Việt Nam.** Trung tâm dạy thêm tại Việt Nam vận hành theo mô hình học thêm sau giờ chính khóa và cuối tuần — phân biệt với trường công lập chính khóa. Thị trường mục tiêu của đồ án là các trung tâm vừa và nhỏ với 50-500 học sinh; phạm vi K-12 trường công có lớp tuân thủ pháp lý riêng (DPO, DPIA, kiểm tra an ninh) được lùi sang giai đoạn GA.
+**Mô hình B-learning Việt Nam.** Trung tâm dạy thêm tại Việt Nam vận hành theo mô hình học thêm sau giờ chính khóa và cuối tuần — phân biệt với trường công lập chính khóa. Thị trường mục tiêu của đồ án là các trung tâm vừa và nhỏ với 50-500 học sinh; phạm vi K-12 trường công có lớp tuân thủ pháp lý riêng (DPO, DPIA, kiểm tra an ninh) được lùi sang giai đoạn vận hành chính thức.
 
-Đặc điểm B-learning tại Việt Nam theo Báo cáo Kinh tế Số Việt Nam 2024 [4, tr.42]: *"Hơn 90% phụ huynh đô thị sử dụng Zalo group chat làm kênh chính trao đổi với trung tâm; email phục vụ tài liệu chính thức như hóa đơn và báo cáo."* Buổi học buổi tối và cuối tuần chiếm ưu thế (thứ 2-7 từ 17:00-21:00; thứ 7-CN 8:00-17:00) — bảng `class_schedule_slots` mặc định cấu hình 6 ngày/tuần. Niên khóa 9-5 (năm học `2025-2026` ứng tháng 9/2025 đến tháng 5/2026) gồm HK1 (9-12), HK2 (1-5), HK_Hè (6-8). Mẹ là đầu mối liên lạc chính cho việc học của con (~60%), bố dự phòng (35%), ông bà (5%). Khung Tết Nguyên Đán nghỉ 7-10 ngày cuối tháng 1 — đầu tháng 2 yêu cầu cron tính phí bỏ qua. Giai đoạn beta hỗ trợ email; tích hợp Zalo OA cho phụ huynh là roadmap GA.
+Đặc điểm B-learning tại Việt Nam theo Báo cáo Kinh tế Số Việt Nam 2024 [4, tr.42]: *"Hơn 90% phụ huynh đô thị sử dụng Zalo group chat làm kênh chính trao đổi với trung tâm; email phục vụ tài liệu chính thức như hóa đơn và báo cáo."* Buổi học buổi tối và cuối tuần chiếm ưu thế (thứ 2-7 từ 17:00-21:00; thứ 7-CN 8:00-17:00) — bảng `class_schedule_slots` mặc định cấu hình 6 ngày/tuần. Niên khóa 9-5 (năm học `2025-2026` ứng tháng 9/2025 đến tháng 5/2026) gồm HK1 (9-12), HK2 (1-5), HK_Hè (6-8). Mẹ là đầu mối liên lạc chính cho việc học của con (~60%), bố dự phòng (35%), ông bà (5%). Khung Tết Nguyên Đán nghỉ 7-10 ngày cuối tháng 1 — đầu tháng 2 yêu cầu cron tính phí bỏ qua. Giai đoạn thử nghiệm hỗ trợ email; tích hợp Zalo OA cho phụ huynh là lộ trình giai đoạn vận hành chính thức.
 
-**Phân tích persona giai đoạn beta.** Đồ án tập trung 4 persona chính. **P1 Giáo viên độc lập** (28 tuổi, 5-50 học sinh, dạy IELTS/Toán) — thay thế sổ tay giấy + Excel + Zalo thủ công, gói FREE đủ dùng. **P2 Chủ trung tâm** (35 tuổi, 20-100 học sinh, 2-5 giáo viên) — thay 3 công cụ rời rạc bằng platform tích hợp, gói STARTER `500.000đ/tháng`. **P3 Quản lý trung tâm** (24 tuổi, 100-500 học sinh, 5-15 giáo viên) — cần bulk import CSV ~300 dòng, phân quyền theo vai trò (manager không thấy mục thanh toán), audit log, gói PRO `1.500.000đ/tháng`. **Phụ huynh và học sinh** — phụ huynh nhận thông báo email cho tài liệu chính thức (giai đoạn beta) + Zalo group cho cập nhật thường xuyên (giai đoạn GA); học sinh truy cập mobile chiếm 85% phiên.
+**Phân tích persona giai đoạn thử nghiệm.** Đồ án tập trung 4 persona chính. **P1 Giáo viên độc lập** (28 tuổi, 5-50 học sinh, dạy IELTS/Toán) — thay thế sổ tay giấy + Excel + Zalo thủ công, gói FREE đủ dùng. **P2 Chủ trung tâm** (35 tuổi, 20-100 học sinh, 2-5 giáo viên) — thay 3 công cụ rời rạc bằng platform tích hợp, gói STARTER `500.000đ/tháng`. **P3 Quản lý trung tâm** (24 tuổi, 100-500 học sinh, 5-15 giáo viên) — cần bulk import CSV ~300 dòng, phân quyền theo vai trò (manager không thấy mục thanh toán), audit log, gói PRO `1.500.000đ/tháng`. **Phụ huynh và học sinh** — phụ huynh nhận thông báo email cho tài liệu chính thức (giai đoạn thử nghiệm) + Zalo group cho cập nhật thường xuyên (giai đoạn vận hành chính thức); học sinh truy cập mobile chiếm 85% phiên.
 
 **Đặc trưng thị trường giáo dục Việt Nam.** Bảng 2.3 tổng hợp đặc trưng thị trường ảnh hưởng tới quyết định kiến trúc — locale mặc định `vi-VN`, ma trận xưng hô email phù hợp vai trò ("Em chào chị Hằng" trang trọng cho Owner, "Chào em" thân mật cho giáo viên độc lập).
 
@@ -161,10 +161,10 @@ Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: em chọn m�
 | Tiền tệ | VND `1.500.000đ` (dấu chấm phân tách hàng nghìn) | Format VND bắt buộc trên mọi giao diện, hóa đơn, dashboard |
 | Định dạng ngày | `Thứ Hai, 14/05/2026` dạng dài; `14/05/2026` dạng ngắn | i18n qua `DateTimeFormatter` của Spring Boot |
 | Đầu mối phụ huynh | Mẹ chính (60%) + bố (35%) + ông bà (5%) | Bảng `parents` hỗ trợ nhiều liên hệ với cờ chính |
-| Thanh toán | Chuyển khoản Vietcombank/Techcombank/MB (~70%) + tiền mặt (~20%) + QR (~10%) | Giai đoạn beta VietQR; mở rộng VNPay/MoMo giai đoạn GA |
+| Thanh toán | Chuyển khoản Vietcombank/Techcombank/MB (~70%) + tiền mặt (~20%) + QR (~10%) | Giai đoạn thử nghiệm VietQR; mở rộng VNPay/MoMo giai đoạn vận hành chính thức |
 | Thuật ngữ chức danh | `Hiệu trưởng`, `Quản lý`, `GVCN` (giáo viên chủ nhiệm) | Phân loại vai trò theo quy ước Việt Nam |
 | Giờ làm việc | Thứ 2 — Thứ 7, 17:00-21:00 buổi tối | Schedule slot mặc định 6 ngày, đỉnh tải buổi tối |
-| Giao tiếp | Zalo group chat (~90% adoption) > SMS > email | Tích hợp Zalo OA cho phụ huynh là yêu cầu giai đoạn GA |
+| Giao tiếp | Zalo group chat (~90% adoption) > SMS > email | Tích hợp Zalo OA cho phụ huynh là yêu cầu giai đoạn vận hành chính thức |
 | Ngày nghỉ | Tết 7-10 ngày; 30/4-1/5; nghỉ hè tháng 6-8 | Cron tính phí + lịch lớp bỏ qua khung Tết |
 
 **Định vị cạnh tranh.** Tham khảo phân tích Chương 1, Kite Platform đối sánh với hệ thống tương tự trong nhóm SaaS giáo dục Việt Nam (Bảng 2.4).
@@ -173,12 +173,12 @@ Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: em chọn m�
 
 | Hệ thống tham khảo | Đối tượng chính | Mức phí | Điểm mạnh | Hướng tiếp cận của đồ án |
 |---|---|---|---|---|
-| MISA EMIS | Trường công + tư K-12 | Báo giá doanh nghiệp | Tích hợp Bộ Giáo dục | Tập trung trung tâm dạy thêm SMB, không cạnh tranh K-12 ở giai đoạn beta |
+| MISA EMIS | Trường công + tư K-12 | Báo giá doanh nghiệp | Tích hợp Bộ Giáo dục | Tập trung trung tâm dạy thêm SMB, không cạnh tranh K-12 ở giai đoạn thử nghiệm |
 | Mona Media | Chuỗi trung tâm Anh ngữ | `2-5 triệu/tháng` | Marketing + CRM | Multi-tenant SaaS từ gốc + AI Branding + STARTER `500.000đ/tháng` hợp lý |
-| Easy Edu | Trung tâm vừa và nhỏ | `1-3 triệu/tháng` | Giao diện đơn giản | Bổ sung AI Branding + Zalo-native (GA) + RLS phòng thủ chiều sâu |
+| Easy Edu | Trung tâm vừa và nhỏ | `1-3 triệu/tháng` | Giao diện đơn giản | Bổ sung AI Branding + Zalo-native (giai đoạn vận hành chính thức) + RLS phòng thủ chiều sâu |
 | DotB | Cả K-12 và trung tâm | Tùy biến | Toàn diện | Tập trung trung tâm dạy thêm theo chiều dọc, không cố cạnh tranh K-12 |
 
-Định vị tổng quát: nền tảng SaaS đa tenant nguyên bản cho trung tâm dạy thêm SMB Việt Nam, AI-powered branding, giao tiếp Zalo-native (GA), mức giá khởi điểm `500.000đ/tháng`.
+Định vị tổng quát: nền tảng SaaS đa tenant nguyên bản cho trung tâm dạy thêm SMB Việt Nam, AI-powered branding, giao tiếp Zalo-native (giai đoạn vận hành chính thức), mức giá khởi điểm `500.000đ/tháng`.
 
 ---
 
@@ -197,7 +197,7 @@ flowchart TB
     P1[P1 Giáo viên độc lập<br/>5-50 học sinh]
     P2[P2 Chủ trung tâm<br/>20-100 học sinh]
     P3[P3 Quản lý trung tâm<br/>100-500 học sinh]
-    P5[P5 Hiệu trưởng K-12<br/>phạm vi mở rộng GA]
+    P5[P5 Hiệu trưởng K-12<br/>phạm vi mở rộng giai đoạn vận hành chính thức]
     Vy[Người dùng tiềm năng<br/>truy cập landing]
     Admin[Quản trị nền tảng<br/>vận hành nội bộ]
     Student[Học sinh<br/>mobile chiếm 85%]
@@ -336,31 +336,31 @@ Quyết định kiến trúc trọng tâm của đồ án là chọn mô hình c
 
 | Pattern | Lý do chọn/loại |
 |---|---|
-| P1 Per-tenant database (1 RDS/tenant) | Chi phí ~$295/tháng cho 10 tenant so với ~$15 cho Pool model (chênh 20×); chi phí vận hành N× backup + N× migration + N× monitoring tăng tuyến tính theo số tenant, không phù hợp với phân khúc trung tâm SMB ở giai đoạn beta |
+| P1 Per-tenant database (1 RDS/tenant) | Chi phí ~$295/tháng cho 10 tenant so với ~$15 cho Pool model (chênh 20×); chi phí vận hành N× backup + N× migration + N× monitoring tăng tuyến tính theo số tenant, không phù hợp với phân khúc trung tâm SMB ở giai đoạn thử nghiệm |
 | P2 Per-tenant schema | Quản lý migration phức tạp (Flyway chạy N lần/schema); không tăng đáng kể độ cô lập so với Pool + RLS |
 | P3 Shared DB + chỉ `tenant_id` | An toàn yếu — bất kỳ lỗi ứng dụng (quên `WHERE`, edge case ORM query builder, raw SQL) đều dẫn tới leak ngầm |
 | **P4 Shared DB + `tenant_id` + RLS** chọn | An toàn mạnh do enforce ở tầng cơ sở dữ liệu; chi phí vận hành thấp (1 RDS, 1 chuỗi migration); chi phí ~$15/tháng; vẫn cho phép truy vấn xuyên tenant qua vai trò admin BYPASS RLS |
-| P5 Hybrid (Pool mặc định + Silo cho khách doanh nghiệp) | Sẽ phát triển khi mở rộng K-12 doanh nghiệp ở giai đoạn GA và có yêu cầu cụ thể về cô lập vật lý từ khách hàng |
+| P5 Hybrid (Pool mặc định + Silo cho khách doanh nghiệp) | Sẽ phát triển khi mở rộng K-12 doanh nghiệp ở giai đoạn vận hành chính thức và có yêu cầu cụ thể về cô lập vật lý từ khách hàng |
 | P6 Serverless (Aurora Serverless v2 / DynamoDB) | Aurora Serverless v2 chi phí tối thiểu ~$45/tháng vượt Free Tier; DynamoDB không phù hợp với dữ liệu quan hệ giáo dục (Student/Class/Grade/Attendance JOIN-heavy) |
 
-**Phương pháp chấm điểm.** Mỗi pattern được đánh giá trên thang **1-5** ở từng trục (1 = không phù hợp / 5 = phù hợp nhất với phạm vi giai đoạn beta SMB của đồ án). Tổng điểm tối đa 30 (6 trục × 5 điểm). Rubric này **do tác giả tự thiết kế** cho ngữ cảnh trung tâm dạy thêm SMB giai đoạn beta của Kite Platform — tham khảo phương pháp luận đánh giá Pool/Bridge/Silo của AWS Well-Architected SaaS Lens [27, tr.21] và pattern comparison của Pothon [28], nhưng các trọng số trục cụ thể (chi phí ưu tiên cao do ràng buộc Free Tier, độ phức tạp vận hành ưu tiên cao do mô hình solo-dev) phản ánh ràng buộc kinh tế / nhân lực cụ thể của đồ án.
+**Phương pháp chấm điểm.** Mỗi pattern được đánh giá trên thang **1-5** ở từng trục (1 = không phù hợp / 5 = phù hợp nhất với phạm vi giai đoạn thử nghiệm SMB của đồ án). Tổng điểm tối đa 30 (6 trục × 5 điểm). Rubric này **do tác giả tự thiết kế** cho ngữ cảnh trung tâm dạy thêm SMB giai đoạn thử nghiệm của Kite Platform — tham khảo phương pháp luận đánh giá Pool/Bridge/Silo của AWS Well-Architected SaaS Lens [27, tr.21] và pattern comparison của Pothon [28], nhưng các trọng số trục cụ thể (chi phí ưu tiên cao do ràng buộc Free Tier, độ phức tạp vận hành ưu tiên cao do mô hình solo-dev) phản ánh ràng buộc kinh tế / nhân lực cụ thể của đồ án.
 
 *Tiêu chí chấm điểm 1-5 cho từng trục:*
 - **Độ mạnh cô lập:** 5 = enforce ở tầng cơ sở dữ liệu (vật lý hoặc chính sách RLS) / 3 = enforce ở tầng ứng dụng (qua bộ lọc trong code) / 1 = chỉ phụ thuộc kỷ luật code, không có cơ chế chặn ở DB.
 - **Chi phí vận hành (5 = O(1)):** 5 = chi phí cố định không tăng theo số tenant (1 RDS chia sẻ + 1 chuỗi migration); 3 = tăng tuyến tính một phần (vd N schema cùng 1 RDS); 1 = tăng tuyến tính đầy đủ (N RDS + N migration + N monitoring).
 - **Khả năng truy vấn xuyên tenant:** 5 = single query không cần JOIN/UNION + không cần bypass cơ chế cô lập; 3 = cần N query union qua nhiều scope; 1 = không khả thi nếu không thay đổi kiến trúc.
-- **Phù hợp với phạm vi giai đoạn beta:** 5 = chi phí ≤$15/tháng cho ≤10 tenant đầu + độ phức tạp triển khai thấp; 3 = chi phí $50-200/tháng hoặc cần thêm 1-2 tuần triển khai; 1 = chi phí ≥$500/tháng hoặc đòi hỏi tái cấu trúc lớn.
+- **Phù hợp với phạm vi giai đoạn thử nghiệm:** 5 = chi phí ≤$15/tháng cho ≤10 tenant đầu + độ phức tạp triển khai thấp; 3 = chi phí $50-200/tháng hoặc cần thêm 1-2 tuần triển khai; 1 = chi phí ≥$500/tháng hoặc đòi hỏi tái cấu trúc lớn.
 - **Vị thế tuân thủ (PDPL + ISO27001):** 5 = cô lập vật lý đáp ứng mọi yêu cầu pháp lý nghiêm ngặt; 4 = cô lập logic mạnh + audit trail đầy đủ + có khả năng chứng minh trong kiểm toán; 2 = không có cơ chế chặn cứng, phụ thuộc kỷ luật ứng dụng.
 - **Chi phí chuyển đổi từ hiện trạng:** 5 = không cần thay đổi schema hiện tại, chỉ thêm chính sách RLS + cột `tenant_id`; 3 = cần refactor một phần (vd tách schema per tenant); 1 = cần migrate dữ liệu sang kiến trúc khác (vd N-database, serverless).
 
-**Bảng 2.6.** Ma trận so sánh 6 pattern trên 6 trục (Pattern 4 đạt tổng 26/30 cho giai đoạn beta).
+**Bảng 2.6.** Ma trận so sánh 6 pattern trên 6 trục (Pattern 4 đạt tổng 26/30 cho giai đoạn thử nghiệm).
 
 | Trục đánh giá | P1 Per-DB | P2 Per-schema | P3 ID only | **P4 RLS** | P5 Hybrid | P6 Serverless |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
 | Độ mạnh cô lập | 5 | 4 | 2 | **3** | 4 | 3 |
 | Chi phí vận hành (5 = O(1)) | 1 | 3 | 5 | **5** | 2 | 4 |
 | Khả năng truy vấn xuyên tenant | 2 | 4 | 5 | **4** | 3 | 3 |
-| Phù hợp với phạm vi giai đoạn beta | 1 | 3 | 4 | **5** | 1 | 2 |
+| Phù hợp với phạm vi giai đoạn thử nghiệm | 1 | 3 | 4 | **5** | 1 | 2 |
 | Vị thế tuân thủ (PDPL + ISO27001) | 5 | 3 | 2 | **4** | 5 | 4 |
 | Chi phí chuyển đổi từ hiện trạng | 1 | 3 | 5 | **5** | 3 | 2 |
 | **Tổng** | 15 | 20 | 23 | **26** | 18 | 18 |
@@ -369,11 +369,11 @@ Quyết định kiến trúc trọng tâm của đồ án là chọn mô hình c
 - **Độ mạnh cô lập = 3:** RLS enforce ở tầng cơ sở dữ liệu qua chính sách `USING + WITH CHECK` cùng cột `tenant_id UUID NOT NULL` và chế độ NULL force-fail (chi tiết §2.2.4). Điểm 3 (không phải 5) vì RLS là cô lập **logic** chứ không phải cô lập **vật lý** như Per-DB — vai trò siêu người dùng vẫn có thể BYPASS RLS, do đó cần thêm 4 lớp phòng thủ chiều sâu khác (xem §2.2.4) để đạt mức an toàn tương đương Per-DB.
 - **Chi phí vận hành = 5:** 1 instance RDS `db.t3.micro` chia sẻ ≈$15/tháng (Free Tier), không scale tuyến tính theo số tenant. 1 chuỗi Flyway migration áp dụng cho mọi tenant — không cần per-tenant DDL. Monitoring tập trung (1 dashboard CloudWatch cho 1 RDS) thay vì N dashboard.
 - **Khả năng truy vấn xuyên tenant = 4:** Vai trò `kitehub_admin` BYPASS RLS (qua `ALTER ROLE ... BYPASSRLS`), cho phép single query xuyên tenant phục vụ report toàn nền tảng và migration. Điểm 4 (không phải 5) vì cần ý thức rõ ràng khi viết code admin để không vô tình leak dữ liệu giữa tenant context — yêu cầu kỷ luật code review chặt chẽ.
-- **Phù hợp với phạm vi giai đoạn beta = 5:** Tổng chi phí hạ tầng ≤$15/tháng (RDS Free Tier 12 tháng đầu, ECS Fargate Spot, S3 dưới 5GB), phù hợp giai đoạn ≤10 tenant đầu của trung tâm SMB. Triển khai chỉ cần thêm cột `tenant_id` + 1 migration Flyway tạo chính sách RLS cho mỗi bảng — không cần tái cấu trúc kiến trúc.
-- **Vị thế tuân thủ (PDPL + ISO27001) = 4:** Đáp ứng yêu cầu cô lập logic mạnh của PDPL 2023 (Điều 19 — bảo vệ dữ liệu cá nhân) và ISO/IEC 27001:2022 (A.8.3 — quản lý quyền truy cập), kèm audit trail đầy đủ qua bảng `audit_logs` PDPL Art 11. Điểm 4 (không phải 5) vì cô lập logic, không phải vật lý — khách hàng doanh nghiệp yêu cầu cô lập vật lý ở giai đoạn GA sẽ cần chuyển sang Hybrid Path A (xem P5).
+- **Phù hợp với phạm vi giai đoạn thử nghiệm = 5:** Tổng chi phí hạ tầng ≤$15/tháng (RDS Free Tier 12 tháng đầu, ECS Fargate Spot, S3 dưới 5GB), phù hợp giai đoạn ≤10 tenant đầu của trung tâm SMB. Triển khai chỉ cần thêm cột `tenant_id` + 1 migration Flyway tạo chính sách RLS cho mỗi bảng — không cần tái cấu trúc kiến trúc.
+- **Vị thế tuân thủ (PDPL + ISO27001) = 4:** Đáp ứng yêu cầu cô lập logic mạnh của PDPL 2023 (Điều 19 — bảo vệ dữ liệu cá nhân) và ISO/IEC 27001:2022 (A.8.3 — quản lý quyền truy cập), kèm audit trail đầy đủ qua bảng `audit_logs` PDPL Art 11. Điểm 4 (không phải 5) vì cô lập logic, không phải vật lý — khách hàng doanh nghiệp yêu cầu cô lập vật lý ở giai đoạn vận hành chính thức sẽ cần chuyển sang Hybrid Path A (xem P5).
 - **Chi phí chuyển đổi từ hiện trạng = 5:** Hiện trạng đã có cột `tenant_id` ở mọi bảng domain (mô hình P3 ban đầu); chuyển sang P4 RLS chỉ cần thêm chính sách RLS + cấu hình `SET LOCAL app.current_tenant_id` ở tầng kết nối DB, không cần migrate dữ liệu hay refactor entity model.
 
-Pool model với RLS được chọn vì cân bằng giữa độ cô lập chấp nhận được (được tăng cường bởi chính sách NULL force-fail mô tả ở §2.2.4), chi phí vận hành thấp nhất, độ phù hợp với phạm vi giai đoạn beta, và lộ trình chuyển đổi sang Hybrid Path A khi mở rộng đến nhóm khách hàng doanh nghiệp ở giai đoạn GA.
+Pool model với RLS được chọn vì cân bằng giữa độ cô lập chấp nhận được (được tăng cường bởi chính sách NULL force-fail mô tả ở §2.2.4), chi phí vận hành thấp nhất, độ phù hợp với phạm vi giai đoạn thử nghiệm, và lộ trình chuyển đổi sang Hybrid Path A khi mở rộng đến nhóm khách hàng doanh nghiệp ở giai đoạn vận hành chính thức.
 
 ### 2.2.4 Phòng thủ chiều sâu — 5 lớp cô lập cơ sở dữ liệu
 
@@ -626,7 +626,7 @@ sequenceDiagram
     FE-->>U: Redirect /dashboard wizard 5 bước
 ```
 
-**Hình 2.7.** Sequence diagram — luồng cấp phát tenant beta.
+**Hình 2.7.** Sequence diagram — luồng cấp phát tenant thử nghiệm.
 
 Tuần tự cho thấy ranh giới giữa pha PENDING (chờ duyệt thủ công) và pha TRIAL (sau khi quản trị kích hoạt) — đây là điểm chuyển trạng thái quan trọng được tham chiếu lại tại Hình 2.8 §2.3.4 (máy trạng thái vòng đời tenant). Việc phát sự kiện fanout `branding.deploy.exchange` qua RabbitMQ song song với gửi email cho phép `kitehub-branding` dựng template mặc định trong khi chờ chủ trung tâm xác thực — giảm thời gian onboarding khi user click magic-link.
 
@@ -721,7 +721,7 @@ Các chỉ mục trên `subdomain`, `owner_id`, `status`, `tier`, và partial in
 
 Bảng `classes` được bật RLS với chính sách `tenant_isolation_classes` (xem mẫu SQL tại §2.2.4) — mọi truy vấn không có ngữ cảnh `app.current_tenant_id` hợp lệ sẽ trả về 0 row, ngăn chặn rò rỉ chéo tenant ngay tại tầng cơ sở dữ liệu.
 
-**Bảng `students` (kiteclass-core domain-plane).** Bảng `students` lưu hồ sơ học sinh đã đăng ký tại tenant. Bảng này có volume lớn nhất trong các bảng domain (mục tiêu 50-500 học sinh/tenant ở giai đoạn beta).
+**Bảng `students` (kiteclass-core domain-plane).** Bảng `students` lưu hồ sơ học sinh đã đăng ký tại tenant. Bảng này có volume lớn nhất trong các bảng domain (mục tiêu 50-500 học sinh/tenant ở giai đoạn thử nghiệm).
 
 **Bảng 2.10.** Schema chi tiết bảng `students` (microservice `kiteclass-core`).
 
@@ -741,7 +741,7 @@ Bảng `classes` được bật RLS với chính sách `tenant_isolation_classes
 | 12 | `created_at` | TIMESTAMP | Thời điểm tạo hồ sơ |
 | 13 | `updated_at` | TIMESTAMP | Thời điểm cập nhật gần nhất |
 
-Bảng `students` chứa thông tin cá nhân nhạy cảm và do đó phải tuân thủ PDPL 2023 Điều 11 [9] về quyền của chủ thể dữ liệu. Trong giai đoạn beta cho trung tâm dạy thêm SMB, các trường nhạy cảm cao (CMND/CCCD, mã định danh học sinh quốc gia) không được lưu trữ; khi mở rộng sang K-12 ở giai đoạn GA, các yêu cầu của DPO/DPIA sẽ bổ sung trường mã hoá riêng cho thông tin trẻ vị thành niên.
+Bảng `students` chứa thông tin cá nhân nhạy cảm và do đó phải tuân thủ PDPL 2023 Điều 11 [9] về quyền của chủ thể dữ liệu. Trong giai đoạn thử nghiệm cho trung tâm dạy thêm SMB, các trường nhạy cảm cao (CMND/CCCD, mã định danh học sinh quốc gia) không được lưu trữ; khi mở rộng sang K-12 ở giai đoạn vận hành chính thức, các yêu cầu của DPO/DPIA sẽ bổ sung trường mã hoá riêng cho thông tin trẻ vị thành niên.
 
 ### 2.3.7 Mô hình SaaS — gói dịch vụ + thanh toán
 
@@ -758,7 +758,7 @@ Bảng `students` chứa thông tin cá nhân nhạy cảm và do đó phải tu
 
 Chủ trung tâm nhấn magic-link, đặt mật khẩu và đăng nhập lần đầu sẽ thấy dashboard wizard 5 bước: xác nhận thông tin trung tâm, upload logo (hoặc sinh tự động), thêm 3 lớp đầu tiên, mời quản lý/giáo viên, thiết lập phương thức thanh toán.
 
-**Ma trận gói dịch vụ.** Đồ án thiết kế 4 gói dịch vụ (Bảng 2.11) — giai đoạn beta kiểm thử FREE + STARTER; PRO và PRO_PLUS kích hoạt giai đoạn GA.
+**Ma trận gói dịch vụ.** Đồ án thiết kế 4 gói dịch vụ (Bảng 2.11) — giai đoạn thử nghiệm kiểm thử FREE + STARTER; PRO và PRO_PLUS kích hoạt giai đoạn vận hành chính thức.
 
 **Bảng 2.11.** Bốn gói dịch vụ và các giới hạn theo gói.
 
@@ -771,6 +771,6 @@ Chủ trung tâm nhấn magic-link, đặt mật khẩu và đăng nhập lần 
 
 Việc enforce quota dùng bảng `tenant_quota` kết hợp bộ đếm Redis kiểm tra ở mỗi request. Khi vượt quota, hệ thống trả HTTP 429 cùng banner UI hướng dẫn nâng gói.
 
-**Thanh toán và hóa đơn.** Giai đoạn beta dùng VietQR thủ công: chủ trung tâm chuyển khoản theo nội dung VietQR và upload ảnh xác nhận, quản trị nền tảng đối soát bằng tay. Cách tiếp cận này khớp thói quen thanh toán phổ biến (bank transfer chiếm ~70% giao dịch giáo dục) và tránh phụ thuộc giấy phép trung gian thanh toán trong giai đoạn xác thực sản phẩm.
+**Thanh toán và hóa đơn.** Giai đoạn thử nghiệm dùng VietQR thủ công: chủ trung tâm chuyển khoản theo nội dung VietQR và upload ảnh xác nhận, quản trị nền tảng đối soát bằng tay. Cách tiếp cận này khớp thói quen thanh toán phổ biến (bank transfer chiếm ~70% giao dịch giáo dục) và tránh phụ thuộc giấy phép trung gian thanh toán trong giai đoạn xác thực sản phẩm.
 
-Roadmap giai đoạn GA: hóa đơn điện tử VAT tích hợp MISA MeInvoice theo Thông tư 78/2021/TT-BTC (thay vì tự xây engine); cron tính phí bỏ qua khung Tết; merchant integration với VNPay/MoMo qua hình thức đối tác (không yêu cầu giấy phép PSP); hỗ trợ tự thu cho tenant ACTIVE theo lựa chọn; hoàn tiền và tranh chấp dưới dạng SOP thủ công.
+Roadmap giai đoạn vận hành chính thức: hóa đơn điện tử VAT tích hợp MISA MeInvoice theo Thông tư 78/2021/TT-BTC (thay vì tự xây engine); cron tính phí bỏ qua khung Tết; merchant integration với VNPay/MoMo qua hình thức đối tác (không yêu cầu giấy phép PSP); hỗ trợ tự thu cho tenant ACTIVE theo lựa chọn; hoàn tiền và tranh chấp dưới dạng SOP thủ công.
