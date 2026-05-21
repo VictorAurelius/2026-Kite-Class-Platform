@@ -13,6 +13,7 @@
 
 stages:
   - smoke
+  - quality
 
 variables:
   # PATH extension cho fnm-managed node + user-local bins
@@ -57,3 +58,83 @@ smoke-test:
     - ls scripts/check-*.sh 2>&1 | head -10
     - echo ""
     - echo "✓ Smoke test PASS — runner pickup works + toolchain verified"
+
+# Script Quality — backup for .github/workflows/script-quality.yml
+# Activated 2026-05-21 sau GH Actions 0-fire incident (quota exhaustion).
+# Runs 20+ doc detectors consolidated into 1 job. Any fail → pipeline fails.
+# Reference .claude/rules/docs-only-pr-auto-merge.md §4 — GitLab GREEN
+# tương đương GitHub Actions SUCCESS cho docs-only merge gate.
+script-quality:
+  stage: quality
+  script:
+    - echo "=== Rule frontmatter ==="
+    - bash scripts/check-rule-frontmatter.sh --self-test
+    - bash scripts/check-rule-frontmatter.sh --all || (echo "WARN repo-wide rule frontmatter scan FAIL — non-blocking v1" && true)
+
+    - echo "=== Skill conventions ==="
+    - bash scripts/check-skill-conventions.sh --self-test
+    - bash scripts/check-skill-conventions.sh --all || (echo "WARN repo-wide skill conventions scan FAIL — non-blocking v1" && true)
+
+    - echo "=== README freshness (WARN mode) ==="
+    - bash scripts/check-readme-freshness.sh --self-test || true
+
+    - echo "=== Helm lint ==="
+    - bash scripts/check-helm-lint.sh
+
+    - echo "=== Gap status CSV ==="
+    - bash scripts/check-gap-status-csv.sh
+
+    - echo "=== Gap folder location ==="
+    - bash scripts/check-gap-folder-location.sh
+
+    - echo "=== Meta CSV indexes (Rules + ADRs) ==="
+    - bash scripts/check-rules-index-csv.sh
+    - bash scripts/check-adrs-index-csv.sh
+
+    - echo "=== Audits index CSV ==="
+    - bash scripts/check-audits-index-csv.sh
+
+    - echo "=== Rule staleness (WARN mode) ==="
+    - bash scripts/check-rule-staleness.sh || true
+
+    - echo "=== Rule count ceiling ==="
+    - bash scripts/check-rule-count-ceiling.sh
+
+    - echo "=== Wave plan completeness ==="
+    - bash scripts/check-wave-plan-completeness.sh
+
+    - echo "=== 3-layer doc completeness ==="
+    - bash scripts/check-3-layer-completeness.sh
+
+    - echo "=== Mermaid <br/> in sequence/state diagrams ==="
+    - bash scripts/check-mermaid-sequence-state-br.sh
+
+    - echo "=== Cross-layer contract drift ==="
+    - bash scripts/check-cross-layer-contract-drift.sh
+
+    - echo "=== Docs scaling detectors ==="
+    - bash scripts/check-docs-archival-stale.sh || true
+    - bash scripts/check-docs-folder-volume.sh || true
+    - bash scripts/check-docs-subfolder-maturity.sh
+
+    - echo "=== Env-vars render roundtrip ==="
+    - bash scripts/check-unresolved-env-vars.sh
+
+    - echo "=== Script tests (fixture-based) ==="
+    - if [ -d scripts/tests ]; then for t in scripts/tests/test-*.sh; do echo "--> $t"; bash "$t"; done; else echo "(no scripts/tests dir)"; fi
+
+    - echo "=== ShellCheck (changed *.sh in HEAD commit) ==="
+    - CHANGED_SH=$(git diff --name-only HEAD~1 HEAD -- '*.sh' 2>/dev/null || true)
+    - if [ -n "$CHANGED_SH" ]; then echo "$CHANGED_SH"; echo "$CHANGED_SH" | xargs shellcheck -S error; else echo "(no *.sh changed)"; fi
+
+    - echo "=== Ruff (changed *.py in HEAD commit) ==="
+    - CHANGED_PY=$(git diff --name-only HEAD~1 HEAD -- '*.py' 2>/dev/null || true)
+    - if [ -n "$CHANGED_PY" ]; then echo "$CHANGED_PY"; pip3 show ruff > /dev/null 2>&1 || pip3 install --user --quiet ruff==0.15.11; ruff check $CHANGED_PY; else echo "(no *.py changed)"; fi
+
+    - echo ""
+    - echo "✅ ALL SCRIPT-QUALITY CHECKS PASSED"
+  rules:
+    # Fire on MR + main branch push + feature/wave/chore/fix/docs/hotfix branches
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH =~ /^(feature|wave|chore|fix|docs|refactor|hotfix)\//
