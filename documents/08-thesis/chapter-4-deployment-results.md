@@ -17,7 +17,7 @@ KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast
 
 1. **Tốc độ triển khai và độ ổn định tài khoản** — quá trình đăng ký Oracle Cloud Always Free thường gặp tỷ lệ reject cao đối với người dùng tại Việt Nam, ảnh hưởng đến tiến độ triển khai trong khung thời gian đồ án có hạn.
 2. **Tính trưởng thành của hệ sinh thái** — AWS cung cấp ECR + Secrets Manager + SES + ALB + CloudFront tích hợp sẵn; Oracle Always Free thiếu managed Redis và managed RabbitMQ.
-3. **Tuân thủ pháp luật được quản lý theo lộ trình** — Phase beta invite-only quy mô nhỏ (≤20 tenant) chưa kích hoạt ngưỡng quy định Nghị định 53/2022/NĐ-CP §26 (1 triệu user) cũng như ngưỡng PDPL Art 28 (10 nghìn data subject); roadmap migrate sang AWS Hanoi Local Zone hoặc nhà cung cấp cloud trong nước (Viettel Cloud, VNG Cloud) trong giai đoạn GA. Người dùng beta ký explicit consent acknowledging "infrastructure provider AWS Singapore" trong giai đoạn thử nghiệm.
+3. **Tuân thủ pháp luật được quản lý theo lộ trình** — Giai đoạn thử nghiệm invite-only quy mô nhỏ (≤20 tenant) chưa kích hoạt ngưỡng quy định Nghị định 53/2022/NĐ-CP §26 (1 triệu user) cũng như ngưỡng PDPL Art 28 (10 nghìn data subject); roadmap migrate sang AWS Hanoi Local Zone hoặc nhà cung cấp cloud trong nước (Viettel Cloud, VNG Cloud) trong giai đoạn vận hành chính thức. Người dùng thử nghiệm ký explicit consent acknowledging "infrastructure provider AWS Singapore" trong giai đoạn thử nghiệm.
 
 ### 4.1.2 Sơ đồ hạ tầng
 
@@ -63,7 +63,7 @@ flowchart TB
     Compute --> SecCI
 ```
 
-**Hình 4.1.** Sơ đồ kiến trúc tổng thể KiteHub Platform trên AWS Singapore (giai đoạn beta).
+**Hình 4.1.** Sơ đồ kiến trúc tổng thể KiteHub Platform trên AWS Singapore (giai đoạn thử nghiệm).
 
 ### 4.1.3 Các thành phần chính
 
@@ -142,13 +142,13 @@ Pre-defense: hoàn thiện sau khi đạt ≥3 beta tenants ký xác nhận ho�
 
 ### 4.3.1 Định nghĩa KPI
 
-KiteHub giai đoạn beta track sáu KPI chính, chia ba category. Category 3 (System Health) tham khảo framework DORA do Forsgren và cộng sự [39, tr.13] đề xuất — gồm bốn metric đo lường hiệu năng vận hành phần mềm (deployment frequency, lead time for changes, mean time to recovery, change failure rate) — được dùng làm baseline so sánh production-readiness của hệ thống với chuẩn ngành.
+KiteHub giai đoạn thử nghiệm track sáu KPI chính, chia ba category. Category 3 (System Health) tham khảo framework DORA do Forsgren và cộng sự [39, tr.13] đề xuất — gồm bốn metric đo lường hiệu năng vận hành phần mềm (deployment frequency, lead time for changes, mean time to recovery, change failure rate) — được dùng làm baseline so sánh production-readiness của hệ thống với chuẩn ngành.
 
 **Category 1: Acquisition + Conversion**
 
 | KPI | Định nghĩa | Mục tiêu beta |
 |---|---|---|
-| Signup Conversion Rate | (Beta request) / (Visitor unique landing page) | ≥3% |
+| Signup Conversion Rate | (yêu cầu mở tenant) / (Visitor unique landing page) | ≥3% |
 | Beta Approval Rate | (Request APPROVED) / (Request submitted) | ≥60% |
 | Claim thì Active Conversion | (Tenant ACTIVE) / (Request APPROVED) | ≥70% |
 
@@ -201,14 +201,14 @@ KPI mapping tới data source:
 
 ### 4.3.3 Dashboard structure
 
-Ba dashboard chính được thiết kế (structure đã document, hiển thị số liệu cụ thể sẽ hoàn thiện sau khi cohort beta tích lũy đủ dữ liệu). Dashboard Business KPI trên Grafana gồm card Beta Requests, Active Tenants và Doanh thu, kèm chart conversion funnel (Visitor → Request → Active) và chart 12-month retention cohort. Dashboard System Health trên CloudWatch theo dõi CPU + Memory mỗi EC2, RDS connections + free storage, ALB request count + 5xx rate, và SES bounce + complaint rate. Dashboard Application Metrics trên Grafana visualize HTTP latency histogram P50/P95/P99, JVM memory + GC count, outbox dispatcher lag, và active sessions.
+Ba dashboard chính được thiết kế (structure đã document, hiển thị số liệu cụ thể sẽ hoàn thiện sau khi nhóm tenant thử nghiệm tích lũy đủ dữ liệu). Dashboard Business KPI trên Grafana gồm card Tenant Requests, Active Tenants và Doanh thu, kèm chart conversion funnel (Visitor → Request → Active) và chart 12-month retention cohort. Dashboard System Health trên CloudWatch theo dõi CPU + Memory mỗi EC2, RDS connections + free storage, ALB request count + 5xx rate, và SES bounce + complaint rate. Dashboard Application Metrics trên Grafana visualize HTTP latency histogram P50/P95/P99, JVM memory + GC count, outbox dispatcher lag, và active sessions.
 
-### 4.3.4 Kết quả đo giai đoạn beta (sơ bộ)
+### 4.3.4 Kết quả đo giai đoạn thử nghiệm (sơ bộ)
 
-> **Phương pháp đo lường (giai đoạn sơ bộ).** Các số liệu dưới đây là *ước tính / đo sơ bộ* dùng cho mục đích validation kiến trúc giai đoạn beta; **chưa thay thế production benchmark**. Tool / N / Date / Env per KPI:
+> **Phương pháp đo lường (giai đoạn sơ bộ).** Các số liệu dưới đây là *ước tính / đo sơ bộ* dùng cho mục đích validation kiến trúc giai đoạn thử nghiệm; **chưa thay thế production benchmark**. Tool / N / Date / Env per KPI:
 >
-> - **Uptime SLO ≥99,2%:** *ước tính* theo public AWS SLA cho EC2 t3.micro `ap-southeast-1` single-AZ — KHÔNG phải đo thực từ CloudWatch availability metric (cohort beta chưa đủ dữ liệu khoảng thời gian tối thiểu để baseline). Cập nhật khi có ≥30 ngày uptime data.
-> - **P95 API latency 280-350 ms:** *probe-endpoint sample* — 5 lượt web-probe từ TP.HCM → ALB → `/actuator/health`. Lưu ý: `/actuator/health` là probe endpoint trả về JSON 200 OK đơn giản, KHÔNG đại diện cho controller path nghiệp vụ (DB lookup + tenant context resolve). Sẽ thay bằng production endpoint sampling khi cohort beta active.
+> - **Uptime SLO ≥99,2%:** *ước tính* theo public AWS SLA cho EC2 t3.micro `ap-southeast-1` single-AZ — KHÔNG phải đo thực từ CloudWatch availability metric (nhóm tenant thử nghiệm chưa đủ dữ liệu khoảng thời gian tối thiểu để baseline). Cập nhật khi có ≥30 ngày uptime data.
+> - **P95 API latency 280-350 ms:** *probe-endpoint sample* — 5 lượt web-probe từ TP.HCM → ALB → `/actuator/health`. Lưu ý: `/actuator/health` là probe endpoint trả về JSON 200 OK đơn giản, KHÔNG đại diện cho controller path nghiệp vụ (DB lookup + tenant context resolve). Sẽ thay bằng production endpoint sampling khi nhóm tenant thử nghiệm active.
 > - **Lighthouse Performance 92/100:** *single measurement* — Chrome DevTools Lighthouse audit, mobile profile, URL `https://kitehub.me`, Date 2026-05-15, throttling default. Chưa lặp N≥5 để baseline reproducibility — cần lặp + median khi định kỳ benchmark.
 >
 > Các KPI Acquisition + Engagement (Signup conversion / Approval rate / Retention / Feature adoption / Crash-free rate) cần cohort tenant đủ lớn để thu thập số liệu — sẽ cập nhật trước defense.
@@ -220,7 +220,7 @@ Các KPI System Health đã có số liệu sơ bộ thu thập được từ pu
 | Uptime SLO | ≥99,0% | Ước tính ≥99,2% (theo SLA — xem phương pháp đo lường ở trên) |
 | P95 API latency | <500 ms | Probe-endpoint sample 280-350 ms (xem phương pháp đo lường ở trên) |
 | Lighthouse Performance (landing) | ≥85 | Single audit 92/100 (xem phương pháp đo lường ở trên) |
-| Signup Conversion / Approval / Retention / Feature Adoption / Crash-Free Rate | Theo §4.3.1 | [Đang thu thập số liệu trong giai đoạn beta — sẽ cập nhật trước defense] |
+| Signup Conversion / Approval / Retention / Feature Adoption / Crash-Free Rate | Theo §4.3.1 | [Đang thu thập số liệu trong giai đoạn thử nghiệm — sẽ cập nhật trước defense] |
 
 ### 4.3.5 Phương pháp phân tích
 
@@ -248,19 +248,19 @@ Mục tiêu beta của đồ án: ≥4 tenant ký thử nghiệm trước cửa 
 
 Kênh tiếp cận tenant gồm hai hướng song song: outreach trực tiếp tới 10-15 trung tâm dạy thêm quen biết tại TP.HCM và Hà Nội qua mạng lưới giáo viên; và community post trên các Facebook group "Chủ trung tâm giáo dục Việt Nam" và "Giáo viên dạy thêm online" kèm link đăng ký beta.
 
-### 4.4.2 Phạm vi feature ưu tiên giai đoạn beta
+### 4.4.2 Phạm vi feature ưu tiên giai đoạn thử nghiệm
 
-Feature core đã ship trong giai đoạn beta bao gồm: kiến trúc multi-tenant với Row-Level Security isolation (Chương 2 §2.3.4); cơ chế beta access invite (mô tả tại 4.2 ở trên); KiteClass core với CRUD cơ bản cho Students, Classes, Grades, Attendance và Payments; AI Branding cho phép tenant tự generate logo và theme color (image generation pipeline tham chiếu Stable Diffusion XL [34], NSFW content moderation gate trước khi publish dùng image classifier Hugging Face [33]); email transactional qua AWS SES gồm verify-email, beta-approval, password-reset và invoice; admin dashboard cho admin nền tảng review tenant và beta request; custom domain support qua subdomain `{tenant-slug}.kitehub.me`; và audit log mọi hành động của admin nền tảng tuân thủ PDPL Art 11.
+Feature core đã ship trong giai đoạn thử nghiệm bao gồm: kiến trúc multi-tenant với Row-Level Security isolation (Chương 2 §2.3.4); cơ chế beta access invite (mô tả tại 4.2 ở trên); KiteClass core với CRUD cơ bản cho Students, Classes, Grades, Attendance và Payments; AI Branding cho phép tenant tự generate logo và theme color (image generation pipeline tham chiếu Stable Diffusion XL [34], NSFW content moderation gate trước khi publish dùng image classifier Hugging Face [33]); email transactional qua AWS SES gồm verify-email, beta-approval, password-reset và invoice; admin dashboard cho admin nền tảng review tenant và beta request; custom domain support qua subdomain `{tenant-slug}.kitehub.me`; và audit log mọi hành động của admin nền tảng tuân thủ PDPL Art 11.
 
-**Feature defer khỏi giai đoạn beta (completion 0%, ưu tiên thấp do dependency pháp lý hoặc out-of-scope persona target):**
+**Feature defer khỏi giai đoạn thử nghiệm (completion 0%, ưu tiên thấp do dependency pháp lý hoặc out-of-scope persona target):**
 
 | Feature | Định hướng | Lý do defer |
 |---|---|---|
 | Payment integration (Stripe/MoMo/VNPay) | Giai đoạn paid | Yêu cầu giấy phép PSP |
 | Refund + dispute resolution engine | Manual qua admin trong giai đoạn paid | Manual SOP đủ cho beta scope |
-| VAT eInvoice (MISA MeInvoice) | Giai đoạn GA | Yêu cầu legal entity + partnership |
-| Parent portal (P4 persona) | Giai đoạn GA | Out of scope beta — focus P1 + P2 |
-| Multi-language UI (English) | Giai đoạn GA | Beta tenant Việt Nam |
+| VAT eInvoice (MISA MeInvoice) | Giai đoạn vận hành chính thức | Yêu cầu legal entity + partnership |
+| Parent portal (P4 persona) | Giai đoạn vận hành chính thức | Out of scope giai đoạn thử nghiệm — focus P1 + P2 |
+| Multi-language UI (English) | Giai đoạn vận hành chính thức | Tenant thử nghiệm Việt Nam |
 | Mobile app native (iOS/Android) | Sau giai đoạn paid | Web responsive đủ cho beta |
 | Real-time chat | Giai đoạn paid | Email + Zalo group đủ cho beta |
 | Advanced analytics (Mixpanel-grade) | Sau beta | SQL ad-hoc + Grafana đủ cho beta |
@@ -269,28 +269,28 @@ Feature core đã ship trong giai đoạn beta bao gồm: kiến trúc multi-ten
 
 | Hạn chế | Tác động | Phương án giảm thiểu |
 |---|---|---|
-| AWS Singapore chưa kích hoạt ngưỡng quy định Việt Nam | Cần lộ trình migrate trước GA | User consent explicit + roadmap migrate VN cloud trước GA gated by counsel review |
-| RAM tight 1 GB/instance | Có thể OOM khi nhiều tenant concurrent | JVM heap cap strict + hard cap 20 tenant beta + force upgrade trước giai đoạn paid |
-| Single-region SPOF (Singapore) | Latency Việt Nam thì Singapore 50-80 ms; outage = downtime toàn phần | Acceptable cho beta; multi-region sẽ triển khai giai đoạn GA |
+| AWS Singapore chưa kích hoạt ngưỡng quy định Việt Nam | Cần lộ trình migrate trước giai đoạn vận hành chính thức | User consent explicit + roadmap migrate VN cloud trước giai đoạn vận hành chính thức gated by counsel review |
+| RAM tight 1 GB/instance | Có thể OOM khi nhiều tenant concurrent | JVM heap cap strict + hard cap 20 tenant thử nghiệm + force upgrade trước giai đoạn paid |
+| Single-region SPOF (Singapore) | Latency Việt Nam thì Singapore 50-80 ms; outage = downtime toàn phần | Acceptable cho beta; multi-region sẽ triển khai giai đoạn vận hành chính thức |
 | RDS Multi-AZ disabled | Single point of failure cho database | Daily automated snapshot; Multi-AZ kế hoạch giai đoạn paid |
 | Manual approval beta request | Admin nền tảng là bottleneck | Acceptable scale ≤20 tenant; auto-approval rule kế hoạch sau beta |
 | RabbitMQ self-hosted EC2 | Memory cap 256 MB; restart có thể mất in-flight message | Outbox pattern đảm bảo at-least-once delivery; missed message thì retry |
 
 ### 4.4.4 Bài học rút ra
 
-Ba bài học sơ bộ rút ra từ quá trình phát triển (sẽ được hoàn thiện trong Kết luận chương cuối sau khi cohort beta cung cấp feedback định lượng): outside-in audit pattern chứng tỏ hiệu quả khi persona simulation kết hợp benchmark và failure-mode matrix giúp catch design gap mà brainstorm inside-out thường bỏ sót; Outbox Pattern kết hợp fast-path cân bằng tốt latency và reliability nhờ happy-path publish trực tiếp tới RMQ và dispatcher catch-up khi recovery; và lựa chọn AWS Singapore đã được risk-managed theo lộ trình migrate sang VN cloud trước GA (cần ~2-3 tuần và counsel approval).
+Ba bài học sơ bộ rút ra từ quá trình phát triển (sẽ được hoàn thiện trong Kết luận chương cuối sau khi nhóm tenant thử nghiệm cung cấp feedback định lượng): outside-in audit pattern chứng tỏ hiệu quả khi persona simulation kết hợp benchmark và failure-mode matrix giúp catch design gap mà brainstorm inside-out thường bỏ sót; Outbox Pattern kết hợp fast-path cân bằng tốt latency và reliability nhờ happy-path publish trực tiếp tới RMQ và dispatcher catch-up khi recovery; và lựa chọn AWS Singapore đã được risk-managed theo lộ trình migrate sang VN cloud trước giai đoạn vận hành chính thức (cần ~2-3 tuần và counsel approval).
 
 ### 4.4.5 Định hướng tương lai
 
 ```mermaid
 gantt
-    title KiteHub Roadmap — Beta đến GA
+    title KiteHub Roadmap — Thử nghiệm đến vận hành chính thức
     dateFormat YYYY-MM-DD
     axisFormat %Y-%m
 
-    section Giai đoạn beta
+    section Giai đoạn thử nghiệm
     Beta launch invite          :done, p1, 2026-05-06, 2026-05-19
-    Beta tenant ≥4 signed       :active, p1_beta, 2026-05-20, 30d
+    Tenant thử nghiệm ≥4 ký kết       :active, p1_beta, 2026-05-20, 30d
     KPI 30-day collection       :p1_kpi, after p1_beta, 30d
     Closure audit               :p1_close, after p1_kpi, 7d
 
@@ -299,12 +299,12 @@ gantt
     P3 Center Manager support   :p15_p3, after p15_pay, 30d
     Multi-AZ RDS upgrade        :p15_rds, after p15_p3, 14d
 
-    section Giai đoạn GA
+    section Giai đoạn vận hành chính thức
     Counsel review              :p2_legal, 2026-10-01, 30d
     VN cloud migration eval     :p2_vn, after p2_legal, 60d
     K-12 persona                :p2_k12, after p2_vn, 60d
 ```
 
-**Hình 4.5.** Gantt timeline định hướng phát triển sau giai đoạn beta.
+**Hình 4.5.** Gantt timeline định hướng phát triển sau giai đoạn thử nghiệm.
 
 ---
