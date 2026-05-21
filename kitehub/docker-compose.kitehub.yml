@@ -561,6 +561,9 @@ services:
       EMAIL_SERVICE_URL: http://kitehub-email:8080
       ADMIN_SERVICE_URL: http://kitehub-admin:8080
       KITECLASS_CORE_URL: http://kiteclass-core:8080
+      # Security secrets (shared với subscription + admin per Wave 89 Bucket A GAP-604)
+      ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:?ENCRYPTION_MASTER_KEY is required - run ./scripts/setup.sh}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required - run ./scripts/setup.sh}
     ports:
       - "9000:9000"
     depends_on:
