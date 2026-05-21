@@ -8,7 +8,11 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-21 — Wave 102.7.4 SHIPPED thesis V1 project-jargon scrub + Wave 102.7.3 Academic Integrity + Wave 102.7.2 Content + Wave 102.7.1 Structural + Wave 102.7.0 META + Wave 102.6 + Wave 102.5..1 + Wave 102 META + Wave 102 GAP-688)
+## 🎯 Current Status Snapshot (2026-05-21 — Wave 102.7.5 SHIPPED thesis V1 deferred cleanup + Wave 102.7.4 jargon scrub + Wave 102.7.3 Academic Integrity + Wave 102.7.2 Content + Wave 102.7.1 Structural + Wave 102.7.0 META + Wave 102.6 + Wave 102.5..1 + Wave 102 META + Wave 102 GAP-688)
+
+### 🎉 Wave 102.7.5 SHIPPED 2026-05-21 — Thesis V1 Deferred Cleanup (GAP-696 8 items, 3-bucket parallel A/B/C)
+
+**3-bucket parallel ship sequence** (post Wave 102.7.4 rate-limit recovery): Bucket A (PR #1684) Ch.2 narrative reframe — 6 `Nhóm N — ` separator drops + service catalog listing rewrite per S3 v1.1.0 narrative grouping (3 layers KiteHub platform + KiteClass tenant + FE applications). Bucket B (PR #1683) pipeline cleanup `create_thesis_v1.py` — Phụ lục A REMOVE + Phụ lục B inline GitHub link trong KẾT LUẬN §1 + Phụ lục C REMOVE + ABC sort terms (10) + abbrevs (26) VN-aware + `add_appendix()` function deleted entirely + step counter synced "[8/8] Tài liệu tham khảo IEEE". Bucket C (PR #1682) figures/ folder + bìa personal data verify audit — `documents/08-thesis/figures/README.md` 67 lines per `docs-folder-structure.md` §3 template + audit `2026-05-21-bia-pipeline-personal-data-verify.md` verdict ALIGNED ✓ (8/8 fields match canonical `student-info.md`, no drift). Coordinator post-merge re-bake `thesis-v1.docx` PASS (647 paragraphs, 4 sections, -136 bytes vs pre-wave reflecting Phụ lục A+C removal). Pre-spawn meta cleanup PR #1681 narrowed 5 docs-scaling rules `paths:` frontmatter → wave-plan-read auto-load reduced 14→~9 rules. Wall-clock ~30 min (3 agents background parallel; rate-limit not recurred). GAP-696 DONE 100% + git mv to `phase-1-beta/closed/` per `gap-folder-organization.md` v2.0.0. All 7 §3 Scope items + coordinator re-bake reconciled ✅ per `wave-closure-scope-completeness.md` §3 table in closure PR body. PR: #1685 closure (this PR).
 
 ### 🎉 Wave 102.7.4 SHIPPED 2026-05-21 — Thesis V1 Project-jargon Scrub (32 hits → 0 across 3 chapters)
 
