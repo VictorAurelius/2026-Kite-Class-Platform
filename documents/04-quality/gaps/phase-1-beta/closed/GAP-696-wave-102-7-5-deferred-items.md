@@ -1,7 +1,7 @@
 ---
 id: GAP-696
 phase: phase-1-beta
-status: OPEN
+status: DONE
 priority: P1
 domain: Meta
 audience: dev
@@ -9,7 +9,7 @@ audience: dev
 
 # GAP-696: Wave 102.7.5 deferred items — Bucket A A2/A3 + Bucket C pipeline cleanup
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-21 — Wave 102.7.5 SHIPPED 3-bucket parallel A/B/C (PRs #1682/1683/1684) + coordinator re-bake thesis-v1.docx successful (647 paragraphs, 4 sections, -136 bytes post Phụ lục removal)
 **Priority:** 🟠 P1 (META — academic polish deferred từ Wave 102.7.4 rate-limit)
 **Domain:** Meta — thesis V1 polish
 **Found:** 2026-05-21 (Wave 102.7.4 closure)
@@ -45,13 +45,13 @@ Wave 102.7.5 3-bucket parallel (retry sau rate-limit window cleared):
 
 ## Acceptance Criteria
 
-- [ ] Bucket A task A2: `Nhóm [0-9] — ` separator pattern reframe (6 hits)
-- [ ] Bucket A task A3: service catalog listing rewrite (3-4 hits)
-- [ ] Bucket C: Phụ lục A decision (fold OR remove) + Phụ lục B github link + Phụ lục C removed
-- [ ] Bucket C: ABC sort logic verified
-- [ ] Bucket C: `documents/08-thesis/figures/` folder + README created
-- [ ] Bucket C: Personal data lookup đề cương + bìa pipeline verified
-- [ ] thesis-v1.docx re-bake clean
+- [x] Bucket A task A2: `Nhóm [0-9] — ` separator pattern reframe (6 hits) — PR #1684; `grep -cE "^\*\*Nhóm [0-9]+ — " documents/08-thesis/chapter-2-system-architecture.md` → 0
+- [x] Bucket A task A3: service catalog listing rewrite (3-4 hits) — PR #1684; §2.3.5 inline listing reframed thành narrative grouping 3 lớp (KiteHub platform / KiteClass tenant / FE)
+- [x] Bucket B: Phụ lục A REMOVE + Phụ lục B inline GitHub link (KẾT LUẬN §1) + Phụ lục C REMOVE — PR #1683; `add_appendix()` function deleted entirely + call site dropped + step counter synced "[8/8] Tài liệu tham khảo IEEE"
+- [x] Bucket B: ABC sort logic verified (VN-aware manual reorder) — PR #1683; terms 10 entries + abbrevs 26 entries sorted alphabetically (`Continuous Deployment` → `Test-Driven Development`; `ALB` → `VPC`)
+- [x] Bucket C: `documents/08-thesis/figures/` folder + README created (67 lines, 4 sections per `docs-folder-structure.md` §3) — PR #1682
+- [x] Bucket C: Personal data lookup đề cương + bìa pipeline verified — PR #1682 audit `documents/08-thesis/audits/2026-05-21-bia-pipeline-personal-data-verify.md` verdict ALIGNED ✓ (8/8 fields match canonical `student-info.md`, no drift, no fix needed)
+- [x] thesis-v1.docx re-bake clean — coordinator post-merge run `python3 create_thesis_v1.py` PASS (647 paragraphs, 4 sections, -136 bytes vs pre-Wave-102.7.5)
 
 ## Related
 
@@ -62,4 +62,5 @@ Wave 102.7.5 3-bucket parallel (retry sau rate-limit window cleared):
 
 ## Log
 
+- **2026-05-21 (DONE):** Wave 102.7.5 SHIPPED 3-bucket parallel — PR #1682 (Bucket C figures + audit) + PR #1683 (Bucket B pipeline cleanup) + PR #1684 (Bucket A Ch.2 narrative reframe). Coordinator post-merge re-bake thesis-v1.docx PASS (647 paragraphs, 4 sections, -136 bytes vs pre-wave reflecting Phụ lục A+C removal). 7/7 AC verified above với evidence pointers. Per `gap-done-discipline.md` §2: all `- [x]` checked + verification artifact references (PR numbers + grep output + audit verdict + bake output) + no banned phrases in this Log entry. Pre-handoff verify per `pre-handoff-self-test-completeness.md`: AC scope = docs/thesis polish (no user-facing flow); verification = grep + AST + audit confirmed all on main post-merge. Status flip DONE per §3 PARTIAL exit ramp final close.
 - **2026-05-21 (filed):** Filed Wave 102.7.4 closure. 8 items defer do 3-bucket parallel rate-limit failure. Coordinator finished project-jargon scrub (Wave 102.7.4 priority 1) directly; remaining 8 items defer Wave 102.7.5 retry sau rate-limit window cleared.
