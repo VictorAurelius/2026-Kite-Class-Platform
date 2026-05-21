@@ -18,7 +18,7 @@ Cấu trúc đồ án:
 9. Chương 3 (Implementation)
 10. Chương 4 (Deployment results + KPI + Beta)
 11. Kết luận
-12. Tài liệu tham khảo IEEE (44 entries từ bibliography.md)
+12. Tài liệu tham khảo IEEE (38 entries từ bibliography.md)
 13. Phụ lục (stub)
 
 UTC Spec compliance (Quy dinh trinh bay do an tot nghiep.pdf):
@@ -1254,7 +1254,7 @@ def add_abstract_vi(doc):
         "E2E) đảm bảo tính đúng đắn của các pattern cốt lõi.")
 
     add_paragraph_text(doc,
-        "Kết quả giai đoạn beta tenant đạt các chỉ số chất lượng: Quality 90/110 B+, Security "
+        "Kết quả giai đoạn thử nghiệm tenant đạt các chỉ số chất lượng: Quality 90/110 B+, Security "
         "93/100 A, Performance 86/100 B+, UI 110.6/128 A — đáp ứng yêu cầu gate ≥80 của giai "
         "đoạn beta. Đồ án đóng góp ba kết quả khoa học: (1) pattern RLS NULL force-fail cho "
         "multi-tenant SaaS giáo dục, (2) phân tích thực nghiệm thị trường edu SaaS Việt Nam "
@@ -1465,7 +1465,7 @@ def add_list_of_figures_tables(doc):
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(12)
-    run = p.add_run("(Đang được bổ sung khi thêm hình minh hoạ — Wave 103+)")
+    run = p.add_run("(Đang được bổ sung khi thêm hình minh hoạ)")
     set_font(run, Pt(11), italic=True, color=RGBColor(128, 128, 128))
 
     p = doc.add_paragraph()
@@ -1634,21 +1634,24 @@ def add_introduction(doc):
 
     add_section_title(doc, "3. Phạm vi nghiên cứu")
     add_paragraph_text(doc,
-        "Đồ án tập trung vào giai đoạn beta tenant của nền tảng KiteHub, được giới hạn theo ba "
+        "Đồ án tập trung vào giai đoạn thử nghiệm tenant của nền tảng KiteHub, được giới hạn theo ba "
         "chiều: không gian, thời gian và đối tượng. Về không gian, hệ thống triển khai cloud trên "
         "AWS Singapore (ap-southeast-1) Free Tier theo ADR-025, phục vụ nhóm trung tâm giáo dục "
         "thương mại tại Việt Nam (Hà Nội, TP. Hồ Chí Minh và các tỉnh lân cận). Về thời gian, "
-        "phạm vi triển khai kéo dài từ tháng 5/2026 đến hết giai đoạn beta tenant (~tháng 9/2026), "
+        "phạm vi triển khai kéo dài từ tháng 5/2026 đến hết giai đoạn thử nghiệm tenant (~tháng 9/2026), "
         "với cohort 7-10 trung tâm dùng miễn phí trong 9 tuần đầu để thu thập phản hồi.")
     add_paragraph_text(doc,
         "Về đối tượng, đồ án phục vụ ba persona chính: Solo Teacher (giáo viên độc lập, 1-50 học "
         "viên), Center Owner (chủ trung tâm, 1-10 chi nhánh, 100-2.000 học viên), và Center "
         "Manager (quản lý vận hành trung tâm). Persona K-12 Parent + Student được hoãn sang giai "
         "đoạn mở rộng K-12 do yêu cầu bổ sung DPO + DPIA theo Điều 26 Luật Bảo vệ Dữ liệu Cá "
-        "nhân 2023. Kiến trúc hệ thống bao gồm 6 microservice backend (kitehub-admin, "
-        "kitehub-branding, kitehub-email, kitehub-gateway, kitehub-platform, kitehub-subscription), "
-        "1 core tenant application (kiteclass-core) và 2 frontend Next.js (kitehub-frontend, "
-        "kiteclass-frontend).")
+        "nhân 2023. Kiến trúc hệ thống cấu thành từ ba lớp dịch vụ. Lớp nền tảng KiteHub gồm "
+        "sáu dịch vụ độc lập đảm nhận các trách nhiệm khác nhau: quản trị (kitehub-admin), "
+        "nhận diện thương hiệu (kitehub-branding), thư điện tử (kitehub-email), điều phối yêu "
+        "cầu (kitehub-gateway), thư viện dùng chung (kitehub-platform) và quản lý đăng ký "
+        "(kitehub-subscription). Lớp nghiệp vụ tenant KiteClass tập trung tại dịch vụ "
+        "kiteclass-core. Lớp giao diện gồm hai ứng dụng Next.js phục vụ tập người dùng khác "
+        "nhau.")
 
     add_section_title(doc, "4. Phương pháp nghiên cứu")
     add_paragraph_text(doc,
@@ -1683,7 +1686,7 @@ def add_introduction(doc):
         "Thứ ba, đồ án triển khai và kiểm thử hệ thống trên AWS Singapore Free Tier, với các "
         "pattern cốt lõi (Row-Level Security NULL force-fail, Outbox Pattern, JWT propagation, "
         "REST 3-tier) được kiểm chứng qua unit test, integration test và E2E test. Thứ tư, đồ "
-        "án trình bày kết quả triển khai thực tế trong giai đoạn beta tenant kèm các KPI đo "
+        "án trình bày kết quả triển khai thực tế trong giai đoạn thử nghiệm tenant kèm các KPI đo "
         "lường, đánh giá độ trưởng thành và đề xuất hướng phát triển tiếp theo. Kết quả của "
         "đồ án vừa là sản phẩm phần mềm hoạt động được, vừa là tài liệu tham chiếu cho các "
         "công trình nghiên cứu kế tiếp về EdTech multi-tenant tại Việt Nam.")
@@ -1693,7 +1696,7 @@ def add_introduction(doc):
     add_bullet_list_item(doc, "Chương 1 — Tổng quan: phân tích đối tượng tham khảo trên thị trường, kỹ thuật AI tích hợp, và khung pháp lý Việt Nam tác động đến nền tảng.")
     add_bullet_list_item(doc, "Chương 2 — Kiến trúc hệ thống: yêu cầu chức năng + phi chức năng, mô hình hóa C4 + Use Case + Class + ERD, thiết kế cơ sở dữ liệu, multi-tenant single-bucket, defense-in-depth 5 lớp.")
     add_bullet_list_item(doc, "Chương 3 — Triển khai: kết quả triển khai giao diện sản phẩm và bộ kiểm thử ba lớp (unit / integration / E2E) với các sample test case cụ thể.")
-    add_bullet_list_item(doc, "Chương 4 — Kết quả triển khai: cloud AWS giai đoạn beta tenant, user onboarding flow, KPI metrics, beta scope.")
+    add_bullet_list_item(doc, "Chương 4 — Kết quả triển khai: cloud AWS giai đoạn thử nghiệm tenant, user onboarding flow, KPI metrics, scope thử nghiệm.")
 
 
 # ============== CHAPTER LOADER (MD parser) ==============
@@ -1733,7 +1736,7 @@ def add_conclusion(doc):
 
     add_section_title(doc, "1. Tổng kết kết quả đạt được")
     add_paragraph_text(doc,
-        "Đồ án đã hoàn thành các mục tiêu đặt ra ban đầu trong phạm vi giai đoạn beta tenant của "
+        "Đồ án đã hoàn thành các mục tiêu đặt ra ban đầu trong phạm vi giai đoạn thử nghiệm tenant của "
         "nền tảng KiteHub. Cụ thể, hệ thống được triển khai trên AWS Singapore Free Tier với "
         "kiến trúc multi-tenant single-bucket RLS-protected, 7 microservice cùng 2 ứng dụng "
         "frontend, đảm bảo tuân thủ các yêu cầu pháp lý Việt Nam (PDPL 2023, Luật An ninh mạng "
@@ -1756,7 +1759,7 @@ def add_conclusion(doc):
         "trình bày trong báo cáo.")
 
     add_section_title(doc, "2. Hạn chế")
-    add_bullet_list_item(doc, "Phạm vi giai đoạn beta tenant chỉ phục vụ 3 persona tenant (Solo Teacher, Center Owner, Center Manager); persona K-12 Parent + Student được hoãn sang giai đoạn K-12 expansion do yêu cầu DPO + DPIA bổ sung theo PDPL.")
+    add_bullet_list_item(doc, "Phạm vi giai đoạn thử nghiệm tenant chỉ phục vụ 3 persona tenant (Solo Teacher, Center Owner, Center Manager); persona K-12 Parent + Student được hoãn sang giai đoạn K-12 expansion do yêu cầu DPO + DPIA bổ sung theo PDPL.")
     add_bullet_list_item(doc, "Một số KPI thực tế (Time to First Value, Daily Active Users, Monthly Recurring Revenue) chưa có số liệu thực tế do beta cohort 7-10 tenant đang trong giai đoạn triển khai 9 tuần.")
     add_bullet_list_item(doc, "AI Branding mới được tích hợp ở mức MVP với 1 nhà cung cấp (Replicate Stable Diffusion XL); các phương án multi-vendor failover sẽ được triển khai trong giai đoạn production.")
 
@@ -1765,7 +1768,7 @@ def add_conclusion(doc):
         "Giai đoạn trả phí (paid tier): tích hợp thanh toán (VNPay, MoMo), partnership MISA MeInvoice cho "
         "hóa đơn điện tử theo Thông tư 78/2021/TT-BTC, mở rộng tenant cohort beta lên 30-50 trung tâm.")
     add_bullet_list_item(doc,
-        "Giai đoạn GA (General Availability): kiến trúc đa-region (Singapore + Hà Nội data localization "
+        "Giai đoạn vận hành chính thức: kiến trúc đa-region (Singapore + Hà Nội data localization "
         "Việt Nam theo Nghị định 53/2022), AI Quality Gate phiên bản nâng cao với multi-vendor failover, "
         "mobile app native iOS + Android.")
     add_bullet_list_item(doc,
@@ -1809,7 +1812,7 @@ def add_conclusion(doc):
         "Trên cơ sở kết quả đạt được và những hạn chế đã nêu, em xin đề xuất một số kiến nghị "
         "cho hướng phát triển và chuyển giao đề tài như sau:")
     add_bullet_list_item(doc,
-        "Tiếp tục mở rộng phạm vi nghiên cứu sang giai đoạn paid beta và GA: tích hợp thanh toán "
+        "Tiếp tục mở rộng phạm vi nghiên cứu sang giai đoạn thanh toán thử nghiệm và vận hành chính thức: tích hợp thanh toán "
         "trong nước (VNPay, MoMo, VietQR), partnership MISA MeInvoice cho hóa đơn điện tử theo "
         "Thông tư 78/2021/TT-BTC, đồng thời xây dựng quy trình DPO + DPIA chuẩn PDPL 2023 trước "
         "khi mở rộng tới 1.000+ tenant.")

@@ -63,7 +63,7 @@ suitable for parents of K-12 students in Vietnam.
 
 Quan trọng: prompt explicit negation các elements không mong muốn (NO text, NO realistic photos, NO mascots) để giảm noise output, tăng tỷ lệ first-attempt PASS từ ~40% lên ~75% theo testing internal.
 
-Tham khảo nghiên cứu prompt engineering trong [12] (Brown et al., GPT-3 few-shot learning) và [14] (LLaVA — visual instruction tuning) cho phương pháp luận xây dựng prompt hiệu quả cho multimodal models. Tài liệu thực hành prompt engineering từ tài liệu API LLM thương mại [15] cũng cung cấp pattern cụ thể về negative prompting (explicit `NO text` / `NO mascots`) — pattern này được áp dụng trực tiếp trong template ở trên để tăng first-attempt PASS rate.
+Tham khảo nghiên cứu prompt engineering trong [12] (Brown et al., GPT-3 few-shot learning) và [14] (LLaVA — visual instruction tuning) cho phương pháp luận xây dựng prompt hiệu quả cho multimodal models. Tài liệu thực hành prompt engineering từ tài liệu API LLM thương mại cũng cung cấp pattern cụ thể về negative prompting (explicit `NO text` / `NO mascots`) — pattern này được áp dụng trực tiếp trong template ở trên để tăng first-attempt PASS rate.
 
 #### 1.4.2.3 Lựa chọn mô hình text-to-image
 
@@ -129,7 +129,7 @@ KiteHub roadmap defer các AI features sau cho giai đoạn mở rộng (sau khi
 
 **Mô hình:** LLM API thương mại cost-efficient tier (Anthropic / OpenAI), với context tenant-specific (course catalog + FAQ + lịch học).
 
-**Architecture:** RAG (Retrieval-Augmented Generation) [16] dùng PostgreSQL pgvector extension cho vector search course content + FAQ embeddings. Khi học viên hỏi "Lớp Anh ngữ 5A1 học vào thứ mấy?", system retrieve relevant context từ tenant database thì feed vào LLM thì generate response Vietnamese natural.
+**Architecture:** RAG (Retrieval-Augmented Generation) [15] dùng PostgreSQL pgvector extension cho vector search course content + FAQ embeddings. Khi học viên hỏi "Lớp Anh ngữ 5A1 học vào thứ mấy?", system retrieve relevant context từ tenant database thì feed vào LLM thì generate response Vietnamese natural.
 
 **Use cases:** trả lời câu hỏi về lịch học, giáo viên, học phí; hướng dẫn quy trình đăng ký lớp mới; reminder ngày thi sắp tới; translate giữa tiếng Việt và tiếng Anh cho lớp ngoại ngữ.
 
@@ -153,7 +153,7 @@ KiteHub roadmap defer các AI features sau cho giai đoạn mở rộng (sau khi
 
 ### 1.4.5 AI development methodology
 
-KiteHub áp dụng test-driven development (TDD) [17] và domain-driven design (DDD) [18] cho AI feature development, tránh approach "ship first, fix later" thường thấy ở các AI startup. Cụ thể:
+KiteHub áp dụng test-driven development (TDD) [16] và domain-driven design (DDD) [17] cho AI feature development, tránh approach "ship first, fix later" thường thấy ở các AI startup. Cụ thể:
 
 1. **Test-first cho AI integration:** mọi AI API call có integration test với mock response + edge case (rate limit 429, timeout 504, malformed response).
 
@@ -169,7 +169,7 @@ Tích hợp AI cần xem xét nghiêm túc các yếu tố đạo đức + pháp
 
 #### 1.4.6.1 PDPL 2023 compliance
 
-Theo Luật Bảo vệ Dữ liệu Cá nhân Việt Nam 2023 [9] và Nghị định 13/2023/NĐ-CP [19], xử lý dữ liệu cá nhân bằng AI yêu cầu:
+Theo Luật Bảo vệ Dữ liệu Cá nhân Việt Nam 2023 [9] và Nghị định 13/2023/NĐ-CP [18], xử lý dữ liệu cá nhân bằng AI yêu cầu:
 
 - **Consent explicit** từ data subject (học viên / phụ huynh) trước khi đưa data vào training hoặc inference
 - **Right to explanation** — học viên có quyền yêu cầu giải thích quyết định AI (vd: lý do bị auto-grade điểm thấp)
