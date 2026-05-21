@@ -1,0 +1,33 @@
+{
+  "pr": 1689,
+  "title": "docs(wave-102.7.6): SHIPPED \u2014 thesis V1 final polish closure (GAP-697)",
+  "branch": "wave/102.7.6-closure",
+  "created_at": null,
+  "merged_at": "2026-05-21T04:06:22Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-21T04:06:29.176175",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 11,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/3",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-92964"
+  }
+}
