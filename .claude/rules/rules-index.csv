@@ -37,6 +37,7 @@ docs-only-pr-auto-merge,MANDATORY,1.0.2,2026-05-11,2026-05-18,docs-only-pr-auto-
 gap-architecture-v2,MANDATORY,1.0.4,2026-05-11,2026-05-14,gap-architecture-v2.md,"documents/04-quality/gaps/**,documents/04-quality/gaps/gap-status.csv",active,,
 gap-done-discipline,MANDATORY,1.0.1,2026-04-27,2026-05-14,gap-done-discipline.md,documents/04-quality/gaps/**,active,,
 incident-to-rule-pipeline,CRITICAL,1.1.0,2026-04-27,2026-05-19,incident-to-rule-pipeline.md,,active,,
+local-self-test-before-aws-deploy,MANDATORY,1.0.0,2026-05-21,2026-05-21,local-self-test-before-aws-deploy.md,".github/workflows/deploy-production.yml,.github/workflows/terraform-apply.yml,.github/workflows/rollback.yml,scripts/deploy-prod.sh,kitehub/scripts/up.sh,scripts/local/**",active,,
 logs-format-standard,MANDATORY,1.0.1,2026-04-20,2026-05-14,logs-format-standard.md,"**/logback*.xml,**/application*.yml,kitehub/*/src/main/resources/**,kiteclass/*/src/main/resources/**,.claude/rules/logs-format-standard.md",active,,
 mcp-first-with-fallback,MANDATORY,1.1.1,2026-04-18,2026-05-14,mcp-first-with-fallback.md,,active,,
 meta-csv-index-pattern,MANDATORY,1.0.2,2026-05-12,2026-05-14,meta-csv-index-pattern.md,"**/*-index.csv,**/*-status.csv,scripts/query-*.sh,scripts/check-*-csv.sh",active,,
