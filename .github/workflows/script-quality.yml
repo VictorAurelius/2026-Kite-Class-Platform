@@ -82,7 +82,7 @@ permissions:
 jobs:
   shellcheck:
     name: ShellCheck (bash scripts)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -93,8 +93,14 @@ jobs:
 
       - name: Install ShellCheck
         run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck
+          # Self-hosted runner: shellcheck pre-installed in user PATH; skip apt
+          # (sudo apt-get needs NOPASSWD which the runner doesn't have).
+          if command -v shellcheck >/dev/null 2>&1; then
+            echo "shellcheck already on PATH: $(command -v shellcheck)"
+          else
+            sudo apt-get update
+            sudo apt-get install -y shellcheck
+          fi
           shellcheck --version
 
       - name: Determine changed shell scripts
@@ -138,7 +144,7 @@ jobs:
 
   ruff:
     name: Ruff (Python scripts + hooks)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -193,7 +199,7 @@ jobs:
 
   rule-frontmatter:
     name: Rule frontmatter (`.claude/rules/*.md`)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -242,7 +248,7 @@ jobs:
 
   skill-conventions:
     name: Skill conventions (`.claude/skills/**/SKILL.md`)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -286,7 +292,7 @@ jobs:
 
   readme-freshness:
     name: README freshness (`**/README.md`)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -309,7 +315,7 @@ jobs:
 
   alert-runbook-url:
     name: Alert runbook_url (Prometheus alert annotations)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -342,7 +348,7 @@ jobs:
 
   helm-lint:
     name: Helm lint (`infrastructure/helm/kitehub`)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -368,7 +374,7 @@ jobs:
 
   gap-status-csv:
     name: Gap status CSV (`documents/04-quality/gaps/gap-status.csv`)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -386,7 +392,7 @@ jobs:
 
   gap-folder-location:
     name: Gap folder location (mirrors CSV status+phase)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -404,7 +410,7 @@ jobs:
 
   meta-csv-indexes:
     name: Meta CSV indexes (ADRs + Rules)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -429,7 +435,7 @@ jobs:
 
   rule-staleness:
     name: Rule staleness (`Last-Reviewed` freshness, WARN mode)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -454,7 +460,7 @@ jobs:
 
   rule-count-ceiling:
     name: Rule count ceiling (free-growth ≤50, HARD STOP >100)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -471,7 +477,7 @@ jobs:
 
   audits-index-csv:
     name: Audits index CSV (`documents/04-quality/audits/audits-index.csv`)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -491,7 +497,7 @@ jobs:
 
   wave-plan-completeness:
     name: Wave plan completeness (documents/03-planning/waves/**)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -516,7 +522,7 @@ jobs:
 
   three-layer-completeness:
     name: 3-layer doc completeness (`documents/01-business/**`)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -538,7 +544,7 @@ jobs:
 
   mermaid-sequence-state-br:
     name: Mermaid `<br/>` in sequence/state diagrams (recurrence #6+#7 prevention)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -557,7 +563,7 @@ jobs:
 
   cross-layer-contract-drift:
     name: Cross-layer contract drift (controller vs api-contract.md)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -578,7 +584,7 @@ jobs:
 
   docs-scaling-detectors:
     name: Docs scaling detectors (archival cadence + folder volume + subfolder maturity)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -617,7 +623,7 @@ jobs:
 
   env-vars-render:
     name: Env-vars render roundtrip (env-reference.yaml + render-env-vars.sh)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code
@@ -657,7 +663,7 @@ jobs:
 
   script-tests:
     name: Script tests (`scripts/tests/test-*.sh` fixture-based)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: Checkout code

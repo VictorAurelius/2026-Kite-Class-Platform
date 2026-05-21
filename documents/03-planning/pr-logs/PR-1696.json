@@ -1,0 +1,33 @@
+{
+  "pr": 1696,
+  "title": "plan(wave-102.9): self-test completion Tier 2 + Tier 3 email + Gateway JWT fix (GAP-695 50\u2192~85%)",
+  "branch": "wave/102.9-self-test-tier-2-3",
+  "created_at": null,
+  "merged_at": "2026-05-21T07:41:42Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-21T07:41:49.771512",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 4,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-19380"
+  }
+}
