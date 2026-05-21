@@ -1533,17 +1533,18 @@ def add_abbreviations(doc):
     run = p.add_run("DANH MỤC THUẬT NGỮ")
     set_font(run, Pt(16), bold=True)
 
+    # Wave 102.7.5 Bucket B Item 10 — sorted ABC (VN-aware: Đ sau D)
     terms = [
+        ("Continuous Deployment", "Quy trình triển khai tự động từ code lên môi trường production sau khi pass CI"),
+        ("Continuous Integration", "Quy trình tích hợp code thường xuyên vào nhánh chung kèm automated build + test"),
+        ("Defense-in-depth", "Chiến lược bảo mật nhiều lớp — mỗi lớp độc lập kiểm tra tránh single-point failure"),
+        ("Domain-Driven Design", "Phương pháp thiết kế phần mềm hướng theo miền nghiệp vụ — chia hệ thống theo bounded contexts"),
         ("Multi-tenant", "Kiến trúc phần mềm cho phép nhiều tổ chức (tenant) dùng chung một hệ thống với dữ liệu cách ly"),
+        ("Outbox Pattern", "Mẫu thiết kế đảm bảo tính nhất quán giữa lưu DB + phát message qua message broker"),
+        ("Pool model", "Mô hình multi-tenant chia sẻ tài nguyên hạ tầng dùng RLS để cách ly dữ liệu"),
         ("Row-Level Security", "Cơ chế cách ly dữ liệu cấp dòng trên PostgreSQL — DB enforces filtering theo tenant context"),
         ("Software as a Service", "Mô hình triển khai phần mềm dạng dịch vụ điện toán đám mây, người dùng truy cập qua web"),
-        ("Domain-Driven Design", "Phương pháp thiết kế phần mềm hướng theo miền nghiệp vụ — chia hệ thống theo bounded contexts"),
         ("Test-Driven Development", "Phương pháp phát triển dựa trên kiểm thử — viết test trước khi viết code (Red-Green-Refactor)"),
-        ("Continuous Integration", "Quy trình tích hợp code thường xuyên vào nhánh chung kèm automated build + test"),
-        ("Continuous Deployment", "Quy trình triển khai tự động từ code lên môi trường production sau khi pass CI"),
-        ("Outbox Pattern", "Mẫu thiết kế đảm bảo tính nhất quán giữa lưu DB + phát message qua message broker"),
-        ("Defense-in-depth", "Chiến lược bảo mật nhiều lớp — mỗi lớp độc lập kiểm tra tránh single-point failure"),
-        ("Pool model", "Mô hình multi-tenant chia sẻ tài nguyên hạ tầng dùng RLS để cách ly dữ liệu"),
     ]
     _add_table_2col(doc, terms, col0_width_cm=4.5, col1_width_cm=11.5,
                     header_row=("Thuật ngữ", "Giải thích"))
@@ -1557,33 +1558,34 @@ def add_abbreviations(doc):
     run = p.add_run("DANH MỤC TỪ VIẾT TẮT")
     set_font(run, Pt(16), bold=True)
 
+    # Wave 102.7.5 Bucket B Item 10 — sorted ABC (VN-aware: Đ sau D)
     abbrevs = [
-        ("SaaS", "Software as a Service"),
-        ("RLS", "Row-Level Security"),
-        ("JWT", "JSON Web Token"),
-        ("API", "Application Programming Interface"),
-        ("REST", "Representational State Transfer"),
-        ("CI/CD", "Continuous Integration / Continuous Deployment"),
-        ("PDPL", "Personal Data Protection Law — Luật Bảo vệ Dữ liệu Cá nhân 2023 (Số 49/2023/QH15)"),
-        ("DPO", "Data Protection Officer — Cán bộ Bảo vệ Dữ liệu theo PDPL"),
-        ("DPIA", "Data Protection Impact Assessment — Đánh giá Tác động Bảo vệ Dữ liệu"),
-        ("KMS", "Key Management Service — dịch vụ quản lý khóa mã hóa"),
-        ("VPC", "Virtual Private Cloud — mạng riêng ảo trên cloud"),
-        ("ECR", "Elastic Container Registry — kho chứa Docker images trên AWS"),
         ("ALB", "Application Load Balancer — bộ cân bằng tải ứng dụng AWS"),
-        ("ECS", "Elastic Container Service — dịch vụ điều phối container AWS"),
-        ("RDS", "Relational Database Service — dịch vụ cơ sở dữ liệu quan hệ AWS"),
-        ("SES", "Simple Email Service — dịch vụ gửi email AWS"),
-        ("OWASP", "Open Worldwide Application Security Project"),
-        ("OIDC", "OpenID Connect — chuẩn xác thực OAuth 2.0 mở rộng"),
-        ("TDD", "Test-Driven Development"),
+        ("API", "Application Programming Interface"),
+        ("CI/CD", "Continuous Integration / Continuous Deployment"),
         ("DDD", "Domain-Driven Design"),
-        ("MVP", "Minimum Viable Product — sản phẩm tối thiểu khả dụng"),
+        ("DPIA", "Data Protection Impact Assessment — Đánh giá Tác động Bảo vệ Dữ liệu"),
+        ("DPO", "Data Protection Officer — Cán bộ Bảo vệ Dữ liệu theo PDPL"),
+        ("ECR", "Elastic Container Registry — kho chứa Docker images trên AWS"),
+        ("ECS", "Elastic Container Service — dịch vụ điều phối container AWS"),
+        ("IEEE", "Institute of Electrical and Electronics Engineers"),
+        ("ISO", "International Organization for Standardization"),
+        ("JWT", "JSON Web Token"),
+        ("KMS", "Key Management Service — dịch vụ quản lý khóa mã hóa"),
         ("KPI", "Key Performance Indicator — chỉ số hiệu suất chính"),
         ("LMS", "Learning Management System — hệ quản lý học tập"),
-        ("ISO", "International Organization for Standardization"),
-        ("IEEE", "Institute of Electrical and Electronics Engineers"),
+        ("MVP", "Minimum Viable Product — sản phẩm tối thiểu khả dụng"),
+        ("OIDC", "OpenID Connect — chuẩn xác thực OAuth 2.0 mở rộng"),
+        ("OWASP", "Open Worldwide Application Security Project"),
+        ("PDPL", "Personal Data Protection Law — Luật Bảo vệ Dữ liệu Cá nhân 2023 (Số 49/2023/QH15)"),
+        ("RDS", "Relational Database Service — dịch vụ cơ sở dữ liệu quan hệ AWS"),
+        ("REST", "Representational State Transfer"),
+        ("RLS", "Row-Level Security"),
+        ("SaaS", "Software as a Service"),
+        ("SES", "Simple Email Service — dịch vụ gửi email AWS"),
+        ("TDD", "Test-Driven Development"),
         ("UTC GTVT", "Trường Đại học Giao thông Vận tải — University of Transport and Communications"),
+        ("VPC", "Virtual Private Cloud — mạng riêng ảo trên cloud"),
     ]
     _add_table_2col(doc, abbrevs, col0_width_cm=3.5, col1_width_cm=12.5,
                     header_row=("Từ viết tắt", "Nghĩa đầy đủ"))
@@ -1744,6 +1746,15 @@ def add_conclusion(doc):
         "page) — tất cả đều được kiểm thử qua bộ unit test + integration test, đáp ứng tỉ lệ "
         "coverage tối thiểu yêu cầu cho production-ready.")
 
+    # Wave 102.7.5 Bucket B Item 8 — Phụ lục B reframed as inline GitHub link
+    add_paragraph_text(doc,
+        "Toàn bộ mã nguồn dự án được công bố tại kho lưu trữ công khai trên GitHub: "
+        "https://github.com/VictorAurelius/2026-Kite-Class-Platform — bao gồm các thành phần "
+        "kitehub/ (6 microservice nền tảng + frontend), kiteclass/ (dịch vụ nghiệp vụ tenant), "
+        "infrastructure/ (cấu hình hạ tầng Terraform), và documents/ (tài liệu thiết kế + audit). "
+        "Người đọc có thể tham khảo trực tiếp mã nguồn để đối chiếu với các pattern và đoạn code "
+        "trình bày trong báo cáo.")
+
     add_section_title(doc, "2. Hạn chế")
     add_bullet_list_item(doc, "Phạm vi giai đoạn beta tenant chỉ phục vụ 3 persona tenant (Solo Teacher, Center Owner, Center Manager); persona K-12 Parent + Student được hoãn sang giai đoạn K-12 expansion do yêu cầu DPO + DPIA bổ sung theo PDPL.")
     add_bullet_list_item(doc, "Một số KPI thực tế (Time to First Value, Daily Active Users, Monthly Recurring Revenue) chưa có số liệu thực tế do beta cohort 7-10 tenant đang trong giai đoạn triển khai 9 tuần.")
@@ -1892,39 +1903,10 @@ def add_references_from_md(doc):
         add_inline_runs(p, text)
 
 
-# ============== PHỤ LỤC ==============
-def add_appendix(doc):
-    doc.add_page_break()
-    p = doc.add_paragraph(style='Heading 1')
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run("PHỤ LỤC")
-    run.font.name = FONT_NAME
-    if run._element.rPr is not None:
-        run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
-    run.font.size = FONT_SIZE_CHAPTER
-    run.font.bold = True
-    run.font.color.rgb = RGBColor(0, 0, 0)
-
-    add_section_title(doc, "Phụ lục A. Cấu hình môi trường triển khai")
-    add_paragraph_text(doc,
-        "Cấu hình chi tiết hạ tầng AWS Singapore Free Tier, các biến môi trường, các secret "
-        "được lưu tại AWS Secrets Manager — xem chi tiết tại `documents/05-guides/deploy/` "
-        "trong repository project. Phần này không in trực tiếp vào đồ án để tránh lộ lọt "
-        "thông tin nhạy cảm.")
-
-    add_section_title(doc, "Phụ lục B. Mã nguồn dự án")
-    add_paragraph_text(doc,
-        "Toàn bộ mã nguồn được lưu trữ tại repository riêng của dự án theo cấu trúc monorepo "
-        "(kitehub/ + kiteclass/ + infrastructure/ + documents/). Quy trình truy cập mã nguồn "
-        "tham khảo tại `documents/05-guides/dev/` trong repository.")
-
-    add_section_title(doc, "Phụ lục C. Kết quả audit chất lượng")
-    add_paragraph_text(doc,
-        "Bộ báo cáo audit chất lượng theo 7 chiều (Quality / UI / Security / Performance / "
-        "API Contract / Business Logic / Ops Readiness) được lưu tại "
-        "`documents/04-quality/audits/` và `documents/04-quality/audits/audits-index.csv`. "
-        "Phiên bản beta hiện tại đạt: Quality 90/110 B+, Security 93/100 A, Performance 86/100 B+, "
-        "UI 110.6/128 A — đáp ứng yêu cầu giai đoạn beta tenant gate ≥80.")
+# Wave 102.7.5 Bucket B Items 8+9 — `add_appendix` function removed entirely.
+# Phụ lục A (cấu hình triển khai): removed — nội dung quan trọng đã có trong Chương 4 deployment results.
+# Phụ lục B (mã nguồn): reframed as inline GitHub link trong KẾT LUẬN §1 "Tổng kết kết quả đạt được".
+# Phụ lục C (audit chất lượng): removed entirely.
 
 
 # ============== AUTO-POPULATE TOC + SEQ FIELDS ==============
@@ -2018,10 +2000,10 @@ def create_thesis():
     print("[7/8] Kết luận")
     add_conclusion(doc)
 
-    # 8. Tài liệu tham khảo + Phụ lục
-    print("[8/8] Tài liệu tham khảo IEEE + Phụ lục")
+    # 8. Tài liệu tham khảo
+    # Wave 102.7.5 Bucket B: Phụ lục A+C removed; Phụ lục B inline trong KẾT LUẬN §1.
+    print("[8/8] Tài liệu tham khảo IEEE")
     add_references_from_md(doc)
-    add_appendix(doc)
 
     # Apply borders: chỉ section 0 = Bìa chính + Bìa phụ (border)
     # Wave 102.5 follow-up 2026-05-20 border-leak fix: bìa + bìa phụ giờ cùng Section 0
