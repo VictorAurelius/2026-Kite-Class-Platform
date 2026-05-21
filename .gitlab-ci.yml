@@ -22,13 +22,17 @@ variables:
   PATH_EXT: "/home/nguyenvankiet/.local/share/fnm/node-versions/v22.22.2/installation/bin:/home/nguyenvankiet/.local/bin:$PATH"
 
 default:
-  tags:
-    - saas-linux-small-amd64  # GitLab.com shared SaaS runner (Free tier 400 min/mo)
-  image: ubuntu:24.04
+  # Self-hosted WSL2 shell runner (registered 2026-05-21 via glab api + sudo
+  # gitlab-runner register) — tags: untagged jobs OK via run_untagged=true.
+  # Toolchain (shellcheck/ruff/jq/python3) đã cài sẵn trên WSL2; không cần
+  # apt-get install như shared runner ubuntu:24.04 image.
   before_script:
-    - apt-get update -qq && apt-get install -y --no-install-recommends bash git curl jq shellcheck python3 python3-pip ca-certificates
-    - pip3 install --quiet --break-system-packages ruff==0.15.11 2>/dev/null || pip3 install --quiet ruff==0.15.11
+    - export PATH="$PATH_EXT"
     - echo "Runner $CI_RUNNER_DESCRIPTION on $(hostname); user=$(whoami); pwd=$(pwd)"
+    - shellcheck --version | head -1
+    - python3 --version
+    - which ruff && ruff --version || pip3 install --user --quiet ruff==0.15.11
+    - which jq && jq --version
 
 smoke-test:
   stage: smoke
