@@ -8,7 +8,15 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-21 — Wave 102.8 SHIPPED self-test readiness foundation + Wave 102.7.6 thesis V1 final polish + Wave 102.7.5 deferred cleanup + Wave 102.7.4 jargon scrub + Wave 102.7.3 Academic Integrity + Wave 102.7.2 Content + Wave 102.7.1 Structural + Wave 102.7.0 META + Wave 102.6 + Wave 102.5..1 + Wave 102 META + Wave 102 GAP-688)
+## 🎯 Current Status Snapshot (2026-05-21 — Wave 102.9 plan PR #1696 OPEN + Wave 102.8.1 SHIPPED admin browser walk verify + Wave 102.8 SHIPPED self-test readiness foundation + Wave 102.7.6 thesis V1 final polish + Wave 102.7.5 deferred cleanup + Wave 102.7.4 jargon scrub + Wave 102.7.3 Academic Integrity + Wave 102.7.2 Content + Wave 102.7.1 Structural + Wave 102.7.0 META + Wave 102.6 + Wave 102.5..1 + Wave 102 META + Wave 102 GAP-688)
+
+### 🚀 Next Action 2026-05-21 — Wave 102.9 plan PR #1696 OPEN (chờ user approve + merge → spawn 5 buckets E sequential first → A/B/C/D parallel)
+
+Wave 102.9 scope locked (revised v2 post Wave 102.8.1 closure): **Bucket E** GAP-699 gateway JWT_SECRET passthrough fix (~5-10min compose 2-line edit, SEQUENTIAL FIRST) + **Bucket A** GAP-637/620 admin RBAC `@PreAuthorize` backfill (~1h) + **Bucket B** GAP-531/538 tenant init e2e + Day-1 onboarding (~2-3h) + **Bucket C** GAP-516 2FA TOTP (~30min) + **Bucket D** GAP-543/659/657 email content + tone + hardening (~1.5h). Critical path ~3h wall-clock. Defer Wave 102.10: GAP-658/269b/138/139 (Tier 3 remaining) + GAP-693 (AWS rebuild SOP) + GAP-698 (ops-readiness audit + OIDC). Beta-cohort-ready signal triggered post Wave 102.9 closure (GAP-695 PARTIAL 50% → ~85% — Tier 0+1+2 + email DONE; Wave 102.8.1 §2.4 self-test 5/7 PASS → 7/7 PASS post Bucket E gateway fix).
+
+### 🎉 Wave 102.8.1 SHIPPED 2026-05-21 — Admin Browser Walk Verify Post FE Rebuild Check (GAP-518 DONE + GAP-519 DONE + GAP-699 filed)
+
+**Mini-PATCH single PR ship** post Wave 102.8 closure: agent walk §2.4 (a)→(g) qua curl headless verified FE image `:latest` thực ra FRESH (built 04:54 UTC today, KHÔNG phải stale `gap-284-test` như Wave 102.8 Bucket D giả định) → KHÔNG cần rebuild. Agent staged commits bị user kill mid-task (tới bước "Now let me update the CSV") do user thắc mắc "sao agent vẫn đang chạy"; coordinator inherit agent's work (3 artifact: audit + GAP-699 file + git mv 2 gaps) + sync CSV (GAP-518/519 → DONE, GAP-699 OPEN P1 row append) + commit + PR #1697. §2.4 result: 5 PASS (a/b/d/e/f) + 2 PARTIAL ((c) browser interactive code-cover Wave 101 A 27/27 unit tests; (g) gateway-blocked tracked GAP-699 separate scope per GAP-518 AC text). Audit `documents/04-quality/audits/local-stack/2026-05-21-wave-102-8-1-browser-walk-verify.md` 12 read-only commands + 3 findings (#1 gateway JWT_SECRET passthrough missing — Wave 89 Bucket A GAP-604 regression / #2 Postgres volume password drift workaround / #3 FE image fresh assumption correction). GAP-699 OPEN P1 DevOps — 2-line compose edit ~5-10min, promoted Wave 102.9 Bucket E SEQUENTIAL FIRST. PR: #1697 closure (commit `0238d5ef`).
 
 ### 🎉 Wave 102.8 SHIPPED 2026-05-21 — Self-Test Readiness Foundation (GAP-694 DONE + GAP-692 PARTIAL 33% + GAP-695 PARTIAL 50% + GAP-481 DONE + GAP-518 PARTIAL 99% + GAP-519 PARTIAL 90%)
 
