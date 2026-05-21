@@ -1,16 +1,15 @@
 ---
 paths:
   - "documents/**/README.md"
-  - "documents/**/*.md"
 ---
 
 # Docs Folder Structure — Generic Rule for `documents/`
 
 **Priority:** 🟠 MANDATORY — governance for all top-level folders trong `documents/`
-**Version:** 1.0.1
+**Version:** 1.0.2
 **Created:** 2026-04-18
-**Last-Reviewed:** 2026-05-14
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; Wave 73 Bucket A3 thêm `paths:` frontmatter — không đổi constraint, scope rule giữ nguyên, deferred-load khi không có file `documents/` trong context. v1.0.0 (giữ): solo-dev backfill per `rule-change-process.md` §3)
+**Last-Reviewed:** 2026-05-21
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.2 PATCH self-approve per `rule-change-process.md` §5; narrow `paths:` xuống chỉ `documents/**/README.md` (drop overly-broad `documents/**/*.md`) — rule §2 scope là folder README structure, không phải mọi document read. Wave 102.7.5 meta cleanup giảm wave-plan-read auto-load bundle. No constraint change; §2 review process unchanged. v1.0.1 (kept): paths added Wave 73 Bucket A3. v1.0.0 (giữ): solo-dev backfill per `rule-change-process.md` §3)
 **Applies to:** Every top-level folder under `documents/` (00-brd, 01-business, 02-architecture, 03-planning, 04-quality, 05-guides, 06-diagrams, 07-archived, 08-thesis, và future folders)
 
 ---
@@ -140,6 +139,7 @@ Folders không có rule chuyên biệt chỉ cần README theo template §3.
 
 ## 9. Log
 
+- **2026-05-21** (v1.0.2): Wave 102.7.5 meta cleanup — narrow `paths:` xuống `documents/**/README.md` only (drop `documents/**/*.md`). Rule §2 scope = folder README structure; broad pattern fired trên mọi document read (wave plan, gap file, audit, business doc) without rule relevance — measured cost: contributed ~14% context auto-load on single wave-plan read. Sync `rules-index.csv` path_trigger column. No constraint change; review process unchanged. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — path-scope narrowing per precedent v1.0.1 + `context-budget-mandate.md` §3.1 broad-glob anti-pattern).
 - **2026-05-14** (v1.0.1): Wave 73 Bucket A3 — thêm `paths:` frontmatter (`documents/**/README.md`, `documents/**/*.md`) cho Anthropic native deferred-loading. Path-scope MANDATORY rule giúp tiết kiệm token context khi session không động chạm `documents/`. Không đổi constraint, scope rule giữ nguyên. Sync `rules-index.csv` path_trigger column. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-04-28** (v1.0.0 backfill): Frontmatter backfill per GAP-249 — added Version + Last-Reviewed + Reviewer-Approver fields. No content change. Solo-dev PATCH self-approve per `rule-change-process.md` §5.
 - **2026-04-18:** Rule created (GAP-101) after planning docs restructure. Generalizes pattern từ 03-planning sang toàn documents/.
