@@ -28,6 +28,10 @@
 #                         Requires `aws ecr get-login-password` configured.
 
 set -e
+
+# GAP-694 Phase 0B preflight: verify Docker daemon reachable before any compose op.
+bash "$(dirname "$0")/check-docker.sh" || { echo "[up.sh] Docker preflight failed. See output above." >&2; exit 1; }
+
 cd "$(dirname "$0")/.."
 
 PROFILE=""
