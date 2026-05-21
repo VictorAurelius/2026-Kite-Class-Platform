@@ -11,6 +11,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
+# GAP-694 Phase 0B preflight: verify Docker daemon reachable before bootstrap.
+bash "$SCRIPT_DIR/check-docker.sh" || { echo "[setup.sh] Docker preflight failed. See output above." >&2; exit 1; }
+
 GREEN="\033[0;32m"
 YELLOW="\033[1;33m"
 RED="\033[0;31m"
