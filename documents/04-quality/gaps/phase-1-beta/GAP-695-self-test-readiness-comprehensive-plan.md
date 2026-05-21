@@ -1,6 +1,6 @@
 # GAP-695: Self-test readiness — comprehensive gap catalog + dependency-ordered fix plan
 
-**Status:** 🟡 PARTIAL 25% — Phase 0 investigation + catalog SHIPPED 2026-05-21; Tier 0-3 execution pending
+**Status:** 🟡 PARTIAL 50% — Phase 0 catalog SHIPPED 2026-05-21; Tier 0 (Bucket A Docker preflight + .env) + Tier 1 (Bucket D admin login + gateway routing) shipped 2026-05-21 Wave 102.8; Tier 2-3 execution pending Wave 102.9+
 **Priority:** 🔴 P0 (META — parent catalog cho mọi gap blocking actual self-test execution; force-multiplier per `meta-gap-priority.md` §3)
 **Domain:** DevOps + Meta
 **Detected:** 2026-05-21 (action-2.md line 73 user direction — "có thể self-test sớm nhất")
@@ -182,5 +182,15 @@ Per GAP-694 Phase 0B:
 - Outside-in audit synthesis 2026-05-21 (3 parallel agents output GAP-693/694 + this catalog gap)
 
 ## Log
+
+- **2026-05-21 (Wave 102.8 Bucket D)** — PARTIAL 25 → 50%. Tier 1 endpoint+auth verify SHIPPED via Bucket D execution.
+  - Consumed Bucket A Docker preflight + `.env` populate (Wave 102.8 Bucket A merged PR #1691): `bash kitehub/scripts/check-docker.sh` exit 0; `bash kitehub/scripts/setup.sh` generated `.env` với dev-safe secrets.
+  - Stack startup via `docker-compose -f docker-compose.kitehub.yml --profile beta-funnel up -d`: kite-postgres + kite-redis + kite-rabbitmq + kite-minio + kitehub-subscription + kitehub-admin + kitehub-email + kite-gateway + kitehub-frontend all UP healthy (after volume reset to clear stale postgres password).
+  - GAP-518 admin login PARTIAL 97 → 99% — curl-level (b)(d) PASS: `POST /api/auth/login admin@kitehub.com/Admin@KiteHub123` → 200 + JWT role=`ADMIN`.
+  - GAP-519 sidebar nav PARTIAL 80 → 90% — code-side Sidebar.tsx 4 testid'd links confirmed via direct Read.
+  - GAP-481 gateway routing OPEN → 🟢 DONE 100% — `for path in /api/v1/admin/beta-requests /api/v1/admin/instances /api/v1/admin/impersonate/start; do curl ... ; done` → all 400 (NOT 404) = routing PASS.
+  - Tier 1 (e)(f) browser walk PARTIAL — running FE image `gap-284-test` predates Wave 79+ `(admin)/admin/beta-requests` route group → 404 from runtime; rebuild needed to unlock. Code-side complete.
+  - Tier 2-3 execution defer Wave 102.9+ per scope (per `wave-closure-scope-completeness.md` §3 — explicitly tracked, not orphan).
+  - CSV row: completion_pct 25 → 50, last_verified 2026-05-21.
 
 - **2026-05-21** — Initial write-up (state-check completed per `audit-to-gap-pipeline.md` §2.5 + §2.8). Investigation method: (1) CSV query PARTIAL/OPEN phase-1-beta P0 gaps (30 found); (2) grep self-test/smoke/admin-login keywords (30 file matches); (3) Read Phase 0A audit `local-stack/2026-05-21-local-self-test-investigation.md` (16 commands + 3 root causes + 6 phantoms); (4) cross-reference 4 rules. **4-tier catalog** assembled: Tier 0 (Docker + .env + preflight ~1-1.5h) → Tier 1 (endpoint + auth ~2h) → Tier 2 (business flow ~3-4h) → Tier 3 (data realism ~5-6h optional). Critical path = Tier 0 → Tier 1 → Tier 2 = ~6-7h dev effort cho self-test execution working end-to-end (Tier 3 beta cohort polish, không block self-test itself). Per `gap-done-discipline.md` §3 PARTIAL exit ramp: GAP-695 stays PARTIAL 25% (catalog ship ≠ execution); Tier 0-3 execution tracked Phase 1-4 dependent on next sessions. Per `meta-gap-priority.md` §3 META P0 force-multiplier: 1 catalog → eliminate 30+ gap cross-reference overhead mỗi session restart. Reviewer self-approve solo-dev mode. CSV row added paired same-PR per `gap-architecture-v2.md` canonical store. ROADMAP §🚀 Next Action updated reference GAP-695 as parent catalog. Cross-link GAP-694 + GAP-693 updated. Plan doc `documents/05-guides/local-dev/self-test-readiness-plan.md` paired same-PR.
