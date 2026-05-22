@@ -246,7 +246,18 @@ audience: dev
 
 ---
 
-## 4. Verification Gates
+## 4. State-Check Evidence (BẮT BUỘC per `audit-to-gap-pipeline.md` §2.6)
+
+| Item | Verified | Source |
+|---|---|---|
+| Wave 102.9 closure state — 4 PRs ship docs-only state-check; gaps PARTIAL retained (AWS-blocked) | ✅ | `git log --oneline` confirms #1703/1705/1706/1707/1708 merged; gap-status.csv rows verified |
+| GAP-695 self-test catalog Tier 0/1 done Wave 102.8; Tier 2/3 pending | ✅ | `documents/04-quality/gaps/phase-1-beta/GAP-695-self-test-readiness-comprehensive-plan.md` |
+| GAP-612 AWS account suspended → live verify blocked | ✅ | Ginnette reply 2026-05-22 01:15 UTC; account not yet reinstated |
+| Inside-out queue 4 items beyond ROADMAP — none overlap Wave 103 scope | ✅ | `documents/03-planning/inside-out-queue.md` consulted |
+| Outside-in audit ≤30 days — 3-agent synthesis 2026-05-21 produced GAP-692/693/694/695 | ✅ | per `outside-in-coverage-trigger.md` §4 exception, skip OK |
+| Local stack runnable (Docker WSL preflight + .env) | ✅ | GAP-694 DONE Wave 102.8; preflight script `kitehub/scripts/check-docker.sh` PASS |
+
+## 5. Verification Gates
 
 | Gate | Check | When |
 |---|---|---|
@@ -256,9 +267,30 @@ audience: dev
 | Pre-merge | `./mvnw verify` PASS (Bucket A) + Playwright PASS (Bucket B) + CI green | Before squash-merge |
 | Post-merge | Wave 103 closure sync PR (ROADMAP + wave-history + handoff) | After all bucket PRs merged |
 
----
+## 6. Agent Spawn Pattern
 
-## 5. Acceptance Criteria (wave-level)
+- **Coordinator runs Bucket E inline** (~10min Docker stack-up + audit doc) — gates A/B/C/D/F
+- **5 buckets parallel background** via `Agent` tool with `isolation: worktree`:
+  - A admin walk (Opus medium)
+  - B owner walk (Opus full, longest ~2h)
+  - C 2FA TOTP (Opus medium, **defer until A done** — admin user state conflict)
+  - D email Mailhog (Sonnet)
+  - F AWS rebuild SOP draft (Sonnet, no infra dep)
+- **Max 4-5 parallel** per `feedback_parallel_agent_strategy.md`
+- **Each agent**: own worktree (auto-named branch) → commits + pushes own branch → reports back branch + summary
+- **Coordinator**: cherry-pick agent branches → wave/103-local-self-test → single PR → main
+
+## 7. Closure Protocol
+
+1. Verify all 6 bucket commits land on `wave/103-local-self-test`
+2. Create PR `wave/103-local-self-test → main` with comprehensive bucket-by-bucket summary + real bugs surfaced table + gap closure list + follow-up gap pointers
+3. Wait CI green (no `--admin` per `admin-merge-discipline.md`)
+4. Squash-merge to main
+5. Closure sync PR: ROADMAP §🎯 Current Status Snapshot entry + `wave-history.jsonl` append + `gap-status.csv` flip (8-10 gaps) + session-handoff `documents/03-planning/session-handoffs/2026-05-22-*.md`
+6. File follow-up gaps for real bugs surfaced (P0 from Bucket D + P1 from Bucket C + P2 from Bucket C side-find = ~5 new gap files)
+7. Update `audits-index.csv` with 5 new audit rows (one per Bucket E/A/B/C/D audit doc)
+
+## 8. Acceptance Criteria (wave-level)
 
 - [ ] Bucket E SHIPPED — local stack 9/9 healthy + audit artifact
 - [ ] Bucket A SHIPPED — admin persona walk evidence + GAP-637/620/518/519 DONE local

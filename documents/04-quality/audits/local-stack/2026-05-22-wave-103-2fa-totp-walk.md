@@ -60,7 +60,7 @@ Step 1.3: enroll-init via gateway port 9000 → **HTTP 401** (no body)
 Step 1.4: enroll-init direct to subscription port 8081 with Bearer challenge → **HTTP 401**
 Step 1.5: enroll-init direct + spoofed `X-User-Id` + `X-User-Roles` headers → **HTTP 200**:
 ```json
-{"secret":"2SDLJYECL7JJQERGXWMKF7W2O2H4SIU4","qr_uri":"otpauth://totp/admin%40kitehub.com?...&issuer=KiteHub","recovery_codes":["pbqzvsyu",...10 codes]}
+{"secret":"<REDACTED-32CHAR-TOTP-SECRET>","qr_uri":"otpauth://totp/admin%40kitehub.com?...&issuer=KiteHub","recovery_codes":["<REDACTED>",...10 codes]}
 ```
 
 Step 1.6: Compute TOTP code via `python3 -c "import pyotp; print(pyotp.TOTP('<secret>').now())"` → `698246`.
