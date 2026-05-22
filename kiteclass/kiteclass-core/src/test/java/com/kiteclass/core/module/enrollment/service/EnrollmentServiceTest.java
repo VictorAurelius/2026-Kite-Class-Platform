@@ -122,7 +122,7 @@ class EnrollmentServiceTest {
         // Arrange
         when(studentRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testStudent));
-        when(classRepository.findByIdAndDeletedFalse(1L))
+        when(classRepository.findByIdForEnrollmentWithLock(1L))
                 .thenReturn(Optional.of(testClass));
         when(enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(1L, 1L))
                 .thenReturn(Optional.empty());
@@ -168,7 +168,7 @@ class EnrollmentServiceTest {
         // Arrange
         when(studentRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testStudent));
-        when(classRepository.findByIdAndDeletedFalse(1L))
+        when(classRepository.findByIdForEnrollmentWithLock(1L))
                 .thenReturn(Optional.empty());
 
         // Act & Assert
@@ -184,7 +184,7 @@ class EnrollmentServiceTest {
         // Arrange
         when(studentRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testStudent));
-        when(classRepository.findByIdAndDeletedFalse(1L))
+        when(classRepository.findByIdForEnrollmentWithLock(1L))
                 .thenReturn(Optional.of(testClass));
         when(enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(1L, 1L))
                 .thenReturn(Optional.of(new Enrollment()));
@@ -202,7 +202,7 @@ class EnrollmentServiceTest {
         // Arrange
         when(studentRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testStudent));
-        when(classRepository.findByIdAndDeletedFalse(1L))
+        when(classRepository.findByIdForEnrollmentWithLock(1L))
                 .thenReturn(Optional.of(testClass));
         when(enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(1L, 1L))
                 .thenReturn(Optional.empty());
