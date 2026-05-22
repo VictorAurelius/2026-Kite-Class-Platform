@@ -40,16 +40,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("JwtAuthenticationGatewayFilter (kitehub-gateway / GAP-604)")
 class JwtAuthenticationGatewayFilterTest {
 
-    /** 32-byte test secret — đủ ≥256 bits cho HS256. */
+    /** 32-byte test secret — đủ ≥256 bits cho HS512. */
     private static final String TEST_SECRET = "test-secret-32-bytes-minimum-1234";
+
+    /** Separate 32-byte challenge secret — HS256, distinct from access-token key. */
+    private static final String TEST_CHALLENGE_SECRET = "challenge-secret-32-bytes-min-pad";
 
     private JwtAuthenticationGatewayFilter filter;
     private SecretKey signingKey;
+    private SecretKey challengeKey;
 
     @BeforeEach
     void setUp() {
-        filter = new JwtAuthenticationGatewayFilter(TEST_SECRET);
+        filter = new JwtAuthenticationGatewayFilter(TEST_SECRET, TEST_CHALLENGE_SECRET);
         signingKey = Keys.hmacShaKeyFor(TEST_SECRET.getBytes());
+        challengeKey = Keys.hmacShaKeyFor(TEST_CHALLENGE_SECRET.getBytes());
     }
 
     @Test
@@ -179,7 +184,13 @@ class JwtAuthenticationGatewayFilterTest {
         assertThat(filter.isPublicPath("/api/auth/login")).isTrue();
         assertThat(filter.isPublicPath("/api/auth/refresh")).isTrue();
         assertThat(filter.isPublicPath("/api/v1/auth/request-beta-access")).isTrue();
+        // /api/v1/auth/2fa/** is technically in the isPublicPath() prefix set, but
+        // filter() carves it out via isChallenge2faPath so the challenge bridge still
+        // runs. See GAP-705 cases below.
         assertThat(filter.isPublicPath("/api/v1/auth/2fa/verify")).isTrue();
+        assertThat(filter.isChallenge2faPath("/api/v1/auth/2fa/verify")).isTrue();
+        assertThat(filter.isChallenge2faPath("/api/auth/2fa/enroll-init")).isTrue();
+        assertThat(filter.isChallenge2faPath("/api/v1/admin/beta-requests")).isFalse();
         assertThat(filter.isPublicPath("/actuator/health")).isTrue();
         assertThat(filter.isPublicPath("/docs/swagger.json")).isTrue();
         assertThat(filter.isPublicPath("/fallback/auth")).isTrue();
@@ -260,14 +271,117 @@ class JwtAuthenticationGatewayFilterTest {
         // Blank → IllegalStateException
         org.junit.jupiter.api.Assertions.assertThrows(
                 IllegalStateException.class,
-                () -> new JwtAuthenticationGatewayFilter(""));
+                () -> new JwtAuthenticationGatewayFilter("", TEST_CHALLENGE_SECRET));
         org.junit.jupiter.api.Assertions.assertThrows(
                 IllegalStateException.class,
-                () -> new JwtAuthenticationGatewayFilter(null));
-        // Too short (<32 bytes) → IllegalStateException (HS256 yêu cầu ≥256 bits)
+                () -> new JwtAuthenticationGatewayFilter(null, TEST_CHALLENGE_SECRET));
+        // Too short (<32 bytes) → IllegalStateException (HS512 yêu cầu ≥256 bits)
         org.junit.jupiter.api.Assertions.assertThrows(
                 IllegalStateException.class,
-                () -> new JwtAuthenticationGatewayFilter("short-key"));
+                () -> new JwtAuthenticationGatewayFilter("short-key", TEST_CHALLENGE_SECRET));
+        // Challenge secret null/blank is tolerated (challenge bridge becomes a no-op);
+        // verified via constructor not throwing here.
+        new JwtAuthenticationGatewayFilter(TEST_SECRET, null);
+        new JwtAuthenticationGatewayFilter(TEST_SECRET, "");
+    }
+
+    /**
+     * GAP-705 Case A: HS256 challenge token on a 2FA path → filter accepts and
+     * propagates {@code X-User-Id} + {@code X-User-Roles=CHALLENGE} downstream.
+     * Closes the gateway side of "2FA enrollment via gateway 401" (GAP-705).
+     */
+    @Test
+    @DisplayName("GAP-705-A: HS256 challenge token on 2FA path → propagate X-User-Id + ROLE=CHALLENGE")
+    void shouldAcceptChallengeTokenOn2faPath() {
+        String challengeJwt = Jwts.builder()
+                .subject("user-challenge-123")
+                .claim("type", "challenge")
+                .claim("purpose", "TWO_FACTOR_VERIFY")
+                .issuedAt(Date.from(Instant.now()))
+                .expiration(Date.from(Instant.now().plusSeconds(300)))
+                .signWith(challengeKey)
+                .compact();
+
+        MockServerHttpRequest req = MockServerHttpRequest
+                .post("http://localhost/api/v1/auth/2fa/verify")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + challengeJwt)
+                .build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(req);
+        CapturingChain chain = new CapturingChain();
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        assertThat(chain.captured).as("challenge token on 2FA path MUST reach downstream").isNotNull();
+        ServerHttpRequest mutated = chain.captured.getRequest();
+        assertThat(mutated.getHeaders().getFirst(JwtAuthenticationGatewayFilter.HEADER_USER_ID))
+                .isEqualTo("user-challenge-123");
+        assertThat(mutated.getHeaders().getFirst(JwtAuthenticationGatewayFilter.HEADER_USER_ROLES))
+                .isEqualTo(JwtAuthenticationGatewayFilter.CHALLENGE_ROLE);
+        assertThat(exchange.getResponse().getStatusCode()).isNull();
+    }
+
+    /**
+     * GAP-705 Case B (defense-in-depth): HS256 challenge token on a NON-2FA path
+     * MUST be rejected. Separate key namespace must not be reusable to bypass
+     * access-token role-guard on admin/instance endpoints.
+     */
+    @Test
+    @DisplayName("GAP-705-B: HS256 challenge token on non-2FA path → 401 (defense-in-depth)")
+    void shouldRejectChallengeTokenOnNon2faPath() {
+        String challengeJwt = Jwts.builder()
+                .subject("user-evil-456")
+                .claim("type", "challenge")
+                .claim("purpose", "TWO_FACTOR_VERIFY")
+                .issuedAt(Date.from(Instant.now()))
+                .expiration(Date.from(Instant.now().plusSeconds(300)))
+                .signWith(challengeKey)
+                .compact();
+
+        MockServerHttpRequest req = MockServerHttpRequest
+                .get("http://localhost/api/v1/admin/beta-requests")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + challengeJwt)
+                .build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(req);
+        CapturingChain chain = new CapturingChain();
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(chain.captured).as("challenge token on non-2FA path MUST NOT reach downstream").isNull();
+    }
+
+    /**
+     * GAP-705 Case C: HS512 access token on a 2FA path still works (a fully-authed
+     * user with a regular access token can also hit /2fa/setup, e.g. for re-enrol).
+     */
+    @Test
+    @DisplayName("GAP-705-C: HS512 access token on 2FA path → standard propagation")
+    void shouldAcceptAccessTokenOn2faPath() {
+        String accessJwt = Jwts.builder()
+                .subject("user-access-789")
+                .claim("role", "PLATFORM_ADMIN")
+                .claim("email", "admin@kitehub.me")
+                .issuedAt(Date.from(Instant.now()))
+                .expiration(Date.from(Instant.now().plusSeconds(3600)))
+                .signWith(signingKey)
+                .compact();
+
+        MockServerHttpRequest req = MockServerHttpRequest
+                .post("http://localhost/api/v1/auth/2fa/setup")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessJwt)
+                .build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(req);
+        CapturingChain chain = new CapturingChain();
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        assertThat(chain.captured).isNotNull();
+        ServerHttpRequest mutated = chain.captured.getRequest();
+        assertThat(mutated.getHeaders().getFirst(JwtAuthenticationGatewayFilter.HEADER_USER_ID))
+                .isEqualTo("user-access-789");
+        assertThat(mutated.getHeaders().getFirst(JwtAuthenticationGatewayFilter.HEADER_USER_ROLES))
+                .isEqualTo("PLATFORM_ADMIN");
+        assertThat(exchange.getResponse().getStatusCode()).isNull();
     }
 
     @Test
