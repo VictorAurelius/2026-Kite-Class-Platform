@@ -1,0 +1,89 @@
+name: Quality — Infra (Alert runbook URL + Helm lint)
+
+# Split from script-quality.yml 21-job bloated workflow (2026-05-22)
+# Domain: infrastructure-touching jobs (Prometheus alert annotations + Helm chart lint)
+# Sister workflows:
+#   - quality-code.yml          — Bash / Python / Java + cross-layer + Mermaid
+#   - quality-docs.yml          — Documents / gaps / audits / waves / READMEs
+#   - quality-rules-skills.yml  — Rules / skills / Env vars / Meta CSV indexes
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/quality-infra.yml'
+      - 'infrastructure/helm/**'
+      - 'scripts/check-helm-lint.sh'
+      - '**/alert-rules.yml'
+      - '**/prometheusrule.yaml'
+      - 'scripts/check-alert-runbook-url.py'
+      - 'scripts/fixtures/alert-runbook-url/**'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  alert-runbook-url:
+    name: Alert runbook_url (Prometheus alert annotations)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Run self-test (4 fixtures — 2 PASS / 2 FAIL incl. Helm-templated)
+        run: |
+          # Self-test asserts script behavior on synthetic fixtures
+          # (good-with-runbook, good-helm-template → PASS;
+          #  bad-missing-runbook, bad-empty-runbook → FAIL).
+          # Fails fast if regex/scan logic regresses.
+          python3 scripts/check-alert-runbook-url.py --self-test
+
+      - name: Validate alert runbook_url annotations (blocking on FAIL)
+        run: |
+          # Default mode scans:
+          #   - kitehub/docker/prometheus/alert-rules.yml
+          #   - kiteclass/docker/prometheus/alert-rules.yml
+          #   - infrastructure/helm/kitehub/templates/prometheusrule.yaml
+          # Workflow paths filter already restricts this job to PRs touching
+          # alert YAML files or the validator — no need to re-filter changed files.
+          python3 scripts/check-alert-runbook-url.py
+
+
+  helm-lint:
+    name: Helm lint (`infrastructure/helm/kitehub`)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: azure/setup-helm@v5
+        with:
+          version: v3.16.2
+
+      - name: Run helm lint + template (blocking on FAIL)
+        env:
+          CI: 'true'
+        run: |
+          # Closes GAP-467 AC #5 — CI guard against Go-templates-in-values.yaml
+          # regression. Wave 57 chữa root cause (extract → templates/alertmanager-config.yaml);
+          # this job ensures `helm lint` + `helm template` stay clean on main.
+          # Workflow paths filter restricts this job to PRs touching
+          # infrastructure/helm/** or the validator script.
+          bash scripts/check-helm-lint.sh
+
+

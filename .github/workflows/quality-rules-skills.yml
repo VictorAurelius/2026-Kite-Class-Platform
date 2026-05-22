@@ -1,0 +1,245 @@
+name: Quality — Rules / Skills (Rule frontmatter + Skill conventions + Rule staleness + Rule count + Meta CSV + Env vars)
+
+# Split from script-quality.yml 21-job bloated workflow (2026-05-22)
+# Domain: Claude rules + skills governance + env-reference render + Meta CSV indexes (ADRs + Rules)
+# Sister workflows:
+#   - quality-code.yml          — Bash / Python / Java + cross-layer + Mermaid
+#   - quality-docs.yml          — Documents / gaps / audits / waves / READMEs
+#   - quality-infra.yml         — Helm / Prometheus alerts
+#
+# Baseline (2026-04-28): rule-frontmatter = 14/14 rules compliant; skill-conventions = 44 PASS / 38 WARN / 0 FAIL.
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/quality-rules-skills.yml'
+      - '.claude/rules/**'
+      - '.claude/skills/**'
+      - 'documents/02-architecture/adr/**'
+      - 'documents/02-architecture/env-reference.yaml'
+      - 'scripts/check-rule-frontmatter.sh'
+      - 'scripts/check-skill-conventions.sh'
+      - 'scripts/check-rule-staleness.sh'
+      - 'scripts/check-rule-count-ceiling.sh'
+      - 'scripts/check-adrs-index-csv.sh'
+      - 'scripts/check-rules-index-csv.sh'
+      - 'scripts/render-env-vars.sh'
+      - 'scripts/check-unresolved-env-vars.sh'
+      - 'scripts/fixtures/rule-frontmatter/**'
+      - '.claude/skills/quality/skill-conventions-check/data/fixtures/**'
+      - '.claude/rules/_examples/env-reference-self-test*.md'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  rule-frontmatter:
+    name: Rule frontmatter (`.claude/rules/*.md`)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Determine changed rule files
+        id: changed
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ] || [ "$BASE" = "$HEAD" ]; then
+            FILES=$(find .claude/rules -maxdepth 1 -name '*.md' -type f 2>/dev/null | tr '\n' ' ')
+          else
+            FILES=$(git diff --name-only --diff-filter=AMR "$BASE" "$HEAD" -- '.claude/rules/*.md' | tr '\n' ' ')
+          fi
+          # Also pick up changes to the validator script or its fixtures —
+          # any of those should re-run the full directory scan.
+          if git diff --name-only --diff-filter=AMR "$BASE" "$HEAD" -- 'scripts/check-rule-frontmatter.sh' 'scripts/fixtures/rule-frontmatter' 2>/dev/null | grep -q .; then
+            FILES=$(find .claude/rules -maxdepth 1 -name '*.md' -type f 2>/dev/null | tr '\n' ' ')
+          fi
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+          echo "Changed rule files: $FILES"
+
+      - name: Run self-test (fixtures)
+        if: steps.changed.outputs.files != ''
+        run: |
+          echo "Running self-test against synthetic fixtures..."
+          bash scripts/check-rule-frontmatter.sh --self-test
+
+      - name: Validate changed rule files (blocking)
+        if: steps.changed.outputs.files != ''
+        run: |
+          echo "Validating frontmatter for changed rule files..."
+          bash scripts/check-rule-frontmatter.sh --all --paths "${{ steps.changed.outputs.files }}"
+
+      - name: No rule files changed
+        if: steps.changed.outputs.files == ''
+        run: echo "No rule files changed — skipping."
+
+
+  skill-conventions:
+    name: Skill conventions (`.claude/skills/**/SKILL.md`)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Determine changed skill files
+        id: changed
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ] || [ "$BASE" = "$HEAD" ]; then
+            FILES=$(find .claude/skills -name '*.md' -type f 2>/dev/null | tr '\n' ' ')
+          else
+            FILES=$(git diff --name-only --diff-filter=AMR "$BASE" "$HEAD" -- '.claude/skills/**' | tr '\n' ' ')
+          fi
+          # Also re-scan whole skills tree on validator script or fixture changes
+          if git diff --name-only --diff-filter=AMR "$BASE" "$HEAD" -- 'scripts/check-skill-conventions.sh' '.claude/skills/quality/skill-conventions-check/data/fixtures' 2>/dev/null | grep -q .; then
+            FILES=$(find .claude/skills -name '*.md' -type f 2>/dev/null | tr '\n' ' ')
+          fi
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+          echo "Changed skill files: $FILES"
+
+      - name: Validate skill conventions (blocking on FAIL, WARN-only allowed)
+        if: steps.changed.outputs.files != ''
+        run: |
+          echo "Running skill-conventions full-repo check..."
+          # Script exits 0 on PASS+WARN-only (grandfathered exemptions); exits 1 on any FAIL.
+          # See .claude/rules/skill-conventions.md + GAP-251 for spec.
+          bash scripts/check-skill-conventions.sh
+
+      - name: No skill files changed
+        if: steps.changed.outputs.files == ''
+        run: echo "No skill files changed — skipping."
+
+
+  meta-csv-indexes:
+    name: Meta CSV indexes (ADRs + Rules)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate adrs-index.csv (100% coverage)
+        run: |
+          # Per `.claude/rules/meta-csv-index-pattern.md`: every ADR file MUST
+          # have a CSV row + every row MUST point to existing file. CSV is
+          # canonical for ADR enumeration (number, status, date, title).
+          bash scripts/check-adrs-index-csv.sh
+
+      - name: Validate rules-index.csv (100% coverage)
+        run: |
+          # Per `.claude/rules/meta-csv-index-pattern.md`: every rule file MUST
+          # have a CSV row. CSV is canonical for rule enumeration. Content
+          # validation (Last-Reviewed ≤ today, etc.) handled by separate
+          # `rule-frontmatter` job above.
+          bash scripts/check-rules-index-csv.sh
+
+
+  rule-staleness:
+    name: Rule staleness (`Last-Reviewed` freshness, WARN mode)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate Last-Reviewed freshness (WARN mode, 30-day grace from Wave 76 merge)
+        env:
+          # WARN mode = exit 0 unless Last-Reviewed missing/invalid.
+          # Flip to "0" after grace period (target: 2026-06-13, ~30 days from
+          # Wave 76 Bucket D merge) to activate HARD STOP at FAIL threshold.
+          # See `.claude/rules/rule-change-process.md` §3.5 staleness policy.
+          RULE_STALE_WARN_MODE: '1'
+          RULE_STALE_WARN_DAYS: '60'
+          RULE_STALE_FAIL_DAYS: '180'
+        run: |
+          # Validates `**Last-Reviewed:** YYYY-MM-DD` field freshness across
+          # `.claude/rules/*.md`. WARN at 60 days, FAIL at 180 days.
+          # WARN mode (current): exit 0 unless field missing/invalid.
+          bash scripts/check-rule-staleness.sh
+
+
+  rule-count-ceiling:
+    name: Rule count ceiling (free-growth ≤50, HARD STOP >100)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Count `.claude/rules/*.md` against policy thresholds
+        run: |
+          # Per `.claude/rules/README.md` "Rule count ceiling policy":
+          #   ≤50 free growth, 51-75 INFO, 76-100 WARN, >100 HARD STOP.
+          # Exit 1 only when count > 100 (consolidation required before add).
+          bash scripts/check-rule-count-ceiling.sh
+
+
+  env-vars-render:
+    name: Env-vars render roundtrip (env-reference.yaml + render-env-vars.sh)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python (for YAML parsing in render-env-vars.sh)
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install PyYAML
+        run: pip install PyYAML
+
+      - name: Render self-test fixture for production env
+        run: |
+          # Per `markdown-variable-reference.md` v1.0.0 §5.2 CI gate
+          # + GAP-692 Phase 1 (Wave 102.8 Bucket B 2026-05-21).
+          # Render must produce byte-identical output vs committed control file.
+          bash scripts/render-env-vars.sh production \
+            documents/02-architecture/env-reference.yaml \
+            .claude/rules/_examples/env-reference-self-test.md \
+            /tmp/env-reference-rendered.md
+
+      - name: Verify no unresolved {{var}} placeholders
+        run: |
+          # Per `markdown-variable-reference.md` v1.0.0 §5.1 tooling.
+          bash scripts/check-unresolved-env-vars.sh /tmp/env-reference-rendered.md
+
+      - name: Diff vs committed expected control file (byte-identical mandate)
+        run: |
+          # Per `markdown-variable-reference.md` v1.0.0 §7 self-test —
+          # ensure env-reference.yaml drift surfaces immediately.
+          # FAIL if render output differs from control; update control + re-commit if intentional.
+          diff -u .claude/rules/_examples/env-reference-self-test-expected-production.md /tmp/env-reference-rendered.md
+
+
