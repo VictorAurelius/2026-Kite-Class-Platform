@@ -1,0 +1,33 @@
+{
+  "pr": 1710,
+  "title": "chore(wave-103-closure-sync): 12 gap flips + 4 DONE archive + ROADMAP + handoff",
+  "branch": "chore/wave-103-closure-sync",
+  "created_at": null,
+  "merged_at": "2026-05-22T06:21:30Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-22T06:21:35.648930",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 9,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-447704"
+  }
+}
