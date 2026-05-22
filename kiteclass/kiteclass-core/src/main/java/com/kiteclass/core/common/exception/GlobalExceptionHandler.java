@@ -9,6 +9,8 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -231,6 +233,33 @@ public class GlobalExceptionHandler {
                 path);
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    /**
+     * Handles Spring Security authorization deny — maps to HTTP 403 Forbidden.
+     *
+     * <p>Without this handler, {@code @PreAuthorize} deny decisions bubble up
+     * to the catch-all {@link #handleUnexpectedException} as 500 Internal Server
+     * Error. Per-resource authz (Wave 105 Bucket C/E `@authz.hasAccessToClass`)
+     * must surface as 403 so clients can distinguish authz deny from system
+     * faults. Covers both Spring 6.x {@link AuthorizationDeniedException} and
+     * legacy {@link AccessDeniedException} aliases.
+     */
+    @ExceptionHandler({AuthorizationDeniedException.class, AccessDeniedException.class})
+    public ResponseEntity<ErrorResponse> handleAuthorizationDenied(
+            RuntimeException ex,
+            HttpServletRequest request) {
+
+        log.warn("Authorization denied at {}: {}",
+                request.getRequestURI(), ex.getMessage());
+
+        String path = request.getRequestURI();
+        ErrorResponse response = ErrorResponse.of(
+                "ACCESS_DENIED",
+                "You do not have permission to access this resource.",
+                path);
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
     /**
