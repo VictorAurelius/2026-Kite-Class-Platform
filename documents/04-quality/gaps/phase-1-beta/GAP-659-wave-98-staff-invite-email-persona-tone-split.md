@@ -98,6 +98,7 @@ After this gap DONE → GAP-543 §AC update:
 
 ## Log
 
+- **2026-05-21 (Wave 102.9 Bucket D fix-time state-check):** Per `audit-to-gap-pipeline.md` §2.8 verified Wave 98 B1 work intact — `invite-staff.html` + `invite-staff.txt` templates exist; `Tone.java` enum exists tại `kitehub-email/src/main/java/com/kitehub/email/api/Tone.java` với FORMAL_SAFE_DEFAULT; `EmailTemplateRenderer.java` exists. Remaining AC (native VN copywriter review + persona-tone matrix doc + mvn verify) require external/live-stack work, defer. Status PARTIAL 80% retained — no progress this wave. State-check artifact: `documents/04-quality/audits/persona-review/2026-05-21-wave-102.9-bucket-d-email-content-headers-state-check.md`. Sister to A+B+C state-check pattern.
 - **2026-05-18 (Wave 98 B1 PARTIAL 80%):** Shipped content + tone foundation:
   - `staff-invite` HTML + `.txt` templates already existed (verified `kitehub/kitehub-email/src/main/resources/templates/emails/invite-staff.html` + `invite-staff.txt`). Existing variables (`recipientName`/`ownerName`/`tenantName`/`role`/`inviteUrl`/`expiresAt`) match GAP-659 spec close enough — `centerName` semantically equivalent to `tenantName`; `inviteeName` covered by `recipientName`; `expiryHours` covered by `expiresAt` narrative.
   - `Tone` enum (`com.kitehub.email.api.Tone`) — 4 values (FORMAL_AUTHORITY / SEMI_FORMAL_PEER / INFORMAL_FRIEND / FORMAL_SAFE_DEFAULT) + `fromRole(String)` static method with case-insensitive role mapping.
