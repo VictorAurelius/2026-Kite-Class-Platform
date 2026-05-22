@@ -47,7 +47,7 @@ import static org.mockito.Mockito.when;
  * {@code verify(...).send(captor.capture())} after exercising
  * {@link SESEmailService#sendTemplatedEmail}; introspect headers + body.</p>
  *
- * <p><b>NOTE — both tests disabled Wave 104 closure (GAP-708 follow-up):</b>
+ * <p><b>NOTE — both tests disabled Wave 104 closure (GAP-710 follow-up):</b>
  * Test harness's standalone Thymeleaf resolver chain (htmlResolver `.html` +
  * textResolver `""`) does not match production's
  * {@code EmailTemplateResolverConfig} dual-mode setup, causing the rendered
@@ -55,10 +55,10 @@ import static org.mockito.Mockito.when;
  * via end-to-end Mailhog inspection in Wave 104.5 Bucket E follow-up. Re-enable
  * after refactoring test to use the production resolver bean directly (e.g.
  * {@code @SpringBootTest} slice) or fixing the suffix-conflict in standalone
- * setup. Tracked: GAP-708.</p>
+ * setup. Tracked: GAP-710.</p>
  */
 @DisplayName("Email hardening — List-Unsubscribe + multipart/alternative (GAP-703)")
-@Disabled("GAP-708 — test harness Thymeleaf resolver mismatch; production verified via Bucket E follow-up")
+@Disabled("GAP-710 — test harness Thymeleaf resolver mismatch; production verified via Bucket E follow-up")
 class EmailHardeningTest {
 
     private SESConfig.SESProperties sesProperties;
