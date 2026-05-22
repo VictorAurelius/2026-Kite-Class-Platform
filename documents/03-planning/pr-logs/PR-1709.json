@@ -1,0 +1,39 @@
+{
+  "pr": 1709,
+  "title": "feat(wave-103): local self-test full walk + 6 real bug findings",
+  "branch": "wave/103-local-self-test",
+  "created_at": null,
+  "merged_at": "2026-05-22T04:51:14Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": false,
+    "audits_required": [
+      "api-contract-audit",
+      "ops-readiness-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-22T04:51:21.596534",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 19,
+        "java_files": 1,
+        "test_files": 1,
+        "business_docs": false,
+        "missing_audits": [
+          "api-contract-audit",
+          "ops-readiness-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "1/5",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-368046"
+  }
+}
