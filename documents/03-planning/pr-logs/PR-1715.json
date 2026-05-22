@@ -1,0 +1,41 @@
+{
+  "pr": 1715,
+  "title": "fix(wave-104.5): Bucket E live verify + ALL 5 follow-up gaps fixed end-to-end",
+  "branch": "chore/wave-104-bucket-e-partial-verify-and-rebuild-fix",
+  "created_at": null,
+  "merged_at": "2026-05-22T11:43:25Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": false,
+    "audits_required": [
+      "business-logic-audit",
+      "api-contract-audit",
+      "ops-readiness-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-22T11:43:33.829391",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 17,
+        "java_files": 5,
+        "test_files": 0,
+        "business_docs": false,
+        "missing_audits": [
+          "business-logic-audit",
+          "api-contract-audit",
+          "ops-readiness-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/4",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-65751"
+  }
+}
