@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,9 +90,14 @@ public class LoginAuditService {
             }
 
             // Cooldown check: same fingerprint seen in last 24h? Skip alert.
+            // Bounded to 1 row via Pageable so multi-row hit cannot emit
+            // "Query did not return a unique result" WARN (GAP-707).
             LocalDateTime cooldownStart = now.minusHours(ALERT_COOLDOWN_HOURS);
             Optional<LoginAuditLog> prior = repository
-                .findRecentByUserAndFingerprint(user.getId(), fingerprint, cooldownStart)
+                .findRecentByUserAndFingerprint(
+                    user.getId(), fingerprint, cooldownStart, PageRequest.of(0, 1))
+                .stream()
+                .findFirst()
                 // Filter out the row we just inserted
                 .filter(r -> !r.getId().equals(row.getId()));
 

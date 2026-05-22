@@ -12,9 +12,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -80,8 +82,8 @@ class LoginAuditServiceTest {
     void knownFingerprintWithinCooldown_noEvent() {
         // Pretend repository already has a recent matching row for this fingerprint
         when(repository.findRecentByUserAndFingerprint(eq(adminUser.getId()),
-                anyString(), any(LocalDateTime.class)))
-            .thenReturn(Optional.of(LoginAuditLog.builder().id(99L).build()));
+                anyString(), any(LocalDateTime.class), any(Pageable.class)))
+            .thenReturn(List.of(LoginAuditLog.builder().id(99L).build()));
 
         service.recordLogin(adminUser, request);
 
@@ -91,8 +93,8 @@ class LoginAuditServiceTest {
     @Test
     @DisplayName("New fingerprint for non-PLATFORM_ADMIN → NO event emitted")
     void newFingerprintNonAdmin_noEvent() {
-        when(repository.findRecentByUserAndFingerprint(any(), anyString(), any()))
-            .thenReturn(Optional.empty());
+        when(repository.findRecentByUserAndFingerprint(any(), anyString(), any(), any(Pageable.class)))
+            .thenReturn(List.of());
 
         service.recordLogin(regularUser, request);
 
@@ -104,8 +106,8 @@ class LoginAuditServiceTest {
     @Test
     @DisplayName("New fingerprint for PLATFORM_ADMIN → event emitted + alert_sent=true")
     void newFingerprintAdmin_eventEmittedAndFlagged() {
-        when(repository.findRecentByUserAndFingerprint(any(), anyString(), any()))
-            .thenReturn(Optional.empty());
+        when(repository.findRecentByUserAndFingerprint(any(), anyString(), any(), any(Pageable.class)))
+            .thenReturn(List.of());
 
         service.recordLogin(adminUser, request);
 
@@ -128,15 +130,15 @@ class LoginAuditServiceTest {
     @DisplayName("24h cooldown: same fingerprint twice for admin → only first emits event")
     void cooldownEnforced_secondCallSuppressed() {
         // First call: no prior row → event fires
-        when(repository.findRecentByUserAndFingerprint(any(), anyString(), any()))
-            .thenReturn(Optional.empty());
+        when(repository.findRecentByUserAndFingerprint(any(), anyString(), any(), any(Pageable.class)))
+            .thenReturn(List.of());
         service.recordLogin(adminUser, request);
         verify(eventPublisher, times(1)).publishEvent(any(AdminLoginNewFingerprintEvent.class));
 
         // Second call: simulate the just-saved row being within cooldown
         // (the filter excludes the same id, but we mock a DIFFERENT prior id)
-        when(repository.findRecentByUserAndFingerprint(any(), anyString(), any()))
-            .thenReturn(Optional.of(LoginAuditLog.builder().id(7L).build()));
+        when(repository.findRecentByUserAndFingerprint(any(), anyString(), any(), any(Pageable.class)))
+            .thenReturn(List.of(LoginAuditLog.builder().id(7L).build()));
         service.recordLogin(adminUser, request);
 
         // Still only 1 event emitted total — second call suppressed by cooldown
@@ -146,14 +148,43 @@ class LoginAuditServiceTest {
     @Test
     @DisplayName("Null HttpServletRequest → audit still attempted, no NPE")
     void nullRequest_noNpe() {
-        when(repository.findRecentByUserAndFingerprint(any(), anyString(), any()))
-            .thenReturn(Optional.empty());
+        when(repository.findRecentByUserAndFingerprint(any(), anyString(), any(), any(Pageable.class)))
+            .thenReturn(List.of());
 
         // Should not throw
         service.recordLogin(adminUser, null);
 
         // Event still fires with null ip/ua
         verify(eventPublisher, times(1)).publishEvent(any(AdminLoginNewFingerprintEvent.class));
+    }
+
+    @Test
+    @DisplayName("GAP-707: multi-row cooldown hit → no 'unique result' WARN + cooldown still enforced")
+    void multiRowCooldownHit_pageBoundedQuery_noWarn() {
+        // Scenario: admin user has multiple prior rows for same fingerprint within
+        // cooldown window (which is the COMMON case — every successful login adds a row).
+        // Pre-fix: repository returned Optional but @Query had no LIMIT → Spring emitted
+        // "Query did not return a unique result" WARN per login.
+        // Post-fix: query returns List bounded by Pageable to size 1 → no WARN, just
+        // the most recent prior row.
+        LoginAuditLog mostRecentPrior = LoginAuditLog.builder().id(7L).build();
+        when(repository.findRecentByUserAndFingerprint(
+                any(), anyString(), any(), any(Pageable.class)))
+            .thenReturn(List.of(mostRecentPrior));
+
+        service.recordLogin(adminUser, request);
+
+        // Cooldown logic still works deterministically: prior row found → no event emitted
+        verify(eventPublisher, never()).publishEvent(any(AdminLoginNewFingerprintEvent.class));
+
+        // Verify repository called with PageRequest.of(0, 1) — query bound to single result
+        ArgumentCaptor<Pageable> pageableCap = ArgumentCaptor.forClass(Pageable.class);
+        verify(repository, times(1)).findRecentByUserAndFingerprint(
+            eq(adminUser.getId()), anyString(), any(LocalDateTime.class), pageableCap.capture());
+        Pageable used = pageableCap.getValue();
+        assertThat(used.getPageSize()).isEqualTo(1);
+        assertThat(used.getPageNumber()).isEqualTo(0);
+        assertThat(used).isEqualTo(PageRequest.of(0, 1));
     }
 
     @Test
