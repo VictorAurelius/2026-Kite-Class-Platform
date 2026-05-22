@@ -147,6 +147,8 @@ If 6th recurrence detected, escalate to meta-rule audit (this rule's enforcement
 
 ### Step 2.7: Decision-Doc Code-Sync (BẮT BUỘC trong cùng PR khi decision-doc thay đổi config-shaped value)
 
+> **Sister rule (inverse direction):** `.claude/rules/local-fix-production-parity-check.md` v1.0.0 covers `code/config-fix → prod-env-surface-sweep` direction (e.g., new `@Value` annotation lands locally → check terraform IaC + IAM grant + fetch-secrets.sh + Secrets Manager). Both rules fire at PR boundary; pick correct direction based on which side moved first (decision-doc lands first vs code-fix lands first).
+
 **Why this exists:** §2.5 covers state-check at gap-FILING (catch gaps proposing already-shipped work). §2.6 covers state-check at WAVE-PLANNING (catch plans referencing absent symbols). NEITHER covers the inverse direction: when a **decision document lands changing a config-shaped value**, are there stale code references that would silently drift?
 
 Decision docs (gap files flipped DONE with a config decision, ADRs, runbooks, brand/policy guides) effectively introduce a new "ground truth" value. Code that references the OLD value becomes stale immediately on merge — but no rule forced a sync until something downstream broke. Per `incident-to-rule-pipeline.md` 5-stage applied to 2026-05-10 GAP-458→GAP-459 cascade (worked example below), this is rule-worthy: same class will recur on every brand/email/domain/env-var/region/payment-processor change.

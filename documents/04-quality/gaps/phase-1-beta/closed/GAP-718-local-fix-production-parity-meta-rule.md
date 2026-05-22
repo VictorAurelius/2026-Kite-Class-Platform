@@ -1,11 +1,13 @@
 ---
 id: GAP-718
 title: META rule — local code/config fix MUST check production-equivalent surface trong cùng PR
-status: OPEN
+status: DONE
 priority: P0
 phase: phase-1-beta
 audience: dev
 found: 2026-05-22
+last_verified: 2026-05-22
+completion_pct: 100
 related: [GAP-717, GAP-156]
 ---
 
@@ -144,14 +146,18 @@ Wave 105 Bucket E0 — concrete fix GAP-717 + ship this rule. Self-test §6 retr
 
 ## Acceptance Criteria
 
-- [ ] `.claude/rules/local-fix-production-parity-check.md` v1.0.0 shipped với 9 sections
-- [ ] Memory `feedback_local_fix_production_parity.md` paired same-PR (per Enforcement Parity Mandate)
-- [ ] §3 production-equivalent surfaces table covers 5 trigger paths
-- [ ] §6 worked self-test retroactive on Wave 104.5 GAP-717 incident
-- [ ] `output-review-mandate.md` §3 matrix row added cho "Local fix production parity"
-- [ ] `rules-index.csv` row added
-- [ ] Cross-link updates trong related rules (`audit-to-gap-pipeline.md` §2.7 + `production-env-config-registry.md` §11)
-- [ ] Wave 105 Bucket E0 ship cùng PR với GAP-717 fix
+- [x] `.claude/rules/local-fix-production-parity-check.md` v1.0.0 shipped với 8 sections (Wave 105 Bucket E0)
+- [x] Memory `feedback_local_fix_production_parity.md` paired same-PR (per Enforcement Parity Mandate) — shipped to user-memory dir + MEMORY.md index updated
+- [x] §2 production-equivalent surfaces table covers 6 trigger paths (extended from original 5)
+- [x] §6 worked self-test retroactive on Wave 81 + Wave 104.5 same incident class (broader scope than original Wave 104.5 only)
+- [x] `output-review-mandate.md` §3 matrix row added cho "Local fix production parity"
+- [x] `rules-index.csv` row added
+- [x] Cross-link updates trong related rules (`audit-to-gap-pipeline.md` §2.7 sister inverse direction + `production-env-config-registry.md` §11 sister per-PR check)
+- [x] Wave 105 Bucket E0 ship cùng PR với GAP-717 fix
+
+## Log
+
+- **2026-05-22 (Wave 105 Bucket E0):** Status `OPEN` → `🟢 DONE` (completion_pct 100). Rule `.claude/rules/local-fix-production-parity-check.md` v1.0.0 shipped với 8 sections (§1 Rule + §2 5-row matrix + §3 3-outcome required artifacts + §4 banned shortcuts + §5 enforcement + §6 worked self-test retroactive Wave 81 + Wave 104.5 + §7 relationship + §8 Log). Memory `feedback_local_fix_production_parity.md` paired user-memory dir + MEMORY.md index. Cross-links updated: `audit-to-gap-pipeline.md` §2.7 (sister inverse direction note) + `production-env-config-registry.md` §11 (sister per-PR check note). `rules-index.csv` row added. `output-review-mandate.md` §3 matrix row added. Sister concrete GAP-717 flipped PARTIAL (terraform IaC declared; live verify deferred GAP-612 unblock). Per `rule-change-process.md` §6.5 Enforcement Parity Mandate: rule + memory + worked self-test + 4 cross-link updates + paired GAP-717 fix all shipped same Wave 105 Bucket E0 PR. Self-approve per §5: MINOR — new constraint codifying previously-uncovered class, no constraint loosening, existing PRs grandfathered, rule applies prospectively from Wave 105+.
 
 ## Related
 
