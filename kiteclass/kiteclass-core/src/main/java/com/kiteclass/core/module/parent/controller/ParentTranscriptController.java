@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -51,9 +52,11 @@ public class ParentTranscriptController {
      *   <li>403 {@code PARENT_NOT_LINKED} — no active link to {@code childId}.</li>
      * </ul>
      */
+    @PreAuthorize("@authz.hasAccessToChild(#childId)")
     @GetMapping("/children/{childId}/transcript")
     @Operation(summary = "List transcripts for one of the parent's linked children",
-            description = "BR-PARENT-PORTAL-001: 403 PARENT_NOT_LINKED if parent is not linked to the requested child.")
+            description = "BR-PARENT-PORTAL-001: 403 PARENT_NOT_LINKED if parent is not linked to the requested child. "
+                    + "Per-resource authz via @authz.hasAccessToChild (OWASP A01 defense-in-depth) — Wave 105 Bucket E0.")
     public ResponseEntity<ApiResponse<List<TranscriptResponse>>> getChildTranscript(
             @PathVariable Long childId,
             @RequestHeader(value = "X-User-Reference-Id", required = false) Long parentId) {

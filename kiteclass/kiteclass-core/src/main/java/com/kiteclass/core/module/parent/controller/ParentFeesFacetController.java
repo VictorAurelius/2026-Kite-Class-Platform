@@ -15,6 +15,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -45,9 +46,11 @@ public class ParentFeesFacetController {
 
     private final ParentFeesFacetService service;
 
+    @PreAuthorize("@authz.hasAccessToChild(#childId)")
     @GetMapping("/children/{childId}/fees")
     @Operation(summary = "List fees/invoices for one of the parent's linked children",
-            description = "BR-PARENT-FACET-FEES-001: 403 PARENT_FACET_FORBIDDEN if parent is not linked.")
+            description = "BR-PARENT-FACET-FEES-001: 403 PARENT_FACET_FORBIDDEN if parent is not linked. "
+                    + "Per-resource authz via @authz.hasAccessToChild (OWASP A01 defense-in-depth) — Wave 105 Bucket E0.")
     public ResponseEntity<ApiResponse<Page<ParentFeeFacetResponse>>> getChildFees(
             @PathVariable Long childId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,

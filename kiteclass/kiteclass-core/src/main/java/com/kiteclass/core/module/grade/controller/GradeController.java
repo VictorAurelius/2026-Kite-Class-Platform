@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,7 +46,11 @@ public class GradeController {
 
     /**
      * Initialize grade for a student in a class.
+     *
+     * <p>Per-resource authz via {@code @authz.hasAccessToClass} (OWASP A01) —
+     * Wave 105 Bucket E0.
      */
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     @PostMapping("/initialize")
     public ResponseEntity<ApiResponse<GradeResponse>> initializeGrade(
             @RequestParam Long studentId,
@@ -90,7 +95,11 @@ public class GradeController {
 
     /**
      * Get all grades by class ID (summary view).
+     *
+     * <p>Per-resource authz via {@code @authz.hasAccessToClass} (OWASP A01) —
+     * Wave 105 Bucket E0.
      */
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     @GetMapping("/class/{classId}")
     public ResponseEntity<ApiResponse<List<GradingSummaryResponse>>> getGradesByClass(
             @PathVariable Long classId) {

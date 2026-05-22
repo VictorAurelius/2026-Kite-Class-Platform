@@ -18,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -81,9 +82,11 @@ public class AttendanceController {
      * @param teacherId teacher ID from header (must be MAIN_TEACHER)
      * @return list of created attendance records
      */
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     @PostMapping("/classes/{classId}/sessions/{sessionId}/attendance")
     @Operation(summary = "Bulk mark attendance for a session",
-               description = "Creates multiple attendance records for a session. Only MAIN_TEACHER can mark attendance.")
+               description = "Creates multiple attendance records for a session. Only MAIN_TEACHER can mark attendance. "
+                       + "Per-resource authz via @authz.hasAccessToClass (OWASP A01) — Wave 105 Bucket E0.")
     public ResponseEntity<List<AttendanceResponse>> markBulkAttendance(
             @Parameter(description = "Class ID") @PathVariable Long classId,
             @Parameter(description = "Session ID") @PathVariable Long sessionId,
@@ -144,9 +147,11 @@ public class AttendanceController {
      * @param pageable pagination parameters
      * @return page of attendance records
      */
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     @GetMapping("/classes/{classId}/sessions/{sessionId}/attendance")
     @Operation(summary = "Get attendance roster for a session",
-               description = "Returns all attendance records for a specific session.")
+               description = "Returns all attendance records for a specific session. "
+                       + "Per-resource authz via @authz.hasAccessToClass (OWASP A01) — Wave 105 Bucket E0.")
     public ResponseEntity<Page<AttendanceResponse>> getAttendanceBySession(
             @Parameter(description = "Class ID") @PathVariable Long classId,
             @Parameter(description = "Session ID") @PathVariable Long sessionId,
