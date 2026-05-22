@@ -1,0 +1,37 @@
+{
+  "pr": 1727,
+  "title": "feat(wave-105-bucket-e): Security P0 cluster \u2014 5 real-code bug fixes (B1/D1, A4, A1, B5, C3/D3)",
+  "branch": "wave/105-bucket-e-security-p0",
+  "created_at": null,
+  "merged_at": "2026-05-22T17:14:34Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": false,
+    "audits_required": [
+      "api-contract-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-23T00:14:38.847002",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 17,
+        "java_files": 11,
+        "test_files": 5,
+        "business_docs": false,
+        "missing_audits": [
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "1/5",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-10637"
+  }
+}
