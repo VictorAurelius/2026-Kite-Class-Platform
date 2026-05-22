@@ -85,6 +85,7 @@ User confirm 2026-05-14: "Email content audit vào Wave 78" (1 trong 3 inside-ou
 
 ## Log
 
+- **2026-05-21 (Wave 102.9 Bucket D fix-time state-check):** Per `audit-to-gap-pipeline.md` §2.8 verified Wave 98 B1 work intact — audit notes folder + 7-dimension notes + subject line PII check all shipped. Remaining AC (content fix + 3-template create + footer + 2-client render + live smoke + i18n) all deferred per existing follow-up gaps (GAP-543.1/2/3 Wave 79+ + Mailhog/AWS-blocked). Status PARTIAL 80% retained — no progress this wave; Bucket D scope reality-mismatched. State-check artifact: `documents/04-quality/audits/persona-review/2026-05-21-wave-102.9-bucket-d-email-content-headers-state-check.md`. Sister to A+B+C state-check pattern.
 - 2026-05-14 — Initial write-up (state-check completed; 5 template files partial; audit notes folder absent; Wave 78 Bucket E owner).
 - **2026-05-14 (Wave 78 Bucket E):** PARTIAL — 5 audit notes ship: welcome PASS (8/10 tone, plain-text gap), beta-invite PASS (9/10 tone, security claim code OK), approve-tenant intentional consolidate với beta-invite (Option A), reset-password MISSING (P1 follow-up GAP-543.1.A), day-7-survey MISSING (sync GAP-542). Aggregate: 0 PII leak subject (an toàn); plain-text fallback 0/2 (gap); cross-client render 0/2 (gap). Per `gap-done-discipline.md` §3 PARTIAL exit ramp — 3 template tạo mới + content rewrite + plain-text = wave riêng (Wave 79+).
 - **2026-05-18 (Wave 98 B1 — PARTIAL 40% → 80%):** Deliverability + tone portions DONE via paired gaps GAP-657 + GAP-659:

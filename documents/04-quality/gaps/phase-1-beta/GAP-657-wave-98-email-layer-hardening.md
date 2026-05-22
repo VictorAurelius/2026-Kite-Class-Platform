@@ -114,6 +114,7 @@ After this gap DONE → GAP-543 §AC update:
 
 ## Log
 
+- **2026-05-21 (Wave 102.9 Bucket D fix-time state-check):** Per `audit-to-gap-pipeline.md` §2.8 verified Wave 98 B1 work intact — `SESEmailService.java:152,207,258` Reply-To header wired; `ResendEmailService.java:107,119-122` Reply-To + `List-Unsubscribe` + `List-Unsubscribe-Post: One-Click` wired; 5/5 critical templates có .txt sibling (verified ls). Remaining AC (manual 2-client render + SchedulerEmailWireIT + CloudWatch alarm + mvn verify + live send) all live-verify/AWS-blocked. Status PARTIAL 80% retained — no progress this wave. State-check artifact: `documents/04-quality/audits/persona-review/2026-05-21-wave-102.9-bucket-d-email-content-headers-state-check.md`. Sister to A+B+C state-check pattern.
 - **2026-05-18 (Wave 98 B1 PARTIAL 80%):** Shipped deliverability core:
   - 5/5 critical templates now have `.txt` siblings (`welcome.txt`, `beta-invite.txt`, `email-verification.txt`, `password-reset.txt`, `invite-staff.txt` pre-existing).
   - `password-reset.html` template newly created (was missing entirely).
