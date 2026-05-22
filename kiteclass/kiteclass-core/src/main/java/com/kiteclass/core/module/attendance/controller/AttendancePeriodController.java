@@ -18,6 +18,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -76,8 +77,10 @@ public class AttendancePeriodController {
     }
 
     @GetMapping("/classes/{classId}")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     @Operation(summary = "Daily roster: all periods + all students for a class on one date.",
-            description = "Daily roll-up (vắng cả ngày = vắng ≥7 tiết) deferred to GAP-323b.")
+            description = "Daily roll-up (vắng cả ngày = vắng ≥7 tiết) deferred to GAP-323b. "
+                    + "Wave 105 Bucket C: per-class authz guard (OWASP A01).")
     public ResponseEntity<List<AttendancePeriodResponse>> findByClassAndDate(
             @Parameter(description = "Class ID") @PathVariable Long classId,
             @Parameter(description = "Lesson date (ISO-8601)")
@@ -116,11 +119,13 @@ public class AttendancePeriodController {
     }
 
     @GetMapping("/daily-rollup")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     @Operation(summary = "Daily roll-up across one class for a date range.",
             description = "Per-(student, date) counts plus the boolean allDayAbsent "
                     + "(absent + late ≥ 7 tiết per TT 22/2021/TT-BGDĐT). Phase 1B v1 "
                     + "is on-demand aggregation; the materialized-view path described "
-                    + "in GAP-323b §1B.4 is deferred to a follow-up PR.")
+                    + "in GAP-323b §1B.4 is deferred to a follow-up PR. "
+                    + "Wave 105 Bucket C: per-class authz guard (OWASP A01).")
     public ResponseEntity<List<DailyAttendanceRollupResponse>> dailyRollup(
             @Parameter(description = "Class ID", required = true)
             @RequestParam Long classId,
