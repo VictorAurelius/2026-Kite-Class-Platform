@@ -1,5 +1,6 @@
 /**
- * Tests for BetaRequestForm (GAP-372 Wave 33 + Wave 35 GAP-385 PDPL consent).
+ * Tests for BetaRequestForm (GAP-372 Wave 33 + Wave 35 GAP-385 PDPL consent
+ * + Wave 105 Bucket A A1 double-submit debounce).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@/test/test-utils';
@@ -104,6 +105,42 @@ describe('BetaRequestForm', () => {
         }),
       );
     });
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent(/Đã nhận yêu cầu beta/i);
+    });
+  });
+
+  // Wave 105 Bucket A — A1 double-submit hardening: FE debounce 1s
+  it('debounces double-submit within 1s window (only 1 POST dispatched)', async () => {
+    // Hold the POST promise so we can dispatch a 2nd submit while in-flight.
+    let resolvePost: ((v: { data: object }) => void) | undefined;
+    vi.mocked(apiClient.post).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolvePost = resolve;
+        }),
+    );
+
+    render(<BetaRequestForm />);
+    fireEvent.change(screen.getByLabelText(/Email/i), {
+      target: { value: 'race@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/Họ và tên/i), { target: { value: 'Trần Thị Hồng' } });
+    fireEvent.change(screen.getByLabelText(/Tên tổ chức/i), { target: { value: 'Trung tâm Sky Education' } });
+    fireEvent.click(screen.getByTestId('beta-consent-checkbox'));
+
+    const form = screen.getByRole('form', { name: /beta-request-form/i });
+    // 2 rapid submits (double-click pattern)
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+
+    // Only 1 POST should have fired (loading state OR debounce window blocked #2)
+    await waitFor(() => {
+      expect(apiClient.post).toHaveBeenCalledTimes(1);
+    });
+
+    // Release the in-flight POST + verify success surface renders
+    resolvePost?.({ data: {} });
     await waitFor(() => {
       expect(screen.getByRole('status')).toHaveTextContent(/Đã nhận yêu cầu beta/i);
     });

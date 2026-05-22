@@ -83,6 +83,7 @@ This contract is the cross-layer source-of-truth consumed by:
 | 400 | `BETA_INVALID_EMAIL` | `email` fails `@Email` validation |
 | 400 | `BETA_INVALID_PERSONA` | `persona` not in allowed enum |
 | 400 | `BETA_HONEYPOT_FILLED` | `honeypot` non-empty (silently rejected by service; surface only in tests) |
+| 400 | `BETA_INVALID_INPUT` | `name` / `orgName` / `referralSource` contains HTML structural characters (`<`, `>`, `&`) — XSS hardening per BR-BETA-005 (Wave 105 Bucket A failure-mode A4) |
 | 409 | `BETA_DUPLICATE_EMAIL` | Active PENDING/APPROVED request exists for the email |
 | 429 | `RATE_LIMITED` | Per-IP rate limit at gateway exceeded |
 

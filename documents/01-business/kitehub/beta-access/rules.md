@@ -26,7 +26,17 @@ This file documents the substantive business values for the beta-access flow. Ea
 - **Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-05-08).
 - **Compliance check:** N/A — no PDPL / Consumer Protection trigger; uniqueness is a coordinator-UX optimization, not regulated.
 - **Review cadence:** Quarterly. **Next review:** 2026-08-08. Event triggers: ≥10 duplicate-email complaints in any month.
-- **Code reference:** `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/beta/service/BetaAccessService.java` (`submitRequest` duplicate check).
+- **Code reference:** `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/beta/service/BetaAccessService.java` (`submitRequest` duplicate check) + `kitehub/kitehub-subscription/src/main/resources/db/migration/V55__beta_request_pending_email_partial_unique.sql` (Wave 105 Bucket A — DB partial unique index `uq_beta_access_request_email_pending` enforces "1 open PENDING per email" at the storage layer; service-level race-loser path catches `DataIntegrityViolationException` and returns the winning row to preserve the idempotent contract).
+
+## BR-BETA-005 — XSS-safe input cho name / orgName / referralSource
+
+- **Value:** Các trường `name`, `orgName`, `referralSource` của `POST /api/v1/auth/request-beta-access` PHẢI khớp regex `^[^<>&]+$` (hoặc rỗng đối với `referralSource`). Ký tự `<`, `>`, `&` bị reject ở DTO validation với HTTP 400.
+- **Source:** Wave 105 Bucket A outside-in failure-mode matrix audit (`documents/04-quality/audits/persona-review/2026-05-22-wave-105-failure-mode-matrix.md` row A4 — stored XSS in beta-request fields). OWASP A03:2021 Injection baseline.
+- **Rationale:** Defense in depth. Mặc dù admin panel render bằng React JSX (`{req.name}` auto-escape ngăn `<script>` execute), payload XSS được lưu vẫn rò rỉ ra outbox event payload (`SubscriptionEventEmitter.escape` chỉ escape JSON, không HTML), email template, log file, và bất kỳ surface non-React tương lai (PDF report, marketing copy). Reject tại input loại bỏ vector tận gốc. Tên người Việt + tên trung tâm + nguồn giới thiệu hợp lệ KHÔNG chứa `<>&` (ký tự HTML structural) — chấp nhận diacritics, dấu cách, dấu phẩy, ngoặc đơn, chấm để giữ samples như "Trung tâm Anh ngữ Sky Education (Q.1)" và "Trần Thị Hồng".
+- **Reviewer:** @nguyenvankiet (acting Security lead + Product Owner, solo-dev, 2026-05-22).
+- **Compliance check:** **Considered** — Luật An ninh mạng 2018 Art 26 (system access controls) + OWASP A03:2021 baseline; không có quy định bắt buộc cơ chế cụ thể nhưng best practice là reject-at-input.
+- **Review cadence:** Quarterly. **Next review:** 2026-08-22. Event triggers: tenant legitimately needs `&` trong tên (vd "AT&T-style brand") → expand regex; admin panel render path đổi sang non-React → tăng cường.
+- **Code reference:** `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/beta/dto/BetaRequestDto.java` (`NO_HTML_CHARS_REGEX` + `@Pattern` annotations on `name` / `orgName` / `referralSource`).
 
 ## BR-BETA-003 — PLATFORM_ADMIN role required for coordinator endpoints
 

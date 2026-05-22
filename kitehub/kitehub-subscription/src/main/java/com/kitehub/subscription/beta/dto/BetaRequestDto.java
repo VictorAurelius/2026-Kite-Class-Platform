@@ -18,11 +18,20 @@ import jakarta.validation.constraints.Size;
  * (explicit consent). See {@code documents/01-business/kitehub/beta-access/rules.md}
  * BR-BETA-001 for the 5-attribute compliance block + Wave 35 GAP-385.</p>
  *
+ * <p><b>Wave 105 Bucket A (failure-mode matrix A4 — stored XSS hardening):</b>
+ * {@code name}, {@code orgName}, {@code referralSource} reject HTML structural
+ * characters ({@code <}, {@code >}, {@code &}) at input — defense-in-depth on
+ * top of React JSX auto-escape in the admin panel. VN tenant names +
+ * organization names + referral sources do NOT legitimately contain these
+ * characters; rejection up-front prevents stored-XSS payloads from reaching
+ * the outbox event payload, email templates, or any future non-React render
+ * path. See {@code documents/01-business/kitehub/beta-access/rules.md} BR-BETA-005.</p>
+ *
  * @param email required, validated as RFC-5321 length ≤320
- * @param name required, ≤200 chars
- * @param orgName required, ≤200 chars
+ * @param name required, ≤200 chars, no HTML structural chars
+ * @param orgName required, ≤200 chars, no HTML structural chars
  * @param persona enumerated string: P1_SOLO_TEACHER / P2_CENTER_OWNER
- * @param referralSource optional, ≤500 chars
+ * @param referralSource optional, ≤500 chars, no HTML structural chars
  * @param honeypot anti-bot trap; MUST be empty
  * @param consentGiven PDPL 2023 Art 11 explicit consent; MUST be {@code true}
  *
@@ -30,14 +39,39 @@ import jakarta.validation.constraints.Size;
  */
 public record BetaRequestDto(
         @NotBlank @Email @Size(max = 320) String email,
-        @NotBlank @Size(max = 200) String name,
-        @NotBlank @Size(max = 200) String orgName,
+        @NotBlank @Size(max = 200)
+        @Pattern(regexp = BetaRequestDto.NO_HTML_CHARS_REGEX,
+                message = "name must not contain HTML structural characters")
+        String name,
+        @NotBlank @Size(max = 200)
+        @Pattern(regexp = BetaRequestDto.NO_HTML_CHARS_REGEX,
+                message = "orgName must not contain HTML structural characters")
+        String orgName,
         @NotBlank @Pattern(regexp = "P1_SOLO_TEACHER|P2_CENTER_OWNER",
                 message = "persona must be P1_SOLO_TEACHER or P2_CENTER_OWNER") String persona,
-        @Size(max = 500) String referralSource,
+        @Size(max = 500)
+        @Pattern(regexp = BetaRequestDto.NO_HTML_CHARS_REGEX_NULLABLE,
+                message = "referralSource must not contain HTML structural characters")
+        String referralSource,
         @Size(max = 0, message = "honeypot must be empty") String honeypot,
         @NotNull(message = "BETA_CONSENT_REQUIRED") Boolean consentGiven
 ) {
+
+    /**
+     * Wave 105 Bucket A (failure-mode A4) — XSS input sanitization regex.
+     * Bans {@code < > &} explicitly. Rationale:
+     * <ul>
+     *   <li>{@code <} {@code >} — HTML tag delimiters (script injection vector)</li>
+     *   <li>{@code &} — HTML entity prefix (encoded-payload bypass)</li>
+     * </ul>
+     * Accepts everything else including VN diacritics, spaces, apostrophes,
+     * hyphens, dots, parentheses (legitimate in "Trung tâm Sky Education (Q.1)").
+     */
+    static final String NO_HTML_CHARS_REGEX = "^[^<>&]+$";
+
+    /** Nullable variant — matches empty/null OR safe chars. */
+    static final String NO_HTML_CHARS_REGEX_NULLABLE = "^$|^[^<>&]+$";
+
     /**
      * PDPL 2023 Art 11 — consent MUST be explicit {@code true}.
      * {@code @AssertTrue} guards against {@code false} once {@code @NotNull}

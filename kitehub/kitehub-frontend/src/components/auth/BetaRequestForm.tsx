@@ -10,13 +10,26 @@
  * POST body — server reject với HTTP 400 + error `BETA_CONSENT_REQUIRED` nếu
  * thiếu hoặc false.
  *
+ * Wave 105 Bucket A (failure-mode matrix A1 double-submit hardening): FE
+ * debounce 1s + in-flight guard. Pair với BE V55 partial unique index on
+ * `beta_access_request(email) WHERE status='PENDING'` cho defense in depth.
+ *
  * @since Wave 33 — GAP-372
  */
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, useRef, FormEvent } from 'react';
 import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
+
+/**
+ * Wave 105 Bucket A (failure-mode matrix A1) — FE button debounce window in ms.
+ *
+ * Why 1000ms: typical double-click latency ~200-500ms; 1s safely covers the
+ * race window between first POST dispatch and server response without making
+ * the form feel sluggish for honest single-clickers.
+ */
+const SUBMIT_DEBOUNCE_MS = 1000;
 
 export type BetaPersona = 'P1_SOLO_TEACHER' | 'P2_CENTER_OWNER';
 
@@ -35,6 +48,10 @@ export default function BetaRequestForm({ onSuccess }: BetaRequestFormProps) {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Wave 105 Bucket A — A1 debounce. Tracks last submit dispatch time; rejects
+  // re-submits within SUBMIT_DEBOUNCE_MS window. useRef to avoid stale-closure
+  // issues and to skip re-render churn.
+  const lastSubmitAtRef = useRef<number>(0);
 
   const validate = (): string | null => {
     if (!email.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
@@ -51,11 +68,24 @@ export default function BetaRequestForm({ onSuccess }: BetaRequestFormProps) {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+    // Wave 105 Bucket A (A1) — FE debounce window. Bail silently on rapid
+    // re-submit; BE V55 partial unique index is the canonical guard for
+    // server-side double-submits but FE bounce eliminates the round trip.
+    const nowMs = Date.now();
+    if (nowMs - lastSubmitAtRef.current < SUBMIT_DEBOUNCE_MS) {
+      return;
+    }
+    if (loading) {
+      // Hard guard against in-flight resubmit (covers Enter-key spam during
+      // POST in flight; loading state takes ~1 React tick to propagate).
+      return;
+    }
     const v = validate();
     if (v) {
       setError(v);
       return;
     }
+    lastSubmitAtRef.current = nowMs;
     setLoading(true);
     try {
       await apiClient.post(endpoints.auth.requestBetaAccess, {
