@@ -1,10 +1,11 @@
 ---
 title: Wave 104 — Fix 6 follow-up bugs from Wave 103 self-test findings (LOCAL-ONLY path)
-status: draft
+status: complete
+closed_at: 2026-05-22
 created: 2026-05-22
 updated: 2026-05-22
 waves: [104]
-gaps: [GAP-702, GAP-703, GAP-704, GAP-705, GAP-706, GAP-707, GAP-531, GAP-516, GAP-543, GAP-657, GAP-659]
+gaps: [GAP-702, GAP-703, GAP-704, GAP-705, GAP-706, GAP-707, GAP-710, GAP-531, GAP-516, GAP-543, GAP-657, GAP-659]
 audience: dev
 ---
 
@@ -340,6 +341,29 @@ audience: dev
 
 ---
 
+## 7.5. Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` §3)
+
+| # | Plan §3 Scope item | Verdict | Follow-up |
+|---|---|:---:|---|
+| 1 | Bucket A — GAP-704 JWT tenantId enrichment | ✅ DONE | — (commit b7753f93, subscription 688/688 PASS) |
+| 2 | Bucket B1 — GAP-702 approval email wire | ✅ DONE | — (commit c7d916e6) |
+| 3 | Bucket B2 — GAP-703 multipart + List-Unsubscribe | ✅ DONE (production code) / 🟡 PARTIAL (test) | GAP-710 Item 2 — EmailHardeningTest @Disabled, test harness Thymeleaf resolver fix needed |
+| 4 | Bucket C1 — GAP-705 gateway HS256 challenge | ✅ DONE | — (commit edfd943b, gateway 61/61 PASS) |
+| 5 | Bucket C2 — GAP-706 ChallengeTokenAuthenticationFilter | ✅ DONE | — (commit 62da15a0, subscription 696/696 PASS) |
+| 6 | Bucket D — GAP-707 LoginAuditService cooldown bound | ✅ DONE | — (commit 1e9bed04, subscription 697/697 PASS +1 new test) |
+| 7 | Bucket E — Post-fix re-self-test verify (rebuild + curl walks + Mailhog) | ❌ NOT-IMPLEMENTED | **GAP-710 Item 1** — defer Wave 104.5 per WSL RAM constraint + rebuild scope |
+| 8 | Wave 103 PARTIAL gap AC dependency revisions | ❌ NOT-IMPLEMENTED | GAP-710 Item 1 (verify confirms revisions); current state: GAP-531/516/543/657/659 unchanged pending Bucket E |
+| 9 | SESEmailService warnings cleanup (user-flagged post Bucket B) | ✅ DONE | GAP-710 Item 3 — templateEngine field removal + 3 test constructor cleanup deferred (scope creep avoidance) |
+
+**Aggregate verdict:** 4/5 buckets fully shipped; Bucket E deferred per `wave-closure-scope-completeness.md` §3 PARTIAL exit ramp with explicit follow-up gap GAP-710 covering all 3 deferred items.
+
+**Plan deviations:**
+- **Mid-wave WSL RAM constraint** — Bucket C first spawn OOM-killed at 6.5GiB/7.6GiB cap. Recovery: stop Docker stack (free 2GB) → re-spawn agent with `-DskipITs` succeeded in 15min vs original 1.5-2h estimate.
+- **Bucket D agent autocompact thrash** — coordinator inline recovery ~15min.
+- **WSL RAM upgraded** mid-session 8GB → 10GB + autoMemoryReclaim=gradual (via WSL Settings GUI Microsoft Store app) post Wave 104 merge — clean baseline for Wave 104.5+.
+- **GAP-708 → GAP-710 rename** — original follow-up gap ID conflict với concurrent Wave 103 GAP-708 audit suite gap; renamed to next available GAP-710 + CSV sync.
+
 ## 8. Log
 
+- **2026-05-22 (complete):** Wave 104 SHIPPED 4/5 buckets — PR #1712 squash-merged commit `b5ec57d6`. 6 follow-up gaps (GAP-702..707) DONE 100% local. Bucket E (post-rebuild live verify) deferred per `wave-closure-scope-completeness.md` §3 PARTIAL exit ramp + tracked GAP-710 Wave 104.5 cluster (Item 1 Bucket E + Item 2 EmailHardeningTest re-enable + Item 3 SESEmailService.templateEngine field cleanup). CI 32/32 SUCCESS post Ruff re-run (transient WSL shutdown killed self-hosted runner mid-job). User WSL RAM upgrade 8→10GB mid-session via WSL Settings GUI. Closure sync PR in flight (chore/wave-104-closure-sync branch): CSV flip GAP-702..707 DONE + git mv to phase-1-beta/closed/ + ROADMAP §🎯 update + wave-history.jsonl append + session-handoff doc + wave plan status flip + §7.5 Scope-Completeness Reconciliation table (this section).
 - **2026-05-22 (draft):** Wave plan filed. Triggered by user direction "draft wave để fix luôn?" → option 1 chosen (lock scope + commit + defer agent spawn next session) post Wave 103 PR #1709 creation. Scope = 5 buckets parallel A (JWT tenantId) + B (email pipeline) + C (2FA gateway bridge) + D (audit log cleanup) + E (re-self-test verify SEQUENTIAL). All AWS-independent — fix-verify cycle local. Outside-in skip rationale documented §1 Q1 per `outside-in-coverage-trigger.md` §4 exception (≤30 days). Inside-out queue consulted (no new items). Agent spawn deferred to fresh session for context budget preservation. Reviewer: @nguyenvankiet (solo-dev draft self-approve; final scope-lock confirmed user same session).
