@@ -116,7 +116,7 @@ describe('OnboardingChecklist', () => {
     await waitFor(() => {
       expect(screen.getByTestId('onboarding-checklist')).toBeInTheDocument();
     });
-    expect(screen.getByText(/Nhập dữ liệu mẫu/i)).toBeInTheDocument();
+    expect(screen.getByText(/Tải lên danh sách học viên/i)).toBeInTheDocument();
   });
 
   // GAP-545 — Wave 79 Bucket D — WCAG 2.1.1 + 2.4.3
