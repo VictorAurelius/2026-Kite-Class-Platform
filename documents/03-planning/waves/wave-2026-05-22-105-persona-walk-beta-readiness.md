@@ -1,19 +1,19 @@
 ---
-title: Wave 105 — Persona Walk + P0 Security Cluster (Beta-Readiness)
+title: Wave 105 — Persona Walk + P0 Security Cluster + META Local-Fix Prod-Parity (Beta-Readiness)
 status: draft
 created: 2026-05-22
 updated: 2026-05-22
 waves: [105]
-gaps: [GAP-716]
+gaps: [GAP-716, GAP-717, GAP-718]
 audience: dev
 phase: phase-1-beta
 ---
 
-# Wave 105 — Persona Walk + P0 Security Cluster (Beta-Readiness)
+# Wave 105 — Persona Walk + P0 Security Cluster + META Local-Fix Prod-Parity (Beta-Readiness)
 
-**Goal:** Ensure beta user (4 personas: Anonymous / Owner / Teacher / Parent) không gặp bug khi go live Phase 1 BETA. Combine inside-out persona walk (5 buckets) + outside-in audit findings (P0 security cluster + UX gaps) + GAP-716 audit obligations.
+**Goal:** Ensure beta user (4 personas: Anonymous / Owner / Teacher / Parent) không gặp bug khi go live Phase 1 BETA. Combine inside-out persona walk (5 buckets) + outside-in audit findings (P0 security cluster + UX gaps) + GAP-716 audit obligations + **META rule GAP-718 local-fix production-parity check + concrete GAP-717 JWT_CHALLENGE_SECRET production parity (Bucket E0 priority FIRST per `meta-gap-priority.md` §3)**.
 
-**Trigger:** Wave 104.5 close-loop user direction "test full để beta user không gặp lỗi" → spawned 3 outside-in audit agents per `outside-in-coverage-trigger.md` v1.1.0 §3 — surfaced 5 P0 real-code bugs + 6 outside-in UX gaps that inside-out endpoint-coverage approach would have missed.
+**Trigger:** Wave 104.5 close-loop user direction "test full để beta user không gặp lỗi" → spawned 3 outside-in audit agents per `outside-in-coverage-trigger.md` v1.1.0 §3 — surfaced 5 P0 real-code bugs + 6 outside-in UX gaps that inside-out endpoint-coverage approach would have missed. **Amendment 2026-05-22 same session**: user-flagged additional meta gap "fix local có check fix env production chưa?" → surfaced GAP-717 concrete (JWT_CHALLENGE_SECRET local-only) + GAP-718 meta rule (no existing rule covers code-fix → prod-env-sweep direction).
 
 ## 1. Brainstorm
 
@@ -52,19 +52,21 @@ phase: phase-1-beta
 
 ### Q2 — Scope decision
 
-**6 buckets (was 5):**
+**7 buckets (was 5, then 6, now 7 — added META Bucket E0 FIRST per `meta-gap-priority.md` §3 force-multiplier):**
 
-| Bucket | Source | Scope |
-|---|---|---|
-| A Anonymous | Inside-out + 3 outside-in findings | Walk + PDPL UX redesign + Mobile fallback (ngrok) + XSS fix + idempotency fix |
-| B Owner | Inside-out + 4 outside-in findings | Walk + bulk-import-first reorder + VietQR setup + multi-branch defer note + invoice delivery test |
-| C Teacher | Inside-out + 3 outside-in findings | Walk + per-class authz + 2FA clock skew test |
-| D Parent | Inside-out + 5 outside-in findings | Walk + VietQR idempotency + multi-child authz + parent-PDPL consent + Zalo OA stub |
-| **🆕 E Security P0 cluster** | Outside-in failure-mode only | Fix PaymentController userId + XSS + idempotency + enrollment race + per-resource authz |
-| F GAP-716 audit obligations | Inside-out (deadline 2026-05-25) | 3 audits + 2 doc syncs + 3 IT tests |
+| Bucket | Source | Scope | Priority |
+|---|---|---|---|
+| **🆕 E0 META local-fix prod-parity** | User-flagged meta gap Wave 104.5 close-loop amend | Ship `.claude/rules/local-fix-production-parity-check.md` v1.0.0 (GAP-718) + fix GAP-717 JWT_CHALLENGE_SECRET production parity (terraform secret + IAM + deploy script + env-vars-registry) | **HIGHEST (META P0)** — fix first |
+| A Anonymous | Inside-out + 3 outside-in findings | Walk + PDPL UX redesign + Mobile fallback (ngrok) + XSS fix + idempotency fix | P0 |
+| B Owner | Inside-out + 4 outside-in findings | Walk + bulk-import-first reorder + VietQR setup + multi-branch defer note + invoice delivery test | P0 |
+| C Teacher | Inside-out + 3 outside-in findings | Walk + per-class authz + 2FA clock skew test | P0 |
+| D Parent | Inside-out + 5 outside-in findings | Walk + VietQR idempotency + multi-child authz + parent-PDPL consent + Zalo OA stub | P0 |
+| E Security P0 cluster | Outside-in failure-mode only | Fix PaymentController userId + XSS + idempotency + enrollment race + per-resource authz | P0 |
+| F GAP-716 audit obligations | Inside-out (deadline 2026-05-25) | 3 audits + 2 doc syncs + 3 IT tests | P1 |
 
 ### Q3 — Acceptance criteria
 
+- [ ] **Bucket E0 META ship FIRST** — `local-fix-production-parity-check.md` v1.0.0 + GAP-717 production parity (terraform + deploy script + registry)
 - [ ] 4 persona walks completed với explicit fix cho 6 cross-persona gaps
 - [ ] 5 P0 real-code bugs FIXED + verified live (PaymentController + XSS + idempotency + enrollment race + per-resource authz)
 - [ ] GAP-716 audit obligations satisfied trước deadline 2026-05-25
@@ -72,6 +74,7 @@ phase: phase-1-beta
 - [ ] Mobile fallback path documented (override trailer + ngrok smoke OR explicit defer with follow-up gap)
 - [ ] No new P0 surfaced (P1 → file follow-up Wave 106)
 - [ ] All outside-in audit gaps either fixed OR documented defer trong wave plan §Open Items
+- [ ] GAP-717 + GAP-718 → DONE flip per `gap-done-discipline.md` §2 (E0 ship satisfies both)
 
 ### Q4 — Risks
 
@@ -86,19 +89,22 @@ phase: phase-1-beta
 
 | # | Task | Owner | Bucket | Est. effort |
 |---|---|---|---|---|
-| 1 | Spawn 5 background agents (A/B/C/D/E) + coordinator inline Bucket F | Coordinator | Pre-spawn | 0.5h |
-| 2 | Bucket A — Anonymous walk + PDPL UX + mobile fallback + XSS fix + idempotency | Agent A (Opus medium) | A | 5h |
-| 3 | Bucket B — Owner walk + bulk-import-first reorder + VietQR + multi-branch defer | Agent B (Opus full) | B | 7h |
-| 4 | Bucket C — Teacher walk + per-class authz + 2FA clock skew | Agent C (Opus full) | C | 5h |
-| 5 | Bucket D — Parent walk + VietQR idempotency + multi-child authz + parent-PDPL + Zalo OA stub | Agent D (Opus full) | D | 8h |
-| 6 | Bucket E — Security P0 cluster (5 real-code bug fixes + IT tests) | Agent E (Opus full) | E | 8h |
-| 7 | Bucket F — GAP-716 audit obligations (3 audits + 2 doc syncs + 3 IT tests) | Coordinator inline (Sonnet) | F | 6h |
-| 8 | Coordinator cherry-pick all 6 buckets to wave/105 branch | Coordinator | Closure | 1h |
-| 9 | Wave closure PR + CI wait + squash merge | Coordinator | Closure | 1h |
-| 10 | Post-merge sync (CSV + ROADMAP + wave-history + MEMORY) | Coordinator | Post-merge | 0.5h |
-| 11 | Post-wave audit suite ≤3 ngày | Coordinator | Post-wave | 4h (deadline +3d) |
+| 1 | **Bucket E0 (FIRST — META P0)** — ship meta rule `local-fix-production-parity-check.md` v1.0.0 + memory pair + fix GAP-717 (terraform secret + IAM + deploy script + env-vars-registry) | Coordinator inline (Opus full) | E0 | 4h |
+| 2 | Spawn 5 background agents (A/B/C/D/E) + coordinator inline Bucket F | Coordinator | Pre-spawn | 0.5h |
+| 3 | Bucket A — Anonymous walk + PDPL UX + mobile fallback + XSS fix + idempotency | Agent A (Opus medium) | A | 5h |
+| 4 | Bucket B — Owner walk + bulk-import-first reorder + VietQR + multi-branch defer | Agent B (Opus full) | B | 7h |
+| 5 | Bucket C — Teacher walk + per-class authz + 2FA clock skew | Agent C (Opus full) | C | 5h |
+| 6 | Bucket D — Parent walk + VietQR idempotency + multi-child authz + parent-PDPL + Zalo OA stub | Agent D (Opus full) | D | 8h |
+| 7 | Bucket E — Security P0 cluster (5 real-code bug fixes + IT tests) | Agent E (Opus full) | E | 8h |
+| 8 | Bucket F — GAP-716 audit obligations (3 audits + 2 doc syncs + 3 IT tests) | Coordinator inline (Sonnet) | F | 6h |
+| 9 | Coordinator cherry-pick all 7 buckets to wave/105 branch | Coordinator | Closure | 1h |
+| 10 | Wave closure PR + CI wait + squash merge | Coordinator | Closure | 1h |
+| 11 | Post-merge sync (CSV + ROADMAP + wave-history + MEMORY) | Coordinator | Post-merge | 0.5h |
+| 12 | Post-wave audit suite ≤3 ngày | Coordinator | Post-wave | 4h (deadline +3d) |
 
-**Total: ~46h (32h agent work + ~5h coordination + 4h post-wave audit + ~5h misc)**
+**Total: ~50h (36h agent + coordinator work + ~5h coord + 4h post-wave + ~5h misc)**
+
+**Order rationale per `meta-gap-priority.md` §3:** Bucket E0 META P0 ship FIRST → prevents future iteration of same gap class. Bucket E0 doesn't block A/B/C/D agent spawn — coordinator inline Bucket E0 SAME WAVE PR ngay khi plan amend merge, parallel agents A-E spawn sau khi E0 commit lands.
 
 ### Out-of-scope (Wave 106+)
 
@@ -116,6 +122,24 @@ phase: phase-1-beta
 - ~190 KC endpoints NOT in 4 persona journeys (defer per `quality-audit` statistical sampling)
 
 ## 3. Scope
+
+### Bucket E0 — META local-fix prod-parity (SHIP FIRST per `meta-gap-priority.md` §3)
+
+- Files:
+  - `.claude/rules/local-fix-production-parity-check.md` v1.0.0 (NEW per GAP-718 §Proposed body)
+  - `infrastructure/terraform-aws/secrets.tf` + `iam-deploy.tf` (NEW resources per GAP-717 §Proposed Fix)
+  - `scripts/deploy-prod.sh` (env injection)
+  - `documents/02-architecture/env-vars-registry.md` (row addition)
+  - `documents/04-quality/rules-index.csv` + `output-review-mandate.md` §3 (cross-link sync)
+- Acceptance:
+  - [ ] `.claude/rules/local-fix-production-parity-check.md` v1.0.0 ship với 9 sections + reviewer-checklist + override mechanism
+  - [ ] Memory entry `feedback_local_fix_production_parity.md` paired same-PR per `rule-change-process.md` §6.5 Enforcement Parity
+  - [ ] §6 worked self-test retroactive Wave 104.5 incident
+  - [ ] `output-review-mandate.md` §3 matrix row added cho "Local fix production parity"
+  - [ ] `rules-index.csv` + `documents/02-architecture/env-vars-registry.md` updates
+  - [ ] GAP-717 fix: terraform secret + IAM grant + deploy script env injection per §Proposed Fix
+  - [ ] Live verify deferred per GAP-612 AWS unblock dependency (runbook documents expected curl smoke)
+- Spawn: coordinator inline (Opus full, security + IaC), ~4h
 
 ### Bucket A — Anonymous Prospect (Em Vy)
 
@@ -197,6 +221,8 @@ phase: phase-1-beta
 | KC core CRUD verified | ✅ | `documents/04-quality/audits/local-stack/2026-05-22-wave-104.5-kc-multi-tenant-walk.md` |
 | Multi-tenant isolation verified gateway-level | ✅ | KC walk audit §Multi-tenant isolation matrix |
 | 5 P0 real-code bugs identified | ✅ | Failure-mode matrix audit §Top 5 P0 |
+| GAP-717 concrete prod-parity bug filed | ✅ | `documents/04-quality/gaps/phase-1-beta/GAP-717-jwt-challenge-secret-production-parity.md` (this PR) |
+| GAP-718 META rule proposed | ✅ | `documents/04-quality/gaps/phase-1-beta/GAP-718-local-fix-production-parity-meta-rule.md` (this PR) |
 
 ## 5. Verification Gates
 
@@ -262,5 +288,7 @@ Per `gap-done-discipline.md` §3 PARTIAL exit ramp:
 - Draft scope source: `/tmp/wave-105-draft-scope.md` (in-flight, not committed)
 
 ## 8. Log
+
+- **2026-05-22 (amend):** Plan amended to add **Bucket E0 META local-fix prod-parity (SHIP FIRST per `meta-gap-priority.md` §3)**. Triggered by user-flagged meta gap same session after initial plan lock PR #1718: "fix local có check fix env production chưa?" Audit existing rules → no rule covers code-fix → prod-env-sweep direction (sister rule precedent `audit-to-gap-pipeline.md` §2.7 Decision-Doc Code-Sync covers inverse direction only). Filed GAP-717 (concrete bug — JWT_CHALLENGE_SECRET local-only in Wave 104.5 PR #1715 commit `b45f9b28`, missing AWS Secrets Manager + Terraform IAM + deploy script env injection) + GAP-718 (META rule `local-fix-production-parity-check.md` v1.0.0 proposal). Wave 105 scope expanded 6 → 7 buckets; E0 first per meta priority. Effort estimate increased ~46h → ~50h. Status: draft pending amend PR merge.
 
 - **2026-05-22 (draft):** Wave 105 plan created. Triggered by Wave 104.5 close-loop user direction "test full để beta user không gặp lỗi" → 3 outside-in audit agents spawned per `outside-in-coverage-trigger.md` v1.1.0 §3 before lock scope. 3 audit reports filed (`documents/04-quality/audits/persona-review/2026-05-22-wave-105-{persona-simulation,vn-saas-benchmark,failure-mode-matrix}.md`). Refined scope from original 5-bucket inside-out persona walk to 6-bucket (added Bucket E Security P0 cluster) after audit surfaced 5 P0 real-code bugs + 6 outside-in UX gaps. Effort estimate increased ~20h → ~32h agent work (~46h total including coordination + post-wave audit). Inside-out + outside-in sources documented §1 Brainstorm Q1 per `outside-in-coverage-trigger.md` v1.1.0 Bước 5 mandate. Status: draft pending plan PR merge → agent spawn next session.
