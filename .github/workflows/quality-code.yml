@@ -1,0 +1,215 @@
+name: Quality — Code (ShellCheck + Ruff + Script tests + Cross-layer drift + Mermaid)
+
+# Split from script-quality.yml 21-job bloated workflow (2026-05-22)
+# Domain: code-touching jobs (Bash / Python / Java + cross-layer contract drift + Mermaid diagram syntax)
+# Sister workflows:
+#   - quality-docs.yml          — Documents / gaps / audits / waves / READMEs
+#   - quality-rules-skills.yml  — Rules / skills / Env vars / Meta CSV indexes
+#   - quality-infra.yml         — Helm / Prometheus alerts
+#
+# Baseline (2026-04-20): shellcheck -S error = 0 issues, ruff check = 0 issues.
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**/*.sh'
+      - '**/*.py'
+      - '.shellcheckrc'
+      - 'ruff.toml'
+      - '.github/workflows/quality-code.yml'
+      - 'scripts/tests/**'
+      - 'scripts/check-cross-layer-contract-drift.sh'
+      - 'scripts/check-mermaid-sequence-state-br.sh'
+      - 'kitehub/**/*.java'
+      - 'kiteclass/**/*.java'
+      - 'documents/01-business/**/api-contract.md'
+      - '**/*.md'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  shellcheck:
+    name: ShellCheck (bash scripts)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          # Need prior commit for "changed files" diff on push events.
+          fetch-depth: 0
+
+      - name: Install ShellCheck
+        run: |
+          # Self-hosted runner: shellcheck pre-installed in user PATH; skip apt
+          # (sudo apt-get needs NOPASSWD which the runner doesn't have).
+          if command -v shellcheck >/dev/null 2>&1; then
+            echo "shellcheck already on PATH: $(command -v shellcheck)"
+          else
+            sudo apt-get update
+            sudo apt-get install -y shellcheck
+          fi
+          shellcheck --version
+
+      - name: Determine changed shell scripts
+        id: changed
+        run: |
+          # On PR: diff against base. On push: diff against previous commit.
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+          # Fall back to full scope if base SHA missing or identical.
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ] || [ "$BASE" = "$HEAD" ]; then
+            FILES=$(find scripts kitehub/scripts kiteclass/scripts -name '*.sh' -type f 2>/dev/null | tr '\n' ' ')
+          else
+            FILES=$(git diff --name-only --diff-filter=AMR "$BASE" "$HEAD" -- '*.sh' | tr '\n' ' ')
+          fi
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+          echo "Changed .sh files: $FILES"
+
+      - name: Run ShellCheck on changed files (error severity, blocking)
+        if: steps.changed.outputs.files != ''
+        run: |
+          echo "Running shellcheck -S error on changed files..."
+          # shellcheck-disable: 0. If baseline breaks, fix script or add justified `# shellcheck disable=SCxxxx`.
+          # shellcheck reads .shellcheckrc automatically from repo root.
+          shellcheck -S error ${{ steps.changed.outputs.files }}
+
+      - name: Run ShellCheck (warning severity, non-blocking — reports only)
+        if: steps.changed.outputs.files != ''
+        continue-on-error: true
+        run: |
+          echo "Warnings (informational, non-blocking):"
+          shellcheck -S warning ${{ steps.changed.outputs.files }} || true
+
+      - name: No shell files changed
+        if: steps.changed.outputs.files == ''
+        run: echo "No *.sh files changed — skipping."
+
+
+  ruff:
+    name: Ruff (Python scripts + hooks)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install Ruff
+        run: |
+          pip install ruff==0.15.11
+          ruff --version
+
+      - name: Determine changed Python files
+        id: changed
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ] || [ "$BASE" = "$HEAD" ]; then
+            FILES=$(find scripts .claude/hooks -name '*.py' -type f 2>/dev/null | tr '\n' ' ')
+          else
+            FILES=$(git diff --name-only --diff-filter=AMR "$BASE" "$HEAD" -- '*.py' | tr '\n' ' ')
+          fi
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+          echo "Changed .py files: $FILES"
+
+      - name: Run Ruff lint on changed files (blocking)
+        if: steps.changed.outputs.files != ''
+        run: |
+          echo "Running ruff check (reads ruff.toml from repo root)..."
+          ruff check ${{ steps.changed.outputs.files }}
+
+      - name: Run Ruff format check (non-blocking — reports only)
+        if: steps.changed.outputs.files != ''
+        continue-on-error: true
+        run: |
+          echo "Format diff (informational, non-blocking):"
+          ruff format --check --diff ${{ steps.changed.outputs.files }} || true
+
+      - name: No Python files changed
+        if: steps.changed.outputs.files == ''
+        run: echo "No *.py files changed — skipping."
+
+
+  mermaid-sequence-state-br:
+    name: Mermaid `<br/>` in sequence/state diagrams (recurrence #6+#7 prevention)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect `<br/>` in sequence/state diagrams (WARN mode 7-day grace)
+        run: |
+          # Per `diagram-format-selection.md` v1.0.2 §4 HARD RULE:
+          # Mermaid sequence/state parsers unreliable với HTML breaks.
+          # flowchart blocks DO support <br/> (not flagged).
+          # Triggered by Wave 99B recurrence #6+#7 (multi-tenant §3 + kitehub admin §3.3).
+          # Self-test runs locally only (subshell scoping fragile in CI); CI scans real repo.
+          bash scripts/check-mermaid-sequence-state-br.sh --warn
+
+
+  cross-layer-contract-drift:
+    name: Cross-layer contract drift (controller vs api-contract.md)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (match + drift fixtures)
+        run: bash scripts/check-cross-layer-contract-drift.sh --self-test
+
+      - name: Detect drift (WARN mode — heuristic v1)
+        run: |
+          # Per `contract-first-for-cross-layer.md` §6.2 (closes deferred-detector debt)
+          # + Wave 98 GAP-662 incident: EmailController @RequestMapping("/api/platform/emails")
+          # vs documented Endpoint /api/email — 3-way drift code/doc/test.
+          # Heuristic v1; manual review still recommended for complex paths.
+          bash scripts/check-cross-layer-contract-drift.sh --warn
+
+
+  script-tests:
+    name: Script tests (`scripts/tests/test-*.sh` fixture-based)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run all script tests
+        run: |
+          # Wave 76 Bucket B — fixture-based tests for scripts/check-*.sh.
+          # Each test-*.sh creates synthetic fixture(s) + invokes the check
+          # script + asserts exit codes (PASS/FAIL behavior). prune-merged-
+          # worktrees tests run --dry-run mode only in isolated temp git
+          # repos (NO mutation of real branches).
+          bash scripts/tests/run-all.sh
+

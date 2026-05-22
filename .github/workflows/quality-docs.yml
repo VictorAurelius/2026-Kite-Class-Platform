@@ -1,0 +1,212 @@
+name: Quality — Docs (READMEs + Gaps + Audits + Waves + 3-layer + Docs scaling)
+
+# Split from script-quality.yml 21-job bloated workflow (2026-05-22)
+# Domain: documentation-touching jobs (README freshness + gap files + audits + wave plans + business docs + docs scaling)
+# Sister workflows:
+#   - quality-code.yml          — Bash / Python / Java + cross-layer + Mermaid
+#   - quality-rules-skills.yml  — Rules / skills / Env vars / Meta CSV indexes
+#   - quality-infra.yml         — Helm / Prometheus alerts
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/quality-docs.yml'
+      - '**/README.md'
+      - '**/_README*.md'
+      - 'scripts/check-readme-freshness.sh'
+      - 'scripts/fixtures/readme-freshness/**'
+      - 'documents/04-quality/gaps/**'
+      - 'scripts/check-gap-status-csv.sh'
+      - 'scripts/check-gap-folder-location.sh'
+      - 'scripts/migrate-gaps-to-csv.py'
+      - 'documents/04-quality/audits/**'
+      - 'scripts/check-audits-index-csv.sh'
+      - 'documents/03-planning/waves/**'
+      - 'scripts/check-wave-plan-completeness.sh'
+      - 'scripts/tests/fixtures/wave-plan/**'
+      - 'documents/01-business/**'
+      - 'scripts/check-3-layer-completeness.sh'
+      - 'scripts/check-docs-archival-stale.sh'
+      - 'scripts/check-docs-folder-volume.sh'
+      - 'scripts/check-docs-subfolder-maturity.sh'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  readme-freshness:
+    name: README freshness (`**/README.md`)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: "Run self-test (5 fixtures — 3 dynamic + 2 committed)"
+        run: |
+          # Self-test asserts script behavior on synthetic fixtures.
+          # Fails fast if regex/date logic regresses.
+          bash scripts/check-readme-freshness.sh --self-test
+
+      - name: Validate README freshness (blocking on FAIL >90d, WARN-only at 31-90d)
+        run: |
+          # Default mode: silent PASS ≤30d, WARN 31-90d, FAIL >90d.
+          # Workflow paths filter already restricts this job to PRs touching
+          # README.md or the validator script — no need to re-filter changed files.
+          bash scripts/check-readme-freshness.sh
+
+
+  gap-status-csv:
+    name: Gap status CSV (`documents/04-quality/gaps/gap-status.csv`)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate gap-status.csv (Phase 2 — 100% coverage)
+        run: |
+          # Phase 2 mode: every active gap file MUST have a CSV row, and every
+          # CSV row MUST point to an existing gap file. CSV is canonical for
+          # status / priority / phase / completion_pct per
+          # `.claude/rules/gap-architecture-v2.md`.
+          bash scripts/check-gap-status-csv.sh
+
+
+  gap-folder-location:
+    name: Gap folder location (mirrors CSV status+phase)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate gap folder location (STRICT mode — phase-only per v2.0.0)
+        run: |
+          # Per `.claude/rules/gap-folder-organization.md` v2.0.0 §2: file location
+          # must mirror CSV `phase` column (status NOT projected to filesystem;
+          # only DONE flip archives to phase-X/closed/). STRICT mode active after
+          # Wave 95 PR2 mass migration (this commit). Reference rule §5.1.
+          bash scripts/check-gap-folder-location.sh --strict
+
+
+  audits-index-csv:
+    name: Audits index CSV (`documents/04-quality/audits/audits-index.csv`)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate audits-index.csv (100% coverage)
+        run: |
+          # Per `.claude/rules/meta-csv-index-pattern.md` (Wave 76 Bucket A,
+          # GAP-490 Tier 3): every audit file under
+          # documents/04-quality/audits/**/*.md (excluding README/template)
+          # MUST have a CSV row; every row MUST point to an existing file.
+          # CSV is canonical for audit enumeration (id, category, date,
+          # status, score). Schema + enums documented in CSV header.
+          bash scripts/check-audits-index-csv.sh
+
+
+  wave-plan-completeness:
+    name: Wave plan completeness (documents/03-planning/waves/**)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (3 fixtures — 1 good + 2 bad)
+        run: |
+          # Self-test asserts script behavior on synthetic fixtures
+          # (good-plan.md → PASS; bad-missing-brainstorm.md + bad-missing-state-check.md → FAIL).
+          # Fails fast if section-matching logic regresses.
+          bash scripts/check-wave-plan-completeness.sh --self-test
+
+      - name: Validate wave plan completeness (blocking on FAIL)
+        run: |
+          # Per Wave 76 Bucket C: every wave-*.md in documents/03-planning/waves/
+          # MUST follow _TEMPLATE.md required sections (§1 Brainstorm → §8 Log)
+          # + frontmatter fields (title/status/created/waves). Pre-Wave-76 legacy
+          # plans grandfathered via `<!-- wave-plan-completeness-exempt: ... -->` comment.
+          bash scripts/check-wave-plan-completeness.sh
+
+
+  three-layer-completeness:
+    name: 3-layer doc completeness (`documents/01-business/**`)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (3 synthetic fixtures — 1 good + 2 bad)
+        run: bash scripts/check-3-layer-completeness.sh --self-test
+
+      - name: Validate 3-layer completeness (WARN mode — 30-day grace per GAP-664)
+        run: |
+          # Per CLAUDE.md §"CRITICAL: Business Logic Documents — 3-Layer Structure":
+          # every domain MUST have rules.md + use-cases.md + api-contract.md.
+          # Wave 92 GAP-640 + Wave 98 GAP-664 = recurrence #2 trigger per
+          # `incident-to-rule-pipeline.md` premature-rule guard.
+          # WARN mode initially; target HARD STOP 2026-06-19 (30-day grace).
+          bash scripts/check-3-layer-completeness.sh --warn
+
+
+  docs-scaling-detectors:
+    name: Docs scaling detectors (archival cadence + folder volume + subfolder maturity)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Self-test docs-archival-stale
+        run: bash scripts/check-docs-archival-stale.sh --self-test
+
+      - name: Self-test docs-folder-volume
+        run: bash scripts/check-docs-folder-volume.sh --self-test
+
+      - name: Self-test docs-subfolder-maturity
+        run: bash scripts/check-docs-subfolder-maturity.sh --self-test
+
+      - name: Detect archival cadence violations (WARN)
+        run: |
+          # Per `docs-archival-cadence.md` §2 cadence table (GAP-675 SHIP-NOW).
+          # Closes deferred-detector debt for §4.3.
+          bash scripts/check-docs-archival-stale.sh --warn
+
+      - name: Detect folder volume violations (WARN)
+        run: |
+          # Per `docs-folder-volume-budget.md` §2 thresholds (GAP-675 SHIP-NOW).
+          # Closes deferred-detector debt for §6.3.
+          bash scripts/check-docs-folder-volume.sh --warn
+
+      - name: Detect subfolder maturity violations (WARN)
+        run: |
+          # Per `docs-subfolder-maturity.md` §2 threshold (GAP-675 SHIP-NOW).
+          # Closes deferred-detector debt for §5.3.
+          # Existing 177 grandfathered subdirs surface as WARN — rule applies
+          # prospectively per `rule-change-process.md` convention.
+          bash scripts/check-docs-subfolder-maturity.sh --warn
+
+
