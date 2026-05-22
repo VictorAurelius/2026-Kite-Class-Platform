@@ -85,6 +85,45 @@ public class BetaAccessService {
 
     private static final SecureRandom CLAIM_CODE_RNG = new SecureRandom();
 
+    /**
+     * Pattern matching HTML tags / open-bracket sequences (matches anything
+     * between {@code <} and {@code >}) — Wave 105 Bucket E0 Bug 2 stored-XSS
+     * defense-in-depth for {@code name} + {@code orgName} + {@code referralSource}
+     * free-text fields.
+     */
+    private static final java.util.regex.Pattern HTML_TAG_PATTERN =
+            java.util.regex.Pattern.compile("<[^>]*>");
+
+    /**
+     * Sanitize free-text user input for stored-XSS defense-in-depth (Wave 105
+     * Bucket E0 Bug 2 — failure-mode matrix A4).
+     *
+     * <p>React FE auto-escapes (defense layer 1). This method is layer 2 at
+     * input boundary — strip any HTML tag sequences + apply Spring's
+     * {@code HtmlUtils.htmlEscape} for &lt;/&gt;/&quot;/&apos;/&amp; entity
+     * encoding. Result is safe to render verbatim in any HTML context
+     * (admin panel, email template, audit log render).
+     *
+     * <p>Trade-offs: Jsoup with {@code Safelist.none()} would be more
+     * comprehensive (handles obscure encoded vectors) but adds a heavy
+     * dependency for 3 free-text fields. Phase 1 BETA scope: regex strip +
+     * HtmlEscape is sufficient when paired with React auto-escape FE.
+     *
+     * @param input raw user input (may be null)
+     * @return sanitized text safe for any HTML context, or null if input null
+     */
+    static String sanitizeFreeText(String input) {
+        if (input == null) {
+            return null;
+        }
+        // Strip HTML tag sequences first (defense against `<script>`, `<iframe>`,
+        // `<img onerror=...>`, etc.)
+        String stripped = HTML_TAG_PATTERN.matcher(input).replaceAll("");
+        // Then HTML-entity-encode remaining special chars (residual `<`, `>`,
+        // `"`, `'`, `&` that didn't form full tags).
+        return org.springframework.web.util.HtmlUtils.htmlEscape(stripped);
+    }
+
     private final BetaAccessRequestRepository repository;
     private final SubscriptionEventEmitter eventEmitter;
     private final MeterRegistry meterRegistry;
@@ -221,12 +260,16 @@ public class BetaAccessService {
         }
 
         OffsetDateTime now = OffsetDateTime.now();
+        // Wave 105 Bucket E0 Bug 2 — sanitize free-text fields to neutralize
+        // stored XSS (failure-mode matrix A4). React FE auto-escapes (defense
+        // layer 1); BE input sanitize = defense-in-depth (admin panel + email
+        // template rendering paths must NOT trust raw user input).
         BetaAccessRequest entity = BetaAccessRequest.builder()
                 .email(dto.email())
-                .name(dto.name())
-                .orgName(dto.orgName())
+                .name(sanitizeFreeText(dto.name()))
+                .orgName(sanitizeFreeText(dto.orgName()))
                 .persona(dto.persona())
-                .referralSource(dto.referralSource())
+                .referralSource(sanitizeFreeText(dto.referralSource()))
                 .status(BetaAccessRequestStatus.PENDING)
                 .consentGiven(Boolean.TRUE.equals(dto.consentGiven()))
                 .consentAt(now)
