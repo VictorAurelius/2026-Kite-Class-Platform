@@ -50,7 +50,6 @@ public class GradeController {
      * <p>Per-resource authz via {@code @authz.hasAccessToClass} (OWASP A01) —
      * Wave 105 Bucket E0.
      */
-    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     @PostMapping("/initialize")
     @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<GradeResponse>> initializeGrade(
@@ -101,7 +100,6 @@ public class GradeController {
      * <p>Per-resource authz via {@code @authz.hasAccessToClass} (OWASP A01) —
      * Wave 105 Bucket E0.
      */
-    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     @GetMapping("/class/{classId}")
     @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<List<GradingSummaryResponse>>> getGradesByClass(
