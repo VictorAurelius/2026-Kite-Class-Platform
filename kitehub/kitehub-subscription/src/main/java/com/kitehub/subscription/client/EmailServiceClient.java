@@ -50,7 +50,7 @@ public class EmailServiceClient {
     private final SubscriptionEventEmitter eventEmitter;
     private final ObjectMapper objectMapper;
 
-    @Value("${email.service.url:http://localhost:8083}")
+    @Value("${email.service.url:http://kitehub-email:8080}")
     private String emailServiceUrl;
 
     @Value("${kitehub.email.use-queue:true}")
