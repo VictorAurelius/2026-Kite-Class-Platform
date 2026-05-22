@@ -106,7 +106,7 @@ class BetaAccessServiceTest {
                 .thenReturn(Optional.of(winningRow)); // post-DIVE re-read: winning row
         when(repository.saveAndFlush(any())).thenThrow(
                 new org.springframework.dao.DataIntegrityViolationException(
-                        "duplicate key value violates unique constraint \"uq_beta_access_request_email_pending\""));
+                        "duplicate key value violates unique constraint \"idx_beta_request_email_unique_pending\""));
 
         BetaRequestDto dto = new BetaRequestDto(
                 "race@x.com", "R", "RO", "P2_CENTER_OWNER", null, "", true);

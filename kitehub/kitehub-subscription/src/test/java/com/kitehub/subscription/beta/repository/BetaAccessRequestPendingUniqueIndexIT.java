@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Wave 105 Bucket A (failure-mode A1 hardening) — verifies V55 partial unique
- * index {@code uq_beta_access_request_email_pending} enforces "one open
+ * index {@code idx_beta_request_email_unique_pending} enforces "one open
  * PENDING request per email" at the DB layer.
  *
  * <p>Unlike sibling {@link BetaAccessRequestRepositoryPostgresIT} (which uses
