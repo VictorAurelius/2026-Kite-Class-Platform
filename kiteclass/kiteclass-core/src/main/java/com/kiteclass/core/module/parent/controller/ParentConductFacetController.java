@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -40,9 +41,11 @@ public class ParentConductFacetController {
 
     private final ParentConductFacetService service;
 
+    @PreAuthorize("@authz.hasAccessToChild(#childId)")
     @GetMapping("/children/{childId}/conduct")
     @Operation(summary = "List conduct ratings for one of the parent's linked children",
-            description = "BR-PARENT-FACET-CONDUCT-001: 403 PARENT_FACET_FORBIDDEN if parent is not linked.")
+            description = "BR-PARENT-FACET-CONDUCT-001: 403 PARENT_FACET_FORBIDDEN if parent is not linked. "
+                    + "Per-resource authz via @authz.hasAccessToChild (OWASP A01 defense-in-depth) — Wave 105 Bucket E0.")
     public ResponseEntity<ApiResponse<List<ParentConductFacetResponse>>> getChildConduct(
             @PathVariable Long childId,
             @RequestParam(required = false) String period,

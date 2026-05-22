@@ -1,6 +1,8 @@
 package com.kiteclass.core.module.payment.controller;
 
+import com.kiteclass.core.common.context.UserContext;
 import com.kiteclass.core.common.dto.ApiResponse;
+import com.kiteclass.core.common.exception.BusinessException;
 import com.kiteclass.core.module.payment.dto.CreateInstallmentPaymentRequest;
 import com.kiteclass.core.module.payment.dto.CreatePaymentRequest;
 import com.kiteclass.core.module.payment.dto.PaymentResponse;
@@ -42,11 +44,16 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<PaymentResponse>> createPayment(
         @Valid @RequestBody CreatePaymentRequest request) {
 
-        log.info("Creating payment for invoice {} (method: {})",
-            request.getInvoiceId(), request.getPaymentMethod());
+        // Wave 105 Bucket E0 Bug 1 fix — userId extracted from UserContext
+        // (populated by TenantFilterInterceptor from Gateway X-User-Id header)
+        // per failure-mode matrix B1/D1 (was hardcoded 1L = audit trail broken,
+        // every payment ghi user_id=1).
+        Long userId = requireUserId();
 
-        // Note: User ID will be extracted from JWT at Gateway level
-        PaymentResponse response = paymentService.createPayment(request, 1L);
+        log.info("Creating payment for invoice {} (method: {}) by user {}",
+            request.getInvoiceId(), request.getPaymentMethod(), userId);
+
+        PaymentResponse response = paymentService.createPayment(request, userId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
@@ -62,13 +69,32 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<PaymentResponse>> createInstallmentPayment(
         @Valid @RequestBody CreateInstallmentPaymentRequest request) {
 
-        log.info("Creating installment payment for installment {} (method: {})",
-            request.getInstallmentId(), request.getPaymentMethod());
+        // Wave 105 Bucket E0 Bug 1 fix — userId extracted from UserContext
+        // per failure-mode matrix B1/D1 (was hardcoded 1L).
+        Long userId = requireUserId();
 
-        // Note: User ID will be extracted from JWT at Gateway level
-        PaymentResponse response = paymentService.createInstallmentPayment(request, 1L);
+        log.info("Creating installment payment for installment {} (method: {}) by user {}",
+            request.getInstallmentId(), request.getPaymentMethod(), userId);
+
+        PaymentResponse response = paymentService.createInstallmentPayment(request, userId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
+    }
+
+    /**
+     * Resolve current authenticated user ID from {@link UserContext} (set by
+     * {@code TenantFilterInterceptor} from {@code X-User-Id} header forwarded
+     * by Gateway). Throws {@link BusinessException} HTTP 401 when context is
+     * absent — closes Wave 105 Bucket E0 Bug 1 (hardcoded {@code 1L}).
+     *
+     * @return current user ID (never null)
+     */
+    private static Long requireUserId() {
+        Long userId = UserContext.getCurrentUser();
+        if (userId == null) {
+            throw new BusinessException("AUTH_REQUIRED", HttpStatus.UNAUTHORIZED);
+        }
+        return userId;
     }
 
     /**

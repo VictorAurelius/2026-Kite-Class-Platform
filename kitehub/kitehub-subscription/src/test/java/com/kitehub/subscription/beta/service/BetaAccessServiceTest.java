@@ -56,6 +56,9 @@ class BetaAccessServiceTest {
         // EmailServiceClient null in unit tests — production wiring uses the real bean.
         service = new BetaAccessService(repository, eventEmitter, meterRegistry, null);
         when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        // Wave 105 Bucket E0 Bug 3 — saveAndFlush mock for partial unique
+        // index race-detection path
+        when(repository.saveAndFlush(any())).thenAnswer(inv -> inv.getArgument(0));
     }
 
     @Test
@@ -74,7 +77,7 @@ class BetaAccessServiceTest {
         // GAP-385: consent fields persisted on insert.
         assertThat(result.isConsentGiven()).isTrue();
         assertThat(result.getConsentAt()).isNotNull();
-        verify(repository).save(any(BetaAccessRequest.class));
+        verify(repository).saveAndFlush(any(BetaAccessRequest.class));
         // GAP-385: consent-given audit event emitted via outbox (no direct rabbit).
         ArgumentCaptor<com.kitehub.subscription.outbox.SubscriptionOutboxEvent> captor =
                 ArgumentCaptor.forClass(com.kitehub.subscription.outbox.SubscriptionOutboxEvent.class);
@@ -478,5 +481,90 @@ class BetaAccessServiceTest {
         // Same IP → no rate-limit rejection counter increment.
         double rateLimitCount = meterRegistry.counter("beta_rate_limit_rejections_total").count();
         assertThat(rateLimitCount).isEqualTo(0.0);
+    }
+
+    // ── Wave 105 Bucket E0 tests ──────────────────────────────────────
+
+    @Test
+    @DisplayName("Bug 2 (A4) — submitRequest strips HTML tags from name + orgName")
+    void submitRequestSanitizesXss() {
+        when(repository.findFirstByEmailAndStatusOrderByCreatedAtDesc(
+                eq("xss@x.com"), eq(BetaAccessRequestStatus.PENDING)))
+                .thenReturn(Optional.empty());
+
+        BetaRequestDto dto = new BetaRequestDto(
+                "xss@x.com",
+                "<script>alert(1)</script>Trần Thị Hồng",
+                "Sky Education <img src=x onerror=alert(1)>",
+                "P2_CENTER_OWNER",
+                "<iframe>bad</iframe>",
+                "",
+                true);
+
+        BetaAccessRequest result = service.submitRequest(dto);
+
+        // HTML tags stripped (executable XSS vectors neutralized);
+        // residual TEXT content (e.g. `alert(1)`) remains as harmless text —
+        // React/HtmlEscape auto-escapes any leftover symbols.
+        assertThat(result.getName()).doesNotContain("<script>");
+        assertThat(result.getName()).doesNotContain("</script>");
+        assertThat(result.getName()).contains("Trần Thị Hồng");
+        assertThat(result.getOrgName()).doesNotContain("<img");
+        assertThat(result.getOrgName()).doesNotContain("onerror=");
+        assertThat(result.getOrgName()).contains("Sky Education");
+        assertThat(result.getReferralSource()).doesNotContain("<iframe>");
+        assertThat(result.getReferralSource()).doesNotContain("</iframe>");
+    }
+
+    @Test
+    @DisplayName("Bug 2 (A4) — sanitizeFreeText helper round-trip")
+    void sanitizeFreeTextHelper() {
+        // Direct unit test of the sanitizer helper
+        assertThat(BetaAccessService.sanitizeFreeText(null)).isNull();
+        assertThat(BetaAccessService.sanitizeFreeText("Trần Thị Hồng"))
+                .isEqualTo("Trần Thị Hồng");
+        // <script> + </script> tags stripped; `alert(1)` remains as harmless text
+        assertThat(BetaAccessService.sanitizeFreeText("<script>alert(1)</script>"))
+                .isEqualTo("alert(1)");
+        // Pure HTML tag → empty
+        assertThat(BetaAccessService.sanitizeFreeText("<br/>"))
+                .isEqualTo("");
+        assertThat(BetaAccessService.sanitizeFreeText("Normal text & symbols"))
+                .isEqualTo("Normal text &amp; symbols");
+        // Residual `<` without close becomes &lt; via HtmlEscape
+        assertThat(BetaAccessService.sanitizeFreeText("price < 1000"))
+                .contains("&lt;");
+    }
+
+    @Test
+    @DisplayName("Bug 3 (A1) — concurrent INSERT race returns existing row gracefully")
+    void submitRequestHandlesConcurrentRaceGracefully() {
+        BetaAccessRequest winner = BetaAccessRequest.builder()
+                .id(99L).email("race@x.com").name("Race").orgName("RO")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.PENDING)
+                .createdAt(OffsetDateTime.now()).updatedAt(OffsetDateTime.now())
+                .build();
+        // 1st call (initial existence check) → empty (race window passes)
+        // 2nd call (post-DataIntegrityViolationException re-query) → winner row
+        when(repository.findFirstByEmailAndStatusOrderByCreatedAtDesc(
+                eq("race@x.com"), eq(BetaAccessRequestStatus.PENDING)))
+                .thenReturn(Optional.empty())
+                .thenReturn(Optional.of(winner));
+        // saveAndFlush simulates DB partial unique index collision
+        when(repository.saveAndFlush(any())).thenThrow(
+                new org.springframework.dao.DataIntegrityViolationException(
+                        "duplicate key value violates unique constraint "
+                                + "\"idx_beta_request_email_unique_pending\""));
+
+        BetaRequestDto dto = new BetaRequestDto(
+                "race@x.com", "Race", "RO", "P2_CENTER_OWNER", null, "", true);
+        BetaAccessRequest result = service.submitRequest(dto);
+
+        // Race loser gets the same winner row back — graceful idempotent return
+        assertThat(result.getId()).isEqualTo(99L);
+        verify(repository, times(1)).saveAndFlush(any(BetaAccessRequest.class));
+        verify(repository, times(2)).findFirstByEmailAndStatusOrderByCreatedAtDesc(
+                eq("race@x.com"), eq(BetaAccessRequestStatus.PENDING));
     }
 }
