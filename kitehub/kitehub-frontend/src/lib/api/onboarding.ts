@@ -55,24 +55,26 @@ export async function updateOnboardingStep(
 
 export const ONBOARDING_STEP_LABELS_VI: Record<OnboardingStepId, { title: string; description: string }> = {
   PROFILE_SETUP: {
-    title: 'Hoàn tất hồ sơ tenant',
-    description: 'Logo, tên trung tâm, và persona đã được xác nhận.',
+    title: 'Hoàn tất hồ sơ trung tâm',
+    description: 'Logo, tên trung tâm, và vai trò người dùng đã được xác nhận.',
   },
   INVITE_TEAM: {
     title: 'Mời thành viên đầu tiên',
-    description: 'Thêm ít nhất 1 thành viên khác, hoặc bỏ qua nếu chưa cần.',
+    description: 'Thêm Giáo viên chủ nhiệm, Quản lý, hoặc bỏ qua nếu chưa cần.',
   },
   IMPORT_DATA: {
-    title: 'Nhập dữ liệu mẫu (tuỳ chọn)',
+    // Wave 105 Bucket B: dual-mode label phục vụ Owner persona (Hằng - 160 học viên sẵn có)
+    // VÀ Solo/curious persona (demo data). Bulk-import ƯU TIÊN — đứng trước CREATE_FIRST_CLASS.
+    title: 'Nhập danh sách học viên',
     description:
-      'Bật để KiteHub seed dữ liệu mẫu giúp bạn khám phá nhanh. Có thể bỏ qua nếu muốn bắt đầu với workspace trống.',
+      'Tải lên danh sách học viên qua file Excel (.xlsx) — phù hợp khi bạn đã có dữ liệu từ Misa/Excel. Hoặc bật dữ liệu mẫu để khám phá thử nếu chưa có sẵn.',
   },
   CREATE_FIRST_CLASS: {
     title: 'Tạo lớp học đầu tiên',
-    description: 'Thử nghiệm tính năng cốt lõi KiteClass.',
+    description: 'Tạo lớp và gán học viên đã nhập ở bước trước vào lớp.',
   },
   EXPLORE_FEATURES: {
     title: 'Khám phá tính năng',
-    description: 'Tour ngắn các tính năng chính của KiteHub.',
+    description: 'Tour ngắn các tính năng chính của KiteHub: điểm danh, chấm điểm, thông báo phụ huynh.',
   },
 };

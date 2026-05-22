@@ -1,7 +1,7 @@
 # Onboarding Progress — Business Rules
 
-**Domain:** Tenant onboarding checklist tracking (Wave 78 — GAP-538)
-**Last verified:** 2026-05-14 (Wave 78 Bucket 0 Foundation)
+**Domain:** Tenant onboarding checklist tracking (Wave 78 — GAP-538; Wave 105 Bucket B — Owner persona reorder)
+**Last verified:** 2026-05-22 (Wave 105 Bucket B Owner walk)
 **Config prefix:** `kitehub.onboarding`
 
 File này document business values cho onboarding checklist flow. Mỗi rule có 5 attributes theo `.claude/rules/business-logic-review.md` §2.
@@ -20,15 +20,20 @@ File này document business values cho onboarding checklist flow. Mỗi rule có
 - **Review cadence:** Quarterly. **Next review:** 2026-08-14. Event triggers: cross-device sync complaints, ≥10% drop-off tại bước IMPORT_DATA.
 - **Code reference:** (planned) `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/onboarding/entity/OnboardingProgress.java` (Bucket B — Wave 78 GAP-538).
 
-## BR-ONBOARD-002 — Sample/demo data seed opt-in only
+## BR-ONBOARD-002 — IMPORT_DATA dual-mode (real bulk-import + sample seed)
 
-- **Value:** Step `IMPORT_DATA` mark complete CHỈ khi user explicit opt-in trong UI (checkbox + button "Tạo dữ liệu mẫu"). Server-side validate `tenant.metadata.is_beta_demo_data=true` trước khi emit `onboarding.demo-data.requested` event.
-- **Source:** Wave 78 plan §3 Risks — "Bucket B sample data seed risk dữ liệu seed leak vào prod tenant".
-- **Rationale:** Beta tenant có thể trở thành paid tenant; demo data nếu không gated dễ persist vào production records → data hygiene issue. Explicit opt-in + flag gating ensure user awareness + admin auditability.
-- **Reviewer:** @nguyenvankiet (acting Product Owner + Data hygiene scout, solo-dev, 2026-05-14).
-- **Compliance check:** N/A — demo data scope là tenant's own data namespace; không touch PII của bên thứ ba.
-- **Review cadence:** Quarterly. **Next review:** 2026-08-14.
-- **Code reference:** (planned) Bucket B Sample-data seeder + `is_beta_demo_data` flag check.
+- **Value:** Step `IMPORT_DATA` hỗ trợ HAI path để mark complete (Wave 105 Bucket B persona walk reframe):
+  - **Path A — Owner real bulk-import (chị Hằng persona):** user upload xlsx qua `POST /api/v1/students/bulk-import/commit` (KiteClass core — per `BulkImportController` GAP-051). Step auto-marks complete khi job status = `COMPLETED` với ≥1 row imported. Cap 200/batch, async job.
+  - **Path B — Sample/demo seed (Solo persona):** user explicit opt-in (Radix Dialog confirmation) qua FE checkbox + button "Bật dữ liệu mẫu". Server-side validate `tenant.metadata.is_beta_demo_data=true` trước khi emit `onboarding.demo-data.requested` event.
+- **Source:** Wave 78 plan §3 Risks (sample seed leak) + Wave 105 Bucket B outside-in persona walk (per `documents/04-quality/audits/persona-review/2026-05-22-wave-105-bucket-b-owner-walk.md`) — Hằng 160 học viên sẵn có sẽ KHÔNG dùng demo seed; cần real bulk-import path.
+- **Rationale:** Original Wave 78 design assumed Solo/curious persona dominant — `IMPORT_DATA` chỉ là sample-seed opt-in. Wave 105 outside-in walk Bucket B FAIL surfaced rằng P2 Center Owner (Hằng) sẽ skip step "tuỳ chọn" + đi thẳng `kiteclass/students/bulk-import` (chậm hơn 5-10 phút find UI). Dual-mode keep both personas covered + bulk-import-first ordering satisfies Owner business reality. Demo seed gating (Path B `is_beta_demo_data` flag) giữ data hygiene cho Solo.
+- **Reviewer:** @nguyenvankiet (acting Product Owner + Data hygiene scout, solo-dev, 2026-05-22 Wave 105 Bucket B reframe).
+- **Compliance check:** N/A — Path A xlsx upload tenant's own student data namespace (đã có RLS isolation per `multi-tenant-architecture.md`); Path B demo seed cùng tenant namespace; không touch PII của bên thứ ba.
+- **Review cadence:** Quarterly. **Next review:** 2026-08-22. Event triggers: ≥10% Owner-persona skip rate observed, KC bulk-import endpoint schema change, demo seed cohort policy change.
+- **Code reference:**
+  - Path A: `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/student/bulkimport/controller/BulkImportController.java` (GAP-051 — DONE Wave 71)
+  - Path B: (planned) Bucket B Sample-data seeder + `is_beta_demo_data` flag check — Wave 78 unfinished Bucket B sub-scope.
+  - FE: `kitehub/kitehub-frontend/src/components/onboarding-checklist/OnboardingChecklist.tsx` (Wave 105 — 2 CTA buttons cần update)
 
 ## BR-ONBOARD-003 — Completion 100% triggers retention pipeline
 
