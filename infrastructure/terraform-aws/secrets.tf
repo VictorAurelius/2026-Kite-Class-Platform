@@ -54,6 +54,47 @@ resource "aws_secretsmanager_secret_version" "jwt" {
   secret_string = random_password.jwt.result
 }
 
+# --- JWT challenge token signing secret (2FA enrollment flow) ---
+# Wave 105 Bucket E0 GAP-717 — declare IaC for secret originally created manually
+# via Wave 81 jwt-secret-fix-runbook 2026-05-15. Secret already exists in AWS
+# Secrets Manager; terraform did not previously declare it → IaC drift. This
+# resource closes drift forward; post AWS account 906286017800 restore (GAP-612
+# unblock), run:
+#   terraform import aws_secretsmanager_secret.jwt_challenge \
+#     kitehub/production/jwt-challenge-secret
+# to bind existing secret to terraform state (vs trying to re-create →
+# AWS rejects "already exists"). Document live verify procedure inline in
+# GAP-717 §"Post-AWS-restore live verify" section.
+#
+# Wave 79 Bucket C `ChallengeTokenService.@PostConstruct` fail-fast guard
+# enforces non-dev-default in production profile. Wave 81 Bucket F PR #1388
+# wired `scripts/fetch-secrets.sh` to fetch + write to /etc/kite/.env. IAM
+# grant via wildcard `${var.project_name}/${var.environment}/*` pattern in
+# iam.tf (ec2_app + deploy roles already covered, no edit needed).
+#
+# GAP-450 Option B: lifecycle ignore_changes prevents recurring drift on
+# `result` attribute — same rationale as random_password.jwt / encryption.
+# Rotation manual per documents/05-guides/operations/secrets-rotation-runbook.md.
+resource "random_password" "jwt_challenge" {
+  length  = 64
+  special = false
+  lifecycle {
+    ignore_changes = [result, length, special, lower, upper, numeric, min_lower, min_upper, min_numeric, min_special, override_special, keepers]
+  }
+}
+
+resource "aws_secretsmanager_secret" "jwt_challenge" {
+  name                    = "${var.project_name}/${var.environment}/jwt-challenge-secret"
+  description             = "HS256 secret for 2FA challenge token verify (Wave 79 GAP-509 / Wave 81 manual creation / Wave 105 IaC declaration)"
+  recovery_window_in_days = 7
+  tags                    = { Name = "${var.project_name}-jwt-challenge-secret" }
+}
+
+resource "aws_secretsmanager_secret_version" "jwt_challenge" {
+  secret_id     = aws_secretsmanager_secret.jwt_challenge.id
+  secret_string = random_password.jwt_challenge.result
+}
+
 # --- Encryption master key (32 bytes base64) ---
 # GAP-450 Option B: lifecycle ignore_changes — same rationale as random_password.jwt above.
 resource "random_password" "encryption_raw" {

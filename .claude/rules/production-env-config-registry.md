@@ -186,6 +186,8 @@ bash scripts/audit-env-coverage.sh
 
 ## 11. Three new audits (post-Wave-71)
 
+> **Sister rule per-PR check:** `.claude/rules/local-fix-production-parity-check.md` v1.0.0 (Wave 105 Bucket E0) extends this rule's pre-release coverage to **per-PR per-fix** boundary. When PR adds new `${VAR:default}` / `@Value` / compose env / `Dockerfile ENV` / `.env*.template` declaration, reviewer-checklist mandates production-equivalent surface sweep (terraform secrets.tf / iam.tf / fetch-secrets.sh / docker-compose.production.yml / Helm values) shipped same-PR OR follow-up gap. Closes IaC drift class (Wave 81 + Wave 104.5 same incident) — secret created manually via runbook without terraform IaC declaration ↔ rule catches at next PR touching same artifact.
+
 Per Wave 71 Bucket E (GAP-509/510/511), three audit scripts complement `audit-env-coverage.sh` (§3.2) to cover architectural class-of-bugs that surfaced during Wave 71 — `audit-env-coverage.sh` catches **env-var defaults drift**, but missed **gateway routing mismatches**, **service port collisions**, and **silently-ignored Spring profiles** (all 4 of which produced P0 production incidents in Wave 71).
 
 | Script | What it catches | When to run | Trigger paths |
