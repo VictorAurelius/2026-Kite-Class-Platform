@@ -1,5 +1,5 @@
 ---
-title: GAP-708 — Wave 104 follow-up cluster (live verify + test harness fix + dead-field cleanup)
+title: GAP-710 — Wave 104 follow-up cluster (live verify + test harness fix + dead-field cleanup)
 status: OPEN
 priority: P2
 phase: phase-1-beta
@@ -10,7 +10,7 @@ related_waves: [104, 104.5]
 audience: dev
 ---
 
-# GAP-708 — Wave 104 follow-up cluster
+# GAP-710 — Wave 104 follow-up cluster
 
 ## Problem
 
