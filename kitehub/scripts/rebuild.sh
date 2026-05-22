@@ -49,8 +49,11 @@ if [ "$SERVICE" = "all" ]; then
     exit 0
 fi
 
-# Add kitehub- prefix if not present (skip kiteclass-* services)
-if [[ "$SERVICE" != kitehub-* ]] && [[ "$SERVICE" != kiteclass-* ]]; then
+# Special case: gateway compose service is 'kite-gateway' (not 'kitehub-gateway')
+if [ "$SERVICE" = "gateway" ] || [ "$SERVICE" = "kitehub-gateway" ]; then
+    SERVICE="kite-gateway"
+# Add kitehub- prefix if not present (skip kiteclass-* and kite-* services)
+elif [[ "$SERVICE" != kitehub-* ]] && [[ "$SERVICE" != kiteclass-* ]] && [[ "$SERVICE" != kite-* ]]; then
     SERVICE="kitehub-$SERVICE"
 fi
 
