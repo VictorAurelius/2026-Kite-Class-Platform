@@ -56,8 +56,9 @@ class BetaAccessServiceTest {
         // EmailServiceClient null in unit tests — production wiring uses the real bean.
         service = new BetaAccessService(repository, eventEmitter, meterRegistry, null);
         when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        // Wave 105 Bucket E0 Bug 3 — saveAndFlush mock for partial unique
-        // index race-detection path
+        // Wave 105 Bucket E0 Bug 3 + Bucket A — submitRequest uses saveAndFlush()
+        // to surface V55 partial unique violation as DataIntegrityViolationException
+        // at point-of-insert (rather than end-of-txn). Mirror save() behavior.
         when(repository.saveAndFlush(any())).thenAnswer(inv -> inv.getArgument(0));
     }
 
@@ -85,6 +86,35 @@ class BetaAccessServiceTest {
         assertThat(captor.getValue().getEventType()).isEqualTo("beta.consent.given");
         assertThat(captor.getValue().getTopic()).isEqualTo("audit.beta.consent");
         assertThat(captor.getValue().getPayload()).contains("\"email\":\"new@x.com\"");
+    }
+
+    @Test
+    @DisplayName("Wave 105 Bucket A — submitRequest race-loser path: DataIntegrityViolation -> return winning PENDING row")
+    void submitRequestRaceLoserReturnsWinningRow() {
+        // Setup: existence-check returns empty (we're the race-leader path... initially),
+        // then INSERT throws (race-loser path — winning concurrent INSERT beat us),
+        // then re-read returns the winning row.
+        BetaAccessRequest winningRow = BetaAccessRequest.builder()
+                .id(99L).email("race@x.com").name("R").orgName("RO")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.PENDING)
+                .createdAt(OffsetDateTime.now()).updatedAt(OffsetDateTime.now())
+                .build();
+        when(repository.findFirstByEmailAndStatusOrderByCreatedAtDesc(
+                eq("race@x.com"), eq(BetaAccessRequestStatus.PENDING)))
+                .thenReturn(Optional.empty())  // race-leader check: clear
+                .thenReturn(Optional.of(winningRow)); // post-DIVE re-read: winning row
+        when(repository.saveAndFlush(any())).thenThrow(
+                new org.springframework.dao.DataIntegrityViolationException(
+                        "duplicate key value violates unique constraint \"idx_beta_request_email_unique_pending\""));
+
+        BetaRequestDto dto = new BetaRequestDto(
+                "race@x.com", "R", "RO", "P2_CENTER_OWNER", null, "", true);
+        BetaAccessRequest result = service.submitRequest(dto);
+
+        // Race-loser returns the winning row (not throws).
+        assertThat(result.getId()).isEqualTo(99L);
+        verify(repository).saveAndFlush(any(BetaAccessRequest.class));
     }
 
     @Test

@@ -18,6 +18,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -274,17 +275,19 @@ public class BetaAccessService {
                 .consentGiven(Boolean.TRUE.equals(dto.consentGiven()))
                 .consentAt(now)
                 .build();
-        BetaAccessRequest saved;
+        final BetaAccessRequest saved;
         try {
             saved = repository.saveAndFlush(entity);
         } catch (org.springframework.dao.DataIntegrityViolationException ex) {
-            // Wave 105 Bucket E0 Bug 3 — partial unique index
-            // (idx_beta_request_email_unique_pending V55) blocked concurrent
-            // INSERT. Re-query and return the row that won the race.
-            log.info("Concurrent beta request race detected for {}, returning existing row", dto.email());
-            return repository
-                    .findFirstByEmailAndStatusOrderByCreatedAtDesc(dto.email(), BetaAccessRequestStatus.PENDING)
-                    .orElseThrow(() -> ex);
+            // Wave 105 Bucket E0 Bug 3 + Bucket A A1 race-loser path — partial
+            // unique index (V55 idx_beta_request_email_unique_pending) blocked
+            // concurrent INSERT. Re-query and return the row that won the race;
+            // same idempotency contract as the existence-check path above.
+            log.info("Beta access request race-loser for email={} — returning winning PENDING row",
+                    dto.email());
+            return repository.findFirstByEmailAndStatusOrderByCreatedAtDesc(
+                    dto.email(), BetaAccessRequestStatus.PENDING)
+                .orElseThrow(() -> ex); // re-throw if winning row vanished (shouldn't happen)
         }
         signupCounter(saved.getPersona()).increment();
         log.info("Beta access request submitted: id={} email={} persona={}",

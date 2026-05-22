@@ -146,6 +146,71 @@ class BetaAccessControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    // Wave 105 Bucket A — A4 stored-XSS input hardening. DTO @Pattern bans
+    // HTML structural chars (< > &) on name + orgName + referralSource so
+    // hostile payloads never reach the outbox event payload, email render
+    // path, or any future non-React surface.
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("POST /request-beta-access — 400 when name contains HTML angle bracket (XSS A4)")
+    void submitRequestRejectsXssInName() throws Exception {
+        BetaRequestDto dto = new BetaRequestDto(
+                "vy@example.com",
+                "<script>alert(1)</script>",
+                "Trung tâm Sky Education",
+                "P2_CENTER_OWNER", null, "", true);
+
+        mockMvc.perform(post("/api/v1/auth/request-beta-access")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("POST /request-beta-access — 400 when orgName contains HTML angle bracket (XSS A4)")
+    void submitRequestRejectsXssInOrgName() throws Exception {
+        BetaRequestDto dto = new BetaRequestDto(
+                "vy@example.com",
+                "Trần Thị Hồng",
+                "<img src=x onerror=alert(1)>",
+                "P2_CENTER_OWNER", null, "", true);
+
+        mockMvc.perform(post("/api/v1/auth/request-beta-access")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("POST /request-beta-access — 201 when name contains VN diacritics + parentheses (no false positive)")
+    void submitRequestAcceptsVietnameseDiacritics() throws Exception {
+        // Sanity: VN tenant names with diacritics + parentheses must pass.
+        // "Trung tâm Sky Education (Q.1)" + "Trần Thị Hồng" both legitimate.
+        BetaRequestDto dto = new BetaRequestDto(
+                "hong.tran@skyedu.vn",
+                "Trần Thị Hồng",
+                "Trung tâm Anh ngữ Sky Education (Q.1)",
+                "P2_CENTER_OWNER", null, "", true);
+        Mockito.when(service.submitRequest(Mockito.any(), Mockito.any()))
+                .thenReturn(com.kitehub.subscription.beta.entity.BetaAccessRequest.builder()
+                        .id(1L).email(dto.email()).name(dto.name()).orgName(dto.orgName())
+                        .persona(dto.persona()).status(com.kitehub.subscription.beta.entity.BetaAccessRequestStatus.PENDING)
+                        .createdAt(java.time.OffsetDateTime.now())
+                        .updatedAt(java.time.OffsetDateTime.now())
+                        .build());
+
+        mockMvc.perform(post("/api/v1/auth/request-beta-access")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated());
+    }
+
     // GAP-385 (Wave 35 Bucket B) — PDPL 2023 Art 11 consent enforcement.
 
     @Test
