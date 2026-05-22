@@ -402,6 +402,10 @@ services:
       DATABASE_URL: jdbc:postgresql://kite-postgres:5432/${POSTGRES_DB:-kitehub}
       DATABASE_USERNAME: ${POSTGRES_USER:-kitehub}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      # Branding app reads ${REDIS_HOST}/${REDIS_PORT} (Spring 3 + custom env names) — NOT SPRING_REDIS_HOST.
+      # Wave 103 Bucket E discovered the mismatch — container fell back to localhost → connection refused.
+      REDIS_HOST: kite-redis
+      REDIS_PORT: 6379
       SPRING_REDIS_HOST: kite-redis
       SPRING_REDIS_PORT: 6379
       SPRING_RABBITMQ_HOST: kite-rabbitmq

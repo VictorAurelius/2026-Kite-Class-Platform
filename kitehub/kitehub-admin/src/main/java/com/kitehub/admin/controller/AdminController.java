@@ -26,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,12 +43,20 @@ import java.util.UUID;
 /**
  * Admin portal REST APIs.
  *
+ * <p>Class-level {@code @PreAuthorize("hasRole('PLATFORM_ADMIN')")} enforces
+ * platform-admin role on every endpoint — closes GAP-637 RBAC backfill (local-verify
+ * path Wave 103 Bucket A). SecurityConfig already requires authentication on
+ * {@code /api/platform/admin/**}; this annotation adds the explicit role gate
+ * per OWASP A01 defense-in-depth (per
+ * {@code .claude/rules/pre-launch-owasp-rest-hardening-checklist.md} §2.1).</p>
+ *
  * @since 1.0
  */
 @Slf4j
 @RestController
 @RequestMapping("/api/platform/admin")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 @Tag(name = "Admin", description = "Platform administration, analytics, instance management, and payment operations")
 public class AdminController {
 
