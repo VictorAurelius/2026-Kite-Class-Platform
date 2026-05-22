@@ -23,6 +23,9 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.kitehub.subscription.auth.twofactor.ChallengeTokenAuthenticationFilter;
+import com.kitehub.subscription.auth.twofactor.ChallengeTokenService;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -78,7 +81,8 @@ public class SecurityConfig {
     @Profile("!test")
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            ObjectProvider<AccessDeniedHandler> accessDeniedHandlerProvider) throws Exception {
+            ObjectProvider<AccessDeniedHandler> accessDeniedHandlerProvider,
+            ObjectProvider<ChallengeTokenService> challengeTokenServiceProvider) throws Exception {
         // GAP-562b (Wave 80 Bucket C): if a RbacAccessDeniedHandler bean is present
         // (production profile), wire it so privilege-escalation attempts (STAFF →
         // OWNER endpoints) write an admin_audit_log row before returning 403.
@@ -92,10 +96,17 @@ public class SecurityConfig {
                         // Legacy /api/auth/** (register, login, refresh, verify-email,
                         // resend-verification, password-reset-*, change-password, profile).
                         // 2FA endpoints under /api/auth/2fa/** carved out below as authenticated.
-                        .requestMatchers("/api/auth/2fa/**").authenticated()
+                        // 2FA paths require ROLE_CHALLENGE (mid-2FA bearer) OR a fully
+                        // authenticated regular session (e.g. re-enrol from settings).
+                        // GAP-706: ChallengeTokenAuthenticationFilter bridges the
+                        // HS256 Bearer challenge token into Spring Authentication
+                        // with ROLE_CHALLENGE before this rule evaluates.
+                        .requestMatchers("/api/auth/2fa/**").hasAnyRole("CHALLENGE",
+                                "PLATFORM_ADMIN", "TENANT_OWNER", "TENANT_STAFF", "TENANT_USER")
                         .requestMatchers("/api/auth/**").permitAll()
                         // Versioned auth surface (per versioning-policy.md migration target).
-                        .requestMatchers("/api/v1/auth/2fa/**").authenticated()
+                        .requestMatchers("/api/v1/auth/2fa/**").hasAnyRole("CHALLENGE",
+                                "PLATFORM_ADMIN", "TENANT_OWNER", "TENANT_STAFF", "TENANT_USER")
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         // PDPL cookie consent (Wave 79 Bucket B GAP-558 — anonymous OK).
                         .requestMatchers("/api/v1/consent/cookie").permitAll()
@@ -131,6 +142,17 @@ public class SecurityConfig {
                 })
                 .addFilterBefore(new XUserRolesHeaderFilter(),
                         UsernamePasswordAuthenticationFilter.class);
+
+        // GAP-706: bridge HS256 challenge tokens BEFORE UsernamePasswordAuthenticationFilter
+        // (ordering parallels XUserRolesHeaderFilter — Spring runs filters in registration
+        // order within the same insertion slot, so the first addFilterBefore call places
+        // the challenge filter ahead of XUserRolesHeaderFilter). Active on the explicit
+        // /api/v1/auth/2fa/** + /api/auth/2fa/** allowlist; bypass elsewhere.
+        ChallengeTokenService challengeTokenService = challengeTokenServiceProvider.getIfAvailable();
+        if (challengeTokenService != null) {
+            http.addFilterBefore(new ChallengeTokenAuthenticationFilter(challengeTokenService),
+                    UsernamePasswordAuthenticationFilter.class);
+        }
 
         return http.build();
     }

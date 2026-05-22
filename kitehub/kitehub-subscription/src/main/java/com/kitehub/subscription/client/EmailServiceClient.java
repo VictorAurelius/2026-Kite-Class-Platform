@@ -664,6 +664,60 @@ public class EmailServiceClient {
     }
 
     /**
+     * Send beta-invite email (GAP-702 Wave 104 B1).
+     *
+     * <p>Dispatched by {@link com.kitehub.subscription.beta.service.BetaAccessService#approveRequest}
+     * after the coordinator flips a {@code BetaAccessRequest} to APPROVED. Uses
+     * the {@code beta-invite} template (HTML + plain-text siblings already shipped
+     * under {@code kitehub-email/templates/emails/}) so the recipient gets the
+     * 6-digit claim code (per GAP-388 388-B 2FA) without the raw UUID token in
+     * the email body.</p>
+     *
+     * <p>Per {@code design-patterns.md §3.5.1 Exception A}: outbox-first via
+     * {@link #publishToQueue} — the existing custom {@code beta.invite.sent}
+     * outbox event from {@link com.kitehub.subscription.beta.service.BetaAccessService}
+     * is retained for downstream consumers (audit / analytics) but the actual
+     * email delivery now flows through the {@code email.queued} pipeline (sister
+     * to all other transactional emails), restoring delivery after the missing
+     * kitehub-email RabbitListener was discovered in Wave 103 verify.</p>
+     *
+     * <p>Best-effort — email failure must NEVER propagate back to the approve
+     * transaction (caller wraps in try/catch); the {@code BetaAccessRequest}
+     * row already persisted the claim code so the coordinator can re-send via
+     * a follow-up endpoint if dispatch fails.</p>
+     *
+     * @param to recipient email
+     * @param recipientName recipient full name (for greeting)
+     * @param orgName organization name (optional — falls back to empty)
+     * @param claimCode 6-digit claim code rendered in email body
+     * @param signupUrl absolute signup page URL where invitee enters the claim code
+     * @param expiresAt human-readable expiry (e.g. "Thứ Hai, 22/05/2026 lúc 14:30")
+     */
+    public void sendBetaInviteEmail(String to, String recipientName, String orgName,
+                                    String claimCode, String signupUrl, String expiresAt) {
+        log.info("Sending beta-invite email to {} (claimCode masked)", to);
+
+        try {
+            EmailRequest request = EmailRequest.builder()
+                .to(to)
+                .subject("Mã truy cập Beta KiteHub của bạn")
+                .templateName("beta-invite")
+                .variables(Map.of(
+                    "recipientName", recipientName == null ? "bạn" : recipientName,
+                    "orgName", orgName == null ? "" : orgName,
+                    "claimCode", claimCode == null ? "" : claimCode,
+                    "signupUrl", signupUrl == null ? "" : signupUrl,
+                    "expiresAt", expiresAt == null ? "" : expiresAt
+                ))
+                .build();
+
+            dispatchEmail(null, "beta-invite", request);
+        } catch (Exception e) {
+            log.warn("Failed to send beta-invite email to {}: {}", to, e.getMessage());
+        }
+    }
+
+    /**
      * Send invite-staff email (GAP-561b Wave 80).
      *
      * <p>Dispatches {@code invite-staff} template with VN-locale variables.

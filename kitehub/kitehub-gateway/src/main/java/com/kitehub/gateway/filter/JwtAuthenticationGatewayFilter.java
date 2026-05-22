@@ -1,7 +1,6 @@
 package com.kitehub.gateway.filter;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import javax.crypto.SecretKey;
@@ -52,9 +51,15 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
     static final String HEADER_USER_EMAIL = "X-User-Email";
     static final String BEARER_PREFIX = "Bearer ";
 
-    private final SecretKey signingKey;
+    /** Reserved role propagated for verified HS256 challenge tokens on 2FA paths. */
+    static final String CHALLENGE_ROLE = "CHALLENGE";
 
-    public JwtAuthenticationGatewayFilter(@Value("${jwt.secret:${JWT_SECRET:}}") String jwtSecret) {
+    private final SecretKey accessSigningKey;
+    private final SecretKey challengeSigningKey;
+
+    public JwtAuthenticationGatewayFilter(
+            @Value("${jwt.secret:${JWT_SECRET:}}") String jwtSecret,
+            @Value("${jwt.challenge-secret:${JWT_CHALLENGE_SECRET:}}") String challengeSecret) {
         if (jwtSecret == null || jwtSecret.isBlank()) {
             throw new IllegalStateException(
                     "JWT_SECRET (or jwt.secret) is required for kitehub-gateway. "
@@ -62,19 +67,37 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
         }
         if (jwtSecret.getBytes().length < 32) {
             throw new IllegalStateException(
-                    "JWT_SECRET must be ≥32 bytes (256 bits) for HS256. Current length: "
+                    "JWT_SECRET must be ≥32 bytes (256 bits) for HS512. Current length: "
                             + jwtSecret.getBytes().length + " bytes.");
         }
-        this.signingKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+        this.accessSigningKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+
+        // Challenge secret is optional in dev; if absent, gateway cannot route challenge
+        // tokens — 2FA paths will fail to authenticate. Production MUST set
+        // JWT_CHALLENGE_SECRET to match kitehub-subscription's jwt.challenge-secret.
+        if (challengeSecret == null || challengeSecret.isBlank()) {
+            this.challengeSigningKey = null;
+        } else {
+            byte[] raw = challengeSecret.getBytes();
+            if (raw.length < 32) {
+                byte[] padded = new byte[32];
+                System.arraycopy(raw, 0, padded, 0, raw.length);
+                raw = padded;
+            }
+            this.challengeSigningKey = Keys.hmacShaKeyFor(raw);
+        }
     }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
+        boolean challenge2faPath = isChallenge2faPath(path);
 
         // Public paths bypass — downstream tự handle auth (e.g., /api/auth/login issues JWT).
-        if (isPublicPath(path)) {
+        // 2FA challenge paths are CARVED OUT here (they live under /api/v1/auth/* but
+        // need filter scrutiny to bridge challenge tokens to X-User-Id headers).
+        if (!challenge2faPath && isPublicPath(path)) {
             return chain.filter(exchange);
         }
 
@@ -89,37 +112,84 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
 
         String token = authHeader.substring(BEARER_PREFIX.length()).trim();
 
+        // GAP-705: dual-secret parse. Try the HS512 access-token key first (covers >99%
+        // of traffic). If verification fails AND we're on a 2FA challenge path, retry
+        // with the HS256 challenge-secret key. Challenge tokens MUST never authenticate
+        // on non-2FA paths — that is the defense-in-depth guard against access-token /
+        // challenge-token confusion attacks (separate secret namespace is the whole
+        // point of having two keys).
+        Claims claims;
+        boolean isChallenge;
         try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(signingKey)
+            claims = Jwts.parser()
+                    .verifyWith(accessSigningKey)
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
-
-            String userId = claims.getSubject();
-            String role = claims.get("role", String.class);
-            String email = claims.get("email", String.class);
-
-            ServerHttpRequest.Builder mutated = request.mutate();
-            if (userId != null) {
-                mutated.header(HEADER_USER_ID, userId);
+            isChallenge = false;
+        } catch (Exception accessEx) {
+            if (!challenge2faPath || challengeSigningKey == null) {
+                // Access-key parse failed on a NON-2FA path (or challenge key not
+                // configured) → 401. KHÔNG pass-through vì client sent a Bearer token
+                // (intent to authenticate); silent failure tại downstream sẽ confusing.
+                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                return exchange.getResponse().setComplete();
             }
-            if (role != null) {
-                // Convention: comma-separated nếu future multi-role; hiện tại single role.
-                mutated.header(HEADER_USER_ROLES, role);
+            try {
+                claims = Jwts.parser()
+                        .verifyWith(challengeSigningKey)
+                        .build()
+                        .parseSignedClaims(token)
+                        .getPayload();
+            } catch (Exception challengeEx) {
+                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                return exchange.getResponse().setComplete();
             }
-            if (email != null) {
-                mutated.header(HEADER_USER_EMAIL, email);
+            // Sanity: challenge token must self-declare type=challenge.
+            String typeClaim = claims.get("type", String.class);
+            if (!"challenge".equals(typeClaim)) {
+                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                return exchange.getResponse().setComplete();
             }
-
-            return chain.filter(exchange.mutate().request(mutated.build()).build());
-        } catch (JwtException | IllegalArgumentException ex) {
-            // Invalid/expired/malformed JWT → 401 short-circuit. KHÔNG pass-through
-            // vì client sent a Bearer token (intent to authenticate); silent failure
-            // tại downstream sẽ confusing.
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+            isChallenge = true;
         }
+
+        String userId = claims.getSubject();
+        String role = claims.get("role", String.class);
+        String email = claims.get("email", String.class);
+
+        ServerHttpRequest.Builder mutated = request.mutate();
+        if (userId != null) {
+            mutated.header(HEADER_USER_ID, userId);
+        }
+        if (isChallenge) {
+            // Challenge tokens convey only "I am user X mid-2FA"; propagate the
+            // reserved CHALLENGE role for subscription role-guard to recognise.
+            mutated.header(HEADER_USER_ROLES, CHALLENGE_ROLE);
+        } else if (role != null) {
+            // Convention: comma-separated nếu future multi-role; hiện tại single role.
+            mutated.header(HEADER_USER_ROLES, role);
+        }
+        if (email != null) {
+            mutated.header(HEADER_USER_EMAIL, email);
+        }
+
+        return chain.filter(exchange.mutate().request(mutated.build()).build());
+    }
+
+    /**
+     * Paths that legitimately accept HS256 challenge tokens (issued by
+     * {@code ChallengeTokenService} after password-but-pre-2FA login). Non-2FA paths
+     * never honor challenge tokens — see {@link #filter} for the defense-in-depth
+     * scope guard.
+     *
+     * <p>Closes GAP-705. The set mirrors the subscription-side
+     * {@code ChallengeTokenAuthenticationFilter} matchers so both layers agree on
+     * where challenge tokens are valid.</p>
+     */
+    boolean isChallenge2faPath(String path) {
+        return path.startsWith("/api/v1/auth/2fa/")
+                || path.startsWith("/api/auth/2fa/");
     }
 
     /**

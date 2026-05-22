@@ -16,7 +16,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -60,8 +59,16 @@ public class SESEmailService implements NotificationChannel {
     private final SESConfig.SESProperties sesProperties;
     private final SesClient sesClient;
     private final JavaMailSender mailSender;
+    /**
+     * Thymeleaf engine — retained for constructor backward compatibility
+     * with existing test fixtures (3 callers). Direct usage superseded by
+     * {@link EmailTemplateRenderer} (GAP-703 Wave 104 B2). Field removal +
+     * constructor cleanup deferred to follow-up refactor PR.
+     */
+    @SuppressWarnings("unused")
     private final TemplateEngine templateEngine;
     private final BrandingClient brandingClient;
+    private final EmailTemplateRenderer templateRenderer;
 
     @Value("${email.provider:mock}")
     private String emailProvider;
@@ -74,13 +81,15 @@ public class SESEmailService implements NotificationChannel {
             @Autowired(required = false) SesClient sesClient,
             @Autowired(required = false) JavaMailSender mailSender,
             TemplateEngine templateEngine,
-            @Autowired(required = false) BrandingClient brandingClient
+            @Autowired(required = false) BrandingClient brandingClient,
+            EmailTemplateRenderer templateRenderer
     ) {
         this.sesProperties = sesProperties;
         this.sesClient = sesClient;
         this.mailSender = mailSender;
         this.templateEngine = templateEngine;
         this.brandingClient = brandingClient;
+        this.templateRenderer = templateRenderer;
     }
 
     /**
@@ -95,11 +104,18 @@ public class SESEmailService implements NotificationChannel {
         // Merge variables with tenant branding (GAP-021 Wave 4)
         Map<String, Object> variables = enrichWithBranding(request);
 
-        // Render template with Thymeleaf
-        String htmlBody = renderTemplate(request.getTemplateName(), variables);
+        // GAP-703 Wave 104 B2: render BOTH html + plain-text via
+        // EmailTemplateRenderer so all templates with a `.txt` sibling emit
+        // multipart/alternative on the wire (previously only HTML was rendered
+        // here — sendEmail(to, subj, html) routed through HTML-only path).
+        // Tone resolution deferred to Wave 99 per renderer javadoc.
+        EmailTemplateRenderer.RenderedBodies bodies = templateRenderer.render(
+                request.getTemplateName(), variables, /* tone */ null);
 
-        // Send email
-        return sendEmail(request.getTo(), request.getSubject(), htmlBody);
+        // Send email — 4-arg path always passes textBody so multipart/alternative
+        // is the contract; renderer returns empty when .txt sibling missing.
+        return sendEmail(request.getTo(), request.getSubject(), bodies.getHtml(),
+                bodies.hasText() ? bodies.getText() : null);
     }
 
     /**
@@ -258,6 +274,12 @@ public class SESEmailService implements NotificationChannel {
                 helper.setReplyTo(replyTo);
             }
 
+            // GAP-703 Wave 104 B2 — RFC 8058 List-Unsubscribe headers.
+            // - List-Unsubscribe: mailto + https (Gmail bulk-sender requirement)
+            // - List-Unsubscribe-Post: List-Unsubscribe=One-Click (RFC 8058 1-click)
+            // Setting on raw MimeMessage so headers land in transmitted envelope.
+            applyListUnsubscribeHeaders(message);
+
             mailSender.send(message);
             String messageId = "smtp-" + UUID.randomUUID();
             log.info("[SMTP] Email sent to: {} ({}), text-part: {}", to, messageId,
@@ -280,15 +302,53 @@ public class SESEmailService implements NotificationChannel {
     }
 
     /**
-     * Render Thymeleaf template to HTML.
+     * Apply RFC 8058 List-Unsubscribe + List-Unsubscribe-Post headers to a
+     * MimeMessage (GAP-703 Wave 104 B2).
+     *
+     * <p>Gmail bulk-sender requirements (effective Feb 2024) demand BOTH:</p>
+     * <ul>
+     *   <li>{@code List-Unsubscribe: <mailto:...>, <https://...>} — both
+     *       mailto + HTTPS endpoints in same header (Gmail / Yahoo accept)</li>
+     *   <li>{@code List-Unsubscribe-Post: List-Unsubscribe=One-Click} —
+     *       enables 1-click unsubscribe per RFC 8058</li>
+     * </ul>
+     *
+     * <p>Unsubscribe URL token placeholder {@code {token}} is left in the URL
+     * for now; tenant-specific token expansion lives in a follow-up wire-up
+     * when subscriber-preference tracking lands (deferred per existing
+     * {@code unsubscribeUrlTemplate} config key javadoc).</p>
+     *
+     * <p>Header values fall back gracefully when config is missing — emits the
+     * mailto half only OR HTTPS half only OR skips header entirely (logged
+     * WARN) so a misconfigured deployment doesn't break send.</p>
      */
-    private String renderTemplate(String templateName, java.util.Map<String, Object> variables) {
-        Context context = new Context();
-        if (variables != null) {
-            context.setVariables(variables);
-        }
+    private void applyListUnsubscribeHeaders(MimeMessage message) {
+        try {
+            String mailto = sesProperties.getUnsubscribeMailto();
+            String urlTemplate = sesProperties.getUnsubscribeUrlTemplate();
 
-        return templateEngine.process("emails/" + templateName, context);
+            StringBuilder header = new StringBuilder();
+            if (mailto != null && !mailto.isBlank()) {
+                header.append("<mailto:").append(mailto).append(">");
+            }
+            if (urlTemplate != null && !urlTemplate.isBlank()) {
+                if (header.length() > 0) {
+                    header.append(", ");
+                }
+                header.append("<").append(urlTemplate).append(">");
+            }
+
+            if (header.length() == 0) {
+                log.warn("List-Unsubscribe headers skipped — no mailto OR url configured");
+                return;
+            }
+
+            message.setHeader("List-Unsubscribe", header.toString());
+            message.setHeader("List-Unsubscribe-Post", "List-Unsubscribe=One-Click");
+        } catch (Exception ex) {
+            // Header failure must not block send (deliverability degraded, not broken).
+            log.warn("Failed to apply List-Unsubscribe headers: {}", ex.getMessage());
+        }
     }
 
     // ----------------------------------------------------------------------

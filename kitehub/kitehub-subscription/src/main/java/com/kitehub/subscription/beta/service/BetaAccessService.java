@@ -11,10 +11,13 @@ import com.kitehub.subscription.beta.dto.BetaTokenValidationResponse;
 import com.kitehub.subscription.beta.entity.BetaAccessRequest;
 import com.kitehub.subscription.beta.entity.BetaAccessRequestStatus;
 import com.kitehub.subscription.beta.repository.BetaAccessRequestRepository;
+import com.kitehub.subscription.client.EmailServiceClient;
 import com.kitehub.subscription.service.migration.SubscriptionEventEmitter;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -85,6 +90,25 @@ public class BetaAccessService {
     private final MeterRegistry meterRegistry;
 
     /**
+     * Email dispatch client (GAP-702 Wave 104 B1).
+     *
+     * <p>{@code @Autowired(required = false)} so unit tests not exercising the
+     * email path can omit it. Production wiring always provides the bean.</p>
+     */
+    private final EmailServiceClient emailServiceClient;
+
+    /**
+     * Base URL for signup landing page where invitee enters claim code.
+     *
+     * <p>Sourced from {@code kitehub.beta.signup-base-url} config key with
+     * production-safe default. Email body links to
+     * {@code {base}/signup/beta?code=...} so the invitee lands on the prefilled
+     * signup form.</p>
+     */
+    @Value("${kitehub.beta.signup-base-url:https://kitehub.me}")
+    private String betaSignupBaseUrl;
+
+    /**
      * Per-email rate-limit cache (GAP-388 Wave 36 Bucket A 388-C).
      *
      * <p>Caffeine in-memory cache mirrors {@link com.kitehub.subscription.config.CacheConfig}
@@ -100,10 +124,12 @@ public class BetaAccessService {
 
     public BetaAccessService(BetaAccessRequestRepository repository,
                              SubscriptionEventEmitter eventEmitter,
-                             MeterRegistry meterRegistry) {
+                             MeterRegistry meterRegistry,
+                             @Autowired(required = false) EmailServiceClient emailServiceClient) {
         this.repository = repository;
         this.eventEmitter = eventEmitter;
         this.meterRegistry = meterRegistry;
+        this.emailServiceClient = emailServiceClient;
     }
 
     /**
@@ -359,10 +385,61 @@ public class BetaAccessService {
         );
         eventEmitter.emit((UUID) null, EVENT_TYPE_INVITE_SENT, TOPIC_INVITE_SENT, payload);
 
+        // GAP-702 Wave 104 B1 — Wire the actual email-send path. The custom
+        // `beta.invite.sent` outbox event above has no consumer in kitehub-email
+        // (Wave 103 verify: 0 lines matching "Sending" after approve). The
+        // working pipeline is the `email.queued` outbox event consumed by the
+        // standard email dispatcher. Best-effort wrap per Exception A: failure
+        // here does NOT roll back the approve transaction (the row is already
+        // saved + the token is persisted, coordinator can re-send if needed).
+        if (emailServiceClient != null) {
+            try {
+                String signupUrl = String.format("%s/signup/beta?code=%s",
+                        trimTrailingSlash(betaSignupBaseUrl),
+                        saved.getClaimCode());
+                String expiresAt = formatExpiry(saved.getInviteTokenExpiry());
+                emailServiceClient.sendBetaInviteEmail(
+                        saved.getEmail(),
+                        saved.getName(),
+                        saved.getOrgName(),
+                        saved.getClaimCode(),
+                        signupUrl,
+                        expiresAt);
+            } catch (Exception emailEx) {
+                // Outbox-first inside sendBetaInviteEmail handles reliability;
+                // this catch protects the approve txn from any rare
+                // dispatcher-side exception (e.g. ObjectMapper failure).
+                log.warn("Beta invite email dispatch failed (request id={}, email={}): {}",
+                        saved.getId(), saved.getEmail(), emailEx.getMessage());
+            }
+        } else {
+            log.debug("EmailServiceClient not wired; beta-invite email skipped "
+                    + "(test context). Request id={} claimCode={}",
+                    saved.getId(), saved.getClaimCode());
+        }
+
         approvalCounter(saved.getPersona()).increment();
         log.info("Beta access request approved: id={} email={} approver={}",
                 saved.getId(), saved.getEmail(), cmd.approverId());
         return saved;
+    }
+
+    /** VN-style human date format for email body (per vn-localization-audit-checklist.md §1). */
+    private static final DateTimeFormatter VN_EXPIRY_FORMATTER =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy 'lúc' HH:mm", Locale.forLanguageTag("vi-VN"));
+
+    private static String formatExpiry(OffsetDateTime expiry) {
+        if (expiry == null) {
+            return "";
+        }
+        return VN_EXPIRY_FORMATTER.format(expiry);
+    }
+
+    private static String trimTrailingSlash(String url) {
+        if (url == null || url.isEmpty()) {
+            return url;
+        }
+        return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
     }
 
     /** Coordinator reject transition. Captures rejectionReason. */

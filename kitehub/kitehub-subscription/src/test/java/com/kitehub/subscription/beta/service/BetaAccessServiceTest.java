@@ -53,7 +53,8 @@ class BetaAccessServiceTest {
         outboxRepo = mock(SubscriptionOutboxRepository.class);
         eventEmitter = new SubscriptionEventEmitter(outboxRepo);
         meterRegistry = new SimpleMeterRegistry();
-        service = new BetaAccessService(repository, eventEmitter, meterRegistry);
+        // EmailServiceClient null in unit tests — production wiring uses the real bean.
+        service = new BetaAccessService(repository, eventEmitter, meterRegistry, null);
         when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
     }
 
@@ -116,7 +117,7 @@ class BetaAccessServiceTest {
         when(repository.findById(5L)).thenReturn(Optional.of(pending));
         SubscriptionOutboxRepository outboxRepo = mock(SubscriptionOutboxRepository.class);
         SubscriptionEventEmitter spyEmitter = new SubscriptionEventEmitter(outboxRepo);
-        BetaAccessService localService = new BetaAccessService(repository, spyEmitter, meterRegistry);
+        BetaAccessService localService = new BetaAccessService(repository, spyEmitter, meterRegistry, null);
 
         BetaAccessRequest approved = localService.approveRequest(5L, new BetaApproveCommand("coord-1"));
 
