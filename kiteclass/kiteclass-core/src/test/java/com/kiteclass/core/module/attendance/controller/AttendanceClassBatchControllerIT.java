@@ -2,7 +2,7 @@ package com.kiteclass.core.module.attendance.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.AttendanceStatus;
-import com.kiteclass.core.common.security.AuthorizationHelper;
+import com.kiteclass.core.common.security.AuthorizationBean;
 import com.kiteclass.core.module.attendance.dto.AttendancePeriodResponse;
 import com.kiteclass.core.module.attendance.dto.ClassBatchAttendanceEntry;
 import com.kiteclass.core.module.attendance.dto.ClassBatchAttendanceRequest;
@@ -79,14 +79,14 @@ class AttendanceClassBatchControllerIT {
          * Tests below configure return values per-scenario.
          */
         @Bean("authz") @Primary
-        AuthorizationHelper authz() {
-            return Mockito.mock(AuthorizationHelper.class);
+        AuthorizationBean authz() {
+            return Mockito.mock(AuthorizationBean.class);
         }
     }
 
     @Autowired private MockMvc mockMvc;
     @Autowired private AttendancePeriodService service;
-    @Autowired private AuthorizationHelper authz;
+    @Autowired private AuthorizationBean authz;
     @Autowired private ObjectMapper objectMapper;
 
     private static final Long CLASS_ID = 100L;
@@ -218,7 +218,7 @@ class AttendanceClassBatchControllerIT {
      * <p>Failure-mode matrix row C3: teacher Tâm assigned class 100 attempts
      * to record attendance for class 999 (NOT assigned) by submitting URL
      * {@code POST /api/v1/attendance/class/999/batch}. Per
-     * {@link AuthorizationHelper#hasAccessToClass(Long)} return false →
+     * {@link AuthorizationBean#hasAccessToClass(Long)} return false →
      * Spring Security's {@code @PreAuthorize} denies → HTTP 403.
      *
      * <p>Evidence chain per `pre-handoff-self-test-completeness.md` §2.4
