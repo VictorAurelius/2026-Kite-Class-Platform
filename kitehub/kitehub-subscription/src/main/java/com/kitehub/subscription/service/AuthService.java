@@ -559,15 +559,67 @@ public class AuthService {
         SecretKey key = jwtKeyService.signingKey();
         Instant now = Instant.now();
 
-        return Jwts.builder()
+        // GAP-704 (Wave 104 Bucket A) — enrich JWT with tenantId claim for tenant-scoped roles.
+        // PLATFORM_ADMIN is tenant-agnostic (operates across all tenants) so MUST NOT receive
+        // a tenantId claim. Tenant binding for OWNER role lives in instances.owner_id
+        // (users.tenant_id is NULL post-signup by current schema design).
+        // See GAP-704 (closes root cause of GAP-531 PARTIAL) and
+        // documents/04-quality/audits/local-stack/2026-05-22-wave-103-owner-persona-walk.md.
+        var builder = Jwts.builder()
             .subject(userId.toString())
             .claim("email", email)
             .claim("role", role)
-            .claim("type", "access")
+            .claim("type", "access");
+
+        UUID tenantId = resolveTenantIdForRole(userId, role);
+        if (tenantId != null) {
+            builder.claim("tenantId", tenantId.toString());
+        }
+
+        return builder
             .issuedAt(Date.from(now))
             .expiration(Date.from(now.plus(24, ChronoUnit.HOURS)))
             .signWith(key)
             .compact();
+    }
+
+    /**
+     * Resolve the tenant binding for a given user+role to enrich JWT {@code tenantId} claim.
+     *
+     * <p>Phase 1 BETA semantics (per GAP-704):
+     * <ul>
+     *   <li>{@code PLATFORM_ADMIN} → returns {@code null} (tenant-agnostic; claim omitted).</li>
+     *   <li>{@code OWNER} → queries {@code instances.owner_id} (canonical binding).</li>
+     *   <li>Other tenant-scoped roles (STAFF/TEACHER/PARENT/STUDENT) → not yet wired here;
+     *       returns {@code null} until per-role tenant lookup lands (tracked in GAP-531 follow-up).
+     *       This is intentional: those roles do not currently issue tokens via this service
+     *       (staff invitations + parent/student logins ship in later waves).</li>
+     * </ul>
+     *
+     * <p>Phase 1 BETA constraint: 1 user → 1 tenant (per GAP-704 AC §6). If an owner has
+     * &gt;1 non-deleted instance the first one wins, which is safe because beta-signup is
+     * gated to a single tenant per owner.
+     *
+     * @param userId user UUID (JWT subject)
+     * @param role uppercase role string ({@code PLATFORM_ADMIN} / {@code OWNER} / etc.)
+     * @return tenant UUID for tenant-scoped roles, or {@code null} when claim should be omitted
+     */
+    private UUID resolveTenantIdForRole(UUID userId, String role) {
+        if (role == null || "PLATFORM_ADMIN".equals(role) || "ADMIN".equals(role)) {
+            // Tenant-agnostic role — never emit tenantId claim.
+            return null;
+        }
+        if ("OWNER".equals(role)) {
+            return instanceRepository.findByOwnerIdAndDeletedFalse(userId).stream()
+                .findFirst()
+                .map(Instance::getId)
+                .orElse(null);
+        }
+        // STAFF / TEACHER / PARENT / STUDENT — wire when those auth paths land
+        // (currently not issuing tokens via this service). Returning null keeps
+        // the JWT shape stable; downstream APIs requiring tenantId will surface
+        // the gap explicitly rather than silently issue an unscoped token.
+        return null;
     }
 
     private String generateRefreshToken(UUID userId) {
