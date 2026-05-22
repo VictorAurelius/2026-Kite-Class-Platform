@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -69,9 +70,12 @@ public class AttendanceClassBatchController {
      * upsert path (FK constraints + tenant scoping).
      */
     @PostMapping("/{classId}/batch")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     @Operation(summary = "Save attendance for one class on one date in one round-trip",
             description = "GAP-268a: collapses 10 tiết × N students grid into one POST. "
-                    + "Idempotent — resubmitting updates the same rows.")
+                    + "Idempotent — resubmitting updates the same rows. "
+                    + "Wave 105 Bucket C: per-class authz via @authz.hasAccessToClass(#classId) "
+                    + "— teacher not assigned to classId returns 403 (OWASP A01 guard).")
     public ResponseEntity<List<AttendancePeriodResponse>> saveClassBatch(
             @Parameter(description = "Target class ID") @PathVariable Long classId,
             @Parameter(description = "Lesson date (ISO-8601)", required = true)

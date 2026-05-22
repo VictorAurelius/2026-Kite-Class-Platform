@@ -52,6 +52,7 @@ public class GradeController {
      */
     @PreAuthorize("@authz.hasAccessToClass(#classId)")
     @PostMapping("/initialize")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<GradeResponse>> initializeGrade(
             @RequestParam Long studentId,
             @RequestParam Long classId) {
@@ -74,6 +75,7 @@ public class GradeController {
      * Get grade by student ID and class ID.
      */
     @GetMapping("/student/{studentId}/class/{classId}")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<GradeResponse>> getStudentGrade(
             @PathVariable Long studentId,
             @PathVariable Long classId) {
@@ -101,6 +103,7 @@ public class GradeController {
      */
     @PreAuthorize("@authz.hasAccessToClass(#classId)")
     @GetMapping("/class/{classId}")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<List<GradingSummaryResponse>>> getGradesByClass(
             @PathVariable Long classId) {
 
@@ -215,6 +218,7 @@ public class GradeController {
      * Calculate class statistics.
      */
     @GetMapping("/class/{classId}/statistics")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<Map<String, Object>>> calculateClassStatistics(
             @PathVariable Long classId) {
 
