@@ -1,0 +1,37 @@
+{
+  "pr": 1723,
+  "title": "feat(wave-105-c): teacher per-class authz @authz bean + cross-class spoof IT",
+  "branch": "wave/105-bucket-c-teacher",
+  "created_at": null,
+  "merged_at": "2026-05-22T17:16:10Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": false,
+    "audits_required": [
+      "api-contract-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-23T00:16:15.200718",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 8,
+        "java_files": 6,
+        "test_files": 2,
+        "business_docs": false,
+        "missing_audits": [
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "1/5",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-12990"
+  }
+}
