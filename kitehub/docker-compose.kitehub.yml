@@ -362,6 +362,9 @@ services:
       DATABASE_ADMIN_PASSWORD: ${POSTGRES_PASSWORD:?required}
       ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:?ENCRYPTION_MASTER_KEY is required - run ./scripts/setup.sh}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required - run ./scripts/setup.sh}
+      # Wave 104.5 GAP-705/706 enablement: align challenge-secret across subscription+gateway
+      # (subscription issues challenge tokens; gateway verifies them — symmetric secret required).
+      JWT_CHALLENGE_SECRET: ${JWT_CHALLENGE_SECRET:-dev-challenge-secret-pad-pad-pad-pad-pad}
     ports:
       - "8081:8080"
     depends_on:
@@ -568,6 +571,10 @@ services:
       # Security secrets (shared với subscription + admin per Wave 89 Bucket A GAP-604)
       ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:?ENCRYPTION_MASTER_KEY is required - run ./scripts/setup.sh}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required - run ./scripts/setup.sh}
+      # Wave 104.5 GAP-705/706 enablement: gateway needs challenge-secret to verify
+      # HS256 challenge tokens issued by kitehub-subscription ChallengeTokenService.
+      # Default matches application.yml local-dev fallback for symmetry.
+      JWT_CHALLENGE_SECRET: ${JWT_CHALLENGE_SECRET:-dev-challenge-secret-pad-pad-pad-pad-pad}
     ports:
       - "9000:9000"
     depends_on:

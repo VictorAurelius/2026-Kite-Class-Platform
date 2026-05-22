@@ -13,8 +13,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Gateway filter to resolve tenant from subdomain or header.
@@ -73,6 +76,27 @@ public class TenantResolverGatewayFilterFactory extends AbstractGatewayFilterFac
             }
 
             if (subdomain == null || subdomain.isBlank()) {
+                // 4. Try JWT tenantId claim fallback (GAP-711 — Wave 105 Bucket E fix)
+                // Wave 104 Bucket A enriches Owner/Teacher/Parent/Student JWT with tenantId
+                // claim. When subdomain-based resolution fails (e.g., `localhost` in local
+                // dev OR direct apex access), derive tenant from JWT claim. Signature is
+                // NOT verified here — JwtAuthenticationGatewayFilter is the canonical
+                // signature gate; this fallback is best-effort claim read.
+                String jwtTenantId = extractJwtTenantClaim(request.getHeaders().getFirst("Authorization"));
+                if (jwtTenantId != null) {
+                    try {
+                        UUID tenantUuid = UUID.fromString(jwtTenantId);
+                        Optional<Instance> jwtInstance = instanceRepository.findById(tenantUuid);
+                        if (jwtInstance.isPresent()) {
+                            log.debug("Resolved tenant from JWT claim: {}", jwtTenantId);
+                            return routeToInstance(exchange, chain, jwtInstance.get());
+                        }
+                        log.warn("JWT tenantId claim references unknown instance: {}", jwtTenantId);
+                    } catch (IllegalArgumentException ex) {
+                        log.warn("JWT tenantId claim is not a valid UUID: {}", jwtTenantId);
+                    }
+                }
+
                 log.warn("Could not resolve tenant from request");
                 return respondWithError(exchange, HttpStatus.BAD_REQUEST, "Cannot resolve tenant");
             }
@@ -88,6 +112,44 @@ public class TenantResolverGatewayFilterFactory extends AbstractGatewayFilterFac
 
             return routeToInstance(exchange, chain, instanceOpt.get());
         };
+    }
+
+    /**
+     * Best-effort extraction of {@code tenantId} claim from a Bearer token.
+     * Returns {@code null} for any failure path (no header, no Bearer, malformed JWT,
+     * no claim). Signature is NOT verified here — JwtAuthenticationGatewayFilter is
+     * the canonical signature gate. This fallback is only used when subdomain-based
+     * resolution fails (typically local-dev `localhost`).
+     */
+    private String extractJwtTenantClaim(String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            return null;
+        }
+        String token = authorizationHeader.substring("Bearer ".length()).trim();
+        String[] parts = token.split("\\.");
+        if (parts.length < 2) {
+            return null;
+        }
+        try {
+            String payloadJson = new String(
+                Base64.getUrlDecoder().decode(parts[1]),
+                StandardCharsets.UTF_8);
+            // Naive substring extraction — avoids pulling jackson into this filter.
+            // Pattern: "tenantId":"<UUID>"
+            int keyIdx = payloadJson.indexOf("\"tenantId\"");
+            if (keyIdx < 0) {
+                return null;
+            }
+            int colonIdx = payloadJson.indexOf(':', keyIdx);
+            int firstQuote = payloadJson.indexOf('"', colonIdx + 1);
+            int secondQuote = payloadJson.indexOf('"', firstQuote + 1);
+            if (firstQuote < 0 || secondQuote < 0) {
+                return null;
+            }
+            return payloadJson.substring(firstQuote + 1, secondQuote);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     private Mono<Void> routeToInstance(ServerWebExchange exchange, org.springframework.cloud.gateway.filter.GatewayFilterChain chain, Instance instance) {

@@ -36,7 +36,7 @@ public class EmailConsumer {
     private final RestTemplate restTemplate;
     private final EmailSentLogRepository emailSentLogRepository;
 
-    @Value("${email.service.url:http://localhost:8083}")
+    @Value("${email.service.url:http://kitehub-email:8080}")
     private String emailServiceUrl;
 
     /**

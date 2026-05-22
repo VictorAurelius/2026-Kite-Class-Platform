@@ -563,12 +563,26 @@ spring:
 
         # Wave 80 staff-invitations endpoints on kitehub-subscription
         # (StaffInvitationController @RequestMapping("/api/v1/staff-invitations")).
-        # Wave 82 Bucket F4 fix: surfaced by audit-gateway-routes.sh — was falling
+        # Wave 82 Bucket F4 fix: surfaced by audit-gateway-surfaces.sh — was falling
         # through /api/v1/** catch-all → kiteclass-core (wrong service).
         - id: kitehub-staff-invitations
           uri: http://kitehub-subscription:8080
           predicates:
             - Path=/api/v1/staff-invitations/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
+
+        # Onboarding progress lives in kitehub-subscription
+        # (OnboardingProgressController @RequestMapping("/api/v1/onboarding-progress")).
+        # Wave 104.5 GAP-714 fix: was falling through /api/v1/** catch-all
+        # → kiteclass-core which has no handler → NoHandlerFoundException → 500.
+        - id: kitehub-onboarding-progress
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/onboarding-progress/**,/api/v1/onboarding-progress
           filters:
             - name: CircuitBreaker
               args:

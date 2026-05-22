@@ -244,9 +244,12 @@ webhook:
     secret: ${WEBHOOK_PAYMENT_SECRET:}
 
 # Email service
+# Note: duplicate of `email-service.url` (line 195) — consumed by EmailConsumer + EmailServiceClient.
+# Both keys must point to same default to avoid Docker-network/localhost drift.
+# Consolidation tracked GAP-713 follow-up scope.
 email:
   service:
-    url: ${EMAIL_SERVICE_URL:http://localhost:8083}
+    url: ${EMAIL_SERVICE_URL:http://kitehub-email:8080}
 
 # Payment
 payment:

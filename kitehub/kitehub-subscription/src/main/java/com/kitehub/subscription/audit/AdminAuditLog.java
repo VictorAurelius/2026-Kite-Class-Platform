@@ -57,7 +57,7 @@ public class AdminAuditLog {
      * manually via Jackson's ObjectMapper.
      */
     @Column(name = "payload_json", columnDefinition = "jsonb")
-    @org.hibernate.annotations.JdbcTypeCode(java.sql.Types.OTHER)
+    @JdbcTypeCode(SqlTypes.JSON)
     private String payloadJson;
 
     @Column(nullable = false)
@@ -101,8 +101,9 @@ public class AdminAuditLog {
     /**
      * Wave 92 Bucket A — GAP-521 Phase 2 enrichment.
      *
-     * <p>JSONB snapshot of resource state TRƯỚC action. Nullable for CREATE
-     * actions. Pair với {@link #afterState} cho complete forensic diff.</p>
+     * <p>JSONB snapshot of resource state TRƯỚC action. Defaults to JSON null
+     * literal "null" (the 4-char string) when not set, to avoid Hibernate's
+     * SqlTypes.JSON adapter rejecting native Java null on insert path.</p>
      */
     @Column(name = "before_state", columnDefinition = "jsonb")
     @JdbcTypeCode(SqlTypes.JSON)
@@ -111,8 +112,7 @@ public class AdminAuditLog {
     /**
      * Wave 92 Bucket A — GAP-521 Phase 2 enrichment.
      *
-     * <p>JSONB snapshot of resource state SAU action. Nullable for DELETE
-     * actions. Pair với {@link #beforeState} cho complete forensic diff.</p>
+     * <p>JSONB snapshot of resource state SAU action. Pair với {@link #beforeState}.</p>
      */
     @Column(name = "after_state", columnDefinition = "jsonb")
     @JdbcTypeCode(SqlTypes.JSON)
@@ -121,5 +121,11 @@ public class AdminAuditLog {
     @PrePersist
     void onCreate() {
         if (createdAt == null) createdAt = LocalDateTime.now();
+        // Wave 104.5 GAP-715 fix: Hibernate 6 SqlTypes.JSON adapter rejects
+        // null String → triggers "Could not convert 'java.lang.String' to '[B'".
+        // Match OnboardingProgress.stepsJson pattern: default to JSON null literal.
+        if (payloadJson == null) payloadJson = "null";
+        if (beforeState == null) beforeState = "null";
+        if (afterState == null) afterState = "null";
     }
 }

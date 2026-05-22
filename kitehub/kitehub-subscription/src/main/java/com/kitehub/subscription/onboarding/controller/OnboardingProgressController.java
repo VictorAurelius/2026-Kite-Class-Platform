@@ -78,33 +78,49 @@ public class OnboardingProgressController {
     }
 
     /**
-     * Resolve tenant context from {@code X-Tenant-Id} header AND cross-check
-     * against the JWT {@code tenantId} claim (GAP-554 — defense-in-depth against
-     * gateway bypass that would otherwise let an attacker spoof tenant context
-     * by setting the header directly on an internal call).
+     * Resolve tenant context with two-path priority (GAP-712 — Wave 105 Bucket E fix):
+     * <ol>
+     *   <li>If {@code X-Tenant-Id} header present → use header value, cross-check
+     *       against JWT {@code tenantId} claim (GAP-554 defense-in-depth).</li>
+     *   <li>If header missing AND JWT contains {@code tenantId} claim → derive
+     *       tenant from JWT claim (Wave 104 Bucket A enrichment makes this the
+     *       primary resolution path for first-party callers).</li>
+     *   <li>If neither → {@code 403 TENANT_CONTEXT_MISSING}.</li>
+     * </ol>
      *
-     * <p>Cross-check policy:</p>
+     * <p>Cross-check policy (when both present):</p>
      * <ul>
-     *   <li>Header missing → {@code 403 TENANT_CONTEXT_MISSING} (unchanged).</li>
      *   <li>Header present, JWT absent OR has no {@code tenantId} claim → ALLOW
      *       (Phase 1 BETA — gateway is trusted boundary, JWT may pre-date claim).</li>
      *   <li>Both present + mismatch → {@code 403 TENANT_HEADER_JWT_MISMATCH}.</li>
-     *   <li>JWT unparseable / invalid signature → ALLOW (auth filter is the canonical
-     *       gate; this controller does not duplicate that responsibility).</li>
+     *   <li>JWT unparseable / invalid signature → ALLOW header value (auth filter
+     *       is the canonical signature gate; this controller does not duplicate it).</li>
      * </ul>
      */
     private UUID resolveTenant(String tenantHeader, String authorizationHeader) {
+        String jwtTenant = extractJwtTenantClaim(authorizationHeader);
+
         if (tenantHeader == null || tenantHeader.isBlank()) {
-            throw new TenantContextMissingException("X-Tenant-Id header missing");
+            // Fallback to JWT-derived tenant (Wave 104 Bucket A enrichment).
+            if (jwtTenant == null || jwtTenant.isBlank()) {
+                throw new TenantContextMissingException(
+                    "X-Tenant-Id header missing and JWT tenantId claim absent");
+            }
+            try {
+                return UUID.fromString(jwtTenant);
+            } catch (IllegalArgumentException ex) {
+                throw new TenantContextMissingException(
+                    "JWT tenantId claim malformed (not a UUID)");
+            }
         }
+
+        // Header path with cross-check.
         final UUID tenantId;
         try {
             tenantId = UUID.fromString(tenantHeader);
         } catch (IllegalArgumentException ex) {
             throw new TenantContextMissingException("X-Tenant-Id header malformed (not a UUID)");
         }
-
-        String jwtTenant = extractJwtTenantClaim(authorizationHeader);
         if (jwtTenant != null && !jwtTenant.isBlank() && !jwtTenant.equals(tenantHeader)) {
             log.warn("Tenant header/JWT mismatch: header={} jwt={}",
                 tenantHeader, jwtTenant);
