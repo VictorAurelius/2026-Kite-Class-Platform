@@ -37,7 +37,8 @@ class NotificationChannelContractTest {
         props.setMockMode(true);
         props.setFromEmail("noreply@kitehub.test");
         props.setFromName("KiteHub Test");
-        SESEmailService impl = new SESEmailService(props, null, null, templateEngine, null);
+        SESEmailService impl = new SESEmailService(props, null, null, templateEngine, null,
+                new com.kitehub.email.service.EmailTemplateRenderer(templateEngine));
         // Force mock provider to avoid real SES / SMTP wiring in this unit test.
         ReflectionTestUtils.setField(impl, "emailProvider", "mock");
         ReflectionTestUtils.setField(impl, "brandingEnabled", false);

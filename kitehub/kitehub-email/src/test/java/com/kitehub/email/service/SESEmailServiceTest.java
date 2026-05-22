@@ -52,7 +52,8 @@ class SESEmailServiceTest {
         sesProperties.setFromName("KiteClass Platform");
         sesProperties.setMockMode(true); // Mock mode for testing
 
-        sesEmailService = new SESEmailService(sesProperties, null, null, templateEngine, brandingClient);
+        sesEmailService = new SESEmailService(sesProperties, null, null, templateEngine, brandingClient,
+                new com.kitehub.email.service.EmailTemplateRenderer(templateEngine));
         ReflectionTestUtils.setField(sesEmailService, "brandingEnabled", true);
     }
 
