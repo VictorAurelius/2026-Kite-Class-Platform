@@ -257,6 +257,7 @@ class PaymentFlowIntegrationTest {
         MvcResult paymentResult = mockMvc.perform(post("/api/v1/payments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Id", "1")  // Wave 105 Bucket E: UserContext.getCurrentUser() requires X-User-Id (gateway-injected at runtime)
                         .content(objectMapper.writeValueAsString(paymentRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.paymentStatus").value("PENDING"))
@@ -422,6 +423,7 @@ class PaymentFlowIntegrationTest {
         MvcResult paymentResult = mockMvc.perform(post("/api/v1/payments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Id", "1")  // Wave 105 Bucket E: UserContext.getCurrentUser() requires X-User-Id (gateway-injected at runtime)
                         .content(objectMapper.writeValueAsString(paymentRequest)))
                 .andExpect(status().isCreated())
                 .andReturn();
@@ -466,6 +468,7 @@ class PaymentFlowIntegrationTest {
         mockMvc.perform(post("/api/v1/payments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Id", "1")  // Wave 105 Bucket E: UserContext.getCurrentUser() requires X-User-Id (gateway-injected at runtime)
                         .content(objectMapper.writeValueAsString(retryPayment)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.paymentStatus").value("COMPLETED"));
