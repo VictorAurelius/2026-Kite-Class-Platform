@@ -82,7 +82,25 @@ phase: phase-1-beta
 5. **Per-resource authz refactor** — `@PreAuthorize` annotations require `@authz` bean implementation. Mitigation: minimal `@authz.hasAccessTo*` helpers Wave 105, full RBAC Wave 107
 6. **PDPL UX redesign legal review** — parent-on-behalf-of-child consent needs counsel sign-off. Mitigation: technical implementation Wave 105, legal sign-off deferred per `business-logic-review.md` GAP-156
 
-## 2. Out-of-scope (Wave 106+)
+## 2. Task Breakdown
+
+| # | Task | Owner | Bucket | Est. effort |
+|---|---|---|---|---|
+| 1 | Spawn 5 background agents (A/B/C/D/E) + coordinator inline Bucket F | Coordinator | Pre-spawn | 0.5h |
+| 2 | Bucket A — Anonymous walk + PDPL UX + mobile fallback + XSS fix + idempotency | Agent A (Opus medium) | A | 5h |
+| 3 | Bucket B — Owner walk + bulk-import-first reorder + VietQR + multi-branch defer | Agent B (Opus full) | B | 7h |
+| 4 | Bucket C — Teacher walk + per-class authz + 2FA clock skew | Agent C (Opus full) | C | 5h |
+| 5 | Bucket D — Parent walk + VietQR idempotency + multi-child authz + parent-PDPL + Zalo OA stub | Agent D (Opus full) | D | 8h |
+| 6 | Bucket E — Security P0 cluster (5 real-code bug fixes + IT tests) | Agent E (Opus full) | E | 8h |
+| 7 | Bucket F — GAP-716 audit obligations (3 audits + 2 doc syncs + 3 IT tests) | Coordinator inline (Sonnet) | F | 6h |
+| 8 | Coordinator cherry-pick all 6 buckets to wave/105 branch | Coordinator | Closure | 1h |
+| 9 | Wave closure PR + CI wait + squash merge | Coordinator | Closure | 1h |
+| 10 | Post-merge sync (CSV + ROADMAP + wave-history + MEMORY) | Coordinator | Post-merge | 0.5h |
+| 11 | Post-wave audit suite ≤3 ngày | Coordinator | Post-wave | 4h (deadline +3d) |
+
+**Total: ~46h (32h agent work + ~5h coordination + 4h post-wave audit + ~5h misc)**
+
+### Out-of-scope (Wave 106+)
 
 - File upload magic-byte validation + ClamAV
 - 2FA clock skew ±60s/±90s boundary IT test
@@ -213,7 +231,7 @@ phase: phase-1-beta
 5. Post-wave audit suite ≤3 ngày per `post-wave-audit-mandate.md` §2.2
 6. Update PR template + audit gate to track this Wave's scope
 
-## 8. Open Items / Follow-ups
+### Open Items / Follow-ups
 
 Per `gap-done-discipline.md` §3 PARTIAL exit ramp:
 
@@ -227,7 +245,7 @@ Per `gap-done-discipline.md` §3 PARTIAL exit ramp:
 - [ ] **KC 190 endpoint coverage Wave 107+** — statistical sampling per `quality-audit` skill
 - [ ] **RLS DB-layer explicit cross-tenant test Wave 106+** — currently gateway-level only
 
-## 9. Related
+### Related
 
 - Wave 104.5 close-loop: PRs #1715 + #1716 + #1717
 - GAP-716 (obligations Wave 104.5 audit): `documents/04-quality/gaps/phase-1-beta/closed/GAP-716-wave-104.5-post-merge-audit-suite-deadline.md`
@@ -242,3 +260,7 @@ Per `gap-done-discipline.md` §3 PARTIAL exit ramp:
   - `gap-done-discipline.md` §3 (PARTIAL exit ramp for deferred items)
   - `post-merge-sync-completeness.md` §2 (4 sync targets post-merge)
 - Draft scope source: `/tmp/wave-105-draft-scope.md` (in-flight, not committed)
+
+## 8. Log
+
+- **2026-05-22 (draft):** Wave 105 plan created. Triggered by Wave 104.5 close-loop user direction "test full để beta user không gặp lỗi" → 3 outside-in audit agents spawned per `outside-in-coverage-trigger.md` v1.1.0 §3 before lock scope. 3 audit reports filed (`documents/04-quality/audits/persona-review/2026-05-22-wave-105-{persona-simulation,vn-saas-benchmark,failure-mode-matrix}.md`). Refined scope from original 5-bucket inside-out persona walk to 6-bucket (added Bucket E Security P0 cluster) after audit surfaced 5 P0 real-code bugs + 6 outside-in UX gaps. Effort estimate increased ~20h → ~32h agent work (~46h total including coordination + post-wave audit). Inside-out + outside-in sources documented §1 Brainstorm Q1 per `outside-in-coverage-trigger.md` v1.1.0 Bước 5 mandate. Status: draft pending plan PR merge → agent spawn next session.
