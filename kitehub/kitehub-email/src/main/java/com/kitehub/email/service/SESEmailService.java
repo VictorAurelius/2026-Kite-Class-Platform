@@ -16,7 +16,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -60,6 +59,13 @@ public class SESEmailService implements NotificationChannel {
     private final SESConfig.SESProperties sesProperties;
     private final SesClient sesClient;
     private final JavaMailSender mailSender;
+    /**
+     * Thymeleaf engine — retained for constructor backward compatibility
+     * with existing test fixtures (3 callers). Direct usage superseded by
+     * {@link EmailTemplateRenderer} (GAP-703 Wave 104 B2). Field removal +
+     * constructor cleanup deferred to follow-up refactor PR.
+     */
+    @SuppressWarnings("unused")
     private final TemplateEngine templateEngine;
     private final BrandingClient brandingClient;
     private final EmailTemplateRenderer templateRenderer;
@@ -343,18 +349,6 @@ public class SESEmailService implements NotificationChannel {
             // Header failure must not block send (deliverability degraded, not broken).
             log.warn("Failed to apply List-Unsubscribe headers: {}", ex.getMessage());
         }
-    }
-
-    /**
-     * Render Thymeleaf template to HTML.
-     */
-    private String renderTemplate(String templateName, java.util.Map<String, Object> variables) {
-        Context context = new Context();
-        if (variables != null) {
-            context.setVariables(variables);
-        }
-
-        return templateEngine.process("emails/" + templateName, context);
     }
 
     // ----------------------------------------------------------------------
