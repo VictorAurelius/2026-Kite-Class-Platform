@@ -52,8 +52,11 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         Student student = studentRepository.findByIdAndDeletedFalse(request.getStudentId())
                 .orElseThrow(() -> new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) request.getStudentId()));
 
-        // Validate class exists and is not cancelled
-        Class clazz = classRepository.findByIdAndDeletedFalse(request.getClassId())
+        // Wave 105 Bucket E0 Bug 4 — failure-mode matrix B5 capacity-race fix.
+        // Use OPTIMISTIC_FORCE_INCREMENT lock so concurrent enrollments into
+        // the same full class race on Class.version: 1 succeeds, 1 throws
+        // OptimisticLockException at commit (mapped to HTTP 409 with retry).
+        Class clazz = classRepository.findByIdForEnrollmentWithLock(request.getClassId())
                 .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", (Object) request.getClassId()));
 
         // BR-ENROLL-002: Check for duplicate enrollment (regardless of status)
