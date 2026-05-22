@@ -231,7 +231,18 @@ public class BetaAccessService {
                 .consentGiven(Boolean.TRUE.equals(dto.consentGiven()))
                 .consentAt(now)
                 .build();
-        BetaAccessRequest saved = repository.save(entity);
+        BetaAccessRequest saved;
+        try {
+            saved = repository.saveAndFlush(entity);
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            // Wave 105 Bucket E0 Bug 3 — partial unique index
+            // (idx_beta_request_email_unique_pending V55) blocked concurrent
+            // INSERT. Re-query and return the row that won the race.
+            log.info("Concurrent beta request race detected for {}, returning existing row", dto.email());
+            return repository
+                    .findFirstByEmailAndStatusOrderByCreatedAtDesc(dto.email(), BetaAccessRequestStatus.PENDING)
+                    .orElseThrow(() -> ex);
+        }
         signupCounter(saved.getPersona()).increment();
         log.info("Beta access request submitted: id={} email={} persona={}",
                 saved.getId(), saved.getEmail(), saved.getPersona());
