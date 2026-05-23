@@ -23,13 +23,18 @@ export function useAuth() {
   const loginMutation = useMutation({
     mutationFn: (credentials: LoginRequest) => authApi.login(credentials),
     onSuccess: (data) => {
-      // Construct User object from AuthResponse
+      // KH /api/auth/login returns flat shape: { user: {id,email,name,role (singular)}, accessToken, refreshToken, instances[] }
+      // Wave 105 RST UI 2026-05-23 GAP-724: adapt to actual server contract (was assuming roles[]/profile{}).
+      const u = data.user as unknown as { id: string | number; email: string; name: string; role?: string; roles?: string[] };
+      const role = (u.role ?? u.roles?.[0] ?? 'STUDENT') as string;
+      // KH returns UUID string for user.id; KC User type historically expected number.
+      // Cast keeps store happy until User.id is broadened (tracked GAP-724 follow-up).
       const user = {
-        id: data.user.id,
-        email: data.user.email,
-        name: data.user.name,
-        userType: data.user.roles[0] as UserType, // Use first role as userType
-        referenceId: data.user.profile?.id.toString(),
+        id: u.id as unknown as number,
+        email: u.email,
+        name: u.name,
+        userType: role as UserType,
+        referenceId: undefined,
       };
 
       // Note: tenantId requires backend JWT update (JwtTokenProvider.java) to include tenantId claim.

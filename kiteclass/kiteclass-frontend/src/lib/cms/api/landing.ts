@@ -5,9 +5,11 @@ import axios from 'axios';
 // (browser-visible host port mapping) for client. Surfaced via Wave 105
 // RST UI walk 2026-05-23 — kc-frontend SSR landing fetch ECONNREFUSED.
 const isServer = typeof window === 'undefined';
+// baseURL KHÔNG bao gồm /api/v1 — auth endpoints (/api/auth/*) không có /v1,
+// landing endpoints tự thêm /api/v1 prefix tại callsite.
 const baseURL = isServer
-  ? (process.env.INTERNAL_API_URL || 'http://kite-gateway:9000/api/v1')
-  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1');
+  ? (process.env.INTERNAL_API_URL || 'http://kite-gateway:9000')
+  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000');
 
 const apiClient = axios.create({
   baseURL,

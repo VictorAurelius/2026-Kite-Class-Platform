@@ -53,7 +53,7 @@ describe('authApi', () => {
 
       const result = await authApi.login(mockCredentials);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/v1/auth/login', mockCredentials);
+      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/login', mockCredentials);
       expect(result).toEqual(mockAuthResponse);
     });
 
@@ -77,7 +77,7 @@ describe('authApi', () => {
 
       await authApi.logout(refreshToken);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/v1/auth/logout', { refreshToken });
+      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/logout', { refreshToken });
     });
 
     it('should handle logout error', async () => {
@@ -116,7 +116,7 @@ describe('authApi', () => {
 
       const result = await authApi.refreshToken(oldRefreshToken);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/v1/auth/refresh', {
+      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/refresh', {
         refreshToken: oldRefreshToken,
       });
       expect(result).toEqual(mockAuthResponse);
@@ -139,7 +139,7 @@ describe('authApi', () => {
 
       await authApi.forgotPassword(email);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/v1/auth/forgot-password', { email });
+      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/forgot-password', { email });
     });
 
     it('should handle forgot password error', async () => {
@@ -160,7 +160,7 @@ describe('authApi', () => {
 
       await authApi.resetPassword(token, newPassword);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/v1/auth/reset-password', {
+      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/reset-password', {
         token,
         newPassword,
       });
@@ -186,7 +186,7 @@ describe('authApi', () => {
 
       await authApi.verifyEmail(token);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/v1/auth/verify-email', { token });
+      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/verify-email', { token });
     });
 
     it('should handle verify email error', async () => {
