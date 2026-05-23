@@ -61,7 +61,10 @@ class EmailTemplateRendererTest {
         assertThat(bodies.getHtml()).isNotBlank();
         assertThat(bodies.getHtml()).containsIgnoringCase("KiteHub");
         assertThat(bodies.hasText()).isTrue();
-        assertThat(bodies.getText()).contains("Kính gửi anh/chị");
+        // GAP-543 Wave 107: welcome.txt switched greeting register to "Em chào anh/chị"
+        // (warm-formal, matches P2 Center Owner persona). Per `vn-localization-audit-checklist.md`
+        // §2 row "Email body greeting".
+        assertThat(bodies.getText()).contains("Em chào anh/chị");
         assertThat(bodies.getText()).contains("Nguyễn Thị Mai");
     }
 
@@ -105,7 +108,10 @@ class EmailTemplateRendererTest {
 
         assertThat(bodies.getHtml()).isNotBlank();
         assertThat(bodies.hasText()).isTrue();
-        assertThat(bodies.getText()).contains("184205");
+        // GAP-543 Wave 107: email-verification template uses verifyUrl link
+        // (NOT OTP code display) — anti-phishing convention per audit log §3.
+        // verificationCode var still passed for backward compat; not rendered.
+        assertThat(bodies.getText()).contains("https://kitehub.me/verify");
         assertThat(bodies.getText()).contains("Phạm Văn Bình");
     }
 
