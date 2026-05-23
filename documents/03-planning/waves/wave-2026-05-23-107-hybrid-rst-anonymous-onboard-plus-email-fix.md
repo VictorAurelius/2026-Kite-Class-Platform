@@ -35,7 +35,7 @@ audience: dev
 
 ---
 
-## 2. Phân chia mảng
+## 2. Task Breakdown
 
 | Mảng | Loại | Người chạy | Phụ thuộc | Thời gian |
 |---|---|---|:---:|:---:|
@@ -61,7 +61,7 @@ audience: dev
 
 ---
 
-## 3. Phạm vi (lược đồ rút gọn)
+## 3. Scope (lược đồ rút gọn)
 
 **Bậc rủi ro:** TRUNG BÌNH (RST có thể phát hiện bug chặn luồng → mở rộng scope; fix có thể chạm framework)
 **Mô hình:** Opus 4.7 — bậc trung
