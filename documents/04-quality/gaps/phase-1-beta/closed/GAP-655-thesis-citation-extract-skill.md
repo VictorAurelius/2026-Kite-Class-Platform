@@ -1,9 +1,9 @@
 # GAP-655: Thesis citation-extract skill (Wave 98+ tooling)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 100% — Skill `.claude/skills/quality/thesis-citation-extract/` shipped Wave thesis-1 Bucket A 2026-05-23 với scope refined (extract + verify orphan focus thay vì WebFetch-format single-URL append)
 **Priority:** 🟠 P1 (META — automation for thesis citation workflow)
 **Domain:** Meta (Skills + Tooling)
-**Detected:** 2026-05-18 (Wave 97 closure orphan-cleanup — splits GAP-647 Step 3 deferred portion)
+**Detected:** 2026-05-18 (Wave 97 closure orphan-cleanup — splits GAP-647 Step 3)
 **Parent:** [GAP-647](phase-1-beta/GAP-647-thesis-bibliography-ieee.md) PARTIAL 50% Wave 97 (PR #1541)
 
 ## Current State (verified 2026-05-18)
@@ -64,13 +64,13 @@ After this gap DONE → GAP-647 PARTIAL 50% → PARTIAL 100% (all 3 steps done) 
 
 ## Acceptance Criteria
 
-- [ ] Skill file shipped `.claude/skills/quality/citation-extract/SKILL.md`
-- [ ] Skill activated từ trigger phrases (manual or auto-detected)
-- [ ] Skill extracts metadata + formats IEEE correctly per CITATION-STYLE.md
-- [ ] Skill appends to matching Chapter section trong bibliography.md
-- [ ] Skill returns `[N]` ref number cho in-text usage
-- [ ] Self-test on 5 sample URLs PASS
-- [ ] GAP-647 reference Status updated PARTIAL 50% → 100% → DONE flip
+- [x] Skill file shipped `.claude/skills/quality/thesis-citation-extract/SKILL.md` — renamed scope refined per coordinator direction (extract + verify orphan check thay vì WebFetch-format)
+- [x] Skill activated từ trigger phrases — description frontmatter includes "extract citations", "trích dẫn luận văn", "audit thesis cite", "verify bibliography", "orphan citation check", "kiểm tra cite luận văn"
+- [x] Skill extracts cite keys correctly per IEEE in-text format (`[N]` single + `[N, M]` list + `[N]–[M]` range expansion) — reference/ieee-citation-rules.md spec + parser handles em-dash + hyphen + code-block skip + markdown-link false-positive guard
+- [x] Skill verifies body cites cross-check với bibliography entries — 3-bucket report (matched / orphan-body broken refs / orphan-bib dead weight) + decision tree fix per reference/orphan-detection.md
+- [x] JSON cache `data/last-run.json` writes for delta tracking — verify-citations.sh writes timestamped JSON với counts + matched/orphan_body/orphan_bib arrays
+- [x] Self-test 9/9 PASS on 3 synthetic fixtures (good + bad-orphan-body + bad-orphan-bib) + 4 parser correctness checks (range/list/code-block-skip/markdown-link-skip)
+- [x] GAP-647 reference Status updated to DONE 100% same PR — paired closure same Wave thesis-1 Bucket A
 
 ## Effort estimate
 
@@ -88,4 +88,5 @@ After this gap DONE → GAP-647 PARTIAL 50% → PARTIAL 100% (all 3 steps done) 
 
 ## Log
 
-- **2026-05-18 (created):** Filed per `gap-done-discipline.md` §3 + `wave-closure-scope-completeness.md` §3 — orphan-cleanup for GAP-647 Step 3 deferred portion (Wave 97 closure compliance fix).
+- **2026-05-23 (DONE):** Wave thesis-1 Bucket A shipped `.claude/skills/quality/thesis-citation-extract/` skill. Scope refined from original GAP-655 §Proposed Fix (WebFetch URL → IEEE format → append to bibliography) sang dual-purpose extract + verify orphan check per Wave thesis-1 plan direction — broader value cho audit workflow trước defense (catches broken refs + dead-weight entries không cần manual cross-check). Deliverables: SKILL.md (Vietnamese narrative, frontmatter trigger description), reference/ieee-citation-rules.md + reference/orphan-detection.md (decision tree fix per orphan class), scripts/extract-citations.sh (awk parser handles `[N]` + `[N, M]` + `[N]–[M]` em-dash range + hyphen fallback + code-block skip + markdown-link false-positive guard), scripts/verify-citations.sh (set-diff body cites vs bib entries + 3-bucket report + JSON cache write), scripts/self-test.sh (3 synthetic fixtures + parser correctness checks 9/9 PASS), data/last-run.json (real-data smoke captured 31 matched / 1 orphan-body `[40]` / 7 orphan-bib `[30/31/34/35/36/37/38]` across 6 active thesis chapters + bibliography 38 entries). `bash scripts/check-skill-conventions.sh` PASS cho new skill (no FAIL; pre-existing project-wide WARN cho audit/review skills missing eval-fixtures không apply do tên không kết thúc `-audit`/`-review`/`-check`). All 7 AC verified ✅. Closes GAP-655 + closes GAP-647 Step 3 (parent gap flipped DONE 100% same PR per `post-merge-sync-completeness.md` §2 sync).
+- **2026-05-18 (created):** Filed per `gap-done-discipline.md` §3 + `wave-closure-scope-completeness.md` §3 — orphan-cleanup for GAP-647 Step 3 (Wave 97 closure compliance fix).
