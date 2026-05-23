@@ -91,9 +91,23 @@ audience: dev
 
 ---
 
-## 4. Đầu ra mong đợi
+## 4. State-Check Evidence
 
-### 4.1 RST-A + RST-B (1 PR — `feat/wave-107-rst-a-b-onboard-walk`)
+Xem §3 "Bằng chứng kiểm tra trạng thái (per `audit-to-gap-pipeline.md` §2.6)" — table đã verify Docker stack + KH/KC frontend routes + owner.test credential + EmailTemplateRenderer + Tone enum + 5 template tệp + staff-invite template.
+
+## 5. Verification Gates
+
+| Nhánh | Lệnh kiểm thử cục bộ | CI gate |
+|---|---|---|
+| RST-A (anonymous KH) | `PLAYWRIGHT_BASE_URL=http://localhost:3001 pnpm exec playwright test e2e/_rst-wave-107-anonymous.spec.ts` | frontend-ci |
+| RST-B (owner-onboard KC) | `PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm exec playwright test e2e/_rst-wave-107-owner-onboard.spec.ts` | frontend-ci |
+| FIX-543 (email content) | `cd kitehub && ./mvnw -pl kitehub-email test -P strict-warnings` | core-ci |
+| FIX-657 (email framework) | `cd kitehub && ./mvnw -pl kitehub-email verify -P strict-warnings` | core-ci |
+| FIX-659 (email tone) | `cd kitehub && ./mvnw -pl kitehub-email test -P strict-warnings` | core-ci |
+
+## 7. Closure Protocol
+
+### 7.1 RST-A + RST-B (1 PR — `feat/wave-107-rst-a-b-onboard-walk`)
 
 - File Playwright spec: `kitehub/kitehub-frontend/e2e/_rst-wave-107-anonymous.spec.ts` + `_rst-wave-107-owner-onboard.spec.ts`
 - Ảnh chụp: `/tmp/rst-screenshots/wave-107/<mảng>-<luồng>-<bước>.png`
@@ -124,7 +138,7 @@ audience: dev
 
 ---
 
-## 5. Tối ưu agent (chi tiết)
+## 6. Agent Spawn Pattern
 
 ### 5.1 Cấu hình 3 agent fix song song
 
@@ -173,7 +187,7 @@ Bạn là agent fix GAP-XXX trong worktree /tmp/wt-XXX-...
 
 ---
 
-## 6. Tiền điều kiện trước khi mở Đợt 107
+## Tiền điều kiện trước khi mở Đợt 107
 
 | Điều kiện | Trạng thái | Hành động |
 |---|:---:|---|
@@ -185,7 +199,7 @@ Bạn là agent fix GAP-XXX trong worktree /tmp/wt-XXX-...
 
 ---
 
-## 7. Phạm vi ngoài đợt này
+## Phạm vi ngoài đợt này
 
 | Mục | Lý do |
 |---|---|
@@ -199,26 +213,6 @@ Bạn là agent fix GAP-XXX trong worktree /tmp/wt-XXX-...
 
 ---
 
-## 8. Lịch sử
+## 8. Log
 
 - **2026-05-23 (nháp):** Soạn nháp sau khi user chốt hướng hybrid qua AskUserQuestion. Phiên 2026-05-23 đã ship 4 PR + 1 audit; Đợt 107 là phiên kế tiếp khi PR plan này gộp.
-
----
-
-## 4. State-Check Evidence
-
-Xem §3 "Bằng chứng kiểm tra trạng thái (per `audit-to-gap-pipeline.md` §2.6)" — table đã verify Docker stack + KH/KC frontend routes + owner.test credential + EmailTemplateRenderer + Tone enum + 5 template tệp + staff-invite template.
-
-## 5. Verification Gates
-
-| Nhánh | Lệnh kiểm thử cục bộ | CI gate |
-|---|---|---|
-| RST-A (anonymous KH) | `PLAYWRIGHT_BASE_URL=http://localhost:3001 pnpm exec playwright test e2e/_rst-wave-107-anonymous.spec.ts` | frontend-ci |
-| RST-B (owner-onboard KC) | `PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm exec playwright test e2e/_rst-wave-107-owner-onboard.spec.ts` | frontend-ci |
-| FIX-543 (email content) | `cd kitehub && ./mvnw -pl kitehub-email test -P strict-warnings` | core-ci |
-| FIX-657 (email framework) | `cd kitehub && ./mvnw -pl kitehub-email verify -P strict-warnings` | core-ci |
-| FIX-659 (email tone) | `cd kitehub && ./mvnw -pl kitehub-email test -P strict-warnings` | core-ci |
-
-## 6. Agent Spawn Pattern
-
-Xem §5 "Tối ưu agent (chi tiết)" — 3 agent worktree song song (Agent A/B/C) cho cụm thư + main session tuần tự cho RST walk. Per `agent-background-spawn-default.md`: `run_in_background: true` mặc định. Per `feedback_parallel_agent_strategy.md`: 3 agent + worktree isolation + relative paths trong prompt.
