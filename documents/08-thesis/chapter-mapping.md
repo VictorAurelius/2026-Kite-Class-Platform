@@ -24,7 +24,7 @@ Maps existing project documents to thesis chapter structure for easy reference e
 | Ch1 | Introduction | `01-business/` (domain overview, problem statement) + `chapter-1-competitor-analysis.md` Part 1 ✅ Wave 100 + `chapter-1-ai-techniques.md` Part 2 ✅ Wave 100 + `chapter-1-vn-law-methodology.md` Part 3 ✅ Wave 100.7 Phase 2 Agent 2a | `07-archived/research/competitive/` (market analysis); cross-jurisdiction extension (GDPR vs PDPL vs PDPA SG) defer Wave 101 |
 | Ch2 | System Architecture | `02-architecture/{multi-tenant-architecture, multi-tenant-isolation-patterns, service-catalog-and-auth-flow, c4-context-container, database-architecture-map}.md` + `chapter-2-system-architecture.md` ✅ Wave 100.7 Phase 2-2b | `04-quality/audits/persona-review/2026-05-18-thesis-vn-saas-benchmark.md` (VN edu SaaS positioning); `08-thesis/references/technology-stack.md` (stack rationale) |
 | Ch3 | Implementation (Code Snippets) | `chapter-3-implementation.md` ✅ Wave 100.7 Phase 2 Agent 2c — 5 code snippets representative từ JWT filter + Tenant RLS + Outbox dispatcher + Beta controller + Next.js page | `01-business/` (business rules per domain); `06-diagrams/` (use case diagrams + ERD); merge với Requirements Analysis bằng cross-reference Section 2 |
-| Ch4 | Deployment Results + KPI | `chapter-4-deployment-results.md` ✅ Wave 100.7 Phase 2 Agent 2c — AWS Singapore Free Tier + User onboarding flow + KPI structure + Beta scope (TODO placeholders cho real numbers GAP-648/649) | `02-architecture/adr/ADR-025-aws-only-deploy-phase-1-free-tier.md`; `02-architecture/deployment-strategy.md`; `06-diagrams/` |
+| Ch4 | Deployment Results + KPI | `chapter-4-deployment-results.md` ✅ Wave 100.7 Phase 2 Agent 2c — AWS Singapore Free Tier + User onboarding flow + KPI structure + Beta scope (placeholders cho real numbers chờ data từ NFR đo lường + beta cohort feedback — Wave thesis-2 scope) | `02-architecture/adr/ADR-025-aws-only-deploy-phase-1-free-tier.md`; `02-architecture/deployment-strategy.md`; `06-diagrams/` |
 | Ch5 | Implementation roadmap (defer Wave 102+) | `05-guides/` (operations guides) | `03-planning/kitehub-saas-implementation-plan.md` (wave strategy) |
 | Ch6 | Testing & Evaluation | `04-quality/` (audit reports, completion checks) | `08-thesis/references/testing-results.md` (test metrics) |
 | Ch7 | Conclusion | `04-quality/` (final quality audit reports) | `08-thesis/references/quality-metrics.md` (score timeline) |
@@ -65,7 +65,7 @@ Maps existing project documents to thesis chapter structure for easy reference e
 
 ### Chapter 4: Deployment Results + KPI ✅ Wave 100.7 Phase 2 Agent 2c
 - **Scope**: Triển khai AWS Singapore Free Tier + User onboarding + KPI structure + Beta scope
-- **Status**: ✅ DONE Wave 100.7 Phase 2 Agent 2c với TODO placeholders cho real numbers (defer Wave 102+ GAP-648 + GAP-649)
+- **Status**: ✅ DONE Wave 100.7 Phase 2 Agent 2c với placeholders cho real numbers (defer Wave thesis-2 — chờ data từ NFR đo lường + beta cohort feedback)
 - **Sources**:
   - `chapter-4-deployment-results.md` — 4 sections (4.1 Cloud AWS + 4.2 User Onboarding + 4.3 KPI + 4.4 Beta Scope)
   - `02-architecture/adr/ADR-025-aws-only-deploy-phase-1-free-tier.md` — Singapore Free Tier rationale

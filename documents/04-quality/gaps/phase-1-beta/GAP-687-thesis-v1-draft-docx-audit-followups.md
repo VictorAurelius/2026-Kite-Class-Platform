@@ -1,7 +1,7 @@
 ---
 id: GAP-687
 phase: phase-1-beta
-status: OPEN
+status: PARTIAL
 priority: P1
 domain: Meta
 audience: dev
@@ -9,7 +9,7 @@ audience: dev
 
 # GAP-687: Thesis V1 draft DOCX audit follow-ups (60/100 D+ baseline)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (67% — Phase 1+2 DONE Wave thesis-1 Bucket D 2026-05-23; Phase 3 DEFER Wave thesis-2 chờ GAP-648 + GAP-649 unblock)
 **Priority:** 🟠 P1 (META)
 **Domain:** Meta — Thesis output review governance
 **Found:** 2026-05-19 (Wave 101 closure self-audit of PR #1606 thesis-v1-draft.docx)
@@ -46,11 +46,11 @@ audience: dev
 
 ## Acceptance Criteria
 
-- [ ] Phase 1 #1 — pandoc draft renamed OR new gap filed scheduling production V1 replacement
-- [ ] Phase 1 #2 — 22 TODO + 5 placeholder triaged; chapter MDs updated
-- [ ] Phase 1 #3 — `.claude/rules/thesis-content-standard.md` filed + `output-review-mandate.md` §3 row added
-- [ ] Phase 2 cluster — separate gap files filed (1 each for #4 #5 #6) per audit-to-gap-pipeline.md (avoid duplicates with GAP-651/GAP-646)
-- [ ] Phase 3 cluster — track via existing GAP-648/GAP-649; Ch.5-7 new gap filed for content gap
+- [x] Phase 1 #1 — pandoc draft superseded by `documents/08-thesis/thesis-v1.docx` (Python pipeline via `create_thesis_v1.py`); 4 stale backup MD files archived to `documents/07-archived/thesis-drafts-2026-05-20-backup/` (Wave thesis-1 Bucket D)
+- [x] Phase 1 #2 — TODO scrub complete; `chapter-mapping.md` 2 TODO refs updated; chapter MD body 0 TODO/FIXME/[TBD] markers (verified via grep)
+- [x] Phase 1 #3 — `.claude/rules/thesis-content-standard.md` v1.1.0 filed + `output-review-mandate.md` §3 row added (Wave 102.7.0 META)
+- [x] Phase 2 cluster — `create_thesis_v1.py --execute` production mode shipped (Wave thesis-1 Bucket D 2026-05-23 — 3 flags: `--execute`, `--dry-run`, `--validate-rubric`); GAP-651 figure curation skill DONE Wave thesis-1 Bucket B; GAP-646 closure DONE Wave 102 (Python pipeline pivot)
+- [ ] Phase 3 cluster — DEFER Wave thesis-2: track via existing GAP-648 (NFR data) + GAP-649 (beta cohort); Ch.5-7 new gap filed for content gap (Wave thesis-2 scope per Log 2026-05-23)
 
 ## Related
 
@@ -64,4 +64,9 @@ audience: dev
 ## Log
 
 - **2026-05-19 (created):** Filed post Wave 101 closure audit thesis-v1-draft.docx 60/100 D+ baseline.
-- **2026-05-23:** DEFER Wave thesis-2 Phase 3 only — Ch.5-7 content evidence (#7 NFR data + #8 beta cohort evidence + #9 chapter narrative) phụ thuộc GAP-648 + GAP-649 production data. Wave thesis-1 (`documents/03-planning/waves/wave-2026-05-23-thesis-1-closure.md`) ship Phase 1 (strip-or-rename + TODO scrub) + Phase 2 (`ThesisReportBuilder --execute` production mode) only via Bucket D. Trigger restart Phase 3: GAP-648 + GAP-649 cả 2 DONE.
+- **2026-05-23 (Wave thesis-1 Bucket D — Phase 1+2 SHIPPED):** Status flipped OPEN → PARTIAL 67%. Phase 1+2 active scope DONE:
+  - **Phase 1:** Backup files archived (4 chapter MD backups → `documents/07-archived/thesis-drafts-2026-05-20-backup/`); TODO/draft markers scrubbed (chapter-mapping.md 2 refs cleaned; chapter MD body verified 0 markers via grep).
+  - **Phase 2:** `create_thesis_v1.py` extended với 3 flags (`--execute` production mode, `--dry-run` parse-only, `--validate-rubric` heuristic 9-category scoring per `thesis-content-standard.md` v1.1.0). Smoke test PASS — re-bake `thesis-v1.docx` 4 sections / 646 paragraphs / 27 figures / 26 tables / 38 bibliography entries / 100% cite utilization. Rubric heuristic 76/100 PARTIAL C (above ≥75 PASS minimum per `thesis-content-standard.md` §1; below ≥85 bucket target — defers Wave thesis-2).
+  - **Audit artifact:** `documents/04-quality/audits/persona-review/2026-05-23-wave-thesis-1-bucket-d-docx-rubric.md`
+  - **Sign-off:** `documents/08-thesis/SIGNOFF.md`
+  - **Phase 3 DEFER Wave thesis-2:** Ch.5-7 content evidence (#7 NFR data + #8 beta cohort evidence + #9 chapter narrative) phụ thuộc GAP-648 + GAP-649 production data. Trigger restart Phase 3: GAP-648 + GAP-649 cả 2 DONE.

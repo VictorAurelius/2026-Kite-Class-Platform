@@ -2039,5 +2039,373 @@ def create_thesis():
     return OUTPUT_FILE
 
 
+# ============== RUBRIC VALIDATION (heuristic post-bake) ==============
+def validate_rubric(docx_path: Path) -> dict:
+    """Heuristic check theo `thesis-content-standard.md` v1.1.0 9-category rubric /100.
+
+    Output: dict {category_id, score, max, notes} + total /100 + verdict (PASS ≥75 / PARTIAL 60-74 / FAIL <60).
+
+    Scope: subset of rubric mà có thể tự verify từ source MD + docx — NOT replace human reviewer.
+    Categories đo được heuristic: C1 Format (margin/font/section count), C2 Content (page count proxy),
+    C3 Bibliography (entries count + utilization), C5 Project-internal scrub, C6 Draft-marker scrub.
+    Categories KHÔNG đo được heuristic (defer human reviewer): C4 Academic tone, C7 Figure rendering nuances,
+    C8 Examiner readiness, C9 Compliance phrasing.
+    """
+    import re
+
+    from docx import Document as _Document
+
+    notes = []
+    scores = {}
+
+    # Load docx
+    if not docx_path.exists():
+        return {"error": f"docx not found: {docx_path}", "total": 0, "verdict": "FAIL"}
+    doc = _Document(str(docx_path))
+
+    # ============== C1 — Format compliance (15 pts) — partial heuristic ==============
+    c1 = 0
+    section = doc.sections[0] if doc.sections else None
+    if section:
+        # A4 page size check (210x297mm)
+        a4_width_cm = 21.0
+        a4_height_cm = 29.7
+        actual_w_cm = section.page_width.cm if section.page_width else 0
+        actual_h_cm = section.page_height.cm if section.page_height else 0
+        if abs(actual_w_cm - a4_width_cm) < 0.5 and abs(actual_h_cm - a4_height_cm) < 0.5:
+            c1 += 2
+            notes.append(f"C1: A4 page size verified ({actual_w_cm:.1f}x{actual_h_cm:.1f}cm)")
+        else:
+            notes.append(f"C1: page size NOT A4 ({actual_w_cm:.1f}x{actual_h_cm:.1f}cm) -- expected 21.0x29.7cm")
+
+        # Margins check (T=2.5 B=2.5 L=3.0 R=2.0cm)
+        margins_ok = (
+            abs((section.top_margin.cm if section.top_margin else 0) - 2.5) < 0.3
+            and abs((section.bottom_margin.cm if section.bottom_margin else 0) - 2.5) < 0.3
+            and abs((section.left_margin.cm if section.left_margin else 0) - 3.0) < 0.3
+            and abs((section.right_margin.cm if section.right_margin else 0) - 2.0) < 0.3
+        )
+        if margins_ok:
+            c1 += 2
+            notes.append("C1: margins verified T=2.5 B=2.5 L=3.0 R=2.0cm")
+        else:
+            notes.append("C1: margins NOT match UTC spec -- check section.{top,bottom,left,right}_margin")
+
+    # TNR + heading font heuristic (count Normal style references)
+    normal_style = doc.styles["Normal"] if "Normal" in [s.name for s in doc.styles] else None
+    if normal_style and normal_style.font and normal_style.font.name == "Times New Roman":
+        c1 += 3
+        notes.append("C1: Normal style font = Times New Roman")
+    else:
+        notes.append(f"C1: Normal style font = {normal_style.font.name if normal_style and normal_style.font else 'unknown'} (expected TNR)")
+
+    # Sub-section numbering heuristic — count strict CHƯƠNG N. + N.M
+    para_texts = [p.text for p in doc.paragraphs]
+    chapter_count = sum(1 for t in para_texts if re.match(r"^\s*CHƯƠNG\s+[0-9]+\.", t))
+    if chapter_count >= 4:
+        c1 += 1
+        notes.append(f"C1: detected {chapter_count} CHƯƠNG N. headings (>=4 expected)")
+    scores["C1"] = {"score": c1, "max": 15}
+
+    # ============== C2 — Content + page count (15 pts) — heuristic via paragraph count ==============
+    c2 = 0
+    para_count = len(doc.paragraphs)
+    # Char-based estimate ~2500 chars per page body TNR 13pt 1.2 line-spacing.
+    # Tables: ~10% screen real estate each; Figures (inline shapes): ~30% screen real estate each.
+    para_chars = sum(len(p.text) for p in doc.paragraphs)
+    table_chars = sum(len(c.text) for tbl in doc.tables for r in tbl.rows for c in r.cells)
+    n_tables = len(doc.tables)
+    n_figures = len(doc.inline_shapes)
+    # Text body pages
+    text_pages = (para_chars + table_chars) / 2500
+    # Tables: add 0.5 page each (since some are large)
+    table_pages = n_tables * 0.5
+    # Figures: add 0.4 page each (caption + image)
+    figure_pages = n_figures * 0.4
+    # Frontmatter overhead (covers + TOC + danh mục) ~10 pages
+    frontmatter_pages = 10
+    est_pages = int(text_pages + table_pages + figure_pages + frontmatter_pages)
+    if 60 <= est_pages <= 80:
+        c2 += 6
+        notes.append(f"C2: estimated pages ~{est_pages} (60-80 target hit)")
+    elif 81 <= est_pages <= 90:
+        c2 += 4
+        notes.append(f"C2: estimated pages ~{est_pages} (81-90 soft window)")
+    elif est_pages <= 100:
+        c2 += 2
+        notes.append(f"C2: estimated pages ~{est_pages} (over 90 cap soft-deduct)")
+    elif est_pages <= 120:
+        c2 += 0
+        notes.append(f"C2: estimated pages ~{est_pages} -- over 100, near target +30, deduct")
+    else:
+        notes.append(f"C2: estimated pages ~{est_pages} -- significantly over target")
+    # Chapter content present
+    if chapter_count >= 4:
+        c2 += 4
+    # Conclusion section heuristic
+    if any("KẾT LUẬN" in t for t in para_texts):
+        c2 += 2
+        notes.append("C2: KẾT LUẬN section present")
+    scores["C2"] = {"score": c2, "max": 15}
+
+    # ============== C3 — Bibliography IEEE format (15 pts) — heuristic ==============
+    c3 = 0
+    # Count [N] references in bibliography section
+    bib_pattern = re.compile(r"^\s*\[[0-9]+\]\s")
+    bib_entries = sum(1 for t in para_texts if bib_pattern.match(t))
+    if bib_entries >= 30:
+        c3 += 3
+        notes.append(f"C3: {bib_entries} bibliography entries (>=30 cử nhân target)")
+    elif bib_entries >= 20:
+        c3 += 2
+        notes.append(f"C3: {bib_entries} bibliography entries (between 20-29)")
+    else:
+        notes.append(f"C3: only {bib_entries} bibliography entries (<20)")
+
+    if any("TÀI LIỆU THAM KHẢO" in t for t in para_texts):
+        c3 += 1
+    # Cite utilization heuristic — count distinct [N] in body
+    body_text = "\n".join(para_texts)
+    cite_matches = set(re.findall(r"\[([0-9]+)\]", body_text))
+    if len(cite_matches) >= bib_entries * 0.9 and bib_entries > 0:
+        c3 += 4
+        notes.append(f"C3: cite utilization {len(cite_matches)}/{bib_entries} (>=90%)")
+    elif bib_entries > 0:
+        c3 += 2
+        notes.append(f"C3: cite utilization {len(cite_matches)}/{bib_entries} (<90%)")
+    c3 = min(c3, 15)
+    scores["C3"] = {"score": c3, "max": 15}
+
+    # ============== C4 — Academic tone (15 pts) — partial heuristic ==============
+    c4 = 0
+    # Narrative-only banned words (technical OK / HTTP 200 OK = legitimate technical context).
+    # Refined heuristic: only count standalone words trong narrative, not technical tokens.
+    narrative_banned = {
+        "đối thủ": "competitor business jargon",
+        "🎉": "emoji",
+        "📅": "emoji",
+        "🆘": "emoji",
+    }
+    # Refined: only flag 'bạn' as informal pronoun if NOT preceded by other Vietnamese
+    # compound (bạn bè / bạn đọc / quý bạn = legitimate); detect via word-boundary + lookahead.
+    informal_pronouns = {
+        r"\bbạn\s+(đã|sẽ|là|có|đang|được|cần)\b": "informal 'bạn' as pronoun-subject",
+        r"\bchúng ta\b": "informal 'chúng ta' pronoun",
+    }
+    banned_hits = 0
+    for w, label in narrative_banned.items():
+        body_hits = body_text.count(w)
+        if body_hits > 0:
+            notes.append(f"C4: banned '{w}' ({label}) found {body_hits} times")
+            banned_hits += body_hits
+    for pat, label in informal_pronouns.items():
+        body_hits = len(re.findall(pat, body_text))
+        if body_hits > 0:
+            notes.append(f"C4: informal pronoun '{pat}' ({label}) found {body_hits} times")
+            banned_hits += body_hits
+    if banned_hits == 0:
+        c4 += 12
+        notes.append("C4: no banned narrative tokens (đối thủ / emoji / informal pronoun)")
+    elif banned_hits < 3:
+        c4 += 8
+    elif banned_hits < 10:
+        c4 += 4
+    scores["C4"] = {"score": c4, "max": 15}
+
+    # ============== C5 — Project-internal scrub (10 pts) ==============
+    c5 = 0
+    banned_internal = ["Claude", "Wave [0-9]", "Phase 1 BETA", "GAP-[0-9]", r"\.claude/"]
+    internal_hits = 0
+    for pat in banned_internal:
+        hits = len(re.findall(pat, body_text))
+        if hits > 0:
+            notes.append(f"C5: banned internal ref '{pat}' found {hits} times")
+            internal_hits += hits
+    if internal_hits == 0:
+        c5 += 10
+        notes.append("C5: no project-internal refs in body")
+    elif internal_hits < 3:
+        c5 += 6
+    elif internal_hits < 10:
+        c5 += 3
+    scores["C5"] = {"score": c5, "max": 10}
+
+    # ============== C6 — Draft-marker scrub (5 pts) ==============
+    c6 = 0
+    draft_patterns = ["TL;DR", "TODO", "FIXME", "placeholder", "[stub]", "v0.9.0-beta", "Cập nhật lần cuối"]
+    draft_hits = 0
+    for pat in draft_patterns:
+        hits = body_text.count(pat)
+        if hits > 0:
+            notes.append(f"C6: draft marker '{pat}' found {hits} times")
+            draft_hits += hits
+    if draft_hits == 0:
+        c6 += 5
+        notes.append("C6: no draft markers")
+    elif draft_hits < 3:
+        c6 += 3
+    elif draft_hits < 10:
+        c6 += 1
+    scores["C6"] = {"score": c6, "max": 5}
+
+    # ============== C7 — Figure rendering (10 pts) — heuristic via inline_shapes ==============
+    c7 = 0
+    fig_count = len(doc.inline_shapes)
+    if fig_count >= 5:
+        c7 += 6
+        notes.append(f"C7: {fig_count} inline shapes (figures) embedded")
+    elif fig_count >= 1:
+        c7 += 3
+        notes.append(f"C7: only {fig_count} inline shapes (target >=5)")
+    else:
+        notes.append("C7: NO inline shapes -- mermaid blocks may not be rendered as images")
+
+    # No raw mermaid text leak
+    if "```mermaid" not in body_text and "flowchart " not in body_text[:500]:
+        c7 += 2
+        notes.append("C7: no raw mermaid code in body")
+    # Hình caption present
+    fig_caption_count = len(re.findall(r"Hình\s+[0-9]+\.[0-9]+", body_text))
+    if fig_caption_count >= 3:
+        c7 += 2
+    scores["C7"] = {"score": c7, "max": 10}
+
+    # ============== C8 — Examiner readiness (10 pts) — partial heuristic ==============
+    c8 = 0
+    if any("LỜI CẢM ƠN" in t for t in para_texts):
+        c8 += 2
+    if any("MỞ ĐẦU" in t for t in para_texts):
+        c8 += 2
+    if any("KẾT LUẬN" in t for t in para_texts):
+        c8 += 2
+    if c3 >= 10:
+        c8 += 2
+    if fig_count >= 5:
+        c8 += 2
+    scores["C8"] = {"score": c8, "max": 10}
+
+    # ============== C9 — Compliance + legal (5 pts) — defer human ==============
+    # Heuristic: refined -- "vi phạm dữ liệu" / "vi phạm pháp luật" trong context của VN law citation
+    # legitimate (data breach notification = legal term); ONLY flag if pattern is "thừa nhận vi phạm" / "vi phạm Decree".
+    c9 = 0
+    self_admit_violation = bool(re.search(r"thừa nhận vi phạm|vi phạm (Decree|Nghị định) 53/2022|compliance debt được chấp nhận", body_text))
+    if not self_admit_violation:
+        c9 += 3
+        notes.append("C9: no explicit self-admit violation phrasing")
+    else:
+        notes.append("C9: self-admit violation phrasing found -- review per thesis-content-standard.md §C9")
+    if "DPO" in body_text or "DPIA" in body_text:
+        c9 += 2
+    scores["C9"] = {"score": c9, "max": 5}
+
+    # ============== Total ==============
+    total = sum(s["score"] for s in scores.values())
+    max_total = sum(s["max"] for s in scores.values())
+
+    if total >= 85:
+        verdict = "PASS A (≥85)"
+    elif total >= 75:
+        verdict = "PASS C+ (≥75 minimum per thesis-content-standard.md §1)"
+    elif total >= 60:
+        verdict = "PARTIAL C (60-74)"
+    else:
+        verdict = "FAIL (<60)"
+
+    return {
+        "total": total,
+        "max_total": max_total,
+        "verdict": verdict,
+        "scores": scores,
+        "notes": notes,
+        "para_count": para_count,
+        "est_pages": est_pages,
+        "bib_entries": bib_entries,
+        "cite_utilization": f"{len(cite_matches)}/{bib_entries}" if bib_entries else "0/0",
+        "fig_count": fig_count,
+    }
+
+
+def print_rubric_report(result: dict) -> None:
+    """Print rubric validation result in readable format."""
+    print()
+    print("=" * 60)
+    print("RUBRIC VALIDATION (heuristic per thesis-content-standard.md v1.1.0)")
+    print("=" * 60)
+    if "error" in result:
+        print(f"ERROR: {result['error']}")
+        return
+    print(f"Total: {result['total']}/{result['max_total']} -- {result['verdict']}")
+    print()
+    print("Per-category scores:")
+    for cat_id, s in result["scores"].items():
+        marker = "PASS" if s["score"] >= s["max"] * 0.7 else "PARTIAL" if s["score"] >= s["max"] * 0.5 else "FAIL"
+        print(f"  {cat_id}: {s['score']}/{s['max']} ({marker})")
+    print()
+    print(f"Metadata: {result['para_count']} paragraphs / ~{result['est_pages']} pages / "
+          f"{result['bib_entries']} bib entries / cite {result['cite_utilization']} / {result['fig_count']} figures")
+    print()
+    print("Notes:")
+    for n in result["notes"]:
+        print(f"  - {n}")
+    print("=" * 60)
+
+
+# ============== ENTRY POINT (argparse) ==============
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Thesis V1 DOCX pipeline -- generate khóa luận tốt nghiệp from chapter MDs."
+    )
+    parser.add_argument(
+        "--execute",
+        action="store_true",
+        help="Production mode: full bake -- save docx + auto-populate fields. Default behavior (kept for backward compat).",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Dry-run mode: parse chapter MDs + report stats WITHOUT saving docx (useful for CI lint).",
+    )
+    parser.add_argument(
+        "--validate-rubric",
+        action="store_true",
+        help="Post-bake: run heuristic rubric validation per thesis-content-standard.md v1.1.0 9-category /100.",
+    )
+    args = parser.parse_args()
+
+    # --dry-run + --execute mutually exclusive: --execute wins (production)
+    if args.dry_run and not args.execute:
+        # Dry-run only: parse + report but don't save docx
+        print("=" * 60)
+        print("DRY-RUN MODE -- parse chapter MDs + report stats (no docx save)")
+        print("=" * 60)
+        total_chars = 0
+        total_lines = 0
+        for ch_num, md_paths in CHAPTER_FILES.items():
+            for md_path in md_paths:
+                if md_path.exists():
+                    content = md_path.read_text(encoding="utf-8")
+                    total_chars += len(content)
+                    total_lines += content.count("\n")
+                    print(f"  Ch.{ch_num}: {md_path.name} -- {len(content)} chars / {content.count(chr(10))} lines")
+                else:
+                    print(f"  Ch.{ch_num}: {md_path.name} -- MISSING")
+        bib_path = BIBLIOGRAPHY_FILE
+        if bib_path.exists():
+            bib_content = bib_path.read_text(encoding="utf-8")
+            bib_entries = bib_content.count("\n[")
+            print(f"  Bibliography: {bib_entries} entries / {len(bib_content)} chars")
+        print(f"Total source: {total_chars} chars / {total_lines} lines")
+        print("=" * 60)
+        return
+
+    # Default = --execute (production mode)
+    output_path = create_thesis()
+
+    if args.validate_rubric:
+        result = validate_rubric(output_path)
+        print_rubric_report(result)
+
+
 if __name__ == "__main__":
-    create_thesis()
+    main()
