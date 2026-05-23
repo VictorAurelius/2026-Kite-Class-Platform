@@ -1,0 +1,33 @@
+{
+  "pr": 1734,
+  "title": "chore(starter-kit): sync v2.5.0 \u2192 v2.6.0 thesis bundle",
+  "branch": "chore/starter-kit-v2.6.0-thesis-sync",
+  "created_at": null,
+  "merged_at": "2026-05-23T06:47:46Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-23T13:47:57.166621",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 6,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-95102"
+  }
+}
