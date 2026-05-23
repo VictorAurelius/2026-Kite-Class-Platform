@@ -99,3 +99,4 @@ Per PDPL 2023 + research ethics:
 ## Log
 
 - **2026-05-18 (created):** Filed per outside-in audit all 3 agents convergence. EXECUTION gap (not infrastructure) — mechanism shipped GAP-372 DONE, this gap = actual cohort execution + signed feedback collection.
+- **2026-05-23:** DEFER Wave thesis-2 — ≥4 nhận xét người dùng ký tay phân biệt 8đ vs 9-10đ cần beta tenant thật + 9 tuần timeline. Wave thesis-1 (`documents/03-planning/waves/wave-2026-05-23-thesis-1-closure.md`) ship `release-1-beta-cohort-plan.md` doc-only via Bucket E (plan + persona + timeline + invite flow + signed review template); execution defer. Trigger restart: GAP-612 DONE + invite email gửi.

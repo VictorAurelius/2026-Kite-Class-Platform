@@ -94,3 +94,4 @@ Pair với GAP-646 thesis-docx-pipeline:
 ## Log
 
 - **2026-05-18 (created):** Filed per outside-in audit. VN benchmark Q2 + Failure-mode B1/A2/A4 convergence on NFR data missing as P0 thesis-blocker.
+- **2026-05-23:** DEFER Wave thesis-2 — k6 production load test + CloudWatch p50/p95 ≥30 ngày + AWS Cost Explorer screenshots cần production cluster live. Wave thesis-1 (`documents/03-planning/waves/wave-2026-05-23-thesis-1-closure.md`) scope-out per `outside-in-coverage-trigger.md` §4 row 4 (Wave 100 audit ≤30 ngày). Trigger restart: GAP-612 DONE + cluster live ≥7 ngày.

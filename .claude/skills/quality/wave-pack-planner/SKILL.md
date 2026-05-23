@@ -177,6 +177,73 @@ Sau khi agents xong → coordinator merge sequential (A → B → C), resolve SO
 
 Nếu output diverge → script bug, fix trước khi dùng skill cho wave mới.
 
+## Wave numbering (added 2026-05-23 — per `.claude/rules/wave-tag-numbering-convention.md` v1.0.0)
+
+Từ Wave thesis-1 (2026-05-23) trở đi, wave mới dùng **tag-based format** thay vì sequential counter (Wave 108, Wave 109, ...). Wave 01-107 cũ giữ sequential — KHÔNG backfill.
+
+### Format
+
+```
+wave-{tag_primary}-{counter}[-{descriptor}]
+```
+
+- `tag_primary` lowercase-kebab semantic (thesis / beta / security / meta / ops / feature-{domain} / hotfix / release-{N})
+- `counter` monotonic integer per tag (thesis-1, thesis-2, thesis-3, ...)
+- `descriptor` optional kebab-case (closure / hardening / fix-bugs)
+
+### Examples
+
+| Artifact | Format |
+|---|---|
+| Wave identifier | `wave-thesis-1-closure` |
+| Plan filename | `documents/03-planning/waves/wave-2026-05-23-thesis-1-closure.md` |
+| Branch | `wave/thesis-1-closure` |
+| Plan commit | `plan(wave-thesis-1): closure 6 bucket parallel` |
+| Bucket commit | `feat(wave-thesis-1-bucket-A): citation-extract skill` |
+| wave-history.jsonl entry | `{"wave":"thesis-1","tag_primary":"thesis","tags_secondary":["doc","beta-prep","meta"],"counter":1,...}` |
+
+### Frontmatter trong wave plan file
+
+```yaml
+---
+wave: 1
+tag_primary: thesis
+tags_secondary: [doc, beta-prep, meta]
+counter: 1
+date_launch: 2026-05-23
+status: planning | in-progress | shipped | abandoned
+---
+```
+
+### Multi-tag
+
+1 wave có **1 primary tag** (drives counter) + **N secondary tags** (descriptive only). Query "tất cả wave touching beta-prep":
+
+```bash
+jq 'select(.tag_primary == "beta-prep" or ((.tags_secondary // []) | index("beta-prep")))' wave-history.jsonl
+```
+
+### Counter rules
+
+- Monotonic per tag, no skip, no reset (thesis-1, thesis-2, thesis-3...)
+- Sub-wave dùng descriptor (`wave-thesis-1-fix-bundle`) thay vì decimal (`wave-thesis-1.1` BANNED)
+- Tags độc lập (`thesis-3` không liên quan `beta-3`)
+
+### Hybrid history query
+
+`wave-history.jsonl` chứa 2 format coexist (legacy sequential Wave 01-107 + new tag-based từ Wave thesis-1). Query script PHẢI handle cả 2:
+
+```bash
+# Match by theme keyword (fuzzy) for legacy + by tag_primary for new
+jq 'select(
+  .tag_primary == "thesis" or
+  (.tags_secondary // [] | index("thesis")) or
+  (.theme | ascii_downcase | test("thesis|khóa luận"))
+)' wave-history.jsonl
+```
+
+Reference đầy đủ: `.claude/rules/wave-tag-numbering-convention.md`.
+
 ## Related
 
 - Memory: `feedback_wave_pack_cross_gap_clustering.md` (cluster pattern motivation)
