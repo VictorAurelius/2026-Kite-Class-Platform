@@ -19,6 +19,13 @@ WORKDIR /app
 COPY --from=deps /app /app
 COPY kiteclass/kiteclass-frontend ./kiteclass/kiteclass-frontend
 ENV NEXT_TELEMETRY_DISABLED=1
+# Next.js inlines NEXT_PUBLIC_* at build time. Without explicit ARG/ENV,
+# api-client.ts falls back to 'http://localhost:8080' default literal and
+# browser cannot reach gateway. Surfaced Wave 105 RST UI walk 2026-05-23
+# GAP-724. ARG default = local dev URL; production builds override via
+# --build-arg NEXT_PUBLIC_API_URL=https://api.kitehub.me
+ARG NEXT_PUBLIC_API_URL=http://localhost:9000
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 RUN pnpm --filter kiteclass-frontend build
 
 FROM node:22-trixie-slim AS runner

@@ -9,7 +9,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { authApi } from '../auth';
 import { apiClient } from '@/lib/api-client';
 import type { LoginRequest, AuthResponse } from '@/types/auth';
-import type { ApiResponse } from '@/types/api';
 
 // Mock apiClient
 vi.mock('@/lib/api-client', () => ({
@@ -43,17 +42,12 @@ describe('authApi', () => {
         },
       };
 
-      const mockApiResponse: ApiResponse<AuthResponse> = {
-        success: true,
-        data: mockAuthResponse,
-        timestamp: '2026-02-24T00:00:00.000Z',
-      };
-
-      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: mockApiResponse });
+      // Wave 105 GAP-724 fix: KH /api/auth/login returns flat AuthResponse (no ApiResponse wrapper).
+      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: mockAuthResponse });
 
       const result = await authApi.login(mockCredentials);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/v1/auth/login', mockCredentials);
+      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/login', mockCredentials);
       expect(result).toEqual(mockAuthResponse);
     });
 
@@ -77,7 +71,7 @@ describe('authApi', () => {
 
       await authApi.logout(refreshToken);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/v1/auth/logout', { refreshToken });
+      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/logout', { refreshToken });
     });
 
     it('should handle logout error', async () => {
@@ -106,17 +100,12 @@ describe('authApi', () => {
         },
       };
 
-      const mockApiResponse: ApiResponse<AuthResponse> = {
-        success: true,
-        data: mockAuthResponse,
-        timestamp: '2026-02-24T00:00:00.000Z',
-      };
-
-      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: mockApiResponse });
+      // Wave 105 GAP-724 fix: KH /api/auth/refresh returns flat AuthResponse.
+      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: mockAuthResponse });
 
       const result = await authApi.refreshToken(oldRefreshToken);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/v1/auth/refresh', {
+      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/refresh', {
         refreshToken: oldRefreshToken,
       });
       expect(result).toEqual(mockAuthResponse);
@@ -139,7 +128,7 @@ describe('authApi', () => {
 
       await authApi.forgotPassword(email);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/v1/auth/forgot-password', { email });
+      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/forgot-password', { email });
     });
 
     it('should handle forgot password error', async () => {
@@ -160,7 +149,7 @@ describe('authApi', () => {
 
       await authApi.resetPassword(token, newPassword);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/v1/auth/reset-password', {
+      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/reset-password', {
         token,
         newPassword,
       });
@@ -186,7 +175,7 @@ describe('authApi', () => {
 
       await authApi.verifyEmail(token);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/v1/auth/verify-email', { token });
+      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/verify-email', { token });
     });
 
     it('should handle verify email error', async () => {

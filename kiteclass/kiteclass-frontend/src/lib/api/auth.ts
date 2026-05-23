@@ -7,52 +7,54 @@
 
 import { apiClient } from '@/lib/api-client';
 import type { LoginRequest, AuthResponse } from '@/types/auth';
-import type { ApiResponse } from '@/types/api';
 
 export const authApi = {
   /**
    * Login user with email and password.
    */
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
-    const response = await apiClient.post<ApiResponse<AuthResponse>>('/api/v1/auth/login', credentials);
-    return response.data.data!; // Unwrap ApiResponse wrapper
+    // KH subscription /api/auth/login returns FLAT shape (not ApiResponse wrapper).
+    // Wave 105 RST UI 2026-05-23 GAP-724 fix: use response.data directly.
+    const response = await apiClient.post<AuthResponse>('/api/auth/login', credentials);
+    return response.data;
   },
 
   /**
    * Logout user and invalidate refresh token.
    */
   logout: async (refreshToken: string): Promise<void> => {
-    await apiClient.post('/api/v1/auth/logout', { refreshToken });
+    await apiClient.post('/api/auth/logout', { refreshToken });
   },
 
   /**
    * Refresh access token using refresh token.
    */
   refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
-    const response = await apiClient.post<ApiResponse<AuthResponse>>('/api/v1/auth/refresh', {
+    // KH subscription /api/auth/refresh same flat shape — see login() above.
+    const response = await apiClient.post<AuthResponse>('/api/auth/refresh', {
       refreshToken,
     });
-    return response.data.data!; // Unwrap ApiResponse wrapper
+    return response.data;
   },
 
   /**
    * Request password reset email.
    */
   forgotPassword: async (email: string): Promise<void> => {
-    await apiClient.post('/api/v1/auth/forgot-password', { email });
+    await apiClient.post('/api/auth/forgot-password', { email });
   },
 
   /**
    * Reset password with token from email.
    */
   resetPassword: async (token: string, newPassword: string): Promise<void> => {
-    await apiClient.post('/api/v1/auth/reset-password', { token, newPassword });
+    await apiClient.post('/api/auth/reset-password', { token, newPassword });
   },
 
   /**
    * Verify email with token from email.
    */
   verifyEmail: async (token: string): Promise<void> => {
-    await apiClient.post('/api/v1/auth/verify-email', { token });
+    await apiClient.post('/api/auth/verify-email', { token });
   },
 };
