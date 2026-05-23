@@ -7,6 +7,25 @@ Quản lý theo Semantic Versioning: `MAJOR.MINOR.PATCH`
 
 ---
 
+## [2.6.0] — 2026-05-23 — Thesis tooling bundle (rule + skill + memory)
+
+### Added (1 new rule)
+
+- `rules/thesis-content-standard.md` (v1.0.0) — academic-quality 9-category rubric /100 cho khóa luận tốt nghiệp Việt Nam university (UTC/HUST/UET/HCMUT/BKHN convention). Categories: C1 Format + C2 Content+page count + C3 Bibliography IEEE + C4 Academic tone + C5 Project-internal scrub + C6 Draft-marker scrub + C7 Diagram+figure rendering + C8 Examiner readiness + C9 Compliance+legal. Plus §5 extension rules S1-S8 (single-child heading + chapter intro/summary ban + VN narrative strict + citation evidence + measurement methodology + cross-ref integrity + acronym first-use + figure source attribution). Plus §4 page-count cap.
+
+### Why this batch
+
+Downstream project shipped Vietnamese-university bachelor thesis V1 sprint 2026-05-19..05-20 using project as topic. Outside-in audit surfaced 82 findings beyond 14 inside-out items → rubric v2 (9-category) developed to codify previously-implicit content-quality dimensions. This kit version promotes the rubric + workflow + tooling for any team using Claude Code to ship academic deliverables.
+
+Opinionated scope: rule is opinionated for Vietnamese-university bachelor/engineer/master thesis convention. Universities ngoài VN cần adapt §C1 format + numbering + bibliography style + page-count target per local spec.
+
+### Notes
+
+- This local snapshot mirrors `rules/thesis-content-standard.md` only. The companion skill (`skills/document-generation/thesis/`) + memory entry (`memory/feedback_thesis_outside_in_audit.md`) + manifest updates ship to remote `claude-starter-kit` v2.6.0 PR — see upstream CHANGELOG for full scope.
+- Reviewer maintainer line standardized: `@nguyenvankiet (starter-kit upstream maintainer)`.
+
+---
+
 ## [2.5.0] — 2026-05-14 — Production Hardening + Verification family retro-sync batch 2
 
 ### Added (12 new rules from downstream meta-governance)

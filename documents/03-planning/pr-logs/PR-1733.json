@@ -1,0 +1,33 @@
+{
+  "pr": 1733,
+  "title": "chore(meta-retro): file GAP-723 \u2014 cross-bucket pre-merge annotation/bean diff",
+  "branch": "chore/gap-723-meta-cross-bucket-diff",
+  "created_at": null,
+  "merged_at": "2026-05-23T05:29:13Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-23T12:29:22.851279",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 3,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-99980"
+  }
+}
