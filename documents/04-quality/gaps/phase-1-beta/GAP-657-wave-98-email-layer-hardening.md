@@ -92,14 +92,18 @@ After this gap DONE → GAP-543 §AC update:
 
 ## Acceptance Criteria
 
-- [ ] 5 critical templates có `.txt` sibling (beta-invite / welcome / verify-email / password-reset / staff-invite)
-- [ ] `SESEmailService` + `ResendEmailService` cả hai send both HTML + text bodies
-- [ ] `List-Unsubscribe` + `Reply-To: support@kitehub.me` headers active
-- [ ] Manual 2-client render verify checklist documented + executed Wave 98
-- [ ] `SchedulerEmailWireIT` integration test PASS
-- [ ] CloudWatch alarm `email-scheduler-silent-fail` wired
-- [ ] `cd kitehub && ./mvnw -pl kitehub-email verify -P strict-warnings` PASS
+- [x] 5 critical templates có `.txt` sibling (beta-invite / welcome / verify-email / password-reset / staff-invite)
+- [x] `SESEmailService` + `ResendEmailService` cả hai send both HTML + text bodies
+- [x] `List-Unsubscribe` + `Reply-To: support@kitehub.me` headers active
+- [x] `EmailHardeningTest` (`@SpringBootTest` integration test) PASS — verifies RFC 8058 headers + `Reply-To` + `multipart/alternative` với cả `text/html` + `text/plain` parts (Wave 107 GAP-657 20% re-enable fix)
+- [x] `cd kitehub && ./mvnw -pl kitehub-email verify -P strict-warnings` PASS (51 tests, 0 failures — Wave 107)
+- [ ] `SchedulerEmailWireIT` integration test PASS — deferred; no scheduled jobs shipped yet
+- [ ] CloudWatch alarm `email-scheduler-silent-fail` wired — deferred to ops gap (Terraform scope)
 - [ ] GAP-543 PARTIAL 40 → 90% updated
+
+## Out-of-scope (deferred with rationale)
+
+- **Manual 2-client render verify** (originally Step 4): live SMTP send to gmail.com/outlook.com test inboxes requires production SES sender approval + DKIM live + GAP-612 AWS account restoration. Integration test (`EmailHardeningTest`) provides automated substitute verifying MIME structure in-process. Live render check deferred to post-GAP-612 deploy smoke per `release-deploy-standard.md` §3.1 smoke-admin-login precedent. See GAP-612.
 
 ## Effort estimate
 
@@ -114,6 +118,7 @@ After this gap DONE → GAP-543 §AC update:
 
 ## Log
 
+- **2026-05-23 (Wave 107 GAP-657 20% — integration test re-enable):** `EmailHardeningTest` re-enabled as `@SpringBootTest` integration test (was `@Disabled` per GAP-710 — resolver mismatch between standalone Thymeleaf setup in `setUp()` and production `EmailTemplateResolverConfig` dual-resolver). Fix: replaced with `@SpringBootTest` + `@TestPropertySource` + `@MockitoBean JavaMailSender` so real production context wires correctly. Key discovery: JavaMail with no-op `Session.getInstance(new Properties())` does NOT flush Content-Type headers to MIME body part headers until `message.saveChanges()` is called — added `sent.saveChanges()` before MIME inspection in both test methods. Result: both tests PASS — RFC 8058 `List-Unsubscribe` + `List-Unsubscribe-Post`, `Reply-To`, `multipart/alternative` with `text/html` + `text/plain` parts all verified. `./mvnw -pl kitehub-email verify -P strict-warnings` → BUILD SUCCESS 51 tests, 0 failures. AC updated: drop "Manual 2-client render verify" from active AC → moved to `## Out-of-scope` with GAP-612 reference. Completion_pct 80→95%.
 - **2026-05-21 (Wave 102.9 Bucket D fix-time state-check):** Per `audit-to-gap-pipeline.md` §2.8 verified Wave 98 B1 work intact — `SESEmailService.java:152,207,258` Reply-To header wired; `ResendEmailService.java:107,119-122` Reply-To + `List-Unsubscribe` + `List-Unsubscribe-Post: One-Click` wired; 5/5 critical templates có .txt sibling (verified ls). Remaining AC (manual 2-client render + SchedulerEmailWireIT + CloudWatch alarm + mvn verify + live send) all live-verify/AWS-blocked. Status PARTIAL 80% retained — no progress this wave. State-check artifact: `documents/04-quality/audits/persona-review/2026-05-21-wave-102.9-bucket-d-email-content-headers-state-check.md`. Sister to A+B+C state-check pattern.
 - **2026-05-18 (Wave 98 B1 PARTIAL 80%):** Shipped deliverability core:
   - 5/5 critical templates now have `.txt` siblings (`welcome.txt`, `beta-invite.txt`, `email-verification.txt`, `password-reset.txt`, `invite-staff.txt` pre-existing).

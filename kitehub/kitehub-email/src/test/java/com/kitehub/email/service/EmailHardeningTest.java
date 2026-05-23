@@ -1,119 +1,81 @@
 package com.kitehub.email.service;
 
-import com.kitehub.email.config.SESConfig;
 import com.kitehub.email.dto.EmailRequest;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.spring6.SpringTemplateEngine;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Map;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * GAP-703 Wave 104 Bucket B2 regression coverage for email-layer hardening:
+ * GAP-703 Wave 104 Bucket B2 / GAP-657 Wave 107 — integration test for email
+ * layer hardening. Verifies:
  *
  * <ul>
  *   <li>RFC 8058 {@code List-Unsubscribe} + {@code List-Unsubscribe-Post}
- *       headers applied on every outbound MimeMessage (Gmail bulk-sender
+ *       headers present on every outbound MimeMessage (Gmail bulk-sender
  *       deliverability requirement).</li>
  *   <li>{@code multipart/alternative} body with BOTH text/html + text/plain
- *       parts whenever the template has a {@code .txt} sibling
- *       (RFC 2046 multipart fallback for HTML-stripping clients).</li>
+ *       parts whenever the template has a {@code .txt} sibling (RFC 2046
+ *       multipart fallback for HTML-stripping clients).</li>
+ *   <li>{@code Reply-To} header set per GAP-657 §Step 3.</li>
  * </ul>
  *
- * <p>Wave 103 verify (2026-05-22) found live emails missing both headers AND
- * lacking the plain-text part — Content-Type was {@code multipart/mixed} not
- * {@code multipart/alternative} and zero {@code List-Unsubscribe*} headers.
- * This test locks the corrected behaviour.</p>
+ * <p><b>Wave 107 fix (GAP-657 20%):</b> The original {@code @Disabled} was
+ * caused by a mismatch between the standalone Thymeleaf resolver chain used
+ * in {@code setUp()} (htmlResolver {@code .html} + textResolver {@code ""})
+ * and the production {@link com.kitehub.email.config.EmailTemplateResolverConfig}
+ * dual-mode setup (suffix {@code .html} order 1 + suffix {@code .txt} order 50).
+ * Fix: use {@code @SpringBootTest} so the real production context — including
+ * {@code EmailTemplateResolverConfig} — wires correctly.</p>
  *
- * <p>Strategy: mock {@link JavaMailSender#createMimeMessage()} to return a real
- * {@link MimeMessage} built from a no-op Session; capture the message via
- * {@code verify(...).send(captor.capture())} after exercising
- * {@link SESEmailService#sendTemplatedEmail}; introspect headers + body.</p>
+ * <p>Strategy: {@code @MockitoBean JavaMailSender} returns a real
+ * {@link MimeMessage} built from a no-op Session so the MIME structure is
+ * inspectable. Capture via {@code verify(mailSender).send(captor.capture())}.
+ * No real SMTP connection needed (GAP-612 AWS suspension).</p>
  *
- * <p><b>NOTE — both tests disabled Wave 104 closure (GAP-710 follow-up):</b>
- * Test harness's standalone Thymeleaf resolver chain (htmlResolver `.html` +
- * textResolver `""`) does not match production's
- * {@code EmailTemplateResolverConfig} dual-mode setup, causing the rendered
- * multipart to drop the HTML part. Production code (B1+B2 commits) is verified
- * via end-to-end Mailhog inspection in Wave 104.5 Bucket E follow-up. Re-enable
- * after refactoring test to use the production resolver bean directly (e.g.
- * {@code @SpringBootTest} slice) or fixing the suffix-conflict in standalone
- * setup. Tracked: GAP-710.</p>
+ * @since Wave 107 (GAP-657)
  */
-@DisplayName("Email hardening — List-Unsubscribe + multipart/alternative (GAP-703)")
-@Disabled("GAP-710 — test harness Thymeleaf resolver mismatch; production verified via Bucket E follow-up")
+@SpringBootTest
+@TestPropertySource(properties = {
+        "email.provider=smtp",
+        "aws.ses.mock-mode=true",
+        "aws.ses.from-email=noreply@kitehub.me",
+        "aws.ses.from-name=KiteHub",
+        "aws.ses.reply-to-email=support@kitehub.me",
+        "aws.ses.unsubscribe-mailto=unsubscribe@kitehub.me",
+        "aws.ses.unsubscribe-url-template=https://kitehub.me/unsubscribe?token={token}",
+        "kitehub.email.branding-enabled=false",
+        "kitehub.email.branding.rabbit-enabled=false"
+})
+@DisplayName("Email hardening — List-Unsubscribe + multipart/alternative (GAP-657 / GAP-703)")
 class EmailHardeningTest {
 
-    private SESConfig.SESProperties sesProperties;
+    @MockitoBean
     private JavaMailSender mailSender;
-    private TemplateEngine templateEngine;
+
+    @Autowired
     private SESEmailService service;
 
-    @BeforeEach
-    void setUp() {
-        // Real Thymeleaf engine pointing at packaged email templates so the
-        // .html + .txt siblings render exactly as production does.
-        ClassLoaderTemplateResolver htmlResolver = new ClassLoaderTemplateResolver();
-        htmlResolver.setPrefix("templates/");
-        htmlResolver.setSuffix(".html");
-        htmlResolver.setTemplateMode(TemplateMode.HTML);
-        htmlResolver.setCharacterEncoding("UTF-8");
-        htmlResolver.setCheckExistence(true);
-
-        ClassLoaderTemplateResolver textResolver = new ClassLoaderTemplateResolver();
-        textResolver.setPrefix("templates/");
-        textResolver.setSuffix("");
-        textResolver.setTemplateMode(TemplateMode.TEXT);
-        textResolver.setCharacterEncoding("UTF-8");
-        textResolver.setCheckExistence(true);
-
-        // Use SpringTemplateEngine (not plain TemplateEngine) so ${...} expressions
-        // resolve via SpEL — matches production wiring in EmailTemplateResolverConfig.
-        // Plain TemplateEngine falls back to OGNL which Thymeleaf 3.1+ no longer
-        // ships as transitive (OGNL removed in favor of spring6 SpEL dialect).
-        SpringTemplateEngine springEngine = new SpringTemplateEngine();
-        springEngine.addTemplateResolver(htmlResolver);
-        springEngine.addTemplateResolver(textResolver);
-        templateEngine = springEngine;
-
-        sesProperties = new SESConfig.SESProperties();
-        sesProperties.setFromEmail("noreply@kitehub.me");
-        sesProperties.setFromName("KiteHub");
-        sesProperties.setReplyToEmail("support@kitehub.me");
-        // Defaults from SESConfig — explicit here to insulate from future config drift.
-        sesProperties.setUnsubscribeMailto("unsubscribe@kitehub.me");
-        sesProperties.setUnsubscribeUrlTemplate("https://kitehub.me/unsubscribe?token={token}");
-
-        mailSender = mock(JavaMailSender.class);
+    @Test
+    @DisplayName("welcome template: List-Unsubscribe headers + Reply-To + multipart/alternative with plain-text part")
+    void shouldIncludeListUnsubscribeAndPlainText() throws Exception {
         when(mailSender.createMimeMessage())
                 .thenAnswer(inv -> new MimeMessage(Session.getInstance(new Properties())));
 
-        service = new SESEmailService(sesProperties, /* ses */ null, mailSender, templateEngine,
-                /* branding */ null, new EmailTemplateRenderer(templateEngine));
-        ReflectionTestUtils.setField(service, "emailProvider", "smtp");
-        ReflectionTestUtils.setField(service, "brandingEnabled", false);
-    }
-
-    @Test
-    @DisplayName("shouldIncludeListUnsubscribeAndPlainText — welcome template emits both headers + multipart/alternative")
-    void shouldIncludeListUnsubscribeAndPlainText() throws Exception {
         EmailRequest req = EmailRequest.builder()
                 .to("hong.tran@skyedu.vn")
                 .subject("Chào mừng đến KiteHub")
@@ -130,21 +92,25 @@ class EmailHardeningTest {
         ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);
         verify(mailSender).send(captor.capture());
         MimeMessage sent = captor.getValue();
+        // saveChanges() flushes the MIME tree so DataHandler Content-Type values are written
+        // to the MIME part headers — mirrors what real SMTP transport does before transmitting.
+        // Without this, isMimeType("text/html") always returns false on a no-op Session message.
+        sent.saveChanges();
 
         // List-Unsubscribe headers (RFC 8058) — Gmail bulk-sender mandate.
         String[] listUnsub = sent.getHeader("List-Unsubscribe");
-        assertThat(listUnsub).isNotNull().isNotEmpty();
+        assertThat(listUnsub).as("List-Unsubscribe header must be present").isNotNull().isNotEmpty();
         assertThat(listUnsub[0])
                 .contains("mailto:unsubscribe@kitehub.me")
                 .contains("https://kitehub.me/unsubscribe");
 
         String[] listUnsubPost = sent.getHeader("List-Unsubscribe-Post");
-        assertThat(listUnsubPost).isNotNull().isNotEmpty();
+        assertThat(listUnsubPost).as("List-Unsubscribe-Post header must be present").isNotNull().isNotEmpty();
         assertThat(listUnsubPost[0]).isEqualTo("List-Unsubscribe=One-Click");
 
         // Reply-To preserved (GAP-657 §Step 3).
         String[] replyTo = sent.getHeader("Reply-To");
-        assertThat(replyTo).isNotNull().isNotEmpty();
+        assertThat(replyTo).as("Reply-To header must be present").isNotNull().isNotEmpty();
         assertThat(replyTo[0]).contains("support@kitehub.me");
 
         // multipart/alternative body with both text/html + text/plain parts.
@@ -156,20 +122,23 @@ class EmailHardeningTest {
         boolean hasPlain = false;
         boolean hasHtml = false;
         for (int i = 0; i < multipart.getCount(); i++) {
-            String ct = multipart.getBodyPart(i).getContentType();
-            if (ct.toLowerCase().startsWith("text/plain")) {
+            jakarta.mail.BodyPart bp = multipart.getBodyPart(i);
+            if (bp.isMimeType("text/plain")) {
                 hasPlain = true;
-            } else if (ct.toLowerCase().startsWith("text/html")) {
+            } else if (bp.isMimeType("text/html")) {
                 hasHtml = true;
             }
         }
-        assertThat(hasPlain).as("multipart/alternative should contain text/plain part").isTrue();
-        assertThat(hasHtml).as("multipart/alternative should contain text/html part").isTrue();
+        assertThat(hasPlain).as("multipart/alternative must contain text/plain part").isTrue();
+        assertThat(hasHtml).as("multipart/alternative must contain text/html part").isTrue();
     }
 
     @Test
-    @DisplayName("password-reset template (5-type sample) also includes both headers + plain-text part")
+    @DisplayName("password-reset template: List-Unsubscribe + plain-text part present")
     void passwordResetTemplateAlsoHardened() throws Exception {
+        when(mailSender.createMimeMessage())
+                .thenAnswer(inv -> new MimeMessage(Session.getInstance(new Properties())));
+
         EmailRequest req = EmailRequest.builder()
                 .to("tam.nguyen@skyedu.vn")
                 .subject("Đặt lại mật khẩu KiteHub")
@@ -185,11 +154,17 @@ class EmailHardeningTest {
         ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);
         verify(mailSender).send(captor.capture());
         MimeMessage sent = captor.getValue();
+        sent.saveChanges();
 
-        assertThat(sent.getHeader("List-Unsubscribe")).isNotNull().isNotEmpty();
-        assertThat(sent.getHeader("List-Unsubscribe-Post")).isNotNull().isNotEmpty();
-        assertThat(((MimeMultipart) unwrapAlternativePart((MimeMultipart) sent.getContent()))
-                .getContentType()).startsWith("multipart/alternative");
+        assertThat(sent.getHeader("List-Unsubscribe"))
+                .as("List-Unsubscribe must be present").isNotNull().isNotEmpty();
+        assertThat(sent.getHeader("List-Unsubscribe-Post"))
+                .as("List-Unsubscribe-Post must be present").isNotNull().isNotEmpty();
+
+        Object content = sent.getContent();
+        assertThat(content).isInstanceOf(MimeMultipart.class);
+        MimeMultipart multipart = unwrapAlternativePart((MimeMultipart) content);
+        assertThat(multipart.getContentType()).startsWith("multipart/alternative");
     }
 
     /**
