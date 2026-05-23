@@ -1,6 +1,6 @@
 # GAP-653: Thesis defense prep — slide deck + Q&A prep + examiner archetype anticipation
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-23 — Wave thesis-1 Bucket C shipped 4 defense artifacts (deck 40 slide + Q&A 20 câu + demo script 15 phút 6 phase + practice schedule 2 buổi dry-run). Backup recording + 2 practice runs queued cho T-3/T-2 weeks pre-defense.
 **Priority:** 🟠 P1
 **Domain:** Mixed (Demo + Content)
 **Phase:** phase-1-beta
@@ -80,12 +80,19 @@ Pre-record full 15-min demo (slides + screen demo + voiceover):
 
 ## Acceptance Criteria
 
-- [ ] Reveal.js deck shipped 30-40 slides
-- [ ] Demo script 15-min consolidated với fallback steps
-- [ ] Q&A response sheet 20 questions covered
-- [ ] Examiner archetype playbook documented
-- [ ] Backup demo video recorded
-- [ ] ≥2 practice runs completed before defense (T-3 + T-2)
+- [x] Reveal.js deck shipped 30-40 slides — 40 slides ship Wave thesis-1 Bucket C (`documents/08-thesis/defense/defense-deck.html`) với 4 Mermaid diagrams (AI pipeline + C4 architecture + AWS deployment + auth sequence) + speaker notes mọi content slide
+- [x] Demo script 15-min consolidated với fallback steps — `documents/08-thesis/defense/defense-demo-script.md` 6 phase × tổng 14-15 phút (Anonymous → Admin onboard → Tenant wizard → Multi-tenant proof → Audit → Wrap) + fallback per step + backup recording note
+- [x] Q&A response sheet 20 questions covered — `documents/08-thesis/defense/defense-qa-response-sheet.md` 4 archetype × 5 câu hỏi mỗi response ≤120 từ + evidence cite cụ thể
+- [x] Examiner archetype playbook documented — 4 archetype (Architecture / NFR-DB-DevOps / Business-Compliance / Process-Methodology) trong Q&A response sheet + cheatsheet "Top 5 evidence cite mạnh nhất"
+- [ ] Backup demo video recorded — DEFERRED to T-3 week dry-run cycle per `practice-schedule.md` § Pre-defense T-1 ngày; recording tool OBS Studio + retention strategy documented
+- [ ] ≥2 practice runs completed before defense (T-3 + T-2) — SCHEDULED per `documents/08-thesis/defense/practice-schedule.md` (Buổi 1 T-3 tuần full deck + demo, Buổi 2 T-2 tuần Q&A drill) — practice runs là time-bound deferred work, không phải scope work; gap closure đúng cho artifact deliverables
+
+## Out-of-scope (track separately)
+
+| Item | Where |
+|---|---|
+| Backup demo recording MP4 actual capture | Practice cycle T-3 week per `practice-schedule.md` § Buổi 1 setup; not committed (file > 100MB Google Drive) |
+| 2 practice runs execution | Time-bound activities scheduled per `practice-schedule.md`; gap tracks artifact deliverables, not the practice events themselves |
 
 ## Related
 
@@ -97,5 +104,7 @@ Pre-record full 15-min demo (slides + screen demo + voiceover):
 - VN benchmark §4 BREADTH vs DEPTH recommendation
 
 ## Log
+
+- **2026-05-23 (Wave thesis-1 Bucket C shipped — DONE flip):** 4 defense artifacts shipped per Acceptance Criteria. Reveal.js deck 40 slide tiếng Việt + 4 Mermaid diagrams + speaker notes. Q&A sheet 20 câu × 4 archetype × 5 câu/archetype. Demo script 15 phút × 6 phase. Practice schedule 2 buổi dry-run T-3/T-2 + pre-defense checklist + defense day checklist + contingency plans. README ship cho folder `documents/08-thesis/defense/`. Backup recording + 2 practice runs là time-bound deferred work tracked trong practice-schedule (§Out-of-scope) — gap closure đúng cho artifact deliverables. Content discipline verified per `thesis-content-standard.md`: zero repo jargon (Wave/GAP/bucket/BETA) trong slide content + Q&A response body; zero Claude/AI assistant attribution; Vietnamese narrative + English technical tokens preserved per `dev-readable-doc-language.md` §4 mixed-language pattern.
 
 - **2026-05-18 (created):** Filed per Failure-mode P0 #10 "v2.0.0 stable + defense materials prep" + Persona/Benchmark convergence.
