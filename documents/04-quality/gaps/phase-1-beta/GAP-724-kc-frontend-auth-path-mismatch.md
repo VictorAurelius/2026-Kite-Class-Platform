@@ -1,8 +1,9 @@
 ---
 id: GAP-724
 title: kc-frontend auth endpoint paths mismatched with gateway (404 + double /api/v1)
-status: OPEN
+status: PARTIAL
 priority: P1
+completion_pct: 90
 domain: Frontend
 phase: phase-1-beta
 audience: dev
@@ -87,3 +88,10 @@ Same pattern in other call sites that append `/api/v1/...` to env var that alrea
 ## Log
 
 - **2026-05-23**: GAP filed via Wave 105 RST UI deep walk. Goal "RST full UI" surfaced this — KC frontend login form renders OK but submit hits 404 due to path mismatch + double prefix. Multi-file Option A fix deferred to next session per context budget; gap captures full diagnosis for fast pickup.
+- **2026-05-23 (later, PR #1737 SHIPPED)**: chuỗi đăng nhập KC sửa end-to-end qua 5 bug fixes:
+  1. SSR ECONNREFUSED → split `INTERNAL_API_URL` (kite-gateway:9000) vs `NEXT_PUBLIC_API_URL` (localhost:9000) trong `landing.ts`
+  2. Đường endpoint `/api/v1/auth/*` → `/api/auth/*` (gateway route + KH subscription)
+  3. `NEXT_PUBLIC_API_URL` không bake vào client bundle → Dockerfile ARG/ENV trong builder stage
+  4. Hình dạng phản hồi `response.data.data` → `response.data` (KH trả flat AuthResponse, không có wrapper)
+  5. Ánh xạ vai trò `data.user.roles[0]/profile` → `data.user.role` (KH trả role singular string, không có profile)
+  Trạng thái → PARTIAL 90%: code shipped + auth.test.ts 12/12 PASS local + browser walk PASS (toast "Login successful" + sidebar đầy đủ). Phần còn lại 10% = E2E Playwright class-lifecycle test trên CI flake (Docker stack lên không đầy đủ) — đây là pre-existing CI infra issue không liên quan scope auth fix. Admin override với trailer `ADMIN_MERGE_OVERRIDE` per `admin-merge-discipline.md` §4. Live verify trên production deferred GAP-612 AWS restore.
