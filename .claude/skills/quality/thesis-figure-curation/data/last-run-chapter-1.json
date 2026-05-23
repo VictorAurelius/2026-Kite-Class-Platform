@@ -1,0 +1,74 @@
+{
+  "audit_timestamp": "2026-05-23T17:28:49Z",
+  "files": [
+    {
+      "file": "documents/08-thesis/chapter-1-ai-techniques.md",
+      "visual_blocks": {
+        "markdown_images": 0,
+        "mermaid_blocks": 1,
+        "plantuml_blocks": 0,
+        "total": 1
+      },
+      "figures": {
+        "captioned_count": 0,
+        "numbers": [],
+        "caption_coverage_pct": 0,
+        "uncited_figures": ""
+      },
+      "tables": {
+        "captioned_count": 0,
+        "numbers": []
+      },
+      "listings": {
+        "captioned_count": 0
+      },
+      "numbering_gaps": ""
+    },
+    {
+      "file": "documents/08-thesis/chapter-1-competitor-analysis.md",
+      "visual_blocks": {
+        "markdown_images": 5,
+        "mermaid_blocks": 0,
+        "plantuml_blocks": 0,
+        "total": 5
+      },
+      "figures": {
+        "captioned_count": 0,
+        "numbers": [],
+        "caption_coverage_pct": 0,
+        "uncited_figures": ""
+      },
+      "tables": {
+        "captioned_count": 0,
+        "numbers": []
+      },
+      "listings": {
+        "captioned_count": 0
+      },
+      "numbering_gaps": ""
+    },
+    {
+      "file": "documents/08-thesis/chapter-1-vn-law-methodology.md",
+      "visual_blocks": {
+        "markdown_images": 0,
+        "mermaid_blocks": 0,
+        "plantuml_blocks": 0,
+        "total": 0
+      },
+      "figures": {
+        "captioned_count": 0,
+        "numbers": [],
+        "caption_coverage_pct": 100,
+        "uncited_figures": ""
+      },
+      "tables": {
+        "captioned_count": 0,
+        "numbers": []
+      },
+      "listings": {
+        "captioned_count": 0
+      },
+      "numbering_gaps": ""
+    }
+  ]
+}

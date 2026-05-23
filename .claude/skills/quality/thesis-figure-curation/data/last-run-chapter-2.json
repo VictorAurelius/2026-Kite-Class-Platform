@@ -1,0 +1,28 @@
+{
+  "audit_timestamp": "2026-05-23T17:28:49Z",
+  "files": [
+    {
+      "file": "documents/08-thesis/chapter-2-system-architecture.md",
+      "visual_blocks": {
+        "markdown_images": 0,
+        "mermaid_blocks": 8,
+        "plantuml_blocks": 0,
+        "total": 8
+      },
+      "figures": {
+        "captioned_count": 0,
+        "numbers": [],
+        "caption_coverage_pct": 0,
+        "uncited_figures": ""
+      },
+      "tables": {
+        "captioned_count": 0,
+        "numbers": []
+      },
+      "listings": {
+        "captioned_count": 0
+      },
+      "numbering_gaps": ""
+    }
+  ]
+}
