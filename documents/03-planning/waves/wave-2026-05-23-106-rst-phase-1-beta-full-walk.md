@@ -33,7 +33,7 @@ audience: dev
 
 ---
 
-## 2. Phân chia mảng
+## 2. Task Breakdown
 
 | Mảng | Vai trò | Số luồng | Người chạy | Thời gian | Phụ thuộc |
 |---|---|:---:|---|:---:|---|
@@ -48,7 +48,7 @@ Kiểm tra rời rạc: 6 mảng đụng vào miền khác nhau nhưng đều tr
 
 ---
 
-## 3. Phạm vi (lược đồ rút gọn)
+## 3. Scope (lược đồ rút gọn)
 
 **Bậc rủi ro:** TRUNG BÌNH → mô hình Opus medium. Phạm vi user-facing walk + sửa lỗi chặn luồng, không động kiến trúc.
 **Có đụng xuyên tầng?** KHÔNG → không cần Mảng 0 Nền tảng (mỗi mảng đụng FE / BE riêng khi cần sửa).
