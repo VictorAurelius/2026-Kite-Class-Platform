@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="|Chào mừng đến với ${branding?.displayName ?: 'KiteHub'}|">Chào mừng</title>
+    <style th:inline="text">
+        :root {
+            --brand-primary: [[${branding?.primaryColor ?: '#2563eb'}]];
+            --brand-secondary: [[${branding?.secondaryColor ?: '#1e40af'}]];
+            --brand-accent: [[${branding?.accentColor ?: '#10B981'}]];
+        }
+        body {
+            font-family: Arial, 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f9fafb;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            color: white;
+            padding: 28px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header img.logo {
+            max-height: 56px;
+            margin-bottom: 12px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .content {
+            background: #ffffff;
+            padding: 32px;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+        }
+        .greeting {
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+        .button {
+            display: inline-block;
+            padding: 13px 32px;
+            background: var(--brand-primary);
+            color: white !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 15px;
+            margin-top: 16px;
+        }
+        .steps {
+            background: #f0fdf4;
+            border-left: 4px solid var(--brand-accent);
+            padding: 14px 18px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .steps ol {
+            margin: 8px 0 0 0;
+            padding-left: 20px;
+        }
+        .steps li {
+            margin-bottom: 5px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+            font-size: 12px;
+        }
+        .footer a { color: var(--brand-primary); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img class="logo" th:if="${branding?.logoUrl}" th:src="${branding.logoUrl}" alt="Logo"/>
+        <h1 th:text="|Chào mừng bạn đến với ${branding?.displayName ?: 'KiteHub'} 🚀|">Chào mừng đến với KiteHub!</h1>
+    </div>
+
+    <div class="content">
+        <!--
+            INFORMAL_FRIEND tone — dành cho P1 Solo Teacher (Linh, 28, freelance).
+            Thân mật, hành động nhanh: "Chào bạn", câu ngắn, emoji OK, CTA nổi bật.
+            Theo VN peer-register convention: Haravan VN business email guide.
+        -->
+        <p class="greeting">
+            Chào <strong th:text="${recipientName ?: 'bạn'}">Trần Thị Linh</strong>! 👋
+        </p>
+
+        <p>
+            Tài khoản <strong th:text="${branding?.displayName ?: 'KiteHub'}">KiteHub</strong>
+            của bạn đã sẵn sàng rồi. Bắt đầu thôi nào!
+        </p>
+
+        <p style="text-align: center; margin: 24px 0;">
+            <a th:href="${loginUrl ?: 'https://kitehub.me/login'}" class="button">Vào KiteHub ngay →</a>
+        </p>
+
+        <div class="steps">
+            <strong>3 bước nhanh để bắt đầu:</strong>
+            <ol>
+                <li>Tạo lớp học đầu tiên và thêm học sinh.</li>
+                <li>Điểm danh nhanh chỉ với vài cú click.</li>
+                <li>Theo dõi học phí — KiteHub tự động nhắc nhở.</li>
+            </ol>
+        </div>
+
+        <p>
+            📖 Hướng dẫn nhanh:
+            <a th:href="${docsUrl ?: 'https://kitehub.me/help'}"
+               th:text="${docsUrl ?: 'https://kitehub.me/help'}">kitehub.me/help</a>
+        </p>
+
+        <p>
+            Có câu hỏi gì cứ nhắn bọn mình nhé:
+        </p>
+        <ul>
+            <li>📧 Email: <a th:href="|mailto:${branding?.contactEmail ?: 'support@kitehub.me'}|"
+                             th:text="${branding?.contactEmail ?: 'support@kitehub.me'}">support@kitehub.me</a></li>
+            <li>💬 Zalo nhanh hơn: <a th:href="|https://zalo.me/${zaloOaId ?: 'kitehub'}|"
+                                       th:text="|zalo.me/${zaloOaId ?: 'kitehub'}|">zalo.me/kitehub</a>
+                (T2-T6 8h-18h)</li>
+        </ul>
+
+        <p style="margin-top: 24px;">
+            Chúc bạn dạy học vui! 🎉<br>
+            <strong th:text="|Nhóm ${branding?.displayName ?: 'KiteHub'}|">Nhóm KiteHub</strong>
+        </p>
+    </div>
+
+    <div class="footer">
+        <p th:text="|© 2026 ${branding?.displayName ?: 'KiteHub'}. All rights reserved.|">© 2026 KiteHub.</p>
+        <p>Email tự động — không cần trả lời nhé.</p>
+        <p><a th:href="${unsubscribeUrl ?: 'https://kitehub.me/unsubscribe'}">Hủy đăng ký</a></p>
+    </div>
+</body>
+</html>

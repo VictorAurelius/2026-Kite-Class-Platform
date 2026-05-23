@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="|Chào mừng đến với ${branding?.displayName ?: 'KiteHub'}|">Chào mừng</title>
+    <style th:inline="text">
+        :root {
+            --brand-primary: [[${branding?.primaryColor ?: '#2563eb'}]];
+            --brand-secondary: [[${branding?.secondaryColor ?: '#1e40af'}]];
+            --brand-accent: [[${branding?.accentColor ?: '#10B981'}]];
+        }
+        body {
+            font-family: Arial, 'Helvetica Neue', sans-serif;
+            line-height: 1.7;
+            color: #1f2937;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f9fafb;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            color: white;
+            padding: 32px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header img.logo {
+            max-height: 56px;
+            margin-bottom: 12px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 600;
+        }
+        .content {
+            background: #ffffff;
+            padding: 36px;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+        }
+        .greeting {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #111827;
+        }
+        .button {
+            display: inline-block;
+            padding: 14px 36px;
+            background: var(--brand-primary);
+            color: white !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        .steps {
+            background: #f3f4f6;
+            border-left: 4px solid var(--brand-primary);
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .steps ol {
+            margin: 8px 0 0 0;
+            padding-left: 20px;
+        }
+        .steps li {
+            margin-bottom: 6px;
+        }
+        .closing {
+            margin-top: 28px;
+            font-size: 15px;
+            color: #1f2937;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+            font-size: 12px;
+        }
+        .footer a { color: var(--brand-primary); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img class="logo" th:if="${branding?.logoUrl}" th:src="${branding.logoUrl}" alt="Logo"/>
+        <h1 th:text="|Chào mừng Quý khách đến với ${branding?.displayName ?: 'KiteHub'}|">Chào mừng đến với KiteHub</h1>
+    </div>
+
+    <div class="content">
+        <!--
+            FORMAL_AUTHORITY tone — dành cho P2 Center Owner (Hằng, 45, authority figure).
+            Kính ngữ cao: "Kính gửi chị/anh {Name}", câu văn dài hơn, văn phong trang trọng.
+            Theo VN business email convention: Misa eInvoice templates + Talkpal VN formal guide.
+        -->
+        <p class="greeting">
+            Kính gửi <span th:text="${recipientName != null && !recipientName.isBlank() ? 'chị/anh ' + recipientName : 'Quý khách'}">chị/anh Nguyễn Thị Hằng</span>,
+        </p>
+
+        <p>
+            Nền tảng <strong th:text="${branding?.displayName ?: 'KiteHub'}">KiteHub</strong>
+            trân trọng chào đón Quý khách. Tài khoản của anh/chị đã được tạo thành công
+            và sẵn sàng để quản lý toàn bộ hoạt động của trung tâm giáo dục.
+        </p>
+
+        <p style="text-align: center; margin: 28px 0;">
+            <a th:href="${loginUrl ?: 'https://kitehub.me/login'}" class="button">Đăng nhập ngay</a>
+        </p>
+
+        <div class="steps">
+            <strong>Các bước tiếp theo kính gợi ý:</strong>
+            <ol>
+                <li>Cập nhật thông tin trung tâm (tên, địa chỉ, logo thương hiệu).</li>
+                <li>Mời quản lý, giáo viên và nhân sự tham gia hệ thống.</li>
+                <li>Thiết lập danh sách lớp học và quản lý học sinh.</li>
+                <li>Khám phá tính năng theo dõi điểm danh và học phí tự động.</li>
+            </ol>
+        </div>
+
+        <p>
+            Tài liệu hướng dẫn chi tiết:
+            <a th:href="${docsUrl ?: 'https://kitehub.me/help'}"
+               th:text="${docsUrl ?: 'https://kitehub.me/help'}">https://kitehub.me/help</a>
+        </p>
+
+        <p>
+            Kính mong Quý khách nhận được sự hỗ trợ tốt nhất. Nếu cần giải đáp,
+            xin vui lòng liên hệ qua:
+        </p>
+        <ul>
+            <li>📧 Email: <a th:href="|mailto:${branding?.contactEmail ?: 'support@kitehub.me'}|"
+                             th:text="${branding?.contactEmail ?: 'support@kitehub.me'}">support@kitehub.me</a></li>
+            <li>💬 Zalo OA: <a th:href="|https://zalo.me/${zaloOaId ?: 'kitehub'}|"
+                                th:text="|zalo.me/${zaloOaId ?: 'kitehub'}|">zalo.me/kitehub</a>
+                (phản hồi nhanh, T2-T6 8h-18h)</li>
+        </ul>
+
+        <div class="closing">
+            Trân trọng kính chào,<br>
+            <strong th:text="|Đội ngũ ${branding?.displayName ?: 'KiteHub'}|">Đội ngũ KiteHub</strong>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p th:text="|© 2026 ${branding?.displayName ?: 'KiteHub'}. All rights reserved.|">© 2026 KiteHub.</p>
+        <p>Email này được gửi tự động, vui lòng không trả lời trực tiếp.</p>
+        <p><a th:href="${unsubscribeUrl ?: 'https://kitehub.me/unsubscribe'}">Hủy đăng ký nhận thông báo</a></p>
+    </div>
+</body>
+</html>

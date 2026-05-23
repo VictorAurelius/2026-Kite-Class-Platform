@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="|Bạn được mời tham gia ${tenantName ?: 'KiteHub'}|">Lời mời tham gia trung tâm</title>
+    <style th:inline="text">
+        :root {
+            --brand-primary: [[${branding?.primaryColor ?: '#2563eb'}]];
+            --brand-secondary: [[${branding?.secondaryColor ?: '#1e40af'}]];
+            --brand-accent: [[${branding?.accentColor ?: '#10B981'}]];
+        }
+        body {
+            font-family: Arial, 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f9fafb;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            color: white;
+            padding: 28px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header img.logo { max-height: 56px; margin-bottom: 12px; }
+        .header h1 { margin: 0; font-size: 20px; font-weight: 700; }
+        .content {
+            background: #ffffff;
+            padding: 32px;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+        }
+        .greeting { font-size: 16px; margin-bottom: 16px; }
+        .role-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--brand-accent);
+            color: white;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .button {
+            display: inline-block;
+            padding: 13px 32px;
+            background: var(--brand-primary);
+            color: white !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 15px;
+            margin-top: 16px;
+        }
+        .meta { font-size: 13px; color: #6b7280; margin-top: 12px; }
+        .info-box {
+            background: #f0fdf4;
+            border-left: 4px solid var(--brand-accent);
+            padding: 14px 18px;
+            margin: 20px 0;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+        .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
+        .footer a { color: var(--brand-primary); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img class="logo" th:if="${branding?.logoUrl}" th:src="${branding.logoUrl}" alt="Logo"/>
+        <h1 th:text="|Bạn được mời tham gia ${tenantName ?: 'KiteHub'} 🎉|">Bạn được mời tham gia trung tâm!</h1>
+    </div>
+
+    <div class="content">
+        <!--
+            INFORMAL_FRIEND tone — P1 Solo Teacher nhận lời mời với văn phong thân mật.
+            Ngắn gọn, hành động nhanh: "Chào bạn", emoji OK, CTA rõ ràng.
+            Theo VN peer-register convention: Haravan VN email guide.
+        -->
+        <p class="greeting">
+            Chào <strong th:text="${recipientName ?: 'bạn'}">Trần Thị Linh</strong>! 👋
+        </p>
+
+        <p>
+            <strong th:text="${ownerName ?: 'Chủ trung tâm'}">Nguyễn Thị Hằng</strong>
+            mời bạn vào
+            <strong th:text="${tenantName ?: 'KiteHub'}">Trung tâm Anh ngữ Sky Education</strong>
+            với vai trò
+            <span class="role-badge" th:text="${role ?: 'STAFF'}">GIÁO VIÊN</span>.
+        </p>
+
+        <p>
+            Tham gia xong là bạn có thể:
+        </p>
+        <ul>
+            <li>Quản lý lớp học và học sinh của mình.</li>
+            <li>Điểm danh siêu nhanh, theo dõi lịch dạy.</li>
+            <li>Xem báo cáo hoạt động (theo quyền được giao).</li>
+        </ul>
+
+        <p style="text-align: center; margin: 24px 0;">
+            <a th:href="${inviteUrl}" class="button">Chấp nhận lời mời →</a>
+        </p>
+
+        <p class="meta">
+            Hoặc copy link này vào trình duyệt:<br>
+            <a th:href="${inviteUrl}" th:text="${inviteUrl}"
+               style="word-break: break-all; color: var(--brand-primary); font-size: 12px;">https://kitehub.me/staff/accept-invite?token=...</a>
+        </p>
+
+        <div class="info-box">
+            <strong>Lưu ý nhỏ:</strong>
+            <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+                <li>Link có hiệu lực đến
+                    <strong th:text="${expiresAt ?: '7 ngày kể từ thời điểm gửi'}">30/05/2026</strong>.
+                </li>
+                <li>Dùng được 1 lần để đăng ký tài khoản.</li>
+                <li>Không mong đợi email này? Bỏ qua là xong, không cần làm gì thêm.</li>
+            </ul>
+        </div>
+
+        <p>
+            Có gì hỏi bọn mình qua:
+        </p>
+        <ul>
+            <li>📧 Email: <a th:href="|mailto:${branding?.contactEmail ?: 'support@kitehub.me'}|"
+                             th:text="${branding?.contactEmail ?: 'support@kitehub.me'}">support@kitehub.me</a></li>
+            <li>💬 Zalo nhanh hơn: <a th:href="|https://zalo.me/${zaloOaId ?: 'kitehub'}|"
+                                       th:text="|zalo.me/${zaloOaId ?: 'kitehub'}|">zalo.me/kitehub</a>
+                (T2-T6 8h-18h)</li>
+        </ul>
+
+        <p style="margin-top: 24px;">
+            Hẹn gặp bạn trong KiteHub! 🚀<br>
+            <strong th:text="|Nhóm ${branding?.displayName ?: 'KiteHub'}|">Nhóm KiteHub</strong>
+        </p>
+    </div>
+
+    <div class="footer">
+        <p th:text="|© 2026 ${branding?.displayName ?: 'KiteHub'}. All rights reserved.|">© 2026 KiteHub.</p>
+        <p>Email tự động — không cần trả lời nhé.</p>
+    </div>
+</body>
+</html>
