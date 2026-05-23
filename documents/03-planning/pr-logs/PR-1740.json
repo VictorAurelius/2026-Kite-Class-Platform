@@ -1,0 +1,33 @@
+{
+  "pr": 1740,
+  "title": "audit(wave-106): kh\u1ea3o s\u00e1t 80 PARTIAL Pha 1 BETA \u2014 kh\u00f4ng flip, ch\u1edd AWS restore",
+  "branch": "chore/wave-106-bulk-state-check-flip-6-p0",
+  "created_at": null,
+  "merged_at": "2026-05-23T09:07:18Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-23T16:07:22.085786",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 2,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-1038"
+  }
+}

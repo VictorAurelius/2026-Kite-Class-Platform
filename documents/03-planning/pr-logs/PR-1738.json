@@ -1,0 +1,33 @@
+{
+  "pr": 1738,
+  "title": "chore(wave-105-rst-followup): file GAP-725 \u2014 KC Parent/Teacher auth path",
+  "branch": "chore/wave-105-gap-725-parent-teacher-auth",
+  "created_at": null,
+  "merged_at": "2026-05-23T09:14:30Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-23T16:14:35.311248",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 3,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-20326"
+  }
+}
