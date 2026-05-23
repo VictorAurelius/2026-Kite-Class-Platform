@@ -7,12 +7,13 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.exceptions.TemplateInputException;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Renders Thymeleaf email templates to BOTH HTML and plain-text bodies
- * (GAP-657 §Step 1 + GAP-659 §Step 2 — Wave 98 Bucket B1).
+ * (GAP-657 §Step 1 + GAP-659 §Step 2 — Wave 98 Bucket B1 / Wave 107 final 20%).
  *
  * <p>Each template under {@code src/main/resources/templates/emails/} has a
  * {@code .html} sibling AND a {@code .txt} sibling. Senders MUST emit both
@@ -21,19 +22,43 @@ import java.util.Map;
  * fallback. Without this, projected ~20% silent churn for Resend-delivered
  * mail to Gmail per external benchmark.</p>
  *
- * <p><b>Tone resolution (Wave 98 simplification per GAP-659 §Step 4):</b>
- * tone is computed from recipient role via {@link Tone#fromRole(String)} but
- * ALL Wave 98 templates render the {@link Tone#FORMAL_SAFE_DEFAULT} variant
- * (single safe template per type). Wave 99+ will introduce per-tone variant
- * templates (e.g., {@code welcome.formal.html} / {@code welcome.informal.html})
- * and this renderer will dispatch by tone — see {@code TODO Wave 99} marker
- * in {@link #resolveTemplatePath(String, Tone)}.</p>
+ * <p><b>Tone resolution (Wave 107 final — per GAP-659 §Step 2):</b>
+ * {@link #resolveTemplatePath(String, Tone)} now dispatches to per-tone variant
+ * templates ({@code emails/{name}.formal.html} / {@code emails/{name}.informal.html}
+ * / {@code emails/{name}.semi-formal.html}) with automatic fallback to the base
+ * template ({@code emails/{name}}) when the variant is absent. This enables
+ * progressive roll-out: templates opt-in to per-tone treatment by adding variant
+ * siblings; remaining templates continue using the FORMAL_SAFE_DEFAULT base.</p>
  *
- * @since Wave 98 Bucket B1 (GAP-657 + GAP-659)
+ * <p>Tone suffix map (Wave 107):</p>
+ * <ul>
+ *   <li>{@link Tone#FORMAL_AUTHORITY} → {@code .formal}</li>
+ *   <li>{@link Tone#SEMI_FORMAL_PEER} → {@code .semi-formal}</li>
+ *   <li>{@link Tone#INFORMAL_FRIEND} → {@code .informal}</li>
+ *   <li>{@link Tone#FORMAL_SAFE_DEFAULT} → base template (no suffix)</li>
+ * </ul>
+ *
+ * @since Wave 98 Bucket B1 (GAP-657 + GAP-659); extended Wave 107 (GAP-659 final 20%)
  */
 @Slf4j
 @Component
 public class EmailTemplateRenderer {
+
+    /**
+     * Map from {@link Tone} to the variant filename suffix used when selecting
+     * a per-tone template (e.g. {@code .formal} → {@code welcome.formal.html}).
+     * {@link Tone#FORMAL_SAFE_DEFAULT} has no suffix — it uses the base template.
+     */
+    private static final Map<Tone, String> TONE_SUFFIX;
+
+    static {
+        Map<Tone, String> m = new EnumMap<>(Tone.class);
+        m.put(Tone.FORMAL_AUTHORITY, ".formal");
+        m.put(Tone.SEMI_FORMAL_PEER, ".semi-formal");
+        m.put(Tone.INFORMAL_FRIEND, ".informal");
+        // FORMAL_SAFE_DEFAULT → base template (no suffix); not inserted → absent key = base
+        TONE_SUFFIX = m;
+    }
 
     private final TemplateEngine templateEngine;
 
@@ -67,10 +92,30 @@ public class EmailTemplateRenderer {
 
         Context ctx = buildContext(variables, effectiveTone);
 
-        String html = templateEngine.process(htmlPath, ctx);
+        String html = renderHtmlWithFallback(templateName, htmlPath, ctx);
         String text = renderPlainTextSibling(templateName, ctx);
 
         return new RenderedBodies(html, text);
+    }
+
+    /**
+     * Render HTML body, falling back to the base (no-suffix) template when the
+     * per-tone variant path does not exist. This implements the progressive opt-in
+     * model: variant templates are optional; absence silently falls back to base.
+     */
+    private String renderHtmlWithFallback(String templateName, String htmlPath, Context ctx) {
+        String basePath = "emails/" + templateName;
+        if (htmlPath.equals(basePath)) {
+            // No variant → render base directly (common path)
+            return templateEngine.process(htmlPath, ctx);
+        }
+        try {
+            return templateEngine.process(htmlPath, ctx);
+        } catch (TemplateInputException ex) {
+            log.debug("Per-tone variant '{}' not found; falling back to base template '{}'",
+                    htmlPath, basePath);
+            return templateEngine.process(basePath, ctx);
+        }
     }
 
     /**
@@ -97,17 +142,36 @@ public class EmailTemplateRenderer {
     }
 
     /**
-     * Resolve the HTML template path for the given tone.
+     * Resolve the HTML template path for the given tone (Wave 107 — GAP-659 §Step 2).
      *
-     * <p>Wave 98 simplification: all tones resolve to the base template
-     * ({@code emails/{name}}). Wave 99+ will switch to variant suffix
-     * ({@code emails/{name}.formal} / {@code emails/{name}.informal} / etc.).</p>
+     * <p>Resolution order:</p>
+     * <ol>
+     *   <li>If tone has a suffix (see {@link #TONE_SUFFIX}), try
+     *       {@code emails/{name}{suffix}} (e.g. {@code emails/welcome.formal}).</li>
+     *   <li>If the variant template does not exist
+     *       ({@link TemplateInputException} / {@link IllegalArgumentException}),
+     *       fall back to the base template {@code emails/{name}}.</li>
+     *   <li>{@link Tone#FORMAL_SAFE_DEFAULT} always resolves to base (no suffix).</li>
+     * </ol>
+     *
+     * <p>This allows incremental opt-in: templates ship variant siblings progressively.
+     * Templates that have not yet received per-tone variants continue using the
+     * safe-default base without any change at the call-site.</p>
+     *
+     * @param templateName template stem (e.g. {@code welcome}, {@code invite-staff})
+     * @param tone         effective tone (never null at call-site)
+     * @return Thymeleaf template path to pass to {@link TemplateEngine#process}
      */
-    private String resolveTemplatePath(String templateName, Tone tone) {
-        // TODO Wave 99: per-tone variant templates per GAP-659 §Step 2.
-        //   Map tone -> suffix and resolve "emails/{name}.{suffix}" with
-        //   fallback to "emails/{name}" when variant is absent.
-        return "emails/" + templateName;
+    String resolveTemplatePath(String templateName, Tone tone) {
+        String suffix = TONE_SUFFIX.get(tone);
+        if (suffix == null) {
+            // FORMAL_SAFE_DEFAULT or any unregistered tone → base template (no variant suffix)
+            return "emails/" + templateName;
+        }
+        // Return the per-tone variant path. If the variant template resource does not
+        // exist on the classpath, renderHtmlWithFallback() will catch the resulting
+        // TemplateInputException and transparently fall back to the base template.
+        return "emails/" + templateName + suffix;
     }
 
     private Context buildContext(Map<String, Object> variables, Tone tone) {
