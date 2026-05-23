@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-05-23 17:29:09",
+  "bibliography": "documents/08-thesis/references/bibliography.md",
+  "chapter_files": ["documents/08-thesis/chapter-1-ai-techniques.md", "documents/08-thesis/chapter-1-competitor-analysis.md", "documents/08-thesis/chapter-1-vn-law-methodology.md", "documents/08-thesis/chapter-2-system-architecture.md", "documents/08-thesis/chapter-3-implementation.md", "documents/08-thesis/chapter-4-deployment-results.md"],
+  "counts": {
+    "body_total": 32,
+    "bib_total": 38,
+    "matched": 31,
+    "orphan_body": 1,
+    "orphan_bib": 7
+  },
+  "matched": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 32, 33],
+  "orphan_body": [40],
+  "orphan_bib": [30, 31, 34, 35, 36, 37, 38]
+}
