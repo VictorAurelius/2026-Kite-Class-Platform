@@ -1,8 +1,9 @@
 ---
 title: Wave thesis-1 — Đóng cụm khóa luận pre-defense
-status: draft
+status: complete
 created: 2026-05-23
 updated: 2026-05-23
+closed_at: 2026-05-23
 wave: 1
 tag_primary: thesis
 tags_secondary: [doc, beta-prep, meta]
@@ -240,6 +241,40 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 
 ---
 
+## 7.5 Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` §3)
+
+| # | Plan §3 Scope item | Verdict | Evidence / Follow-up |
+|---|---|:---:|---|
+| 0 | META prereq §0 ship (rule + skill + matrix + CSV + plan + 3 gap Log) | ✅ DONE | PR #1748 commit `53f30e27` |
+| 1 | Bucket A — GAP-647 Step 3 + GAP-655 citation-extract skill | ✅ DONE | PR #1750 `bd855905`; skill `.claude/skills/quality/thesis-citation-extract/`; GAP-647 + GAP-655 closed |
+| 2 | Bucket B — GAP-651 figure-curation skill + 4 INDEX | ✅ DONE | PR #1749 `644a3575`; skill + 4 INDEX files; GAP-651 closed |
+| 3 | Bucket C — GAP-653 defense deck + Q&A + demo + practice | ✅ DONE | PR #1752 `7f09a4ca`; `documents/08-thesis/defense/` 5 files; GAP-653 closed |
+| 4 | Bucket F — GAP-652 demo script (script-only) | ✅ DONE script-only | PR #1751 `f6b71ecb`; seed script + 5-phút demo; GAP-652 closed (runtime defer Wave thesis-2) |
+| 5 | Bucket D Phase 1+2 — GAP-687 strip-or-rename + `--execute` mode | ✅ DONE Phase 1+2 | PR #1754 `cc03d708`; 4 backup archived + create_thesis_v1.py extended; GAP-687 PARTIAL 67% (Phase 3 defer) |
+| 5 | Bucket D Phase 3+4 — GAP-689 final polish + signoff | ✅ DONE | PR #1754; SIGNOFF.md + polish; GAP-689 DONE archived |
+| 6 | Bucket E — GAP-623 beta cohort plan (doc-only) | ✅ DONE doc-only | PR #1753 `1d870e76`; `release-1-beta-cohort-plan.md` + folder README; GAP-623 closed (execution defer) |
+| 7 | Re-bake docx ≥85/100 | 🟡 PARTIAL 76/100 C+ | Audit `2026-05-23-wave-thesis-1-bucket-d-docx-rubric.md`; ≥85 honest defer Wave thesis-2 (depends GAP-687 Phase 3 + GAP-648 NFR + GAP-649 beta data). Baseline 82/100 B- Wave 102.7.6 stands. |
+| 8 | Defer Wave thesis-2 — GAP-648 + GAP-649 + GAP-687 Phase 3 Log append | ✅ DONE | PR #1748 plan + 3 gap Log entries 2026-05-23; trigger restart = GAP-612 AWS restore |
+
+**Verdict:** 9/10 ✅ DONE + 1 🟡 PARTIAL (target ≥85 honest defer per `gap-done-discipline.md` §3 PARTIAL exit ramp). Zero orphan items per `wave-closure-scope-completeness.md` §3.
+
+---
+
 ## 8. Log
 
-- **2026-05-23** (draft): Plan created. Phase 1 META prereq + plan file + 3 gap defer Log Append shipped same PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate. Outside-in audit SKIP per `outside-in-coverage-trigger.md` §4 row 4 (Wave 100 audit ≤30 ngày). META domain key per `post-wave-audit-mandate.md` §2.4.1 = `meta-governance` (NO AUDIT SUITE REQUIRED). Worked self-test rule `wave-tag-numbering-convention.md` §6 — 5/8 expected artifacts match THIS PR (3/8 còn lại match Phase 2 + Phase 3 closure).
+- **2026-05-23** (draft): Plan created. Phase 1 META prereq + plan file + 3 gap defer Log shipped same PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate. Outside-in audit SKIP per `outside-in-coverage-trigger.md` §4 row 4 (Wave 100 audit ≤30 ngày). META domain key = `meta-governance` (NO AUDIT SUITE REQUIRED). Self-test rule §6 — 5/8 expected artifacts match THIS PR.
+- **2026-05-23** (in-progress): Phase 2 spawn — 6 bucket bg-agent 3 đợt: Đợt 1 (A+B parallel) → Đợt 2 (C+F parallel) → Đợt 3 (D+E parallel bg-agent thay coordinator inline, scope clear isolation).
+- **2026-05-23** (complete): Wave SHIPPED. 7 PR merged squash main: #1748 plan + META → #1749 Bucket B figure-curation → #1750 Bucket A citation-extract → #1751 Bucket F demo script (script-only) → #1752 Bucket C defense deck + Q&A + demo + practice → #1753 Bucket E beta cohort plan (doc-only) → #1754 Bucket D V1 docx polish + execute mode (rubric 76/100 C+ PASS heuristic; ≥85 honest defer Wave thesis-2). Outcomes:
+  - **7 thesis gap closed:** GAP-647 + GAP-651 + GAP-652 + GAP-653 + GAP-655 + GAP-689 DONE + GAP-623 DONE doc-only
+  - **1 thesis gap PARTIAL ship:** GAP-687 Phase 1+2 (Phase 3 defer Wave thesis-2)
+  - **3 thesis gap defer Wave thesis-2:** GAP-648 NFR + GAP-649 Beta execution + GAP-687 Phase 3
+  - **2 skill mới shipped:** `thesis-citation-extract` + `thesis-figure-curation`
+  - **5 defense artifacts shipped:** `defense-deck.html` Reveal.js 40 slide + `defense-qa-response-sheet.md` 20 Q&A × 4 archetype + `defense-demo-script.md` 15 phút + `practice-schedule.md` T-3+T-2 + `multi-tenant-demo-script.md` 5 phút secondary
+  - **1 cohort plan shipped (doc-only):** `release-1-beta-cohort-plan.md` 9-tuần timeline + 4 GV persona
+  - **1 thesis-v1.docx re-bake:** 4 section / 646 paragraph / 27 figure / 26 table / 38 bibliography / rubric 76/100 C+
+  - **META prereq shipped:** `wave-tag-numbering-convention.md` v1.0.0 + skill update + matrix row + CSV row — first wave dùng tag-based numbering
+  - **Self-test rule §6 confirmation:** 8/8 expected artifacts match
+  - Wall-clock ~3.5h actual vs ~5-6h estimate (6.9x speedup vs serial ~24h)
+  - 6 background agents spawned 3 đợt; 6 PRs sequentially merged squash + delete-branch (no `--admin` per `admin-merge-discipline.md`)
+  - 1 CI fix iteration: Bucket D PR #1754 audits-index.csv 100% coverage parity miss → coordinator fix forward commit `a3de2d70`
+  - Defense readiness 8-8.5đ achievable ship-state; 9-10đ requires Wave thesis-2 (NFR + beta evidence)
