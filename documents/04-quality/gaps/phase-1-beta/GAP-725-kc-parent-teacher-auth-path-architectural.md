@@ -1,11 +1,14 @@
 ---
 id: GAP-725
 title: KC Parent/Teacher persona auth path — architectural gap
-status: 🟡 OPEN
+status: 🟦 DEFERRED Phase 2
 priority: P1
 phase: phase-1-beta
 type: feature
 created: 2026-05-23
+deferred_at: 2026-05-23
+deferred_to: phase-2
+decision: B+C ghép theo vai (B = KC tự cấp đăng nhập cho Giáo viên; C = lời mời + OTP Zalo/SMS cho Phụ huynh + Học sinh)
 discovered_via: Wave 105 RST UI walk 2026-05-23 — KC Parent/Teacher persona walks
 related: [GAP-724, Wave 105]
 ---
@@ -60,11 +63,23 @@ Pros: best UX for non-tech parents; aligns with `dev-readable-doc-language.md`
 VN edu market (`vn-localization-audit-checklist.md` §4 phone OTP culture)
 Cons: largest scope; Phase 2 work
 
-## Decision deferred
+## Quyết định 2026-05-23 — đẩy sang Đợt 2, ghép B+C theo vai
 
-Wave 105 RST goal "RST full UI" closed PARTIAL — Owner walk PASS via PR #1737;
-Parent/Teacher walks tracked here. Phase 1 BETA may continue with Owner-only
-self-test scope; Parent/Teacher persona on roadmap before public launch.
+Đợt 1 BETA giữ phạm vi hẹp (Chủ trung tâm + Nhân viên — đã thông qua PR #1737).
+Phụ huynh / Giáo viên / Học sinh chuyển sang Đợt 2.
+
+| Vai | Hướng sửa | Lý do chọn |
+|---|---|---|
+| **Giáo viên** | Hướng B — KiteClass tự cấp endpoint `/api/v1/auth/login` (thư điện tử + mật khẩu, cùng khóa ký HS512) | Giáo viên rành công nghệ, đăng nhập hàng ngày → cần mật khẩu để ghi nhớ phiên dài |
+| **Phụ huynh** | Hướng C — Lời mời từ Chủ trung tâm + OTP qua Zalo / SMS → phiên ngắn hạn 24-48 giờ | Văn hóa Việt: phụ huynh dùng Zalo + SĐT nhiều hơn thư điện tử (per `vn-localization-audit-checklist.md` §4 phong tục thanh toán + nhóm chat) |
+| **Học sinh** | Hướng C (giống Phụ huynh) — hoặc đăng nhập kế thừa qua tài khoản cha mẹ | Nghiên cứu Đợt 2 thêm — tùy mô hình khóa học (K-12 vs trung tâm tiếng Anh) |
+
+**Cột mốc khởi động Đợt 2:**
+- Đạt ≥80 điểm chất lượng + 5 tenant sống + 0 sự cố P0 hai tuần liên tiếp (theo `release-1-plan-2026.md` Pha 1 → Pha 2 chuyển dịch).
+- Chọn nhà gửi SMS (Twilio / Vonage / nhà cung cấp Việt) + duyệt tài khoản Zalo Official Account TRƯỚC khi mở mã của Hướng C.
+
+**Loại bỏ:**
+- Hướng A — phá tách miền KH=quản trị thuê bao, không phù hợp đường dài.
 
 ## References
 
@@ -72,4 +87,5 @@ self-test scope; Parent/Teacher persona on roadmap before public launch.
 - `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/auth/role/PlatformRole.java`
 - `kiteclass/kiteclass-frontend/src/types/auth.ts` (UserType enum)
 - Wave 105 wave plan §Bucket D Parent persona walk
-- `vn-localization-audit-checklist.md` §4 phone OTP culture (informs Option C)
+- `vn-localization-audit-checklist.md` §4 phong tục Zalo + OTP điện thoại
+- `release-1-plan-2026.md` Pha 2 cột mốc — chốt 2026-05-23 chọn B+C
