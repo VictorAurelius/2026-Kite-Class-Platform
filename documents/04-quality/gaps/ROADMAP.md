@@ -8,9 +8,33 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-05-23 — Wave 105 SHIPPED 5/5 buckets + hotfix — Persona Walk + P0 Security Cluster (Beta-Readiness) closed: Bucket E #1727 Security P0 5 real-code bugs + Bucket C #1723 Teacher per-class authz @authz bean + Bucket B #1725 Owner walk + IMPORT_DATA reframe + 3 follow-up gaps GAP-720/721/722 + Bucket D #1724 Parent VietQR idempotency + Zalo OA stub + Bucket A #1726 Anonymous XSS + idempotency + Hotfix #1728 cross-bucket duplicate @PreAuthorize + @Component("authz") bean collision (AuthorizationHelper broken-on-Postgres deleted, AuthorizationBean retained) + Wave 105 Bucket E0 META PR #1721 squash b007e955 META P0 force-multiplier + Wave 104 SHIPPED 4-of-5 buckets fix follow-up bugs PR #1712 squash b5ec57d6 + Wave 103 SHIPPED 6-bucket local self-test + Wave 102.9 batch 2 + Wave 102.8.1 + Wave 102.8 + Wave 102.7.6 thesis V1 + Wave 102.7.5..1 + Wave 102.6 + Wave 102.5..1 + Wave 102 META + Wave 102 GAP-688)
+## 🎯 Current Status Snapshot (2026-05-23 — **Wave thesis-1 SHIPPED 6 bucket parallel + META `wave-tag-numbering-convention` v1.0.0** — first tag-based wave: PR #1748 plan + #1749 B figure-curation (GAP-651) + #1750 A citation-extract (GAP-647 + GAP-655) + #1751 F multi-tenant demo script-only (GAP-652) + #1752 C defense deck Reveal.js 40 slide + 20 Q&A + 15-phút demo + practice (GAP-653) + #1753 E cohort plan doc-only (GAP-623) + #1754 D V1 docx polish + execute mode + rubric 76/100 C+ PASS (GAP-689 DONE + GAP-687 PARTIAL Phase 1+2). Defer Wave thesis-2 chờ GAP-612 AWS restore: GAP-648 NFR + GAP-649 beta + GAP-687 Phase 3. Wall-clock ~3.5h actual vs ~5-6h estimate (6.9x speedup). Defense readiness 8-8.5đ ship-state + Wave 105 SHIPPED 5/5 buckets + hotfix — Persona Walk + P0 Security Cluster (Beta-Readiness) closed: Bucket E #1727 Security P0 5 real-code bugs + Bucket C #1723 Teacher per-class authz @authz bean + Bucket B #1725 Owner walk + IMPORT_DATA reframe + 3 follow-up gaps GAP-720/721/722 + Bucket D #1724 Parent VietQR idempotency + Zalo OA stub + Bucket A #1726 Anonymous XSS + idempotency + Hotfix #1728 cross-bucket duplicate @PreAuthorize + @Component("authz") bean collision (AuthorizationHelper broken-on-Postgres deleted, AuthorizationBean retained) + Wave 105 Bucket E0 META PR #1721 squash b007e955 META P0 force-multiplier + Wave 104 SHIPPED 4-of-5 buckets fix follow-up bugs PR #1712 squash b5ec57d6 + Wave 103 SHIPPED 6-bucket local self-test + Wave 102.9 batch 2 + Wave 102.8.1 + Wave 102.8 + Wave 102.7.6 thesis V1 + Wave 102.7.5..1 + Wave 102.6 + Wave 102.5..1 + Wave 102 META + Wave 102 GAP-688)
 
-### 🚀 Next Action 2026-05-23 — Wave 105 post-merge audit suite (combined with Wave 104.5+105 backlog per GAP-716 deadline 2026-05-25; 3-axis: business-logic + api-contract + ops-readiness) + AWS account restoration (GAP-612 Day 6+) → Wave 105 live verify cluster + META retro lesson (cross-bucket pairwise annotation diff per pre-mutation-state-check.md §1.5 caught 0 conflicts pre-merge, 2 caught by CI post-merge → process improvement candidate)
+### 🚀 Next Action 2026-05-23 — Wave thesis-1 closure docs sync (this PR) + Wave 105 post-merge audit suite (combined với Wave 104.5+105 backlog per GAP-716 deadline 2026-05-25; 3-axis: business-logic + api-contract + ops-readiness) + AWS account restoration (GAP-612 Day 6+) → Wave 105 live verify cluster + Wave thesis-2 NFR + beta + Ch.5-7 evidence + META retro lesson (cross-bucket pairwise annotation diff per pre-mutation-state-check.md §1.5)
+
+### 🎉 Wave thesis-1 SHIPPED 2026-05-23 — Thesis closure 6 bucket parallel + META wave-tag-numbering-convention v1.0.0 prereq
+
+**First tag-based wave** (Wave 01-107 sequential grandfathered per rule §5 migration). Outside-in audit SKIP per `outside-in-coverage-trigger.md` §4 row 4 (Wave 100 audit 3-agent ≤30 ngày). META domain `meta-governance` per `post-wave-audit-mandate.md` §2.4.1 → NO AUDIT SUITE REQUIRED.
+
+| PR | Bucket | Commit | Gap(s) closed | Key change |
+|---|---|---|---|---|
+| #1748 | plan + META §0 | `53f30e27` | (prereq) | `wave-tag-numbering-convention.md` v1.0.0 + skill section + matrix row + CSV row + plan + 3 gap Log defer |
+| #1749 | B figure-curation | `644a3575` | GAP-651 DONE | Skill `thesis-figure-curation` + 4 INDEX per Ch.1-4 (baseline 27 visual / 0% caption → actionable list) |
+| #1750 | A citation-extract | `bd855905` | GAP-647 + GAP-655 DONE | Skill `thesis-citation-extract` + extract/verify/self-test (real smoke: 31 matched / 1 orphan-body / 7 orphan-bib) |
+| #1751 | F demo script | `f6b71ecb` | GAP-652 DONE (script-only) | Seed script 3-mode + 5-phút multi-tenant demo (UI/JWT + API 403 + RLS DB) |
+| #1752 | C defense deck | `7f09a4ca` | GAP-653 DONE | Reveal.js 40 slide tiếng Việt + 4 Mermaid + 20 Q&A × 4 archetype + 15-phút demo + practice T-3+T-2 |
+| #1753 | E cohort plan | `1d870e76` | GAP-623 DONE (doc-only) | `release-1-beta-cohort-plan.md` 9-tuần timeline + 4 GV persona + signed review template |
+| #1754 | D V1 docx polish | `cc03d708` | GAP-689 DONE + GAP-687 PARTIAL 67% | 4 backup → archive + `create_thesis_v1.py --execute` + rubric 76/100 C+ PASS + SIGNOFF.md |
+| #1755 | closure | (this PR) | — | Wave plan status:complete + wave-history mới format + ROADMAP entry + reconciliation + handoff |
+
+**Defer Wave thesis-2** (3 gap, trigger restart = GAP-612 AWS restore + cluster live ≥7 ngày):
+- GAP-648 NFR data capture (k6 + CloudWatch p50/p95 ≥30 ngày + AWS Cost)
+- GAP-649 Beta cohort execution (≥4 nhận xét ký tay; 9-tuần timeline)
+- GAP-687 Phase 3 (NFR + beta + Ch.5-7 evidence)
+
+**Defense readiness:** 8-8.5đ ship-state (deck + Q&A + demo + bibliography + figures + V1 docx 76/100); 9-10đ chờ Wave thesis-2.
+
+
 
 ### 🎉 Wave 105 SHIPPED 2026-05-23 — Persona Walk + P0 Security Cluster (Beta-Readiness) 5/5 buckets + hotfix (PR #1727 / #1723 / #1725 / #1728 / #1724 / #1726)
 
