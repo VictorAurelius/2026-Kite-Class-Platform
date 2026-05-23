@@ -1,0 +1,33 @@
+{
+  "pr": 1730,
+  "title": "fix(wave-105-self-test): GEH 403 + V62 + V63 + Bucket B image refresh",
+  "branch": "fix/wave-105-self-test-bugs",
+  "created_at": null,
+  "merged_at": "2026-05-22T20:07:19Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-23T03:07:28.688415",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 4,
+        "java_files": 1,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-2927"
+  }
+}
