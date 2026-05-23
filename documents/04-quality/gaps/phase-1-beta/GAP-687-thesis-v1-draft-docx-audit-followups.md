@@ -60,3 +60,8 @@ audience: dev
 - Scope: `documents/03-planning/roadmap/release-1.5-thesis-scope.md`
 - Defense window: 2026-08-15 → 2026-10-15
 - Rule applied at audit: ad-hoc (no formal rule existed); meta gap surfaced this audit
+
+## Log
+
+- **2026-05-19 (created):** Filed post Wave 101 closure audit thesis-v1-draft.docx 60/100 D+ baseline.
+- **2026-05-23:** DEFER Wave thesis-2 Phase 3 only — Ch.5-7 content evidence (#7 NFR data + #8 beta cohort evidence + #9 chapter narrative) phụ thuộc GAP-648 + GAP-649 production data. Wave thesis-1 (`documents/03-planning/waves/wave-2026-05-23-thesis-1-closure.md`) ship Phase 1 (strip-or-rename + TODO scrub) + Phase 2 (`ThesisReportBuilder --execute` production mode) only via Bucket D. Trigger restart Phase 3: GAP-648 + GAP-649 cả 2 DONE.
