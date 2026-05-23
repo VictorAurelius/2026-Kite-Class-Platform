@@ -1,0 +1,33 @@
+{
+  "pr": 1732,
+  "title": "fix(wave-105-tooling): Playwright label sync + test user seed script",
+  "branch": "fix/wave-105-self-test-tooling",
+  "created_at": null,
+  "merged_at": "2026-05-23T05:06:12Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-23T12:06:20.536710",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 3,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-71860"
+  }
+}
