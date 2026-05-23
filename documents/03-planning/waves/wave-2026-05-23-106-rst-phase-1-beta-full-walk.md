@@ -100,7 +100,26 @@ Mọi tên đường dẫn / endpoint / trang được tham chiếu trong §3 đ
 
 ---
 
-## 4. Đầu ra mong đợi
+## 4. State-Check Evidence
+
+Xem §3 "Bằng chứng kiểm tra trạng thái (per `audit-to-gap-pipeline.md` §2.6)" — table đã verify mọi tên đường dẫn tham chiếu (KH + KC frontend routes + admin pages + auth credentials) đã tồn tại trong mã hiện tại.
+
+## 5. Verification Gates
+
+| Mảng | Lệnh kiểm thử cục bộ | CI gate |
+|---|---|---|
+| A (anonymous KH) | `PLAYWRIGHT_BASE_URL=http://localhost:3001 pnpm exec playwright test e2e/_rst-wave-106-a.spec.ts` | frontend-ci |
+| B (owner KC) | `PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm exec playwright test e2e/_rst-wave-106-b.spec.ts` | frontend-ci |
+| C (staff KC) | Tương tự, dùng staff seed | frontend-ci |
+| D (admin KH) | `PLAYWRIGHT_BASE_URL=http://localhost:3001 pnpm exec playwright test e2e/_rst-wave-106-d.spec.ts` | frontend-ci |
+
+## 6. Agent Spawn Pattern
+
+Đợt này KHÔNG dùng parallel agent — single coordinator (main session) walk tuần tự 23 luồng. Lý do: 4 mảng đều dùng Docker port độc quyền (3000/3001/9000) → không thể chạy song song Playwright agent worktree.
+
+Đợt 107 hybrid SẼ dùng agent spawn pattern cho fix cụm thư (3 agent worktree song song) — xem `wave-2026-05-23-107-hybrid-rst-anonymous-onboard-plus-email-fix.md` §5 Tối ưu agent.
+
+## 7. Closure Protocol
 
 1. **File này (`wave-2026-05-23-106-...md`)** trạng thái → `status: complete` cuối đợt, có bảng tổng hợp:
    - Số luồng đi xuyên suốt / số luồng vỡ giữa chừng
@@ -124,7 +143,7 @@ Mọi tên đường dẫn / endpoint / trang được tham chiếu trong §3 đ
 
 ---
 
-## 5. Tiền điều kiện trước khi mở Đợt 106
+## Tiền điều kiện trước khi mở Đợt 106
 
 | Điều kiện | Trạng thái | Hành động |
 |---|:---:|---|
@@ -139,7 +158,7 @@ Mọi tên đường dẫn / endpoint / trang được tham chiếu trong §3 đ
 
 ---
 
-## 6. Phạm vi ngoài đợt này
+## Phạm vi ngoài đợt này
 
 | Mục | Lý do |
 |---|---|
@@ -153,27 +172,6 @@ Mọi tên đường dẫn / endpoint / trang được tham chiếu trong §3 đ
 
 ---
 
-## 7. Lịch sử
+## 8. Log
 
-- **2026-05-23 (nháp):** Soạn nháp sau khi user chốt phương án (RST trước / 23 luồng giữ nguyên / sửa lỗi chặn luồng tại chỗ) qua AskUserQuestion. Đợt 105 vừa khép. Bắt đầu thực thi sau khi PR kế hoạch này gộp + tiền điều kiện §5 thoả mãn.
-
----
-
-## 4. State-Check Evidence
-
-Xem §3 "Bằng chứng kiểm tra trạng thái (per `audit-to-gap-pipeline.md` §2.6)" — table đã verify mọi tên đường dẫn tham chiếu (KH + KC frontend routes + admin pages + auth credentials) đã tồn tại trong mã hiện tại.
-
-## 5. Verification Gates
-
-| Mảng | Lệnh kiểm thử cục bộ | CI gate |
-|---|---|---|
-| A (anonymous KH) | `PLAYWRIGHT_BASE_URL=http://localhost:3001 pnpm exec playwright test e2e/_rst-wave-106-a.spec.ts` | frontend-ci |
-| B (owner KC) | `PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm exec playwright test e2e/_rst-wave-106-b.spec.ts` | frontend-ci |
-| C (staff KC) | Tương tự, dùng staff seed | frontend-ci |
-| D (admin KH) | `PLAYWRIGHT_BASE_URL=http://localhost:3001 pnpm exec playwright test e2e/_rst-wave-106-d.spec.ts` | frontend-ci |
-
-## 6. Agent Spawn Pattern
-
-Đợt này KHÔNG dùng parallel agent — single coordinator (main session) walk tuần tự 23 luồng. Lý do: 4 mảng đều dùng Docker port độc quyền (3000/3001/9000) → không thể chạy song song Playwright agent worktree.
-
-Đợt 107 hybrid SẼ dùng agent spawn pattern cho fix cụm thư (3 agent worktree song song) — xem `wave-2026-05-23-107-hybrid-rst-anonymous-onboard-plus-email-fix.md` §5 Tối ưu agent.
+- **2026-05-23 (nháp):** Soạn nháp sau khi user chốt phương án (RST trước / 23 luồng giữ nguyên / sửa lỗi chặn luồng tại chỗ) qua AskUserQuestion. Đợt 105 vừa khép. Bắt đầu thực thi sau khi PR kế hoạch này gộp + tiền điều kiện thoả mãn.
