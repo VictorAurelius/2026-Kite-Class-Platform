@@ -87,8 +87,11 @@ test.describe('Onboarding checklist + sample data', () => {
     await expect(items.nth(2)).toHaveAttribute('data-step-id', 'IMPORT_DATA');
 
     // VN label present (no English "Setup Profile" / "Import Data").
-    await expect(page.getByText(/Hoàn tất hồ sơ tenant/)).toBeVisible();
-    await expect(page.getByText(/Nhập dữ liệu mẫu/)).toBeVisible();
+    // Wave 105 Bucket B: title was reframed to dual-mode for Owner persona —
+    // "Hoàn tất hồ sơ trung tâm" (was "tenant") + "Nhập danh sách học viên"
+    // (was "Nhập dữ liệu mẫu"; agent walk renames per onboarding.ts:68).
+    await expect(page.getByText(/Hoàn tất hồ sơ trung tâm/)).toBeVisible();
+    await expect(page.getByText(/Nhập danh sách học viên/)).toBeVisible();
   });
 
   test('shows confirmation dialog when toggling IMPORT_DATA', async ({ page }) => {
