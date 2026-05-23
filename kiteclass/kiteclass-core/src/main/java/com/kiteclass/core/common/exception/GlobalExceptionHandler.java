@@ -9,12 +9,15 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -260,6 +263,46 @@ public class GlobalExceptionHandler {
                 path);
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    /**
+     * Handles Spring framework request-binding exceptions that semantically
+     * mean "client sent invalid input" — JSON parse error, path/query param
+     * type mismatch, Bean Validation failure on `@RequestParam` / `@PathVariable`.
+     *
+     * <p>Without explicit handlers, these bubble to {@link #handleUnexpectedException}
+     * and return HTTP 500. They are 4xx (client error), not 5xx (server fault).
+     * Per Wave 105 RST: `POST /parent/children/1/payments` with invalid enum
+     * `"VIETQR"` returned 500 instead of 400 — defense-in-depth gap.
+     */
+    @ExceptionHandler({
+            HttpMessageNotReadableException.class,
+            MethodArgumentTypeMismatchException.class,
+            HandlerMethodValidationException.class
+    })
+    public ResponseEntity<ErrorResponse> handleClientInputException(
+            Exception ex,
+            HttpServletRequest request) {
+
+        log.warn("Client input error at {}: {} — {}",
+                request.getRequestURI(), ex.getClass().getSimpleName(), ex.getMessage());
+
+        String message = "Invalid request payload";
+        String code = "INVALID_REQUEST";
+        if (ex instanceof HttpMessageNotReadableException) {
+            message = "Request body cannot be parsed (malformed JSON or invalid enum value)";
+            code = "MALFORMED_REQUEST_BODY";
+        } else if (ex instanceof MethodArgumentTypeMismatchException matm) {
+            message = String.format("Parameter '%s' has invalid type", matm.getName());
+            code = "PARAM_TYPE_MISMATCH";
+        } else if (ex instanceof HandlerMethodValidationException) {
+            message = "Request parameter validation failed";
+            code = "PARAM_VALIDATION_FAILED";
+        }
+
+        String path = request.getRequestURI();
+        ErrorResponse response = ErrorResponse.of(code, message, path);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     /**
