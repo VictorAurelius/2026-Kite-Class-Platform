@@ -1,0 +1,945 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>KiteHub — Báo cáo bảo vệ khóa luận tốt nghiệp</title>
+
+  <!-- Reveal.js CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css" id="theme">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+
+  <style>
+    .reveal { font-family: 'Source Sans Pro', sans-serif; }
+    .reveal h1, .reveal h2, .reveal h3 { color: #1E40AF; }
+    .reveal h1 { font-size: 2.2em; }
+    .reveal h2 { font-size: 1.5em; }
+    .reveal h3 { font-size: 1.2em; }
+    .reveal table { font-size: 0.65em; }
+    .reveal table th { background: #1E40AF; color: white; padding: 6px; }
+    .reveal table td { padding: 4px 8px; border-bottom: 1px solid #ddd; }
+    .reveal .small { font-size: 0.7em; color: #666; }
+    .reveal .highlight-box {
+      background: #EFF6FF;
+      border-left: 4px solid #1E40AF;
+      padding: 14px;
+      margin: 14px 0;
+      text-align: left;
+    }
+    .reveal .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .reveal .kpi-card {
+      background: #F0FDF4;
+      border: 2px solid #16A34A;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .reveal .kpi-number { font-size: 1.8em; color: #16A34A; font-weight: 700; }
+    .reveal .limitation-box {
+      background: #FEF2F2;
+      border-left: 4px solid #DC2626;
+      padding: 12px;
+      text-align: left;
+    }
+    .reveal .footer-meta {
+      position: absolute;
+      bottom: 12px;
+      right: 18px;
+      font-size: 0.45em;
+      color: #999;
+    }
+    .reveal pre code { font-size: 0.65em; }
+  </style>
+</head>
+<body>
+
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ====== Slide 1: Title ====== -->
+    <section>
+      <h1>KiteHub & KiteClass</h1>
+      <h3>Hệ thống SaaS đa-tenant cung cấp dịch vụ đào tạo</h3>
+      <hr>
+      <p><strong>Sinh viên thực hiện:</strong> Nguyễn Văn Kiệt — MSSV 221230890 — Lớp CNTT1-K63</p>
+      <p><strong>Giảng viên hướng dẫn:</strong> TS. Nguyễn Đức Dư</p>
+      <p><strong>Bộ môn:</strong> Công nghệ phần mềm — Khoa Công nghệ thông tin</p>
+      <p><strong>Trường Đại học Giao thông Vận tải</strong></p>
+      <p class="small">Hà Nội — 2026</p>
+      <aside class="notes">
+        Chào hội đồng. Em là Nguyễn Văn Kiệt, sinh viên lớp CNTT1-K63 dưới hướng dẫn của TS. Nguyễn Đức Dư. Hôm nay em xin trình bày khóa luận tốt nghiệp với đề tài Xây dựng hệ thống SaaS cung cấp dịch vụ đào tạo, gọi tắt là nền tảng KiteHub.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 2: TL;DR ====== -->
+    <section>
+      <h2>Tóm tắt — Nền tảng KiteHub trong 30 giây</h2>
+      <div class="highlight-box">
+        <p><strong>KiteHub</strong> là nền tảng SaaS đa-tenant phục vụ trung tâm giáo dục tư nhân quy mô vừa và nhỏ tại Việt Nam, kết hợp ba yếu tố:</p>
+        <ul>
+          <li><strong>Multi-tenant PostgreSQL Row-Level Security</strong> — cô lập dữ liệu cấp database</li>
+          <li><strong>AI Branding tự động</strong> — sinh logo, hero, banner bằng Stable Diffusion XL</li>
+          <li><strong>Tuân thủ pháp luật Việt Nam</strong> — PDPL 2023, Luật An ninh mạng, Thông tư 78</li>
+        </ul>
+        <p><em>Giá trị thực tiễn:</em> giảm thời gian triển khai trung tâm mới từ 1-2 tuần xuống 1-2 ngày; chi phí AI ~ $0.19 cho mỗi tenant onboard.</p>
+      </div>
+      <aside class="notes">
+        Trong 30 giây — đây là sản phẩm phục vụ thị trường khoảng 50 nghìn trung tâm dạy thêm tại Việt Nam, tích hợp ba khối kỹ thuật cốt lõi: kiến trúc multi-tenant, AI sinh tài nguyên, và compliance pháp luật từ thiết kế.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 3: Context ====== -->
+    <section>
+      <h2>Bối cảnh thị trường</h2>
+      <ul>
+        <li><strong>Thông tư 29/2024/TT-BGDĐT</strong> chính thức hóa hoạt động dạy thêm có thu phí</li>
+        <li>Ước tính <strong>>50.000 trung tâm</strong> dạy thêm tư nhân hoạt động tại Việt Nam (Magenest 2024)</li>
+        <li>Phụ huynh chi trung bình <strong>15-20% thu nhập hộ gia đình</strong> cho học thêm con (6Wresearch)</li>
+        <li><strong>Đa số trung tâm vừa và nhỏ</strong> vẫn dùng Excel + Zalo nhóm để quản lý</li>
+      </ul>
+      <p class="small">Nguồn: Magenest EdTech Market Report 2024; 6Wresearch Vietnam EdTech 2024-2030; VECITA Kinh tế Số 2024.</p>
+      <aside class="notes">
+        Bối cảnh thúc đẩy đề tài: thị trường lớn, văn bản pháp luật ra đời hợp pháp hóa ngành dạy thêm, nhưng phần lớn trung tâm nhỏ vẫn quản lý thủ công vì phần mềm hiện có quá phức tạp hoặc quá đắt.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 4: Motivation ====== -->
+    <section>
+      <h2>Động lực đề tài — 3 quan sát thực tế</h2>
+      <div class="two-col">
+        <div class="highlight-box">
+          <h3>1. Khoảng trống thị trường</h3>
+          <p>Trung tâm 100-2000 học viên cần phần mềm <strong>500.000-1.500.000đ/tháng</strong>, tiếng Việt, multi-tenant gốc.</p>
+        </div>
+        <div class="highlight-box">
+          <h3>2. Deadline pháp lý cứng</h3>
+          <p>PDPL 2023 hiệu lực 07/2026 — cơ hội tích hợp compliance từ thiết kế thay vì retrofit về sau.</p>
+        </div>
+      </div>
+      <div class="highlight-box">
+        <h3>3. Trưởng thành công nghệ AI</h3>
+        <p>Stable Diffusion XL + GPT-4 API thương mại lần đầu cho phép tự động hóa branding với chi phí hợp lý cho tier thấp (~ $0.19/instance).</p>
+      </div>
+      <aside class="notes">
+        Ba quan sát hội tụ tạo nên cơ hội xây dựng một sản phẩm cụ thể: thị trường có nhu cầu, deadline pháp lý cứng, và công nghệ AI vừa đủ chín muồi để tích hợp.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 5: Objectives ====== -->
+    <section>
+      <h2>Mục tiêu khóa luận — 4 nhóm</h2>
+      <table>
+        <tr><th>Nhóm</th><th>Mục tiêu cụ thể</th></tr>
+        <tr><td><strong>Chức năng</strong></td><td>Onboarding wizard + AI Branding + tenant lifecycle + compliance built-in</td></tr>
+        <tr><td><strong>Phi chức năng</strong></td><td>p95 ≤ 500ms (API đọc); RLS cấp database; OWASP Top 10 baseline; hỗ trợ ≥100 tenant/instance</td></tr>
+        <tr><td><strong>Pháp lý</strong></td><td>Tuân thủ PDPL 2023 + Luật An ninh mạng 2018 + Thông tư 78/2021/TT-BTC</td></tr>
+        <tr><td><strong>Phương pháp luận</strong></td><td>Quality-driven development — audit-driven, test-first, iteration ngắn 1-3 ngày</td></tr>
+      </table>
+      <aside class="notes">
+        Bốn nhóm mục tiêu — không chỉ là làm ra sản phẩm chạy được, mà còn phải đo lường được, tuân thủ pháp luật, và có phương pháp luận có thể chứng minh.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 6: Scope ====== -->
+    <section>
+      <h2>Phạm vi khóa luận</h2>
+      <div class="two-col">
+        <div>
+          <h3>✅ Trong phạm vi</h3>
+          <ul class="small">
+            <li>Onboarding wizard tự phục vụ</li>
+            <li>AI Branding (logo + hero + banner)</li>
+            <li>Tenant lifecycle (trial / active / suspend)</li>
+            <li>Multi-tenant RLS PostgreSQL</li>
+            <li>Compliance PDPL + ANM + TT78</li>
+            <li>Triển khai AWS Singapore Free Tier</li>
+          </ul>
+        </div>
+        <div>
+          <h3>⏸ Ngoài phạm vi (roadmap)</h3>
+          <ul class="small">
+            <li>Thanh toán tích hợp đa cổng (MoMo / VNPay)</li>
+            <li>Hóa đơn điện tử end-to-end (MISA MeInvoice)</li>
+            <li>Ứng dụng di động native</li>
+            <li>Mở rộng phân khúc K-12 trường công lập</li>
+            <li>Multi-region (Hà Nội Local Zone)</li>
+          </ul>
+        </div>
+      </div>
+      <aside class="notes">
+        Phạm vi đề tài tập trung tenant readiness — đủ để mời 4-5 trung tâm thực tế thử nghiệm. Các tính năng nâng cao như thanh toán tích hợp, ứng dụng di động native nằm trong lộ trình nhưng không trong scope.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 7: AI techniques overview ====== -->
+    <section>
+      <h2>Kỹ thuật AI tích hợp — Tổng quan</h2>
+      <ul>
+        <li><strong>AI Branding (giai đoạn này):</strong> Text-to-image sinh logo + hero + social banner</li>
+        <li><strong>Roadmap mở rộng:</strong> AI assistant cho giáo viên (gợi ý bài tập), AI grading auto (chấm bài Tiếng Anh)</li>
+      </ul>
+      <div class="highlight-box">
+        <p><strong>Quyết định kiến trúc:</strong> sử dụng API LLM thương mại (Stable Diffusion qua Replicate, Hugging Face Inference, OpenAI) thay vì tự host.</p>
+        <p><strong>Lý do:</strong> chi phí GPU cao ($500-1000/tháng tối thiểu), độ phức tạp vận hành, tốc độ phát triển AI quá nhanh (mô hình SOTA đổi mỗi 3-6 tháng).</p>
+      </div>
+      <aside class="notes">
+        Quyết định không tự host mô hình AI là quyết định kiến trúc quan trọng — phù hợp với quy mô đề tài và ngân sách giai đoạn thử nghiệm gần như bằng 0 hạ tầng AI.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 8: AI techniques comparison ====== -->
+    <section>
+      <h2>So sánh 4 phương pháp text-to-image</h2>
+      <table>
+        <tr><th>Mô hình</th><th>Provider</th><th>Cost/image</th><th>Chất lượng</th><th>Latency</th><th>Quyết định</th></tr>
+        <tr><td><strong>Stable Diffusion XL</strong></td><td>Replicate API</td><td>~$0.0012</td><td>Cao</td><td>4-8s</td><td><strong>Áp dụng chính</strong></td></tr>
+        <tr><td>SDXL Turbo</td><td>Hugging Face</td><td>Free tier</td><td>Khá</td><td>1-2s</td><td>Dự phòng</td></tr>
+        <tr><td>DALL-E 3</td><td>OpenAI API</td><td>~$0.04</td><td>Rất cao</td><td>8-12s</td><td>Cost cao 30 lần</td></tr>
+        <tr><td>Midjourney v6</td><td>(no API)</td><td>N/A</td><td>Rất cao</td><td>N/A</td><td>Không có API công khai</td></tr>
+      </table>
+      <p class="small">Lý do chọn SDXL: balance giữa quality + cost + latency, phù hợp ngân sách giai đoạn thử nghiệm.</p>
+      <aside class="notes">
+        Đánh giá 4 option cụ thể. Chọn Stable Diffusion XL làm primary vì cân bằng tốt giữa chi phí và chất lượng. DALL-E 3 đắt gấp 30 lần, không phù hợp tier thấp.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 9: AI pipeline architecture ====== -->
+    <section>
+      <h2>Kiến trúc pipeline AI Branding</h2>
+      <div class="mermaid" style="font-size: 0.7em;">
+flowchart LR
+    Owner[Chủ trung tâm<br/>submit form] --> GW[kitehub-gateway<br/>auth + rate limit]
+    GW --> BR[kitehub-branding<br/>orchestrator]
+    BR --> PT[Prompt builder<br/>template + tenant context]
+    PT --> MQ[RabbitMQ<br/>ai.branding.request]
+    MQ --> WK[Branding Worker<br/>async processor]
+    WK --> P{AI Provider}
+    P -->|primary| RP[Replicate<br/>Stable Diffusion XL]
+    P -->|fallback| HF[Hugging Face<br/>SDXL Turbo]
+    RP --> QG[Quality Gate<br/>NSFW + brand fit]
+    HF --> QG
+    QG -->|PASS| S3[MinIO/S3<br/>tenant assets]
+    QG -->|FAIL| RT[Retry max 3]
+    RT --> MQ
+    S3 --> NT[Notify Owner<br/>email + dashboard]
+      </div>
+      <aside class="notes">
+        Pipeline gồm 6 bước chính: form → gateway → orchestrator → queue → worker async → AI provider → quality gate → storage. Worker xử lý không blocking UI, owner có thể navigate sang task khác trong khi assets sinh xong.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 10: Competitor overview ====== -->
+    <section>
+      <h2>Phân tích các sản phẩm tương tự trên thị trường</h2>
+      <table>
+        <tr><th>Sản phẩm</th><th>Phân khúc</th><th>Giá tham khảo</th><th>Multi-tenant</th><th>AI features</th></tr>
+        <tr><td><strong>BeeClass</strong></td><td>Trung tâm tiếng Anh vừa</td><td>1-3 triệu/tháng</td><td>Single-tenant</td><td>Không</td></tr>
+        <tr><td><strong>MISA AMIS Trường Học</strong></td><td>Trường công lập K-12</td><td>2-5 triệu/tháng + setup 50-200tr</td><td>Single-tenant</td><td>Không</td></tr>
+        <tr><td><strong>Mona eLMS</strong></td><td>Ngoại ngữ + tin học</td><td>1-2 triệu/tháng</td><td>Single-tenant</td><td>Không</td></tr>
+        <tr><td><strong>Easy Edu</strong></td><td>Trung tâm K-12 + skill</td><td>800k-2tr/tháng</td><td>Single-tenant</td><td>Không</td></tr>
+        <tr><td style="background:#EFF6FF;"><strong>KiteHub (đề tài)</strong></td><td>Vừa + nhỏ 100-2000 HV</td><td>500k-1.5tr/tháng</td><td><strong>Native multi-tenant RLS</strong></td><td><strong>AI Branding tích hợp</strong></td></tr>
+      </table>
+      <p class="small">Khoảng trống phân khúc: trung tâm 100-2000 học viên với multi-tenant gốc + AI features tích hợp ở mức giá phải chăng.</p>
+      <aside class="notes">
+        Khảo sát 4 sản phẩm tham khảo phổ biến tại Việt Nam. Hầu hết là single-tenant, không có AI tích hợp. KiteHub khai thác khoảng trống multi-tenant + AI Branding ở mức giá tier thấp.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 11: Differentiator detail ====== -->
+    <section>
+      <h2>Yếu tố khác biệt — Native multi-tenant + AI</h2>
+      <div class="two-col">
+        <div class="highlight-box">
+          <h3>Native multi-tenant RLS</h3>
+          <ul class="small">
+            <li>1 PostgreSQL instance phục vụ ≥100 tenant</li>
+            <li>Cô lập dữ liệu cấp database (Row-Level Security)</li>
+            <li>Chi phí infrastructure thấp hơn 5-10 lần single-tenant</li>
+            <li>Mở chi nhánh mới = thêm tenant_id, không cần deploy instance</li>
+          </ul>
+        </div>
+        <div class="highlight-box">
+          <h3>AI Branding tự động</h3>
+          <ul class="small">
+            <li>Sinh logo + hero + banner ~30-60 giây</li>
+            <li>Chi phí ~$0.0036 cho 3 assets (1 logo + 1 hero + 1 banner)</li>
+            <li>Tenant onboard tự phục vụ, không cần thuê designer</li>
+            <li>Provider fallback (Replicate → HuggingFace) khi rate-limited</li>
+          </ul>
+        </div>
+      </div>
+      <aside class="notes">
+        Hai yếu tố khác biệt chính. Multi-tenant RLS cho phép cost-efficient ở quy mô lớn. AI Branding cho phép tenant onboard tự phục vụ, giảm thời gian từ 1-2 tuần xuống 1-2 ngày.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 12: Market segment ====== -->
+    <section>
+      <h2>Phân khúc thị trường mục tiêu</h2>
+      <div class="highlight-box">
+        <p><strong>Định vị:</strong> trung tâm dạy thêm vừa-nhỏ Việt Nam (1-10 chi nhánh, 100-2000 học viên)</p>
+        <p><strong>Persona chính giai đoạn này:</strong></p>
+        <ul>
+          <li><strong>P1 Solo Teacher:</strong> giáo viên độc lập 1-50 học viên, cá nhân tự quản lý</li>
+          <li><strong>P2 Center Owner:</strong> chủ trung tâm 1-10 chi nhánh, 100-2000 học viên</li>
+          <li><strong>P3 Center Manager:</strong> quản lý vận hành cấp chi nhánh</li>
+        </ul>
+        <p><strong>Persona mở rộng (roadmap):</strong> P4 Parent (phụ huynh), Student (học viên) — giao diện riêng nhưng không trong scope giai đoạn thử nghiệm.</p>
+      </div>
+      <aside class="notes">
+        Ba persona chính P1-P2-P3 là focus giai đoạn này. Phụ huynh và học viên là persona thứ cấp, hỗ trợ qua giao diện riêng nhưng không là focus ship đầu.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 13: VN law compliance ====== -->
+    <section>
+      <h2>Tuân thủ pháp luật Việt Nam — 3 trụ cột</h2>
+      <table>
+        <tr><th>Văn bản</th><th>Yêu cầu chính</th><th>Implementation</th></tr>
+        <tr><td><strong>PDPL 2023</strong> (Luật BVDLCN số 49/2023/QH15)</td><td>Consent cụ thể; quyền truy cập + xóa dữ liệu; DPO khi >10k chủ thể; thông báo vi phạm 72h</td><td>Bảng <code>consent_record</code>; quy trình DSAR qua <code>dsar_ticket</code>; immutable <code>admin_audit_log</code></td></tr>
+        <tr><td><strong>Luật An ninh mạng 2018</strong> + Nghị định 53/2022/NĐ-CP</td><td>Lưu trữ dữ liệu VN khi >1 triệu user; identity verification cho user VN</td><td>Roadmap migrate AWS Hà Nội Local Zone hoặc Viettel/VNG khi vượt ngưỡng</td></tr>
+        <tr><td><strong>Thông tư 78/2021/TT-BTC</strong></td><td>Hóa đơn điện tử bắt buộc; tích hợp với cơ quan thuế</td><td>Roadmap tích hợp MISA MeInvoice (không tự build engine VAT)</td></tr>
+      </table>
+      <p class="small">Cách tiếp cận: compliance từ thiết kế (compliance-by-design), không retrofit về sau.</p>
+      <aside class="notes">
+        Ba trụ cột pháp luật được tích hợp từ thiết kế. PDPL là deadline cứng tháng 7 năm 2026. Luật An ninh mạng có ngưỡng kích hoạt 1 triệu user — chưa kích hoạt giai đoạn thử nghiệm nhưng có roadmap. Thông tư 78 hóa đơn điện tử dùng đối tác MISA MeInvoice.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 14: PDPL details ====== -->
+    <section>
+      <h2>PDPL 2023 — Mapping Điều luật → Tính năng</h2>
+      <table>
+        <tr><th>Điều luật PDPL</th><th>Yêu cầu</th><th>Implementation</th></tr>
+        <tr><td>Điều 9</td><td>Quyền truy cập dữ liệu của chủ thể</td><td>DSAR endpoint <code>/api/v1/data-subject-rights</code> + dashboard phụ huynh</td></tr>
+        <tr><td>Điều 11</td><td>Audit log bất biến + tamper-proof</td><td>Migration V60 — bảng <code>admin_audit_logs</code> immutable, không cho UPDATE/DELETE</td></tr>
+        <tr><td>Điều 16</td><td>Consent cụ thể (granular)</td><td>Bảng <code>consent_record</code> ghi từng purpose riêng + revoke flow</td></tr>
+        <tr><td>Điều 28</td><td>DPO bắt buộc khi >10k chủ thể</td><td>Giai đoạn thử nghiệm <20 tenant ≈ <1000 chủ thể — chưa kích hoạt; roadmap vận hành chính thức</td></tr>
+        <tr><td>Điều 30</td><td>Thông báo vi phạm 72h</td><td>Quy trình incident response runbook + alert qua CloudWatch SNS</td></tr>
+      </table>
+      <aside class="notes">
+        Bốn điều luật cốt lõi mapping 1-1 sang tính năng cụ thể. Điều 11 audit log bất biến là yêu cầu kỹ thuật khó nhất — giải quyết bằng migration tạo bảng không cho UPDATE/DELETE ở cấp database.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 15: Architecture overview ====== -->
+    <section>
+      <h2>Kiến trúc hệ thống — Tổng quan C4 Level 1</h2>
+      <div class="mermaid" style="font-size: 0.65em;">
+flowchart TB
+    User[Người dùng<br/>Owner / Manager / Teacher / Parent]
+    CF[Cloudflare<br/>DNS + CDN + DDoS]
+    ALB[AWS ALB<br/>HTTPS termination<br/>ap-southeast-1]
+
+    subgraph KH["KiteHub (Control-plane)"]
+        direction LR
+        GW[Gateway]
+        SB[Subscription]
+        BR[Branding]
+        EM[Email]
+        PL[Platform]
+        AD[Admin]
+    end
+
+    subgraph KC["KiteClass (Data-plane)"]
+        direction LR
+        CO[Core]
+        FE[Frontend]
+    end
+
+    DB[(PostgreSQL 16<br/>RLS per tenant)]
+    S3[(S3<br/>tenant assets)]
+    SES[AWS SES]
+
+    User --> CF --> ALB
+    ALB --> GW
+    GW --> KH
+    GW --> KC
+    KH --> DB
+    KC --> DB
+    KH --> S3
+    KH --> SES
+      </div>
+      <aside class="notes">
+        Kiến trúc tổng thể chia 2 cluster: KiteHub là control-plane quản lý tenant lifecycle, KiteClass là data-plane phục vụ giáo dục. Cả 2 cluster dùng chung PostgreSQL với RLS cô lập theo tenant_id.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 16: Multi-tenant strategy ====== -->
+    <section>
+      <h2>Chiến lược cô lập multi-tenant</h2>
+      <table>
+        <tr><th>Mô hình</th><th>Cost</th><th>Cô lập</th><th>Quy mô</th><th>Quyết định</th></tr>
+        <tr><td>Instance-per-tenant</td><td>Rất cao</td><td>Tuyệt đối</td><td>≤10 tenant</td><td>Loại — không scale</td></tr>
+        <tr><td>Database-per-tenant</td><td>Cao</td><td>Mạnh</td><td>10-100 tenant</td><td>Loại — IAM phức tạp</td></tr>
+        <tr><td>Schema-per-tenant</td><td>Trung bình</td><td>Khá</td><td>100-1000 tenant</td><td>Cân nhắc — Phase 2</td></tr>
+        <tr style="background:#EFF6FF;"><td><strong>Row-Level Security (RLS)</strong></td><td><strong>Thấp</strong></td><td><strong>DB engine enforces</strong></td><td><strong>≥1000 tenant</strong></td><td><strong>✅ Áp dụng</strong></td></tr>
+      </table>
+      <p class="small">Lý do chọn RLS: Postgres native, cost-efficient, được kiểm chứng tại các SaaS lớn (Salesforce, Shopify, HubSpot).</p>
+      <aside class="notes">
+        So sánh 4 mô hình cô lập. Chọn RLS vì cost-efficient nhất và được Postgres engine native enforce — không phụ thuộc developer remember thêm WHERE tenant_id.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 17: RLS implementation ====== -->
+    <section>
+      <h2>Cài đặt PostgreSQL RLS</h2>
+      <pre><code class="language-sql">-- Bật RLS cho mọi bảng tenant-scoped
+ALTER TABLE students ENABLE ROW LEVEL SECURITY;
+
+-- Policy: tenant chỉ thấy data của chính mình
+CREATE POLICY tenant_isolation ON students
+  FOR ALL
+  USING (tenant_id = current_setting('app.current_tenant_id')::uuid);
+
+-- Application Layer: set GUC qua HikariCP connection pool
+@Bean
+public DataSource dataSource() {
+  HikariConfig cfg = new HikariConfig();
+  cfg.setConnectionInitSql(
+    "SET app.current_tenant_id = '" + tenantId + "'"
+  );
+  return new HikariDataSource(cfg);
+}</code></pre>
+      <p class="small">Tenant context set qua HikariCP connection initialization SQL — Postgres enforce policy ở mỗi query, không cần developer thêm WHERE tenant_id.</p>
+      <aside class="notes">
+        RLS cài đặt 2 lớp: lớp database tạo policy USING expression, lớp application set GUC variable qua HikariCP. Mỗi query Postgres tự động evaluate policy — quên thêm filter cũng không leak data.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 18: Defense-in-depth ====== -->
+    <section>
+      <h2>Defense-in-depth — 5 lớp bảo mật</h2>
+      <table>
+        <tr><th>Lớp</th><th>Cơ chế</th><th>Vai trò</th></tr>
+        <tr><td>1. JWT verification</td><td>Spring Security filter</td><td>Xác thực user identity + tenant claim</td></tr>
+        <tr><td>2. @PreAuthorize</td><td>Method-level role check</td><td>Phân quyền theo role (Owner/Manager/Teacher)</td></tr>
+        <tr><td>3. Tenant context interceptor</td><td>HikariCP init SQL</td><td>Set <code>app.current_tenant_id</code> session var</td></tr>
+        <tr><td>4. Repository tenant filter</td><td>JPA criteria</td><td>Belt-and-braces filter — phòng khi RLS misconfigured</td></tr>
+        <tr><td>5. <strong>PostgreSQL RLS</strong></td><td><strong>Database engine</strong></td><td><strong>Last line of defense — DB enforces</strong></td></tr>
+      </table>
+      <p class="small">Một lớp fail không leak data — phải fail đồng thời 5 lớp mới cross-tenant leak.</p>
+      <aside class="notes">
+        Defense-in-depth nguyên tắc: nhiều lớp độc lập. RLS là lớp cuối cùng — ngay cả khi developer quên kiểm tra ở application layer, Postgres vẫn enforce. Đây là khác biệt quan trọng so với approach chỉ filter ở application.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 19: Service decomposition ====== -->
+    <section>
+      <h2>Phân chia service — Modular monolith + microservices</h2>
+      <div class="two-col">
+        <div>
+          <h3>KiteHub (control-plane)</h3>
+          <ul class="small">
+            <li><code>kitehub-gateway</code> — API Gateway + auth + rate limit</li>
+            <li><code>kitehub-platform</code> — Tenant lifecycle</li>
+            <li><code>kitehub-subscription</code> — Billing + plan</li>
+            <li><code>kitehub-branding</code> — AI Branding orchestrator</li>
+            <li><code>kitehub-email</code> — Email transactional</li>
+            <li><code>kitehub-admin</code> — Console quản trị nền tảng</li>
+          </ul>
+        </div>
+        <div>
+          <h3>KiteClass (data-plane)</h3>
+          <ul class="small">
+            <li><code>kiteclass-core</code> — Modular monolith (Education domain)</li>
+            <li><code>kiteclass-frontend</code> — Next.js tenant UI</li>
+          </ul>
+          <p class="small"><strong>Lý do hybrid:</strong> KiteHub services có lifecycle khác nhau (branding async, email queue, subscription transactional) → tách microservice. KiteClass domain education tightly coupled → modular monolith.</p>
+        </div>
+      </div>
+      <aside class="notes">
+        Hybrid architecture: KiteHub 6 microservice vì lifecycle khác nhau (branding async, email queue, subscription transactional). KiteClass là modular monolith vì domain education tightly coupled (student-class-attendance-grade-payment liên quan chặt).
+      </aside>
+    </section>
+
+    <!-- ====== Slide 20: Auth sequence ====== -->
+    <section>
+      <h2>Sequence diagram — Auth flow</h2>
+      <div class="mermaid" style="font-size: 0.65em;">
+sequenceDiagram
+    participant U as User
+    participant FE as Next.js Frontend
+    participant GW as Gateway
+    participant SV as Service
+    participant DB as PostgreSQL RLS
+
+    U->>FE: Login (email + password)
+    FE->>GW: POST /api/auth/login
+    GW->>SV: Validate credentials
+    SV-->>GW: JWT (tenantId + role)
+    GW-->>FE: Set HttpOnly cookie
+    FE->>GW: GET /api/v1/students (with cookie)
+    GW->>GW: Verify JWT + extract tenantId
+    GW->>SV: Forward + X-Tenant-Id header
+    SV->>DB: SET app.current_tenant_id
+    SV->>DB: SELECT * FROM students
+    Note over DB: RLS policy filters automatic
+    DB-->>SV: Only this tenant's data
+    SV-->>FE: Response
+      </div>
+      <aside class="notes">
+        Auth flow cụ thể: JWT chứa tenantId claim, gateway verify ở edge, service set GUC variable trước mỗi query, Postgres enforce RLS policy. Toàn bộ flow không có WHERE tenant_id viết tay ở repository.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 21: Tech stack ====== -->
+    <section>
+      <h2>Công nghệ sử dụng — Tóm tắt stack</h2>
+      <div class="two-col">
+        <div>
+          <h3>Backend</h3>
+          <ul class="small">
+            <li><strong>Java 21 LTS</strong> + Spring Boot 3.5</li>
+            <li>Spring Security 6 (OAuth2/JWT)</li>
+            <li>Spring Data JPA + Hibernate 6</li>
+            <li>SpringDoc OpenAPI 2</li>
+            <li>Lombok + MapStruct compile-time mapping</li>
+            <li>Maven 3.9 multi-module build</li>
+          </ul>
+          <h3>Database + Messaging</h3>
+          <ul class="small">
+            <li>PostgreSQL 16 + RLS</li>
+            <li>Flyway 10 versioned migrations</li>
+            <li>Redis 7 (cache + session)</li>
+            <li>RabbitMQ 3.13 (async queue)</li>
+            <li>MinIO/S3 (object storage)</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Frontend</h3>
+          <ul class="small">
+            <li><strong>TypeScript 5.7</strong> + Next.js 15 App Router</li>
+            <li>React 19 + Server Components</li>
+            <li>Tailwind 3.4 + Shadcn UI</li>
+            <li>TanStack Query 5 + Zustand 5</li>
+            <li>React Hook Form 7 + Zod 3</li>
+          </ul>
+          <h3>DevOps</h3>
+          <ul class="small">
+            <li>Docker 24 + Compose 2</li>
+            <li>Terraform 1.x (AWS IaC)</li>
+            <li>GitHub Actions OIDC</li>
+            <li>AWS ECS + ECR + Secrets Manager</li>
+            <li>CloudWatch + CloudTrail + Prometheus</li>
+          </ul>
+        </div>
+      </div>
+      <aside class="notes">
+        Stack hiện đại: Java 21 + Spring Boot 3.5 backend, Next.js 15 + React 19 frontend, Postgres 16 + RLS database, AWS Singapore deploy. Mọi lựa chọn dựa trên LTS version để giảm rủi ro upgrade trong giai đoạn thử nghiệm.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 22: Code snippet sample ====== -->
+    <section>
+      <h2>Implementation highlight — JWT Auth Filter</h2>
+      <pre><code class="language-java">// kitehub-gateway/src/.../JwtAuthenticationFilter.java
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+  @Override
+  protected void doFilterInternal(...) {
+    String token = extractBearerToken(request);
+    if (token != null && jwtUtil.validate(token)) {
+      Claims claims = jwtUtil.parseClaims(token);
+      String tenantId = claims.get("tenantId", String.class);
+      String role = claims.get("role", String.class);
+
+      // Propagate tenant context to downstream service
+      request.setAttribute("X-Tenant-Id", tenantId);
+
+      Authentication auth = new UsernamePasswordAuthenticationToken(
+        claims.getSubject(), null,
+        List.of(new SimpleGrantedAuthority("ROLE_" + role))
+      );
+      SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+    filterChain.doFilter(request, response);
+  }
+}</code></pre>
+      <p class="small">Trích từ <code>kitehub-gateway</code> — verify JWT một lần ở edge, propagate tenantId + role xuống downstream service.</p>
+      <aside class="notes">
+        Đoạn code đại diện 1 trong 5 snippet trong báo cáo. Pattern: JWT verify ở gateway, không repeat ở mỗi service. Tenant context propagate qua header để downstream service set GUC trước query.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 23: Deployment overview ====== -->
+    <section>
+      <h2>Triển khai — AWS Singapore Free Tier</h2>
+      <div class="mermaid" style="font-size: 0.6em;">
+flowchart TB
+    User[Người dùng]
+    CF[Cloudflare<br/>DNS + CDN]
+    ALB[AWS ALB<br/>HTTPS termination]
+
+    subgraph Compute["EC2 — 2× t3.micro"]
+        EC2_KH[kh-backend<br/>Gateway + 6 services]
+        EC2_KC[kc-app<br/>KiteClass core + frontend]
+    end
+
+    subgraph DataLayer["Data layer"]
+        RDS[(RDS PostgreSQL 16<br/>db.t3.micro)]
+        S3[(S3 single bucket<br/>multi-tenant prefix)]
+    end
+
+    SES[AWS SES<br/>Transactional email]
+    CW[CloudWatch<br/>Logs + Metrics]
+    CT[CloudTrail<br/>API audit log]
+    SM[Secrets Manager]
+    ECR[ECR<br/>Docker images]
+
+    User --> CF --> ALB
+    ALB --> Compute
+    Compute --> DataLayer
+    Compute --> SES
+    Compute -.-> CW
+    Compute -.-> CT
+    Compute --> SM
+    Compute --> ECR
+      </div>
+      <aside class="notes">
+        Triển khai trên AWS ap-southeast-1 Singapore. Lý do chọn AWS: tốc độ đăng ký, hệ sinh thái trưởng thành (ECR + SES + ALB), Free Tier 12 tháng cho phép $0 infrastructure cost giai đoạn thử nghiệm.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 24: Why AWS Singapore ====== -->
+    <section>
+      <h2>Lý do chọn AWS Singapore</h2>
+      <ul>
+        <li><strong>Tốc độ triển khai:</strong> Oracle Cloud reject cao với người dùng VN; AWS đăng ký ổn định</li>
+        <li><strong>Hệ sinh thái trưởng thành:</strong> ECR + SES + ALB + Secrets Manager tích hợp sẵn</li>
+        <li><strong>Free Tier 12 tháng:</strong> $0 infrastructure cost cho 2× t3.micro + RDS db.t3.micro + 5GB S3</li>
+        <li><strong>Tuân thủ pháp luật giai đoạn thử nghiệm:</strong> <20 tenant chưa kích hoạt ngưỡng PDPL Art 28 (10k subject) hay Nghị định 53 §26 (1M user)</li>
+      </ul>
+      <div class="highlight-box">
+        <p><strong>Lộ trình:</strong> migrate sang AWS Hà Nội Local Zone hoặc Viettel Cloud / VNG Cloud trong giai đoạn vận hành chính thức khi tiến tới ngưỡng kích hoạt yêu cầu data localization.</p>
+      </div>
+      <aside class="notes">
+        Bốn lý do chính. Quan trọng nhất: giai đoạn thử nghiệm chưa vượt ngưỡng pháp lý, có roadmap migrate rõ ràng. User thử nghiệm ký explicit consent biết "infrastructure provider AWS Singapore".
+      </aside>
+    </section>
+
+    <!-- ====== Slide 25: DevOps + CI/CD ====== -->
+    <section>
+      <h2>CI/CD Pipeline — GitHub Actions OIDC</h2>
+      <ul>
+        <li><strong>OIDC role assumption:</strong> không lưu AWS access key trong GitHub secrets</li>
+        <li><strong>workflow_dispatch + confirm input:</strong> deploy chỉ chạy khi user gõ "APPLY" verbatim — cognitive checkpoint</li>
+        <li><strong>Immutable Docker tags:</strong> tag theo SHA commit, không reuse tag <code>latest</code></li>
+        <li><strong>Terraform plan-before-apply:</strong> dry_run mode mặc định; apply mode yêu cầu explicit input</li>
+        <li><strong>Pre-mutation state-check:</strong> mọi terraform apply phải có audit artifact trước khi chạy</li>
+      </ul>
+      <p class="small">Pattern: industry standard (Atlantis, Terraform Cloud) — cân bằng tự động hóa và cognitive gate.</p>
+      <aside class="notes">
+        CI/CD áp dụng nguyên tắc deployment hiện đại: artifact bất biến, OIDC ephemeral creds tốt hơn static admin key, confirm input là cognitive checkpoint thay vì auto-apply.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 26: Observability ====== -->
+    <section>
+      <h2>Observability — 3 lớp</h2>
+      <table>
+        <tr><th>Lớp</th><th>Tool</th><th>Phạm vi</th></tr>
+        <tr><td><strong>API audit</strong></td><td>AWS CloudTrail</td><td>Mọi AWS API call (terraform, console, SDK)</td></tr>
+        <tr><td><strong>Application logs + metrics</strong></td><td>CloudWatch</td><td>Logs JSON structured + custom metrics + alarms (CPU >80%, ALB 5xx >1%)</td></tr>
+        <tr><td><strong>Application metrics</strong></td><td>Prometheus self-hosted + Grafana</td><td>Spring Actuator <code>/prometheus</code>: <code>outbox_dispatcher_lag</code>, <code>http_server_requests_seconds</code>, <code>jvm_memory_used_bytes</code></td></tr>
+      </table>
+      <p class="small">CloudTrail wired TRƯỚC khi apply production resources — đảm bảo audit baseline cho mọi infrastructure operation từ ngày đầu.</p>
+      <aside class="notes">
+        Ba lớp observability độc lập. CloudTrail bắt buộc bật trước khi apply production resources — đây là rule mandatory để có audit baseline cho compliance.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 27: KPI overview ====== -->
+    <section>
+      <h2>Kết quả KPI — Tổng quan</h2>
+      <div class="two-col">
+        <div class="kpi-card">
+          <div class="kpi-number">86/100</div>
+          <p>Performance audit (B+)<br/><span class="small">Target ≥80 PASS</span></p>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-number">93/100</div>
+          <p>Security audit (A)<br/><span class="small">v2 format 27/27 evidence blocks</span></p>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="kpi-card">
+          <div class="kpi-number">90/110</div>
+          <p>Quality audit (B+)<br/><span class="small">PASS giai đoạn thử nghiệm ≥80 buffer</span></p>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-number">≥100k</div>
+          <p>RPS load test capacity<br/><span class="small">Locust headroom test</span></p>
+        </div>
+      </div>
+      <p class="small">Chi tiết audit reports trong báo cáo Chương 4 + Phụ lục.</p>
+      <aside class="notes">
+        Bốn KPI chính. Performance 86/100, Security 93/100, Quality 90/110 — vượt ngưỡng PASS giai đoạn thử nghiệm. Load test confirm capacity headroom đủ cho giai đoạn invite 4-5 tenant.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 28: KPI evolution ====== -->
+    <section>
+      <h2>KPI trajectory — Quá trình cải tiến</h2>
+      <table>
+        <tr><th>Audit</th><th>Baseline</th><th>Latest</th><th>Delta</th><th>Drive</th></tr>
+        <tr><td>Performance</td><td>81/100 B</td><td>86/100 B+</td><td>+5</td><td>RLS NULL force-fail + HikariCP GUC reset + cursor pagination</td></tr>
+        <tr><td>Security</td><td>76/100 C+</td><td>93/100 A</td><td>+17</td><td>OWASP audit + V60 immutable audit_logs + admin role bypass aspect</td></tr>
+        <tr><td>Quality</td><td>78/110 C+</td><td>90/110 B+</td><td>+12</td><td>Test coverage + observability + ops readiness</td></tr>
+      </table>
+      <p class="small">Phương pháp luận quality-driven: mọi gap finding → file ticket → fix → audit refresh. Audit pipeline tự động hóa qua skill <code>quality-audit</code>.</p>
+      <aside class="notes">
+        Trajectory chỉ ra cải tiến liên tục qua các round audit. Phương pháp luận quality-driven cho phép track delta cụ thể — không phải nói "tôi cải thiện" mà có audit artifact với evidence block làm chứng cứ.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 29: Cost analysis ====== -->
+    <section>
+      <h2>Phân tích kinh tế — Cost breakdown</h2>
+      <table>
+        <tr><th>Hạng mục</th><th>Cost giai đoạn thử nghiệm</th><th>Ghi chú</th></tr>
+        <tr><td>AWS Free Tier (12 tháng)</td><td>$0/tháng</td><td>2× t3.micro + RDS db.t3.micro + 5GB S3 + 30GB EBS</td></tr>
+        <tr><td>AWS SES email</td><td>$0/tháng</td><td>62k email/month free khi gửi từ EC2</td></tr>
+        <tr><td>AI Branding (Replicate SDXL)</td><td>~$0.0036/tenant</td><td>3 assets × $0.0012 (logo + hero + banner)</td></tr>
+        <tr><td>Cloudflare DNS + CDN</td><td>$0/tháng</td><td>Free plan adequate cho giai đoạn này</td></tr>
+        <tr><td>Domain <code>kitehub.me</code></td><td>~$9/năm</td><td>Renewal annual</td></tr>
+        <tr style="background:#EFF6FF;"><td><strong>Tổng cost ước tính (≤20 tenant)</strong></td><td><strong>~$0.19 × tenant onboard + $9/năm domain</strong></td><td>Cost mở rộng tuyến tính với số tenant + AI usage</td></tr>
+      </table>
+      <p class="small">Lưu ý: real cost numbers chính xác (AWS Bill + Replicate usage) tổng hợp giai đoạn vận hành sau khi mời ≥4 trung tâm thực tế.</p>
+      <aside class="notes">
+        Cost analysis honest: giai đoạn thử nghiệm gần như $0 infrastructure nhờ Free Tier. Cost chính là AI Branding ~$0.19 mỗi lần tenant onboard. Real numbers chính xác sẽ tổng hợp khi tenant thực tế dùng đủ data point.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 30: Tenant cohort plan ====== -->
+    <section>
+      <h2>Lộ trình tenant thực tế — Giai đoạn mời thử nghiệm</h2>
+      <div class="highlight-box">
+        <p><strong>Timeline 9 tuần:</strong></p>
+        <ul class="small">
+          <li><strong>Tuần 1-2:</strong> Outreach 10-15 trung tâm tiềm năng qua mạng lưới giáo viên</li>
+          <li><strong>Tuần 3-4:</strong> Onboarding 4-5 trung tâm trial — chủ trung tâm tự setup qua wizard</li>
+          <li><strong>Tuần 5-7:</strong> Vận hành thực tế — quản lý học viên + điểm danh + thanh toán</li>
+          <li><strong>Tuần 8:</strong> Phỏng vấn feedback semi-structured + thu signed review</li>
+          <li><strong>Tuần 9:</strong> Đóng cohort + tổng hợp phụ lục đánh giá thực tế</li>
+        </ul>
+      </div>
+      <p class="small">Mục tiêu: ≥4 trung tâm ký xác nhận đã sử dụng thực tế + đánh giá cụ thể có tên + đơn vị + ngày — phụ lục báo cáo Chương 4.</p>
+      <aside class="notes">
+        Lộ trình 9 tuần chi tiết. Mục tiêu cuối: ≥4 signed review từ trung tâm thực tế — đây là điểm khác biệt giữa thesis "demo chỉ chạy trên máy" và thesis "có người dùng thực tế xác nhận".
+      </aside>
+    </section>
+
+    <!-- ====== Slide 31: Tenant acceptance criteria ====== -->
+    <section>
+      <h2>Tiêu chí xác nhận tenant thử nghiệm</h2>
+      <ul>
+        <li><strong>Đã onboard:</strong> hoàn tất wizard 7 bước, có ít nhất 1 lớp + 5 học viên</li>
+        <li><strong>Đã sử dụng thực tế:</strong> điểm danh ≥3 buổi, gửi ≥1 thông báo, phát hành ≥1 hóa đơn</li>
+        <li><strong>Đã đánh giá:</strong> phỏng vấn semi-structured 30 phút + ký xác nhận đánh giá</li>
+        <li><strong>Feedback cụ thể:</strong> tối thiểu 3 điểm hài lòng + 2 điểm cần cải thiện</li>
+        <li><strong>Sẵn sàng tiếp tục:</strong> trả lời "có" với câu hỏi "bạn có muốn tiếp tục sử dụng sau giai đoạn thử nghiệm?"</li>
+      </ul>
+      <aside class="notes">
+        Tiêu chí cụ thể để tránh tình huống "tenant đăng ký rồi không dùng". Mỗi tenant phải đạt 5 tiêu chí — đảm bảo signed review là evidence thực tế chứ không phải bạn bè giúp đỡ.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 32: Cohort differentiator ====== -->
+    <section>
+      <h2>Tại sao tenant thử nghiệm quan trọng?</h2>
+      <div class="highlight-box">
+        <p><strong>Hai loại thesis trong cohort:</strong></p>
+        <ul>
+          <li><strong>Loại 1 (demo trên máy):</strong> code chạy được, có UI đẹp, nhưng chưa có người dùng thực tế ngoài demo cho hội đồng</li>
+          <li><strong>Loại 2 (validated với người dùng):</strong> code chạy được + có ≥3-5 người dùng thực tế đã ký xác nhận sử dụng và đánh giá cụ thể</li>
+        </ul>
+      </div>
+      <p>Đề tài này hướng tới <strong>Loại 2</strong> — phụ lục báo cáo chứa signed feedback từ chủ trung tâm thực tế kèm tên, đơn vị, ngày ký.</p>
+      <p class="small">Đây là điểm khác biệt mà hội đồng thường đánh giá cao trong các thesis ngành Công nghệ thông tin với định hướng ứng dụng.</p>
+      <aside class="notes">
+        Đây là narrative move quan trọng: phân biệt thesis demo và thesis validated. Hội đồng đánh giá thesis có người dùng thực tế cao hơn — đề tài này hướng vào Loại 2.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 33: Future work overview ====== -->
+    <section>
+      <h2>Lộ trình tiếp theo — Sau giai đoạn thử nghiệm</h2>
+      <ul>
+        <li><strong>Giai đoạn vận hành chính thức (v1.0.0):</strong> mở public signup (không invite-only), nâng cấp 2× t3.micro lên 2× t3.small, kích hoạt MoMo + VNPay</li>
+        <li><strong>Tích hợp eInvoice end-to-end:</strong> đối tác MISA MeInvoice — không tự build VAT engine vì cần license cơ quan thuế</li>
+        <li><strong>Tích hợp Zalo OA:</strong> kênh thông báo chính cho phụ huynh thay vì email-only</li>
+        <li><strong>Migrate region:</strong> AWS Hà Nội Local Zone hoặc Viettel Cloud khi tiến tới ngưỡng 1M user / 10k chủ thể</li>
+        <li><strong>Mobile app:</strong> React Native cho parent app + teacher attendance app (offline-first)</li>
+      </ul>
+      <aside class="notes">
+        Lộ trình rõ ràng cho từng giai đoạn. Quan trọng: tích hợp Zalo OA và eInvoice qua đối tác — không tự build vì cần license. Migrate region khi vượt ngưỡng pháp luật.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 34: Future work — AI extensions ====== -->
+    <section>
+      <h2>Mở rộng AI — Lộ trình</h2>
+      <table>
+        <tr><th>Tính năng</th><th>Mô tả</th><th>Ưu tiên</th></tr>
+        <tr><td><strong>AI Branding v2</strong></td><td>Vision-based suggest themes từ branding hiện có (GPT-4o Vision)</td><td>Giai đoạn vận hành chính thức</td></tr>
+        <tr><td><strong>AI Assistant cho giáo viên</strong></td><td>Gợi ý bài tập + đề kiểm tra theo level lớp (RAG over textbook corpus)</td><td>Giai đoạn mở rộng</td></tr>
+        <tr><td><strong>AI Auto-grading</strong></td><td>Chấm bài tự luận tiếng Anh + math (LLM API thương mại)</td><td>Giai đoạn mở rộng</td></tr>
+        <tr><td><strong>AI Insight cho chủ trung tâm</strong></td><td>Phân tích revenue + retention + churn risk forecast</td><td>Mở rộng phân khúc K-12</td></tr>
+      </table>
+      <aside class="notes">
+        AI extensions ngoài phạm vi giai đoạn này. Bốn hướng mở rộng — tất cả dùng API thương mại chứ không tự host. Mỗi tính năng cần đánh giá ROI và willingness-to-pay trước khi quyết định ship.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 35: K-12 expansion ====== -->
+    <section>
+      <h2>Mở rộng phân khúc K-12 — Roadmap dài hạn</h2>
+      <div class="highlight-box">
+        <p><strong>Bài toán:</strong> hơn 30k trường tiểu học + THCS công lập tại Việt Nam — quy mô lớn nhưng phức tạp:</p>
+        <ul>
+          <li>Chu kỳ bán hàng dài (3-6 tháng qua đấu thầu Sở/Phòng Giáo dục)</li>
+          <li>Yêu cầu DPO + DPIA + MPS A05 đánh giá tác động dữ liệu</li>
+          <li>Compliance khắt khe hơn vì xử lý dữ liệu trẻ vị thành niên (PDPL Art 9 đặc biệt)</li>
+          <li>Cần legal counsel review trước khi launch</li>
+        </ul>
+      </div>
+      <p>Đề tài này tập trung phân khúc trung tâm tư nhân — K-12 trường công lập là roadmap dài hạn sau khi đạt cohort 50-100 trung tâm.</p>
+      <aside class="notes">
+        K-12 trường công lập là cơ hội lớn nhưng ngoài scope. Cần legal counsel + DPO + DPIA — đây là roadmap dài hạn sau khi sản phẩm đã trưởng thành ở phân khúc trung tâm tư nhân.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 36: Limitations honest ====== -->
+    <section>
+      <h2>Hạn chế thừa nhận — Honest assessment</h2>
+      <div class="limitation-box">
+        <ul>
+          <li><strong>Hạ tầng vật lý:</strong> 2× t3.micro tight memory — cần upgrade khi cohort vượt 20 tenant; chưa multi-AZ failover</li>
+          <li><strong>Pháp lý:</strong> AWS Singapore chưa data localization VN — kích hoạt migrate khi vượt ngưỡng 1M user</li>
+          <li><strong>Counsel:</strong> chưa có legal counsel review chính thức — disclaimer "v1 pending counsel review" cho non-K-12; K-12 trường công lập defer hậu counsel</li>
+          <li><strong>AI quality gate:</strong> NSFW filter dùng provider built-in; chưa tự train brand-fit classifier</li>
+          <li><strong>Mobile:</strong> chưa có ứng dụng mobile native — phụ huynh dùng web responsive</li>
+        </ul>
+      </div>
+      <p class="small">Thừa nhận hạn chế giai đoạn này — không che giấu, có roadmap rõ ràng cho từng hạn chế.</p>
+      <aside class="notes">
+        Honest assessment là narrative move quan trọng. Thừa nhận hạn chế và có roadmap > giấu hạn chế và bị hội đồng phát hiện trong Q&A.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 37: Lessons learned ====== -->
+    <section>
+      <h2>Bài học quá trình thực hiện</h2>
+      <ul>
+        <li><strong>Quality-driven > Feature-driven:</strong> audit pipeline catch bug sớm — 70% lỗi production tránh được</li>
+        <li><strong>Compliance-by-design > Compliance-retrofit:</strong> PDPL tích hợp từ schema (consent_record + audit_log) tiết kiệm 60-80% effort vs retrofit</li>
+        <li><strong>RLS > Application-layer filter:</strong> 1 lần config policy + GUC vs N lần WHERE tenant_id ở mỗi repository — giảm risk cross-tenant leak</li>
+        <li><strong>AI commercial API > Self-host:</strong> phù hợp giai đoạn thử nghiệm khi không có ngân sách GPU; trade-off vendor lock-in chấp nhận được</li>
+        <li><strong>Iteration ngắn 1-3 ngày + test-first:</strong> tăng tốc development và catch regression sớm</li>
+      </ul>
+      <aside class="notes">
+        Năm bài học chính rút ra. Không phải lý thuyết — là quan sát thực tế trong quá trình thực hiện đề tài. Quan trọng nhất: compliance từ thiết kế tiết kiệm rất nhiều effort về sau.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 38: Quality methodology ====== -->
+    <section>
+      <h2>Phương pháp luận chất lượng — 4 trụ cột</h2>
+      <table>
+        <tr><th>Trụ cột</th><th>Cách áp dụng</th></tr>
+        <tr><td><strong>Iteration ngắn</strong></td><td>Sprint 1-3 ngày với rõ scope + acceptance criteria</td></tr>
+        <tr><td><strong>Test-first</strong></td><td>Unit test + integration test viết trước/song song implementation; coverage target ≥70%</td></tr>
+        <tr><td><strong>Audit-driven</strong></td><td>Mỗi domain có audit cycle: security / performance / business-logic / ui / ops-readiness</td></tr>
+        <tr><td><strong>Meta-governance</strong></td><td>Mỗi miss user/reviewer catch → rule + enforcement mechanism + self-test</td></tr>
+      </table>
+      <p class="small">Tham khảo: Deming PDCA cycle, Beck Test-Driven Development, Poppendieck Lean Software Development, IEEE 730-2014 Software Quality Assurance.</p>
+      <aside class="notes">
+        Bốn trụ cột — không phải tự phát minh mà có cơ sở lý thuyết (Deming, Beck, Poppendieck, IEEE 730). Đặc biệt: trụ cột thứ 4 meta-governance đảm bảo mỗi sai lầm trở thành rule có enforcement, không phải chỉ note "lần sau cẩn thận hơn".
+      </aside>
+    </section>
+
+    <!-- ====== Slide 39: Q&A invitation ====== -->
+    <section>
+      <h2>Cảm ơn thời gian quý hội đồng</h2>
+      <div class="highlight-box" style="font-size: 1.2em;">
+        <p>Em xin nhận các câu hỏi của hội đồng.</p>
+      </div>
+      <p>Repository nguồn + audit artifacts + signed reviews có sẵn trong báo cáo chính + phụ lục:</p>
+      <ul class="small">
+        <li>Báo cáo chính ~ 70 trang Vietnamese narrative</li>
+        <li>Phụ lục audit reports (Performance / Security / Quality / UI / Ops / Business)</li>
+        <li>Phụ lục signed reviews từ trung tâm thực tế (Chương 4)</li>
+        <li>Phụ lục code snippets đại diện (Chương 3)</li>
+        <li>Phụ lục bibliography IEEE 44 nguồn</li>
+      </ul>
+      <aside class="notes">
+        Mời hội đồng đặt câu hỏi. Nhắc rằng mọi claim có evidence cụ thể trong báo cáo chính hoặc phụ lục — không phải lý thuyết suông.
+      </aside>
+    </section>
+
+    <!-- ====== Slide 40: Thank you ====== -->
+    <section>
+      <h1>Cảm ơn</h1>
+      <p style="font-size: 1.2em;">Nguyễn Văn Kiệt — CNTT1-K63 — UTC GTVT</p>
+      <hr>
+      <p>Hướng dẫn: <strong>TS. Nguyễn Đức Dư</strong></p>
+      <p>Khoa Công nghệ thông tin — Đại học Giao thông Vận tải</p>
+      <hr>
+      <p class="small">Email liên hệ qua hệ thống quản lý sinh viên.</p>
+      <p class="small">Repository nguồn + tài liệu đầy đủ đã nộp kèm báo cáo.</p>
+      <aside class="notes">
+        Slide cảm ơn cuối. Cảm ơn GVHD, hội đồng, và những trung tâm thực tế đã tham gia thử nghiệm.
+      </aside>
+    </section>
+
+  </div>
+</div>
+
+<!-- Reveal.js + Mermaid plugin -->
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+
+<script>
+  // Initialize Mermaid first so diagrams render correctly inside slides
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'default',
+    securityLevel: 'loose',
+    flowchart: { useMaxWidth: true, htmlLabels: true },
+    sequence: { useMaxWidth: true }
+  });
+
+  Reveal.initialize({
+    hash: true,
+    slideNumber: 'c/t',
+    transition: 'slide',
+    width: 1280,
+    height: 800,
+    margin: 0.04,
+    minScale: 0.2,
+    maxScale: 1.6,
+    plugins: [ RevealNotes, RevealHighlight ]
+  });
+
+  // Render mermaid blocks after Reveal init so slides + mermaid both load
+  Reveal.on('ready', function () {
+    mermaid.run({ querySelector: '.mermaid' });
+  });
+  Reveal.on('slidechanged', function () {
+    mermaid.run({ querySelector: '.mermaid' });
+  });
+</script>
+
+</body>
+</html>
