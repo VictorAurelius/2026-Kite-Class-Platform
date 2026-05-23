@@ -724,7 +724,11 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
+      # Browser-side base (host docker port mapping).
       NEXT_PUBLIC_API_URL: http://localhost:9000/api/v1
+      # Server-side base (Docker network DNS) — Wave 105 RST UI walk
+      # 2026-05-23 surfaced SSR ECONNREFUSED localhost:9000 from inside container.
+      INTERNAL_API_URL: http://kite-gateway:9000/api/v1
       NEXT_TELEMETRY_DISABLED: 1
     ports:
       - "3000:3000"
