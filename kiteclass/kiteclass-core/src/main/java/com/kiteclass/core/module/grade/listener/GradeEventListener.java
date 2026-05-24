@@ -7,7 +7,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * Event listener for grade auto-initialization.
@@ -63,8 +66,20 @@ public class GradeEventListener {
      *
      * @param event the enrollment created event
      */
-    @EventListener
-    @Transactional
+    // Wave beta-readiness-1 Bucket B — capacity-race fix.
+    // Changed from @EventListener + @Transactional (REQUIRED) to
+    // @TransactionalEventListener(AFTER_COMMIT) + @Transactional(REQUIRES_NEW).
+    //
+    // Previous: listener fired INSIDE enrollment TX; GradeService re-read the Class entity
+    // that the enrollment TX had locked with OPTIMISTIC_FORCE_INCREMENT. At commit time
+    // Hibernate tried to bump Class.version twice → ObjectOptimisticLockingFailureException
+    // propagated back through synchronous publishEvent() and rolled back the enrollment.
+    //
+    // Now: listener fires AFTER enrollment TX commits (AFTER_COMMIT), in its own
+    // REQUIRES_NEW TX. If grade creation fails, enrollment is already committed — correct
+    // per the existing "Don't throw" error-handling philosophy in this class.
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onEnrollmentCreated(EnrollmentCreatedEvent event) {
         log.info("Received ENROLLMENT_CREATED event for enrollment ID: {}",
                 event.getEnrollment().getId());

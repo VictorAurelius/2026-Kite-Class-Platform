@@ -5,9 +5,11 @@ import com.kiteclass.core.module.invoice.entity.Invoice;
 import com.kiteclass.core.module.invoice.service.InvoiceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * Event listener for enrollment events.
@@ -45,8 +47,16 @@ public class EnrollmentEventListener {
      *
      * @param event the enrollment created event
      */
-    @EventListener
-    @Transactional
+    // Wave beta-readiness-1 Bucket B — capacity-race fix (same as GradeEventListener).
+    // Changed from @EventListener + @Transactional (REQUIRED) to
+    // @TransactionalEventListener(AFTER_COMMIT) + @Transactional(REQUIRES_NEW).
+    //
+    // InvoiceService.createInvoiceForEnrollment reads the Class entity; when fired
+    // inside the enrollment TX (OPTIMISTIC_FORCE_INCREMENT locked), Hibernate bumped
+    // Class.version twice at commit → ObjectOptimisticLockingFailureException rolled
+    // back the enrollment. Now fires AFTER enrollment commits, in its own TX.
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onEnrollmentCreated(EnrollmentCreatedEvent event) {
         log.info("Received ENROLLMENT_CREATED event for enrollment ID: {}",
                 event.getEnrollment().getId());
