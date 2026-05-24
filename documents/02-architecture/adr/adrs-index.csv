@@ -35,3 +35,6 @@ number,status,date,title,file
 030,ACCEPTED,2026-05-14,CSV canonical for meta indexes,ADR-030-csv-canonical-meta-indexes.md
 031,PROPOSED,2026-05-15,FE Self-Host trên AWS EC2 (t3.small) — Phase 1 BETA,ADR-031-fe-self-host-aws-ec2.md
 ADR-032,ACCEPTED,2026-05-18,Remove kiteclass-gateway service,ADR-032-kiteclass-gateway-removal.md
+ADR-033,ACCEPTED,2026-05-24,Class Reschedule — Cal.com update-in-place + 5-field audit + Outbox + Email Phase 1 / Zalo Phase 2,ADR-033-class-reschedule-pattern.md
+ADR-034,ACCEPTED,2026-05-24,Cookie Consent Vendor — Self-build Banner + iubenda Privacy Policy Generator,ADR-034-cookie-consent-vendor.md
+035,ACCEPTED,2026-05-24,Pricing Model Taxonomy — PER_HOUR primary + MONTHLY + COURSE_PACKAGE + FREE,documents/02-architecture/adr/ADR-035-pricing-model-taxonomy.md

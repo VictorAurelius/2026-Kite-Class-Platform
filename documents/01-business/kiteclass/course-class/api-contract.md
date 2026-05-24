@@ -96,6 +96,54 @@
 { "reason": "string" }
 ```
 
+### POST /api/v1/classes/{classId}/reschedule
+**Use Case:** UC-CRS-11 (Wave beta-readiness-4 Bucket D — GAP-291)  |  **Auth:** Bearer token + `@authz.hasAccessToClass(#classId)`  |  **Role:** ADMIN / TEACHER (owner of class)
+
+Đổi lịch lớp học — giữ nguyên status `SCHEDULED`, ghi audit log (5 trường), publish Outbox event `class.rescheduled`. Notification classification = **OPERATIONAL** (bypass `marketing_consented` gate).
+
+```json
+// Request
+{
+  "newStartDate": "2026-05-21",                  // ISO YYYY-MM-DD, required
+  "newEndDate":   "2026-07-07",                  // required, must be > newStartDate
+  "reasonCategory": "GV_OM_BAN_DOT_XUAT",        // required enum: GV_OM_BAN_DOT_XUAT |
+                                                 //   PHONG_HOC_KHONG_KHA_DUNG | MAT_DIEN_INTERNET |
+                                                 //   LE_TET_NGHI_CHINH_THUC | HOC_SINH_XIN_NGHI_TAP_THE | LY_DO_KHAC
+  "reasonNotes":  "Cô giáo phụ trách lớp xin nghỉ ốm 1 tuần."  // optional, ≤ 2000 chars
+}
+
+// Response 200 — Updated ClassResponse (status unchanged = SCHEDULED)
+{
+  "success": true,
+  "data": {
+    "id": 12345,
+    "name": "Lớp Anh ngữ 5A1",
+    "status": "SCHEDULED",
+    "startDate": "2026-05-21",
+    "endDate":   "2026-07-07",
+    ...
+  },
+  "message": "Đã đổi lịch lớp học thành công"
+}
+```
+
+**Error codes:**
+| Status | Code | Khi nào |
+|---|---|---|
+| 400 | `CLASS_INVALID_DATES` | `newEndDate <= newStartDate` |
+| 400 | Bean validation | `reasonCategory` thiếu HOẶC `reasonNotes` > 2000 chars |
+| 403 | `ACCESS_DENIED` | Caller không phải owner/admin của class |
+| 404 | `CLASS_NOT_FOUND` | classId không tồn tại hoặc đã bị xóa |
+| 409 | `CLASS_CANNOT_RESCHEDULE` | Class không ở trạng thái SCHEDULED (đã IN_PROGRESS/COMPLETED/CANCELLED) |
+| 500 | `RESCHEDULE_EVENT_SERIALIZATION_FAILED` | Outbox event serialization fails |
+
+**Side effects:**
+- `classes` row updated: 6 audit columns (`rescheduled_by_user_id`, `rescheduled_at`, `previous_start_date`, `previous_end_date`, `reschedule_reason_category`, `reschedule_reason_notes`)
+- Outbox event `class.rescheduled` published cùng transaction (atomic guarantee)
+- Default consumer: `ClassRescheduledNoOpConsumer` logs only
+- Feature flag `kite.class.reschedule.notify.enabled=true` → `ClassRescheduledEmailConsumer` forwards to `class.rescheduled.email.queue` (kitehub-email render Thymeleaf + send)
+- **Attendance + grade history PRESERVED** — không có new `ClassStatus.RESCHEDULED` enum (cross-bucket LOCKED decision §3.6 Wave beta-readiness-4)
+
 ### POST /api/v1/classes/{classId}/generate-code
 **Use Case:** UC-CRS-09  |  **Auth:** Bearer token  |  **Role:** ADMIN, TEACHER
 ```json
@@ -180,3 +228,66 @@
 - Sessions with `attendanceTaken=true` — preserved untouched (regardless of date).
 - Future `SCHEDULED` sessions with `attendanceTaken=false` — soft-deleted, regenerated from new rule.
 - Idempotent — re-running with same rule yields the same merged result.
+
+
+---
+
+## Pricing Model API (Wave beta-readiness-4 Bucket C, GAP-292)
+
+### POST /api/v1/courses — extended với pricing_model + unit_price
+
+Request body extended (additive, backward-compatible với clients gửi legacy `price`):
+
+```json
+{
+  "name": "Lớp Anh ngữ 5A1 — Trung tâm Sky Education",
+  "code": "ENG-5A1-2026",
+  "pricingModel": "PER_HOUR",
+  "unitPrice": 250000.00,
+  "price": null,
+  "...": "other existing fields"
+}
+```
+
+Field semantics:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `pricingModel` | enum `PER_HOUR \| MONTHLY \| COURSE_PACKAGE \| FREE` | YES (defaults PER_HOUR if omitted, matches V67 DEFAULT) | BR-COURSE-PRICING-001 |
+| `unitPrice` | decimal (NUMERIC 19,2 VND) | YES | BR-COURSE-PRICING-002; CHECK ≥ 0; FREE → must = 0 |
+| `price` | decimal | NO (deprecated) | Legacy flat-fee. New code should NOT send; backward-compat preserved |
+
+Response body extended:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 42,
+    "name": "Lớp Anh ngữ 5A1 — Trung tâm Sky Education",
+    "pricingModel": "PER_HOUR",
+    "unitPrice": 250000.00,
+    "price": null,
+    "...": "other existing fields"
+  }
+}
+```
+
+| Status | Code | Message |
+|--------|------|---------|
+| 400 | VALIDATION_PRICING_MODEL_REQUIRED | "Hình thức tính học phí không được để trống" |
+| 400 | VALIDATION_UNIT_PRICE_NEGATIVE | "Đơn giá phải >= 0" |
+| 400 | VALIDATION_FREE_PRICING_NONZERO | "Khóa học FREE phải có đơn giá = 0" |
+| 409 | PRICING_MODEL_IMMUTABLE | "Không thể đổi hình thức tính học phí khi đã có học viên đăng ký" (BR-COURSE-PRICING-003) |
+
+### PUT /api/v1/courses/{id} — pricing fields restricted
+
+- `pricingModel` đổi được CHỈ khi Course chưa có active enrollment (BR-COURSE-PRICING-003). Service layer check + return 409 nếu vi phạm.
+- `unitPrice` đổi được mọi lúc (giá có thể adjust, model không).
+
+### Cross-references
+
+- **Business rules:** `documents/01-business/kiteclass/course-class/rules.md` §6
+- **ADR:** `documents/02-architecture/adr/ADR-035-pricing-model-taxonomy.md`
+- **Migration:** V67 (DDL), R67 (rollback)
+- **Pre-migration audit:** `scripts/audit-pre-pricing-model.sql`

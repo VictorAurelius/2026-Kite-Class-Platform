@@ -20,6 +20,7 @@ import {
   XCircle,
   Copy,
   Calendar,
+  CalendarClock,
   MapPin,
   Users,
 } from 'lucide-react';
@@ -33,11 +34,16 @@ import {
   useStartClass,
   useCompleteClass,
   useCancelClass,
+  useRescheduleClass,
   useClassSessions,
   useGenerateClassCode,
 } from '@/hooks/use-classes';
 import { formatDate, formatDateTime } from '@/lib/utils';
-import { ClassStatus } from '@/types/class';
+import {
+  ClassStatus,
+  RESCHEDULE_REASON_LABELS,
+  type RescheduleReasonCategory,
+} from '@/types/class';
 import { toast } from '@/hooks/use-toast';
 
 const statusVariants: Record<
@@ -69,6 +75,13 @@ export default function ClassDetailPage({
   const router = useRouter();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
+  const [rescheduleStartDate, setRescheduleStartDate] = useState('');
+  const [rescheduleEndDate, setRescheduleEndDate] = useState('');
+  const [rescheduleReasonCategory, setRescheduleReasonCategory] = useState<
+    RescheduleReasonCategory | ''
+  >('');
+  const [rescheduleReasonNotes, setRescheduleReasonNotes] = useState('');
 
   const { data: classData, isLoading, error } = useClass(classId);
   const { data: sessions } = useClassSessions(classId);
@@ -77,6 +90,7 @@ export default function ClassDetailPage({
   const startMutation = useStartClass();
   const completeMutation = useCompleteClass();
   const cancelMutation = useCancelClass();
+  const rescheduleMutation = useRescheduleClass();
   const generateCodeMutation = useGenerateClassCode();
 
   const handleDelete = () => {
@@ -108,6 +122,56 @@ export default function ClassDetailPage({
       { id: classId, data: { reason: cancelReason } },
       {
         onSuccess: () => setShowCancelDialog(false),
+      }
+    );
+  };
+
+  const openRescheduleDialog = () => {
+    // Pre-fill with current dates so user only changes what's needed.
+    setRescheduleStartDate(classData?.startDate ?? '');
+    setRescheduleEndDate(classData?.endDate ?? '');
+    setRescheduleReasonCategory('');
+    setRescheduleReasonNotes('');
+    setShowRescheduleDialog(true);
+  };
+
+  const handleReschedule = () => {
+    if (!rescheduleStartDate || !rescheduleEndDate) {
+      toast({
+        title: 'Lỗi',
+        description: 'Vui lòng chọn ngày bắt đầu và ngày kết thúc mới',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (!rescheduleReasonCategory) {
+      toast({
+        title: 'Lỗi',
+        description: 'Vui lòng chọn lý do đổi lịch',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (new Date(rescheduleEndDate) <= new Date(rescheduleStartDate)) {
+      toast({
+        title: 'Lỗi',
+        description: 'Ngày kết thúc phải sau ngày bắt đầu',
+        variant: 'destructive',
+      });
+      return;
+    }
+    rescheduleMutation.mutate(
+      {
+        id: classId,
+        data: {
+          newStartDate: rescheduleStartDate,
+          newEndDate: rescheduleEndDate,
+          reasonCategory: rescheduleReasonCategory,
+          reasonNotes: rescheduleReasonNotes.trim() || undefined,
+        },
+      },
+      {
+        onSuccess: () => setShowRescheduleDialog(false),
       }
     );
   };
@@ -197,6 +261,16 @@ export default function ClassDetailPage({
                 </Button>
               </>
             )}
+            {isScheduled && (
+              <Button
+                variant="outline"
+                onClick={openRescheduleDialog}
+                disabled={rescheduleMutation.isPending}
+              >
+                <CalendarClock className="mr-2 h-4 w-4" />
+                Đổi lịch
+              </Button>
+            )}
             {(isDraft || isScheduled) && (
               <>
                 <Button variant="outline" onClick={handleGenerateCode}>
@@ -230,6 +304,92 @@ export default function ClassDetailPage({
             )}
           </div>
         </div>
+
+        {/* Reschedule Dialog (Wave beta-readiness-4 Bucket D — GAP-291).
+            3-click flow: open modal → fill dates+reason → submit. */}
+        {showRescheduleDialog && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Đổi lịch lớp học</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2" htmlFor="reschedule-start">
+                    Ngày bắt đầu mới <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    id="reschedule-start"
+                    type="date"
+                    className="w-full rounded-md border p-2"
+                    value={rescheduleStartDate}
+                    onChange={(e) => setRescheduleStartDate(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2" htmlFor="reschedule-end">
+                    Ngày kết thúc mới <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    id="reschedule-end"
+                    type="date"
+                    className="w-full rounded-md border p-2"
+                    value={rescheduleEndDate}
+                    onChange={(e) => setRescheduleEndDate(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2" htmlFor="reschedule-reason">
+                  Lý do đổi lịch <span className="text-destructive">*</span>
+                </label>
+                <select
+                  id="reschedule-reason"
+                  className="w-full rounded-md border p-2"
+                  value={rescheduleReasonCategory}
+                  onChange={(e) =>
+                    setRescheduleReasonCategory(e.target.value as RescheduleReasonCategory | '')
+                  }
+                >
+                  <option value="">— Chọn lý do —</option>
+                  {(Object.keys(RESCHEDULE_REASON_LABELS) as RescheduleReasonCategory[]).map(
+                    (key) => (
+                      <option key={key} value={key}>
+                        {RESCHEDULE_REASON_LABELS[key]}
+                      </option>
+                    )
+                  )}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2" htmlFor="reschedule-notes">
+                  Ghi chú (tùy chọn)
+                </label>
+                <textarea
+                  id="reschedule-notes"
+                  className="w-full rounded-md border p-2"
+                  rows={3}
+                  maxLength={2000}
+                  value={rescheduleReasonNotes}
+                  onChange={(e) => setRescheduleReasonNotes(e.target.value)}
+                  placeholder="Ví dụ: Cô giáo phụ trách lớp xin nghỉ ốm 1 tuần."
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                💡 Phụ huynh sẽ nhận email thông báo nếu kênh thông báo đã được bật. Email vận
+                hành luôn được gửi, không phụ thuộc trạng thái marketing.
+              </p>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowRescheduleDialog(false)}>
+                  Đóng
+                </Button>
+                <Button onClick={handleReschedule} disabled={rescheduleMutation.isPending}>
+                  Xác nhận đổi lịch
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Cancel Dialog */}
         {showCancelDialog && (

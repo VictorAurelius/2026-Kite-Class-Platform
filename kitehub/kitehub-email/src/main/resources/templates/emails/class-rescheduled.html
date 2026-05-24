@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="|Thông báo đổi lịch lớp ${className} — ${tenantName}|">Thông báo đổi lịch lớp học</title>
+  <style>
+    body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; color: #1f2937; line-height: 1.6; }
+    .container { max-width: 600px; margin: 0 auto; padding: 24px; background: #ffffff; }
+    .header { background: #1d4ed8; color: #ffffff; padding: 20px 24px; border-radius: 8px 8px 0 0; }
+    .header h1 { margin: 0; font-size: 20px; }
+    .body { padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
+    .greeting { font-size: 16px; margin-bottom: 16px; }
+    table.schedule { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    table.schedule td, table.schedule th { padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+    table.schedule th { background: #f3f4f6; font-weight: 600; }
+    .old-date { color: #dc2626; text-decoration: line-through; }
+    .new-date { color: #16a34a; font-weight: 600; }
+    .reason-box { background: #fef3c7; padding: 12px 16px; border-left: 4px solid #f59e0b; margin: 16px 0; border-radius: 4px; }
+    .footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #6b7280; }
+    .footer a { color: #1d4ed8; text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1 th:text="|Thông báo đổi lịch lớp học — ${tenantName}|">Thông báo đổi lịch lớp học</h1>
+  </div>
+  <div class="body">
+    <!-- Greeting fallback inline (Wave beta-readiness-4 Bucket D). Bucket E sẽ refactor consume
+         _shared/persona-tone partial cho persona-specific greeting matrix. Parent persona = very formal. -->
+    <p class="greeting">Kính gửi quý phụ huynh,</p>
+
+    <p>
+      Chúng tôi xin trân trọng thông báo rằng lớp học
+      <strong th:text="${className}">Lớp Anh ngữ 5A1</strong>
+      thuộc <strong th:text="${tenantName}">Trung tâm Anh ngữ Sky Education</strong>
+      đã có sự thay đổi về lịch học như sau:
+    </p>
+
+    <table class="schedule">
+      <thead>
+      <tr>
+        <th>Thông tin</th>
+        <th>Lịch cũ</th>
+        <th>Lịch mới</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td><strong>Ngày bắt đầu</strong></td>
+        <td class="old-date" th:text="${previousStartDateFormatted}">Thứ Hai, 14/05/2026</td>
+        <td class="new-date" th:text="${newStartDateFormatted}">Thứ Hai, 21/05/2026</td>
+      </tr>
+      <tr>
+        <td><strong>Ngày kết thúc</strong></td>
+        <td class="old-date" th:text="${previousEndDateFormatted}">Thứ Sáu, 30/06/2026</td>
+        <td class="new-date" th:text="${newEndDateFormatted}">Thứ Sáu, 07/07/2026</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <div class="reason-box">
+      <p style="margin: 0;">
+        <strong>Lý do đổi lịch:</strong> <span th:text="${reasonDisplayName}">Giáo viên ốm/bận đột xuất</span>
+      </p>
+      <p th:if="${reasonNotes != null and !#strings.isEmpty(reasonNotes)}" style="margin: 8px 0 0 0; font-size: 14px;">
+        <em th:text="${reasonNotes}">Cô giáo phụ trách lớp xin nghỉ ốm 1 tuần.</em>
+      </p>
+    </div>
+
+    <p>
+      Mọi thắc mắc xin liên hệ trực tiếp với trung tâm để được hỗ trợ. Chúng tôi xin lỗi
+      vì sự bất tiện này và chân thành cảm ơn quý phụ huynh đã đồng hành cùng trung tâm.
+    </p>
+
+    <div class="footer">
+      <p>
+        Trân trọng,<br/>
+        <strong th:text="${tenantName}">Trung tâm Anh ngữ Sky Education</strong>
+      </p>
+      <p>
+        📧 Hỗ trợ: <a href="mailto:support@kitehub.me">support@kitehub.me</a><br/>
+        🔒 Quyền riêng tư dữ liệu (PDPL Art 14):
+        <a href="https://kitehub.me/legal/dpo-contact">Liên hệ DPO</a>
+      </p>
+      <p style="font-size: 12px; margin-top: 16px;">
+        Email này là <strong>thông báo vận hành (operational)</strong> liên quan trực tiếp đến lịch học của con em quý vị
+        và được gửi không phụ thuộc vào trạng thái đăng ký nhận thông tin marketing.
+      </p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -11,6 +11,7 @@ import type {
   CreateClassRequest,
   UpdateClassRequest,
   CancelClassRequest,
+  RescheduleClassRequest,
   ClassSession,
   ClassCodeResponse,
   CreateScheduleRequest,
@@ -102,6 +103,21 @@ export const classesApi = {
   cancel: async (id: number, data: CancelClassRequest): Promise<Class> => {
     const response = await apiClient.post<ApiResponse<Class>>(
       `/api/v1/classes/${id}/cancel`,
+      data
+    );
+    return response.data.data!;
+  },
+
+  /**
+   * Reschedule a class — preserves status SCHEDULED, mutates start/end dates,
+   * writes audit log, publishes Outbox event (Wave beta-readiness-4 Bucket D — GAP-291).
+   *
+   * Per cross-bucket LOCKED decision §3.6: reasonCategory MANDATORY (dropdown);
+   * reasonNotes optional. Notification classification = OPERATIONAL.
+   */
+  reschedule: async (id: number, data: RescheduleClassRequest): Promise<Class> => {
+    const response = await apiClient.post<ApiResponse<Class>>(
+      `/api/v1/classes/${id}/reschedule`,
       data
     );
     return response.data.data!;

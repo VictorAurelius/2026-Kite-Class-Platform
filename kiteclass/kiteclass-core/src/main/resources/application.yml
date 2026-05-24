@@ -288,3 +288,16 @@ kiteclass:
     redeem-base-url: ${PARENT_PORTAL_REDEEM_BASE_URL:https://app.kiteclass.vn/parent-invite/}
     # Hourly sweep (ms) — override for tests via @TestPropertySource.
     expire-sweep-ms: 3600000
+
+# Class reschedule notification (Wave beta-readiness-4 Bucket D — GAP-291).
+# Per cross-bucket LOCKED decision §3.6 (Wave plan):
+#   - Default DISABLED — ClassRescheduledNoOpConsumer logs only.
+#   - Phase 1.5+ enables email path via ClassRescheduledEmailConsumer.
+#   - Notification classification = OPERATIONAL (bypass marketing_consented gate).
+# Default `false` is the production-correct value (Phase 1 BETA email-fallback Phase 1.5+);
+# NOT a suspect-default per `production-env-config-registry.md` §2 (no dev-only hostname).
+kite:
+  class:
+    reschedule:
+      notify:
+        enabled: ${KITE_CLASS_RESCHEDULE_NOTIFY_ENABLED:false}

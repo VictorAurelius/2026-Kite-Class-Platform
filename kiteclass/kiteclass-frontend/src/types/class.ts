@@ -87,6 +87,42 @@ export interface CancelClassRequest {
 }
 
 /**
+ * Reschedule reason category enum (Wave beta-readiness-4 Bucket D — GAP-291).
+ * Matches backend `RescheduleReasonCategory` enum names verbatim (no string transformation).
+ */
+export type RescheduleReasonCategory =
+  | 'GV_OM_BAN_DOT_XUAT'
+  | 'PHONG_HOC_KHONG_KHA_DUNG'
+  | 'MAT_DIEN_INTERNET'
+  | 'LE_TET_NGHI_CHINH_THUC'
+  | 'HOC_SINH_XIN_NGHI_TAP_THE'
+  | 'LY_DO_KHAC';
+
+/**
+ * Vietnamese display labels for reschedule reason categories.
+ * Used by FE dropdown labels in the reschedule modal.
+ */
+export const RESCHEDULE_REASON_LABELS: Record<RescheduleReasonCategory, string> = {
+  GV_OM_BAN_DOT_XUAT: 'Giáo viên ốm/bận đột xuất',
+  PHONG_HOC_KHONG_KHA_DUNG: 'Phòng học không khả dụng',
+  MAT_DIEN_INTERNET: 'Mất điện / mất Internet',
+  LE_TET_NGHI_CHINH_THUC: 'Lễ Tết / nghỉ chính thức',
+  HOC_SINH_XIN_NGHI_TAP_THE: 'Học sinh xin nghỉ tập thể',
+  LY_DO_KHAC: 'Lý do khác',
+};
+
+/**
+ * Reschedule class request (Wave beta-readiness-4 Bucket D — GAP-291).
+ * reasonCategory is MANDATORY (dropdown); reasonNotes optional max 2000 chars.
+ */
+export interface RescheduleClassRequest {
+  newStartDate: string; // ISO date YYYY-MM-DD
+  newEndDate: string;
+  reasonCategory: RescheduleReasonCategory;
+  reasonNotes?: string;
+}
+
+/**
  * Class session response
  */
 export interface ClassSession {
