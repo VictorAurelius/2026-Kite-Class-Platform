@@ -242,7 +242,6 @@ class CrossUserAuthzTest {
         parentRepository.save(parent2);
         entityManager.flush();
 
-        Long parent1Id = parent1.getId();
         Long parent2Id = parent2.getId();
 
         // Create ParentStudentLink: Parent-1 → Student-1 only
