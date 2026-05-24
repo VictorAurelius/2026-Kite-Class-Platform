@@ -1,0 +1,39 @@
+{
+  "pr": 1779,
+  "title": "feat(wave-beta-readiness-4-bucket-a): META env-coverage RESEND IaC + CI gate Phase 3 (GAP-508 PARTIAL 90%)",
+  "branch": "wave/beta-readiness-4-bucket-a-meta-env-coverage",
+  "created_at": null,
+  "merged_at": "2026-05-24T14:04:13Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "business-logic-audit",
+      "ops-readiness-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-24T21:04:24.683139",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 14,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": [
+          "business-logic-audit",
+          "ops-readiness-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/4",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-32892"
+  }
+}
