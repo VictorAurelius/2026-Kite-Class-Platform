@@ -19,14 +19,14 @@
 
 import { CheckCircle2, ArrowLeft, Check, Smartphone, Tablet, Monitor } from 'lucide-react';
 import { useState } from 'react';
-import DOMPurify from 'isomorphic-dompurify';
+import DOMPurify, { type Config } from 'isomorphic-dompurify';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import type { TemplateDescriptor } from './TemplateGrid';
 
 // SVG sanitization config: allow SVG elements + presentation attributes,
 // strip <script> and on* event handlers (XSS via SVG attack surface).
-const SVG_PURIFY_CONFIG: DOMPurify.Config = {
+const SVG_PURIFY_CONFIG: Config = {
   USE_PROFILES: { svg: true, svgFilters: true },
   FORBID_TAGS: ['script', 'use'],
   FORBID_ATTR: ['xlink:href', 'href'],

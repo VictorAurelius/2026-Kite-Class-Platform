@@ -19,11 +19,11 @@
 // ---------------------------------------------------------------------------
 
 import { CheckCircle2 } from 'lucide-react';
-import DOMPurify from 'isomorphic-dompurify';
+import DOMPurify, { type Config } from 'isomorphic-dompurify';
 
 // SVG sanitization config: allow SVG elements + presentation attributes,
 // strip <script> and on* event handlers.
-const SVG_PURIFY_CONFIG: DOMPurify.Config = {
+const SVG_PURIFY_CONFIG: Config = {
   USE_PROFILES: { svg: true, svgFilters: true },
   FORBID_TAGS: ['script', 'use'],
   FORBID_ATTR: ['xlink:href', 'href'],
