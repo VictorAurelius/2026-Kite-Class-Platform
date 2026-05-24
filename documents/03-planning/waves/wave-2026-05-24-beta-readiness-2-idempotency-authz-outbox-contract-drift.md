@@ -190,52 +190,59 @@ Per `feedback_parallel_agent_strategy.md` + `agent-background-spawn-default.md`:
 
 ---
 
-## 7. Output Review Checklist
+## 7. Closure Protocol
 
-Per `output-review-mandate.md` §3:
+Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wave_history_append_required.md` + `post-wave-cleanup.md` + `feedback_wave_closure_release_progress_report.md`:
+
+- Each bucket PR updates affected GAP file Log + status (5 gaps: GAP-730, GAP-727, GAP-605, GAP-662, GAP-663)
+- ROADMAP §🚀 Next Action updated in closure PR
+- Wave plan frontmatter `status: draft → complete` flip in closure PR
+- `wave-history.jsonl` append entry `beta-readiness-2 | SHIPPED ...` per Rule 15 enforcement
+- Sub-gaps filed for any deferral; PARTIAL exit-ramp per `gap-done-discipline.md` §3 — likely candidates: Bucket A per-tenant rate-limit, all-buckets live-verify gated GAP-612
+- Run `bash scripts/prune-merged-worktrees.sh --yes` post all 4 bucket PRs merged, pre closure PR draft
+- `## Release Plan Progress` section in closure PR body per `feedback_wave_closure_release_progress_report.md` rules #1-6
+- Scope-completeness reconciliation table per `wave-closure-scope-completeness.md` §3 — mọi item §3 Scope categorize ✅/🟡/❌
+
+### Output Review Checklist (per `output-review-mandate.md` §3)
 
 - [ ] **Code** — two-stage-code-review (Stage 1+2+2.5) — coordinator review mỗi PR
-- [ ] **Tests** — IT pass cho 4 buckets: A 3 IT (idempotency) + B 2 IT (authz) + C 2 IT (outbox) + D 3 IT (preferences) = ~10 IT total
-- [ ] **Migrations** — V66 + V67 (conditional) DBA checklist
+- [ ] **Tests** — IT pass cho 4 buckets: A 3 IT + B 2 IT + C 2 IT + D 3 IT = ~10 IT total
+- [ ] **Migrations** — V66 + V67_5 (conditional) DBA checklist
 - [ ] **API contract** — D Option A api-contract.md cite `/api/v1/email/send` canonical
-- [ ] **3-layer docs sync** — rules.md / use-cases.md / api-contract.md updated cho A (idempotency scope new) + D (email endpoint rename + preferences cookie semantic)
-- [ ] **Gap closure** — 5 gaps DONE flip với `gap-done-discipline.md` §2 checklist (AC checked, no banned phrases, follow-up filed cho out-of-scope items)
-- [ ] **Post-merge sync 4 targets** per `post-merge-sync-completeness.md` §2: (1) gap-status.csv 5 rows updated, (2) ROADMAP.md §🚀 sync, (3) wave-history.jsonl append entry beta-readiness-2 SHIPPED, (4) memory entries indexed nếu có
-- [ ] **Pre-handoff self-test** per `pre-handoff-self-test-completeness.md` §2.1 — A flow gated GAP-612 AWS restore; document PARTIAL exit ramp với follow-up live-verify gap
-- [ ] **Dev-readable language** per `dev-readable-doc-language.md` — narrative Vietnamese, identifier English
+- [ ] **3-layer docs sync** — rules.md / use-cases.md / api-contract.md updated cho A + D
+- [ ] **Gap closure** — 5 gaps DONE flip với `gap-done-discipline.md` §2 checklist
+- [ ] **Post-merge sync 4 targets** per `post-merge-sync-completeness.md` §2
+- [ ] **Pre-handoff self-test** per `pre-handoff-self-test-completeness.md` §2.1 — live-verify gated GAP-612 PARTIAL exit ramp
+- [ ] **Dev-readable language** per `dev-readable-doc-language.md`
 
----
-
-## 8. Risks + Pivots
+### Risks + Pivots
 
 | Risk | Trigger | Mitigation |
 |---|---|---|
-| Agent A content-filter block (recurrence) | Agent stops mid-implementation as Wave beta-readiness-1 Bucket C | Coordinator implement inline narrow scope per controller — KHÔNG bulk prompt pattern |
-| Bucket B schema check reveals `teacher_id` already exists | `\d classes` shows column present | Skip Flyway V67; chỉ ship Class entity + ClassServiceImpl + test re-enable |
+| Agent A content-filter block (recurrence) | Agent stops mid-implementation như Wave beta-readiness-1 Bucket C | Coordinator implement inline narrow scope per controller — KHÔNG bulk prompt pattern |
+| Bucket B schema check reveals `teacher_id` already exists | `\d classes` shows column present | Skip Flyway V67_5; chỉ ship Class entity + ClassServiceImpl + test re-enable |
 | Bucket D Option A rename callers miss → 404 production | Caller services có hardcoded `/api/platform/emails` path | Verify grep `/api/platform/emails` → 0 hits after rename; SecurityConfig matchers updated |
-| Migration V66 + V67 conflict on Flyway order | Both buckets ship migration same wave | Sequential numbering (A=V66, B=V67); coordinator verify order before merge |
-| Bucket C Phase 2 OutboxDispatcher scope creep | @Scheduled bean conflicts với existing scheduled config | Phase 1 hotfix-only nếu Phase 2 complexity surface — Phase 2 follow-up Wave beta-readiness-3 |
+| Migration V66 + V67_5 conflict on Flyway order | Both buckets ship migration same wave | Sequential numbering + `IF NOT EXISTS` clause |
+| Bucket C Phase 2 OutboxDispatcher scope creep | @Scheduled bean conflicts | Phase 1 hotfix-only nếu complexity surface — Phase 2 follow-up |
 
----
-
-## 9. Out-of-scope (track separately)
+### Out-of-scope (track separately)
 
 | Item | Where |
-| Bucket A: Per-tenant rate-limit Idempotency-Key abuse (DDoS) | follow-up gap Wave beta-readiness-3+ per GAP-730 §Out-of-scope |
+|---|---|
+| Bucket A: Per-tenant rate-limit Idempotency-Key abuse | follow-up gap Wave beta-readiness-3+ per GAP-730 §Out-of-scope |
 | Bucket A: Production live verify deduplication | gated GAP-612 AWS restore |
 | Bucket B: Production schema migration verify | gated GAP-612 AWS restore — live IT against prod RDS |
 | Bucket C: Live RMQ verify outbox dispatch | gated GAP-612 AWS restore |
 | Bucket D: Production HTTP routing verify new `/api/v1/email/*` | gated GAP-612 AWS restore |
-| All buckets: Production smoke test post-deploy | gated GAP-612 AWS restore — track follow-up via `pre-handoff-self-test-completeness.md` §2.1 PARTIAL exit ramp |
+| All buckets: Production smoke test post-deploy | gated GAP-612 AWS restore — `pre-handoff-self-test-completeness.md` §2.1 PARTIAL exit ramp |
 
----
-
-## 10. Audit context
+### Audit context
 
 Wave beta-readiness-1 V2 audit (3 reports shipped 2026-05-24 PR #1759) — within `outside-in-coverage-trigger.md` §4 ≤30-day window. Skip outside-in audit hợp lệ cho Wave beta-readiness-2 scope (same Phase 1 closure cluster).
 
 ---
 
-## 11. Log
+## 8. Log
 
-- **2026-05-24 (draft):** Wave plan created per user direction (`/start-session` → option 3 → 4-bucket scope confirmed via AskUserQuestion). Spawn pending — wave plan PR creation next step per `feedback_wave_plan_through_pr.md`.
+- **2026-05-24 (draft):** Wave plan created per user direction (`/start-session` → option 3 → 4-bucket scope confirmed via AskUserQuestion). PR #1767 opened.
+- **2026-05-24 (in-progress):** 4 agents spawned parallel (Agent A Opus narrow scope idempotency + Agent B/C/D Sonnet authz/outbox/contract-drift) per `agent-background-spawn-default.md` worktree isolation + run_in_background. Wave plan check-wave-plan-completeness FAIL initially do §7 numbering issue; fixed §7→Closure Protocol + §8→Log per template mandate.
