@@ -1,0 +1,5 @@
+version: '3.8'
+services:
+  service:
+    image: example/service:latest
+    # No EMAIL_PROVIDER or AWS_SES_FROM_EMAIL override → regression

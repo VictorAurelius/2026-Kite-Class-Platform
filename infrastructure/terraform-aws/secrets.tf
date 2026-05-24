@@ -95,6 +95,54 @@ resource "aws_secretsmanager_secret_version" "jwt_challenge" {
   secret_string = random_password.jwt_challenge.result
 }
 
+# --- Resend API key (Stream A per ADR-025 — HTTP API replaces SMTP path) ---
+# Wave br-4 Bucket A GAP-508 Phase 2/3 — declare IaC for secret to be created
+# manually via AWS console post Resend account verified (kitehub.me DNS DKIM/SPF/DMARC).
+# Pattern mirrors jwt-challenge precedent Wave 81 GAP-509 / Wave 105 GAP-717 — IaC
+# ships first, real API key set manually qua AWS console once Resend domain verified.
+#
+# Secret payload schema (per scripts/fetch-secrets.sh GAP-572):
+#   JSON wrapper: {"api_key":"re_...","from_email":"noreply@kitehub.me","from_name":"KiteHub Beta"}
+#   OR plain string: "re_..." (from_email/from_name use defaults)
+#
+# Post AWS account 906286017800 restore (GAP-612 unblock) workflow:
+#   1. Run `terraform apply` — creates empty placeholder secret (random_password version)
+#   2. Manual override via AWS console: Secrets Manager → kitehub/production/resend-api-key
+#      → Retrieve secret value → Set new value → JSON `{"api_key":"re_<real>","from_email":"noreply@kitehub.me","from_name":"KiteHub Beta"}`
+#   3. lifecycle ignore_changes preserves manual real value across subsequent terraform apply
+#
+# IAM grant via wildcard `${var.project_name}/${var.environment}/*` pattern in
+# iam.tf:54 (ec2_app role) — no edit needed; wildcard covers resend-api-key.
+#
+# fetch-secrets.sh:88-113 (Wave 81+) đã wire to pull this secret on EC2 boot.
+# Phase 1 BETA scope — GAP-508 Phase 2 closure (Resend account provisioning Wave br-5+).
+#
+# GAP-450 Option B: lifecycle ignore_changes prevents recurring drift on
+# `result` attribute — same rationale as jwt-challenge.
+resource "random_password" "resend_api_key_placeholder" {
+  length  = 32
+  special = false
+  lifecycle {
+    ignore_changes = [result, length, special, lower, upper, numeric, min_lower, min_upper, min_numeric, min_special, override_special, keepers]
+  }
+}
+
+resource "aws_secretsmanager_secret" "resend_api_key" {
+  name                    = "${var.project_name}/${var.environment}/resend-api-key"
+  description             = "Resend HTTP API key for transactional email (Phase 1 BETA Stream A per ADR-025); JSON wrapper schema {api_key, from_email, from_name} OR plain string; Wave br-4 Bucket A GAP-508 Phase 2/3"
+  recovery_window_in_days = 7
+  tags                    = { Name = "${var.project_name}-resend-api-key" }
+}
+
+resource "aws_secretsmanager_secret_version" "resend_api_key" {
+  secret_id     = aws_secretsmanager_secret.resend_api_key.id
+  secret_string = random_password.resend_api_key_placeholder.result
+
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
+}
+
 # --- Encryption master key (32 bytes base64) ---
 # GAP-450 Option B: lifecycle ignore_changes — same rationale as random_password.jwt above.
 resource "random_password" "encryption_raw" {

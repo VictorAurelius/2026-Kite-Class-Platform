@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+  service:
+    image: example/service:latest
+    environment:
+      EMAIL_PROVIDER: resend
+      AWS_SES_FROM_EMAIL: noreply@kitehub.me

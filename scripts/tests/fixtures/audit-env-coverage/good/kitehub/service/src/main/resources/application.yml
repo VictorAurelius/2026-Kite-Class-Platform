@@ -1,0 +1,5 @@
+# Fixture: good config — suspect default WITH production override
+spring:
+  email:
+    provider: ${EMAIL_PROVIDER:mock}
+    from: ${AWS_SES_FROM_EMAIL:noreply@localhost}

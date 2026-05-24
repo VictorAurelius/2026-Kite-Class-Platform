@@ -33,7 +33,7 @@ Nguồn dữ liệu chính thức duy nhất liệt kê mọi reference env-var 
 | 5 | email | `AWS_SES_FROM_EMAIL` | `kitehub-email/application.yml:35` | noreply@localhost | docker-compose env | 🆕 Just-added (GAP-508 P0) | Production: noreply@kitehub.me |
 | 6 | email | `AWS_SES_FROM_NAME` | `kitehub-email/application.yml:36` | "Local Dev Platform" | docker-compose env | 🆕 Just-added (GAP-508 P0) | Production: "KiteHub Beta" |
 | 7 | email | `MANAGEMENT_HEALTH_MAIL_ENABLED` | (Spring Boot default true) | true | docker-compose env | ✅ Overridden (GAP-506 Sub-B) | Production: false (Resend HTTP, not SMTP) |
-| 8 | email | `RESEND_API_KEY` | `kitehub-email/application.yml` (Resend block) | empty | fetch-secrets.sh → /etc/kite/.env | ❌ **MISSING** | **Phase 2 follow-up:** populate AWS Secrets Manager + extend fetch-secrets.sh to pull |
+| 8 | email | `RESEND_API_KEY` | `kitehub-email/application.yml` (Resend block) | empty | fetch-secrets.sh → /etc/kite/.env (Wave 81+ PR pulls qua `fetch_secret resend-api-key`) | 🟡 **PARTIAL — IaC parity DONE, live verify pending** | **Wave br-4 Bucket A (2026-05-24):** declared trong `infrastructure/terraform-aws/secrets.tf` (`random_password.resend_api_key_placeholder` + `aws_secretsmanager_secret.resend_api_key` + `aws_secretsmanager_secret_version.resend_api_key` với `lifecycle ignore_changes = [secret_string]` cho post-apply manual override) closing IaC drift per GAP-508 Phase 2/3 (mirrors jwt-challenge precedent Wave 81 GAP-509 / Wave 105 GAP-717). IAM grant via wildcard `${var.project_name}/${var.environment}/*` pattern trong iam.tf:54 (no edit needed). `scripts/fetch-secrets.sh` lines 88-113 đã wire pull this secret on EC2 boot (GAP-572 dual schema JSON wrapper hoặc plain string). Post AWS account 906286017800 restore (GAP-612 unblock): run `terraform apply` → creates placeholder secret → manual override via AWS console với real Resend API key JSON `{"api_key":"re_<real>","from_email":"noreply@kitehub.me","from_name":"KiteHub Beta"}`. Live verify deferred GAP-NEW-resend-live-verify-post-restore (Wave br-5+) per `local-fix-production-parity-check.md` §3.2 follow-up. |
 | 9 | branding | `CDN_DOMAIN` | `kitehub-branding/application.yml:158` | localhost:9100 | docker-compose env | ❌ Missing | Phase 1 BETA assets served via Vercel; revisit if/when CDN provisioned |
 | 10 | all kitehub-* | `SPRING_DATASOURCE_URL` | various | jdbc:postgresql://localhost:5433/... | fetch-secrets.sh → /etc/kite/.env | ✅ Overridden | RDS endpoint via secret |
 | 11 | all kitehub-* | `SPRING_RABBITMQ_HOST` | various | localhost | fetch-secrets.sh writes SPRING_RABBITMQ_HOST=kite-rabbitmq | ✅ Overridden | Internal docker host |
@@ -72,39 +72,72 @@ The 4 routes above MUST land in `kitehub/kitehub-gateway/src/main/resources/appl
 
 ## Accepted defaults (Phase 1 BETA)
 
+Per `scripts/audit-env-coverage.sh` `ACCEPTABLE_DEFAULTS` array. Wave br-4 Bucket A expansion (GAP-508 Phase 3) — 13 vars total, each row có rationale citing phase / ADR / GAP. Eliminated 10 prior false positives, audit baseline 0 missing 18 accepted.
+
 | Var | Default | Rationale |
 |-----|---------|-----------|
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | http://localhost:4318 | No OTel collector deployed Phase 1 BETA (GAP-115 backlog) |
-| `AI_OLLAMA_BASE_URL` | http://localhost:11434 | AI deferred Phase 2 per ADR-026 |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | http://localhost:4318 | No OTel collector deployed Phase 1 BETA per GAP-115 backlog |
+| `AI_OLLAMA_BASE_URL` | http://localhost:11434 | AI deferred Phase 2 (ADR-026) |
+| `OPENAI_API_KEY` | sk-mock-key-for-local-testing | AI Phase 2 fallback (kitehub-branding mock OK Phase 1 BETA) |
 | `PAYMENT_RETURN_URL` / `PAYMENT_NOTIFY_URL` | localhost | Payment deferred Phase 1.5 per release-1-deploy-plan |
 | `SMTP_HOST` / `SMTP_PORT` | kite-mailhog / 1025 | Resend HTTP API used (per ADR-025), SMTP path inactive |
-| `S3_ENDPOINT` | http://localhost:9000 | Phase 1 BETA may not use S3 directly; revisit if branding asset upload added |
+| `S3_ENDPOINT` | http://localhost:9000 | Phase 1 BETA uses native AWS S3 (no endpoint override); MinIO local-dev only |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | mock | Production uses EC2 instance profile via IMDSv2 (no static key per `agent-aws-access.md`); branding mock OK Phase 1 BETA |
+| `CDN_DOMAIN` | localhost:9100 | Phase 1 BETA assets via Vercel; CDN deferred (GAP-371 backlog) |
 | `DATABASE_ADMIN_URL` / `DATABASE_MASTER_*` | localhost | Admin bootstrap path; production uses managed RDS, admin SQL via psql direct |
+
+### Spring-relaxed binding aliases (Wave br-4 Bucket A — eliminate audit false positives)
+
+Spring auto-resolves these pairs — `${VAR:default}` ở yml binds tới override mechanism qua alias:
+
+| Yml reference | Alias actually overridden | Path |
+|---|---|---|
+| `${DATABASE_URL:...}` | `SPRING_DATASOURCE_URL` | fetch-secrets.sh writes RDS connection string |
+| `${RABBITMQ_HOST:localhost}` | `SPRING_RABBITMQ_HOST` | fetch-secrets.sh writes `kite-rabbitmq` |
+| `${SPRING_REDIS_HOST:localhost}` | `SPRING_DATA_REDIS_HOST` | fetch-secrets.sh writes `kite-redis` |
+| `${STORAGE_S3_ENDPOINT:...}` | `S3_ENDPOINT` | accepted-default per row above (Phase 1 BETA scope) |
+
+Script `is_overridden()` function handles alias detection automatically — both alias mappings + accepted-default fallback.
 
 ## Phase 2/3 actions
 
-### Phase 2 — RESEND_API_KEY provisioning (GAP-508 Phase 2)
+### Phase 2 — RESEND_API_KEY provisioning (GAP-508 Phase 2) — 🟡 PARTIAL Wave br-4
 
-**Status:** ❌ MISSING in production (verified 2026-05-13 via `docker exec kitehub-email env | grep RESEND`).
+**Status update (2026-05-24, Wave br-4 Bucket A):** IaC + script + audit code paths shipped (PARTIAL ~90%). Live verify blocked GAP-612 AWS account 906286017800 suspended.
 
-Plan (when ready):
-1. Provision Resend account + verify domain `kitehub.me` (DNS DKIM/SPF/DMARC)
-2. Generate Resend API key
-3. Store in AWS Secrets Manager: `aws secretsmanager create-secret --name kitehub/production/resend-api-key --secret-string "<key>"`
-4. Extend `scripts/fetch-secrets.sh` to pull this secret + write `RESEND_API_KEY=...` to /etc/kite/.env
-5. Re-deploy → kitehub-email reads key on boot
-6. Live verify: `docker exec kitehub-email env | grep RESEND_API_KEY` non-empty
-7. Test send: POST /api/v1/auth/request-beta-access → check Resend dashboard for delivery + user inbox
+Done Wave br-4:
+1. ✅ Terraform IaC declaration trong `infrastructure/terraform-aws/secrets.tf` (placeholder version với `lifecycle ignore_changes = [secret_string]`)
+2. ✅ IAM grant via existing wildcard `${var.project_name}/${var.environment}/*` (iam.tf:54 — no edit needed)
+3. ✅ `scripts/fetch-secrets.sh` pull line (Wave 81+ existing, dual schema JSON wrapper hoặc plain string per GAP-572)
+4. ✅ Registry row 8 updated (status PARTIAL — IaC parity DONE, live verify pending)
 
-Blocks: Plan 1 self-test Bước 5 (user receives invite email + clicks link).
+Pending Wave br-5+ (post-AWS-restore, GAP-NEW-resend-live-verify-post-restore):
+5. ⏳ Run `terraform apply` once AWS account restored → creates empty placeholder secret
+6. ⏳ Provision Resend account + verify domain `kitehub.me` (DNS DKIM/SPF/DMARC)
+7. ⏳ Generate real Resend API key
+8. ⏳ Manual override via AWS console: Secrets Manager → kitehub/production/resend-api-key → Retrieve secret value → Set new value → JSON `{"api_key":"re_<real>","from_email":"noreply@kitehub.me","from_name":"KiteHub Beta"}`
+9. ⏳ Re-deploy → kitehub-email reads key on boot
+10. ⏳ Live verify: `docker exec kitehub-email env | grep RESEND_API_KEY` non-empty
+11. ⏳ Test send: POST /api/v1/auth/request-beta-access → check Resend dashboard for delivery + user inbox
 
-### Phase 3 — CI gate (GAP-508 Phase 3)
+Blocks: Plan 1 self-test Bước 5 (user receives invite email + clicks link). Post-AWS-restore unblock window ≤24h.
 
-When registry stabilizes (~7 days post-rule-creation per `incident-to-rule-pipeline.md` premature-rule guard):
-1. Add `.github/workflows/script-quality.yml` job `env-coverage`
-2. Run `bash scripts/audit-env-coverage.sh` on PRs touching `application*.yml`
-3. FAIL build if scan FAIL
-4. Reviewer-checklist line in PR template
+### Phase 3 — CI gate (GAP-508 Phase 3) — ✅ DONE Wave br-4 Bucket A (WARN-mode initially)
+
+Shipped 2026-05-24 (Wave br-4 Bucket A):
+1. ✅ Added `.github/workflows/quality-rules-skills.yml` job `env-coverage` (`name: "Production env-var coverage audit (WARN initially — Wave br-4 Bucket A GAP-508 Phase 3)"`)
+2. ✅ Path triggers: `kitehub/*/src/main/resources/application*.yml`, `kiteclass/*/src/main/resources/application*.yml`, `docker-compose.production.yml`, `scripts/fetch-secrets.sh`, `scripts/audit-env-coverage.sh`, `scripts/tests/test-audit-env-coverage.sh`, `scripts/tests/fixtures/audit-env-coverage/**`
+3. ✅ Fixture self-test runs first (3 fixtures: known good + known false-positive + known missing-override)
+4. ✅ Real audit runs WARN-mode (exit 0 always, log warning if FAIL)
+5. ⏳ HARD STOP escalation Phase 4 — ≥7 ngày sau merge per `incident-to-rule-pipeline.md` premature-rule guard
+
+### Phase 4 — HARD STOP escalation (deferred ≥7 ngày sau Wave br-4 Bucket A merge)
+
+When repository state stabilizes:
+1. Remove `set +e` / `|| true` wrappers trong env-coverage job
+2. Audit FAIL → CI blocks PR
+3. Reviewer-checklist line in PR template (`.github/PULL_REQUEST_TEMPLATE.md`)
+4. Track follow-up gap GAP-NEW-env-coverage-hard-stop-escalation (Wave br-5+ post-stabilization)
 
 ## Update workflow
 
