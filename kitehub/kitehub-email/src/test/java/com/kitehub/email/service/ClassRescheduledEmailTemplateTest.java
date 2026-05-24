@@ -62,6 +62,10 @@ class ClassRescheduledEmailTemplateTest {
         ctx.put("newEndDateFormatted", "Thứ Ba, 07/07/2026");
         ctx.put("reasonDisplayName", "Giáo viên ốm/bận đột xuất");
         ctx.put("reasonNotes", "Cô giáo Trần Thị Hồng phụ trách lớp xin nghỉ ốm 1 tuần.");
+        // Bucket E refactor — PersonaToneResolver injects personaGreeting (PARENT persona = very formal).
+        // In production ClassRescheduledEmailService.buildTemplateContext() sets này qua resolver;
+        // direct render test inject manually để verify fragment renders correctly.
+        ctx.put("personaGreeting", "Kính gửi quý phụ huynh,");
 
         // When
         EmailTemplateRenderer.RenderedBodies result = renderer.render(
@@ -72,7 +76,7 @@ class ClassRescheduledEmailTemplateTest {
         assertThat(html).contains("Lớp Anh ngữ 5A1");
         assertThat(html).contains("Trung tâm Anh ngữ Sky Education");
 
-        // Greeting parent persona "Kính gửi quý phụ huynh," (very formal) — inline fallback Bucket D
+        // Greeting parent persona "Kính gửi quý phụ huynh," (very formal) — via fragment Bucket E
         assertThat(html).contains("Kính gửi quý phụ huynh,");
 
         // VN long-date format — "Thứ Hai, DD/MM/YYYY"
@@ -108,6 +112,7 @@ class ClassRescheduledEmailTemplateTest {
         ctx.put("newEndDateFormatted", "Thứ Hai, 07/07/2026");
         ctx.put("reasonDisplayName", "Mất điện / mất Internet");
         ctx.put("reasonNotes", null);
+        ctx.put("personaGreeting", "Kính gửi quý phụ huynh,");
 
         // When
         EmailTemplateRenderer.RenderedBodies result = renderer.render(

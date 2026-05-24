@@ -27,9 +27,11 @@
     <h1 th:text="|Thông báo đổi lịch lớp học — ${tenantName}|">Thông báo đổi lịch lớp học</h1>
   </div>
   <div class="body">
-    <!-- Greeting fallback inline (Wave beta-readiness-4 Bucket D). Bucket E sẽ refactor consume
-         _shared/persona-tone partial cho persona-specific greeting matrix. Parent persona = very formal. -->
-    <p class="greeting">Kính gửi quý phụ huynh,</p>
+    <!-- Greeting fragment consume _shared/persona-tone (Wave beta-readiness-4 Bucket E refactor).
+         PersonaToneResolver injects personaGreeting variable based on recipient persona.
+         Default Parent persona = "Kính gửi quý phụ huynh," (very formal per vn-localization-audit-checklist §2).
+         Single source of truth — eliminates inline greeting hardcoding cross-bucket. -->
+    <th:block th:replace="~{_shared/persona-tone :: greeting}" />
 
     <p>
       Chúng tôi xin trân trọng thông báo rằng lớp học

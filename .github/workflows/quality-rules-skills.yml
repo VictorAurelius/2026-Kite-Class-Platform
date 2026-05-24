@@ -30,6 +30,12 @@ on:
       - 'scripts/audit-env-coverage.sh'
       - 'scripts/tests/test-audit-env-coverage.sh'
       - 'scripts/tests/fixtures/audit-env-coverage/**'
+      - 'scripts/audit-vn-sample-fixtures.sh'
+      - 'scripts/tests/test-audit-vn-sample-fixtures.sh'
+      - 'scripts/tests/fixtures/audit-vn-sample-fixtures/**'
+      - 'kitehub/**/src/test/**'
+      - 'kiteclass/**/src/test/**'
+      - 'documents/**/*.md'
       - 'kitehub/*/src/main/resources/application*.yml'
       - 'kiteclass/*/src/main/resources/application*.yml'
       - 'docker-compose.production.yml'
@@ -277,5 +283,36 @@ jobs:
           set -e
           if [ $RC -ne 0 ]; then
             echo "::warning::audit-env-coverage WARN — see script output. Wave br-4 Bucket A initial WARN-mode; HARD STOP target ≥7 ngày post-merge per GAP-508 Phase 4."
+          fi
+          exit 0
+
+
+  vn-sample-fixtures:
+    name: VN sample fixture audit (WARN initially — Wave br-4 Bucket E GAP-NEW-email-tone-matrix)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run fixture self-test (3 fixtures — clean / known-bad / acceptable-english)
+        run: |
+          # Per .claude/rules/vn-localization-audit-checklist.md §2 row 7 + Wave br-4 Bucket E scope.
+          # 3-fixture self-test guards against regex regression on English placeholder detection
+          # vs legitimate code-switching (JWT/HTTP/brand names per dev-readable-doc-language §4).
+          bash scripts/tests/test-audit-vn-sample-fixtures.sh
+
+      - name: Run audit-vn-sample-fixtures on real repo (WARN initially)
+        run: |
+          # WARN-mode initially per Wave br-4 Bucket E scope + incident-to-rule-pipeline §3.1
+          # tightened legitimate-deferral conditions. After repository stabilizes (~30-day grace
+          # post-merge, target 2026-06-23), revisit HARD STOP escalation per recurrence + NLP
+          # classifier availability. Script always exits 0 in v1.0.0; warning surface only.
+          bash scripts/audit-vn-sample-fixtures.sh
+          RC=$?
+          if [ $RC -ne 0 ]; then
+            echo "::warning::audit-vn-sample-fixtures WARN — see script output. Wave br-4 Bucket E initial WARN-mode; HARD STOP target ~2026-06-23 (30-day grace)."
           fi
           exit 0
