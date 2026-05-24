@@ -33,6 +33,7 @@ import {
   recordConsent as apiRecordConsent,
   revokeConsent as apiRevokeConsent,
 } from './api';
+import { applyAnalyticsConsent } from './analytics';
 
 const TWELVE_MONTHS_MS = 365 * 24 * 60 * 60 * 1000;
 
@@ -125,6 +126,7 @@ export function useConsent(
           marketing: categories.marketing === true,
         },
       };
+      applyAnalyticsConsent(next.categories);
       writeConsent(next, storageKey);
       setState(next);
       syncRecord(next);
@@ -144,12 +146,16 @@ export function useConsent(
         marketing: false,
       },
     };
+    applyAnalyticsConsent(next.categories);
     writeConsent(next, storageKey);
     setState(next);
     syncRecord(next);
   }, [storageKey, syncRecord]);
 
   const revoke = useCallback(() => {
+    // Wave br-4 Bucket B (GAP-353b): SDK lifecycle handler fires SYNCHRONOUSLY
+    // BEFORE async work — PDPL Art 14 revoke ≤5s effective.
+    applyAnalyticsConsent({ essential: true, analytics: false, marketing: false });
     clearConsent(storageKey);
     setState(null);
     if (syncToServer) {
