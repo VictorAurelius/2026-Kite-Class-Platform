@@ -148,13 +148,40 @@ public class Course extends BaseEntity {
     private Integer totalSessions;
 
     /**
-     * Course price in VND.
+     * Course price in VND (LEGACY — deprecated Wave br-4 per BR-COURSE-PRICING-001..003).
      * Must be >= 0. NULL or 0 means free course.
      * Precision: 15 digits total, 2 decimal places.
      * Example: 5000000.00 (5 million VND)
+     *
+     * @deprecated Use {@link #pricingModel} + {@link #unitPrice} per Wave br-4 ADR-035.
+     *             Migration V67 backfills existing courses to PricingModel.COURSE_PACKAGE.
      */
+    @Deprecated
     @Column(name = "price", precision = 15, scale = 2)
     private BigDecimal price;
+
+    /**
+     * Pricing model taxonomy per Wave br-4 ADR-035 (VN TT Anh ngữ market norm).
+     * Values: PER_HOUR | MONTHLY | COURSE_PACKAGE | FREE.
+     * Default COURSE_PACKAGE (V67 backfill cho existing rows).
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pricing_model", nullable = false, length = 32)
+    private PricingModel pricingModel = PricingModel.COURSE_PACKAGE;
+
+    /**
+     * Unit price in VND, semantics depends on {@link #pricingModel}:
+     * <ul>
+     *   <li>PER_HOUR: đồng/giờ (vd 200.000đ/giờ)</li>
+     *   <li>MONTHLY: đồng/tháng (vd 1.500.000đ/tháng)</li>
+     *   <li>COURSE_PACKAGE: đồng/khoá (vd 8.000.000đ/khoá, 1-shot)</li>
+     *   <li>FREE: 0</li>
+     * </ul>
+     * Precision: 19 digits total, 2 decimal places (V67 migration).
+     * Used by InvoiceGenerationService per BR-COURSE-PRICING-001..004.
+     */
+    @Column(name = "unit_price", precision = 19, scale = 2)
+    private BigDecimal unitPrice = BigDecimal.ZERO;
 
     /**
      * Current lifecycle status of the course.
