@@ -1,5 +1,5 @@
 ---
-gap-id: GAP-NEW-email-tone-matrix
+gap-id: GAP-736
 title: META cross-cut email tone matrix Mustache/Thymeleaf helper + VN sample fixture audit
 priority: P1 META
 status: 🟢 DONE
