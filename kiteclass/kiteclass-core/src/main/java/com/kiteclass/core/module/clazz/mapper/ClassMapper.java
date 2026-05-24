@@ -32,6 +32,7 @@ public interface ClassMapper {
      * @return Class entity (not yet persisted)
      */
     @Mapping(target = "courseId", ignore = true)
+    @Mapping(target = "teacherId", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "currentEnrolled", ignore = true)
     @Mapping(target = "classCode", ignore = true)

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.ClassStatus;
 import com.kiteclass.core.common.constant.CourseStatus;
 import com.kiteclass.core.common.context.TenantContext;
+import com.kiteclass.core.common.context.UserContext;
 import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
@@ -102,6 +103,15 @@ public class ClassServiceImpl implements ClassService {
         clazz.setStatus(ClassStatus.SCHEDULED);
         clazz.setCurrentEnrolled(0);
         clazz.setInstanceId(tenantId);
+
+        // GAP-727: Set teacher_id from caller's user context.
+        // AuthorizationBean.hasAccessToClass() query depends on this — without it,
+        // every teacher is locked out of their own classes (NOT IDOR, full lock-out).
+        // Nullable when caller is ADMIN (no single teacher owner — explicit assignment via separate endpoint).
+        Long callerUserId = UserContext.getCurrentUser();
+        if (callerUserId != null) {
+            clazz.setTeacherId(callerUserId);
+        }
 
         if (clazz.getLocationType() == null) {
             clazz.setLocationType(Class.LocationType.IN_PERSON);

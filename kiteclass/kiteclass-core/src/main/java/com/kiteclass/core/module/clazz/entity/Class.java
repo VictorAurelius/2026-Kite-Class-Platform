@@ -63,6 +63,23 @@ public class Class extends BaseEntity {
     private Long courseId;
 
     /**
+     * Foreign key to the teacher who owns this class.
+     *
+     * <p>Set at creation time from the caller's user context (X-User-Id when the caller is a TEACHER).
+     * Drives {@code AuthorizationBean.hasAccessToClass()} guard — teacher can only access classes
+     * where {@code teacher_id = currentUserId}.
+     *
+     * <p>Schema: column already exists in V1__create_core_schema.sql line 158 (`teacher_id BIGINT REFERENCES teachers(id)`).
+     * Pre-GAP-727 the entity did NOT map this column → JPA never persisted it → every teacher locked out (NOT IDOR, full lock-out).
+     *
+     * <p>Nullable for legacy classes created before GAP-727 fix + classes created by ADMIN role (no single teacher owner).
+     *
+     * @since GAP-727 Wave beta-readiness-2 Bucket B
+     */
+    @Column(name = "teacher_id")
+    private Long teacherId;
+
+    /**
      * Class name.
      * Required, 5-200 characters.
      * Example: "English B1 - Evening Mon-Wed-Fri"
