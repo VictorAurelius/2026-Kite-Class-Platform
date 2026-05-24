@@ -1,8 +1,9 @@
 ---
 title: Wave audit-1 — Post-wave audit suite cho Wave beta-readiness-4
-status: draft
+status: complete
 created: 2026-05-25
 updated: 2026-05-25
+closed_at: 2026-05-25
 wave: 1
 tag_primary: audit
 tags_secondary: [post-wave, security, business-logic, api-contract, ops-readiness, beta-readiness-4]
