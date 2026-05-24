@@ -41,6 +41,13 @@ public interface ClassMapper {
     @Mapping(target = "completedAt", ignore = true)
     @Mapping(target = "cancelledAt", ignore = true)
     @Mapping(target = "recurrenceRule", ignore = true)
+    // Wave br-4 Bucket D V68 reschedule audit columns — set by ClassService.reschedule(), not via create mapper
+    @Mapping(target = "rescheduledByUserId", ignore = true)
+    @Mapping(target = "rescheduledAt", ignore = true)
+    @Mapping(target = "previousStartDate", ignore = true)
+    @Mapping(target = "previousEndDate", ignore = true)
+    @Mapping(target = "rescheduleReasonCategory", ignore = true)
+    @Mapping(target = "rescheduleReasonNotes", ignore = true)
     Class toEntity(CreateClassRequest request);
 
     /**
