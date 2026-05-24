@@ -10,7 +10,27 @@
 
 ## 🎯 Current Status Snapshot (2026-05-23 — **Wave thesis-1 SHIPPED 6 bucket parallel + META `wave-tag-numbering-convention` v1.0.0** — first tag-based wave: PR #1748 plan + #1749 B figure-curation (GAP-651) + #1750 A citation-extract (GAP-647 + GAP-655) + #1751 F multi-tenant demo script-only (GAP-652) + #1752 C defense deck Reveal.js 40 slide + 20 Q&A + 15-phút demo + practice (GAP-653) + #1753 E cohort plan doc-only (GAP-623) + #1754 D V1 docx polish + execute mode + rubric 76/100 C+ PASS (GAP-689 DONE + GAP-687 PARTIAL Phase 1+2). Defer Wave thesis-2 chờ GAP-612 AWS restore: GAP-648 NFR + GAP-649 beta + GAP-687 Phase 3. Wall-clock ~3.5h actual vs ~5-6h estimate (6.9x speedup). Defense readiness 8-8.5đ ship-state + Wave 105 SHIPPED 5/5 buckets + hotfix — Persona Walk + P0 Security Cluster (Beta-Readiness) closed: Bucket E #1727 Security P0 5 real-code bugs + Bucket C #1723 Teacher per-class authz @authz bean + Bucket B #1725 Owner walk + IMPORT_DATA reframe + 3 follow-up gaps GAP-720/721/722 + Bucket D #1724 Parent VietQR idempotency + Zalo OA stub + Bucket A #1726 Anonymous XSS + idempotency + Hotfix #1728 cross-bucket duplicate @PreAuthorize + @Component("authz") bean collision (AuthorizationHelper broken-on-Postgres deleted, AuthorizationBean retained) + Wave 105 Bucket E0 META PR #1721 squash b007e955 META P0 force-multiplier + Wave 104 SHIPPED 4-of-5 buckets fix follow-up bugs PR #1712 squash b5ec57d6 + Wave 103 SHIPPED 6-bucket local self-test + Wave 102.9 batch 2 + Wave 102.8.1 + Wave 102.8 + Wave 102.7.6 thesis V1 + Wave 102.7.5..1 + Wave 102.6 + Wave 102.5..1 + Wave 102 META + Wave 102 GAP-688)
 
-### 🚀 Next Action 2026-05-24 — Wave 108-N draft via 3 outside-in audit running background (persona walkthrough + VN edu SaaS benchmark + failure-mode matrix) per `outside-in-coverage-trigger.md` §3 mandate cho user goal "fix hết gaps phase 1 + RST phase 1" (188 active backlog, 16 RST flows remaining). Audits complete → draft chunked roadmap PR (5-7 sub-wave) per realistic Phase 1 closure timeline. GAP-612 AWS restoration Day 7 (KYC docs uploaded) còn block live verify cluster + Wave 105 audit suite refresh + Wave 107 3 gap flip DONE candidates (GAP-543/657/659 PARTIAL 95%). + Wave 105 post-merge audit suite (combined với Wave 104.5+105 backlog per GAP-716 deadline 2026-05-25; 3-axis: business-logic + api-contract + ops-readiness)
+### 🚀 Next Action 2026-05-24 — Wave beta-readiness-2 plan PR expand 4→7 bucket (V2 amendment scope + 4 new gaps surfaced Wave br-1). Realistic ~2-3 phiên execution. Scope: TS-3 session reschedule (GAP-291) + OnboardingWizard persona picker + Batch grade entry + ZaloPay full + GAP-730 Idempotency POST re-spawn + GAP-727 hasAccessToClass fix + GAP-728/729 authz cluster. May split sang br-2a + br-2b nếu too big. + Wave 105 post-merge audit suite (GAP-716 deadline 2026-05-25; 3-axis: business-logic + api-contract + ops-readiness) + GAP-612 AWS Day 7+ restoration tracker still blocking live verify cluster
+
+### 🎉 Wave beta-readiness-1 SHIPPED 2026-05-24 — Security cluster + enrollment capacity greenfield (3/4 buckets executed)
+
+5 PR merged ~5h actual session compute. First tag-based execution wave per `wave-tag-numbering-convention.md` §2.
+
+| PR | Bucket | Scope |
+|---|---|---|
+| #1761 | A XSS sanitize | DOMPurify on TemplateFullscreen+TemplateGrid SVG ('use client') + JsonLd escapeScriptContent; 6 SSG server pages reverted (isomorphic-dompurify jsdom SSG incompat); 11 unit tests pass |
+| #1762 | B Enrollment capacity | V65 migration max_students+current_enrolled+CHECK; PESSIMISTIC_WRITE lock; concurrent IT 10 PASS+10 CLASS_FULL |
+| #1763 | D Authz audit | CrossTenantAuthzTest 7/7 + CrossUserAuthzTest 9/9; 3 critical findings surfaced |
+| #1764 | 4 gap follow-ups | GAP-727/728/729/730 filed |
+| #1765 | Cleanup | 2 unused imports |
+
+**Bucket C deferred via GAP-730** (Idempotency POST narrow — agent blocked content filter; re-spawn Wave br-2).
+
+**3 Phase 1 BETA findings surfaced from D audit:** GAP-727 P0 (hasAccessToClass broken — full teacher lock-out, not IDOR) + GAP-728 P1 (TestSecurityConfig missing @EnableMethodSecurity) + GAP-729 P1 (11/19 controllers no per-resource authz guard).
+
+Phase 1 BETA gate CANNOT clear yet — needs Wave br-2 ship Idempotency + hasAccessToClass + per-resource authz cluster.
+
+
 
 ### 🎉 Wave 107 SHIPPED 2026-05-24 — Đợt hybrid RST + 3 agent fix cụm thư parallel
 

@@ -7,7 +7,8 @@ tags_secondary: [security, greenfield-enrollment, p0-cluster, phase-1-closure]
 counter: 1
 created: 2026-05-24
 date_launch: 2026-05-24
-status: draft
+closed_at: 2026-05-24
+status: complete
 audience: dev
 gaps:
   - GAP-NEW-XSS-DOMPurify
@@ -210,4 +211,39 @@ Per `gap-done-discipline.md` §3 Option B — drop "live verify production" AC +
 
 ## 8. Log
 
+- **2026-05-24 (SHIPPED — closure):** All buckets except C executed trong ~5h actual session compute. 5 PR shipped:
+  - **#1761** Bucket A XSS sanitize — DOMPurify on TemplateFullscreen + TemplateGrid SVG (2 'use client') + JsonLd escapeScriptContent; 6 SSG server pages reverted to trust boundary (isomorphic-dompurify jsdom SSG incompatibility); 11 unit tests pass
+  - **#1762** Bucket B Enrollment capacity greenfield — V65 migration max_students + current_enrolled + CHECK constraints; ClassRepository.findByIdForEnrollmentWithLock PESSIMISTIC_WRITE; concurrent IT 20 threads → 10 PASS + 10 CLASS_FULL
+  - **#1763** Bucket D Authz audit — CrossTenantAuthzTest 7/7 + CrossUserAuthzTest 9/9 (2 @Disabled documenting findings); 3 critical findings surfaced
+  - **#1764** 4 follow-up gaps GAP-727..730 — Bucket D 3 findings + Bucket C defer
+  - **#1765** Cleanup 2 unused imports — HttpStatus + DataIntegrityViolationException
+  - **(Bucket C deferred via GAP-730)** — Idempotency POST narrow (signup + enrollment + beta-request); agent execution blocked do content filter policy mid-implementation; re-spawn Wave beta-readiness-2 với narrow scope
+
+  ## Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` §3)
+
+  | # | Plan §3 Scope item | Verdict | Follow-up |
+  |---|---|---|---|
+  | 1 | Bucket A XSS sanitize 9 dangerouslySetInnerHTML + DOMPurify | ✅ DONE (revised: 3 sites DOMPurify, 6 SSG reverted to trust boundary) | PR #1761 merged |
+  | 2 | Bucket B Enrollment capacity model greenfield | ✅ DONE | PR #1762 merged |
+  | 3 | Bucket C Idempotency POST narrow (signup + enrollment + beta-request) | ❌ NOT-IMPLEMENTED — agent blocked content filter | GAP-730 P0 (Wave beta-readiness-2 Bucket re-spawn) |
+  | 4 | Bucket D Per-resource authz A01 OWASP audit + cross-tenant IT | ✅ DONE (audit pass; 3 findings filed) | PR #1763 merged + GAP-727/728/729 filed PR #1764 |
+  | 5 | NEW findings surfaced this wave | ⚠️ 3 follow-up gaps filed | GAP-727 P0 hasAccessToClass broken (Wave br-2 Bucket E) + GAP-728 P1 TestSecurityConfig @EnableMethodSecurity + GAP-729 P1 11/19 controllers no per-resource guard |
+
+  ## Phase 1 BETA gate impact
+
+  - **VERIFIED Phase 1 BETA blockers shipped:** XSS sanitize (A2 elevated) + Enrollment capacity (A4 elevated) + Authz audit (A5 partial)
+  - **VERIFIED Phase 1 BETA blockers DEFERRED:** Idempotency POST narrow (GAP-730 Wave br-2) + 3 D-surfaced findings (GAP-727/728/729 Wave br-2/3)
+  - **CANNOT clear Phase 1 BETA gate until:** Wave br-2 ship Idempotency + hasAccessToClass fix + per-resource authz cluster
+
+  ## Đầu vào Wave beta-readiness-2
+
+  Original V2 amendment scope (TS-3 + persona picker + batch grade + ZaloPay) PLUS 4 new gaps from this wave:
+  - GAP-730 P0 Idempotency POST narrow (Bucket re-spawn)
+  - GAP-727 P0 hasAccessToClass broken
+  - GAP-728 P1 TestSecurityConfig
+  - GAP-729 P1 11/19 controllers authz audit
+
+  Wave br-2 expand 4 → 7 bucket. May split sang br-2a + br-2b nếu scope too big.
+
+  Reviewer: @nguyenvankiet (solo-dev — wave closure cascade merge)
 - **2026-05-24 (draft):** Wave beta-readiness-1 plan PR draft. V2 audit verified 4 P0 bucket scope (drop V1 PaymentController bucket — already fixed Wave 105 Bucket E0). State-check per §2.6 confirmed 9 XSS sites + enrollment module no capacity + idempotency pattern reusable từ Wave 105 Bucket D. Spawn sequence revised: A+D parallel ngay, B sequential first (blocks C), C sau B merge. Estimated 1-2 phiên ~10h. Per `wave-tag-numbering-convention.md` §2 first tag-based execution wave.
