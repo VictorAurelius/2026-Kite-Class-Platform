@@ -16,6 +16,17 @@ spring:
     hibernate:
       ddl-auto: create-drop
 
+  # Increased pool size for concurrent integration tests.
+  # EnrollmentCapacityConcurrentTest runs 20 threads × up to 3 concurrent
+  # transactions per thread (enrollment TX + GradeEventListener REQUIRES_NEW
+  # + EnrollmentEventListener REQUIRES_NEW). 50 connections avoids HikariCP
+  # exhaustion under load while staying within Testcontainers PostgreSQL limits.
+  datasource:
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      connection-timeout: 30000
+
 # Internal API secret for tests (fail-fast validation requires a non-blank value)
 internal:
   api:

@@ -126,13 +126,13 @@ class EnrollmentServiceTest {
                 .thenReturn(Optional.of(testClass));
         when(enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(1L, 1L))
                 .thenReturn(Optional.empty());
-        when(enrollmentRepository.countByClassIdAndStatusAndDeletedFalse(
-                1L, EnrollmentStatus.ACTIVE))
-                .thenReturn(0L);
+        // testClass.currentEnrolled=0, maxStudents=30 → capacity check passes
         when(enrollmentMapper.toEntity(createRequest))
                 .thenReturn(testEnrollment);
         when(enrollmentRepository.save(any(Enrollment.class)))
                 .thenReturn(testEnrollment);
+        when(classRepository.save(any(Class.class)))
+                .thenReturn(testClass);
         when(enrollmentMapper.toResponse(testEnrollment))
                 .thenReturn(testResponse);
 
@@ -146,6 +146,8 @@ class EnrollmentServiceTest {
         assertThat(result.getFinalAmount()).isEqualByComparingTo(new BigDecimal("900.00"));
 
         verify(enrollmentRepository).save(any(Enrollment.class));
+        // Verify currentEnrolled counter was incremented (classRepository.save called)
+        verify(classRepository).save(any(Class.class));
     }
 
     @Test
@@ -199,16 +201,15 @@ class EnrollmentServiceTest {
     @Test
     @DisplayName("Should throw exception when class is full")
     void shouldThrowExceptionWhenClassIsFull() {
-        // Arrange
+        // Arrange — set currentEnrolled == maxStudents so capacity check fails
+        testClass.setCurrentEnrolled(testClass.getMaxStudents()); // 30 == 30
+
         when(studentRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testStudent));
         when(classRepository.findByIdForEnrollmentWithLock(1L))
                 .thenReturn(Optional.of(testClass));
         when(enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(1L, 1L))
                 .thenReturn(Optional.empty());
-        when(enrollmentRepository.countByClassIdAndStatusAndDeletedFalse(
-                1L, EnrollmentStatus.ACTIVE))
-                .thenReturn(30L); // Class is at capacity
 
         // Act & Assert
         assertThatThrownBy(() -> enrollmentService.enrollStudent(createRequest))
@@ -245,11 +246,17 @@ class EnrollmentServiceTest {
     void shouldWithdrawStudentSuccessfully() {
         // Arrange
         testEnrollment.setStatus(EnrollmentStatus.ACTIVE);
+        testClass.setCurrentEnrolled(1); // non-zero so decrement fires
 
         when(enrollmentRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testEnrollment));
         when(enrollmentRepository.save(any(Enrollment.class)))
                 .thenReturn(testEnrollment);
+        // Withdraw path decrements currentEnrolled on the Class row
+        when(classRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(testClass));
+        when(classRepository.save(any(Class.class)))
+                .thenReturn(testClass);
         when(enrollmentMapper.toResponse(any(Enrollment.class)))
                 .thenReturn(testResponse);
 
@@ -261,6 +268,8 @@ class EnrollmentServiceTest {
         verify(enrollmentRepository).save(argThat(enrollment ->
                 enrollment.getStatus() == EnrollmentStatus.WITHDRAWN
         ));
+        // Verify counter was decremented
+        verify(classRepository).save(argThat(clazz -> clazz.getCurrentEnrolled() == 0));
     }
 
     @Test

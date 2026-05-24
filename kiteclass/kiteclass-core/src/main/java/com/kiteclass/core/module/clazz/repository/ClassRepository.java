@@ -34,27 +34,28 @@ public interface ClassRepository extends JpaRepository<Class, Long> {
     Optional<Class> findByIdAndDeletedFalse(Long id);
 
     /**
-     * Finds a class by ID with {@code OPTIMISTIC_FORCE_INCREMENT} lock —
-     * Wave 105 Bucket E0 Bug 4 (failure-mode matrix B5) capacity-race guard.
+     * Finds a class by ID with {@code PESSIMISTIC_WRITE} lock —
+     * Wave beta-readiness-1 Bucket B capacity-race guard.
      *
-     * <p>When 2 concurrent {@code POST /api/v1/enrollments} target the same
-     * full class, both transactions:
+     * <p>When N concurrent {@code POST /api/v1/enrollments} target the same
+     * class, all transactions serialize on the DB-level row lock (SELECT FOR UPDATE).
+     * Each transaction in turn:
      * <ol>
-     *   <li>Read same {@code currentEnrolled} value (TOCTOU window)</li>
-     *   <li>Pass the {@code count &lt; maxStudents} check (both see same count)</li>
-     *   <li>INSERT enrollment row + bump {@code current_enrolled}</li>
+     *   <li>Acquires exclusive row lock on the Class row</li>
+     *   <li>Reads the current {@code currentEnrolled} value</li>
+     *   <li>If {@code currentEnrolled < maxStudents}: INSERT enrollment + increment counter</li>
+     *   <li>Else: throws {@code ValidationException("CLASS_FULL")} → HTTP 400</li>
      * </ol>
      *
-     * <p>Without lock, both succeed → capacity overflow.
-     * With {@code OPTIMISTIC_FORCE_INCREMENT}, Hibernate bumps {@code Class.version}
-     * at commit time even when only Enrollment was modified. 2nd commit sees
-     * stale version → {@link jakarta.persistence.OptimisticLockException} →
-     * caller gets 409 (mapped via GlobalExceptionHandler).
+     * <p>Because threads serialize at the DB level, the first {@code maxStudents}
+     * requests succeed and the rest receive CLASS_FULL — no optimistic retry needed.
+     * This guarantees exactly {@code maxStudents} successful enrollments even under
+     * high concurrency.
      *
      * @param id class ID
-     * @return Optional containing class if found and not deleted (with lock)
+     * @return Optional containing class if found and not deleted (with exclusive lock)
      */
-    @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM Class c WHERE c.id = :id AND c.deleted = false")
     Optional<Class> findByIdForEnrollmentWithLock(@Param("id") Long id);
 

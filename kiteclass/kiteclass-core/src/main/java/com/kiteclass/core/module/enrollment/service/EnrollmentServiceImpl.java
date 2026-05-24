@@ -52,10 +52,11 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         Student student = studentRepository.findByIdAndDeletedFalse(request.getStudentId())
                 .orElseThrow(() -> new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) request.getStudentId()));
 
-        // Wave 105 Bucket E0 Bug 4 — failure-mode matrix B5 capacity-race fix.
-        // Use OPTIMISTIC_FORCE_INCREMENT lock so concurrent enrollments into
-        // the same full class race on Class.version: 1 succeeds, 1 throws
-        // OptimisticLockException at commit (mapped to HTTP 409 with retry).
+        // Wave beta-readiness-1 Bucket B — capacity-race fix.
+        // Use PESSIMISTIC_WRITE lock (SELECT FOR UPDATE) so concurrent enrollments
+        // serialize at the DB level: each transaction acquires an exclusive row lock
+        // on the Class row, reads the current counter, and either enrolls or gets
+        // CLASS_FULL. No optimistic retry needed — first maxStudents requests succeed.
         Class clazz = classRepository.findByIdForEnrollmentWithLock(request.getClassId())
                 .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", (Object) request.getClassId()));
 
@@ -68,15 +69,13 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                     request.getStudentId(), request.getClassId());
         }
 
-        // BR-ENROLL-001: Check class capacity
-        long activeEnrollmentCount = enrollmentRepository.countByClassIdAndStatusAndDeletedFalse(
-                request.getClassId(),
-                EnrollmentStatus.ACTIVE
-        );
-
-        if (activeEnrollmentCount >= clazz.getMaxStudents()) {
+        // BR-ENROLL-001: Check class capacity via currentEnrolled counter on the locked Class row.
+        // PESSIMISTIC_WRITE lock (SELECT FOR UPDATE) guarantees that this read-check-increment
+        // sequence is atomic: only one transaction at a time can hold the lock, so the counter
+        // read here reflects the true committed state. If full → CLASS_FULL (400).
+        if (clazz.getCurrentEnrolled() >= clazz.getMaxStudents()) {
             log.warn("Class {} is at full capacity ({}/{})",
-                    request.getClassId(), activeEnrollmentCount, clazz.getMaxStudents());
+                    request.getClassId(), clazz.getCurrentEnrolled(), clazz.getMaxStudents());
             throw new ValidationException("CLASS_FULL",
                     request.getClassId(), clazz.getMaxStudents());
         }
@@ -92,6 +91,12 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
         // BR-ENROLL-003: final_amount calculated automatically in @PrePersist
         Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
+
+        // Increment denormalized counter on Class row. Safe because PESSIMISTIC_WRITE lock
+        // above serializes concurrent enrollers — only one transaction sees and updates
+        // the counter at a time.
+        clazz.setCurrentEnrolled(clazz.getCurrentEnrolled() + 1);
+        classRepository.save(clazz);
 
         log.info("Successfully enrolled student {} in class {} with enrollment ID {}",
                 request.getStudentId(), request.getClassId(), savedEnrollment.getId());
@@ -209,6 +214,20 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
         enrollment.setStatus(EnrollmentStatus.WITHDRAWN);
         Enrollment updated = enrollmentRepository.save(enrollment);
+
+        // Decrement denormalized counter on Class row. Guard against underflow (counter >= 1
+        // before decrement; stale data edge case: log warning and skip decrement).
+        classRepository.findByIdAndDeletedFalse(enrollment.getClassId()).ifPresent(clazz -> {
+            if (clazz.getCurrentEnrolled() > 0) {
+                clazz.setCurrentEnrolled(clazz.getCurrentEnrolled() - 1);
+                classRepository.save(clazz);
+                log.debug("Decremented currentEnrolled for class {} to {}",
+                        clazz.getId(), clazz.getCurrentEnrolled());
+            } else {
+                log.warn("currentEnrolled already 0 for class {} — skipping decrement (data drift?)",
+                        enrollment.getClassId());
+            }
+        });
 
         log.info("Student withdrawn from enrollment {}", id);
 
