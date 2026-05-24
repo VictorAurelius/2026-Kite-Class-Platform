@@ -1,0 +1,33 @@
+{
+  "pr": 1759,
+  "title": "plan(wave-beta-readiness-v2-sync): 3 audit V2 state-checked + roadmap amendment",
+  "branch": "plan/wave-beta-readiness-v2-sync",
+  "created_at": null,
+  "merged_at": "2026-05-24T05:39:32Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-24T12:39:42.736951",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 5,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-78609"
+  }
+}
