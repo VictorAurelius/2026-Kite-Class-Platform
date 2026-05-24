@@ -17,6 +17,8 @@ export {
   revokeConsent as apiRevokeConsent,
 } from './api';
 export type { ConsentApiPayload, ConsentApiRecord } from './api';
+export { applyAnalyticsConsent } from './analytics';
+export type { ConsentMap } from './analytics';
 export type {
   ConsentBannerProps,
   ConsentCategory,
