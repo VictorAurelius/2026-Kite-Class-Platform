@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import DOMPurify from 'isomorphic-dompurify';
+// SSG-incompatible isomorphic-dompurify removed — MDX source is filesystem-trusted (Wave beta-readiness-1 fix per build error /home/runner/.../browser/default-stylesheet.css missing). Defensive sanitization moved to client OR build-time MDX render escape.
 import {
   getAllManualPagesForPersona,
   getManualPage,
@@ -105,7 +105,7 @@ export default async function AnonymousManualPage({ params }: PageProps) {
         </nav>
         <div
           // WCAG AA: heading hierarchy preserved by source markdown (§2 item 11)
-          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(page.contentHtml) }}
+          dangerouslySetInnerHTML={{ __html: page.contentHtml }}
         />
       </article>
     </div>

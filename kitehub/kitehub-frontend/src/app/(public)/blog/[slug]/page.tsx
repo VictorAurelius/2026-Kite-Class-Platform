@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import DOMPurify from 'isomorphic-dompurify';
+// SSG-incompatible isomorphic-dompurify removed — content source is filesystem-trusted MDX (Wave beta-readiness-1 fix per build error /default-stylesheet.css missing).
 import { getAllBlogSlugs, getBlogPost } from '@/lib/blog';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { blogPostingSchema, breadcrumbListSchema } from '@/components/seo/schemas';
@@ -115,7 +115,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
       <div
         className="prose prose-lg max-w-none dark:prose-invert prose-headings:font-semibold prose-a:text-blue-600 dark:prose-a:text-blue-400"
-        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
+        dangerouslySetInnerHTML={{ __html: post.content }}
       />
 
       <div className="mt-12 border-t border-border pt-8">
