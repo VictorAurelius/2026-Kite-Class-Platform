@@ -368,11 +368,35 @@ Solo dev assumption + ~3 sessions/week + ~3-4h/session:
 ## §11 Open items
 
 - [ ] File 7 NEW gap candidates per §6 (GAP-727..733)
-- [ ] Draft Wave beta-readiness-1 plan PR (first sub-wave execution)
-- [ ] Verify PaymentController userId=1L state-check (per §4 ⚠️ verify-at-spawn)
+- [ ] Draft Wave beta-readiness-1 plan PR (first sub-wave execution) — **REVISED scope per §15 state-check**
+- [x] ~~Verify PaymentController userId=1L state-check~~ — **DONE 2026-05-24 §15:** Wave 105 Bucket E0 đã ship fix (`requireUserId()` helper line 47-51); audit M-CARRY claim STALE
 - [ ] Confirm tag-based naming với user: `beta-readiness` OR alternative (`phase-1-closure`, `prod-readiness`, etc.)
 - [ ] Defer / cancel decision: Wave 106 full RST plan (23 flows) — superseded by beta-readiness-6 chunked? Decision needed.
 - [ ] Coordinate với Wave 105 post-merge audit suite deadline 2026-05-25 (GAP-716) — overlap với beta-readiness-5 Bucket E
+- [ ] **META gap candidate: outside-in audit STATE-CHECK failure** — 3 audit shipped 2026-05-24 không apply §2.8 fix-time state-check; 1/5 P0 "critical" claim verified STALE. Need rule extension hoặc audit-spawn-template mandate state-check trên Phase X closure scope.
+
+---
+
+## §15 State-check correction (post-audit verification 2026-05-24)
+
+Per `audit-to-gap-pipeline.md` §2.8 mandate (fix-time state-check), 5 P0-CRITICAL findings from failure-mode matrix verify against current code:
+
+| # | Audit claim | State-check command | Verdict | Wave beta-readiness-1 scope action |
+|---|---|---|---|---|
+| 1 | PaymentController `userId=1L` hardcoded | `grep -n "userId" PaymentController.java line 47-51` | ✅ **ALREADY FIXED Wave 105 Bucket E0** — `Long userId = requireUserId();` extracts from UserContext | **DROP from scope** — audit claim stale |
+| 2 | Stored XSS admin panel | `grep -rn "OutputEncoder\|escape\|sanitize\|HtmlUtils" kitehub/kitehub-admin/src/main/java/` | ⚠️ **0 hits** — no sanitize helpers found; bug likely real | KEEP — but verify scope at spawn |
+| 3 | Idempotency POST mutations (signup + payment + enrollment + beta-request) | `find ... -name "*Idempotency*"` | ⚠️ **PARTIAL** — `PaymentIdempotencyService.java` EXISTS for payment; signup/enrollment/beta-request unverified | KEEP narrow scope (3 controllers excluding payment) |
+| 4 | Enrollment race condition on FULL class | `grep -rn "@Version\|@Lock\|PESSIMISTIC" kiteclass/.../enrollment/` | ⚠️ **0 hits** — no lock mechanism; bug likely real | KEEP |
+| 5 | Per-resource authz A01 OWASP unverified | `grep -c "@PreAuthorize" kiteclass/.../parent/` | ⚠️ **5 occurrences** — partial coverage in parent module | KEEP audit-pass scope |
+
+**Revised Wave beta-readiness-1 scope:** 4 bucket (not 5) — drop PaymentController bucket. Estimated effort reduced ~20%.
+
+**META lesson surfaced:** Outside-in audit agents (this session 2026-05-24) shipped findings WITHOUT applying `audit-to-gap-pipeline.md` §2.8 state-check. 1/5 P0 verified stale. Pattern risk = more stale claims in other findings (M-CARRY GAP-117/127 references; persona "missing" features may already exist).
+
+**Recommend:**
+- Apply §2.8 state-check on all 17 failure-mode + 38 persona findings BEFORE drafting Wave beta-readiness-1..7 plan PRs
+- File META gap to extend audit-spawn-template mandate state-check in audit agent prompts (§11 above)
+- Treat 3 audit findings 2026-05-24 as "scope candidates" not "verified bugs" — verify each before bucket scope finalization
 
 ---
 
