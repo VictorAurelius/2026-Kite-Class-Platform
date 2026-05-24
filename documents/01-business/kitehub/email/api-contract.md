@@ -2,20 +2,22 @@
 audience: dev
 domain: email
 layer: api-contract
-version: 1.0.0
-last-updated: 2026-05-18
-related-gaps: [GAP-657, GAP-659]
+version: 1.1.0
+last-updated: 2026-05-24
+related-gaps: [GAP-657, GAP-659, GAP-662]
 ---
 
 # API Contract — Email Layer
 
 **Scope:** Endpoint surface của `kitehub-email` service. Wave 98 Bucket B1 — 5 critical email types + header policy.
 
-**Base URL:** `http://kitehub-email:8086` (internal); gateway proxy: `/api/email/**`.
+**Base URL:** `http://kitehub-email:8086` (internal); gateway proxy: `/api/platform/emails/**`.
+
+> **Wave beta-readiness-2 Bucket D (GAP-662) — Option B sync:** Doc URL path corrected từ `/api/email/send` (incorrect) → `/api/platform/emails/send` (matches actual `EmailController` `@RequestMapping`). Legacy `/api/platform/emails/*` namespace là Wave 35-ish controller naming experiment; v1 namespace migration (rename → `/api/v1/email/*` per admin Wave 97 pattern) deferred Wave 109+ via GAP-733 follow-up.
 
 ---
 
-## POST /api/email/send
+## POST /api/platform/emails/send
 
 Send transactional email. Provider dispatch theo `email.provider` config (per BR-EMAIL-006).
 
