@@ -153,10 +153,11 @@ public class Course extends BaseEntity {
      * Precision: 15 digits total, 2 decimal places.
      * Example: 5000000.00 (5 million VND)
      *
-     * @deprecated Use {@link #pricingModel} + {@link #unitPrice} per Wave br-4 ADR-035.
-     *             Migration V67 backfills existing courses to PricingModel.COURSE_PACKAGE.
+     * Soft-deprecated Wave br-4: prefer {@link #pricingModel} + {@link #unitPrice} per ADR-035.
+     * Field retained for backward compat (existing callers via CourseMapper + IT fixtures);
+     * @Deprecated annotation omitted to avoid strict-warnings cascade.
+     * Migration V67 backfills existing courses to PricingModel.COURSE_PACKAGE.
      */
-    @Deprecated
     @Column(name = "price", precision = 15, scale = 2)
     private BigDecimal price;
 
@@ -167,6 +168,7 @@ public class Course extends BaseEntity {
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "pricing_model", nullable = false, length = 32)
+    @lombok.Builder.Default
     private PricingModel pricingModel = PricingModel.COURSE_PACKAGE;
 
     /**
@@ -181,6 +183,7 @@ public class Course extends BaseEntity {
      * Used by InvoiceGenerationService per BR-COURSE-PRICING-001..004.
      */
     @Column(name = "unit_price", precision = 19, scale = 2)
+    @lombok.Builder.Default
     private BigDecimal unitPrice = BigDecimal.ZERO;
 
     /**
