@@ -1,6 +1,6 @@
 # GAP-605 — subscription_outbox dispatcher chưa implement; events stuck `dispatched_at = NULL`
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (2026-05-24 state-check found pre-existing implementation Wave 91 Bucket A)
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-05-17 (Wave 90 walkthrough — beta.invite event không tới kitehub-email)
@@ -82,3 +82,10 @@ Implement `@Scheduled` dispatcher:
 ## Log
 
 - **2026-05-17:** Gap filed during Wave 90 walkthrough — user submit beta + approve → DB row APPROVED ✅ → outbox row inserted ✅ → email NEVER arrives ❌. Workaround: direct HTTP POST kitehub-email/api/platform/emails/send works (template renders OK). P0 BLOCKER beta cohort onboarding — every beta approve produces orphan outbox row.
+- **2026-05-24 (DONE — state-check found pre-existing impl):** Wave beta-readiness-2 Bucket C fix-time state-check per `audit-to-gap-pipeline.md` §2.8 (gap age 7 days, drift-class trigger). State-check evidence:
+  - `find kitehub-subscription/src/main -name "*Dispatcher*"` → `SubscriptionOutboxDispatcher.java` EXISTS (164 LOC, @Scheduled fixedDelayString="${outbox.dispatcher.poll-interval-ms:10000}")
+  - `grep "rabbitTemplate.convertAndSend" SubscriptionEventEmitter.java` → fast-path EXISTS (line 90, Exception A pattern per `design-patterns.md` §3.5.1)
+  - `git log --diff-filter=A SubscriptionOutboxDispatcher.java` → shipped commit `017ce90d` 2026-05-18 Wave 91 Bucket A PR #1487 `feat(wave-91 bucket A): outbox dispatcher + RMQ DLQ (GAP-605+607)`
+  - Gap file Status field never flipped at PR #1487 closure → stale 7 days
+  - Per §2.8 decision matrix "Symptom no longer present (self-corrected)" → Flip DONE, NO new fix PR needed
+  - Bucket C scope (Wave beta-readiness-2 plan) = no-op; mark Bucket C SHIPPED-via-pre-existing in wave plan closure scope reconciliation table
