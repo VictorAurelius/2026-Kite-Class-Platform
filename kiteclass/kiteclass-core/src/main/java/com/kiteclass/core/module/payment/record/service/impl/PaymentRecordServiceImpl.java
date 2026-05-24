@@ -51,7 +51,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService {
 
         // Fetch invoice + cross-tenant defense (BR-PAYMENT-METHOD-003 / OWASP A01)
         Invoice invoice = invoiceRepository.findById(invoiceId)
-                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", invoiceId));
+                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", (Object) invoiceId));
 
         if (!currentTenant.equals(invoice.getInstanceId())) {
             log.warn("Cross-tenant payment record attempt: invoiceId={} belongs to tenant={}, request from tenant={}",
@@ -99,7 +99,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService {
 
         // Defense: verify invoice belongs to tenant before listing payments (OWASP A01)
         Invoice invoice = invoiceRepository.findById(invoiceId)
-                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", invoiceId));
+                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", (Object) invoiceId));
         if (!currentTenant.equals(invoice.getInstanceId())) {
             throw new PermissionDeniedException("PAYMENT_RECORD_CROSS_TENANT_DENIED");
         }
