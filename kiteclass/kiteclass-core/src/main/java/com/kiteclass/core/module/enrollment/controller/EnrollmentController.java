@@ -1,7 +1,12 @@
 package com.kiteclass.core.module.enrollment.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.EnrollmentStatus;
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.dto.ApiResponse;
+import com.kiteclass.core.common.idempotency.IdempotencyScope;
+import com.kiteclass.core.common.idempotency.IdempotencyService;
 import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
 import com.kiteclass.core.module.enrollment.dto.EnrollmentResponse;
 import com.kiteclass.core.module.enrollment.dto.UpdateEnrollmentStatusRequest;
@@ -24,9 +29,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * REST controller for enrollment management.
@@ -51,24 +60,131 @@ import org.springframework.web.bind.annotation.RestController;
 public class EnrollmentController {
 
     private final EnrollmentService enrollmentService;
+    private final IdempotencyService idempotencyService;
+    private final ObjectMapper objectMapper;
 
     /**
      * Enroll a student in a class.
      *
+     * <p>Wave beta-readiness-2 Bucket A — Idempotency-Key header (optional)
+     * dedupes accidental double-submit (GAP-730). When the header is present
+     * and a previous request with the same {@code (tenantId, key, ENROLLMENT)}
+     * triple already completed, the cached response is returned without a
+     * second enrollment INSERT — prevents 2 rows for 1 user intent.
+     *
      * @param request enrollment request data
-     * @return created enrollment
+     * @param idempotencyKey optional {@code Idempotency-Key} header (UUID/ksuid/ulid)
+     * @return created enrollment (cache miss) or cached response (replay)
      */
     @PostMapping
     @Operation(summary = "Enroll a student in a class",
-               description = "Creates a new enrollment. Validates capacity and prevents duplicates.")
+               description = "Creates a new enrollment. Validates capacity and prevents duplicates. "
+                       + "Optional Idempotency-Key header dedupes replay per GAP-730.")
     public ResponseEntity<ApiResponse<EnrollmentResponse>> enrollStudent(
-            @Valid @RequestBody CreateEnrollmentRequest request) {
+            @Valid @RequestBody CreateEnrollmentRequest request,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
         log.info("POST /api/v1/enrollments - Enrolling student {} in class {}",
                 request.getStudentId(), request.getClassId());
 
+        Optional<String> maybeKey = idempotencyService.validKeyOrEmpty(idempotencyKey);
+        if (maybeKey.isEmpty()) {
+            // No idempotency header — legacy path, run handler directly.
+            EnrollmentResponse response = enrollmentService.enrollStudent(request);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponse.success(response, "Student enrolled successfully"));
+        }
+
+        // Idempotency-Key present — wrap handler with lookup → execute → record.
+        String key = maybeKey.get();
+        UUID tenantId = TenantContext.getCurrentTenant();
+        IdempotencyScope scope = IdempotencyScope.ENROLLMENT;
+        String requestHash = IdempotencyService.hashRequest(serializeRequestForHash(request));
+
+        Optional<IdempotencyService.CachedResponse> existing =
+                idempotencyService.findExisting(tenantId, key, scope);
+        if (existing.isPresent()) {
+            IdempotencyService.CachedResponse cached = existing.get();
+            log.info("Idempotency replay: scope=ENROLLMENT key={} returning cached status={}",
+                    key, cached.responseStatus());
+            ApiResponse<EnrollmentResponse> cachedBody =
+                    deserializeCachedBody(cached.responseBody());
+            return ResponseEntity.status(cached.responseStatus())
+                    .header("X-Idempotent-Replay", "true")
+                    .body(cachedBody);
+        }
+
+        // Cache miss — execute the normal handler.
         EnrollmentResponse response = enrollmentService.enrollStudent(request);
+        ApiResponse<EnrollmentResponse> apiResponse =
+                ApiResponse.success(response, "Student enrolled successfully");
+
+        // Record the mapping. If the race was lost, re-lookup the winner.
+        String serializedBody = serializeResponseBody(apiResponse);
+        boolean recorded = idempotencyService.recordRequest(
+                tenantId, key, scope, /* userId */ null,
+                requestHash, HttpStatus.CREATED.value(), serializedBody);
+
+        if (!recorded) {
+            // Race lost — return the winner's cached response.
+            IdempotencyService.CachedResponse winner = idempotencyService
+                    .findExisting(tenantId, key, scope)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Idempotency race inconsistent: insert failed but lookup empty"));
+            ApiResponse<EnrollmentResponse> winnerBody =
+                    deserializeCachedBody(winner.responseBody());
+            return ResponseEntity.status(winner.responseStatus())
+                    .header("X-Idempotent-Replay", "true")
+                    .body(winnerBody);
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(response, "Student enrolled successfully"));
+                .header("X-Idempotent-Replay", "false")
+                .body(apiResponse);
+    }
+
+    /**
+     * Serializes a {@link CreateEnrollmentRequest} into a canonical string
+     * for the {@code request_hash} column. Includes only the fields that
+     * determine the enrollment identity so payload reordering doesn't break
+     * replay detection.
+     */
+    private String serializeRequestForHash(CreateEnrollmentRequest request) {
+        // Canonical fixed-order serialization — used as input to SHA-256 so
+        // a replay with the same body produces the same hash. Includes ALL
+        // request fields so reusing the key with a different body is detected.
+        return "studentId=" + request.getStudentId()
+                + "|classId=" + request.getClassId()
+                + "|tuitionAmount=" + request.getTuitionAmount()
+                + "|discountPercent=" + request.getDiscountPercent()
+                + "|notes=" + request.getNotes();
+    }
+
+    private String serializeResponseBody(ApiResponse<EnrollmentResponse> body) {
+        try {
+            return objectMapper.writeValueAsString(body);
+        } catch (JsonProcessingException ex) {
+            // Serialization failure here is a programming error — log and continue
+            // without caching so the request still completes.
+            log.warn("Idempotency response serialization failed; replay will miss: {}",
+                    ex.getMessage());
+            return null;
+        }
+    }
+
+    private ApiResponse<EnrollmentResponse> deserializeCachedBody(String json) {
+        if (json == null) {
+            // Cached body never serialized — return a thin success envelope so
+            // the client still sees a coherent shape.
+            return ApiResponse.success(null, "Idempotent replay (body not cached)");
+        }
+        try {
+            return objectMapper.readValue(json,
+                    objectMapper.getTypeFactory().constructParametricType(
+                            ApiResponse.class, EnrollmentResponse.class));
+        } catch (JsonProcessingException ex) {
+            log.warn("Idempotency cached body deserialization failed: {}", ex.getMessage());
+            return ApiResponse.success(null, "Idempotent replay (body corrupted)");
+        }
     }
 
     /**
