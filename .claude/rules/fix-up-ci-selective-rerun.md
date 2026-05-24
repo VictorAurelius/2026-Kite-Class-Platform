@@ -9,9 +9,9 @@ audience: dev
 
 **Priority:** 🟠 MANDATORY — CI throughput + wait-time governance
 **Version:** 1.0.0
-**Created:** 2026-05-25
-**Last-Reviewed:** 2026-05-25
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (reviewer-checklist + worked self-test on Wave br-4 Bucket E fix-up incident 2026-05-25) per `rule-change-process.md` §6.5 Enforcement Parity Mandate; no constraint loosening — codifies previously-implicit "wait full CI" anti-pattern surfaced by user 2026-05-25)
+**Created:** 2026-05-24
+**Last-Reviewed:** 2026-05-24
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (reviewer-checklist + worked self-test on Wave br-4 Bucket E fix-up incident 2026-05-24) per `rule-change-process.md` §6.5 Enforcement Parity Mandate; no constraint loosening — codifies previously-implicit "wait full CI" anti-pattern surfaced by user 2026-05-24)
 **Applies to:** Every fix-up commit pushed to an existing PR branch where the previous CI run had ≥1 specific check FAIL + ≥1 check PASS. Out-of-scope: initial PR push (all checks needed); rebase/squash that changes many files (broad re-test warranted)
 
 ---
@@ -22,7 +22,7 @@ audience: dev
 
 Re-running 30 checks khi chỉ fix 1 = waste CI minutes + waste agent wait time. Most checks didn't see new code paths trong fix-up commit; rerunning gives same result.
 
-Surface by user 2026-05-25 sau Wave br-4 Bucket E fix-up (#1785 commit `9c30fe70` — chỉ touch gap-status.csv + gap file rename, but ALL 31 CI checks re-ran).
+Surface by user 2026-05-24 sau Wave br-4 Bucket E fix-up (#1785 commit `9c30fe70` — chỉ touch gap-status.csv + gap file rename, but ALL 31 CI checks re-ran).
 
 ---
 
@@ -141,7 +141,7 @@ Future: pre-push hook scan fix-up diff vs workflow path triggers → suggest can
 
 ---
 
-## 6. Worked self-test — Wave br-4 Bucket E fix-up #1785 (2026-05-25)
+## 6. Worked self-test — Wave br-4 Bucket E fix-up #1785 (2026-05-24)
 
 **Bối cảnh:** PR #1785 first CI run had 30 PASS + 1 FAIL = `Gap status CSV`. Fix-up commit `9c30fe70` touched:
 - `documents/04-quality/gaps/gap-status.csv` (+1 row)
@@ -183,11 +183,11 @@ Rule này dùng `paths:` frontmatter (`.github/workflows/**` + self) — path-sc
 - **`admin-merge-discipline.md`** — sister rule cho admin merge với override trailer
 - **`release-fix-retry-budget.md`** v1.1.0 §4 — pivot matrix; rule này extends với cancel-unrelated discipline
 - **`meta-gap-priority.md`** §3 — META P1 force-multiplier (1 chuẩn → mọi fix-up subsequent auto-comply)
-- **`incident-to-rule-pipeline.md`** v1.1 — applied 5-stage: Detect ✓ (user-flagged 2026-05-25 Bucket E fix-up wait) → Classify ✓ (no existing rule covers selective CI cancel; sister rules cover related-but-different) → Rule+Enforce ✓ (this file + reviewer-checklist + worked self-test §6 paired same PR per §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§6 retroactive on Bucket E fix-up — rule fires correctly + counterfactual eliminates ~28 unrelated re-runs) → Retro Log ✓ (§9 below)
+- **`incident-to-rule-pipeline.md`** v1.1 — applied 5-stage: Detect ✓ (user-flagged 2026-05-24 Bucket E fix-up wait) → Classify ✓ (no existing rule covers selective CI cancel; sister rules cover related-but-different) → Rule+Enforce ✓ (this file + reviewer-checklist + worked self-test §6 paired same PR per §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§6 retroactive on Bucket E fix-up — rule fires correctly + counterfactual eliminates ~28 unrelated re-runs) → Retro Log ✓ (§9 below)
 - **`rule-change-process.md`** §6.5 Enforcement Parity Mandate — rule + reviewer-checklist + worked self-test §6 paired same PR
 
 ---
 
 ## 9. Log
 
-- **2026-05-25 (v1.0.0):** Rule created in response to user-flagged 2026-05-25 Wave br-4 Bucket E fix-up #1785 commit `9c30fe70` — fix-up touched 2 files (gap-status.csv + GAP-NEW rename) but ALL 31 CI checks re-ran (waste ~28 unrelated). User direction "thêm rule chỉ check CI fail xem pass chưa, còn CI khác, không ảnh hưởng thì cancel để tránh phí time wait". Per `incident-to-rule-pipeline.md` v1.1 5-stage applied: Detect ✓ → Classify ✓ (no existing rule mandates selective CI cancel; `docs-only-pr-auto-merge.md` covers post-CI-green flow; `release-fix-retry-budget.md` covers retry budget not selective scope) → Rule+Enforce ✓ (this file + reviewer-checklist + worked self-test §6 + rules-index.csv row) → Self-Test ✓ (§6 retroactive on Bucket E fix-up — counterfactual: ~28 cancels save ~20-30 min CI minutes + ~8 min agent wait time) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint adds previously-uncovered CI throughput discipline; no constraint loosening; existing PR fix-up flows grandfathered; rule applies prospectively từ Wave br-5+ forward). Detector wiring (§5.5 pre-push hook) deferred per `incident-to-rule-pipeline.md` v1.1 §3.1 tightened defer conditions (heuristic complexity moderate + recurrence count 1 + honest defer documented inline); reviewer-checklist + worked self-test + memory mirror sufficient cho v1.0.0.
+- **2026-05-24 (v1.0.0):** Rule created in response to user-flagged 2026-05-24 Wave br-4 Bucket E fix-up #1785 commit `9c30fe70` — fix-up touched 2 files (gap-status.csv + GAP-NEW rename) but ALL 31 CI checks re-ran (waste ~28 unrelated). User direction "thêm rule chỉ check CI fail xem pass chưa, còn CI khác, không ảnh hưởng thì cancel để tránh phí time wait". Per `incident-to-rule-pipeline.md` v1.1 5-stage applied: Detect ✓ → Classify ✓ (no existing rule mandates selective CI cancel; `docs-only-pr-auto-merge.md` covers post-CI-green flow; `release-fix-retry-budget.md` covers retry budget not selective scope) → Rule+Enforce ✓ (this file + reviewer-checklist + worked self-test §6 + rules-index.csv row) → Self-Test ✓ (§6 retroactive on Bucket E fix-up — counterfactual: ~28 cancels save ~20-30 min CI minutes + ~8 min agent wait time) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint adds previously-uncovered CI throughput discipline; no constraint loosening; existing PR fix-up flows grandfathered; rule applies prospectively từ Wave br-5+ forward). Detector wiring (§5.5 pre-push hook) deferred per `incident-to-rule-pipeline.md` v1.1 §3.1 tightened defer conditions (heuristic complexity moderate + recurrence count 1 + honest defer documented inline); reviewer-checklist + worked self-test + memory mirror sufficient cho v1.0.0.
