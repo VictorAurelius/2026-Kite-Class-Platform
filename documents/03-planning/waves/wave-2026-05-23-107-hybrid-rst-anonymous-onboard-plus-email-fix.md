@@ -1,10 +1,11 @@
 ---
 title: Đợt 107 hybrid — RST Mảng A + B-onboard (cục bộ) + fix cụm thư
-status: draft
+status: complete
 created: 2026-05-23
-updated: 2026-05-23
+updated: 2026-05-24
+closed_at: 2026-05-24
 waves: [107]
-gaps: [GAP-543, GAP-657, GAP-659]
+gaps: [GAP-543, GAP-657, GAP-659, GAP-726]
 audience: dev
 ---
 
@@ -215,4 +216,29 @@ Bạn là agent fix GAP-XXX trong worktree /tmp/wt-XXX-...
 
 ## 8. Log
 
+- **2026-05-24 (SHIPPED — closure):** All 4 buckets merged in ~3h. 4 PR shipped:
+  - **#1745** FIX-659 per-tone variants + invite-staff.html + 12 unit tests (clean CI 24/24) — merged 04:27 UTC
+  - **#1744** FIX-543 email content audit + VN tone pass 5 templates + 1 test assertion fix (welcome greeting + email-verification verifyUrl) — merged 03:56 UTC
+  - **#1747** FIX-657 List-Unsubscribe + Reply-To + render verify @SpringBootTest (saveChanges() fix) — merged 03:58 UTC
+  - **#1746** RST walk 7 flows (Mảng A 3/3 + Mảng B-onboard 3/4) + GAP-726 file (B2 wizard blank) — merged 04:02 UTC (admin override: Vercel kiteclass expected per no-vercel-references; E2E class-lifecycle pre-existing flake = GAP-726 root cause)
+
+  ## Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` §3)
+
+  | # | Plan §3 Scope item | Verdict | Follow-up |
+  |---|---|---|---|
+  | 1 | RST-A walk 3 luồng anonymous KH | ✅ DONE | PR #1746; report `documents/04-quality/audits/persona-review/2026-05-23-wave-107-rst-a-b-onboard.md` |
+  | 2 | RST-B walk 4 luồng owner-onboard KC | ⚠️ PARTIAL 3/4 | B2 fail → GAP-726 P1 (Đợt 108 fix) |
+  | 3 | FIX-543 audit 5 templates + VN tone | ⚠️ PARTIAL 95% (Wave 98 80% + Wave 107 15%) | Live verify post-GAP-612 AWS restore |
+  | 4 | FIX-657 plain-text + List-Unsubscribe + Reply-To + render verify | ⚠️ PARTIAL 95% (Wave 98 80% + Wave 107 15%) | Manual 2-client render verify moved Out-of-scope post-GAP-612 |
+  | 5 | FIX-659 per-tone variants + staff-invite | ⚠️ PARTIAL 95% (Wave 98 80% + Wave 107 15%) | Send-site wiring Wave 108+; live verify post-GAP-612 |
+
+  3 gap PARTIAL 95% giữ trạng thái per `gap-done-discipline.md` §3 Option A (live verify deferred; AC reframe + Out-of-scope đã ghi trong gap files).
+
+  ## Đầu vào Đợt 108
+
+  - GAP-726 P1 (KC `/branding/wizard` blank + SSR ECONNREFUSED 8080) — Đợt 108 fix
+  - 3 outside-in audit spawned 04:00 UTC cho Phase 1 BETA closure scope: persona walkthrough + VN edu SaaS benchmark + failure-mode matrix → feed Đợt 108-N draft
+  - 16 RST flows remaining (B5-B13 CRUD/vận-hành + Mảng C + D3+D4)
+
+  Reviewer: @nguyenvankiet (solo-dev — wave closure post 4-PR cascade merge)
 - **2026-05-23 (nháp):** Soạn nháp sau khi user chốt hướng hybrid qua AskUserQuestion. Phiên 2026-05-23 đã ship 4 PR + 1 audit; Đợt 107 là phiên kế tiếp khi PR plan này gộp.
