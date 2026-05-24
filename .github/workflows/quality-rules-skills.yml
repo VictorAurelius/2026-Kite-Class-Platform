@@ -27,6 +27,13 @@ on:
       - 'scripts/check-rules-index-csv.sh'
       - 'scripts/render-env-vars.sh'
       - 'scripts/check-unresolved-env-vars.sh'
+      - 'scripts/audit-env-coverage.sh'
+      - 'scripts/tests/test-audit-env-coverage.sh'
+      - 'scripts/tests/fixtures/audit-env-coverage/**'
+      - 'kitehub/*/src/main/resources/application*.yml'
+      - 'kiteclass/*/src/main/resources/application*.yml'
+      - 'docker-compose.production.yml'
+      - 'scripts/fetch-secrets.sh'
       - 'scripts/fixtures/rule-frontmatter/**'
       - '.claude/skills/quality/skill-conventions-check/data/fixtures/**'
       - '.claude/rules/_examples/env-reference-self-test*.md'
@@ -243,3 +250,32 @@ jobs:
           diff -u .claude/rules/_examples/env-reference-self-test-expected-production.md /tmp/env-reference-rendered.md
 
 
+  env-coverage:
+    name: Production env-var coverage audit (WARN initially — Wave br-4 Bucket A GAP-508 Phase 3)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run fixture self-test (3 fixtures — good / false-positive / missing-override)
+        run: |
+          # Per `production-env-config-registry.md` §7.1 + Wave br-4 Bucket A scope.
+          # 3-fixture self-test guards against ACCEPTABLE_DEFAULTS / is_overridden() regression.
+          bash scripts/tests/test-audit-env-coverage.sh
+
+      - name: Run audit-env-coverage on real repo (WARN initially)
+        run: |
+          # WARN-mode initially per Wave br-4 Bucket A scope. After repository state
+          # stabilizes (≥7 ngày sau merge per `incident-to-rule-pipeline.md` premature-rule guard),
+          # remove `|| true` to escalate to HARD STOP. See GAP-508 Phase 4 follow-up.
+          set +e
+          bash scripts/audit-env-coverage.sh
+          RC=$?
+          set -e
+          if [ $RC -ne 0 ]; then
+            echo "::warning::audit-env-coverage WARN — see script output. Wave br-4 Bucket A initial WARN-mode; HARD STOP target ≥7 ngày post-merge per GAP-508 Phase 4."
+          fi
+          exit 0

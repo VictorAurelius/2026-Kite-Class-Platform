@@ -1,0 +1,5 @@
+# Fixture: suspect default WITHOUT production override (regression catch)
+spring:
+  email:
+    provider: ${EMAIL_PROVIDER:mock}
+    from: ${AWS_SES_FROM_EMAIL:noreply@localhost}
