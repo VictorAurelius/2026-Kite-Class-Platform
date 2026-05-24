@@ -1,0 +1,33 @@
+{
+  "pr": 1776,
+  "title": "chore(wave-beta-readiness-2-closure): SHIPPED 4/4 buckets \u2014 scope reconciliation + wave-history + ROADMAP",
+  "branch": "wave/beta-readiness-2-closure",
+  "created_at": null,
+  "merged_at": "2026-05-24T11:23:42Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-24T18:23:46.800953",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 3,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-83689"
+  }
+}
