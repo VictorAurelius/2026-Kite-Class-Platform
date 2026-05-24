@@ -1,0 +1,33 @@
+{
+  "pr": 1790,
+  "title": "plan(wave-audit-1): post-wave audit suite Wave beta-readiness-4 \u2014 4 buckets parallel",
+  "branch": "wave/audit-1-post-wave-br-4-suite",
+  "created_at": null,
+  "merged_at": "2026-05-24T18:30:41Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-25T01:30:52.939760",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 1,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-73940"
+  }
+}
