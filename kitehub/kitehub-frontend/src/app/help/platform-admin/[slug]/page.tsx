@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+// SSG-incompatible isomorphic-dompurify removed — MDX source is filesystem-trusted (Wave beta-readiness-1 fix per build error /home/runner/.../browser/default-stylesheet.css missing). Defensive sanitization moved to client OR build-time MDX render escape.
 import {
   getAllManualPagesForPersona,
   getManualPage,

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+// SSG-incompatible isomorphic-dompurify removed — content source is filesystem-trusted MDX (Wave beta-readiness-1 fix per build error /default-stylesheet.css missing).
 import { getAllBlogSlugs, getBlogPost } from '@/lib/blog';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { blogPostingSchema, breadcrumbListSchema } from '@/components/seo/schemas';
