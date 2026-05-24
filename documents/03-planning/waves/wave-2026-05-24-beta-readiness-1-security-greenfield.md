@@ -1,9 +1,11 @@
 ---
 title: Wave beta-readiness-1 — Security cluster + enrollment capacity greenfield
 wave: 1
+waves: [beta-readiness-1]
 tag_primary: beta-readiness
 tags_secondary: [security, greenfield-enrollment, p0-cluster, phase-1-closure]
 counter: 1
+created: 2026-05-24
 date_launch: 2026-05-24
 status: draft
 audience: dev
