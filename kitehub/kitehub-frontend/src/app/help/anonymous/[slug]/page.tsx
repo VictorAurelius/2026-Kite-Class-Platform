@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import DOMPurify from 'isomorphic-dompurify';
 import {
   getAllManualPagesForPersona,
   getManualPage,
@@ -104,7 +105,7 @@ export default async function AnonymousManualPage({ params }: PageProps) {
         </nav>
         <div
           // WCAG AA: heading hierarchy preserved by source markdown (§2 item 11)
-          dangerouslySetInnerHTML={{ __html: page.contentHtml }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(page.contentHtml) }}
         />
       </article>
     </div>

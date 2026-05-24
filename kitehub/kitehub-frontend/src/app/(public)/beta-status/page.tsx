@@ -11,6 +11,7 @@
 import Link from 'next/link';
 import { remark } from 'remark';
 import html from 'remark-html';
+import DOMPurify from 'isomorphic-dompurify';
 import { getBetaStatus } from '@/lib/api/beta-status';
 
 export const revalidate = 300; // 5 minutes
@@ -165,7 +166,7 @@ export default async function BetaStatusPage() {
       <article
         data-testid="beta-status-content"
         className="prose prose-slate max-w-none dark:prose-invert"
-        dangerouslySetInnerHTML={{ __html: state.contentHtml ?? '' }}
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(state.contentHtml ?? '') }}
       />
 
       <section

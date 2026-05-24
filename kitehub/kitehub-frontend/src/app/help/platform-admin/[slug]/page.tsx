@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import DOMPurify from 'isomorphic-dompurify';
 import {
   getAllManualPagesForPersona,
   getManualPage,
@@ -101,7 +102,7 @@ export default async function PlatformAdminManualPage({ params }: PageProps) {
           / <span className="text-slate-900">{page.title}</span>
         </nav>
         <div
-          dangerouslySetInnerHTML={{ __html: page.contentHtml }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(page.contentHtml) }}
         />
       </article>
     </div>

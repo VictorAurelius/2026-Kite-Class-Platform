@@ -19,9 +19,18 @@
 
 import { CheckCircle2, ArrowLeft, Check, Smartphone, Tablet, Monitor } from 'lucide-react';
 import { useState } from 'react';
+import DOMPurify from 'isomorphic-dompurify';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import type { TemplateDescriptor } from './TemplateGrid';
+
+// SVG sanitization config: allow SVG elements + presentation attributes,
+// strip <script> and on* event handlers (XSS via SVG attack surface).
+const SVG_PURIFY_CONFIG: DOMPurify.Config = {
+  USE_PROFILES: { svg: true, svgFilters: true },
+  FORBID_TAGS: ['script', 'use'],
+  FORBID_ATTR: ['xlink:href', 'href'],
+};
 
 export type ResponsiveDevice = 'mobile' | 'tablet' | 'desktop';
 
@@ -173,7 +182,7 @@ export function TemplateFullscreen({
             >
               <div
                 className="w-full h-full"
-                dangerouslySetInnerHTML={{ __html: template.svg }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(template.svg, SVG_PURIFY_CONFIG) }}
               />
             </div>
 

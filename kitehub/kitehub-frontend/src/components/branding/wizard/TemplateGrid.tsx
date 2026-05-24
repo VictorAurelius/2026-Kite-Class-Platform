@@ -3,6 +3,9 @@
 // ---------------------------------------------------------------------------
 // TemplateGrid — Step 5: 6 SVG template previews filtered by audience + tone.
 //
+// XSS mitigation: all SVG passed to dangerouslySetInnerHTML is sanitized via
+// DOMPurify with SVG profile (strip <script> + on* handlers). See Bucket A.
+//
 // Per `ai-branding-guidelines.md` §2.2 the wizard MUST show ≥6 visual previews
 // (templates), and per the rework plan §4 Bucket C the filtering by selected
 // audience + tone MUST actually narrow the catalogue (v1 audit caught the
@@ -16,6 +19,15 @@
 // ---------------------------------------------------------------------------
 
 import { CheckCircle2 } from 'lucide-react';
+import DOMPurify from 'isomorphic-dompurify';
+
+// SVG sanitization config: allow SVG elements + presentation attributes,
+// strip <script> and on* event handlers.
+const SVG_PURIFY_CONFIG: DOMPurify.Config = {
+  USE_PROFILES: { svg: true, svgFilters: true },
+  FORBID_TAGS: ['script', 'use'],
+  FORBID_ATTR: ['xlink:href', 'href'],
+};
 
 /**
  * Template descriptor mirroring the 6 spec SVGs in
@@ -268,7 +280,7 @@ export function TemplateGrid({
           >
             <div
               className="aspect-video w-full"
-              dangerouslySetInnerHTML={{ __html: t.svg }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(t.svg, SVG_PURIFY_CONFIG) }}
             />
             <div className="p-3">
               <div className="flex items-center justify-between">
