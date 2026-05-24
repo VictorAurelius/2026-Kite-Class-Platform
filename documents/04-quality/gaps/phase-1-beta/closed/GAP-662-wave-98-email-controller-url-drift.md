@@ -59,3 +59,7 @@ Edit `documents/01-business/kitehub/email/api-contract.md` §Endpoint → `/api/
 - **Carry-forward:** GAP-637 admin v1 @PreAuthorize + GAP-638 6 endpoints undocumented (Wave 92 carry, similar 3-way pattern)
 - **Rule:** `contract-first-for-cross-layer.md` §3 cross-layer drift
 - **Rule:** `audit-to-gap-pipeline.md` §2.5 state-check at filing time (B1 agent missed)
+
+## Log
+
+- **2026-05-24 (DONE via Wave beta-readiness-2 Bucket D PR #1771):** Option B selected over Option A do scope risk (10+ files multi-service rename). api-contract.md base URL + endpoint path corrected `/api/email/send` → `/api/platform/emails/send` matching actual `EmailController @RequestMapping("/api/platform/emails")`. Option A v1 namespace migration deferred → GAP-733 follow-up (P2 Wave 109+). Status flip OPEN → DONE; `git mv` to `closed/` per `gap-folder-organization.md` v2.0.0 §3.3. PR #1771 merged commit 1ad7e31b.
