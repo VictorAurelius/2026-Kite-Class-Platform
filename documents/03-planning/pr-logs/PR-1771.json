@@ -1,0 +1,37 @@
+{
+  "pr": 1771,
+  "title": "fix(wave-beta-readiness-2-bucket-d-contract-drift): GAP-662 doc sync Option B + GAP-663 PreferencesControllerIT",
+  "branch": "wave/beta-readiness-2-bucket-d-contract-drift",
+  "created_at": null,
+  "merged_at": "2026-05-24T10:15:55Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "api-contract-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-24T17:16:07.514352",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 6,
+        "java_files": 0,
+        "test_files": 1,
+        "business_docs": true,
+        "missing_audits": [
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/3",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-35796"
+  }
+}

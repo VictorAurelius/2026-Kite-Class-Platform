@@ -83,3 +83,7 @@ Add comment: `<!-- Intentional non-HttpOnly: banner state is FE display preferen
 - **Sibling P0:** GAP-662 EmailController URL drift (3-way drift family)
 - **Rule:** `pre-handoff-self-test-completeness.md` §2.1 auth-gated flow verify
 - **Rule:** `audit-to-gap-pipeline.md` §2.5 state-check at filing time
+
+## Log
+
+- **2026-05-24 (DONE via Wave beta-readiness-2 Bucket D PR #1771):** Shipped `PreferencesControllerIT.java` (`@WebMvcTest + @Import(SecurityConfig.class)`) với 4 tests PASS: (1) 204 + cookie httpOnly=false + secure + SameSite=Lax + Max-Age=2592000; (2) 401 without JWT (verify SecurityConfig default-deny per OWASP A05); (3) cookie value "0" cho dismissed=false; (4) 400 validation cho bannerKey vi phạm @Pattern. Cookie httpOnly=false rationale documented in test javadoc + api-contract.md note: FE `useOnboardingPhase` hook reads marker via `document.cookie` per GAP-656 Step 5. Status flip OPEN → DONE; `git mv` to `closed/` per `gap-folder-organization.md` v2.0.0 §3.3. PR #1771 merged commit 1ad7e31b.
