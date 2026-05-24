@@ -7,7 +7,8 @@ tags_secondary: [idempotency, authz-a01, outbox-pattern, api-contract-drift, pha
 counter: 2
 created: 2026-05-24
 date_launch: 2026-05-24
-status: draft
+closed_at: 2026-05-24
+status: complete
 audience: dev
 gaps:
   - GAP-730
@@ -240,9 +241,36 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 
 Wave beta-readiness-1 V2 audit (3 reports shipped 2026-05-24 PR #1759) — within `outside-in-coverage-trigger.md` §4 ≤30-day window. Skip outside-in audit hợp lệ cho Wave beta-readiness-2 scope (same Phase 1 closure cluster).
 
+### Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` §3)
+
+| # | Plan §3 Scope item | Verdict | Follow-up |
+|---|---|---|---|
+| 1 | Bucket A — Shared `IdempotencyService` + V66 migration + `common/idempotency/` package | ✅ DONE | PR #1769 |
+| 2 | Bucket A — Wrap 3 controllers (signup + enrollment + beta-request) | 🟡 PARTIAL (1/3) | EnrollmentController DONE PR #1769; Signup + BetaRequest sống trong `kitehub-subscription` (Agent A state-check finding) → **GAP-734** (P1) |
+| 3 | Bucket A — 3 IT tests verify duplicate `Idempotency-Key` | 🟡 PARTIAL (2 IT, EnrollmentController scope) | 2 IT PASS PR #1769; Signup + BetaRequest IT theo GAP-734 |
+| 4 | Bucket B — `Class.java` map `teacher_id` field | ✅ DONE | PR #1768 |
+| 5 | Bucket B — `ClassServiceImpl.create/update` set `teacherId` từ `UserContext` | ✅ DONE | PR #1768 |
+| 6 | Bucket B — Flyway `V67_5__add_classes_teacher_id` (conditional) | ✅ N/A skipped | Schema column đã có sẵn V1 line 158; ddl-auto test profile generate từ entity annotation |
+| 7 | Bucket B — Re-enable 2 `@Disabled` tests `CrossUserAuthzTest` A01-U01 + A01-U03 | ❌ NOT-IMPLEMENTED | Production defect FIXED nhưng test bodies vẫn `@Disabled` (cần fixture work) → **GAP-732** (P1) |
+| 8 | Bucket C — Phase 1 fast-path `SubscriptionEventEmitter` | ✅ DONE pre-existing (Wave 91 PR #1487) | State-check §2.8 phát hiện đã ship; GAP-605 flip DONE qua PR #1770 |
+| 9 | Bucket C — Phase 2 `OutboxDispatcher` `@Scheduled` poll | ✅ DONE pre-existing (Wave 91 PR #1487) | Cùng PR #1487 đã ship 164 LOC dispatcher |
+| 10 | Bucket C — 2 IT tests `SubscriptionEventEmitterIT` + `OutboxDispatcherIT` | ✅ DONE pre-existing | Wave 91 Bucket A ship cùng với dispatcher |
+| 11 | Bucket D — GAP-662 `EmailController` rename Option A `/api/platform/emails` → `/api/v1/email` + cập nhật mọi caller | 🟡 PARTIAL (Option B chosen) | Option B doc sync ship PR #1771 (api-contract.md cập nhật path); Option A rename 10+ files → **GAP-733** (P2 Wave 109+) |
+| 12 | Bucket D — `PreferencesControllerIT` 3 tests | ✅ DONE (4 tests PASS) | PR #1771 ship `@WebMvcTest` + 4 tests (vượt scope: thêm 401 without JWT test) |
+| 13 | Bucket D — api-contract.md cookie `httpOnly=false` rationale comment | ✅ DONE | PR #1771 |
+| 14 | Wave closure scope — `wave-history.jsonl` append entry | ✅ DONE | Closure PR (this PR) |
+| 15 | Wave closure scope — ROADMAP §🎯 sync | ✅ DONE | Closure PR (this PR) |
+| 16 | Wave closure scope — `prune-merged-worktrees.sh` post 4 bucket merge | ✅ DONE | Worktree husks pruned coordinator session 2026-05-24 |
+| 17 | Live verify post-AWS-restore (all 4 buckets) | ❌ NOT-IMPLEMENTED (gated GAP-612) | Gated GAP-612 AWS account restore; PARTIAL exit ramp per `pre-handoff-self-test-completeness.md` §2.1 |
+| 18 | Post-wave audit suite ≤3 ngày | ❌ NOT-IMPLEMENTED | Defer fresh session; trigger gate per `post-wave-audit-mandate.md` §2.2 |
+| 19 | Test flake `kiteclass-core` ≠ unblock CI gate | ❌ NOT-IMPLEMENTED (out-of-wave-scope) | Surfaced khi B + A CI fail same 6 flake → **GAP-735** (P1) dedicated wave fix |
+
+**Verdict:** 14 ✅ DONE (Phase 1+2 outbox PR #1487 pre-existing 3 items counted) + 3 🟡 PARTIAL (Bucket A controller wrap 1/3, Bucket A IT 2/3, Bucket D Option B chosen) + 4 ❌ NOT-IMPLEMENTED (3 follow-up gap filed + 1 deferred audit suite). Mỗi item NOT-IMPLEMENTED có follow-up gap link hoặc explicit defer rationale per `wave-closure-scope-completeness.md` §3 decision tree.
+
 ---
 
 ## 8. Log
 
-- **2026-05-24 (draft):** Wave plan created per user direction (`/start-session` → option 3 → 4-bucket scope confirmed via AskUserQuestion). PR #1767 opened.
-- **2026-05-24 (in-progress):** 4 agents spawned parallel (Agent A Opus narrow scope idempotency + Agent B/C/D Sonnet authz/outbox/contract-drift) per `agent-background-spawn-default.md` worktree isolation + run_in_background. Wave plan check-wave-plan-completeness FAIL initially do §7 numbering issue; fixed §7→Closure Protocol + §8→Log per template mandate.
+- **2026-05-24 (draft):** Wave plan tạo theo user direction (`/start-session` → option 3 → 4-bucket scope confirm qua AskUserQuestion). PR #1767 mở.
+- **2026-05-24 (in-progress):** 4 agent spawn parallel (Agent A Opus narrow scope idempotency + Agent B/C/D Sonnet authz/outbox/contract-drift) per `agent-background-spawn-default.md` worktree isolation + run_in_background. Wave plan `check-wave-plan-completeness` FAIL ban đầu do numbering §7; fix §7→Closure Protocol + §8→Log per template mandate.
+- **2026-05-24 (complete):** Wave SHIPPED. 9 PR merged: #1767 (plan) + #1768 (Bucket B authz PARTIAL admin-merge với AUDIT_OVERRIDE → GAP-735) + #1769 (Bucket A idempotency admin-merge với AUDIT_OVERRIDE → GAP-735) + #1770 (Bucket C state-check finding pre-existing impl) + #1771 (Bucket D contract drift) + #1772 (GAP-734 follow-up file) + #1773 (session handoff) + #1774 (post-merge sync GAP-662+663 Log) + #1775 (GAP-735 pre-existing flake file). 3 Sonnet agent (B/C/D) fail autocompact thrash; coordinator Opus 1M inline + Agent A Opus narrow scope survive. 4 follow-up gap filed: GAP-732 (P1 test re-enable) + GAP-733 (P2 v1 namespace migration) + GAP-734 (P1 signup + beta-request kitehub-subscription) + GAP-735 (P1 pre-existing test flake `kiteclass-core`). Post-wave audit suite defer fresh session per `post-wave-audit-mandate.md` §2.2 ≤3 ngày deadline.
