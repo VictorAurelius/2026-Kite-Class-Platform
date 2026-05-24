@@ -1,0 +1,33 @@
+{
+  "pr": 1778,
+  "title": "docs(wave-beta-readiness-4-plan): 5-bucket parallel \u2014 META env + PDPL + Pricing PER_HOUR + Reschedule + Email tone",
+  "branch": "wave/beta-readiness-3-plan",
+  "created_at": null,
+  "merged_at": "2026-05-24T13:04:54Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-24T20:05:06.134935",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 1,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-44760"
+  }
+}
