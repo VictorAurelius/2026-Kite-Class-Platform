@@ -1,29 +1,39 @@
-Kính gửi anh/chị [(${recipientName ?: 'Quý khách'})],
+Em chào anh/chị [(${recipientName ?: organizationName ?: 'Quý khách'})],
 
 Chào mừng anh/chị đến với [(${branding?.displayName ?: 'KiteHub'})]!
 
-Tài khoản của anh/chị đã được tạo thành công. Anh/chị có thể bắt đầu
-khám phá nền tảng quản lý trung tâm giáo dục KiteHub ngay hôm nay.
+Tài khoản trung tâm của anh/chị đã được kích hoạt thành công.
+Anh/chị có thể đăng nhập và bắt đầu sử dụng ngay hôm nay.
 
 Đăng nhập tại:
 [(${loginUrl ?: 'https://kitehub.me/login'})]
+
+Thông tin tài khoản:
+  - Trung tâm: [(${organizationName ?: 'Trung tâm của bạn'})]
+  - Gói dùng thử: [(${trialDays ?: '14'})] ngày miễn phí
+  - Hết hạn thử nghiệm: [(${expiryDate ?: '(xem trong tài khoản)'})]
 
 Các bước tiếp theo gợi ý:
   1. Cập nhật thông tin trung tâm (tên, địa chỉ, logo).
   2. Mời nhân sự (quản lý, giáo viên, kế toán) tham gia.
   3. Tạo danh sách lớp học và học sinh đầu tiên.
-  4. Trải nghiệm tính năng điểm danh, theo dõi học phí.
+  4. Khám phá tính năng điểm danh và theo dõi học phí.
 
 Tài liệu hướng dẫn nhanh:
 [(${docsUrl ?: 'https://kitehub.me/help'})]
 
-Cần hỗ trợ? Liên hệ [(${branding?.contactEmail ?: 'support@kitehub.me'})].
+Cần hỗ trợ? Liên hệ [(${branding?.contactEmail ?: 'support@kitehub.me'})]
+— phản hồi trong giờ hành chính (Thứ Hai–Thứ Sáu, 08:00–18:00).
+
+Chúc anh/chị thành công!
 
 Trân trọng,
 Đội ngũ [(${branding?.displayName ?: 'KiteHub'})]
 
 ---
-© 2026 [(${branding?.displayName ?: 'KiteHub'})]. Email này được gửi tự động.
+© 2026 [(${branding?.displayName ?: 'KiteHub'})]. Bảo lưu mọi quyền.
+📊 Trạng thái dịch vụ: https://kitehub.me/status
+📖 Hướng dẫn: https://kitehub.me/help
 
-Để ngừng nhận email thông báo, truy cập:
+Để hủy nhận email thông báo, truy cập:
 [(${unsubscribeUrl ?: 'https://kitehub.me/unsubscribe'})]

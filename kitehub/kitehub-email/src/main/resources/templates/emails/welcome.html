@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title th:text="|Chào mừng đến với ${branding?.displayName ?: 'KiteClass'}|">Chào mừng</title>
+    <title th:text="|Chào mừng đến với ${branding?.displayName ?: 'KiteHub'}|">Chào mừng</title>
     <style th:inline="text">
         :root {
             --brand-primary: [[${branding?.primaryColor ?: '#667eea'}]];
@@ -45,6 +45,13 @@
             border-radius: 5px;
             margin-top: 20px;
         }
+        .next-steps {
+            background: #ECFDF5;
+            border-left: 4px solid #10B981;
+            padding: 16px 20px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
         .footer {
             text-align: center;
             padding: 20px;
@@ -54,42 +61,71 @@
     </style>
 </head>
 <body>
+    <!-- Wave 107 GAP-543 tone pass: fixed brand name KiteClass→KiteHub; personalised
+         greeting per P2 Center Owner persona; added next-steps guidance block;
+         footer support contact corrected to support@kitehub.me + /beta-status link. -->
     <div class="header">
         <img class="logo" th:if="${branding?.logoUrl}" th:src="${branding.logoUrl}" alt="Logo"/>
-        <h1 th:text="|Chào Mừng Đến Với ${branding?.displayName ?: 'KiteClass'}! 🚀|">Chào Mừng</h1>
+        <h1 th:text="|Chào mừng đến với ${branding?.displayName ?: 'KiteHub'}!|">Chào mừng</h1>
+        <p style="margin:8px 0 0 0; font-size:15px; opacity:0.9;">Tài khoản trung tâm của anh/chị đã sẵn sàng.</p>
     </div>
 
     <div class="content">
-        <p>Xin chào <strong th:text="${organizationName}">Organization</strong>,</p>
+        <p>Em chào anh/chị <strong th:text="${recipientName ?: organizationName ?: 'Quý khách'}">Quý khách</strong>,</p>
 
-        <p th:text="|Cảm ơn bạn đã đăng ký sử dụng ${branding?.displayName ?: 'KiteClass'}!|">Cảm ơn bạn đã đăng ký.</p>
-
-        <p>Tài khoản của bạn đã được tạo thành công và bạn có thể bắt đầu sử dụng ngay.</p>
-
-        <h3>Thông Tin Tài Khoản:</h3>
-        <ul>
-            <li><strong>Tổ chức:</strong> <span th:text="${organizationName}">Organization</span></li>
-            <li><strong>Gói dùng thử:</strong> <span th:text="${trialDays}">14</span> ngày</li>
-            <li><strong>Hết hạn:</strong> <span th:text="${expiryDate}">2026-03-24</span></li>
-        </ul>
-
-        <p>Bạn có thể truy cập hệ thống tại:</p>
-        <a th:href="${loginUrl}" class="button">Đăng Nhập Ngay</a>
-
-        <p style="margin-top: 30px;">
-            Nếu bạn cần hỗ trợ, vui lòng liên hệ chúng tôi qua email
-            <a th:href="|mailto:${branding?.contactEmail ?: 'support@kiteclass.com'}|"
-               th:text="${branding?.contactEmail ?: 'support@kiteclass.com'}">support@kiteclass.com</a>
+        <p th:text="|Cảm ơn anh/chị đã chọn ${branding?.displayName ?: 'KiteHub'} để quản lý trung tâm giáo dục. Tài khoản đã được kích hoạt — anh/chị có thể đăng nhập và bắt đầu ngay hôm nay.|">
+            Cảm ơn anh/chị đã chọn KiteHub.
         </p>
 
-        <p>Chúc bạn có trải nghiệm tuyệt vời!</p>
+        <h3 style="margin-bottom:8px;">Thông tin tài khoản:</h3>
+        <ul style="margin-top:0;">
+            <li><strong>Trung tâm:</strong> <span th:text="${organizationName ?: 'Trung tâm của bạn'}">Trung tâm</span></li>
+            <li><strong>Gói dùng thử:</strong> <span th:text="${trialDays ?: '14'}">14</span> ngày miễn phí</li>
+            <li><strong>Hết hạn thử nghiệm:</strong> <span th:text="${expiryDate ?: ''}">-</span></li>
+        </ul>
 
-        <p><strong th:text="|Đội ngũ ${branding?.displayName ?: 'KiteClass'}|">Đội ngũ KiteClass</strong></p>
+        <div style="text-align: center; margin: 24px 0;">
+            <a th:href="${loginUrl}" class="button">Đăng nhập ngay</a>
+        </div>
+
+        <div class="next-steps">
+            <strong>Các bước tiếp theo gợi ý:</strong>
+            <ol style="margin: 8px 0 0 0; padding-left: 20px;">
+                <li>Cập nhật thông tin trung tâm (tên, địa chỉ, logo).</li>
+                <li>Mời nhân sự tham gia (quản lý, giáo viên, kế toán).</li>
+                <li>Tạo danh sách lớp học và học sinh đầu tiên.</li>
+                <li>Khám phá tính năng điểm danh và theo dõi học phí.</li>
+            </ol>
+        </div>
+
+        <p style="margin-top: 24px;">
+            Cần hỗ trợ? Liên hệ
+            <a th:href="|mailto:${branding?.contactEmail ?: 'support@kitehub.me'}|"
+               th:text="${branding?.contactEmail ?: 'support@kitehub.me'}">support@kitehub.me</a>
+            — phản hồi trong giờ hành chính (Thứ Hai–Thứ Sáu, 08:00–18:00).
+        </p>
+
+        <p>Chúc anh/chị thành công!</p>
+
+        <p>Trân trọng,<br/>
+            <strong th:text="|Đội ngũ ${branding?.displayName ?: 'KiteHub'}|">Đội ngũ KiteHub</strong></p>
     </div>
 
     <div class="footer">
-        <p th:text="|© 2026 ${branding?.displayName ?: 'KiteClass'}. All rights reserved.|">© 2026 KiteClass.</p>
-        <p>Email này được gửi tự động, vui lòng không trả lời.</p>
+        <p th:text="|© 2026 ${branding?.displayName ?: 'KiteHub'}. Bảo lưu mọi quyền.|">© 2026 KiteHub.</p>
+        <p style="font-size: 12px; color: #6B7280; margin-top: 8px;">
+            📊 Trạng thái dịch vụ Beta: <a th:href="@{https://kitehub.me/status}" style="color: #2563EB;">kitehub.me/status</a>
+            &nbsp;|&nbsp;
+            📖 Hướng dẫn: <a th:href="@{https://kitehub.me/help}" style="color: #2563EB;">kitehub.me/help</a>
+        </p>
+        <p style="margin-top: 6px;">📧 Reply email này hoặc liên hệ
+            <a th:href="|mailto:${branding?.contactEmail ?: 'support@kitehub.me'}|"
+               th:text="${branding?.contactEmail ?: 'support@kitehub.me'}">support@kitehub.me</a>
+            nếu cần hỗ trợ.
+        </p>
+        <p style="margin-top: 4px; font-size: 11px;">
+            <a th:href="${unsubscribeUrl ?: 'https://kitehub.me/unsubscribe'}" style="color: #9CA3AF;">Hủy đăng ký email thông báo</a>
+        </p>
     </div>
 </body>
 </html>

@@ -2,25 +2,24 @@ Kính gửi anh/chị [(${recipientName ?: 'Quý khách'})],
 
 Cảm ơn anh/chị đã đăng ký tài khoản tại [(${branding?.displayName ?: 'KiteHub'})].
 
-Để hoàn tất xác minh email, vui lòng sử dụng mã 6 chữ số sau:
-
-  ╔══════════════════════════╗
-        [(${verificationCode ?: '------'})]
-  ╚══════════════════════════╝
-
-Hoặc bấm vào liên kết bên dưới để xác minh trực tiếp:
+Để hoàn tất xác minh email, vui lòng truy cập liên kết sau:
 [(${verifyUrl ?: 'https://kitehub.me/verify'})]
 
-Mã có hiệu lực trong [(${expiresInMinutes ?: '15'})] phút.
+Liên kết có hiệu lực trong [(${expiresInMinutes ?: '24 giờ'})].
 
 Lưu ý bảo mật:
-  - Không chia sẻ mã này với bất kỳ ai.
+  - Nếu anh/chị không thực hiện đăng ký này, vui lòng bỏ qua email.
   - [(${branding?.displayName ?: 'KiteHub'})] sẽ không bao giờ yêu cầu
-    mã xác minh qua điện thoại hoặc tin nhắn.
-  - Nếu anh/chị không yêu cầu xác minh, vui lòng bỏ qua email này
-    và đổi mật khẩu nếu nghi ngờ tài khoản bị truy cập trái phép.
+    mã xác minh qua điện thoại hoặc tin nhắn riêng.
+  - Không chia sẻ liên kết này với bất kỳ ai.
 
 Cần hỗ trợ? Liên hệ [(${branding?.contactEmail ?: 'support@kitehub.me'})].
 
 Trân trọng,
 Đội ngũ [(${branding?.displayName ?: 'KiteHub'})]
+
+---
+© 2026 [(${branding?.displayName ?: 'KiteHub'})]. Bảo lưu mọi quyền.
+
+Để hủy nhận email thông báo, truy cập:
+[(${unsubscribeUrl ?: 'https://kitehub.me/unsubscribe'})]

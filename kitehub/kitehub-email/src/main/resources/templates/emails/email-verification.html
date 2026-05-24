@@ -63,38 +63,58 @@
     </style>
 </head>
 <body>
+    <!-- Wave 107 GAP-543 tone pass: personalized greeting; brand KiteClass→KiteHub;
+         added unsubscribe footer + support contact per VN-localization-audit-checklist §2. -->
     <div class="header">
         <img class="logo" th:if="${branding?.logoUrl}" th:src="${branding.logoUrl}" alt="Logo"/>
-        <h1>Xác Nhận Email</h1>
-        <p>Chỉ còn 1 bước nữa để bắt đầu!</p>
+        <h1>Xác nhận email</h1>
+        <p style="margin:8px 0 0 0; font-size:15px; opacity:0.9;">Chỉ còn 1 bước nữa để bắt đầu!</p>
     </div>
 
     <div class="content">
-        <p>Xin chào,</p>
+        <p>Kính gửi anh/chị <strong th:text="${recipientName ?: 'Quý khách'}">Quý khách</strong>,</p>
 
         <p>
-            Cảm ơn bạn đã đăng ký
-            <strong th:text="${branding?.displayName ?: 'KiteClass'}">KiteClass</strong>.
-            Vui lòng bấm nút bên dưới để xác nhận email và khởi tạo trung tâm của bạn.
+            Cảm ơn anh/chị đã đăng ký
+            <strong th:text="${branding?.displayName ?: 'KiteHub'}">KiteHub</strong>.
+            Vui lòng bấm nút bên dưới để xác nhận email và kích hoạt tài khoản trung tâm.
         </p>
 
-        <div style="text-align: center;">
-            <a th:href="${verifyUrl}" class="button">Xác Nhận Email</a>
+        <div style="text-align: center; margin: 24px 0;">
+            <a th:href="${verifyUrl}" class="button">Xác nhận email</a>
         </div>
 
         <div class="note">
-            <strong>Lưu ý:</strong> Link xác nhận sẽ hết hạn sau 24 giờ. Nếu bạn không yêu cầu đăng ký này, vui lòng bỏ qua email.
+            <strong>Lưu ý:</strong> Liên kết xác nhận sẽ hết hạn sau
+            <strong th:text="${expiresInMinutes ?: '24 giờ'}">24 giờ</strong>.
+            Nếu anh/chị không thực hiện đăng ký này, vui lòng bỏ qua email —
+            không có hành động nào được thực thi.
         </div>
 
         <p style="margin-top: 20px; font-size: 13px; color: #666;">
-            Nếu nút không hoạt động, sao chép link sau vào trình duyệt:<br>
-            <span th:text="${verifyUrl}" style="word-break: break-all;">https://kiteclass.com/verify-email?token=xxx</span>
+            Nếu nút không hoạt động, sao chép liên kết sau vào trình duyệt:<br>
+            <span th:text="${verifyUrl}" style="word-break: break-all;">https://kitehub.me/verify-email?token=xxx</span>
         </p>
+
+        <p style="margin-top: 20px;">
+            Cần hỗ trợ? Liên hệ
+            <a th:href="|mailto:${branding?.contactEmail ?: 'support@kitehub.me'}|"
+               th:text="${branding?.contactEmail ?: 'support@kitehub.me'}">support@kitehub.me</a>.
+        </p>
+
+        <p>Trân trọng,<br/>
+            Đội ngũ <span th:text="${branding?.displayName ?: 'KiteHub'}">KiteHub</span></p>
     </div>
 
     <div class="footer">
-        <p th:text="|© 2026 ${branding?.displayName ?: 'KiteClass'}. All rights reserved.|">© 2026 KiteClass.</p>
-        <p>Email này được gửi tự động, vui lòng không trả lời.</p>
+        <p th:text="|© 2026 ${branding?.displayName ?: 'KiteHub'}. Bảo lưu mọi quyền.|">© 2026 KiteHub.</p>
+        <p>📧 Liên hệ hỗ trợ:
+            <a th:href="|mailto:${branding?.contactEmail ?: 'support@kitehub.me'}|"
+               th:text="${branding?.contactEmail ?: 'support@kitehub.me'}">support@kitehub.me</a>
+        </p>
+        <p style="font-size: 11px; margin-top: 4px;">
+            <a th:href="${unsubscribeUrl ?: 'https://kitehub.me/unsubscribe'}" style="color: #9CA3AF;">Hủy đăng ký email thông báo</a>
+        </p>
     </div>
 </body>
 </html>

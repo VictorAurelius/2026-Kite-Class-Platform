@@ -26,12 +26,16 @@ Cần hỗ trợ?
   - Email: [(${branding?.contactEmail ?: 'support@kitehub.me'})]
   - Zalo OA: https://zalo.me/[(${zaloOaId ?: 'kitehub'})] (phản hồi nhanh hơn cho câu hỏi gấp, T2-T6 8h-18h)
 
+Chị Mai từ KiteHub đây — em là người duyệt yêu cầu này.
+Reply email này nếu có thắc mắc; mình phản hồi trong 4 giờ giờ hành chính (T2–T6, 08:00–18:00).
+
 Trân trọng,
-Đội ngũ [(${branding?.displayName ?: 'KiteHub'})]
+Chị Mai — Đội ngũ [(${branding?.displayName ?: 'KiteHub'})]
 
 ---
-© 2026 [(${branding?.displayName ?: 'KiteHub'})]. Email này được gửi tự động,
-vui lòng không trả lời trực tiếp.
+© 2026 [(${branding?.displayName ?: 'KiteHub'})]. Bảo lưu mọi quyền.
+📊 Trạng thái dịch vụ Beta: https://kitehub.me/status
+📖 Hướng dẫn sử dụng: https://kitehub.me/help/anonymous
 
-Để ngừng nhận email, truy cập:
+Để hủy nhận email, truy cập:
 [(${unsubscribeUrl ?: 'https://kitehub.me/unsubscribe'})]
