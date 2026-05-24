@@ -15,6 +15,7 @@ import type {
   CreateClassRequest,
   UpdateClassRequest,
   CancelClassRequest,
+  RescheduleClassRequest,
   ClassSearchCriteria,
   CreateScheduleRequest,
   GenerateClassCodeRequest,
@@ -168,6 +169,23 @@ export function useCancelClass() {
       toast({ title: 'Thành công', description: 'Lớp học đã bị hủy' });
     },
     onError: useErrorHandler('Không thể hủy lớp học'),
+  });
+}
+
+/**
+ * Reschedule a class — preserves status SCHEDULED, mutates start/end dates,
+ * writes audit log, publishes Outbox event (Wave beta-readiness-4 Bucket D — GAP-291).
+ */
+export function useRescheduleClass() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: RescheduleClassRequest }) =>
+      classesApi.reschedule(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [CLASSES_KEY] });
+      toast({ title: 'Thành công', description: 'Đã đổi lịch lớp học thành công' });
+    },
+    onError: useErrorHandler('Không thể đổi lịch lớp học'),
   });
 }
 

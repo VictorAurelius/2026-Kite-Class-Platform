@@ -9,6 +9,7 @@ import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.clazz.dto.CreateScheduleRequest;
 import com.kiteclass.core.module.clazz.dto.GenerateClassCodeRequest;
 import com.kiteclass.core.module.clazz.dto.RecurrenceRuleDto;
+import com.kiteclass.core.module.clazz.dto.RescheduleClassRequest;
 import com.kiteclass.core.module.clazz.dto.UpdateClassRequest;
 import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;
@@ -160,4 +161,27 @@ public interface ClassService {
      */
     List<ClassSessionResponse> generateSessionsFromRecurrence(Long classId,
                                                               @Valid RecurrenceRuleDto rule);
+
+    /**
+     * Reschedules a class — preserves attendance + grade history, mutates start/end dates,
+     * writes audit log, publishes {@code ClassRescheduledEvent} via Outbox.
+     *
+     * <p>Per cross-bucket LOCKED decision §3.6 (Wave beta-readiness-4):
+     * <ul>
+     *   <li>NO new {@code ClassStatus.RESCHEDULED} enum (preserves backward compat)</li>
+     *   <li>Audit captures: previousStartDate, previousEndDate, rescheduledByUserId,
+     *       rescheduledAt, reasonCategory, reasonNotes</li>
+     *   <li>Default notification consumer = no-op; email path activates only when
+     *       {@code kite.class.reschedule.notify.enabled=true}</li>
+     *   <li>Notification classification = OPERATIONAL (bypass marketing_consented gate)</li>
+     * </ul>
+     *
+     * @param classId class ID
+     * @param request reschedule request (newStartDate + newEndDate + reasonCategory + optional notes)
+     * @return updated class response
+     * @throws com.kiteclass.core.common.exception.EntityNotFoundException if class not found
+     * @throws com.kiteclass.core.common.exception.ValidationException     if dates invalid or class not SCHEDULED
+     * @since Wave beta-readiness-4 Bucket D (GAP-291)
+     */
+    ClassResponse rescheduleClass(Long classId, @Valid RescheduleClassRequest request);
 }

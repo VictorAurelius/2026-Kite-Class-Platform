@@ -221,6 +221,49 @@ public class Class extends BaseEntity {
     private Instant cancelledAt;
 
     // =========================================================================
+    // Reschedule audit columns (Wave beta-readiness-4 Bucket D — GAP-291)
+    // =========================================================================
+
+    /**
+     * User ID who triggered the most recent reschedule operation.
+     * Null when class has never been rescheduled.
+     */
+    @Column(name = "rescheduled_by_user_id")
+    private Long rescheduledByUserId;
+
+    /**
+     * Timestamp of the most recent reschedule operation (UTC).
+     * Null when class has never been rescheduled.
+     */
+    @Column(name = "rescheduled_at")
+    private Instant rescheduledAt;
+
+    /**
+     * startDate captured BEFORE the most recent reschedule (audit trail).
+     */
+    @Column(name = "previous_start_date")
+    private LocalDate previousStartDate;
+
+    /**
+     * endDate captured BEFORE the most recent reschedule (audit trail).
+     */
+    @Column(name = "previous_end_date")
+    private LocalDate previousEndDate;
+
+    /**
+     * Reason category for the most recent reschedule.
+     * Stored as VARCHAR; deserialized as {@code RescheduleReasonCategory} enum at service layer.
+     */
+    @Column(name = "reschedule_reason_category", length = 64)
+    private String rescheduleReasonCategory;
+
+    /**
+     * Optional free-text notes for the most recent reschedule (max 2000 chars).
+     */
+    @Column(name = "reschedule_reason_notes", columnDefinition = "TEXT")
+    private String rescheduleReasonNotes;
+
+    // =========================================================================
     // Business Logic Methods
     // =========================================================================
 

@@ -10,6 +10,7 @@ import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.clazz.dto.CreateScheduleRequest;
 import com.kiteclass.core.module.clazz.dto.GenerateClassCodeRequest;
 import com.kiteclass.core.module.clazz.dto.RecurrenceRuleDto;
+import com.kiteclass.core.module.clazz.dto.RescheduleClassRequest;
 import com.kiteclass.core.module.clazz.dto.UpdateClassRequest;
 import com.kiteclass.core.module.clazz.service.ClassService;
 import jakarta.validation.Valid;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -179,6 +181,27 @@ public class ClassController {
         log.debug("POST /api/v1/classes/{}/cancel", classId);
         return ResponseEntity.ok(ApiResponse.success(
                 classService.cancelClass(classId, request), "Lớp học đã bị hủy"));
+    }
+
+    /**
+     * Reschedules a class (preserves status SCHEDULED; mutates dates + writes audit + publishes Outbox event).
+     *
+     * <p>Wave beta-readiness-4 Bucket D — GAP-291. Reschedule notification classification = OPERATIONAL
+     * (bypass marketing_consented gate per cross-bucket LOCKED decision §3.6).
+     *
+     * @param classId class ID
+     * @param request newStartDate + newEndDate + mandatory reasonCategory + optional notes
+     * @return 200 OK with updated class
+     */
+    @PostMapping("/api/v1/classes/{classId}/reschedule")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
+    public ResponseEntity<ApiResponse<ClassResponse>> rescheduleClass(
+            @PathVariable Long classId,
+            @Valid @RequestBody RescheduleClassRequest request) {
+        log.debug("POST /api/v1/classes/{}/reschedule", classId);
+        return ResponseEntity.ok(ApiResponse.success(
+                classService.rescheduleClass(classId, request),
+                "Đã đổi lịch lớp học thành công"));
     }
 
     // =========================================================================

@@ -10,6 +10,7 @@ import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.ValidationException;
+import com.kiteclass.core.common.outbox.OutboxEventWriter;
 import com.kiteclass.core.module.clazz.dto.CancelClassRequest;
 import com.kiteclass.core.module.clazz.dto.ClassCodeResponse;
 import com.kiteclass.core.module.clazz.dto.ClassResponse;
@@ -18,9 +19,11 @@ import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.clazz.dto.CreateScheduleRequest;
 import com.kiteclass.core.module.clazz.dto.GenerateClassCodeRequest;
 import com.kiteclass.core.module.clazz.dto.RecurrenceRuleDto;
+import com.kiteclass.core.module.clazz.dto.RescheduleClassRequest;
 import com.kiteclass.core.module.clazz.dto.UpdateClassRequest;
 import com.kiteclass.core.module.clazz.entity.Class;
 import com.kiteclass.core.module.clazz.entity.ClassSession;
+import com.kiteclass.core.module.clazz.event.ClassRescheduledEvent;
 import com.kiteclass.core.module.clazz.mapper.ClassMapper;
 import com.kiteclass.core.module.clazz.repository.ClassRepository;
 import com.kiteclass.core.module.clazz.repository.ClassSessionRepository;
@@ -42,6 +45,7 @@ import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -71,6 +75,7 @@ public class ClassServiceImpl implements ClassService {
     private final ClassMapper classMapper;
     private final RecurrenceService recurrenceService;
     private final ObjectMapper objectMapper;
+    private final OutboxEventWriter outboxEventWriter;
 
     @Override
     @Transactional
@@ -475,6 +480,92 @@ public class ClassServiceImpl implements ClassService {
                 .stream()
                 .map(classMapper::toSessionResponse)
                 .toList();
+    }
+
+    /**
+     * Reschedules a class — preserves attendance + grade history, captures audit
+     * columns, publishes Outbox event (Wave beta-readiness-4 Bucket D, GAP-291).
+     *
+     * <p>Per cross-bucket LOCKED decision §3.6, NO new ClassStatus enum is introduced —
+     * the existing status (SCHEDULED) is preserved; only audit columns + date fields mutate.
+     *
+     * <p>Outbox event recipient lists (enrolledStudentIds, parentUserIds) ship EMPTY
+     * in v1.0.0 — recipient lookup deferred to email consumer side (Phase 1.5+).
+     */
+    @Override
+    @Transactional
+    public ClassResponse rescheduleClass(Long classId, RescheduleClassRequest request) {
+        log.info("Rescheduling class: classId={}, newStartDate={}, newEndDate={}, reason={}",
+                classId, request.newStartDate(), request.newEndDate(), request.reasonCategory());
+
+        Class clazz = findClassOrThrow(classId);
+
+        // BR-CLASS-006: Only SCHEDULED classes can be rescheduled (preserves attendance history
+        // for IN_PROGRESS; COMPLETED/CANCELLED are read-only by definition).
+        if (!clazz.canEditSchedule()) {
+            throw new ValidationException("CLASS_CANNOT_RESCHEDULE", clazz.getStatus());
+        }
+
+        // BR-CLASS-005: end_date must be after start_date.
+        validateDates(request.newStartDate(), request.newEndDate());
+
+        // Capture audit BEFORE mutation.
+        LocalDate previousStartDate = clazz.getStartDate();
+        LocalDate previousEndDate = clazz.getEndDate();
+
+        // Mutate dates only — DO NOT change status per LOCKED decision §3.6.
+        clazz.setStartDate(request.newStartDate());
+        clazz.setEndDate(request.newEndDate());
+
+        // Persist audit columns.
+        Long callerUserId = UserContext.getCurrentUser();
+        Instant now = Instant.now();
+        clazz.setRescheduledByUserId(callerUserId);
+        clazz.setRescheduledAt(now);
+        clazz.setPreviousStartDate(previousStartDate);
+        clazz.setPreviousEndDate(previousEndDate);
+        clazz.setRescheduleReasonCategory(request.reasonCategory().name());
+        clazz.setRescheduleReasonNotes(request.reasonNotes());
+
+        Class saved = classRepository.save(clazz);
+
+        // Publish Outbox event (same txn — outbox is the reliability net).
+        // Recipient lists ship empty v1.0.0; consumer side performs lookup (Phase 1.5+).
+        UUID tenantId = TenantContext.getCurrentTenant();
+        ClassRescheduledEvent event = new ClassRescheduledEvent(
+                saved.getId(),
+                tenantId != null ? tenantId.toString() : null,
+                null, // tenantName resolved by consumer (avoid coupling to tenant service here)
+                saved.getName(),
+                previousStartDate,
+                saved.getStartDate(),
+                previousEndDate,
+                saved.getEndDate(),
+                callerUserId,
+                now,
+                request.reasonCategory().name(),
+                request.reasonNotes(),
+                Collections.emptyList(),
+                Collections.emptyList()
+        );
+
+        try {
+            String payloadJson = objectMapper.writeValueAsString(event);
+            outboxEventWriter.enqueue(
+                    "class.rescheduled",
+                    "Class",
+                    String.valueOf(saved.getId()),
+                    payloadJson
+            );
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize ClassRescheduledEvent for classId={}", classId, e);
+            throw new ValidationException("RESCHEDULE_EVENT_SERIALIZATION_FAILED", new Object[0]);
+        }
+
+        log.info("Class rescheduled: id={}, by={}, reason={}",
+                saved.getId(), callerUserId, request.reasonCategory());
+
+        return classMapper.toResponse(saved);
     }
 
     // =========================================================================
