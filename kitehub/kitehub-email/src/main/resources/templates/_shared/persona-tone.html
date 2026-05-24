@@ -1,0 +1,33 @@
+<!--
+  Persona greeting fragment shared cho mọi email template (Wave beta-readiness-4 Bucket E).
+
+  Per vn-localization-audit-checklist.md §2 Section 2 — persona tone matrix:
+    - P1_SOLO_TEACHER  → "Chào em,"              (casual, friendly)
+    - P2_CENTER_OWNER  → "Em chào chị,"          (formal-respectful, Owner Vietnamese)
+    - P3_CENTER_MANAGER → "Em chào chị/anh,"     (formal-respectful, neutral gender)
+    - PARENT           → "Kính gửi quý phụ huynh," (very formal — Parent context)
+    - STUDENT          → "Chào em,"              (friendly)
+    - PLATFORM_ADMIN   → "Em chào anh/chị,"      (formal — internal)
+
+  Usage:
+    <th:block th:replace="~{_shared/persona-tone :: greeting}" />
+
+  PersonaToneResolver.java sets {{personaGreeting}} string variable based on
+  recipient persona. Fragment chỉ output text — caller wraps in <p class="greeting">
+  cho consistent styling.
+
+  KHÔNG hardcode greeting trong template — luôn consume fragment này để 1 nguồn duy nhất.
+
+  @author KiteHub Email Team
+  @since Wave beta-readiness-4 Bucket E (GAP-NEW-email-tone-matrix)
+-->
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Fragment: greeting — outputs persona-specific greeting paragraph.
+  Caller scope: any email template; variable {{personaGreeting}} injected by PersonaToneResolver.
+-->
+<p th:fragment="greeting" class="greeting" th:text="${personaGreeting}">Em chào anh/chị,</p>
+</body>
+</html>

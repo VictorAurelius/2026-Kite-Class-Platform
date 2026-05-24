@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.email.api.Tone;
 import com.kitehub.email.dto.EmailResponse;
+import com.kitehub.email.template.PersonaToneResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -54,6 +55,7 @@ public class ClassRescheduledEmailService {
 
     private final EmailTemplateRenderer templateRenderer;
     private final ObjectMapper objectMapper;
+    private final PersonaToneResolver personaToneResolver;
 
     /**
      * Optional dispatcher — Spring injects null in test environments where no
@@ -116,6 +118,10 @@ public class ClassRescheduledEmailService {
         ctx.put("newEndDateFormatted", formatVnLong(event.newEndDate()));
         ctx.put("reasonDisplayName", resolveReasonDisplay(event.reasonCategory()));
         ctx.put("reasonNotes", event.reasonNotes());
+        // Persona greeting per Bucket E refactor — class-reschedule = PARENT persona
+        // (operational notification cho phụ huynh học sinh per cross-bucket LOCKED decision §3.6).
+        // Greeting injected qua PersonaToneResolver → "Kính gửi quý phụ huynh,"
+        ctx.put("personaGreeting", personaToneResolver.resolveGreeting(PersonaToneResolver.Persona.PARENT));
         return ctx;
     }
 
