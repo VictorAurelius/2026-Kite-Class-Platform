@@ -132,6 +132,11 @@ kiteclass/kiteclass-frontend/pnpm-lock.yaml
 .coverage.*
 .claude/hooks/tests/coverage-html/
 .claude/hooks/tests/coverage.xml
+
+# Hook runtime state (per-machine timestamp markers, regenerated per hook fire).
+# Folder-wide ignore + allowlist for tracked config files (e.g. keyword-rule-map.json).
+.claude/hooks/data/*
+!.claude/hooks/data/keyword-rule-map.json
 .vercel/
 
 # Wave 102 GAP-688 thesis V1 Python pipeline (local venv + build artifacts)
