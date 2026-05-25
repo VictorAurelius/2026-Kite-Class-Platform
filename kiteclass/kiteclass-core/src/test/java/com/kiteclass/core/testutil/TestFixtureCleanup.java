@@ -4,6 +4,7 @@ import com.kiteclass.core.common.context.TenantContext;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.TestContext;
@@ -90,10 +91,24 @@ import java.util.concurrent.atomic.AtomicReference;
  * @see TenantContext
  * @see org.springframework.test.context.transaction.TransactionalTestExecutionListener
  */
-public class TestFixtureCleanup implements TestExecutionListener {
+public class TestFixtureCleanup implements TestExecutionListener, Ordered {
 
     /** Cached TRUNCATE statement built lazily on first use (one query per JVM, not per test). */
     private static final AtomicReference<String> CACHED_TRUNCATE_SQL = new AtomicReference<>();
+
+    /**
+     * Order must be {@code < 4000} so {@link #beforeTestMethod(TestContext)} runs
+     * <strong>before</strong> Spring's {@code TransactionalTestExecutionListener}
+     * (order 4000) starts the test transaction. Otherwise our truncate executes
+     * inside the test transaction and is rolled back along with the test's own
+     * writes — defeating the purpose. 3500 puts us between
+     * {@code DirtiesContextTestExecutionListener} (3000) and
+     * {@code TransactionalTestExecutionListener} (4000).
+     */
+    @Override
+    public int getOrder() {
+        return 3500;
+    }
 
     @PersistenceContext
     private EntityManager entityManager;
