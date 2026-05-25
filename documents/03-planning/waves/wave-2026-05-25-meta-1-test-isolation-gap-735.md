@@ -59,7 +59,8 @@ Persona phục vụ: Author (solo-dev) + mọi future code PR kiteclass-core (fo
 | A | GAP-735 annotation | bg-agent Opus | ~2-3h | ✅ kiteclass-core/src/test/integration/ |
 | B | GAP-735 fixture isolation | bg-agent Opus | ~3h | ✅ kiteclass-core/src/test/util/ (new) + JPA listener |
 | C | GAP-735 CI + admin-merge-discipline.md update | bg-agent Sonnet | ~1h | ✅ .github/workflows/ + .claude/rules/ |
-| Closure | 4-target sync + GAP-735 DONE flip | coordinator inline | ~30-45 min | After A/B verify PASS |
+| **D** | **GAP-743 Entity-Migration-Mapper triad CI gate (audit-1 OPS-BR4-002)** | **bg-agent Sonnet** | **~3-4h** | **✅ scripts/check-entity-mapper-consistency.sh + script-quality.yml CI wire** |
+| Closure | 4-target sync + GAP-735 DONE flip + GAP-743 DONE flip | coordinator inline | ~30-45 min | After A/B/C/D verify PASS |
 
 Disjoint check:
 - Bucket A modifies @Transactional@Rollback annotations trong 3 IT classes (EnrollmentIntegrationTest + InvoiceFlowIntegrationTest + CourseSecurityTest)

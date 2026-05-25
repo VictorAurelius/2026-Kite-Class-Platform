@@ -60,7 +60,8 @@ Persona phục vụ: All tenants generating documents (invoices, certificates, t
 | B | GAP-216 JMH micro-benchmark + p95 + Prometheus histogram | bg-agent Opus | ~3-4h | ✅ kitehub-branding/.../benchmark/ + Prometheus instrumentation |
 | C | GAP-217 alert rules | bg-agent Sonnet | ~1.5-2h | ✅ infrastructure/prometheus/ + AlertManager config |
 | D | GAP-218 font runbook + Dockerfile assertion | bg-agent Sonnet | ~1-1.5h | ✅ Dockerfile + runbook md |
-| Closure | 5-target sync + 4 P0 DONE flip | coordinator inline | ~30-45 min | After 4 buckets |
+| **E** | **GAP-742 Outbox DLQ alert wiring (audit-1 OPS-BR4-001)** | **bg-agent Sonnet** | **~2h** | **✅ infrastructure/prometheus + CloudWatch alarm config (paired GAP-144)** |
+| Closure | 5-target sync + 4 P0 DONE flip + GAP-742 DONE | coordinator inline | ~30-45 min | After 5 buckets |
 
 Disjoint check:
 - Bucket A: `kitehub/kitehub-branding/.../BrandingService.java` + cache config in `application*.yml`
