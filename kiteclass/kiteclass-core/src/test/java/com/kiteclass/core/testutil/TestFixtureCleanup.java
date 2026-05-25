@@ -2,8 +2,6 @@ package com.kiteclass.core.testutil;
 
 import com.kiteclass.core.common.context.TenantContext;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.lang.NonNull;
@@ -110,22 +108,10 @@ public class TestFixtureCleanup implements TestExecutionListener, Ordered {
         return 3500;
     }
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired(required = false)
-    private void setEntityManager(EntityManager em) {
-        this.entityManager = em;
-    }
-
-    @Autowired(required = false)
-    private void setDataSource(DataSource dataSource) {
-        if (dataSource != null) {
-            this.jdbcTemplate = new JdbcTemplate(dataSource);
-        }
-    }
+    // No injected fields: Spring's @TestExecutionListeners annotation instantiates this
+    // listener via no-arg constructor and does NOT honor @Autowired / @PersistenceContext.
+    // Dependencies are looked up from TestContext.getApplicationContext() on each call
+    // (~microsecond bean lookup; cheap relative to TRUNCATE roundtrip).
 
     /**
      * Resets ambient context BEFORE each test method.
@@ -138,7 +124,7 @@ public class TestFixtureCleanup implements TestExecutionListener, Ordered {
      */
     @Override
     public void beforeTestMethod(@NonNull TestContext testContext) {
-        clearAmbientState();
+        clearAmbientState(testContext);
     }
 
     /**
@@ -152,7 +138,7 @@ public class TestFixtureCleanup implements TestExecutionListener, Ordered {
      */
     @Override
     public void afterTestMethod(@NonNull TestContext testContext) {
-        clearAmbientState();
+        clearAmbientState(testContext);
     }
 
     /**
@@ -162,18 +148,27 @@ public class TestFixtureCleanup implements TestExecutionListener, Ordered {
      * are dropped), then clear ThreadLocals (so subsequent test sees a clean
      * tenant context), then defensive synchronization-manager reset.
      */
-    private void clearAmbientState() {
+    private void clearAmbientState(TestContext testContext) {
         // 0. DB rows committed outside test transaction (async listeners, REQUIRES_NEW,
         //    event publishers) — truncate all user tables. Runs in autocommit mode via
         //    JdbcTemplate (separate connection from test transaction); cache TRUNCATE SQL
         //    after first run to avoid pg_tables roundtrip per test.
-        truncateAllUserTables();
+        //
+        // NOTE: Spring's @TestExecutionListeners annotation instantiates this listener
+        // via no-arg constructor and does NOT perform @Autowired setter injection on it.
+        // Hence we lookup DataSource from TestContext's ApplicationContext on each call
+        // (cheap — same context bean).
+        DataSource dataSource = lookupDataSource(testContext);
+        if (dataSource != null) {
+            truncateAllUserTables(new JdbcTemplate(dataSource));
+        }
 
+        EntityManager em = lookupEntityManager(testContext);
         // 1. JPA L2 / first-level cache — drop stale managed entities so the
         //    next test re-loads from DB.
-        if (entityManager != null && entityManager.isOpen()) {
+        if (em != null && em.isOpen()) {
             try {
-                entityManager.clear();
+                em.clear();
             } catch (Exception ignored) {
                 // EntityManager may be in a broken state after a failed test;
                 // swallow so cleanup itself does not mask the original failure.
@@ -218,13 +213,30 @@ public class TestFixtureCleanup implements TestExecutionListener, Ordered {
      * <p>If {@code DataSource} is not autowired (e.g., slice tests without JPA), this
      * step is a no-op.
      */
-    private void truncateAllUserTables() {
-        // DEBUG GAP-735 investigation: confirm listener actually fires + DataSource present
-        System.err.println("[GAP-735-DEBUG] truncateAllUserTables called; jdbcTemplate="
-                + (jdbcTemplate != null ? "present" : "null"));
-        if (jdbcTemplate == null) {
-            return;
+    private DataSource lookupDataSource(TestContext testContext) {
+        try {
+            return testContext.getApplicationContext().getBean(DataSource.class);
+        } catch (Exception ex) {
+            return null;
         }
+    }
+
+    private EntityManager lookupEntityManager(TestContext testContext) {
+        try {
+            return testContext.getApplicationContext().getBean(EntityManager.class);
+        } catch (Exception ex) {
+            // EntityManager not auto-registered as plain bean; try via EntityManagerFactory.
+            try {
+                jakarta.persistence.EntityManagerFactory emf =
+                        testContext.getApplicationContext().getBean(jakarta.persistence.EntityManagerFactory.class);
+                return emf.createEntityManager();
+            } catch (Exception ignored) {
+                return null;
+            }
+        }
+    }
+
+    private void truncateAllUserTables(JdbcTemplate jdbcTemplate) {
         try {
             String sql = CACHED_TRUNCATE_SQL.get();
             if (sql == null) {
