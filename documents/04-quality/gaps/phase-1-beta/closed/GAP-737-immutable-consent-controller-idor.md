@@ -43,7 +43,7 @@ Bucket B Wave beta-readiness-4 ship endpoint mà không pair với per-resource 
 
 ## Log
 
-- **2026-05-25 (DONE):** Wave beta-readiness-8 Bucket A retry (Sonnet thrash recovery) — IDOR vector đóng đầy đủ ở lớp code. Tóm tắt thay đổi:
+- **2026-05-25 (DONE):** Wave beta-readiness-8 Bucket A retry (Sonnet thrash recovery) — PR #1799 merged. IDOR vector đóng đầy đủ ở lớp code. Tóm tắt thay đổi:
   - `ImmutableConsentController` gắn `@PreAuthorize("@consentAuthz.canAccessUser(...)")` cho cả 3 endpoint (POST `/record`, GET `/{userId}`, POST `/withdraw`). SpEL bind `#request.userId` / `#userId` đúng theo getter Lombok.
   - Bean mới `ConsentAuthorizationBean` (`@authz`-style component, ID `consentAuthz`) áp ma trận quyết định: null userId → deny / no auth → deny / `ROLE_PLATFORM_ADMIN` → allow (DSAR + audit) / principal name khớp `userId.toString()` → allow / còn lại deny + WARN log.
   - Unit test `ConsentAuthorizationBeanTest` (9 case): null / no auth / anonymous / same user / cross-user IDOR / platform admin cross-user / multi-role admin / tenant-owner cross-user / null principal name — đều pass.
