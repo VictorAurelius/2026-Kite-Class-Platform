@@ -164,12 +164,13 @@ public class Course extends BaseEntity {
     /**
      * Pricing model taxonomy per Wave br-4 ADR-035 (VN TT Anh ngữ market norm).
      * Values: PER_HOUR | MONTHLY | COURSE_PACKAGE | FREE.
-     * Default COURSE_PACKAGE (V67 backfill cho existing rows).
+     * Default PER_HOUR for NEW rows (ADR-035 mandate: VN TT Anh ngữ market bán theo giờ là chính).
+     * V67 backfill set existing rows to COURSE_PACKAGE; V70 sets DB column default to PER_HOUR.
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "pricing_model", nullable = false, length = 32)
     @lombok.Builder.Default
-    private PricingModel pricingModel = PricingModel.COURSE_PACKAGE;
+    private PricingModel pricingModel = PricingModel.PER_HOUR;
 
     /**
      * Unit price in VND, semantics depends on {@link #pricingModel}:

@@ -1111,4 +1111,46 @@ class CourseIntegrationTest {
 
         return objectMapper.readTree(response).get("data").get("id").asLong();
     }
+
+    // ── GAP-740: pricingModel default = PER_HOUR (ADR-035) ──────────────────
+
+    @Test
+    @DisplayName("POST /api/v1/courses - Course created without pricingModel should default to PER_HOUR (GAP-740 / ADR-035)")
+    void shouldDefaultPricingModelToPerHour() throws Exception {
+        // Given: request does NOT specify pricingModel — relies on entity default
+        CreateCourseRequest request = new CreateCourseRequest(
+            "Tiếng Anh Giao tiếp",
+            "ENG-101",
+            "Lớp tiếng Anh giao tiếp theo giờ",
+            "Tuần 1: Chào hỏi, Tuần 2: Mô tả, Tuần 3: Đàm thoại",
+            "Giao tiếp tiếng Anh cơ bản tự tin",
+            "Không yêu cầu",
+            "Học viên người lớn bận rộn",
+            teacherId,
+            8,   // durationWeeks
+            16,  // totalSessions
+            new BigDecimal("200000"),  // price (200.000đ/giờ — VN edu norm)
+            null,  // level
+            null   // category
+        );
+
+        // When: create course
+        String responseBody = mockMvc.perform(post("/api/v1/courses")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.success").value(true))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        Long courseId = objectMapper.readTree(responseBody).get("data").get("id").asLong();
+
+        // Then: retrieve course and verify pricingModel = PER_HOUR
+        mockMvc.perform(get("/api/v1/courses/{id}", courseId)
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.pricingModel").value("PER_HOUR"));
+    }
 }

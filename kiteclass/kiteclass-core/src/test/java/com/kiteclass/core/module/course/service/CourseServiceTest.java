@@ -90,6 +90,8 @@ class CourseServiceTest {
                 course.getDurationWeeks(),
                 course.getTotalSessions(),
                 course.getPrice(),
+                course.getPricingModel() != null ? course.getPricingModel().name() : null,  // pricingModel (Wave br-4 ADR-035)
+                course.getUnitPrice(),  // unitPrice (Wave br-4 ADR-035)
                 course.getStatus().name(),
                 course.getCoverImageUrl(),
                 course.getLevel(),

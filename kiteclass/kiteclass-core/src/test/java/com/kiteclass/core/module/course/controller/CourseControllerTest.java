@@ -75,7 +75,9 @@ class CourseControllerTest {
                 request.syllabus(), request.objectives(), request.prerequisites(),
                 java.util.List.of(),  // prerequisiteCourses - empty list
                 request.targetAudience(), request.teacherId(), request.durationWeeks(),
-                request.totalSessions(), request.price(), "DRAFT", null, null, null, null, null
+                request.totalSessions(), request.price(),
+                "PER_HOUR", BigDecimal.ZERO,  // pricingModel + unitPrice (Wave br-4 ADR-035)
+                "DRAFT", null, null, null, null, null
         );
 
         when(courseService.createCourse(any(CreateCourseRequest.class))).thenReturn(response);
@@ -100,7 +102,9 @@ class CourseControllerTest {
                 "Syllabus", "Objectives", "Prerequisites",
                 java.util.List.of(),  // prerequisiteCourses
                 "Target Audience",
-                1L, 12, 36, new BigDecimal("5000000.00"), "DRAFT",
+                1L, 12, 36, new BigDecimal("5000000.00"),
+                "PER_HOUR", BigDecimal.ZERO,  // pricingModel + unitPrice (Wave br-4 ADR-035)
+                "DRAFT",
                 "https://example.com/cover.jpg", null, null,  // level, category
                 null, null  // createdAt, updatedAt
         );
@@ -126,7 +130,9 @@ class CourseControllerTest {
                 request.syllabus(), request.objectives(), request.prerequisites(),
                 java.util.List.of(),  // prerequisiteCourses
                 request.targetAudience(), 1L, request.durationWeeks(),
-                request.totalSessions(), request.price(), "DRAFT",
+                request.totalSessions(), request.price(),
+                "PER_HOUR", BigDecimal.ZERO,  // pricingModel + unitPrice (Wave br-4 ADR-035)
+                "DRAFT",
                 request.coverImageUrl(), request.level(), request.category(),
                 null, null  // createdAt, updatedAt
         );
@@ -161,7 +167,9 @@ class CourseControllerTest {
                 "Syllabus", "Objectives", "Prerequisites",
                 java.util.List.of(),  // prerequisiteCourses
                 "Target Audience",
-                1L, 12, 36, new BigDecimal("5000000.00"), "PUBLISHED",
+                1L, 12, 36, new BigDecimal("5000000.00"),
+                "PER_HOUR", BigDecimal.ZERO,  // pricingModel + unitPrice (Wave br-4 ADR-035)
+                "PUBLISHED",
                 "https://example.com/cover.jpg", null, null,  // level, category
                 null, null  // createdAt, updatedAt
         );
@@ -185,7 +193,9 @@ class CourseControllerTest {
                 "Syllabus", "Objectives", "Prerequisites",
                 java.util.List.of(),  // prerequisiteCourses
                 "Target Audience",
-                1L, 12, 36, new BigDecimal("5000000.00"), "ARCHIVED",
+                1L, 12, 36, new BigDecimal("5000000.00"),
+                "PER_HOUR", BigDecimal.ZERO,  // pricingModel + unitPrice (Wave br-4 ADR-035)
+                "ARCHIVED",
                 "https://example.com/cover.jpg", null, null,  // level, category
                 null, null  // createdAt, updatedAt
         );
