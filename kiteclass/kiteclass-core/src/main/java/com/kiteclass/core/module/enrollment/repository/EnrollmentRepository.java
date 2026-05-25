@@ -29,19 +29,19 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
      * Find enrollment by ID excluding deleted.
      * Respects soft delete.
      *
-     * <p><b>WARNING:</b> This method does NOT filter by tenant. It relies on the
-     * Hibernate {@code tenantFilter} for multi-tenant isolation, which is fragile
-     * across {@code REQUIRES_NEW} transaction boundaries and event listeners. Prefer
-     * {@link #findByIdAndInstanceIdAndDeletedFalse(Long, UUID)} for explicit tenant
-     * scoping. Tracked in GAP-746 (multi-tenant repo tenant filter sweep).
+     * <p><b>WARNING:</b> Method này KHÔNG filter by tenant — dựa vào Hibernate
+     * {@code tenantFilter} cho multi-tenant isolation. Fragile across
+     * {@code REQUIRES_NEW} transaction boundaries + async event listeners.
+     * Prefer {@link #findByIdAndInstanceIdAndDeletedFalse(Long, UUID)} cho explicit
+     * tenant scoping khi caller có {@code TenantContext}. Tracked GAP-746.
+     *
+     * <p>Method này tồn tại lâu dài cho callers KHÔNG có {@code TenantContext}
+     * (system jobs, scheduled tasks). Không dùng {@code @Deprecated} annotation
+     * vì coexistence là intentional — IDE warning sẽ noise mọi caller hợp lệ.
      *
      * @param id enrollment ID
      * @return optional enrollment
-     * @deprecated use {@link #findByIdAndInstanceIdAndDeletedFalse(Long, UUID)} which
-     *             passes tenant ID explicitly; this overload remains for places that
-     *             cannot easily access {@code TenantContext} (e.g. system jobs).
      */
-    @Deprecated(since = "GAP-746")
     Optional<Enrollment> findByIdAndDeletedFalse(Long id);
 
     /**
