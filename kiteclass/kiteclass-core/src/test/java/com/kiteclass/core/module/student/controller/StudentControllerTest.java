@@ -60,7 +60,7 @@ class StudentControllerTest {
 
     /**
      * Test configuration for mock beans.
-     * Replaces deprecated @MockBean with explicit @TestConfiguration.
+     * Replaces deprecated @MockitoBean with explicit @TestConfiguration.
      */
     @TestConfiguration
     static class MockConfig {

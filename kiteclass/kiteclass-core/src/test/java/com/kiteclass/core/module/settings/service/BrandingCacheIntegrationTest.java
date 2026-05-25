@@ -57,7 +57,7 @@ class BrandingCacheIntegrationTest {
      * staying healthy.
      *
      * <p>Uses {@link MockitoBean} (Spring Framework 6.2 / Spring Boot 3.4+) instead of the
-     * deprecated {@code @MockBean} from {@code spring-boot-test} — same semantics, new package.
+     * deprecated {@code @MockitoBean} from {@code spring-boot-test} — same semantics, new package.
      */
     @MockitoBean
     private BrandingVersionService brandingVersionService;

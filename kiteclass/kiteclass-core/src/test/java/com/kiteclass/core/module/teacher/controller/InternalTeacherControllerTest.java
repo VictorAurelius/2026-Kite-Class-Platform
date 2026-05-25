@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Unit tests for {@link InternalTeacherController}.
  *
- * <p>Uses @TestConfiguration to provide mock beans instead of deprecated @MockBean.
+ * <p>Uses @TestConfiguration to provide mock beans instead of deprecated @MockitoBean.
  *
  * @author KiteClass Team
  * @since 2.3.1
@@ -66,7 +66,7 @@ class InternalTeacherControllerTest {
 
     /**
      * Test configuration providing mock beans.
-     * Replaces deprecated @MockBean annotation.
+     * Replaces deprecated @MockitoBean annotation.
      */
     @TestConfiguration
     static class TestConfig {

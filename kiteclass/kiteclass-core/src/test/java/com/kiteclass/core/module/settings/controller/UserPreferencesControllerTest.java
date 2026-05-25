@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Unit tests for UserPreferencesController.
  *
- * <p>Uses @TestConfiguration to provide mock beans instead of deprecated @MockBean.
+ * <p>Uses @TestConfiguration to provide mock beans instead of deprecated @MockitoBean.
  *
  * @since 2.9
  */

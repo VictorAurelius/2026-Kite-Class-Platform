@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -90,7 +90,7 @@ class BetaAccessRequestRepositoryPostgresIT {
      *
      * @since Wave beta-readiness-5 Bucket C — GAP-610 IT unblock
      */
-    @MockBean
+    @MockitoBean
     private RabbitTemplate rabbitTemplate;
 
     @BeforeEach
