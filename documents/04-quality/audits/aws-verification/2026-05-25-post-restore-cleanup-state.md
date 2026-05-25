@@ -246,3 +246,117 @@ Per GAP-612 Day 4 hypothesis: AWS Trust & Safety preemptive suspend pattern trig
 ### Post-observation window (>30 ngày, after 2026-06-25)
 
 If account 906286017800 stable + no Trust & Safety contact + Phase 2.3 progressing healthy → observation window low concern. But chính chủ discipline vẫn maintain — đã build legitimate stack ($1.5k+), không cần gray paths.
+
+## Y Combinator Startup School — step-by-step playbook (P1 path)
+
+**Caveat:** Knowledge cutoff January 2026. YC Startup School + AWS partnership thay đổi theo cohort/period; user verify UI có thể đã đổi tại thời điểm execute.
+
+### Step 1 — Sign up (5-10 phút)
+
+URL: `https://www.startupschool.org/`
+
+- Click **"Sign up"** / **"Join Startup School"**
+- Use email chính chủ `mvann1207@gmail.com` (matching identity Thuy Duong với AWS account 906286017800) — bắt buộc cho credit redemption sau
+- Verify email link
+
+### Step 2 — Create startup profile (5-10 phút)
+
+Required fields:
+
+| Field | Value |
+|---|---|
+| Company name | "KiteHub" hoặc "KiteHub Education Platform" |
+| One-liner | "Multi-tenant SaaS for Vietnamese tutoring centers + K-12 schools — manage students, courses, attendance, grades, payments" |
+| Founders | Thuy Duong (solo founder) |
+| Location | Hanoi, Vietnam (hoặc city của user) |
+| Stage | "Idea" / "Building MVP" / "Pre-launch beta" — match Phase 1 BETA scope |
+| Industry | "Education / EdTech / SaaS" |
+| Website | `https://kitehub.me` (placeholder content OK, SSL phải work) |
+
+### Step 3 — Enroll cohort path
+
+2 paths:
+- **Self-paced Library** — light, faster access to Deals tab (recommend cho credit-stacking goal)
+- **Active Cohort** — 10-week curriculum + weekly check-ins + peer group (recommend nếu muốn full mentorship)
+
+Pick **self-paced** cho minimal effort path ~$1k AWS reward.
+
+### Step 4 — Find AWS deal trong Deals tab
+
+- Login → **"Deals"** / **"Founder Resources"** / **"Perks"** tab (UI name thay đổi theo period)
+- Search "AWS" → tìm card "AWS Activate" / "AWS Credits"
+- Typical offer 2024-2026: $1,000 - $5,000 AWS Activate Provider Code
+
+### Step 5 — Claim AWS Activate Provider Code
+
+- Click AWS deal → reveal code (dạng `ABC123XYZ...` ~20 chars)
+- Code này dùng để apply qua AWS Activate Provider portal (NOT direct Billing redeem)
+
+### Step 6 — Apply qua AWS Activate Portfolio
+
+URL: `https://aws.amazon.com/activate/portfolio-signup` HOẶC `https://activate.aws.com/portfolio` (path thay đổi)
+
+Form fields:
+
+| Field | Value |
+|---|---|
+| **Provider Code** | (từ Step 5 YC code) |
+| **AWS Account ID** | **906286017800** — bắt buộc đúng để credits map account này |
+| Business legal name | Thuy Duong / KiteHub |
+| Address + phone | Match GAP-612 case 177903869600100 documents |
+| Business website | `https://kitehub.me` |
+| Use case + stage | Match Step 2 profile |
+
+### Step 7 — Wait approval
+
+- Typical: 3-14 ngày
+- Email confirm tới root email AWS account (mvann1207@gmail.com)
+- Credits hiển thị Billing → Credits page (cùng nơi $180 hiện tại)
+
+### Pre-requisites ready check
+
+| Item | Status |
+|---|---|
+| Email chính chủ matching identity Thuy Duong | ✅ mvann1207@gmail.com |
+| AWS account ID 906286017800 | ✅ active post-restore 2026-05-25 |
+| Business website HTTPS 200 (`kitehub.me`) | ⚠️ Pending POST-RST + Phase 2.3 resume; placeholder content OK nhưng SSL phải work |
+| LinkedIn profile founder | 🟡 Recommend — boost approval rate |
+| Brief pitch deck / one-pager | 🟡 Optional |
+
+### Risks + mitigations
+
+| Risk | Mitigation |
+|---|---|
+| Credits amount thay đổi $500-$5k range theo period | Verify Deals tab tại apply moment; nhận bao nhiêu là bấy nhiêu |
+| YC đã thay AWS partnership với program khác | Plan B: AWS Activate Founder direct apply (`https://aws.amazon.com/activate/founders/`) chính chủ guaranteed $1k |
+| `kitehub.me` chưa live full content khi apply | Placeholder content OK; AWS verify website CHÍNH CHỦ chứ không evaluate business fundamentals at this stage |
+| Identity mismatch nếu YC profile khác AWS account holder | Cùng email + cùng business name (KiteHub) cho cả 2 |
+| Trust & Safety re-review trong observation window | Apply CHÍNH CHỦ (Thuy Duong + business identity match) — không amplify mismatch signals |
+
+### Alternative fallbacks nếu YC AWS deal không match
+
+| Program | URL | Reward | Effort |
+|---|---|---|---|
+| **AWS Activate Founder direct** (recommended fallback) | `https://aws.amazon.com/activate/founders/` | $1,000 chính chủ | 30-60 min apply + 7-14 ngày — resubmit POST-RST per GAP-459 |
+| **Microsoft for Startups Founders Hub** | `https://startups.microsoft.com/` | $1,000 Azure + small AWS via partner | Apply, 1-2 tuần |
+| **Stripe Atlas** | `https://stripe.com/atlas` | $5,000 AWS via Atlas portal | $500 Atlas fee — overkill cho student stage |
+
+### Recommend execution sequence
+
+```
+TUẦN NÀY (2026-05-25 → 2026-05-31):
+  1. YC Startup School signup (5-10 min) — test water
+  2. Apply qua Deals tab nếu AWS code có (max 2h total light path)
+  3. Cloud Quest game 2-4h cho $25-50 small wins
+
+POST-RST (sau khi kitehub.me HTTPS 200, ~tuần sau):
+  4. AWS Activate Founder direct resubmit (chính chủ $1k guaranteed, GAP-459 unblock)
+
+EXTRA (nếu thời gian + UTC student card available):
+  5. AWS Educate $200 với UTC student verify (sandbox tách prod)
+```
+
+Cross-references:
+- GAP-459 AWS Activate Founder resubmit blocked by kitehub.me reachability
+- GAP-612 §Day 4 Trust & Safety hypothesis (identity matching mandate)
+- `agent-action-bias.md` §1 Part A (do-it-yourself paths only for user manual application)
