@@ -1,0 +1,33 @@
+{
+  "pr": 1752,
+  "title": "Wave thesis-1 Bucket C: defense deck + Q&A + demo + practice schedule (GAP-653)",
+  "branch": "wave/thesis-1-bucket-C-defense-deck",
+  "created_at": null,
+  "merged_at": "2026-05-23T18:21:36Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-23T18:21:40.549868",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 7,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-45999"
+  }
+}

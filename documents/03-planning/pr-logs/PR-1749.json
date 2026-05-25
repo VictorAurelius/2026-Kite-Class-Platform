@@ -1,0 +1,33 @@
+{
+  "pr": 1749,
+  "title": "feat(wave-thesis-1-bucket-B): thesis-figure-curation skill + 4 INDEX \u2014 close GAP-651",
+  "branch": "wave/thesis-1-bucket-B-figure-curation",
+  "created_at": null,
+  "merged_at": "2026-05-23T17:47:53Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-23T17:47:57.104911",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 16,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/3",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-90597"
+  }
+}

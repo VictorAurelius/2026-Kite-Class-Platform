@@ -1,0 +1,37 @@
+{
+  "pr": 1750,
+  "title": "feat(wave-thesis-1-bucket-A): citation-extract skill \u2014 close GAP-647 Step 3 + GAP-655",
+  "branch": "wave/thesis-1-bucket-A-citation-extract",
+  "created_at": null,
+  "merged_at": "2026-05-23T17:50:02Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "business-logic-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-23T17:50:06.837761",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 10,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": [
+          "business-logic-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/4",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-92402"
+  }
+}
