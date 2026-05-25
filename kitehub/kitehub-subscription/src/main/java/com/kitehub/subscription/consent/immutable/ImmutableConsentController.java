@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,7 +44,12 @@ import java.util.Map;
  * (Wave 25 Bucket A) — pre-login banner còn dùng path cũ visitor_id-based; path này
  * cho post-login authenticated consent capture với immutability + hash chain.
  *
- * @since Wave beta-readiness-4 Bucket B — GAP-353b
+ * <p>IDOR fix Wave beta-readiness-8 Bucket A (GAP-737): every mutation / read path
+ * is guarded by {@link ConsentAuthorizationBean#canAccessUser(Long)} so a logged-in
+ * user can only touch their own consent rows. Platform admins keep cross-user access
+ * for PDPL DSAR / audit operations.</p>
+ *
+ * @since Wave beta-readiness-4 Bucket B — GAP-353b (IDOR guard Wave beta-readiness-8 GAP-737)
  */
 @RestController
 @RequestMapping("/api/v1/consent/v2")
@@ -59,6 +65,7 @@ public class ImmutableConsentController {
     @Operation(summary = "Record consent — INSERT immutable row với hash chain",
             description = "Append-only. RLS blocks UPDATE. SERIALIZABLE isolation cho concurrent safety.")
     @PostMapping("/record")
+    @PreAuthorize("@consentAuthz.canAccessUser(#request.userId)")
     public ResponseEntity<ConsentResponseDto> record(
             @Valid @RequestBody ConsentRequestDto request,
             HttpServletRequest httpRequest) {
@@ -79,6 +86,7 @@ public class ImmutableConsentController {
 
     @Operation(summary = "Get consent history cho user + validate hash chain integrity")
     @GetMapping("/{userId}")
+    @PreAuthorize("@consentAuthz.canAccessUser(#userId)")
     public ResponseEntity<ConsentHistoryDto> history(@PathVariable("userId") Long userId) {
         try {
             List<ConsentRecordImmutable> rows = consentService.findHistory(userId);
@@ -101,6 +109,7 @@ public class ImmutableConsentController {
     @Operation(summary = "Withdraw consent — INSERT row mới với analytics+marketing=false",
             description = "PDPL Art 14 'rút lại sự đồng ý dễ dàng như cho đồng ý'. NOT a flag flip.")
     @PostMapping("/withdraw")
+    @PreAuthorize("@consentAuthz.canAccessUser(#request.userId)")
     public ResponseEntity<ConsentResponseDto> withdraw(
             @Valid @RequestBody ConsentWithdrawRequestDto request,
             HttpServletRequest httpRequest) {
