@@ -3,6 +3,32 @@
 > Extracted from: `InvoiceController`, `PaymentController`, `InstallmentPlanController`, `RefundRequestController`, `PaymentWebhookController`
 > Base paths: `/api/v1/invoices`, `/api/v1/payments`, `/api/v1/installment-plans`, `/api/v1/refund-requests`
 
+## Enums
+
+### PaymentMethod (canonical — kiteclass school payment domain)
+
+Single source of truth: `com.kiteclass.core.module.payment.enums.PaymentMethod` (Java) ↔
+`kiteclass-frontend/src/types/payment.ts` enum (TypeScript).
+
+| Value | Vietnamese label | Online gateway? | Use case |
+|---|---|---|---|
+| `CASH` | Tiền mặt | ❌ (offline) | Phụ huynh nộp tiền mặt tại trung tâm |
+| `BANK_TRANSFER` | Chuyển khoản | ❌ (offline) | Phụ huynh chuyển khoản, admin verify |
+| `MOMO` | Ví MoMo | ✅ | E-wallet — quét QR thanh toán |
+| `VNPAY` | VNPay | ✅ | Payment gateway VN |
+| `ZALOPAY` | ZaloPay | ✅ | E-wallet ZaloPay |
+| `CREDIT_CARD` | Thẻ tín dụng | ✅ | Visa/MasterCard (Phase 2+) |
+
+**Note:** đây là PaymentMethod **school payment** scope (invoice + installment cho học phí học sinh).
+KiteHub subscription billing dùng enum riêng `com.kitehub.platform.domain.enums.PaymentMethod`
+(VIETQR/MOMO/VNPAY/BANK_TRANSFER/MANUAL) — xem `documents/01-business/kitehub/subscription-billing/api-contract.md`.
+Domain boundary cố ý giữ tách bạch (school invoice payment ≠ subscription tier payment).
+
+**GAP-739 (Wave beta-readiness-8 Bucket C 2026-05-25):** removed orphan duplicate
+`com.kiteclass.core.common.constant.PaymentMethod` (zero consumers), synced FE union ↔ BE enum.
+
+---
+
 ## Invoice Endpoints
 
 ### GET `/api/v1/invoices/{id}`

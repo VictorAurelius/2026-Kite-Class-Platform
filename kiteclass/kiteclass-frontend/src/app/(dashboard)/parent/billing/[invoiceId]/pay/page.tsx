@@ -21,29 +21,38 @@ import {
   MOCK_INVOICES,
   formatVN,
 } from '@/components/parent/parent-mock-data';
+import { PaymentMethod } from '@/types/payment';
 
-type PaymentMethod = 'BANK_TRANSFER' | 'MOMO' | 'CARD';
+/**
+ * Subset PaymentMethod values used in parent billing flow.
+ * GAP-739 (Wave beta-readiness-8 Bucket C): replaced local `'BANK_TRANSFER' | 'MOMO' | 'CARD'` literal
+ * with canonical enum import — eliminated 3-way drift (`CARD` ≠ canonical `CREDIT_CARD`).
+ */
+type ParentPaymentMethod = Extract<
+  PaymentMethod,
+  PaymentMethod.BANK_TRANSFER | PaymentMethod.MOMO | PaymentMethod.CREDIT_CARD
+>;
 
 const METHODS: ReadonlyArray<{
-  id: PaymentMethod;
+  id: ParentPaymentMethod;
   label: string;
   hint: string;
   icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>;
 }> = [
   {
-    id: 'BANK_TRANSFER',
+    id: PaymentMethod.BANK_TRANSFER,
     label: 'Chuyển khoản ngân hàng',
     hint: 'VietinBank, Vietcombank, BIDV…',
     icon: Landmark,
   },
   {
-    id: 'MOMO',
+    id: PaymentMethod.MOMO,
     label: 'Ví MoMo',
     hint: 'Quét QR — phổ biến tại VN',
     icon: Wallet,
   },
   {
-    id: 'CARD',
+    id: PaymentMethod.CREDIT_CARD,
     label: 'Thẻ tín dụng / ghi nợ',
     hint: 'Visa, MasterCard',
     icon: CreditCard,
@@ -55,7 +64,7 @@ export default function ParentBillingPayPage() {
   const params = useParams<{ invoiceId: string }>();
   const invoiceId = params?.invoiceId;
   const invoice = MOCK_INVOICES.find((i) => i.id === invoiceId);
-  const [method, setMethod] = useState<PaymentMethod>('BANK_TRANSFER');
+  const [method, setMethod] = useState<ParentPaymentMethod>(PaymentMethod.BANK_TRANSFER);
   const [submitting, setSubmitting] = useState(false);
 
   if (!invoice) {

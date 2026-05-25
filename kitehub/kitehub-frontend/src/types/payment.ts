@@ -1,5 +1,21 @@
 export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'EXPIRED';
-export type PaymentMethod = 'VIETQR' | 'BANK_TRANSFER' | 'MOMO';
+
+/**
+ * KiteHub subscription billing payment methods.
+ *
+ * Canonical source: `com.kitehub.platform.domain.enums.PaymentMethod` (Java).
+ * GAP-739 (Wave beta-readiness-8 Bucket C): synced FE union ↔ BE enum, eliminated drift.
+ *
+ * Note: KiteClass (school payment domain) uses a SEPARATE PaymentMethod enum
+ * defined in `kiteclass-frontend/src/types/payment.ts` — domain boundary is intentional
+ * (subscription billing vs school invoice are distinct business contexts).
+ */
+export type PaymentMethod =
+  | 'VIETQR'
+  | 'MOMO'
+  | 'VNPAY'
+  | 'BANK_TRANSFER'
+  | 'MANUAL';
 
 export interface Payment {
   id: string;                     // UUID
