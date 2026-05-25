@@ -1,7 +1,16 @@
 package com.kiteclass.core.module.payment.enums;
 
 /**
- * Payment method types supported by the platform.
+ * Canonical PaymentMethod enum for KiteClass (school payment domain).
+ *
+ * <p>Scope: invoice + installment payment for school students/parents.
+ * For KiteHub subscription billing, see
+ * {@code com.kitehub.platform.domain.enums.PaymentMethod} (separate domain).
+ *
+ * <p>GAP-739 (Wave beta-readiness-8 Bucket C 2026-05-25): consolidated duplicate
+ * declaration — removed orphan {@code com.kiteclass.core.common.constant.PaymentMethod}
+ * (zero consumers, drift risk). FE TypeScript union synced in
+ * {@code kiteclass-frontend/src/types/payment.ts}.
  *
  * @since 1.0.0
  */

@@ -1,5 +1,29 @@
 # Subscription & Billing — API Contract
 
+## Enums
+
+### PaymentMethod (canonical — kitehub subscription billing domain)
+
+Single source of truth: `com.kitehub.platform.domain.enums.PaymentMethod` (Java) ↔
+`kitehub-frontend/src/types/payment.ts` (TypeScript union).
+
+| Value | Vietnamese label | Online gateway? | Use case |
+|---|---|---|---|
+| `VIETQR` | VietQR | ✅ (scan QR) | Default cho VN center owners (SUB-11) |
+| `MOMO` | Ví MoMo | ✅ | E-wallet phổ biến |
+| `VNPAY` | VNPay | ✅ | Payment gateway VN |
+| `BANK_TRANSFER` | Chuyển khoản ngân hàng | ❌ (manual) | Direct bank transfer + admin verify |
+| `MANUAL` | Thủ công | ❌ (admin entry) | Admin nhập tay payment record (refund, comp) |
+
+**Note:** đây là PaymentMethod **subscription billing** scope. KiteClass school payment dùng
+enum riêng `com.kiteclass.core.module.payment.enums.PaymentMethod` (CASH/BANK_TRANSFER/MOMO/VNPAY/ZALOPAY/CREDIT_CARD) —
+xem `documents/01-business/kiteclass/payment-invoice/api-contract.md`. Domain boundary cố ý
+giữ tách bạch (subscription tier-payment ≠ school invoice/installment payment).
+
+**GAP-739 (Wave beta-readiness-8 Bucket C 2026-05-25):** consolidated duplicate enum, synced FE union ↔ BE enum.
+
+---
+
 ## POST /api/platform/subscriptions
 **Use case:** UC-SUB-01
 **Auth:** Bearer token (Owner)

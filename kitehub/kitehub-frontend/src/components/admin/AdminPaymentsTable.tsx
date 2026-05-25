@@ -35,8 +35,10 @@ interface AdminPaymentsTableProps {
 
 const methodLabels: Record<PaymentMethod, string> = {
   VIETQR: 'VietQR',
-  BANK_TRANSFER: 'Chuyển khoản',
   MOMO: 'MoMo',
+  VNPAY: 'VNPay',
+  BANK_TRANSFER: 'Chuyển khoản',
+  MANUAL: 'Thủ công',
 };
 
 export function AdminPaymentsTable({ payments }: AdminPaymentsTableProps) {
