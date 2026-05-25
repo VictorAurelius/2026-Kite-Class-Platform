@@ -336,22 +336,68 @@ class BetaAccessControllerTest {
 
     @Test
     @WithAnonymousUser
-    @DisplayName("POST /auth/beta-signup — invalid token → 404 + registerFromBetaInvite NOT invoked + no rollback")
+    @DisplayName("POST /auth/beta-signup — invalid token → 404 + INVALID_TOKEN JSON body + registerFromBetaInvite NOT invoked + no rollback (GAP-611)")
     void completeBetaSignupRejectsInvalidToken() throws Exception {
         UUID token = UUID.randomUUID();
         BetaSignupCommand cmd = new BetaSignupCommand(token, "owner-pass-12345", "abc-school");
         when(service.completeBetaSignup(any(BetaSignupCommand.class)))
                 .thenThrow(new IllegalArgumentException("Invalid invite token"));
 
+        // GAP-611 (Wave beta-readiness-5 Bucket D): verify response includes JSON body
+        // với errorCode để phân biệt application-layer 404 với infrastructure 404.
         mockMvc.perform(post("/api/v1/auth/beta-signup")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(cmd)))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorCode").value("INVALID_TOKEN"))
+                .andExpect(jsonPath("$.message").exists());
 
         Mockito.verify(authService, Mockito.never())
                 .registerFromBetaInvite(any(), any(), any(), any());
         Mockito.verify(service, Mockito.never()).rollbackSignup(Mockito.anyLong());
+    }
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("POST /auth/beta-signup — token expired → 409 + TOKEN_EXPIRED JSON body (GAP-611)")
+    void completeBetaSignupRejectsExpiredToken() throws Exception {
+        UUID token = UUID.randomUUID();
+        BetaSignupCommand cmd = new BetaSignupCommand(token, "owner-pass-12345", "abc-school");
+        when(service.completeBetaSignup(any(BetaSignupCommand.class)))
+                .thenThrow(new IllegalStateException("Invite token expired"));
+
+        mockMvc.perform(post("/api/v1/auth/beta-signup")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(cmd)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("TOKEN_EXPIRED"))
+                .andExpect(jsonPath("$.message").exists());
+
+        Mockito.verify(authService, Mockito.never())
+                .registerFromBetaInvite(any(), any(), any(), any());
+    }
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("POST /auth/beta-signup — wrong state → 409 + WRONG_STATE JSON body + state name (GAP-611)")
+    void completeBetaSignupRejectsWrongState() throws Exception {
+        UUID token = UUID.randomUUID();
+        BetaSignupCommand cmd = new BetaSignupCommand(token, "owner-pass-12345", "abc-school");
+        when(service.completeBetaSignup(any(BetaSignupCommand.class)))
+                .thenThrow(new IllegalStateException("Cannot complete signup in state SIGNED_UP (must be APPROVED)"));
+
+        mockMvc.perform(post("/api/v1/auth/beta-signup")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(cmd)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("WRONG_STATE"))
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("SIGNED_UP")));
+
+        Mockito.verify(authService, Mockito.never())
+                .registerFromBetaInvite(any(), any(), any(), any());
     }
 
     // ── Admin endpoints — happy path (PLATFORM_ADMIN role) ────────────
