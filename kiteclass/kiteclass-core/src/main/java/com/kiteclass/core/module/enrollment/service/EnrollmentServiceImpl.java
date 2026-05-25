@@ -1,6 +1,7 @@
 package com.kiteclass.core.module.enrollment.service;
 
 import com.kiteclass.core.common.constant.EnrollmentStatus;
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.ValidationException;
@@ -114,8 +115,14 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     public EnrollmentResponse getEnrollmentById(Long id) {
         log.debug("Fetching enrollment with ID: {}", id);
 
-        Enrollment enrollment = enrollmentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", (Object) id));
+        // GAP-746: explicit tenant filter to defend against Hibernate tenantFilter not
+        // being applied across REQUIRES_NEW / AFTER_COMMIT listener boundaries. Falls
+        // back to legacy method when TenantContext is unset (e.g. system jobs).
+        Enrollment enrollment = TenantContext.isSet()
+                ? enrollmentRepository.findByIdAndInstanceIdAndDeletedFalse(id, TenantContext.getCurrentTenant())
+                        .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", (Object) id))
+                : enrollmentRepository.findByIdAndDeletedFalse(id)
+                        .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", (Object) id));
 
         return enrollmentMapper.toResponse(enrollment);
     }
@@ -181,8 +188,12 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             UpdateEnrollmentStatusRequest request) {
         log.info("Updating enrollment {} status to {}", id, request.getStatus());
 
-        Enrollment enrollment = enrollmentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", (Object) id));
+        // GAP-746: explicit tenant filter (see getEnrollmentById)
+        Enrollment enrollment = TenantContext.isSet()
+                ? enrollmentRepository.findByIdAndInstanceIdAndDeletedFalse(id, TenantContext.getCurrentTenant())
+                        .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", (Object) id))
+                : enrollmentRepository.findByIdAndDeletedFalse(id)
+                        .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", (Object) id));
 
         EnrollmentStatus oldStatus = enrollment.getStatus();
         enrollment.setStatus(request.getStatus());
@@ -204,8 +215,12 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     public EnrollmentResponse withdrawStudent(Long id) {
         log.info("Withdrawing student from enrollment: {}", id);
 
-        Enrollment enrollment = enrollmentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", (Object) id));
+        // GAP-746: explicit tenant filter (see getEnrollmentById)
+        Enrollment enrollment = TenantContext.isSet()
+                ? enrollmentRepository.findByIdAndInstanceIdAndDeletedFalse(id, TenantContext.getCurrentTenant())
+                        .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", (Object) id))
+                : enrollmentRepository.findByIdAndDeletedFalse(id)
+                        .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", (Object) id));
 
         if (enrollment.getStatus() == EnrollmentStatus.WITHDRAWN) {
             log.warn("Enrollment {} is already withdrawn", id);

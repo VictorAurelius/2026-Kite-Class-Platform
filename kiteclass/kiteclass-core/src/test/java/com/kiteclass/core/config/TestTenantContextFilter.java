@@ -50,6 +50,14 @@ public class TestTenantContextFilter extends OncePerRequestFilter {
     @Autowired(required = false)
     private EntityManager entityManager;
 
+    /**
+     * Tracks previous tenant per request thread to detect cross-tenant context switches.
+     * When tenant CHANGES between requests, persistence context must be cleared BEFORE
+     * flush to avoid @PreUpdate firing on stale managed entities from prior tenant
+     * (GAP-746 fix).
+     */
+    private static final ThreadLocal<UUID> PREVIOUS_TENANT = new ThreadLocal<>();
+
     @Override
     protected void doFilterInternal(
         HttpServletRequest request,
@@ -70,9 +78,21 @@ public class TestTenantContextFilter extends OncePerRequestFilter {
                 // Previous issue was JPQL parameter type inference, resolved by using native SQL
                 if (entityManager != null) {
                     try {
-                        // Flush and clear to ensure fresh session (avoids parameter type conflicts)
-                        entityManager.flush();
-                        entityManager.clear();
+                        // GAP-746: when tenant CHANGES between requests, clear persistence
+                        // context BEFORE flush to detach entities loaded under previous
+                        // tenant. Otherwise flush() triggers @PreUpdate
+                        // validateInstanceIdOnUpdate on stale managed entities, throwing
+                        // InvalidDataAccessApiUsageException on cross-tenant test sequences.
+                        // Same-tenant requests retain original flush-then-clear semantics
+                        // to preserve mid-test direct repository.save() persistence.
+                        UUID previousTenant = PREVIOUS_TENANT.get();
+                        if (previousTenant != null && !previousTenant.equals(tenantUuid)) {
+                            entityManager.clear();
+                        } else {
+                            entityManager.flush();
+                            entityManager.clear();
+                        }
+                        PREVIOUS_TENANT.set(tenantUuid);
 
                         Session session = entityManager.unwrap(Session.class);
                         Filter filter = session.enableFilter("tenantFilter");
@@ -91,6 +111,9 @@ public class TestTenantContextFilter extends OncePerRequestFilter {
         } finally {
             // Always clear context after request
             TenantContext.clear();
+            // Note: PREVIOUS_TENANT is intentionally NOT cleared here — it persists
+            // across requests within the same test thread to detect cross-tenant
+            // context switches (GAP-746).
         }
     }
 }
