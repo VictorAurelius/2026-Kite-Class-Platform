@@ -219,6 +219,9 @@ public class TestFixtureCleanup implements TestExecutionListener, Ordered {
      * step is a no-op.
      */
     private void truncateAllUserTables() {
+        // DEBUG GAP-735 investigation: confirm listener actually fires + DataSource present
+        System.err.println("[GAP-735-DEBUG] truncateAllUserTables called; jdbcTemplate="
+                + (jdbcTemplate != null ? "present" : "null"));
         if (jdbcTemplate == null) {
             return;
         }
@@ -241,9 +244,12 @@ public class TestFixtureCleanup implements TestExecutionListener, Ordered {
                 builder.append(" RESTART IDENTITY CASCADE");
                 sql = builder.toString();
                 CACHED_TRUNCATE_SQL.compareAndSet(null, sql);
+                System.err.println("[GAP-735-DEBUG] Cached TRUNCATE SQL for " + tables.size() + " tables");
             }
             jdbcTemplate.execute(sql);
-        } catch (Exception ignored) {
+            System.err.println("[GAP-735-DEBUG] TRUNCATE executed successfully");
+        } catch (Exception ex) {
+            System.err.println("[GAP-735-DEBUG] TRUNCATE FAILED: " + ex.getClass().getSimpleName() + ": " + ex.getMessage());
             // Cleanup failure should not mask test failure; swallow.
             // If truncate consistently fails, downstream test assertions will surface it.
         }
