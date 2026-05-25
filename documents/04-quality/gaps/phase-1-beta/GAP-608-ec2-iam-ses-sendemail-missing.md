@@ -1,9 +1,10 @@
 # GAP-608 — EC2 IAM role `kitehub-production-ec2-app` thiếu `ses:SendEmail` permission
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (90% — IaC declared, live verify gated by GAP-612 AWS account restore)
 **Priority:** 🔴 P0
 **Domain:** DevOps
 **Found:** 2026-05-17 (Wave 90 walkthrough — direct POST to kitehub-email failed AWS SES 403)
+**Last-Verified:** 2026-05-25
 **Affects:** Mọi email gửi qua SESEmailService — beta invite, welcome, admin alerts, trial reminders, DSAR, password reset, EVERYTHING
 
 ## Problem
@@ -97,4 +98,5 @@ Currently SES sandbox = only verified recipients can receive. Beta cohort scale 
 
 ## Log
 
+- **2026-05-25 (PARTIAL 90%):** Wave beta-readiness-5 Bucket B — terraform IaC declaration shipped. Added `aws_iam_role_policy.ec2_ses_send` to `infrastructure/terraform-aws/iam.tf` (separate inline policy attached to `kitehub-production-ec2-app` role, scope `ses:SendEmail` + `ses:SendRawEmail` + `ses:SendTemplatedEmail` + `ses:GetSendQuota` on `identity/*` + `configuration-set/*` in `ap-southeast-1`). Static verify: `terraform fmt -check` PASS. **Live verify SKIPPED** — AWS account suspended per GAP-612 (2026-05-17 16:50 UTC); `terraform apply` deferred until restore. Follow-up gap GAP-747 files post-restore live verify (apply + `aws iam simulate-principal-policy` + actual SES SendEmail success on verified recipient). Per `local-fix-production-parity-check.md` v1.0.0 — IaC source change shipped now, verification deferred with explicit blocker reference (acceptable defer per §3.2 follow-up gap pattern).
 - **2026-05-17:** Gap filed during Wave 90 walkthrough. Direct kitehub-email POST returned HTTP 200 with body `{"status":"FAILED","errorMessage":"...ses:SendEmail 403"}`. Same error pattern in admin-new-login-alert retries since Wave 88 cutover (every admin login emits failed-to-send event). Critical for beta cohort onboarding — zero outbound email works currently.
