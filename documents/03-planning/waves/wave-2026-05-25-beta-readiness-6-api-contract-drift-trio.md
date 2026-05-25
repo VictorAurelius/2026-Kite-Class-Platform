@@ -1,8 +1,9 @@
 ---
 title: Wave beta-readiness-6 — API contract drift trio (payment-invoice + attendance + student-enrollment)
-status: draft
+status: complete
 created: 2026-05-25
 updated: 2026-05-26
+closed_at: 2026-05-26
 wave: 6
 tag_primary: beta-readiness
 tags_secondary: [api-contract, contract-drift, gap-231, gap-232, gap-233]
@@ -137,18 +138,47 @@ After A+B+C verify:
 
 ---
 
-## 7. Closure Protocol
+## 7. Closure Protocol — ✅ SHIPPED 2026-05-26
 
-1. All 3 buckets SHIPPED + drift check exit 0 cho 3 domains
-2. 3 P0 gaps flipped (GAP-231/232/233) per `gap-done-discipline.md`
-3. Integration tests verify per-endpoint schema match
-4. 5-target sync + handoff
-5. Worktree cleanup
+### Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` §3)
+
+| # | Plan §3 Scope item | Verdict | Evidence / Follow-up |
+|---|---|---|---|
+| 1 | Bucket A — GAP-231 payment-invoice drift (31 endpoints) | ✅ DONE | PR #1838 (api-contract.md 189→830 lines, drift detector 4/4 base paths matched) |
+| 2 | Bucket B — GAP-232 attendance drift (18 endpoints across 4 ctrl, vs gap-claim 9 in 1) | ✅ DONE | PR #1839 (api-contract.md 113→599 lines, 3 prior waves 18b1/18b2/51 backsynced) |
+| 3 | Bucket C — GAP-233 student-enrollment drift (25 endpoints across 5 ctrl) | ✅ DONE | PR #1840 (api-contract.md 91→803 lines, HTTP status + header contracts + cross-domain side-effects documented) |
+| 4 | Closure — 5-target sync + 3 P0 DONE flip | ✅ DONE | This closure PR (CSV flip + git mv → phase-1-beta/closed/ + wave-history append + ROADMAP sync + session-handoff) |
+| 5 | Integration tests verify per-endpoint schema | ✅ DONE | Per-bucket investigation: pre-existing IT (39 jsonPath InvoiceFlowIT+PaymentFlowIT / 4 IT classes attendance / EnrollmentIT+StudentControllerTest) satisfy AC "≥3 endpoints schema match" — no new IT added; documented inline in each bucket PR `## IT add/skip reasoning` section |
+
+### Out-of-scope follow-ups (surfaced inline in bucket PRs, NOT touched)
+
+| # | Item | Filed gap? | Source PR |
+|---|---|---|---|
+| 1 | `/api/platform/payments` + `/api/v1/admin/payments` controllers (kitehub platform module) flagged by drift detector — out of GAP-231 scope | KHÔNG (intentional out-of-scope per GAP-231 explicit) | Bucket A #1838 |
+| 2 | Enum `AttendanceStatus.EXCUSED` vs use-cases.md + rules.md BR-ATT-005 reference `EXCUSED_ABSENCE` — rename needed | KHÔNG (annotated in api-contract.md §1.5 + §6 "out-of-scope GAP-232") | Bucket B #1839 |
+| 3 | `use-cases.md` missing UC entries for attendance period (§4) + parent-facet (§5) endpoints | KHÔNG (annotated in api-contract.md §6) | Bucket B #1839 |
+
+Phase 1 BETA gate impact: 3 P0 gaps closed → API contract audit baseline 76/100 C FAIL → projected ≥82/100 B PASS post Wave audit refresh (~+6 delta from 3 domains drift→0).
+
+### Original closure protocol (verbatim)
+
+1. ~~All 3 buckets SHIPPED + drift check exit 0 cho 3 domains~~ ✅
+2. ~~3 P0 gaps flipped (GAP-231/232/233) per `gap-done-discipline.md`~~ ✅
+3. ~~Integration tests verify per-endpoint schema match~~ ✅ (pre-existing satisfies AC)
+4. ~~5-target sync + handoff~~ ✅ (this PR)
+5. Worktree cleanup → next session post `prune-merged-worktrees.sh --yes`
 
 ---
 
 ## 8. Log
 
+- **2026-05-26 (SHIPPED — status: complete):** Wave SHIPPED 3/3 buckets — 4 PRs merged (#1836 plan patch state-check + #1838 Bucket A + #1839 Bucket B + #1840 Bucket C + this closure PR). 3 P0 gaps DONE (GAP-231/232/233) per `gap-done-discipline.md`. Empirical findings per bucket:
+  - **Bucket A (PR #1838):** 31 endpoints (gap claimed 32; explained PaymentController class-level `@RequestMapping` counted as extra). api-contract.md 189→830 lines. drift detector 0/4→4/4 base paths matched. 39 jsonPath assertions in pre-existing IT satisfy AC. ~1.5h.
+  - **Bucket B (PR #1839):** 18 endpoints across 4 controllers (gap claimed 9 in 1 — drift broader 2×). Root cause: 3 prior waves 18b1/18b2/51 shipped 8 more endpoints without back-syncing. api-contract.md 113→599 lines. v1→v2 with RFC 7807 errors + pagination + traceability matrix endpoint×UC×BR + state-transition table. ~1.5h.
+  - **Bucket C (PR #1840):** 25 endpoints (22 public + 3 internal) across 5 controllers (gap claimed 6 enrollment). Root cause: 2026-03-24 inventory-only ship missed 12 endpoints (3 internal + 5 portal + 4 bulk-import). HTTP status codes corrected (POST→201 + DELETE→204), header contracts documented, cross-domain side-effects (enrollment→invoice GAP-231) documented, PESSIMISTIC_WRITE lock on capacity check documented. KEEP COMBINED file-split decision (student CRUD + enrollment lifecycle high coupling). ~2h.
+  - **Coordinator merge:** 3 PRs sequential auto-merge per `docs-only-pr-auto-merge.md` (file-disjoint .md files; sequential not required post-spawn but executed in PR order A→B→C).
+  - **Counterfactual cost-save:** Pre-spawn state-check (this wave's #1836 plan patch) eliminated ~30-60 min preventable round-trips from 3 path errors + Opus drift. Actual wall-clock 4-5h matches revised estimate.
+  - **3 out-of-scope items** surfaced inline in bucket PRs (kitehub platform payments / AttendanceStatus enum rename / use-cases.md attendance period+parent UC entries) — NOT filed as new gaps per agent task spec; documented as PR annotations.
 - **2026-05-26 (state-check patch):** Coordinator next-session pre-spawn state-check per `audit-to-gap-pipeline.md` §2.8 + `release-fix-retry-budget.md` §3.5 surfaced 3 scope errors trong plan §2/§3/§5:
   - **Bucket A module mis-scoped:** Plan said `kitehub/kitehub-subscription/.../Invoice*+Payment*Controller`; actual = `kiteclass/kiteclass-core/.../module/{payment,invoice}/{Payment,Invoice,Refund,InstallmentPlan}Controller` (5 ctrl, 32 endpoints). ALL 3 buckets in `kiteclass-core` (not 2 as plan said) → merge conflict probability HIGH, sequential merge mandatory.
   - **3 api-contract.md paths missing `kiteclass/` prefix:** Plan referenced top-level `documents/01-business/{payment-invoice,attendance,student-enrollment}/`; actual 01-business uses 2-level nesting `documents/01-business/{kitehub,kiteclass}/<domain>/`. All 3 contracts EXIST under correct paths (PARTIAL drift not total per gap problem statements).
