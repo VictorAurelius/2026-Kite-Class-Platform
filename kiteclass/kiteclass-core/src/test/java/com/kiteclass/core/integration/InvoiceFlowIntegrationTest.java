@@ -10,6 +10,7 @@ import com.kiteclass.core.module.course.dto.CreateCourseRequest;
 import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.testutil.TestDataBuilder;
+import com.kiteclass.core.testutil.TestFixtureCleanup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +62,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
 @Rollback(true)
+@TestExecutionListeners(
+        value = TestFixtureCleanup.class,
+        mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS
+)
 class InvoiceFlowIntegrationTest {
 
     @Autowired
