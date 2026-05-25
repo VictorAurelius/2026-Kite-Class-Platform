@@ -7,7 +7,7 @@
 --   - pricing_model VARCHAR(30) — PricingModel enum: PER_HOUR | MONTHLY | COURSE_PACKAGE | FREE
 --   - unit_price NUMERIC(19,2) — interpreted per pricing_model (per giờ / per tháng / per khoá / 0 đ)
 --
--- Default pricing_model = 'PER_HOUR' (VN TT Anh ngữ market dominant pattern per ADR-027 +
+-- Default pricing_model = 'PER_HOUR' (VN TT Anh ngữ market dominant pattern per ADR-035 +
 -- Apollo 257-344k/giờ, ILA 195-368k/giờ market benchmark).
 --
 -- Default unit_price = 0 — Trung tâm chủ MUST update sau khi migrate, KHÔNG tự động charge.
@@ -46,7 +46,7 @@ ALTER TABLE courses
     CHECK (pricing_model != 'FREE' OR unit_price = 0);
 
 COMMENT ON COLUMN courses.pricing_model IS
-    'PricingModel enum: PER_HOUR | MONTHLY | COURSE_PACKAGE | FREE (Wave beta-readiness-4 Bucket C / ADR-027)';
+    'PricingModel enum: PER_HOUR | MONTHLY | COURSE_PACKAGE | FREE (Wave beta-readiness-4 Bucket C / ADR-035)';
 
 COMMENT ON COLUMN courses.unit_price IS
     'Unit price in VND. Semantics depend on pricing_model: PER_HOUR=per giờ, MONTHLY=per tháng, COURSE_PACKAGE=per khoá, FREE=must be 0';
