@@ -212,16 +212,37 @@ AWS Educate (GitHub Student Pack default benefit) là **sandbox account tách bi
 - ❌ Tạo AWS account #2 cùng identity → duplicate detection (per GAP-612 §Day 4 hypothesis: AWS Trust & Safety preemptive suspend new-account pattern)
 - ❌ Stack 2 Activate apps cùng business identity — AWS detect, 1 app/business/year
 
-### Stack projection
+### Stack projection (REVISED 2026-05-25 — chính chủ only)
+
+User clarified other-email Student Pack = identity khác (người khác). **DECISION: skip path đó** — TOS "for educational use by THE STUDENT" violation + identity mismatch surface signal nếu AWS Trust & Safety re-review trong 30-ngày post-restore observation window. Cost-benefit $100 không justify re-suspend risk on freshly-restored account.
 
 ```
-$180 (current)
-+ $100 (Student Pack promo code IF format matches)
-+ $1000 (Activate Founder resubmit POST-RST)
-+ $1000 (YC Startup School optional)
+$180 (current chính chủ)
++ $0   (SKIP other-person Pack — risk amplifier)
++ $1000 (Activate Founder resubmit POST-RST, chính chủ Thuy Duong + business)
++ $1000 (YC Startup School free 3-4h course, redeem any account)
++ $50  (Cloud Quest game-based, 2-4h)
 ─────────
-$2,280 max = ~69 tháng burn ở $33/month idle
-   OR ~38 tháng burn ở $60/month active (resume Phase 2.3)
+$2,230 chính chủ = ~67 tháng burn ở $33/month idle
+   OR  ~37 tháng burn ở $60/month active (post resume Phase 2.3)
 ```
 
-Educate sandbox (other-email GitHub Pack) keep separate cho dev experiment/learning — không pollute prod.
+### Identity matching mandate
+
+Per GAP-612 Day 4 hypothesis: AWS Trust & Safety preemptive suspend pattern triggered bởi "new account + spike + identity inconsistencies". Stack credit programs từ identities khác = thêm signal điểm trong observation window.
+
+**Conservative rules cho 906286017800 ≤30 ngày post-restore (2026-05-25 → 2026-06-25):**
+
+| Action | Allowed? |
+|---|---|
+| Redeem promo codes chính chủ (Activate Founder approved, Cloud Quest completed) | ✅ |
+| Redeem AWS event giveaway codes (Summit, Workshop attendee) | ✅ |
+| Redeem partner program codes chính chủ (YC, accelerator referral) | ✅ |
+| Redeem other-person Student Pack code | ❌ identity mismatch risk |
+| Redeem gray-market AWS promo codes | ❌ TOS §3.2 violation |
+| Create AWS account #2 cùng identity (Thuy Duong) | ❌ duplicate detection (GAP-612 §Decisions locked Item 1) |
+| Use Educate sandbox account của user khác để fund 906286017800 | ❌ KHÔNG technically possible (sandbox locked) + identity mismatch nếu attempted workaround |
+
+### Post-observation window (>30 ngày, after 2026-06-25)
+
+If account 906286017800 stable + no Trust & Safety contact + Phase 2.3 progressing healthy → observation window low concern. But chính chủ discipline vẫn maintain — đã build legitimate stack ($1.5k+), không cần gray paths.
