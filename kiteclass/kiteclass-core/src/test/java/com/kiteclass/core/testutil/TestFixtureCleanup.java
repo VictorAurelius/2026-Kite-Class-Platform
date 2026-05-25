@@ -2,12 +2,16 @@ package com.kiteclass.core.testutil;
 
 import com.kiteclass.core.common.context.TenantContext;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.TestExecutionListener;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import javax.sql.DataSource;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Defense-in-depth test fixture cleanup utility (GAP-735, Wave meta-1 Bucket B).
@@ -85,15 +89,29 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * @see TenantContext
  * @see org.springframework.test.context.transaction.TransactionalTestExecutionListener
  */
-public class TestFixtureCleanup implements TestExecutionListener {
+public class TestFixtureCleanup implements TestExecutionListener, Ordered {
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    /** Cached TRUNCATE statement built lazily on first use (one query per JVM, not per test). */
+    private static final AtomicReference<String> CACHED_TRUNCATE_SQL = new AtomicReference<>();
 
-    @Autowired(required = false)
-    private void setEntityManager(EntityManager em) {
-        this.entityManager = em;
+    /**
+     * Order must be {@code < 4000} so {@link #beforeTestMethod(TestContext)} runs
+     * <strong>before</strong> Spring's {@code TransactionalTestExecutionListener}
+     * (order 4000) starts the test transaction. Otherwise our truncate executes
+     * inside the test transaction and is rolled back along with the test's own
+     * writes — defeating the purpose. 3500 puts us between
+     * {@code DirtiesContextTestExecutionListener} (3000) and
+     * {@code TransactionalTestExecutionListener} (4000).
+     */
+    @Override
+    public int getOrder() {
+        return 3500;
     }
+
+    // No injected fields: Spring's @TestExecutionListeners annotation instantiates this
+    // listener via no-arg constructor and does NOT honor @Autowired / @PersistenceContext.
+    // Dependencies are looked up from TestContext.getApplicationContext() on each call
+    // (~microsecond bean lookup; cheap relative to TRUNCATE roundtrip).
 
     /**
      * Resets ambient context BEFORE each test method.
@@ -106,7 +124,7 @@ public class TestFixtureCleanup implements TestExecutionListener {
      */
     @Override
     public void beforeTestMethod(@NonNull TestContext testContext) {
-        clearAmbientState();
+        clearAmbientState(testContext);
     }
 
     /**
@@ -120,7 +138,7 @@ public class TestFixtureCleanup implements TestExecutionListener {
      */
     @Override
     public void afterTestMethod(@NonNull TestContext testContext) {
-        clearAmbientState();
+        clearAmbientState(testContext);
     }
 
     /**
@@ -130,12 +148,27 @@ public class TestFixtureCleanup implements TestExecutionListener {
      * are dropped), then clear ThreadLocals (so subsequent test sees a clean
      * tenant context), then defensive synchronization-manager reset.
      */
-    private void clearAmbientState() {
+    private void clearAmbientState(TestContext testContext) {
+        // 0. DB rows committed outside test transaction (async listeners, REQUIRES_NEW,
+        //    event publishers) — truncate all user tables. Runs in autocommit mode via
+        //    JdbcTemplate (separate connection from test transaction); cache TRUNCATE SQL
+        //    after first run to avoid pg_tables roundtrip per test.
+        //
+        // NOTE: Spring's @TestExecutionListeners annotation instantiates this listener
+        // via no-arg constructor and does NOT perform @Autowired setter injection on it.
+        // Hence we lookup DataSource from TestContext's ApplicationContext on each call
+        // (cheap — same context bean).
+        DataSource dataSource = lookupDataSource(testContext);
+        if (dataSource != null) {
+            truncateAllUserTables(new JdbcTemplate(dataSource));
+        }
+
+        EntityManager em = lookupEntityManager(testContext);
         // 1. JPA L2 / first-level cache — drop stale managed entities so the
         //    next test re-loads from DB.
-        if (entityManager != null && entityManager.isOpen()) {
+        if (em != null && em.isOpen()) {
             try {
-                entityManager.clear();
+                em.clear();
             } catch (Exception ignored) {
                 // EntityManager may be in a broken state after a failed test;
                 // swallow so cleanup itself does not mask the original failure.
@@ -159,6 +192,78 @@ public class TestFixtureCleanup implements TestExecutionListener {
             } catch (IllegalStateException ignored) {
                 // No synchronizations active — nothing to clear.
             }
+        }
+    }
+
+    /**
+     * Truncate all user tables in the test DB to clear rows committed outside the test
+     * transaction (async listeners, REQUIRES_NEW, event publishers — none of which
+     * {@code @Transactional@Rollback} can revert).
+     *
+     * <p>Strategy: query {@code pg_tables} once per JVM to discover which tables exist
+     * (avoids hardcoded list that mismatches {@code ddl-auto: create-drop} schema), then
+     * build and cache a single {@code TRUNCATE ... CASCADE} statement. CASCADE handles
+     * FK constraints; RESTART IDENTITY resets sequences so subsequent test row-count/id
+     * assertions start from clean slate.
+     *
+     * <p>Runs via {@link JdbcTemplate} which uses a fresh connection from the pool —
+     * outside the test's {@code @Transactional} context — so the truncate persists even
+     * when the test transaction is rolled back.
+     *
+     * <p>If {@code DataSource} is not autowired (e.g., slice tests without JPA), this
+     * step is a no-op.
+     */
+    private DataSource lookupDataSource(TestContext testContext) {
+        try {
+            return testContext.getApplicationContext().getBean(DataSource.class);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private EntityManager lookupEntityManager(TestContext testContext) {
+        try {
+            return testContext.getApplicationContext().getBean(EntityManager.class);
+        } catch (Exception ex) {
+            // EntityManager not auto-registered as plain bean; try via EntityManagerFactory.
+            try {
+                jakarta.persistence.EntityManagerFactory emf =
+                        testContext.getApplicationContext().getBean(jakarta.persistence.EntityManagerFactory.class);
+                return emf.createEntityManager();
+            } catch (Exception ignored) {
+                return null;
+            }
+        }
+    }
+
+    private void truncateAllUserTables(JdbcTemplate jdbcTemplate) {
+        try {
+            String sql = CACHED_TRUNCATE_SQL.get();
+            if (sql == null) {
+                List<String> tables = jdbcTemplate.queryForList(
+                        "SELECT tablename FROM pg_tables WHERE schemaname = 'public' " +
+                                "AND tablename <> 'flyway_schema_history'",
+                        String.class);
+                if (tables.isEmpty()) {
+                    return;
+                }
+                // Quote each table name to handle any reserved-word collisions safely.
+                StringBuilder builder = new StringBuilder("TRUNCATE TABLE ");
+                for (int i = 0; i < tables.size(); i++) {
+                    if (i > 0) builder.append(", ");
+                    builder.append('"').append(tables.get(i)).append('"');
+                }
+                builder.append(" RESTART IDENTITY CASCADE");
+                sql = builder.toString();
+                CACHED_TRUNCATE_SQL.compareAndSet(null, sql);
+                System.err.println("[GAP-735-DEBUG] Cached TRUNCATE SQL for " + tables.size() + " tables");
+            }
+            jdbcTemplate.execute(sql);
+            System.err.println("[GAP-735-DEBUG] TRUNCATE executed successfully");
+        } catch (Exception ex) {
+            System.err.println("[GAP-735-DEBUG] TRUNCATE FAILED: " + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+            // Cleanup failure should not mask test failure; swallow.
+            // If truncate consistently fails, downstream test assertions will surface it.
         }
     }
 }
