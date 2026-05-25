@@ -100,7 +100,7 @@ public class RabbitListenerConfig {
     // {@code com.kitehub.subscription.config.EmailQueueConfig} which the admin
     // module pulls in via the {@code kitehub-subscription} dependency. Adding a
     // duplicate {@code RabbitTemplate} bean here breaks tests that use
-    // {@code @MockBean RabbitTemplate} with "expected a single matching bean"
+    // {@code @MockitoBean RabbitTemplate} with "expected a single matching bean"
     // (multiple primary candidates). The listener container factory configured
     // there uses {@code Jackson2JsonMessageConverter} so payloads arrive as
     // {@code Map<String,Object>} — exactly what
