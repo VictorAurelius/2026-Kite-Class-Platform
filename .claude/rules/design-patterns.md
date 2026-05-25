@@ -8,10 +8,10 @@ paths:
 # Design Patterns — Project Rules
 
 **Priority:** 🟠 MANDATORY
-**Version:** 1.4.0
+**Version:** 1.5.0
 **Created:** 2026-04-14
-**Last-Reviewed:** 2026-05-16
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.4.0 MINOR self-approve per `rule-change-process.md` §5; adds §3.11 "Audit/log service joining parent @Transactional" anti-pattern, paired same-PR with new sister-rule `audit-service-isolation.md` v1.0.0 + worked self-test on 2026-05-16 admin login 500 incident per §6.5 Enforcement Parity Mandate; no constraint loosening for prior work; existing audit services grandfathered, anti-pattern applies prospectively. v1.3.1 (kept): thêm `paths:` frontmatter cho path-scoped auto-load qua Wave 73 Bucket A5. v1.3.0 (kept): MINOR self-approve per §5)
+**Last-Reviewed:** 2026-05-25
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.5.0 MINOR self-approve per `rule-change-process.md` §5; adds §3.12 "Entity-Migration-Mapper triad drift" anti-pattern, paired same-PR with new CI script `scripts/check-entity-mapper-consistency.sh` + workflow job `entity-mapper-consistency` in `quality-code.yml` per §6.5 Enforcement Parity Mandate; no constraint loosening for prior work; existing entities grandfathered, anti-pattern applies prospectively. Closes GAP-743 (Wave meta-1 Bucket D). v1.4.0 (kept): adds §3.11 audit/log service @Transactional. v1.3.1 (kept): thêm `paths:` frontmatter. v1.3.0 (kept): MINOR self-approve per §5)
 **Applies to:** All `*.java` and `*.tsx`/`*.ts` source under `kiteclass/**`, `kitehub/**`, plus PR review / refactor decisions
 
 Project-wide rules for applying design patterns. **Mandatory** khi develop new feature, refactor, review PR.
@@ -307,6 +307,50 @@ Trigger this anti-pattern when:
 
 Authoritative rule: `.claude/rules/audit-service-isolation.md` (mandates `Propagation.REQUIRES_NEW` for every method matching scope). Companion incident: 2026-05-16 production admin login 500 (audit RCA `documents/04-quality/audits/aws-verification/2026-05-16-admin-login-500-rca.md`).
 
+### 3.12 Entity-Migration-Mapper Triad Drift
+
+```java
+❌ BAD:
+  // Wave br-4 hotfix #1784 pattern — added entity field, forgot Flyway migration
+  @Entity
+  public class Course {
+    private String name;
+    private PricingModel pricingModel;                  // NEW field
+  }
+  // V70__alter_course_pricing_model_default.sql      ← DOES NOT EXIST
+  // → Spring boots fine in H2; production Postgres throws column-not-found at first query
+
+  // Wave br-4 hotfix #1787 pattern — added DB column + JPA mapping, forgot MapStruct @Mapping
+  @Mapper
+  public interface ClassMapper {
+    // missing: @Mapping(target = "rescheduledByUserId", ignore = true)
+    // missing: @Mapping(target = "rescheduledAt", ignore = true)
+    // 6 reschedule audit columns silently ignored → strict-warnings build fails
+  }
+
+✅ GOOD:
+  // Entity field, migration, mapper declaration land same PR
+  @Entity public class Course { ... private PricingModel pricingModel; }
+  // V70__alter_course_pricing_model_default.sql:
+  //   ALTER TABLE courses ADD COLUMN pricing_model VARCHAR(20) NOT NULL DEFAULT 'PER_HOUR';
+  @Mapper public interface CourseMapper {
+    @Mapping(target = "pricingModel", source = "request.pricingModel")
+    Course toEntity(CreateCourseRequest request);
+  }
+```
+
+**Why this matters:** Wave br-4 (2026-05-22) saw 60% bucket hotfix rate; 2 of 3 hotfixes (#1784 + #1787) were entity ↔ migration ↔ mapper triad drift — caught post-merge by IDE/CI instead of pre-merge. The triad MUST move atomically.
+
+**Detection:** `scripts/check-entity-mapper-consistency.sh` (CI job `entity-mapper-consistency` in `quality-code.yml`, WARN-mode v1) heuristically scans entity fields → migration columns (camelCase → snake_case mapping). Override: PR body trailer `ENTITY_MAPPER_DRIFT_OVERRIDE: <reason + follow-up gap>`.
+
+**Limitations of detector v1:** grep-based, no AST. False positives expected on:
+- Inherited `BaseEntity` fields (filtered via allowlist: id, created_at, updated_at, ...)
+- Relations (`@OneToMany` / `List<X>` excluded)
+- Custom `@Column(name = "...")` overrides (parsed)
+- Migration columns added in later V file than entity (acceptable when same PR ships both)
+
+Companion incident: 2026-05-22 Wave br-4 hotfixes #1784 + #1787 (audit `documents/04-quality/audits/ops-readiness/2026-05-25-wave-br-4-ops-readiness-audit.md` §OPS-BR4-002). Gap: GAP-743.
+
 ---
 
 ## 4. PR Review Checklist
@@ -325,6 +369,7 @@ Reviewer KIỂM TRA:
 - [ ] Resource routing via Chain (if ≥3 types)
 - [ ] No God Service (>500 lines)
 - [ ] Tests leverage pattern boundaries
+- [ ] Entity field changes paired with Flyway migration + MapStruct @Mapping update same PR (§3.12)
 
 ---
 
@@ -386,6 +431,7 @@ Team goal: majority Level 2, architects Level 3.
 
 ## 9. Log
 
+- **2026-05-25** (v1.5.0): MINOR — added §3.12 "Entity-Migration-Mapper Triad Drift" anti-pattern. Triggered by Wave br-4 (2026-05-22) 60% bucket hotfix rate; 2 hotfixes (#1784 Course.pricingModel missing migration; #1787 ClassMapper missing @Mapping ignore) traced to triad drift per ops-readiness audit OPS-BR4-002. Paired same-PR with new CI script `scripts/check-entity-mapper-consistency.sh` (heuristic v1, WARN-mode) + workflow job `entity-mapper-consistency` in `quality-code.yml` per `rule-change-process.md` §6.5 Enforcement Parity Mandate. Closes GAP-743 (Wave meta-1 Bucket D). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — existing entity-migration-mapper drift grandfathered; detector WARN-mode initially exit 0; HARD STOP deferred until 2nd recurrence post-rule per `incident-to-rule-pipeline.md` §3.1). Self-test: 2 inline fixtures (PASS + FAIL) verified; real-repo scan 89 entities / 126 migrations / 16 mappers / 117 WARN findings — heuristic FP expected (grep-based not AST).
 - **2026-05-16** (v1.4.0): MINOR — added §3.11 "Audit/Log Service Joining Parent @Transactional" anti-pattern. Triggered by 2026-05-16 production admin login 500 incident (`LoginAuditService.recordLogin` join parent txn → SQLException → `UnexpectedRollbackException` → 500). Paired same-PR with new sister-rule `.claude/rules/audit-service-isolation.md` v1.0.0 (positive form mandating `Propagation.REQUIRES_NEW`) + `postgres-specific-type-testcontainers.md` v1.0.0 (Bug 1 of same incident) + `release-deploy-standard.md` smoke admin-login extension per `rule-change-process.md` §6.5 Enforcement Parity Mandate. MINOR bump per §4 — adds anti-pattern that BLOCKS prior-passing PRs (any new audit service `@Transactional` w/o REQUIRES_NEW will now be flagged). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — no constraint loosening; existing 15+ audit/log services grandfathered, anti-pattern applies prospectively to new code + edits).
 - **2026-05-14** (v1.3.1): PATCH — thêm `paths: ["**/*.java", "**/*.tsx", "**/*.ts"]` frontmatter qua Wave 73 Bucket A5 (path-scope 6 design/wave/AI rules). Per Anthropic native `paths:` mechanism, rule giờ chỉ auto-load khi Claude đọc file Java/TypeScript/TSX. Không thay đổi rule content/scope; reduces base context auto-load per Wave 73 Meta Context Optimization plan. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive frontmatter, no constraint change).
 - **2026-04-26** (v1.3.0): MINOR — added §3.5.1 Exception D (Dedicated dispatcher infrastructure) with 4-criterion test (naming + caller contract + no business logic + marker phrase) + AIQueueDispatcher example. Updated anti-pattern wording from A/B/C → A/B/C/D. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — paired with AIQueueDispatcher javadoc marker application + GAP-230 closure in same PR). Closes GAP-230. Motivation: GAP-222a Phase 2 found `AIQueueDispatcher` did not fit Exception A (no co-located domain transaction; class IS the dispatcher). Wrapping a dispatcher in outbox adds latency to the operation the dispatcher exists to make fast. Exception D legitimizes "dedicated dispatcher infrastructure" pattern under strict 4-criterion test that prevents abuse as escape hatch.

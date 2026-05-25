@@ -22,6 +22,10 @@ on:
       - 'scripts/tests/**'
       - 'scripts/check-cross-layer-contract-drift.sh'
       - 'scripts/check-mermaid-sequence-state-br.sh'
+      - 'scripts/check-entity-mapper-consistency.sh'
+      - '**/*Entity.java'
+      - '**/V*.sql'
+      - '**/*Mapper.java'
       - 'kitehub/**/*.java'
       - 'kiteclass/**/*.java'
       - 'documents/01-business/**/api-contract.md'
@@ -192,6 +196,31 @@ jobs:
           # vs documented Endpoint /api/email — 3-way drift code/doc/test.
           # Heuristic v1; manual review still recommended for complex paths.
           bash scripts/check-cross-layer-contract-drift.sh --warn
+
+
+  entity-mapper-consistency:
+    name: Entity ↔ Migration ↔ Mapper triad drift (GAP-743)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (PASS + FAIL fixtures)
+        run: bash scripts/check-entity-mapper-consistency.sh --self-test
+
+      - name: Scan repo (WARN mode — heuristic v1 per GAP-743)
+        run: |
+          # Closes GAP-743 (Wave meta-1 Bucket D). Per audit-1 OPS-BR4-002:
+          # Wave br-4 had 60% hotfix rate; hotfix #1784 Course.pricingModel was
+          # entity field added without matching Flyway migration column.
+          # Heuristic v1: grep-based camelCase→snake_case mapping. Accept
+          # moderate FP; HARD STOP defer until 2nd recurrence per
+          # `.claude/rules/incident-to-rule-pipeline.md` §3.1.
+          # Override: PR body trailer `ENTITY_MAPPER_DRIFT_OVERRIDE: <reason>`.
+          bash scripts/check-entity-mapper-consistency.sh --warn
 
 
   script-tests:
