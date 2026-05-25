@@ -1,21 +1,33 @@
-# GAP-745 — EnrollmentIT test-data redesign (real root-cause GAP-735 residual)
+# GAP-745 — Test data isolation broader than invoice numbers (root-cause GAP-735 residual)
 
 **Status:** OPEN
 **Priority:** P1
 **Domain:** Backend (test infrastructure)
 **Phase:** phase-1-beta
-**Completion:** 0%
+**Completion:** 5%
 **Found:** 2026-05-25
-**Updated:** 2026-05-25
+**Updated:** 2026-05-25 (scope expanded)
 
-## Problem
+## Problem (UPDATED 2026-05-25 post PR #1816 close)
 
-Wave meta-1 Bucket A (PR #1813) shipped `@Transactional` + `@Rollback(true)` annotations on 3 IT classes to fix GAP-735 cross-test DB pollution. Outcome:
+Wave meta-1 Bucket A (PR #1813) shipped `@Transactional` + `@Rollback(true)` annotations on 3 IT classes. PR #1816 then shipped `InvoiceTestDataBuilder` unique counter as supposed root-cause fix. **CI empirical result: 6 failures persist** (zero regression but zero unblock):
 
-- `CourseSecurityTest` + `InvoiceFlowIntegrationTest` — likely fixed (didn't surface in CI failures)
-- `EnrollmentIntegrationTest.enrollStudent_shouldIsolate_multiTenantData` — **STILL FAILS** với `uk_invoices_instance_number` constraint violation on `INV-2026-000001`
+| Class | Failing tests |
+|---|---|
+| CourseSecurityTest (15 tests) | 4× — `shouldUseParameterizedQueries_update`, `shouldUseParameterizedQueries_create`, `shouldPreventSqlInjection_viaSearch`, `shouldPreventSqlInjection_viaStatus` |
+| EnrollmentIntegrationTest (14 tests) | 1× — `enrollStudent_shouldIsolate_multiTenantData` |
+| InvoiceFlowIntegrationTest (5 tests) | 1× — `testMultiTenantIsolation_InvoiceFilters` |
 
-Retry #2 với `@DirtiesContext(AFTER_EACH_TEST_METHOD)` (per GAP-735 Option B fallback) made it WORSE: 1 failure → 13 errors (Testcontainer connection torn down between methods). Retry budget hit per `release-fix-retry-budget.md` §3.
+**Root cause is BROADER than invoice numbers.** CourseSecurityTest SQL injection tests don't use `InvoiceTestDataBuilder` — they fail because:
+- Course/Student data persisted by earlier tests in suite leaks into downstream assertions
+- Multi-tenant context (TenantContextHolder ThreadLocal) state pollution
+- Testcontainer DB shared across test classes within JVM
+
+Retry #2 với `@DirtiesContext(AFTER_EACH_TEST_METHOD)` (per GAP-735 Option B fallback) made it WORSE: 1 failure → 13 errors (Testcontainer connection torn down between methods). Retry #3 PR #1816 InvoiceTestDataBuilder unique counter: 0 unblock effect. Retry budget hit hard per `release-fix-retry-budget.md` §3.
+
+## Closed-but-not-merged: PR #1816 (InvoiceTestDataBuilder counter fix)
+
+PR #1816 closed 2026-05-25 without merge per retry-budget pivot. Fix is technically correct (zero regression introduced, would have benefited PaymentIntegrationTest) but did not unblock the 6 baseline failures. Counter pattern remains useful for Wave meta-2 broader fix as building block.
 
 ## Root cause (deep investigation needed)
 
@@ -37,7 +49,7 @@ When EnrollmentIT's `enrollStudent_shouldIsolate_multiTenantData` runs after any
 
 ## Proposed Fix (Wave meta-2 candidate)
 
-### Option A — Make `InvoiceTestDataBuilder` generate unique invoice numbers (preferred)
+### Option A — InvoiceTestDataBuilder unique counter (TRIED PR #1816 — insufficient alone)
 
 ```java
 public static InvoiceBuilder defaultInvoice() {
@@ -47,9 +59,15 @@ public static InvoiceBuilder defaultInvoice() {
 }
 ```
 
-Replace hardcoded `INV-2026-000001` with sequence-based generator. Update all 7 affected test files to use builder default (already do via `.invoiceNumber("INV-2026-000001")` — remove explicit override).
+**Tried PR #1816 (closed without merge):** 0 regression, 0 unblock — invoice-number uniqueness was 1 symptom but not full root cause. 5 of 6 failing tests don't even use InvoiceTestDataBuilder. Counter pattern remains correct for PaymentIntegrationTest benefit but insufficient as standalone fix.
 
-### Option B — Explicit @AfterEach cleanup in EnrollmentIT
+### Option D (NEW — preferred Wave meta-2) — @Sql per-class cleanup OR @DirtiesContext(BEFORE_CLASS)
+
+Add per-IT-class cleanup via `@Sql(scripts = "/test-cleanup.sql", executionPhase = AFTER_TEST_CLASS)` OR `@DirtiesContext(classMode = ClassMode.BEFORE_CLASS)` for clean context reset between classes (cheaper than per-method which broke Testcontainer at retry #2).
+
+Cleanup SQL truncates: courses, students, enrollments, classes, invoices, payments, branding, tenant_contexts. ~10 tables × CASCADE.
+
+### Option B (fallback) — Explicit @AfterEach cleanup in EnrollmentIT
 
 ```java
 @AfterEach
