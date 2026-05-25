@@ -7,7 +7,7 @@ package com.kiteclass.core.module.course.entity;
  * Apollo 257-344k/giờ, ILA 195-368k/giờ. MONTHLY is common for kindergarten-adjacent programs.
  * COURSE_PACKAGE suits IELTS/certification prep bundles. FREE is for trial/demo classes.
  *
- * @see <a href="../../../../../../../../../../../documents/02-architecture/adr/ADR-027-pricing-model-taxonomy.md">ADR-027</a>
+ * @see <a href="../../../../../../../../../../../documents/02-architecture/adr/ADR-035-pricing-model-taxonomy.md">ADR-035</a>
  */
 public enum PricingModel {
 
