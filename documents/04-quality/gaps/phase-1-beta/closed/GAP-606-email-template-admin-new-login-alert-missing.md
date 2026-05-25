@@ -1,10 +1,15 @@
 # GAP-606 — Email template `admin-new-login-alert.html` MISSING; kitehub-email returns HTTP 500 → consumer infinite retry
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-25 (state-check stale-hypothesis closure — template shipped Wave 91 Bucket C PR #1486 ac2dd2f2 at `kitehub-email/src/main/resources/templates/emails/admin-new-login-alert.html` 192 LOC; gap file CSV row stale 8 days untouched)
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-05-17 (Wave 90 walkthrough — phát hiện trong kitehub-email log spam)
 **Affects:** Mọi admin login event (Wave 90 audit ghi 1 admin login → ∞ retries); RMQ consumer poisoned; queue depth tăng vô hạn
+
+## Log
+
+- **2026-05-25 (state-check stale closure):** State-check empirical per `audit-to-gap-pipeline.md` §2.8 fix-time mandate confirmed template file ALREADY EXISTS at `kitehub/kitehub-email/src/main/resources/templates/emails/admin-new-login-alert.html` (192 LOC), shipped 8 days ago via Wave 91 Bucket C PR #1486 (commit ac2dd2f2 `feat(wave-91 bucket C): admin-new-login-alert email template`). Gap CSV row was stale — never flipped post-fix. Wave beta-readiness-5 pre-spawn state-check (Wave meta-3 follow-up session 2026-05-25) caught the stale hypothesis before Bucket A agent spawn — saved 1-2h Opus 1M wasted retry cycles per `release-fix-retry-budget.md` §3.5 Investigation phase mandate worked example. Flip 🟢 DONE 100% + git mv → `phase-1-beta/closed/`. No fix PR needed.
+- **2026-05-17 (filed):** Wave 90 walkthrough Audit surfaced producer event emit + consumer pickup + template render HTTP 500 + infinite retry loop. Hypothesis: template file missing src.
 
 ## Problem
 
