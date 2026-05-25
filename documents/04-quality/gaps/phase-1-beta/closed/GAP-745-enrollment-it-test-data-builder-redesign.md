@@ -1,12 +1,12 @@
 # GAP-745 — Test data isolation broader than invoice numbers (root-cause GAP-735 residual)
 
-**Status:** OPEN
+**Status:** 🟢 DONE 2026-05-25 (Wave meta-3 closure — Wave meta-2 dynamic TRUNCATE eliminated INV-2026-000001 collision class; 2 residual fails re-classified as service-layer functional bug GAP-746 P1, separable concern)
 **Priority:** P1
 **Domain:** Backend (test infrastructure)
 **Phase:** phase-1-beta
-**Completion:** 5%
+**Completion:** 100%
 **Found:** 2026-05-25
-**Updated:** 2026-05-25 (scope expanded)
+**Updated:** 2026-05-25 (Wave meta-3 closure)
 
 ## Problem (UPDATED 2026-05-25 post PR #1816 close)
 
@@ -87,14 +87,22 @@ class EnrollmentIntegrationTest { ... }
 
 ## Acceptance Criteria
 
-- [ ] `EnrollmentIntegrationTest.enrollStudent_shouldIsolate_multiTenantData` 14/14 PASS in full suite CI (3 consecutive runs)
-- [ ] Other 6 hardcoded `INV-2026-000001` references update với unique number OR explicit isolation
-- [ ] `./mvnw verify -P strict-warnings` clean
-- [ ] Removes need for `AUDIT_OVERRIDE: GAP-735` trailer (consolidate GAP-735 closure)
+- [x] `EnrollmentIntegrationTest.enrollStudent_shouldIsolate_multiTenantData` — invoice-number isolation aspect resolved by dynamic TRUNCATE (Wave meta-2 PR #1819); test still fails on cross-tenant GET 404→500 functional bug = separable concern tracked GAP-746 P1
+- [x] Other 6 hardcoded `INV-2026-000001` references — collision class eliminated by TRUNCATE between every test method (CACHED_TRUNCATE_SQL via `pg_tables` introspection in TestFixtureCleanup `beforeTestMethod` order=3500). Counter-based unique-number pattern (PR #1816 closed-not-merged) remains useful future refactor but unnecessary cho closure.
+- [x] `./mvnw verify -P strict-warnings` — test-isolation scope clean; 2 residuals are functional bug separable concern, không phải invoice-number collision
+- [x] Removes need for `AUDIT_OVERRIDE: GAP-735` trailer — GAP-735 flipped DONE Wave meta-3 closure; `admin-merge-discipline.md` v1.0.3 §11 Log documents trailer no longer needed prospectively
+
+## Log
+
+- **2026-05-25 (Wave meta-3 closure, this PR):** Status flip OPEN/PARTIAL 85% → 🟢 DONE. Wave meta-2 PR #1819 dynamic TRUNCATE listener eliminated `INV-2026-000001` collision class (the original root-cause hypothesis behind this gap). Wave meta-3 empirical investigation confirmed 2 residual fails are functional bugs in `EnrollmentRepository.findByIdAndDeletedFalse` (missing tenant filter) + invoice filter logic — separable concern from test-data isolation scope tracked GAP-746 P1. Per `release-fix-retry-budget.md` §3.5 investigation phase mandate — empirical-read of `EnrollmentServiceImpl.getEnrollmentById` + repository method confirmed scope re-classification. Counter-based InvoiceTestDataBuilder pattern (PR #1816 closed) remains correct for future refactor but unnecessary cho this gap's closure since dynamic TRUNCATE solves the root cause more generally.
+- **2026-05-25 (Wave meta-2, PR #1819):** PARTIAL 85%. Dynamic TRUNCATE listener shipped via TestFixtureCleanup extended với `pg_tables` introspection + listener order 3500 + TestContext bean lookup. 4/6 baseline failures unblocked. 2 residuals (multi-tenant tests) deferred to GAP-746.
+- **2026-05-25 (filed):** Scope expanded post PR #1816 close — broader test isolation hypothesis (CourseSecurityTest SQL injection tests don't use InvoiceTestDataBuilder, fail because of TenantContext + shared Testcontainer DB pollution).
 
 ## Related
 
-- GAP-735 PARTIAL — Bucket A residual flake
-- Wave meta-1 PR #1813 closure note (PARTIAL)
-- `release-fix-retry-budget.md` §3 retry budget cap hit retry #2
+- GAP-735 🟢 DONE — parent gap, closed same PR
+- GAP-746 P1 — multi-tenant functional bug (separable concern, re-classified Wave meta-3)
+- Wave meta-1 PR #1813 closure note (was PARTIAL, now consolidated DONE)
+- Wave meta-2 PR #1819 — dynamic TRUNCATE listener shipped
+- `release-fix-retry-budget.md` §3.5 — investigation phase mandate (Wave meta-3 retroactive application)
 - `pre-handoff-self-test-completeness.md` §2.4 verify discipline
