@@ -28,7 +28,9 @@ import java.util.List;
  * @param teacherId Teacher ID who created the course
  * @param durationWeeks Course duration in weeks
  * @param totalSessions Total number of sessions
- * @param price Course price in VND
+ * @param price Course price in VND (LEGACY — soft-deprecated Wave br-4; prefer pricingModel + unitPrice per ADR-035)
+ * @param pricingModel Pricing taxonomy per ADR-035 (PER_HOUR / MONTHLY / COURSE_PACKAGE / FREE) — default PER_HOUR cho VN TT Anh ngữ
+ * @param unitPrice Unit price in VND; semantics depend on pricingModel (đồng/giờ | đồng/tháng | đồng/khoá | 0)
  * @param status Current status (DRAFT, PUBLISHED, ARCHIVED)
  * @param coverImageUrl URL to course cover image
  * @param level Course difficulty level
@@ -52,6 +54,8 @@ public record CourseResponse(
         Integer durationWeeks,
         Integer totalSessions,
         BigDecimal price,
+        String pricingModel,
+        BigDecimal unitPrice,
         String status,
         String coverImageUrl,
         String level,

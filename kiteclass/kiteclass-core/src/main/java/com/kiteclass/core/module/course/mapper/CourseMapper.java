@@ -69,6 +69,8 @@ public interface CourseMapper {
             course.getDurationWeeks(),
             course.getTotalSessions(),
             course.getPrice(),
+            course.getPricingModel() != null ? course.getPricingModel().name() : null,
+            course.getUnitPrice(),
             course.getStatus() != null ? course.getStatus().name() : null,
             course.getCoverImageUrl(),
             course.getLevel(),
@@ -92,6 +94,10 @@ public interface CourseMapper {
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "prerequisiteCourses", ignore = true)
     @Mapping(target = "dependentCourses", ignore = true)
+    // Pricing fields (Wave br-4 / ADR-035) set via entity defaults (PER_HOUR + ZERO)
+    // and mutated via separate pricing endpoint per BR-COURSE-PRICING-001..004.
+    @Mapping(target = "pricingModel", ignore = true)
+    @Mapping(target = "unitPrice", ignore = true)
     Course toEntity(CreateCourseRequest request);
 
     /**
@@ -118,6 +124,10 @@ public interface CourseMapper {
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "prerequisiteCourses", ignore = true)
     @Mapping(target = "dependentCourses", ignore = true)
+    // Pricing fields (Wave br-4 / ADR-035) mutated via separate pricing endpoint
+    // per BR-COURSE-PRICING-001..004 — not exposed in UpdateCourseRequest.
+    @Mapping(target = "pricingModel", ignore = true)
+    @Mapping(target = "unitPrice", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntity(@MappingTarget Course course, UpdateCourseRequest request);
 }
