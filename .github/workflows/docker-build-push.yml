@@ -9,17 +9,23 @@ name: Build and Push Kite Docker Images
 # - Syft SBOM CycloneDX + Cosign keyless signing (GAP-402)
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - 'v*.*.*'
-    paths:
-      - 'docker/**'
-      - 'kiteclass/**'
-      - 'kitehub/**'
-      - 'frontend/**'
-      - '.github/workflows/docker-build-push.yml'
+  # TEMPORARILY DISABLED 2026-05-25 — push:main + tags triggers paused per user direction
+  # Reason: AWS account 906286017800 restored 2026-05-25T03:39 UTC after 8-day suspension (GAP-612).
+  #   No AWS push (ECR image upload) until local RST (restore + smoke test) verified successfully.
+  # Re-enable condition: GAP-612 RST local verification PASS — uncomment push: block below.
+  # See: GAP-612 closed/DONE Log entry referencing this disable PR.
+  #
+  # push:
+  #   branches:
+  #     - main
+  #   tags:
+  #     - 'v*.*.*'
+  #   paths:
+  #     - 'docker/**'
+  #     - 'kiteclass/**'
+  #     - 'kitehub/**'
+  #     - 'frontend/**'
+  #     - '.github/workflows/docker-build-push.yml'
   pull_request:
     branches:
       - main
