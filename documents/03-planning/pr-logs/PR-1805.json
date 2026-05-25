@@ -1,0 +1,40 @@
+{
+  "pr": 1805,
+  "title": "feat(wave-beta-readiness-8-bucket-C): GAP-739 PaymentMethod enum dedup + FE union sync",
+  "branch": "wave/beta-readiness-8-bucket-C",
+  "created_at": null,
+  "merged_at": "2026-05-25T05:26:16Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "ui-review",
+      "api-contract-audit"
+    ],
+    "audits_run": [
+      "ui-review"
+    ],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-25T05:26:21.371911",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 11,
+        "java_files": 3,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": [
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/4",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1233566"
+  }
+}

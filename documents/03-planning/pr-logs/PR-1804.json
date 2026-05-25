@@ -1,0 +1,39 @@
+{
+  "pr": 1804,
+  "title": "docs(wave-beta-readiness-8-bucket-B): GAP-738 3-layer business docs (reschedule + course-pricing + payment-record)",
+  "branch": "wave/beta-readiness-8-bucket-B",
+  "created_at": null,
+  "merged_at": "2026-05-25T05:18:10Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "business-logic-audit",
+      "api-contract-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-25T05:18:15.609093",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 11,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": [
+          "business-logic-audit",
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/3",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1121556"
+  }
+}

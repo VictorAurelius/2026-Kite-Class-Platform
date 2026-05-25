@@ -1,0 +1,33 @@
+{
+  "pr": 1803,
+  "title": "audit(aws): post-restore cleanup \u2014 ALB + 2 EIPs released (~$27/mo save)",
+  "branch": "ops/aws-post-restore-cleanup",
+  "created_at": null,
+  "merged_at": "2026-05-25T04:54:56Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-25T04:55:03.212319",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 2,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1026393"
+  }
+}
