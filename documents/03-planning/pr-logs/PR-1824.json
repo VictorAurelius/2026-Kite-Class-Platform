@@ -1,0 +1,37 @@
+{
+  "pr": 1824,
+  "title": "feat(wave-beta-readiness-5-bucket-B): GAP-608 add ses:SendEmail to EC2 IAM (PARTIAL \u2014 live verify gated GAP-612)",
+  "branch": "wave/beta-readiness-5-bucket-B-ses-iam",
+  "created_at": null,
+  "merged_at": "2026-05-25T11:29:22Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "ops-readiness-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-25T11:29:27.097328",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 4,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": [
+          "ops-readiness-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/3",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-3108642"
+  }
+}
