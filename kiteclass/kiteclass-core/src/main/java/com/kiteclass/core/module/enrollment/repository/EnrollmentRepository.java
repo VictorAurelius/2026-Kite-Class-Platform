@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Repository interface for {@link Enrollment} entity.
@@ -28,10 +29,35 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
      * Find enrollment by ID excluding deleted.
      * Respects soft delete.
      *
+     * <p><b>WARNING:</b> This method does NOT filter by tenant. It relies on the
+     * Hibernate {@code tenantFilter} for multi-tenant isolation, which is fragile
+     * across {@code REQUIRES_NEW} transaction boundaries and event listeners. Prefer
+     * {@link #findByIdAndInstanceIdAndDeletedFalse(Long, UUID)} for explicit tenant
+     * scoping. Tracked in GAP-746 (multi-tenant repo tenant filter sweep).
+     *
      * @param id enrollment ID
      * @return optional enrollment
+     * @deprecated use {@link #findByIdAndInstanceIdAndDeletedFalse(Long, UUID)} which
+     *             passes tenant ID explicitly; this overload remains for places that
+     *             cannot easily access {@code TenantContext} (e.g. system jobs).
      */
+    @Deprecated(since = "GAP-746")
     Optional<Enrollment> findByIdAndDeletedFalse(Long id);
+
+    /**
+     * Find enrollment by ID, tenant ID and excluding deleted (explicit tenant filter).
+     *
+     * <p>Use this in place of {@link #findByIdAndDeletedFalse(Long)} whenever the
+     * caller has a {@code TenantContext}. The explicit {@code instanceId} parameter
+     * defends against Hibernate filter not being applied across {@code REQUIRES_NEW}
+     * or async event listener boundaries (see GAP-746).
+     *
+     * @param id enrollment ID
+     * @param instanceId tenant ID from {@code TenantContext.getCurrentTenant()}
+     * @return optional enrollment
+     * @since 2.x — GAP-746
+     */
+    Optional<Enrollment> findByIdAndInstanceIdAndDeletedFalse(Long id, UUID instanceId);
 
     /**
      * Find enrollment by student ID and class ID excluding deleted.
