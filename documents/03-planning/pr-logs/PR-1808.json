@@ -1,0 +1,33 @@
+{
+  "pr": 1808,
+  "title": "chore(post-wave-beta-readiness-8): commit 7 PR-log JSONs",
+  "branch": "chore/post-wave-beta-readiness-8-pr-logs",
+  "created_at": null,
+  "merged_at": "2026-05-25T06:52:50Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-25T06:52:59.278806",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 7,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1401825"
+  }
+}
