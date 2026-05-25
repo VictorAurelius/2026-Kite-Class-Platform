@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Test data builder for Invoice-related objects.
@@ -22,6 +23,11 @@ import java.util.UUID;
  *   <li>InvoiceAdjustment entities</li>
  * </ul>
  *
+ * <p>Closes GAP-745: invoice number + id are generated per-call from a static
+ * counter so that @SpringBootTest integration tests sharing the same Testcontainer
+ * DB don't violate the {@code uk_invoices_instance_number} unique constraint when
+ * multiple tests in the same suite persist invoices.
+ *
  * @author KiteClass Team
  * @since 2.8.0
  */
@@ -29,14 +35,26 @@ public class InvoiceTestDataBuilder {
 
     public static final UUID DEFAULT_TENANT = ClassTestDataBuilder.DEFAULT_TENANT;
 
+    private static final AtomicLong INVOICE_COUNTER = new AtomicLong(0);
+
+    private static String nextInvoiceNumber() {
+        return String.format("INV-2026-%06d", INVOICE_COUNTER.incrementAndGet());
+    }
+
+    private static long nextInvoiceId() {
+        return INVOICE_COUNTER.get();
+    }
+
     /**
      * Creates a default Invoice entity for testing.
      *
      * @return Invoice with default test data
      */
     public static Invoice createDefaultInvoice() {
+        String number = nextInvoiceNumber();
+        long id = nextInvoiceId();
         Invoice invoice = Invoice.builder()
-                .invoiceNumber("INV-2026-000001")
+                .invoiceNumber(number)
                 .studentId(1L)
                 .classId(1L)
                 .enrollmentId(1L)
@@ -46,7 +64,7 @@ public class InvoiceTestDataBuilder {
                 .periodStart(LocalDate.now())
                 .periodEnd(LocalDate.now().plusMonths(3))
                 .build();
-        invoice.setId(1L);
+        invoice.setId(id);
         invoice.setInstanceId(DEFAULT_TENANT);
         invoice.setDeleted(false);
 
@@ -79,8 +97,10 @@ public class InvoiceTestDataBuilder {
      * @return Invoice with discount
      */
     public static Invoice createInvoiceWithDiscount(BigDecimal tuition, BigDecimal discountPercent) {
+        String number = nextInvoiceNumber();
+        long id = nextInvoiceId();
         Invoice invoice = Invoice.builder()
-                .invoiceNumber("INV-2026-000002")
+                .invoiceNumber(number)
                 .studentId(1L)
                 .classId(1L)
                 .enrollmentId(1L)
@@ -90,7 +110,7 @@ public class InvoiceTestDataBuilder {
                 .periodStart(LocalDate.now())
                 .periodEnd(LocalDate.now().plusMonths(3))
                 .build();
-        invoice.setId(2L);
+        invoice.setId(id);
         invoice.setInstanceId(DEFAULT_TENANT);
 
         // Add tuition item
@@ -127,8 +147,7 @@ public class InvoiceTestDataBuilder {
      */
     public static Invoice createOverdueInvoice() {
         Invoice invoice = createDefaultInvoice();
-        invoice.setInvoiceNumber("INV-2026-000003");
-        invoice.setId(3L);
+        // Note: createDefaultInvoice already assigned unique number + id; no override needed.
         invoice.setDueDate(LocalDate.now().minusDays(10)); // 10 days overdue
         invoice.setStatus(InvoiceStatus.OVERDUE);
         return invoice;
@@ -141,8 +160,7 @@ public class InvoiceTestDataBuilder {
      */
     public static Invoice createPaidInvoice() {
         Invoice invoice = createDefaultInvoice();
-        invoice.setInvoiceNumber("INV-2026-000004");
-        invoice.setId(4L);
+        // Note: createDefaultInvoice already assigned unique number + id; no override needed.
         invoice.setStatus(InvoiceStatus.PAID);
         invoice.setAmountPaid(new BigDecimal("1000.00"));
         return invoice;
