@@ -1,6 +1,6 @@
 ---
 title: Wave meta-1 — Test isolation GAP-735 (remove AUDIT_OVERRIDE blocker)
-status: draft
+status: complete
 created: 2026-05-25
 updated: 2026-05-25
 wave: 1
