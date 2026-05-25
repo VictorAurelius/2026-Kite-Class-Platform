@@ -238,8 +238,8 @@ Vì hiện không có ALB, các vấn đề sau dev cần biết:
 ### 8.1 Tự gia hạn TLS — certbot tự quản lý
 - Certbot tự gia hạn 90 ngày qua cron trên EC2 `kitehub-kc-app`
 - Chế độ lỗi: cert hết hạn → HTTPS sập → không có cơ chế tự phục hồi
-- Giảm thiểu: CloudWatch alarm `kitehub-kc-app-fe-cert-expiry` giám sát ngày hết hạn < 14 ngày
-- **Alarm hiện đang fire** (2026-05-25) — cần xử lý trước khi cert hết hạn
+- Giảm thiểu: CloudWatch alarm `kitehub-kc-app-fe-cert-expiry` giám sát ngày hết hạn < 30 ngày
+- **Alarm config update (Wave meta-5 2026-05-25):** `TreatMissingData: breaching` → `notBreaching` — fix false-positive ALARM fire khi EC2 stopped (missing data ≠ cert expired). Audit: `documents/04-quality/audits/aws-verification/2026-05-25-cert-expiry-alarm-fix.md`. Trade-off: nếu cert reporter crash silently trong khi EC2 chạy → ALARM cũng không fire (blind spot mitigate Phase 2+ qua reporter heartbeat alarm phụ).
 
 ### 8.2 Không có health check L7 tự loại
 - Cloudflare giám sát ở mức DNS, 5 phút/lần (không phải L7 thật sự)
