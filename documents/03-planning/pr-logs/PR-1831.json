@@ -1,0 +1,33 @@
+{
+  "pr": 1831,
+  "title": "chore(wave-meta-5): cert-expiry alarm false-positive fix (TreatMissingData breaching\u2192notBreaching)",
+  "branch": "wave/meta-5-cert-expiry-alarm-fix-v2",
+  "created_at": null,
+  "merged_at": "2026-05-25T17:52:07Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-26T00:52:21.133027",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 7,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-24110"
+  }
+}
