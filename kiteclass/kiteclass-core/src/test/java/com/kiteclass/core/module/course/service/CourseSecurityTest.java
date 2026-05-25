@@ -23,7 +23,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.transaction.annotation.Transactional;
+import com.kiteclass.core.testutil.TestFixtureCleanup;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -50,6 +52,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
 @Rollback(true)
+@TestExecutionListeners(
+        value = TestFixtureCleanup.class,
+        mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS
+)
 class CourseSecurityTest {
 
     @Autowired

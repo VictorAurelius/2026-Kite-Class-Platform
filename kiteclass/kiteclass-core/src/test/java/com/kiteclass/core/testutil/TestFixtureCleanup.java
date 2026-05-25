@@ -4,10 +4,15 @@ import com.kiteclass.core.common.context.TenantContext;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.TestExecutionListener;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import javax.sql.DataSource;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Defense-in-depth test fixture cleanup utility (GAP-735, Wave meta-1 Bucket B).
@@ -87,12 +92,24 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  */
 public class TestFixtureCleanup implements TestExecutionListener {
 
+    /** Cached TRUNCATE statement built lazily on first use (one query per JVM, not per test). */
+    private static final AtomicReference<String> CACHED_TRUNCATE_SQL = new AtomicReference<>();
+
     @PersistenceContext
     private EntityManager entityManager;
+
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired(required = false)
     private void setEntityManager(EntityManager em) {
         this.entityManager = em;
+    }
+
+    @Autowired(required = false)
+    private void setDataSource(DataSource dataSource) {
+        if (dataSource != null) {
+            this.jdbcTemplate = new JdbcTemplate(dataSource);
+        }
     }
 
     /**
@@ -131,6 +148,12 @@ public class TestFixtureCleanup implements TestExecutionListener {
      * tenant context), then defensive synchronization-manager reset.
      */
     private void clearAmbientState() {
+        // 0. DB rows committed outside test transaction (async listeners, REQUIRES_NEW,
+        //    event publishers) — truncate all user tables. Runs in autocommit mode via
+        //    JdbcTemplate (separate connection from test transaction); cache TRUNCATE SQL
+        //    after first run to avoid pg_tables roundtrip per test.
+        truncateAllUserTables();
+
         // 1. JPA L2 / first-level cache — drop stale managed entities so the
         //    next test re-loads from DB.
         if (entityManager != null && entityManager.isOpen()) {
@@ -159,6 +182,55 @@ public class TestFixtureCleanup implements TestExecutionListener {
             } catch (IllegalStateException ignored) {
                 // No synchronizations active — nothing to clear.
             }
+        }
+    }
+
+    /**
+     * Truncate all user tables in the test DB to clear rows committed outside the test
+     * transaction (async listeners, REQUIRES_NEW, event publishers — none of which
+     * {@code @Transactional@Rollback} can revert).
+     *
+     * <p>Strategy: query {@code pg_tables} once per JVM to discover which tables exist
+     * (avoids hardcoded list that mismatches {@code ddl-auto: create-drop} schema), then
+     * build and cache a single {@code TRUNCATE ... CASCADE} statement. CASCADE handles
+     * FK constraints; RESTART IDENTITY resets sequences so subsequent test row-count/id
+     * assertions start from clean slate.
+     *
+     * <p>Runs via {@link JdbcTemplate} which uses a fresh connection from the pool —
+     * outside the test's {@code @Transactional} context — so the truncate persists even
+     * when the test transaction is rolled back.
+     *
+     * <p>If {@code DataSource} is not autowired (e.g., slice tests without JPA), this
+     * step is a no-op.
+     */
+    private void truncateAllUserTables() {
+        if (jdbcTemplate == null) {
+            return;
+        }
+        try {
+            String sql = CACHED_TRUNCATE_SQL.get();
+            if (sql == null) {
+                List<String> tables = jdbcTemplate.queryForList(
+                        "SELECT tablename FROM pg_tables WHERE schemaname = 'public' " +
+                                "AND tablename <> 'flyway_schema_history'",
+                        String.class);
+                if (tables.isEmpty()) {
+                    return;
+                }
+                // Quote each table name to handle any reserved-word collisions safely.
+                StringBuilder builder = new StringBuilder("TRUNCATE TABLE ");
+                for (int i = 0; i < tables.size(); i++) {
+                    if (i > 0) builder.append(", ");
+                    builder.append('"').append(tables.get(i)).append('"');
+                }
+                builder.append(" RESTART IDENTITY CASCADE");
+                sql = builder.toString();
+                CACHED_TRUNCATE_SQL.compareAndSet(null, sql);
+            }
+            jdbcTemplate.execute(sql);
+        } catch (Exception ignored) {
+            // Cleanup failure should not mask test failure; swallow.
+            // If truncate consistently fails, downstream test assertions will surface it.
         }
     }
 }

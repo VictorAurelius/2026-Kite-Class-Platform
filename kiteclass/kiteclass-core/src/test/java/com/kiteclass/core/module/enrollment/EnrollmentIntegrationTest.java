@@ -32,8 +32,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import com.kiteclass.core.testutil.TestFixtureCleanup;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -61,6 +63,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
 @Rollback(true)
+@TestExecutionListeners(
+        value = TestFixtureCleanup.class,
+        mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS
+)
 class EnrollmentIntegrationTest {
 
     @Autowired
