@@ -27,6 +27,7 @@ paths = [
     '''kitehub/kitehub-email/src/test/java/com/kitehub/email/template/.*Test\.java''',
     '''kitehub/kitehub-frontend/src/lib/validations/__tests__/.*\.test\.ts''',
     '''kitehub/kitehub-subscription/src/test/java/com/kitehub/subscription/service/.*Test\.java''',
+    '''kitehub/kitehub-subscription/src/test/java/com/kitehub/subscription/beta/controller/.*Test\.java''',
     '''kitehub/kitehub-subscription/src/test/resources/application-test\.yml''',
     '''kitehub/kitehub-platform/src/test/java/com/kitehub/shared/logging/.*Test\.java''',
     '''kiteclass/kiteclass-core/src/test/java/com/kiteclass/core/module/payment/gateway/impl/.*Test\.java''',

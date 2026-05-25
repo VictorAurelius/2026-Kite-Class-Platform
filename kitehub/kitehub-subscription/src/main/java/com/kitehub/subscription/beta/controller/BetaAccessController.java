@@ -8,6 +8,7 @@ import com.kitehub.subscription.beta.dto.BetaRequestDto;
 import com.kitehub.subscription.beta.dto.BetaRequestPage;
 import com.kitehub.subscription.beta.dto.BetaRequestResponse;
 import com.kitehub.subscription.beta.dto.BetaSignupCommand;
+import com.kitehub.subscription.beta.dto.BetaSignupErrorResponse;
 import com.kitehub.subscription.beta.dto.BetaTokenValidationResponse;
 import com.kitehub.subscription.beta.entity.BetaAccessRequest;
 import com.kitehub.subscription.beta.entity.BetaAccessRequestStatus;
@@ -108,18 +109,28 @@ public class BetaAccessController {
     }
 
     @Operation(summary = "Complete beta signup with invite token",
-               description = "Public unauthenticated endpoint. Marks the request SIGNED_UP, then provisions the tenant via the standard registration pipeline (subdomain reservation, owner-user creation, password hashing). On registration failure the beta request is rolled back to APPROVED with a fresh invite token so the invitee can retry (GAP-372 closure follow-up #1, Wave 45 Bucket A).")
+               description = "Public unauthenticated endpoint. Marks the request SIGNED_UP, then provisions the tenant via the standard registration pipeline (subdomain reservation, owner-user creation, password hashing). On registration failure the beta request is rolled back to APPROVED with a fresh invite token so the invitee can retry (GAP-372 closure follow-up #1, Wave 45 Bucket A). Error responses include JSON body with {@code errorCode} field (INVALID_TOKEN/TOKEN_EXPIRED/WRONG_STATE) per GAP-611 (Wave beta-readiness-5 Bucket D) so FE + observability can differentiate application-layer 404 from infrastructure 404.")
     @PostMapping("/api/v1/auth/beta-signup")
-    public ResponseEntity<BetaRequestResponse> completeBetaSignup(@Valid @RequestBody BetaSignupCommand cmd) {
+    public ResponseEntity<?> completeBetaSignup(@Valid @RequestBody BetaSignupCommand cmd) {
         BetaAccessRequest saved;
         try {
             saved = service.completeBetaSignup(cmd);
         } catch (IllegalArgumentException ex) {
+            // Token not found in DB (never issued / already redeemed + nulled out) →
+            // 404 with JSON body so caller can distinguish from infrastructure 404
+            // (gateway misroute, controller absent). Closes GAP-611.
             log.warn("Beta signup rejected: {}", ex.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(BetaSignupErrorResponse.invalidToken());
         } catch (IllegalStateException ex) {
+            // Token found but request in non-APPROVED state OR token expired →
+            // 409 with JSON body so FE can show specific guidance.
             log.warn("Beta signup invalid state: {}", ex.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            String msg = ex.getMessage() == null ? "" : ex.getMessage();
+            BetaSignupErrorResponse body = msg.contains("expired")
+                    ? BetaSignupErrorResponse.tokenExpired()
+                    : BetaSignupErrorResponse.wrongState(extractStateFromMessage(msg));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
         }
 
         // Token redeemed + status flipped to SIGNED_UP. Now provision the tenant
@@ -262,6 +273,30 @@ public class BetaAccessController {
         pd.setTitle("Too Many Requests");
         pd.setProperty("errorCode", "BETA_EMAIL_RATE_LIMIT");
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(pd);
+    }
+
+    /**
+     * Best-effort parse của {@code BetaAccessService.completeBetaSignup}
+     * {@code IllegalStateException} message ("Cannot complete signup in state X
+     * (must be APPROVED)") để extract state name cho error response. Fallback
+     * "UNKNOWN" nếu message format không match.
+     *
+     * @since Wave beta-readiness-5 — GAP-611
+     */
+    private static String extractStateFromMessage(String msg) {
+        if (msg == null) {
+            return "UNKNOWN";
+        }
+        int start = msg.indexOf("in state ");
+        if (start < 0) {
+            return "UNKNOWN";
+        }
+        start += "in state ".length();
+        int end = msg.indexOf(' ', start);
+        if (end < 0) {
+            end = msg.length();
+        }
+        return msg.substring(start, end);
     }
 
     /**

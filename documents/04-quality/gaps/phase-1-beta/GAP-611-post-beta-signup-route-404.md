@@ -1,6 +1,6 @@
 # GAP-611 — `POST /api/v1/auth/beta-signup` returns 404 (route exists nhưng gateway/subscription không serve)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (Wave beta-readiness-5 Bucket D)
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-05-17 (Wave 90 walkthrough — FE submit signup form fails)
@@ -106,7 +106,43 @@ If Hypothesis 1 (gateway route shadow):
 - BetaAccessController.completeBetaSignup
 - Wave 90 walkthrough audit (when filed) — browser console evidence
 
+## Investigation finding (Wave beta-readiness-5 Bucket D — per `release-fix-retry-budget.md` §3.5)
+
+**Hypothesis từ prior retry (Wave 91 Bucket D):** Hypothesis #7 (controller catches `IllegalArgumentException` → empty-body 404).
+
+**Empirical state-check (this session 2026-05-25):**
+
+1. `kitehub/kitehub-frontend/src/components/auth/BetaSignupForm.tsx` line 70: `apiClient.post(endpoints.auth.completeBetaSignup, ...)` — FE submits via API client wrapper.
+2. `kitehub/kitehub-frontend/src/lib/api/endpoints.ts` line 104: `completeBetaSignup: '/api/v1/auth/beta-signup'` — endpoint string matches BE route exactly.
+3. `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/beta/controller/BetaAccessController.java` line 112: `@PostMapping("/api/v1/auth/beta-signup")` — controller mapping confirmed.
+4. `kitehub/kitehub-gateway/src/main/resources/application.yml` line 460-463: route `kitehub-auth-v1` predicate `Path=/api/v1/auth/**` → URI `http://kitehub-subscription:8080` — catch-all forwarding correct.
+5. `kitehub/kitehub-gateway/src/main/java/com/kitehub/gateway/filter/JwtAuthenticationGatewayFilter.java` line 205-208: `isPublicPath(path)` returns `path.startsWith("/api/v1/auth/")` = true → JWT filter bypasses correctly.
+6. `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/config/SecurityConfig.java` line 110: `.requestMatchers("/api/v1/auth/**").permitAll()` — Spring Security permits anonymous POST.
+7. **Line 117-119 BetaAccessController:**
+   ```java
+   } catch (IllegalArgumentException ex) {
+       log.warn("Beta signup rejected: {}", ex.getMessage());
+       return ResponseEntity.status(HttpStatus.NOT_FOUND).build();  // ← empty body
+   }
+   ```
+8. **Line 561-562 BetaAccessService:**
+   ```java
+   BetaAccessRequest entity = repository.findByInviteToken(cmd.token())
+           .orElseThrow(() -> new IllegalArgumentException("Invalid invite token"));
+   ```
+
+**Root cause identified:** Class **D — application-layer 404 from controller exception path** (NOT Class A/B/C route mismatch). When `BetaAccessService.completeBetaSignup()` throws `IllegalArgumentException("Invalid invite token")` (token UUID not found in DB OR already redeemed — line 573 sets `inviteToken=null` on successful signup), controller line 117-119 returns `ResponseEntity.status(HttpStatus.NOT_FOUND).build()` (empty body).
+
+**Why "Invalid invite token" hit in Wave 90 walkthrough:** Production token `98446443-e5cc-43e9-9498-6799d460d2db` cited in gap evidence likely was either (a) never inserted in production DB (token from local/staging tested against prod URL), (b) already redeemed (status flipped SIGNED_UP and inviteToken nulled per service line 573), or (c) expired (background cleanup removed). Need live verify post-AWS-restore (GAP-612 dependency) để confirm which sub-case fired.
+
+**Fix #N+1 follows from root cause:** Empty-body 404 is **technically correct** (per HTTP semantics — resource not found) BUT indistinguishable from infrastructure 404 (gateway misroute / controller absent). Fix improves response shape:
+
+- Add `BetaSignupErrorResponse` DTO với `errorCode` field (mirror existing `BetaTokenValidationResponse` pattern from validate endpoint)
+- Controller returns JSON body với `errorCode: "INVALID_TOKEN" | "TOKEN_EXPIRED" | "WRONG_STATE"` thay vì empty body
+- FE + observability can decode actual cause → distinguish app-layer 404 từ infra 404
+
 ## Log
 
 - **2026-05-17:** Gap filed during Wave 90 walkthrough. AWS account suspended mid-investigation. Pair-investigate với GAP-610 (likely same root cause class — gateway OR security config OR new JWT filter regression).
 - **2026-05-18 (Wave 91 Bucket D deep investigation):** Status PARTIAL. PR #1490 đã ship defensive hardening + 2 gateway-filter regression tests. Wait-time deep investigation (`documents/04-quality/audits/aws-verification/2026-05-18-wave-91-bucket-d-deep-investigation.md`) **REJECTED all 4 original hypotheses** với code evidence: (1) gateway predicate order — specific routes phía trên catch-all không match `/api/v1/auth/beta-signup`; (2) HTTP method filter — catch-all không có Method predicate; (3) Wave 89 JWT filter `isPublicPath` matches startsWith("/api/v1/auth/") → bypass đúng; (4) Spring Security `permitAll()` on /api/v1/auth/**. Surfaced 3 NEW hypothesis Bucket D missed: **#7 controller catches IllegalArgumentException → returns empty-body 404 (matches gap evidence exactly) — Medium**, #5 empty-body suggests gateway CircuitBreaker fallback or controller exception path, #6 image promotion drift. **Cross-gap với GAP-610: single root cause likely `findByInviteToken` returns empty Optional** → service throws IllegalArgumentException → controller line 119 catches → 404 empty body matches reported behavior exactly. Coordinator F debug sequence post-AWS-restore: 5 steps (~15 min). Gap stays PARTIAL until live verify.
+- **2026-05-25 (Wave beta-readiness-5 Bucket D):** Investigation phase per `release-fix-retry-budget.md` §3.5 empirically verified Wave 91 Bucket D hypothesis #7 = correct root cause (Class D — application-layer 404 from controller exception path). All gateway / security / route chains verified correct. Fix shipped: `BetaSignupErrorResponse` DTO + controller returns JSON body với `errorCode` field (INVALID_TOKEN/TOKEN_EXPIRED/WRONG_STATE) — FE + observability can decode actual cause vs infra 404. 3 new BetaAccessControllerTest cases verify JSON body shape (invalid token / expired / wrong state). Status stays **PARTIAL** vì live production verify gated GAP-612 (AWS account suspended) — code + tests shipped, post-AWS-restore curl probe confirms response shape live + sub-case of original Wave 90 token mismatch documented.
