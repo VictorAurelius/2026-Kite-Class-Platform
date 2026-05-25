@@ -141,4 +141,11 @@ After A+B+C verify:
 
 ## 8. Log
 
-- **2026-05-25 (status: draft):** Wave plan drafted per session handoff §"Wave 4/5". Counter `beta-readiness-6` = next monotonic. Outside-in audit SKIP per §4 row 4 (internal contract sync). 3 domain disjoint Backend → parallel-eligible. Sonnet OK cho narrow domain scope. Author: @nguyenvankiet (solo-dev).
+- **2026-05-25 evening (refresh phiên 2026-05-25):** Wave plan refresh cho hand-off phiên sau. Lessons-learned từ Wave br-5 + meta-3/4/5 áp dụng prospectively:
+  - **Opus 1M mandatory** per `agent-model-opus-default.md` v1.0.0 — KHÔNG dùng Sonnet (recurrence ≥2 waves Sonnet thrash). Sửa Log cũ "Sonnet OK" → Opus 4.7 1M.
+  - **Investigation phase first** per `release-fix-retry-budget.md` §3.5 — mỗi bucket agent PHẢI empirical-read 5+ controllers cùng domain TRƯỚC khi viết api-contract.md (không infer từ stale gap description filed 2026-04-26).
+  - **Pre-spawn state-check** per `audit-to-gap-pipeline.md` §2.8 — coordinator next-session re-verify 3 controller paths + 3 domain folder existence trước khi spawn 3 agents. Stale ~1 tháng → likely module structure drift.
+  - **Audit-1 findings reference** — Wave 7 audit-1 chấm 42/100 F là outside-in evidence (per `outside-in-coverage-trigger.md` §4 exempt).
+  - **User direction 2026-05-25:** "fix hết gaps đã, tránh tốn công số" — wave này align fix-first policy.
+  - **Phiên thực thi:** SAU — phiên draft này context 71%, hand-off mandatory.
+- **2026-05-25 (status: draft):** Wave plan drafted per session handoff §"Wave 4/5". Counter `beta-readiness-6` = next monotonic. Outside-in audit SKIP per §4 row 4 (internal contract sync). 3 domain disjoint Backend → parallel-eligible. Sonnet OK cho narrow domain scope (⚠️ vacated by 2026-05-25 evening update above — use Opus 4.7 1M). Author: @nguyenvankiet (solo-dev).
