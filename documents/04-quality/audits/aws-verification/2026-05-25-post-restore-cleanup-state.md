@@ -1,10 +1,65 @@
 ---
 title: AWS Verification — Post-restore cleanup (ALB + 2 unused EIPs)
-status: in-progress
+status: complete
 created: 2026-05-25
 phase: wave-beta-readiness-8 parallel ops
 gaps: [GAP-612]
 ---
+
+## Post-mutation findings (append 2026-05-25T post-execution)
+
+### Commands run (Tier 3 destructive, user-authorized per AskUserQuestion + HEAD commit trailer `AGENT_AWS_TIER3_OK`)
+
+```bash
+aws elbv2 delete-load-balancer --profile dev-admin --region ap-southeast-1 \
+  --load-balancer-arn arn:aws:elasticloadbalancing:ap-southeast-1:906286017800:loadbalancer/app/kitehub-alb/c9ece63c87ea7a88
+# (waited 45s for ENI cleanup)
+```
+
+### Results
+
+| Resource | Pre-state | Post-state | Verdict |
+|---|---|---|---|
+| ALB `kitehub-alb` (arn `...:app/kitehub-alb/c9ece63c87ea7a88`) | active | `LoadBalancerNotFound` | ✅ DELETED |
+| EIP `13.213.229.164` (ALB-attached) | Assoc eipassoc-0d7e... | NOT in `describe-addresses` list | ✅ AUTO-RELEASED on ALB cascade |
+| EIP `47.131.212.153` (ALB-attached) | Assoc eipassoc-0a5c... | NOT in `describe-addresses` list | ✅ AUTO-RELEASED on ALB cascade |
+| EIP `52.221.161.175` (kitehub-kc-app-fe-eip) | Assoc → i-05cfda7c... | Assoc → i-05cfda7c... | ✅ PRESERVED |
+
+### Key finding
+
+**Only 1 AWS API call needed** — `delete-load-balancer` cascade auto-disassociates + auto-releases ENI-bound EIPs. No explicit `release-address` calls needed. Saves 2 API calls + matches AWS managed cleanup pattern.
+
+### Monthly burn reduction
+
+| Component | Pre | Post | Save |
+|---|---|---|---|
+| ALB hours | ~$16-22/month | $0 | ~$20/month |
+| 2 ALB-attached EIPs ($3.6 each) | ~$7.2/month | $0 | ~$7.2/month |
+| 1 EC2-attached EIP (kc-app-fe) | ~$3.6/month | ~$3.6/month | $0 (preserved) |
+| EBS 80GB gp3 (Free Tier covers 30GB) | ~$4/month | ~$4/month | $0 (preserved) |
+| ECR 10 repos | ~$25/month | ~$25/month | $0 (Wave 9+ candidate lifecycle) |
+| CloudTrail | minimal | minimal | $0 |
+| **TOTAL idle burn** | **~$60/month** | **~$33/month** | **~$27/month** |
+
+### State preservation
+
+- 3 EC2 instances stopped (state preserved, EBS attached)
+- 3 EBS volumes in-use
+- 1 EIP `52.221.161.175` reserved for kc-app-fe
+- CloudTrail `kitehub-main` IsLogging=True (audit trail continuous)
+- ECR 10 repos intact (deploy artifacts preserved for resume)
+- Secrets Manager (jwt/encryption/admin/jwt-challenge) preserved
+
+### Resume cost (when needed)
+
+- `terraform apply` recreates ALB + EIPs ~15-20 min
+- Cloudflare DNS A records may need re-point (new EIP IPs allocated)
+- Existing terraform state still references deleted ALB resources → terraform plan will show "to create" entries → expected drift, intentional
+
+### Cross-link
+
+- GAP-612 Log update 2026-05-25 Day 8 UNBLOCK entry
+- terraform state drift noted; rebuild via terraform-apply.yml workflow_dispatch when resume Phase 2.3
 
 # AWS Verification Report — Post-restore cleanup ALB + 2 EIPs
 
