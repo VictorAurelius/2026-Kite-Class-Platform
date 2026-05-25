@@ -71,6 +71,46 @@ resource "aws_iam_role_policy" "ec2_secrets_s3" {
   })
 }
 
+# Custom inline policy: SES send permissions (GAP-608 — Wave beta-readiness-5 Bucket B)
+# Phase 1 BETA fix — kitehub-email SESEmailService uses SDK with EC2 instance profile
+# credentials; without this policy every outbound email fails HTTP 500 with
+# `AccessDenied: User ... is not authorized to perform ses:SendEmail`.
+#
+# Action scope: SendEmail (v1) + SendRawEmail (defensive — some SDK paths may
+# fall back to raw send). SendTemplatedEmail + GetSendQuota added per gap proposal
+# §Phase 1 (likely future-use for SES templates + quota monitoring).
+#
+# Resource scope: identity ARNs in ap-southeast-1 account 906286017800 + SES
+# configuration sets. Wildcard `identity/*` acceptable Phase 1 BETA because:
+#   - SES sandbox enforces verified-recipient check at API level
+#   - Account is single-tenant production (no cross-tenant risk)
+#   - Post-sandbox exit (GAP-NEW follow-up) can narrow to specific verified
+#     identities if least-privilege audit demands it
+resource "aws_iam_role_policy" "ec2_ses_send" {
+  name = "${var.project_name}-ec2-ses-send"
+  role = aws_iam_role.ec2_app.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "SesSendEmail"
+        Effect = "Allow"
+        Action = [
+          "ses:SendEmail",
+          "ses:SendRawEmail",
+          "ses:SendTemplatedEmail",
+          "ses:GetSendQuota",
+        ]
+        Resource = [
+          "arn:aws:ses:${var.aws_region}:${data.aws_caller_identity.current.account_id}:identity/*",
+          "arn:aws:ses:${var.aws_region}:${data.aws_caller_identity.current.account_id}:configuration-set/*",
+        ]
+      },
+    ]
+  })
+}
+
 resource "aws_iam_instance_profile" "ec2_app" {
   name = "${var.project_name}-${var.environment}-ec2-app"
   role = aws_iam_role.ec2_app.name
