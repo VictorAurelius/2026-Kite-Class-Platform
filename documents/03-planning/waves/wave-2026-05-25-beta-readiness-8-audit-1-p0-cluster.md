@@ -1,6 +1,6 @@
 ---
 title: Wave beta-readiness-8 — Audit-1 P0 cluster (Security IDOR + 4 Business Logic + 1 API contract)
-status: draft
+status: complete
 created: 2026-05-25
 updated: 2026-05-25
 wave: 8

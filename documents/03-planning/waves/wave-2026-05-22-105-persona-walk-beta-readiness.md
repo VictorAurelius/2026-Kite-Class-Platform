@@ -1,6 +1,6 @@
 ---
 title: Wave 105 — Persona Walk + P0 Security Cluster + META Local-Fix Prod-Parity (Beta-Readiness)
-status: draft
+status: complete
 created: 2026-05-22
 updated: 2026-05-22
 waves: [105]

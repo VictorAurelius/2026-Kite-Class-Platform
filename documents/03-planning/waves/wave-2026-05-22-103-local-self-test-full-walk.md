@@ -1,6 +1,6 @@
 ---
 title: Wave 103 — Local self-test full walk (AWS-independent path to beta-ready)
-status: draft
+status: complete
 created: 2026-05-22
 updated: 2026-05-22
 waves: [103]

@@ -7,7 +7,7 @@ tags_secondary: [meta-env-coverage, pdpl-consent-api, pricing-per-hour, reschedu
 counter: 4
 created: 2026-05-24
 date_launch: 2026-05-24
-status: draft
+status: complete
 audience: dev
 gaps:
   - GAP-508
