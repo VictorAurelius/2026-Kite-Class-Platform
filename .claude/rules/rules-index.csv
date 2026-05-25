@@ -9,7 +9,7 @@
 #   - Multi-glob values use comma separators inside double-quoted CSV cell.
 # Pattern source: gap-architecture-v2.md (proven for gaps; generalized per GAP-485)
 name,priority,version,created,last_reviewed,file,path_trigger,lifecycle_status,deprecated_at,replaced_by
-admin-merge-discipline,CRITICAL,1.0.2,2026-05-07,2026-05-25,admin-merge-discipline.md,,active,,
+admin-merge-discipline,CRITICAL,1.0.3,2026-05-07,2026-05-25,admin-merge-discipline.md,,active,,
 agent-action-bias,MANDATORY,1.0.1,2026-05-07,2026-05-14,agent-action-bias.md,,active,,
 agent-aws-access,MANDATORY,1.0.3,2026-05-07,2026-05-14,agent-aws-access.md,"infrastructure/**/*.tf,scripts/aws/**,documents/04-quality/audits/aws-verification/**,.github/workflows/*aws*.yml",active,,
 agent-background-spawn-default,MANDATORY,1.0.1,2026-04-29,2026-05-14,agent-background-spawn-default.md,".claude/skills/quality/wave-pack-planner/**,.claude/skills/**/SKILL.md,documents/03-planning/waves/**",active,,
