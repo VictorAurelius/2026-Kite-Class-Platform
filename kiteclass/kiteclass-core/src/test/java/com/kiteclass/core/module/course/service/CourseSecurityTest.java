@@ -23,6 +23,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -50,6 +52,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
 @Rollback(true)
+@Sql(scripts = "/cleanup-test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
 class CourseSecurityTest {
 
     @Autowired
