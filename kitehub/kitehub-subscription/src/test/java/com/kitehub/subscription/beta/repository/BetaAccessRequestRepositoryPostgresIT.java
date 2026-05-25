@@ -5,8 +5,10 @@ import com.kitehub.subscription.beta.entity.BetaAccessRequestStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -77,6 +79,19 @@ class BetaAccessRequestRepositoryPostgresIT {
 
     @Autowired
     private BetaAccessRequestRepository repository;
+
+    /**
+     * RabbitMQ is excluded từ test profile (per {@code application-test.yml}
+     * {@code spring.autoconfigure.exclude: RabbitAutoConfiguration}) nhưng
+     * {@code EmailServiceClient} requires {@code RabbitTemplate} as a non-
+     * optional constructor param. Mock the bean so {@code @SpringBootTest}
+     * full ApplicationContext loads — repository-level tests don't exercise
+     * email queue paths anyway.
+     *
+     * @since Wave beta-readiness-5 Bucket C — GAP-610 IT unblock
+     */
+    @MockBean
+    private RabbitTemplate rabbitTemplate;
 
     @BeforeEach
     void cleanState() {
