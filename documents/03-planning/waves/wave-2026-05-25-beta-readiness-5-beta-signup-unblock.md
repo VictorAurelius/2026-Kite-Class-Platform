@@ -1,6 +1,6 @@
 ---
 title: Wave beta-readiness-5 — Beta signup E2E unblock (4 P0 gap cluster)
-status: draft
+status: complete
 created: 2026-05-25
 updated: 2026-05-25
 wave: 5
