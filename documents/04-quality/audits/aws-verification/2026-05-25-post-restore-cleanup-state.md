@@ -183,3 +183,45 @@ aws ec2 release-address --profile dev-admin --region ap-southeast-1 \
 - `pre-mutation-state-check.md` v1.2.0 §3 audit artifact mandate
 - `aws-observability-first.md` v1.0.0 (CloudTrail IsLogging verified)
 - User authorization: Option 2 confirmed AskUserQuestion 2026-05-25 mid-session
+
+## Credit-stacking strategy (note inline 2026-05-25)
+
+Current state (account 906286017800, expiry 2027-05-07):
+- $100 AWS Free Tier auto credit
+- 4× $20 Explore AWS task credits (Budget/RDS/EC2/Lambda tutorials) = $80
+- **Total $180 active, $0 used (suspension froze burn 8 days)**
+
+Burn post-cleanup ~$33/month idle → $180 covers ~5.5 tháng runway.
+
+### Cannot transfer credits between accounts
+
+AWS Educate (GitHub Student Pack default benefit) là **sandbox account tách biệt** — credits bind vào account đó tại lúc redeem, KHÔNG transfer sang 906286017800. Anti-pattern: tạo account #2 cùng identity để stack credits → duplicate detection ban (per GAP-612 §"Decisions locked Item 1").
+
+### Stacking paths cho 906286017800 (account-specific)
+
+| Priority | Program | Credit | Process | Status |
+|---|---|---|---|---|
+| 🔴 P0 | **GitHub Student Pack promo code** (if format = redeemable code, NOT Educate sandbox link) | $100 | Login other-email GitHub → check Student Pack AWS link → if promo code dạng `XXXX-XXXX`, redeem vào Billing → "Redeem credit" của account 906286017800 | Pending user manual check format (5-10 min) |
+| 🔴 P0 | **AWS Activate Founder resubmit** | $1,000 | apply via https://aws.amazon.com/activate/founders → input account 906286017800 + business details | DENIED 2026-05-10 per GAP-459; pending resubmit POST kitehub.me HTTPS 200 live (post-RST) |
+| 🟠 P1 | **Y Combinator Startup School** | ~$1,000 | Free 3-4h course + certificate → AWS code redeemable bất kỳ account | Untouched |
+| 🟡 P2 | **AWS Cloud Quest** | $25-50 | Game-based learning 2-4h | Untouched |
+
+### Anti-pattern reminder
+
+- ❌ Mua AWS promo codes gray market — vi phạm AWS Service Terms §3.2 + risk permanent ban
+- ❌ Tạo AWS account #2 cùng identity → duplicate detection (per GAP-612 §Day 4 hypothesis: AWS Trust & Safety preemptive suspend new-account pattern)
+- ❌ Stack 2 Activate apps cùng business identity — AWS detect, 1 app/business/year
+
+### Stack projection
+
+```
+$180 (current)
++ $100 (Student Pack promo code IF format matches)
++ $1000 (Activate Founder resubmit POST-RST)
++ $1000 (YC Startup School optional)
+─────────
+$2,280 max = ~69 tháng burn ở $33/month idle
+   OR ~38 tháng burn ở $60/month active (resume Phase 2.3)
+```
+
+Educate sandbox (other-email GitHub Pack) keep separate cho dev experiment/learning — không pollute prod.
