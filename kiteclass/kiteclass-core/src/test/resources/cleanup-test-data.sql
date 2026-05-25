@@ -1,26 +1,73 @@
 -- GAP-735 + GAP-745 — truncate all user tables before each test method
 -- Per Wave meta-1 retry-budget pivot: @Transactional@Rollback insufficient for tests using
 -- @Async / REQUIRES_NEW / event listeners that escape test transaction scope.
--- This script truncates all user tables (excluding Flyway migration tracking) in a single
--- transaction, restoring identity sequences so subsequent test assertions on row counts/ids
--- start from a clean slate.
-
-DO $$
-DECLARE
-    r RECORD;
-BEGIN
-    -- Disable triggers temporarily (some FK constraints have triggers)
-    SET session_replication_role = 'replica';
-
-    FOR r IN
-        SELECT tablename
-        FROM pg_tables
-        WHERE schemaname = 'public'
-          AND tablename NOT IN ('flyway_schema_history')
-    LOOP
-        EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' RESTART IDENTITY CASCADE';
-    END LOOP;
-
-    -- Re-enable triggers
-    SET session_replication_role = 'origin';
-END $$;
+--
+-- Single TRUNCATE statement (no DO block) because Spring's ScriptUtils splits on ';'
+-- which breaks PL/pgSQL DO $$ ... $$ blocks. Listing tables explicitly avoids parser
+-- ambiguity. CASCADE handles FK constraints; RESTART IDENTITY resets sequences so
+-- subsequent test row-count/id assertions start from clean slate.
+TRUNCATE TABLE
+    academic_years,
+    admin_audit_logs,
+    assignments,
+    attendance,
+    attendance_period,
+    audit_log,
+    badges,
+    branding,
+    branding_resources,
+    branding_versions,
+    child_protection_audit_log,
+    class_schedule_slots,
+    class_schedules,
+    class_sessions,
+    classes,
+    course_prerequisites,
+    courses,
+    curricula,
+    deletion_requests,
+    dmca_takedown_requests,
+    enrollments,
+    frontend_instances,
+    grades,
+    grading_scales,
+    holidays,
+    homeroom_classes,
+    idempotency_keys,
+    incidents,
+    invoice_items,
+    invoices,
+    moderation_queue,
+    outbox_events,
+    parent_complaint_queue,
+    parent_invitations,
+    parent_read_audit_log,
+    parent_student_links,
+    parents,
+    payment_idempotency_keys,
+    payment_records,
+    payments,
+    payroll_configs,
+    payroll_periods,
+    permissions,
+    point_rules,
+    quality_reports,
+    rebrand_approvals,
+    reward_redemptions,
+    rewards,
+    role_permissions,
+    roles,
+    semesters,
+    student_badges,
+    student_bulk_import_jobs,
+    student_points,
+    students,
+    subject_grades,
+    subject_sections,
+    submissions,
+    teacher_courses,
+    teachers,
+    user_roles,
+    vettings,
+    zalo_oa_notification_outbox
+RESTART IDENTITY CASCADE;
