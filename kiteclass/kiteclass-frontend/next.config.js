@@ -49,11 +49,11 @@ const nextConfig = {
   async headers() {
     const cspDirectives = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel-scripts.com https://va.vercel-scripts.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: https: blob: https://cdn.kiteclass.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "connect-src 'self' https://kiteclass.com https://*.kiteclass.com wss://*.kiteclass.com https://vercel.live https://vitals.vercel-insights.com",
+      "connect-src 'self' https://kiteclass.com https://*.kiteclass.com wss://*.kiteclass.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
