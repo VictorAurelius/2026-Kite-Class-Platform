@@ -1,10 +1,10 @@
 # Release Fix Retry Budget — pivot to "remove the gate" at retry #2
 
 **Priority:** 🔴 CRITICAL — release iteration discipline
-**Version:** 1.1.0
+**Version:** 1.2.0
 **Created:** 2026-05-08
-**Last-Reviewed:** 2026-05-12
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; v1.1.0 adds §4 pivot matrix row "Tooling visibility gap" + §5 exception row "Tooling-fix-then-retry" triggered by 2026-05-12 deploy incident where SSM Status=InProgress masked actual Failed at 7s for 15 poll attempts; paired same-PR with sister rule `concurrent-production-mutation-ops.md` + memory + worked self-test per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-uncovered visibility-gap trigger to existing pivot matrix. v1.0.0 (kept): PR template checkbox + memory auto-load + reviewer-checklist + worked self-test on Phase 3 staging.1-7 saga)
+**Last-Reviewed:** 2026-05-25
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.2.0 MINOR self-approve per `rule-change-process.md` §5; adds §3.5 Investigation phase mandate triggered by Wave meta-1+meta-2 GAP-735 session 2026-05-25 — retry #2 STOP signal fired 3× but each subsequent "redesign" was patch-without-investigation; investigation phase mandate codifies bridge giữa STOP và next attempt; paired same-PR worked self-test §3.5.3 + reviewer-checklist extension §7 per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-uncovered enforcement gate. v1.1.0 (kept): MINOR self-approve per §5; v1.1.0 adds §4 pivot matrix row "Tooling visibility gap" + §5 exception row "Tooling-fix-then-retry" triggered by 2026-05-12 deploy incident where SSM Status=InProgress masked actual Failed at 7s for 15 poll attempts; paired same-PR with sister rule `concurrent-production-mutation-ops.md` + memory + worked self-test per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-uncovered visibility-gap trigger to existing pivot matrix. v1.0.0 (kept): PR template checkbox + memory auto-load + reviewer-checklist + worked self-test on Phase 3 staging.1-7 saga)
 **Applies to:** Every release-tag retry sequence (e.g. `v0.9.0-beta-staging.N`, `v1.0.0-rc.N`) where a CI gate (Trivy / Lighthouse / E2E / smoke / strict-warnings) blocks tag promotion **AND** every deploy/mutation-op retry sequence where the prior attempt failed due to insufficient observability of underlying failure. Scope explicitly excludes fix-cycles inside a single PR (those follow normal review).
 
 ---
@@ -60,6 +60,67 @@ When CI gate fails the same release-tag class for the 2nd time:
 3. Apply the §4 pivot matrix (below) to choose path.
 4. Document the choice in the next PR's body — even "retry #3 IS the right call" needs explicit rationale.
 ```
+
+---
+
+## 3.5 Investigation phase mandate (added v1.2.0 — Wave meta-2 2026-05-25)
+
+> **Sau khi STOP tại retry #2 (§3 Step 1), TRƯỚC khi propose fix #N+1, MUST chạy investigation phase: empirically đọc relevant config/code/system state để tìm ROOT CAUSE — không phải patch theo diagnostic cũ.**
+
+§3 Step 1 nói "STOP. Do not draft another fix PR yet." nhưng KHÔNG enforce làm GÌ trong khoảng STOP đó. Trong session Wave meta-1+meta-2 GAP-735, retry #2 → #5 mỗi lần đều được tự gọi là "redesign" / "Option B fallback" / "Option D root cause" — nhưng chúng đều là **patch attempts dựa diagnostic chưa verify**, không phải investigation thật. Retry #6 mới empirically đọc `application-test.yml` → discover Flyway disabled in test profile → fix ngay đúng (67% unblock trong 1 attempt).
+
+Investigation phase = bridge giữa "STOP" và "next attempt". Khi rule landed retry #2, agent có thể call current Option B "redesign" — nhưng nếu chưa investigation, đó vẫn là retry #3 disguised.
+
+### 3.5.1 Investigation phase deliverables
+
+Trước khi commit code cho fix #N+1, MUST có:
+
+1. **Read relevant config files** verbatim (không từ memory). Vd:
+   - Test failure → đọc `application-test.yml`, `pom.xml` test profile section, `Testcontainers config`
+   - Deploy failure → đọc workflow yml + `terraform plan` actual output
+   - Build failure → đọc `pom.xml` plugin config + `package.json` scripts
+2. **Empirically query system state** (không assume từ docs):
+   - DB schema issue → query `pg_tables` / `information_schema` thực tế
+   - Network issue → `curl` / `dig` / network probe
+   - Permission issue → `aws iam simulate-principal-policy` hoặc equivalent
+3. **Cross-reference** finding với failure log (verify findings match observed symptom)
+4. **Document findings** trong fix PR body dưới heading `## Investigation finding`:
+
+```markdown
+## Investigation finding (per release-fix-retry-budget.md §3.5)
+
+**Hypothesis từ prior retry:** <diagnostic was wrong / partial>
+**Empirical state-check:** <commands run + output evidence>
+**Root cause identified:** <one-sentence explanation linking config → symptom>
+**Fix #N+1 follows from root cause:** <concrete connection>
+```
+
+### 3.5.2 Banned shortcuts
+
+| ❌ Don't | ✅ Do |
+|---|---|
+| Call "redesign" but propose another patch dựa same diagnostic | Re-investigate config/state empirically first |
+| Skip investigation "vì I know the codebase" | Empirical read ≠ memory; codebase may have drifted |
+| Investigation = grep one file | Multi-source: config + actual system state + cross-reference với log |
+| Document "investigation done" without evidence | PR body MUST quote command outputs |
+| Treat investigation phase as overhead | 5min config read saves N×10min retry cycles |
+
+### 3.5.3 Counterfactual cost demonstration
+
+Wave meta-1+meta-2 GAP-735 session evidence (worked self-test §7.4):
+
+| Phase | Approach | Cost |
+|---|---|---|
+| Retry #1-5 (no investigation) | "Redesign" = trying @DirtiesContext / counter / @Sql DO block / @Sql hardcoded list | ~5 × 10min CI + ~30min coding + retry-budget rule fired 3x but ignored | 
+| Retry #6 (investigation-first) | Read `application-test.yml` → discover Flyway disabled → fix correctly | ~5min config read + ~15min code + 1 CI = **single attempt** |
+
+Net: investigation phase saves 4× retry cycles + retro PR closure work + cognitive overhead.
+
+### 3.5.4 When investigation phase NOT required
+
+- Retry #1 (first try after fail) — normal fix flow per §2 retry budget allowed
+- Genuine §5 exception case (external fix landed / deadline / transient flake / tooling visibility)
+- Fix scope <5 LOC + symptom directly readable from CI log (vd typo fix, missing import)
 
 ---
 
@@ -207,5 +268,6 @@ Defer to 2nd recurrence per premature-rule guard. Reviewer-checklist + memory au
 
 ## 10. Log
 
+- **2026-05-25 (v1.2.0):** MINOR — added §3.5 Investigation phase mandate. Triggered by Wave meta-1+meta-2 GAP-735 session 2026-05-25 — retry #2 STOP signal fired 3× (after @Rollback, after @DirtiesContext-makes-worse, after counter-no-effect) but each subsequent "redesign" attempt was patch-without-investigation (Option B @DirtiesContext / Option A counter / Option D @Sql DO block / Option D @Sql hardcoded list). Retry #6 finally did empirical config read (`application-test.yml` → Flyway disabled in test profile + Spring không autowire TestExecutionListener) → fix correctly with 67% unblock single-attempt. Net: 5 wasted retry cycles preventable with investigation phase between STOP signal và next attempt. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged retrospective lesson "investigation first đáng giá hơn 5+ retries") → Classify ✓ (rule v1.1.0 §3 Step 1 "STOP. Do not draft another fix PR yet" KHÔNG enforce investigation-before-next-attempt; §4 pivot matrix covers "what redesign signal" but not "how to investigate before propose redesign") → Rule+Enforce ✓ (this v1.2.0 + §3.5 4 sub-sections {deliverables / banned shortcuts / counterfactual cost / NOT-required exceptions} + reviewer-checklist extension §7 + worked self-test §3.5.3 paired same-PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§3.5.3 worked example trên Wave meta-1+meta-2 GAP-735 session — investigation-first retry #6 = single-attempt 67% unblock vs prior 5 patch-disguised-as-redesign attempts) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds previously-uncovered enforcement gate giữa STOP và next attempt; no constraint loosening for prior work; existing retry sequences grandfathered, rule applies prospectively từ retry #2 forward). META-P0 force-multiplier per `meta-gap-priority.md` §3 — investigation-phase discipline applied permanently mọi future retry sequence subsequent.
 - **2026-05-12 (v1.1.0):** MINOR — added §4 pivot matrix row "Tooling visibility gap" + §5 exception row "Tooling-fix-then-retry" with override trailer `RELEASE_RETRY_TOOLING_FIXED`. Scope extended in **Applies to** to cover deploy/mutation-op retry sequences where prior attempt failed due to observability gap. Triggered by 2026-05-12 Wave 65 deploy incident: `deploy-production.yml` poll loop showed `Status=InProgress` for ~15 attempts (2.5 min) while SSM command was actually `Failed` with `Terminated / exit status 143` at 7.88s (terraform `user_data` stop-modify-start cycle killed SSM-running deploy-prod.sh — sister rule `concurrent-production-mutation-ops.md` v1.0.0 covers the conflict cause; this v1.1.0 covers the visibility-gap retry-discipline). Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged "đã có rule fix-before-retry chưa, nếu không sẽ bị fix bug vòng lặp") → Classify ✓ (existing v1.0.0 §4 covered CI gate visibility/scope; no row for workflow-poll-vs-underlying-state mismatch) → Rule+Enforce ✓ (this v1.1.0 + sister rule + paired memory + GAP-491 follow-up for CloudWatch streaming + audit artifact extension per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (today's incident — Tooling visibility gap fires; before re-trigger deploy, GAP-491 Path A CloudWatch streaming MUST land + use `RELEASE_RETRY_TOOLING_FIXED:` trailer citing fix PR + GAP-491 link) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds previously-uncovered visibility-gap trigger to existing pivot matrix; no constraint loosening for prior work; existing deploy retries grandfathered, rule applies prospectively from this PR).
 - **2026-05-08 (v1.0.0):** Rule created at user request "rút kinh nghiệm cần đặt tiêu chí release, đối với những lỗi fix retry 2 lần trở lên của release thì ngay lập tức phải nghĩ đến phương án loại bỏ" — direct response to Phase 3 staging.1-7 saga (5 retries on Trivy gate; should have pivoted at retry #2 = staging.4 fail). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged retry waste pattern) → Classify ✓ (no existing rule covers retry-budget for release-tag CI gates; closest analog `terraform-apply-retry-reconfirm.md` is single-apply scope, not multi-tag-retry scope) → Rule+Enforce ✓ (this file + paired memory + PR template checkbox + worked self-test in §7.4 per §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§7.4 worked example on the originating staging.4 timestamp — rule fires correctly) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint, no constraint loosening for prior work; existing fix-PRs grandfathered, rule applies prospectively). Detector wiring (§7.5) deferred per `incident-to-rule-pipeline.md` premature-rule guard until 2nd recurrence.
