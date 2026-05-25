@@ -1,0 +1,33 @@
+{
+  "pr": 1814,
+  "title": "docs(wave-meta-1): GAP-745 follow-up + Bucket A PARTIAL closure note",
+  "branch": "chore/wave-meta-1-partial-closure",
+  "created_at": null,
+  "merged_at": "2026-05-25T07:55:30Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-25T07:55:39.192465",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 5,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1931778"
+  }
+}

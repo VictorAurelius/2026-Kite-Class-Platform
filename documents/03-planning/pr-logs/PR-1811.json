@@ -1,0 +1,33 @@
+{
+  "pr": 1811,
+  "title": "feat(wave-meta-1-bucket-B): GAP-735 TestFixtureCleanup utility + JPA listener",
+  "branch": "wave/meta-1-bucket-B",
+  "created_at": null,
+  "merged_at": "2026-05-25T07:51:52.124652",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-25T07:51:52.171365",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 2,
+        "java_files": 0,
+        "test_files": 1,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1879517"
+  }
+}
