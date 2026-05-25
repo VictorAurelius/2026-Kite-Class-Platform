@@ -1,0 +1,37 @@
+{
+  "pr": 1800,
+  "title": "feat(wave-beta-readiness-8-bucket-D-F): GAP-740 + CourseMapper bundle \u2014 pricingModel PER_HOUR default + CourseResponse + Mapper fix",
+  "branch": "wave/beta-readiness-8-bucket-F-mapper-fix",
+  "created_at": null,
+  "merged_at": "2026-05-25T04:52:21Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "api-contract-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-25T04:52:26.362161",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 10,
+        "java_files": 3,
+        "test_files": 3,
+        "business_docs": true,
+        "missing_audits": [
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "1/4",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1023104"
+  }
+}
