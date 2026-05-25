@@ -3,7 +3,7 @@ name: Deploy to Production (Architecture B — EC2 + docker-compose)
 # =============================================================================
 # Architecture B per ADR-025 (rewritten from legacy EKS+Helm pattern):
 # - kh-backend EC2 (i-...) runs 5 KH services + redis + rabbitmq
-# - kc-app EC2 (deferred Phase 7 polish) — KC stack via Vercel until then
+# - kc-app EC2 (i-...) runs KC stack (self-hosted per ADR-025, Wave 82 pivot)
 # - Trigger: workflow_dispatch (user-initiated; release-deploy-standard.md §9
 #   "Deploy execution = SKIP — human executes critical commands")
 # - Mechanism: AWS SSM send-command on EC2 → calls scripts/deploy-prod.sh
