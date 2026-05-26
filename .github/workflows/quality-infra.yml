@@ -87,3 +87,55 @@ jobs:
           bash scripts/check-helm-lint.sh
 
 
+  promtool-check-rules:
+    name: promtool check rules (PrometheusRule syntax + GAP-217 AC #3)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm (template render trước khi promtool check)
+        uses: azure/setup-helm@v5
+        with:
+          version: v3.16.2
+
+      - name: Install promtool (Prometheus CLI)
+        run: |
+          # promtool ship cùng prometheus binary. Tải version stable từ official release.
+          # v2.54.1 = stable release matched với operator-rendered PrometheusRule CRD schema.
+          PROM_VERSION="2.54.1"
+          curl -sSL "https://github.com/prometheus/prometheus/releases/download/v${PROM_VERSION}/prometheus-${PROM_VERSION}.linux-amd64.tar.gz" \
+            | tar -xz -C /tmp
+          sudo install -m 0755 "/tmp/prometheus-${PROM_VERSION}.linux-amd64/promtool" /usr/local/bin/promtool
+          promtool --version
+
+      - name: Validate PrometheusRule syntax (GAP-217 AC #3)
+        run: |
+          # Render helm template → extract PrometheusRule body → promtool check rules.
+          # Closes GAP-217 AC #3 "Rules tested via promtool check rules in CI".
+          # Also validates GAP-122 + GAP-135 + GAP-144 + GAP-466 alert groups stay syntactically clean.
+          set -euo pipefail
+
+          # Render helm chart với monitoring.enabled=true để PrometheusRule template emit
+          mkdir -p /tmp/rendered
+          helm template kitehub infrastructure/helm/kitehub \
+            --set monitoring.enabled=true \
+            --set monitoring.prometheusRule.enabled=true \
+            > /tmp/rendered/all.yaml
+
+          # Extract PrometheusRule resource body (skip nested template).
+          # PrometheusRule operator CRD wraps rules.groups[*] — promtool expects bare groups[*].
+          # Use yq if available; else python-based extraction via -c.
+          if command -v yq >/dev/null 2>&1; then
+            yq eval 'select(.kind == "PrometheusRule") | {"groups": .spec.groups}' /tmp/rendered/all.yaml > /tmp/rendered/prometheus-rules.yaml
+          else
+            python3 -c "import yaml; docs = list(yaml.safe_load_all(open('/tmp/rendered/all.yaml'))); rules = []; [rules.extend(d.get('spec', {}).get('groups', [])) for d in docs if d and d.get('kind') == 'PrometheusRule']; yaml.safe_dump({'groups': rules}, open('/tmp/rendered/prometheus-rules.yaml', 'w'), default_flow_style=False); print(f'Extracted {len(rules)} rule group(s)')"
+          fi
+
+          # Run promtool — fails non-zero on syntax error / missing field
+          promtool check rules /tmp/rendered/prometheus-rules.yaml
+
+
