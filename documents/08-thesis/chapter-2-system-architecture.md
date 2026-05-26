@@ -598,31 +598,43 @@ ERD nhấn mạnh quan hệ many-to-many giữa `STUDENT` và `CLASSES` qua bả
 Luồng cấp phát tenant từ lúc người dùng tiềm năng gửi yêu cầu beta đến khi chủ trung tâm đăng nhập lần đầu trải qua nhiều bước phối hợp giữa frontend, backend và các dịch vụ ngoài. Hình 2.7 trình bày tuần tự các bước theo ký pháp UML.
 
 ```mermaid
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
 sequenceDiagram
     actor U as Người dùng (P2)
     participant FE as Frontend
     participant API as kitehub-subscription
     participant DB as kite-postgres
-    participant Email as kitehub-email
-    participant MQ as kite-rabbitmq
 
     U->>FE: Gửi form yêu cầu beta
     FE->>API: POST /api/v1/beta-requests
-    API->>DB: INSERT beta_requests status=PENDING
+    API->>DB: INSERT beta_requests<br/>status=PENDING
     API-->>FE: 201 Created
-    Note over API,Email: Quản trị duyệt yêu cầu
-    API->>DB: INSERT tenants status=TRIAL
-    API->>DB: INSERT users role=P2_CENTER_OWNER
-    API->>MQ: branding.deploy.exchange
-    API->>Email: Gửi magic-link verify
-    Email-->>U: Email magic-link TTL 7 ngày
-    U->>API: GET /api/v1/auth/verify token=...
-    API->>DB: UPDATE users password_set=true
-    API-->>FE: 200 OK + JWT
-    FE-->>U: Redirect /dashboard wizard 5 bước
+    FE-->>U: Đã ghi nhận — chờ duyệt
 ```
 
-**Hình 2.7.** Sequence diagram — luồng cấp phát tenant thử nghiệm.
+**Hình 2.7a.** Pha PENDING — người dùng gửi yêu cầu beta, hệ thống ghi nhận chờ quản trị duyệt.
+
+```mermaid
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
+sequenceDiagram
+    actor Admin as Quản trị
+    participant API as kitehub-subscription
+    participant DB as kite-postgres
+    participant Email as kitehub-email
+    actor U as P2 Owner
+
+    Admin->>API: Duyệt yêu cầu beta
+    API->>DB: INSERT tenants<br/>status=TRIAL
+    API->>DB: INSERT users<br/>role=P2_CENTER_OWNER
+    API->>API: Phát event<br/>branding.deploy.exchange<br/>qua RabbitMQ
+    API->>Email: Gửi magic-link verify
+    Email-->>U: Email magic-link<br/>TTL 7 ngày
+    U->>API: GET /api/v1/auth/verify
+    API->>DB: UPDATE users<br/>password_set=true
+    API-->>U: 200 OK + JWT<br/>redirect dashboard
+```
+
+**Hình 2.7b.** Pha TRIAL — quản trị duyệt yêu cầu, hệ thống cấp tenant + gửi magic-link, người dùng kích hoạt tài khoản. Sự kiện `branding.deploy.exchange` được phát qua RabbitMQ song song cho `kitehub-branding` dựng template mặc định.
 
 Tuần tự cho thấy ranh giới giữa pha PENDING (chờ duyệt thủ công) và pha TRIAL (sau khi quản trị kích hoạt) — đây là điểm chuyển trạng thái quan trọng được tham chiếu lại tại Hình 2.8 §2.3.4 (máy trạng thái vòng đời tenant). Việc phát sự kiện fanout `branding.deploy.exchange` qua RabbitMQ song song với gửi email cho phép `kitehub-branding` dựng template mặc định trong khi chờ chủ trung tâm xác thực — giảm thời gian onboarding khi user click magic-link.
 

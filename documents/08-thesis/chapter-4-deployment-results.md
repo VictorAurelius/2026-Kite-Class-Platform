@@ -80,28 +80,40 @@ flowchart TB
 CI/CD được triển khai qua GitHub Actions với pattern OIDC + workflow_dispatch + confirm-input, tham chiếu nguyên tắc Continuous Delivery hiện đại [37, tr.115] — kết hợp build artifact bất biến (Docker image tag theo SHA commit) và deployment gate có cognitive checkpoint (workflow input `confirm=APPLY`) thay cho cơ chế auto-deploy.
 
 ```mermaid
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
 sequenceDiagram
     participant Dev as Developer
     participant GH as GitHub Actions
     participant OIDC as AWS OIDC
     participant ECR as ECR
+
+    Dev->>GH: git push + create PR
+    GH->>GH: CI mvn verify<br/>+ tests + lint
+    Dev->>GH: gh pr merge --squash
+    GH->>OIDC: assume-role-with<br/>-web-identity
+    OIDC-->>GH: ephemeral creds 1h
+    GH->>ECR: docker push image:sha
+```
+
+**Hình 4.2a.** Pha build — CI verify, OIDC role assume, Docker image push tới ECR.
+
+```mermaid
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
+sequenceDiagram
+    participant Dev as Developer
+    participant GH as GitHub Actions
     participant SSM as AWS SSM
     participant EC2 as EC2
 
-    Dev->>GH: git push + create PR
-    GH->>GH: CI mvn verify + tests + lint
-    Dev->>GH: gh pr merge --squash
-    GH->>OIDC: assume-role-with-web-identity
-    OIDC-->>GH: ephemeral creds 1h
-    GH->>ECR: docker push image:sha
-    Dev->>GH: gh workflow run deploy-production confirm=APPLY
+    Dev->>GH: gh workflow run deploy<br/>confirm=APPLY
     GH->>SSM: SendCommand
-    SSM->>EC2: docker pull + restart + health check
-    EC2-->>GH: OK + smoke test pass
-    GH-->>Dev: Deploy success notification
+    SSM->>EC2: docker pull + restart
+    EC2->>EC2: health check<br/>+ smoke test
+    EC2-->>GH: OK + smoke pass
+    GH-->>Dev: Deploy success
 ```
 
-**Hình 4.2.** Sequence diagram CI/CD pipeline từ git push tới production deploy (rút gọn các bước chính).
+**Hình 4.2b.** Pha deploy — confirm-input gate, SSM SendCommand kích hoạt EC2 pull image + restart + smoke test.
 
 Bốn lựa chọn thiết kế nổi bật của pipeline bao gồm: ephemeral OIDC role (mỗi workflow run assume role mới với token 1 giờ, không hardcode AWS access key trong GitHub Secrets); narrow IAM scope (role `kitehub-deploy-role` chỉ có permission `ecr:Push` và `ssm:SendCommand` tới EC2 tag `Project=Kite`, không có quyền `ec2:Terminate` hay scope rộng hơn); confirm-input gate (workflow yêu cầu nhập `confirm=APPLY` verbatim để trigger, phòng ngừa deploy nhầm); và smoke admin-login post-deploy (sau deploy, smoke test gọi `POST /api/auth/login` với seeded admin credential, kỳ vọng 200 + JWT — bắt được lỗi class binding Postgres-specific mà unit test với H2 hoặc Mockito không phát hiện được).
 
