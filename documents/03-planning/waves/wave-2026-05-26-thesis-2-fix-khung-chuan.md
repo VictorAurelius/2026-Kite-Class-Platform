@@ -132,7 +132,16 @@ Bucket B-F detail sẽ expand vào wave plan PR update khi Bucket A merge xong v
 
 ---
 
-## 5. Acceptance Criteria
+## 5. Verification Gates (per bucket)
+
+| Bucket | Local verify command | CI gate | Manual user-review gate |
+|---|---|---|---|
+| A | `python3 documents/08-thesis/create_thesis_v1.py && unzip -p documents/08-thesis/thesis-v1.docx word/document.xml \| grep -cE "LỜI CAM ĐOAN\|TÓM TẮT\|ABSTRACT\|NHẬN XÉT GVHD"` returns `0` | Rule frontmatter (rule v2.0.0) + wave-plan-completeness (this file) | User open thesis-v1.docx + confirm khớp khung |
+| B | `grep -nE "Phụ lục A\|Phụ lục B\|Phụ lục C" documents/08-thesis/create_thesis_v1.py` returns expected state (B inline KẾT LUẬN; A+C removed per Wave 102.7.5) | none beyond existing | User confirm Phụ lục state |
+| C | `python3 create_thesis_v1.py` re-bake + verify danh mục thuật ngữ sorted ABC | none | User confirm sort + F9 workflow doc readable |
+| D | `grep -nE "^- Nhóm [0-9] — \|^Kiến trúc hệ thống bao gồm.*kitehub-" chapter-2-system-architecture.md` returns 0 (post-rewrite) | none | User confirm narrative uyển chuyển |
+| E | `grep -rnE "BETA\|GA\|Phase [0-9]\|Wave [0-9]+\|GAP-[0-9]+" documents/08-thesis/chapter-*.md` returns near-0 hits | rule v2.0.0 §3 banned patterns check | User confirm Ch.2/3/4 academic clean |
+| F | Per-item: figure ID convention doc readable + bìa pipeline lookup verified + release-2 scope reference clean | none | User confirm |
 
 **Wave-level AC (close condition):**
 - [ ] Bucket A merged + user confirm thesis-v1.docx re-bake khớp khung chuẩn
@@ -149,23 +158,49 @@ Bucket B-F detail sẽ expand vào wave plan PR update khi Bucket A merge xong v
 
 ---
 
-## 6. Outside-in audit decision (per `outside-in-coverage-trigger.md` v1.1.0)
+## 6. Agent Spawn Pattern
 
-User direction 2026-05-26: **SKIP outside-in re-run** (recommended option chosen).
+**Wave-thesis-2 spawn mode: COORDINATOR-INLINE (NOT parallel bg-agents)** per user direction "OPEN iterative":
+- Bucket A-F serial, ship 1 bucket per PR, user review từng PR trước bucket tiếp theo
+- KHÔNG spawn parallel `Agent` tool — wave thesis-2 ưu tiên user feedback loop từng iter thay vì 4-5 agent parallel
+- Mỗi bucket = 1 branch riêng từ main (sau wave plan PR merge) → PR riêng → user review → merge → next bucket
+- Exception: nếu bucket size lớn (vd Bucket E project-jargon scrub Ch.2 22 + Ch.4 9 + Ch.3 1 hit), có thể spawn 1 Opus bg-agent (per `agent-model-opus-default.md` + `agent-background-spawn-default.md`) để execute scrub, coordinator review output trước commit
 
-**Justification:**
-- Wave 102 đã có 43 persona simulation findings (GVHD 13 + GVPB 15 + Committee 15) shipped 2026-05-19
-- `thesis-content-standard.md` v1.1.0 đã codify 9-category rubric + 8 META rules grounded outside-in audit
-- Scope wave-thesis-2 đã defined rõ từ Wave 102.7 audit map (14 items × 19 with action-2.md §4)
-- User cung cấp khung chuẩn nguyên bản (image) — primary source-of-truth không cần benchmark agent
+**Per `feedback_wave_plan_through_pr.md`:** Wave plan PR merge FIRST (this PR) → spawn Bucket A execution sau đó.
 
-Per rule §4 exception: "User đã trải qua outside-in (audit gần đây ≤ 30 ngày)" — Wave 102.7 outside-in audit 2026-05-19 (7 ngày trước) qualifies.
-
-Note: documented per rule mandate.
+**Per `agent-model-opus-default.md` v1.0.0:** Nếu bg-agent invoked, `model: "opus"` mandatory (Opus 4.7 1M).
 
 ---
 
-## 7. Related
+## 7. Closure Protocol
+
+Per `wave-closure-scope-completeness.md` v1.0.0 + `gap-done-discipline.md` + `feedback_wave_history_append_required.md` + `post-wave-cleanup.md`:
+
+**Per-bucket PR closure:**
+- Update bucket-affected GAP file Log + status (vd GAP-688 PARTIAL tracking)
+- Bucket PR docs-only → auto-merge per `docs-only-pr-auto-merge.md` khi CI green
+- Bucket PR touching code (pipeline / chapter MDs) → user review trước merge
+
+**Final wave closure PR (sau Bucket A-F + user confirm hài lòng):**
+- ✅ Scope-Completeness Reconciliation table (per `wave-closure-scope-completeness.md` §3) — mỗi §3 Scope item categorize ✅ DONE / 🟡 PARTIAL (gap link) / ❌ NOT-IMPLEMENTED (follow-up gap OR rationale)
+- ✅ Flip wave plan frontmatter `status: in-progress` → `status: complete`
+- ✅ Append `wave-history.jsonl` entry với new format (`tag_primary: thesis`, `counter: 2`, `tags_secondary: [meta, content-quality]`) per `wave-tag-numbering-convention.md` §2.5
+- ✅ Update `ROADMAP.md` §🎯 Current Status Snapshot — add "Wave thesis-2 (YYYY-MM-DD): ..." entry
+- ✅ GAP-688 Status update (PARTIAL → DONE nếu user confirm hài lòng entire scope)
+- ✅ Run `bash scripts/prune-merged-worktrees.sh --yes` (per `post-wave-cleanup.md`) — không expected husks vì coordinator-inline mode
+- ✅ `## Release Plan Progress` section trong closure PR body — thesis V2+ ship status + Phase 1 BETA impact
+
+**Outside-in audit decision (per `outside-in-coverage-trigger.md` v1.1.0):**
+
+User direction 2026-05-26: **SKIP outside-in re-run** per rule §4 exception "User đã trải qua outside-in (audit gần đây ≤30 ngày)" — Wave 102.7 outside-in audit 2026-05-19 (7 ngày trước) qualifies. Documented per rule mandate.
+
+**Inside-out completeness (per `inside-out-completeness-trigger.md` v1.0.0):**
+
+Scope source = Wave 102.7 audit map `2026-05-20-wave-102.7-14-item-inside-mapping.md` (14 items × 19 with action-2.md §4) + user inspection 2026-05-26 (khung chuẩn re-ground). 3-source pull skipped per rule §4 exception "User explicit scope locked, just execute current scope" — Wave 102.7 audit consolidation đã exhaustive cho thesis inside scope.
+
+---
+
+## 8. Related
 
 - Audit source: `documents/04-quality/audits/persona-review/2026-05-20-wave-102.7-14-item-inside-mapping.md` (14-item inside × Wave 102.7.x output mapping)
 - Khung chuẩn primary: `documents/08-thesis/khung-chuan/khung-bao-cao-do-an.png` (user-provided 2026-05-26)
@@ -178,6 +213,6 @@ Note: documented per rule mandate.
 
 ---
 
-## 8. Log
+## 9. Log
 
 - **2026-05-26 (draft):** Wave plan created in response to user direction "session sửa thesis + tạo wave có tag thesis mới + chưa close wave này khi user hài lòng". 3-question AskUserQuestion chốt scope: skip outside-in re-run + Bucket A META first + OPEN iterative ship. Khung chuẩn re-ground primary source = `khung-bao-cao-do-an.png` user-provided 2026-05-26; secondary = UTC `Quy dinh trinh bay do an tot nghiep.pdf` (verified via unzip XML extraction). User-flagged "lời cam đoan không có trong khung chuẩn" → triggered rule re-ground v2.0.0 MAJOR scope. Wave OPEN iterative — Bucket A first, B-F sau, close PR final khi user confirm hài lòng.
