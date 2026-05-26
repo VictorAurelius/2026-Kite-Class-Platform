@@ -14,7 +14,7 @@ RUN mvn clean package -Dmaven.test.skip=true -Dcheckstyle.skip=true -B
 # GAP-218 — verify Vietnamese-safe DejaVuSans fonts (regular + bold) are bundled in the
 # fat jar. Production PDF rendering throws IllegalStateException("Font resource not found...")
 # if the TTFs are missing — fail the image build instead of letting a broken image ship.
-# See documents/05-guides/runbooks/pdf-generation-font-not-found.md.
+# See documents/05-guides/operations/runbooks/pdf-generation-font-not-found.md.
 RUN test "$(jar tf target/*.jar | grep -cE 'fonts/DejaVuSans(-Bold)?\.ttf$')" -eq 2 \
     || (echo "FAIL: DejaVuSans TTF (regular + bold) missing from app.jar — see GAP-218 runbook" >&2 && exit 1)
 
