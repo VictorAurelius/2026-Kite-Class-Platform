@@ -198,10 +198,7 @@ User direction 2026-05-26: **SKIP outside-in re-run** per rule §4 exception "Us
 
 Scope source = Wave 102.7 audit map `2026-05-20-wave-102.7-14-item-inside-mapping.md` (14 items × 19 with action-2.md §4) + user inspection 2026-05-26 (khung chuẩn re-ground). 3-source pull skipped per rule §4 exception "User explicit scope locked, just execute current scope" — Wave 102.7 audit consolidation đã exhaustive cho thesis inside scope.
 
----
-
-## 8. Related
-
+**Related refs:**
 - Audit source: `documents/04-quality/audits/persona-review/2026-05-20-wave-102.7-14-item-inside-mapping.md` (14-item inside × Wave 102.7.x output mapping)
 - Khung chuẩn primary: `documents/08-thesis/khung-chuan/khung-bao-cao-do-an.png` (user-provided 2026-05-26)
 - UTC spec secondary: `documents/07-archived/academic/word-reports/templates/Quy dinh trinh bay do an tot nghiep.pdf`
@@ -213,6 +210,6 @@ Scope source = Wave 102.7 audit map `2026-05-20-wave-102.7-14-item-inside-mappin
 
 ---
 
-## 9. Log
+## 8. Log
 
 - **2026-05-26 (draft):** Wave plan created in response to user direction "session sửa thesis + tạo wave có tag thesis mới + chưa close wave này khi user hài lòng". 3-question AskUserQuestion chốt scope: skip outside-in re-run + Bucket A META first + OPEN iterative ship. Khung chuẩn re-ground primary source = `khung-bao-cao-do-an.png` user-provided 2026-05-26; secondary = UTC `Quy dinh trinh bay do an tot nghiep.pdf` (verified via unzip XML extraction). User-flagged "lời cam đoan không có trong khung chuẩn" → triggered rule re-ground v2.0.0 MAJOR scope. Wave OPEN iterative — Bucket A first, B-F sau, close PR final khi user confirm hài lòng.
