@@ -159,7 +159,9 @@ class DocxGeneratorTest extends DocumentGenerationTestBase {
 
     @Test
     void contract_render_under_soft_cap_for_regression_canary() {
-        // GAP-216 — soft-cap regression canary; DOCX is faster than PDF.
+        // GAP-216 — soft-cap regression canary, NOT the SLO. DOCX is faster than PDF
+        // (no font load, no template parse); 2s ceiling sufficient. True p95 measurement
+        // requires JMH suite (deferred to follow-up GAP-750).
         DocumentRequest req = sampleRequest(DocumentFormat.DOCX, "teacher-contract", sampleContractData());
 
         long startNs = System.nanoTime();

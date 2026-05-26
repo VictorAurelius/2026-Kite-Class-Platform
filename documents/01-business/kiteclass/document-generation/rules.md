@@ -29,7 +29,7 @@
 | BR-DOC-PDF-004 | Invoice template follows VN tax invoice (hóa đơn GTGT) layout: header line, buyer meta (name, tax code, address), items table, VAT summary, grand total, attribution footer. |
 | BR-DOC-PDF-005 | Filename generated as `invoice-{invoiceNumber}.pdf`; fallback to `invoice.pdf` if number missing. |
 | BR-DOC-PDF-006 | HTML templates use Thymeleaf with `vi-VN` locale; avoid HTML entities outside XHTML core (`&middot;`, `&nbsp;` break OpenHTMLtoPDF's strict SAX parser — use Unicode chars). |
-| BR-DOC-PDF-007 | PDF rendering is synchronous; p95 budget <2s for 1-page invoice. Async queue (GAP-210) once bulk or large documents appear. |
+| BR-DOC-PDF-007 | PDF rendering is synchronous; p95 budget <2s for 1-page invoice. Async queue (GAP-210) once bulk or large documents appear. **Test layer enforces a soft cap (6s PDF, 2s XLSX, 2s DOCX) as a regression canary, NOT the SLO** — first-render trên CI runners chậm hơn (font load + Thymeleaf template parse + cold JVM); canary fail = render time tăng ≥3× SLO, dấu hiệu regression rõ ràng. True p95 SLO measurement requires JMH micro-benchmark suite — tracked trong follow-up gap GAP-750. |
 
 ### Excel rules (Sub-PR 5.2)
 
@@ -88,6 +88,7 @@ Per-rule attributes (Source / Rationale / Reviewer / Compliance check / Review c
 
 ## Log
 
+- 2026-05-26 — Wave br-7 Bucket B (GAP-216): BR-DOC-PDF-007 extended với soft-cap canary clarification (6s PDF / 2s XLSX / 2s DOCX). Test layer regression canary đã ship cho 3 generators (`invoice_render_under_soft_cap_for_regression_canary`, `attendance_render_under_soft_cap_for_regression_canary`, `contract_render_under_soft_cap_for_regression_canary`) — soft cap khác SLO (production hardware vs CI runner cold start). True p95 JMH measurement deferred GAP-750 (Wave 109+).
 - 2026-04-25 — Sub-PR 5.5 SHIPPED. Added BR-DOC-012..016 covering branding-injection pipeline, auth role matrix, RFC-5987 filename encoding, caller-override precedence, and graceful fallbacks. Status header bumped to "Sub-PR 5.5 SHIPPED". Branding cache config-key entry collapsed to point at the existing Wave 3 cache (no new knob).
 - 2026-04-24 — DOCX rules filled (Sub-PR 5.3). 8 rules BR-DOC-DOCX-001..008 covering Create-only pipeline, template whitelist, required keys, VN typography, legal-placeholder disclosure, filename.
 - 2026-04-24 — XLSX rules filled (Sub-PR 5.2). 8 rules BR-DOC-XLSX-001..008 covering formula-first, color convention, VN labels, percent format, freeze pane, filename. Word section untouched (Sub-PR 5.3).
