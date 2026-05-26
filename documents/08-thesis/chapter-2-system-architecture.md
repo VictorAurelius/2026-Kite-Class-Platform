@@ -249,64 +249,47 @@ Hình 2.1 cho thấy mọi actor đều truy cập Kite Platform qua HTTPS (TLS 
 Phóng to vào nội bộ Kite Platform cho thấy 4 cụm container: Frontend (2 ứng dụng Next.js), Gateway (Spring Cloud Gateway), Service (6 service KiteHub + 1 KiteClass core), và hạ tầng dùng chung (4 container với prefix `kite-`). Hình 2.2 trình bày bố cục container theo C4 Level 2.
 
 ```mermaid
+%%{init: {"flowchart": {"htmlLabels": true, "nodeSpacing": 25, "rankSpacing": 60}, "themeVariables": {"fontSize": "18px"}}}%%
 flowchart TB
-    User[Browser Actor]
+    User[Browser Actor — học sinh / giáo viên / quản trị]
 
-    subgraph FrontendCluster["Frontend Cluster Next.js 15"]
+    subgraph FrontendCluster["Tầng giao diện — Next.js 15"]
         direction TB
-        KHF[kitehub-frontend<br/>SaaS marketing + tenant admin<br/>EC2 self-host PM2:3001]
-        KCF[kiteclass-frontend<br/>Tenant education UI<br/>EC2 self-host PM2:3000]
+        KHF[kitehub-frontend · Port 3001]
+        KCF[kiteclass-frontend · Port 3000]
     end
 
-    subgraph GatewayCluster["Gateway Cluster"]
+    GW[kite-gateway · Spring Cloud Gateway · Port 9000<br/>JWT validate + route + CORS]
+
+    subgraph ServiceClusterTop["Tầng dịch vụ — KiteHub control-plane"]
         direction TB
-        GW[kite-gateway<br/>Spring Cloud Gateway<br/>JWT validate + route + CORS<br/>Port 9000]
+        KHS[kitehub-subscription · 8081]
+        KHB[kitehub-branding · 8083]
+        KHE[kitehub-email · 8084]
+        KHA[kitehub-admin · 8083 alias]
     end
 
-    subgraph ServiceCluster["Service Cluster — KiteHub 6 + KiteClass core"]
+    KCC[kiteclass-core · 8088<br/>KiteClass data-plane · domain core education]
+
+    subgraph InfraCluster["Tầng hạ tầng dùng chung — prefix kite-"]
         direction TB
-        KHS[kitehub-subscription<br/>Trial + plan + tenant lifecycle<br/>Port 8081]
-        KHB[kitehub-branding<br/>AI asset generation + S3<br/>Port 8083]
-        KHE[kitehub-email<br/>Resend + SES adapter<br/>Port 8084]
-        KHA[kitehub-admin<br/>Platform admin + audit log<br/>Port 8083 alias]
-        KCC[kiteclass-core<br/>Education domain core<br/>Student/Class/Attendance/Grade/Payment<br/>Port 8088]
+        PG[(kite-postgres · 5433<br/>PostgreSQL 15 · RLS multi-tenant)]
+        RD[(kite-redis · 6380<br/>cache + rate-limit)]
+        MQ[(kite-rabbitmq · 5673<br/>async event bus)]
+        MN[(kite-minio · 9100<br/>S3-compatible storage)]
     end
 
-    subgraph InfraCluster["Shared Infrastructure prefix kite-"]
-        direction TB
-        PG[(kite-postgres<br/>PostgreSQL 15<br/>RLS multi-tenant<br/>Port 5433)]
-        RD[(kite-redis<br/>Redis 7 cache + rate-limit<br/>Port 6380)]
-        MQ[(kite-rabbitmq<br/>Async event bus<br/>Port 5673)]
-        MN[(kite-minio<br/>S3-compatible storage<br/>Port 9100)]
-    end
+    User -->|HTTPS| FrontendCluster
+    FrontendCluster -->|REST API| GW
+    GW -->|route + JWT| ServiceClusterTop
+    GW -->|route + JWT| KCC
+    ServiceClusterTop -.->|JPA + Redis + RabbitMQ| InfraCluster
+    KCC -.->|JPA + Redis + RabbitMQ + MinIO| InfraCluster
 
-    User -->|HTTPS| KHF
-    User -->|HTTPS| KCF
-    KHF -->|REST API| GW
-    KCF -->|REST API| GW
-    GW -->|JWT-validated route| KHS
-    GW -->|route| KHB
-    GW -->|route| KHE
-    GW -->|route| KHA
-    GW -->|route| KCC
-
-    KHS -.-> PG
-    KHS -.-> RD
-    KHS -.-> MQ
-    KHB -.-> PG
-    KHB -.-> MN
-    KHB -.-> MQ
-    KHE -.-> MQ
-    KHA -.-> PG
-    KCC -.-> PG
-    KCC -.-> RD
-    KCC -.-> MQ
-    KCC -.-> MN
-
-    classDef frontend fill:#dbeafe,stroke:#1e40af
-    classDef gateway fill:#fef3c7,stroke:#92400e
-    classDef service fill:#fce7f3,stroke:#9f1239
-    classDef infra fill:#e0e7ff,stroke:#3730a3
+    classDef frontend fill:#dbeafe,stroke:#1e40af,stroke-width:2px
+    classDef gateway fill:#fef3c7,stroke:#92400e,stroke-width:3px
+    classDef service fill:#fce7f3,stroke:#9f1239,stroke-width:2px
+    classDef infra fill:#e0e7ff,stroke:#3730a3,stroke-width:2px
     class KHF,KCF frontend
     class GW gateway
     class KHS,KHB,KHE,KHA,KCC service
