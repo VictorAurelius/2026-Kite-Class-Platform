@@ -562,7 +562,9 @@ def add_image_inline(doc, image_path, caption=None, width_cm=14.0):
     if image_path.exists():
         # Smart sizing via Pillow aspect-ratio detection
         A4_BODY_WIDTH_CM = 16.0   # 21 - 3 (left margin) - 2 (right margin)
-        A4_BODY_HEIGHT_CM = 22.0  # 29.7 - 2.5 (top) - 2.5 (bottom) - ~3 caption+spacing
+        # Round 2.6 — cap max height 18cm (was 22) để images không fill full page;
+        # leaves ~4cm vertical room cho text trên cùng page → tránh empty page artifact
+        A4_BODY_HEIGHT_CM = 18.0
         target_width_cm = width_cm
         target_height_cm = None
         try:
@@ -597,6 +599,11 @@ def add_image_inline(doc, image_path, caption=None, width_cm=14.0):
         except Exception:
             # Graceful fallback to fixed width_cm
             target_width_cm = width_cm
+
+        # Round 2.6 — tall images (>12cm) get page_break_before → start fresh page cleanly,
+        # avoid "empty space at bottom of prior page" artifact when image doesn't fit remaining space
+        if target_height_cm is not None and target_height_cm > 12.0:
+            p.paragraph_format.page_break_before = True
 
         run = p.add_run()
         if target_height_cm is not None and target_height_cm > 0:
@@ -708,8 +715,9 @@ def add_code_block(doc, code_text, lang=""):
             run = p.add_run()
             # Wave thesis-2 Round 2 Items 3+4+5 — smart A4-fit sizing for Mermaid PNGs
             # (previously hardcoded Cm(14.0) bypassed smart-sizing in add_image_inline)
+            # Round 2.6 — cap max height 18cm (was 22) để Mermaid PNGs không full-page
             A4_BODY_WIDTH_CM = 16.0
-            A4_BODY_HEIGHT_CM = 22.0
+            A4_BODY_HEIGHT_CM = 18.0
             target_w = 14.0
             target_h = None
             try:
@@ -739,6 +747,9 @@ def add_code_block(doc, code_text, lang=""):
                         target_w = A4_BODY_HEIGHT_CM * aspect
             except Exception:
                 pass
+            # Round 2.6 — tall Mermaid PNGs (>12cm) get page_break_before
+            if target_h is not None and target_h > 12.0:
+                p.paragraph_format.page_break_before = True
             if target_h is not None and target_h > 0:
                 run.add_picture(str(png_path), width=Cm(target_w), height=Cm(target_h))
             else:

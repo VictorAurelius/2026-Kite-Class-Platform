@@ -253,15 +253,18 @@ flowchart TB
     User[Browser Actor]
 
     subgraph FrontendCluster["Frontend Cluster Next.js 15"]
+        direction TB
         KHF[kitehub-frontend<br/>SaaS marketing + tenant admin<br/>EC2 self-host PM2:3001]
         KCF[kiteclass-frontend<br/>Tenant education UI<br/>EC2 self-host PM2:3000]
     end
 
     subgraph GatewayCluster["Gateway Cluster"]
+        direction TB
         GW[kite-gateway<br/>Spring Cloud Gateway<br/>JWT validate + route + CORS<br/>Port 9000]
     end
 
     subgraph ServiceCluster["Service Cluster — KiteHub 6 + KiteClass core"]
+        direction TB
         KHS[kitehub-subscription<br/>Trial + plan + tenant lifecycle<br/>Port 8081]
         KHB[kitehub-branding<br/>AI asset generation + S3<br/>Port 8083]
         KHE[kitehub-email<br/>Resend + SES adapter<br/>Port 8084]
@@ -270,6 +273,7 @@ flowchart TB
     end
 
     subgraph InfraCluster["Shared Infrastructure prefix kite-"]
+        direction TB
         PG[(kite-postgres<br/>PostgreSQL 15<br/>RLS multi-tenant<br/>Port 5433)]
         RD[(kite-redis<br/>Redis 7 cache + rate-limit<br/>Port 6380)]
         MQ[(kite-rabbitmq<br/>Async event bus<br/>Port 5673)]
