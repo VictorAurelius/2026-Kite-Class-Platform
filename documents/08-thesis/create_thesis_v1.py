@@ -80,19 +80,20 @@ THESIS_INFO = {
 # ============== PATHS ==============
 THESIS_DIR = Path(__file__).parent
 CHAPTER_FILES = {
-    1: [  # Chapter 1 — combined 2 parts (Wave 102.5 follow-up: §1.4 AI + §1.5 Law + §1.6 QDD removed per user direction)
-        THESIS_DIR / "chapter-1-competitor-analysis.md",
-        THESIS_DIR / "chapter-1-vn-law-methodology.md",  # only §1.7 → renumbered §1.4
+    1: [  # Wave thesis-2 Bucket A.3: 3-file Ch.1 khớp khung primary §1 (1.1 Hiện trạng + 1.2 Bài toán + 1.3 Công nghệ, công cụ sử dụng)
+        THESIS_DIR / "chapter-1-competitor-analysis.md",  # §1.1 Hiện trạng (giới thiệu + khảo sát thị trường)
+        THESIS_DIR / "chapter-1-vn-law-methodology.md",   # §1.2 Bài toán (phạm vi + cơ sở chuyên ngành)
+        THESIS_DIR / "chapter-1-ai-techniques.md",        # §1.3 Công nghệ, công cụ sử dụng (kỹ thuật AI tích hợp)
     ],
     2: [THESIS_DIR / "chapter-2-system-architecture.md"],
     3: [THESIS_DIR / "chapter-3-implementation.md"],
     4: [THESIS_DIR / "chapter-4-deployment-results.md"],
 }
 CHAPTER_TITLES = {
-    1: "TỔNG QUAN",
-    2: "KIẾN TRÚC HỆ THỐNG",
-    3: "TRIỂN KHAI",
-    4: "KẾT QUẢ TRIỂN KHAI",
+    1: "TỔNG QUAN VỀ BÀI TOÁN VÀ CÁC CÔNG NGHỆ, CÔNG CỤ",
+    2: "PHÂN TÍCH VÀ THIẾT KẾ HỆ THỐNG",
+    3: "PHÂN TÍCH, THIẾT KẾ VÀ TRIỂN KHAI HỆ THỐNG",
+    4: "ĐÁNH GIÁ KẾT QUẢ VÀ KẾT LUẬN",
 }
 BIBLIOGRAPHY_FILE = THESIS_DIR / "references" / "bibliography.md"
 # PROJECT_ROOT = THESIS_DIR.parent.parent (documents/08-thesis → documents → project root)

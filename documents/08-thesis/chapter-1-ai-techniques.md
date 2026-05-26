@@ -1,17 +1,17 @@
 ---
-title: Chương 1 §1.4 — Kỹ thuật AI tích hợp trong nền tảng đề xuất
+title: Chương 1 §1.3 — Công nghệ và công cụ sử dụng
 chapter: 1
-section: ai-techniques
+section: cong-nghe-cong-cu
 audience: mixed
-last-updated: 2026-05-20
+last-updated: 2026-05-26
 status: draft
 ---
 
-# Chương 1 §1.4 — Tổng quan kỹ thuật AI tích hợp trong nền tảng đề xuất
+# Chương 1 — Công nghệ và công cụ sử dụng
 
-## 1.4 Tổng quan kỹ thuật AI tích hợp trong nền tảng đề xuất
+## 1.3 Công nghệ và công cụ sử dụng
 
-### 1.4.1 Bối cảnh AI trong giáo dục SaaS
+### 1.3.1 Bối cảnh AI trong giáo dục SaaS
 
 Trí tuệ nhân tạo, đặc biệt là các mô hình ngôn ngữ lớn (LLM) như GPT-3 [12] và các mô hình diffusion sinh ảnh như Stable Diffusion [13], đã tạo ra cuộc cách mạng trong nhiều ngành công nghiệp giai đoạn 2022-2026. Ngành giáo dục không ngoại lệ. Theo báo cáo 6Wresearch [3], thị trường EdTech Việt Nam dự báo tăng trưởng CAGR 12-15% giai đoạn 2024-2030, trong đó AI-powered features là yếu tố khác biệt cạnh tranh quan trọng cho SaaS phân khúc tier trung và cao.
 
@@ -19,11 +19,11 @@ Tuy nhiên, đa số phần mềm quản lý trung tâm giáo dục tại Việt
 
 Quyết định kiến trúc của KiteHub: **sử dụng API LLM thương mại (Anthropic API, OpenAI API, Hugging Face Inference API, Stable Diffusion qua Replicate)** thay vì tự host mô hình. Lý do: (1) chi phí infrastructure GPU cao (tối thiểu $500-1000/tháng cho 1 GPU instance), (2) độ phức tạp vận hành (model serving, autoscaling, monitoring), (3) tốc độ phát triển cộng đồng AI quá nhanh — mô hình SOTA thay đổi mỗi 3-6 tháng, self-host = tech debt liên tục.
 
-### 1.4.2 Phương pháp 1 — AI Branding (text-to-image generation)
+### 1.3.2 Phương pháp 1 — AI Branding (text-to-image generation)
 
 AI Branding là feature flagship của KiteHub trong giai đoạn đầu, được thiết kế để eliminate cost thuê designer cho mọi trung tâm mới đăng ký. Khi Owner (chủ trung tâm) onboard, họ điền form ngắn: tên trung tâm (`Trung tâm Anh ngữ Sky Education` (tên giả định)), domain primary (`anh ngữ`), tone brand (modern / classic / playful), brand color preference (`#1E40AF`). Sau ~30-60 giây, AI Branding sinh ra: (1) logo SVG cho trung tâm, (2) hero image PNG 1920x1080 cho landing page, (3) social banner PNG 1200x630 cho Facebook + Zalo Official Account.
 
-#### 1.4.2.1 Kiến trúc kỹ thuật AI Branding
+#### 1.3.2.1 Kiến trúc kỹ thuật AI Branding
 
 Pipeline xử lý request AI Branding:
 
@@ -48,7 +48,7 @@ flowchart TD
 
 Worker xử lý request asynchronous, không blocking user UI. Owner thấy progress indicator + có thể navigate sang task khác trong khi assets generation chạy background.
 
-#### 1.4.2.2 Kỹ thuật prompt engineering
+#### 1.3.2.2 Kỹ thuật prompt engineering
 
 Prompt template được build từ tenant context + brand parameters + style modifiers. Ví dụ cho yêu cầu logo trung tâm Anh ngữ:
 
@@ -65,7 +65,7 @@ Quan trọng: prompt explicit negation các elements không mong muốn (NO text
 
 Tham khảo nghiên cứu prompt engineering trong [12] (Brown et al., GPT-3 few-shot learning) và [14] (LLaVA — visual instruction tuning) cho phương pháp luận xây dựng prompt hiệu quả cho multimodal models. Tài liệu thực hành prompt engineering từ tài liệu API LLM thương mại cũng cung cấp pattern cụ thể về negative prompting (explicit `NO text` / `NO mascots`) — pattern này được áp dụng trực tiếp trong template ở trên để tăng first-attempt PASS rate.
 
-#### 1.4.2.3 Lựa chọn mô hình text-to-image
+#### 1.3.2.3 Lựa chọn mô hình text-to-image
 
 KiteHub đánh giá 4 options chính cho text-to-image generation:
 
@@ -78,15 +78,15 @@ KiteHub đánh giá 4 options chính cho text-to-image generation:
 
 Lý do chọn Stable Diffusion XL [13] làm primary: balance tốt giữa quality + cost + latency. SDXL Turbo làm fallback khi primary rate-limited hoặc lỗi 5xx. Tránh DALL-E 3 vì cost cao 30 lần SDXL, không phù hợp budget giai đoạn thử nghiệm với target $0 infrastructure cost (Free Tier AWS + Replicate free credits).
 
-#### 1.4.2.4 Cost analysis
+#### 1.3.2.4 Cost analysis
 
 Estimate AI Branding cost cho 1 trung tâm mới onboard (5 image total: logo + hero + 3 social banners): 5 images × $0.0012/image (SDXL) = **$0.006/trung tâm**; cộng AI Quality Gate classifier ~$0.001/image × 5 = $0.005. **Total ~$0.011 per trung tâm** (~270 đồng). Với target giai đoạn thử nghiệm 5 trung tâm × 10 lần regenerate/trung tâm/tháng = 250 images/tháng = **$2.75/tháng AI cost**, hoàn toàn nằm trong Replicate Free Tier ($10/tháng credit miễn phí).
 
-### 1.4.3 Phương pháp 2 — AI Quality Gate (content safety + brand fit)
+### 1.3.3 Phương pháp 2 — AI Quality Gate (content safety + brand fit)
 
 AI Branding sinh assets chất lượng cao đa số trường hợp, nhưng vẫn có nguy cơ output không phù hợp: NSFW content (rất hiếm nhưng có), text artifact (lỗi rendering), brand color không match, hoặc style không phù hợp với education context (vd hình ảnh quá cartoony cho trung tâm formal). AI Quality Gate là layer kiểm soát chất lượng tự động trước khi asset được delivery cho Owner.
 
-#### 1.4.3.1 Multi-layer gate strategy
+#### 1.3.3.1 Multi-layer gate strategy
 
 AI Quality Gate sử dụng 3-layer approach:
 
@@ -106,7 +106,7 @@ AI Quality Gate sử dụng 3-layer approach:
 - Threshold: > 0.6 PASS, < 0.6 FAIL
 - Defer sang giai đoạn mở rộng vì cần data labeling effort + training infrastructure
 
-#### 1.4.3.2 Failure handling
+#### 1.3.3.2 Failure handling
 
 Nếu image FAIL bất kỳ layer nào, Worker retry với prompt refined:
 
@@ -121,11 +121,11 @@ Original prompt FAIL thì
 
 Max 3 retry attempts để control cost (mỗi retry tốn $0.0012 + $0.001 gate cost).
 
-### 1.4.4 Phương pháp 3 — AI techniques roadmap (giai đoạn mở rộng)
+### 1.3.4 Phương pháp 3 — AI techniques roadmap (giai đoạn mở rộng)
 
 KiteHub roadmap defer các AI features sau cho giai đoạn mở rộng (sau khi đạt 5 trung tâm thử nghiệm live + quality audit ≥80/100) và giai đoạn GA (sau khi engage legal counsel):
 
-#### 1.4.4.1 Chatbot hỗ trợ học viên (giai đoạn mở rộng)
+#### 1.3.4.1 Chatbot hỗ trợ học viên (giai đoạn mở rộng)
 
 **Mô hình:** LLM API thương mại cost-efficient tier (Anthropic / OpenAI), với context tenant-specific (course catalog + FAQ + lịch học).
 
@@ -135,7 +135,7 @@ KiteHub roadmap defer các AI features sau cho giai đoạn mở rộng (sau khi
 
 **Estimated cost:** $0.05-0.10 per conversation (5-10 message exchanges) với cost-efficient LLM tier, ~$50-100/tháng cho 1000 conversations/tháng/trung tâm.
 
-#### 1.4.4.2 Auto-grading bài tập (giai đoạn mở rộng)
+#### 1.3.4.2 Auto-grading bài tập (giai đoạn mở rộng)
 
 **Mô hình:** LLM API cao cấp tier cho graded multiple-choice + short-answer questions; defer essay grading sang giai đoạn GA vì độ phức tạp + risk bias.
 
@@ -143,7 +143,7 @@ KiteHub roadmap defer các AI features sau cho giai đoạn mở rộng (sau khi
 
 **Considerations:** bias risk (model có thể bias theo training data thì cần human review sample); pedagogical correctness (auto-grade không thay thế teacher feedback chi tiết); cost ~$0.005-0.02 per question, scale tùy số lượng student × questions.
 
-#### 1.4.4.3 Personalized learning path (giai đoạn GA)
+#### 1.3.4.3 Personalized learning path (giai đoạn GA)
 
 **Mô hình:** Multi-modal LLM (LLaVA [14] hoặc successor) cho phân tích visual content (homework photos, video bài giảng) kết hợp với student performance data.
 
@@ -151,7 +151,7 @@ KiteHub roadmap defer các AI features sau cho giai đoạn mở rộng (sau khi
 
 **Lý do defer:** cần dataset student performance đủ lớn (≥1 năm operation × 1000+ students) + đảm bảo PDPL compliance cho cá nhân hóa (cần explicit consent từ phụ huynh per [9] PDPL Art 11).
 
-### 1.4.5 AI development methodology
+### 1.3.5 AI development methodology
 
 KiteHub áp dụng test-driven development (TDD) [16] và domain-driven design (DDD) [17] cho AI feature development, tránh approach "ship first, fix later" thường thấy ở các AI startup. Cụ thể:
 
@@ -163,11 +163,11 @@ KiteHub áp dụng test-driven development (TDD) [16] và domain-driven design (
 
 4. **Cost monitoring:** mỗi AI API call log cost (estimated từ token count hoặc image count) thì dashboard real-time alert nếu vượt budget threshold ($10/tháng cho Replicate, $20/tháng cho LLM API thương mại).
 
-### 1.4.6 Ethical considerations
+### 1.3.6 Ethical considerations
 
 Tích hợp AI cần xem xét nghiêm túc các yếu tố đạo đức + pháp lý:
 
-#### 1.4.6.1 PDPL 2023 compliance
+#### 1.3.6.1 PDPL 2023 compliance
 
 Theo Luật Bảo vệ Dữ liệu Cá nhân Việt Nam 2023 [9] và Nghị định 13/2023/NĐ-CP [18], xử lý dữ liệu cá nhân bằng AI yêu cầu:
 
@@ -178,7 +178,7 @@ Theo Luật Bảo vệ Dữ liệu Cá nhân Việt Nam 2023 [9] và Nghị đ�
 
 AI Branding trong giai đoạn đầu của KiteHub không xử lý dữ liệu cá nhân học viên (chỉ generate logo/banner cho trung tâm) thì low PDPL risk. Các AI feature giai đoạn mở rộng (chatbot + auto-grading) sẽ cần consent flow + opt-out toggle trước khi launch.
 
-#### 1.4.6.2 Bias mitigation
+#### 1.3.6.2 Bias mitigation
 
 AI models có thể bias theo training data — vd: image generation model có thể stereotype "giáo viên" thành nam giới mặc vest trắng, không reflect diversity thực tế Việt Nam. Mitigation:
 
@@ -187,7 +187,7 @@ AI models có thể bias theo training data — vd: image generation model có t
 - Quarterly bias audit của 50 random samples per AI feature
 - Document known biases trong product disclaimer
 
-#### 1.4.6.3 Transparency với người dùng
+#### 1.3.6.3 Transparency với người dùng
 
 Mọi AI-generated content phải có disclosure rõ ràng:
 - Logo/banner generated by AI: footer text "Designed with AI" trong dashboard preview
