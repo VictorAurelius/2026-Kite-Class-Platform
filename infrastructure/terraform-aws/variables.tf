@@ -105,6 +105,17 @@ variable "rds_engine_version" {
   default     = "15"
 }
 
+# Wave aws-restore-1 (2026-05-26): support restore from snapshot post-GAP-612
+# Day 8 UNBLOCK. Default empty = fresh create; non-empty = restore from snapshot.
+# When set, aws_db_instance.main.snapshot_identifier flips RDS into restore mode;
+# RDS preserves master password from snapshot (overrides random_password.rds.result
+# — handled via lifecycle.ignore_changes = [password] in rds.tf).
+variable "rds_restore_from_snapshot" {
+  description = "Snapshot identifier to restore RDS from. Empty = create fresh empty DB."
+  type        = string
+  default     = ""
+}
+
 # --- ALB ---
 variable "enable_alb" {
   description = "Provision Application Load Balancer in front of EC2. Default true; set false if Cloudflare proxy connects directly to EC2 public IP."

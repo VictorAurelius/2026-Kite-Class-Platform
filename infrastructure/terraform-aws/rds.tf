@@ -27,6 +27,12 @@ resource "aws_db_instance" "main" {
   engine_version = var.rds_engine_version
   instance_class = var.rds_instance_class
 
+  # Wave aws-restore-1 (2026-05-26): support restore from snapshot post-GAP-612
+  # Day 8 UNBLOCK. When var.rds_restore_from_snapshot is non-empty, RDS restored
+  # from snapshot instead of fresh create. RDS preserves master password from
+  # snapshot — handled via lifecycle.ignore_changes = [password] below.
+  snapshot_identifier = var.rds_restore_from_snapshot != "" ? var.rds_restore_from_snapshot : null
+
   allocated_storage     = var.rds_allocated_storage
   max_allocated_storage = var.rds_allocated_storage * 2
   storage_type          = "gp3"
@@ -54,4 +60,11 @@ resource "aws_db_instance" "main" {
   deletion_protection = false # Phase 1 BETA — flip true for GA per release-deploy-standard.md §3.4
 
   tags = { Name = "${var.project_name}-postgres" }
+
+  # Wave aws-restore-1 (2026-05-26):
+  # - snapshot_identifier: ignored post-create so future plans don't try to re-restore
+  # - password: RDS preserves master password from snapshot (overrides random_password.rds)
+  lifecycle {
+    ignore_changes = [snapshot_identifier, password]
+  }
 }
