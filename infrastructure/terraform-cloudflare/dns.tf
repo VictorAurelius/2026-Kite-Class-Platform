@@ -100,6 +100,32 @@ resource "cloudflare_record" "dmarc" {
 }
 
 # -----------------------------------------------------------------------------
+# Wave aws-restore-1 (2026-05-26): api.kitehub.me subdomain routing
+# -----------------------------------------------------------------------------
+# Architecture pivot post-ALB elimination: api.kitehub.me CNAMEs to apex
+# kitehub.me (single proxied EIP = kc_app_fe). nginx on kc_app_fe Host-based
+# vhost reverse-proxies api.kitehub.me requests to kh_backend gateway private
+# VPC 10.0.0.129:8080. Replaces old ALB-fronted api routing.
+#
+# Proxied (orange cloud) = TLS termination CF edge + DDoS protection +
+# CF rate limiting. nginx terminates internal TLS with wildcard *.kitehub.me
+# cert. End-to-end TLS preserved.
+#
+# NOTE: apex kitehub.me + app.kitehub.me records currently managed MANUALLY
+# via Cloudflare dashboard (pre-terraform-cloudflare init). Import to
+# terraform tracked Wave alb-terraform-cleanup-1 follow-up.
+resource "cloudflare_record" "api" {
+  zone_id = var.cloudflare_zone_id
+  name    = "api"
+  type    = "CNAME"
+  content = "kitehub.me"
+  ttl     = 1 # 1 = automatic when proxied
+  proxied = true
+
+  comment = "Wave aws-restore-1 - api subdomain via kc_app_fe nginx vhost (post ALB elimination)"
+}
+
+# -----------------------------------------------------------------------------
 # Outputs - surfaces values for runbook verification
 # -----------------------------------------------------------------------------
 output "spf_record" {

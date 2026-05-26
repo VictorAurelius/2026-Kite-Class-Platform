@@ -117,10 +117,15 @@ variable "rds_restore_from_snapshot" {
 }
 
 # --- ALB ---
+# Wave aws-restore-1 (2026-05-26): default flipped true → false per architecture
+# pivot. ALB deleted Wave br-8 cleanup (~$27/mo save). Phase 1 BETA traffic
+# <100 req/min routes via CF → kc_app_fe EIP → nginx reverse_proxy → kh_backend
+# private VPC. Re-enable for Phase 2+ when ≥20 tenants + multi-AZ HA + auto-scaling
+# fleet justify $20-25/mo ALB cost.
 variable "enable_alb" {
-  description = "Provision Application Load Balancer in front of EC2. Default true; set false if Cloudflare proxy connects directly to EC2 public IP."
+  description = "Provision Application Load Balancer in front of EC2. Default false (CF direct + kc_app_fe nginx multi-host post Wave aws-restore-1); set true for Phase 2+ scale."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "alb_acm_certificate_arn" {
