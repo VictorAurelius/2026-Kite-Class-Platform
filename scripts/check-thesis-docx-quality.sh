@@ -146,8 +146,8 @@ for req in "LỜI CẢM ƠN" "MỤC LỤC" "MỞ ĐẦU" "KẾT LUẬN" "TÀI LI
     fi
 done
 
-# Ch.1 3 sub-sections (1.1 Hiện trạng / 1.2 Bài toán / 1.3 Công nghệ và công cụ)
-for sub in "1.1 Hiện trạng" "1.2 Bài toán" "1.3 Công nghệ và công cụ"; do
+# Ch.1 sub-sections (Round 2 Item 2: §1.3 Công nghệ bỏ — Ch.1 chỉ §1.1 + §1.2)
+for sub in "1.1 Hiện trạng" "1.2 Bài toán"; do
     if grep -qF "$sub" "$TMPDIR/document.xml"; then
         pass "Ch.1 sub-section present: '$sub'"
     else
@@ -202,6 +202,47 @@ if grep -qF "[LOGO UTC]" "$TMPDIR/document.xml"; then
     fail "Cover has '[LOGO UTC]' placeholder text — actual PNG NOT embedded"
 else
     pass "No [LOGO UTC] placeholder — likely actual PNG embedded (verify visual)"
+fi
+
+# ============================================================
+echo ""
+echo "[9.5] Long figure/table captions (Round 2 Item 1b — visual A4 fit)"
+python3 - "$TMPDIR/document.xml" <<'PYEOF'
+import sys
+import re
+import xml.etree.ElementTree as ET
+
+ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
+tree = ET.parse(sys.argv[1])
+paragraphs = tree.findall('.//w:body/w:p', ns)
+
+long_captions = []
+for p in paragraphs:
+    text = ''.join(t.text or '' for t in p.findall('.//w:t', ns))
+    m = re.match(r'^(Hình|Bảng)\s+\d+\.\d+\.?\s*(.+)$', text.strip())
+    if m:
+        caption_body = m.group(2).strip()
+        if len(caption_body) > 120:
+            long_captions.append((m.group(1), len(caption_body), caption_body[:80]))
+
+if long_captions:
+    print(f"  ⚠ {len(long_captions)} long caption(s) >120 chars:")
+    for label, length, preview in long_captions[:5]:
+        print(f"      {label} caption ({length} chars): {preview}...")
+    if len(long_captions) > 5:
+        print(f"      ... and {len(long_captions) - 5} more")
+else:
+    print("  ✓ No suspicious long captions (>120 chars) detected")
+PYEOF
+
+# ============================================================
+echo ""
+echo "[10] KẾT LUẬN heading discipline (Round 2 Item 7)"
+kn_full=$(grep -oE "KẾT LUẬN VÀ KIẾN NGHỊ" "$TMPDIR/document.xml" 2>/dev/null | wc -l)
+if [[ "$kn_full" -eq 0 ]]; then
+    pass "Heading 'KẾT LUẬN' (not 'KẾT LUẬN VÀ KIẾN NGHỊ') per user direction"
+else
+    fail "$kn_full 'KẾT LUẬN VÀ KIẾN NGHỊ' heading(s) — should be just 'KẾT LUẬN'"
 fi
 
 # ============================================================

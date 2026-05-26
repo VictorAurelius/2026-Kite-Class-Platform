@@ -80,17 +80,17 @@ THESIS_INFO = {
 # ============== PATHS ==============
 THESIS_DIR = Path(__file__).parent
 CHAPTER_FILES = {
-    1: [  # Wave thesis-2 Bucket A.3: 3-file Ch.1 khớp khung primary §1 (1.1 Hiện trạng + 1.2 Bài toán + 1.3 Công nghệ, công cụ sử dụng)
+    1: [  # Wave thesis-2 Round 2 Item 2: §1.3 Công nghệ và công cụ bỏ per user direction → Ch.1 = 2 sub (1.1 Hiện trạng + 1.2 Bài toán)
         THESIS_DIR / "chapter-1-competitor-analysis.md",  # §1.1 Hiện trạng (giới thiệu + khảo sát thị trường)
         THESIS_DIR / "chapter-1-vn-law-methodology.md",   # §1.2 Bài toán (phạm vi + cơ sở chuyên ngành)
-        THESIS_DIR / "chapter-1-ai-techniques.md",        # §1.3 Công nghệ, công cụ sử dụng (kỹ thuật AI tích hợp)
+        # chapter-1-ai-techniques.md DROPPED — user Round 2 Item 2: "§1.3 không cần thiết"
     ],
     2: [THESIS_DIR / "chapter-2-system-architecture.md"],
     3: [THESIS_DIR / "chapter-3-implementation.md"],
     4: [THESIS_DIR / "chapter-4-deployment-results.md"],
 }
 CHAPTER_TITLES = {
-    1: "TỔNG QUAN VỀ BÀI TOÁN VÀ CÁC CÔNG NGHỆ, CÔNG CỤ",
+    1: "TỔNG QUAN VỀ BÀI TOÁN",  # Wave thesis-2 Round 2 Item 2: drop "VÀ CÁC CÔNG NGHỆ, CÔNG CỤ" suffix (§1.3 bỏ)
     2: "PHÂN TÍCH VÀ THIẾT KẾ HỆ THỐNG",
     3: "PHÂN TÍCH, THIẾT KẾ VÀ TRIỂN KHAI HỆ THỐNG",
     4: "ĐÁNH GIÁ KẾT QUẢ VÀ KẾT LUẬN",
@@ -550,11 +550,19 @@ def add_image_inline(doc, image_path, caption=None, width_cm=14.0):
 
     Wave 102.5 Bucket A Item 5 — helper cho Bucket C/E screenshots embed flow.
 
+    Wave thesis-2 Round 2 Items 3+4+5 fix — SMART SIZING:
+    Detect image aspect ratio via Pillow → compute optimal A4 fit.
+    A4 body area (post-margins T=2.5 B=2.5 L=3 R=2): 16cm wide × 24.7cm tall.
+    - Landscape image (wider than tall): use full 16cm width
+    - Portrait image (taller than wide): height cap 22cm, width derived from aspect
+    - Square: 14cm default
+    Graceful fallback to fixed width_cm if Pillow unavailable or read fails.
+
     Args:
         doc: docx Document
         image_path: Path or str to PNG/JPG file
         caption: optional Bold caption rendered below image
-        width_cm: image width in centimeters (default 14cm = page-fit)
+        width_cm: fallback width if smart sizing unavailable (default 14cm)
     """
     image_path = Path(image_path) if not isinstance(image_path, Path) else image_path
     p = doc.add_paragraph()
@@ -562,8 +570,44 @@ def add_image_inline(doc, image_path, caption=None, width_cm=14.0):
     p.paragraph_format.space_before = Pt(6)
     p.paragraph_format.space_after = Pt(3)
     if image_path.exists():
+        # Smart sizing via Pillow aspect-ratio detection
+        A4_BODY_WIDTH_CM = 16.0   # 21 - 3 (left margin) - 2 (right margin)
+        A4_BODY_HEIGHT_CM = 22.0  # 29.7 - 2.5 (top) - 2.5 (bottom) - ~3 caption+spacing
+        target_width_cm = width_cm
+        target_height_cm = None
+        try:
+            from PIL import Image
+            with Image.open(str(image_path)) as img:
+                px_w, px_h = img.size
+            aspect = px_w / px_h if px_h > 0 else 1.0
+            if aspect >= 1.4:
+                # Landscape: full body width, height derived
+                target_width_cm = A4_BODY_WIDTH_CM
+                target_height_cm = A4_BODY_WIDTH_CM / aspect
+                # Cap height if too tall (shouldn't be for landscape)
+                if target_height_cm > A4_BODY_HEIGHT_CM:
+                    target_height_cm = A4_BODY_HEIGHT_CM
+                    target_width_cm = A4_BODY_HEIGHT_CM * aspect
+            elif aspect <= 0.7:
+                # Portrait tall: height cap 22cm, width derived
+                target_height_cm = A4_BODY_HEIGHT_CM
+                target_width_cm = A4_BODY_HEIGHT_CM * aspect
+                # Sanity cap width
+                if target_width_cm > A4_BODY_WIDTH_CM:
+                    target_width_cm = A4_BODY_WIDTH_CM
+                    target_height_cm = A4_BODY_WIDTH_CM / aspect
+            else:
+                # Square-ish: stick with default but slightly larger for visibility
+                target_width_cm = max(width_cm, 13.0)
+        except Exception:
+            # Graceful fallback to fixed width_cm
+            target_width_cm = width_cm
+
         run = p.add_run()
-        run.add_picture(str(image_path), width=Cm(width_cm))
+        if target_height_cm is not None and target_height_cm > 0:
+            run.add_picture(str(image_path), width=Cm(target_width_cm), height=Cm(target_height_cm))
+        else:
+            run.add_picture(str(image_path), width=Cm(target_width_cm))
     else:
         run = p.add_run(f"[Hình minh hoạ: {image_path.name} — chưa có file]")
         set_font(run, FONT_SIZE_NORMAL, italic=True, color=RGBColor(128, 128, 128))
@@ -1289,6 +1333,10 @@ def add_list_of_figures_tables(doc):
     # injected via add_seq_caption (Issue 2 fix) — TOC \\c "Figure" sẽ populate
     # khi Word open + updateFields=true trigger F9.
 
+    # Wave thesis-2 Round 2 Item 1 — page break trước DANH MỤC BẢNG BIỂU
+    # (user-flagged: DANH MỤC BẢNG BIỂU chưa page break, lẫn vào trang Danh mục Hình Vẽ)
+    doc.add_page_break()
+
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(24)
@@ -1547,7 +1595,7 @@ def add_conclusion(doc):
     p = doc.add_paragraph(style='Heading 1')
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(18)
-    run = p.add_run("KẾT LUẬN VÀ KIẾN NGHỊ")
+    run = p.add_run("KẾT LUẬN")
     run.font.name = FONT_NAME
     if run._element.rPr is not None:
         run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
