@@ -249,19 +249,19 @@ Hình 2.1 cho thấy mọi actor đều truy cập Kite Platform qua HTTPS (TLS 
 Phóng to vào nội bộ Kite Platform cho thấy 4 cụm container: Frontend (2 ứng dụng Next.js), Gateway (Spring Cloud Gateway), Service (6 service KiteHub + 1 KiteClass core), và hạ tầng dùng chung (4 container với prefix `kite-`). Hình 2.2 trình bày bố cục container theo C4 Level 2.
 
 ```mermaid
-%%{init: {"flowchart": {"htmlLabels": true, "nodeSpacing": 25, "rankSpacing": 60}, "themeVariables": {"fontSize": "18px"}}}%%
+%%{init: {"flowchart": {"htmlLabels": true, "nodeSpacing": 30, "rankSpacing": 70, "padding": 20, "subGraphTitleMargin": {"top": 10, "bottom": 15}}, "themeVariables": {"fontSize": "16px"}}}%%
 flowchart TB
     User[Browser Actor — học sinh / giáo viên / quản trị]
 
-    subgraph FrontendCluster["Tầng giao diện — Next.js 15"]
+    subgraph FrontendCluster["Frontend Next.js 15"]
         direction TB
-        KHF[kitehub-frontend · Port 3001]
-        KCF[kiteclass-frontend · Port 3000]
+        KHF[kitehub-frontend · 3001]
+        KCF[kiteclass-frontend · 3000]
     end
 
-    GW[kite-gateway · Spring Cloud Gateway · Port 9000<br/>JWT validate + route + CORS]
+    GW[kite-gateway · 9000<br/>Spring Cloud Gateway<br/>JWT validate + route + CORS]
 
-    subgraph ServiceClusterTop["Tầng dịch vụ — KiteHub control-plane"]
+    subgraph ServiceClusterTop["KiteHub control-plane"]
         direction TB
         KHS[kitehub-subscription · 8081]
         KHB[kitehub-branding · 8083]
@@ -269,22 +269,22 @@ flowchart TB
         KHA[kitehub-admin · 8083 alias]
     end
 
-    KCC[kiteclass-core · 8088<br/>KiteClass data-plane · domain core education]
+    KCC[kiteclass-core · 8088<br/>KiteClass data-plane · education core]
 
-    subgraph InfraCluster["Tầng hạ tầng dùng chung — prefix kite-"]
+    subgraph InfraCluster["Shared Infra (prefix kite-)"]
         direction TB
-        PG[(kite-postgres · 5433<br/>PostgreSQL 15 · RLS multi-tenant)]
+        PG[(kite-postgres · 5433<br/>PostgreSQL 15 · RLS)]
         RD[(kite-redis · 6380<br/>cache + rate-limit)]
         MQ[(kite-rabbitmq · 5673<br/>async event bus)]
-        MN[(kite-minio · 9100<br/>S3-compatible storage)]
+        MN[(kite-minio · 9100<br/>S3 storage)]
     end
 
     User -->|HTTPS| FrontendCluster
     FrontendCluster -->|REST API| GW
     GW -->|route + JWT| ServiceClusterTop
     GW -->|route + JWT| KCC
-    ServiceClusterTop -.->|JPA + Redis + RabbitMQ| InfraCluster
-    KCC -.->|JPA + Redis + RabbitMQ + MinIO| InfraCluster
+    ServiceClusterTop -.->|JPA + Redis + MQ| InfraCluster
+    KCC -.->|JPA + Redis + MQ + MinIO| InfraCluster
 
     classDef frontend fill:#dbeafe,stroke:#1e40af,stroke-width:2px
     classDef gateway fill:#fef3c7,stroke:#92400e,stroke-width:3px

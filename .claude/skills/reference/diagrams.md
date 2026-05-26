@@ -99,7 +99,74 @@ graph TD
 ```
 ````
 
-Nếu cần render PNG:
+## Mermaid Best Practices (Wave thesis-2 Round 2.8 lessons)
+
+### Init config cho diagrams complex
+
+Mọi flowchart >8 nodes hoặc có subgraph clusters SHOULD include init config:
+
+````markdown
+```mermaid
+%%{init: {
+  "flowchart": {
+    "htmlLabels": true,
+    "nodeSpacing": 30,
+    "rankSpacing": 70,
+    "padding": 20,
+    "subGraphTitleMargin": {"top": 10, "bottom": 15}
+  },
+  "themeVariables": {
+    "fontSize": "16px"
+  }
+}}%%
+flowchart TB
+    ...
+```
+````
+
+**Why each param:**
+- `nodeSpacing: 30` — tighter horizontal (default 50) — narrower aspect, more vertical
+- `rankSpacing: 70` — more vertical breathing (default 50) — clearer tier separation
+- `padding: 20` — inner padding cho subgraph (default 8) — text không sát border
+- `subGraphTitleMargin: {top: 10, bottom: 15}` — **CRITICAL khi fontSize ≥16px** — subgraph title không đè chữ với child nodes
+- `fontSize: 16-18px` — readable trong rendered PDF (default ~14px quá nhỏ trên A4)
+
+### Subgraph title rules
+
+- **Length ≤30 chars** — long titles overlap với child nodes khi fontSize large
+- **NO `<br/>` trong subgraph title** — Mermaid parser unreliable across versions
+- **Mixed VN+EN OK** trong title body nhưng KHÔNG mix trong cùng word
+
+**❌ BAD:** `subgraph FrontendCluster["Tầng giao diện ứng dụng người dùng — Next.js 15 framework cluster"]` (62 chars, overlaps)
+
+**✅ GOOD:** `subgraph FrontendCluster["Frontend Next.js 15"]` (22 chars)
+
+### Aspect ratio control
+
+Mermaid auto-layout produces aspect based on node count + connectivity:
+- **Landscape (>1.5):** Many nodes per rank, few ranks. Common khi many siblings.
+- **Square (~1.0):** Balanced node distribution. Target cho most architecture diagrams.
+- **Portrait (<0.7):** Few nodes per rank, many ranks. Common với linear chains.
+
+**Force taller layout** (more vertical):
+1. Use `direction TB` inside subgraphs (stack children vertically)
+2. Aggregate edges to subgraph level (vd `ServiceCluster -.-> InfraCluster` thay vì 5×4=20 individual edges)
+3. Shorten node labels to single line (no `<br/>` chains)
+4. Increase `rankSpacing` to 70-100
+
+### Anti-pattern: aspect 3+ very flat OR 0.4 very tall
+
+- **Aspect >3:** Image squashed flat (height <5cm at 16cm width). Restructure: split nodes across more ranks (use TB) OR break long chains into 2-3 vertical clusters.
+- **Aspect <0.5:** Image too tall (height >20cm = full A4 page). Restructure: use LR for sub-flows OR split single chain into 2 vertical columns.
+
+### Reference rendering
+
+Per project pipeline `documents/08-thesis/create_thesis_v1.py`:
+- Mermaid PNG cached via kroki.io HTTP API
+- Smart sizing: landscape → 16cm width, square-ish → 16cm width, portrait → 22cm height capped
+- python-docx `inline_shape` introspection verify size compliance
+
+### Render PNG (nếu cần)
 
 ```bash
 # Install mermaid CLI
