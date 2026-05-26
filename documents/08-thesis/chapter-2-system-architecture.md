@@ -433,47 +433,51 @@ Hai cơ chế hardening quan trọng:
 Hình 2.4 trình bày tuần tự đăng nhập và một yêu cầu được xác thực sau đó cho luồng quản trị nền tảng.
 
 ```mermaid
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
 sequenceDiagram
     actor User as User browser
     participant FE as kitehub-frontend
     participant GW as kite-gateway
     participant Sub as kitehub-subscription
-    participant Admin as kitehub-admin
     participant PG as kite-postgres
-    participant RLS as RLS policy
-    participant Redis as kite-redis
 
-    Note over User,FE: Đăng nhập qua endpoint public
     User->>FE: Gửi email + mật khẩu
     FE->>GW: POST /api/auth/login
     GW->>Sub: Chuyển tiếp — endpoint public
     Sub->>PG: SELECT user WHERE email
     PG-->>Sub: hàng user + bcrypt hash
-    Sub->>Sub: BCrypt verify mật khẩu
-    Sub->>PG: INSERT admin_audit_log sự kiện login
-    Sub->>Sub: Sinh JWT HS256 — claims sub tenantId role
-    Sub->>Redis: SET refresh blacklist TTL 30 ngày
+    Sub->>Sub: BCrypt verify + sinh JWT HS256
+    Sub->>PG: INSERT admin_audit_log
     Sub-->>GW: 200 accessToken + refreshToken
     GW-->>FE: 200 + tokens
-    FE->>FE: Lưu token qua httpOnly cookie facade
+    FE->>FE: Lưu token qua httpOnly cookie
+```
 
-    Note over User,RLS: Yêu cầu đã xác thực tới endpoint admin
+**Hình 2.4a.** Luồng đăng nhập — sinh JWT + audit log.
+
+```mermaid
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
+sequenceDiagram
+    actor User as User browser
+    participant FE as kitehub-frontend
+    participant GW as kite-gateway
+    participant Admin as kitehub-admin
+    participant PG as kite-postgres + RLS
+
     User->>FE: Nhấn Admin Instances
-    FE->>GW: GET /api/admin/v1/instances — Authorization Bearer
-    GW->>GW: Xác thực chữ ký JWT HS256
-    GW->>GW: Rút sub tenantId role
-    GW->>Admin: Chuyển tiếp + X-User-Id + X-Tenant-Id + X-User-Role
-    Admin->>Admin: @PreAuthorize hasRole PLATFORM_ADMIN
+    FE->>GW: GET /api/admin/v1/instances<br/>Authorization Bearer
+    GW->>GW: Xác thực chữ ký JWT<br/>+ rút claim
+    GW->>Admin: X-User-Id + X-Tenant-Id + X-User-Role
+    Admin->>Admin: @PreAuthorize PLATFORM_ADMIN
     Admin->>PG: SET LOCAL app.current_tenant_id
     Admin->>PG: SELECT FROM instances
-    PG->>RLS: enforce tenant_id = current_setting
-    RLS-->>PG: hàng đã lọc
+    PG->>PG: RLS enforce tenant_id<br/>= current_setting
     PG-->>Admin: hàng thuộc tenant
     Admin-->>GW: 200 + payload
     GW-->>FE: 200
 ```
 
-**Hình 2.4.** Luồng xác thực JWT và truyền ngữ cảnh tenant.
+**Hình 2.4b.** Luồng yêu cầu đã xác thực — JWT validate + truyền ngữ cảnh tenant + RLS filter.
 
 Một nguyên tắc thiết kế quan trọng được áp dụng: service KHÔNG được tự đọc claim `tenantId` từ JWT body. Gateway là biên trust duy nhất cho việc xác thực JWT; downstream service tin tưởng header `X-Tenant-Id` do gateway phát ra. Nếu mỗi service tự parse JWT, hệ thống phải duy trì public key ở nhiều nơi và lặp logic xác thực, tăng rủi ro an toàn và chi phí bảo trì.
 

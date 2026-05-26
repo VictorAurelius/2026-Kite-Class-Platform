@@ -159,6 +159,37 @@ Mermaid auto-layout produces aspect based on node count + connectivity:
 - **Aspect >3:** Image squashed flat (height <5cm at 16cm width). Restructure: split nodes across more ranks (use TB) OR break long chains into 2-3 vertical clusters.
 - **Aspect <0.5:** Image too tall (height >20cm = full A4 page). Restructure: use LR for sub-flows OR split single chain into 2 vertical columns.
 
+### Sequence diagram specific rules
+
+Sequence diagrams có participants horizontally → width grows linearly với participant count. 8 participants × 240px = 1920px source → docx 16cm scale-down 2.8× → text unreadable even at fontSize 28px.
+
+**Rules cho sequenceDiagram trong docx scope:**
+
+1. **Max 5-6 participants per diagram** — beyond that, split vào 2-3 sub-diagrams
+2. **Split criteria:** Logical phase boundary (vd login flow + authenticated request = 2 separate diagrams) — Note over separator KHÔNG đủ; physical split required
+3. **Init config required:**
+   ```mermaid
+   %%{init: {
+     "sequence": {
+       "actorMargin": 100,
+       "width": 240,
+       "height": 70,
+       "messageMargin": 50,
+       "boxTextMargin": 10
+     },
+     "themeVariables": {
+       "fontSize": "28px",
+       "messageFontSize": "26px",
+       "noteFontSize": "26px"
+     }
+   }}%%
+   ```
+4. **Caption Hình X.Ya / X.Yb** khi split (NOT Hình X.Y.1 / X.Y.2 — confusing với section numbering)
+5. **Merge actors khi possible:** vd "User + FE" thay vì 2 columns
+
+**Example anti-pattern:** Hình 2.4 v1 với 8 participants (User, FE, GW, Sub, Admin, PG, RLS, Redis) → text ~7px effective unreadable.
+**Example fix (v2):** Split → Hình 2.4a login (5 participants: User, FE, GW, Sub, PG) + Hình 2.4b auth request (5 participants: User, FE, GW, Admin, PG+RLS merged) → text ~11px readable.
+
 ### Reference rendering
 
 Per project pipeline `documents/08-thesis/create_thesis_v1.py`:
