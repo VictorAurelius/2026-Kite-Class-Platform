@@ -21,93 +21,88 @@ KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast
 
 ### 4.1.2 Sơ đồ hạ tầng
 
-```plantuml
-@startuml
-!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist
-!include AWSPuml/AWSCommon.puml
-!include AWSPuml/Compute/EC2.puml
-!include AWSPuml/Database/RDS.puml
-!include AWSPuml/Storage/SimpleStorageService.puml
-!include AWSPuml/SecurityIdentityCompliance/SecretsManager.puml
-!include AWSPuml/NetworkingContentDelivery/ElasticLoadBalancing.puml
-!include AWSPuml/NetworkingContentDelivery/VPCInternetGateway.puml
-!include AWSPuml/Containers/ElasticContainerRegistry.puml
-!include AWSPuml/BusinessApplications/SimpleEmailService.puml
-!include AWSPuml/ManagementGovernance/CloudWatch.puml
-!include AWSPuml/ManagementGovernance/CloudTrail.puml
+```mermaid
+%%{init: {"flowchart": {"htmlLabels": true, "nodeSpacing": 40, "rankSpacing": 70, "padding": 25, "subGraphTitleMargin": {"top": 12, "bottom": 18}}, "themeVariables": {"fontSize": "22px"}}}%%
+flowchart TB
+    User([Người dùng])
+    CF{{Cloudflare<br/>DNS + CDN + DDoS}}
 
-skinparam dpi 150
-skinparam linetype ortho
-skinparam defaultFontSize 28
-skinparam defaultFontName Arial
-skinparam ArrowFontSize 24
-skinparam ArrowColor #232F3E
-skinparam ArrowThickness 3
-skinparam ranksep 90
-skinparam nodesep 60
-skinparam rectangle {
-  BorderColor #232F3E
-  BackgroundColor #FFFFFF
-  FontStyle bold
-  RoundCorner 10
-}
-skinparam actor {
-  FontSize 26
-}
+    subgraph VPC["VPC 10.0.0.0/16 — ap-southeast-1 Singapore"]
+        IGW[Internet Gateway]
 
-actor "Người dùng" as User
-cloud "Cloudflare\nDNS + CDN + DDoS" as CF #FFE9A8
+        subgraph PublicSubnet["Public Subnets · AZ-1a + 1b"]
+            ALB[Application Load Balancer<br/>HTTPS + TLS 1.3]
+            EC2_KH[EC2 kh-backend<br/>Gateway + 6 services<br/>t3.micro]
+            EC2_KC[EC2 kc-app<br/>KiteClass + frontend<br/>t3.micro]
+        end
 
-rectangle "AWS Region — ap-southeast-1 Singapore" #F0F8FF {
+        subgraph PrivateSubnet["Private Subnets · AZ-1a + 1b"]
+            DB[(RDS PostgreSQL 16<br/>db.t3.micro + RLS)]
+        end
+    end
 
-  rectangle "VPC 10.0.0.0/16" #E8F5E8 {
-    VPCInternetGateway(IGW, "Internet Gateway", "")
+    User -->|HTTPS| CF
+    CF -->|ingress| IGW
+    IGW --> ALB
+    ALB --> EC2_KH
+    ALB --> EC2_KC
+    EC2_KH -->|VPC internal| DB
+    EC2_KC -->|VPC internal| DB
 
-    rectangle "Public Subnets (2 AZ: 1a + 1b)" #FFF8DC {
-      ElasticLoadBalancing(ALB, "Application LB", "HTTPS + TLS 1.3")
-      EC2(EC2_KH, "kh-backend", "Gateway + 6 services\nt3.micro AZ-1a")
-      EC2(EC2_KC, "kc-app", "KiteClass + frontend\nt3.micro AZ-1a")
-    }
-
-    rectangle "Private Subnets (2 AZ: 1a + 1b)" #FFE4E1 {
-      RDS(DB, "RDS PostgreSQL 16", "db.t3.micro + RLS\nMulti-AZ subnet group")
-    }
-  }
-
-  SimpleStorageService(S3, "S3", "multi-tenant prefix")
-  SimpleEmailService(SES, "SES", "Transactional email")
-
-  rectangle "Observability Stack" {
-    CloudWatch(CW, "CloudWatch", "Logs + Metrics")
-    CloudTrail(CT, "CloudTrail", "API audit log")
-  }
-
-  rectangle "Secrets + Registry" {
-    SecretsManager(SM, "Secrets Manager", "JWT + DB + Resend")
-    ElasticContainerRegistry(ECR, "ECR", "Docker images")
-  }
-}
-
-User --> CF
-CF --> IGW
-IGW --> ALB
-ALB --> EC2_KH
-ALB --> EC2_KC
-EC2_KH --> DB : VPC internal
-EC2_KC --> DB : VPC internal
-EC2_KH --> S3
-EC2_KC --> S3
-EC2_KH --> SES
-EC2_KH ..> CW
-EC2_KC ..> CW
-EC2_KH ..> SM
-EC2_KC ..> SM
-ECR --> EC2_KH : pull image
-ECR --> EC2_KC : pull image
-@enduml
+    classDef vpc fill:#E8F5E8,stroke:#2D7D32,stroke-width:2px
+    classDef public fill:#FFF8DC,stroke:#F57F17,stroke-width:2px
+    classDef private fill:#FFE4E1,stroke:#C62828,stroke-width:2px
+    class VPC vpc
+    class PublicSubnet public
+    class PrivateSubnet private
 ```
 
-**Hình 4.1.** Sơ đồ kiến trúc tổng thể KiteHub Platform trên AWS Singapore — VPC với public + private subnets cô lập (giai đoạn thử nghiệm).
+**Hình 4.1a.** Topology mạng VPC — luồng request từ user qua Cloudflare CDN, Internet Gateway, ALB tới EC2 (public subnet AZ-1a + 1b), sau đó EC2 truy cập RDS PostgreSQL trong private subnet. VPC CIDR `10.0.0.0/16` với cấu trúc 2 public + 2 private subnets (db_subnet_group yêu cầu tối thiểu 2 AZ).
+
+```mermaid
+%%{init: {"flowchart": {"htmlLabels": true, "nodeSpacing": 40, "rankSpacing": 70, "padding": 25, "subGraphTitleMargin": {"top": 12, "bottom": 18}}, "themeVariables": {"fontSize": "22px"}}}%%
+flowchart TB
+    subgraph Compute["Compute Layer (VPC)"]
+        EC2_KH[EC2 kh-backend]
+        EC2_KC[EC2 kc-app]
+    end
+
+    subgraph StorageEmail["Storage + Email"]
+        S3[(S3<br/>multi-tenant prefix)]
+        SES[SES<br/>Transactional email]
+    end
+
+    subgraph SecretsRegistry["Secrets + Registry"]
+        SM[Secrets Manager<br/>JWT + DB + Resend]
+        ECR[ECR<br/>Docker images]
+    end
+
+    subgraph Observability["Observability"]
+        CW[CloudWatch<br/>Logs + Metrics]
+        CT[CloudTrail<br/>API audit log]
+    end
+
+    ECR -.->|pull image| EC2_KH
+    ECR -.->|pull image| EC2_KC
+    EC2_KH -->|asset upload| S3
+    EC2_KC --> S3
+    EC2_KH -->|transactional| SES
+    EC2_KH -.->|fetch secrets| SM
+    EC2_KC -.-> SM
+    EC2_KH -.->|logs + metrics| CW
+    EC2_KC -.-> CW
+
+    classDef compute fill:#FFF8DC,stroke:#F57F17,stroke-width:2px
+    classDef storage fill:#E6F3FF,stroke:#1565C0,stroke-width:2px
+    classDef secrets fill:#F5E6FF,stroke:#6A1B9A,stroke-width:2px
+    classDef obs fill:#E6FFE6,stroke:#2E7D32,stroke-width:2px
+    class Compute compute
+    class StorageEmail storage
+    class SecretsRegistry secrets
+    class Observability obs
+```
+
+**Hình 4.1b.** Các dịch vụ AWS phụ trợ ngoài VPC — EC2 compute layer truy cập 6 dịch vụ regional: S3 (multi-tenant storage), SES (transactional email), Secrets Manager (JWT + DB credentials), ECR (Docker image registry), CloudWatch + CloudTrail (observability + audit log).
 
 Toàn bộ hạ tầng đặt trong một VPC riêng (CIDR `10.0.0.0/16`) với hai tầng subnet phục vụ mục đích bảo mật khác nhau: **public subnets** (2 vùng khả dụng AZ-1a + AZ-1b) chứa Application Load Balancer + EC2 instances có public IP để nhận traffic từ Internet Gateway; **private subnets** (2 AZ tương ứng — yêu cầu tối thiểu của RDS DB subnet group) chứa RDS PostgreSQL không có public IP, chỉ chấp nhận kết nối từ security group của EC2 trong cùng VPC. Internet Gateway gắn vào VPC làm điểm vào duy nhất cho traffic ingress từ Cloudflare. NAT Gateway disable mặc định ở giai đoạn thử nghiệm để tiết kiệm chi phí (~30 USD/tháng); EC2 instances trong public subnet truy cập internet trực tiếp qua IGW.
 
