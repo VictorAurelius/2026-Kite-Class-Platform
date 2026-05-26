@@ -491,14 +491,23 @@ def add_seq_caption(doc, label_word, label_number, caption_text):
         - "Hình" → SEQ "Figure"  (Vietnamese visible label, English internal)
         - "Bảng" → SEQ "Table"
     """
-    seq_id = "Figure" if label_word == "Hình" else "Table"
+    # Round 2 Item 3 fix (Hình 1.11 → Hình 1.1 bug):
+    # NO SEQ field — use 2 custom paragraph styles ("Hình Caption" + "Bảng Caption")
+    # for Word's Table of Figures discovery via TOC \\t "<StyleName>,1" switch.
+    # Label "Hình X.Y" from MD source = SOLE visible number; no duplicate "1" suffix.
+    style_name = "Hình Caption" if label_word == "Hình" else "Bảng Caption"
+    from docx.enum.style import WD_STYLE_TYPE
+    styles = doc.styles
+    if style_name not in [s.name for s in styles]:
+        new_style = styles.add_style(style_name, WD_STYLE_TYPE.PARAGRAPH)
+        new_style.base_style = styles['Normal'] if 'Normal' in [s.name for s in styles] else None
+    p = doc.add_paragraph(style=style_name)
 
-    p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(6)
     p.paragraph_format.space_after = Pt(12)
 
-    # Visible label "Hình X.Y" with bold style
+    # Visible label + number from MD source (e.g., "Hình 1.1") with bold
     run = p.add_run(f"{label_word} {label_number}")
     run.font.name = FONT_NAME
     if run._element.rPr is not None:
@@ -506,26 +515,7 @@ def add_seq_caption(doc, label_word, label_number, caption_text):
     run.font.size = FONT_SIZE_NORMAL
     run.font.bold = True
 
-    # Invisible SEQ field — Word Table of Figures discovers this
-    seq_run = p.add_run("")
-    fldChar_begin = OxmlElement('w:fldChar')
-    fldChar_begin.set(qn('w:fldCharType'), 'begin')
-    instrText = OxmlElement('w:instrText')
-    instrText.set(qn('xml:space'), 'preserve')
-    instrText.text = f' SEQ {seq_id} \\* ARABIC '
-    fldChar_separate = OxmlElement('w:fldChar')
-    fldChar_separate.set(qn('w:fldCharType'), 'separate')
-    seq_value = OxmlElement('w:t')
-    seq_value.text = "1"  # placeholder — Word recalculates on F9 / updateFields
-    fldChar_end = OxmlElement('w:fldChar')
-    fldChar_end.set(qn('w:fldCharType'), 'end')
-    seq_run._r.append(fldChar_begin)
-    seq_run._r.append(instrText)
-    seq_run._r.append(fldChar_separate)
-    seq_run._r.append(seq_value)
-    seq_run._r.append(fldChar_end)
-
-    # Caption text after period
+    # Caption text after period (NOT bold)
     caption_run = p.add_run(f". {caption_text}")
     caption_run.font.name = FONT_NAME
     if caption_run._element.rPr is not None:
@@ -1263,13 +1253,8 @@ def add_acknowledgment_page(doc):
         "chuyên nghiệp cùng với chương trình đào tạo bài bản là nền tảng quan trọng giúp em có "
         "đủ năng lực và sự tự tin thực hiện đề tài này.")
 
-    # Phần 4 — Quý thầy cô bộ môn
-    add_paragraph_text(doc,
-        "Bên cạnh đó, em xin gửi lời cảm ơn chân thành đến quý thầy cô trong Bộ môn Công nghệ "
-        "phần mềm và toàn thể giảng viên Khoa Công nghệ thông tin đã nhiệt tình giảng dạy, chia "
-        "sẻ kinh nghiệm chuyên môn trong suốt bốn năm học, qua đó giúp em xây dựng được tư duy "
-        "kỹ thuật vững vàng và phương pháp tiếp cận vấn đề có hệ thống — những phẩm chất thiết "
-        "yếu cho hành trình phát triển nghề nghiệp sau này.")
+    # Wave thesis-2 Round 2 Item 2 — Phần 4 "Bộ môn Công nghệ phần mềm + Khoa CNTT" REMOVED
+    # User direction: để vừa 1 trang.
 
     # Phần 5 — Gia đình + bạn bè + đóng kết
     add_paragraph_text(doc,
@@ -1351,7 +1336,7 @@ def add_list_of_figures_tables(doc):
     fldChar1.set(qn('w:fldCharType'), 'begin')
     instrText = OxmlElement('w:instrText')
     instrText.set(qn('xml:space'), 'preserve')
-    instrText.text = 'TOC \\h \\z \\c "Figure"'
+    instrText.text = 'TOC \\h \\z \\t "Hình Caption,1"'
     fldChar2 = OxmlElement('w:fldChar')
     fldChar2.set(qn('w:fldCharType'), 'end')
     run._r.append(fldChar1)
@@ -1380,7 +1365,7 @@ def add_list_of_figures_tables(doc):
     fldChar1.set(qn('w:fldCharType'), 'begin')
     instrText = OxmlElement('w:instrText')
     instrText.set(qn('xml:space'), 'preserve')
-    instrText.text = 'TOC \\h \\z \\c "Table"'
+    instrText.text = 'TOC \\h \\z \\t "Bảng Caption,1"'
     fldChar2 = OxmlElement('w:fldChar')
     fldChar2.set(qn('w:fldCharType'), 'end')
     run._r.append(fldChar1)
