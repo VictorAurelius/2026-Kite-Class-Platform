@@ -1,0 +1,33 @@
+{
+  "pr": 1865,
+  "title": "feat(wave-rst-cascade-1-cluster-2-3-4): consolidate 3 cluster walkthroughs + 5 cascade findings",
+  "branch": "wave/rst-cascade-1-closure-batch",
+  "created_at": null,
+  "merged_at": "2026-05-26T09:36:30Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-26T09:36:35.806932",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 8,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-2740401"
+  }
+}
