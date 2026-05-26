@@ -91,3 +91,8 @@ caption của hình vẽ quá dài => tại sao không tự bắt được bug n
 5. documents/image-5.png => tương tự, hình Hình 2.49. Luồng xác thực JWT và truyền ngữ cảnh tenant quá bé trong trang a4, cân nhắc vẽ dạng khác hoặc căn chỉnh hợp lý
 6. 4.3 KPI Metrics + Measurement Plan và 4.4 Beta Tenant Scope + Limitations đã chốt bỏ đi rồi mà nhỉ
 7. KẾT LUẬN VÀ KIẾN NGHỊ => chỉ là KẾT LUẬN thôi
+
+1. ảnh vẫn chưa được apply resize đúng, hãy làm cách nào để check trong docx được render, tự screenshots chẳng hạn
+2. ở lời cảm ơn bỏ nội dung: Bên cạnh đó, em xin gửi lời cảm ơn chân thành đến quý thầy cô trong Bộ môn Công nghệ phần mềm và toàn thể giảng viên Khoa Công nghệ thông tin đã nhiệt tình giảng dạy, chia sẻ kinh nghiệm chuyên môn trong suốt bốn năm học, qua đó giúp em xây dựng được tư duy kỹ thuật vững vàng và phương pháp tiếp cận vấn đề có hệ thống — những phẩm chất thiết yếu cho hành trình phát triển nghề nghiệp sau này. => để vừa 1 trang
+
+3. caption của hình vẽ và bảng bị thừa 1 số 1: Hình 1.11. Giao diện trang chủ BeeClass — phần mềm quản lý trung tâm tiếng Anh phổ biến tại Việt Nam, Hình 1.21. Giao diện trang sản phẩm MISA EMIS — sản phẩm B2B phục vụ trường công lập của công ty MISA	10
