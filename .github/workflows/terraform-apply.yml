@@ -109,6 +109,11 @@ jobs:
           # Wave aws-restore-1 (2026-05-26): RDS restore from snapshot. Empty default = fresh DB.
           # Lifecycle ignore_changes in rds.tf prevents re-restore on subsequent applies.
           TF_VAR_rds_restore_from_snapshot: ${{ github.event.inputs.rds_restore_from_snapshot }}
+          # Wave aws-restore-1 (2026-05-26): aws_account_id var added by GAP-692 Phase 1
+          # (Wave 102.8 Bucket B) has no default — must be explicit. Production account
+          # 906286017800 per env-reference.yaml + ADR-025. Multi-env split Phase 2 should
+          # migrate to vars.AWS_ACCOUNT_ID GitHub Variable per env.
+          TF_VAR_aws_account_id: '906286017800'
           TARGETS_INPUT: ${{ github.event.inputs.targets }}
         run: |
           TARGET_FLAGS=""
