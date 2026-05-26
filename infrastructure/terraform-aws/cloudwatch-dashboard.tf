@@ -132,42 +132,10 @@ resource "aws_cloudwatch_dashboard" "phase_1_overview" {
         }
       },
 
-      # -------------------- Row 3: ALB --------------------
-      {
-        type   = "metric"
-        x      = 0
-        y      = 12
-        width  = 12
-        height = 6
-        properties = {
-          title  = "ALB Request Count"
-          region = var.aws_region
-          metrics = [
-            ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", aws_lb.main[0].arn_suffix],
-          ]
-          view   = "timeSeries"
-          period = 300
-          stat   = "Sum"
-        }
-      },
-      {
-        type   = "metric"
-        x      = 12
-        y      = 12
-        width  = 12
-        height = 6
-        properties = {
-          title  = "ALB HTTP 5xx + Target 5xx"
-          region = var.aws_region
-          metrics = [
-            ["AWS/ApplicationELB", "HTTPCode_ELB_5XX_Count", "LoadBalancer", aws_lb.main[0].arn_suffix, { label = "ALB 5xx" }],
-            [".", "HTTPCode_Target_5XX_Count", ".", ".", { label = "Target 5xx" }],
-          ]
-          view   = "timeSeries"
-          period = 300
-          stat   = "Sum"
-        }
-      },
+      # -------------------- Row 3: ALB REMOVED (Wave aws-restore-1, 2026-05-26) --------------------
+      # ALB widgets removed per architecture pivot — CF → kc_app_fe EIP → nginx
+      # reverse-proxy → kh_backend private VPC. ALB metrics no longer applicable.
+      # Replace with nginx access log analytics (CloudWatch Logs Insights) Phase 1.5+.
 
       # -------------------- Row 4: S3 + CloudTrail --------------------
       {
@@ -207,42 +175,11 @@ resource "aws_cloudwatch_dashboard" "phase_1_overview" {
         }
       },
 
-      # -------------------- Row 5: ALB extras + RDS IOPS (Wave 84 GAP-437) --------------------
-      {
-        type   = "metric"
-        x      = 0
-        y      = 24
-        width  = 8
-        height = 6
-        properties = {
-          title  = "ALB Target Health (Healthy Hosts)"
-          region = var.aws_region
-          metrics = [
-            ["AWS/ApplicationELB", "HealthyHostCount", "LoadBalancer", aws_lb.main[0].arn_suffix, { label = "Healthy" }],
-            [".", "UnHealthyHostCount", ".", ".", { label = "Unhealthy" }],
-          ]
-          view   = "timeSeries"
-          period = 300
-          stat   = "Average"
-        }
-      },
-      {
-        type   = "metric"
-        x      = 8
-        y      = 24
-        width  = 8
-        height = 6
-        properties = {
-          title  = "ALB Target Response Time (seconds)"
-          region = var.aws_region
-          metrics = [
-            ["AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", aws_lb.main[0].arn_suffix],
-          ]
-          view   = "timeSeries"
-          period = 300
-          stat   = "Average"
-        }
-      },
+      # -------------------- Row 5: ALB Target widgets REMOVED (Wave aws-restore-1, 2026-05-26) --------------------
+      # ALB Target Health + Response Time widgets removed per architecture pivot.
+      # Future replacement: nginx upstream timing logs + CloudWatch Logs Insights
+      # query Phase 1.5+ (kc_app_fe nginx fe_proxy log format includes
+      # $upstream_response_time + $request_time).
       {
         type   = "metric"
         x      = 16
