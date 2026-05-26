@@ -711,8 +711,37 @@ def add_code_block(doc, code_text, lang=""):
             p.paragraph_format.space_before = Pt(6)
             p.paragraph_format.space_after = Pt(6)
             run = p.add_run()
-            # Constrain width to fit page (~14cm)
-            run.add_picture(str(png_path), width=Cm(14.0))
+            # Wave thesis-2 Round 2 Items 3+4+5 — smart A4-fit sizing for Mermaid PNGs
+            # (previously hardcoded Cm(14.0) bypassed smart-sizing in add_image_inline)
+            A4_BODY_WIDTH_CM = 16.0
+            A4_BODY_HEIGHT_CM = 22.0
+            target_w = 14.0
+            target_h = None
+            try:
+                from PIL import Image
+                with Image.open(str(png_path)) as img:
+                    px_w, px_h = img.size
+                aspect = px_w / px_h if px_h > 0 else 1.0
+                if aspect >= 1.4:
+                    target_w = A4_BODY_WIDTH_CM
+                    target_h = A4_BODY_WIDTH_CM / aspect
+                    if target_h > A4_BODY_HEIGHT_CM:
+                        target_h = A4_BODY_HEIGHT_CM
+                        target_w = A4_BODY_HEIGHT_CM * aspect
+                elif aspect <= 0.7:
+                    target_h = A4_BODY_HEIGHT_CM
+                    target_w = A4_BODY_HEIGHT_CM * aspect
+                    if target_w > A4_BODY_WIDTH_CM:
+                        target_w = A4_BODY_WIDTH_CM
+                        target_h = A4_BODY_WIDTH_CM / aspect
+                else:
+                    target_w = max(14.0, 15.0)
+            except Exception:
+                pass
+            if target_h is not None and target_h > 0:
+                run.add_picture(str(png_path), width=Cm(target_w), height=Cm(target_h))
+            else:
+                run.add_picture(str(png_path), width=Cm(target_w))
             return
         # Fallback: render as TNR italic text if PNG unavailable
         print("  WARN: Mermaid PNG unavailable; falling back to text")
