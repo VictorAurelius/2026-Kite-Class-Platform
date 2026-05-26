@@ -31,6 +31,11 @@ on:
         required: false
         type: string
         default: ''
+      rds_restore_from_snapshot:
+        description: 'Wave aws-restore-1 (2026-05-26): RDS snapshot identifier to restore from on first create. Empty = fresh DB. Once RDS exists, lifecycle.ignore_changes in rds.tf prevents re-restore. Cleared after first apply.'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   id-token: write       # OIDC token for AWS STS AssumeRoleWithWebIdentity
@@ -101,6 +106,9 @@ jobs:
           # Inject TF_VAR_* from GitHub Variables. Wave 64 cutover (GAP-369): ALB HTTPS:443 listener.
           # Empty fallback → terraform variable default (null) → no HTTPS listener created.
           TF_VAR_alb_acm_certificate_arn: ${{ vars.ALB_ACM_CERTIFICATE_ARN }}
+          # Wave aws-restore-1 (2026-05-26): RDS restore from snapshot. Empty default = fresh DB.
+          # Lifecycle ignore_changes in rds.tf prevents re-restore on subsequent applies.
+          TF_VAR_rds_restore_from_snapshot: ${{ github.event.inputs.rds_restore_from_snapshot }}
           TARGETS_INPUT: ${{ github.event.inputs.targets }}
         run: |
           TARGET_FLAGS=""
