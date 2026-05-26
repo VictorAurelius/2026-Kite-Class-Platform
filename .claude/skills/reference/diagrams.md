@@ -129,7 +129,7 @@ flowchart TB
 - `rankSpacing: 70` — more vertical breathing (default 50) — clearer tier separation
 - `padding: 20` — inner padding cho subgraph (default 8) — text không sát border
 - `subGraphTitleMargin: {top: 10, bottom: 15}` — **CRITICAL khi fontSize ≥16px** — subgraph title không đè chữ với child nodes
-- `fontSize: 16-18px` — readable trong rendered PDF (default ~14px quá nhỏ trên A4)
+- `fontSize: 20-24px` — **REQUIRED khi diagram embed vào docx/PDF A4 size** — Mermaid source PNG được scale-down (vd 1711px → 16cm display = 680px target = 2.5x downscale); fontSize 16px sau scale-down còn ~6.4px effective → unreadable. Thử 22-24px cho readable. Default ~14px chỉ dùng cho HTML web view (no scale-down).
 
 ### Subgraph title rules
 

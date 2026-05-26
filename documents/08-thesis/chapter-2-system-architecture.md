@@ -249,7 +249,7 @@ Hình 2.1 cho thấy mọi actor đều truy cập Kite Platform qua HTTPS (TLS 
 Phóng to vào nội bộ Kite Platform cho thấy 4 cụm container: Frontend (2 ứng dụng Next.js), Gateway (Spring Cloud Gateway), Service (6 service KiteHub + 1 KiteClass core), và hạ tầng dùng chung (4 container với prefix `kite-`). Hình 2.2 trình bày bố cục container theo C4 Level 2.
 
 ```mermaid
-%%{init: {"flowchart": {"htmlLabels": true, "nodeSpacing": 30, "rankSpacing": 70, "padding": 20, "subGraphTitleMargin": {"top": 10, "bottom": 15}}, "themeVariables": {"fontSize": "16px"}}}%%
+%%{init: {"flowchart": {"htmlLabels": true, "nodeSpacing": 35, "rankSpacing": 80, "padding": 25, "subGraphTitleMargin": {"top": 12, "bottom": 18}}, "themeVariables": {"fontSize": "24px"}}}%%
 flowchart TB
     User[Browser Actor — học sinh / giáo viên / quản trị]
 
