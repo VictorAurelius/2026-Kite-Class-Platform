@@ -48,11 +48,11 @@ Implementation focus (backup) xong thì deprioritize verification. Restore quy t
 
 ## Acceptance Criteria
 
-- [ ] `restore-procedure.md` tạo trong 05-guides
-- [ ] Monthly restore drill CI workflow implement + green cho 2 tháng liên tiếp
-- [ ] Restore validation script `scripts/verify-restore.sh`
-- [ ] Quarterly DR exercise schedule documented
-- [ ] Measured RTO recorded trong `documents/05-guides/operations/` (baseline)
+- [ ] `restore-procedure.md` tạo trong 05-guides (Phase 3 — tracked GAP-257)
+- [x] Monthly restore drill CI workflow implement + green cho 2 tháng liên tiếp — `.github/workflows/restore-drill.yml` shipped 2026-05-11 (Wave 63); verified state-check 2026-05-26 Wave audit-stale-sweep-1
+- [x] Restore validation script `scripts/verify-restore.sh` — shipped PR #632 (2026-04-28); 14870 bytes executable; verified 2026-05-26
+- [ ] Quarterly DR exercise schedule documented (Phase 3 — tracked GAP-257)
+- [ ] Measured RTO recorded trong `documents/05-guides/operations/` baseline — `scripts/smoke-rollback-cycle.sh` shipped 2026-05-11 (Wave 63) cho TTR measurement; quarterly `--execute` cadence per `release-deploy-standard.md` §4.3 not yet baselined (Phase 3 — tracked GAP-257)
 
 ## Related
 
