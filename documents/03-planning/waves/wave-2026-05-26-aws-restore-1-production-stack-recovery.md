@@ -38,21 +38,39 @@ gaps: [GAP-612, GAP-693]
 |---|---|---|
 | RDS restore picks wrong snapshot (data loss) | 🔴 HIGH | Use latest MANUAL snapshot `final-kitehub-postgresa9068e7e-...` 2026-05-21 (more recent + intentional backup); verify snapshot integrity pre-apply |
 | Terraform plan shows unexpected drift (resources changed during suspension) | 🟠 MEDIUM | Pre-apply `terraform plan` dry-run + reconciliation table per `pre-mutation-state-check.md` §3.5 |
-| Concurrent ops on shared EC2 resources (per `concurrent-production-mutation-ops.md`) | 🟠 MEDIUM | Strict serialization Phase A → B → C; verify each phase complete before next |
+| Concurrent ops on shared EC2 resources (per `concurrent-production-mutation-ops.md`) | 🟠 MEDIUM | Strict serialization Phase A → B → C → D; verify each phase complete before next |
 | EC2 fails to start (corrupted EBS, AMI issue) | 🟡 LOW | Stopped instances = data preserved; AWS auto-recovery handles most failures; fallback = terraform replace |
-| ALB DNS propagation latency post-recreate | 🟡 LOW | CloudFlare apex CNAME → ALB; expect 5-15min DNS warm-up post-recreate |
-| Wave 37 backlog terraform drift surfaces in plan (per Wave 86 precedent) | 🟠 MEDIUM | `targets` workflow input apply only ALB+RDS subset; defer backlog drift to separate audit |
+| nginx config edit breaks kc_app_fe ingress (Phase C1) | 🟠 MEDIUM | SSM SendCommand with `nginx -t` dry-run validate before reload; rollback = revert config file + reload |
+| `enable_alb=false` terraform apply removes resources from state mid-traffic (Phase C2) | 🟡 LOW | ALB already deleted from AWS Wave br-8; terraform state cleanup only (no traffic impact) |
+| CF DNS api.kitehub.me update propagation latency (Phase C3) | 🟡 LOW | CF apex CNAME → 5-15min DNS warm-up; verify via dig from multiple resolvers |
 | GAP-693 SOP not shipped — manual orchestration | 🟠 MEDIUM | Wave plan §3 documents exact steps + gates; serves as ad-hoc SOP for this restore (informs GAP-693 future deliverable) |
+| Architecture migration scope (skip ALB permanently) extends wave from ~1.5h → ~3-4h | 🟡 ACCEPTABLE | User-approved cost optimization (per AskUserQuestion 2026-05-26); eliminates $20-25/mo permanently vs file follow-up wave |
 
 ### Q4 — Authorization required
 
 Per `release-deploy-standard.md` §9 + `agent-aws-access.md` §4 + `dev-authorized-terraform-trigger.md`:
 - Phase A (EC2 start via `start-stack.sh`): Tier 2 always-confirm — requires user explicit "tôi cho phép" / "claude trigger"
-- Phase B (RDS terraform apply): Tier 3 banned-default — requires user explicit override trailer `AGENT_AWS_TIER3_OK` per `agent-aws-access.md` §6 OR `claude trigger` per `dev-authorized-terraform-trigger.md`
-- Phase C (ALB terraform apply): Tier 3 banned-default — same requirement
+- Phase B (RDS terraform apply via workflow_dispatch): Tier 3 banned-default — requires user explicit override trailer `AGENT_AWS_TIER3_OK` per `agent-aws-access.md` §6 OR `claude trigger` per `dev-authorized-terraform-trigger.md`
+- Phase C1 (SSM SendCommand edit nginx config on kc_app_fe): Tier 3 banned-default — same requirement
+- Phase C2 (terraform apply `enable_alb=false` to remove ALB state): Tier 3 banned-default — same requirement
+- Phase C3 (Cloudflare terraform apply update DNS api.kitehub.me): Tier 3 banned-default — same requirement
 - Phase D (smoke verify): Tier 1 read-only — no special authorization
 
-**Plan stops at end of Phase 0 (this PR draft) — user reviews + authorizes Phase A-C executions step-by-step.**
+**Plan stops at end of Phase 0 (this PR draft) — user reviews + authorizes Phase A-D executions step-by-step.**
+
+### Q5 — Architecture decision: skip ALB permanently (per user AskUserQuestion 2026-05-26)
+
+**User chose Option 1: Pivot scope = restore + ALB elimination**
+
+Current state discovery during plan drafting:
+- `enable_alb = true` (default + tfvars) → terraform code WILL recreate ALB on apply
+- ALB resources conditional behind `var.enable_alb` flag — flip to false eliminates
+- `kc_app_fe` EC2 already has EIP + nginx + PM2 + wildcard cert *.kitehub.me (Wave 82 self-host pivot)
+- `kh_backend` EC2 has NO EIP — currently relies on ALB routing for `api.kitehub.me`
+
+**Architecture pivot (Phase C scope):** reuse existing `kc_app_fe` nginx as Host-based virtual host gateway. Add `api.kitehub.me` virtual host block reverse-proxying private VPC IP `10.0.0.129:8080` (kh_backend gateway port). Wildcard cert covers `api.kitehub.me` automatically. SG kh_backend opens 8080 from kc_app_fe SG private (no public 8080 exposure). CF DNS `api.kitehub.me` → CNAME `kitehub.me` apex (single proxied EIP).
+
+**Cost outcome:** $20-25/mo ALB cost eliminated permanently. Wave shrinks from $20-25/mo recurring to $0 ALB.
 
 ## 2. Task Breakdown
 
@@ -122,23 +140,68 @@ bash scripts/aws/start-stack.sh
 - Schema migrations applied (Flyway V1-V60+ table presence check)
 - Sample data present (verify production data restored, not test data)
 
-### Phase C — ALB recreate (HIGH risk, Tier 3)
+### Phase C — SKIP ALB permanently — nginx multi-host + state cleanup (HIGH risk, Tier 3, 3 sub-phases)
 
-**Goal:** Recreate `kitehub-alb` + listeners + target groups + 2 EIPs.
+**Goal:** Eliminate ALB ($20-25/mo permanent cost reduction). Route `api.kitehub.me` traffic via existing `kc_app_fe` nginx (Host-based virtual host) → private VPC reverse_proxy `10.0.0.129:8080` (kh_backend gateway).
+
+#### Phase C1 — SSM SendCommand edit nginx config on kc_app_fe
+
+Edit `/etc/nginx/sites-available/kitehub.conf` (existing path per Wave 82 setup) — add api.kitehub.me virtual host block:
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name api.kitehub.me;
+
+    ssl_certificate /etc/letsencrypt/live/kitehub.me/fullchain.pem;       # wildcard *.kitehub.me
+    ssl_certificate_key /etc/letsencrypt/live/kitehub.me/privkey.pem;
+
+    location / {
+        proxy_pass http://10.0.0.129:8080;       # kh_backend private IP gateway
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
 
 **Action sequence:**
-1. Pre-apply audit artifact
-2. `gh workflow run terraform-apply.yml -f targets='aws_lb.kitehub_alb,aws_lb_listener.kitehub_https,aws_lb_listener.kitehub_http,aws_lb_target_group.*,aws_eip.kitehub_alb*' -f dry_run=true`
-3. Review plan + `dry_run=false confirm=APPLY`
-4. Wait ALB `State.Code=active` (~3-5min)
-5. Verify 2 EIP allocated + attached to ALB
+1. Pre-apply audit artifact `documents/04-quality/audits/aws-verification/2026-05-26-wave-aws-restore-1-phase-c1-nginx-multihost-preapply.md`
+2. `aws ssm send-command --instance-id i-05cfda7c6c60b683f --document-name AWS-RunShellScript --parameters 'commands=["nginx -t"]'` — verify current config OK pre-edit
+3. Push updated config via SSM SendCommand (heredoc or copy from S3)
+4. `nginx -t` post-edit validate
+5. `nginx -s reload` (zero-downtime reload)
+6. Verify nginx serving new vhost: `curl -ksI https://10.0.0.84/` Host header api.kitehub.me
 
-**Per `concurrent-production-mutation-ops.md` §1:** strict serialization — Phase B RDS apply MUST complete + verified healthy before Phase C ALB apply begins.
+**Pre-conditions:**
+- Phase A complete (3 EC2 running including kc_app_fe with nginx)
+- Phase B complete (RDS available so backend gateway can serve health endpoint)
+- Wildcard cert *.kitehub.me valid (per GAP-567 closure: exp 2026-08-13 ✅)
+- SG kh_backend allows inbound 8080 from kc_app_fe SG (verify pre-apply; may need terraform tweak if not)
 
-**Verify post:**
-- ALB DNS name resolvable
-- Target group health checks (initially unhealthy — EC2 needs deploy fresh image OR rejoin target group)
-- HTTPS listener :443 has valid ACM cert attached
+#### Phase C2 — Flip enable_alb=false + terraform apply removes ALB state
+
+**Action sequence:**
+1. Edit `infrastructure/terraform-aws/terraform.tfvars` set `enable_alb = false`
+2. `gh workflow run terraform-apply.yml -f dry_run=true` — plan shows ALB resources DESTROY (state cleanup; AWS resources already gone from Wave br-8)
+3. Review plan: expect only `aws_lb.main`, `aws_lb_listener.*`, `aws_lb_target_group.*`, `aws_lb_target_group_attachment.*`, `aws_security_group.alb` resources DESTROY
+4. `dry_run=false confirm=APPLY`
+5. Verify terraform state clean post-apply (no ALB resources in `terraform state list`)
+
+**Risk:** if ALB still exists trong AWS account (Wave br-8 cleanup partial) → apply will delete it (acceptable; intended outcome).
+
+#### Phase C3 — Cloudflare DNS update api.kitehub.me
+
+**Action sequence:**
+1. Edit `infrastructure/terraform-cloudflare/dns.tf` — change `api.kitehub.me` record:
+   - From: `A` record → ALB DNS name (now invalid)
+   - To: `CNAME` → `kitehub.me` (apex, proxied — single EIP via kc_app_fe)
+2. `cd infrastructure/terraform-cloudflare && terraform plan` — verify DNS record change
+3. Apply via CF terraform workflow (or local terraform apply with CF API token)
+4. Verify DNS propagation: `dig +short api.kitehub.me @1.1.1.1` returns CF proxy IP
+
+**Per `concurrent-production-mutation-ops.md` §1:** serialize C1 → C2 → C3 (each touches different layer — nginx config → terraform-aws state → terraform-cloudflare state).
 
 ### Phase D — Live smoke (LOW risk, Tier 1)
 
@@ -170,6 +233,9 @@ bash scripts/aws/start-stack.sh
 - 13 cascade live walkthroughs (657/658/659/543/530/370/608/684/508/514/534/538/599/502) — defer Wave rst-cascade-1
 - GAP-727 hasAccessToClass fix + GAP-730 idempotency port — defer Waves class-teacher-fix-1 + idempotency-finish-1
 - GAP-533 Resend warm-up Day 1-7 user-action — defer parallel background
+- kh_backend separate EIP + nginx (alternative architecture not chosen) — Option B kc_app_fe multi-host wins per simplicity
+- ALB terraform code removal (resources `aws_lb.main`/`aws_lb_listener.*`/etc.) — Phase C2 sets count=0 via flag; full code deletion = follow-up clean-up gap GAP-NEW-alb-terraform-purge (P3)
+- Re-verify all 13 cascade-dependent gaps individually — Phase D verifies infra-layer only; cascade gaps live-walk = Wave rst-cascade-1
 
 ## 4. State-Check Evidence (per `audit-to-gap-pipeline.md` §2.6)
 
