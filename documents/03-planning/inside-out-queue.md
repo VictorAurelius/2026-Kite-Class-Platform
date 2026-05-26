@@ -2,7 +2,7 @@
 title: Inside-out queue — user-flagged items beyond ROADMAP canonical
 status: active
 created: 2026-05-14
-updated: 2026-05-18
+updated: 2026-05-26
 ---
 
 # Inside-out queue
@@ -143,3 +143,52 @@ updated: 2026-05-18
 - ❌ Audit a generated DOCX without referencing the canonical UTC PDF template spec as scoring baseline
 
 **Force-multiplier:** GAP-646 + GAP-687 + PR #1606 wasted scope choosing wrong pipeline path. 1 inside-out item codified → all future academic DOCX generation auto-reuses existing pattern.
+
+### 2026-05-26 — PDPL beta scope-cut decision (3 sub-questions DEFER to Wave compliance-1 plan time)
+
+**Source:** User question 2026-05-26 mid-session Wave rst-cascade-1 Phase 0 prep — "PDPL có thực sự cần thiết cho beta user không?"
+**Status:** queued — defer scope-cut decision đến khi Wave compliance-1 plan time (post Wave rst-cascade-1 ship). User direction: "note đủ và đưa vào pending, giờ chỉ tập trung để đưa beta lên thôi" → focus shift Wave rst-cascade-1 + path-to-beta-launch.
+
+**Context locked 2026-05-26:**
+- PDPL hard deadline 2026-07-01 = ~5 tuần countdown
+- CLAUDE.md Risk tolerance Moderate ("v1 pending counsel review" disclaimer OK cho non-K-12)
+- Solo dev mode, no legal counsel engaged
+- Audit log immutable (PDPL Art 11) đã ship Wave 92 V61 admin_audit_logs
+
+**Codified analysis — PDPL CẦN cho beta nhưng SCOPE-CUT acceptable:**
+
+MUST-HAVE Day 1 beta (~10-14 ngày Wave compliance-1 minimum scope):
+1. Privacy notice tiếng Việt + ToS public (Art 13) — 2-3 ngày, "v1 pending counsel" disclaimer OK
+2. Consent checkbox tại signup + granular per data category (Art 11) — 1-2 ngày FE+BE
+3. Audit log immutable cho data access/modify (Art 11) — ✅ ĐÃ SHIP Wave 92
+4. Data retention policy document (Art 9) — 1 ngày doc-only
+5. Breach notification SOP 72h timeline (Art 23) — 1-2 ngày runbook
+6. Right-to-access / right-to-erasure endpoint (Art 14-15) — 2-3 ngày BE+FE
+
+DEFER Phase 2 / post-counsel:
+- DPO formal appointment (Art 39 — beta <10k subjects threshold)
+- Full DPIA report (Art 24 — K-12 mandate; beta P1/P2 adult/Owner acceptable risk acceptance)
+- MPS cross-border transfer registration (Art 21 + 25 — beta <10k Art 25 lighter-touch)
+- K-12 specific (parental consent + age gate) — Phase 3 K-12 trigger
+- Cookie consent enterprise-grade — Phase 2
+
+**3 sub-questions OPEN khi Wave compliance-1 plan time:**
+
+1. **Risk position confirm**: Moderate scope-cut (5 items, ~2 tuần) HAY full 8 obligations (~4-5 tuần)?
+2. **Counsel engagement timing**: Ship beta trước counsel HAY engage counsel-light review (~$500-1000 1-shot) trước beta?
+3. **K-12 scope trong beta**: Exclude K-12 tenants khỏi 5-beta cohort (chỉ P1 Solo Teacher adult learner + P2 Center adult/teen non-K-12) để defer full K-12 obligations?
+
+**Anti-pattern this codifies:**
+- ❌ Lock Wave compliance-1 scope = full 8 obligations without checking acceptable risk position per CLAUDE.md Moderate
+- ❌ Skip PDPL entirely cho beta vì "pilot scope" — KHÔNG có exemption trong NĐ 13/2023; MPS Art 22 NĐ 27/2023 fines 15-50M VND/violation
+- ❌ Decide scope-cut without user explicit confirm 3 sub-questions trên
+
+**Force-multiplier:** 1 scope-cut decision → Wave compliance-1 scope ~2 tuần thay vì ~4-5 tuần → Phase 1 BETA gate path khả thi trong 5-tuần PDPL window.
+
+---
+
+## Focus signal — 2026-05-26 active session
+
+**User direction 2026-05-26:** focus chỉ trên path-to-beta-launch. Wave rst-cascade-1 = current. Hard-blocker waves (security-1 / ops-1 / compliance-1 / perf-1) + functional fix waves (class-teacher-fix-1 / idempotency-finish-1) + foundational (aws-rebuild-sop-1) defer scope-detail decisions đến khi plan time tương ứng.
+
+Roadmap post Wave rst-cascade-1 đã note đầy đủ ở session message 2026-05-26 — KHÔNG re-confirm scope từng wave trước khi rst-cascade-1 ship.
