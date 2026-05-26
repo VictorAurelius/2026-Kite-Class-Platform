@@ -1,6 +1,6 @@
 # GAP-530: Email-driven flow end-to-end live verify per `pre-handoff-self-test-completeness.md` §2.3
 
-**Status:** 🟡 PARTIAL 10% — Wave 77 Bucket A shipped verification automation scripts; 5-email-type live verify per §2.3 + audit artifact remain user-action post GAP-370/533 dashboard verify + apply + warm-up
+**Status:** 🟡 PARTIAL 60% — Wave rst-cascade-1 Cluster-1 LOCAL: 5/5 critical email types verified SMTP→MailHog end-to-end (welcome formal/informal + email-verification + password-reset + invite-staff.formal — all 200 SENT + visible MailHog). Production Resend live verify remains operator-action Day 5+ per GAP-533 warm-up.
 **Priority:** 🔴 P0 — BLOCKING Plan 1 BETA invite
 **Domain:** Backend + DevOps
 **Found:** 2026-05-14 (Wave 76 — Phase 1 BETA persona audit)
@@ -70,5 +70,6 @@ Plan 1 deploy plan has §2.4 manual checklist "Beta invite email received + sign
 
 ## Log
 
+- **2026-05-26 (Wave rst-cascade-1 Cluster-1 — PARTIAL 60%):** LOCAL stack 11/11 services healthy post Wave aws-restore-1 closure. 6 emails sent via `POST /api/platform/emails/send` across 5 critical types — all 200 SENT, all visible MailHog UI/API (`/api/v2/messages` total advanced 0→6): (1) custom HTML test → hong.tran@skyedu.vn, (2) welcome.formal template → owner@skyedu.vn, (3) welcome.informal template → teacher@skyedu.vn, (4) email-verification "Hãy xác thực email" → newuser@kiteclass.com, (5) password-reset "Đặt lại mật khẩu" → reset@kiteclass.com, (6) invite-staff.formal "Tham gia Sky Education" → invitee@kiteclass.com. §2.3 (a)+(b)+(c) all PASS for SMTP→MailHog LOCAL scope. Walkthrough doc: `documents/04-quality/audits/quality/2026-05-26-wave-rst-cascade-1-cluster-1-email.md` §GAP-530. Completion 10→60. Remaining 40% = production live verify against Resend endpoint (deferred GAP-533 Day 5+) + batch-invoice send path (Phase 1.5+).
 - **2026-05-14** (Wave 77 Bucket A code-side context): Verification automation `scripts/verify-email-deliverability.sh` + `scripts/smoke-resend.sh` ship in same wave Bucket A. Once GAP-533 user-action follow-on (Resend dashboard verified + DNS applied + warm-up Day 5+ spam-score green) completes, operator runs §2.3 Phase 1 5-email-type live verify per `pre-handoff-self-test-completeness.md` §2.3 to flip this gap. Status stays 🔵 OPEN — code shipped to enable verification, but the verification itself remains user-action and the audit artifact `documents/04-quality/audits/email/2026-05-14-phase-1-beta-email-flow-e2e.md` has not yet been authored.
 - **2026-05-14:** Gap filed Wave 76 Bucket F closure from Phase 1 BETA persona audit. Surfaced as NEW-001 (P0) — not previously in P0 list. Email infrastructure is cross-cutting risk affecting 5/5 personas; must close before Plan 1 invite per audit verdict "tightly-controlled handful (2-3 trusted users)".
