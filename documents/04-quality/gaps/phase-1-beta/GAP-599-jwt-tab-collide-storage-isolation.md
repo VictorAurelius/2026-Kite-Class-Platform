@@ -1,6 +1,6 @@
 # GAP-599: JWT storage key collision khi mở 2 browser tab cùng domain
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 85% — Wave 92 Bucket B PR #1515 — `sessionStorage` facade `jwt-storage.ts` ship + 7 production sites migrated + 17 unit tests + 3 two-tab simulation tests PASS (jsdom isolated). Live multi-tab browser UX verify pending GAP-612 AWS restore per `pre-handoff-self-test-completeness.md` §2.7. Status sync with `gap-status.csv` canonical per `gap-architecture-v2.md` §3 (file Status field was stale `🔵 OPEN`; updated via Wave audit-stale-sweep-1 2026-05-26).
 **Priority:** 🔴 P0
 **Domain:** Frontend
 **Phase:** phase-1-beta

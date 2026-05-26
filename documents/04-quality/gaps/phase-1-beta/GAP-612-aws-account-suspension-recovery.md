@@ -1,6 +1,6 @@
 # GAP-612 — AWS account suspended (verification pending); production stack stopped
 
-**Status:** 🟡 PARTIAL (5% — alt contacts set + case 177903869600100 replied with evidence; awaiting AWS response)
+**Status:** 🟡 PARTIAL (30% — Day 8 UNBLOCK 2026-05-25T03:39 UTC: AWS removed temporary hold (email no-reply@amazonaws.com); ALB `kitehub-alb` + 2 ALB-attached EIPs deleted via cascade ~$27/month save per Wave beta-readiness-8 closure. Account active but production stack DOWN — pending terraform import + EC2 restart + RDS reachability + ALB recreate). Status sync via Wave audit-stale-sweep-1 2026-05-26.
 **Priority:** 🔴 P0 (account-level blocker)
 **Domain:** DevOps + Business
 **Found:** 2026-05-17 (Wave 90 walkthrough — mid-session AWS access token InvalidClientTokenId + CF 522 origin timeout)

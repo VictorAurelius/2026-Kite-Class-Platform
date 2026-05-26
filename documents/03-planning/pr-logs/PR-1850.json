@@ -1,0 +1,33 @@
+{
+  "pr": 1850,
+  "title": "chore(gap-751): Flip DONE 100% \u2014 A+B + filing all shipped",
+  "branch": "chore/gap-751-closure",
+  "created_at": null,
+  "merged_at": "2026-05-26T03:26:55Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-26T03:27:04.117854",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 2,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-619352"
+  }
+}
