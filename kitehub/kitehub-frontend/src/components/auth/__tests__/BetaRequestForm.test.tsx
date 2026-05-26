@@ -10,11 +10,26 @@ vi.mock('@/lib/api/client', () => ({
   default: { post: vi.fn(() => Promise.resolve({ data: {} })) },
 }));
 
+// Wave beta-prep-1 Bucket F7 — multi-branch filter uses useRouter to redirect
+// to /waitlist when branchCount > 1. Mock router for tests.
+const pushMock = vi.fn();
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: pushMock,
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+}));
+
 import apiClient from '@/lib/api/client';
 
 describe('BetaRequestForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    pushMock.mockClear();
   });
 
   it('renders all required fields', () => {
@@ -143,6 +158,69 @@ describe('BetaRequestForm', () => {
     resolvePost?.({ data: {} });
     await waitFor(() => {
       expect(screen.getByRole('status')).toHaveTextContent(/Đã nhận yêu cầu beta/i);
+    });
+  });
+
+  // Wave beta-prep-1 Bucket F7 — multi-branch filter per ADR-036
+  describe('multi-branch filter (Bucket F7)', () => {
+    it('renders branchCount field with default value 1', () => {
+      render(<BetaRequestForm />);
+      const branchInput = screen.getByTestId('beta-branch-count') as HTMLInputElement;
+      expect(branchInput).toBeInTheDocument();
+      expect(branchInput.value).toBe('1');
+    });
+
+    it('submits with branchCount=1 (single-branch path: POST dispatched)', async () => {
+      render(<BetaRequestForm />);
+      fireEvent.change(screen.getByLabelText(/Email/i), {
+        target: { value: 'hong@skyedu.vn' },
+      });
+      fireEvent.change(screen.getByLabelText(/Họ và tên/i), {
+        target: { value: 'Trần Thị Hồng' },
+      });
+      fireEvent.change(screen.getByLabelText(/Tên tổ chức/i), {
+        target: { value: 'Trung tâm Anh ngữ Sky Education' },
+      });
+      // branchCount defaults to 1 — no change needed
+      fireEvent.click(screen.getByTestId('beta-consent-checkbox'));
+      fireEvent.submit(screen.getByRole('form', { name: /beta-request-form/i }));
+
+      await waitFor(() => {
+        expect(apiClient.post).toHaveBeenCalledWith(
+          '/api/v1/auth/request-beta-access',
+          expect.objectContaining({
+            branchCount: 1,
+          }),
+        );
+      });
+      // No redirect happened
+      expect(pushMock).not.toHaveBeenCalled();
+    });
+
+    it('redirects to /waitlist when branchCount > 1 (multi-branch path: NO POST)', async () => {
+      render(<BetaRequestForm />);
+      fireEvent.change(screen.getByLabelText(/Email/i), {
+        target: { value: 'multi@example.com' },
+      });
+      fireEvent.change(screen.getByLabelText(/Họ và tên/i), {
+        target: { value: 'Nguyễn Văn An' },
+      });
+      fireEvent.change(screen.getByLabelText(/Tên tổ chức/i), {
+        target: { value: 'Trung tâm Đa Chi Nhánh' },
+      });
+      fireEvent.change(screen.getByTestId('beta-branch-count'), {
+        target: { value: '3' },
+      });
+      fireEvent.click(screen.getByTestId('beta-consent-checkbox'));
+      fireEvent.submit(screen.getByRole('form', { name: /beta-request-form/i }));
+
+      await waitFor(() => {
+        expect(pushMock).toHaveBeenCalledWith(
+          '/waitlist?reason=multi-branch&branches=3',
+        );
+      });
+      // No POST should have been dispatched
+      expect(apiClient.post).not.toHaveBeenCalled();
     });
   });
 });

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<!--
+    Invoice email template — Phase 1 BETA (Wave beta-prep-1 Bucket F4).
+
+    VN-localization audit checklist (per .claude/rules/vn-localization-audit-checklist.md v1.0.0):
+      §1 VND currency: 1.500.000đ format inline; date Thứ Hai DD/MM/YYYY
+      §2 Vietnamese label: "Hóa đơn tháng X" subject; "Em chào chị/anh" greeting (P2 owner formal)
+      §3 VN sample data: example "Trung tâm Anh ngữ Sky Education" / "Trần Thị Hồng"
+      §4 VN cultural awareness: Tết notice (cron skip Jan 25-Feb 5); bank transfer + VietQR primary; CASH receipt option
+
+    Template variables (Thymeleaf):
+      ${tenantName}          — Trung tâm Anh ngữ Sky Education
+      ${ownerName}           — Trần Thị Hồng
+      ${invoiceNumber}       — HD-2026-05-0001
+      ${billingPeriodLabel}  — Tháng 5/2026
+      ${issuedDate}          — Thứ Hai, 14/05/2026
+      ${dueDate}             — Chủ nhật, 25/05/2026
+      ${tierLabel}           — Gói Premium / Solo / Owner
+      ${amountVndFormatted}  — 1.500.000đ
+      ${vatVndFormatted}     — 150.000đ (10% VAT placeholder pre-eInvoice integration)
+      ${totalVndFormatted}   — 1.650.000đ
+      ${paymentUrl}          — VietQR pre-filled link OR bank transfer reference page
+      ${bankAccountNumber}   — 1234 5678 9012 3456 (Vietcombank)
+      ${bankAccountName}     — CÔNG TY TNHH KITEHUB
+      ${transferMemo}        — KITEHUB HD-2026-05-0001 SKYEDU
+      ${supportEmail}        — support@kitehub.me
+      ${tetNotice}           — Optional Tết block (when billing period overlaps 25/01–05/02)
+-->
+<head>
+    <meta charset="UTF-8">
+    <title th:text="|Hóa đơn ${billingPeriodLabel} — ${branding?.displayName ?: 'KiteHub'}|">Hóa đơn tháng 5/2026</title>
+    <style th:inline="text">
+        :root {
+            --brand-primary: [[${branding?.primaryColor ?: '#2563eb'}]];
+            --brand-secondary: [[${branding?.secondaryColor ?: '#1d4ed8'}]];
+            --brand-accent: [[${branding?.accentColor ?: '#10b981'}]];
+        }
+        body {
+            font-family: Arial, "Helvetica Neue", sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 16px;
+            background-color: #f9fafb;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            color: #ffffff;
+            padding: 28px 24px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .header .subtitle {
+            margin-top: 6px;
+            font-size: 13px;
+            opacity: 0.92;
+        }
+        .content {
+            background: #ffffff;
+            padding: 28px 24px;
+            border-left: 1px solid #e5e7eb;
+            border-right: 1px solid #e5e7eb;
+        }
+        .invoice-meta {
+            background: #f3f4f6;
+            border-radius: 6px;
+            padding: 16px 18px;
+            margin: 18px 0 24px 0;
+            font-size: 14px;
+        }
+        .invoice-meta table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .invoice-meta td {
+            padding: 4px 0;
+            vertical-align: top;
+        }
+        .invoice-meta td.label {
+            color: #6b7280;
+            width: 42%;
+        }
+        .amount-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 22px 0;
+            font-size: 15px;
+        }
+        .amount-table th, .amount-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+        .amount-table th {
+            background: #f9fafb;
+            color: #374151;
+            font-weight: 600;
+        }
+        .amount-table td.amount {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        .amount-table tr.total td {
+            font-weight: 700;
+            font-size: 17px;
+            color: var(--brand-primary);
+            border-top: 2px solid var(--brand-primary);
+            border-bottom: none;
+        }
+        .pay-cta {
+            display: inline-block;
+            padding: 14px 28px;
+            background: var(--brand-accent);
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .bank-box {
+            background: #eff6ff;
+            border-left: 4px solid var(--brand-primary);
+            padding: 14px 18px;
+            margin: 22px 0;
+            font-size: 14px;
+        }
+        .bank-box strong {
+            color: #1e40af;
+        }
+        .bank-box .memo {
+            margin-top: 8px;
+            padding: 8px 10px;
+            background: #ffffff;
+            border-radius: 4px;
+            font-family: "Courier New", monospace;
+            font-size: 13px;
+        }
+        .tet-notice {
+            background: #fef3c7;
+            border-left: 4px solid #d97706;
+            padding: 12px 16px;
+            margin: 18px 0;
+            font-size: 13px;
+            color: #78350f;
+        }
+        .footer {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            padding: 18px 24px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .footer a {
+            color: var(--brand-primary);
+            text-decoration: none;
+        }
+        .disclaimer {
+            margin-top: 12px;
+            font-size: 11px;
+            color: #9ca3af;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>HÓA ĐƠN ĐIỆN TỬ</h1>
+        <div class="subtitle">
+            <span th:text="|${branding?.displayName ?: 'KiteHub'} · ${billingPeriodLabel ?: 'Tháng 5/2026'}|">KiteHub · Tháng 5/2026</span>
+        </div>
+    </div>
+
+    <div class="content">
+        <p>Em chào <strong th:text="${ownerName ?: 'chị/anh'}">chị Hằng</strong>,</p>
+
+        <p>
+            KiteHub xin gửi hóa đơn dịch vụ tháng vừa qua cho
+            <strong th:text="${tenantName ?: 'Trung tâm của quý khách'}">Trung tâm Anh ngữ Sky Education</strong>.
+            Chi tiết bên dưới — chị/anh kiểm tra giúp em rồi thanh toán trước hạn để dịch vụ không bị gián đoạn nhé.
+        </p>
+
+        <div class="invoice-meta">
+            <table>
+                <tr>
+                    <td class="label">Số hóa đơn:</td>
+                    <td><strong th:text="${invoiceNumber ?: 'HD-2026-05-0001'}">HD-2026-05-0001</strong></td>
+                </tr>
+                <tr>
+                    <td class="label">Kỳ thanh toán:</td>
+                    <td th:text="${billingPeriodLabel ?: 'Tháng 5/2026'}">Tháng 5/2026</td>
+                </tr>
+                <tr>
+                    <td class="label">Ngày phát hành:</td>
+                    <td th:text="${issuedDate ?: 'Thứ Hai, 14/05/2026'}">Thứ Hai, 14/05/2026</td>
+                </tr>
+                <tr>
+                    <td class="label">Hạn thanh toán:</td>
+                    <td><strong th:text="${dueDate ?: 'Chủ nhật, 25/05/2026'}">Chủ nhật, 25/05/2026</strong></td>
+                </tr>
+                <tr>
+                    <td class="label">Gói dịch vụ:</td>
+                    <td th:text="${tierLabel ?: 'Gói Owner — 1 chi nhánh'}">Gói Owner — 1 chi nhánh</td>
+                </tr>
+            </table>
+        </div>
+
+        <table class="amount-table">
+            <thead>
+                <tr>
+                    <th>Khoản mục</th>
+                    <th style="text-align: right;">Số tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Phí dịch vụ KiteHub (chưa VAT)</td>
+                    <td class="amount" th:text="${amountVndFormatted ?: '1.500.000đ'}">1.500.000đ</td>
+                </tr>
+                <tr>
+                    <td>Thuế VAT (10%)<br>
+                        <small style="color: #6b7280;">(v1 chờ tích hợp eInvoice — Thông tư 78/2021/TT-BTC)</small>
+                    </td>
+                    <td class="amount" th:text="${vatVndFormatted ?: '150.000đ'}">150.000đ</td>
+                </tr>
+                <tr class="total">
+                    <td>Tổng cộng</td>
+                    <td class="amount" th:text="${totalVndFormatted ?: '1.650.000đ'}">1.650.000đ</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div th:if="${tetNotice}" class="tet-notice">
+            <strong>📅 Thông báo lịch Tết:</strong>
+            <span th:text="${tetNotice}">
+                Trong dịp Tết Nguyên Đán (25/01 — 05/02), KiteHub tạm hoãn cron gửi nhắc thanh toán.
+                Nếu chị/anh cần hỗ trợ gấp, vui lòng nhắn qua Zalo OA.
+            </span>
+        </div>
+
+        <div class="bank-box">
+            <strong>Thông tin chuyển khoản (ngân hàng):</strong><br>
+            Ngân hàng: <strong>Vietcombank — Chi nhánh TP.HCM</strong><br>
+            Số tài khoản: <strong th:text="${bankAccountNumber ?: '1234 5678 9012 3456'}">1234 5678 9012 3456</strong><br>
+            Chủ tài khoản: <strong th:text="${bankAccountName ?: 'CÔNG TY TNHH KITEHUB'}">CÔNG TY TNHH KITEHUB</strong><br>
+            <div class="memo">
+                Nội dung chuyển khoản (sao chép chính xác):<br>
+                <strong th:text="${transferMemo ?: 'KITEHUB HD-2026-05-0001 SKYEDU'}">KITEHUB HD-2026-05-0001 SKYEDU</strong>
+            </div>
+        </div>
+
+        <p style="text-align: center; margin: 24px 0;">
+            <a th:href="${paymentUrl ?: '#'}" class="pay-cta">Thanh toán bằng VietQR / Momo</a>
+        </p>
+
+        <p style="font-size: 13px; color: #6b7280; margin-top: 24px;">
+            <strong>Hình thức thanh toán chấp nhận:</strong> chuyển khoản ngân hàng (Vietcombank / Techcombank / MB),
+            VietQR (Momo / ZaloPay), tiền mặt (nhận biên lai tại văn phòng đại diện).
+            Sau khi chuyển khoản, hệ thống tự động đối soát trong vòng <strong>24 giờ làm việc</strong>.
+        </p>
+
+        <p style="margin-top: 24px;">
+            Mọi thắc mắc về hóa đơn, chị/anh nhắn em qua
+            <a th:href="|mailto:${supportEmail ?: 'support@kitehub.me'}|">email</a>
+            hoặc Zalo OA. Em hỗ trợ ngay trong giờ làm việc (08:00 — 18:00, Thứ Hai — Thứ Bảy).
+        </p>
+
+        <p style="margin-top: 20px;">
+            Trân trọng,<br>
+            <strong>Đội ngũ KiteHub</strong>
+        </p>
+    </div>
+
+    <div class="footer">
+        <p>
+            &copy; <span th:text="${#dates.year(#dates.createNow())}">2026</span>
+            <span th:text="${branding?.displayName ?: 'KiteHub'}">KiteHub</span> ·
+            <a th:href="|mailto:${supportEmail ?: 'support@kitehub.me'}|" th:text="${supportEmail ?: 'support@kitehub.me'}">support@kitehub.me</a>
+        </p>
+        <p class="disclaimer">
+            [Phiên bản v1 — đang chờ tư vấn pháp lý hoàn thiện hóa đơn điện tử theo
+            Thông tư 78/2021/TT-BTC. Hóa đơn này không thay thế chứng từ kế toán chính thức.]
+        </p>
+    </div>
+</body>
+</html>
