@@ -419,4 +419,36 @@ spec:
             summary: "Postgres RLS policy violation detected"
             description: "tenant_isolation policy denied a query at {{ "{{ $value }}" }} req/s — possible developer regression OR active cross-tenant probe. Treat as P0 security incident."
             runbook_url: "/documents/05-guides/operations/runbooks/rls-policy-violation.md"
+
+    # GAP-742 — Wave beta-readiness-7 Bucket E.
+    # OUTBOX dispatcher production-enabled at Wave br-4 (PR #1781, kitehub.outbox.enabled=true).
+    # Any message reaching a `.dlq` queue = tenant-facing dispatch failure (welcome email,
+    # invoice notification, migration lifecycle event, payment confirmation) that retry
+    # budget could NOT recover. Per pre-handoff-self-test-completeness.md §2.9 (C4-4),
+    # background-job class REQUIRES "DLQ non-empty alert fires" — this group satisfies that
+    # mandate at severity=critical (page on-call) WITH 5min for-window to allow legitimate
+    # in-flight messages to drain via consumer recovery before paging.
+    #
+    # Sister alert (warning ngưỡng cao hơn): EmailQueueDLQGrowing trong kitehub-platform-alerts
+    # group above (>10 in 10m, severity=warning). This group fires EARLIER (>0 in 5m) at
+    # higher severity vì production outbox = tenant-facing dispatch, không phải best-effort.
+    #
+    # Metric source: rabbitmq-exporter scraping kite-rabbitmq broker. Queue pattern `.*\.dlq$`
+    # matches current DLQ naming convention (email.dlq, kitehub.migration.dlq per
+    # EmailQueueConfig.EMAIL_DLQ + MigrationEventType.TOPIC_MIGRATION_DLQ).
+    #
+    # Severity routing: severity=critical → critical-webhook (PagerDuty) per
+    # alertmanager-config.yaml — same path as ServiceDown / RLSPolicyViolation / BackupJobFailure.
+    - name: outbox-dlq-alerts
+      rules:
+        - alert: OutboxDLQNonEmpty
+          expr: rabbitmq_queue_messages_ready{queue=~".*\\.dlq$"} > 0
+          for: 5m
+          labels:
+            severity: critical
+            service: kitehub
+          annotations:
+            summary: "Outbox DLQ {{ "{{ $labels.queue }}" }} non-empty — tenant-facing dispatch failed"
+            description: "Queue {{ "{{ $labels.queue }}" }} has {{ "{{ $value }}" }} message(s) ready after retry budget exhausted. Each message = 1 tenant did NOT receive their email / lifecycle event / payment confirmation. Investigate consumer crash, poison payload, OR downstream provider outage immediately."
+            runbook_url: "/documents/05-guides/operations/runbooks/outbox-dlq-investigation.md"
 {{- end }}
