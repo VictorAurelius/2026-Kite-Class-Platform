@@ -194,35 +194,40 @@ Kite Platform tương tác với 8 nhóm actor (người dùng và quản trị)
 
 ```mermaid
 flowchart TB
-    P1[P1 Giáo viên độc lập<br/>5-50 học sinh]
-    P2[P2 Chủ trung tâm<br/>20-100 học sinh]
-    P3[P3 Quản lý trung tâm<br/>100-500 học sinh]
-    P5[P5 Hiệu trưởng K-12<br/>phạm vi mở rộng giai đoạn vận hành chính thức]
-    Vy[Người dùng tiềm năng<br/>truy cập landing]
-    Admin[Quản trị nền tảng<br/>vận hành nội bộ]
-    Student[Học sinh<br/>mobile chiếm 85%]
-    Parent[Phụ huynh<br/>thông báo qua email/Zalo]
+    subgraph tenants [Nhóm tenant truy cập hệ thống]
+        direction LR
+        P1[P1 Giáo viên độc lập<br/>5-50 học sinh]
+        P2[P2 Chủ trung tâm<br/>20-100 học sinh]
+        P3[P3 Quản lý trung tâm<br/>100-500 học sinh]
+        P5[P5 Hiệu trưởng K-12<br/>mở rộng giai đoạn chính thức]
+    end
+
+    subgraph endusers [Người dùng cuối và quản trị]
+        direction LR
+        Vy[Người dùng tiềm năng<br/>truy cập landing]
+        Student[Học sinh<br/>mobile chiếm 85%]
+        Parent[Phụ huynh<br/>email + Zalo]
+        Admin[Quản trị nền tảng<br/>vận hành nội bộ]
+    end
 
     Kite[Kite Platform<br/>Multi-tenant SaaS education<br/>KiteHub control-plane + KiteClass data-plane]
 
-    Resend[Resend<br/>Email API môi trường dev]
-    SES[AWS SES<br/>Email vận hành]
-    VietQR[VietQR<br/>Thanh toán QR upload]
-    Zalo[Zalo OA<br/>Hỗ trợ nhanh]
-    CF[Cloudflare<br/>DNS + CDN + DDoS]
-    Status[Statuspage<br/>Truyền thông sự cố]
+    subgraph ext [Hệ thống bên ngoài tích hợp qua adapter]
+        direction LR
+        Resend[Resend<br/>Email API dev]
+        SES[AWS SES<br/>Email vận hành]
+        VietQR[VietQR<br/>Thanh toán QR]
+        Zalo[Zalo OA<br/>Hỗ trợ nhanh]
+        CF[Cloudflare<br/>DNS + CDN + DDoS]
+        Status[Statuspage<br/>Truyền thông sự cố]
+    end
 
-    P1 -->|HTTPS browser| Kite
-    P2 -->|HTTPS browser desktop| Kite
-    P3 -->|HTTPS browser tablet bulk ops| Kite
-    Vy -->|landing + signup| Kite
-    Admin -->|admin dashboard role-gated| Kite
-    Student -->|mobile primary| Kite
-    Parent -->|Zalo link + email verify| Kite
+    tenants -->|HTTPS browser/tablet| Kite
+    endusers -->|HTTPS browser/mobile| Kite
 
     Kite -->|HTTP POST transactional| Resend
     Kite -->|AWS SDK SesV2Client| SES
-    Kite -->|QR upload + manual reconcile P1.5| VietQR
+    Kite -->|QR upload + manual reconcile| VietQR
     Kite -->|OA broadcast support| Zalo
     Kite -.->|served via apex| CF
     Kite -->|incident posts + uptime| Status

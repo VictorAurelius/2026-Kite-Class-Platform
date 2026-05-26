@@ -587,8 +587,13 @@ def add_image_inline(doc, image_path, caption=None, width_cm=14.0):
                     target_width_cm = A4_BODY_WIDTH_CM
                     target_height_cm = A4_BODY_WIDTH_CM / aspect
             else:
-                # Square-ish: stick with default but slightly larger for visibility
-                target_width_cm = max(width_cm, 13.0)
+                # Round 2.5 — square-ish (aspect 0.7..1.4): use FULL body width 16cm
+                # (was 13-15cm — increased to maximize visual area on page)
+                target_width_cm = A4_BODY_WIDTH_CM
+                target_height_cm = A4_BODY_WIDTH_CM / aspect
+                if target_height_cm > A4_BODY_HEIGHT_CM:
+                    target_height_cm = A4_BODY_HEIGHT_CM
+                    target_width_cm = A4_BODY_HEIGHT_CM * aspect
         except Exception:
             # Graceful fallback to fixed width_cm
             target_width_cm = width_cm
@@ -725,7 +730,13 @@ def add_code_block(doc, code_text, lang=""):
                         target_w = A4_BODY_WIDTH_CM
                         target_h = A4_BODY_WIDTH_CM / aspect
                 else:
-                    target_w = max(14.0, 15.0)
+                    # Round 2.5 — square-ish (aspect 0.7..1.4): use FULL body width 16cm
+                    # (was 15cm — increased to maximize visual area)
+                    target_w = A4_BODY_WIDTH_CM
+                    target_h = A4_BODY_WIDTH_CM / aspect
+                    if target_h > A4_BODY_HEIGHT_CM:
+                        target_h = A4_BODY_HEIGHT_CM
+                        target_w = A4_BODY_HEIGHT_CM * aspect
             except Exception:
                 pass
             if target_h is not None and target_h > 0:
