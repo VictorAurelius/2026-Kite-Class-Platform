@@ -93,6 +93,21 @@ resource "aws_secretsmanager_secret" "jwt_challenge" {
 resource "aws_secretsmanager_secret_version" "jwt_challenge" {
   secret_id     = aws_secretsmanager_secret.jwt_challenge.id
   secret_string = random_password.jwt_challenge.result
+
+  # Wave aws-restore-1 (2026-05-26): preserve Wave 81 manually-set secret value
+  # post terraform import — random_password.jwt_challenge.result is initial
+  # seed only; once imported, ignore_changes prevents overwrite.
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
+}
+
+# Wave aws-restore-1 (2026-05-26): import existing secret created manually
+# Wave 81 (GAP-509 unblock) into terraform state. Per GAP-717 v1.0.0
+# "Post-AWS-restore live verify" inline procedure.
+import {
+  to = aws_secretsmanager_secret.jwt_challenge
+  id = "kitehub/production/jwt-challenge-secret"
 }
 
 # --- Resend API key (Stream A per ADR-025 — HTTP API replaces SMTP path) ---
@@ -141,6 +156,14 @@ resource "aws_secretsmanager_secret_version" "resend_api_key" {
   lifecycle {
     ignore_changes = [secret_string]
   }
+}
+
+# Wave aws-restore-1 (2026-05-26): import existing secret created manually
+# Wave 71b GAP-513 (Resend pivot post-ADR-025 Stream A) into terraform state.
+# Pattern mirrors jwt-challenge import.
+import {
+  to = aws_secretsmanager_secret.resend_api_key
+  id = "kitehub/production/resend-api-key"
 }
 
 # --- Encryption master key (32 bytes base64) ---
