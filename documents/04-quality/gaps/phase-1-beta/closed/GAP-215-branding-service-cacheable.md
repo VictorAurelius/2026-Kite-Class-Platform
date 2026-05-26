@@ -1,6 +1,6 @@
 # GAP-215: `BrandingService.getBranding()` not `@Cacheable` — DB hit per document render
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 100%
 **Priority:** 🔴 P0 — blocks Sub-PR 5.6b per Wave 5 plan §4 "5.6a P0 → block 5.6b" policy
 **Domain:** Backend / Performance
 **Found:** 2026-04-25 (Wave 5 audit suite — performance audit `documents/04-quality/audits/performance/performance-audit-2026-04-25-wave5.md` finding P0-1)
@@ -64,3 +64,5 @@ Eviction: invalidate on `BrandingService.updateBranding()` / `uploadLogo()` / `u
 ## Log
 
 - **2026-04-25:** Filed from Wave 5 audit suite (performance audit finding P0-1). Blocks Sub-PR 5.6b.
+
+- **2026-05-26 (Wave br-7 Bucket A inline verify — 5/5 IT PASS BrandingCacheIntegrationTest; code shipped prior wave (Sub-PR 5.6 era) closure):** Flipped DONE 100% — . CSV row updated + file moved to phase-1-beta/closed/ per `gap-done-discipline.md` §2.

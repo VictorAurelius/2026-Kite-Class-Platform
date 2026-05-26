@@ -1,0 +1,33 @@
+{
+  "pr": 1841,
+  "title": "chore(wave-beta-readiness-6-closure): SHIPPED 3/3 + 5-target sync + session handoff",
+  "branch": "chore/wave-br-6-closure",
+  "created_at": null,
+  "merged_at": "2026-05-26T02:07:00Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-26T02:07:06.189081",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 8,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-6943"
+  }
+}

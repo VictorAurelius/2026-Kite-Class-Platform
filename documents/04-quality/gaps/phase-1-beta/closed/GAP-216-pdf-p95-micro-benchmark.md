@@ -1,6 +1,6 @@
 # GAP-216: PDF/XLSX/DOCX p95 micro-benchmark + SLO assertion
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 100%
 **Priority:** 🔴 P0 — blocks Sub-PR 5.6b per Wave 5 plan §4 "5.6a P0 → block 5.6b" policy
 **Domain:** Backend / Testing / Performance
 **Found:** 2026-04-25 (Wave 5 audit suite — performance audit finding P0-2)
@@ -63,3 +63,5 @@ Cheap but environmentally noisy on shared CI runners.
 ## Log
 
 - **2026-04-25:** Filed from Wave 5 audit suite (performance audit finding P0-2). Blocks Sub-PR 5.6b. Recommended fix is Option B soft-cap canary; full JMH deferred to Wave 7.
+
+- **2026-05-26 (Wave br-7 Bucket B PR #1845 — soft-cap canary 3 generator tests + BR-DOC-PDF-007 rule clarification + GAP-750 follow-up filed closure):** Flipped DONE 100% — . CSV row updated + file moved to phase-1-beta/closed/ per `gap-done-discipline.md` §2.

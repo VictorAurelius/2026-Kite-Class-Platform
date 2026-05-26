@@ -1,6 +1,6 @@
 # GAP-218: PDF font-missing runbook + container image-build validation
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 100%
 **Priority:** 🔴 P0 — blocks Sub-PR 5.6b per Wave 5 plan §4 "5.6a P0 → block 5.6b" policy
 **Domain:** Ops / Deploy
 **Found:** 2026-04-25 (Wave 5 audit suite — ops-readiness audit finding #2)
@@ -95,3 +95,5 @@ Stack trace contains: IllegalStateException: Font resource not found on classpat
 ## Log
 
 - **2026-04-25:** Filed from Wave 5 audit suite (ops audit finding #2). P0 because the failure mode is silent until first prod call → user-visible 500 → on-call has no playbook. CI validation + runbook = ~1h work, hard requirement before Sub-PR 5.6b ships per "P0 → block 5.6b" wave policy.
+
+- **2026-05-26 (Wave br-7 Bucket D PR #1842 — Dockerfile font assertion + runbook already shipped Wave 5 Sub-PR 5.6b; 1-line Dockerfile comment path fix closure):** Flipped DONE 100% — . CSV row updated + file moved to phase-1-beta/closed/ per `gap-done-discipline.md` §2.

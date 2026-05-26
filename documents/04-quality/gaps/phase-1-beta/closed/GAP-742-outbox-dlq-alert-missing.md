@@ -1,6 +1,6 @@
 # GAP-742: Outbox DLQ alert missing — production outbox enabled without DLQ monitoring
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 100%
 **Priority:** 🟠 P1
 **Domain:** Ops (Alerting)
 **Found:** 2026-05-25 (Wave audit-1 Bucket D Ops Readiness audit)
@@ -45,3 +45,5 @@ Bucket D Wave br-4 (PR #1781) focus on outbox consumer code + feature flag. DLQ 
 ## Log
 
 - **2026-05-25 (created):** Filed per Wave audit-1 Ops Readiness audit OPS-BR4-001. Wave beta-readiness-7 Bucket E scope.
+
+- **2026-05-26 (Wave br-7 Bucket E PR #1843 — new outbox-dlq-alerts Prometheus group + outbox-dlq-investigation.md runbook closure):** Flipped DONE 100% — . CSV row updated + file moved to phase-1-beta/closed/ per `gap-done-discipline.md` §2.

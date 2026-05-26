@@ -1,0 +1,37 @@
+{
+  "pr": 1844,
+  "title": "feat(wave-br-7-bucket-c): GAP-217 document endpoints alert rules",
+  "branch": "wave/br-7-bucket-c-document-alerts",
+  "created_at": null,
+  "merged_at": "2026-05-26T02:40:17Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "ops-readiness-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-26T02:40:22.621654",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 2,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": [
+          "ops-readiness-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/3",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-169029"
+  }
+}
