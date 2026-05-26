@@ -53,15 +53,18 @@ resource "aws_security_group" "ec2_app" {
     }
   }
 
-  # If ALB disabled, allow internet (Cloudflare-direct mode) on 80/443 only
+  # Wave aws-restore-1 (2026-05-26): if ALB disabled, allow kc_app_fe nginx
+  # reverse-proxy to private VPC ports 80, 443, 8080 (gateway). NO 0.0.0.0/0
+  # fallback — DB-bearing EC2 must stay private. Per architecture pivot:
+  # CF → kc_app_fe EIP → nginx reverse_proxy → kh_backend private IP.
   dynamic "ingress" {
-    for_each = var.enable_alb ? [] : [80, 443]
+    for_each = var.enable_alb ? [] : [80, 443, 8080]
     content {
-      from_port   = ingress.value
-      to_port     = ingress.value
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-      description = "Port ${ingress.value} from internet (no ALB mode)"
+      from_port       = ingress.value
+      to_port         = ingress.value
+      protocol        = "tcp"
+      security_groups = [aws_security_group.kc_app_fe.id]
+      description     = "Port ${ingress.value} from kc_app_fe nginx reverse-proxy (no ALB mode)"
     }
   }
 
