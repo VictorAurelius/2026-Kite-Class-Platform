@@ -1,8 +1,9 @@
 ---
 title: Wave rst-cascade-1 — 13 cascade gap live walkthrough (LOCAL first → AWS verify)
-status: draft
+status: complete
 created: 2026-05-26
 updated: 2026-05-26
+closed_at: 2026-05-26
 audience: dev
 tag_primary: rst-cascade
 tags_secondary: [phase-1-beta, aws-restore-followup, cost-optimized, local-first]
@@ -221,3 +222,23 @@ Spawn pattern per `agent-background-spawn-default.md` v1.0.1 + `feedback_paralle
 ## 8. Log
 
 - **2026-05-26 (status: draft):** Wave plan created. Source = Wave aws-restore-1 closure session-handoff + user direction 2026-05-26 "đảm bảo rst local thành công 100% trước mới rst aws để tránh lãng phí tài nguyên". Local-first sequencing per `local-self-test-before-aws-deploy.md` v1.0.0. Cost optimization Option C (Hybrid stop strategy) per user AskUserQuestion 2026-05-26 — total marginal cost ~$15-16 (vs ~$30-50/day if keep stack running). 13 cascade gaps clustered 4 buckets (email + auth + onboarding + infra). 3 Opus 4.7 parallel agents Phase α + coordinator inline Phase β. Per `wave-tag-numbering-convention.md` v1.0.0 tag-based schema: `tag_primary: rst-cascade`, `counter: 1`. Awaiting Wave aws-restore-1 closure PR #1857 merge before launch.
+
+---
+
+## 7.1 Scope-Completeness Reconciliation (post-closure 2026-05-26)
+
+| # | Plan §3 Scope item | Verdict | Follow-up |
+|---|---|---|---|
+| 1 | Email cluster (6 gaps) | ⚠️ PARTIAL — 0 DONE / 6 PARTIAL (3 advance +4/+50, 3 stay) | Day 5+ Resend warm-up unblock GAP-543/370/530 final live verify |
+| 2 | Auth+admin cluster (5 gaps) | ✅ DONE — 3 DONE flip (684/514/508) / 2 PARTIAL (534/599) | GAP-534 full reuse + GAP-599 live multi-tab defer Wave 99+ |
+| 3 | Onboarding+signup cluster (6 gaps) | ✅ MOSTLY — 1 DONE (724) / 4 PARTIAL + GAP-611 promoted DONE Phase β + GAP-610 cascade promoted | GAP-753 file for cascade fix |
+| 4 | Infra+UI cluster (2 gaps) | ⚠️ PARTIAL — 0 DONE / 2 PARTIAL +5 (502/656) | Wave 99+ extend soak + Playwright |
+| 5 | Phase β AWS subset verify | ✅ DONE — 4 DONE flip production-equivalent confirmed + 12/13 endpoints reachable + 1 cascade promoted | — |
+| 6 | AWS stack stopped post-Phase-β | ✅ DONE — EC2 stopped; RDS stopping async (acceptable) | — |
+| 7 | DONE flips per gap evidence | ✅ DONE — 5 flips applied (684/514/508/724 + 611 new) | — |
+| 8 | Cost outcome ~$15-16 marginal | ✅ DONE actual ~$0.5 (under projection — short stack window 30min vs 2h) | — |
+
+## 8. Log
+
+- **2026-05-26 (status: draft):** Wave plan created. Source = Wave aws-restore-1 closure session-handoff + user direction 2026-05-26 "đảm bảo rst local thành công 100% trước mới rst aws để tránh lãng phí tài nguyên". Local-first sequencing per `local-self-test-before-aws-deploy.md` v1.0.0. Cost optimization Option C (Hybrid stop strategy) per user AskUserQuestion 2026-05-26 — total marginal cost ~$15-16 (vs ~$30-50/day if keep stack running). 13 cascade gaps clustered 4 buckets (email + auth + onboarding + infra). 3 Opus 4.7 parallel agents Phase α + coordinator inline Phase β. Per `wave-tag-numbering-convention.md` v1.0.0 tag-based schema: `tag_primary: rst-cascade`, `counter: 1`. Awaiting Wave aws-restore-1 closure PR #1857 merge before launch.
+- **2026-05-26 (status: complete):** Wave SHIPPED. 5 DONE flips (4 Phase α + 1 Phase β promoted GAP-611 RFC 7231 reword) + 14 PARTIAL with delta tracking + 5 cascade findings (2 P1 promoted to GAP-752/753 follow-up). Wall-clock ~1h 45min coordinator (vs ~4-6h sequential estimate — 3-4x wave-pack parallel speedup). AWS cost actual $0.5 vs $15-16 projection (under-spend). PRs merged: #1861 (Cluster 1 Email) + #1865 (Cluster 2+3+4 consolidated). Closure audit: `documents/04-quality/audits/quality/2026-05-26-wave-rst-cascade-1-closure.md`. New rule shipped same closure PR: `.claude/rules/ci-queue-local-runner-threshold.md` v1.0.0 (META P1 force-multiplier — codifies local-CI parity pre-push from 4-PR experience). Next critical path: Wave beta-prep-1 (6 bucket mega-wave) PDPL Bucket A ship target ~2026-06-16 (8 ngày buffer trước PDPL hard deadline 2026-07-01).
