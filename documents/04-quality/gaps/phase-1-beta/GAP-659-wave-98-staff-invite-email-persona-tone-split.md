@@ -1,6 +1,6 @@
 # GAP-659: Staff-invite email + persona-tone split (formal owner vs informal teacher)
 
-**Status:** 🟡 PARTIAL (95% — Wave 107)
+**Status:** 🟡 PARTIAL (99% — Wave rst-cascade-1 Cluster-1, template+renderer LIVE-verified LOCAL; remaining: VN copywriter pass deferred GAP-658 + 2-client live verify deferred GAP-612 + send-site wiring deferred Wave 108+)
 **Priority:** 🔴 P0
 **Domain:** Backend (kitehub-email templates + tone logic)
 **Detected:** 2026-05-18 (Wave 98 prep — outside-in audit persona F-NEW-6 + external benchmark B-NEW-3)
@@ -103,6 +103,7 @@ After this gap DONE → GAP-543 §AC update:
 
 ## Log
 
+- **2026-05-26 (Wave rst-cascade-1 Cluster-1 — PARTIAL 95→99, template+renderer LIVE-verified LOCAL):** LOCAL stack 11/11 healthy post Wave aws-restore-1 closure. Live SMTP→MailHog test rendered all 4 per-tone templates end-to-end: `welcome.formal` (200 SENT, body decoded contains "Kính gửi" + "Kính ngữ cao: 'Kính gửi chị/anh {Name}'") + `welcome.informal` (200 SENT, body contains "Chào bạn" + "hành động nhanh: 'Chào bạn', câu ngắn, emoji OK") + `invite-staff.formal` (200 SENT). resolveTemplatePath() dispatch + renderHtmlWithFallback() verified live. Tone-distinction confirmed per `vn-localization-audit-checklist.md` §2 email tone matrix (P2 Owner formal / P1 Solo casual). Walkthrough doc: `documents/04-quality/audits/quality/2026-05-26-wave-rst-cascade-1-cluster-1-email.md` §GAP-659. Completion 95→99 — gap stays PARTIAL pending: (a) VN copywriter pass deferred GAP-658, (b) 2-client live verify deferred GAP-612, (c) send-site wiring deferred Wave 108+. Coordinator decides DONE flip post-cluster review.
 - **2026-05-23 (Wave 107 — PARTIAL 95%):** Shipped final 20% per-tone variant implementation:
   - Created 4 per-tone variant template files: `welcome.formal.html` (FORMAL_AUTHORITY / P2 Center Owner — kính ngữ cao, "Kính gửi chị/anh", "Trân trọng kính chào"), `welcome.informal.html` (INFORMAL_FRIEND / P1 Solo Teacher — thân mật, "Chào bạn! 👋", emoji OK, CTA hành động nhanh), `invite-staff.formal.html` (FORMAL_AUTHORITY staff invite), `invite-staff.informal.html` (INFORMAL_FRIEND staff invite). All 4 templates satisfy `vn-localization-audit-checklist.md` §2 4-section checklist (VND format / Vietnamese label / VN sample data `Trần Thị Hồng` / `Nguyễn Thị Hằng` / `Trung tâm Anh ngữ Sky Education` / VN cultural awareness Zalo contact).
   - `EmailTemplateRenderer.java`: added `TONE_SUFFIX` static `EnumMap<Tone, String>` (FORMAL_AUTHORITY→`.formal`, SEMI_FORMAL_PEER→`.semi-formal`, INFORMAL_FRIEND→`.informal`; FORMAL_SAFE_DEFAULT absent → base template); added `renderHtmlWithFallback()` (tries per-tone variant path, catches `TemplateInputException`, falls back to base template); updated `resolveTemplatePath()` (was TODO stub, now full tone-suffix dispatch); changed visibility `private` → package-private for testability.
