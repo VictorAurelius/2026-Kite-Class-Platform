@@ -25,26 +25,43 @@ KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast
 @startuml
 !define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist
 !include AWSPuml/AWSCommon.puml
+!include AWSPuml/AWSSimplified.puml
 !include AWSPuml/Compute/EC2.puml
 !include AWSPuml/Database/RDS.puml
 !include AWSPuml/NetworkingContentDelivery/ElasticLoadBalancing.puml
+!include AWSPuml/Groups/AWSCloud.puml
+!include AWSPuml/Groups/VPC.puml
+!include AWSPuml/Groups/AvailabilityZone.puml
+!include AWSPuml/Groups/PublicSubnet.puml
+!include AWSPuml/Groups/PrivateSubnet.puml
+!include <logos/cloudflare>
 
 skinparam dpi 150
-skinparam defaultFontSize 30
+skinparam defaultFontSize 28
 skinparam defaultFontName Arial
-skinparam ArrowFontSize 24
+skinparam ArrowFontSize 22
 skinparam ArrowColor #232F3E
-skinparam ArrowThickness 3
-skinparam ranksep 80
-skinparam nodesep 100
+skinparam ArrowThickness 2
+skinparam ranksep 70
+skinparam nodesep 90
 
 actor "Người dùng" as User
-cloud "Cloudflare" as CF #FFE9A8
+rectangle "<$cloudflare>\nCloudflare\nDNS + CDN + DDoS" as CF
 
-ElasticLoadBalancing(ALB, "ALB", "Public subnet AZ-1a")
-EC2(EC2_KH, "kh-backend", "Public subnet AZ-1a")
-EC2(EC2_KC, "kc-app", "Public subnet AZ-1a")
-RDS(DB, "RDS PostgreSQL 16", "Private subnet AZ-1a + 1b")
+AWSCloudGroup(aws, "AWS Region ap-southeast-1") {
+  VPCGroup(vpc, "VPC 10.0.0.0/16") {
+    AvailabilityZoneGroup(az1, "AZ-1a") {
+      PublicSubnetGroup(pub1, "Public Subnet") {
+        ElasticLoadBalancing(ALB, "ALB", "HTTPS + TLS 1.3")
+        EC2(EC2_KH, "kh-backend", "t3.micro")
+        EC2(EC2_KC, "kc-app", "t3.micro")
+      }
+      PrivateSubnetGroup(prv1, "Private Subnet") {
+        RDS(DB, "RDS PG 16", "db.t3.micro + RLS")
+      }
+    }
+  }
+}
 
 User --> CF
 CF --> ALB
@@ -61,32 +78,36 @@ EC2_KC --> DB
 @startuml
 !define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist
 !include AWSPuml/AWSCommon.puml
+!include AWSPuml/AWSSimplified.puml
 !include AWSPuml/Compute/EC2.puml
 !include AWSPuml/Storage/SimpleStorageService.puml
 !include AWSPuml/SecurityIdentityCompliance/SecretsManager.puml
 !include AWSPuml/Containers/ElasticContainerRegistry.puml
 !include AWSPuml/BusinessApplications/SimpleEmailService.puml
 !include AWSPuml/ManagementGovernance/CloudWatch.puml
+!include AWSPuml/Groups/AWSCloud.puml
 
 skinparam dpi 150
-skinparam defaultFontSize 30
+skinparam defaultFontSize 28
 skinparam defaultFontName Arial
-skinparam ArrowFontSize 24
+skinparam ArrowFontSize 22
 skinparam ArrowColor #232F3E
-skinparam ArrowThickness 3
+skinparam ArrowThickness 2
 skinparam ranksep 80
-skinparam nodesep 100
+skinparam nodesep 90
 
-EC2(EC2_KH, "kh-backend", "")
-EC2(EC2_KC, "kc-app", "")
-SimpleStorageService(S3, "S3", "multi-tenant")
-SimpleEmailService(SES, "SES", "Transactional")
-SecretsManager(SM, "Secrets Manager", "JWT + DB")
-ElasticContainerRegistry(ECR, "ECR", "Docker images")
-CloudWatch(CW, "CloudWatch", "Logs + Metrics")
+AWSCloudGroup(aws, "AWS Region ap-southeast-1") {
+  EC2(EC2_KH, "kh-backend", "EC2")
+  EC2(EC2_KC, "kc-app", "EC2")
+  SimpleStorageService(S3, "S3", "multi-tenant")
+  SimpleEmailService(SES, "SES", "Transactional")
+  SecretsManager(SM, "Secrets Manager", "JWT + DB")
+  ElasticContainerRegistry(ECR, "ECR", "Docker images")
+  CloudWatch(CW, "CloudWatch", "Logs + Metrics")
+}
 
-ECR --> EC2_KH
-ECR --> EC2_KC
+ECR --> EC2_KH : pull
+ECR --> EC2_KC : pull
 EC2_KH --> S3
 EC2_KC --> S3
 EC2_KH --> SES
