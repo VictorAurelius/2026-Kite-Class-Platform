@@ -111,7 +111,7 @@ spec:
           annotations:
             summary: "Document generation p95 latency exceeds BR-DOC-PDF-007 budget"
             description: "POST /api/v1/documents/* p95 is above 2 seconds for 5 minutes (current value: {{ "{{ $value | humanizeDuration }}" }}). Likely cause: branding cache miss storm OR PDF font load regression."
-            runbook_url: "documents/05-guides/operations/runbooks/pdf-generation-font-not-found.md"
+            runbook_url: "/documents/05-guides/operations/runbooks/pdf-generation-font-not-found.md"
 
         - alert: DocumentGenerationHighErrorRate
           expr: |
@@ -127,7 +127,7 @@ spec:
           annotations:
             summary: "5xx rate on /api/v1/documents/* exceeds 1%"
             description: "Document generation endpoints returning {{ "{{ $value | humanizePercentage }}" }} server errors over 5 minutes. Common cause: missing DejaVuSans TTF in deployed image."
-            runbook_url: "documents/05-guides/operations/runbooks/pdf-generation-font-not-found.md"
+            runbook_url: "/documents/05-guides/operations/runbooks/pdf-generation-font-not-found.md"
 
         - alert: DocumentBrandingCacheMissStorm
           # Depends on Spring Cache Micrometer metrics (GAP-219 P1 sub-bullet 4).
