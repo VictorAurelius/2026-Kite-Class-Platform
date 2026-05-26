@@ -36,21 +36,23 @@ KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast
 !include AWSPuml/ManagementGovernance/CloudWatch.puml
 !include AWSPuml/ManagementGovernance/CloudTrail.puml
 
+skinparam dpi 150
 skinparam linetype ortho
-skinparam defaultFontSize 24
+skinparam defaultFontSize 28
 skinparam defaultFontName Arial
-skinparam ArrowFontSize 20
+skinparam ArrowFontSize 24
 skinparam ArrowColor #232F3E
-skinparam ArrowThickness 2
-skinparam ranksep 60
-skinparam nodesep 40
+skinparam ArrowThickness 3
+skinparam ranksep 90
+skinparam nodesep 60
 skinparam rectangle {
   BorderColor #232F3E
   BackgroundColor #FFFFFF
   FontStyle bold
+  RoundCorner 10
 }
 skinparam actor {
-  FontSize 22
+  FontSize 26
 }
 
 actor "Người dùng" as User

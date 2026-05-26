@@ -721,9 +721,11 @@ def _render_plantuml_to_png(plantuml_src: str, cache_dir: Path) -> Path | None:
         print(f"  WARN: plantuml.jar not found at {plantuml_jar}")
         return None
 
-    # Inject SMETANA layout pragma so we don't need graphviz dot
-    if "!pragma layout" not in plantuml_src:
-        # Insert after @startuml line
+    # GraphViz `dot` available locally → use default layout (better than SMETANA for
+    # complex nested rectangles + AWS icons diagrams). Only inject SMETANA fallback
+    # if `dot` not installed.
+    import shutil
+    if "!pragma layout" not in plantuml_src and not shutil.which("dot"):
         lines = plantuml_src.split('\n', 1)
         plantuml_src = lines[0] + '\n!pragma layout smetana\n' + (lines[1] if len(lines) > 1 else '')
 
