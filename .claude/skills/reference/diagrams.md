@@ -159,6 +159,75 @@ Mermaid auto-layout produces aspect based on node count + connectivity:
 - **Aspect >3:** Image squashed flat (height <5cm at 16cm width). Restructure: split nodes across more ranks (use TB) OR break long chains into 2-3 vertical clusters.
 - **Aspect <0.5:** Image too tall (height >20cm = full A4 page). Restructure: use LR for sub-flows OR split single chain into 2 vertical columns.
 
+### AWS architecture diagrams — use PlantUML với AWS Icons stdlib
+
+Mermaid KHÔNG support service-specific icons. Cho professional AWS architecture diagrams với official AWS service logos (EC2, RDS, S3, ALB, SES, CloudWatch, etc.), **use PlantUML với AWS Icons stdlib** thay vì Mermaid flowchart.
+
+**Setup (pipeline):**
+- Local `plantuml.jar` tại `documents/06-diagrams/tools/plantuml.jar`
+- Render via subprocess: `java -DPLANTUML_SECURITY_PROFILE=INTERNET -jar plantuml.jar -tpng <file>.puml`
+- INTERNET security profile để allow `!includeurl` từ awslabs repo
+- SMETANA layout engine (`!pragma layout smetana`) cho rendering không cần graphviz
+
+**Source pattern:**
+````markdown
+```plantuml
+@startuml
+!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist
+!includeurl AWSPuml/AWSCommon.puml
+!includeurl AWSPuml/Compute/EC2.puml
+!includeurl AWSPuml/Database/RDS.puml
+!includeurl AWSPuml/Storage/SimpleStorageService.puml
+!includeurl AWSPuml/NetworkingContentDelivery/ElasticLoadBalancing.puml
+
+skinparam linetype ortho
+skinparam defaultFontSize 26
+skinparam ArrowFontSize 22
+skinparam ranksep 70
+skinparam nodesep 50
+
+actor "Người dùng" as User
+cloud "Cloudflare\nDNS + CDN" as CF
+
+rectangle "AWS Region — ap-southeast-1" {
+  ElasticLoadBalancing(ALB, "Application LB", "HTTPS + TLS 1.3")
+  rectangle "Compute (EC2 t3.micro × 2)" {
+    EC2(KH, "kh-backend", "Gateway + services")
+    EC2(KC, "kc-app", "KiteClass + frontend")
+  }
+  RDS(DB, "RDS PostgreSQL 16", "db.t3.micro + RLS")
+  SimpleStorageService(S3, "S3", "multi-tenant prefix")
+}
+
+User --> CF --> ALB
+ALB --> KH
+ALB --> KC
+KH --> DB
+KC --> DB
+@enduml
+```
+````
+
+**Key skinparams cho thesis A4 docx embed:**
+- `defaultFontSize 26` — text readable post scale-down (PlantUML scales differently from Mermaid)
+- `ArrowFontSize 22` — arrow labels readable
+- `linetype ortho` — orthogonal arrows (cleaner cho architecture diagram)
+- `ranksep 70` + `nodesep 50` — breathing room between ranks/nodes
+- `ArrowThickness 2` — arrows visible post scale-down
+
+**AWS Icons categories available** (https://github.com/awslabs/aws-icons-for-plantuml/tree/main/dist):
+- `Compute/` — EC2, Lambda, ECS, EKS, Fargate, Batch
+- `Database/` — RDS, DynamoDB, ElastiCache, Aurora, Neptune
+- `Storage/` — SimpleStorageService (S3), EBS, EFS, FSx, Glacier
+- `NetworkingContentDelivery/` — ElasticLoadBalancing (ALB/NLB/CLB), CloudFront, Route53, VPC
+- `SecurityIdentityCompliance/` — SecretsManager, KMS, IAM, Cognito, GuardDuty
+- `ManagementGovernance/` — CloudWatch, CloudTrail, Config, Systems Manager
+- `BusinessApplications/` — SimpleEmailService (SES), WorkMail, Chime
+- `Containers/` — ElasticContainerRegistry (ECR), ECS, EKS
+- `ApplicationIntegration/` — SQS, SNS, EventBridge, Step Functions
+
+**Worked example:** Hình 4.1 thesis-v1.docx rewrite từ Mermaid flowchart → PlantUML với official AWS icons (Wave thesis-2 Round 3.1). All 9 AWS services have proper logos: EC2, RDS, S3, ALB, SES, CloudWatch, CloudTrail, Secrets Manager, ECR.
+
 ### Sequence diagram specific rules
 
 Sequence diagrams có participants horizontally → width grows linearly với participant count. 8 participants × 240px = 1920px source → docx 16cm scale-down 2.8× → text unreadable even at fontSize 28px.

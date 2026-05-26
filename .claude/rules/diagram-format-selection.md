@@ -47,7 +47,8 @@ Force-multiplier: 1 quyết định format đúng → mọi reader tương lai x
 | **State machine** | **Mermaid** `stateDiagram-v2` | PlantUML | Hiếm |
 | **Gantt timeline** | **Mermaid** `gantt` | — | KHÔNG — Gantt cần actual rendering |
 | **Pie chart** | **Mermaid** `pie` | — | KHÔNG |
-| **Architecture (box + arrow)** | **Mermaid** `flowchart TB/LR` | PlantUML | ≤5 box, simple data flow |
+| **Architecture (box + arrow) — generic** | **Mermaid** `flowchart TB/LR` | PlantUML | ≤5 box, simple data flow |
+| **AWS architecture diagram (with service logos)** | **PlantUML + AWS Icons stdlib** (`!includeurl AWSPuml/...`) | Mermaid flowchart fallback (no icons) | KHÔNG — AWS diagrams cần official logos |
 | **Network topology / cluster** | **Mermaid** `flowchart` với subgraph | PlantUML deployment | Hiếm |
 | **CI/CD pipeline** | **PlantUML** | Mermaid | ≤5 step, no swimlane |
 | **C4 model (Context/Container/Component)** | **PlantUML** với C4-PlantUML | Mermaid `C4Context` (limited) | KHÔNG — C4 cần PlantUML-quality |

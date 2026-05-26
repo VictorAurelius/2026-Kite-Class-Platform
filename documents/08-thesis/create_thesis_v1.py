@@ -695,14 +695,122 @@ def _render_mermaid_to_png(mermaid_src: str, cache_dir: Path) -> Path | None:
         return None
 
 
+def _render_plantuml_to_png(plantuml_src: str, cache_dir: Path) -> Path | None:
+    """Render PlantUML diagram → PNG via local plantuml.jar.
+
+    Supports AWS Icons stdlib (https://github.com/awslabs/aws-icons-for-plantuml)
+    cho professional AWS architecture diagrams với official service logos.
+
+    Strategy:
+      1. Local plantuml.jar (documents/06-diagrams/tools/) với INTERNET security
+         profile để allow !includeurl từ awslabs repo
+      2. SMETANA layout (built-in PlantUML, no graphviz dependency needed)
+      3. Cache result by source hash
+    """
+    import hashlib, subprocess
+    from pathlib import Path as _Path
+
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    digest = hashlib.sha256(plantuml_src.encode()).hexdigest()[:16]
+    png_path = cache_dir / f"plantuml-{digest}.png"
+    if png_path.exists() and png_path.stat().st_size > 0:
+        return png_path  # cache hit
+
+    plantuml_jar = THESIS_DIR.parent / "06-diagrams" / "tools" / "plantuml.jar"
+    if not plantuml_jar.exists():
+        print(f"  WARN: plantuml.jar not found at {plantuml_jar}")
+        return None
+
+    # Inject SMETANA layout pragma so we don't need graphviz dot
+    if "!pragma layout" not in plantuml_src:
+        # Insert after @startuml line
+        lines = plantuml_src.split('\n', 1)
+        plantuml_src = lines[0] + '\n!pragma layout smetana\n' + (lines[1] if len(lines) > 1 else '')
+
+    puml_path = cache_dir / f"plantuml-{digest}.puml"
+    puml_path.write_text(plantuml_src, encoding="utf-8")
+
+    try:
+        result = subprocess.run(
+            [
+                "java",
+                "-Djava.awt.headless=true",
+                "-DPLANTUML_SECURITY_PROFILE=INTERNET",
+                "-jar", str(plantuml_jar),
+                "-tpng",
+                str(puml_path),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if result.returncode == 0 and png_path.exists() and png_path.stat().st_size > 0:
+            return png_path
+        print(f"  WARN: plantuml render failed (rc={result.returncode}); stderr: {result.stderr[:300]}")
+        return None
+    except (subprocess.TimeoutExpired, OSError) as e:
+        print(f"  WARN: plantuml render exception: {e}")
+        return None
+
+
 def add_code_block(doc, code_text, lang=""):
     """Render fenced code block.
 
-    Mermaid blocks → render as PNG via kroki.io HTTP API, embed via add_picture
+    Mermaid + PlantUML blocks → render as PNG via kroki.io HTTP API
     (per thesis-content-standard.md v1.0.2 C7 diagram rendering mandate).
+
+    PlantUML supports AWS Icons stdlib cho professional AWS architecture diagrams.
 
     Other code blocks → TNR 11pt italic (NOT Courier New per v1.0.2 No-font-swap principle).
     """
+    if lang and lang.lower() in ('plantuml', 'puml'):
+        cache_dir = THESIS_DIR / ".mermaid-cache"
+        png_path = _render_plantuml_to_png(code_text, cache_dir)
+        # Reuse same paragraph layout + sizing logic as Mermaid branch below
+        if png_path:
+            p = doc.add_paragraph()
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p.paragraph_format.space_before = Pt(6)
+            p.paragraph_format.space_after = Pt(6)
+            run = p.add_run()
+            A4_BODY_WIDTH_CM = 16.0
+            A4_BODY_HEIGHT_CM = 18.0
+            target_w = 14.0
+            target_h = None
+            try:
+                from PIL import Image
+                with Image.open(str(png_path)) as img:
+                    px_w, px_h = img.size
+                aspect = px_w / px_h if px_h > 0 else 1.0
+                if aspect >= 1.4:
+                    target_w = A4_BODY_WIDTH_CM
+                    target_h = A4_BODY_WIDTH_CM / aspect
+                    if target_h > A4_BODY_HEIGHT_CM:
+                        target_h = A4_BODY_HEIGHT_CM
+                        target_w = A4_BODY_HEIGHT_CM * aspect
+                elif aspect <= 0.7:
+                    target_h = A4_BODY_HEIGHT_CM
+                    target_w = A4_BODY_HEIGHT_CM * aspect
+                    if target_w > A4_BODY_WIDTH_CM:
+                        target_w = A4_BODY_WIDTH_CM
+                        target_h = A4_BODY_WIDTH_CM / aspect
+                else:
+                    target_w = A4_BODY_WIDTH_CM
+                    target_h = A4_BODY_WIDTH_CM / aspect
+                    if target_h > A4_BODY_HEIGHT_CM:
+                        target_h = A4_BODY_HEIGHT_CM
+                        target_w = A4_BODY_HEIGHT_CM * aspect
+            except Exception:
+                pass
+            if target_h is not None and target_h > 12.0:
+                p.paragraph_format.page_break_before = True
+            if target_h is not None and target_h > 0:
+                run.add_picture(str(png_path), width=Cm(target_w), height=Cm(target_h))
+            else:
+                run.add_picture(str(png_path), width=Cm(target_w))
+            return
+        print("  WARN: PlantUML PNG unavailable; falling back to text")
+
     if lang and lang.lower() in ('mermaid',):
         cache_dir = THESIS_DIR / ".mermaid-cache"
         png_path = _render_mermaid_to_png(code_text, cache_dir)

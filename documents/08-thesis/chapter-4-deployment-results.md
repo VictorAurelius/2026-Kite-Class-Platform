@@ -21,46 +21,83 @@ KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast
 
 ### 4.1.2 Sơ đồ hạ tầng
 
-```mermaid
-flowchart TB
-    User[Người dùng]
-    CF[Cloudflare<br/>DNS + CDN + DDoS]
-    ALB[AWS ALB<br/>HTTPS termination<br/>ap-southeast-1 Singapore]
+```plantuml
+@startuml
+!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist
+!include AWSPuml/AWSCommon.puml
+!include AWSPuml/Compute/EC2.puml
+!include AWSPuml/Database/RDS.puml
+!include AWSPuml/Storage/SimpleStorageService.puml
+!include AWSPuml/SecurityIdentityCompliance/SecretsManager.puml
+!include AWSPuml/NetworkingContentDelivery/ElasticLoadBalancing.puml
+!include AWSPuml/Containers/ElasticContainerRegistry.puml
+!include AWSPuml/BusinessApplications/SimpleEmailService.puml
+!include AWSPuml/ManagementGovernance/CloudWatch.puml
+!include AWSPuml/ManagementGovernance/CloudTrail.puml
 
-    subgraph Compute["EC2 — Compute layer (2× t3.micro)"]
-        direction LR
-        EC2_KH[kh-backend<br/>Gateway + 6 services]
-        EC2_KC[kc-app<br/>KiteClass core + frontend]
-    end
+skinparam linetype ortho
+skinparam defaultFontSize 26
+skinparam defaultFontName Arial
+skinparam ArrowFontSize 22
+skinparam ArrowColor #232F3E
+skinparam ArrowThickness 2
+skinparam ranksep 70
+skinparam nodesep 50
+skinparam rectangle {
+  BorderColor #232F3E
+  BackgroundColor #FFFFFF
+  FontStyle bold
+}
+skinparam actor {
+  FontSize 24
+}
 
-    subgraph DataLayer["Data layer"]
-        direction LR
-        RDS[(RDS PostgreSQL 16<br/>db.t3.micro)]
-        S3[(S3 single bucket<br/>multi-tenant prefix)]
-    end
+actor "Người dùng" as User
+cloud "Cloudflare\nDNS + CDN + DDoS" as CF #FFE9A8
 
-    SES[AWS SES<br/>Transactional email]
+rectangle "AWS Region — ap-southeast-1 Singapore" {
 
-    subgraph Obs["Observability stack"]
-        direction LR
-        CW[CloudWatch<br/>Logs + Metrics]
-        CT[CloudTrail<br/>API audit log]
-        Prom[Prometheus<br/>self-hosted]
-    end
+  ElasticLoadBalancing(ALB, "Application Load\nBalancer", "HTTPS termination + TLS 1.3")
 
-    subgraph SecCI["Secrets + Image registry"]
-        direction LR
-        SM[Secrets Manager]
-        ECR[ECR<br/>Docker images]
-    end
+  rectangle "Compute Layer (EC2 t3.micro × 2)" {
+    EC2(EC2_KH, "kh-backend", "Gateway + 6 services")
+    EC2(EC2_KC, "kc-app", "KiteClass + frontend")
+  }
 
-    User --> CF
-    CF --> ALB
-    ALB --> Compute
-    Compute --> DataLayer
-    Compute --> SES
-    Compute -.-> Obs
-    Compute --> SecCI
+  rectangle "Data Layer" {
+    RDS(DB, "RDS PostgreSQL 16", "db.t3.micro + RLS")
+    SimpleStorageService(S3, "S3", "multi-tenant prefix")
+  }
+
+  SimpleEmailService(SES, "SES", "Transactional email")
+
+  rectangle "Observability Stack" {
+    CloudWatch(CW, "CloudWatch", "Logs + Metrics")
+    CloudTrail(CT, "CloudTrail", "API audit log")
+  }
+
+  rectangle "Secrets + Registry" {
+    SecretsManager(SM, "Secrets Manager", "JWT + DB + Resend")
+    ElasticContainerRegistry(ECR, "ECR", "Docker images")
+  }
+}
+
+User --> CF
+CF --> ALB
+ALB --> EC2_KH
+ALB --> EC2_KC
+EC2_KH --> DB
+EC2_KC --> DB
+EC2_KH --> S3
+EC2_KC --> S3
+EC2_KH --> SES
+EC2_KH ..> CW : logs + metrics
+EC2_KC ..> CW : logs + metrics
+EC2_KH ..> SM
+EC2_KC ..> SM
+ECR --> EC2_KH : pull image
+ECR --> EC2_KC : pull image
+@enduml
 ```
 
 **Hình 4.1.** Sơ đồ kiến trúc tổng thể KiteHub Platform trên AWS Singapore (giai đoạn thử nghiệm).
