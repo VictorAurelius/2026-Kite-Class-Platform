@@ -1,13 +1,13 @@
 ---
 id: GAP-717
 title: JWT_CHALLENGE_SECRET production parity — terraform IaC drift (secret created manually Wave 81 but not declared in secrets.tf)
-status: PARTIAL
+status: DONE
 priority: P1
 phase: phase-1-beta
 audience: dev
 found: 2026-05-22
-last_verified: 2026-05-22
-completion_pct: 70
+last_verified: 2026-05-26
+completion_pct: 100
 related: [GAP-711, GAP-705, GAP-706, GAP-612, GAP-718]
 ---
 

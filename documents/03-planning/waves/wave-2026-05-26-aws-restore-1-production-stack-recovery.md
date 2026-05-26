@@ -1,15 +1,15 @@
 ---
 title: Wave aws-restore-1 — Production stack restore post-GAP-612 Day 8 UNBLOCK
-status: draft
+status: complete
 created: 2026-05-26
 updated: 2026-05-26
 audience: dev
 tag_primary: aws-restore
-tags_secondary: [phase-1-beta, gap-612, rst-prereq]
+tags_secondary: [phase-1-beta, gap-612, rst-prereq, alb-elimination]
 counter: 1
 date_launch: 2026-05-26
 waves: [aws-restore-1]
-gaps: [GAP-612, GAP-693]
+gaps: [GAP-612, GAP-693, GAP-717]
 ---
 
 # Wave aws-restore-1 — Production stack restore post-GAP-612 Day 8 UNBLOCK
@@ -298,20 +298,24 @@ NO agent spawn this wave.
 
 ### Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` §3)
 
-Will populate at Phase E closure. Template:
-
 | # | Plan §3 Scope item | Verdict | Follow-up |
 |---|---|---|---|
-| 1 | Phase A EC2 restart | TBD | — |
-| 2 | Phase B RDS restore | TBD | — |
-| 3 | Phase C ALB recreate | TBD | — |
-| 4 | Phase D smoke verify | TBD | — |
-| 5 | GAP-612 DONE flip | TBD | — |
-| 6 | GAP-693 SOP creation | ❌ NOT-IMPLEMENTED | Defer Wave aws-rebuild-sop-1 (P1, ~3 days estimate) |
+| 1 | Phase A EC2 restart (3 EC2 stopped→running) | ✅ DONE | SSM Online 3/3, Docker stack 7/7 healthy |
+| 2 | Phase B RDS restore from snapshot | ✅ DONE | DBInstanceStatus=available ~8min; postgres 15.17; CloudTrail evidence |
+| 3 | Phase C SKIP ALB (pivoted Path B per user AskUserQuestion 2026-05-26) | ✅ DONE | C2 retry #1 (DependencyViolation manual revoke 10 orphan rules) + C1 SSM nginx reload + C3 terraform-cloudflare apply api CNAME |
+| 4 | Phase D live smoke kitehub.me + api.kitehub.me | ✅ DONE | api.kitehub.me/actuator/health 200 (CF→kc_app_fe→nginx→kh_backend→Spring DB+Redis+disk UP); apex preserved 200 |
+| 5 | GAP-612 DONE flip + git mv closed/ | ✅ DONE | This closure PR |
+| 6 | GAP-693 SOP creation (13-step playbook) | ❌ NOT-IMPLEMENTED — defer follow-up | Wave aws-rebuild-sop-1 (P1, ~3 days estimate); GAP-693 stays PARTIAL 70% with execution lessons from this wave |
+| 7 | GAP-717 (new in-wave delta) terraform import jwt_challenge + resend_api_key | ✅ DONE | PR #1856 import blocks + lifecycle ignore_changes |
+| 8 | Cost outcome (ALB elimination) | ✅ DONE | ~$20-25/mo permanent reduction (var.enable_alb default true→false) |
+| 9 | Pre-flight code gaps fixed in-wave (5 cascade PRs) | ✅ DONE | PRs #1852-1856 (rds snapshot var + TF_VAR_aws_account_id + Phase C + dashboard + secrets import) |
+
+All planned scope items resolved. 1 deferred (row 6 — explicit out-of-scope per user agreement; follow-up wave queued).
 
 ## 8. Log
 
-- **2026-05-26 (status: draft):** Wave plan created. Source = Wave audit-stale-sweep-1 recommendation (file Wave aws-restore-1 BEFORE 4 hard-blocker waves to unblock 13 cascade flips). Empirical AWS state verified 2026-05-26: account ACTIVE + CloudTrail logging + EC2 3 stopped (data preserved) + RDS deleted (2 snapshots available) + ALB deleted (terraform recreate needed). Approach = coordinator-inline 4-phase serialization (A EC2 / B RDS / C ALB / D smoke) per `concurrent-production-mutation-ops.md`. User authorization required per phase per `release-deploy-standard.md` §9 + `dev-authorized-terraform-trigger.md` solo-dev override. GAP-693 SOP runbook deferred follow-up wave aws-rebuild-sop-1. Per `wave-tag-numbering-convention.md` v1.0.0 tag-based schema: `tag_primary: aws-restore`, `counter: 1`.
+- **2026-05-26 (status: complete):** Wave aws-restore-1 SHIPPED ~3.5h coordinator-inline Phase A→B→C2→C1→C3→D. Production stack fully restored end-to-end. ALB ELIMINATED PERMANENTLY (~$20-25/mo permanent cost reduction). Live smoke api.kitehub.me/actuator/health HTTP 200 from outside (CF edge → kc_app_fe EIP → nginx vhost block 3.5 → upstream kh_backend_gateway 10.0.0.129:8080 → Spring DB+Redis+17GB free disk UP). Apex kitehub.me preserved 200. 5 PRs shipped (#1852 RDS snapshot var + #1853 TF_VAR_aws_account_id wiring + #1854 Phase C ALB elimination + #1855 cloudwatch-dashboard fix + #1856 secrets terraform import). 3 gaps DONE: GAP-612 100% (production restore complete) + GAP-717 100% (terraform import jwt_challenge + resend_api_key bound to state, lifecycle ignore_changes preserves Wave 81+71b values). 1 gap stays PARTIAL: GAP-693 70% (SOP runbook deferred Wave aws-rebuild-sop-1 per user-approved scope split). Phase C2 retry #1 needed (DependencyViolation 15min — manual revoke 10 orphan SG ingress rules via aws ec2 revoke-security-group-ingress then re-trigger). Pre-flight discoveries fixed in-wave: rds.tf missing snapshot_identifier param (would create fresh empty DB), TF_VAR_aws_account_id workflow wiring gap (closes GAP-692 Phase 1 wiring), cloudwatch-dashboard ALB widget refs (Invalid index when enable_alb=false), terraform import blocks for Wave 81 manual secrets. 13 cascade gaps now eligible Wave rst-cascade-1 live walkthrough. Cascade application-layer issues (kitehub-subscription email-send 500 → Resend chain) out-of-scope per Wave rst-cascade-1 plan.
+- **2026-05-26 (status: draft):** Wave plan created. Source = Wave audit-stale-sweep-1 recommendation. Empirical AWS state-check 2026-05-26: account ACTIVE + CloudTrail logging + EC2 3 stopped + RDS deleted (2 snapshots) + ALB deleted. Approach = coordinator-inline 4-phase serialization per `concurrent-production-mutation-ops.md`. User authorization required per phase per `release-deploy-standard.md` §9 + `dev-authorized-terraform-trigger.md` solo-dev override. Per `wave-tag-numbering-convention.md` v1.0.0: `tag_primary: aws-restore`, `counter: 1`.
 
 ---
 
