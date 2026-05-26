@@ -589,6 +589,305 @@ def check_ui_kits_integration(pr: str, info: dict, files: list[str]) -> dict | N
     }
 
 
+# ── GAP-751 Option A: Auto-close referenced gaps on PR merge ────
+#
+# When a PR body contains markers `Closes: GAP-NNN` / `Resolves: GAP-NNN` /
+# `Refs: GAP-NNN`, this function auto-flips the matching CSV row + appends a
+# Log entry to the gap markdown file + git mv to phase-X/closed/.
+#
+# Rationale (per GAP-751): Wave br-7 closure surfaced 4/5 buckets stale-gap
+# pattern — code shipped Wave 5 Sub-PR 5.6b era ~30 ngày trước nhưng CSV vẫn
+# OPEN P0. Hook eliminates manual CSV sync by linking PR body marker → CSV +
+# gap file + git mv in a single PostToolUse event on merge.
+#
+# Soft-fail behavior: hook never raises; CSV/file/git-mv failures only emit
+# WARN to stdout (caller surfaces via systemMessage), letting the merge stand.
+
+GAP_MARKER_RE = re.compile(
+    r"\b(Closes|Resolves|Refs)\s*:\s*(GAP-\d+[a-z]*(?:-\d+)?)",
+    re.IGNORECASE,
+)
+
+GAPS_DIR = PROJECT_ROOT / "documents" / "04-quality" / "gaps"
+GAP_STATUS_CSV = GAPS_DIR / "gap-status.csv"
+
+# Status values eligible for auto-flip per gap-architecture-v2.md §2
+AUTO_FLIPPABLE_STATUSES = {"OPEN", "PARTIAL", "IN_PROGRESS", "PENDING", "PLANNED"}
+
+
+def _parse_csv_row(line: str) -> list[str]:
+    """Parse a single CSV row. Project CSV uses simple comma-separation (no
+    embedded commas with quotes in canonical rows per audit). Best-effort csv
+    module fallback if needed."""
+    import csv
+    import io
+    reader = csv.reader(io.StringIO(line))
+    try:
+        return next(reader)
+    except StopIteration:
+        return []
+
+
+def _format_csv_row(fields: list[str]) -> str:
+    """Format a list of fields back into a single CSV row line. Matches the
+    project's simple-comma convention; if any field contains a comma, quote it."""
+    import csv
+    import io
+    buf = io.StringIO()
+    writer = csv.writer(buf, lineterminator="")
+    writer.writerow(fields)
+    return buf.getvalue()
+
+
+def _find_csv_row(gap_id: str) -> tuple[int, list[str]] | None:
+    """Return (line_index_0based, fields_list) for the gap_id row, or None."""
+    if not GAP_STATUS_CSV.is_file():
+        return None
+    try:
+        lines = GAP_STATUS_CSV.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return None
+    for i, line in enumerate(lines):
+        if not line or line.startswith("#"):
+            continue
+        # Cheap prefix check before parsing
+        if not line.startswith(gap_id + ","):
+            continue
+        fields = _parse_csv_row(line)
+        if fields and fields[0] == gap_id:
+            return i, fields
+    return None
+
+
+def _find_gap_file(gap_id: str, csv_filename: str | None = None) -> Path | None:
+    """Resolve gap markdown file path. Prefer CSV filename column; fallback
+    to glob across known subdirs."""
+    if csv_filename:
+        candidate = GAPS_DIR / csv_filename
+        if candidate.is_file():
+            return candidate
+    # Fallback: glob phase-X/ + phase-X/closed/ + unclassified/ + root
+    search_dirs = [
+        GAPS_DIR / "phase-1-beta",
+        GAPS_DIR / "phase-1.5-paid",
+        GAPS_DIR / "phase-2",
+        GAPS_DIR / "phase-3",
+        GAPS_DIR / "unclassified",
+        GAPS_DIR / "phase-1-beta" / "closed",
+        GAPS_DIR / "phase-1.5-paid" / "closed",
+        GAPS_DIR / "phase-2" / "closed",
+        GAPS_DIR / "phase-3" / "closed",
+        GAPS_DIR / "unclassified" / "closed",
+        GAPS_DIR / "closed",
+        GAPS_DIR,
+    ]
+    for d in search_dirs:
+        if not d.is_dir():
+            continue
+        for match in d.glob(f"{gap_id}-*.md"):
+            return match
+    return None
+
+
+def _append_log_entry(gap_file: Path, pr: str, marker_type: str, today: str) -> bool:
+    """Append a closure Log entry to the gap markdown file. Returns True on
+    success, False on failure. Idempotent: if the file's tail already cites
+    `PR #<pr> auto-close`, skip."""
+    try:
+        content = gap_file.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    # Idempotency check — don't double-append
+    if f"PR #{pr} auto-close" in content:
+        return True
+    verb = "Flipped DONE 100%" if marker_type.lower() in ("closes", "resolves") else "Auto-verified"
+    entry = (
+        f"\n- **{today} (PR #{pr} auto-close):** {verb} — closed by PR #{pr} "
+        f"via \"{marker_type}: {gap_file.stem.split('-')[0]}-{gap_file.stem.split('-')[1]}\" "
+        f"marker in PR body. CSV row updated + file moved to phase-X/closed/ "
+        f"per `gap-folder-organization.md` v2.0.0 §3.3 + `gap-done-discipline.md` §2.\n"
+    )
+    # Append at end of file (ensures Log section catches new entry if last section)
+    new_content = content.rstrip() + "\n" + entry
+    try:
+        gap_file.write_text(new_content, encoding="utf-8")
+        return True
+    except OSError:
+        return False
+
+
+def _move_to_closed(gap_file: Path) -> Path | None:
+    """git mv gap_file → <parent>/closed/<basename>. Returns new path or None.
+    If file already under closed/, no-op return same path."""
+    if gap_file.parent.name == "closed":
+        return gap_file
+    target_dir = gap_file.parent / "closed"
+    target = target_dir / gap_file.name
+    try:
+        target_dir.mkdir(parents=True, exist_ok=True)
+        # Prefer git mv to preserve history; fallback to plain rename
+        result = subprocess.run(
+            ["git", "mv", str(gap_file), str(target)],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            cwd=PROJECT_ROOT,
+            check=False,
+        )
+        if result.returncode != 0:
+            # Fallback: plain rename + git add (handles untracked / new files)
+            gap_file.rename(target)
+            subprocess.run(
+                ["git", "add", str(target)],
+                capture_output=True,
+                timeout=5,
+                cwd=PROJECT_ROOT,
+                check=False,
+            )
+        return target
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+def _update_csv_row(
+    line_index: int,
+    fields: list[str],
+    new_status: str,
+    new_completion: str,
+    today: str,
+    new_filename: str | None = None,
+) -> bool:
+    """Mutate fields in-place + rewrite CSV. Returns True on success."""
+    # Column layout per gap-architecture-v2.md §2:
+    # 1:id 2:filename 3:title_short 4:status 5:priority 6:domain 7:phase
+    # 8:completion_pct 9:found_date 10:last_verified 11:notes
+    if len(fields) < 10:
+        return False
+    fields[3] = new_status        # status
+    fields[7] = new_completion    # completion_pct
+    fields[9] = today              # last_verified
+    if new_filename is not None and len(fields) >= 2:
+        fields[1] = new_filename  # filename
+    try:
+        lines = GAP_STATUS_CSV.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return False
+    if line_index >= len(lines):
+        return False
+    lines[line_index] = _format_csv_row(fields)
+    try:
+        GAP_STATUS_CSV.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        # Auto-stage for inclusion in next commit (consistent with PR-log staging).
+        with contextlib.suppress(Exception):
+            subprocess.run(
+                ["git", "add", str(GAP_STATUS_CSV)],
+                capture_output=True,
+                timeout=5,
+                cwd=PROJECT_ROOT,
+                check=False,
+            )
+        return True
+    except OSError:
+        return False
+
+
+def auto_close_referenced_gaps(pr: str, pr_body: str) -> list[str]:
+    """Scan PR body for marker patterns and auto-flip referenced gaps.
+
+    Returns a list of human-readable result lines (one per gap processed).
+    Soft-fails: never raises; missing CSV row OR missing gap file emit WARN
+    in the result list but do not abort the merge.
+    """
+    if not pr_body:
+        return []
+    matches = GAP_MARKER_RE.findall(pr_body)
+    if not matches:
+        return []
+    # Deduplicate while preserving order; key on (marker_type_normalised, gap_id)
+    seen: set[tuple[str, str]] = set()
+    ordered: list[tuple[str, str]] = []
+    for marker_type, gap_id in matches:
+        key = (marker_type.lower(), gap_id)
+        if key in seen:
+            continue
+        seen.add(key)
+        ordered.append((marker_type, gap_id))
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    results: list[str] = []
+
+    for marker_type, gap_id in ordered:
+        is_closing = marker_type.lower() in ("closes", "resolves")
+
+        row = _find_csv_row(gap_id)
+        if row is None:
+            results.append(f"  WARN [{gap_id}]: no CSV row found — manual sync needed")
+            continue
+        line_index, fields = row
+        current_status = fields[3] if len(fields) > 3 else ""
+        csv_filename = fields[1] if len(fields) > 1 else None
+        gap_file = _find_gap_file(gap_id, csv_filename)
+
+        if is_closing:
+            # Only flip if status is in flippable set; skip if already DONE
+            if current_status == "DONE":
+                results.append(f"  SKIP [{gap_id}]: already DONE")
+                continue
+            if current_status not in AUTO_FLIPPABLE_STATUSES:
+                results.append(
+                    f"  SKIP [{gap_id}]: status={current_status} not in flippable set "
+                    f"({sorted(AUTO_FLIPPABLE_STATUSES)})"
+                )
+                continue
+
+            # Move file to closed/
+            new_path: Path | None = None
+            new_csv_filename: str | None = None
+            if gap_file is not None:
+                new_path = _move_to_closed(gap_file)
+                if new_path is not None:
+                    try:
+                        new_csv_filename = str(new_path.relative_to(GAPS_DIR))
+                    except ValueError:
+                        new_csv_filename = None
+                # Append closure Log entry (use the new path if moved, else original)
+                target_for_log = new_path if new_path is not None else gap_file
+                _append_log_entry(target_for_log, pr, marker_type, today)
+            else:
+                results.append(f"  WARN [{gap_id}]: gap file not found — CSV-only flip")
+
+            # CSV row flip
+            ok = _update_csv_row(
+                line_index, fields,
+                new_status="DONE",
+                new_completion="100",
+                today=today,
+                new_filename=new_csv_filename,
+            )
+            if ok:
+                results.append(
+                    f"  FLIPPED [{gap_id}] {current_status}→DONE 100% "
+                    f"(file→{new_csv_filename or 'unchanged'})"
+                )
+            else:
+                results.append(f"  ERROR [{gap_id}]: CSV update failed — manual sync needed")
+        else:
+            # Refs:GAP-NNN — bump last_verified only; do NOT flip status
+            ok = _update_csv_row(
+                line_index, fields,
+                new_status=current_status,
+                new_completion=fields[7] if len(fields) > 7 else "0",
+                today=today,
+                new_filename=None,
+            )
+            if ok:
+                results.append(f"  VERIFIED [{gap_id}] last_verified={today} (status unchanged)")
+            else:
+                results.append(f"  ERROR [{gap_id}]: last_verified update failed")
+
+    return results
+
+
 def _on_pr_merge_impl(pr: str) -> dict | None:
     files = get_pr_files(pr)
     info = get_pr_info(pr)
@@ -650,6 +949,16 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
 
     write_pr_log(pr, log)
 
+    # GAP-751 Option A — auto-close referenced gaps via PR body markers
+    # (`Closes:`/`Resolves:`/`Refs:` GAP-NNN). Soft-fail: errors emit WARN
+    # in the systemMessage but never block the merge.
+    autoclose_results: list[str] = []
+    try:
+        pr_body = info.get("body", "") or gh_run(["pr", "view", pr, "--json", "body", "--jq", ".body"]) or ""
+        autoclose_results = auto_close_referenced_gaps(pr, pr_body)
+    except Exception as exc:
+        autoclose_results = [f"  ERROR auto-close failed: {exc}"]
+
     # Build response
     violations = []
     if ci_status != "success" and not docs_only:
@@ -683,7 +992,13 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
         violations.append(f"Session-lock notice: {lock_msg.splitlines()[0] if lock_msg else 'foreign session lock detected'}")
 
     if not violations:
-        return {"systemMessage": f"PR #{pr} merged — compliance {log['compliance_score']}. Log: pr-logs/PR-{pr}.json"}
+        msg = f"PR #{pr} merged — compliance {log['compliance_score']}. Log: pr-logs/PR-{pr}.json"
+        if autoclose_results:
+            msg += (
+                f"\n[audit-gate] Auto-closed {len(autoclose_results)} gap reference(s) per PR #{pr} markers:\n"
+                + "\n".join(autoclose_results)
+            )
+        return {"systemMessage": msg}
 
     # Check AUDIT_OVERRIDE
     overridden, override_reason = (False, "")
@@ -710,6 +1025,9 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
         lines.append(f"  ❌ AUDIT_DEFER_DOMAIN_MILESTONE invalid: {domain_err}")
     if milestone_audit_ok:
         lines.append(f"  ✅ DOMAIN_MILESTONE_AUDIT present: {milestone_reason}")
+    if autoclose_results:
+        lines.append(f"\n[audit-gate] Auto-closed {len(autoclose_results)} gap reference(s) per PR #{pr} markers:")
+        lines.extend(autoclose_results)
     lines.append(f"\nCompliance: {log['compliance_score']}. Log: documents/03-planning/pr-logs/PR-{pr}.json")
     lines.append("Run: ./scripts/pr-compliance-check.sh " + pr)
 
