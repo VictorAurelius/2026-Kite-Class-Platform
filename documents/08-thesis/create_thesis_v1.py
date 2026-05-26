@@ -1264,24 +1264,29 @@ def add_acknowledgment_page(doc):
         "tiễn còn hạn chế, đồ án không tránh khỏi những thiếu sót; em rất mong nhận được sự đóng "
         "góp ý kiến từ quý thầy cô để đồ án được hoàn thiện hơn. Em xin chân thành cảm ơn!")
 
-    for _ in range(3):
-        doc.add_paragraph()
+    # Wave thesis-2 Round 2.4 Item 2 fix — minimize blank paragraphs để signature
+    # không overflow sang page 4. Original 3+2=5 blank paragraphs → 1+1=2.
+    doc.add_paragraph()  # 1 small gap before signature block
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    p.paragraph_format.space_after = Pt(0)
+    p.paragraph_format.keep_with_next = True
     run = p.add_run(f"Hà Nội, ngày … tháng … năm {THESIS_INFO['year']}")
     set_font(run, Pt(13), italic=True)
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    p.paragraph_format.space_after = Pt(0)
+    p.paragraph_format.keep_with_next = True
     run = p.add_run("Sinh viên thực hiện")
     set_font(run, Pt(13), bold=True)
 
-    for _ in range(2):
-        doc.add_paragraph()
+    doc.add_paragraph()  # 1 spacer between "Sinh viên thực hiện" và name
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    p.paragraph_format.keep_with_next = False
     run = p.add_run(STUDENT_INFO["name"])
     set_font(run, Pt(13), bold=True)
 
@@ -1485,9 +1490,10 @@ def add_introduction(doc):
     1. Lý do / 2. Mục tiêu / 3. Phạm vi / 4. Phương pháp / 5. Tóm tắt / 6. Cấu trúc
     trở thành H2 children dưới MỞ ĐẦU H1, đúng UTC structure.
     """
-    # NOTE: section break (Section 2→3) đã advance page automatically — KHÔNG cần page break dư
-    # Tuy nhiên thêm explicit page break để chắc chắn MỞ ĐẦU bắt đầu trang mới
-    doc.add_page_break()
+    # Wave thesis-2 Round 2.4 Item 3 fix — REMOVED duplicate page break.
+    # Section break (Section 2→3) at end of add_abbreviations() already advanced
+    # page; adding doc.add_page_break() here created EXTRA blank page 11 with
+    # arabic "1" page number before MỞ ĐẦU content on next page.
 
     p = doc.add_paragraph(style='Heading 1')
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
