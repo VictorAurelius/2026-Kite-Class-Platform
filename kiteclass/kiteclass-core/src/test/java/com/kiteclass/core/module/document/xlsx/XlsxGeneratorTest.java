@@ -181,8 +181,9 @@ class XlsxGeneratorTest extends DocumentGenerationTestBase {
 
     @Test
     void attendance_render_under_soft_cap_for_regression_canary() {
-        // GAP-216 — soft-cap regression canary; XLSX is faster than PDF (no font load,
-        // no template parse). 2s ceiling.
+        // GAP-216 — soft-cap regression canary, NOT the SLO. XLSX is faster than PDF
+        // (no font load, no template parse); 2s ceiling sufficient. True p95 measurement
+        // requires JMH suite (deferred to follow-up GAP-750).
         DocumentRequest req = sampleRequest(DocumentFormat.XLSX, "attendance", sampleAttendanceData());
 
         long startNs = System.nanoTime();
