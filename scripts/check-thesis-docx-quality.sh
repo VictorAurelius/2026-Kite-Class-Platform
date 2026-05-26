@@ -218,6 +218,13 @@ paragraphs = tree.findall('.//w:body/w:p', ns)
 
 long_captions = []
 for p in paragraphs:
+    # True caption distinguishing characteristic: contains SEQ field instrText
+    # (per add_seq_caption() output). Narrative paragraphs referencing "Hình X.Y" have NO SEQ field.
+    instr_texts = p.findall('.//w:instrText', ns)
+    has_seq = any('SEQ ' in (it.text or '') for it in instr_texts)
+    if not has_seq:
+        continue  # Skip narrative paragraphs that just reference "Hình X.Y"
+
     text = ''.join(t.text or '' for t in p.findall('.//w:t', ns))
     m = re.match(r'^(Hình|Bảng)\s+\d+\.\d+\.?\s*(.+)$', text.strip())
     if m:

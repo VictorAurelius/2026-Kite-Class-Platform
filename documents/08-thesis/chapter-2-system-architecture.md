@@ -593,7 +593,7 @@ erDiagram
     CLASSES ||--o{ ATTENDANCE : records
 ```
 
-**Hình 2.6.** ERD high-level — quan hệ giữa các entity chính (`CLASSES` = bảng `class`/lớp học; rename để tránh xung đột với từ khóa `class` reserved trong cú pháp Mermaid erDiagram).
+**Hình 2.6.** Sơ đồ ERD high-level mô tả quan hệ giữa các entity chính trong hệ thống.
 
 ERD nhấn mạnh quan hệ many-to-many giữa `STUDENT` và `CLASSES` qua bảng nối `STUDENT_CLASS` (một học sinh có thể đăng ký nhiều lớp, một lớp có nhiều học sinh) — chi tiết quan hệ này bị che giấu ở class diagram cấp độ runtime. Mọi quan hệ xuất phát từ `TENANT` đều có cardinality `1..N` thể hiện ranh giới đa tenant: không có entity nghiệp vụ nào tồn tại ngoài ngữ cảnh tenant.
 
