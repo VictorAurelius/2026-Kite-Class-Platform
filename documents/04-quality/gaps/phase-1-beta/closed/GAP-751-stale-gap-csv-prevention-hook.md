@@ -9,7 +9,7 @@ created: 2026-05-26
 
 # GAP-751: Stale-gap CSV prevention — PostMerge auto-detect hook + pre-wave-plan stale-check
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 100%
 **Priority:** 🟠 P1 — META P0 force-multiplier per `meta-gap-priority.md` §3
 **Domain:** Meta (Hook + Skill governance)
 **Found:** 2026-05-26 (Wave br-7 closure retro — 4/5 buckets state-check phát hiện code đã shipped Wave 5 Sub-PR 5.6b era)
@@ -86,3 +86,5 @@ User chốt 2026-05-26: **A+B combined approach** (highest ROI).
 ## Log
 
 - **2026-05-26 (filed):** Filed per Wave br-7 closure retro 2026-05-26 — 4/5 buckets (GAP-215/216/217/218) state-check phát hiện code đã shipped Wave 5 Sub-PR 5.6b era ~30 ngày trước; pattern recurrence ≥4 lần trong 1 wave = systemic. User chốt A+B combined approach per cost-benefit (eliminate ~5-10 wasted agent spawns per quarter = ~5-10h/quarter token cost saved; one-time build ~5h). Queued companion với Wave audit-stale-sweep (Task #7) next session priority.
+
+- **2026-05-26 (Wave meta-6 closure):** Flipped DONE 100% — A+B combined shipped. Option A audit-gate.py auto_close_referenced_gaps() function + PR template + 10/10 unit tests in PR #1849 (merged b0180294). Option B wave-pack-planner SKILL.md Step 4.7 Pre-spawn stale-check in PR #1848 (merged 6247a439). Filing in PR #1847 (merged bde8179e). LIVE TEST: bg-agent local hook fired during PR #1847 merge — verified working. CSV row updated + file moved to phase-1-beta/closed/ per `gap-folder-organization.md` v2.0.0 §3.3.
