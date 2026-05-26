@@ -109,6 +109,9 @@ test.describe('Production self-test full flow (7 bước)', () => {
     await page.goto(`${BASE_URL}/beta-signup?token=${inviteToken}`);
     await page.getByLabel(/password|mật khẩu/i).fill('SelfTest@2026Strong!');
     await page.getByLabel(/confirm|xác nhận/i).fill('SelfTest@2026Strong!');
+    // PDPL consent gate (Wave beta-prep-1 Bucket A): tick required ToS+Privacy
+    // checkbox to enable submit button. Marketing + analytics left unchecked.
+    await page.locator('#consent-tos-privacy').check();
     await page.getByRole('button', { name: /signup|đăng ký|hoàn tất/i }).click();
 
     // Verify auto-login or redirect to login

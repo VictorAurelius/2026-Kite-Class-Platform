@@ -17,9 +17,19 @@
  *   - Pre-audit only tested generic "invalid" path; FE actually branches on
  *     errorCode (BetaSignupForm.tsx:89-93) so 3 distinct messages exist.
  *
+ * PDPL consent gate update (Wave beta-prep-1 Bucket A, 2026-05-26):
+ *   - Bucket A added 3 granular consent checkboxes per Decree 13 Art 4
+ *     (tosPrivacy required + marketing optional + analytics optional).
+ *   - Submit button disabled until `acceptTosPrivacy=true` (BetaSignupForm.tsx:240).
+ *   - Happy path test MUST check `#consent-tos-privacy` before clicking submit;
+ *     otherwise click is a no-op and the test times out waiting for success UI.
+ *   - Optional consent boxes intentionally left unchecked to verify they're truly
+ *     optional (form should submit successfully when only tosPrivacy is ticked).
+ *
  * @see GAP-404 (Wave 37 Bucket C — beta funnel E2E coverage)
  * @see GAP-455 (Wave 49 — KH coverage extension)
- * @since Wave 37 (extended Wave 49)
+ * @see Wave beta-prep-1 Bucket A — PDPL consent gate (3 granular checkboxes)
+ * @since Wave 37 (extended Wave 49, PDPL consent gate Wave beta-prep-1)
  */
 
 import { test, expect } from '@playwright/test';
@@ -91,6 +101,11 @@ test.describe('Beta Funnel — Signup with claim code', () => {
 
     // Fill password (min 8 chars per BetaSignupForm validation)
     await page.getByLabel('Mật khẩu').fill('TestPassword123!');
+
+    // PDPL consent gate (Wave beta-prep-1 Bucket A): tick required ToS+Privacy
+    // checkbox to enable submit button. Marketing + analytics intentionally
+    // left unchecked to verify they're truly optional per Decree 13 Art 4.
+    await page.locator('#consent-tos-privacy').check();
 
     // Submit signup
     await page.getByRole('button', { name: /hoàn tất đăng ký/i }).click();
