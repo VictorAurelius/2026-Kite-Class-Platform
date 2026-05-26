@@ -3,6 +3,7 @@ package com.kitehub.subscription.exception;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -301,6 +302,37 @@ public class GlobalExceptionHandler {
      * @param ex Exception raised when no controller matches the request
      * @return 404 ProblemDetail
      */
+    /**
+     * Handle database UNIQUE constraint violations (Wave beta-prep-1 Bucket E — concurrency hardening).
+     *
+     * <p>Concurrent inserts that bypass app-level pre-check (e.g. tenant subdomain create
+     * race per GAP-730) reach the DB unique constraint. Without this handler, Spring's
+     * {@link DataIntegrityViolationException} falls through to {@link #handleGenericException}
+     * → HTTP 500. Correct REST semantic is HTTP 409 Conflict per
+     * <a href="https://www.rfc-editor.org/rfc/rfc7231#section-6.5.8">RFC 7231 §6.5.8</a>.</p>
+     *
+     * <p>Bucket E paths affected:
+     * <ul>
+     *   <li>Path 1: tenant create race on {@code instances.subdomain} UNIQUE</li>
+     *   <li>Path 5: role-grant race on {@code user_roles(user_id, role_id) WHERE deleted=FALSE} UNIQUE partial index</li>
+     * </ul>
+     *
+     * @param ex DataIntegrityViolationException
+     * @return 409 ProblemDetail
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        log.warn("Data integrity violation (likely UNIQUE constraint race): {}",
+            ex.getMostSpecificCause().getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.CONFLICT,
+            "Tài nguyên đã tồn tại hoặc xung đột với tài nguyên khác. Vui lòng thử lại với giá trị khác."
+        );
+        problemDetail.setTitle("Conflict");
+        problemDetail.setProperty("errorCode", "RESOURCE_CONFLICT");
+        return problemDetail;
+    }
+
     @ExceptionHandler(NoHandlerFoundException.class)
     public ProblemDetail handleNoHandlerFound(NoHandlerFoundException ex) {
         log.warn("No handler found: {} {}", ex.getHttpMethod(), ex.getRequestURL());
