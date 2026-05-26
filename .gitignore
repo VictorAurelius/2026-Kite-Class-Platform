@@ -146,3 +146,8 @@ documents/08-thesis/*.pyc
 
 # Wave 102.2 — Mermaid PNG cache (regenerated via kroki.io)
 documents/08-thesis/.mermaid-cache/
+
+# Wave thesis-2 Round 2.5 — auto-render screenshots local only (~7.6MB binary PNGs)
+# Per scripts/screenshot-thesis-docx.sh — regen on-demand via:
+#   bash scripts/screenshot-thesis-docx.sh documents/08-thesis/thesis-v1.docx documents/08-thesis/screenshots-render
+documents/08-thesis/screenshots-render/
