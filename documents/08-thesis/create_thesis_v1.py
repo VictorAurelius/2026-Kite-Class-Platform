@@ -1256,11 +1256,9 @@ def add_toc_page(doc):
     run._r.append(instrText)
     run._r.append(fldChar2)
 
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(12)
-    run = p.add_run("(Bấm Ctrl+A rồi F9 trong Word để cập nhật mục lục)")
-    set_font(run, Pt(11), italic=True, color=RGBColor(128, 128, 128))
+    # Wave thesis-2 Issue 1 fix — Remove placeholder note. With updateFields=true
+    # flag in settings.xml (per auto_populate_fields), Word/LibreOffice tự update
+    # TOC on open without manual F9 — placeholder note thừa.
 
 
 def add_list_of_figures_tables(doc):
@@ -1287,11 +1285,9 @@ def add_list_of_figures_tables(doc):
     run._r.append(instrText)
     run._r.append(fldChar2)
 
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(12)
-    run = p.add_run("(Đang được bổ sung khi thêm hình minh hoạ)")
-    set_font(run, Pt(11), italic=True, color=RGBColor(128, 128, 128))
+    # Wave thesis-2 Issue 1 fix — Remove placeholder note. SEQ Figure fields
+    # injected via add_seq_caption (Issue 2 fix) — TOC \\c "Figure" sẽ populate
+    # khi Word open + updateFields=true trigger F9.
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
