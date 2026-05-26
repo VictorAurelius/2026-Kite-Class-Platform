@@ -30,45 +30,49 @@ KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast
 !include AWSPuml/Storage/SimpleStorageService.puml
 !include AWSPuml/SecurityIdentityCompliance/SecretsManager.puml
 !include AWSPuml/NetworkingContentDelivery/ElasticLoadBalancing.puml
+!include AWSPuml/NetworkingContentDelivery/VPCInternetGateway.puml
 !include AWSPuml/Containers/ElasticContainerRegistry.puml
 !include AWSPuml/BusinessApplications/SimpleEmailService.puml
 !include AWSPuml/ManagementGovernance/CloudWatch.puml
 !include AWSPuml/ManagementGovernance/CloudTrail.puml
 
 skinparam linetype ortho
-skinparam defaultFontSize 26
+skinparam defaultFontSize 24
 skinparam defaultFontName Arial
-skinparam ArrowFontSize 22
+skinparam ArrowFontSize 20
 skinparam ArrowColor #232F3E
 skinparam ArrowThickness 2
-skinparam ranksep 70
-skinparam nodesep 50
+skinparam ranksep 60
+skinparam nodesep 40
 skinparam rectangle {
   BorderColor #232F3E
   BackgroundColor #FFFFFF
   FontStyle bold
 }
 skinparam actor {
-  FontSize 24
+  FontSize 22
 }
 
 actor "Người dùng" as User
 cloud "Cloudflare\nDNS + CDN + DDoS" as CF #FFE9A8
 
-rectangle "AWS Region — ap-southeast-1 Singapore" {
+rectangle "AWS Region — ap-southeast-1 Singapore" #F0F8FF {
 
-  ElasticLoadBalancing(ALB, "Application Load\nBalancer", "HTTPS termination + TLS 1.3")
+  rectangle "VPC 10.0.0.0/16" #E8F5E8 {
+    VPCInternetGateway(IGW, "Internet Gateway", "")
 
-  rectangle "Compute Layer (EC2 t3.micro × 2)" {
-    EC2(EC2_KH, "kh-backend", "Gateway + 6 services")
-    EC2(EC2_KC, "kc-app", "KiteClass + frontend")
+    rectangle "Public Subnets (2 AZ: 1a + 1b)" #FFF8DC {
+      ElasticLoadBalancing(ALB, "Application LB", "HTTPS + TLS 1.3")
+      EC2(EC2_KH, "kh-backend", "Gateway + 6 services\nt3.micro AZ-1a")
+      EC2(EC2_KC, "kc-app", "KiteClass + frontend\nt3.micro AZ-1a")
+    }
+
+    rectangle "Private Subnets (2 AZ: 1a + 1b)" #FFE4E1 {
+      RDS(DB, "RDS PostgreSQL 16", "db.t3.micro + RLS\nMulti-AZ subnet group")
+    }
   }
 
-  rectangle "Data Layer" {
-    RDS(DB, "RDS PostgreSQL 16", "db.t3.micro + RLS")
-    SimpleStorageService(S3, "S3", "multi-tenant prefix")
-  }
-
+  SimpleStorageService(S3, "S3", "multi-tenant prefix")
   SimpleEmailService(SES, "SES", "Transactional email")
 
   rectangle "Observability Stack" {
@@ -83,16 +87,17 @@ rectangle "AWS Region — ap-southeast-1 Singapore" {
 }
 
 User --> CF
-CF --> ALB
+CF --> IGW
+IGW --> ALB
 ALB --> EC2_KH
 ALB --> EC2_KC
-EC2_KH --> DB
-EC2_KC --> DB
+EC2_KH --> DB : VPC internal
+EC2_KC --> DB : VPC internal
 EC2_KH --> S3
 EC2_KC --> S3
 EC2_KH --> SES
-EC2_KH ..> CW : logs + metrics
-EC2_KC ..> CW : logs + metrics
+EC2_KH ..> CW
+EC2_KC ..> CW
 EC2_KH ..> SM
 EC2_KC ..> SM
 ECR --> EC2_KH : pull image
@@ -100,7 +105,9 @@ ECR --> EC2_KC : pull image
 @enduml
 ```
 
-**Hình 4.1.** Sơ đồ kiến trúc tổng thể KiteHub Platform trên AWS Singapore (giai đoạn thử nghiệm).
+**Hình 4.1.** Sơ đồ kiến trúc tổng thể KiteHub Platform trên AWS Singapore — VPC với public + private subnets cô lập (giai đoạn thử nghiệm).
+
+Toàn bộ hạ tầng đặt trong một VPC riêng (CIDR `10.0.0.0/16`) với hai tầng subnet phục vụ mục đích bảo mật khác nhau: **public subnets** (2 vùng khả dụng AZ-1a + AZ-1b) chứa Application Load Balancer + EC2 instances có public IP để nhận traffic từ Internet Gateway; **private subnets** (2 AZ tương ứng — yêu cầu tối thiểu của RDS DB subnet group) chứa RDS PostgreSQL không có public IP, chỉ chấp nhận kết nối từ security group của EC2 trong cùng VPC. Internet Gateway gắn vào VPC làm điểm vào duy nhất cho traffic ingress từ Cloudflare. NAT Gateway disable mặc định ở giai đoạn thử nghiệm để tiết kiệm chi phí (~30 USD/tháng); EC2 instances trong public subnet truy cập internet trực tiếp qua IGW.
 
 ### 4.1.3 Các thành phần chính
 
