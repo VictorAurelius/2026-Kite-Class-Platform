@@ -72,3 +72,22 @@ Tài liệu trong documents/02-architecture  và để cho claude và dev đều
 4. việc đưa lại lên aws mới để user có thể beta được ngay, nên quyết định sẽ phải self-test full ở local xong (với docker-desktop) mới lên aws có hợp lý không => dev vẫn chưa self-test được
 
 để dự án đạt được tiêu chí self-test thì cần có kế hoạch fix những gaps nào => điều tra và tạo kế hoạch, mục tiêu là có thể self-test sớm nhất
+
+1. vẫn còn các note thừa như: (Bấm Ctrl+A rồi F9 trong Word để cập nhật mục lục)
+2. chưa check lại mục lục, danh mục sau khi render
+
+![alt text](image-2.png)
+![alt text](image-3.png)
+![alt text](image-4.png)
+![alt text](image-5.png)
+
+lưu lại inside này để sửa và checklist
+
+1. documents/image-2.png: DANH MỤC BẢNG BIỂU chưa page break
+caption của hình vẽ quá dài => tại sao không tự bắt được bug này
+2. 1.3 Công nghệ và công cụ sử dụng => bỏ phần này, không cần thiết
+3. documents/image-3.png => 2 sơ đồ dạng ngang nên bé, khó nhìn, cần tối ưu lại
+4. documents/image-4.png => ảnh được paste nguyên khi render docx, chưa căn chỉnh cho hợp lý, khớp trang, dễ nhìn => áp dụng lại với tất cả các ảnh
+5. documents/image-5.png => tương tự, hình Hình 2.49. Luồng xác thực JWT và truyền ngữ cảnh tenant quá bé trong trang a4, cân nhắc vẽ dạng khác hoặc căn chỉnh hợp lý
+6. 4.3 KPI Metrics + Measurement Plan và 4.4 Beta Tenant Scope + Limitations đã chốt bỏ đi rồi mà nhỉ
+7. KẾT LUẬN VÀ KIẾN NGHỊ => chỉ là KẾT LUẬN thôi
