@@ -106,6 +106,50 @@ Per `feedback_sonnet_parallel_agent_crash.md` + `feedback_opus_rework_validation
 
 **Anti-pattern signal:** wave plan §1 Brainstorm không document model tier choice → reviewer hỏi "stake assessment?" trước approve. Default fallback: Opus 4.7 full effort (safer than under-spec).
 
+### Step 4.7 — Pre-spawn stale-check (per GAP-751 Option B)
+
+**BẮT BUỘC** sau Step 4.6 và TRƯỚC Step 5 spawn agents. Mục tiêu: catch stale-OPEN gaps có code đã shipped wave trước → flip CSV inline → tránh waste agent spawn cost.
+
+**Trigger:** mọi wave plan có gap-IDs trong §3 Scope.
+
+**Quy trình (~5-10 min coordinator inline):**
+
+1. **Batch state-check** mỗi gap-ID trong scope:
+   ```bash
+   for gap in <list GAP-IDs>; do
+     # Read CSV row
+     csv_row=$(grep "^$gap," documents/04-quality/gaps/gap-status.csv)
+     status=$(echo "$csv_row" | awk -F, '{print $4}')
+
+     # Read gap §Problem section file paths claim
+     gap_file=$(echo "$csv_row" | awk -F, '{print $2}')
+     # grep code paths matching gap scope
+     # → if code exists matching all AC, flag potentially stale
+   done
+   ```
+
+2. **Inline flip** stale gaps trước spawn:
+   - Status OPEN/PARTIAL nhưng code shipped 100% → flip CSV → DONE per `gap-done-discipline.md` §2 + git mv to `phase-X/closed/` per `gap-folder-organization.md` v2.0.0 §3.3
+   - Status OPEN/PARTIAL với code shipped một phần → reframe AC + update completion_pct (PARTIAL X% → PARTIAL Y%)
+   - Status OPEN với code chưa shipped → leave; spawn agent will work normally
+
+3. **Refine wave scope post-stale-check:**
+   - Nếu N buckets được flip stale → giảm spawn count tương ứng (vd 5 buckets dự kiến → 2 buckets thực sự cần spawn)
+   - Update wave plan §3 Scope table với note: "Bucket X removed — GAP-NNN flipped DONE inline per pre-spawn stale-check (GAP-751 Option B)"
+
+4. **Document trong wave plan** §4 State-Check Evidence (per `audit-to-gap-pipeline.md` §2.6):
+   - List mỗi gap state-check finding (DONE inline / PARTIAL reframe / proceed normal)
+   - Cite Option A hook auto-detect khi available — recurrence reduction expected
+
+**Anti-pattern:** spawn N agents → agent N+1 báo "code đã shipped, gap stale" → coordinator flip inline → waste agent N+1 spawn cost. Pre-spawn check eliminates this.
+
+**Worked example (Wave br-7 retroactive):** 4/5 buckets (GAP-215/216/217/218) state-check tại spawn time phát hiện code đã shipped Wave 5 Sub-PR 5.6b era. Pre-spawn check sẽ catch 4 stale → only Bucket E (GAP-742 greenfield) cần spawn → save ~30 min × 4 agents wall-clock + ~120k token agent spawn cost.
+
+Cross-reference:
+- `audit-to-gap-pipeline.md` §2.8 — fix-time state-check (this Step extends to wave-plan-time)
+- `.claude/hooks/audit-gate.py` auto_close_referenced_gaps() — Option A complement (post-merge auto-flip)
+- GAP-751 — full A+B specification
+
 ### Step 5 — Spawn agents (1 message, multiple Agent calls)
 
 **BẮT BUỘC** single message với N Agent tool uses parallel. KHÔNG sequential spawn (mất parallel benefit).
