@@ -104,13 +104,15 @@ jobs:
 
       - name: Install promtool (Prometheus CLI)
         run: |
-          # promtool ship cùng prometheus binary. Tải version stable từ official release.
-          # v2.54.1 = stable release matched với operator-rendered PrometheusRule CRD schema.
+          # Self-hosted runner doesn't have NOPASSWD sudo — install to user-writable dir
+          # and prepend to GITHUB_PATH instead of /usr/local/bin (which requires sudo).
           PROM_VERSION="2.54.1"
           curl -sSL "https://github.com/prometheus/prometheus/releases/download/v${PROM_VERSION}/prometheus-${PROM_VERSION}.linux-amd64.tar.gz" \
-            | tar -xz -C /tmp
-          sudo install -m 0755 "/tmp/prometheus-${PROM_VERSION}.linux-amd64/promtool" /usr/local/bin/promtool
-          promtool --version
+            | tar -xz -C "$RUNNER_TEMP"
+          PROM_DIR="$RUNNER_TEMP/prometheus-${PROM_VERSION}.linux-amd64"
+          chmod 0755 "$PROM_DIR/promtool"
+          echo "$PROM_DIR" >> "$GITHUB_PATH"
+          "$PROM_DIR/promtool" --version
 
       - name: Validate PrometheusRule syntax (GAP-217 AC #3)
         run: |
