@@ -555,10 +555,21 @@ def add_image_inline(doc, image_path, caption=None, width_cm=14.0):
         width_cm: fallback width if smart sizing unavailable (default 14cm)
     """
     image_path = Path(image_path) if not isinstance(image_path, Path) else image_path
+
+    # Round 2.7 — mark previous paragraph (intro/heading mentioning "Hình X.Y") with
+    # keep_with_next=True. Word will keep heading→intro→image chain together; nếu
+    # không fit page hiện tại, sẽ push CẢ heading + intro + image sang page tiếp
+    # → page trước kết thúc clean (no empty trail). Headings có keep_with_next default.
+    if len(doc.paragraphs) > 0:
+        prev_para = doc.paragraphs[-1]
+        prev_para.paragraph_format.keep_with_next = True
+
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(6)
     p.paragraph_format.space_after = Pt(3)
+    # Image + next paragraph (caption) keep together
+    p.paragraph_format.keep_with_next = True
     if image_path.exists():
         # Smart sizing via Pillow aspect-ratio detection
         A4_BODY_WIDTH_CM = 16.0   # 21 - 3 (left margin) - 2 (right margin)
@@ -600,11 +611,8 @@ def add_image_inline(doc, image_path, caption=None, width_cm=14.0):
             # Graceful fallback to fixed width_cm
             target_width_cm = width_cm
 
-        # Round 2.6 — tall images (>12cm) get page_break_before → start fresh page cleanly,
-        # avoid "empty space at bottom of prior page" artifact when image doesn't fit remaining space
-        if target_height_cm is not None and target_height_cm > 12.0:
-            p.paragraph_format.page_break_before = True
-
+        # Round 2.7 — REMOVED page_break_before (created empty trail on prior page).
+        # Replaced with keep_with_next chain on prev paragraph (set at top of function).
         run = p.add_run()
         if target_height_cm is not None and target_height_cm > 0:
             run.add_picture(str(image_path), width=Cm(target_width_cm), height=Cm(target_height_cm))
@@ -707,11 +715,17 @@ def add_code_block(doc, code_text, lang=""):
         cache_dir = THESIS_DIR / ".mermaid-cache"
         png_path = _render_mermaid_to_png(code_text, cache_dir)
         if png_path:
+            # Round 2.7 — same keep_with_next logic as add_image_inline
+            if len(doc.paragraphs) > 0:
+                prev_para = doc.paragraphs[-1]
+                prev_para.paragraph_format.keep_with_next = True
+
             # Embed PNG centered
             p = doc.add_paragraph()
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p.paragraph_format.space_before = Pt(6)
             p.paragraph_format.space_after = Pt(6)
+            p.paragraph_format.keep_with_next = True  # keep image with caption
             run = p.add_run()
             # Wave thesis-2 Round 2 Items 3+4+5 — smart A4-fit sizing for Mermaid PNGs
             # (previously hardcoded Cm(14.0) bypassed smart-sizing in add_image_inline)
@@ -747,9 +761,7 @@ def add_code_block(doc, code_text, lang=""):
                         target_w = A4_BODY_HEIGHT_CM * aspect
             except Exception:
                 pass
-            # Round 2.6 — tall Mermaid PNGs (>12cm) get page_break_before
-            if target_h is not None and target_h > 12.0:
-                p.paragraph_format.page_break_before = True
+            # Round 2.7 — REMOVED page_break_before (replaced with keep_with_next chain above)
             if target_h is not None and target_h > 0:
                 run.add_picture(str(png_path), width=Cm(target_w), height=Cm(target_h))
             else:
