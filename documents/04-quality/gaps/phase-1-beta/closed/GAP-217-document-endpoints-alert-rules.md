@@ -1,6 +1,6 @@
 # GAP-217: Alert rules for `/api/v1/documents/*` endpoints
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 100%
 **Priority:** 🔴 P0 — Wave 5 introduced new HTTP surface; alerts are required per `post-wave-audit-mandate.md` §2.1
 **Domain:** Ops / Observability
 **Found:** 2026-04-25 (Wave 5 audit suite — ops-readiness audit finding #1)
@@ -79,3 +79,5 @@ Predicate on `GAP-220` (Spring Cache Micrometer metrics enabled) for the third r
 ## Log
 
 - **2026-04-25:** Filed from Wave 5 audit suite (ops audit finding #1). P0 because Wave 5 introduced the endpoints; alert coverage is mandated for new HTTP surface. Blocked by GAP-120 for actual routing.
+
+- **2026-05-26 (Wave br-7 Bucket C PR #1844 — 3 alert rules already exist (lines 100-144 prometheusrule.yaml from Sub-PR 5.6b era); normalized 2 runbook_url + new promtool CI job closure):** Flipped DONE 100% — . CSV row updated + file moved to phase-1-beta/closed/ per `gap-done-discipline.md` §2.
