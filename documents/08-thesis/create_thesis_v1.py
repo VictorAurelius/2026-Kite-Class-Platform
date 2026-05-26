@@ -472,6 +472,69 @@ def add_bullet_list_item(doc, text):
     return p
 
 
+def add_seq_caption(doc, label_word, label_number, caption_text):
+    """Wave thesis-2 Bucket Issue 2 fix — emit caption với SEQ field code.
+
+    Word "Table of Figures" / "Danh mục Hình" requires SEQ fields with specific
+    identifiers ("Figure" / "Table") để populate entries. Without SEQ fields,
+    Word reports "No table of figures entries found".
+
+    Args:
+        label_word: "Hình" or "Bảng" (visible Vietnamese label)
+        label_number: e.g., "1.4" (chapter.figure number from MD source)
+        caption_text: rest of caption text after the label
+
+    Emits paragraph:
+        "{label_word} {label_number}." + {SEQ Figure|Table \\* ARABIC} + ". {caption_text}"
+
+    SEQ identifier mapping (matches add_list_of_figures_tables TOC \\c switch):
+        - "Hình" → SEQ "Figure"  (Vietnamese visible label, English internal)
+        - "Bảng" → SEQ "Table"
+    """
+    seq_id = "Figure" if label_word == "Hình" else "Table"
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_after = Pt(12)
+
+    # Visible label "Hình X.Y" with bold style
+    run = p.add_run(f"{label_word} {label_number}")
+    run.font.name = FONT_NAME
+    if run._element.rPr is not None:
+        run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
+    run.font.size = FONT_SIZE_NORMAL
+    run.font.bold = True
+
+    # Invisible SEQ field — Word Table of Figures discovers this
+    seq_run = p.add_run("")
+    fldChar_begin = OxmlElement('w:fldChar')
+    fldChar_begin.set(qn('w:fldCharType'), 'begin')
+    instrText = OxmlElement('w:instrText')
+    instrText.set(qn('xml:space'), 'preserve')
+    instrText.text = f' SEQ {seq_id} \\* ARABIC '
+    fldChar_separate = OxmlElement('w:fldChar')
+    fldChar_separate.set(qn('w:fldCharType'), 'separate')
+    seq_value = OxmlElement('w:t')
+    seq_value.text = "1"  # placeholder — Word recalculates on F9 / updateFields
+    fldChar_end = OxmlElement('w:fldChar')
+    fldChar_end.set(qn('w:fldCharType'), 'end')
+    seq_run._r.append(fldChar_begin)
+    seq_run._r.append(instrText)
+    seq_run._r.append(fldChar_separate)
+    seq_run._r.append(seq_value)
+    seq_run._r.append(fldChar_end)
+
+    # Caption text after period
+    caption_run = p.add_run(f". {caption_text}")
+    caption_run.font.name = FONT_NAME
+    if caption_run._element.rPr is not None:
+        caption_run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
+    caption_run.font.size = FONT_SIZE_NORMAL
+
+    return p
+
+
 def add_blockquote(doc, text):
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
@@ -761,6 +824,20 @@ def parse_markdown(doc, md_text, skip_top_heading=True):
             if not img_path.is_absolute():
                 img_path = THESIS_DIR / img_path
             add_image_inline(doc, img_path, caption=None, width_cm=14.0)
+            i += 1
+            continue
+
+        # Wave thesis-2 Bucket Issue 2 fix — detect figure/table caption pattern
+        # **Hình X.Y.** Caption text.  or  **Bảng X.Y.** Caption text.
+        # (Source MDs có format: bold prefix `**Hình X.Y.**` THEN plain caption text)
+        # Emit with SEQ field for Word "Table of Figures" / "Danh mục Hình" support
+        caption_match = re.match(r'^\*\*(Hình|Bảng)\s+(\d+\.\d+)\.?\*\*\s*(.+?)\.?\s*$', stripped)
+        if caption_match:
+            flush_paragraph()
+            label_word = caption_match.group(1)
+            label_number = caption_match.group(2)
+            caption_text = caption_match.group(3).strip().rstrip('.')
+            add_seq_caption(doc, label_word, label_number, caption_text)
             i += 1
             continue
 
@@ -1523,56 +1600,9 @@ def add_conclusion(doc):
         "Giai đoạn mở rộng K-12: mở rộng sang persona trường công lập với DPO chính thức + DPIA cho dữ "
         "liệu trẻ em theo Luật Bảo vệ Dữ liệu Cá nhân Điều 26.")
 
-    add_section_title(doc, "4. Đóng góp khoa học")
-    add_paragraph_text(doc,
-        "Đồ án đóng góp ba kết quả khoa học chính:")
-
-    add_subsection_title(doc, "4.1. Pattern Row-Level Security NULL force-fail cho multi-tenant SaaS giáo dục")
-    add_paragraph_text(doc,
-        "Đồ án đề xuất và hiện thực hóa pattern Row-Level Security NULL force-fail trên PostgreSQL "
-        "áp dụng cho ngữ cảnh multi-tenant SaaS giáo dục Việt Nam. Pattern này nâng cao defense-in-depth "
-        "bằng cách thiết lập tenant context dạng GUC `is_local := true` (session-scoped), trong đó nếu "
-        "tenant_id NULL trên session, mọi truy vấn đều force-fail thay vì trả về toàn bộ dữ liệu. "
-        "Cách tiếp cận này khác với mô hình row-filter mặc định (silent leak nếu thiếu context) và "
-        "đã được kiểm chứng qua bộ test integration thuộc Chương 3.")
-
-    add_subsection_title(doc, "4.2. Đánh giá thực nghiệm thị trường phần mềm quản lý trung tâm giáo dục Việt Nam")
-    add_paragraph_text(doc,
-        "Đồ án thực hiện phân tích so sánh có hệ thống bốn hệ thống tương tự (MISA AMIS Trường "
-        "Học, Mona eLMS, Easy Edu, DotB) trong segment trung tâm dạy thêm Việt Nam, đối chiếu với khung "
-        "pháp lý Việt Nam (Thông tư 29/2024/TT-BGDĐT, PDPL 2023, Luật An ninh mạng 2018). Kết quả phân "
-        "tích định lượng đặc điểm thị trường (giá, tính năng multi-tenant, AI integration, mức tuân thủ "
-        "pháp luật), được trình bày tại Chương 1 Phần 1, cung cấp tham chiếu cho các công trình "
-        "nghiên cứu kế tiếp về EdTech Việt Nam.")
-
-    add_subsection_title(doc, "4.3. Kiến trúc tham chiếu multi-tenant SaaS giáo dục B2B áp dụng audit-driven approach")
-    add_paragraph_text(doc,
-        "Đồ án đề xuất kiến trúc tham chiếu (reference architecture) cho nền tảng multi-tenant SaaS "
-        "phục vụ ngành giáo dục thương mại Việt Nam tích hợp các yêu cầu phi chức năng đặc thù: tuân thủ "
-        "PDPL 2023 + Luật An ninh mạng 2018, hỗ trợ Vietnamese-first UX (VND format, niên khóa 9-5, "
-        "thanh toán VietQR/MoMo), AI Branding tự động sinh nội dung. Kiến trúc được mô tả chi tiết qua "
-        "Chương 2 + Chương 3, kèm phương pháp luận Quality-Driven Development bốn trụ cột (Chương 1 Phần "
-        "3) hỗ trợ duy trì chất lượng code + tài liệu trong điều kiện phát triển dài hạn.")
-
-    # Wave 102.5 Bucket A G1 — §"Kiến nghị" 2-3 ý: hướng phát triển + chuyển giao
-    add_section_title(doc, "5. Kiến nghị")
-    add_paragraph_text(doc,
-        "Trên cơ sở kết quả đạt được và những hạn chế đã nêu, em xin đề xuất một số kiến nghị "
-        "cho hướng phát triển và chuyển giao đề tài như sau:")
-    add_bullet_list_item(doc,
-        "Tiếp tục mở rộng phạm vi nghiên cứu sang giai đoạn thanh toán thử nghiệm và vận hành chính thức: tích hợp thanh toán "
-        "trong nước (VNPay, MoMo, VietQR), partnership MISA MeInvoice cho hóa đơn điện tử theo "
-        "Thông tư 78/2021/TT-BTC, đồng thời xây dựng quy trình DPO + DPIA chuẩn PDPL 2023 trước "
-        "khi mở rộng tới 1.000+ tenant.")
-    add_bullet_list_item(doc,
-        "Nâng cấp kiến trúc đa-region (Singapore + Hà Nội Local Zone) để bảo đảm tuân thủ Nghị "
-        "định 53/2022/NĐ-CP về lưu trữ dữ liệu cá nhân tại Việt Nam, đồng thời cải thiện độ trễ "
-        "truy cập cho người dùng cuối trong nước.")
-    add_bullet_list_item(doc,
-        "Chuyển giao kết quả nghiên cứu cho cộng đồng học thuật và doanh nghiệp giáo dục Việt Nam "
-        "thông qua công bố mã nguồn mở (open-source) các pattern Row-Level Security NULL force-fail "
-        "và Quality-Driven Development workflow, làm tài liệu tham khảo cho các đồ án và đề tài "
-        "nghiên cứu kế tiếp về EdTech multi-tenant trong nước.")
+    # Wave thesis-2 Bucket Issue 7 fix — Remove "4. Đóng góp khoa học" + "5. Kiến nghị" separate sections per khung primary §1 Ch.4 §4.4
+    # (khung mandate "Kết luận, kiến nghị + Phương hướng phát triển" gộp 1 mục §4.4; KHÔNG separate "Đóng góp khoa học" section).
+    # Audit map item 7: "Bỏ Đóng góp khoa học + Kiến nghị" — confirmed.
 
 
 # ============== TÀI LIỆU THAM KHẢO ==============
