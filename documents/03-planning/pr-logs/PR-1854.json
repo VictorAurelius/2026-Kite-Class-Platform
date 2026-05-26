@@ -1,0 +1,37 @@
+{
+  "pr": 1854,
+  "title": "feat(wave-aws-restore-1-phase-c): ALB elimination \u2014 nginx multi-host + flip enable_alb=false + api CF DNS",
+  "branch": "wave/aws-restore-1-phase-c-2026-05-26",
+  "created_at": null,
+  "merged_at": "2026-05-26T05:02:18Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "ops-readiness-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-26T05:02:26.655087",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 5,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": [
+          "ops-readiness-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/3",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1042597"
+  }
+}
