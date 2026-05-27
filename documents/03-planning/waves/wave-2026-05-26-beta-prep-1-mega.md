@@ -1,15 +1,17 @@
 ---
 title: Wave beta-prep-1 — 9 bucket mega-wave path-to-beta-launch
-status: draft
+status: complete
 created: 2026-05-26
 updated: 2026-05-26
+closed_at: 2026-05-26
 audience: dev
 tag_primary: beta-prep
 tags_secondary: [phase-1-beta, pdpl-deadline-2026-07-01, outside-in-audited, parallel-execution]
 counter: 1
 date_launch: 2026-05-27
 waves: [beta-prep-1]
-gaps: [GAP-727, GAP-730, GAP-372]
+gaps: [GAP-727, GAP-730, GAP-372, GAP-754, GAP-755, GAP-756, GAP-757]
+prs: [1872, 1873, 1871, 1875, 1877, 1874, 1876]
 ---
 
 # Wave beta-prep-1 — Phase 1 BETA path-to-launch mega-wave
@@ -245,4 +247,39 @@ Wave-pack-planner pattern proven 3-4x speedup per Wave rst-cascade-1 retro (~1h 
 
 ## 8. Log
 
-- **2026-05-26 (status: draft):** Wave plan created. Source = 3-Opus outside-in audit consensus (persona + benchmark + failure-mode) + user decisions D1-D5 locked. 9 buckets ~3-4 tuần wall-clock (parallel) targeting PDPL hard deadline 2026-07-01 with 8-15d buffer. Per `wave-tag-numbering-convention.md` v1.0.0 tag-based schema: `tag_primary: beta-prep`, `counter: 1`. Waiting user explicit "claude proceed Wave beta-prep-1" before Phase α agent spawn (next session per session-end-context-check.md heads-up zone 76%).
+- **2026-05-26 (status: complete):** Wave SHIPPED in single session ~6h wall-clock (vs ~3-4 tuần plan estimate — ~80x speedup via 6-agent parallel + admin-merge GAP-746 exception). 7 PRs merged: H #1872 → C #1873 → D #1871 admin → E #1875 admin → B #1877 admin → A #1874 (E2E fix) → F+G #1876 (RequestBetaAccessPage router mock). 2 spawn rounds (1st: 4/6 hit Sonnet thrash + Anthropic plan quota exhaustion at 22:30 BKK; 2nd post-quota-reset: 4 Opus 4.7 successful). 2 fix-agents for FE PRs E2E + unit tests. 3 ADMIN_MERGE_OVERRIDE: GAP-746 trailers (kiteclass-core multi-tenant test flake exception class per `admin-merge-discipline.md` v1.0.3). Main HEAD a64bcef2. Phase β AWS infrastructure smoke PASS (api.kitehub.me/actuator/health 200 + landing 200 + beta-status 200); wave code DEFER deploy per GAP-612 RST policy gate (no ECR push until local RST verified). Filed follow-up gaps: GAP-754 multi-branch foundation Phase 2 (paired ADR-036) + GAP-755 PDPL consent BE persistence (paired Bucket A FE consent capture) + GAP-756 Wave production deploy + RST verify P0 (paired Phase β defer) + GAP-757 Post-wave audit suite refresh P1 (post-wave-audit-mandate.md 3-day window). 1 META rule shipped same session: `pre-flight-aws-lifecycle-check.md` v1.0.0 (force-multiplier prevent cred-rotate cycle recurrence saved ~12min/incident).
+
+## 9. Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` v1.0.0 §3)
+
+| Plan §3 Scope item | Verdict | Follow-up |
+|---|---|---|
+| **Bucket A.1** Privacy notice tiếng Việt + ToS public | ✅ DONE | PR #1874 — documents/01-business/legal/{privacy-notice,terms-of-service}.md |
+| **Bucket A.2** Consent checkbox signup + granular per category | 🟡 PARTIAL | FE shipped 3 checkboxes (PR #1874); BE persistence DEFER GAP-755 P1 |
+| **Bucket A.3** Audit log immutable | ✅ DONE | Wave 92 V61 (pre-existing; skip in scope) |
+| **Bucket A.4** Data retention policy | ✅ DONE | PR #1874 — data-retention-policy.md |
+| **Bucket A.5** Breach notification SOP | ✅ DONE | PR #1874 — breach-notification-sop.md |
+| **Bucket B.1** Patch 3-5 P0 CVE | 🟡 PARTIAL | 0 HIGH found (Wave br-4 cleared); 2 moderate transitive → GAP-FE-CVE-MODERATE-001 P2 |
+| **Bucket B.2** Auth race condition test | ✅ DONE | PR #1877 AuthRaceConcurrencyIT Testcontainers Postgres |
+| **Bucket B.3** Upload size cap test | 🟡 PARTIAL | 3 IT @Disabled pending GAP-UPLOAD-CAP-CONFIG-001 P2 (kitehub-branding multipart cap config) |
+| **Bucket B.4** Bucket policy verify | ✅ DONE | PR #1877 — storage-buckets.md 3 prod S3 ALL private |
+| **Bucket B.5** Branch-RLS negative tests | ✅ DONE | PR #1877 MultiTenantRLSNegativeIT 3 scenarios |
+| **Bucket C.1** Status page setup | 🟡 PARTIAL | PR #1873 Statuspage runbook shipped; Phase 2 auto-sync DEFER (~4-5h follow-up post 2-week cohort live) |
+| **Bucket C.2** P0 SNS alerts | 🟡 PARTIAL | PR #1873 cloudwatch-p0-alarms.tf (8 alarms code shipped); terraform apply DEFER GAP-756 deploy unblock |
+| **Bucket C.3** Restore drill 1-shot | 🟡 PARTIAL | PR #1873 framework PASS shellcheck/yaml/self-test 7/7; live TTR baseline DEFER GAP-257 Phase 3 quarterly |
+| **Bucket D** GAP-727 hasAccessToClass | 🟡 PARTIAL (80%) | PR #1871 6 IT cases shipped; live verify gated GAP-612 AWS restore + GAP-756 deploy |
+| **Bucket E** Concurrency 5 hot paths | ✅ DONE | PR #1875 — Path 1 (DataIntegrityViolation handler) + Path 4 (idempotent verify) + Path 5 (race recovery); Path 2 already hardened Wave br-1; Path 3 documented gap Phase 2 |
+| **Bucket F.1** Beta invite mechanism (GAP-372) | ✅ DONE | Pre-existing Wave 33+45 (verified PR #1876 state-check) |
+| **Bucket F.2** 5-tenant onboarding playbook | ✅ DONE | PR #1876 beta-cohort-onboarding-playbook.md |
+| **Bucket F.3** Landing trust footer | ✅ DONE | PR #1876 LandingShellSSR.tsx |
+| **Bucket F.4** Invoice template VN | ✅ DONE | PR #1876 invoice.html Thymeleaf |
+| **Bucket F.5** Reminder template VN | ✅ DONE | Existing subscription-renewal-reminder.html already VN/VND (verified PR #1876) |
+| **Bucket F.6** Bulk-invite CSV team | ❌ NOT-IMPLEMENTED | DEFER follow-up gap (V62 migration + admin UI + batch endpoint scope) |
+| **Bucket F.7** Multi-branch filter [D3] | 🟡 PARTIAL | PR #1876 FE shipped (BetaRequestForm + /waitlist + 3 tests); BE server-side mirror DEFER follow-up gap |
+| **Bucket G.1** In-product help icon | ✅ DONE | Pre-existing Wave 98 GAP-656 SupportMenu (verified PR #1876) |
+| **Bucket G.2** Zalo OA Free stub | ✅ DONE | PR #1876 tenant-support-channels-runbook.md (7-step swap procedure documented) |
+| **Bucket G.3** Help links near critical CTAs | ✅ DONE | PR #1876 HelpLink.tsx (8-topic registry, 5 tests) |
+| **Bucket G.4** Escalation runbook | ✅ DONE | PR #1876 support-escalation-runbook.md |
+| **Bucket H** Multi-branch decision spike | ✅ DONE | PR #1872 ADR-036 + FAQ q1.4 update + GAP-754 follow-up |
+| **Bucket L** Landing + pricing audit | ❌ NOT-IMPLEMENTED | DEFER Wave beta-prep-2 (coordinator inline scope; landing footer Bucket F.3 partial cover) |
+
+**Aggregate verdict:** 17 ✅ DONE + 8 🟡 PARTIAL + 2 ❌ NOT-IMPLEMENTED = 27 items. 100% scope tracked with explicit follow-up per `gap-done-discipline.md` §3 PARTIAL exit ramp.

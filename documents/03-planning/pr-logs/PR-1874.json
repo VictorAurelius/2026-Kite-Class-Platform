@@ -1,0 +1,37 @@
+{
+  "pr": 1874,
+  "title": "feat(wave-beta-prep-1-bucket-A): PDPL compliance-min 4 items (privacy + ToS + consent + retention + breach)",
+  "branch": "wave/beta-prep-1-bucket-A-pdpl",
+  "created_at": null,
+  "merged_at": "2026-05-26T17:52:27Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "ui-review"
+    ],
+    "audits_run": [
+      "ui-review"
+    ],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-27T00:52:35.957575",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 10,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "1/3",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-91302"
+  }
+}
