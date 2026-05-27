@@ -29,8 +29,11 @@ export const TEST_USER = {
  * @param page - Playwright page object
  */
 export async function setupAuthMocks(page: Page) {
-  // Mock login endpoint - use glob pattern for matching
-  await page.route('**/api/v1/auth/login', async (route) => {
+  // Mock login endpoint — Wave 105 commit 8cc5bff4 (PR #1737) changed KH backend from
+  // /api/v1/auth/login (wrapped {success, data: {...}}) to /api/auth/login (flat shape).
+  // GAP-759 sync: mock URL + response shape must match real consumer (useAuth.ts line 28
+  // expects flat shape with role singular, not roles[]).
+  await page.route('**/api/auth/login', async (route) => {
     const request = route.request();
     const postData = request.postDataJSON();
 
@@ -42,18 +45,16 @@ export async function setupAuthMocks(page: Page) {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          success: true,
-          data: {
-            // JWT with payload {"tenantId":"11111111-1111-1111-1111-111111111111"} — required for atob() in useAuth.ts
-            accessToken: 'eyJhbGciOiJIUzI1NiJ9.eyJ0ZW5hbnRJZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSJ9.mock',
-            refreshToken: 'mock-refresh-token',
-            user: {
-              id: 1,
-              email: TEST_USER.email,
-              name: TEST_USER.name,
-              roles: [TEST_USER.role],
-              profile: { id: 1 },
-            },
+          // Flat shape per Wave 105 contract (no {success, data} wrapper).
+          // JWT with payload {"tenantId":"11111111-1111-1111-1111-111111111111"} — required for atob() in useAuth.ts
+          accessToken: 'eyJhbGciOiJIUzI1NiJ9.eyJ0ZW5hbnRJZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSJ9.mock',
+          refreshToken: 'mock-refresh-token',
+          user: {
+            id: 1,
+            email: TEST_USER.email,
+            name: TEST_USER.name,
+            // Singular `role` per real KH contract (useAuth.ts line 28-29).
+            role: TEST_USER.role,
           },
         }),
       });
@@ -61,20 +62,20 @@ export async function setupAuthMocks(page: Page) {
       await route.fulfill({
         status: 401,
         contentType: 'application/json',
+        // Flat error shape (no {success: false} wrapper).
         body: JSON.stringify({
-          success: false,
           message: 'Invalid credentials',
         }),
       });
     }
   });
 
-  // Mock logout endpoint
-  await page.route('**/api/v1/auth/logout', async (route) => {
+  // Mock logout endpoint — same path update Wave 105.
+  await page.route('**/api/auth/logout', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ success: true }),
+      body: JSON.stringify({}),
     });
   });
 }
