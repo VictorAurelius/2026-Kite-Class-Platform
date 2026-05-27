@@ -22,6 +22,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { TeacherShell } from '@/components/teacher/teacher-shell';
 import { TEACHER_PROFILE } from '@/components/teacher/teacher-mock-data';
+import { UserType } from '@/types/auth';
 
 export default function TeacherLayout({
   children,
@@ -32,6 +33,7 @@ export default function TeacherLayout({
   const [isHydrated, setIsHydrated] = useState(false);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const accessToken = useAuthStore((state) => state.accessToken);
+  const userType = useAuthStore((state) => state.user?.userType);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -41,10 +43,17 @@ export default function TeacherLayout({
     if (!isHydrated) return;
     if (!isAuthenticated || !accessToken) {
       router.push('/login');
+      return;
     }
-  }, [isHydrated, isAuthenticated, accessToken, router]);
+    // GAP-758: explicit TEACHER-only persona require (REQUIRE not bypass).
+    // Bounces undefined-userType (KH JWT Owner/Admin shape mismatch per GAP-725
+    // architectural defer) + non-Teacher userType back to /dashboard.
+    if (userType !== UserType.TEACHER) {
+      router.replace('/dashboard');
+    }
+  }, [isHydrated, isAuthenticated, accessToken, userType, router]);
 
-  if (!isHydrated || !isAuthenticated || !accessToken) {
+  if (!isHydrated || !isAuthenticated || !accessToken || userType !== UserType.TEACHER) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <LoadingSpinner size="lg" />

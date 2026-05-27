@@ -8,16 +8,19 @@
  * different sidebar/feature set. Both route groups coexist; auth middleware in
  * the existing app does not yet differentiate `SCHOOL_ADMIN` vs `ADMIN` roles.
  *
- * Auth strategy this PR:
- * - Reuse existing `useAuthStore` (auth gate redirects to /login if not authed)
- * - Accept any authenticated session (no `SCHOOL_ADMIN` role gate yet) so the
- *   port can ship without a backend role rollout. Once backend exposes
- *   `SCHOOL_ADMIN` role, tighten the check here (filed as follow-up sub-gap if
- *   needed).
- * - PLATFORM admin layout (`(admin)/admin/layout`) keeps its `user.role === 'ADMIN'`
- *   check unchanged → not affected by this port.
+ * Auth strategy:
+ * - Phase 1 BETA (Wave 758 GAP-758): route group HIDDEN — bounces all
+ *   authenticated personas (OWNER / STAFF / ADMIN / PLATFORM_ADMIN) back to
+ *   /dashboard. Reason: SCHOOL_ADMIN role chưa exist trong KH PlatformRole
+ *   enum; K-12 SCHOOL_ADMIN persona deferred Phase 3 per CLAUDE.md
+ *   "Phase 3 (+8-12 tuần post-counsel): + K-12 P5".
+ * - Phase 3 K-12: re-enable gate cho SCHOOL_ADMIN role (file follow-up gap
+ *   khi backend exposes role).
+ * - PLATFORM admin layout (`(admin)/admin/layout`) keeps its
+ *   `user.role === 'ADMIN'` check unchanged → not affected.
  *
- * @since Wave 50 Bucket A (Phase 4 Track 2 production port)
+ * @since Wave 50 Bucket A (Phase 4 Track 2 production port);
+ *        Wave 758 GAP-758 (Phase 1 BETA bounce-all guard)
  */
 
 'use client';
@@ -26,9 +29,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { SchoolAdminShell } from '@/components/school-admin/school-admin-shell';
 
-export default function SchoolAdminLayout({ children }: { children: ReactNode }) {
+export default function SchoolAdminLayout({ children: _children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuthStore();
   const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
@@ -38,18 +40,21 @@ export default function SchoolAdminLayout({ children }: { children: ReactNode })
   }, []);
 
   useEffect(() => {
-    if (isHydrated && !isAuthenticated) {
+    if (!isHydrated) return;
+    if (!isAuthenticated) {
       router.replace('/login');
+      return;
     }
+    // GAP-758: Phase 1 BETA persona-route-restrict — SCHOOL_ADMIN role không
+    // tồn tại trong KH PlatformRole enum. Bounce all authenticated users
+    // back to /dashboard. Re-enable Phase 3 K-12 khi role landed.
+    router.replace('/dashboard');
   }, [isHydrated, isAuthenticated, router]);
 
-  if (!isHydrated || !isAuthenticated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  return <SchoolAdminShell>{children}</SchoolAdminShell>;
+  // Always render loading state — page never reaches children in Phase 1 BETA.
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <LoadingSpinner />
+    </div>
+  );
 }
