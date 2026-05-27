@@ -1,6 +1,6 @@
 # GAP-756 — Wave beta-prep-1 production deploy + RST verify
 
-**Status:** 🟡 PARTIAL 25% (Phase 1 local RST PASS 2026-05-27 — Phase 2+3 deploy + Bucket C alarms defer next session user-trigger per `release-deploy-standard.md` §9)
+**Status:** 🟡 PARTIAL 35% (Phase 1 local RST EXTENDED PASS 2026-05-27 — full API-level smoke + admin approve flow + email delivery + DB concurrency safety net + Bucket D tenant_id schema audit + Flyway V56; browser UI walk + Bucket B 2FA enrollment + tenant create gateway route defer; Phase 2+3 deploy defer next session user-trigger per `release-deploy-standard.md` §9)
 **Priority:** 🔴 P0
 **Domain:** DevOps
 **Detected:** 2026-05-26
@@ -117,7 +117,26 @@ Full production deploy pipeline blocked by GAP-612 RST (Restore + Smoke Test) po
 
 ## Log
 
-- **2026-05-27 (Phase 1 PASS — PARTIAL 25%):** User scope-lock 2026-05-27 02:43 UTC "Phase 1 only (local RST + admin-login smoke)". Executed:
+- **2026-05-27 (Phase 1 EXTENDED — PARTIAL 35%):** User flag "RST full local chưa?" → extended scope per user direction "Mở rộng RST bây giờ: browser walk + Bucket B/D/E live smoke". Additional smoke beyond initial Phase 1:
+  - **Admin approve flow end-to-end:** Login → `GET /api/v1/admin/beta-requests?status=PENDING` HTTP 200 row id=11 visible → `POST /api/v1/admin/beta-requests/11/approve` với `approverId` HTTP 200 → row status APPROVED + `approvedAt` timestamp. §2.4 admin-flow (a)→(g) verified at API level all 7 rows.
+  - **Email delivery via mailhog:** 3 emails delivered (admin login alert ×2 + beta access code Vietnamese subject `Mã truy cập Beta KiteHub của bạn` sent at 03:04:38 ngay sau approve action 03:04:38) — end-to-end approve → outbox → RabbitMQ → kitehub-email → SMTP mailhog VERIFIED.
+  - **Flyway migration:** V56 latest (`create_consent_record_immutable` + `beta_request_email_unique_pending`) — 56/56 success. Wave Bucket A consent + Wave Bucket E beta request unique constraint applied.
+  - **RabbitMQ queue depth:** 12 queues (ai.request.{free,pro,enterprise} + DLQs, branding-jobs + DLQ, class.rescheduled, email.send + DLQ, instance.purge.subscription) ALL 0 messages — no backlog. Earlier EmailEvent deserialization error loop self-resolved (poisoned messages drained).
+  - **Bucket D multi-tenant schema audit:** 9 tables with `tenant_id` column (consent_record, consent_record_immutable, feedback_submissions, impersonation_audit_log, oauth_attempts, onboarding_progress, staff_invitation_audit_log, staff_invitations, users) — boundary enforcement code-level via `hasAccessToClass` (PR #1871 IT test-level verify; runtime cross-tenant fetch verify defer).
+  - **Bucket E concurrency safety net:** DB-level UNIQUE constraint `instances_subdomain_key` enforced — 10 parallel direct PG `INSERT` with same subdomain → exactly 1 INSERT succeeded + 9 `duplicate key` errors. App-level pre-check `existsBySubdomainAndDeletedFalse` TOCTOU race window covered by DB constraint per `GlobalExceptionHandler` 409 mapping (Wave beta-prep-1 Bucket E shipped).
+  - **API gateway routing scope:** Gateway exposes `/api/auth/*` + `/api/v1/*` only; `/api/platform/instances` (internal platform-management) returns 404 through gateway (auth required + internal scope). Concurrency live verify via gateway requires Wave Bucket E gateway route exposure follow-up OR internal-network test runner.
+  
+  **Still deferred (browser-specific OR setup-heavy):**
+  - (c)(e)(f)(g) Login UI flow + admin nav sidebar + page render + UI approve click — browser test ngoài CLI scope
+  - Bucket B 2FA challenge live flow — admin `totp_enrolled_at` NULL by default; verify chain needs enrollment flow first (`TwoFactorController` endpoints exist, ChallengeTokenAuthenticationFilter present)
+  - Bucket D runtime cross-tenant fetch verify — needs multi-tenant flow exercising classes domain (kiteclass-core scope)
+  - Tenant `POST /api/platform/instances` race via gateway — endpoint internal, requires gateway route exposure OR internal test runner
+  - Refresh token rotation (§2.10 time-sensitive flow)
+  - PDPL retention job dry-run (Wave beta-prep-1 Bucket B)
+  
+  Phase 2+3 defer per `release-deploy-standard.md` §9 unchanged.
+
+- **2026-05-27 (Phase 1 initial PASS — PARTIAL 25%):** User scope-lock 2026-05-27 02:43 UTC "Phase 1 only (local RST + admin-login smoke)". Executed:
   1. `bash kitehub/scripts/up.sh --profile full` → 13/13 services healthy (~3 min)
   2. Initial smoke: `/legal/privacy` + `/legal/terms` 200; `/waitlist` 404 (image stale)
   3. `bash kitehub/scripts/rebuild.sh frontend` rebuild kitehub-frontend → re-smoke `/waitlist` 200
