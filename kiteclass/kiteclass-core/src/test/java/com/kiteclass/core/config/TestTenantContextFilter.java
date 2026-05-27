@@ -85,6 +85,19 @@ public class TestTenantContextFilter extends OncePerRequestFilter {
                         // InvalidDataAccessApiUsageException on cross-tenant test sequences.
                         // Same-tenant requests retain original flush-then-clear semantics
                         // to preserve mid-test direct repository.save() persistence.
+                        //
+                        // ⚠️ TEST-SIDE TRAP: the cross-tenant clear() WITHOUT prior flush
+                        // discards pending UPDATEs queued in the persistence context by
+                        // the test body (e.g. testAssignment.setStatus(PUBLISHED) +
+                        // assignmentRepository.save() without intervening flush). The
+                        // controller then reads STALE DB state. Tests that modify a
+                        // managed entity in the test body BEFORE mockMvc.perform MUST
+                        // explicitly call entityManager.flush() to push the UPDATE to DB.
+                        // See .claude/skills/testing/testing-standards.md §2.8 for the
+                        // required test pattern + symptoms (HTTP 400 unexpected, derived
+                        // field assertion fail). Originating incidents: Wave gap-746
+                        // closure 2026-05-25 + Wave rst-cleanup 2026-05-27
+                        // (AssignmentIntegrationTest 2 sites + InvoiceFlow MT).
                         UUID previousTenant = PREVIOUS_TENANT.get();
                         if (previousTenant != null && !previousTenant.equals(tenantUuid)) {
                             entityManager.clear();
