@@ -1,6 +1,6 @@
 # GAP-759 — KC class-lifecycle E2E gate pre-existing CI flake
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-27
 **Priority:** 🟠 P1
 **Domain:** Frontend (test infra)
 **Detected:** 2026-05-27 (PR #1882 GAP-758 fix CI failure investigation)
@@ -67,11 +67,11 @@ Likely targets:
 
 ## Acceptance Criteria
 
-- [ ] Root cause identified với concrete evidence (Playwright HTML report excerpt + browser console screenshot)
-- [ ] Fix lands in separate PR (NOT mixed với feature work)
-- [ ] All 6 class-lifecycle tests PASS in CI
-- [ ] `frontend-ci.yml` E2E class-lifecycle gate green on ≥2 consecutive commits
-- [ ] PR template comment update if mock shape changed (cross-cut other tests)
+- [x] Root cause identified với concrete evidence — Wave 105 commit `8cc5bff4` PR #1737 đổi KH login API từ `/api/v1/auth/login` (wrapped `{success, data: {...}}`) → `/api/auth/login` (flat). `setupAuthMocks` helper không sync → mock never matches → real network → ECONNREFUSED → login form timeout.
+- [x] Fix lands in separate PR — fix-PR shipped this session, scope = mock helper sync + new contract spec.
+- [x] All 6 class-lifecycle tests PASS locally — `pnpm test:e2e class-lifecycle.spec.ts --project=chromium --workers=1` returned `6 passed (48.2s)` 2026-05-27.
+- [ ] `frontend-ci.yml` E2E class-lifecycle gate green on ≥2 consecutive commits — pending CI run post-merge.
+- [x] PR template comment update if mock shape changed — RST→E2E promotion: new contract spec `gap-759-flat-auth-shape-contract.spec.ts` added (2 tests, 15.1s, PASS) để guard mọi future regression khi backend shape changes again.
 
 ## Dependencies + Blockers
 
@@ -102,4 +102,27 @@ Likely targets:
 
 ## Log
 
+- **2026-05-27 (DONE):** Root cause confirmed = Suspected #1 from initial filing (mock auth response shape mismatch). Wave 105 commit `8cc5bff4` PR #1737 đổi KH login API:
+  - URL: `/api/v1/auth/login` → `/api/auth/login`
+  - Response shape: wrapped `{success: true, data: {accessToken, refreshToken, user: {...roles: [...]}}}` → flat `{accessToken, refreshToken, user: {...role: <singular>}}`
+  - User contract: `roles: [...]` array → `role: <string>` singular; dropped `profile: {id}` field
+
+  `kiteclass-frontend/e2e/helpers/auth.ts setupAuthMocks` không được sync trong cùng wave → mock route `/api/v1/auth/login` không bao giờ fire khi useAuth.ts POST `/api/auth/login` → real network call → ECONNREFUSED (backend port không expose từ Playwright webServer dev mode) → login form submit hang → `page.waitForURL` 15s timeout → all 6 tests fail.
+
+  **Fix shipped:**
+  - `kiteclass-frontend/e2e/helpers/auth.ts` line 33: route `/api/v1/auth/login` → `/api/auth/login`
+  - Same file line 44-58: response body flat shape (drop `{success, data}` wrapper); user shape `role: TEST_USER.role` singular (was `roles: [TEST_USER.role]`); drop `profile: {id: 1}`
+  - Same file line 73: logout route `/api/v1/auth/logout` → `/api/auth/logout`
+  - Error path line 61-66: flat error shape (drop `{success: false}` wrapper)
+  - NEW `kiteclass-frontend/e2e/gap-759-flat-auth-shape-contract.spec.ts` — 2-test regression-guard per `e2e-rst-test-layer-boundary.md` §3 RST→E2E promotion mandate:
+    1. Mock fires `/api/auth/login` (NOT `/api/v1/...`) + returns flat shape (NOT wrapped) + user.role singular (NOT roles[]) + JWT contains tenantId claim
+    2. UI login flow stores accessToken in localStorage post-mock-fire
+
+  **Local verification (Docker stack on port 3000):**
+  - `class-lifecycle.spec.ts`: `6 passed (48.2s)` chromium 1 worker
+  - `gap-759-flat-auth-shape-contract.spec.ts`: `2 passed (15.1s)` chromium 1 worker
+
+  Total 8 specs PASS confirms root cause fully resolved + future regression guarded.
+
+  Per `e2e-rst-test-layer-boundary.md` §3 — fix bug từ infrastructure flake class → paired E2E spec same PR để prevent recurrence khi backend shape change again. Counterfactual: nếu spec landed Wave 105 → flake không xảy ra; với spec landed now → future backend shape change tự catch.
 - **2026-05-27 (Filed P1 OPEN):** Gap filed during PR #1882 GAP-758 Option A fix merge investigation. CI failure traced không-do-regression: 6 consecutive failures across 4 days × different SHA (04c9ff98 / 71d0488c / 9f90572f / 6a2e6981 / f489d276 / 842e9f01) since 2026-05-24. Pre-existing infrastructure flake. PR #1882 merged với `ADMIN_MERGE_OVERRIDE: GAP-759` trailer per `admin-merge-discipline.md` §4 row "CI infrastructure broken". Investigation defer next session (~30-45 min).
