@@ -6,10 +6,10 @@ paths:
 # Wave Closure Scope Completeness — every plan §3 Scope item must reconcile at closure
 
 **Priority:** 🟠 MANDATORY — wave-level governance preventing scope-pending orphan items
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-18
-**Last-Reviewed:** 2026-05-18
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (reviewer-checklist + 3 follow-up gap files paired same-PR + worked self-test on Wave 87/88 DNS incident + Wave 92 6-item retroactive) per `rule-change-process.md` §6.5 Enforcement Parity Mandate; no constraint loosening — extends `gap-done-discipline.md` §3 PARTIAL exit ramp từ per-gap level lên wave level)
+**Last-Reviewed:** 2026-05-27
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; recurrence #2 documented (Wave meta-6 Bucket B 2026-05-27) — GAP-770 retroactive audit Wave 79 + Wave 92 closure PRs surfaced confirming both PRs predate rule v1.0.0 ship date (Wave 79 closure 2026-05-15; Wave 92 closure 2026-05-18 same-day-as-rule but PR body inspected — Wave 92 #1517 has structured "Buckets shipped" + "Closure protocol" sections but không explicit "Scope-Completeness Reconciliation" header per §3 mandate; both grandfathered legitimately. Recurrence #2 source = GAP-774 D4 admin audit log Wave 92 escape (V62/V63 schema shipped + admin_audit_log table populated 3 BETA_REQUEST_APPROVE rows but NO Controller + NO FE page = orphan class same as Wave 87/88 CF DNS cutover recurrence #1). Per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions, recurrence ≥2 confirmed → §5.3 detector eligibility triggers SHIP-NOW. Detector script `scripts/check-wave-closure-completeness.sh` shipped same PR + CI job `wave-closure-completeness` wired in `quality-docs.yml` WARN-mode initial 30-day grace. v1.0.0 (kept): MINOR self-approve per §5; new rule với built-in enforcement per §6.5 Enforcement Parity Mandate)
 **Applies to:** Every wave closure PR (frontmatter `status: draft → complete` flip) hoặc wave-history.jsonl append entry
 
 ---
@@ -129,9 +129,19 @@ Future enhancement: `.github/PULL_REQUEST_TEMPLATE.md` Output Review section add
 
 Defer until 2nd flake / next wave closure to verify reviewer-checklist sufficient first.
 
-### 5.3 Detector (deferred per `incident-to-rule-pipeline.md` premature-rule guard)
+### 5.3 Detector (SHIPPED Wave meta-6 Bucket B per recurrence #2 closure)
 
-Future: `session-docs-check` Rule N — scan wave plan `status: complete` diff line; require matching closure PR body OR wave plan §7 contains "Scope-Completeness Reconciliation" heading + table rows ≥ plan §3 bucket count. Defer until 2nd recurrence after rule lands.
+`scripts/check-wave-closure-completeness.sh` (shipped 2026-05-27 Wave meta-6 Bucket B per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions — recurrence #2 confirmed → SHIP-NOW eligibility). Scans wave plan files với frontmatter `status: complete` requiring matching closure PR body content OR wave plan §7 Closure Protocol containing "Scope-Completeness Reconciliation" heading + table rows ≥ plan §3 bucket count.
+
+CI integration: `.github/workflows/quality-docs.yml` job `wave-closure-completeness` triggers on PR diff touching `documents/03-planning/waves/**/*.md`. WARN-mode initial 30-day grace period từ Wave meta-6 merge (target re-enable HARD STOP 2026-06-26 sau audit retrospective). Override trailer: `WAVE_CLOSURE_RECONCILE_OVERRIDE: <reason + follow-up gap link>`.
+
+Detector logic:
+1. Detect wave plan files added/modified với `status: complete` in frontmatter
+2. For each such file: check wave plan §7 OR detect closure PR body via `gh pr view` if PR context available
+3. Verify presence of "Scope-Completeness Reconciliation" heading (case-insensitive)
+4. WARN if missing; downgrade by override trailer
+
+Self-test: 2 fixtures embedded (PASS — wave plan với reconciliation table; FAIL — wave plan status:complete missing reconciliation heading).
 
 ### 5.4 Override mechanism
 
@@ -239,12 +249,14 @@ Rule này dùng `paths:` frontmatter (`documents/03-planning/waves/**`) — path
 
 ## 10. Open Items / Follow-ups
 
-- [ ] Detector wiring (`session-docs-check` Rule N) — defer ≥7 ngày per `incident-to-rule-pipeline.md` premature-rule guard. File follow-up gap nếu 2nd recurrence post-rule-merge happens.
-- [ ] PR template checkbox extension (§5.2) — defer same window
-- [ ] Memory auto-load (`feedback_wave_closure_scope_completeness.md`) — defer per same guard
+- [x] ~~Detector wiring~~ ✅ SHIPPED Wave meta-6 Bucket B 2026-05-27 (`scripts/check-wave-closure-completeness.sh` + CI job `wave-closure-completeness` in `quality-docs.yml`). Recurrence #2 confirmed via GAP-770 retroactive audit per `incident-to-rule-pipeline.md` §3.1 SHIP-NOW.
+- [ ] PR template checkbox extension (§5.2) — defer same window; revisit when detector stabilizes ≥30 ngày post-merge
+- [ ] Memory auto-load (`feedback_wave_closure_scope_completeness.md`) — defer per `incident-to-rule-pipeline.md` premature-rule guard; reviewer-checklist + detector WARN sufficient cho v1.0.1
 
 ---
 
 ## 11. Log
+
+- **2026-05-27 (v1.0.1):** PATCH — recurrence #2 documented + detector SHIP-NOW closure. Wave meta-6 Bucket B retroactive audit (per GAP-770) Wave 79 + Wave 92 closure PRs: both PRs predate rule v1.0.0 ship date (Wave 79 closure 2026-05-15 = 3 days before rule; Wave 92 closure 2026-05-18 03:50 UTC = same-day-as-rule landing but PR #1517 body has structured "Buckets shipped" + "Closure protocol" sections without explicit "Scope-Completeness Reconciliation" header per §3 mandate; both grandfathered legitimately per `rule-change-process.md` retroactive policy). Recurrence #2 source = GAP-774 (filed 2026-05-27 Wave 106 RST Mảng D4 probe) — V62/V63 admin_audit_log table schema shipped Wave 92 + populated 3 BETA_REQUEST_APPROVE rows BUT NO Controller + NO FE page = orphan class same as recurrence #1 (Wave 87/88 CF DNS cutover workflow code shipped without execute step). Per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions check (3 conditions: non-trivial detector + low recurrence + honest defer documented), recurrence-count ≥2 confirmed → condition 2 fails → §3.1 mandates SHIP detector now (Stage 3 hard requirement). Detector shipped same PR: `scripts/check-wave-closure-completeness.sh` (~90 LOC bash + 2 self-test fixtures PASS + FAIL) + CI job `wave-closure-completeness` wired in `.github/workflows/quality-docs.yml` WARN-mode initial 30-day grace period; HARD STOP eligibility 2026-06-26 sau audit retrospective. §5.3 detector flipped deferred → SHIPPED; §10 Open Items detector row flipped ✅. Audit artifact `documents/04-quality/audits/meta/2026-05-27-wave-92-79-closure-retroactive.md` shipped per `output-review-mandate.md` §3. GAP-770 closure (flip DONE + git mv `phase-1-beta/` → `phase-1-beta/closed/` per `gap-folder-organization.md` v2.0.0 §3.3) paired same PR. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive Log entry recurrence record + detector ship per §3.1 SHIP-NOW eligibility; no constraint loosening; existing wave closures Wave 79 + Wave 92 grandfathered per "rule applies prospectively" v1.0.0 Log entry).
 
 - **2026-05-18 (v1.0.0):** Rule created in response to user-flagged 2nd recurrence (CF DNS cutover Wave 87/88 + Wave 92 3-orphan-items) — class pattern "wave shipped status:complete nhưng scope-pending items orphan". Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user "vậy các tasks còn lại của wave 92 sẽ xử lý như thế nào, hay nó thành risk, nên update meta để cover vấn đề wave closure rồi mà vẫn còn vấn đề trong scope, giống như vụ cấu hình DNS từ CF sang self-host không?") → Classify ✓ (no existing rule covers wave-level scope completeness; `gap-done-discipline.md` §3 per-gap; `audit-to-gap-pipeline.md` §5 ROADMAP only; `post-merge-sync-completeness.md` §2 4-targets only; `post-wave-audit-mandate.md` §2.2 cadence catch-after-fact) → Rule+Enforce ✓ (this file + 3 follow-up gap files GAP-619/620/621 cho Wave 92 orphan items + rules-index.csv row + output-review-mandate.md §3 row + ROADMAP backfill + reviewer-checklist + worked self-test on 2 recurrences per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§7 worked example on Wave 87/88 DNS + Wave 92 — rule fires correctly + counterfactual eliminate 1-2 user round-trip per wave) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint extending sister rule `gap-done-discipline.md`; no constraint loosening; existing wave closures grandfathered; rule applies prospectively từ Wave 93+). Path-scoped per `context-budget-mandate.md` §3.1 (`paths: ["documents/03-planning/waves/**"]`). Detector + PR template + memory auto-load deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 ngày — v1.0.0 enforcement = reviewer-checklist + 3 follow-up gaps + worked self-test sufficient.
