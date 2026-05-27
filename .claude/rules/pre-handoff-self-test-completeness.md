@@ -1,10 +1,10 @@
 # Pre-Handoff Self-Test Completeness — verify the FLOW, not the endpoint
 
 **Priority:** 🔴 CRITICAL — verification governance
-**Version:** 1.1.1
+**Version:** 1.2.0
 **Created:** 2026-05-13
-**Last-Reviewed:** 2026-05-14
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; adds 7 new flow classes §2.5-§2.11 (file-upload, payment, multi-tenant tenant-switch, SSE/WebSocket, background job, time-sensitive, i18n) closing GAP-524 — no constraint loosening, prospectively extends coverage of "user-facing flow" classes. v1.0.0 (kept): new rule with mandatory verify checklist + worked self-test on Wave 71b admin-login bug per §6.5 Enforcement Parity Mandate)
+**Last-Reviewed:** 2026-05-27
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.2.0 MINOR self-approve per `rule-change-process.md` §5; adds §3 "Post-fix re-walk mandate" — khi fix shipped cho P0/P1 từ RST/audit walk MUST re-walk affected scope (Mảng/cluster) TRƯỚC khi DONE flip; paired same-PR Wave 106 GAP-764 fix + worked self-test (GAP-764 itself, where user caught premature DONE flip 2026-05-27) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies previously-implicit verify discipline; META P0 force-multiplier per `meta-gap-priority.md` §3. v1.1.0 (kept): MINOR — adds 7 flow classes §2.5-§2.11 closing GAP-524. v1.0.0 (kept): new rule with mandatory verify checklist + worked self-test on Wave 71b admin-login bug per §6.5 Enforcement Parity Mandate)
 **Applies to:** Every "verify live" / "self-test PASS" claim coordinator makes when handing off a wave/gap closure to user OR another session. Scope explicitly includes any artifact marked `🟢 DONE` whose AC mentions a user-facing path (URL, button, form, login redirect, dashboard, email link, file upload, payment redirect, tenant switch, real-time connection, background job, time-sensitive action, i18n content).
 
 ---
@@ -164,7 +164,78 @@ When AC mentions "Vietnamese / English / multi-language / localization":
 
 ---
 
-## 3. Banned shortcuts
+## 3. Post-fix re-walk mandate (added v1.2.0)
+
+> **Khi fix shipped cho gap P0/P1 originating từ RST/audit walk, MUST re-walk affected Mảng/luồng (source audit scope) TRƯỚC khi DONE flip.** Live verification on production-equivalent env including: (a) fix actually works for the originating symptom, (b) fix doesn't regress sister findings in same audit cluster, (c) DB/state side-effects don't break unrelated flows.
+
+### 3.1 Trigger pattern
+
+Rule fires khi ALL ba điều kiện hold:
+1. **Source = RST/audit walk** — gap được surfaced via Mảng walk (Đợt RST), persona-review audit, post-wave audit suite, OR audit-to-gap-pipeline (§2.5-§2.8 state-check ladder)
+2. **Severity ≥ P1** — P0 hoặc P1 priority (P2/P3 cosmetic exempt — too low ROI for re-walk overhead)
+3. **Fix touches shared layer** — DB schema change / sanitization layer / auth/role guard / API contract / shared component refactor (NOT one-off display fix in isolated component)
+
+### 3.2 Required re-walk scope
+
+Per source audit class:
+
+| Source | Re-walk scope |
+|---|---|
+| **RST Mảng walk (Đợt 1xx)** | Re-walk specific luồng where bug surfaced (deterministic POST endpoint reverify / button click reverify) + spot-check 2 sister luồng in same Mảng to validate no regression |
+| **Persona-review audit** | Re-walk persona's primary journey path through the affected screen/flow |
+| **Post-wave audit suite (ops/security/perf/quality/api/UI/business)** | Re-run audit script + verify finding count decreased by ≥1 (the fixed item) |
+| **Audit-to-gap §2.5/§2.6/§2.7/§2.8 state-check** | Re-run state-check command from original gap §Problem section |
+| **External (production incident / customer report)** | Reproduce original symptom + verify fix removes it |
+
+### 3.3 Required artifacts in fix PR
+
+Fix PR (where DONE flip happens) body PHẢI contain section:
+
+```markdown
+## Post-fix re-walk (per pre-handoff-self-test-completeness.md §3)
+
+**Source audit:** <link to original walk artifact / Mảng name / audit report file>
+**Affected scope:** <luồng id(s) / persona name / audit category>
+**Re-walk evidence:**
+- [ ] Originating symptom verified resolved
+- [ ] Sister scope item N1: <status — PASS/REGRESS>
+- [ ] Sister scope item N2: <status — PASS/REGRESS>
+- [ ] DB/state side-effects checked: <evidence>
+
+**Verdict:** ✅ All sister scope items PASS / ⚠️ Sister regression — file follow-up gap GAP-XXX
+```
+
+### 3.4 Banned shortcuts
+
+| ❌ Don't | ✅ Do |
+|---|---|
+| Flip gap to 🟢 DONE because "unit test + IT pass" alone | Re-walk source audit scope on production-equivalent env (Postgres + Flyway + real container, NOT just mvn test) |
+| Skip re-walk "because fix is small/localized" | Severity ≥ P1 → mandatory regardless of fix LOC scope |
+| Re-walk ONLY the originating symptom, skip sister scope | Per §3.2 — must spot-check ≥2 sister items in same Mảng/cluster |
+| Document re-walk in commit body but not PR body | PR body §3.3 section mandatory — reviewers + future readers read PR not commit |
+| Claim "no regression risk" without empirically running sister checks | Empirical check ≥2 sister items even if "obvious" no regression |
+
+### 3.5 Override mechanism
+
+Genuine cases where re-walk infeasible (production access blocked, prod-equivalent env unavailable, persona has no test fixture):
+
+```
+git commit -m "...
+POST_FIX_REWALK_DEFER: <reason — env constraint>
+POST_FIX_REWALK_FOLLOWUP: <gap link scheduling re-walk within Ndays post-merge>"
+```
+
+Trailer logged. Pattern frequency >5%/quarter triggers meta-review.
+
+### 3.6 Detector (deferred per `incident-to-rule-pipeline.md` §3.1 tightened conditions)
+
+- **Detector complexity:** moderate — scan PR body for "DONE flip" claim + verify "Post-fix re-walk" section present + parse evidence rows
+- **Recurrence count:** 1 today (Wave 106 GAP-764 — user caught premature DONE flip) + 2 candidate prior (Wave 79 F6 / Wave beta-prep-1 F4 surfaced via GAP-770 audit pending)
+- **Decision:** Reviewer-checklist + worked self-test §4 sufficient cho v1.2.0; revisit detector khi GAP-770 audit confirms ≥2 prior recurrence
+
+---
+
+## 4. Banned shortcuts (renumbered from §3 pre-v1.2.0)
 
 | ❌ Banned | ✅ Required |
 |---|---|
@@ -177,13 +248,13 @@ When AC mentions "Vietnamese / English / multi-language / localization":
 
 ---
 
-## 4. Worked self-test
+## 5. Worked self-test
 
 See `_examples/pre-handoff-self-test-completeness-examples.md` §Worked self-test (Wave 71b 2026-05-13 admin-login incident — §2.4 admin-flow checklist (a)+(b)+(c) all FAIL retroactively, validates rule fires).
 
 ---
 
-## 5. Enforcement (per `rule-change-process.md` §6.5)
+## 6. Enforcement (per `rule-change-process.md` §6.5)
 
 ### 5.1 Pre-handoff checklist in coordinator messages
 
@@ -233,7 +304,7 @@ Future: `audit-gate.py` rule scanning PR body for `LIVE VERIFY` / `verified live
 
 ---
 
-## 6. Anti-patterns
+## 7. Anti-patterns
 
 | ❌ Don't | ✅ Do |
 |---|---|
@@ -246,7 +317,7 @@ Future: `audit-gate.py` rule scanning PR body for `LIVE VERIFY` / `verified live
 
 ---
 
-## 7. Relationship to other rules
+## 8. Relationship to other rules
 
 - **`gap-done-discipline.md`** §2 — DONE flip requires AC verified; this rule sharpens "verified" for user-facing AC
 - **`audit-to-gap-pipeline.md`** §2.5/§2.6/§2.7/§2.8 — state-check family; this rule adds FLOW-check after state-check
@@ -258,7 +329,9 @@ Future: `audit-gate.py` rule scanning PR body for `LIVE VERIFY` / `verified live
 
 ---
 
-## 8. Log
+## 9. Log
+
+- **2026-05-27 (v1.2.0):** MINOR — added §3 "Post-fix re-walk mandate" + renumbered §3 Banned shortcuts → §4 + §4-§8 each shifted +1. Triggered by user-flagged 2026-05-27 Wave 106 GAP-764 incident: tôi flipped GAP-764 → DONE prematurely without re-walking source RST Mảng A2 scope; user caught "fix gap P0 xong cần walk lại mảng A để xác minh chứ?" → after re-walk verify live (Flyway V57 backfill + new POST raw UTF-8 + XSS validation regression) → user follow-up "vậy cần fix meta không?". Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged 2x meta-questions in same session) → Classify ✓ (existing rules cover RELATED but không EXACT scope — `pre-handoff-self-test-completeness.md` §2 per-flow checklist at handoff, `gap-done-discipline.md` §2 AC verified at DONE flip, `audit-to-gap-pipeline.md` §2.8 fix-time state-check BEFORE proposing fix; NONE cover "re-walk source audit scope POST-fix as DONE flip precondition") → Rule+Enforce ✓ (this §3 + renumber + paired same-PR Wave 106 GAP-764 fix PR #1897 + worked self-test §5 (GAP-764 incident itself) per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§3 applied retroactively to GAP-764 — user-caught miss validates rule fires correctly + counterfactual: re-walk-before-DONE-flip would have eliminated user round-trip) → Retro Log ✓ (this entry). META P0 force-multiplier per `meta-gap-priority.md` §3 — fix discipline 1 lần → mọi future P0/P1 fix from audit walk auto-comply prospectively. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds previously-uncovered post-fix verify direction; no constraint loosening; existing DONE flips grandfathered; rule applies prospectively từ Wave 106 GAP-764 PR #1897 forward 2026-05-27). Detector wiring (§3.6) deferred per `incident-to-rule-pipeline.md` §3.1 tightened conditions (recurrence 1 today + 2 candidate prior via GAP-770 audit pending — confirm ≥2 before detector); reviewer-checklist + memory + worked self-test §5 sufficient cho v1.2.0.
 
 - **2026-05-14 (v1.1.1):** PATCH — Wave 76 Bucket E body streamline. §4 Worked self-test moved to `_examples/pre-handoff-self-test-completeness-examples.md`; body replaced with 1-line stub pointer. No constraint change; content preserved in `_examples/` (deferred-load). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-05-14 (v1.1.0):** MINOR — added 7 new flow class checklists §2.5-§2.11 closing GAP-524 META P1 (Wave 72b Bucket E): §2.5 File-upload (MIME/size/scan/storage/retrieval), §2.6 Payment (gateway redirect/webhook signature/idempotency/reconciliation), §2.7 Multi-tenant tenant-switch (picker/JWT swap/data isolation/cache invalidation), §2.8 SSE/WebSocket/long-polling (protocol/heartbeat/reconnect/auth-on-reconnect/degradation), §2.9 Background job/async (enqueue/worker pick/retry/DLQ/notification), §2.10 Time-sensitive (TTL/refresh rotation/clock skew/countdown), §2.11 i18n (locale detection/fallback/format/pluralization). Each class mirrors §2.1-§2.4 4-row checklist structure adapted to its class. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (GAP-524 Wave 71c-meta-Phase-2 discovery — 7 classes likely to cause future verify-claimed-but-flow-broken incidents) → Classify ✓ (existing v1.0.0 covered 4 classes; 7 more enumerable from incident-likely surfaces) → Rule+Enforce ✓ (this v1.1.0 + same-PR sister 6 audit-rubric rules per `rule-change-process.md` §6.5) → Self-Test ✓ (each class's required check is grep-able / observable / verifiable — not aspirational; e.g., 2.5 (c) virus scan = ClamAV presence verifiable) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds prospective coverage for 7 previously-uncovered flow classes; no constraint loosening for prior gap closures; rule applies prospectively from Wave 72b Bucket E forward).

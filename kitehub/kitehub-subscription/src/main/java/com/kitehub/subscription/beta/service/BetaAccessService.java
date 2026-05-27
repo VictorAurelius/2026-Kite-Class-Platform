@@ -100,14 +100,21 @@ public class BetaAccessService {
      *
      * <p>React FE auto-escapes (defense layer 1). This method is layer 2 at
      * input boundary — strip any HTML tag sequences + apply Spring's
-     * {@code HtmlUtils.htmlEscape} for &lt;/&gt;/&quot;/&apos;/&amp; entity
-     * encoding. Result is safe to render verbatim in any HTML context
-     * (admin panel, email template, audit log render).
+     * {@code HtmlUtils.htmlEscape(input, "UTF-8")} for &lt;/&gt;/&quot;/&apos;/&amp;
+     * entity encoding ONLY. Result is safe to render verbatim in any HTML
+     * context (admin panel, email template, audit log render).
+     *
+     * <p><b>VN UTF-8 preservation</b> (Wave 106 GAP-764 fix): the single-arg
+     * {@code HtmlUtils.htmlEscape(input)} escapes ALL non-ASCII chars as
+     * numeric character references — Vietnamese diacritics (â ê ô ữ etc.)
+     * get corrupted into entities like {@code &acirc;}. The two-arg variant
+     * with {@code "UTF-8"} encoding restricts escape scope to the 5 XSS chars
+     * only, preserving Unicode raw. Reference: Spring HtmlUtils Javadoc.
      *
      * <p>Trade-offs: Jsoup with {@code Safelist.none()} would be more
      * comprehensive (handles obscure encoded vectors) but adds a heavy
      * dependency for 3 free-text fields. Phase 1 BETA scope: regex strip +
-     * HtmlEscape is sufficient when paired with React auto-escape FE.
+     * HtmlEscape (UTF-8 mode) is sufficient when paired with React auto-escape FE.
      *
      * @param input raw user input (may be null)
      * @return sanitized text safe for any HTML context, or null if input null
@@ -119,9 +126,9 @@ public class BetaAccessService {
         // Strip HTML tag sequences first (defense against `<script>`, `<iframe>`,
         // `<img onerror=...>`, etc.)
         String stripped = HTML_TAG_PATTERN.matcher(input).replaceAll("");
-        // Then HTML-entity-encode remaining special chars (residual `<`, `>`,
-        // `"`, `'`, `&` that didn't form full tags).
-        return org.springframework.web.util.HtmlUtils.htmlEscape(stripped);
+        // Then HTML-entity-encode ONLY the 5 XSS chars `<`, `>`, `"`, `'`, `&`.
+        // UTF-8 mode preserves Vietnamese diacritics raw (per GAP-764 fix Wave 106).
+        return org.springframework.web.util.HtmlUtils.htmlEscape(stripped, "UTF-8");
     }
 
     private final BetaAccessRequestRepository repository;

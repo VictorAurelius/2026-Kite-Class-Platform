@@ -1,0 +1,33 @@
+{
+  "pr": 1896,
+  "title": "docs(wave-106-bucket-A): file 7 RST findings \u2014 M\u1ea3ng A anonymous walk",
+  "branch": "wave/106-rst-walk",
+  "created_at": null,
+  "merged_at": "2026-05-27T09:44:11Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-27T09:44:17.381989",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 8,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-2217876"
+  }
+}
