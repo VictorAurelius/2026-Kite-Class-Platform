@@ -12,6 +12,7 @@ import {
   useUpsertAttendancePeriod,
 } from '../use-period-attendance';
 import { attendancePeriodApi } from '@/lib/api/attendance-period';
+import type { AttendancePeriodResponse } from '@/lib/api/attendance-period';
 
 vi.mock('@/lib/api/attendance-period', () => ({
   attendancePeriodApi: {
@@ -92,7 +93,7 @@ describe('useUpsertAttendancePeriod', () => {
       { wrapper: AllTheProviders },
     );
 
-    let mutationResult: typeof sampleRow[] | undefined;
+    let mutationResult: AttendancePeriodResponse[] | undefined;
     await act(async () => {
       mutationResult = await result.current.mutateAsync({
         entries: [

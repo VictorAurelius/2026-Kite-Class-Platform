@@ -11,6 +11,7 @@ import PeriodAttendancePage from '../page';
 import { attendancePeriodApi } from '@/lib/api/attendance-period';
 import type { AttendancePeriodResponse } from '@/lib/api/attendance-period';
 import { useAuthStore } from '@/stores/auth-store';
+import { UserType } from '@/types/auth';
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({
@@ -69,7 +70,7 @@ beforeEach(() => {
       id: 404,
       email: 'gvcn@example.com',
       name: 'GVCN',
-      roles: ['TEACHER'],
+      userType: UserType.TEACHER,
     },
     accessToken: 'token',
     refreshToken: 'refresh',
