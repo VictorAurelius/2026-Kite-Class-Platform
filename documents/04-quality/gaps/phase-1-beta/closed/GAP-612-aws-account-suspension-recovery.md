@@ -83,6 +83,16 @@ User responds to AWS verification request. Wait approval.
 
 ## Log
 
+- **2026-05-27 (RST local verify PASS — GAP-756 Phase 1):** Per GAP-756 Phase 1 scope (user direction "Phase 1 only — local RST + admin-login smoke"), local stack `bash kitehub/scripts/up.sh --profile full` đã chạy ~3 phút và đạt 13/13 services healthy. kitehub-frontend image rebuild qua `bash kitehub/scripts/rebuild.sh frontend` để pick up Wave Bucket F+G commit `a64bcef2` (image trước đó build 07:11 UTC trước khi Bucket F+G commit 17:53 UTC = stale). Smoke evidence:
+  - Gateway `/actuator/health` HTTP 200
+  - FE roots (hub :3001 + class :3000) HTTP 200
+  - Wave Bucket A routes `/legal/privacy` + `/legal/terms` HTTP 200
+  - Wave Bucket F+G route `/waitlist` HTTP 200 (sau rebuild)
+  - Admin login `POST /api/auth/login` HTTP 200 với JWT chứa `role=PLATFORM_ADMIN` (credential `admin@kitehub.com / Admin@KiteHub123` seeded từ V9 migration)
+  - Public beta-request `POST /api/v1/auth/request-beta-access` HTTP 201, row id=11 status=PENDING, consent payload + VN sample data (`Trần Thị Smoke` / `Trung tâm Smoke Test`) accepted, Bucket A Wave 105 stored-XSS hardening encoding HTML entities at input verified.
+  - **Caveat 1 (image rebuild required):** initial image 2026-05-26 07:11 UTC missed Bucket F+G commit 17:53 UTC → `/waitlist` 404 trước rebuild. Deploy pipeline (Phase 2+3) cần ensure ECR push picks up post-Bucket-F+G code (PR #1876 main HEAD `a64bcef2`).
+  - **Caveat 2 (EmailEvent deserialization error):** container logs `kitehub-subscription` show repeated `MismatchedInputException` cho admin-new-login-alert email payload trên RabbitMQ queue (legacy poisoned messages từ prior session 2026-05-26 07:45 UTC). Không block admin login HTTP 200 path; consumer retry loop pollutes logs. File follow-up nếu recurrence > 1 session.
+  Re-enable `docker-build-push.yml` `push:main` + `tags:v*.*.*` triggers (revert 2026-05-25 disable comment) — paired same PR. AC item "Local RST PASS" + "docker-build-push re-enable" flipped to checked. AWS stack stays stopped post-verify (Free Tier hours). Per `release-deploy-standard.md` §9 + `agent-aws-access.md` Tier 3 mandate, Phase 2+3 deploy execution (tag → docker-build-push CI → deploy-production.yml workflow_dispatch + smoke) deferred to next session user-trigger.
 - **2026-05-22 (Day 5 — AWS support engagement progress, 3-message thread review via Gmail MCP):** Reviewed case `177903869600100` correspondence thread (3 most recent messages 01:15 / 04:03 / 12:06 UTC 22/05) via Gmail MCP. Cumulative status:
   - **Ginnette S. (01:15 UTC)** — initial reinstatement guidance: account on hold pending document verification; user must find secure one-time link sent to `mvann1207@gmail.com` on suspension day; 2-hour timer starts on first upload; SES production access case 177857212400418 advised to resume DIRECTLY in that case after reinstatement (Ginnette praised use case as "thorough — transactional email + bounce/complaint + PDPL compliance").
   - **Naman D. (04:03 UTC)** — re-issued secure email link at **04:00 UTC 22/05** (check spam folder + mark "not spam"); enumerated required documents: **(1) bank statement** (proof of payment instrument ownership) + **(2) utility bill** (water/phone/electricity); file criteria PNG/JPG/PDF only, PDF max 25 pages, max 4MB; document specimen at https://upload.aws.amazon.com/
@@ -108,11 +118,11 @@ User responds to AWS verification request. Wait approval.
   - [ ] RDS instance state verify post-restore (`aws rds describe-db-instances`)
   - [ ] CloudTrail `IsLogging=true` verify per `aws-observability-first.md` (`aws cloudtrail get-trail-status`)
   - [ ] ECR repos + image state verify (`aws ecr describe-repositories`)
-  - [ ] Local RST (full-stack `kitehub/scripts/up.sh --profile full` + smoke) PASS — gate trước resume AWS push
+  - [x] Local RST (full-stack `kitehub/scripts/up.sh --profile full` + smoke) PASS — gate trước resume AWS push (verified 2026-05-27 02:55 UTC per GAP-756 Phase 1 — chi tiết Log entry 2026-05-27)
   - [ ] terraform import `jwt_challenge_secret` per GAP-717 unblock
   - [ ] Wave 91 Bucket F live verify post-restore
   - [ ] 3 admin v1 controllers Wave 92 live verify
-  - [ ] `docker-build-push.yml` `push:main` + `tags:v*.*.*` triggers RE-ENABLE (currently temporarily commented out per `ops/disable-aws-push-ci-rst-local` branch)
+  - [x] `docker-build-push.yml` `push:main` + `tags:v*.*.*` triggers RE-ENABLE (re-enabled 2026-05-27 cùng PR với GAP-756 Phase 1 RST PASS verify)
 
   **Per user direction 2026-05-25:** "cancel tạm thời các CI có push lên AWS cho đến khi RST local thành công" → `docker-build-push.yml` `push:main` + `tags` triggers commented out trong cùng PR; `pull_request` (push:false build verification only) + `workflow_dispatch` (manual) preserved. Re-enable mechanism: uncomment block sau khi local RST PASS — gap follow-up step trong session khi đến đó.
 

@@ -1,6 +1,6 @@
 # GAP-756 — Wave beta-prep-1 production deploy + RST verify
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 25% (Phase 1 local RST PASS 2026-05-27 — Phase 2+3 deploy + Bucket C alarms defer next session user-trigger per `release-deploy-standard.md` §9)
 **Priority:** 🔴 P0
 **Domain:** DevOps
 **Detected:** 2026-05-26
@@ -83,9 +83,9 @@ Full production deploy pipeline blocked by GAP-612 RST (Restore + Smoke Test) po
 
 ## Acceptance Criteria
 
-- [ ] Local RST PASS Wave beta-prep-1 code (Phase 1)
-- [ ] GAP-612 Log entry: "RST PASS Q3 2026-05-XX — re-enable ECR push"
-- [ ] docker-build-push.yml push triggers re-enabled (revert 2026-05-25 disable)
+- [x] Local RST PASS Wave beta-prep-1 code (Phase 1) — verified 2026-05-27 02:55 UTC (13/13 services healthy + admin-login JWT `PLATFORM_ADMIN` HTTP 200 + 3 wave FE routes 200 + beta-request HTTP 201 với consent + VN sample)
+- [x] GAP-612 Log entry: "RST PASS 2026-05-27 — re-enable ECR push" added cùng PR
+- [x] docker-build-push.yml push triggers re-enabled (revert 2026-05-25 disable) — cùng PR Phase 1
 - [ ] Pre-mutation audit artifact shipped per `pre-mutation-state-check.md` §3 + §3.5
 - [ ] ECR repo `kitehub-platform` exists (provision if missing — sub-issue)
 - [ ] Release tag `v0.9.0-beta-staging.22` from main `a64bcef2`
@@ -117,4 +117,14 @@ Full production deploy pipeline blocked by GAP-612 RST (Restore + Smoke Test) po
 
 ## Log
 
+- **2026-05-27 (Phase 1 PASS — PARTIAL 25%):** User scope-lock 2026-05-27 02:43 UTC "Phase 1 only (local RST + admin-login smoke)". Executed:
+  1. `bash kitehub/scripts/up.sh --profile full` → 13/13 services healthy (~3 min)
+  2. Initial smoke: `/legal/privacy` + `/legal/terms` 200; `/waitlist` 404 (image stale)
+  3. `bash kitehub/scripts/rebuild.sh frontend` rebuild kitehub-frontend → re-smoke `/waitlist` 200
+  4. Admin login: `POST /api/auth/login` với `admin@kitehub.com / Admin@KiteHub123` (V9 seed) → HTTP 200 + JWT `role=PLATFORM_ADMIN`
+  5. Public beta-request: `POST /api/v1/auth/request-beta-access` payload `{persona: P2_CENTER_OWNER, honeypot: "", consentGiven: true}` + VN sample (Trần Thị Smoke / Trung tâm Smoke Test) → HTTP 201 row id=11 PENDING
+  6. GAP-612 AC "Local RST PASS" + "docker-build-push re-enable" flipped to checked + Log entry appended
+  7. `.github/workflows/docker-build-push.yml` push:main + tags triggers uncommented (revert 2026-05-25 disable)
+  
+  **Phase 2+3 defer next session user-trigger per `release-deploy-standard.md` §9** — agent autonomy banned cho workflow_dispatch deploy. Caveats logged: (a) image rebuild required mid-flow because Wave Bucket F+G commit landed after last cached image build — deploy pipeline ECR push must build from main HEAD `a64bcef2`; (b) `kitehub-subscription` container logs show EmailEvent deserialization error loop trên admin-new-login-alert poisoned messages từ prior session — non-blocking on login path, file follow-up nếu recurrence > 1 session.
 - **2026-05-26 (Filed P0 OPEN):** GAP-756 created as Wave beta-prep-1 Phase β follow-up. Triggered by Phase β AWS smoke verify session 2026-05-26: infrastructure UP (3 EC2 + RDS started cleanly + apex healthy) BUT Wave code NOT deployed (FE 404 on new routes confirms pre-wave Docker image on EC2). Full deploy pipeline blocked by GAP-612 RST policy gate (2026-05-25 docker-build-push.yml push triggers DISABLED). User direction "defer deploy + Phase E closure now" per `release-fix-retry-budget.md` v1.2.0 §5 tooling-fix-then-retry exception class. Wave beta-prep-1 ships as PARTIAL pending live verify per `gap-done-discipline.md` §3 exit ramp.
