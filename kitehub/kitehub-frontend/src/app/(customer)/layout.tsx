@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuthStore } from '@/stores/auth-store';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { restorePersistedTokens } from '@/lib/auth/jwt-storage';
 import {
   CommandPalette,
   KH_DASHBOARD_COMMANDS,
@@ -25,8 +26,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   // additional wrapper here.
   const palette = useCommandPalette();
 
-  // Wait for zustand to hydrate from localStorage
+  // Wait for zustand to hydrate from localStorage.
+  // 2026-05-28: also restore remember-me tokens (localStorage → sessionStorage)
+  // before isAuthenticated check, so AuthInterceptor finds tokens in
+  // sessionStorage after browser-close → reopen.
   useEffect(() => {
+    restorePersistedTokens();
     setIsHydrated(true);
   }, []);
 
