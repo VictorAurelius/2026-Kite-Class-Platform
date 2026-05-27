@@ -72,3 +72,5 @@ Tài liệu trong documents/02-architecture  và để cho claude và dev đều
 4. việc đưa lại lên aws mới để user có thể beta được ngay, nên quyết định sẽ phải self-test full ở local xong (với docker-desktop) mới lên aws có hợp lý không => dev vẫn chưa self-test được
 
 để dự án đạt được tiêu chí self-test thì cần có kế hoạch fix những gaps nào => điều tra và tạo kế hoạch, mục tiêu là có thể self-test sớm nhất
+
+![alt text](image.png)
