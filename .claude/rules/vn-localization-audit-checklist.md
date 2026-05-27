@@ -1,10 +1,10 @@
 # VN-Localization Audit Checklist — cross-bucket pre-merge gate
 
 **Priority:** 🟠 MANDATORY — cross-bucket VN-context governance
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Created:** 2026-05-19
-**Last-Reviewed:** 2026-05-19
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (4-section checklist + reviewer-checklist + worked self-test trên Wave 100 4 buckets retroactive) per §6.5 Enforcement Parity Mandate; no constraint loosening — closes coverage gap GAP-680 từ 3-audit consensus 2026-05-19 (persona simulation + failure-mode matrix + VN edu SaaS benchmark); META P1 force-multiplier per `meta-gap-priority.md` §3 — 1 chuẩn chung → mọi bucket subsequent (Wave 100+ Wave 101+) auto-comply)
+**Last-Reviewed:** 2026-05-27
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; adds §5 "Data roundtrip preservation through sanitization layers" — input sanitization (XSS escape / HTML escape / SQL escape / Unicode normalization) áp dụng cho tenant-facing field PHẢI có VN diacritic roundtrip test; paired same-PR Wave 106 GAP-764 fix (BetaAccessService.sanitizeFreeText UTF-8 preserve) + Flyway V57 backfill migration per §6.5 Enforcement Parity Mandate; META P0 force-multiplier per `meta-gap-priority.md` §3 — fix 1 chuẩn → mọi future input sanitization (audit log / admin form / course content) auto-comply. v1.0.0 (kept): new rule với built-in enforcement (4-section checklist + reviewer-checklist + worked self-test trên Wave 100 4 buckets retroactive) per §6.5; closes coverage gap GAP-680 từ 3-audit consensus 2026-05-19; META P1 force-multiplier)
 **Applies to:** Mọi PR thêm/sửa artifact tenant-facing (UI component, email template, dashboard chart, FE label, invoice template, BE response narrative, marketing copy, user manual page, runbook narrative) thuộc scope `kitehub/kitehub-frontend/**`, `kitehub/kiteclass-frontend/**`, `kitehub/*/src/main/resources/templates/email/**`, `kitehub/*/src/main/resources/i18n/**`, `documents/05-guides/user-manual/**`, `documents/04-quality/audits/**` chứa user-facing narrative. Out-of-scope: code internal (Java/TS source identifiers + comments per `dev-readable-doc-language.md` §3), config keys, technical CSV column names.
 
 ---
@@ -97,6 +97,45 @@ Triggered bởi 3 outside-in audits Wave 100 thesis push 2026-05-19 (per audit r
 | **Phụ huynh communication style** | Zalo group chat dominant cho parent ↔ center; SMS backup; email secondary cho formal docs (invoice/report) | Email-only "modern" → miss Zalo group chat reality |
 
 **Rationale:** VN edu market có cultural conventions khác US/EU SaaS reference (Stripe / Slack / Notion). Inside-out brainstorm dev không tự surface được do đã quá quen US convention. Outside-in audit (per `outside-in-coverage-trigger.md` v1.1.0) là cách primary để catch culture conflict.
+
+### Section 5 — Data roundtrip preservation through sanitization layers (added v1.1.0)
+
+Mọi input sanitization (XSS escape / HTML escape / SQL escape / Unicode normalization) áp dụng cho tenant-facing field PHẢI preserve Vietnamese diacritic roundtrip — input → DB write → DB read → response serialize → display → ALL preserved unchanged.
+
+| Sanitization scope | ❌ Banned | ✅ Required |
+|---|---|---|
+| **HTML escape (Spring `HtmlUtils.htmlEscape`)** | `HtmlUtils.htmlEscape(input)` single-arg — escapes ALL non-ASCII as numeric entity (corrupts `â → &acirc;`) | `HtmlUtils.htmlEscape(input, "UTF-8")` two-arg — escapes ONLY 5 XSS chars `<>&"'`, preserves VN diacritic raw |
+| **JSON serialize (Jackson)** | `jackson.escape-non-ascii: true` in config (escapes VN diacritic as `\uXXXX`) | Default Jackson UTF-8 — raw VN chars in JSON response body |
+| **SQL parameterization** | Manual string concat với HTML-escaped values | PreparedStatement bind UTF-8 raw |
+| **Unicode normalization** | `Normalizer.normalize(input, Form.NFKD)` strips combining marks | `Normalizer.normalize(input, Form.NFC)` preserves precomposed VN chars |
+| **HTML tag strip regex** | Regex matching `[^a-zA-Z0-9 ]` (strips all VN diacritic) | Regex matching `<[^>]*>` only (XSS tags), preserves text content |
+
+**Mandatory roundtrip test** — every PR adding/modifying input sanitization touching tenant-facing field MUST include integration test (per `postgres-specific-type-testcontainers.md` v1.0.0 mandate):
+
+```java
+// EXAMPLE — kitehub-subscription BetaAccessServicePostgresIT
+@Test void vn_diacritic_roundtrip_preserved() {
+    BetaAccessRequest req = service.requestBetaAccess(new BetaSignupRequest(
+        "Trần Thị Hồng",                          // diacritic: ầ ị ồ
+        "hong@test.vn",
+        "0901234567",
+        "Trung tâm Anh ngữ Sky Education",        // diacritic: â ữ
+        "P2_CENTER_OWNER",
+        null, true, ""
+    ));
+    repository.flush();
+    BetaAccessRequest reloaded = repository.findById(req.getId()).orElseThrow();
+    assertThat(reloaded.getName()).isEqualTo("Trần Thị Hồng");         // raw, NOT "Tr&agrave;n..."
+    assertThat(reloaded.getOrgName()).isEqualTo("Trung tâm Anh ngữ Sky Education");
+    // Validate JSON response shape too
+    ResponseEntity<BetaRequestResponse> resp = restTemplate.postForEntity(...);
+    assertThat(resp.getBody().orgName()).isEqualTo("Trung tâm Anh ngữ Sky Education");
+}
+```
+
+**Test data MUST include** all 7 VN-frequent diacritics: `â ê ô ữ ồ ằ ấ` (covers ~95% VN names). Edge cases: precomposed vs combining form, lowercase + uppercase.
+
+**Rationale:** Wave 106 GAP-764 (2026-05-27) — Wave 105 Bucket E0 Bug 2 added `HtmlUtils.htmlEscape(input)` defense-in-depth XSS sanitization. Single-arg variant escapes ALL non-ASCII chars → Vietnamese `â/ê/ô` got corrupted to `&acirc;/&ecirc;/&ocirc;` BEFORE DB write. Cost: 2 production rows corrupted (id=11, 12), retroactive Flyway backfill migration V57, RST walk to discover. Counterfactual với rule §5 at Wave 105 Bucket E0 design: reviewer-checklist + Testcontainers IT would catch ngay tại PR review → 0 production corruption.
 
 ---
 
@@ -263,5 +302,7 @@ Apply 4-section checklist trên scope dự kiến mỗi bucket Wave 100 (per wav
 ---
 
 ## 7. Log
+
+- **2026-05-27 (v1.1.0):** MINOR — added §5 "Data roundtrip preservation through sanitization layers". Triggered by Wave 106 GAP-764 (P0 escalation) — Wave 105 Bucket E0 Bug 2 introduced `HtmlUtils.htmlEscape(input)` single-arg variant defense-in-depth XSS sanitization that corrupts Vietnamese diacritic `â/ê/ô` to HTML entities `&acirc;/&ecirc;/&ocirc;` BEFORE DB write. RST walk Mảng A2 caught 2 production rows corrupted (id=11, 12 trong `beta_access_request` table). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (Wave 106 RST A2 walk POST probe + DB row inspection 2026-05-27) → Classify ✓ (existing §1-§4 cover format + label + sample data + cultural awareness BUT không cover data preservation through sanitization layers; sister rules `postgres-specific-type-testcontainers.md` covers DB binding type only, `audit-service-isolation.md` covers transaction propagation — none cover sanitization-vs-i18n conflict) → Rule+Enforce ✓ (this §5 + paired same-PR with code fix BetaAccessService.sanitizeFreeText UTF-8 mode + Flyway V57 backfill migration + Testcontainers IT VN diacritic roundtrip + GAP-764 closure per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (Wave 106 GAP-764 originating incident — counterfactual: rule §5 at Wave 105 Bucket E0 design would catch via reviewer-checklist + IT test) → Retro Log ✓ (this entry). META P0 force-multiplier per `meta-gap-priority.md` §3 — fix 1 chuẩn → mọi future input sanitization (audit log / admin form / course content / student name / class name) auto-comply prospectively. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds previously-uncovered scope "data preservation through sanitization"; no constraint loosening; existing sanitization code grandfathered until next refresh; rule applies prospectively từ Wave 106+ forward).
 
 - **2026-05-19 (v1.0.0):** Rule created in response to 3-audit consensus Wave 100 thesis push 2026-05-19 (per `documents/04-quality/audits/persona-review/2026-05-18-thesis-{persona-demo,vn-saas-benchmark,defense-failure-mode-matrix}.md`). 3 outside-in agents (persona simulation + failure-mode matrix + VN edu SaaS benchmark) independently identified cross-bucket VN-localization concern Wave 100 4 buckets (A invoice VND + B income KPI VND + C email-only Zalo culture + D thesis VN narrative). Filed GAP-680 P1 META 2026-05-19 same session; rule body shipped Wave 100 Bucket D PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (3-audit consensus) → Classify ✓ (no existing rule covers cross-bucket VN-context; `dev-readable-doc-language.md` covers narrative-only; `user-manual-content-standard.md` §2 row 7-8 covers VND/date format CHỈ user manual scope narrow) → Rule+Enforce ✓ (this file 4-section checklist + reviewer-checklist §4.1 + PR template row §4.2 + worked self-test §5 on Wave 100 4 buckets + paired same-PR output-review-mandate §3 matrix row + rules-index.csv row + GAP-680 closure per `rule-change-process.md` §6.5) → Self-Test ✓ (§5 worked example 4 buckets × 4 sections = 16/16 applicable cells PASS; rule fires correctly; counterfactual ~2h session friction eliminated) → Retro Log ✓ (this entry). META P1 force-multiplier per `meta-gap-priority.md` §3 — fix checklist 1 lần → mọi bucket subsequent (Wave 100+ Wave 101+) auto-comply. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying cross-bucket VN-context governance previously-uncovered scope; no constraint loosening; existing artifacts grandfathered per `rule-change-process.md` convention; rule applies prospectively từ Wave 100 forward). CI grep detector (§4.3) + memory auto-load (§4.4) deferred per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions (heuristic FP risk inherently high cho English-narrative-in-VN-context detection; reviewer-checklist + worked self-test §5 sufficient v1.0.0; revisit when recurrence-count ≥2 OR proven NLP classifier available). Atomic-unique-bar §5.1 check passed: atomic concept (cross-bucket VN-context audit) / unique scope (sister rules narrative-only OR user-manual-narrow đều khác) / widely applicable (mọi tenant-facing PR) / body discipline §1 has ≤2 "and" conjunctions.
