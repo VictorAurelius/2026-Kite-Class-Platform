@@ -65,6 +65,25 @@ export async function isAuthenticated(page: Page): Promise<boolean> {
 /**
  * Set up mock auth state in localStorage (skips registration flow).
  * Useful for testing pages that need auth but don't need real API data.
+ *
+ * GAP-760 fix (2026-05-27): switched from `page.evaluate()` post-navigation
+ * to `page.addInitScript()` (Option B per GAP-760 §"Suspected fix scope").
+ *
+ * Problem solved: zustand `persist` middleware async rehydrates from
+ * localStorage after page mount. Layout's useEffect can read
+ * `isAuthenticated: false` BEFORE zustand reads the seeded state → bounce
+ * to /login instead of expected /dashboard. 7/20 systematic failures
+ * observed in `gap-758-school-admin-phase-1-restrict.spec.ts` 2026-05-27.
+ *
+ * `addInitScript` registers a script that runs BEFORE any page JS on every
+ * subsequent navigation. localStorage is populated before Next.js loads →
+ * zustand reads it synchronously on first import → race eliminated.
+ *
+ * @param page - Playwright Page
+ * @param role - Persona role for seeded user (default OWNER)
+ *
+ * Note: caller does NOT need to navigate before calling setupMockAuth.
+ * Subsequent `page.goto(...)` triggers the init script automatically.
  */
 export async function setupMockAuth(
   page: Page,
@@ -72,11 +91,6 @@ export async function setupMockAuth(
   // PLATFORM_ADMIN retained alias for platform-admin scope.
   role: 'OWNER' | 'STAFF' | 'ADMIN' | 'PLATFORM_ADMIN' = 'OWNER',
 ): Promise<void> {
-  const currentUrl = page.url();
-  if (currentUrl === 'about:blank' || !currentUrl.startsWith('http')) {
-    await page.goto('/');
-  }
-
   const emailByRole: Record<typeof role, string> = {
     OWNER: 'mock@kitehub.com',
     STAFF: 'staff@kitehub.com',
@@ -105,7 +119,10 @@ export async function setupMockAuth(
     version: 0,
   };
 
-  await page.evaluate((state) => {
+  // GAP-760: Seed BEFORE page JS runs (eliminates zustand persist async
+  // rehydrate race). Each subsequent page.goto() will re-execute this
+  // script in the fresh document context.
+  await page.addInitScript((state) => {
     localStorage.setItem('kitehub-auth', JSON.stringify(state));
   }, authState);
 }
