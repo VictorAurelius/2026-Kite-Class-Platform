@@ -55,8 +55,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run TypeScript type check
-        run: pnpm type-check || true
-        continue-on-error: true
+        # Wave rst-cleanup 2026-05-27: was `pnpm type-check || true` + continue-on-error
+        # (both safeguards) — emitted 6 silent annotations on every PR since Wave 105
+        # contract sync (GAP-759 User.roles → role drift). Now blocking gate so test
+        # fixtures stay in sync with production type contracts. See PR #1891 / #1893.
+        run: pnpm type-check
 
       - name: Run ESLint
         run: pnpm lint

@@ -14,6 +14,8 @@ performance-testing-standards, security-testing-standards, ide-testcontainers-wa
 | Testing stack tổng quan | [1. Stack](#1-testing-stack) |
 | Spring Boot test templates | [2. Backend Tests](#2-backend-unit--integration-tests) |
 | Testcontainers / IDE warnings | [2.4 Testcontainers](#24-testcontainers-best-practices) |
+| **GAP-746 flush trap (mandatory đọc)** | [2.8 Flush discipline](#28-hibernate-persistence-context-flush-discipline-trong-it-tests-gap-746-trap) |
+| **AFTER_COMMIT listener test pattern (mandatory)** | [2.9 AFTER_COMMIT pattern](#29-testing-after_commit-listener-side-effects) |
 | Frontend component tests | [3. Frontend Tests](#3-frontend-tests) |
 | E2E với Playwright | [4. E2E Tests](#4-e2e-tests) |
 | Performance targets | [5. Performance](#5-performance-targets) |
@@ -241,6 +243,129 @@ class StudentServiceMultiTenantTest extends MultiTenantTestBase {
     }
 }
 ```
+
+### 2.8 Hibernate persistence-context flush discipline trong IT tests (GAP-746 trap)
+
+**Trap (verified Wave rst-cleanup 2026-05-27 — 2 tests caught):** `TestTenantContextFilter` áp dụng GAP-746 cross-tenant defend fix — khi `PREVIOUS_TENANT != current tenantUuid`, gọi `entityManager.clear()` **WITHOUT** prior `flush()`. Pending UPDATE/INSERT trong persistence context bị **discard silent** trước khi `mockMvc.perform` execute → controller đọc stale DB row.
+
+**Pattern bị ảnh hưởng:** Test class với `@Transactional` + setUp() saves entities (testAssignment / testCourse / testStudent) + test method modifies entity in-memory + calls `mockMvc.perform` để gọi controller validate hành vi update.
+
+**Symptoms:**
+- HTTP 400 unexpected (vd `ASSIGNMENT_NOT_ACCEPTING_SUBMISSIONS` despite `setStatus(PUBLISHED)`)
+- Assertion fail trên derived field (vd `adjustedScore = 100` despite `setDueDate(past)` triggering penalty)
+- Test passes locally individually nhưng fails khi run với class — depending on JUnit method order + previous test's tenantId
+
+**Required pattern (mandatory):**
+
+```java
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
+class AssignmentIntegrationTest {
+    @PersistenceContext  // jakarta.persistence
+    private EntityManager entityManager;
+
+    // ... repository autowires ...
+
+    @Test
+    void submitAssignment_shouldSucceed_whenPublished() throws Exception {
+        // Modify entity in test body
+        testAssignment.setStatus(AssignmentStatus.PUBLISHED);
+        assignmentRepository.save(testAssignment);
+
+        // ✅ MANDATORY: flush UPDATE before mockMvc clear()
+        // Without this, TestTenantContextFilter cross-tenant clear discards the UPDATE
+        entityManager.flush();
+
+        mockMvc.perform(post("/api/v1/assignments/submit")
+                .header("X-Tenant-Id", tenantId.toString())
+                .header("X-User-Id", testStudent.getId().toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isCreated());
+    }
+}
+```
+
+**When to flush explicitly:**
+
+| Scenario | Flush required? |
+|---|---|
+| setUp() saves new entities (IDENTITY ID) — Hibernate auto-flushes for ID generation | ❌ NO — auto-flushed |
+| Test body modifies managed entity (`entity.setX(...)` + `repo.save()`) + calls `mockMvc.perform` | ✅ **YES — mandatory** |
+| Test body creates new entity (`repo.save(new X())`) without intervening modification | ❌ NO — INSERT auto-flushes IDENTITY |
+| Test body modifies entity then creates ANOTHER new entity then `mockMvc.perform` | ⚠️ **YES** — be explicit; don't rely on cross-call flush ordering |
+| Test body modifies entity then queries via repo directly (no mockMvc) | ❌ NO — Hibernate auto-flush before query |
+
+**Reference:**
+- `kiteclass-core/src/main/java/com/kiteclass/core/config/TestTenantContextFilter.java` lines 88-94 — GAP-746 fix
+- `.claude/rules/audit-to-gap-pipeline.md` §2.6 state-check at fix-time
+- Wave gap-746 closure 2026-05-25 + Wave rst-cleanup 2026-05-27 (`AssignmentIntegrationTest` 2 sites)
+
+### 2.9 Testing AFTER_COMMIT listener side-effects
+
+**Trap (verified Wave rst-cleanup 2026-05-27):** `@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)` chỉ fire **AFTER the parent transaction commits**. Trong test class với `@Transactional @Rollback(true)` (Spring TX rolls back at end), parent TX **never commits** → AFTER_COMMIT listener **never fires** → downstream side-effect (invoice auto-creation, audit log write, notification dispatch) **never happens**.
+
+**Listeners trong codebase áp dụng pattern này (per `audit-service-isolation.md` + capacity-race fix Wave beta-readiness-1):**
+- `EnrollmentEventListener` → creates Invoice on enrollment
+- `GradeEventListener` → publishes Grade event
+- `AdminLoginAlertEventListener` → sends alert email
+- `BrandingEventEmitter` → publishes branding update
+- (general: any `@TransactionalEventListener(phase = AFTER_COMMIT)` annotation)
+
+**Symptoms:**
+- Test creates entity A via API → expects downstream entity B to exist
+- Query for B returns empty content
+- Other tests defensively early-return on empty list, so failure surfaces only in tests asserting B directly
+
+**Required pattern — Option A (preferred, simplest):** Autowire the target service + manually trigger after parent action.
+
+```java
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
+@Rollback(true)
+class InvoiceFlowIntegrationTest {
+    @Autowired
+    private InvoiceService invoiceService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Test
+    void testMultiTenantIsolation_InvoiceFilters() throws Exception {
+        // Enroll via API (parent TX never commits in @Transactional test)
+        Long enrollment1Id = enrollStudent(student1Id, class1Id, tuition);
+
+        // ✅ MANDATORY: AFTER_COMMIT listener won't fire in rollback TX;
+        // manually invoke target service to seed dependent entity
+        invoiceService.createInvoiceForEnrollment(enrollment1Id);
+        entityManager.flush();
+
+        // Now assertion can proceed
+        mockMvc.perform(get("/api/v1/invoices/student/" + student1Id + "/unpaid")
+                .header("X-Tenant-Id", tenant1.toString()))
+            .andExpect(jsonPath("$.data.content[*].studentId").value(student1Id.intValue()));
+    }
+}
+```
+
+**Required pattern — Option B (when downstream chain is multi-step):** Use Spring's `TestTransaction` to commit between steps.
+
+```java
+// In test method, after enrollment:
+TestTransaction.flagForCommit();
+TestTransaction.end();
+TestTransaction.start();  // new TX for assertion
+// AFTER_COMMIT fired in between because TX committed
+```
+
+**Banned shortcut:** Removing `@TransactionalEventListener(phase = AFTER_COMMIT)` from production listener to "make test work" — production needs AFTER_COMMIT for capacity-race safety per `audit-service-isolation.md`. Fix the test, not the production code.
+
+**Reference:**
+- `kiteclass-core/src/main/java/com/kiteclass/core/module/invoice/listener/EnrollmentEventListener.java` — Wave beta-readiness-1 Bucket B capacity-race fix mandating AFTER_COMMIT
+- `.claude/rules/audit-service-isolation.md` v1.0.0 — `Propagation.REQUIRES_NEW` companion mandate
+- Wave rst-cleanup 2026-05-27 (`InvoiceFlowIntegrationTest.testMultiTenantIsolation_InvoiceFilters`)
 
 ---
 
