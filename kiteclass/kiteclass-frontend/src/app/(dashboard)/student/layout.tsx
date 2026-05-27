@@ -27,10 +27,17 @@ export default function StudentLayout({
   const userType = useAuthStore((state) => state.user?.userType);
 
   useEffect(() => {
-    if (userType && userType !== UserType.STUDENT) {
+    // GAP-758: explicit STUDENT-only REQUIRE (not !== bypass). Bounces
+    // undefined-userType (KH JWT shape mismatch per GAP-725) + non-Student
+    // userType back to /dashboard.
+    if (userType !== UserType.STUDENT) {
       router.replace('/dashboard');
     }
   }, [userType, router]);
+
+  if (userType !== UserType.STUDENT) {
+    return null;
+  }
 
   return <>{children}</>;
 }

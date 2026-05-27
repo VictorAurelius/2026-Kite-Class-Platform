@@ -56,12 +56,20 @@ export default function ParentDashboardPage() {
   const router = useRouter();
   const userType = useAuthStore((state) => state.user?.userType);
 
-  // Guard: parent accounts only. Non-parents bounce back to the main dashboard.
+  // GAP-758: explicit PARENT-only REQUIRE (not !== bypass). Bounces
+  // undefined-userType (KH JWT shape mismatch per GAP-725) + non-Parent
+  // userType back to /dashboard. Prevents Owner JWT seeing parent portal
+  // broken state in Phase 1 BETA.
   useEffect(() => {
-    if (userType && userType !== UserType.PARENT) {
+    if (userType !== UserType.PARENT) {
       router.replace('/dashboard');
     }
   }, [userType, router]);
+
+  // Hard short-circuit render — page returns null until userType verified.
+  if (userType !== UserType.PARENT) {
+    return null;
+  }
 
   const { data: profile, isLoading: loadingMe } = useParentMe();
   const {

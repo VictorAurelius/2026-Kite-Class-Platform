@@ -1,6 +1,6 @@
 # GAP-758 — UI feature-flag Phase 1 BETA persona-mismatched routes (flow-bug class)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 75% — Option A fix shipped (4 layout edits + 2 E2E specs); local smoke + CSV addendum pending stack restart
 **Priority:** 🔴 P0
 **Domain:** Frontend
 **Detected:** 2026-05-27 (UI exposure audit per session-handoff 2026-05-27)
@@ -103,14 +103,14 @@ Per `gap-done-discipline.md` §3 — Phase 1 BETA blocker tier = Option A prefer
 
 ## Acceptance Criteria
 
-- [ ] KC `(teacher)/layout.tsx` adds Owner/Admin/Staff reject guard với explicit `userRole` check
-- [ ] KC `(dashboard)/parent/page.tsx` extends existing guard với explicit `userRole` check (cover undefined userType case)
-- [ ] KC `(dashboard)/student/layout.tsx` extends existing guard với explicit `userRole` check
-- [ ] KH `(school-admin)/layout.tsx` adds Owner reject guard OR feature-flag hide Phase 1 BETA
-- [ ] Smoke test: Owner JWT login → curl `/teacher` `/parent/billing` `/student/today` `/school-admin/bulk-import` → all redirect `/dashboard` (NOT render mock UI)
-- [ ] E2E spec added per `e2e-rst-test-layer-boundary.md` §3 RST→E2E promotion mandate: `auth-persona-route-restrict.spec.ts` cho mỗi route × Owner JWT case
-- [ ] CSV row added to `phase-1-beta-acceptance-self-test.csv` cho persona-route-restrict smoke check
-- [ ] PR body documents GAP-758 closure + E2E spec promotion
+- [x] KC `(teacher)/layout.tsx` adds explicit `userType === TEACHER` REQUIRE guard (commit 9c7270b3+)
+- [x] KC `(dashboard)/parent/page.tsx` extends existing guard với explicit REQUIRE; new `(dashboard)/parent/layout.tsx` covers entire `/parent/*` tree
+- [x] KC `(dashboard)/student/layout.tsx` extends existing guard với explicit STUDENT REQUIRE (+ short-circuit render)
+- [x] KH `(school-admin)/layout.tsx` Phase 1 BETA feature-flag hide entire scope — bounce all authenticated personas to `/dashboard`
+- [ ] Smoke test: Owner JWT login → browser walk `/teacher` `/parent/billing` `/student/today` `/school-admin/bulk-import` → all redirect `/dashboard` — PENDING (need stack restart + Playwright run)
+- [x] E2E spec added per `e2e-rst-test-layer-boundary.md` §3 RST→E2E promotion mandate: `kiteclass-frontend/e2e/gap-758-persona-route-restrict.spec.ts` (5 tests Owner persona) + `kitehub-frontend/e2e/gap-758-school-admin-phase-1-restrict.spec.ts` (4 roles × 5 paths = 20 tests)
+- [ ] CSV row added to `phase-1-beta-acceptance-self-test.csv` cho persona-route-restrict smoke check — DEFERRED (CSV scope per Wave 106 plan canonical; persona-route-restrict E2E coverage canonical)
+- [x] PR body documents GAP-758 closure + E2E spec promotion (PR #1882)
 
 ## Dependencies + Blockers
 
@@ -141,4 +141,15 @@ Recommend **Option A** cho Phase 1 BETA timeline + lowest risk.
 
 ## Log
 
+- **2026-05-27 (PARTIAL 75% — Option A fix shipped):** Per user direction "làm Option A fix luôn". Edited 4 layouts với explicit `userType === X` REQUIRE guards (not `!== X` bypass) — eliminate undefined userType bypass class:
+  - `kiteclass-frontend/src/app/(teacher)/layout.tsx` — TEACHER REQUIRE + LoadingSpinner suppress until verified
+  - `kiteclass-frontend/src/app/(dashboard)/parent/page.tsx` — extended page guard + early `return null` short-circuit
+  - **NEW** `kiteclass-frontend/src/app/(dashboard)/parent/layout.tsx` — covers entire `/parent/*` tree (sibling pages billing/attendance/grades/settings)
+  - `kiteclass-frontend/src/app/(dashboard)/student/layout.tsx` — STUDENT REQUIRE + early return
+  - `kitehub-frontend/src/app/(school-admin)/layout.tsx` — Phase 1 BETA hide entire scope, bounce all personas to /dashboard; removed `SchoolAdminShell` render
+  - E2E specs paired same PR per `e2e-rst-test-layer-boundary.md` §3:
+    - `kiteclass-frontend/e2e/gap-758-persona-route-restrict.spec.ts` (5 tests Owner JWT × {teacher, parent, parent/billing, student, dashboard-positive-control})
+    - `kitehub-frontend/e2e/gap-758-school-admin-phase-1-restrict.spec.ts` (4 roles × 5 paths = 20 tests)
+  - PENDING: local Playwright run smoke (stack already running per GAP-756 Phase 1 — Owner seed `owner.test@test.vn / Test@1234` from Wave 105/107)
+  - DEFERRED: CSV row addendum cho `phase-1-beta-acceptance-self-test.csv` — E2E spec coverage canonical (per `e2e-rst-test-layer-boundary.md` §2.2 functional regression owns table)
 - **2026-05-27 (Filed P0 OPEN):** Gap filed in response to UI exposure audit session 2026-05-27 per session-handoff `2026-05-27-rst-scope-discussion.md`. User flag: "beta accept bug nhưng flow phải luôn thông cho mọi nghiệp vụ KH+KC". Audit phát hiện 4 nhóm route persona-mismatched accessible cho Owner JWT vì KC FE `userType` undefined when KH login response không có field (architectural mismatch sibling GAP-725). Phase 1 BETA beta cohort blocker — fix required trước launch để eliminate flow-bug class. Recommend Option A explicit reject guards (~2-3h). RST→E2E promotion: E2E spec mandatory paired same PR per `e2e-rst-test-layer-boundary.md` §3.
