@@ -9,23 +9,23 @@ name: Build and Push Kite Docker Images
 # - Syft SBOM CycloneDX + Cosign keyless signing (GAP-402)
 
 on:
-  # TEMPORARILY DISABLED 2026-05-25 — push:main + tags triggers paused per user direction
-  # Reason: AWS account 906286017800 restored 2026-05-25T03:39 UTC after 8-day suspension (GAP-612).
-  #   No AWS push (ECR image upload) until local RST (restore + smoke test) verified successfully.
-  # Re-enable condition: GAP-612 RST local verification PASS — uncomment push: block below.
-  # See: GAP-612 closed/DONE Log entry referencing this disable PR.
-  #
-  # push:
-  #   branches:
-  #     - main
-  #   tags:
-  #     - 'v*.*.*'
-  #   paths:
-  #     - 'docker/**'
-  #     - 'kiteclass/**'
-  #     - 'kitehub/**'
-  #     - 'frontend/**'
-  #     - '.github/workflows/docker-build-push.yml'
+  # Re-enabled 2026-05-27 per GAP-756 Phase 1 RST PASS (Wave beta-prep-1 main HEAD a64bcef2).
+  # Prior disable 2026-05-25 was conditional on GAP-612 RST verify; local RST PASS confirmed
+  # 2026-05-27 02:55 UTC — 13/13 services healthy + admin-login HTTP 200 PLATFORM_ADMIN JWT +
+  # FE wave routes /waitlist + /legal/privacy + /legal/terms returning 200 + POST
+  # /api/v1/auth/request-beta-access HTTP 201 với PDPL consent payload + VN sample data
+  # (Trần Thị Smoke / Trung tâm Smoke Test). Re-enable unblocks GAP-756 Phase 2+3 deploy.
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+    paths:
+      - 'docker/**'
+      - 'kiteclass/**'
+      - 'kitehub/**'
+      - 'frontend/**'
+      - '.github/workflows/docker-build-push.yml'
   pull_request:
     branches:
       - main
