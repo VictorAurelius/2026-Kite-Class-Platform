@@ -40,8 +40,10 @@ test.describe('GAP-758 KH /school-admin Phase 1 BETA route-restrict', () => {
       for (const path of SCHOOL_ADMIN_PATHS) {
         test(`${role} hitting ${path} → bounces /dashboard (Phase 1 BETA restrict)`, async ({ page }) => {
           await page.goto(path);
-          // Layout schedules router.replace('/dashboard'); allow up to 3s redirect.
-          await expect(page).toHaveURL(/\/dashboard$/, { timeout: 3000 });
+          // Layout schedules router.replace('/dashboard') post-hydration; cold-start
+          // Next.js production build hydration can take 5-7s on first hit per route group.
+          // 8s timeout balances responsive expectation với cold-page hydration latency.
+          await expect(page).toHaveURL(/\/dashboard$/, { timeout: 8000 });
         });
       }
     });
