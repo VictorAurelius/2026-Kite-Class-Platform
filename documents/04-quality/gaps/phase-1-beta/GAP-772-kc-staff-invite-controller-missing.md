@@ -4,7 +4,7 @@ audience: dev
 
 # GAP-772 — KC staff invite controller missing (Mảng B13 + C blocker)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (completion ~70%)
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-05-27 (Wave 106 RST Mảng B13 + Mảng C catalog probe)
@@ -40,12 +40,20 @@ Option B — Defer Phase 1.5+: Update plan §3 đánh dấu B13/C scope explicit
 
 ## Acceptance Criteria
 
-- [ ] Decision logged: Option A (implement) hoặc Option B (defer)
-- [ ] Nếu A: `StaffInvitationController` + DB schema + email + claim flow + RST re-walk
-- [ ] Nếu B: plan §3 B13+C đánh dấu out-of-scope + handoff doc Phase 1 BETA persona scope explicit (Owner solo, no staff Phase 1)
+- [x] Decision logged: **Option A (implement)** — PR #1904 Wave meta-6 Bucket A
+- [x] `StaffInvitationController` + entity + DTOs + repository + service + impl (PR #1904)
+- [x] DB schema — Flyway V71 migration `V71__create_staff_invitations.sql` (PR #1904)
+- [x] Claim flow — `POST /api/v1/staff/invitations/{token}/accept` endpoint (PR #1904)
+- [ ] Email sender — staff-invite email template + Resend integration (deferred — tracked GAP-782 Bucket A item 3 business 3-layer scope) ⏸️
+- [ ] RST re-walk Mảng B13 + C1-C3 — pending Đợt 106 cycle ⏸️
+- [ ] Test coverage Service IT + Controller IT (deferred — tracked GAP-782 Bucket A item 2) ⏸️
 
 ## Related
 
 - Wave 106 plan §3 B13 + C1-C3 — `documents/03-planning/waves/wave-2026-05-23-106-rst-phase-1-beta-full-walk.md`
 - Sister code template: `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/parent/` (ParentInvitationController pattern)
 - Sister: GAP-773 (FE route `/staff/accept-invite` cũng missing — paired)
+
+## Log
+
+- **2026-05-27** — Status PARTIAL ~70% via PR #1904 (Wave meta-6 Bucket A). Shipped Option A core: `StaffInvitationController` + entity + service + impl + 6 DTOs + repository + Flyway V71 migration `kiteclass-core/src/main/java/com/kiteclass/core/module/staff/`. 2 endpoints: `POST /api/v1/staff/invitations` (Owner invite) + `POST /api/v1/staff/invitations/{token}/accept` (staff accept). Deferred AC tracked GAP-782 Bucket A: email sender + test coverage + business 3-layer docs + api-contract audit; RST re-walk Mảng B13 + C1-C3 pending Đợt 106 cycle. Honest PARTIAL per `gap-done-discipline.md` §3 — 3/7 AC `[x]` checked, 4/7 `[ ]` deferred với follow-up gap link.
