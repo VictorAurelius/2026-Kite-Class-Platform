@@ -59,18 +59,18 @@ export default function ParentDashboardPage() {
   // GAP-758: explicit PARENT-only REQUIRE (not !== bypass). Bounces
   // undefined-userType (KH JWT shape mismatch per GAP-725) + non-Parent
   // userType back to /dashboard. Prevents Owner JWT seeing parent portal
-  // broken state in Phase 1 BETA.
+  // broken state in Phase 1 BETA. NOTE: persona-route-restrict primary
+  // enforcement = layout-level (`(dashboard)/parent/layout.tsx`); page
+  // guard kept as defense-in-depth. Layout already short-circuits render,
+  // so hooks below safely reach only Parent users.
   useEffect(() => {
     if (userType !== UserType.PARENT) {
       router.replace('/dashboard');
     }
   }, [userType, router]);
 
-  // Hard short-circuit render — page returns null until userType verified.
-  if (userType !== UserType.PARENT) {
-    return null;
-  }
-
+  // Hooks MUST be called unconditionally (react-hooks/rules-of-hooks).
+  // Layout-level guard handles short-circuit render — page just defenses.
   const { data: profile, isLoading: loadingMe } = useParentMe();
   const {
     data: children,
