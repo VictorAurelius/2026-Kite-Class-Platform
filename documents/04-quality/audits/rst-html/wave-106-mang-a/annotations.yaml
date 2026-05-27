@@ -1,0 +1,31 @@
+# Sample annotation manifest cho Wave 106 Mảng A screenshots.
+# Toạ độ pixel — Playwright capture mặc định 1280×720 viewport, fullPage scrolls dài hơn.
+# Khi mở screenshot mới, cần đo lại pixel của element click/highlight.
+#
+# Format spec: see header of `scripts/render-rst-screenshots.sh`.
+# Run: bash scripts/render-rst-screenshots.sh \
+#        --input documents/04-quality/audits/rst-html/wave-106-mang-a/screenshots \
+#        --output /tmp/rst-annotated/wave-106-mang-a \
+#        --manifest documents/04-quality/audits/rst-html/wave-106-mang-a/annotations.yaml
+
+annotations:
+  - file: a1-trang-chu.png
+    overlays:
+      # Mũi tên chỉ vào CTA "Dùng thử miễn phí" (vùng tương đối — coordinate placeholder)
+      - { kind: arrow,  x1: 900, y1: 100, x2: 1100, y2: 130 }
+      # Viền vàng quanh nav "Bảng giá"
+      - { kind: box,    x1: 700, y1: 80,  x2: 800,  y2: 130 }
+      # Số bước 1 đặt cạnh nav
+      - { kind: number, x: 740, y: 105, value: 1 }
+
+  - file: a2-bieu-mau-beta.png
+    overlays:
+      # Mũi tên chỉ tiêu đề "Trạng thái Beta KiteHub"
+      - { kind: arrow,  x1: 200, y1: 200, x2: 400, y2: 240 }
+      - { kind: number, x: 250, y: 215, value: 2 }
+
+  - file: a3-trang-chinh-sach.png
+    overlays:
+      # Viền vàng khoanh giá "500.000₫/tháng" (gói BASIC)
+      - { kind: box,    x1: 550, y1: 500, x2: 750, y2: 560 }
+      - { kind: number, x: 600, y: 530, value: 3 }

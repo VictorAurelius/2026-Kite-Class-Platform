@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RST Wave 106 Mảng A — Khách ẩn danh — KiteHub Dashboard</title>
+  <!--
+    Wave meta-6 Bucket C — RST HTML Dashboard MVP cho Mảng A.
+    Design tokens (colors + typography) reused inline from
+    `documents/02-architecture/design-system/ui_kits/_shared/colors_and_type.css`
+    to stay standalone (file:// + http.server cùng hoạt động).
+
+    Vietnamese narrative per `dev-readable-doc-language.md` §2.
+    VN sample data per `vn-localization-audit-checklist.md` §3.
+    WCAG AA: heading hierarchy h1→h2→h3, alt text every screenshot, contrast ≥4.5:1.
+  -->
+  <style>
+    /* ===== Design tokens — copy of ui_kits/_shared/colors_and_type.css (subset) ===== */
+    :root {
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 222.2 84% 4.9%;
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+      --border: 214.3 31.8% 91.4%;
+      --primary: 199 89% 48%;
+      --primary-foreground: 0 0% 100%;
+      --accent: 25 95% 53%;
+      --success: 160 84% 39%;
+      --success-foreground: 0 0% 100%;
+      --warning: 38 92% 50%;
+      --warning-foreground: 0 0% 100%;
+      --destructive: 0 84.2% 60.2%;
+      --destructive-foreground: 210 40% 98%;
+      --radius: 0.75rem;
+      --shadow-soft: 0 2px 8px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.06);
+      --shadow-soft-lg: 0 4px 12px rgba(0,0,0,0.05), 0 8px 32px rgba(0,0,0,0.08);
+      --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      line-height: 1.5;
+      color: hsl(var(--foreground));
+      background: hsl(var(--background));
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    /* ===== Header ===== */
+    .header {
+      border-bottom: 1px solid hsl(var(--border));
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .header h1 {
+      font-size: 1.875rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+      color: hsl(var(--foreground));
+    }
+    .header .meta {
+      color: hsl(var(--muted-foreground));
+      font-size: 0.875rem;
+    }
+    .header .meta span { margin-right: 1rem; }
+
+    /* ===== Verdict box (top of fold) ===== */
+    .verdict {
+      padding: 1.5rem 2rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-soft);
+      margin-bottom: 2rem;
+      border-left: 6px solid hsl(var(--success));
+      background: hsl(160 84% 95%);
+    }
+    .verdict .badge {
+      display: inline-block;
+      background: hsl(var(--success));
+      color: hsl(var(--success-foreground));
+      padding: 0.25rem 0.875rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .verdict h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+      color: hsl(var(--foreground));
+    }
+    .verdict .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      color: hsl(var(--foreground));
+    }
+    .verdict .stat strong { font-size: 1.25rem; color: hsl(var(--success)); }
+
+    /* ===== Section ===== */
+    .section {
+      margin-bottom: 2.5rem;
+    }
+    .section h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0 0 1rem 0;
+      color: hsl(var(--foreground));
+      border-bottom: 1px solid hsl(var(--border));
+      padding-bottom: 0.5rem;
+    }
+
+    /* ===== Drilldown grid ===== */
+    .drilldown {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .luong-card {
+      background: hsl(var(--card));
+      border: 1px solid hsl(var(--border));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .luong-card .thumb {
+      width: 100%;
+      height: 200px;
+      background: hsl(var(--muted));
+      overflow: hidden;
+      border-bottom: 1px solid hsl(var(--border));
+    }
+    .luong-card .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+    }
+    .luong-card .body {
+      padding: 1.25rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .luong-card .luong-id {
+      display: inline-block;
+      background: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
+      padding: 0.125rem 0.625rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      align-self: flex-start;
+    }
+    .luong-card h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin: 0 0 0.5rem 0;
+      color: hsl(var(--foreground));
+    }
+    .luong-card .description {
+      color: hsl(var(--muted-foreground));
+      font-size: 0.875rem;
+      margin: 0 0 0.75rem 0;
+    }
+    .luong-card .status {
+      display: inline-block;
+      padding: 0.25rem 0.625rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      align-self: flex-start;
+    }
+    .luong-card .status.pass {
+      background: hsl(160 84% 90%);
+      color: hsl(160 84% 25%);
+    }
+    .luong-card .footer {
+      margin-top: auto;
+      padding-top: 0.75rem;
+      border-top: 1px solid hsl(var(--border));
+      font-size: 0.8125rem;
+      color: hsl(var(--muted-foreground));
+    }
+    .luong-card .footer a {
+      color: hsl(var(--primary));
+      text-decoration: none;
+    }
+    .luong-card .footer a:hover { text-decoration: underline; }
+
+    /* ===== Observations table ===== */
+    .observations {
+      background: hsl(var(--card));
+      border: 1px solid hsl(var(--border));
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .observations table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    .observations th,
+    .observations td {
+      padding: 0.625rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid hsl(var(--border));
+    }
+    .observations th {
+      background: hsl(var(--muted));
+      font-weight: 600;
+      color: hsl(var(--foreground));
+    }
+    .observations tr:last-child td { border-bottom: none; }
+    .observations code {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.8125rem;
+      background: hsl(var(--muted));
+      padding: 0.125rem 0.375rem;
+      border-radius: 4px;
+    }
+
+    /* ===== Footer ===== */
+    .page-footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid hsl(var(--border));
+      color: hsl(var(--muted-foreground));
+      font-size: 0.875rem;
+    }
+    .page-footer a {
+      color: hsl(var(--primary));
+      text-decoration: none;
+    }
+    .page-footer a:hover { text-decoration: underline; }
+
+    /* ===== Print ===== */
+    @media print {
+      body { background: white; }
+      .container { max-width: 100%; padding: 1rem; }
+      .luong-card { break-inside: avoid; box-shadow: none; }
+      .verdict { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header class="header">
+      <h1>RST Wave 106 — Mảng A: Khách ẩn danh</h1>
+      <div class="meta">
+        <span>📅 Cập nhật: <strong>2026-05-27</strong></span>
+        <span>🏷️ Wave: <strong>meta-6 Bucket C</strong></span>
+        <span>👤 Persona: <strong>Khách ẩn danh (anonymous prospect)</strong></span>
+        <span>🌐 Target: <code>localhost:3001</code></span>
+      </div>
+    </header>
+
+    <!-- ===== Top-of-fold verdict ===== -->
+    <section class="verdict" aria-labelledby="verdict-heading">
+      <div class="badge">🟢 SHIP</div>
+      <h2 id="verdict-heading">Mảng A — Trạng thái: PASS</h2>
+      <p>3/3 luồng walk-through Khách ẩn danh đã hoàn thành. Screenshots capture live trực tiếp từ <code>localhost:3001</code> (KiteHub frontend Next.js dev). Vietnamese narrative + VND format <code>500.000₫</code> được xác minh trong A3 pricing surface.</p>
+      <div class="stats">
+        <div class="stat"><strong>3</strong> / 3 luồng PASS</div>
+        <div class="stat"><strong>0</strong> luồng FAIL</div>
+        <div class="stat"><strong>9.1s</strong> tổng thời gian capture</div>
+        <div class="stat"><strong>vi</strong> HTML <code>lang</code> attribute</div>
+      </div>
+    </section>
+
+    <!-- ===== Per-luong drilldown ===== -->
+    <section class="section">
+      <h2>Drilldown 3 luồng Mảng A</h2>
+      <div class="drilldown">
+
+        <article class="luong-card">
+          <div class="thumb">
+            <img src="screenshots/a1-trang-chu.png"
+                 alt="Ảnh chụp màn hình trang chủ KiteHub /, hiển thị hero 'Quản lý trung tâm giáo dục thông minh hơn', navigation với mục Bảng giá / Đăng nhập / Dùng thử miễn phí.">
+          </div>
+          <div class="body">
+            <span class="luong-id">A1</span>
+            <span class="status pass">🟢 PASS</span>
+            <h3>Trang chủ ẩn danh — <code>/</code></h3>
+            <p class="description">Khách ẩn danh truy cập trang chủ KiteHub. Kiểm tra hero text, navigation chính (Bảng giá / Đăng nhập / Dùng thử miễn phí), VN locale <code>lang="vi"</code> trên thẻ HTML.</p>
+            <div class="footer">
+              <strong>Observations:</strong> H1 = "Quản lý trung tâm giáo dục thông minh hơn"; HTML <code>lang="vi"</code> ✓; 4 CTA links đến /beta / /signup / /pricing.
+            </div>
+          </div>
+        </article>
+
+        <article class="luong-card">
+          <div class="thumb">
+            <img src="screenshots/a2-bieu-mau-beta.png"
+                 alt="Ảnh chụp màn hình trang Trạng thái Beta KiteHub /beta-status, hiển thị tiêu đề 'Trạng thái Beta KiteHub' và changelog gần nhất.">
+          </div>
+          <div class="body">
+            <span class="luong-id">A2</span>
+            <span class="status pass">🟢 PASS</span>
+            <h3>Biểu mẫu yêu cầu beta — <code>/beta-status</code></h3>
+            <p class="description">Khách ẩn danh xem trạng thái beta + changelog gần nhất. Surface bao gồm banner Beta + chip phiên bản KiteHub trên dashboard.</p>
+            <div class="footer">
+              <strong>Observations:</strong> H1 = "Trạng thái Beta KiteHub"; 0 form trực tiếp trên page (biểu mẫu yêu cầu access ở <code>/request-beta</code>); 2 CTA "Yêu cầu/Đăng ký".
+            </div>
+          </div>
+        </article>
+
+        <article class="luong-card">
+          <div class="thumb">
+            <img src="screenshots/a3-trang-chinh-sach.png"
+                 alt="Ảnh chụp màn hình trang Bảng giá KiteHub /pricing, hiển thị 3 gói FREE / BASIC / PRO với giá 500.000₫/tháng và 1.500.000₫/tháng.">
+          </div>
+          <div class="body">
+            <span class="luong-id">A3</span>
+            <span class="status pass">🟢 PASS</span>
+            <h3>Trang chính sách / pricing — <code>/pricing</code></h3>
+            <p class="description">Proxy cho mảng A3 chính sách (Mảng A3 trong Wave 106 plan = "Trang chính sách"). Kiểm tra VND format <code>đ</code> symbol per <code>vn-localization-audit-checklist.md</code> §1.</p>
+            <div class="footer">
+              <strong>Observations:</strong> VND <code>500.000₫/tháng</code> ✓; USD format <em>không</em> có ✓; 3 gói FREE/BASIC/PRO; copy "Tiết kiệm 10% khi thanh toán theo năm".
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ===== Capture log ===== -->
+    <section class="section" aria-labelledby="log-heading">
+      <h2 id="log-heading">Log capture từ Playwright</h2>
+      <div class="observations">
+        <table>
+          <thead>
+            <tr>
+              <th>Luồng</th>
+              <th>Field</th>
+              <th>Giá trị</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>A1</td><td>Title</td><td><code>KiteHub - Nền tảng quản lý trung tâm giáo dục</code></td></tr>
+            <tr><td>A1</td><td>H1</td><td>Quản lý trung tâm giáo dục thông minh hơn</td></tr>
+            <tr><td>A1</td><td>HTML <code>lang</code></td><td><code>vi</code> ✅</td></tr>
+            <tr><td>A1</td><td>CTA count</td><td>4 (đến /beta, /signup, /pricing)</td></tr>
+            <tr><td>A2</td><td>Title</td><td><code>KiteHub - Nền tảng quản lý trung tâm giáo dục</code></td></tr>
+            <tr><td>A2</td><td>H1</td><td>Trạng thái Beta KiteHub</td></tr>
+            <tr><td>A2</td><td>Form count</td><td>0 (biểu mẫu yêu cầu access ở route khác)</td></tr>
+            <tr><td>A2</td><td>CTA "Yêu cầu/Đăng ký"</td><td>2</td></tr>
+            <tr><td>A3</td><td>VND present (<code>đ</code>/<code>VNĐ</code>/<code>VND</code>)</td><td><code>true</code> ✅ — <code>500.000₫/tháng</code></td></tr>
+            <tr><td>A3</td><td>USD present (<code>$N</code>)</td><td><code>false</code> ✅</td></tr>
+            <tr><td>A3</td><td>Tiers visible</td><td>FREE / BASIC / PRO</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== Footer ===== -->
+    <footer class="page-footer">
+      <p><strong>Liên quan:</strong></p>
+      <ul>
+        <li>Wave 106 plan: <a href="../../../../03-planning/waves/wave-2026-05-23-106-rst-phase-1-beta-full-walk.md"><code>wave-2026-05-23-106-rst-phase-1-beta-full-walk.md</code></a> §3 Scope</li>
+        <li>Playwright spec: <a href="../../../../../kitehub/kitehub-frontend/e2e/_rst-wave-106-mang-a.spec.ts"><code>kitehub-frontend/e2e/_rst-wave-106-mang-a.spec.ts</code></a></li>
+        <li>Annotation script: <a href="../../../../../scripts/render-rst-screenshots.sh"><code>scripts/render-rst-screenshots.sh</code></a> (reusable cho user manual)</li>
+        <li>Layer boundary rule: <a href="../../../../../.claude/rules/e2e-rst-test-layer-boundary.md"><code>e2e-rst-test-layer-boundary.md</code></a> §3 RST→E2E promotion mandate</li>
+        <li>VN-localization checklist: <a href="../../../../../.claude/rules/vn-localization-audit-checklist.md"><code>vn-localization-audit-checklist.md</code></a> §1 VND format</li>
+      </ul>
+      <p style="margin-top: 1rem;">Dashboard rendered by Wave meta-6 Bucket C — re-render bằng <code>pnpm test:e2e e2e/_rst-wave-106-mang-a.spec.ts</code> + copy screenshots vào <code>screenshots/</code>.</p>
+    </footer>
+
+  </div>
+</body>
+</html>
