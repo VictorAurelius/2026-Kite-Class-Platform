@@ -8,9 +8,12 @@ import com.kiteclass.core.config.TestTenantContextFilter;
 import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.course.dto.CreateCourseRequest;
 import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
+import com.kiteclass.core.module.invoice.service.InvoiceService;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.testutil.TestDataBuilder;
 import com.kiteclass.core.testutil.TestFixtureCleanup;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -76,6 +79,19 @@ class InvoiceFlowIntegrationTest {
 
     @Autowired
     private TestDataBuilder testDataBuilder;
+
+    /**
+     * Direct InvoiceService invocation needed for tests asserting invoice content because
+     * {@code EnrollmentEventListener.onEnrollmentCreated} uses {@code @TransactionalEventListener(phase = AFTER_COMMIT)}.
+     * The class-level {@code @Transactional @Rollback(true)} means the test TX never commits
+     * → AFTER_COMMIT listener never fires → invoice is never auto-created. Tests that need
+     * invoice presence must call {@link InvoiceService#createInvoiceForEnrollment(Long)} explicitly.
+     */
+    @Autowired
+    private InvoiceService invoiceService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private UUID tenantId;
     private Long teacherId;
@@ -508,7 +524,13 @@ class InvoiceFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         Long class1Id = createTestClass("Tenant1 Course", "T1-C001");
-        enrollStudent(student1Id, class1Id, BigDecimal.valueOf(1000000));
+        Long enrollment1Id = enrollStudent(student1Id, class1Id, BigDecimal.valueOf(1000000));
+
+        // EnrollmentEventListener fires on @TransactionalEventListener(AFTER_COMMIT) which
+        // does NOT fire inside this @Transactional @Rollback(true) test (TX never commits).
+        // Manually invoke InvoiceService to seed the invoice this test asserts on.
+        invoiceService.createInvoiceForEnrollment(enrollment1Id);
+        entityManager.flush();
 
         // ========== Tenant 1: Get Unpaid Invoices (should only see own student) ==========
         mockMvc.perform(get("/api/v1/invoices/student/" + student1Id + "/unpaid")
@@ -579,17 +601,21 @@ class InvoiceFlowIntegrationTest {
                 .get("data").get("id").asLong();
     }
 
-    private void enrollStudent(Long studentId, Long classId, BigDecimal tuition) throws Exception {
+    private Long enrollStudent(Long studentId, Long classId, BigDecimal tuition) throws Exception {
         CreateEnrollmentRequest enrollRequest = CreateEnrollmentRequest.builder()
                 .studentId(studentId)
                 .classId(classId)
                 .tuitionAmount(tuition)
                 .build();
 
-        mockMvc.perform(post("/api/v1/enrollments")
+        MvcResult result = mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(enrollRequest)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        return objectMapper.readTree(result.getResponse().getContentAsString())
+                .get("data").get("id").asLong();
     }
 }
