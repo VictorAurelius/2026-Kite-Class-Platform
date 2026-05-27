@@ -116,7 +116,6 @@ class BucketEConcurrencyIT {
         // Given: contended subdomain
         final String contendedSubdomain = "race-test-" + System.currentTimeMillis();
         final int concurrentRequests = 10;
-        final UUID ownerId = UUID.randomUUID();
 
         // Setup parallel executor with barrier
         final CountDownLatch startBarrier = new CountDownLatch(1);
