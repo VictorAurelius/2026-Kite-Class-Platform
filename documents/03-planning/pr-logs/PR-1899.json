@@ -1,0 +1,33 @@
+{
+  "pr": 1899,
+  "title": "docs(wave-106-mang-b-d-probe): file 10 RST findings \u2014 hybrid layer M\u1ea3ng B-D walk",
+  "branch": "wave/106-rst-walk-mang-b",
+  "created_at": null,
+  "merged_at": "2026-05-27T11:35:52Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-27T11:35:58.849768",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 12,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-2805625"
+  }
+}

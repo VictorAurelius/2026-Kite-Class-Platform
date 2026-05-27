@@ -44,7 +44,7 @@ Documented skip per `outside-in-coverage-trigger.md` §4 ending mandate.
 ### Q3 — Bậc rủi ro
 
 TRUNG BÌNH (Opus medium model cho 3 buckets):
-- Bucket A: schema change (V64) + new entity + role-guard — touches kiteclass-core BE layer
+- Bucket A: schema change (V71 — next free; V64-V70 occupied) + new entity extending BaseEntity (Long id + tenantId UUID + `@Filter("tenantFilter")` per existing pattern) + role-guard — touches kiteclass-core BE layer
 - Bucket B: rule version bump + retroactive audit — docs governance scope
 - Bucket C: tooling (HTML + scripts) — no production code
 
@@ -53,7 +53,7 @@ Không đụng kiến trúc, không cross-layer drift (Bucket A FE↔BE đã có
 ### Q4 — Dependencies
 
 - Bucket A ⊥ B ⊥ C (disjoint files, parallel-safe)
-- Bucket A depends on V63 last migration committed (verified main HEAD)
+- Bucket A depends on V70 last migration committed (verified main HEAD 2026-05-27 — V64-V70 all occupied; next free = V71). Agent A 2026-05-27 honest PARTIAL exit surfaced this — original §2 task #2 ghi V64 sai.
 - Bucket C depends on PR #1888 merge (sequential)
 
 ---
@@ -66,10 +66,10 @@ Không đụng kiến trúc, không cross-layer drift (Bucket A FE↔BE đã có
 **Owner:** Backend + Frontend
 
 Sub-tasks:
-1. KC Entity `StaffInvitation` (kiteclass/kiteclass-core/.../module/staff/):
+1. KC Entity `StaffInvitation` (kiteclass/kiteclass-core/.../module/staff/) extending `BaseEntity` (per existing convention — Long id, instanceId UUID tenant, @Filter("tenantFilter"), audit fields, soft delete inherited):
    - Fields: id, tenant_id, email, role, token (UUID), expires_at, status (PENDING/ACCEPTED/EXPIRED/CANCELLED), created_by_user_id, created_at, accepted_at
    - JPA mapping với standard pattern (no Postgres-specific types per `postgres-specific-type-testcontainers.md` §3)
-2. V64 Flyway migration `kiteclass-core/src/main/resources/db/migration/V64__create_staff_invitations.sql`
+2. V71 Flyway migration `kiteclass-core/src/main/resources/db/migration/V71__create_staff_invitations.sql` (V71 next free; V64-V70 occupied — pre-verify with `ls V[0-9]*.sql` before write)
 3. `StaffInvitationRepository` extends JpaRepository
 4. `StaffInvitationController` (`/api/v1/staff-invitations`):
    - `POST /` — Owner creates invite (role-guard OWNER); generate token + 7-day expiry; trigger email
