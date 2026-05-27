@@ -2,9 +2,9 @@
 title: Đợt 106 — RST đầy đủ Pha 1 BETA (23 luồng × 4 vai trò)
 status: draft
 created: 2026-05-23
-updated: 2026-05-23
+updated: 2026-05-27
 waves: [106]
-gaps: [GAP-724, GAP-725]
+gaps: [GAP-724, GAP-725, GAP-761]
 audience: dev
 ---
 
@@ -19,6 +19,14 @@ audience: dev
 ## 1. Brainstorm (5-10 phút)
 
 **Q1 (đối tượng phục vụ):** 4 vai trò Pha 1 BETA — Khách ẩn danh / Chủ trung tâm / Nhân viên / Quản trị nền tảng. Phụ huynh + Giáo viên đã đẩy Pha 2 (GAP-725); Học sinh không nằm trong Pha 1.
+
+**Q1-bis (inside-out queue cross-check per `inside-out-completeness-trigger.md` §3 — patched 2026-05-27):**
+
+| Source | Item | Phase relevance | Action trong Wave 106 |
+|---|---|---|---|
+| `inside-out-queue.md` 2026-05-14 | Premium plan / pricing surface — disclaimer Phase 1 BETA + lifetime discount post-convert + TOS checkbox + "Free during beta" | phase-1-beta (disclaimer) | **Acknowledge khi walk A1 (trang chủ) + A2 (yêu cầu beta)** — flag presence/absence of beta disclaimer + pricing copy; file gap nếu missing |
+| Audit ROADMAP §🎯 2026-05-27 | GAP-761 P1 OPEN (Zustand persist rehydrate route-guard sentinel ~4-5h) — KH route-guard layouts 5 sites | phase-1-beta | **Acknowledge — Mảng D (KH Platform Admin) walk có thể hit residual race 5/20 PASS post-GAP-760 PARTIAL 40%; nếu walk fail → confirm GAP-761 scope chưa fix → defer fix Wave 107+** |
+| ROADMAP §🎯 GAP-756 P0 | Wave production deploy + RST verify (blocked GAP-612 RST + ECR repo provisioning) | phase-1-beta | **Out-of-scope Wave 106** (local walk only) — flag selective production RST trigger sau Wave 106 fix queue |
 
 **Q2 (giải pháp đã xét và loại):**
 - ❌ Sửa hết gap đang mở trước rồi mới RST → nhiều gap có thể đã tự sửa qua các đợt trước; tốn công vào việc không còn relevant. RST đầu sẽ ra danh sách thực tế đáng tin hơn.
@@ -125,6 +133,7 @@ Xem §3 "Bằng chứng kiểm tra trạng thái (per `audit-to-gap-pipeline.md`
    - Số luồng đi xuyên suốt / số luồng vỡ giữa chừng
    - Danh sách GAP mới được mở (mã + ưu tiên)
    - Số lỗi sửa tại chỗ (PR đính kèm)
+   - **Scope-Completeness Reconciliation table** (per `wave-closure-scope-completeness.md` v1.0.0 — mandatory từ 2026-05-18) — mọi item §3 Scope categorize ✅DONE / 🟡PARTIAL / ❌NOT-IMPL với follow-up gap link
 
 2. **Mỗi lỗi phát hiện** → một file `documents/04-quality/gaps/phase-1-beta/GAP-NNN-...md` (theo `audit-to-gap-pipeline.md` §3) + một dòng trong `gap-status.csv`.
 
@@ -132,29 +141,52 @@ Xem §3 "Bằng chứng kiểm tra trạng thái (per `audit-to-gap-pipeline.md`
 
 4. **Lỗi không chặn** (hiển thị xấu / sót dịch sang tiếng Việt / nội dung mẫu là tên tiếng Anh) → ghi gap, đẩy Đợt 107 phân loại, không sửa trong đợt này.
 
-5. **Ảnh chụp** mỗi luồng trong `/tmp/rst-screenshots/wave-106/<mảng>-<luồng>-<bước>.png` để đối chiếu trước/sau khi tester beta đến.
+5. **RST → E2E promotion mandate** (per `e2e-rst-test-layer-boundary.md` v1.0.0 — mandatory từ 2026-05-25):
+
+   Mỗi bug fix PR Wave 106 PHẢI paired NEW E2E spec same PR (regression-guard), TRỪ KHI bug class thuần subjective UX không có testable invariant.
+
+   | Bug class | E2E spec required? | Spec location |
+   |---|:---:|---|
+   | Auth redirect / role-guard / form validation | ✅ MANDATORY | `kiteclass-frontend/e2e/` hoặc `kitehub-frontend/e2e/` |
+   | API contract mismatch / HTTP status | ✅ MANDATORY | E2E (contract test) |
+   | CRUD flow (B-CRUD / B-vận-hành) | ✅ MANDATORY | E2E full-flow spec |
+   | Copy English-in-VN context / cultural feedback | ❌ EXEMPT — trailer `RST_E2E_PROMOTION_EXEMPT: <bug-id> — cultural feedback only` | (cultural review track) |
+   | Layout 360px mobile / visual regression | ⚠️ visual regression tool (deferred Phase 1.5+) | Document but exempt v1 |
+
+   Fix PR body PHẢI có `## RST→E2E promotion` section ghi rõ spec(s) added hoặc exemption rationale.
+
+6. **Ảnh chụp** mỗi luồng trong `/tmp/rst-screenshots/wave-106/<mảng>-<luồng>-<bước>.png` để đối chiếu trước/sau khi tester beta đến.
 
 ### Tiêu chí kết đợt
 
 - [ ] 23/23 luồng đã được walk + đánh giá xanh / vàng / đỏ
 - [ ] Mọi lỗi chặn luồng (P0) đã sửa hoặc có gap follow-up với người chịu trách nhiệm rõ ràng
 - [ ] Mọi lỗi không chặn đã có gap mở trong `phase-1-beta/`
+- [ ] **Mỗi bug fix PR có E2E spec paired** (per §7.5) HOẶC explicit exemption trailer
+- [ ] **Scope-Completeness Reconciliation table** trong closure PR body — mọi §3 item reconcile ✅/🟡/❌
 - [ ] Bảng tổng hợp cuối đợt + danh sách Đợt 107 nháp gửi cho người dùng đầu phiên kế
 
 ---
 
 ## Tiền điều kiện trước khi mở Đợt 106
 
+**Cập nhật 2026-05-27 (sau 12 wave shipped + 4 PR pending merge từ Wave rst-cleanup session):**
+
 | Điều kiện | Trạng thái | Hành động |
 |---|:---:|---|
-| PR #1737 (chuỗi đăng nhập KC) gộp main | ⏳ đang mở | Đợi gộp hoặc ship Đợt 106 trên nhánh `fix/gap-724` |
-| PR #1738 (GAP-725 đẩy Pha 2) gộp main | ⏳ đang mở | Tương tự — không chặn vì chỉ là tài liệu |
-| Dữ liệu test: ≥1 trung tâm + ≥3 lớp + ≥5 học viên + ≥1 giáo viên | ❌ chưa | Thêm vào `scripts/local-test-fixtures/seed-test-users.sh` HOẶC seed thủ công khi tới B-CRUD |
-| Dữ liệu test: tài khoản Nhân viên + lời mời đang chờ | ❌ chưa | Sẽ tạo qua B13 (mời thật từ Chủ trung tâm) |
+| ~~PR #1737 (chuỗi đăng nhập KC) gộp main~~ | ✅ DONE | Wave 105 shipped + GAP-724 DONE; auth flat shape contract synced |
+| ~~PR #1738 (GAP-725 đẩy Pha 2) gộp main~~ | ✅ DONE | Wave 105 shipped |
+| **Wave rst-cleanup 4 PRs merge (#1890 + #1891 + #1892 + #1893)** | ⏳ pending CI | **Đợi merge trước khi pivot** — clean main HEAD baseline. Per option B picked 2026-05-27. |
+| Wave 105 contract sync impact verify (`User.userType` singular shape) | ✅ verified | PR #1891 fix 6 TS test type drift; `useAuthStore.setState({user: {userType: UserType.TEACHER}})` updated; KC FE test fixtures synced |
+| GAP-761 P1 OPEN (Zustand sentinel ~4-5h) — KH route-guard race 5/20 PASS | ⚠️ unfixed | **Wave 106 Mảng D có thể hit** — nếu KH admin walk fail at route-guard, file note → defer fix Wave 107+ (KHÔNG fix Wave 106 tại chỗ vì scope ~4-5h vượt RST budget) |
+| Dữ liệu test: ≥1 trung tâm + ≥3 lớp + ≥5 học viên + ≥1 giáo viên | ❌ chưa | **Seed-as-you-go strategy chốt:** build through UI Mảng B-CRUD (B5-B8) — accept risk +30-60 phút retro nếu B-vận-hành thiếu data. Pre-seed script alternative tốn ~20-30 phút prep nhưng eliminate retro risk. Single coordinator default = seed-as-you-go. |
+| Dữ liệu test: tài khoản Nhân viên + lời mời đang chờ | ❌ chưa | Sẽ tạo qua B13 (mời thật từ Chủ trung tâm) — sequential dependency C ← B-vận-hành đã capture §2 |
 | Tài khoản Khách ẩn danh = không cần (anonymous) | ✅ | (không) |
-| Tài khoản Chủ trung tâm `owner.test@test.vn / Test@1234` | ✅ | Đợt 105 đã seed |
-| Tài khoản Quản trị nền tảng `admin.test@test.vn / Test@1234` | ✅ | Đợt 105 đã seed |
-| Cụm Docker đang chạy (13 dịch vụ healthy) | ✅ | Đợt 105 vẫn lên |
+| Tài khoản Chủ trung tâm `owner.test@test.vn / Test@1234` | ✅ | `scripts/local-test-fixtures/seed-test-users.sh` Đợt 105 seed (3 users: owner + admin + staff) |
+| Tài khoản Quản trị nền tảng `admin.test@test.vn / Test@1234` | ✅ | Cùng script Đợt 105 |
+| Tài khoản Nhân viên `staff.test@test.vn / Test@1234` | ✅ | Cùng script — sẵn cho Mảng C2/C3 walk (sau khi B13 mời tạo invite link) |
+| Cụm Docker LOCAL đang chạy (13 dịch vụ healthy) | ✅ verified 2026-05-27 | kite-postgres / kite-redis / kite-rabbitmq / kite-minio / kitehub-* / kiteclass-core / kite-gateway — all up 5h healthy |
+| AWS production stack | ⚪ N/A | Wave 106 = **LOCAL walk only** (port 3000 KC FE / 3001 KH FE / 9000 MinIO); AWS production deploy = separate GAP-756 P0 sau Wave 106 fix queue |
 
 ---
 
@@ -174,4 +206,12 @@ Xem §3 "Bằng chứng kiểm tra trạng thái (per `audit-to-gap-pipeline.md`
 
 ## 8. Log
 
+- **2026-05-27 (PATCH — pre-execution review):** Plan PATCH PR ship 4 nhóm cập nhật trước khi pivot execution:
+  - **§1 Brainstorm Q1-bis** (NEW row block) — inside-out queue cross-check per `inside-out-completeness-trigger.md` §3: Premium plan disclaimer (queued 2026-05-14) sẽ chạm Mảng A1+A2; GAP-761 P1 OPEN ack Mảng D race risk; GAP-756 P0 production deploy explicit out-of-scope
+  - **§Tiền điều kiện** state sync: PR #1737 + PR #1738 đã DONE (Wave 105 shipped); Wave 105 contract sync (`User.userType` singular) verify đã sync qua PR #1891 FE test fix; GAP-761 unfixed flagged; Wave rst-cleanup 4 PRs pending merge gate; AWS production explicit N/A row (LOCAL Docker only walk)
+  - **§7 Closure** thêm 2 mandate mới: (5) RST→E2E promotion per `e2e-rst-test-layer-boundary.md` v1.0.0 + bug-class table (auth/contract/CRUD MANDATORY; cultural EXEMPT); (Scope-Completeness Reconciliation table) per `wave-closure-scope-completeness.md` v1.0.0 mandatory mỗi closure PR
+  - **Tiêu chí kết đợt** thêm 2 checkbox: E2E spec paired per fix PR + Reconciliation table trong closure PR
+  - **Test data seed strategy** chốt: seed-as-you-go through UI Mảng B-CRUD (single coordinator default; accept retro risk +30-60 phút nếu B-vận-hành thiếu data); `scripts/local-test-fixtures/seed-test-users.sh` đã cover 3 credentials (owner/admin/staff)
+  - **Frontmatter** updated: 2026-05-23 → 2026-05-27 + gaps list += GAP-761
+  - Patch lý do: trong 4 ngày (2026-05-23 → 2026-05-27) shipped 12 waves + 5 META rules mới landed (`e2e-rst-test-layer-boundary.md` + `wave-closure-scope-completeness.md` + `inside-out-completeness-trigger.md` + `agent-model-opus-default.md` + `pre-flight-aws-lifecycle-check.md`) — 2 rules áp dụng trực tiếp Wave 106 closure (E2E promotion + reconciliation table); 1 rule áp dụng plan-time (inside-out queue check)
 - **2026-05-23 (nháp):** Soạn nháp sau khi user chốt phương án (RST trước / 23 luồng giữ nguyên / sửa lỗi chặn luồng tại chỗ) qua AskUserQuestion. Đợt 105 vừa khép. Bắt đầu thực thi sau khi PR kế hoạch này gộp + tiền điều kiện thoả mãn.
