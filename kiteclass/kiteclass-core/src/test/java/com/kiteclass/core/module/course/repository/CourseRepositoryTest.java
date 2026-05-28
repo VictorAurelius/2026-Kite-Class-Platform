@@ -1,9 +1,11 @@
 package com.kiteclass.core.module.course.repository;
 
 import com.kiteclass.core.common.constant.CourseStatus;
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.module.course.entity.Course;
 import com.kiteclass.core.testutil.CourseTestDataBuilder;
 import com.kiteclass.core.testutil.IntegrationTestBase;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -12,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,12 +33,17 @@ class CourseRepositoryTest extends IntegrationTestBase {
     @Autowired
     private CourseRepository courseRepository;
 
+    /** Fixed test tenant — set in TenantContext so EntityPersistenceListener stamps instance_id
+     * on saved courses, and passed to findBySearchCriteria (GAP-791 tenant-scoped native query). */
+    private static final UUID TEST_TENANT = UUID.fromString("11111111-1111-1111-1111-111111111111");
+
     private Course course1;
     private Course course2;
     private Course course3;
 
     @BeforeEach
     void setUp() {
+        TenantContext.setCurrentTenant(TEST_TENANT);
         courseRepository.deleteAll();
 
         course1 = CourseTestDataBuilder.createCourseWithCode("ENG-001");
@@ -56,6 +64,11 @@ class CourseRepositoryTest extends IntegrationTestBase {
         course3.setTeacherId(1L);
         course3.setStatus(CourseStatus.ARCHIVED);
         course3 = courseRepository.save(course3);
+    }
+
+    @AfterEach
+    void tearDown() {
+        TenantContext.clear();
     }
 
     @Test
@@ -141,7 +154,7 @@ class CourseRepositoryTest extends IntegrationTestBase {
         Pageable pageable = PageRequest.of(0, 20);
 
         // When
-        Page<Course> result = courseRepository.findBySearchCriteria("Mathematics", null, null, pageable);
+        Page<Course> result = courseRepository.findBySearchCriteria(TEST_TENANT, "Mathematics", null, null, pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
@@ -154,7 +167,7 @@ class CourseRepositoryTest extends IntegrationTestBase {
         Pageable pageable = PageRequest.of(0, 20);
 
         // When
-        Page<Course> result = courseRepository.findBySearchCriteria("ENG", null, null, pageable);
+        Page<Course> result = courseRepository.findBySearchCriteria(TEST_TENANT, "ENG", null, null, pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
@@ -167,7 +180,7 @@ class CourseRepositoryTest extends IntegrationTestBase {
         Pageable pageable = PageRequest.of(0, 20);
 
         // When
-        Page<Course> result = courseRepository.findBySearchCriteria(null, "DRAFT", null, pageable);
+        Page<Course> result = courseRepository.findBySearchCriteria(TEST_TENANT, null, "DRAFT", null, pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
@@ -180,7 +193,7 @@ class CourseRepositoryTest extends IntegrationTestBase {
         Pageable pageable = PageRequest.of(0, 20);
 
         // When
-        Page<Course> result = courseRepository.findBySearchCriteria(null, null, 1L, pageable);
+        Page<Course> result = courseRepository.findBySearchCriteria(TEST_TENANT, null, null, 1L, pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(2); // course1 and course3
@@ -194,7 +207,7 @@ class CourseRepositoryTest extends IntegrationTestBase {
 
         // When
         Page<Course> result = courseRepository.findBySearchCriteria(
-                "Physics", "ARCHIVED", 1L, pageable
+                TEST_TENANT, "Physics", "ARCHIVED", 1L, pageable
         );
 
         // Then
