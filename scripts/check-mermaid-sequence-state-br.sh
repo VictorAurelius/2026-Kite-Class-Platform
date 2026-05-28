@@ -98,6 +98,8 @@ esac
 SCAN_DIR="${SCAN_ROOT:-.}"
 
 declare -i VIOLATIONS=0
+VIOLATIONS_FILE=$(mktemp -t mermaid-br-violations.XXXXXX)
+trap 'rm -f "$VIOLATIONS_FILE"' EXIT
 
 # Find all .md files (excluding archived)
 while IFS= read -r -d '' f; do
@@ -117,9 +119,9 @@ while IFS= read -r -d '' f; do
   ' "$f" 2>/dev/null
 done < <(find "$SCAN_DIR" \( -path "*/07-archived" -o -path "*/node_modules" -o -path "*/.git" -o -path "*/.claude/worktrees" -o -path "*/target" -o -path "*/build" \) -prune -o -name "*.md" -type f -print0 2>/dev/null) | while IFS= read -r line; do
   [[ -n "$line" ]] && echo "$line"
-done > /tmp/mermaid-br-violations.txt
+done > "$VIOLATIONS_FILE"
 
-VIOLATIONS=$(wc -l < /tmp/mermaid-br-violations.txt)
+VIOLATIONS=$(wc -l < "$VIOLATIONS_FILE")
 
 echo "─────────────────────────────────────"
 echo "Mermaid sequence/state parser hazards check"
@@ -129,15 +131,13 @@ echo "  Detects: (1) <br/> in sequence/state blocks; (2) ';' in sequence/state N
 
 if [[ $VIOLATIONS -eq 0 ]]; then
   echo "  ✓ No parser hazards detected"
-  rm -f /tmp/mermaid-br-violations.txt
   exit 0
 fi
 
 echo ""
 echo "Violations (replace <br/> với ' — ' separator; replace ';' với ' — ' or '.'):"
-cat /tmp/mermaid-br-violations.txt | head -20
+head -20 "$VIOLATIONS_FILE"
 [[ $VIOLATIONS -gt 20 ]] && echo "  ... ($((VIOLATIONS - 20)) more)"
-rm -f /tmp/mermaid-br-violations.txt
 
 case "$MODE" in
   --strict)
