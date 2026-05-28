@@ -14,9 +14,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +32,11 @@ import static org.mockito.Mockito.when;
  */
 @DisplayName("AuthorizationBean (@authz) per-resource access matrix (Bug 5)")
 class AuthorizationBeanTest {
+
+    private static final UUID USER_42 = UUID.fromString("00000000-0000-0000-0000-000000000042");
+    private static final UUID USER_99 = UUID.fromString("00000000-0000-0000-0000-000000000099");
+    private static final UUID USER_50 = UUID.fromString("00000000-0000-0000-0000-000000000050");
+    private static final UUID USER_1 = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
     private ParentStudentLinkRepository parentStudentLinkRepository;
     private EntityManager entityManager;
@@ -73,7 +78,7 @@ class AuthorizationBeanTest {
     @Test
     @DisplayName("hasAccessToClass: teacher of class → true")
     void hasAccessToClassTeacherAllowed() {
-        UserContext.setCurrentUser(42L);
+        UserContext.setCurrentUser(USER_42);
         when(nativeQuery.getSingleResult()).thenReturn(1L);
 
         assertThat(authz.hasAccessToClass(100L)).isTrue();
@@ -82,7 +87,7 @@ class AuthorizationBeanTest {
     @Test
     @DisplayName("hasAccessToClass: NOT teacher of class → false")
     void hasAccessToClassNonTeacherDenied() {
-        UserContext.setCurrentUser(99L);
+        UserContext.setCurrentUser(USER_99);
         when(nativeQuery.getSingleResult()).thenReturn(0L);
 
         assertThat(authz.hasAccessToClass(100L)).isFalse();
@@ -91,7 +96,7 @@ class AuthorizationBeanTest {
     @Test
     @DisplayName("hasAccessToClass: PLATFORM_ADMIN bypass → true (no DB query)")
     void hasAccessToClassAdminBypass() {
-        UserContext.setCurrentUser(1L);
+        UserContext.setCurrentUser(USER_1);
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken("admin", "creds",
                         List.of(new SimpleGrantedAuthority("ROLE_PLATFORM_ADMIN"))));
@@ -108,30 +113,21 @@ class AuthorizationBeanTest {
     }
 
     @Test
-    @DisplayName("hasAccessToChild: parent of child → true")
-    void hasAccessToChildParentAllowed() {
-        UserContext.setCurrentUser(50L);
-        when(parentStudentLinkRepository.existsByParentIdAndStudentIdAndDeletedFalse(eq(50L), eq(200L)))
-                .thenReturn(true);
+    @DisplayName("hasAccessToChild: non-admin actor → false (GAP-795 PARTIAL — actor UUID has no parents.id bridge)")
+    void hasAccessToChildNonAdminDeniedUntilBridge() {
+        // GAP-795: actor identity is a UUID; parent_student_links.parent_id is a numeric
+        // parents.id with no actor-UUID bridge → ownership cannot be evaluated → fail closed.
+        UserContext.setCurrentUser(USER_50);
 
-        assertThat(authz.hasAccessToChild(200L)).isTrue();
-    }
-
-    @Test
-    @DisplayName("hasAccessToChild: NOT parent of child → false (cross-child leak prevented)")
-    void hasAccessToChildNonParentDenied() {
-        UserContext.setCurrentUser(50L);
-        // D3 cross-child leak scenario: user has child A, requests child B
-        when(parentStudentLinkRepository.existsByParentIdAndStudentIdAndDeletedFalse(eq(50L), eq(999L)))
-                .thenReturn(false);
-
-        assertThat(authz.hasAccessToChild(999L)).isFalse();
+        assertThat(authz.hasAccessToChild(200L)).isFalse();
+        // Ownership query is NOT reachable for a non-admin actor under the PARTIAL state.
+        org.mockito.Mockito.verifyNoInteractions(parentStudentLinkRepository);
     }
 
     @Test
     @DisplayName("hasAccessToChild: PLATFORM_ADMIN bypass → true")
     void hasAccessToChildAdminBypass() {
-        UserContext.setCurrentUser(1L);
+        UserContext.setCurrentUser(USER_1);
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken("admin", "creds",
                         List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));

@@ -97,7 +97,7 @@ public class ParentInvitationServiceImpl implements ParentInvitationService {
             UUID tenantId,
             Long studentId,
             String parentEmail,
-            Long invitedByUserId) {
+            UUID invitedByUserId) {
 
         requireEnabled();
         log.info("Creating parent invitation: studentId={}, email={}, tenantId={}",

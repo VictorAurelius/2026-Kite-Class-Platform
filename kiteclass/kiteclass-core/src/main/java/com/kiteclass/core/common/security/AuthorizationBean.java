@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Per-resource authorization bean for SpEL references in {@code @PreAuthorize}.
@@ -24,10 +25,18 @@ import java.util.List;
  *   @PreAuthorize("@authz.hasAccessToChild(#childId)")
  * }</pre>
  *
- * <p><strong>Phase 1 BETA scope:</strong> userId from gateway X-User-Id header
- * maps directly to {@code teachers.id} when role is TEACHER, and to
- * {@code parents.id} when role is PARENT (Gateway sets {@code users.reference_id}
- * per V1 schema convention). Platform admin (role PLATFORM_ADMIN) bypasses.
+ * <p><strong>GAP-795 — actor identity is a UUID.</strong> X-User-Id carries the JWT
+ * {@code sub} claim, a {@link UUID} ({@link UserContext#getCurrentUser()} returns UUID).
+ * There is no numeric user id in the token. Class ownership ({@code hasAccessToClass})
+ * now compares the actor UUID against {@code classes.teacher_id} (also migrated to UUID
+ * in V73, written from the same {@code UserContext}) — consistent UUID == UUID.
+ *
+ * <p><strong>Known limitation — parent ownership ({@code hasAccessToChild}) PARTIAL:</strong>
+ * {@code parent_student_links.parent_id} references {@code parents.id} (numeric BIGINT
+ * domain PK). There is NO bridge column linking the auth-user UUID to {@code parents.id},
+ * so the actor UUID cannot be matched against the parent domain row. The check therefore
+ * fails closed (deny for non-admin) until an actor-UUID → {@code parents.id} bridge is
+ * designed. See {@link #hasAccessToChild(Long)} TODO. Platform admin bypasses both checks.
  *
  * <p><strong>Bypass for admin:</strong> if current authentication has role
  * {@code ROLE_PLATFORM_ADMIN} or {@code ROLE_ADMIN}, all access checks return
@@ -70,12 +79,12 @@ public class AuthorizationBean {
         if (isAdmin()) {
             return true;
         }
-        Long userId = UserContext.getCurrentUser();
+        UUID userId = UserContext.getCurrentUser();
         if (userId == null) {
             log.debug("authz.hasAccessToClass: deny — no user context (classId={})", classId);
             return false;
         }
-        // teacher.id == users.reference_id when role=TEACHER (Gateway convention V1)
+        // classes.teacher_id stores the actor X-User-Id UUID (V73, GAP-795) — compare UUID == UUID.
         Object count = entityManager.createNativeQuery(
                 "SELECT COUNT(*) FROM classes c " +
                         "WHERE c.id = :classId AND c.teacher_id = :userId AND c.deleted = false")
@@ -93,11 +102,22 @@ public class AuthorizationBean {
      * Check if the current authenticated user (via {@link UserContext}) is a
      * parent of the child (student) with the given ID, OR a platform admin.
      *
-     * <p>Uses existing {@link ParentStudentLinkRepository#existsByParentIdAndStudentIdAndDeletedFalse(Long, Long)}
-     * — no new queries introduced.
+     * <p><strong>PARTIAL (GAP-795):</strong> {@code parent_student_links.parent_id}
+     * references the numeric {@code parents.id} domain PK. The actor identity is now a
+     * UUID ({@link UserContext#getCurrentUser()}) with NO bridge column to {@code parents.id},
+     * so the parent-of-child relationship cannot be evaluated from the actor UUID. This
+     * check fails closed (deny for non-admin) — fail-closed is the safe direction and
+     * matches the prior effective behavior (pre-GAP-795 the Long.parseLong(UUID) throw left
+     * {@code UserContext} null → deny). A proper fix needs an actor-UUID → {@code parents.id}
+     * bridge (e.g. a {@code parents.user_id UUID} column populated at provision time).
+     *
+     * <p>TODO(GAP-795 follow-up): add {@code parents.user_id UUID} (+ resolve actor UUID →
+     * {@code parents.id}) then restore the
+     * {@link ParentStudentLinkRepository#existsByParentIdAndStudentIdAndDeletedFalse(Long, Long)}
+     * ownership query.
      *
      * @param childId target student ID
-     * @return true if user is parent of child OR is admin; false otherwise
+     * @return true if admin; false otherwise (parent-ownership unbridgeable — see above)
      */
     public boolean hasAccessToChild(Long childId) {
         if (childId == null) {
@@ -106,18 +126,18 @@ public class AuthorizationBean {
         if (isAdmin()) {
             return true;
         }
-        Long userId = UserContext.getCurrentUser();
+        UUID userId = UserContext.getCurrentUser();
         if (userId == null) {
             log.debug("authz.hasAccessToChild: deny — no user context (childId={})", childId);
             return false;
         }
-        // parent.id == users.reference_id when role=PARENT (Gateway convention V1)
-        boolean isParent = parentStudentLinkRepository
-                .existsByParentIdAndStudentIdAndDeletedFalse(userId, childId);
-        if (!isParent) {
-            log.warn("authz.hasAccessToChild: deny — user {} not parent of child {}", userId, childId);
-        }
-        return isParent;
+        // GAP-795: actor identity is a UUID; parent_student_links.parent_id is a numeric
+        // parents.id with no actor-UUID bridge → cannot evaluate ownership → fail closed.
+        // (Reference parentStudentLinkRepository retained for the follow-up fix that
+        //  resolves actor UUID → parents.id then restores the ownership query.)
+        log.warn("authz.hasAccessToChild: deny — actor UUID {} has no parents.id bridge "
+                + "(GAP-795 PARTIAL; childId={})", userId, childId);
+        return false;
     }
 
     /**

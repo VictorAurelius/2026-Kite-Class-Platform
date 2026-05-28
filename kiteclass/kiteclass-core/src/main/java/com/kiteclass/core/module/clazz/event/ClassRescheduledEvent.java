@@ -3,6 +3,7 @@ package com.kiteclass.core.module.clazz.event;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Outbox event payload published when a class is rescheduled.
@@ -25,7 +26,7 @@ import java.util.List;
  * @param newStartDate       startDate AFTER reschedule
  * @param previousEndDate    endDate captured BEFORE reschedule (audit)
  * @param newEndDate         endDate AFTER reschedule
- * @param rescheduledByUserId User who triggered the reschedule
+ * @param rescheduledByUserId User (UUID) who triggered the reschedule — actor X-User-Id (GAP-795)
  * @param rescheduledAt      Timestamp of the reschedule operation
  * @param reasonCategory     RescheduleReasonCategory enum name (e.g., "GV_OM_BAN_DOT_XUAT")
  * @param reasonNotes        Optional free-text notes (may be null/empty)
@@ -44,7 +45,7 @@ public record ClassRescheduledEvent(
         LocalDate newStartDate,
         LocalDate previousEndDate,
         LocalDate newEndDate,
-        Long rescheduledByUserId,
+        UUID rescheduledByUserId,
         Instant rescheduledAt,
         String reasonCategory,
         String reasonNotes,
