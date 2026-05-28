@@ -95,3 +95,4 @@ pre-flight-aws-lifecycle-check,MANDATORY,1.0.0,2026-05-26,2026-05-26,pre-flight-
 feature-ship-runtime-walk-mandate,CRITICAL,1.0.0,2026-05-28,2026-05-28,feature-ship-runtime-walk-mandate.md,"documents/04-quality/gaps/**,documents/04-quality/audits/rst-html/**,.github/PULL_REQUEST_TEMPLATE.md",active,,
 docs-only-pr-no-block-wait,MANDATORY,1.0.0,2026-05-28,2026-05-28,docs-only-pr-no-block-wait.md,".github/workflows/**,documents/**,.claude/rules/**,.claude/skills/**",active,,
 cross-flow-bug-class-sweep,MANDATORY,1.0.0,2026-05-28,2026-05-28,cross-flow-bug-class-sweep.md,"documents/04-quality/gaps/**,**/*.java,**/*.ts,**/*.tsx",active,,
+api-contract-change-caller-sweep,MANDATORY,1.0.0,2026-05-28,2026-05-28,api-contract-change-caller-sweep.md,**/*.java,active,,

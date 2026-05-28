@@ -100,12 +100,30 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     boolean existsByEmailAndInstanceIdAndDeletedFalse(String email, UUID instanceId);
 
     /**
-     * Checks if a student with given phone exists (excluding deleted).
+     * Checks if a student with given phone exists (excluding deleted) — GLOBAL.
      *
      * @param phone the phone number to check
-     * @return true if phone exists
+     * @return true if phone exists in ANY tenant
+     * @deprecated Use {@link #existsByPhoneAndInstanceIdAndDeletedFalse(String, UUID)} for
+     *     tenant-scoped check. Global check leaks cross-tenant + blocks legitimate reuse
+     *     (shared parent phone across centers) — see GAP-799.
      */
+    @Deprecated
     boolean existsByPhoneAndDeletedFalse(String phone);
+
+    /**
+     * Checks if a student with given phone exists within a tenant (excluding deleted).
+     *
+     * <p>Tenant-scoped uniqueness per GAP-799. The shared {@code kiteclass_shared} DB
+     * holds all tenants' students discriminated by {@code instance_id}; the Hibernate
+     * {@code tenantFilter} is not applied to derived {@code existsBy} queries, so the
+     * {@code instance_id} predicate must be explicit.
+     *
+     * @param phone the phone number to check
+     * @param instanceId the current tenant id (from TenantContext)
+     * @return true if phone exists within this tenant
+     */
+    boolean existsByPhoneAndInstanceIdAndDeletedFalse(String phone, UUID instanceId);
 
     /**
      * Searches students by name/email and status with pagination.

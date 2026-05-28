@@ -70,6 +70,46 @@ class StudentRepositoryTest extends IntegrationTestBase {
         assertThat(exists).isTrue();
     }
 
+    /** GAP-799 — tenant-scoped phone uniqueness: same phone in current tenant → exists. */
+    @Test
+    void existsByPhoneAndInstanceId_shouldReturnTrue_whenPhoneExistsInSameTenant() {
+        // Given
+        Student student = StudentTestDataBuilder.createDefaultStudent();
+        student.setId(null);
+        student.setPhone("0901234567");
+        Student saved = studentRepository.save(student);
+
+        // When
+        boolean exists = studentRepository.existsByPhoneAndInstanceIdAndDeletedFalse(
+                "0901234567", saved.getInstanceId());
+
+        // Then
+        assertThat(exists).isTrue();
+    }
+
+    /**
+     * GAP-799 regression guard — a phone used by tenant A must NOT collide for tenant B.
+     * Before the fix, the global {@code existsByPhoneAndDeletedFalse} saw all tenants'
+     * rows in the shared kiteclass DB → blocked legitimate reuse (shared parent phone
+     * across centers) + cross-tenant enumeration leak.
+     */
+    @Test
+    void existsByPhoneAndInstanceId_shouldReturnFalse_forDifferentTenant() {
+        // Given
+        Student student = StudentTestDataBuilder.createDefaultStudent();
+        student.setId(null);
+        student.setPhone("0907654321");
+        studentRepository.save(student);
+        java.util.UUID otherTenant = java.util.UUID.fromString("33333333-3333-3333-3333-333333333333");
+
+        // When
+        boolean exists = studentRepository.existsByPhoneAndInstanceIdAndDeletedFalse(
+                "0907654321", otherTenant);
+
+        // Then — tenant B can legitimately reuse the same phone
+        assertThat(exists).isFalse();
+    }
+
     @Test
     void findBySearchCriteria_shouldReturnMatchingStudents() {
         // Given

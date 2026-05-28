@@ -105,20 +105,38 @@ class CourseRepositoryTest extends IntegrationTestBase {
     }
 
     @Test
-    void existsByCodeAndDeletedFalse_shouldReturnTrue_whenExists() {
+    void existsByCodeAndInstanceId_shouldReturnFalse_whenCodeNotExists() {
         // When
-        boolean exists = courseRepository.existsByCodeAndDeletedFalse("ENG-001");
+        boolean exists = courseRepository.existsByCodeAndInstanceIdAndDeletedFalse("NONEXISTENT", TEST_TENANT);
+
+        // Then
+        assertThat(exists).isFalse();
+    }
+
+    /** GAP-799 — tenant-scoped uniqueness: same code in current tenant → exists. */
+    @Test
+    void existsByCodeAndInstanceId_shouldReturnTrue_whenCodeExistsInSameTenant() {
+        // When
+        boolean exists = courseRepository.existsByCodeAndInstanceIdAndDeletedFalse("ENG-001", TEST_TENANT);
 
         // Then
         assertThat(exists).isTrue();
     }
 
+    /**
+     * GAP-799 regression guard — a code used by tenant A must NOT collide for tenant B.
+     * Before the fix, the global {@code existsByCodeAndDeletedFalse} saw all tenants'
+     * rows in the shared kiteclass DB → cross-tenant collision (409 COURSE_CODE_EXISTS).
+     */
     @Test
-    void existsByCodeAndDeletedFalse_shouldReturnFalse_whenNotExists() {
-        // When
-        boolean exists = courseRepository.existsByCodeAndDeletedFalse("NONEXISTENT");
+    void existsByCodeAndInstanceId_shouldReturnFalse_forDifferentTenant() {
+        // Given — ENG-001 exists in TEST_TENANT (seeded in setUp)
+        UUID otherTenant = UUID.fromString("22222222-2222-2222-2222-222222222222");
 
-        // Then
+        // When
+        boolean exists = courseRepository.existsByCodeAndInstanceIdAndDeletedFalse("ENG-001", otherTenant);
+
+        // Then — tenant B can legitimately reuse the same code
         assertThat(exists).isFalse();
     }
 

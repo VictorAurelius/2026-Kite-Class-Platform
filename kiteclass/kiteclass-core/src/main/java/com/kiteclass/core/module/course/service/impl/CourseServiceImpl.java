@@ -90,9 +90,12 @@ public class CourseServiceImpl implements CourseService {
     public CourseResponse createCourse(CreateCourseRequest request) {
         log.info("Creating course with code: {}", request.code());
 
-        // BR-COURSE-001: Validate code uniqueness
-        if (courseRepository.existsByCodeAndDeletedFalse(request.code())) {
-            log.warn("Duplicate course code: {}", request.code());
+        // BR-COURSE-001: Validate code uniqueness WITHIN tenant (GAP-799 — global check
+        // leaked cross-tenant in shared kiteclass DB; instance_id predicate is explicit
+        // because the Hibernate tenantFilter does not apply to derived existsBy queries)
+        UUID tenantId = TenantContext.getCurrentTenant();
+        if (courseRepository.existsByCodeAndInstanceIdAndDeletedFalse(request.code(), tenantId)) {
+            log.warn("Duplicate course code within tenant: {}, tenantId: {}", request.code(), tenantId);
             throw new DuplicateResourceException("COURSE_CODE_EXISTS", (Object) request.code());
         }
 
