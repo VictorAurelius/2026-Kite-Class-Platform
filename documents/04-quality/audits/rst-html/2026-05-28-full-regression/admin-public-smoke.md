@@ -6,8 +6,8 @@ session-theme: Phase 1 BETA acceptance self-test — admin ops / public legal+bl
 walk_method: curl (gateway :9000) + psql (kite-postgres) + MailHog API (:8025) + FE route HEAD (:3001/:3000). NO browser — visual rendering marked NEEDS-USER-BROWSER.
 flow_groups_walked: ADM-LOGIN (001-005), ADM-NAV (001-005), ADM-INST (001-004), ADM-AUDIT (001-002), ADM-BETA-REJECT (001-003), PUB-LAND (001-006), PUB-BLOG (001-002), META-SMOKE (001-005), ABUSE-LOGIN (001-002)
 rows_walked: 34
-verdict: PARTIAL — core admin read + public pages + smoke + reject mutation PASS; 9 bugs/gaps catalogued (3 missing endpoints, account-lockout absent, reject-email absent, CSV contract drift). No P0 regressions on shipped surfaces; failures are known-gap feature absences + CSV/contract documentation drift.
-anti_contamination: Used throwaway `a1-*@test.local` identities. Created+rejected ONLY own beta request id=14. Never touched admin lockout. No deletes. No suspend executed on shared instance.
+verdict: PARTIAL — core admin read + public pages + smoke + reject mutation PASS; 9 bugs/gaps catalogued (3 missing endpoints, account-lockout absent, reject-email absent, CSV contract drift). KHÔNG có P0 regression trên shipped surfaces; lỗi là known-gap feature absence + CSV/contract documentation drift. Fix: GAP-515/519/521/525.
+anti_contamination: Dùng throwaway `a1-*@test.local` identities. Tạo+reject CHỈ own beta request id=14. KHÔNG động admin lockout. Không delete. Không suspend trên shared instance.
 ---
 
 # Admin + Public + Smoke + Abuse RST walk — Agent A1 findings
@@ -108,15 +108,15 @@ Walk của cluster admin-ops + public-pages + meta-smoke + abuse-login trên LOC
 
 ## Verdict
 
-- **PASS: 16 rows** — META-SMOKE-001/002/003 (3), ADM-LOGIN-001/002/003/004 (4), ADM-NAV-002/003/005 (3), ADM-INST-001/002 (2), PUB-LAND-003/004/005/006 markers + PUB-BLOG-001 content (counted in NEEDS-USER for visual but content/route verified), ADM-BETA-REJECT setup+002 (2 — create + reject + DB verify), ABUSE-LOGIN-001 rate-limit layer (1, partial).
+- **PASS: 16 rows** — META-SMOKE-001/002/003 (3), ADM-LOGIN-001/002/003/004 (4), ADM-NAV-002/003/005 (3), ADM-INST-001/002 (2), PUB-LAND-003/004/005/006 markers + PUB-BLOG-001 content (counted trong NEEDS-USER cho visual nhưng content/route đã verify), ADM-BETA-REJECT setup+002 (2 — tạo + reject + DB verify), ABUSE-LOGIN-001 rate-limit layer (1, partial).
 - **FAIL (feature/endpoint absent): 7 rows** — ADM-LOGIN-005 (lockout), ADM-INST-003 + ADM-INST-004 (suspend/restore), ADM-AUDIT-001 + ADM-AUDIT-002 (audit-log endpoint), ADM-BETA-REJECT-003 (reject email), ADM-NAV-004 (payments bare path) + ADM-BETA-REJECT-001 (detail) routed-404.
-- **NEEDS-USER-BROWSER: 11 rows** — all UI `(observation)` rows + visual rendering on public pages (PUB-LAND-001/002 hero+pricing, PUB-BLOG-002 content, ADM-NAV-001 sidebar, ADM-LOGIN visual redirect, cookie consent banner, DSAR form) + META-SMOKE-004/005 (Resend/CloudWatch AWS-only) + ABUSE-LOGIN-002 (multi-IP).
+- **NEEDS-USER-BROWSER: 11 rows** — mọi UI `(observation)` rows + visual rendering trên public pages (PUB-LAND-001/002 hero+pricing, PUB-BLOG-002 content, ADM-NAV-001 sidebar, ADM-LOGIN visual redirect, cookie consent banner, DSAR form) + META-SMOKE-004/005 (Resend/CloudWatch AWS-only) + ABUSE-LOGIN-002 (multi-IP).
 
-**Overall: PARTIAL.** Core admin READ surfaces (beta-requests list, instances list+detail, revenue, payments-pending/summary), public legal+blog routes+content, smoke health, và beta-reject mutation đều healthy on real stack. Failures are concentrated in: (a) known security gaps — account lockout absent (P1), (b) missing endpoints documented in gaps — audit-log API (GAP-521), suspend/restore (GAP-519), reject-email (GAP-525), (c) CSV/contract documentation drift (login path, reject DTO fields, payments path). No NEW P0 regression surfaced on shipped surfaces.
+**Tổng kết: PARTIAL.** Core admin READ surfaces (beta-requests list, instances list+detail, revenue, payments-pending/summary), public legal+blog routes+content, smoke health, và beta-reject mutation đều healthy trên real stack. Lỗi tập trung vào: (a) known security gaps — account lockout absent (P1, GAP-515), (b) missing endpoints đã documented trong gaps — audit-log API (GAP-521), suspend/restore (GAP-519), reject-email (GAP-525), (c) CSV/contract documentation drift (login path, reject DTO fields, payments path). KHÔNG có NEW P0 regression surface trên shipped surfaces. → **Fix: xem GAP-515/519/521/525** (Proposed Fix + AC nằm ở gap files).
 
 ## Anti-contamination compliance
 
-- Login recipe used `admin@kitehub.com` for READ-only admin calls; lockout/brute-force tested với throwaway `a1-lockout-001` / `a1-abuse-001@test.local` only — admin account NEVER locked.
-- Beta-reject: created own request id=14 (`a1-reject-001@test.local`), rejected ONLY id=14. Other pending requests (id=12, 13) untouched.
-- ADM-INST suspend NOT executed (route 404 + would mutate shared instance) — verified read-only via code inspection.
-- No deletes. No data mutation beyond own id=14 reject.
+- Login recipe dùng `admin@kitehub.com` cho READ-only admin calls; lockout/brute-force test với throwaway `a1-lockout-001` / `a1-abuse-001@test.local` only — admin account KHÔNG BAO GIỜ bị lock.
+- Beta-reject: tạo own request id=14 (`a1-reject-001@test.local`), reject CHỈ id=14. Các pending requests khác (id=12, 13) không động tới.
+- ADM-INST suspend KHÔNG execute (route 404 + sẽ mutate shared instance) — verify read-only qua code inspection.
+- Không delete. Không mutate data ngoài own id=14 reject.

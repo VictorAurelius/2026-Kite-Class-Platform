@@ -4,10 +4,12 @@ date: 2026-05-28
 session-theme: Full 126-row regression RST walk — index + consolidated findings + Wave A flip verdict
 walk_method: 3 Opus agents (parallel, local stack) + Claude direct Wave A verification + user browser walk (5 luồng)
 stack: local 13 service healthy, 4 service rebuilt 2026-05-28 từ main HEAD
-verdict: Wave A NOT ready full DONE — 1 P0 cross-cutting (gateway tenant isolation) blocks GAP-791/792 + casts doubt; GAP-794 DONE-ready
+verdict: Wave A CHƯA ready full DONE — 1 P0 thật (GAP-797 email var-drift, flow signup chết); "P0 tenant isolation" là MISDIAGNOSIS (§2.8 investigation → isolation hoạt động, re-scope GAP-795 P1); GAP-794 DONE-ready; GAP-790/791/792 verified working/unblocked
 ---
 
 # Full regression RST walk — INDEX (2026-05-28)
+
+> **Bắt đầu từ đây.** Đây là entry point của RST walk 2026-05-28. Đọc §⚠️ CORRECTED (tenant isolation KHÔNG vỡ — đó là misdiagnosis) + §Wave A flip verdict trước khi action. Mỗi cluster doc (`admin-public-smoke.md` / `owner-ops.md` / `teacher-parent-student.md`) là **lớp evidence** (HTTP code + DB row quan sát được). Bug thật để dev fix nằm trong **GAP files** (GAP-795/796/797/787) — walk docs ghi nhận hiện tượng, GAP files chứa Proposed Fix + AC actionable.
 
 126-row acceptance catalog (`phase-1-beta-acceptance-self-test.csv`) walked. 5 luồng Wave A do user walk browser; ~100 rows còn lại do 3 Opus agents (HTTP/DB/MailHog layer; UI-render flag NEEDS-USER).
 
@@ -41,10 +43,12 @@ verdict: Wave A NOT ready full DONE — 1 P0 cross-cutting (gateway tenant isola
 
 kiteclass-core `GlobalExceptionHandler` nuốt `NoHandlerFoundException` (404) + `HttpRequestMethodNotSupportedException` (405) → trả `500 SYSTEM_INTERNAL_ERROR`. Che route-mismatch dưới vỏ "internal error" ở /classes, /teacher/dashboard, /parent, /attendance, /grades, /invoices, /payments. (cả 2 agent B+C độc lập confirm.)
 
+→ **Fix: xem GAP-796** (P1, 404/405→500 mask) — Proposed Fix + AC actionable nằm ở gap file, không phải walk doc.
+
 ## 🟠 P1 — email-send path gaps
 
-- Teacher invite KHÔNG gửi email (recurrence Wave meta-6 #14). Nhưng EMAIL-RESET ✅ (202 + MailHog "Đặt lại mật khẩu" delivered) → consumer #1938 hoạt động cho 1 số path, miss path khác.
-- GAP-525 (beta-reject email không gửi) confirmed còn open.
+- Teacher invite KHÔNG gửi email (recurrence Wave meta-6 #14). Nhưng EMAIL-RESET ✅ (202 + MailHog "Đặt lại mật khẩu" delivered) → consumer #1938 hoạt động cho 1 số path, miss path khác. → **Fix: xem GAP-787** (staff/teacher-invite publisher) + **GAP-797** (email var-drift beta-invite, P0).
+- GAP-525 (beta-reject email không gửi) confirmed còn open. → **Fix: xem GAP-525**.
 
 ## Known gaps confirmed còn open (không phải mới)
 
