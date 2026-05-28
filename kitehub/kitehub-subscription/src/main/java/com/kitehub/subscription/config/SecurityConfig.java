@@ -108,9 +108,21 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/2fa/**").hasAnyRole("CHALLENGE",
                                 "PLATFORM_ADMIN", "TENANT_OWNER", "TENANT_STAFF", "TENANT_USER")
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        // PDPL cookie consent (Wave 79 Bucket B GAP-558 — anonymous OK).
-                        .requestMatchers("/api/v1/consent/cookie").permitAll()
-                        .requestMatchers("/api/v1/consent/cookie/**").permitAll()
+                        // PDPL anonymous consent (Wave 25 GAP-353b — visitor_id pseudonymous,
+                        // banner-stage visitors not logged in; auth "unauthenticated by design"
+                        // per ConsentController javadoc). GAP-794 (Wave Phase 2 Beta Wave A):
+                        // the GAP-558 matchers targeted /consent/cookie which is a NONEXISTENT
+                        // endpoint — the real ConsentController routes are /record, /{visitorId},
+                        // /{visitorId}/revoke → previously fell to anyRequest().authenticated()
+                        // default-deny → 401 for anonymous visitors. HttpMethod-specific matchers
+                        // for least-privilege. NOTE: /api/v1/consent/v2/** (ImmutableConsent
+                        // controller, keyed by userId) stays authenticated by design — NOT listed.
+                        .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                "/api/v1/consent/record").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                "/api/v1/consent/*").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                "/api/v1/consent/*/revoke").permitAll()
                         // Beta status + feedback (Wave 78 GAP-540/542) — anonymous OK.
                         .requestMatchers("/api/v1/beta-status/**").permitAll()
                         .requestMatchers("/api/v1/feedback").permitAll()
