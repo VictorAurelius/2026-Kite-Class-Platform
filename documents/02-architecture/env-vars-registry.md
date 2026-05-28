@@ -28,6 +28,7 @@ Nguồn dữ liệu chính thức duy nhất liệt kê mọi reference env-var 
 |---|---------|-----|----------|---------|-------------------|--------|-------|
 | 1 | gateway | `CORS_ALLOWED_ORIGINS` | `kitehub-gateway/application.yml:11` | localhost-only | docker-compose env | 🆕 Just-added (GAP-507) | Production: kitehub.me + www + Vercel alias |
 | 2 | subscription | `VERIFICATION_BASE_URL` | `kitehub-subscription/application.yml:111` | http://localhost:3001 | docker-compose env | 🆕 Just-added (GAP-508 P0) | Production: https://kitehub.me |
+| 2b | subscription | `KITEHUB_BETA_SIGNUP_BASE_URL` (`kitehub.beta.signup-base-url`) | `BetaAccessService.java:154` @Value | https://kitehub.me | docker-compose env (local→http://localhost:3001, prod→https://kitehub.me) | ✅ Added (GAP-801) | Beta-invite signup link base; FE route /beta-signup/code |
 | 3 | subscription | `EMAIL_SERVICE_URL` | `kitehub-subscription/application.yml:167` | http://localhost:8083 | docker-compose env | 🆕 Just-added (GAP-508 P0) | Internal docker network: http://kitehub-email:8084 |
 | 4 | email | `EMAIL_PROVIDER` | `kitehub-email/application.yml:29` | mock | docker-compose env | 🆕 Just-added (GAP-508 P0) | Production: resend (per ADR-025 Stream A) |
 | 5 | email | `AWS_SES_FROM_EMAIL` | `kitehub-email/application.yml:35` | noreply@localhost | docker-compose env | 🆕 Just-added (GAP-508 P0) | Production: noreply@kitehub.me |

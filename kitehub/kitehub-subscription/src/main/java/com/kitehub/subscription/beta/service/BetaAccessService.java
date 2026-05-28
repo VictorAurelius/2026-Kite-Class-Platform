@@ -148,8 +148,8 @@ public class BetaAccessService {
      *
      * <p>Sourced from {@code kitehub.beta.signup-base-url} config key with
      * production-safe default. Email body links to
-     * {@code {base}/signup/beta?code=...} so the invitee lands on the prefilled
-     * signup form.</p>
+     * {@code {base}/beta-signup/code?code=...} (FE GAP-609 route) so the invitee
+     * lands on the prefilled claim-code form.</p>
      */
     @Value("${kitehub.beta.signup-base-url:https://kitehub.me}")
     private String betaSignupBaseUrl;
@@ -457,7 +457,9 @@ public class BetaAccessService {
         // saved + the token is persisted, coordinator can re-send if needed).
         if (emailServiceClient != null) {
             try {
-                String signupUrl = String.format("%s/signup/beta?code=%s",
+                // GAP-801: FE claim-code route is /beta-signup/code (GAP-609), NOT
+                // /signup/beta (which 404s). Query ?code= prefills BetaClaimCodeForm.
+                String signupUrl = String.format("%s/beta-signup/code?code=%s",
                         trimTrailingSlash(betaSignupBaseUrl),
                         saved.getClaimCode());
                 String expiresAt = formatExpiry(saved.getInviteTokenExpiry());

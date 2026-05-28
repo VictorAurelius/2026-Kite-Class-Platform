@@ -15,8 +15,8 @@
  */
 'use client';
 
-import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, FormEvent } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 
@@ -41,9 +41,16 @@ const CODE_PATTERN = /^\d{6}$/;
 
 export default function BetaClaimCodeForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [code, setCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // GAP-801: prefill the 6-digit code from the email link (?code=119397).
+  useEffect(() => {
+    const prefill = searchParams.get('code');
+    if (prefill) setCode(prefill.replace(/\D/g, '').slice(0, 6));
+  }, [searchParams]);
 
   const isValid = CODE_PATTERN.test(code);
 

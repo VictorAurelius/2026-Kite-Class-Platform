@@ -365,6 +365,10 @@ services:
       # Wave 104.5 GAP-705/706 enablement: align challenge-secret across subscription+gateway
       # (subscription issues challenge tokens; gateway verifies them — symmetric secret required).
       JWT_CHALLENGE_SECRET: ${JWT_CHALLENGE_SECRET:-dev-challenge-secret-pad-pad-pad-pad-pad}
+      # GAP-801: beta-invite email signup link base (kitehub.beta.signup-base-url).
+      # Local → FE at localhost:3001 so email links resolve to the local stack, not prod.
+      # Prod overrides to https://kitehub.me (docker-compose.production.yml / fetch-secrets).
+      KITEHUB_BETA_SIGNUP_BASE_URL: ${KITEHUB_BETA_SIGNUP_BASE_URL:-http://localhost:3001}
     ports:
       - "8081:8080"
     depends_on:
