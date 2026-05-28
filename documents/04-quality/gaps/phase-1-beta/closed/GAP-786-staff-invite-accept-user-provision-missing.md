@@ -4,7 +4,7 @@ audience: dev
 
 # GAP-786 — Staff invite accept service không create user record (Bug #17 Wave meta-6 walk shutdown)
 
-**Status:** 🟡 PARTIAL (~70%)
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-05-28 (Wave meta-6 Bucket A RST walk shutdown — see `documents/04-quality/audits/rst-html/2026-05-28-wave-meta-6-bucket-a-walk-shutdown-findings.md` §Bug class F #17)
@@ -129,8 +129,55 @@ User confirmed reversal 2026-05-28 (overriding prior Wave meta-6 routing decisio
 **Effort:** ~2-3 eng-days (vs Option B 5-7 ed estimate trong original Wave A plan).
 
 **Remaining for DONE flip (~30% to go):**
-- [ ] RST walk per `feature-ship-runtime-walk-mandate.md` §3 — verify accept flow on production-equivalent stack with Owner persona (Bước 2.10 PASS)
-- [ ] Sub-gap follow-up: live walk verification post-merge
+- [x] RST walk per `feature-ship-runtime-walk-mandate.md` §3 — verify accept flow on production-equivalent stack with Owner persona (Bước 2.10 PASS) ✅ 2026-05-28
+- [x] Sub-gap follow-up: live walk verification post-merge ✅ walk evidence below
+
+## Walk evidence (per `feature-ship-runtime-walk-mandate.md` §3)
+
+**Stack:** Local Docker Compose, all 10 services healthy 2026-05-28 ~08:00 UTC
+**Branch:** `wave/phase2-beta-wave-a-bucket-b-rehost-staff-invitations`
+**Persona:** Owner → Staff recipient (cô Linh)
+
+### Step 1 — Stack-up
+- 10/10 services healthy (kite-postgres, kite-redis, kite-rabbitmq, kite-minio, kite-mailhog, kite-gateway, kitehub-subscription, kitehub-email, kitehub-admin, kitehub-branding, kiteclass-core, kitehub-frontend, kiteclass-frontend)
+
+### Step 2 — Owner login + JWT verify
+- Fresh Owner registered: `walk.owner+bucketb@skyedu.vn` / subdomain `walk-bucket-b-1779954467`
+- Login HTTP 200; JWT contains `tenantId=ba8bfdce-2669-44be-b288-cedf73559c8a` (GAP-704 verify confirmed)
+- Owner ID: `f1cb6aee-770c-4e24-9763-3eb40721cb38`
+
+### Step 3 — Owner invite staff + routing verify
+- `POST /api/v1/staff-invitations` HTTP 201 (with `X-Tenant-Id` header)
+- Response shape matches kitehub-subscription format (`tenantId`, `invitedBy`, `expiresAt`)
+- DB row in **kitehub.staff_invitations** (NOT kiteclass-core) — routing reverted correctly
+- Email sent to MailHog with Vietnamese subject "Bạn được mời tham gia..." (kitehub-subscription sync email path works)
+- Token extracted from Q-P encoded email body: `YJpAjCy0jIL2VU63pHQ4mEYuZk_pP1-51IEZ0m3ykLI`
+- SHA-256(token) matches `staff_invitations.token_hash` ✓
+
+### Step 4 — Recipient accept (CRITICAL — Bug #17 verification)
+- `GET /api/v1/staff-invitations/by-token/{token}` HTTP 200 (post Bug #18+#19 fixes)
+- `POST /api/v1/staff-invitations/{token}/accept` HTTP 200
+- Response: `{userId: "a2da980b-de63-475a-a8a0-6a921591fb5e", role: "STAFF"}`
+- **User row CREATED in `users` table**: id=`a2da980b-...`, name=`Cô Linh`, role=`STAFF`
+- Invitation flipped `status=ACCEPTED`, `accepted_at` set, `accepted_user_id=a2da980b-...`
+
+### Step 5 — New staff login
+- `POST /api/auth/login` với `WalkStaff@2026B` HTTP 200
+- Staff JWT issued (decoded: `sub=a2da980b-...`, `role=STAFF`, `email=teacher.walk+bucketb@skyedu.vn`)
+- Tenant-scoped endpoint `/api/v1/onboarding-progress` HTTP 200 với explicit `X-Tenant-Id` header
+
+## Bugs surfaced by walk (per `feature-ship-runtime-walk-mandate.md` v1.1.0 §3.4 catalog-then-batch-fix)
+
+3 bugs surfaced + batch-fixed này PR:
+
+| # | Class | Severity | File | Fix |
+|---|---|---|---|---|
+| **#18** | Gateway whitelist | P0 (blocked all accept attempts) | `kitehub-gateway/.../JwtAuthenticationGatewayFilter.java:isPublicPath()` | Add `/api/v1/staff-invitations/by-token/**` + `/{token}/accept` to public path list |
+| **#19** | Subscription SecurityConfig | P0 (blocked all accept attempts) | `kitehub-subscription/.../SecurityConfig.java:authorizeHttpRequests()` | Add 2 permitAll matchers for public recipient endpoints |
+| **#20** | STAFF JWT thiếu tenantId claim | P1 (architectural — STAFF tenant binding deferred) | `kitehub-subscription/.../AuthService.resolveTenantIdForRole()` lines 644-660 | DEFER — file follow-up gap. Workaround: FE pass `X-Tenant-Id` header from subdomain (Bug #16 walk-fix pattern). Beta production uses subdomain → gateway resolver handles. |
+
+**Bug #18 + #19 fixed inline this PR** (same scope — re-host re-exposed previously-hidden ghost-guard class).
+**Bug #20 follow-up gap to file** post-merge (architectural choice between Option 1/2/3 — defer Wave A Bucket B closure to not bloat scope).
 
 ## Acceptance Criteria
 
@@ -152,5 +199,6 @@ User confirmed reversal 2026-05-28 (overriding prior Wave meta-6 routing decisio
 
 ## Log
 
+- **2026-05-28** (Wave A Bucket B DONE 100%) — RST walk PASS on local production-equivalent stack. End-to-end flow verified: Owner login → invite POST → email sent → recipient accept → user record created → staff login PASS. Bug #17 RESOLVED. Walk surfaced 2 new P0 bugs (Gateway whitelist + Subscription SecurityConfig — both batch-fixed this PR per `feature-ship-runtime-walk-mandate.md` v1.1.0 §3.4 catalog-then-batch protocol) + 1 P1 deferred (STAFF JWT tenantId — follow-up gap). Wave A Bucket B SHIPPED. META rule v1.1.0 added inline §3.4 batch-fix workflow discipline closing inline-rebuild thrash anti-pattern.
 - **2026-05-28** (Wave A Bucket B PARTIAL ~70%) — Day 1 investigation 3 Opus background agents revealed cross-DB blocker (kiteclass-core port 5432 vs kitehub-subscription port 5433 separate DBs + zero Maven dep) — Options A/B/C all non-viable. Day 2 user-confirmed reversal: re-host kitehub-subscription canonical (Option D). Code fix shipped this PR: (1) gateway routing reverted `/api/v1/staff-invitations/**` → kitehub-subscription (overrides instance-apis catch-all + reverses Wave meta-6 documented routing decision); (2) kiteclass-core staff module deleted (13 files); (3) V72 Flyway migration deprecates kiteclass-core `staff_invitations` table (COMMENT-only, data preserved). FE unchanged. Remaining ~30%: RST walk verify per `feature-ship-runtime-walk-mandate.md` §3. Sub-gap follow-up pending live walk.
 - **2026-05-28** — Filed in response to Wave meta-6 Bucket A RST walk shutdown (17 bugs surfaced). P0 because feature non-functional end-to-end — staff cannot log in after accept. Architecture decision deferred to wave plan. Walk-fix not applicable (feature path missing, not bug to patch). Phase 2 BETA Wave B scope per audit retro recommendation.

@@ -197,14 +197,26 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
      * <ul>
      *   <li>{@code /api/auth/**} — login / refresh / verify-email / password-reset</li>
      *   <li>{@code /api/v1/auth/**} — beta signup + 2FA endpoints (GAP-509/547)</li>
+     *   <li>{@code /api/v1/staff-invitations/by-token/**} — recipient preview invite (no JWT yet)</li>
+     *   <li>{@code /api/v1/staff-invitations/*&#47;accept} — recipient accepts + sets password (no JWT yet)</li>
      *   <li>{@code /actuator/health} — Spring Boot health probe</li>
      *   <li>{@code /docs/**} — OpenAPI/Swagger docs nếu serve</li>
      *   <li>{@code /fallback/**} — CircuitBreaker fallback routes</li>
      * </ul>
+     *
+     * <p>Bug #18 (Wave A Bucket B walk 2026-05-28): staff invitation accept paths
+     * are designed public per controller javadoc ("Recipient accepts invitation
+     * + sets password (public)") but were not whitelisted here. Surfaced during
+     * RST walk per {@code feature-ship-runtime-walk-mandate.md} §3 — recipient
+     * has no JWT yet, would receive 401 from this filter before reaching
+     * backend. Same incident-class as Wave meta-6 Bug #16 (gateway public-path
+     * gap).</p>
      */
     boolean isPublicPath(String path) {
         return path.startsWith("/api/auth/")
                 || path.startsWith("/api/v1/auth/")
+                || path.startsWith("/api/v1/staff-invitations/by-token/")
+                || (path.startsWith("/api/v1/staff-invitations/") && path.endsWith("/accept"))
                 || path.equals("/actuator/health")
                 || path.startsWith("/actuator/health/")
                 || path.startsWith("/docs/")
