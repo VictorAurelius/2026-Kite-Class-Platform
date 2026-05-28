@@ -27,8 +27,9 @@ Third bug in the Flow 1 email cascade:
 
 ## Fix (shipped this PR)
 
-1. **BE** `BetaAccessService:460`: `/signup/beta?code=%s` → `/beta-signup/code?code=%s` (+ javadoc §line 151 sync).
+1. **BE** `BetaAccessService:460`: `/signup/beta?code=%s` → `/beta-signup/code?code=%s` (+ javadoc §line 151 sync). Domain stays config-driven (`@Value("${kitehub.beta.signup-base-url:https://kitehub.me}")`) — only the path was wrong.
 2. **FE** `BetaClaimCodeForm.tsx`: read `?code=` via `useSearchParams` + prefill the input (digits, max 6) in a `useEffect`.
+3. **Env (config-shape parity, per `local-fix-production-parity-check.md`)**: `kitehub.beta.signup-base-url` defaulted to `https://kitehub.me`, but the local stack never overrode it → local emails dead-linked to the prod domain. Added `KITEHUB_BETA_SIGNUP_BASE_URL` to local `docker-compose.kitehub.yml` (`http://localhost:3001`) + `docker-compose.production.yml` (`https://kitehub.me`, mirroring existing `VERIFICATION_BASE_URL`). Verified live: email link now `http://localhost:3001/beta-signup/code?code=466758` on local stack.
 
 ## Acceptance Criteria
 
