@@ -156,10 +156,12 @@ public class StaffInvitationServiceImpl implements StaffInvitationService {
         Instant now = Instant.now();
         invitation.setStatus(StaffInvitationStatus.ACCEPTED);
         invitation.setAcceptedAt(now);
-        // acceptedUserId set by gateway after it provisions the User row;
-        // gateway calls back via internal endpoint OR we update via a follow-up
-        // attach call. For MVP the field remains null until gateway integration
-        // lands (paired GAP-779 KH auth /me endpoint).
+        // BLOCKED ON GAP-786 — user provisioning on accept NOT IMPLEMENTED.
+        // Service marks invitation ACCEPTED + sets acceptedAt but DOES NOT
+        // create user record. Password from request dropped. Feature
+        // non-functional end-to-end (staff cannot login after accept).
+        // Architecture decision Option A/B/C pending — see GAP-786 §Proposed Fix.
+        // NOTE: prior comment referenced GAP-779 which is unrelated (/me endpoint).
         invitationRepository.save(invitation);
 
         log.info("Staff invitation accepted: id={}, email={}, role={}",
