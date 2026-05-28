@@ -11,7 +11,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -151,9 +150,7 @@ public class EmailEventListener {
         JsonNode vars = node.get("variables");
         if (vars != null && vars.isObject()) {
             Map<String, Object> map = new HashMap<>();
-            Iterator<Map.Entry<String, JsonNode>> fields = vars.fields();
-            while (fields.hasNext()) {
-                Map.Entry<String, JsonNode> e = fields.next();
+            for (Map.Entry<String, JsonNode> e : vars.properties()) {
                 map.put(e.getKey(), unwrapScalar(e.getValue()));
             }
             payload.variables = map;
