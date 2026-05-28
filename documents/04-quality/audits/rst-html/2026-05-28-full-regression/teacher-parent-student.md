@@ -12,6 +12,8 @@ anti_contamination: namespace a3-*@test.local; no shared-account lock; no data c
 
 # Full-regression RST walk — Teacher / Parent / Student + EMAIL-VERIFY (agent a3)
 
+> ⚠️ **CORRECTION 2026-05-28 (đọc TRƯỚC khi action) — "P0 tenant-resolution" dưới đây là MISDIAGNOSIS.** Coordinator fix-time investigation (`audit-to-gap-pipeline.md` §2.8) verify empirical: gateway resolve JWT tenant + core set TenantContext + Hibernate filter active → **tenant resolution WORKS** (shared-DB+filter architecture; MDC `tenant=-` là logging artifact). 18 NEEDS-DATA là do tenant chưa có seeded teacher/student (cần Owner CRUD walk tạo trước), KHÔNG phải routing broken. **Bug thật re-scoped = GAP-795 P1** (`X-User-Id` UUID vs Long → `created_by` NULL). Findings khác valid: 404/405→500 = GAP-796, EMAIL-VERIFY path drift = part GAP-797 class. Đọc INDEX.md + GAP-795/796/797.
+
 ## Tóm tắt
 
 Walk 23 rows được giao trên LOCAL stack (13 services healthy). Hầu hết flow **không walk được tới terminal step** vì **toàn bộ persona Teacher/Parent/Student CHƯA được seed**, và tenant DB của Owner (`kiteclass_877dff9d`) **rỗng hoàn toàn** (0 teachers, 0 students, 0 classes). Các flow Teacher/Parent đều phụ thuộc dây chuyền `OWNER-TEACHER-004` (gửi lời mời GV) và `OWNER-STU-004` (tạo HS + phụ huynh) — chưa chạy → mọi flow downstream `NEEDS-DATA`.
