@@ -4,9 +4,11 @@ audience: dev
 
 # GAP-798 — Domain-entity `user_id` UUID bridge (authz "Gateway convention V2")
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (~50% — consumer side DONE #1948; producer side → GAP-798b)
 **Priority:** 🟠 P1
 **Domain:** Backend / Security (authz)
+
+> **2026-05-28 PARTIAL closure:** Consumer-side authz bridge shipped (#1948) — kiteclass-core reads `X-User-Reference-Id` (numeric) for ownership (`hasAccessToChild`, `UserPreferencesController.validateUserAccess`), `X-User-Id` (UUID) for audit. Design corrected to reuse the `X-User-Reference-Id` contract (no new domain `user_id` columns). **Producer side** (the `users.reference_id` column + cross-service population + AuthService JWT claim + gateway forward + 4 controllers + test sweep) is **GAP-798b** — `users.reference_id` does not exist, so it's genuine cross-service multi-session work. Parent flow fail-closed at runtime until GAP-798b.
 **Found:** 2026-05-28 (GAP-795 fix-time investigation — the remaining "fix triệt để" piece)
 **Phase:** phase-1-beta
 **Affects:** kiteclass-core authz ownership checks — `hasAccessToChild` (parent), `UserPreferencesController.validateUserAccess`, 4 controllers (Storage/Assignment-submit/LessonProgress/Lms) using `@RequestHeader("X-User-Id") Long`
