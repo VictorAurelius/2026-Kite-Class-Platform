@@ -13,6 +13,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * Class entity representing a specific instance of a course.
@@ -69,15 +70,17 @@ public class Class extends BaseEntity {
      * Drives {@code AuthorizationBean.hasAccessToClass()} guard — teacher can only access classes
      * where {@code teacher_id = currentUserId}.
      *
-     * <p>Schema: column already exists in V1__create_core_schema.sql line 158 (`teacher_id BIGINT REFERENCES teachers(id)`).
-     * Pre-GAP-727 the entity did NOT map this column → JPA never persisted it → every teacher locked out (NOT IDOR, full lock-out).
+     * <p>Stores the actor's X-User-Id <strong>UUID</strong> (JWT {@code sub} claim), NOT a numeric
+     * {@code teachers.id}. The V1 column was {@code teacher_id BIGINT REFERENCES teachers(id)} but the
+     * value written is the actor UUID from {@code UserContext.getCurrentUser()} — V73 migrates the
+     * column to UUID and drops the (never-valid) FK (GAP-795).
      *
      * <p>Nullable for legacy classes created before GAP-727 fix + classes created by ADMIN role (no single teacher owner).
      *
-     * @since GAP-727 Wave beta-readiness-2 Bucket B
+     * @since GAP-727 Wave beta-readiness-2 Bucket B; UUID since GAP-795
      */
     @Column(name = "teacher_id")
-    private Long teacherId;
+    private UUID teacherId;
 
     /**
      * Class name.
@@ -225,11 +228,11 @@ public class Class extends BaseEntity {
     // =========================================================================
 
     /**
-     * User ID who triggered the most recent reschedule operation.
-     * Null when class has never been rescheduled.
+     * User ID (UUID) who triggered the most recent reschedule operation.
+     * Stores the actor's X-User-Id UUID (GAP-795). Null when never rescheduled.
      */
     @Column(name = "rescheduled_by_user_id")
-    private Long rescheduledByUserId;
+    private UUID rescheduledByUserId;
 
     /**
      * Timestamp of the most recent reschedule operation (UTC).

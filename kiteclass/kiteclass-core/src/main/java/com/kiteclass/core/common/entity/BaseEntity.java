@@ -80,20 +80,25 @@ public abstract class BaseEntity {
     private Instant updatedAt;
 
     /**
-     * User ID who created this entity.
+     * User ID (UUID) who created this entity.
      * Automatically set by JPA auditing via AuditorAware bean.
+     *
+     * <p>Stores the X-User-Id UUID (JWT {@code sub} claim) — there is no numeric
+     * user id in the auth token (GAP-795).
      */
     @CreatedBy
     @Column(name = "created_by", updatable = false)
-    private Long createdBy;
+    private UUID createdBy;
 
     /**
-     * User ID who last updated this entity.
+     * User ID (UUID) who last updated this entity.
      * Automatically updated by JPA auditing via AuditorAware bean.
+     *
+     * <p>Stores the X-User-Id UUID (JWT {@code sub} claim) — see {@link #createdBy}.
      */
     @LastModifiedBy
     @Column(name = "updated_by")
-    private Long updatedBy;
+    private UUID updatedBy;
 
     /**
      * Soft delete flag. When true, entity is considered deleted.

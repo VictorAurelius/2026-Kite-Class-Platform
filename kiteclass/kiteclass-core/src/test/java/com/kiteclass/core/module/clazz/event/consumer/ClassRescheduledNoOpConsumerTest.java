@@ -42,7 +42,7 @@ class ClassRescheduledNoOpConsumerTest {
                 LocalDate.of(2026, 5, 21),
                 LocalDate.of(2026, 6, 30),
                 LocalDate.of(2026, 7, 7),
-                999L,
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000999"),
                 Instant.now(),
                 "GV_OM_BAN_DOT_XUAT",
                 "Cô giáo Trần Thị Hồng xin nghỉ ốm 1 tuần.",

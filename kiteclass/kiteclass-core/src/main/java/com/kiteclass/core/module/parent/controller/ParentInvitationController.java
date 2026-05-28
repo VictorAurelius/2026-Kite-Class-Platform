@@ -60,7 +60,7 @@ public class ParentInvitationController {
             @Valid @RequestBody InviteParentRequest request) {
 
         UUID tenantId = TenantContext.getCurrentTenant();
-        Long inviterId = UserContext.getCurrentUser();
+        UUID inviterId = UserContext.getCurrentUser();
         if (inviterId == null) {
             // The gateway is expected to have enforced auth already; bail out
             // explicitly rather than silently creating an un-attributed row.

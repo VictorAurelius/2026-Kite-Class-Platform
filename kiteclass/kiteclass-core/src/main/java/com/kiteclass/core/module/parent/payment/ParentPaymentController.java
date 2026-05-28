@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.parent.payment;
 
+import com.kiteclass.core.common.context.UserContext;
 import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.common.exception.BusinessException;
 import com.kiteclass.core.module.parent.notification.ZaloOaNotificationService;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Wave 105 Bucket D — Parent payment endpoint với multi-child authz + VietQR
@@ -134,11 +136,13 @@ public class ParentPaymentController {
                     .body(ApiResponse.success(cached));
         }
 
-        // First-write path — create the payment with REAL parent id (not
-        // hardcoded `1L` per Bucket E security fix scope).
-        log.info("Creating parent payment: parentId={} childId={} invoiceId={} method={}",
-                resolvedParentId, childId, request.getInvoiceId(), request.getPaymentMethod());
-        PaymentResponse created = paymentService.createPayment(request, resolvedParentId);
+        // First-write path. Payment audit actor (created_by) is the caller's
+        // X-User-Id UUID (GAP-795) from UserContext — NOT the numeric parent domain
+        // id (resolvedParentId stays for the multi-child authz check above).
+        UUID actorUserId = UserContext.getCurrentUser();
+        log.info("Creating parent payment: actorUserId={} parentId={} childId={} invoiceId={} method={}",
+                actorUserId, resolvedParentId, childId, request.getInvoiceId(), request.getPaymentMethod());
+        PaymentResponse created = paymentService.createPayment(request, actorUserId);
 
         // Persist idempotency mapping. If race lost, re-lookup winner's row.
         // QR payload is stub Wave 105 — Wave 106 GAP-NEW integrates real VietQR.

@@ -9,6 +9,7 @@ import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * JPA configuration with auditing support.
@@ -43,7 +44,7 @@ public class JpaConfig {
      * @return AuditorAware that provides current user ID
      */
     @Bean
-    public AuditorAware<Long> auditorProvider() {
+    public AuditorAware<UUID> auditorProvider() {
         return () -> Optional.ofNullable(UserContext.getCurrentUser());
     }
 

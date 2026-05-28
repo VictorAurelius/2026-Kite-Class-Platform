@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Per-resource authorization bean for SpEL references in {@code @PreAuthorize}.
@@ -24,10 +25,18 @@ import java.util.List;
  *   @PreAuthorize("@authz.hasAccessToChild(#childId)")
  * }</pre>
  *
- * <p><strong>Phase 1 BETA scope:</strong> userId from gateway X-User-Id header
- * maps directly to {@code teachers.id} when role is TEACHER, and to
- * {@code parents.id} when role is PARENT (Gateway sets {@code users.reference_id}
- * per V1 schema convention). Platform admin (role PLATFORM_ADMIN) bypasses.
+ * <p><strong>GAP-795 — actor identity is a UUID.</strong> X-User-Id carries the JWT
+ * {@code sub} claim, a {@link UUID} ({@link UserContext#getCurrentUser()} returns UUID).
+ * There is no numeric user id in the token. Class ownership ({@code hasAccessToClass})
+ * now compares the actor UUID against {@code classes.teacher_id} (also migrated to UUID
+ * in V73, written from the same {@code UserContext}) — consistent UUID == UUID.
+ *
+ * <p><strong>Known limitation — parent ownership ({@code hasAccessToChild}) PARTIAL:</strong>
+ * {@code parent_student_links.parent_id} references {@code parents.id} (numeric BIGINT
+ * domain PK). There is NO bridge column linking the auth-user UUID to {@code parents.id},
+ * so the actor UUID cannot be matched against the parent domain row. The check therefore
+ * fails closed (deny for non-admin) until an actor-UUID → {@code parents.id} bridge is
+ * designed. See {@link #hasAccessToChild(Long)} TODO. Platform admin bypasses both checks.
  *
  * <p><strong>Bypass for admin:</strong> if current authentication has role
  * {@code ROLE_PLATFORM_ADMIN} or {@code ROLE_ADMIN}, all access checks return
@@ -70,12 +79,12 @@ public class AuthorizationBean {
         if (isAdmin()) {
             return true;
         }
-        Long userId = UserContext.getCurrentUser();
+        UUID userId = UserContext.getCurrentUser();
         if (userId == null) {
             log.debug("authz.hasAccessToClass: deny — no user context (classId={})", classId);
             return false;
         }
-        // teacher.id == users.reference_id when role=TEACHER (Gateway convention V1)
+        // classes.teacher_id stores the actor X-User-Id UUID (V73, GAP-795) — compare UUID == UUID.
         Object count = entityManager.createNativeQuery(
                 "SELECT COUNT(*) FROM classes c " +
                         "WHERE c.id = :classId AND c.teacher_id = :userId AND c.deleted = false")
@@ -93,11 +102,16 @@ public class AuthorizationBean {
      * Check if the current authenticated user (via {@link UserContext}) is a
      * parent of the child (student) with the given ID, OR a platform admin.
      *
-     * <p>Uses existing {@link ParentStudentLinkRepository#existsByParentIdAndStudentIdAndDeletedFalse(Long, Long)}
-     * — no new queries introduced.
+     * <p><strong>GAP-798 — reference-id bridge.</strong> {@code parent_student_links.parent_id}
+     * references the numeric {@code parents.id} domain PK (= {@code users.reference_id} per the
+     * Gateway V1 convention). The actor's numeric reference id arrives on the
+     * {@code X-User-Reference-Id} header ({@link UserContext#getCurrentReferenceId()}); audit
+     * (created_by) separately uses the UUID {@code X-User-Id} (GAP-795). Ownership is therefore
+     * {@code parents.id == actor reference-id} AND a link to {@code childId}. No actor-UUID →
+     * parents.id bridge column is needed: {@code users.reference_id} already IS the bridge.
      *
      * @param childId target student ID
-     * @return true if user is parent of child OR is admin; false otherwise
+     * @return true if admin OR the actor (by reference-id) is a linked parent of the child; false otherwise
      */
     public boolean hasAccessToChild(Long childId) {
         if (childId == null) {
@@ -106,18 +120,19 @@ public class AuthorizationBean {
         if (isAdmin()) {
             return true;
         }
-        Long userId = UserContext.getCurrentUser();
-        if (userId == null) {
-            log.debug("authz.hasAccessToChild: deny — no user context (childId={})", childId);
+        Long parentRefId = UserContext.getCurrentReferenceId();
+        if (parentRefId == null) {
+            log.debug("authz.hasAccessToChild: deny — no reference-id context (childId={})", childId);
             return false;
         }
-        // parent.id == users.reference_id when role=PARENT (Gateway convention V1)
-        boolean isParent = parentStudentLinkRepository
-                .existsByParentIdAndStudentIdAndDeletedFalse(userId, childId);
-        if (!isParent) {
-            log.warn("authz.hasAccessToChild: deny — user {} not parent of child {}", userId, childId);
+        // parent_student_links.parent_id == parents.id == actor X-User-Reference-Id (numeric).
+        boolean owns = parentStudentLinkRepository
+                .existsByParentIdAndStudentIdAndDeletedFalse(parentRefId, childId);
+        if (!owns) {
+            log.warn("authz.hasAccessToChild: deny — parent ref-id {} not linked to child {}",
+                    parentRefId, childId);
         }
-        return isParent;
+        return owns;
     }
 
     /**

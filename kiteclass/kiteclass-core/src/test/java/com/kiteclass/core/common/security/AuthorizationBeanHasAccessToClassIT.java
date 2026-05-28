@@ -100,15 +100,16 @@ class AuthorizationBeanHasAccessToClassIT {
     private EntityManager entityManager;
 
     private UUID tenantId;
-    private Long teacherAId;
-    private Long teacherBId;
+    private UUID teacherAId;
+    private UUID teacherBId;
 
     @BeforeEach
     void setUp() {
-        // Sample VN-friendly data per dev-readable-doc-language.md §3
+        // Sample VN-friendly data per dev-readable-doc-language.md §3.
+        // GAP-795: teacher_id stores the actor X-User-Id UUID (JWT sub), not a numeric teachers.id.
         tenantId = UUID.randomUUID();
-        teacherAId = 10001L; // Cô Trần Thị Hồng — teacher A
-        teacherBId = 10002L; // Thầy Nguyễn Văn An — teacher B
+        teacherAId = UUID.fromString("00000000-0000-0000-0000-000000010001"); // Cô Trần Thị Hồng — teacher A
+        teacherBId = UUID.fromString("00000000-0000-0000-0000-000000010002"); // Thầy Nguyễn Văn An — teacher B
 
         TenantContext.setCurrentTenant(tenantId);
     }
@@ -124,7 +125,7 @@ class AuthorizationBeanHasAccessToClassIT {
      * Builds + persists a {@link Class} entity với explicit teacherId.
      * Bypass ClassServiceImpl để control teacher_id assignment chính xác cho test fixture.
      */
-    private Class createClassOwnedBy(Long teacherId, String name) {
+    private Class createClassOwnedBy(UUID teacherId, String name) {
         Class clazz = Class.builder()
                 .courseId(99999L) // dummy course ID — không enforce FK trong test schema
                 .teacherId(teacherId)

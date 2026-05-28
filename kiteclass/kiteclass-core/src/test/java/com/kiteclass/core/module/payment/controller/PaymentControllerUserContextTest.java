@@ -13,11 +13,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,6 +37,12 @@ import static org.mockito.Mockito.when;
 @DisplayName("PaymentController UserContext-aware payment creation (Bug 1)")
 class PaymentControllerUserContextTest {
 
+    private static final UUID USER_42 = UUID.fromString("00000000-0000-0000-0000-000000000042");
+    private static final UUID USER_77 = UUID.fromString("00000000-0000-0000-0000-000000000077");
+    private static final UUID USER_1 = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    private static final UUID USER_101 = UUID.fromString("00000000-0000-0000-0000-000000000101");
+    private static final UUID USER_202 = UUID.fromString("00000000-0000-0000-0000-000000000202");
+
     private final PaymentService paymentService = mock(PaymentService.class);
     private final PaymentController controller = new PaymentController(paymentService);
 
@@ -48,40 +54,40 @@ class PaymentControllerUserContextTest {
     @Test
     @DisplayName("createPayment passes UserContext userId to service (not hardcoded 1L)")
     void createPaymentUsesUserContext() {
-        UserContext.setCurrentUser(42L);
+        UserContext.setCurrentUser(USER_42);
         CreatePaymentRequest request = new CreatePaymentRequest();
         request.setInvoiceId(100L);
         request.setPaymentMethod(PaymentMethod.CASH);
         request.setAmount(BigDecimal.valueOf(1500000L));
         PaymentResponse stub = new PaymentResponse();
-        when(paymentService.createPayment(any(), anyLong())).thenReturn(stub);
+        when(paymentService.createPayment(any(), any())).thenReturn(stub);
 
         controller.createPayment(request);
 
-        ArgumentCaptor<Long> userIdCaptor = ArgumentCaptor.forClass(Long.class);
+        ArgumentCaptor<UUID> userIdCaptor = ArgumentCaptor.forClass(UUID.class);
         verify(paymentService).createPayment(any(CreatePaymentRequest.class), userIdCaptor.capture());
-        assertThat(userIdCaptor.getValue()).isEqualTo(42L);
-        assertThat(userIdCaptor.getValue()).isNotEqualTo(1L); // Bug 1 regression guard
+        assertThat(userIdCaptor.getValue()).isEqualTo(USER_42);
+        assertThat(userIdCaptor.getValue()).isNotEqualTo(USER_1); // Bug 1 regression guard
     }
 
     @Test
     @DisplayName("createInstallmentPayment passes UserContext userId to service")
     void createInstallmentPaymentUsesUserContext() {
-        UserContext.setCurrentUser(77L);
+        UserContext.setCurrentUser(USER_77);
         CreateInstallmentPaymentRequest request = new CreateInstallmentPaymentRequest();
         request.setInstallmentId(200L);
         request.setPaymentMethod(PaymentMethod.BANK_TRANSFER);
         request.setAmount(BigDecimal.valueOf(500000L));
         PaymentResponse stub = new PaymentResponse();
-        when(paymentService.createInstallmentPayment(any(), anyLong())).thenReturn(stub);
+        when(paymentService.createInstallmentPayment(any(), any())).thenReturn(stub);
 
         controller.createInstallmentPayment(request);
 
-        ArgumentCaptor<Long> userIdCaptor = ArgumentCaptor.forClass(Long.class);
+        ArgumentCaptor<UUID> userIdCaptor = ArgumentCaptor.forClass(UUID.class);
         verify(paymentService).createInstallmentPayment(any(CreateInstallmentPaymentRequest.class),
                 userIdCaptor.capture());
-        assertThat(userIdCaptor.getValue()).isEqualTo(77L);
-        assertThat(userIdCaptor.getValue()).isNotEqualTo(1L);
+        assertThat(userIdCaptor.getValue()).isEqualTo(USER_77);
+        assertThat(userIdCaptor.getValue()).isNotEqualTo(USER_1);
     }
 
     @Test
@@ -102,24 +108,24 @@ class PaymentControllerUserContextTest {
     @DisplayName("Two users → two distinct user_id values (audit trail integrity)")
     void twoUsersGetTwoDistinctUserIds() {
         PaymentResponse stub = new PaymentResponse();
-        when(paymentService.createPayment(any(), anyLong())).thenReturn(stub);
+        when(paymentService.createPayment(any(), any())).thenReturn(stub);
         CreatePaymentRequest request = new CreatePaymentRequest();
         request.setInvoiceId(100L);
         request.setPaymentMethod(PaymentMethod.CASH);
         request.setAmount(BigDecimal.valueOf(1500000L));
 
         // User A
-        UserContext.setCurrentUser(101L);
+        UserContext.setCurrentUser(USER_101);
         controller.createPayment(request);
         UserContext.clear();
 
         // User B
-        UserContext.setCurrentUser(202L);
+        UserContext.setCurrentUser(USER_202);
         controller.createPayment(request);
 
-        ArgumentCaptor<Long> userIdCaptor = ArgumentCaptor.forClass(Long.class);
+        ArgumentCaptor<UUID> userIdCaptor = ArgumentCaptor.forClass(UUID.class);
         verify(paymentService, org.mockito.Mockito.times(2))
                 .createPayment(any(CreatePaymentRequest.class), userIdCaptor.capture());
-        assertThat(userIdCaptor.getAllValues()).containsExactly(101L, 202L);
+        assertThat(userIdCaptor.getAllValues()).containsExactly(USER_101, USER_202);
     }
 }

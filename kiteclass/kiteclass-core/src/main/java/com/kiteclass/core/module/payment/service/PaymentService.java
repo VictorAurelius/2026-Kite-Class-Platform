@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Service interface for payment operations.
@@ -24,21 +25,21 @@ public interface PaymentService {
      * UC-1: Create payment for invoice (full or partial).
      *
      * @param request create payment request
-     * @param userId user ID creating payment
+     * @param userId user ID (UUID, X-User-Id) creating payment — GAP-795
      * @return payment response with payment URL (if online payment)
      */
     @Valid PaymentResponse createPayment(
-        @Valid CreatePaymentRequest request, Long userId);
+        @Valid CreatePaymentRequest request, UUID userId);
 
     /**
      * UC-2: Create payment for installment.
      *
      * @param request create installment payment request
-     * @param userId user ID creating payment
+     * @param userId user ID (UUID, X-User-Id) creating payment — GAP-795
      * @return payment response with payment URL (if online payment)
      */
     @Valid PaymentResponse createInstallmentPayment(
-        @Valid CreateInstallmentPaymentRequest request, Long userId);
+        @Valid CreateInstallmentPaymentRequest request, UUID userId);
 
     /**
      * UC-3: Get payment by ID.

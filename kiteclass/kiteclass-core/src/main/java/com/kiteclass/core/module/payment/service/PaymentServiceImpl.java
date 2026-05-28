@@ -98,7 +98,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public PaymentResponse createPayment(CreatePaymentRequest request, Long userId) {
+    public PaymentResponse createPayment(CreatePaymentRequest request, UUID userId) {
         // 1. Validate invoice exists and can accept payment
         Invoice invoice = invoiceRepository.findByIdAndDeletedFalse(request.getInvoiceId())
             .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", (Object) request.getInvoiceId()));
@@ -174,7 +174,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public PaymentResponse createInstallmentPayment(CreateInstallmentPaymentRequest request, Long userId) {
+    public PaymentResponse createInstallmentPayment(CreateInstallmentPaymentRequest request, UUID userId) {
         // To be implemented when Installment module is ready
         log.warn("Installment payment not implemented yet");
         throw new UnsupportedOperationException("Installment payment not implemented yet");

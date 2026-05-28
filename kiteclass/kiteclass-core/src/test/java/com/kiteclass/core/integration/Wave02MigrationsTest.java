@@ -173,11 +173,12 @@ class Wave02MigrationsTest {
     }
 
     @Test
-    @DisplayName("V46 aligns created_by / updated_by to BIGINT across all V28..V44 tables (GAP-244)")
+    @DisplayName("V73 migrates created_by / updated_by to UUID across all audit tables (GAP-795)")
     void v46_audit_columns_aligned_to_bigint() throws SQLException {
-        // BaseEntity declares Long createdBy / updatedBy; without V46, V28..V44
-        // migrations leave VARCHAR columns that fail Hibernate `ddl-auto: validate`.
-        // After V46 every audit column on these 19 tables MUST be BIGINT.
+        // V46 first aligned these audit columns to BIGINT (BaseEntity Long createdBy).
+        // GAP-795 V73 then migrated created_by / updated_by Long→UUID (X-User-Id is the
+        // JWT sub UUID; there is no numeric user id). After V73 every audit column on
+        // these 19 tables MUST be UUID.
         // role_permissions intentionally excluded — pure junction table, no audit columns.
         String[] tables = {
                 "academic_years", "semesters", "holidays",
@@ -188,8 +189,8 @@ class Wave02MigrationsTest {
                 "dmca_takedown_requests", "quality_reports", "class_schedule_slots"
         };
         for (String table : tables) {
-            assertColumnType(table, "created_by", "bigint");
-            assertColumnType(table, "updated_by", "bigint");
+            assertColumnType(table, "created_by", "uuid");
+            assertColumnType(table, "updated_by", "uuid");
         }
     }
 

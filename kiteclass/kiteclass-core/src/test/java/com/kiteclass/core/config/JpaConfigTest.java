@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.AuditorAware;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,7 +23,7 @@ class JpaConfigTest {
         JpaConfig config = new JpaConfig();
 
         // When
-        AuditorAware<Long> auditorAware = config.auditorProvider();
+        AuditorAware<UUID> auditorAware = config.auditorProvider();
 
         // Then
         assertThat(auditorAware).isNotNull();
@@ -32,10 +33,10 @@ class JpaConfigTest {
     void auditorProvider_shouldReturnEmptyOptionalWhenNoAuthenticationContext() {
         // Given
         JpaConfig config = new JpaConfig();
-        AuditorAware<Long> auditorAware = config.auditorProvider();
+        AuditorAware<UUID> auditorAware = config.auditorProvider();
 
         // When
-        Optional<Long> currentAuditor = auditorAware.getCurrentAuditor();
+        Optional<UUID> currentAuditor = auditorAware.getCurrentAuditor();
 
         // Then
         // Should return empty until authentication is integrated

@@ -72,8 +72,9 @@ public class AssignmentServiceImpl implements AssignmentService {
         }
 
         // 3. Map to entity
+        // created_by (audit actor UUID) is auto-populated by JPA auditing from
+        // UserContext (X-User-Id) — see GAP-795. No longer stashes numeric teacherId.
         Assignment assignment = assignmentMapper.toEntity(request);
-        assignment.setCreatedBy(teacherId);
         assignment.setInstanceId(TenantContext.getCurrentTenant());
 
         // Set default late penalty if not provided

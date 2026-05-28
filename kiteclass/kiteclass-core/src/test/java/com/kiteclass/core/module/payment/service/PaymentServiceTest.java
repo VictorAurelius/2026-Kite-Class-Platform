@@ -93,6 +93,9 @@ class PaymentServiceTest {
     @InjectMocks
     private PaymentServiceImpl paymentService;
 
+    // GAP-795: payment actor is the X-User-Id UUID, not a numeric id.
+    private static final UUID ACTOR_USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+
     private Invoice testInvoice;
     private CreatePaymentRequest createRequest;
     private Payment testPayment;
@@ -203,7 +206,7 @@ class PaymentServiceTest {
                 .thenReturn(testResponse);
 
         // Act
-        PaymentResponse result = paymentService.createPayment(createRequest, 1L);
+        PaymentResponse result = paymentService.createPayment(createRequest, ACTOR_USER_ID);
 
         // Assert
         assertThat(result).isNotNull();
@@ -243,7 +246,7 @@ class PaymentServiceTest {
                 .thenReturn(testResponse);
 
         // Act
-        PaymentResponse result = paymentService.createPayment(createRequest, 1L);
+        PaymentResponse result = paymentService.createPayment(createRequest, ACTOR_USER_ID);
 
         // Assert
         assertThat(result).isNotNull();
@@ -264,7 +267,7 @@ class PaymentServiceTest {
                 .thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThatThrownBy(() -> paymentService.createPayment(createRequest, 1L))
+        assertThatThrownBy(() -> paymentService.createPayment(createRequest, ACTOR_USER_ID))
                 .isInstanceOf(EntityNotFoundException.class)
                 .satisfies(e -> assertThat(e.getMessage())
                         .containsIgnoringCase("INVOICE_NOT_FOUND"));
@@ -282,7 +285,7 @@ class PaymentServiceTest {
                 .thenReturn(Optional.of(testInvoice));
 
         // Act & Assert
-        assertThatThrownBy(() -> paymentService.createPayment(createRequest, 1L))
+        assertThatThrownBy(() -> paymentService.createPayment(createRequest, ACTOR_USER_ID))
                 .isInstanceOf(ValidationException.class)
                 .satisfies(e -> assertThat(e.getMessage())
                         .containsIgnoringCase("INVOICE_ALREADY_PAID"));
@@ -305,7 +308,7 @@ class PaymentServiceTest {
                 .thenReturn(Optional.of(testInvoice));
 
         // Act & Assert
-        assertThatThrownBy(() -> paymentService.createPayment(createRequest, 1L))
+        assertThatThrownBy(() -> paymentService.createPayment(createRequest, ACTOR_USER_ID))
                 .isInstanceOf(ValidationException.class)
                 .satisfies(e -> assertThat(e.getMessage())
                         .containsIgnoringCase("PAYMENT_AMOUNT_EXCEEDS_BALANCE"));
@@ -551,7 +554,7 @@ class PaymentServiceTest {
                 .thenReturn(testResponse);
 
         // Act
-        paymentService.createPayment(createRequest, 1L);
+        paymentService.createPayment(createRequest, ACTOR_USER_ID);
 
         // Assert - verify the gateway request uses the configured URL
         verify(vnpayGatewayClient).initiatePayment(argThat(request ->
