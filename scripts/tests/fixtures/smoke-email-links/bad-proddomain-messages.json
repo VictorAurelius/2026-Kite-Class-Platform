@@ -1,0 +1,15 @@
+{
+  "total": 1,
+  "items": [
+    {
+      "Content": {
+        "Headers": {
+          "Subject": ["Lời mời tham gia beta KiteHub"],
+          "To": ["hong.tran@skyedu.vn"]
+        },
+        "Body": "<html><body><p>Chào chị Hằng,</p><p>Vui lòng nhấn vào liên kết để đăng ký: <a href=\"https://kitehub.me/beta-signup/ABC123\">Đăng ký ngay</a></p><p>Trang chủ: http://localhost:3000/</p></body></html>"
+      },
+      "MIME": null
+    }
+  ]
+}
