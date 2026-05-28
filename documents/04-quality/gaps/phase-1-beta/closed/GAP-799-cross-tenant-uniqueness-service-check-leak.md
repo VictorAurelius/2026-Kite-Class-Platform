@@ -4,7 +4,7 @@ audience: dev
 
 # GAP-799 — Cross-tenant uniqueness leak: course-code + student-phone service checks not tenant-scoped
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (2026-05-28, PR #1954 — fix + cross-tenant regression guards + live re-walk)
 **Priority:** 🟠 P1
 **Domain:** Backend / Security (multi-tenancy isolation) — kiteclass-core
 **Found:** 2026-05-28 (seed-script live walk — `scripts/seed-sky-education-demo.sh` build)
@@ -45,11 +45,26 @@ DB constraints are correctly tenant-scoped: `uk_courses_instance_code UNIQUE (in
 
 ## Acceptance Criteria
 
-- [ ] Investigate RLS-should-apply vs explicit-filter; document decision
-- [ ] Course code uniqueness scoped to `instance_id` (service + repo)
-- [ ] Student phone uniqueness scoped to `instance_id` (create + update + bulk import)
-- [ ] Testcontainers IT: same code/phone in 2 tenants both succeed
-- [ ] No enumeration leak: tenant B 409 cannot reveal tenant A data
+- [x] Investigate RLS-should-apply vs explicit-filter; document decision → **explicit `instance_id` filter** (shared `kiteclass_shared` DB + app-layer filtering is the isolation mechanism; Hibernate `tenantFilter` not applied to derived `existsBy`; RLS is secondary net, app role not effectively isolated on this path)
+- [x] Course code uniqueness scoped to `instance_id` (service + repo) — `existsByCodeAndInstanceIdAndDeletedFalse` + `CourseServiceImpl`
+- [x] Student phone uniqueness scoped to `instance_id` (create + update + bulk import) — `existsByPhoneAndInstanceIdAndDeletedFalse` + `StudentServiceImpl` (bulk via `createStudent`)
+- [x] Testcontainers IT: same code/phone in 2 tenants both succeed — `CourseRepositoryTest` + `StudentRepositoryTest` cross-tenant guards (gated `INTEGRATION_TEST=true`)
+- [x] No enumeration leak: tenant B reuse returns false → no 409 disclosure of tenant A data
+
+## Walk evidence (live re-walk per pre-handoff-self-test-completeness.md §3, 2026-05-28)
+
+Rebuilt kiteclass-core with fix; 2 seeded tenants (A=164019, B=163924) on gateway :9000:
+
+| Case | HTTP | Verdict |
+|---|---|---|
+| A creates course code `DUPTEST-799` | 201 | ✅ |
+| B creates SAME code `DUPTEST-799` (cross-tenant) | 201 | ✅ FIX (was 409) |
+| A creates `DUPTEST-799` again (same-tenant dup) | 409 | ✅ no regression |
+| A creates student phone `0911111799` | 201 | ✅ |
+| B creates SAME phone `0911111799` (cross-tenant) | 201 | ✅ FIX (was 409) |
+| A creates phone `0911111799` again (same-tenant dup) | 409 | ✅ no regression |
+
+Originating symptom resolved + same-tenant uniqueness preserved.
 
 ## Related
 
@@ -61,3 +76,4 @@ DB constraints are correctly tenant-scoped: `uk_courses_instance_code UNIQUE (in
 ## Log
 
 - **2026-05-28:** Filed from seed-script live walk. Empirical cross-tenant collision (course code `IELTS-RW01` + student phone `0987654321`) reproduced reliably. Root cause confirmed: `existsByCodeAndDeletedFalse` / `existsByPhoneAndDeletedFalse` lack `instance_id` filter; DB constraint `uk_courses_instance_code` IS tenant-scoped. RLS-vs-explicit-filter resolution flagged for investigation.
+- **2026-05-28 (DONE, PR #1954):** Investigation resolved — single shared `kiteclass_shared` DB + app-layer `instance_id` filtering is the isolation mechanism (RLS secondary net, not effective on this path); Hibernate `tenantFilter` not applied to derived `existsBy` → explicit `instance_id` predicate required. Fix: added `existsByCodeAndInstanceIdAndDeletedFalse` + `existsByPhoneAndInstanceIdAndDeletedFalse` (deprecated globals), scoped checks in `CourseServiceImpl` + `StudentServiceImpl` (create + update; bulk via `createStudent`). Cross-tenant regression-guard tests added. Live re-walk PASS (6/6 — see §Walk evidence): cross-tenant reuse 201 (was 409), same-tenant dup 409. Mirrors existing `existsByEmailAndInstanceId` precedent.
