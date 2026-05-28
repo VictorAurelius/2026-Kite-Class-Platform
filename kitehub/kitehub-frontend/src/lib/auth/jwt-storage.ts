@@ -60,10 +60,11 @@ export function getTenantIdFromToken(): string | null {
   const token = getAccessToken();
   if (!token) return null;
   const parts = token.split('.');
-  if (parts.length !== 3) return null;
+  const payloadPart = parts[1];
+  if (parts.length !== 3 || !payloadPart) return null;
   try {
     // base64url decode (handle padding + URL-safe chars per RFC 7515)
-    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const payload = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
     const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4);
     const decoded = JSON.parse(atob(padded));
     return typeof decoded.tenantId === 'string' ? decoded.tenantId : null;
