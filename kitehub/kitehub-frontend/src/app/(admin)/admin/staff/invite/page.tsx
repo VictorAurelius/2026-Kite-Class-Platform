@@ -45,11 +45,16 @@ export default function AdminInviteStaffPage() {
 
     setSubmitting(true);
     try {
-      // BE InviteStaffRequest schema (Wave meta-6): { email, role }.
-      // fullName captured for UI/email greeting; BE doesn't persist it currently.
+      // BE CreateStaffInvitationRequest schema (Wave A Bucket B re-host —
+      // kitehub-subscription /staff/dto): { email, fullName } — both required.
+      // Role NOT accepted in body (BE hardcodes STAFF); role dropdown UI-only
+      // for future when BE supports role-bound invitations (Bug #20 follow-up).
+      // FIX Bug #26 (Wave A Bucket B walk 2026-05-28): payload was {email, role}
+      // — missing fullName → 400 INVALID_FULL_NAME. Schema sync to BE Wave 79
+      // kitehub-subscription canonical (post re-host).
       await apiClient.post(endpoints.staffInvitations.create, {
         email: email.trim().toLowerCase(),
-        role,
+        fullName: fullName.trim(),
       });
       // Defer toast to list page so user sees the row appear.
       router.push('/admin/staff?invited=1');

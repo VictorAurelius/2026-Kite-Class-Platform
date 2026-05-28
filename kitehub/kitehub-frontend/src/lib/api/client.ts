@@ -5,6 +5,7 @@ import {
   getRefreshToken,
   setAccessToken,
   clearTokens,
+  getTenantIdFromToken,
 } from '@/lib/auth/jwt-storage';
 
 export const apiClient: AxiosInstance = axios.create({
@@ -22,6 +23,16 @@ apiClient.interceptors.request.use(
     const accessToken = getAccessToken();
     if (accessToken && config.headers) {
       config.headers.Authorization = `Bearer ${accessToken}`;
+      // Bug #21 (Wave A Bucket B walk 2026-05-28): gateway TenantResolver
+      // requires X-Tenant-Id header on tenant-scoped paths (e.g. POST
+      // /api/v1/staff-invitations). Extract tenantId from JWT claim and
+      // propagate. Caller-set X-Tenant-Id takes precedence (manual override).
+      if (!config.headers['X-Tenant-Id']) {
+        const tenantId = getTenantIdFromToken();
+        if (tenantId) {
+          config.headers['X-Tenant-Id'] = tenantId;
+        }
+      }
     }
     return config;
   },
