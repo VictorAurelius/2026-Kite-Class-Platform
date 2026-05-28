@@ -40,7 +40,7 @@ class FallbackControllerTest {
                 .build();
         when(brandingClient.fetch("tenant-abc")).thenReturn(branding);
 
-        ResponseEntity<String> response = controller.subscriptionFallback("tenant-abc");
+        ResponseEntity<String> response = controller.subscriptionFallback("tenant-abc").block();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
         assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.TEXT_HTML);
@@ -57,7 +57,7 @@ class FallbackControllerTest {
     void subscriptionFallback_falls_backToDefaultBranding_whenFetchFails() {
         when(brandingClient.fetch(null)).thenThrow(new RuntimeException("boom"));
 
-        ResponseEntity<String> response = controller.subscriptionFallback(null);
+        ResponseEntity<String> response = controller.subscriptionFallback(null).block();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
         String body = response.getBody();
@@ -76,7 +76,7 @@ class FallbackControllerTest {
                         .secondaryColor("#123456")
                         .build());
 
-        ResponseEntity<String> response = controller.notFound("tenant-x");
+        ResponseEntity<String> response = controller.notFound("tenant-x").block();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).contains("#ABCDEF").contains("X-Center");
@@ -87,7 +87,7 @@ class FallbackControllerTest {
         when(brandingClient.fetch("tenant-y"))
                 .thenReturn(GatewayBranding.defaults());
 
-        ResponseEntity<String> response = controller.serverError("tenant-y");
+        ResponseEntity<String> response = controller.serverError("tenant-y").block();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).contains("500");
