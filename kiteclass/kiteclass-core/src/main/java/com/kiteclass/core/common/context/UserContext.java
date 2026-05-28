@@ -45,6 +45,11 @@ public final class UserContext {
 
     private static final ThreadLocal<UUID> CURRENT_USER = new ThreadLocal<>();
 
+    // Numeric domain reference id (X-User-Reference-Id = users.reference_id = parents.id /
+    // teachers.id / students.id). Used for ownership authz (GAP-798); null for admin/owner
+    // who are not domain entities. Audit (created_by) uses CURRENT_USER (UUID) per GAP-795.
+    private static final ThreadLocal<Long> CURRENT_REFERENCE_ID = new ThreadLocal<>();
+
     /**
      * Private constructor to prevent instantiation.
      * This is a utility class with only static methods.
@@ -79,11 +84,36 @@ public final class UserContext {
     }
 
     /**
+     * Sets the current numeric reference id (X-User-Reference-Id) for this thread.
+     *
+     * <p>Nullable: admin/owner users are not domain entities and have no reference id.
+     *
+     * @param referenceId numeric domain id (parents.id / teachers.id / students.id), or null
+     */
+    public static void setCurrentReferenceId(Long referenceId) {
+        if (referenceId == null) {
+            CURRENT_REFERENCE_ID.remove();
+        } else {
+            CURRENT_REFERENCE_ID.set(referenceId);
+        }
+    }
+
+    /**
+     * Gets the current numeric reference id for ownership authz (GAP-798).
+     *
+     * @return numeric domain id, or null if the actor has no reference id (admin/owner) or unset
+     */
+    public static Long getCurrentReferenceId() {
+        return CURRENT_REFERENCE_ID.get();
+    }
+
+    /**
      * Clears the user context for this thread.
      * Must be called after request completion to prevent memory leaks.
      */
     public static void clear() {
         CURRENT_USER.remove();
+        CURRENT_REFERENCE_ID.remove();
     }
 
     /**

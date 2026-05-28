@@ -102,22 +102,16 @@ public class AuthorizationBean {
      * Check if the current authenticated user (via {@link UserContext}) is a
      * parent of the child (student) with the given ID, OR a platform admin.
      *
-     * <p><strong>PARTIAL (GAP-795):</strong> {@code parent_student_links.parent_id}
-     * references the numeric {@code parents.id} domain PK. The actor identity is now a
-     * UUID ({@link UserContext#getCurrentUser()}) with NO bridge column to {@code parents.id},
-     * so the parent-of-child relationship cannot be evaluated from the actor UUID. This
-     * check fails closed (deny for non-admin) — fail-closed is the safe direction and
-     * matches the prior effective behavior (pre-GAP-795 the Long.parseLong(UUID) throw left
-     * {@code UserContext} null → deny). A proper fix needs an actor-UUID → {@code parents.id}
-     * bridge (e.g. a {@code parents.user_id UUID} column populated at provision time).
-     *
-     * <p>TODO(GAP-795 follow-up): add {@code parents.user_id UUID} (+ resolve actor UUID →
-     * {@code parents.id}) then restore the
-     * {@link ParentStudentLinkRepository#existsByParentIdAndStudentIdAndDeletedFalse(Long, Long)}
-     * ownership query.
+     * <p><strong>GAP-798 — reference-id bridge.</strong> {@code parent_student_links.parent_id}
+     * references the numeric {@code parents.id} domain PK (= {@code users.reference_id} per the
+     * Gateway V1 convention). The actor's numeric reference id arrives on the
+     * {@code X-User-Reference-Id} header ({@link UserContext#getCurrentReferenceId()}); audit
+     * (created_by) separately uses the UUID {@code X-User-Id} (GAP-795). Ownership is therefore
+     * {@code parents.id == actor reference-id} AND a link to {@code childId}. No actor-UUID →
+     * parents.id bridge column is needed: {@code users.reference_id} already IS the bridge.
      *
      * @param childId target student ID
-     * @return true if admin; false otherwise (parent-ownership unbridgeable — see above)
+     * @return true if admin OR the actor (by reference-id) is a linked parent of the child; false otherwise
      */
     public boolean hasAccessToChild(Long childId) {
         if (childId == null) {
@@ -126,18 +120,19 @@ public class AuthorizationBean {
         if (isAdmin()) {
             return true;
         }
-        UUID userId = UserContext.getCurrentUser();
-        if (userId == null) {
-            log.debug("authz.hasAccessToChild: deny — no user context (childId={})", childId);
+        Long parentRefId = UserContext.getCurrentReferenceId();
+        if (parentRefId == null) {
+            log.debug("authz.hasAccessToChild: deny — no reference-id context (childId={})", childId);
             return false;
         }
-        // GAP-795: actor identity is a UUID; parent_student_links.parent_id is a numeric
-        // parents.id with no actor-UUID bridge → cannot evaluate ownership → fail closed.
-        // (Reference parentStudentLinkRepository retained for the follow-up fix that
-        //  resolves actor UUID → parents.id then restores the ownership query.)
-        log.warn("authz.hasAccessToChild: deny — actor UUID {} has no parents.id bridge "
-                + "(GAP-795 PARTIAL; childId={})", userId, childId);
-        return false;
+        // parent_student_links.parent_id == parents.id == actor X-User-Reference-Id (numeric).
+        boolean owns = parentStudentLinkRepository
+                .existsByParentIdAndStudentIdAndDeletedFalse(parentRefId, childId);
+        if (!owns) {
+            log.warn("authz.hasAccessToChild: deny — parent ref-id {} not linked to child {}",
+                    parentRefId, childId);
+        }
+        return owns;
     }
 
     /**

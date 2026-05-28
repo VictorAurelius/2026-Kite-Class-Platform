@@ -115,6 +115,18 @@ public class TenantFilterInterceptor implements HandlerInterceptor {
             log.debug("No X-User-Id header found, user context not set");
         }
 
+        // Set numeric reference id from X-User-Reference-Id header (for ownership authz, GAP-798).
+        // = users.reference_id = parents.id / teachers.id / students.id (V1 numeric convention).
+        // Nullable: admin/owner are not domain entities. Audit still uses X-User-Id UUID above.
+        String referenceIdHeader = request.getHeader("X-User-Reference-Id");
+        if (referenceIdHeader != null && !referenceIdHeader.isBlank()) {
+            try {
+                UserContext.setCurrentReferenceId(Long.valueOf(referenceIdHeader));
+            } catch (NumberFormatException e) {
+                log.warn("Invalid X-User-Reference-Id header format: {}", referenceIdHeader);
+            }
+        }
+
         return true;
     }
 

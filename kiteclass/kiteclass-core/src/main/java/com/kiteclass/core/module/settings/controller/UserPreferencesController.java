@@ -92,31 +92,26 @@ public class UserPreferencesController {
      *
      * <p>Security check: Prevents users from accessing/modifying other users' preferences.
      *
-     * <p><strong>PARTIAL (GAP-795):</strong> the authenticated actor identity is now a
-     * {@link java.util.UUID} ({@link UserContext#getCurrentUser()}), but this module keys
-     * preferences on a numeric {@code user_preferences.user_id} (BIGINT) and the path
-     * variable is {@code Long}. There is NO bridge from the actor UUID to that numeric
-     * user_id, so own-resource ownership cannot be evaluated → the check fails closed
-     * (deny). This matches the prior effective behavior (pre-GAP-795 the Long.parseLong(UUID)
-     * throw left {@code UserContext} null → {@code USER_NOT_AUTHENTICATED}).
-     *
-     * <p>TODO(GAP-795 follow-up): migrate the user-preferences module to key on the actor
-     * UUID (path + {@code user_id} column + service), then restore the equality check.
+     * <p><strong>GAP-798 — reference-id bridge.</strong> {@code user_preferences.user_id}
+     * is numeric (= {@code users.reference_id}). The actor's numeric reference id arrives on
+     * {@code X-User-Reference-Id} ({@link UserContext#getCurrentReferenceId()}); audit uses
+     * the UUID {@code X-User-Id} separately (GAP-795). Ownership = actor reference-id == path
+     * user_id. No actor-UUID → numeric bridge column needed — reference-id IS the numeric id.
      *
      * @param requestedUserId user ID from path parameter
-     * @throws PermissionDeniedException always for non-resolvable actor (see above)
+     * @throws PermissionDeniedException if the actor's reference-id doesn't match the path user_id
      */
     private void validateUserAccess(Long requestedUserId) {
-        java.util.UUID authenticatedUserId = UserContext.getCurrentUser();
+        Long actorReferenceId = UserContext.getCurrentReferenceId();
 
-        if (authenticatedUserId == null) {
+        if (actorReferenceId == null) {
             throw new PermissionDeniedException("USER_NOT_AUTHENTICATED");
         }
 
-        // GAP-795: actor UUID vs numeric path user_id is unbridgeable → fail closed.
-        log.warn("UserPreferences.validateUserAccess: deny — actor UUID {} has no numeric "
-                + "user_id bridge (GAP-795 PARTIAL; requestedUserId={})",
-                authenticatedUserId, requestedUserId);
-        throw new PermissionDeniedException("USER_ACCESS_DENIED");
+        if (!actorReferenceId.equals(requestedUserId)) {
+            log.warn("UserPreferences.validateUserAccess: deny — actor ref-id {} != requested {}",
+                    actorReferenceId, requestedUserId);
+            throw new PermissionDeniedException("USER_ACCESS_DENIED");
+        }
     }
 }
