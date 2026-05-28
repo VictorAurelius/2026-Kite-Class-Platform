@@ -13,6 +13,8 @@ counts: PASS 9 / FAIL 6 / NEEDS-USER-BROWSER 17 / NEEDS-DATA 4
 
 # RST Walk — Cluster OWNER-OPS (full regression 2026-05-28)
 
+> ⚠️ **CORRECTION 2026-05-28 (đọc TRƯỚC khi action) — "P0 tenant isolation vỡ" dưới đây là MISDIAGNOSIS.** Coordinator fix-time investigation (`audit-to-gap-pipeline.md` §2.8) verify empirical: gateway resolve JWT tenant + core set TenantContext + `instance_id` tagged đúng + Hibernate filter active → **tenant isolation WORKS**. Kiến trúc = shared DB (`kiteclass_shared`) + filter, KHÔNG per-tenant DB; `kiteclass_877dff9d` empty là legacy; MDC `tenant=-` là logging artifact (red herring). **Bug thật re-scoped = GAP-795 P1** (`X-User-Id` UUID vs `Long.parseLong` → UserContext null → `created_by` NULL), KHÔNG phải P0 data-isolation. Đọc INDEX.md + GAP-795 cho fix đúng. Findings khác vẫn valid: 404/405→500 = GAP-796, contract drift, no-invite-email = GAP-787, email var-drift = GAP-797.
+
 ## Tóm tắt
 
 Walk Owner persona daily-ops flows qua gateway (:9000) với Owner JWT trên seeded tenant `877dff9d` (subdomain `sky-edu-test`). Login recipe PASS — JWT chứa `tenantId` claim + `instances[]` array, Owner sở hữu instance `sky-edu-test` (TRIAL, FREE, 8 ngày còn lại).
