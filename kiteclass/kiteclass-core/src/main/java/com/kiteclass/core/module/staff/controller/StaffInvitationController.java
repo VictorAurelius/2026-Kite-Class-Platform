@@ -67,7 +67,7 @@ public class StaffInvitationController {
      * their user id arrives on {@code X-User-Id}.
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','OWNER','PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','OWNER','PLATFORM_ADMIN')")
     @Operation(summary = "Owner: issue a staff invitation")
     public ResponseEntity<ApiResponse<StaffInvitationResponse>> invite(
             @Valid @RequestBody InviteStaffRequest request) {
@@ -90,7 +90,7 @@ public class StaffInvitationController {
      * field omitted server-side to reduce leak surface.
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','OWNER','PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','OWNER','PLATFORM_ADMIN')")
     @Operation(summary = "Owner: list pending staff invitations")
     public ResponseEntity<ApiResponse<List<StaffInvitationResponse>>> list() {
         UUID tenantId = TenantContext.getCurrentTenant();
@@ -103,7 +103,7 @@ public class StaffInvitationController {
      * surface: already-resolved rows return 409 so FE can distinguish states.
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','OWNER','PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','OWNER','PLATFORM_ADMIN')")
     @Operation(summary = "Owner: cancel a pending staff invitation")
     public ResponseEntity<ApiResponse<Void>> revoke(@PathVariable Long id) {
         UUID tenantId = TenantContext.getCurrentTenant();
