@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.email.config.EmailQueueConsumerConfig;
 import com.kitehub.email.dto.EmailRequest;
-import com.kitehub.email.service.SESEmailService;
+import com.kitehub.email.service.EmailSender;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -16,7 +16,11 @@ import java.util.Map;
 
 /**
  * Consumes transactional {@code EmailEvent} messages from the {@code email.send}
- * queue and dispatches them through {@link SESEmailService}.
+ * queue and dispatches them through the provider-selected {@link EmailSender}
+ * (the {@code @Primary} {@code EmailProviderRouter}, routed by {@code email.provider}
+ * — SES / Resend / SMTP). GAP-788 — previously this listener injected the concrete
+ * {@code SESEmailService}, so {@code email.provider=resend} (production) never reached
+ * Resend.
  *
  * <p><strong>Why (GAP-787 / GAP-702):</strong> kitehub-subscription's
  * {@code EmailServiceClient.publishToQueue(...)} publishes every transactional email
@@ -63,11 +67,11 @@ import java.util.Map;
         matchIfMissing = true)
 public class EmailEventListener {
 
-    private final SESEmailService sesEmailService;
+    private final EmailSender emailSender;
     private final ObjectMapper objectMapper;
 
-    public EmailEventListener(SESEmailService sesEmailService, ObjectMapper objectMapper) {
-        this.sesEmailService = sesEmailService;
+    public EmailEventListener(EmailSender emailSender, ObjectMapper objectMapper) {
+        this.emailSender = emailSender;
         this.objectMapper = objectMapper;
     }
 
@@ -120,7 +124,7 @@ public class EmailEventListener {
                 .build();
 
         // Throw on failure → container routes to DLQ after retry exhaustion.
-        sesEmailService.sendTemplatedEmail(request);
+        emailSender.sendTemplatedEmail(request);
         log.info("Queued email dispatched OK: type={} to={}", event.emailType, event.to);
     }
 
