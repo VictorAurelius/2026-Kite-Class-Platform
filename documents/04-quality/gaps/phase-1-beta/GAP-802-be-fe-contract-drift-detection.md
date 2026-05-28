@@ -4,7 +4,7 @@ audience: dev
 
 # GAP-802 — BE↔FE contract drift detection: auto-catch URL-path / env-domain / FE-build class bugs
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (80% — #1/#2/#4/#5 shipped 2026-05-28; #3 E2E deferred)
 **Priority:** 🟠 P1 (META — force-multiplier per `meta-gap-priority.md`)
 **Domain:** Meta / Testing (cross-cutting BE + FE + CI)
 **Found:** 2026-05-28 (user-flagged after GAP-801 — "sẽ còn rất nhiều lỗi tương tự đúng không? làm sao flow sau Claude bắt được lỗi FE khi chạy API/E2E?")
@@ -32,11 +32,11 @@ Why each layer missed it:
 
 ## Acceptance Criteria
 
-- [ ] `scripts/smoke-email-links.sh` (#1) — extract + curl links from MailHog/sent emails, assert non-404 + non-prod-domain-on-local
-- [ ] `scripts/check-be-fe-url-contract.sh` (#2) — BE URL-builder paths ↔ FE app-router routes; wire CI job
-- [ ] FE-build local-verify rule (#4) — new/extended rule mandating `pnpm build` before FE PR push
-- [ ] `audit-env-coverage.sh` extended (#5) — flag prod-domain defaults without local override
-- [ ] E2E Flow-1 spec (#3) — deferred; file follow-up when FE E2E infra lands
+- [x] `scripts/smoke-email-links.sh` (#1) — extract + curl links from MailHog emails, assert non-404 + non-prod-domain-on-local. 5/5 fixture tests PASS, shellcheck clean.
+- [x] `scripts/check-be-fe-url-contract.sh` (#2) — BE URL-builder paths ↔ FE app-router routes (route-group stripping + `[id]` wildcard); CI WARN job `be-fe-url-contract` in `quality-code.yml`. 11/11 tests PASS. Surfaced real finding `/reset-password` → GAP-803.
+- [x] FE-build local-verify rule (#4) — `.claude/rules/fe-build-local-verify.md` v1.0.0 mandating `pnpm --filter <pkg> build` before FE PR push (catches Suspense/useSearchParams prerender bailout). rules-index.csv + output-review-mandate §3 rows added.
+- [x] `audit-env-coverage.sh` extended (#5) — CHECK B flags prod-domain defaults without local override. 9/9 tests PASS. Surfaced 3 real local-deadlink vars → GAP-803.
+- [ ] E2E Flow-1 spec (#3) — **DEFERRED** to GAP-803 / future wave when FE E2E (Playwright signup→approve→email→click→render→submit) infra lands. Per `e2e-rst-test-layer-boundary.md` §3 RST→E2E promotion.
 
 ## Related
 
@@ -50,4 +50,5 @@ Why each layer missed it:
 
 ## Log
 
+- **2026-05-28 (PARTIAL 80%):** Shipped #1+#2+#4+#5 via 4 parallel Opus agents (worktree-disjoint, `agent-model-opus-default.md`). Tests: 5+11+9 = 25 fixture tests PASS, shellcheck clean. #2 CI wired WARN-mode (`be-fe-url-contract` job, quality-code.yml) — flips HARD STOP after GAP-803 findings resolved. #3 E2E deferred (FE E2E infra not ready) → GAP-803. **Detectors validated by surfacing 2 real findings** (filed GAP-803 per `audit-to-gap-pipeline.md`): (1) `/reset-password` BE link (`PasswordResetService:80`) has no kitehub-frontend route → 404 same class as GAP-801; (2) 3 env vars (`PARENT_PORTAL_REDEEM_BASE_URL`, `RESEND_FROM_EMAIL`, `KITEHUB_STAFF_INVITATION_BASE_URL`) default to prod domain without local override → local email dead-link. Note: `/signup/beta` + `signup-base-url` were false alarms on the agents' stale base (bd2d732e); resolved after rebase onto main `a0cb5b47` (#1956 GAP-801 fix). Stays PARTIAL per `gap-done-discipline.md` §3 (deferred AC #3 + findings tracked GAP-803).
 - **2026-05-28:** Filed from user frustration post-GAP-801: BE↔FE contract drift (URL path, env domain, field-name, FE build) repeatedly slips past API + unit + lint, caught only by manual walk. 4-5 detection mechanisms proposed; #1 (email-link smoke) + #2 (static BE-URL↔FE-route) + #4 (FE build local-verify) + #5 (env-default audit) are cheap CI/API-runnable catches; #3 (E2E) canonical but deferred. META force-multiplier: build once → catch the whole class prospectively.

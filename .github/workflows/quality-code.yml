@@ -21,6 +21,7 @@ on:
       - '.github/workflows/quality-code.yml'
       - 'scripts/tests/**'
       - 'scripts/check-cross-layer-contract-drift.sh'
+      - 'scripts/check-be-fe-url-contract.sh'
       - 'scripts/check-mermaid-sequence-state-br.sh'
       - 'scripts/check-entity-mapper-consistency.sh'
       - '**/*Entity.java'
@@ -196,6 +197,29 @@ jobs:
           # vs documented Endpoint /api/email — 3-way drift code/doc/test.
           # Heuristic v1; manual review still recommended for complex paths.
           bash scripts/check-cross-layer-contract-drift.sh --warn
+
+
+  be-fe-url-contract:
+    name: BE→FE URL contract (GAP-802 #2 — controller link path vs Next.js route)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (pass + fail fixtures)
+        run: bash scripts/tests/test-check-be-fe-url-contract.sh
+
+      - name: Detect BE→FE URL drift (WARN mode — GAP-802 #2)
+        run: |
+          # Per GAP-802 mechanism #2 + GAP-801 incident: BE builds FE-path URL
+          # (e.g. /signup/beta) that has no matching Next.js App Router route →
+          # invitee email link 404. WARN-mode until known finding (/reset-password,
+          # GAP-803) resolved; flip to HARD STOP afterward.
+          bash scripts/check-be-fe-url-contract.sh \
+            || echo "WARN: BE→FE URL contract drift detected — see GAP-803 (non-blocking until resolved)"
 
 
   entity-mapper-consistency:

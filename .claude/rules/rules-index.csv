@@ -96,3 +96,4 @@ feature-ship-runtime-walk-mandate,CRITICAL,1.0.0,2026-05-28,2026-05-28,feature-s
 docs-only-pr-no-block-wait,MANDATORY,1.0.0,2026-05-28,2026-05-28,docs-only-pr-no-block-wait.md,".github/workflows/**,documents/**,.claude/rules/**,.claude/skills/**",active,,
 cross-flow-bug-class-sweep,MANDATORY,1.0.0,2026-05-28,2026-05-28,cross-flow-bug-class-sweep.md,"documents/04-quality/gaps/**,**/*.java,**/*.ts,**/*.tsx",active,,
 api-contract-change-caller-sweep,MANDATORY,1.0.0,2026-05-28,2026-05-28,api-contract-change-caller-sweep.md,**/*.java,active,,
+fe-build-local-verify,MANDATORY,1.0.0,2026-05-28,2026-05-28,fe-build-local-verify.md,"kitehub/kitehub-frontend/**,kitehub/kiteclass-frontend/**",active,,
