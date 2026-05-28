@@ -126,15 +126,19 @@ describe('jwt-storage (GAP-599 — sessionStorage per-tab isolation)', () => {
       expect(localStorage.getItem(REFRESH_TOKEN_KEY)).toBeNull();
     });
 
-    it('clearTokens does NOT remove from localStorage (cleanup discipline)', () => {
-      // If a legacy session left tokens in localStorage, clearTokens
-      // does NOT touch it — that's the caller's responsibility via
-      // clearLegacyLocalStorageTokens(). This documents the contract.
+    it('clearTokens DOES remove from localStorage (logout cleanup)', () => {
+      // Per jwt-storage.ts docstring: "Removes both access + refresh tokens
+      // from sessionStorage AND localStorage (logout flow). Logout always
+      // clears both tiers regardless of remember-me." Logout discipline
+      // ensures stale legacy localStorage tokens cannot survive a logout
+      // event and be reused cross-tab. The dedicated
+      // clearLegacyLocalStorageTokens() helper remains as a one-time
+      // migration sweep callable at app bootstrap (no auth context required).
       localStorage.setItem(ACCESS_TOKEN_KEY, 'legacy');
 
       clearTokens();
 
-      expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBe('legacy');
+      expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBeNull();
     });
   });
 
