@@ -46,12 +46,31 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     Optional<Course> findByCodeAndDeletedFalse(String code);
 
     /**
-     * Checks if a course with given code exists (excluding deleted).
+     * Checks if a course with given code exists (excluding deleted) — GLOBAL.
      *
      * @param code the code to check
-     * @return true if code exists
+     * @return true if code exists in ANY tenant
+     * @deprecated Use {@link #existsByCodeAndInstanceIdAndDeletedFalse(String, UUID)} for
+     *     tenant-scoped check. Global check leaks cross-tenant + blocks legitimate reuse
+     *     (two centers using the same course code) — see GAP-799.
      */
+    @Deprecated
     boolean existsByCodeAndDeletedFalse(String code);
+
+    /**
+     * Checks if a course with given code exists within a tenant (excluding deleted).
+     *
+     * <p>Tenant-scoped uniqueness per GAP-799, mirroring the DB constraint
+     * {@code uk_courses_instance_code (instance_id, code)}. The shared
+     * {@code kiteclass_shared} DB holds all tenants' courses discriminated by
+     * {@code instance_id}; the Hibernate {@code tenantFilter} is not applied to derived
+     * {@code existsBy} queries, so the {@code instance_id} predicate must be explicit.
+     *
+     * @param code the code to check
+     * @param instanceId the current tenant id (from TenantContext)
+     * @return true if code exists within this tenant
+     */
+    boolean existsByCodeAndInstanceIdAndDeletedFalse(String code, UUID instanceId);
 
     /**
      * Finds all courses for a specific teacher with pagination.
