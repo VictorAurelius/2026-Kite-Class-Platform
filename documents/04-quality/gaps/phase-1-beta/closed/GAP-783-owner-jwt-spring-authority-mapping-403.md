@@ -4,10 +4,11 @@ audience: dev
 
 # GAP-783 — Owner JWT → Spring Security authority mapping 403 ACCESS_DENIED
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-05-28 (Wave meta-6 human walk RST cycle)
+**Closed:** 2026-05-28 (Wave Phase 2 Beta Wave A Bucket C verify — no fix needed, chain healthy)
 **Phase:** phase-1-beta
 
 ## Problem
@@ -64,3 +65,24 @@ Per `incident-to-rule-pipeline.md` 5-stage Stage 1 (Detect) ✓ + Stage 2 (Class
 ## Log
 
 - **2026-05-28** — Found qua Wave meta-6 RST human walk. P0 blocks Owner walk + staff-invite feature end-to-end. Fix scope ~10 phút (Option A) → unblocks walk completion. Per `meta-gap-priority.md` §3 — META P0 force-multiplier if Option B chosen (mapping audit rule eliminates class).
+
+- **2026-05-28** — 🟢 DONE Wave Phase 2 Beta Wave A Bucket C empirical verify per `pre-handoff-self-test-completeness.md` v1.2.0 §3 (post-fix re-walk mandate) + `audit-to-gap-pipeline.md` §2.8 (fix-time state-check). Symptom DOES NOT REPRODUCE on main HEAD (commit 902f8f77). Chain verified healthy end-to-end:
+
+  **State-check evidence (2026-05-28T09:56Z):**
+  - Login Owner `owner.test@test.vn / Test@1234` via gateway → HTTP 200 + JWT issued
+  - JWT payload decoded:
+    ```json
+    {"sub":"b9fa3522-64e4-4ea8-93f4-d7aa43aea5c5","email":"owner.test@test.vn","role":"OWNER","type":"access","tenantId":"877dff9d-c354-4faf-8c44-3c17196dbf24","iat":...,"exp":...}
+    ```
+    `role: OWNER` + `tenantId: <UUID>` claims BOTH present (GAP-704 fix ✓)
+  - POST `/api/v1/staff-invitations` with Owner JWT + explicit `X-Tenant-Id` header → **HTTP 201** + DB row created + correct tenant_id binding
+  - Chain components VERIFIED:
+    - `TokenService.generateAccessToken()` enriches JWT với `tenantId` claim (line 60-72, Wave 104 ship in main commit 902f8f77)
+    - `JwtAuthenticationGatewayFilter` extracts `role` claim → emits `X-User-Roles` header (line 158-171)
+    - Subscription `SecurityConfig.XUserRolesHeaderFilter` splits CSV + prefixes `ROLE_` (line 175-198)
+    - `StaffInvitationController.OWNER_AUTHZ = "hasAnyRole('OWNER','PLATFORM_ADMIN','ADMIN')"` (line 90-91) — chain produces `ROLE_OWNER` which `hasRole('OWNER')` accepts ✓
+  - **Originating diagnostic (Bug #8 = 403 ACCESS_DENIED on @PreAuthorize) does not apply.** When tenant header attached, end-to-end chain works.
+
+  **Root cause re-classification:** Wave meta-6 walk surfaced 403 — but the actual failure mode is `403 TENANT_CONTEXT_MISSING` (X-Tenant-Id header absent), NOT `403 ACCESS_DENIED` on Spring authority. The Spring Security authority chain is healthy. Different bug class.
+
+  **Separable concern filed as new gap GAP-789** — gateway `staff-invitations` route missing `TenantResolver` filter (per `pre-handoff-self-test-completeness.md` §3.2 Re-walk scope spot-check, this is a SISTER bug surfaced during re-walk; per `cross-flow-bug-class-sweep.md` §5 decision matrix DEFER row, separable scope from this gap's claim).
