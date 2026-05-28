@@ -50,7 +50,7 @@ public class LessonProgressController {
     public ApiResponse<LessonProgressResponse> completeLesson(
             @PathVariable Long lessonId,
             @Parameter(description = "Student user ID", required = true)
-            @RequestHeader("X-User-Reference-Id") Long userId) {
+            @RequestHeader("X-User-Id") Long userId) {
 
         log.info("POST /api/v1/lms/progress/lessons/{}/complete - userId: {}", lessonId, userId);
         return ApiResponse.success(lessonProgressService.completeLesson(lessonId, userId));
@@ -70,7 +70,7 @@ public class LessonProgressController {
     public ApiResponse<CourseProgressResponse> getCourseProgress(
             @PathVariable Long courseId,
             @Parameter(description = "Student user ID", required = true)
-            @RequestHeader("X-User-Reference-Id") Long userId) {
+            @RequestHeader("X-User-Id") Long userId) {
 
         log.info("GET /api/v1/lms/progress/courses/{} - userId: {}", courseId, userId);
         return ApiResponse.success(lessonProgressService.getCourseProgress(courseId, userId));
@@ -89,7 +89,7 @@ public class LessonProgressController {
     public ApiResponse<LessonProgressResponse> getLessonProgress(
             @PathVariable Long lessonId,
             @Parameter(description = "Student user ID", required = true)
-            @RequestHeader("X-User-Reference-Id") Long userId) {
+            @RequestHeader("X-User-Id") Long userId) {
 
         log.info("GET /api/v1/lms/progress/lessons/{} - userId: {}", lessonId, userId);
         return ApiResponse.success(lessonProgressService.getLessonProgress(lessonId, userId));

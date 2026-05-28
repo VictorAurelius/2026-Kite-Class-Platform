@@ -82,7 +82,7 @@ public class StorageController {
     public ApiResponse<PresignedUploadResponse> generateUploadUrl(
         @Valid @RequestBody PresignedUploadRequest request,
         @Parameter(description = "User ID (from Gateway)")
-        @RequestHeader(value = "X-User-Reference-Id", required = true) Long userId,
+        @RequestHeader(value = "X-User-Id", required = true) Long userId,
         @Parameter(description = "Tenant instance ID")
         @RequestHeader(value = "X-Tenant-Id", required = true) UUID tenantId
     ) {
@@ -147,7 +147,7 @@ public class StorageController {
         @Parameter(description = "File ID")
         @PathVariable Long fileId,
         @Parameter(description = "User ID (from Gateway)")
-        @RequestHeader(value = "X-User-Reference-Id", required = true) Long requesterId,
+        @RequestHeader(value = "X-User-Id", required = true) Long requesterId,
         @Parameter(description = "Tenant instance ID")
         @RequestHeader(value = "X-Tenant-Id", required = true) UUID tenantId
     ) {
