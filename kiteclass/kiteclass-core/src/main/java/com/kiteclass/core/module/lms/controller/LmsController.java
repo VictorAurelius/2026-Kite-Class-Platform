@@ -71,7 +71,7 @@ public class LmsController {
     public ApiResponse<List<CourseModuleDetailResponse>> getCourseStructure(
             @PathVariable Long courseId,
             @Parameter(description = "Student user ID (optional for guest access)")
-            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+            @RequestHeader(value = "X-User-Reference-Id", required = false) Long userId) {
 
         log.info("GET /api/v1/lms/courses/{}/modules - userId: {}", courseId, userId);
 
@@ -98,7 +98,7 @@ public class LmsController {
     public ApiResponse<LessonDetailResponse> getLesson(
             @PathVariable Long lessonId,
             @Parameter(description = "Student user ID (optional for guest access)")
-            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+            @RequestHeader(value = "X-User-Reference-Id", required = false) Long userId) {
 
         log.info("GET /api/v1/lms/lessons/{} - userId: {}", lessonId, userId);
 

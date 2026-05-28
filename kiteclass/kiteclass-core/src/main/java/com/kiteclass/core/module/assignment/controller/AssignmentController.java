@@ -139,7 +139,7 @@ public class AssignmentController {
     @PostMapping("/submit")
     public ResponseEntity<ApiResponse<SubmissionResponse>> submitAssignment(
             @Valid @RequestBody SubmitAssignmentRequest request,
-            @RequestHeader("X-User-Id") Long studentId) {
+            @RequestHeader("X-User-Reference-Id") Long studentId) {
 
         SubmissionResponse response = assignmentService.submitAssignment(request, studentId);
         return ResponseEntity.status(HttpStatus.CREATED)
