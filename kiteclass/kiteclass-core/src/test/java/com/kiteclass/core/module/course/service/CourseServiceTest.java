@@ -21,6 +21,7 @@ import com.kiteclass.core.module.teacher.repository.TeacherCourseRepository;
 import com.kiteclass.core.module.teacher.repository.TeacherRepository;
 import com.kiteclass.core.testutil.CourseTestDataBuilder;
 import com.kiteclass.core.testutil.TeacherTestDataBuilder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -104,12 +106,21 @@ class CourseServiceTest {
         createRequest = CourseTestDataBuilder.createDefaultCreateRequest();
         updateRequest = CourseTestDataBuilder.createDefaultUpdateRequest();
         teacher = TeacherTestDataBuilder.createDefaultTeacher();
+        // GAP-799: createCourse now reads TenantContext for tenant-scoped code uniqueness
+        TenantContext.setCurrentTenant(TEST_TENANT);
     }
+
+    @AfterEach
+    void tearDownTenant() {
+        TenantContext.clear();
+    }
+
+    private static final UUID TEST_TENANT = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
     @Test
     void createCourse_shouldCreateSuccessfully() {
         // Given
-        when(courseRepository.existsByCodeAndDeletedFalse(anyString())).thenReturn(false);
+        when(courseRepository.existsByCodeAndInstanceIdAndDeletedFalse(anyString(), any())).thenReturn(false);
         when(teacherRepository.findByIdAndDeletedFalse(anyLong())).thenReturn(Optional.of(teacher));
         when(courseMapper.toEntity(any(CreateCourseRequest.class))).thenReturn(course);
         when(courseRepository.save(any(Course.class))).thenReturn(course);
@@ -122,7 +133,7 @@ class CourseServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result.name()).isEqualTo(course.getName());
-        verify(courseRepository).existsByCodeAndDeletedFalse(createRequest.code());
+        verify(courseRepository).existsByCodeAndInstanceIdAndDeletedFalse(eq(createRequest.code()), any());
         verify(teacherRepository).findByIdAndDeletedFalse(createRequest.teacherId());
         verify(courseRepository).save(any(Course.class));
         verify(teacherCourseRepository).save(any(TeacherCourse.class));
@@ -131,21 +142,21 @@ class CourseServiceTest {
     @Test
     void createCourse_shouldThrowDuplicateResourceException_whenCodeExists() {
         // Given
-        when(courseRepository.existsByCodeAndDeletedFalse(anyString())).thenReturn(true);
+        when(courseRepository.existsByCodeAndInstanceIdAndDeletedFalse(anyString(), any())).thenReturn(true);
 
         // When & Then
         assertThatThrownBy(() -> courseService.createCourse(createRequest))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasFieldOrPropertyWithValue("code", "COURSE_CODE_EXISTS");
 
-        verify(courseRepository).existsByCodeAndDeletedFalse(createRequest.code());
+        verify(courseRepository).existsByCodeAndInstanceIdAndDeletedFalse(eq(createRequest.code()), any());
         verify(courseRepository, never()).save(any(Course.class));
     }
 
     @Test
     void createCourse_shouldCreateTeacherCourseWithCreatorRole() {
         // Given
-        when(courseRepository.existsByCodeAndDeletedFalse(anyString())).thenReturn(false);
+        when(courseRepository.existsByCodeAndInstanceIdAndDeletedFalse(anyString(), any())).thenReturn(false);
         when(teacherRepository.findByIdAndDeletedFalse(anyLong())).thenReturn(Optional.of(teacher));
         when(courseMapper.toEntity(any(CreateCourseRequest.class))).thenReturn(course);
         when(courseRepository.save(any(Course.class))).thenReturn(course);
@@ -166,7 +177,7 @@ class CourseServiceTest {
     @Test
     void createCourse_shouldThrowEntityNotFoundException_whenTeacherNotExists() {
         // Given
-        when(courseRepository.existsByCodeAndDeletedFalse(anyString())).thenReturn(false);
+        when(courseRepository.existsByCodeAndInstanceIdAndDeletedFalse(anyString(), any())).thenReturn(false);
         when(teacherRepository.findByIdAndDeletedFalse(anyLong())).thenReturn(Optional.empty());
 
         // When & Then
