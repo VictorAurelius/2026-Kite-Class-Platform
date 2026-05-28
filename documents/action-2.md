@@ -74,4 +74,4 @@ Tài liệu trong documents/02-architecture  và để cho claude và dev đều
 để dự án đạt được tiêu chí self-test thì cần có kế hoạch fix những gaps nào => điều tra và tạo kế hoạch, mục tiêu là có thể self-test sớm nhất
 
 ![alt text](image.png)
-![alt text](image-6.png)
+![alt text](image-6.png)![alt text](image-7.png)
