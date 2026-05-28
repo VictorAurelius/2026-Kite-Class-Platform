@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * REST controller for payment operations.
@@ -48,7 +49,7 @@ public class PaymentController {
         // (populated by TenantFilterInterceptor from Gateway X-User-Id header)
         // per failure-mode matrix B1/D1 (was hardcoded 1L = audit trail broken,
         // every payment ghi user_id=1).
-        Long userId = requireUserId();
+        UUID userId = requireUserId();
 
         log.info("Creating payment for invoice {} (method: {}) by user {}",
             request.getInvoiceId(), request.getPaymentMethod(), userId);
@@ -71,7 +72,7 @@ public class PaymentController {
 
         // Wave 105 Bucket E0 Bug 1 fix — userId extracted from UserContext
         // per failure-mode matrix B1/D1 (was hardcoded 1L).
-        Long userId = requireUserId();
+        UUID userId = requireUserId();
 
         log.info("Creating installment payment for installment {} (method: {}) by user {}",
             request.getInstallmentId(), request.getPaymentMethod(), userId);
@@ -89,8 +90,8 @@ public class PaymentController {
      *
      * @return current user ID (never null)
      */
-    private static Long requireUserId() {
-        Long userId = UserContext.getCurrentUser();
+    private static UUID requireUserId() {
+        UUID userId = UserContext.getCurrentUser();
         if (userId == null) {
             throw new BusinessException("AUTH_REQUIRED", HttpStatus.UNAUTHORIZED);
         }

@@ -113,7 +113,7 @@ public class ClassServiceImpl implements ClassService {
         // AuthorizationBean.hasAccessToClass() query depends on this — without it,
         // every teacher is locked out of their own classes (NOT IDOR, full lock-out).
         // Nullable when caller is ADMIN (no single teacher owner — explicit assignment via separate endpoint).
-        Long callerUserId = UserContext.getCurrentUser();
+        UUID callerUserId = UserContext.getCurrentUser();
         if (callerUserId != null) {
             clazz.setTeacherId(callerUserId);
         }
@@ -518,7 +518,7 @@ public class ClassServiceImpl implements ClassService {
         clazz.setEndDate(request.newEndDate());
 
         // Persist audit columns.
-        Long callerUserId = UserContext.getCurrentUser();
+        UUID callerUserId = UserContext.getCurrentUser();
         Instant now = Instant.now();
         clazz.setRescheduledByUserId(callerUserId);
         clazz.setRescheduledAt(now);

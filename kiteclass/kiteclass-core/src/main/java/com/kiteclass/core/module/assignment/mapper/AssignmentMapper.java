@@ -30,7 +30,6 @@ public interface AssignmentMapper {
      * Map CreateAssignmentRequest to Assignment entity.
      */
     @Mapping(target = "status", constant = "DRAFT")
-    @Mapping(target = "createdBy", ignore = true)
     Assignment toEntity(CreateAssignmentRequest request);
 
     /**

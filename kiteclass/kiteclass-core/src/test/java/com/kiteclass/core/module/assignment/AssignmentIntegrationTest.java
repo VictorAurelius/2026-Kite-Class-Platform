@@ -164,7 +164,6 @@ class AssignmentIntegrationTest {
                 .allowLateSubmission(true)
                 .latePenaltyPercent(BigDecimal.valueOf(10))
                 .status(AssignmentStatus.DRAFT)
-                .createdBy(mainTeacherId)
                 .build();
         testAssignment.setInstanceId(tenantId);
         testAssignment = assignmentRepository.save(testAssignment);
@@ -383,7 +382,6 @@ class AssignmentIntegrationTest {
                 .allowLateSubmission(true)
                 .latePenaltyPercent(BigDecimal.valueOf(10))
                 .status(AssignmentStatus.PUBLISHED)
-                .createdBy(mainTeacherId)
                 .build();
         publishedAssignment.setInstanceId(tenantId);
         assignmentRepository.save(publishedAssignment);

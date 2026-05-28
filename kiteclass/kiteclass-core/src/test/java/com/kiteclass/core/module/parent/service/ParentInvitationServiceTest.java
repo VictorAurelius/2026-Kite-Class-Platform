@@ -63,7 +63,7 @@ class ParentInvitationServiceTest {
 
     private static final UUID TENANT = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private static final Long STUDENT_ID = 42L;
-    private static final Long INVITER_ID = 7L;
+    private static final UUID INVITER_ID = UUID.fromString("00000000-0000-0000-0000-000000000007");
     private static final String PARENT_EMAIL = "phuhuynh@example.com";
     private static final String STRONG_PASSWORD = "Str0ng!Pass";
 

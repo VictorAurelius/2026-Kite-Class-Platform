@@ -99,14 +99,15 @@ public class TenantFilterInterceptor implements HandlerInterceptor {
             log.debug("No X-Tenant-Id header found, tenant filter not enabled");
         }
 
-        // Set user context from X-User-Id header (for JPA auditing)
+        // Set user context from X-User-Id header (for JPA auditing).
+        // X-User-Id carries the JWT `sub` claim, a UUID (GAP-795) — not a numeric id.
         String userIdHeader = request.getHeader("X-User-Id");
         if (userIdHeader != null && !userIdHeader.isBlank()) {
             try {
-                Long userId = Long.parseLong(userIdHeader);
+                UUID userId = UUID.fromString(userIdHeader);
                 UserContext.setCurrentUser(userId);
                 log.debug("User context set for user: {}", userId);
-            } catch (NumberFormatException e) {
+            } catch (IllegalArgumentException e) {
                 log.warn("Invalid X-User-Id header format: {}", userIdHeader);
                 // Let request continue without user context (auditing will use null)
             }

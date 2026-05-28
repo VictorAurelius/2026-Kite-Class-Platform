@@ -23,6 +23,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.Year;
+import java.util.UUID;
 
 /**
  * Payment entity for tracking invoice and installment payments.
@@ -105,8 +106,9 @@ public class Payment extends BaseEntity {
     @Column(name = "failure_reason", columnDefinition = "TEXT")
     private String failureReason;
 
+    // Actor X-User-Id UUID (GAP-795) — type aligned to V73 created_by column migration.
     @Column(name = "created_by")
-    private Long createdBy;
+    private UUID createdBy;
 
     /**
      * Marks payment as completed after gateway callback.
