@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Repository for Assignment entity.
@@ -46,12 +47,12 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
             Long classId, AssignmentStatus status);
 
     /**
-     * Find assignments created by teacher (not deleted).
+     * Find assignments created by an actor (not deleted).
      *
-     * @param teacherId teacher ID
+     * @param createdBy actor UUID (X-User-Id, matches BaseEntity.createdBy after GAP-795 Long→UUID migration)
      * @return list of assignments
      */
-    List<Assignment> findByCreatedByAndDeletedFalseOrderByCreatedAtDesc(Long teacherId);
+    List<Assignment> findByCreatedByAndDeletedFalseOrderByCreatedAtDesc(UUID createdBy);
 
     /**
      * Find assignments due between dates (for notifications).
