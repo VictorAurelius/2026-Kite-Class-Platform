@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, CreditCard, Palette, Settings, Building2, TrendingUp, ClipboardList, Rocket, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, CreditCard, Palette, Settings, Building2, TrendingUp, ClipboardList, Rocket, Users, type LucideIcon } from 'lucide-react';
 import { KiteLogo } from '@/components/brand/KiteLogo';
 import { useRole, type PlatformRole } from '@/hooks/use-role';
 
@@ -28,6 +28,7 @@ interface NavItem {
 const customerNav: NavItem[] = [
   { href: '/dashboard', label: 'Tổng quan', icon: LayoutDashboard },
   { href: '/onboarding', label: 'Bắt đầu', icon: Rocket, testId: 'customer-nav-onboarding' },
+  { href: '/admin/staff', label: 'Nhân viên', icon: Users, testId: 'customer-nav-staff', requiresRole: ['OWNER'] },
   { href: '/billing', label: 'Thanh toán', icon: CreditCard, testId: 'customer-nav-billing', requiresRole: ['OWNER'] },
   { href: '/branding', label: 'AI Branding', icon: Palette, testId: 'customer-nav-branding', requiresRole: ['OWNER'] },
   { href: '/settings', label: 'Cài đặt', icon: Settings, testId: 'customer-nav-settings', requiresRole: ['OWNER'] },

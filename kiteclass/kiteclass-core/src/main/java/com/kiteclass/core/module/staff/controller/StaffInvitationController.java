@@ -8,6 +8,8 @@ import com.kiteclass.core.module.staff.dto.AcceptStaffInviteRequest;
 import com.kiteclass.core.module.staff.dto.AcceptStaffInviteResult;
 import com.kiteclass.core.module.staff.dto.InviteStaffRequest;
 import com.kiteclass.core.module.staff.dto.StaffInvitationResponse;
+import com.kiteclass.core.module.staff.entity.StaffInvitation;
+import com.kiteclass.core.module.staff.repository.StaffInvitationRepository;
 import com.kiteclass.core.module.staff.service.StaffInvitationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,7 +27,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -61,22 +66,46 @@ import java.util.UUID;
 public class StaffInvitationController {
 
     private final StaffInvitationService invitationService;
+    private final StaffInvitationRepository invitationRepository;
+
+    private static final Set<String> ALLOWED_ROLES = Set.of("ADMIN", "OWNER", "PLATFORM_ADMIN");
+
+    /**
+     * RBAC check matching kiteclass-core convention (gateway forwards roles
+     * via X-User-Roles header; SecurityConfig is permitAll, so @PreAuthorize
+     * has no Authentication object to evaluate). Mirrors the pattern from
+     * VettingController.requireSafeguardingOfficer.
+     */
+    private static void requireOwnerOrAdmin(String rolesHeader) {
+        if (rolesHeader == null || rolesHeader.isBlank()) {
+            throw new BusinessException("ACCESS_DENIED", HttpStatus.FORBIDDEN);
+        }
+        List<String> roles = Arrays.stream(rolesHeader.split("[,\\s]+"))
+                .map(s -> s.trim().toUpperCase(Locale.ROOT))
+                .toList();
+        if (roles.stream().noneMatch(ALLOWED_ROLES::contains)) {
+            throw new BusinessException("ACCESS_DENIED", HttpStatus.FORBIDDEN);
+        }
+    }
 
     /**
      * Owner issues an invitation. Inviter must be authenticated via Gateway;
      * their user id arrives on {@code X-User-Id}.
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','OWNER','PLATFORM_ADMIN')")
     @Operation(summary = "Owner: issue a staff invitation")
     public ResponseEntity<ApiResponse<StaffInvitationResponse>> invite(
-            @Valid @RequestBody InviteStaffRequest request) {
+            @Valid @RequestBody InviteStaffRequest request,
+            @RequestHeader(value = "X-User-Roles", required = false) String roles) {
 
+        requireOwnerOrAdmin(roles);
         UUID tenantId = TenantContext.getCurrentTenant();
+        // Bug #13 follow-up: kiteclass-core legacy UserContext uses ThreadLocal<Long>
+        // but gateway forwards X-User-Id as UUID string (from JWT sub claim).
+        // Result: UserContext.getCurrentUser() always null for UUID-style users.
+        // Audit field invitedByUserId is nullable; allow null inviterId until the
+        // Long→UUID refactor lands. Walk-unblock workaround.
         Long inviterId = UserContext.getCurrentUser();
-        if (inviterId == null) {
-            throw new BusinessException("AUTH_REQUIRED", HttpStatus.UNAUTHORIZED);
-        }
 
         StaffInvitationResponse response = invitationService.invite(
                 tenantId, request.email(), request.role(), inviterId);
@@ -90,9 +119,10 @@ public class StaffInvitationController {
      * field omitted server-side to reduce leak surface.
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','OWNER','PLATFORM_ADMIN')")
     @Operation(summary = "Owner: list pending staff invitations")
-    public ResponseEntity<ApiResponse<List<StaffInvitationResponse>>> list() {
+    public ResponseEntity<ApiResponse<List<StaffInvitationResponse>>> list(
+            @RequestHeader(value = "X-User-Roles", required = false) String roles) {
+        requireOwnerOrAdmin(roles);
         UUID tenantId = TenantContext.getCurrentTenant();
         List<StaffInvitationResponse> rows = invitationService.listForTenant(tenantId);
         return ResponseEntity.ok(ApiResponse.success(rows));
@@ -103,12 +133,41 @@ public class StaffInvitationController {
      * surface: already-resolved rows return 409 so FE can distinguish states.
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','OWNER','PLATFORM_ADMIN')")
     @Operation(summary = "Owner: cancel a pending staff invitation")
-    public ResponseEntity<ApiResponse<Void>> revoke(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> revoke(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-User-Roles", required = false) String roles) {
+        requireOwnerOrAdmin(roles);
         UUID tenantId = TenantContext.getCurrentTenant();
         invitationService.revoke(tenantId, id);
         return ResponseEntity.ok(ApiResponse.success(null, "Lời mời đã bị hủy"));
+    }
+
+    /**
+     * Public preview endpoint — FE accept-invite page calls this to render
+     * tenant/role/expiry before showing password form.
+     *
+     * <p>Bug #15 walk fix (2026-05-28): FE expects {@code GET /by-token/{token}}
+     * shape {id, tenantId, email, fullName, role, status, expiresAt} but Wave
+     * meta-6 BE shipped without it. Public — token IS the auth.
+     */
+    @GetMapping("/by-token/{token}")
+    @Operation(summary = "Public: preview a staff invitation by token (FE accept page)")
+    public ResponseEntity<Map<String, Object>> previewByToken(@PathVariable String token) {
+        StaffInvitation inv = invitationRepository.findByTokenAndDeletedFalse(token)
+                .orElseThrow(() -> new BusinessException("INVITATION_NOT_FOUND", HttpStatus.NOT_FOUND));
+        if (inv.getExpiresAt() != null && inv.getExpiresAt().isBefore(java.time.Instant.now())) {
+            throw new BusinessException("INVITATION_EXPIRED", HttpStatus.GONE);
+        }
+        Map<String, Object> preview = new java.util.HashMap<>();
+        preview.put("id", String.valueOf(inv.getId()));
+        preview.put("tenantId", String.valueOf(inv.getInstanceId()));
+        preview.put("email", inv.getEmail());
+        preview.put("fullName", "");
+        preview.put("role", inv.getRole());
+        preview.put("status", inv.getStatus() != null ? inv.getStatus().name() : null);
+        preview.put("expiresAt", inv.getExpiresAt() != null ? inv.getExpiresAt().toString() : null);
+        return ResponseEntity.ok(preview);
     }
 
     /**

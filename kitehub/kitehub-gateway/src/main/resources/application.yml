@@ -561,19 +561,14 @@ spring:
                 name: subscriptionCircuitBreaker
                 fallbackUri: forward:/fallback/subscription
 
-        # Wave 80 staff-invitations endpoints on kitehub-subscription
-        # (StaffInvitationController @RequestMapping("/api/v1/staff-invitations")).
-        # Wave 82 Bucket F4 fix: surfaced by audit-gateway-surfaces.sh — was falling
-        # through /api/v1/** catch-all → kiteclass-core (wrong service).
-        - id: kitehub-staff-invitations
-          uri: http://kitehub-subscription:8080
-          predicates:
-            - Path=/api/v1/staff-invitations/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: subscriptionCircuitBreaker
-                fallbackUri: forward:/fallback/subscription
+        # Wave meta-6 (PR #1904) reverses Wave 82 Bucket F4 routing decision:
+        # canonical StaffInvitationController now lives in kiteclass-core (per user
+        # decision 2026-05-28 — module/staff/ tenant-scoped business logic).
+        # Wave 80 parallel impl in kitehub-subscription is dead code (separate
+        # cleanup tracked GAP-782 follow-up). Removing explicit route lets
+        # /api/v1/staff-invitations/** fall through to instance-apis catch-all
+        # → kiteclass-core (Wave meta-6 canonical).
+        # Security audit Wave meta-6 F-002 (PR #1909) surfaced routing mismatch.
 
         # Onboarding progress lives in kitehub-subscription
         # (OnboardingProgressController @RequestMapping("/api/v1/onboarding-progress")).

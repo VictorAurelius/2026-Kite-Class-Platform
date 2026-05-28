@@ -68,22 +68,53 @@ export function setRefreshToken(token: string): void {
  *
  * @param accessToken JWT bearer string.
  * @param refreshToken Refresh JWT string.
+ * @param persist When true, ALSO mirror tokens to localStorage so they survive
+ *                browser-close ("remember me"). Default false (session-only,
+ *                per GAP-599 tab isolation). Bootstrap reads localStorage
+ *                fallback via `restorePersistedTokens()` on app load.
  */
-export function setTokens(accessToken: string, refreshToken: string): void {
+export function setTokens(accessToken: string, refreshToken: string, persist = false): void {
   setAccessToken(accessToken);
   setRefreshToken(refreshToken);
+  if (persist && typeof window !== 'undefined') {
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  }
 }
 
 /**
- * Removes both access + refresh tokens from sessionStorage (logout flow).
+ * Restores tokens from localStorage to sessionStorage if session was cleared
+ * (browser close → reopen) and "remember me" was checked at last login.
  *
- * Does NOT touch legacy localStorage entries — that is the responsibility of
+ * Call at app bootstrap. No-op when sessionStorage already has tokens (active
+ * session) OR localStorage has no remembered tokens.
+ *
+ * @returns true if tokens were restored, false otherwise.
+ */
+export function restorePersistedTokens(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (sessionStorage.getItem(ACCESS_TOKEN_KEY)) return false;
+  const access = localStorage.getItem(ACCESS_TOKEN_KEY);
+  const refresh = localStorage.getItem(REFRESH_TOKEN_KEY);
+  if (!access || !refresh) return false;
+  sessionStorage.setItem(ACCESS_TOKEN_KEY, access);
+  sessionStorage.setItem(REFRESH_TOKEN_KEY, refresh);
+  return true;
+}
+
+/**
+ * Removes both access + refresh tokens from sessionStorage AND localStorage
+ * (logout flow). Logout always clears both tiers regardless of remember-me.
+ *
+ * Does NOT touch legacy non-prefixed entries — that is the responsibility of
  * `clearLegacyLocalStorageTokens()` (one-time migration sweep).
  */
 export function clearTokens(): void {
   if (typeof window === 'undefined') return;
   sessionStorage.removeItem(ACCESS_TOKEN_KEY);
   sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
 /**

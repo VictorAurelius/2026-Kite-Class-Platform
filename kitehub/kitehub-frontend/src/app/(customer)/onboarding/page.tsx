@@ -11,7 +11,6 @@
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { OnboardingChecklist } from '@/components/onboarding-checklist';
-import { BetaDisclaimerBanner } from '@/components/beta-disclaimer';
 
 export default function OnboardingPage() {
   return (
@@ -23,8 +22,6 @@ export default function OnboardingPage() {
         <ChevronLeft className="size-4" aria-hidden />
         Quay lại Dashboard
       </Link>
-
-      <BetaDisclaimerBanner />
 
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Bắt đầu với KiteHub</h1>

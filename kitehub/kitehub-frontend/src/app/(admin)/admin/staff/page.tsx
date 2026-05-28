@@ -54,8 +54,17 @@ export default function AdminStaffListPage() {
     setLoading(true);
     setError(null);
     try {
-      const resp = await apiClient.get<StaffInvitation[]>(endpoints.staffInvitations.list);
-      setRows(resp.data);
+      // BE wraps in ApiResponse: { success, data: StaffInvitation[], timestamp }
+      // Unwrap .data.data; fallback to .data if response is unwrapped (defensive).
+      const resp = await apiClient.get(endpoints.staffInvitations.list);
+      const body: unknown = resp.data;
+      let list: StaffInvitation[] = [];
+      if (Array.isArray(body)) {
+        list = body as StaffInvitation[];
+      } else if (body && typeof body === 'object' && 'data' in body && Array.isArray((body as { data: unknown }).data)) {
+        list = (body as { data: StaffInvitation[] }).data;
+      }
+      setRows(list);
     } catch {
       setError('Không tải được danh sách lời mời. Vui lòng thử lại sau.');
     } finally {
