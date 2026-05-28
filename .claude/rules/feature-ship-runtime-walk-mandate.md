@@ -1,10 +1,10 @@
 # Feature-Ship Runtime Walk Mandate — RST walk before DONE flip for user-facing features
 
 **Priority:** 🔴 CRITICAL — feature shipping discipline; closes trust-pass anti-pattern recurrence ≥7
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Created:** 2026-05-28
 **Last-Reviewed:** 2026-05-28
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (reviewer-checklist + worked self-test on Wave meta-6 Bucket A 17-bug shutdown) per §6.5 Enforcement Parity Mandate; META P0 force-multiplier per `meta-gap-priority.md` §3 — eliminates trust-pass class at original-ship time, not just post-fix)
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; adds §3.4 "Catalog-then-batch-fix walk workflow" — closes inline-rebuild thrash anti-pattern surfaced 2026-05-28 Wave A Bucket B walk (3 rebuilds for 2 bugs vs 1 rebuild after batch fix). Paired same-PR self-test on this very walk session. v1.0.0 (kept): new rule với built-in enforcement (reviewer-checklist + worked self-test on Wave meta-6 Bucket A 17-bug shutdown); META P0 force-multiplier per `meta-gap-priority.md` §3)
 **Applies to:** Every gap với scope "user-facing feature" (FE page + BE endpoint + persistence + side effect — typical CRUD + workflow) before DONE flip. Out-of-scope: pure refactor, internal infra changes, docs-only updates, dev-tool changes.
 
 ---
@@ -69,6 +69,78 @@ Walk evidence pasted into gap closure under `## Walk evidence (per feature-ship-
 ### 3.3 Stack-down acceptable
 
 Walk on local dev stack (production-equivalent) acceptable. AWS verification optional unless gap also covers infra (then `local-self-test-before-aws-deploy.md` applies).
+
+### 3.4 Catalog-then-batch-fix walk workflow (added v1.1.0)
+
+> **Khi walk surfaces 1+ bugs mid-flow, MUST catalog all bugs reaching end-of-walk TRƯỚC khi fix bất kỳ bug nào. Batch fix all → single rebuild → re-walk.** Inline rebuild after each bug found = anti-pattern (thrash, wasted compute, broken walk continuity).
+
+**Required protocol:**
+
+```
+1. Start walk → execute step 1
+2. Step N hit bug?
+   ├─ YES → CATALOG bug (file path + line + symptom + provisional fix idea)
+   │        Apply workaround if any (vd: skip step, use dev header, manual DB UPDATE)
+   │        Continue to step N+1 — DO NOT rebuild
+   └─ NO  → continue to step N+1
+3. Reach end-of-walk (terminal step OR cannot proceed even with workaround)
+4. Batch fix ALL catalogued bugs trong code (single Edit session)
+5. Single rebuild (1 container restart cycle)
+6. Re-walk full flow → verify all fixes + no new bugs introduced
+7. If new bugs surface trên re-walk → goto step 2 (treat re-walk as fresh walk)
+```
+
+**Cost analysis (rebuild cycle):**
+
+| Service | Single rebuild cost | 2-bug inline cost | 2-bug batch cost | Saved |
+|---|---|---|---|---|
+| kitehub-gateway | ~60s rebuild + ~30s health | 2 × 90s = 180s | 90s | 90s |
+| kitehub-subscription | ~90s (Maven build) + ~30s health | 2 × 120s = 240s | 120s | 120s |
+| kiteclass-core | ~120s + ~30s health | 2 × 150s = 300s | 150s | 150s |
+| **Mixed (gateway + subscription)** | n/a | **~360s = 6 phút** | **~180s = 3 phút** | **3 phút (50%)** |
+
+Scaling: 5 bugs spread across 3 services inline = ~15 phút rebuild thrash. Batch = ~3 phút. **80% saving** with batch protocol.
+
+**Banned shortcuts:**
+
+| ❌ Inline-rebuild anti-pattern | ✅ Catalog-then-batch |
+|---|---|
+| Walk step → 401 → fix code → rebuild → walk → 401 → fix → rebuild ... | Walk → 401 → catalog Bug #N → workaround/skip → continue walk → catalog Bug #M → ... → end → fix all → rebuild once → re-walk |
+| "Rebuild now để verify fix ngay" | Verify trong re-walk pass; intermediate rebuild adds time without bug-detection value |
+| Different fix-rebuild cycle cho mỗi service | Single rebuild + restart cycle for ALL affected services |
+| Lose context of remaining walk steps to debug rebuild | Walk catalog preserves context — Bug #18 finding doesn't block discovering Bug #19 |
+
+**Workaround patterns** (to continue walk past blocker):
+
+| Bug class | Workaround |
+|---|---|
+| Auth 401 mid-walk | Skip endpoint, manual DB INSERT/UPDATE to simulate post-condition |
+| Routing mismatch | curl direct service (bypass gateway) — verify backend logic independently |
+| Email send fail | Skip email step, manually fetch token from DB |
+| Missing field/column | Manual ALTER TABLE / UPDATE for walk continuation |
+| FE redirect loop | curl raw API (bypass FE) — verify BE shape |
+| Side effect not firing | Manually trigger via `aws ssm send-command` / `docker exec` |
+
+Workarounds are **walk-continuation aids**, NOT fixes — code fix still required in batch step 4.
+
+**Exception (rare):** if Bug #N is a **walk-blocking compile error** preventing the stack from starting at all (vd Java syntax error in deleted-but-referenced class), rebuild required mid-walk because subsequent walk impossible. Document as `WALK_BATCH_EXCEPTION: <reason>` in walk evidence.
+
+**Self-test (worked example — 2026-05-28 Wave A Bucket B walk):**
+
+Actual (anti-pattern):
+1. Walk step 4a → 401 → fix Bug #18 gateway whitelist → rebuild gateway ~90s → walk
+2. Step 4a → 401 still → fix Bug #19 subscription SecurityConfig → rebuild subscription ~120s → walk
+3. Total: ~210s rebuild + 2 walk-restart cycles + context loss between bugs
+
+Correct (this rule):
+1. Walk step 4a → 401 → catalog Bug #18 (gateway whitelist) → workaround: try direct subscription curl
+2. Direct subscription curl → 401 → catalog Bug #19 (SecurityConfig) → can't continue without fix
+3. Batch fix Bug #18 + Bug #19 in single Edit session
+4. Single rebuild gateway + subscription in parallel via `bash scripts/rebuild.sh gateway && bash scripts/rebuild.sh subscription` (one wait) ~120s
+5. Re-walk step 4a → verify both fixes pass → continue Step 4b/4c/4d
+6. Total: ~120s rebuild + 1 re-walk cycle + full context preserved
+
+Save: ~90s rebuild + 1 cognitive context switch. Scales to N bugs.
 
 ---
 
@@ -217,5 +289,7 @@ Per §5 trailer `FEATURE_SHIP_WALK_DEFER:` — logged quarterly retro. Pattern f
 ---
 
 ## 10. Log
+
+- **2026-05-28 (v1.1.0):** MINOR — added §3.4 "Catalog-then-batch-fix walk workflow" closing inline-rebuild thrash anti-pattern. Triggered by Wave A Bucket B walk session 2026-05-28: 3 sequential rebuilds for 2 bugs (~210s wasted + context-switch overhead) vs batch protocol (~120s + 1 re-walk). User-flagged "test inline thì ko nên rebuild docker, chạy trực tiếp xong hết flow mới rebuild => gap của meta". Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged mid-walk) → Classify ✓ (v1.0.0 §3 covered evidence requirement nhưng không cover walk WORKFLOW — inline-fix vs batch-fix) → Rule+Enforce ✓ (§3.4 batch protocol + workaround patterns + worked self-test on originating Wave A Bucket B session, paired same-PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§3.4 worked example trên the very session that triggered the rule — Save ~90s + cognitive context preservation) → Retro Log ✓ (this entry). META P0 force-multiplier per `meta-gap-priority.md` §3 — fix 1 chuẩn walk workflow → mọi RST walk subsequent auto-comply prospectively → eliminate inline-rebuild thrash class. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying walk workflow discipline; no constraint loosening cho prior walks; existing walks grandfathered; rule applies prospectively từ Wave A Bucket B walk re-walk forward).
 
 - **2026-05-28 (v1.0.0):** Rule created at user direction following Wave meta-6 Bucket A 2026-05-28 RST walk shutdown — 17 bugs surfaced in shipped-DONE feature, 2 P0 feature paths completely missing (email send + user provision). Audit suite 76-94/100 + 25 Mockito tests PASS, all bugs invisible until human walks the flow. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (Wave meta-6 Bucket A 17-bug RST shutdown 2026-05-28; recurrence ≥7 trust-pass class) → Classify ✓ (no existing rule mandates RST walk at ORIGINAL feature ship time; `pre-handoff-self-test-completeness.md` v1.2.0 §3 covers POST-FIX only; `gap-done-discipline.md` covers DONE flip mechanics not AC verification mechanism; `audit-to-gap-pipeline.md` §2.8 covers fix-time not feature-DONE-time) → Rule+Enforce ✓ (this file + reviewer-checklist §7.1 + PR template §7.2 + worked self-test §6 + paired with shutdown findings doc + 17 individual gap files per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§6 worked example on Wave meta-6 Bucket A originating incident — rule fires correctly + counterfactual ~4h saved + audit trust restored) → Retro Log ✓ (this entry). META P0 force-multiplier per `meta-gap-priority.md` §3 — fix discipline 1 lần → mọi feature ship subsequent auto-comply prospectively → eliminate trust-pass class at original-ship moment. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying previously-uncovered "feature-DONE requires runtime walk" mandate; no constraint loosening; existing gap DONE flips grandfathered; rule applies prospectively từ Wave meta-7+ forward). Atomic-unique-bar §5.1 check passed: ✅ atomic (single concept: RST walk at feature-DONE moment) + ✅ unique (sister rule covers POST-FIX, this covers ORIGINAL-SHIP) + ✅ widely applicable (every feature gap closure) + ✅ body discipline §1 has ≤2 "and" conjunctions. CI grep detector (§7.4) + memory auto-load (§7.3) deferred per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions; reviewer-checklist + PR template + worked self-test §6 sufficient cho v1.0.0.

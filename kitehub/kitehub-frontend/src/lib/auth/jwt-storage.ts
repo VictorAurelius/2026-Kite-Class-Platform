@@ -44,6 +44,36 @@ export function getRefreshToken(): string | null {
 }
 
 /**
+ * Extract `tenantId` claim from the current access token (no signature
+ * validation — BE verifies, client decode is read-only convenience).
+ *
+ * Bug #21 (Wave A Bucket B walk 2026-05-28): apiClient previously attached
+ * only `Authorization: Bearer` but NOT `X-Tenant-Id` header. Gateway
+ * TenantResolver requires `X-Tenant-Id` for tenant-scoped paths → 403 on
+ * staff invitation POST. This helper lets the request interceptor propagate
+ * tenantId from JWT → X-Tenant-Id header automatically.
+ *
+ * @returns tenantId UUID string from JWT claim, or `null` if absent / token
+ *          malformed / SSR.
+ */
+export function getTenantIdFromToken(): string | null {
+  const token = getAccessToken();
+  if (!token) return null;
+  const parts = token.split('.');
+  const payloadPart = parts[1];
+  if (parts.length !== 3 || !payloadPart) return null;
+  try {
+    // base64url decode (handle padding + URL-safe chars per RFC 7515)
+    const payload = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4);
+    const decoded = JSON.parse(atob(padded));
+    return typeof decoded.tenantId === 'string' ? decoded.tenantId : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Persists access token in sessionStorage (per-tab native isolation).
  *
  * @param token JWT bearer string.

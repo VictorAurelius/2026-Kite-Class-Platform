@@ -122,6 +122,15 @@ public class SecurityConfig {
                         // Payment webhook (Stripe-style signature validation in controller).
                         .requestMatchers("/api/v1/payments/webhook").permitAll()
                         .requestMatchers("/api/v1/payments/webhook/**").permitAll()
+                        // Staff invitation public recipient endpoints (Bug #19 — Wave A
+                        // Bucket B walk 2026-05-28): controller marks "Recipient accepts
+                        // invitation + sets password (public)" but anyRequest()
+                        // .authenticated() catch-all denied — recipient has no JWT yet,
+                        // token in URL is the credential. Owner-side POST + list +
+                        // resend + revoke still authenticated (default-deny).
+                        .requestMatchers("/api/v1/staff-invitations/by-token/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                "/api/v1/staff-invitations/*/accept").permitAll()
                         // ── Authenticated surface — role enforced per-method via @PreAuthorize ──
                         .requestMatchers("/api/v1/admin/**").authenticated()
                         .requestMatchers("/api/v1/onboarding-progress/**").authenticated()
