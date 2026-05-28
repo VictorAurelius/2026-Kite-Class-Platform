@@ -25,7 +25,7 @@ Wave meta-6 Bucket A (`feat(wave-meta-6-bucket-a): BE MVP staff invitation flow 
 
 1. Owner clicks "Mời" → DB row created ✅
 2. Staff never receives email ❌ (Bug #14 — no email/event/outbox logic exists)
-3. Even if staff somehow obtains token, accept call marks invitation done but never creates user account ❌ (Bug #17 — code comment self-documents deferral to "paired GAP-779 which doesn't exist")
+3. Even if staff somehow obtains token, accept call marks invitation done but never creates user account ❌ (Bug #17 — code comment mis-references GAP-779 (which is unrelated /me endpoint); real fix tracked as new GAP-786)
 4. Staff can never log in ❌ (consequence of #17)
 
 Per `gap-done-discipline.md` §2: DONE requires AC verified. Wave meta-6 Bucket A AC included end-to-end happy path but verification was unit-test only. **The DONE flip violated the rule.**
@@ -71,7 +71,7 @@ Per `gap-done-discipline.md` §2: DONE requires AC verified. Wave meta-6 Bucket 
 | # | Bug | Severity | Walk-fix applied | Production-fix scope |
 |---|---|---|---|---|
 | **14** | `StaffInvitationServiceImpl.invite()` ONLY saves DB row. **Zero outbox/event/notification/email logic.** Invite is non-functional — staff never receives email in production | **P0 — FEATURE INCOMPLETE** | ❌ no walk-fix possible — feature path missing | LARGE: implement outbox event → kitehub-email consumer → email template → SES/MailHog binding. Pair with Bug #16 — recipient link must resolve tenant. |
-| **17** | `StaffInvitationServiceImpl.accept()` marks invitation ACCEPTED + acceptedAt, but **does NOT create user record**. Code comment self-documents: "acceptedUserId set by gateway after it provisions the User row; gateway calls back via internal endpoint OR we update via a follow-up attach call. For MVP the field remains null until gateway integration lands (paired GAP-779 KH auth /me endpoint)." | **P0 — FEATURE INCOMPLETE** | ❌ no walk-fix possible — password from request dropped on floor, no user provisioning | LARGE: implement user-create on accept (or gateway callback). Decide architecture: should kiteclass-core create user OR call back to kitehub-platform? GAP-779 mentioned in comment **doesn't exist** in gap-status.csv. |
+| **17** | `StaffInvitationServiceImpl.accept()` marks invitation ACCEPTED + acceptedAt, but **does NOT create user record**. Code comment self-documents: "acceptedUserId set by gateway after it provisions the User row; gateway calls back via internal endpoint OR we update via a follow-up attach call. For MVP the field remains null until gateway integration lands (paired GAP-779 KH auth /me endpoint)." | **P0 — FEATURE INCOMPLETE** | ❌ no walk-fix possible — password from request dropped on floor, no user provisioning | LARGE: implement user-create on accept (or gateway callback). Decide architecture: should kiteclass-core create user OR call back to kitehub-platform? GAP-779 mentioned in comment is **mis-reference** — GAP-779 is `/api/auth/me endpoint missing` (different scope). Real fix tracked as new **GAP-786** (filed 2026-05-28 post-walk). |
 
 ### Bug class G — Other (peripheral)
 

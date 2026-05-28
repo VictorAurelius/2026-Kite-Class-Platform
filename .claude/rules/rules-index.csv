@@ -93,3 +93,4 @@ e2e-rst-test-layer-boundary,MANDATORY,1.0.0,2026-05-25,2026-05-25,e2e-rst-test-l
 ci-queue-local-runner-threshold,MANDATORY,1.0.0,2026-05-26,2026-05-26,ci-queue-local-runner-threshold.md,"documents/04-quality/**,.claude/rules/**,.claude/skills/**,.github/workflows/**",active,,
 pre-flight-aws-lifecycle-check,MANDATORY,1.0.0,2026-05-26,2026-05-26,pre-flight-aws-lifecycle-check.md,"scripts/aws/**,infrastructure/terraform-aws/**",active,,
 feature-ship-runtime-walk-mandate,CRITICAL,1.0.0,2026-05-28,2026-05-28,feature-ship-runtime-walk-mandate.md,"documents/04-quality/gaps/**,documents/04-quality/audits/rst-html/**,.github/PULL_REQUEST_TEMPLATE.md",active,,
+docs-only-pr-no-block-wait,MANDATORY,1.0.0,2026-05-28,2026-05-28,docs-only-pr-no-block-wait.md,".github/workflows/**,documents/**,.claude/rules/**,.claude/skills/**",active,,
