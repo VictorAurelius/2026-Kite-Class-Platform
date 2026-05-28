@@ -27,8 +27,17 @@ Chi tiết findings + plan: `documents/03-planning/waves/wave-demo-tenant-1-sky-
 - **B:** seed attendance/grade/payment + enrich (3-4 lớp, ~20-30 HS/lớp) — seed script.
 - **C:** fix overview KPI hardcode (kiteclass-frontend) + asset seed-direct MinIO.
 
+## ⚠️ Open item — tenant-id reconciliation (BẮT BUỘC resolve ở live-walk)
+
+3 agent build độc lập → mismatch tenant id phải reconcile trước khi demo coherent:
+- **A (branding)** seed Sky branding dưới instance id **`a5e00000-...-000000000001`** (UUID độc lập — A tránh `11111111-...` vì nó TRÙNG `DEV_TENANT_ID` thanglong trong seeder cũ).
+- **B (data)** seed attendance/grade/payment dưới Sky tenant **`11111111-...`** (từ `seed-thesis-demo-tenants.sh` tenant_a).
+- **Hệ quả:** branding (a5e0…) ≠ data (1111…) → theme tùy biến KHÔNG apply lên tenant có data. Demo sẽ thấy data nhưng theme default, HOẶC theme custom nhưng tenant trống.
+- **Resolve options:** (a) đổi A's branding target → `11111111-...` (nhưng cần verify không đè branding thanglong vì thanglong dùng cùng id — data-model conflation cần làm rõ); (b) đổi B's enrich script seed lên `a5e0…0001` + seed teacher/course gốc cho tenant đó (không phụ thuộc seed-thesis); (c) làm rõ id tenant Sky canonical rồi cả A+B dùng chung. **Quyết định ở live-walk khi stack up + thấy được render thực tế.**
+
 ## Acceptance Criteria
 
+- [ ] **Reconcile tenant id** A-branding ↔ B-data (xem Open item) — branding + data CÙNG 1 tenant
 - [ ] Branding Sky tenant seeded → theme tùy biến render live (CSS vars + public theme endpoint)
 - [ ] Overview KPI khớp DB thật (không hardcode)
 - [ ] Attendance + grade + payment có data demo

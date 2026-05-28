@@ -50,6 +50,22 @@ public class BrandingDataSeeder {
     static final String DEV_TENANT_REF = "dev-tenant-thanglong";
     static final String DEV_FRONTEND_URL = "https://thanglong.kite.local";
 
+    // GAP-805 Bucket A — demo tenant "Sky Education" branding seed.
+    // Own instance UUID (distinct from thanglong) so resources never mix across tenants.
+    // Slug + display name mirror scripts/seed-thesis-demo-tenants.sh tenant_a (Sky Education),
+    // proving live UI theme customisation on the multi-tenant demo.
+    static final UUID SKY_TENANT_ID = UUID.fromString("a5e00000-0000-0000-0000-000000000001");
+    static final String SKY_TENANT_SLUG = "sky-education";
+    static final String SKY_TENANT_REF = "dev-tenant-sky-education";
+    static final String SKY_FRONTEND_URL = "https://sky-education.kite.local";
+    static final String SKY_DISPLAY_NAME = "Trung tâm Anh ngữ Sky Education";
+    static final String SKY_TAGLINE = "Chắp cánh tương lai Anh ngữ";
+    // Warm education palette (orange/amber) — deliberately distinct from the default
+    // shadcn blue so the live theme swap is visually obvious during the demo.
+    static final String SKY_PRIMARY_COLOR = "#E8590C";   // cam đậm — primary actions
+    static final String SKY_SECONDARY_COLOR = "#1B4965";  // xanh navy — headers/footer
+    static final String SKY_ACCENT_COLOR = "#FFB703";    // vàng hổ phách — highlights
+
     private final FrontendInstanceRepository instanceRepo;
     private final BrandingResourceRepository resourceRepo;
     private final QualityReportRepository qualityRepo;
@@ -60,28 +76,51 @@ public class BrandingDataSeeder {
     /** Triggered after the Spring context is fully initialized. */
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
+        // Seed each demo tenant under its own TenantContext so the
+        // EntityPersistenceListener stamps the correct instance_id per resource.
+        seedTenant(DEV_TENANT_ID, DEV_TENANT_SLUG);
+        seedTenant(SKY_TENANT_ID, SKY_TENANT_SLUG);
+    }
+
+    private void seedTenant(UUID tenantId, String slug) {
         try {
-            TenantContext.setCurrentTenant(DEV_TENANT_ID);
-            transactionTemplate.executeWithoutResult(status -> seed());
+            TenantContext.setCurrentTenant(tenantId);
+            transactionTemplate.executeWithoutResult(status -> seed(slug));
         } finally {
             TenantContext.clear();
         }
     }
 
     /**
-     * Public for direct invocation in tests. Caller must have a transaction
+     * Seeds the thanglong demo tenant. Kept for backward compatibility with
+     * existing tests that call {@code seed()} with no argument.
+     *
+     * <p>Public for direct invocation in tests. Caller must have a transaction
      * open (or rely on {@link #onApplicationReady()} which wraps via
-     * {@link TransactionTemplate}).
+     * {@link TransactionTemplate}) AND must set {@link TenantContext} to
+     * {@link #DEV_TENANT_ID} first.
      */
     @Transactional
     public void seed() {
-        if (instanceRepo.existsBySlugAndDeletedFalse(DEV_TENANT_SLUG)) {
-            log.info("Dev branding seed already present (slug={}). Skipping.", DEV_TENANT_SLUG);
+        seed(DEV_TENANT_SLUG);
+    }
+
+    /**
+     * Seeds branding for the tenant identified by {@code slug}. Idempotent —
+     * skips silently when an instance with the slug already exists.
+     *
+     * <p>Caller MUST have already set {@link TenantContext} to the matching tenant
+     * id so the {@code EntityPersistenceListener} stamps the right instance_id.
+     */
+    @Transactional
+    public void seed(String slug) {
+        if (instanceRepo.existsBySlugAndDeletedFalse(slug)) {
+            log.info("Dev branding seed already present (slug={}). Skipping.", slug);
             return;
         }
 
-        FrontendInstance instance = instanceRepo.save(buildInstance());
-        resourceRepo.saveAll(buildResources());
+        FrontendInstance instance = instanceRepo.save(buildInstance(slug));
+        resourceRepo.saveAll(buildResources(slug));
         qualityRepo.save(buildQualityReport(instance));
         emitOutboxEvent(instance);
 
@@ -89,11 +128,12 @@ public class BrandingDataSeeder {
                 instance.getId(), instance.getSlug(), instance.getBrandingVersion());
     }
 
-    private FrontendInstance buildInstance() {
+    private FrontendInstance buildInstance(String slug) {
+        boolean isSky = SKY_TENANT_SLUG.equals(slug);
         FrontendInstance instance = FrontendInstance.builder()
-                .tenantId(DEV_TENANT_REF)
-                .slug(DEV_TENANT_SLUG)
-                .frontendUrl(DEV_FRONTEND_URL)
+                .tenantId(isSky ? SKY_TENANT_REF : DEV_TENANT_REF)
+                .slug(slug)
+                .frontendUrl(isSky ? SKY_FRONTEND_URL : DEV_FRONTEND_URL)
                 .build();
         instance.transitionTo(FrontendInstanceStatus.INITIALIZING);
         instance.transitionTo(FrontendInstanceStatus.GENERATING);
@@ -101,7 +141,14 @@ public class BrandingDataSeeder {
         return instance;
     }
 
-    private List<BrandingResource> buildResources() {
+    private List<BrandingResource> buildResources(String slug) {
+        if (SKY_TENANT_SLUG.equals(slug)) {
+            return buildSkyResources();
+        }
+        return buildThangLongResources();
+    }
+
+    private List<BrandingResource> buildThangLongResources() {
         BrandingResource logo = BrandingResource.builder()
                 .type(ResourceType.LOGO)
                 .category(ResourceCategory.STATIC)
@@ -126,6 +173,70 @@ public class BrandingDataSeeder {
         hero.validateInvariants();
 
         return List.of(logo, banner, hero);
+    }
+
+    /**
+     * Sky Education resources. The LOGO resource carries the theme config
+     * (display name, tagline, custom CSS palette) in its {@code metadata} jsonb
+     * column — the same slot the AI branding pipeline writes theme vars into —
+     * so the FE renders Sky's warm orange/amber palette instead of the default
+     * shadcn blue. Logo asset path is seeded directly (no upload controller round-trip
+     * per GAP-804 / GAP-798b).
+     */
+    private List<BrandingResource> buildSkyResources() {
+        BrandingResource logo = BrandingResource.builder()
+                .type(ResourceType.LOGO)
+                .category(ResourceCategory.STATIC)
+                .storageUrl("/mocks/assets/logo-sky-education.png")
+                .metadata(buildSkyThemeConfigJson())
+                .build();
+        logo.validateInvariants();
+
+        BrandingResource banner = BrandingResource.builder()
+                .type(ResourceType.BANNER)
+                .category(ResourceCategory.TEMPLATE)
+                .storageUrl("/mocks/assets/banner-sky-education.svg")
+                .templateId(1L)
+                .build();
+        banner.validateInvariants();
+
+        BrandingResource hero = BrandingResource.builder()
+                .type(ResourceType.HERO)
+                .category(ResourceCategory.FULL_AI)
+                .storageUrl("/mocks/assets/hero-sky-education.png")
+                .aiJobId(UUID.randomUUID())
+                .build();
+        hero.validateInvariants();
+
+        return List.of(logo, banner, hero);
+    }
+
+    /**
+     * Builds the Sky Education theme config JSON stored in the LOGO resource
+     * metadata: display name, tagline, CSS palette + VN contact links.
+     */
+    private String buildSkyThemeConfigJson() {
+        Map<String, Object> theme = new LinkedHashMap<>();
+        theme.put("displayName", SKY_DISPLAY_NAME);
+        theme.put("tagline", SKY_TAGLINE);
+
+        Map<String, String> cssVars = new LinkedHashMap<>();
+        cssVars.put("--brand-primary", SKY_PRIMARY_COLOR);
+        cssVars.put("--brand-secondary", SKY_SECONDARY_COLOR);
+        cssVars.put("--brand-accent", SKY_ACCENT_COLOR);
+        theme.put("cssVars", cssVars);
+
+        Map<String, String> contact = new LinkedHashMap<>();
+        contact.put("zalo", "https://zalo.me/sky-education");
+        contact.put("facebook", "https://facebook.com/skyedu.vn");
+        contact.put("website", "https://sky-education.kite.local");
+        theme.put("contact", contact);
+
+        try {
+            return objectMapper.writeValueAsString(theme);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize Sky theme config", e);
+        }
     }
 
     private QualityReport buildQualityReport(FrontendInstance instance) {
