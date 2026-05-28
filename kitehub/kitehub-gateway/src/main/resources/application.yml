@@ -575,11 +575,34 @@ spring:
         #   aligns naturally when staff-invitations routes to kitehub-subscription.
         # User confirmed reversal 2026-05-28 Day 2 architecture lock (Wave A
         # plan §5.2). kiteclass-core staff module → deprecate (separate subtask).
+        # GAP-790 — staff-invitations PUBLIC token paths (recipient clicks email link,
+        # no JWT / no subdomain). These MUST precede the Owner-scoped staff-invitations
+        # route below so they win on path match and SKIP TenantResolver — the recipient
+        # carries no tenant context, so TenantResolver would reject with 400. Tenant is
+        # derived server-side from the token's invitation row instead. permitAll in
+        # kitehub-subscription SecurityConfig (StaffInvitationController §"Public endpoints").
+        - id: staff-invitations-public-token
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/staff-invitations/by-token/**,/api/v1/staff-invitations/*/accept
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
+
+        # GAP-790 — Owner-scoped staff-invitations (create/list/resend/delete) ADD
+        # TenantResolver (mirror instance-apis catch-all). This specific path matches
+        # before /api/v1/** catch-all, so it previously bypassed TenantResolver →
+        # 403 TENANT_CONTEXT_MISSING when client omits X-Tenant-Id. TenantResolver's
+        # JWT tenantId claim fallback (GAP-711) resolves tenant from Owner JWT
+        # (enriched per GAP-704) for localhost/apex access.
         - id: staff-invitations
           uri: http://kitehub-subscription:8080
           predicates:
             - Path=/api/v1/staff-invitations/**
           filters:
+            - TenantResolver
             - name: CircuitBreaker
               args:
                 name: subscriptionCircuitBreaker
@@ -594,6 +617,13 @@ spring:
           predicates:
             - Path=/api/v1/onboarding-progress/**,/api/v1/onboarding-progress
           filters:
+            # GAP-790 sweep — same bug class as staff-invitations: tenant-scoped route
+            # more specific than /api/v1/** catch-all, previously bypassed TenantResolver.
+            # OnboardingProgressController is Owner-scoped (GET/PUT both require tenant via
+            # X-Tenant-Id OR JWT tenantId claim) with no public sub-paths, so add
+            # TenantResolver directly. Gateway-level resolution mirrors instance-apis +
+            # adds the instance ACTIVE/TRIAL status check the controller fallback lacks.
+            - TenantResolver
             - name: CircuitBreaker
               args:
                 name: subscriptionCircuitBreaker
