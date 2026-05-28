@@ -94,7 +94,11 @@ public class LeadServiceImpl implements LeadService {
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "leads", key = "#id")
+    // GAP-792 cross-flow sweep — cache key MUST include tenant. Lead PKs come from a shared
+    // global sequence; key="#id" alone causes cross-tenant cache pollution (tenant B fetching
+    // lead 5 gets tenant A's cached payload before the tenant-scoped DB query runs). The
+    // matching @CacheEvict keys below use the same tenant-scoped expression.
+    @Cacheable(value = "leads", key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant() + ':' + #id")
     public LeadResponse getLeadById(Long id) {
         log.debug("Fetching lead with ID: {}", id);
 
@@ -146,7 +150,8 @@ public class LeadServiceImpl implements LeadService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "leads", key = "#id")
+    // GAP-792 cross-flow sweep — evict key includes tenant to match tenant-scoped @Cacheable key.
+    @CacheEvict(value = "leads", key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant() + ':' + #id")
     public LeadResponse updateLeadStatus(Long id, LeadStatus newStatus) {
         log.info("Updating lead status for ID: {} to {}", id, newStatus);
 
@@ -179,7 +184,8 @@ public class LeadServiceImpl implements LeadService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "leads", key = "#id")
+    // GAP-792 cross-flow sweep — evict key includes tenant to match tenant-scoped @Cacheable key.
+    @CacheEvict(value = "leads", key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant() + ':' + #id")
     public LeadResponse updateLead(Long id, UpdateLeadRequest request) {
         log.info("Updating lead with ID: {}", id);
 
@@ -216,7 +222,8 @@ public class LeadServiceImpl implements LeadService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "leads", key = "#id")
+    // GAP-792 cross-flow sweep — evict key includes tenant to match tenant-scoped @Cacheable key.
+    @CacheEvict(value = "leads", key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant() + ':' + #id")
     public void deleteLead(Long id) {
         log.info("Deleting lead with ID: {}", id);
 

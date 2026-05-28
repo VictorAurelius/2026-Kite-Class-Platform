@@ -3,7 +3,7 @@ package com.kitehub.email.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.email.dto.EmailRequest;
 import com.kitehub.email.dto.EmailResponse;
-import com.kitehub.email.service.SESEmailService;
+import com.kitehub.email.service.EmailSender;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -37,7 +37,7 @@ class EmailControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private SESEmailService sesEmailService;
+    private EmailSender emailSender;
 
     @Test
     void testSendTemplatedEmail() throws Exception {
@@ -58,7 +58,7 @@ class EmailControllerTest {
                 .sentAt(LocalDateTime.now())
                 .build();
 
-        when(sesEmailService.sendTemplatedEmail(any(EmailRequest.class)))
+        when(emailSender.sendTemplatedEmail(any(EmailRequest.class)))
                 .thenReturn(mockResponse);
 
         // When & Then
@@ -85,7 +85,7 @@ class EmailControllerTest {
                 .sentAt(LocalDateTime.now())
                 .build();
 
-        when(sesEmailService.sendEmail(anyString(), anyString(), anyString()))
+        when(emailSender.sendEmail(anyString(), anyString(), anyString()))
                 .thenReturn(mockResponse);
 
         // When & Then

@@ -2,6 +2,7 @@ package com.kiteclass.core.module.course.service.impl;
 
 import com.kiteclass.core.common.constant.CourseStatus;
 import com.kiteclass.core.common.constant.TeacherCourseRole;
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
@@ -34,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -122,7 +124,14 @@ public class CourseServiceImpl implements CourseService {
     /**
      * Lấy thông tin chi tiết khóa học theo ID.
      *
-     * <p>Result is cached in Redis with key "courses::{id}".
+     * <p>Result is cached in Redis with key "courses::{tenantId}:{id}".
+     *
+     * <p><b>Multi-tenant note (GAP-792):</b> the cache key MUST include the tenant
+     * (instance) ID. Course PKs are drawn from a shared global sequence, so a key of
+     * {@code #id} alone causes cross-tenant cache pollution — tenant B fetching course 5
+     * could receive tenant A's cached payload (data leak) or a Redis
+     * {@code SerializationException} surfacing as HTTP 500. The matching {@code @CacheEvict}
+     * keys below use the same {@code tenantId + ':' + id} expression so eviction stays consistent.
      *
      * @param id ID của khóa học cần lấy thông tin
      * @return CourseResponse chứa thông tin chi tiết khóa học
@@ -133,7 +142,8 @@ public class CourseServiceImpl implements CourseService {
     // GAP-043 (Wave 9.5-D) — sync=true prevents stampede on course catalogue reads
     // (public landing + tenant course listing). Heavy joins with instructor + schedule
     // data make a redundant concurrent load particularly expensive.
-    @Cacheable(value = "courses", key = "#id")
+    // GAP-792 — key includes tenant to prevent cross-tenant cache pollution.
+    @Cacheable(value = "courses", key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant() + ':' + #id")
     public CourseResponse getCourseById(Long id) {
         log.debug("Fetching course with ID: {}", id);
 
@@ -168,8 +178,14 @@ public class CourseServiceImpl implements CourseService {
         // Parse sort
         Pageable pageable = createPageable(criteria);
 
-        // Search courses
+        // GAP-791: findBySearchCriteria uses nativeQuery=true, so Hibernate @Filter("tenantFilter")
+        // does NOT apply. Pass the current tenant explicitly to scope the result; without this,
+        // the list endpoint leaks other tenants' courses (OWASP A01 cross-tenant leak).
+        UUID tenantId = TenantContext.getCurrentTenant();
+
+        // Search courses (tenant-scoped)
         Page<Course> coursePage = courseRepository.findBySearchCriteria(
+                tenantId,
                 criteria.search(),
                 criteria.status(),
                 criteria.teacherId(),
@@ -199,7 +215,8 @@ public class CourseServiceImpl implements CourseService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "courses", key = "#id")
+    // GAP-792 — evict key includes tenant to match tenant-scoped @Cacheable key.
+    @CacheEvict(value = "courses", key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant() + ':' + #id")
     public CourseResponse updateCourse(Long id, UpdateCourseRequest request) {
         log.info("Updating course with ID: {}", id);
 
@@ -231,7 +248,8 @@ public class CourseServiceImpl implements CourseService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "courses", key = "#id")
+    // GAP-792 — evict key includes tenant to match tenant-scoped @Cacheable key.
+    @CacheEvict(value = "courses", key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant() + ':' + #id")
     public void deleteCourse(Long id) {
         log.info("Deleting course with ID: {}", id);
 
@@ -274,7 +292,8 @@ public class CourseServiceImpl implements CourseService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "courses", key = "#id")
+    // GAP-792 — evict key includes tenant to match tenant-scoped @Cacheable key.
+    @CacheEvict(value = "courses", key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant() + ':' + #id")
     public CourseResponse publishCourse(Long id) {
         log.info("Publishing course with ID: {}", id);
 
@@ -314,7 +333,8 @@ public class CourseServiceImpl implements CourseService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "courses", key = "#id")
+    // GAP-792 — evict key includes tenant to match tenant-scoped @Cacheable key.
+    @CacheEvict(value = "courses", key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant() + ':' + #id")
     public CourseResponse archiveCourse(Long id) {
         log.info("Archiving course with ID: {}", id);
 

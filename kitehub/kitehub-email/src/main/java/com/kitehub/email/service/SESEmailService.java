@@ -48,7 +48,7 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
-public class SESEmailService implements NotificationChannel {
+public class SESEmailService implements NotificationChannel, EmailSender {
 
     /**
      * Channel identifier per BR-NOTIF-001 — matches
@@ -98,6 +98,7 @@ public class SESEmailService implements NotificationChannel {
      * @param request Email request with template
      * @return Email response with message ID
      */
+    @Override
     public EmailResponse sendTemplatedEmail(EmailRequest request) {
         log.info("Sending templated email to: {}, template: {}", request.getTo(), request.getTemplateName());
 
@@ -150,6 +151,7 @@ public class SESEmailService implements NotificationChannel {
      * @param htmlBody HTML body
      * @return Email response
      */
+    @Override
     public EmailResponse sendEmail(String to, String subject, String htmlBody) {
         return sendEmail(to, subject, htmlBody, null);
     }
