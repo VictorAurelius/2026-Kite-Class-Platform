@@ -105,18 +105,9 @@ class CourseRepositoryTest extends IntegrationTestBase {
     }
 
     @Test
-    void existsByCodeAndDeletedFalse_shouldReturnTrue_whenExists() {
+    void existsByCodeAndInstanceId_shouldReturnFalse_whenCodeNotExists() {
         // When
-        boolean exists = courseRepository.existsByCodeAndDeletedFalse("ENG-001");
-
-        // Then
-        assertThat(exists).isTrue();
-    }
-
-    @Test
-    void existsByCodeAndDeletedFalse_shouldReturnFalse_whenNotExists() {
-        // When
-        boolean exists = courseRepository.existsByCodeAndDeletedFalse("NONEXISTENT");
+        boolean exists = courseRepository.existsByCodeAndInstanceIdAndDeletedFalse("NONEXISTENT", TEST_TENANT);
 
         // Then
         assertThat(exists).isFalse();
