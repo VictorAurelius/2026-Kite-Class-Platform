@@ -212,14 +212,14 @@ jobs:
       - name: Run self-test (pass + fail fixtures)
         run: bash scripts/tests/test-check-be-fe-url-contract.sh
 
-      - name: Detect BE→FE URL drift (WARN mode — GAP-802 #2)
+      - name: Detect BE→FE URL drift (HARD STOP — GAP-802 #2)
         run: |
           # Per GAP-802 mechanism #2 + GAP-801 incident: BE builds FE-path URL
           # (e.g. /signup/beta) that has no matching Next.js App Router route →
-          # invitee email link 404. WARN-mode until known finding (/reset-password,
-          # GAP-803) resolved; flip to HARD STOP afterward.
-          bash scripts/check-be-fe-url-contract.sh \
-            || echo "WARN: BE→FE URL contract drift detected — see GAP-803 (non-blocking until resolved)"
+          # invitee email link 404. HARD STOP: scans kitehub-frontend +
+          # kiteclass/kiteclass-frontend App Router; /reset-password false-positive
+          # resolved (path-scope fix) — check passes clean on main.
+          bash scripts/check-be-fe-url-contract.sh
 
 
   entity-mapper-consistency:

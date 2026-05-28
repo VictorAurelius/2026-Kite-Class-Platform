@@ -13,12 +13,12 @@ audience: dev
 
 ## Problem
 
-GAP-802 vừa ship 2 detector và khi chạy thật trên main đã bắt được **2 finding thật cùng class với GAP-801** (BE↔FE contract drift mà không test nào assert):
+GAP-802 detector chạy thật trên main + sweep path-scope đã bắt được findings (BE↔FE contract drift mà không test nào assert):
 
-### Finding 1 — `/reset-password` BE link không có FE route (cơ chế #2)
-`PasswordResetService.java:80` dựng link `resetBaseUrl + "/reset-password?token=..."` nhúng vào email reset mật khẩu. `check-be-fe-url-contract.sh` báo **MISSING**: `kitehub-frontend/src/app/**` KHÔNG có route `/reset-password` (chỉ `kiteclass-frontend` có). Nếu `resetBaseUrl` trỏ kitehub-frontend → user click link reset → **404**, không reset được mật khẩu. Đúng class GAP-801 (`/signup/beta` 404).
+### Finding 0 — Detector path-scope bug (RESOLVED trong GAP-802 PR #1958)
+Detector #2 + rule #4 ban đầu trỏ `kitehub/kiteclass-frontend` (KHÔNG tồn tại — KiteClass FE thật ở `kiteclass/kiteclass-frontend`) → #2 không scan KiteClass FE. Hệ quả `/reset-password` báo FALSE POSITIVE (route có thật ở `kiteclass/kiteclass-frontend/(auth)/reset-password/page.tsx`). **Đã fix trong #1958** (sửa path ở `check-be-fe-url-contract.sh` + `fe-build-local-verify.md` + `rules-index.csv` + `output-review-mandate.md`); #2 giờ exit 0 clean, CI flipped WARN→HARD STOP.
 
-→ Cần xác định `resetBaseUrl` trỏ FE nào. Nếu kitehub-frontend → thêm route `/reset-password` HOẶC sửa BE path. Nếu cố ý trỏ kiteclass-frontend → tinh chỉnh detector để resolve cross-FE (giảm false-positive).
+**Còn lại:** `vn-localization-audit-checklist.md` §8 + `rules-index.csv:85` cùng dùng path sai `kitehub/kiteclass-frontend` (agent copy pattern từ đây) → cần fix cùng class (PATCH bump rule đó).
 
 ### Finding 2 — 3 env var prod-domain default thiếu local override (cơ chế #5)
 `audit-env-coverage.sh` CHECK B (WARN) báo 3 var default về prod domain, không có override trong `kitehub/docker-compose.kitehub.yml` → email gửi ở local nhúng link prod → dead-link khi test local (đúng class GAP-801 part 3):
@@ -33,9 +33,9 @@ GAP-802 vừa ship 2 detector và khi chạy thật trên main đã bắt đư�
 
 ## Acceptance Criteria
 
-- [ ] Xác định `resetBaseUrl` trỏ FE nào; fix (thêm route HOẶC sửa BE path HOẶC tinh chỉnh detector cross-FE)
+- [x] ~~`/reset-password`~~ — FALSE POSITIVE (detector path-scope bug), resolved trong #1958; CI flipped HARD STOP
+- [ ] Fix `vn-localization-audit-checklist.md` §8 + `rules-index.csv:85` path `kitehub/kiteclass-frontend` → `kiteclass/kiteclass-frontend` (same path-bug class, PATCH bump)
 - [ ] 3 env var: thêm local override HOẶC `ACCEPTABLE_PROD_DOMAINS` + rationale (registry row)
-- [ ] Sau khi `/reset-password` resolved → flip `be-fe-url-contract` CI job WARN → HARD STOP (sửa `quality-code.yml`)
 - [ ] (Optional) E2E Flow-1 spec (GAP-802 #3 deferred) khi FE E2E infra lands
 
 ## Related

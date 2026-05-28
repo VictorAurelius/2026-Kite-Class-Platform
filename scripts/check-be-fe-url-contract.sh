@@ -59,9 +59,9 @@ for d in "$ROOT"/kitehub/*/src/main/java "$ROOT"/kiteclass/*/src/main/java; do
   [[ -d "$d" ]] && BE_GLOB_ROOTS+=("$d")
 done
 
-# Frontend App Router roots. kiteclass-frontend may not have src/app yet.
+# Frontend App Router roots. KiteHub FE under kitehub/, KiteClass FE under kiteclass/ (top-level).
 FE_APP_ROOTS=()
-for d in "$ROOT"/kitehub/kitehub-frontend/src/app "$ROOT"/kitehub/kiteclass-frontend/src/app; do
+for d in "$ROOT"/kitehub/kitehub-frontend/src/app "$ROOT"/kiteclass/kiteclass-frontend/src/app; do
   [[ -d "$d" ]] && FE_APP_ROOTS+=("$d")
 done
 
