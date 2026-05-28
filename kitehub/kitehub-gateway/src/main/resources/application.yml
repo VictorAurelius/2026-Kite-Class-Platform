@@ -561,14 +561,29 @@ spring:
                 name: subscriptionCircuitBreaker
                 fallbackUri: forward:/fallback/subscription
 
-        # Wave meta-6 (PR #1904) reverses Wave 82 Bucket F4 routing decision:
-        # canonical StaffInvitationController now lives in kiteclass-core (per user
-        # decision 2026-05-28 — module/staff/ tenant-scoped business logic).
-        # Wave 80 parallel impl in kitehub-subscription is dead code (separate
-        # cleanup tracked GAP-782 follow-up). Removing explicit route lets
-        # /api/v1/staff-invitations/** fall through to instance-apis catch-all
-        # → kiteclass-core (Wave meta-6 canonical).
-        # Security audit Wave meta-6 F-002 (PR #1909) surfaced routing mismatch.
+        # Wave A Bucket B (GAP-786) REVERSES Wave meta-6 routing decision after
+        # Decision Day 1 investigation 2026-05-28 surfaced cross-DB blocker:
+        # - kiteclass-core (port 5432, kiteclass_dev DB) vs kitehub-subscription
+        #   (port 5433, kitehub DB) cannot share JPA UserRepository trivially.
+        # - kitehub-subscription staff path ALREADY creates user on accept
+        #   (production-proven pre-Wave meta-6 — StaffInvitationController:242
+        #   calls userRepository.save). kiteclass-core MVP path Bug #17 confirmed
+        #   broken (StaffInvitationServiceImpl:159-164 "BLOCKED ON GAP-786, user
+        #   provisioning on accept NOT IMPLEMENTED, password dropped").
+        # - Bug #14 email path (GAP-787) Bucket A adds @RabbitListener trong
+        #   kitehub-email subscribed to kitehub-subscription's email.send queue —
+        #   aligns naturally when staff-invitations routes to kitehub-subscription.
+        # User confirmed reversal 2026-05-28 Day 2 architecture lock (Wave A
+        # plan §5.2). kiteclass-core staff module → deprecate (separate subtask).
+        - id: staff-invitations
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/staff-invitations/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
 
         # Onboarding progress lives in kitehub-subscription
         # (OnboardingProgressController @RequestMapping("/api/v1/onboarding-progress")).

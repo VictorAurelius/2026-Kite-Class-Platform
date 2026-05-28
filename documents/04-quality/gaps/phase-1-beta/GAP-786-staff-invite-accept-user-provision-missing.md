@@ -4,7 +4,7 @@ audience: dev
 
 # GAP-786 — Staff invite accept service không create user record (Bug #17 Wave meta-6 walk shutdown)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (~70%)
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-05-28 (Wave meta-6 Bucket A RST walk shutdown — see `documents/04-quality/audits/rst-html/2026-05-28-wave-meta-6-bucket-a-walk-shutdown-findings.md` §Bug class F #17)
@@ -104,6 +104,34 @@ User provisioning architecture decision was deferred but never followed through.
 
 **Recommendation:** Option C — synchronous internal endpoint. Aligns với existing kitehub-platform pattern (creates users in central DB). Simpler than Option B outbox. Avoids Option A's cross-DB write.
 
+## LOCKED architecture (2026-05-28 Day 2 — Option D Re-host kitehub-subscription canonical)
+
+Day 1 investigation surfaced **all 3 original options non-viable**:
+
+- **Option A (direct UserRepository inject in kiteclass-core)** — non-viable: kiteclass-core (port 5432, `kiteclass_dev` DB) cannot share JPA UserRepository với kitehub-subscription (port 5433, `kitehub` DB). Different datasources + zero Maven dep + zero cross-module imports.
+- **Option B (outbox event cross-DB)** — non-viable: kitehub-platform là SHARED LIBRARY (no runtime, no `application.yml`, no HTTP server). Cannot host listener.
+- **Option C (sync HTTP to kitehub-platform endpoint)** — non-viable: same reason as B (platform = library, no HTTP server).
+
+**Investigation revealed Option D = Re-host kitehub-subscription canonical:**
+
+Two parallel staff invitation flows exist:
+1. `kitehub-subscription/.../staff/controller/StaffInvitationController.java:242` — **DOES create user on accept** (production-proven pre-Wave meta-6 — Wave 80 era ship)
+2. `kiteclass-core/.../module/staff/...` — Wave meta-6 MVP **does NOT create user** (Bug #17 root cause, code self-documents BLOCKED ON GAP-786)
+
+User confirmed reversal 2026-05-28 (overriding prior Wave meta-6 routing decision documented in gateway application.yml). Fix scope:
+
+**Changes shipped this PR (Wave A Bucket B):**
+- Revert gateway routing — add explicit route `/api/v1/staff-invitations/**` → `kitehub-subscription:8080` (was falling through `instance-apis` catch-all → kiteclass-core)
+- Delete kiteclass-core staff module (13 files: 1 controller + 1 service interface + 1 service impl + 1 repository + 1 entity + 4 DTOs + 1 enum + 1 package-info + 2 test classes)
+- Add V72 Flyway migration deprecating `staff_invitations` table trong kiteclass-core (COMMENT only — data preserved for rollback safety)
+- FE call sites unchanged — URL pattern `/api/v1/staff-invitations/*` same; gateway re-routes to kitehub-subscription transparently
+
+**Effort:** ~2-3 eng-days (vs Option B 5-7 ed estimate trong original Wave A plan).
+
+**Remaining for DONE flip (~30% to go):**
+- [ ] RST walk per `feature-ship-runtime-walk-mandate.md` §3 — verify accept flow on production-equivalent stack with Owner persona (Bước 2.10 PASS)
+- [ ] Sub-gap follow-up: live walk verification post-merge
+
 ## Acceptance Criteria
 
 - [ ] Architecture decision Option A/B/C logged in this gap §Log
@@ -124,4 +152,5 @@ User provisioning architecture decision was deferred but never followed through.
 
 ## Log
 
+- **2026-05-28** (Wave A Bucket B PARTIAL ~70%) — Day 1 investigation 3 Opus background agents revealed cross-DB blocker (kiteclass-core port 5432 vs kitehub-subscription port 5433 separate DBs + zero Maven dep) — Options A/B/C all non-viable. Day 2 user-confirmed reversal: re-host kitehub-subscription canonical (Option D). Code fix shipped this PR: (1) gateway routing reverted `/api/v1/staff-invitations/**` → kitehub-subscription (overrides instance-apis catch-all + reverses Wave meta-6 documented routing decision); (2) kiteclass-core staff module deleted (13 files); (3) V72 Flyway migration deprecates kiteclass-core `staff_invitations` table (COMMENT-only, data preserved). FE unchanged. Remaining ~30%: RST walk verify per `feature-ship-runtime-walk-mandate.md` §3. Sub-gap follow-up pending live walk.
 - **2026-05-28** — Filed in response to Wave meta-6 Bucket A RST walk shutdown (17 bugs surfaced). P0 because feature non-functional end-to-end — staff cannot log in after accept. Architecture decision deferred to wave plan. Walk-fix not applicable (feature path missing, not bug to patch). Phase 2 BETA Wave B scope per audit retro recommendation.
