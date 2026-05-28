@@ -82,7 +82,7 @@ docs-filename-prefix-convention,MANDATORY,1.0.0,2026-05-18,2026-05-18,docs-filen
 gap-folder-organization,MANDATORY,1.0.0,2026-05-18,2026-05-18,gap-folder-organization.md,"documents/04-quality/gaps/**,documents/04-quality/gaps/gap-status.csv",active,,
 diagram-format-selection,MANDATORY,1.0.4,2026-05-18,2026-05-21,diagram-format-selection.md,"documents/02-architecture/**/*.md,documents/06-diagrams/**/*.md,documents/03-planning/**/*.md,.claude/rules/**/*.md,.claude/skills/**/*.md",active,,
 session-end-context-check,MANDATORY,1.1.0,2026-05-19,2026-05-19,session-end-context-check.md,,active,,
-vn-localization-audit-checklist,MANDATORY,1.1.0,2026-05-19,2026-05-27,vn-localization-audit-checklist.md,"kitehub/kitehub-frontend/**,kitehub/kiteclass-frontend/**,kitehub/*/src/main/resources/templates/email/**,kitehub/*/src/main/resources/i18n/**,documents/05-guides/user-manual/**",active,,
+vn-localization-audit-checklist,MANDATORY,1.1.1,2026-05-19,2026-05-28,vn-localization-audit-checklist.md,"kitehub/kitehub-frontend/**,kiteclass/kiteclass-frontend/**,kitehub/*/src/main/resources/templates/email/**,kitehub/*/src/main/resources/i18n/**,documents/05-guides/user-manual/**",active,,
 thesis-content-standard,MANDATORY,2.0.0,2026-05-19,2026-05-26,thesis-content-standard.md,documents/08-thesis/**;documents/04-quality/audits/persona-review/*-thesis-*;.claude/rules/thesis-content-standard.md,active,,
 always-commit-action-scratchpad,MANDATORY,1.0.0,2026-05-20,2026-05-20,always-commit-action-scratchpad.md,documents/action-*.md,active,,
 markdown-variable-reference,MANDATORY,1.0.0,2026-05-21,2026-05-21,markdown-variable-reference.md,"documents/05-guides/deploy/**,documents/05-guides/operations/**,documents/02-architecture/env-reference.yaml,infrastructure/**,.claude/rules/markdown-variable-reference.md,scripts/render-env-vars.sh,scripts/check-unresolved-env-vars.sh",active,,
@@ -96,3 +96,4 @@ feature-ship-runtime-walk-mandate,CRITICAL,1.0.0,2026-05-28,2026-05-28,feature-s
 docs-only-pr-no-block-wait,MANDATORY,1.0.0,2026-05-28,2026-05-28,docs-only-pr-no-block-wait.md,".github/workflows/**,documents/**,.claude/rules/**,.claude/skills/**",active,,
 cross-flow-bug-class-sweep,MANDATORY,1.0.0,2026-05-28,2026-05-28,cross-flow-bug-class-sweep.md,"documents/04-quality/gaps/**,**/*.java,**/*.ts,**/*.tsx",active,,
 api-contract-change-caller-sweep,MANDATORY,1.0.0,2026-05-28,2026-05-28,api-contract-change-caller-sweep.md,**/*.java,active,,
+fe-build-local-verify,MANDATORY,1.0.0,2026-05-28,2026-05-28,fe-build-local-verify.md,"kitehub/kitehub-frontend/**,kiteclass/kiteclass-frontend/**",active,,

@@ -1,0 +1,6 @@
+# Fixture: prod-domain default (CHECK B / GAP-802 cơ chế #5) WITHOUT local override.
+# SIGNUP_BASE_URL default points at prod domain; local dev compose has no override
+# → emails sent locally embed dead links to https://kitehub.me.
+spring:
+  beta:
+    signup-base-url: ${SIGNUP_BASE_URL:https://kitehub.me}

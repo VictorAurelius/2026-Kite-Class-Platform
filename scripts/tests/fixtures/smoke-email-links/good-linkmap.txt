@@ -1,0 +1,3 @@
+# url status — offline link-status map for the good fixture (all resolvable, localhost).
+http://localhost:3000/beta-signup/ABC123 200
+http://localhost:3000/ 200

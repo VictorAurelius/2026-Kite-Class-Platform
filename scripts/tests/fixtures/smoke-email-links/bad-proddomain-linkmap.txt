@@ -1,0 +1,4 @@
+# url status — link resolves (200) but points at the prod domain while sent from local.
+# This is GAP-801 part 3: dead-link on local because base-URL config = prod domain.
+https://kitehub.me/beta-signup/ABC123 200
+http://localhost:3000/ 200
