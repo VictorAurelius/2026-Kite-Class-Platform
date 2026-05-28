@@ -19,6 +19,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -330,6 +331,32 @@ public class GlobalExceptionHandler {
         );
         problemDetail.setTitle("Conflict");
         problemDetail.setProperty("errorCode", "RESOURCE_CONFLICT");
+        return problemDetail;
+    }
+
+    /**
+     * Handle path/query param type mismatch (GAP-794 Wave Phase 2 Beta Wave A — secondary nit).
+     *
+     * <p>E.g. {@code GET /api/v1/consent/{visitorId}} with a non-UUID path variable raises
+     * {@link MethodArgumentTypeMismatchException}. Without this handler it falls through to
+     * {@link #handleGenericException} → HTTP 500. Correct REST semantic is 400 Bad Request
+     * (caller supplied a malformed value), not a server error.</p>
+     *
+     * @param ex type-conversion failure on a controller method argument
+     * @return 400 ProblemDetail
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ProblemDetail handleArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String required = ex.getRequiredType() == null ? "unknown" : ex.getRequiredType().getSimpleName();
+        log.warn("Argument type mismatch: param '{}' value '{}' is not a valid {}",
+            ex.getName(), ex.getValue(), required);
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.BAD_REQUEST,
+            "Parameter '" + ex.getName() + "' has an invalid value"
+        );
+        problemDetail.setTitle("Bad Request");
+        problemDetail.setProperty("parameterName", ex.getName());
+        problemDetail.setProperty("requiredType", required);
         return problemDetail;
     }
 
