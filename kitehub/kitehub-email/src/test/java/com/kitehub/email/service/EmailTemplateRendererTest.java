@@ -72,16 +72,38 @@ class EmailTemplateRendererTest {
 
     @Test
     void rendersHtmlAndText_forBetaInvite() {
+        // GAP-797: variable-name contract guard. EmailServiceClient.sendBetaInviteEmail
+        // passes the canonical set claimCode / inviteUrl / expiresAt. Both
+        // beta-invite.txt and beta-invite.html MUST read those exact keys; if a
+        // template reverts to verificationCode / signupUrl / expiryDate the body
+        // ships the ?: fallback default ('------' / '/beta/accept') and the signup
+        // flow dies. This test reproduces the sender Map and asserts the real
+        // values render in BOTH bodies (NOT the fallback defaults).
         Map<String, Object> vars = new HashMap<>();
-        vars.put("orgName", "Trung tâm Sky Education");
-        vars.put("inviteUrl", "https://kitehub.me/beta/accept");
-        vars.put("verificationCode", "382041");
+        vars.put("recipientName", "Trần Thị Hồng");
+        vars.put("orgName", "Trung tâm Anh ngữ Sky Education");
+        vars.put("claimCode", "382041");
+        vars.put("inviteUrl", "https://kitehub.me/signup/beta?code=382041");
+        vars.put("expiresAt", "Thứ Hai, 22/05/2026 lúc 14:30");
+        vars.put("unsubscribeUrl", "https://kitehub.me/unsubscribe");
 
         EmailTemplateRenderer.RenderedBodies bodies = renderer.render("beta-invite", vars, null);
 
-        assertThat(bodies.getHtml()).isNotBlank();
+        // ---- Plain-text body (beta-invite.txt) ----
         assertThat(bodies.hasText()).isTrue();
-        assertThat(bodies.getText()).contains("382041");
+        assertThat(bodies.getText()).contains("382041");                              // real claim code
+        assertThat(bodies.getText()).contains("https://kitehub.me/signup/beta?code=382041"); // real invite URL
+        assertThat(bodies.getText()).contains("Thứ Hai, 22/05/2026 lúc 14:30");       // real expiry
+        // Regression guard — the ?: fallback defaults MUST NOT appear when the
+        // canonical vars are supplied (this is exactly what the old contract drift caused).
+        assertThat(bodies.getText()).doesNotContain("------");
+        assertThat(bodies.getText()).doesNotContain("https://kitehub.me/beta/accept");
+
+        // ---- HTML body (beta-invite.html) ----
+        assertThat(bodies.getHtml()).isNotBlank();
+        assertThat(bodies.getHtml()).contains("382041");                              // real claim code
+        assertThat(bodies.getHtml()).contains("https://kitehub.me/signup/beta?code=382041"); // real invite URL href
+        assertThat(bodies.getHtml()).contains("Thứ Hai, 22/05/2026 lúc 14:30");       // real expiry (was ${expiryDate} drift)
     }
 
     @Test
