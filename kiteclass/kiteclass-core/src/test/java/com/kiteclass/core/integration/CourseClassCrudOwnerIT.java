@@ -11,7 +11,6 @@ import com.kiteclass.core.module.course.dto.CreateCourseRequest;
 import com.kiteclass.core.module.course.dto.UpdateCourseRequest;
 import com.kiteclass.core.testutil.TestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -289,30 +288,37 @@ class CourseClassCrudOwnerIT {
         Long courseInB = testDataBuilder.createTestCourse(
                 mockMvc, objectMapper, tenantB, "Khóa của tenant B", teacherInTenantB);
 
-        // Owner tenant A: GET own course → 200 OK
+        // (1) Owner tenant A: GET own course → 200 OK. This ALSO warms the cache under the
+        //     tenant-scoped key "tenantA:courseInA" (GAP-792 fix).
         mockMvc.perform(get("/api/v1/courses/" + courseInA)
                         .header("X-Tenant-Id", tenantA.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(courseInA));
 
-        // Owner tenant A: GET tenant B's course → 404 (Hibernate filter masks as not-found)
-        // findByIdAndDeletedFalse uses JPQL → Hibernate @Filter("tenantFilter") applies correctly.
-        // NOTE: symmetric direction assertion (tenant B → tenant A course) omitted — Redis cache
-        // is keyed by ID alone (@Cacheable(value="courses", key="#id")) so cross-tenant cache
-        // pollution can return prior tenant's deserialized payload with serialization error.
-        // Tracked as GAP-790 (sister of GAP-789); re-enable symmetric assertion after both close.
+        // (2) Owner tenant A: GET tenant B's course → 404 (Hibernate filter masks as not-found).
+        //     findByIdAndDeletedFalse uses JPQL → Hibernate @Filter("tenantFilter") applies correctly.
         mockMvc.perform(get("/api/v1/courses/" + courseInB)
                         .header("X-Tenant-Id", tenantA.toString()))
+                .andExpect(status().isNotFound());
+
+        // (3) GAP-792 FIX — symmetric direction re-enabled. Cache for "tenantA:courseInA" is
+        //     already warm from step (1). Previously the @Cacheable key was `#id` alone, so this
+        //     same-id lookup by tenant B would HIT tenant A's cached entry → cross-tenant leak
+        //     (HTTP 200 with tenant A's payload) OR Redis SerializationException (HTTP 500).
+        //     With the tenant-scoped key ("{tenantId}:{id}"), tenant B's lookup is a cache MISS →
+        //     tenant-scoped DB query → Hibernate filter masks tenant A's course as 404.
+        mockMvc.perform(get("/api/v1/courses/" + courseInA)
+                        .header("X-Tenant-Id", tenantB.toString()))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @Disabled("GAP-789 — Course list endpoint uses @Query(nativeQuery=true) → bypasses Hibernate "
-            + "@Filter(\"tenantFilter\"). Test PROVES the cross-tenant leak; re-enable when "
-            + "CourseRepository.findBySearchCriteria adds explicit instance_id predicate. "
-            + "See documents/04-quality/gaps/phase-1-beta/GAP-789-course-list-native-query-bypasses-tenant-filter.md")
-    @DisplayName("Cross-tenant isolation (LIST) — Owner tenant A list MUST NOT contain tenant B course [GAP-789 OPEN]")
+    @DisplayName("Cross-tenant isolation (LIST) — Owner tenant A list MUST NOT contain tenant B course [GAP-791 FIXED]")
     void crossTenantIsolation_courseList() throws Exception {
+        // GAP-791 FIX: CourseRepository.findBySearchCriteria now carries an explicit
+        // `instance_id = :tenantId` predicate (native query bypasses Hibernate @Filter),
+        // so the list endpoint is scoped to the current tenant.
+
         // Tenant A creates course
         testDataBuilder.createTestCourse(
                 mockMvc, objectMapper, tenantA, "Khóa của tenant A", teacherInTenantA);
@@ -321,8 +327,7 @@ class CourseClassCrudOwnerIT {
         Long courseInB = testDataBuilder.createTestCourse(
                 mockMvc, objectMapper, tenantB, "Khóa của tenant B", teacherInTenantB);
 
-        // Owner tenant A: LIST courses → tenant B's course MUST NOT appear in payload
-        // Currently FAILS due to native query bypassing Hibernate filter (GAP-789).
+        // Owner tenant A: LIST courses → tenant B's course MUST NOT appear in payload.
         MvcResult listA = mockMvc.perform(get("/api/v1/courses")
                         .header("X-Tenant-Id", tenantA.toString())
                         .param("page", "0")
@@ -336,7 +341,7 @@ class CourseClassCrudOwnerIT {
             if (id == courseInB) {
                 throw new AssertionError(
                         "Cross-tenant LEAK detected: tenant A list contains tenant B's courseId=" + id
-                                + " — see GAP-789");
+                                + " — see GAP-791");
             }
         });
     }
