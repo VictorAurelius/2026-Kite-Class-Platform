@@ -1,0 +1,8 @@
+version: '3.8'
+# Fixture: LOCAL dev compose WITHOUT SIGNUP_BASE_URL override → CHECK B flags dead-link.
+services:
+  service:
+    image: kitehub-service:latest
+    environment:
+      SERVER_PORT: 8080
+      # No SIGNUP_BASE_URL override → local uses prod-domain default → dead-link risk.
