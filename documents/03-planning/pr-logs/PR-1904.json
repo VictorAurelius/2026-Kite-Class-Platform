@@ -1,0 +1,37 @@
+{
+  "pr": 1904,
+  "title": "feat(wave-meta-6-bucket-a): BE MVP staff invitation flow (GAP-772)",
+  "branch": "wave/meta-6-bucket-a-be-mvp",
+  "created_at": null,
+  "merged_at": "2026-05-27T16:27:12Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": false,
+    "audits_required": [
+      "api-contract-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-27T23:27:23.116505",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 12,
+        "java_files": 11,
+        "test_files": 0,
+        "business_docs": false,
+        "missing_audits": [
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/5",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-21892"
+  }
+}

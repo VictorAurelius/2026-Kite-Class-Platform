@@ -1,0 +1,33 @@
+{
+  "pr": 1890,
+  "title": "docs(session-handoff): 2026-05-27 RST cleanup shipped + Wave 106 queue + PR-logs backfill",
+  "branch": "session-handoff/2026-05-27-rst-cleanup-wave-106-queue",
+  "created_at": null,
+  "merged_at": "2026-05-27T08:47:50Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-27T08:47:54.063694",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 6,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1970453"
+  }
+}
