@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useBranding, useUpdateBranding, useUploadLogo } from '@/hooks/use-branding';
+import { applyBrandColorVars } from '@/providers/BrandingProvider';
 import { Upload, Palette } from 'lucide-react';
 import { useState } from 'react';
 
@@ -65,7 +66,18 @@ export function BrandingSettings() {
   });
 
   const onSubmit = (data: FormData) => {
-    updateMutation.mutate(data);
+    updateMutation.mutate(data, {
+      onSuccess: () => {
+        // Re-apply brand CSS vars immediately so the new colours show without a
+        // hard reload — the query invalidation alone wouldn't recolour the DOM
+        // (the dashboard applier only re-runs on a fresh fetch). GAP-807.
+        applyBrandColorVars({
+          primaryColor: data.primaryColor,
+          secondaryColor: data.secondaryColor,
+          accentColor: data.accentColor,
+        });
+      },
+    });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
