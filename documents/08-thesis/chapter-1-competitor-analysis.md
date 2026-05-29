@@ -36,7 +36,7 @@ Trung tâm dạy thêm tại Việt Nam vận hành theo mô hình học hỗn h
 ![Giao diện trang chủ BeeClass](screenshots/competitors/beeclass-homepage.png)
 
 **Hình 1.1.** Giao diện trang chủ BeeClass — phần mềm quản lý trung tâm tiếng Anh phổ biến tại Việt Nam.
-*Nguồn: https://beeclass.com, truy cập ngày 20/05/2026.*
+*Nguồn: https://beeclass.net, truy cập ngày 30/05/2026.*
 
 Thế mạnh chính của BeeClass là giao diện tiếng Việt thân thiện và hỗ trợ quy trình đặc thù của trung tâm tiếng Anh (lịch lớp định kỳ theo tuần, đăng ký lớp thử miễn phí, theo dõi tiến độ học viên theo từng kỹ năng nghe-nói-đọc-viết). Mức giá tham khảo công bố nằm trong khoảng 1-3 triệu đồng/tháng tùy gói và số lượng học viên. Điểm yếu chính của BeeClass tương tự các sản phẩm trong phân khúc: kiến trúc đơn tenant (single-tenant) — mỗi khách hàng có một instance cơ sở dữ liệu riêng, khó mở rộng khi trung tâm mở chi nhánh thứ năm trở lên; chưa có tính năng tự sinh tài nguyên thương hiệu bằng AI; quy trình khởi tạo yêu cầu liên hệ bộ phận kinh doanh chứ chưa hoàn toàn tự phục vụ; mức giá tuy phải chăng hơn các sản phẩm hướng doanh nghiệp nhưng vẫn cao hơn mức 500.000đ/tháng mà phân khúc trung tâm tự phát nhỏ kỳ vọng.
 
