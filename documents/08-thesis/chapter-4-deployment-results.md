@@ -137,7 +137,7 @@ Toàn bộ hạ tầng đặt trong một VPC riêng (CIDR `10.0.0.0/16`) với 
 CI/CD được triển khai qua GitHub Actions với pattern OIDC + workflow_dispatch + confirm-input, tham chiếu nguyên tắc Continuous Delivery hiện đại [37, tr.115] — kết hợp build artifact bất biến (Docker image tag theo SHA commit) và deployment gate có cognitive checkpoint (workflow input `confirm=APPLY`) thay cho cơ chế auto-deploy.
 
 ```mermaid
-%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 70, "width": 200, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "34px", "messageFontSize": "32px", "noteFontSize": "32px"}}}%%
 sequenceDiagram
     participant Dev as Developer
     participant GH as GitHub Actions
@@ -155,7 +155,7 @@ sequenceDiagram
 **Hình 4.2a.** Pha build — CI verify, OIDC role assume, Docker image push tới ECR.
 
 ```mermaid
-%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 70, "width": 200, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "34px", "messageFontSize": "32px", "noteFontSize": "32px"}}}%%
 sequenceDiagram
     participant Dev as Developer
     participant GH as GitHub Actions

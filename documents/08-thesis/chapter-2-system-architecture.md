@@ -413,7 +413,7 @@ Hai cơ chế hardening quan trọng:
 Hình 2.4a-d trình bày tuần tự đăng nhập và một yêu cầu được xác thực sau đó cho luồng quản trị nền tảng.
 
 ```mermaid
-%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 70, "width": 200, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "34px", "messageFontSize": "32px", "noteFontSize": "32px"}}}%%
 sequenceDiagram
     actor User as User browser
     participant FE as kitehub-frontend
@@ -436,7 +436,7 @@ sequenceDiagram
 **Hình 2.4a.** Luồng đăng nhập — sinh JWT + audit log.
 
 ```mermaid
-%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 70, "width": 200, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "34px", "messageFontSize": "32px", "noteFontSize": "32px"}}}%%
 sequenceDiagram
     actor User as User browser
     participant FE as kitehub-frontend
@@ -497,7 +497,7 @@ Hệ thống xử lý hai đường yêu cầu song song. Đường thứ nhất
 **Bảng 2.6.** So sánh subdomain và tên miền riêng trong cơ chế định tuyến đa tenant.
 
 ```mermaid
-%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 110, "width": 240, "height": 70, "boxMargin": 18, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 75, "width": 200, "height": 70, "boxMargin": 18, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "34px", "messageFontSize": "32px", "noteFontSize": "32px"}}}%%
 sequenceDiagram
     participant B as Trình duyệt
     participant GW as kite-gateway
@@ -638,7 +638,7 @@ ERD nhấn mạnh quan hệ many-to-many giữa `STUDENT` và `CLASSES` qua bả
 Luồng cấp phát tenant từ lúc người dùng tiềm năng gửi yêu cầu beta đến khi chủ sở hữu trung tâm đăng nhập lần đầu trải qua nhiều bước phối hợp giữa frontend, backend và các dịch vụ ngoài. Hình 2.7a-b trình bày tuần tự các bước theo ký pháp UML.
 
 ```mermaid
-%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 70, "width": 200, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "34px", "messageFontSize": "32px", "noteFontSize": "32px"}}}%%
 sequenceDiagram
     actor U as Người dùng (P2)
     participant FE as Frontend
@@ -655,7 +655,7 @@ sequenceDiagram
 **Hình 2.7a.** Pha PENDING — người dùng gửi yêu cầu beta, hệ thống ghi nhận chờ quản trị duyệt.
 
 ```mermaid
-%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 70, "width": 200, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "34px", "messageFontSize": "32px", "noteFontSize": "32px"}}}%%
 sequenceDiagram
     actor Admin as Quản trị
     participant API as kitehub-subscription
@@ -818,6 +818,8 @@ Chủ sở hữu trung tâm nhấn magic-link, đặt mật khẩu và đăng nh
 | STARTER | Hiện tại | P2 Chủ sở hữu trung tâm SMB | `500.000đ/tháng` | 100 | 10 | 10 | Không | Mặc định |
 | PRO | Phát triển sau | P3 Quản lý trung tâm | `1.500.000đ/tháng` | 500 | 50 | 50 | Có (custom CNAME) | Mặc định |
 | PRO_PLUS | Phát triển sau | Chuỗi nhượng quyền multi-branch | `5.000.000đ/tháng` | 2000 | 200 | 200 | Có (custom CNAME + IP riêng) | DKIM-verified riêng |
+
+**Trạng thái hiện thực hoá.** Mã nguồn hiện tại trên kho lưu trữ KiteHub đã định nghĩa enum `PricingTier` với bốn cấp giá `FREE / BASIC / PREMIUM / ENTERPRISE` cùng mức giá `0đ / 500.000đ / 1.500.000đ / báo giá riêng`, khớp ba tầng giá đầu của Bảng 2.11 dưới tên gọi cũ. Việc đổi tên gói sang `FREE / STARTER / PRO / PRO_PLUS` để thân thiện với người dùng và đồng nhất với phân tích nhóm người dùng đại diện tại §1.1.2, bổ sung trường giới hạn `maxClasses`, và xây dựng bảng `tenant_quota` kết hợp bộ đếm Redis cho cơ chế enforcement HTTP 429 ở tầng tenant thuộc lộ trình phát triển sau. Tính năng nhận diện email DKIM riêng cho gói cao cấp (cột "Email DKIM-verified" cho PRO_PLUS) cũng thuộc lộ trình phát triển sau.
 
 Việc enforce quota dùng bảng `tenant_quota` kết hợp bộ đếm Redis kiểm tra ở mỗi request. Khi vượt quota, hệ thống trả HTTP 429 cùng banner UI hướng dẫn nâng gói.
 
