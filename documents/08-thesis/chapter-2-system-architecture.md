@@ -413,7 +413,7 @@ Hai cơ chế hardening quan trọng:
 Hình 2.4a-d trình bày tuần tự đăng nhập và một yêu cầu được xác thực sau đó cho luồng quản trị nền tảng.
 
 ```mermaid
-%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 70, "width": 200, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "34px", "messageFontSize": "32px", "noteFontSize": "32px"}}}%%
+%%{init: {"sequence": {"diagramMarginX": 30, "diagramMarginY": 20, "actorMargin": 55, "width": 180, "height": 65, "boxMargin": 14, "boxTextMargin": 8, "noteMargin": 12, "messageMargin": 40, "mirrorActors": false, "wrap": true}, "themeVariables": {"fontSize": "36px", "messageFontSize": "34px", "noteFontSize": "34px"}}}%%
 sequenceDiagram
     actor User as User browser
     participant FE as kitehub-frontend
@@ -436,7 +436,7 @@ sequenceDiagram
 **Hình 2.4a.** Luồng đăng nhập — sinh JWT + audit log.
 
 ```mermaid
-%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 70, "width": 200, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "34px", "messageFontSize": "32px", "noteFontSize": "32px"}}}%%
+%%{init: {"sequence": {"diagramMarginX": 30, "diagramMarginY": 20, "actorMargin": 55, "width": 180, "height": 65, "boxMargin": 14, "boxTextMargin": 8, "noteMargin": 12, "messageMargin": 40, "mirrorActors": false, "wrap": true}, "themeVariables": {"fontSize": "36px", "messageFontSize": "34px", "noteFontSize": "34px"}}}%%
 sequenceDiagram
     actor User as User browser
     participant FE as kitehub-frontend
@@ -445,13 +445,13 @@ sequenceDiagram
     participant PG as kite-postgres + RLS
 
     User->>FE: Nhấn Admin Instances
-    FE->>GW: GET /api/admin/v1/instances<br/>Authorization Bearer
-    GW->>GW: Xác thực chữ ký JWT<br/>+ rút claim
+    FE->>GW: GET /api/admin/v1/instances Authorization Bearer
+    GW->>GW: Xác thực chữ ký JWT + rút claim
     GW->>Admin: X-User-Id + X-Tenant-Id + X-User-Role
     Admin->>Admin: @PreAuthorize PLATFORM_ADMIN
     Admin->>PG: SET LOCAL app.current_tenant_id
     Admin->>PG: SELECT FROM instances
-    PG->>PG: RLS enforce tenant_id<br/>= current_setting
+    PG->>PG: RLS enforce tenant_id = current_setting
     PG-->>Admin: hàng thuộc tenant
     Admin-->>GW: 200 + payload
     GW-->>FE: 200
