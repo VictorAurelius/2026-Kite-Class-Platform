@@ -35,10 +35,26 @@ public class StorageProperties {
     private String endpoint;
 
     /**
+     * Browser-reachable endpoint for presigned URLs (GAP-804 Bug #13).
+     *
+     * <p>{@link #endpoint} is the in-cluster address (e.g. http://kite-minio:9000)
+     * used for server-side PutObject/GetObject. Presigned URLs handed to a browser
+     * must point at a host the browser can resolve (e.g. http://localhost:9100 in
+     * dev, or a public CDN/domain in prod). {@link #getPublicEndpoint()} falls back
+     * to {@link #endpoint} when this is unset.
+     */
+    private String publicEndpoint;
+
+    /**
      * AWS region.
      * Default: us-east-1 (required even for MinIO)
      */
     private String region = "us-east-1";
+
+    /** Public endpoint for presigned URLs, falling back to {@link #endpoint}. */
+    public String getPublicEndpoint() {
+        return (publicEndpoint != null && !publicEndpoint.isBlank()) ? publicEndpoint : endpoint;
+    }
 
     /**
      * S3/MinIO access key ID.

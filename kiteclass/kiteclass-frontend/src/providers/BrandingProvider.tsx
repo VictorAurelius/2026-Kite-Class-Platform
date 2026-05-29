@@ -51,7 +51,8 @@ interface BrandingProviderProps {
  * reuse the exact same conversion — keeps the public + authenticated paths in
  * lockstep instead of duplicating the math.
  */
-export function hexToHslString(hex: string): string | null {
+export function hexToHslString(hex: string | null | undefined): string | null {
+  if (!hex || typeof hex !== 'string') return null;
   const clean = hex.replace('#', '');
   if (clean.length !== 6) return null;
 

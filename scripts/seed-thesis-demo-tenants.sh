@@ -11,7 +11,7 @@
 # What this seeds (idempotent — safe to re-run):
 #
 #   tenant_a (Sky Education)
-#     instance_id: a5e00000-0000-0000-0000-000000000001
+#     instance_id: e8ff87e1-69fc-4842-a263-7385c68b4ffb
 #     name:        Trung tâm Anh ngữ Sky Education
 #     owner email: hong.tran@sky-edu.demo
 #     classes:     "Lớp Anh ngữ 5A1", "Lớp Anh ngữ 7B"
@@ -60,7 +60,7 @@ USE_DOCKER="${USE_DOCKER:-true}"
 # GAP-805: Sky = independent instance_id a5e0… (was 11111111-… which COLLIDES with
 # thanglong DEV_TENANT_ID in BrandingDataSeeder → broke multi-tenant isolation). Must match
 # BrandingDataSeeder Sky branding id + seed-sky-demo-enrich.sh SKY_ID.
-TENANT_A_ID="a5e00000-0000-0000-0000-000000000001"
+TENANT_A_ID="e8ff87e1-69fc-4842-a263-7385c68b4ffb"
 TENANT_A_NAME="Trung tâm Anh ngữ Sky Education"
 # shellcheck disable=SC2034  # SLUG kept for documentation + future FrontendInstance seed extension
 TENANT_A_SLUG="sky-education"
@@ -210,7 +210,7 @@ VALUES (
     'ENG-5A',
     'Anh ngữ Cấp 5',
     'Khóa Anh ngữ cấp 5 — Sky Education',
-    'ACTIVE',
+    'PUBLISHED',
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 ),
 (
@@ -218,7 +218,7 @@ VALUES (
     'ENG-7B',
     'Anh ngữ Cấp 7',
     'Khóa Anh ngữ cấp 7 — Sky Education',
-    'ACTIVE',
+    'PUBLISHED',
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 )
 ON CONFLICT DO NOTHING;
@@ -235,13 +235,13 @@ SELECT
         WHEN 'ENG-5A' THEN 'Lớp Anh ngữ 5A1'
         WHEN 'ENG-7B' THEN 'Lớp Anh ngữ 7B'
     END,
-    (SELECT id FROM teachers WHERE instance_id = '${TENANT_A_ID}'::uuid LIMIT 1),
+    NULL::uuid,
     CURRENT_DATE,
     CURRENT_DATE + INTERVAL '90 days',
     30,
     1500000.00,
     'fixed',
-    'ongoing',
+    'IN_PROGRESS',
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM courses c
 WHERE c.instance_id = '${TENANT_A_ID}'::uuid
@@ -295,7 +295,7 @@ VALUES (
     'MATH-9',
     'Toán Cấp 9',
     'Khóa Toán cấp 9 — Quang Minh',
-    'ACTIVE',
+    'PUBLISHED',
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 ),
 (
@@ -303,7 +303,7 @@ VALUES (
     'MATH-10',
     'Toán Cấp 10',
     'Khóa Toán cấp 10 — Quang Minh',
-    'ACTIVE',
+    'PUBLISHED',
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 )
 ON CONFLICT DO NOTHING;
@@ -320,13 +320,13 @@ SELECT
         WHEN 'MATH-9'  THEN 'Lớp Toán 9B'
         WHEN 'MATH-10' THEN 'Lớp Toán 10A'
     END,
-    (SELECT id FROM teachers WHERE instance_id = '${TENANT_B_ID}'::uuid LIMIT 1),
+    NULL::uuid,
     CURRENT_DATE,
     CURRENT_DATE + INTERVAL '90 days',
     25,
     1800000.00,
     'fixed',
-    'ongoing',
+    'IN_PROGRESS',
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM courses c
 WHERE c.instance_id = '${TENANT_B_ID}'::uuid

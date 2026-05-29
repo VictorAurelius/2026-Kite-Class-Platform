@@ -58,7 +58,7 @@ USE_DOCKER="${USE_DOCKER:-true}"
 # Sky Education tenant UUID (must match seed-thesis-demo-tenants.sh tenant_a)
 # GAP-805: must match seed-thesis-demo-tenants.sh TENANT_A_ID + BrandingDataSeeder Sky id.
 # a5e0… (was 11111111-… which collided with thanglong DEV_TENANT_ID → broke isolation).
-SKY_ID="a5e00000-0000-0000-0000-000000000001"
+SKY_ID="e8ff87e1-69fc-4842-a263-7385c68b4ffb"
 
 # ---------- mode parsing ----------
 MODE="seed"
@@ -182,7 +182,7 @@ SET row_security = off;
 
 DO $seed$
 DECLARE
-    sky_id     UUID := '${SKY_ID}';
+    sky_id     UUID := 'e8ff87e1-69fc-4842-a263-7385c68b4ffb';
     teacher_id BIGINT;
     rec        RECORD;
 
@@ -252,7 +252,7 @@ BEGIN
         IF v_course_id IS NULL THEN
             INSERT INTO courses (instance_id, code, name, description, status, created_at, updated_at)
             VALUES (sky_id, classes_def[v_ci][3], classes_def[v_ci][4],
-                    'Khóa học ' || classes_def[v_ci][4] || ' — Sky Education', 'ACTIVE',
+                    'Khóa học ' || classes_def[v_ci][4] || ' — Sky Education', 'PUBLISHED',
                     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING id INTO v_course_id;
         END IF;
@@ -264,9 +264,9 @@ BEGIN
             INSERT INTO classes (instance_id, course_id, code, name, teacher_id,
                                  start_date, end_date, max_students, tuition_amount, tuition_type, status,
                                  created_at, updated_at)
-            VALUES (sky_id, v_course_id, classes_def[v_ci][1], classes_def[v_ci][2], v_teacher_id,
+            VALUES (sky_id, v_course_id, classes_def[v_ci][1], classes_def[v_ci][2], NULL::uuid,
                     base_session_date, base_session_date + INTERVAL '90 days',
-                    classes_def[v_ci][6]::INT, v_tuition, 'fixed', 'ongoing',
+                    classes_def[v_ci][6]::INT, v_tuition, 'fixed', 'IN_PROGRESS',
                     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING id INTO v_class_id;
         END IF;

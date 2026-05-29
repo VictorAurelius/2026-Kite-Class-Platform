@@ -629,6 +629,21 @@ spring:
                 name: subscriptionCircuitBreaker
                 fallbackUri: forward:/fallback/subscription
 
+        # GAP-809 — PUBLIC tenant landing page (anonymous visitors, no JWT / no subdomain).
+        # tenantId is in the PATH (/api/v1/tenants/{id}/landing) so the route is already
+        # tenant-scoped; it MUST precede the /api/v1/** catch-all so it wins on path match
+        # and SKIPS TenantResolver (which would 400 on localhost/SSR with no subdomain).
+        # kiteclass-core LandingPageController resolves tenant from the path UUID.
+        - id: public-tenant-landing
+          uri: ${KITECLASS_CORE_URL:http://kiteclass-core:8080}
+          predicates:
+            - Path=/api/v1/tenants/*/landing
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: instanceCircuitBreaker
+                fallbackUri: forward:/fallback/instance
+
         # Instance APIs - Route to KiteClass Core (via TenantResolver)
         - id: instance-apis
           uri: ${KITECLASS_CORE_URL:http://kiteclass-core:8080}

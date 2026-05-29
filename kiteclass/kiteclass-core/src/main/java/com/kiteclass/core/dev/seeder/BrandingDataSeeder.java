@@ -51,10 +51,13 @@ public class BrandingDataSeeder {
     static final String DEV_FRONTEND_URL = "https://thanglong.kite.local";
 
     // GAP-805 Bucket A — demo tenant "Sky Education" branding seed.
-    // Own instance UUID (distinct from thanglong) so resources never mix across tenants.
+    // Instance UUID matches the kitehub gateway `instances` row for subdomain
+    // `sky-education` (id e8ff87e1…) so browser→gateway→core resolves the demo data
+    // (shared-DB + RLS canonical model per ADR-023). Previously a made-up a5e00000…
+    // that the gateway never resolved — see 2026-05-29 demo-trio walk align-seed-to-gateway fix.
     // Slug + display name mirror scripts/seed-thesis-demo-tenants.sh tenant_a (Sky Education),
     // proving live UI theme customisation on the multi-tenant demo.
-    static final UUID SKY_TENANT_ID = UUID.fromString("a5e00000-0000-0000-0000-000000000001");
+    static final UUID SKY_TENANT_ID = UUID.fromString("e8ff87e1-69fc-4842-a263-7385c68b4ffb");
     static final String SKY_TENANT_SLUG = "sky-education";
     static final String SKY_TENANT_REF = "dev-tenant-sky-education";
     static final String SKY_FRONTEND_URL = "https://sky-education.kite.local";
