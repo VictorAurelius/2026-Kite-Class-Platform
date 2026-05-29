@@ -9,12 +9,14 @@ export type TemplateType = 'personal' | 'organization';
 
 export type SectionId =
   | 'hero'
+  | 'stats'
   | 'about'
   | 'courses'
   | 'teachers'
   | 'certificates'
   | 'gallery'
   | 'news'
+  | 'timeline'
   | 'enrollment'
   | 'pricing'
   | 'testimonials'

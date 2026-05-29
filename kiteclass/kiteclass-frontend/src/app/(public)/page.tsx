@@ -102,6 +102,7 @@ export default async function LandingPage({
       <ThemeSync
         primaryColor={landingData.primaryColor}
         secondaryColor={landingData.secondaryColor}
+        accentColor={(landingData as Record<string, unknown>).accentColor as string | undefined}
       />
 
       <TemplateRenderer template={template} data={landingData} slots={slots} />
