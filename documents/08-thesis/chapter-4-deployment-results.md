@@ -224,8 +224,6 @@ Cô Nguyễn Thị Hà là giáo viên Tin học tại một trường tiểu h�
 ![Trang chủ công khai của cô Nguyễn Thị Hà — bộ nhận diện tông xanh dương dựng từ mẫu](evidence/demo-trio/ha-homepage-blue-branded.png)
 
 **Hình 4.3.** Trang chủ công khai của cô Nguyễn Thị Hà (gói Miễn phí) — bộ nhận diện tông xanh dương dựng từ mẫu có sẵn cho môn Toán Tiểu học.
-*Nguồn: ảnh chụp giao diện nền tảng KiteClass, truy cập 30/05/2026*
-
 ### 4.2.2 Giảng viên gói Trả phí — thầy Nguyễn Đình Nhì
 
 Thầy Nguyễn Đình Nhì dạy thêm môn Hóa học bậc trung học cơ sở với quy mô học viên lớn hơn và nhu cầu xây dựng thương hiệu cá nhân chuyên nghiệp. Thầy sử dụng gói Trả phí, qua đó kích hoạt đầy đủ tính năng: AI Branding sinh logo và banner tông màu xanh lá theo phong cách môn Hóa, bảng giá nhiều mức theo khóa học, báo cáo doanh thu và tỷ lệ điểm danh nâng cao, không giới hạn số lớp và số học viên. Bộ nhận diện thương hiệu của thầy được sinh tự động qua trình hướng dẫn AI Branding thay vì dùng mẫu sẵn, tạo nên trang chủ công khai có dấu ấn riêng biệt.
@@ -233,8 +231,6 @@ Thầy Nguyễn Đình Nhì dạy thêm môn Hóa học bậc trung học cơ s�
 ![Trang chủ công khai của thầy Nguyễn Đình Nhì — bộ nhận diện tông xanh lá sinh bằng AI Branding](evidence/demo-trio/nhi-homepage-green-branded.png)
 
 **Hình 4.4.** Trang chủ công khai của thầy Nguyễn Đình Nhì (gói Trả phí) — bộ nhận diện tông xanh lá sinh tự động qua AI Branding cho môn Hóa học THCS, tương phản với mẫu dựng sẵn của gói Miễn phí (Hình 4.3).
-*Nguồn: ảnh chụp giao diện nền tảng KiteClass, truy cập 30/05/2026*
-
 ### 4.2.3 So sánh hai gói dịch vụ
 
 Bảng 4.1 tổng hợp khác biệt giữa hai gói qua hai trường hợp vận hành thực tế.
@@ -248,17 +244,6 @@ Bảng 4.1 tổng hợp khác biệt giữa hai gói qua hai trường hợp v�
 | Báo cáo nâng cao | Không | Có (doanh thu, tỷ lệ điểm danh) |
 | Tùy biến theme | Cơ bản (chọn mẫu) | Đầy đủ (tông màu riêng) |
 | Học phí nền tảng | 0đ | Theo gói trả phí |
-
-*Nguồn: tác giả tự xây dựng*
-
-### 4.2.4 Phản hồi minh hoạ từ người dùng
-
-Trong khuôn khổ vận hành thử, hai giảng viên đã thực hiện thành công các thao tác cốt lõi: đăng ký và kích hoạt tenant, cấu hình nhận diện thương hiệu, quản lý học viên và lớp học, phát hành hóa đơn và theo dõi nhật ký hoạt động. Phản hồi minh hoạ dưới đây phản ánh trải nghiệm dự kiến của hai nhóm người dùng (dữ liệu minh hoạ phục vụ trình bày, chưa phải khảo sát chính thức quy mô lớn):
-
-- *"Trang chủ riêng giúp tôi giới thiệu lớp học chuyên nghiệp hơn mà không cần biết thiết kế."* — phản hồi minh hoạ, giảng viên gói Trả phí.
-- *"Quản lý điểm danh và học phí trên một nền tảng giúp tôi tiết kiệm thời gian so với ghi sổ thủ công."* — phản hồi minh hoạ, giảng viên gói Miễn phí.
-
-Việc thu thập số liệu sử dụng định lượng đầy đủ (số người dùng hoạt động, số lần sinh AI Branding, số giao dịch thanh toán) và khảo sát chính thức trên quy mô lớn hơn thuộc lộ trình phát triển sau.
 
 ---
 
