@@ -464,8 +464,6 @@ Một nguyên tắc thiết kế quan trọng được áp dụng: service KHÔN
 
 Mỗi trung tâm (tenant) sở hữu một trang giới thiệu công khai (landing page) riêng biệt, truy cập qua hai phương thức: subdomain mặc định `{slug}.kitehub.me` cấp cho mọi tenant, hoặc tên miền riêng (custom domain, ví dụ `skyedu.vn`) dành cho các gói dịch vụ cao cấp. Toàn bộ tenant dùng chung một mã nguồn giao diện và một cơ sở dữ liệu chia sẻ với cô lập mức hàng (RLS); nội dung cùng giao diện thương hiệu của từng tenant được phân giải theo trường Host của yêu cầu HTTP. Cơ chế này cho phép nền tảng phục vụ hàng trăm trang landing khác nhau mà không cần triển khai riêng từng bản, qua đó giữ chi phí vận hành ổn định khi số lượng tenant tăng.
 
-Hình 2.4c mô tả chuỗi định tuyến tổng thể từ trình duyệt đến dữ liệu landing của tenant.
-
 ```mermaid
 %%{init: {"flowchart": {"nodeSpacing": 30, "rankSpacing": 70}, "themeVariables": {"fontSize": "18px"}}}%%
 flowchart TD
@@ -499,8 +497,6 @@ Bảng 2.6 so sánh hai phương thức truy cập theo các tiêu chí cấp ph
 | Xác minh quyền sở hữu | Không cần | Bản ghi CNAME/TXT tách khỏi bản ghi định tuyến |
 
 **Bảng 2.6.** So sánh subdomain và tên miền riêng trong cơ chế định tuyến đa tenant.
-
-Hình 2.4d trình bày tuần tự phân giải tenant theo subdomain, từ yêu cầu trình duyệt đến dữ liệu landing được lọc bởi RLS.
 
 ```mermaid
 %%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 110, "width": 240, "height": 70, "boxMargin": 18, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
