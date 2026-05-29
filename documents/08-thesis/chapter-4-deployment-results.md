@@ -188,9 +188,30 @@ Bốn lựa chọn thiết kế nổi bật của pipeline bao gồm: ephemeral 
 
 Chi phí EC2 t3.micro được tính chi tiết như sau: hai instance chạy liên tục 24/7 ứng với 2 × 730 giờ = 1.460 giờ/tháng. AWS Free Tier cung cấp 750 giờ EC2 t3.micro/tháng, do đó phần vượt là 1.460 − 750 = 710 giờ. Với đơn giá 0,0104 USD/giờ, chi phí EC2 thực tế khoảng 710 × 0,0104 = 7,38 USD/tháng. Billing alarm được set tại các ngưỡng $5 / $50 / $150. Khi vượt $50, lộ trình review + downscale (giảm còn 1 instance, hoặc chuyển sang spot instance) sẽ được kích hoạt.
 
-### 4.1.6 Trạng thái triển khai
+### 4.1.6 Cấu hình Cloudflare biên
 
-Tính đến thời điểm thực hiện đồ án: 71 resources terraform đã apply (CloudTrail captured); hai EC2 instance + RDS PostgreSQL multi-tenant schema RLS đã chạy; Cloudflare DNS đã cutover (kitehub.me thì ALB); AWS SES production mode đã được approve; CI/CD pipeline OIDC + ECR + SSM hoạt động đầy đủ; beta tenant invite mechanism đã sẵn sàng nhận yêu cầu.
+Cloudflare đảm nhận lớp biên (edge) phía trước hạ tầng AWS, cung cấp bốn nhóm chức năng: phân giải tên miền (DNS), proxy bảo vệ, mã hóa truyền tải (SSL/TLS) và định tuyến thư điện tử. Toàn bộ lưu lượng từ Internet đi qua Cloudflare trước khi tới Application Load Balancer, nhờ đó địa chỉ IP gốc của hạ tầng AWS không lộ ra ngoài.
+
+Bảng 4.1 liệt kê các bản ghi DNS chính được cấu hình cho tên miền `kitehub.me`.
+
+| Loại bản ghi | Tên | Giá trị | Proxy | Mục đích |
+|---|---|---|---|---|
+| A | `kitehub.me` | IP của ALB | Bật (proxied) | Trỏ tên miền gốc tới load balancer |
+| CNAME | `www` | `kitehub.me` | Bật (proxied) | Chuyển hướng www về apex |
+| CNAME | `*` (wildcard) | `kitehub.me` | Bật (proxied) | Định tuyến subdomain mỗi tenant `{slug}.kitehub.me` |
+| TXT | `kitehub.me` | SPF record | Không | Xác thực nguồn gửi email |
+| TXT | `_dmarc` | DMARC policy | Không | Chính sách chống giả mạo email |
+| CNAME | `*._domainkey` | DKIM (AWS SES) | Không | Khóa ký số DKIM cho email |
+
+**Bảng 4.1.** Các bản ghi DNS chính trên Cloudflare cho tên miền `kitehub.me`.
+
+Chế độ proxy (biểu tượng đám mây cam) được bật cho các bản ghi phục vụ lưu lượng web, qua đó kích hoạt đồng thời ba lớp bảo vệ: chống tấn công từ chối dịch vụ phân tán (DDoS — Distributed Denial of Service) ở mức L3/L4/L7, tường lửa ứng dụng web (WAF — Web Application Firewall) với bộ luật quản lý sẵn, và bộ nhớ đệm tĩnh (CDN) giảm tải cho EC2. Chế độ mã hóa SSL/TLS được đặt ở mức Full (Strict), tức Cloudflare xác minh chứng chỉ hợp lệ ở cả hai chặng — từ trình duyệt tới Cloudflare và từ Cloudflare tới ALB — nhằm loại bỏ rủi ro tấn công xen giữa.
+
+Định tuyến đa tenant ở lớp DNS dựa trên bản ghi wildcard `*.kitehub.me`: mọi subdomain tenant được Cloudflare phân giải về cùng một điểm vào, sau đó gateway phân giải tenant cụ thể theo trường Host như mô tả tại mục 2.2.6. Đối với tên miền riêng của các gói cao cấp, nền tảng dùng dịch vụ Cloudflare for SaaS để tự động cấp chứng chỉ SSL cho từng tenant thông qua cơ chế xác thực quyền kiểm soát tên miền bằng bản ghi CNAME. Ngoài ra, tính năng Email Routing của Cloudflare chuyển tiếp các địa chỉ thư đến `@kitehub.me` về hộp thư vận hành, bổ trợ cho luồng gửi email giao dịch qua AWS SES.
+
+### 4.1.7 Trạng thái triển khai
+
+Tính đến thời điểm thực hiện đồ án: 71 resources terraform đã apply (CloudTrail captured); hai EC2 instance + RDS PostgreSQL multi-tenant schema RLS đã chạy; Cloudflare DNS đã cutover (kitehub.me trỏ về ALB) cùng bản ghi wildcard `*.kitehub.me` cho định tuyến landing đa tenant; cơ chế phân giải Tenant → Domain → Landing (mục 2.2.6) hoạt động trên lớp gateway, được minh chứng qua trang chủ công khai của tenant mẫu Sky Education với giao diện thương hiệu riêng (mục 4.2); AWS SES production mode đã được approve; CI/CD pipeline OIDC + ECR + SSM hoạt động đầy đủ; beta tenant invite mechanism đã sẵn sàng nhận yêu cầu.
 
 ---
 

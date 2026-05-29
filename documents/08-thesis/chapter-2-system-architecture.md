@@ -481,6 +481,74 @@ sequenceDiagram
 
 Một nguyên tắc thiết kế quan trọng được áp dụng: service KHÔNG được tự đọc claim `tenantId` từ JWT body. Gateway là biên trust duy nhất cho việc xác thực JWT; downstream service tin tưởng header `X-Tenant-Id` do gateway phát ra. Nếu mỗi service tự parse JWT, hệ thống phải duy trì public key ở nhiều nơi và lặp logic xác thực, tăng rủi ro an toàn và chi phí bảo trì.
 
+### 2.2.6 Định tuyến đa tenant — Tenant → Domain → Landing
+
+Mỗi trung tâm (tenant) sở hữu một trang giới thiệu công khai (landing page) riêng biệt, truy cập qua hai phương thức: subdomain mặc định `{slug}.kitehub.me` cấp cho mọi tenant, hoặc tên miền riêng (custom domain, ví dụ `skyedu.vn`) dành cho các gói dịch vụ cao cấp. Toàn bộ tenant dùng chung một mã nguồn giao diện và một cơ sở dữ liệu chia sẻ với cô lập mức hàng (RLS); nội dung cùng giao diện thương hiệu của từng tenant được phân giải theo trường Host của yêu cầu HTTP. Cơ chế này cho phép nền tảng phục vụ hàng trăm trang landing khác nhau mà không cần triển khai riêng từng bản, qua đó giữ chi phí vận hành ổn định khi số lượng tenant tăng.
+
+Hình 2.4c mô tả chuỗi định tuyến tổng thể từ trình duyệt đến dữ liệu landing của tenant.
+
+```mermaid
+%%{init: {"flowchart": {"nodeSpacing": 30, "rankSpacing": 70}, "themeVariables": {"fontSize": "18px"}}}%%
+flowchart TD
+    Browser["Trình duyệt<br/>{slug}.kitehub.me hoặc skyedu.vn"]
+    DNS["Cloudflare DNS<br/>wildcard *.kitehub.me + bản ghi custom domain"]
+    GW["kite-gateway<br/>Bộ lọc phân giải tenant: Host đến định danh tenant<br/>gắn header X-Tenant-Id"]
+    Core["kiteclass-core<br/>LandingPageController + RLS theo X-Tenant-Id"]
+    DB["Cơ sở dữ liệu chia sẻ (PostgreSQL)<br/>bảng landing_pages: 1 hàng mỗi tenant + RLS"]
+    FE["kiteclass-frontend (Next.js)<br/>render landing theo dữ liệu + theme tenant"]
+
+    Browser -->|"GET /api/v1/tenants/{id}/landing"| DNS
+    DNS --> GW
+    GW -->|"X-Tenant-Id"| Core
+    Core --> DB
+    Browser -->|"GET / (gốc giao diện)"| FE
+    FE -->|"lấy dữ liệu landing qua gateway"| GW
+```
+
+**Hình 2.4c.** Chuỗi định tuyến Tenant → Domain → Landing từ trình duyệt qua Cloudflare DNS, gateway phân giải tenant theo Host, đến lớp dữ liệu cô lập RLS.
+*Nguồn: tác giả tự xây dựng*
+
+Hệ thống xử lý hai đường yêu cầu song song. Đường thứ nhất phục vụ giao diện: trình duyệt gọi `GET /` tới ứng dụng Next.js, ứng dụng này tự lấy dữ liệu landing của tenant thông qua gateway. Đường thứ hai phục vụ dữ liệu: mọi yêu cầu `/api/**` đi qua gateway, nơi bộ lọc phân giải tenant đọc trường Host và ánh xạ thành định danh tenant theo bốn bước ưu tiên: thứ nhất là header nội bộ dành cho môi trường phát triển, thứ hai là so khớp hậu tố subdomain với tên miền gốc đã cấu hình, thứ ba là tra cứu theo tên miền riêng, và thứ tư là lấy từ claim của JWT làm phương án dự phòng. Sau khi xác định tenant, gateway gắn header `X-Tenant-Id` dạng UUID và kiểm tra trạng thái tenant phải là ACTIVE hoặc TRIAL trước khi chuyển tiếp tới dịch vụ lõi; nếu trạng thái khác, gateway trả về mã 503 để chặn truy cập vào tenant bị tạm ngưng.
+
+Bảng 2.9 so sánh hai phương thức truy cập theo các tiêu chí cấp phát, DNS, chứng chỉ SSL và xác minh quyền sở hữu.
+
+| Tiêu chí | Subdomain `{slug}.kitehub.me` | Tên miền riêng `skyedu.vn` |
+|---|---|---|
+| Cấp cho | Mọi tenant (mặc định) | Gói PREMIUM/ENTERPRISE |
+| DNS | Wildcard `*.kitehub.me` cấp sẵn | Tenant tự trỏ CNAME (subdomain) hoặc A (apex) |
+| Chứng chỉ SSL | Dùng chứng chỉ wildcard sẵn có | Cloudflare for SaaS tự cấp qua xác thực DCV |
+| Xác minh quyền sở hữu | Không cần | Bản ghi CNAME/TXT tách khỏi bản ghi định tuyến |
+
+**Bảng 2.9.** So sánh subdomain và tên miền riêng trong cơ chế định tuyến đa tenant.
+
+Hình 2.4d trình bày tuần tự phân giải tenant theo subdomain, từ yêu cầu trình duyệt đến dữ liệu landing được lọc bởi RLS.
+
+```mermaid
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 110, "width": 240, "height": 70, "boxMargin": 18, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
+sequenceDiagram
+    participant B as Trình duyệt
+    participant GW as kite-gateway
+    participant IR as InstanceRepository
+    participant Core as kiteclass-core
+    participant DB as PostgreSQL RLS
+
+    B->>GW: Yêu cầu với Host slug.kitehub.me
+    GW->>GW: Tách subdomain theo tên miền gốc
+    GW->>IR: findBySubdomain(slug)
+    IR-->>GW: Instance gồm định danh và trạng thái
+    Note over GW: Trạng thái ACTIVE hoặc TRIAL — khác thì trả 503
+    GW->>Core: Chuyển tiếp kèm header X-Tenant-Id dạng UUID
+    Core->>Core: Đặt ngữ cảnh tenant từ X-Tenant-Id
+    Core->>DB: Truy vấn landing_pages (RLS lọc theo tenant)
+    DB-->>Core: Hàng landing của tenant
+    Core-->>B: Dữ liệu landing gồm hero, theme, danh sách giáo viên
+```
+
+**Hình 2.4d.** Tuần tự phân giải tenant theo subdomain — gateway ánh xạ Host thành định danh tenant rồi truyền ngữ cảnh xuống lớp dữ liệu RLS.
+*Nguồn: tác giả tự xây dựng*
+
+Về an toàn, gateway là biên tin cậy duy nhất trong cơ chế định tuyến: header `X-Tenant-Id` do client gửi lên luôn bị loại bỏ và thay bằng giá trị do chính gateway phát hành sau khi phân giải Host, nhằm ngăn chặn tấn công giả mạo ngữ cảnh tenant để truy cập dữ liệu của tenant khác. Đối với tên miền riêng, nền tảng sử dụng dịch vụ Cloudflare for SaaS để tự động cấp chứng chỉ SSL thông qua cơ chế xác thực quyền kiểm soát tên miền (DCV — Domain Control Validation) bằng bản ghi CNAME, tách biệt khỏi bản ghi định tuyến lưu lượng; riêng tên miền gốc (apex) yêu cầu bản ghi A do bản ghi CNAME không hợp lệ ở mức gốc theo chuẩn DNS.
+
 ---
 
 ## 2.3 Thiết kế chi tiết
