@@ -176,6 +176,8 @@ Bốn lựa chọn thiết kế nổi bật của pipeline bao gồm: vai trò O
 
 ### 4.1.5 Ước tính chi phí
 
+**Bảng 4.1.** Ước tính chi phí hạ tầng AWS hàng tháng theo Free Tier (khu vực ap-southeast-1).
+
 | Service | Free Tier limit | Sử dụng beta (dự kiến) | Chi phí ước tính |
 |---|---|---|---|
 | EC2 t3.micro | 750 hours/month | 2 instances × 730h = 1.460h | ~$7,38/tháng (710h vượt free × 0,0104 USD/h) |
@@ -192,6 +194,8 @@ Chi phí EC2 t3.micro được tính chi tiết như sau: hai instance chạy li
 
 Cloudflare đảm nhận lớp biên (edge) phía trước hạ tầng AWS, cung cấp bốn nhóm chức năng: phân giải tên miền (DNS), proxy bảo vệ, mã hóa truyền tải (SSL/TLS) và định tuyến thư điện tử. Toàn bộ lưu lượng từ Internet đi qua Cloudflare trước khi tới Application Load Balancer, nhờ đó địa chỉ IP gốc của hạ tầng AWS không lộ ra ngoài.
 
+**Bảng 4.2.** Các bản ghi DNS chính trên Cloudflare cho tên miền `kitehub.me`.
+
 | Loại bản ghi | Tên | Giá trị | Proxy | Mục đích |
 |---|---|---|---|---|
 | A | `kitehub.me` | IP của ALB | Bật (proxied) | Trỏ tên miền gốc tới load balancer |
@@ -200,9 +204,6 @@ Cloudflare đảm nhận lớp biên (edge) phía trước hạ tầng AWS, cung
 | TXT | `kitehub.me` | SPF record | Không | Xác thực nguồn gửi email |
 | TXT | `_dmarc` | DMARC policy | Không | Chính sách chống giả mạo email |
 | CNAME | `*._domainkey` | DKIM (AWS SES) | Không | Khóa ký số DKIM cho email |
-
-**Bảng 4.1.** Các bản ghi DNS chính trên Cloudflare cho tên miền `kitehub.me`.
-
 Chế độ proxy (biểu tượng đám mây cam) được bật cho các bản ghi phục vụ lưu lượng web, qua đó kích hoạt đồng thời ba lớp bảo vệ: chống tấn công từ chối dịch vụ phân tán (DDoS — Distributed Denial of Service) ở mức L3/L4/L7, tường lửa ứng dụng web (WAF — Web Application Firewall) với bộ luật quản lý sẵn, và bộ nhớ đệm tĩnh (CDN) giảm tải cho EC2. Chế độ mã hóa SSL/TLS được đặt ở mức Full (Strict), tức Cloudflare xác minh chứng chỉ hợp lệ ở cả hai chặng — từ trình duyệt tới Cloudflare và từ Cloudflare tới ALB — nhằm loại bỏ rủi ro tấn công xen giữa.
 
 Định tuyến đa tenant ở lớp DNS dựa trên bản ghi wildcard `*.kitehub.me`: mọi subdomain tenant được Cloudflare phân giải về cùng một điểm vào, sau đó gateway phân giải tenant cụ thể theo trường Host như mô tả tại mục 2.2.6. Đối với tên miền riêng của các gói cao cấp, nền tảng dùng dịch vụ Cloudflare for SaaS để tự động cấp chứng chỉ SSL cho từng tenant thông qua cơ chế xác thực quyền kiểm soát tên miền bằng bản ghi CNAME. Ngoài ra, tính năng Email Routing của Cloudflare chuyển tiếp các địa chỉ thư đến `@kitehub.me` về hộp thư vận hành, bổ trợ cho luồng gửi email giao dịch qua AWS SES.
@@ -233,9 +234,9 @@ Thầy Nguyễn Đình Nhì dạy thêm môn Hóa học bậc trung học cơ s�
 **Hình 4.4.** Trang chủ công khai của thầy Nguyễn Đình Nhì (gói Trả phí) — bộ nhận diện tông xanh lá sinh tự động qua AI Branding cho môn Hóa học THCS, tương phản với mẫu dựng sẵn của gói Miễn phí (Hình 4.3).
 ### 4.2.3 So sánh hai gói dịch vụ
 
-Bảng 4.1 tổng hợp khác biệt giữa hai gói qua hai trường hợp vận hành thực tế.
+Bảng 4.3 tổng hợp khác biệt giữa hai gói qua hai trường hợp vận hành thực tế.
 
-**Bảng 4.1.** So sánh gói Miễn phí và gói Trả phí qua hai giảng viên độc lập.
+**Bảng 4.3.** So sánh gói Miễn phí và gói Trả phí qua hai giảng viên độc lập.
 
 | Tiêu chí | Gói Miễn phí (cô Hà) | Gói Trả phí (thầy Nhì) |
 |---|---|---|
