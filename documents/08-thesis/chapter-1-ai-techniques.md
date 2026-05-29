@@ -13,11 +13,11 @@ status: draft
 
 ### 1.3.1 Bối cảnh AI trong giáo dục SaaS
 
-Trí tuệ nhân tạo, đặc biệt là các mô hình ngôn ngữ lớn (LLM — Large Language Model) như GPT-3 [12] và các mô hình khuếch tán sinh ảnh như Stable Diffusion [13], đã tạo ra cuộc cách mạng trong nhiều ngành công nghiệp giai đoạn 2022-2026. Ngành giáo dục không ngoại lệ. Theo báo cáo 6Wresearch [3], thị trường công nghệ giáo dục Việt Nam dự báo tăng trưởng kép hàng năm (CAGR — Compound Annual Growth Rate) 12-15% giai đoạn 2024-2030, trong đó các tính năng tích hợp AI là yếu tố khác biệt cạnh tranh quan trọng cho phần mềm dạng dịch vụ (SaaS) ở phân khúc trung và cao.
+Trí tuệ nhân tạo, đặc biệt là các mô hình ngôn ngữ lớn (LLM — Large Language Model) như GPT-3 [12] và các mô hình diffusion sinh ảnh như Stable Diffusion [13], đã tạo ra cuộc cách mạng trong nhiều ngành công nghiệp giai đoạn 2022-2026. Ngành giáo dục không ngoại lệ. Theo báo cáo 6Wresearch [3], thị trường công nghệ giáo dục Việt Nam dự báo tăng trưởng kép hàng năm (CAGR — Compound Annual Growth Rate) 12-15% giai đoạn 2024-2030, trong đó các tính năng tích hợp AI là yếu tố khác biệt cạnh tranh quan trọng cho phần mềm dạng dịch vụ (SaaS) ở phân khúc trung và cao.
 
 Tuy nhiên, đa số phần mềm quản lý trung tâm giáo dục tại Việt Nam (MISA AMIS, Mona eLMS, Easy Edu, DotB — phân tích chi tiết trong Phần 1) hiện chưa tích hợp tính năng AI. Đây là khoảng trống mà KiteHub khai thác qua chiến lược tích hợp AI ngay từ giai đoạn đầu (mô-đun AI Branding) và mở rộng dần qua các giai đoạn tiếp theo.
 
-Quyết định kiến trúc của KiteHub: **sử dụng API LLM thương mại (Anthropic API, OpenAI API, Hugging Face Inference API, Stable Diffusion qua Replicate)** thay vì tự vận hành mô hình. Lý do: (1) chi phí hạ tầng GPU cao (tối thiểu $500-1000/tháng cho một thực thể GPU), (2) độ phức tạp vận hành (phục vụ mô hình, tự co giãn, giám sát), (3) tốc độ phát triển cộng đồng AI quá nhanh — mô hình tiên tiến nhất thay đổi mỗi 3-6 tháng, tự vận hành đồng nghĩa với gánh nợ kỹ thuật liên tục.
+Quyết định kiến trúc của KiteHub: **sử dụng API LLM thương mại (Anthropic API, OpenAI API, Hugging Face Inference API, Stable Diffusion qua Replicate)** thay vì tự vận hành mô hình. Lý do: (1) chi phí hạ tầng GPU cao (tối thiểu $500-1000/tháng cho một GPU instance), (2) độ phức tạp vận hành (model serving, autoscaling, giám sát), (3) tốc độ phát triển cộng đồng AI quá nhanh — mô hình tiên tiến nhất thay đổi mỗi 3-6 tháng, tự vận hành đồng nghĩa với gánh nợ kỹ thuật liên tục.
 
 ### 1.3.2 Phương pháp 1 — AI Branding (text-to-image generation)
 

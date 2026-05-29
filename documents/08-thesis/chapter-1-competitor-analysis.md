@@ -38,7 +38,7 @@ Trung tâm dạy thêm tại Việt Nam vận hành theo mô hình học hỗn h
 **Hình 1.1.** Giao diện trang chủ BeeClass — phần mềm quản lý trung tâm tiếng Anh phổ biến tại Việt Nam.
 *Nguồn: https://beeclass.com, truy cập ngày 20/05/2026.*
 
-Thế mạnh chính của BeeClass là giao diện tiếng Việt thân thiện và hỗ trợ quy trình đặc thù của trung tâm tiếng Anh (lịch lớp định kỳ theo tuần, đăng ký lớp thử miễn phí, theo dõi tiến độ học viên theo từng kỹ năng nghe-nói-đọc-viết). Mức giá tham khảo công bố nằm trong khoảng 1-3 triệu đồng/tháng tùy gói và số lượng học viên. Điểm yếu chính của BeeClass tương tự các sản phẩm trong phân khúc: kiến trúc đơn tenant (single-tenant) — mỗi khách hàng có một thực thể cơ sở dữ liệu riêng, khó mở rộng khi trung tâm mở chi nhánh thứ năm trở lên; chưa có tính năng tự sinh tài nguyên thương hiệu bằng AI; quy trình khởi tạo yêu cầu liên hệ bộ phận kinh doanh chứ chưa hoàn toàn tự phục vụ; mức giá tuy phải chăng hơn các sản phẩm hướng doanh nghiệp nhưng vẫn cao hơn mức 500.000đ/tháng mà phân khúc trung tâm tự phát nhỏ kỳ vọng.
+Thế mạnh chính của BeeClass là giao diện tiếng Việt thân thiện và hỗ trợ quy trình đặc thù của trung tâm tiếng Anh (lịch lớp định kỳ theo tuần, đăng ký lớp thử miễn phí, theo dõi tiến độ học viên theo từng kỹ năng nghe-nói-đọc-viết). Mức giá tham khảo công bố nằm trong khoảng 1-3 triệu đồng/tháng tùy gói và số lượng học viên. Điểm yếu chính của BeeClass tương tự các sản phẩm trong phân khúc: kiến trúc đơn tenant (single-tenant) — mỗi khách hàng có một instance cơ sở dữ liệu riêng, khó mở rộng khi trung tâm mở chi nhánh thứ năm trở lên; chưa có tính năng tự sinh tài nguyên thương hiệu bằng AI; quy trình khởi tạo yêu cầu liên hệ bộ phận kinh doanh chứ chưa hoàn toàn tự phục vụ; mức giá tuy phải chăng hơn các sản phẩm hướng doanh nghiệp nhưng vẫn cao hơn mức 500.000đ/tháng mà phân khúc trung tâm tự phát nhỏ kỳ vọng.
 
 ### 1.2.2 Mona eLMS — chuyên ngoại ngữ và tin học
 
@@ -75,7 +75,7 @@ Thế mạnh đặc thù của DotB là module CRM tích hợp phục vụ quả
 
 ### 1.2.5 Khảo sát nhu cầu sử dụng từ phía người dùng cuối
 
-Bên cạnh khảo sát các hệ thống đang có trên thị trường, đề tài tổng hợp nhu cầu sử dụng từ năm nhóm người dùng cuối dựa trên các báo cáo ngành công khai. Phân tích này giúp xác định những tính năng cốt lõi cần ưu tiên trong giai đoạn đầu của hệ thống đề xuất.
+Bên cạnh khảo sát các hệ thống đang có trên thị trường, đề tài tổng hợp nhu cầu sử dụng từ năm nhóm end-user dựa trên các báo cáo ngành công khai. Phân tích này giúp xác định những tính năng cốt lõi cần ưu tiên trong giai đoạn đầu của hệ thống đề xuất.
 
 *Chủ sở hữu trung tâm (Center Owner):* theo các báo cáo Magenest 2024 [2] và 6Wresearch 2024 [3] (cả hai truy cập ngày 20/05/2026), chủ sở hữu trung tâm vừa và nhỏ (1-10 chi nhánh, 100-2000 học viên) ưu tiên ba nhu cầu chính: (i) quản lý học phí và đối chiếu thanh toán tự động (khoảng 80% trung tâm vẫn dùng chuyển khoản ngân hàng kèm đối soát thủ công, chiếm 4-6 giờ/tuần làm việc văn phòng — theo báo cáo VECITA 2024 [4] truy cập ngày 20/05/2026); (ii) báo cáo doanh thu, tỷ lệ giữ chân học viên, chi phí vận hành theo thời gian thực để ra quyết định mở hoặc đóng lớp; (iii) chi phí phần mềm thấp dưới 1,5 triệu đồng/tháng phù hợp biên lợi nhuận hiện hành 25-30%.
 
@@ -87,7 +87,7 @@ Bên cạnh khảo sát các hệ thống đang có trên thị trường, đề
 
 *Học viên:* nhóm học viên (đa số là thanh thiếu niên 10-18 tuổi) cần truy cập tài liệu học tập, lịch học cá nhân, lịch bài kiểm tra và thông báo điểm danh trên thiết bị di động. Báo cáo VECITA 2024 [4] (truy cập ngày 20/05/2026) cho biết khoảng 92% học viên Việt Nam có smartphone từ độ tuổi 12; tuy nhiên các hệ thống đang có trên thị trường chủ yếu phục vụ phía quản trị, chưa thiết kế giao diện riêng cho học viên độc lập với phụ huynh.
 
-Tổng hợp năm nhóm người dùng cuối cho thấy nhu cầu chung là một nền tảng phục vụ nhiều nhóm vai trò khác nhau (đa nhóm người dùng đại diện) với phân quyền rõ ràng theo vai trò, giá thấp phù hợp phân khúc nhỏ và vừa, tích hợp Zalo cho kênh giao tiếp với phụ huynh — tất cả các tiêu chí này đều được xem xét trong định hướng kiến trúc hệ thống đề xuất.
+Tổng hợp năm nhóm end-user cho thấy nhu cầu chung là một nền tảng phục vụ nhiều nhóm vai trò khác nhau (đa nhóm người dùng đại diện) với phân quyền rõ ràng theo vai trò, giá thấp phù hợp phân khúc nhỏ và vừa, tích hợp Zalo cho kênh giao tiếp với phụ huynh — tất cả các tiêu chí này đều được xem xét trong định hướng kiến trúc hệ thống đề xuất.
 
 ### 1.2.6 Bảng so sánh tổng hợp
 
@@ -115,7 +115,7 @@ Khoảng trống thị trường mà đề tài hướng đến là *trung tâm 
 
 Dựa trên phân tích bốn hệ thống tham khảo, hệ thống đề xuất trong đề tài có bốn yếu tố khác biệt chính.
 
-*Thứ nhất, kiến trúc đa tenant nguyên bản:* cả năm hệ thống tham khảo đều triển khai theo mô hình đơn tenant — mỗi khách hàng tương ứng một thực thể cơ sở dữ liệu riêng. Khi trung tâm mở rộng lên năm chi nhánh trở lên, chủ sở hữu trung tâm phải cấp phát thêm thực thể, đồng bộ dữ liệu thủ công và sao chép cấu hình. Hệ thống đề xuất sử dụng kiến trúc đa tenant nguyên bản với cô lập ở mức cơ sở dữ liệu (mỗi tenant một schema riêng), cho phép một trung tâm có 100 chi nhánh trên cùng một thực thể, tiết kiệm khoảng 80% chi phí hạ tầng khi mở rộng.
+*Thứ nhất, kiến trúc đa tenant nguyên bản:* cả năm hệ thống tham khảo đều triển khai theo mô hình đơn tenant — mỗi khách hàng tương ứng một instance cơ sở dữ liệu riêng. Khi trung tâm mở rộng lên năm chi nhánh trở lên, chủ sở hữu trung tâm phải cấp phát thêm instance, đồng bộ dữ liệu thủ công và sao chép cấu hình. Hệ thống đề xuất sử dụng kiến trúc đa tenant nguyên bản với cô lập ở mức cơ sở dữ liệu (mỗi tenant một schema riêng), cho phép một trung tâm có 100 chi nhánh trên cùng một instance, tiết kiệm khoảng 80% chi phí hạ tầng khi mở rộng.
 
 *Thứ hai, AI Branding tự động:* chủ sở hữu trung tâm mới khai trương thường tốn 2-5 triệu đồng thuê thiết kế viên cho logo, banner và hero image marketing. AI Branding của hệ thống đề xuất tự động sinh các tài nguyên này từ prompt văn bản và màu thương hiệu, giảm thời gian sẵn sàng vận hành từ 1-2 tuần xuống còn vài giờ. Cả năm hệ thống tham khảo đều không có tính năng này.
 
