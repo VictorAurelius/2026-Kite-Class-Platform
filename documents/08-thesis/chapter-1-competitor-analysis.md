@@ -91,7 +91,7 @@ Tổng hợp năm nhóm end-user cho thấy nhu cầu chung là một nền tả
 
 ### 1.2.6 Bảng so sánh tổng hợp
 
-Bảng 1.1 tổng hợp so sánh bốn hệ thống tham khảo với hệ thống đề xuất trong đề tài theo các tiêu chí quan trọng.
+Bảng 1.1 đối chiếu trực tiếp bốn hệ thống tham khảo với hệ thống đề xuất trên các tiêu chí cạnh tranh cốt lõi: phân khúc mục tiêu, khoảng giá, kiến trúc đa tenant, mức độ tự động hóa và khả năng tuân thủ pháp luật Việt Nam.
 
 **Bảng 1.1.** So sánh bốn hệ thống tham khảo với hệ thống đề xuất theo các tiêu chí quan trọng.
 
