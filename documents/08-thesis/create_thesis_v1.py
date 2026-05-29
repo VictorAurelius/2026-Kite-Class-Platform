@@ -1706,9 +1706,10 @@ def add_introduction(doc):
         "với hai giáo viên độc lập (một dùng gói miễn phí, một dùng gói premium) trực tiếp sử dụng "
         "sản phẩm trong thực tế giảng dạy để thu thập phản hồi.")
     add_paragraph_text(doc,
-        "Về đối tượng, đồ án phục vụ ba persona chính: Solo Teacher (giáo viên độc lập, 1-50 học "
-        "viên), Center Owner (chủ sở hữu trung tâm, 1-10 chi nhánh, 100-2.000 học viên), và Center "
-        "Manager (quản lý vận hành trung tâm). Persona Parent và Student thuộc phân khúc K-12 "
+        "Về đối tượng, đồ án phục vụ ba nhóm người dùng chính: giáo viên độc lập (Solo Teacher, "
+        "1-50 học viên), chủ sở hữu trung tâm (Center Owner, 1-10 chi nhánh, 100-2.000 học viên), "
+        "và quản lý trung tâm (Center Manager). Nhóm phụ huynh (Parent) và học viên (Student) "
+        "thuộc phân khúc K-12 "
         "(Kindergarten to Grade 12 — bậc giáo dục phổ thông từ mẫu giáo đến lớp 12) được hoãn "
         "sang giai đoạn mở rộng K-12 do yêu cầu bổ sung DPO (Data Protection Officer — cán bộ "
         "bảo vệ dữ liệu) và DPIA (Data Protection Impact Assessment — đánh giá tác động bảo vệ "
@@ -1834,7 +1835,7 @@ def add_conclusion(doc):
         "trình bày trong báo cáo.")
 
     add_section_title(doc, "2. Hạn chế")
-    add_bullet_list_item(doc, "Phạm vi giai đoạn thử nghiệm tenant chỉ phục vụ 3 persona tenant (Solo Teacher, Center Owner, Center Manager); persona K-12 Parent + Student được hoãn sang giai đoạn K-12 expansion do yêu cầu DPO + DPIA bổ sung theo PDPL.")
+    add_bullet_list_item(doc, "Phạm vi giai đoạn thử nghiệm tenant chỉ phục vụ ba nhóm người dùng (giáo viên độc lập, chủ sở hữu trung tâm, quản lý trung tâm); nhóm phụ huynh và học viên thuộc phân khúc K-12 được hoãn sang giai đoạn mở rộng K-12 do yêu cầu DPO + DPIA bổ sung theo PDPL.")
     add_bullet_list_item(doc, "Một số KPI thực tế (Time to First Value, Daily Active Users, Monthly Recurring Revenue) chưa có số liệu đầy đủ do giai đoạn thử nghiệm mới có hai giáo viên độc lập (một gói miễn phí, một gói premium) trực tiếp sử dụng để thu thập phản hồi.")
     add_bullet_list_item(doc, "AI Branding mới được tích hợp ở mức MVP với 1 nhà cung cấp (Replicate Stable Diffusion XL); các phương án multi-vendor failover sẽ được triển khai trong giai đoạn production.")
 
