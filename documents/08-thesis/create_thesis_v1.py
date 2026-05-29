@@ -175,10 +175,15 @@ def add_horizontal_line(doc, width_pt=2, color='000000', space_after=Pt(6),
     đường kẻ, set left_indent + right_indent đối xứng (bottom border chỉ vẽ trong
     vùng text đã thụt lề); space_before tạo khoảng hở dưới chữ.
     """
+    from docx.enum.text import WD_LINE_SPACING
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = space_before
     p.paragraph_format.space_after = space_after
+    # Dòng rỗng chứa border mặc định cao ~13pt → đẩy đường kẻ xa chữ. Thu về thật
+    # mỏng (EXACT 2pt) để đường kẻ nằm sát ngay dưới chữ.
+    p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.EXACTLY
+    p.paragraph_format.line_spacing = Pt(2)
     if indent_cm > 0:
         p.paragraph_format.left_indent = Cm(indent_cm)
         p.paragraph_format.right_indent = Cm(indent_cm)
