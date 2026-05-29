@@ -4,9 +4,12 @@ import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.module.settings.dto.request.UpdateBrandingRequest;
 import com.kiteclass.core.module.settings.dto.response.BrandingResponse;
+import com.kiteclass.core.module.settings.storage.BrandingAssetStorage;
 import com.kiteclass.core.module.settings.versioning.BrandingVersionService;
 import java.util.Objects;
 import java.util.UUID;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -61,6 +64,14 @@ class BrandingCacheIntegrationTest {
      */
     @MockitoBean
     private BrandingVersionService brandingVersionService;
+
+    /**
+     * BrandingAssetStorage is mocked so {@code uploadLogo}/{@code uploadFavicon} don't hit a
+     * real MinIO endpoint in the cache test (GAP-804). The returned URL is irrelevant here — the
+     * test only asserts cache eviction, not the stored URL.
+     */
+    @MockitoBean
+    private BrandingAssetStorage brandingAssetStorage;
 
     private UUID tenant1;
     private UUID tenant2;
@@ -154,7 +165,9 @@ class BrandingCacheIntegrationTest {
         assertThat(cache).isNotNull();
         assertThat(cache.get(tenant1)).isNotNull();
 
-        brandingService.uploadLogo("https://cdn.example.com/new-logo.png");
+        MultipartFile logo = new MockMultipartFile(
+                "logo", "logo.png", "image/png", "fake-png-bytes".getBytes());
+        brandingService.uploadLogo(logo);
 
         assertThat(cache.get(tenant1))
                 .as("@CacheEvict on uploadLogo should clear the tenant entry")
@@ -170,7 +183,9 @@ class BrandingCacheIntegrationTest {
         assertThat(cache).isNotNull();
         assertThat(cache.get(tenant1)).isNotNull();
 
-        brandingService.uploadFavicon("https://cdn.example.com/new-favicon.ico");
+        MultipartFile favicon = new MockMultipartFile(
+                "favicon", "favicon.ico", "image/x-icon", "fake-ico-bytes".getBytes());
+        brandingService.uploadFavicon(favicon);
 
         assertThat(cache.get(tenant1))
                 .as("@CacheEvict on uploadFavicon should clear the tenant entry")
