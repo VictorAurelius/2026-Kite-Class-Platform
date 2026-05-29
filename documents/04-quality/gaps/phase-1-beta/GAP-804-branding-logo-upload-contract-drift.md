@@ -4,7 +4,7 @@ audience: dev
 
 # GAP-804 — Branding logo upload FE↔BE contract drift (multipart vs @RequestParam String)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (70% — Option A fix shipped; live-walk + FE build deferred stack down)
 **Priority:** 🟠 P1
 **Domain:** Mixed (KiteClass FE branding + BE BrandingController)
 **Found:** 2026-05-28 (Persona-simulation outside-in agent — demo-tenant planning)
@@ -47,4 +47,5 @@ Kèm: caller sweep theo `api-contract-change-caller-sweep.md` + test (FE compone
 
 ## Log
 
+- **2026-05-29 (PARTIAL 70%):** Option A shipped (Opus agent). Investigate: `BrandingServiceImpl.uploadLogo(String)` chỉ lưu string; `StorageController` presigned path đòi `X-User-Id`+`X-Tenant-Id` → dính GAP-798b; pattern hệ thống = multipart-direct (VettingController). Fix: BE `uploadLogo`/`uploadFavicon` → `@RequestPart MultipartFile` + new `BrandingAssetStorage` + `MinIOBrandingAssetStorageImpl` (PUT MinIO `kite-branding-assets`, key `static/{tenantId}/{logo|favicon}/{file}`, presigned GET 7d, VN-diacritic-safe filename, OWNER-scoped via TenantContext → bypass GAP-798b). FE `branding.ts` + uploadFavicon, bỏ manual Content-Type (browser tự set boundary). Caller sweep: migrate `BrandingCacheIntegrationTest`. `mvn -o test -Dtest=BrandingServiceTest,BrandingControllerTest` PASS. **Deferred:** live-walk (owner upload logo qua UI → 200 + render từ MinIO presigned) + FE `pnpm build` (no node_modules offline; branding.ts pure-TS low-risk). Note: branding.ts envelope-unwrap mismatch (typed thuần vs ApiResponse wrapper) = pre-existing bug toàn file, ngoài scope.
 - **2026-05-28:** Filed từ Persona-simulation outside-in agent (demo-tenant planning). Agent verify GAP-798b KHÔNG chặn branding (public no-auth getBranding/getThemeConfig), nhưng phát hiện logo upload contract drift riêng. Class request-shape mismatch — GAP-802 #2 (URL-path checker) không cover → gợi ý mở rộng detector tương lai (content-type/param-shape drift).

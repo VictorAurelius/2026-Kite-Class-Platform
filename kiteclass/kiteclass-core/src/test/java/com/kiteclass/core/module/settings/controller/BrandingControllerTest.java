@@ -16,12 +16,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
+
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -156,40 +158,44 @@ class BrandingControllerTest {
     }
 
     @Test
-    @DisplayName("Should upload logo")
+    @DisplayName("Should upload logo via multipart")
     void shouldUploadLogo() throws Exception {
         // Given
-        String logoUrl = "https://s3.amazonaws.com/bucket/logo.png";
+        String logoUrl = "https://minio.local/kite-branding-assets/static/t/logo/logo.png?sig=x";
         BrandingResponse response = BrandingResponse.builder()
                 .id(1L)
                 .logoUrl(logoUrl)
                 .build();
 
-        when(brandingService.uploadLogo(eq(logoUrl))).thenReturn(response);
+        when(brandingService.uploadLogo(any(MultipartFile.class))).thenReturn(response);
+
+        MockMultipartFile logo = new MockMultipartFile(
+                "logo", "logo.png", "image/png", "fake-png-bytes".getBytes());
 
         // When & Then
-        mockMvc.perform(post("/api/v1/settings/branding/logo")
-                        .param("fileUrl", logoUrl))
+        mockMvc.perform(multipart("/api/v1/settings/branding/logo").file(logo))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.logoUrl").value(logoUrl));
     }
 
     @Test
-    @DisplayName("Should upload favicon")
+    @DisplayName("Should upload favicon via multipart")
     void shouldUploadFavicon() throws Exception {
         // Given
-        String faviconUrl = "https://s3.amazonaws.com/bucket/favicon.ico";
+        String faviconUrl = "https://minio.local/kite-branding-assets/static/t/favicon/favicon.ico?sig=x";
         BrandingResponse response = BrandingResponse.builder()
                 .id(1L)
                 .faviconUrl(faviconUrl)
                 .build();
 
-        when(brandingService.uploadFavicon(eq(faviconUrl))).thenReturn(response);
+        when(brandingService.uploadFavicon(any(MultipartFile.class))).thenReturn(response);
+
+        MockMultipartFile favicon = new MockMultipartFile(
+                "favicon", "favicon.ico", "image/x-icon", "fake-ico-bytes".getBytes());
 
         // When & Then
-        mockMvc.perform(post("/api/v1/settings/branding/favicon")
-                        .param("fileUrl", faviconUrl))
+        mockMvc.perform(multipart("/api/v1/settings/branding/favicon").file(favicon))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.faviconUrl").value(faviconUrl));
