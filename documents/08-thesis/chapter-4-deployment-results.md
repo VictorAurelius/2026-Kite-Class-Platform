@@ -192,8 +192,6 @@ Chi phí EC2 t3.micro được tính chi tiết như sau: hai instance chạy li
 
 Cloudflare đảm nhận lớp biên (edge) phía trước hạ tầng AWS, cung cấp bốn nhóm chức năng: phân giải tên miền (DNS), proxy bảo vệ, mã hóa truyền tải (SSL/TLS) và định tuyến thư điện tử. Toàn bộ lưu lượng từ Internet đi qua Cloudflare trước khi tới Application Load Balancer, nhờ đó địa chỉ IP gốc của hạ tầng AWS không lộ ra ngoài.
 
-Bảng 4.1 liệt kê các bản ghi DNS chính được cấu hình cho tên miền `kitehub.me`.
-
 | Loại bản ghi | Tên | Giá trị | Proxy | Mục đích |
 |---|---|---|---|---|
 | A | `kitehub.me` | IP của ALB | Bật (proxied) | Trỏ tên miền gốc tới load balancer |
