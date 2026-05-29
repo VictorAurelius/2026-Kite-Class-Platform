@@ -835,12 +835,12 @@ stateDiagram-v2
     PENDING --> TRIAL: quản trị duyệt + nhấn magic-link — dùng thử 14 ngày
     TRIAL --> ACTIVE: thanh toán thành công qua VietQR
     TRIAL --> SUSPENDED: hết hạn dùng thử
-    ACTIVE --> ACTIVE: tự gia hạn hằng tháng
     ACTIVE --> SUSPENDED: thanh toán thất bại + ân hạn 3 ngày
     ACTIVE --> CANCELLED: người dùng hủy
     SUSPENDED --> ACTIVE: kích hoạt lại + thanh toán
     SUSPENDED --> CANCELLED: hết hạn lưu giữ 7 ngày
     CANCELLED --> [*]: xóa dữ liệu theo quy trình off-boarding
+    note right of ACTIVE: Tự gia hạn hằng tháng khi thanh toán thành công
 ```
 
 **Hình 2.8.** Máy trạng thái vòng đời tenant.
