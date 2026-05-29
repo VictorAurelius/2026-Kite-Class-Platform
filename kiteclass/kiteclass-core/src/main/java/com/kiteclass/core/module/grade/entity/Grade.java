@@ -89,6 +89,18 @@ public class Grade extends BaseEntity {
     private Long classId;
 
     /**
+     * Grade type discriminator (e.g. midterm, assignment, final, participation).
+     * Maps the legacy {@code grade_type} column (V1/V64) so the entity owns the
+     * column referenced by {@code uk_grades_student_class_type} (V74). Without
+     * this mapping Hibernate's test-profile DDL (ddl-auto=create-drop) generates
+     * the unique constraint but omits the column, failing schema creation.
+     * Nullable: existing single-grade flows leave it null; demo/seed data and
+     * multi-type grading set it per row.
+     */
+    @Column(name = "grade_type", length = 50)
+    private String gradeType;
+
+    /**
      * Final calculated score (0-100).
      * Null if not yet calculated.
      */
