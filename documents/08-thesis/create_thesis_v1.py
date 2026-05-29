@@ -165,18 +165,23 @@ def remove_page_border(section):
         sectPr.remove(pgBorders)
 
 
-def add_horizontal_line(doc, width_pt=2, color='000000', space_after=Pt(6)):
-    """Thêm đường kẻ ngang (horizontal rule) dưới đoạn văn liền trước.
+def add_horizontal_line(doc, width_pt=2, color='000000', space_after=Pt(6),
+                        indent_cm=0.0, space_before=Pt(0)):
+    """Thêm đường kẻ ngang (horizontal rule) riêng biệt dưới đoạn văn liền trước.
 
-    Per user direction 2026-05-20: bìa "KHOA CÔNG NGHỆ THÔNG TIN" không dùng
-    text-underline (font.underline=True) mà dùng đường kẻ ngang riêng biệt dưới
-    paragraph. Reference UTC convention: bottom border trên paragraph kế tiếp
-    rộng full content width (giữa lề trái + phải).
+    Bìa mẫu BAO_CAO_THUC_TAP.pdf: đường kẻ NGẮN (rộng ≈ dòng chữ "KHOA CÔNG
+    NGHỆ THÔNG TIN"), canh giữa, có khoảng hở dưới chữ — KHÔNG phải đường kẻ
+    full content-width, cũng KHÔNG phải text-underline. Để thu ngắn + canh giữa
+    đường kẻ, set left_indent + right_indent đối xứng (bottom border chỉ vẽ trong
+    vùng text đã thụt lề); space_before tạo khoảng hở dưới chữ.
     """
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_before = space_before
     p.paragraph_format.space_after = space_after
+    if indent_cm > 0:
+        p.paragraph_format.left_indent = Cm(indent_cm)
+        p.paragraph_format.right_indent = Cm(indent_cm)
     pPr = p._p.get_or_add_pPr()
     pBdr = OxmlElement('w:pBdr')
     bottom = OxmlElement('w:bottom')
@@ -1132,16 +1137,16 @@ def add_cover_page(doc):
     run = p.add_run("TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI")
     set_font(run, Pt(14), bold=True)
 
-    # KHOA CÔNG NGHỆ THÔNG TIN — gạch chân chữ (text-underline) khớp bìa mẫu
-    # BAO_CAO_THUC_TAP.pdf: đường gạch ngắn rộng bằng dòng chữ, canh giữa —
-    # KHÔNG dùng đường kẻ ngang full content-width. Sample XML: run underline=True.
+    # KHOA CÔNG NGHỆ THÔNG TIN — đường kẻ NGẮN canh giữa khớp bìa mẫu
+    # BAO_CAO_THUC_TAP.pdf: separate rule rộng ≈ dòng chữ, có khoảng hở dưới chữ.
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(0)
-    p.paragraph_format.space_after = Pt(6)
+    p.paragraph_format.space_after = Pt(0)
     run = p.add_run("KHOA CÔNG NGHỆ THÔNG TIN")
     set_font(run, Pt(14), bold=True)
-    run.font.underline = True
+    add_horizontal_line(doc, width_pt=2, color='000000',
+                        indent_cm=4.5, space_before=Pt(4), space_after=Pt(0))
 
     # Logo
     p = doc.add_paragraph()
