@@ -221,9 +221,19 @@ Tính đến thời điểm thực hiện đồ án: 71 tài nguyên Terraform �
 
 Cô Nguyễn Thị Hà là giáo viên Tin học tại một trường tiểu học công lập, dạy thêm môn Toán cho học sinh tiểu học ngoài giờ. Với quy mô lớp nhỏ và nhu cầu cơ bản, cô sử dụng gói Miễn phí. Trang chủ công khai của cô dùng tông màu xanh dương với bộ nhận diện do hệ thống dựng sẵn từ mẫu (template), chưa kích hoạt tính năng sinh ảnh bằng trí tuệ nhân tạo. Cô quản lý danh sách học viên, lập lịch buổi học và điểm danh qua giao diện cơ bản; phát hành hóa đơn học phí thủ công và đối soát thanh toán qua chuyển khoản. Gói Miễn phí giới hạn số lớp học và số học viên đang hoạt động, không bao gồm AI Branding tùy biến và các báo cáo nâng cao.
 
+![Trang chủ công khai của cô Nguyễn Thị Hà — bộ nhận diện tông xanh dương dựng từ mẫu](evidence/demo-trio/ha-homepage-blue-branded.png)
+
+**Hình 4.3.** Trang chủ công khai của cô Nguyễn Thị Hà (gói Miễn phí) — bộ nhận diện tông xanh dương dựng từ mẫu có sẵn cho môn Toán Tiểu học.
+*Nguồn: ảnh chụp giao diện nền tảng KiteClass, truy cập 30/05/2026*
+
 ### 4.2.2 Giảng viên gói Trả phí — thầy Nguyễn Đình Nhì
 
 Thầy Nguyễn Đình Nhì dạy thêm môn Hóa học bậc trung học cơ sở với quy mô học viên lớn hơn và nhu cầu xây dựng thương hiệu cá nhân chuyên nghiệp. Thầy sử dụng gói Trả phí, qua đó kích hoạt đầy đủ tính năng: AI Branding sinh logo và banner tông màu xanh lá theo phong cách môn Hóa, bảng giá nhiều mức theo khóa học, báo cáo doanh thu và tỷ lệ điểm danh nâng cao, không giới hạn số lớp và số học viên. Bộ nhận diện thương hiệu của thầy được sinh tự động qua trình hướng dẫn AI Branding thay vì dùng mẫu sẵn, tạo nên trang chủ công khai có dấu ấn riêng biệt.
+
+![Trang chủ công khai của thầy Nguyễn Đình Nhì — bộ nhận diện tông xanh lá sinh bằng AI Branding](evidence/demo-trio/nhi-homepage-green-branded.png)
+
+**Hình 4.4.** Trang chủ công khai của thầy Nguyễn Đình Nhì (gói Trả phí) — bộ nhận diện tông xanh lá sinh tự động qua AI Branding cho môn Hóa học THCS, tương phản với mẫu dựng sẵn của gói Miễn phí (Hình 4.3).
+*Nguồn: ảnh chụp giao diện nền tảng KiteClass, truy cập 30/05/2026*
 
 ### 4.2.3 So sánh hai gói dịch vụ
 
