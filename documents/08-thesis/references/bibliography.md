@@ -103,7 +103,6 @@ Numbers `[N]` chạy global theo first-appearance trong body. Bibliography hiệ
 
 
 
-[22] M. Poppendieck and T. Poppendieck, *Lean Software Development: An Agile Toolkit*. Boston: Addison-Wesley Professional, 2003.
 
 
 
