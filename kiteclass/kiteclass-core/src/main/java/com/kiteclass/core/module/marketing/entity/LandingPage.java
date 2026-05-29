@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.marketing.entity;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.kiteclass.core.common.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,8 +14,6 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -104,30 +103,30 @@ public class LandingPage extends BaseEntity {
     /** Teacher cards: [{"name","subject","credentials":["..."]}]. */
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "teachers", columnDefinition = "jsonb")
-    private List<Map<String, Object>> teachers;
+    private JsonNode teachers;
 
     /** Programs / subjects offered: [{"name","description","detail":["..."]}]. */
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "programs", columnDefinition = "jsonb")
-    private List<Map<String, Object>> programs;
+    private JsonNode programs;
 
     /** Pricing tiers: [{"name","price","period","features":["..."],"highlighted":bool}]. */
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "pricing_tiers", columnDefinition = "jsonb")
-    private List<Map<String, Object>> pricingTiers;
+    private JsonNode pricingTiers;
 
     /** Testimonials: [{"author","role","content","rating":int}]. */
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "testimonials", columnDefinition = "jsonb")
-    private List<Map<String, Object>> testimonials;
+    private JsonNode testimonials;
 
     /** FAQs: [{"question","answer"}]. */
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "faqs", columnDefinition = "jsonb")
-    private List<Map<String, Object>> faqs;
+    private JsonNode faqs;
 
     /** Stats highlights: [{"value","label"}]. */
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "stats", columnDefinition = "jsonb")
-    private List<Map<String, Object>> stats;
+    private JsonNode stats;
 }

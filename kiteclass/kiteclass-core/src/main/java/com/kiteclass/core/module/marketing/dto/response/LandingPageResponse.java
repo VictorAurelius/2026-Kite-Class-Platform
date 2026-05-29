@@ -1,12 +1,11 @@
 package com.kiteclass.core.module.marketing.dto.response;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-import java.util.Map;
 
 /**
  * Response DTO for landing page content.
@@ -43,10 +42,10 @@ public class LandingPageResponse {
     // Data-driven landing sections (wave-thesis-4) — all nullable; FE falls back
     // to defaults when null. Shapes documented on the LandingPage entity fields.
     private String aboutText;
-    private List<Map<String, Object>> teachers;
-    private List<Map<String, Object>> programs;
-    private List<Map<String, Object>> pricingTiers;
-    private List<Map<String, Object>> testimonials;
-    private List<Map<String, Object>> faqs;
-    private List<Map<String, Object>> stats;
+    private JsonNode teachers;
+    private JsonNode programs;
+    private JsonNode pricingTiers;
+    private JsonNode testimonials;
+    private JsonNode faqs;
+    private JsonNode stats;
 }
