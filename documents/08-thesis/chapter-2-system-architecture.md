@@ -19,7 +19,7 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 - Người dùng tiềm năng truy cập landing thì đăng ký yêu cầu truy cập beta qua form 4 trường (họ tên / email / số điện thoại / tên trung tâm)
 - Quản trị nền tảng duyệt yêu cầu thì kích hoạt quy trình cấp phát (tạo `instance_id` UUID, khởi tạo người dùng quản trị với vai trò `P2_CENTER_OWNER`, gửi email magic-link)
 - Chủ sở hữu trung tâm nhấn magic-link thì đặt mật khẩu lần đầu thì đăng nhập dashboard thì bắt đầu kỳ dùng thử 14 ngày
-- Trạng thái vòng đời: PENDING thì TRIAL thì ACTIVE / SUSPENDED / CANCELLED (chi tiết §2.3.4)
+- Trạng thái vòng đời: PENDING thì TRIAL thì ACTIVE / SUSPENDED / CANCELLED (chi tiết §2.3.5)
 
 **Đăng ký dịch vụ & thanh toán (KiteHub `kitehub-subscription` + `kitehub-admin`)**
 
@@ -525,115 +525,262 @@ Về an toàn, gateway là biên tin cậy duy nhất trong cơ chế định tu
 
 ## 2.3 Thiết kế chi tiết
 
-Phần này trình bày các sơ đồ thiết kế chi tiết theo ký pháp UML (Booch et al. [29]) bổ sung cho C4 model ở §2.2, cùng thiết kế cơ sở dữ liệu chi tiết và mô hình SaaS. §2.3.1 và §2.3.2 trình bày class diagram và ERD cho miền nghiệp vụ; §2.3.3 trình bày sequence diagram luồng cấp phát tenant; §2.3.4 trình bày máy trạng thái vòng đời tenant; §2.3.5 tổng kết phân rã service; §2.3.6 trình bày thiết kế cơ sở dữ liệu chi tiết; §2.3.7 trình bày mô hình SaaS (gói dịch vụ, thanh toán).
+Phần này trình bày các sơ đồ thiết kế chi tiết theo ký pháp UML (Booch et al. [29]) bổ sung cho C4 model ở §2.2, cùng thiết kế cơ sở dữ liệu chi tiết và mô hình SaaS. Ba mục đầu tạo thành cụm thiết kế dữ liệu liền mạch: §2.3.1 class diagram (hành vi runtime), §2.3.2 ERD (quan hệ lưu trữ), §2.3.3 thiết kế cơ sở dữ liệu chi tiết (schema từng cột). Hai mục tiếp theo trình bày thiết kế hành vi: §2.3.4 sequence diagram luồng cấp phát tenant, §2.3.5 máy trạng thái vòng đời tenant. Hai mục cuối: §2.3.6 phân rã service, §2.3.7 mô hình SaaS (gói dịch vụ, thanh toán).
 
-### 2.3.1 Class Diagram — Core Domain
+### 2.3.1 Class Diagram
 
-Sơ đồ lớp UML mô tả các entity nghiệp vụ cốt lõi của Kite Platform cùng quan hệ giữa chúng. Hình 2.5 trình bày các lớp chính trong miền giáo dục đa tenant.
+Sơ đồ lớp UML mô tả các entity nghiệp vụ cùng phương thức hành vi runtime, tách theo hai mặt phẳng kiến trúc đa tenant: mặt phẳng điều khiển (control-plane) thuộc cụm KiteHub quản lý vòng đời tenant, và mặt phẳng nghiệp vụ (domain-plane) thuộc cụm KiteClass phục vụ giáo dục. Hình 2.5a trình bày các lớp trọng tâm của KiteHub — nơi tập trung đóng góp đặc thù của đồ án (cấp phát tenant, đăng ký dịch vụ, AI Branding, tuân thủ PDPL); Hình 2.5b trình bày các lớp nghiệp vụ giáo dục đại diện của KiteClass.
 
 ```mermaid
+%%{init: {"themeVariables": {"fontSize": "18px"}}}%%
 classDiagram
-    class Tenant {
+    class BaseEntity {
+        <<abstract>>
+        +Instant createdAt
+        +Instant updatedAt
+        +boolean deleted
+    }
+    class Instance {
         +UUID id
-        +String slug
+        +String subdomain
+        +String customDomain
         +String organizationName
-        +Plan tier
+        +UUID ownerId
+        +Tier tier
         +Status status
-        +DateTime createdAt
+        +Instant trialExpiresAt
         +provision()
         +suspend()
         +cancel()
     }
     class User {
         +UUID id
-        +UUID tenantId
+        +UUID instanceId
         +String email
         +String passwordHash
         +Role role
         +Status status
     }
-    class Class {
+    class Subscription {
+        +UUID id
+        +UUID instanceId
+        +Long priceVnd
+        +Status status
+        +boolean autoRenew
+        +Instant expiresAt
+        +renew()
+    }
+    class Payment {
+        +UUID id
+        +UUID subscriptionId
+        +Long amountVnd
+        +String currency
+        +Status status
+        +String qrCodeUrl
+    }
+    class BetaAccessRequest {
+        +Long id
+        +String email
+        +String orgName
+        +String persona
+        +UUID inviteToken
+        +approve()
+    }
+    class BrandingTemplate {
+        +UUID id
+        +String name
+        +String category
+        +String themeConfig
+    }
+    class ConsentRecord {
         +Long id
         +UUID tenantId
-        +Long courseId
+        +boolean analyticsConsented
+        +boolean marketingConsented
+        +int consentVersion
+    }
+    class AdminAuditLog {
+        +Long id
+        +UUID adminUserId
+        +String action
+        +String targetEntityType
+    }
+    BaseEntity <|-- Instance
+    BaseEntity <|-- User
+    BaseEntity <|-- Subscription
+    BetaAccessRequest ..> Instance : provisions
+    Instance "1" --> "many" User : has
+    Instance "1" --> "1" Subscription : billed by
+    Subscription "1" --> "many" Payment : settles
+    Instance "1" --> "many" BrandingTemplate : uses
+    Instance "1" --> "many" ConsentRecord : records
+    Instance "1" --> "many" AdminAuditLog : audited by
+```
+
+**Hình 2.5a.** Class diagram cụm KiteHub control-plane — vòng đời tenant, đăng ký dịch vụ, AI Branding, tuân thủ PDPL.
+
+```mermaid
+%%{init: {"themeVariables": {"fontSize": "18px"}}}%%
+classDiagram
+    class Student {
+        +Long id
+        +UUID instanceId
+        +String name
+        +String email
+        +String phone
+        +Status status
+    }
+    class Course {
+        +Long id
+        +UUID instanceId
         +String code
         +String name
-        +Date startDate
-        +Date endDate
+    }
+    class Class {
+        +Long id
+        +UUID instanceId
+        +Long courseId
+        +String code
         +Integer maxStudents
         +BigDecimal tuitionAmount
         +Status status
     }
-    class Student {
+    class Enrollment {
         +Long id
-        +UUID tenantId
-        +String name
-        +String email
-        +String phone
-        +Date dateOfBirth
-        +Status status
+        +UUID instanceId
+        +Long studentId
+        +Long classId
+        +Date enrolledAt
     }
     class Grade {
         +Long id
-        +UUID tenantId
         +Long studentId
         +Long classId
         +BigDecimal score
-        +String type
-        +Date recordedAt
     }
     class Attendance {
         +Long id
-        +UUID tenantId
         +Long studentId
         +Long classId
-        +Date attendanceDate
         +Status status
     }
-    class Payment {
-        +UUID id
-        +UUID tenantId
-        +BigDecimal amount
-        +String currency
-        +Status status
-        +Date dueDate
-    }
-
-    Tenant "1" --> "many" User : has
-    Tenant "1" --> "many" Class : owns
-    Tenant "1" --> "many" Payment : bills
-    Class "1" --> "many" Student : enrolls
+    Course "1" --> "many" Class : offers
+    Class "1" --> "many" Enrollment : has
+    Student "1" --> "many" Enrollment : joins
     Student "1" --> "many" Grade : receives
-    Student "1" --> "many" Attendance : tracks
+    Student "1" --> "many" Attendance : tracked
 ```
 
-**Hình 2.5.** Class diagram — core domain entities và quan hệ.
+**Hình 2.5b.** Class diagram cụm KiteClass domain — entity giáo dục đại diện (học sinh, khoá học, lớp, đăng ký, điểm, điểm danh).
 
-Class diagram tập trung vào hành vi runtime cùng các phương thức nghiệp vụ chính: `Tenant.provision()` khởi tạo instance mới khi quản trị duyệt yêu cầu beta; `Tenant.suspend()` được gọi khi thanh toán thất bại quá thời gian ân hạn; `Tenant.cancel()` đánh dấu off-boarding sau cửa sổ lưu giữ 7 ngày. Cột `tenantId` UUID xuất hiện ở mọi entity domain — đây là cột khoá ngoại bắt buộc cho chính sách RLS PostgreSQL được mô tả ở §2.2.4.
+Sơ đồ lớp nhấn vào hành vi runtime: `Instance.provision()` khởi tạo tenant khi quản trị duyệt yêu cầu beta; `Instance.suspend()` gọi khi thanh toán thất bại quá hạn ân hạn; `Instance.cancel()` đánh dấu off-boarding sau cửa sổ lưu giữ 7 ngày; `Subscription.renew()` tự gia hạn hằng tháng; `BetaAccessRequest.approve()` chuyển yêu cầu beta thành tenant. Ba entity vòng đời (`Instance`, `User`, `Subscription`) kế thừa `BaseEntity` cung cấp các cột audit chung (`createdAt`, `updatedAt`, `deleted` cho xoá mềm). Mọi entity đều mang cột định danh tenant (`instanceId`/`tenantId` UUID) — khoá ngoại bắt buộc cho chính sách RLS PostgreSQL mô tả ở §2.2.4. Hai cụm chia sẻ chung khoá tenant nhưng thuộc hai schema tách biệt (`kitehub` và `kiteclass_shared`) như trình bày ở §2.3.3.
 
 ### 2.3.2 ERD — Sơ đồ quan hệ thực thể
 
-Sơ đồ ERD (Entity Relationship Diagram) cung cấp góc nhìn ở tầng lưu trữ, tập trung vào tính cardinality giữa các bảng — khác với class diagram §2.3.1 vốn tập trung vào hành vi runtime và phương thức.
+Sơ đồ ERD (Entity Relationship Diagram) cung cấp góc nhìn ở tầng lưu trữ vật lý — tập trung vào khoá chính (PK), khoá ngoại (FK), cardinality giữa các bảng và bảng nối (junction) — khác với class diagram §2.3.1 vốn tập trung vào hành vi runtime và phương thức. ERD cũng được tách theo hai cụm tương ứng hai schema: Hình 2.6a cho cụm KiteHub control-plane, Hình 2.6b cho cụm KiteClass domain.
 
 ```mermaid
 erDiagram
-    TENANT ||--o{ USER : has
-    TENANT ||--o{ CLASSES : owns
-    TENANT ||--o{ STUDENT : registers
-    TENANT ||--o{ PAYMENT : bills
-    CLASSES ||--o{ STUDENT_CLASS : enrolls
-    STUDENT ||--o{ STUDENT_CLASS : participates
-    STUDENT ||--o{ GRADE : receives
-    STUDENT ||--o{ ATTENDANCE : tracks
-    CLASSES ||--o{ GRADE : grades
-    CLASSES ||--o{ ATTENDANCE : records
+    INSTANCES ||--o{ USERS : "FK instance_id"
+    INSTANCES ||--|| SUBSCRIPTIONS : "FK instance_id (1-1)"
+    SUBSCRIPTIONS ||--o{ PAYMENTS : "FK subscription_id"
+    INSTANCES ||--o{ BRANDING_TEMPLATES : "FK instance_id"
+    INSTANCES ||--o{ CONSENT_RECORDS : "FK tenant_id"
+    INSTANCES ||--o{ ADMIN_AUDIT_LOGS : "FK target_entity_id"
+    BETA_ACCESS_REQUESTS ||--o| INSTANCES : "provisions"
 ```
 
-**Hình 2.6.** Sơ đồ ERD high-level mô tả quan hệ giữa các entity chính trong hệ thống.
+**Hình 2.6a.** ERD cụm KiteHub control-plane — `INSTANCES` là bảng gốc (PK `id` UUID), quan hệ 1-1 với `SUBSCRIPTIONS` và 1-N tới các bảng còn lại.
 
-ERD nhấn mạnh quan hệ many-to-many giữa `STUDENT` và `CLASSES` qua bảng nối `STUDENT_CLASS` (một học sinh có thể đăng ký nhiều lớp, một lớp có nhiều học sinh) — chi tiết quan hệ này bị che giấu ở class diagram cấp độ runtime. Mọi quan hệ xuất phát từ `TENANT` đều có cardinality `1..N` thể hiện ranh giới đa tenant: không có entity nghiệp vụ nào tồn tại ngoài ngữ cảnh tenant.
+```mermaid
+erDiagram
+    INSTANCES ||--o{ STUDENTS : "FK instance_id"
+    INSTANCES ||--o{ COURSES : "FK instance_id"
+    COURSES ||--o{ CLASSES : "FK course_id"
+    STUDENTS ||--o{ ENROLLMENTS : "FK student_id"
+    CLASSES ||--o{ ENROLLMENTS : "FK class_id"
+    STUDENTS ||--o{ GRADES : "FK student_id"
+    CLASSES ||--o{ GRADES : "FK class_id"
+    STUDENTS ||--o{ ATTENDANCE : "FK student_id"
+    CLASSES ||--o{ ATTENDANCE : "FK class_id"
+```
 
-### 2.3.3 Sequence Diagram — Luồng cấp phát tenant
+**Hình 2.6b.** ERD cụm KiteClass domain — bảng nối `ENROLLMENTS` phân giải quan hệ nhiều-nhiều giữa `STUDENTS` và `CLASSES`.
+
+ERD bộc lộ các chi tiết tầng lưu trữ bị che ở class diagram: quan hệ nhiều-nhiều giữa `STUDENTS` và `CLASSES` được phân giải qua bảng nối `ENROLLMENTS` (một học sinh đăng ký nhiều lớp, một lớp có nhiều học sinh); quan hệ 1-1 giữa `INSTANCES` và `SUBSCRIPTIONS` (mỗi tenant một gói đang hoạt động). Mọi bảng nghiệp vụ đều mang khoá ngoại định danh tenant (`instance_id`/`tenant_id`) với cardinality `1..N` từ `INSTANCES` — thể hiện ranh giới đa tenant: không bản ghi nghiệp vụ nào tồn tại ngoài ngữ cảnh tenant. Schema chi tiết từng cột của các bảng đại diện được trình bày liền sau tại §2.3.3.
+
+### 2.3.3 Thiết kế cơ sở dữ liệu
+
+Tiếp nối ERD §2.3.2, phần này trình bày schema chi tiết từng cột của ba bảng đại diện cho các trục thiết kế của Kite Platform: `instances` (control-plane, vòng đời tenant), `subscriptions` (control-plane, nguồn sự thật billing) và `students` (domain-plane, hồ sơ học sinh — bảng chịu yêu cầu PDPL chặt chẽ nhất). Schema được pull canonical từ chuỗi migration Flyway của hai cụm dịch vụ (`kitehub` 57 migration, `kiteclass_shared` 76 migration). Các bảng nghiệp vụ khác (`courses`, `classes`, `enrollments`, `attendance`, `grades`, `branding_templates`) tuân theo cùng quy ước `instance_id` UUID + RLS theo tenant (§2.2.4) và quan hệ thực thể tại §2.3.2.
+
+Bảng `instances` (microservice `kitehub-subscription`, control-plane) lưu metadata cấp tenant: mỗi dòng tương ứng với một trung tâm dạy thêm có dùng nền tảng. Bảng này là source-of-truth cho vòng đời tenant (TRIAL / ACTIVE / SUSPENDED / CANCELLED).
+
+**Bảng 2.7.** Schema chi tiết bảng `instances` (microservice `kitehub-subscription`).
+
+| TT | Tên cột | Kiểu dữ liệu | Mô tả |
+|:--:|---|---|---|
+| 1 | `id` | UUID | Khoá chính, định danh tenant (UUID v4) |
+| 2 | `subdomain` | VARCHAR(50) UNIQUE | Subdomain riêng `<subdomain>.kitehub.me`, dùng cho routing |
+| 3 | `custom_domain` | VARCHAR(255) | Tên miền riêng (chỉ áp dụng gói PRO trở lên) |
+| 4 | `domain_verify_token` | VARCHAR(255) | Token DCV (Domain Control Validation) sinh khi tenant đăng ký tên miền riêng |
+| 5 | `domain_verified_at` | TIMESTAMP | Thời điểm xác minh tên miền thành công qua bản ghi CNAME/TXT |
+| 6 | `domain_status` | VARCHAR(50) | Trạng thái xác minh tên miền: `PENDING` / `VERIFIED` / `FAILED` |
+| 7 | `organization_name` | VARCHAR(200) | Tên hiển thị trung tâm (ví dụ `Trung tâm Anh ngữ Sky Education`) |
+| 8 | `owner_id` | UUID | Tham chiếu tới user vai trò `P2_CENTER_OWNER` |
+| 9 | `tier` | VARCHAR(20) | Gói dịch vụ: FREE / STARTER / PRO / PRO_PLUS |
+| 10 | `status` | VARCHAR(20) | Trạng thái vòng đời: TRIAL / ACTIVE / SUSPENDED / CANCELLED |
+| 11 | `database_url` | VARCHAR(500) | URL kết nối cơ sở dữ liệu của tenant |
+| 12 | `database_password` | VARCHAR(255) | Mật khẩu DB đã mã hoá AES-256-GCM (không lưu plaintext) |
+| 13 | `trial_started_at` | TIMESTAMP | Thời điểm bắt đầu dùng thử |
+| 14 | `trial_expires_at` | TIMESTAMP | Thời điểm hết hạn dùng thử (mặc định 14 ngày) |
+| 15 | `subscription_expires_at` | TIMESTAMP | Thời điểm hết hạn gói đang sử dụng |
+| 16 | `created_at` | TIMESTAMP | Thời điểm tạo bản ghi |
+| 17 | `updated_at` | TIMESTAMP | Thời điểm cập nhật gần nhất |
+| 18 | `deleted` | BOOLEAN | Cờ xoá mềm (soft delete) phục vụ cửa sổ lưu giữ 7 ngày |
+
+Các chỉ mục trên `subdomain`, `owner_id`, `status`, `tier`, và partial index `deleted=false` đảm bảo truy vấn dashboard quản trị (lọc theo gói + trạng thái) đạt P95 dưới 100ms ngay cả khi quy mô lên 200 tenant.
+
+Bảng `subscriptions` (microservice `kitehub-subscription`, control-plane) là nguồn sự thật cho trạng thái đăng ký dịch vụ của mỗi tenant: mỗi tenant có một bản ghi gói đang hoạt động (quan hệ 1-1 với `instances`), liên kết tới chuỗi `payments` qua khoá ngoại.
+
+**Bảng 2.8.** Schema chi tiết bảng `subscriptions` (microservice `kitehub-subscription`).
+
+| TT | Tên cột | Kiểu dữ liệu | Mô tả |
+|:--:|---|---|---|
+| 1 | `id` | UUID | Khoá chính |
+| 2 | `instance_id` | UUID NOT NULL | Khoá ngoại tới `instances.id` — bắt buộc cho RLS |
+| 3 | `tier` | VARCHAR(20) | Gói: FREE / STARTER / PRO / PRO_PLUS |
+| 4 | `price_vnd` | BIGINT | Giá gói theo VND (lưu số nguyên đồng, không thập phân) |
+| 5 | `status` | VARCHAR(20) | Trạng thái: TRIAL / ACTIVE / PAST_DUE / CANCELLED |
+| 6 | `started_at` | TIMESTAMP | Thời điểm kích hoạt gói |
+| 7 | `expires_at` | TIMESTAMP | Thời điểm hết hạn chu kỳ hiện tại |
+| 8 | `auto_renew` | BOOLEAN | Cờ tự gia hạn hằng tháng (mặc định true) |
+| 9 | `pending_payment_id` | UUID | Tham chiếu payment đang chờ thanh toán (nullable) |
+| 10 | `created_at` | TIMESTAMP | Thời điểm tạo bản ghi |
+| 11 | `updated_at` | TIMESTAMP | Thời điểm cập nhật gần nhất |
+
+Bảng `students` (microservice `kiteclass-core`, domain-plane) lưu hồ sơ học sinh đã đăng ký tại tenant. Bảng này có volume lớn nhất trong các bảng domain (mục tiêu 50-500 học sinh/tenant hiện tại) và là bảng chịu yêu cầu tuân thủ PDPL chặt chẽ nhất do chứa thông tin cá nhân nhạy cảm.
+
+**Bảng 2.9.** Schema chi tiết bảng `students` (microservice `kiteclass-core`).
+
+| TT | Tên cột | Kiểu dữ liệu | Mô tả |
+|:--:|---|---|---|
+| 1 | `id` | BIGSERIAL | Khoá chính (tự tăng) |
+| 2 | `instance_id` | UUID NOT NULL | Khoá ngoại tới `instances.id` — bắt buộc cho RLS |
+| 3 | `name` | VARCHAR(100) | Họ tên đầy đủ (ví dụ `Trần Thị Hồng`) |
+| 4 | `email` | VARCHAR(255) | Email liên lạc (có thể NULL nếu phụ huynh chưa cung cấp) |
+| 5 | `phone` | VARCHAR(20) | Số điện thoại VN (ví dụ `0901 234 567`) |
+| 6 | `date_of_birth` | DATE | Ngày sinh |
+| 7 | `gender` | VARCHAR(10) | Giới tính |
+| 8 | `address` | TEXT | Địa chỉ liên lạc |
+| 9 | `avatar_url` | VARCHAR(500) | Đường dẫn ảnh đại diện trên MinIO S3 |
+| 10 | `status` | VARCHAR(20) | Trạng thái: PENDING / ACTIVE / INACTIVE / GRADUATED / DROPPED |
+| 11 | `note` | TEXT | Ghi chú nội bộ của trung tâm |
+| 12 | `created_at` | TIMESTAMP | Thời điểm tạo hồ sơ |
+| 13 | `updated_at` | TIMESTAMP | Thời điểm cập nhật gần nhất |
+
+Bảng `students` chứa thông tin cá nhân nhạy cảm và do đó phải tuân thủ PDPL 2023 Điều 11 [9] về quyền của chủ thể dữ liệu. Hiện tại cho trung tâm dạy thêm SMB, các trường nhạy cảm cao (CMND/CCCD, mã định danh học sinh quốc gia) không được lưu trữ; khi mở rộng sang K-12 ở lộ trình phát triển sau, các yêu cầu của DPO/DPIA sẽ bổ sung trường mã hoá riêng cho thông tin trẻ vị thành niên.
+
+### 2.3.4 Sequence Diagram — Luồng cấp phát tenant
 
 Luồng cấp phát tenant từ lúc người dùng tiềm năng gửi yêu cầu beta đến khi chủ sở hữu trung tâm đăng nhập lần đầu trải qua nhiều bước phối hợp giữa frontend, backend và các dịch vụ ngoài. Hình 2.7a-b trình bày tuần tự các bước theo ký pháp UML.
 
@@ -676,9 +823,9 @@ sequenceDiagram
 
 **Hình 2.7b.** Pha TRIAL — quản trị duyệt yêu cầu, hệ thống cấp tenant + gửi magic-link, người dùng kích hoạt tài khoản. Sự kiện `branding.deploy.exchange` được phát qua RabbitMQ song song cho `kitehub-branding` dựng template mặc định.
 
-Tuần tự cho thấy ranh giới giữa pha PENDING (chờ duyệt thủ công) và pha TRIAL (sau khi quản trị kích hoạt) — đây là điểm chuyển trạng thái quan trọng được tham chiếu lại tại Hình 2.8 §2.3.4 (máy trạng thái vòng đời tenant). Việc phát sự kiện fanout `branding.deploy.exchange` qua RabbitMQ song song với gửi email cho phép `kitehub-branding` dựng template mặc định trong khi chờ chủ sở hữu trung tâm xác thực — giảm thời gian onboarding khi user click magic-link.
+Tuần tự cho thấy ranh giới giữa pha PENDING (chờ duyệt thủ công) và pha TRIAL (sau khi quản trị kích hoạt) — đây là điểm chuyển trạng thái quan trọng được tham chiếu lại tại Hình 2.8 §2.3.5 (máy trạng thái vòng đời tenant). Việc phát sự kiện fanout `branding.deploy.exchange` qua RabbitMQ song song với gửi email cho phép `kitehub-branding` dựng template mặc định trong khi chờ chủ sở hữu trung tâm xác thực — giảm thời gian onboarding khi user click magic-link.
 
-### 2.3.4 Máy trạng thái vòng đời tenant
+### 2.3.5 Máy trạng thái vòng đời tenant
 
 Vòng đời tenant do service `kitehub-subscription` quản lý theo máy trạng thái 5 trạng thái biểu diễn trong Hình 2.8.
 
@@ -700,11 +847,11 @@ stateDiagram-v2
 
 Diễn giải các bước chuyển trạng thái: PENDING → TRIAL khi quản trị duyệt yêu cầu beta và kích hoạt cấp phát (tạo `instance_id` UUID, khởi tạo `P2_CENTER_OWNER`, gửi magic-link) — dùng thử 14 ngày. TRIAL → ACTIVE khi thanh toán thành công + hệ thống phát hành hóa đơn. ACTIVE → SUSPENDED sau khi gia hạn thất bại + ân hạn 3 ngày — tenant không đăng nhập được, dữ liệu lưu giữ 7 ngày. SUSPENDED → CANCELLED sau 7 ngày lưu giữ — dữ liệu domain xóa theo off-boarding; audit log lưu theo PDPL Điều 11 [9]. Cột `tenant_id` tồn tại đến khi CANCELLED + cửa sổ lưu giữ kết thúc; chính sách RLS lọc dựa trên `tenant_id` KHÔNG dựa trên trạng thái — tầng service tự enforce kiểm tra trạng thái (tenant SUSPENDED hiển thị "Tài khoản bị tạm khóa, vui lòng liên hệ hỗ trợ").
 
-### 2.3.5 Phân rã service — 6 service KiteHub + 1 KiteClass core
+### 2.3.6 Phân rã service — 6 service KiteHub + 1 KiteClass core
 
 Danh mục service được tổng hợp theo mô hình Backstage [21] (mỗi service đóng vai một component có metadata + ownership + dependency).
 
-**Bảng 2.7.** Danh mục service của Kite Platform.
+**Bảng 2.10.** Danh mục service của Kite Platform.
 
 | Service | Cổng | Trách nhiệm | Cơ sở dữ liệu |
 |---|---|---|---|
@@ -719,59 +866,6 @@ Danh mục service được tổng hợp theo mô hình Backstage [21] (mỗi se
 Các phụ thuộc liên service được tổng hợp gồm: `kitehub-subscription` gọi `kitehub-email` qua REST và sự kiện RabbitMQ `email.exchange`; `kitehub-subscription` phát sự kiện `branding.deploy.*` để `kitehub-branding` tiêu thụ; `kitehub-email` lấy gói branding qua WebClient để dựng template; `kiteclass-core` lưu trữ ảnh đại diện và bài nộp trên MinIO S3 và phát thông báo bất đồng bộ qua RabbitMQ.
 
 Hệ thống được cấu thành từ ba lớp dịch vụ. Lớp nền tảng KiteHub gồm sáu dịch vụ độc lập đảm nhận các trách nhiệm khác nhau: quản trị nền tảng (`kitehub-admin`), nhận diện thương hiệu (`kitehub-branding`), thư điện tử (`kitehub-email`), điều phối yêu cầu (`kitehub-gateway`), thư viện dùng chung (`kitehub-platform`) và quản lý đăng ký (`kitehub-subscription`); trong đó năm dịch vụ triển khai container độc lập còn `kitehub-platform` là thư viện JAR dùng chung không triển khai riêng. Lớp nghiệp vụ tenant KiteClass tập trung tại dịch vụ `kiteclass-core` phục vụ toàn bộ chu trình giáo dục theo tenant. Lớp giao diện gồm hai ứng dụng Next.js phục vụ tập người dùng khác nhau: `kitehub-frontend` cho marketing và quản trị tenant, `kiteclass-frontend` cho giao diện giáo dục. Cùng với tám container hạ tầng dùng chung (cơ sở dữ liệu, cache, hàng đợi sự kiện, lưu trữ object) tạo thành tổng cộng mười bảy thành phần tách biệt.
-
-### 2.3.6 Thiết kế cơ sở dữ liệu
-
-Phần này trình bày schema chi tiết của hai bảng cốt lõi đại diện cho hai mặt phẳng đa tenant của Kite Platform: bảng `instances` thuộc cụm subscription (control-plane, quản lý vòng đời tenant) và bảng `students` thuộc cụm core (domain-plane, lưu hồ sơ học sinh và là bảng có yêu cầu tuân thủ PDPL chặt chẽ nhất). ERD tổng quan đã được giới thiệu tại §2.3.2; phần này bổ sung thông tin từng cột phục vụ phát triển và bảo trì. Schema được pull canonical từ chuỗi migration Flyway của hai cụm dịch vụ. Các bảng nghiệp vụ khác như `classes`, `courses`, `teachers`, `enrollments`, `attendance` tuân theo cùng quy ước (`instance_id` UUID + RLS theo tenant) đã trình bày tại §2.2.4 và quan hệ thực thể tại §2.3.2.
-
-Bảng `instances` (microservice `kitehub-subscription`, control-plane) lưu metadata cấp tenant: mỗi dòng tương ứng với một trung tâm dạy thêm có dùng nền tảng. Bảng này là source-of-truth cho vòng đời tenant (TRIAL / ACTIVE / SUSPENDED / CANCELLED).
-
-**Bảng 2.8.** Schema chi tiết bảng `instances` (microservice `kitehub-subscription`).
-
-| TT | Tên cột | Kiểu dữ liệu | Mô tả |
-|:--:|---|---|---|
-| 1 | `id` | UUID | Khoá chính, định danh tenant (UUID v4) |
-| 2 | `subdomain` | VARCHAR(50) UNIQUE | Subdomain riêng `<subdomain>.kitehub.me`, dùng cho routing |
-| 3 | `custom_domain` | VARCHAR(255) | Tên miền riêng (chỉ áp dụng gói PRO trở lên) |
-| 4 | `domain_verify_token` | VARCHAR(255) | Token DCV (Domain Control Validation) sinh khi tenant đăng ký tên miền riêng |
-| 5 | `domain_verified_at` | TIMESTAMP | Thời điểm xác minh tên miền thành công qua bản ghi CNAME/TXT |
-| 6 | `domain_status` | VARCHAR(50) | Trạng thái xác minh tên miền: `PENDING` / `VERIFIED` / `FAILED` |
-| 7 | `organization_name` | VARCHAR(200) | Tên hiển thị trung tâm (ví dụ `Trung tâm Anh ngữ Sky Education`) |
-| 8 | `owner_id` | UUID | Tham chiếu tới user vai trò `P2_CENTER_OWNER` |
-| 9 | `tier` | VARCHAR(20) | Gói dịch vụ: FREE / STARTER / PRO / PRO_PLUS |
-| 10 | `status` | VARCHAR(20) | Trạng thái vòng đời: TRIAL / ACTIVE / SUSPENDED / CANCELLED |
-| 11 | `database_url` | VARCHAR(500) | URL kết nối cơ sở dữ liệu của tenant |
-| 12 | `database_password` | VARCHAR(255) | Mật khẩu DB đã mã hoá AES-256-GCM (không lưu plaintext) |
-| 13 | `trial_started_at` | TIMESTAMP | Thời điểm bắt đầu dùng thử |
-| 14 | `trial_expires_at` | TIMESTAMP | Thời điểm hết hạn dùng thử (mặc định 14 ngày) |
-| 15 | `subscription_expires_at` | TIMESTAMP | Thời điểm hết hạn gói đang sử dụng |
-| 16 | `created_at` | TIMESTAMP | Thời điểm tạo bản ghi |
-| 17 | `updated_at` | TIMESTAMP | Thời điểm cập nhật gần nhất |
-| 18 | `deleted` | BOOLEAN | Cờ xoá mềm (soft delete) phục vụ cửa sổ lưu giữ 7 ngày |
-
-Các chỉ mục trên `subdomain`, `owner_id`, `status`, `tier`, và partial index `deleted=false` đảm bảo truy vấn dashboard quản trị (lọc theo gói + trạng thái) đạt P95 dưới 100ms ngay cả khi quy mô lên 200 tenant.
-
-Bảng `students` (microservice `kiteclass-core`, domain-plane) lưu hồ sơ học sinh đã đăng ký tại tenant. Bảng này có volume lớn nhất trong các bảng domain (mục tiêu 50-500 học sinh/tenant hiện tại) và là bảng chịu yêu cầu tuân thủ PDPL chặt chẽ nhất do chứa thông tin cá nhân nhạy cảm.
-
-**Bảng 2.9.** Schema chi tiết bảng `students` (microservice `kiteclass-core`).
-
-| TT | Tên cột | Kiểu dữ liệu | Mô tả |
-|:--:|---|---|---|
-| 1 | `id` | BIGSERIAL | Khoá chính (tự tăng) |
-| 2 | `instance_id` | UUID NOT NULL | Khoá ngoại tới `instances.id` — bắt buộc cho RLS |
-| 3 | `name` | VARCHAR(100) | Họ tên đầy đủ (ví dụ `Trần Thị Hồng`) |
-| 4 | `email` | VARCHAR(255) | Email liên lạc (có thể NULL nếu phụ huynh chưa cung cấp) |
-| 5 | `phone` | VARCHAR(20) | Số điện thoại VN (ví dụ `0901 234 567`) |
-| 6 | `date_of_birth` | DATE | Ngày sinh |
-| 7 | `gender` | VARCHAR(10) | Giới tính |
-| 8 | `address` | TEXT | Địa chỉ liên lạc |
-| 9 | `avatar_url` | VARCHAR(500) | Đường dẫn ảnh đại diện trên MinIO S3 |
-| 10 | `status` | VARCHAR(20) | Trạng thái: PENDING / ACTIVE / INACTIVE / GRADUATED / DROPPED |
-| 11 | `note` | TEXT | Ghi chú nội bộ của trung tâm |
-| 12 | `created_at` | TIMESTAMP | Thời điểm tạo hồ sơ |
-| 13 | `updated_at` | TIMESTAMP | Thời điểm cập nhật gần nhất |
-
-Bảng `students` chứa thông tin cá nhân nhạy cảm và do đó phải tuân thủ PDPL 2023 Điều 11 [9] về quyền của chủ thể dữ liệu. Hiện tại cho trung tâm dạy thêm SMB, các trường nhạy cảm cao (CMND/CCCD, mã định danh học sinh quốc gia) không được lưu trữ; khi mở rộng sang K-12 ở lộ trình phát triển sau, các yêu cầu của DPO/DPIA sẽ bổ sung trường mã hoá riêng cho thông tin trẻ vị thành niên.
 
 ### 2.3.7 Mô hình SaaS — gói dịch vụ + thanh toán
 
@@ -788,9 +882,9 @@ Bảng `students` chứa thông tin cá nhân nhạy cảm và do đó phải tu
 
 Chủ sở hữu trung tâm nhấn magic-link, đặt mật khẩu và đăng nhập lần đầu sẽ thấy dashboard wizard 5 bước: xác nhận thông tin trung tâm, upload logo (hoặc sinh tự động), thêm 3 lớp đầu tiên, mời quản lý/giáo viên, thiết lập phương thức thanh toán.
 
-**Ma trận gói dịch vụ.** Đồ án thiết kế bốn gói dịch vụ phân tầng theo persona mục tiêu (Bảng 2.10). Hai gói FREE và STARTER đã kiểm chứng hiện tại với hai giáo viên độc lập; hai gói PRO và PRO_PLUS thuộc lộ trình phát triển sau khi mở rộng cohort tenant.
+**Ma trận gói dịch vụ.** Đồ án thiết kế bốn gói dịch vụ phân tầng theo persona mục tiêu (Bảng 2.11). Hai gói FREE và STARTER đã kiểm chứng hiện tại với hai giáo viên độc lập; hai gói PRO và PRO_PLUS thuộc lộ trình phát triển sau khi mở rộng cohort tenant.
 
-**Bảng 2.10.** Bốn gói dịch vụ và các giới hạn theo gói.
+**Bảng 2.11.** Bốn gói dịch vụ và các giới hạn theo gói.
 
 | Gói | Trạng thái | Persona mục tiêu | Giá tháng | Số học sinh | Số lớp | Lượt sinh ảnh AI/ngày | Tên miền riêng (custom domain) | Email DKIM-verified |
 |---|---|---|---|---|---|---|---|---|
@@ -799,7 +893,7 @@ Chủ sở hữu trung tâm nhấn magic-link, đặt mật khẩu và đăng nh
 | PRO | Phát triển sau | P3 Quản lý trung tâm | `1.500.000đ/tháng` | 500 | 50 | 50 | Có (custom CNAME) | Mặc định |
 | PRO_PLUS | Phát triển sau | Chuỗi nhượng quyền multi-branch | `5.000.000đ/tháng` | 2000 | 200 | 200 | Có (custom CNAME + IP riêng) | DKIM-verified riêng |
 
-**Trạng thái hiện thực hoá.** Mã nguồn hiện tại trên kho lưu trữ KiteHub đã định nghĩa enum `PricingTier` với bốn cấp giá `FREE / BASIC / PREMIUM / ENTERPRISE` cùng mức giá `0đ / 500.000đ / 1.500.000đ / báo giá riêng`, khớp ba tầng giá đầu của Bảng 2.10 dưới tên gọi cũ. Việc đổi tên gói sang `FREE / STARTER / PRO / PRO_PLUS` để thân thiện với người dùng và đồng nhất với phân tích nhóm người dùng đại diện tại §1.1.2, bổ sung trường giới hạn `maxClasses`, và xây dựng bảng `tenant_quota` kết hợp bộ đếm Redis cho cơ chế enforcement HTTP 429 ở tầng tenant thuộc lộ trình phát triển sau. Tính năng nhận diện email DKIM riêng cho gói cao cấp (cột "Email DKIM-verified" cho PRO_PLUS) cũng thuộc lộ trình phát triển sau.
+**Trạng thái hiện thực hoá.** Mã nguồn hiện tại trên kho lưu trữ KiteHub đã định nghĩa enum `PricingTier` với bốn cấp giá `FREE / BASIC / PREMIUM / ENTERPRISE` cùng mức giá `0đ / 500.000đ / 1.500.000đ / báo giá riêng`, khớp ba tầng giá đầu của Bảng 2.11 dưới tên gọi cũ. Việc đổi tên gói sang `FREE / STARTER / PRO / PRO_PLUS` để thân thiện với người dùng và đồng nhất với phân tích nhóm người dùng đại diện tại §1.1.2, bổ sung trường giới hạn `maxClasses`, và xây dựng bảng `tenant_quota` kết hợp bộ đếm Redis cho cơ chế enforcement HTTP 429 ở tầng tenant thuộc lộ trình phát triển sau. Tính năng nhận diện email DKIM riêng cho gói cao cấp (cột "Email DKIM-verified" cho PRO_PLUS) cũng thuộc lộ trình phát triển sau.
 
 Việc enforce quota dùng bảng `tenant_quota` kết hợp bộ đếm Redis kiểm tra ở mỗi request. Khi vượt quota, hệ thống trả HTTP 429 cùng banner UI hướng dẫn nâng gói.
 
