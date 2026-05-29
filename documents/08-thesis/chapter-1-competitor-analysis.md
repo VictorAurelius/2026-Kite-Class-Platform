@@ -106,7 +106,7 @@ Bảng 1.1 đối chiếu trực tiếp bốn hệ thống tham khảo với h�
 | Ứng dụng di động native | Phát triển sau | Có | Có | Có | Phát triển sau |
 | Tích hợp Zalo (OA + nhóm) | Có | Có (native) | Có | Có | Có |
 | Thanh toán tích hợp | Hạn chế | Không | Hạn chế | Có (3 cổng) | Có (VietQR + chuyển khoản) |
-| Tuân thủ PDPL 2023 built-in | Đang triển khai | Đang triển khai | Đang triển khai | Có | Có (từ ngày đầu) |
+| Tuân thủ PDPL 2023 theo thiết kế | Đang triển khai | Đang triển khai | Đang triển khai | Có | Theo thiết kế (lộ trình bản địa hóa) |
 | Hệ sinh thái OpenAPI / webhook | Hạn chế | Không | Không | Có (hạn chế) | Có |
 | Khác biệt cốt lõi | UX trung tâm tiếng Anh | App di động + Zalo | Phân phối rộng | CRM + thanh toán | Multi-tenant + AI Branding |
 
