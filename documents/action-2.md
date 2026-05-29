@@ -111,4 +111,4 @@ bây giờ tạo PR mới để sửa thesis tiếp nhé
 4. capture lại ảnh docx, session cũ xóa mất rồi
 
 5. documents/08-thesis/screenshots-render/page-001.png => đường gạch ngang dưới "KHOA CÔNG NGHỆ THÔNG TIN" không khớp với bìa của báo cáo thực tập, check lại
-6.
+6. Thêm phần cảm ơn 2 thầy cô Nguyễn Thị Hà, giáo viên môn tin học công tác tại trường tiểu học Hòa Chính và thầy Nguyễn Đình Nhì, giáo viên môn Hóa Học công tác tại trường THCS Phú Nam An đã sử dụng thực tế sản phẩm đồ án, đóng góp ý kiến cho đồ án, ...
