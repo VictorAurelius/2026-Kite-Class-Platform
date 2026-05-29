@@ -1264,17 +1264,23 @@ def add_secondary_cover_page(doc):
     p.paragraph_format.space_after = Pt(0)
     run = p.add_run("KHOA CÔNG NGHỆ THÔNG TIN")
     set_font(run, Pt(14), bold=True)
-    add_horizontal_line(doc, width_pt=2, color='000000', space_after=Pt(0))
+    add_horizontal_line(doc, width_pt=2, color='000000',
+                        indent_cm=4.5, space_before=Pt(4), space_after=Pt(0))
 
-    # Khoảng trắng tương đương logo position trên bìa chính
-    # Logo bìa chính: space_before=Pt(36), height ~Cm(3.5)≈Pt(99), space_after=Pt(36)
-    # → tổng vertical ~Pt(171) cho logo block. Replicate via 3 empty paragraphs với spacing.
+    # Khoảng trắng tương đương vị trí logo trên bìa chính — căn dòng ngang hàng.
+    # Logo bìa chính: space_before=Pt(36) + ảnh vuông 1200x1200 @ width Cm(3.5) = cao
+    # 99.2pt + space_after=Pt(36) = 171.2pt. Empty run KHÔNG giữ chiều cao (paragraph
+    # mark về font mặc định ~13pt) → spacer co lại làm lệch. Dùng EXACT line spacing =
+    # đúng chiều cao logo + ký tự non-breaking để giữ line render.
+    from docx.enum.text import WD_LINE_SPACING
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(36)
     p.paragraph_format.space_after = Pt(36)
-    run = p.add_run("")
-    set_font(run, Pt(99))  # invisible spacer ≈ logo height Cm(3.5)
+    p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.EXACTLY
+    p.paragraph_format.line_spacing = Pt(99.2)  # = chiều cao logo Cm(3.5) vuông
+    run = p.add_run(" ")
+    set_font(run, Pt(12))
 
     # ĐỒ ÁN TỐT NGHIỆP (plain black, no underline)
     p = doc.add_paragraph()
