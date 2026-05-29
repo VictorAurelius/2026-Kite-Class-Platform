@@ -83,13 +83,13 @@ export function HeroSection({ slots, title, subtitle, tagline }: HeroSectionProp
             <div className="text-white/85">{trustRow}</div>
           </div>
           <div className="flex justify-center md:justify-end">
-            <div className="relative">
+            <div className="relative w-full max-w-lg">
               <div
-                className="absolute -inset-2 rounded-full opacity-90 blur-[2px]"
+                className="absolute -inset-2 rounded-3xl opacity-80 blur-[3px]"
                 style={{ background: 'conic-gradient(from 200deg, rgb(var(--theme-accent)), rgb(var(--theme-primary)), rgb(var(--theme-accent)))' }}
               />
-              <div className="relative h-64 w-64 overflow-hidden rounded-full border-[6px] border-white/90 shadow-2xl md:h-80 md:w-80">
-                <Image src={heroImage} alt={heroTitle} fill unoptimized sizes="(max-width: 768px) 256px, 320px" className="object-cover object-top" />
+              <div className="relative aspect-[1.9/1] w-full overflow-hidden rounded-2xl border-[5px] border-white/90 shadow-2xl">
+                <Image src={heroImage} alt={heroTitle} fill unoptimized sizes="(max-width: 768px) 100vw, 512px" className="object-cover" />
               </div>
             </div>
           </div>
