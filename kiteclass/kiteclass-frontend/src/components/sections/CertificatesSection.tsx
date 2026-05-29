@@ -40,14 +40,21 @@ interface CertificatesSectionProps {
 }
 
 export function CertificatesSection({ slots }: CertificatesSectionProps) {
-  const certificates = (slots?.certificates as SlotItem[] | undefined) || DEFAULT_CERTIFICATES;
+  const dataDriven = Array.isArray(slots?.certificates) && (slots!.certificates as SlotItem[]).length > 0;
+  const certificates = dataDriven ? (slots!.certificates as SlotItem[]) : DEFAULT_CERTIFICATES;
+  // Khi data-driven (programs từ tenant) → tiêu đề "Chương trình giảng dạy" trung lập;
+  // fallback giữ "Chứng chỉ" cho template tổ chức dùng default.
+  const heading = dataDriven ? 'Chương trình giảng dạy' : 'Chứng chỉ';
+  const subtitle = dataDriven
+    ? 'Các chương trình và lộ trình học được thiết kế theo từng nhóm học viên'
+    : 'Luyện thi và đạt chứng chỉ tiếng Anh được công nhận trong nước và quốc tế';
 
   return (
     <section className="py-16">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-4">Chứng chỉ</h2>
+        <h2 className="text-3xl font-bold text-center mb-4">{heading}</h2>
         <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-          Luyện thi và đạt chứng chỉ tiếng Anh được công nhận trong nước và quốc tế
+          {subtitle}
         </p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {certificates.map((cert) => (

@@ -11,7 +11,7 @@ import { publicApi } from '@/lib/api/public';
 // (the layout cannot read ?tenant= searchParams — those are page-scoped). Falls back
 // to a generic platform identity when no tenant resolves. GAP-808 follow-up: nav was
 // hardcoded "KiteClass" regardless of tenant.
-async function getTenantIdentity(): Promise<{ name: string; logoUrl: string | null }> {
+async function getTenantIdentity(): Promise<{ name: string; logoUrl: string | null; tagline: string | null }> {
   const tenantId =
     process.env.NEXT_PUBLIC_TENANT_ID ?? '11111111-1111-1111-1111-111111111111';
   try {
@@ -19,9 +19,10 @@ async function getTenantIdentity(): Promise<{ name: string; logoUrl: string | nu
     return {
       name: landing.heroTitle || 'KiteClass',
       logoUrl: landing.logoUrl ?? null,
+      tagline: (landing as { tagline?: string }).tagline ?? null,
     };
   } catch {
-    return { name: 'KiteClass', logoUrl: null };
+    return { name: 'KiteClass', logoUrl: null, tagline: null };
   }
 }
 
@@ -57,7 +58,7 @@ export default async function PublicLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { name: tenantName, logoUrl: tenantLogo } = await getTenantIdentity();
+  const { name: tenantName, logoUrl: tenantLogo, tagline: tenantTagline } = await getTenantIdentity();
   return (
     <div className="min-h-screen flex flex-col">
       {/* Skip to main content (accessibility) */}
@@ -147,8 +148,7 @@ export default async function PublicLayout({
                 <span className="font-bold text-lg">{tenantName}</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Nền tảng quản lý trung tâm tiếng Anh toàn diện, giúp tối ưu hóa
-                vận hành và nâng cao chất lượng giảng dạy.
+                {tenantTagline || 'Nền tảng giáo dục giúp tối ưu vận hành lớp học và nâng cao chất lượng giảng dạy.'}
               </p>
             </div>
 
