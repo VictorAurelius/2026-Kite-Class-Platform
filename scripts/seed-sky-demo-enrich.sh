@@ -56,7 +56,9 @@ PG_PORT="${PG_PORT:-5433}"
 USE_DOCKER="${USE_DOCKER:-true}"
 
 # Sky Education tenant UUID (must match seed-thesis-demo-tenants.sh tenant_a)
-SKY_ID="11111111-1111-1111-1111-111111111111"
+# GAP-805: must match seed-thesis-demo-tenants.sh TENANT_A_ID + BrandingDataSeeder Sky id.
+# a5e0… (was 11111111-… which collided with thanglong DEV_TENANT_ID → broke isolation).
+SKY_ID="a5e00000-0000-0000-0000-000000000001"
 
 # ---------- mode parsing ----------
 MODE="seed"
@@ -180,7 +182,7 @@ SET row_security = off;
 
 DO $seed$
 DECLARE
-    sky_id     UUID := '11111111-1111-1111-1111-111111111111';
+    sky_id     UUID := '${SKY_ID}';
     teacher_id BIGINT;
     rec        RECORD;
 

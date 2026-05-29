@@ -27,13 +27,25 @@ Chi tiết findings + plan: `documents/03-planning/waves/wave-demo-tenant-1-sky-
 - **B:** seed attendance/grade/payment + enrich (3-4 lớp, ~20-30 HS/lớp) — seed script.
 - **C:** fix overview KPI hardcode (kiteclass-frontend) + asset seed-direct MinIO.
 
-## ⚠️ Open item — tenant-id reconciliation (BẮT BUỘC resolve ở live-walk)
+## ✅ RESOLVED — tenant-id reconciliation (Option C investigate → fix applied this PR)
+
+Tenant-id investigation (Option C) xác nhận **conflation bug**: `1111…` gán cho CẢ thanglong (BrandingDataSeeder) lẫn Sky (seed-thesis tenant_a) → phá multi-tenant isolation. Tenant key thật = `BaseEntity.instance_id` (resolve header `X-Tenant-Id`).
+
+**Fix applied (this PR):** Sky = `a5e00000-0000-0000-0000-000000000001` độc lập (khớp branding agent đã seed):
+- `seed-thesis-demo-tenants.sh:60` `TENANT_A_ID` → a5e0…0001 (+ header comment line 14).
+- `seed-sky-demo-enrich.sh:61` `SKY_ID` + line 185 PL/pgSQL `sky_id` hardcode → a5e0…0001 (cross-flow sweep bắt hardcode trong DO block).
+- thanglong giữ `1111…` (dev default, không động — ~15 test ref `1111…` về thanglong không ảnh hưởng).
+- ⚠️ Live-walk phải gửi `X-Tenant-Id: a5e0…0001` cho Sky + chạy `--cleanup` data `1111…` cũ trước reseed.
+
+<details><summary>Lịch sử Open item (trước khi resolve)</summary>
 
 3 agent build độc lập → mismatch tenant id phải reconcile trước khi demo coherent:
 - **A (branding)** seed Sky branding dưới instance id **`a5e00000-...-000000000001`** (UUID độc lập — A tránh `11111111-...` vì nó TRÙNG `DEV_TENANT_ID` thanglong trong seeder cũ).
 - **B (data)** seed attendance/grade/payment dưới Sky tenant **`11111111-...`** (từ `seed-thesis-demo-tenants.sh` tenant_a).
 - **Hệ quả:** branding (a5e0…) ≠ data (1111…) → theme tùy biến KHÔNG apply lên tenant có data. Demo sẽ thấy data nhưng theme default, HOẶC theme custom nhưng tenant trống.
 - **Resolve options:** (a) đổi A's branding target → `11111111-...` (nhưng cần verify không đè branding thanglong vì thanglong dùng cùng id — data-model conflation cần làm rõ); (b) đổi B's enrich script seed lên `a5e0…0001` + seed teacher/course gốc cho tenant đó (không phụ thuộc seed-thesis); (c) làm rõ id tenant Sky canonical rồi cả A+B dùng chung. **Quyết định ở live-walk khi stack up + thấy được render thực tế.**
+
+</details>
 
 ## Acceptance Criteria
 
