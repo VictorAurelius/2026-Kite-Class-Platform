@@ -112,3 +112,12 @@ bây giờ tạo PR mới để sửa thesis tiếp nhé
 
 5. documents/08-thesis/screenshots-render/page-001.png => đường gạch ngang dưới "KHOA CÔNG NGHỆ THÔNG TIN" không khớp với bìa của báo cáo thực tập, check lại
 6. Thêm phần cảm ơn 2 thầy cô Nguyễn Thị Hà, giáo viên môn tin học công tác tại trường tiểu học Hòa Chính và thầy Nguyễn Đình Nhì, giáo viên môn Hóa Học công tác tại trường THCS Phú Nam An đã sử dụng thực tế sản phẩm đồ án, đóng góp ý kiến cho đồ án, ...
+
+check lại toàn bộ heading xem tên như vậy đã hợp lý chưa, phù hợp meta, báo cáo chưa
+
+thêm rules mới: không đề cập đến các khái niệm như đợt thử nghiệm, đợt vận hành thật hay các đợt nào khác. Báo cáo này chỉ có 2 khái niệm thời gian: hiện tại đạt được và sẽ phát triển sau
+
+báo cáo dừng lại ở kết quả đạt được là đã có thể thanh toán rồi, có kết nối zalo rồi => cần sửa lại 1 số chỗ nói chưa có tính năng này
+
+không đặt page_break ở trong chương, để dễ dàng co dãn ảnh hợp lý
+
