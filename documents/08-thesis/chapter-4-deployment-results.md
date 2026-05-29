@@ -9,7 +9,7 @@ updated: 2026-05-19
 
 # CHƯƠNG 4. ĐÁNH GIÁ KẾT QUẢ VÀ KẾT LUẬN
 
-## 4.1 Cloud Deployment AWS
+## 4.1 Triển khai cloud AWS
 
 ### 4.1.1 Tổng quan kiến trúc
 
@@ -132,7 +132,7 @@ Toàn bộ hạ tầng đặt trong một VPC riêng (CIDR `10.0.0.0/16`) với 
 
 **Observability (3 lớp):** CloudTrail log mọi AWS API call (terraform apply, console, SDK) — captured trước khi production resources apply để đảm bảo audit baseline; CloudWatch tổng hợp application logs JSON structured cùng custom metric, alarm wired cho CPU >80%, RDS connections >80%, ALB 5xx >1%, EC2 status check fail; Prometheus self-hosted thu thập application metric (`outbox_dispatcher_lag_seconds`, `http_server_requests_seconds`, `jvm_memory_used_bytes`) qua endpoint `/actuator/prometheus`, visualize qua Grafana.
 
-### 4.1.4 CI/CD Pipeline
+### 4.1.4 Pipeline CI/CD
 
 CI/CD được triển khai qua GitHub Actions với pattern OIDC + workflow_dispatch + confirm-input, tham chiếu nguyên tắc Continuous Delivery hiện đại [37, tr.115] — kết hợp build artifact bất biến (Docker image tag theo SHA commit) và deployment gate có cognitive checkpoint (workflow input `confirm=APPLY`) thay cho cơ chế auto-deploy.
 
