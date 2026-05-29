@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Be_Vietnam_Pro } from 'next/font/google';
 import './globals.css';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
@@ -7,7 +7,11 @@ import { ConsentGatedAnalytics } from '@/components/legal/ConsentGatedAnalytics'
 import { Toaster } from 'sonner';
 import { SITE_URL } from '@/lib/site-config';
 
-const inter = Inter({ subsets: ['latin', 'vietnamese'] });
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ['latin', 'vietnamese'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+});
 
 // GA4 measurement ID (format: G-XXXXXXXXXX). When unset, <ConsentGatedAnalytics>
 // renders nothing. When set, GA script tag is mounted ONLY after the user opts
@@ -49,7 +53,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={beVietnamPro.className}>
         <ThemeProvider>
           <ReactQueryProvider>
             {children}

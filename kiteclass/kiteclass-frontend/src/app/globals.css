@@ -33,8 +33,8 @@
     --theme-secondary: 139 92 246;
     --theme-accent: 245 158 11;
     --theme-background: 255 255 255;
-    --theme-font-heading: Inter, system-ui, -apple-system, sans-serif;
-    --theme-font-body: Inter, system-ui, -apple-system, sans-serif;
+    --theme-font-heading: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+    --theme-font-body: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
     --theme-border-radius: 8px;
     --theme-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --theme-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
