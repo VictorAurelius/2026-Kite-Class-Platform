@@ -6,8 +6,13 @@
 --
 -- Usage: docker exec -i kite-postgres psql -U kitehub -d kiteclass_shared < kitehub/scripts/seed-landing-content.sql
 --
+-- ⚠️ SAU KHI CHẠY: PHẢI evict Spring @Cacheable Redis (landing response cache theo tenantId)
+-- nếu không landing GET trả stale (sections null). Lệnh:
+--   docker exec kite-redis redis-cli --scan --pattern "landingPages*" | xargs -r -I{} docker exec kite-redis redis-cli DEL "{}"
+--
+-- Banner: 3 PNG đã copy vào kiteclass-frontend/public/demo-banners/ (hero_image_url trỏ tới).
 -- Reproduce note: nội dung này lý tưởng nên set qua PUT /api/v1/tenants/{id}/landing
--- (admin/teacher) sau khi BE expose request fields; SQL trực tiếp dùng cho demo local.
+-- (admin/teacher) sau khi BE expose request fields (GAP-815); SQL trực tiếp dùng cho demo local.
 
 -- ============================================================
 -- 1. Cô Đỗ Lan Khánh — THPT, Pháp luật & Đời sống (navy + gold)
