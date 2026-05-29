@@ -1668,16 +1668,17 @@ def add_introduction(doc):
     add_bullet_list_item(doc, "Xây dựng nền tảng SaaS multi-tenant cho trung tâm giáo dục Việt Nam, hỗ trợ scale từ 1 chi nhánh lên 100+ chi nhánh không cần re-architect.")
     add_bullet_list_item(doc, "Tích hợp AI Branding tự động sinh logo + banner + hero image, giảm thời gian go-live của trung tâm từ tuần xuống ngày.")
     add_bullet_list_item(doc, "Đảm bảo tuân thủ pháp luật Việt Nam: PDPL 2023, Luật An ninh mạng 2018, Thông tư 78/2021/TT-BTC về hóa đơn điện tử.")
-    add_bullet_list_item(doc, "Áp dụng phương pháp luận audit-driven development để duy trì chất lượng code + docs trong quá trình phát triển dài hạn.")
+    add_bullet_list_item(doc, "Áp dụng phương pháp luận Quality-Driven Development để duy trì chất lượng mã nguồn và tài liệu trong suốt quá trình phát triển dài hạn.")
 
     add_section_title(doc, "3. Phạm vi nghiên cứu")
     add_paragraph_text(doc,
         "Đồ án tập trung vào giai đoạn thử nghiệm tenant của nền tảng KiteHub, được giới hạn theo ba "
         "chiều: không gian, thời gian và đối tượng. Về không gian, hệ thống triển khai cloud trên "
-        "AWS Singapore (ap-southeast-1) Free Tier theo ADR-025, phục vụ nhóm trung tâm giáo dục "
+        "AWS Singapore (ap-southeast-1) Free Tier, phục vụ nhóm trung tâm giáo dục "
         "thương mại tại Việt Nam (Hà Nội, TP. Hồ Chí Minh và các tỉnh lân cận). Về thời gian, "
         "phạm vi triển khai kéo dài từ tháng 5/2026 đến hết giai đoạn thử nghiệm tenant (~tháng 9/2026), "
-        "với cohort 7-10 trung tâm dùng miễn phí trong 9 tuần đầu để thu thập phản hồi.")
+        "với hai giáo viên độc lập (một dùng gói miễn phí, một dùng gói premium) trực tiếp sử dụng "
+        "sản phẩm trong thực tế giảng dạy để thu thập phản hồi.")
     add_paragraph_text(doc,
         "Về đối tượng, đồ án phục vụ ba persona chính: Solo Teacher (giáo viên độc lập, 1-50 học "
         "viên), Center Owner (chủ trung tâm, 1-10 chi nhánh, 100-2.000 học viên), và Center "
@@ -1705,12 +1706,13 @@ def add_introduction(doc):
         "multi-tenant whitepaper.")
     add_bullet_list_item(doc,
         "Áp dụng phương pháp luận Quality-Driven Development bốn trụ cột (TDD per Beck 2002, "
-        "DDD per Evans 2003, PDCA per Deming 1986, Lean per Poppendieck 2003) — mỗi miss "
-        "được chuyển thành rule + cơ chế enforcement trong cùng pull request.")
+        "DDD per Evans 2003, PDCA per Deming 1986, Lean per Poppendieck 2003) — mỗi vấn đề "
+        "phát hiện được chuyển hóa thành quy tắc kiểm soát kèm cơ chế kiểm tra tự động, tích "
+        "hợp ngay trong quy trình phát triển.")
     add_bullet_list_item(doc,
         "Đánh giá chất lượng hệ thống qua bộ audit bảy chiều (Quality, UI, Security, "
         "Performance, API Contract, Business Logic, Ops Readiness) chấm điểm /100 hoặc /128 "
-        "định kỳ sau mỗi wave.")
+        "định kỳ sau mỗi giai đoạn phát triển.")
 
     add_section_title(doc, "5. Tóm tắt nội dung")
     add_paragraph_text(doc,
@@ -1798,7 +1800,7 @@ def add_conclusion(doc):
 
     add_section_title(doc, "2. Hạn chế")
     add_bullet_list_item(doc, "Phạm vi giai đoạn thử nghiệm tenant chỉ phục vụ 3 persona tenant (Solo Teacher, Center Owner, Center Manager); persona K-12 Parent + Student được hoãn sang giai đoạn K-12 expansion do yêu cầu DPO + DPIA bổ sung theo PDPL.")
-    add_bullet_list_item(doc, "Một số KPI thực tế (Time to First Value, Daily Active Users, Monthly Recurring Revenue) chưa có số liệu thực tế do beta cohort 7-10 tenant đang trong giai đoạn triển khai 9 tuần.")
+    add_bullet_list_item(doc, "Một số KPI thực tế (Time to First Value, Daily Active Users, Monthly Recurring Revenue) chưa có số liệu đầy đủ do giai đoạn thử nghiệm mới có hai giáo viên độc lập (một gói miễn phí, một gói premium) trực tiếp sử dụng để thu thập phản hồi.")
     add_bullet_list_item(doc, "AI Branding mới được tích hợp ở mức MVP với 1 nhà cung cấp (Replicate Stable Diffusion XL); các phương án multi-vendor failover sẽ được triển khai trong giai đoạn production.")
 
     add_section_title(doc, "3. Hướng phát triển tiếp theo")

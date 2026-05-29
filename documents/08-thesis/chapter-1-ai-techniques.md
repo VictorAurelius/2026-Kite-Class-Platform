@@ -80,7 +80,7 @@ Lý do chọn Stable Diffusion XL [13] làm primary: balance tốt giữa qualit
 
 #### 1.3.2.4 Cost analysis
 
-Estimate AI Branding cost cho 1 trung tâm mới onboard (5 image total: logo + hero + 3 social banners): 5 images × $0.0012/image (SDXL) = **$0.006/trung tâm**; cộng AI Quality Gate classifier ~$0.001/image × 5 = $0.005. **Total ~$0.011 per trung tâm** (~270 đồng). Với target giai đoạn thử nghiệm 5 trung tâm × 10 lần regenerate/trung tâm/tháng = 250 images/tháng = **$2.75/tháng AI cost**, hoàn toàn nằm trong Replicate Free Tier ($10/tháng credit miễn phí).
+Estimate AI Branding cost cho 1 trung tâm mới onboard (5 image total: logo + hero + 3 social banners): 5 images × $0.0012/image (SDXL) = **$0.006/trung tâm**; cộng AI Quality Gate classifier ~$0.001/image × 5 = $0.005. **Total ~$0.011 per trung tâm** (~270 đồng). Với giai đoạn thử nghiệm 2 tài khoản × 10 lần regenerate/tài khoản/tháng = 100 images/tháng = **$1.10/tháng AI cost**, hoàn toàn nằm trong Replicate Free Tier ($10/tháng credit miễn phí).
 
 ### 1.3.3 Phương pháp 2 — AI Quality Gate (content safety + brand fit)
 
@@ -123,7 +123,7 @@ Max 3 retry attempts để control cost (mỗi retry tốn $0.0012 + $0.001 gate
 
 ### 1.3.4 Phương pháp 3 — AI techniques roadmap (giai đoạn mở rộng)
 
-KiteHub roadmap defer các AI features sau cho giai đoạn mở rộng (sau khi đạt 5 trung tâm thử nghiệm live + quality audit ≥80/100) và giai đoạn GA (sau khi engage legal counsel):
+KiteHub roadmap defer các AI features sau cho giai đoạn mở rộng (sau khi hoàn tất thử nghiệm với hai giáo viên độc lập + quality audit ≥80/100) và giai đoạn GA (sau khi engage legal counsel):
 
 #### 1.3.4.1 Chatbot hỗ trợ học viên (giai đoạn mở rộng)
 
