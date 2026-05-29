@@ -1735,31 +1735,10 @@ def add_introduction(doc):
         "(PDCA, theo Deming 1986) — tích hợp trong toàn bộ quy trình phát triển nhằm duy trì "
         "chất lượng mã nguồn và tài liệu.")
 
-    add_section_title(doc, "5. Tóm tắt nội dung")
-    add_paragraph_text(doc,
-        "Đồ án trình bày bốn đóng góp chính tương ứng bốn chương nội dung. Thứ nhất, đồ án "
-        "phân tích thị trường EdTech Việt Nam và khung pháp lý liên quan (PDPL 2023, Luật An "
-        "ninh mạng 2018, Thông tư 29/2024/TT-BGDĐT) làm cơ sở xác định khoảng trống và nhu cầu "
-        "của nhóm trung tâm vừa và nhỏ. Thứ hai, đồ án thiết kế và mô tả kiến trúc hệ thống "
-        "multi-tenant SaaS với mô hình C4 (mô hình mô tả kiến trúc phần mềm bốn cấp "
-        "Context-Container-Component-Code), kết hợp Use Case + Class + ERD (Entity-Relationship "
-        "Diagram — sơ đồ thực thể-quan hệ) và sơ đồ tuần tự cho các luồng quan trọng (đăng ký, "
-        "kích hoạt subscription).")
-    add_paragraph_text(doc,
-        "Thứ ba, đồ án triển khai và kiểm thử hệ thống trên AWS Singapore Free Tier, với các "
-        "pattern cốt lõi (Row-Level Security NULL force-fail, Outbox Pattern, truyền ngữ cảnh "
-        "qua JWT — JSON Web Token, kiến trúc REST — Representational State Transfer — 3 tầng) "
-        "được kiểm chứng qua unit test, integration test và E2E test. Thứ tư, đồ "
-        "án trình bày kết quả triển khai thực tế trong phạm vi hiện tại kèm các KPI "
-        "(Key Performance Indicator — chỉ số hiệu suất chính) đo "
-        "lường, đánh giá độ trưởng thành và đề xuất hướng phát triển tiếp theo. Kết quả của "
-        "đồ án vừa là sản phẩm phần mềm hoạt động được, vừa là tài liệu tham chiếu cho các "
-        "công trình nghiên cứu kế tiếp về EdTech multi-tenant tại Việt Nam.")
-
-    add_section_title(doc, "6. Cấu trúc đồ án")
+    add_section_title(doc, "5. Cấu trúc đồ án")
     add_paragraph_text(doc, "Đồ án gồm bốn chương nội dung chính:")
     add_bullet_list_item(doc, "Chương 1 — Tổng quan về bài toán: phân tích hiện trạng thị trường, khảo sát các hệ thống tham khảo, kỹ thuật AI tích hợp và khung pháp lý Việt Nam tác động đến nền tảng.")
-    add_bullet_list_item(doc, "Chương 2 — Phân tích và thiết kế hệ thống: yêu cầu chức năng và phi chức năng, mô hình hóa C4 Context + Container, sơ đồ use case, kiến trúc đa tenant single-bucket với defense-in-depth năm lớp.")
+    add_bullet_list_item(doc, "Chương 2 — Phân tích và thiết kế hệ thống: yêu cầu chức năng và phi chức năng; thiết kế kiến trúc tổng thể với mô hình C4 (sơ đồ ngữ cảnh và sơ đồ container), kiến trúc đa tenant single-bucket kết hợp Row-Level Security và phòng thủ chiều sâu năm lớp; thiết kế chi tiết gồm sơ đồ lớp, sơ đồ quan hệ thực thể (ERD), sơ đồ tuần tự, máy trạng thái vòng đời tenant, thiết kế cơ sở dữ liệu và mô hình gói dịch vụ.")
     add_bullet_list_item(doc, "Chương 3 — Triển khai sản phẩm và kiểm thử hệ thống: công nghệ và công cụ sử dụng, kết quả triển khai giao diện sản phẩm theo ba luồng nghiệp vụ, bộ kiểm thử ba lớp (unit / integration / E2E) với các trường hợp kiểm thử mẫu cụ thể.")
     add_bullet_list_item(doc, "Chương 4 — Triển khai hạ tầng và kết quả vận hành: triển khai cloud AWS với CI/CD, cấu hình Cloudflare biên, ước tính chi phí, trạng thái triển khai hiện tại và kết quả tương tác người dùng cuối kèm minh chứng sản phẩm.")
 
