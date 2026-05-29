@@ -11,7 +11,7 @@
 # What this seeds (idempotent — safe to re-run):
 #
 #   tenant_a (Sky Education)
-#     instance_id: 11111111-1111-1111-1111-111111111111
+#     instance_id: a5e00000-0000-0000-0000-000000000001
 #     name:        Trung tâm Anh ngữ Sky Education
 #     owner email: hong.tran@sky-edu.demo
 #     classes:     "Lớp Anh ngữ 5A1", "Lớp Anh ngữ 7B"
@@ -57,7 +57,10 @@ PG_PORT="${PG_PORT:-5433}"
 USE_DOCKER="${USE_DOCKER:-true}"
 
 # Demo tenant UUIDs (fixed for idempotency — same UUID every run)
-TENANT_A_ID="11111111-1111-1111-1111-111111111111"
+# GAP-805: Sky = independent instance_id a5e0… (was 11111111-… which COLLIDES with
+# thanglong DEV_TENANT_ID in BrandingDataSeeder → broke multi-tenant isolation). Must match
+# BrandingDataSeeder Sky branding id + seed-sky-demo-enrich.sh SKY_ID.
+TENANT_A_ID="a5e00000-0000-0000-0000-000000000001"
 TENANT_A_NAME="Trung tâm Anh ngữ Sky Education"
 # shellcheck disable=SC2034  # SLUG kept for documentation + future FrontendInstance seed extension
 TENANT_A_SLUG="sky-education"
