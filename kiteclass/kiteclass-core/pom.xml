@@ -29,8 +29,8 @@
         <!-- Override Jackson version to fix GHSA-72hv-8253-57qq (DoS vulnerability) -->
         <jackson.version>2.21.1</jackson.version>
         <!-- GAP-203: pinned to fix transitive CVEs surfaced via GitHub code-scanning 2026-04-21 -->
-        <!-- Spring Boot 3.5.13 ships Tomcat 10.1.53; override resolves CVE-2026-34483/34487/34500 -->
-        <tomcat.version>10.1.54</tomcat.version>
+        <!-- Tomcat pinned > Spring Boot BOM. 10.1.55 resolves CVE-2026-41284/41293/42498/43512/43513/43514/43515 (3 critical + 3 high + 1 low) on top of prior CVE-2026-34483/34487/34500 (GAP-806) -->
+        <tomcat.version>10.1.55</tomcat.version>
         <commons-beanutils.version>1.11.0</commons-beanutils.version>
         <commons-compress.version>1.28.0</commons-compress.version>
         <poi.version>5.5.1</poi.version>
