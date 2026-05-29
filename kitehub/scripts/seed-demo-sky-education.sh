@@ -1,232 +1,224 @@
 #!/bin/bash
 #
-# Seed demo data for tenant "Trung tâm Anh ngữ Sky Education" (subdomain: sky-education)
-# Matches thesis Chương 3 narrative: 78 học viên · 5 khóa học · ~4 giảng viên + classes + enrollments.
+# Seed demo data cho 3 GIẢNG VIÊN ĐỘC LẬP (KHÔNG phải trung tâm) — chủ thể thesis Chương 3.
+#
+#   1. Cô Đỗ Lan Khánh   — THPT, Pháp luật & Đời sống — TENANT CHÍNH (Hình 3.x).
+#                          Theme navy+gold. Lớp "Lớp Pháp luật 12A1". ~30 học viên.
+#   2. Cô Nguyễn Thị Hà   — Tiểu học, Toán — gói FREE. Theme blue. (gọn)
+#   3. Thầy Nguyễn Đình Nhì — THCS, Hóa — gói PREMIUM. Theme green. (gọn)
+#
+# Mỗi giảng viên là 1 tenant độc lập (1 người dạy nhiều lớp, không có nhân viên quản lý).
 #
 # Usage: GATEWAY_URL=http://localhost:9000 ./scripts/seed-demo-sky-education.sh
+#        SEED_TENANTS=khanh ./scripts/seed-demo-sky-education.sh   # chỉ seed tenant chính
 #
 # Prerequisites:
-#   - Tenant sky-education already exists (owner@skyedu.vn / SkyEdu@2026)
-#   - kiteclass-core healthy (RabbitMQ queues class.rescheduled.queue + class.rescheduled.email.queue declared)
+#   - Các tenant đã tồn tại (đăng ký qua KiteHub) với owner credential bên dưới.
+#   - kiteclass-core healthy (RabbitMQ queues class.rescheduled.queue + class.rescheduled.email.queue declared).
 #
-# Idempotency note: this script is additive. Run the optional --clean flag against the DB first
-# if re-seeding (see README block at bottom). Students/courses use unique email/code so duplicates
-# are rejected by the API (HTTP 409/400) on re-run — counts will not double.
+# Idempotency note: script additive. Student/course dùng email/code unique nên trùng bị API từ chối
+# (HTTP 409/400) khi chạy lại — số lượng không nhân đôi. Xem block cleanup cuối file để re-seed.
 #
 set -uo pipefail
 
 GATEWAY="${GATEWAY_URL:-http://localhost:9000}"
-SUBDOMAIN="sky-education"
-OWNER_EMAIL="owner@skyedu.vn"
-OWNER_PASSWORD="SkyEdu@2026"
+# Tập tenant cần seed (mặc định cả 3). Override: SEED_TENANTS="khanh ha nhi" hoặc "khanh".
+SEED_TENANTS="${SEED_TENANTS:-khanh ha nhi}"
 
 GREEN="\033[0;32m"; RED="\033[0;31m"; YELLOW="\033[1;33m"; NC="\033[0m"
 
 echo "=============================================="
-echo "  Seed Demo Data — Sky Education"
+echo "  Seed Demo Data — 3 Giảng viên độc lập"
 echo "=============================================="
 
 # ------------------------------------------------------------
-# 1. Login → token + instance_id
+# Hàm seed 1 tenant. Tham số (positional):
+#   $1 subdomain  $2 owner_email  $3 owner_password
+#   $4 teacher_json  $5 course_spec (name|code|desc|level|category|price)
+#   $6 class_name    $7 num_students
+#   $8 theme_primary_hex  $9 theme_secondary_hex (metadata — branding set qua KiteHub admin)
 # ------------------------------------------------------------
-RESP=$(curl -s -X POST -H "Content-Type: application/json" \
-  -d "{\"email\":\"$OWNER_EMAIL\",\"password\":\"$OWNER_PASSWORD\"}" \
-  "$GATEWAY/api/auth/login")
+seed_tenant() {
+  local SUBDOMAIN="$1" OWNER_EMAIL="$2" OWNER_PASSWORD="$3"
+  local TEACHER_JSON="$4" COURSE_SPEC="$5" CLASS_NAME="$6" NUM_STUDENTS="$7"
+  local THEME_PRIMARY="$8" THEME_SECONDARY="$9"
 
-TOKEN=$(echo "$RESP" | python3 -c "import sys,json; print(json.load(sys.stdin).get('accessToken',''))" 2>/dev/null)
-INSTANCE_ID=$(echo "$RESP" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['instances'][0]['id'])" 2>/dev/null)
+  echo "----------------------------------------------"
+  echo -e "  Tenant: ${YELLOW}$SUBDOMAIN${NC}  (theme primary=$THEME_PRIMARY secondary=$THEME_SECONDARY)"
+  echo "----------------------------------------------"
 
-if [ -z "$TOKEN" ] || [ -z "$INSTANCE_ID" ]; then
-  echo -e "${RED}✗ Login failed — cannot obtain token/instance_id${NC}"
-  echo "$RESP" | head -3
-  exit 1
-fi
-echo -e "${GREEN}✓${NC} Logged in. instance_id=$INSTANCE_ID"
+  # 1. Login → token + instance_id
+  local RESP TOKEN INSTANCE_ID
+  RESP=$(curl -s -X POST -H "Content-Type: application/json" \
+    -d "{\"email\":\"$OWNER_EMAIL\",\"password\":\"$OWNER_PASSWORD\"}" \
+    "$GATEWAY/api/auth/login")
+  TOKEN=$(echo "$RESP" | python3 -c "import sys,json; print(json.load(sys.stdin).get('accessToken',''))" 2>/dev/null)
+  INSTANCE_ID=$(echo "$RESP" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['instances'][0]['id'])" 2>/dev/null)
 
-# Common headers for tenant-scoped calls (X-User-Id=1 = owner audit actor per seed-data.sh convention)
-H_TENANT=(-H "X-Instance-Subdomain: $SUBDOMAIN" -H "X-Tenant-Id: $INSTANCE_ID" -H "X-User-Id: 1" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json")
+  if [ -z "$TOKEN" ] || [ -z "$INSTANCE_ID" ]; then
+    echo -e "${RED}✗ Login thất bại ($OWNER_EMAIL) — bỏ qua tenant $SUBDOMAIN${NC}"
+    echo "$RESP" | head -3
+    return 1
+  fi
+  echo -e "${GREEN}✓${NC} Đăng nhập OK. instance_id=$INSTANCE_ID"
 
-post() { # post <path> <json>  -> echoes "HTTP_CODE\nBODY"
-  curl -s -w "\n%{http_code}" "${H_TENANT[@]}" -X POST -d "$2" "$GATEWAY$1"
-}
+  # Branding theme = metadata cho narrative thesis. Set màu thực tế qua KiteHub admin
+  # (BrandingPackageController hiện chỉ GET; theme writer nằm ở kitehub-branding).
+  # Lưu lại để doc/screenshot Chương 3 dùng đúng màu mỗi GV.
+  echo -e "      theme: primary=$THEME_PRIMARY · secondary=$THEME_SECONDARY"
 
-# ------------------------------------------------------------
-# 2. Teachers (must be created BEFORE courses — course requires teacherId NotNull)
-# ------------------------------------------------------------
-echo -e "${YELLOW}[1/5] Teachers${NC}"
-declare -a TEACHER_IDS=()
-TEACHERS=(
-  '{"name":"Nguyễn Thị Lan Anh","email":"lananh@teacher.skyedu.vn","phoneNumber":"0912345001","specialization":"IELTS Speaking & Writing","qualification":"MA TESOL","experienceYears":8}'
-  '{"name":"Trần Quốc Bảo","email":"quocbao@teacher.skyedu.vn","phoneNumber":"0912345002","specialization":"Business English","qualification":"BA English Studies","experienceYears":6}'
-  '{"name":"Lê Thị Mỹ Duyên","email":"myduyen@teacher.skyedu.vn","phoneNumber":"0912345003","specialization":"Tiếng Anh thiếu nhi","qualification":"BA Education","experienceYears":5}'
-  '{"name":"Phạm Hoàng Nam","email":"hoangnam@teacher.skyedu.vn","phoneNumber":"0912345004","specialization":"TOEIC & Grammar","qualification":"MA Applied Linguistics","experienceYears":7}'
-)
-for t in "${TEACHERS[@]}"; do
-  R=$(post "/api/v1/teachers" "$t")
+  local H_TENANT=(-H "X-Instance-Subdomain: $SUBDOMAIN" -H "X-Tenant-Id: $INSTANCE_ID" -H "X-User-Id: 1" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json")
+  local post; post() { curl -s -w "\n%{http_code}" "${H_TENANT[@]}" -X POST -d "$2" "$GATEWAY$1"; }
+
+  # 2. Teacher (1 — GV độc lập tự dạy)
+  echo -e "${YELLOW}[1/5] Giảng viên${NC}"
+  local R CODE BODY TID
+  R=$(post "/api/v1/teachers" "$TEACHER_JSON")
   CODE=$(echo "$R" | tail -1); BODY=$(echo "$R" | sed '$d')
   if [ "$CODE" = "201" ] || [ "$CODE" = "200" ]; then
     TID=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',d).get('id',''))" 2>/dev/null)
-    TEACHER_IDS+=("$TID")
-    echo -e "  ${GREEN}✓${NC} teacher id=$TID"
+    echo -e "  ${GREEN}✓${NC} giảng viên id=$TID"
   else
-    echo -e "  ${RED}✗${NC} teacher HTTP $CODE: $(echo "$BODY" | head -c 120)"
+    echo -e "  ${RED}✗${NC} giảng viên HTTP $CODE: $(echo "$BODY" | head -c 120)"
+    TID=1
   fi
-done
-echo "      ${#TEACHER_IDS[@]} teachers created"
 
-# Fallback teacher id if any teacher failed (use first available, else 1)
-DEFAULT_TID="${TEACHER_IDS[0]:-1}"
-
-# ------------------------------------------------------------
-# 3. Courses (5 — matches narrative "5 khóa học")
-# ------------------------------------------------------------
-echo -e "${YELLOW}[2/5] Courses${NC}"
-declare -a COURSE_IDS=()
-# teacherId assigned round-robin from seeded teachers
-COURSES=(
-  "English Basics|ENG101|Khóa tiếng Anh nền tảng cho người mới bắt đầu|Beginner|Language|1200000"
-  "IELTS Preparation|IELTS01|Luyện thi IELTS mục tiêu 6.5-7.0|Intermediate|Language|3500000"
-  "Business English|BIZ01|Tiếng Anh thương mại cho người đi làm|Advanced|Language|2800000"
-  "Kids English|KIDS01|Tiếng Anh vui nhộn cho trẻ 6-11 tuổi|Beginner|Language|1500000"
-  "TOEIC Intensive|TOEIC01|Luyện thi TOEIC cấp tốc mục tiêu 650+|Intermediate|Language|2200000"
-)
-i=0
-for c in "${COURSES[@]}"; do
-  IFS='|' read -r name code desc level cat price <<< "$c"
-  tid="${TEACHER_IDS[$((i % ${#TEACHER_IDS[@]}))]:-$DEFAULT_TID}"
-  json="{\"name\":\"$name\",\"code\":\"$code\",\"description\":\"$desc\",\"level\":\"$level\",\"category\":\"$cat\",\"teacherId\":$tid,\"price\":$price,\"durationWeeks\":12,\"totalSessions\":24}"
+  # 3. Course (1 — môn của GV)
+  echo -e "${YELLOW}[2/5] Khóa học${NC}"
+  local name code desc level cat price json CID
+  IFS='|' read -r name code desc level cat price <<< "$COURSE_SPEC"
+  json="{\"name\":\"$name\",\"code\":\"$code\",\"description\":\"$desc\",\"level\":\"$level\",\"category\":\"$cat\",\"teacherId\":$TID,\"price\":$price,\"durationWeeks\":12,\"totalSessions\":24}"
   R=$(post "/api/v1/courses" "$json")
   CODE=$(echo "$R" | tail -1); BODY=$(echo "$R" | sed '$d')
   if [ "$CODE" = "201" ] || [ "$CODE" = "200" ]; then
     CID=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',d).get('id',''))" 2>/dev/null)
-    COURSE_IDS+=("$CID")
-    echo -e "  ${GREEN}✓${NC} course $code id=$CID (teacher=$tid)"
+    echo -e "  ${GREEN}✓${NC} khóa $code id=$CID"
   else
-    echo -e "  ${RED}✗${NC} course $code HTTP $CODE: $(echo "$BODY" | head -c 120)"
+    echo -e "  ${RED}✗${NC} khóa $code HTTP $CODE: $(echo "$BODY" | head -c 120)"
+    return 1
   fi
-  i=$((i + 1))
-done
-echo "      ${#COURSE_IDS[@]} courses created"
 
-# ------------------------------------------------------------
-# 4. Students (78 — matches narrative "78 học viên")
-#    MUST include 3 narrative names from Hình 3.3.
-# ------------------------------------------------------------
-echo -e "${YELLOW}[3/5] Students (78)${NC}"
-
-# 3 mandatory narrative names first
-MANDATORY_NAMES=("Bùi Văn Dũng" "Cao Văn Sơn" "Châu Thị Bích")
-
-# Generate 75 additional VN-style names via python (deterministic order)
-mapfile -t GEN_NAMES < <(python3 - <<'PYEOF'
+  # 4. Students (NUM_STUDENTS — tên VN, deterministic)
+  echo -e "${YELLOW}[3/5] Học viên ($NUM_STUDENTS)${NC}"
+  local GEN_NAMES SCOUNT idx slug email phone
+  mapfile -t GEN_NAMES < <(python3 - "$NUM_STUDENTS" "$SUBDOMAIN" <<'PYEOF'
+import sys
+n = int(sys.argv[1]); seed = sys.argv[2]
 ho = ["Nguyễn","Trần","Lê","Phạm","Hoàng","Huỳnh","Phan","Vũ","Đặng","Bùi","Đỗ","Hồ","Ngô","Dương","Lý"]
 dem_nam = ["Văn","Hữu","Đức","Minh","Quang","Thành","Công","Bá","Xuân","Đình"]
 dem_nu = ["Thị","Thanh","Ngọc","Thu","Kim","Mỹ","Hồng","Diễm","Hương","Phương"]
 ten_nam = ["An","Bình","Cường","Dũng","Hải","Khoa","Long","Nam","Phong","Quân","Sơn","Tài","Tuấn","Việt","Hùng"]
 ten_nu = ["Anh","Chi","Dung","Hoa","Hà","Lan","Linh","Mai","Nhung","Oanh","Quỳnh","Thảo","Trang","Vy","Yến"]
-import itertools
-names = []
-# deterministic spread: alternate nam/nu, cycle through pools
-for k in range(75):
-    if k % 2 == 0:
-        n = f"{ho[k % len(ho)]} {dem_nam[(k//2) % len(dem_nam)]} {ten_nam[(k//3) % len(ten_nam)]}"
+off = sum(ord(c) for c in seed) % 7  # lệch nhẹ theo tenant để tên không trùng tuyệt đối
+for k in range(n):
+    j = k + off
+    if j % 2 == 0:
+        print(f"{ho[j % len(ho)]} {dem_nam[(j//2) % len(dem_nam)]} {ten_nam[(j//3) % len(ten_nam)]}")
     else:
-        n = f"{ho[(k+3) % len(ho)]} {dem_nu[(k//2) % len(dem_nu)]} {ten_nu[(k//3) % len(ten_nu)]}"
-    names.append(n)
-for n in names:
-    print(n)
+        print(f"{ho[(j+3) % len(ho)]} {dem_nu[(j//2) % len(dem_nu)]} {ten_nu[(j//3) % len(ten_nu)]}")
 PYEOF
 )
-
-ALL_NAMES=("${MANDATORY_NAMES[@]}" "${GEN_NAMES[@]}")
-
-slugify() { # ASCII slug from VN name
-  python3 - "$1" <<'PYEOF'
+  slug() { python3 - "$1" <<'PYEOF'
 import sys, unicodedata, re
-s = sys.argv[1]
-s = s.replace("đ","d").replace("Đ","D")
+s = sys.argv[1].replace("đ","d").replace("Đ","D")
 s = unicodedata.normalize("NFD", s)
 s = "".join(c for c in s if unicodedata.category(c) != "Mn")
-s = re.sub(r"[^a-zA-Z]+", ".", s).strip(".").lower()
-print(s)
+print(re.sub(r"[^a-zA-Z]+", ".", s).strip(".").lower())
 PYEOF
-}
+  }
+  SCOUNT=0; idx=0
+  for nm in "${GEN_NAMES[@]}"; do
+    local sl; sl=$(slug "$nm")
+    email="${sl}.${idx}@hocvien.${SUBDOMAIN}.vn"
+    phone=$(printf "09%08d" $((10000000 + idx)))
+    json="{\"name\":\"$nm\",\"email\":\"$email\",\"phone\":\"$phone\"}"
+    R=$(post "/api/v1/students" "$json"); CODE=$(echo "$R" | tail -1)
+    if [ "$CODE" = "201" ] || [ "$CODE" = "200" ]; then SCOUNT=$((SCOUNT + 1)); fi
+    idx=$((idx + 1))
+  done
+  echo "      $SCOUNT / ${#GEN_NAMES[@]} học viên"
 
-SCOUNT=0
-idx=0
-for nm in "${ALL_NAMES[@]}"; do
-  slug=$(slugify "$nm")
-  # ensure uniqueness with index suffix
-  email="${slug}.${idx}@student.skyedu.vn"
-  # phone: 09 + 8 digits derived from idx
-  phone=$(printf "09%08d" $((10000000 + idx)))
-  json="{\"name\":\"$nm\",\"email\":\"$email\",\"phone\":\"$phone\"}"
-  R=$(post "/api/v1/students" "$json")
-  CODE=$(echo "$R" | tail -1)
-  if [ "$CODE" = "201" ] || [ "$CODE" = "200" ]; then
-    SCOUNT=$((SCOUNT + 1))
-  else
-    echo -e "  ${RED}✗${NC} student '$nm' HTTP $CODE"
-  fi
-  idx=$((idx + 1))
-done
-echo "      $SCOUNT / ${#ALL_NAMES[@]} students created"
-
-# ------------------------------------------------------------
-# 5. Classes (1 per course) + enrollments (sample for dashboard realism)
-# ------------------------------------------------------------
-echo -e "${YELLOW}[4/5] Classes${NC}"
-declare -a CLASS_IDS=()
-START_DATE=$(date -d "+7 days" +%Y-%m-%d 2>/dev/null || date +%Y-%m-%d)
-END_DATE=$(date -d "+90 days" +%Y-%m-%d 2>/dev/null || date +%Y-%m-%d)
-CLASS_NAMES=("Lớp Anh ngữ 5A1" "Lớp IELTS 7.0 Buổi tối" "Lớp Business English Sáng" "Lớp Kids English K1" "Lớp TOEIC Cấp tốc")
-ci=0
-for cid in "${COURSE_IDS[@]}"; do
-  cname="${CLASS_NAMES[$ci]:-Lớp học $cid}"
-  json="{\"name\":\"$cname\",\"description\":\"Lớp demo Sky Education\",\"schedule\":\"Thứ 2-4-6, 18:00-19:30\",\"locationDetail\":\"Cơ sở 1 - 123 Lê Lợi, Q.1, TP.HCM\",\"startDate\":\"$START_DATE\",\"endDate\":\"$END_DATE\",\"maxStudents\":30}"
-  R=$(post "/api/v1/courses/$cid/classes" "$json")
+  # 5. Class (1 — lớp của GV) + enrollments mẫu
+  echo -e "${YELLOW}[4/5] Lớp học${NC}"
+  local START_DATE END_DATE CLID
+  START_DATE=$(date -d "+7 days" +%Y-%m-%d 2>/dev/null || date +%Y-%m-%d)
+  END_DATE=$(date -d "+90 days" +%Y-%m-%d 2>/dev/null || date +%Y-%m-%d)
+  json="{\"name\":\"$CLASS_NAME\",\"description\":\"Lớp demo $SUBDOMAIN\",\"schedule\":\"Thứ 2-4-6, 18:00-19:30\",\"locationDetail\":\"45 Hai Bà Trưng, Hà Nội\",\"startDate\":\"$START_DATE\",\"endDate\":\"$END_DATE\",\"maxStudents\":40}"
+  R=$(post "/api/v1/courses/$CID/classes" "$json")
   CODE=$(echo "$R" | tail -1); BODY=$(echo "$R" | sed '$d')
   if [ "$CODE" = "201" ] || [ "$CODE" = "200" ]; then
     CLID=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',d).get('id',''))" 2>/dev/null)
-    CLASS_IDS+=("$CLID")
-    echo -e "  ${GREEN}✓${NC} class '$cname' id=$CLID (course=$cid)"
+    echo -e "  ${GREEN}✓${NC} lớp '$CLASS_NAME' id=$CLID"
   else
-    echo -e "  ${RED}✗${NC} class '$cname' HTTP $CODE: $(echo "$BODY" | head -c 120)"
+    echo -e "  ${RED}✗${NC} lớp '$CLASS_NAME' HTTP $CODE: $(echo "$BODY" | head -c 120)"
+    return 0
   fi
-  ci=$((ci + 1))
-done
-echo "      ${#CLASS_IDS[@]} classes created"
 
-# Enrollments: enroll first ~12 students into classes round-robin
-echo -e "${YELLOW}[5/5] Enrollments (sample)${NC}"
-ECOUNT=0
-# tuition per class index (matches COURSES price order)
-ENROLL_TUITION=(1500000 3500000 2800000 1500000 2200000)
-if [ "${#CLASS_IDS[@]}" -gt 0 ]; then
-  # fetch first 15 student ids (response shape: data.content[])
-  SIDS=$(curl -s "${H_TENANT[@]}" "$GATEWAY/api/v1/students?page=0&size=15" \
+  echo -e "${YELLOW}[5/5] Ghi danh (mẫu)${NC}"
+  local SIDS ECOUNT=0
+  SIDS=$(curl -s "${H_TENANT[@]}" "$GATEWAY/api/v1/students?page=0&size=12" \
     | python3 -c "import sys,json; print(' '.join(str(s['id']) for s in json.load(sys.stdin)['data']['content']))" 2>/dev/null)
-  ei=0
   for sid in $SIDS; do
-    k=$((ei % ${#CLASS_IDS[@]}))
-    clid="${CLASS_IDS[$k]}"
-    tu="${ENROLL_TUITION[$k]:-1500000}"
-    json="{\"studentId\":$sid,\"classId\":$clid,\"tuitionAmount\":$tu}"
-    R=$(post "/api/v1/enrollments" "$json")
-    CODE=$(echo "$R" | tail -1)
+    json="{\"studentId\":$sid,\"classId\":$CLID,\"tuitionAmount\":$price}"
+    R=$(post "/api/v1/enrollments" "$json"); CODE=$(echo "$R" | tail -1)
     if [ "$CODE" = "201" ] || [ "$CODE" = "200" ]; then ECOUNT=$((ECOUNT + 1)); fi
-    ei=$((ei + 1))
   done
+  echo "      $ECOUNT ghi danh"
+  echo -e "${GREEN}✓ Tenant $SUBDOMAIN xong${NC} (instance_id=$INSTANCE_ID)"
+}
+
+# ============================================================
+# TENANT 1 — Cô Đỗ Lan Khánh (THPT · Pháp luật & Đời sống) — CHỦ THỂ Chương 3
+# ============================================================
+if [[ " $SEED_TENANTS " == *" khanh "* ]]; then
+  seed_tenant \
+    "khanh-phapluat" \
+    "khanh.do@gmail.com" \
+    "Khanh@2026" \
+    '{"name":"Đỗ Lan Khánh","email":"khanh.do@gmail.com","phoneNumber":"0901234001","specialization":"Pháp luật & Đời sống (THPT)","qualification":"Cử nhân Luật","experienceYears":9}' \
+    "Pháp luật & Đời sống 12|PLDS12|Khóa Pháp luật & Đời sống lớp 12 (THPT)|Advanced|Law|800000" \
+    "Lớp Pháp luật 12A1" \
+    30 \
+    "#1E3A5F" "#C9A227"   # navy + gold
 fi
-echo "      $ECOUNT enrollments created"
+
+# ============================================================
+# TENANT 2 — Cô Nguyễn Thị Hà (Tiểu học · Toán) — gói FREE — gọn
+# ============================================================
+if [[ " $SEED_TENANTS " == *" ha "* ]]; then
+  seed_tenant \
+    "ha-toantieuhoc" \
+    "ha.nguyen@gmail.com" \
+    "Ha@2026" \
+    '{"name":"Nguyễn Thị Hà","email":"ha.nguyen@gmail.com","phoneNumber":"0901234002","specialization":"Toán Tiểu học","qualification":"Cử nhân Sư phạm Toán","experienceYears":5}' \
+    "Toán nâng cao lớp 5|TOAN5|Khóa Toán nâng cao lớp 5 (Tiểu học)|Beginner|Math|500000" \
+    "Lớp Toán 5B" \
+    18 \
+    "#2563EB" "#60A5FA"   # blue
+fi
+
+# ============================================================
+# TENANT 3 — Thầy Nguyễn Đình Nhì (THCS · Hóa) — gói PREMIUM — gọn
+# ============================================================
+if [[ " $SEED_TENANTS " == *" nhi "* ]]; then
+  seed_tenant \
+    "nhi-hoathcs" \
+    "nhi.nguyen@gmail.com" \
+    "Nhi@2026" \
+    '{"name":"Nguyễn Đình Nhì","email":"nhi.nguyen@gmail.com","phoneNumber":"0901234003","specialization":"Hóa học THCS","qualification":"Cử nhân Sư phạm Hóa","experienceYears":7}' \
+    "Hóa học lớp 9|HOA9|Khóa Hóa học lớp 9 luyện thi vào 10 (THCS)|Intermediate|Chemistry|700000" \
+    "Lớp Hóa 9C" \
+    22 \
+    "#16A34A" "#4ADE80"   # green
+fi
 
 echo "=============================================="
-echo "  Seed Complete — Sky Education"
-echo "  instance_id = $INSTANCE_ID"
+echo "  Seed Complete — 3 Giảng viên độc lập"
+echo "  Đã seed: $SEED_TENANTS"
 echo "=============================================="
 
 # ------------------------------------------------------------
-# Re-seed cleanup (run manually against DB if needed):
+# Re-seed cleanup (chạy thủ công với DB nếu cần). Lặp cho từng instance_id:
 #   INST=<instance_id>
 #   docker exec kite-postgres psql -U kitehub -d kiteclass_shared -c \
 #     "DELETE FROM enrollments WHERE student_id IN (SELECT id FROM students WHERE instance_id='$INST'); \
