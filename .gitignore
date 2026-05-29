@@ -149,3 +149,9 @@ documents/08-thesis/.mermaid-cache/
 
 # Demo-trio walk evidence screenshots — local-only (regen via e2e/capture-thesis-evidence.mjs)
 documents/08-thesis/evidence/
+
+# Demo landing image assets — local-only, never commit binaries to remote (per user rule).
+# Seed sets URL strings (committed code); the binary asset bytes stay local.
+kiteclass/kiteclass-frontend/public/demo/
+documents/asset.png
+documents/sky-banner-draft.png
