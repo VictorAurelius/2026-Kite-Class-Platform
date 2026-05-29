@@ -37,9 +37,10 @@ export function TestimonialsSection({ slots }: TestimonialsSectionProps) {
     <section className="py-16">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold text-center mb-12">Phụ huynh &amp; học viên nói gì</h2>
-        <div className="grid md:grid-cols-3 gap-8">
+        {/* Mobile: carousel scroll-snap ngang; Desktop: grid 3 cột */}
+        <div className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4 md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {testimonials.map((t) => (
-            <Card key={t.title}>
+            <Card key={t.title} className="w-[85%] shrink-0 snap-center md:w-auto md:shrink">
               <CardContent className="pt-6">
                 <div className="mb-3 text-sm text-amber-500" aria-label="Đánh giá 5 trên 5 sao">★★★★★</div>
                 <p className="text-sm mb-4">&ldquo;{t.items?.[0] || ''}&rdquo;</p>

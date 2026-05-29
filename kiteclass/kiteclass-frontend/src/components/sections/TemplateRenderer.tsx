@@ -102,14 +102,22 @@ function renderSection(sectionId: SectionId, data: LandingData, sectionSlots?: S
 export function TemplateRenderer({ template, data, slots = {} }: TemplateRendererProps) {
   const sections = getEnabledSections(template);
 
+  // Section divider: nền zebra xen kẽ (hero giữ nguyên; các section sau luân phiên
+  // trắng / muted) để tách thị giác rõ ràng giữa các khối nội dung.
+  let bandIndex = 0;
+
   return (
     <div className="flex flex-col">
-      {sections.map((section) => (
-        <div key={section.id}>
-          {renderSection(section.id, data, slots[section.id])}
-          {section.id === 'courses' && <CTASection />}
-        </div>
-      ))}
+      {sections.map((section) => {
+        const isHero = section.id === 'hero';
+        const striped = !isHero && bandIndex++ % 2 === 1;
+        return (
+          <div key={section.id} className={striped ? 'bg-muted/40' : undefined}>
+            {renderSection(section.id, data, slots[section.id])}
+            {section.id === 'courses' && <CTASection />}
+          </div>
+        );
+      })}
     </div>
   );
 }
