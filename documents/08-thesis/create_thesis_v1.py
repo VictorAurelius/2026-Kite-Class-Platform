@@ -1811,12 +1811,13 @@ def add_conclusion(doc):
         "Hoàn thiện thanh toán trực tuyến (mở rộng VNPay sang MoMo/ZaloPay), hợp tác MISA MeInvoice cho "
         "hóa đơn điện tử theo Thông tư 78/2021/TT-BTC, mở rộng quy mô người dùng khi sản phẩm trưởng thành.")
     add_bullet_list_item(doc,
-        "Giai đoạn vận hành chính thức: kiến trúc đa-region (Singapore + Hà Nội data localization "
-        "Việt Nam theo Nghị định 53/2022), AI Quality Gate phiên bản nâng cao với multi-vendor failover, "
-        "mobile app native iOS + Android.")
+        "Về hạ tầng và bảo mật: kiến trúc đa vùng (Singapore kết hợp Hà Nội để bản địa hóa dữ liệu "
+        "theo Nghị định 53/2022), nâng cấp AI Quality Gate với cơ chế dự phòng đa nhà cung cấp "
+        "(multi-vendor failover), và ứng dụng di động native trên iOS và Android.")
     add_bullet_list_item(doc,
-        "Giai đoạn mở rộng K-12: mở rộng sang persona trường công lập với DPO chính thức + DPIA cho dữ "
-        "liệu trẻ em theo Luật Bảo vệ Dữ liệu Cá nhân Điều 26.")
+        "Về mở rộng thị trường: hướng tới khối trường công lập K-12, kèm theo việc bổ nhiệm cán bộ "
+        "bảo vệ dữ liệu (DPO) chính thức và thực hiện đánh giá tác động bảo vệ dữ liệu (DPIA) cho dữ "
+        "liệu trẻ em theo Điều 26 Luật Bảo vệ Dữ liệu Cá nhân.")
 
     # Wave thesis-2 Bucket Issue 7 fix — Remove "4. Đóng góp khoa học" + "5. Kiến nghị" separate sections per khung primary §1 Ch.4 §4.4
     # (khung mandate "Kết luận, kiến nghị + Phương hướng phát triển" gộp 1 mục §4.4; KHÔNG separate "Đóng góp khoa học" section).
