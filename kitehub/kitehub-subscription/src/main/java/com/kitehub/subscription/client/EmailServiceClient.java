@@ -483,11 +483,19 @@ public class EmailServiceClient {
                 .to(to)
                 .subject("Chào mừng bạn đến với KiteHub!")
                 .templateName("welcome")
+                // GAP-797: welcome.{txt,html} read recipientName + docsUrl +
+                // unsubscribeUrl. Sender has no recipient-name param so the
+                // template's `recipientName ?: organizationName` fallback applies
+                // — pass organizationName explicitly as recipientName so the
+                // greeting renders a real value instead of the bare fallback.
                 .variables(Map.of(
+                    "recipientName", organizationName,
                     "organizationName", organizationName,
                     "trialDays", trialDays,
                     "expiryDate", expiryDate,
-                    "loginUrl", "https://kitehub.vn/login"
+                    "loginUrl", "https://kitehub.vn/login",
+                    "docsUrl", "https://kitehub.me/help",
+                    "unsubscribeUrl", "https://kitehub.me/unsubscribe"
                 ))
                 .build();
 
@@ -702,12 +710,19 @@ public class EmailServiceClient {
                 .to(to)
                 .subject("Mã truy cập Beta KiteHub của bạn")
                 .templateName("beta-invite")
+                // GAP-797: template var-name contract — canonical set is
+                // claimCode / inviteUrl / expiresAt (matches both beta-invite.txt
+                // and beta-invite.html). Key MUST be `inviteUrl` (NOT `signupUrl`)
+                // or Thymeleaf falls to the ?: default and the email ships without
+                // the real signup link. unsubscribeUrl injected here because the
+                // renderer only auto-injects `branding`.
                 .variables(Map.of(
                     "recipientName", recipientName == null ? "bạn" : recipientName,
                     "orgName", orgName == null ? "" : orgName,
                     "claimCode", claimCode == null ? "" : claimCode,
-                    "signupUrl", signupUrl == null ? "" : signupUrl,
-                    "expiresAt", expiresAt == null ? "" : expiresAt
+                    "inviteUrl", signupUrl == null ? "" : signupUrl,
+                    "expiresAt", expiresAt == null ? "" : expiresAt,
+                    "unsubscribeUrl", "https://kitehub.me/unsubscribe"
                 ))
                 .build();
 

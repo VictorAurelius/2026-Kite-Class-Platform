@@ -54,7 +54,7 @@ class ClassRescheduledEmailConsumerTest {
                 LocalDate.of(2026, 5, 21),
                 LocalDate.of(2026, 6, 30),
                 LocalDate.of(2026, 7, 7),
-                999L,
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000999"),
                 Instant.now(),
                 "PHONG_HOC_KHONG_KHA_DUNG",
                 null,

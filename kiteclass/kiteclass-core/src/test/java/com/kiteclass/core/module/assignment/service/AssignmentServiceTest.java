@@ -110,7 +110,6 @@ class AssignmentServiceTest {
                 .allowLateSubmission(true)
                 .latePenaltyPercent(BigDecimal.valueOf(10))
                 .status(AssignmentStatus.DRAFT)
-                .createdBy(mainTeacherId)
                 .build();
         testAssignment.setId(1L);
         testAssignment.setInstanceId(tenantId);

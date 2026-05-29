@@ -26,6 +26,7 @@ export default function AdminInviteStaffPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
+  const [role, setRole] = useState<'TEACHER' | 'STAFF' | 'MANAGER'>('STAFF');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,6 +45,13 @@ export default function AdminInviteStaffPage() {
 
     setSubmitting(true);
     try {
+      // BE CreateStaffInvitationRequest schema (Wave A Bucket B re-host —
+      // kitehub-subscription /staff/dto): { email, fullName } — both required.
+      // Role NOT accepted in body (BE hardcodes STAFF); role dropdown UI-only
+      // for future when BE supports role-bound invitations (Bug #20 follow-up).
+      // FIX Bug #26 (Wave A Bucket B walk 2026-05-28): payload was {email, role}
+      // — missing fullName → 400 INVALID_FULL_NAME. Schema sync to BE Wave 79
+      // kitehub-subscription canonical (post re-host).
       await apiClient.post(endpoints.staffInvitations.create, {
         email: email.trim().toLowerCase(),
         fullName: fullName.trim(),
@@ -135,12 +143,23 @@ export default function AdminInviteStaffPage() {
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-medium">Vai trò</label>
-          <div className="rounded-lg border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-            STAFF (Nhân viên trung tâm)
-          </div>
+          <label htmlFor="role" className="block text-sm font-medium">
+            Vai trò <span className="text-destructive">*</span>
+          </label>
+          <select
+            id="role"
+            value={role}
+            onChange={(e) => setRole(e.target.value as 'TEACHER' | 'STAFF' | 'MANAGER')}
+            required
+            className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
+            data-testid="invite-role-select"
+          >
+            <option value="TEACHER">Giáo viên (TEACHER)</option>
+            <option value="STAFF">Nhân viên trung tâm (STAFF)</option>
+            <option value="MANAGER">Quản lý (MANAGER)</option>
+          </select>
           <p className="text-xs text-muted-foreground">
-            Phase 1 BETA chỉ hỗ trợ vai trò STAFF. Các vai trò chi tiết hơn (Manager / Teacher / Accountant) sẽ có ở Phase 2.
+            Chọn vai trò phù hợp. Vai trò Chủ trung tâm (OWNER) không mời được — mỗi trung tâm chỉ có 1 chủ.
           </p>
         </div>
 

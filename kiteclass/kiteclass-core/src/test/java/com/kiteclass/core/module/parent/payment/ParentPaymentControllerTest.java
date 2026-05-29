@@ -133,7 +133,9 @@ class ParentPaymentControllerTest {
                 .amount(new BigDecimal("1500000"))
                 .paymentMethod(PaymentMethod.VNPAY)
                 .build();
-        when(paymentService.createPayment(any(CreatePaymentRequest.class), eq(PARENT_LINH_ID)))
+        // GAP-795: payment actor = X-User-Id UUID via UserContext (null in @WebMvcTest
+        // slice — no TenantFilterInterceptor). Assert call shape, not the actor value.
+        when(paymentService.createPayment(any(CreatePaymentRequest.class), any()))
                 .thenReturn(created);
         // First-write insert succeeds (no race)
         when(idempotencyService.recordFirstWrite(anyString(), eq(VALID_KEY),
@@ -152,9 +154,10 @@ class ParentPaymentControllerTest {
         // Zalo OA stub called per AC5 (3 events scope — payment confirm)
         verify(zaloOaNotificationService, times(1))
                 .recordPaymentConfirm(eq(PARENT_LINH_ID), eq(1L), anyLong(), anyString());
-        // Real parentId used (NOT hardcoded 1L — Bucket E concern not affecting this path)
+        // createPayment invoked once (actor = X-User-Id UUID via UserContext per GAP-795;
+        // not asserted here — UserContext unpopulated in web slice).
         verify(paymentService, times(1))
-                .createPayment(any(CreatePaymentRequest.class), eq(PARENT_LINH_ID));
+                .createPayment(any(CreatePaymentRequest.class), any());
     }
 
     @Test
@@ -181,7 +184,7 @@ class ParentPaymentControllerTest {
                 .andExpect(jsonPath("$.data.id").value(999));
 
         // CRITICAL: createPayment never called on replay (1 payment row only)
-        verify(paymentService, Mockito.never()).createPayment(any(), anyLong());
+        verify(paymentService, Mockito.never()).createPayment(any(), any());
         // Zalo OA also not called on replay (avoid duplicate notifications)
         verify(zaloOaNotificationService, Mockito.never())
                 .recordPaymentConfirm(anyLong(), anyLong(), anyLong(), anyString());
@@ -203,7 +206,7 @@ class ParentPaymentControllerTest {
                 .andExpect(jsonPath("$.code").value("PARENT_NOT_LINKED"));
 
         // PaymentService MUST NOT be invoked for unlinked child
-        verify(paymentService, Mockito.never()).createPayment(any(), anyLong());
+        verify(paymentService, Mockito.never()).createPayment(any(), any());
         verify(idempotencyService, Mockito.never())
                 .lookup(anyString(), anyString());
     }

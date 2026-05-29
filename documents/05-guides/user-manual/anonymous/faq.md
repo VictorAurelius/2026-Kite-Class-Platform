@@ -1,14 +1,14 @@
 ---
 persona: anonymous
 topic: faq
-last-updated: 2026-05-14
+last-updated: 2026-05-26
 version: v0.9.0-beta
-effort_minutes: 6
+effort_minutes: 7
 ---
 
 # Câu hỏi thường gặp — Anonymous Prospect
 
-> 📅 Cập nhật lần cuối: **2026-05-14** · Phiên bản KiteHub: **v0.9.0-beta** · Đọc khoảng **6 phút**
+> 📅 Cập nhật lần cuối: **2026-05-26** · Phiên bản KiteHub: **v0.9.0-beta** · Đọc khoảng **7 phút**
 
 ## TL;DR
 
@@ -55,15 +55,23 @@ Có, đầy đủ. Module Lớp + Lịch + Học phí áp dụng tốt cho:
 - ✅ Trung tâm Năng khiếu (Nhạc, Vẽ, Múa, Võ)
 - ✅ Mầm non tư thục (nếu <300 hs)
 
-### 1.4 KiteHub có hỗ trợ trung tâm có chi nhánh không?
+### 1.4 KiteHub có hỗ trợ trung tâm có nhiều chi nhánh không?
 
-Có:
+**Phase 1 BETA (đến hết tháng 11/2026): chưa hỗ trợ đa chi nhánh.**
 
-- Gói PRO: 1 chi nhánh
-- Gói PREMIUM: 3 chi nhánh
-- Gói ENTERPRISE: không giới hạn
+Hiện tại KiteHub thiết kế cho trung tâm 1 chi nhánh để hoàn thiện quy trình cốt lõi (lớp + lịch + học phí + điểm danh) cùng nhóm trung tâm tiên phong. Tính năng đa chi nhánh sẽ ship **Quý 3 năm 2026** trong Phase 2, bao gồm:
 
-Dữ liệu chi nhánh tách biệt nhưng Chủ trung tâm có dashboard tổng hợp toàn hệ thống.
+- Dashboard tổng hợp doanh thu + sĩ số toàn hệ thống cho Chủ trung tâm
+- Chuyển học sinh / giáo viên giữa các chi nhánh
+- Phân quyền Quản lý chi nhánh riêng biệt
+- Báo cáo cross-branch (so sánh hiệu quả từng chi nhánh)
+
+Nếu trung tâm bạn có **≥ 2 chi nhánh**, vui lòng **đăng ký waitlist** ngay khi điền form Beta — chúng tôi sẽ thông báo qua email + Zalo khi đa chi nhánh sẵn sàng. Trong thời gian chờ, anh/chị có thể:
+
+- Onboard chi nhánh chính trước, các chi nhánh khác chờ Q3 2026, hoặc
+- Tham khảo giải pháp tạm thời: tạo 1 tenant KiteHub cho mỗi chi nhánh + reconcile báo cáo qua Excel ngoài hệ thống (không khuyến nghị dài hạn)
+
+Quyết định defer đến Phase 2 được ghi nhận tại [ADR-036](../../../../02-architecture/adr/ADR-036-multi-branch-defer-phase-2.md).
 
 ### 1.5 Có App mobile cho phụ huynh không?
 

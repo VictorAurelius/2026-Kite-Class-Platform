@@ -10,9 +10,17 @@ import axios from 'axios';
 import type { Course, CourseSearchParams } from '@/types/course';
 import type { ApiResponse, PaginatedResponse } from '@/types/api';
 
-// Public API client (no auth headers)
+// Public API client (no auth headers).
+// SSR-aware baseURL (GAP-809): server-side runs INSIDE the Next container where
+// localhost:9000 has nothing — it must reach the gateway via the docker-network DNS
+// (INTERNAL_API_URL=http://kite-gateway:9000). Browser-side uses the host-mapped
+// NEXT_PUBLIC_API_URL. Without this split, SSR landing fetch threw ECONNREFUSED
+// 127.0.0.1:9000 → public homepage fell back to the generic default branding.
+const isServer = typeof window === 'undefined';
 const publicApiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
+  baseURL: isServer
+    ? (process.env.INTERNAL_API_URL || 'http://kite-gateway:9000')
+    : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000'),
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

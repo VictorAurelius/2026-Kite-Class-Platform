@@ -51,6 +51,13 @@ public class EmailTemplateResolverConfig {
         // this one picks up requests with explicit .txt suffix in template name.
         resolver.setOrder(50);
         resolver.setCheckExistence(true);
+        // GAP-800: scope this resolver to ONLY template names ending in `.txt`.
+        // Without this, with checkExistence=true the resolver greedily appended `.txt`
+        // to suffix-less HTML render calls (e.g. process("emails/beta-invite")) whose
+        // `.txt` sibling exists → rendered the plain-text body INTO the HTML MIME part
+        // (no <html>/<a href> markup, non-clickable links). resolvablePatterns confines
+        // it to explicit `.txt` requests so suffix-less names fall through to the HTML resolver.
+        resolver.setResolvablePatterns(java.util.Set.of("*.txt"));
         templateEngine.addTemplateResolver(resolver);
     }
 

@@ -1,9 +1,11 @@
 package com.kiteclass.core.module.course.repository;
 
 import com.kiteclass.core.common.constant.CourseStatus;
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.module.course.entity.Course;
 import com.kiteclass.core.testutil.CourseTestDataBuilder;
 import com.kiteclass.core.testutil.IntegrationTestBase;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -12,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,12 +33,17 @@ class CourseRepositoryTest extends IntegrationTestBase {
     @Autowired
     private CourseRepository courseRepository;
 
+    /** Fixed test tenant — set in TenantContext so EntityPersistenceListener stamps instance_id
+     * on saved courses, and passed to findBySearchCriteria (GAP-791 tenant-scoped native query). */
+    private static final UUID TEST_TENANT = UUID.fromString("11111111-1111-1111-1111-111111111111");
+
     private Course course1;
     private Course course2;
     private Course course3;
 
     @BeforeEach
     void setUp() {
+        TenantContext.setCurrentTenant(TEST_TENANT);
         courseRepository.deleteAll();
 
         course1 = CourseTestDataBuilder.createCourseWithCode("ENG-001");
@@ -56,6 +64,11 @@ class CourseRepositoryTest extends IntegrationTestBase {
         course3.setTeacherId(1L);
         course3.setStatus(CourseStatus.ARCHIVED);
         course3 = courseRepository.save(course3);
+    }
+
+    @AfterEach
+    void tearDown() {
+        TenantContext.clear();
     }
 
     @Test
@@ -92,20 +105,38 @@ class CourseRepositoryTest extends IntegrationTestBase {
     }
 
     @Test
-    void existsByCodeAndDeletedFalse_shouldReturnTrue_whenExists() {
+    void existsByCodeAndInstanceId_shouldReturnFalse_whenCodeNotExists() {
         // When
-        boolean exists = courseRepository.existsByCodeAndDeletedFalse("ENG-001");
+        boolean exists = courseRepository.existsByCodeAndInstanceIdAndDeletedFalse("NONEXISTENT", TEST_TENANT);
+
+        // Then
+        assertThat(exists).isFalse();
+    }
+
+    /** GAP-799 — tenant-scoped uniqueness: same code in current tenant → exists. */
+    @Test
+    void existsByCodeAndInstanceId_shouldReturnTrue_whenCodeExistsInSameTenant() {
+        // When
+        boolean exists = courseRepository.existsByCodeAndInstanceIdAndDeletedFalse("ENG-001", TEST_TENANT);
 
         // Then
         assertThat(exists).isTrue();
     }
 
+    /**
+     * GAP-799 regression guard — a code used by tenant A must NOT collide for tenant B.
+     * Before the fix, the global {@code existsByCodeAndDeletedFalse} saw all tenants'
+     * rows in the shared kiteclass DB → cross-tenant collision (409 COURSE_CODE_EXISTS).
+     */
     @Test
-    void existsByCodeAndDeletedFalse_shouldReturnFalse_whenNotExists() {
-        // When
-        boolean exists = courseRepository.existsByCodeAndDeletedFalse("NONEXISTENT");
+    void existsByCodeAndInstanceId_shouldReturnFalse_forDifferentTenant() {
+        // Given — ENG-001 exists in TEST_TENANT (seeded in setUp)
+        UUID otherTenant = UUID.fromString("22222222-2222-2222-2222-222222222222");
 
-        // Then
+        // When
+        boolean exists = courseRepository.existsByCodeAndInstanceIdAndDeletedFalse("ENG-001", otherTenant);
+
+        // Then — tenant B can legitimately reuse the same code
         assertThat(exists).isFalse();
     }
 
@@ -141,7 +172,7 @@ class CourseRepositoryTest extends IntegrationTestBase {
         Pageable pageable = PageRequest.of(0, 20);
 
         // When
-        Page<Course> result = courseRepository.findBySearchCriteria("Mathematics", null, null, pageable);
+        Page<Course> result = courseRepository.findBySearchCriteria(TEST_TENANT, "Mathematics", null, null, pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
@@ -154,7 +185,7 @@ class CourseRepositoryTest extends IntegrationTestBase {
         Pageable pageable = PageRequest.of(0, 20);
 
         // When
-        Page<Course> result = courseRepository.findBySearchCriteria("ENG", null, null, pageable);
+        Page<Course> result = courseRepository.findBySearchCriteria(TEST_TENANT, "ENG", null, null, pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
@@ -167,7 +198,7 @@ class CourseRepositoryTest extends IntegrationTestBase {
         Pageable pageable = PageRequest.of(0, 20);
 
         // When
-        Page<Course> result = courseRepository.findBySearchCriteria(null, "DRAFT", null, pageable);
+        Page<Course> result = courseRepository.findBySearchCriteria(TEST_TENANT, null, "DRAFT", null, pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
@@ -180,7 +211,7 @@ class CourseRepositoryTest extends IntegrationTestBase {
         Pageable pageable = PageRequest.of(0, 20);
 
         // When
-        Page<Course> result = courseRepository.findBySearchCriteria(null, null, 1L, pageable);
+        Page<Course> result = courseRepository.findBySearchCriteria(TEST_TENANT, null, null, 1L, pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(2); // course1 and course3
@@ -194,7 +225,7 @@ class CourseRepositoryTest extends IntegrationTestBase {
 
         // When
         Page<Course> result = courseRepository.findBySearchCriteria(
-                "Physics", "ARCHIVED", 1L, pageable
+                TEST_TENANT, "Physics", "ARCHIVED", 1L, pageable
         );
 
         // Then

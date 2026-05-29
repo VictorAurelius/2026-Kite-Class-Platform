@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Response DTO for Assignment.
@@ -32,7 +33,7 @@ public class AssignmentResponse {
     private Boolean allowLateSubmission;
     private BigDecimal latePenaltyPercent;
     private AssignmentStatus status;
-    private Long createdBy;
+    private UUID createdBy;  // actor X-User-Id UUID (GAP-795)
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

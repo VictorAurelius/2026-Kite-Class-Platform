@@ -6,6 +6,7 @@ import com.kiteclass.core.module.marketing.entity.LandingPage;
 import com.kiteclass.core.module.marketing.mapper.LandingPageMapper;
 import com.kiteclass.core.module.marketing.repository.LandingPageRepository;
 import com.kiteclass.core.module.marketing.service.impl.LandingPageServiceImpl;
+import com.kiteclass.core.module.settings.repository.BrandingRepository;
 import com.kiteclass.core.testutil.LandingPageTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,9 @@ class LandingPageServiceTest {
 
     @Mock
     private LandingPageMapper landingPageMapper;
+
+    @Mock
+    private BrandingRepository brandingRepository;
 
     @InjectMocks
     private LandingPageServiceImpl landingPageService;

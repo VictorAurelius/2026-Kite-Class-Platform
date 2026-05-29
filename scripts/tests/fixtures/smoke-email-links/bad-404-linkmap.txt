@@ -1,0 +1,4 @@
+# url status — the wrong FE route returns 404 (reproduces GAP-801: /signup/beta is 404,
+# correct FE route is /beta-signup/code).
+http://localhost:3000/signup/beta 404
+http://localhost:3000/ 200

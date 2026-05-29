@@ -22,6 +22,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * Token-based parent onboarding invitation.
@@ -85,9 +86,9 @@ public class ParentInvitation extends BaseEntity {
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
 
-    /** Gateway user id of the admin/teacher who issued the invitation. */
+    /** Gateway user id (UUID, X-User-Id / JWT sub) of the admin/teacher who issued the invitation (GAP-795). */
     @Column(name = "invited_by_user_id")
-    private Long invitedByUserId;
+    private UUID invitedByUserId;
 
     /** Set when the parent completes the redemption flow. */
     @Column(name = "redeemed_at")

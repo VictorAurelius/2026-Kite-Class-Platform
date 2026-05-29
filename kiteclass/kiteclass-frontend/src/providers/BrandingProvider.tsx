@@ -46,8 +46,13 @@ interface BrandingProviderProps {
 /**
  * Hex color (#RRGGBB) -> H S L channels consumable by Shadcn CSS vars.
  * Keeps the math tiny so we can inject without pulling in a color library.
+ *
+ * Exported so the authenticated dashboard applier (BrandingThemeApplier) can
+ * reuse the exact same conversion — keeps the public + authenticated paths in
+ * lockstep instead of duplicating the math.
  */
-function hexToHslString(hex: string): string | null {
+export function hexToHslString(hex: string | null | undefined): string | null {
+  if (!hex || typeof hex !== 'string') return null;
   const clean = hex.replace('#', '');
   if (clean.length !== 6) return null;
 
@@ -74,7 +79,31 @@ function hexToHslString(hex: string): string | null {
   return `${Math.round(h)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
-function applyCssVars(branding: PublicBranding): void {
+/**
+ * Minimal shape both {@link PublicBranding} (auth pages) and the authenticated
+ * {@code Branding} (dashboard) satisfy — only the brand colours are needed to
+ * recolour CSS variables.
+ */
+export interface BrandColorSource {
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+}
+
+/**
+ * Inject tenant brand colours into the document root CSS variables.
+ *
+ * Sets both raw-hex `--brand-*` vars (direct consumers) and the Shadcn HSL
+ * `--primary`/`--accent` channels (Tailwind components recolour automatically).
+ * SSR-safe: no-op when document is unavailable.
+ *
+ * Shared by {@link BrandingProvider} (public auth pages) and the dashboard's
+ * BrandingThemeApplier (authenticated) so a single applier governs both paths.
+ *
+ * NOTE: deliberately does NOT touch `--theme-*` vars (ThemeContext / localStorage
+ * brand theme) nor the light/dark mode toggle — those are separate concerns.
+ */
+export function applyBrandColorVars(branding: BrandColorSource): void {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
 
@@ -92,6 +121,10 @@ function applyCssVars(branding: PublicBranding): void {
   if (accentHsl) {
     root.style.setProperty('--accent', accentHsl);
   }
+}
+
+function applyCssVars(branding: PublicBranding): void {
+  applyBrandColorVars(branding);
 }
 
 export function BrandingProvider({ children }: BrandingProviderProps) {

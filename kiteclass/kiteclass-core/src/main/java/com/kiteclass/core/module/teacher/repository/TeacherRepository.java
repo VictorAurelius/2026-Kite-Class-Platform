@@ -84,9 +84,14 @@ public interface TeacherRepository extends JpaRepository<Teacher, Long> {
      * @param pageable pagination parameters
      * @return page of matching teachers
      */
+    // GAP-791 cross-flow sweep: nativeQuery=true bypasses Hibernate @Filter("tenantFilter")
+    // (JPQL-only). The instance_id predicate below — bound via SpEL to TenantContext, mirroring
+    // StudentRepository.findBySearchCriteria — is MANDATORY to scope the teachers list to the
+    // current tenant. Without it, GET /api/v1/teachers leaks other tenants' teachers (OWASP A01).
     @Query(value = """
             SELECT * FROM teachers t
             WHERE t.deleted = false
+            AND t.instance_id = :#{T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant()}
             AND (CAST(:search AS text) IS NULL OR LOWER(t.name) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%'))
                 OR LOWER(t.email) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%'))
                 OR LOWER(t.specialization) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%')))
@@ -95,6 +100,7 @@ public interface TeacherRepository extends JpaRepository<Teacher, Long> {
             countQuery = """
             SELECT COUNT(*) FROM teachers t
             WHERE t.deleted = false
+            AND t.instance_id = :#{T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant()}
             AND (CAST(:search AS text) IS NULL OR LOWER(t.name) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%'))
                 OR LOWER(t.email) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%'))
                 OR LOWER(t.specialization) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%')))

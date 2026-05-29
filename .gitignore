@@ -151,3 +151,12 @@ documents/08-thesis/.mermaid-cache/
 # Per scripts/screenshot-thesis-docx.sh — regen on-demand via:
 #   bash scripts/screenshot-thesis-docx.sh documents/08-thesis/thesis-v1.docx documents/08-thesis/screenshots-render
 documents/08-thesis/screenshots-render/
+# Demo-trio walk evidence screenshots — local-only (regen via e2e/capture-thesis-evidence.mjs)
+documents/08-thesis/evidence/
+
+# Demo landing image assets — local-only, never commit binaries to remote (per user rule).
+# Seed sets URL strings (committed code); the binary asset bytes stay local.
+kiteclass/kiteclass-frontend/public/demo/
+documents/asset.png
+documents/sky-banner-draft.png
+documents/sky-landing-walk-evidence.png

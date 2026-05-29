@@ -7,6 +7,10 @@ spring:
     resources:
       add-mappings: false
 
+  # GAP-796: nem NoHandlerFoundException cho route khong ton tai de GlobalExceptionHandler map thanh 404 (thay vi 500 catch-all)
+  mvc:
+    throw-exception-if-no-handler-found: true
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
 
@@ -141,6 +145,9 @@ internal:
 storage:
   s3:
     endpoint: ${STORAGE_S3_ENDPOINT:http://localhost:9000}
+    # Browser-reachable endpoint for presigned URLs (GAP-804 Bug #13). Falls back
+    # to `endpoint` when unset. Dev: http://localhost:9100; prod: public CDN/domain.
+    public-endpoint: ${STORAGE_S3_PUBLIC_ENDPOINT:}
     region: ${STORAGE_S3_REGION:us-east-1}
     access-key-id: ${STORAGE_S3_ACCESS_KEY:minioadmin}
     secret-access-key: ${STORAGE_S3_SECRET_KEY:minioadmin}

@@ -123,6 +123,38 @@ class RoleServiceTest {
         verify(userRoleRepository, never()).save(any());
     }
 
+    /**
+     * Wave beta-prep-1 Bucket E — Path 5 race hardening verification.
+     *
+     * <p>Simulates the race-loser branch: concurrent grant where this thread's
+     * {@code existsBy} pre-check returned false, but another transaction inserted
+     * the row between our check and our save. DB partial UNIQUE index fires →
+     * {@link org.springframework.dao.DataIntegrityViolationException}. We catch
+     * and return the winner's row to honor the idempotency contract.</p>
+     */
+    @Test
+    void assignRoleToUser_recovers_from_race_via_DataIntegrityViolation() {
+        Role role = Role.builder().name("TEACHER").build();
+        UserRole winner = UserRole.builder().userId(100L).role(role).build();
+
+        // First exists-check: false (we think we're the winner)
+        when(userRoleRepository.existsByUserIdAndRoleIdAndDeletedFalse(100L, 5L)).thenReturn(false);
+        when(roleRepository.findById(5L)).thenReturn(Optional.of(role));
+        // Save throws (race-loser hits DB UNIQUE)
+        when(userRoleRepository.save(any(UserRole.class)))
+                .thenThrow(new org.springframework.dao.DataIntegrityViolationException(
+                        "duplicate key value violates unique constraint idx_ur_user_role"));
+        // Recovery findBy returns the winner's row
+        when(userRoleRepository.findByUserIdAndRoleIdAndDeletedFalse(100L, 5L))
+                .thenReturn(Optional.of(winner));
+
+        UserRole result = service.assignRoleToUser(100L, 5L);
+
+        assertThat(result)
+                .as("idempotent recovery — returns winner's row instead of bubbling 500")
+                .isEqualTo(winner);
+    }
+
     @Test
     void revokeRoleFromUser_soft_deletes() {
         UserRole existing = UserRole.builder().userId(100L).build();

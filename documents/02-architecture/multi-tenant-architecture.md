@@ -21,6 +21,8 @@ scope: Multi-tenant isolation cho KiteHub + KiteClass — shared DB + tenant_id 
 
 KiteHub Platform dùng **một mô hình duy nhất**: shared database + `tenant_id` UUID column trên mọi domain table + **Postgres Row-Level Security (RLS)** policy. Tenant context propagate từ JWT → gateway header → service → `SET LOCAL app.current_tenant_id` → RLS policy filter row. **Defense-in-depth 5 layers** đảm bảo lỡ quên `WHERE tenant_id = ?` trong code vẫn KHÔNG bị cross-tenant leak.
 
+> ⚠️ **Trust-boundary caveat (P0 — [GAP-814](../04-quality/gaps/phase-1-beta/GAP-814-tenant-header-spoofing-gateway-strip.md)):** RLS filter THEO `app.current_tenant_id` lấy từ header `X-Tenant-Id`. Nếu header này bị client spoof (gateway hiện chưa `RemoveRequestHeader` trên route non-TenantResolver) → RLS scope sai tenant = cross-tenant IDOR. RLS là defense-in-depth NHƯNG entry point (`X-Tenant-Id`) phải đáng tin. Chuỗi resolve đầy đủ: [`tenant-domain-landing-architecture.md`](tenant-domain-landing-architecture.md).
+
 Quyết định kiến trúc neo tại: [ADR-023 Gateway key resolver](adr/ADR-023-gateway-key-resolver-strategy.md), GAP-466 (RLS implementation), GAP-469 (RLS performance baseline), GAP-604 (JWT-to-headers propagation), rule [`audit-service-isolation.md`](../../.claude/rules/audit-service-isolation.md), rule [`postgres-specific-type-testcontainers.md`](../../.claude/rules/postgres-specific-type-testcontainers.md).
 
 ---

@@ -8,6 +8,7 @@ import com.kiteclass.core.module.settings.dto.response.UserPreferencesResponse;
 import com.kiteclass.core.module.settings.service.UserPreferencesService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
+@Slf4j
 public class UserPreferencesController {
 
     private final UserPreferencesService userPreferencesService;
@@ -90,17 +92,25 @@ public class UserPreferencesController {
      *
      * <p>Security check: Prevents users from accessing/modifying other users' preferences.
      *
+     * <p><strong>GAP-798 — reference-id bridge.</strong> {@code user_preferences.user_id}
+     * is numeric (= {@code users.reference_id}). The actor's numeric reference id arrives on
+     * {@code X-User-Reference-Id} ({@link UserContext#getCurrentReferenceId()}); audit uses
+     * the UUID {@code X-User-Id} separately (GAP-795). Ownership = actor reference-id == path
+     * user_id. No actor-UUID → numeric bridge column needed — reference-id IS the numeric id.
+     *
      * @param requestedUserId user ID from path parameter
-     * @throws PermissionDeniedException if userId doesn't match authenticated user
+     * @throws PermissionDeniedException if the actor's reference-id doesn't match the path user_id
      */
     private void validateUserAccess(Long requestedUserId) {
-        Long authenticatedUserId = UserContext.getCurrentUser();
+        Long actorReferenceId = UserContext.getCurrentReferenceId();
 
-        if (authenticatedUserId == null) {
+        if (actorReferenceId == null) {
             throw new PermissionDeniedException("USER_NOT_AUTHENTICATED");
         }
 
-        if (!authenticatedUserId.equals(requestedUserId)) {
+        if (!actorReferenceId.equals(requestedUserId)) {
+            log.warn("UserPreferences.validateUserAccess: deny — actor ref-id {} != requested {}",
+                    actorReferenceId, requestedUserId);
             throw new PermissionDeniedException("USER_ACCESS_DENIED");
         }
     }

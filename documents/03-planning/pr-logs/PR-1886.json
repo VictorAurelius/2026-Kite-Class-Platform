@@ -1,0 +1,45 @@
+{
+  "pr": 1886,
+  "title": "fix(gap-760): setupMockAuth addInitScript to mitigate Zustand hydration race",
+  "branch": "gap-760-setupmockauth-addinitscript",
+  "created_at": null,
+  "merged_at": "2026-05-27T07:27:11Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-05-27T07:27:15.461347",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 3,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    },
+    {
+      "time": "2026-05-27T07:27:29.172474",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 3,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1573689"
+  }
+}

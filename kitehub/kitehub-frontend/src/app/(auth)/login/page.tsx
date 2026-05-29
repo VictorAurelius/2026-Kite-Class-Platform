@@ -52,6 +52,7 @@ export default function LoginPage() {
   const { setAuth } = useAuthStore();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   // GAP-515 Wave 78 Bucket C — when login returns 423 (account locked) OR
   // gateway 429 (rate-limited), parse Retry-After + countdown so user knows
   // exactly when retry is allowed instead of brute-force re-submitting.
@@ -112,7 +113,9 @@ export default function LoginPage() {
       }
       setAuth(user, accessToken, refreshToken);
       // GAP-599 Wave 92 Bucket B: sessionStorage (per-tab isolation).
-      setTokens(accessToken, refreshToken);
+      // 2026-05-28: rememberMe param mirrors tokens to localStorage for
+      // survive-browser-close UX (restored via restorePersistedTokens()).
+      setTokens(accessToken, refreshToken, rememberMe);
       // GAP-518: route both PLATFORM_ADMIN (canonical) and legacy ADMIN to /admin.
       router.push(isPlatformAdmin(user.role) ? '/admin' : '/dashboard');
     } catch (err) {
@@ -202,6 +205,19 @@ export default function LoginPage() {
           {errors.password && (
             <p className="mt-1.5 text-xs text-destructive">{errors.password.message}</p>
           )}
+        </div>
+
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="size-4 rounded border-input text-primary focus:ring-2 focus:ring-primary"
+              data-testid="login-remember-me"
+            />
+            <span>Ghi nhớ đăng nhập</span>
+          </label>
         </div>
 
         <button

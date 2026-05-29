@@ -2,7 +2,7 @@ package com.kitehub.email.controller;
 
 import com.kitehub.email.dto.EmailRequest;
 import com.kitehub.email.dto.EmailResponse;
-import com.kitehub.email.service.SESEmailService;
+import com.kitehub.email.service.EmailSender;
 import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,7 +31,13 @@ import org.springframework.web.bind.annotation.RestController;
        extraTags = {"slo", "tier-c", "controller", "email"})
 public class EmailController {
 
-    private final SESEmailService sesEmailService;
+    /**
+     * Provider-selected email channel ({@code @Primary} {@link EmailSender} = the
+     * {@code email.provider}-routing {@code EmailProviderRouter}). Injecting the
+     * interface — NOT the concrete {@code SESEmailService} — is what makes
+     * {@code email.provider=resend} actually reach Resend in production (GAP-788).
+     */
+    private final EmailSender emailSender;
 
     /**
      * Send email (internal API).
@@ -50,10 +56,10 @@ public class EmailController {
 
         if (request.getTemplateName() != null) {
             // Send templated email
-            response = sesEmailService.sendTemplatedEmail(request);
+            response = emailSender.sendTemplatedEmail(request);
         } else if (request.getHtmlBody() != null) {
             // Send plain HTML email
-            response = sesEmailService.sendEmail(
+            response = emailSender.sendEmail(
                     request.getTo(),
                     request.getSubject(),
                     request.getHtmlBody()

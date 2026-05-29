@@ -73,6 +73,14 @@ public class RoleService {
 
     /**
      * Assign role to user. Idempotent (no-op if already assigned).
+     *
+     * <p>Wave beta-prep-1 Bucket E — Path 5 role-grant race hardening: concurrent
+     * grant calls that both pass the {@code existsByUserIdAndRoleIdAndDeletedFalse}
+     * pre-check (race window before either commits) hit the partial UNIQUE index
+     * {@code idx_ur_user_role ON user_roles(user_id, role_id) WHERE deleted=FALSE}.
+     * 2nd save throws {@link org.springframework.dao.DataIntegrityViolationException}.
+     * Without explicit catch, caller sees HTTP 500 instead of idempotent success.
+     * Mitigation: catch + return the row inserted by the winner.</p>
      */
     @Transactional
     public UserRole assignRoleToUser(Long userId, Long roleId) {
@@ -88,7 +96,15 @@ public class RoleService {
                 .role(role)
                 .build();
 
-        return userRoleRepository.save(userRole);
+        try {
+            return userRoleRepository.save(userRole);
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            // Concurrent grant race: another transaction inserted the same (user_id, role_id)
+            // row between our existsBy check and our save. Honor idempotency contract by
+            // returning the row that won the race.
+            return userRoleRepository.findByUserIdAndRoleIdAndDeletedFalse(userId, roleId)
+                    .orElseThrow(() -> ex);
+        }
     }
 
     /**

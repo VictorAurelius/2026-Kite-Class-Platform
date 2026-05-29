@@ -81,7 +81,12 @@ public class TeacherServiceImpl implements TeacherService {
     /**
      * Lấy thông tin chi tiết giáo viên theo ID.
      *
-     * <p>Result is cached in Redis with key "teachers::{id}".
+     * <p>Result is cached in Redis with key "teachers::{tenantId}:{id}".
+     *
+     * <p><b>Multi-tenant note (GAP-792 cross-flow sweep):</b> the cache key MUST include
+     * the tenant (instance) ID. Teacher PKs come from a shared global sequence, so a key of
+     * {@code #id} alone causes cross-tenant cache pollution (same bug class as the courses
+     * cache fixed in GAP-792). The matching {@code @CacheEvict} keys use the same expression.
      *
      * @param id ID của giáo viên cần lấy thông tin
      * @return TeacherResponse chứa thông tin chi tiết giáo viên
@@ -91,7 +96,8 @@ public class TeacherServiceImpl implements TeacherService {
     @Transactional(readOnly = true)
     // GAP-043 (Wave 9.5-D) — sync=true coalesces concurrent teacher lookups
     // (schedule views, class rosters) onto a single DB read on cache miss.
-    @Cacheable(value = "teachers", key = "#id")
+    // GAP-792 cross-flow sweep — key includes tenant to prevent cross-tenant cache pollution.
+    @Cacheable(value = "teachers", key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant() + ':' + #id")
     public TeacherResponse getTeacherById(Long id) {
         log.debug("Fetching teacher with ID: {}", id);
 
@@ -144,7 +150,8 @@ public class TeacherServiceImpl implements TeacherService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "teachers", key = "#id")
+    // GAP-792 cross-flow sweep — evict key includes tenant to match tenant-scoped @Cacheable key.
+    @CacheEvict(value = "teachers", key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant() + ':' + #id")
     public TeacherResponse updateTeacher(Long id, UpdateTeacherRequest request) {
         log.info("Updating teacher with ID: {}", id);
 
@@ -174,7 +181,8 @@ public class TeacherServiceImpl implements TeacherService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "teachers", key = "#id")
+    // GAP-792 cross-flow sweep — evict key includes tenant to match tenant-scoped @Cacheable key.
+    @CacheEvict(value = "teachers", key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant() + ':' + #id")
     public void deleteTeacher(Long id) {
         log.info("Deleting teacher with ID: {}", id);
 

@@ -19,8 +19,10 @@
 'use client';
 
 import { useState, useRef, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
+import { HelpLink } from '@/components/support/HelpLink';
 
 /**
  * Wave 105 Bucket A (failure-mode matrix A1) — FE button debounce window in ms.
@@ -38,11 +40,15 @@ export interface BetaRequestFormProps {
 }
 
 export default function BetaRequestForm({ onSuccess }: BetaRequestFormProps) {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [orgName, setOrgName] = useState('');
   const [persona, setPersona] = useState<BetaPersona>('P2_CENTER_OWNER');
   const [referralSource, setReferralSource] = useState('');
+  // Wave beta-prep-1 Bucket F7 — multi-branch filter per ADR-036.
+  // Phase 1 BETA scope = single-branch tenants only; multi-branch redirects to waitlist.
+  const [branchCount, setBranchCount] = useState<number>(1);
   const [honeypot, setHoneypot] = useState('');
   const [consentGiven, setConsentGiven] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -59,6 +65,11 @@ export default function BetaRequestForm({ onSuccess }: BetaRequestFormProps) {
     }
     if (!name.trim()) return 'Vui lòng nhập họ tên.';
     if (!orgName.trim()) return 'Vui lòng nhập tên tổ chức.';
+    // Wave beta-prep-1 Bucket F7 — multi-branch filter per ADR-036.
+    // branchCount must be ≥ 1 integer; > 1 triggers waitlist redirect (handled in onSubmit).
+    if (!Number.isInteger(branchCount) || branchCount < 1) {
+      return 'Số chi nhánh phải là số nguyên ≥ 1.';
+    }
     if (!consentGiven) {
       return 'Vui lòng đồng ý với Chính sách Quyền riêng tư và Điều khoản Sử dụng.';
     }
@@ -85,6 +96,16 @@ export default function BetaRequestForm({ onSuccess }: BetaRequestFormProps) {
       setError(v);
       return;
     }
+    // Wave beta-prep-1 Bucket F7 — multi-branch filter redirect per ADR-036.
+    // Phase 1 BETA invite-only scope = single-branch tenants only. Multi-branch
+    // tenants get a polite waitlist page explaining Phase 1.5 timeline instead
+    // of submitting to the BE (which would still accept but Phase 1 ops cannot
+    // support multi-branch features yet). Server-side filter mirror tracked
+    // in follow-up GAP — defense-in-depth pending.
+    if (branchCount > 1) {
+      router.push(`/waitlist?reason=multi-branch&branches=${branchCount}`);
+      return;
+    }
     lastSubmitAtRef.current = nowMs;
     setLoading(true);
     try {
@@ -94,6 +115,7 @@ export default function BetaRequestForm({ onSuccess }: BetaRequestFormProps) {
         orgName,
         persona,
         referralSource: referralSource || null,
+        branchCount,
         honeypot,
         consentGiven,
       });
@@ -190,6 +212,42 @@ export default function BetaRequestForm({ onSuccess }: BetaRequestFormProps) {
         </select>
       </div>
 
+      {/*
+        Wave beta-prep-1 Bucket F7 — multi-branch filter per ADR-036.
+        Phase 1 BETA scope: single-branch tenants only. Values > 1 redirect to
+        /waitlist?reason=multi-branch in onSubmit (FE-side filter). Server-side
+        mirror tracked in follow-up gap (defense-in-depth).
+      */}
+      <div>
+        <label
+          htmlFor="beta-branch-count"
+          className="flex items-center text-sm font-medium mb-1.5"
+        >
+          Số chi nhánh trung tâm
+          <HelpLink topic="branch" inline />
+        </label>
+        <input
+          id="beta-branch-count"
+          type="number"
+          min={1}
+          max={50}
+          step={1}
+          value={branchCount}
+          onChange={(e) =>
+            setBranchCount(Math.max(1, parseInt(e.target.value, 10) || 1))
+          }
+          className="w-full rounded-xl border bg-background px-4 py-3 text-sm"
+          required
+          data-testid="beta-branch-count"
+          aria-describedby="beta-branch-help"
+        />
+        <p id="beta-branch-help" className="mt-1.5 text-xs text-muted-foreground">
+          Phase 1 BETA chỉ hỗ trợ trung tâm 1 chi nhánh. Trung tâm nhiều chi nhánh
+          sẽ được mời ở Phase 1.5 (dự kiến Q3 2026) — vẫn vui lòng điền số thực
+          tế để chúng tôi liên hệ đúng thời điểm.
+        </p>
+      </div>
+
       <div>
         <label htmlFor="beta-referral" className="block text-sm font-medium mb-1.5">
           Nguồn giới thiệu (tuỳ chọn)
@@ -238,6 +296,7 @@ export default function BetaRequestForm({ onSuccess }: BetaRequestFormProps) {
             Điều khoản Sử dụng
           </a>{' '}
           (PDPL 2023).
+          <HelpLink topic="consent" inline />
         </label>
       </div>
 

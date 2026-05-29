@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+  service:
+    image: example/service:latest
+    environment:
+      # Production correctly uses prod domain — CHECK A not relevant for prod-domain class.
+      SIGNUP_BASE_URL: https://kitehub.me

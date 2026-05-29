@@ -63,9 +63,9 @@ public class StudentServiceImpl implements StudentService {
             throw new DuplicateResourceException("STUDENT_EMAIL_EXISTS", (Object) request.email());
         }
 
-        // Validate phone uniqueness
-        if (request.phone() != null && studentRepository.existsByPhoneAndDeletedFalse(request.phone())) {
-            log.warn("Duplicate student phone: {}", request.phone());
+        // Validate phone uniqueness within tenant (GAP-799 — was global, leaked cross-tenant)
+        if (request.phone() != null && studentRepository.existsByPhoneAndInstanceIdAndDeletedFalse(request.phone(), tenantId)) {
+            log.warn("Duplicate student phone within tenant: {}, tenantId: {}", request.phone(), tenantId);
             throw new DuplicateResourceException("STUDENT_PHONE_EXISTS", (Object) request.phone());
         }
 
@@ -165,10 +165,10 @@ public class StudentServiceImpl implements StudentService {
             }
         }
 
-        // Validate phone uniqueness if changed
+        // Validate phone uniqueness within tenant if changed (GAP-799 — was global)
         if (request.phone() != null && !request.phone().equals(student.getPhone())) {
-            if (studentRepository.existsByPhoneAndDeletedFalse(request.phone())) {
-                log.warn("Duplicate student phone: {}", request.phone());
+            if (studentRepository.existsByPhoneAndInstanceIdAndDeletedFalse(request.phone(), student.getInstanceId())) {
+                log.warn("Duplicate student phone within tenant: {}, tenantId: {}", request.phone(), student.getInstanceId());
                 throw new DuplicateResourceException("STUDENT_PHONE_EXISTS", (Object) request.phone());
             }
         }

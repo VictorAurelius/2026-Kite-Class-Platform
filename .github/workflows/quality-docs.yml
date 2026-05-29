@@ -25,6 +25,7 @@ on:
       - 'scripts/check-audits-index-csv.sh'
       - 'documents/03-planning/waves/**'
       - 'scripts/check-wave-plan-completeness.sh'
+      - 'scripts/check-wave-closure-completeness.sh'
       - 'scripts/tests/fixtures/wave-plan/**'
       - 'documents/01-business/**'
       - 'scripts/check-3-layer-completeness.sh'
@@ -145,6 +146,35 @@ jobs:
           # + frontmatter fields (title/status/created/waves). Pre-Wave-76 legacy
           # plans grandfathered via `<!-- wave-plan-completeness-exempt: ... -->` comment.
           bash scripts/check-wave-plan-completeness.sh
+
+
+  wave-closure-completeness:
+    name: Wave closure completeness (documents/03-planning/waves/** status:complete)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (2 fixtures — PASS + FAIL)
+        run: |
+          # Self-test asserts script behavior on synthetic fixtures
+          # (good-closure.md → PASS; bad-closure.md → FAIL in STRICT + WARN in WARN-mode).
+          # Fails fast if reconciliation-heading-matching logic regresses.
+          bash scripts/check-wave-closure-completeness.sh --self-test
+
+      - name: Validate wave closure scope-completeness (WARN mode — 30-day grace through 2026-06-26)
+        run: |
+          # Per `.claude/rules/wave-closure-scope-completeness.md` v1.0.1 §5.3 detector
+          # — shipped Wave meta-6 Bucket B closure of deferred-detector debt per recurrence #2
+          # (GAP-774 Wave 92 admin audit log orphan, confirmed via GAP-770 retroactive audit).
+          # Every wave plan với `status: complete` frontmatter MUST contain
+          # "Scope-Completeness Reconciliation" heading per §3 mandate.
+          # WARN mode initially through 2026-06-26 (30-day grace); HARD STOP after audit retrospective.
+          # Override trailer: `WAVE_CLOSURE_RECONCILE_OVERRIDE: <reason + follow-up gap link>`
+          bash scripts/check-wave-closure-completeness.sh
 
 
   three-layer-completeness:

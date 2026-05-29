@@ -79,8 +79,8 @@ describe('student-assignment-queue', () => {
 
     const remaining = readQueue();
     expect(remaining).toHaveLength(1);
-    expect(remaining[0].assignmentId).toBe('asg-2');
-    expect(remaining[0].attempts).toBe(1);
+    expect(remaining[0]!.assignmentId).toBe('asg-2');
+    expect(remaining[0]!.attempts).toBe(1);
   });
 
   it('flush() catches thrown errors from the submitter', async () => {
@@ -92,8 +92,8 @@ describe('student-assignment-queue', () => {
 
     expect(result.flushed).toBe(0);
     expect(result.remaining).toBe(1);
-    expect(result.failures[0].error).toBe('network down');
-    expect(readQueue()[0].attempts).toBe(1);
+    expect(result.failures[0]!.error).toBe('network down');
+    expect(readQueue()[0]!.attempts).toBe(1);
   });
 
   it('readQueue() returns [] for fresh storage / corrupted JSON', () => {

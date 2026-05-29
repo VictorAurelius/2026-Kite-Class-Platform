@@ -1,0 +1,33 @@
+{
+  "pr": 1900,
+  "title": "plan(wave-meta-6): 3-bucket parallel \u2014 fix P0 staff invite + meta closure-completeness v1.0.1 + wave rst-html-1 Path B",
+  "branch": "wave/meta-6-plan",
+  "created_at": null,
+  "merged_at": "2026-05-27T11:26:01Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-27T11:26:13.235932",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 1,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-2796640"
+  }
+}

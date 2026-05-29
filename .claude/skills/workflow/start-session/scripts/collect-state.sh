@@ -54,12 +54,56 @@ else
 fi
 
 # PRs (gh required — gracefully skip if not authed)
+# Enhanced 2026-05-28: per-PR CI status + mergeStateStatus + GAP-NNN correlation
+# with documents/04-quality/gaps/**/closed/. Catches "gap DONE but PR unmerged" class
+# (vd PR #1929 GAP-786 — file ở closed/ nhưng PR vẫn OPEN missed bởi title parsing only).
 OPEN_PRS="?"
-TOP_PRS=""
+TOP_PRS=""        # legacy ; separated (preserved for JSON mode backward compat)
+TOP_PRS_LINES=""  # multi-line render for full output
 if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
-  OPEN_PRS="$(gh pr list --state open --json number --jq 'length' 2>/dev/null || echo '?')"
-  TOP_PRS="$(gh pr list --state open --limit 3 --json number,title \
-    --jq '.[] | "#\(.number) \(.title[0:60])"' 2>/dev/null | tr '\n' ';' || echo '')"
+  PR_JSON="$(gh pr list --state open --limit 5 \
+    --json number,title,mergeStateStatus,statusCheckRollup 2>/dev/null || echo '[]')"
+  OPEN_PRS="$(echo "$PR_JSON" | jq 'length' 2>/dev/null || echo '?')"
+  if command -v jq >/dev/null 2>&1 && [ "$OPEN_PRS" != "?" ] && [ "$OPEN_PRS" != "0" ]; then
+    # Tab-separated stream: num \t title \t merge_state \t fail \t pend
+    while IFS=$'\t' read -r num title merge_state fail_count pend_count; do
+      [ -z "$num" ] && continue
+      # CI icon
+      if [ "${fail_count:-0}" -gt 0 ]; then
+        ci_icon="${fail_count}❌"
+      elif [ "${pend_count:-0}" -gt 0 ]; then
+        ci_icon="${pend_count}⏳"
+      else
+        ci_icon="✓"
+      fi
+      # Parse first GAP-NNN ref from title
+      gap_ref="$(echo "$title" | grep -oE 'GAP-[0-9]+' | head -1)"
+      gap_flag=""
+      if [ -n "$gap_ref" ]; then
+        if find documents/04-quality/gaps -path '*/closed/*' \
+             -name "${gap_ref}-*.md" -print -quit 2>/dev/null | grep -q .; then
+          gap_flag="    ⚠️ ${gap_ref} DONE in repo — PR ready to merge (gap-DONE-unmerged)"
+        else
+          gap_flag="    · ${gap_ref} not yet in closed/"
+        fi
+      fi
+      # Truncate title for display
+      title_short="$(echo "$title" | head -c 60)"
+      TOP_PRS_LINES+="
+  · #${num} [${merge_state:-?} ${ci_icon}] ${title_short}"
+      if [ -n "$gap_flag" ]; then
+        TOP_PRS_LINES+="
+${gap_flag}"
+      fi
+      TOP_PRS+="#${num} [${merge_state:-?} ${ci_icon}] ${title_short};"
+    done < <(echo "$PR_JSON" | jq -r '.[] | [
+      .number,
+      .title,
+      (.mergeStateStatus // "?"),
+      ([.statusCheckRollup[]? | select((.conclusion // .state) == "FAILURE")] | length),
+      ([.statusCheckRollup[]? | select((.conclusion // .state) == "PENDING" or (.conclusion // .state) == "IN_PROGRESS" or (.conclusion // .state) == "QUEUED")] | length)
+    ] | @tsv' 2>/dev/null)
+  fi
 fi
 
 # Repo-status — full multi-factor health (replaces minimal CI check)
@@ -452,7 +496,7 @@ Mức repo:          $RS_LEVEL
   · CVE:           $RS_CVE_CRIT critical, $RS_CVE_HIGH high
   · Branches cũ:   $RS_STALE_BRANCHES
   · Audit P0:      $RS_AUDIT_P0
-PRs đang mở:       $OPEN_PRS  ${TOP_PRS:+— $TOP_PRS}
+PRs đang mở:       $OPEN_PRS${TOP_PRS_LINES}
 MCP servers:       $MCP_CONNECTED/$MCP_TOTAL connected${MCP_FAILED:+ (FAILED: $MCP_FAILED — see hint below)}
 Wave hiện tại:     ${CURRENT_WAVE:-<chưa rõ — check ROADMAP.md thủ công>}
 Gaps blocker:      ${BLOCKERS:-<none>}

@@ -3,9 +3,13 @@ package com.kitehub.email.service;
 import com.kitehub.email.api.NotificationChannel;
 import com.kitehub.email.api.NotificationContext;
 import com.kitehub.email.api.NotificationSendResult;
+import com.kitehub.email.client.BrandingClient;
 import com.kitehub.email.config.SESConfig;
+import com.kitehub.email.dto.EmailRequest;
 import com.kitehub.email.dto.EmailResponse;
+import com.kitehub.email.dto.TenantBranding;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpEntity;
@@ -41,7 +45,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @ConditionalOnProperty(name = "email.provider", havingValue = "resend")
-public class ResendEmailService implements NotificationChannel {
+public class ResendEmailService implements NotificationChannel, EmailSender {
 
     /**
      * Channel identifier — matches {@link SESEmailService#CHANNEL_NAME} so
@@ -54,6 +58,8 @@ public class ResendEmailService implements NotificationChannel {
 
     private final SESConfig.SESProperties sesProperties;
     private final RestTemplate restTemplate;
+    private final EmailTemplateRenderer templateRenderer;
+    private final BrandingClient brandingClient;
 
     @Value("${resend.api-key:}")
     private String resendApiKey;
@@ -64,9 +70,62 @@ public class ResendEmailService implements NotificationChannel {
     @Value("${resend.from-name:KiteHub}")
     private String resendFromName;
 
-    public ResendEmailService(SESConfig.SESProperties sesProperties, RestTemplate restTemplate) {
+    @Value("${kitehub.email.branding-enabled:true}")
+    private boolean brandingEnabled;
+
+    public ResendEmailService(
+            SESConfig.SESProperties sesProperties,
+            RestTemplate restTemplate,
+            EmailTemplateRenderer templateRenderer,
+            @Autowired(required = false) BrandingClient brandingClient) {
         this.sesProperties = sesProperties;
         this.restTemplate = restTemplate;
+        this.templateRenderer = templateRenderer;
+        this.brandingClient = brandingClient;
+    }
+
+    /**
+     * Send a templated email via Resend — renders the named template (HTML +
+     * optional plain-text sibling) with branding enrichment, then dispatches
+     * through the Resend HTTP API. Mirrors {@link SESEmailService#sendTemplatedEmail}
+     * so provider routing (GAP-788) keeps templated delivery working when
+     * {@code email.provider=resend}.
+     *
+     * @param request email request with template name + variables
+     * @return send result envelope
+     */
+    @Override
+    public EmailResponse sendTemplatedEmail(EmailRequest request) {
+        log.info("Sending templated Resend email to: {}, template: {}",
+                request.getTo(), request.getTemplateName());
+
+        Map<String, Object> variables = enrichWithBranding(request);
+        EmailTemplateRenderer.RenderedBodies bodies = templateRenderer.render(
+                request.getTemplateName(), variables, /* tone */ null);
+
+        return sendEmail(request.getTo(), request.getSubject(), bodies.getHtml(),
+                bodies.hasText() ? bodies.getText() : null);
+    }
+
+    /**
+     * Merge request variables with tenant branding. Always injects {@code branding}
+     * (real or default) so templates can safely reference {@code branding.*}.
+     */
+    private Map<String, Object> enrichWithBranding(EmailRequest request) {
+        Map<String, Object> variables = request.getVariables() != null
+                ? new HashMap<>(request.getVariables())
+                : new HashMap<>();
+
+        TenantBranding branding;
+        if (brandingEnabled && brandingClient != null
+                && (request.getInstanceId() != null || request.getTenantId() != null)) {
+            branding = brandingClient.fetchBranding(request.getInstanceId(), request.getTenantId());
+        } else {
+            branding = TenantBranding.defaultBranding();
+        }
+
+        variables.putIfAbsent("branding", branding);
+        return variables;
     }
 
     /**
@@ -158,8 +217,10 @@ public class ResendEmailService implements NotificationChannel {
     }
 
     /**
-     * Convenience overload without plain-text body (HTML-only).
+     * Convenience overload without plain-text body (HTML-only) —
+     * {@link EmailSender} surface.
      */
+    @Override
     public EmailResponse sendEmail(String to, String subject, String htmlBody) {
         return sendEmail(to, subject, htmlBody, null);
     }

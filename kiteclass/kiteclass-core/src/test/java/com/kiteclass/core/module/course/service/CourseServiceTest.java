@@ -2,6 +2,7 @@ package com.kiteclass.core.module.course.service;
 
 import com.kiteclass.core.common.constant.CourseStatus;
 import com.kiteclass.core.common.constant.TeacherCourseRole;
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
@@ -20,6 +21,7 @@ import com.kiteclass.core.module.teacher.repository.TeacherCourseRepository;
 import com.kiteclass.core.module.teacher.repository.TeacherRepository;
 import com.kiteclass.core.testutil.CourseTestDataBuilder;
 import com.kiteclass.core.testutil.TeacherTestDataBuilder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,11 +35,13 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -102,12 +106,21 @@ class CourseServiceTest {
         createRequest = CourseTestDataBuilder.createDefaultCreateRequest();
         updateRequest = CourseTestDataBuilder.createDefaultUpdateRequest();
         teacher = TeacherTestDataBuilder.createDefaultTeacher();
+        // GAP-799: createCourse now reads TenantContext for tenant-scoped code uniqueness
+        TenantContext.setCurrentTenant(TEST_TENANT);
     }
+
+    @AfterEach
+    void tearDownTenant() {
+        TenantContext.clear();
+    }
+
+    private static final UUID TEST_TENANT = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
     @Test
     void createCourse_shouldCreateSuccessfully() {
         // Given
-        when(courseRepository.existsByCodeAndDeletedFalse(anyString())).thenReturn(false);
+        when(courseRepository.existsByCodeAndInstanceIdAndDeletedFalse(anyString(), any())).thenReturn(false);
         when(teacherRepository.findByIdAndDeletedFalse(anyLong())).thenReturn(Optional.of(teacher));
         when(courseMapper.toEntity(any(CreateCourseRequest.class))).thenReturn(course);
         when(courseRepository.save(any(Course.class))).thenReturn(course);
@@ -120,7 +133,7 @@ class CourseServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result.name()).isEqualTo(course.getName());
-        verify(courseRepository).existsByCodeAndDeletedFalse(createRequest.code());
+        verify(courseRepository).existsByCodeAndInstanceIdAndDeletedFalse(eq(createRequest.code()), any());
         verify(teacherRepository).findByIdAndDeletedFalse(createRequest.teacherId());
         verify(courseRepository).save(any(Course.class));
         verify(teacherCourseRepository).save(any(TeacherCourse.class));
@@ -129,21 +142,21 @@ class CourseServiceTest {
     @Test
     void createCourse_shouldThrowDuplicateResourceException_whenCodeExists() {
         // Given
-        when(courseRepository.existsByCodeAndDeletedFalse(anyString())).thenReturn(true);
+        when(courseRepository.existsByCodeAndInstanceIdAndDeletedFalse(anyString(), any())).thenReturn(true);
 
         // When & Then
         assertThatThrownBy(() -> courseService.createCourse(createRequest))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasFieldOrPropertyWithValue("code", "COURSE_CODE_EXISTS");
 
-        verify(courseRepository).existsByCodeAndDeletedFalse(createRequest.code());
+        verify(courseRepository).existsByCodeAndInstanceIdAndDeletedFalse(eq(createRequest.code()), any());
         verify(courseRepository, never()).save(any(Course.class));
     }
 
     @Test
     void createCourse_shouldCreateTeacherCourseWithCreatorRole() {
         // Given
-        when(courseRepository.existsByCodeAndDeletedFalse(anyString())).thenReturn(false);
+        when(courseRepository.existsByCodeAndInstanceIdAndDeletedFalse(anyString(), any())).thenReturn(false);
         when(teacherRepository.findByIdAndDeletedFalse(anyLong())).thenReturn(Optional.of(teacher));
         when(courseMapper.toEntity(any(CreateCourseRequest.class))).thenReturn(course);
         when(courseRepository.save(any(Course.class))).thenReturn(course);
@@ -164,7 +177,7 @@ class CourseServiceTest {
     @Test
     void createCourse_shouldThrowEntityNotFoundException_whenTeacherNotExists() {
         // Given
-        when(courseRepository.existsByCodeAndDeletedFalse(anyString())).thenReturn(false);
+        when(courseRepository.existsByCodeAndInstanceIdAndDeletedFalse(anyString(), any())).thenReturn(false);
         when(teacherRepository.findByIdAndDeletedFalse(anyLong())).thenReturn(Optional.empty());
 
         // When & Then
@@ -210,23 +223,31 @@ class CourseServiceTest {
         CourseSearchCriteria criteria = new CourseSearchCriteria("test", "DRAFT", 1L, 0, 20, "createdAt,desc");
         Page<Course> coursePage = new PageImpl<>(List.of(course));
 
-        when(courseRepository.findBySearchCriteria(anyString(), any(), any(), any(Pageable.class)))
-                .thenReturn(coursePage);
-        when(courseMapper.toResponse(any(Course.class))).thenReturn(courseResponse);
+        // GAP-791: getCourses now reads TenantContext to scope the native-query list endpoint.
+        UUID tenantId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        TenantContext.setCurrentTenant(tenantId);
+        try {
+            when(courseRepository.findBySearchCriteria(any(UUID.class), anyString(), any(), any(), any(Pageable.class)))
+                    .thenReturn(coursePage);
+            when(courseMapper.toResponse(any(Course.class))).thenReturn(courseResponse);
 
-        // When
-        PageResponse<CourseResponse> result = courseService.getCourses(criteria);
+            // When
+            PageResponse<CourseResponse> result = courseService.getCourses(criteria);
 
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getTotalElements()).isEqualTo(1);
-        verify(courseRepository).findBySearchCriteria(
-                eq("test"),
-                eq("DRAFT"),
-                eq(1L),
-                any(Pageable.class)
-        );
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getTotalElements()).isEqualTo(1);
+            verify(courseRepository).findBySearchCriteria(
+                    eq(tenantId),
+                    eq("test"),
+                    eq("DRAFT"),
+                    eq(1L),
+                    any(Pageable.class)
+            );
+        } finally {
+            TenantContext.clear();
+        }
     }
 
     @Test

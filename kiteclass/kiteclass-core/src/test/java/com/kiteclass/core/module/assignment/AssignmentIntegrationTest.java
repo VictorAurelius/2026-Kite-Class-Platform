@@ -23,6 +23,8 @@ import com.kiteclass.core.module.student.repository.StudentRepository;
 import com.kiteclass.core.module.teacher.entity.TeacherClass;
 import com.kiteclass.core.module.teacher.repository.TeacherClassRepository;
 import com.kiteclass.core.common.constant.TeacherClassRole;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -90,6 +92,15 @@ class AssignmentIntegrationTest {
     @Autowired
     private TeacherClassRepository teacherClassRepository;
 
+    /**
+     * Used to force flush of pending UPDATEs (e.g., testAssignment.setStatus / setDueDate)
+     * before mockMvc.perform triggers {@code TestTenantContextFilter.clear()} which would
+     * otherwise discard them under the GAP-746 cross-tenant detach path. Without this,
+     * controller reads stale entity state from DB (status=DRAFT or original future dueDate).
+     */
+    @PersistenceContext
+    private EntityManager entityManager;
+
     private Course testCourse;
     private Class testClass;
     private Student testStudent;
@@ -153,7 +164,6 @@ class AssignmentIntegrationTest {
                 .allowLateSubmission(true)
                 .latePenaltyPercent(BigDecimal.valueOf(10))
                 .status(AssignmentStatus.DRAFT)
-                .createdBy(mainTeacherId)
                 .build();
         testAssignment.setInstanceId(tenantId);
         testAssignment = assignmentRepository.save(testAssignment);
@@ -229,6 +239,7 @@ class AssignmentIntegrationTest {
         // Publish assignment first
         testAssignment.setStatus(AssignmentStatus.PUBLISHED);
         assignmentRepository.save(testAssignment);
+        entityManager.flush(); // GAP-746 fix side-effect: TestTenantContextFilter.clear() on cross-tenant would discard this UPDATE; flush before mockMvc
 
         SubmitAssignmentRequest request = SubmitAssignmentRequest.builder()
                 .assignmentId(testAssignment.getId())
@@ -326,6 +337,7 @@ class AssignmentIntegrationTest {
                 .build();
         submission.setInstanceId(tenantId);
         submission = submissionRepository.save(submission);
+        entityManager.flush(); // GAP-746 fix side-effect: flush testAssignment.dueDate UPDATE + submission INSERT before mockMvc clear()
 
         GradeSubmissionRequest request = GradeSubmissionRequest.builder()
                 .score(BigDecimal.valueOf(100))
@@ -370,7 +382,6 @@ class AssignmentIntegrationTest {
                 .allowLateSubmission(true)
                 .latePenaltyPercent(BigDecimal.valueOf(10))
                 .status(AssignmentStatus.PUBLISHED)
-                .createdBy(mainTeacherId)
                 .build();
         publishedAssignment.setInstanceId(tenantId);
         assignmentRepository.save(publishedAssignment);

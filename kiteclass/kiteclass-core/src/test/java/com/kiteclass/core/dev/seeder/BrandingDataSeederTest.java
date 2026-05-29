@@ -10,6 +10,7 @@ import com.kiteclass.core.module.branding.repository.BrandingResourceRepository;
 import com.kiteclass.core.module.instance.entity.FrontendInstance;
 import com.kiteclass.core.module.instance.entity.FrontendInstanceStatus;
 import com.kiteclass.core.module.instance.repository.FrontendInstanceRepository;
+import com.kiteclass.core.module.marketing.repository.LandingPageRepository;
 import com.kiteclass.core.module.quality.entity.QualityReport;
 import com.kiteclass.core.module.quality.entity.QualityReportRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +40,7 @@ class BrandingDataSeederTest {
     @Mock private FrontendInstanceRepository instanceRepo;
     @Mock private BrandingResourceRepository resourceRepo;
     @Mock private QualityReportRepository qualityRepo;
+    @Mock private LandingPageRepository landingPageRepository;
     @Mock private OutboxEventWriter outbox;
     @Mock private TransactionTemplate transactionTemplate;
 
@@ -52,6 +54,7 @@ class BrandingDataSeederTest {
                 instanceRepo,
                 resourceRepo,
                 qualityRepo,
+                landingPageRepository,
                 outbox,
                 objectMapper,
                 transactionTemplate);

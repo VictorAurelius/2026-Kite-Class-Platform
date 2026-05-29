@@ -30,6 +30,7 @@ import {
   useCommandPalette,
   type DashboardCommand,
 } from '@/_shared/dashboard-foundation';
+import { BrandingThemeApplier } from '@/components/theme/BrandingThemeApplier';
 
 const DEFAULT_COMMANDS: DashboardCommand[] = [
   {
@@ -123,6 +124,8 @@ export default function DashboardLayout({
 
   return (
     <>
+      {/* Apply persisted tenant branding colours to the dashboard (GAP-807). */}
+      <BrandingThemeApplier />
       {children}
       <CommandPalette
         open={palette.open}

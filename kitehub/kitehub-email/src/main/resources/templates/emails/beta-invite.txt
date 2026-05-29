@@ -14,7 +14,7 @@ Liên kết đăng ký:
 [(${inviteUrl ?: 'https://kitehub.me/beta/accept'})]
 
 Mã xác minh (6 chữ số):
-[(${verificationCode ?: '------'})]
+[(${claimCode ?: '------'})]
 
 Lưu ý:
   - Liên kết và mã có hiệu lực đến [(${expiresAt ?: '24 giờ kể từ thời điểm gửi'})].

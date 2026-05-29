@@ -100,7 +100,7 @@ class BetaAccessServiceApprovalEmailTest {
         assertThat(orgCaptor.getValue()).isEqualTo("Trung tâm Anh ngữ Sky Education");
         assertThat(codeCaptor.getValue()).isEqualTo(approved.getClaimCode());
         assertThat(urlCaptor.getValue())
-                .startsWith("https://kitehub.me/signup/beta?code=")
+                .startsWith("https://kitehub.me/beta-signup/code?code=")
                 .endsWith(approved.getClaimCode());
         assertThat(expiresCaptor.getValue()).matches("\\d{2}/\\d{2}/\\d{4} lúc \\d{2}:\\d{2}");
     }

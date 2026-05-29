@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Repository interface for Course entity.
@@ -45,12 +46,31 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     Optional<Course> findByCodeAndDeletedFalse(String code);
 
     /**
-     * Checks if a course with given code exists (excluding deleted).
+     * Checks if a course with given code exists (excluding deleted) — GLOBAL.
      *
      * @param code the code to check
-     * @return true if code exists
+     * @return true if code exists in ANY tenant
+     * @deprecated Use {@link #existsByCodeAndInstanceIdAndDeletedFalse(String, UUID)} for
+     *     tenant-scoped check. Global check leaks cross-tenant + blocks legitimate reuse
+     *     (two centers using the same course code) — see GAP-799.
      */
+    @Deprecated
     boolean existsByCodeAndDeletedFalse(String code);
+
+    /**
+     * Checks if a course with given code exists within a tenant (excluding deleted).
+     *
+     * <p>Tenant-scoped uniqueness per GAP-799, mirroring the DB constraint
+     * {@code uk_courses_instance_code (instance_id, code)}. The shared
+     * {@code kiteclass_shared} DB holds all tenants' courses discriminated by
+     * {@code instance_id}; the Hibernate {@code tenantFilter} is not applied to derived
+     * {@code existsBy} queries, so the {@code instance_id} predicate must be explicit.
+     *
+     * @param code the code to check
+     * @param instanceId the current tenant id (from TenantContext)
+     * @return true if code exists within this tenant
+     */
+    boolean existsByCodeAndInstanceIdAndDeletedFalse(String code, UUID instanceId);
 
     /**
      * Finds all courses for a specific teacher with pagination.
@@ -75,6 +95,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
      *
      * <p>Search criteria:
      * <ul>
+     *   <li>tenantId: the current tenant (instance) — REQUIRED, scopes result to one tenant</li>
      *   <li>search: matches name or code (case-insensitive, partial match)</li>
      *   <li>status: filters by course status (null = all statuses)</li>
      *   <li>teacherId: filters by teacher who created the course (null = all teachers)</li>
@@ -82,15 +103,24 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
      *
      * <p>Only returns non-deleted courses.
      *
+     * <p><b>Multi-tenant note (GAP-791):</b> this query uses {@code nativeQuery = true},
+     * so the Hibernate {@code @Filter("tenantFilter")} declared on {@link
+     * com.kiteclass.core.common.entity.BaseEntity} does NOT apply (that filter only
+     * targets JPQL/HQL, not native SQL). The {@code instance_id = :tenantId} predicate
+     * below is therefore MANDATORY — it is the only thing scoping this query to the
+     * current tenant. Callers MUST pass {@code TenantContext.getCurrentTenant()}.
+     *
+     * @param tenantId  the current tenant (instance) ID — required, must not be null
      * @param search    the search keyword (can be null)
      * @param status    the course status filter (can be null)
      * @param teacherId the teacher ID filter (can be null)
      * @param pageable  pagination parameters
-     * @return page of matching courses
+     * @return page of matching courses scoped to the given tenant
      */
     @Query(value = """
             SELECT * FROM courses c
             WHERE c.deleted = false
+            AND c.instance_id = CAST(:tenantId AS uuid)
             AND (CAST(:search AS text) IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%'))
                 OR LOWER(c.code) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%')))
             AND (CAST(:status AS text) IS NULL OR c.status = CAST(:status AS text))
@@ -99,6 +129,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             countQuery = """
             SELECT COUNT(*) FROM courses c
             WHERE c.deleted = false
+            AND c.instance_id = CAST(:tenantId AS uuid)
             AND (CAST(:search AS text) IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%'))
                 OR LOWER(c.code) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%')))
             AND (CAST(:status AS text) IS NULL OR c.status = CAST(:status AS text))
@@ -106,6 +137,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             """,
             nativeQuery = true)
     Page<Course> findBySearchCriteria(
+            @Param("tenantId") UUID tenantId,
             @Param("search") String search,
             @Param("status") String status,
             @Param("teacherId") Long teacherId,

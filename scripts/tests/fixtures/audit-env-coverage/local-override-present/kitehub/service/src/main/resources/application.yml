@@ -1,0 +1,6 @@
+# Fixture: prod-domain default (CHECK B / GAP-802 cơ chế #5) WITH local override present.
+# SIGNUP_BASE_URL default points at prod domain, BUT local dev compose overrides it
+# → local uses http://localhost:3000 → no dead-link. CHECK B must NOT flag.
+spring:
+  beta:
+    signup-base-url: ${SIGNUP_BASE_URL:https://kitehub.me}

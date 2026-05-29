@@ -92,11 +92,12 @@ public class Assignment extends BaseEntity {
     @Column(name = "status", nullable = false, length = 20)
     private AssignmentStatus status;
 
-    /**
-     * Teacher ID who created this assignment.
-     */
-    @Column(name = "created_by", nullable = false)
-    private Long createdBy;
+    // GAP-795: the audit actor column `created_by` is now a UUID owned by BaseEntity
+    // (@CreatedBy, populated from UserContext = X-User-Id). This entity previously
+    // shadowed it with a Long to stash the numeric X-Teacher-Id — a misuse of the
+    // audit column that conflicted with the UUID migration. The override is removed;
+    // `created_by` now holds the actor UUID via BaseEntity auditing. Teacher attribution
+    // remains derivable via the TeacherClass MAIN_TEACHER relationship checked at create time.
 
     /**
      * Publish the assignment (make visible to students).

@@ -28,7 +28,8 @@ function mergeWithDefaults(theme: Partial<ThemeConfig> & Pick<ThemeConfig, 'colo
  * Required for Tailwind CSS opacity modifier support.
  * e.g., '#3B82F6' → '59 130 246'
  */
-function hexToRgb(hex: string): string {
+function hexToRgb(hex: string | null | undefined): string {
+  if (!hex || typeof hex !== 'string') return '';
   const clean = hex.replace('#', '');
   const r = parseInt(clean.substring(0, 2), 16);
   const g = parseInt(clean.substring(2, 4), 16);

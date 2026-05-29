@@ -54,7 +54,9 @@ class BetaEmailTemplateRenderTest {
         vars.put("claimCode", "428193");
         // inviteUrl now points to the signup page (no UUID in href per GAP-388 388-B).
         vars.put("inviteUrl", "https://kitehub.vn/auth/beta-signup");
-        vars.put("expiryDate", "2026-05-31");
+        // GAP-797: canonical expiry var is `expiresAt` (matches sender + .txt sibling);
+        // beta-invite.html previously read `expiryDate` → silent fallback drift.
+        vars.put("expiresAt", "2026-05-31");
 
         String html = engine.process("emails/beta-invite", buildContext(vars));
 

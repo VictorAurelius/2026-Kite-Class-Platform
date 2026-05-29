@@ -10,6 +10,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { KiteLogo } from '@/components/brand/KiteLogo';
 import BetaClaimCodeForm from '@/components/auth/BetaClaimCodeForm';
 
@@ -27,7 +28,9 @@ export default function BetaClaimCodePage() {
           Nhập mã 6 chữ số trong email mời để tiếp tục đăng ký Beta.
         </p>
       </div>
-      <BetaClaimCodeForm />
+      <Suspense fallback={<p className="text-sm">Đang tải...</p>}>
+        <BetaClaimCodeForm />
+      </Suspense>
 
       <div className="mt-8 text-sm text-muted-foreground">
         <p>

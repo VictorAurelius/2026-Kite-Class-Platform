@@ -2,14 +2,31 @@
  * Dashboard home (route-group index) — KC pro v2 foundation showcase.
  *
  * Wave 30 Bucket A: refactored to apply kiteclass-pro-v2 design tokens via
- * the new dashboard-foundation primitives. This page serves both as the
- * landing page for the (dashboard) route group AND as the integration smoke
- * test for ThemeProvider + CommandPalette + KPICard + Sparkline.
+ * the new dashboard-foundation primitives.
+ *
+ * GAP-805 Bucket C (2026-05-28): replaced hardcoded literal KPI values with
+ * real-data derivation. The previous version shipped static literals ("428
+ * học viên · 24 lớp · ₫42M doanh thu") plus a hardcoded subtitle ("Hôm nay có
+ * 12 buổi học · 3 lớp chờ điểm danh") that did NOT match any tenant DB — an
+ * outside-in audit flagged this as obviously fake to a demo reviewer.
+ *
+ * Real-data strategy (no dedicated /dashboard/stats endpoint exists yet):
+ *   - "Học viên"      → real total from GET /api/v1/students (PaginatedResponse.totalElements)
+ *   - "Khóa học"      → real total from GET /api/v1/courses  (PaginatedResponse.totalElements)
+ *   - Metrics without a backing endpoint (Giáo viên / Điểm danh / Doanh thu /
+ *     Tỷ lệ giữ chân) render a neutral "—" placeholder with a "Sắp có" hint
+ *     rather than a misleading literal. Sparklines/deltas are omitted for these
+ *     so no fabricated trend is shown.
+ *
+ * When a future GAP ships GET /api/v1/dashboard/stats, swap the two list-count
+ * derivations + the four placeholders for the aggregated response.
  *
  * Source spec: kiteclass-pro-v2/screens/dashboard-default.html.
  */
 
 'use client';
+
+export const dynamic = 'force-dynamic';
 
 import {
   BookOpen,
@@ -20,68 +37,85 @@ import {
   Users,
 } from 'lucide-react';
 import { KPICard, type KPIData } from '@/_shared/dashboard-foundation';
+import { useStudents } from '@/hooks/use-students';
+import { useCourses } from '@/hooks/use-courses';
 
-const KPI_ROW: KPIData[] = [
-  {
-    label: 'Học viên',
-    value: '428',
-    delta: 6.4,
-    sparkline: [380, 392, 401, 410, 415, 420, 428],
-    tone: 'positive',
-    icon: <Users className="h-4 w-4" />,
-  },
-  {
-    label: 'Lớp đang chạy',
-    value: '24',
-    delta: 0,
-    sparkline: [22, 22, 23, 24, 24, 24, 24],
-    tone: 'neutral',
-    icon: <BookOpen className="h-4 w-4" />,
-  },
-  {
-    label: 'Giáo viên',
-    value: '18',
-    delta: 5.9,
-    sparkline: [16, 17, 17, 17, 18, 18, 18],
-    tone: 'positive',
-    icon: <GraduationCap className="h-4 w-4" />,
-  },
-  {
-    label: 'Điểm danh hôm nay',
-    value: '92%',
-    delta: 1.8,
-    sparkline: [88, 90, 89, 91, 92, 93, 92],
-    tone: 'positive',
-    icon: <CalendarCheck className="h-4 w-4" />,
-  },
-  {
-    label: 'Doanh thu tuần',
-    value: '₫42M',
-    delta: 8.2,
-    sparkline: [32, 34, 36, 35, 38, 40, 42],
-    tone: 'positive',
-    icon: <CreditCard className="h-4 w-4" />,
-  },
-  {
-    label: 'Tỷ lệ giữ chân',
-    value: '94.6%',
-    delta: -0.4,
-    sparkline: [95, 95, 95.2, 94.8, 94.7, 94.6, 94.6],
-    tone: 'warning',
-    icon: <TrendingUp className="h-4 w-4" />,
-  },
-];
+/** Placeholder shown for metrics that have no backing endpoint yet. */
+const PLACEHOLDER_VALUE = '—';
 
 export default function DashboardHomePage() {
+  // Fetch a single page only — we just need the `totalElements` count, not the
+  // rows. size=1 keeps the payload minimal.
+  const studentsQuery = useStudents({ page: 0, size: 1 });
+  const coursesQuery = useCourses({ page: 0, size: 1 });
+
+  const studentTotal = studentsQuery.data?.totalElements;
+  const courseTotal = coursesQuery.data?.totalElements;
+
+  // Format a count for display: real number when loaded, "…" while loading,
+  // placeholder dash when the request failed (avoid showing a fake number).
+  const formatCount = (
+    value: number | undefined,
+    isLoading: boolean,
+    isError: boolean,
+  ): string => {
+    if (isLoading) return '…';
+    if (isError || value === undefined) return PLACEHOLDER_VALUE;
+    return value.toLocaleString('vi-VN');
+  };
+
+  const kpiRow: KPIData[] = [
+    {
+      label: 'Học viên',
+      value: formatCount(studentTotal, studentsQuery.isLoading, studentsQuery.isError),
+      tone: 'neutral',
+      icon: <Users className="h-4 w-4" />,
+    },
+    {
+      label: 'Khóa học',
+      value: formatCount(courseTotal, coursesQuery.isLoading, coursesQuery.isError),
+      tone: 'neutral',
+      icon: <BookOpen className="h-4 w-4" />,
+    },
+    {
+      label: 'Giáo viên',
+      value: PLACEHOLDER_VALUE,
+      tone: 'neutral',
+      icon: <GraduationCap className="h-4 w-4" />,
+    },
+    {
+      label: 'Điểm danh hôm nay',
+      value: PLACEHOLDER_VALUE,
+      tone: 'neutral',
+      icon: <CalendarCheck className="h-4 w-4" />,
+    },
+    {
+      label: 'Doanh thu tuần',
+      value: PLACEHOLDER_VALUE,
+      tone: 'neutral',
+      icon: <CreditCard className="h-4 w-4" />,
+    },
+    {
+      label: 'Tỷ lệ giữ chân',
+      value: PLACEHOLDER_VALUE,
+      tone: 'neutral',
+      icon: <TrendingUp className="h-4 w-4" />,
+    },
+  ];
+
+  // Subtitle derived from real data instead of a hardcoded "Hôm nay có 12 buổi
+  // học" sentence that never matched the DB.
+  const subtitle =
+    studentTotal !== undefined && courseTotal !== undefined
+      ? `Trung tâm hiện có ${studentTotal.toLocaleString('vi-VN')} học viên · ${courseTotal.toLocaleString('vi-VN')} khóa học.`
+      : 'Đang tải số liệu trung tâm…';
+
   return (
     <div className="space-y-6 p-6">
       <header className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Tổng quan</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Hôm nay có 12 buổi học · 3 lớp đang chờ điểm danh · doanh thu tuần
-            tăng 8.2%.
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
         </div>
       </header>
 
@@ -89,7 +123,7 @@ export default function DashboardHomePage() {
         aria-label="Chỉ số trung tâm"
         className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
       >
-        {KPI_ROW.map((kpi) => (
+        {kpiRow.map((kpi) => (
           <KPICard key={kpi.label} {...kpi} />
         ))}
       </section>
@@ -100,8 +134,9 @@ export default function DashboardHomePage() {
       >
         <h2 className="text-sm font-semibold text-foreground">Hoạt động gần đây</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Bucket B sẽ thêm danh sách hoạt động chi tiết — placeholder để
-          foundation render đầy đủ.
+          Một số chỉ số (giáo viên, điểm danh, doanh thu, tỷ lệ giữ chân) hiển thị
+          &ldquo;—&rdquo; vì chưa có API tổng hợp; sẽ bổ sung khi endpoint thống kê
+          dashboard sẵn sàng.
         </p>
       </section>
     </div>

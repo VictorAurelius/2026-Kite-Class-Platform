@@ -37,7 +37,7 @@ public interface ParentInvitationService {
      * @param tenantId       current tenant (from {@code TenantContext})
      * @param studentId      child to link upon redemption
      * @param parentEmail    recipient email
-     * @param invitedByUserId gateway user id of the inviter (admin/teacher)
+     * @param invitedByUserId gateway user id (UUID, X-User-Id / JWT sub) of the inviter (admin/teacher) — GAP-795
      * @return DTO with the generated token so the caller may surface it in
      *         test tooling; the production UI should treat it as opaque.
      */
@@ -45,7 +45,7 @@ public interface ParentInvitationService {
             UUID tenantId,
             Long studentId,
             String parentEmail,
-            Long invitedByUserId
+            UUID invitedByUserId
     );
 
     /**

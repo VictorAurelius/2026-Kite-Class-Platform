@@ -14,7 +14,7 @@
 import { Metadata } from 'next';
 import { publicApi } from '@/lib/api/public';
 import { ThemeSync } from '@/components/theme/ThemeSync';
-import { TemplateRenderer } from '@/components/sections/TemplateRenderer';
+import { TemplateRenderer, type SectionSlotMap } from '@/components/sections/TemplateRenderer';
 import { getTemplate } from '@/lib/template/configs';
 import { OrganizationJsonLd } from '@/components/seo/JsonLd';
 
@@ -70,6 +70,24 @@ export default async function LandingPage({
   if (params.secondary) landingData.secondaryColor = `#${params.secondary}`;
   if (params.accent) (landingData as Record<string, unknown>).accentColor = `#${params.accent}`;
 
+  // Build per-section slot data from the landing payload. Previously the renderer
+  // received no `slots`, so every section fell back to hardcoded defaults and the
+  // backend's heroImageUrl / teachers never rendered (root cause of "no images").
+  const ld = landingData as Record<string, unknown>;
+  const teachers = Array.isArray(ld.teachers)
+    ? (ld.teachers as Array<Record<string, unknown>>).map((t) => ({
+        title: t.name as string,
+        description: t.subject as string,
+        image: t.photoUrl as string | undefined,
+        items: (t.credentials as string[] | undefined) ?? [],
+      }))
+    : undefined;
+
+  const slots: SectionSlotMap = {
+    hero: { image: ld.heroImageUrl as string | undefined },
+    teachers: teachers ? { teachers } : undefined,
+  };
+
   return (
     <>
       <OrganizationJsonLd
@@ -86,7 +104,7 @@ export default async function LandingPage({
         secondaryColor={landingData.secondaryColor}
       />
 
-      <TemplateRenderer template={template} data={landingData} />
+      <TemplateRenderer template={template} data={landingData} slots={slots} />
     </>
   );
 }

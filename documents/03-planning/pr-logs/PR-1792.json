@@ -1,0 +1,33 @@
+{
+  "pr": 1792,
+  "title": "chore(wave-audit-1-closure): 4-audit suite SHIPPED + 5-target sync \u2014 Sec 91 + BL 64 PARTIAL FAIL + API 74 PARTIAL FAIL + Ops 75",
+  "branch": "wave/audit-1-closure",
+  "created_at": null,
+  "merged_at": "2026-05-24T18:58:03Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-25T01:58:14.833145",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 9,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-18395"
+  }
+}

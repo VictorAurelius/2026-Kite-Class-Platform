@@ -13,7 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.List;
 import java.util.Locale;
@@ -177,5 +180,33 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getMessage()).contains("unexpected error");
         // Should not expose internal exception details
         assertThat(response.getBody().getMessage()).doesNotContain("Something went wrong");
+    }
+
+    @Test
+    void handleNoHandlerFound_shouldReturn404() {
+        // GAP-796: route khong ton tai phai tra 404, khong phai 500
+        NoHandlerFoundException ex = new NoHandlerFoundException(
+                "GET", "/api/v1/does-not-exist", new HttpHeaders());
+
+        ResponseEntity<ErrorResponse> response = handler.handleNoHandlerFound(ex, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("RESOURCE_NOT_FOUND");
+        assertThat(response.getBody().getPath()).isEqualTo("/api/v1/test");
+    }
+
+    @Test
+    void handleMethodNotSupported_shouldReturn405() {
+        // GAP-796: HTTP method khong ho tro phai tra 405, khong phai 500
+        HttpRequestMethodNotSupportedException ex = new HttpRequestMethodNotSupportedException(
+                "DELETE", List.of("GET", "POST"));
+
+        ResponseEntity<ErrorResponse> response = handler.handleMethodNotSupported(ex, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("METHOD_NOT_ALLOWED");
+        assertThat(response.getBody().getMessage()).contains("DELETE");
     }
 }
