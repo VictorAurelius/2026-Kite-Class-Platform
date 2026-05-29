@@ -1,0 +1,33 @@
+{
+  "pr": 1860,
+  "title": "plan(wave-thesis-2): draft \u2014 re-ground khung chu\u1ea9n DATN + 6 bucket iterative",
+  "branch": "wave/thesis-2-fix-khung-chuan",
+  "created_at": null,
+  "merged_at": "2026-05-26T09:00:43Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-05-26T09:00:52.076778",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 4,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-2524511"
+  }
+}

@@ -97,3 +97,4 @@ docs-only-pr-no-block-wait,MANDATORY,1.0.0,2026-05-28,2026-05-28,docs-only-pr-no
 cross-flow-bug-class-sweep,MANDATORY,1.0.0,2026-05-28,2026-05-28,cross-flow-bug-class-sweep.md,"documents/04-quality/gaps/**,**/*.java,**/*.ts,**/*.tsx",active,,
 api-contract-change-caller-sweep,MANDATORY,1.0.0,2026-05-28,2026-05-28,api-contract-change-caller-sweep.md,**/*.java,active,,
 fe-build-local-verify,MANDATORY,1.0.0,2026-05-28,2026-05-28,fe-build-local-verify.md,"kitehub/kitehub-frontend/**,kiteclass/kiteclass-frontend/**",active,,
+wave-thesis-ci-minimization,MANDATORY,1.0.0,2026-05-26,2026-05-26,wave-thesis-ci-minimization.md,"documents/03-planning/waves/wave-*thesis*.md,documents/08-thesis/**",active,,

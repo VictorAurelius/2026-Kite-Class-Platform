@@ -99,7 +99,174 @@ graph TD
 ```
 ````
 
-Nếu cần render PNG:
+## Mermaid Best Practices (Wave thesis-2 Round 2.8 lessons)
+
+### Init config cho diagrams complex
+
+Mọi flowchart >8 nodes hoặc có subgraph clusters SHOULD include init config:
+
+````markdown
+```mermaid
+%%{init: {
+  "flowchart": {
+    "htmlLabels": true,
+    "nodeSpacing": 30,
+    "rankSpacing": 70,
+    "padding": 20,
+    "subGraphTitleMargin": {"top": 10, "bottom": 15}
+  },
+  "themeVariables": {
+    "fontSize": "16px"
+  }
+}}%%
+flowchart TB
+    ...
+```
+````
+
+**Why each param:**
+- `nodeSpacing: 30` — tighter horizontal (default 50) — narrower aspect, more vertical
+- `rankSpacing: 70` — more vertical breathing (default 50) — clearer tier separation
+- `padding: 20` — inner padding cho subgraph (default 8) — text không sát border
+- `subGraphTitleMargin: {top: 10, bottom: 15}` — **CRITICAL khi fontSize ≥16px** — subgraph title không đè chữ với child nodes
+- `fontSize: 20-24px` — **REQUIRED khi diagram embed vào docx/PDF A4 size** — Mermaid source PNG được scale-down (vd 1711px → 16cm display = 680px target = 2.5x downscale); fontSize 16px sau scale-down còn ~6.4px effective → unreadable. Thử 22-24px cho readable. Default ~14px chỉ dùng cho HTML web view (no scale-down).
+
+### Subgraph title rules
+
+- **Length ≤30 chars** — long titles overlap với child nodes khi fontSize large
+- **NO `<br/>` trong subgraph title** — Mermaid parser unreliable across versions
+- **Mixed VN+EN OK** trong title body nhưng KHÔNG mix trong cùng word
+
+**❌ BAD:** `subgraph FrontendCluster["Tầng giao diện ứng dụng người dùng — Next.js 15 framework cluster"]` (62 chars, overlaps)
+
+**✅ GOOD:** `subgraph FrontendCluster["Frontend Next.js 15"]` (22 chars)
+
+### Aspect ratio control
+
+Mermaid auto-layout produces aspect based on node count + connectivity:
+- **Landscape (>1.5):** Many nodes per rank, few ranks. Common khi many siblings.
+- **Square (~1.0):** Balanced node distribution. Target cho most architecture diagrams.
+- **Portrait (<0.7):** Few nodes per rank, many ranks. Common với linear chains.
+
+**Force taller layout** (more vertical):
+1. Use `direction TB` inside subgraphs (stack children vertically)
+2. Aggregate edges to subgraph level (vd `ServiceCluster -.-> InfraCluster` thay vì 5×4=20 individual edges)
+3. Shorten node labels to single line (no `<br/>` chains)
+4. Increase `rankSpacing` to 70-100
+
+### Anti-pattern: aspect 3+ very flat OR 0.4 very tall
+
+- **Aspect >3:** Image squashed flat (height <5cm at 16cm width). Restructure: split nodes across more ranks (use TB) OR break long chains into 2-3 vertical clusters.
+- **Aspect <0.5:** Image too tall (height >20cm = full A4 page). Restructure: use LR for sub-flows OR split single chain into 2 vertical columns.
+
+### AWS architecture diagrams — use PlantUML với AWS Icons stdlib
+
+Mermaid KHÔNG support service-specific icons. Cho professional AWS architecture diagrams với official AWS service logos (EC2, RDS, S3, ALB, SES, CloudWatch, etc.), **use PlantUML với AWS Icons stdlib** thay vì Mermaid flowchart.
+
+**Setup (pipeline):**
+- Local `plantuml.jar` tại `documents/06-diagrams/tools/plantuml.jar`
+- Render via subprocess: `java -DPLANTUML_SECURITY_PROFILE=INTERNET -jar plantuml.jar -tpng <file>.puml`
+- INTERNET security profile để allow `!includeurl` từ awslabs repo
+- SMETANA layout engine (`!pragma layout smetana`) cho rendering không cần graphviz
+
+**Source pattern:**
+````markdown
+```plantuml
+@startuml
+!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist
+!includeurl AWSPuml/AWSCommon.puml
+!includeurl AWSPuml/Compute/EC2.puml
+!includeurl AWSPuml/Database/RDS.puml
+!includeurl AWSPuml/Storage/SimpleStorageService.puml
+!includeurl AWSPuml/NetworkingContentDelivery/ElasticLoadBalancing.puml
+
+skinparam linetype ortho
+skinparam defaultFontSize 26
+skinparam ArrowFontSize 22
+skinparam ranksep 70
+skinparam nodesep 50
+
+actor "Người dùng" as User
+cloud "Cloudflare\nDNS + CDN" as CF
+
+rectangle "AWS Region — ap-southeast-1" {
+  ElasticLoadBalancing(ALB, "Application LB", "HTTPS + TLS 1.3")
+  rectangle "Compute (EC2 t3.micro × 2)" {
+    EC2(KH, "kh-backend", "Gateway + services")
+    EC2(KC, "kc-app", "KiteClass + frontend")
+  }
+  RDS(DB, "RDS PostgreSQL 16", "db.t3.micro + RLS")
+  SimpleStorageService(S3, "S3", "multi-tenant prefix")
+}
+
+User --> CF --> ALB
+ALB --> KH
+ALB --> KC
+KH --> DB
+KC --> DB
+@enduml
+```
+````
+
+**Key skinparams cho thesis A4 docx embed:**
+- `defaultFontSize 26` — text readable post scale-down (PlantUML scales differently from Mermaid)
+- `ArrowFontSize 22` — arrow labels readable
+- `linetype ortho` — orthogonal arrows (cleaner cho architecture diagram)
+- `ranksep 70` + `nodesep 50` — breathing room between ranks/nodes
+- `ArrowThickness 2` — arrows visible post scale-down
+
+**AWS Icons categories available** (https://github.com/awslabs/aws-icons-for-plantuml/tree/main/dist):
+- `Compute/` — EC2, Lambda, ECS, EKS, Fargate, Batch
+- `Database/` — RDS, DynamoDB, ElastiCache, Aurora, Neptune
+- `Storage/` — SimpleStorageService (S3), EBS, EFS, FSx, Glacier
+- `NetworkingContentDelivery/` — ElasticLoadBalancing (ALB/NLB/CLB), CloudFront, Route53, VPC
+- `SecurityIdentityCompliance/` — SecretsManager, KMS, IAM, Cognito, GuardDuty
+- `ManagementGovernance/` — CloudWatch, CloudTrail, Config, Systems Manager
+- `BusinessApplications/` — SimpleEmailService (SES), WorkMail, Chime
+- `Containers/` — ElasticContainerRegistry (ECR), ECS, EKS
+- `ApplicationIntegration/` — SQS, SNS, EventBridge, Step Functions
+
+**Worked example:** Hình 4.1 thesis-v1.docx rewrite từ Mermaid flowchart → PlantUML với official AWS icons (Wave thesis-2 Round 3.1). All 9 AWS services have proper logos: EC2, RDS, S3, ALB, SES, CloudWatch, CloudTrail, Secrets Manager, ECR.
+
+### Sequence diagram specific rules
+
+Sequence diagrams có participants horizontally → width grows linearly với participant count. 8 participants × 240px = 1920px source → docx 16cm scale-down 2.8× → text unreadable even at fontSize 28px.
+
+**Rules cho sequenceDiagram trong docx scope:**
+
+1. **Max 5-6 participants per diagram** — beyond that, split vào 2-3 sub-diagrams
+2. **Split criteria:** Logical phase boundary (vd login flow + authenticated request = 2 separate diagrams) — Note over separator KHÔNG đủ; physical split required
+3. **Init config required:**
+   ```mermaid
+   %%{init: {
+     "sequence": {
+       "actorMargin": 100,
+       "width": 240,
+       "height": 70,
+       "messageMargin": 50,
+       "boxTextMargin": 10
+     },
+     "themeVariables": {
+       "fontSize": "28px",
+       "messageFontSize": "26px",
+       "noteFontSize": "26px"
+     }
+   }}%%
+   ```
+4. **Caption Hình X.Ya / X.Yb** khi split (NOT Hình X.Y.1 / X.Y.2 — confusing với section numbering)
+5. **Merge actors khi possible:** vd "User + FE" thay vì 2 columns
+
+**Example anti-pattern:** Hình 2.4 v1 với 8 participants (User, FE, GW, Sub, Admin, PG, RLS, Redis) → text ~7px effective unreadable.
+**Example fix (v2):** Split → Hình 2.4a login (5 participants: User, FE, GW, Sub, PG) + Hình 2.4b auth request (5 participants: User, FE, GW, Admin, PG+RLS merged) → text ~11px readable.
+
+### Reference rendering
+
+Per project pipeline `documents/08-thesis/create_thesis_v1.py`:
+- Mermaid PNG cached via kroki.io HTTP API
+- Smart sizing: landscape → 16cm width, square-ish → 16cm width, portrait → 22cm height capped
+- python-docx `inline_shape` introspection verify size compliance
+
+### Render PNG (nếu cần)
 
 ```bash
 # Install mermaid CLI

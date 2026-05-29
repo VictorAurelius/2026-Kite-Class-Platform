@@ -15,7 +15,7 @@ Chương 1 cluster gồm 3 file (không tính `-backup-*` files):
 
 | # | Loại | File / Block | Caption | Vị trí |
 |:-:|------|--------------|---------|--------|
-| 1.1 | Mermaid | `chapter-1-ai-techniques.md` line 30 | ⚠️ thiếu caption — đề xuất `**Hình 1.1: Kiến trúc kỹ thuật AI Branding (text-to-image generation)**` | §1.4.2.1 Kiến trúc kỹ thuật AI Branding |
+| 1.1 | Mermaid | `chapter-1-ai-techniques.md` line 30 | ⚠️ thiếu caption — đề xuất `**Hình 1.1: Kiến trúc kỹ thuật AI Branding (text-to-image generation)**` | §1.3.2.1 Kiến trúc kỹ thuật AI Branding |
 | 1.2 | PNG screenshot | `chapter-1-competitor-analysis.md` line 54 | ⚠️ thiếu caption — đề xuất `**Hình 1.2: Giao diện trang chủ BeeClass**` | §1.3.2 BeeClass |
 | 1.3 | PNG screenshot | `chapter-1-competitor-analysis.md` line 65 | ⚠️ thiếu caption — đề xuất `**Hình 1.3: Giao diện MISA AMIS Trường Học**` | §1.3.3 MISA AMIS Trường Học |
 | 1.4 | PNG screenshot | `chapter-1-competitor-analysis.md` line 76 | ⚠️ thiếu caption — đề xuất `**Hình 1.4: Giao diện trang chủ Mona eLMS**` | §1.3.4 Mona eLMS |

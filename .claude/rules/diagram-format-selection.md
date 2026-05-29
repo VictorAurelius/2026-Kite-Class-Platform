@@ -47,7 +47,8 @@ Force-multiplier: 1 quyết định format đúng → mọi reader tương lai x
 | **State machine** | **Mermaid** `stateDiagram-v2` | PlantUML | Hiếm |
 | **Gantt timeline** | **Mermaid** `gantt` | — | KHÔNG — Gantt cần actual rendering |
 | **Pie chart** | **Mermaid** `pie` | — | KHÔNG |
-| **Architecture (box + arrow)** | **Mermaid** `flowchart TB/LR` | PlantUML | ≤5 box, simple data flow |
+| **Architecture (box + arrow) — generic** | **Mermaid** `flowchart TB/LR` | PlantUML | ≤5 box, simple data flow |
+| **AWS architecture diagram (with service logos)** | **PlantUML + AWS Icons stdlib** (`!includeurl AWSPuml/...`) | Mermaid flowchart fallback (no icons) | KHÔNG — AWS diagrams cần official logos |
 | **Network topology / cluster** | **Mermaid** `flowchart` với subgraph | PlantUML deployment | Hiếm |
 | **CI/CD pipeline** | **PlantUML** | Mermaid | ≤5 step, no swimlane |
 | **C4 model (Context/Container/Component)** | **PlantUML** với C4-PlantUML | Mermaid `C4Context` (limited) | KHÔNG — C4 cần PlantUML-quality |
@@ -188,6 +189,8 @@ Use sequenceDiagram khi muốn show ORDER (signup → verify → send → render
 | **`<br/>` ANYWHERE trong `stateDiagram-v2` block** (transition labels / state descriptions / notes) | **HARD RULE:** stateDiagram parser strict — no HTML. Replace với space. Recurrence #5 2026-05-19 fixed multi-tenant §2 (PR #1562). |
 | **`;` (semicolon) trong `Note over/left of/right of` text trong `sequenceDiagram` + `stateDiagram-v2` block** | **HARD RULE per recurrence #8 (2026-05-19 user-flagged post Wave 99B closure):** Mermaid parser treats `;` as statement terminator INSIDE Note text — orphans following clause + concatenates next diagram statement → "Expecting ARROW, got NEWLINE" error. **Replace `;` với ` — ` em-dash OR `.` period OR `,` comma**. Verified breakage: `Note over A,B: First clause; second clause` fails parser; `Note over A,B: First clause — second clause` succeeds. Detector: `scripts/check-mermaid-sequence-state-br.sh` (extended v1.0.3). |
 | `<br/>` trong `flowchart` node labels OR `flowchart` edge labels | ✅ OK — Mermaid flowchart parser supports HTML breaks reliably. Don't refactor unnecessarily. Email-architecture.md + kitehub/kiteclass architecture flowchart blocks all use `<br/>` correctly. |
+| **Subgraph titles bị đè chữ với child nodes** (recurrence #9 2026-05-26, thesis Hình 2.2) — large fontSize (≥16px) + long subgraph titles + default rendering = text overlap visible | **HARD RULE per recurrence #9:** Khi diagram dùng `subgraph` với title labels AND có `themeVariables.fontSize ≥ 16px`, PHẢI specify `subGraphTitleMargin: {top: ≥10, bottom: ≥15}` trong init config + giữ subgraph title ≤30 chars. Verified breakage: thesis Hình 2.2 C4 L2 "Tầng giao diện — Next.js 15" + 4 cluster titles overlapped với child nodes khi fontSize=18px no margin. Verified fix: `subGraphTitleMargin {top:10, bottom:15}` + `padding: 20` + shorten titles to ≤30 chars (e.g., "Frontend Next.js 15" thay vì "Tầng giao diện — Next.js 15") render cleanly. |
+| **Large diagram aspect không control được** (>15 nodes natural Mermaid landscape) | Apply Mermaid init config patterns: `nodeSpacing: 25-30` (tighter horizontal) + `rankSpacing: 60-80` (more vertical breathing) + `fontSize: 16-18px` (larger text); aggregate edges via subgraph-level connections thay vì per-node edges (vd 5 services → 1 cluster `ServiceCluster -.-> InfraCluster` thay vì 5×4 = 20 dotted edges); shorten labels to single-line per node (no `<br/>` chains in flowchart nodes when restructuring for compactness). |
 
 ---
 

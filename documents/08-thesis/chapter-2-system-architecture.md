@@ -194,35 +194,40 @@ Kite Platform tương tác với 8 nhóm actor (người dùng và quản trị)
 
 ```mermaid
 flowchart TB
-    P1[P1 Giáo viên độc lập<br/>5-50 học sinh]
-    P2[P2 Chủ trung tâm<br/>20-100 học sinh]
-    P3[P3 Quản lý trung tâm<br/>100-500 học sinh]
-    P5[P5 Hiệu trưởng K-12<br/>phạm vi mở rộng giai đoạn vận hành chính thức]
-    Vy[Người dùng tiềm năng<br/>truy cập landing]
-    Admin[Quản trị nền tảng<br/>vận hành nội bộ]
-    Student[Học sinh<br/>mobile chiếm 85%]
-    Parent[Phụ huynh<br/>thông báo qua email/Zalo]
+    subgraph tenants [Nhóm tenant truy cập hệ thống]
+        direction LR
+        P1[P1 Giáo viên độc lập<br/>5-50 học sinh]
+        P2[P2 Chủ trung tâm<br/>20-100 học sinh]
+        P3[P3 Quản lý trung tâm<br/>100-500 học sinh]
+        P5[P5 Hiệu trưởng K-12<br/>mở rộng giai đoạn chính thức]
+    end
+
+    subgraph endusers [Người dùng cuối và quản trị]
+        direction LR
+        Vy[Người dùng tiềm năng<br/>truy cập landing]
+        Student[Học sinh<br/>mobile chiếm 85%]
+        Parent[Phụ huynh<br/>email + Zalo]
+        Admin[Quản trị nền tảng<br/>vận hành nội bộ]
+    end
 
     Kite[Kite Platform<br/>Multi-tenant SaaS education<br/>KiteHub control-plane + KiteClass data-plane]
 
-    Resend[Resend<br/>Email API môi trường dev]
-    SES[AWS SES<br/>Email vận hành]
-    VietQR[VietQR<br/>Thanh toán QR upload]
-    Zalo[Zalo OA<br/>Hỗ trợ nhanh]
-    CF[Cloudflare<br/>DNS + CDN + DDoS]
-    Status[Statuspage<br/>Truyền thông sự cố]
+    subgraph ext [Hệ thống bên ngoài tích hợp qua adapter]
+        direction LR
+        Resend[Resend<br/>Email API dev]
+        SES[AWS SES<br/>Email vận hành]
+        VietQR[VietQR<br/>Thanh toán QR]
+        Zalo[Zalo OA<br/>Hỗ trợ nhanh]
+        CF[Cloudflare<br/>DNS + CDN + DDoS]
+        Status[Statuspage<br/>Truyền thông sự cố]
+    end
 
-    P1 -->|HTTPS browser| Kite
-    P2 -->|HTTPS browser desktop| Kite
-    P3 -->|HTTPS browser tablet bulk ops| Kite
-    Vy -->|landing + signup| Kite
-    Admin -->|admin dashboard role-gated| Kite
-    Student -->|mobile primary| Kite
-    Parent -->|Zalo link + email verify| Kite
+    tenants -->|HTTPS browser/tablet| Kite
+    endusers -->|HTTPS browser/mobile| Kite
 
     Kite -->|HTTP POST transactional| Resend
     Kite -->|AWS SDK SesV2Client| SES
-    Kite -->|QR upload + manual reconcile P1.5| VietQR
+    Kite -->|QR upload + manual reconcile| VietQR
     Kite -->|OA broadcast support| Zalo
     Kite -.->|served via apex| CF
     Kite -->|incident posts + uptime| Status
@@ -244,60 +249,47 @@ Hình 2.1 cho thấy mọi actor đều truy cập Kite Platform qua HTTPS (TLS 
 Phóng to vào nội bộ Kite Platform cho thấy 4 cụm container: Frontend (2 ứng dụng Next.js), Gateway (Spring Cloud Gateway), Service (6 service KiteHub + 1 KiteClass core), và hạ tầng dùng chung (4 container với prefix `kite-`). Hình 2.2 trình bày bố cục container theo C4 Level 2.
 
 ```mermaid
+%%{init: {"flowchart": {"htmlLabels": true, "nodeSpacing": 35, "rankSpacing": 80, "padding": 25, "subGraphTitleMargin": {"top": 12, "bottom": 18}}, "themeVariables": {"fontSize": "24px"}}}%%
 flowchart TB
-    User[Browser Actor]
+    User[Browser Actor — học sinh / giáo viên / quản trị]
 
-    subgraph FrontendCluster["Frontend Cluster Next.js 15"]
-        KHF[kitehub-frontend<br/>SaaS marketing + tenant admin<br/>EC2 self-host PM2:3001]
-        KCF[kiteclass-frontend<br/>Tenant education UI<br/>EC2 self-host PM2:3000]
+    subgraph FrontendCluster["Frontend Next.js 15"]
+        direction TB
+        KHF[kitehub-frontend · 3001]
+        KCF[kiteclass-frontend · 3000]
     end
 
-    subgraph GatewayCluster["Gateway Cluster"]
-        GW[kite-gateway<br/>Spring Cloud Gateway<br/>JWT validate + route + CORS<br/>Port 9000]
+    GW[kite-gateway · 9000<br/>Spring Cloud Gateway<br/>JWT validate + route + CORS]
+
+    subgraph ServiceClusterTop["KiteHub control-plane"]
+        direction TB
+        KHS[kitehub-subscription · 8081]
+        KHB[kitehub-branding · 8083]
+        KHE[kitehub-email · 8084]
+        KHA[kitehub-admin · 8083 alias]
     end
 
-    subgraph ServiceCluster["Service Cluster — KiteHub 6 + KiteClass core"]
-        KHS[kitehub-subscription<br/>Trial + plan + tenant lifecycle<br/>Port 8081]
-        KHB[kitehub-branding<br/>AI asset generation + S3<br/>Port 8083]
-        KHE[kitehub-email<br/>Resend + SES adapter<br/>Port 8084]
-        KHA[kitehub-admin<br/>Platform admin + audit log<br/>Port 8083 alias]
-        KCC[kiteclass-core<br/>Education domain core<br/>Student/Class/Attendance/Grade/Payment<br/>Port 8088]
+    KCC[kiteclass-core · 8088<br/>KiteClass data-plane · education core]
+
+    subgraph InfraCluster["Shared Infra (prefix kite-)"]
+        direction TB
+        PG[(kite-postgres · 5433<br/>PostgreSQL 15 · RLS)]
+        RD[(kite-redis · 6380<br/>cache + rate-limit)]
+        MQ[(kite-rabbitmq · 5673<br/>async event bus)]
+        MN[(kite-minio · 9100<br/>S3 storage)]
     end
 
-    subgraph InfraCluster["Shared Infrastructure prefix kite-"]
-        PG[(kite-postgres<br/>PostgreSQL 15<br/>RLS multi-tenant<br/>Port 5433)]
-        RD[(kite-redis<br/>Redis 7 cache + rate-limit<br/>Port 6380)]
-        MQ[(kite-rabbitmq<br/>Async event bus<br/>Port 5673)]
-        MN[(kite-minio<br/>S3-compatible storage<br/>Port 9100)]
-    end
+    User -->|HTTPS| FrontendCluster
+    FrontendCluster -->|REST API| GW
+    GW -->|route + JWT| ServiceClusterTop
+    GW -->|route + JWT| KCC
+    ServiceClusterTop -.->|JPA + Redis + MQ| InfraCluster
+    KCC -.->|JPA + Redis + MQ + MinIO| InfraCluster
 
-    User -->|HTTPS| KHF
-    User -->|HTTPS| KCF
-    KHF -->|REST API| GW
-    KCF -->|REST API| GW
-    GW -->|JWT-validated route| KHS
-    GW -->|route| KHB
-    GW -->|route| KHE
-    GW -->|route| KHA
-    GW -->|route| KCC
-
-    KHS -.-> PG
-    KHS -.-> RD
-    KHS -.-> MQ
-    KHB -.-> PG
-    KHB -.-> MN
-    KHB -.-> MQ
-    KHE -.-> MQ
-    KHA -.-> PG
-    KCC -.-> PG
-    KCC -.-> RD
-    KCC -.-> MQ
-    KCC -.-> MN
-
-    classDef frontend fill:#dbeafe,stroke:#1e40af
-    classDef gateway fill:#fef3c7,stroke:#92400e
-    classDef service fill:#fce7f3,stroke:#9f1239
-    classDef infra fill:#e0e7ff,stroke:#3730a3
+    classDef frontend fill:#dbeafe,stroke:#1e40af,stroke-width:2px
+    classDef gateway fill:#fef3c7,stroke:#92400e,stroke-width:3px
+    classDef service fill:#fce7f3,stroke:#9f1239,stroke-width:2px
+    classDef infra fill:#e0e7ff,stroke:#3730a3,stroke-width:2px
     class KHF,KCF frontend
     class GW gateway
     class KHS,KHB,KHE,KHA,KCC service
@@ -441,47 +433,51 @@ Hai cơ chế hardening quan trọng:
 Hình 2.4 trình bày tuần tự đăng nhập và một yêu cầu được xác thực sau đó cho luồng quản trị nền tảng.
 
 ```mermaid
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
 sequenceDiagram
     actor User as User browser
     participant FE as kitehub-frontend
     participant GW as kite-gateway
     participant Sub as kitehub-subscription
-    participant Admin as kitehub-admin
     participant PG as kite-postgres
-    participant RLS as RLS policy
-    participant Redis as kite-redis
 
-    Note over User,FE: Đăng nhập qua endpoint public
     User->>FE: Gửi email + mật khẩu
     FE->>GW: POST /api/auth/login
     GW->>Sub: Chuyển tiếp — endpoint public
     Sub->>PG: SELECT user WHERE email
     PG-->>Sub: hàng user + bcrypt hash
-    Sub->>Sub: BCrypt verify mật khẩu
-    Sub->>PG: INSERT admin_audit_log sự kiện login
-    Sub->>Sub: Sinh JWT HS256 — claims sub tenantId role
-    Sub->>Redis: SET refresh blacklist TTL 30 ngày
+    Sub->>Sub: BCrypt verify + sinh JWT HS256
+    Sub->>PG: INSERT admin_audit_log
     Sub-->>GW: 200 accessToken + refreshToken
     GW-->>FE: 200 + tokens
-    FE->>FE: Lưu token qua httpOnly cookie facade
+    FE->>FE: Lưu token qua httpOnly cookie
+```
 
-    Note over User,RLS: Yêu cầu đã xác thực tới endpoint admin
+**Hình 2.4a.** Luồng đăng nhập — sinh JWT + audit log.
+
+```mermaid
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
+sequenceDiagram
+    actor User as User browser
+    participant FE as kitehub-frontend
+    participant GW as kite-gateway
+    participant Admin as kitehub-admin
+    participant PG as kite-postgres + RLS
+
     User->>FE: Nhấn Admin Instances
-    FE->>GW: GET /api/admin/v1/instances — Authorization Bearer
-    GW->>GW: Xác thực chữ ký JWT HS256
-    GW->>GW: Rút sub tenantId role
-    GW->>Admin: Chuyển tiếp + X-User-Id + X-Tenant-Id + X-User-Role
-    Admin->>Admin: @PreAuthorize hasRole PLATFORM_ADMIN
+    FE->>GW: GET /api/admin/v1/instances<br/>Authorization Bearer
+    GW->>GW: Xác thực chữ ký JWT<br/>+ rút claim
+    GW->>Admin: X-User-Id + X-Tenant-Id + X-User-Role
+    Admin->>Admin: @PreAuthorize PLATFORM_ADMIN
     Admin->>PG: SET LOCAL app.current_tenant_id
     Admin->>PG: SELECT FROM instances
-    PG->>RLS: enforce tenant_id = current_setting
-    RLS-->>PG: hàng đã lọc
+    PG->>PG: RLS enforce tenant_id<br/>= current_setting
     PG-->>Admin: hàng thuộc tenant
     Admin-->>GW: 200 + payload
     GW-->>FE: 200
 ```
 
-**Hình 2.4.** Luồng xác thực JWT và truyền ngữ cảnh tenant.
+**Hình 2.4b.** Luồng yêu cầu đã xác thực — JWT validate + truyền ngữ cảnh tenant + RLS filter.
 
 Một nguyên tắc thiết kế quan trọng được áp dụng: service KHÔNG được tự đọc claim `tenantId` từ JWT body. Gateway là biên trust duy nhất cho việc xác thực JWT; downstream service tin tưởng header `X-Tenant-Id` do gateway phát ra. Nếu mỗi service tự parse JWT, hệ thống phải duy trì public key ở nhiều nơi và lặp logic xác thực, tăng rủi ro an toàn và chi phí bảo trì.
 
@@ -593,7 +589,7 @@ erDiagram
     CLASSES ||--o{ ATTENDANCE : records
 ```
 
-**Hình 2.6.** ERD high-level — quan hệ giữa các entity chính (`CLASSES` = bảng `class`/lớp học; rename để tránh xung đột với từ khóa `class` reserved trong cú pháp Mermaid erDiagram).
+**Hình 2.6.** Sơ đồ ERD high-level mô tả quan hệ giữa các entity chính trong hệ thống.
 
 ERD nhấn mạnh quan hệ many-to-many giữa `STUDENT` và `CLASSES` qua bảng nối `STUDENT_CLASS` (một học sinh có thể đăng ký nhiều lớp, một lớp có nhiều học sinh) — chi tiết quan hệ này bị che giấu ở class diagram cấp độ runtime. Mọi quan hệ xuất phát từ `TENANT` đều có cardinality `1..N` thể hiện ranh giới đa tenant: không có entity nghiệp vụ nào tồn tại ngoài ngữ cảnh tenant.
 
@@ -602,31 +598,43 @@ ERD nhấn mạnh quan hệ many-to-many giữa `STUDENT` và `CLASSES` qua bả
 Luồng cấp phát tenant từ lúc người dùng tiềm năng gửi yêu cầu beta đến khi chủ trung tâm đăng nhập lần đầu trải qua nhiều bước phối hợp giữa frontend, backend và các dịch vụ ngoài. Hình 2.7 trình bày tuần tự các bước theo ký pháp UML.
 
 ```mermaid
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
 sequenceDiagram
     actor U as Người dùng (P2)
     participant FE as Frontend
     participant API as kitehub-subscription
     participant DB as kite-postgres
-    participant Email as kitehub-email
-    participant MQ as kite-rabbitmq
 
     U->>FE: Gửi form yêu cầu beta
     FE->>API: POST /api/v1/beta-requests
-    API->>DB: INSERT beta_requests status=PENDING
+    API->>DB: INSERT beta_requests<br/>status=PENDING
     API-->>FE: 201 Created
-    Note over API,Email: Quản trị duyệt yêu cầu
-    API->>DB: INSERT tenants status=TRIAL
-    API->>DB: INSERT users role=P2_CENTER_OWNER
-    API->>MQ: branding.deploy.exchange
-    API->>Email: Gửi magic-link verify
-    Email-->>U: Email magic-link TTL 7 ngày
-    U->>API: GET /api/v1/auth/verify token=...
-    API->>DB: UPDATE users password_set=true
-    API-->>FE: 200 OK + JWT
-    FE-->>U: Redirect /dashboard wizard 5 bước
+    FE-->>U: Đã ghi nhận — chờ duyệt
 ```
 
-**Hình 2.7.** Sequence diagram — luồng cấp phát tenant thử nghiệm.
+**Hình 2.7a.** Pha PENDING — người dùng gửi yêu cầu beta, hệ thống ghi nhận chờ quản trị duyệt.
+
+```mermaid
+%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
+sequenceDiagram
+    actor Admin as Quản trị
+    participant API as kitehub-subscription
+    participant DB as kite-postgres
+    participant Email as kitehub-email
+    actor U as P2 Owner
+
+    Admin->>API: Duyệt yêu cầu beta
+    API->>DB: INSERT tenants<br/>status=TRIAL
+    API->>DB: INSERT users<br/>role=P2_CENTER_OWNER
+    API->>API: Phát event<br/>branding.deploy.exchange<br/>qua RabbitMQ
+    API->>Email: Gửi magic-link verify
+    Email-->>U: Email magic-link<br/>TTL 7 ngày
+    U->>API: GET /api/v1/auth/verify
+    API->>DB: UPDATE users<br/>password_set=true
+    API-->>U: 200 OK + JWT<br/>redirect dashboard
+```
+
+**Hình 2.7b.** Pha TRIAL — quản trị duyệt yêu cầu, hệ thống cấp tenant + gửi magic-link, người dùng kích hoạt tài khoản. Sự kiện `branding.deploy.exchange` được phát qua RabbitMQ song song cho `kitehub-branding` dựng template mặc định.
 
 Tuần tự cho thấy ranh giới giữa pha PENDING (chờ duyệt thủ công) và pha TRIAL (sau khi quản trị kích hoạt) — đây là điểm chuyển trạng thái quan trọng được tham chiếu lại tại Hình 2.8 §2.3.4 (máy trạng thái vòng đời tenant). Việc phát sự kiện fanout `branding.deploy.exchange` qua RabbitMQ song song với gửi email cho phép `kitehub-branding` dựng template mặc định trong khi chờ chủ trung tâm xác thực — giảm thời gian onboarding khi user click magic-link.
 
