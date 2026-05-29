@@ -660,13 +660,13 @@ Sau khi định nghĩa lần đầu → các lần sau dùng acronym tự do (kh
 
 ### S8 — Figure source attribution mandatory (outside-in: persona F-C4 cluster + UTC §2.4)
 
-**Rule:** Mọi figure (markdown image `![]()`, Mermaid block, embedded PNG) PHẢI có dòng italic source attribution NGAY SAU caption `**Hình X.Y.** ...`:
+**Rule:** Mọi figure (markdown image `![]()`, Mermaid block, embedded PNG) PHẢI có dòng italic source attribution NGAY SAU caption `**Hình X.Y.** ...` — TRỪ author-original figures (plain attribution optional per user direction 2026-05-29):
 
 | Figure type | Required attribution |
 |---|---|
-| **Derived from external source** | `*Nguồn: [N, tr.NNN]*` (citing bibliography) HOẶC `*Nguồn: <URL>, truy cập DD/MM/YYYY*` (web) |
-| **Author-original** (drawn by author) | `*Nguồn: tác giả tự xây dựng*` HOẶC `*Nguồn: tác giả tự xây dựng dựa trên [N, tr.NNN]*` (composite reference) |
-| **Screenshot of own product** | `*Nguồn: ảnh chụp giao diện KiteHub Platform, truy cập DD/MM/YYYY*` |
+| **Derived from external source** | `*Nguồn: [N, tr.NNN]*` (citing bibliography) HOẶC `*Nguồn: <URL>, truy cập DD/MM/YYYY*` (web) — **MANDATORY** |
+| **Author-original** (drawn by author) | **OPTIONAL** per user direction 2026-05-29 Wave thesis-3 — plain `*Nguồn: tác giả tự xây dựng*` treated as redundant fluff (sinh viên = author of thesis = default attribution implicit). **Composite reference** `*Nguồn: tác giả tự xây dựng dựa trên [N, tr.NNN]*` vẫn **MANDATORY** khi figure derived from external mô hình/framework. |
+| **Screenshot of own product** | `*Nguồn: ảnh chụp giao diện KiteHub Platform, truy cập DD/MM/YYYY*` — **MANDATORY** (timestamp evidence cho reproducibility) |
 
 **Banned example (Wave 102.5 baseline Ch.2):**
 - Hình 2.1-2.8 (C4 Context/Container/ERD/Class/Sequence/State diagrams) — captions present ✅ NHƯNG missing source attribution
