@@ -1597,33 +1597,56 @@ def add_abbreviations(doc):
 
     # Wave 102.7.5 Bucket B Item 10 — sorted ABC (VN-aware: Đ sau D)
     abbrevs = [
+        ("AI", "Artificial Intelligence — trí tuệ nhân tạo"),
         ("ALB", "Application Load Balancer — bộ cân bằng tải ứng dụng AWS"),
-        ("API", "Application Programming Interface"),
-        ("CI/CD", "Continuous Integration / Continuous Deployment"),
-        ("DDD", "Domain-Driven Design"),
+        ("API", "Application Programming Interface — giao diện lập trình ứng dụng"),
+        ("C4", "Mô hình mô tả kiến trúc phần mềm 4 cấp: Context, Container, Component, Code"),
+        ("CDN", "Content Delivery Network — mạng phân phối nội dung"),
+        ("CI/CD", "Continuous Integration / Continuous Deployment — tích hợp / triển khai liên tục"),
+        ("CRM", "Customer Relationship Management — quản lý quan hệ khách hàng"),
+        ("DCV", "Domain Control Validation — xác thực quyền kiểm soát tên miền"),
+        ("DDD", "Domain-Driven Design — thiết kế hướng miền"),
+        ("DDoS", "Distributed Denial of Service — tấn công từ chối dịch vụ phân tán"),
+        ("DKIM", "DomainKeys Identified Mail — chữ ký số xác thực email theo tên miền"),
+        ("DMARC", "Domain-based Message Authentication, Reporting and Conformance — chính sách chống giả mạo email"),
         ("DPIA", "Data Protection Impact Assessment — Đánh giá Tác động Bảo vệ Dữ liệu"),
         ("DPO", "Data Protection Officer — Cán bộ Bảo vệ Dữ liệu theo PDPL"),
+        ("DSAR", "Data Subject Access Request — yêu cầu truy cập dữ liệu của chủ thể dữ liệu"),
         ("ECR", "Elastic Container Registry — kho chứa Docker images trên AWS"),
         ("ECS", "Elastic Container Service — dịch vụ điều phối container AWS"),
+        ("ERD", "Entity-Relationship Diagram — sơ đồ thực thể-quan hệ"),
         ("IEEE", "Institute of Electrical and Electronics Engineers"),
-        ("ISO", "International Organization for Standardization"),
+        ("ISO", "International Organization for Standardization — Tổ chức Tiêu chuẩn hóa Quốc tế"),
         ("JWT", "JSON Web Token"),
         ("K-12", "Kindergarten to Grade 12 — bậc giáo dục phổ thông từ mẫu giáo đến lớp 12"),
         ("KMS", "Key Management Service — dịch vụ quản lý khóa mã hóa"),
         ("KPI", "Key Performance Indicator — chỉ số hiệu suất chính"),
+        ("Lean", "Lean Software Development — phát triển phần mềm tinh gọn (Poppendieck)"),
         ("LMS", "Learning Management System — hệ quản lý học tập"),
         ("MVP", "Minimum Viable Product — sản phẩm tối thiểu khả dụng"),
+        ("NFR", "Non-Functional Requirement — yêu cầu phi chức năng"),
         ("OIDC", "OpenID Connect — chuẩn xác thực OAuth 2.0 mở rộng"),
         ("OWASP", "Open Worldwide Application Security Project"),
+        ("PDCA", "Plan-Do-Check-Act — chu trình cải tiến chất lượng (Deming)"),
         ("PDPL", "Personal Data Protection Law — Luật Bảo vệ Dữ liệu Cá nhân 2023 (Số 49/2023/QH15)"),
         ("RDS", "Relational Database Service — dịch vụ cơ sở dữ liệu quan hệ AWS"),
         ("REST", "Representational State Transfer"),
-        ("RLS", "Row-Level Security"),
-        ("SaaS", "Software as a Service"),
+        ("RLS", "Row-Level Security — bảo mật mức hàng"),
+        ("SaaS", "Software as a Service — phần mềm dạng dịch vụ"),
+        ("SDXL", "Stable Diffusion XL — mô hình sinh ảnh từ văn bản"),
         ("SES", "Simple Email Service — dịch vụ gửi email AWS"),
-        ("TDD", "Test-Driven Development"),
+        ("SLA", "Service Level Agreement — cam kết mức dịch vụ"),
+        ("SPF", "Sender Policy Framework — bản ghi xác thực nguồn gửi email"),
+        ("SSG", "Static Site Generation — sinh trang tĩnh"),
+        ("SSR", "Server-Side Rendering — kết xuất phía máy chủ"),
+        ("TDD", "Test-Driven Development — phát triển hướng kiểm thử"),
+        ("TLS", "Transport Layer Security — bảo mật tầng truyền tải"),
         ("UTC GTVT", "Trường Đại học Giao thông Vận tải — University of Transport and Communications"),
+        ("UUID", "Universally Unique Identifier — định danh duy nhất toàn cục"),
         ("VPC", "Virtual Private Cloud — mạng riêng ảo trên cloud"),
+        ("WAF", "Web Application Firewall — tường lửa ứng dụng web"),
+        ("WCAG", "Web Content Accessibility Guidelines — hướng dẫn truy cập nội dung web"),
+        ("ZNS", "Zalo Notification Service — dịch vụ thông báo qua Zalo"),
     ]
     _add_table_2col(doc, abbrevs, col0_width_cm=3.5, col1_width_cm=12.5,
                     header_row=("Từ viết tắt", "Nghĩa đầy đủ"))
@@ -1662,13 +1685,15 @@ def add_introduction(doc):
         "Thông tư 29/2024/TT-BGDĐT chính thức hóa hoạt động dạy thêm có thu phí. Tuy nhiên, đa "
         "số trung tâm nhỏ và vừa (1-10 chi nhánh, 100-2000 học viên) vẫn dùng Excel hoặc các "
         "phần mềm enterprise không phù hợp về giá và độ phức tạp. Khoảng trống này tạo cơ hội "
-        "cho một giải pháp SaaS multi-tenant gốc, Vietnamese-first UX, và tự động hóa các tác "
-        "vụ branding bằng AI — đây chính là động lực để em chọn đề tài \"" + THESIS_INFO["title"] + "\".")
+        "cho một giải pháp SaaS (Software as a Service — phần mềm dạng dịch vụ) đa-tenant gốc, "
+        "ưu tiên trải nghiệm người dùng tiếng Việt, và tự động hóa các tác vụ nhận diện thương "
+        "hiệu bằng trí tuệ nhân tạo (AI — Artificial Intelligence) — đây chính là động lực để em "
+        "chọn đề tài \"" + THESIS_INFO["title"] + "\".")
 
     add_section_title(doc, "2. Mục tiêu nghiên cứu")
     add_bullet_list_item(doc, "Xây dựng nền tảng SaaS multi-tenant cho trung tâm giáo dục Việt Nam, hỗ trợ scale từ 1 chi nhánh lên 100+ chi nhánh không cần re-architect.")
     add_bullet_list_item(doc, "Tích hợp AI Branding tự động sinh logo + banner + hero image, giảm thời gian go-live của trung tâm từ tuần xuống ngày.")
-    add_bullet_list_item(doc, "Đảm bảo tuân thủ pháp luật Việt Nam: PDPL 2023, Luật An ninh mạng 2018, Thông tư 78/2021/TT-BTC về hóa đơn điện tử.")
+    add_bullet_list_item(doc, "Đảm bảo tuân thủ pháp luật Việt Nam: Luật Bảo vệ Dữ liệu Cá nhân 2023 (PDPL — Personal Data Protection Law), Luật An ninh mạng 2018, Thông tư 78/2021/TT-BTC về hóa đơn điện tử.")
     add_bullet_list_item(doc, "Áp dụng phương pháp luận Quality-Driven Development để duy trì chất lượng mã nguồn và tài liệu trong suốt quá trình phát triển dài hạn.")
 
     add_section_title(doc, "3. Phạm vi nghiên cứu")
@@ -1685,8 +1710,9 @@ def add_introduction(doc):
         "viên), Center Owner (chủ sở hữu trung tâm, 1-10 chi nhánh, 100-2.000 học viên), và Center "
         "Manager (quản lý vận hành trung tâm). Persona Parent và Student thuộc phân khúc K-12 "
         "(Kindergarten to Grade 12 — bậc giáo dục phổ thông từ mẫu giáo đến lớp 12) được hoãn "
-        "sang giai đoạn mở rộng K-12 do yêu cầu bổ sung DPO + DPIA theo Điều 26 Luật Bảo vệ Dữ liệu Cá "
-        "nhân 2023. Kiến trúc hệ thống cấu thành từ ba lớp dịch vụ. Lớp nền tảng KiteHub gồm "
+        "sang giai đoạn mở rộng K-12 do yêu cầu bổ sung DPO (Data Protection Officer — cán bộ "
+        "bảo vệ dữ liệu) và DPIA (Data Protection Impact Assessment — đánh giá tác động bảo vệ "
+        "dữ liệu) theo Điều 26 Luật Bảo vệ Dữ liệu Cá nhân 2023. Kiến trúc hệ thống cấu thành từ ba lớp dịch vụ. Lớp nền tảng KiteHub gồm "
         "sáu dịch vụ độc lập đảm nhận các trách nhiệm khác nhau: quản trị (kitehub-admin), "
         "nhận diện thương hiệu (kitehub-branding), thư điện tử (kitehub-email), điều phối yêu "
         "cầu (kitehub-gateway), thư viện dùng chung (kitehub-platform) và quản lý đăng ký "
@@ -1707,13 +1733,16 @@ def add_introduction(doc):
         "Row-Level Security, defense-in-depth 5 lớp) đối chiếu với AWS SaaS Lens và Azure "
         "multi-tenant whitepaper.")
     add_bullet_list_item(doc,
-        "Áp dụng phương pháp luận Quality-Driven Development bốn trụ cột (TDD per Beck 2002, "
-        "DDD per Evans 2003, PDCA per Deming 1986, Lean per Poppendieck 2003) — mỗi vấn đề "
+        "Áp dụng phương pháp luận Quality-Driven Development bốn trụ cột: phát triển hướng kiểm "
+        "thử (TDD — Test-Driven Development, per Beck 2002), thiết kế hướng miền (DDD — "
+        "Domain-Driven Design, per Evans 2003), chu trình Plan-Do-Check-Act (PDCA, per Deming "
+        "1986) và tư duy tinh gọn (Lean, per Poppendieck 2003) — mỗi vấn đề "
         "phát hiện được chuyển hóa thành quy tắc kiểm soát kèm cơ chế kiểm tra tự động, tích "
         "hợp ngay trong quy trình phát triển.")
     add_bullet_list_item(doc,
         "Đánh giá chất lượng hệ thống qua bộ audit bảy chiều (Quality, UI, Security, "
-        "Performance, API Contract, Business Logic, Ops Readiness) chấm điểm /100 hoặc /128 "
+        "Performance, API — Application Programming Interface — Contract, Business Logic, Ops "
+        "Readiness) chấm điểm /100 hoặc /128 "
         "định kỳ sau mỗi giai đoạn phát triển.")
 
     add_section_title(doc, "5. Tóm tắt nội dung")
@@ -1722,13 +1751,17 @@ def add_introduction(doc):
         "phân tích thị trường EdTech Việt Nam và khung pháp lý liên quan (PDPL 2023, Luật An "
         "ninh mạng 2018, Thông tư 29/2024/TT-BGDĐT) làm cơ sở xác định khoảng trống và nhu cầu "
         "của nhóm trung tâm vừa và nhỏ. Thứ hai, đồ án thiết kế và mô tả kiến trúc hệ thống "
-        "multi-tenant SaaS với mô hình C4 bốn cấp, kết hợp Use Case + Class + ERD và sơ đồ "
-        "tuần tự cho các luồng quan trọng (đăng ký, kích hoạt subscription).")
+        "multi-tenant SaaS với mô hình C4 (mô hình mô tả kiến trúc phần mềm bốn cấp "
+        "Context-Container-Component-Code), kết hợp Use Case + Class + ERD (Entity-Relationship "
+        "Diagram — sơ đồ thực thể-quan hệ) và sơ đồ tuần tự cho các luồng quan trọng (đăng ký, "
+        "kích hoạt subscription).")
     add_paragraph_text(doc,
         "Thứ ba, đồ án triển khai và kiểm thử hệ thống trên AWS Singapore Free Tier, với các "
-        "pattern cốt lõi (Row-Level Security NULL force-fail, Outbox Pattern, JWT propagation, "
-        "REST 3-tier) được kiểm chứng qua unit test, integration test và E2E test. Thứ tư, đồ "
-        "án trình bày kết quả triển khai thực tế trong giai đoạn thử nghiệm tenant kèm các KPI đo "
+        "pattern cốt lõi (Row-Level Security NULL force-fail, Outbox Pattern, truyền ngữ cảnh "
+        "qua JWT — JSON Web Token, kiến trúc REST — Representational State Transfer — 3 tầng) "
+        "được kiểm chứng qua unit test, integration test và E2E test. Thứ tư, đồ "
+        "án trình bày kết quả triển khai thực tế trong giai đoạn thử nghiệm tenant kèm các KPI "
+        "(Key Performance Indicator — chỉ số hiệu suất chính) đo "
         "lường, đánh giá độ trưởng thành và đề xuất hướng phát triển tiếp theo. Kết quả của "
         "đồ án vừa là sản phẩm phần mềm hoạt động được, vừa là tài liệu tham chiếu cho các "
         "công trình nghiên cứu kế tiếp về EdTech multi-tenant tại Việt Nam.")
