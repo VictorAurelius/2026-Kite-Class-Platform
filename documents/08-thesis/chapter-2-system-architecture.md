@@ -731,7 +731,7 @@ Hệ thống được cấu thành từ ba lớp dịch vụ. Lớp nền tảng
 
 Phần này trình bày schema chi tiết của 3 bảng cốt lõi đại diện cho miền đa tenant của Kite Platform. ERD tổng quan đã được giới thiệu tại §2.3.2; phần này bổ sung thông tin từng cột phục vụ phát triển và bảo trì. Schema được pull canonical từ chuỗi migration Flyway của hai cụm dịch vụ (cụm subscription quản lý control-plane và cụm core quản lý domain-plane).
 
-**Bảng `instances` (kitehub-subscription control-plane).** Bảng `instances` lưu metadata cấp tenant: mỗi dòng tương ứng với một trung tâm dạy thêm có dùng nền tảng. Bảng này thuộc service `kitehub-subscription` và là source-of-truth cho vòng đời tenant (TRIAL / ACTIVE / SUSPENDED / CANCELLED).
+Bảng `instances` (microservice `kitehub-subscription`, control-plane) lưu metadata cấp tenant: mỗi dòng tương ứng với một trung tâm dạy thêm có dùng nền tảng. Bảng này là source-of-truth cho vòng đời tenant (TRIAL / ACTIVE / SUSPENDED / CANCELLED).
 
 **Bảng 2.8.** Schema chi tiết bảng `instances` (microservice `kitehub-subscription`).
 
@@ -755,7 +755,7 @@ Phần này trình bày schema chi tiết của 3 bảng cốt lõi đại diệ
 
 Các chỉ mục trên `subdomain`, `owner_id`, `status`, `tier`, và partial index `deleted=false` đảm bảo truy vấn dashboard quản trị (lọc theo gói + trạng thái) đạt P95 dưới 100ms ngay cả khi quy mô lên 200 tenant.
 
-**Bảng `classes` (kiteclass-core domain-plane).** Bảng `classes` đại diện cho lớp học cụ thể tại tenant (ví dụ `Lớp Anh ngữ 5A1` mở từ tháng 9/2025 đến tháng 5/2026). Bảng này thuộc service `kiteclass-core` và là entity domain trung tâm cho các tính năng điểm danh, chấm điểm, thanh toán học phí.
+Bảng `classes` (microservice `kiteclass-core`, domain-plane) đại diện cho lớp học cụ thể tại tenant (ví dụ `Lớp Anh ngữ 5A1` mở từ tháng 9/2025 đến tháng 5/2026). Bảng này là entity domain trung tâm cho các tính năng điểm danh, chấm điểm, thanh toán học phí.
 
 **Bảng 2.9.** Schema chi tiết bảng `classes` (microservice `kiteclass-core`).
 
@@ -778,7 +778,7 @@ Các chỉ mục trên `subdomain`, `owner_id`, `status`, `tier`, và partial in
 
 Bảng `classes` được bật RLS với chính sách `tenant_isolation_classes` (xem mẫu SQL tại §2.2.4) — mọi truy vấn không có ngữ cảnh `app.current_tenant_id` hợp lệ sẽ trả về 0 row, ngăn chặn rò rỉ chéo tenant ngay tại tầng cơ sở dữ liệu.
 
-**Bảng `students` (kiteclass-core domain-plane).** Bảng `students` lưu hồ sơ học sinh đã đăng ký tại tenant. Bảng này có volume lớn nhất trong các bảng domain (mục tiêu 50-500 học sinh/tenant ở giai đoạn thử nghiệm).
+Bảng `students` (microservice `kiteclass-core`, domain-plane) lưu hồ sơ học sinh đã đăng ký tại tenant. Bảng này có volume lớn nhất trong các bảng domain (mục tiêu 50-500 học sinh/tenant ở giai đoạn thử nghiệm).
 
 **Bảng 2.10.** Schema chi tiết bảng `students` (microservice `kiteclass-core`).
 
