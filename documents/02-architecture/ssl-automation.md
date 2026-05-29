@@ -13,6 +13,8 @@ status: living
 KiteHub hỗ trợ custom domain cho tenants (ví dụ: `lms.trungtamabc.vn`).
 Mỗi custom domain cần SSL certificate hợp lệ để truy cập qua HTTPS.
 
+> **Trạng thái implement (2026-05-29):** thiết kế dưới đây (Cloudflare for SaaS + CNAME DCV) là **target đúng** — khớp benchmark ngành. Nhưng **CODE chưa hoàn thiện**: `DomainService.checkDnsTxtRecord()` trả `false` cứng (stub) + chưa có SSL provisioning wiring + `mockMode=true` mặc định → custom domain kẹt `PENDING_VERIFY`. Hoàn thiện theo doc này: [GAP-812](../04-quality/gaps/phase-1-beta/GAP-812-custom-domain-dns-ssl-completion.md). Chuỗi end-to-end: [`tenant-domain-landing-architecture.md`](tenant-domain-landing-architecture.md).
+
 ## Recommended: Cloudflare for SaaS
 
 ### Tại sao chọn Cloudflare for SaaS

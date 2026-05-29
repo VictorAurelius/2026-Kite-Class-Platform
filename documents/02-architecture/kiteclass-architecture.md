@@ -31,6 +31,8 @@ KiteClass là sản phẩm thứ hai trong Kite Platform — đối tác của K
 
 Tenant truy cập platform qua subdomain `{tenant}.kiteclass.com`. Shared `kite-gateway` (per [ADR-023](./adr/ADR-023-gateway-key-resolver-strategy.md)) resolve subdomain → tenant ID → forward request với header `X-Tenant-Id` tới `kiteclass-core`.
 
+> **Chuỗi domain → landing end-to-end:** xem [`tenant-domain-landing-architecture.md`](tenant-domain-landing-architecture.md). Hai lưu ý implement hiện tại: (1) phần API (`/api/**`) resolve qua gateway như mô tả; nhưng **FE landing public hiện chạy 1-tenant-per-deploy** (`NEXT_PUBLIC_TENANT_ID`) — middleware host→tenant runtime chưa wire ([GAP-811](../04-quality/gaps/phase-1-beta/GAP-811-fe-middleware-host-tenant-resolution.md)). (2) Gateway chưa strip `X-Tenant-Id` client gửi → rủi ro cross-tenant IDOR trên route non-TenantResolver ([GAP-814](../04-quality/gaps/phase-1-beta/GAP-814-tenant-header-spoofing-gateway-strip.md), P0).
+
 ### 1.1 High-level architecture
 
 ```mermaid

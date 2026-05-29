@@ -11,6 +11,8 @@ status: living
 **Ngày tạo:** 2026-03-23
 **Domain chính:** kitehub.vn (SaaS platform), kiteclass.com (tenant instances)
 
+> **Cross-ref:** SSL/verify flow canonical ở [`ssl-automation.md`](ssl-automation.md) (Cloudflare for SaaS + CNAME DCV). Chuỗi domain → gateway resolve → landing render end-to-end + trạng thái implement vs gap: [`tenant-domain-landing-architecture.md`](tenant-domain-landing-architecture.md). Custom domain DNS verify + SSL hiện chưa hoàn thiện code ([GAP-812](../04-quality/gaps/phase-1-beta/GAP-812-custom-domain-dns-ssl-completion.md)).
+
 ---
 
 ## 1. Domain Architecture

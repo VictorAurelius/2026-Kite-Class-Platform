@@ -31,8 +31,9 @@ Tài liệu technical architecture — system design, tương tác component, da
 | 5 | **Compliance × Code Map + SLO Registry + NFR + Risk Register** | [`compliance-control-map.md`](compliance-control-map.md) | 19 row compliance (PDPL Art 7 + Luật ANM + ISO27001); SLO registry 11 service + 5 composite SLO platform-wide; 35+ row NFR; Risk Register 5 row |
 | 6 | **Why-decision — ADR index** | [`adr/README.md`](adr/README.md) | 31 ADR (MADR format): K12 data model, role hierarchy, instance lifecycle, AWS Singapore Free Tier, FE self-host EC2, kiteclass-gateway removal |
 | 7 | **Threat model per domain** | [`threat-models/`](threat-models/) | Threat model per-domain — phân tích STRIDE cho auth, payment, AI branding, tenant isolation |
+| 8 | **Tenant → Domain → Landing end-to-end** | [`tenant-domain-landing-architecture.md`](tenant-domain-landing-architecture.md) | Chuỗi domain → gateway resolve (subdomain + custom domain) → core RLS → FE render landing; trạng thái implement vs gap (GAP-811/812/813/814); ops note Redis cache + 1-tenant-per-deploy |
 
-**Tổng thời gian đọc:** ~60-90 phút (tuỳ persona — xem Per-Persona Reading List bên dưới). Sau khi đọc xong 7 bước, bạn có thể trace 1 user request end-to-end qua mọi tầng architecture.
+**Tổng thời gian đọc:** ~60-90 phút (tuỳ persona — xem Per-Persona Reading List bên dưới). Sau khi đọc xong 8 bước, bạn có thể trace 1 user request end-to-end qua mọi tầng architecture.
 
 ---
 
