@@ -1769,10 +1769,10 @@ def add_introduction(doc):
 
     add_section_title(doc, "6. Cấu trúc đồ án")
     add_paragraph_text(doc, "Đồ án gồm bốn chương nội dung chính:")
-    add_bullet_list_item(doc, "Chương 1 — Tổng quan: phân tích đối tượng tham khảo trên thị trường, kỹ thuật AI tích hợp, và khung pháp lý Việt Nam tác động đến nền tảng.")
-    add_bullet_list_item(doc, "Chương 2 — Kiến trúc hệ thống: yêu cầu chức năng + phi chức năng, mô hình hóa C4 + Use Case + Class + ERD, thiết kế cơ sở dữ liệu, multi-tenant single-bucket, defense-in-depth 5 lớp.")
-    add_bullet_list_item(doc, "Chương 3 — Triển khai: kết quả triển khai giao diện sản phẩm và bộ kiểm thử ba lớp (unit / integration / E2E) với các sample test case cụ thể.")
-    add_bullet_list_item(doc, "Chương 4 — Kết quả triển khai: cloud AWS giai đoạn thử nghiệm tenant, user onboarding flow, KPI metrics, scope thử nghiệm.")
+    add_bullet_list_item(doc, "Chương 1 — Tổng quan về bài toán: phân tích hiện trạng thị trường, khảo sát các hệ thống tham khảo, kỹ thuật AI tích hợp và khung pháp lý Việt Nam tác động đến nền tảng.")
+    add_bullet_list_item(doc, "Chương 2 — Phân tích và thiết kế hệ thống: yêu cầu chức năng và phi chức năng, mô hình hóa C4 Context + Container, sơ đồ use case, kiến trúc đa tenant single-bucket với defense-in-depth năm lớp.")
+    add_bullet_list_item(doc, "Chương 3 — Phân tích, thiết kế và triển khai hệ thống: triển khai giao diện sản phẩm, đoạn mã đại diện cho các luồng nghiệp vụ then chốt, bộ kiểm thử ba lớp (unit / integration / E2E) với các trường hợp kiểm thử mẫu cụ thể.")
+    add_bullet_list_item(doc, "Chương 4 — Đánh giá kết quả và Kết luận: triển khai cloud AWS giai đoạn thử nghiệm tenant, luồng onboarding người dùng, các KPI đo lường, phạm vi thử nghiệm và đề xuất hướng phát triển tiếp theo.")
 
 
 # ============== CHAPTER LOADER (MD parser) ==============

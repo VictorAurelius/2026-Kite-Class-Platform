@@ -7,7 +7,7 @@ created: 2026-05-19
 updated: 2026-05-20
 ---
 
-# Chương 3 — Triển khai (Implementation)
+# CHƯƠNG 3. PHÂN TÍCH, THIẾT KẾ VÀ TRIỂN KHAI HỆ THỐNG
 
 ## 3.1 Công nghệ sử dụng
 

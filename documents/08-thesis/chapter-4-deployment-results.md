@@ -7,7 +7,7 @@ created: 2026-05-19
 updated: 2026-05-19
 ---
 
-# Chương 4 — Triển khai Cloud, Kết quả tương tác end-user, KPI và Beta Scope
+# CHƯƠNG 4. ĐÁNH GIÁ KẾT QUẢ VÀ KẾT LUẬN
 
 ## 4.1 Cloud Deployment AWS
 

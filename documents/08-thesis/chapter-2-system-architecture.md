@@ -6,7 +6,7 @@ created: 2026-05-19
 last-reviewed: 2026-05-20
 ---
 
-# CHƯƠNG 2. PHÂN TÍCH THIẾT KẾ HỆ THỐNG
+# CHƯƠNG 2. PHÂN TÍCH VÀ THIẾT KẾ HỆ THỐNG
 
 ## 2.1 Phân tích yêu cầu hệ thống
 
