@@ -1608,6 +1608,7 @@ def add_abbreviations(doc):
         ("IEEE", "Institute of Electrical and Electronics Engineers"),
         ("ISO", "International Organization for Standardization"),
         ("JWT", "JSON Web Token"),
+        ("K-12", "Kindergarten to Grade 12 — bậc giáo dục phổ thông từ mẫu giáo đến lớp 12"),
         ("KMS", "Key Management Service — dịch vụ quản lý khóa mã hóa"),
         ("KPI", "Key Performance Indicator — chỉ số hiệu suất chính"),
         ("LMS", "Learning Management System — hệ quản lý học tập"),
@@ -1682,8 +1683,9 @@ def add_introduction(doc):
     add_paragraph_text(doc,
         "Về đối tượng, đồ án phục vụ ba persona chính: Solo Teacher (giáo viên độc lập, 1-50 học "
         "viên), Center Owner (chủ sở hữu trung tâm, 1-10 chi nhánh, 100-2.000 học viên), và Center "
-        "Manager (quản lý vận hành trung tâm). Persona K-12 Parent + Student được hoãn sang giai "
-        "đoạn mở rộng K-12 do yêu cầu bổ sung DPO + DPIA theo Điều 26 Luật Bảo vệ Dữ liệu Cá "
+        "Manager (quản lý vận hành trung tâm). Persona Parent và Student thuộc phân khúc K-12 "
+        "(Kindergarten to Grade 12 — bậc giáo dục phổ thông từ mẫu giáo đến lớp 12) được hoãn "
+        "sang giai đoạn mở rộng K-12 do yêu cầu bổ sung DPO + DPIA theo Điều 26 Luật Bảo vệ Dữ liệu Cá "
         "nhân 2023. Kiến trúc hệ thống cấu thành từ ba lớp dịch vụ. Lớp nền tảng KiteHub gồm "
         "sáu dịch vụ độc lập đảm nhận các trách nhiệm khác nhau: quản trị (kitehub-admin), "
         "nhận diện thương hiệu (kitehub-branding), thư điện tử (kitehub-email), điều phối yêu "
