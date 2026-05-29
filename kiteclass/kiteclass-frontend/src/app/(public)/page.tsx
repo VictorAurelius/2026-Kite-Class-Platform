@@ -63,7 +63,10 @@ export default async function LandingPage({
 }) {
   const params = await searchParams;
   const landingData = await getLandingPageData(params.tenant);
-  const template = getTemplate(params.template);
+  // Template type bound per-tenant (landing_pages.template_type): GV độc lập → 'personal'.
+  // Query param ?template= override cho preview; cuối cùng fallback default (organization).
+  const tenantTemplateType = (landingData as Record<string, unknown>).templateType as string | undefined;
+  const template = getTemplate(params.template ?? tenantTemplateType);
 
   // Override colors from query params (for testing themes)
   if (params.primary) landingData.primaryColor = `#${params.primary}`;

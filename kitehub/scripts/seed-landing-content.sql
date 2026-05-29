@@ -59,3 +59,7 @@ WHERE instance_id = '0abe093c-4c66-4c99-abab-a756582dc60b';
 UPDATE landing_pages SET hero_image_url='/demo-banners/co-khanh-phapluat.png' WHERE instance_id='126eaa8c-1f63-4c30-81b5-a5921b384b3b';
 UPDATE landing_pages SET hero_image_url='/demo-banners/co-ha-toan.png'        WHERE instance_id='ad0fa96e-af24-49cb-b3e5-19d44f182d85';
 UPDATE landing_pages SET hero_image_url='/demo-banners/thay-nhi-hoa.png'      WHERE instance_id='0abe093c-4c66-4c99-abab-a756582dc60b';
+
+-- Template type: 3 GV độc lập → personal (7 section phù hợp cá nhân, không "đội ngũ GV"/gallery/tuyển sinh).
+UPDATE landing_pages SET template_type='personal' WHERE instance_id IN (
+  '126eaa8c-1f63-4c30-81b5-a5921b384b3b','ad0fa96e-af24-49cb-b3e5-19d44f182d85','0abe093c-4c66-4c99-abab-a756582dc60b');

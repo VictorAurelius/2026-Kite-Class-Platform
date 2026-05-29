@@ -42,6 +42,7 @@ public class LandingPageResponse {
     // Data-driven landing sections (wave-thesis-4) — all nullable; FE falls back
     // to defaults when null. Shapes documented on the LandingPage entity fields.
     private String aboutText;
+    private String templateType;
     private JsonNode teachers;
     private JsonNode programs;
     private JsonNode pricingTiers;

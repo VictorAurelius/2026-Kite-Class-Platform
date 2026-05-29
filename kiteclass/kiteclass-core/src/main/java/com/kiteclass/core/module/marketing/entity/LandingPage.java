@@ -100,6 +100,10 @@ public class LandingPage extends BaseEntity {
     @Column(name = "about_text", columnDefinition = "TEXT")
     private String aboutText;
 
+    /** Landing template type: "personal" (GV độc lập) | "organization" (trung tâm). */
+    @Column(name = "template_type", length = 20)
+    private String templateType;
+
     /** Teacher cards: [{"name","subject","credentials":["..."]}]. */
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "teachers", columnDefinition = "jsonb")
