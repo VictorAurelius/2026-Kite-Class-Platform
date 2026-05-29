@@ -137,7 +137,7 @@ Toàn bộ hạ tầng đặt trong một VPC riêng (CIDR `10.0.0.0/16`) với 
 CI/CD được triển khai qua GitHub Actions với pattern OIDC + workflow_dispatch + confirm-input, tham chiếu nguyên tắc Continuous Delivery hiện đại [37, tr.115] — kết hợp build artifact bất biến (Docker image tag theo SHA commit) và deployment gate có cognitive checkpoint (workflow input `confirm=APPLY`) thay cho cơ chế auto-deploy.
 
 ```mermaid
-%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 70, "width": 200, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "34px", "messageFontSize": "32px", "noteFontSize": "32px"}}}%%
+%%{init: {"sequence": {"diagramMarginX": 30, "diagramMarginY": 20, "actorMargin": 55, "width": 180, "height": 65, "boxMargin": 14, "boxTextMargin": 8, "noteMargin": 12, "messageMargin": 40, "mirrorActors": false, "wrap": true}, "themeVariables": {"fontSize": "36px", "messageFontSize": "34px", "noteFontSize": "34px"}}}%%
 sequenceDiagram
     participant Dev as Developer
     participant GH as GitHub Actions
@@ -145,9 +145,9 @@ sequenceDiagram
     participant ECR as ECR
 
     Dev->>GH: git push + create PR
-    GH->>GH: CI mvn verify<br/>+ tests + lint
+    GH->>GH: CI mvn verify + tests + lint
     Dev->>GH: gh pr merge --squash
-    GH->>OIDC: assume-role-with<br/>-web-identity
+    GH->>OIDC: assume-role-with-web-identity
     OIDC-->>GH: ephemeral creds 1h
     GH->>ECR: docker push image:sha
 ```
@@ -155,17 +155,17 @@ sequenceDiagram
 **Hình 4.2a.** Pha build — CI verify, OIDC role assume, Docker image push tới ECR.
 
 ```mermaid
-%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 70, "width": 200, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "34px", "messageFontSize": "32px", "noteFontSize": "32px"}}}%%
+%%{init: {"sequence": {"diagramMarginX": 30, "diagramMarginY": 20, "actorMargin": 55, "width": 180, "height": 65, "boxMargin": 14, "boxTextMargin": 8, "noteMargin": 12, "messageMargin": 40, "mirrorActors": false, "wrap": true}, "themeVariables": {"fontSize": "36px", "messageFontSize": "34px", "noteFontSize": "34px"}}}%%
 sequenceDiagram
     participant Dev as Developer
     participant GH as GitHub Actions
     participant SSM as AWS SSM
     participant EC2 as EC2
 
-    Dev->>GH: gh workflow run deploy<br/>confirm=APPLY
+    Dev->>GH: gh workflow run deploy confirm=APPLY
     GH->>SSM: SendCommand
     SSM->>EC2: docker pull + restart
-    EC2->>EC2: health check<br/>+ smoke test
+    EC2->>EC2: health check + smoke test
     EC2-->>GH: OK + smoke pass
     GH-->>Dev: Deploy success
 ```
