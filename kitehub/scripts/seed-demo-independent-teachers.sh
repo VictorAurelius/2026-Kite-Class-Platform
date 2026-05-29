@@ -97,8 +97,12 @@ seed_tenant() {
     TID=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',d).get('id',''))" 2>/dev/null)
     echo -e "  ${GREEN}✓${NC} giảng viên id=$TID"
   else
-    echo -e "  ${RED}✗${NC} giảng viên HTTP $CODE: $(echo "$BODY" | head -c 120)"
-    TID=1
+    # Idempotent: 409 đã tồn tại → fetch id theo email
+    local TEMAIL; TEMAIL=$(echo "$TEACHER_JSON" | python3 -c "import sys,json;print(json.load(sys.stdin)['email'])" 2>/dev/null)
+    TID=$(curl -s "${H_TENANT[@]}" "$GATEWAY/api/v1/teachers?page=0&size=100" \
+      | python3 -c "import sys,json;d=json.load(sys.stdin);c=d.get('data',{});c=c.get('content',c) if isinstance(c,dict) else c;print(next((str(t['id']) for t in c if t.get('email')=='$TEMAIL'),''))" 2>/dev/null)
+    [ -z "$TID" ] && TID=1
+    echo -e "  ${YELLOW}⚠${NC} giảng viên đã tồn tại (HTTP $CODE) → dùng id=$TID"
   fi
 
   # 3. Course (1 — môn của GV)
@@ -112,8 +116,10 @@ seed_tenant() {
     CID=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',d).get('id',''))" 2>/dev/null)
     echo -e "  ${GREEN}✓${NC} khóa $code id=$CID"
   else
-    echo -e "  ${RED}✗${NC} khóa $code HTTP $CODE: $(echo "$BODY" | head -c 120)"
-    return 1
+    # Idempotent: 409 đã tồn tại → fetch id theo code (KHÔNG return — students vẫn cần seed)
+    CID=$(curl -s "${H_TENANT[@]}" "$GATEWAY/api/v1/courses?page=0&size=100" \
+      | python3 -c "import sys,json;d=json.load(sys.stdin);c=d.get('data',{});c=c.get('content',c) if isinstance(c,dict) else c;print(next((str(x['id']) for x in c if x.get('code')=='$code'),''))" 2>/dev/null)
+    echo -e "  ${YELLOW}⚠${NC} khóa $code đã tồn tại (HTTP $CODE) → dùng id=$CID"
   fi
 
   # 4. Students (NUM_STUDENTS — tên VN, deterministic)
