@@ -11,33 +11,15 @@ status: draft
 
 ## 1.1 Hiện trạng
 
-Đề tài tốt nghiệp được trình bày trong tài liệu này có tên đầy đủ là *Xây dựng hệ thống SaaS cung cấp dịch vụ đào tạo*, gọi tắt là nền tảng KiteHub. Đề tài hướng đến xây dựng một nền tảng phần mềm dạng dịch vụ (Software-as-a-Service) phục vụ các trung tâm giáo dục tư nhân quy mô nhỏ và vừa tại Việt Nam, với hai mục tiêu cốt lõi: (i) cung cấp một sản phẩm sẵn sàng vận hành cho các trung tâm trong giai đoạn thử nghiệm nội bộ, và (ii) chứng minh khả năng áp dụng đồng thời ba khối kỹ thuật then chốt của ngành Công nghệ phần mềm hiện đại — kiến trúc multi-tenant cô lập dữ liệu ở mức database, tích hợp dịch vụ AI sinh tài nguyên tự động, và tuân thủ pháp luật Việt Nam tích hợp từ thiết kế ban đầu.
+Phần này khảo sát hiện trạng thị trường phần mềm quản lý trung tâm giáo dục tại Việt Nam, bao gồm bối cảnh và quy mô thị trường, các sản phẩm tương tự đang vận hành, nhu cầu thực tế từ các nhóm người dùng cuối, và bảng so sánh tổng hợp — làm cơ sở xác định khoảng trống mà đề tài hướng đến.
 
-Đối tượng nghiên cứu của đề tài là một nền tảng SaaS đa-tenant phục vụ các trung tâm giáo dục tư nhân tại Việt Nam, trong đó mỗi tenant tương ứng với một trung tâm (hoặc một chuỗi chi nhánh thuộc cùng pháp nhân). Nền tảng định vị phục vụ ba nhóm tenant chính trong giai đoạn đầu: giáo viên độc lập (Solo Teacher, 1-50 học viên), chủ trung tâm (Center Owner, 1-10 chi nhánh, 100-2000 học viên) và quản lý trung tâm (Center Manager). Nhóm phụ huynh và học viên được hỗ trợ qua các giao diện riêng nhưng chưa nằm trong phạm vi triển khai chính của giai đoạn thử nghiệm.
-
-Phạm vi nghiên cứu của đề tài tập trung vào giai đoạn thử nghiệm tenant readiness — bao gồm bốn nhóm chức năng cốt lõi: (i) onboarding wizard tự phục vụ cho phép một trung tâm mới đăng ký và đưa vào vận hành trong 1-2 ngày thay vì 1-2 tuần; (ii) tính năng AI Branding tự sinh logo, hero image và social banner từ thông tin tenant; (iii) tenant lifecycle management bao gồm trial, kích hoạt, gia hạn và terminate; (iv) tuân thủ Luật Bảo vệ Dữ liệu Cá nhân (PDPL 2023), Luật An ninh mạng 2018 và quy định hóa đơn điện tử theo Thông tư 78/2021/TT-BTC. Các nhóm chức năng nâng cao như thanh toán tích hợp đa cổng, hóa đơn điện tử end-to-end, ứng dụng di động native, và mở rộng sang phân khúc K-12 trường công lập được đề cập trong lộ trình nhưng không nằm trong phạm vi triển khai của đề tài.
-
-Bối cảnh chuyên ngành của đề tài thuộc lĩnh vực Công nghệ phần mềm với trọng tâm vào kiến trúc microservice cloud-native, multi-tenant SaaS, ứng dụng AI sinh nội dung trong sản phẩm thương mại, và tuân thủ pháp luật về dữ liệu cá nhân. Bốn yếu tố này hội tụ tạo nên một đề tài có giá trị thực tiễn — phục vụ trực tiếp khoảng 50.000 trung tâm giáo dục tư nhân Việt Nam — đồng thời mang tính học thuật khi đặt ra các quyết định kỹ thuật cần đánh đổi giữa chi phí hạ tầng, tốc độ phát triển, chất lượng đầu ra và yêu cầu pháp lý.
-
-Lý do chọn đề tài xuất phát từ ba quan sát thực tế thị trường. Thứ nhất, phân khúc trung tâm giáo dục tư nhân Việt Nam đang tăng trưởng mạnh sau Thông tư 29/2024/TT-BGDĐT [1] công nhận hợp pháp hoạt động dạy thêm có thu phí, nhưng phần lớn vẫn dùng Excel kết hợp Zalo nhóm để quản lý vì các phần mềm hiện có hoặc quá phức tạp, hoặc chi phí cao, hoặc thiếu UX tiếng Việt thân thiện. Thứ hai, Luật Bảo vệ Dữ liệu Cá nhân năm 2023 [9] sẽ có hiệu lực từ tháng 7 năm 2026, đặt ra deadline pháp lý cứng cho các đơn vị xử lý dữ liệu cá nhân — đây là cơ hội đưa ra sản phẩm có compliance tích hợp từ thiết kế thay vì retrofit về sau. Thứ ba, các tiến bộ về mô hình AI sinh ảnh giai đoạn 2023-2025 (Stable Diffusion XL, DALL-E 3) lần đầu cho phép tự động hóa các tác vụ branding với chi phí hợp lý, mở ra cơ hội tích hợp AI vào sản phẩm phần mềm thương mại tier thấp.
-
-Mục tiêu cụ thể của đề tài bao gồm bốn nhóm. Mục tiêu chức năng yêu cầu xây dựng một nền tảng SaaS đa-tenant hoàn chỉnh với onboarding wizard, AI Branding, quản lý lifecycle tenant và compliance built-in. Mục tiêu phi chức năng yêu cầu đáp ứng các tiêu chí về hiệu năng (p95 ≤ 500 ms cho API trung bình), bảo mật (Row-Level Security tại tầng database, OWASP Top 10 baseline), khả năng mở rộng (multi-tenant cô lập schema-level, hỗ trợ tối thiểu 100 tenant trên 1 instance) và quan sát được (logs tập trung, metrics dashboard, alert real-time). Mục tiêu pháp lý yêu cầu nền tảng tuân thủ ba văn bản pháp luật then chốt PDPL 2023, Luật An ninh mạng 2018, và Thông tư 78/2021/TT-BTC. Mục tiêu phương pháp luận yêu cầu áp dụng các nguyên tắc Quality-Driven Development phù hợp với quy mô đề tài và deadline pháp lý cứng PDPL 2023.
-
-Phương pháp triển khai đề tài kết hợp ba cách tiếp cận. Tiếp cận theo iteration ngắn được áp dụng cho phát triển chức năng, mỗi iteration kéo dài 1-3 ngày bao gồm các bước design, implementation, testing, review và merge. Tiếp cận test-first được áp dụng cho mọi tính năng mới — unit test và integration test viết trước hoặc song song với implementation. Tiếp cận quality-driven meta-governance được áp dụng cho process: mọi sai lệch phát hiện đều chuyển hóa thành rule có enforcement tự động, mọi audit finding đều được track qua gap file kèm acceptance criteria — chi tiết các trụ cột này được trình bày trong Chương 1 mục 1.6.
-
-Các tham khảo chính của đề tài bao gồm: các văn bản pháp luật Việt Nam (PDPL 2023 [9], Luật An ninh mạng 2018 [10], Nghị định 13/2023/NĐ-CP [18], Nghị định 53/2022/NĐ-CP [11], Thông tư 78/2021/TT-BTC [20], Thông tư 29/2024/TT-BGDĐT [1]); các báo cáo thị trường edu Việt Nam (Magenest 2024 [2], 6Wresearch [3], VECITA Kinh tế Số 2024 [4]); các nghiên cứu nền tảng về AI sinh ảnh (Stable Diffusion XL [13], GPT-3 few-shot [12], LLaVA visual instruction [14]); các phương pháp luận phần mềm cổ điển (Deming PDCA [21], Beck TDD [16], Poppendieck Lean [22], IEEE 730-2014 SQA [23], OWASP Top 10 [19]); và tài liệu kỹ thuật của các sản phẩm tham khảo (MISA AMIS [5], Mona eLMS [6], Easy Edu [7], DotB [8]).
-
-## 1.2 Bài toán
-
-### 1.2.1 Bối cảnh thị trường giáo dục SaaS Việt Nam
+### 1.1.1 Bối cảnh thị trường giáo dục SaaS Việt Nam
 
 Thị trường phần mềm quản lý trung tâm giáo dục Việt Nam tăng trưởng mạnh giai đoạn 2020-2025, được thúc đẩy bởi ba yếu tố chính. Thứ nhất, ngành dạy thêm (trung tâm ngoại ngữ, tin học, năng khiếu) bùng nổ sau Thông tư 29/2024/TT-BGDĐT chính thức hóa hoạt động dạy thêm có thu phí [1], ước tính hơn 50.000 trung tâm hoạt động trên toàn quốc theo báo cáo công khai của Magenest 2024 [2] (truy cập ngày 20/05/2026). Thứ hai, phụ huynh Việt Nam có thói quen đầu tư mạnh cho giáo dục con cái, với mức chi trung bình 15-20% thu nhập hộ gia đình cho học thêm con theo công bố trên website của 6Wresearch [3] (truy cập ngày 20/05/2026) — chỉ số này phù hợp với báo cáo Kinh tế Số Việt Nam 2024 của VECITA về tăng trưởng chi tiêu EdTech trong cấu phần kinh tế số [4] (truy cập ngày 20/05/2026). Thứ ba, sau đại dịch COVID-19, các trung tâm buộc phải số hóa quy trình quản lý (điểm danh, học phí, lịch học, kênh liên lạc với phụ huynh) để duy trì hoạt động khi liên tục chuyển đổi giữa chế độ trực tuyến và trực tiếp.
 
 Tuy nhiên, đa số trung tâm nhỏ và vừa (1-3 chi nhánh, dưới 500 học viên) vẫn dùng Excel kết hợp Zalo nhóm, thậm chí sổ ghi tay để quản lý. Lý do chính: phần mềm hiện có hoặc quá phức tạp (Cyber School, MISA EMIS hướng đến trường công lập K-12), hoặc thiếu UX tiếng Việt (LMS quốc tế như Moodle, Canvas), hoặc chi phí cao không phù hợp với phân khúc trung tâm tự phát (Speed Manager, EduCom với mức 50-100 USD/tháng/cơ sở).
 
-Khoảng trống thị trường mà đề tài hướng đến là *trung tâm nhỏ và vừa (1-10 chi nhánh, 100-2000 học viên/cơ sở)* với mức giá 500.000-1.500.000đ/tháng, giao diện tiếng Việt, kiến trúc multi-tenant gốc cho phép mở rộng nhanh khi thành lập chi nhánh mới, và khả năng tự sinh tài nguyên branding bằng AI thay vì phải thuê thiết kế viên.
-
-### 1.2.2 BeeClass — phần mềm quản lý trung tâm tiếng Anh phổ biến
+### 1.1.2 BeeClass — phần mềm quản lý trung tâm tiếng Anh phổ biến
 
 *BeeClass* [25] là sản phẩm phần mềm quản lý trung tâm ngoại ngữ phổ biến tại thị trường Việt Nam, được vận hành bởi nhóm phát triển trong nước, định vị phục vụ các trung tâm tiếng Anh quy mô vừa. Sản phẩm cung cấp các module quản lý học viên, lớp học, điểm danh, học phí, gửi thông báo cho phụ huynh qua Zalo và email, kèm dashboard tổng quan doanh thu cho chủ trung tâm. Theo thông tin công bố trên website chính thức [25] (truy cập ngày 20/05/2026), BeeClass có hàng trăm trung tâm khách hàng tại nhiều tỉnh thành.
 
@@ -48,7 +30,7 @@ Khoảng trống thị trường mà đề tài hướng đến là *trung tâm 
 
 Thế mạnh chính của BeeClass là giao diện tiếng Việt thân thiện và hỗ trợ workflow đặc thù của trung tâm tiếng Anh (lịch lớp định kỳ theo tuần, đăng ký lớp thử miễn phí, theo dõi tiến độ học viên theo từng kỹ năng nghe-nói-đọc-viết). Mức giá tham khảo công bố nằm trong khoảng 1-3 triệu đồng/tháng tùy gói và số lượng học viên. Điểm yếu chính của BeeClass tương tự các sản phẩm trong phân khúc: kiến trúc single-tenant theo từng trung tâm (mỗi khách hàng có instance database riêng, khó mở rộng khi trung tâm mở chi nhánh thứ 5 trở lên); chưa có tính năng AI sinh tài nguyên branding; onboarding yêu cầu liên hệ bộ phận kinh doanh chứ chưa hoàn toàn tự phục vụ; mức giá tuy phải chăng hơn các sản phẩm enterprise nhưng vẫn cao hơn mức 500.000đ/tháng mà phân khúc trung tâm tự phát nhỏ kỳ vọng.
 
-### 1.2.3 MISA AMIS Trường Học — sản phẩm B2B trường công lập
+### 1.1.3 MISA AMIS Trường Học — sản phẩm B2B trường công lập
 
 *MISA AMIS Trường Học* [5] là sản phẩm giáo dục của công ty phần mềm MISA — một trong những công ty phần mềm Việt Nam lâu đời nhất với hơn 25 năm hoạt động trong lĩnh vực kế toán và thuế. Theo số liệu công bố trên website chính thức [5] (truy cập ngày 20/05/2026), sản phẩm MISA EMIS đã triển khai tại hơn 30.000 trường tiểu học và trung học cơ sở công lập toàn quốc, phục vụ hơn 12 triệu học sinh.
 
@@ -59,7 +41,7 @@ Thế mạnh chính của BeeClass là giao diện tiếng Việt thân thiện 
 
 Thế mạnh chính của MISA AMIS Trường Học là tích hợp sâu với MISA MeInvoice (hóa đơn điện tử theo Thông tư 78/2021/TT-BTC) và mạng lưới phân phối qua hệ thống đại lý tại 63 tỉnh thành. Điểm yếu: định vị B2B trường công lập với chu kỳ bán hàng 3-6 tháng, phí thiết lập 50-200 triệu đồng và mức giá 2-5 triệu/tháng/trường, không phù hợp với trung tâm tự phát quy mô nhỏ cần triển khai nhanh.
 
-### 1.2.4 Mona eLMS — chuyên ngoại ngữ và tin học
+### 1.1.4 Mona eLMS — chuyên ngoại ngữ và tin học
 
 *Mona eLMS* [6] là sản phẩm của công ty Mona Software thành lập năm 2017, tập trung chuyên biệt vào phân khúc trung tâm ngoại ngữ và tin học. Theo công bố trên website chính thức [6] (truy cập ngày 20/05/2026), Mona eLMS có khoảng 800 khách hàng trung tâm tại Việt Nam tính đến năm 2024.
 
@@ -70,7 +52,7 @@ Thế mạnh chính của MISA AMIS Trường Học là tích hợp sâu với M
 
 Thế mạnh nổi bật của Mona là ứng dụng di động native iOS và Android cho học viên và phụ huynh, tích hợp Zalo Notification Service (ZNS) cho thông báo điểm danh, kết quả thi và lịch học — điểm chạm rất quan trọng với phụ huynh Việt Nam khi Zalo chiếm hơn 90% thị phần ứng dụng nhắn tin smartphone. Điểm yếu: hệ sinh thái đóng (không có API công khai), single-tenant theo từng trung tâm, mức giá 1,5-5 triệu đồng/tháng tùy số học viên với cơ chế báo giá tùy chỉnh không minh bạch.
 
-### 1.2.5 Easy Edu — phân khúc trung tâm ngoại ngữ vừa và nhỏ
+### 1.1.5 Easy Edu — phân khúc trung tâm ngoại ngữ vừa và nhỏ
 
 *Easy Edu* [7] là hệ thống lớn nhất trên thị trường trong phân khúc trung tâm ngoại ngữ vừa và nhỏ với hơn 1.400 trung tâm khách hàng theo công bố trên website chính thức [7] (truy cập ngày 20/05/2026). Sản phẩm ra mắt năm 2018, có hệ thống phân phối mạnh tại miền Bắc và miền Trung thông qua các sự kiện ngành giáo dục và hợp tác với hiệp hội trung tâm ngoại ngữ.
 
@@ -81,7 +63,7 @@ Thế mạnh nổi bật của Mona là ứng dụng di động native iOS và A
 
 Tập tính năng đầy đủ gồm quản lý học viên, lớp học, học phí, điểm danh, báo cáo, tích hợp Zalo OA, ứng dụng di động cho phụ huynh, với mức giá phải chăng từ 800.000 đồng/tháng cho gói cơ bản phục vụ 200 học viên. Điểm yếu chính: kiến trúc single-tenant theo từng trung tâm (khó mở rộng nhượng quyền), không có khả năng tự sinh tài nguyên branding bằng AI, onboarding yêu cầu liên hệ bộ phận kinh doanh chứ chưa tự phục vụ.
 
-### 1.2.6 DotB — phân khúc tầm trung và trường tư thục
+### 1.1.6 DotB — phân khúc tầm trung và trường tư thục
 
 *DotB* [8] là sản phẩm phần mềm quản lý giáo dục đa năng của công ty DotB Vietnam ra mắt năm 2019, hướng đến phân khúc trung tâm tầm trung và trường tư thục với giá trị thương vụ trung bình 3-8 triệu đồng/tháng theo bảng giá công bố trên website chính thức [8] (truy cập ngày 20/05/2026).
 
@@ -92,7 +74,7 @@ Tập tính năng đầy đủ gồm quản lý học viên, lớp học, học 
 
 Thế mạnh đặc thù của DotB là module CRM tích hợp phục vụ quản lý khách hàng tiềm năng (theo dõi học viên triển vọng từ biểu mẫu hỏi thông tin, qua lớp học thử, đến đăng ký chính thức) và tích hợp sẵn ba cổng thanh toán VNPay, MoMo, ZaloPay — giải quyết điểm đau của khoảng 80% trung tâm vẫn dùng chuyển khoản ngân hàng kèm đối soát thủ công. Điểm yếu: mức giá cao gấp 3-5 lần Easy Edu, định vị tầm trung không phục vụ phân khúc trung tâm tự phát quy mô nhỏ — không cạnh tranh trực tiếp với khoảng trống thị trường mà đề tài hướng đến.
 
-### 1.2.7 Khảo sát nhu cầu sử dụng từ phía người dùng cuối
+### 1.1.7 Khảo sát nhu cầu sử dụng từ phía người dùng cuối
 
 Bên cạnh khảo sát các hệ thống đang có trên thị trường, đề tài tổng hợp nhu cầu sử dụng từ năm nhóm người dùng cuối (end-user) dựa trên các báo cáo ngành công khai. Phân tích này giúp xác định những tính năng cốt lõi cần ưu tiên trong giai đoạn đầu của hệ thống đề xuất.
 
@@ -108,7 +90,7 @@ Bên cạnh khảo sát các hệ thống đang có trên thị trường, đề
 
 Tổng hợp năm nhóm end-user cho thấy nhu cầu chung là một nền tảng đa-persona (multi-persona) với phân quyền rõ ràng theo vai trò, giá thấp phù hợp phân khúc nhỏ và vừa, tích hợp Zalo cho kênh giao tiếp với phụ huynh — tất cả các tiêu chí này đều được xem xét trong định hướng kiến trúc hệ thống đề xuất.
 
-### 1.2.8 Bảng so sánh tổng hợp
+### 1.1.8 Bảng so sánh tổng hợp
 
 Bảng tổng hợp so sánh năm hệ thống tham khảo với hệ thống đề xuất trong đề tài theo các tiêu chí quan trọng:
 
@@ -126,7 +108,11 @@ Bảng tổng hợp so sánh năm hệ thống tham khảo với hệ thống đ
 | Hệ sinh thái OpenAPI / webhook | Hạn chế | Hạn chế | Không | Không | Có (hạn chế) | Có |
 | Khác biệt cốt lõi | UX trung tâm tiếng Anh | Tích hợp kế toán MISA | App di động + Zalo | Phân phối rộng | CRM + thanh toán | Multi-tenant + AI Branding |
 
-### 1.2.9 Định vị hệ thống đề xuất và yếu tố khác biệt
+## 1.2 Bài toán
+
+### 1.2.1 Khoảng trống thị trường và định vị hệ thống đề xuất
+
+Khoảng trống thị trường mà đề tài hướng đến là *trung tâm nhỏ và vừa (1-10 chi nhánh, 100-2000 học viên/cơ sở)* với mức giá 500.000-1.500.000đ/tháng, giao diện tiếng Việt, kiến trúc multi-tenant gốc cho phép mở rộng nhanh khi thành lập chi nhánh mới, và khả năng tự sinh tài nguyên branding bằng AI thay vì phải thuê thiết kế viên.
 
 Dựa trên phân tích năm hệ thống tham khảo, hệ thống đề xuất trong đề tài có bốn yếu tố khác biệt chính.
 
@@ -138,7 +124,7 @@ Dựa trên phân tích năm hệ thống tham khảo, hệ thống đề xuất
 
 *Thứ tư, UX Vietnamese-first:* hệ thống đề xuất áp dụng nhất quán bốn tiêu chí địa phương hóa cho mọi tài nguyên người dùng cuối — định dạng tiền tệ VND (`1.500.000đ` thay vì `$60.00`), nhãn tiếng Việt, dữ liệu mẫu phù hợp văn hóa Việt Nam, và nhận thức văn hóa địa phương. Cụ thể ngày tháng hiển thị dạng "Thứ Hai, 14/05/2026" thay vì "Mon May 14, 2026"; lời chào email "Em chào chị Hằng" trang trọng-kính trọng thay vì "Hi Hằng"; lịch học theo niên khóa tháng 9 đến tháng 5 và làm việc Thứ Hai đến Thứ Bảy phù hợp với quy ước giáo dục Việt Nam.
 
-### 1.2.10 Cơ hội và rủi ro chiến lược
+### 1.2.2 Cơ hội và rủi ro chiến lược
 
 *Cơ hội thị trường:* phân khúc trung tâm nhỏ (1-3 chi nhánh, 100-500 học viên) chiếm khoảng 60% thị trường nhưng đa số hệ thống hiện hữu nhắm vào phân khúc trung và lớn — mô hình product-led growth (PLG) có thể bắt đầu từ phân khúc này và mở rộng lên cao hơn khi sản phẩm trưởng thành. Thời hạn PDPL 2026-07-01 yêu cầu hơn 50.000 trung tâm phải tuân thủ trong khoảng bảy tuần (đến cuối tháng 6/2026), tạo lợi thế cạnh tranh tại thời điểm vàng cho hệ thống đề xuất với tuân thủ built-in. Bên cạnh đó, mô hình nhượng quyền (Apollo English, ILA, Wall Street English) đang phát triển — kiến trúc multi-tenant phù hợp với lộ trình mở rộng nhượng quyền tốt hơn so với kiến trúc single-tenant.
 
