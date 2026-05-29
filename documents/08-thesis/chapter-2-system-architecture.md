@@ -736,7 +736,7 @@ Bảng `instances` (microservice `kitehub-subscription`, control-plane) lưu met
 | 4 | `domain_verify_token` | VARCHAR(255) | Token DCV (Domain Control Validation) sinh khi tenant đăng ký tên miền riêng |
 | 5 | `domain_verified_at` | TIMESTAMP | Thời điểm xác minh tên miền thành công qua bản ghi CNAME/TXT |
 | 6 | `domain_status` | VARCHAR(50) | Trạng thái xác minh tên miền: `PENDING` / `VERIFIED` / `FAILED` |
-| 7 | `organization_name` | VARCHAR(200) | Tên hiển thị trung tâm (ví dụ `Trung tâm Anh ngữ Sky Education`) |
+| 7 | `organization_name` | VARCHAR(200) | Tên hiển thị tenant (ví dụ `Lớp Pháp luật cô Đỗ Lan Khánh`) |
 | 8 | `owner_id` | UUID | Tham chiếu tới user vai trò `P2_CENTER_OWNER` |
 | 9 | `tier` | VARCHAR(20) | Gói dịch vụ: FREE / STARTER / PRO / PRO_PLUS |
 | 10 | `status` | VARCHAR(20) | Trạng thái vòng đời: TRIAL / ACTIVE / SUSPENDED / CANCELLED |
