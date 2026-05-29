@@ -1696,20 +1696,18 @@ def add_introduction(doc):
 
     add_section_title(doc, "3. Phạm vi nghiên cứu")
     add_paragraph_text(doc,
-        "Đồ án tập trung vào giai đoạn thử nghiệm tenant của nền tảng KiteHub, được giới hạn theo ba "
-        "chiều: không gian, thời gian và đối tượng. Về không gian, hệ thống triển khai cloud trên "
-        "AWS Singapore (ap-southeast-1) Free Tier, phục vụ nhóm trung tâm giáo dục "
-        "thương mại tại Việt Nam (Hà Nội, TP. Hồ Chí Minh và các tỉnh lân cận). Về thời gian, "
-        "phạm vi triển khai kéo dài từ tháng 5/2026 đến hết giai đoạn thử nghiệm tenant (~tháng 9/2026), "
-        "với hai giáo viên độc lập (một dùng gói miễn phí, một dùng gói premium) trực tiếp sử dụng "
-        "sản phẩm trong thực tế giảng dạy để thu thập phản hồi.")
+        "Phạm vi triển khai hiện tại của đồ án giới hạn theo hai chiều: không gian và đối tượng. "
+        "Về không gian, hệ thống triển khai cloud trên AWS Singapore (ap-southeast-1) Free Tier, "
+        "phục vụ nhóm trung tâm giáo dục thương mại tại Việt Nam (Hà Nội, TP. Hồ Chí Minh và các "
+        "tỉnh lân cận), với hai giáo viên độc lập (một dùng gói miễn phí, một dùng gói trả phí) "
+        "trực tiếp sử dụng sản phẩm trong thực tế giảng dạy để thu thập phản hồi.")
     add_paragraph_text(doc,
         "Về đối tượng, đồ án phục vụ ba nhóm người dùng chính: giáo viên độc lập (Solo Teacher, "
         "1-50 học viên), chủ sở hữu trung tâm (Center Owner, 1-10 chi nhánh, 100-2.000 học viên), "
         "và quản lý trung tâm (Center Manager). Nhóm phụ huynh (Parent) và học viên (Student) "
         "thuộc phân khúc K-12 "
-        "(Kindergarten to Grade 12 — bậc giáo dục phổ thông từ mẫu giáo đến lớp 12) được hoãn "
-        "sang giai đoạn mở rộng K-12 do yêu cầu bổ sung DPO (Data Protection Officer — cán bộ "
+        "(Kindergarten to Grade 12 — bậc giáo dục phổ thông từ mẫu giáo đến lớp 12) thuộc lộ "
+        "trình phát triển sau do yêu cầu bổ sung DPO (Data Protection Officer — cán bộ "
         "bảo vệ dữ liệu) và DPIA (Data Protection Impact Assessment — đánh giá tác động bảo vệ "
         "dữ liệu) theo Điều 26 Luật Bảo vệ Dữ liệu Cá nhân 2023. Kiến trúc hệ thống cấu thành từ ba lớp dịch vụ. Lớp nền tảng KiteHub gồm "
         "sáu dịch vụ độc lập đảm nhận các trách nhiệm khác nhau: quản trị (kitehub-admin), "
