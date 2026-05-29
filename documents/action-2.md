@@ -111,4 +111,4 @@ bây giờ tạo PR mới để sửa thesis tiếp nhé
 4. capture lại ảnh docx, session cũ xóa mất rồi
 
 5. documents/08-thesis/screenshots-render/page-001.png => đường gạch ngang dưới "KHOA CÔNG NGHỆ THÔNG TIN" không khớp với bìa của báo cáo thực tập, check lại
-2.
+6.
