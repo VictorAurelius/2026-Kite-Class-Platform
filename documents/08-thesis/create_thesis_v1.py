@@ -1410,8 +1410,12 @@ def add_acknowledgment_page(doc):
         "chuyên nghiệp và chương trình đào tạo bài bản trong suốt quá trình học. Đây là nền "
         "tảng quan trọng giúp em có đủ năng lực và sự tự tin để thực hiện đề tài này.")
 
-    # Wave thesis-2 Round 2 Item 2 — Phần 4 "Bộ môn Công nghệ phần mềm + Khoa CNTT" REMOVED
-    # User direction: để vừa 1 trang.
+    # Phần 4 — Cảm ơn giáo viên đã dùng thực tế sản phẩm + góp ý (beta user thực tế)
+    add_paragraph_text(doc,
+        "Em xin gửi lời cảm ơn chân thành đến cô Nguyễn Thị Hà — giáo viên môn Tin học tại "
+        "Trường Tiểu học Hòa Chính, và thầy Nguyễn Đình Nhì — giáo viên môn Hóa học tại "
+        "Trường THCS Phú Nam An, đã trực tiếp sử dụng thử sản phẩm của đồ án trong thực tế "
+        "giảng dạy và đóng góp nhiều ý kiến quý báu giúp em hoàn thiện hệ thống.")
 
     # Phần 5 — Gia đình + bạn bè + đóng kết
     add_paragraph_text(doc,
@@ -1421,30 +1425,18 @@ def add_acknowledgment_page(doc):
         "tiễn còn hạn chế, đồ án không tránh khỏi những thiếu sót; em rất mong nhận được sự đóng "
         "góp ý kiến từ quý thầy cô để đồ án được hoàn thiện hơn. Em xin chân thành cảm ơn!")
 
-    # Wave thesis-2 Round 2.4 Item 2 fix — minimize blank paragraphs để signature
-    # không overflow sang page 4. Original 3+2=5 blank paragraphs → 1+1=2.
-    doc.add_paragraph()  # 1 small gap before signature block
-
+    # Khối chữ ký — bỏ blank gap để "Hà Nội" lên 1 dòng + bỏ dòng tên sinh viên
+    # (user direction: ko cần tên Nguyễn Văn Kiệt; sinh viên ký tay khi in nộp).
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     p.paragraph_format.space_after = Pt(0)
-    p.paragraph_format.keep_with_next = True
     run = p.add_run(f"Hà Nội, ngày … tháng … năm {THESIS_INFO['year']}")
     set_font(run, Pt(13), italic=True)
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     p.paragraph_format.space_after = Pt(0)
-    p.paragraph_format.keep_with_next = True
     run = p.add_run("Sinh viên thực hiện")
-    set_font(run, Pt(13), bold=True)
-
-    doc.add_paragraph()  # 1 spacer between "Sinh viên thực hiện" và name
-
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    p.paragraph_format.keep_with_next = False
-    run = p.add_run(STUDENT_INFO["name"])
     set_font(run, Pt(13), bold=True)
 
     # Wave 102.5 G17 — end of Section 1 (no page number group)
