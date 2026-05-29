@@ -70,9 +70,12 @@ User clarify muốn **trang chủ public** (không phải dashboard). Walk surfa
 6. `ThemeSync` chỉ `--theme-*` RGB → thêm `--primary` HSL (shadcn buttons branded).
 → Homepage fully Sky-branded: hero "Trung tâm Anh ngữ Sky Education" + `--primary: 21 90% 48%` cam toàn theme (`12-public-homepage-sky-branded.png`). Residual: layout nav header hardcode "KiteClass" (TemplateRenderer hero/theme branded, nav not tenant-driven — minor follow-up).
 
+## Public layout nav tenant-branded (GAP-808 extension — DONE same session)
+
+User-flagged: `(public)/layout.tsx` nav header + footer hardcode "KiteClass" + "Powered by Claude Code". Fixed: layout async + `getTenantIdentity()` fetches landing (default tenant via `NEXT_PUBLIC_TENANT_ID` — production model = per-tenant FE deploy) → renders displayName + logo (fallback "KiteClass"); removed Claude Code project-internal ref; `NEXT_PUBLIC_TENANT_ID=e8ff87e1` set in compose (Sky demo deploy). Verified: nav header "Trung tâm Anh ngữ Sky Education" + footer branded + theme cam (`13-public-homepage-nav-branded.png`).
+
 ## Follow-ups
 - **GAP-809** (P2): FE↔BE contract drift `/classes` + `/invoices` flat-list 404 (BE course/student-scoped only).
-- Layout `(public)` nav header/footer hardcode "KiteClass" → tenant displayName (minor).
 - MinIO `kite-branding-assets` auto-create on startup (Bug #12 — provision thủ công phiên này).
 - Logo re-upload real file (preview 1×1 test PNG; path a5e00000 cũ pre-repoint).
 - `STORAGE_S3_PUBLIC_ENDPOINT` production value (CDN/public domain) khi GA.

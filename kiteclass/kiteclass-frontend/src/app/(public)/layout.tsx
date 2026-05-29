@@ -4,6 +4,26 @@ import { Button } from '@/components/ui/button';
 import { GraduationCap } from 'lucide-react';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { ConsentBanner } from '@kite/shared-ui';
+import { publicApi } from '@/lib/api/public';
+
+// Resolve the tenant's display name + logo for the public nav/footer.
+// Production: each tenant's FE deploy sets NEXT_PUBLIC_TENANT_ID to its own tenant
+// (the layout cannot read ?tenant= searchParams — those are page-scoped). Falls back
+// to a generic platform identity when no tenant resolves. GAP-808 follow-up: nav was
+// hardcoded "KiteClass" regardless of tenant.
+async function getTenantIdentity(): Promise<{ name: string; logoUrl: string | null }> {
+  const tenantId =
+    process.env.NEXT_PUBLIC_TENANT_ID ?? '11111111-1111-1111-1111-111111111111';
+  try {
+    const landing = await publicApi.getLandingPage(tenantId);
+    return {
+      name: landing.heroTitle || 'KiteClass',
+      logoUrl: landing.logoUrl ?? null,
+    };
+  } catch {
+    return { name: 'KiteClass', logoUrl: null };
+  }
+}
 
 export const metadata: Metadata = {
   title: {
@@ -32,11 +52,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PublicLayout({
+export default async function PublicLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { name: tenantName, logoUrl: tenantLogo } = await getTenantIdentity();
   return (
     <div className="min-h-screen flex flex-col">
       {/* Skip to main content (accessibility) */}
@@ -52,8 +73,13 @@ export default function PublicLayout({
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <GraduationCap className="h-8 w-8 text-theme-primary" />
-            <span className="text-2xl font-bold">KiteClass</span>
+            {tenantLogo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={tenantLogo} alt={tenantName} className="h-8 w-8 object-contain" />
+            ) : (
+              <GraduationCap className="h-8 w-8 text-theme-primary" />
+            )}
+            <span className="text-2xl font-bold">{tenantName}</span>
           </Link>
 
           {/* Navigation */}
@@ -112,8 +138,13 @@ export default function PublicLayout({
             {/* About */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <GraduationCap className="h-6 w-6 text-theme-primary" />
-                <span className="font-bold text-lg">KiteClass</span>
+                {tenantLogo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={tenantLogo} alt={tenantName} className="h-6 w-6 object-contain" />
+                ) : (
+                  <GraduationCap className="h-6 w-6 text-theme-primary" />
+                )}
+                <span className="font-bold text-lg">{tenantName}</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 Nền tảng quản lý trung tâm tiếng Anh toàn diện, giúp tối ưu hóa
@@ -188,19 +219,7 @@ export default function PublicLayout({
           {/* Copyright */}
           <div className="border-t mt-8 pt-6 text-center text-sm text-muted-foreground">
             <p>
-              © {new Date().getFullYear()} KiteClass. Phát triển bởi KiteClass
-              Team.
-            </p>
-            <p className="mt-1 text-xs">
-              Powered by{' '}
-              <a
-                href="https://claude.ai"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-theme-primary"
-              >
-                Claude Code
-              </a>
+              © {new Date().getFullYear()} {tenantName}. Vận hành trên nền tảng KiteClass.
             </p>
           </div>
         </div>

@@ -739,6 +739,10 @@ services:
       # Server-side base (Docker network DNS) — Wave 105 RST UI walk
       # 2026-05-23 surfaced SSR ECONNREFUSED localhost:9000 from inside container.
       INTERNAL_API_URL: http://kite-gateway:9000
+      # Demo: default tenant for the public homepage (Sky Education instance e8ff87e1).
+      # Production model = one FE deploy per tenant carries its own NEXT_PUBLIC_TENANT_ID;
+      # Server Components read this at runtime for nav/footer + landing default (GAP-808).
+      NEXT_PUBLIC_TENANT_ID: e8ff87e1-69fc-4842-a263-7385c68b4ffb
       NEXT_TELEMETRY_DISABLED: 1
     ports:
       - "3000:3000"
