@@ -409,7 +409,7 @@ Hai cơ chế hardening quan trọng:
 
 ### 2.2.5 Quy trình xác thực — JWT + role-guard + truyền ngữ cảnh tenant
 
-Hình 2.4 trình bày tuần tự đăng nhập và một yêu cầu được xác thực sau đó cho luồng quản trị nền tảng.
+Hình 2.4a-d trình bày tuần tự đăng nhập và một yêu cầu được xác thực sau đó cho luồng quản trị nền tảng.
 
 ```mermaid
 %%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
@@ -642,7 +642,7 @@ ERD nhấn mạnh quan hệ many-to-many giữa `STUDENT` và `CLASSES` qua bả
 
 ### 2.3.3 Sequence Diagram — Luồng cấp phát tenant
 
-Luồng cấp phát tenant từ lúc người dùng tiềm năng gửi yêu cầu beta đến khi chủ sở hữu trung tâm đăng nhập lần đầu trải qua nhiều bước phối hợp giữa frontend, backend và các dịch vụ ngoài. Hình 2.7 trình bày tuần tự các bước theo ký pháp UML.
+Luồng cấp phát tenant từ lúc người dùng tiềm năng gửi yêu cầu beta đến khi chủ sở hữu trung tâm đăng nhập lần đầu trải qua nhiều bước phối hợp giữa frontend, backend và các dịch vụ ngoài. Hình 2.7a-b trình bày tuần tự các bước theo ký pháp UML.
 
 ```mermaid
 %%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
