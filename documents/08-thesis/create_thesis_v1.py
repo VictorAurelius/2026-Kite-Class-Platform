@@ -1619,7 +1619,6 @@ def add_abbreviations(doc):
         ("K-12", "Kindergarten to Grade 12 — bậc giáo dục phổ thông từ mẫu giáo đến lớp 12"),
         ("KMS", "Key Management Service — dịch vụ quản lý khóa mã hóa"),
         ("KPI", "Key Performance Indicator — chỉ số hiệu suất chính"),
-        ("Lean", "Lean Software Development — phát triển phần mềm tinh gọn (Poppendieck)"),
         ("LMS", "Learning Management System — hệ quản lý học tập"),
         ("MVP", "Minimum Viable Product — sản phẩm tối thiểu khả dụng"),
         ("NFR", "Non-Functional Requirement — yêu cầu phi chức năng"),
@@ -1692,7 +1691,7 @@ def add_introduction(doc):
     add_bullet_list_item(doc, "Xây dựng nền tảng SaaS multi-tenant cho trung tâm giáo dục Việt Nam, hỗ trợ scale từ 1 chi nhánh lên 100+ chi nhánh không cần re-architect.")
     add_bullet_list_item(doc, "Tích hợp AI Branding tự động sinh logo + banner + hero image, giảm thời gian go-live của trung tâm từ tuần xuống ngày.")
     add_bullet_list_item(doc, "Đảm bảo tuân thủ pháp luật Việt Nam: Luật Bảo vệ Dữ liệu Cá nhân 2023 (PDPL — Personal Data Protection Law), Luật An ninh mạng 2018, Thông tư 78/2021/TT-BTC về hóa đơn điện tử.")
-    add_bullet_list_item(doc, "Áp dụng phương pháp luận Quality-Driven Development để duy trì chất lượng mã nguồn và tài liệu trong suốt quá trình phát triển dài hạn.")
+    add_bullet_list_item(doc, "Áp dụng các phương pháp luận phát triển phần mềm hướng chất lượng để duy trì chất lượng mã nguồn và tài liệu trong suốt quá trình phát triển.")
 
     add_section_title(doc, "3. Phạm vi nghiên cứu")
     add_paragraph_text(doc,
@@ -1730,17 +1729,11 @@ def add_introduction(doc):
         "Row-Level Security, defense-in-depth 5 lớp) đối chiếu với AWS SaaS Lens và Azure "
         "multi-tenant whitepaper.")
     add_bullet_list_item(doc,
-        "Áp dụng phương pháp luận Quality-Driven Development bốn trụ cột: phát triển hướng kiểm "
-        "thử (TDD — Test-Driven Development, per Beck 2002), thiết kế hướng miền (DDD — "
-        "Domain-Driven Design, per Evans 2003), chu trình Plan-Do-Check-Act (PDCA, per Deming "
-        "1986) và tư duy tinh gọn (Lean, per Poppendieck 2003) — mỗi vấn đề "
-        "phát hiện được chuyển hóa thành quy tắc kiểm soát kèm cơ chế kiểm tra tự động, tích "
-        "hợp ngay trong quy trình phát triển.")
-    add_bullet_list_item(doc,
-        "Đánh giá chất lượng hệ thống qua bộ audit bảy chiều (Quality, UI, Security, "
-        "Performance, API — Application Programming Interface — Contract, Business Logic, Ops "
-        "Readiness) chấm điểm /100 hoặc /128 "
-        "định kỳ sau mỗi giai đoạn phát triển.")
+        "Áp dụng các phương pháp luận phát triển phần mềm hướng chất lượng: phát triển hướng "
+        "kiểm thử (TDD — Test-Driven Development, theo Beck 2002), thiết kế hướng miền (DDD — "
+        "Domain-Driven Design, theo Evans 2003) và chu trình cải tiến liên tục Plan-Do-Check-Act "
+        "(PDCA, theo Deming 1986) — tích hợp trong toàn bộ quy trình phát triển nhằm duy trì "
+        "chất lượng mã nguồn và tài liệu.")
 
     add_section_title(doc, "5. Tóm tắt nội dung")
     add_paragraph_text(doc,
