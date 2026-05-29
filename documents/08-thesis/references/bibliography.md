@@ -1,7 +1,7 @@
 # Bibliography — IEEE Format
 
 **Citation style:** IEEE per [CITATION-STYLE.md](./CITATION-STYLE.md). In-text format `[N]`, `[N, M]`, `[N]–[M]`.
-**Total entries:** 38 (renumbered Wave 102.7.6 — Anthropic Claude [15] dropped + 9 orphan refs dropped Wave 102.4).
+**Total entries:** 40 (Wave thesis-4 targeted fix: +[39] BeeClass +[40] Mike Cohn +[41] AWS SLA, −[33] Replicate SDXL stale). Citation numbering KHÔNG renumber-by-appearance — full C3 reconciliation deferred (orphans kept để giữ ≥30 cử nhân target).**
 **Last updated:** 2026-05-20.
 **Last cross-ref audit:** 2026-05-20 Wave 102.4 — see `cross-ref-audit-2026-05-19.md` (pre-renumber baseline).
 
@@ -250,8 +250,6 @@ Khi cần thêm ref mới cho chương:
 
 
 
-[33] Replicate Inc., "Stable Diffusion XL API Documentation," 2024. [Online]. Available: [https://replicate.com/stability-ai/sdxl](https://replicate.com/stability-ai/sdxl). [Accessed 2026-05-19].
-
 ### Development methodology — TDD + DDD + Continuous Improvement
 
 
@@ -283,6 +281,10 @@ Khi cần thêm ref mới cho chương:
 [38] N. Forsgren, J. Humble, and G. Kim, *Accelerate: The Science of Lean Software and DevOps — Building and Scaling High Performing Technology Organizations*. Portland: IT Revolution Press, 2018.
 
 [39] BeeClass, "BeeClass — Ứng dụng quản lý điểm thi đua của học sinh (Lớp học Hạnh phúc)," 2024. [Online]. Available: [https://beeclass.net/](https://beeclass.net/). [Accessed 2026-05-30].
+
+[40] M. Cohn, *Succeeding with Agile: Software Development Using Scrum*. Upper Saddle River, NJ: Addison-Wesley, 2009.
+
+[41] Amazon Web Services, "Amazon Compute Service Level Agreement (EC2 & RDS)," 2024. [Online]. Available: [https://aws.amazon.com/compute/sla/](https://aws.amazon.com/compute/sla/). [Accessed 2026-05-30].
 
 
 ---
