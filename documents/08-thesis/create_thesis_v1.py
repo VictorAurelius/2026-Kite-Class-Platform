@@ -1406,11 +1406,9 @@ def add_acknowledgment_page(doc):
     # Phần 3 — Khoa + Trường
     add_paragraph_text(doc,
         f"Em xin chân thành cảm ơn Khoa {STUDENT_INFO['department']} và "
-        f"{STUDENT_INFO['university']} đã tạo điều kiện thuận lợi để em được tiếp cận với các kiến "
-        "thức nền tảng về Công nghệ phần mềm, Kiến trúc hệ thống phân tán, Cơ sở dữ liệu, An toàn "
-        "thông tin và các công nghệ thực tiễn trong ngành công nghiệp phần mềm. Môi trường học tập "
-        "chuyên nghiệp cùng với chương trình đào tạo bài bản là nền tảng quan trọng giúp em có "
-        "đủ năng lực và sự tự tin thực hiện đề tài này.")
+        f"{STUDENT_INFO['university']} đã tạo điều kiện thuận lợi cùng môi trường học tập "
+        "chuyên nghiệp và chương trình đào tạo bài bản trong suốt quá trình học. Đây là nền "
+        "tảng quan trọng giúp em có đủ năng lực và sự tự tin để thực hiện đề tài này.")
 
     # Wave thesis-2 Round 2 Item 2 — Phần 4 "Bộ môn Công nghệ phần mềm + Khoa CNTT" REMOVED
     # User direction: để vừa 1 trang.
