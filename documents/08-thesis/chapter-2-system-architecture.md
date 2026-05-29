@@ -188,8 +188,7 @@ Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: khóa luận
 
 ## 2.2 Thiết kế kiến trúc tổng thể
 
-Đồ án áp dụng C4 model (Context / Container / Component / Code) của Simon Brown — industry-standard cho cloud-native microservices architecture documentation, đã được sử dụng tại các SaaS provider lớn (Spotify, GitHub, Stripe). C4 model phù hợp hơn UML class diagram truyền thống cho hệ thống multi-tenant phân tán vì tập trung vào ranh giới container/component thay vì class-level details. Đồ án KẾT HỢP C4 với UML/ERD truyền thống (Booch et al. [29]) để đáp ứng cả tiêu chí kiến trúc hiện đại lẫn yêu cầu mô tả của khung-chuẩn đào tạo UTC: §2.2.1 và §2.2.2 trình bày C4 Level 1 và Level 2; §2.2.3 trình bày quyết định pattern đa tenant; §2.2.4 trình bày phòng thủ chiều sâu cô lập cơ sở dữ liệu; §2.2.5 trình bày quy trình xác thực với truyền ngữ cảnh tenant.
-
+Đồ án áp dụng C4 model (Context / Container / Component / Code) của Simon Brown — industry-standard cho cloud-native microservices architecture documentation, đã được sử dụng tại các SaaS provider lớn (Spotify, GitHub, Stripe). C4 model phù hợp hơn UML class diagram truyền thống cho hệ thống multi-tenant phân tán vì tập trung vào ranh giới container/component thay vì class-level details.
 ### 2.2.1 Sơ đồ ngữ cảnh — C4 Level 1
 
 Mô hình C4 (Context / Container / Component / Code) của Brown [28] là framework chuẩn để mô tả kiến trúc phần mềm ở 4 mức độ chi tiết tăng dần. Đồ án sử dụng Level 1 (System Context) và Level 2 (Container) để trình bày Kite Platform; Level 3 và Level 4 dành cho phần triển khai ở Chương 3.
@@ -340,22 +339,6 @@ Quyết định kiến trúc trọng tâm của đồ án là chọn mô hình c
 | P5 Hybrid (Pool mặc định + Silo cho khách doanh nghiệp) | Sẽ phát triển khi mở rộng K-12 doanh nghiệp ở lộ trình phát triển sau và có yêu cầu cụ thể về cô lập vật lý từ khách hàng |
 | P6 Serverless (Aurora Serverless v2 / DynamoDB) | Aurora Serverless v2 chi phí tối thiểu ~$45/tháng vượt Free Tier; DynamoDB không phù hợp với dữ liệu quan hệ giáo dục (Student/Class/Grade/Attendance JOIN-heavy) |
 
-**Phương pháp chấm điểm.** Mỗi pattern được chấm thang 1-5 trên 6 trục — độ mạnh cô lập, chi phí vận hành theo số tenant, khả năng truy vấn xuyên tenant, độ phù hợp phạm vi SMB hiện tại, vị thế tuân thủ (PDPL + ISO27001) và chi phí chuyển đổi từ hiện trạng — tổng tối đa 30. Rubric xây dựng riêng cho ngữ cảnh trung tâm dạy thêm SMB, tham khảo phương pháp luận Pool/Bridge/Silo của AWS Well-Architected SaaS Lens [26, tr.21] và pattern comparison của Pothon [27], với trọng số ưu tiên chi phí (ràng buộc Free Tier) và độ đơn giản vận hành (mô hình solo-dev).
-
-**Bảng 2.5.** Ma trận so sánh 6 pattern trên 6 trục (Pattern 4 đạt tổng 26/30 cho phạm vi hiện tại).
-
-| Trục đánh giá | P1 Per-DB | P2 Per-schema | P3 ID only | **P4 RLS** | P5 Hybrid | P6 Serverless |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| Độ mạnh cô lập | 5 | 4 | 2 | **3** | 4 | 3 |
-| Chi phí vận hành (5 = O(1)) | 1 | 3 | 5 | **5** | 2 | 4 |
-| Khả năng truy vấn xuyên tenant | 2 | 4 | 5 | **4** | 3 | 3 |
-| Phù hợp với phạm vi hiện tại | 1 | 3 | 4 | **5** | 1 | 2 |
-| Vị thế tuân thủ (PDPL + ISO27001) | 5 | 3 | 2 | **4** | 5 | 4 |
-| Chi phí chuyển đổi từ hiện trạng | 1 | 3 | 5 | **5** | 3 | 2 |
-| **Tổng** | 15 | 20 | 23 | **26** | 18 | 18 |
-
-*Diễn giải Pattern 4 (chọn — tổng 26/30):* P4 đạt điểm tối đa ở ba trục quyết định với phạm vi hiện tại — chi phí vận hành O(1) (5đ: 1 RDS `db.t3.micro` chia sẻ ≈$15/tháng + 1 chuỗi Flyway migration cho mọi tenant), độ phù hợp phạm vi SMB (5đ: ≤$15/tháng cho ≤10 tenant đầu) và chi phí chuyển đổi thấp (5đ: hiện trạng đã có cột `tenant_id`, chỉ thêm chính sách RLS + cấu hình `SET LOCAL app.current_tenant_id`). Độ mạnh cô lập chỉ đạt 3đ vì RLS là cô lập **logic** (chính sách `USING + WITH CHECK` + NULL force-fail, chi tiết §2.2.4) chứ không phải vật lý như Per-DB — vai trò siêu người dùng vẫn BYPASS được, nên cần thêm 4 lớp phòng thủ chiều sâu (§2.2.4). Hai trục còn lại đạt 4đ: khả năng truy vấn xuyên tenant (vai trò `kitehub_admin` BYPASSRLS phục vụ report toàn nền tảng) và vị thế tuân thủ (cô lập logic mạnh + audit trail PDPL Art 11) — chưa đạt 5đ do là cô lập logic, không vật lý.
-
 Pool model với RLS được chọn vì cân bằng giữa độ cô lập chấp nhận được (được tăng cường bởi chính sách NULL force-fail mô tả ở §2.2.4), chi phí vận hành thấp nhất, độ phù hợp với phạm vi hiện tại, và lộ trình chuyển đổi sang Hybrid Path A khi mở rộng đến nhóm khách hàng doanh nghiệp ở lộ trình phát triển sau.
 
 ### 2.2.4 Phòng thủ chiều sâu — 5 lớp cô lập cơ sở dữ liệu
@@ -505,7 +488,7 @@ Hệ thống xử lý hai đường yêu cầu song song. Đường thứ nhất
 | Chứng chỉ SSL | Dùng chứng chỉ wildcard sẵn có | Cloudflare for SaaS tự cấp qua xác thực DCV |
 | Xác minh quyền sở hữu | Không cần | Bản ghi CNAME/TXT tách khỏi bản ghi định tuyến |
 
-**Bảng 2.6.** So sánh subdomain và tên miền riêng trong cơ chế định tuyến đa tenant.
+**Bảng 2.5.** So sánh subdomain và tên miền riêng trong cơ chế định tuyến đa tenant.
 
 ```mermaid
 %%{init: {"sequence": {"diagramMarginX": 30, "diagramMarginY": 20, "actorMargin": 55, "width": 180, "height": 65, "boxMargin": 14, "boxTextMargin": 8, "noteMargin": 12, "messageMargin": 40, "mirrorActors": false, "wrap": true}, "themeVariables": {"fontSize": "36px", "messageFontSize": "34px", "noteFontSize": "34px"}}}%%
@@ -535,8 +518,6 @@ Về an toàn, gateway là biên tin cậy duy nhất trong cơ chế định tu
 ---
 
 ## 2.3 Thiết kế chi tiết
-
-Phần này trình bày các sơ đồ thiết kế chi tiết theo ký pháp UML (Booch et al. [29]) bổ sung cho C4 model ở §2.2, cùng thiết kế cơ sở dữ liệu chi tiết và mô hình SaaS. Ba mục đầu tạo thành cụm thiết kế dữ liệu liền mạch: §2.3.1 class diagram (hành vi runtime), §2.3.2 ERD (quan hệ lưu trữ), §2.3.3 thiết kế cơ sở dữ liệu chi tiết (schema từng cột). Hai mục tiếp theo trình bày thiết kế hành vi: §2.3.4 sequence diagram luồng cấp phát tenant, §2.3.5 máy trạng thái vòng đời tenant. Hai mục cuối: §2.3.6 phân rã service, §2.3.7 mô hình SaaS (gói dịch vụ, thanh toán).
 
 ### 2.3.1 Class Diagram
 
@@ -726,7 +707,7 @@ Tiếp nối ERD §2.3.2, phần này trình bày schema chi tiết từng cột
 
 Bảng `instances` (microservice `kitehub-subscription`, control-plane) lưu metadata cấp tenant: mỗi dòng tương ứng với một trung tâm dạy thêm có dùng nền tảng. Bảng này là source-of-truth cho vòng đời tenant (TRIAL / ACTIVE / SUSPENDED / CANCELLED).
 
-**Bảng 2.7.** Schema chi tiết bảng `instances` (microservice `kitehub-subscription`).
+**Bảng 2.6.** Schema chi tiết bảng `instances` (microservice `kitehub-subscription`).
 
 | TT | Tên cột | Kiểu dữ liệu | Mô tả |
 |:--:|---|---|---|
@@ -753,7 +734,7 @@ Các chỉ mục trên `subdomain`, `owner_id`, `status`, `tier`, và partial in
 
 Bảng `subscriptions` (microservice `kitehub-subscription`, control-plane) là nguồn sự thật cho trạng thái đăng ký dịch vụ của mỗi tenant: mỗi tenant có một bản ghi gói đang hoạt động (quan hệ 1-1 với `instances`), liên kết tới chuỗi `payments` qua khoá ngoại.
 
-**Bảng 2.8.** Schema chi tiết bảng `subscriptions` (microservice `kitehub-subscription`).
+**Bảng 2.7.** Schema chi tiết bảng `subscriptions` (microservice `kitehub-subscription`).
 
 | TT | Tên cột | Kiểu dữ liệu | Mô tả |
 |:--:|---|---|---|
@@ -771,7 +752,7 @@ Bảng `subscriptions` (microservice `kitehub-subscription`, control-plane) là 
 
 Bảng `students` (microservice `kiteclass-core`, domain-plane) lưu hồ sơ học sinh đã đăng ký tại tenant. Bảng này có volume lớn nhất trong các bảng domain (mục tiêu 50-500 học sinh/tenant hiện tại) và là bảng chịu yêu cầu tuân thủ PDPL chặt chẽ nhất do chứa thông tin cá nhân nhạy cảm.
 
-**Bảng 2.9.** Schema chi tiết bảng `students` (microservice `kiteclass-core`).
+**Bảng 2.8.** Schema chi tiết bảng `students` (microservice `kiteclass-core`).
 
 | TT | Tên cột | Kiểu dữ liệu | Mô tả |
 |:--:|---|---|---|
@@ -862,7 +843,7 @@ Diễn giải các bước chuyển trạng thái: PENDING → TRIAL khi quản 
 
 Danh mục service được tổng hợp theo mô hình Backstage [21] (mỗi service đóng vai một component có metadata + ownership + dependency).
 
-**Bảng 2.10.** Danh mục service của Kite Platform.
+**Bảng 2.9.** Danh mục service của Kite Platform.
 
 | Service | Cổng | Trách nhiệm | Cơ sở dữ liệu |
 |---|---|---|---|
@@ -893,9 +874,9 @@ Hệ thống được cấu thành từ ba lớp dịch vụ. Lớp nền tảng
 
 Chủ sở hữu trung tâm nhấn magic-link, đặt mật khẩu và đăng nhập lần đầu sẽ thấy dashboard wizard 5 bước: xác nhận thông tin trung tâm, upload logo (hoặc sinh tự động), thêm 3 lớp đầu tiên, mời quản lý/giáo viên, thiết lập phương thức thanh toán.
 
-**Ma trận gói dịch vụ.** Đồ án thiết kế bốn gói dịch vụ phân tầng theo persona mục tiêu (Bảng 2.11). Hai gói FREE và STARTER đã kiểm chứng hiện tại với hai giáo viên độc lập; hai gói PRO và PRO_PLUS thuộc lộ trình phát triển sau khi mở rộng cohort tenant.
+**Ma trận gói dịch vụ.** Đồ án thiết kế bốn gói dịch vụ phân tầng theo persona mục tiêu (Bảng 2.10). Hai gói FREE và STARTER đã kiểm chứng hiện tại với hai giáo viên độc lập; hai gói PRO và PRO_PLUS thuộc lộ trình phát triển sau khi mở rộng cohort tenant.
 
-**Bảng 2.11.** Bốn gói dịch vụ và các giới hạn theo gói.
+**Bảng 2.10.** Bốn gói dịch vụ và các giới hạn theo gói.
 
 | Gói | Trạng thái | Persona mục tiêu | Giá tháng | Số học sinh | Số lớp | Lượt sinh ảnh AI/ngày | Tên miền riêng (custom domain) | Email DKIM-verified |
 |---|---|---|---|---|---|---|---|---|
@@ -904,10 +885,8 @@ Chủ sở hữu trung tâm nhấn magic-link, đặt mật khẩu và đăng nh
 | PRO | Phát triển sau | P3 Quản lý trung tâm | `1.500.000đ/tháng` | 500 | 50 | 50 | Có (custom CNAME) | Mặc định |
 | PRO_PLUS | Phát triển sau | Chuỗi nhượng quyền multi-branch | `5.000.000đ/tháng` | 2000 | 200 | 200 | Có (custom CNAME + IP riêng) | DKIM-verified riêng |
 
-**Trạng thái hiện thực hoá.** Mã nguồn hiện tại trên kho lưu trữ KiteHub đã định nghĩa enum `PricingTier` với bốn cấp giá `FREE / BASIC / PREMIUM / ENTERPRISE` cùng mức giá `0đ / 500.000đ / 1.500.000đ / báo giá riêng`, khớp ba tầng giá đầu của Bảng 2.11 dưới tên gọi cũ. Việc đổi tên gói sang `FREE / STARTER / PRO / PRO_PLUS` để thân thiện với người dùng và đồng nhất với phân tích nhóm người dùng đại diện tại §1.1.2, bổ sung trường giới hạn `maxClasses`, và xây dựng bảng `tenant_quota` kết hợp bộ đếm Redis cho cơ chế enforcement HTTP 429 ở tầng tenant thuộc lộ trình phát triển sau. Tính năng nhận diện email DKIM riêng cho gói cao cấp (cột "Email DKIM-verified" cho PRO_PLUS) cũng thuộc lộ trình phát triển sau.
+**Trạng thái hiện thực hoá.** Mã nguồn hiện tại trên kho lưu trữ KiteHub đã định nghĩa enum `PricingTier` với bốn cấp giá `FREE / BASIC / PREMIUM / ENTERPRISE` cùng mức giá `0đ / 500.000đ / 1.500.000đ / báo giá riêng`, khớp ba tầng giá đầu của Bảng 2.10 dưới tên gọi cũ. Việc đổi tên gói sang `FREE / STARTER / PRO / PRO_PLUS` để thân thiện với người dùng và đồng nhất với phân tích nhóm người dùng đại diện tại §1.1.2, bổ sung trường giới hạn `maxClasses`, và xây dựng bảng `tenant_quota` kết hợp bộ đếm Redis cho cơ chế enforcement HTTP 429 ở tầng tenant thuộc lộ trình phát triển sau. Tính năng nhận diện email DKIM riêng cho gói cao cấp (cột "Email DKIM-verified" cho PRO_PLUS) cũng thuộc lộ trình phát triển sau.
 
 Việc enforce quota dùng bảng `tenant_quota` kết hợp bộ đếm Redis kiểm tra ở mỗi request. Khi vượt quota, hệ thống trả HTTP 429 cùng banner UI hướng dẫn nâng gói.
 
 **Thanh toán và hóa đơn.** Hiện tại dùng VietQR thủ công: chủ sở hữu trung tâm chuyển khoản theo nội dung VietQR và upload ảnh xác nhận, quản trị nền tảng đối soát bằng tay. Cách tiếp cận này khớp thói quen thanh toán phổ biến (bank transfer chiếm ~70% giao dịch giáo dục) và tránh phụ thuộc giấy phép trung gian thanh toán trong quá trình kiểm chứng sản phẩm.
-
-Roadmap lộ trình phát triển sau: hóa đơn điện tử VAT tích hợp MISA MeInvoice theo Thông tư 78/2021/TT-BTC (thay vì tự xây engine); cron tính phí bỏ qua khung Tết; merchant integration với VNPay/MoMo qua hình thức đối tác (không yêu cầu giấy phép PSP); hỗ trợ tự thu cho tenant ACTIVE theo lựa chọn; hoàn tiền và tranh chấp dưới dạng SOP thủ công.

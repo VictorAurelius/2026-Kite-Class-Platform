@@ -80,19 +80,20 @@ THESIS_INFO = {
 # ============== PATHS ==============
 THESIS_DIR = Path(__file__).parent
 CHAPTER_FILES = {
-    1: [  # Wave thesis-2 Round 2 Item 2: §1.3 Công nghệ và công cụ bỏ per user direction → Ch.1 = 2 sub (1.1 Hiện trạng + 1.2 Bài toán)
-        THESIS_DIR / "chapter-1-competitor-analysis.md",  # §1.1 Hiện trạng (giới thiệu + khảo sát thị trường)
-        THESIS_DIR / "chapter-1-vn-law-methodology.md",   # §1.2 Bài toán (phạm vi + cơ sở chuyên ngành)
-        # chapter-1-ai-techniques.md DROPPED — user Round 2 Item 2: "§1.3 không cần thiết"
+    1: [  # Wave thesis-4: §1.4 Công nghệ chuyển từ Ch.3 §3.1 về Ch.1 per khung chuẩn (Ch.1 = Tổng quan bài toán + công nghệ, công cụ)
+        THESIS_DIR / "chapter-1-competitor-analysis.md",  # §1.1 Hiện trạng + §1.2 Khảo sát + §1.3 Bài toán (1.3.1, 1.3.2)
+        THESIS_DIR / "chapter-1-vn-law-methodology.md",   # §1.3.3 Phạm vi đề tài
+        THESIS_DIR / "chapter-1-technology.md",           # §1.4 Công nghệ và công cụ sử dụng (Wave thesis-4: moved from Ch.3 §3.1)
+        # chapter-1-ai-techniques.md DROPPED — Wave thesis-2 Round 2 Item 2
     ],
     2: [THESIS_DIR / "chapter-2-system-architecture.md"],
     3: [THESIS_DIR / "chapter-3-implementation.md"],
     4: [THESIS_DIR / "chapter-4-deployment-results.md"],
 }
 CHAPTER_TITLES = {
-    1: "TỔNG QUAN VỀ BÀI TOÁN",  # Wave thesis-2 Round 2 Item 2: drop "VÀ CÁC CÔNG NGHỆ, CÔNG CỤ" suffix (§1.3 bỏ)
+    1: "TỔNG QUAN VỀ BÀI TOÁN",  # Wave thesis-4: §1.4 Công nghệ moved into Ch.1, nhưng GIỮ tên chương per user direction (không sửa tên chương)
     2: "PHÂN TÍCH VÀ THIẾT KẾ HỆ THỐNG",
-    3: "TRIỂN KHAI SẢN PHẨM VÀ KIỂM THỬ HỆ THỐNG",  # Wave thesis-3 Option A: title-honest — content = §3.1 Công nghệ + §3.2 Triển khai UI + §3.3 Kiểm thử (không phải chương chính BRD/BPM/Use case/Class/ERD per khung — chúng nằm Ch.2 §2.3)
+    3: "TRIỂN KHAI SẢN PHẨM VÀ KIỂM THỬ HỆ THỐNG",  # Wave thesis-4: content = §3.1 Kết quả triển khai UI + §3.2 Kiểm thử (§3.1 Công nghệ cũ moved to Ch.1 §1.4)
     4: "TRIỂN KHAI HẠ TẦNG VÀ KẾT QUẢ VẬN HÀNH",  # Wave thesis-3 Option A: title-honest — content = §4.1 Cloud AWS + §4.2 Kết quả user (không có §4.3 So sánh + §4.4 Kết luận — KẾT LUẬN là chapter riêng add_conclusion())
 }
 BIBLIOGRAPHY_FILE = THESIS_DIR / "references" / "bibliography.md"
