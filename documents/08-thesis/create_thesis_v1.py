@@ -92,8 +92,8 @@ CHAPTER_FILES = {
 CHAPTER_TITLES = {
     1: "TỔNG QUAN VỀ BÀI TOÁN",  # Wave thesis-2 Round 2 Item 2: drop "VÀ CÁC CÔNG NGHỆ, CÔNG CỤ" suffix (§1.3 bỏ)
     2: "PHÂN TÍCH VÀ THIẾT KẾ HỆ THỐNG",
-    3: "PHÂN TÍCH, THIẾT KẾ VÀ TRIỂN KHAI HỆ THỐNG",
-    4: "ĐÁNH GIÁ KẾT QUẢ VÀ KẾT LUẬN",
+    3: "TRIỂN KHAI SẢN PHẨM VÀ KIỂM THỬ HỆ THỐNG",  # Wave thesis-3 Option A: title-honest — content = §3.1 Công nghệ + §3.2 Triển khai UI + §3.3 Kiểm thử (không phải chương chính BRD/BPM/Use case/Class/ERD per khung — chúng nằm Ch.2 §2.3)
+    4: "TRIỂN KHAI HẠ TẦNG VÀ KẾT QUẢ VẬN HÀNH",  # Wave thesis-3 Option A: title-honest — content = §4.1 Cloud AWS + §4.2 Kết quả user (không có §4.3 So sánh + §4.4 Kết luận — KẾT LUẬN là chapter riêng add_conclusion())
 }
 BIBLIOGRAPHY_FILE = THESIS_DIR / "references" / "bibliography.md"
 # PROJECT_ROOT = THESIS_DIR.parent.parent (documents/08-thesis → documents → project root)
@@ -1769,8 +1769,8 @@ def add_introduction(doc):
     add_paragraph_text(doc, "Đồ án gồm bốn chương nội dung chính:")
     add_bullet_list_item(doc, "Chương 1 — Tổng quan về bài toán: phân tích hiện trạng thị trường, khảo sát các hệ thống tham khảo, kỹ thuật AI tích hợp và khung pháp lý Việt Nam tác động đến nền tảng.")
     add_bullet_list_item(doc, "Chương 2 — Phân tích và thiết kế hệ thống: yêu cầu chức năng và phi chức năng, mô hình hóa C4 Context + Container, sơ đồ use case, kiến trúc đa tenant single-bucket với defense-in-depth năm lớp.")
-    add_bullet_list_item(doc, "Chương 3 — Phân tích, thiết kế và triển khai hệ thống: triển khai giao diện sản phẩm, đoạn mã đại diện cho các luồng nghiệp vụ then chốt, bộ kiểm thử ba lớp (unit / integration / E2E) với các trường hợp kiểm thử mẫu cụ thể.")
-    add_bullet_list_item(doc, "Chương 4 — Đánh giá kết quả và Kết luận: triển khai cloud AWS giai đoạn thử nghiệm tenant, luồng onboarding người dùng, các KPI đo lường, phạm vi thử nghiệm và đề xuất hướng phát triển tiếp theo.")
+    add_bullet_list_item(doc, "Chương 3 — Triển khai sản phẩm và kiểm thử hệ thống: công nghệ và công cụ sử dụng, kết quả triển khai giao diện sản phẩm theo ba luồng nghiệp vụ, bộ kiểm thử ba lớp (unit / integration / E2E) với các trường hợp kiểm thử mẫu cụ thể.")
+    add_bullet_list_item(doc, "Chương 4 — Triển khai hạ tầng và kết quả vận hành: triển khai cloud AWS với CI/CD, cấu hình Cloudflare biên, ước tính chi phí, trạng thái triển khai hiện tại và kết quả tương tác người dùng cuối kèm minh chứng sản phẩm.")
 
 
 # ============== CHAPTER LOADER (MD parser) ==============

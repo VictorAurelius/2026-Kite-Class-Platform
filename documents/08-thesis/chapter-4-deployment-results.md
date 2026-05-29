@@ -7,7 +7,7 @@ created: 2026-05-19
 updated: 2026-05-19
 ---
 
-# CHƯƠNG 4. ĐÁNH GIÁ KẾT QUẢ VÀ KẾT LUẬN
+# CHƯƠNG 4. TRIỂN KHAI HẠ TẦNG VÀ KẾT QUẢ VẬN HÀNH
 
 ## 4.1 Triển khai cloud AWS
 

@@ -7,7 +7,7 @@ created: 2026-05-19
 updated: 2026-05-20
 ---
 
-# CHƯƠNG 3. PHÂN TÍCH, THIẾT KẾ VÀ TRIỂN KHAI HỆ THỐNG
+# CHƯƠNG 3. TRIỂN KHAI SẢN PHẨM VÀ KIỂM THỬ HỆ THỐNG
 
 ## 3.1 Công nghệ sử dụng
 
