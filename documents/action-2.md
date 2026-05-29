@@ -121,3 +121,14 @@ báo cáo dừng lại ở kết quả đạt được là đã có thể thanh 
 
 không đặt page_break ở trong chương, để dễ dàng co dãn ảnh hợp lý
 
+1. tại sao có class diagram rồi còn trình bày ERD nữa, có trùng không?
+2. tại sao không trình bày liền mạch với thiết kế cơ sở dữ liệu
+3. tại sao chỉ trình bày đối với core kiteclass
+nên trình bày cho kitehub thôi
+4. độ chi tiết đối với core hiện tại đã đầy đủ so với code, kiến trúc, thiết kế chưa, hơi sơ sài nhỉ?
+
+![alt text](image.png)
+![alt text](image.png)
+![alt text](image.png)
+
+Hệ thống đề xuất sử dụng kiến trúc đa tenant nguyên bản với cô lập ở mức cơ sở dữ liệu (mỗi tenant một schema riêng),  => có vẻ sai kiến trúc, giải thích cho tôi hiểu
