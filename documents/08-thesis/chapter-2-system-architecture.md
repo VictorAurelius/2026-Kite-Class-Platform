@@ -807,16 +807,16 @@ Bảng `students` chứa thông tin cá nhân nhạy cảm và do đó phải tu
 
 Chủ sở hữu trung tâm nhấn magic-link, đặt mật khẩu và đăng nhập lần đầu sẽ thấy dashboard wizard 5 bước: xác nhận thông tin trung tâm, upload logo (hoặc sinh tự động), thêm 3 lớp đầu tiên, mời quản lý/giáo viên, thiết lập phương thức thanh toán.
 
-**Ma trận gói dịch vụ.** Đồ án thiết kế 4 gói dịch vụ (Bảng 2.11) — hiện tại kiểm thử FREE + STARTER; PRO và PRO_PLUS kích hoạt lộ trình phát triển sau.
+**Ma trận gói dịch vụ.** Đồ án thiết kế bốn gói dịch vụ phân tầng theo persona mục tiêu (Bảng 2.11). Hai gói FREE và STARTER đã kiểm chứng hiện tại với hai giáo viên độc lập; hai gói PRO và PRO_PLUS thuộc lộ trình phát triển sau khi mở rộng cohort tenant.
 
 **Bảng 2.11.** Bốn gói dịch vụ và các giới hạn theo gói.
 
-| Gói | Giá tháng | Số học sinh | Số lớp | AI tạo lại/ngày | Subdomain riêng | Email DKIM-verified |
-|---|---|---|---|---|---|---|
-| FREE | `0đ` (dùng thử 14 ngày) | 20 | 3 | 3 | | |
-| STARTER | `500.000đ/tháng` | 100 | 10 | 10 | | |
-| PRO | `1.500.000đ/tháng` | 500 | 50 | 50 | | |
-| PRO_PLUS | `5.000.000đ/tháng` | 2000 | 200 | 200 | | + IP riêng |
+| Gói | Trạng thái | Persona mục tiêu | Giá tháng | Số học sinh | Số lớp | Lượt sinh ảnh AI/ngày | Tên miền riêng (custom domain) | Email DKIM-verified |
+|---|---|---|---|---|---|---|---|---|
+| FREE | Hiện tại | P1 Giáo viên độc lập | `0đ` (dùng thử 14 ngày) | 50 | 5 | 3 | Không (chỉ subdomain `*.kitehub.me`) | Mặc định (shared DKIM) |
+| STARTER | Hiện tại | P2 Chủ sở hữu trung tâm SMB | `500.000đ/tháng` | 100 | 10 | 10 | Không | Mặc định |
+| PRO | Phát triển sau | P3 Quản lý trung tâm | `1.500.000đ/tháng` | 500 | 50 | 50 | Có (custom CNAME) | Mặc định |
+| PRO_PLUS | Phát triển sau | Chuỗi nhượng quyền multi-branch | `5.000.000đ/tháng` | 2000 | 200 | 200 | Có (custom CNAME + IP riêng) | DKIM-verified riêng |
 
 Việc enforce quota dùng bảng `tenant_quota` kết hợp bộ đếm Redis kiểm tra ở mỗi request. Khi vượt quota, hệ thống trả HTTP 429 cùng banner UI hướng dẫn nâng gói.
 
