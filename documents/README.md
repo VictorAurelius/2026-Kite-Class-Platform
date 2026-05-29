@@ -358,4 +358,4 @@ Nếu bạn đang implement một PR cụ thể:
 
 ---
 
-**Last Updated**: 2026-02-27 (After PR 2.10.1 Storage Service documentation)
+**Last Updated**: 2026-05-29 (freshness review — folder index verified current)
