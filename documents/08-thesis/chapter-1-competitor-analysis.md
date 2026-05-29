@@ -15,9 +15,19 @@ Thị trường phần mềm quản lý trung tâm giáo dục Việt Nam tăng 
 
 Tuy nhiên, đa số trung tâm nhỏ và vừa (1-3 chi nhánh, dưới 500 học viên) vẫn dùng Excel kết hợp Zalo nhóm, thậm chí sổ ghi tay để quản lý. Lý do chính: phần mềm hiện có hoặc quá phức tạp (Cyber School, MISA EMIS [5] hướng đến trường công lập K-12), hoặc thiếu UX tiếng Việt (LMS quốc tế như Moodle, Canvas), hoặc chi phí cao không phù hợp với phân khúc trung tâm tự phát (Speed Manager, EduCom với mức 50-100 USD/tháng/cơ sở).
 
+### 1.1.1 Bối cảnh thị trường và mô hình học hỗn hợp
+
+Trung tâm dạy thêm tại Việt Nam vận hành theo mô hình học hỗn hợp (B-learning, blended learning) — kết hợp lớp học sau giờ chính khóa và cuối tuần, phân biệt với trường công lập chính khóa. Thị trường mục tiêu của đồ án là các trung tâm vừa và nhỏ với 50-500 học sinh; phạm vi K-12 (giáo dục phổ thông từ mầm non đến lớp 12) trường công có lớp tuân thủ pháp lý riêng (cán bộ bảo vệ dữ liệu DPO, đánh giá tác động bảo vệ dữ liệu DPIA, kiểm tra an ninh) được lùi sang giai đoạn vận hành chính thức.
+
+Đặc điểm mô hình học hỗn hợp tại Việt Nam theo Báo cáo Kinh tế Số Việt Nam 2024 [4, tr.42]: *"Hơn 90% phụ huynh đô thị sử dụng Zalo group chat làm kênh chính trao đổi với trung tâm; email phục vụ tài liệu chính thức như hóa đơn và báo cáo."* Buổi học buổi tối và cuối tuần chiếm ưu thế (thứ 2 đến thứ 7 từ 17:00 đến 21:00; thứ 7 và Chủ nhật từ 8:00 đến 17:00). Niên khóa tháng 9 đến tháng 5 (năm học `2025-2026` ứng tháng 9/2025 đến tháng 5/2026) gồm học kỳ 1 (tháng 9 đến tháng 12), học kỳ 2 (tháng 1 đến tháng 5) và học kỳ hè (tháng 6 đến tháng 8). Mẹ là đầu mối liên lạc chính cho việc học của con (~60%), bố dự phòng (35%), ông bà (5%). Khung Tết Nguyên Đán nghỉ 7-10 ngày cuối tháng 1, đầu tháng 2 yêu cầu lịch chạy tự động tính phí bỏ qua. Giai đoạn thử nghiệm hỗ trợ email; tích hợp Zalo OA cho phụ huynh là lộ trình giai đoạn vận hành chính thức.
+
+### 1.1.2 Phân tích nhóm người dùng đại diện giai đoạn thử nghiệm
+
+Đồ án tập trung bốn nhóm người dùng đại diện. **P1 — Giáo viên độc lập** (28 tuổi, 5-50 học sinh, dạy IELTS/Toán) thay thế sổ tay giấy, Excel và Zalo thủ công bằng nền tảng tập trung, gói `FREE` đủ dùng. **P2 — Chủ sở hữu trung tâm** (35 tuổi, 20-100 học sinh, 2-5 giáo viên) thay ba công cụ rời rạc bằng nền tảng tích hợp, gói `STARTER` `500.000đ/tháng`. **P3 — Quản lý trung tâm** (24 tuổi, 100-500 học sinh, 5-15 giáo viên) cần nhập hàng loạt từ tệp CSV khoảng 300 dòng, phân quyền theo vai trò (vai trò quản lý không thấy mục thanh toán), nhật ký kiểm toán đầy đủ, gói `PRO` `1.500.000đ/tháng`. **Phụ huynh và học sinh** — phụ huynh nhận thông báo email cho tài liệu chính thức trong giai đoạn thử nghiệm và nhóm Zalo cho cập nhật thường xuyên ở giai đoạn vận hành chính thức; học sinh truy cập qua thiết bị di động chiếm 85% phiên.
+
 ## 1.2 Khảo sát
 
-Để xác định cơ hội và định vị sản phẩm, đề tài tiến hành khảo sát hai khía cạnh bổ trợ: các sản phẩm phần mềm quản lý trung tâm hiện có trên thị trường, và nhu cầu thực tế từ các nhóm người dùng cuối. Phần điều tra đối thủ dưới đây phân tích bốn sản phẩm tiêu biểu trong phân khúc trung tâm giáo dục tư nhân — BeeClass, Mona eLMS, Easy Edu và DotB — theo các tiêu chí phân khúc mục tiêu, mức giá, kiến trúc, khả năng tích hợp AI và mức tuân thủ pháp luật Việt Nam.
+Để xác định cơ hội và định vị sản phẩm, đề tài tiến hành khảo sát hai khía cạnh bổ trợ: các sản phẩm phần mềm quản lý trung tâm hiện có trên thị trường, và nhu cầu thực tế từ các nhóm người dùng cuối. Phần khảo sát các hệ thống tham khảo dưới đây phân tích bốn sản phẩm tiêu biểu trong phân khúc trung tâm giáo dục tư nhân — BeeClass, Mona eLMS, Easy Edu và DotB — theo các tiêu chí phân khúc mục tiêu, mức giá, kiến trúc, khả năng tích hợp AI và mức tuân thủ pháp luật Việt Nam.
 
 ### 1.2.1 BeeClass — phần mềm quản lý trung tâm tiếng Anh phổ biến
 
@@ -28,7 +38,7 @@ Tuy nhiên, đa số trung tâm nhỏ và vừa (1-3 chi nhánh, dưới 500 h�
 **Hình 1.1.** Giao diện trang chủ BeeClass — phần mềm quản lý trung tâm tiếng Anh phổ biến tại Việt Nam.
 *Nguồn: https://beeclass.com, truy cập ngày 20/05/2026.*
 
-Thế mạnh chính của BeeClass là giao diện tiếng Việt thân thiện và hỗ trợ workflow đặc thù của trung tâm tiếng Anh (lịch lớp định kỳ theo tuần, đăng ký lớp thử miễn phí, theo dõi tiến độ học viên theo từng kỹ năng nghe-nói-đọc-viết). Mức giá tham khảo công bố nằm trong khoảng 1-3 triệu đồng/tháng tùy gói và số lượng học viên. Điểm yếu chính của BeeClass tương tự các sản phẩm trong phân khúc: kiến trúc single-tenant theo từng trung tâm (mỗi khách hàng có instance database riêng, khó mở rộng khi trung tâm mở chi nhánh thứ 5 trở lên); chưa có tính năng AI sinh tài nguyên branding; onboarding yêu cầu liên hệ bộ phận kinh doanh chứ chưa hoàn toàn tự phục vụ; mức giá tuy phải chăng hơn các sản phẩm enterprise nhưng vẫn cao hơn mức 500.000đ/tháng mà phân khúc trung tâm tự phát nhỏ kỳ vọng.
+Thế mạnh chính của BeeClass là giao diện tiếng Việt thân thiện và hỗ trợ quy trình đặc thù của trung tâm tiếng Anh (lịch lớp định kỳ theo tuần, đăng ký lớp thử miễn phí, theo dõi tiến độ học viên theo từng kỹ năng nghe-nói-đọc-viết). Mức giá tham khảo công bố nằm trong khoảng 1-3 triệu đồng/tháng tùy gói và số lượng học viên. Điểm yếu chính của BeeClass tương tự các sản phẩm trong phân khúc: kiến trúc đơn tenant (single-tenant) — mỗi khách hàng có một thực thể cơ sở dữ liệu riêng, khó mở rộng khi trung tâm mở chi nhánh thứ năm trở lên; chưa có tính năng tự sinh tài nguyên thương hiệu bằng AI; quy trình khởi tạo yêu cầu liên hệ bộ phận kinh doanh chứ chưa hoàn toàn tự phục vụ; mức giá tuy phải chăng hơn các sản phẩm hướng doanh nghiệp nhưng vẫn cao hơn mức 500.000đ/tháng mà phân khúc trung tâm tự phát nhỏ kỳ vọng.
 
 ### 1.2.2 Mona eLMS — chuyên ngoại ngữ và tin học
 
@@ -50,7 +60,7 @@ Thế mạnh nổi bật của Mona là ứng dụng di động native iOS và A
 **Hình 1.3.** Giao diện trang chủ Easy Edu — phần mềm quản lý trung tâm ngoại ngữ phổ biến phân khúc vừa và nhỏ.
 *Nguồn: https://easyedu.vn, truy cập ngày 20/05/2026.*
 
-Tập tính năng đầy đủ gồm quản lý học viên, lớp học, học phí, điểm danh, báo cáo, tích hợp Zalo OA, ứng dụng di động cho phụ huynh, với mức giá phải chăng từ 800.000 đồng/tháng cho gói cơ bản phục vụ 200 học viên. Điểm yếu chính: kiến trúc single-tenant theo từng trung tâm (khó mở rộng nhượng quyền), không có khả năng tự sinh tài nguyên branding bằng AI, onboarding yêu cầu liên hệ bộ phận kinh doanh chứ chưa tự phục vụ.
+Tập tính năng đầy đủ gồm quản lý học viên, lớp học, học phí, điểm danh, báo cáo, tích hợp Zalo OA, ứng dụng di động cho phụ huynh, với mức giá phải chăng từ 800.000 đồng/tháng cho gói cơ bản phục vụ 200 học viên. Điểm yếu chính: kiến trúc đơn tenant theo từng trung tâm (khó mở rộng nhượng quyền), không có khả năng tự sinh tài nguyên thương hiệu bằng AI, quy trình khởi tạo yêu cầu liên hệ bộ phận kinh doanh chứ chưa tự phục vụ.
 
 ### 1.2.4 DotB — phân khúc tầm trung và trường tư thục
 
@@ -65,7 +75,7 @@ Thế mạnh đặc thù của DotB là module CRM tích hợp phục vụ quả
 
 ### 1.2.5 Khảo sát nhu cầu sử dụng từ phía người dùng cuối
 
-Bên cạnh khảo sát các hệ thống đang có trên thị trường, đề tài tổng hợp nhu cầu sử dụng từ năm nhóm người dùng cuối (end-user) dựa trên các báo cáo ngành công khai. Phân tích này giúp xác định những tính năng cốt lõi cần ưu tiên trong giai đoạn đầu của hệ thống đề xuất.
+Bên cạnh khảo sát các hệ thống đang có trên thị trường, đề tài tổng hợp nhu cầu sử dụng từ năm nhóm người dùng cuối dựa trên các báo cáo ngành công khai. Phân tích này giúp xác định những tính năng cốt lõi cần ưu tiên trong giai đoạn đầu của hệ thống đề xuất.
 
 *Chủ sở hữu trung tâm (Center Owner):* theo các báo cáo Magenest 2024 [2] và 6Wresearch 2024 [3] (cả hai truy cập ngày 20/05/2026), chủ sở hữu trung tâm vừa và nhỏ (1-10 chi nhánh, 100-2000 học viên) ưu tiên ba nhu cầu chính: (i) quản lý học phí và đối chiếu thanh toán tự động (khoảng 80% trung tâm vẫn dùng chuyển khoản ngân hàng kèm đối soát thủ công, chiếm 4-6 giờ/tuần làm việc văn phòng — theo báo cáo VECITA 2024 [4] truy cập ngày 20/05/2026); (ii) báo cáo doanh thu, tỷ lệ giữ chân học viên, chi phí vận hành theo thời gian thực để ra quyết định mở hoặc đóng lớp; (iii) chi phí phần mềm thấp dưới 1,5 triệu đồng/tháng phù hợp biên lợi nhuận hiện hành 25-30%.
 
@@ -77,7 +87,7 @@ Bên cạnh khảo sát các hệ thống đang có trên thị trường, đề
 
 *Học viên:* nhóm học viên (đa số là thanh thiếu niên 10-18 tuổi) cần truy cập tài liệu học tập, lịch học cá nhân, lịch bài kiểm tra và thông báo điểm danh trên thiết bị di động. Báo cáo VECITA 2024 [4] (truy cập ngày 20/05/2026) cho biết khoảng 92% học viên Việt Nam có smartphone từ độ tuổi 12; tuy nhiên các hệ thống đang có trên thị trường chủ yếu phục vụ phía quản trị, chưa thiết kế giao diện riêng cho học viên độc lập với phụ huynh.
 
-Tổng hợp năm nhóm end-user cho thấy nhu cầu chung là một nền tảng đa-persona (multi-persona) với phân quyền rõ ràng theo vai trò, giá thấp phù hợp phân khúc nhỏ và vừa, tích hợp Zalo cho kênh giao tiếp với phụ huynh — tất cả các tiêu chí này đều được xem xét trong định hướng kiến trúc hệ thống đề xuất.
+Tổng hợp năm nhóm người dùng cuối cho thấy nhu cầu chung là một nền tảng phục vụ nhiều nhóm vai trò khác nhau (đa nhóm người dùng đại diện) với phân quyền rõ ràng theo vai trò, giá thấp phù hợp phân khúc nhỏ và vừa, tích hợp Zalo cho kênh giao tiếp với phụ huynh — tất cả các tiêu chí này đều được xem xét trong định hướng kiến trúc hệ thống đề xuất.
 
 ### 1.2.6 Bảng so sánh tổng hợp
 
@@ -105,7 +115,7 @@ Khoảng trống thị trường mà đề tài hướng đến là *trung tâm 
 
 Dựa trên phân tích bốn hệ thống tham khảo, hệ thống đề xuất trong đề tài có bốn yếu tố khác biệt chính.
 
-*Thứ nhất, kiến trúc multi-tenant gốc:* cả năm hệ thống tham khảo đều dùng triển khai single-tenant với mỗi khách hàng tương ứng một instance cơ sở dữ liệu riêng. Khi trung tâm mở rộng lên năm chi nhánh trở lên, chủ sở hữu trung tâm phải cấp phát thêm instance, đồng bộ dữ liệu thủ công và sao chép cấu hình. Hệ thống đề xuất sử dụng kiến trúc multi-tenant gốc với cô lập ở mức cơ sở dữ liệu (schema-per-tenant), cho phép một trung tâm có 100 chi nhánh trên cùng một instance, tiết kiệm khoảng 80% chi phí hạ tầng khi mở rộng.
+*Thứ nhất, kiến trúc đa tenant nguyên bản:* cả năm hệ thống tham khảo đều triển khai theo mô hình đơn tenant — mỗi khách hàng tương ứng một thực thể cơ sở dữ liệu riêng. Khi trung tâm mở rộng lên năm chi nhánh trở lên, chủ sở hữu trung tâm phải cấp phát thêm thực thể, đồng bộ dữ liệu thủ công và sao chép cấu hình. Hệ thống đề xuất sử dụng kiến trúc đa tenant nguyên bản với cô lập ở mức cơ sở dữ liệu (mỗi tenant một schema riêng), cho phép một trung tâm có 100 chi nhánh trên cùng một thực thể, tiết kiệm khoảng 80% chi phí hạ tầng khi mở rộng.
 
 *Thứ hai, AI Branding tự động:* chủ sở hữu trung tâm mới khai trương thường tốn 2-5 triệu đồng thuê thiết kế viên cho logo, banner và hero image marketing. AI Branding của hệ thống đề xuất tự động sinh các tài nguyên này từ prompt văn bản và màu thương hiệu, giảm thời gian sẵn sàng vận hành từ 1-2 tuần xuống còn vài giờ. Cả năm hệ thống tham khảo đều không có tính năng này.
 
@@ -115,6 +125,6 @@ Dựa trên phân tích bốn hệ thống tham khảo, hệ thống đề xuấ
 
 ### 1.3.2 Cơ hội và rủi ro chiến lược
 
-*Cơ hội thị trường:* phân khúc trung tâm nhỏ (1-3 chi nhánh, 100-500 học viên) chiếm khoảng 60% thị trường nhưng đa số hệ thống hiện hữu nhắm vào phân khúc trung và lớn — mô hình product-led growth (PLG) có thể bắt đầu từ phân khúc này và mở rộng lên cao hơn khi sản phẩm trưởng thành. Thời hạn PDPL 2026-07-01 yêu cầu hơn 50.000 trung tâm phải tuân thủ trong khoảng bảy tuần (đến cuối tháng 6/2026), tạo lợi thế cạnh tranh tại thời điểm vàng cho hệ thống đề xuất với tuân thủ built-in. Bên cạnh đó, mô hình nhượng quyền (Apollo English, ILA, Wall Street English) đang phát triển — kiến trúc multi-tenant phù hợp với lộ trình mở rộng nhượng quyền tốt hơn so với kiến trúc single-tenant.
+*Cơ hội thị trường:* phân khúc trung tâm nhỏ (1-3 chi nhánh, 100-500 học viên) chiếm khoảng 60% thị trường nhưng đa số hệ thống hiện hữu nhắm vào phân khúc trung và lớn — mô hình tăng trưởng dẫn dắt bởi sản phẩm (PLG — Product-Led Growth) có thể bắt đầu từ phân khúc này và mở rộng lên cao hơn khi sản phẩm trưởng thành. Thời hạn PDPL ngày 01/07/2026 yêu cầu hơn 50.000 trung tâm phải tuân thủ trong khoảng bảy tuần (đến cuối tháng 6/2026), tạo lợi thế cạnh tranh tại thời điểm vàng cho hệ thống đề xuất với khả năng tuân thủ tích hợp sẵn. Bên cạnh đó, mô hình nhượng quyền (Apollo English, ILA, Wall Street English) đang phát triển — kiến trúc đa tenant phù hợp với lộ trình mở rộng nhượng quyền tốt hơn so với kiến trúc đơn tenant.
 
-*Rủi ro chính:* việc lùi ứng dụng di động native và tích hợp Zalo ZNS sang các phiên bản sau có rủi ro mất khách so với Mona eLMS và Easy Edu vốn đã có ứng dụng native — giải pháp giảm thiểu là web responsive kết hợp Zalo group chat trong phiên bản đầu, ưu tiên ứng dụng native ở phiên bản kế tiếp. Cổng thanh toán cũng là điểm yếu khi DotB có sẵn ba cổng tích hợp — phiên bản đầu của hệ thống đề xuất sử dụng chuyển khoản ngân hàng kết hợp VietQR (không cần cổng), phiên bản kế tiếp hợp tác với một cổng chính (VNPay). Cuối cùng, nhận diện thương hiệu là rào cản khi Easy Edu và Mona eLMS có nhiều năm hiện diện thị trường trong khi hệ thống đề xuất mới ra mắt — giải pháp giảm thiểu là tiếp cận PLG, marketing nội dung tiếng Việt và chương trình người dùng tiên phong với các trung tâm beta.
+*Rủi ro chính:* việc lùi ứng dụng di động gốc và tích hợp Zalo ZNS sang các phiên bản sau có rủi ro mất khách so với Mona eLMS và Easy Edu vốn đã có ứng dụng gốc — giải pháp giảm thiểu là giao diện web đáp ứng kết hợp nhóm Zalo trong phiên bản đầu, ưu tiên ứng dụng gốc ở phiên bản kế tiếp. Cổng thanh toán cũng là điểm yếu khi DotB có sẵn ba cổng tích hợp — phiên bản đầu của hệ thống đề xuất sử dụng chuyển khoản ngân hàng kết hợp VietQR (không cần cổng), phiên bản kế tiếp hợp tác với một cổng chính (VNPay). Cuối cùng, nhận diện thương hiệu là rào cản khi Easy Edu và Mona eLMS có nhiều năm hiện diện thị trường trong khi hệ thống đề xuất mới ra mắt — giải pháp giảm thiểu là tiếp cận tăng trưởng dẫn dắt bởi sản phẩm, tiếp thị nội dung tiếng Việt và chương trình người dùng tiên phong với các trung tâm thử nghiệm.

@@ -71,7 +71,7 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 | Maintainability | Maintainability (Modularity, Reusability, Modifiability, Testability) |
 | Cost | (Bổ sung ngoài ISO 25010, ràng buộc kinh tế của giai đoạn thử nghiệm) |
 
-**Performance.** Tác giả đặt mục tiêu hiệu năng cho giai đoạn thử nghiệm như sau:
+**Performance.** Mục tiêu hiệu năng cho giai đoạn thử nghiệm được đặt như sau:
 
 | Chỉ số | Mục tiêu | Phương pháp đo |
 |---|---|---|
@@ -144,41 +144,20 @@ Khả năng mở rộng theo chiều ngang qua sub-split:
 
 Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: khóa luận lựa chọn mô hình single-bucket multi-tenant với RLS (Pattern 4) thay vì per-tenant DB (Pattern 1) — chênh lệch chi phí khoảng 20× và chi phí vận hành tăng tuyến tính theo số tenant, không phù hợp với phân khúc trung tâm SMB ở giai đoạn thử nghiệm (chi tiết §2.2.3).
 
-### 2.1.3 Bối cảnh thị trường mục tiêu
+**Đặc trưng thị trường Việt Nam và hệ quả NFR.** Bối cảnh người dùng được trình bày tại Chương 1 §1.1 trực tiếp ảnh hưởng tới NFR thuộc nhóm Compatibility (i18n locale, định dạng tiền tệ, ngày tháng), Usability (xưng hô email phù hợp vai trò, kênh giao tiếp Zalo cho phụ huynh) và Reliability (khung lịch tải đỉnh buổi tối, cron tính phí bỏ qua khung Tết). Bảng 2.3 ánh xạ các đặc trưng này sang yêu cầu thiết kế cụ thể.
 
-**Mô hình B-learning Việt Nam.** Trung tâm dạy thêm tại Việt Nam vận hành theo mô hình học thêm sau giờ chính khóa và cuối tuần — phân biệt với trường công lập chính khóa. Thị trường mục tiêu của đồ án là các trung tâm vừa và nhỏ với 50-500 học sinh; phạm vi K-12 trường công có lớp tuân thủ pháp lý riêng (DPO, DPIA, kiểm tra an ninh) được lùi sang giai đoạn vận hành chính thức.
+**Bảng 2.3.** Đặc trưng thị trường Việt Nam và hệ quả NFR thiết kế.
 
-Đặc điểm B-learning tại Việt Nam theo Báo cáo Kinh tế Số Việt Nam 2024 [4, tr.42]: *"Hơn 90% phụ huynh đô thị sử dụng Zalo group chat làm kênh chính trao đổi với trung tâm; email phục vụ tài liệu chính thức như hóa đơn và báo cáo."* Buổi học buổi tối và cuối tuần chiếm ưu thế (thứ 2-7 từ 17:00-21:00; thứ 7-CN 8:00-17:00) — bảng `class_schedule_slots` mặc định cấu hình 6 ngày/tuần. Niên khóa 9-5 (năm học `2025-2026` ứng tháng 9/2025 đến tháng 5/2026) gồm HK1 (9-12), HK2 (1-5), HK_Hè (6-8). Mẹ là đầu mối liên lạc chính cho việc học của con (~60%), bố dự phòng (35%), ông bà (5%). Khung Tết Nguyên Đán nghỉ 7-10 ngày cuối tháng 1 — đầu tháng 2 yêu cầu cron tính phí bỏ qua. Giai đoạn thử nghiệm hỗ trợ email; tích hợp Zalo OA cho phụ huynh là lộ trình giai đoạn vận hành chính thức.
-
-**Phân tích persona giai đoạn thử nghiệm.** Đồ án tập trung 4 persona chính. **P1 Giáo viên độc lập** (28 tuổi, 5-50 học sinh, dạy IELTS/Toán) — thay thế sổ tay giấy + Excel + Zalo thủ công, gói FREE đủ dùng. **P2 Chủ sở hữu trung tâm** (35 tuổi, 20-100 học sinh, 2-5 giáo viên) — thay 3 công cụ rời rạc bằng platform tích hợp, gói STARTER `500.000đ/tháng`. **P3 Quản lý trung tâm** (24 tuổi, 100-500 học sinh, 5-15 giáo viên) — cần bulk import CSV ~300 dòng, phân quyền theo vai trò (manager không thấy mục thanh toán), audit log, gói PRO `1.500.000đ/tháng`. **Phụ huynh và học sinh** — phụ huynh nhận thông báo email cho tài liệu chính thức (giai đoạn thử nghiệm) + Zalo group cho cập nhật thường xuyên (giai đoạn vận hành chính thức); học sinh truy cập mobile chiếm 85% phiên.
-
-**Đặc trưng thị trường giáo dục Việt Nam.** Bảng 2.3 tổng hợp đặc trưng thị trường ảnh hưởng tới quyết định kiến trúc — locale mặc định `vi-VN`, ma trận xưng hô email phù hợp vai trò ("Em chào chị Hằng" trang trọng cho Owner, "Chào em" thân mật cho giáo viên độc lập).
-
-**Bảng 2.3.** Đặc trưng thị trường giáo dục Việt Nam và hệ quả thiết kế.
-
-| Khía cạnh | Quy ước Việt Nam | Hệ quả thiết kế |
+| Khía cạnh | Quy ước Việt Nam | Hệ quả NFR |
 |---|---|---|
-| Tiền tệ | VND `1.500.000đ` (dấu chấm phân tách hàng nghìn) | Format VND bắt buộc trên mọi giao diện, hóa đơn, dashboard |
-| Định dạng ngày | `Thứ Hai, 14/05/2026` dạng dài; `14/05/2026` dạng ngắn | i18n qua `DateTimeFormatter` của Spring Boot |
-| Đầu mối phụ huynh | Mẹ chính (60%) + bố (35%) + ông bà (5%) | Bảng `parents` hỗ trợ nhiều liên hệ với cờ chính |
-| Thanh toán | Chuyển khoản Vietcombank/Techcombank/MB (~70%) + tiền mặt (~20%) + QR (~10%) | Giai đoạn thử nghiệm VietQR; mở rộng VNPay/MoMo giai đoạn vận hành chính thức |
-| Thuật ngữ chức danh | `Hiệu trưởng`, `Quản lý`, `GVCN` (giáo viên chủ nhiệm) | Phân loại vai trò theo quy ước Việt Nam |
-| Giờ làm việc | Thứ 2 — Thứ 7, 17:00-21:00 buổi tối | Schedule slot mặc định 6 ngày, đỉnh tải buổi tối |
-| Giao tiếp | Zalo group chat (~90% adoption) > SMS > email | Tích hợp Zalo OA cho phụ huynh là yêu cầu giai đoạn vận hành chính thức |
-| Ngày nghỉ | Tết 7-10 ngày; 30/4-1/5; nghỉ hè tháng 6-8 | Cron tính phí + lịch lớp bỏ qua khung Tết |
-
-**Định vị cạnh tranh.** Tham khảo phân tích Chương 1, Kite Platform đối sánh với hệ thống tương tự trong nhóm SaaS giáo dục Việt Nam (Bảng 2.4).
-
-**Bảng 2.4.** So sánh với hệ thống tương tự trong nhóm SaaS giáo dục Việt Nam.
-
-| Hệ thống tham khảo | Đối tượng chính | Mức phí | Điểm mạnh | Hướng tiếp cận của đồ án |
-|---|---|---|---|---|
-| MISA EMIS | Trường công + tư K-12 | Báo giá doanh nghiệp | Tích hợp Bộ Giáo dục | Tập trung trung tâm dạy thêm SMB, không cạnh tranh K-12 ở giai đoạn thử nghiệm |
-| Mona Media | Chuỗi trung tâm Anh ngữ | `2-5 triệu/tháng` | Marketing + CRM | Multi-tenant SaaS từ gốc + AI Branding + STARTER `500.000đ/tháng` hợp lý |
-| Easy Edu | Trung tâm vừa và nhỏ | `1-3 triệu/tháng` | Giao diện đơn giản | Bổ sung AI Branding + Zalo-native (giai đoạn vận hành chính thức) + RLS phòng thủ chiều sâu |
-| DotB | Cả K-12 và trung tâm | Tùy biến | Toàn diện | Tập trung trung tâm dạy thêm theo chiều dọc, không cố cạnh tranh K-12 |
-
-Định vị tổng quát: nền tảng SaaS đa tenant nguyên bản cho trung tâm dạy thêm SMB Việt Nam, AI-powered branding, giao tiếp Zalo-native (giai đoạn vận hành chính thức), mức giá khởi điểm `500.000đ/tháng`.
+| Tiền tệ | VND `1.500.000đ` (dấu chấm phân tách hàng nghìn) | Compatibility: format VND bắt buộc trên mọi giao diện, hóa đơn, dashboard |
+| Định dạng ngày | `Thứ Hai, 14/05/2026` dạng dài; `14/05/2026` dạng ngắn | Compatibility: i18n qua `DateTimeFormatter` của Spring Boot |
+| Đầu mối phụ huynh | Mẹ chính (60%) + bố (35%) + ông bà (5%) | Usability: bảng `parents` hỗ trợ nhiều liên hệ với cờ chính |
+| Thanh toán | Chuyển khoản Vietcombank/Techcombank/MB (~70%) + tiền mặt (~20%) + QR (~10%) | Functional Suitability: giai đoạn thử nghiệm VietQR; mở rộng VNPay/MoMo giai đoạn vận hành chính thức |
+| Thuật ngữ chức danh | `Hiệu trưởng`, `Quản lý`, `GVCN` (giáo viên chủ nhiệm) | Usability: phân loại vai trò theo quy ước Việt Nam |
+| Giờ làm việc | Thứ 2 — Thứ 7, 17:00-21:00 buổi tối | Performance: lịch slot mặc định 6 ngày, đỉnh tải buổi tối |
+| Giao tiếp | Zalo group chat (~90% adoption) > SMS > email | Usability: tích hợp Zalo OA cho phụ huynh là yêu cầu giai đoạn vận hành chính thức |
+| Ngày nghỉ | Tết 7-10 ngày; 30/4-1/5; nghỉ hè tháng 6-8 | Reliability: cron tính phí + lịch lớp bỏ qua khung Tết |
 
 ---
 
@@ -322,9 +301,9 @@ Prefix `kite-` (thay vì `kitehub-` hay `kiteclass-`) phản ánh bản chất d
 
 ### 2.2.3 Quyết định pattern đa tenant — single-bucket + RLS
 
-Quyết định kiến trúc trọng tâm của đồ án là chọn mô hình cô lập đa tenant. Em đã đánh giá 6 pattern khác nhau trên 6 trục tiêu chí và lựa chọn **Shared Database + cột `tenant_id` UUID + PostgreSQL Row-Level Security (RLS)** — tương ứng "Pool" model theo AWS Well-Architected SaaS Lens [26, tr.21] (đối lập với "Silo" per-tenant DB và "Bridge" per-tenant schema). AWS định nghĩa [26, tr.21]: *"Pool isolation enables tenants to share infrastructure but rely on logical mechanisms (such as row-level security policies in databases) to ensure data isolation between tenants; this model often yields the lowest operational cost but requires careful design of the isolation layer."*
+Quyết định kiến trúc trọng tâm của đồ án là chọn mô hình cô lập đa tenant. Đồ án đánh giá 6 pattern khác nhau trên 6 trục tiêu chí và lựa chọn **Shared Database + cột `tenant_id` UUID + PostgreSQL Row-Level Security (RLS)** — tương ứng "Pool" model theo AWS Well-Architected SaaS Lens [26, tr.21] (đối lập với "Silo" per-tenant DB và "Bridge" per-tenant schema). AWS định nghĩa [26, tr.21]: *"Pool isolation enables tenants to share infrastructure but rely on logical mechanisms (such as row-level security policies in databases) to ensure data isolation between tenants; this model often yields the lowest operational cost but requires careful design of the isolation layer."*
 
-**Bảng 2.5.** Sáu pattern đa tenant và lý do chọn/loại.
+**Bảng 2.4.** Sáu pattern đa tenant và lý do chọn/loại.
 
 | Pattern | Lý do chọn/loại |
 |---|---|
@@ -345,7 +324,7 @@ Quyết định kiến trúc trọng tâm của đồ án là chọn mô hình c
 - **Vị thế tuân thủ (PDPL + ISO27001):** 5 = cô lập vật lý đáp ứng mọi yêu cầu pháp lý nghiêm ngặt; 4 = cô lập logic mạnh + audit trail đầy đủ + có khả năng chứng minh trong kiểm toán; 2 = không có cơ chế chặn cứng, phụ thuộc kỷ luật ứng dụng.
 - **Chi phí chuyển đổi từ hiện trạng:** 5 = không cần thay đổi schema hiện tại, chỉ thêm chính sách RLS + cột `tenant_id`; 3 = cần refactor một phần (vd tách schema per tenant); 1 = cần migrate dữ liệu sang kiến trúc khác (vd N-database, serverless).
 
-**Bảng 2.6.** Ma trận so sánh 6 pattern trên 6 trục (Pattern 4 đạt tổng 26/30 cho giai đoạn thử nghiệm).
+**Bảng 2.5.** Ma trận so sánh 6 pattern trên 6 trục (Pattern 4 đạt tổng 26/30 cho giai đoạn thử nghiệm).
 
 | Trục đánh giá | P1 Per-DB | P2 Per-schema | P3 ID only | **P4 RLS** | P5 Hybrid | P6 Serverless |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -426,7 +405,7 @@ Trên cơ sở dữ liệu hiện tại với 91 bảng (32 thuộc `kitehub-sub
 Hai cơ chế hardening quan trọng:
 
 1. **NULL force-fail policy:** nếu GUC `app.current_tenant_id` chưa được set, `current_setting('...', true)` trả về NULL, khiến mệnh đề `tenant_id = NULL` rơi vào logic SQL ternary trả NULL — không filter row, gây leak ngầm. Thêm `AND current_setting(...) IS NOT NULL` khiến truy vấn trả 0 row thay vì tất cả, buộc bug lộ ra ngay trong test.
-2. **HikariCP GUC reset:** HikariCP tái sử dụng kết nối từ pool. Nếu kết nối N được set `app.current_tenant_id = A` rồi trả về pool, kết nối kế tiếp có thể "kế thừa" ngữ cảnh tenant A. Tác giả khắc phục bằng `SET LOCAL` (giới hạn theo transaction, tự reset khi commit/rollback) cùng `connectionInitSql: RESET app.current_tenant_id` mỗi khi kết nối quay về pool.
+2. **HikariCP GUC reset:** HikariCP tái sử dụng kết nối từ pool. Nếu kết nối N được set `app.current_tenant_id = A` rồi trả về pool, kết nối kế tiếp có thể "kế thừa" ngữ cảnh tenant A. Vấn đề được khắc phục bằng `SET LOCAL` (giới hạn theo transaction, tự reset khi commit/rollback) cùng `connectionInitSql: RESET app.current_tenant_id` mỗi khi kết nối quay về pool.
 
 ### 2.2.5 Quy trình xác thực — JWT + role-guard + truyền ngữ cảnh tenant
 
@@ -510,7 +489,7 @@ flowchart TD
 
 Hệ thống xử lý hai đường yêu cầu song song. Đường thứ nhất phục vụ giao diện: trình duyệt gọi `GET /` tới ứng dụng Next.js, ứng dụng này tự lấy dữ liệu landing của tenant thông qua gateway. Đường thứ hai phục vụ dữ liệu: mọi yêu cầu `/api/**` đi qua gateway, nơi bộ lọc phân giải tenant đọc trường Host và ánh xạ thành định danh tenant theo bốn bước ưu tiên: thứ nhất là header nội bộ dành cho môi trường phát triển, thứ hai là so khớp hậu tố subdomain với tên miền gốc đã cấu hình, thứ ba là tra cứu theo tên miền riêng, và thứ tư là lấy từ claim của JWT làm phương án dự phòng. Sau khi xác định tenant, gateway gắn header `X-Tenant-Id` dạng UUID và kiểm tra trạng thái tenant phải là ACTIVE hoặc TRIAL trước khi chuyển tiếp tới dịch vụ lõi; nếu trạng thái khác, gateway trả về mã 503 để chặn truy cập vào tenant bị tạm ngưng.
 
-Bảng 2.9 so sánh hai phương thức truy cập theo các tiêu chí cấp phát, DNS, chứng chỉ SSL và xác minh quyền sở hữu.
+Bảng 2.6 so sánh hai phương thức truy cập theo các tiêu chí cấp phát, DNS, chứng chỉ SSL và xác minh quyền sở hữu.
 
 | Tiêu chí | Subdomain `{slug}.kitehub.me` | Tên miền riêng `skyedu.vn` |
 |---|---|---|
@@ -519,7 +498,7 @@ Bảng 2.9 so sánh hai phương thức truy cập theo các tiêu chí cấp ph
 | Chứng chỉ SSL | Dùng chứng chỉ wildcard sẵn có | Cloudflare for SaaS tự cấp qua xác thực DCV |
 | Xác minh quyền sở hữu | Không cần | Bản ghi CNAME/TXT tách khỏi bản ghi định tuyến |
 
-**Bảng 2.9.** So sánh subdomain và tên miền riêng trong cơ chế định tuyến đa tenant.
+**Bảng 2.6.** So sánh subdomain và tên miền riêng trong cơ chế định tuyến đa tenant.
 
 Hình 2.4d trình bày tuần tự phân giải tenant theo subdomain, từ yêu cầu trình duyệt đến dữ liệu landing được lọc bởi RLS.
 

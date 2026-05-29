@@ -13,15 +13,15 @@ status: draft
 
 ### 1.3.1 Bối cảnh AI trong giáo dục SaaS
 
-Trí tuệ nhân tạo, đặc biệt là các mô hình ngôn ngữ lớn (LLM) như GPT-3 [12] và các mô hình diffusion sinh ảnh như Stable Diffusion [13], đã tạo ra cuộc cách mạng trong nhiều ngành công nghiệp giai đoạn 2022-2026. Ngành giáo dục không ngoại lệ. Theo báo cáo 6Wresearch [3], thị trường EdTech Việt Nam dự báo tăng trưởng CAGR 12-15% giai đoạn 2024-2030, trong đó AI-powered features là yếu tố khác biệt cạnh tranh quan trọng cho SaaS phân khúc tier trung và cao.
+Trí tuệ nhân tạo, đặc biệt là các mô hình ngôn ngữ lớn (LLM — Large Language Model) như GPT-3 [12] và các mô hình khuếch tán sinh ảnh như Stable Diffusion [13], đã tạo ra cuộc cách mạng trong nhiều ngành công nghiệp giai đoạn 2022-2026. Ngành giáo dục không ngoại lệ. Theo báo cáo 6Wresearch [3], thị trường công nghệ giáo dục Việt Nam dự báo tăng trưởng kép hàng năm (CAGR — Compound Annual Growth Rate) 12-15% giai đoạn 2024-2030, trong đó các tính năng tích hợp AI là yếu tố khác biệt cạnh tranh quan trọng cho phần mềm dạng dịch vụ (SaaS) ở phân khúc trung và cao.
 
-Tuy nhiên, đa số phần mềm quản lý trung tâm giáo dục tại Việt Nam (MISA AMIS, Mona eLMS, Easy Edu, DotB — phân tích chi tiết trong Phần 1) hiện chưa tích hợp AI features. Đây là khoảng trống KiteHub khai thác qua chiến lược tích hợp AI từ giai đoạn đầu (AI Branding) và mở rộng dần qua các giai đoạn tiếp theo.
+Tuy nhiên, đa số phần mềm quản lý trung tâm giáo dục tại Việt Nam (MISA AMIS, Mona eLMS, Easy Edu, DotB — phân tích chi tiết trong Phần 1) hiện chưa tích hợp tính năng AI. Đây là khoảng trống mà KiteHub khai thác qua chiến lược tích hợp AI ngay từ giai đoạn đầu (mô-đun AI Branding) và mở rộng dần qua các giai đoạn tiếp theo.
 
-Quyết định kiến trúc của KiteHub: **sử dụng API LLM thương mại (Anthropic API, OpenAI API, Hugging Face Inference API, Stable Diffusion qua Replicate)** thay vì tự host mô hình. Lý do: (1) chi phí infrastructure GPU cao (tối thiểu $500-1000/tháng cho 1 GPU instance), (2) độ phức tạp vận hành (model serving, autoscaling, monitoring), (3) tốc độ phát triển cộng đồng AI quá nhanh — mô hình SOTA thay đổi mỗi 3-6 tháng, self-host = tech debt liên tục.
+Quyết định kiến trúc của KiteHub: **sử dụng API LLM thương mại (Anthropic API, OpenAI API, Hugging Face Inference API, Stable Diffusion qua Replicate)** thay vì tự vận hành mô hình. Lý do: (1) chi phí hạ tầng GPU cao (tối thiểu $500-1000/tháng cho một thực thể GPU), (2) độ phức tạp vận hành (phục vụ mô hình, tự co giãn, giám sát), (3) tốc độ phát triển cộng đồng AI quá nhanh — mô hình tiên tiến nhất thay đổi mỗi 3-6 tháng, tự vận hành đồng nghĩa với gánh nợ kỹ thuật liên tục.
 
 ### 1.3.2 Phương pháp 1 — AI Branding (text-to-image generation)
 
-AI Branding là feature flagship của KiteHub trong giai đoạn đầu, được thiết kế để eliminate cost thuê designer cho mọi trung tâm mới đăng ký. Khi Owner (chủ sở hữu trung tâm) onboard, họ điền form ngắn: tên trung tâm (`Trung tâm Anh ngữ Sky Education` (tên giả định)), domain primary (`anh ngữ`), tone brand (modern / classic / playful), brand color preference (`#1E40AF`). Sau ~30-60 giây, AI Branding sinh ra: (1) logo SVG cho trung tâm, (2) hero image PNG 1920x1080 cho landing page, (3) social banner PNG 1200x630 cho Facebook + Zalo Official Account.
+AI Branding là tính năng chủ lực của KiteHub trong giai đoạn đầu, được thiết kế để loại bỏ chi phí thuê nhà thiết kế cho mọi trung tâm mới đăng ký. Khi chủ sở hữu trung tâm khởi tạo tài khoản, họ điền biểu mẫu ngắn: tên trung tâm (`Trung tâm Anh ngữ Sky Education` (tên giả định)), miền nghiệp vụ chính (`anh ngữ`), phong cách thương hiệu (hiện đại / cổ điển / vui tươi), màu thương hiệu ưu tiên (`#1E40AF`). Sau khoảng 30-60 giây, AI Branding sinh ra: (1) logo SVG cho trung tâm, (2) ảnh nền dạng PNG 1920x1080 cho trang chủ, (3) banner mạng xã hội PNG 1200x630 cho Facebook và Zalo Official Account.
 
 #### 1.3.2.1 Kiến trúc kỹ thuật AI Branding
 
@@ -46,7 +46,7 @@ flowchart TD
     MinIO --> Notify[Notify Owner<br/>email + dashboard]
 ```
 
-Worker xử lý request asynchronous, không blocking user UI. Owner thấy progress indicator + có thể navigate sang task khác trong khi assets generation chạy background.
+Tiến trình Worker xử lý yêu cầu bất đồng bộ, không chặn giao diện người dùng. Chủ sở hữu trung tâm thấy thanh tiến độ và có thể chuyển sang tác vụ khác trong khi quá trình sinh tài nguyên chạy nền.
 
 #### 1.3.2.2 Kỹ thuật prompt engineering
 
@@ -153,45 +153,45 @@ KiteHub roadmap defer các AI features sau cho giai đoạn mở rộng (sau khi
 
 ### 1.3.5 AI development methodology
 
-KiteHub áp dụng test-driven development (TDD) [16] và domain-driven design (DDD) [17] cho AI feature development, tránh approach "ship first, fix later" thường thấy ở các AI startup. Cụ thể:
+KiteHub áp dụng phương pháp phát triển hướng kiểm thử (TDD — Test-Driven Development) [16] và thiết kế hướng miền nghiệp vụ (DDD — Domain-Driven Design) [17] cho quá trình phát triển tính năng AI, tránh tiếp cận "phát hành trước, sửa sau" thường thấy ở các công ty khởi nghiệp AI. Cụ thể:
 
-1. **Test-first cho AI integration:** mọi AI API call có integration test với mock response + edge case (rate limit 429, timeout 504, malformed response).
+1. **Kiểm thử trước cho tích hợp AI:** mọi lệnh gọi API AI đều có kiểm thử tích hợp với phản hồi giả lập và các tình huống biên (giới hạn tần suất 429, hết thời gian 504, phản hồi sai định dạng).
 
-2. **Bounded context cho AI domain:** AI features isolate trong dedicated microservice (`kitehub-branding`), không spread logic AI vào core services.
+2. **Ngữ cảnh giới hạn (bounded context) cho miền AI:** các tính năng AI được tách biệt trong một dịch vụ chuyên biệt (`kitehub-branding`), không phân tán logic AI vào các dịch vụ lõi khác.
 
-3. **Continuous quality monitoring:** AI Quality Gate audit log hàng tuần để track false-positive rate + false-negative rate.
+3. **Giám sát chất lượng liên tục:** mô-đun AI Quality Gate ghi nhật ký kiểm toán hàng tuần để theo dõi tỷ lệ dương tính giả và tỷ lệ âm tính giả.
 
-4. **Cost monitoring:** mỗi AI API call log cost (estimated từ token count hoặc image count) thì dashboard real-time alert nếu vượt budget threshold ($10/tháng cho Replicate, $20/tháng cho LLM API thương mại).
+4. **Giám sát chi phí:** mỗi lệnh gọi API AI đều được ghi nhận chi phí ước tính (từ số token đối với mô hình ngôn ngữ hoặc từ số ảnh đối với mô hình sinh ảnh); bảng tổng quan phát cảnh báo thời gian thực khi vượt ngưỡng ngân sách ($10/tháng cho Replicate, $20/tháng cho API thương mại).
 
-### 1.3.6 Ethical considerations
+### 1.3.6 Vấn đề đạo đức khi tích hợp AI
 
-Tích hợp AI cần xem xét nghiêm túc các yếu tố đạo đức + pháp lý:
+Tích hợp AI cần xem xét nghiêm túc các yếu tố đạo đức và pháp lý:
 
-#### 1.3.6.1 PDPL 2023 compliance
+#### 1.3.6.1 Tuân thủ Luật Bảo vệ Dữ liệu Cá nhân (PDPL 2023)
 
 Theo Luật Bảo vệ Dữ liệu Cá nhân Việt Nam 2023 [9] và Nghị định 13/2023/NĐ-CP [18], xử lý dữ liệu cá nhân bằng AI yêu cầu:
 
-- **Consent explicit** từ data subject (học viên / phụ huynh) trước khi đưa data vào training hoặc inference
-- **Right to explanation** — học viên có quyền yêu cầu giải thích quyết định AI (vd: lý do bị auto-grade điểm thấp)
-- **Right to opt-out** — học viên có thể từ chối AI features, system fallback sang manual workflow
-- **Data minimization** — chỉ collect dữ liệu thực sự cần thiết cho AI feature, không over-collect
+- **Đồng ý rõ ràng (explicit consent)** từ chủ thể dữ liệu (học viên hoặc phụ huynh) trước khi đưa dữ liệu vào huấn luyện hoặc suy luận
+- **Quyền yêu cầu giải thích** — học viên có quyền yêu cầu giải thích quyết định của AI (vd: lý do bị tự động chấm điểm thấp)
+- **Quyền từ chối** — học viên có thể từ chối các tính năng AI; hệ thống dự phòng chuyển sang quy trình thủ công
+- **Tối thiểu hóa dữ liệu** — chỉ thu thập dữ liệu thực sự cần thiết cho tính năng AI, tránh thu thập vượt mức
 
-AI Branding trong giai đoạn đầu của KiteHub không xử lý dữ liệu cá nhân học viên (chỉ generate logo/banner cho trung tâm) thì low PDPL risk. Các AI feature giai đoạn mở rộng (chatbot + auto-grading) sẽ cần consent flow + opt-out toggle trước khi launch.
+Trong giai đoạn đầu của KiteHub, AI Branding không xử lý dữ liệu cá nhân học viên (chỉ sinh logo và banner cho trung tâm) nên rủi ro PDPL ở mức thấp. Các tính năng AI ở giai đoạn mở rộng (chatbot và tự động chấm điểm) sẽ cần luồng đồng ý và tùy chọn từ chối trước khi ra mắt.
 
-#### 1.3.6.2 Bias mitigation
+#### 1.3.6.2 Giảm thiểu thiên kiến
 
-AI models có thể bias theo training data — vd: image generation model có thể stereotype "giáo viên" thành nam giới mặc vest trắng, không reflect diversity thực tế Việt Nam. Mitigation:
+Các mô hình AI có thể thiên lệch theo dữ liệu huấn luyện — ví dụ: mô hình sinh ảnh có thể định kiến "giáo viên" thành nam giới mặc vest trắng, không phản ánh sự đa dạng thực tế Việt Nam. Biện pháp giảm thiểu:
 
-- Diverse prompt templates explicitly inclusive (gender + ethnicity)
-- Human-in-the-loop review cho sensitive outputs
-- Quarterly bias audit của 50 random samples per AI feature
-- Document known biases trong product disclaimer
+- Mẫu prompt đa dạng và mang tính bao trùm (giới tính và sắc tộc)
+- Đánh giá có sự tham gia của con người (human-in-the-loop) cho các đầu ra nhạy cảm
+- Kiểm toán thiên kiến hàng quý trên 50 mẫu ngẫu nhiên cho mỗi tính năng AI
+- Công bố các thiên kiến đã biết trong tuyên bố từ chối trách nhiệm sản phẩm
 
-#### 1.3.6.3 Transparency với người dùng
+#### 1.3.6.3 Minh bạch với người dùng
 
-Mọi AI-generated content phải có disclosure rõ ràng:
-- Logo/banner generated by AI: footer text "Designed with AI" trong dashboard preview
-- Chatbot response: prefix "Trợ lý AI:" rõ ràng không giả vờ là human
-- Auto-grading: hiển thị "Chấm bằng AI" + cho phép student request human review
+Mọi nội dung do AI sinh ra phải được công bố rõ ràng:
+- Logo và banner do AI sinh: hiển thị dòng chân trang "Thiết kế bởi AI" trong giao diện xem trước
+- Phản hồi của chatbot: tiền tố "Trợ lý AI:" rõ ràng, không giả vờ là người
+- Tự động chấm điểm: hiển thị "Chấm bằng AI" và cho phép học viên yêu cầu giáo viên chấm lại
 
 <!-- §7 Kết luận chương 1 phần 2 — removed Wave 102.5 Item 5 per khung-chuẩn G15 renumber Ch.1 strict 1.X.Y.Z. Conclusion content backed up to chapter-1-conclusion-backup-2026-05-20.md. Single Ch.1 conclusion located at §1.7 (per UTC convention 1 chương 1 conclusion). -->

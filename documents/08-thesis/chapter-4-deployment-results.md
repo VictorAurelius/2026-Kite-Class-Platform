@@ -172,7 +172,7 @@ sequenceDiagram
 
 **Hình 4.2b.** Pha deploy — confirm-input gate, SSM SendCommand kích hoạt EC2 pull image + restart + smoke test.
 
-Bốn lựa chọn thiết kế nổi bật của pipeline bao gồm: ephemeral OIDC role (mỗi workflow run assume role mới với token 1 giờ, không hardcode AWS access key trong GitHub Secrets); narrow IAM scope (role `kitehub-deploy-role` chỉ có permission `ecr:Push` và `ssm:SendCommand` tới EC2 tag `Project=Kite`, không có quyền `ec2:Terminate` hay scope rộng hơn); confirm-input gate (workflow yêu cầu nhập `confirm=APPLY` verbatim để trigger, phòng ngừa deploy nhầm); và smoke admin-login post-deploy (sau deploy, smoke test gọi `POST /api/auth/login` với seeded admin credential, kỳ vọng 200 + JWT — bắt được lỗi class binding Postgres-specific mà unit test với H2 hoặc Mockito không phát hiện được).
+Bốn lựa chọn thiết kế nổi bật của đường ống triển khai bao gồm: vai trò OIDC tạm thời (mỗi lần chạy workflow đảm nhận một vai trò mới với token một giờ, không nhúng cứng AWS access key trong GitHub Secrets); phạm vi IAM thu hẹp (vai trò `kitehub-deploy-role` chỉ có quyền `ecr:Push` và `ssm:SendCommand` tới các EC2 mang nhãn `Project=Kite`, không có quyền `ec2:Terminate` hay phạm vi rộng hơn); cổng xác nhận đầu vào (workflow yêu cầu nhập `confirm=APPLY` nguyên văn để kích hoạt, phòng ngừa triển khai nhầm); và kiểm thử nhanh đăng nhập quản trị sau triển khai (kiểm thử gọi `POST /api/auth/login` với thông tin quản trị viên đã được khởi tạo sẵn, kỳ vọng mã 200 và JWT — bắt được lỗi liên kết kiểu đặc thù PostgreSQL mà kiểm thử đơn vị với H2 hoặc Mockito không phát hiện được).
 
 ### 4.1.5 Ước tính chi phí
 
@@ -211,18 +211,18 @@ Chế độ proxy (biểu tượng đám mây cam) được bật cho các bản
 
 ### 4.1.7 Trạng thái triển khai
 
-Tính đến thời điểm thực hiện đồ án: 71 resources terraform đã apply (CloudTrail captured); hai EC2 instance + RDS PostgreSQL multi-tenant schema RLS đã chạy; Cloudflare DNS đã cutover (kitehub.me trỏ về ALB) cùng bản ghi wildcard `*.kitehub.me` cho định tuyến landing đa tenant; cơ chế phân giải Tenant → Domain → Landing (mục 2.2.6) hoạt động trên lớp gateway, được minh chứng qua trang chủ công khai của tenant mẫu Sky Education với giao diện thương hiệu riêng (mục 4.2); AWS SES production mode đã được approve; CI/CD pipeline OIDC + ECR + SSM hoạt động đầy đủ; beta tenant invite mechanism đã sẵn sàng nhận yêu cầu.
+Tính đến thời điểm thực hiện đồ án: 71 tài nguyên Terraform đã áp dụng (CloudTrail ghi nhận đầy đủ); hai thực thể EC2 và RDS PostgreSQL đa tenant với RLS đã chạy; Cloudflare DNS đã chuyển đổi (kitehub.me trỏ về ALB) cùng bản ghi wildcard `*.kitehub.me` cho định tuyến trang chủ đa tenant; cơ chế phân giải Tenant → Domain → Landing (mục 2.2.6) hoạt động trên lớp gateway, được minh chứng qua trang chủ công khai của tenant mẫu Sky Education với giao diện thương hiệu riêng (mục 4.2); AWS SES đã được phê duyệt chế độ sản xuất; đường ống CI/CD OIDC + ECR + SSM hoạt động đầy đủ; cơ chế mời tenant thử nghiệm đã sẵn sàng nhận yêu cầu.
 
 ---
 
-## 4.2 Kết quả tương tác end-user + minh chứng
+## 4.2 Kết quả tương tác người dùng cuối và minh chứng
 
-[Placeholder — phần này sẽ điền sau khi thu thập feedback từ beta tenants trong giai đoạn launch invite (từ 2026-05-19 trở đi). Nội dung dự kiến:
+[Phần này sẽ điền sau khi thu thập phản hồi từ các tenant thử nghiệm trong giai đoạn mời chính thức (từ 2026-05-19 trở đi). Nội dung dự kiến:
 
-- Tổng kết các thao tác key đã được end-user thực hiện thành công (đăng ký tenant, cấu hình AI branding, quản lý lớp học, phát hành hóa đơn, theo dõi audit log).
-- Trích dẫn feedback xác nhận từ chủ sở hữu trung tâm và quản lý trung tâm về độ phù hợp của hệ thống với quy trình vận hành hiện tại.
-- Số liệu sử dụng thực tế (active users, AI branding generations, payment processed) trong cửa sổ 2-4 tuần đầu sau khi mời beta.
-- Screenshot minh chứng các luồng nghiệp vụ then chốt đã được tenant ký xác nhận đạt yêu cầu.
+- Tổng kết các thao tác chính đã được người dùng cuối thực hiện thành công (đăng ký tenant, cấu hình AI Branding, quản lý lớp học, phát hành hóa đơn, theo dõi nhật ký kiểm toán).
+- Trích dẫn phản hồi xác nhận từ chủ sở hữu trung tâm và quản lý trung tâm về độ phù hợp của hệ thống với quy trình vận hành hiện tại.
+- Số liệu sử dụng thực tế (số người dùng hoạt động, số lần sinh AI Branding, số giao dịch thanh toán đã xử lý) trong cửa sổ 2-4 tuần đầu sau khi mời thử nghiệm.
+- Ảnh chụp minh chứng các luồng nghiệp vụ then chốt đã được tenant ký xác nhận đạt yêu cầu.
 
 Pre-defense: hoàn thiện sau khi đạt ≥3 beta tenants ký xác nhận hoặc cho đến trước cửa sổ bảo vệ 2026-08-15.]
 
