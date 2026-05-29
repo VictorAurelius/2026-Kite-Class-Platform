@@ -32,6 +32,9 @@
     --theme-primary: 59 130 246;
     --theme-secondary: 139 92 246;
     --theme-accent: 245 158 11;
+    /* CTA accent — bold orange (#F97316) for high-contrast call-to-action
+       buttons that must stand out against the navy/blue theme-primary hero. */
+    --theme-cta: 249 115 22;
     --theme-background: 255 255 255;
     --theme-font-heading: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
     --theme-font-body: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;

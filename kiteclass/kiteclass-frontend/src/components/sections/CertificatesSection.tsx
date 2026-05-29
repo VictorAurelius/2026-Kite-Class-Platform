@@ -60,7 +60,7 @@ export function CertificatesSection({ slots }: CertificatesSectionProps) {
           {certificates.map((cert) => (
             <div
               key={cert.title}
-              className="rounded-xl border bg-card p-6 text-center hover:shadow-md transition-shadow"
+              className="rounded-xl border bg-card p-6 text-center shadow-md transition-all hover:-translate-y-1 hover:shadow-xl"
             >
               <div className="text-4xl mb-3">{cert.icon}</div>
               <h3 className="font-bold text-xl mb-1">{cert.title}</h3>

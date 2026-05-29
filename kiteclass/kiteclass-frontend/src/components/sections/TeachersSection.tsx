@@ -47,17 +47,17 @@ export function TeachersSection({ slots }: TeachersSectionProps) {
         <div className="grid md:grid-cols-3 gap-8">
           {teachers.map((teacher) => (
             <article key={teacher.title}>
-              <Card className="text-center h-full">
+              <Card className="h-full rounded-xl text-center shadow-md transition-shadow hover:shadow-xl">
                 <CardContent className="pt-8 pb-6">
-                  <div className="h-20 w-20 rounded-full bg-theme-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-theme-primary/10 ring-4 ring-theme-primary/20">
                     {teacher.image ? (
                       <Image
                         src={teacher.image}
                         alt={teacher.title}
-                        width={80}
-                        height={80}
+                        width={96}
+                        height={96}
                         unoptimized
-                        className="h-20 w-20 rounded-full object-cover"
+                        className="h-24 w-24 rounded-full object-cover ring-2 ring-theme-primary/30"
                       />
                     ) : (
                       <span className="text-2xl font-bold text-theme-primary">
