@@ -91,7 +91,9 @@ Tổng hợp năm nhóm end-user cho thấy nhu cầu chung là một nền tả
 
 ### 1.2.6 Bảng so sánh tổng hợp
 
-Bảng tổng hợp so sánh bốn hệ thống tham khảo với hệ thống đề xuất trong đề tài theo các tiêu chí quan trọng:
+Bảng 1.1 tổng hợp so sánh bốn hệ thống tham khảo với hệ thống đề xuất trong đề tài theo các tiêu chí quan trọng.
+
+**Bảng 1.1.** So sánh bốn hệ thống tham khảo với hệ thống đề xuất theo các tiêu chí quan trọng.
 
 | Tiêu chí | BeeClass | Mona eLMS | Easy Edu | DotB | Hệ thống đề xuất |
 |---|---|---|---|---|---|
@@ -100,9 +102,9 @@ Bảng tổng hợp so sánh bốn hệ thống tham khảo với hệ thống �
 | Kiến trúc multi-tenant gốc | Không | Không | Không | Không | Có |
 | AI Branding tự sinh | Không | Không | Không | Không | Có |
 | Onboarding tự phục vụ | Không (liên hệ) | Không (báo giá) | Không (liên hệ) | Không (liên hệ) | Có (1-2 ngày) |
-| Ứng dụng di động native | Phiên bản sau | Có | Có | Có | Phiên bản sau |
-| Tích hợp Zalo ZNS | Có | Có (native) | Có | Có | Phiên bản sau |
-| Cổng thanh toán built-in | Hạn chế | Không | Hạn chế | Có (3 cổng) | Phiên bản sau |
+| Ứng dụng di động native | Phát triển sau | Có | Có | Có | Phát triển sau |
+| Tích hợp Zalo (OA + nhóm) | Có | Có (native) | Có | Có | Có |
+| Thanh toán tích hợp | Hạn chế | Không | Hạn chế | Có (3 cổng) | Có (VietQR + chuyển khoản) |
 | Tuân thủ PDPL 2023 built-in | Đang triển khai | Đang triển khai | Đang triển khai | Có | Có (từ ngày đầu) |
 | Hệ sinh thái OpenAPI / webhook | Hạn chế | Không | Không | Có (hạn chế) | Có |
 | Khác biệt cốt lõi | UX trung tâm tiếng Anh | App di động + Zalo | Phân phối rộng | CRM + thanh toán | Multi-tenant + AI Branding |
@@ -127,4 +129,4 @@ Dựa trên phân tích bốn hệ thống tham khảo, hệ thống đề xuấ
 
 *Cơ hội thị trường:* phân khúc trung tâm nhỏ (1-3 chi nhánh, 100-500 học viên) chiếm khoảng 60% thị trường nhưng đa số hệ thống hiện hữu nhắm vào phân khúc trung và lớn — mô hình tăng trưởng dẫn dắt bởi sản phẩm (PLG — Product-Led Growth) có thể bắt đầu từ phân khúc này và mở rộng lên cao hơn khi sản phẩm trưởng thành. Thời hạn PDPL ngày 01/07/2026 yêu cầu hơn 50.000 trung tâm phải tuân thủ trong khoảng bảy tuần (đến cuối tháng 6/2026), tạo lợi thế cạnh tranh tại thời điểm vàng cho hệ thống đề xuất với khả năng tuân thủ tích hợp sẵn. Bên cạnh đó, mô hình nhượng quyền (Apollo English, ILA, Wall Street English) đang phát triển — kiến trúc đa tenant phù hợp với lộ trình mở rộng nhượng quyền tốt hơn so với kiến trúc đơn tenant.
 
-*Rủi ro chính:* việc lùi ứng dụng di động gốc và tích hợp Zalo ZNS push notification sang lộ trình phát triển sau có rủi ro mất khách so với Mona eLMS và Easy Edu vốn đã có ứng dụng gốc — giải pháp giảm thiểu là giao diện web đáp ứng kết hợp nhóm Zalo đã được triển khai, ưu tiên ứng dụng di động gốc cho lộ trình phát triển sau. Cổng thanh toán cũng là điểm yếu khi DotB có sẵn ba cổng tích hợp — hệ thống đề xuất hiện tại sử dụng chuyển khoản ngân hàng kết hợp VietQR (không cần cổng), lộ trình phát triển sau bao gồm tích hợp cổng VNPay. Cuối cùng, nhận diện thương hiệu là rào cản khi Easy Edu và Mona eLMS có nhiều năm hiện diện thị trường trong khi hệ thống đề xuất mới ra mắt — giải pháp giảm thiểu là tiếp cận tăng trưởng dẫn dắt bởi sản phẩm, tiếp thị nội dung tiếng Việt và chương trình người dùng tiên phong với các trung tâm thử nghiệm.
+*Rủi ro chính:* việc lùi ứng dụng di động gốc sang lộ trình phát triển sau có rủi ro mất khách so với Mona eLMS và Easy Edu vốn đã có ứng dụng gốc — giải pháp giảm thiểu là giao diện web đáp ứng kết hợp kênh Zalo (OA và nhóm) đã được triển khai, ưu tiên ứng dụng di động gốc cho lộ trình phát triển sau. Cổng thanh toán cũng là điểm yếu khi DotB có sẵn ba cổng tích hợp — hệ thống đề xuất hiện tại sử dụng chuyển khoản ngân hàng kết hợp VietQR (không cần cổng), lộ trình phát triển sau bao gồm tích hợp cổng VNPay. Cuối cùng, nhận diện thương hiệu là rào cản khi Easy Edu và Mona eLMS có nhiều năm hiện diện thị trường trong khi hệ thống đề xuất mới ra mắt — giải pháp giảm thiểu là tiếp cận tăng trưởng dẫn dắt bởi sản phẩm, tiếp thị nội dung tiếng Việt và chương trình người dùng tiên phong với các trung tâm thử nghiệm.

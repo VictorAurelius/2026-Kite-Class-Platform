@@ -73,14 +73,14 @@ KiteHub đánh giá 4 options chính cho text-to-image generation:
 |---|---|---|---|---|---|
 | **Stable Diffusion XL** | Replicate API | ~$0.0012 | Cao | 4-8s | **ADOPT primary** |
 | **SDXL Turbo** | Hugging Face | Free tier 1000/tháng | Khá | 1-2s | **Fallback** |
-| **DALL-E 3** | OpenAI API | ~$0.04 | Rất cao | 8-12s | Cost cao quá cho giai đoạn thử nghiệm |
+| **DALL-E 3** | OpenAI API | ~$0.04 | Rất cao | 8-12s | Chi phí quá cao so với ngân sách hiện tại |
 | **Midjourney v6** | (no public API) | N/A | Rất cao | N/A | Loại vì không có API |
 
-Lý do chọn Stable Diffusion XL [13] làm primary: balance tốt giữa quality + cost + latency. SDXL Turbo làm fallback khi primary rate-limited hoặc lỗi 5xx. Tránh DALL-E 3 vì cost cao 30 lần SDXL, không phù hợp budget giai đoạn thử nghiệm với target $0 infrastructure cost (Free Tier AWS + Replicate free credits).
+Lý do chọn Stable Diffusion XL [13] làm primary: balance tốt giữa quality + cost + latency. SDXL Turbo làm fallback khi primary rate-limited hoặc lỗi 5xx. Tránh DALL-E 3 vì chi phí cao gấp 30 lần SDXL, không phù hợp ngân sách hiện tại với mục tiêu $0 chi phí hạ tầng (Free Tier AWS kết hợp Replicate free credits).
 
 #### 1.3.2.4 Cost analysis
 
-Estimate AI Branding cost cho 1 trung tâm mới onboard (5 image total: logo + hero + 3 social banners): 5 images × $0.0012/image (SDXL) = **$0.006/trung tâm**; cộng AI Quality Gate classifier ~$0.001/image × 5 = $0.005. **Total ~$0.011 per trung tâm** (~270 đồng). Với giai đoạn thử nghiệm 2 tài khoản × 10 lần regenerate/tài khoản/tháng = 100 images/tháng = **$1.10/tháng AI cost**, hoàn toàn nằm trong Replicate Free Tier ($10/tháng credit miễn phí).
+Estimate AI Branding cost cho 1 trung tâm mới onboard (5 image total: logo + hero + 3 social banners): 5 images × $0.0012/image (SDXL) = **$0.006/trung tâm**; cộng AI Quality Gate classifier ~$0.001/image × 5 = $0.005. **Total ~$0.011 per trung tâm** (~270 đồng). Với quy mô triển khai hiện tại 2 tài khoản × 10 lần regenerate/tài khoản/tháng = 100 images/tháng = **$1.10/tháng AI cost**, hoàn toàn nằm trong Replicate Free Tier ($10/tháng credit miễn phí).
 
 ### 1.3.3 Phương pháp 2 — AI Quality Gate (content safety + brand fit)
 
@@ -100,11 +100,11 @@ AI Quality Gate sử dụng 3-layer approach:
 - So sánh dominant colors với brand color tenant provided
 - Threshold: nếu deltaE > 30 (CIE Lab color space) thì FAIL thì regenerate
 
-**Layer 3 — Education context classifier (giai đoạn mở rộng):**
+**Layer 3 — Education context classifier (lộ trình phát triển sau):**
 - Custom classifier fine-tuned trên dataset 5000 education-appropriate images (school logos, classroom photos, education icons)
 - Output: confidence score (0-1) for "education-appropriate"
 - Threshold: > 0.6 PASS, < 0.6 FAIL
-- Defer sang giai đoạn mở rộng vì cần data labeling effort + training infrastructure
+- Để lại cho lộ trình phát triển sau vì cần công sức gán nhãn dữ liệu và hạ tầng huấn luyện
 
 #### 1.3.3.2 Failure handling
 
@@ -121,11 +121,11 @@ Original prompt FAIL thì
 
 Max 3 retry attempts để control cost (mỗi retry tốn $0.0012 + $0.001 gate cost).
 
-### 1.3.4 Phương pháp 3 — AI techniques roadmap (giai đoạn mở rộng)
+### 1.3.4 Phương pháp 3 — Lộ trình phát triển các kỹ thuật AI
 
-KiteHub roadmap defer các AI features sau cho giai đoạn mở rộng (sau khi hoàn tất thử nghiệm với hai giáo viên độc lập + quality audit ≥80/100) và giai đoạn GA (sau khi engage legal counsel):
+Hệ thống dự kiến phát triển sau các tính năng AI dưới đây, sau khi hoàn tất vận hành thử với hai giáo viên độc lập và kiểm thử chất lượng đạt ngưỡng yêu cầu; một số tính năng nhạy cảm về pháp lý sẽ triển khai khi có tư vấn pháp lý:
 
-#### 1.3.4.1 Chatbot hỗ trợ học viên (giai đoạn mở rộng)
+#### 1.3.4.1 Chatbot hỗ trợ học viên (lộ trình phát triển sau)
 
 **Mô hình:** LLM API thương mại cost-efficient tier (Anthropic / OpenAI), với context tenant-specific (course catalog + FAQ + lịch học).
 
@@ -135,15 +135,15 @@ KiteHub roadmap defer các AI features sau cho giai đoạn mở rộng (sau khi
 
 **Estimated cost:** $0.05-0.10 per conversation (5-10 message exchanges) với cost-efficient LLM tier, ~$50-100/tháng cho 1000 conversations/tháng/trung tâm.
 
-#### 1.3.4.2 Auto-grading bài tập (giai đoạn mở rộng)
+#### 1.3.4.2 Tự động chấm bài tập (lộ trình phát triển sau)
 
-**Mô hình:** LLM API cao cấp tier cho graded multiple-choice + short-answer questions; defer essay grading sang giai đoạn GA vì độ phức tạp + risk bias.
+**Mô hình:** LLM API cao cấp tier cho chấm câu hỏi trắc nghiệm và câu trả lời ngắn; để lại việc chấm bài tự luận cho lộ trình phát triển sau vì độ phức tạp và rủi ro thiên lệch.
 
 **Use cases:** multiple-choice exam auto-grade (English vocab, grammar quiz); short-answer math problems (with explanation generation); reading comprehension Q&A scoring.
 
 **Considerations:** bias risk (model có thể bias theo training data thì cần human review sample); pedagogical correctness (auto-grade không thay thế teacher feedback chi tiết); cost ~$0.005-0.02 per question, scale tùy số lượng student × questions.
 
-#### 1.3.4.3 Personalized learning path (giai đoạn GA)
+#### 1.3.4.3 Lộ trình học cá nhân hoá (lộ trình phát triển sau)
 
 **Mô hình:** Multi-modal LLM (LLaVA [14] hoặc successor) cho phân tích visual content (homework photos, video bài giảng) kết hợp với student performance data.
 
@@ -176,7 +176,7 @@ Theo Luật Bảo vệ Dữ liệu Cá nhân Việt Nam 2023 [9] và Nghị đ�
 - **Quyền từ chối** — học viên có thể từ chối các tính năng AI; hệ thống dự phòng chuyển sang quy trình thủ công
 - **Tối thiểu hóa dữ liệu** — chỉ thu thập dữ liệu thực sự cần thiết cho tính năng AI, tránh thu thập vượt mức
 
-Trong giai đoạn đầu của KiteHub, AI Branding không xử lý dữ liệu cá nhân học viên (chỉ sinh logo và banner cho trung tâm) nên rủi ro PDPL ở mức thấp. Các tính năng AI ở giai đoạn mở rộng (chatbot và tự động chấm điểm) sẽ cần luồng đồng ý và tùy chọn từ chối trước khi ra mắt.
+Hiện tại, AI Branding không xử lý dữ liệu cá nhân học viên (chỉ sinh logo và banner cho trung tâm) nên rủi ro PDPL ở mức thấp. Các tính năng AI thuộc lộ trình phát triển sau (chatbot và tự động chấm điểm) sẽ cần luồng đồng ý và tùy chọn từ chối trước khi ra mắt.
 
 #### 1.3.6.2 Giảm thiểu thiên kiến
 
