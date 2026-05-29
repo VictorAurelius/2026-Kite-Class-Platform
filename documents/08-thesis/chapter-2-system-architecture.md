@@ -722,7 +722,7 @@ Hệ thống được cấu thành từ ba lớp dịch vụ. Lớp nền tảng
 
 ### 2.3.6 Thiết kế cơ sở dữ liệu
 
-Phần này trình bày schema chi tiết của 3 bảng cốt lõi đại diện cho miền đa tenant của Kite Platform. ERD tổng quan đã được giới thiệu tại §2.3.2; phần này bổ sung thông tin từng cột phục vụ phát triển và bảo trì. Schema được pull canonical từ chuỗi migration Flyway của hai cụm dịch vụ (cụm subscription quản lý control-plane và cụm core quản lý domain-plane).
+Phần này trình bày schema chi tiết của hai bảng cốt lõi đại diện cho hai mặt phẳng đa tenant của Kite Platform: bảng `instances` thuộc cụm subscription (control-plane, quản lý vòng đời tenant) và bảng `students` thuộc cụm core (domain-plane, lưu hồ sơ học sinh và là bảng có yêu cầu tuân thủ PDPL chặt chẽ nhất). ERD tổng quan đã được giới thiệu tại §2.3.2; phần này bổ sung thông tin từng cột phục vụ phát triển và bảo trì. Schema được pull canonical từ chuỗi migration Flyway của hai cụm dịch vụ. Các bảng nghiệp vụ khác như `classes`, `courses`, `teachers`, `enrollments`, `attendance` tuân theo cùng quy ước (`instance_id` UUID + RLS theo tenant) đã trình bày tại §2.2.4 và quan hệ thực thể tại §2.3.2.
 
 Bảng `instances` (microservice `kitehub-subscription`, control-plane) lưu metadata cấp tenant: mỗi dòng tương ứng với một trung tâm dạy thêm có dùng nền tảng. Bảng này là source-of-truth cho vòng đời tenant (TRIAL / ACTIVE / SUSPENDED / CANCELLED).
 
@@ -733,47 +733,27 @@ Bảng `instances` (microservice `kitehub-subscription`, control-plane) lưu met
 | 1 | `id` | UUID | Khoá chính, định danh tenant (UUID v4) |
 | 2 | `subdomain` | VARCHAR(50) UNIQUE | Subdomain riêng `<subdomain>.kitehub.me`, dùng cho routing |
 | 3 | `custom_domain` | VARCHAR(255) | Tên miền riêng (chỉ áp dụng gói PRO trở lên) |
-| 4 | `organization_name` | VARCHAR(200) | Tên hiển thị trung tâm (ví dụ `Trung tâm Anh ngữ Sky Education`) |
-| 5 | `owner_id` | UUID | Tham chiếu tới user vai trò `P2_CENTER_OWNER` |
-| 6 | `tier` | VARCHAR(20) | Gói dịch vụ: FREE / STARTER / PRO / PRO_PLUS |
-| 7 | `status` | VARCHAR(20) | Trạng thái vòng đời: TRIAL / ACTIVE / SUSPENDED / CANCELLED |
-| 8 | `database_url` | VARCHAR(500) | URL kết nối cơ sở dữ liệu của tenant |
-| 9 | `database_password` | VARCHAR(255) | Mật khẩu DB đã mã hoá AES-256-GCM (không lưu plaintext) |
-| 10 | `trial_started_at` | TIMESTAMP | Thời điểm bắt đầu dùng thử |
-| 11 | `trial_expires_at` | TIMESTAMP | Thời điểm hết hạn dùng thử (mặc định 14 ngày) |
-| 12 | `subscription_expires_at` | TIMESTAMP | Thời điểm hết hạn gói đang sử dụng |
-| 13 | `created_at` | TIMESTAMP | Thời điểm tạo bản ghi |
-| 14 | `updated_at` | TIMESTAMP | Thời điểm cập nhật gần nhất |
-| 15 | `deleted` | BOOLEAN | Cờ xoá mềm (soft delete) phục vụ cửa sổ lưu giữ 7 ngày |
+| 4 | `domain_verify_token` | VARCHAR(255) | Token DCV (Domain Control Validation) sinh khi tenant đăng ký tên miền riêng |
+| 5 | `domain_verified_at` | TIMESTAMP | Thời điểm xác minh tên miền thành công qua bản ghi CNAME/TXT |
+| 6 | `domain_status` | VARCHAR(50) | Trạng thái xác minh tên miền: `PENDING` / `VERIFIED` / `FAILED` |
+| 7 | `organization_name` | VARCHAR(200) | Tên hiển thị trung tâm (ví dụ `Trung tâm Anh ngữ Sky Education`) |
+| 8 | `owner_id` | UUID | Tham chiếu tới user vai trò `P2_CENTER_OWNER` |
+| 9 | `tier` | VARCHAR(20) | Gói dịch vụ: FREE / STARTER / PRO / PRO_PLUS |
+| 10 | `status` | VARCHAR(20) | Trạng thái vòng đời: TRIAL / ACTIVE / SUSPENDED / CANCELLED |
+| 11 | `database_url` | VARCHAR(500) | URL kết nối cơ sở dữ liệu của tenant |
+| 12 | `database_password` | VARCHAR(255) | Mật khẩu DB đã mã hoá AES-256-GCM (không lưu plaintext) |
+| 13 | `trial_started_at` | TIMESTAMP | Thời điểm bắt đầu dùng thử |
+| 14 | `trial_expires_at` | TIMESTAMP | Thời điểm hết hạn dùng thử (mặc định 14 ngày) |
+| 15 | `subscription_expires_at` | TIMESTAMP | Thời điểm hết hạn gói đang sử dụng |
+| 16 | `created_at` | TIMESTAMP | Thời điểm tạo bản ghi |
+| 17 | `updated_at` | TIMESTAMP | Thời điểm cập nhật gần nhất |
+| 18 | `deleted` | BOOLEAN | Cờ xoá mềm (soft delete) phục vụ cửa sổ lưu giữ 7 ngày |
 
 Các chỉ mục trên `subdomain`, `owner_id`, `status`, `tier`, và partial index `deleted=false` đảm bảo truy vấn dashboard quản trị (lọc theo gói + trạng thái) đạt P95 dưới 100ms ngay cả khi quy mô lên 200 tenant.
 
-Bảng `classes` (microservice `kiteclass-core`, domain-plane) đại diện cho lớp học cụ thể tại tenant (ví dụ `Lớp Anh ngữ 5A1` mở từ tháng 9/2025 đến tháng 5/2026). Bảng này là entity domain trung tâm cho các tính năng điểm danh, chấm điểm, thanh toán học phí.
+Bảng `students` (microservice `kiteclass-core`, domain-plane) lưu hồ sơ học sinh đã đăng ký tại tenant. Bảng này có volume lớn nhất trong các bảng domain (mục tiêu 50-500 học sinh/tenant hiện tại) và là bảng chịu yêu cầu tuân thủ PDPL chặt chẽ nhất do chứa thông tin cá nhân nhạy cảm.
 
-**Bảng 2.9.** Schema chi tiết bảng `classes` (microservice `kiteclass-core`).
-
-| TT | Tên cột | Kiểu dữ liệu | Mô tả |
-|:--:|---|---|---|
-| 1 | `id` | BIGSERIAL | Khoá chính (tự tăng) |
-| 2 | `instance_id` | UUID NOT NULL | Khoá ngoại tới `instances.id` — cột tenant scoping, bắt buộc cho RLS |
-| 3 | `course_id` | BIGINT NOT NULL | Khoá ngoại tới `courses.id` (mỗi lớp thuộc một khoá học) |
-| 4 | `code` | VARCHAR(50) | Mã lớp (ví dụ `ANH-5A1-2025`) |
-| 5 | `name` | VARCHAR(255) | Tên hiển thị (ví dụ `Lớp Anh ngữ 5A1 buổi tối`) |
-| 6 | `teacher_id` | BIGINT | Khoá ngoại tới `teachers.id` (giáo viên phụ trách lớp) |
-| 7 | `start_date` | DATE | Ngày khai giảng |
-| 8 | `end_date` | DATE | Ngày kết thúc dự kiến |
-| 9 | `max_students` | INTEGER | Sĩ số tối đa (mặc định 30) |
-| 10 | `tuition_amount` | DECIMAL(12,2) | Mức học phí (đơn vị VND, ví dụ `1500000.00`) |
-| 11 | `tuition_type` | VARCHAR(20) | Cách tính phí: `fixed` (cố định/khoá) hoặc `per_session` (theo buổi) |
-| 12 | `status` | VARCHAR(50) | Trạng thái lớp: upcoming / ongoing / completed / cancelled |
-| 13 | `created_at` | TIMESTAMP | Thời điểm tạo |
-| 14 | `updated_at` | TIMESTAMP | Thời điểm cập nhật gần nhất |
-
-Bảng `classes` được bật RLS với chính sách `tenant_isolation_classes` (xem mẫu SQL tại §2.2.4) — mọi truy vấn không có ngữ cảnh `app.current_tenant_id` hợp lệ sẽ trả về 0 row, ngăn chặn rò rỉ chéo tenant ngay tại tầng cơ sở dữ liệu.
-
-Bảng `students` (microservice `kiteclass-core`, domain-plane) lưu hồ sơ học sinh đã đăng ký tại tenant. Bảng này có volume lớn nhất trong các bảng domain (mục tiêu 50-500 học sinh/tenant hiện tại).
-
-**Bảng 2.10.** Schema chi tiết bảng `students` (microservice `kiteclass-core`).
+**Bảng 2.9.** Schema chi tiết bảng `students` (microservice `kiteclass-core`).
 
 | TT | Tên cột | Kiểu dữ liệu | Mô tả |
 |:--:|---|---|---|
@@ -808,9 +788,9 @@ Bảng `students` chứa thông tin cá nhân nhạy cảm và do đó phải tu
 
 Chủ sở hữu trung tâm nhấn magic-link, đặt mật khẩu và đăng nhập lần đầu sẽ thấy dashboard wizard 5 bước: xác nhận thông tin trung tâm, upload logo (hoặc sinh tự động), thêm 3 lớp đầu tiên, mời quản lý/giáo viên, thiết lập phương thức thanh toán.
 
-**Ma trận gói dịch vụ.** Đồ án thiết kế bốn gói dịch vụ phân tầng theo persona mục tiêu (Bảng 2.11). Hai gói FREE và STARTER đã kiểm chứng hiện tại với hai giáo viên độc lập; hai gói PRO và PRO_PLUS thuộc lộ trình phát triển sau khi mở rộng cohort tenant.
+**Ma trận gói dịch vụ.** Đồ án thiết kế bốn gói dịch vụ phân tầng theo persona mục tiêu (Bảng 2.10). Hai gói FREE và STARTER đã kiểm chứng hiện tại với hai giáo viên độc lập; hai gói PRO và PRO_PLUS thuộc lộ trình phát triển sau khi mở rộng cohort tenant.
 
-**Bảng 2.11.** Bốn gói dịch vụ và các giới hạn theo gói.
+**Bảng 2.10.** Bốn gói dịch vụ và các giới hạn theo gói.
 
 | Gói | Trạng thái | Persona mục tiêu | Giá tháng | Số học sinh | Số lớp | Lượt sinh ảnh AI/ngày | Tên miền riêng (custom domain) | Email DKIM-verified |
 |---|---|---|---|---|---|---|---|---|
@@ -819,7 +799,7 @@ Chủ sở hữu trung tâm nhấn magic-link, đặt mật khẩu và đăng nh
 | PRO | Phát triển sau | P3 Quản lý trung tâm | `1.500.000đ/tháng` | 500 | 50 | 50 | Có (custom CNAME) | Mặc định |
 | PRO_PLUS | Phát triển sau | Chuỗi nhượng quyền multi-branch | `5.000.000đ/tháng` | 2000 | 200 | 200 | Có (custom CNAME + IP riêng) | DKIM-verified riêng |
 
-**Trạng thái hiện thực hoá.** Mã nguồn hiện tại trên kho lưu trữ KiteHub đã định nghĩa enum `PricingTier` với bốn cấp giá `FREE / BASIC / PREMIUM / ENTERPRISE` cùng mức giá `0đ / 500.000đ / 1.500.000đ / báo giá riêng`, khớp ba tầng giá đầu của Bảng 2.11 dưới tên gọi cũ. Việc đổi tên gói sang `FREE / STARTER / PRO / PRO_PLUS` để thân thiện với người dùng và đồng nhất với phân tích nhóm người dùng đại diện tại §1.1.2, bổ sung trường giới hạn `maxClasses`, và xây dựng bảng `tenant_quota` kết hợp bộ đếm Redis cho cơ chế enforcement HTTP 429 ở tầng tenant thuộc lộ trình phát triển sau. Tính năng nhận diện email DKIM riêng cho gói cao cấp (cột "Email DKIM-verified" cho PRO_PLUS) cũng thuộc lộ trình phát triển sau.
+**Trạng thái hiện thực hoá.** Mã nguồn hiện tại trên kho lưu trữ KiteHub đã định nghĩa enum `PricingTier` với bốn cấp giá `FREE / BASIC / PREMIUM / ENTERPRISE` cùng mức giá `0đ / 500.000đ / 1.500.000đ / báo giá riêng`, khớp ba tầng giá đầu của Bảng 2.10 dưới tên gọi cũ. Việc đổi tên gói sang `FREE / STARTER / PRO / PRO_PLUS` để thân thiện với người dùng và đồng nhất với phân tích nhóm người dùng đại diện tại §1.1.2, bổ sung trường giới hạn `maxClasses`, và xây dựng bảng `tenant_quota` kết hợp bộ đếm Redis cho cơ chế enforcement HTTP 429 ở tầng tenant thuộc lộ trình phát triển sau. Tính năng nhận diện email DKIM riêng cho gói cao cấp (cột "Email DKIM-verified" cho PRO_PLUS) cũng thuộc lộ trình phát triển sau.
 
 Việc enforce quota dùng bảng `tenant_quota` kết hợp bộ đếm Redis kiểm tra ở mỗi request. Khi vượt quota, hệ thống trả HTTP 429 cùng banner UI hướng dẫn nâng gói.
 
