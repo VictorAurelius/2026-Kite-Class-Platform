@@ -707,8 +707,8 @@ def _render_plantuml_to_png(plantuml_src: str, cache_dir: Path) -> Path | None:
       2. SMETANA layout (built-in PlantUML, no graphviz dependency needed)
       3. Cache result by source hash
     """
-    import hashlib, subprocess
-    from pathlib import Path as _Path
+    import hashlib
+    import subprocess
 
     cache_dir.mkdir(parents=True, exist_ok=True)
     digest = hashlib.sha256(plantuml_src.encode()).hexdigest()[:16]
@@ -1903,8 +1903,8 @@ def auto_populate_fields(docx_path: Path) -> bool:
        Step 1 đủ để user thấy populated fields khi mở docx local).
     """
     from docx import Document
-    from docx.oxml.ns import qn
     from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
 
     # Step 1: Set updateFields=true flag trong settings.xml
     try:
@@ -1918,15 +1918,14 @@ def auto_populate_fields(docx_path: Path) -> bool:
         update_fields.set(qn('w:val'), 'true')
         settings_element.append(update_fields)
         doc.save(str(docx_path))
-        print(f"✅ Set <w:updateFields w:val='true'/> trong settings.xml — "
-              f"Word/LibreOffice tự auto-update fields khi mở file (TOC + Danh mục bảng + Danh mục hình)")
+        print("✅ Set <w:updateFields w:val='true'/> trong settings.xml — "
+              "Word/LibreOffice tự auto-update fields khi mở file (TOC + Danh mục bảng + Danh mục hình)")
     except Exception as e:
         print(f"⚠️  Could not set updateFields flag: {e}")
         print("   Fallback: manual Ctrl+A + F9 trong Word per thesis-pre-defense-checklist.md §1")
         return False
 
     # Step 2: Try LibreOffice headless macro để force update NOW (best-effort)
-    import subprocess
     macro_inline = f'''
 import uno
 def update_fields_now():
