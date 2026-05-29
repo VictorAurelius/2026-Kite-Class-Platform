@@ -194,6 +194,23 @@ def add_horizontal_line(doc, width_pt=2, color='000000', space_after=Pt(6),
     return p
 
 
+# Chiều cao spacer đẩy "Hà Nội – Năm" xuống dòng cuối trang bìa (tune qua render).
+COVER_BOTTOM_SPACER_PT = 90
+
+
+def add_bottom_spacer(doc, height_pt):
+    """Spacer chiều cao tin cậy (EXACT line spacing) đẩy nội dung kế tiếp xuống cuối trang."""
+    from docx.enum.text import WD_LINE_SPACING
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = Pt(0)
+    p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.EXACTLY
+    p.paragraph_format.line_spacing = Pt(height_pt)
+    run = p.add_run(" ")
+    set_font(run, Pt(12))
+    return p
+
+
 def _set_pg_num_type(section, fmt, start=None):
     """Set <w:pgNumType w:fmt="lowerRoman" w:start="1"/> per Wave 102.5 G17."""
     sectPr = section._sectPr
@@ -1225,11 +1242,8 @@ def add_cover_page(doc):
             for run in paragraph.runs:
                 set_font(run, Pt(13))
 
-    # Spacer + Hà Nội – 2026
-    for _ in range(2):
-        p = doc.add_paragraph()
-        p.paragraph_format.space_before = Pt(0)
-        p.paragraph_format.space_after = Pt(0)
+    # Spacer đẩy "Hà Nội – 2026" xuống dòng cuối trang
+    add_bottom_spacer(doc, COVER_BOTTOM_SPACER_PT)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = p.add_run(f"Hà Nội – {THESIS_INFO['year']}")
@@ -1342,11 +1356,8 @@ def add_secondary_cover_page(doc):
             for run in paragraph.runs:
                 set_font(run, Pt(13))
 
-    # Spacer + Hà Nội – Năm
-    for _ in range(2):
-        p = doc.add_paragraph()
-        p.paragraph_format.space_before = Pt(0)
-        p.paragraph_format.space_after = Pt(0)
+    # Spacer đẩy "Hà Nội – 2026" xuống dòng cuối trang
+    add_bottom_spacer(doc, COVER_BOTTOM_SPACER_PT)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = p.add_run(f"Hà Nội – {THESIS_INFO['year']}")
