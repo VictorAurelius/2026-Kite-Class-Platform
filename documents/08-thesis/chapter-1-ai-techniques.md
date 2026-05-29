@@ -21,7 +21,7 @@ Quyết định kiến trúc của KiteHub: **sử dụng API LLM thương mại
 
 ### 1.3.2 Phương pháp 1 — AI Branding (text-to-image generation)
 
-AI Branding là feature flagship của KiteHub trong giai đoạn đầu, được thiết kế để eliminate cost thuê designer cho mọi trung tâm mới đăng ký. Khi Owner (chủ trung tâm) onboard, họ điền form ngắn: tên trung tâm (`Trung tâm Anh ngữ Sky Education` (tên giả định)), domain primary (`anh ngữ`), tone brand (modern / classic / playful), brand color preference (`#1E40AF`). Sau ~30-60 giây, AI Branding sinh ra: (1) logo SVG cho trung tâm, (2) hero image PNG 1920x1080 cho landing page, (3) social banner PNG 1200x630 cho Facebook + Zalo Official Account.
+AI Branding là feature flagship của KiteHub trong giai đoạn đầu, được thiết kế để eliminate cost thuê designer cho mọi trung tâm mới đăng ký. Khi Owner (chủ sở hữu trung tâm) onboard, họ điền form ngắn: tên trung tâm (`Trung tâm Anh ngữ Sky Education` (tên giả định)), domain primary (`anh ngữ`), tone brand (modern / classic / playful), brand color preference (`#1E40AF`). Sau ~30-60 giây, AI Branding sinh ra: (1) logo SVG cho trung tâm, (2) hero image PNG 1920x1080 cho landing page, (3) social banner PNG 1200x630 cho Facebook + Zalo Official Account.
 
 #### 1.3.2.1 Kiến trúc kỹ thuật AI Branding
 

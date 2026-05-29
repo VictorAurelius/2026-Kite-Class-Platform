@@ -13,10 +13,10 @@ File: `chapter-3-implementation.md` (145 dòng, 8 PNG screenshots + 1 Mermaid)
 | # | Loại | File / Block | Caption | Vị trí |
 |:-:|------|--------------|---------|--------|
 | 3.1 | PNG screenshot | line 70 | ⚠️ chỉ có alt text — đề xuất `**Hình 3.1: Trang chủ marketing KiteHub (landing page)**` | §3.2.1 Luồng khám phá và kích hoạt tenant |
-| 3.2 | PNG screenshot | line 71 | ⚠️ chỉ có alt text — đề xuất `**Hình 3.2: Wizard đăng ký chủ trung tâm — bước 1 thông tin cơ bản**` | §3.2.1 |
+| 3.2 | PNG screenshot | line 71 | ⚠️ chỉ có alt text — đề xuất `**Hình 3.2: Wizard đăng ký chủ sở hữu trung tâm — bước 1 thông tin cơ bản**` | §3.2.1 |
 | 3.3 | PNG screenshot | line 72 | ⚠️ chỉ có alt text — đề xuất `**Hình 3.3: Tenant provisioning success screen**` | §3.2.1 |
-| 3.4 | PNG screenshot | line 73 | ⚠️ chỉ có alt text — đề xuất `**Hình 3.4: Dashboard chủ trung tâm sau first login**` | §3.2.1 |
-| 3.5 | PNG screenshot | line 82 | ⚠️ chỉ có alt text — đề xuất `**Hình 3.5: Màn hình quản lý lớp học của chủ trung tâm**` | §3.2.2 Luồng vận hành nghiệp vụ thường nhật |
+| 3.4 | PNG screenshot | line 73 | ⚠️ chỉ có alt text — đề xuất `**Hình 3.4: Dashboard chủ sở hữu trung tâm sau first login**` | §3.2.1 |
+| 3.5 | PNG screenshot | line 82 | ⚠️ chỉ có alt text — đề xuất `**Hình 3.5: Màn hình quản lý lớp học của chủ sở hữu trung tâm**` | §3.2.2 Luồng vận hành nghiệp vụ thường nhật |
 | 3.6 | PNG screenshot | line 83 | ⚠️ chỉ có alt text — đề xuất `**Hình 3.6: Trình tạo hoá đơn cho học viên**` | §3.2.2 |
 | 3.7 | PNG screenshot | line 92 | ⚠️ chỉ có alt text — đề xuất `**Hình 3.7: Email chào mừng gửi từ KiteHub**` | §3.2.3 Luồng điều hành Admin nền tảng |
 | 3.8 | PNG screenshot | line 93 | ⚠️ chỉ có alt text — đề xuất `**Hình 3.8: Trang nhật ký audit cho Platform Admin**` | §3.2.3 |

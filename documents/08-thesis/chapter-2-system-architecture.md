@@ -18,12 +18,12 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 
 - Người dùng tiềm năng truy cập landing thì đăng ký yêu cầu truy cập beta qua form 4 trường (họ tên / email / số điện thoại / tên trung tâm)
 - Quản trị nền tảng duyệt yêu cầu thì kích hoạt quy trình cấp phát (tạo `instance_id` UUID, khởi tạo người dùng quản trị với vai trò `P2_CENTER_OWNER`, gửi email magic-link)
-- Chủ trung tâm nhấn magic-link thì đặt mật khẩu lần đầu thì đăng nhập dashboard thì bắt đầu kỳ dùng thử 14 ngày
+- Chủ sở hữu trung tâm nhấn magic-link thì đặt mật khẩu lần đầu thì đăng nhập dashboard thì bắt đầu kỳ dùng thử 14 ngày
 - Trạng thái vòng đời: PENDING thì TRIAL thì ACTIVE / SUSPENDED / CANCELLED (chi tiết §2.3.4)
 
 **Đăng ký dịch vụ & thanh toán (KiteHub `kitehub-subscription` + `kitehub-admin`)**
 
-- Chủ trung tâm chọn gói dịch vụ (FREE / STARTER / PRO / PRO_PLUS) — ví dụ STARTER khoảng `500.000đ/tháng` cho 100 học sinh
+- Chủ sở hữu trung tâm chọn gói dịch vụ (FREE / STARTER / PRO / PRO_PLUS) — ví dụ STARTER khoảng `500.000đ/tháng` cho 100 học sinh
 - Thanh toán qua VietQR là phương thức mặc định cho giai đoạn thử nghiệm thủ công; tích hợp MoMo/VNPay theo lộ trình giai đoạn vận hành chính thức
 - Gia hạn hằng tháng với thời gian ân hạn 3 ngày khi thanh toán thất bại; tenant SUSPENDED không đăng nhập được nhưng giữ dữ liệu 7 ngày
 - Quản trị nền tảng có dashboard `/admin/v1/revenue` để xem doanh thu, MRR, tỷ lệ churn
@@ -40,7 +40,7 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 - **Lớp học & thời khóa biểu:** Tạo lớp (ví dụ `Lớp Anh ngữ 5A1` / `Lớp Toán 9B`), gắn `homeroom_class` cho lớp chủ nhiệm, lập lịch buổi học qua `class_schedule_slots` (khung thứ 2-7 17:00-21:00 buổi tối phổ biến)
 - **Điểm danh:** GVCN điểm danh từng `attendance_period` (mỗi buổi học), trạng thái Có/Vắng/Nghỉ phép
 - **Chấm điểm:** Nhập điểm `grades` cho `assignments` / `subject_grades`, xuất bảng điểm theo `grading_scales` (thang 10); báo cáo cuối kỳ HK1/HK2/HK_Hè
-- **Thanh toán theo tenant:** Chủ trung tâm phát hành hóa đơn `invoices` cho phụ huynh (ví dụ `Học phí tháng 5/2026 — 1.500.000đ`), theo dõi chuyển khoản/tiền mặt, xuất hóa đơn điện tử VAT tích hợp với MISA MeInvoice
+- **Thanh toán theo tenant:** Chủ sở hữu trung tâm phát hành hóa đơn `invoices` cho phụ huynh (ví dụ `Học phí tháng 5/2026 — 1.500.000đ`), theo dõi chuyển khoản/tiền mặt, xuất hóa đơn điện tử VAT tích hợp với MISA MeInvoice
 - **Thông báo:** Gửi thông báo qua email formal cho phụ huynh khi có điểm mới, sự cố, nhắc hóa đơn; tích hợp Zalo OA mở rộng giai đoạn vận hành chính thức
 
 **Tuân thủ & nhật ký kiểm toán (cross-service)**
@@ -150,7 +150,7 @@ Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: khóa luận
 
 Đặc điểm B-learning tại Việt Nam theo Báo cáo Kinh tế Số Việt Nam 2024 [4, tr.42]: *"Hơn 90% phụ huynh đô thị sử dụng Zalo group chat làm kênh chính trao đổi với trung tâm; email phục vụ tài liệu chính thức như hóa đơn và báo cáo."* Buổi học buổi tối và cuối tuần chiếm ưu thế (thứ 2-7 từ 17:00-21:00; thứ 7-CN 8:00-17:00) — bảng `class_schedule_slots` mặc định cấu hình 6 ngày/tuần. Niên khóa 9-5 (năm học `2025-2026` ứng tháng 9/2025 đến tháng 5/2026) gồm HK1 (9-12), HK2 (1-5), HK_Hè (6-8). Mẹ là đầu mối liên lạc chính cho việc học của con (~60%), bố dự phòng (35%), ông bà (5%). Khung Tết Nguyên Đán nghỉ 7-10 ngày cuối tháng 1 — đầu tháng 2 yêu cầu cron tính phí bỏ qua. Giai đoạn thử nghiệm hỗ trợ email; tích hợp Zalo OA cho phụ huynh là lộ trình giai đoạn vận hành chính thức.
 
-**Phân tích persona giai đoạn thử nghiệm.** Đồ án tập trung 4 persona chính. **P1 Giáo viên độc lập** (28 tuổi, 5-50 học sinh, dạy IELTS/Toán) — thay thế sổ tay giấy + Excel + Zalo thủ công, gói FREE đủ dùng. **P2 Chủ trung tâm** (35 tuổi, 20-100 học sinh, 2-5 giáo viên) — thay 3 công cụ rời rạc bằng platform tích hợp, gói STARTER `500.000đ/tháng`. **P3 Quản lý trung tâm** (24 tuổi, 100-500 học sinh, 5-15 giáo viên) — cần bulk import CSV ~300 dòng, phân quyền theo vai trò (manager không thấy mục thanh toán), audit log, gói PRO `1.500.000đ/tháng`. **Phụ huynh và học sinh** — phụ huynh nhận thông báo email cho tài liệu chính thức (giai đoạn thử nghiệm) + Zalo group cho cập nhật thường xuyên (giai đoạn vận hành chính thức); học sinh truy cập mobile chiếm 85% phiên.
+**Phân tích persona giai đoạn thử nghiệm.** Đồ án tập trung 4 persona chính. **P1 Giáo viên độc lập** (28 tuổi, 5-50 học sinh, dạy IELTS/Toán) — thay thế sổ tay giấy + Excel + Zalo thủ công, gói FREE đủ dùng. **P2 Chủ sở hữu trung tâm** (35 tuổi, 20-100 học sinh, 2-5 giáo viên) — thay 3 công cụ rời rạc bằng platform tích hợp, gói STARTER `500.000đ/tháng`. **P3 Quản lý trung tâm** (24 tuổi, 100-500 học sinh, 5-15 giáo viên) — cần bulk import CSV ~300 dòng, phân quyền theo vai trò (manager không thấy mục thanh toán), audit log, gói PRO `1.500.000đ/tháng`. **Phụ huynh và học sinh** — phụ huynh nhận thông báo email cho tài liệu chính thức (giai đoạn thử nghiệm) + Zalo group cho cập nhật thường xuyên (giai đoạn vận hành chính thức); học sinh truy cập mobile chiếm 85% phiên.
 
 **Đặc trưng thị trường giáo dục Việt Nam.** Bảng 2.3 tổng hợp đặc trưng thị trường ảnh hưởng tới quyết định kiến trúc — locale mặc định `vi-VN`, ma trận xưng hô email phù hợp vai trò ("Em chào chị Hằng" trang trọng cho Owner, "Chào em" thân mật cho giáo viên độc lập).
 
@@ -197,7 +197,7 @@ flowchart TB
     subgraph tenants [Nhóm tenant truy cập hệ thống]
         direction LR
         P1[P1 Giáo viên độc lập<br/>5-50 học sinh]
-        P2[P2 Chủ trung tâm<br/>20-100 học sinh]
+        P2[P2 Chủ sở hữu trung tâm<br/>20-100 học sinh]
         P3[P3 Quản lý trung tâm<br/>100-500 học sinh]
         P5[P5 Hiệu trưởng K-12<br/>mở rộng giai đoạn chính thức]
     end
@@ -663,7 +663,7 @@ ERD nhấn mạnh quan hệ many-to-many giữa `STUDENT` và `CLASSES` qua bả
 
 ### 2.3.3 Sequence Diagram — Luồng cấp phát tenant
 
-Luồng cấp phát tenant từ lúc người dùng tiềm năng gửi yêu cầu beta đến khi chủ trung tâm đăng nhập lần đầu trải qua nhiều bước phối hợp giữa frontend, backend và các dịch vụ ngoài. Hình 2.7 trình bày tuần tự các bước theo ký pháp UML.
+Luồng cấp phát tenant từ lúc người dùng tiềm năng gửi yêu cầu beta đến khi chủ sở hữu trung tâm đăng nhập lần đầu trải qua nhiều bước phối hợp giữa frontend, backend và các dịch vụ ngoài. Hình 2.7 trình bày tuần tự các bước theo ký pháp UML.
 
 ```mermaid
 %%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 100, "width": 240, "height": 70, "boxMargin": 18, "boxTextMargin": 10, "noteMargin": 15, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "28px", "messageFontSize": "26px", "noteFontSize": "26px"}}}%%
@@ -704,7 +704,7 @@ sequenceDiagram
 
 **Hình 2.7b.** Pha TRIAL — quản trị duyệt yêu cầu, hệ thống cấp tenant + gửi magic-link, người dùng kích hoạt tài khoản. Sự kiện `branding.deploy.exchange` được phát qua RabbitMQ song song cho `kitehub-branding` dựng template mặc định.
 
-Tuần tự cho thấy ranh giới giữa pha PENDING (chờ duyệt thủ công) và pha TRIAL (sau khi quản trị kích hoạt) — đây là điểm chuyển trạng thái quan trọng được tham chiếu lại tại Hình 2.8 §2.3.4 (máy trạng thái vòng đời tenant). Việc phát sự kiện fanout `branding.deploy.exchange` qua RabbitMQ song song với gửi email cho phép `kitehub-branding` dựng template mặc định trong khi chờ chủ trung tâm xác thực — giảm thời gian onboarding khi user click magic-link.
+Tuần tự cho thấy ranh giới giữa pha PENDING (chờ duyệt thủ công) và pha TRIAL (sau khi quản trị kích hoạt) — đây là điểm chuyển trạng thái quan trọng được tham chiếu lại tại Hình 2.8 §2.3.4 (máy trạng thái vòng đời tenant). Việc phát sự kiện fanout `branding.deploy.exchange` qua RabbitMQ song song với gửi email cho phép `kitehub-branding` dựng template mặc định trong khi chờ chủ sở hữu trung tâm xác thực — giảm thời gian onboarding khi user click magic-link.
 
 ### 2.3.4 Máy trạng thái vòng đời tenant
 
@@ -834,7 +834,7 @@ Bảng `students` chứa thông tin cá nhân nhạy cảm và do đó phải tu
 7. Lập lịch sự kiện `instance.purge.exchange` (TRIAL → SUSPENDED tự động sau 14 ngày)
 8. Cập nhật bảng `onboarding_progress` trạng thái PENDING → TRIAL
 
-Chủ trung tâm nhấn magic-link, đặt mật khẩu và đăng nhập lần đầu sẽ thấy dashboard wizard 5 bước: xác nhận thông tin trung tâm, upload logo (hoặc sinh tự động), thêm 3 lớp đầu tiên, mời quản lý/giáo viên, thiết lập phương thức thanh toán.
+Chủ sở hữu trung tâm nhấn magic-link, đặt mật khẩu và đăng nhập lần đầu sẽ thấy dashboard wizard 5 bước: xác nhận thông tin trung tâm, upload logo (hoặc sinh tự động), thêm 3 lớp đầu tiên, mời quản lý/giáo viên, thiết lập phương thức thanh toán.
 
 **Ma trận gói dịch vụ.** Đồ án thiết kế 4 gói dịch vụ (Bảng 2.11) — giai đoạn thử nghiệm kiểm thử FREE + STARTER; PRO và PRO_PLUS kích hoạt giai đoạn vận hành chính thức.
 
@@ -849,6 +849,6 @@ Chủ trung tâm nhấn magic-link, đặt mật khẩu và đăng nhập lần 
 
 Việc enforce quota dùng bảng `tenant_quota` kết hợp bộ đếm Redis kiểm tra ở mỗi request. Khi vượt quota, hệ thống trả HTTP 429 cùng banner UI hướng dẫn nâng gói.
 
-**Thanh toán và hóa đơn.** Giai đoạn thử nghiệm dùng VietQR thủ công: chủ trung tâm chuyển khoản theo nội dung VietQR và upload ảnh xác nhận, quản trị nền tảng đối soát bằng tay. Cách tiếp cận này khớp thói quen thanh toán phổ biến (bank transfer chiếm ~70% giao dịch giáo dục) và tránh phụ thuộc giấy phép trung gian thanh toán trong giai đoạn xác thực sản phẩm.
+**Thanh toán và hóa đơn.** Giai đoạn thử nghiệm dùng VietQR thủ công: chủ sở hữu trung tâm chuyển khoản theo nội dung VietQR và upload ảnh xác nhận, quản trị nền tảng đối soát bằng tay. Cách tiếp cận này khớp thói quen thanh toán phổ biến (bank transfer chiếm ~70% giao dịch giáo dục) và tránh phụ thuộc giấy phép trung gian thanh toán trong giai đoạn xác thực sản phẩm.
 
 Roadmap giai đoạn vận hành chính thức: hóa đơn điện tử VAT tích hợp MISA MeInvoice theo Thông tư 78/2021/TT-BTC (thay vì tự xây engine); cron tính phí bỏ qua khung Tết; merchant integration với VNPay/MoMo qua hình thức đối tác (không yêu cầu giấy phép PSP); hỗ trợ tự thu cho tenant ACTIVE theo lựa chọn; hoàn tiền và tranh chấp dưới dạng SOP thủ công.

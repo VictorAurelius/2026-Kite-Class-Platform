@@ -1681,7 +1681,7 @@ def add_introduction(doc):
         "sản phẩm trong thực tế giảng dạy để thu thập phản hồi.")
     add_paragraph_text(doc,
         "Về đối tượng, đồ án phục vụ ba persona chính: Solo Teacher (giáo viên độc lập, 1-50 học "
-        "viên), Center Owner (chủ trung tâm, 1-10 chi nhánh, 100-2.000 học viên), và Center "
+        "viên), Center Owner (chủ sở hữu trung tâm, 1-10 chi nhánh, 100-2.000 học viên), và Center "
         "Manager (quản lý vận hành trung tâm). Persona K-12 Parent + Student được hoãn sang giai "
         "đoạn mở rộng K-12 do yêu cầu bổ sung DPO + DPIA theo Điều 26 Luật Bảo vệ Dữ liệu Cá "
         "nhân 2023. Kiến trúc hệ thống cấu thành từ ba lớp dịch vụ. Lớp nền tảng KiteHub gồm "

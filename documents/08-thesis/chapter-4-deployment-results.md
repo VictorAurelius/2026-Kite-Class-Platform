@@ -220,7 +220,7 @@ Tính đến thời điểm thực hiện đồ án: 71 resources terraform đã
 [Placeholder — phần này sẽ điền sau khi thu thập feedback từ beta tenants trong giai đoạn launch invite (từ 2026-05-19 trở đi). Nội dung dự kiến:
 
 - Tổng kết các thao tác key đã được end-user thực hiện thành công (đăng ký tenant, cấu hình AI branding, quản lý lớp học, phát hành hóa đơn, theo dõi audit log).
-- Trích dẫn feedback xác nhận từ chủ trung tâm và quản lý trung tâm về độ phù hợp của hệ thống với quy trình vận hành hiện tại.
+- Trích dẫn feedback xác nhận từ chủ sở hữu trung tâm và quản lý trung tâm về độ phù hợp của hệ thống với quy trình vận hành hiện tại.
 - Số liệu sử dụng thực tế (active users, AI branding generations, payment processed) trong cửa sổ 2-4 tuần đầu sau khi mời beta.
 - Screenshot minh chứng các luồng nghiệp vụ then chốt đã được tenant ký xác nhận đạt yêu cầu.
 

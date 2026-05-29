@@ -21,7 +21,7 @@ Tuy nhiên, đa số trung tâm nhỏ và vừa (1-3 chi nhánh, dưới 500 h�
 
 ### 1.2.1 BeeClass — phần mềm quản lý trung tâm tiếng Anh phổ biến
 
-*BeeClass* [25] là sản phẩm phần mềm quản lý trung tâm ngoại ngữ phổ biến tại thị trường Việt Nam, được vận hành bởi nhóm phát triển trong nước, định vị phục vụ các trung tâm tiếng Anh quy mô vừa. Sản phẩm cung cấp các module quản lý học viên, lớp học, điểm danh, học phí, gửi thông báo cho phụ huynh qua Zalo và email, kèm dashboard tổng quan doanh thu cho chủ trung tâm. Theo thông tin công bố trên website chính thức [25] (truy cập ngày 20/05/2026), BeeClass có hàng trăm trung tâm khách hàng tại nhiều tỉnh thành.
+*BeeClass* [25] là sản phẩm phần mềm quản lý trung tâm ngoại ngữ phổ biến tại thị trường Việt Nam, được vận hành bởi nhóm phát triển trong nước, định vị phục vụ các trung tâm tiếng Anh quy mô vừa. Sản phẩm cung cấp các module quản lý học viên, lớp học, điểm danh, học phí, gửi thông báo cho phụ huynh qua Zalo và email, kèm dashboard tổng quan doanh thu cho chủ sở hữu trung tâm. Theo thông tin công bố trên website chính thức [25] (truy cập ngày 20/05/2026), BeeClass có hàng trăm trung tâm khách hàng tại nhiều tỉnh thành.
 
 ![Giao diện trang chủ BeeClass](screenshots/competitors/beeclass-homepage.png)
 
@@ -67,7 +67,7 @@ Thế mạnh đặc thù của DotB là module CRM tích hợp phục vụ quả
 
 Bên cạnh khảo sát các hệ thống đang có trên thị trường, đề tài tổng hợp nhu cầu sử dụng từ năm nhóm người dùng cuối (end-user) dựa trên các báo cáo ngành công khai. Phân tích này giúp xác định những tính năng cốt lõi cần ưu tiên trong giai đoạn đầu của hệ thống đề xuất.
 
-*Chủ trung tâm (Owner):* theo các báo cáo Magenest 2024 [2] và 6Wresearch 2024 [3] (cả hai truy cập ngày 20/05/2026), chủ trung tâm vừa và nhỏ (1-10 chi nhánh, 100-2000 học viên) ưu tiên ba nhu cầu chính: (i) quản lý học phí và đối chiếu thanh toán tự động (khoảng 80% trung tâm vẫn dùng chuyển khoản ngân hàng kèm đối soát thủ công, chiếm 4-6 giờ/tuần làm việc văn phòng — theo báo cáo VECITA 2024 [4] truy cập ngày 20/05/2026); (ii) báo cáo doanh thu, tỷ lệ giữ chân học viên, chi phí vận hành theo thời gian thực để ra quyết định mở hoặc đóng lớp; (iii) chi phí phần mềm thấp dưới 1,5 triệu đồng/tháng phù hợp biên lợi nhuận hiện hành 25-30%.
+*Chủ sở hữu trung tâm (Owner):* theo các báo cáo Magenest 2024 [2] và 6Wresearch 2024 [3] (cả hai truy cập ngày 20/05/2026), chủ sở hữu trung tâm vừa và nhỏ (1-10 chi nhánh, 100-2000 học viên) ưu tiên ba nhu cầu chính: (i) quản lý học phí và đối chiếu thanh toán tự động (khoảng 80% trung tâm vẫn dùng chuyển khoản ngân hàng kèm đối soát thủ công, chiếm 4-6 giờ/tuần làm việc văn phòng — theo báo cáo VECITA 2024 [4] truy cập ngày 20/05/2026); (ii) báo cáo doanh thu, tỷ lệ giữ chân học viên, chi phí vận hành theo thời gian thực để ra quyết định mở hoặc đóng lớp; (iii) chi phí phần mềm thấp dưới 1,5 triệu đồng/tháng phù hợp biên lợi nhuận hiện hành 25-30%.
 
 *Quản lý trung tâm (Manager):* nhu cầu chính tập trung vào quy trình vận hành hàng ngày — điểm danh tự động, lịch giảng dạy linh hoạt khi giáo viên thay ca, thông báo tự động cho phụ huynh khi học viên vắng mặt hoặc nghỉ học liên tiếp. Báo cáo VECITA 2024 [4] (truy cập ngày 20/05/2026) về kinh tế số trong giáo dục cho thấy khoảng 65% trung tâm gặp khó khăn vận hành khi vượt qua mốc 300 học viên do thiếu công cụ phân quyền và quy trình chuẩn hóa giữa các chi nhánh.
 
@@ -105,9 +105,9 @@ Khoảng trống thị trường mà đề tài hướng đến là *trung tâm 
 
 Dựa trên phân tích bốn hệ thống tham khảo, hệ thống đề xuất trong đề tài có bốn yếu tố khác biệt chính.
 
-*Thứ nhất, kiến trúc multi-tenant gốc:* cả năm hệ thống tham khảo đều dùng triển khai single-tenant với mỗi khách hàng tương ứng một instance cơ sở dữ liệu riêng. Khi trung tâm mở rộng lên năm chi nhánh trở lên, chủ trung tâm phải cấp phát thêm instance, đồng bộ dữ liệu thủ công và sao chép cấu hình. Hệ thống đề xuất sử dụng kiến trúc multi-tenant gốc với cô lập ở mức cơ sở dữ liệu (schema-per-tenant), cho phép một trung tâm có 100 chi nhánh trên cùng một instance, tiết kiệm khoảng 80% chi phí hạ tầng khi mở rộng.
+*Thứ nhất, kiến trúc multi-tenant gốc:* cả năm hệ thống tham khảo đều dùng triển khai single-tenant với mỗi khách hàng tương ứng một instance cơ sở dữ liệu riêng. Khi trung tâm mở rộng lên năm chi nhánh trở lên, chủ sở hữu trung tâm phải cấp phát thêm instance, đồng bộ dữ liệu thủ công và sao chép cấu hình. Hệ thống đề xuất sử dụng kiến trúc multi-tenant gốc với cô lập ở mức cơ sở dữ liệu (schema-per-tenant), cho phép một trung tâm có 100 chi nhánh trên cùng một instance, tiết kiệm khoảng 80% chi phí hạ tầng khi mở rộng.
 
-*Thứ hai, AI Branding tự động:* chủ trung tâm mới khai trương thường tốn 2-5 triệu đồng thuê thiết kế viên cho logo, banner và hero image marketing. AI Branding của hệ thống đề xuất tự động sinh các tài nguyên này từ prompt văn bản và màu thương hiệu, giảm thời gian sẵn sàng vận hành từ 1-2 tuần xuống còn vài giờ. Cả năm hệ thống tham khảo đều không có tính năng này.
+*Thứ hai, AI Branding tự động:* chủ sở hữu trung tâm mới khai trương thường tốn 2-5 triệu đồng thuê thiết kế viên cho logo, banner và hero image marketing. AI Branding của hệ thống đề xuất tự động sinh các tài nguyên này từ prompt văn bản và màu thương hiệu, giảm thời gian sẵn sàng vận hành từ 1-2 tuần xuống còn vài giờ. Cả năm hệ thống tham khảo đều không có tính năng này.
 
 *Thứ ba, tuân thủ pháp luật Việt Nam built-in:* Luật Bảo vệ Dữ liệu Cá nhân năm 2023 (PDPL, thời hạn áp dụng 2026-07-01) [9], Luật An ninh mạng 2018 [10] và Nghị định 53/2022/NĐ-CP về bản địa hóa dữ liệu [11] là ba yêu cầu tuân thủ quan trọng cho mọi SaaS xử lý dữ liệu cá nhân tại Việt Nam. Hệ thống đề xuất tích hợp tuân thủ ngay từ thiết kế ban đầu thay vì bổ sung sau. Trong khi đó, Mona eLMS, Easy Edu và BeeClass đang trong quá trình triển khai PDPL; DotB có sẵn nhưng mức giá cao.
 
