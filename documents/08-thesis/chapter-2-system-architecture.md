@@ -34,13 +34,20 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 - Studio AI Branding sinh logo + hero qua MiniMax (môi trường vận hành) hoặc Ollama (môi trường phát triển); quota lưu trong bảng `tenant_quota` giới hạn theo gói (FREE: 3 lần tạo lại mỗi ngày)
 - Domain gửi email được xác thực DKIM theo tenant (gói PRO) thì thư gửi từ `support@skyedu.vn` thay vì `support@kitehub.me`
 
+**Email giao dịch (KiteHub `kitehub-email`)**
+
+- Kênh thông báo trừu tượng `NotificationChannel` với hai nhà cung cấp: AWS SES (mặc định môi trường vận hành) và Resend (dự phòng), tự động chuyển đổi khi nhà cung cấp chính lỗi
+- Mẫu email theo tông giọng phù hợp vai trò người nhận (Owner trang trọng, phụ huynh kính ngữ): chào mừng, magic-link kích hoạt, hóa đơn, nhắc thanh toán, thông báo điểm/sự cố
+- Gửi bất đồng bộ qua sự kiện RabbitMQ `email.exchange` — tách rời khỏi luồng nghiệp vụ chính để không chặn request người dùng
+- Nhật ký gửi lưu bảng `email_logs` phục vụ tra cứu và đối soát tỷ lệ gửi thành công
+
 **Lõi nghiệp vụ giáo dục (KiteClass `kiteclass-core`)**
 
 - **Quản lý học sinh:** CRUD học sinh, nhập hàng loạt CSV/Excel (bảng `students`), liên kết phụ huynh — học sinh
 - **Lớp học & thời khóa biểu:** Tạo lớp (ví dụ `Lớp Anh ngữ 5A1` / `Lớp Toán 9B`), gắn `homeroom_class` cho lớp chủ nhiệm, lập lịch buổi học qua `class_schedule_slots` (khung thứ 2-7 17:00-21:00 buổi tối phổ biến)
 - **Điểm danh:** GVCN điểm danh từng `attendance_period` (mỗi buổi học), trạng thái Có/Vắng/Nghỉ phép
 - **Chấm điểm:** Nhập điểm `grades` cho `assignments` / `subject_grades`, xuất bảng điểm theo `grading_scales` (thang 10); báo cáo cuối kỳ HK1/HK2/HK_Hè
-- **Thanh toán theo tenant:** Chủ sở hữu trung tâm phát hành hóa đơn `invoices` cho phụ huynh (ví dụ `Học phí tháng 5/2026 — 1.500.000đ`), theo dõi chuyển khoản/tiền mặt, xuất hóa đơn điện tử VAT tích hợp với MISA MeInvoice
+- **Thanh toán theo tenant:** Chủ sở hữu trung tâm phát hành hóa đơn `invoices` cho phụ huynh (ví dụ `Học phí tháng 5/2026 — 1.500.000đ`), ghi nhận thanh toán thủ công qua chuyển khoản / tiền mặt / VietQR (bảng `payment_records`). Xuất hóa đơn điện tử VAT theo Thông tư 78/2021/TT-BTC (qua đối tác MISA MeInvoice) thuộc lộ trình phát triển sau
 - **Thông báo:** Gửi thông báo qua email formal cho phụ huynh khi có điểm mới, sự cố, nhắc hóa đơn; đã tích hợp Zalo OA
 
 **Tuân thủ & nhật ký kiểm toán (cross-service)**
