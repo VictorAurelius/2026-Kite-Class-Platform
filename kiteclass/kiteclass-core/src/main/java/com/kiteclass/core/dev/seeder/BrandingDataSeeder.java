@@ -11,6 +11,8 @@ import com.kiteclass.core.module.branding.repository.BrandingResourceRepository;
 import com.kiteclass.core.module.instance.entity.FrontendInstance;
 import com.kiteclass.core.module.instance.entity.FrontendInstanceStatus;
 import com.kiteclass.core.module.instance.repository.FrontendInstanceRepository;
+import com.kiteclass.core.module.marketing.entity.LandingPage;
+import com.kiteclass.core.module.marketing.repository.LandingPageRepository;
 import com.kiteclass.core.module.quality.entity.QualityReport;
 import com.kiteclass.core.module.quality.entity.QualityReportRepository;
 import lombok.RequiredArgsConstructor;
@@ -72,6 +74,7 @@ public class BrandingDataSeeder {
     private final FrontendInstanceRepository instanceRepo;
     private final BrandingResourceRepository resourceRepo;
     private final QualityReportRepository qualityRepo;
+    private final LandingPageRepository landingPageRepository;
     private final OutboxEventWriter outbox;
     private final ObjectMapper objectMapper;
     private final TransactionTemplate transactionTemplate;
@@ -88,10 +91,40 @@ public class BrandingDataSeeder {
     private void seedTenant(UUID tenantId, String slug) {
         try {
             TenantContext.setCurrentTenant(tenantId);
-            transactionTemplate.executeWithoutResult(status -> seed(slug));
+            transactionTemplate.executeWithoutResult(status -> {
+                seed(slug);
+                if (SKY_TENANT_SLUG.equals(slug)) {
+                    seedSkyLanding(tenantId);
+                }
+            });
         } finally {
             TenantContext.clear();
         }
+    }
+
+    /**
+     * Seeds the Sky Education landing page hero so the public homepage renders the
+     * promo banner (slogan + teacher portrait + CTA). Idempotent: refreshes the demo
+     * hero fields on each boot. {@code heroImageUrl} points at a static asset served
+     * by the frontend ({@code public/demo/sky/}, local-only/gitignored per GAP-810);
+     * the seed stores only the URL string. The landing row is otherwise lazily
+     * created on first GET (BR-MKT-001), so we upsert here.
+     */
+    private void seedSkyLanding(UUID tenantId) {
+        LandingPage lp = landingPageRepository.findByInstanceIdAndDeletedFalse(tenantId)
+                .orElseGet(() -> {
+                    LandingPage created = new LandingPage();
+                    created.setInstanceId(tenantId);
+                    return created;
+                });
+        lp.setHeroTitle("Mất gốc tiếng Anh? Đã có cô Khánh");
+        lp.setHeroSubtitle("Lộ trình lấy lại căn bản tiếng Anh, học cùng giáo viên tận tâm.");
+        lp.setHeroImageUrl("/demo/sky/teacher-do-lan-khanh.webp");
+        lp.setTagline(SKY_TAGLINE);
+        lp.setPrimaryColor(SKY_PRIMARY_COLOR);
+        lp.setSecondaryColor(SKY_SECONDARY_COLOR);
+        landingPageRepository.save(lp);
+        log.info("Seeded Sky landing hero (instance={})", tenantId);
     }
 
     /**
