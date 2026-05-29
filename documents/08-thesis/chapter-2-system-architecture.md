@@ -142,7 +142,7 @@ Khả năng mở rộng theo chiều ngang qua sub-split:
 - AI: Ollama tự host cho môi trường phát triển; MiniMax vận hành ~$0.001/yêu cầu
 - **Tổng chi phí ước tính giai đoạn thử nghiệm: $15-30/tháng** (~360.000đ-720.000đ/tháng)
 
-Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: em chọn mô hình single-bucket multi-tenant với RLS (Pattern 4) thay vì per-tenant DB (Pattern 1) — chênh lệch chi phí khoảng 20× và chi phí vận hành tăng tuyến tính theo số tenant, không phù hợp với phân khúc trung tâm SMB ở giai đoạn thử nghiệm (chi tiết §2.2.3).
+Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: khóa luận lựa chọn mô hình single-bucket multi-tenant với RLS (Pattern 4) thay vì per-tenant DB (Pattern 1) — chênh lệch chi phí khoảng 20× và chi phí vận hành tăng tuyến tính theo số tenant, không phù hợp với phân khúc trung tâm SMB ở giai đoạn thử nghiệm (chi tiết §2.2.3).
 
 ### 2.1.3 Bối cảnh thị trường mục tiêu
 
@@ -335,7 +335,7 @@ Quyết định kiến trúc trọng tâm của đồ án là chọn mô hình c
 | P5 Hybrid (Pool mặc định + Silo cho khách doanh nghiệp) | Sẽ phát triển khi mở rộng K-12 doanh nghiệp ở giai đoạn vận hành chính thức và có yêu cầu cụ thể về cô lập vật lý từ khách hàng |
 | P6 Serverless (Aurora Serverless v2 / DynamoDB) | Aurora Serverless v2 chi phí tối thiểu ~$45/tháng vượt Free Tier; DynamoDB không phù hợp với dữ liệu quan hệ giáo dục (Student/Class/Grade/Attendance JOIN-heavy) |
 
-**Phương pháp chấm điểm.** Mỗi pattern được đánh giá trên thang **1-5** ở từng trục (1 = không phù hợp / 5 = phù hợp nhất với phạm vi giai đoạn thử nghiệm SMB của đồ án). Tổng điểm tối đa 30 (6 trục × 5 điểm). Rubric này **do tác giả tự thiết kế** cho ngữ cảnh trung tâm dạy thêm SMB giai đoạn thử nghiệm của Kite Platform — tham khảo phương pháp luận đánh giá Pool/Bridge/Silo của AWS Well-Architected SaaS Lens [26, tr.21] và pattern comparison của Pothon [27], nhưng các trọng số trục cụ thể (chi phí ưu tiên cao do ràng buộc Free Tier, độ phức tạp vận hành ưu tiên cao do mô hình solo-dev) phản ánh ràng buộc kinh tế / nhân lực cụ thể của đồ án.
+**Phương pháp chấm điểm.** Mỗi pattern được đánh giá trên thang **1-5** ở từng trục (1 = không phù hợp / 5 = phù hợp nhất với phạm vi giai đoạn thử nghiệm SMB của đồ án). Tổng điểm tối đa 30 (6 trục × 5 điểm). Rubric này **được xây dựng riêng** cho ngữ cảnh trung tâm dạy thêm SMB giai đoạn thử nghiệm của Kite Platform — tham khảo phương pháp luận đánh giá Pool/Bridge/Silo của AWS Well-Architected SaaS Lens [26, tr.21] và pattern comparison của Pothon [27], nhưng các trọng số trục cụ thể (chi phí ưu tiên cao do ràng buộc Free Tier, độ phức tạp vận hành ưu tiên cao do mô hình solo-dev) phản ánh ràng buộc kinh tế / nhân lực cụ thể của đồ án.
 
 *Tiêu chí chấm điểm 1-5 cho từng trục:*
 - **Độ mạnh cô lập:** 5 = enforce ở tầng cơ sở dữ liệu (vật lý hoặc chính sách RLS) / 3 = enforce ở tầng ứng dụng (qua bộ lọc trong code) / 1 = chỉ phụ thuộc kỷ luật code, không có cơ chế chặn ở DB.
