@@ -1630,7 +1630,6 @@ def add_abbreviations(doc):
         ("REST", "Representational State Transfer"),
         ("RLS", "Row-Level Security — bảo mật mức hàng"),
         ("SaaS", "Software as a Service — phần mềm dạng dịch vụ"),
-        ("SDXL", "Stable Diffusion XL — mô hình sinh ảnh từ văn bản"),
         ("SES", "Simple Email Service — dịch vụ gửi email AWS"),
         ("SLA", "Service Level Agreement — cam kết mức dịch vụ"),
         ("SPF", "Sender Policy Framework — bản ghi xác thực nguồn gửi email"),
@@ -1805,12 +1804,12 @@ def add_conclusion(doc):
     add_section_title(doc, "2. Hạn chế")
     add_bullet_list_item(doc, "Phạm vi triển khai hiện tại chỉ phục vụ ba nhóm người dùng (giáo viên độc lập, chủ sở hữu trung tâm, quản lý trung tâm); nhóm phụ huynh và học viên thuộc phân khúc K-12 thuộc lộ trình phát triển sau do yêu cầu DPO + DPIA bổ sung theo PDPL.")
     add_bullet_list_item(doc, "Một số KPI thực tế (Time to First Value, Daily Active Users, Monthly Recurring Revenue) chưa có số liệu đầy đủ do phạm vi triển khai hiện tại mới có hai giáo viên độc lập (một gói miễn phí, một gói trả phí) trực tiếp sử dụng để thu thập phản hồi.")
-    add_bullet_list_item(doc, "AI Branding mới được tích hợp ở mức MVP với 1 nhà cung cấp (Replicate Stable Diffusion XL); các phương án multi-vendor failover thuộc lộ trình phát triển sau.")
+    add_bullet_list_item(doc, "AI Branding mới được tích hợp ở mức cơ bản với nhà cung cấp OpenAI (GPT-4 Vision sinh mô tả + DALL-E 3 sinh ảnh) cho môi trường vận hành và Ollama tự host cho môi trường phát triển; các phương án multi-vendor failover và bộ phân loại nội dung an toàn (NSFW) thuộc lộ trình phát triển sau.")
 
     add_section_title(doc, "3. Hướng phát triển tiếp theo")
     add_bullet_list_item(doc,
-        "Giai đoạn trả phí (paid tier): tích hợp thanh toán (VNPay, MoMo), partnership MISA MeInvoice cho "
-        "hóa đơn điện tử theo Thông tư 78/2021/TT-BTC, mở rộng tenant cohort beta lên 30-50 trung tâm.")
+        "Hoàn thiện thanh toán trực tuyến (mở rộng VNPay sang MoMo/ZaloPay), hợp tác MISA MeInvoice cho "
+        "hóa đơn điện tử theo Thông tư 78/2021/TT-BTC, mở rộng quy mô người dùng khi sản phẩm trưởng thành.")
     add_bullet_list_item(doc,
         "Giai đoạn vận hành chính thức: kiến trúc đa-region (Singapore + Hà Nội data localization "
         "Việt Nam theo Nghị định 53/2022), AI Quality Gate phiên bản nâng cao với multi-vendor failover, "

@@ -24,31 +24,49 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 **Đăng ký dịch vụ & thanh toán (KiteHub `kitehub-subscription` + `kitehub-admin`)**
 
 - Chủ sở hữu trung tâm chọn gói dịch vụ (FREE / STARTER / PRO / PRO_PLUS) — ví dụ STARTER khoảng `500.000đ/tháng` cho 100 học sinh
-- Thanh toán qua VietQR là phương thức mặc định cho phạm vi hiện tại thủ công; tích hợp MoMo/VNPay theo lộ trình phát triển sau
+- Thanh toán qua VietQR là phương thức chính hiện tại (đối soát thủ công); khung tích hợp cổng VNPay đã sẵn sàng (cổng thanh toán + webhook xác nhận giao dịch); MoMo/ZaloPay ở dạng khung sơ khởi, hoàn thiện theo lộ trình phát triển sau
 - Gia hạn hằng tháng với thời gian ân hạn 3 ngày khi thanh toán thất bại; tenant SUSPENDED không đăng nhập được nhưng giữ dữ liệu 7 ngày
-- Quản trị nền tảng có dashboard `/admin/v1/revenue` để xem doanh thu, MRR, tỷ lệ churn
+- Quản trị nền tảng có dashboard doanh thu để xem MRR, tỷ lệ churn (chi tiết endpoint trình bày trong API contract Chương 3)
 
 **Tùy biến tenant (KiteHub `kitehub-branding`)**
 
 - Tùy biến theo tenant: logo, hero image, palette màu, subdomain riêng (ví dụ `trung-tam-sky.kitehub.me`)
-- Studio AI Branding sinh logo + hero qua MiniMax (môi trường vận hành) hoặc Ollama (môi trường phát triển); quota lưu trong bảng `tenant_quota` giới hạn theo gói (FREE: 3 lần tạo lại mỗi ngày)
-- Domain gửi email được xác thực DKIM theo tenant (gói PRO) thì thư gửi từ `support@skyedu.vn` thay vì `support@kitehub.me`
+- Studio AI Branding sinh logo + hero qua OpenAI GPT-4 Vision + DALL-E 3 (môi trường vận hành) hoặc Ollama tự host (môi trường phát triển); quota lưu trong bảng `branding_regenerate_usage` giới hạn theo gói (FREE: 3 lần tạo lại mỗi ngày)
+- Xác thực DKIM theo tenant (gói PRO) để thư gửi từ domain riêng `support@skyedu.vn` thay vì `support@kitehub.me` thuộc lộ trình phát triển sau
 
 **Email giao dịch (KiteHub `kitehub-email`)**
 
-- Kênh thông báo trừu tượng `NotificationChannel` với hai nhà cung cấp: AWS SES (mặc định môi trường vận hành) và Resend (dự phòng), tự động chuyển đổi khi nhà cung cấp chính lỗi
+- Kênh thông báo trừu tượng `NotificationChannel` với hai nhà cung cấp cấu hình tĩnh: AWS SES (mặc định môi trường vận hành) và Resend (dự phòng); cơ chế tự động chuyển đổi (failover) khi nhà cung cấp chính lỗi thuộc lộ trình phát triển sau
 - Mẫu email theo tông giọng phù hợp vai trò người nhận (Owner trang trọng, phụ huynh kính ngữ): chào mừng, magic-link kích hoạt, hóa đơn, nhắc thanh toán, thông báo điểm/sự cố
 - Gửi bất đồng bộ qua sự kiện RabbitMQ `email.exchange` — tách rời khỏi luồng nghiệp vụ chính để không chặn request người dùng
-- Nhật ký gửi lưu bảng `email_logs` phục vụ tra cứu và đối soát tỷ lệ gửi thành công
+- Nhật ký gửi lưu bảng `email_logs` (thuộc `kitehub-subscription`) phục vụ tra cứu và đối soát tỷ lệ gửi thành công
 
 **Lõi nghiệp vụ giáo dục (KiteClass `kiteclass-core`)**
 
-- **Quản lý học sinh:** CRUD học sinh, nhập hàng loạt CSV/Excel (bảng `students`), liên kết phụ huynh — học sinh
-- **Lớp học & thời khóa biểu:** Tạo lớp (ví dụ `Lớp Anh ngữ 5A1` / `Lớp Toán 9B`), gắn `homeroom_class` cho lớp chủ nhiệm, lập lịch buổi học qua `class_schedule_slots` (khung thứ 2-7 17:00-21:00 buổi tối phổ biến)
-- **Điểm danh:** GVCN điểm danh từng `attendance_period` (mỗi buổi học), trạng thái Có/Vắng/Nghỉ phép
-- **Chấm điểm:** Nhập điểm `grades` cho `assignments` / `subject_grades`, xuất bảng điểm theo `grading_scales` (thang 10); báo cáo cuối kỳ HK1/HK2/HK_Hè
+- **Quản lý học sinh:** CRUD học sinh, nhập hàng loạt từ tệp Excel (.xlsx) qua thư viện Apache POI (bảng `students`), liên kết phụ huynh — học sinh
+- **Lớp học & thời khóa biểu:** Tạo lớp (ví dụ `Lớp Anh ngữ 5A1` / `Lớp Toán 9B`), gắn `homeroom_class` cho lớp chủ nhiệm, lập lịch buổi học theo `ClassSession` với quy tắc lặp chuẩn RFC 5545 (khung thứ 2-7 17:00-21:00 buổi tối phổ biến)
+- **Điểm danh:** GVCN điểm danh từng buổi học, trạng thái gồm 5 loại — Có mặt / Vắng / Đi muộn / Có phép / Học bù (`PRESENT` / `ABSENT` / `LATE` / `EXCUSED` / `MAKEUP`)
+- **Chấm điểm:** Nhập điểm `grades` cho `assignments` / `subject_grades` theo thang 0-100 kèm xếp loại chữ (A+/A/B+/...) và quy đổi điểm trung bình hệ 4.0 (`grading_scales`); xuất học bạ theo học kỳ. Báo cáo tổng hợp cuối kỳ thuộc lộ trình phát triển sau (`ReportCardService` đã có, expose API là bước kế tiếp)
 - **Thanh toán theo tenant:** Chủ sở hữu trung tâm phát hành hóa đơn `invoices` cho phụ huynh (ví dụ `Học phí tháng 5/2026 — 1.500.000đ`), ghi nhận thanh toán thủ công qua chuyển khoản / tiền mặt / VietQR (bảng `payment_records`). Xuất hóa đơn điện tử VAT theo Thông tư 78/2021/TT-BTC (qua đối tác MISA MeInvoice) thuộc lộ trình phát triển sau
 - **Thông báo:** Gửi thông báo qua email formal cho phụ huynh khi có điểm mới, sự cố, nhắc hóa đơn; đã tích hợp Zalo OA
+
+**Khóa học & học liệu trực tuyến (KiteClass `kiteclass-core`)**
+
+- **Khóa học (Course):** Tầng quản lý phía trên Lớp học — một khóa học (ví dụ `Khóa Anh ngữ giao tiếp`) gồm nhiều lớp triển khai; quản lý chương trình + học phí + lộ trình theo khóa
+- **Hệ thống học liệu (LMS):** Tổ chức học liệu theo `CourseModule` → `Lesson` → `LearningResource`; theo dõi tiến độ học của từng học sinh qua `LessonProgress`
+- **Bài tập & nộp bài (Assignment):** Vòng đời giao bài → học sinh nộp bài → giáo viên chấm → trả kết quả (`Assignment` / `Submission`)
+
+**Cổng phụ huynh (KiteClass `kiteclass-core`)**
+
+- **Mời & xác thực:** Giáo viên/trung tâm mời phụ huynh qua liên kết (`ParentInvitation`); phụ huynh kích hoạt tài khoản truy cập riêng
+- **Năm nhóm thông tin con em:** điểm số, điểm danh, học phí, hạnh kiểm, học bạ (transcript + điểm trung bình hệ 4.0)
+- **Khiếu nại & nhật ký truy cập:** phụ huynh gửi phản ánh; mọi truy cập hồ sơ con em được ghi nhật ký (read-audit) phục vụ tuân thủ bảo vệ trẻ em
+
+**Tài chính nâng cao (KiteClass `kiteclass-core`)**
+
+- **Trả góp học phí (`InstallmentPlan`):** chia học phí thành nhiều đợt thanh toán theo lịch
+- **Hoàn tiền (`RefundRequest`):** quy trình yêu cầu → duyệt → ghi nhận hoàn tiền
+- **Lương giáo viên (`Payroll`):** tính lương theo buổi dạy/số lớp phụ trách
 
 **Tuân thủ & nhật ký kiểm toán (cross-service)**
 
@@ -60,7 +78,7 @@ Kite Platform phục vụ chu trình giáo dục đầy đủ cho trung tâm d�
 **Quản trị nền tảng & hỗ trợ (KiteHub `kitehub-admin`)**
 
 - Quản lý instance: danh sách tenant, xem chỉ số sức khỏe theo tenant, suspend/resume tenant
-- Quy trình impersonation `/api/impersonate/start` — quản trị đăng nhập with tư cách tenant để hỗ trợ (được log trong `impersonation_audit_log`)
+- Quy trình impersonation — quản trị đăng nhập với tư cách tenant để hỗ trợ (được log trong `impersonation_audit_log`; chi tiết endpoint trình bày trong API contract Chương 3)
 - Dashboard doanh thu MRR/ARR/churn theo tháng
 
 ### 2.1.2 Yêu cầu phi chức năng
@@ -114,7 +132,7 @@ Khi chuyển sang triển khai EKS multi-AZ với read replica ở lộ trình p
 | A07 Authentication Failures | JWT HS256 access token TTL 15 phút + refresh token 30 ngày luân chuyển; blacklist refresh trên Redis; 2FA TOTP cho vai trò Owner |
 | A08 Software & Data Integrity | Migration Flyway bất biến; bảng `admin_audit_log` bất biến đáp ứng PDPL Điều 11 |
 | A09 Security Logging Failures | Log dạng JSON có cấu trúc + CloudTrail multi-region được bật trước khi triển khai vận hành |
-| A10 Server-Side Request Forgery | WebClient với allowlist URL tường minh (MiniMax + VietQR + Ollama cho môi trường phát triển) |
+| A10 Server-Side Request Forgery | WebClient với allowlist URL tường minh (OpenAI API + VietQR + Ollama cho môi trường phát triển) |
 
 Tuân thủ pháp lý phía Việt Nam hiện tại:
 
@@ -146,7 +164,7 @@ Khả năng mở rộng theo chiều ngang qua sub-split:
 - 2 EC2 `t3.micro` (KiteHub backend + KiteClass app), 1 RDS `db.t3.micro`, 5 GB S3
 - Cloudflare: gói miễn phí DNS + CDN + DDoS protection
 - Email: Resend gói miễn phí 3k thư/tháng cho môi trường phát triển; AWS SES vận hành ~$0.10/1000 thư
-- AI: Ollama tự host cho môi trường phát triển; MiniMax vận hành ~$0.001/yêu cầu
+- AI: Ollama tự host cho môi trường phát triển; OpenAI GPT-4 Vision + DALL-E 3 cho môi trường vận hành (~$0.04/ảnh DALL-E 3 chất lượng tiêu chuẩn)
 - **Tổng chi phí ước tính hiện tại: $15-30/tháng** (~360.000đ-720.000đ/tháng)
 
 Quyết định kiến trúc bị neo bởi ràng buộc kinh tế: khóa luận lựa chọn mô hình single-bucket multi-tenant với RLS (Pattern 4) thay vì per-tenant DB (Pattern 1) — chênh lệch chi phí khoảng 20× và chi phí vận hành tăng tuyến tính theo số tenant, không phù hợp với phân khúc trung tâm SMB hiện tại (chi tiết §2.2.3).
@@ -293,7 +311,7 @@ Hình 2.2 cho thấy bố cục theo 4 cụm:
 
 - **Cụm Service (6 KiteHub + 1 KiteClass):**
   - `kitehub-subscription` (8081) — xác thực, dùng thử, đăng ký dịch vụ, onboarding, beta access, DSAR, audit log, outbox, webhook thanh toán
-  - `kitehub-branding` (8083) — sinh AI asset (logo, banner, hero), template, lưu trữ S3 qua MinIO; gọi Ollama (dev) hoặc MiniMax (vận hành)
+  - `kitehub-branding` (8083) — sinh AI asset (logo, banner, hero), template, lưu trữ S3 qua MinIO; gọi Ollama (dev) hoặc OpenAI GPT-4 Vision + DALL-E 3 (vận hành)
   - `kitehub-email` (8084) — điều phối gửi email với adapter pattern `NotificationChannel` (`SESEmailService` chính + `ResendEmailService` dự phòng)
   - `kitehub-admin` (8083 alias) — thao tác quản trị nền tảng: duyệt yêu cầu beta, quản lý instance, đọc audit log, impersonation
   - `kitehub-platform` (thư viện JAR) — starter dùng chung: auth filter, tenant context, OpenTelemetry, DTO + error handler chung — không triển khai độc lập
@@ -851,7 +869,7 @@ Danh mục service được tổng hợp theo mô hình Backstage [21] (mỗi se
 | `kite-gateway` | 9000 | Xác thực JWT + định danh tenant + truyền ngữ cảnh + rate-limit | Bộ đếm trên Redis |
 | `kitehub-subscription` | 8081 | Xác thực + dùng thử + đăng ký dịch vụ + thanh toán + onboarding + DSAR + audit + outbox + webhook + impersonation | Schema `kitehub` (32 bảng) |
 | `kitehub-admin` | 8083 | Quản trị nền tảng — CRUD instance + thanh toán + dashboard doanh thu | Schema `kitehub` (chung) |
-| `kitehub-branding` | 8083 alias | Sinh AI asset (logo/hero/banner) + upload S3 + tích hợp Ollama/MiniMax | Bảng `kitehub.branding_*` |
+| `kitehub-branding` | 8083 alias | Sinh AI asset (logo/hero/banner) + upload S3 + tích hợp Ollama/OpenAI | Bảng `kitehub.branding_*` |
 | `kitehub-email` | 8084 | Email giao dịch — adapter NotificationChannel (SES chính + Resend dự phòng) | Bảng `kitehub.email_logs` |
 | `kitehub-platform` | thư viện JAR | Starter dùng chung — auth filter + tenant context + OpenTelemetry + DTO | — |
 | `kiteclass-core` | 8088 | Nghiệp vụ giáo dục theo tenant — student/course/class/attendance/grade/payment | Schema `kiteclass_shared` (59 bảng) |
