@@ -1,11 +1,13 @@
 package com.kiteclass.core.module.settings.service;
 
 import com.kiteclass.core.common.context.TenantContext;
+import com.kiteclass.core.module.branding.entity.ResourceType;
 import com.kiteclass.core.module.settings.dto.request.UpdateBrandingRequest;
 import com.kiteclass.core.module.settings.dto.response.BrandingResponse;
 import com.kiteclass.core.module.settings.entity.Branding;
 import com.kiteclass.core.module.settings.mapper.BrandingMapper;
 import com.kiteclass.core.module.settings.repository.BrandingRepository;
+import com.kiteclass.core.module.settings.storage.BrandingAssetStorage;
 import com.kiteclass.core.testutil.BrandingTestDataBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,12 +16,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,6 +44,9 @@ class BrandingServiceTest {
     @Mock
     private BrandingMapper brandingMapper;
 
+    @Mock
+    private BrandingAssetStorage brandingAssetStorage;
+
     private BrandingServiceImpl brandingService;
 
     private UUID testInstanceId;
@@ -49,7 +57,8 @@ class BrandingServiceTest {
         TenantContext.setCurrentTenant(testInstanceId);
         // Pass nulls for branding event publisher and version service —
         // they're optional and unrelated to the behavior under test.
-        brandingService = new BrandingServiceImpl(brandingRepository, brandingMapper, null, null);
+        brandingService = new BrandingServiceImpl(
+                brandingRepository, brandingMapper, null, null, brandingAssetStorage);
     }
 
     @AfterEach
@@ -167,52 +176,79 @@ class BrandingServiceTest {
     }
 
     @Test
-    @DisplayName("Should upload logo")
+    @DisplayName("Should upload logo via multipart and store to MinIO")
     void shouldUploadLogo() {
         // Given
-        String logoUrl = "https://s3.amazonaws.com/bucket/logo.png";
+        String logoUrl = "https://minio.local/kite-branding-assets/static/t/logo/logo.png?sig=x";
         Branding branding = BrandingTestDataBuilder.createDefaultBranding(testInstanceId);
+        MultipartFile file = new MockMultipartFile(
+                "logo", "logo.png", "image/png", "fake-png-bytes".getBytes());
 
         BrandingResponse expectedResponse = BrandingResponse.builder()
                 .logoUrl(logoUrl)
                 .build();
 
+        when(brandingAssetStorage.store(eq(testInstanceId), eq(ResourceType.LOGO),
+                eq("logo.png"), eq("image/png"), any(byte[].class))).thenReturn(logoUrl);
         when(brandingRepository.findByInstanceIdAndDeletedFalse(testInstanceId))
                 .thenReturn(Optional.of(branding));
         when(brandingRepository.save(branding)).thenReturn(branding);
         when(brandingMapper.toResponse(branding)).thenReturn(expectedResponse);
 
         // When
-        BrandingResponse result = brandingService.uploadLogo(logoUrl);
+        BrandingResponse result = brandingService.uploadLogo(file);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getLogoUrl()).isEqualTo(logoUrl);
+        assertThat(branding.getLogoUrl()).isEqualTo(logoUrl);
+        verify(brandingAssetStorage).store(eq(testInstanceId), eq(ResourceType.LOGO),
+                eq("logo.png"), eq("image/png"), any(byte[].class));
         verify(brandingRepository).save(branding);
     }
 
     @Test
-    @DisplayName("Should upload favicon")
+    @DisplayName("Should upload favicon via multipart and store to MinIO")
     void shouldUploadFavicon() {
         // Given
-        String faviconUrl = "https://s3.amazonaws.com/bucket/favicon.ico";
+        String faviconUrl = "https://minio.local/kite-branding-assets/static/t/favicon/favicon.ico?sig=x";
         Branding branding = BrandingTestDataBuilder.createDefaultBranding(testInstanceId);
+        MultipartFile file = new MockMultipartFile(
+                "favicon", "favicon.ico", "image/x-icon", "fake-ico-bytes".getBytes());
 
         BrandingResponse expectedResponse = BrandingResponse.builder()
                 .faviconUrl(faviconUrl)
                 .build();
 
+        when(brandingAssetStorage.store(eq(testInstanceId), eq(ResourceType.FAVICON),
+                eq("favicon.ico"), eq("image/x-icon"), any(byte[].class))).thenReturn(faviconUrl);
         when(brandingRepository.findByInstanceIdAndDeletedFalse(testInstanceId))
                 .thenReturn(Optional.of(branding));
         when(brandingRepository.save(branding)).thenReturn(branding);
         when(brandingMapper.toResponse(branding)).thenReturn(expectedResponse);
 
         // When
-        BrandingResponse result = brandingService.uploadFavicon(faviconUrl);
+        BrandingResponse result = brandingService.uploadFavicon(file);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getFaviconUrl()).isEqualTo(faviconUrl);
+        assertThat(branding.getFaviconUrl()).isEqualTo(faviconUrl);
+        verify(brandingAssetStorage).store(eq(testInstanceId), eq(ResourceType.FAVICON),
+                eq("favicon.ico"), eq("image/x-icon"), any(byte[].class));
         verify(brandingRepository).save(branding);
+    }
+
+    @Test
+    @DisplayName("Should reject upload with unsupported content type")
+    void shouldRejectUnsupportedContentType() {
+        // Given
+        MultipartFile file = new MockMultipartFile(
+                "logo", "logo.txt", "text/plain", "not-an-image".getBytes());
+
+        // When & Then — validation fails before any repository/storage call
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> brandingService.uploadLogo(file))
+                .isInstanceOf(com.kiteclass.core.common.exception.ValidationException.class);
+        verify(brandingAssetStorage, times(0)).store(any(), any(), any(), any(), any());
     }
 }

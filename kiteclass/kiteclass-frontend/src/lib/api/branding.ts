@@ -28,7 +28,11 @@ export const brandingApi = {
   },
 
   /**
-   * Upload logo (admin only)
+   * Upload logo (admin only).
+   *
+   * Sends the raw image as multipart/form-data field `logo`. The browser sets
+   * the multipart boundary automatically — do NOT hardcode the Content-Type
+   * header (a manual value omits the boundary and breaks the upload).
    */
   uploadLogo: async (file: File): Promise<UploadLogoResponse> => {
     const formData = new FormData();
@@ -36,12 +40,23 @@ export const brandingApi = {
 
     const { data } = await apiClient.post<UploadLogoResponse>(
       `${BASE_URL}/logo`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
+      formData
+    );
+    return data;
+  },
+
+  /**
+   * Upload favicon (admin only).
+   *
+   * Multipart/form-data field `favicon`. See uploadLogo for the Content-Type note.
+   */
+  uploadFavicon: async (file: File): Promise<UploadLogoResponse> => {
+    const formData = new FormData();
+    formData.append('favicon', file);
+
+    const { data } = await apiClient.post<UploadLogoResponse>(
+      `${BASE_URL}/favicon`,
+      formData
     );
     return data;
   },
