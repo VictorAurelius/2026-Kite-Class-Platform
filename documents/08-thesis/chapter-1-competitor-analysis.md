@@ -27,18 +27,18 @@ Trung tâm dạy thêm tại Việt Nam vận hành theo mô hình học hỗn h
 
 ## 1.2 Khảo sát
 
-Để xác định cơ hội và định vị sản phẩm, đề tài tiến hành khảo sát hai khía cạnh bổ trợ: các sản phẩm phần mềm quản lý trung tâm hiện có trên thị trường, và nhu cầu thực tế từ các nhóm người dùng cuối. Phần khảo sát các hệ thống tham khảo dưới đây phân tích bốn sản phẩm tiêu biểu trong phân khúc trung tâm giáo dục tư nhân — BeeClass, Mona eLMS, Easy Edu và DotB — theo các tiêu chí phân khúc mục tiêu, mức giá, kiến trúc, khả năng tích hợp AI và mức tuân thủ pháp luật Việt Nam.
+Để xác định cơ hội và định vị sản phẩm, đề tài tiến hành khảo sát hai khía cạnh bổ trợ: các sản phẩm phần mềm hiện có trên thị trường, và nhu cầu thực tế từ các nhóm người dùng cuối. Phần khảo sát các hệ thống tham khảo dưới đây phân tích bốn sản phẩm tiêu biểu — BeeClass (ứng dụng gamification quản lý điểm thi đua), cùng ba phần mềm quản lý trung tâm Mona eLMS, Easy Edu và DotB — theo các tiêu chí phân khúc mục tiêu, mức giá, kiến trúc, khả năng tích hợp AI và mức tuân thủ pháp luật Việt Nam. BeeClass được đưa vào như đại diện nhóm công cụ nhẹ — miễn phí phục vụ tương tác lớp học, tương phản với nhóm phần mềm quản lý nghiệp vụ trung tâm.
 
-### 1.2.1 BeeClass — phần mềm quản lý trung tâm tiếng Anh phổ biến
+### 1.2.1 BeeClass — ứng dụng gamification quản lý điểm thi đua
 
-*BeeClass* [25] là sản phẩm phần mềm quản lý trung tâm ngoại ngữ phổ biến tại thị trường Việt Nam, được vận hành bởi nhóm phát triển trong nước, định vị phục vụ các trung tâm tiếng Anh quy mô vừa. Sản phẩm cung cấp các module quản lý học viên, lớp học, điểm danh, học phí, gửi thông báo cho phụ huynh qua Zalo và email, kèm dashboard tổng quan doanh thu cho chủ sở hữu trung tâm. Theo thông tin công bố trên website chính thức [25] (truy cập ngày 20/05/2026), BeeClass có hàng trăm trung tâm khách hàng tại nhiều tỉnh thành.
+*BeeClass* [39] là ứng dụng quản lý điểm thi đua của học sinh phổ biến tại Việt Nam, do nhóm phát triển trong nước vận hành với khẩu hiệu "Lớp học Hạnh phúc". Khác với nhóm phần mềm quản lý trung tâm, BeeClass định vị là công cụ gamification (game hóa) nhẹ cho giáo viên: thầy cô quy ước các tiêu chí thưởng — phạt (hăng hái phát biểu, làm bài đầy đủ, đi học trễ, nói chuyện riêng…) rồi tích/trừ điểm cho học sinh, kèm hình đại diện sinh động nhằm tạo động lực học tập. Theo thông tin công bố trên website chính thức [39] (truy cập ngày 30/05/2026), sản phẩm hướng tới giáo viên chủ nhiệm, lớp tiếng Anh, lớp ngoại khóa và nhóm học trẻ em.
 
 ![Giao diện trang chủ BeeClass](screenshots/competitors/beeclass-homepage.png)
 
-**Hình 1.1.** Giao diện trang chủ BeeClass — phần mềm quản lý trung tâm tiếng Anh phổ biến tại Việt Nam.
+**Hình 1.1.** Giao diện trang chủ BeeClass — ứng dụng gamification quản lý điểm thi đua học sinh.
 *Nguồn: https://beeclass.net, truy cập ngày 30/05/2026.*
 
-Thế mạnh chính của BeeClass là giao diện tiếng Việt thân thiện và hỗ trợ quy trình đặc thù của trung tâm tiếng Anh (lịch lớp định kỳ theo tuần, đăng ký lớp thử miễn phí, theo dõi tiến độ học viên theo từng kỹ năng nghe-nói-đọc-viết). Mức giá tham khảo công bố nằm trong khoảng 1-3 triệu đồng/tháng tùy gói và số lượng học viên. Điểm yếu chính của BeeClass tương tự các sản phẩm trong phân khúc: kiến trúc đơn tenant (single-tenant) — mỗi khách hàng có một instance cơ sở dữ liệu riêng, khó mở rộng khi trung tâm mở chi nhánh thứ năm trở lên; chưa có tính năng tự sinh tài nguyên thương hiệu bằng AI; quy trình khởi tạo yêu cầu liên hệ bộ phận kinh doanh chứ chưa hoàn toàn tự phục vụ; mức giá tuy phải chăng hơn các sản phẩm hướng doanh nghiệp nhưng vẫn cao hơn mức 500.000đ/tháng mà phân khúc trung tâm tự phát nhỏ kỳ vọng.
+Tập tính năng chính của BeeClass gồm: điểm danh từng buổi học (kèm gọi tên ngẫu nhiên), tích điểm thưởng — phạt theo tiêu chí, thống kê thành tích theo tuần/tháng, ghi nhận xét mỗi buổi và cho phụ huynh xem qua liên kết chia sẻ. Thế mạnh là giao diện tiếng Việt đơn giản, đăng nhập bằng tài khoản Gmail dùng ngay trên mọi thiết bị, miễn phí ở mức cơ bản và dễ tương tác với phụ huynh. Tuy nhiên, BeeClass thuộc một phân khúc khác với đề tài: sản phẩm tập trung vào game hóa lớp học, **không cung cấp các nghiệp vụ quản lý kinh doanh** mà trung tâm và giáo viên dạy thêm cần — không có quản lý học phí, đối soát thanh toán, hóa đơn, báo cáo doanh thu, xếp lịch lớp định kỳ hay quản lý đa chi nhánh. Việc BeeClass được giáo viên đón nhận cho thấy nhu cầu công cụ nhẹ, miễn phí, tự phục vụ; nhưng khoảng trống nghiệp vụ quản lý dạy-thêm vẫn bỏ ngỏ — đây chính là phần đề tài hướng tới.
 
 ### 1.2.2 Mona eLMS — chuyên ngoại ngữ và tin học
 
@@ -97,11 +97,12 @@ Bảng 1.1 đối chiếu trực tiếp bốn hệ thống tham khảo với h�
 
 | Tiêu chí | BeeClass | Mona eLMS | Easy Edu | DotB | Hệ thống đề xuất |
 |---|---|---|---|---|---|
-| Persona mục tiêu | Trung tâm tiếng Anh | Trung tâm ngoại ngữ | Trung tâm ngoại ngữ nhỏ | Trung tâm tầm trung | Trung tâm nhỏ và vừa |
-| Khoảng giá (đ/tháng) | 1-3 triệu | 1,5-5 triệu | 800.000-3 triệu | 3-8 triệu | 500.000-1.500.000 |
+| Persona mục tiêu | GV cá nhân (gamification) | Trung tâm ngoại ngữ | Trung tâm ngoại ngữ nhỏ | Trung tâm tầm trung | Trung tâm nhỏ và vừa |
+| Quản lý nghiệp vụ (học phí/doanh thu/lịch) | Không | Có | Có | Có | Có |
+| Khoảng giá (đ/tháng) | Miễn phí cơ bản | 1,5-5 triệu | 800.000-3 triệu | 3-8 triệu | 500.000-1.500.000 |
 | Kiến trúc multi-tenant gốc | Không | Không | Không | Không | Có |
 | AI Branding tự sinh | Không | Không | Không | Không | Có |
-| Onboarding tự phục vụ | Không (liên hệ) | Không (báo giá) | Không (liên hệ) | Không (liên hệ) | Có (1-2 ngày) |
+| Onboarding tự phục vụ | Có (Gmail) | Không (báo giá) | Không (liên hệ) | Không (liên hệ) | Có (1-2 ngày) |
 | Ứng dụng di động native | Phát triển sau | Có | Có | Có | Phát triển sau |
 | Tích hợp Zalo (OA + nhóm) | Có | Có (native) | Có | Có | Có |
 | Thanh toán tích hợp | Hạn chế | Không | Hạn chế | Có (3 cổng) | Có (VietQR + chuyển khoản) |

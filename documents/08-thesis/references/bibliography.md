@@ -282,6 +282,8 @@ Khi cần thêm ref mới cho chương:
 
 [38] N. Forsgren, J. Humble, and G. Kim, *Accelerate: The Science of Lean Software and DevOps — Building and Scaling High Performing Technology Organizations*. Portland: IT Revolution Press, 2018.
 
+[39] BeeClass, "BeeClass — Ứng dụng quản lý điểm thi đua của học sinh (Lớp học Hạnh phúc)," 2024. [Online]. Available: [https://beeclass.net/](https://beeclass.net/). [Accessed 2026-05-30].
+
 
 ---
 
