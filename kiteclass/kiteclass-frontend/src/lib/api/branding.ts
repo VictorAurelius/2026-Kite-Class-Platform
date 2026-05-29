@@ -6,6 +6,7 @@
  */
 
 import { apiClient } from '@/lib/api-client';
+import type { ApiResponse } from '@/types/api';
 import type { Branding, UpdateBrandingRequest, UploadLogoResponse } from '@/types/branding';
 
 const BASE_URL = '/api/v1/settings/branding';
@@ -15,16 +16,16 @@ export const brandingApi = {
    * Get current branding settings
    */
   get: async (): Promise<Branding> => {
-    const { data } = await apiClient.get<Branding>(BASE_URL);
-    return data;
+    const { data } = await apiClient.get<ApiResponse<Branding>>(BASE_URL);
+    return data.data!; // Unwrap ApiResponse wrapper
   },
 
   /**
    * Update branding settings (admin only)
    */
   update: async (request: UpdateBrandingRequest): Promise<Branding> => {
-    const { data } = await apiClient.put<Branding>(BASE_URL, request);
-    return data;
+    const { data } = await apiClient.put<ApiResponse<Branding>>(BASE_URL, request);
+    return data.data!; // Unwrap ApiResponse wrapper
   },
 
   /**
@@ -38,11 +39,11 @@ export const brandingApi = {
     const formData = new FormData();
     formData.append('logo', file);
 
-    const { data } = await apiClient.post<UploadLogoResponse>(
+    const { data } = await apiClient.post<ApiResponse<UploadLogoResponse>>(
       `${BASE_URL}/logo`,
       formData
     );
-    return data;
+    return data.data!; // Unwrap ApiResponse wrapper
   },
 
   /**
@@ -54,10 +55,10 @@ export const brandingApi = {
     const formData = new FormData();
     formData.append('favicon', file);
 
-    const { data } = await apiClient.post<UploadLogoResponse>(
+    const { data } = await apiClient.post<ApiResponse<UploadLogoResponse>>(
       `${BASE_URL}/favicon`,
       formData
     );
-    return data;
+    return data.data!; // Unwrap ApiResponse wrapper
   },
 };

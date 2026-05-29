@@ -65,7 +65,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "grades", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_grades_student_class", columnNames = {"student_id", "class_id"})
+        @UniqueConstraint(name = "uk_grades_student_class_type", columnNames = {"student_id", "class_id", "grade_type"})
 })
 @Getter
 @Setter

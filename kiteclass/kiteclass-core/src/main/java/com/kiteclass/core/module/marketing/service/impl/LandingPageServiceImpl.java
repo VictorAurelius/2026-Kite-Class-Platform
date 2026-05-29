@@ -6,6 +6,8 @@ import com.kiteclass.core.module.marketing.entity.LandingPage;
 import com.kiteclass.core.module.marketing.mapper.LandingPageMapper;
 import com.kiteclass.core.module.marketing.repository.LandingPageRepository;
 import com.kiteclass.core.module.marketing.service.LandingPageService;
+import com.kiteclass.core.module.settings.entity.Branding;
+import com.kiteclass.core.module.settings.repository.BrandingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -31,6 +33,7 @@ public class LandingPageServiceImpl implements LandingPageService {
 
     private final LandingPageRepository landingPageRepository;
     private final LandingPageMapper landingPageMapper;
+    private final BrandingRepository brandingRepository;
 
     /**
      * Gets landing page for tenant, creates default if not exists.
@@ -42,7 +45,11 @@ public class LandingPageServiceImpl implements LandingPageService {
      * @return LandingPageResponse with landing page content
      */
     @Override
-    @Transactional(readOnly = true)
+    // NOT readOnly: getOrCreateDefault() INSERTs a default row on first visit (lazy
+    // create per BR-MKT-001). readOnly=true threw "cannot execute INSERT in a
+    // read-only transaction" for every tenant's first homepage load (GAP-809 walk fix).
+    // @Cacheable means the create happens once; subsequent visits hit the cache.
+    @Transactional
     // GAP-043 (Wave 9.5-D) — sync=true critical here: landing pages are PUBLIC-facing
     // (anonymous visitor traffic), so a cache expiry can be hit by hundreds of
     // concurrent visitors simultaneously. Request-coalescing keeps the DB protected.
@@ -96,7 +103,18 @@ public class LandingPageServiceImpl implements LandingPageService {
 
                     LandingPage newLandingPage = new LandingPage();
                     newLandingPage.setInstanceId(tenantId);
-                    // Default values are already set in entity @Column annotations
+                    // Inherit tenant branding (settings.Branding) so the public homepage
+                    // reflects the owner's customised theme/logo/name instead of the
+                    // generic KiteClass default. Falls back to entity @Column defaults
+                    // when the tenant has no branding row. (GAP-809 demo-trio walk fix.)
+                    brandingRepository.findByInstanceIdAndDeletedFalse(tenantId).ifPresent(b -> {
+                        Branding branding = b;
+                        if (branding.getPrimaryColor() != null) newLandingPage.setPrimaryColor(branding.getPrimaryColor());
+                        if (branding.getSecondaryColor() != null) newLandingPage.setSecondaryColor(branding.getSecondaryColor());
+                        if (branding.getLogoUrl() != null) newLandingPage.setLogoUrl(branding.getLogoUrl());
+                        if (branding.getDisplayName() != null) newLandingPage.setHeroTitle(branding.getDisplayName());
+                        if (branding.getTagline() != null) newLandingPage.setTagline(branding.getTagline());
+                    });
 
                     return landingPageRepository.save(newLandingPage);
                 });

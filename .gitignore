@@ -146,3 +146,6 @@ documents/08-thesis/*.pyc
 
 # Wave 102.2 — Mermaid PNG cache (regenerated via kroki.io)
 documents/08-thesis/.mermaid-cache/
+
+# Demo-trio walk evidence screenshots — local-only (regen via e2e/capture-thesis-evidence.mjs)
+documents/08-thesis/evidence/

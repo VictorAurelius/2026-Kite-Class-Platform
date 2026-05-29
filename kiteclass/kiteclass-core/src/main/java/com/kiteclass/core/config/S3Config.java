@@ -7,6 +7,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 import java.net.URI;
@@ -74,6 +75,33 @@ public class S3Config {
             .region(Region.of(storageProperties.getRegion()))
             .endpointOverride(URI.create(storageProperties.getEndpoint()))
             .credentialsProvider(StaticCredentialsProvider.create(credentials))
+            .build();
+    }
+
+    /**
+     * Presigner for browser-facing presigned URLs (GAP-804 Bug #13).
+     *
+     * <p>Uses {@link StorageProperties#getPublicEndpoint()} so the signed host
+     * resolves from a browser (e.g. http://localhost:9100), and forces path-style
+     * access so the URL is {@code endpoint/bucket/key} — NOT {@code bucket.endpoint/key}
+     * (virtual-host style does not resolve for localhost/MinIO).
+     *
+     * @return presigner that signs against the public endpoint with path-style URLs
+     */
+    @Bean("brandingPresigner")
+    public S3Presigner brandingPresigner() {
+        AwsBasicCredentials credentials = AwsBasicCredentials.create(
+            storageProperties.getAccessKeyId(),
+            storageProperties.getSecretAccessKey()
+        );
+
+        return S3Presigner.builder()
+            .region(Region.of(storageProperties.getRegion()))
+            .endpointOverride(URI.create(storageProperties.getPublicEndpoint()))
+            .credentialsProvider(StaticCredentialsProvider.create(credentials))
+            .serviceConfiguration(S3Configuration.builder()
+                .pathStyleAccessEnabled(true)
+                .build())
             .build();
     }
 }

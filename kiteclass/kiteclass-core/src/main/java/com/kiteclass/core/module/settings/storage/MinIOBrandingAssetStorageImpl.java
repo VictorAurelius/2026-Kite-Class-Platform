@@ -4,6 +4,7 @@ import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.branding.entity.ResourceType;
 import com.kiteclass.core.module.branding.storage.BrandingStoragePaths;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -54,7 +55,7 @@ public class MinIOBrandingAssetStorageImpl implements BrandingAssetStorage {
 
     public MinIOBrandingAssetStorageImpl(
             S3Client s3Client,
-            S3Presigner s3Presigner,
+            @Qualifier("brandingPresigner") S3Presigner s3Presigner,
             @Value("${storage.branding.bucket:" + BrandingStoragePaths.BUCKET + "}") String bucket) {
         this.s3Client = s3Client;
         this.s3Presigner = s3Presigner;

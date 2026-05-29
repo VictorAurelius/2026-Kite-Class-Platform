@@ -631,6 +631,7 @@ services:
     profiles: ["kc-only", "full"]
     environment:
       SERVER_PORT: 8080
+      SPRING_PROFILES_ACTIVE: dev
       JAVA_TOOL_OPTIONS: ${KITECLASS_CORE_JAVA_OPTS:--Xmx768m -Xms384m -XX:MaxMetaspaceSize=192m -XX:MaxRAMPercentage=60}
       SPRING_DATASOURCE_URL: jdbc:postgresql://kite-postgres:5432/kiteclass_shared
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-kitehub}
@@ -645,6 +646,9 @@ services:
       SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
       SPRING_JPA_HIBERNATE_DDL_AUTO: none
       STORAGE_S3_ENDPOINT: http://kite-minio:9000
+      # Browser-reachable endpoint for presigned branding URLs (GAP-804 Bug #13).
+      # Host port mapping kite-minio 9100->9000; browser on host resolves localhost:9100.
+      STORAGE_S3_PUBLIC_ENDPOINT: http://localhost:9100
       STORAGE_S3_ACCESS_KEY: ${MINIO_ROOT_USER:-kitehub}
       STORAGE_S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?required}
       INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:?INTERNAL_API_SECRET is required}
