@@ -9,15 +9,18 @@
 #
 # Mỗi giảng viên là 1 tenant độc lập (1 người dạy nhiều lớp, không có nhân viên quản lý).
 #
-# Usage: GATEWAY_URL=http://localhost:9000 ./scripts/seed-demo-sky-education.sh
-#        SEED_TENANTS=khanh ./scripts/seed-demo-sky-education.sh   # chỉ seed tenant chính
+# Usage: GATEWAY_URL=http://localhost:9000 ./scripts/seed-demo-independent-teachers.sh
+#        SEED_TENANTS=khanh ./scripts/seed-demo-independent-teachers.sh   # chỉ seed tenant chính
 #
 # Prerequisites:
-#   - Các tenant đã tồn tại (đăng ký qua KiteHub) với owner credential bên dưới.
+#   - Stack local chạy (gateway :9000 healthy). Script tự provision tenant qua
+#     dev register shortcut POST /api/auth/register (không cần tạo tenant trước).
 #   - kiteclass-core healthy (RabbitMQ queues class.rescheduled.queue + class.rescheduled.email.queue declared).
 #
-# Idempotency note: script additive. Student/course dùng email/code unique nên trùng bị API từ chối
-# (HTTP 409/400) khi chạy lại — số lượng không nhân đôi. Xem block cleanup cuối file để re-seed.
+# Idempotency note: script additive. Owner account + teacher/course/student dùng email/code unique
+# nên trùng bị API từ chối (HTTP 409/400) khi chạy lại — số lượng không nhân đôi. Để re-seed sạch:
+# xoá teacher/course/class/student/enrollment của tenant trong DB kiteclass_<uuid8> + kiteclass_shared
+# rồi chạy lại.
 #
 set -uo pipefail
 
@@ -46,6 +49,21 @@ seed_tenant() {
   echo "----------------------------------------------"
   echo -e "  Tenant: ${YELLOW}$SUBDOMAIN${NC}  (theme primary=$THEME_PRIMARY secondary=$THEME_SECONDARY)"
   echo "----------------------------------------------"
+
+  # 0. Provision tenant + owner account qua dev register shortcut (idempotent —
+  #    nếu đã tồn tại thì register trả 409/400, bỏ qua, login bước 1 vẫn chạy).
+  local ORG_NAME
+  ORG_NAME=$(echo "$TEACHER_JSON" | python3 -c "import sys,json; print('Lớp học ' + json.load(sys.stdin)['name'])" 2>/dev/null)
+  [ -z "$ORG_NAME" ] && ORG_NAME="Lớp học $SUBDOMAIN"
+  local REG_CODE
+  REG_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Content-Type: application/json" \
+    -d "{\"organizationName\":\"$ORG_NAME\",\"subdomain\":\"$SUBDOMAIN\",\"ownerEmail\":\"$OWNER_EMAIL\",\"ownerPassword\":\"$OWNER_PASSWORD\"}" \
+    "$GATEWAY/api/auth/register" 2>/dev/null)
+  if [ "$REG_CODE" = "200" ] || [ "$REG_CODE" = "201" ]; then
+    echo -e "  ${GREEN}✓${NC} Đăng ký tenant mới: $ORG_NAME ($OWNER_EMAIL)"
+  else
+    echo -e "  ${YELLOW}⚠${NC} Register HTTP $REG_CODE (có thể đã tồn tại) — thử login"
+  fi
 
   # 1. Login → token + instance_id
   local RESP TOKEN INSTANCE_ID
@@ -126,11 +144,14 @@ s = "".join(c for c in s if unicodedata.category(c) != "Mn")
 print(re.sub(r"[^a-zA-Z]+", ".", s).strip(".").lower())
 PYEOF
   }
+  # Phone base riêng theo tenant (cksum subdomain) → tránh collision cross-tenant
+  # (lỗi cũ: mọi tenant idx 0 đều = 0910000000 → STUDENT_PHONE_EXISTS 409).
+  local TBASE; TBASE=$(echo -n "$SUBDOMAIN" | cksum | cut -d' ' -f1); TBASE=$((20000000 + (TBASE % 70000000)))
   SCOUNT=0; idx=0
   for nm in "${GEN_NAMES[@]}"; do
     local sl; sl=$(slug "$nm")
     email="${sl}.${idx}@hocvien.${SUBDOMAIN}.vn"
-    phone=$(printf "09%08d" $((10000000 + idx)))
+    phone=$(printf "09%08d" $((TBASE + idx)))
     json="{\"name\":\"$nm\",\"email\":\"$email\",\"phone\":\"$phone\"}"
     R=$(post "/api/v1/students" "$json"); CODE=$(echo "$R" | tail -1)
     if [ "$CODE" = "201" ] || [ "$CODE" = "200" ]; then SCOUNT=$((SCOUNT + 1)); fi
@@ -189,7 +210,7 @@ if [[ " $SEED_TENANTS " == *" ha "* ]]; then
   seed_tenant \
     "ha-toantieuhoc" \
     "ha.nguyen@gmail.com" \
-    "Ha@2026" \
+    "HaToan@2026" \
     '{"name":"Nguyễn Thị Hà","email":"ha.nguyen@gmail.com","phoneNumber":"0901234002","specialization":"Toán Tiểu học","qualification":"Cử nhân Sư phạm Toán","experienceYears":5}' \
     "Toán nâng cao lớp 5|TOAN5|Khóa Toán nâng cao lớp 5 (Tiểu học)|Beginner|Math|500000" \
     "Lớp Toán 5B" \
