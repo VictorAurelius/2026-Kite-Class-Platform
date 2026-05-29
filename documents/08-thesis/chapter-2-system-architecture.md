@@ -497,7 +497,7 @@ Hệ thống xử lý hai đường yêu cầu song song. Đường thứ nhất
 **Bảng 2.6.** So sánh subdomain và tên miền riêng trong cơ chế định tuyến đa tenant.
 
 ```mermaid
-%%{init: {"sequence": {"diagramMarginX": 50, "diagramMarginY": 25, "actorMargin": 75, "width": 200, "height": 70, "boxMargin": 18, "messageMargin": 50, "mirrorActors": false}, "themeVariables": {"fontSize": "34px", "messageFontSize": "32px", "noteFontSize": "32px"}}}%%
+%%{init: {"sequence": {"diagramMarginX": 30, "diagramMarginY": 20, "actorMargin": 55, "width": 180, "height": 65, "boxMargin": 14, "boxTextMargin": 8, "noteMargin": 12, "messageMargin": 40, "mirrorActors": false, "wrap": true}, "themeVariables": {"fontSize": "36px", "messageFontSize": "34px", "noteFontSize": "34px"}}}%%
 sequenceDiagram
     participant B as Trình duyệt
     participant GW as kite-gateway
