@@ -172,13 +172,14 @@ Mô hình C4 (Context / Container / Component / Code) của Brown [28] là frame
 Kite Platform tương tác với 8 nhóm actor (người dùng và quản trị) và 6 hệ thống bên ngoài. Hình 2.1 biểu diễn ngữ cảnh hệ thống ở mức cao nhất.
 
 ```mermaid
+%%{init: {"flowchart": {"htmlLabels": true, "nodeSpacing": 30, "rankSpacing": 70, "padding": 20, "subGraphTitleMargin": {"top": 12, "bottom": 18}}, "themeVariables": {"fontSize": "18px"}}}%%
 flowchart TB
-    subgraph tenants [Nhóm tenant truy cập hệ thống]
+    subgraph tenants [Nhóm tenant truy cập]
         direction LR
         P1[P1 Giáo viên độc lập<br/>5-50 học sinh]
         P2[P2 Chủ sở hữu trung tâm<br/>20-100 học sinh]
         P3[P3 Quản lý trung tâm<br/>100-500 học sinh]
-        P5[P5 Hiệu trưởng K-12<br/>mở rộng lộ trình phát triển sau]
+        P5[P5 Hiệu trưởng K-12<br/>phát triển sau]
     end
 
     subgraph endusers [Người dùng cuối và quản trị]
@@ -191,7 +192,7 @@ flowchart TB
 
     Kite[Kite Platform<br/>Multi-tenant SaaS education<br/>KiteHub control-plane + KiteClass data-plane]
 
-    subgraph ext [Hệ thống bên ngoài tích hợp qua adapter]
+    subgraph ext [Hệ thống ngoài qua adapter]
         direction LR
         Resend[Resend<br/>Email API dev]
         SES[AWS SES<br/>Email vận hành]
