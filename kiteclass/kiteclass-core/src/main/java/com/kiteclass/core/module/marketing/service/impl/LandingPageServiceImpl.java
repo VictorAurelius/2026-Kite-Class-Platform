@@ -109,11 +109,21 @@ public class LandingPageServiceImpl implements LandingPageService {
                     // when the tenant has no branding row. (GAP-809 demo-trio walk fix.)
                     brandingRepository.findByInstanceIdAndDeletedFalse(tenantId).ifPresent(b -> {
                         Branding branding = b;
-                        if (branding.getPrimaryColor() != null) newLandingPage.setPrimaryColor(branding.getPrimaryColor());
-                        if (branding.getSecondaryColor() != null) newLandingPage.setSecondaryColor(branding.getSecondaryColor());
-                        if (branding.getLogoUrl() != null) newLandingPage.setLogoUrl(branding.getLogoUrl());
-                        if (branding.getDisplayName() != null) newLandingPage.setHeroTitle(branding.getDisplayName());
-                        if (branding.getTagline() != null) newLandingPage.setTagline(branding.getTagline());
+                        if (branding.getPrimaryColor() != null) {
+                            newLandingPage.setPrimaryColor(branding.getPrimaryColor());
+                        }
+                        if (branding.getSecondaryColor() != null) {
+                            newLandingPage.setSecondaryColor(branding.getSecondaryColor());
+                        }
+                        if (branding.getLogoUrl() != null) {
+                            newLandingPage.setLogoUrl(branding.getLogoUrl());
+                        }
+                        if (branding.getDisplayName() != null) {
+                            newLandingPage.setHeroTitle(branding.getDisplayName());
+                        }
+                        if (branding.getTagline() != null) {
+                            newLandingPage.setTagline(branding.getTagline());
+                        }
                     });
 
                     return landingPageRepository.save(newLandingPage);
