@@ -73,19 +73,73 @@ export default async function LandingPage({
   // Build per-section slot data from the landing payload. Previously the renderer
   // received no `slots`, so every section fell back to hardcoded defaults and the
   // backend's heroImageUrl / teachers never rendered (root cause of "no images").
+  //
+  // Each map only emits a slot when the backend actually returned non-empty data,
+  // so missing/null fields preserve each section's hardcoded VN default (backward
+  // compat). Field names follow the GET /api/v1/tenants/{id}/landing contract.
   const ld = landingData as Record<string, unknown>;
-  const teachers = Array.isArray(ld.teachers)
-    ? (ld.teachers as Array<Record<string, unknown>>).map((t) => ({
-        title: t.name as string,
-        description: t.subject as string,
-        image: t.photoUrl as string | undefined,
-        items: (t.credentials as string[] | undefined) ?? [],
-      }))
+
+  const nonEmptyArray = (v: unknown): Array<Record<string, unknown>> | undefined =>
+    Array.isArray(v) && v.length > 0 ? (v as Array<Record<string, unknown>>) : undefined;
+
+  // teachers: [{ name, subject, photoUrl?, credentials[] }] → TeachersSection items
+  const teachers = nonEmptyArray(ld.teachers)?.map((t) => ({
+    title: t.name as string,
+    description: t.subject as string,
+    image: t.photoUrl as string | undefined,
+    items: (t.credentials as string[] | undefined) ?? [],
+  }));
+
+  // programs: [{ name, description, detail[] }] → CertificatesSection cards
+  const programs = nonEmptyArray(ld.programs)?.map((p) => ({
+    title: p.name as string,
+    description: p.description as string,
+    items: (p.detail as string[] | undefined) ?? [],
+  }));
+
+  // pricingTiers: [{ name, price, period, features[], highlighted }] → PricingSection plans
+  const pricingTiers = nonEmptyArray(ld.pricingTiers)?.map((tier) => {
+    const price = tier.price as string | undefined;
+    const period = tier.period as string | undefined;
+    return {
+      title: tier.name as string,
+      description: [price, period].filter(Boolean).join(' / '),
+      items: (tier.features as string[] | undefined) ?? [],
+    };
+  });
+
+  // testimonials: [{ author, role, content, rating }] → TestimonialsSection items
+  const testimonials = nonEmptyArray(ld.testimonials)?.map((t) => ({
+    title: t.author as string,
+    description: t.role as string,
+    items: [t.content as string],
+  }));
+
+  // faqs: [{ question, answer }] → FaqSection questions
+  const faqs = nonEmptyArray(ld.faqs)?.map((f) => ({
+    title: f.question as string,
+    description: f.answer as string,
+  }));
+
+  // stats: [{ value, label }] → StatsSection items
+  const stats = nonEmptyArray(ld.stats)?.map((s) => ({
+    title: s.value as string,
+    description: s.label as string,
+  }));
+
+  const aboutText = (typeof ld.aboutText === 'string' && ld.aboutText.trim())
+    ? (ld.aboutText as string)
     : undefined;
 
   const slots: SectionSlotMap = {
     hero: { image: ld.heroImageUrl as string | undefined },
-    teachers: teachers ? { teachers } : undefined,
+    ...(aboutText ? { about: { content: aboutText } } : {}),
+    ...(teachers ? { teachers: { teachers } } : {}),
+    ...(programs ? { certificates: { certificates: programs } } : {}),
+    ...(pricingTiers ? { pricing: { plans: pricingTiers } } : {}),
+    ...(testimonials ? { testimonials: { testimonials } } : {}),
+    ...(faqs ? { faq: { questions: faqs } } : {}),
+    ...(stats ? { stats: { stats } } : {}),
   };
 
   return (
