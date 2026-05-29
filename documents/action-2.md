@@ -103,3 +103,9 @@ caption của hình vẽ quá dài => tại sao không tự bắt được bug n
 ![alt text](image-9.png)
 
 ![alt text](image-10.png)
+
+bây giờ tạo PR mới để sửa thesis tiếp nhé
+1. ở session trước đã cập nhật tài liệu kiến trúc về tenant => domain => landing, nói gọi là gì nhỉ? vậy đợt cập nhật kiến trúc này có cần cập nhật vào thesis không
+2. tôi thấy chương 4 chưa nói kỹ về phần cấu hình cloudflare, có cần bổ sung không
+3. ảnh chương 3 đang sử dụng ảnh từ UI kits, bây giờ đã có evidence thật thì cập nhật vào
+4. capture lại ảnh docx, session cũ xóa mất rồi
