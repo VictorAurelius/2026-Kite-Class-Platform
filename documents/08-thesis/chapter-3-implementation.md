@@ -33,31 +33,6 @@ Unit test phía backend sử dụng JUnit 5 (Jupiter) + AssertJ cho assertions b
 
 Hạ tầng được mô tả bằng code (Infrastructure as Code) qua Terraform 1.x cho AWS resources (EC2, RDS, S3, SES, IAM, CloudWatch). Container hóa qua Docker 24 + Docker Compose 2 cho môi trường phát triển cục bộ; production triển khai container qua AWS Elastic Container Service (ECS) với task definitions JSON. Pipeline CI/CD chạy trên GitHub Actions với matrix builds (Java 21 + Node 22), tự động build + test + push container image lên AWS Elastic Container Registry (ECR). Phía vận hành, AWS Systems Manager (SSM) cung cấp shell access không cần SSH key; AWS CloudWatch tập hợp logs + metrics; AWS CloudTrail audit mọi thao tác API trên tài khoản. Phía CDN, Cloudflare đứng trước domain `kitehub.me` (DNS + WAF + DDoS protection layer). Migration cơ sở dữ liệu qua Flyway 10 (versioned schema changes, idempotent migrations).
 
-### 3.1.6 Tổ chức source code
-
-```
-kitehub/
-├── kitehub-gateway/           ~ 4,200 LOC      # API Gateway (Spring Cloud Gateway)
-├── kitehub-platform/          ~ 5,800 LOC      # Tenant lifecycle service
-├── kitehub-subscription/      ~ 7,100 LOC      # Subscription + billing service
-├── kitehub-branding/          ~ 5,500 LOC      # AI Branding service
-├── kitehub-email/             ~ 3,900 LOC      # Email notification service
-├── kitehub-admin/             ~ 4,400 LOC      # Admin console service
-├── kitehub-frontend/          ~ 12,800 LOC     # Next.js marketing + admin frontend
-
-kiteclass/
-├── kiteclass-core/            ~ 9,600 LOC      # Tenant application core
-├── kiteclass-frontend/        ~ 8,500 LOC      # Next.js tenant frontend
-
-infrastructure/
-├── terraform-aws/             ~ 2,400 LOC      # AWS provisioning
-├── helm/                      ~ 3,500 LOC      # Kubernetes manifests (deferred — current deploy = EC2 direct)
-
-(tooling + tài liệu nội bộ)    ~ 12,000 LOC
-```
-
-Tổng quy mô codebase ước tính khoảng 80.000 dòng (chưa tính tests và config), thể hiện tính chất production-grade của nền tảng. Chương này tập trung trình bày kết quả triển khai sản phẩm (giao diện người dùng) và kết quả kiểm thử + đánh giá chất lượng — code-level snippet analysis được lược bỏ khỏi flow chính theo convention báo cáo cử nhân CNTT (backup tại `chapter-3-code-snippets-backup-2026-05-20.md`).
-
 ---
 
 ## 3.2 Kết quả triển khai sản phẩm
