@@ -1132,16 +1132,16 @@ def add_cover_page(doc):
     run = p.add_run("TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI")
     set_font(run, Pt(14), bold=True)
 
-    # KHOA CÔNG NGHỆ THÔNG TIN — Wave 102.7.1 Bucket P Fix 1:
-    # Đổi text-underline (font.underline=True) sang đường kẻ ngang riêng biệt
-    # (bottom border) dưới đoạn văn — đúng convention UTC bìa cứng đồ án.
+    # KHOA CÔNG NGHỆ THÔNG TIN — gạch chân chữ (text-underline) khớp bìa mẫu
+    # BAO_CAO_THUC_TAP.pdf: đường gạch ngắn rộng bằng dòng chữ, canh giữa —
+    # KHÔNG dùng đường kẻ ngang full content-width. Sample XML: run underline=True.
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(0)
-    p.paragraph_format.space_after = Pt(0)
+    p.paragraph_format.space_after = Pt(6)
     run = p.add_run("KHOA CÔNG NGHỆ THÔNG TIN")
     set_font(run, Pt(14), bold=True)
-    add_horizontal_line(doc, width_pt=2, color='000000', space_after=Pt(0))
+    run.font.underline = True
 
     # Logo
     p = doc.add_paragraph()

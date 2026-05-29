@@ -109,3 +109,6 @@ bây giờ tạo PR mới để sửa thesis tiếp nhé
 2. tôi thấy chương 4 chưa nói kỹ về phần cấu hình cloudflare, có cần bổ sung không
 3. ảnh chương 3 đang sử dụng ảnh từ UI kits, bây giờ đã có evidence thật thì cập nhật vào
 4. capture lại ảnh docx, session cũ xóa mất rồi
+
+5. documents/08-thesis/screenshots-render/page-001.png => đường gạch ngang dưới "KHOA CÔNG NGHỆ THÔNG TIN" không khớp với bìa của báo cáo thực tập, check lại
+2.
