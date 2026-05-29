@@ -80,53 +80,48 @@ export function HeroSection({ slots, title, subtitle, tagline }: HeroSectionProp
   );
 
   if (heroImage) {
+    // Composed banner đã bake text + CTA + icon chủ đề → dùng làm HERO full-width
+    // (giống mẫu mshoa). KHÔNG render text HTML trùng. h1 sr-only cho SEO/a11y;
+    // toàn banner clickable → /register (CTA "Học thử miễn phí" baked báo hiệu).
+    // Trust ribbon HTML thật đặt ngay dưới (clickable, responsive, text sắc nét).
     return (
-      <section className="relative overflow-hidden text-white" style={bgStyle}>
-        {/* Decorative theme icons (low opacity, behind text) — subject cue. */}
-        <GraduationCap
-          className="pointer-events-none absolute left-6 top-10 h-24 w-24 text-white/[0.04]"
-          aria-hidden
-        />
-        {/* accent glow bottom-right */}
-        <div
-          className="pointer-events-none absolute -right-24 -bottom-32 h-[460px] w-[460px] rounded-full opacity-40 blur-3xl"
-          style={{ background: 'radial-gradient(circle, rgb(var(--theme-cta)) 0%, transparent 70%)' }}
-        />
-        <div className="container relative mx-auto grid items-center gap-10 px-4 py-16 md:grid-cols-[1.1fr_0.9fr] md:py-24">
-          <div>
-            {urgencyBadge}
-            <h1 className="text-4xl font-extrabold leading-[1.1] tracking-tight md:text-5xl lg:text-6xl">
-              {heroTitle}
-            </h1>
-            {heroSubtitle && (
-              <p className="mt-5 max-w-xl text-lg text-white/85">{heroSubtitle}</p>
-            )}
-            {heroTagline && (
-              <p className="mt-3 text-base font-medium text-white/70">{heroTagline}</p>
-            )}
-            <div className="mt-8">{ctaButtons}</div>
-            {trustRibbons}
-          </div>
-          <div className="flex justify-center md:justify-end">
-            <div className="relative w-full max-w-lg">
-              <div
-                className="absolute -inset-2 rounded-3xl opacity-80 blur-[3px]"
-                style={{
-                  background:
-                    'conic-gradient(from 200deg, rgb(var(--theme-cta)), rgb(var(--theme-primary)), rgb(var(--theme-cta)))',
-                }}
-              />
-              <div className="relative aspect-[1.9/1] w-full overflow-hidden rounded-2xl border-[5px] border-white/90 shadow-2xl">
-                <Image
-                  src={heroImage}
-                  alt={heroTitle}
-                  fill
-                  unoptimized
-                  sizes="(max-width: 768px) 100vw, 512px"
-                  className="object-cover"
-                />
-              </div>
-            </div>
+      <section className="relative w-full" aria-label={heroTitle}>
+        <h1 className="sr-only">{heroTitle}</h1>
+        <Link
+          href="/register"
+          aria-label={`${heroTitle} — Đăng ký học thử miễn phí`}
+          className="group relative block w-full overflow-hidden focus:outline-none focus-visible:ring-4 focus-visible:ring-theme-cta"
+        >
+          <Image
+            src={heroImage}
+            alt={heroTitle}
+            width={2400}
+            height={1260}
+            unoptimized
+            priority
+            sizes="100vw"
+            className="block h-auto w-full transition-transform duration-300 group-hover:scale-[1.01]"
+          />
+        </Link>
+        {/* Trust ribbon HTML thật dưới banner — CTA phụ click được + cam kết */}
+        <div className="border-b bg-theme-secondary/5">
+          <div className="container mx-auto flex flex-wrap items-center justify-center gap-3 px-4 py-3 text-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-theme-cta/15 px-3 py-1.5 font-semibold text-theme-cta">
+              <ShieldCheck className="h-4 w-4" aria-hidden /> Cam kết đầu ra
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 font-medium text-muted-foreground">
+              <GraduationCap className="h-4 w-4" aria-hidden /> Học thử miễn phí
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 font-medium text-muted-foreground">
+              <span className="text-amber-500" aria-hidden>★ 4.9/5</span> từ phụ huynh
+            </span>
+            <Button
+              size="sm"
+              asChild
+              className="ml-auto h-9 rounded-lg bg-theme-cta px-5 font-bold uppercase tracking-wide text-white shadow hover:bg-theme-cta/90"
+            >
+              <Link href="/register">Đăng ký học thử</Link>
+            </Button>
           </div>
         </div>
       </section>
