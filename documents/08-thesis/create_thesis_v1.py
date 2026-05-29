@@ -1757,7 +1757,7 @@ def add_introduction(doc):
         "pattern cốt lõi (Row-Level Security NULL force-fail, Outbox Pattern, truyền ngữ cảnh "
         "qua JWT — JSON Web Token, kiến trúc REST — Representational State Transfer — 3 tầng) "
         "được kiểm chứng qua unit test, integration test và E2E test. Thứ tư, đồ "
-        "án trình bày kết quả triển khai thực tế trong giai đoạn thử nghiệm tenant kèm các KPI "
+        "án trình bày kết quả triển khai thực tế trong phạm vi hiện tại kèm các KPI "
         "(Key Performance Indicator — chỉ số hiệu suất chính) đo "
         "lường, đánh giá độ trưởng thành và đề xuất hướng phát triển tiếp theo. Kết quả của "
         "đồ án vừa là sản phẩm phần mềm hoạt động được, vừa là tài liệu tham chiếu cho các "
@@ -1808,7 +1808,7 @@ def add_conclusion(doc):
 
     add_section_title(doc, "1. Tổng kết kết quả đạt được")
     add_paragraph_text(doc,
-        "Đồ án đã hoàn thành các mục tiêu đặt ra ban đầu trong phạm vi giai đoạn thử nghiệm tenant của "
+        "Đồ án đã hoàn thành các mục tiêu đặt ra ban đầu trong phạm vi triển khai hiện tại của "
         "nền tảng KiteHub. Cụ thể, hệ thống được triển khai trên AWS Singapore Free Tier với "
         "kiến trúc multi-tenant single-bucket RLS-protected, 7 microservice cùng 2 ứng dụng "
         "frontend, đảm bảo tuân thủ các yêu cầu pháp lý Việt Nam (PDPL 2023, Luật An ninh mạng "
@@ -1831,9 +1831,9 @@ def add_conclusion(doc):
         "trình bày trong báo cáo.")
 
     add_section_title(doc, "2. Hạn chế")
-    add_bullet_list_item(doc, "Phạm vi giai đoạn thử nghiệm tenant chỉ phục vụ ba nhóm người dùng (giáo viên độc lập, chủ sở hữu trung tâm, quản lý trung tâm); nhóm phụ huynh và học viên thuộc phân khúc K-12 được hoãn sang giai đoạn mở rộng K-12 do yêu cầu DPO + DPIA bổ sung theo PDPL.")
-    add_bullet_list_item(doc, "Một số KPI thực tế (Time to First Value, Daily Active Users, Monthly Recurring Revenue) chưa có số liệu đầy đủ do giai đoạn thử nghiệm mới có hai giáo viên độc lập (một gói miễn phí, một gói premium) trực tiếp sử dụng để thu thập phản hồi.")
-    add_bullet_list_item(doc, "AI Branding mới được tích hợp ở mức MVP với 1 nhà cung cấp (Replicate Stable Diffusion XL); các phương án multi-vendor failover sẽ được triển khai trong giai đoạn production.")
+    add_bullet_list_item(doc, "Phạm vi triển khai hiện tại chỉ phục vụ ba nhóm người dùng (giáo viên độc lập, chủ sở hữu trung tâm, quản lý trung tâm); nhóm phụ huynh và học viên thuộc phân khúc K-12 thuộc lộ trình phát triển sau do yêu cầu DPO + DPIA bổ sung theo PDPL.")
+    add_bullet_list_item(doc, "Một số KPI thực tế (Time to First Value, Daily Active Users, Monthly Recurring Revenue) chưa có số liệu đầy đủ do phạm vi triển khai hiện tại mới có hai giáo viên độc lập (một gói miễn phí, một gói trả phí) trực tiếp sử dụng để thu thập phản hồi.")
+    add_bullet_list_item(doc, "AI Branding mới được tích hợp ở mức MVP với 1 nhà cung cấp (Replicate Stable Diffusion XL); các phương án multi-vendor failover thuộc lộ trình phát triển sau.")
 
     add_section_title(doc, "3. Hướng phát triển tiếp theo")
     add_bullet_list_item(doc,
