@@ -627,10 +627,9 @@ def add_image_inline(doc, image_path, caption=None, width_cm=14.0):
             # Graceful fallback to fixed width_cm
             target_width_cm = width_cm
 
-        # Round 2.6 — tall images (>12cm) get page_break_before → start fresh page cleanly,
-        # avoid "empty space at bottom of prior page" artifact when image doesn't fit remaining space
-        if target_height_cm is not None and target_height_cm > 12.0:
-            p.paragraph_format.page_break_before = True
+        # Wave thesis-3 fix per user direction 2026-05-29: KHÔNG đặt page_break trong
+        # chương để dễ co dãn ảnh hợp lý. Word/LibreOffice tự flow content tự nhiên.
+        # (Round 2.6 logic removed: was forcing page_break_before for tall images.)
 
         run = p.add_run()
         if target_height_cm is not None and target_height_cm > 0:
@@ -831,8 +830,8 @@ def add_code_block(doc, code_text, lang=""):
                         target_w = A4_BODY_HEIGHT_CM * aspect
             except Exception:
                 pass
-            if target_h is not None and target_h > 12.0:
-                p.paragraph_format.page_break_before = True
+            # Wave thesis-3 fix per user direction 2026-05-29: no page_break_before
+            # inside chapter — let images flow naturally.
             if target_h is not None and target_h > 0:
                 run.add_picture(str(png_path), width=Cm(target_w), height=Cm(target_h))
             else:
@@ -884,9 +883,8 @@ def add_code_block(doc, code_text, lang=""):
                         target_w = A4_BODY_HEIGHT_CM * aspect
             except Exception:
                 pass
-            # Round 2.6 — tall Mermaid PNGs (>12cm) get page_break_before
-            if target_h is not None and target_h > 12.0:
-                p.paragraph_format.page_break_before = True
+            # Wave thesis-3 fix per user direction 2026-05-29: no page_break_before
+            # for tall Mermaid — natural flow.
             if target_h is not None and target_h > 0:
                 run.add_picture(str(png_path), width=Cm(target_w), height=Cm(target_h))
             else:

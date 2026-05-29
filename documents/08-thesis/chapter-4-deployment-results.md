@@ -17,7 +17,7 @@ KiteHub Platform được triển khai trên AWS region Singapore (`ap-southeast
 
 1. **Tốc độ triển khai và độ ổn định tài khoản** — quá trình đăng ký Oracle Cloud Always Free thường gặp tỷ lệ reject cao đối với người dùng tại Việt Nam, ảnh hưởng đến tiến độ triển khai trong khung thời gian đồ án có hạn.
 2. **Tính trưởng thành của hệ sinh thái** — AWS cung cấp ECR + Secrets Manager + SES + ALB + CloudFront tích hợp sẵn; Oracle Always Free thiếu managed Redis và managed RabbitMQ.
-3. **Tuân thủ pháp luật được quản lý theo lộ trình** — Giai đoạn thử nghiệm invite-only quy mô nhỏ (≤20 tenant) chưa kích hoạt ngưỡng quy định Nghị định 53/2022/NĐ-CP §26 (1 triệu user) cũng như ngưỡng PDPL Art 28 (10 nghìn data subject); roadmap migrate sang AWS Hanoi Local Zone hoặc nhà cung cấp cloud trong nước (Viettel Cloud, VNG Cloud) trong giai đoạn vận hành chính thức. Người dùng thử nghiệm ký explicit consent acknowledging "infrastructure provider AWS Singapore" trong giai đoạn thử nghiệm.
+3. **Tuân thủ pháp luật được quản lý theo lộ trình** — Hiện tại invite-only quy mô nhỏ (≤20 tenant) chưa kích hoạt ngưỡng quy định Nghị định 53/2022/NĐ-CP §26 (1 triệu user) cũng như ngưỡng PDPL Art 28 (10 nghìn data subject); roadmap migrate sang AWS Hanoi Local Zone hoặc nhà cung cấp cloud trong nước (Viettel Cloud, VNG Cloud) trong lộ trình phát triển sau. Người dùng thử nghiệm ký explicit consent acknowledging "infrastructure provider AWS Singapore" hiện tại.
 
 ### 4.1.2 Sơ đồ hạ tầng
 
@@ -120,7 +120,7 @@ EC2_KC ..> CW
 
 **Hình 4.1b.** Các dịch vụ AWS phụ trợ — EC2 truy cập S3, SES, Secrets Manager, ECR, CloudWatch.
 
-Toàn bộ hạ tầng đặt trong một VPC riêng (CIDR `10.0.0.0/16`) với hai tầng subnet phục vụ mục đích bảo mật khác nhau: **public subnets** (2 vùng khả dụng AZ-1a + AZ-1b) chứa Application Load Balancer + EC2 instances có public IP để nhận traffic từ Internet Gateway; **private subnets** (2 AZ tương ứng — yêu cầu tối thiểu của RDS DB subnet group) chứa RDS PostgreSQL không có public IP, chỉ chấp nhận kết nối từ security group của EC2 trong cùng VPC. Internet Gateway gắn vào VPC làm điểm vào duy nhất cho traffic ingress từ Cloudflare. NAT Gateway disable mặc định ở giai đoạn thử nghiệm để tiết kiệm chi phí (~30 USD/tháng); EC2 instances trong public subnet truy cập internet trực tiếp qua IGW.
+Toàn bộ hạ tầng đặt trong một VPC riêng (CIDR `10.0.0.0/16`) với hai tầng subnet phục vụ mục đích bảo mật khác nhau: **public subnets** (2 vùng khả dụng AZ-1a + AZ-1b) chứa Application Load Balancer + EC2 instances có public IP để nhận traffic từ Internet Gateway; **private subnets** (2 AZ tương ứng — yêu cầu tối thiểu của RDS DB subnet group) chứa RDS PostgreSQL không có public IP, chỉ chấp nhận kết nối từ security group của EC2 trong cùng VPC. Internet Gateway gắn vào VPC làm điểm vào duy nhất cho traffic ingress từ Cloudflare. NAT Gateway disable mặc định hiện tại để tiết kiệm chi phí (~30 USD/tháng); EC2 instances trong public subnet truy cập internet trực tiếp qua IGW.
 
 ### 4.1.3 Các thành phần chính
 
@@ -217,7 +217,7 @@ Tính đến thời điểm thực hiện đồ án: 71 tài nguyên Terraform �
 
 ## 4.2 Kết quả tương tác end-user và minh chứng
 
-[Phần này sẽ điền sau khi thu thập phản hồi từ các tenant thử nghiệm trong giai đoạn mời chính thức (từ 2026-05-19 trở đi). Nội dung dự kiến:
+[Phần này sẽ điền sau khi thu thập phản hồi từ các tenant thử nghiệm trong hiện tại (từ 2026-05-19 trở đi). Nội dung dự kiến:
 
 - Tổng kết các thao tác chính đã được end-user thực hiện thành công (đăng ký tenant, cấu hình AI Branding, quản lý lớp học, phát hành hóa đơn, theo dõi audit log).
 - Trích dẫn phản hồi xác nhận từ chủ sở hữu trung tâm và quản lý trung tâm về độ phù hợp của hệ thống với quy trình vận hành hiện tại.
