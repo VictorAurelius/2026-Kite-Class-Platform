@@ -563,7 +563,17 @@ def add_blockquote(doc, text):
     return p
 
 
-def add_image_inline(doc, image_path, caption=None, width_cm=14.0):
+# Wave thesis-4: per-figure manual size overrides (cm) — user hand-resized 8 hình trong
+# [DRAFT]K63 docx. Keyed theo số Hình; áp cả add_image_inline (screenshot) + add_code_block
+# (Mermaid). Override aspect-fit để pipeline render đúng kích thước user chỉnh tay.
+FIG_SIZE_OVERRIDES = {
+    '2.3': (14.91, 20.58), '2.4c': (8.07, 15.6), '2.6b': (8.18, 6.87),
+    '2.8': (12.01, 14.33), '3.2': (14.66, 9.16), '3.4': (4.66, 8.33),
+    '4.2a': (15.19, 7.41), '4.2b': (15.03, 7.7),
+}
+
+
+def add_image_inline(doc, image_path, caption=None, width_cm=14.0, fig_num=None):
     """Insert image centered inline + optional caption underneath.
 
     Wave 102.5 Bucket A Item 5 — helper cho Bucket C/E screenshots embed flow.
@@ -627,6 +637,10 @@ def add_image_inline(doc, image_path, caption=None, width_cm=14.0):
         except Exception:
             # Graceful fallback to fixed width_cm
             target_width_cm = width_cm
+
+        # Wave thesis-4: per-figure manual size override (fig_num từ caller peek caption)
+        if fig_num and fig_num in FIG_SIZE_OVERRIDES:
+            target_width_cm, target_height_cm = FIG_SIZE_OVERRIDES[fig_num]
 
         # Wave thesis-3 fix per user direction 2026-05-29: KHÔNG đặt page_break trong
         # chương để dễ co dãn ảnh hợp lý. Word/LibreOffice tự flow content tự nhiên.
@@ -782,7 +796,7 @@ def _render_plantuml_to_png(plantuml_src: str, cache_dir: Path) -> Path | None:
         return None
 
 
-def add_code_block(doc, code_text, lang=""):
+def add_code_block(doc, code_text, lang="", fig_num=None):
     """Render fenced code block.
 
     Mermaid + PlantUML blocks → render as PNG via kroki.io HTTP API
@@ -884,6 +898,9 @@ def add_code_block(doc, code_text, lang=""):
                         target_w = A4_BODY_HEIGHT_CM * aspect
             except Exception:
                 pass
+            # Wave thesis-4: per-figure manual size override (fig_num từ caller peek caption)
+            if fig_num and fig_num in FIG_SIZE_OVERRIDES:
+                target_w, target_h = FIG_SIZE_OVERRIDES[fig_num]
             # Wave thesis-3 fix per user direction 2026-05-29: no page_break_before
             # for tall Mermaid — natural flow.
             if target_h is not None and target_h > 0:
@@ -1014,8 +1031,14 @@ def parse_markdown(doc, md_text, skip_top_heading=True):
         # Code block
         if stripped.startswith("```"):
             if in_code:
-                # close
-                add_code_block(doc, '\n'.join(code_lines), code_lang)
+                # close — Wave thesis-4: peek caption "Hình X.Y" kế tiếp để áp size override
+                _fn = None
+                for _k in range(i + 1, min(i + 6, len(cleaned_lines))):
+                    _cm = re.match(r'^\*\*Hình\s+(\d+\.\w+)', cleaned_lines[_k].strip())
+                    if _cm:
+                        _fn = _cm.group(1)
+                        break
+                add_code_block(doc, '\n'.join(code_lines), code_lang, fig_num=_fn)
                 code_lines = []
                 in_code = False
             else:
@@ -1044,7 +1067,13 @@ def parse_markdown(doc, md_text, skip_top_heading=True):
             img_path = Path(img_path_str)
             if not img_path.is_absolute():
                 img_path = THESIS_DIR / img_path
-            add_image_inline(doc, img_path, caption=None, width_cm=14.0)
+            _fn = None
+            for _k in range(i + 1, min(i + 6, len(cleaned_lines))):
+                _cm = re.match(r'^\*\*Hình\s+(\d+\.\w+)', cleaned_lines[_k].strip())
+                if _cm:
+                    _fn = _cm.group(1)
+                    break
+            add_image_inline(doc, img_path, caption=None, width_cm=14.0, fig_num=_fn)
             i += 1
             continue
 
