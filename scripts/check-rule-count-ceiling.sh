@@ -1,56 +1,77 @@
 #!/usr/bin/env bash
-# check-rule-count-ceiling — count `.claude/rules/*.md` files and emit
-# WARN/HARD-STOP at policy thresholds.
+# check-rule-count-ceiling — count `.claude/rules/*.md` files against
+# CONTEXT-AWARE policy thresholds (2 bands).
 #
-# Closes Wave 76 Bucket D scope. Spec lives in `.claude/rules/README.md`
-# "Rule count ceiling policy" section.
-#
-# Thresholds:
-#   0-50      Free growth (PASS — below industry maintainability ceiling)
-#   50-75     INFO (quarterly review trigger at 75)
-#   75-100    WARN (consolidation review required)
-#   >100      HARD STOP (exit 1 — must consolidate or deprecate before adding)
+# Rationale (2026-05-31 rewrite): the original single-band ceiling (set Wave 76
+# when most rules were always-load) conflated two very different costs:
+#   - ALWAYS-LOAD rules (no `paths:` frontmatter) cost base-context every session
+#     → must stay few. This is the expensive tier. Byte-size also gated by
+#     `scripts/check-context-budget.sh` (the primary guard).
+#   - PATH-SCOPED rules (`paths:` frontmatter) cost ~0 base context — load only
+#     when a matching file is in context. Count here is a pure MAINTAINABILITY
+#     metric, so its ceiling is far looser.
+# A flat "≤50 / 76-100 WARN" on the combined total mislabels a healthy repo
+# (e.g. 13 always-load + 77 path-scoped) as WARN. This script bands them.
 #
 # Exit codes:
-#   0 = count within HARD STOP (≤100), regardless of WARN/INFO
-#   1 = count > HARD STOP threshold
+#   0 = within hard ceilings (WARN/INFO non-blocking)
+#   1 = a HARD ceiling exceeded (runaway always-load OR runaway path-scoped)
 #
-# Used by:
-#   - `.github/workflows/script-quality.yml` job `rule-count-ceiling`
-#   - Manual run: `bash scripts/check-rule-count-ceiling.sh`
+# Used by: `.github/workflows/quality-rules-skills.yml` job (rule governance).
+# Spec: `.claude/rules/README.md` "Rule count ceiling policy".
 
 set -euo pipefail
 
 RULES_DIR=".claude/rules"
+[ -d "$RULES_DIR" ] || { echo "ERROR: $RULES_DIR not found (run from repo root)" >&2; exit 2; }
 
-if [ ! -d "$RULES_DIR" ]; then
-    echo "ERROR: $RULES_DIR not found (run from repo root)" >&2
-    exit 2
+# --- count, split by always-load vs path-scoped ---
+always=0; scoped=0
+while IFS= read -r f; do
+    if head -3 "$f" | grep -q '^paths:'; then
+        scoped=$((scoped + 1))
+    else
+        always=$((always + 1))
+    fi
+done < <(find "$RULES_DIR" -maxdepth 1 -name '*.md' -not -name 'README.md' -type f)
+total=$((always + scoped))
+
+# --- thresholds ---
+# Always-load (context-expensive): keep few. Byte gate is primary; count is backstop.
+ALWAYS_WARN=18
+ALWAYS_HARD=25
+# Path-scoped (maintainability only): loose.
+SCOPED_INFO=100
+SCOPED_WARN=150
+SCOPED_HARD=200
+
+echo "Rule count (context-aware) — total $total = $always always-load + $scoped path-scoped"
+echo "  Always-load band : WARN ≥$ALWAYS_WARN / HARD ≥$ALWAYS_HARD  (also byte-gated by check-context-budget.sh)"
+echo "  Path-scoped band : INFO ≥$SCOPED_INFO / WARN ≥$SCOPED_WARN / HARD ≥$SCOPED_HARD"
+echo ""
+
+rc=0
+
+# Always-load band
+if [ "$always" -ge "$ALWAYS_HARD" ]; then
+    echo "🔴 FAIL: $always always-load rules ≥ $ALWAYS_HARD — runaway base-context. Path-scope or deprecate before adding."
+    rc=1
+elif [ "$always" -ge "$ALWAYS_WARN" ]; then
+    echo "🟡 WARN: $always always-load rules ≥ $ALWAYS_WARN — review whether each truly needs always-load (else add 'paths:')."
+else
+    echo "🟢 always-load $always — OK (< $ALWAYS_WARN)."
 fi
 
-# Count *.md excluding README.md (folder index, not a rule)
-# Use -maxdepth 1 so nested fixtures / archived rules don't inflate count.
-COUNT=$(find "$RULES_DIR" -maxdepth 1 -name '*.md' -not -name 'README.md' -type f | wc -l)
-
-FREE_GROWTH_MAX=50
-QUARTERLY_REVIEW_MAX=75
-HARD_STOP=100
-
-echo "Current rule count: $COUNT (excluding README.md)"
-echo "Thresholds: free-growth ≤$FREE_GROWTH_MAX, quarterly-review at >$FREE_GROWTH_MAX, consolidation-review at >$QUARTERLY_REVIEW_MAX, HARD STOP at >$HARD_STOP"
-
-if [ "$COUNT" -gt "$HARD_STOP" ]; then
-    echo "FAIL: rule count $COUNT > $HARD_STOP — HARD STOP. Must consolidate or deprecate before adding new rules."
-    echo "See: .claude/rules/README.md 'Rule count ceiling policy'"
-    exit 1
-elif [ "$COUNT" -gt "$QUARTERLY_REVIEW_MAX" ]; then
-    echo "WARN: rule count $COUNT — consolidation review required (>$QUARTERLY_REVIEW_MAX threshold)"
-    echo "Action: audit overlap + identify deprecation candidates before next rule add"
-    exit 0
-elif [ "$COUNT" -gt "$FREE_GROWTH_MAX" ]; then
-    echo "INFO: rule count $COUNT — quarterly review trigger at $QUARTERLY_REVIEW_MAX"
-    exit 0
+# Path-scoped band
+if [ "$scoped" -ge "$SCOPED_HARD" ]; then
+    echo "🔴 FAIL: $scoped path-scoped rules ≥ $SCOPED_HARD — consolidate/deprecate before adding."
+    rc=1
+elif [ "$scoped" -ge "$SCOPED_WARN" ]; then
+    echo "🟡 WARN: $scoped path-scoped rules ≥ $SCOPED_WARN — consolidation review recommended."
+elif [ "$scoped" -ge "$SCOPED_INFO" ]; then
+    echo "ℹ️  INFO: $scoped path-scoped rules ≥ $SCOPED_INFO — quarterly overlap audit."
+else
+    echo "🟢 path-scoped $scoped — OK (< $SCOPED_INFO)."
 fi
 
-echo "PASS: rule count $COUNT within free-growth (≤$FREE_GROWTH_MAX)"
-exit 0
+exit $rc
