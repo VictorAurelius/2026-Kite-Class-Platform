@@ -8,7 +8,7 @@
 # ============================================================================
 # BUILD STAGE — JDK + Maven, build target module + deps
 # ============================================================================
-FROM maven:3.9-eclipse-temurin-17-noble AS builder
+FROM maven:3.9-eclipse-temurin-26-noble AS builder
 WORKDIR /build
 
 # Copy parent + ALL sibling module pom stubs first (required for parent pom <modules> validation).
