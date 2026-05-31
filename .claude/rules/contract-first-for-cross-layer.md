@@ -7,9 +7,9 @@ paths:
 # Contract-First for Cross-Layer Waves
 
 **Priority:** 🟠 MANDATORY — governance khi wave touch cả Frontend + Backend
-**Version:** 1.0.2
+**Version:** 1.0.3
 **Created:** 2026-05-07
-**Last-Reviewed:** 2026-05-14
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; thêm `paths:` frontmatter cho path-scoped auto-load qua Wave 73 Bucket A5 — không thay đổi scope rule, chỉ defer-load khi không đọc wave plan / api-contract.md trong context. v1.0.0 (kept): MINOR self-approve per §5; new rule với enforcement parity = reviewer-checklist line + State-Check Evidence row + worked example self-test; detector wiring deferred to follow-up gap per §6.5 light-parity option)
 **Applies to:** Mọi wave plan có scope chạm CẢ FE (`*frontend/**`) VÀ BE (`*-core/**`, `kitehub-*/**` non-frontend) trong cùng một bucket OR khác bucket cùng wave
 
@@ -143,7 +143,7 @@ Mỗi wave plan PR có cross-layer scope, reviewer xác nhận:
 
 `scripts/check-cross-layer-contract-drift.sh` — heuristic v1 grep validator compares Java `@RequestMapping`/`@GetMapping`/etc. URL literals vs `documents/01-business/{domain}/api-contract.md` Endpoint declarations. WARN mode initially (heuristic may false-positive on complex paths); HARD STOP target post-30-day stabilization period.
 
-CI wired in `.github/workflows/script-quality.yml` job `cross-layer-contract-drift` — triggers on PR diff touching `*.java` OR `api-contract.md`. Self-test fixtures embedded (match + drift). Override trailer: `CONTRACT_DRIFT_OVERRIDE: <reason + follow-up gap link>`.
+CI wired in `.github/workflows/quality-code.yml` job `cross-layer-contract-drift` — triggers on PR diff touching `*.java` OR `api-contract.md`. Self-test fixtures embedded (match + drift). Override trailer: `CONTRACT_DRIFT_OVERRIDE: <reason + follow-up gap link>`.
 
 Closes Wave 98 GAP-662 incident class (EmailController `/api/platform/emails` vs doc `/api/email` — 3-way drift caught only at post-wave audit). Detector now catches at PR-time per `rule-change-process.md` §6.5 Enforcement Parity Mandate + GAP-675 META-META premature-rule-guard audit Step 1 worked example.
 
@@ -203,7 +203,7 @@ Outcome (planned):
 
 ## 8. Open Items / Follow-ups
 
-- [x] **Detector wiring** — ✅ DONE Wave 99C 2026-05-19 — `scripts/check-cross-layer-contract-drift.sh` shipped + CI job `cross-layer-contract-drift` wired in `script-quality.yml` + self-test PASS. Per GAP-675 closes deferred-detector debt incident class.
+- [x] **Detector wiring** — ✅ DONE Wave 99C 2026-05-19 — `scripts/check-cross-layer-contract-drift.sh` shipped + CI job `cross-layer-contract-drift` wired in `quality-code.yml` + self-test PASS. Per GAP-675 closes deferred-detector debt incident class.
 - [ ] Cross-link update từ các rule liên quan (`audit-to-gap-pipeline.md` §2.6, `wave-pack-planner/SKILL.md`) — ship cùng PR theo task spec; rule scope không bao gồm sửa các rule liên quan ngược lại
 
 ---
@@ -221,6 +221,8 @@ Outcome (planned):
 ---
 
 ## 10. Log
+
+- **2026-05-31** (v1.0.3): PATCH — fixed 2 stale CI reference(s) `script-quality.yml` → `quality-code.yml` (workflow was split into quality-{code,docs,rules-skills,infra}.yml 2026-05-22; this rule's §Enforcement still pointed to the removed file). Historical Log entries left unchanged per `rule-change-process.md` §7 append-only. No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — broken-link fix).
 
 - **2026-05-19** (v1.0.2): PATCH — Wave 99C closes deferred-detector debt per GAP-675 META-META audit. §6.2 PR template hook → CI detector script (`scripts/check-cross-layer-contract-drift.sh` + workflow job `cross-layer-contract-drift`). §8 Open Items detector wiring flipped ✅ DONE. Heuristic v1 grep validator compares Java `@RequestMapping` URL literals vs api-contract.md Endpoint declarations; WARN mode initially. Closes Wave 98 GAP-662 incident class. Self-test fixtures (match + drift) embedded. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive enforcement wiring, no constraint loosening; closes 12-day deferred-detector debt 2026-05-07 → 2026-05-19).
 - **2026-05-14** (v1.0.1): PATCH — thêm `paths: ["documents/03-planning/waves/**", "documents/01-business/**/api-contract.md"]` frontmatter qua Wave 73 Bucket A5. Per Anthropic native `paths:` mechanism, rule giờ chỉ auto-load khi Claude đọc wave plan hoặc api-contract.md. Không thay đổi rule content/scope; reduces base context auto-load per Wave 73 Meta Context Optimization plan. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive frontmatter, no constraint change).

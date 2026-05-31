@@ -7,9 +7,9 @@ paths:
 # Dev-Readable Doc Language — Vietnamese for narrative, English for identifiers
 
 **Priority:** 🟠 MANDATORY — communication language governance
-**Version:** 1.0.2
+**Version:** 1.0.3
 **Created:** 2026-05-14
-**Last-Reviewed:** 2026-05-19
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.2 PATCH self-approve per `rule-change-process.md` §5; Wave 99B post-closure 2026-05-19 — user-flagged §2 scope-list missing explicit "Architecture docs" row (`documents/02-architecture/**`). Coverage gap surfaced khi 14 arch files có `audience: mixed` (Claude + dev both consume via path-scoped auto-load) nhưng rule §2 không enumerate arch scope → "không chuẩn rule ngôn ngữ" cho dev reading. §2 extended với row "Architecture docs (`documents/02-architecture/**`)" + §11 Log v1.0.2 documenting per `incident-to-rule-pipeline.md` 5-stage. v1.0.1 (giữ): PATCH self-approve per §5; Wave 73 Bucket A3 thêm `paths:` frontmatter. v1.0.0 (giữ): MINOR self-approve per §5; new rule với built-in enforcement per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies CLAUDE.md §"CRITICAL: Communication Language" cho previously-uncovered class)
 **Applies to:** Every dev-readable doc artifact a developer reads during work (gap files, runbooks, acceptance tests, end-user guides, planning docs body, audit reports, guide READMEs, business docs prose, architecture docs). Scope explicitly EXCLUDES code source, code comments, commit messages, PR titles, technical identifiers/enums/config keys (those follow standard English convention per CLAUDE.md "Code comments can be in English / Commit messages should be in English").
 
@@ -143,7 +143,7 @@ Per Wave 99C META-META GAP-675 audit (2026-05-19): detector HONEST-deferred per 
 Heuristic regex (when eventually implemented):
 
 ```bash
-# Trong .github/workflows/script-quality.yml hoặc .husky/pre-commit
+# Trong .github/workflows/quality-docs.yml hoặc .husky/pre-commit
 grep -rnE "^[^|`'\"#]*\b(Click|Open|View|Submit|Enter|Navigate|Verify|Check) (the |a |to )?\b" \
   documents/05-guides/operations/acceptance-tests/*.csv \
   documents/04-quality/gaps/*.md \
@@ -230,6 +230,8 @@ Test data in code (Java/TS) tự do dùng English variable names + Vietnamese sa
 ---
 
 ## 11. Log
+
+- **2026-05-31** (v1.0.3): PATCH — fixed 1 stale CI reference(s) `script-quality.yml` → `quality-docs.yml` (workflow was split into quality-{code,docs,rules-skills,infra}.yml 2026-05-22; this rule's §Enforcement still pointed to the removed file). Historical Log entries left unchanged per `rule-change-process.md` §7 append-only. No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — broken-link fix).
 
 - **2026-05-19 (v1.0.2):** PATCH — Wave 99B post-closure 2026-05-19 user-flagged coverage gap: §2 "What counts as dev-readable" scope-list MISSING explicit "Architecture docs" row (`documents/02-architecture/**`). Issue surfaced khi 14 arch files có `audience: mixed` (Claude + dev both consume — path-scoped auto-load) nhưng rule §2 enumerate scope (gap files / runbooks / acceptance tests / planning / audit / business / guide READMEs / end-user docs) KHÔNG cover architecture docs — "không chuẩn rule ngôn ngữ" cho dev đọc. Architecture docs ALREADY use correct content pattern (Vietnamese narrative + English identifiers per §4) — rule §2 scope-list cần extend explicit cover. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged "cho dev đọc thì không chuẩn rule ngôn ngữ" 2026-05-19) → Classify ✓ (rule §2 scope coverage gap; arch docs implicit covered bởi CLAUDE.md broad mandate "ALL documentation in Vietnamese" nhưng §2 enumerate scope list không list architecture → explicit row needed) → Rule+Enforce ✓ (§2 +1 row "Architecture docs documents/02-architecture/**/*.md — audience: mixed" + paired same-PR with: 12 arch files audience: dev → mixed flip + `docs-filename-prefix-convention.md` §4 audience field clarified — all in PR #1579 per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (existing 14 arch files content pattern already Vietnamese narrative + English identifiers → rule §2 extension validates current state without content edit; no migration debt) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive scope-list row + clarification; no constraint loosening; existing arch docs grandfathered with no content edit required since content already follows §4 mixed-language pattern; rule applies prospectively cho new architecture docs).
 - **2026-05-14 (v1.0.1):** Wave 73 Bucket A3 — thêm `paths:` frontmatter (`documents/**/*.md`, `documents/05-guides/operations/acceptance-tests/**/*.csv`) cho Anthropic native deferred-loading. Path-scope MANDATORY rule giúp tiết kiệm token context khi session không động chạm dev-readable docs hoặc acceptance test CSV. Không đổi constraint, scope rule giữ nguyên. Sync `rules-index.csv` path_trigger column. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).

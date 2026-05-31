@@ -12,9 +12,9 @@ paths:
 # Docs Folder Volume Budget — per-folder active file caps
 
 **Priority:** 🟠 MANDATORY — docs scaling governance
-**Version:** 1.0.2
+**Version:** 1.0.3
 **Created:** 2026-05-18
-**Last-Reviewed:** 2026-05-21
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.2 PATCH self-approve per `rule-change-process.md` §5; narrow `paths:` từ broad `documents/**` xuống 7 cap-applicable subdirs (planning waves/pr-logs/session-handoffs + quality audits/gaps + guides + adr) — rule §2 caps targeted at known-volume folder classes; broad pattern fired trên mọi document read. Wave 102.7.5 meta cleanup. No constraint change; §2 caps + §3 active file definition unchanged. v1.0.1 (kept): Wave 99C detector ship. v1.0.0 (kept): new rule per `rule-change-process.md` §6.5)
 **Applies to:** Mọi folder dưới `documents/**` chứa artifact markdown / JSON; mọi PR thêm file mới vào folder đã > cap; mọi reviewer kiểm tra folder hygiene
 
@@ -180,7 +180,7 @@ Trailer logged trong quarterly retro. Pattern frequency > 5%/quarter triggers me
 
 ### 6.3 Monitoring script (SHIPPED Wave 99C GAP-675)
 
-Script `scripts/check-docs-folder-volume.sh` shipped 2026-05-19 per Wave 99C META-META audit (GAP-675 SHIP-NOW verdict — trivial bash ~138 LOC, hardcoded folder→cap table, low FP risk). Wired CI job `docs-scaling-detectors` trong `script-quality.yml`:
+Script `scripts/check-docs-folder-volume.sh` shipped 2026-05-19 per Wave 99C META-META audit (GAP-675 SHIP-NOW verdict — trivial bash ~138 LOC, hardcoded folder→cap table, low FP risk). Wired CI job `docs-scaling-detectors` trong `quality-docs.yml`:
 - WARN-mode initially (current 2 over-cap folders surface as actionable WARN, no merge block)
 - Self-test PASS (counter logic verified: 60 over-cap + 30 safe)
 - Real-repo scan surfaces: `documents/03-planning/pr-logs` 148/50 (296%) + gap-active 385/200 (192%)
@@ -279,6 +279,8 @@ Apply rule §3.2 count commands lên repo hiện tại, identify folders exceed 
 ---
 
 ## 10. Log
+
+- **2026-05-31** (v1.0.3): PATCH — fixed 1 stale CI reference(s) `script-quality.yml` → `quality-docs.yml` (workflow was split into quality-{code,docs,rules-skills,infra}.yml 2026-05-22; this rule's §Enforcement still pointed to the removed file). Historical Log entries left unchanged per `rule-change-process.md` §7 append-only. No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — broken-link fix).
 
 - **2026-05-21 (v1.0.2):** PATCH — Wave 102.7.5 meta cleanup: narrow `paths:` từ broad `documents/**` xuống 7 cap-applicable subdirs (planning waves/pr-logs/session-handoffs + quality audits/gaps + guides + adr). Rule §2 caps targeted at known-volume folder classes; broad pattern fired trên mọi document read. Sync `rules-index.csv`. No constraint change; §2 caps + §3 active file definition unchanged. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — path-scope narrowing per `context-budget-mandate.md` §3.1 broad-glob anti-pattern).
 - **2026-05-19 (v1.0.1):** PATCH — Wave 99C META-META GAP-675 SHIP-NOW closure of deferred-detector debt §6.3. `scripts/check-docs-folder-volume.sh` shipped (138 LOC bash; self-test 60/30 counter logic PASS); wired CI job `docs-scaling-detectors`. WARN-mode initially per `incident-to-rule-pipeline.md` premature-rule guard tightened §3 conditions (Stage 3 paired-enforcement compliance). Real-repo scan surfaces 2 actionable over-cap folders (pr-logs 296% + gap-active 192%) — triage follow-up tracked. No constraint change; detector enforces existing §2 caps prospectively. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — additive enforcement, no constraint loosening).
