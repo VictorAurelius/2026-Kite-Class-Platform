@@ -1,9 +1,17 @@
+---
+paths:
+  - "infrastructure/terraform-aws/**"
+  - "infrastructure/terraform-oracle/**"
+  - ".github/workflows/**"
+  - "scripts/aws/**"
+---
+
 # Pre-Mutation State-Check — investigate before applying production changes
 
 **Priority:** 🔴 CRITICAL — production mutation discipline
-**Version:** 1.2.0
+**Version:** 1.2.1
 **Created:** 2026-05-12
-**Last-Reviewed:** 2026-05-16
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (PR template + reviewer-checklist + memory + worked self-test on Wave 64 cutover) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-uncovered pre-mutation investigation log mandate)
 **Applies to:** Every production-grade mutation operation — `terraform apply` (whether via workflow_dispatch or local), `aws acm import-certificate`, `aws ses verify-*`, `aws iam create-*`, AWS Secrets Manager rotate, Cloudflare DNS POST/PATCH/DELETE on production zones, GitHub Variable/Secret create/update on `production` environment, Kubernetes `kubectl apply` against prod cluster
 
@@ -274,6 +282,8 @@ See `_examples/pre-mutation-state-check-examples.md` §Self-test (Wave 64 Step E
 ---
 
 ## 9. Log
+
+- **2026-05-31** (v1.2.1): PATCH — added `paths:` frontmatter per `context-budget-mandate.md` §3.2 (rule was always-load, violating §3.2 size-gate ≥1k tokens requires path-scope/justification/hook). Scope matches rule's own **Applies to** — no behavior change (rule still fires when relevant files touched); removes ~19k chars from base session context. Part of Wave meta context-budget rule-scoping batch 2026-05-31. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — path-scope correction, no constraint loosening).
 
 - **2026-05-16 (v1.2.0):** MINOR — added §3.5 Plan-vs-predicted reconciliation mandate. Triggered by Wave 86 PR #1437 incident: agent audit predicted `2 add` based on PR scope; actual `terraform plan` returned `7 add / 8 change / 4 destroy` incl 3 EC2 force-replace from Wave 37 backlog un-applied. Without reconciliation gate, applying `dry_run=false` would have triggered unintended EC2 replace. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ Classify ✓ (existing §3 audit mandate but no reconciliation rule) Rule+Enforce ✓ (this §3.5 + paired same-PR workflow `targets` input enabling subset apply) Self-Test ✓ (PR #1437 reconciliation: EC2 = Wave 37 backlog / alarms = Wave 85 / Page Rules = Wave 86 / cascade; targeted apply ships PR-scope only) Retro Log ✓. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5).
 - **2026-05-14 (v1.1.1):** PATCH — Wave 76 Bucket E body streamline. §4 Concrete examples + §7 Self-test moved to `_examples/pre-mutation-state-check-examples.md`; body replaced with 1-line stub pointers. No constraint change; content preserved (deferred-load). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).

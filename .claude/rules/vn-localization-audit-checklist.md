@@ -1,9 +1,18 @@
+---
+paths:
+  - "kitehub/kitehub-frontend/**"
+  - "kiteclass/kiteclass-frontend/**"
+  - "kitehub/*/src/main/resources/templates/email/**"
+  - "kitehub/*/src/main/resources/i18n/**"
+  - "documents/05-guides/user-manual/**"
+---
+
 # VN-Localization Audit Checklist — cross-bucket pre-merge gate
 
 **Priority:** 🟠 MANDATORY — cross-bucket VN-context governance
-**Version:** 1.1.1
+**Version:** 1.1.2
 **Created:** 2026-05-19
-**Last-Reviewed:** 2026-05-28
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; adds §5 "Data roundtrip preservation through sanitization layers" — input sanitization (XSS escape / HTML escape / SQL escape / Unicode normalization) áp dụng cho tenant-facing field PHẢI có VN diacritic roundtrip test; paired same-PR Wave 106 GAP-764 fix (BetaAccessService.sanitizeFreeText UTF-8 preserve) + Flyway V57 backfill migration per §6.5 Enforcement Parity Mandate; META P0 force-multiplier per `meta-gap-priority.md` §3 — fix 1 chuẩn → mọi future input sanitization (audit log / admin form / course content) auto-comply. v1.0.0 (kept): new rule với built-in enforcement (4-section checklist + reviewer-checklist + worked self-test trên Wave 100 4 buckets retroactive) per §6.5; closes coverage gap GAP-680 từ 3-audit consensus 2026-05-19; META P1 force-multiplier)
 **Applies to:** Mọi PR thêm/sửa artifact tenant-facing (UI component, email template, dashboard chart, FE label, invoice template, BE response narrative, marketing copy, user manual page, runbook narrative) thuộc scope `kitehub/kitehub-frontend/**`, `kiteclass/kiteclass-frontend/**`, `kitehub/*/src/main/resources/templates/email/**`, `kitehub/*/src/main/resources/i18n/**`, `documents/05-guides/user-manual/**`, `documents/04-quality/audits/**` chứa user-facing narrative. Out-of-scope: code internal (Java/TS source identifiers + comments per `dev-readable-doc-language.md` §3), config keys, technical CSV column names.
 
@@ -302,6 +311,8 @@ Apply 4-section checklist trên scope dự kiến mỗi bucket Wave 100 (per wav
 ---
 
 ## 7. Log
+
+- **2026-05-31** (v1.1.2): PATCH — added `paths:` frontmatter per `context-budget-mandate.md` §3.2 (rule was always-load, violating §3.2 size-gate ≥1k tokens requires path-scope/justification/hook). Scope matches rule's own **Applies to** — no behavior change (rule still fires when relevant files touched); removes ~31k chars from base session context. Part of Wave meta context-budget rule-scoping batch 2026-05-31. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — path-scope correction, no constraint loosening).
 
 - **2026-05-28 (v1.1.1):** PATCH — fixed §8 Applies-to scope path `kitehub/kiteclass-frontend/**` → `kiteclass/kiteclass-frontend/**` (KiteClass FE thật ở top-level `kiteclass/`, không phải dưới `kitehub/`). Same path-bug class surfaced bởi GAP-802 cross-flow sweep (PR #1958) — agent đã copy path sai từ rule này. Sync `rules-index.csv` path_trigger. No constraint change; rule scope giữ nguyên, chỉ sửa glob trỏ đúng dir để auto-load fire đúng. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — path correction, no constraint loosening). Cross-ref GAP-803 Finding 0.
 - **2026-05-27 (v1.1.0):** MINOR — added §5 "Data roundtrip preservation through sanitization layers". Triggered by Wave 106 GAP-764 (P0 escalation) — Wave 105 Bucket E0 Bug 2 introduced `HtmlUtils.htmlEscape(input)` single-arg variant defense-in-depth XSS sanitization that corrupts Vietnamese diacritic `â/ê/ô` to HTML entities `&acirc;/&ecirc;/&ocirc;` BEFORE DB write. RST walk Mảng A2 caught 2 production rows corrupted (id=11, 12 trong `beta_access_request` table). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (Wave 106 RST A2 walk POST probe + DB row inspection 2026-05-27) → Classify ✓ (existing §1-§4 cover format + label + sample data + cultural awareness BUT không cover data preservation through sanitization layers; sister rules `postgres-specific-type-testcontainers.md` covers DB binding type only, `audit-service-isolation.md` covers transaction propagation — none cover sanitization-vs-i18n conflict) → Rule+Enforce ✓ (this §5 + paired same-PR with code fix BetaAccessService.sanitizeFreeText UTF-8 mode + Flyway V57 backfill migration + Testcontainers IT VN diacritic roundtrip + GAP-764 closure per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (Wave 106 GAP-764 originating incident — counterfactual: rule §5 at Wave 105 Bucket E0 design would catch via reviewer-checklist + IT test) → Retro Log ✓ (this entry). META P0 force-multiplier per `meta-gap-priority.md` §3 — fix 1 chuẩn → mọi future input sanitization (audit log / admin form / course content / student name / class name) auto-comply prospectively. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds previously-uncovered scope "data preservation through sanitization"; no constraint loosening; existing sanitization code grandfathered until next refresh; rule applies prospectively từ Wave 106+ forward).

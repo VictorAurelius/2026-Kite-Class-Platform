@@ -1,9 +1,15 @@
+---
+paths:
+  - "documents/05-guides/user-manual/**"
+  - "kitehub/kitehub-frontend/src/app/help/**"
+---
+
 # User Manual Content Standard — 15-item checklist + persona discoverability matrix
 
 **Priority:** 🟠 MANDATORY — tenant-facing doc content governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-14
-**Last-Reviewed:** 2026-05-14
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (15-item checklist + persona discoverability matrix + reviewer-checklist + worked self-test on Wave 79 Bucket F1 anonymous-prospect 5-page prototype) per §6.5 Enforcement Parity Mandate; no constraint loosening — closes coverage gap surfaced by Wave 79 Bucket F1 outside-in audit `documents/04-quality/audits/persona-review/2026-05-14-pre-wave-79-bucket-f1-user-manual-outside-in.md`; META P0 force-multiplier per `meta-gap-priority.md` §3)
 **Applies to:** Every user manual page under `documents/05-guides/user-manual/**` AND the matching Next.js MDX route `kitehub/kitehub-frontend/src/app/help/**`. Scope = tenant-facing help content (P1 Solo Teacher / P2 Center Owner / P3 Center Manager / Anonymous Prospect personas). Internal runbooks at `documents/05-guides/operations/**` + `documents/05-guides/deploy/**` follow separate `docs-folder-structure.md` rule và NOT covered here.
 
@@ -267,5 +273,7 @@ Apply 15-item checklist to 5 sample pages shipped same PR (`documents/05-guides/
 ---
 
 ## 8. Log
+
+- **2026-05-31** (v1.0.1): PATCH — added `paths:` frontmatter per `context-budget-mandate.md` §3.2 (rule was always-load, violating §3.2 size-gate ≥1k tokens requires path-scope/justification/hook). Scope matches rule's own **Applies to** — no behavior change (rule still fires when relevant files touched); removes ~18k chars from base session context. Part of Wave meta context-budget rule-scoping batch 2026-05-31. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — path-scope correction, no constraint loosening).
 
 - **2026-05-14 (v1.0.0):** Rule created in response to Wave 79 Bucket F1 outside-in audit (`documents/04-quality/audits/persona-review/2026-05-14-pre-wave-79-bucket-f1-user-manual-outside-in.md`) — 4 personas × 5 questions (Discovery / Format / Cognitive load / VN edu / Trust gates) surfaced format + media + discoverability blind spot mà GAP-537 inside-out scope chỉ liệt kê "5-10 screenshots per persona" thiếu enforcement. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (outside-in audit + user request meta standard) → Classify ✓ (no existing rule codifies user manual content discipline; closest = `dev-readable-doc-language.md` covers narrative-only; `output-review-mandate.md` §3 had no row for user manual pages) → Rule+Enforce ✓ (this file + 15-item checklist + persona discoverability matrix + paired same-PR: `output-review-mandate.md` §3 row "User manual pages" + `rules-index.csv` row + Bucket F1 anonymous-prospect 5-page prototype as worked self-test + GAP-537 scope refinement per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§6 worked example on 5 sample pages — 13/15 PASS + 2 partial with §2 row 6 placeholder allowance) → Retro Log ✓ (this entry). META P0 force-multiplier per `meta-gap-priority.md` §3 — fix standard 1 lần → force-multiplier mọi page user manual subsequent (Wave 80+ P2/P3/Admin). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — new constraint codifying previously-uncovered class; no constraint loosening; existing user manual scope = empty folder (verify-at-spawn confirmed); rule applies prospectively from Wave 79 Bucket F1 forward). Detector wiring (§5.4 CI grep + §5.3 memory auto-load) deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 ngày; reviewer-checklist + worked self-test sufficient cho v1.0.0.

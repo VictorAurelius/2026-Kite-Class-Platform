@@ -1,9 +1,15 @@
+---
+paths:
+  - "scripts/aws/**"
+  - "infrastructure/terraform-aws/**"
+---
+
 # Pre-Flight AWS Lifecycle Check — verify creds + state TRƯỚC khi start/stop stack
 
 **Priority:** 🟠 MANDATORY — AWS lifecycle ops governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-26
-**Last-Reviewed:** 2026-05-26
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (reviewer-checklist + worked self-test trên 2026-05-26 incident) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies pre-flight discipline cho Tier 2 EC2/RDS lifecycle ops uncovered bởi sister rules)
 **Applies to:** Mỗi lần Claude trigger `bash scripts/aws/start-stack.sh` / `bash scripts/aws/stop-stack.sh` / `aws ec2 start-instances` / `aws ec2 stop-instances` / `aws rds start-db-instance` / `aws rds stop-db-instance` — agent OR human-coordinator triggered
 
@@ -237,5 +243,7 @@ Trailer logged. Pattern frequency >5%/quarter triggers meta-review.
 ---
 
 ## 9. Log
+
+- **2026-05-31** (v1.0.1): PATCH — added `paths:` frontmatter per `context-budget-mandate.md` §3.2 (rule was always-load, violating §3.2 size-gate ≥1k tokens requires path-scope/justification/hook). Scope matches rule's own **Applies to** — no behavior change (rule still fires when relevant files touched); removes ~15k chars from base session context. Part of Wave meta context-budget rule-scoping batch 2026-05-31. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — path-scope correction, no constraint loosening).
 
 - **2026-05-26 (v1.0.0):** Rule created in response to user direction 2026-05-26 post-incident "thêm rules, state-check trước khi start aws stack, tránh lỗi như lần này". Session triggered `bash scripts/aws/start-stack.sh` without pre-flight cred check → `dev-admin` keys expired → `InvalidClientTokenId` → user-action cred rotation cycle (~12min wall-clock) → eventually success after rotation. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged + concrete 2026-05-26 incident) → Classify ✓ (no existing rule codifies AWS lifecycle pre-flight; `agent-aws-access.md` covers Tier 1 read-only allowlist not Tier 2 lifecycle; `pre-mutation-state-check.md` covers HIGH-stakes mutation not lifecycle start/stop) → Rule+Enforce ✓ (this file + reviewer-checklist §7.1 + worked self-test §6 + paired same-PR rules-index.csv row + output-review-mandate.md §3 row + memory mirror PR body inline per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§6 worked example on the originating 2026-05-26 incident — rule fires correctly + counterfactual ~12min wall-clock saved + ~1 user round-trip eliminated) → Retro Log ✓ (this entry). META P1 force-multiplier per `meta-gap-priority.md` §3 — fix 1 chuẩn check → mọi session subsequent auto-comply prospectively. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying previously-uncovered AWS lifecycle pre-flight class; no constraint loosening for prior sessions; existing sessions grandfathered; rule applies prospectively từ next session forward). Atomic-unique-bar §5.1 check passed: ✅ atomic (single concept: pre-flight check before AWS lifecycle) + ✅ unique (sister rules cover different scopes — read-only allowlist vs production mutation) + ✅ widely applicable (every session needing live AWS verify) + ✅ body discipline §1 ≤2 "and" conjunctions. Memory auto-load (§7.2) + script-level extension (§7.3) deferred per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions (reviewer-checklist + worked self-test §6 sufficient cho v1.0.0; revisit detector when recurrence-count ≥2 post-rule).

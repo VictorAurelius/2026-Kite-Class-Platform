@@ -1,9 +1,16 @@
+---
+paths:
+  - "infrastructure/terraform-aws/**"
+  - ".github/workflows/**"
+  - "scripts/aws/**"
+---
+
 # Concurrent Production Mutation Ops — serialize, never parallelize
 
 **Priority:** 🔴 CRITICAL — prevents production resource state-conflict from concurrent mutations
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-12
-**Last-Reviewed:** 2026-05-12
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (pre-mutation-state-check §3 extension + reviewer-checklist + worked self-test on 2026-05-12 incident) per §6.5 Enforcement Parity Mandate; no constraint loosening — adds concurrency guard for previously-uncovered class)
 **Applies to:** Every production mutation op (terraform apply / deploy-production.yml / SSM SendCommand / aws CLI write / kubectl apply prod / Cloudflare PATCH-DELETE / GitHub variable set production) — agent OR human triggered
 
@@ -206,5 +213,7 @@ Future: `audit-gate.py` rule scanning `gh workflow run` invocations in session f
 ---
 
 ## 10. Log
+
+- **2026-05-31** (v1.0.1): PATCH — added `paths:` frontmatter per `context-budget-mandate.md` §3.2 (rule was always-load, violating §3.2 size-gate ≥1k tokens requires path-scope/justification/hook). Scope matches rule's own **Applies to** — no behavior change (rule still fires when relevant files touched); removes ~13k chars from base session context. Part of Wave meta context-budget rule-scoping batch 2026-05-31. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — path-scope correction, no constraint loosening).
 
 - **2026-05-12 (v1.0.0):** Rule created. Triggered by 2026-05-12 07:50:41 UTC incident: terraform-apply.yml + deploy-production.yml triggered within 22s on same EC2 → terraform's stop-modify-start cycle killed SSM-running deploy-prod.sh with SIGTERM exit 143. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged "sai quyết định trigger parallel" + asked file rule to prevent recurrence) → Classify ✓ (no existing rule covers concurrent mutation ops on shared production resource; `terraform-apply-retry-reconfirm.md` covers retry not pre-trigger; `agent-aws-access.md` §4.3 covers per-op Tier 3 ban not concurrency) → Rule+Enforce ✓ (this file + `pre-mutation-state-check.md` §3 extension via "Pending" section template + memory `feedback_concurrent_mutation_ops_conflict.md` + Wave 65 audit artifact extension paired same-PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§8 worked example on the originating 2026-05-12 incident — rule fires correctly + counterfactual cost-save demonstrated) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint adding previously-uncovered concurrency class; no constraint loosening; existing serial deploy patterns grandfathered; rule applies prospectively from this PR). Detector wiring deferred per premature-rule guard ≥7 days.

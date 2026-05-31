@@ -1,9 +1,20 @@
+---
+paths:
+  - "**/application*.yml"
+  - "**/docker-compose*.yml"
+  - "**/Dockerfile*"
+  - "infrastructure/terraform-aws/**"
+  - "infrastructure/helm/**"
+  - "scripts/fetch-secrets.sh"
+  - "**/.env*.template"
+---
+
 # Local-Fix Production-Parity Check — code/config fix must sweep production env
 
 **Priority:** 🟠 MANDATORY — production deploy completeness governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-22
-**Last-Reviewed:** 2026-05-22
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (reviewer-checklist + memory mirror inline PR body per `post-merge-sync-completeness.md` §7.5 + worked self-test retroactive Wave 81 + Wave 104.5 same incident class) per `rule-change-process.md` §6.5 Enforcement Parity Mandate; no constraint loosening — codifies previously-uncovered class "local code/config fix → production-equivalent surface sweep" complementary to `audit-to-gap-pipeline.md` §2.7 inverse direction)
 
 **Applies to:** Every PR introducing or modifying config-shape artifacts:
@@ -235,5 +246,7 @@ Common valid override cases:
 ---
 
 ## 8. Log
+
+- **2026-05-31** (v1.0.1): PATCH — added `paths:` frontmatter per `context-budget-mandate.md` §3.2 (rule was always-load, violating §3.2 size-gate ≥1k tokens requires path-scope/justification/hook). Scope matches rule's own **Applies to** — no behavior change (rule still fires when relevant files touched); removes ~20k chars from base session context. Part of Wave meta context-budget rule-scoping batch 2026-05-31. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — path-scope correction, no constraint loosening).
 
 - **2026-05-22 (v1.0.0):** Rule created in response to user-flagged meta gap Wave 104.5 close-loop 2026-05-22: "ngoài ra check meta có audit cho việc fix local thì phải check fix env cho cả production chưa?". Concrete sister bug GAP-717 (Wave 81 + Wave 104.5 same incident class — JWT_CHALLENGE_SECRET manual secret creation never followed by terraform IaC declaration → IaC drift) surfaced same session as instantiation. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged meta gap) → Classify ✓ (existing rules cover related-but-different patterns per GAP-718 §Problem table: `audit-to-gap-pipeline.md` §2.5/§2.6/§2.7/§2.8 cover filing/planning/decision-doc/fix-time directions but NOT code-fix→prod-env-sweep direction; `production-env-config-registry.md` §11 audits run pre-release not per-fix; `release-deploy-standard.md` §3.1 one-off pre-release checklist; `pre-mutation-state-check.md` covers PRE-mutation investigation not POST-fix sweep) → Rule+Enforce ✓ (this file + reviewer-checklist §5.1 + memory mirror §5.2 inline PR body + worked self-test §6 retroactive 2 incidents + paired same-PR with GAP-717 concrete fix (terraform secret declaration) + GAP-718 closure + `output-review-mandate.md` §3 matrix row + rules-index.csv row + audit-to-gap-pipeline.md §2.7 cross-link + production-env-config-registry.md §11 cross-link per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§6 worked example on Wave 81 + Wave 104.5 — rule fires correctly + counterfactual eliminates 1 recurrence + force-multiplier projection ~5-8h/year saved + 0 IaC drift production incidents) → Retro Log ✓ (this entry). META P0 force-multiplier per `meta-gap-priority.md` §3 — fix coverage 1 lần → mọi future code/config fix subsequent auto-comply prospectively. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying previously-uncovered class "local code/config fix → production-equivalent surface sweep"; no constraint loosening; existing PRs grandfathered until next refresh; rule applies prospectively từ Wave 105+ forward). Atomic-unique-bar §5.1 check passed: ✅ atomic (single concept: local fix → prod env sweep direction) + ✅ unique (sister rule `audit-to-gap-pipeline.md` §2.7 covers inverse direction; no overlap với existing rules covering different boundaries) + ✅ widely applicable (every PR touching config-shape artifact) + ✅ body discipline §1 ≤2 "and" conjunctions. CI grep detector (§5.3) deferred per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions (complexity moderate + recurrence count 1 + honest defer cited inline); reviewer-checklist + worked self-test + memory mirror sufficient cho v1.0.0.
