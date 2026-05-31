@@ -1,4 +1,4 @@
-name: Tier 3 Cutover (kitehub.me)
+name: Deploy — Tier 3 Cutover
 
 # workflow_dispatch only — NO push/PR triggers. User-triggered, confirm-input
 # gated, OIDC ephemeral creds, narrow IAM role.

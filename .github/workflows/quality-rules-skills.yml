@@ -1,4 +1,4 @@
-name: Quality — Rules / Skills (Rule frontmatter + Skill conventions + Rule staleness + Rule count + Meta CSV + Env vars)
+name: Quality — Rules / Skills (Rule frontmatter + Skill conventions + Staleness + Rule count + Context budget + Meta CSV + Env vars)
 
 # Split from script-quality.yml 21-job bloated workflow (2026-05-22)
 # Domain: Claude rules + skills governance + env-reference render + Meta CSV indexes (ADRs + Rules)

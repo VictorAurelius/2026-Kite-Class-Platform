@@ -1,4 +1,4 @@
-name: actionlint
+name: Quality — Actionlint (workflow YAML lint)
 
 # Static lint for GitHub Actions workflows.
 # Catches: YAML syntax errors, step input type errors, secret/var refs to

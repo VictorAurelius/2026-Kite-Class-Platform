@@ -1,4 +1,4 @@
-name: Deploy Design System to GitHub Pages
+name: Build — Design System (GitHub Pages)
 
 # Auto-deploy enabled 2026-05-05 after first successful manual run
 # (run #25364989414) confirmed Pages source = "GitHub Actions" wired correctly.

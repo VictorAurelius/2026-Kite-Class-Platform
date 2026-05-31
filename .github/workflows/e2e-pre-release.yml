@@ -1,4 +1,4 @@
-name: E2E Pre-release Gate
+name: Test — E2E Pre-release Gate
 
 # GAP-403 — runs full Playwright suite trước khi promote release-candidate tags lên production.
 # Trigger:

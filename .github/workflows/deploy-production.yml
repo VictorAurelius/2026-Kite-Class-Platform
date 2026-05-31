@@ -1,4 +1,4 @@
-name: Deploy to Production (Architecture B — EC2 + docker-compose)
+name: Deploy — Production (Architecture B EC2)
 
 # =============================================================================
 # Architecture B per ADR-025 (rewritten from legacy EKS+Helm pattern):

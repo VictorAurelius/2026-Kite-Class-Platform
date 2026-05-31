@@ -1,4 +1,4 @@
-name: Build and Push Kite Docker Images
+name: Build — Docker Images (push to ECR)
 
 # Wave 37 Bucket B (GAP-398..402):
 # - Region pinned ap-southeast-1 (ADR-025 AWS Singapore)

@@ -1,4 +1,4 @@
-name: Lighthouse CI (kitehub-frontend)
+name: Test — Lighthouse (kitehub-frontend)
 
 # Advisory Lighthouse CI gate for the KiteHub public marketing site.
 # Initial threshold: SEO >= 90 (required), Performance + Accessibility + Best Practices

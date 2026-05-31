@@ -5,7 +5,7 @@
 # Real exec via workflow_dispatch input `mode=execute` (manual gate).
 # =========================================================================
 
-name: Smoke Tests (Bucket G)
+name: Test — Smoke Tests
 
 on:
   workflow_dispatch:

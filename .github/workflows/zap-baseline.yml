@@ -1,4 +1,4 @@
-name: OWASP ZAP Baseline Scan
+name: Security — OWASP ZAP Baseline
 
 # GAP-406 — automated security baseline scan against staging URL.
 # Phase 1: workflow_dispatch only (manual trigger). Future: weekly schedule.

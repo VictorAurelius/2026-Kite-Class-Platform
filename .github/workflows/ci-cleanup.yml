@@ -12,7 +12,7 @@
 #
 # Also supports on-demand trigger via workflow_dispatch with dry_run preview.
 
-name: CI History Cleanup
+name: Ops — CI History Cleanup
 
 on:
   schedule:

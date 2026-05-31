@@ -1,4 +1,4 @@
-name: Deploy to Staging (Architecture B — EC2 + docker-compose)
+name: Deploy — Staging (Architecture B EC2)
 
 # =============================================================================
 # Architecture B revision (Wave 38 Bucket D / GAP-380)
