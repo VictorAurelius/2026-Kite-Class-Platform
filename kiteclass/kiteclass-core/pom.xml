@@ -24,7 +24,7 @@
         <springdoc.version>2.8.17</springdoc.version>
         <jjwt.version>0.13.0</jjwt.version>
         <aws-sdk.version>2.44.7</aws-sdk.version>
-        <tika.version>3.3.0</tika.version>
+        <tika.version>3.3.1</tika.version>
         <resilience4j.version>2.4.0</resilience4j.version>
         <!-- Override Jackson version to fix GHSA-72hv-8253-57qq (DoS vulnerability) -->
         <jackson.version>2.21.1</jackson.version>
@@ -40,7 +40,7 @@
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
         <!-- GAP-468 + GAP-470: CVE overrides for transitive deps surfaced via GitHub code-scanning 2026-05-11 -->
         <!-- netty 4.2.13.Final: GAP-470 line bump for revised CVE-2026-42577 (advisory has no 4.1.x patch) -->
-        <netty.version>4.2.13.Final</netty.version>
+        <netty.version>4.2.14.Final</netty.version>
         <postgresql.version>42.7.11</postgresql.version>
         <bouncycastle.version>1.84</bouncycastle.version>
         <!-- commons-lang3 3.18.0 fixes CVE-2025-48924 (Spring Boot 3.5.14 ships 3.17.0) -->
