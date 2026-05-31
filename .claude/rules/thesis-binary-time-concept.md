@@ -1,9 +1,14 @@
+---
+paths:
+  - "documents/08-thesis/**"
+---
+
 # Thesis Binary Time Concept — chỉ "hiện tại đạt được" + "phát triển sau"
 
 **Priority:** 🟠 MANDATORY — thesis content discipline
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-29
-**Last-Reviewed:** 2026-05-29
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (reviewer-checklist + worked self-test on Wave thesis-3 sweep) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies user direction 2026-05-29 mid-Wave-thesis-3)
 **Applies to:** Mọi file dưới `documents/08-thesis/**` được render thành DOCX/PDF deliverable cho academic submission. Out-of-scope: source code, internal runbooks, non-academic project docs (per `professional-manual-content-standard.md` scope).
 
@@ -171,6 +176,8 @@ Trailer logged. Pattern frequency >5%/quarter triggers meta-review.
 ---
 
 ## 9. Log
+
+- **2026-05-31** (v1.0.1): PATCH — added `paths:` frontmatter per `context-budget-mandate.md` §3.2 (rule was always-load, violating §3.2 size-gate ≥1k tokens requires path-scope/justification/hook). Scope matches rule's own **Applies to** — no behavior change (rule still fires when relevant files touched); removes ~13k chars from base session context. Part of Wave meta context-budget rule-scoping batch 2026-05-31. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — path-scope correction, no constraint loosening).
 
 - **2026-05-29 (v1.0.0):** Rule created in response to user direction mid-Wave-thesis-3 (2 directions same message):
   1. "thêm rules mới: không đề cập đến các khái niệm như đợt thử nghiệm, đợt vận hành thật hay các đợt nào khác. Báo cáo này chỉ có 2 khái niệm thời gian: hiện tại đạt được và sẽ phát triển sau"

@@ -8,9 +8,9 @@ audience: dev
 # Fix-up CI Selective Re-Run — cancel unrelated CI checks on targeted fix commits
 
 **Priority:** 🟠 MANDATORY — CI throughput + wait-time governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-24
-**Last-Reviewed:** 2026-05-24
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (reviewer-checklist + worked self-test on Wave br-4 Bucket E fix-up incident 2026-05-24) per `rule-change-process.md` §6.5 Enforcement Parity Mandate; no constraint loosening — codifies previously-implicit "wait full CI" anti-pattern surfaced by user 2026-05-24)
 **Applies to:** Every fix-up commit pushed to an existing PR branch where the previous CI run had ≥1 specific check FAIL + ≥1 check PASS. Out-of-scope: initial PR push (all checks needed); rebase/squash that changes many files (broad re-test warranted)
 
@@ -156,7 +156,7 @@ Future: pre-push hook scan fix-up diff vs workflow path triggers → suggest can
 | `quality-rules-skills.yml` (Gap status CSV + Meta CSV + frontmatter etc.) | `documents/04-quality/gaps/**` + `.claude/rules/**` | ✅ MATCH (gaps touched) | KEEP — wait |
 | `core-ci.yml` Test KiteHub Subscription/Admin/Branding/Gateway/Email/Platform | Java service paths | ❌ NO MATCH | CANCEL |
 | `frontend-ci.yml` (if triggered) | Frontend paths | ❌ NO MATCH | CANCEL |
-| `script-quality.yml` (ShellCheck + Ruff + Script tests + Cross-layer drift + Mermaid) | scripts + .md | partial (rule .md changed in *this* meta rule PR; not in #1785) | KEEP for #1785 (gap .md change triggers) |
+| `quality-code.yml` (ShellCheck + Ruff + Script tests + Cross-layer drift + Mermaid) | scripts + .md | partial (rule .md changed in *this* meta rule PR; not in #1785) | KEEP for #1785 (gap .md change triggers) |
 | `lint-yaml` (Lint GitHub Actions workflows) | `.github/workflows/**` | ❌ NO MATCH | CANCEL |
 | `gitleaks` (secret scan) | always | always | KEEP (security mandate) |
 
@@ -189,5 +189,7 @@ Rule này dùng `paths:` frontmatter (`.github/workflows/**` + self) — path-sc
 ---
 
 ## 9. Log
+
+- **2026-05-31** (v1.0.1): PATCH — fixed 1 stale CI reference(s) `script-quality.yml` → `quality-code.yml` (workflow was split into quality-{code,docs,rules-skills,infra}.yml 2026-05-22; this rule's §Enforcement still pointed to the removed file). Historical Log entries left unchanged per `rule-change-process.md` §7 append-only. No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — broken-link fix).
 
 - **2026-05-24 (v1.0.0):** Rule created in response to user-flagged 2026-05-24 Wave br-4 Bucket E fix-up #1785 commit `9c30fe70` — fix-up touched 2 files (gap-status.csv + GAP-NEW rename) but ALL 31 CI checks re-ran (waste ~28 unrelated). User direction "thêm rule chỉ check CI fail xem pass chưa, còn CI khác, không ảnh hưởng thì cancel để tránh phí time wait". Per `incident-to-rule-pipeline.md` v1.1 5-stage applied: Detect ✓ → Classify ✓ (no existing rule mandates selective CI cancel; `docs-only-pr-auto-merge.md` covers post-CI-green flow; `release-fix-retry-budget.md` covers retry budget not selective scope) → Rule+Enforce ✓ (this file + reviewer-checklist + worked self-test §6 + rules-index.csv row) → Self-Test ✓ (§6 retroactive on Bucket E fix-up — counterfactual: ~28 cancels save ~20-30 min CI minutes + ~8 min agent wait time) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint adds previously-uncovered CI throughput discipline; no constraint loosening; existing PR fix-up flows grandfathered; rule applies prospectively từ Wave br-5+ forward). Detector wiring (§5.5 pre-push hook) deferred per `incident-to-rule-pipeline.md` v1.1 §3.1 tightened defer conditions (heuristic complexity moderate + recurrence count 1 + honest defer documented inline); reviewer-checklist + worked self-test + memory mirror sufficient cho v1.0.0.

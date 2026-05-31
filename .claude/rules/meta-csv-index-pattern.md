@@ -9,9 +9,9 @@ paths:
 # Meta CSV Index Pattern — canonical CSV for enumerations
 
 **Priority:** 🟠 MANDATORY — codifies CSV-canonical pattern for meta enumerations
-**Version:** 1.0.2
+**Version:** 1.0.3
 **Created:** 2026-05-12
-**Last-Reviewed:** 2026-05-14
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement (4 worked CSV indexes shipped same PR + ADR + rules validators + CI wire + PR template row) per §6.5 Enforcement Parity Mandate; no constraint loosening — generalizes proven pattern from `gap-architecture-v2.md` to other meta enumerations per GAP-485)
 **Applies to:** Every repo-wide enumeration of meta artifacts (rules, skills, ADRs, audits, runbooks, gaps) where: (a) the set is queried programmatically more than ~5×/week, (b) each item has a stable identifier + small fixed metadata schema, (c) reading the source files costs ≥10× the CSV row read
 
@@ -58,7 +58,7 @@ A CSV-canonical index ships with FOUR artifacts in the same PR (per `rule-change
 | **CSV** | `<canonical-folder>/<scope>-index.csv` OR `<scope>-status.csv` | Source of truth |
 | **Query helper** | `scripts/query-<scope>.sh` | `awk`-based filter; pretty + `--count` + `--grep` |
 | **CI validator** | `scripts/check-<scope>-index-csv.sh` | Enum + format + file-exists + coverage |
-| **CI wire** | Step in `.github/workflows/script-quality.yml` | Block PR on CSV malformed / coverage gap |
+| **CI wire** | Step in `.github/workflows/quality-rules-skills.yml` | Block PR on CSV malformed / coverage gap |
 
 Plus cross-link entries:
 
@@ -161,7 +161,7 @@ This forces the index to stay in sync — drift impossible.
 
 ### 8.1 CI gate (active for shipped indexes)
 
-`.github/workflows/script-quality.yml` runs `bash scripts/check-<scope>-index-csv.sh` for each shipped index. Failure → PR blocked.
+`.github/workflows/quality-rules-skills.yml` runs `bash scripts/check-<scope>-index-csv.sh` for each shipped index. Failure → PR blocked.
 
 ### 8.2 PR template checkbox (lands same PR)
 
@@ -244,6 +244,8 @@ When 2nd recurrence (i.e., a 4th index becomes worthwhile), the bulk-migrator pa
 ---
 
 ## 13. Log
+
+- **2026-05-31** (v1.0.3): PATCH — fixed 2 stale CI reference(s) `script-quality.yml` → `quality-rules-skills.yml` (workflow was split into quality-{code,docs,rules-skills,infra}.yml 2026-05-22; this rule's §Enforcement still pointed to the removed file). Historical Log entries left unchanged per `rule-change-process.md` §7 append-only. No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — broken-link fix).
 
 - **2026-05-14** (v1.0.2): PATCH — Wave 76 Bucket A — §6 Index registry updated: Audits index Tier 3 shipped (audits-index.csv + query-audits.sh + check-audits-index-csv.sh + CI wire); Rules index extended with 3 lifecycle columns (lifecycle_status + deprecated_at + replaced_by) backfilled `active` cho 55 existing rows. Pattern parity validated (see `rule-change-process.md` §6 deprecation policy paired same-PR). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — registry row updates + lifecycle column documentation extension; no constraint loosening; Tier 3 Audits closes GAP-490 Audits portion).
 - **2026-05-14** (v1.0.1): PATCH — thêm `paths:` frontmatter — Wave 73 miss fix (rule này nằm trong 13 MANDATORY rules wave plan §3 Scope bỏ sót, vẫn auto-load base context dù scope rule có path trigger rõ ràng). PATCH bump per `rule-change-process.md` §5 — additive frontmatter, no constraint change, deferred-load khi no matching file in context. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve). Scope: CSV meta index work.

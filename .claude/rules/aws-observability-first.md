@@ -1,9 +1,14 @@
+---
+paths:
+  - "infrastructure/terraform-aws/**"
+---
+
 # AWS Observability Baseline BEFORE Infra Apply
 
 **Priority:** 🔴 CRITICAL — audit baseline must precede non-trivial AWS apply
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-07
-**Last-Reviewed:** 2026-05-07
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement; no constraint loosening for prior work; migrated from session memory `feedback_aws_observability_first.md` for git-tracked durability)
 **Applies to:** Every terraform apply in `infrastructure/terraform-aws/**` that creates ≥10 AWS resources OR any internet-facing service (ALB, EC2 with public subnet, public S3, public RDS), in any AWS account that has CloudTrail OFF (which is the default for new accounts)
 
@@ -153,5 +158,7 @@ Trailer logged. Pattern frequency >5% per quarter triggers meta-review (rule pro
 ---
 
 ## 11. Log
+
+- **2026-05-31** (v1.0.1): PATCH — added `paths:` frontmatter per `context-budget-mandate.md` §3.2 (rule was always-load, violating §3.2 size-gate ≥1k tokens requires path-scope/justification/hook). Scope matches rule's own **Applies to** — no behavior change (rule still fires when relevant files touched); removes ~9k chars from base session context. Part of Wave meta context-budget rule-scoping batch 2026-05-31. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — path-scope correction, no constraint loosening).
 
 - **2026-05-07 (v1.0.0):** Migrated from session memory `feedback_aws_observability_first.md` per user request "memory persistence strategy = migrate to .claude/rules/ for git-tracked durability". Original incident: 2026-05-08 user-flagged "tera đã được chạy nhưng không có logs hay dashboard kiểm soát?" caught the missing audit baseline before Phase 2.3 production apply on account 906286017800. Recovery: GAP-437 Phase 1 shipped (PR #992) between Phase 2.2 and Phase 2.3 → trail `kitehub-main` `IsLogging=true` → Phase 2.3 71-resource apply fully captured. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5). Enforcement: reviewer manual + memory auto-load + cross-link to `release-deploy-standard.md §9` now; audit-gate.py rule deferred. Future scope: GAP-437 Phase 3 (AWS Config drift tracking) + Phase 4 (CloudTrail metric filters → SNS alerts on root account use, failed IAM, etc.) extend this rule's coverage.

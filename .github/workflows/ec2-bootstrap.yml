@@ -1,4 +1,4 @@
-name: EC2 Bootstrap (one-time, /opt/kite-prod git clone)
+name: Deploy — EC2 Bootstrap (one-time)
 
 # One-time bootstrap to install git+jq + clone repo to /opt/kite-prod on
 # kh-backend EC2. After this runs, deploy-production.yml can use the

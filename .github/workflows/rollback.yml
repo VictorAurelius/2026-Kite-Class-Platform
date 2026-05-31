@@ -1,4 +1,4 @@
-name: Rollback Production (Architecture B — EC2 + docker-compose)
+name: Deploy — Rollback Production
 
 # =============================================================================
 # GAP-477 (Wave 63 Bucket A) — production rollback workflow.

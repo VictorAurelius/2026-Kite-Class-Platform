@@ -14,9 +14,9 @@ paths:
 # Production Env Config Registry — single source of truth + coverage audit
 
 **Priority:** 🟠 MANDATORY — production config governance
-**Version:** 1.1.1
+**Version:** 1.1.2
 **Created:** 2026-05-13
-**Last-Reviewed:** 2026-05-14
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; adds §11 listing 3 new audit scripts (gateway-routes / service-ports / spring-profiles) shipped same-PR via Wave 71 Bucket E per §6.5 Enforcement Parity Mandate; no constraint loosening — extends rule coverage to architectural class-of-bug audits that detected 4 P0 production bugs Wave 71 missed by all prior audit skills. v1.0.0 (kept): new rule with built-in enforcement (registry doc + scan script + CI gate deferred + worked self-test on 2026-05-13 Plan 1 incident))
 **Applies to:** Every `application*.yml` Spring config + every `docker-compose*.yml` production env block + `scripts/fetch-secrets.sh` + AWS Secrets Manager production secret entries
 
@@ -65,7 +65,7 @@ Updated SAME PR as any new `${VAR:default}` introduction in source code.
 
 ### 3.3 CI gate (deferred per `incident-to-rule-pipeline.md` premature-rule guard)
 
-`.github/workflows/script-quality.yml` job `env-coverage` runs `audit-env-coverage.sh` on PRs touching `application*.yml`. Track wire as follow-up gap when registry stabilizes.
+`.github/workflows/quality-rules-skills.yml` job `env-coverage` runs `audit-env-coverage.sh` on PRs touching `application*.yml`. Track wire as follow-up gap when registry stabilizes.
 
 ---
 
@@ -209,11 +209,13 @@ All 4 scripts exit 0 = green for production release. Any FAIL → fix before tag
 
 ### CI gate (deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 days)
 
-Same wiring strategy as §3.3: add to `.github/workflows/script-quality.yml` after rule stabilizes. Track as follow-up GAP-509/510/511 closure.
+Same wiring strategy as §3.3: add to `.github/workflows/quality-rules-skills.yml` after rule stabilizes. Track as follow-up GAP-509/510/511 closure.
 
 ---
 
 ## 12. Log
+
+- **2026-05-31** (v1.1.2): PATCH — fixed 2 stale CI reference(s) `script-quality.yml` → `quality-rules-skills.yml` (workflow was split into quality-{code,docs,rules-skills,infra}.yml 2026-05-22; this rule's §Enforcement still pointed to the removed file). Historical Log entries left unchanged per `rule-change-process.md` §7 append-only. No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — broken-link fix).
 
 - **2026-05-14** (v1.1.1): PATCH — thêm `paths:` frontmatter — Wave 73 miss fix (rule này nằm trong 13 MANDATORY rules wave plan §3 Scope bỏ sót, vẫn auto-load base context dù scope rule có path trigger rõ ràng). PATCH bump per `rule-change-process.md` §5 — additive frontmatter, no constraint change, deferred-load khi no matching file in context. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve). Scope: production env config + 4 audit scripts.
 - **2026-05-13 (v1.1.0):** MINOR — added §11 Three new audits (post-Wave-71) listing `audit-gateway-routes.sh` + `audit-service-ports.sh` + `audit-spring-profiles.sh` shipped same-PR via Wave 71 Bucket E. Per `rule-change-process.md` §6.5 Enforcement Parity Mandate: 3 scripts paired same-PR; CI gate wire deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 days. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds audit coverage for class-of-bugs (gateway routing / port chain / profile silence) Wave 71 audit found 4 P0 production bugs that `audit-env-coverage.sh` alone missed; no constraint loosening). Self-test: each script FAILed against pre-Wave-71 main state (gateway-routes: 27 findings = 26 wrong-service routing + 1 orphan; service-ports: 13 findings = subscription:8081/email:8084/branding:8083/admin:8083 ≠ gateway route uri :8080; spring-profiles: 5 findings = all 5 kitehub services reference `production` profile with no `application-production.yml`). Closes GAP-509/510/511 Phase 1 (scripts + rule); Phase 2 (CI wire) deferred.

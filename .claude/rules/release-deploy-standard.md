@@ -1,9 +1,17 @@
+---
+paths:
+  - "infrastructure/terraform-aws/**"
+  - ".github/workflows/**"
+  - "scripts/aws/**"
+  - "scripts/deploy*.sh"
+---
+
 # Release Deploy Standard — Generic deploy artifact + process baseline
 
 **Priority:** 🔴 CRITICAL — every production release must satisfy this standard
-**Version:** 1.2.0
+**Version:** 1.2.1
 **Created:** 2026-05-06
-**Last-Reviewed:** 2026-05-16
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.2.0 MINOR self-approve per `rule-change-process.md` §5; adds §3.1 "Smoke admin-login" PRE-RELEASE checklist item paired same-PR with new sister-rules `audit-service-isolation.md` v1.0.0 + `postgres-specific-type-testcontainers.md` v1.0.0 + `design-patterns.md` §3.11 anti-pattern triggered by 2026-05-16 production admin login 500 incident per `incident-to-rule-pipeline.md` 5-stage; no constraint loosening — adds previously-uncovered post-deploy smoke gate for admin role login. v1.1.1 (kept): PATCH — Wave 76 Bucket E body streamline. v1.1.0 (kept): MINOR — added §4.4 Rollback execution per Wave 63 GAP-477.)
 **Applies to:** Every git tag matching `v[0-9]+.[0-9]+.[0-9]+*` (per `versioning-policy.md`); every production deploy; every pre-release (alpha/beta/rc) shipping to invite tenants
 
@@ -282,6 +290,8 @@ If unsure: default to apply per-bump-type checklist; skipping requires override 
 ---
 
 ## 13. Log
+
+- **2026-05-31** (v1.2.1): PATCH — added `paths:` frontmatter per `context-budget-mandate.md` §3.2 (rule was always-load, violating §3.2 size-gate ≥1k tokens requires path-scope/justification/hook). Scope matches rule's own **Applies to** — no behavior change (rule still fires when relevant files touched); removes ~21k chars from base session context. Part of Wave meta context-budget rule-scoping batch 2026-05-31. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — path-scope correction, no constraint loosening).
 
 - **2026-05-16 (v1.2.0):** MINOR — added §3.1 PRE-RELEASE "Smoke admin-login" checklist item. Triggered by 2026-05-16 production admin login 500 incident (RCA: `documents/04-quality/audits/aws-verification/2026-05-16-admin-login-500-rca.md`). Bug class invisible to H2 + Mockito tests; only surfaced post-deploy on real Postgres. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged P0) → Classify ✓ (existing §3.1 had generic "Auth flow tested end-to-end" but không mandate admin-role smoke specifically) → Rule+Enforce ✓ (this entry + paired same-PR sister-rules `audit-service-isolation.md` v1.0.0 + `postgres-specific-type-testcontainers.md` v1.0.0 + `design-patterns.md` §3.11 per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (if smoke ran post-deploy 2026-05-13 GAP-517 ship, would have caught 500 immediately) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds previously-uncovered post-deploy gate, no constraint loosening for prior releases; existing PRE-RELEASE checklists grandfathered).
 - **2026-05-14 (v1.1.1):** PATCH — Wave 76 Bucket E body streamline. §11 Self-test moved to `_examples/release-deploy-standard-examples.md`; body replaced with 1-line stub pointer. No constraint change; content preserved (deferred-load). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).

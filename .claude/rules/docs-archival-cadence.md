@@ -9,9 +9,9 @@ paths:
 # Docs Archival Cadence — auto-archive time-bound artifacts to prevent docs accumulation
 
 **Priority:** 🟠 MANDATORY — docs lifecycle + volume governance
-**Version:** 1.0.2
+**Version:** 1.0.3
 **Created:** 2026-05-18
-**Last-Reviewed:** 2026-05-21
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.2 PATCH self-approve per `rule-change-process.md` §5; narrow `paths:` từ broad `documents/**/*.md` + `documents/**/*.json` xuống 4 time-bound subdirs khớp §2 cadence table (audits 90d + session-handoffs 30d + waves 60d post-closure + pr-logs 180d) — broad patterns fired trên mọi document read without cadence relevance. Wave 102.7.5 meta cleanup. No constraint change; §2 cadence table + §3 archive destination unchanged. v1.0.1 (kept): Wave 99C detector ship. v1.0.0 (kept): new rule per `rule-change-process.md` §6.5)
 **Applies to:** Time-bound artifacts trong `documents/04-quality/audits/**` + `documents/03-planning/session-handoffs/**` + `documents/03-planning/waves/**` + `documents/03-planning/pr-logs/**`. KHÔNG áp dụng cho: `ROADMAP.md`, gap files (`documents/04-quality/gaps/**` — đã có separate flow per `audit-to-gap-pipeline.md`), READMEs, canonical living docs (CLAUDE.md, business/*/rules.md).
 
@@ -129,7 +129,7 @@ Pattern stale count >20 files → file batch-archive gap trong wave kế tiếp.
 
 ### 4.3 CI detector script (SHIPPED Wave 99C GAP-675)
 
-Script `scripts/check-docs-archival-stale.sh` shipped 2026-05-19 per Wave 99C META-META audit (GAP-675 SHIP-NOW verdict — trivial bash <130 LOC, low FP risk, complements §2 cadence). Wired vào CI job `docs-scaling-detectors` trong `script-quality.yml`:
+Script `scripts/check-docs-archival-stale.sh` shipped 2026-05-19 per Wave 99C META-META audit (GAP-675 SHIP-NOW verdict — trivial bash <130 LOC, low FP risk, complements §2 cadence). Wired vào CI job `docs-scaling-detectors` trong `quality-docs.yml`:
 - WARN-mode initially (existing files grandfathered; rule prospective)
 - Self-test PASS 3 synthetic fixtures (100d audit stale + 40d handoff stale + 10d fresh exempt)
 - Override trailer: `DOCS_ARCHIVAL_OVERRIDE: <path> — <reason>` per §5
@@ -236,6 +236,8 @@ Apply §2 cadence retroactively vào current repo state:
 ---
 
 ## 8. Log
+
+- **2026-05-31** (v1.0.3): PATCH — fixed 1 stale CI reference(s) `script-quality.yml` → `quality-docs.yml` (workflow was split into quality-{code,docs,rules-skills,infra}.yml 2026-05-22; this rule's §Enforcement still pointed to the removed file). Historical Log entries left unchanged per `rule-change-process.md` §7 append-only. No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — broken-link fix).
 
 - **2026-05-21 (v1.0.2):** PATCH — Wave 102.7.5 meta cleanup: narrow `paths:` từ broad `documents/**/*.md` + `documents/**/*.json` xuống 4 time-bound subdirs khớp §2 cadence table (audits 90d + session-handoffs 30d + waves 60d post-closure + pr-logs 180d). Broad patterns fired trên mọi document read without cadence relevance. Sync `rules-index.csv`. No constraint change; §2 cadence table + §3 archive destination unchanged. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — path-scope narrowing per `context-budget-mandate.md` §3.1 broad-glob anti-pattern).
 - **2026-05-19 (v1.0.1):** PATCH — Wave 99C META-META GAP-675 SHIP-NOW closure of deferred-detector debt §4.3. `scripts/check-docs-archival-stale.sh` shipped (124 LOC bash; 3-fixture self-test PASS); wired CI job `docs-scaling-detectors` in `script-quality.yml`. WARN-mode initially per `incident-to-rule-pipeline.md` premature-rule guard tightened §3 conditions (Stage 3 paired-enforcement compliance achieved within 1 day of rule landing — cycle time benchmark). No constraint change; detector enforces existing §2 cadence prospectively. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — additive enforcement, no constraint loosening; HARD STOP follow-up GAP-679 tracking).
