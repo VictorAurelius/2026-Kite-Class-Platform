@@ -1,9 +1,9 @@
 # Cross-Flow Bug-Class Sweep Mandate — fix once → grep all sister sites
 
 **Priority:** 🟠 MANDATORY — bug-fix completeness governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-28
-**Last-Reviewed:** 2026-05-28
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (reviewer-checklist + worked self-test on Wave A Bucket B walk Bug #21 sweep 2026-05-28) per §6.5 Enforcement Parity Mandate; META P0 force-multiplier per `meta-gap-priority.md` §3 — sister cho `audit-to-gap-pipeline.md` §2.7 Decision-Doc Code-Sync at different boundary (bug-fix → similar-flow-sweep direction))
 **Applies to:** Mọi PR fix bug — sau khi identify bug class + fix code site #1, PHẢI grep similar bug class signature trong codebase TRƯỚC khi flip issue closed
 
@@ -195,6 +195,19 @@ Future: scan PR body cho `fix:` / `Bug #` patterns + verify presence of `## Cros
 
 ---
 
+## 9.5 Auto-load justification (per `context-budget-mandate.md` §3.2)
+
+Rule này KHÔNG dùng `paths:` frontmatter — luôn auto-load mỗi session. Lý do:
+
+- **Fire tại bug-fix decision-time, không file-read-time** — rule kích hoạt khi Claude *vừa fix xong 1 bug* (bất kỳ ngôn ngữ / layer nào: Java / TS / SQL / config). Không có natural file-scope glob: bug class có thể ở `**/*.java`, `**/*.tsx`, `**/*.sql`... — path-scope tới mọi source = quá rộng, gần như always-load anyway.
+- **Path-scope sẽ miss case quan trọng** — fix bug đôi khi chỉ sửa 1 dòng config / 1 method; nếu scope `**/*.java` thì miss khi sweep cần thiết cho TS-side sister flow (Bug #21 origin: FE `fetch()` bypass interceptor).
+- **Token cost chấp nhận được** — ~12k chars (~3k tokens) × mỗi session; force-multiplier (mỗi bug fix sweep 1 lần → eliminate silent recurrence class).
+
+Re-evaluate nếu: (a) Anthropic publishes post-edit hook detect "bug-fix just landed", (b) rule grows >300 lines.
+
+---
+
 ## 10. Log
 
+- **2026-05-31 (v1.0.1):** PATCH — added §9.5 Auto-load justification per `context-budget-mandate.md` §3.2 (rule was MANDATORY always-load ≥1k tokens without `paths:` NOR justification — surfaced by new `scripts/check-context-budget.sh` per-rule gate). Rule fires at bug-fix decision-time (not file-read-time) → genuinely cross-cutting, justification is correct mechanism (path-scope too broad). No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — additive justification section, no constraint loosening).
 - **2026-05-28 (v1.0.0):** Rule created in response to user direction 2026-05-28 mid-Wave-A-Bucket-B walk: "thêm rule, sau khi fix 1 bug ở 1 flow, check flow khác có bug này không?". Triggered by Bug #21 fix (FE missing X-Tenant-Id header): apiClient interceptor fix covers ~95% callers nhưng raw `fetch()` calls bypass interceptor — sweep needed empirically. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged mid-walk) → Classify ✓ (no existing rule mandates cross-flow same-bug-class sweep; sister rule `audit-to-gap-pipeline.md` §2.7 covers inverse direction decision-doc → code-sweep) → Rule+Enforce ✓ (this file + reviewer-checklist + worked self-test §6 on Bug #21 originating incident + paired same-PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§6 worked example — apiClient interceptor fix verified sufficient via 4-site sweep) → Retro Log ✓ (this entry). META P0 force-multiplier per `meta-gap-priority.md` §3 — fix discipline 1 lần → mọi future bug fix subsequent auto-comply prospectively → eliminate silent recurrence class. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying previously-uncovered cross-flow sweep discipline; no constraint loosening; existing bug fixes grandfathered; rule applies prospectively từ this PR forward 2026-05-28). Atomic-unique-bar §5.1 check passed: ✅ atomic (single concept: sweep similar after fix) + ✅ unique (sister rule covers inverse direction) + ✅ widely applicable (every bug fix) + ✅ body discipline §1 ≤2 "and" conjunctions. Detector wiring (§8.4 CI grep) + memory auto-load (§8.3) deferred per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions.

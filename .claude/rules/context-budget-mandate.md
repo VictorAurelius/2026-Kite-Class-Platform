@@ -8,9 +8,9 @@ paths:
 # Context Budget Mandate — base auto-load < 120k tokens
 
 **Priority:** 🟠 MANDATORY — meta-governance for base context size
-**Version:** 1.0.1
+**Version:** 1.1.0
 **Created:** 2026-05-14
-**Last-Reviewed:** 2026-05-14
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (PR template + reviewer-checklist + worked self-test on Wave 73 baseline) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies Wave 73 Meta Context Optimization outcome)
 **Applies to:** Every change touching `.claude/rules/**/*.md`, `.claude/skills/**/SKILL.md`, hoặc `CLAUDE.md` (artifacts that auto-load into base context every session)
 
@@ -121,9 +121,16 @@ Pre-merge review cho PR touching `.claude/rules/**/*.md`:
 
 Bucket D PR ships `feedback_meta_context_optimization.md` reminder per session — Claude reviews context-budget mandate before adding new rules.
 
-### 6.3 Future detector (deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 days)
+### 6.3 Detector (IMPLEMENTED 2026-05-31 — defer window elapsed)
 
-`scripts/check-context-budget.sh` — measure actual base load per fresh session, FAIL CI if >120k. Track follow-up gap khi rule stabilizes (~7 days post-merge).
+`scripts/check-context-budget.sh` (CI job `context-budget` trong `quality-rules-skills.yml`) — enforces two gates on always-load rules (rules WITHOUT `paths:` frontmatter), byte-based (deterministic, ~4 bytes ≈ 1 token proxy):
+
+| Gate | Threshold | CI behavior |
+|---|---|---|
+| **TOTAL ceiling** — sum of always-load rule bytes | WARN ≥ 250000 B (~62k tok) / FAIL ≥ 300000 B (~75k tok) | FAIL blocks PR (exit 1) |
+| **PER-RULE §3.2** — always-load rule ≥4000 B (~1k tok), NOT Priority CRITICAL, no `## Auto-load justification` | any violation | FAIL blocks (must `paths:`-scope / justify / hook) |
+
+Thresholds tunable via env (`WARN_TOTAL` / `FAIL_TOTAL` / `MIN_BYTES` / `CI_FAIL_PER_RULE`). This is the durable guard against per-session start-context creep — any new always-load rule pushing total over ceiling FAILs CI, forcing path-scope (the §3.1 default). Baseline at implementation: 13 always-load rules / 232665 B (~58k tok) — PASS.
 
 ### 6.4 Override mechanism
 
@@ -164,5 +171,6 @@ Trailer logged in quarterly retro. Pattern frequency >5%/quarter triggers meta-r
 
 ## 9. Log
 
+- **2026-05-31** (v1.1.0): MINOR — §6.3 detector IMPLEMENTED (was deferred ≥7 days; defer window elapsed — rule created 2026-05-14, now 17 days). Shipped `scripts/check-context-budget.sh` + CI job `context-budget` in `quality-rules-skills.yml`: TOTAL ceiling (WARN 250k B / FAIL 300k B) + PER-RULE §3.2 gate (always-load ≥1k tok must be CRITICAL OR have `## Auto-load justification`). Triggered by user-flagged concern 2026-05-31 "sợ qua nhiều session, start-context lại tăng" — durable guard against always-load creep. Paired same batch: 11 rules path-scoped + output-review-mandate streamlined + cross-flow-bug-class-sweep gained justification (now 100% §3.2-compliant). Baseline 232665 B / 13 rules PASS. MINOR per §4 (enforcement activation, new §6.3 ceiling thresholds — could BLOCK a future PR that previously passed). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — activates previously-deferred enforcement; no constraint loosening; existing rules grandfathered, gate applies to future always-load growth).
 - **2026-05-14** (v1.0.1): PATCH — thêm `paths:` frontmatter — Wave 73 miss fix (rule này nằm trong 13 MANDATORY rules wave plan §3 Scope bỏ sót, vẫn auto-load base context dù scope rule có path trigger rõ ràng). PATCH bump per `rule-change-process.md` §5 — additive frontmatter, no constraint change, deferred-load khi no matching file in context. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve). Scope: context budget governance (rule/skill edits).
 - **2026-05-14 (v1.0.0):** Rule created. Triggered by user-flagged 2026-05-14 miss "/start-session tốn ~34% context (~347k tokens)" — Wave 73 Meta Context Optimization (per `meta-gap-priority.md` §3 Meta-P0 force-multiplier). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged) → Classify ✓ (no rule mandates context budget; CLAUDE.md + 54 rules + memory bloat) → Rule+Enforce ✓ (this file + paired same-PR with `output-review-mandate.md` §3 row + `rules-index.csv` row + CLAUDE.md tier note + memory entry per `rule-change-process.md` §6.5) → Self-Test ✓ (§5 worked example on Wave 73 baseline 237k → target <120k) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifies Wave 73 outcome; no constraint loosening; existing rules grandfathered until next refresh; rule applies prospectively to new rules từ next session). Detector wiring deferred ≥7 days per `incident-to-rule-pipeline.md` premature-rule guard; enforcement = reviewer-checklist + memory + worked self-test sufficient cho v1.0.0.
