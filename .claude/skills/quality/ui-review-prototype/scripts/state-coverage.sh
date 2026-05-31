@@ -96,6 +96,23 @@ fi
 FAILURES=()
 WARNINGS=()
 
+# Kits that PREDATE the Tier-2 state-coverage convention (GAP-264). They ship
+# real screens but not the `<screen>-<state>.html` naming, OR are single-screen
+# marketing kits where app-states (loading/empty/error) are N/A. Grandfathered:
+# minimum-coverage misses report as WARN (not FAIL) so the gate enforces the
+# convention prospectively on NEW kits without retro-blocking legacy ones.
+# Remove a slug here once the kit is brought up to full state coverage.
+GRANDFATHERED_KITS=(
+  "kiteclass-student"   # Round-3 app kit; 13 screens, no -default-named file
+  "kitehub-admin"       # Round-3 app kit; 12 screens, no -default-named file
+  "kitehub-story-v2"    # single-screen marketing/story kit — app-states N/A
+)
+is_grandfathered() {
+  local s="$1"
+  for g in "${GRANDFATHERED_KITS[@]}"; do [[ "$g" == "$s" ]] && return 0; done
+  return 1
+}
+
 # kit_state_files <kit-slug> — emits HTML basenames considered state files
 kit_state_files() {
   local slug="$1"
@@ -154,11 +171,16 @@ for slug in "${KIT_FOLDERS[@]}"; do
   printf '    default: %s | one_of(loading|empty|error): %s | success: %s | dark: %s\n' \
     "$has_default" "$has_one_of" "$has_success" "$has_dark"
 
-  if [[ "$has_default" == "no" ]]; then
-    FAILURES+=("Kit '$slug' missing 'default' state file")
-  fi
-  if [[ "$has_one_of" == "no" ]]; then
-    FAILURES+=("Kit '$slug' missing all of {loading, empty, error} — need at least one")
+  if is_grandfathered "$slug"; then
+    [[ "$has_default" == "no" ]] && WARNINGS+=("Kit '$slug' missing 'default' state file (grandfathered — predates Tier-2 convention)")
+    [[ "$has_one_of" == "no" ]] && WARNINGS+=("Kit '$slug' missing {loading,empty,error} (grandfathered — predates Tier-2 convention)")
+  else
+    if [[ "$has_default" == "no" ]]; then
+      FAILURES+=("Kit '$slug' missing 'default' state file")
+    fi
+    if [[ "$has_one_of" == "no" ]]; then
+      FAILURES+=("Kit '$slug' missing all of {loading, empty, error} — need at least one")
+    fi
   fi
   if [[ "$has_success" == "no" ]]; then
     WARNINGS+=("Kit '$slug' missing optional 'success' state")
