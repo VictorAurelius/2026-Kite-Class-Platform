@@ -101,7 +101,7 @@ This pattern reduces the cycle time between "we know we need this alert" and "we
 
 ## 6. CI enforcement
 
-`scripts/check-alert-runbook-url.py` runs in the `script-quality.yml` workflow. It:
+`scripts/check-alert-runbook-url.py` runs in the `quality-infra.yml` workflow. It:
 
 1. Parses every alert rule in the three locations from §3
 2. Asserts each alert has non-empty `runbook_url` annotation

@@ -3,7 +3,7 @@
 **Last Updated:** 2026-04-29
 **Closes:** GAP-194 Phase 2 (Wave Meta Phase-2 Cleanup, Cluster 7, Agent B)
 **Related:**
-- [`.github/workflows/script-quality.yml`](../../.github/workflows/script-quality.yml) — CI gate (Phase 1, shipped 2026-04-20)
+- [`.github/workflows/quality-code.yml`](../../.github/workflows/quality-code.yml) — CI gate (Phase 1, shipped 2026-04-20)
 - [`.claude/skills/quality/script-review-checklist.md`](../../.claude/skills/quality/script-review-checklist.md) — review skill
 - [`lefthook.yml`](../../lefthook.yml) — config consumed by this guide
 
@@ -11,7 +11,7 @@
 
 ## Why
 
-CI already enforces shellcheck (`-S error`) and ruff (`check`) on every PR via `script-quality.yml`. The pre-commit hook adds a **second, earlier gate** that runs locally before commit, so:
+CI already enforces shellcheck (`-S error`) and ruff (`check`) on every PR via `quality-code.yml`. The pre-commit hook adds a **second, earlier gate** that runs locally before commit, so:
 
 - Failures show up in seconds on your machine, not minutes after pushing to CI
 - You don't burn a CI run on a typo a linter would have caught
@@ -81,8 +81,8 @@ lefthook run pre-commit
 
 | Command | Glob | Tool | Mirrors CI step |
 |---------|------|------|-----------------|
-| `shellcheck` | `*.sh` | `shellcheck -S warning {staged_files}` | `script-quality.yml` job `shellcheck` |
-| `ruff` | `*.py` | `ruff check {staged_files}` | `script-quality.yml` job `ruff` |
+| `shellcheck` | `*.sh` | `shellcheck -S warning {staged_files}` | `quality-code.yml` job `shellcheck` |
+| `ruff` | `*.py` | `ruff check {staged_files}` | `quality-code.yml` job `ruff` |
 
 Notes:
 
@@ -137,7 +137,7 @@ You can drop these two commands into a `pre-commit` shell script under `.git/hoo
 ## Reference
 
 - Gap: [`GAP-194-script-compliance-ci-shellcheck-ruff.md`](../04-quality/gaps/GAP-194-script-compliance-ci-shellcheck-ruff.md) — closes Phase 2 AC
-- CI workflow: [`.github/workflows/script-quality.yml`](../../.github/workflows/script-quality.yml)
+- CI workflow: [`.github/workflows/quality-code.yml`](../../.github/workflows/quality-code.yml)
 - Skill: [`.claude/skills/quality/script-review-checklist.md`](../../.claude/skills/quality/script-review-checklist.md)
 - Rule: [`.claude/rules/output-review-mandate.md`](../../.claude/rules/output-review-mandate.md) §5.5
 - lefthook docs: <https://lefthook.dev/>
