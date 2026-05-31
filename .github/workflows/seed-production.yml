@@ -1,4 +1,4 @@
-name: Seed Production Data (Wave 67 + recovery)
+name: Deploy — Seed Production Data
 
 # Sister of deploy-production.yml. User-triggered workflow_dispatch + confirm
 # gate per release-deploy-standard.md §9. Idempotent — ProductionSeedRunner

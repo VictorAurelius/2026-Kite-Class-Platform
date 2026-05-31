@@ -84,6 +84,9 @@ on drift between disk and this index.
 | `quality/gap-review/SKILL.md` | Dùng khi PR thêm/sửa GAP files — peer-review checklist trước status flip |
 | `quality/rule-review/SKILL.md` | Dùng khi PR thêm/sửa `.claude/rules/*.md` — ADR-like checklist |
 | `quality/hook-review/SKILL.md` | Dùng khi PR thêm/sửa `.claude/hooks/*.py` — 8-point rubric (matcher correctness + BLOCK/WARN gradient + override trailer + fail-safe + wiring + false-positive + idempotency + perf budget) |
+| `quality/release-deploy/SKILL.md` | Dùng khi 'deploy version', 'release v1.0', 'go-live', 'tag release', 'production cutover', 'release checklist' — release checklist per `release-deploy-standard.md` |
+| `quality/thesis-citation-extract/SKILL.md` | Dùng khi 'extract citations', 'trích dẫn luận văn', 'audit thesis cite', 'verify bibliography', 'orphan citation' — citation/bibliography audit cho luận văn |
+| `quality/thesis-figure-curation/SKILL.md` | Dùng khi 'figure curation', 'thesis figures', 'caption', 'đánh số hình', 'INDEX figure' — curate caption + numbering hình cho chapter luận văn |
 
 ---
 
@@ -144,6 +147,8 @@ on drift between disk and this index.
 | `testing/testing-standards.md` | Spring Boot tests, frontend tests, E2E, security |
 | `devops/devops-standards.md` | Docker scripts, CI/CD, deployment, cloud |
 | `devops/terraform-cloud-deploy/SKILL.md` | Dùng khi review Terraform / IaC, AWS/OCI deploy strategy |
+| `devops/aws-smoke-test/SKILL.md` | Dùng khi 'smoke test AWS', 'verify Phase 2.3', 'kiểm tra AWS sau apply', 'AWS health check' — post-apply AWS resource verification |
+| `devops/deploy-preflight-simulator/SKILL.md` | Dùng khi sắp tag release / push image / merge PR đổi terraform-aws hoặc workflow CI — preflight dependency + deploy simulation |
 
 ---
 

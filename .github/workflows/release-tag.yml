@@ -1,4 +1,4 @@
-name: Release on Tag
+name: Build — Release on Tag
 
 # GAP-374 — Wave 38 Bucket A.
 # Triggered by `git push origin vX.Y.Z` matching the semver pattern below.

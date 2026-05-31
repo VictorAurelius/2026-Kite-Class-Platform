@@ -19,6 +19,9 @@ import { TeachersSection } from './TeachersSection';
 import { CertificatesSection } from './CertificatesSection';
 import { EnrollmentSection } from './EnrollmentSection';
 import { PricingSection } from './PricingSection';
+import { StatsSection } from './StatsSection';
+import { TimelineSection } from './TimelineSection';
+import { FaqSection } from './FaqSection';
 
 interface LandingData {
   heroTitle?: string;
@@ -43,12 +46,14 @@ interface TemplateRendererProps {
 
 const SECTION_LABELS: Record<SectionId, string> = {
   hero: 'Giới thiệu chính',
+  stats: 'Chỉ số nổi bật',
   about: 'Giới thiệu',
   courses: 'Khóa học',
   teachers: 'Đội ngũ giáo viên',
   certificates: 'Chứng chỉ',
   gallery: 'Thư viện ảnh',
   news: 'Tin tức',
+  timeline: 'Lộ trình học tập',
   enrollment: 'Tuyển sinh',
   pricing: 'Bảng giá',
   testimonials: 'Đánh giá',
@@ -61,6 +66,10 @@ function renderSection(sectionId: SectionId, data: LandingData, sectionSlots?: S
   switch (sectionId) {
     case 'hero':
       return <HeroSection slots={sectionSlots} title={data.heroTitle as string} subtitle={data.heroSubtitle as string} tagline={data.tagline as string} />;
+    case 'stats':
+      return <StatsSection slots={sectionSlots} />;
+    case 'timeline':
+      return <TimelineSection slots={sectionSlots} />;
     case 'about':
       return <AboutSection slots={sectionSlots} />;
     case 'courses':
@@ -82,7 +91,7 @@ function renderSection(sectionId: SectionId, data: LandingData, sectionSlots?: S
     case 'enrollment':
       return <EnrollmentSection slots={sectionSlots} />;
     case 'faq':
-      return <PlaceholderSection title={SECTION_LABELS.faq} description="Câu hỏi thường gặp." />;
+      return <FaqSection slots={sectionSlots} />;
     case 'parents':
       return <PlaceholderSection title={SECTION_LABELS.parents} description="Thông tin dành cho phụ huynh." />;
     default:
@@ -93,14 +102,22 @@ function renderSection(sectionId: SectionId, data: LandingData, sectionSlots?: S
 export function TemplateRenderer({ template, data, slots = {} }: TemplateRendererProps) {
   const sections = getEnabledSections(template);
 
+  // Section divider: nền zebra xen kẽ (hero giữ nguyên; các section sau luân phiên
+  // trắng / muted) để tách thị giác rõ ràng giữa các khối nội dung.
+  let bandIndex = 0;
+
   return (
     <div className="flex flex-col">
-      {sections.map((section) => (
-        <div key={section.id}>
-          {renderSection(section.id, data, slots[section.id])}
-          {section.id === 'courses' && <CTASection />}
-        </div>
-      ))}
+      {sections.map((section) => {
+        const isHero = section.id === 'hero';
+        const striped = !isHero && bandIndex++ % 2 === 1;
+        return (
+          <div key={section.id} className={striped ? 'bg-muted/40' : undefined}>
+            {renderSection(section.id, data, slots[section.id])}
+            {section.id === 'courses' && <CTASection />}
+          </div>
+        );
+      })}
     </div>
   );
 }

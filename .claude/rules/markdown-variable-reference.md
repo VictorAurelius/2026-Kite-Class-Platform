@@ -12,9 +12,9 @@ paths:
 # Markdown Variable Reference — `{{var_name}}` env-specific substitution syntax
 
 **Priority:** 🟠 MANDATORY — docs/scripts/terraform env-specific value parameterization
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-21
-**Last-Reviewed:** 2026-05-21
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (render-env-vars.sh + check-unresolved-env-vars.sh tooling + reviewer-checklist + worked self-test trên `_examples/env-reference-self-test.md` roundtrip) per `rule-change-process.md` §6.5 Enforcement Parity Mandate; no constraint loosening — codifies previously-uncovered class "env-specific value parameterization in docs/scripts/terraform" beyond `production-env-config-registry.md` runtime YAML scope; existing 5,500+ hardcoded values grandfathered per GAP-692 Phase 2 opportunistic refactor schedule)
 **Applies to:** Mọi file under `documents/05-guides/deploy/**`, `documents/05-guides/operations/**`, `infrastructure/**` (excl. terraform .tf which uses native HCL `var.` syntax), `.github/workflows/**` markdown comments — chứa env-specific hardcoded value cross-multi-env (account ID, region, domain, secret prefix, email, ECR URI, etc.). Out-of-scope: single-env constants (project name `kitehub`), code identifiers (Java class names), HTTP protocol tokens, brand names.
 
@@ -167,7 +167,7 @@ Problems: `render-env-vars.sh` won't substitute (name mismatch); `check-unresolv
 | `scripts/check-unresolved-env-vars.sh` | Fail when rendered output contains unresolved `{{...}}` placeholder | CI job + manual pre-commit |
 | `documents/02-architecture/env-reference.yaml` | Canonical source of env values per variable | Single source of truth |
 
-### 5.2 CI gate (active — `script-quality.yml` job `env-vars-render`)
+### 5.2 CI gate (active — `quality-rules-skills.yml` job `env-vars-render`)
 
 Workflow validates `_examples/env-reference-self-test.md` renders byte-identical với committed control file `_examples/env-reference-self-test-expected-production.md`. Fails if:
 - Render output differs from control (env-reference.yaml drift not captured)
@@ -273,5 +273,7 @@ Common valid override cases:
 ---
 
 ## 9. Log
+
+- **2026-05-31** (v1.0.1): PATCH — fixed 1 stale CI reference(s) `script-quality.yml` → `quality-rules-skills.yml` (workflow was split into quality-{code,docs,rules-skills,infra}.yml 2026-05-22; this rule's §Enforcement still pointed to the removed file). Historical Log entries left unchanged per `rule-change-process.md` §7 append-only. No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — broken-link fix).
 
 - **2026-05-21 (v1.0.0):** Rule created. Triggered by GAP-692 Phase 1 (Wave 102.8 Bucket B 2026-05-21) outside-in audit synthesis 2026-05-21 — 3 parallel audit agents (A docs scope + B infra scope + C design pattern) surfaced 95 files × 5,500+ hardcoded env-specific occurrences cross docs/scripts/terraform. Existing `production-env-config-registry.md` v1.1.1 covers runtime `application*.yml` scope only (17/45 candidates indexed); broader scope uncovered → multi-env clone / account swap / domain rotation requires manual sweep + drift risk. GAP-458 → GAP-459 incident (2026-05-09) proves recurrence pattern: `kitehub.vn` → `kitehub.me` decision left 21 stale refs → AWS Activate Founder denied. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (GAP-692 outside-in audit) → Classify ✓ (no existing rule codifies markdown/docs/scripts variable syntax; `production-env-config-registry.md` sister scope only covers runtime YAML; `audit-to-gap-pipeline.md` §2.7 mandates sweep but doesn't provide mechanism) → Rule+Enforce ✓ (this file + `scripts/render-env-vars.sh` + `scripts/check-unresolved-env-vars.sh` + `documents/02-architecture/env-reference.yaml` canonical schema + `_examples/env-reference-self-test.md` fixture + CI job `env-vars-render` + TF mismatch fix `var.domain_name` STALE `kiteclass.com` → `kitehub.me` + add `var.aws_account_id` + `var.secrets_prefix` all paired same PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§7 worked example — render PASS + check-unresolved PASS + roundtrip byte-identical vs control file) → Retro Log ✓ (this entry + GAP-692 Phase 1 status flip OPEN 0% → PARTIAL 33%; Phase 2 opportunistic refactor top 10 high-leverage files + Phase 3 pre-commit hook defer Wave 103+). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying previously-uncovered class "env-specific value parameterization in docs/scripts/terraform"; no constraint loosening; existing 5,500+ hardcoded values grandfathered per GAP-692 Phase 2 opportunistic refactor schedule; rule applies prospectively từ this PR forward). Atomic-unique-bar §5.1 check passed: ✅ atomic (single concept: `{{var}}` substitution syntax) / ✅ unique (sister rule `production-env-config-registry.md` covers runtime YAML scope only — disjoint) / ✅ widely applicable (mọi PR touching deploy/operations/infrastructure docs) / ✅ body discipline (§1 ≤2 "and" conjunctions). Detector wiring (§5.4 CI grep + §5.5 memory auto-load) deferred per `incident-to-rule-pipeline.md` §3 premature-rule guard ≥7 ngày; v1.0.0 enforcement = tooling (render + check scripts) + CI job `env-vars-render` + reviewer-checklist + worked self-test sufficient.

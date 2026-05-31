@@ -105,7 +105,10 @@ Each project has its own scripts directory for project-specific utilities:
   - `docker-version.sh` - Show current Docker image versions
   - `check-problems.sh` - Check for compile/lint errors
 
-- **[KiteHub Scripts](../kitehub/scripts/)** _(future)_ - KiteHub development tools
+- **[KiteHub Scripts](../kitehub/scripts/)** - KiteHub development tools
+  - `up.sh` / `down.sh` - Start/stop KiteHub stack
+  - `seed-data.sh` - Seed base accounts + sample data
+  - `seed-demo-independent-teachers.sh` - Seed demo 3 giảng viên độc lập (cô Khánh THPT Pháp luật / cô Hà Toán Tiểu học FREE / thầy Nhì Hóa THCS PREMIUM) cho thesis Chương 3 + §4.2. Tự provision tenant qua `POST /api/auth/register`. Override `SEED_TENANTS="khanh ha nhi"`.
 
 ## 🔧 Design Principles
 

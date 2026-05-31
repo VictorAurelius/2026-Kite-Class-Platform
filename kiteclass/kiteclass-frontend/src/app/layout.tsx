@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
-import { Inter } from 'next/font/google';
+import { Be_Vietnam_Pro } from 'next/font/google';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
 import { NextThemesProvider } from '@/providers/NextThemesProvider';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -10,7 +10,11 @@ import { Toaster } from '@/components/ui/toaster';
 import { ServiceWorkerRegistrar } from '@/components/pwa/ServiceWorkerRegistrar';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ['latin', 'vietnamese'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+});
 
 // Wave 49 Bucket 0 — PWA infra. Manifest + theme color + iOS standalone hints
 // for the parent (GAP-267) and student (GAP-269) mobile personas.
@@ -39,7 +43,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={beVietnamPro.className}>
         <NextThemesProvider>
         <ThemeProvider>
           <ThemeReceiver />

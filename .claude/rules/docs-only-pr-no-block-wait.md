@@ -1,9 +1,17 @@
+---
+paths:
+  - ".github/workflows/**"
+  - "documents/**"
+  - ".claude/rules/**"
+  - ".claude/skills/**"
+---
+
 # Docs-Only PR No-Block-Wait — continue work, re-check CI later
 
 **Priority:** 🟠 MANDATORY — workflow efficiency governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-28
-**Last-Reviewed:** 2026-05-28
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule sharpens `docs-only-pr-auto-merge.md` v1.0.2 — auto-merge mandate still applies but agent should NOT block-wait on CI watch foreground; per §6.5 Enforcement Parity Mandate paired same-PR with worked self-test on 2026-05-28 session multi-PR sequencing where 3 separate `gh pr checks --watch` foreground commands blocked agent ~10-15 min total. No constraint loosening — extends `docs-only-pr-auto-merge.md` workflow efficiency dimension)
 **Applies to:** Mọi docs-only PR per `docs-only-pr-auto-merge.md` §2 scope (diff ⊂ `documents/**` + `.claude/rules/**` + `.claude/skills/**` + `*.md` repo root + `.env.*.template` placeholder-only). Trigger: pushing docs-only PR + CI starting.
 
@@ -197,5 +205,7 @@ Per §6 inline note. Quarterly retro reviews >20% override frequency.
 ---
 
 ## 10. Log
+
+- **2026-05-31** (v1.0.1): PATCH — added `paths:` frontmatter per `context-budget-mandate.md` §3.2 (rule was always-load, violating §3.2 size-gate ≥1k tokens requires path-scope/justification/hook). Scope matches rule's own **Applies to** — no behavior change (rule still fires when relevant files touched); removes ~11k chars from base session context. Part of Wave meta context-budget rule-scoping batch 2026-05-31. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — path-scope correction, no constraint loosening).
 
 - **2026-05-28 (v1.0.0):** Rule created in response to user direction 2026-05-28 mid-session: "thêm rules không đợi CI docs only nữa, tiếp tục làm việc và re-check sau khi CI done". Triggered by recurring pattern in current session — agent block-waited ~15 min total across 3 separate `gh pr checks --watch` foreground invocations cho PRs #1920/#1916/#1921. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged + concrete session evidence multi-PR sequencing) → Classify ✓ (no existing rule covers WHILE-CI-runs workflow; `docs-only-pr-auto-merge.md` covers WHEN-CI-green merge gate only) → Rule+Enforce ✓ (this file + reviewer-checklist + worked self-test §7 on session originating PRs + paired same-PR with output-review-mandate.md §3 row + rules-index.csv row per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§7 worked example trên session PRs — rule fires correctly + counterfactual ~5 min saved per docs-only PR) → Retro Log ✓ (this entry). META P2 force-multiplier per `meta-gap-priority.md` §3 — fix 1 chuẩn → mọi docs-only PR subsequent auto-comply prospectively. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — extends previously-uncovered WHILE-CI-runs workflow dimension; no constraint loosening; existing PR practices grandfathered until next refresh; rule applies prospectively từ this PR forward 2026-05-28). Atomic-unique-bar §5.1 check passed: ✅ atomic (single concept: no block-wait on docs-only CI) + ✅ unique (sister `docs-only-pr-auto-merge.md` covers merge-gate, this covers wait-behavior) + ✅ widely applicable (every docs-only PR creation) + ✅ body discipline §1 ≤2 "and" conjunctions. PR template + memory auto-load + CI detector all deferred per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions; reviewer-checklist + worked self-test §7 sufficient cho v1.0.0.

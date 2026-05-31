@@ -1,3 +1,4 @@
+import { GraduationCap } from 'lucide-react';
 import type { SlotData } from '@/lib/template/slots';
 
 interface AboutSectionProps {
@@ -11,8 +12,13 @@ export function AboutSection({ slots, content }: AboutSectionProps) {
   const vision = slots?.vision as string | undefined;
 
   return (
-    <section className="py-16">
-      <div className="container mx-auto px-4">
+    <section className="relative overflow-hidden py-16">
+      {/* Decorative subject icon (very low opacity, behind content). */}
+      <GraduationCap
+        className="pointer-events-none absolute -right-6 top-8 h-40 w-40 text-theme-primary/[0.04]"
+        aria-hidden
+      />
+      <div className="container relative mx-auto px-4">
         <h2 className="text-3xl font-bold text-center mb-8">Giới thiệu</h2>
         <div className="max-w-3xl mx-auto space-y-6">
           <p className="text-muted-foreground leading-relaxed">

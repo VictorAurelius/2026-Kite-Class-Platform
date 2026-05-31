@@ -151,8 +151,11 @@ documents/08-thesis/.mermaid-cache/
 # Per scripts/screenshot-thesis-docx.sh — regen on-demand via:
 #   bash scripts/screenshot-thesis-docx.sh documents/08-thesis/thesis-v1.docx documents/08-thesis/screenshots-render
 documents/08-thesis/screenshots-render/
-# Demo-trio walk evidence screenshots — local-only (regen via e2e/capture-thesis-evidence.mjs)
-documents/08-thesis/evidence/
+# Demo-trio walk evidence screenshots — local-only by default
+documents/08-thesis/evidence/*
+# EXCEPT thesis figure evidence (Ch.3 demo-trio + §4.2) — committed + pushed per user direction 2026-05-30
+# (thesis docx references these PNGs; same exception as committed thesis-v1.docx binary)
+!documents/08-thesis/evidence/demo-trio/
 
 # Demo landing image assets — local-only, never commit binaries to remote (per user rule).
 # Seed sets URL strings (committed code); the binary asset bytes stay local.

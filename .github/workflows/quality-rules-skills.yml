@@ -1,4 +1,4 @@
-name: Quality — Rules / Skills (Rule frontmatter + Skill conventions + Rule staleness + Rule count + Meta CSV + Env vars)
+name: Quality — Rules / Skills (Rule frontmatter + Skill conventions + Staleness + Rule count + Context budget + Meta CSV + Env vars)
 
 # Split from script-quality.yml 21-job bloated workflow (2026-05-22)
 # Domain: Claude rules + skills governance + env-reference render + Meta CSV indexes (ADRs + Rules)
@@ -23,6 +23,7 @@ on:
       - 'scripts/check-skill-conventions.sh'
       - 'scripts/check-rule-staleness.sh'
       - 'scripts/check-rule-count-ceiling.sh'
+      - 'scripts/check-context-budget.sh'
       - 'scripts/check-adrs-index-csv.sh'
       - 'scripts/check-rules-index-csv.sh'
       - 'scripts/render-env-vars.sh'
@@ -214,6 +215,25 @@ jobs:
           # Exit 1 only when count > 100 (consolidation required before add).
           bash scripts/check-rule-count-ceiling.sh
 
+
+  context-budget:
+    name: Context budget (always-load rule size ceiling — context-budget-mandate.md §3.2)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Enforce base-context auto-load ceiling
+        run: |
+          # Per `.claude/rules/context-budget-mandate.md` §3.2 + §6.3 (detector
+          # implemented 2026-05-31 after 17-day defer window).
+          # FAIL when: (a) total always-load rule bytes ≥ FAIL_TOTAL hard ceiling, OR
+          # (b) any always-load rule ≥1k tokens lacking CRITICAL priority + Auto-load
+          # justification (must be path-scoped). Prevents per-session start-context creep.
+          bash scripts/check-context-budget.sh
 
   env-vars-render:
     name: Env-vars render roundtrip (env-reference.yaml + render-env-vars.sh)

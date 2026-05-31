@@ -1,4 +1,4 @@
-name: KiteClass Frontend CI
+name: Test — KiteClass Frontend
 
 on:
   # Solo-dev mode (2026-04-24): post-merge push:main trigger removed to save resources.

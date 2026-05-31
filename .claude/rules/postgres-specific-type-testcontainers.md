@@ -5,9 +5,9 @@ paths: ["**/*.java"]
 # Postgres-Specific Type → Testcontainers Mandate
 
 **Priority:** 🟠 MANDATORY — H2 hides Postgres-specific binding bugs that production exposes
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-05-16
-**Last-Reviewed:** 2026-05-16
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement per §6.5 Enforcement Parity Mandate; paired same-PR with hotfix `LoginAuditLog.ip` INET→VARCHAR migration + CI grep detector + worked self-test on 2026-05-16 admin-login 500 incident; no constraint loosening; existing entities grandfathered until next refresh)
 **Applies to:** Every JPA entity with `@Column(columnDefinition = "...")` whose value references a Postgres-specific type (`inet`, `jsonb`, `tsvector`, `citext`, `hstore`, `cidr`, `macaddr`, `uuid[]`, `text[]`, `int4range`, `interval`, generated columns, custom domains). Also covers `@JdbcTypeCode(SqlTypes.JSON|INET|UUID|ARRAY)` Hibernate 6 type hints.
 
@@ -130,7 +130,7 @@ Key requirements:
 
 ### 6.1 CI grep detector (active now — landed same PR)
 
-Script `scripts/check-postgres-types-testcontainers.sh` (wired into `script-quality.yml`):
+Script `scripts/check-postgres-types-testcontainers.sh` (wired into `quality-code.yml`):
 
 ```bash
 # Find entities with Postgres-specific columnDefinition
@@ -195,5 +195,7 @@ Counterfactual: if rule existed at 2026-05-13, Testcontainers test would have hi
 ---
 
 ## 9. Log
+
+- **2026-05-31** (v1.0.1): PATCH — fixed 1 stale CI reference(s) `script-quality.yml` → `quality-code.yml` (workflow was split into quality-{code,docs,rules-skills,infra}.yml 2026-05-22; this rule's §Enforcement still pointed to the removed file). Historical Log entries left unchanged per `rule-change-process.md` §7 append-only. No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — broken-link fix).
 
 - **2026-05-16 (v1.0.0):** Rule created. Triggered by 2026-05-16 production admin login 500 incident — `LoginAuditLog.ip` INET binding failure invisible to H2 + Mockito unit test, surfaced only in production. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged P0) → Classify ✓ (no existing rule mandates Testcontainers for Postgres-specific types; `testing-standards.md` discusses Testcontainers as option not mandate) → Rule+Enforce ✓ (this file + CI grep detector + reviewer-checklist + paired same-PR with `audit-service-isolation.md` + `design-patterns.md` §3.11 + smoke-admin-login extension per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§7 worked example on the originating incident — rule fires) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint, no constraint loosening; existing entities grandfathered with 30-day grace, rule applies prospectively from this PR). ArchUnit deferred until grep detector stable.

@@ -68,10 +68,16 @@ export function PricingSection({ slots }: PricingSectionProps) {
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {plans.map((plan, index) => (
             <article key={plan.title}>
-              <Card className={index === featuredIndex ? 'border-theme-primary shadow-lg relative' : 'h-full'}>
+              <Card
+                className={
+                  index === featuredIndex
+                    ? 'relative h-full rounded-xl border-2 border-theme-primary shadow-xl transition-shadow hover:shadow-2xl md:-translate-y-2'
+                    : 'h-full rounded-xl shadow-md transition-shadow hover:shadow-xl'
+                }
+              >
                 {index === featuredIndex && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-theme-primary text-white px-3">Phổ biến nhất</Badge>
+                    <Badge className="bg-theme-cta px-3 text-white shadow-sm">Phổ biến nhất</Badge>
                   </div>
                 )}
                 <CardHeader className="text-center pb-2 pt-8">
@@ -92,7 +98,11 @@ export function PricingSection({ slots }: PricingSectionProps) {
                   )}
                   <Button
                     asChild
-                    className="w-full"
+                    className={
+                      index === featuredIndex
+                        ? 'w-full bg-theme-cta font-semibold text-white hover:bg-theme-cta/90'
+                        : 'w-full'
+                    }
                     variant={index === featuredIndex ? 'default' : 'outline'}
                   >
                     <Link href="/contact">Liên hệ tư vấn</Link>

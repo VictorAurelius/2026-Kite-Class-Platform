@@ -1,4 +1,4 @@
-name: Cloudflare Apex Cutover (kitehub.me)
+name: Deploy — Cloudflare Apex Cutover
 
 # workflow_dispatch only - human-triggered apex DNS flip via Cloudflare API.
 # Implements release-deploy-standard.md §9 workflow_dispatch pattern + confirm

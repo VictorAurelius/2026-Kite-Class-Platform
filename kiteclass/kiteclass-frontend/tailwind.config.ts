@@ -49,6 +49,7 @@ const config: Config = {
         'theme-primary': 'rgb(var(--theme-primary) / <alpha-value>)',
         'theme-secondary': 'rgb(var(--theme-secondary) / <alpha-value>)',
         'theme-accent': 'rgb(var(--theme-accent) / <alpha-value>)',
+        'theme-cta': 'rgb(var(--theme-cta) / <alpha-value>)',
         'theme-background': 'rgb(var(--theme-background) / <alpha-value>)',
       },
       borderRadius: {

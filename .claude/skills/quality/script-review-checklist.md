@@ -11,7 +11,7 @@ Dùng khi PR thêm/sửa `.sh` hoặc `.py` files trong `scripts/`, `kitehub/scr
 ## Bash Scripts
 
 - [ ] `set -euo pipefail` ở đầu file
-- [ ] shellcheck passes — **CI enforces `-S error`** via `.github/workflows/script-quality.yml` (GAP-194). Warnings reported non-blocking but should be fixed before merge.
+- [ ] shellcheck passes — **CI enforces `-S error`** via `.github/workflows/quality-code.yml` (GAP-194). Warnings reported non-blocking but should be fixed before merge.
 - [ ] No `eval`, no `curl | bash`, no `rm -rf /` without guard
 - [ ] No hardcoded secrets (passwords, tokens, API keys)
 - [ ] Input sanitized — quote all `"$variables"`, validate args
@@ -25,7 +25,7 @@ Dùng khi PR thêm/sửa `.sh` hoặc `.py` files trong `scripts/`, `kitehub/scr
 
 ## Python Scripts
 
-- [ ] ruff passes — **CI enforces `ruff check`** via `.github/workflows/script-quality.yml` (GAP-194). Config in `ruff.toml` (root). Format diffs reported non-blocking.
+- [ ] ruff passes — **CI enforces `ruff check`** via `.github/workflows/quality-code.yml` (GAP-194). Config in `ruff.toml` (root). Format diffs reported non-blocking.
 - [ ] No `eval()`, no `subprocess.shell=True` with user input
 - [ ] No hardcoded secrets
 - [ ] Type hints on public functions
@@ -42,5 +42,5 @@ Dùng khi PR thêm/sửa `.sh` hoặc `.py` files trong `scripts/`, `kitehub/scr
 
 ## Related
 
-- **CI gate:** `.github/workflows/script-quality.yml` enforces shellcheck + ruff on every PR (GAP-194 Phase 1, shipped 2026-04-20).
+- **CI gate:** `.github/workflows/quality-code.yml` enforces shellcheck + ruff on every PR (GAP-194 Phase 1, shipped 2026-04-20).
 - **Local pre-commit gate:** `lefthook.yml` mirrors the CI checks via `lefthook install`. See [`documents/05-guides/local-dev/local-dev-pre-commit.md`](../../../documents/05-guides/local-dev/local-dev-pre-commit.md) for install + bypass + fallback (GAP-194 Phase 2, shipped 2026-04-29).

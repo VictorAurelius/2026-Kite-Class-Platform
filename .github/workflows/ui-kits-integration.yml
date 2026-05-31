@@ -1,4 +1,4 @@
-name: UI Kits Integration
+name: Test — UI Kits Integration
 
 # Closes Phase 3 of GAP-263 (GAP-265) — Tier 3 enforcement layer for UI kits
 # integration smoke test. Pre-merge CI gate that runs Tier 1 landing-parity

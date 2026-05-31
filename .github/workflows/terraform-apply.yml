@@ -1,4 +1,4 @@
-name: Terraform Apply
+name: Deploy — Terraform Apply
 
 # workflow_dispatch only — NO push/PR triggers (per release-deploy-standard.md §9 revised).
 # User-triggered, confirm-input gated, OIDC ephemeral creds.

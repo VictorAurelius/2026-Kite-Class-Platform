@@ -1,4 +1,4 @@
-name: Terraform Plan
+name: Quality — Terraform Plan (read-only PR check)
 
 # Runs `terraform fmt -check` + `terraform validate` + `terraform plan` on PRs
 # touching `infrastructure/terraform-aws/**`. Posts plan output as PR comment.

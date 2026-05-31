@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.marketing.entity;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.kiteclass.core.common.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,6 +11,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
 
@@ -88,4 +91,46 @@ public class LandingPage extends BaseEntity {
     @Column(name = "instagram_url")
     @Size(max = 255, message = "{landing.social.size}")
     private String instagramUrl;
+
+    // Data-driven landing sections (wave-thesis-4) — all nullable; FE reads per-tenant
+    // content from DB instead of hardcoded copy. JSONB-backed via Hibernate JdbcTypeCode
+    // (GAP-220 pattern: bind structured Java type → jsonb, not VARCHAR).
+
+    /** Free-text "About" / introduction paragraph for the center. */
+    @Column(name = "about_text", columnDefinition = "TEXT")
+    private String aboutText;
+
+    /** Landing template type: "personal" (GV độc lập) | "organization" (trung tâm). */
+    @Column(name = "template_type", length = 20)
+    private String templateType;
+
+    /** Teacher cards: [{"name","subject","credentials":["..."]}]. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "teachers", columnDefinition = "jsonb")
+    private JsonNode teachers;
+
+    /** Programs / subjects offered: [{"name","description","detail":["..."]}]. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "programs", columnDefinition = "jsonb")
+    private JsonNode programs;
+
+    /** Pricing tiers: [{"name","price","period","features":["..."],"highlighted":bool}]. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "pricing_tiers", columnDefinition = "jsonb")
+    private JsonNode pricingTiers;
+
+    /** Testimonials: [{"author","role","content","rating":int}]. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "testimonials", columnDefinition = "jsonb")
+    private JsonNode testimonials;
+
+    /** FAQs: [{"question","answer"}]. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "faqs", columnDefinition = "jsonb")
+    private JsonNode faqs;
+
+    /** Stats highlights: [{"value","label"}]. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "stats", columnDefinition = "jsonb")
+    private JsonNode stats;
 }

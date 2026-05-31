@@ -1,4 +1,4 @@
-name: Gitleaks Secret Scan
+name: Security — Gitleaks Secret Scan
 
 # Wave 86 Bucket E Fix 2 — gitleaks baseline scan per OWASP A02 Cryptographic
 # Failures / A07 Identification & Authentication Failures secret hygiene.

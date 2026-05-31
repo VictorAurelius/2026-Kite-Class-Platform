@@ -15,12 +15,17 @@ export const PERSONAL_TEMPLATE: TemplateConfig = {
   description: 'Dành cho gia sư, giáo viên tự do, trung tâm nhỏ',
   sections: [
     { id: 'hero', label: 'Giới thiệu chính', enabled: true, order: 0 },
-    { id: 'about', label: 'Về tôi', enabled: true, order: 1 },
-    { id: 'courses', label: 'Khóa học', enabled: true, order: 2 },
-    { id: 'certificates', label: 'Chứng chỉ', enabled: true, order: 3 },
-    { id: 'pricing', label: 'Bảng giá', enabled: true, order: 4 },
-    { id: 'testimonials', label: 'Đánh giá', enabled: true, order: 5 },
-    { id: 'contact', label: 'Liên hệ', enabled: true, order: 6 },
+    { id: 'stats', label: 'Chỉ số nổi bật', enabled: true, order: 1 },
+    { id: 'about', label: 'Về tôi', enabled: true, order: 2 },
+    // 'courses' (FeaturesSection generic platform-feature: LMS/thanh toán) ẩn cho GV độc lập —
+    // chương trình/khóa học thật hiển thị qua section 'certificates' (programs data). wave-thesis-4.
+    { id: 'courses', label: 'Khóa học', enabled: false, order: 3 },
+    { id: 'timeline', label: 'Lộ trình học tập', enabled: true, order: 4 },
+    { id: 'certificates', label: 'Chương trình giảng dạy', enabled: true, order: 5 },
+    { id: 'pricing', label: 'Bảng giá', enabled: true, order: 6 },
+    { id: 'testimonials', label: 'Đánh giá', enabled: true, order: 7 },
+    { id: 'faq', label: 'Câu hỏi thường gặp', enabled: true, order: 8 },
+    { id: 'contact', label: 'Liên hệ', enabled: true, order: 9 },
   ],
 };
 

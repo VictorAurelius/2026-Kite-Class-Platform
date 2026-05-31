@@ -1,9 +1,15 @@
+---
+paths:
+  - ".claude/rules/**"
+  - "CLAUDE.md"
+---
+
 # Rule Change Process — ADR-Like Governance for `.claude/rules/**`
 
 **Priority:** 🔴 CRITICAL — meta-governance for project DNA
-**Version:** 1.1.3
+**Version:** 1.1.5
 **Created:** 2026-04-20
-**Last-Reviewed:** 2026-05-14
+**Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.3 PATCH self-approve per §5; Wave 76 Bucket C adds §5.1 atomic-unique-bar checklist for new rules (grounded in ESLint rule guidelines per outside-in benchmark Wave 75) — clarification of existing review bar, not new constraint on prior rules. v1.1.2 (kept): Wave 76 Bucket D adds §3.5 Last-Reviewed staleness policy. v1.1.1 (kept): Wave 76 Bucket A added §6.1 Deprecation lifecycle. v1.1.0 (kept): MINOR self-approve per §5 — adds §6.5 Enforcement Parity Mandate paired with `incident-to-rule-pipeline.md` + `gap-done-discipline.md` in same PR, no constraint loosening)
 **Supersedes:** ad-hoc rule edits (no prior formal process)
 **Applies to:** Every `.md` file under `.claude/rules/` and every rule-like top-level file the team decides is meta-governance (CLAUDE.md §rules, `.claude/skills/_README-skills-index.md` conventions)
@@ -62,7 +68,7 @@ Existing rules without `Version` / `Last-Reviewed` / `Reviewer-Approver` fields:
 - Rule's enforcement mechanism changes (hook, CI script, skill, PR template)
 - During quarterly retro audit (forced review even without content change → PATCH bump)
 
-**CI enforcement** (`scripts/check-rule-staleness.sh`, job `rule-staleness` in `script-quality.yml`):
+**CI enforcement** (`scripts/check-rule-staleness.sh`, job `rule-staleness` in `quality-rules-skills.yml`):
 
 | Age (days since Last-Reviewed) | Status | CI behavior |
 |---|---|---|
@@ -179,7 +185,7 @@ Either:
 CI `check-rules-index-csv.sh` enforces:
 - `lifecycle_status=deprecated` requires `deprecated_at` date set
 - `deprecated_at` cannot be set when `lifecycle_status=active` (inconsistent)
-- Validator runs on every PR touching `.claude/rules/**` per `script-quality.yml` workflow
+- Validator runs on every PR touching `.claude/rules/**` per `quality-rules-skills.yml` workflow
 
 Initially **WARN mode** for new rule edits ≥7 days; transition to **HARD STOP** (CI BLOCK) for late edits past 60-day grace once first deprecation lands per `incident-to-rule-pipeline.md` premature-rule guard.
 
@@ -235,6 +241,10 @@ Every rule has a `## N. Log` section at the bottom. Entries are **newest-first**
 
 ```markdown
 ## 9. Log
+
+- **2026-05-31** (v1.1.5): PATCH — fixed 2 stale CI reference(s) `script-quality.yml` → `quality-rules-skills.yml` (workflow was split into quality-{code,docs,rules-skills,infra}.yml 2026-05-22; this rule's §Enforcement still pointed to the removed file). Historical Log entries left unchanged per `rule-change-process.md` §7 append-only. No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — broken-link fix).
+
+- **2026-05-31** (v1.1.4): PATCH — added `paths:` frontmatter per `context-budget-mandate.md` §3.2 (rule was always-load, violating §3.2 size-gate ≥1k tokens requires path-scope/justification/hook). Scope matches rule's own **Applies to** — no behavior change (rule still fires when relevant files touched); removes ~20k chars from base session context. Part of Wave meta context-budget rule-scoping batch 2026-05-31. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — path-scope correction, no constraint loosening).
 
 - **YYYY-MM-DD** (v1.3.0): {summary of change}. {Reviewer: @handle, @handle.} {Motivation — user feedback, incident, audit finding.}
 - **2026-04-14** (v1.0.0): Rule created.

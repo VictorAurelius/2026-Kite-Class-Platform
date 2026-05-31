@@ -54,28 +54,22 @@ const invoiceStatusLabels: Record<string, string> = {
 // API calls for dashboard stats — wrapped in try-catch to prevent
 // unhandled rejections that trigger Next.js dev error overlay (GAP-077)
 const getDashboardStats = async () => {
-  try {
-    const [students, teachers, courses, classes] = await Promise.all([
-      apiClient.get('/api/v1/students', { params: { page: 0, size: 1 } }),
-      apiClient.get('/api/v1/teachers', { params: { page: 0, size: 1 } }),
-      apiClient.get('/api/v1/courses', { params: { page: 0, size: 1 } }),
-      apiClient.get('/api/v1/classes', { params: { page: 0, size: 1 } }),
-    ]);
+  // Per-call resilience: one failing endpoint (e.g. /api/v1/classes 404) must NOT
+  // zero out the other counts. Each count resolves independently via its own catch.
+  const countOf = (path: string) =>
+    apiClient
+      .get(path, { params: { page: 0, size: 1 } })
+      .then((r) => r.data?.data?.totalElements ?? 0)
+      .catch(() => 0);
 
-    return {
-      studentsCount: students.data.data.totalElements || 0,
-      teachersCount: teachers.data.data.totalElements || 0,
-      coursesCount: courses.data.data.totalElements || 0,
-      classesCount: classes.data.data.totalElements || 0,
-    };
-  } catch {
-    return {
-      studentsCount: 0,
-      teachersCount: 0,
-      coursesCount: 0,
-      classesCount: 0,
-    };
-  }
+  const [studentsCount, teachersCount, coursesCount, classesCount] = await Promise.all([
+    countOf('/api/v1/students'),
+    countOf('/api/v1/teachers'),
+    countOf('/api/v1/courses'),
+    countOf('/api/v1/classes'),
+  ]);
+
+  return { studentsCount, teachersCount, coursesCount, classesCount };
 };
 
 const getRecentActivities = async () => {

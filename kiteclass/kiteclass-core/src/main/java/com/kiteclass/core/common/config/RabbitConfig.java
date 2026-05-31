@@ -1,5 +1,7 @@
 package com.kiteclass.core.common.config;
 
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -82,6 +84,42 @@ public class RabbitConfig {
         return factory;
     }
 
-    // Exchanges, queues, and bindings are defined per-module as event-driven features are implemented.
-    // See individual module configs (e.g., notification, enrollment) for specific queue definitions.
+    /**
+     * Class-reschedule event queue.
+     *
+     * <p>Producers publish {@code ClassRescheduledEvent} payloads through the
+     * Outbox dispatcher with routing key {@code class.rescheduled} via the
+     * default (nameless) exchange — RabbitMQ routes by queue name. Consumed by
+     * {@code ClassRescheduledNoOpConsumer} (notifications disabled, default) OR
+     * {@code ClassRescheduledEmailConsumer} (notifications enabled, Phase 1.5+).
+     *
+     * <p>Declaring this durable queue bean fixes the IaC gap where the queue was
+     * only runtime-declared by the {@code @RabbitListener}, leaving the broker
+     * topology unmanaged and the core service unhealthy if the listener bean was
+     * inactive.
+     *
+     * @return durable queue {@code class.rescheduled.queue}
+     */
+    @Bean
+    public Queue classRescheduledQueue() {
+        return QueueBuilder.durable("class.rescheduled.queue").build();
+    }
+
+    /**
+     * Email-dispatch queue forwarded to by {@code ClassRescheduledEmailConsumer}.
+     *
+     * <p>Receives the serialized {@code ClassRescheduledEvent} via
+     * {@code convertAndSend("class.rescheduled.email.queue", ...)} (default
+     * exchange, routing key = queue name) and is consumed by the
+     * {@code kitehub-email} service to render + send the Thymeleaf template.
+     *
+     * @return durable queue {@code class.rescheduled.email.queue}
+     */
+    @Bean
+    public Queue classRescheduledEmailQueue() {
+        return QueueBuilder.durable("class.rescheduled.email.queue").build();
+    }
+
+    // Other exchanges, queues, and bindings are defined per-module as event-driven
+    // features are implemented (e.g., branding topic exchange in BrandingEventsConfig).
 }

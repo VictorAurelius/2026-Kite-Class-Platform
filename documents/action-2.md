@@ -103,3 +103,36 @@ caption của hình vẽ quá dài => tại sao không tự bắt được bug n
 ![alt text](image-9.png)
 
 ![alt text](image-10.png)
+
+bây giờ tạo PR mới để sửa thesis tiếp nhé
+1. ở session trước đã cập nhật tài liệu kiến trúc về tenant => domain => landing, nói gọi là gì nhỉ? vậy đợt cập nhật kiến trúc này có cần cập nhật vào thesis không
+2. tôi thấy chương 4 chưa nói kỹ về phần cấu hình cloudflare, có cần bổ sung không
+3. ảnh chương 3 đang sử dụng ảnh từ UI kits, bây giờ đã có evidence thật thì cập nhật vào
+4. capture lại ảnh docx, session cũ xóa mất rồi
+
+5. documents/08-thesis/screenshots-render/page-001.png => đường gạch ngang dưới "KHOA CÔNG NGHỆ THÔNG TIN" không khớp với bìa của báo cáo thực tập, check lại
+6. Thêm phần cảm ơn 2 thầy cô Nguyễn Thị Hà, giáo viên môn tin học công tác tại trường tiểu học Hòa Chính và thầy Nguyễn Đình Nhì, giáo viên môn Hóa Học công tác tại trường THCS Phú Nam An đã sử dụng thực tế sản phẩm đồ án, đóng góp ý kiến cho đồ án, ...
+
+check lại toàn bộ heading xem tên như vậy đã hợp lý chưa, phù hợp meta, báo cáo chưa
+
+thêm rules mới: không đề cập đến các khái niệm như đợt thử nghiệm, đợt vận hành thật hay các đợt nào khác. Báo cáo này chỉ có 2 khái niệm thời gian: hiện tại đạt được và sẽ phát triển sau
+
+báo cáo dừng lại ở kết quả đạt được là đã có thể thanh toán rồi, có kết nối zalo rồi => cần sửa lại 1 số chỗ nói chưa có tính năng này
+
+không đặt page_break ở trong chương, để dễ dàng co dãn ảnh hợp lý
+
+1. tại sao có class diagram rồi còn trình bày ERD nữa, có trùng không?
+2. tại sao không trình bày liền mạch với thiết kế cơ sở dữ liệu
+3. tại sao chỉ trình bày đối với core kiteclass
+nên trình bày cho kitehub thôi
+4. độ chi tiết đối với core hiện tại đã đầy đủ so với code, kiến trúc, thiết kế chưa, hơi sơ sài nhỉ?
+
+![alt text](image.png)
+![alt text](image.png)
+![alt text](image.png)
+
+Hệ thống đề xuất sử dụng kiến trúc đa tenant nguyên bản với cô lập ở mức cơ sở dữ liệu (mỗi tenant một schema riêng),  => có vẻ sai kiến trúc, giải thích cho tôi hiểu
+
+bây giờ tôi có bản docx  thesis v1, tôi đã sửa tay
+tôi muốn compare bản này với bản word để sửa code python render ra được bản tôi sửa tay
+nên compare bản docx hay compare bản pdf?

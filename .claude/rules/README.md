@@ -33,24 +33,20 @@ Query helper: `bash scripts/query-rules.sh <priority> [date-prefix]` (vd `bash s
 
 ---
 
-## Rule count ceiling policy (Wave 76 Bucket D — paired với `rule-change-process.md` §3.5)
+## Rule count ceiling policy (CONTEXT-AWARE — rewritten 2026-05-31)
 
-Để giữ rule set maintainable + tránh "everything is a rule" drift, total count of `.claude/rules/*.md` (excluding `README.md`) governed bởi staged thresholds:
+> **Why two bands?** The original flat ceiling (Wave 76: ≤50 free / 76-100 WARN on the combined total) was set when most rules were always-load. It mislabels a healthy repo: a rule that is **path-scoped** (`paths:` frontmatter) costs ~0 base context — it loads only when a matching file is in context. Only **always-load** rules (no `paths:`) cost context every session. So the count is split into two bands with very different ceilings. **Merging path-scoped sister rules into one fat file is usually NET-NEGATIVE** — it raises on-load size + breadth without saving any base context (audit 2026-05-31 found all 3 "high-confidence" merge clusters would each exceed Anthropic's 40k auto-load warning). Prefer **deprecate-obsolete** over **merge-distinct**.
 
-| Range | Status | Action required |
-|---|---|---|
-| 0-50 | Free growth | No constraint — below industry maintainability ceiling (per outside-in benchmark Wave 75) |
-| 51-75 | INFO | Quarterly review trigger; audit overlap candidates |
-| 76-100 | WARN | Consolidation review MANDATORY before adding next rule (CI surfaces warning; reviewer-checklist) |
-| >100 | HARD STOP | Must consolidate, deprecate, or merge sister rules BEFORE adding new (CI exit 1) |
+| Band | Metric | Thresholds | Rationale |
+|---|---|---|---|
+| **Always-load** (no `paths:`) | context cost every session | WARN ≥18 / HARD STOP ≥25 | Each adds to base context — also byte-gated by `check-context-budget.sh` (250k/300k bytes). Keep few; default new rules to path-scoped. |
+| **Path-scoped** (`paths:`) | maintainability only | INFO ≥100 / WARN ≥150 / HARD STOP ≥200 | ~0 base-context cost; loose ceiling. Consolidate only when rules genuinely co-apply AND merged file stays <40k. |
 
-**Current count (2026-05-14, post-Wave-76):** 55 rules — INFO band (between free-growth max 50 và quarterly-review trigger 75). Next consolidation pass scheduled when count reaches 75 OR quarterly retro (whichever first).
+**Current count (2026-05-31):** 90 total = **13 always-load** (🟢 OK <18) + **77 path-scoped** (🟢 OK <100). Repo is healthy on context terms; the 90 total is NOT a WARN.
 
-**CI enforcement:** `scripts/check-rule-count-ceiling.sh` runs in `script-quality.yml` job `rule-count-ceiling` on every PR touching `.claude/rules/**`. WARN/INFO emit informational messages (exit 0); HARD STOP returns exit 1.
+**CI enforcement:** `scripts/check-rule-count-ceiling.sh` runs in `quality-rules-skills.yml` on every PR touching `.claude/rules/**`. Reports both bands; exit 1 only on a HARD STOP. Complemented by `scripts/check-context-budget.sh` (byte ceiling on always-load) + `check-rule-staleness.sh` (`Last-Reviewed` ≤180d).
 
-**Staleness sister-policy:** `rule-change-process.md` §3.5 + `scripts/check-rule-staleness.sh` (job `rule-staleness`) ensure individual rule freshness (`Last-Reviewed` ≤180d). Together: count ceiling caps quantity, staleness check ensures quality.
-
-**When count approaches 75:** apply `meta-gap-priority.md` §3 force-multiplier logic — meta-rule consolidation = Meta-P0 (touches every future session); prefer merging overlapping rules over deprecating useful ones.
+**When a band approaches WARN:** apply `meta-gap-priority.md` §3 — meta consolidation = Meta-P0. For always-load: path-scope or justify per `context-budget-mandate.md` §3.2. For path-scoped: deprecate obsolete rules per `rule-change-process.md` §6.1; merge sister rules ONLY if they co-apply + combined file <40k.
 
 ---
 
@@ -198,5 +194,6 @@ Wave plan: [`documents/03-planning/waves/wave-2026-05-14-73-meta-context-optimiz
 
 ## Log
 
+- **2026-05-31**: rewrote "Rule count ceiling policy" → **context-aware 2-band** (always-load WARN≥18/HARD≥25 + path-scoped INFO≥100/WARN≥150/HARD≥200). Old flat ≤50/76-100-WARN mislabeled the repo (90 total = 13 always-load + 77 path-scoped = healthy). Rewrote `scripts/check-rule-count-ceiling.sh` to band-split + report; synced stale count (55→90). Audit 2026-05-31 found naive merge of path-scoped sister clusters (pre-launch / docs-scaling / audit-rubrics) net-negative (each merged file >40k + N× on-load breadth) → policy now says deprecate-obsolete over merge-distinct. Paired with `context-budget-mandate.md` §6.3 byte gate. Reviewer: @nguyenvankiet (solo-dev).
 - **2026-05-14** (Wave 76 Bucket D): added "Rule count ceiling policy" section (free-growth ≤50 / INFO 51-75 / WARN 76-100 / HARD STOP >100) paired với `scripts/check-rule-count-ceiling.sh` + CI job `rule-count-ceiling` in `script-quality.yml`. Cross-link to sister `rule-change-process.md` §3.5 Last-Reviewed staleness policy (same PR). Current count: 55 rules (INFO band). Reviewer: @nguyenvankiet (solo-dev).
 - **2026-05-14**: thêm `paths: [".claude/rules/**"]` frontmatter (Wave 73 miss fix). Folder index giờ load on-demand khi browse rules folder. Reviewer: @nguyenvankiet (solo-dev).

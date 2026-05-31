@@ -44,6 +44,13 @@ export const SECTION_SLOTS: Record<SectionId, SlotDefinition[]> = {
     { id: 'subtitle', type: 'text', label: 'Mô tả ngắn', required: true, maxLength: 200 },
     { id: 'tagline', type: 'text', label: 'Slogan', required: false, maxLength: 50 },
     { id: 'image', type: 'image', label: 'Ảnh hero', required: false },
+    { id: 'urgency', type: 'text', label: 'Thông điệp khẩn (khai giảng/ưu đãi)', required: false, maxLength: 120 },
+  ],
+  stats: [
+    { id: 'stats', type: 'items', label: 'Chỉ số nổi bật', required: false, maxItems: 4 },
+  ],
+  timeline: [
+    { id: 'steps', type: 'items', label: 'Lộ trình học tập', required: false, maxItems: 6 },
   ],
   about: [
     { id: 'content', type: 'richtext', label: 'Nội dung giới thiệu', required: true },
