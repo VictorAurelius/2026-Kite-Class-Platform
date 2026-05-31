@@ -132,3 +132,7 @@ nên trình bày cho kitehub thôi
 ![alt text](image.png)
 
 Hệ thống đề xuất sử dụng kiến trúc đa tenant nguyên bản với cô lập ở mức cơ sở dữ liệu (mỗi tenant một schema riêng),  => có vẻ sai kiến trúc, giải thích cho tôi hiểu
+
+bây giờ tôi có bản docx  thesis v1, tôi đã sửa tay
+tôi muốn compare bản này với bản word để sửa code python render ra được bản tôi sửa tay
+nên compare bản docx hay compare bản pdf?
