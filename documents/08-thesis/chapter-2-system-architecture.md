@@ -885,8 +885,6 @@ Chủ sở hữu trung tâm nhấn magic-link, đặt mật khẩu và đăng nh
 | PRO | Phát triển sau | P3 Quản lý trung tâm | `1.500.000đ/tháng` | 500 | 50 | 50 | Có (custom CNAME) | Mặc định |
 | PRO_PLUS | Phát triển sau | Chuỗi nhượng quyền multi-branch | `5.000.000đ/tháng` | 2000 | 200 | 200 | Có (custom CNAME + IP riêng) | DKIM-verified riêng |
 
-**Trạng thái hiện thực hoá.** Mã nguồn hiện tại trên kho lưu trữ KiteHub đã định nghĩa enum `PricingTier` với bốn cấp giá `FREE / BASIC / PREMIUM / ENTERPRISE` cùng mức giá `0đ / 500.000đ / 1.500.000đ / báo giá riêng`, khớp ba tầng giá đầu của Bảng 2.10 dưới tên gọi cũ. Việc đổi tên gói sang `FREE / STARTER / PRO / PRO_PLUS` để thân thiện với người dùng và đồng nhất với phân tích nhóm người dùng đại diện tại §1.1.2, bổ sung trường giới hạn `maxClasses`, và xây dựng bảng `tenant_quota` kết hợp bộ đếm Redis cho cơ chế enforcement HTTP 429 ở tầng tenant thuộc lộ trình phát triển sau. Tính năng nhận diện email DKIM riêng cho gói cao cấp (cột "Email DKIM-verified" cho PRO_PLUS) cũng thuộc lộ trình phát triển sau.
-
-Việc enforce quota dùng bảng `tenant_quota` kết hợp bộ đếm Redis kiểm tra ở mỗi request. Khi vượt quota, hệ thống trả HTTP 429 cùng banner UI hướng dẫn nâng gói.
+**Trạng thái hiện thực hoá.** Mã nguồn hiện tại trên kho lưu trữ KiteHub đã định nghĩa enum `PricingTier` với bốn cấp giá `FREE / BASIC / PREMIUM / ENTERPRISE`, bổ sung trường giới hạn `maxClasses`, và xây dựng bảng `tenant_quota` kết hợp bộ đếm Redis cho cơ chế enforcement HTTP 429 ở tầng tenant thuộc lộ trình phát triển sau.
 
 **Thanh toán và hóa đơn.** Hiện tại dùng VietQR thủ công: chủ sở hữu trung tâm chuyển khoản theo nội dung VietQR và upload ảnh xác nhận, quản trị nền tảng đối soát bằng tay. Cách tiếp cận này khớp thói quen thanh toán phổ biến (bank transfer chiếm ~70% giao dịch giáo dục) và tránh phụ thuộc giấy phép trung gian thanh toán trong quá trình kiểm chứng sản phẩm.

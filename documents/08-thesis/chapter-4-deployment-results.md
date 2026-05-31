@@ -234,8 +234,6 @@ Thầy Nguyễn Đình Nhì dạy thêm môn Hóa học bậc trung học cơ s�
 **Hình 4.4.** Trang chủ công khai của thầy Nguyễn Đình Nhì (gói Trả phí) — bộ nhận diện tông xanh lá sinh tự động qua AI Branding cho môn Hóa học THCS, tương phản với mẫu dựng sẵn của gói Miễn phí (Hình 4.3).
 ### 4.2.3 So sánh hai gói dịch vụ
 
-Bảng 4.3 tổng hợp khác biệt giữa hai gói qua hai trường hợp vận hành thực tế.
-
 **Bảng 4.3.** So sánh gói Miễn phí và gói Trả phí qua hai giảng viên độc lập.
 
 | Tiêu chí | Gói Miễn phí (cô Hà) | Gói Trả phí (thầy Nhì) |
