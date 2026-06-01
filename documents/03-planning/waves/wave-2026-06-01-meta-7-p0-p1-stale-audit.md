@@ -7,7 +7,8 @@ tags_secondary: [audit, csv-canonical, force-multiplier]
 counter: 7
 created: 2026-06-01
 date_launch: 2026-06-01
-status: draft
+status: complete
+closed_at: 2026-06-01
 ---
 
 # Wave meta-7 — Full P0+P1 stale-status audit (172 gaps)
