@@ -6,6 +6,8 @@ Design prototypes for human review. Generated using `documents/02-architecture/d
 
 **Review standard:** `.claude/rules/output-review-mandate.md` §3 row "HTML/JSX prototypes" (added 2026-04-29 v1.2.0 via GAP-263 Phase 1).
 
+**Deploy / Review (GitHub Pages):** auto-deploy via `.github/workflows/deploy-design-system.yml` on `push: main` touching `ui_kits/**` (or `workflow_dispatch`). Live gallery: **https://victoraurelius.github.io/2026-Kite-Class-Platform/** . Each kit at `<gallery>/<kit-folder>/` (e.g. `/marketing-site/`).
+
 ## Status
 
 | Kit | Wave | Status | Avg score /128 (target ≥105) | Lift vs Round 1 baseline |
