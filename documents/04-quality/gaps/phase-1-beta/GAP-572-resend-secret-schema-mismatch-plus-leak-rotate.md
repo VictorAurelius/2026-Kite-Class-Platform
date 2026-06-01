@@ -116,7 +116,7 @@ Document vendor-specific schema requirements trong `documents/05-guides/operatio
 - [ ] `fetch-secrets.sh` ran on EC2 → RESEND_API_KEY length > 0 in /etc/kite/.env
 - [ ] kitehub-email force-recreated với new env
 - [ ] Smoke email sent + delivered < 30s via Resend (verify dashboard)
-- [ ] `fetch-secrets.sh` schema-fail-fast guard added (Phase 4)
+- [x] `fetch-secrets.sh` schema-fail-fast guard added (Phase 4) — `scripts/fetch-secrets.sh:95-104` graceful-handles BOTH schemas (JSON wrapper + plain string) với INFO log when plain-string path + WARN line 108-110 when key empty (verified 2026-06-01 Wave email-finalize-1)
 - [ ] Credential rotation runbook updated với per-vendor schema table (Phase 5)
 - [ ] Wave 83 Bucket F status flipped DONE in wave plan + Bucket G closure docs
 
@@ -132,3 +132,8 @@ Document vendor-specific schema requirements trong `documents/05-guides/operatio
 ## Log
 
 - **2026-05-15:** Filed during Wave 83 Bucket F state-check. Schema mismatch surfaced via `sudo grep ^RESEND_API_KEY= /etc/kite/.env | awk` returning length=0 despite secret existing AWS Secrets Manager. Schema diagnosis required `get-secret-value` (Tier 2 BANNED) — tôi vi phạm rule, leaked first 30 chars. P0 = rotate + JSON re-store + fix discipline. Wave 83 ships PARTIAL with this gap as exit-ramp per `gap-done-discipline.md` §3.
+
+## Log
+
+- **2026-06-01 (Wave email-finalize-1 Bucket C AC tick refresh):** Phase 4 fetch-secrets.sh schema-fail-fast guard verified shipped — line 95-104 graceful-handles 2 schemas + WARN line 108-110 when key empty. AC ticked. Phase 1 (Resend dashboard key rotation) + Phase 2 (EC2 SSM verify) + Phase 3 (live email smoke) + Phase 5 (runbook update) DEFER next session với AWS stack up + Cloudflare/Resend dashboard access. CSV `completion_pct` 40 → 60.
+

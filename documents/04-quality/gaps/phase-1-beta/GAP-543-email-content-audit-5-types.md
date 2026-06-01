@@ -65,7 +65,7 @@ User confirm 2026-05-14: "Email content audit vào Wave 78" (1 trong 3 inside-ou
 - [x] Subject line ≤50 char + Vietnamese natural + zero PII (welcome + beta-invite PASS — 0 PII leak)
 - [x] Audit note Vietnamese narrative (per `dev-readable-doc-language.md` §2)
 - [ ] All 5 email types ship với content fix — defer (3 templates missing → GAP-543.1 follow-up Wave 79)
-- [ ] Plain-text `.txt` fallback cho mỗi `.html` — defer (GAP-543.2 follow-up Wave 79)
+- [x] Plain-text `.txt` fallback cho mỗi `.html` — Wave 98 B1 shipped 5/5 critical (welcome / beta-invite / email-verification / password-reset / invite-staff per PR #1553)
 - [ ] Footer support@kitehub.me + /beta-status link — defer (content rewrite wave riêng, sync GAP-539/540)
 - [ ] HTML render verify ≥2 email clients — defer (GAP-543.3 follow-up Wave 79)
 - [ ] Live email send smoke test — defer (sync GAP-527 Plan 1 invite)
@@ -85,6 +85,7 @@ User confirm 2026-05-14: "Email content audit vào Wave 78" (1 trong 3 inside-ou
 
 ## Log
 
+- **2026-06-01 (Wave email-finalize-1 Bucket B AC tick refresh):** Plain-text fallback AC ticked retroactively — Wave 98 B1 (PR #1553 2026-05-18) already shipped 5/5 `.txt` siblings at `kitehub/kitehub-email/src/main/resources/templates/emails/` (verified `find ... -name "*.txt"`). Gap Log 2026-05-18 documented evidence but checkbox state never updated until now. CSV `completion_pct` 80 → 85.
 - **2026-05-21 (Wave 102.9 Bucket D fix-time state-check):** Per `audit-to-gap-pipeline.md` §2.8 verified Wave 98 B1 work intact — audit notes folder + 7-dimension notes + subject line PII check all shipped. Remaining AC (content fix + 3-template create + footer + 2-client render + live smoke + i18n) all deferred per existing follow-up gaps (GAP-543.1/2/3 Wave 79+ + Mailhog/AWS-blocked). Status PARTIAL 80% retained — no progress this wave; Bucket D scope reality-mismatched. State-check artifact: `documents/04-quality/audits/persona-review/2026-05-21-wave-102.9-bucket-d-email-content-headers-state-check.md`. Sister to A+B+C state-check pattern.
 - 2026-05-14 — Initial write-up (state-check completed; 5 template files partial; audit notes folder absent; Wave 78 Bucket E owner).
 - **2026-05-14 (Wave 78 Bucket E):** PARTIAL — 5 audit notes ship: welcome PASS (8/10 tone, plain-text gap), beta-invite PASS (9/10 tone, security claim code OK), approve-tenant intentional consolidate với beta-invite (Option A), reset-password MISSING (P1 follow-up GAP-543.1.A), day-7-survey MISSING (sync GAP-542). Aggregate: 0 PII leak subject (an toàn); plain-text fallback 0/2 (gap); cross-client render 0/2 (gap). Per `gap-done-discipline.md` §3 PARTIAL exit ramp — 3 template tạo mới + content rewrite + plain-text = wave riêng (Wave 79+).
