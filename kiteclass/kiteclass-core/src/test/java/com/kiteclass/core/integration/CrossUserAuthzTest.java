@@ -7,6 +7,7 @@ import com.kiteclass.core.common.constant.ParentStatus;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
+import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.parent.dto.ParentalConsent;
 import com.kiteclass.core.module.parent.entity.Parent;
 import com.kiteclass.core.module.parent.entity.ParentStudentLink;
@@ -15,7 +16,6 @@ import com.kiteclass.core.module.parent.repository.ParentStudentLinkRepository;
 import com.kiteclass.core.module.student.entity.Student;
 import com.kiteclass.core.module.student.repository.StudentRepository;
 import com.kiteclass.core.testutil.TestDataBuilder;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,10 +23,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
@@ -35,6 +37,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -53,27 +56,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * <p><strong>Test coverage:</strong>
  * <ul>
- *   <li>A01-U01 ({@code @Disabled}): Teacher-class authz — untestable in test profile
- *       (AUDIT FINDING — see annotation)</li>
+ *   <li>A01-U01: Teacher-2 cannot GET grades for a class owned by Teacher-1
+ *       ({@code @authz.hasAccessToClass} IDOR-deny — GAP-727 fix)</li>
  *   <li>A01-U02: Parent-2 cannot GET attendance of Child linked only to Parent-1
  *       ({@code @authz.hasAccessToChild} — checks {@code parent_student_links})</li>
- *   <li>A01-U03 ({@code @Disabled}): Teacher positive-path — untestable in test profile
- *       (AUDIT FINDING — see annotation)</li>
+ *   <li>A01-U03: Class owner (Teacher-1) CAN GET grades for own class —
+ *       positive-path baseline ({@code @authz.hasAccessToClass} allow — GAP-727 fix)</li>
  *   <li>A01-U04: Linked parent CAN reach service layer for their own child
  *       ({@code @PreAuthorize} guard passes; deeper service 4xx are non-authz)</li>
  * </ul>
  *
- * <p><strong>AUDIT FINDINGS recorded in disabled tests:</strong>
+ * <p><strong>AUDIT FINDINGS:</strong>
  * <ul>
- *   <li>{@code AttendanceController} is the ONLY controller with
- *       {@code @PreAuthorize("@authz.hasAccessToClass")} (teacher-class guard).
- *       The guard uses native SQL {@code classes.teacher_id} which is
- *       <em>not mapped on the {@code Class} JPA entity</em> and is
- *       <em>never set by {@code ClassServiceImpl.createClass()}</em> —
- *       therefore {@code teacher_id} is always {@code NULL} in production for
- *       newly created classes, meaning <strong>the guard denies ALL teachers</strong>
- *       (effective FULL LOCK-OUT — not IDOR). GAP candidate: fix ClassServiceImpl
- *       to set teacher_id on creation OR replace native-SQL guard with JPA.</li>
+ *   <li><strong>GAP-727 (FIXED):</strong> the teacher-class guard
+ *       ({@code @authz.hasAccessToClass}) reads {@code classes.teacher_id}, which was
+ *       historically <em>not mapped on the {@code Class} entity</em> and
+ *       <em>never set by {@code ClassServiceImpl.createClass()}</em> — so it denied
+ *       every teacher (full lock-out, not IDOR). Now the entity maps {@code teacher_id}
+ *       (UUID) and the service sets it from {@code UserContext.getCurrentUser()};
+ *       A01-U01/A01-U03 below assert the guard enforces ownership correctly.</li>
  *   <li>11 of 19 kiteclass-core controllers have NO {@code @PreAuthorize} —
  *       Class, Course, Student, Teacher, Invoice, Payment, Refund, Installment,
  *       Enrollment are fully IDOR-exposed (only tenant-level Hibernate filter
@@ -144,58 +145,71 @@ class CrossUserAuthzTest {
     private EntityManager entityManager;
 
     // ────────────────────────────────────────────────────────────────────────
-    // CLASS authz — @authz.hasAccessToClass  [DISABLED — audit findings below]
+    // CLASS authz — @authz.hasAccessToClass (teacher ownership of classes)
     // ────────────────────────────────────────────────────────────────────────
-
+    //
+    // GAP-727 (FIXED + re-enabled here, closes GAP-732): Class entity now maps
+    // teacher_id (UUID), ClassServiceImpl.createClass() sets it from
+    // UserContext.getCurrentUser(), and classes.teacher_id is present in the test
+    // schema (Flyway enabled in test profile per GAP-735). The guard is therefore
+    // enforceable and tested below — A01-U01 (non-owner IDOR → 403) +
+    // A01-U03 (owner → 200). These replace the prior @Disabled audit-finding stubs.
     /**
-     * A01-U01 — DISABLED: Teacher-class IDOR cannot be tested in the test profile.
+     * Creates a published course + a class owned by {@code ownerUuid}.
      *
-     * <p><strong>Root cause 1 — Test infrastructure:</strong>
-     * The test profile sets {@code spring.flyway.enabled=false} and
-     * {@code spring.jpa.hibernate.ddl-auto=create-drop}.  Schema is generated from
-     * JPA entities only.  The {@code Class} entity does NOT map the
-     * {@code teacher_id} column, so it is absent from the test schema.  Any native
-     * SQL referencing {@code classes.teacher_id} (including both the
-     * {@code AuthorizationBean.hasAccessToClass()} guard query and any test setup
-     * {@code UPDATE classes SET teacher_id = …}) throws
-     * {@code SQLGrammarException: column "teacher_id" does not exist}.
+     * <p>The owner UUID flows via the {@code X-User-Id} header so that
+     * {@code ClassServiceImpl.createClass()} persists {@code classes.teacher_id = ownerUuid}
+     * — exercising the production fix verified by GAP-727 (entity field + service setter).
      *
-     * <p><strong>Root cause 2 — Production code defect (AUDIT FINDING A01-CLASS-01):</strong>
-     * {@code ClassServiceImpl.createClass()} never sets {@code teacher_id} on the
-     * {@code Class} entity after creation.  Even if the column existed in the schema,
-     * it would always be {@code NULL} for every newly created class.  The native SQL
-     * guard in {@code AuthorizationBean.hasAccessToClass()} —
-     * {@code SELECT COUNT(*) FROM classes WHERE id=:classId AND teacher_id=:userId} —
-     * would therefore return {@code 0} for ALL teachers on ALL classes, effectively
-     * locking out every teacher from their own classes (not an IDOR — a full
-     * lock-out).
-     *
-     * <p><strong>GAP candidates (for coordinator batch):</strong>
-     * <ol>
-     *   <li>Add {@code teacher_id} mapping to {@code Class} JPA entity.</li>
-     *   <li>Fix {@code ClassServiceImpl.createClass()} to persist
-     *       {@code teacher_id = X-User-Id} on class creation.</li>
-     *   <li>Add Flyway migration to populate {@code teacher_id} from class history
-     *       or set to NULL explicitly for legacy classes.</li>
-     *   <li>Consider replacing the native-SQL guard with a JPA-based ownership check
-     *       to survive {@code ddl-auto} schema changes in future.</li>
-     * </ol>
+     * @return the created class id
      */
+    private Long createClassOwnedBy(UUID tenantId, UUID ownerUuid) throws Exception {
+        Long domainTeacherId = testDataBuilder.createTestTeacher(mockMvc, objectMapper, tenantId);
+        Long courseId = testDataBuilder.createPublishableCourse(
+                mockMvc, objectMapper, tenantId,
+                "Authz IT Course " + System.currentTimeMillis(), domainTeacherId);
+        mockMvc.perform(post("/api/v1/courses/" + courseId + "/publish")
+                        .header("X-Tenant-Id", tenantId.toString()))
+                .andExpect(status().isOk());
+
+        CreateClassRequest classRequest = new CreateClassRequest(
+                "Authz IT Class",          // name (5-200 chars)
+                "Authz IT class fixture",  // description
+                null,                      // schedule
+                null,                      // locationType (entity defaults IN_PERSON)
+                null,                      // locationDetail
+                LocalDate.now().plusDays(7),
+                LocalDate.now().plusDays(120),
+                30);
+
+        MvcResult classResult = mockMvc.perform(post("/api/v1/courses/" + courseId + "/classes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Id", ownerUuid.toString())
+                        .header("X-User-Reference-Id", ownerUuid.toString())
+                        .content(objectMapper.writeValueAsString(classRequest)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        return objectMapper.readTree(classResult.getResponse().getContentAsString())
+                .get("data").get("id").asLong();
+    }
+
     @Test
-    @Disabled(
-        "GAP-727 PARTIAL (Wave beta-readiness-2 Bucket B): Production defect FIXED — " +
-        "Class entity now maps teacher_id (column generated by ddl-auto from @Column) AND " +
-        "ClassServiceImpl.createClass() now sets teacherId from UserContext.getCurrentUser(). " +
-        "Test body re-enable requires dedicated fixture: create teacher1 + teacher2 + course + class " +
-        "via mockMvc POST /api/v1/courses/{id}/classes with X-User-Id=teacher1; then assert " +
-        "GET /api/v1/attendance/classes/{classId}/sessions/{sessionId}/attendance with X-User-Id=teacher2 → 403. " +
-        "Tracked in follow-up GAP-732 (Bucket B test re-enable, defer Wave beta-readiness-3+)."
-    )
-    @DisplayName("A01-U01 [DISABLED — PARTIAL GAP-727]: Teacher-2 cannot GET attendance roster for a class owned by Teacher-1")
-    void teacher2_cannotGetAttendance_forClassOwnedByTeacher1() {
-        // Intentionally empty — see @Disabled Javadoc above.
-        // Production defect FIXED in this PR (entity field + service setter).
-        // Test body re-enable tracked in GAP-732 follow-up.
+    @DisplayName("A01-U01: Teacher-2 cannot GET grades for a class owned by Teacher-1 (hasAccessToClass IDOR → 403)")
+    void teacher2_cannotGetGrades_forClassOwnedByTeacher1() throws Exception {
+        UUID tenantId = UUID.randomUUID();
+        UUID teacher1 = UUID.randomUUID();
+        UUID teacher2 = UUID.randomUUID();
+
+        Long classId = createClassOwnedBy(tenantId, teacher1);
+
+        // Teacher-2 is NOT the owner → @authz.hasAccessToClass denies → 403
+        mockMvc.perform(get("/api/v1/grades/class/" + classId)
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Id", teacher2.toString())
+                        .header("X-User-Reference-Id", teacher2.toString()))
+                .andExpect(status().isForbidden());
     }
 
     // ────────────────────────────────────────────────────────────────────────
@@ -280,28 +294,28 @@ class CrossUserAuthzTest {
     }
 
     /**
-     * A01-U03 — DISABLED: Teacher positive-path baseline cannot be tested in this profile.
+     * A01-U03 — positive-path baseline: the class owner CAN reach a class-scoped
+     * endpoint guarded by {@code @authz.hasAccessToClass}.
      *
-     * <p>Same infrastructure constraint as A01-U01: {@code classes.teacher_id} column
-     * is absent from the test schema (Flyway disabled, column not mapped on entity),
-     * and {@code ClassServiceImpl.createClass()} never sets {@code teacher_id}.
-     *
-     * <p>A positive-path test would verify that {@code AuthorizationBean.hasAccessToClass()}
-     * returns {@code true} when the calling user IS the owner.  This cannot be asserted
-     * until the production defect described in A01-U01 is fixed.
-     *
-     * <p>See {@link #teacher2_cannotGetAttendance_forClassOwnedByTeacher1()} for the
-     * full audit finding and GAP candidate list.
+     * <p>Verifies {@code AuthorizationBean.hasAccessToClass()} returns {@code true}
+     * when the calling user IS the owner ({@code classes.teacher_id == X-User-Id}).
+     * Pairs with {@link #teacher2_cannotGetGrades_forClassOwnedByTeacher1()} (negative
+     * IDOR path) to fully cover the GAP-727 teacher-class guard fix.
      */
     @Test
-    @Disabled(
-        "GAP-727 PARTIAL (Wave beta-readiness-2 Bucket B): Production defect FIXED — see A01-U01 @Disabled. " +
-        "Positive-path test body re-enable requires dedicated fixture (same as A01-U01). " +
-        "Tracked in follow-up GAP-732."
-    )
-    @DisplayName("A01-U03 [DISABLED — PARTIAL GAP-727]: Class owner (Teacher-1) CAN GET attendance roster — positive-path baseline")
-    void teacher1_canGetAttendance_forOwnClass() {
-        // Intentionally empty — production defect FIXED in this PR; test body in GAP-732 follow-up.
+    @DisplayName("A01-U03: Class owner (Teacher-1) CAN GET grades for own class — positive-path baseline (200)")
+    void teacher1_canGetGrades_forOwnClass() throws Exception {
+        UUID tenantId = UUID.randomUUID();
+        UUID teacher1 = UUID.randomUUID();
+
+        Long classId = createClassOwnedBy(tenantId, teacher1);
+
+        // Teacher-1 IS the owner → @authz.hasAccessToClass passes → 200 (empty grade list for fresh class)
+        mockMvc.perform(get("/api/v1/grades/class/" + classId)
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Id", teacher1.toString())
+                        .header("X-User-Reference-Id", teacher1.toString()))
+                .andExpect(status().isOk());
     }
 
     @Test
