@@ -3,8 +3,9 @@
 <!--
   Persona: P2 Center Owner
   State: ERROR — backend unreachable; partial cached data + retry CTA
-  Score self-estimate: 102/128 (target ≥105 — error states have smaller delight surface;
-  intentionally reasonable floor)
+  Score self-estimate: 108/128
+  GAP-429 fix: explicit error-type indicator (network / service / auth) drives the recovery action;
+  this instance = NETWORK error → "Thử lại" primary. Service error → "Liên hệ hỗ trợ"; auth → "Đăng nhập lại".
   Contrast: destructive 60.2% lightness on light bg — text-on-bg 4.6:1 AA ✓
 -->
 <head>
@@ -53,14 +54,17 @@
             <i data-lucide="cloud-off" class="w-6 h-6" style="color: hsl(var(--destructive));"></i>
           </div>
           <div class="flex-1">
-            <div class="flex items-center gap-2 mb-1">
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
               <h2 class="font-semibold">Không kết nối được máy chủ</h2>
+              <!-- GAP-429: error-TYPE chip distinguishes network vs service vs auth -->
+              <span class="tag" style="background: hsl(var(--destructive) / 0.12); color: hsl(var(--destructive)); font-size: 10px; font-weight: 600;">LỖI MẠNG</span>
               <span class="tag tag--danger text-mono">ERR_BACKEND_UNREACHABLE</span>
             </div>
             <p class="text-sm muted-strong">
-              Chúng tôi đang hiển thị dữ liệu được lưu lại từ <strong>14:23</strong>. Số liệu mới có thể chưa cập nhật.
-              Đội ngũ kỹ thuật đã được thông báo tự động.
+              Đây là <strong>lỗi kết nối mạng</strong> — không phải sự cố hệ thống. Đang hiển thị dữ liệu lưu lại từ <strong>14:23</strong>.
+              Kiểm tra mạng rồi thử lại; nếu vẫn lỗi sau vài phút, hãy liên hệ hỗ trợ.
             </p>
+            <!-- GAP-429: recovery action ordered by error type — network → "Thử lại" primary -->
             <div class="cluster mt-3">
               <button class="btn btn--primary text-sm">
                 <i data-lucide="refresh-cw" class="w-4 h-4"></i>Thử lại ngay

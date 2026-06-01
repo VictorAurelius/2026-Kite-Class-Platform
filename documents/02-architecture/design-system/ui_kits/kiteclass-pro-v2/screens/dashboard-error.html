@@ -1,8 +1,11 @@
 <!doctype html>
 <!--
-  Persona: P2 Center Owner — backend unreachable / 5xx / network error
+  Persona: P2 Center Owner — backend 503 Service Unavailable (service error)
   Flow ref: dossier/05-business-flows.md (degraded state — graceful fallback)
-  Score self-estimate: 102/128
+  Score self-estimate: 108/128
+  GAP-429 fix: explicit error-TYPE indicator (service error 503 ≠ network ≠ auth);
+  recovery ordered for service error (auto-retry countdown primary + status-page link);
+  context-specific copy explaining maintenance vs network distinction.
   Contrast (measured):
     - body #E8ECF7 on bg-card #12172A:        14.2:1 (AAA ✓)
     - error icon #EF4444 on rgba(239,68,68,.12) bg: 7.8:1 (AAA)
@@ -104,22 +107,27 @@
         <!-- Big error block -->
         <div class="pro-empty err">
           <div class="pro-empty-ic">
-            <i data-lucide="alert-triangle" style="width:32px;height:32px"></i>
+            <i data-lucide="server-crash" style="width:32px;height:32px"></i>
           </div>
-          <h2>Không thể tải dữ liệu mới</h2>
-          <p>Máy chủ trả về <b>503 Service Unavailable</b> sau 8 lần thử. Thường là do bảo trì hệ thống định kỳ. Dữ liệu được hiển thị bên dưới có thể không phải mới nhất.</p>
+          <!-- GAP-429: error-TYPE chip — service error (503) distinct from network/auth -->
+          <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;background:rgba(239,68,68,.14);color:#EF4444;margin-bottom:8px">
+            <i data-lucide="wrench" style="width:13px;height:13px"></i> LỖI DỊCH VỤ · 503
+          </span>
+          <h2>Hệ thống đang bảo trì</h2>
+          <p>Máy chủ trả về <b>503 Service Unavailable</b> sau 8 lần thử — đây là <b>sự cố phía dịch vụ</b> (không phải mạng của bạn), thường do bảo trì định kỳ. Hệ thống sẽ tự thử lại; trong lúc chờ, bạn có thể theo dõi trạng thái khắc phục.</p>
+          <!-- GAP-429: recovery ordered for SERVICE error — status page + auto-retry, not manual retry primary -->
           <div class="pro-actions">
             <button class="pro-btn pro-btn-primary">
-              <i data-lucide="refresh-cw" style="width:16px;height:16px"></i>
-              Thử lại ngay
+              <i data-lucide="external-link" style="width:16px;height:16px"></i>
+              Xem trạng thái hệ thống
+            </button>
+            <button class="pro-btn pro-btn-ghost">
+              <i data-lucide="refresh-cw" style="width:14px;height:14px"></i>
+              Thử lại ngay · tự động sau 30s
             </button>
             <button class="pro-btn pro-btn-ghost">
               <i data-lucide="message-circle" style="width:14px;height:14px"></i>
               Liên hệ hỗ trợ · 0901 234 567
-            </button>
-            <button class="pro-btn pro-btn-ghost">
-              <i data-lucide="external-link" style="width:14px;height:14px"></i>
-              Xem trạng thái hệ thống
             </button>
           </div>
           <div style="margin-top:24px;font-size:11.5px;color:var(--pro-muted);font-family:var(--font-mono)">
