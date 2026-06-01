@@ -53,7 +53,7 @@ permissions:
 jobs:
   rule-frontmatter:
     name: Rule frontmatter (`.claude/rules/*.md`)
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -103,7 +103,7 @@ jobs:
 
   skill-conventions:
     name: Skill conventions (`.claude/skills/**/SKILL.md`)
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -148,7 +148,7 @@ jobs:
 
   meta-csv-indexes:
     name: Meta CSV indexes (ADRs + Rules)
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -174,7 +174,7 @@ jobs:
 
   rule-staleness:
     name: Rule staleness (`Last-Reviewed` freshness, WARN mode)
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -200,7 +200,7 @@ jobs:
 
   rule-count-ceiling:
     name: Rule count ceiling (free-growth ≤50, HARD STOP >100)
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -218,7 +218,7 @@ jobs:
 
   context-budget:
     name: Context budget (always-load rule size ceiling — context-budget-mandate.md §3.2)
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -237,7 +237,7 @@ jobs:
 
   env-vars-render:
     name: Env-vars render roundtrip (env-reference.yaml + render-env-vars.sh)
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -278,7 +278,7 @@ jobs:
 
   env-coverage:
     name: Production env-var coverage audit (WARN initially — Wave br-4 Bucket A GAP-508 Phase 3)
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -309,7 +309,7 @@ jobs:
 
   vn-sample-fixtures:
     name: VN sample fixture audit (WARN initially — Wave br-4 Bucket E GAP-NEW-email-tone-matrix)
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
