@@ -657,7 +657,22 @@ spring:
                 fallbackUri: forward:/fallback/instance
 
       # Default filters applied to all routes
+      # GAP-814 (Wave tenant-domain-1 Bucket A) — strip client-supplied identity
+      # headers BEFORE any business filter. Gateway is the SOLE authority that
+      # may set X-Tenant-Id / X-User-Id; downstream services trust these as
+      # gateway-resolved. Without this strip, a client can spoof
+      # `X-Tenant-Id: <other-tenant>` on any route NOT covered by TenantResolver
+      # (e.g. /api/v1/staff-invitations/by-token/**, /api/v1/tenants/*/landing,
+      # /api/auth/**) → cross-tenant IDOR. The strip is global default-filter so
+      # it applies to EVERY route. JwtAuthenticationGatewayFilter (GAP-604) then
+      # re-injects X-User-Id from verified JWT; TenantHeaderGuardFilter
+      # (GAP-814) re-injects X-Tenant-Id from verified JWT claim; TenantResolver
+      # GatewayFilterFactory continues to re-set X-Tenant-Id from Host header
+      # on instance-api routes (precedence: TenantResolver per-route override
+      # → guard JWT-claim fallback → stripped null on public routes).
       default-filters:
+        - RemoveRequestHeader=X-Tenant-Id
+        - RemoveRequestHeader=X-User-Id
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
         - AddResponseHeader=X-Gateway-Version, 1.0
 
