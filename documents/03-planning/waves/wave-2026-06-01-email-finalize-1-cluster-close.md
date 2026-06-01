@@ -7,7 +7,8 @@ tags_secondary: [phase-1-beta-gate, track-b]
 counter: 1
 created: 2026-06-01
 date_launch: 2026-06-01
-status: draft
+date_closed: 2026-06-01
+status: complete
 ---
 
 # Wave email-finalize-1 — Email cluster close-out
@@ -149,4 +150,29 @@ Per `wave-closure-scope-completeness.md` v1.0.1 + `post-merge-sync-completeness.
 
 ## 8. Log
 
-- **2026-06-01** (draft): Plan created. Triggered by `path-to-thesis-goal.md` §4 Track B + AskUserQuestion 2026-06-01 user chốt email-finalize thay vì Wave thesis-2 (AWS blocker). State-check baseline shows GAP-370 already DONE (Wave meta-7 catalog flipped); 5 gap remaining PARTIAL với scope mix AWS-free + AWS-required. Plan splits 3 bucket AWS-free (~45min coordinator-inline) + 1 bucket DEFER next session AWS up. Single coordinator no parallel agents. Outside-in audit SKIP per `outside-in-coverage-trigger.md` §4 (Wave 100 outside-in ≤30 ngày covers email cluster).
+- **2026-06-01** (complete): 3/4 buckets SHIPPED coordinator-inline ~30min (vs ~45min estimate). Bucket D AWS-blocked defer. Per `wave-closure-scope-completeness.md` §3:
+
+## Scope-Completeness Reconciliation
+
+| # | Plan §3 Scope item | Verdict | Follow-up |
+|---|---|---|---|
+| A1 | State-check audit artifact + audits-index.csv row | ✅ DONE | — |
+| B1 | GAP-543 plain-text fallback AC tick + CSV 80→85 + Log | ✅ DONE | — |
+| C1 | GAP-572 Phase 4 schema-fail-fast AC tick + CSV 40→60 + Log | ✅ DONE | — |
+| D1 | GAP-533 Resend deliverability close | ⏸ DEFER | Next session AWS up + CF API verify |
+| D2 | GAP-608 EC2 IAM ses:SendEmail attach | ⏸ DEFER | Next session AWS up + terraform apply |
+| D3 | GAP-530 Email flow E2E live verify | ⏸ DEFER | Next session AWS up + Resend dashboard |
+| D4 | GAP-572 Phase 1+2+3+5 (rotation + verify + smoke + runbook) | ⏸ DEFER | Next session AWS up + Resend dashboard |
+| S1 | Surface finding — use-cases.md missing email domain | ⏸ DEFER | check-3-layer-completeness CI WARN-mode; gap when HARD STOP flips |
+| S2 | Surface finding — Resend application.yml implicit @Value | 📋 NOTED | P3 documentation gap; functional OK |
+
+**Verdict:** 3/3 in-scope-this-session items ✅ DONE. 4 AWS-blocked items DEFER với explicit next-session trigger (AWS start-stack). 2 surface findings classified.
+
+**Outcome metrics:**
+- 2 gap AC tick refresh (GAP-543 + GAP-572)
+- Net cluster pct: 64% → 69% (5 gap aggregate)
+- 1 state-check audit artifact + audits-index row
+- 4 AWS-blocked gap explicit defer
+- ~30min wall-clock coordinator-inline (vs ~45min estimate)
+
+Triggered by `path-to-thesis-goal.md` §4 Track B + AskUserQuestion 2026-06-01 user chốt email-finalize thay vì Wave thesis-2 (AWS blocker). State-check baseline shows GAP-370 already DONE (Wave meta-7 catalog flipped); 5 gap remaining PARTIAL với scope mix AWS-free + AWS-required. Single coordinator no parallel agents. Outside-in audit SKIP per `outside-in-coverage-trigger.md` §4 (Wave 100 outside-in ≤30 ngày covers email cluster). Triggered by `path-to-thesis-goal.md` §4 Track B + AskUserQuestion 2026-06-01 user chốt email-finalize thay vì Wave thesis-2 (AWS blocker). State-check baseline shows GAP-370 already DONE (Wave meta-7 catalog flipped); 5 gap remaining PARTIAL với scope mix AWS-free + AWS-required. Plan splits 3 bucket AWS-free (~45min coordinator-inline) + 1 bucket DEFER next session AWS up. Single coordinator no parallel agents. Outside-in audit SKIP per `outside-in-coverage-trigger.md` §4 (Wave 100 outside-in ≤30 ngày covers email cluster).
