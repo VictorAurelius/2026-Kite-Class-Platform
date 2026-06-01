@@ -1,0 +1,103 @@
+<!-- @dsCard group="Components" -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hero Carousel đa-banner (prototype) — KiteClass per-tenant landing</title>
+<meta name="description" content="Prototype carousel đa-banner cho landing per-tenant: nhiều slide theo giáo viên, auto-rotate + dots + prev/next. Demo cho GAP-826 (production = Phase 1.5)." />
+<link rel="stylesheet" href="colors_and_type.css" />
+<link rel="stylesheet" href="landing.css" />
+<link rel="stylesheet" href="product.css" />
+<style>
+  /* demo-only chrome */
+  body { background: #0b1220; }
+  .demo-note { max-width: 980px; margin: 20px auto; padding: 16px 20px; background: #fff; border-radius: 12px; font-family: var(--font-sans); color: #1e293b; font-size: 14px; line-height: 1.6; }
+  .demo-note b { color: #C2410C; }
+  .hero-wrap { max-width: 1180px; margin: 0 auto; border-radius: 20px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
+  .hero { min-height: 460px; }
+  .hero-slide { display: none; }
+  .hero-slide.on { display: block; }
+  .hero-portrait .frame.demo { display: flex; align-items: center; justify-content: center; font-size: 96px; background: rgba(255,255,255,0.15); }
+</style>
+</head>
+<body>
+<div class="demo-note">
+  <b>Prototype carousel đa-banner</b> — wire <code>.hero-slide / .hero-dots / .hero-arrow</code> (CSS đã có trong landing.css, trước đây orphan). Mỗi slide = 1 giáo viên + theme riêng. Auto-rotate 5s · click dots/mũi tên để chuyển · hover để tạm dừng. <b>Đây là design artifact</b> — production per-tenant (data heroImages[] + render + editor UI) = Phase 1.5 (GAP-826).
+</div>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+<script type="text/babel" src="primitives.jsx"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// Mỗi slide = 1 GV: theme class (đổi màu) + slogan + môn + icon chủ đề.
+const SLIDES = [
+  { theme: "theme-nhi",   eyebrow: "Lớp Hóa Thầy Nhì", h1a: "HỌC HÓA ", h1b: "BẢN CHẤT, NHỚ LÂU", sub: "Hệ thống hóa kiến thức theo sơ đồ tư duy, luyện đề bám sát cấu trúc thi.", icon: "⚗️", chip: "Đang tuyển sinh khóa mới" },
+  { theme: "theme-ha",    eyebrow: "Lớp Tin Học Cô Hà", h1a: "TIN HỌC ", h1b: "NỀN TẢNG CHO BÉ", sub: "Làm quen máy tính, tư duy thuật toán qua trò chơi — học mà chơi, chơi mà học.", icon: "💻", chip: "Lộ trình rõ ràng từng buổi" },
+  { theme: "theme-khanh", eyebrow: "Trung tâm Anh ngữ Sky", h1a: "LUYỆN THI ", h1b: "VỮNG VÀNG, TỰ TIN", sub: "Lộ trình cá nhân hóa, giáo viên bản ngữ, cam kết đầu ra theo từng cấp độ.", icon: "📚", chip: "Cam kết đầu ra" },
+];
+
+function HeroCarousel() {
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const timer = useRef(null);
+  const n = SLIDES.length;
+
+  useEffect(() => {
+    if (paused) return;
+    timer.current = setInterval(() => setActive(a => (a + 1) % n), 5000);
+    return () => clearInterval(timer.current);
+  }, [paused, n]);
+
+  const go = (i) => setActive((i + n) % n);
+  const s = SLIDES[active];
+
+  return (
+    <div className="hero-wrap" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      <div className="hero">
+        {SLIDES.map((sl, i) => (
+          <div key={i} className={"hero-slide " + sl.theme + (i === active ? " on" : "")}>
+            <div className="container">
+              <div className="hero-grid">
+                <div>
+                  <span className="hero-eyebrow">{sl.eyebrow}</span>
+                  <h1>{sl.h1a}<span className="hl">{sl.h1b}</span></h1>
+                  <p className="hero-sub">{sl.sub}</p>
+                  <div className="hero-actions">
+                    <a href="#" className="btn btn-cta btn-lg">Đăng ký học thử <Icon.arrow size={20} /></a>
+                    <a href="#" className="btn btn-on-dark btn-lg"><Icon.play size={18} /> Xem giới thiệu</a>
+                  </div>
+                  <div className="hero-trust">
+                    <span className="trust-item"><Icon.check size={18} /> Học thử miễn phí</span>
+                    <span className="trust-item"><Icon.check size={18} /> Phụ huynh theo dõi qua Zalo</span>
+                  </div>
+                </div>
+                <div className="hero-portrait">
+                  <div className="ring"></div>
+                  <div className="frame demo" role="img" aria-label={"Ảnh đại diện " + sl.eyebrow}>{sl.icon}</div>
+                  <div className="float-icon tl">{sl.icon}</div>
+                  <div className="float-chip"><span className="dot"></span> {sl.chip}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+        <button className="hero-arrow prev" aria-label="Banner trước" onClick={() => go(active - 1)}><Icon.arrow size={20} style={{ transform: "rotate(180deg)" }} /></button>
+        <button className="hero-arrow next" aria-label="Banner sau" onClick={() => go(active + 1)}><Icon.arrow size={20} /></button>
+        <div className="hero-dots" role="tablist" aria-label="Chọn banner">
+          {SLIDES.map((_, i) => (
+            <button key={i} className={i === active ? "on" : ""} aria-label={"Banner " + (i + 1)} aria-selected={i === active} onClick={() => go(i)}></button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<HeroCarousel />);
+</script>
+</body>
+</html>

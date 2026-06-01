@@ -4,6 +4,8 @@ The **product marketing landing for the KiteClass platform itself** — distinct
 
 Open `index.html` for the full interactive landing (cookie consent, persona segmented control, beta form success state).
 
+**Đa-banner carousel prototype:** mở `carousel-demo.html` — hero carousel nhiều slide theo giáo viên (auto-rotate + dots + prev/next), wire `.hero-slide` CSS. Design artifact cho GAP-826; production per-tenant = Phase 1.5.
+
 ## Built to a brief + measured against a checklist (TDD-for-design loop)
 Designed from two reference docs in the KiteClass repo and self-scored before delivery:
 - `.claude/skills/quality/ui-review/reference/landing-page-design-brief.md` — generative direction (persona, value-prop, IA, tone).
