@@ -644,6 +644,29 @@ spring:
                 name: instanceCircuitBreaker
                 fallbackUri: forward:/fallback/instance
 
+        # GAP-813 (Wave tenant-domain-1 Bucket B) — PUBLIC tenant resolve by subdomain.
+        # FE middleware calls GET /api/v1/public/tenants/by-subdomain/{slug} to map a
+        # Host header subdomain to a tenant UUID before requesting tenant-scoped APIs.
+        # Anonymous (no JWT, no subdomain Host); rate-limited 30 req/min/IP to defend
+        # enumeration scans. MUST precede /api/v1/** catch-all so it wins on path match
+        # and SKIPS TenantResolver (no Host-based tenant resolution needed —
+        # subdomain is in the URL path).
+        - id: public-tenant-resolve
+          uri: ${SUBSCRIPTION_SERVICE_URL:http://kitehub-subscription:8080}
+          predicates:
+            - Path=/api/v1/public/tenants/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@ipKeyResolver}"
+                redis-rate-limiter.replenishRate: 30
+                redis-rate-limiter.burstCapacity: 60
+                redis-rate-limiter.requestedTokens: 1
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
+
         # Instance APIs - Route to KiteClass Core (via TenantResolver)
         - id: instance-apis
           uri: ${KITECLASS_CORE_URL:http://kiteclass-core:8080}

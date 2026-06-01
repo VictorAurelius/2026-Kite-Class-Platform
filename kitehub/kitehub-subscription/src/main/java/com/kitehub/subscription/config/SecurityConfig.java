@@ -127,6 +127,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/beta-status/**").permitAll()
                         .requestMatchers("/api/v1/feedback").permitAll()
                         .requestMatchers("/api/v1/feedback/**").permitAll()
+                        // Wave tenant-domain-1 Bucket B (GAP-813) — anonymous tenant
+                        // resolve by subdomain. FE middleware consumes this to route
+                        // Host header → tenant UUID before requesting tenant-scoped
+                        // APIs. Rate-limit applied at gateway (30 req/min/IP).
+                        .requestMatchers("/api/v1/public/tenants/**").permitAll()
                         // Public config / actuator / openapi surface.
                         .requestMatchers("/api/v1/public-config/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
