@@ -1,5 +1,6 @@
 package com.kitehub.subscription.config;
 
+import com.kitehub.subscription.idempotency.interceptor.IdempotencyHandlerInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -16,6 +17,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     private final AdminApiKeyInterceptor adminApiKeyInterceptor;
     private final MagicLinkCacheControlInterceptor magicLinkCacheControlInterceptor;
+    private final IdempotencyHandlerInterceptor idempotencyHandlerInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -35,5 +37,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/api/v1/auth/invite",
                         "/api/v1/auth/invite/**"
                 );
+
+        // GAP-536 Wave onboarding-polish-2 Bucket C — Stripe-style idempotency
+        // cho POST /api/platform/instances. Pairs với IdempotencyCachingFilter
+        // (wrap body để hash). Path pattern khớp EXACT — không cover sub-paths
+        // như /api/platform/instances/{id}/extend-trial.
+        registry.addInterceptor(idempotencyHandlerInterceptor)
+                .addPathPatterns("/api/platform/instances");
     }
 }
