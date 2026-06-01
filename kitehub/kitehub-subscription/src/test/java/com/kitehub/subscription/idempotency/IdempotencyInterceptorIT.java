@@ -15,9 +15,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.UUID;
 
@@ -39,13 +44,49 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *   <li>No {@code Idempotency-Key} header → handler runs normally, no row</li>
  * </ol></p>
  *
+ * <p>Uses Testcontainers PostgreSQL (GAP-536 live verify, per
+ * {@code postgres-specific-type-testcontainers.md}) instead of H2. The H2 test
+ * profile cannot start the full {@code @SpringBootTest} context because a
+ * Hibernate connection initializer issues {@code SELECT set_config('app.current_tenant_id', ...)}
+ * (Postgres RLS tenant-isolation setup) on every JDBC connection open — H2 has no
+ * {@code set_config()} function so {@code SessionFactory} fails to build. Real
+ * Postgres via Testcontainers resolves this, allowing the interceptor's
+ * idempotent double-submit guarantee to be proven end-to-end against a
+ * production-equivalent database. Docker daemon required at runtime.</p>
+ *
  * @since Wave onboarding-polish-2 Bucket C — GAP-536
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Testcontainers
 @DisplayName("Idempotency Interceptor IT — POST /api/platform/instances")
 class IdempotencyInterceptorIT {
+
+    /**
+     * Testcontainers Postgres — production-equivalent DB so the RLS
+     * {@code set_config(...)} connection initializer + {@code idempotency_keys}
+     * schema work (mirrors {@code InstanceControllerIntegrationTest} GAP-544 pattern).
+     */
+    @Container
+    @SuppressWarnings("resource") // Testcontainers @Container manages lifecycle (JUnit extension)
+    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
+            .withDatabaseName("kitehub_test")
+            .withUsername("test")
+            .withPassword("test")
+            .withReuse(true);
+
+    @DynamicPropertySource
+    static void registerDatasourceProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
+        registry.add("spring.datasource.username", POSTGRES::getUsername);
+        registry.add("spring.datasource.password", POSTGRES::getPassword);
+        registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.jpa.properties.hibernate.dialect",
+                () -> "org.hibernate.dialect.PostgreSQLDialect");
+        // Override application-test.yml H2 dialect when testcontainers active
+    }
 
     @Autowired
     private MockMvc mockMvc;
