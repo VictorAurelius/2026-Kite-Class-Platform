@@ -1,10 +1,26 @@
-# GAP-580: Email send idempotency key (UNIQUE constraint on `email_send_audit`)
+# GAP-580: Email send idempotency key (consumer-side dedup, `email.send` pipeline)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (common-case consumer dedup shipped + MailHog-verified; cross-restart + sister paths → GAP-840)
 **Priority:** 🟠 P1 (trust-damage prevention cho beta cohort — duplicate emails = poor UX)
-**Domain:** Backend / Database / DevOps
+**Domain:** Backend / DevOps
 **Found:** 2026-05-15 (Wave 85 Bucket A simulation 3-axis cell 22)
 **Affects:** kitehub-email service email send pipeline + RabbitMQ message redelivery semantics
+
+## Current State (verified 2026-06-02 — state-check per audit-to-gap-pipeline.md §2.5)
+
+State-check phát hiện proposed fix gốc (V54 migration + `email_send_audit` UNIQUE) là
+**architecturally invalid**: `kitehub-email` deliberately stateless — KHÔNG có JPA datasource,
+flyway, hay `email_send_audit` table (xác nhận: no `db/migration` dir, no JPA/postgresql dep
+trong pom). Symptom (RabbitMQ at-least-once redelivery → duplicate send tại consumer
+`EmailEventListener`) là THẬT và uncovered tại consumer layer. Producer-side
+`EmailServiceClient.alreadySentToday` (`email_sent_log` functional unique index trong
+kitehub-subscription) chỉ guard PRODUCER publishing 2 lần/ngày — KHÔNG guard consumer
+redelivery (event đã ở queue, producer dedup không re-run).
+
+**Scope revised:** consumer-side dedup tại `EmailEventListener` qua `EmailIdempotencyGuard`
+(Caffeine TTL — reuse cache backend đã có cho branding lookup, fits stateless design),
+KHÔNG phải DB migration. Common-case duplicate (in-flight redelivery + same-process retry)
+covered + MailHog-verified. Cross-restart + sister send paths → GAP-840.
 
 ## Problem
 
@@ -22,24 +38,41 @@ GAP-502 RC2 OOM thrash historical context — even sau Wave 85 Bucket E `MaxRAMP
 - Schema `email_send_audit` table missing UNIQUE constraint trên idempotency_key.
 - Spring `@RabbitListener` không wrap send + ack trong same transaction (broker ack ≠ business ack).
 
-## Proposed Fix
+## Proposed Fix (SUPERSEDED — see Current State)
 
-Wave 86 scope (3 sub-tasks, paired với Wave 85 Bucket G G-AC4 smoke test):
+~~Wave 86 scope: V54 migration `email_send_audit` UNIQUE + ON CONFLICT~~ — invalid,
+kitehub-email has no DB. Replaced by consumer-side Caffeine dedup (see Implemented Fix).
 
-1. **Schema migration V54** — add `idempotency_key VARCHAR(255) UNIQUE` cho `email_send_audit` table; backfill existing rows với UUID generation.
-2. **Pipeline logic** — `EmailService.send()` accept `idempotency_key` param (default = hash of recipient + template + params); INSERT INTO `email_send_audit (idempotency_key, ...) ON CONFLICT (idempotency_key) DO NOTHING RETURNING id` — nếu RETURNING id → send via Resend; nếu no row returned (duplicate key) → skip send, log "idempotent skip".
-3. **Smoke test trong Wave 85 Bucket G G-AC4** — RabbitMQ force redeliver scenario (kill listener mid-process) → assert single email delivered to Mailtrap inbox.
+## Implemented Fix (2026-06-02)
+
+1. **`EmailIdempotencyGuard`** (`kitehub-email/.../service/`) — Caffeine TTL dedup cache
+   (default 60-min TTL, 50k max-size; reuses Caffeine backend already present for branding
+   cache). `markIfFirstSeen(key)` atomic check-and-set via `putIfAbsent` (concurrent-safe);
+   `computeKey(...)` derives deterministic SHA-256 key from explicit producer key OR
+   recipient+template+type+sorted-variables.
+2. **`EmailEventListener`** — checks guard before `emailSender.sendTemplatedEmail(...)`;
+   duplicate within TTL → log "idempotent skip" + return (no re-send). Parses optional
+   `idempotencyKey` field from `EmailEvent` for deterministic dedup.
+3. **Config:** `kitehub.email.idempotency.ttl-minutes` (60) + `.max-size` (50000).
 
 ## Acceptance Criteria
 
-- [ ] V54 migration adds `idempotency_key VARCHAR(255) UNIQUE` cho `email_send_audit`
-- [ ] `EmailService.send()` accepts idempotency_key param (auto-generate default hash)
-- [ ] ON CONFLICT DO NOTHING RETURNING id flow tested
-- [ ] Spring `@RabbitListener` idempotency wrap shipped
-- [ ] Wave 85 Bucket G smoke test `smoke-email-idempotency.sh` PASS (force redeliver → single send)
-- [ ] Integration test: trigger duplicate via parallel @Async → 1 email + 1 idempotent-skip log
-- [ ] Resend API call count metric — assert single call per idempotency_key
-- [ ] Pre-handoff verify per `pre-handoff-self-test-completeness.md` §2.9 (background job idempotency)
+- [x] Consumer-side dedup guard shipped (`EmailIdempotencyGuard` — Caffeine TTL, stateless-fit)
+- [x] `EmailEventListener` checks guard before dispatch (idempotent skip on duplicate)
+- [x] Deterministic key: explicit producer key OR derived SHA-256 hash (map-order-stable)
+- [x] Unit tests: 7 guard tests (first-seen/duplicate/null-fail-open/explicit-precedence/deterministic/concurrent-50-thread-exactly-1) + 3 listener idempotency tests (explicit-key redelivery / derived-key redelivery / distinct-recipients no-false-dedup) — `mvnw verify -P strict-warnings` BUILD SUCCESS, 15/15 pass
+- [x] **MailHog live verify** — publish identical `EmailEvent` twice to `email.send`: publish #1 → MailHog 1 message; publish #2 (redelivery) → MailHog STILL 1 (no 2nd Dispatching log) ✓ dedup fired
+- [ ] Cross-restart idempotency (shared store survives OOM-restart) → **GAP-840** (architecture decision: Redis vs email_sent_log HTTP)
+- [ ] `ClassRescheduledEmailService` sister send path dedup → **GAP-840**
+- [ ] `EmailController` HTTP send-path idempotency-key → **GAP-840**
+- [ ] (optional) producer `EmailEvent.idempotencyKey` explicit field in kitehub-subscription — deferred (consumer derives reliably without it)
+
+## Pre-handoff verify per pre-handoff-self-test-completeness.md §2.9 (background job idempotency)
+
+- [x] Worker picks up job (verify via container log "Dispatching queued email")
+- [x] Duplicate handling: identical event redelivered → single send (MailHog matches=1 after 2 publishes)
+- [x] Stack-up: kitehub-email (:8084 healthy) + kite-mailhog (:8025) + kite-rabbitmq (:15673) — rebuilt image with dedup code, recreated container, verified live
+- ⚠️ DLQ + cross-restart redelivery not exercised live (GAP-840 scope)
 
 ## Related
 
@@ -52,3 +85,4 @@ Wave 86 scope (3 sub-tasks, paired với Wave 85 Bucket G G-AC4 smoke test):
 ## Log
 
 - **2026-05-15** Filed via Wave 85 Bucket A simulation 3-axis audit cell 22. Bucket G G-AC4 smoke test ships Wave 85; schema + pipeline implementation defer Wave 86. Status OPEN.
+- **2026-06-02** Fix shipped (autonomous local-doable gap campaign). State-check (audit-to-gap-pipeline.md §2.5) found original proposed fix (V54 + `email_send_audit` UNIQUE) architecturally invalid — kitehub-email is stateless (no DB). Symptom (consumer redelivery → duplicate) real + uncovered. Scope revised to consumer-side Caffeine TTL dedup at `EmailEventListener` (fits stateless design, reuses existing Caffeine cache backend). 7 guard + 3 listener unit tests, `mvnw verify -P strict-warnings` 15/15 PASS. MailHog live verify: identical event published twice → exactly 1 email delivered (publish #1 → 1 msg; publish #2 redelivery → still 1). Cross-flow sweep: 3 sister sites — `ClassRescheduledEmailService` (DEFER), `BrandingUpdatedListener` (EXEMPT — no send), `EmailController` HTTP (DEFER) → follow-up GAP-840. Status → PARTIAL (common-case shipped+verified; cross-restart + sister paths deferred to GAP-840 per gap-done-discipline.md §3 PARTIAL exit ramp).

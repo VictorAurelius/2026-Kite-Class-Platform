@@ -3,6 +3,7 @@ package com.kitehub.email.listener;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.email.dto.EmailRequest;
 import com.kitehub.email.dto.EmailResponse;
+import com.kitehub.email.service.EmailIdempotencyGuard;
 import com.kitehub.email.service.SESEmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +13,7 @@ import org.mockito.ArgumentCaptor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,7 +39,9 @@ class EmailEventListenerTest {
         sesEmailService = mock(SESEmailService.class);
         when(sesEmailService.sendTemplatedEmail(org.mockito.ArgumentMatchers.any()))
                 .thenReturn(EmailResponse.builder().status("SENT").messageId("mid-1").build());
-        listener = new EmailEventListener(sesEmailService, objectMapper);
+        // Real guard (60-min TTL) — exercises the actual dedup path, not a mock.
+        listener = new EmailEventListener(
+                sesEmailService, objectMapper, new EmailIdempotencyGuard(60, 50000));
     }
 
     @Test
@@ -102,5 +106,48 @@ class EmailEventListenerTest {
     void skipsMissingTemplate() {
         listener.onEmailEvent("{\"to\":\"x@test.vn\",\"subject\":\"S\"}");
         verify(sesEmailService, never()).sendTemplatedEmail(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    @DisplayName("GAP-580 — redelivery of identical event (explicit idempotencyKey) → single send")
+    void idempotentRedeliverySameExplicitKey() {
+        String body = """
+                {"to":"vy@prospect.vn","subject":"Chào mừng","templateName":"welcome",
+                 "emailType":"welcome","idempotencyKey":"welcome:inst-1:vy@prospect.vn:2026-06-02",
+                 "variables":{"recipientName":"Vy"}}
+                """;
+
+        // First delivery → sends. Redelivery (broker at-least-once) → suppressed.
+        listener.onEmailEvent(body);
+        listener.onEmailEvent(body);
+
+        // Exactly one provider send despite two consumes.
+        verify(sesEmailService, times(1)).sendTemplatedEmail(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    @DisplayName("GAP-580 — redelivery of identical event (no explicit key, derived hash) → single send")
+    void idempotentRedeliveryDerivedKey() {
+        String body = """
+                {"to":"hang@owner.vn","subject":"Đăng ký thành công","templateName":"signup",
+                 "emailType":"signup","variables":{"recipientName":"Hằng","orgName":"Trung tâm Sao Mai"}}
+                """;
+
+        listener.onEmailEvent(body);
+        listener.onEmailEvent(body);
+
+        verify(sesEmailService, times(1)).sendTemplatedEmail(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    @DisplayName("GAP-580 — distinct recipients (same template) → both sent (no false dedup)")
+    void distinctRecipientsBothSent() {
+        String body1 = "{\"to\":\"a@test.vn\",\"subject\":\"S\",\"templateName\":\"welcome\",\"emailType\":\"welcome\"}";
+        String body2 = "{\"to\":\"b@test.vn\",\"subject\":\"S\",\"templateName\":\"welcome\",\"emailType\":\"welcome\"}";
+
+        listener.onEmailEvent(body1);
+        listener.onEmailEvent(body2);
+
+        verify(sesEmailService, times(2)).sendTemplatedEmail(org.mockito.ArgumentMatchers.any());
     }
 }
