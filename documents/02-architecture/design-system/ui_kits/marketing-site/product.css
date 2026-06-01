@@ -61,7 +61,11 @@ body { background: #fff; }
 .ms-hero-grid { position: relative; z-index: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; padding-block: clamp(48px, 6vw, 88px); }
 .ms-hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.25); padding: 7px 14px; border-radius: var(--radius-full); font-size: var(--text-sm); font-weight: 700; margin-bottom: 20px; }
 .ms-hero-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ADE80; box-shadow: 0 0 0 4px rgba(74,222,128,0.25); }
-.ms-hero h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(34px, 4.6vw, 56px); line-height: 1.08; letter-spacing: -0.02em; margin: 0 0 18px; color: #fff; }
+/* text-wrap: balance — heroTitle là input biến đổi (AI/user); balance phân bố từ đều các dòng
+   cho mọi độ dài (tránh wrap lệch/mồ côi như "Quản lý trung tâm,/gọn trong/một nền tảng" 3 dòng méo).
+   Pair với input length budget (≤45 ký tự khuyến nghị) — xem GAP-827. */
+.ms-hero h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(34px, 4.6vw, 56px); line-height: 1.08; letter-spacing: -0.02em; margin: 0 0 18px; color: #fff; text-wrap: balance; }
+.ms-hero .lede { text-wrap: pretty; }
 .ms-hero h1 .hl { color: #FFB570; }
 .ms-hero .lede { font-size: var(--text-lg); line-height: 1.6; color: rgba(255,255,255,0.92); margin: 0 0 28px; max-width: 32em; }
 .ms-hero-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-bottom: 18px; }
