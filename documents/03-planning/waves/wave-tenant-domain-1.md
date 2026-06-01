@@ -144,10 +144,11 @@ Banned shortcuts:
 
 Per `feedback_parallel_agent_strategy.md` + `agent-background-spawn-default.md` + `agent-model-opus-default.md`:
 
-- **Sequence 1 (single):** Bucket 0 Foundation — Opus 4.7, foreground spawn (~30min), MERGE FIRST
-- **Sequence 2 (parallel ×4):** Buckets A + B + C + D — Opus 4.7, `run_in_background: true`, `isolation: worktree`, all spawn in 1 message
+- **Sequence 1 (single):** Bucket 0 Foundation — Opus 4.7, `run_in_background: true`, `isolation: worktree`, MERGE FIRST trước khi spawn parallel buckets
+- **Sequence 2 (parallel ×4):** Buckets A + B + C + D — Opus 4.7, `run_in_background: true`, `isolation: worktree`, all spawn in 1 message after Bucket 0 merged
+- ALL agents background per `agent-background-spawn-default.md` §1 — không có exception §3 applicable cho wave này
 - RELATIVE paths trong agent prompts per `feedback_worktree_absolute_path_contamination.md`
-- Coordinator merge sequentially after all background completions per `feedback_coordinator_ci_fix_pattern.md`
+- Coordinator merge sequentially after each background completion notification per `feedback_coordinator_ci_fix_pattern.md`
 
 ---
 
