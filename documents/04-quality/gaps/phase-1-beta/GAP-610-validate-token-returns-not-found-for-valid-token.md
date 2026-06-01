@@ -1,6 +1,6 @@
 # GAP-610 — `GET /api/v1/auth/beta-signup/validate` returns TOKEN_NOT_FOUND cho valid token (RLS suspect)
 
-**Status:** 🟡 PARTIAL (85% — root cause H4 confirmed via Testcontainers IT Wave onboarding-polish-2 Bucket E; fix scope clear; fix wave queued)
+**Status:** 🟡 PARTIAL (95% — H4 fix shipped + local RST walk PASS toàn bộ 4 lifecycle state trên rebuilt image; còn lại = production deploy verify (AWS account state) + FE deep-link page render qua email-link thật cần admin approve, sister flow GAP-772)
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-05-17 (Wave 90 walkthrough — FE deep-link page 404)
@@ -79,11 +79,11 @@ docker logs kitehub-subscription | grep "select.*beta_access_request" | tail -5
 ## Acceptance Criteria
 
 - [x] Root cause identified (verify hypothesis 1/2/3) — Wave onboarding-polish-2 Bucket E IT confirms H1/H2/H3 REJECTED; H4 (lifecycle-collapse) CONFIRMED
-- [ ] Fix applied + deployed staging.N
-- [ ] Curl validate with known-good token → returns `{valid:true, email, name, orgName, persona}` HTTP 200
-- [ ] FE `/beta-signup?token=<UUID>` page loads + pre-fills form correctly
-- [x] Integration test cover: public endpoint + RLS bypass scenario — `BetaSignupTokenReproIT` (7 tests, 4 hypothesis branches)
-- [x] Companion gaps GAP-611 ID instances/payments/revenue 404 if same RLS root cause — GAP-824 filed for sister `exchangeClaimCode` collapse (same domain, same anti-pattern)
+- [x] Fix applied (local) — `validateToken` split `TOKEN_NOT_FOUND` (row absent) vs `TOKEN_NOT_APPROVED` (PENDING/REJECTED/ABORTED); `BetaAccessService.java:549-559`. Production deploy verify ⏳ defer (AWS account state, GAP-612)
+- [x] Curl validate with known-good token → returns `{valid:true, email, name, orgName, persona}` HTTP 200 — RST walk Step 2b PASS trên rebuilt local image
+- [ ] FE `/beta-signup?token=<UUID>` page loads + pre-fills form correctly — FE error-map updated (`BetaSignupForm.tsx` thêm `TOKEN_NOT_APPROVED` message); full deep-link render qua email-link cần admin approve (sister flow GAP-772)
+- [x] Integration test cover: public endpoint + RLS bypass scenario — `BetaSignupTokenReproIT` (H4 PENDING test updated → TOKEN_NOT_APPROVED) + `BetaAccessServiceTest` (4 new tests: PENDING/REJECTED/ABORTED → TOKEN_NOT_APPROVED, absent → TOKEN_NOT_FOUND)
+- [x] Companion gaps GAP-611 ID instances/payments/revenue 404 if same RLS root cause — GAP-824 filed for sister `exchangeClaimCode` collapse (same domain, same anti-pattern; cross-flow sweep confirms SAME class still present, DEFER to GAP-824)
 
 ## Related
 
@@ -156,6 +156,20 @@ The rst-cascade-1 cluster-3 walk-through (2026-05-26) confirmed: valid UUID inpu
 Same collapse pattern exists trong `BetaAccessService.exchangeClaimCode` (lines 367 + 374): both "code not found" AND "code in non-APPROVED state" return `CODE_NOT_FOUND`. Identical anti-pattern, same domain. → **GAP-824 filed** (Wave onboarding-polish-2 Bucket E cluster spin-off).
 
 ## Log
+
+- **2026-06-02 (autonomous gap-fix — H4 lifecycle-collapse fix + local RST walk):** Fix shipped TDD-first per H4 root cause. `BetaAccessService.validateToken` (lines 540-565) split collapsed `TOKEN_NOT_FOUND` thành 3 distinct codes: `TOKEN_NOT_FOUND` (row truly absent — preserved case A), `TOKEN_NOT_APPROVED` (NEW — row exists PENDING/REJECTED/ABORTED), `ALREADY_USED` (SIGNED_UP), `TOKEN_EXPIRED` (APPROVED+expired). Added internal `log.info` với row.id+status khi return TOKEN_NOT_APPROVED cho operator correlation.
+
+  **TDD:** 4 new tests trong `BetaAccessServiceTest` (PENDING/REJECTED/ABORTED → TOKEN_NOT_APPROVED, absent → TOKEN_NOT_FOUND) — RED 3/4 fail pre-fix → GREEN sau fix. Existing `BetaSignupTokenReproIT` H4 PENDING test updated TOKEN_NOT_FOUND → TOKEN_NOT_APPROVED. Full module `./mvnw -pl kitehub-subscription verify -P strict-warnings` → BUILD SUCCESS, 765 tests 0 fail.
+
+  **State-check (live, pre-fix):** confirmed H1 REJECTED empirically (no RLS policy on `beta_access_request` qua `pg_policy` query). PENDING token via gateway/direct → `TOKEN_NOT_FOUND` HTTP 404 reproduced. Happy-path (APPROVED) → valid:true HTTP 200 (endpoint not wholly broken).
+
+  **RST walk (rebuilt local image, 4 lifecycle states):** kitehub-subscription:latest rebuilt from worktree code + container restarted. (a) PENDING row + token → `TOKEN_NOT_APPROVED` HTTP 404 ✅ (was TOKEN_NOT_FOUND pre-fix); (b) APPROVED + non-expired → `valid:true` HTTP 200 + pre-fill (VN diacritic `Trần Thị Hồng` preserved) ✅; (c) SIGNED_UP token-cleared → `TOKEN_NOT_FOUND` HTTP 404 ✅ (preserved); (d) random absent → `TOKEN_NOT_FOUND` HTTP 404 ✅. Step 1 POST request-beta-access → HTTP 201 + DB row id=9 PENDING.
+
+  **Cross-flow sweep (per cross-flow-bug-class-sweep.md):** bug class = "row-found-but-wrong-state collapsed into not-found code". `exchangeClaimCode` (BetaAccessService:365-374) → SAME class present (CODE_NOT_FOUND for empty + non-APPROVED) → **DEFER to GAP-824** (already filed, sister cluster). `StaffInvitationService.acceptInvitation` → EXEMPT (already distinguishes INVITATION_NOT_FOUND vs INVITATION_ALREADY_USED vs INVITATION_EXPIRED).
+
+  **3-layer doc sync:** `api-contract.md` GET validate updated với 4-code errorCode table. FE `BetaSignupForm.tsx` error-map thêm Vietnamese message cho TOKEN_NOT_APPROVED. DTO javadoc updated.
+
+  completion_pct 85 → 95. Remaining 5%: production deploy verify (AWS account state — GAP-612 blocker) + FE deep-link page render qua email-link thật (cần admin approve, sister flow GAP-772). Status stays PARTIAL per `gap-done-discipline.md` §2/§3 — không false-DONE vì 2 AC item chưa verify được local.
 
 - **2026-06-01 (Wave onboarding-polish-2 Bucket E — root cause investigation):** Testcontainers IT `BetaSignupTokenReproIT` shipped với 7 tests covering H1/H2/H3/H4 layer-by-layer. Empirical evidence confirms H1/H2/H3 REJECTED (consistent với Wave 91 Bucket D static-analysis verdict) + **H4 CONFIRMED**: `BetaAccessService.validateToken` collapses MULTIPLE distinct lifecycle states into same `TOKEN_NOT_FOUND` response code (lines 540-551). Production rst-cascade-1 walk (2026-05-26) HTTP 404 + TOKEN_NOT_FOUND aligns với this — token's row may be PENDING/REJECTED/ABORTED/post-SIGNED_UP-cleared NOT truly missing. Fix scope S effort, queued cho fix wave. Sister cluster GAP-824 filed for `exchangeClaimCode` same anti-pattern. completion_pct 75 → 85. AC items 1/4/6 ticked (root cause + IT cover + companion gap).
 

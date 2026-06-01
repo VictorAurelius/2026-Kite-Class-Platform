@@ -109,7 +109,21 @@ This contract is the cross-layer source-of-truth consumed by:
 }
 ```
 
-**Response 404 Not Found (invalid/expired):** `{ "valid": false }`
+**Response 404 Not Found (invalid/expired):**
+```json
+{ "valid": false, "errorCode": "TOKEN_NOT_FOUND" }
+```
+
+`errorCode` phân biệt rõ từng tình huống lỗi (GAP-610 — sửa lifecycle-collapse):
+
+| errorCode | Ý nghĩa |
+|---|---|
+| `TOKEN_NOT_FOUND` | Không có row nào khớp token (chưa cấp token, hoặc token đã bị xóa sau khi đăng ký xong) |
+| `TOKEN_NOT_APPROVED` | Row tồn tại nhưng status là `PENDING`/`REJECTED`/`ABORTED` (yêu cầu beta chưa được duyệt) |
+| `TOKEN_EXPIRED` | Row `APPROVED` nhưng token đã hết hạn (TTL 24h) |
+| `ALREADY_USED` | Row đã `SIGNED_UP` (token đã được dùng để đăng ký) |
+
+Trước GAP-610, cả `PENDING`/`REJECTED`/`ABORTED` đều trả `TOKEN_NOT_FOUND` — operator/UI không phân biệt được "không có row" với "row sai trạng thái".
 
 ---
 

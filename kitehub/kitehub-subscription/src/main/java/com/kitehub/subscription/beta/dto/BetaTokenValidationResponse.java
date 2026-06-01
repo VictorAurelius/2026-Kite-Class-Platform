@@ -10,9 +10,11 @@ package com.kitehub.subscription.beta.dto;
  * @param name pre-fill
  * @param orgName pre-fill
  * @param persona pre-fill
- * @param errorCode {@code TOKEN_NOT_FOUND} / {@code TOKEN_EXPIRED} / {@code ALREADY_USED} when {@code !valid}
+ * @param errorCode {@code TOKEN_NOT_FOUND} (row truly absent) / {@code TOKEN_NOT_APPROVED}
+ *        (row exists but PENDING/REJECTED/ABORTED — GAP-610) / {@code TOKEN_EXPIRED}
+ *        / {@code ALREADY_USED} when {@code !valid}
  *
- * @since Wave 33 — GAP-372
+ * @since Wave 33 — GAP-372; TOKEN_NOT_APPROVED added GAP-610
  */
 public record BetaTokenValidationResponse(
         boolean valid,

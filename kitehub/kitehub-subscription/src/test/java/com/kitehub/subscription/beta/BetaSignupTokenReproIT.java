@@ -270,15 +270,15 @@ class BetaSignupTokenReproIT {
                 .as("Repo layer returns row regardless of status — fine for granular diagnostics")
                 .isPresent();
 
-        // Service layer collapses PENDING into TOKEN_NOT_FOUND (line 549-551)
+        // GAP-610 fix landed — service layer now returns the distinct TOKEN_NOT_APPROVED
+        // for a PENDING row that EXISTS in DB (no longer collapsed to TOKEN_NOT_FOUND).
         BetaTokenValidationResponse resp = service.validateToken(token);
         assertThat(resp.valid()).isFalse();
         assertThat(resp.errorCode())
-                .as("H4 CONFIRMED — service.validateToken() returns TOKEN_NOT_FOUND "
-                        + "for PENDING row even though row EXISTS in DB. "
-                        + "Production behavior matches: user sees 404 + TOKEN_NOT_FOUND, "
-                        + "operator cannot distinguish 'row missing' from 'row wrong-state'.")
-                .isEqualTo("TOKEN_NOT_FOUND");
+                .as("H4 FIXED — service.validateToken() returns TOKEN_NOT_APPROVED "
+                        + "for PENDING row that EXISTS in DB. Operator/UI can now distinguish "
+                        + "'row missing' (TOKEN_NOT_FOUND) from 'row wrong-state' (TOKEN_NOT_APPROVED).")
+                .isEqualTo("TOKEN_NOT_APPROVED");
     }
 
     @Test

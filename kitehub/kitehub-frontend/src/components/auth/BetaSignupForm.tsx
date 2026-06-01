@@ -117,6 +117,8 @@ export default function BetaSignupForm({ token }: BetaSignupFormProps) {
         ? 'Liên kết kích hoạt đã hết hạn. Hãy liên hệ đội ngũ KiteClass để được cấp lại.'
         : tokenStatus?.errorCode === 'ALREADY_USED'
         ? 'Liên kết đã được sử dụng. Vui lòng đăng nhập trực tiếp.'
+        : tokenStatus?.errorCode === 'TOKEN_NOT_APPROVED'
+        ? 'Yêu cầu beta của bạn chưa được duyệt. Vui lòng chờ đội ngũ KiteClass phê duyệt trước khi kích hoạt.'
         : 'Liên kết không hợp lệ.';
     return (
       <div role="alert" className="rounded-xl bg-destructive/10 p-6 text-sm text-destructive">
