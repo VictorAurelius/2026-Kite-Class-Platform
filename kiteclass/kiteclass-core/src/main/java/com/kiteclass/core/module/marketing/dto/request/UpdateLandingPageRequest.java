@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.marketing.dto.request;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -60,4 +61,20 @@ public class UpdateLandingPageRequest {
 
     @Size(max = 255, message = "{landing.social.size}")
     private String instagramUrl;
+
+    // Data-driven landing sections (wave-thesis-4) — completes Entity-Migration-Mapper
+    // triad per design-patterns.md §3.12. FE reads per-tenant content from DB; admin
+    // PATCH endpoint updates these via this DTO. JsonNode fields = JSONB columns; client
+    // sends JSON tree, Jackson deserializes. Shape contracts documented on entity fields.
+    private String aboutText;
+
+    @Pattern(regexp = "^(personal|organization)$", message = "{landing.template.type.invalid}")
+    private String templateType;
+
+    private JsonNode teachers;
+    private JsonNode programs;
+    private JsonNode pricingTiers;
+    private JsonNode testimonials;
+    private JsonNode faqs;
+    private JsonNode stats;
 }
