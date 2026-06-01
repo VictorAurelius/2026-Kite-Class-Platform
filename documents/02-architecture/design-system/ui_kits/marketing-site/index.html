@@ -52,8 +52,11 @@
 <script type="text/babel" src="marketing.jsx"></script>
 <script type="text/babel">
 function ProductLanding() {
+  // Theme-by-teacher preview (demo affordance — ported from Claude Design source).
+  // Kit/showcase only; production (public)/page.tsx must NOT render this switcher.
+  const [theme, setTheme] = React.useState("default");
   return (
-    <div className="ms-main">
+    <div className={("ms-main " + themeClass(theme)).trim()}>
       <BetaStrip />
       <MsNav />
       <main id="noi-dung">
@@ -67,6 +70,7 @@ function ProductLanding() {
       </main>
       <MsFooter />
       <CookieConsent />
+      <ThemeSwitcher value={theme} onChange={setTheme} />
     </div>
   );
 }
