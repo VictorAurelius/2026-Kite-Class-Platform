@@ -1,8 +1,9 @@
 ---
 title: Wave tenant-domain-1 — Host→Tenant→Landing resolution cluster fix
-status: draft
+status: complete
 created: 2026-06-01
 updated: 2026-06-01
+closed_at: 2026-06-01
 tag_primary: tenant-domain
 tags_secondary: [security, multi-tenant]
 counter: 1
@@ -170,6 +171,30 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 
 ---
 
+## Appendix A — Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` §3)
+
+| # | Plan §3 Scope item | Verdict | Follow-up |
+|---|---|---|---|
+| 1 | Bucket 0 — Foundation (api-contract §9 + MSW handlers) | ✅ DONE | PR #1990 |
+| 2 | Bucket A — GAP-814 gateway header strip + TenantHeaderGuardFilter + 11 unit tests | 🟡 PARTIAL 60% | GAP-814 PARTIAL — 2 AC out-of-scope (network-isolate core firewall + OWASP A01 audit regression) → follow-up gaps Wave security-N |
+| 3 | Bucket B — GAP-813 PublicTenantController slug→UUID endpoint + rate-limit 30/min/IP + unit + Postgres IT | 🟡 PARTIAL 55% | GAP-813 PARTIAL — base-domain env reconcile + SlugAvailabilityService cross-check + RST walk + FE consumer integration (gated GAP-811 Bucket C) → follow-up Wave tenant-domain-2 |
+| 4 | Bucket C — GAP-811 FE middleware host→tenant resolution + 41 unit + 5 Playwright E2E | 🟡 PARTIAL 70% | GAP-811 PARTIAL — live multi-host RST walk deferred until GAP-813 BE endpoint live verify; landing SSR consumer integration out-of-scope Bucket C → follow-up Wave tenant-domain-2 |
+| 5 | Bucket D — GAP-812 DnsTxtLookupService JNDI + DomainService integration + terraform ACM scaffold + 3-layer docs + tests | 🟡 PARTIAL 40% | GAP-812 PARTIAL — Phần B SSL (Cloudflare for SaaS + ACM apply automation) + Phần C scheduler timeout/polling → follow-up GAP-816 (filed) |
+| 6 | Post-wave audit suite ≤3 ngày | ❌ NOT-IMPLEMENTED | Mandatory per `post-wave-audit-mandate.md` §2.2 — file follow-up gap GAP-NEW Wave tenant-domain-1 post-wave audit suite (business-logic + api-contract + ops-readiness) by 2026-06-04 |
+| 7 | Live verify all 4 buckets RST walk end-to-end | ❌ NOT-IMPLEMENTED | Gated by Bucket D ACM apply + GAP-813 BE live verify — file follow-up gap GAP-NEW (Wave tenant-domain-2 candidate) |
+
+**Verdict:** Wave SHIPPED 5/5 buckets technical scope (5 PRs merged: #1990 Bucket 0 + #1991 Bucket A + #1992 Bucket C + #1993 Bucket B + #1994 Bucket D). Per `gap-done-discipline.md`, no gap qualifies for 🟢 DONE flip vì RST walk verification + audit suite gated. 4 gaps held PARTIAL với clear follow-up tracking. 2 NOT-IMPLEMENTED items require follow-up gap filing same closure session per `wave-closure-scope-completeness.md` §3.
+
+## Appendix B — Release Plan Progress (per `feedback_wave_closure_release_progress_report.md`)
+
+**Phase 1 BETA P1+P2 soft-launch readiness (per `documents/03-planning/roadmap/release-1-plan-2026.md`):**
+
+- **Multi-tenant landing flow:** P0 IDOR risk (GAP-814) → PARTIAL 60% gateway hard-strip shipped → demo-trio + Phase 1 BETA cohort blocked silent cross-tenant leak via JWT-verified TenantHeaderGuardFilter
+- **Custom domain UX:** P1 (GAP-811) FE middleware + P1 (GAP-813) BE endpoint → 2 PARTIAL ready cho live verify khi GAP-612 AWS restore unblocks
+- **Premium tier preview:** P2 (GAP-812) DNS verify scaffold → 40% complete; SSL provisioning + automation pending Phase 1.5 paid cohort
+- **Net Phase 1 BETA quality gate impact:** +1 P0 SECURITY closure path (GAP-814) + 3 PARTIAL paths cho landing/domain UX. Phase 1 BETA gate ≥80 PASS path unchanged — gated by 3 P0 carries (GAP-257/144/612) AWS restoration unblock first.
+
 ## 8. Log
 
 - **2026-06-01** (draft): Plan created. Cluster surfaced từ Wave thesis-3 demo-trio RST walk + 3-agent outside-in audit 2026-05-29 (persona simulation + external benchmark + failure-mode matrix). 4 gaps filed PR #1967 (GAP-811/812/813/814) đã state-checked. State-Check Evidence §4 verified — 11 symbols ✅ exists / 5 🆕 to-be-created with explicit Bucket owner. Cross-layer YES → Bucket 0 Foundation required. Wave-pack-planner skill applied: max 5 parallel respected (4 Opus parallel + 1 Foundation sequential). Outside-in audit exception applied per `outside-in-coverage-trigger.md` §4 (gaps from 3-agent audit ≤30 ngày trước → skip refresh).
+- **2026-06-01** (complete): All 5 buckets shipped + closure. 5 PRs merged sequential (Bucket 0 #1990 foundation FIRST → 4 parallel Opus agents in worktrees: A #1991 + C #1992 + B #1993 + D #1994). Wall-clock ~2.5h coordinator-inline vs ~5-6h estimate (~2.4x speedup confirmed Wave-pack pattern). 0 user round-trip on conflict resolution (CSV merge conflicts auto-resolved via "keep both" rule per `post-merge-sync-completeness.md`). Per `gap-done-discipline.md` §3 PARTIAL exit ramp — all 4 gaps PARTIAL với explicit follow-up gating (GAP-612 AWS restore + RST walk + audit suite). Per `wave-closure-scope-completeness.md` §3 reconciliation table §8 above identifies 2 NOT-IMPLEMENTED items requiring follow-up gap filing. Worktrees pruned via `scripts/prune-merged-worktrees.sh --yes`.

@@ -1,0 +1,39 @@
+{
+  "pr": 1993,
+  "title": "feat(wave-tenant-domain-1-B): GAP-813 public tenant resolve endpoint + slug normalize",
+  "branch": "wave/tenant-domain-1-bucket-b-gap-813",
+  "created_at": null,
+  "merged_at": "2026-06-01T05:38:48Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": false,
+    "audits_required": [
+      "business-logic-audit",
+      "api-contract-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-06-01T05:38:52.808418",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 9,
+        "java_files": 4,
+        "test_files": 2,
+        "business_docs": false,
+        "missing_audits": [
+          "business-logic-audit",
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "1/5",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-992005"
+  }
+}
