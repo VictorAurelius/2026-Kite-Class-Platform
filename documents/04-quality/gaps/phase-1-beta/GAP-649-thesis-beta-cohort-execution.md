@@ -1,11 +1,23 @@
 # GAP-649: Thesis beta cohort execution — ≥4 signed user reviews
 
-**Status:** 🔵 OPEN
+**Status:** ⚪ WONTFIX (re-classified 2026-06-01 — real-user execution, NOT an engineering gap)
 **Priority:** 🔴 P0
 **Domain:** Mixed (Product + Business)
 **Phase:** phase-1-beta
 **Found:** 2026-05-18
 **Related Audits:** All 3 outside-in audits converge
+
+## Resolution (2026-06-01) — closed as WONTFIX (out of gap-tracker scope)
+
+User-flagged governance correction: **gap tracker = engineering deliverables (code/docs/infra) the team produces; recruiting real beta users + collecting signed reviews is a real-world human/business action, not something the codebase or Claude produces** → does not belong as an OPEN engineering gap.
+
+All ENGINEERING/DOC enablers are DONE:
+- **GAP-372 DONE** — beta invite mechanism shipped.
+- **GAP-623 DONE** — cohort execution plan + persona + timeline + invite flow + signed-review template (`release-1-beta-cohort-plan.md`).
+
+Residual = pure real-user execution (invite ≥4 GV thật → onboard → thu signed reviews qua ~weeks). This is **user-driven action tracked outside the gap system**; the aggregate-findings doc + thesis Chapter 4 "real users validate" narrative are written WHEN the real reviews exist, not scheduled as an engineering task. User confirmed the request is already in-flight in the real world.
+
+WONTFIX = "won't track as an engineering gap" — NOT "won't do" (the beta-review collection proceeds as a user action). Principle: real-user / business-execution outcomes are not gaps.
 
 ## Current State (verified 2026-05-18)
 
@@ -100,3 +112,4 @@ Per PDPL 2023 + research ethics:
 
 - **2026-05-18 (created):** Filed per outside-in audit all 3 agents convergence. EXECUTION gap (not infrastructure) — mechanism shipped GAP-372 DONE, this gap = actual cohort execution + signed feedback collection.
 - **2026-05-23:** DEFER Wave thesis-2 — ≥4 nhận xét người dùng ký tay phân biệt 8đ vs 9-10đ cần beta tenant thật + 9 tuần timeline. Wave thesis-1 (`documents/03-planning/waves/wave-2026-05-23-thesis-1-closure.md`) ship `release-1-beta-cohort-plan.md` doc-only via Bucket E (plan + persona + timeline + invite flow + signed review template); execution defer. Trigger restart: GAP-612 DONE + invite email gửi.
+- **2026-06-01 (WONTFIX — re-classified):** User-flagged: real-user action không nên là gap. Engineering enablers DONE (GAP-372 invite + GAP-623 plan/templates). Residual = pure human execution (recruit + signed reviews) → tracked as user-action outside gap tracker, in-flight per user request. Closed WONTFIX (engineering scope complete; human outcome ≠ gap). See Resolution section.
