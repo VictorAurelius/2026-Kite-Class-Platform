@@ -12,6 +12,8 @@ related: [quality/ui-review/SKILL.md, quality/ui-review-prototype/SKILL.md, qual
 
 Tiêu chuẩn review cho bản **redesign landing KiteClass** (production Next.js `(public)/page.tsx`). Layer lên `ui-review` /128 (chất lượng UI per-screen) + thêm các chiều **đặc thù landing** mà rubric /128 không bắt: value-prop, conversion funnel, trust, SEO, Core Web Vitals.
 
+**Companion (generative):** `landing-page-design-brief.md` — input *hướng đi* cho design-Claude (persona, value-prop, IA, brand, content). Brief = "làm gì + vì sao"; checklist này = "tốt hay chưa". Đưa CẢ HAI cho design-Claude → thiết kế theo brief → tự self-score bằng checklist → iterate ≥85.
+
 **Khi nào dùng:** sau khi redesign landing (trước merge PR) + định kỳ pre-launch. Per `output-review-mandate.md` §3 — landing là output customer-facing, BẮT BUỘC có review standard + process + evidence trước khi ship.
 
 **Mục tiêu (Balanced):** cân bằng conversion (drive beta signup) + trust (uy tín với trung tâm GD VN) + feature comprehension + chất lượng kỹ thuật. 10 chiều × 10 điểm = **/100**.
