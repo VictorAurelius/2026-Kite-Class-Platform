@@ -1,4 +1,4 @@
-# GAP-829: JWT storage key collision 2-tab — kiteclass-frontend (cùng bug class GAP-599)
+# GAP-830: JWT storage key collision 2-tab — kiteclass-frontend (cùng bug class GAP-599)
 
 **Status:** 🔵 OPEN
 **Priority:** 🟠 P1
