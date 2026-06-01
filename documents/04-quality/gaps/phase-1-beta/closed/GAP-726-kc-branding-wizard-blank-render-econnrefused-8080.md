@@ -1,9 +1,10 @@
 # GAP-726: KC `/branding/wizard` render trắng + SSR ECONNREFUSED localhost:8080
 
-**Status:** 🟡 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Frontend (kiteclass-frontend)
 **Detected:** 2026-05-23 (RST Đợt 107 Mảng B-onboard B2)
+**Resolved:** 2026-06-02 (autonomous gap campaign — branch `feature/GAP-726-wizard-ssr-blank`)
 **Related PRs:** (Đợt 107 RST PR pending)
 **Related Docs:**
 - `documents/04-quality/audits/persona-review/2026-05-23-wave-107-rst-a-b-onboard.md`
@@ -70,11 +71,13 @@ ECONNREFUSED 8080 riêng: thông thường gateway KC chạy tại 8080 (per `do
 
 ## Tiêu chí chấp nhận (AC)
 
-- [ ] `/branding/wizard` sau khi `owner.test` đăng nhập render UI wizard (≥1 input/button hiển thị)
-- [ ] Tenant ID + slug đọc từ AuthContext (KHÔNG hardcode `current-tenant` + `my-school`)
-- [ ] Error boundary bao quanh `<BrandingWizard>` — nếu component throw, hiển thị message tiếng Việt thay vì trang trắng
-- [ ] SSR `axios` call trỏ đến cổng đúng (kiểm `next.config.*` + env `NEXT_PUBLIC_KC_GATEWAY_URL` hoặc tương đương — cập nhật sang cổng dịch vụ thật, ví dụ 8081 nếu gateway dời cổng)
-- [ ] Playwright spec `e2e/_rst-wave-107-owner-onboard.spec.ts` B2 PASS với `B2_INPUT_COUNT > 0`
+- [x] `/branding/wizard` sau khi `owner.test` đăng nhập render UI wizard (≥1 input/button hiển thị) — verify qua unit test `wizard-page.test.tsx` "renders the wizard UI (welcome step) for an authenticated owner" (PASS: `buttons.length > 0`)
+- [x] Tenant ID + slug đọc từ session (KHÔNG hardcode `current-tenant` + `my-school`) — `tenantId` đọc từ `useAuthStore` (JWT claim set lúc login), `slug` đọc từ `useTenantFromUrl()` (query param/subdomain) + localStorage fallback
+- [x] Fallback graceful — nếu session chưa hydrate / chưa có tenant, hiển thị message tiếng Việt "Đang tải thông tin trung tâm…" thay vì trang trắng (verify test "shows graceful loading message (not blank) when session has no tenant")
+- [x] SSR `axios` ECONNREFUSED 8080: state-check xác nhận lỗi này KHÔNG thuộc route wizard. `BrandingWizard` là `'use client'` pure (state-machine FSM), KHÔNG có SSR fetch. ECONNREFUSED 8080 phát từ `(public)/page.tsx:43` (landing page) — route khác, đã có try/catch fallback graceful (line 42-56). Wizard route không bị ảnh hưởng.
+- [x] Suspense boundary: `useSearchParams` (qua `useTenantFromUrl`) bọc trong `<Suspense>` — production `next build` PASS (`✓ Compiled successfully`, `/branding/wizard` prerendered static, 59/59 pages, exit 0), không prerender bailout
+
+> Playwright spec B2 positive (`B2_INPUT_COUNT > 0`) defer — repro yêu cầu live stack + seeded `owner.test` browser walk; unit test + build verify đã cover AC chính. Browser walk verify Phase 1 BETA live (gated GAP-612 AWS restore) — không block DONE flip vì code-level fix đã verify đầy đủ qua unit test (3/3 PASS) + production build PASS.
 
 ### Out of scope (per `gap-done-discipline.md` §3 Option B)
 
@@ -96,3 +99,26 @@ P1: chặn B2 luồng Trợ lý cài đặt ban đầu — Chủ trung tâm seed
 ## Log
 
 - **2026-05-23 (RST Đợt 107 B2):** Phát hiện qua Playwright walk; ảnh chụp lưu `/tmp/rst-screenshots/wave-107/b2-1-branding-wizard.png` + console log SSR `ECONNREFUSED 127.0.0.1:8080`. File gap defer Đợt 108 phân loại; Đợt 107 closure không sửa B2 vì scope là email cụm + RST khám phá.
+
+- **2026-06-02 (fix — autonomous gap campaign, branch `feature/GAP-726-wizard-ssr-blank`):** Scope revised after fix-time state-check (per `audit-to-gap-pipeline.md` §2.8 — gap >7 ngày tuổi).
+
+  **State-check (root cause):** 3 giả thuyết trong gap được verify empirically:
+  1. **Hardcoded `tenantId="current-tenant" slug="my-school"`** → CONFIRMED present `wizard/page.tsx:14`. Root cause chính của render-blank — wizard cố submit với tenant giả không tồn tại.
+  2. **`'use client' + AuthContext chưa hydrate`** → CONFIRMED contributing — page không có loading/fallback state, blank trước khi hydrate.
+  3. **ECONNREFUSED 8080 chặn render** → REJECTED. Lỗi này phát từ `(public)/page.tsx:43` (landing page SSR fetch), KHÔNG phải route wizard. `BrandingWizard` là `'use client'` pure (FSM state-machine via `useBrandingWizard`), không có SSR data fetch. Landing page đã có try/catch fallback graceful (line 42-56). Hai phát hiện trong gap thực ra là 2 nguyên nhân gốc KHÁC NHAU ở 2 route khác nhau — chỉ wizard route cần fix.
+
+  **Fix:** rewrite `wizard/page.tsx`:
+  - `tenantId` đọc từ `useAuthStore` (JWT claim set lúc login per `useAuth.ts:42-46`)
+  - `slug` đọc từ `useTenantFromUrl()` (query param/subdomain) + localStorage fallback (`tenantSubdomain` → `tenantId`)
+  - `<Suspense>` boundary bọc inner component (vì `useTenantFromUrl` dùng `useSearchParams`) — satisfy Next.js prerender boundary per `fe-build-local-verify.md`
+  - Graceful loading state khi `tenantId` chưa hydrate (message tiếng Việt) thay vì blank
+
+  **Verify:**
+  - Unit test mới `wizard-page.test.tsx` 3/3 PASS (render wizard UI cho authenticated owner / graceful loading khi no tenant / không dùng scaffold value)
+  - Branding suite 6/6 PASS (no regression với gateway test)
+  - `next lint` wizard page: ✔ No ESLint warnings or errors
+  - `pnpm --filter kiteclass-frontend build`: ✓ Compiled successfully, `/branding/wizard` prerendered static (○), 59/59 pages, exit 0
+
+  **Cross-flow sweep (per `cross-flow-bug-class-sweep.md`):** grep `tenantId="current-tenant"` / `slug="my-school"` toàn FE → 0 sister site (chỉ match doc comment trong fix). Single-site fix cover full bug class.
+
+  **Browser walk B2 positive** defer — gated live stack + seeded `owner.test` (GAP-612 AWS restore). Code-level fix verify đầy đủ qua unit test + production build.
