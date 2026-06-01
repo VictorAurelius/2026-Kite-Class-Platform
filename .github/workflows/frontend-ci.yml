@@ -7,6 +7,9 @@ on:
       - main
     paths:
       - 'kiteclass/kiteclass-frontend/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
       - '.github/workflows/frontend-ci.yml'
 
 permissions:
