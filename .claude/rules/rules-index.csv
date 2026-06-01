@@ -30,6 +30,7 @@ context-budget-mandate,MANDATORY,1.1.0,2026-05-14,2026-05-31,context-budget-mand
 contract-first-for-cross-layer,MANDATORY,1.0.3,2026-05-07,2026-05-31,contract-first-for-cross-layer.md,"documents/03-planning/waves/**,documents/01-business/**/api-contract.md",active,,
 deployment-naming-convention,MANDATORY,1.0.2,2026-05-08,2026-05-14,deployment-naming-convention.md,"documents/05-guides/{deploy,operations,account-prep}/**,infrastructure/**,.github/workflows/*deploy*,.github/workflows/*terraform*",active,,
 design-layer-coverage,CRITICAL,1.0.1,2026-04-30,2026-05-14,design-layer-coverage.md,"documents/02-architecture/design-system/**,documents/02-architecture/design-system/ui_kits/**",active,,
+design-source-implementation-parity,MANDATORY,1.0.0,2026-06-01,2026-06-01,design-source-implementation-parity.md,"documents/02-architecture/design-system/**,kiteclass/kiteclass-frontend/src/**,kitehub/kitehub-frontend/src/**",active,,
 design-patterns,MANDATORY,1.3.1,2026-04-14,2026-05-14,design-patterns.md,"**/*.java,**/*.tsx,**/*.ts",active,,
 dev-authorized-terraform-trigger,MANDATORY,1.0.0,2026-05-15,2026-05-15,dev-authorized-terraform-trigger.md,".github/workflows/terraform-apply.yml,infrastructure/terraform-aws/**,infrastructure/terraform-oracle/**,documents/04-quality/audits/aws-verification/**",active,,
 dev-readable-doc-language,MANDATORY,1.0.3,2026-05-14,2026-05-31,dev-readable-doc-language.md,"documents/**/*.md,documents/05-guides/operations/acceptance-tests/**/*.csv",active,,
