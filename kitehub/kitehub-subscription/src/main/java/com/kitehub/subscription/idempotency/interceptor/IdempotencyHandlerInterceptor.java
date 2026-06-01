@@ -8,10 +8,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -139,14 +140,30 @@ public class IdempotencyHandlerInterceptor implements HandlerInterceptor {
     }
 
     private String extractBody(HttpServletRequest request) {
-        if (request instanceof ContentCachingRequestWrapper wrapper) {
-            byte[] buf = wrapper.getContentAsByteArray();
-            return new String(buf, StandardCharsets.UTF_8);
+        if (request instanceof CachedBodyHttpServletRequest cached) {
+            // CRITICAL: preHandle runs BEFORE the handler reads @RequestBody.
+            // CachedBodyHttpServletRequest (installed by IdempotencyCachingFilter)
+            // fully buffers the body up-front and serves the SAME bytes to every
+            // getInputStream() call — so reading here for the hash does NOT starve
+            // the downstream @RequestBody parse.
+            //
+            // We deliberately do NOT use ContentCachingRequestWrapper here: its
+            // getContentAsByteArray() cache is only populated AFTER the stream is
+            // consumed downstream — empty at preHandle time → every payload hashes
+            // identically → same-key+different-body 422 conflict never fires.
+            // (Caught by GAP-536 Testcontainers live verify 2026-06-02.)
+            try {
+                byte[] buf = StreamUtils.copyToByteArray(cached.getInputStream());
+                return new String(buf, StandardCharsets.UTF_8);
+            } catch (IOException ex) {
+                log.warn("Failed to read request body for idempotency hash: {}", ex.getMessage());
+                return "";
+            }
         }
         // Fallback: caller didn't wrap. Hash empty payload — still allows key
         // tracking but loses body-mismatch protection. Log so ops can wire the
         // wrapper if this endpoint surfaces a real conflict scenario.
-        log.debug("Request not ContentCachingRequestWrapper — body hash will be empty");
+        log.debug("Request not CachedBodyHttpServletRequest — body hash will be empty");
         return "";
     }
 
