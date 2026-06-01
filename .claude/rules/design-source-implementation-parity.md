@@ -8,10 +8,10 @@ paths:
 # Design-Source → Implementation Parity — đừng drop affordance khi port
 
 **Priority:** 🟠 MANDATORY — implementation-fidelity governance preventing dropped-affordance class
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Created:** 2026-06-01
 **Last-Reviewed:** 2026-06-01
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (reviewer-checklist + worked self-test trên marketing-site ThemeSwitcher dropped-wiring 2026-06-01) per §6.5 Enforcement Parity Mandate; no constraint loosening — codify previously-uncovered "design source affordance dropped during implementation, no review caught it" class; META P1 force-multiplier per `meta-gap-priority.md` §3)
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; adds §3 row 7 "Runtime effect" + §3.2 runtime click-verify mandate — tighten constraint (static wired-check no longer sufficient cho interactive affordance), triggered by own round-1 INERT miss same session (PR #2028 wired but visually inert; browser test bắt; PR #2030 fixed); paired §6 self-test update per §6.5 Enforcement Parity Mandate; no constraint loosening — closes "wired ≠ working" sub-class. v1.0.0 (kept): new rule với built-in enforcement (reviewer-checklist + worked self-test trên marketing-site ThemeSwitcher dropped-wiring 2026-06-01) per §6.5; META P1 force-multiplier per `meta-gap-priority.md` §3)
 **Applies to:** Mọi PR implement/port một design source (Claude Design artifact / Figma / mockup HTML / approved screen design) vào target code (ui_kits HTML kit, production page.tsx, React component). Out-of-scope: greenfield code không có design source upstream; refactor thuần (no design reference); backend-only changes.
 
 ---
@@ -49,6 +49,7 @@ Trước khi flip "implement xong" / merge PR port design source, verify TỪNG 
 | 4 | **Demo affordances** | Theme switcher / persona toggle / locale picker (design-preview controls) → wire vào kit render (kit context); production strip + document |
 | 5 | **Copied-but-unwired check** | Mọi component **định nghĩa** trong primitives/lib → grep **usage** trong render; định nghĩa mà không gọi = dead code = FAIL |
 | 6 | **Content fidelity** | Hero copy / labels / sample data khớp source (không placeholder leftover) |
+| 7 | **Runtime effect** (interactive affordance) | Wired ≠ working. Affordance có effect (toggle/selector/switcher) PHẢI runtime click-verify: chạy thật (browser/headless) → click → **observe** target thay đổi. Static "đã wire" KHÔNG đủ. |
 
 ### 3.1 Bằng chứng inline (PR body)
 
@@ -64,6 +65,21 @@ Trước khi flip "implement xong" / merge PR port design source, verify TỪNG 
 ```
 
 Mỗi `⚠️ dropped` PHẢI có lý do (vd "production strip demo affordance — không hiển thị cho end-user") + nếu dropped là regression → file follow-up gap.
+
+### 3.2 Runtime click-verify mandate (interactive affordance) — added v1.1.0
+
+> **Affordance có visible effect (theme switcher / tab / toggle / accordion / filter) — KHÔNG được claim "parity ✅" bằng static check (grep usage / "đã wire"). MUST chạy thật + click + observe target đổi.**
+
+Lý do (incident 2026-06-01, §6 self-test): ThemeSwitcher đã wire đúng (class + var đổi) nhưng target visuals đọc var KHÁC (`--hero-from` thay vì `--theme-*`) → click **vô hình**. Static check "wired ✅" PASS sai; chỉ runtime click→observe mới bắt.
+
+Required evidence trong PR body:
+
+```markdown
+**Runtime verify:** <browser/headless tool> → click <affordance> → observed <target> changed:
+- <variant 1>: <before> → <after> ✅
+```
+
+Cross-ref `feature-ship-runtime-walk-mandate.md` §3 — runtime walk; rule này áp riêng cho interactive affordance khi port design source.
 
 ---
 
@@ -107,11 +123,13 @@ Trailer logged. Pattern frequency >10%/quarter triggers meta-review.
 
 → Rule fires correctly: §3 row 1+2+5 đều FAIL trên bản committed. Affordance 4-option của source bị drop silently lúc port — reviewer không bắt vì "code có trong primitives".
 
-**Fix (PR này):** wire `<ThemeSwitcher>` + `themeClass(theme)` lên `.ms-main` → 4 option hiển thị + hoạt động → parity restored.
+**Fix round 1 (PR #2028):** wire `<ThemeSwitcher>` + `themeClass(theme)` lên `.ms-main`. Static check PASS (row 1+5 ✅). **NHƯNG claim "deployed ✅" bằng grep HTML — KHÔNG runtime click-verify.**
 
-**Counterfactual without rule:** dead-code affordance tồn tại vô thời hạn; user phải tự phát hiện qua so sánh image-1.png ↔ kit (chi phí ~1 vòng user round-trip). With rule: §3 row 5 "copied-but-unwired" grep bắt ngay lúc PR review.
+**Round-1 INERT — §3 row 7 lý do tồn tại (added v1.1.0):** browser self-test sau đó lộ ra: click đổi `.theme-*` class + `--theme-*` vars NHƯNG marketing hero đọc `--hero-from/to` (hardcode) → click **vô hình**. Row 1+5 static PASS sai; chỉ **runtime click→observe** (row 7) mới bắt.
 
-Self-test PASS ✅
+**Fix round 2 (PR #2030):** `.theme-*` override `--hero-from/to` (contrast-safe). Browser-verified (Playwright local + live): 3 theme đổi `.ms-hero` gradient + default restore.
+
+**Counterfactual với v1.1.0 row 7 từ đầu:** round-1 INERT bị bắt ngay (1 runtime click test) → không có "deployed ✅" sai → 0 user round-trip. Self-test PASS — v1.1.0 row 7 fires đúng trên chính incident sinh ra nó. ✅
 
 ---
 
@@ -165,4 +183,5 @@ Per §5 trailer `DESIGN_PARITY_DROP:`. Quarterly retro review >10% frequency.
 
 ## 10. Log
 
+- **2026-06-01 (v1.1.0):** MINOR — added §3 row 7 "Runtime effect (interactive affordance)" + §3.2 runtime click-verify mandate. Triggered by own round-1 INERT miss same session: PR #2028 wired `<ThemeSwitcher>` (static row 1+5 PASS) + claimed "deployed ✅" via grep HTML — but browser self-test revealed click was visually inert (marketing hero reads `--hero-from/to`, not the toggled `--theme-*`). PR #2030 fixed (`.theme-*` override `--hero-from/to`), browser-verified local + live. Static "wired ✅" gave false PASS; only runtime click→observe catches "wired ≠ working" sub-class. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user "click ko có thay đổi, self-test chưa?") → Classify ✓ (v1.0.0 §3 covered static wired-check + copied-but-unwired but NOT runtime effect) → Rule+Enforce ✓ (§3 row 7 + §3.2 + §6 self-test update + cross-ref `feature-ship-runtime-walk-mandate.md` §3 paired same PR) → Self-Test ✓ (§6 — row 7 fires on own round-1 INERT incident) → Retro Log ✓ (this entry). MINOR per §4 (tighten constraint — could BLOCK a PR that previously passed static-only). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — no constraint loosening; existing ports grandfathered; applies prospectively).
 - **2026-06-01 (v1.0.0):** Rule created in response to user direction 2026-06-01 "làm meta-rule checklist parity" sau khi phát hiện `marketing-site` kit drop affordance "Chủ đề theo giáo viên" (4-option ThemeSwitcher) lúc port từ Claude Design source — component + CSS đều copy nhưng `<ThemeSwitcher>` không wire vào `ProductLanding` render → dead code, không hiển thị khi mở kit. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged "tại sao implement từ source claude design vào ui kits lại bỏ qua") → Classify ✓ (no existing rule covers source↔implementation affordance parity; `design-layer-coverage.md` covers doc-layer existence khác axis; `output-review-mandate.md` covers review existence không covers affordance 1-1) → Rule+Enforce ✓ (this file + reviewer-checklist §7.1 + worked self-test §6 trên marketing-site ThemeSwitcher originating incident + rules-index.csv row + output-review-mandate.md §3 row paired same PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§6 worked example — §3 row 1+2+5 FAIL trên bản committed pre-fix, rule fires correctly + counterfactual 1 user round-trip saved) → Retro Log ✓ (this entry). META P1 force-multiplier per `meta-gap-priority.md` §3 — fix 1 chuẩn parity → mọi port design source subsequent auto-comply prospectively → eliminate dropped-affordance class. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying previously-uncovered design-implementation parity class; no constraint loosening; existing ports grandfathered; rule applies prospectively từ this PR forward 2026-06-01). Atomic-unique-bar §8 check passed. CI detector (§7.2) + memory auto-load (§7.3) deferred per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions; reviewer-checklist + worked self-test §6 sufficient cho v1.0.0. Path-scoped (`documents/02-architecture/design-system/**` + frontend src) per `context-budget-mandate.md` §3.2 — deferred-load khi touch design/frontend scope.
