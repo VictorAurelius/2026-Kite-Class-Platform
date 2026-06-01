@@ -7,7 +7,8 @@ tags_secondary: [audit-followup, csv-canonical, force-multiplier]
 counter: 8
 created: 2026-06-01
 date_launch: 2026-06-01
-status: draft
+date_closed: 2026-06-01
+status: complete
 ---
 
 # Wave meta-8 — Wave meta-7 follow-up apply audit catalog
@@ -165,3 +166,32 @@ Per `wave-closure-scope-completeness.md` v1.0.1 + `post-merge-sync-completeness.
 ## 8. Log
 
 - **2026-06-01** (draft): Plan created. Triggered by Wave meta-7 closure (PR #2005) surfacing 50 PARTIAL adjust + 14 SCOPE-REVISE + 1 DROP catalog + 2 META gap candidates. Per `meta-gap-priority.md` §3 META P0 force-multiplier — 2 new META detectors eliminate drift class permanently (audit-cadence + CSV/AC sync). Outside-in audit SKIP per `outside-in-coverage-trigger.md` §4 (internal meta scope). State-Check Evidence §4 verified — 7 symbols (4 ✅ + 3 🆕 NEW Bucket-owned). Cross-layer NO. Single coordinator-inline (no parallel agents) — CSV sequential safer. Estimate ~2.5h coordinator-inline.
+
+- **2026-06-01** (complete): All 5 buckets SHIPPED coordinator-inline ~1h wall-clock (vs ~2.5h estimate; ~2.5x speedup). 6 commits on wave/meta-8-plan: plan + 5 bucket commits. Per `wave-closure-scope-completeness.md` §3 reconciliation:
+
+## Scope-Completeness Reconciliation
+
+| # | Plan §3 Scope item | Verdict | Follow-up |
+|---|---|---|---|
+| A1 | Apply 50 PARTIAL adjust completion_pct + notes via Python script | ✅ DONE (71 updates, exceeds estimate; +4 OPEN→PARTIAL fix + 5 row healing) | — |
+| A2 | Status flips OPEN↔PARTIAL aligning với new pct | ✅ DONE (18 status flips applied) | — |
+| B1 | Rewrite 14 SCOPE-REVISE gap files (Log entry markers) | ✅ DONE (14/14 files updated với cross-link audit) | Deep AC rewrite deferred — reviewer may file follow-up gaps per file if needed |
+| C1 | File GAP-821 META audit-cadence detector | ✅ DONE | Phase 2 HARD STOP flip Wave meta-9 (target 2026-07-01 grace end) |
+| C2 | Ship `scripts/check-post-wave-audit-cadence.sh` + self-test | ✅ DONE (PASS, baseline 76 stale waves) | — |
+| C3 | CI WARN job `post-wave-audit-cadence` | ✅ DONE (`quality-docs.yml`) | — |
+| D1 | File GAP-822 META CSV/AC auto-sync mechanism | ✅ DONE | Phase 2 direction-aware classification Wave meta-9 |
+| D2 | Ship `scripts/sync-gap-csv-from-ac.sh` + self-test | ✅ DONE (PASS, baseline 226 drift gaps) | — |
+| D3 | Baseline drift report saved | ✅ DONE (`documents/04-quality/audits/meta/2026-06-01-csv-ac-drift-baseline.md`) | — |
+| D4 | CI WARN job `csv-ac-sync` | ✅ DONE | — |
+| E1 | Apply DROP candidate GAP-444 → WONTFIX | ✅ DONE (CSV status WONTFIX + pct 0 + notes) | Re-open mechanism documented if Phase 7 plan needs explicit pre-prep |
+
+**Verdict:** 11/11 scope items ✅ DONE. 0 PARTIAL. 0 NOT-IMPLEMENTED. 2 Phase 2 follow-ups (GAP-821 + GAP-822) scheduled Wave meta-9 (HARD STOP flip + direction-aware classification).
+
+**Outcome metrics:**
+- 71 CSV completion_pct updates (74 catalog hits + 4 OPEN→PARTIAL fixes + 5 row healing)
+- 18 status flips
+- 14 SCOPE-REVISE Log markers
+- 2 new META detectors shipped (audit-cadence + CSV/AC) — closes drift class
+- 2 baseline reports surfaced (76 stale-cadence waves + 226 CSV↔AC drift gaps)
+- 1 DROP → WONTFIX applied
+- ~1h wall-clock coordinator-inline (vs ~2.5h estimate)

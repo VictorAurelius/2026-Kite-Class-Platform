@@ -76,4 +76,6 @@ Investigation-first, then apply the cheapest correct fix:
 
 ## Log
 
+- 2026-06-01 — **Wave meta-8 Bucket B SCOPE-REVISE:** SCOPE-REVISE — PR #523 fix shipped but pom.xml evolved away from "spring-cloud-dependencies" string; gap description outdated relative to current dep tree; reviewer re-validate scope before DONE flip CSV completion_pct adjusted to 60%; gap body Status/AC reflect documented scope BEFORE Wave meta-7 audit — re-read audit artifact for current empirical reality. Source: `documents/04-quality/audits/meta/2026-06-01-wave-meta-7-bucket-b-p1-open-1.md`.
+
 - 2026-04-24 — Initial write-up after #517 + #518 surfaced the issue. 2 PRs closed pending gap resolution. 7 Boot-version IDE warnings persist until fix ships OR manual bump merged.

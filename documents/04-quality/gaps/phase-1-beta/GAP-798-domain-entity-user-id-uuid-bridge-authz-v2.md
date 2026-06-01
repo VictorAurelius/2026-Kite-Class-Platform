@@ -64,4 +64,6 @@ Audit (created_by) = UUID via X-User-Id; ownership/authz = numeric via X-User-Re
 
 ## Log
 
+- 2026-06-01 — **Wave meta-8 Bucket B SCOPE-REVISE:** SCOPE-REVISE — consumer side DONE PR #1948; producer side GAP-798b; AC structure may need split between consumer + producer CSV completion_pct adjusted to 50%; gap body Status/AC reflect documented scope BEFORE Wave meta-7 audit — re-read audit artifact for current empirical reality. Source: `documents/04-quality/audits/meta/2026-06-01-wave-meta-7-bucket-d-p1-partial.md`.
+
 - **2026-05-28:** Filed from GAP-795 fix-time investigation. GAP-795 agent fixed audit chain (created_by/updated_by + UserContext → UUID) but flagged authz ownership PARTIAL (fail-closed) because domain entities have no actor-UUID bridge. This gap = the "fix triệt để" remaining piece = "Gateway convention V2" (domain-entity user_id UUID bridge + invite-accept population + authz). Security-sensitive → investigation-first, dedicated session. User directive 2026-05-28 "phải fix hết gap triệt để".

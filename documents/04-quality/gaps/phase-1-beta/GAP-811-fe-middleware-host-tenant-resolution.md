@@ -168,6 +168,8 @@ async function getTenantIdentity() {
 
 ## Log
 
+- 2026-06-01 — **Wave meta-8 Bucket B SCOPE-REVISE:** SCOPE-REVISE — Status empty + AC all unchecked but Wave tenant-domain-1 Bucket C shipped 853/853 tests + build PASS; 5/8 AC implicit if synced (middleware + cache + suspended + dev override + build); live RST walk + landing SSR defer GAP-813 unblock CSV completion_pct adjusted to 60%; gap body Status/AC reflect documented scope BEFORE Wave meta-7 audit — re-read audit artifact for current empirical reality. Source: `documents/04-quality/audits/meta/2026-06-01-wave-meta-7-bucket-d-p1-partial.md`.
+
 - **2026-05-29:** Gap created. Thiết kế FE middleware host→tenant resolution (Approach A — middleware gọi BE resolve endpoint, set header `x-tenant-id` cho SSR đọc qua `next/headers`). Xác nhận hiện trạng qua đọc code: không có `middleware.ts`; landing SSR dùng `NEXT_PUBLIC_TENANT_ID` 1-tenant-per-deploy; `useTenantFromUrl` client-only + trả slug; gateway chỉ resolve `/api/**`; logic slug→UUID đã có internal ở `PublicBrandingController` nhưng chưa expose endpoint public → dependency GAP-813. Trade-off 3 approach phân tích trong Proposed Fix (A chọn, B defer, C banned). Status OPEN, blocked on GAP-813.
 
 - **2026-06-01:** Wave tenant-domain-1 Bucket C shipped `kitehub-frontend` implementation (per wave plan §3 — gap title `kiteclass-frontend` được wave plan reassign sang `kitehub-frontend` vì landing public Phase 1 BETA ship qua KiteHub host `kitehub.me`; KiteClass landing là Phase 2 scope). Status flipped OPEN → PARTIAL.

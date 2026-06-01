@@ -79,4 +79,6 @@ Tracked as separate gap if Wave 92+ shows recurrence.
 
 ## Log
 
+- 2026-06-01 — **Wave meta-8 Bucket B SCOPE-REVISE:** SCOPE-REVISE: 4 proposed rule extensions NOT shipped per-line per GAP-615 §Proposed Fix. release-fix-retry-budget did get v1.2.0 (Investigation phase mandate) — partial overlap with original Wave 86 retro spirit. Re-frame gap with concrete ship targets next wave OR mark as superseded if Wave meta-3  CSV completion_pct adjusted to 10%; gap body Status/AC reflect documented scope BEFORE Wave meta-7 audit — re-read audit artifact for current empirical reality. Source: `documents/04-quality/audits/meta/2026-06-01-wave-meta-7-bucket-c-p1-open-2.md`.
+
 - **2026-05-18** Filed retro gap codifying 5 anti-patterns observed Wave 86 closure session 2026-05-16. User-flagged mid-session but coordinator didn't codify before session ended. WSL shutdown interrupted; resumed session reviewed 37 newer commits — none of Waves 87-92 cover this process retro. Drafted as standalone gap ready for review (NOT committed to gap-status.csv yet pending user approval).
