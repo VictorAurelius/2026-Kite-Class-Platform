@@ -1,11 +1,12 @@
 ---
 id: GAP-811
 title: FE middleware host→tenant resolution — landing SSR resolve tenantId từ Host header
-status: OPEN
+status: PARTIAL
 priority: P1
 phase: phase-1-beta
 domain: Frontend
 created: 2026-05-29
+last_verified: 2026-06-01
 ---
 
 # GAP-811 — FE middleware host→tenant resolution
@@ -168,6 +169,29 @@ async function getTenantIdentity() {
 ## Log
 
 - **2026-05-29:** Gap created. Thiết kế FE middleware host→tenant resolution (Approach A — middleware gọi BE resolve endpoint, set header `x-tenant-id` cho SSR đọc qua `next/headers`). Xác nhận hiện trạng qua đọc code: không có `middleware.ts`; landing SSR dùng `NEXT_PUBLIC_TENANT_ID` 1-tenant-per-deploy; `useTenantFromUrl` client-only + trả slug; gateway chỉ resolve `/api/**`; logic slug→UUID đã có internal ở `PublicBrandingController` nhưng chưa expose endpoint public → dependency GAP-813. Trade-off 3 approach phân tích trong Proposed Fix (A chọn, B defer, C banned). Status OPEN, blocked on GAP-813.
+
+- **2026-06-01:** Wave tenant-domain-1 Bucket C shipped `kitehub-frontend` implementation (per wave plan §3 — gap title `kiteclass-frontend` được wave plan reassign sang `kitehub-frontend` vì landing public Phase 1 BETA ship qua KiteHub host `kitehub.me`; KiteClass landing là Phase 2 scope). Status flipped OPEN → PARTIAL.
+
+  **Files shipped:**
+  - `kitehub/kitehub-frontend/src/middleware.ts` (NEW, 122 LOC) — Next.js 15 edge middleware, extract Host → slug → `resolveTenant()` → inject `x-tenant-id` + `x-tenant-subdomain` headers. Graceful 404/410/5xx handling per outside-in finding P1.
+  - `kitehub/kitehub-frontend/src/lib/tenant/resolveTenant.ts` (NEW, 155 LOC) — caller cho Public Tenant Resolve endpoint per `documents/01-business/kitehub/marketing/api-contract.md` §9 contract. `TenantSuspendedError` / `TenantResolveNetworkError` exceptions; consumes Bucket 0 MSW handlers cho FE tests TRƯỚC khi Bucket B GAP-813 BE controller ships.
+  - `kitehub/kitehub-frontend/src/lib/tenant/tenantCache.ts` (NEW, 80 LOC) — 5-min TTL Map-based in-memory cache per api-contract §9.2 + negative-cache support cho 404 anti-enumeration.
+  - `kitehub/kitehub-frontend/src/app/(public)/suspended/page.tsx` (NEW, 56 LOC) — friendly status page cho SUSPENDED/ARCHIVED/DELETED tenants (middleware 307 redirect target).
+  - `kitehub/kitehub-frontend/src/lib/tenant/__tests__/{resolveTenant,tenantCache}.test.ts` (NEW, 24 unit tests) — MSW-backed coverage: 200/404/410/5xx paths + cache TTL + slug validation + base URL override.
+  - `kitehub/kitehub-frontend/src/__tests__/middleware.test.ts` (NEW, 17 unit tests) — `extractSlugFromHost` table-driven (16 fixtures) + middleware behavior matrix (ACTIVE/404/410/preview/BE-down/localhost).
+  - `kitehub/kitehub-frontend/e2e/host-tenant-resolution.spec.ts` (NEW, 5 Playwright scenarios) — route-mocked end-to-end coverage 5 AC scenarios (valid host / unknown / suspended / preview / BE-down).
+
+  **Verification:**
+  - `pnpm --filter kitehub-frontend test --run` → 853/853 PASS (including 41 new unit tests cho Bucket C scope)
+  - `pnpm --filter kitehub-frontend build` → ✅ Compiled successfully 28.3s + ESLint clean + `ƒ Middleware  35 kB` bundled (per `fe-build-local-verify.md` §3 mandate)
+  - `pnpm --filter kitehub-frontend type-check` → ✅ clean
+
+  **PARTIAL rationale (KHÔNG flip DONE per `gap-done-discipline.md` §3):**
+  - GAP-813 BE endpoint `GET /api/v1/public/tenants/by-subdomain/{slug}` chưa ship → middleware verified qua MSW unit tests + Playwright route-mock only; live multi-host RST walk (sky.kitehub.me / suspended.kitehub.me / unknown.kitehub.me on running Docker stack) deferred per `pre-handoff-self-test-completeness.md` §2.7 multi-tenant tenant-switch flow AC (`PRE_HANDOFF_PARTIAL: live multi-host walk — GAP-813 BE endpoint required`).
+  - Landing SSR consumer integration (`page.tsx` `getLandingPageData` đọc `headers().get('x-tenant-id')` TRƯỚC `NEXT_PUBLIC_TENANT_ID`) intentionally out of scope cho Bucket C — wave plan tách FE middleware layer (this gap) khỏi consumer rewire layer; consumer integration ship khi GAP-810/GAP-808 unblocks landing render scope.
+  - Bullet AC `kiteclass-frontend` references vẫn giữ trong AC checklist như historical record of original design intent; Bucket C implements equivalent shape ở `kitehub-frontend` per wave plan reassignment.
+
+  **Follow-up gap:** ship landing SSR consumer wire + live multi-host walk after GAP-813 (BE endpoint) lands — track trong Wave tenant-domain-2 hoặc paired GAP follow-up khi 4 gaps (811/812/813/814) align ready cho integration RST walk.
 
 ## Outside-in findings (3-agent audit 2026-05-29)
 
