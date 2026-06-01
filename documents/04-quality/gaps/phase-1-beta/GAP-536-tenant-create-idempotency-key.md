@@ -1,6 +1,6 @@
 # GAP-536: POST /tenants idempotency key — prevent double-submit orphan tenants
 
-**Status:** 🟡 PARTIAL — Wave 77 Bucket D backend foundation shipped (entity + service + repo + cleanup job + V41 + 7 tests); HandlerInterceptor wiring into POST `/api/platform/instances` deferred to follow-up
+**Status:** 🟡 PARTIAL — Wave 77 Bucket D backend foundation shipped (entity + service + repo + cleanup job + V41 + 7 tests); Wave onboarding-polish-2 Bucket C shipped HandlerInterceptor + CachingFilter + WebMvcConfig wire + 3 IT scenarios; FE submit-button debounce + live verify post-AWS-restore deferred
 **Priority:** 🔴 P0 — BLOCKING Phase 1 BETA invite (P1 Solo teacher slow 3G common in VN)
 **Domain:** Backend
 **Found:** 2026-05-14 (Wave 77 — outside-in audit: failure-mode matrix F3)
@@ -63,9 +63,9 @@ Standard fix: `Idempotency-Key` header (Stripe pattern) — request với same k
 - [x] `IdempotencyConflictException` (422-class) — distinct from RuntimeException so controller advice can map to 422
 - [x] `IdempotencyCleanupJob` `@Scheduled(cron = "0 0 4 * * *")` — daily 04:00 deletes expired rows; `@EnableScheduling` already wired in `KitehubSubscriptionApplication`
 - [x] Unit tests cover: hash determinism, cache miss, cache hit + matching hash, expired-row-as-miss, hash mismatch → 422, persist success, persist-race-swallowed (7 tests pass)
-- [ ] **HandlerInterceptor wiring** into POST `/api/platform/instances` — interceptor reads `Idempotency-Key` header before handler, replays cached response on hit, caches response after handler success. Deferred — needs decision on which mutation endpoints opt in (the generic infrastructure is in place; per-controller opt-in is straightforward integration work)
+- [x] **HandlerInterceptor wiring** into POST `/api/platform/instances` — `IdempotencyHandlerInterceptor` + `IdempotencyCachingFilter` shipped Wave onboarding-polish-2 Bucket C. Interceptor reads `Idempotency-Key` header, replays cached response qua `X-Idempotency-Replay: true` header, persists response trong `afterCompletion`. Path pattern khớp EXACT `/api/platform/instances` (POST), không cover sub-paths như `/extend-trial` (deliberate — chỉ tenant-create scope per F3 outside-in finding). 3 IT scenarios viết: same-key+same-body replay / same-key+different-body 422 / no-header proceeds normally.
 - [ ] **FE submit-button debounce** + UUID v4 idempotency-key generation — frontend work, not backend scope
-- [ ] **Live verify post-deploy:** 2 sequential POSTs same Idempotency-Key → 1 DB row + replay; same key different body → 422 (gated on wiring above)
+- [ ] **Live verify post-deploy:** 2 sequential POSTs same Idempotency-Key → 1 DB row + replay; same key different body → 422 — deferred next AWS-restore session per `feature-ship-runtime-walk-mandate.md` §5 `FEATURE_SHIP_WALK_DEFER`: AWS stack stopped (no production-equivalent env reachable từ current session)
 
 ## Related
 
@@ -76,5 +76,6 @@ Standard fix: `Idempotency-Key` header (Stripe pattern) — request với same k
 
 ## Log
 
+- **2026-06-01** (Wave onboarding-polish-2 Bucket C): IdempotencyHandlerInterceptor shipped — `IdempotencyHandlerInterceptor` + `IdempotencyCachingFilter` (wrap request/response body cho hashing) + `WebMvcConfig` wire trên POST `/api/platform/instances` (EXACT path, no sub-paths). 3 IT scenarios viết: (1) same-key+same-body replay 1 instance + `X-Idempotency-Replay: true` header; (2) same-key+different-body → 422 `idempotency_conflict`; (3) no-header proceeds normally, no cache row. IT execution local blocked by pre-existing Spring `set_config()` test infra issue (8 IT classes total fail trên H2 — pre-existing on main HEAD, confirmed via `InstanceProvisioningIT` baseline test; same exception class as GAP-735 / `admin-merge-discipline.md` precedent). 7 existing Mockito unit tests `IdempotencyServiceTest` PASS — no regression. CI canonical with Postgres infrastructure runs all 3 IT scenarios. completion_pct 65→80. Live verify defer next AWS-restore session per `feature-ship-runtime-walk-mandate.md` §5 LOCAL_SMOKE_SKIP override (AWS stack stopped).
 - **2026-05-14** — Wave 77 Bucket D shipped backend foundation: `V41__idempotency_keys.sql` (generic per-endpoint table, distinct from V20 migration-specific 10-min TTL) + `IdempotencyKey` entity + `IdempotencyKeyRepository` (find + deleteExpired @Modifying) + `IdempotencyService` (find/cache + SHA-256 hash + race-safe save) + `IdempotencyConflictException` (422 mapping marker) + `IdempotencyCleanupJob` (daily 04:00 cron). 7 unit tests pass. Status → PARTIAL: backend infrastructure DONE; HandlerInterceptor wiring into POST `/api/platform/instances` + FE submit-button debounce + live verify deferred per scope split (foundation vs per-endpoint opt-in vs FE work — 3 distinct concerns, only the foundation belongs to this gap's security/correctness core).
 - **2026-05-14** — Initial write-up. Wave 77 outside-in failure-mode matrix F3 surfaced. Stub in wave plan PR; full execution → Bucket D.
