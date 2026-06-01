@@ -128,6 +128,32 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    /**
+     * Xu ly thieu tenant context (GAP-777) - tra HTTP 400 voi structured JSON body
+     * thay vi roi vao catch-all handleUnexpectedException (500 + generic body).
+     *
+     * <p>Thieu X-Tenant-Id header (vi du owner co tenant_id IS NULL chua hoan tat
+     * onboarding) la client error (400), khong phai server error (500). FE consumer
+     * nhan duoc error code TENANT_NOT_SET + message tieng Viet tu message bundle de
+     * render thay vi "Loi khong xac dinh".
+     */
+    @ExceptionHandler(TenantNotSetException.class)
+    public ResponseEntity<ErrorResponse> handleTenantNotSet(
+            TenantNotSetException ex,
+            HttpServletRequest request) {
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = resolveMessage(ex.getErrorCode(), null, locale);
+
+        log.warn("Tenant context not set at {}: {} (locale: {})",
+                request.getRequestURI(), ex.getMessage(), locale);
+
+        String path = request.getRequestURI();
+        ErrorResponse response = ErrorResponse.of(ex.getErrorCode(), message, path);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
             IllegalArgumentException ex,

@@ -183,6 +183,43 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void handleTenantNotSet_shouldReturn400WithStructuredBody() {
+        // GAP-777: thieu tenant context (vi du owner.test co tenant_id IS NULL)
+        // phai tra 400 voi structured JSON body (code + message), khong phai 500 / empty body.
+        TenantNotSetException ex = new TenantNotSetException(
+                "Tenant context not set for current thread");
+        when(messageSource.getMessage(eq("TENANT_NOT_SET"), any(), any(Locale.class)))
+                .thenReturn("Khong tim thay ngu canh tenant. Vui long cung cap header X-Tenant-Id.");
+
+        ResponseEntity<ErrorResponse> response = handler.handleTenantNotSet(ex, request);
+
+        // Semantic: thieu tenant context la client error (400), khong phai server error (500)
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        // Non-empty structured body (closes GAP-777 empty-body symptom)
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("TENANT_NOT_SET");
+        assertThat(response.getBody().getMessage()).isNotBlank();
+        assertThat(response.getBody().getPath()).isEqualTo("/api/v1/test");
+        assertThat(response.getBody().getTimestamp()).isNotNull();
+    }
+
+    @Test
+    void handleTenantNotSet_shouldFallBackToCodeWhenMessageMissing() {
+        // GAP-777: ke ca khi message bundle thieu key, body van non-empty (code lam fallback)
+        TenantNotSetException ex = new TenantNotSetException("missing tenant");
+        when(messageSource.getMessage(eq("TENANT_NOT_SET"), any(), any(Locale.class)))
+                .thenThrow(new RuntimeException("no such message key"));
+
+        ResponseEntity<ErrorResponse> response = handler.handleTenantNotSet(ex, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("TENANT_NOT_SET");
+        // resolveMessage fallback tra ve chinh code khi key missing -> van non-empty
+        assertThat(response.getBody().getMessage()).isEqualTo("TENANT_NOT_SET");
+    }
+
+    @Test
     void handleNoHandlerFound_shouldReturn404() {
         // GAP-796: route khong ton tai phai tra 404, khong phai 500
         NoHandlerFoundException ex = new NoHandlerFoundException(
