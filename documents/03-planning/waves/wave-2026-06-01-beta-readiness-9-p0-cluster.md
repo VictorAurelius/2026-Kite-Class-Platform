@@ -1,6 +1,6 @@
 ---
 title: Wave beta-readiness-9 — P0 cluster (security IDOR + staff-invite + code-splitting + VN-seed)
-status: planning
+status: complete
 created: 2026-06-01
 waves: [9]
 wave: 9
