@@ -6,9 +6,9 @@ import com.kitehub.subscription.idempotency.service.IdempotencyService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
@@ -53,10 +53,18 @@ public class IdempotencyHandlerInterceptor implements HandlerInterceptor {
     /** Request attribute carrying the request-body SHA-256 hash. */
     private static final String ATTR_HASH = "idempotencyHash";
 
-    private final IdempotencyService idempotencyService;
+    /**
+     * Resolved lazily via {@link ObjectProvider} so this interceptor — which Spring
+     * MVC auto-detects and instantiates inside {@code @WebMvcTest} slices (every
+     * controller test transitively loads {@code WebMvcConfig}) — does not force the
+     * data-layer {@link IdempotencyService} bean into those slices. In production the
+     * service is always present; in a web slice it is absent and idempotency degrades
+     * to a no-op (the endpoint still works, just without replay/conflict guards).
+     */
+    private final ObjectProvider<IdempotencyService> idempotencyServiceProvider;
 
-    public IdempotencyHandlerInterceptor(IdempotencyService idempotencyService) {
-        this.idempotencyService = idempotencyService;
+    public IdempotencyHandlerInterceptor(ObjectProvider<IdempotencyService> idempotencyServiceProvider) {
+        this.idempotencyServiceProvider = idempotencyServiceProvider;
     }
 
     @Override
@@ -64,6 +72,12 @@ public class IdempotencyHandlerInterceptor implements HandlerInterceptor {
             throws Exception {
         String key = request.getHeader(HEADER_IDEMPOTENCY_KEY);
         if (key == null || key.isBlank()) {
+            return true;
+        }
+
+        IdempotencyService idempotencyService = idempotencyServiceProvider.getIfAvailable();
+        if (idempotencyService == null) {
+            // Service absent (e.g. @WebMvcTest slice) — degrade to no-op, proceed normally.
             return true;
         }
 
@@ -106,6 +120,12 @@ public class IdempotencyHandlerInterceptor implements HandlerInterceptor {
         }
         if (ex != null) {
             // Handler raised — don't poison the cache.
+            return;
+        }
+
+        IdempotencyService idempotencyService = idempotencyServiceProvider.getIfAvailable();
+        if (idempotencyService == null) {
+            // Should not happen: ATTR_KEY only set when service was available in preHandle.
             return;
         }
 
