@@ -61,8 +61,8 @@ kitehub/kitehub-frontend/src/lib/api/client.ts:15:      const accessToken = loca
 - [ ] Switch tab A → B → A: API request từ mỗi tab dùng đúng JWT của actor đó (kiểm verify via DevTools Network tab → `Authorization` header)
 - [ ] Logout tab A KHÔNG ảnh hưởng tab B (mỗi tab logout độc lập)
 - [ ] Cross-tenant data leak test: tab A xem dashboard admin, tab B xem dashboard owner → KHÔNG có request nào trả data sai tenant context
-- [ ] FE storage scheme documented trong `documents/02-architecture/frontend/auth-storage.md` (hoặc tương đương)
-- [ ] `documents/05-guides/operations/acceptance-tests/README.md` § "Concurrent browser session" mitigation note shipped (Wave 87 Bucket E — partial)
+- [x] FE storage scheme documented trong `documents/02-architecture/frontend/auth-storage.md` (Wave email-finalize-1-execute Bucket A 2026-06-01 — shipped với facade API + 7 production sites + test evidence + future scope)
+- [x] `documents/05-guides/operations/acceptance-tests/README.md` § "Concurrent browser session" mitigation note refreshed (Wave email-finalize-1-execute Bucket A 2026-06-01 — promoted Wave 87 partial note to post-Wave-92 verify checklist + cross-link auth-storage.md)
 
 ## Related
 
@@ -74,3 +74,5 @@ kitehub/kitehub-frontend/src/lib/api/client.ts:15:      const accessToken = loca
 ## Log
 
 - **2026-05-17:** Gap filed Wave 87 Bucket E. Outside-in audit #3 failure-mode matrix phát hiện class này khi simulate "dev mở 2 tab quick switch". State-check confirmed single-key `localStorage['accessToken']` scheme — không có per-tab/per-tenant isolation. P0 vì chặn acceptance walkthrough multi-actor (đa số flows trong matrix 126 rows). Wave 87 ship docs mitigation; code fix Option A defer Wave 88+.
+- **2026-06-01 (Wave email-finalize-1-execute Bucket A):** AC tick refresh — 2 docs AC ticked: (a) `documents/02-architecture/frontend/auth-storage.md` shipped với facade API surface + 7 production sites consuming + Wave 92 B test evidence (17 unit + 3 sim) + future scope GAP-643 HttpOnly cookie; (b) acceptance-tests README §Concurrent browser session refreshed post-Wave-92-fix — promoted từ "DEPRECATED localStorage workaround" sang "post-fix verify checklist" (5-step matrix per `pre-handoff-self-test-completeness.md` §2.7). 4 live-browser AC (multi-tab JWT isolation + DevTools verify + logout isolation + cross-tenant leak test) vẫn defer GAP-612 AWS restore — pre-handoff §5.5 trailer not invoked (still PARTIAL). CSV pct 92 → 95.
+

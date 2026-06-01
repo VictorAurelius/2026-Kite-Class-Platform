@@ -103,21 +103,29 @@ Move sang `documents/07-archived/acceptance-tests-YYYY/` khi:
 
 ## ⚠️ Concurrent browser session — multi-actor walkthrough
 
-Khi acceptance test yêu cầu mở nhiều tab cùng lúc (vd admin tab A + tenant owner tab B để verify multi-actor flow), **PHẢI dùng 2 browser profiles riêng biệt** (Chrome profile 1 + Chrome profile 2, hoặc Chrome + Firefox), **KHÔNG mở 2 tab trên cùng domain** `kitehub.me`.
+**Trạng thái (post Wave 92 Bucket B PR #1515 + Wave email-finalize-1):** JWT 2-tab collision đã được fix code-level — JWT lưu trong `sessionStorage` (per-tab native isolation) qua facade `kitehub-frontend/src/lib/auth/jwt-storage.ts`. Architecture chi tiết: [`../../../02-architecture/frontend/auth-storage.md`](../../../02-architecture/frontend/auth-storage.md). Test evidence: 17 unit tests + 3 jsdom two-tab simulation PASS local + CI.
 
-**Lý do** (per [GAP-599](../../../04-quality/gaps/GAP-599-jwt-tab-collide-storage-isolation.md) P0):
+### Live verify cho multi-actor walkthrough (mandatory pre-DONE per [GAP-599](../../../04-quality/gaps/GAP-599-jwt-tab-collide-storage-isolation.md))
 
-- FE auth storage hiện dùng `localStorage['accessToken']` single-key per origin
-- Browser invariant: `localStorage` shared across mọi tab cùng origin
-- → Tab A login admin → tab B login tenant → JWT của tab A bị ghi đè → tab A submit form sau đó dùng JWT của tab B → 403 hoặc cross-tenant data leak
+Per [`.claude/rules/pre-handoff-self-test-completeness.md`](../../../../.claude/rules/pre-handoff-self-test-completeness.md) §2.7 multi-tenant tenant-switch checklist — JWT isolation cần verify trên real browser pre-DONE flip:
 
-**Workaround pre-fix:**
+1. **Test setup:** Mở **2 tab trên cùng browser** (cùng Chrome window, cùng profile) cho `https://kitehub.me`:
+   - Tab A: login admin
+   - Tab B: login tenant owner
+2. **Verify isolation:** DevTools → Application → Storage → `sessionStorage` cho mỗi tab — `accessToken` PHẢI khác nhau (Wave 92 Bucket B sessionStorage per-tab guarantee)
+3. **Cross-action test:** Switch tab A → submit admin form → DevTools Network tab → `Authorization` header dùng admin JWT (KHÔNG phải tenant JWT của tab B)
+4. **Logout isolation:** Logout tab A → tab B vẫn logged in (independent session)
+5. **Cross-tenant leak test:** Tab A xem admin dashboard, tab B xem tenant owner dashboard — KHÔNG có request nào trả data sai tenant context
 
-1. **Option A (preferred):** Mở Chrome → click avatar góc phải → "Add" → tạo profile thứ 2 → mỗi profile cho 1 actor
-2. **Option B:** Dùng 2 browser khác nhau (Chrome cho admin + Firefox cho tenant)
-3. **Option C (incognito):** Profile thường + Incognito window — 2 storage scope tách biệt (cẩn thận: incognito clear khi đóng window)
+Live verify này gated GAP-612 AWS restore (per GAP-599 Status PARTIAL). Khi AWS up, walk full 5-step matrix.
 
-Cleanup giữa các session walkthrough: nếu abort flow giữa chừng và gặp `409 Conflict` khi re-submit cùng email → chạy `bash scripts/dev/self-test-reset.sh` (Wave 87 Bucket B) HOẶC chờ scheduled cleanup landing (per [GAP-600](../../../04-quality/gaps/GAP-600-beta-request-abort-cleanup.md) P1, Wave 88+).
+### Legacy workaround (pre Wave 92 Bucket B — DEPRECATED)
+
+Trước Wave 92 fix dùng `localStorage` shared cross-tab — workaround buộc phải tách profile / browser. Sau Wave 92 fix, **2 tab cùng profile là test scenario hợp lệ và recommend** để verify sessionStorage isolation hoạt động. Profile-split chỉ còn cần khi muốn isolate cookies / persistent state ngoài JWT scope.
+
+### Cleanup giữa các session walkthrough
+
+Nếu abort flow giữa chừng và gặp `409 Conflict` khi re-submit cùng email → chạy `bash scripts/dev/self-test-reset.sh` (Wave 87 Bucket B) HOẶC chờ scheduled cleanup landing (per [GAP-600](../../../04-quality/gaps/GAP-600-beta-request-abort-cleanup.md) P1, Wave 88+).
 
 ---
 
