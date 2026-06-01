@@ -1,6 +1,6 @@
 # GAP-543: Email content audit — 5 email types content/tone Vietnamese
 
-**Status:** 🟡 PARTIAL 80% (Wave 98 B1 — deliverability + tone foundation shipped via GAP-657 + GAP-659; per-tone variants + native VN copywriter Wave 99)
+**Status:** 🟡 PARTIAL 95% (Wave 98 B1 deliverability + Wave email-content-vn-audit content/tone fix — 5 critical types MailHog-verified VN-clean; remaining 5% = HTML render verify ≥2 email clients GAP-543.3 + live AWS send smoke GAP-527, both env-blocked)
 **Priority:** 🔴 P0
 **Domain:** Mixed (Content + Backend templates)
 **Detected:** 2026-05-14
@@ -67,8 +67,9 @@ User confirm 2026-05-14: "Email content audit vào Wave 78" (1 trong 3 inside-ou
 - [ ] All 5 email types ship với content fix — defer (3 templates missing → GAP-543.1 follow-up Wave 79)
 - [x] Plain-text `.txt` fallback cho mỗi `.html` — Wave 98 B1 shipped 5/5 critical (welcome / beta-invite / email-verification / password-reset / invite-staff per PR #1553)
 - [ ] Footer support@kitehub.me + /beta-status link — defer (content rewrite wave riêng, sync GAP-539/540)
-- [ ] HTML render verify ≥2 email clients — defer (GAP-543.3 follow-up Wave 79)
-- [ ] Live email send smoke test — defer (sync GAP-527 Plan 1 invite)
+- [x] Content/tone fix 5 critical types (welcome / beta-invite / email-verification / password-reset / invite-staff) — MailHog-verified VN-clean (Wave email-content-vn-audit): 0 English residue + 0 wrong-domain support email + diacritics intact + variables substituted + multipart HTML+text both present
+- [ ] HTML render verify ≥2 email clients — defer (GAP-543.3 follow-up; Email-on-Acid/Litmus env-blocked locally)
+- [ ] Live email send smoke test — defer (sync GAP-527 Plan 1 invite; AWS SES blocked)
 - [ ] Email i18n vi/en fallback — defer Wave 79+ (Phase 1 BETA Vietnamese-first, low priority)
 
 ## Related
@@ -85,6 +86,13 @@ User confirm 2026-05-14: "Email content audit vào Wave 78" (1 trong 3 inside-ou
 
 ## Log
 
+- **2026-06-02 (Wave email-content-vn-audit — PARTIAL 85% → 95%):** Content/tone fix shipped for 5 critical email types + MailHog live verify. State-check found 3 content/tone bug classes affecting the 5 types:
+  1. **English residue** `All rights reserved` in `beta-invite.html` (footer) + 4 variant siblings (`welcome.formal/informal`, `invite-staff.formal/informal`) → fixed to `Bảo lưu mọi quyền`.
+  2. **Wrong-domain support contact** `support@kiteclass.com` template fallback in `beta-invite.html` + the runtime-injected `TenantBranding.defaultBranding()` Java default (`contactEmail="support@kiteclass.com"`) → both fixed to `support@kitehub.me`. This was the source-of-truth bug: branding object injected at render time overrode template defaults, so all 5 types showed an unreachable support address in their footer even after template-level fixes.
+  3. **Brand-default inconsistency** `KiteClass` defaults in `beta-invite.html` vs `KiteHub` in other 4 + `kitehub.me` footers same file → aligned to `KiteHub` (template default; runtime `branding.displayName` still injects the dual-brand value per deferred decision). Also fixed `giờ giờ` double-word typo in beta-invite HTML + txt.
+  - **Verify:** `./mvnw -pl kitehub-email verify -P strict-warnings` BUILD SUCCESS (88 tests, 0 fail). Rebuilt kitehub-email image + restarted container. Triggered all 5 types via `POST /api/platform/emails/send` → MailHog capture. Per-type verification (post-fix): 0 English residue (HTML+text), 0 `kiteclass.com`, `support@kitehub.me` present, VN diacritics intact, no raw `${var}` leak, multipart HTML+text both present. ALL 5 PASS.
+  - **Cross-flow sweep:** same `All rights reserved` + `support@kiteclass.com` bug class also present in non-critical templates (beta-request-confirmation, subscription-created, trial-expiration-warning, + ~20 others with `&copy; ... All rights reserved`). DEFER to follow-up gap GAP-543.4 (out of GAP-543's 5-critical-type scope). `AWS_SES_FROM_EMAIL=noreply@kiteclass.com` env (sender domain) = infra/env config, out of template-content scope.
+  - Files: `beta-invite.{html,txt}`, `invite-staff.html`, `welcome.formal.html`, `welcome.informal.html`, `invite-staff.formal.html`, `invite-staff.informal.html`, `TenantBranding.java`. CSV `completion_pct` 85 → 95.
 - **2026-06-01 (Wave email-finalize-1 Bucket B AC tick refresh):** Plain-text fallback AC ticked retroactively — Wave 98 B1 (PR #1553 2026-05-18) already shipped 5/5 `.txt` siblings at `kitehub/kitehub-email/src/main/resources/templates/emails/` (verified `find ... -name "*.txt"`). Gap Log 2026-05-18 documented evidence but checkbox state never updated until now. CSV `completion_pct` 80 → 85.
 - **2026-05-21 (Wave 102.9 Bucket D fix-time state-check):** Per `audit-to-gap-pipeline.md` §2.8 verified Wave 98 B1 work intact — audit notes folder + 7-dimension notes + subject line PII check all shipped. Remaining AC (content fix + 3-template create + footer + 2-client render + live smoke + i18n) all deferred per existing follow-up gaps (GAP-543.1/2/3 Wave 79+ + Mailhog/AWS-blocked). Status PARTIAL 80% retained — no progress this wave; Bucket D scope reality-mismatched. State-check artifact: `documents/04-quality/audits/persona-review/2026-05-21-wave-102.9-bucket-d-email-content-headers-state-check.md`. Sister to A+B+C state-check pattern.
 - 2026-05-14 — Initial write-up (state-check completed; 5 template files partial; audit notes folder absent; Wave 78 Bucket E owner).

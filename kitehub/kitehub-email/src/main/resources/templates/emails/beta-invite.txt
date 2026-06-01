@@ -27,7 +27,7 @@ Cần hỗ trợ?
   - Zalo OA: https://zalo.me/[(${zaloOaId ?: 'kitehub'})] (phản hồi nhanh hơn cho câu hỏi gấp, T2-T6 8h-18h)
 
 Chị Mai từ KiteHub đây — em là người duyệt yêu cầu này.
-Reply email này nếu có thắc mắc; mình phản hồi trong 4 giờ giờ hành chính (T2–T6, 08:00–18:00).
+Reply email này nếu có thắc mắc; mình phản hồi trong 4 giờ làm việc (T2–T6, 08:00–18:00).
 
 Trân trọng,
 Chị Mai — Đội ngũ [(${branding?.displayName ?: 'KiteHub'})]
