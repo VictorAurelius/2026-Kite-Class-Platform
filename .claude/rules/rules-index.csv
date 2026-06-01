@@ -99,3 +99,4 @@ cross-flow-bug-class-sweep,MANDATORY,1.0.1,2026-05-28,2026-05-31,cross-flow-bug-
 api-contract-change-caller-sweep,MANDATORY,1.0.0,2026-05-28,2026-05-28,api-contract-change-caller-sweep.md,**/*.java,active,,
 fe-build-local-verify,MANDATORY,1.0.0,2026-05-28,2026-05-28,fe-build-local-verify.md,"kitehub/kitehub-frontend/**,kiteclass/kiteclass-frontend/**",active,,
 wave-thesis-ci-minimization,MANDATORY,1.0.0,2026-05-26,2026-05-26,wave-thesis-ci-minimization.md,"documents/03-planning/waves/wave-*thesis*.md,documents/08-thesis/**",active,,
+thesis-as-future-state-mandate,MANDATORY,1.0.0,2026-06-01,2026-06-01,thesis-as-future-state-mandate.md,"documents/08-thesis/**,documents/03-planning/waves/**,documents/04-quality/gaps/**",active,,

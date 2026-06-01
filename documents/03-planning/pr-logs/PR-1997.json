@@ -1,0 +1,33 @@
+{
+  "pr": 1997,
+  "title": "docs(wave-meta-7-bucket-0): Foundation \u2014 taxonomy + 4 gap-id lists (172 gaps)",
+  "branch": "wave/meta-7-bucket-0-foundation",
+  "created_at": null,
+  "merged_at": "2026-06-01T08:23:20Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-06-01T08:23:27.723737",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 7,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1412217"
+  }
+}
