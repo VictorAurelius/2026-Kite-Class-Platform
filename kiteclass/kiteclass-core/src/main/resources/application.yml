@@ -141,6 +141,13 @@ internal:
   api:
     secret: ${INTERNAL_API_SECRET:changeme-in-production-must-match-gateway}
 
+# Landing page input safety (GAP-827) — image-host allowlist for tenant-supplied
+# heroImageUrl/logoUrl. Production overrides via LANDING_SAFETY_ALLOWED_IMAGE_HOSTS
+# (comma-separated). Dev defaults cover localhost + MinIO.
+landing:
+  safety:
+    allowed-image-hosts: ${LANDING_SAFETY_ALLOWED_IMAGE_HOSTS:localhost,minio,kite-minio,cdn.kitehub.me,assets.kitehub.me}
+
 # Storage Configuration (S3/MinIO)
 storage:
   s3:

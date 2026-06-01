@@ -47,6 +47,7 @@ public class LandingPage extends BaseEntity {
 
     // Teacher/About Section
     @Column(name = "teacher_bio", columnDefinition = "TEXT")
+    @Size(max = 2000, message = "{landing.teacherBio.size}")
     private String teacherBio;
 
     // Branding
@@ -77,6 +78,7 @@ public class LandingPage extends BaseEntity {
     private String contactPhone;
 
     @Column(name = "address", columnDefinition = "TEXT")
+    @Size(max = 500, message = "{landing.address.size}")
     private String address;
 
     // Social Media
@@ -98,6 +100,7 @@ public class LandingPage extends BaseEntity {
 
     /** Free-text "About" / introduction paragraph for the center. */
     @Column(name = "about_text", columnDefinition = "TEXT")
+    @Size(max = 5000, message = "{landing.aboutText.size}")
     private String aboutText;
 
     /** Landing template type: "personal" (GV độc lập) | "organization" (trung tâm). */

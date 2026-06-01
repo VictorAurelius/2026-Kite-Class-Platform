@@ -5,6 +5,7 @@ import com.kiteclass.core.module.marketing.dto.response.LandingPageResponse;
 import com.kiteclass.core.module.marketing.entity.LandingPage;
 import com.kiteclass.core.module.marketing.mapper.LandingPageMapper;
 import com.kiteclass.core.module.marketing.repository.LandingPageRepository;
+import com.kiteclass.core.module.marketing.service.LandingPageContentSanitizer;
 import com.kiteclass.core.module.marketing.service.impl.LandingPageServiceImpl;
 import com.kiteclass.core.module.settings.repository.BrandingRepository;
 import com.kiteclass.core.testutil.LandingPageTestDataBuilder;
@@ -40,6 +41,9 @@ class LandingPageServiceTest {
 
     @Mock
     private BrandingRepository brandingRepository;
+
+    @Mock
+    private LandingPageContentSanitizer contentSanitizer;
 
     @InjectMocks
     private LandingPageServiceImpl landingPageService;
@@ -105,6 +109,8 @@ class LandingPageServiceTest {
         // Then
         assertThat(result).isNotNull();
         verify(landingPageMapper).updateEntity(landingPage, request);
+        // GAP-827: sanitize-on-write runs after mapper, before persist.
+        verify(contentSanitizer).sanitize(landingPage);
         verify(landingPageRepository).save(landingPage);
     }
 }

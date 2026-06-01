@@ -5,6 +5,7 @@ import com.kiteclass.core.module.marketing.dto.response.LandingPageResponse;
 import com.kiteclass.core.module.marketing.entity.LandingPage;
 import com.kiteclass.core.module.marketing.mapper.LandingPageMapper;
 import com.kiteclass.core.module.marketing.repository.LandingPageRepository;
+import com.kiteclass.core.module.marketing.service.LandingPageContentSanitizer;
 import com.kiteclass.core.module.marketing.service.LandingPageService;
 import com.kiteclass.core.module.settings.entity.Branding;
 import com.kiteclass.core.module.settings.repository.BrandingRepository;
@@ -34,6 +35,7 @@ public class LandingPageServiceImpl implements LandingPageService {
     private final LandingPageRepository landingPageRepository;
     private final LandingPageMapper landingPageMapper;
     private final BrandingRepository brandingRepository;
+    private final LandingPageContentSanitizer contentSanitizer;
 
     /**
      * Gets landing page for tenant, creates default if not exists.
@@ -81,6 +83,10 @@ public class LandingPageServiceImpl implements LandingPageService {
         LandingPage landingPage = getOrCreateDefault(tenantId);
 
         landingPageMapper.updateEntity(landingPage, request);
+        // GAP-827: sanitize-on-write (defense-in-depth) AFTER MapStruct copy, BEFORE persist.
+        // Strips XSS from text + JSONB sections, NFC-preserves VN diacritics, validates image
+        // URL scheme/host allowlist (throws ValidationException → HTTP 400 on malicious URL).
+        contentSanitizer.sanitize(landingPage);
         LandingPage updated = landingPageRepository.save(landingPage);
 
         log.info("Updated landing page for tenant: {}", tenantId);
