@@ -1,0 +1,57 @@
+{
+  "pr": 1994,
+  "title": "feat(wave-tenant-domain-1-D): GAP-812 custom domain verify + ACM scaffold (apply deferred)",
+  "branch": "wave/tenant-domain-1-bucket-d-gap-812",
+  "created_at": null,
+  "merged_at": "2026-06-01T05:45:41Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": true,
+    "audits_required": [
+      "business-logic-audit",
+      "api-contract-audit",
+      "ops-readiness-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-06-01T05:39:18.981450",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 13,
+        "java_files": 3,
+        "test_files": 2,
+        "business_docs": true,
+        "missing_audits": [
+          "business-logic-audit",
+          "api-contract-audit",
+          "ops-readiness-audit"
+        ]
+      }
+    },
+    {
+      "time": "2026-06-01T05:45:46.508855",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 13,
+        "java_files": 3,
+        "test_files": 2,
+        "business_docs": true,
+        "missing_audits": [
+          "business-logic-audit",
+          "api-contract-audit",
+          "ops-readiness-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "2/5",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1076296"
+  }
+}
