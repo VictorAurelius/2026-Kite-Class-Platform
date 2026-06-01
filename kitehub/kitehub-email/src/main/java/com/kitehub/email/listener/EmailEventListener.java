@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.email.config.EmailQueueConsumerConfig;
 import com.kitehub.email.dto.EmailRequest;
+import com.kitehub.email.service.EmailIdempotencyGuard;
 import com.kitehub.email.service.EmailSender;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -51,7 +52,12 @@ import java.util.Map;
  * at-most-once intent; the queue + DLQ ({@link EmailQueueConsumerConfig}) provide
  * at-least-once retry. Render/send failures throw so the listener container routes the
  * message to the DLQ after retry exhaustion (poison messages don't infinite-loop, per
- * GAP-607 producer-side retry advice).</p>
+ * GAP-607 producer-side retry advice). GAP-580 adds a CONSUMER-side
+ * {@link EmailIdempotencyGuard} TTL dedup: at-least-once delivery means a crash/throw
+ * AFTER the provider send but BEFORE the broker ack triggers a redelivery that would
+ * re-send the same email. The guard suppresses the duplicate by a deterministic
+ * idempotency key (in-flight + same-process retry coverage; cross-restart coverage is
+ * a documented limitation — see {@link EmailIdempotencyGuard}).</p>
  *
  * <p>Enabled by default; disabled in tests / RabbitMQ-less environments via
  * {@code kitehub.email.use-queue=false}.</p>
@@ -68,10 +74,13 @@ public class EmailEventListener {
 
     private final EmailSender emailSender;
     private final ObjectMapper objectMapper;
+    private final EmailIdempotencyGuard idempotencyGuard;
 
-    public EmailEventListener(EmailSender emailSender, ObjectMapper objectMapper) {
+    public EmailEventListener(EmailSender emailSender, ObjectMapper objectMapper,
+                              EmailIdempotencyGuard idempotencyGuard) {
         this.emailSender = emailSender;
         this.objectMapper = objectMapper;
+        this.idempotencyGuard = idempotencyGuard;
     }
 
     /**
@@ -112,6 +121,16 @@ public class EmailEventListener {
             return;
         }
 
+        // GAP-580 — consumer-side idempotency: suppress duplicate re-send on
+        // at-least-once redelivery (crash/throw after provider send, before ack).
+        String idempotencyKey = idempotencyGuard.computeKey(
+                event.idempotencyKey, event.to, event.templateName, event.emailType, event.variables);
+        if (!idempotencyGuard.markIfFirstSeen(idempotencyKey)) {
+            log.info("Skipping duplicate queued email (idempotent): type={} to={}",
+                    event.emailType, event.to);
+            return;
+        }
+
         log.info("Dispatching queued email: type={} template={} to={}",
                 event.emailType, event.templateName, event.to);
 
@@ -146,6 +165,7 @@ public class EmailEventListener {
         payload.subject = text(node, "subject");
         payload.templateName = text(node, "templateName");
         payload.emailType = text(node, "emailType");
+        payload.idempotencyKey = text(node, "idempotencyKey");
 
         JsonNode vars = node.get("variables");
         if (vars != null && vars.isObject()) {
@@ -191,6 +211,7 @@ public class EmailEventListener {
         private String subject;
         private String templateName;
         private String emailType;
+        private String idempotencyKey;
         private Map<String, Object> variables;
     }
 }
