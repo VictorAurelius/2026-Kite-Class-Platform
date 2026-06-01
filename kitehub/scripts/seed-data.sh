@@ -131,11 +131,14 @@ seed_courses() {
   local instance_id="$2"
   local subdomain="$3"
 
+  # VN sample data per GAP-538 AC8 + .claude/rules/vn-localization-audit-checklist.md §2 row 3
+  # Mix K-12 (Toán/Văn/Lý/KHTN/Sử Địa) + ngoại ngữ + tin học để cover diverse tenant types
   local courses=(
-    '{"name":"English Basics","code":"ENG101","description":"Beginner English course","level":"Beginner","category":"Language"}'
-    '{"name":"IELTS Preparation","code":"IELTS01","description":"IELTS exam preparation","level":"Intermediate","category":"Language"}'
-    '{"name":"Business English","code":"BUS01","description":"English for business professionals","level":"Advanced","category":"Language"}'
-    '{"name":"Kids English","code":"KIDS01","description":"Fun English for children","level":"Beginner","category":"Language"}'
+    '{"name":"Toán 6","code":"TOAN06","description":"Toán lớp 6 chương trình GDPT 2018","level":"Cơ bản","category":"Khoa học tự nhiên"}'
+    '{"name":"Văn 7","code":"VAN07","description":"Ngữ văn lớp 7 chương trình GDPT 2018","level":"Cơ bản","category":"Khoa học xã hội"}'
+    '{"name":"Tiếng Anh Cambridge","code":"ENG-CAM","description":"Tiếng Anh giao tiếp theo khung Cambridge Starters–Movers","level":"Nâng cao","category":"Ngoại ngữ"}'
+    '{"name":"Vật lý 10","code":"LY10","description":"Vật lý lớp 10 chương trình GDPT 2018","level":"Nâng cao","category":"Khoa học tự nhiên"}'
+    '{"name":"Tin học cơ bản","code":"TINHOC01","description":"Tin học văn phòng + tư duy thuật toán cho học sinh THCS","level":"Cơ bản","category":"Công nghệ"}'
   )
 
   local count=0
@@ -214,7 +217,7 @@ echo "    demo@kiteteam.com    / KiteTeam@Demo123  (KiteTeam Demo)"
 echo "    admin@kitehub.com    / Admin@KiteHub123  (Admin)"
 echo ""
 echo "  Instances:"
-echo "    kiteteam-dev   → Internal testing (5 students, 3 teachers, 4 courses)"
+echo "    kiteteam-dev   → Internal testing (5 students VN, 3 teachers VN, 5 courses VN K-12+ngoại ngữ)"
 echo "    kiteteam-demo  → Showcase demo"
 echo "    admin-portal   → Admin dashboard"
 echo ""
