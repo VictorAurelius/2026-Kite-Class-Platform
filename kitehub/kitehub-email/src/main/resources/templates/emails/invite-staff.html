@@ -154,9 +154,19 @@
         </p>
     </div>
 
+    <!-- Wave 107 GAP-543 tone pass: English residue "All rights reserved" → "Bảo lưu mọi quyền";
+         replaced bare auto-reply line with reply-friendly support + status footer to match
+         the other 4 critical templates per vn-localization-audit-checklist §2 + reply-friendly tone. -->
     <div class="footer">
-        <p th:text="|© 2026 ${branding?.displayName ?: 'KiteHub'}. All rights reserved.|">© 2026 KiteHub.</p>
-        <p>Email này được gửi tự động, vui lòng không trả lời.</p>
+        <p th:text="|© 2026 ${branding?.displayName ?: 'KiteHub'}. Bảo lưu mọi quyền.|">© 2026 KiteHub.</p>
+        <p>📧 Cần hỗ trợ? Reply email này hoặc liên hệ
+            <a th:href="|mailto:${branding?.contactEmail ?: 'support@kitehub.me'}|"
+               th:text="${branding?.contactEmail ?: 'support@kitehub.me'}">support@kitehub.me</a>.</p>
+        <p style="font-size: 12px; color: #6b7280; margin-top: 8px;">
+            📊 Trạng thái dịch vụ Beta: <a th:href="@{https://kitehub.me/status}">kitehub.me/status</a>
+            &nbsp;|&nbsp;
+            📖 Hướng dẫn: <a th:href="@{https://kitehub.me/help}">kitehub.me/help</a>
+        </p>
     </div>
 </body>
 </html>

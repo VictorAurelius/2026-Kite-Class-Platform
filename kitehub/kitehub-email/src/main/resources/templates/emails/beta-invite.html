@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title th:text="|Lời mời beta - ${branding?.displayName ?: 'KiteClass'}|">Lời mời beta</title>
+    <title th:text="|Lời mời beta - ${branding?.displayName ?: 'KiteHub'}|">Lời mời beta</title>
     <style th:inline="text">
         :root {
             --brand-primary: [[${branding?.primaryColor ?: '#667eea'}]];
@@ -83,13 +83,13 @@
     <div class="header">
         <img class="logo" th:if="${branding?.logoUrl}" th:src="${branding.logoUrl}" alt="Logo"/>
         <span class="beta-badge">Beta Program</span>
-        <h1 th:text="|Bạn được mời tham gia beta ${branding?.displayName ?: 'KiteClass'}!|">Bạn được mời tham gia beta!</h1>
+        <h1 th:text="|Bạn được mời tham gia beta ${branding?.displayName ?: 'KiteHub'}!|">Bạn được mời tham gia beta!</h1>
     </div>
 
     <div class="content">
         <p>Xin chào <strong th:text="${orgName}">Tổ chức</strong>,</p>
 
-        <p th:text="|Cảm ơn ${orgName} đã đăng ký quan tâm đến chương trình beta của ${branding?.displayName ?: 'KiteClass'}.|">
+        <p th:text="|Cảm ơn ${orgName} đã đăng ký quan tâm đến chương trình beta của ${branding?.displayName ?: 'KiteHub'}.|">
             Cảm ơn bạn đã đăng ký.
         </p>
 
@@ -122,8 +122,8 @@
             <strong>Lưu ý chương trình beta (v1 pending counsel review):</strong>
             Đây là phiên bản beta — một số tính năng có thể thay đổi, dữ liệu beta có thể được reset trước khi ra mắt chính thức.
             Nếu bạn có phản hồi, vui lòng liên hệ
-            <a th:href="|mailto:${branding?.contactEmail ?: 'support@kiteclass.com'}|"
-               th:text="${branding?.contactEmail ?: 'support@kiteclass.com'}">support@kiteclass.com</a>.
+            <a th:href="|mailto:${branding?.contactEmail ?: 'support@kitehub.me'}|"
+               th:text="${branding?.contactEmail ?: 'support@kitehub.me'}">support@kitehub.me</a>.
         </div>
 
         <!-- Wave 98 B6 GAP-660 — Zalo OA fast-path CTA. Inline link (QR code defer Wave 99).
@@ -146,17 +146,17 @@
         <p style="margin-top: 24px; padding: 12px 16px; background: #F0F9FF; border-left: 4px solid #2563EB; border-radius: 4px; font-size: 14px;">
             👋 Chị Mai từ KiteHub đây — em là người duyệt yêu cầu của
             <strong th:text="${orgName}">${orgName}</strong>.
-            Có thắc mắc gì cứ reply email này; mình sẽ phản hồi trong 4 giờ giờ hành chính (T2–T6, 08:00–18:00).
+            Có thắc mắc gì cứ reply email này; mình sẽ phản hồi trong 4 giờ làm việc (T2–T6, 08:00–18:00).
         </p>
 
-        <p><strong th:text="|Đội ngũ ${branding?.displayName ?: 'KiteClass'}|">Đội ngũ KiteClass</strong></p>
+        <p><strong th:text="|Đội ngũ ${branding?.displayName ?: 'KiteHub'}|">Đội ngũ KiteHub</strong></p>
     </div>
 
     <div class="footer">
-        <p th:text="|© 2026 ${branding?.displayName ?: 'KiteClass'}. All rights reserved.|">© 2026 KiteClass.</p>
+        <p th:text="|© 2026 ${branding?.displayName ?: 'KiteHub'}. Bảo lưu mọi quyền.|">© 2026 KiteHub.</p>
         <!-- GAP-586 Wave 86 docs-cluster: replace "vui lòng không trả lời" với reply-friendly
              text (`support@kitehub.me` IS reply-friendly) — sender is human, không phải noreply bot. -->
-        <p>📧 Reply email này nếu cần hỗ trợ — chị Mai sẽ trả lời trong 4 giờ giờ hành chính.</p>
+        <p>📧 Reply email này nếu cần hỗ trợ — chị Mai sẽ trả lời trong 4 giờ làm việc.</p>
         <!-- GAP-586 Wave 86 docs-cluster: status page + help link footers per persona cell 2.2
              trust signal + welcome guide entry. /status = Wave 84 GAP-424 Statuspage;
              /help/anonymous = Wave 79 user manual landing (P1 persona page Wave 80+ Bucket F2). -->

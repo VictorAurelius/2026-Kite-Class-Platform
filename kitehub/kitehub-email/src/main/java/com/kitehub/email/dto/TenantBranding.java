@@ -53,6 +53,13 @@ public class TenantBranding implements Serializable {
      * Default / fallback branding used when tenant context missing or lookup fails.
      * Matches legacy hardcoded palette in pre-Wave-4 templates so emails continue
      * to look correct even with graceful degradation.
+     *
+     * <p>GAP-543 (Wave 107 tone pass): {@code contactEmail} corrected from the
+     * unreachable {@code support@kiteclass.com} to {@code support@kitehub.me} —
+     * Phase 1 BETA operates on the {@code kitehub.me} domain (dual-brand KiteClass
+     * customer-facing rename deferred to Phase 1.5+ per ad-interim decision). A
+     * non-existent support address in every email footer = trust loss + bounced
+     * help requests, so the fallback contact must resolve to a real mailbox.</p>
      */
     public static TenantBranding defaultBranding() {
         return TenantBranding.builder()
@@ -61,7 +68,7 @@ public class TenantBranding implements Serializable {
                 .primaryColor("#667eea")
                 .secondaryColor("#764ba2")
                 .accentColor("#10B981")
-                .contactEmail("support@kiteclass.com")
+                .contactEmail("support@kitehub.me")
                 .build();
         }
 }
