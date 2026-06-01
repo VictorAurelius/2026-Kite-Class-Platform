@@ -41,6 +41,9 @@ class DomainServiceTest {
     @Mock
     private DomainVerificationConfig domainVerificationConfig;
 
+    @Mock
+    private DnsTxtLookupService dnsTxtLookupService;
+
     @InjectMocks
     private DomainService domainService;
 
@@ -200,26 +203,48 @@ class DomainServiceTest {
     }
 
     @Test
-    @DisplayName("verifyCustomDomain: mock mode - domain not resolvable returns PENDING")
-    void verifyCustomDomain_dnsNotResolvable_returnsPending() {
-        // Given - instance with pending domain
+    @DisplayName("verifyCustomDomain: DNS lookup miss returns PENDING (state unchanged)")
+    void verifyCustomDomain_dnsLookupMiss_returnsPending() {
+        // Given - instance with pending domain; DNS lookup returns false (no TXT match)
         premiumInstance.setCustomDomain("school.example.com");
         premiumInstance.setDomainVerifyToken("kitehub-verify=abc123");
         premiumInstance.setDomainStatus(Instance.DomainStatus.PENDING_VERIFY);
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(premiumInstance));
         when(instanceRepository.save(any(Instance.class))).thenReturn(premiumInstance);
+        when(dnsTxtLookupService.verifyTxtRecord("school.example.com", "kitehub-verify=abc123"))
+            .thenReturn(false);
 
-        // When - DNS lookup will fail for fake domain, mock mode returns PENDING
+        // When
         DomainVerifyResponse response = domainService.verifyCustomDomain(instanceId);
 
-        // Then
+        // Then - stays PENDING (state machine waits for tenant to add TXT or timeout)
         assertThat(response).isNotNull();
         assertThat(response.getCustomDomain()).isEqualTo("school.example.com");
-        // In mock mode, non-resolvable domain stays PENDING (not FAILED)
-        assertThat(response.getStatus()).isIn(
-            Instance.DomainStatus.PENDING_VERIFY,
-            Instance.DomainStatus.VERIFIED
-        );
+        assertThat(response.getStatus()).isEqualTo(Instance.DomainStatus.PENDING_VERIFY);
+        verify(dnsTxtLookupService).verifyTxtRecord("school.example.com", "kitehub-verify=abc123");
+    }
+
+    @Test
+    @DisplayName("verifyCustomDomain: DNS TXT match flips status to VERIFIED")
+    void verifyCustomDomain_dnsTxtMatch_returnsVerified() {
+        // Given - DNS lookup returns true (TXT match found)
+        premiumInstance.setCustomDomain("school.example.com");
+        premiumInstance.setDomainVerifyToken("kitehub-verify=xyz789");
+        premiumInstance.setDomainStatus(Instance.DomainStatus.PENDING_VERIFY);
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(premiumInstance));
+        when(instanceRepository.save(any(Instance.class))).thenReturn(premiumInstance);
+        when(dnsTxtLookupService.verifyTxtRecord("school.example.com", "kitehub-verify=xyz789"))
+            .thenReturn(true);
+
+        // When
+        DomainVerifyResponse response = domainService.verifyCustomDomain(instanceId);
+
+        // Then - status flipped to VERIFIED with timestamp recorded
+        assertThat(response.getStatus()).isEqualTo(Instance.DomainStatus.VERIFIED);
+        ArgumentCaptor<Instance> captor = ArgumentCaptor.forClass(Instance.class);
+        verify(instanceRepository).save(captor.capture());
+        assertThat(captor.getValue().getDomainStatus()).isEqualTo(Instance.DomainStatus.VERIFIED);
+        assertThat(captor.getValue().getDomainVerifiedAt()).isNotNull();
     }
 
     // =========================================================

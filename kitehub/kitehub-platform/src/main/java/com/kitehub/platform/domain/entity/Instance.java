@@ -44,13 +44,21 @@ public class Instance extends BaseEntity {
 
     /**
      * Domain status enum for custom domain verification lifecycle.
-     * NONE: no custom domain set.
-     * PENDING_VERIFY: domain set, waiting for DNS TXT record verification.
-     * VERIFIED: DNS TXT record confirmed, domain active.
-     * FAILED: verification failed (wrong record or timeout).
+     *
+     * <ul>
+     *   <li>NONE: no custom domain set.</li>
+     *   <li>PENDING_VERIFY: domain set, waiting for DNS TXT record verification.</li>
+     *   <li>CERT_PROVISIONING: DNS TXT verified, SSL cert provisioning in progress
+     *       (via Cloudflare for SaaS / ACM — added v1.1 per GAP-812 §Phần B + C).</li>
+     *   <li>VERIFIED: DNS TXT confirmed AND cert provisioned, domain live.</li>
+     *   <li>FAILED: verification failed (wrong record or timeout).</li>
+     * </ul>
+     *
+     * <p>Transitions: NONE → PENDING_VERIFY → CERT_PROVISIONING → VERIFIED.
+     * FAILED reachable from any non-terminal state; re-verify resets FAILED → PENDING_VERIFY.</p>
      */
     public enum DomainStatus {
-        NONE, PENDING_VERIFY, VERIFIED, FAILED
+        NONE, PENDING_VERIFY, CERT_PROVISIONING, VERIFIED, FAILED
     }
 
     /**
