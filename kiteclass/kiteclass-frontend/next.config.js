@@ -28,6 +28,11 @@ const nextConfig = {
     optimizePackageImports: [
       'lucide-react',
       'date-fns',
+      // GAP-127 wave-beta-readiness-9 — @tanstack/react-table is actively used
+      // by DataTable + 4 column-config files + dashboard list pages but was
+      // missing from this barrel-optimize list (KiteHub already had it). Adding
+      // it lets Next inline only consumed exports instead of the whole barrel.
+      '@tanstack/react-table',
       '@radix-ui/react-avatar',
       '@radix-ui/react-checkbox',
       '@radix-ui/react-dialog',

@@ -1,6 +1,6 @@
 # GAP-127: Frontend has zero code-splitting across 64 pages — bundles likely >300 KB
 
-**Status:** 🟡 PARTIAL (Wave 7-Perf Agent B: bundle analyzer + landing-page split + per-list-page DataTable lazy)
+**Status:** 🟡 PARTIAL (Wave 7-Perf + wave-beta-readiness-9: analyzer + extensive code-split + optimizePackageImports complete; only CI bundle-budget guardrail remains → GAP-236)
 **Priority:** 🔴 P0
 **Domain:** Frontend / Performance
 **Detected:** 2026-04-19 (performance baseline audit)
@@ -73,12 +73,12 @@ Every page module statically imports everything → marketing public landing shi
 
 ## Acceptance Criteria
 
-- [ ] Bundle analyzer committed + baseline report attached
-- [ ] Marketing public `/` First Load JS < 150 KB
-- [ ] Admin dashboard First Load JS < 300 KB
-- [ ] At least 5 routes use `dynamic()` for heavy components
-- [ ] `modularizeImports` + `optimizePackageImports` configured
-- [ ] CI check fails if any route exceeds 250 KB First Load JS
+- [x] Bundle analyzer committed + baseline report attached (Wave 7-Perf; `@next/bundle-analyzer` gated `ANALYZE=true` both apps)
+- [x] Marketing public `/` First Load JS < 150 KB (KiteHub `/` = 110 kB verified wave-beta-readiness-9 `next build`)
+- [x] Admin dashboard First Load JS < 300 KB (KiteHub `/dashboard` 181 kB, `/admin/instances` 202 kB; KiteClass `/students`/`/teachers` 251 kB — all < 300 KB)
+- [x] At least 5 routes use `dynamic()` for heavy components (20+ dynamic components/pages across both apps incl GAP-236 work)
+- [x] `modularizeImports` + `optimizePackageImports` configured (both apps; wave-beta-readiness-9 added missing `@tanstack/react-table` to KiteClass list)
+- [ ] CI check fails if any route exceeds 250 KB First Load JS  →  tracked GAP-236 (per-route bundle budget enforcement in CI)
 
 ## Related
 
@@ -95,4 +95,19 @@ Every page module statically imports everything → marketing public landing shi
   484/484 KiteHub tests + 550/550 KiteClass tests pass.
   Out-of-scope (44+ remaining pages): refile as **GAP-236 — finish FE code-splitting for
   remaining auth/wizard/customer/admin pages + per-route bundle budget enforcement in CI**.
+- **2026-06-01 — wave-beta-readiness-9 Bucket C (PARTIAL → near-DONE):** State-check per
+  `audit-to-gap-pipeline.md` §2.8 found the codebase already far ahead of the Wave 7-Perf
+  Log description — both apps have analyzer + `optimizePackageImports` + `images.formats`,
+  and ~20+ components/pages use `next/dynamic` (GAP-236 work landed). Single delta fixed:
+  KiteClass `next.config.js` `optimizePackageImports` was **missing `@tanstack/react-table`**
+  (actively used by DataTable + 4 column-config files + dashboard list pages; KiteHub already
+  had it). Added it (mirrors KiteHub). Production builds verified clean both apps:
+  - `pnpm --filter kiteclass-frontend build` → ✓ Compiled, 59/59 static pages, exit 0;
+    shared First Load JS 103 kB; list pages `/students` 251 kB, `/teachers` 251 kB,
+    `/billing` 233 kB, `/courses` 220 kB — all < 300 KB.
+  - `pnpm --filter kitehub-frontend build` → ✓ Compiled, 90/90 static pages, exit 0;
+    landing `/` = **110 kB** (< 150 KB marketing AC), `/dashboard` 181 kB, `/admin/instances`
+    202 kB — all under cap.
+  5/6 AC verified DONE; only CI per-route bundle-budget guardrail remains (deferred → GAP-236).
+  Stays 🟡 PARTIAL.
 - 2026-04-19 — Gap created from performance baseline audit
