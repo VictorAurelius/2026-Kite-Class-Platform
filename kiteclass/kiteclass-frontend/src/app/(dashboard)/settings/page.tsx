@@ -21,6 +21,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { BrandingSettings } from '@/components/settings/branding-settings';
 import { PreferencesSettings } from '@/components/settings/preferences-settings';
+import { OnboardingReplayCard } from '@/components/onboarding/OnboardingReplayCard';
 
 /**
  * Sensible default palette for the theme-preview tab.
@@ -85,7 +86,8 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="preferences" className="mt-6">
+        <TabsContent value="preferences" className="mt-6 space-y-6">
+          <OnboardingReplayCard />
           <PreferencesSettings />
         </TabsContent>
       </Tabs>

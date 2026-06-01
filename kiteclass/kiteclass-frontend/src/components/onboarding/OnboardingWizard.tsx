@@ -14,9 +14,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
+import { trackOnboarding } from '@/lib/onboarding-telemetry';
 
-const STORAGE_KEY = 'kiteclass-onboarding-progress';
+export const STORAGE_KEY = 'kiteclass-onboarding-progress';
 const TOTAL_STEPS = 5;
+
+/** Reset onboarding progress so the wizard fires again (replay from settings). */
+export function resetOnboardingProgress(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Ignore — best-effort reset.
+  }
+}
 
 interface OnboardingProgress {
   currentStep: number;
@@ -111,6 +121,11 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     setCurrentStep(progress.currentStep);
     setCompleted(progress.completed);
     setInitialized(true);
+    // Telemetry: a fresh first-login wizard view (not yet completed) is a start.
+    if (!progress.completed) {
+      trackOnboarding('onboarding_start');
+      trackOnboarding('onboarding_step_view', progress.currentStep);
+    }
   }, []);
 
   const handleNext = useCallback(() => {
@@ -118,6 +133,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
       const nextStep = currentStep + 1;
       setCurrentStep(nextStep);
       saveProgress({ currentStep: nextStep, completed: false });
+      trackOnboarding('onboarding_step_view', nextStep);
     }
   }, [currentStep]);
 
@@ -130,12 +146,23 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   }, [currentStep]);
 
   const handleSkip = useCallback(() => {
+    trackOnboarding('onboarding_step_skip', currentStep);
     handleNext();
-  }, [handleNext]);
+  }, [handleNext, currentStep]);
+
+  const handleSkipTour = useCallback(() => {
+    // Skip the entire tour: mark complete so it never fires again,
+    // but record the skip so the funnel reflects an abandoned tour.
+    trackOnboarding('onboarding_step_skip', currentStep);
+    setCompleted(true);
+    saveProgress({ currentStep, completed: true });
+    onComplete?.();
+  }, [currentStep, onComplete]);
 
   const handleFinish = useCallback(() => {
     setCompleted(true);
     saveProgress({ currentStep: TOTAL_STEPS, completed: true });
+    trackOnboarding('onboarding_complete');
     onComplete?.();
   }, [onComplete]);
 
@@ -154,13 +181,23 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   return (
     <Card className="mb-6 border-primary/20 bg-primary/5">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-lg">
             Bước {currentStep}/{TOTAL_STEPS}: {step.title}
           </CardTitle>
-          <span className="text-2xl" role="img" aria-label={step.title}>
-            {step.icon}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl" role="img" aria-label={step.title}>
+              {step.icon}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSkipTour}
+              aria-label="Đóng hướng dẫn"
+            >
+              Đóng hướng dẫn
+            </Button>
+          </div>
         </div>
         <Progress value={progressValue} className="mt-2" />
       </CardHeader>
