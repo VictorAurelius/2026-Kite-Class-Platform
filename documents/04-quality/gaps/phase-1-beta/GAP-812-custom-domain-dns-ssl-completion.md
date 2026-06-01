@@ -1,7 +1,7 @@
 ---
 id: GAP-812
 title: Custom domain DNS TXT verify thật + SSL provisioning + state machine hoàn thiện
-status: OPEN
+status: PARTIAL
 priority: P2
 phase: phase-1-beta
 domain: Backend
@@ -191,3 +191,44 @@ state machine phải tự lo cert; (3) không vướng giới hạn cert của A
 - **Persona/Benchmark (P1):** status real-time + nút "Kiểm tra lại"; **SSL-pending fallback page** (serve qua backup subdomain HTTPS trong lúc chờ cert — KHÔNG để user gặp `ERR_CERT`); status badge Pending→Active + webhook notify.
 - **Failure-mode (P1):** CAA record + DNSSEC chặn cấp cert (bài học Shopify — cần cảnh báo chủ động); user xoá TXT post-verified → scheduled re-verify; cert renew fail → health-check + alert + auto-fallback.
 - **Meta:** 3 doc kiến trúc (`domain-management.md`, `ssl-automation.md`, brief) mâu thuẫn verify method → reconcile 1 nguồn TRƯỚC khi build UI (cross-ref GAP-813).
+
+## Update — Wave tenant-domain-1 Bucket D (2026-06-01) — Status PARTIAL
+
+### Shipped trong Bucket D PR
+
+**Phần A — DNS TXT verify thật (DONE):**
+- `DnsTxtLookupService.java` (NEW) — JNDI `InitialDirContext` với `com.sun.jndi.dns.DnsContextFactory`, lookup `_kitehub-verify.{domain}` (preferred) + apex fallback, timeout 5s, returns `false` (never throws) on NameNotFound/fail
+- `DomainService.checkDnsTxtRecord()` rewritten — delegate sang `DnsTxtLookupService.verifyTxtRecord()`; xóa stub `InetAddress.getAllByName()` + `return false`
+- `DomainServiceTest` updated với `@Mock DnsTxtLookupService` injection + 2 test mới (`verifyCustomDomain_dnsLookupMiss_returnsPending` + `verifyCustomDomain_dnsTxtMatch_returnsVerified`)
+- `DnsTxtLookupServiceTest` (NEW) — 6 unit tests (match-at-subdomain / match-at-apex / no-records / token-mismatch / blank-domain / blank-token) qua subclass override để tránh real DNS trong CI
+- Total: 18/18 tests PASS (`./mvnw -pl kitehub-subscription test -Dtest='DomainServiceTest,DnsTxtLookupServiceTest'`)
+
+**Phần B v1 — ACM cert scaffold (DEFERRED apply per `release-deploy-standard.md` §9):**
+- `infrastructure/terraform-aws/acm-tenant-domains.tf` (NEW) — `aws_acm_certificate.tenant_domain` resource với `for_each` over `var.tenant_custom_domains` (DNS validation), outputs `tenant_acm_cert_arns` + `tenant_acm_validation_records` (CNAME instructions cho tenant DNS setup)
+- ASCII-only descriptions per `aws-sg-description-ascii.md`
+- `terraform validate` PASS (existing warnings pre-existing, not from new file)
+- Apply DEFERRED — terraform run-time decision per dev trigger; current default `tenant_custom_domains = []` (no-op nếu chạy apply)
+
+**Phần C v1.1 — DomainStatus extended:**
+- `Instance.DomainStatus` enum thêm `CERT_PROVISIONING` value giữa `PENDING_VERIFY` và `VERIFIED` — state machine sẵn sàng cho v1.1 SSL provisioning automation
+- v1.0 hiện tại verify→VERIFIED trực tiếp (Cloudflare for SaaS / ACM automation chưa wire); enum value future-proof
+
+**Doc layer (3-layer per CLAUDE.md mandate):**
+- `documents/01-business/kitehub/custom-domain/rules.md` (NEW) — BR-DOMAIN-001..012 + state machine ASCII diagram + config keys
+- `documents/01-business/kitehub/custom-domain/use-cases.md` (NEW) — UC-DOMAIN-001..004 (Owner đăng ký + gỡ + re-verify + scheduled polling future)
+- `documents/01-business/kitehub/custom-domain/api-contract.md` (NEW) — 4 endpoints (initiate/verify/delete/get) + DomainStatus enum + error codes
+- `documents/05-guides/operations/custom-domain-verify-runbook.md` (NEW) — Owner-facing + 5 DNS provider VN guide (Mat Bao / PA Vietnam / Nhân Hòa / Cloudflare / Namecheap) + troubleshooting (CAA / propagate / cert error) + ops team queries
+
+### Deferred to follow-up GAP-816
+
+- **Phần B v2 SSL provisioning automation:** Lambda subscriber outbox event `domain.verified` → trigger ACM cert request / Cloudflare Custom Hostname API; live apply `acm-tenant-domains.tf`
+- **Phần C scheduler:** `@Scheduled` polling job `DomainVerificationScheduler` (timeout 48h → FAILED; periodic DNS re-check mỗi 10 phút auto-verify mà không cần tenant trigger manual)
+- **Phần B Cloudflare for SaaS integration:** `CloudflareCustomHostnameClient` adapter + secret in Secrets Manager + terraform IaC declaration
+- **CERT_PROVISIONING → VERIFIED polling cert status:** Lambda subscribe ACM/Cloudflare cert.status → flip enum when cert active
+- **SSL-pending fallback page UI:** FE banner "cert đang cấp..." khi user truy cập custom domain trong CERT_PROVISIONING state
+
+→ Status flip OPEN → PARTIAL (completion ~40%) per `gap-done-discipline.md` §3 PARTIAL exit ramp. Cargo cult avoided — no false DONE flip.
+
+## Log
+
+- **2026-06-01 (Wave tenant-domain-1 Bucket D):** Status flip OPEN → PARTIAL ~40% completion. Phần A DNS TXT verify thật DONE (JNDI implementation); Phần B v1 terraform ACM scaffold DONE (apply deferred per `release-deploy-standard.md` §9); Phần C enum extended (CERT_PROVISIONING) + state machine doc. 3-layer biz docs + runbook + 18/18 tests PASS. Phần B SSL automation + Phần C scheduler deferred → GAP-816. Per `gap-done-discipline.md` §3 PARTIAL exit ramp + follow-up gap filed.

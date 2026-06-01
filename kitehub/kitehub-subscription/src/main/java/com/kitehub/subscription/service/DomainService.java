@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.net.InetAddress;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -35,6 +34,7 @@ public class DomainService {
 
     private final InstanceRepository instanceRepository;
     private final DomainVerificationConfig domainVerificationConfig;
+    private final DnsTxtLookupService dnsTxtLookupService;
 
     /**
      * Initiate custom domain setup for an instance.
@@ -182,31 +182,18 @@ public class DomainService {
     }
 
     /**
-     * Check DNS TXT record for the given domain.
-     * Looks for a TXT record matching the expected token.
-     * Returns false (not throws) if DNS lookup fails — mock mode handles this gracefully.
+     * Check DNS TXT record for the given domain via {@link DnsTxtLookupService} (JNDI).
+     *
+     * <p>Per GAP-812 §Phần A: replaces previous stub (returned {@code false} always).
+     * Looks up TXT record at {@code _kitehub-verify.{domain}} (preferred) or apex.
+     * Returns {@code false} (not throws) on lookup failure — state machine handles.</p>
      *
      * @param domain        the domain to check
      * @param expectedToken the expected TXT record value (e.g., "kitehub-verify=abc123")
      * @return true if TXT record found and matches, false otherwise
      */
     private boolean checkDnsTxtRecord(String domain, String expectedToken) {
-        try {
-            // Attempt basic DNS resolution first (InetAddress for connectivity check)
-            InetAddress[] addresses = InetAddress.getAllByName(domain);
-            if (addresses == null || addresses.length == 0) {
-                log.debug("DNS resolution returned no addresses for domain '{}'", domain);
-                return false;
-            }
-            // Full TXT record check requires dnsjava or similar.
-            // For now: if domain resolves, we consider it a positive signal in dev.
-            // Production should use proper TXT record lookup via JNDI or dnsjava.
-            log.debug("DNS resolved {} addresses for domain '{}', TXT check would happen here", addresses.length, domain);
-            return false; // TXT verification not yet fully implemented — returns false until real DNS check
-        } catch (Exception e) {
-            log.debug("DNS lookup failed for domain '{}': {}", domain, e.getMessage());
-            return false;
-        }
+        return dnsTxtLookupService.verifyTxtRecord(domain, expectedToken);
     }
 
     private DomainVerifyResponse buildResponse(Instance instance, String customDomain, String token) {
