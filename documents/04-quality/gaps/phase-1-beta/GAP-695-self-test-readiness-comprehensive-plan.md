@@ -1,67 +1,152 @@
 # GAP-695: Self-test readiness — comprehensive gap catalog + dependency-ordered fix plan
 
-**Status:** 🟡 PARTIAL 50% — Phase 0 catalog SHIPPED 2026-05-21; Tier 0 (Bucket A Docker preflight + .env) + Tier 1 (Bucket D admin login + gateway routing) shipped 2026-05-21 Wave 102.8; Tier 2-3 execution pending Wave 102.9+
+**Status:** 🟡 PARTIAL 85% — Phase 0 catalog SHIPPED 2026-05-21; Tier 0 (Docker preflight + .env) + Tier 1 (admin login + gateway routing) shipped Wave 102.8; catalog REFRESHED 2026-06-02 against current CSV (Tier 0/1 substantially DONE; new RST-blocker tier added). Remaining 15% = Tier 1.5/2/3 LOCAL-DOABLE execution (campaign-tracked) + Tier 4 AWS-BLOCKED live-verify subset (gated GAP-612)
 **Priority:** 🔴 P0 (META — parent catalog cho mọi gap blocking actual self-test execution; force-multiplier per `meta-gap-priority.md` §3)
 **Domain:** DevOps + Meta
 **Detected:** 2026-05-21 (action-2.md line 73 user direction — "có thể self-test sớm nhất")
 **Related PRs:** TBD
-**Related Docs:** `documents/05-guides/local-dev/self-test-readiness-plan.md` (paired same-PR); GAP-694 Phase 0A audit; GAP-693 rebuild SOP; GAP-612 AWS suspension; `pre-handoff-self-test-completeness.md` §2.4
+**Related Docs:** `documents/05-guides/local-dev/self-test-readiness-plan.md` (paired); `documents/03-planning/plans/plan-autonomous-gap-campaign-local-doable.md` (campaign steered by this catalog); GAP-694 Docker fix; GAP-693 rebuild SOP; GAP-612 AWS suspension; `pre-handoff-self-test-completeness.md` §2.4; `feature-ship-runtime-walk-mandate.md`
 
-## Current State (verified 2026-05-21 via gap enumeration + CSV query)
+## Current State (REFRESHED 2026-06-02 via CSV state-check)
 
-> Per `audit-to-gap-pipeline.md` §2.5 state-check + §2.8 fix-time state-check (gap age 0d, fresh enumeration). Investigation method: (1) `bash scripts/query-gaps.sh` để liệt kê PARTIAL/OPEN phase-1-beta gaps; (2) `grep -liE "self.test|smoke|live.verify|admin.login|onboarding"` để filter self-test-related; (3) `Read documents/04-quality/audits/local-stack/2026-05-21-local-self-test-investigation.md` để extract Phase 0A findings; (4) cross-reference 4 rules (`pre-handoff-self-test-completeness.md` §2.4, `release-deploy-standard.md` §3.1, `production-env-config-registry.md`, `user-manual-content-standard.md` §2).
+> Per `audit-to-gap-pipeline.md` §2.8 fix-time state-check + `gap-architecture-v2.md` §3 (CSV canonical). Refresh method: `bash scripts/query-gaps.sh` enumerate active phase-1-beta P0/P1; cross-verify mỗi catalog gap row chống CSV (0 phantom — tất cả 22 original gaps tồn tại trong CSV); apply campaign scope filter §1 (`plan-autonomous-gap-campaign-local-doable.md`) tách LOCAL-DOABLE vs AWS-BLOCKED.
 
-### Tier 0 — Stack startup (Docker + .env + preflight)
+**Drift caught:** Catalog gốc (2026-05-21) đã stale nặng — phần lớn Tier 0/1/2 gaps đã DONE qua Wave 102.8→meta-6, và ~30+ RST-blocker gaps mới (Wave 1xx series) surfaced sau khi viết catalog. Refresh này đồng bộ trạng thái thật + thêm tầng RST-blocker.
 
-| Gap | Status | Blocker for | Effort estimate |
-|-----|--------|-------------|-----------------|
-| GAP-694 | PARTIAL 15% | Docker Desktop process KHÔNG chạy trên Windows host → `docker version` command not found → mọi container ops bị block | Phase 0B fix #1: ~5min powershell launch; fix #2 .env 9 keys: ~10min; fix #3 preflight `check-docker.sh`: ~30-45min |
-| GAP-694 sub-task (.env populate) | per Phase 0A finding #2 | Profile `branding-only` / `beta-funnel` / `full` start fail (thiếu OLLAMA endpoint + hCaptcha keys + tenant pattern) | ~10min append dev-safe defaults; KHÔNG commit `.env` (gitignored) |
-| GAP-694 sub-task (preflight check) | per Phase 0A finding #3 META P2 | Recurrence: Windows reboot → Docker Desktop stopped → session lại block từ đầu | ~30-45min ship `kitehub/scripts/check-docker.sh` + integrate `up.sh` line 1 |
-| GAP-408 | PARTIAL P0 phase-1-beta | JVM heap cap dev profile — Spring Boot OOM khi multiple service launch concurrent với WSL2 default cap | ~15min set `-XX:MaxRAMPercentage=60` trong dev profile per Wave 91 pattern |
+### Legend
+- ✅ DONE (CSV status=DONE) — không còn block self-test
+- 🟡 PARTIAL (CSV completion 1-99%) — còn delta
+- 🔵 OPEN (CSV completion 0%) — chưa bắt đầu
+- 🟢 LOCAL-DOABLE — verify được trên local Docker stack (campaign in-scope)
+- 🔴 AWS-BLOCKED — cần AWS deploy / DNS / live SES / vendor (campaign skip, giữ PARTIAL)
 
-**Tier 0 total: ~1-1.5h** (Docker launch fast; .env edit fast; preflight script medium effort).
+### Tier 0 — Stack startup (Docker + .env + preflight) — ✅ ESSENTIALLY DONE
 
-### Tier 1 — Endpoint reachability + auth flow
+| Gap | CSV status | Self-test relevance | Campaign |
+|-----|-----------|---------------------|----------|
+| GAP-694 | ✅ DONE 100% | Docker preflight `check-docker.sh` + `.env` populate shipped Wave 102.8 Bucket A | n/a (done) |
+| GAP-408 | 🟡 PARTIAL 50% (P2) | JVM heap cap dev profile — Spring Boot OOM khi multi-service concurrent (WSL2) | 🟢 LOCAL — set `-XX:MaxRAMPercentage=60` dev profile, verify `docker stats` |
 
-| Gap | Status | Blocker for | Effort estimate |
-|-----|--------|-------------|-----------------|
-| GAP-518 | PARTIAL 97% | Code-side complete (BE RoleGuardMatrixIT 8/8 + FE 27/27 PASS local); admin login → `/admin` redirect chưa live verify | ~5min live walk khi stack up (per `pre-handoff-self-test-completeness.md` §2.4 (b)+(c)+(d)) |
-| GAP-519 | PARTIAL P1 | Admin dashboard nav sidebar missing links — user phải gõ URL by memory | ~30min add Sidebar items `/admin/beta-requests` + verify post-login render |
-| GAP-520 | PARTIAL P1 | JWT signing secret rotation runbook + dual-key — rotation testable trên local stack | ~20min execute existing runbook + verify dual-key accept |
-| GAP-481 | OPEN | Gateway path routing 404 — `/api/v1/admin/*` routes có thể fail tại gateway level | ~15min verify routing config + curl smoke |
-| GAP-502 | PARTIAL P0 | kh_backend production thrashing (RabbitMQ auth fail + OOM kills); local equivalent thrash risk | ~30min verify RMQ creds + memory cap config |
-| GAP-684 | OPEN P0 | GAP-518 live admin-login walk gated GAP-612 — local stack bypasses AWS gate, unblocks local verify | n/a (resolved by Tier 0 unlock — local stack ≠ AWS prod) |
+**Tier 0 verdict:** Stack khởi động được trên local. Chỉ còn GAP-408 heap tuning (P2, nice-to-have chống OOM khi chạy full profile).
 
-**Tier 1 total: ~2h** (admin flow live verify cheap khi Tier 0 up; nav + routing checks fast).
+### Tier 1 — Endpoint reachability + auth flow — ✅ MOSTLY DONE
 
-### Tier 2 — Business flow execution
+| Gap | CSV status | Self-test relevance | Campaign |
+|-----|-----------|---------------------|----------|
+| GAP-518 | ✅ DONE 100% | admin login → role=ADMIN JWT — curl + code-side verified | n/a (done) |
+| GAP-519 | ✅ DONE 100% | Admin sidebar nav links | n/a (done) |
+| GAP-481 | ✅ DONE 100% | Gateway `/api/v1/admin/*` routing — curl smoke PASS (400 not 404) | n/a (done) |
+| GAP-684 | ✅ DONE 100% | GAP-518 live admin-login walk (local bypasses AWS gate) | n/a (done) |
+| GAP-520 | 🟡 PARTIAL 70% (P1) | JWT signing secret rotation runbook + dual-key | 🔴 AWS-BLOCKED — rotation runbook references prod Secrets Manager; local dual-key spec OK nhưng live rotation cần AWS |
+| GAP-502 | 🟡 PARTIAL 90% (P0) | kh_backend thrashing (RabbitMQ auth + OOM) | 🔴 AWS-BLOCKED — production thrash symptom; local RMQ creds verify OK nhưng prod tuning cần AWS |
+| GAP-599 | 🟡 PARTIAL 95% (P0) | JWT storage key collision 2 browser tab cùng domain | 🟢 LOCAL — FE storage namespacing, verify browser DevTools 2-tab |
 
-| Gap | Status | Blocker for | Effort estimate |
-|-----|--------|-------------|-----------------|
-| GAP-538 | PARTIAL 95% | Day-1 onboarding checklist + sample/demo data seed — Wave 78+98 shipped FE/BE/seed + Wave 101 Bucket D Playwright E2E (5-step VN checklist + IMPORT_DATA opt-in + no-English-placeholder); live walkthrough verify blocked GAP-612 (local OK) | ~30min execute Playwright E2E local + verify VN checklist render đúng |
-| GAP-637 | PARTIAL P0 | Admin v1 controllers `@PreAuthorize` missing + 403 tests (OWASP A01 broken access control) | ~45min add `@PreAuthorize` + 403 ITs |
-| GAP-620 | OPEN P0 | Wave 92 Bucket D live verify admin v1 controllers — paired GAP-637 | ~20min execute live walk per `pre-handoff-self-test-completeness.md` §2.4 |
-| GAP-561 | DONE | invite-staff email + BE endpoint + FE UI — P3 Manager flow shipped Wave 79 | n/a (verify-only smoke trong Tier 1) |
-| GAP-562 | DONE | RBAC role separation Customer vs Staff — kitehub-branding `@PreAuthorize` shipped | n/a (verify-only smoke) |
-| GAP-516 | PARTIAL | 2FA Platform Admin TOTP — challenge flow blocks admin login khi enabled | ~30min verify TOTP code flow OR document disabled trong dev env |
-| GAP-531 | PARTIAL | Tenant init handoff end-to-end — multi-step orchestration verify | ~45min walk POST /tenants → confirm subdomain → seed Day-1 data |
+**Tier 1 verdict:** Auth flow + gateway routing PASS local. Còn GAP-599 (FE storage collision — LOCAL) + 2 AWS-blocked tuning gaps.
 
-**Tier 2 total: ~3-4h** (live walk flows medium effort; @PreAuthorize backfill nhanh; tenant init end-to-end longest).
+### Tier 1.5 — RST-blocker functional bugs (NEW — surfaced post-catalog via RST walks Wave 1xx) — 🔵 BLOCK SELF-TEST
 
-### Tier 3 — Data realism + polish
+> Đây là tầng MỚI không có trong catalog 2026-05-21. RST (manual exploratory) walks Đợt 1xx bắt nhiều functional bugs chặn persona end-to-end walk. Per `feature-ship-runtime-walk-mandate.md` các bug này MUST fix trước khi self-test claim PASS. ĐÂY là trọng tâm self-test readiness hiện tại — cluster ưu tiên #1 cho campaign.
 
-| Gap | Status | Blocker for | Effort estimate |
-|-----|--------|-------------|-----------------|
-| GAP-658 | PARTIAL P0 | VN sample seed worker — replace English placeholder data với Vietnamese-friendly content (per `user-manual-content-standard.md` §2 row 7) | ~1h replace seed fixtures (Trần Thị Hồng / Sky Education / Lớp 5A1) |
-| GAP-659 | PARTIAL P0 | Staff-invite email + persona-tone split (formal owner vs informal teacher) | ~30min review email templates + adjust tone per persona |
-| GAP-543 | PARTIAL P0 | Email content audit — 5 critical email types content/tone Vietnamese | ~45min audit + revise 5 templates |
-| GAP-657 | PARTIAL P0 | Email layer hardening — plain-text fallback + List-Unsubscribe + Reply-To headers | ~30min header additions |
-| GAP-269b | PARTIAL P2 | kc-student real REST endpoints (today/grades/payments/notifications) — beta cohort student-facing | ~2h endpoint scaffold |
-| GAP-138 | OPEN P1 | KiteClass Landing Hero — duplicated "Chuyên nghiệp & Hiệu quả" text | ~5min content fix |
-| GAP-139 | OPEN P1 | Parent Dashboard MVP placeholder-only (Wave 5 widgets missing) | ~2h widget scaffold |
+| Gap | CSV status | Self-test blocker | Campaign |
+|-----|-----------|-------------------|----------|
+| GAP-727 | 🟡 PARTIAL 95% (P0) | `hasAccessToClass` guard broken — Class thiếu teacher_id mapping → teacher lock-out hoàn toàn | 🟢 LOCAL — IT + RST walk teacher persona local |
+| GAP-610 | 🟡 PARTIAL 85% (P0) | GET beta-signup validate trả TOKEN_NOT_FOUND cho valid token (lifecycle collapse H4) | 🟢 LOCAL — lifecycle state fix + IT |
+| GAP-794 | 🔵 IN_PROGRESS 80% (P1) | Anonymous PDPL consent endpoints 401 (SecurityConfig path drift) | 🟢 LOCAL — SecurityConfig matcher fix + IT |
+| GAP-777 | 🔵 OPEN (P1) | KC API 400 Bad Request trả empty body (no error detail) → user/dev không debug được | 🟢 LOCAL — error handler RFC 7807 body, verify curl |
+| GAP-776 | 🔵 OPEN (P1) | Gateway circuit-breaker 503 fallback cold-start (auth + admin) | 🟢 LOCAL — verify gateway resilience config local |
+| GAP-726 | 🔵 OPEN (P1) | KC `/branding/wizard` render blank + SSR ECONNREFUSED localhost:8080 | 🟢 LOCAL — SSR fetch fix, verify browser local |
+| GAP-774 | 🔵 OPEN (P1) | KH admin audit-log controller missing (Mảng D4 blocker) | 🟢 LOCAL — scaffold controller + IT |
+| GAP-775 | 🔵 OPEN (P1) | KC ReportController missing (Mảng B11 blocker) | 🟢 LOCAL — scaffold controller + IT |
+| GAP-729 | 🔵 OPEN (P1) | 11/19 controllers no per-resource authz guard (A01 OWASP IDOR wide) | 🟢 LOCAL — add guards + 403 IT |
+| GAP-784 | 🔵 OPEN (P1) | FE InviteStaffPage role param missing — Wave 80 FE vs meta-6 BE drift | 🟢 LOCAL — FE param fix + RST walk |
+| GAP-765 | 🔵 OPEN (P1) | Beta request POST 201 nhưng không gửi confirmation email | 🟢 LOCAL — verify MailHog local |
+| GAP-825 | 🔵 OPEN (P1) | Tenant-isolation hardening — JWT-sig-verify TenantResolver fallback | 🟢 LOCAL — IT cross-tenant |
 
-**Tier 3 total: ~5-6h** (data realism polish; KHÔNG block critical path self-test — chỉ cần cho beta cohort UX quality).
+**Tier 1.5 verdict:** 12 RST-blocker gaps, 12/12 LOCAL-DOABLE. Cluster ưu tiên cao nhất cho campaign vì chặn persona walk thực sự.
+
+### Tier 2 — Business flow execution — ✅ MOSTLY DONE
+
+| Gap | CSV status | Self-test relevance | Campaign |
+|-----|-----------|---------------------|----------|
+| GAP-538 | ✅ DONE 100% | Day-1 onboarding 5-step VN checklist + Playwright E2E | n/a (done) |
+| GAP-637 | ✅ DONE 100% | Admin v1 `@PreAuthorize` + 403 ITs | n/a (done) |
+| GAP-620 | ✅ DONE 100% | Admin v1 live verify | n/a (done) |
+| GAP-561 | ✅ DONE 100% | invite-staff email + endpoint + UI | n/a (done) |
+| GAP-562 | ✅ DONE 100% | RBAC Customer vs Staff | n/a (done) |
+| GAP-516 | 🟡 PARTIAL 75% (P1) | 2FA TOTP mandatory PLATFORM_ADMIN | 🟢 LOCAL — verify TOTP flow OR document disabled dev env |
+| GAP-531 | 🟡 PARTIAL 45% (P1) | Tenant init handoff post admin-approve end-to-end | 🟢 LOCAL — walk POST /tenants → confirm → seed local |
+| GAP-536 | 🟡 PARTIAL 80% (P0) | POST /tenants idempotency key (chống double-submit orphan) | 🟢 LOCAL — UNIQUE constraint + 409 IT |
+| GAP-532 | 🟡 PARTIAL (P0) | Multi-tenant tenant-switch flow §2.7 coverage | 🟢 LOCAL — walk tenant switch local |
+
+**Tier 2 verdict:** Core business flows DONE. Còn 4 PARTIAL (tenant init/switch/idempotency/2FA) — tất cả LOCAL-DOABLE.
+
+### Tier 3 — Data realism + email + polish — 🟡 MIXED
+
+| Gap | CSV status | Self-test relevance | Campaign |
+|-----|-----------|---------------------|----------|
+| GAP-658 | 🟡 PARTIAL 90% (P0) | VN sample seed worker — replace English placeholder (Trần Thị Hồng / Sky Education / Lớp 5A1) | 🟢 LOCAL — seed fixture replace + verify |
+| GAP-659 | ✅ DONE 100% | Staff-invite email persona-tone split | n/a (done) |
+| GAP-543 | 🟡 PARTIAL 95% (P0) | Email content audit 5 critical types Vietnamese | 🟢 LOCAL — revise templates, verify MailHog |
+| GAP-657 | ✅ DONE 100% | Email layer hardening headers | n/a (done) |
+| GAP-269b | 🟡 PARTIAL 50% (P2) | kc-student REST endpoints (today/grades/payments/notifications) | 🟢 LOCAL — endpoint scaffold + IT |
+| GAP-138 | 🔵 OPEN (P1) | KC Landing Hero duplicated "Chuyên nghiệp & Hiệu quả" text | 🟢 LOCAL — content fix + visual verify |
+| GAP-139 | 🟡 PARTIAL 40% (P1) | Parent Dashboard MVP placeholder-only (Wave 5 widgets) | 🟢 LOCAL — widget scaffold + RST walk |
+| GAP-586 | 🟡 PARTIAL (P1) | Beta invite email content audit tone + sender + feedback CTA | 🟢 LOCAL — template audit MailHog |
+| GAP-587 | 🟡 PARTIAL (P1) | P3 invite email content (owner name + center context) | 🟢 LOCAL — template audit MailHog |
+| GAP-590 | 🟡 PARTIAL (P1) | Email/reset link expiry policy spec (24h/15min/10min) | 🟢 LOCAL — config + IT |
+
+**Tier 3 verdict:** Data realism + email polish — tất cả LOCAL-DOABLE (MailHog cho email local verify). KHÔNG block critical-path self-test (chỉ beta cohort UX quality), nhưng nâng chất lượng walk.
+
+### Tier 4 — AWS-BLOCKED live-verify (self-test cần AWS — campaign SKIP) — 🔴
+
+> Các gap này cần AWS deploy / DNS / live SES / Resend live send. Catalog liệt kê để self-test biết phần nào KHÔNG thể verify local. Campaign giữ PARTIAL, mark blocked.
+
+| Gap | CSV status | Cần gì | Campaign note |
+|-----|-----------|--------|---------------|
+| GAP-530 | 🟡 PARTIAL 10% (P0) | Email-driven flow end-to-end live verify §2.3 | 🔴 cần live SES/Resend (MailHog local là partial substitute) |
+| GAP-793 | 🟡 PARTIAL 95% (P0) | Production Resend send branch never reached | 🔴 cần live Resend send |
+| GAP-608 | 🟡 PARTIAL 90% (P0) | EC2 IAM role thiếu ses:SendEmail | 🔴 cần AWS IAM apply |
+| GAP-533 | 🟡 PARTIAL 80% (P0) | Resend deliverability DKIM/DMARC/SPF + spam-score | 🔴 cần live domain + Resend |
+| GAP-756 | 🟡 PARTIAL 35% (P0) | Wave beta-prep-1 production deploy + RST verify | 🔴 cần AWS deploy (GAP-612 gate) |
+| GAP-818 | 🔴 BLOCKED (P1) | Wave tenant-domain-1 live RST walk 4 buckets | 🔴 cần AWS restore + ACM |
+| GAP-747 | 🔴 BLOCKED (P1) | Live verify SES ses:SendEmail post AWS restore | 🔴 cần AWS account restore |
+
+**Tier 4 verdict:** 7 gaps gated AWS (GAP-612 account restore là master dependency). Self-test FULL (incl. live email + DNS) blocked until AWS up. Self-test LOCAL (functional + UI + email-via-MailHog) KHÔNG bị block — đó là điểm campaign tận dụng.
+
+### Campaign steering summary (LOCAL-DOABLE vs AWS-BLOCKED)
+
+| Tier | LOCAL-DOABLE | AWS-BLOCKED | DONE |
+|------|:------------:|:-----------:|:----:|
+| Tier 0 (stack) | 1 (GAP-408) | 0 | 1 |
+| Tier 1 (auth/routing) | 1 (GAP-599) | 2 (GAP-520/502) | 4 |
+| Tier 1.5 (RST-blocker) | **12** | 0 | 0 |
+| Tier 2 (business flow) | 4 | 0 | 5 |
+| Tier 3 (data/email/polish) | 8 | 0 | 2 |
+| Tier 4 (live-verify) | 0 | 7 | 0 |
+| **Total catalogued** | **26 LOCAL** | **11 BLOCKED** | **12 DONE** |
+
+**Self-test verdict:** LOCAL self-test (functional persona walk + UI + email-via-MailHog) là khả thi NGAY — chỉ cần đóng 12 Tier 1.5 RST-blocker (cluster ưu tiên #1). FULL self-test (incl. live SES/DNS) chờ AWS GAP-612 restore.
+
+### Top-10 priority order cho campaign coordinator (next /loop iterations)
+
+Per `meta-gap-priority.md` (Meta → P0 → P1) + dependency (RST-blocker chặn persona walk trước):
+
+1. **GAP-727** (P0, 95%) — teacher lock-out fix; chặn toàn bộ teacher persona walk. Gần xong.
+2. **GAP-610** (P0, 85%) — beta-signup token lifecycle; chặn signup→onboarding flow đầu tiên.
+3. **GAP-794** (P1, 80% IN_PROGRESS) — PDPL consent 401; gần xong, finish trước.
+4. **GAP-536** (P0, 80%) — POST /tenants idempotency; chặn tenant-init reliability.
+5. **GAP-543** (P0, 95%) — email content audit 5 types; gần xong, MailHog-verifiable.
+6. **GAP-658** (P0, 90%) — VN sample seed; nâng chất lượng walk + thesis VN-data.
+7. **GAP-777** (P1, 0%) — KC API empty error body; affects mọi error-path debug.
+8. **GAP-729** (P1, 0%) — 11/19 controllers IDOR guards; OWASP A01 wide, batch-fixable.
+9. **GAP-726** (P1, 0%) — KC wizard blank SSR; chặn branding wizard persona walk.
+10. **GAP-774 + GAP-775** (P1, 0%) — missing controllers (audit-log + report); scaffold cùng cluster.
+
+**Cluster gợi ý cho wave-pack-planner (≥3 disjoint):**
+- Cluster A (auth/authz): GAP-727 + GAP-729 + GAP-825 (kiteclass-core authz layer)
+- Cluster B (signup/consent): GAP-610 + GAP-794 + GAP-765 (kitehub-subscription signup flow)
+- Cluster C (missing controllers): GAP-774 + GAP-775 + GAP-777 (KC/KH controller scaffold)
+- Cluster D (email/data polish): GAP-543 + GAP-658 + GAP-586/587 (MailHog-verifiable)
 
 ## Problem
 
@@ -75,6 +160,8 @@ GAP-694 (Local self-test investigation fix) chỉ cover **Tier 0 root cause** (D
 4. **Tier 3 — Data realism + polish**: VN sample data, email content tone, student endpoints. Block UX quality cho beta cohort (NOT block self-test execution itself).
 
 Hiện trạng: 30+ gaps phân tán across phase-1-beta folder; KHÔNG có single catalog enumerate ALL self-test blockers + dependency order + effort estimate. Solo dev mất 1-2h cross-reference 30+ gaps để build mental dependency graph mỗi session restart.
+
+**Cập nhật 2026-06-02:** Sau Wave 102.8→meta-6, bức tranh self-test readiness đã shift căn bản — Tier 0/1/2 phần lớn DONE; trọng tâm chuyển sang **Tier 1.5 RST-blocker** (12 functional bug surfaced từ RST walks Wave 1xx chặn persona end-to-end walk). Catalog refresh §Current State đồng bộ trạng thái thật + tách LOCAL-DOABLE (26) vs AWS-BLOCKED (11) để steer autonomous gap campaign (`plan-autonomous-gap-campaign-local-doable.md`). LOCAL self-test khả thi NGAY khi đóng 12 Tier 1.5; FULL self-test chờ AWS GAP-612 restore.
 
 Catalog GAP-695 này = single source-of-truth cho "self-test readiness" — fix `meta-gap-priority.md` §3 force-multiplier (1 catalog → mọi session subsequent reuse plan).
 
@@ -153,16 +240,18 @@ Per GAP-694 Phase 0B:
 
 ## Acceptance Criteria
 
-- [x] GAP-695 file created với 4-tier catalog + effort estimate + dependency notes — this artifact
+- [x] GAP-695 file created với catalog + effort estimate + dependency notes — this artifact
 - [x] Plan doc `documents/05-guides/local-dev/self-test-readiness-plan.md` paired same-PR shipped
-- [x] CSV row GAP-695 added (PARTIAL P0 Meta phase-1-beta completion_pct=25)
+- [x] CSV row GAP-695 added
 - [x] ROADMAP §🚀 Next Action references GAP-695 as parent catalog
 - [x] Cross-link from GAP-694 + GAP-693 to GAP-695
-- [ ] Phase 1 (Tier 0 execution) — Docker launch + .env populate + infra-only profile UP (deferred next session)
-- [ ] Phase 2 (Tier 1 execution) — admin login live walk + GAP-518 closure local (deferred Phase 1 unlock)
-- [ ] Phase 3 (Tier 2 execution) — owner persona walks tenant init + onboarding (deferred Phase 2 unlock)
-- [ ] Phase 4 (Tier 3 polish) — VN data realism + email content quality (optional, beta cohort polish)
-- [ ] Status PARTIAL 25% → 100% DONE khi tất cả 4 phases shipped + self-test execution chứng minh end-to-end
+- [x] Catalog REFRESHED 2026-06-02 against current CSV (0 phantom; Tier 0/1/2 DONE-status synced; Tier 1.5 RST-blocker tier added)
+- [x] LOCAL-DOABLE vs AWS-BLOCKED split computed (26 LOCAL / 11 BLOCKED / 12 DONE) — steers campaign per `plan-autonomous-gap-campaign-local-doable.md` §1 filter
+- [x] Top-10 priority order + 4 cluster suggestions cho campaign coordinator
+- [ ] Tier 1.5 RST-blocker execution (12 LOCAL-DOABLE gaps) — campaign-tracked, chặn LOCAL persona walk
+- [ ] Tier 2/3 PARTIAL execution (tenant init/switch/idempotency/2FA + email/data polish) — campaign-tracked LOCAL
+- [ ] Tier 4 AWS-BLOCKED live-verify (7 gaps) — gated GAP-612 AWS restore
+- [ ] Status PARTIAL 85% → 100% DONE khi LOCAL self-test execution chứng minh end-to-end (Tier 1.5 đóng) + FULL self-test post-AWS-restore (Tier 4)
 
 ## Related
 
@@ -182,6 +271,15 @@ Per GAP-694 Phase 0B:
 - Outside-in audit synthesis 2026-05-21 (3 parallel agents output GAP-693/694 + this catalog gap)
 
 ## Log
+
+- **2026-06-02 (autonomous gap campaign — catalog refresh)** — PARTIAL giữ 85% (CSV-canonical). Catalog REFRESHED against current `gap-status.csv` state-check per `audit-to-gap-pipeline.md` §2.8. Findings:
+  - **Drift caught:** catalog 2026-05-21 đã stale — Tier 0 GAP-694 DONE; Tier 1 GAP-518/519/481/684 DONE; Tier 2 GAP-538/637/620/561/562/659/657 DONE. Catalog gốc list chúng PARTIAL/OPEN.
+  - **0 phantom:** verify tất cả 22 original gaps + 30+ active gaps chống CSV — mọi entry map real row.
+  - **Tier 1.5 RST-blocker tier ADDED** (12 gaps, không có trong catalog gốc): functional bugs surfaced từ RST walks Wave 1xx (GAP-727 teacher lock-out / GAP-610 token lifecycle / GAP-794 PDPL 401 / GAP-777 empty error body / GAP-776 circuit-breaker / GAP-726 wizard blank / GAP-774+775 missing controllers / GAP-729 IDOR guards / GAP-784 FE param / GAP-765 confirm email / GAP-825 tenant isolation). ĐÂY là trọng tâm self-test readiness hiện tại — chặn persona end-to-end walk.
+  - **LOCAL-DOABLE vs AWS-BLOCKED split computed** per `plan-autonomous-gap-campaign-local-doable.md` §1 filter: 26 LOCAL / 11 BLOCKED / 12 DONE. Tier 4 (7 gaps) gated GAP-612 AWS restore (live SES/Resend/DNS). LOCAL self-test khả thi NGAY khi đóng 12 Tier 1.5.
+  - **Campaign steering:** Top-10 priority order + 4 disjoint cluster suggestions (A auth/authz, B signup/consent, C missing controllers, D email/data) cho wave-pack-planner.
+  - **Honest PARTIAL:** catalog refresh là doc-work hoàn thành; AC cuối (LOCAL self-test execution end-to-end) cần Tier 1.5 fix execution (campaign work, không phải catalog work); FULL self-test cần AWS GAP-612. Per `gap-done-discipline.md` §3 — không flip DONE vì execution AC chưa met.
+  - CSV row last_verified: 2026-05-26 → 2026-06-02; completion_pct giữ 85.
 
 - **2026-05-21 (Wave 102.8 Bucket D)** — PARTIAL 25 → 50%. Tier 1 endpoint+auth verify SHIPPED via Bucket D execution.
   - Consumed Bucket A Docker preflight + `.env` populate (Wave 102.8 Bucket A merged PR #1691): `bash kitehub/scripts/check-docker.sh` exit 0; `bash kitehub/scripts/setup.sh` generated `.env` với dev-safe secrets.
