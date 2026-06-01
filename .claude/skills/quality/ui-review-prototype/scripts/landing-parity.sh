@@ -98,7 +98,7 @@ else
   # Inline Tier-1-equivalent base check.
   mapfile -t KIT_FOLDERS < <(
     find "$KITS_DIR" -maxdepth 1 -mindepth 1 -type d -printf '%f\n' \
-      | grep -vE '^_(shared|v1-baseline)$' \
+      | grep -vE '^(_shared|_v1-baseline|marketing-site)$' \
       | sort
   )
   mapfile -t CARD_SLUGS < <(
@@ -113,9 +113,14 @@ else
 fi
 
 # Re-enumerate kit folders for stricter checks (works regardless of Tier 1 path).
+# Exempt `marketing-site`: it's a platform marketing/beta-signup landing scored on the
+# /100 landing-checklist rubric (landing-page-review-checklist.md) — a single page with no
+# screens/ dir — NOT a /128 multi-screen UI kit. It deploys to Pages via ui_kits/ + has a
+# gallery card (Tier-1 folder↔card still enforced), but the /128-score + N-screens strict
+# checks don't apply. Authoritative review = production (public)/page.tsx post-port.
 mapfile -t KIT_FOLDERS < <(
   find "$KITS_DIR" -maxdepth 1 -mindepth 1 -type d -printf '%f\n' \
-    | grep -vE '^_(shared|v1-baseline)$' \
+    | grep -vE '^(_shared|_v1-baseline|marketing-site)$' \
     | sort
 )
 

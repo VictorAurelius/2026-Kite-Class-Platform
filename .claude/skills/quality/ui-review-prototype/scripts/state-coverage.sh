@@ -80,8 +80,11 @@ log_run() {
 # ---- Enumerate kits ---------------------------------------------------------
 
 mapfile -t KIT_FOLDERS < <(
+  # Exempt `marketing-site`: platform marketing/beta-signup landing (single page, /100
+  # landing-checklist rubric) — not a /128 multi-state screen-kit, so state-file coverage
+  # (default/loading/empty/error/success/dark) does not apply. Same exemption as landing-parity.sh.
   find "$KITS_DIR" -maxdepth 1 -mindepth 1 -type d -printf '%f\n' \
-    | grep -vE '^_(shared|v1-baseline)$' \
+    | grep -vE '^(_shared|_v1-baseline|marketing-site)$' \
     | sort
 )
 
