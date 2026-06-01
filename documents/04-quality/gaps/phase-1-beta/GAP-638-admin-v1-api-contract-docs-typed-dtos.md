@@ -99,4 +99,6 @@ public class LegacyAdminController {
 
 ## Log
 
+- 2026-06-01 — **Wave meta-8 Bucket B SCOPE-REVISE:** SCOPE-REVISE — Wave 97 Bucket B1 3-layer admin/ docs foundation shipped (README + rules BR-ADMIN-V1-001..003 + use-cases UC-001..006 + api-contract 6 endpoints); B2 typed DTOs + controller refactor + legacy @Deprecated defer next session. AC structure needs sync CSV completion_pct adjusted to 20%; gap body Status/AC reflect documented scope BEFORE Wave meta-7 audit — re-read audit artifact for current empirical reality. Source: `documents/04-quality/audits/meta/2026-06-01-wave-meta-7-bucket-d-p1-partial.md`.
+
 - **2026-05-18** — Initial write-up. Filed từ Wave 92 post-wave audit suite (GAP-619) API Contract audit finding P1. State-check confirmed `grep "/api/v1/admin" documents/01-business/` returns 0 hits — endpoints shipped Wave 92 Bucket D nhưng api-contract.md không update cùng PR. Phase 1 BETA blocker — API Contract audit gate ≥80.

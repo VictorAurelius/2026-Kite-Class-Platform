@@ -82,6 +82,8 @@ Phase 1 BETA invite-only launch (5-20 tenants Linear cohort playbook). Sau khi t
 
 ## Log
 
+- 2026-06-01 — **Wave meta-8 Bucket B SCOPE-REVISE:** SCOPE-REVISE — Status header says OPEN but completion 75; Wave 80 Bucket D Phase 2 F2 15 sources + PDF gen + Playwright capture + F1+Admin screenshots shipped (3/5 AC if AC restructured); P2/P3 screenshots placeholder GAP-537c CSV completion_pct adjusted to 60%; gap body Status/AC reflect documented scope BEFORE Wave meta-7 audit — re-read audit artifact for current empirical reality. Source: `documents/04-quality/audits/meta/2026-06-01-wave-meta-7-bucket-d-p1-partial.md`.
+
 - **2026-05-14:** PARTIAL 25% — Wave 79 Bucket F1 shipped anonymous-prospect 5-page MDX sample (`index/pricing/beta-access/terms/faq`) at `/help/anonymous/[slug]` route via PR #1371. F2 (P2 Owner + P3 Manager + Platform Admin) deferred Wave 80+ gated on F1 dev review. Inside-out scope refined per `user-manual-content-standard.md` v1.0.0 (sister rule shipped same wave Bucket F1).
 
 - **2026-05-14** — Initial write-up. User-flagged Wave 78 planning convo (2026-05-14): manual depends on UI kit chốt → queued post-Wave 79. Stub created tách rời Wave 78 RETAIN scope.

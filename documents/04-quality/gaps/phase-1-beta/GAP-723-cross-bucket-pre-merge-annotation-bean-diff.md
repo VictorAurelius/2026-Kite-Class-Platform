@@ -107,4 +107,6 @@ Pattern frequency observed: Wave 105 (5 buckets — 2 conflicts). Estimate ~1-2 
 
 ## Log
 
+- 2026-06-01 — **Wave meta-8 Bucket B SCOPE-REVISE:** SCOPE-REVISE: §1.6 Java extension chưa shipped vào pre-mutation-state-check.md. Reframe to track concrete §1.6 ship target. CSV completion_pct adjusted to 0%; gap body Status/AC reflect documented scope BEFORE Wave meta-7 audit — re-read audit artifact for current empirical reality. Source: `documents/04-quality/audits/meta/2026-06-01-wave-meta-7-bucket-c-p1-open-2.md`.
+
 - **2026-05-23**: GAP filed as META retro from Wave 105 self-test deep verify session. Goal "làm cho đến khi hết bug local" achieved (5 surfaced bugs fixed in #1730 + #1731); this META gap captures the process improvement candidate from the same retro. Defer concrete rule extension to next session per context budget; gap acceptance criteria mandates rule edit + reviewer-checklist + worked self-test all paired same PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate.

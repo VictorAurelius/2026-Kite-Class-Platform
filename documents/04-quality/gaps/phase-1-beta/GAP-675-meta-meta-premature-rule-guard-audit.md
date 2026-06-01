@@ -81,3 +81,7 @@ OR simpler: file follow-up gap per deferred detector at landing time. Forces tra
 - **Rule extended this PR (Wave 99C):** `audit-to-gap-pipeline.md` §2.5 + `contract-first-for-cross-layer.md` §6.2 — Wave 99C ships 2 detectors that CLOSE deferred-detector debt as worked example
 - **External reference:** ESLint Rule Lifecycle (qualitative, no count threshold) per `rule-change-process.md` §5.1 atomic-unique bar Wave 76 Bucket C
 - **Rule:** `meta-gap-priority.md` §3 — META-META P1 force-multiplier
+
+## Log
+
+- 2026-06-01 — **Wave meta-8 Bucket B SCOPE-REVISE:** SCOPE-REVISE — Status header OPEN contradicts PARTIAL/70%; Wave 99C closed Steps 1+2 (audit 6 detectors + tightened §3.1); Steps 3+4 GAP-679; AC structure needs sync CSV completion_pct adjusted to unchanged; gap body Status/AC reflect documented scope BEFORE Wave meta-7 audit — re-read audit artifact for current empirical reality. Source: `documents/04-quality/audits/meta/2026-06-01-wave-meta-7-bucket-d-p1-partial.md`.

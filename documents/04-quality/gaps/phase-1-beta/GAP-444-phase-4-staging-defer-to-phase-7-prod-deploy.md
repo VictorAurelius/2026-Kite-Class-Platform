@@ -118,5 +118,7 @@ Phase 7 prep window (T-7 → T-0) will compress all 7 sub-tasks into single spri
 
 ## Log
 
+- 2026-06-01 — **Wave meta-8 Bucket B SCOPE-REVISE:** SCOPE-REVISE — defer-by-design; Phase 3 image push DONE; Phase 4 staging deferred Phase 7 T-7 prep; consider DROP or reclassify as deferred-by-design tracker CSV completion_pct adjusted to 30%; gap body Status/AC reflect documented scope BEFORE Wave meta-7 audit — re-read audit artifact for current empirical reality. Source: `documents/04-quality/audits/meta/2026-06-01-wave-meta-7-bucket-d-p1-partial.md`.
+
 - **2026-05-08** Filed during Phase 3 SHIPPED retro (staging.8 success). Phase 4 deploy infrastructure was scaffold-only; no compose file + multiple workflow bugs surfaced when attempting to ship. Per `release-fix-retry-budget.md` §4 pivot matrix: defer Phase 4 to Phase 7 prep where prod-equivalent artifacts will be built once correctly. Phase 1 BETA risk acceptance documented inline.
 EOF
