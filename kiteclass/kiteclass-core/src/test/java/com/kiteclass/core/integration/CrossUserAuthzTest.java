@@ -213,6 +213,50 @@ class CrossUserAuthzTest {
     }
 
     // ────────────────────────────────────────────────────────────────────────
+    // ENROLLMENT authz — @authz.hasAccessToClass on class-roster endpoint (GAP-729)
+    // ────────────────────────────────────────────────────────────────────────
+    //
+    // GAP-729 closes A01 IDOR on EnrollmentController.getEnrollmentsByClass: the
+    // class roster is an OWNED resource (only the class's teacher may list who is
+    // enrolled). Guard reuses the existing @authz.hasAccessToClass(#classId) helper
+    // (same as GradeController / AttendanceController), so no new authz infra is
+    // introduced. A01-U05 (non-owner → 403) + A01-U06 (owner → 200) below mirror the
+    // grade-class IDOR pair (A01-U01/A01-U03).
+
+    @Test
+    @DisplayName("A01-U05: Teacher-2 cannot GET enrollments for a class owned by Teacher-1 (hasAccessToClass IDOR → 403)")
+    void teacher2_cannotGetEnrollments_forClassOwnedByTeacher1() throws Exception {
+        UUID tenantId = UUID.randomUUID();
+        UUID teacher1 = UUID.randomUUID();
+        UUID teacher2 = UUID.randomUUID();
+
+        Long classId = createClassOwnedBy(tenantId, teacher1);
+
+        // Teacher-2 is NOT the owner → @authz.hasAccessToClass denies → 403
+        mockMvc.perform(get("/api/v1/enrollments/class/" + classId)
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Id", teacher2.toString())
+                        .header("X-User-Reference-Id", teacher2.toString()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("A01-U06: Class owner (Teacher-1) CAN GET enrollments for own class — positive-path baseline (200)")
+    void teacher1_canGetEnrollments_forOwnClass() throws Exception {
+        UUID tenantId = UUID.randomUUID();
+        UUID teacher1 = UUID.randomUUID();
+
+        Long classId = createClassOwnedBy(tenantId, teacher1);
+
+        // Teacher-1 IS the owner → @authz.hasAccessToClass passes → 200 (empty roster for fresh class)
+        mockMvc.perform(get("/api/v1/enrollments/class/" + classId)
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Id", teacher1.toString())
+                        .header("X-User-Reference-Id", teacher1.toString()))
+                .andExpect(status().isOk());
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
     // PARENT-CHILD authz — @authz.hasAccessToChild
     // ────────────────────────────────────────────────────────────────────────
 
