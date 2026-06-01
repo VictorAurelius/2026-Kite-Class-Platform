@@ -7,7 +7,8 @@ tags_secondary: [phase-1-beta-gate, track-b]
 counter: 1
 created: 2026-06-01
 date_launch: 2026-06-01
-status: draft
+date_closed: 2026-06-01
+status: complete
 ---
 
 # Wave onboarding-polish-1 — Multi-tenant onboarding cluster close
@@ -188,3 +189,26 @@ Per `wave-closure-scope-completeness.md` v1.0.1 + `post-merge-sync-completeness.
 ## 8. Log
 
 - **2026-06-01** (draft): Plan created via state-check audit Bucket A approach. State-check baseline (this session): 6 gap aggregate 81% → AWS-free advance possible ~90% → AWS-required final 100%. Execution defer next session per user direction "state-check audit this session, ship plan + audit only, ship execution next session". Outside-in audit SKIP per `outside-in-coverage-trigger.md` §4 (Wave 100 ≤30 ngày + internal cluster close-out). State-Check Evidence §4 verified — 9 symbols (4 ✅ + 4 ⚠️ verify-on-bucket + 1 🆕 NEW). Cross-layer NO. Single coordinator no parallel agents (sequential safer cho production code). Estimate ~30min docs ship this session + ~4.5h AWS-free buckets next session.
+
+- **2026-06-01** (complete — PARTIAL execution, 1/5 bucket shipped + audit-miss discovered): User chốt "tiếp wave mới" → execute Wave onboarding-polish-1 Bucket A-E. **Bucket A shipped** (GAP-599 +3pp via 2 docs AC); **Buckets B-E defer** với critical audit-miss discovery.
+
+## Scope-Completeness Reconciliation
+
+| # | Plan §3 Scope item | Verdict | Follow-up |
+|---|---|---|---|
+| A1 | GAP-599 AC tick + auth-storage.md + concurrent-browser-session note | ✅ DONE | — |
+| B1 | GAP-535 wire `TenantSlugNormalizer` vào `InstanceService.createInstance` + 10-retry loop + IT | ⏸ DEFER — **AUDIT MISS DISCOVERED** | Triad drift: V40 migration shipped `instances.slug VARCHAR(120)` column BUT Instance entity lacks `slug` field + InstanceRepository lacks `existsBySlug*` method + InstanceService không call normalizer. Per `design-patterns.md` §3.12 Entity-Migration-Mapper triad drift. Wave meta-7 audit flipped GAP-535 → DONE incorrectly (per `gap-done-discipline.md` §2 — AC line "Wiring into InstanceService.createInstance" was unchecked at flip time). Next session ~2h. |
+| C1 | GAP-536 IdempotencyHandlerInterceptor wire | ⏸ DEFER | Similar pattern risk — state-check Idempotency entity/repo trước wire. Next session ~1.5h. |
+| D1 | GAP-538 VN sample seed data | ⏸ DEFER | Verify seed worker existence (per state-check found `ProductionSeedRunner.java` + `SystemConfigSeedDao.java`); add VN sample names. Next session ~30min. |
+| E1 | GAP-610 root cause investigation | ⏸ DEFER | Testcontainers reproduce 3 hypotheses. Next session ~1h. |
+| S1 | **NEW audit-miss finding** | 📋 NOTED | Wave meta-7 Bucket A catalog flipped 19 SHIPPED-DONE based on "class + migration shipped" — không verify wiring AC. Per `gap-done-discipline.md` §2 + `feature-ship-runtime-walk-mandate.md` §3 RST walk mandate, these flips premature. Recurrence của trust-pass anti-pattern (per `feedback_audit_of_trust_pass.md` memory). Wave meta-9 candidate: META gap "audit-catalog trust-pass detector — verify SHIPPED-DONE has all AC ticked + cross-flow wiring sweep". Force-multiplier per `meta-gap-priority.md` §3. |
+
+**Verdict:** 1/5 in-scope buckets ✅ DONE (Bucket A). 4/5 ⏸ DEFER với explicit triad-drift findings. 1 audit-miss surface finding logged for Wave meta-9 META candidate.
+
+**Outcome metrics:**
+- GAP-599 pct 92 → 95 (+3pp); 1 docs file + 1 docs section shipped (Bucket A)
+- 4 bucket execution defer (real code work too large cho 1h remaining budget at 75% context)
+- 1 audit-miss discovery — Wave meta-7 Bucket A catalog flip GAP-535 → DONE incorrect (entity ↔ migration ↔ mapper triad drift)
+- ~30min wall-clock coordinator-inline (Bucket A scope)
+
+Triggered by user direction "tiếp wave mới luôn" mid-session sau 3-PR shipping ledger (Wave meta-8 + email-finalize-1 + onboarding-polish-1 state-check). Context 75% at decision time per `session-end-context-check.md` §3 — vùng 70-84% heads-up. Bucket B+C+D real-code execution risk overflow + production code path needs careful test (per `api-contract-change-caller-sweep.md` §3.3 + `postgres-specific-type-testcontainers.md` §1 mandates) — defer cleaner than partial-wire.
