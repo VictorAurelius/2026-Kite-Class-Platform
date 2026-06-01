@@ -7,6 +7,7 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -21,11 +22,13 @@ import {
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout';
 import { DashboardWelcome } from '@/components/onboarding/DashboardWelcome';
+import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { apiClient } from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { STORAGE_KEY as ONBOARDING_STORAGE_KEY } from '@/components/onboarding/OnboardingWizard';
 
 // Types for dashboard data
 interface Student {
@@ -106,11 +109,31 @@ export default function DashboardPage() {
     queryFn: getRecentActivities,
   });
 
+  // First-login onboarding: show the 5-step wizard until completed/skipped.
+  // The lighter DashboardWelcome quick-action banner only appears afterwards,
+  // so first-time users never see two stacked onboarding cards.
+  const [wizardDone, setWizardDone] = useState(true);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+      const completed = raw ? Boolean(JSON.parse(raw)?.completed) : false;
+      setWizardDone(completed);
+    } catch {
+      setWizardDone(false);
+    }
+  }, []);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Onboarding Welcome Banner */}
-        <DashboardWelcome />
+        {/* First-login onboarding tour (5-step, persona-relevant). Self-hides
+            when completed/skipped via localStorage. */}
+        {!wizardDone && (
+          <OnboardingWizard onComplete={() => setWizardDone(true)} />
+        )}
+
+        {/* Quick-action welcome banner — only after the wizard is done. */}
+        {wizardDone && <DashboardWelcome />}
 
         {/* Header */}
         <div className="flex items-center justify-between">

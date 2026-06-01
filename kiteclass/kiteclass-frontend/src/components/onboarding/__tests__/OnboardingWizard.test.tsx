@@ -7,7 +7,8 @@
 
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { OnboardingWizard } from '../OnboardingWizard';
+import { OnboardingWizard, resetOnboardingProgress, STORAGE_KEY } from '../OnboardingWizard';
+import { getOnboardingEvents } from '@/lib/onboarding-telemetry';
 
 // Shared store for localStorage mock
 let store: Record<string, string> = {};
@@ -264,6 +265,78 @@ describe('OnboardingWizard', () => {
 
       const progressBar = screen.getByRole('progressbar');
       expect(progressBar).toHaveAttribute('aria-valuenow', '100');
+    });
+  });
+
+  describe('Skip Whole Tour', () => {
+    it('shows "Đóng hướng dẫn" control on every step', () => {
+      render(<OnboardingWizard />);
+      expect(
+        screen.getByRole('button', { name: /Đóng hướng dẫn/ })
+      ).toBeInTheDocument();
+      navigateToStep(3);
+      expect(
+        screen.getByRole('button', { name: /Đóng hướng dẫn/ })
+      ).toBeInTheDocument();
+    });
+
+    it('marks complete + calls onComplete when whole tour skipped', () => {
+      const onComplete = vi.fn();
+      render(<OnboardingWizard onComplete={onComplete} />);
+
+      fireEvent.click(screen.getByRole('button', { name: /Đóng hướng dẫn/ }));
+
+      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+        'kiteclass-onboarding-progress',
+        expect.stringContaining('"completed":true')
+      );
+      expect(onComplete).toHaveBeenCalled();
+      expect(screen.queryByText(/Bước/)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Telemetry', () => {
+    it('records start + step_view on mount', () => {
+      render(<OnboardingWizard />);
+      const events = getOnboardingEvents();
+      expect(events.some((e) => e.type === 'onboarding_start')).toBe(true);
+      expect(
+        events.some((e) => e.type === 'onboarding_step_view' && e.step === 1)
+      ).toBe(true);
+    });
+
+    it('records step_skip on per-step skip', () => {
+      render(<OnboardingWizard />);
+      fireEvent.click(screen.getByRole('button', { name: /Bỏ qua bước/ }));
+      expect(
+        getOnboardingEvents().some((e) => e.type === 'onboarding_step_skip')
+      ).toBe(true);
+    });
+
+    it('records complete on finish', () => {
+      render(<OnboardingWizard />);
+      navigateToStep(5);
+      fireEvent.click(screen.getByRole('button', { name: /Bắt đầu sử dụng/ }));
+      expect(
+        getOnboardingEvents().some((e) => e.type === 'onboarding_complete')
+      ).toBe(true);
+    });
+
+    it('does not record start when already completed', () => {
+      store[STORAGE_KEY] = JSON.stringify({ currentStep: 5, completed: true });
+      render(<OnboardingWizard />);
+      expect(
+        getOnboardingEvents().some((e) => e.type === 'onboarding_start')
+      ).toBe(false);
+    });
+  });
+
+  describe('resetOnboardingProgress', () => {
+    it('removes progress so wizard re-fires', () => {
+      store[STORAGE_KEY] = JSON.stringify({ currentStep: 5, completed: true });
+      resetOnboardingProgress();
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith(STORAGE_KEY);
+      expect(store[STORAGE_KEY]).toBeUndefined();
     });
   });
 });
