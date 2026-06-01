@@ -51,9 +51,15 @@ Khuyến nghị: **B cho Phase 1 BETA** (1 banner đủ MVP, xóa orphan tránh 
 - [ ] Nếu A: `heroImages` data field + carousel render + UI; browser-verify carousel hoạt động (per `design-source-implementation-parity.md` §3.2 runtime click-verify)
 - [ ] Nếu B: xóa `.hero-slide/.hero-dots/.hero-arrow` khỏi landing.css + ghi nhận single-banner là design canonical; defer-gap cho multi-banner Phase 1.5
 
+## Update 2026-06-01 — outside-in 3-agent confirm
+
+Outside-in audit landing-input (persona + benchmark + failure-mode) **đồng thuận multi-banner carousel = DEFER Phase 1.5** (không phải Phase 1 MVP). User chốt option A (carousel xoay live) cho Phase 1.5; prototype browser-verified + deployed (PR #2033, `marketing-site/carousel-demo.html`) làm design reference. Phase 1 = single banner + lead-form (GAP-828) + safety (GAP-827).
+
 ## Related
 
 - `design-source-implementation-parity.md` v1.1.0 — đa-banner = cùng dropped-affordance class với ThemeSwitcher; §3 row 2 (states/variants) + row 5 (copied-but-unwired = orphan CSS)
+- GAP-827 (input safety) + GAP-828 (conversion scope) — sister landing-input gaps (3-agent outside-in 2026-06-01)
+- ADR-037 (AI branding stack) — banner gen route (GPT 5.5)
 - GAP-815 (landing content editor UI) — UI lớp nhập input
 - GAP-810 (banner image assets) PARTIAL + GAP-003 (AI branding) OPEN — banner generation
 - `cross-flow-bug-class-sweep.md` — orphan CSS = sister site của ThemeSwitcher dead-code
