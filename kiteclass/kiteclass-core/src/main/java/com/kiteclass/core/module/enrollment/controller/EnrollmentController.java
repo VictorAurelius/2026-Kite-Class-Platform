@@ -24,6 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -227,6 +228,13 @@ public class EnrollmentController {
     /**
      * Get all enrollments for a class.
      *
+     * <p><strong>OWASP A01 per-resource guard (GAP-729):</strong> the class roster
+     * is an OWNED resource — only the class's teacher (or a platform admin) may list
+     * who is enrolled. Guarded by {@code @authz.hasAccessToClass(#classId)}, the same
+     * helper used by {@code GradeController} / {@code AttendanceController}. Tenant
+     * isolation (Hibernate filter) alone is NOT sufficient: a teacher in tenant A could
+     * otherwise read the roster of a class they don't own within the same tenant.
+     *
      * @param classId class ID
      * @param status optional status filter
      * @param pageable pagination parameters
@@ -234,6 +242,7 @@ public class EnrollmentController {
      */
     @GetMapping("/class/{classId}")
     @Operation(summary = "Get all enrollments for a class")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<Page<EnrollmentResponse>>> getEnrollmentsByClass(
             @Parameter(description = "Class ID") @PathVariable Long classId,
             @Parameter(description = "Filter by status (optional)")

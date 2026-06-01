@@ -1,10 +1,32 @@
 # GAP-729: 11/19 controllers no per-resource authz guard — A01 OWASP IDOR wide
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (40% — 2 OWNED class-scoped sites fixed; remainder → GAP-837)
 **Priority:** 🟠 P1
 **Domain:** Backend (kiteclass-core)
 **Detected:** 2026-05-24 (Wave beta-readiness-1 Bucket D audit, PR #1763)
 **Affects:** 11/19 controllers — potential IDOR (Insecure Direct Object Reference) per A01 OWASP Top 10 2021
+
+## State-Check (verified 2026-06-02)
+
+State-check theo `audit-to-gap-pipeline.md` §2.8 cho thấy nhiều controller GAP-729 đặt tên ban đầu ĐÃ được gắn guard kể từ khi filing (qua GAP-727 + các wave authz subsequent). Codebase cũng đã tăng từ 19 → 50+ controller.
+
+| Controller (named in gap) | `@PreAuthorize` state 2026-06-02 |
+|---|---|
+| GradeController | ✅ Guarded (4 endpoints `@authz.hasAccessToClass`) |
+| AttendanceController | ✅ Guarded (3 endpoints — incl. `getClassStats` fixed THIS gap) |
+| AttendancePeriodController | ✅ Guarded |
+| AttendanceClassBatchController | ✅ Guarded |
+| ClassController | ⚠️ 1/12 guarded (reschedule only) → GAP-837 |
+| EnrollmentController | ⚠️ class-roster fixed THIS gap; id/student endpoints → GAP-837 |
+| CourseController | 📋 SHARED resource (course catalog tenant-visible) — tenant-filter sufficient, documented |
+| StudentController / TeacherController | ⚠️ id-resolution helpers needed → GAP-837 |
+| Billing / Schedule / Report controllers | ❌ Do not exist as standalone (folded into Invoice/Class/childprotection) |
+
+**Sites FIXED this PR (2):**
+1. `EnrollmentController.getEnrollmentsByClass` (`GET /api/v1/enrollments/class/{classId}`) — OWNED class roster → `@authz.hasAccessToClass(#classId)`
+2. `AttendanceController.getClassStats` (`GET /api/v1/attendance/stats/class/{classId}`) — lone unguarded sibling, consistency fix
+
+**Sites DEFERRED → GAP-837 (cross-flow sweep, ~14):** ClassController 10 lifecycle/read endpoints + AssignmentController 3 class-scoped + EnrollmentController 4 id/student-resolution endpoints (need new `@authz` helper).
 
 ## Problem
 
@@ -53,12 +75,25 @@ Cross-reference V2 audit `failure-mode-matrix-v2-state-checked.md` A5 partial fi
 
 ## Acceptance Criteria
 
-- [ ] Per 11 controller, classify SHARED vs OWNED
-- [ ] OWNED controllers: add `@PreAuthorize` guard + `@authz.canAccessOwn{Resource}()` helper methods
-- [ ] IT tests cross-user same-tenant cho mỗi OWNED endpoint (user A view own → 200; view user B → 403)
-- [ ] Document SHARED scope per controller javadoc (explicit "shared by design, tenant-filter sufficient")
-- [ ] Re-run `CrossUserAuthzTest.java` cover all OWNED endpoints
-- [ ] Audit matrix in PR body update post-fix
+- [x] Per controller, classify SHARED vs OWNED (State-Check table above)
+- [~] OWNED controllers: add `@PreAuthorize` guard — 2 fixed this PR (Enrollment class-roster + Attendance class-stats); ~14 remaining → GAP-837
+- [x] IT tests cross-user same-tenant for fixed OWNED endpoints (A01-U05 non-owner→403, A01-U06 owner→200 in `CrossUserAuthzTest`)
+- [x] Document SHARED scope (Course = SHARED catalog, documented in State-Check table)
+- [x] Re-run `CrossUserAuthzTest.java` — 6/6 PASS (Testcontainers Postgres)
+- [~] Audit matrix in PR body update post-fix (this gap State-Check + GAP-837 sweep table)
+
+## Walk evidence (per pre-handoff-self-test-completeness.md §2.4 / feature-ship-runtime-walk-mandate)
+
+`CrossUserAuthzTest` (Testcontainers real Postgres + `@EnableMethodSecurity`) — 6/6 PASS, Time 25.76s:
+- A01-U05: Teacher-2 GET `/enrollments/class/{classId}` owned by Teacher-1 → **403** (IDOR denied) ✅
+- A01-U06: Teacher-1 (owner) GET `/enrollments/class/{classId}` → **200** ✅
+- A01-U01/U03 (grade-class), A01-U02/U04 (parent-child) pre-existing → still PASS ✅
+
+Verifies `@authz.hasAccessToClass(#classId)` actually enforces ownership end-to-end (HTTP layer → method-security AOP → AuthorizationBean native query → DB), not just compiles.
+
+## Log
+
+- **2026-06-02** — PARTIAL closure (local-doable gap campaign). State-check found most named controllers already guarded since filing (GAP-727 wave). Fixed 2 OWNED class-scoped IDOR sites using existing `@authz.hasAccessToClass` helper (no new infra): `EnrollmentController.getEnrollmentsByClass` + `AttendanceController.getClassStats`. Added IT A01-U05/U06 to `CrossUserAuthzTest` (non-owner 403 + owner 200) — 6/6 PASS on Testcontainers. Cross-flow sweep per `cross-flow-bug-class-sweep.md` §3 surfaced ~14 remaining class-scoped + id-resolution endpoints (ClassController 10, Assignment 3, Enrollment id-resolution 4) → filed GAP-837. Status OPEN→PARTIAL (40%). branch `feature/GAP-729-controller-authz-guards`.
 
 ### Out-of-scope
 

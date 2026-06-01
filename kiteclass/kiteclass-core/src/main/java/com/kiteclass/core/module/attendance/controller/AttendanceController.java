@@ -185,10 +185,16 @@ public class AttendanceController {
     /**
      * Get attendance statistics for a class.
      *
+     * <p><strong>OWASP A01 per-resource guard (GAP-729):</strong> class attendance
+     * stats are an OWNED resource — guarded by {@code @authz.hasAccessToClass(#classId)}
+     * for consistency with the two session-level attendance endpoints above (cross-flow
+     * sweep: this was the lone unguarded class-scoped sibling).
+     *
      * @param classId class ID
      * @return attendance statistics
      */
     @GetMapping("/stats/class/{classId}")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     @Operation(summary = "Get attendance statistics for a class",
                description = "Returns aggregated attendance statistics for all students in a class.")
     public ResponseEntity<AttendanceStatsResponse> getClassStats(
