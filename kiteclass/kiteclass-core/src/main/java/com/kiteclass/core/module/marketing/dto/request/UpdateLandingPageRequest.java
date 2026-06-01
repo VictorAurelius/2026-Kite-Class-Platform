@@ -30,6 +30,7 @@ public class UpdateLandingPageRequest {
     @Size(max = 500, message = "{landing.hero.image.size}")
     private String heroImageUrl;
 
+    @Size(max = 2000, message = "{landing.teacherBio.size}")
     private String teacherBio;
 
     @Size(max = 500, message = "{landing.logo.size}")
@@ -51,6 +52,7 @@ public class UpdateLandingPageRequest {
     @Size(max = 20, message = "{landing.phone.size}")
     private String contactPhone;
 
+    @Size(max = 500, message = "{landing.address.size}")
     private String address;
 
     @Size(max = 255, message = "{landing.social.size}")
@@ -66,6 +68,7 @@ public class UpdateLandingPageRequest {
     // triad per design-patterns.md §3.12. FE reads per-tenant content from DB; admin
     // PATCH endpoint updates these via this DTO. JsonNode fields = JSONB columns; client
     // sends JSON tree, Jackson deserializes. Shape contracts documented on entity fields.
+    @Size(max = 5000, message = "{landing.aboutText.size}")
     private String aboutText;
 
     @Pattern(regexp = "^(personal|organization)$", message = "{landing.template.type.invalid}")
