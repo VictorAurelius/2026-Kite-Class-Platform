@@ -26,6 +26,8 @@ on:
       - 'documents/03-planning/waves/**'
       - 'scripts/check-wave-plan-completeness.sh'
       - 'scripts/check-wave-closure-completeness.sh'
+      - 'scripts/check-post-wave-audit-cadence.sh'
+      - '.claude/skills/quality/wave-pack-planner/data/wave-history.jsonl'
       - 'scripts/tests/fixtures/wave-plan/**'
       - 'documents/01-business/**'
       - 'scripts/check-3-layer-completeness.sh'
@@ -175,6 +177,30 @@ jobs:
           # WARN mode initially through 2026-06-26 (30-day grace); HARD STOP after audit retrospective.
           # Override trailer: `WAVE_CLOSURE_RECONCILE_OVERRIDE: <reason + follow-up gap link>`
           bash scripts/check-wave-closure-completeness.sh
+
+
+  post-wave-audit-cadence:
+    name: Post-wave audit cadence (wave-history vs audits-index)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (3 synthetic waves — fresh + compliant + stale)
+        run: bash scripts/check-post-wave-audit-cadence.sh --self-test
+
+      - name: Validate audit cadence (WARN mode — 30-day grace through 2026-07-01)
+        run: |
+          # Per `.claude/rules/post-wave-audit-mandate.md` §2.2 audit suite ≤3 days post-merge
+          # — detector shipped Wave meta-8 Bucket C per GAP-821 audit-cadence systemic
+          # enforcement. Wave meta-7 audit surfaced 76 stale-cadence waves (post-wave
+          # audit suite skipped systematically). WARN-mode initially; HARD STOP target
+          # Wave meta-9 after 30-day grace through 2026-07-01.
+          # Override: file audit row in audits-index.csv with matching `wave` column.
+          bash scripts/check-post-wave-audit-cadence.sh --warn
 
 
   three-layer-completeness:
