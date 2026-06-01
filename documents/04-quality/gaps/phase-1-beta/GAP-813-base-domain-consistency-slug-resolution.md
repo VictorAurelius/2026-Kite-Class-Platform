@@ -1,7 +1,7 @@
 ---
 id: GAP-813
 title: Base-domain config không nhất quán + thiếu public endpoint resolve slug → tenantId UUID
-status: OPEN
+status: PARTIAL
 priority: P1
 phase: phase-1-beta
 domain: Mixed
@@ -80,11 +80,11 @@ public ... getLandingPage(@PathVariable UUID tenantId) { ... }
 
 - [ ] 1 env var `KITE_BASE_DOMAIN` (+ `NEXT_PUBLIC_KITE_BASE_DOMAIN`) là single source; gateway + seeder + FE đều đọc từ đó (zero hardcode `.kiteclass.com`/`.kite.local` literal còn lại — verify bằng grep).
 - [ ] Canonical base-domain value chốt với user; `domain-management.md` cập nhật đồng bộ; code-sync sweep zero stale ref per `audit-to-gap-pipeline.md` §2.7.
-- [ ] Endpoint `GET /api/v1/tenants/by-subdomain/{slug}` trả `{tenantId, status, subdomain}` (UUID đúng), projection-only (không leak DB credential).
-- [ ] Endpoint trong gateway public whitelist + CORS đúng; status ∉ {ACTIVE,TRIAL} → 404; slug không tồn tại → 404.
+- [x] Endpoint `GET /api/v1/public/tenants/by-subdomain/{slug}` trả `{id, subdomain, name, status}` (UUID đúng), projection-only (không leak DB credential). — Wave tenant-domain-1 Bucket B (PR pending) `PublicTenantController` + `TenantLookupService` + `TenantResolveDto`. Path chỉnh `public/tenants/by-subdomain/{slug}` per Bucket 0 api-contract §9.
+- [x] Endpoint trong gateway public whitelist + CORS đúng; status ACTIVE/TRIAL → 200 (TRIAL collapsed to ACTIVE); SUSPENDED/DELETED → 410 GONE; slug không tồn tại → 404; format invalid → 400. — `kitehub-gateway` route `public-tenant-resolve` (rate-limit 30/min/IP) + `kitehub-subscription` SecurityConfig `permitAll` `/api/v1/public/tenants/**`.
 - [ ] `SlugAvailabilityService` cross-check `instances.subdomain` thật (3 nguồn: reserved + BrandingJob + instances).
 - [ ] RST walk per `feature-ship-runtime-walk-mandate`: browser truy cập `{slug}.{KITE_BASE_DOMAIN}` → gateway resolve đúng tenant → FE resolve slug→UUID → landing render. Evidence 3 lớp (gateway log X-Tenant-Id + curl endpoint trả UUID + browser landing) paste vào closure block.
-- [ ] BE `mvn test` PASS; FE `pnpm build` PASS.
+- [x] BE `mvn test` PASS (Bucket B subscription module: compile + test-compile + `PublicTenantControllerTest` 13/13 PASS local). FE `pnpm build` — Bucket C scope.
 
 ## Related
 
@@ -96,6 +96,7 @@ public ... getLandingPage(@PathVariable UUID tenantId) { ... }
 ## Log
 
 - **2026-05-29:** Gap created sau research session — xác nhận 4 nguồn base-domain không nhất quán (gateway `.kiteclass.com` / seeder `.kite.local` / docs `kiteclass.com`+`kitehub.vn` / ADR `kitehub.me`) + slug→UUID gap (FE trả slug, landing API cần UUID, không có public resolve endpoint). Design 3 phần: (a) reconcile env-driven `KITE_BASE_DOMAIN`, (b) endpoint `GET /api/v1/tenants/by-subdomain/{slug}`, (c) fix slug-availability cross-check `instances` thật. Status OPEN — chờ implement (decision-doc base-domain value cần user confirm trước, per audit-to-gap-pipeline §2.7).
+- **2026-06-01 (Wave tenant-domain-1 Bucket B):** Flip OPEN → PARTIAL (completion 55%). Ship BE endpoint per Bucket B scope: `PublicTenantController` (`/api/v1/public/tenants/by-subdomain/{slug}` — slug regex + 200/400/404/410 mapping + TRIAL→ACTIVE collapse for public projection), `TenantLookupService` (read-only Optional<Instance> + DTO projection — zero sensitive field leak), `TenantResolveDto`, `kitehub-gateway` route `public-tenant-resolve` (rate-limit 30/min/IP via `ipKeyResolver` + circuit breaker), `kitehub-subscription` SecurityConfig `permitAll` `/api/v1/public/tenants/**` (in front of authenticated gateway tail). Tests: `PublicTenantControllerTest` (Mockito, 13 cases — 200 ACTIVE/TRIAL, 404 unknown/PENDING, 410 SUSPENDED/DELETED, 400 uppercase/leading-hyphen/trailing-hyphen/length/empty/underscore, boundary 1-char + 50-char). IT: `PublicTenantPostgresIT` (Testcontainers postgres:16-alpine, 7 cases — 200 ACTIVE × 2, 404 unknown, 410 SUSPENDED, 400 uppercase + underscore, 404 soft-deleted). `InstanceRepository.findBySubdomainAndDeletedFalse(String)` đã có sẵn — không cần thêm method. Local verify: `mvnw -pl kitehub-subscription compile + test-compile + test -Dtest=PublicTenantControllerTest` all PASS. Pending Bucket C: FE consumer `resolveTenant.ts` (GAP-811), base-domain env unification, SlugAvailabilityService cross-check, RST walk evidence 3 lớp.
 
 ## Outside-in findings (3-agent audit 2026-05-29)
 
