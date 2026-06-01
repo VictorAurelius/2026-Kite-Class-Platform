@@ -21,6 +21,7 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
     ├── course-class/
     ├── teacher/
     ├── attendance/
+    ├── analytics-report/      ← báo cáo dashboard doanh thu + tỷ lệ điểm danh (GAP-775)
     ├── grade-assignment/
     ├── payment-invoice/
     ├── gamification-points/
@@ -96,6 +97,7 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
 | course-class | ✅ | ✅ | ✅ | 2026-03-24 |
 | teacher | ✅ | ✅ | ✅ | 2026-03-24 |
 | attendance | ✅ | ✅ | ✅ | 2026-03-24 |
+| analytics-report | ✅ | ✅ | ✅ | 2026-06-02 (GAP-775 Mảng B11 — revenue + attendance dashboard) |
 | grade-assignment | ✅ | ✅ | ✅ | 2026-03-24 |
 | payment-invoice | ✅ | ✅ | ✅ | 2026-03-24 |
 | gamification-points | ✅ | ✅ | ✅ | 2026-03-24 |
