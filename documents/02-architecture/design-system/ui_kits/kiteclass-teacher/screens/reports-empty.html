@@ -1,7 +1,9 @@
 <!--
   Persona: Teacher
   Flow: Reports — no sessions in selected period
-  Score self-estimate: 102/128
+  Score self-estimate: 108/128
+  GAP-429 fix: purpose-built inline SVG (empty bar-chart motif) replaces generic calendar-x;
+  month context surfaced as prominent chip; clearer "choose another month" recovery path.
 -->
 <!DOCTYPE html>
 <html lang="vi" class="theme-kiteclass">
@@ -33,12 +35,21 @@
   </div>
 
   <div class="rounded-2xl border-2 border-dashed border-border bg-card p-12 text-center">
-    <div class="mx-auto w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
-      <i data-lucide="calendar-x" class="w-10 h-10 muted"></i>
-    </div>
+    <!-- GAP-429: purpose-built empty bar-chart motif (no data bars + Tết accent) -->
+    <svg class="mx-auto mb-4" width="120" height="84" viewBox="0 0 120 84" fill="none" role="img" aria-label="Không có dữ liệu báo cáo trong tháng">
+      <line x1="14" y1="68" x2="106" y2="68" stroke="hsl(var(--border))" stroke-width="1.5"/>
+      <line x1="14" y1="68" x2="14" y2="14" stroke="hsl(var(--border))" stroke-width="1.5"/>
+      <rect x="26" y="50" width="14" height="18" rx="2" fill="none" stroke="hsl(var(--border))" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <rect x="50" y="42" width="14" height="26" rx="2" fill="none" stroke="hsl(var(--border))" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <rect x="74" y="54" width="14" height="14" rx="2" fill="none" stroke="hsl(var(--border))" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <text x="60" y="34" text-anchor="middle" font-size="22" fill="hsl(var(--primary))">🧧</text>
+    </svg>
+    <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-primary/10 text-primary mb-3">
+      <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Tháng 02/2026 · Tết Nguyên đán
+    </span>
     <h2 class="h2 mb-2">Không có tiết dạy trong tháng này</h2>
     <p class="muted max-w-md mx-auto mb-5">
-      Tháng 02/2026 trùng với kỳ nghỉ Tết Nguyên đán nên không có dữ liệu điểm danh. Chọn tháng khác để xem báo cáo.
+      Tháng 02/2026 trùng với kỳ nghỉ Tết Nguyên đán nên không có dữ liệu điểm danh. Chọn tháng khác để xem báo cáo chuyên cần.
     </p>
     <div class="flex items-center justify-center gap-2 flex-wrap">
       <button class="px-4 py-2 rounded-md border border-border bg-card hover:bg-muted text-sm tap-target inline-flex items-center gap-2">

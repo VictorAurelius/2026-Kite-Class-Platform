@@ -2,8 +2,9 @@
 <html lang="vi" class="theme-kitehub">
 <!--
   Persona: P2 Center Owner — branding hub loading state
-  Score self-estimate: 100/128
+  Score self-estimate: 108/128
   Contrast: skeleton on bg-card 4.7:1 AA ✓
+  GAP-429 fix: async-job step indicator (Bước 2/5) + matched-shape skeleton communicates AI generation context.
 -->
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -26,6 +27,22 @@
       <span class="skeleton" style="height: 32px; width: 70%;"></span>
     </aside>
     <main class="shell__main stack-6">
+      <!-- GAP-429: async AI-job step indicator — communicates which generation phase is running -->
+      <div class="card-base stack-3" style="padding: 1.25rem; border-color: hsl(var(--accent) / 0.4); background: hsl(var(--accent) / 0.04);">
+        <div class="flex items-center gap-3">
+          <i data-lucide="sparkles" class="w-5 h-5" style="color: hsl(var(--accent)); animation: pulse 2s ease-in-out infinite;"></i>
+          <div class="flex-1">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-semibold text-sm">Đang tạo bộ nhận diện thương hiệu bằng AI</span>
+              <span class="text-xs muted-strong text-mono">Bước 2/5</span>
+            </div>
+            <div style="height: 6px; border-radius: 999px; background: hsl(var(--muted)); overflow: hidden;">
+              <div style="height: 100%; width: 40%; border-radius: 999px; background: hsl(var(--accent)); transition: width 0.4s ease;"></div>
+            </div>
+            <p class="text-xs muted-strong mt-2" role="status" aria-live="polite">Phân tích thương hiệu trung tâm · gợi ý màu sắc &amp; font phù hợp...</p>
+          </div>
+        </div>
+      </div>
       <span class="skeleton" style="height: 32px; width: 320px;"></span>
       <span class="skeleton" style="height: 64px; width: 100%;"></span>
       <div class="grid grid-cols-3 gap-4">

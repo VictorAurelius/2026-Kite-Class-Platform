@@ -1,8 +1,10 @@
 <!--
   Persona: Teacher
   Flow: Flow #3 — empty state (class created, no students enrolled yet)
-  Score self-estimate: 102/128
+  Score self-estimate: 108/128
   Contrast: Body 14.8:1, muted 4.7:1, primary 4.5:1 (AA)
+  GAP-429 fix: purpose-built inline SVG (empty class scene) replaces icon-only circle;
+  primary CTA full-width on mobile + top-positioned; "first time" context hint.
 -->
 <!DOCTYPE html>
 <html lang="vi" class="theme-kiteclass">
@@ -28,22 +30,32 @@
   <h1 class="h1 mb-1">Lớp 11B1 - Văn</h1>
   <p class="muted body-sm mb-6">Học kỳ II 2025-2026 · 0 học sinh đăng ký</p>
 
-  <div class="rounded-2xl border-2 border-dashed border-border bg-card p-12 text-center">
-    <div class="mx-auto w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-      <i data-lucide="users" class="w-10 h-10 text-primary"></i>
-    </div>
+  <div class="rounded-2xl border-2 border-dashed border-border bg-card p-8 md:p-12 text-center">
+    <!-- GAP-429: purpose-built inline SVG — empty class scene (3 vacant seats + add marker) -->
+    <svg class="mx-auto mb-5" width="148" height="96" viewBox="0 0 148 96" fill="none" role="img" aria-label="Lớp học chưa có học sinh">
+      <rect x="6" y="58" width="40" height="28" rx="4" fill="hsl(var(--muted))" stroke="hsl(var(--border))" stroke-width="1.5"/>
+      <rect x="54" y="58" width="40" height="28" rx="4" fill="hsl(var(--muted))" stroke="hsl(var(--border))" stroke-width="1.5"/>
+      <rect x="102" y="58" width="40" height="28" rx="4" fill="hsl(var(--muted))" stroke="hsl(var(--border))" stroke-width="1.5"/>
+      <circle cx="26" cy="44" r="9" fill="none" stroke="hsl(var(--border))" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <circle cx="74" cy="44" r="9" fill="none" stroke="hsl(var(--border))" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <circle cx="122" cy="44" r="9" fill="none" stroke="hsl(var(--border))" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <circle cx="74" cy="20" r="14" fill="hsl(var(--primary) / 0.12)"/>
+      <path d="M74 13v14M67 20h14" stroke="hsl(var(--primary))" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
     <h2 class="h2 mb-2">Chưa có học sinh trong lớp</h2>
     <p class="muted max-w-md mx-auto mb-6">
-      Lớp này vừa được tạo. Hãy thêm học sinh vào danh sách trước khi điểm danh. Bạn có thể thêm thủ công hoặc nhập từ file Excel.
+      <span class="font-medium text-foreground">Đây là lần đầu thiết lập lớp này.</span>
+      Hãy thêm học sinh vào danh sách trước khi điểm danh — thêm thủ công hoặc nhập nhanh từ file Excel.
     </p>
-    <div class="flex items-center justify-center gap-3 flex-wrap">
-      <button class="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium tap-target inline-flex items-center gap-2">
+    <!-- GAP-429: primary CTA full-width on mobile, top-positioned, prominent -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 max-w-md sm:max-w-none mx-auto">
+      <button class="w-full sm:w-auto px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-semibold tap-target inline-flex items-center justify-center gap-2">
         <i data-lucide="user-plus" class="w-4 h-4"></i> Thêm học sinh
       </button>
-      <button class="px-4 py-2 rounded-md border border-border bg-card hover:bg-muted text-sm tap-target inline-flex items-center gap-2">
+      <button class="w-full sm:w-auto px-4 py-2.5 rounded-md border border-border bg-card hover:bg-muted text-sm tap-target inline-flex items-center justify-center gap-2">
         <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Nhập từ Excel
       </button>
-      <button class="px-4 py-2 rounded-md border border-border bg-card hover:bg-muted text-sm tap-target inline-flex items-center gap-2">
+      <button class="w-full sm:w-auto px-4 py-2.5 rounded-md border border-border bg-card hover:bg-muted text-sm tap-target inline-flex items-center justify-center gap-2">
         <i data-lucide="link-2" class="w-4 h-4"></i> Tạo link mời
       </button>
     </div>
