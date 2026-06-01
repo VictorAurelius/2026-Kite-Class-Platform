@@ -264,3 +264,88 @@ Same shape as §8.1.2 with current `status` and possibly populated `resolvedAt`.
 |---------|--------|-------|
 | Response SLA (PDPL Art 14 / Decree 13/2023 Art 19) | 20 days from `createdAt` | DPO; `SlaTimerCron` flags overdue daily 04:00 |
 | Ticket retention (BR-PDPL-DSAR-004 / DR-03) | 36 months from `resolvedAt` | Future retention cron (follow-up gap) |
+
+---
+
+## 9. Public Tenant Resolve endpoint (Wave tenant-domain-1, GAP-811/812/813)
+
+Public lookup endpoint cho phép FE middleware resolve `Host` header subdomain → tenant UUID + status TRƯỚC khi route request. Endpoint anonymous (gateway whitelist) + rate-limited 30 req/min per IP để chống enumeration abuse.
+
+**Owner:** `kitehub-subscription` module (Bucket B GAP-813 — `PublicTenantController` + `TenantLookupService`).
+**FE consumer:** `kitehub/kitehub-frontend/src/lib/tenant/resolveTenant.ts` (Bucket C GAP-811).
+**Behavioural rules:** `documents/01-business/kitehub/marketing/rules.md` (BR-TENANT-RESOLVE-001..004).
+
+### 9.1 `GET /api/v1/public/tenants/by-subdomain/{slug}`
+
+Lookup tenant theo subdomain slug. Trả về tenant UUID + display name + status để FE decide routing (active → landing/app; suspended/archived → friendly error page; unknown → marketing 404).
+
+#### 9.1.1 Path parameter
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `slug` | string | Lowercase-kebab-case; length 1-50; regex `^[a-z0-9][a-z0-9-]*[a-z0-9]$\|^[a-z0-9]$` (no leading/trailing hyphen; single-char allowed) |
+
+#### 9.1.2 Request
+
+```http
+GET /api/v1/public/tenants/by-subdomain/sky HTTP/1.1
+Accept: application/json
+```
+
+Authentication: none (anonymous; gateway public route whitelist similar to existing `/api/v1/tenants/*/landing` pattern).
+Rate limit: 30 req/min per IP (per GAP-813 §AC; enforced at gateway tier — see `kite-gateway` rate-limit config).
+
+#### 9.1.3 Response — 200 OK (tenant found + ACTIVE)
+
+```json
+{
+  "id": "11111111-1111-1111-1111-111111111111",
+  "subdomain": "sky",
+  "name": "Trung tâm Anh ngữ Sky Education",
+  "status": "ACTIVE"
+}
+```
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | UUID v4 | Tenant UUID (stable across renames) |
+| `subdomain` | string | Echo input slug (lowercase) |
+| `name` | string | Organization display name — Vietnamese OK (`Trung tâm Anh ngữ Sky Education`) |
+| `status` | enum | `ACTIVE` only when 200 returned; xem §9.1.4 cho non-active path |
+
+#### 9.1.4 Error responses
+
+| Status | Code | When |
+|--------|------|------|
+| 400 | `INVALID_SLUG_FORMAT` | `slug` không match regex (vd uppercase, leading hyphen, length > 50) |
+| 404 | `TENANT_NOT_FOUND` | Không có Instance row với matching subdomain |
+| 410 | `TENANT_SUSPENDED` / `TENANT_ARCHIVED` / `TENANT_DELETED` | Tenant tồn tại nhưng status ∈ {`SUSPENDED`, `ARCHIVED`, `DELETED`}. Response body có `status` field cho biết exact state |
+| 429 | `RATE_LIMIT_EXCEEDED` | > 30 req/min/IP — gateway trả `Retry-After` header |
+
+Ví dụ 410 response:
+
+```json
+{
+  "error": "TENANT_SUSPENDED",
+  "message": "Tenant 'sky' is currently suspended.",
+  "status": "SUSPENDED"
+}
+```
+
+### 9.2 Caching + security
+
+| Concern | Strategy |
+|---------|----------|
+| FE cache | 5 phút in-memory per FE process (per GAP-811 AC) — invalidate khi middleware reach next cold-start hoặc TTL expire |
+| BE cache | Read-through (no cache layer Phase 1; revisit khi traffic ≥ 100 RPS per `performance-audit` skill §Cat 5) |
+| Enumeration defence | Rate limit 30 req/min/IP + uniform 404 timing để không leak "slug exists" via timing channel |
+| CORS | Allow `*` (public endpoint phục vụ mọi tenant subdomain — không cần per-origin) |
+| Logging | Log slug + result status + IP (anonymized last octet per `logs-format-standard.md` PII scrubbing) cho audit |
+
+### 9.3 Related
+
+- Wave plan: `documents/03-planning/waves/wave-tenant-domain-1.md`
+- BE controller (Bucket B): GAP-813 — `PublicTenantController` + `TenantLookupService`
+- FE middleware (Bucket C): GAP-811 — `resolveTenant.ts`
+- Tenant→Domain→Landing architecture: `documents/02-architecture/tenant-domain-landing.md` (Bucket A scope)
+- Behavioural rules: `documents/01-business/kitehub/marketing/rules.md` BR-TENANT-RESOLVE-001..004
