@@ -27,6 +27,7 @@ on:
       - 'scripts/check-wave-plan-completeness.sh'
       - 'scripts/check-wave-closure-completeness.sh'
       - 'scripts/check-post-wave-audit-cadence.sh'
+      - 'scripts/sync-gap-csv-from-ac.sh'
       - '.claude/skills/quality/wave-pack-planner/data/wave-history.jsonl'
       - 'scripts/tests/fixtures/wave-plan/**'
       - 'documents/01-business/**'
@@ -201,6 +202,30 @@ jobs:
           # Wave meta-9 after 30-day grace through 2026-07-01.
           # Override: file audit row in audits-index.csv with matching `wave` column.
           bash scripts/check-post-wave-audit-cadence.sh --warn
+
+
+  csv-ac-sync:
+    name: Gap CSV ↔ AC drift (gap-status.csv vs gap-file AC checkbox state)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (2 synthetic gaps — compliant + drift)
+        run: bash scripts/sync-gap-csv-from-ac.sh --self-test
+
+      - name: Validate CSV ↔ AC drift (WARN mode — bi-directional advisory)
+        run: |
+          # Per `documents/04-quality/gaps/phase-1-beta/GAP-822-csv-ac-auto-sync-mechanism.md`
+          # — detector shipped Wave meta-8 Bucket D. Cross-validates gap file AC
+          # checkbox state vs CSV completion_pct (canonical per gap-architecture-v2.md
+          # v2.0.0 §3). WARN per gap với drift ≥10pp.
+          # Phase 1 advisory only; Phase 2 direction-aware classification (under-reporting
+          # vs stale-checkbox) Wave meta-9 candidate.
+          bash scripts/sync-gap-csv-from-ac.sh --warn 2>&1 | tail -50
 
 
   three-layer-completeness:
