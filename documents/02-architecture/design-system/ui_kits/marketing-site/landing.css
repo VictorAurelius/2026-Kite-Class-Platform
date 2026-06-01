@@ -152,9 +152,11 @@
 .hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 18px;
   background: rgba(255,255,255,0.14); color: #fff; padding: 7px 14px; border-radius: var(--radius-full);
   font-size: var(--text-sm); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; }
-.hero h1 { margin: 0 0 18px; color: #fff; }
+/* text-wrap: balance — per-tenant heroTitle là input biến đổi (AI/user provided);
+   balance cân dòng cho mọi độ dài. Pair input length budget GAP-827. */
+.hero h1 { margin: 0 0 18px; color: #fff; text-wrap: balance; }
 .hero h1 .hl { color: rgb(var(--theme-accent)); }
-.hero-sub { margin: 0 0 28px; max-width: 30em; font-size: var(--text-lg); line-height: var(--leading-relaxed); color: rgba(255,255,255,0.85); }
+.hero-sub { margin: 0 0 28px; max-width: 30em; font-size: var(--text-lg); line-height: var(--leading-relaxed); color: rgba(255,255,255,0.85); text-wrap: pretty; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-bottom: 22px; }
 .hero-trust { display: flex; flex-wrap: wrap; gap: 8px 18px; }
 .hero-trust .trust-item { color: rgba(255,255,255,0.9); }
