@@ -8,6 +8,9 @@ on:
       - main
     paths:
       - 'kitehub/kitehub-frontend/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
       - '.github/workflows/kitehub-frontend-ci.yml'
 
 permissions:
