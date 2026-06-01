@@ -258,6 +258,78 @@ class BetaAccessServiceTest {
     }
 
     @Test
+    @DisplayName("GAP-610 — validateToken returns TOKEN_NOT_APPROVED for a PENDING row (lifecycle-collapse fix)")
+    void validateTokenPendingReturnsNotApproved() {
+        UUID token = UUID.randomUUID();
+        BetaAccessRequest pending = BetaAccessRequest.builder()
+                .id(14L).email("p@x.com").name("P").orgName("PO")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.PENDING)
+                .inviteToken(token)
+                .inviteTokenExpiry(OffsetDateTime.now().plusHours(6))
+                .build();
+        when(repository.findByInviteToken(token)).thenReturn(Optional.of(pending));
+
+        BetaTokenValidationResponse resp = service.validateToken(token);
+
+        // GAP-610: PENDING row EXISTS in DB — must NOT collapse to TOKEN_NOT_FOUND.
+        // Distinct code lets operator/UI distinguish "row missing" from "row wrong-state".
+        assertThat(resp.valid()).isFalse();
+        assertThat(resp.errorCode()).isEqualTo("TOKEN_NOT_APPROVED");
+    }
+
+    @Test
+    @DisplayName("GAP-610 — validateToken returns TOKEN_NOT_APPROVED for a REJECTED row")
+    void validateTokenRejectedReturnsNotApproved() {
+        UUID token = UUID.randomUUID();
+        BetaAccessRequest rejected = BetaAccessRequest.builder()
+                .id(15L).email("r@x.com").name("R").orgName("RO")
+                .persona("P1_SOLO_TEACHER")
+                .status(BetaAccessRequestStatus.REJECTED)
+                .inviteToken(token)
+                .inviteTokenExpiry(OffsetDateTime.now().plusHours(6))
+                .build();
+        when(repository.findByInviteToken(token)).thenReturn(Optional.of(rejected));
+
+        BetaTokenValidationResponse resp = service.validateToken(token);
+
+        assertThat(resp.valid()).isFalse();
+        assertThat(resp.errorCode()).isEqualTo("TOKEN_NOT_APPROVED");
+    }
+
+    @Test
+    @DisplayName("GAP-610 — validateToken returns TOKEN_NOT_APPROVED for an ABORTED row")
+    void validateTokenAbortedReturnsNotApproved() {
+        UUID token = UUID.randomUUID();
+        BetaAccessRequest aborted = BetaAccessRequest.builder()
+                .id(16L).email("a@x.com").name("A").orgName("AO")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.ABORTED)
+                .inviteToken(token)
+                .inviteTokenExpiry(OffsetDateTime.now().plusHours(6))
+                .build();
+        when(repository.findByInviteToken(token)).thenReturn(Optional.of(aborted));
+
+        BetaTokenValidationResponse resp = service.validateToken(token);
+
+        assertThat(resp.valid()).isFalse();
+        assertThat(resp.errorCode()).isEqualTo("TOKEN_NOT_APPROVED");
+    }
+
+    @Test
+    @DisplayName("GAP-610 — validateToken returns TOKEN_NOT_FOUND only when row truly absent")
+    void validateTokenAbsentReturnsNotFound() {
+        UUID token = UUID.randomUUID();
+        when(repository.findByInviteToken(token)).thenReturn(Optional.empty());
+
+        BetaTokenValidationResponse resp = service.validateToken(token);
+
+        // Truly-missing row keeps TOKEN_NOT_FOUND — preserved semantics (case A).
+        assertThat(resp.valid()).isFalse();
+        assertThat(resp.errorCode()).isEqualTo("TOKEN_NOT_FOUND");
+    }
+
+    @Test
     @DisplayName("completeBetaSignup flips to SIGNED_UP + clears token")
     void completeSignupClearsToken() {
         UUID token = UUID.randomUUID();

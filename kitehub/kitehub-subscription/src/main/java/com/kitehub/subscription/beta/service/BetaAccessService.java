@@ -540,14 +540,23 @@ public class BetaAccessService {
     public BetaTokenValidationResponse validateToken(UUID token) {
         Optional<BetaAccessRequest> opt = repository.findByInviteToken(token);
         if (opt.isEmpty()) {
+            // Case A: row truly absent — token never issued, OR row's invite_token was
+            // NULL-cleared post-signup (see completeBetaSignup). Preserves TOKEN_NOT_FOUND.
+            log.debug("Beta token validate: no row for token (TOKEN_NOT_FOUND)");
             return BetaTokenValidationResponse.invalid("TOKEN_NOT_FOUND");
         }
         BetaAccessRequest entity = opt.get();
         if (entity.getStatus() == BetaAccessRequestStatus.SIGNED_UP) {
             return BetaTokenValidationResponse.invalid("ALREADY_USED");
         }
+        // GAP-610 fix — lifecycle-collapse: a row that EXISTS but is not yet APPROVED
+        // (PENDING / REJECTED / ABORTED) is a semantically distinct failure mode from a
+        // truly-absent row. Return a dedicated TOKEN_NOT_APPROVED code so operator + UI
+        // can distinguish "token never existed" from "token bound to non-approved request".
         if (entity.getStatus() != BetaAccessRequestStatus.APPROVED) {
-            return BetaTokenValidationResponse.invalid("TOKEN_NOT_FOUND");
+            log.info("Beta token validate: row id={} status={} not APPROVED (TOKEN_NOT_APPROVED)",
+                    entity.getId(), entity.getStatus());
+            return BetaTokenValidationResponse.invalid("TOKEN_NOT_APPROVED");
         }
         if (entity.isTokenExpired()) {
             return BetaTokenValidationResponse.invalid("TOKEN_EXPIRED");
