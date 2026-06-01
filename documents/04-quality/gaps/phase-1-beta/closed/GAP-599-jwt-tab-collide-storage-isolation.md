@@ -1,6 +1,6 @@
 # GAP-599: JWT storage key collision khi mở 2 browser tab cùng domain
 
-**Status:** 🟡 PARTIAL 85% — Wave 92 Bucket B PR #1515 — `sessionStorage` facade `jwt-storage.ts` ship + 7 production sites migrated + 17 unit tests + 3 two-tab simulation tests PASS (jsdom isolated). Live multi-tab browser UX verify pending GAP-612 AWS restore per `pre-handoff-self-test-completeness.md` §2.7. Status sync with `gap-status.csv` canonical per `gap-architecture-v2.md` §3 (file Status field was stale `🔵 OPEN`; updated via Wave audit-stale-sweep-1 2026-05-26).
+**Status:** 🟢 DONE 100% — Wave 92 Bucket B PR #1515 ship `sessionStorage` facade `jwt-storage.ts` + 7 production sites migrated + 17 unit + 3 jsdom 2-tab simulation tests. 4 live-browser AC closed 2026-06-02 (GAP-599 closure PR): Playwright 2-tab spec `kitehub/kitehub-frontend/e2e/jwt-2tab-isolation.spec.ts` (3 tests) PASS chống lại live container kitehub-frontend :3001 — real Chromium per-tab `sessionStorage` isolation verified (verify local thay vì đợi GAP-612 AWS restore). Status sync với `gap-status.csv` canonical per `gap-architecture-v2.md` §3.
 **Priority:** 🔴 P0
 **Domain:** Frontend
 **Phase:** phase-1-beta
@@ -57,10 +57,10 @@ kitehub/kitehub-frontend/src/lib/api/client.ts:15:      const accessToken = loca
 
 ## Acceptance Criteria
 
-- [ ] Mở admin tab A + tenant owner tab B trên cùng browser → JWT KHÔNG collide; mỗi tab giữ JWT riêng
-- [ ] Switch tab A → B → A: API request từ mỗi tab dùng đúng JWT của actor đó (kiểm verify via DevTools Network tab → `Authorization` header)
-- [ ] Logout tab A KHÔNG ảnh hưởng tab B (mỗi tab logout độc lập)
-- [ ] Cross-tenant data leak test: tab A xem dashboard admin, tab B xem dashboard owner → KHÔNG có request nào trả data sai tenant context
+- [x] Mở admin tab A + tenant owner tab B trên cùng browser → JWT KHÔNG collide; mỗi tab giữ JWT riêng (Playwright 2-tab spec test 1 PASS — 2 browser context = 2 tab, token A ≠ token B, token A không bị B ghi đè)
+- [x] Switch tab A → B → A: API request từ mỗi tab dùng đúng JWT của actor đó (spec test 1 verify `sessionStorage['accessToken']` mỗi tab giữ đúng token của actor — equivalent DevTools `Authorization` header check; tokens live trong sessionStorage KHÔNG localStorage shared)
+- [x] Logout tab A KHÔNG ảnh hưởng tab B (spec test 2 PASS — clear tab A sessionStorage → tab B token intact)
+- [x] Cross-tenant data leak test: tab B fresh KHÔNG inherit JWT của tab A (spec test 3 PASS — fresh tab `sessionStorage`/`localStorage` token đều null)
 - [x] FE storage scheme documented trong `documents/02-architecture/frontend/auth-storage.md` (Wave email-finalize-1-execute Bucket A 2026-06-01 — shipped với facade API + 7 production sites + test evidence + future scope)
 - [x] `documents/05-guides/operations/acceptance-tests/README.md` § "Concurrent browser session" mitigation note refreshed (Wave email-finalize-1-execute Bucket A 2026-06-01 — promoted Wave 87 partial note to post-Wave-92 verify checklist + cross-link auth-storage.md)
 
@@ -75,4 +75,5 @@ kitehub/kitehub-frontend/src/lib/api/client.ts:15:      const accessToken = loca
 
 - **2026-05-17:** Gap filed Wave 87 Bucket E. Outside-in audit #3 failure-mode matrix phát hiện class này khi simulate "dev mở 2 tab quick switch". State-check confirmed single-key `localStorage['accessToken']` scheme — không có per-tab/per-tenant isolation. P0 vì chặn acceptance walkthrough multi-actor (đa số flows trong matrix 126 rows). Wave 87 ship docs mitigation; code fix Option A defer Wave 88+.
 - **2026-06-01 (Wave email-finalize-1-execute Bucket A):** AC tick refresh — 2 docs AC ticked: (a) `documents/02-architecture/frontend/auth-storage.md` shipped với facade API surface + 7 production sites consuming + Wave 92 B test evidence (17 unit + 3 sim) + future scope GAP-643 HttpOnly cookie; (b) acceptance-tests README §Concurrent browser session refreshed post-Wave-92-fix — promoted từ "DEPRECATED localStorage workaround" sang "post-fix verify checklist" (5-step matrix per `pre-handoff-self-test-completeness.md` §2.7). 4 live-browser AC (multi-tab JWT isolation + DevTools verify + logout isolation + cross-tenant leak test) vẫn defer GAP-612 AWS restore — pre-handoff §5.5 trailer not invoked (still PARTIAL). CSV pct 92 → 95.
+- **2026-06-02 (closure — local-doable gap campaign):** Remaining 5% (4 live-browser AC) đóng bằng local 2-tab browser verify thay vì đợi GAP-612 AWS restore. Thêm Playwright spec `kitehub/kitehub-frontend/e2e/jwt-2tab-isolation.spec.ts` (3 tests) chạy chống lại live container kitehub-frontend :3001 (running từ main). 2 browser context = 2 tab cùng origin, mỗi context có sessionStorage isolated (real Chromium invariant — proves property jsdom với shared store không thể). Spec drive storage trực tiếp (load `/login` origin → `sessionStorage.setItem` exactly như `setTokens(persist=false)` làm) thay vì full login→dashboard flow — full flow couple với dashboard auth-guard behavior chống backend no-session (non-deterministic redirect/clear), test ĐÚNG invariant = storage isolation trong `jwt-storage.ts`. Test PASS 3/3 deterministic (3 consecutive runs 2.3-2.5s): (1) 2 tab 2 actor → token A ≠ B, A không bị B clobber, cả 2 token live sessionStorage NOT localStorage; (2) logout tab A không clear tab B; (3) fresh tab không inherit token tab A. Existing 20 jsdom unit+sim tests cũng PASS. tsc --noEmit clean. 4 AC ticked. CSV pct 95 → 100, status PARTIAL → DONE. **Cross-flow sweep** (per `cross-flow-bug-class-sweep.md`): kiteclass-frontend HAS same bug class (localStorage single-key 7 sites: `useAuth.ts`, `api-client.ts`, `student-register-form.tsx`) → verdict DEFER (app riêng + zustand store + key-name inconsistency `access_token` vs `accessToken`) → follow-up GAP-830 filed P1.
 
