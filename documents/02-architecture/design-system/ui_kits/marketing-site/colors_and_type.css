@@ -120,29 +120,38 @@
    (from the brand brief — swap by adding the class to <body>)
    ============================================================= */
 
-/* Cô Hà — calm professional blue (default-ish) */
+/* Cô Hà — calm professional blue (default-ish).
+   --hero-from/to: deep blue gradient (white body text ≥4.5:1 — overrides product.css :root) */
 .theme-ha {
   --theme-primary:   37 99 235;    /* #2563EB */
   --theme-secondary: 59 130 246;   /* #3B82F6 */
   --theme-accent:    14 165 233;   /* #0EA5E9 */
   --theme-cta:       249 115 22;   /* #F97316 orange */
+  --hero-from:       30 64 175;    /* #1E40AF blue-800 · white ~8:1 */
+  --hero-to:         30 58 138;    /* #1E3A8A blue-900 · white ~9:1 */
 }
 
-/* Cô Khánh — premium navy + gold (law / luyện thi) */
+/* Cô Khánh — premium navy + gold (law / luyện thi).
+   navy hero gradient; gold stays accent (white-on-gold fails AA → CTA keeps orange-700) */
 .theme-khanh {
   --theme-primary:   30 58 95;     /* #1E3A5F navy */
   --theme-secondary: 45 78 120;    /* deeper navy gradient partner */
   --theme-accent:    201 162 39;   /* #C9A227 gold */
   --theme-cta:       201 162 39;   /* gold CTA on navy */
   --theme-on-cta:    30 58 95;     /* navy ink on gold */
+  --hero-from:       30 58 95;     /* #1E3A5F navy · white ~11:1 */
+  --hero-to:         15 31 56;     /* #0F1F38 deep navy · white ~15:1 */
 }
 
-/* Thầy Nhì — fresh, trustworthy green (toán / khoa học) */
+/* Thầy Nhì — fresh, trustworthy green (toán / khoa học).
+   green→emerald hero gradient (white body text ≥4.5:1) */
 .theme-nhi {
   --theme-primary:   22 163 74;    /* #16A34A */
   --theme-secondary: 5 150 105;    /* #059669 emerald */
   --theme-accent:    250 204 21;   /* #FACC15 yellow */
   --theme-cta:       249 115 22;   /* #F97316 orange */
+  --hero-from:       22 101 52;    /* #166534 green-800 · white ~7:1 */
+  --hero-to:         6 78 59;      /* #064E3B emerald-900 · white ~9:1 */
 }
 
 /* =============================================================
