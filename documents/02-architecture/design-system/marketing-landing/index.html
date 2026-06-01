@@ -1,0 +1,76 @@
+<!-- @dsCard group="Components" -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- SEO (D9) — tiếng Việt, mô tả đúng, có keyword -->
+<title>KiteClass — Phần mềm quản lý trung tâm: điểm danh, học phí, điểm số</title>
+<meta name="description" content="KiteClass là nền tảng quản lý trung tâm và trường học tại Việt Nam: điểm danh tự động, tính học phí, quản lý điểm số, lớp học và cổng phụ huynh — tất cả trong một nền tảng. Đăng ký Beta miễn phí." />
+<link rel="canonical" href="https://kiteclass.vn/" />
+<!-- Open Graph + Twitter (share Zalo/FB đẹp) -->
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="vi_VN" />
+<meta property="og:title" content="KiteClass — Quản lý trung tâm, gọn trong một nền tảng" />
+<meta property="og:description" content="Thay Excel, Zalo và sổ giấy bằng một nền tảng: điểm danh, học phí, điểm số và cổng phụ huynh. Đăng ký Beta miễn phí." />
+<meta property="og:url" content="https://kiteclass.vn/" />
+<meta property="og:site_name" content="KiteClass" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="KiteClass — Quản lý trung tâm, gọn trong một nền tảng" />
+<meta name="twitter:description" content="Điểm danh, học phí, điểm số và cổng phụ huynh trong một nền tảng. Đăng ký Beta miễn phí." />
+<link rel="stylesheet" href="colors_and_type.css" />
+<link rel="stylesheet" href="landing.css" />
+<link rel="stylesheet" href="product.css" />
+<!-- JSON-LD structured data (D9) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "KiteClass",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "description": "Nền tảng quản lý trung tâm và trường học tại Việt Nam: điểm danh, học phí, điểm số, lớp học và cổng phụ huynh.",
+  "url": "https://kiteclass.vn/",
+  "inLanguage": "vi-VN",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "VND", "description": "Miễn phí trong giai đoạn Beta" },
+  "publisher": { "@type": "Organization", "name": "Công ty TNHH Công nghệ Giáo dục KiteClass", "email": "info@kiteclass.vn", "telephone": "1900 6868", "address": { "@type": "PostalAddress", "addressLocality": "Hà Nội", "addressCountry": "VN" } }
+}
+</script>
+</head>
+<body>
+<a href="#noi-dung" class="sr-skip" style="position:absolute;left:-9999px;top:0;background:#fff;padding:10px 16px;border-radius:8px;z-index:300" onfocus="this.style.left='12px'" onblur="this.style.left='-9999px'">Bỏ qua tới nội dung chính</a>
+<div id="root"></div>
+
+<template id="__bundler_thumbnail">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1E40AF"/><path d="M50 26 70 50 50 74 30 50z" fill="#fff"/><circle cx="50" cy="50" r="5.5" fill="#C2410C"/></svg>
+</template>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="primitives.jsx"></script>
+<script type="text/babel" src="marketing.jsx"></script>
+<script type="text/babel">
+function ProductLanding() {
+  return (
+    <div className="ms-main">
+      <BetaStrip />
+      <MsNav />
+      <main id="noi-dung">
+        <MsHero />
+        <ProblemSolution />
+        <Features />
+        <HowItWorks />
+        <ParentBand />
+        <TrustSection />
+        <FinalCTA />
+      </main>
+      <MsFooter />
+      <CookieConsent />
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<ProductLanding />);
+</script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+/* =============================================================
+   KiteClass Landing — Colors & Typography
+   -------------------------------------------------------------
+   The public, per-tenant landing template foundation. Every
+   tenant (a solo teacher or an education centre) gets their own
+   subdomain + theme. Colours are driven by FOUR space-separated
+   RGB CSS variables so Tailwind-style `rgb(var(--x) / <alpha>)`
+   opacity works and a tenant theme can be swapped at runtime
+   with a single inline style block.
+
+   Drop this file on any landing page, then pick a theme by
+   adding a class to <html> / <body> (.theme-ha, .theme-khanh,
+   .theme-nhi) OR by overriding the four --theme-* vars inline.
+   Defaults to the KiteClass blue theme.
+   ============================================================= */
+
+/* Be Vietnam Pro — primary typeface. Full Vietnamese diacritic
+   coverage + heavy display weights for UPPERCASE hero slogans.
+   Exact font (Google Fonts), not a substitute. */
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  /* ---------------------------------------------------------
+     PER-TENANT THEME (space-separated RGB → opacity-friendly)
+     Default = KiteClass blue. A tenant overrides these four.
+     --------------------------------------------------------- */
+  --theme-primary:   59 130 246;   /* #3B82F6 — brand blue, headings, links, primary surfaces */
+  --theme-secondary: 139 92 246;   /* #8B5CF6 — violet, gradient partner + secondary accents   */
+  --theme-accent:    245 158 11;   /* #F59E0B — amber, highlights, stars, small flourishes      */
+  --theme-cta:       249 115 22;   /* #F97316 — ORANGE call-to-action. Always contrasts the bg. */
+
+  /* derived ink/surface tokens (also overridable per tenant) */
+  --theme-ink:        15 23 42;    /* #0F172A — primary text on light */
+  --theme-on-primary: 255 255 255; /* text on a primary-coloured surface */
+  --theme-on-cta:     255 255 255; /* text on the orange CTA            */
+
+  /* ---------------------------------------------------------
+     NEUTRALS (slate ramp — backgrounds, text, borders)
+     --------------------------------------------------------- */
+  --bg:        255 255 255;        /* page background          */
+  --bg-soft:   248 250 252;        /* slate-50 — alt section bg */
+  --bg-muted:  241 245 249;        /* slate-100 — chips, wells  */
+  --fg:        15 23 42;           /* slate-900 — body text     */
+  --fg-soft:   71 85 105;          /* slate-600 — muted text    */
+  --fg-faint:  148 163 184;        /* slate-400 — captions      */
+  --border:    226 232 240;        /* slate-200 — hairlines     */
+  --card:      255 255 255;        /* card surface              */
+
+  /* ---------------------------------------------------------
+     SEMANTIC (status — consistent across all themes)
+     --------------------------------------------------------- */
+  --success: 22 163 74;            /* #16A34A green  */
+  --warning: 234 179 8;            /* #EAB308 yellow */
+  --danger:  220 38 38;            /* #DC2626 red    */
+  --info:    37 99 235;            /* #2563EB blue   */
+
+  /* ---------------------------------------------------------
+     RADIUS — landing default 8px (cards 8–12px)
+     --------------------------------------------------------- */
+  --radius:     8px;
+  --radius-sm:  6px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* ---------------------------------------------------------
+     SHADOWS — light, warm-neutral elevation
+     --------------------------------------------------------- */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.10), 0 4px 8px rgba(15, 23, 42, 0.05);
+  --shadow-xl: 0 24px 48px rgba(15, 23, 42, 0.14);
+  /* coloured glow used behind CTAs + hero portraits */
+  --shadow-cta: 0 8px 24px rgba(var(--theme-cta) / 0.35);
+  --shadow-primary: 0 8px 24px rgba(var(--theme-primary) / 0.30);
+
+  /* ---------------------------------------------------------
+     TYPOGRAPHY
+     --------------------------------------------------------- */
+  --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Be Vietnam Pro', system-ui, sans-serif; /* heavy weights for slogans */
+
+  /* fluid-ish type scale (px) */
+  --text-xs:   12px;
+  --text-sm:   14px;
+  --text-base: 16px;
+  --text-lg:   18px;
+  --text-xl:   20px;
+  --text-2xl:  24px;
+  --text-3xl:  30px;
+  --text-4xl:  36px;
+  --text-5xl:  48px;
+  --text-6xl:  60px;
+  --text-7xl:  72px;
+
+  --leading-tight:   1.1;
+  --leading-snug:    1.25;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.65;
+
+  --tracking-tight: -0.02em;
+  --tracking-wide:   0.04em;
+  --tracking-caps:   0.08em;  /* eyebrows + UPPERCASE labels */
+
+  /* ---------------------------------------------------------
+     SPACING (4px step) + layout
+     --------------------------------------------------------- */
+  --space-1: 4px;   --space-2: 8px;   --space-3: 12px;  --space-4: 16px;
+  --space-5: 20px;  --space-6: 24px;  --space-8: 32px;  --space-10: 40px;
+  --space-12: 48px; --space-16: 64px; --space-20: 80px; --space-24: 96px;
+  --container: 1200px;        /* max content width */
+  --section-y: clamp(48px, 7vw, 96px); /* vertical rhythm between sections */
+}
+
+/* =============================================================
+   REAL TENANT THEME PRESETS
+   (from the brand brief — swap by adding the class to <body>)
+   ============================================================= */
+
+/* Cô Hà — calm professional blue (default-ish) */
+.theme-ha {
+  --theme-primary:   37 99 235;    /* #2563EB */
+  --theme-secondary: 59 130 246;   /* #3B82F6 */
+  --theme-accent:    14 165 233;   /* #0EA5E9 */
+  --theme-cta:       249 115 22;   /* #F97316 orange */
+}
+
+/* Cô Khánh — premium navy + gold (law / luyện thi) */
+.theme-khanh {
+  --theme-primary:   30 58 95;     /* #1E3A5F navy */
+  --theme-secondary: 45 78 120;    /* deeper navy gradient partner */
+  --theme-accent:    201 162 39;   /* #C9A227 gold */
+  --theme-cta:       201 162 39;   /* gold CTA on navy */
+  --theme-on-cta:    30 58 95;     /* navy ink on gold */
+}
+
+/* Thầy Nhì — fresh, trustworthy green (toán / khoa học) */
+.theme-nhi {
+  --theme-primary:   22 163 74;    /* #16A34A */
+  --theme-secondary: 5 150 105;    /* #059669 emerald */
+  --theme-accent:    250 204 21;   /* #FACC15 yellow */
+  --theme-cta:       249 115 22;   /* #F97316 orange */
+}
+
+/* =============================================================
+   BASE ELEMENTS
+   ============================================================= */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: rgb(var(--fg));
+  background: rgb(var(--bg));
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* =============================================================
+   SEMANTIC TYPOGRAPHY UTILITIES
+   ============================================================= */
+
+/* The big UPPERCASE hero slogan (Be Vietnam Pro 900) */
+.slogan {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(var(--text-4xl), 6vw, var(--text-7xl));
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+}
+
+.h-display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(var(--text-3xl), 4.5vw, var(--text-6xl));
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+}
+
+.h1 { font-size: var(--text-4xl); font-weight: 800; line-height: var(--leading-tight); letter-spacing: var(--tracking-tight); }
+.h2 { font-size: var(--text-3xl); font-weight: 700; line-height: var(--leading-snug); letter-spacing: var(--tracking-tight); }
+.h3 { font-size: var(--text-2xl); font-weight: 700; line-height: var(--leading-snug); }
+.h4 { font-size: var(--text-xl);  font-weight: 600; line-height: var(--leading-snug); }
+
+.body-lg { font-size: var(--text-lg); line-height: var(--leading-relaxed); }
+.body    { font-size: var(--text-base); line-height: var(--leading-normal); }
+.body-sm { font-size: var(--text-sm); line-height: var(--leading-normal); }
+
+/* eyebrow / kicker label above headings */
+.eyebrow {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  color: rgb(var(--theme-cta));
+}
+
+.muted  { color: rgb(var(--fg-soft)); }
+.faint  { color: rgb(var(--fg-faint)); }
+
+/* counter band number */
+.counter-num {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(var(--text-4xl), 5vw, var(--text-6xl));
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+}
+
+/* gradient ink — reserve for 1–2 hero words */
+.grad-text {
+  background: linear-gradient(100deg,
+    rgb(var(--theme-accent)) 0%,
+    rgb(var(--theme-cta)) 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+}
