@@ -4,7 +4,7 @@ audience: dev
 
 # GAP-867 — External AI provider integration + observability + load verify (spun out from GAP-005 Phase 2)
 
-**Status:** 🟡 PARTIAL (design phase DONE Wave local-doable-8 Bucket D 2026-06-02; implementation + load test execution → follow-up wave)
+**Status:** 🟡 PARTIAL 60% (design + Phase 1 scaffold DONE Wave local-doable-9 Bucket C 2026-06-02; live HTTP integration + observability + load test execution → follow-up wave)
 **Priority:** 🟠 P1 (production scale verify)
 **Domain:** AI / Backend / DevOps
 **Created:** 2026-06-02 (Wave local-doable-6 sync — re-scope follow-up của GAP-005)
@@ -46,14 +46,14 @@ GAP-005 Phase 2 originally bundled 4 items: (a) Ollama horizontal scaling, (b) C
 
 ## Acceptance Criteria
 
-- [ ] `AIClient` adapter interface with Gemini + OpenAI implementations
-- [ ] `@CircuitBreaker(name="ai-provider")` wraps real-call paths with template fallback
-- [ ] Provider config switch verified via `application.yml` → spring profiles tests
-- [ ] Load test script ships + reports premium P95 < 60s achieved trên running stack (local OR staging)
-- [ ] Performance audit report shipped to `documents/04-quality/audits/performance/`
-- [ ] Grafana dashboard JSON committed + verified renders against local Prometheus
-- [ ] SLA violation alert rule + AlertManager routing (deferred ok nếu AlertManager not ready)
-- [ ] GAP-005 Log entry cross-references GAP-867 ship dates per item
+- [x] `AIClient` adapter interface với Gemini + OpenAI implementations (Phase 1 scaffold — Wave local-doable-9 Bucket C; live HTTP defer Phase 2)
+- [ ] `@CircuitBreaker(name="ai-provider")` wraps real-call paths với template fallback (inherits `ai` instance via `ResilientAIClient` decorator; Phase 2 tuning + dedicated `ai-provider` instance)
+- [x] Provider config switch verified via `application.yml` → spring profiles tests (AIClientConfig binding + ConditionalOnProperty + AIClientTest 6/6 PASS Wave local-doable-9 Bucket C)
+- [ ] Load test script ships + reports premium P95 < 60s achieved trên running stack (local OR staging) — Phase 3 follow-up
+- [ ] Performance audit report shipped to `documents/04-quality/audits/performance/` — Phase 3 follow-up
+- [ ] Grafana dashboard JSON committed + verified renders against local Prometheus — Phase 3 follow-up
+- [ ] SLA violation alert rule + AlertManager routing (deferred ok nếu AlertManager not ready) — Phase 3 follow-up
+- [ ] GAP-005 Log entry cross-references GAP-867 ship dates per item — Phase 2 follow-up
 
 ## Related
 
@@ -79,4 +79,15 @@ GAP-005 Phase 2 originally bundled 4 items: (a) Ollama horizontal scaling, (b) C
     - AC #7 SLA violation alert rules + AlertManager routing (depends GAP-144 AlertManager wiring)
   - **No scaffold code this PR** per task spec scope (design phase only)
   - **Completion:** 40% (design phase = ~40% of total scope; implementation + observability wiring + load test execution = remaining 60%)
+- **2026-06-02** (PARTIAL 60% — Phase 1 scaffold DONE Wave local-doable-9 Bucket C): Shipped scaffold-phase artifacts paired same PR:
+  - **NEW** `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/ai/client/GeminiAIClient.java` — primary provider skeleton, qualifier `baseAIClient`, profile `ai-external`, `@ConditionalOnProperty(prefix="ai.provider", name="primary", havingValue="gemini")`, returns mock-shaped domain results cho Phase 1 (no live HTTP); javadoc cites ADR-038 §2.1/§2.2 + design-patterns §3.10 leaky-abstraction prevention
+  - **NEW** `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/ai/client/OpenAIAIClient.java` — fallback provider skeleton (same pattern, gated `primary=openai`); javadoc cites ADR-037 banner role + ADR-038 §2.1 fallback strategy
+  - **NEW** `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/ai/config/AIClientConfig.java` — `@ConfigurationProperties(prefix="ai")` type-safe binding cho `Provider` + `Gemini` + `Openai` config groups; active under `ai-external` profile only; centralizes config access cho Phase 2/3 consumers
+  - **NEW** `kiteclass/kiteclass-core/src/test/java/com/kiteclass/core/module/ai/AIClientTest.java` — 6 unit tests verifying interface contract: `gemini_analyze_returns_neutral_domain_result`, `gemini_generate_returns_neutral_domain_result`, `gemini_exposes_config_accessors`, `openai_analyze_returns_neutral_domain_result`, `openai_generate_returns_neutral_domain_result`, `openai_exposes_config_accessors`
+  - **UPDATE** `kiteclass/kiteclass-core/src/main/resources/application.yml` — `ai.provider.*` + `ai.gemini.*` + `ai.openai.*` config block với env-var defaults per `production-env-config-registry.md` §4 (compose override mechanism); preserves existing `ai.ollama.*` block (legacy Wave 3 scaffolding intact)
+  - **No interface change:** existing `AIClient` interface (Wave 3 Sub-PR 3.2) + `AnalysisRequest/Result` + `GenerationRequest/Result` DTOs đã match ADR-038 §2.2 mandate (domain types neutral, no provider leakage) — reused as-is
+  - **Test verification:** 11/11 AI client tests PASS (`MockAIClientTest` 2 + `ResilientAIClientTest` 3 + new `AIClientTest` 6) với `./mvnw test -Dtest='MockAIClientTest,ResilientAIClientTest,AIClientTest' -P strict-warnings` — strict-warnings profile clean, no regression
+  - **ADR-038 status flip** PROPOSED → ACCEPTED (paired same PR, ADR §7 Log entry added)
+  - **Out-of-scope this phase** per task spec (Phase 2/3 follow-up gaps deferred): live Gemini/OpenAI HTTP integration, Resilience4j dedicated `ai-provider` Circuit Breaker instance + tuning, Micrometer custom metrics + Grafana dashboard JSON, k6 100-concurrent load test execution, PDPL cross-border DPA signing, prompt PII sanitization, cost cap enforcement
+  - **Completion:** 60% (design 40% + Phase 1 scaffold 20%; Phase 2 live HTTP + Resilience tuning = +20%, Phase 3 observability + load verify = +20%)
 - **2026-06-02** (OPEN): Filed during Wave local-doable-6 sync to re-scope GAP-005 post architecture pivot to external AI APIs only. Inherits 3 residual AC items từ GAP-005 Phase 2 (Circuit breaker real-call wiring + Load test + Grafana). Phase-1-beta priority — needed before beta tenant invites scale > pilot 5 to validate SLA tiers actually achievable với external API latency/rate-limits.
