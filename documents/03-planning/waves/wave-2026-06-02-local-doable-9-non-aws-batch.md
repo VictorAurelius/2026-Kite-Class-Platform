@@ -1,8 +1,9 @@
 ---
 title: Wave local-doable-9 — non-AWS P0/P1 batch (workflow + META residual + AI scaffold + docs + PDPL FE)
-status: draft
+status: complete
 created: 2026-06-02
 updated: 2026-06-02
+completed_at: 2026-06-02
 waves: [local-doable-9]
 gaps: [GAP-870, GAP-823, GAP-867, GAP-693, GAP-353]
 ---
@@ -162,4 +163,19 @@ Per `gap-done-discipline.md` + `wave-closure-scope-completeness.md` + `post-merg
 
 ## 8. Log
 
-- **2026-06-02** (draft): Plan created. 5 non-AWS buckets per user direction "tạm thời chưa pick các gaps cần động đến aws stack". 1 P1 workflow + 1 P0 META residual + 1 P1 scaffold + 1 P0 docs + 1 P0 FE compliance. Staggered 2+2+1 spawn. Outside-in audit SKIP per `outside-in-coverage-trigger.md` §4 row 4.
+- **2026-06-02** (draft): Plan created. 5 non-AWS buckets per user direction "tạm thời chưa pick các gaps cần động đến aws stack".
+- **2026-06-02** (complete): All 5 buckets shipped via 5 PRs. Notable: Bucket A workflow fix unblocks PR #2070 + #2064; Bucket B state-check correction (Wave 8 A had already corrected most of original gap claims); Bucket D state-check win (file existed Wave 103 v0.1.0 — extended to v1.0.0); Bucket E auth-transient salvage recovery.
+
+---
+
+## 9. Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` §3)
+
+| # | Plan §3 Scope item | PR | Verdict | Follow-up |
+|---|---|---|---|---|
+| 1 | Bucket A — GAP-870 P1 Trivy Maven cache pre-populate | #2080 ✅ | DONE | Workflow `.github/workflows/core-ci.yml` security-scan job — Maven cache + dependency:resolve. Sister effect: PR #2070 + #2064 unblocked post-merge |
+| 2 | Bucket B — GAP-823 META Phase 1+2 instances code residual | #2082 ✅ | DONE | Instance.slug + 3 repository methods + service normalizer + InstanceServiceSlugIT 7 tests; Phase 2 detector defer Wave meta-9+ |
+| 3 | Bucket C — GAP-867 Phase 1 AIClient scaffold | #2084 ✅ | PARTIAL 40→60% | NEW GeminiAIClient + OpenAIAIClient + config + 6 unit tests; ADR-038 PROPOSED→ACCEPTED; Phase 2/3 (live HTTP + Resilience4j + Micrometer + k6) defer future wave |
+| 4 | Bucket D — GAP-693 AWS rebuild SOP playbook | #2083 ✅ | DONE | State-check win: extended Wave 103 v0.1.0 → v1.0.0 (+192 LOC, 3 Mermaid diagrams); Phase 2/3 cold-start verify defer post AWS restore |
+| 5 | Bucket E — GAP-353 PDPL Cookie Consent Banner FE | #2086 ✅ | DONE | 3 AC closed (banner spec verified Wave 23 + ConsentBanner integration verified + NEW PDPL compliance checklist); b/c/d followups defer separate gaps; PRE_HANDOFF_PARTIAL trailer for live browser walk |
+
+**Wave outcome:** 5/5 buckets shipped; 5/5 PRs created. 4 gaps DONE (GAP-353/693/823/870) + 1 PARTIAL advance (GAP-867 40→60%). 1 NEW artifact filed: PDPL 2026-07-01 compliance checklist (29-day countdown coverage). Sister effects: PR #2070 + #2064 unblocked.
