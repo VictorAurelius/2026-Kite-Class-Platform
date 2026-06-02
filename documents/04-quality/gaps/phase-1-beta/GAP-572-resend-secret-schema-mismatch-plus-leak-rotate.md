@@ -1,12 +1,12 @@
 # GAP-572: Resend secret schema mismatch + key leak rotate (Wave 83 Bucket F follow-up)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (75% — Phase 4 schema-fail-fast + IaC parity + rotation runbook shipped; Phase 1-3+5 execution defer GAP-869)
 **Priority:** 🔴 P0 (production email delivery blocked + secret leak)
 **Domain:** DevOps
 **Found:** 2026-05-15
 **Phase:** phase-1-beta
 **Affects:** kitehub-email service (email delivery) + Resend production secret + Wave 83 Bucket F (deferred)
-**Related Gaps:** GAP-370 (email production E2E parent), GAP-525 (Wave 81 Bucket C cred rotation pattern), GAP-508 (production env config registry)
+**Related Gaps:** GAP-370 (email production E2E parent), GAP-525 (Wave 81 Bucket C cred rotation pattern), GAP-508 (production env config registry), GAP-869 (rotation execution follow-up Wave local-doable-7)
 
 ## Current State (verified 2026-05-15)
 
@@ -117,8 +117,9 @@ Document vendor-specific schema requirements trong `documents/05-guides/operatio
 - [ ] kitehub-email force-recreated với new env
 - [ ] Smoke email sent + delivered < 30s via Resend (verify dashboard)
 - [x] `fetch-secrets.sh` schema-fail-fast guard added (Phase 4) — `scripts/fetch-secrets.sh:95-104` graceful-handles BOTH schemas (JSON wrapper + plain string) với INFO log when plain-string path + WARN line 108-110 when key empty (verified 2026-06-01 Wave email-finalize-1)
-- [ ] Credential rotation runbook updated với per-vendor schema table (Phase 5)
-- [ ] Wave 83 Bucket F status flipped DONE in wave plan + Bucket G closure docs
+- [x] Credential rotation runbook updated với per-vendor schema table (Phase 5) — `documents/05-guides/operations/secrets-rotation-runbook.md` §3.5 + new Resend-specific runbook `documents/05-guides/operations/resend-rotation-runbook.md` (Wave local-doable-7 Bucket E)
+- [x] Terraform IaC parity — `infrastructure/terraform-aws/secrets.tf` lines 137-167 (Wave aws-restore-1 2026-05-26 import block; Wave local-doable-7 schema doc comment lines 119-127)
+- [ ] Wave 83 Bucket F status flipped DONE in wave plan + Bucket G closure docs (defer post-rotation execution GAP-869)
 
 ## Related
 
@@ -136,4 +137,6 @@ Document vendor-specific schema requirements trong `documents/05-guides/operatio
 ## Log
 
 - **2026-06-01 (Wave email-finalize-1 Bucket C AC tick refresh):** Phase 4 fetch-secrets.sh schema-fail-fast guard verified shipped — line 95-104 graceful-handles 2 schemas + WARN line 108-110 when key empty. AC ticked. Phase 1 (Resend dashboard key rotation) + Phase 2 (EC2 SSM verify) + Phase 3 (live email smoke) + Phase 5 (runbook update) DEFER next session với AWS stack up + Cloudflare/Resend dashboard access. CSV `completion_pct` 40 → 60.
+
+- **2026-06-02 (Wave local-doable-7 Bucket E):** Phase 5 rotation runbook shipped — new `documents/05-guides/operations/resend-rotation-runbook.md` (Resend-specific 9-section runbook covering Phase 1-5 procedure + schema reference + troubleshooting matrix + cross-references). Per `deployment-naming-convention.md` §2 — runbook lives in `operations/` (post-deploy recurring rotation cadence) thay vì `deploy/` (first-time provisioning lives ở `resend-provisioning-runbook.md`). Schema concern fully closed: dual-schema accept (JSON wrapper OR plain string) lines 94-105 fetch-secrets.sh + terraform IaC parity (random_password placeholder + lifecycle ignore_changes + import block) preserves manual real value across `terraform apply` runs + schema doc comment lines 119-127 `secrets.tf` documents both schemas. Actual key rotation execution DEFER GAP-869 (P1 follow-up filed same PR) — requires (a) AWS stack up + cred check passes per `pre-flight-aws-lifecycle-check.md` §3, (b) Resend dashboard access (interactive vendor portal — `agent-action-bias.md` §3 row 1 exception), (c) production secret mutation per `agent-aws-access.md` §4.3 Tier 3 banned agent-initiated. Per task spec "do NOT execute actual Resend dashboard rotate" — compliance. Status flip 🔵 OPEN → 🟡 PARTIAL (75%). Per `cross-flow-bug-class-sweep.md` §3 — bug class signature "vendor API key schema accept dual format" swept across `scripts/fetch-secrets.sh` (Resend = unique site; other vendors stored plain string don't have JSON wrapper option per current schema). No sister sites = sweep complete trivially. CSV `completion_pct` 60 → 75.
 
