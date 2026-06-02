@@ -130,6 +130,14 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
+
+        <!-- GAP-840 (Wave local-doable-6 Bucket H) — producer-side idempotency cache for
+             ClassRescheduledEmailConsumer outbound forwards. Caffeine is the in-process
+             fallback when Spring Data Redis bean is not wired (unit tests / Redis outage). -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
@@ -252,6 +260,13 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- GAP-840 Bucket H: Testcontainers core (generic Redis container) for
+             EmailIdempotencyGuardRedisIT cross-restart dedup test. -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
             <scope>test</scope>
         </dependency>
 
