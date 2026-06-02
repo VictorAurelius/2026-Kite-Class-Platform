@@ -116,6 +116,21 @@ management:
     tracing:
       endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
 
+# Zalo Official Account messaging (Wave local-doable-11 Bucket B — GAP-063 Phase 1 scaffold).
+# Phase 1 ships mock-only — `ZaloOAMockClient` returns deterministic canned responses
+# so the platform boots without any Zalo OA business-account credentials. The live
+# implementation (`ZaloOAHttpClient`) and real OAuth wiring land in Wave 12+ once the
+# Zalo OA business account is verified (see zalo-oa-setup-runbook.md — Bucket C).
+# Per local-fix-production-parity-check.md §2 — when `provider=live` ships, AWS
+# Secrets Manager declarations for ZALO_ACCESS_TOKEN + ZALO_OA_ID MUST land same PR
+# (terraform-aws/secrets.tf + fetch-secrets.sh + env-vars-registry.md).
+zalo:
+  provider: ${ZALO_PROVIDER:mock}                # mock | live
+  oa-id: ${ZALO_OA_ID:}                          # numeric OA id from Zalo (live only)
+  access-token: ${ZALO_ACCESS_TOKEN:}            # OA access token (live only)
+  api-base-url: ${ZALO_API_BASE_URL:https://openapi.zalo.me}
+  timeout-seconds: ${ZALO_TIMEOUT_SECONDS:5}
+
 # Logging
 logging:
   level:
