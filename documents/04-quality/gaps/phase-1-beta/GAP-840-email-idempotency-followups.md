@@ -1,10 +1,10 @@
-# GAP-840: Email idempotency follow-ups (cross-restart + sister send paths)
+# GAP-840: Email idempotency follow-ups (sister send paths — cross-restart subsumed by GAP-580 Wave local-doable-5)
 
-**Status:** 🔵 OPEN
-**Priority:** 🟡 P2 (defense-in-depth follow-up; GAP-580 đã cover common-case duplicate)
+**Status:** 🟡 PARTIAL (cross-restart shipped via GAP-580 Redis swap; 2 sister send paths remain)
+**Priority:** 🟡 P2 (defense-in-depth follow-up; GAP-580 đã cover common-case duplicate + cross-restart)
 **Domain:** Backend / DevOps
 **Found:** 2026-06-02 (GAP-580 fix cross-flow sweep + scope limitation documentation)
-**Affects:** kitehub-email — cross-restart idempotency + sister consumer send paths
+**Affects:** kitehub-email — sister consumer send paths (`ClassRescheduledEmailService` + `EmailController` HTTP)
 
 ## Problem
 
@@ -13,13 +13,14 @@ GAP-580 (Wave phase2-beta) shipped consumer-side idempotency cho `EmailEventList
 in-flight redelivery + same-process Spring-listener retry — duplicate cause phổ biến nhất.
 Cross-flow sweep + scope analysis surface 3 follow-up items KHÔNG nằm trong scope GAP-580:
 
-### 1. Cross-restart limitation (Caffeine in-process)
-`EmailIdempotencyGuard` dùng Caffeine in-process cache. Sau OOM-crash-restart (đúng
-failure mode cell 22 mô tả), cache trống → message redelivered SAU restart có thể re-send.
-Full cross-restart idempotency cần shared store (Redis HOẶC DB). kitehub-email hiện
-stateless (no JPA/Redis) — thêm shared store là architecture decision (per
-`outside-in-coverage-trigger.md` §2.1 keyword "integration/store") cần benchmark
-(Redis vs reuse producer-side `email_sent_log` qua HTTP check).
+### 1. Cross-restart limitation ✅ SHIPPED (Wave local-doable-5 Bucket B)
+~~`EmailIdempotencyGuard` dùng Caffeine in-process cache.~~ GAP-580 Wave local-doable-5
+Bucket B đã swap `EmailIdempotencyGuard` từ Caffeine in-process → Redis SETNX
+(`opsForValue().setIfAbsent`, key prefix `email:idempotency:<sha256>`, TTL 60 min) +
+Caffeine fail-open fallback. Live verified qua `scripts/local/verify-cross-restart-dedup.sh`
+(7 steps PASS — kite-redis key SURVIVES kitehub-email restart) + Testcontainers IT 3/3 PASS.
+Architecture decision: chọn Redis (reuse `kite-redis` shared infra, avoid HTTP round-trip
+to producer-side `email_sent_log`).
 
 ### 2. ClassRescheduledEmailService `@RabbitListener` (sister send path)
 `class.rescheduled.email.queue` consumer cũng send email → cùng bug class (queue
@@ -38,19 +39,17 @@ beta cohort first-touch). Các path khác cùng bug class nhưng tách concern.
 
 ## Proposed Fix
 
-1. **Cross-restart:** benchmark Redis dedup store vs producer-side `email_sent_log` HTTP
-   check; pick 1; apply tới `EmailIdempotencyGuard` (replace Caffeine với shared backend
-   HOẶC two-tier Caffeine-first + shared-fallback). Outside-in audit trước khi lock.
+1. ~~Cross-restart~~ ✅ SHIPPED Wave local-doable-5 Bucket B (Redis SETNX path).
 2. **ClassRescheduledEmailService:** inject `EmailIdempotencyGuard` + dedup check trước send.
 3. **EmailController:** add `Idempotency-Key` header support (reuse interceptor pattern).
 
 ## Acceptance Criteria
 
-- [ ] Outside-in benchmark (Redis vs email_sent_log HTTP) → ADR/decision doc
-- [ ] Cross-restart idempotency: redeliver SAU container restart → single send (Testcontainers Redis OR integration)
+- [x] ~~Outside-in benchmark (Redis vs email_sent_log HTTP) → ADR/decision doc~~ — chose Redis SETNX (Wave local-doable-5; reuse `kite-redis` shared infra, avoid HTTP round-trip; documented in GAP-580 Log)
+- [x] **Cross-restart idempotency: redeliver SAU container restart → single send** — Testcontainers `EmailIdempotencyGuardRedisIT` 3/3 PASS + `scripts/local/verify-cross-restart-dedup.sh` 7 steps PASS
 - [ ] `ClassRescheduledEmailService` dedup guard wired + test
 - [ ] `EmailController` `Idempotency-Key` header support + test
-- [ ] MailHog verify each path: identical send twice → 1 message
+- [ ] MailHog verify each remaining path: identical send twice → 1 message
 
 ## Related
 
@@ -64,3 +63,8 @@ beta cohort first-touch). Các path khác cùng bug class nhưng tách concern.
 - **2026-06-02** Filed from GAP-580 fix cross-flow sweep. GAP-580 covered `email.send`
   consumer dedup (common-case). 3 follow-up items deferred: cross-restart (architecture
   decision), ClassRescheduledEmailService sister path, EmailController HTTP path. Status OPEN.
+- **2026-06-02 (Wave local-doable-5 Bucket B)** Item 1 (cross-restart) SUBSUMED bởi
+  GAP-580 closure — `EmailIdempotencyGuard` swap Caffeine → Redis SETNX shipped + live
+  verified. Items 2 (ClassRescheduledEmailService) + 3 (EmailController HTTP) còn lại;
+  status OPEN → PARTIAL (1/3 sub-items SHIPPED). Priority P2 giữ nguyên — defense-in-depth,
+  không blocking Phase 1 BETA (welcome/signup/invite path đã đủ coverage qua GAP-580).

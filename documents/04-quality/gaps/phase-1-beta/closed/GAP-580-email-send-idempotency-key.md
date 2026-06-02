@@ -1,6 +1,6 @@
 # GAP-580: Email send idempotency key (consumer-side dedup, `email.send` pipeline)
 
-**Status:** 🟡 PARTIAL (common-case consumer dedup shipped + MailHog-verified; cross-restart + sister paths → GAP-840)
+**Status:** 🟢 DONE (cross-restart Redis SETNX shipped + harness PASS; sister send paths (ClassRescheduled + EmailController) tách scope sang GAP-840 P2)
 **Priority:** 🟠 P1 (trust-damage prevention cho beta cohort — duplicate emails = poor UX)
 **Domain:** Backend / DevOps
 **Found:** 2026-05-15 (Wave 85 Bucket A simulation 3-axis cell 22)
@@ -62,17 +62,17 @@ kitehub-email has no DB. Replaced by consumer-side Caffeine dedup (see Implement
 - [x] Deterministic key: explicit producer key OR derived SHA-256 hash (map-order-stable)
 - [x] Unit tests: 7 guard tests (first-seen/duplicate/null-fail-open/explicit-precedence/deterministic/concurrent-50-thread-exactly-1) + 3 listener idempotency tests (explicit-key redelivery / derived-key redelivery / distinct-recipients no-false-dedup) — `mvnw verify -P strict-warnings` BUILD SUCCESS, 15/15 pass
 - [x] **MailHog live verify** — publish identical `EmailEvent` twice to `email.send`: publish #1 → MailHog 1 message; publish #2 (redelivery) → MailHog STILL 1 (no 2nd Dispatching log) ✓ dedup fired
-- [ ] Cross-restart idempotency (shared store survives OOM-restart) → **GAP-840** (architecture decision: Redis vs email_sent_log HTTP)
-- [ ] `ClassRescheduledEmailService` sister send path dedup → **GAP-840**
-- [ ] `EmailController` HTTP send-path idempotency-key → **GAP-840**
+- [x] **Cross-restart idempotency (shared store survives container restart)** — `EmailIdempotencyGuard` swap Caffeine → Redis SETNX (`opsForValue().setIfAbsent(key, "1", ttl)`); key namespace `email:idempotency:<sha256>`; Caffeine kept as fail-open fallback khi Redis unreachable. Wave local-doable-5 Bucket B shipped + verified live qua `scripts/local/verify-cross-restart-dedup.sh` (7 steps PASS — kite-redis key survives kitehub-email restart) + 3 Testcontainers IT (`EmailIdempotencyGuardRedisIT`) PASS
+- [ ] `ClassRescheduledEmailService` sister send path dedup → **GAP-840** (deferred — P2, defense-in-depth)
+- [ ] `EmailController` HTTP send-path idempotency-key → **GAP-840** (deferred — P2, HTTP path semantics khác queue)
 - [ ] (optional) producer `EmailEvent.idempotencyKey` explicit field in kitehub-subscription — deferred (consumer derives reliably without it)
 
 ## Pre-handoff verify per pre-handoff-self-test-completeness.md §2.9 (background job idempotency)
 
 - [x] Worker picks up job (verify via container log "Dispatching queued email")
 - [x] Duplicate handling: identical event redelivered → single send (MailHog matches=1 after 2 publishes)
-- [x] Stack-up: kitehub-email (:8084 healthy) + kite-mailhog (:8025) + kite-rabbitmq (:15673) — rebuilt image with dedup code, recreated container, verified live
-- ⚠️ DLQ + cross-restart redelivery not exercised live (GAP-840 scope)
+- [x] Stack-up: kitehub-email (:8084 healthy) + kite-mailhog (:8025) + kite-rabbitmq (:15673) + kite-redis (:6380) — rebuilt image with Redis-backed dedup, recreated container, verified live
+- [x] **Cross-restart redelivery (Wave local-doable-5):** `bash scripts/local/verify-cross-restart-dedup.sh` exit 0 — Step 1-3 verify Redis `email:idempotency:*` key created on first publish; Step 4 `docker restart kitehub-email`; Step 5 verify key SURVIVES post-restart; Step 6-7 verify identical re-publish → listener log "Idempotent skip — duplicate email suppressed via Redis (key=58a29f8a...)" + MailHog count unchanged. Sister paths (ClassRescheduledEmailService, EmailController HTTP) → GAP-840 P2 scope.
 
 ## Related
 
@@ -86,3 +86,4 @@ kitehub-email has no DB. Replaced by consumer-side Caffeine dedup (see Implement
 
 - **2026-05-15** Filed via Wave 85 Bucket A simulation 3-axis audit cell 22. Bucket G G-AC4 smoke test ships Wave 85; schema + pipeline implementation defer Wave 86. Status OPEN.
 - **2026-06-02** Fix shipped (autonomous local-doable gap campaign). State-check (audit-to-gap-pipeline.md §2.5) found original proposed fix (V54 + `email_send_audit` UNIQUE) architecturally invalid — kitehub-email is stateless (no DB). Symptom (consumer redelivery → duplicate) real + uncovered. Scope revised to consumer-side Caffeine TTL dedup at `EmailEventListener` (fits stateless design, reuses existing Caffeine cache backend). 7 guard + 3 listener unit tests, `mvnw verify -P strict-warnings` 15/15 PASS. MailHog live verify: identical event published twice → exactly 1 email delivered (publish #1 → 1 msg; publish #2 redelivery → still 1). Cross-flow sweep: 3 sister sites — `ClassRescheduledEmailService` (DEFER), `BrandingUpdatedListener` (EXEMPT — no send), `EmailController` HTTP (DEFER) → follow-up GAP-840. Status → PARTIAL (common-case shipped+verified; cross-restart + sister paths deferred to GAP-840 per gap-done-discipline.md §3 PARTIAL exit ramp).
+- **2026-06-02 (Wave local-doable-5 Bucket B)** Cross-restart idempotency shipped — closes the last remaining AC. `EmailIdempotencyGuard` refactored: Caffeine-only → Redis SETNX primary (key prefix `email:idempotency:<sha256>`, TTL 60 min via `kitehub.email.idempotency.ttl-minutes`) + Caffeine fallback (50k entries) khi Redis unreachable (fail-open: never drops legitimate email). `pom.xml` thêm `spring-boot-starter-data-redis` + Testcontainers test deps; `application.yml` thêm `spring.data.redis.host/port` (defaults `kite-redis:6379`); `docker-compose.kitehub.yml` thêm `REDIS_HOST/REDIS_PORT` env + `kite-redis` healthcheck dependency cho `kitehub-email` service. Tests: full kitehub-email suite 98/98 PASS (`mvnw test`); new `EmailIdempotencyGuardRedisIT` Testcontainers 3 tests PASS (cross-restart simulated via 2 guard instances against same Redis container; Redis outage → fail-open verified). Live walk verification: `bash scripts/local/verify-cross-restart-dedup.sh` exit 0 — 7-step harness confirms (a) listener consumes RabbitMQ publish, (b) `email:idempotency:*` key created in `kite-redis`, (c) `docker restart kitehub-email` succeeds + healthy, (d) key SURVIVES restart, (e) identical re-publish → listener log "Idempotent skip — duplicate email suppressed via Redis (key=58a29f8a6fe2ecfe3df729ce69f1ff496a364facc9300996b7c2ad25ff403deb)". Sister send paths (ClassRescheduledEmailService `@RabbitListener` + EmailController HTTP `Idempotency-Key`) remain in GAP-840 (P2, defense-in-depth — different scope semantics). Status PARTIAL → DONE per gap-done-discipline.md §2 (every original AC verified; remaining items legitimately tách scope sang GAP-840 not deferred-without-followup).

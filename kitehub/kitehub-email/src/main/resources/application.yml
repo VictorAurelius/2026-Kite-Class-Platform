@@ -2,6 +2,15 @@ spring:
   application:
     name: kitehub-email
 
+  # GAP-580 cross-restart email dedup — Redis backs EmailIdempotencyGuard.
+  # Local dev uses kite-redis container (port 6380 host → 6379 container);
+  # production uses managed ElastiCache via REDIS_HOST/REDIS_PORT env.
+  data:
+    redis:
+      host: ${REDIS_HOST:kite-redis}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000
+
   # Thymeleaf for email templates
   thymeleaf:
     prefix: classpath:/templates/
