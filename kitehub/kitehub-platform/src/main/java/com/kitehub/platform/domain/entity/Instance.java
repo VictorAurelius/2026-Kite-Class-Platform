@@ -43,6 +43,27 @@ public class Instance extends BaseEntity {
     private String subdomain;
 
     /**
+     * Normalized URL/routing slug (GAP-535 Wave 77 + GAP-823 Wave local-doable-9).
+     *
+     * <p>Pipeline: NFC normalize → strip smart quotes (U+2018-U+201D) → Apache Commons
+     * stripAccents (flatten VN diacritics) → lowercase → non-alphanumeric → '-' →
+     * trim/collapse. See {@code TenantSlugNormalizer} for canonical normalization.</p>
+     *
+     * <p>Collision recovery is service-side: append {@code -1}/{@code -2}/... suffix
+     * until {@link InstanceRepository#existsBySlugStartingWith(String)} returns false,
+     * capped at 10 attempts (then 409 IllegalStateException).</p>
+     *
+     * <p>Mapped via V40 migration; NULL allowed for grandfathered rows pre-Wave-77
+     * (those rows retain only subdomain). Unique partial index enforces uniqueness
+     * only when set.</p>
+     *
+     * @since Wave 77 Bucket D (column) / Wave local-doable-9 Bucket B (entity field + wiring)
+     */
+    @Size(max = 120, message = "Slug must not exceed 120 characters")
+    @Column(name = "slug", length = 120, unique = true)
+    private String slug;
+
+    /**
      * Domain status enum for custom domain verification lifecycle.
      *
      * <ul>

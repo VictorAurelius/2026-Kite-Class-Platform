@@ -61,6 +61,37 @@ public interface InstanceRepository extends JpaRepository<Instance, UUID> {
 
     Optional<Instance> findByCustomDomainAndDeletedFalse(String customDomain);
 
+    // =========================================================
+    // GAP-823 Wave local-doable-9 Bucket B: slug field methods
+    // (paired with V40 + Instance.slug + TenantSlugNormalizer wiring
+    //  in InstanceService.registerInstance — closes triad drift)
+    // =========================================================
+
+    /**
+     * Find instance by normalized slug.
+     *
+     * @param slug normalized slug (output of TenantSlugNormalizer.normalize)
+     * @return matching instance or empty
+     */
+    Optional<Instance> findBySlug(String slug);
+
+    /**
+     * Check if any non-deleted instance has the exact slug.
+     *
+     * @param slug normalized slug
+     * @return true if slug already taken by a live instance
+     */
+    boolean existsBySlugAndDeletedFalse(String slug);
+
+    /**
+     * Check if any instance (including deleted) has slug starting with prefix.
+     * Used by collision-recovery loop to probe -1/-2/... suffix candidates.
+     *
+     * @param prefix slug prefix (typically the normalized base before suffix)
+     * @return true if at least one row matches
+     */
+    boolean existsBySlugStartingWith(String prefix);
+
     List<Instance> findByMigrationPhase(MigrationPhase phase);
 
     // =========================================================

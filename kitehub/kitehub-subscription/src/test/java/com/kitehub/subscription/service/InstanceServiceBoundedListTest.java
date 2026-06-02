@@ -46,6 +46,7 @@ class InstanceServiceBoundedListTest {
     @Mock private TokenService tokenService;
     @Mock private TrialConfig trialConfig;
     @Mock private com.kitehub.subscription.client.EmailServiceClient emailServiceClient;
+    @Mock private com.kitehub.subscription.tenant.TenantSlugNormalizer tenantSlugNormalizer;
 
     @InjectMocks private InstanceService instanceService;
 
