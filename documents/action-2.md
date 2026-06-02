@@ -136,3 +136,5 @@ Hệ thống đề xuất sử dụng kiến trúc đa tenant nguyên bản vớ
 bây giờ tôi có bản docx  thesis v1, tôi đã sửa tay
 tôi muốn compare bản này với bản word để sửa code python render ra được bản tôi sửa tay
 nên compare bản docx hay compare bản pdf?
+
+toàn bộ dự án có 2 mảng database chính là kitehub và kiteclass, tôi cần báo cáo kiến trúc về 2 mảng database này, sơ đồ ERD đầy đủ các bảng, thiết kế đầy đủ của các bảng, giải thích quan hệ, giải thích ý nghĩa từng trường => mục tiêu là dev có thể kiểm soát hoàn toàn database
