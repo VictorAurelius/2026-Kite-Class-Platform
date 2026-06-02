@@ -124,10 +124,10 @@ export async function login(
     timeout: 15000,
   });
 
-  // Wait for auth store to be set in localStorage (Zustand persist)
+  // Wait for auth store to be set in sessionStorage (Zustand persist — GAP-830 per-tab isolation)
   await page.waitForFunction(
     () => {
-      const authStorage = localStorage.getItem('auth-storage');
+      const authStorage = sessionStorage.getItem('auth-storage');
       if (!authStorage) return false;
       try {
         const parsed = JSON.parse(authStorage);
@@ -177,16 +177,18 @@ export async function logout(page: Page) {
  * @returns true if authenticated, false otherwise
  */
 export async function isAuthenticated(page: Page): Promise<boolean> {
-  // Check if accessToken exists in localStorage
-  const accessToken = await page.evaluate(() => localStorage.getItem('accessToken'));
+  // Check if accessToken exists in sessionStorage (GAP-830 per-tab isolation)
+  const accessToken = await page.evaluate(() => sessionStorage.getItem('accessToken'));
   return accessToken !== null;
 }
 
 /**
- * Inject authentication tokens directly into localStorage.
+ * Inject authentication tokens directly into sessionStorage.
  *
  * Useful for bypassing login UI when you just need authenticated state.
  * Sets both individual tokens and Zustand auth store.
+ *
+ * GAP-830: tokens + auth-storage moved to sessionStorage for per-tab isolation.
  *
  * @param page - Playwright page object
  */
@@ -194,10 +196,10 @@ export async function injectAuthTokens(page: Page) {
   await page.goto('/');
 
   await page.evaluate(() => {
-    // Set individual tokens (used by API client)
-    localStorage.setItem('accessToken', 'eyJhbGciOiJIUzI1NiJ9.eyJ0ZW5hbnRJZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSJ9.mock');
-    localStorage.setItem('refreshToken', 'mock-refresh-token');
-    localStorage.setItem('tenantId', '11111111-1111-1111-1111-111111111111');
+    // Set individual tokens (used by API client) — sessionStorage per GAP-830
+    sessionStorage.setItem('accessToken', 'eyJhbGciOiJIUzI1NiJ9.eyJ0ZW5hbnRJZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSJ9.mock');
+    sessionStorage.setItem('refreshToken', 'mock-refresh-token');
+    sessionStorage.setItem('tenantId', '11111111-1111-1111-1111-111111111111');
 
     // Set Zustand auth store (used by dashboard layout auth guard)
     const authStore = {
@@ -216,7 +218,7 @@ export async function injectAuthTokens(page: Page) {
       },
       version: 0,
     };
-    localStorage.setItem('auth-storage', JSON.stringify(authStore));
+    sessionStorage.setItem('auth-storage', JSON.stringify(authStore));
   });
 
   // Reload to apply auth state

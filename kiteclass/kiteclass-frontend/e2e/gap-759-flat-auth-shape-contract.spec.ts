@@ -73,7 +73,7 @@ test.describe('GAP-759 — KC login flat auth shape contract', () => {
     expect(jwtPayload).toHaveProperty('tenantId');
   });
 
-  test('login UI flow stores accessToken in localStorage after mock fires', async ({
+  test('login UI flow stores accessToken in sessionStorage after mock fires', async ({
     page,
   }) => {
     await setupAuthMocks(page);
@@ -97,9 +97,9 @@ test.describe('GAP-759 — KC login flat auth shape contract', () => {
       timeout: 15000,
     });
 
-    // Verify localStorage has accessToken (set by useAuth.ts onSuccess line 49)
+    // Verify sessionStorage has accessToken (set by useAuth.ts via jwt-storage facade — GAP-830)
     const accessToken = await page.evaluate(() =>
-      localStorage.getItem('accessToken'),
+      sessionStorage.getItem('accessToken'),
     );
     expect(accessToken).toBeTruthy();
     expect(accessToken).toMatch(/^eyJ/); // JWT prefix

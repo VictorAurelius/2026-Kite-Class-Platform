@@ -347,8 +347,14 @@ test.describe('Critical Journey: Class Lifecycle', () => {
     await submitCancelButton.click();
 
     // Toast: "Vui lòng nhập lý do hủy"
+    // GAP-872: this validation surfaces ONLY in a Shadcn toast, which renders both a
+    // visible description (<div>) AND an sr-only live-region announcer (<span role="status">).
+    // An unscoped getByText matches both → strict-mode violation. Exclude the role="status"
+    // announcer to target the visible toast text deterministically.
     await expect(
-      page.getByText(/vui lòng nhập lý do hủy|lý do.*bắt buộc|reason.*required/i)
+      page
+        .getByText(/vui lòng nhập lý do hủy|lý do.*bắt buộc|reason.*required/i)
+        .and(page.locator(':not([role="status"])'))
     ).toBeVisible({ timeout: 3000 });
 
     // ── Submit with valid reason ─────────────────────────────────────────────
@@ -402,8 +408,12 @@ test.describe('Critical Journey: Class Lifecycle', () => {
     }
 
     // Toast: "Đã sao chép mã lớp học"
+    // GAP-872: same toast collision as the cancel-reason validation — exclude the sr-only
+    // role="status" announcer so getByText resolves to the single visible toast description.
     await expect(
-      page.getByText(/đã sao chép|copied/i)
+      page
+        .getByText(/đã sao chép|copied/i)
+        .and(page.locator(':not([role="status"])'))
     ).toBeVisible({ timeout: 3000 });
   });
 
@@ -463,9 +473,12 @@ test.describe('Critical Journey: Class Lifecycle', () => {
     // Navigate directly to a non-existent class
     await page.goto('/classes/99999');
 
-    // ErrorAlert renders: "Không tìm thấy lớp học"
+    // GAP-872: scope to the persistent inline ErrorAlert (role="alert"). The 404
+    // message ("Không tìm thấy lớp học") ALSO surfaces in a transient api-client
+    // toast (role="status"), so an unscoped getByText matched 2 elements → strict-
+    // mode violation. role="alert" excludes the role="status" toast deterministically.
     await expect(
-      page.getByText(/không tìm thấy lớp học|class not found/i)
+      page.getByRole('alert').getByText(/không tìm thấy lớp học|class not found/i)
     ).toBeVisible({ timeout: 5000 });
   });
 });
