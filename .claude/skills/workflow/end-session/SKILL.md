@@ -34,6 +34,9 @@ Per `session-end-context-check.md` §4.5, verify TẤT CẢ 5 targets sync trư�
 
 **Decision:** ANY stale → fix BEFORE propose end (bundle vào docs-only PR per `docs-only-pr-auto-merge.md` auto-merge eligible). KHÔNG defer "next session" — context flush = lose track.
 
+<!-- TODO Wave 12+ GAP-868 Phase 2 — replace manual 5-target verify với `scripts/check-post-merge-sync.sh` invocation. Script wraps `post-merge-sync-completeness.md` §2 4-target framework + session-handoff (target #5) — emit PASS/FAIL/WARN deterministic exit. -->
+
+
 ### Step 1 — Resolve session id + active lock
 
 ```bash
@@ -60,6 +63,9 @@ Best-effort gather:
 Skip nếu `--skip-handoff` OR target #5 already present today.
 
 Template: `.claude/skills/workflow/end-session/reference/handoff-template.md` (load on activation).
+
+<!-- TODO Wave 12+ GAP-868 Phase 2 — audit ≥10 shipped handoff notes in `documents/03-planning/session-handoffs/` → categorize template gaps (multi-wave / agent-only / partial-close / blocker-cascade) → refine handoff-template.md với ≥4 new edge-case placeholders. -->
+
 
 Path: `documents/03-planning/session-handoffs/YYYY-MM-DD-{wave-or-scope-slug}.md`
 
@@ -100,6 +106,9 @@ Skip archive nếu `--keep-lock` (rare — chỉ khi user muốn manual cleanup 
 ```
 
 Nếu thiếu data → omit field gracefully.
+
+<!-- TODO Wave 12+ GAP-868 Phase 2 — add Step 4.5 invoking `scripts/check-context-budget.sh --session-delta` (read transcript start vs end size) + emit summary line "Context budget X% → Y% (+Δ tokens)" trước Step 5 PR step. Helps recalibrate context-budget mandate compliance pre `/clear`. -->
+
 
 ### Step 5 — Open docs-only PR + propose /clear (NEW v1.1.0)
 
@@ -144,9 +153,11 @@ Có thể dùng `scripts/end-session.sh` (kèm theo skill này) để one-shot �
 - `.claude/session-locks/README.md` — lock convention + retention policy
 - GAP-193 — parent gap (Phase 1 + Phase 2 closed by Wave Meta Phase-2 Cleanup)
 - GAP-199 — rework audit (consumes archived locks for retrospective analysis)
+- GAP-868 — META formalization (3 Wave 12+ scaffold extensions: handoff template iteration + post-merge sync sub-script + context-budget delta surface) — filed Wave local-doable-11 Bucket D
 - Memory: `feedback_parallel_agent_strategy.md`
 
 ## Log
 
+- **2026-06-02 (Wave local-doable-11 Bucket D):** Inline `<!-- TODO Wave 12+ GAP-868 -->` markers added tại 3 scaffold candidate positions (Step 0 post-merge sync sub-script + Step 2.5 handoff template iteration + Step 4.5 context-budget delta surface). Filed GAP-868 P1 META tracking Phase 2 concrete implementations. No skill behavior change này wave; markers signal Wave 12+ scope cho future readers.
 - **2026-06-02 (v1.1.0):** MINOR — extended scope to include docs-sync 5-target verify (Step 0) + auto-write session-handoff note (Step 2.5) + wave-history.jsonl append (Step 2.6) + docs-only PR open (Step 5). Reference template `handoff-template.md` added. Triggered by user-flagged miss Wave local-doable-6 closure 2026-06-02: session ended without handoff doc; `session-end-context-check.md` §4.5 mandates 5-target sync (target #5 = handoff) but rule §2 exception bypasses §4 sequence when user explicit "end session". Skill now enforces docs-sync regardless of trigger. Per `incident-to-rule-pipeline.md` 5-stage applied (extension, not new rule). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve — additive scope, no constraint loosening; existing v1.0.0 lock-archive flow preserved as Steps 1-4).
 - **2026-04-20 (v1.0.0):** Skill created — Phase 2 of GAP-193 (lock archive + 1-line summary).
