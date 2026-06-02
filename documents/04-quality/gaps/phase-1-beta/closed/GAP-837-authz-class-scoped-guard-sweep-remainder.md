@@ -1,6 +1,6 @@
 # GAP-837: Per-resource authz guard sweep — remaining class-scoped + id-resolution endpoints
 
-**Status:** 🟡 PARTIAL (85% — 13/15 endpoints guarded, 2 SHARED documented, 0 DEFER outstanding)
+**Status:** 🟢 DONE (100% — 14/14 OWNED endpoints guarded incl. final `getEnrollmentsByStudent`; 2 SHARED documented; 0 DEFER outstanding)
 **Priority:** 🟠 P1
 **Domain:** Backend (kiteclass-core)
 **Detected:** 2026-06-02 (cross-flow sweep during GAP-729 fix, per `cross-flow-bug-class-sweep.md` §3)
@@ -62,7 +62,7 @@ Same as GAP-729: dev adds tenant-level Hibernate filter but forgets per-resource
 - [x] IT cross-user (same-tenant) per OWNED endpoint: 6 new tests A01-U07..U12 (ClassController PATCH/DELETE/cancel + AssignmentController list + EnrollmentController GET/withdraw) — 12/12 PASS Testcontainers Postgres
 - [x] New `@authz` helper fail-closed (deny when enrollment not found / soft-deleted; null guard; admin bypass) + JPA NoResultException handled
 - [~] GAP-746 tenant-filter concern: `hasAccessToEnrollment` uses native query with `deleted = false`; TenantFilterInterceptor enforces tenant scope on existing entity queries — new helper relies on same chain. Live verify deferred (per GAP-612 AWS restore + GAP-746 multi-tenant repo audit)
-- [~] `EnrollmentController.getEnrollmentsByStudent(studentId)` — DEFER (different scope: student can be enrolled in classes by multiple teachers; needs `hasAccessToStudent` helper resolving student's class set; tracked as residual scope)
+- [x] `EnrollmentController.getEnrollmentsByStudent(studentId)` — DONE Wave local-doable-6 Bucket G: new `@authz.hasAccessToStudent(Long)` helper (native join enrollments → classes; admit teacher who owns ≥1 of student's enrolled classes; admin bypass; fail-closed on null/no-enrollment) + `@PreAuthorize` guard on endpoint + IT A01-U13 (Teacher-2 non-owner → 403)
 
 ### Out-of-scope
 
@@ -75,7 +75,9 @@ Same as GAP-729: intra-tenant lateral movement (lower attack surface than cross-
 
 ## Log
 
-- **2026-06-02** — PARTIAL closure 85% (Wave local-doable-5 Bucket C). Shipped 13 guards + 1 new authz helper + 6 IT tests. Sites: (a) ClassController 8 OWNED write/lifecycle guards + 3 SHARED READ documented + createClass classification, (b) AssignmentController 2 OWNED guards (getAssignmentsByClass + getPendingGradingByClass) + getPublishedAssignmentsByClass documented SHARED, (c) EnrollmentController new `@authz.hasAccessToEnrollment` helper + 3 id-scoped guards (getEnrollment + updateEnrollmentStatus + withdrawStudent). Tests: 6 new A01-U07..U12 in `CrossUserAuthzTest` — 12/12 PASS on Testcontainers Postgres (44s). `getEnrollmentsByStudent(studentId)` deferred (different scope — needs `hasAccessToStudent` helper resolving multi-class student membership; tracked as residual P2). Branch `wave/local-doable-5-bucket-c`. Cross-flow sweep evidence in PR body §3 per `cross-flow-bug-class-sweep.md`.
+- **2026-06-02** (Wave local-doable-6 Bucket G) — DONE closure 100%. Final residual `EnrollmentController.getEnrollmentsByStudent(studentId)` guarded via new `AuthorizationBean.hasAccessToStudent(Long)` helper: native `SELECT COUNT(*) FROM enrollments e JOIN classes c ON c.id = e.class_id WHERE e.student_id = :studentId AND e.deleted = false AND c.deleted = false AND c.teacher_id = :userId` — admits teacher who owns at least one of student's enrolled classes, admin bypass via `isAdmin()`, fail-closed on null userId / no-enrollment. New IT `A01-U13` in `CrossUserAuthzTest`: Teacher-2 GET `/api/v1/enrollments/student/{studentId}` (student enrolled only in Teacher-1's class) → **403** ✅. Full suite `CrossUserAuthzTest` 13/13 PASS Testcontainers Postgres (62.5s). `mvnw compile -P strict-warnings` clean (0 warnings). Total OWNED endpoints guarded across GAP-729 + GAP-837: 16 (Enrollment 4 + Class 8 + Assignment 2 + Attendance 1 + Grade 1 pre-existing). Branch `wave/local-doable-6-bucket-g-authz-residual`. Cross-flow sweep per `cross-flow-bug-class-sweep.md` §3: 1 new FIX site (`getEnrollmentsByStudent`), 0 sister sites remaining.
+
+- **2026-06-02** (Wave local-doable-5 Bucket C) — PARTIAL closure 85%. Shipped 13 guards + 1 new authz helper + 6 IT tests. Sites: (a) ClassController 8 OWNED write/lifecycle guards + 3 SHARED READ documented + createClass classification, (b) AssignmentController 2 OWNED guards (getAssignmentsByClass + getPendingGradingByClass) + getPublishedAssignmentsByClass documented SHARED, (c) EnrollmentController new `@authz.hasAccessToEnrollment` helper + 3 id-scoped guards (getEnrollment + updateEnrollmentStatus + withdrawStudent). Tests: 6 new A01-U07..U12 in `CrossUserAuthzTest` — 12/12 PASS on Testcontainers Postgres (44s). `getEnrollmentsByStudent(studentId)` deferred (different scope — needs `hasAccessToStudent` helper resolving multi-class student membership; tracked as residual P2). Branch `wave/local-doable-5-bucket-c`. Cross-flow sweep evidence in PR body §3 per `cross-flow-bug-class-sweep.md`.
 
 ## Related
 

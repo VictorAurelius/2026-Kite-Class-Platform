@@ -1,6 +1,6 @@
 # GAP-729: 11/19 controllers no per-resource authz guard — A01 OWASP IDOR wide
 
-**Status:** 🟡 PARTIAL (90% — 15 OWNED sites fixed across 3 controllers; residual `EnrollmentController.getEnrollmentsByStudent(studentId)` tracked GAP-837)
+**Status:** 🟢 DONE (100% — 16 OWNED sites guarded across 3 controllers; final residual `EnrollmentController.getEnrollmentsByStudent` closed via new `@authz.hasAccessToStudent` helper Wave local-doable-6 Bucket G)
 **Priority:** 🟠 P1
 **Domain:** Backend (kiteclass-core)
 **Detected:** 2026-05-24 (Wave beta-readiness-1 Bucket D audit, PR #1763)
@@ -76,11 +76,11 @@ Cross-reference V2 audit `failure-mode-matrix-v2-state-checked.md` A5 partial fi
 ## Acceptance Criteria
 
 - [x] Per controller, classify SHARED vs OWNED (State-Check table above)
-- [~] OWNED controllers: add `@PreAuthorize` guard — 2 fixed this PR (Enrollment class-roster + Attendance class-stats); ~14 remaining → GAP-837
-- [x] IT tests cross-user same-tenant for fixed OWNED endpoints (A01-U05 non-owner→403, A01-U06 owner→200 in `CrossUserAuthzTest`)
+- [x] OWNED controllers: add `@PreAuthorize` guard — 2 fixed Wave local-doable-5 Bucket C + 13 swept via GAP-837 + 1 final (`getEnrollmentsByStudent`) Wave local-doable-6 Bucket G = 16 total OWNED sites guarded
+- [x] IT tests cross-user same-tenant for fixed OWNED endpoints (A01-U05/U06 class-roster + A01-U07..U12 sweep + A01-U13 student-resolution in `CrossUserAuthzTest`)
 - [x] Document SHARED scope (Course = SHARED catalog, documented in State-Check table)
-- [x] Re-run `CrossUserAuthzTest.java` — 6/6 PASS (Testcontainers Postgres)
-- [~] Audit matrix in PR body update post-fix (this gap State-Check + GAP-837 sweep table)
+- [x] Re-run `CrossUserAuthzTest.java` — 13/13 PASS (Testcontainers Postgres, 62.5s)
+- [x] Audit matrix in PR body update post-fix (this gap State-Check + GAP-837 sweep table)
 
 ## Walk evidence (per pre-handoff-self-test-completeness.md §2.4 / feature-ship-runtime-walk-mandate)
 
@@ -92,6 +92,8 @@ Cross-reference V2 audit `failure-mode-matrix-v2-state-checked.md` A5 partial fi
 Verifies `@authz.hasAccessToClass(#classId)` actually enforces ownership end-to-end (HTTP layer → method-security AOP → AuthorizationBean native query → DB), not just compiles.
 
 ## Log
+
+- **2026-06-02** (Wave local-doable-6 Bucket G) — final residual closed. Added `AuthorizationBean.hasAccessToStudent(Long)` helper (native join enrollments → classes filtered by teacher_id UUID + soft-delete) + `@PreAuthorize("@authz.hasAccessToStudent(#studentId)")` on `EnrollmentController.getEnrollmentsByStudent`. New IT A01-U13: Teacher-2 GET `/enrollments/student/{studentId}` (student enrolled only in Teacher-1's class) → **403**. `CrossUserAuthzTest` 13/13 PASS Testcontainers Postgres (62.5s). Total OWNED sites guarded under GAP-729 + GAP-837: 16. Status PARTIAL 90% → DONE 100%.
 
 - **2026-06-02** (Wave local-doable-5 Bucket C) — extended sweep via GAP-837. 13 more OWNED sites guarded: ClassController 8 (update/delete/start/complete/cancel/generateCode/createSchedule/generateFromRecurrence), AssignmentController 2 (getAssignmentsByClass + getPendingGradingByClass), EnrollmentController 3 id-scoped (getEnrollment + updateEnrollmentStatus + withdrawStudent) + new `@authz.hasAccessToEnrollment(Long)` helper. 6 new IT A01-U07..U12 — 12/12 PASS Testcontainers. Total sites guarded under this gap+GAP-837: 15. Residual: `getEnrollmentsByStudent(studentId)` (P2, needs `hasAccessToStudent` helper). Status 40% → 90%.
 

@@ -606,4 +606,39 @@ class CrossUserAuthzTest {
                         .header("X-User-Reference-Id", teacher2.toString()))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    @DisplayName("A01-U13: Teacher-2 cannot GET enrollments for a student enrolled only in Teacher-1's class (hasAccessToStudent IDOR → 403)")
+    void teacher2_cannotGetEnrollmentsByStudent_forStudentInTeacher1Class() throws Exception {
+        UUID tenantId = UUID.randomUUID();
+        UUID teacher1 = UUID.randomUUID();
+        UUID teacher2 = UUID.randomUUID();
+
+        Long classId = createClassOwnedBy(tenantId, teacher1);
+
+        // Seed: real Student row + enrollment binding student → Teacher-1's class.
+        Long studentId = testDataBuilder.createTestStudent(mockMvc, objectMapper, tenantId,
+                "Tran Thi Hong", "hong.tran." + System.currentTimeMillis() + "@audit.test",
+                "0934000013");
+
+        Enrollment enrollment = Enrollment.builder()
+                .classId(classId)
+                .studentId(studentId)
+                .enrollmentDate(java.time.LocalDateTime.now())
+                .tuitionAmount(java.math.BigDecimal.ZERO)
+                .finalAmount(java.math.BigDecimal.ZERO)
+                .status(EnrollmentStatus.ACTIVE)
+                .build();
+        enrollment.setInstanceId(tenantId);
+        enrollmentRepository.save(enrollment);
+        entityManager.flush();
+
+        // Teacher-2 teaches NO class containing this student → @authz.hasAccessToStudent
+        // joins enrollments → classes WHERE teacher_id = teacher2 → 0 rows → deny → 403.
+        mockMvc.perform(get("/api/v1/enrollments/student/" + studentId)
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Id", teacher2.toString())
+                        .header("X-User-Reference-Id", teacher2.toString()))
+                .andExpect(status().isForbidden());
+    }
 }
