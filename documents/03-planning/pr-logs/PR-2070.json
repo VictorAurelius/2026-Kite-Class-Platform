@@ -1,0 +1,33 @@
+{
+  "pr": 2070,
+  "title": "fix(wave-local-doable-7-bucket-c): GAP-866 close \u2014 kc-core RabbitAdmin bean fix + ApplicationContext IT",
+  "branch": "wave-local-doable-7-bucket-c",
+  "created_at": null,
+  "merged_at": "2026-06-02T09:14:56Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-06-02T09:15:03.303129",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 4,
+        "java_files": 1,
+        "test_files": 1,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "1/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1126566"
+  }
+}
