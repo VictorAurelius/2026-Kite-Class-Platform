@@ -24,6 +24,11 @@ on:
       - 'scripts/check-be-fe-url-contract.sh'
       - 'scripts/check-mermaid-sequence-state-br.sh'
       - 'scripts/check-entity-mapper-consistency.sh'
+      - 'scripts/check-test-skip-ratio.sh'
+      - 'kiteclass/kiteclass-frontend/src/**/*.test.tsx'
+      - 'kiteclass/kiteclass-frontend/src/**/*.spec.tsx'
+      - 'kitehub/kitehub-frontend/src/**/*.test.tsx'
+      - 'kitehub/kitehub-frontend/src/**/*.spec.tsx'
       - '**/*Entity.java'
       - '**/V*.sql'
       - '**/*Mapper.java'
@@ -245,6 +250,32 @@ jobs:
           # `.claude/rules/incident-to-rule-pipeline.md` §3.1.
           # Override: PR body trailer `ENTITY_MAPPER_DRIFT_OVERRIDE: <reason>`.
           bash scripts/check-entity-mapper-consistency.sh --warn
+
+
+  test-skip-ratio:
+    name: Frontend test skip-ratio (GAP-346 — WARN mode)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (synthetic fixtures)
+        run: bash scripts/check-test-skip-ratio.sh --self-test
+
+      - name: Report skip ratio per frontend project (WARN mode — GAP-346)
+        run: |
+          # Per GAP-346: kiteclass-frontend has a high test skip ratio
+          # (vitest reports 26.7% skipped tests). This makes the call-site skip
+          # ratio VISIBLE in CI so it can't silently grow. WARN-only — does NOT
+          # block. Bulk un-skip (Next.js-15 use(params) describe.skip migration)
+          # is DEFERRED to a separate follow-up gap per
+          # `incident-to-rule-pipeline.md` premature-rule guard (WARN-first;
+          # HARD STOP only after the un-skip backlog is cleared).
+          # Override: PR body trailer `TEST_SKIP_RATIO_OVERRIDE: <reason>`.
+          bash scripts/check-test-skip-ratio.sh
 
 
   script-tests:
