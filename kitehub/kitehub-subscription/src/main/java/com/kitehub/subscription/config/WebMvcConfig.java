@@ -42,7 +42,17 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // cho POST /api/platform/instances. Pairs với IdempotencyCachingFilter
         // (wrap body để hash). Path pattern khớp EXACT — không cover sub-paths
         // như /api/platform/instances/{id}/extend-trial.
+        //
+        // Wave local-doable-10 Bucket A — GAP-730 extends scope sang signup +
+        // beta-request POST endpoints. Mỗi path resolve sang endpoint id
+        // riêng (POST_signup, POST_beta_request) qua resolveEndpoint() trong
+        // interceptor; same Idempotency-Key reused giữa các endpoint không
+        // collision vì key cache là (key, endpoint_id) composite.
         registry.addInterceptor(idempotencyHandlerInterceptor)
-                .addPathPatterns("/api/platform/instances");
+                .addPathPatterns(
+                        "/api/platform/instances",
+                        "/api/auth/register",
+                        "/api/v1/auth/request-beta-access"
+                );
     }
 }

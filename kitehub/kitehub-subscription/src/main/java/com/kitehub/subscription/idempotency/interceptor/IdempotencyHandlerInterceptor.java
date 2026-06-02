@@ -14,12 +14,19 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
- * Stripe-style idempotency interceptor (GAP-536 Wave onboarding-polish-2 Bucket C).
+ * Stripe-style idempotency interceptor (GAP-536 Wave onboarding-polish-2 Bucket C;
+ * extended Wave local-doable-10 Bucket A — GAP-730 cho signup + beta-request).
  *
- * <p>Reads the {@code Idempotency-Key} header on mutation endpoints (currently
- * POST {@code /api/platform/instances}). Behavior:
+ * <p>Reads the {@code Idempotency-Key} header on mutation endpoints. Hiện cover:
+ * <ul>
+ *   <li>{@code POST /api/platform/instances} — endpoint id {@code POST_instances} (GAP-536)</li>
+ *   <li>{@code POST /api/auth/register} — endpoint id {@code POST_signup} (GAP-730)</li>
+ *   <li>{@code POST /api/v1/auth/request-beta-access} — endpoint id {@code POST_beta_request} (GAP-730)</li>
+ * </ul>
+ * Behavior cho mỗi endpoint:
  * <ul>
  *   <li>Header absent → proceeds normally (no caching, no replay)</li>
  *   <li>Header present + cache hit + body hash match → replay cached response,
@@ -31,10 +38,10 @@ import java.nio.charset.StandardCharsets;
  * </ul></p>
  *
  * <p><strong>Implementation note:</strong> request body is consumed by handler,
- * so we rely on {@code ContentCachingRequestWrapper} (registered upstream via
- * a Spring filter) to read the raw body for hashing without disturbing the
- * downstream {@code @RequestBody} parse. Response body capture similarly uses
- * {@code ContentCachingResponseWrapper}.</p>
+ * so we rely on {@link CachedBodyHttpServletRequest} (registered upstream via
+ * {@link IdempotencyCachingFilter}) to read the raw body for hashing without
+ * disturbing the downstream {@code @RequestBody} parse. Response body capture
+ * similarly uses {@code ContentCachingResponseWrapper}.</p>
  *
  * @since Wave onboarding-polish-2 Bucket C — GAP-536
  */
@@ -45,14 +52,46 @@ public class IdempotencyHandlerInterceptor implements HandlerInterceptor {
     /** Header name per Stripe convention. */
     public static final String HEADER_IDEMPOTENCY_KEY = "Idempotency-Key";
 
-    /** Logical endpoint identifier passed to {@link IdempotencyService}. */
+    /** Logical endpoint identifier cho POST /api/platform/instances. */
     public static final String ENDPOINT_POST_INSTANCES = "POST_instances";
+
+    /** Logical endpoint identifier cho POST /api/auth/register (GAP-730). */
+    public static final String ENDPOINT_POST_SIGNUP = "POST_signup";
+
+    /** Logical endpoint identifier cho POST /api/v1/auth/request-beta-access (GAP-730). */
+    public static final String ENDPOINT_POST_BETA_REQUEST = "POST_beta_request";
+
+    /**
+     * Map URI exact match → logical endpoint identifier. Used để dispatch
+     * idempotency caching cho mỗi scoped path. Sub-paths không match (eg.
+     * {@code /api/platform/instances/{id}/extend-trial} không kích hoạt
+     * caching cho POST_instances).
+     */
+    private static final Map<String, String> ENDPOINT_MAP = Map.of(
+            "/api/platform/instances", ENDPOINT_POST_INSTANCES,
+            "/api/auth/register", ENDPOINT_POST_SIGNUP,
+            "/api/v1/auth/request-beta-access", ENDPOINT_POST_BETA_REQUEST
+    );
+
+    /**
+     * Resolve endpoint id từ URI exact match, hoặc {@code null} nếu request
+     * không scoped vào idempotency-protected path.
+     */
+    public static String resolveEndpoint(String uri) {
+        if (uri == null) {
+            return null;
+        }
+        return ENDPOINT_MAP.get(uri);
+    }
 
     /** Request attribute carrying the resolved key for {@code afterCompletion}. */
     private static final String ATTR_KEY = "idempotencyKey";
 
     /** Request attribute carrying the request-body SHA-256 hash. */
     private static final String ATTR_HASH = "idempotencyHash";
+
+    /** Request attribute carrying the resolved endpoint id for {@code afterCompletion}. */
+    private static final String ATTR_ENDPOINT = "idempotencyEndpoint";
 
     /**
      * Resolved lazily via {@link ObjectProvider} so this interceptor — which Spring
@@ -76,32 +115,40 @@ public class IdempotencyHandlerInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        // Resolve endpoint id từ URI; nếu không trong map → skip (interceptor
+        // shouldn't be registered cho path ngoài map, defensive guard chỉ).
+        String endpoint = resolveEndpoint(request.getRequestURI());
+        if (endpoint == null) {
+            return true;
+        }
+
         IdempotencyService idempotencyService = idempotencyServiceProvider.getIfAvailable();
         if (idempotencyService == null) {
             // Service absent (e.g. @WebMvcTest slice) — degrade to no-op, proceed normally.
             return true;
         }
 
-        // Read raw body for hashing. Requires ContentCachingRequestWrapper upstream.
+        // Read raw body for hashing. Requires CachedBodyHttpServletRequest upstream.
         String body = extractBody(request);
         String requestHash = IdempotencyService.hashRequest(body);
 
         try {
-            var replay = idempotencyService.findValidReplay(key, ENDPOINT_POST_INSTANCES, requestHash);
+            var replay = idempotencyService.findValidReplay(key, endpoint, requestHash);
             if (replay.isPresent()) {
                 writeCachedResponse(response, replay.get());
                 return false;
             }
         } catch (IdempotencyConflictException ex) {
-            log.warn("Idempotency conflict on POST /api/platform/instances: key={} reason={}",
-                    key, ex.getMessage());
+            log.warn("Idempotency conflict on {} {}: key={} reason={}",
+                    request.getMethod(), request.getRequestURI(), key, ex.getMessage());
             writeConflictResponse(response, ex.getMessage());
             return false;
         }
 
-        // Cache miss — store key + hash for afterCompletion to persist response.
+        // Cache miss — store key + hash + endpoint for afterCompletion to persist response.
         request.setAttribute(ATTR_KEY, key);
         request.setAttribute(ATTR_HASH, requestHash);
+        request.setAttribute(ATTR_ENDPOINT, endpoint);
         return true;
     }
 
@@ -110,7 +157,8 @@ public class IdempotencyHandlerInterceptor implements HandlerInterceptor {
                                  Object handler, Exception ex) throws Exception {
         String key = (String) request.getAttribute(ATTR_KEY);
         String hash = (String) request.getAttribute(ATTR_HASH);
-        if (key == null || hash == null) {
+        String endpoint = (String) request.getAttribute(ATTR_ENDPOINT);
+        if (key == null || hash == null || endpoint == null) {
             return;
         }
 
@@ -132,10 +180,11 @@ public class IdempotencyHandlerInterceptor implements HandlerInterceptor {
 
         String responseBody = extractResponseBody(response);
         try {
-            idempotencyService.cacheResponse(key, ENDPOINT_POST_INSTANCES, hash, status, responseBody);
+            idempotencyService.cacheResponse(key, endpoint, hash, status, responseBody);
         } catch (Exception cacheEx) {
             // Cache best-effort — never break the response Spring already wrote.
-            log.warn("Failed to cache idempotency response: key={} reason={}", key, cacheEx.getMessage());
+            log.warn("Failed to cache idempotency response: key={} endpoint={} reason={}",
+                    key, endpoint, cacheEx.getMessage());
         }
     }
 
