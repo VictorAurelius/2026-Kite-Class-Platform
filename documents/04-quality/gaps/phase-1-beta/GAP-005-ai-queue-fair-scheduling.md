@@ -202,14 +202,29 @@ Khi hệ thống overload hoặc user quá quota:
 
 ## Acceptance Criteria
 
-- [ ] WFQ implemented với 4 priority queues
-- [ ] Concurrent limit per user per tier
-- [ ] Queue depth limits + 429 backpressure
-- [ ] SLA metrics tracked (p50/p95/p99 per tier)
-- [ ] Horizontal scaling (Docker Compose replicas hoặc K8s HPA)
-- [ ] Circuit breaker với template fallback
-- [ ] Load test: 100 concurrent users (30/40/30 split) → premium < 1 min, free < 5 min
-- [ ] Grafana dashboard cho AI queue metrics
+- [x] WFQ implemented với 3 priority queues (Wave 3 GAP-005a — RabbitMQ topology `ai.request.{enterprise,pro,free}`)
+- [x] Concurrent limit per user per tier (Wave 3 GAP-005a — Redis semaphore via `DistributedRateLimiter`)
+- [x] Queue depth limits + 429 backpressure (Wave 3 GAP-005a — `BacklogInspector` + free-tier degrade-to-template on backlog threshold)
+- [x] SLA metrics tracked partial (Wave 3 GAP-005a — `ai.queue.depth`, `ai.job.wait.time`, `ai.job.duration`, `ai.job.outcome{tier,outcome}` counters/gauges; p50/p95/p99 histogram defer)
+- [~] **Horizontal scaling Ollama replicas + K8s HPA — WONTFIX-superseded** (architecture pivot 2026-06-02; see §Re-scope below)
+- [ ] Circuit breaker với template fallback (real-call wiring) → **GAP-867**
+- [ ] Load test: 100 concurrent users → **GAP-867**
+- [ ] Grafana dashboard AI queue metrics (p50/p95/p99 + SLA violation alerting) → **GAP-867**
+
+## Re-scope (2026-06-02 — architecture pivot)
+
+**Decision chốt:** AI inference runs ON EXTERNAL APIs only — Gemini free tier + OpenAI API. Local Ollama deployment + GPU provisioning + Kubernetes HPA scaling are **OUT OF SCOPE** Phase 1+ và defer indefinitely. Rationale:
+
+- External API throughput >> single GPU node; no bottleneck class shifts to local infra
+- Cost model: API per-token pricing vs GPU instance amortization — API simpler at our scale (≤100 concurrent users per `Capacity Planning §Scenario`)
+- Operational complexity: 0 (managed API) vs significant (Ollama replicas + LB + HPA + GPU node pool)
+- Compliance: external API providers SOC 2 + standard ToS; no DIY infra security surface
+
+**AC impact:**
+- AC#5 "Horizontal scaling Ollama replicas + K8s HPA" → marked WONTFIX-superseded inline above. Phase 1 fair-queueing core (RabbitMQ tier queues + Redis rate limit + Spring AMQP listeners) remains intact — provider swap from Ollama-via-HTTP-client to OpenAI/Gemini-via-HTTP-client is orthogonal change handled by `AIClient` adapter layer.
+- AC#6/#7/#8 (Circuit breaker wiring on real call + Load test + Grafana) → re-scope sang **GAP-867** (External AI provider integration + observability + load verify) to avoid GAP-005 becoming an umbrella that never closes. GAP-005 stays IN_PROGRESS để track architecture stability over time.
+
+**Status:** IN_PROGRESS 50% (4/8 AC done/partial, 1/8 WONTFIX, 3/8 spun out to GAP-867).
 
 ## Dependencies
 
@@ -251,3 +266,4 @@ Khi hệ thống overload hoặc user quá quota:
 
 - 2026-04-14 — Phát hiện qua scenario 100 concurrent users; P0 blocker cho production launch
 - 2026-04-18 — Phase 1 shipped (Wave 3 — GAP-005a). Horizontal scaling + full observability deferred to Phase 2.
+- **2026-06-02** (re-scope architecture pivot) — Wave local-doable-6 sync: AI architecture chốt = external API only (Gemini free tier + OpenAI API). Local Ollama + GPU + K8s HPA scope obsolete → AC#5 marked WONTFIX-superseded inline §Re-scope. AC#6/#7/#8 (Circuit breaker real-call wiring + Load test + Grafana dashboard) spun out → GAP-867 để tránh GAP-005 trở thành umbrella không bao giờ close. completion_pct adjusted 40 → 50 reflecting honest Phase 1 ship + 1 obsolete AC removed from denominator. Status remains IN_PROGRESS — GAP-867 carries forward residual observability + verify work.

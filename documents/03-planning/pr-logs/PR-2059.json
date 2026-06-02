@@ -1,0 +1,37 @@
+{
+  "pr": 2059,
+  "title": "feat(wave-local-doable-6-bucket-g): GAP-729+GAP-837 final residual \u2014 hasAccessToStudent helper closes getEnrollmentsByStudent A01 IDOR",
+  "branch": "wave/local-doable-6-bucket-g-authz-residual",
+  "created_at": null,
+  "merged_at": "2026-06-02T04:14:54Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": false,
+    "audits_required": [
+      "api-contract-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-06-02T04:15:03.234217",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 6,
+        "java_files": 2,
+        "test_files": 1,
+        "business_docs": false,
+        "missing_audits": [
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "1/5",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-252414"
+  }
+}
