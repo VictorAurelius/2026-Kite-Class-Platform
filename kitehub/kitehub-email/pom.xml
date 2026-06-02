@@ -67,6 +67,15 @@
             <artifactId>caffeine</artifactId>
         </dependency>
 
+        <!-- GAP-580 cross-restart email dedup — Spring Data Redis StringRedisTemplate
+             provides atomic SETNX semantics via opsForValue().setIfAbsent(key, val, ttl).
+             Shared kite-redis container (single-node) survives kitehub-email restart so
+             idempotency state outlives in-process Caffeine. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
         <!-- Spring AMQP for RabbitMQ (branding.updated event listener) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -127,6 +136,18 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- GAP-580 cross-restart dedup integration test — Testcontainers Redis -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

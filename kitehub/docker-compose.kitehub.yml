@@ -480,10 +480,16 @@ services:
       EMAIL_PROVIDER: ${EMAIL_PROVIDER:-smtp}
       SMTP_HOST: kite-mailhog
       SMTP_PORT: 1025
+      # GAP-580 (Wave local-doable-5) — cross-restart email dedup. EmailIdempotencyGuard
+      # uses SETNX in kite-redis so idempotency state outlives container restart.
+      REDIS_HOST: kite-redis
+      REDIS_PORT: 6379
     ports:
       - "8084:8080"
     depends_on:
       kite-rabbitmq:
+        condition: service_healthy
+      kite-redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]

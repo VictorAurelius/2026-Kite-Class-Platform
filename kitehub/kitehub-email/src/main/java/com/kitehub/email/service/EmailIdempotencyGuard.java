@@ -3,7 +3,10 @@ package com.kitehub.email.service;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -26,22 +29,30 @@ import java.util.TreeMap;
  * <em>producer</em> publishing twice; it does NOT cover consumer redelivery,
  * because the event is already in the queue and the producer dedup never re-runs.</p>
  *
- * <p><strong>Design — why Caffeine, not a DB/Redis store:</strong> {@code kitehub-email}
- * is deliberately stateless (no JPA datasource, no Redis). Adding shared-state infra
- * to it is an architecture decision out of scope for this fix and would duplicate the
- * producer-side {@code email_sent_log} store. This guard uses the already-present
- * Caffeine cache (Strategy: same backend as the branding-lookup cache) with a TTL
- * window keyed by a deterministic idempotency key.</p>
+ * <p><strong>Design (post-Wave local-doable-5):</strong> backed by Redis
+ * {@link StringRedisTemplate} {@code SETNX} ({@code setIfAbsent} with TTL) when the
+ * Spring Data Redis bean is wired — atomic check-and-set across processes AND across
+ * container restarts. Falls back to an in-process Caffeine cache when Redis is not
+ * available (unit tests, environments without a Redis dep) so the guard keeps a
+ * defensive single-process safety net rather than dropping protection silently.
+ * Cross-restart idempotency was the lone unchecked AC carried forward from the
+ * original GAP-580 Wave phase2-beta ship.</p>
  *
- * <p><strong>Coverage + limitation (documented honestly):</strong></p>
+ * <p><strong>Coverage:</strong></p>
  * <ul>
- *   <li>✅ Covers in-flight concurrent redelivery + same-process Spring-listener retry
- *       (the common duplicate cause when a single redelivery storm hits a live process).</li>
- *   <li>⚠️ Does NOT survive process restart — an in-process cache is empty after an
- *       OOM-crash-restart, so a message redelivered AFTER restart can still be re-sent.
- *       Full cross-restart idempotency requires a shared store (Redis / DB) — tracked
- *       as a follow-up (GAP-840) per the gap's PARTIAL exit ramp.</li>
+ *   <li>✅ Concurrent redelivery + same-process Spring-listener retry (Redis SETNX
+ *       is atomic; Caffeine {@code putIfAbsent} is also atomic).</li>
+ *   <li>✅ Cross-restart (Redis path): the same logical {@code EmailEvent} replayed
+ *       AFTER {@code kitehub-email} restart still maps to the same key in
+ *       {@code kite-redis} (the broker survived too) → second send suppressed.</li>
+ *   <li>⚠️ Caffeine fallback path is still in-process only — used as defense in depth
+ *       when Redis is briefly unreachable. Fail-open semantics keep legitimate sends
+ *       from being dropped.</li>
  * </ul>
+ *
+ * <p><strong>Key namespace:</strong> {@code email:idempotency:<sha256>} — prefix
+ * avoids collisions with other Redis tenants (Wave 86 Bucket B branding cache shares
+ * the same single-node container in local dev).</p>
  *
  * @since GAP-580 (Wave phase2-beta — consumer-side email idempotency, defense-in-depth)
  */
@@ -49,24 +60,64 @@ import java.util.TreeMap;
 @Component
 public class EmailIdempotencyGuard {
 
-    private final Cache<String, Boolean> seenKeys;
+    /** Redis key namespace prefix — avoids collisions with sibling Redis users. */
+    static final String KEY_PREFIX = "email:idempotency:";
 
+    private final StringRedisTemplate redisTemplate;
+    private final Cache<String, Boolean> caffeineFallback;
+    private final Duration ttl;
+
+    /**
+     * Spring-injected constructor. Uses an {@link ObjectProvider} so the
+     * {@link StringRedisTemplate} dependency is OPTIONAL — when Redis is not on the
+     * classpath / not configured, the guard falls back to in-process Caffeine. A single
+     * Spring-resolvable constructor avoids the multiple-public-constructor ambiguity
+     * Spring Boot 3.x flags as {@code no default constructor found}.
+     */
+    @Autowired
     public EmailIdempotencyGuard(
             @Value("${kitehub.email.idempotency.ttl-minutes:60}") long ttlMinutes,
-            @Value("${kitehub.email.idempotency.max-size:50000}") long maxSize) {
-        this.seenKeys = Caffeine.newBuilder()
-                .expireAfterWrite(Duration.ofMinutes(ttlMinutes))
-                .maximumSize(maxSize)
+            @Value("${kitehub.email.idempotency.caffeine-max-size:50000}") long caffeineMaxSize,
+            ObjectProvider<StringRedisTemplate> redisTemplateProvider) {
+        this(ttlMinutes, caffeineMaxSize,
+                redisTemplateProvider == null ? null : redisTemplateProvider.getIfAvailable());
+    }
+
+    /**
+     * Direct-injection constructor — used by Testcontainers integration tests that need
+     * to wire a known {@link StringRedisTemplate} (or {@code null} for Caffeine-only).
+     * NOT auto-selected by Spring because the single-arg-{@link ObjectProvider} variant
+     * above is the constructor it resolves at startup.
+     */
+    public EmailIdempotencyGuard(long ttlMinutes, long caffeineMaxSize, StringRedisTemplate redisTemplate) {
+        this.ttl = Duration.ofMinutes(ttlMinutes);
+        this.redisTemplate = redisTemplate;
+        this.caffeineFallback = Caffeine.newBuilder()
+                .expireAfterWrite(this.ttl)
+                .maximumSize(caffeineMaxSize)
                 .build();
-        log.info("EmailIdempotencyGuard initialised: ttl={}min maxSize={}", ttlMinutes, maxSize);
+        log.info("EmailIdempotencyGuard initialised: ttl={}min caffeineFallbackMax={} redis={}",
+                ttlMinutes, caffeineMaxSize, redisTemplate != null ? "ENABLED" : "DISABLED (Caffeine-only)");
+    }
+
+    /**
+     * Unit-test convenience overload — no Redis, in-process Caffeine only. Preserves the
+     * pre-Wave-local-doable-5 public test API.
+     */
+    public EmailIdempotencyGuard(long ttlMinutes, long caffeineMaxSize) {
+        this(ttlMinutes, caffeineMaxSize, (StringRedisTemplate) null);
     }
 
     /**
      * Mark the given idempotency key as seen, returning whether this is the FIRST time.
      *
-     * <p>Atomic check-and-set via Caffeine's {@code asMap().putIfAbsent} — concurrent
-     * redeliveries of the same key see exactly one {@code true} (proceed) and the rest
-     * {@code false} (skip).</p>
+     * <p>Redis path: {@code SETNX(KEY_PREFIX+key, "1", ttl)} — atomic across processes +
+     * survives container restart while the key is in its TTL window. Returns {@code true}
+     * on first set (proceed with send) and {@code false} when the key already exists.</p>
+     *
+     * <p>Caffeine fallback: invoked when Redis is not wired OR throws transiently.
+     * In-process atomic {@code putIfAbsent}; same return semantics. Fail-open is intentional
+     * — better to send a possible duplicate than drop a legitimate email.</p>
      *
      * @param idempotencyKey deterministic key for the send (never {@code null}/blank)
      * @return {@code true} if this key was not seen within the TTL window (proceed with send);
@@ -77,10 +128,36 @@ public class EmailIdempotencyGuard {
             // No key → cannot dedup; fail-open (send) rather than drop a legitimate email.
             return true;
         }
-        Boolean previous = seenKeys.asMap().putIfAbsent(idempotencyKey, Boolean.TRUE);
+
+        if (redisTemplate != null) {
+            try {
+                String namespacedKey = KEY_PREFIX + idempotencyKey;
+                Boolean firstSeenRedis = redisTemplate.opsForValue()
+                        .setIfAbsent(namespacedKey, "1", ttl);
+                // Bean returns null only when running inside an active transaction without
+                // a queued read-back, which is not our case. Treat null defensively as
+                // "could not confirm" → fail-open (proceed with send).
+                if (firstSeenRedis == null) {
+                    log.warn("Redis SETNX returned null for key={} — failing open (proceed)", idempotencyKey);
+                    return true;
+                }
+                if (!firstSeenRedis) {
+                    log.info("Idempotent skip — duplicate email suppressed via Redis (key={})", idempotencyKey);
+                }
+                return firstSeenRedis;
+            } catch (Exception ex) {
+                // Redis unreachable → fall back to in-process Caffeine for defense in depth.
+                // Logging at WARN so an outage shows up but does not drop emails.
+                log.warn("Redis SETNX failed for key={} — falling back to Caffeine: {}",
+                        idempotencyKey, ex.getMessage());
+            }
+        }
+
+        Boolean previous = caffeineFallback.asMap().putIfAbsent(idempotencyKey, Boolean.TRUE);
         boolean firstSeen = (previous == null);
         if (!firstSeen) {
-            log.info("Idempotent skip — duplicate email suppressed (key={})", idempotencyKey);
+            log.info("Idempotent skip — duplicate email suppressed via Caffeine fallback (key={})",
+                    idempotencyKey);
         }
         return firstSeen;
     }
