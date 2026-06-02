@@ -1,6 +1,6 @@
 # GAP-638: Admin v1 api-contract.md documentation gap + typed DTOs
 
-**Status:** 🟡 PARTIAL 30% — Wave 97 Bucket B1 shipped 3-layer admin/ docs foundation (1/6 AC); B2+B3 typed DTOs + controller refactor + legacy @Deprecated tracked **GAP-654** (Wave 98 candidate); AC6 pre-handoff live verify blocked **GAP-612** (AWS suspension)
+**Status:** 🟡 PARTIAL 90% — Wave 97 Bucket B1 shipped 3-layer admin/ docs foundation (AC1); B2+B3 typed DTOs + controller refactor + legacy @Deprecated DONE via **GAP-654** (Wave wave-local-doable-12 Bucket A 2026-06-02 — AC2/3/4/5 DONE); only AC6 pre-handoff live verify remains, blocked **GAP-612** (AWS suspension) — flip DONE khi GAP-612 unblock + live verify PASS
 **Priority:** 🟠 P1
 **Domain:** Backend (API contract + docs sync)
 **Detected:** 2026-05-18 (Wave 92 post-wave audit suite per GAP-619)

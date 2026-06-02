@@ -36,7 +36,12 @@ import static org.mockito.Mockito.when;
  * <p>Pure unit-level test using Mockito stubs — avoids full Spring context overhead per
  * existing {@link AdminControllerPaginationTest} pattern. Integration test với real DB
  * via Testcontainers covered separately by {@link AdminControllerTest} (legacy paths).</p>
+ *
+ * <p>Class-level {@code @SuppressWarnings("deprecation")} because the page-size-alignment defense
+ * test reads {@code AdminController.DEFAULT_PAGE_SIZE}/{@code MAX_PAGE_SIZE} constants from the now
+ * {@code @Deprecated(forRemoval)} legacy controller (GAP-654) on purpose.</p>
  */
+@SuppressWarnings("deprecation")
 class AdminInstancesControllerTest {
 
     private InstanceRepository instanceRepository;

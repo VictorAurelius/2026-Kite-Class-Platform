@@ -41,7 +41,15 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Admin portal REST APIs.
+ * Admin portal REST APIs (LEGACY {@code /api/platform/admin} prefix).
+ *
+ * <p><strong>Deprecated (GAP-654):</strong> the canonical admin API surface is the
+ * {@code /api/v1/admin/*} prefix served by {@link AdminInstancesController},
+ * {@link AdminPaymentsController}, {@link AdminRevenueController} +
+ * {@link AdminAuditLogController}. This legacy controller is retained during Phase 1 BETA for
+ * backward compatibility; consumers MUST migrate to the v1 paths before the sunset date
+ * (2026-09-30). Responses carry RFC 8594 {@code Sunset} + {@code Link: rel="successor-version"}
+ * headers via {@link com.kitehub.admin.config.SunsetHeaderInterceptor}.</p>
  *
  * <p>Class-level {@code @PreAuthorize("hasRole('PLATFORM_ADMIN')")} enforces
  * platform-admin role on every endpoint — closes GAP-637 RBAC backfill (local-verify
@@ -51,7 +59,10 @@ import java.util.UUID;
  * {@code .claude/rules/pre-launch-owasp-rest-hardening-checklist.md} §2.1).</p>
  *
  * @since 1.0
+ * @deprecated since v1 (GAP-654) — migrate to the {@code /api/v1/admin/*} controllers;
+ *             this legacy {@code /api/platform/admin} surface targets removal 2026-09-30.
  */
+@Deprecated(since = "v1", forRemoval = true)
 @Slf4j
 @RestController
 @RequestMapping("/api/platform/admin")

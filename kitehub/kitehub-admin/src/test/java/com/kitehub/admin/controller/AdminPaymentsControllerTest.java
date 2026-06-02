@@ -1,5 +1,6 @@
 package com.kitehub.admin.controller;
 
+import com.kitehub.admin.dto.PaymentsSummaryResponse;
 import com.kitehub.subscription.dto.PaymentResponse;
 import com.kitehub.subscription.service.PaymentService;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -56,29 +56,49 @@ class AdminPaymentsControllerTest {
     }
 
     @Test
-    void getPaymentsSummary_returnsHttp200WithSummaryShape() {
+    void getPaymentsSummary_returnsHttp200WithTypedShape() {
         when(paymentService.getPendingPayments()).thenReturn(List.of(
-                PaymentResponse.builder().build(),
-                PaymentResponse.builder().build(),
-                PaymentResponse.builder().build()
+                PaymentResponse.builder().amountVnd(100_000L).currency("VND").build(),
+                PaymentResponse.builder().amountVnd(250_000L).currency("VND").build(),
+                PaymentResponse.builder().amountVnd(50_000L).currency("VND").build()
         ));
 
-        ResponseEntity<Map<String, Object>> response = controller.getPaymentsSummary();
+        ResponseEntity<PaymentsSummaryResponse> response = controller.getPaymentsSummary();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().get("pendingCount")).isEqualTo(3L);
-        assertThat(response.getBody().get("scope")).isEqualTo("pending-only-v1-stub");
-        assertThat(response.getBody()).containsKey("note");
+        PaymentsSummaryResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.pendingCount()).isEqualTo(3L);
+        assertThat(body.totalCount()).isEqualTo(3L);
+        assertThat(body.totalAmountVnd()).isEqualTo(400_000L);
+        assertThat(body.currency()).isEqualTo("VND");
+        assertThat(body.completedCount()).isZero();
     }
 
     @Test
     void getPaymentsSummary_emptyPending_returnsZeroCount() {
         when(paymentService.getPendingPayments()).thenReturn(Collections.emptyList());
 
-        ResponseEntity<Map<String, Object>> response = controller.getPaymentsSummary();
+        ResponseEntity<PaymentsSummaryResponse> response = controller.getPaymentsSummary();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().get("pendingCount")).isEqualTo(0L);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().pendingCount()).isZero();
+        assertThat(response.getBody().totalAmountVnd()).isZero();
+    }
+
+    @Test
+    void getPaymentsSummary_nullAmount_treatedAsZero() {
+        when(paymentService.getPendingPayments()).thenReturn(List.of(
+                PaymentResponse.builder().amountVnd(null).build(),
+                PaymentResponse.builder().amountVnd(70_000L).build()
+        ));
+
+        ResponseEntity<PaymentsSummaryResponse> response = controller.getPaymentsSummary();
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().pendingCount()).isEqualTo(2L);
+        assertThat(response.getBody().totalAmountVnd()).isEqualTo(70_000L);
     }
 }

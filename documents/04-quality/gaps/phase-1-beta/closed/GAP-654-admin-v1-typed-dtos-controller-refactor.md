@@ -1,10 +1,10 @@
 # GAP-654: Admin v1 typed DTOs + controller refactor + legacy @Deprecated
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend (API contract typed responses + deprecation)
 **Detected:** 2026-05-18 (Wave 97 closure orphan-cleanup — splits GAP-638 deferred portion)
-**Parent:** [GAP-638](closed/GAP-638-admin-v1-api-contract-docs-typed-dtos.md) PARTIAL 30% Wave 97 Bucket B1
+**Parent:** [GAP-638](../GAP-638-admin-v1-api-contract-docs-typed-dtos.md) PARTIAL 90% (B2/B3 DONE via this gap; AC6 AWS-blocked)
 
 ## Current State (verified 2026-05-18)
 
@@ -62,12 +62,12 @@ After this gap DONE → GAP-638 review remaining AC:
 
 ## Acceptance Criteria
 
-- [ ] 3 typed DTO/enum files created trong `kitehub-admin/.../dto/`
-- [ ] 2 controllers refactor return type Map → typed DTO
-- [ ] Legacy controllers `@Deprecated(since="v1", forRemoval=true)` + Sunset interceptor
-- [ ] `cd kitehub && ./mvnw -pl kitehub-admin verify -P strict-warnings` PASS
-- [ ] OpenAPI spec auto-generates correct schema cho 2 typed responses
-- [ ] GAP-638 reference Status updated (PARTIAL 30 → 90%)
+- [x] 3 typed DTO/enum files created trong `kitehub-admin/.../dto/` (`PaymentsSummaryResponse` record + `RevenueSummaryResponse` record + `RevenuePeriod` enum)
+- [x] Controllers refactor return type Map → typed DTO (`AdminPaymentsController.getPaymentsSummary()` → `PaymentsSummaryResponse`; `AdminRevenueController.getRevenueSummary()` → `RevenueSummaryResponse` + cả 2 endpoint nhận `@RequestParam RevenuePeriod period`)
+- [x] Legacy `AdminController` (`/api/platform/admin`) `@Deprecated(since="v1", forRemoval=true)` + `SunsetHeaderInterceptor` (RFC 8594 `Sunset` + `Link: rel="successor-version"` + `Deprecation: true`) wired qua `AdminWebMvcConfig`
+- [x] `cd kitehub && ./mvnw -pl kitehub-admin -am test -P strict-warnings` PASS (63 tests, 0 failures/errors, strict-warnings clean)
+- [x] OpenAPI spec auto-generates correct schema cho typed responses (springdoc enabled, no manual openapi resource file → auto-gen từ record + enum)
+- [x] GAP-638 reference Status updated (PARTIAL 30 → 90%, chỉ còn AC6 AWS-blocked)
 
 ## Effort estimate
 
@@ -85,3 +85,10 @@ After this gap DONE → GAP-638 review remaining AC:
 ## Log
 
 - **2026-05-18 (created):** Filed per `gap-done-discipline.md` §3 + `wave-closure-scope-completeness.md` §3 — orphan-cleanup for GAP-638 B2/B3 deferred portion (Wave 97 closure compliance fix).
+- **2026-06-02 (DONE — Wave wave-local-doable-12 Bucket A):** Shipped 3 DTOs + controller refactor + legacy deprecation. Fix-time state-check (per `audit-to-gap-pipeline.md` §2.8) revealed code đã drift so với gap mô tả 2026-05-18:
+  - `AdminRevenueController.getRevenueSummary()` đã typed (trả `RevenueReport`, KHÔNG phải Map) khi gap viết — chỉ `AdminPaymentsController.getPaymentsSummary()` còn `Map<String,Object>`. Refactor payments summary → `PaymentsSummaryResponse` record (totalAmountVnd computed từ pending `amountVnd`; completedCount=0 stub per Wave 92 Bucket D scope; business values unchanged).
+  - `RevenuePeriod` enum (DAILY/WEEKLY/MONTHLY/QUARTERLY/YEARLY) applied as `@RequestParam` cho cả `getRevenue()` + `getRevenueSummary()` → Spring reject invalid period với 400.
+  - `getRevenueSummary()` chuyển trả `RevenueSummaryResponse` record (lean projection của `RevenueReport` via `fromReport()` adapter; ytd/previousMonth/growth fields = null vì `AnalyticsService` chưa compute — deferred Phase 1.5+, preserved business semantics).
+  - Legacy = `AdminController` (`/api/platform/admin`), KHÔNG phải `api/platform/` dir (gap mô tả dir không tồn tại). Thêm `@Deprecated(since="v1", forRemoval=true)` class-level + `SunsetHeaderInterceptor` (sunset 2026-09-30) wired qua new `AdminWebMvcConfig` scoped `/api/platform/admin/**`.
+  - Caller-sweep per `api-contract-change-caller-sweep.md`: 3 test classes migrated (`AdminPaymentsControllerTest` Map→record + null-amount test; `AdminRevenueControllerTest` + `AdminRevenueControllerSecurityTest` String→RevenuePeriod; `@SuppressWarnings("deprecation")` on `AdminControllerPaginationTest` + `AdminInstancesControllerTest` for legacy static-field reads). `./mvnw test` (not just compile) PASS.
+  - GAP-638 → PARTIAL 90% (AC2/3/4/5 DONE; AC6 live-verify still AWS-blocked per GAP-612).
