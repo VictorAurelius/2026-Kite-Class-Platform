@@ -26,7 +26,6 @@ export default function AdminInviteStaffPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState<'TEACHER' | 'STAFF' | 'MANAGER'>('STAFF');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,13 +44,14 @@ export default function AdminInviteStaffPage() {
 
     setSubmitting(true);
     try {
-      // BE CreateStaffInvitationRequest schema (Wave A Bucket B re-host —
-      // kitehub-subscription /staff/dto): { email, fullName } — both required.
-      // Role NOT accepted in body (BE hardcodes STAFF); role dropdown UI-only
-      // for future when BE supports role-bound invitations (Bug #20 follow-up).
-      // FIX Bug #26 (Wave A Bucket B walk 2026-05-28): payload was {email, role}
-      // — missing fullName → 400 INVALID_FULL_NAME. Schema sync to BE Wave 79
-      // kitehub-subscription canonical (post re-host).
+      // BE CreateStaffInvitationRequest schema (kitehub-subscription
+      // /staff/dto): { email, fullName } — both required, NO role field.
+      // Phase 1 BETA = 2-role MVP (OWNER + STAFF per
+      // documents/01-business/roles/api-contract.md §19-20): every staff
+      // invitation creates a STAFF user (hardcoded BE-side at accept-time).
+      // TEACHER/MANAGER roles are Phase 2+ scope — GAP-784 confirmed BE does
+      // NOT accept a role param, so we do NOT send one (avoids a misleading
+      // role picker that promises roles the backend can't honor).
       await apiClient.post(endpoints.staffInvitations.create, {
         email: email.trim().toLowerCase(),
         fullName: fullName.trim(),
@@ -143,23 +143,17 @@ export default function AdminInviteStaffPage() {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="role" className="block text-sm font-medium">
-            Vai trò <span className="text-destructive">*</span>
-          </label>
-          <select
-            id="role"
-            value={role}
-            onChange={(e) => setRole(e.target.value as 'TEACHER' | 'STAFF' | 'MANAGER')}
-            required
-            className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
-            data-testid="invite-role-select"
+          <span className="block text-sm font-medium">Vai trò</span>
+          <div
+            className="w-full rounded-lg border bg-muted px-3 py-2 text-sm text-muted-foreground"
+            data-testid="invite-role-display"
           >
-            <option value="TEACHER">Giáo viên (TEACHER)</option>
-            <option value="STAFF">Nhân viên trung tâm (STAFF)</option>
-            <option value="MANAGER">Quản lý (MANAGER)</option>
-          </select>
+            Nhân viên trung tâm (STAFF)
+          </div>
           <p className="text-xs text-muted-foreground">
-            Chọn vai trò phù hợp. Vai trò Chủ trung tâm (OWNER) không mời được — mỗi trung tâm chỉ có 1 chủ.
+            Phiên bản hiện tại chỉ hỗ trợ mời <strong>Nhân viên (STAFF)</strong>. Các vai trò
+            Giáo viên và Quản lý sẽ có ở bản nâng cấp tiếp theo. Vai trò Chủ trung tâm (OWNER)
+            không mời được — mỗi trung tâm chỉ có 1 chủ.
           </p>
         </div>
 
