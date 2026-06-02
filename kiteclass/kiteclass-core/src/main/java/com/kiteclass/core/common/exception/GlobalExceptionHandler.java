@@ -1,6 +1,7 @@
 package com.kiteclass.core.common.exception;
 
 import com.kiteclass.core.common.dto.ErrorResponse;
+import com.kiteclass.core.module.instance.approval.ConcurrentRebrandException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -179,6 +180,33 @@ public class GlobalExceptionHandler {
         ErrorResponse response = ErrorResponse.of(
                 "OPTIMISTIC_LOCK_CONFLICT",
                 "The record was modified by another writer; refresh and retry.",
+                path);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    /**
+     * Concurrent rebrand conflict (GAP-070) — tra HTTP 409 thay vi 500/generic.
+     *
+     * <p>Sister exception class cua GAP-777 cross-flow sweep: javadoc cua
+     * {@link ConcurrentRebrandException} noi ro "Controllers should translate to
+     * HTTP 409" nhung khong co dedicated handler -> roi vao catch-all
+     * handleUnexpectedException (500). FE nhan duoc structured 409 voi error code
+     * REBRAND_CONFLICT thay vi "Loi khong xac dinh".
+     */
+    @ExceptionHandler(ConcurrentRebrandException.class)
+    public ResponseEntity<ErrorResponse> handleConcurrentRebrand(
+            ConcurrentRebrandException ex,
+            HttpServletRequest request) {
+
+        log.warn("Concurrent rebrand conflict at {}: {}",
+                request.getRequestURI(), ex.getMessage());
+
+        String path = request.getRequestURI();
+        ErrorResponse response = ErrorResponse.of(
+                "REBRAND_CONFLICT",
+                ex.getMessage() != null ? ex.getMessage()
+                        : "A rebrand operation is already in progress; retry shortly.",
                 path);
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);

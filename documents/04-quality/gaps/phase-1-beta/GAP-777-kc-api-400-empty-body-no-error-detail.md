@@ -94,7 +94,21 @@ done
 | `ValidationException` | EXEMPT | Dedicated handler → 400 structured |
 | `PermissionDeniedException` | EXEMPT | `extends BusinessException` với `HttpStatus.FORBIDDEN` → handled transitively (403 structured) |
 
-**Decision:** FIXED 1 (TenantNotSetException), EXEMPT 5. Sweep complete — TenantNotSetException là exception duy nhất trong bug class.
+**Decision:** FIXED 1 (TenantNotSetException), EXEMPT 5. Sweep complete trong `common/exception/` — TenantNotSetException là exception duy nhất.
+
+### Extended sweep — RuntimeException sister classes ngoài common/exception/ (Wave local-doable-5 2026-06-02)
+
+Sweep mở rộng tìm sister classes potentially affected bởi cùng bug class signature trong các module khác:
+
+| Exception | Verdict | Reason |
+|---|---|---|
+| `ConcurrentRebrandException` (`module/instance/approval/`) | **FIX** | extends RuntimeException, javadoc "Controllers should translate to HTTP 409" — nhưng KHÔNG có dedicated handler → rơi catch-all 500/generic. Fixed Wave local-doable-5 → 409 `REBRAND_CONFLICT` structured |
+| `AIException` (`module/ai/client/`) | EXEMPT | Resilience4j Circuit Breaker + fallback ở infra layer; KHÔNG propagate to controllers |
+| `MisIntegrationException` (`integration/mis/`) | EXEMPT | Javadoc: "Caller is expected to translate this into ApiResponse error code"; adapter layer transforms TRƯỚC khi reach FE |
+| `StepException` (`module/ai/workflow/`) | EXEMPT | Javadoc: "PlanExecutor catches and invokes Step's fallback"; internal Saga workflow, không controller-bound |
+| `DispatchException` (`common/outbox/`) | EXEMPT | Internal outbox dispatcher; checked exception (`extends Exception`); không controller-facing |
+
+**Decision (extended sweep):** FIXED 1 ConcurrentRebrandException, EXEMPT 4. Cross-flow sweep verdict consolidated: 2 FIX (TenantNotSet + ConcurrentRebrand) + 9 EXEMPT total.
 
 ## Related
 
@@ -104,5 +118,7 @@ done
 - Wave 106 GAP-796 (#1946) + GAP-611 (#1827) — prior structured-error wiring
 
 ## Log
+
+- **2026-06-02** (PARTIAL → 75%): Wave local-doable-5 Bucket D — extended cross-flow sweep tìm RuntimeException sister classes ngoài `common/exception/`. Phát hiện `ConcurrentRebrandException` (`module/instance/approval/`) có javadoc explicit "Controllers should translate to HTTP 409" nhưng KHÔNG có dedicated `@ExceptionHandler` → rơi catch-all 500/generic. Fix: thêm `@ExceptionHandler(ConcurrentRebrandException.class)` → 409 + structured JSON `REBRAND_CONFLICT`. TDD: 2 test mới, `GlobalExceptionHandlerTest` 13/13 PASS. Extended sweep verdict: 1 thêm FIX + 4 EXEMPT (AIException / MisIntegrationException / StepException / DispatchException — internal layers transform or fallback trước khi reach controller). Consolidated sweep total: 2 FIX + 9 EXEMPT. Completion bumped 60% → 75% (BE handler coverage complete). Vẫn PARTIAL — same residual ACs: FE rendering + live owner.test walk + (optional) RFC 7807 alignment.
 
 - **2026-06-02** (PARTIAL): Fix-time state-check per `audit-to-gap-pipeline.md` §2.8 — gap diagnostic "handler chưa wire RFC 7807" partly stale (GAP-796 + GAP-611 đã wire phần lớn structured-error). Root cause thực = `TenantNotSetException` rơi catch-all 500/generic. Fix: thêm `@ExceptionHandler(TenantNotSetException.class)` → 400 + structured JSON `TENANT_NOT_SET` (i18n message bundle đã có key). TDD: 2 test mới, `GlobalExceptionHandlerTest` 11/11 PASS. Cross-flow sweep: 1 FIX + 5 EXEMPT (PermissionDeniedException covered transitively). PARTIAL vì: (a) live owner.test walk trên running stack chưa chạy (gap age fix-time), (b) FE rendering AC = FE-side scope, (c) gateway/nginx-layer "400 empty body" path chưa xác minh live (gateway decommissioned, symptom có thể từ nginx). Code PR — no self-merge.

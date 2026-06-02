@@ -29,10 +29,15 @@
 
 set -e
 
-# GAP-694 Phase 0B preflight: verify Docker daemon reachable before any compose op.
-bash "$(dirname "$0")/check-docker.sh" || { echo "[up.sh] Docker preflight failed. See output above." >&2; exit 1; }
+# Capture script dir as absolute path BEFORE cd — `$(dirname "$0")` becomes wrong
+# after we change working directory (was resolving to `kitehub/kitehub/scripts/...`
+# on `--rebuild` path; surfaced 2026-06-02 Wave local-doable-5).
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-cd "$(dirname "$0")/.."
+# GAP-694 Phase 0B preflight: verify Docker daemon reachable before any compose op.
+bash "$SCRIPT_DIR/check-docker.sh" || { echo "[up.sh] Docker preflight failed. See output above." >&2; exit 1; }
+
+cd "$SCRIPT_DIR/.."
 
 PROFILE=""
 SERVICES=()
@@ -93,7 +98,7 @@ fi
 # GAP-425 Option A: rebuild all local images before up.
 if [ "$DO_REBUILD" = "1" ]; then
     echo "==> Rebuilding all images via scripts/build-all.sh (GAP-425 --rebuild)..."
-    bash "$(dirname "$0")/build-all.sh"
+    bash "$SCRIPT_DIR/build-all.sh"
 fi
 
 CMD="docker-compose -f docker-compose.kitehub.yml --profile $PROFILE"

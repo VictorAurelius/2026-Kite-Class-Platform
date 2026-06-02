@@ -5,7 +5,6 @@ import com.kiteclass.core.module.marketing.dto.response.LandingPageResponse;
 import com.kiteclass.core.module.marketing.entity.LandingPage;
 import com.kiteclass.core.module.marketing.mapper.LandingPageMapper;
 import com.kiteclass.core.module.marketing.repository.LandingPageRepository;
-import com.kiteclass.core.module.marketing.service.LandingPageContentSanitizer;
 import com.kiteclass.core.module.marketing.service.impl.LandingPageServiceImpl;
 import com.kiteclass.core.module.settings.repository.BrandingRepository;
 import com.kiteclass.core.testutil.LandingPageTestDataBuilder;
