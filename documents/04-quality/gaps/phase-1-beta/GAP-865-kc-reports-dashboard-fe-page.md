@@ -4,7 +4,7 @@ audience: dev
 
 # GAP-865 — KC reports dashboard FE page (revenue + attendance)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (80% — FE code shipped; live RST walk deferred, stack down)
 **Priority:** 🟠 P1
 **Domain:** Frontend
 **Found:** 2026-06-02 (GAP-775 BE wave — FE deferral follow-up)
@@ -28,11 +28,21 @@ Catalog hiện tại: chỉ `(dashboard)/attendance/reports` (nested attendance-
 
 ## Acceptance Criteria
 
-- [ ] `(dashboard)/reports/page.tsx` render 2 KPI card + 2 chart 12 tháng
-- [ ] VND format `1.500.000đ` + phần trăm dấu phẩy VN + nhãn tiếng Việt
-- [ ] Empty-state graceful (series toàn 0 → chart hiển thị "Chưa có dữ liệu")
-- [ ] FE role guard: menu/route Owner-only
-- [ ] **Live RST walk end-to-end** per `feature-ship-runtime-walk-mandate.md` trên full stack: Owner login → mở /reports → 2 endpoint trả 200 + render đúng + non-admin bị chặn (deferred từ GAP-775 do isolated worktree không có stack)
+- [x] `(dashboard)/reports/page.tsx` render 2 KPI card + 2 chart 12 tháng (code shipped + reports-page.test.tsx)
+- [x] VND format `1.500.000đ` + phần trăm dấu phẩy VN + nhãn tiếng Việt (code-level)
+- [x] Empty-state graceful (series toàn 0 → chart hiển thị "Chưa có dữ liệu") (code-level)
+- [x] FE role guard: menu/route Owner-only (code-level)
+- [ ] **Live RST walk end-to-end** per `feature-ship-runtime-walk-mandate.md` trên full stack: Owner login → mở /reports → 2 endpoint trả 200 + render đúng + non-admin bị chặn (deferred — stack down per GAP-612 AWS / local stack not up)
+
+## Current State (verified 2026-06-02)
+
+FE code shipped this PR (branch `feature/GAP-865-kc-reports-fe-page`):
+- `(dashboard)/reports/page.tsx` — 2 KPI cards + 12-month charts consuming GET /api/v1/reports/{revenue,attendance}.
+- `types/report.ts` + `hooks/use-reports.ts` + `lib/api/reports.ts` + `components/reports/monthly-bar-chart.tsx`.
+- Test: `(dashboard)/reports/__tests__/reports-page.test.tsx`.
+- Verify: `pnpm --filter kiteclass-frontend lint` exit 0 + `next build` exit 0 + vitest 768 passed / 0 failed (3 clean runs; 1 flaky failure on first run cleared on re-run).
+
+Live RST walk (AC #5) deferred — full stack down (`FEATURE_SHIP_WALK_DEFER: GAP-865 — stack down, walk on full stack restore`).
 
 ## Related
 
