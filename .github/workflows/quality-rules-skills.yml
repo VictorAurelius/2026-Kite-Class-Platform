@@ -26,6 +26,7 @@ on:
       - 'scripts/check-context-budget.sh'
       - 'scripts/check-adrs-index-csv.sh'
       - 'scripts/check-rules-index-csv.sh'
+      - 'scripts/check-rules-index-sync.sh'
       - 'scripts/render-env-vars.sh'
       - 'scripts/check-unresolved-env-vars.sh'
       - 'scripts/audit-env-coverage.sh'
@@ -170,6 +171,16 @@ jobs:
           # validation (Last-Reviewed ≤ today, etc.) handled by separate
           # `rule-frontmatter` job above.
           bash scripts/check-rules-index-csv.sh
+
+      - name: rules-index sync drift detector (WARN mode)
+        run: |
+          # Bi-directional drift detector paired with check-rules-index-csv.sh.
+          # WARN mode initially per Wave 11 Bucket E spec — reports orphan rule
+          # files + orphan CSV rows on stderr but exits 0. Flip to HARD STOP
+          # (DRIFT_MODE=hard) once drift baseline is clean and reviewer-checklist
+          # references this detector consistently (Wave 12+).
+          # See `.claude/rules/meta-csv-index-pattern.md` §3 + `incident-to-rule-pipeline.md` §3.1.
+          bash scripts/check-rules-index-sync.sh
 
 
   rule-staleness:
