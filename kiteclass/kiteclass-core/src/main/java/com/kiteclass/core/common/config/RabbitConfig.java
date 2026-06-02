@@ -4,11 +4,14 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * RabbitMQ configuration for message queue integration.
@@ -43,6 +46,7 @@ import org.springframework.context.annotation.Configuration;
  * @author KiteClass Team
  * @since 2.2.0
  */
+@Slf4j
 @Configuration
 public class RabbitConfig {
 
@@ -122,4 +126,41 @@ public class RabbitConfig {
 
     // Other exchanges, queues, and bindings are defined per-module as event-driven
     // features are implemented (e.g., branding topic exchange in BrandingEventsConfig).
+
+    /**
+     * Eagerly declare RabbitMQ queues on application startup (GAP-825).
+     *
+     * <p>Spring AMQP's auto-configured {@link RabbitAdmin} normally declares queue
+     * beans via a {@code ConnectionListener} on first broker connection. With ONLY
+     * Queue beans (no Exchange/Binding to anchor the topology), some startup
+     * scenarios race: {@code @RabbitListener} containers begin {@code queueDeclarePassive}
+     * BEFORE RabbitAdmin completes its eager declaration, and fresh brokers return
+     * {@code NOT_FOUND} → consumer abort → Spring context refresh fails → kc-core
+     * unhealthy on cold rebuild.</p>
+     *
+     * <p>Surfaced 2026-06-02 (Wave local-doable-5 Bucket A): fresh WSL cold rebuild
+     * → kiteclass-core failed startup with
+     * {@code Failed to declare queue [class.rescheduled.queue]} (404 NOT_FOUND). Manual
+     * workaround: {@code rabbitmqadmin declare queue name=class.rescheduled.queue
+     * durable=true} + restart container. This {@link ApplicationRunner} eliminates
+     * the workaround by declaring eagerly via the auto-configured admin.</p>
+     *
+     * @param rabbitAdmin Spring Boot auto-configured admin
+     * @param classRescheduledQueue queue bean for class-reschedule events
+     * @param classRescheduledEmailQueue queue bean for email-dispatch sister path
+     * @return runner that declares both queues at application-ready time
+     */
+    @Bean
+    public ApplicationRunner declareRabbitQueuesEagerly(
+            RabbitAdmin rabbitAdmin,
+            Queue classRescheduledQueue,
+            Queue classRescheduledEmailQueue) {
+        return args -> {
+            rabbitAdmin.declareQueue(classRescheduledQueue);
+            rabbitAdmin.declareQueue(classRescheduledEmailQueue);
+            log.info("Declared RabbitMQ queues eagerly: {}, {}",
+                    classRescheduledQueue.getName(),
+                    classRescheduledEmailQueue.getName());
+        };
+    }
 }
