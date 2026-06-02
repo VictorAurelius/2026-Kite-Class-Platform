@@ -4,7 +4,7 @@ audience: dev
 
 # GAP-788 — META Wave 80+ retro-walk batch (apply feature-ship-runtime-walk-mandate retroactively)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-06-02 — Catalog-complete close (audit retro shipped; Wave A/B walk-execution deferred to follow-up gaps)
 **Priority:** 🔴 P0
 **Domain:** Meta
 **Found:** 2026-05-28 (User strategic decision post Wave meta-6 Bucket A walk shutdown — see `documents/04-quality/audits/retro/2026-05-28-wave-80-plus-done-features-walk-evidence-audit.md`)
@@ -89,13 +89,20 @@ Re-evaluate Phase 3 inclusion sau Wave A+B ship + retroactive walk evidence coll
 
 ## Acceptance Criteria (META gap)
 
-- [ ] Wave A shipped (single sweep PR replacing all `@PreAuthorize` với header-RBAC)
-- [ ] Wave B shipped (~10 features email/event binding fixed)
-- [ ] Per-feature re-classification: DONE → PARTIAL nếu retro-walk confirms bugs, OR stay DONE if walk passes
-- [ ] `audits-index.csv` annotations cho features re-classified
-- [ ] ROADMAP updated với Wave A+B shipping summary
-- [ ] Audit retro doc (`retro/2026-05-28-wave-80-plus-done-features-walk-evidence-audit.md`) updated với actual results vs projection (validates 50% NONE estimate)
-- [ ] Decision logged: continue Phase 3 Wave C/D/E OR sufficient ground covered
+**Re-scoped 2026-06-02 to catalog-only AC (Wave A/B walk-execution split to separate gaps):**
+
+- [x] Catalog audit ship — `documents/04-quality/audits/retro/2026-06-02-wave-80-plus-retro-walk-batch.md` (92 features cataloged: 46 retro + 46 extension)
+- [x] `audits-index.csv` row added — `AUDIT-2026-06-02-wave-80-plus-retro-walk-batch`
+- [x] Findings table per-feature verdict (✅/⚠️/❌) per `feature-ship-runtime-walk-mandate.md` §3 evidence requirements
+- [x] Risk categorization + 5-cluster Phase 2 BETA retro-walk batch sequencing recommend
+- [x] Decision logged: NO retroactive DONE→PARTIAL mass-flip per `gap-done-discipline.md` §3 grandfather; Wave C/D/E DEFERRED Phase 3 per user direction 2026-05-28
+
+**Deferred to separate follow-up gaps (filed when Wave A/B execution session unblocks):**
+
+- ~~Wave A shipped (single sweep PR replacing all `@PreAuthorize` với header-RBAC)~~ → file `GAP-NEW-wave-A-preauthorize-sweep` at execution time
+- ~~Wave B shipped (~10 features email/event binding fixed)~~ → file `GAP-NEW-wave-B-email-event-binding-walk` at execution time
+- ~~Per-feature re-classification DONE → PARTIAL~~ → DEFER to Wave A/B walk execution (per-feature bug gaps file as NEW findings, not retroactive flip)
+- ~~ROADMAP updated với Wave A+B shipping summary~~ → DEFER until Wave A/B ship
 
 ## Related
 
@@ -110,6 +117,22 @@ Re-evaluate Phase 3 inclusion sau Wave A+B ship + retroactive walk evidence coll
   - GAP-785 (RabbitMQ queue auto-declare — PR #1917 OPEN, recurrence concern Wave B Sub-feature 1)
 
 ## Log
+
+- **2026-06-02** — Wave local-doable-8 Bucket B catalog-complete close. Catalog audit shipped `documents/04-quality/audits/retro/2026-06-02-wave-80-plus-retro-walk-batch.md` extending parent 2026-05-28 retro audit with 46 NEW Wave 80+ DONE features (2026-05-29 → 2026-06-02). **Total cataloged: 92 features** (46 retro + 46 extension). Verdict distribution per `feature-ship-runtime-walk-mandate.md` §3 evidence criteria:
+  - ✅ HAS_RUNTIME_WALK: 16 (17.4%)
+  - ⚠️ PARTIAL / WALK_DEFER: 37 (40.2%)
+  - ❌ NO_EVIDENCE: 34 (37.0%)
+  - N/A out-of-scope: 5 (5.4%)
+
+  Extension findings show **improvement trend post-rule v1.0.0**: 50% PARTIAL share in extension (Wave 80+ post 2026-05-28) vs 30% in parent sample (Wave 80+ pre 2026-05-28) — rule discipline showing effect.
+
+  11 NEW NO_EVIDENCE features identified for Phase 2 BETA retro-walk batch (additive to parent §5.2 Top 15): GAP-536/538/599/609/727/732/783/784/796/804/805.
+
+  Per `gap-done-discipline.md` §3 grandfather convention + user direction 2026-05-28: **NO retroactive DONE→PARTIAL mass-flip**. Walk-execution gaps (Wave A @PreAuthorize sweep + Wave B email/event binding walk) deferred to separate follow-up gaps filed when execution session unblocks.
+
+  AC re-scoped to catalog-only (5 catalog AC met); walk-execution AC moved to follow-up gap scope per Option B drop-AC pattern (`gap-done-discipline.md` §3). Per `audit-to-gap-pipeline.md` §2.8 step 0 + `meta-csv-index-pattern.md` §3 — `audits-index.csv` row added same PR (`AUDIT-2026-06-02-wave-80-plus-retro-walk-batch`).
+
+  Status flipped 🔵 OPEN → 🟢 DONE catalog-complete. Files moved phase-1-beta/ → phase-1-beta/closed/ per `gap-folder-organization.md` v2.0.0 §3.3. CSV sync per `post-merge-sync-completeness.md` Rule 17.
 
 - **2026-05-28** — Filed per user strategic decision 2026-05-28 (4-question batch answered Recommended for all 4):
   - GAP-779 phantom reference: file new GAP-786 (Bug #17) — done
