@@ -4,7 +4,7 @@ audience: dev
 
 # GAP-867 — External AI provider integration + observability + load verify (spun out from GAP-005 Phase 2)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (design phase DONE Wave local-doable-8 Bucket D 2026-06-02; implementation + load test execution → follow-up wave)
 **Priority:** 🟠 P1 (production scale verify)
 **Domain:** AI / Backend / DevOps
 **Created:** 2026-06-02 (Wave local-doable-6 sync — re-scope follow-up của GAP-005)
@@ -64,4 +64,19 @@ GAP-005 Phase 2 originally bundled 4 items: (a) Ollama horizontal scaling, (b) C
 
 ## Log
 
+- **2026-06-02** (PARTIAL — design phase DONE Wave local-doable-8 Bucket D): Shipped design-phase artifacts paired same PR:
+  - **`documents/02-architecture/adr/ADR-038-ai-external-provider-strategy.md`** (PROPOSED) — provider selection (Gemini Free Tier primary + OpenAI fallback + Bedrock deferred Phase 2) + `AIClient` provider-agnostic interface design (NotificationChannel-style per `design-patterns.md` §3.10) + config model (`ai.provider.primary` / `ai.provider.fallback` / `ai.circuit-breaker.*`) + PDPL 2023 cross-border data flow compliance posture (privacy policy disclosure + opt-in + DPA signing pre-Phase-1.5)
+  - **`documents/02-architecture/ai-external-observability-plan.md`** (PROPOSED) — metrics (call count + latency p50/p95/p99 + token usage + cost USD per-tenant), structured JSON logs (PII-scrubbed via SHA-256 hashes per `logs-format-standard.md`), error classification taxonomy (8 codes), Grafana dashboard panel layout (4 rows × 3-5 panels), Prometheus alert rules outline (4 alerts), k6 load test scenario outline (100 concurrent users, 30% Premium + 40% Pro + 30% Free, SLA pass criteria)
+  - **`documents/01-business/kitehub/ai-branding/api-contract.md`** — updated header note documenting provider-agnostic `AIClient` abstraction (cite ADR-038 + observability plan)
+  - Design rationale per Wave 6 rescope commit `2826cd2f`: Ollama self-host WONTFIX-superseded; external API only = $0 recurring Phase 1 BETA (Gemini Free Tier covers 5 beta tenants × 3 regen/day projection) + cost-controlled fallback (OpenAI pay-per-use ~$5-20/mo) + no GPU infrastructure cost + faster time-to-market (1 wave AIClient adapter vs 3-4 waves Ollama self-host)
+  - **Deferred to follow-up implementation wave** (file separate gap GAP-NNN-ai-external-provider-impl):
+    - AC #1 `AIClient` adapter interface + `GeminiAIClient` + `OpenAIClient` implementations
+    - AC #2 Circuit Breaker real-call wiring (Resilience4j integration với scaffold từ GAP-005a Phase 1)
+    - AC #3 `application.yml` provider config switch + Spring profile tests
+    - AC #4 Load test script + execution + SLA verify (k6 100 concurrent users)
+    - AC #5 Performance audit report ship → `documents/04-quality/audits/performance/`
+    - AC #6 Grafana dashboard JSON authoring + local Prometheus render verify
+    - AC #7 SLA violation alert rules + AlertManager routing (depends GAP-144 AlertManager wiring)
+  - **No scaffold code this PR** per task spec scope (design phase only)
+  - **Completion:** 40% (design phase = ~40% of total scope; implementation + observability wiring + load test execution = remaining 60%)
 - **2026-06-02** (OPEN): Filed during Wave local-doable-6 sync to re-scope GAP-005 post architecture pivot to external AI APIs only. Inherits 3 residual AC items từ GAP-005 Phase 2 (Circuit breaker real-call wiring + Load test + Grafana). Phase-1-beta priority — needed before beta tenant invites scale > pilot 5 to validate SLA tiers actually achievable với external API latency/rate-limits.

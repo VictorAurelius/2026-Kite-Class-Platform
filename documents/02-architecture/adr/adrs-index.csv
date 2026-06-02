@@ -40,3 +40,4 @@ ADR-034,ACCEPTED,2026-05-24,Cookie Consent Vendor — Self-build Banner + iubend
 ADR-035,ACCEPTED,2026-05-24,Pricing Model Taxonomy — PER_HOUR primary + MONTHLY + COURSE_PACKAGE + FREE,ADR-035-pricing-model-taxonomy.md
 ADR-036,ACCEPTED,2026-05-26,Multi-branch defer Phase 2 — Phase 1 BETA filter invite P2 1-branch only,ADR-036-multi-branch-defer-phase-2.md
 037,ACCEPTED,2026-06-01,AI Branding Generation Stack — Free-Tier LLM (text/HTML) + GPT 5.5 banner image-gen deferred,ADR-037-ai-branding-generation-stack.md
+ADR-038,PROPOSED,2026-06-02,AI External Provider Strategy — Gemini Free Tier primary + OpenAI fallback + AIClient interface,ADR-038-ai-external-provider-strategy.md
