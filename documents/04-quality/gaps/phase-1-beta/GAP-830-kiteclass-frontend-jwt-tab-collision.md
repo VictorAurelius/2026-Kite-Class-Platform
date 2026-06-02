@@ -1,6 +1,6 @@
 # GAP-830: JWT storage key collision 2-tab — kiteclass-frontend (cùng bug class GAP-599)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (85% — sessionStorage facade + 5 sites migrated + unit tests; live 2-tab Playwright deferred, stack down)
 **Priority:** 🟠 P1
 **Domain:** Frontend
 **Detected:** 2026-06-02
@@ -59,11 +59,22 @@ Sweep table phía trên (7 sites). Verdict cross-flow sweep: **DEFER** (same bug
 
 ## Acceptance Criteria
 
-- [ ] 2 tab kiteclass-frontend đăng nhập 2 actor khác nhau → JWT KHÔNG collide
-- [ ] Key name nhất quán (`accessToken`/`refreshToken`) across mọi site
-- [ ] zustand auth-store persist không re-introduce shared-tab token
-- [ ] Logout tab A không ảnh hưởng tab B
-- [ ] Unit + 2-tab simulation + Playwright live test pass
+- [x] 2 tab kiteclass-frontend đăng nhập 2 actor khác nhau → JWT KHÔNG collide (mechanism: sessionStorage per-tab native isolation — facade + auth-store đều dùng sessionStorage; live browser verify deferred)
+- [x] Key name nhất quán (`accessToken`/`refreshToken`) across mọi site (snake_case `access_token`/`refresh_token` ở student-register reconciled qua facade)
+- [x] zustand auth-store persist không re-introduce shared-tab token (`createJSONStorage(() => sessionStorage)`)
+- [x] Logout tab A không ảnh hưởng tab B (sessionStorage per-tab; `clearTokens()` chỉ clear current tab session + localStorage legacy sweep)
+- [ ] Unit + 2-tab simulation + Playwright live test pass → Unit DONE (`jwt-storage.test.ts`); live 2-tab Playwright deferred (stack down)
+
+## Current State (verified 2026-06-02) — FIX SHIPPED
+
+Branch `feature/GAP-830-kc-jwt-sessionstorage-isolation`:
+- NEW `kiteclass-frontend/src/lib/auth/jwt-storage.ts` — sessionStorage facade (port từ kitehub-frontend GAP-599 pattern + tenantId support + legacy snake_case sweep).
+- Migrated 5 sites: `useAuth.ts` (setTokens/clearTokens), `api-client.ts` (getAccessToken/getRefreshToken/getTenantId/setAccessToken/clearTokens ×5), `student-register-form.tsx` (setTokens + key reconcile snake→camel), `auth-store.ts` (persist → `createJSONStorage(() => sessionStorage)` — closes 2nd collision vector).
+- NEW unit test `src/lib/auth/__tests__/jwt-storage.test.ts` (set/get/clear + remember-me restore + key-name reconcile + JWT claim decode).
+- Sweep post-fix: 0 remaining direct `localStorage.*Item('access'|'refresh')` sites trong src (excl facade legacy-sweep + tests).
+- Verify: `pnpm --filter kiteclass-frontend lint` + `build` + jwt-storage unit test.
+
+Live 2-tab Playwright walk (AC #5) deferred — `FEATURE_SHIP_WALK_DEFER: GAP-830 — stack down, 2-tab browser walk on stack restore`.
 
 ## Related
 

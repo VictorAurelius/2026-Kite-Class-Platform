@@ -13,6 +13,13 @@
 
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { toast } from '@/hooks/use-toast';
+import {
+  getAccessToken,
+  getRefreshToken,
+  getTenantId,
+  setAccessToken,
+  clearTokens,
+} from '@/lib/auth/jwt-storage';
 
 /**
  * Backend ErrorResponse shape (per kiteclass-core GlobalExceptionHandler).
@@ -75,14 +82,14 @@ export const apiClient: AxiosInstance = axios.create({
 // Request interceptor (add auth token + tenant ID)
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Add access token
-    const accessToken = localStorage.getItem('accessToken');
+    // Add access token (sessionStorage-backed per-tab isolation, GAP-830)
+    const accessToken = getAccessToken();
     if (accessToken && config.headers) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
 
     // Add tenant ID
-    const tenantId = localStorage.getItem('tenantId');
+    const tenantId = getTenantId();
     if (tenantId && config.headers) {
       config.headers['X-Tenant-Id'] = tenantId;
     }
@@ -103,7 +110,7 @@ apiClient.interceptors.response.use(
 
       try {
         // Attempt token refresh
-        const refreshToken = localStorage.getItem('refreshToken');
+        const refreshToken = getRefreshToken();
         if (!refreshToken) {
           throw new Error('No refresh token');
         }
@@ -114,7 +121,7 @@ apiClient.interceptors.response.use(
         );
 
         const { accessToken: newAccessToken } = response.data.data;
-        localStorage.setItem('accessToken', newAccessToken);
+        setAccessToken(newAccessToken);
 
         // Retry original request with new token
         if (originalRequest.headers) {
@@ -124,8 +131,7 @@ apiClient.interceptors.response.use(
 
       } catch (refreshError) {
         // Refresh failed - logout user
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        clearTokens();
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
