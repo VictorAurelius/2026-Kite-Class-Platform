@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { setTokens } from '@/lib/auth/jwt-storage';
 import { AlertCircle } from 'lucide-react';
 
 interface RegisterFormData {
@@ -123,11 +124,13 @@ export function StudentRegisterForm() {
         throw new Error(data.message || 'Đăng ký thất bại');
       }
 
-      // Store JWT tokens
+      // Store JWT tokens via sessionStorage facade (per-tab isolation, GAP-830).
+      // Reconciles prior key-name drift: this flow wrote snake_case
+      // `access_token`/`refresh_token` which api-client (camelCase reader) never
+      // picked up. Facade standardizes on `accessToken`/`refreshToken`.
       if (data.data?.accessToken) {
-        localStorage.setItem('access_token', data.data.accessToken);
-        localStorage.setItem('refresh_token', data.data.refreshToken);
-        localStorage.setItem(
+        setTokens(data.data.accessToken, data.data.refreshToken);
+        sessionStorage.setItem(
           'user',
           JSON.stringify({
             id: data.data.userId,

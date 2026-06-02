@@ -6,7 +6,7 @@
  */
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import type { User } from '@/types/auth';
 
 interface AuthState {
@@ -56,6 +56,10 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
+      // GAP-830: sessionStorage for per-tab isolation. Default localStorage was a
+      // second tab-collision vector (two tabs shared `auth-storage` key) alongside
+      // the direct token writes in useAuth/api-client/student-register.
+      storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,

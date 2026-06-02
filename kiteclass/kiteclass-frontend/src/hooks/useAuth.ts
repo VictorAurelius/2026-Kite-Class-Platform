@@ -11,6 +11,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/lib/api/auth';
 import { useAuthStore } from '@/stores/auth-store';
+import { setTokens, clearTokens } from '@/lib/auth/jwt-storage';
 import type { LoginRequest } from '@/types/auth';
 import { UserType } from '@/types/auth';
 import { toast } from '@/hooks/use-toast';
@@ -45,10 +46,8 @@ export function useAuth() {
 
       setAuth(user, data.accessToken, data.refreshToken, tenantId);
 
-      // Store tokens in localStorage for API client interceptor
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      localStorage.setItem('tenantId', tenantId);
+      // Store tokens in sessionStorage (per-tab isolation, GAP-830) for API client interceptor
+      setTokens(data.accessToken, data.refreshToken, tenantId);
 
       toast({
         title: 'Login successful',
@@ -73,9 +72,7 @@ export function useAuth() {
     },
     onSuccess: () => {
       clearAuth();
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('tenantId');
+      clearTokens();
       queryClient.clear();
 
       toast({
