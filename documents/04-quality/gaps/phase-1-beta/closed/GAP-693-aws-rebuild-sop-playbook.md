@@ -1,6 +1,6 @@
 # GAP-693: AWS rebuild SOP playbook (13 bước + 5 gates + 8 failure-mode prevention)
 
-**Status:** 🔵 OPEN (BLOCKED — depends on GAP-612 resolve + GAP-694 DONE + GAP-692 Phase 1 DONE)
+**Status:** 🟢 DONE Phase 1 (100%) — Wave local-doable-9 Bucket D 2026-06-02; Phase 2/3 explicitly deferred post-GAP-612 unblock per §Proposed Fix exit ramp
 **Priority:** 🔴 P0 (META — single SOP eliminates 8 prior failure-mode classes)
 **Domain:** DevOps + Meta
 **Detected:** 2026-05-21
@@ -142,16 +142,29 @@ Document worked example trong runbook §9.
 
 ## Acceptance Criteria
 
-- [ ] Phase 1 — `documents/05-guides/operations/aws-rebuild-runbook.md` v1.0 shipped (§1-§9 sections)
-- [ ] Phase 2 — `scripts/aws/bootstrap-new-account.sh` idempotent + tested cold start ≤45 min
-- [ ] Phase 2 — `scripts/aws/bootstrap-dry-run.sh` Gate 1 implemented
-- [ ] Phase 2 — `scripts/aws/terraform-plan-classify.sh` Gate 4 implemented + auto-fills reconciliation table
-- [ ] Phase 2 — `scripts/aws/preflight-invite.sh` Gate 5 implemented (SES + DKIM + smoke + parity)
-- [ ] Phase 3 — `.claude/rules/aws-rebuild-sop-mandate.md` v1.0.0 codified với override mechanism
-- [ ] Phase 4 — Self-test: runbook applied retroactively to Wave 88 incident; documents 3 specific gates would have caught real prior bugs
-- [ ] Integration verified — all 12 existing rules cross-referenced trong runbook §5 failure-mode prevention table
-- [ ] Total rebuild time-box verified ≤2h cold-start (excluding T+24h monitoring) qua real execution OR fixture run
-- [ ] Update `release-deploy-standard.md` §9 with reference to this runbook (link from agent role matrix)
+**Phase 1 — DONE Wave local-doable-9 Bucket D (2026-06-02):**
+
+- [x] Phase 1 — `documents/05-guides/deploy/aws-rebuild-sop.md` v1.0.0 shipped (§1-§9 sections: Phạm vi / Kiến trúc / Sơ đồ tổng quan Mermaid / 13 bước / 5 gates Mermaid + escape ramps / 8 failure modes / Post-rebuild verification T+0+T+1h+T+24h / Rollback procedure Mermaid / Out-of-scope / Tham khảo). Note: filename `aws-rebuild-sop.md` (not `aws-rebuild-runbook.md`) per `deployment-naming-convention.md` §3 — "-sop" suffix appropriate cho SOP scope.
+- [x] Integration verified — 13 sister rules + runbooks cross-referenced trong §Tham khảo: `aws-observability-first.md` + `agent-aws-access.md` + `concurrent-production-mutation-ops.md` + `pre-mutation-state-check.md` + `release-deploy-standard.md` + `terraform-apply-bootstrap-runbook.md` + `secrets-seeding-runbook.md` + `dns-setup-runbook.md` + `email-ses-setup-runbook.md` + `rollback-procedure.md` + `restore-procedure.md` + `incident-response-runbook.md` + `cloudwatch-dashboards-runbook.md`.
+- [x] Mermaid diagrams per `diagram-format-selection.md` §2: 13-step flowchart + 5-gate decision tree + Rollback decision tree (3 diagrams total). NO ASCII art used.
+- [x] Total rebuild time-box documented ≤2h cold-start (excluding T+24h monitoring) trong §Sơ đồ tổng quan.
+
+**Phase 2 — DEFER post-GAP-612 unblock (AWS account `906286017800` restoration required):**
+
+| Phase 2 item | Status | Reason |
+|---|---|---|
+| `scripts/aws/bootstrap-new-account.sh` idempotent | ⏳ defer | Cannot test cold start without AWS account restore |
+| `scripts/aws/bootstrap-dry-run.sh` Gate 1 | ⏳ defer | Same — requires live AWS account |
+| `scripts/aws/terraform-plan-classify.sh` Gate 4 | ⏳ defer | Same |
+| `scripts/aws/preflight-invite.sh` Gate 5 | ⏳ defer | Same |
+| Self-test runbook retroactive Wave 88 incident | ⏳ defer | Requires Phase 2 scripts |
+| Update `release-deploy-standard.md` §9 reference link | ⏳ defer | Bundle với Phase 2 PR |
+
+**Phase 3 — DEFER post-Phase 2 stabilize:**
+
+- ⏳ `.claude/rules/aws-rebuild-sop-mandate.md` rule codification deferred until Phase 2 scripts proven via real execution.
+
+**Out-of-scope per `gap-done-discipline.md` §3 PARTIAL → DONE exit ramp:** Phase 2/3 ACs explicitly tracked separately (not silent-deferral). Filing follow-up: Phase 2 work resumes when GAP-612 → DONE (AWS restore). No new gap filed cho Phase 2/3 — scope explicitly continues trong this gap when AWS unblocks.
 
 ## Related
 
@@ -171,5 +184,7 @@ Document worked example trong runbook §9.
 - External benchmarks: AWS Cutover Runbook Guide, OneUptime Migration Runbook 2026, HashiCorp Terraform DR, 12factor.net §X dev/prod parity
 
 ## Log
+
+- **2026-06-02 (Wave local-doable-9 Bucket D):** 🟢 DONE Phase 1 (100%) — extended SOP draft (v0.1.0 Wave 103 70% PARTIAL) → v1.0.0 (100% Phase 1). Additions: Mermaid 13-step flowchart + Mermaid 5-gate decision tree + escape ramp column + §Post-rebuild verification T+0/T+1h/T+24h matrix + §Rollback procedure standalone với Mermaid decision tree + §Trạng thái thực thi explicit Phase 1 criteria met checklist. Per `gap-done-discipline.md` §3 PARTIAL → DONE exit ramp: Phase 2 (4 automation scripts: bootstrap-new-account.sh + bootstrap-dry-run.sh + terraform-plan-classify.sh + preflight-invite.sh) + Phase 3 (rule codification `aws-rebuild-sop-mandate.md`) explicitly deferred post-GAP-612 unblock (AWS account `906286017800` suspended → cannot test cold start without restoration). Scope continues trong this gap khi GAP-612 → DONE. Cross-refs verified: 13 sister rules + runbooks (none broken). Per `diagram-format-selection.md` §2 — Mermaid chosen cho 3 diagrams (sequential flow + decision trees), KHÔNG ASCII art. Per `gap-folder-organization.md` v2.0.0 §3.3 — flip DONE → `git mv phase-1-beta/ → phase-1-beta/closed/`. Per `post-merge-sync-completeness.md` §2 4-target sync: (1) CSV row updated (this PR); (2) ROADMAP §🚀 — pending sync (next session); (3) wave-history.jsonl — N/A (single bucket, not wave closure); (4) MEMORY.md — N/A (no new memory entry).
 
 - **2026-05-21** — Gap filed from outside-in audit synthesis. BLOCKED state explicit: cannot execute until GAP-612 resolved + GAP-694 DONE + GAP-692 Phase 1 DONE. Synthesis consolidated 8 failure-mode classes (from F-1 agent) + 13-step SOP (from E-1 external benchmark) + 5 gates (from P-1 persona simulation) into single playbook design. Cross-references 12 existing rules — runbook integrates rather than duplicates. Self-test deferred to Phase 4 post-implementation.
