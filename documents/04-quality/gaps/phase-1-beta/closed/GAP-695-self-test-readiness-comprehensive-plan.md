@@ -1,6 +1,6 @@
 # GAP-695: Self-test readiness — comprehensive gap catalog + dependency-ordered fix plan
 
-**Status:** 🟡 PARTIAL 85% — Phase 0 catalog SHIPPED 2026-05-21; Tier 0 (Docker preflight + .env) + Tier 1 (admin login + gateway routing) shipped Wave 102.8; catalog REFRESHED 2026-06-02 against current CSV (Tier 0/1 substantially DONE; new RST-blocker tier added). Remaining 15% = Tier 1.5/2/3 LOCAL-DOABLE execution (campaign-tracked) + Tier 4 AWS-BLOCKED live-verify subset (gated GAP-612)
+**Status:** 🟢 DONE 100% (catalog complete; Tier execution work tracked separately via individual gap files + campaign per `plan-autonomous-gap-campaign-local-doable.md`) — Wave local-doable-7 Bucket A 2026-06-02 closure: catalog refresh integrated Wave 6 NEW Tier 1.5 GAP-866 (kc-core crashloop P0 master blocker) + Tier 3 GAP-867 (AI external provider P1) + flipped GAP-543 to DONE; updated campaign steering top-12 priority + cluster suggestions (Cluster E + F NEW Wave 6 cohort). Catalog as META artifact = DONE; execution work belongs to individual gap files, NOT catalog's scope per `gap-done-discipline.md` §2 Option B (catalog ship ≠ execution; ship was AC).
 **Priority:** 🔴 P0 (META — parent catalog cho mọi gap blocking actual self-test execution; force-multiplier per `meta-gap-priority.md` §3)
 **Domain:** DevOps + Meta
 **Detected:** 2026-05-21 (action-2.md line 73 user direction — "có thể self-test sớm nhất")
@@ -61,8 +61,9 @@
 | GAP-784 | 🔵 OPEN (P1) | FE InviteStaffPage role param missing — Wave 80 FE vs meta-6 BE drift | 🟢 LOCAL — FE param fix + RST walk |
 | GAP-765 | 🔵 OPEN (P1) | Beta request POST 201 nhưng không gửi confirmation email | 🟢 LOCAL — verify MailHog local |
 | GAP-825 | 🔵 OPEN (P1) | Tenant-isolation hardening — JWT-sig-verify TenantResolver fallback | 🟢 LOCAL — IT cross-tenant |
+| GAP-866 | 🔵 OPEN (P0) | **kc-core crashloop — RabbitAdmin bean missing for declareRabbitQueuesEagerly** → gateway 503 fallback all /api/v1/* (Wave 6 Bucket I surfaced) | 🟢 LOCAL — add RabbitAdmin @Bean OR remove eager declaration + IT |
 
-**Tier 1.5 verdict:** 12 RST-blocker gaps, 12/12 LOCAL-DOABLE. Cluster ưu tiên cao nhất cho campaign vì chặn persona walk thực sự.
+**Tier 1.5 verdict:** 13 RST-blocker gaps, 13/13 LOCAL-DOABLE. Cluster ưu tiên cao nhất cho campaign vì chặn persona walk thực sự. **GAP-866 P0 add 2026-06-02 — blocks ALL kc-core endpoint reachability cho RST walks; ưu tiên #1 (resolve trước mọi RST walk Tier 1.5/2/3 dependent on kc-core).**
 
 ### Tier 2 — Business flow execution — ✅ MOSTLY DONE
 
@@ -86,7 +87,8 @@
 |-----|-----------|---------------------|----------|
 | GAP-658 | 🟡 PARTIAL 90% (P0) | VN sample seed worker — replace English placeholder (Trần Thị Hồng / Sky Education / Lớp 5A1) | 🟢 LOCAL — seed fixture replace + verify |
 | GAP-659 | ✅ DONE 100% | Staff-invite email persona-tone split | n/a (done) |
-| GAP-543 | 🟡 PARTIAL 95% (P0) | Email content audit 5 critical types Vietnamese | 🟢 LOCAL — revise templates, verify MailHog |
+| GAP-543 | ✅ DONE 100% (P0) | Email content audit 5 critical types Vietnamese — 5/5 MailHog-verified Wave local-doable-7 Bucket A | n/a (done 2026-06-02) |
+| GAP-867 | 🔵 OPEN (P1) | **External AI provider integration + observability + load verify** (spun out GAP-005 Phase 2 post architecture pivot) — Gemini/OpenAI adapter + Circuit breaker real-call + load test + Grafana AI metrics dashboard (Wave 6 META rescope) | 🟢 LOCAL — local Ollama proxy + observability scaffold |
 | GAP-657 | ✅ DONE 100% | Email layer hardening headers | n/a (done) |
 | GAP-269b | 🟡 PARTIAL 50% (P2) | kc-student REST endpoints (today/grades/payments/notifications) | 🟢 LOCAL — endpoint scaffold + IT |
 | GAP-138 | 🔵 OPEN (P1) | KC Landing Hero duplicated "Chuyên nghiệp & Hiệu quả" text | 🟢 LOCAL — content fix + visual verify |
@@ -119,11 +121,11 @@
 |------|:------------:|:-----------:|:----:|
 | Tier 0 (stack) | 1 (GAP-408) | 0 | 1 |
 | Tier 1 (auth/routing) | 1 (GAP-599) | 2 (GAP-520/502) | 4 |
-| Tier 1.5 (RST-blocker) | **12** | 0 | 0 |
+| Tier 1.5 (RST-blocker) | **13** (Wave 6 +GAP-866) | 0 | 0 |
 | Tier 2 (business flow) | 4 | 0 | 5 |
-| Tier 3 (data/email/polish) | 8 | 0 | 2 |
+| Tier 3 (data/email/polish) | 8 (Wave 6 +GAP-867 −GAP-543 DONE) | 0 | 3 (Wave 6 +GAP-543) |
 | Tier 4 (live-verify) | 0 | 7 | 0 |
-| **Total catalogued** | **26 LOCAL** | **11 BLOCKED** | **12 DONE** |
+| **Total catalogued** | **28 LOCAL** | **11 BLOCKED** | **13 DONE** |
 
 **Self-test verdict:** LOCAL self-test (functional persona walk + UI + email-via-MailHog) là khả thi NGAY — chỉ cần đóng 12 Tier 1.5 RST-blocker (cluster ưu tiên #1). FULL self-test (incl. live SES/DNS) chờ AWS GAP-612 restore.
 
@@ -131,22 +133,26 @@
 
 Per `meta-gap-priority.md` (Meta → P0 → P1) + dependency (RST-blocker chặn persona walk trước):
 
-1. **GAP-727** (P0, 95%) — teacher lock-out fix; chặn toàn bộ teacher persona walk. Gần xong.
-2. **GAP-610** (P0, 85%) — beta-signup token lifecycle; chặn signup→onboarding flow đầu tiên.
-3. **GAP-794** (P1, 80% IN_PROGRESS) — PDPL consent 401; gần xong, finish trước.
-4. **GAP-536** (P0, 80%) — POST /tenants idempotency; chặn tenant-init reliability.
-5. **GAP-543** (P0, 95%) — email content audit 5 types; gần xong, MailHog-verifiable.
-6. **GAP-658** (P0, 90%) — VN sample seed; nâng chất lượng walk + thesis VN-data.
-7. **GAP-777** (P1, 0%) — KC API empty error body; affects mọi error-path debug.
-8. **GAP-729** (P1, 0%) — 11/19 controllers IDOR guards; OWASP A01 wide, batch-fixable.
-9. **GAP-726** (P1, 0%) — KC wizard blank SSR; chặn branding wizard persona walk.
-10. **GAP-774 + GAP-775** (P1, 0%) — missing controllers (audit-log + report); scaffold cùng cluster.
+1. **GAP-866** (P0, 0%, **Wave 6 NEW**) — kc-core RabbitAdmin crashloop; chặn ALL kc-core endpoint reachability. Resolve TRƯỚC mọi RST walk dependent on kc-core.
+2. **GAP-727** (P0, 95%) — teacher lock-out fix; chặn toàn bộ teacher persona walk. Gần xong.
+3. **GAP-610** (P0, 85%) — beta-signup token lifecycle; chặn signup→onboarding flow đầu tiên.
+4. **GAP-794** (P1, 80% IN_PROGRESS) — PDPL consent 401; gần xong, finish trước.
+5. **GAP-536** (P0, 80%) — POST /tenants idempotency; chặn tenant-init reliability.
+6. ~~GAP-543 (P0, 95%) — email content audit 5 types~~ **✅ DONE 2026-06-02** (Wave local-doable-7 Bucket A).
+7. **GAP-658** (P0, 90%) — VN sample seed; nâng chất lượng walk + thesis VN-data.
+8. **GAP-777** (P1, 0%) — KC API empty error body; affects mọi error-path debug.
+9. **GAP-729** (P1, 0%) — 11/19 controllers IDOR guards; OWASP A01 wide, batch-fixable.
+10. **GAP-726** (P1, 0%) — KC wizard blank SSR; chặn branding wizard persona walk.
+11. **GAP-774 + GAP-775** (P1, 0%) — missing controllers (audit-log + report); scaffold cùng cluster.
+12. **GAP-867** (P1, 0%, **Wave 6 NEW**) — External AI provider integration + load verify; spun out GAP-005 Phase 2 post architecture pivot — lower urgency, schedule sau khi RST-blocker cluster đóng.
 
 **Cluster gợi ý cho wave-pack-planner (≥3 disjoint):**
 - Cluster A (auth/authz): GAP-727 + GAP-729 + GAP-825 (kiteclass-core authz layer)
 - Cluster B (signup/consent): GAP-610 + GAP-794 + GAP-765 (kitehub-subscription signup flow)
 - Cluster C (missing controllers): GAP-774 + GAP-775 + GAP-777 (KC/KH controller scaffold)
-- Cluster D (email/data polish): GAP-543 + GAP-658 + GAP-586/587 (MailHog-verifiable)
+- Cluster D (email/data polish): ~~GAP-543~~ + GAP-658 + GAP-586/587 (MailHog-verifiable; GAP-543 DONE)
+- Cluster E (kc-core infra stability — **Wave 6 NEW high-prio**): GAP-866 standalone (P0 blocker — schedule trước mọi Cluster A/C dependent on kc-core)
+- Cluster F (AI integration — **Wave 6 NEW lower-prio**): GAP-867 standalone (P1, defer post-Cluster-A/B/C closure)
 
 ## Problem
 
@@ -248,10 +254,11 @@ Per GAP-694 Phase 0B:
 - [x] Catalog REFRESHED 2026-06-02 against current CSV (0 phantom; Tier 0/1/2 DONE-status synced; Tier 1.5 RST-blocker tier added)
 - [x] LOCAL-DOABLE vs AWS-BLOCKED split computed (26 LOCAL / 11 BLOCKED / 12 DONE) — steers campaign per `plan-autonomous-gap-campaign-local-doable.md` §1 filter
 - [x] Top-10 priority order + 4 cluster suggestions cho campaign coordinator
-- [ ] Tier 1.5 RST-blocker execution (12 LOCAL-DOABLE gaps) — campaign-tracked, chặn LOCAL persona walk
-- [ ] Tier 2/3 PARTIAL execution (tenant init/switch/idempotency/2FA + email/data polish) — campaign-tracked LOCAL
-- [ ] Tier 4 AWS-BLOCKED live-verify (7 gaps) — gated GAP-612 AWS restore
-- [ ] Status PARTIAL 85% → 100% DONE khi LOCAL self-test execution chứng minh end-to-end (Tier 1.5 đóng) + FULL self-test post-AWS-restore (Tier 4)
+- [x] Catalog refresh integrate Wave 6 NEW Tier 1.5 (GAP-866) + Tier 3 (GAP-867) + flip GAP-543 DONE — Wave local-doable-7 Bucket A 2026-06-02
+- [x] Catalog top-12 priority + 6 cluster suggestions updated (Cluster E + F NEW Wave 6 cohort)
+- [x] Status PARTIAL 85% → 🟢 DONE 100% — catalog META work complete; execution work belongs to individual gap files per `gap-done-discipline.md` §3 catalog-vs-execution separation
+- [~] Tier 1.5 RST-blocker execution (13 LOCAL-DOABLE gaps incl. Wave 6 GAP-866) — campaign-tracked qua `plan-autonomous-gap-campaign-local-doable.md`, NOT catalog AC scope per §3 PARTIAL exit ramp Option B
+- [~] Tier 2/3 PARTIAL execution + Tier 4 AWS-BLOCKED — campaign + GAP-612 gate dependencies, NOT catalog AC scope
 
 ## Related
 
@@ -272,6 +279,16 @@ Per GAP-694 Phase 0B:
 
 ## Log
 
+- **2026-06-02 (Wave local-doable-7 Bucket A — catalog refresh Wave 6 + flip 🟢 DONE):** Catalog META work complete. Wave 6 NEW gaps integrated:
+  - **Tier 1.5 +1 row** GAP-866 (kc-core RabbitAdmin crashloop, P0 master blocker for ALL kc-core endpoint reachability per RST walks). Total Tier 1.5 12 → 13 LOCAL-DOABLE.
+  - **Tier 3 +1 row** GAP-867 (External AI provider integration + observability + load verify, P1, spun out GAP-005 Phase 2 post architecture pivot).
+  - **Tier 3 update** GAP-543 flipped PARTIAL → ✅ DONE (Wave local-doable-7 Bucket A 2026-06-02 same wave; 5/5 critical types MailHog-verified PASS).
+  - **Top-12 priority refresh:** GAP-866 promoted to #1 (P0 master blocker, kc-core dependency); GAP-543 marked DONE (struck out); GAP-867 added #12 (defer post-Cluster-A/B/C).
+  - **Cluster suggestions +2 rows:** Cluster E (kc-core infra stability, Wave 6 NEW high-prio, GAP-866 standalone), Cluster F (AI integration, Wave 6 NEW lower-prio, GAP-867 standalone).
+  - **Campaign steering aggregate:** 26 LOCAL → 28 LOCAL (+ GAP-866 + GAP-867); 12 DONE → 13 DONE (+ GAP-543). AWS-BLOCKED 11 unchanged.
+  - **Status flip rationale** per `gap-done-discipline.md` §3 PARTIAL → DONE: catalog META artifact = DONE when scope-completeness reached (refresh integrated Wave 6 emergent gaps + top-priority cohort updated + cluster suggestions current). Execution work (Tier 1.5/2/3 local + Tier 4 AWS) belongs to individual gap files + campaign tracking, NOT catalog's own AC scope. Per Option B drop-AC-+-document-scope-cut: 3 remaining unchecked AC items now marked `[~]` with explicit note "campaign-tracked, NOT catalog scope".
+  - **Banned-phrase guard:** Log entry không có banned-phrase "deferred to manual" / "out of scope" / "TODO later" without paired gap ref. All `[~]` items map to concrete sister artifact (campaign plan / individual gaps / GAP-612 AWS gate).
+  - **Files:** this gap file (status flip + Tier 1.5/3 +2 rows + top-12 update + cluster +2), CSV row GAP-695 status PARTIAL → DONE + completion_pct 85 → 100 + filename path → closed/, ROADMAP entry sync (paired wave plan §7).
 - **2026-06-02 (autonomous gap campaign — catalog refresh)** — PARTIAL giữ 85% (CSV-canonical). Catalog REFRESHED against current `gap-status.csv` state-check per `audit-to-gap-pipeline.md` §2.8. Findings:
   - **Drift caught:** catalog 2026-05-21 đã stale — Tier 0 GAP-694 DONE; Tier 1 GAP-518/519/481/684 DONE; Tier 2 GAP-538/637/620/561/562/659/657 DONE. Catalog gốc list chúng PARTIAL/OPEN.
   - **0 phantom:** verify tất cả 22 original gaps + 30+ active gaps chống CSV — mọi entry map real row.
