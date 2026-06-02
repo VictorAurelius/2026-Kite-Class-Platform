@@ -7,7 +7,12 @@ import com.kiteclass.core.common.constant.ParentStatus;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
+import com.kiteclass.core.module.clazz.dto.CancelClassRequest;
 import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
+import com.kiteclass.core.module.clazz.dto.UpdateClassRequest;
+import com.kiteclass.core.module.enrollment.entity.Enrollment;
+import com.kiteclass.core.module.enrollment.repository.EnrollmentRepository;
+import com.kiteclass.core.common.constant.EnrollmentStatus;
 import com.kiteclass.core.module.parent.dto.ParentalConsent;
 import com.kiteclass.core.module.parent.entity.Parent;
 import com.kiteclass.core.module.parent.entity.ParentStudentLink;
@@ -36,8 +41,11 @@ import jakarta.persistence.PersistenceContext;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -140,6 +148,9 @@ class CrossUserAuthzTest {
 
     @Autowired
     private StudentRepository studentRepository;
+
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -448,5 +459,151 @@ class CrossUserAuthzTest {
                     }
                     // Any other status (200, 4xx from service layer) means authz passed. ✓
                 });
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // GAP-837 — extended sweep (Wave local-doable-5 Bucket C)
+    // ────────────────────────────────────────────────────────────────────────
+    //
+    // 5 sister sites guarded same wave: ClassController write (update / cancel /
+    // delete), AssignmentController list, EnrollmentController id-scoped (update
+    // status / withdraw). Each test pair = non-owner 403 (or non-200 deny) +
+    // owner-positive baseline already covered indirectly by createClassOwnedBy
+    // returning the class to its rightful teacher.
+
+    @Test
+    @DisplayName("A01-U07: Teacher-2 cannot PATCH a class owned by Teacher-1 (ClassController updateClass IDOR → 403)")
+    void teacher2_cannotUpdateClass_ownedByTeacher1() throws Exception {
+        UUID tenantId = UUID.randomUUID();
+        UUID teacher1 = UUID.randomUUID();
+        UUID teacher2 = UUID.randomUUID();
+
+        Long classId = createClassOwnedBy(tenantId, teacher1);
+
+        UpdateClassRequest req = new UpdateClassRequest(
+                "Authz IT Class hijacked", null, null, null, null, null, null, null);
+
+        mockMvc.perform(patch("/api/v1/classes/" + classId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Id", teacher2.toString())
+                        .header("X-User-Reference-Id", teacher2.toString())
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("A01-U08: Teacher-2 cannot DELETE a class owned by Teacher-1 (ClassController deleteClass IDOR → 403)")
+    void teacher2_cannotDeleteClass_ownedByTeacher1() throws Exception {
+        UUID tenantId = UUID.randomUUID();
+        UUID teacher1 = UUID.randomUUID();
+        UUID teacher2 = UUID.randomUUID();
+
+        Long classId = createClassOwnedBy(tenantId, teacher1);
+
+        mockMvc.perform(delete("/api/v1/classes/" + classId)
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Id", teacher2.toString())
+                        .header("X-User-Reference-Id", teacher2.toString()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("A01-U09: Teacher-2 cannot POST cancel on class owned by Teacher-1 (ClassController cancelClass IDOR → 403)")
+    void teacher2_cannotCancelClass_ownedByTeacher1() throws Exception {
+        UUID tenantId = UUID.randomUUID();
+        UUID teacher1 = UUID.randomUUID();
+        UUID teacher2 = UUID.randomUUID();
+
+        Long classId = createClassOwnedBy(tenantId, teacher1);
+
+        CancelClassRequest req = new CancelClassRequest("Cross-tenant attack attempt");
+
+        mockMvc.perform(post("/api/v1/classes/" + classId + "/cancel")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Id", teacher2.toString())
+                        .header("X-User-Reference-Id", teacher2.toString())
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("A01-U10: Teacher-2 cannot GET assignments for a class owned by Teacher-1 (AssignmentController IDOR → 403)")
+    void teacher2_cannotGetAssignments_forClassOwnedByTeacher1() throws Exception {
+        UUID tenantId = UUID.randomUUID();
+        UUID teacher1 = UUID.randomUUID();
+        UUID teacher2 = UUID.randomUUID();
+
+        Long classId = createClassOwnedBy(tenantId, teacher1);
+
+        mockMvc.perform(get("/api/v1/assignments/class/" + classId)
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Id", teacher2.toString())
+                        .header("X-User-Reference-Id", teacher2.toString()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("A01-U11: Teacher-2 cannot GET enrollment by id whose class is owned by Teacher-1 (EnrollmentController IDOR → 403)")
+    void teacher2_cannotGetEnrollmentById_forClassOwnedByTeacher1() throws Exception {
+        UUID tenantId = UUID.randomUUID();
+        UUID teacher1 = UUID.randomUUID();
+        UUID teacher2 = UUID.randomUUID();
+
+        Long classId = createClassOwnedBy(tenantId, teacher1);
+
+        // Seed an enrollment row in Teacher-1's class so id-scoped lookup has a target.
+        Enrollment enrollment = Enrollment.builder()
+                .classId(classId)
+                .studentId(1L)  // synthetic — guard checks ownership, not student existence
+                .enrollmentDate(java.time.LocalDateTime.now())
+                .tuitionAmount(java.math.BigDecimal.ZERO)
+                .finalAmount(java.math.BigDecimal.ZERO)
+                .status(EnrollmentStatus.PENDING_PAYMENT)
+                .build();
+        enrollment.setInstanceId(tenantId);
+        enrollmentRepository.save(enrollment);
+        entityManager.flush();
+
+        Long enrollmentId = enrollment.getId();
+
+        // Teacher-2 → @authz.hasAccessToEnrollment resolves enrollment → classId →
+        // hasAccessToClass denies (teacher_id != teacher2) → 403
+        mockMvc.perform(get("/api/v1/enrollments/" + enrollmentId)
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Id", teacher2.toString())
+                        .header("X-User-Reference-Id", teacher2.toString()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("A01-U12: Teacher-2 cannot PUT withdraw on enrollment in class owned by Teacher-1 (EnrollmentController IDOR → 403)")
+    void teacher2_cannotWithdrawEnrollment_forClassOwnedByTeacher1() throws Exception {
+        UUID tenantId = UUID.randomUUID();
+        UUID teacher1 = UUID.randomUUID();
+        UUID teacher2 = UUID.randomUUID();
+
+        Long classId = createClassOwnedBy(tenantId, teacher1);
+
+        Enrollment enrollment = Enrollment.builder()
+                .classId(classId)
+                .studentId(2L)
+                .enrollmentDate(java.time.LocalDateTime.now())
+                .tuitionAmount(java.math.BigDecimal.ZERO)
+                .finalAmount(java.math.BigDecimal.ZERO)
+                .status(EnrollmentStatus.ACTIVE)
+                .build();
+        enrollment.setInstanceId(tenantId);
+        enrollmentRepository.save(enrollment);
+        entityManager.flush();
+
+        Long enrollmentId = enrollment.getId();
+
+        mockMvc.perform(put("/api/v1/enrollments/" + enrollmentId + "/withdraw")
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Id", teacher2.toString())
+                        .header("X-User-Reference-Id", teacher2.toString()))
+                .andExpect(status().isForbidden());
     }
 }

@@ -191,11 +191,17 @@ public class EnrollmentController {
     /**
      * Get enrollment by ID.
      *
+     * <p><strong>OWASP A01 per-resource guard (GAP-837):</strong> id-scoped OWNED —
+     * resolves enrollment → classId → checks class teacher ownership via
+     * {@code @authz.hasAccessToEnrollment}. Tenant filter alone would expose
+     * cross-teacher enrollments within same tenant.
+     *
      * @param id enrollment ID
      * @return enrollment data
      */
     @GetMapping("/{id}")
     @Operation(summary = "Get enrollment by ID")
+    @PreAuthorize("@authz.hasAccessToEnrollment(#id)")
     public ResponseEntity<ApiResponse<EnrollmentResponse>> getEnrollment(
             @Parameter(description = "Enrollment ID") @PathVariable Long id) {
         log.debug("GET /api/v1/enrollments/{}", id);
@@ -273,6 +279,7 @@ public class EnrollmentController {
     @PutMapping("/{id}/status")
     @Operation(summary = "Update enrollment status",
                description = "Updates enrollment status (e.g., PENDING_PAYMENT → ACTIVE)")
+    @PreAuthorize("@authz.hasAccessToEnrollment(#id)")
     public ResponseEntity<ApiResponse<EnrollmentResponse>> updateEnrollmentStatus(
             @Parameter(description = "Enrollment ID") @PathVariable Long id,
             @Valid @RequestBody UpdateEnrollmentStatusRequest request) {
@@ -291,6 +298,7 @@ public class EnrollmentController {
     @PutMapping("/{id}/withdraw")
     @Operation(summary = "Withdraw a student from a class",
                description = "Sets enrollment status to WITHDRAWN")
+    @PreAuthorize("@authz.hasAccessToEnrollment(#id)")
     public ResponseEntity<ApiResponse<EnrollmentResponse>> withdrawStudent(
             @Parameter(description = "Enrollment ID") @PathVariable Long id) {
         log.info("PUT /api/v1/enrollments/{}/withdraw", id);
