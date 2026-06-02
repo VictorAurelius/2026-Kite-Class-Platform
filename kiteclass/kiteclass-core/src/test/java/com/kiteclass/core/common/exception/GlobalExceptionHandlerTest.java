@@ -1,6 +1,7 @@
 package com.kiteclass.core.common.exception;
 
 import com.kiteclass.core.common.dto.ErrorResponse;
+import com.kiteclass.core.module.instance.approval.ConcurrentRebrandException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -245,5 +246,33 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("METHOD_NOT_ALLOWED");
         assertThat(response.getBody().getMessage()).contains("DELETE");
+    }
+
+    @Test
+    void handleConcurrentRebrand_shouldReturn409WithStructuredBody() {
+        // GAP-777 cross-flow sweep: ConcurrentRebrandException javadoc mandate
+        // 409 Conflict — without dedicated handler it fell into catch-all 500.
+        ConcurrentRebrandException ex = new ConcurrentRebrandException(
+                "Another rebrand is already running for tenant T1");
+
+        ResponseEntity<ErrorResponse> response = handler.handleConcurrentRebrand(ex, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("REBRAND_CONFLICT");
+        assertThat(response.getBody().getMessage()).contains("Another rebrand");
+        assertThat(response.getBody().getPath()).isEqualTo("/api/v1/test");
+    }
+
+    @Test
+    void handleConcurrentRebrand_shouldFallBackWhenMessageNull() {
+        ConcurrentRebrandException ex = new ConcurrentRebrandException(null);
+
+        ResponseEntity<ErrorResponse> response = handler.handleConcurrentRebrand(ex, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("REBRAND_CONFLICT");
+        assertThat(response.getBody().getMessage()).contains("rebrand operation is already in progress");
     }
 }
