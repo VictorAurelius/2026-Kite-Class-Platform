@@ -58,6 +58,9 @@ class InstanceServiceTest {
     @Mock
     private com.kitehub.subscription.client.EmailServiceClient emailServiceClient;
 
+    @Mock
+    private com.kitehub.subscription.tenant.TenantSlugNormalizer tenantSlugNormalizer;
+
     @InjectMocks
     private InstanceService instanceService;
 
@@ -83,6 +86,22 @@ class InstanceServiceTest {
             .build();
         lenient().when(databaseProvisioningService.provisionDatabase(any(UUID.class)))
             .thenReturn(mockCredentials);
+
+        // GAP-823 Wave local-doable-9 Bucket B: stub TenantSlugNormalizer so
+        // generateUniqueSlug() returns a non-empty slug (default Mock returns null
+        // → IllegalArgumentException). Tests that don't exercise slug logic still need
+        // this stub because createTrialInstance/createPendingInstance/registerInstance
+        // all now call generateUniqueSlug. Stub returns the organization name lowercased
+        // + space→dash as a deterministic shortcut (real normalizer covered by IT).
+        lenient().when(tenantSlugNormalizer.normalize(anyString())).thenAnswer(inv -> {
+            String input = inv.getArgument(0);
+            return input == null ? "" : input.toLowerCase().replaceAll("[^a-z0-9]+", "-")
+                    .replaceAll("^-+", "").replaceAll("-+$", "");
+        });
+        lenient().when(tenantSlugNormalizer.withCollisionSuffix(anyString(), org.mockito.ArgumentMatchers.anyInt()))
+                .thenAnswer(inv -> inv.getArgument(0) + "-" + inv.getArgument(1));
+        // Default: no slug collision. Tests can override per-case.
+        lenient().when(instanceRepository.existsBySlugAndDeletedFalse(anyString())).thenReturn(false);
     }
 
     @Test

@@ -24,6 +24,8 @@ public class InstanceResponse {
 
     private UUID id;
     private String subdomain;
+    /** Normalized URL/routing slug (GAP-535 Wave 77 + GAP-823 Wave local-doable-9). */
+    private String slug;
     private String customDomain;
     private String organizationName;
     private UUID ownerId;

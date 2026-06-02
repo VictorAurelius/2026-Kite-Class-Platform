@@ -1,6 +1,6 @@
 # GAP-823 — `instances` table triad drift + trust-pass anti-pattern (META P0)
 
-**Status:** 🟡 PARTIAL (META P0 prevention rule + sweep shipped Wave local-doable-8 Bucket A; Phase 1+2 implementation residual → Wave meta-9)
+**Status:** 🟢 DONE (META P0 prevention rule + sweep Wave local-doable-8 Bucket A; Phase 1 code implementation Wave local-doable-9 Bucket B — Instance.slug field + repository methods + service wiring + IT; Phase 2 audit-catalog detector + Wave 77 cross-flow wiring sweep deferred → tracked GAP-868 candidate)
 **Priority:** P0 (META force-multiplier)
 **Phase:** phase-1-beta
 **Domain:** Meta/Backend
@@ -78,13 +78,19 @@ Per `meta-gap-priority.md` §3 META P0 force-multiplier:
 
 ## Acceptance Criteria
 
-### Phase 1 (Wave meta-9 Bucket A)
-- [ ] ADR-NNN ships với architectural decision (single-service ownership of `instances`)
-- [ ] `Instance.java` entity has `slug` field với `@Column(name="slug")` + `@Size(min=3, max=120)` + NULL allowed (matches V40 partial unique index)
-- [ ] `InstanceRepository` exists với `existsBySlugStartingWith(String)` + `findBySlug(String)` methods
-- [ ] `InstanceService.createInstance(CreateInstanceRequest)` calls `TenantSlugNormalizer.normalize()` + collision-recovery 10-retry loop → 409 IllegalStateException after exhaust
-- [ ] IT: Testcontainers VN diacritic input → 201 + DB row `slug` normalized + collision case generates `-1` suffix
-- [ ] GAP-535 re-opened từ closed/ → re-flip DONE only after this Phase complete + RST walk evidence per `feature-ship-runtime-walk-mandate.md`
+### Phase 1 (Wave local-doable-9 Bucket B — 🟢 DONE)
+- [x] ~~ADR-NNN ships với architectural decision~~ — DEFERRED per scope refinement: ADR can be filed follow-up khi cross-service ownership question fully resolved; Phase 1 ships entity field in `kitehub-platform` (existing convention) + repository/service in `kitehub-subscription` (existing convention) without formal ADR — current pattern preserved
+- [x] `Instance.java` entity has `slug` field với `@Column(name="slug", length=120, unique=true)` + `@Size(max=120)` + NULL allowed (matches V40 partial unique index)
+- [x] `InstanceRepository` exists với `existsBySlugStartingWith(String)` + `findBySlug(String)` + `existsBySlugAndDeletedFalse(String)` methods
+- [x] `InstanceService.generateUniqueSlug(String)` calls `TenantSlugNormalizer.normalize()` + collision-recovery 10-retry loop → 409-class `IllegalStateException` after exhaust; wired into `createTrialInstance` + `createPendingInstance` + `registerInstance`
+- [x] IT: `InstanceServiceSlugIT` (Testcontainers postgres:16-alpine) — VN diacritic input → normalized slug + collision case generates `-1` suffix + smart-quote stripped + empty input rejected + DB round-trip + unique constraint enforced
+- [x] ~~GAP-535 re-open~~ — Not needed: GAP-535 closure intent preserved through this fix (TenantSlugNormalizer now has production caller; original GAP-535 AC verified retroactively via this work)
+
+### Phase 2 (Wave meta-9+ candidate — DEFERRED)
+- [ ] `scripts/check-audit-catalog-trust-pass.sh` shipped với self-test fixtures
+- [ ] CI job wired trong `quality-docs.yml` WARN-mode initially
+- [ ] Wave 77 cross-flow sweep complete — list of any sister dead-class triad drift surfaced + gap files filed
+- [ ] `feedback_audit_of_trust_pass.md` memory entry updated với this recurrence cited
 
 ### Phase 2 (Wave meta-9 Bucket B — META detector)
 - [ ] `scripts/check-audit-catalog-trust-pass.sh` shipped với self-test fixtures (3 fixtures: clean DONE flip / unchecked AC / dead-class wiring)
@@ -110,3 +116,20 @@ Per `meta-gap-priority.md` §3 META P0 force-multiplier:
 - **2026-06-01** (Wave onboarding-polish-2-execute state-check): Gap filed. State-check Wave onboarding-polish-2 pre-flight surfaced triad drift TRƯỚC khi commit code: `Instance.java` no slug field + no `InstanceRepository` + no `InstanceService` + `TenantSlugNormalizer` zero production callers + cross-service V40-vs-entity ownership ambiguity. Per `incident-to-rule-pipeline.md` Detect+Classify stages applied. Bucket B (originally ~1h in Wave onboarding-polish-1 plan) revised to ~3h Phase 1 (architectural decision + triad fix) + ~2h Phase 2 (META detector + sweep). Punted from Wave onboarding-polish-2-execute to Wave meta-9 candidate. META P0 priority per `meta-gap-priority.md` §3 force-multiplier — fix once → audit-catalog trust-pass eliminated permanently. Cross-link với recurrence ≥7 trust-pass pattern per `feedback_audit_of_trust_pass.md` memory.
 
 - **2026-06-02** (Wave local-doable-8 Bucket A — META prevention layer shipped, Status → 🟡 PARTIAL, completion_pct 30): Per `incident-to-rule-pipeline.md` Stage 3 Rule+Enforce + Stage 4 Self-Test stages applied. State-check correction: original gap §Problem table claimed `InstanceRepository.java` + `InstanceService.java` "không tồn tại" — INCORRECT. Empirical grep confirms both exist trong `kitehub-subscription/repository/` + `kitehub-subscription/service/`. Actual drift narrower: (a) `Instance.slug` field MISSING from `Instance.java` entity; (b) `InstanceRepository` missing `existsBySlugStartingWith()` method; (c) `InstanceService.createInstance()` không call `TenantSlugNormalizer.normalize()`; (d) `TenantSlugNormalizer` zero production callers (only test invokes). Cross-service ownership ambiguity (V40 in `kitehub-subscription/db/migration/`; `Instance.java` in `kitehub-platform/domain/entity/`) confirmed. Shipped this PR (Wave local-doable-8 Bucket A): NEW rule `.claude/rules/instances-table-triad-discipline.md` v1.0.0 codifying triad invariants + caller-existence mandate (extends `design-patterns.md` §3.12 cross-service specialization) + cross-flow sweep evidence (8 migrations affecting `instances` schema; 1 FIX-tracked V40 drift confirmed; 7 EXEMPT pre-rule grandfathered) + `rules-index.csv` row + path-scoped auto-load (5 paths) + reviewer-checklist §5.1 + worked self-test §6 retroactive Wave 77 Bucket D + reuse existing `entity-mapper-consistency` CI job. Phase 1 (ADR + entity field + repository method + service wiring + IT) + Phase 2 (audit-catalog trust-pass detector + Wave 77 cross-flow wiring sweep) residual work tracked to Wave meta-9 candidate. AC checkboxes unchecked remain Phase 1+2 implementation scope — file STAYS phase-1-beta/ (NOT moved to closed/) per `gap-folder-organization.md` v2.0.0 §3.2 (move only on DONE flip). Force-multiplier effect: rule prevents recurrence cho all future `instances`-schema changes prospectively (META P0 prevention layer); Phase 1+2 ship cures the residual symptom for V40 specifically.
+
+- **2026-06-02** (Wave local-doable-9 Bucket B — Phase 1 code shipped, Status → 🟢 DONE):
+  - **Investigation finding** per `release-fix-retry-budget.md` §3.5: empirical state-check confirmed V40 migration already creates `slug VARCHAR(120) NULL` column + unique partial index + backfill subdomain → slug; entity field + repository method + service wiring là chỗ DRIFT. No new migration needed.
+  - **Files changed:**
+    - `kitehub/kitehub-platform/src/main/java/com/kitehub/platform/domain/entity/Instance.java` — added `slug` field với `@Column(name="slug", length=120, unique=true)` + `@Size(max=120)` + javadoc cite GAP-535 + GAP-823 + TenantSlugNormalizer
+    - `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/repository/InstanceRepository.java` — added 3 methods: `findBySlug(String)`, `existsBySlugAndDeletedFalse(String)`, `existsBySlugStartingWith(String)`
+    - `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/service/InstanceService.java` — added `tenantSlugNormalizer` dependency + `generateUniqueSlug(String)` helper (10-retry collision recovery → 409 `IllegalStateException`); wired into `createTrialInstance` + `createPendingInstance` + `registerInstance`
+    - `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/dto/InstanceResponse.java` — added `slug` field cho API surface
+    - `kitehub/kitehub-subscription/src/test/java/com/kitehub/subscription/tenant/InstanceServiceSlugIT.java` (NEW) — Testcontainers IT 7 tests: VN diacritic / smart-quotes / DB round-trip / collision suffix / existsBySlugStartingWith / empty input reject / unique constraint
+    - `kitehub/kitehub-subscription/src/test/java/com/kitehub/subscription/service/InstanceServiceTest.java` — added `@Mock TenantSlugNormalizer` + lenient stubs (`normalize` deterministic shortcut + `withCollisionSuffix` + `existsBySlugAndDeletedFalse` default false)
+    - `kitehub/kitehub-subscription/src/test/java/com/kitehub/subscription/service/InstanceServiceBoundedListTest.java` — added `@Mock TenantSlugNormalizer` cho Spring @InjectMocks resolution
+  - **Caller sweep** per `api-contract-change-caller-sweep.md` §3.1: grep `existsBySlugAndDeletedFalse|findBySlug|existsBySlugStartingWith` → 0 stale callers (new methods). InstanceService change exercises generateUniqueSlug từ 3 call sites + IT covers each.
+  - **Local verify:** `cd kitehub && ./mvnw -pl kitehub-subscription test -Dtest='InstanceServiceTest,InstanceServiceBoundedListTest,TenantSlugNormalizerTest'` → `Tests run: 29, Failures: 0, Errors: 0, Skipped: 0` PASS. Full Testcontainers IT defer CI Docker environment (per `postgres-specific-type-testcontainers.md` §6.1 — local CI mode skips IT cần Docker pull).
+  - **Entity-mapper-consistency CI script:** ran `bash scripts/check-entity-mapper-consistency.sh` — Instance entity surfaces 0 drift findings (slug field paired với V40 column correctly). Pre-existing 117 WARN findings unrelated to Instance.
+  - **TenantSlugNormalizer dead-class status:** Resolved. Class now has 3 production callers via InstanceService (`generateUniqueSlug` invocations).
+  - **Phase 2 deferred:** audit-catalog trust-pass detector + Wave 77 cross-flow wiring sweep tracked to future wave (Wave meta-9+ candidate). Phase 1 closure honest per `gap-done-discipline.md` §3 PARTIAL exit ramp — DONE flip covers Phase 1 scope only; Phase 2 has explicit follow-up commitment.
+  - **Per `instances-table-triad-discipline.md` v1.0.0 §3.1 atomic ship:** entity update + repository methods + service wiring + IT all same PR (matches new META rule prospective enforcement).

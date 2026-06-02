@@ -11,6 +11,7 @@ import com.kitehub.subscription.dto.RegisterInstanceResponse;
 import com.kitehub.subscription.dto.UpdateInstanceRequest;
 import com.kitehub.subscription.config.TrialConfig;
 import com.kitehub.subscription.repository.InstanceRepository;
+import com.kitehub.subscription.tenant.TenantSlugNormalizer;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,52 @@ public class InstanceService {
     private final TokenService tokenService;
     private final TrialConfig trialConfig;
     private final com.kitehub.subscription.client.EmailServiceClient emailServiceClient;
+    private final TenantSlugNormalizer tenantSlugNormalizer;
+
+    /** Max collision-recovery attempts before throwing 409 (GAP-823 Wave local-doable-9). */
+    private static final int MAX_SLUG_COLLISION_RETRIES = 10;
+
+    /**
+     * Generate unique normalized slug from organization name (GAP-823).
+     *
+     * <p>Pipeline:
+     * <ol>
+     *   <li>Normalize organization name via {@link TenantSlugNormalizer#normalize}
+     *       (NFC + strip smart quotes + Vietnamese đ→d + stripAccents + lowercase
+     *       + non-alphanumeric → dash).</li>
+     *   <li>Empty slug after normalize → reject as IllegalArgumentException
+     *       (caller must supply a name with at least one slug-able character).</li>
+     *   <li>Probe uniqueness via {@link InstanceRepository#existsBySlugAndDeletedFalse}.
+     *       If taken, append {@code -1}/{@code -2}/... suffix up to
+     *       {@link #MAX_SLUG_COLLISION_RETRIES} attempts.</li>
+     *   <li>Exhaust → 409-class IllegalStateException so the controller layer
+     *       can render a user-facing message.</li>
+     * </ol>
+     *
+     * @param organizationName user-supplied display name (with diacritics)
+     * @return unique normalized slug ready to persist
+     * @throws IllegalArgumentException if normalized base is empty
+     * @throws IllegalStateException    if 10 retries exhausted without finding a free slug
+     */
+    public String generateUniqueSlug(String organizationName) {
+        String base = tenantSlugNormalizer.normalize(organizationName);
+        if (base == null || base.isEmpty()) {
+            throw new IllegalArgumentException(
+                "Organization name must contain at least one slug-able character: " + organizationName);
+        }
+        if (!instanceRepository.existsBySlugAndDeletedFalse(base)) {
+            return base;
+        }
+        for (int suffix = 1; suffix <= MAX_SLUG_COLLISION_RETRIES; suffix++) {
+            String candidate = tenantSlugNormalizer.withCollisionSuffix(base, suffix);
+            if (!instanceRepository.existsBySlugAndDeletedFalse(candidate)) {
+                return candidate;
+            }
+        }
+        throw new IllegalStateException(
+            "Slug collision recovery exhausted after " + MAX_SLUG_COLLISION_RETRIES
+                + " attempts for base: " + base);
+    }
 
     /**
      * Create a new trial instance.
@@ -101,6 +148,8 @@ public class InstanceService {
         Instance instance = new Instance();
         instance.setSubdomain(request.getSubdomain());
         instance.setOrganizationName(request.getOrganizationName());
+        // GAP-823: generate normalized slug from organization name (collision recovery).
+        instance.setSlug(generateUniqueSlug(request.getOrganizationName()));
         instance.setOwnerId(request.getOwnerId());
         instance.setContactEmail(request.getContactEmail());
         instance.setTier(request.getTier());
@@ -161,6 +210,8 @@ public class InstanceService {
         Instance instance = new Instance();
         instance.setSubdomain(subdomain);
         instance.setOrganizationName(organizationName);
+        // GAP-823: generate normalized slug from organization name (collision recovery).
+        instance.setSlug(generateUniqueSlug(organizationName));
         instance.setOwnerId(ownerId);
         instance.setContactEmail(contactEmail);
         instance.setTier(PricingTier.FREE);
@@ -253,6 +304,11 @@ public class InstanceService {
         Instance instance = new Instance();
         instance.setSubdomain(request.getSubdomain());
         instance.setOrganizationName(request.getOrganizationName());
+        // GAP-823 Wave local-doable-9 Bucket B: wire TenantSlugNormalizer.
+        // Generate unique normalized slug from VN-diacritic organization name +
+        // collision recovery (-1/-2/... up to 10 retries → 409). Slug is the
+        // canonical URL-routing form; subdomain stays as user-supplied identifier.
+        instance.setSlug(generateUniqueSlug(request.getOrganizationName()));
         instance.setOwnerId(ownerId);
         instance.setContactEmail(request.getOwnerEmail());
         instance.setTier(PricingTier.FREE); // Always FREE for trial registration
@@ -510,6 +566,7 @@ public class InstanceService {
         return InstanceResponse.builder()
             .id(instance.getId())
             .subdomain(instance.getSubdomain())
+            .slug(instance.getSlug())
             .customDomain(instance.getCustomDomain())
             .organizationName(instance.getOrganizationName())
             .ownerId(instance.getOwnerId())
