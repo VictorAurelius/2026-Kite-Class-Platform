@@ -99,6 +99,10 @@ public class OpenAIAIClient implements AIClient {
                 .build();
     }
 
+    public String apiKey() {
+        return apiKey;
+    }
+
     public String modelText() {
         return modelText;
     }
