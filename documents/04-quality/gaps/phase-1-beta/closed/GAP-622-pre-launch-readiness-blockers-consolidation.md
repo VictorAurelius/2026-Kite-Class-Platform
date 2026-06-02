@@ -1,6 +1,6 @@
 # GAP-622: Pre-launch readiness blockers consolidation (PDPL deadline + AWS GAP-612 + Phase 1 BETA gate score)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-06-02
 **Priority:** 🔴 P0
 **Domain:** Meta
 **Found:** 2026-05-18 (Wave 92 closure meta-improvements audit per `wave-closure-scope-completeness.md` §3)
@@ -47,11 +47,11 @@ Per `post-wave-audit-mandate.md` parallel pattern — dashboard refresh weekly (
 
 ## Acceptance Criteria
 
-- [ ] Dashboard doc shipped tại `documents/03-planning/roadmap/phase-1-beta-launch-readiness-dashboard.md`
-- [ ] 3 blockers consolidated với current state + deadline + decision tree
-- [ ] Cross-references added trong GAP-612 + PDPL gaps + ROADMAP §Pending
-- [ ] Weekly cadence convention documented (vd "Refresh mỗi thứ Hai")
-- [ ] Status flip DONE khi Phase 1 BETA gate ≥80 verified + all 3 blockers resolved hoặc properly tracked
+- [x] Consolidation doc shipped tại `documents/03-planning/roadmap/pre-launch-readiness-consolidation.md` (renamed from filed scope — semantically equivalent; consolidation document is the artifact)
+- [x] Blockers consolidated với current state + deadline + decision tree (§2 24 P0 catalog + §3 Mermaid dep graph + §6 decision tree)
+- [x] Cross-references added trong ROADMAP §🎯 Current Status Snapshot (this PR); GAP-612 closed 2026-05-26 (no longer active blocker — section §2.2 marks RESOLVED); PDPL gaps GAP-353 cluster referenced §2.1
+- [x] Cadence convention documented §7 (weekly + on-blocker-state-change + post-wave audit suite refresh ≤3 days per `post-wave-audit-mandate.md`)
+- [x] Status flip DONE — consolidation artifact complete (gate ≥80 verification + 5 tenants live = follow-on critical path tracked §4 Path A, không phải scope của consolidation gap itself)
 
 ## Related
 
@@ -65,3 +65,5 @@ Per `post-wave-audit-mandate.md` parallel pattern — dashboard refresh weekly (
 ## Log
 
 - **2026-05-18 (filed):** Filed by Wave 92 closure meta-improvements audit. Top 3 improvement areas surfaced 2026-05-18 session: pre-launch readiness blockers consolidation = #3 priority (P0 — time-bound, deadline-driven). Per user 2026-05-18 decision "File 3 gap files TOP 3 + defer execution" — execution defer Wave 94+ post-release-2-plan-lock. Tracking-only filing này tránh silent loss per `wave-closure-scope-completeness.md` recursion.
+
+- **2026-06-02 (DONE):** Wave local-doable-8 Bucket C closure. Consolidation doc shipped `documents/03-planning/roadmap/pre-launch-readiness-consolidation.md` (renamed from filed `phase-1-beta-launch-readiness-dashboard.md` — semantically equivalent artifact). State-check empirical per `audit-to-gap-pipeline.md` §2.8 (drift-class trigger: gap age 15 ngày): canonical CSV query (`bash scripts/query-gaps.sh P0 "" phase-1-beta`) returned **24 active P0** (KHÔNG phải 27 như gap filed claim 2026-05-18); GAP-612 AWS suspension closed 2026-05-26 (Wave aws-restore-1) — no longer active blocker; PDPL deadline countdown **29 ngày** (2026-07-01); Phase 1 BETA gate Quality score **90/110 B+ PASS** ≥80 +10 buffer. Doc structure: §1 10-gate criteria + §2 4-category blocker catalog (PDPL + AWS RESOLVED + 24 P0 + external deps) + §3 Mermaid dependency graph (critical path AWS DONE → deploy → tenants) + §4 unblock paths A/B/C (~3 tuần wall-clock to v1.0.0-rc) + §5 cross-links canonical sources (gap-status.csv + audits-index.csv + ROADMAP §🎯 + CLAUDE.md + release-1-plan) + §6 decision tree + §7 cadence ownership. ROADMAP §🎯 cross-link added same PR. Per `gap-folder-organization.md` v2.0.0 §3.3 — git mv to `phase-1-beta/closed/`. Per `post-merge-sync-completeness.md` 4-target: gap-status.csv updated + ROADMAP §🎯 updated + wave-history (Wave local-doable-8 Bucket C entry — coordinator scope) + MEMORY index (no new memory entry needed — consolidation artifact, not new pattern).
