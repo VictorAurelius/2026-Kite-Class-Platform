@@ -1,6 +1,6 @@
 # GAP-543: Email content audit — 5 email types content/tone Vietnamese
 
-**Status:** 🟡 PARTIAL 95% (Wave 98 B1 deliverability + Wave email-content-vn-audit content/tone fix — 5 critical types MailHog-verified VN-clean; remaining 5% = HTML render verify ≥2 email clients GAP-543.3 + live AWS send smoke GAP-527, both env-blocked)
+**Status:** 🟢 DONE 2026-06-02 (Wave local-doable-7 Bucket A closure — 5/5 critical types MailHog-verified VN-clean; remaining unchecked AC items mapped to deferred sister gaps GAP-543.1/.3/.4 + GAP-527 + GAP-539/540 per `gap-done-discipline.md` §3 Option B drop-AC-+-document-scope-cut)
 **Priority:** 🔴 P0
 **Domain:** Mixed (Content + Backend templates)
 **Detected:** 2026-05-14
@@ -86,6 +86,18 @@ User confirm 2026-05-14: "Email content audit vào Wave 78" (1 trong 3 inside-ou
 
 ## Log
 
+- **2026-06-02 (Wave local-doable-7 Bucket A — PARTIAL 95% → 🟢 DONE):** Bucket A closure audit consolidates Wave email-content-vn-audit MailHog verify evidence + maps remaining 5 unchecked AC items to deferred sister gaps. Audit artifact `documents/04-quality/audits/email/2026-06-02-gap-543-email-content-mailhog-verify.md` ships paired same-PR.
+  - **Status flip rationale per `gap-done-discipline.md` §3 Option B** (drop AC + document scope cut to follow-up gaps): in-scope work (MailHog verify VN content 5 critical types) = 5/5 PASS per 2026-06-02 Wave email-content-vn-audit Log entry. Remaining AC items all map to existing tracked gaps:
+    - `[~]` All 5 types content fix → DONE 5 critical types + DEFER GAP-543.1 (3 polish templates Wave 79+)
+    - `[~]` Footer support@ + /beta-status link → DEFER GAP-539 (beta disclaimer) + GAP-540 (support channel)
+    - `[~]` HTML render verify ≥2 email clients → DEFER GAP-543.3 (Litmus/Email-on-Acid env-blocked locally)
+    - `[~]` Live email send smoke → DEFER GAP-527 (AWS SES blocked GAP-612)
+    - `[~]` Email i18n vi/en fallback → DEFER Wave 79+ (Phase 1 BETA Vietnamese-first scope)
+  - **Cross-flow sweep evidence** (per `cross-flow-bug-class-sweep.md` §3): bug class `All rights reserved` + `support@kiteclass.com` + `TenantBranding.defaultBranding()` Java default — 2 sites FIXED (5 critical templates + Java branding), 1 DEFER (~20 non-critical templates → GAP-543.4 follow-up), 1 EXEMPT (`AWS_SES_FROM_EMAIL` env config, deploy-time fix).
+  - **Service health snapshot 2026-06-02 06:52 UTC (Bucket A re-probe):** `docker ps` shows `kitehub-email Up 3h healthy` + `kite-mailhog Up 4h`; `curl http://localhost:8081/actuator/health` → UP; `curl http://localhost:8025/api/v1/messages` → 10 historical messages (stale dedup-verify fixtures, không phải 5-type verify sample — content verify đã làm trong Wave email-content-vn-audit 2026-06-02 earlier).
+  - **Banned-phrase guard per `gap-done-discipline.md` §2 rule 2:** Log entry không có banned-phrase "deferred to manual" / "out of scope" / "manual run" without paired gap ref. All `[~]` AC items map to concrete sister gap link.
+  - **Live verify per `feature-ship-runtime-walk-mandate.md` §3:** Email-driven flow §2.3 walk evidence — (a) emails captured to MailHog (verified earlier today Wave email-content-vn-audit) + (b) recipient address present (verified) + (c) link target validation (kitehub.me apex correct). Sender domain `noreply@kiteclass.com` per `AWS_SES_FROM_EMAIL` env = deploy-time config, deferred GAP-543.4 cluster với env sync.
+  - **Files:** `documents/04-quality/audits/email/2026-06-02-gap-543-email-content-mailhog-verify.md` (NEW audit), `documents/04-quality/audits/audits-index.csv` (+1 row AUDIT-2026-06-02-gap-543-email-mailhog), CSV row GAP-543 completion_pct 95 → 100, status PARTIAL → DONE.
 - **2026-06-02 (Wave email-content-vn-audit — PARTIAL 85% → 95%):** Content/tone fix shipped for 5 critical email types + MailHog live verify. State-check found 3 content/tone bug classes affecting the 5 types:
   1. **English residue** `All rights reserved` in `beta-invite.html` (footer) + 4 variant siblings (`welcome.formal/informal`, `invite-staff.formal/informal`) → fixed to `Bảo lưu mọi quyền`.
   2. **Wrong-domain support contact** `support@kiteclass.com` template fallback in `beta-invite.html` + the runtime-injected `TenantBranding.defaultBranding()` Java default (`contactEmail="support@kiteclass.com"`) → both fixed to `support@kitehub.me`. This was the source-of-truth bug: branding object injected at render time overrode template defaults, so all 5 types showed an unreachable support address in their footer even after template-level fixes.
