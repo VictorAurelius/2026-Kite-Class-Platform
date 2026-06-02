@@ -1,5 +1,6 @@
 package com.kitehub.admin.controller;
 
+import com.kitehub.admin.dto.PaymentsSummaryResponse;
 import com.kitehub.subscription.dto.PaymentResponse;
 import com.kitehub.subscription.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,9 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Admin payments v1 REST API — exposes payments listing + summary stats at the canonical
@@ -57,22 +56,36 @@ public class AdminPaymentsController {
     /**
      * Get payments summary statistics.
      *
-     * <p>Returns aggregate counters useful for admin dashboard: total pending count + pending
-     * count snapshot. Mutation history breakdown deferred to follow-up scope.</p>
+     * <p>Returns aggregate counters useful for admin dashboard. Per Wave 92 Bucket D scope this is
+     * a pending-only stub: {@code totalCount}/{@code totalAmountVnd} reflect the pending set and
+     * {@code completedCount} stays {@code 0} (confirmed/historical breakdown deferred to Phase 1.5+).
+     * Returns a typed {@link PaymentsSummaryResponse} (GAP-654) replacing the prior untyped Map so
+     * the contract is springdoc-discoverable + compiler-checked; business values unchanged from the
+     * prior stub (pending count is the only real signal computed).</p>
      *
      * @return payments summary stats
      */
     @GetMapping("/summary")
     @Operation(summary = "Payments summary stats", description = "Aggregate payment counters for dashboard")
-    public ResponseEntity<Map<String, Object>> getPaymentsSummary() {
+    public ResponseEntity<PaymentsSummaryResponse> getPaymentsSummary() {
         log.info("Admin v1 payments summary");
 
         List<PaymentResponse> pending = paymentService.getPendingPayments();
 
-        Map<String, Object> summary = new HashMap<>();
-        summary.put("pendingCount", (long) pending.size());
-        summary.put("scope", "pending-only-v1-stub");
-        summary.put("note", "Wave 92 Bucket D stub — extended breakdown (confirmed/rejected/historical) defer Phase 1.5+");
+        long pendingCount = pending.size();
+        long totalPendingAmountVnd = pending.stream()
+                .map(PaymentResponse::getAmountVnd)
+                .filter(java.util.Objects::nonNull)
+                .mapToLong(Long::longValue)
+                .sum();
+
+        PaymentsSummaryResponse summary = new PaymentsSummaryResponse(
+                totalPendingAmountVnd,
+                pendingCount,
+                "VND",
+                pendingCount,
+                0L
+        );
 
         return ResponseEntity.ok(summary);
     }

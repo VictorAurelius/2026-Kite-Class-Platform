@@ -1,5 +1,6 @@
 package com.kitehub.admin.controller;
 
+import com.kitehub.admin.dto.RevenuePeriod;
 import com.kitehub.admin.service.AnalyticsService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,7 +52,7 @@ class AdminRevenueControllerSecurityTest {
     @WithMockUser(roles = "TENANT_USER")
     @DisplayName("getRevenue() — TENANT_USER role → AccessDeniedException (OWASP A01 / GAP-637)")
     void getRevenue_tenantUserRole_throwsAccessDenied() {
-        assertThatThrownBy(() -> controller.getRevenue("MONTHLY", null, null))
+        assertThatThrownBy(() -> controller.getRevenue(RevenuePeriod.MONTHLY, null, null))
                 .isInstanceOf(AccessDeniedException.class);
     }
 
@@ -59,7 +60,7 @@ class AdminRevenueControllerSecurityTest {
     @WithMockUser(roles = "TEACHER")
     @DisplayName("getRevenue() — TEACHER role → AccessDeniedException (OWASP A01 / GAP-637)")
     void getRevenue_teacherRole_throwsAccessDenied() {
-        assertThatThrownBy(() -> controller.getRevenue("MONTHLY", null, null))
+        assertThatThrownBy(() -> controller.getRevenue(RevenuePeriod.MONTHLY, null, null))
                 .isInstanceOf(AccessDeniedException.class);
     }
 }

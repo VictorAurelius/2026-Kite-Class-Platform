@@ -1,6 +1,8 @@
 package com.kitehub.admin.controller;
 
+import com.kitehub.admin.dto.RevenuePeriod;
 import com.kitehub.admin.dto.RevenueReport;
+import com.kitehub.admin.dto.RevenueSummaryResponse;
 import com.kitehub.admin.service.AnalyticsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,7 +56,7 @@ class AdminRevenueControllerTest {
                 .thenReturn(report);
 
         ResponseEntity<RevenueReport> response = controller.getRevenue(
-                "MONTHLY", LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 18));
+                RevenuePeriod.MONTHLY, LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 18));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -77,7 +79,7 @@ class AdminRevenueControllerTest {
         when(analyticsService.getRevenueReport(anyString(), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(report);
 
-        ResponseEntity<RevenueReport> response = controller.getRevenue("MONTHLY", null, null);
+        ResponseEntity<RevenueReport> response = controller.getRevenue(RevenuePeriod.MONTHLY, null, null);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         // Verify default dates applied (startOfMonth + today)
@@ -87,9 +89,11 @@ class AdminRevenueControllerTest {
     }
 
     @Test
-    void getRevenueSummary_returnsHttp200AndCurrentMonthReport() {
+    void getRevenueSummary_returnsHttp200AndTypedSummary() {
         RevenueReport report = RevenueReport.builder()
                 .period("MONTHLY")
+                .startDate(LocalDate.of(2026, 6, 1))
+                .endDate(LocalDate.now())
                 .totalRevenue(new BigDecimal("3000000"))
                 .mrr(new BigDecimal("300000"))
                 .projectedArr(new BigDecimal("3600000"))
@@ -100,11 +104,19 @@ class AdminRevenueControllerTest {
         when(analyticsService.getRevenueReport(anyString(), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(report);
 
-        ResponseEntity<RevenueReport> response = controller.getRevenueSummary();
+        ResponseEntity<RevenueSummaryResponse> response = controller.getRevenueSummary(RevenuePeriod.MONTHLY);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getMrr()).isEqualTo(new BigDecimal("300000"));
+        RevenueSummaryResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.currentMonthRevenueVnd()).isEqualTo(new BigDecimal("3000000"));
+        assertThat(body.currency()).isEqualTo("VND");
+        assertThat(body.period()).isEqualTo(RevenuePeriod.MONTHLY);
+        assertThat(body.asOfDate()).isEqualTo(report.getEndDate());
+        // Deferred fields stay null per RevenueSummaryResponse javadoc
+        assertThat(body.ytdRevenueVnd()).isNull();
+        assertThat(body.previousMonthRevenueVnd()).isNull();
+        assertThat(body.growthPercentage()).isNull();
         // Always uses MONTHLY + current month range
         LocalDate expectedStart = LocalDate.now().withDayOfMonth(1);
         LocalDate expectedEnd = LocalDate.now();

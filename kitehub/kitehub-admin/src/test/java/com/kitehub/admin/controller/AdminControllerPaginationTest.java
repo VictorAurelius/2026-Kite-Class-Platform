@@ -11,7 +11,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Unit tests for the {@link AdminController#clampPageable(Pageable)} helper
  * (GAP-126). Verifies pagination defaults + max-size cap independently of
  * Spring / DB.
+ *
+ * <p>{@code AdminController} is {@code @Deprecated(forRemoval)} per GAP-654 (legacy
+ * {@code /api/platform/admin} surface); this test intentionally exercises its still-live
+ * pagination helper, hence the class-level {@code @SuppressWarnings("deprecation")}.</p>
  */
+@SuppressWarnings("deprecation")
 class AdminControllerPaginationTest {
 
     @Test
