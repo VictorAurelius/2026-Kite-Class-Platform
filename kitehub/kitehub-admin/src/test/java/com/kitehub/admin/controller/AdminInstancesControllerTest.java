@@ -37,11 +37,12 @@ import static org.mockito.Mockito.when;
  * existing {@link AdminControllerPaginationTest} pattern. Integration test với real DB
  * via Testcontainers covered separately by {@link AdminControllerTest} (legacy paths).</p>
  *
- * <p>Class-level {@code @SuppressWarnings("deprecation")} because the page-size-alignment defense
+ * <p>Class-level {@code @SuppressWarnings("removal")} because the page-size-alignment defense
  * test reads {@code AdminController.DEFAULT_PAGE_SIZE}/{@code MAX_PAGE_SIZE} constants from the now
- * {@code @Deprecated(forRemoval)} legacy controller (GAP-654) on purpose.</p>
+ * {@code @Deprecated(since = "v1", forRemoval = true)} legacy controller (GAP-654) on purpose —
+ * {@code forRemoval = true} raises the <em>removal</em> lint category, not <em>deprecation</em>.</p>
  */
-@SuppressWarnings("deprecation")
+@SuppressWarnings("removal")
 class AdminInstancesControllerTest {
 
     private InstanceRepository instanceRepository;

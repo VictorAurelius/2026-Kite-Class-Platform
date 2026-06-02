@@ -12,11 +12,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * (GAP-126). Verifies pagination defaults + max-size cap independently of
  * Spring / DB.
  *
- * <p>{@code AdminController} is {@code @Deprecated(forRemoval)} per GAP-654 (legacy
- * {@code /api/platform/admin} surface); this test intentionally exercises its still-live
- * pagination helper, hence the class-level {@code @SuppressWarnings("deprecation")}.</p>
+ * <p>{@code AdminController} is {@code @Deprecated(since = "v1", forRemoval = true)} per GAP-654
+ * (legacy {@code /api/platform/admin} surface); this test intentionally exercises its still-live
+ * pagination helper. {@code forRemoval = true} raises the <em>removal</em> lint category (not
+ * <em>deprecation</em>) since Java 9, hence the class-level {@code @SuppressWarnings("removal")}.</p>
  */
-@SuppressWarnings("deprecation")
+@SuppressWarnings("removal")
 class AdminControllerPaginationTest {
 
     @Test
