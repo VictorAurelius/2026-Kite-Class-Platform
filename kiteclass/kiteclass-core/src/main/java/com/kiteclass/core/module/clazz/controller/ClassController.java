@@ -40,6 +40,23 @@ import java.util.List;
  *   <li>/api/v1/classes/{classId}/** — class operations</li>
  * </ul>
  *
+ * <p><strong>OWASP A01 authz classification (GAP-837):</strong>
+ * <ul>
+ *   <li><strong>OWNED → {@code @authz.hasAccessToClass(#classId)}:</strong>
+ *       updateClass, deleteClass, startClass, completeClass, cancelClass,
+ *       rescheduleClass, generateClassCode, createSchedule, generateFromRecurrence
+ *       — mutating / lifecycle ops restricted to class teacher (or platform admin)</li>
+ *   <li><strong>SHARED READ → tenant-filter only:</strong> getClass, listClasses,
+ *       listSessions — readable by any authenticated tenant member (students enrolled,
+ *       parents linked, teachers reviewing course catalog). Tightening would block
+ *       student/parent flows that legitimately read class info.</li>
+ *   <li><strong>CREATE → tenant-filter + service-side teacher binding:</strong>
+ *       createClass(courseId) — any tenant member with course-scoped permission may
+ *       create; service sets {@code classes.teacher_id = X-User-Id} so subsequent
+ *       OWNED ops correctly attribute ownership. Tighter course-ownership guard
+ *       deferred (would require {@code hasAccessToCourse} helper, GAP-837 follow-up).</li>
+ * </ul>
+ *
  * @author KiteClass Team
  * @since 2.5.0
  */
@@ -109,11 +126,17 @@ public class ClassController {
     /**
      * Updates a class.
      *
+     * <p><strong>OWASP A01 per-resource guard (GAP-837):</strong> mutating a
+     * class is an OWNED operation — only the class's teacher (or platform admin)
+     * may update. Tenant filter alone would let a teacher in tenant A modify a
+     * class owned by another teacher within the same tenant.
+     *
      * @param classId class ID
      * @param request fields to update
      * @return 200 OK with updated class
      */
     @PatchMapping("/api/v1/classes/{classId}")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<ClassResponse>> updateClass(
             @PathVariable Long classId,
             @Valid @RequestBody UpdateClassRequest request) {
@@ -129,6 +152,7 @@ public class ClassController {
      * @return 204 No Content
      */
     @DeleteMapping("/api/v1/classes/{classId}")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<Void> deleteClass(@PathVariable Long classId) {
         log.debug("DELETE /api/v1/classes/{}", classId);
         classService.deleteClass(classId);
@@ -146,6 +170,7 @@ public class ClassController {
      * @return 200 OK with updated class
      */
     @PostMapping("/api/v1/classes/{classId}/start")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<ClassResponse>> startClass(
             @PathVariable Long classId) {
         log.debug("POST /api/v1/classes/{}/start", classId);
@@ -160,6 +185,7 @@ public class ClassController {
      * @return 200 OK with updated class
      */
     @PostMapping("/api/v1/classes/{classId}/complete")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<ClassResponse>> completeClass(
             @PathVariable Long classId) {
         log.debug("POST /api/v1/classes/{}/complete", classId);
@@ -175,6 +201,7 @@ public class ClassController {
      * @return 200 OK with updated class
      */
     @PostMapping("/api/v1/classes/{classId}/cancel")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<ClassResponse>> cancelClass(
             @PathVariable Long classId,
             @Valid @RequestBody CancelClassRequest request) {
@@ -216,6 +243,7 @@ public class ClassController {
      * @return 200 OK with code response
      */
     @PostMapping("/api/v1/classes/{classId}/generate-code")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<ClassCodeResponse>> generateClassCode(
             @PathVariable Long classId,
             @Valid @RequestBody GenerateClassCodeRequest request) {
@@ -236,6 +264,7 @@ public class ClassController {
      * @return 201 Created with generated sessions
      */
     @PostMapping("/api/v1/classes/{classId}/schedule")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<List<ClassSessionResponse>>> createSchedule(
             @PathVariable Long classId,
             @Valid @RequestBody CreateScheduleRequest request) {
@@ -272,6 +301,7 @@ public class ClassController {
      * @since GAP-290 Wave 18a
      */
     @PostMapping("/api/v1/classes/{classId}/sessions/generate-from-recurrence")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<List<ClassSessionResponse>>> generateFromRecurrence(
             @PathVariable Long classId,
             @Valid @RequestBody RecurrenceRuleDto rule) {

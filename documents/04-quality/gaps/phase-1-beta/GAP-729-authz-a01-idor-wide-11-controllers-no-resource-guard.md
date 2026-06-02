@@ -1,6 +1,6 @@
 # GAP-729: 11/19 controllers no per-resource authz guard — A01 OWASP IDOR wide
 
-**Status:** 🟡 PARTIAL (40% — 2 OWNED class-scoped sites fixed; remainder → GAP-837)
+**Status:** 🟡 PARTIAL (90% — 15 OWNED sites fixed across 3 controllers; residual `EnrollmentController.getEnrollmentsByStudent(studentId)` tracked GAP-837)
 **Priority:** 🟠 P1
 **Domain:** Backend (kiteclass-core)
 **Detected:** 2026-05-24 (Wave beta-readiness-1 Bucket D audit, PR #1763)
@@ -92,6 +92,8 @@ Cross-reference V2 audit `failure-mode-matrix-v2-state-checked.md` A5 partial fi
 Verifies `@authz.hasAccessToClass(#classId)` actually enforces ownership end-to-end (HTTP layer → method-security AOP → AuthorizationBean native query → DB), not just compiles.
 
 ## Log
+
+- **2026-06-02** (Wave local-doable-5 Bucket C) — extended sweep via GAP-837. 13 more OWNED sites guarded: ClassController 8 (update/delete/start/complete/cancel/generateCode/createSchedule/generateFromRecurrence), AssignmentController 2 (getAssignmentsByClass + getPendingGradingByClass), EnrollmentController 3 id-scoped (getEnrollment + updateEnrollmentStatus + withdrawStudent) + new `@authz.hasAccessToEnrollment(Long)` helper. 6 new IT A01-U07..U12 — 12/12 PASS Testcontainers. Total sites guarded under this gap+GAP-837: 15. Residual: `getEnrollmentsByStudent(studentId)` (P2, needs `hasAccessToStudent` helper). Status 40% → 90%.
 
 - **2026-06-02** — PARTIAL closure (local-doable gap campaign). State-check found most named controllers already guarded since filing (GAP-727 wave). Fixed 2 OWNED class-scoped IDOR sites using existing `@authz.hasAccessToClass` helper (no new infra): `EnrollmentController.getEnrollmentsByClass` + `AttendanceController.getClassStats`. Added IT A01-U05/U06 to `CrossUserAuthzTest` (non-owner 403 + owner 200) — 6/6 PASS on Testcontainers. Cross-flow sweep per `cross-flow-bug-class-sweep.md` §3 surfaced ~14 remaining class-scoped + id-resolution endpoints (ClassController 10, Assignment 3, Enrollment id-resolution 4) → filed GAP-837. Status OPEN→PARTIAL (40%). branch `feature/GAP-729-controller-authz-guards`.
 

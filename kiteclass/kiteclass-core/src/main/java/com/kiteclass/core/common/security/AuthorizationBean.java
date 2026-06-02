@@ -136,6 +136,50 @@ public class AuthorizationBean {
     }
 
     /**
+     * Check if the current authenticated user owns the class to which the given
+     * enrollment belongs, OR is a platform admin.
+     *
+     * <p>Resolves the enrollment row → its {@code classId} → delegates to
+     * {@link #hasAccessToClass(Long)} (which checks {@code classes.teacher_id} ==
+     * actor UUID). Wave local-doable-5 Bucket C (GAP-837) introduces this helper
+     * to guard id-scoped enrollment endpoints (GET / PUT / withdraw) without
+     * duplicating ownership logic.
+     *
+     * <p>Returns {@code false} when enrollment row not found (soft-deleted /
+     * cross-tenant) — TenantFilterInterceptor already enforces tenant scope on
+     * the lookup native query.
+     *
+     * @param enrollmentId target enrollment ID
+     * @return true if user owns the class the enrollment belongs to OR is admin
+     */
+    public boolean hasAccessToEnrollment(Long enrollmentId) {
+        if (enrollmentId == null) {
+            return false;
+        }
+        if (isAdmin()) {
+            return true;
+        }
+        // Resolve enrollment → classId. enrollments table has tenant_id; native
+        // query is read-only and uses parameterized binding (no injection).
+        Object classIdObj;
+        try {
+            classIdObj = entityManager.createNativeQuery(
+                    "SELECT class_id FROM enrollments WHERE id = :enrollmentId AND deleted = false")
+                    .setParameter("enrollmentId", enrollmentId)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException ex) {
+            log.warn("authz.hasAccessToEnrollment: deny — enrollment {} not found (or soft-deleted)",
+                    enrollmentId);
+            return false;
+        }
+        if (classIdObj == null) {
+            return false;
+        }
+        Long classId = ((Number) classIdObj).longValue();
+        return hasAccessToClass(classId);
+    }
+
+    /**
      * Check Spring Security context for admin role (bypass).
      *
      * @return true if current authentication holds {@code ROLE_PLATFORM_ADMIN}

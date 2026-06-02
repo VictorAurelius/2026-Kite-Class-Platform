@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +27,22 @@ import java.util.List;
 
 /**
  * REST controller for Assignment operations.
+ *
+ * <p><strong>OWASP A01 authz classification (GAP-837):</strong>
+ * <ul>
+ *   <li><strong>OWNED → {@code @authz.hasAccessToClass(#classId)}:</strong>
+ *       {@code getAssignmentsByClass} (teacher view of full assignment list incl.
+ *       drafts), {@code getPendingGradingByClass} (teacher grading queue)</li>
+ *   <li><strong>SHARED (student-visible) → tenant-filter only:</strong>
+ *       {@code getPublishedAssignmentsByClass} — by design exposed to enrolled
+ *       students (only published items, not drafts). Tightening to teacher-only
+ *       would block intended student access pattern.</li>
+ *   <li><strong>id-scoped, deferred:</strong> create / update / publish / close /
+ *       delete / grade / submission ops use {@code X-Teacher-Id} header for
+ *       service-layer ownership check (legacy pre-UUID pattern). Migrating these
+ *       to {@code hasAccessToAssignment(#id)} requires new authz helper resolving
+ *       assignment → classId → teacher, tracked as GAP-837 follow-up.</li>
+ * </ul>
  *
  * @author KiteClass Team
  * @since 2.7.1
@@ -112,9 +129,14 @@ public class AssignmentController {
     }
 
     /**
-     * Get all assignments for a class.
+     * Get all assignments for a class (teacher view — includes drafts).
+     *
+     * <p>OWASP A01 per-resource guard (GAP-837): OWNED, teacher-only. The
+     * published variant {@link #getPublishedAssignmentsByClass(Long)} is the
+     * student-facing alternative (SHARED, tenant-filter only).
      */
     @GetMapping("/class/{classId}")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<List<AssignmentResponse>>> getAssignmentsByClass(
             @PathVariable Long classId) {
 
@@ -217,9 +239,12 @@ public class AssignmentController {
     }
 
     /**
-     * Get pending grading submissions for a class.
+     * Get pending grading submissions for a class (teacher view).
+     *
+     * <p>OWASP A01 per-resource guard (GAP-837): OWNED, teacher-only.
      */
     @GetMapping("/class/{classId}/pending-grading")
+    @PreAuthorize("@authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<List<SubmissionResponse>>> getPendingGradingByClass(
             @PathVariable Long classId) {
 
