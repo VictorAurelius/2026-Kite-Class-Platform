@@ -70,10 +70,10 @@ context_end_pct: 86%
 
 ### Wave 10 còn 3 buckets pending
 
-- **C** GAP-530 Email-driven flow live verify (extends Wave 7 A; MailHog dep)
+- **C** GAP-530 Email-driven flow live verify (5/5 MailHog local verify ĐÃ DONE Wave rst-cascade-1 + Wave 7 A GAP-543; remaining = **production Resend warm-up + 5-type live verify on production**, depends GAP-533 Day 5+ warm-up — **operator-action, không phải agent-spawn work**; defer ops queue khi AWS stack restart)
 - **D** GAP-823 Phase 3 META detector + Wave 77 sweep (depends Wave 9 B already merged)
 - **E** GAP-867 Phase 2 Resilience4j wiring (depends Wave 9 C already merged)
-- Wave 10 closure PR (blocked by C/D/E)
+- Wave 10 closure PR (blocked by D/E completion; C reclassified ops-queue)
 
 ### Wave 11 plan locked, agents pending spawn
 
