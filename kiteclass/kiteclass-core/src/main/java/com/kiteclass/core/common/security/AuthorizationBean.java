@@ -180,6 +180,63 @@ public class AuthorizationBean {
     }
 
     /**
+     * Check if the current authenticated user owns at least one class the given
+     * student is enrolled in, OR is a platform admin.
+     *
+     * <p>A student may be enrolled in multiple classes taught by different
+     * teachers; access to the student's enrollment list (e.g.,
+     * {@code GET /api/v1/enrollments/student/{studentId}}) is granted when the
+     * actor teaches at least one of those classes. Wave local-doable-6 Bucket G
+     * (GAP-729 / GAP-837 residual) introduces this helper to close the last
+     * id-resolution endpoint without inferring student-level ownership through
+     * the parent module (parent-child uses a separate
+     * {@link #hasAccessToChild(Long)} check).
+     *
+     * <p>Query: native JOIN of {@code enrollments} → {@code classes} filtering
+     * by {@code student_id}, soft-delete flags, and
+     * {@code classes.teacher_id = actor UUID} — same teacher_id semantics as
+     * {@link #hasAccessToClass(Long)} (V73, GAP-795 UUID actor). Returns
+     * {@code false} when student has no enrollments OR no enrollment maps to a
+     * class owned by the actor.
+     *
+     * @param studentId target student ID
+     * @return true if admin OR actor teaches at least one class the student
+     *         is enrolled in; false otherwise
+     */
+    public boolean hasAccessToStudent(Long studentId) {
+        if (studentId == null) {
+            return false;
+        }
+        if (isAdmin()) {
+            return true;
+        }
+        UUID userId = UserContext.getCurrentUser();
+        if (userId == null) {
+            log.debug("authz.hasAccessToStudent: deny — no user context (studentId={})", studentId);
+            return false;
+        }
+        // Native query joins enrollments → classes; teacher_id on classes carries the
+        // actor X-User-Id UUID (V73, GAP-795). Soft-delete flags filter both tables.
+        // Parameterized binding (no injection); read-only.
+        Object count = entityManager.createNativeQuery(
+                "SELECT COUNT(*) FROM enrollments e " +
+                        "JOIN classes c ON c.id = e.class_id " +
+                        "WHERE e.student_id = :studentId " +
+                        "AND e.deleted = false " +
+                        "AND c.deleted = false " +
+                        "AND c.teacher_id = :userId")
+                .setParameter("studentId", studentId)
+                .setParameter("userId", userId)
+                .getSingleResult();
+        boolean owns = ((Number) count).longValue() > 0;
+        if (!owns) {
+            log.warn("authz.hasAccessToStudent: deny — user {} does not teach any class containing student {}",
+                    userId, studentId);
+        }
+        return owns;
+    }
+
+    /**
      * Check Spring Security context for admin role (bypass).
      *
      * @return true if current authentication holds {@code ROLE_PLATFORM_ADMIN}

@@ -213,12 +213,19 @@ public class EnrollmentController {
     /**
      * Get all enrollments for a student.
      *
+     * <p><strong>OWASP A01 per-resource guard (GAP-729 / GAP-837 residual,
+     * Wave local-doable-6 Bucket G):</strong> id-scoped OWNED — resolves
+     * student → enrollment.class set → checks that the actor teaches at least
+     * one of those classes via {@code @authz.hasAccessToStudent}. Tenant filter
+     * alone would expose cross-teacher enrollment lists within the same tenant.
+     *
      * @param studentId student ID
      * @param pageable pagination parameters
      * @return page of enrollments
      */
     @GetMapping("/student/{studentId}")
     @Operation(summary = "Get all enrollments for a student")
+    @PreAuthorize("@authz.hasAccessToStudent(#studentId)")
     public ResponseEntity<ApiResponse<Page<EnrollmentResponse>>> getEnrollmentsByStudent(
             @Parameter(description = "Student ID") @PathVariable Long studentId,
             @PageableDefault(sort = "enrollmentDate", direction = Sort.Direction.DESC)
