@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class EmailIdempotencyGuardRedisIT {
 
     @Container
+    @SuppressWarnings("resource") // lifecycle managed by Testcontainers via @Container
     static final GenericContainer<?> REDIS = new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
             .withExposedPorts(6379);
 
@@ -81,6 +82,7 @@ class EmailIdempotencyGuardRedisIT {
 
     @Test
     @DisplayName("Redis outage → guard fails open (Caffeine fallback path) — never drops a legit send")
+    @SuppressWarnings("deprecation") // setShutdownTimeout(long) deprecated in favor of LettuceClientConfiguration builder; over-engineered for test simulating outage
     void redisOutageFailsOpen() {
         // Build a connection factory pointing at a closed port so every Redis op throws.
         LettuceConnectionFactory broken = new LettuceConnectionFactory("localhost", 1);
