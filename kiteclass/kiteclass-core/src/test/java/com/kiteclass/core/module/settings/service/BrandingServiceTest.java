@@ -1,7 +1,11 @@
 package com.kiteclass.core.module.settings.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.module.branding.entity.ResourceType;
+import com.kiteclass.core.module.marketing.config.LandingPageSafetyProperties;
+import com.kiteclass.core.module.marketing.service.LandingPageContentSanitizer;
+import com.kiteclass.core.module.marketing.service.impl.LandingPageContentSanitizerImpl;
 import com.kiteclass.core.module.settings.dto.request.UpdateBrandingRequest;
 import com.kiteclass.core.module.settings.dto.response.BrandingResponse;
 import com.kiteclass.core.module.settings.entity.Branding;
@@ -55,10 +59,15 @@ class BrandingServiceTest {
     void setUp() {
         testInstanceId = UUID.randomUUID();
         TenantContext.setCurrentTenant(testInstanceId);
+        // Real content sanitizer (GAP-829) — no DB needed; only ObjectMapper +
+        // properties. Identity for clean text (existing tests unaffected) but lets
+        // shouldSanitizeFreeTextAndPreserveVnDiacritics verify the write-path wiring.
+        LandingPageContentSanitizer contentSanitizer =
+                new LandingPageContentSanitizerImpl(new ObjectMapper(), new LandingPageSafetyProperties());
         // Pass nulls for branding event publisher and version service —
         // they're optional and unrelated to the behavior under test.
         brandingService = new BrandingServiceImpl(
-                brandingRepository, brandingMapper, null, null, brandingAssetStorage);
+                brandingRepository, brandingMapper, null, null, brandingAssetStorage, contentSanitizer);
     }
 
     @AfterEach
@@ -141,6 +150,39 @@ class BrandingServiceTest {
         assertThat(result.getDisplayName()).isEqualTo("Updated Center");
         verify(brandingMapper).updateFromRequest(request, existingBranding);
         verify(brandingRepository).save(existingBranding);
+    }
+
+    @Test
+    @DisplayName("Should sanitize free-text on write and preserve Vietnamese diacritics (GAP-829)")
+    void shouldSanitizeFreeTextAndPreserveVnDiacritics() {
+        // Given — tenant free-text with HTML/script markup + Vietnamese diacritics.
+        // brandingMapper.updateFromRequest is mocked (no-op) so these entity values are
+        // what the write-path sanitizer (GAP-829) operates on.
+        Branding existingBranding = BrandingTestDataBuilder.createDefaultBranding(testInstanceId);
+        existingBranding.setDisplayName("Trần Thị Hồng <b>Sky</b>");
+        existingBranding.setTagline("Học tiếng Anh <script>alert(1)</script> chất lượng");
+        existingBranding.setAddress("123 Lê Lợi <img src=x onerror=alert(1)> Q.1");
+
+        UpdateBrandingRequest request = UpdateBrandingRequest.builder()
+                .displayName("Trần Thị Hồng <b>Sky</b>")
+                .build();
+
+        when(brandingRepository.findByInstanceIdAndDeletedFalse(testInstanceId))
+                .thenReturn(Optional.of(existingBranding));
+        when(brandingRepository.save(any(Branding.class))).thenReturn(existingBranding);
+        when(brandingMapper.toResponse(existingBranding))
+                .thenReturn(BrandingResponse.builder().build());
+
+        // When — sanitize mutates the entity in place before save
+        brandingService.updateBranding(request);
+
+        // Then — markup stripped, VN diacritics preserved (NFC)
+        assertThat(existingBranding.getDisplayName()).doesNotContain("<", ">");
+        assertThat(existingBranding.getDisplayName()).contains("Trần Thị Hồng").contains("Sky");
+        assertThat(existingBranding.getTagline()).doesNotContain("<script", "</script");
+        assertThat(existingBranding.getTagline()).contains("Học tiếng Anh").contains("chất lượng");
+        assertThat(existingBranding.getAddress()).doesNotContain("<img", "onerror");
+        assertThat(existingBranding.getAddress()).contains("123 Lê Lợi").contains("Q.1");
     }
 
     @Test

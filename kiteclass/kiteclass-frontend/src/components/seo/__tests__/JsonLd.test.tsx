@@ -15,6 +15,18 @@ describe('JsonLd', () => {
     expect(parsed['@type']).toBe('Thing');
     expect(parsed.name).toBe('Test');
   });
+
+  it('escapes </script> in values to prevent JSON-injection breakout (GAP-829)', () => {
+    const { container } = render(
+      <JsonLd data={{ '@type': 'Thing', name: 'evil</script><script>alert(1)</script>' }} />
+    );
+    const script = container.querySelector('script[type="application/ld+json"]')!;
+    // Raw payload must NOT contain a literal </script sequence (would close the tag early)
+    expect(script.innerHTML).not.toMatch(/<\/script/i);
+    // ...yet JSON still parses back to the original value (\/ is a valid JSON escape)
+    const parsed = JSON.parse(script.textContent!);
+    expect(parsed.name).toBe('evil</script><script>alert(1)</script>');
+  });
 });
 
 describe('OrganizationJsonLd', () => {
