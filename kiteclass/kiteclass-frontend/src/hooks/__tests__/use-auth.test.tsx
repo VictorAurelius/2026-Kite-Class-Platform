@@ -81,31 +81,37 @@ describe('useAuth', () => {
     expect(typeof result.current.resetPassword).toBe('function');
   });
 
+  // [SKIP: flaky pending-state timing in jsdom — login pending tested manually]
   it.skip('should set isLoggingIn to true when login is pending', async () => {
     // This test is flaky due to timing issues in test environment
     // Skipping for now - pending state tested manually
   });
 
+  // [SKIP: toast/router mocking complexity in jsdom — login success tested manually]
   it.skip('should handle login success and update auth state', async () => {
     // This test is complex due to toast/router mocking
     // Skipping for now - login functionality tested manually
   });
 
+  // [SKIP: toast mocking complexity in jsdom — login error handling tested manually]
   it.skip('should handle login error', async () => {
     // This test is complex due to toast mocking
     // Skipping for now - error handling tested manually
   });
 
+  // [SKIP: localStorage + router + toast mocking complexity in jsdom — logout tested manually]
   it.skip('should handle logout and clear auth state', async () => {
     // This test is complex due to localStorage + router + toast
     // Skipping for now - logout tested manually
   });
 
+  // [SKIP: toast mocking complexity in jsdom — forgotPassword tested manually]
   it.skip('should handle forgotPassword success', async () => {
     // This test is complex due to toast mocking
     // Skipping for now - forgot password tested manually
   });
 
+  // [SKIP: toast + router mocking complexity in jsdom — resetPassword tested manually]
   it.skip('should handle resetPassword success', async () => {
     // This test is complex due to toast + router mocking
     // Skipping for now - reset password tested manually

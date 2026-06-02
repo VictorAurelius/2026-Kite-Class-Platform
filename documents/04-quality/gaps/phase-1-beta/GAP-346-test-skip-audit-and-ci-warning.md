@@ -1,6 +1,6 @@
 # GAP-346: Test Skip Audit — kiteclass-frontend 26.7% Skip Ratio + CI Warning Mechanism
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — CI WARN mechanism + silent-skip docs shipped (Wave local-doable-12 Bucket C); bulk un-skip deferred → GAP-873
 **Priority:** 🟠 P1 — quality debt with hidden coverage erosion
 **Domain:** Frontend Testing + CI Quality Gates
 **Detected:** 2026-05-04 (user flag during Wave 18a CI review — 11/11 skip in `teacher-edit.integration.test.tsx`)
@@ -213,4 +213,10 @@ For tests genuinely impossible in unit layer, ensure Playwright E2E covers the g
 
 ## Log
 
+- **2026-06-02** — Wave local-doable-12 Bucket C: shipped Phase 1 CI WARN mechanism (bounded, safe) + documented silent skips. Status OPEN → 🟡 PARTIAL (completion ~50%).
+  - **CI skip-ratio script:** `scripts/check-test-skip-ratio.sh` — counts `.skip(` call-sites per frontend project, computes call-site skip ratio = skip / (active + skip), 3 bands (>5% WARN / >15% HIGH-WARN / ≤5% OK). WARN-mode (always exit 0). `--self-test` (4 synthetic fixtures PASS) + `--json` modes. shellcheck clean (via npx). Real-repo: kiteclass-frontend skip=77 active=933 ratio=7% WARN; kitehub-frontend 0% OK. (Call-site ratio < vitest 26.7% test-level because `describe.skip` blocks under-count statically — documented in script header.)
+  - **CI wired:** `quality-code.yml` job `test-skip-ratio` (WARN-mode + self-test step) + path triggers for `*.test.tsx`/`*.spec.tsx` in both frontends.
+  - **Silent skips documented:** added `// [SKIP: <reason>]` markers to all 13 hook-level silent skips (use-auth 6 login-flow + use-teachers/students/courses update + use-classes update/generate/schedule). Comment-only — skip count unchanged (verified). useFeatureDetection already had inline SKIP marker.
+  - **Bulk un-skip DEFERRED** → **GAP-873** (Next.js-15 `use(params)` describe.skip migration + jsdom limitation conversion — ~145 of 206 skipped tests in 14 describe.skip integration suites). Per `incident-to-rule-pipeline.md` WARN-first premature-rule guard; HARD STOP flip only after backlog clear.
+  - AC Phase 1 partially met: skip-budget script (1.1) ✅ via skip-ratio WARN; `[SKIP: reason]` documentation (1.2) ✅ for hook silent skips; PR comment diff (1.3) deferred. Phases 2-5 (bulk un-skip) → GAP-873.
 - **2026-05-04** — Filed during Wave 18a CI review. User flagged 11/11 skip on `teacher-edit.integration.test.tsx`. Comprehensive audit found 26.7% skip ratio in kiteclass-frontend, 0% in kitehub-frontend, 0% in Java. Phase 1 CI warning mechanism is force-multiplier — prevents recurrence + catches existing silent skips at PR time. Per `meta-gap-priority.md` Meta-tier (CI workflow) ranks above Feature-tier.

@@ -127,6 +127,7 @@ describe('useCourses Hooks', () => {
   });
 
   describe('useUpdateCourse (mutation)', () => {
+    // [SKIP: React Query mutation success timing flaky in jsdom — update flow tested via E2E]
     it.skip('should update course successfully', async () => {
       const { result } = renderHook(() => useUpdateCourse(1), {
         wrapper: AllTheProviders,

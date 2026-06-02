@@ -146,6 +146,7 @@ describe('useClasses Hooks', () => {
   });
 
   describe('useUpdateClass (mutation)', () => {
+    // [SKIP: React Query mutation success timing flaky in jsdom — update flow tested via E2E]
     it.skip('should update class successfully', async () => {
       const { result } = renderHook(() => useUpdateClass(1), {
         wrapper: AllTheProviders,
@@ -241,6 +242,7 @@ describe('useClasses Hooks', () => {
   });
 
   describe('useGenerateClassCode', () => {
+    // [SKIP: React Query mutation success timing flaky in jsdom — generate-code flow tested via E2E]
     it.skip('should generate class code successfully', async () => {
       const { result } = renderHook(() => useGenerateClassCode(), {
         wrapper: AllTheProviders,
@@ -255,6 +257,7 @@ describe('useClasses Hooks', () => {
   });
 
   describe('useCreateSchedule', () => {
+    // [SKIP: React Query mutation success timing flaky in jsdom — schedule-create flow tested via E2E]
     it.skip('should create schedule and sessions successfully', async () => {
       const { result } = renderHook(() => useCreateSchedule(), {
         wrapper: AllTheProviders,

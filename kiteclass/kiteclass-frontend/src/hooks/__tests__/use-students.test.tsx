@@ -120,6 +120,7 @@ describe('useStudents Hooks', () => {
   });
 
   describe('useUpdateStudent (mutation)', () => {
+    // [SKIP: React Query mutation success timing flaky in jsdom — update flow tested via E2E]
     it.skip('should update student successfully', async () => {
       const { result } = renderHook(() => useUpdateStudent(1), {
         wrapper: AllTheProviders,
