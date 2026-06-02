@@ -1,0 +1,33 @@
+{
+  "pr": 2093,
+  "title": "feat(wave-local-doable-11-bucket-a): file GAP-063 \u2014 Zalo OA + SMS notification infra",
+  "branch": "feature/wave-local-doable-11-bucket-a-gap-063-file",
+  "created_at": null,
+  "merged_at": "2026-06-02T10:25:32Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-06-02T10:25:37.843033",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 3,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1246449"
+  }
+}

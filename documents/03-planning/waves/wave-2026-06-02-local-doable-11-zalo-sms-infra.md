@@ -1,10 +1,14 @@
 ---
 title: Wave local-doable-11 — Zalo/SMS infra (GAP-063 unblock) + META rules consolidation
-status: draft
+status: complete
 created: 2026-06-02
 updated: 2026-06-02
+completed_at: 2026-06-02
+tag_primary: local-doable
+tags_secondary: [phase-1-beta, non-aws, zalo-sms-infra, meta]
+counter: 11
 waves: [local-doable-11]
-gaps: [GAP-063, GAP-NEW-zalo-oa-scaffold, GAP-NEW-sms-provider-eval, GAP-868, GAP-NEW-rules-index-sync]
+gaps: [GAP-063, GAP-868]
 ---
 
 # Wave local-doable-11 — Zalo/SMS infra unblock + META rules consolidation
@@ -164,3 +168,37 @@ Per `gap-done-discipline.md` + `wave-closure-scope-completeness.md` + `post-merg
 ## 8. Log
 
 - **2026-06-02** (draft): Plan created per user Q2 alternative pick "GAP-063 file + Zalo OA scaffold + SMS provider research (META)". Wave 11 outside-in persona simulation findings (PR #2085) integrated §1 Brainstorm Q1. 5 non-AWS buckets: 1 P0 gap file + 2 P1 scaffold/research + 2 P1 META. Staggered 2+2+1 spawn. Outside-in audit DONE pre-lock per `outside-in-coverage-trigger.md` §1 (NOT skip — explicit run + findings drive scope pivot from features → infra).
+- **2026-06-02** (complete): All 5 buckets shipped 5 PRs. Wall-clock ~4h actual (vs ~3-4h estimate). Staggered 2+2+1 spawn pattern executed: Batch 1 (A+B initial spawn killed mid-flight due to coordinator miss reading locked plan — see §9 Misses; salvaged Bucket B from worktree, re-spawn Bucket A) → Batch 2 (C+D parallel) → Batch 3 (E solo). State-check wins: Bucket A (GAP-063 already existed P1 PARTIAL Wave 18a EMAIL shipped — rename + re-scope in place P0 + 3-phase); Bucket D (end-session skill v1.1.0 already shipped — filed GAP-868 PARTIAL 20% + TODO markers for Wave 12+ extensions). Closure PR (this commit) flips status + appends wave-history per `wave-tag-numbering-convention.md` v1.0.0 + reconciliation table per `wave-closure-scope-completeness.md` §3.
+
+---
+
+## 9. Closure Reconciliation (per `wave-closure-scope-completeness.md` §3)
+
+### 9.1 Scope-Completeness Reconciliation Table
+
+| # | Plan §3 Scope item | PR | Verdict | Follow-up |
+|---|---|---|---|---|
+| 1 | Bucket A — GAP-063 file (Zalo OA + SMS notification infra) | #2093 | ✅ DONE (rescope + 3-phase) | GAP-063 Phase 2 live integration Wave 12+ |
+| 2 | Bucket B — Zalo OA token scaffold (Java mock + IT + config) | #2094 | ✅ DONE | Live Zalo OA verification requires verified business account — Wave 12+ |
+| 3 | Bucket C — SMS provider eval research | #2095 | ✅ DONE (Stringee primary recommendation) | Wave 12+ provider lock decision + PoC |
+| 4 | Bucket D — GAP-868 file + end-session skill scaffold | #2096 | 🟡 PARTIAL (gap filed + TODO markers; full extensions defer) | GAP-868 Phase 2/3 Wave 12+ |
+| 5 | Bucket E — Rules index sync script + CI wire | #2097 | ✅ DONE (WARN mode) | HARD STOP flip Wave 12+ per `incident-to-rule-pipeline.md` §3.1 |
+
+**Aggregate:** 4 ✅ DONE + 1 🟡 PARTIAL (GAP-868 tracked) + 0 ❌ NOT-IMPLEMENTED.
+
+### 9.2 Gaps shipped/filed this wave
+
+- **DONE flips:** none Phase 1 only scaffold + research
+- **PARTIAL filed:** GAP-868 (20% — Phase 1 scaffold; full impl Wave 12+)
+- **PARTIAL extended:** GAP-063 (rescope P1→P0 + 3-phase; Phase 1 EMAIL preserved historical baseline + Zalo OA Phase 1 scaffold shipped this wave)
+- **NEW gaps filed:** 0 (GAP-063 + GAP-868 both pre-existing or scoped from plan)
+
+### 9.3 Cross-cutting closure misses (transparent log)
+
+1. **Coordinator wave-name collision (Batch 1 initial spawn):** Tôi spawn 3 agents `wave-local-doable-11-bucket-{d2,e2,f2}` cho GAP-867 Phase 2 — chưa đọc kỹ handoff doc nên miss locked plan `wave-2026-06-02-local-doable-11-zalo-sms-infra.md` đã ship qua PR #2087. Killed 3 agents mid-flight, re-spawn theo locked scope. Per `outside-in-coverage-trigger.md` §1 + `pre-mutation-state-check.md` §3 — coordinator should have run state-check on locked Wave 11 plan FIRST.
+2. **Bucket B agent killed prematurely:** Agent was self-correcting worktree contamination (writes leaked to main worktree during transition; agent moved files to worktree before kill). I observed stale `git status` snapshot during transition, killed prematurely. Manual salvage from worktree succeeded — mvn verify PASS 100 tests.
+3. **Hook false-positive PR #2092:** post-merge `audit-gate.py` flagged "missing ai-branding-quality-gate audit" because diff touched Gemini/OpenAI client files (filename keyword match). Actual change was getter additions + IT cleanup, zero AI behavior change. Override comment posted on PR.
+
+### 9.4 Cleanup per `post-wave-cleanup.md`
+
+Run `bash scripts/prune-merged-worktrees.sh --yes` post-closure — prune worktree husks + merged branches from this wave's 7 PRs + Wave 7-10 residual (~22+ husks expected).
