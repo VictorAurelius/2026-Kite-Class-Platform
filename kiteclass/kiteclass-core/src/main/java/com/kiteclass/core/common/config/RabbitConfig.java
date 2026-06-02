@@ -4,6 +4,7 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -54,6 +55,35 @@ public class RabbitConfig {
     @Bean
     public MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
+    }
+
+    /**
+     * Explicit {@link RabbitAdmin} bean for runtime queue/exchange/binding declaration.
+     *
+     * <p>Spring AMQP {@link Queue} {@code @Bean} declarations (see {@link #classRescheduledQueue()}
+     * and {@link #classRescheduledEmailQueue()} below) require a {@code RabbitAdmin} to actually
+     * declare those queues against the broker at startup. Spring Boot's
+     * {@code RabbitAutoConfiguration} normally provides one automatically, but explicit declaration:
+     *
+     * <ul>
+     *   <li>Guarantees autowire availability regardless of autoconfig conditions
+     *       (e.g., {@code spring.rabbitmq.dynamic=false} flag, conditional bean ordering)</li>
+     *   <li>Eliminates ambiguity when Spring needs to satisfy {@code AmqpAdmin} dependencies
+     *       in downstream beans (e.g., the implicit eager queue declarer)</li>
+     *   <li>Matches the explicit-config style used by sister kitehub services
+     *       (see {@code BacklogInspector} which autowires {@code AmqpAdmin})</li>
+     * </ul>
+     *
+     * <p>Closes GAP-866 — kc-core startup crashloop caused by missing {@code RabbitAdmin}
+     * autowire for the implicit eager queue declarer that Spring Boot creates when
+     * {@code @Bean Queue} declarations are present.
+     *
+     * @param connectionFactory RabbitMQ connection factory (auto-injected by Spring Boot)
+     * @return configured {@link RabbitAdmin}
+     */
+    @Bean
+    public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
+        return new RabbitAdmin(connectionFactory);
     }
 
     /**

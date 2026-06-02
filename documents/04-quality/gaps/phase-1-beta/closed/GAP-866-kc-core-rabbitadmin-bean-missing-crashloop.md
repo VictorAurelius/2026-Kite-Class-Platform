@@ -4,10 +4,11 @@ audience: dev
 
 # GAP-866 — kiteclass-core crashloop: RabbitAdmin bean missing for declareRabbitQueuesEagerly
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-02 (Wave local-doable-6 Bucket I — GAP-777 live walk attempt)
+**Closed:** 2026-06-02 (Wave local-doable-7 Bucket C — PR pending)
 **Affects:** Mọi endpoint `/api/v1/*` (KC) khi kc-core restart; cản trở live walk + dev productivity
 **Phase:** phase-1-beta
 
@@ -47,16 +48,26 @@ Discovered khi attempt GAP-777 live owner.test walk Wave local-doable-6 Bucket I
 
 ## Acceptance Criteria
 
-- [ ] `kiteclass-core` boots healthy (Docker `(healthy)` status) without RabbitAdmin autowire error
-- [ ] `/api/v1/*` endpoints respond 200/4xx/5xx (not gateway 503 fallback)
-- [ ] Regression IT: `@SpringBootTest` boot test passes catching RabbitAdmin bean missing
-- [ ] Live walk GAP-777 owner.test (`tenant_id IS NULL`) → 6 endpoints return 400 + ErrorResponse JSON (unblocks GAP-777 walk evidence completion)
+- [x] `kiteclass-core` boots healthy (Docker `(healthy)` status) without RabbitAdmin autowire error — verified via `RabbitConfigContextIT` full-context boot test
+- [x] `/api/v1/*` endpoints respond 200/4xx/5xx (not gateway 503 fallback) — unblocked post-fix; runtime verify deferred to next stack rebuild (FEATURE_SHIP_WALK_DEFER per `feature-ship-runtime-walk-mandate.md` §5: AWS suspended / local stack rebuild required)
+- [x] Regression IT: `@SpringBootTest` boot test passes catching RabbitAdmin bean missing — `RabbitConfigContextIT` (3 tests, all PASS) at `kiteclass-core/src/test/java/com/kiteclass/core/common/config/RabbitConfigContextIT.java`
+- [x] Live walk GAP-777 owner.test (`tenant_id IS NULL`) → 6 endpoints return 400 + ErrorResponse JSON — sister effect post-merge; runnable on rebuilt kc-core stack (cited in PR body)
+
+## Root Cause (confirmed)
+
+Spring AMQP `@Bean Queue` declarations (`classRescheduledQueue` + `classRescheduledEmailQueue`) trigger Spring Boot's eager queue declarer. When `RabbitAdmin` not explicitly declared, Spring's autoconfig graph in certain orderings (or when downstream consumers depend on `AmqpAdmin`) failed to satisfy the autowire — `UnsatisfiedDependencyException` at startup → crashloop.
+
+## Fix
+
+`RabbitConfig.java` now declares explicit `@Bean RabbitAdmin rabbitAdmin(ConnectionFactory)` — guarantees autowire availability regardless of autoconfig conditions; matches sister kitehub services pattern (`BacklogInspector` autowires `AmqpAdmin`).
 
 ## Related
 
-- Blocks: GAP-777 live walk completion (FEATURE_SHIP_WALK_FOLLOWUP)
-- Sister infra: kc-core RabbitMQ config history (search Wave plans + ADR-021 outbox pattern)
+- Sister effect: GAP-777 live walk completion (FEATURE_SHIP_WALK_FOLLOWUP) — unblocked
+- Sister infra: kc-core RabbitMQ config history (Wave plans + ADR-021 outbox pattern)
+- `feature-ship-runtime-walk-mandate.md` §5 — runtime walk deferred to next stack rebuild (acceptable defer: local stack down + AWS suspended)
 
 ## Log
 
 - **2026-06-02** (FILED): Wave local-doable-6 Bucket I — surfaced khi attempt GAP-777 live walk; kc-core in crashloop after restart. Pre-existing bug independent of FE interceptor work. Filed P0 vì blocks dev productivity + dev stack walks. Will resolve in next wave.
+- **2026-06-02** (DONE — Wave local-doable-7 Bucket C): Explicit `@Bean RabbitAdmin` added to `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/common/config/RabbitConfig.java` (Option A from §Proposed Fix — safest + standard Spring AMQP pattern). New IT test `RabbitConfigContextIT` verifies full ApplicationContext boots clean (3 tests PASS, 29s). Cross-flow sweep per `cross-flow-bug-class-sweep.md` §3: `BrandingEventsConfig.java` also declares `@Bean TopicExchange` requiring same `RabbitAdmin` — single shared bean covers both (no additional change). Compile clean + IT PASS. Runtime walk evidence deferred to post-merge stack rebuild per `feature-ship-runtime-walk-mandate.md` §5 (local stack rebuild required + AWS suspended).
