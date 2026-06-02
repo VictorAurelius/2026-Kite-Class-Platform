@@ -6,6 +6,8 @@
 > this document used numeric placeholders for illustration; all examples are
 > now aligned to the actual wire format (GAP-390-C).
 
+> **AI provider abstraction (ADR-038, 2026-06-02):** Tất cả endpoints `POST /api/platform/branding/ai/*` đều route qua `AIClient` interface (provider-agnostic) — NotificationChannel-style abstraction per `design-patterns.md` §3.10. Provider selection (Gemini Free Tier primary / OpenAI fallback) config-driven qua `ai.provider.primary` + `ai.provider.fallback`. Response shape vendor-neutral (no `GeminiResponse` / `OpenAIResponse` leak vào domain layer). Cost + latency + token usage emit qua Micrometer metrics per `documents/02-architecture/ai-external-observability-plan.md`. Khi cả 2 provider Circuit Breaker OPEN → fallback to template-only output per `ai-branding-guidelines.md` taxonomy.
+
 ## POST /api/platform/branding/ai/analyze-logo
 **Use case:** UC-AIB-01
 **Auth:** Bearer token
