@@ -1,0 +1,33 @@
+{
+  "pr": 2091,
+  "title": "docs(session-end): fix Wave 10 Bucket C dep claim \u2014 MailHog done, real dep = prod Resend",
+  "branch": "chore/wave-7-10-handoff-dep-fix",
+  "created_at": null,
+  "merged_at": "2026-06-02T10:23:47Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-06-02T10:23:54.608303",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 2,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1244230"
+  }
+}
