@@ -1,6 +1,6 @@
 # GAP-127: Frontend has zero code-splitting across 64 pages — bundles likely >300 KB
 
-**Status:** 🟡 PARTIAL (Wave 7-Perf + wave-beta-readiness-9: analyzer + extensive code-split + optimizePackageImports complete; only CI bundle-budget guardrail remains → GAP-236)
+**Status:** 🟢 DONE 2026-06-02 — Wave local-doable-7 Bucket B state-check (per `audit-to-gap-pipeline.md` §2.8 fix-time state-check): final AC #6 (CI bundle-budget guardrail) already SHIPPED via GAP-236 Sub-PR A 2026-04-26 (PR-level closure: `scripts/check-bundle-budget.mjs` at 250 KB threshold — tighter than original AC #6 wording 250 KB — both apps; wired both `frontend-ci.yml` line 76-79 + `kitehub-frontend-ci.yml` line 163-167; per-route override via `bundle-budget.json` + `BUNDLE_BUDGET_KB` env var). All 6 AC verified DONE; gap closure complete.
 **Priority:** 🔴 P0
 **Domain:** Frontend / Performance
 **Detected:** 2026-04-19 (performance baseline audit)
@@ -78,7 +78,7 @@ Every page module statically imports everything → marketing public landing shi
 - [x] Admin dashboard First Load JS < 300 KB (KiteHub `/dashboard` 181 kB, `/admin/instances` 202 kB; KiteClass `/students`/`/teachers` 251 kB — all < 300 KB)
 - [x] At least 5 routes use `dynamic()` for heavy components (20+ dynamic components/pages across both apps incl GAP-236 work)
 - [x] `modularizeImports` + `optimizePackageImports` configured (both apps; wave-beta-readiness-9 added missing `@tanstack/react-table` to KiteClass list)
-- [ ] CI check fails if any route exceeds 250 KB First Load JS  →  tracked GAP-236 (per-route bundle budget enforcement in CI)
+- [x] CI check fails if any route exceeds 250 KB First Load JS  →  ✅ SHIPPED via GAP-236 Sub-PR A 2026-04-26: `kitehub/kitehub-frontend/scripts/check-bundle-budget.mjs` + `kiteclass/kiteclass-frontend/scripts/check-bundle-budget.mjs` wired in `.github/workflows/frontend-ci.yml:76-79` + `.github/workflows/kitehub-frontend-ci.yml:163-167`; default 250 KB budget, per-route override via `bundle-budget.json` + `BUNDLE_BUDGET_KB` env var; 13 unit tests via `node --test`.
 
 ## Related
 
@@ -111,3 +111,4 @@ Every page module statically imports everything → marketing public landing shi
   5/6 AC verified DONE; only CI per-route bundle-budget guardrail remains (deferred → GAP-236).
   Stays 🟡 PARTIAL.
 - 2026-04-19 — Gap created from performance baseline audit
+- **2026-06-02 — Wave local-doable-7 Bucket B (PARTIAL → DONE):** Fix-time state-check per `audit-to-gap-pipeline.md` §2.8 + `gap-done-discipline.md` §2 verified: final AC #6 (CI bundle-budget guardrail) already SHIPPED via GAP-236 Sub-PR A 2026-04-26 PR #570 (predates this gap's current Status text). Wave local-doable-7 Bucket B plan asked for `scripts/check-bundle-budget.sh` at 300 KB WARN-mode in `quality-code.yml`; state-check found existing `kitehub/kitehub-frontend/scripts/check-bundle-budget.mjs` + `kiteclass/kiteclass-frontend/scripts/check-bundle-budget.mjs` at 250 KB HARD-FAIL — tighter threshold + already production-canonical. SUBSUMES GAP-236 (already DONE 2026-04-28). No new script needed — would duplicate existing canonical implementation. AC #6 checkbox flipped + Status DONE flip + git mv to `phase-1-beta/closed/`. Path post-archive: `documents/04-quality/gaps/phase-1-beta/closed/GAP-127-frontend-code-splitting-bundle-analyzer.md` per `gap-folder-organization.md` v2.0.0 §3.3 (DONE → phase-X/closed/ one-way archive).
