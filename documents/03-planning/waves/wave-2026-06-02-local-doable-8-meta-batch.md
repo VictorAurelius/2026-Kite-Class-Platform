@@ -1,8 +1,9 @@
 ---
 title: Wave local-doable-8 — META P0 batch + Wave 6 follow-up + gateway IDOR fix
-status: draft
+status: complete
 created: 2026-06-02
 updated: 2026-06-02
+completed_at: 2026-06-02
 waves: [local-doable-8]
 gaps: [GAP-823, GAP-788, GAP-622, GAP-867, GAP-814]
 ---
@@ -160,4 +161,19 @@ Per `gap-done-discipline.md` + `wave-closure-scope-completeness.md` + `post-merg
 
 ## 8. Log
 
-- **2026-06-02** (draft): Plan created. 3 META P0 + 1 Feature P0 PARTIAL + 1 Feature P1 follow-up. Staggered 2+2+1 spawn strategy to avoid Wave 7 rate-limit storm. Outside-in audit SKIP per `outside-in-coverage-trigger.md` §4 row 4 (META governance + bug fix tech-debt closure).
+- **2026-06-02** (draft): Plan created. 3 META P0 + 1 Feature P0 PARTIAL + 1 Feature P1 follow-up. Staggered 2+2+1 spawn strategy to avoid Wave 7 rate-limit storm. Outside-in audit SKIP per `outside-in-coverage-trigger.md` §4 row 4.
+- **2026-06-02** (complete): All 5 buckets shipped via 5 PRs (all docs-only auto-merged). Notable findings: Bucket E state-check win (IDOR fix already shipped Wave tenant-domain-1); Bucket C state-check correction (AWS GAP-612 actually RESOLVED 2026-05-26 + 24 P0 active not 27); Bucket A META rule shipped + Phase 1+2 code residual defer Wave meta-9.
+
+---
+
+## 9. Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` §3)
+
+| # | Plan §3 Scope item | PR | Verdict | Follow-up |
+|---|---|---|---|---|
+| 1 | Bucket A — GAP-823 P0 META instances table triad drift + trust-pass anti-pattern | #2072 ✅ merged | 🟡 PARTIAL 30% | META rule `instances-table-triad-discipline.md` v1.0.0 shipped + 8-site sweep (1 FIX-tracked V40, 7 EXEMPT). Phase 1+2 code residual (Instance.slug field + IT) defer Wave meta-9 |
+| 2 | Bucket B — GAP-788 P0 META Wave 80+ retro-walk batch | #2073 ✅ merged | ✅ DONE | 92-feature catalog (16 ✅ / 37 ⚠️ / 34 ❌); post-rule improvement trend confirmed (50% PARTIAL post-2026-05-28); 11 NO_EVIDENCE candidates queued Phase 2 BETA retro-walk batch |
+| 3 | Bucket C — GAP-622 P0 META pre-launch readiness consolidation | #2075 ✅ merged | ✅ DONE | Consolidation doc 8 sections + 2 Mermaid diagrams; state-check corrections: AWS GAP-612 RESOLVED 2026-05-26, 24 P0 active, PDPL 29d countdown, Quality 90/110 B+ PASS gate |
+| 4 | Bucket D — GAP-867 P1 AI external API ADR + observability | #2076 ✅ merged | 🟡 PARTIAL 40% | NEW ADR-038 (Gemini Free Tier primary + OpenAI fallback) + observability plan + api-contract update; implementation (AIClient impls + Resilience4j wiring + Micrometer metrics + k6 execution) defer future wave |
+| 5 | Bucket E — GAP-814 P0 75% gateway X-Tenant-Id strip IDOR | #2074 ✅ merged | 🟡 PARTIAL 75% | State-check win: IDOR fix actually shipped PR #1991 Wave tenant-domain-1 Bucket A 2026-06-01 (RemoveRequestHeader + TenantHeaderGuardFilter + 11 unit tests PASS); 3 AC unchecked → GAP-825 P1 follow-up; live verify gated GAP-612 |
+
+**Wave outcome:** 5/5 buckets shipped; 5/5 PRs merged; 2 gaps DONE (GAP-622/788) + 3 PARTIAL (GAP-823 30%, GAP-867 40%, GAP-814 75%). NEW artifacts: 1 META rule + 1 ADR + 1 consolidation doc + 1 audit batch + 1 observability plan. State-check wins surfaced AWS-unblocked status (correcting Wave 7+8 "AWS-blocked" filter assumption).
