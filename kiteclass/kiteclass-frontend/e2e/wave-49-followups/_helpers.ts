@@ -50,8 +50,10 @@ const PERSONA_PROFILES: Record<Persona, PersonaProfile> = {
 };
 
 /**
- * Inject auth tokens for the given persona by seeding localStorage at an
+ * Inject auth tokens for the given persona by seeding sessionStorage at an
  * about:blank document, then navigate to the persona's landing route.
+ *
+ * GAP-830: tokens + auth-storage moved to sessionStorage for per-tab isolation.
  */
 export async function loginAs(page: Page, persona: Persona): Promise<void> {
   const profile = PERSONA_PROFILES[persona];
@@ -60,9 +62,9 @@ export async function loginAs(page: Page, persona: Persona): Promise<void> {
   await page.goto('/login');
   await page.evaluate(
     ({ profile, token, tenant }) => {
-      localStorage.setItem('accessToken', token);
-      localStorage.setItem('refreshToken', 'mock-refresh-token');
-      localStorage.setItem('tenantId', tenant);
+      sessionStorage.setItem('accessToken', token);
+      sessionStorage.setItem('refreshToken', 'mock-refresh-token');
+      sessionStorage.setItem('tenantId', tenant);
       const authStore = {
         state: {
           user: {
@@ -79,7 +81,7 @@ export async function loginAs(page: Page, persona: Persona): Promise<void> {
         },
         version: 0,
       };
-      localStorage.setItem('auth-storage', JSON.stringify(authStore));
+      sessionStorage.setItem('auth-storage', JSON.stringify(authStore));
     },
     { profile, token: MOCK_TOKEN, tenant: MOCK_TENANT },
   );
