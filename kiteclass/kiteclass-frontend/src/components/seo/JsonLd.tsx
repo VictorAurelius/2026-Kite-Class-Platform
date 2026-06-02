@@ -9,16 +9,34 @@ interface JsonLdProps {
   data: Record<string, unknown>;
 }
 
+/**
+ * Escapes `</script>` (and `<!--`) in a JSON string so an injected tenant value
+ * cannot prematurely close the enclosing <script> tag (JSON-injection breakout).
+ *
+ * GAP-829: defense-in-depth match with kitehub-frontend JsonLd. Backend
+ * sanitize-on-write (LandingPageContentSanitizer / Branding write-path) strips
+ * markup at source; this FE-side escape is the second layer for the
+ * dangerouslySetInnerHTML render surface. JSON-LD is raw text inside
+ * <script type="application/ld+json">, so DOMPurify doesn't apply — the defense
+ * targets the `</script>` sequence specifically.
+ */
+function escapeScriptContent(raw: string): string {
+  return raw
+    .replace(/<\/script/gi, '<\\/script')
+    .replace(/<!--/g, '<\\!--');
+}
+
 export function JsonLd({ data }: JsonLdProps) {
+  const payload = escapeScriptContent(
+    JSON.stringify({
+      '@context': 'https://schema.org',
+      ...data,
+    }),
+  );
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify({
-          '@context': 'https://schema.org',
-          ...data,
-        }),
-      }}
+      dangerouslySetInnerHTML={{ __html: payload }}
     />
   );
 }

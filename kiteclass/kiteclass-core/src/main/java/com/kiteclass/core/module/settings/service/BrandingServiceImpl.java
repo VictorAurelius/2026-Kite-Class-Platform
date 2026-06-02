@@ -6,6 +6,7 @@ import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.branding.entity.ResourceType;
 import com.kiteclass.core.module.branding.events.BrandingEventPublisher;
 import com.kiteclass.core.module.branding.events.BrandingUpdatedEvent;
+import com.kiteclass.core.module.marketing.service.LandingPageContentSanitizer;
 import com.kiteclass.core.module.settings.dto.request.UpdateBrandingRequest;
 import com.kiteclass.core.module.settings.dto.response.BrandingResponse;
 import com.kiteclass.core.module.settings.entity.Branding;
@@ -52,18 +53,21 @@ public class BrandingServiceImpl implements BrandingService {
     private final BrandingEventPublisher brandingEventPublisher;
     private final BrandingVersionService brandingVersionService;
     private final BrandingAssetStorage brandingAssetStorage;
+    private final LandingPageContentSanitizer contentSanitizer;
 
     public BrandingServiceImpl(
             BrandingRepository brandingRepository,
             BrandingMapper brandingMapper,
             @Autowired(required = false) BrandingEventPublisher brandingEventPublisher,
             @Autowired(required = false) BrandingVersionService brandingVersionService,
-            @Autowired(required = false) BrandingAssetStorage brandingAssetStorage) {
+            @Autowired(required = false) BrandingAssetStorage brandingAssetStorage,
+            @Autowired(required = false) LandingPageContentSanitizer contentSanitizer) {
         this.brandingRepository = brandingRepository;
         this.brandingMapper = brandingMapper;
         this.brandingEventPublisher = brandingEventPublisher;
         this.brandingVersionService = brandingVersionService;
         this.brandingAssetStorage = brandingAssetStorage;
+        this.contentSanitizer = contentSanitizer;
     }
 
     /**
@@ -120,6 +124,17 @@ public class BrandingServiceImpl implements BrandingService {
 
         // Update fields from request (PATCH semantics)
         brandingMapper.updateFromRequest(request, branding);
+
+        // GAP-829: sanitize tenant free-text on write (defense-in-depth). Branding
+        // displayName/tagline get copied into LandingPage hero on seed-from-branding,
+        // then reused on non-auto-escape surfaces (JsonLd, email, OG meta). Strip markup
+        // at source; sanitizeText preserves VN diacritics (NFC) per vn-localization §5.
+        // Email/phone/social URLs are already @Email/@Pattern/@Size-constrained → no free-text.
+        if (contentSanitizer != null) {
+            branding.setDisplayName(contentSanitizer.sanitizeText(branding.getDisplayName()));
+            branding.setTagline(contentSanitizer.sanitizeText(branding.getTagline()));
+            branding.setAddress(contentSanitizer.sanitizeText(branding.getAddress()));
+        }
 
         branding = brandingRepository.save(branding);
 
