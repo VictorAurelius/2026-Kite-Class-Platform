@@ -1,7 +1,7 @@
 # ADR-038: AI External Provider Strategy — Gemini Free Tier Primary + OpenAI Fallback
 
-**Status:** PROPOSED
-**Date:** 2026-06-02
+**Status:** ACCEPTED (Wave local-doable-9 Bucket C — Phase 1 scaffold landed)
+**Date:** 2026-06-02 (PROPOSED) → 2026-06-02 (ACCEPTED)
 **Deciders:** @nguyenvankiet (solo-dev, acting CTO + Product Owner)
 **Reviewers:** N/A (solo-dev mode per CLAUDE.md decision context locked 2026-05-06)
 **Related Gap(s):** GAP-005 (AI queue fair scheduling — re-scoped 2026-06-02 với architecture pivot Ollama → external API only); GAP-867 (External AI provider integration + observability + load verify — design phase = this ADR + observability plan)
@@ -281,4 +281,13 @@ Stale refs cần reconcile prospectively (KHÔNG mass-edit ad-hoc — update khi
 
 ## 7. Log
 
-- **2026-06-02** (PROPOSED): ADR created — Wave local-doable-8 Bucket D design phase (GAP-867 follow-up Wave 6 rescope). Proposed status pending solo-dev acceptance trên implementation roadmap §5. ADR-037 already ACCEPTED 2026-06-01 covers route-level decision (text via free-tier LLM, banner via GPT 5.5); ADR-038 extends with specific provider selection (Gemini primary + OpenAI fallback), provider-agnostic AIClient interface, config model, PDPL compliance posture. No code change this PR — design-only artifact paired with observability plan. Reviewer: @nguyenvankiet (solo-dev acceptance decision pending — recommended status flip ACCEPTED khi GAP-867 implementation wave plan filed). Per `incident-to-rule-pipeline.md` not applicable (no user-flagged miss — proactive design artifact closing rescope follow-up).
+- **2026-06-02** (PROPOSED): ADR created — Wave local-doable-8 Bucket D design phase (GAP-867 follow-up Wave 6 rescope). Proposed status pending solo-dev acceptance trên implementation roadmap §5. ADR-037 already ACCEPTED 2026-06-01 covers route-level decision (text via free-tier LLM, banner via GPT 5.5); ADR-038 extends với specific provider selection (Gemini primary + OpenAI fallback), provider-agnostic AIClient interface, config model, PDPL compliance posture. No code change this PR — design-only artifact paired with observability plan. Reviewer: @nguyenvankiet (solo-dev acceptance decision pending — recommended status flip ACCEPTED khi GAP-867 implementation wave plan filed). Per `incident-to-rule-pipeline.md` not applicable (no user-flagged miss — proactive design artifact closing rescope follow-up).
+- **2026-06-02** (ACCEPTED — Wave local-doable-9 Bucket C): Status flip PROPOSED → ACCEPTED upon Phase 1 scaffold landing. Shipped artifacts trong cùng PR:
+  - `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/ai/client/GeminiAIClient.java` — primary provider skeleton (Strategy + Adapter pattern, qualifier `baseAIClient`, profile `ai-external`, `@ConditionalOnProperty primary=gemini`)
+  - `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/ai/client/OpenAIAIClient.java` — fallback provider skeleton (same scaffold pattern, gated `primary=openai`)
+  - `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/ai/config/AIClientConfig.java` — `@ConfigurationProperties(prefix="ai")` type-safe config binding
+  - `kiteclass/kiteclass-core/src/test/java/com/kiteclass/core/module/ai/AIClientTest.java` — 6 unit tests verifying interface contract + domain-neutral types + config accessors (all PASS)
+  - `kiteclass/kiteclass-core/src/main/resources/application.yml` — `ai.provider.*` + `ai.gemini.*` + `ai.openai.*` config block per §2.3
+  - Existing `AIClient` interface + `MockAIClient` + `OllamaAIClient` + `ResilientAIClient` + DTO domain types (`AnalysisRequest/Result`, `GenerationRequest/Result`) untouched — preserves Wave 3 Sub-PR 3.2 scaffolding, satisfies §2.2 "domain types neutral" mandate
+  - 11/11 existing + new AI client tests PASS (`MockAIClientTest` 2 + `ResilientAIClientTest` 3 + `AIClientTest` 6)
+- Phase 2 (live HTTP integration + Circuit Breaker tuning), Phase 3 (Micrometer observability + Grafana dashboard), Load test execution (k6 100 concurrent) — all DEFERRED to follow-up implementation wave per §5 Implementation Roadmap. Phase 1 scaffold proves Spring wiring + config binding + provider-agnostic abstraction without burning Gemini/OpenAI quota or requiring API keys in CI.

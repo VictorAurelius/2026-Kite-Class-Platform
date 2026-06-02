@@ -193,8 +193,26 @@ payment:
 contact:
   admin-email: ${CONTACT_ADMIN_EMAIL:admin@kiteclass.com}
 
-# AI Provider Configuration (Wave 3 Sub-PR 3.2, ADR-008)
+# AI Provider Configuration (Wave 3 Sub-PR 3.2, ADR-008; extended Wave local-doable-9 Bucket C — GAP-867 Phase 1 scaffold, ADR-038)
+# External provider strategy per ADR-038 — active under `ai-external` profile only;
+# default profile vẫn dùng MockAIClient (test/sandbox). Phase 1 = config binding + scaffold (no live HTTP).
 ai:
+  provider:
+    primary: ${AI_PROVIDER_PRIMARY:gemini}        # gemini | openai | mock
+    fallback: ${AI_PROVIDER_FALLBACK:openai}      # used when primary CircuitBreaker OPEN OR rate-limit hit
+    fail-on-all-providers: ${AI_PROVIDER_FAIL_FALLBACK:template}  # final fallback → STATIC routing
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
+    model-text: ${AI_GEMINI_MODEL_TEXT:gemini-1.5-flash}
+    model-quality: ${AI_GEMINI_MODEL_QUALITY:gemini-1.5-pro}
+    timeout-ms: ${AI_GEMINI_TIMEOUT_MS:30000}
+    max-retries: ${AI_GEMINI_MAX_RETRIES:2}
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    model-text: ${AI_OPENAI_MODEL_TEXT:gpt-4o-mini}
+    model-image: ${AI_OPENAI_MODEL_IMAGE:gpt-image-1}
+    timeout-ms: ${AI_OPENAI_TIMEOUT_MS:60000}
+    max-retries: ${AI_OPENAI_MAX_RETRIES:1}
   ollama:
     base-url: ${AI_OLLAMA_BASE_URL:http://localhost:11434}
     default-model: ${AI_OLLAMA_MODEL:gemma2}
