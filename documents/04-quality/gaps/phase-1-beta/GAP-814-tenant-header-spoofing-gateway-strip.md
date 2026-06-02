@@ -6,7 +6,7 @@ priority: P0
 phase: phase-1-beta
 domain: Mixed
 created: 2026-05-29
-last_updated: 2026-06-01
+last_updated: 2026-06-02
 ---
 
 # GAP-814 — Host-spoofing X-Tenant-Id (cross-tenant IDOR risk)
@@ -56,6 +56,16 @@ Core (`kiteclass-core`) tin tưởng header `X-Tenant-Id` (+ `X-User-Id`) **th�
 - `audit-skill-rubric-security-audit.md` — A01 Cross-Tenant Isolation
 
 ## Log
+
+- **2026-06-02 (Wave local-doable-8 Bucket E — fix-time state-check, no-op verdict):** Bucket E spawned thinking gateway X-Tenant-Id strip + IT vẫn cần ship. Per `audit-to-gap-pipeline.md` §2.8 fix-time state-check (gap age 4 ngày từ 2026-05-29, drift-class header-stripping security) → empirical verification:
+  - `grep -n "RemoveRequestHeader=X-Tenant-Id\|RemoveRequestHeader=X-User-Id" kitehub/kitehub-gateway/src/main/resources/application.yml` → lines 697-698 PRESENT
+  - `TenantHeaderGuardFilter.java` order=-99 PRESENT (re-inject từ verified JWT HS512 access key, NOT HS256 challenge key — defense-in-depth)
+  - `TenantHeaderGuardFilterTest.java` PRESENT — `./mvnw -pl kitehub-gateway test -Dtest='TenantHeaderGuardFilterTest'` → BUILD SUCCESS, 11/11 PASS
+  - Cross-flow sweep per `cross-flow-bug-class-sweep.md` §3 (bug class: identity header passthrough on routes without TenantResolver): apiClient.* / fetch / axios call sites NOT applicable cho server-side header strip; sister sites đã cover bởi global `default-filters` (catch-all `/api/v1/**`) per route audit `documents/04-quality/audits/security/2026-06-01-gap-814-gateway-route-tenant-coverage-audit.md` 27/27 routes 100% covered
+  - Decision per §2.8 matrix row "Symptom no longer present (self-corrected)" → **NO additional code-layer fix needed**. P0 IDOR risk eliminated by PR #1991 (Wave tenant-domain-1 Bucket A 2026-06-01) + Wave beta-readiness-9 Bucket A route audit (2026-06-01)
+  - Status stays PARTIAL — 3 unchecked AC remain (network-isolation core / OWASP A01 regression test / JWT-sig-verify in TenantResolver fallback) all tracked GAP-825 P1; live IDOR verify gated GAP-612 (AWS account suspended)
+  - **`FEATURE_SHIP_WALK_DEFER: GAP-814 — live IDOR verify gated GAP-612 (AWS suspended); 11 unit tests + route audit cover code-layer; follow-up GAP-825 covers 3 defense-in-depth defer items`**
+  - Wave local-doable-8 Bucket E close-out: docs-only PR update gap Log với state-check verdict; no code change; bucket scope re-confirms P0 fix already shipped.
 
 - **2026-06-01 (Wave beta-readiness-9 Bucket A — PARTIAL, route-audit AC ticked):** State-check (per `audit-to-gap-pipeline.md` §2.8) confirmed GAP-814 P0 code-layer fix already shipped main via PR #1991 (default-filters strip lines 696-698 + `TenantHeaderGuardFilter` order -99 + 11 unit tests). Bucket A scope (header-strip + route-audit, deferring JWT-sig-verify + network-isolation) overlapped already-shipped strip+verify. Net deliverable this bucket = **route coverage audit (Proposed Fix #5)** + AC reconciliation + follow-up gap. Verified gateway module test green: `./mvnw -pl kitehub-gateway test -P strict-warnings` → BUILD SUCCESS, 72/72 (incl. 11/11 `TenantHeaderGuardFilterTest`). Route audit `documents/04-quality/audits/security/2026-06-01-gap-814-gateway-route-tenant-coverage-audit.md`: 27 routes, 100% tenant-coverage (3 TenantResolver `staff-invitations`/`onboarding-progress`/`instance-apis` catch-all + 1 path-UUID `public-tenant-landing` + rest whitelist-public/platform-admin/per-user); global `RemoveRequestHeader` strip covers `/api/v1/**` catch-all — primary defense vs IDOR. Filed GAP-825 (P1) for 3 deferred defense-in-depth layers: (1) JWT-sig-verify in TenantResolver `extractJwtTenantClaim` fallback (surfaced during audit — currently unverified base64 read relying on filter order), (2) core network-isolation (AWS-gated GAP-612), (3) OWASP A01 regression test. Status stays PARTIAL — 3 AC remain unchecked (all → GAP-825), no live verify (AWS GAP-612). `FEATURE_SHIP_WALK_DEFER: GAP-814 — live IDOR verify gated GAP-612 (AWS account suspended); 11 unit tests + route audit cover code-layer; live walk in follow-up post-AWS-restore`.
 
