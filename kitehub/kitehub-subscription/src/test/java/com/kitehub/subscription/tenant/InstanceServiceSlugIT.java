@@ -82,9 +82,6 @@ class InstanceServiceSlugIT {
     @Autowired
     private InstanceRepository instanceRepository;
 
-    @Autowired
-    private TenantSlugNormalizer normalizer;
-
     @BeforeEach
     void clean() {
         // Soft delete is the production pattern; here we hard-delete để isolate per-test state.
