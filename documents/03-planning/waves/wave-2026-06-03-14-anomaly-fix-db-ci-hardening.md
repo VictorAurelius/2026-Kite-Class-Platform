@@ -70,6 +70,37 @@ gaps: []
 
 ---
 
+## 4. State-Check Evidence
+
+Per `audit-to-gap-pipeline.md` §2.6 pre-flight state-check — verify scope assumptions trước khi spawn bucket agents:
+
+| Artifact | Purpose | Command | Result | Verdict |
+|---|---|---|---|---|
+| `kiteclass/kiteclass-core/src/main/resources/db/migration/V73__*.sql` | V73 actor sweep pattern reference (Bucket C deterministic md5-UUID) | `ls kiteclass/kiteclass-core/src/main/resources/db/migration/V73*` | exists | ✅ pattern available cho V74/V80 sweep |
+| `kiteclass/kiteclass-core/src/main/resources/db/migration/V58__*.sql` + `V59__*.sql` | RLS sweep pattern (Bucket A reference) | `ls kiteclass/kiteclass-core/src/main/resources/db/migration/V58* V59*` | exists | ✅ dynamic `pg_policies` pattern available |
+| `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/instance/entity/FrontendInstance.java` | Bucket B entity rename `tenantId → tenantSlug` per GAP-891 | `grep -n "tenantSlug\|tenantId" kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/instance/entity/FrontendInstance.java` | `tenantSlug` field present line 59 | ✅ verified — caller sweep applies (B1 fix: `BrandingDataSeeder.java:170` `.tenantId()` → `.tenantSlug()`) |
+| `.github/workflows/quality-db.yml` | New workflow file Bucket E | `ls .github/workflows/quality-db.yml` | not exists | 🆕 to-be-created (Bucket E Foundation) |
+| `documents/04-quality/gaps/gap-status.csv` | Wave 13 anomaly gap inventory (GAP-874–910) | `bash scripts/query-gaps.sh GAP-87 OPEN` | 37 rows OPEN | ✅ inventory canonical |
+
+---
+
+## 5. Verification Gates
+
+Pre-merge gates per bucket — local pre-flight + CI canonical:
+
+| Gate | Bucket | Local command | CI job (in `.github/workflows/quality-db.yml`) | Pass criterion |
+|---|---|---|---|---|
+| RLS coverage | A | `bash scripts/check-rls-coverage.sh` | `db-rls-coverage` | Testcontainer postgres 16 + Flyway V1→Vn + `pg_policies` assert mọi `instance_id`-column table có matching policy → exit 0 |
+| Schema drift | B | `bash scripts/check-schema-drift.sh` | `db-schema-drift` | Flyway replay + Spring `spring.jpa.hibernate.ddl-auto=validate` exit 0 (entity ↔ migration match) |
+| Audit-UUID uniformity | C | `bash scripts/check-audit-col-uniformity.sh` | `db-audit-col-uniformity` | grep mọi `created_by`/`updated_by` column = `UUID` type (not VARCHAR) across schemas |
+| Migration replay | E | `bash scripts/check-migration-replay.sh` | `db-migration-replay` | Flyway V1→Vn replay clean on empty PG 16 testcontainer, exit 0 |
+| Type harmonize | D | `cd kiteclass/kiteclass-core && ./mvnw verify -P strict-warnings` | (covered by Test Core Service existing job) | Spring boot startup PASS + IT tests PASS |
+| Code compile (cross-bucket) | A/B/C/D | `cd kiteclass/kiteclass-core && ./mvnw -DskipTests compile` | `Test Core Service` (existing) | strict-warnings clean, no `cannot find symbol` |
+
+**Override:** Per `release-fix-retry-budget.md` §5 retry budget — nếu CI gate fail 2 retry liên tiếp same gate → STOP patching, apply §3 decision flow (redesign gate scope OR file follow-up gap).
+
+---
+
 ### Bucket A — P0 RLS sweep + RLS coverage CI
 
 **Branch:** `wave-14-bucket-a-rls-sweep`
@@ -269,7 +300,7 @@ gaps: []
 
 ---
 
-## 4. Workflow per Bucket
+## 6. Agent Spawn Pattern
 
 ### Standard sequence per bucket
 
@@ -373,7 +404,7 @@ git pull --ff-only origin main
 
 ---
 
-## 5. Closure Checklist
+## 7. Closure Protocol
 
 Khi 5 bucket A-E đã ship + CI green + merge:
 
@@ -396,7 +427,7 @@ Khi 5 bucket A-E đã ship + CI green + merge:
 
 ---
 
-## 6. References
+## References
 
 - **Governance source:** `CLAUDE.md` + `.claude/rules/**` (canonical — AGENTS.md/.codex bridge removed 2026-06-03 sau khi 9router route gpt-5.5 chạy TRONG Claude Code harness, đọc `.claude/` natively)
 - **Source Wave 13 anomaly:**
@@ -424,6 +455,6 @@ Khi 5 bucket A-E đã ship + CI green + merge:
 
 ---
 
-## 7. Log
+## 8. Log
 
 - **2026-06-03** (planned): Plan created — extracted Wave 14 specific scope từ AGENTS.md v1.1.0 (which over-loaded stable + volatile content). Paired same PR với AGENTS.md slim v1.2.0 (stable-only) + cSpell allowlist additions. Outside-in audit skipped per `outside-in-coverage-trigger.md` §4 row "Wave 100% internal scope".
