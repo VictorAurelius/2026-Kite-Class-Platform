@@ -20,7 +20,19 @@
     "kiteclass",
     "kitehub",
     "hcaptcha",
-    "COVEREDRATIO"
+    "COVEREDRATIO",
+    "mvnw",
+    "Testcontainer",
+    "Testcontainers",
+    "TIMESTAMPTZ",
+    "VARCHAR",
+    "worktree",
+    "frontmatter",
+    "vettings",
+    "currentdate",
+    "Flyway",
+    "RabbitMQ",
+    "MinIO"
   ],
   "ignorePaths": [
     "node_modules",
