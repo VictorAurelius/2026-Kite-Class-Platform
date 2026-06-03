@@ -343,6 +343,42 @@ Lý do khác biệt: `user_roles` cần audit "ai gán role cho ai, khi nào, gh
 
 Cột `created_by`/`updated_by` của `roles`/`permissions`/`user_roles` trải qua: `VARCHAR(100)` (V30) → `BIGINT` (V46 GAP-244, căn về BaseEntity Long) → `UUID` (V73 GAP-795, vì X-User-Id là UUID). Riêng `vettings` tạo ở V52 với audit là `BIGINT` ngay từ đầu (sau V46) → `UUID` (V73). `role_permissions` không bao giờ có cột audit (loại trừ ở V46).
 
+### A5. RLS coverage gap — `role_permissions` ngoài scope V58/V59
+
+V58 (enable RLS) + V59 (hardening) áp policy `tenant_isolation` cho mọi bảng có `instance_id`. **`role_permissions` không có `instance_id` → không nằm trong scope V58**: bảng nối thuần (role↔permission) là cấu hình tĩnh global cho mọi tenant, không cần multi-tenant scoping.
+
+| Bảng | Migration | `instance_id`? | RLS V58? | Lý do |
+|---|---|:---:|:---:|---|
+| `roles` | V1+V46 | ✅ Có | ✅ Trong list | Tenant scoped |
+| `permissions` | V1+V46 | ✅ Có | ✅ Trong list | Tenant scoped |
+| `user_roles` | V30+V46 | ✅ Có | ✅ Trong list | Tenant scoped |
+| `role_permissions` | V1+V46 | ❌ Không | ❌ Không trong list | M2M thuần global, intentional |
+| `vettings` | V52 | ✅ Có | ⚠️ Cần verify (V52 sau V58?) | Tenant scoped |
+
+→ **`vettings`** (V52) cần verify — nếu V52 chạy sau V58 thì RLS chưa enable DB-level. Pattern cùng class baseline 04-finance.md A9 (`payment_records` V69 + `payment_idempotency_keys` V61 RLS coverage gap). `role_permissions` không phải gap — là intentional exclusion vì nature M2M global config.
+
+→ Fix: V60+ migration re-run RLS enable cho `vettings` (idempotent — `ALTER TABLE vettings ENABLE ROW LEVEL SECURITY` + tạo policy `tenant_isolation USING (instance_id = current_setting('app.tenant_id')::uuid)`).
+
+### A6. TIMESTAMP vs TIMESTAMPTZ không nhất quán
+
+| Nhóm | Bảng | Kiểu timestamp |
+|---|---|---|
+| TIMESTAMPTZ (timezone-aware) | `roles`, `permissions`, `user_roles`, `role_permissions` | TIMESTAMP WITH TIME ZONE (V1+V46 align) |
+| TIMESTAMP (naive) | `vettings` | TIMESTAMP (V52) cho `created_at`/`updated_at`/`decided_at` |
+
+→ 4 bảng RBAC core (V1) dùng TZ; `vettings` (V52) extension dùng naive. Risk khi compare `user_roles.assigned_at` (TZ) với `vettings.decided_at` (naive) trên server không UTC. Identical pattern baseline 04-finance.md A8 + cluster 01 A9 + cluster 02 A7 + cluster 03 F (cross-cluster recurrent pattern V52+ extension thiếu TZ).
+
+→ Document policy timezone trong `documents/02-architecture/database/README.md` (cluster overview).
+
+### A7. `version` thiếu DEFAULT 0 batched V62/V63
+
+V26 thêm `version BIGINT` (không default) cho 14 bảng V1. V62/V63 set DEFAULT 0 cho 19 bảng (batched). Bảng cụm RBAC:
+
+- **Trong V62/V63 batch:** `roles` (V62), `permissions` (V62) — V26 chạy trước V46 nên `version` có sẵn → V62 backfill DEFAULT 0.
+- **Tạo sau với DEFAULT 0 ngay:** `user_roles` (V30 với DEFAULT 0), `role_permissions` (không có `version` — junction thuần), `vettings` (V52 với DEFAULT 0).
+
+→ Production safe (V62/V63 đã chạy). Risk chỉ ở dev local restart từ V26-state. Pattern cùng class baseline 04-finance.md A7 + cluster 01 A8 + cluster 03 K.
+
 ---
 
 ## Liên kết

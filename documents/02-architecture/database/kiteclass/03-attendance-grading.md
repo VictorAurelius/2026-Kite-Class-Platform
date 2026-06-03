@@ -473,6 +473,30 @@ V29 tạo VARCHAR(100) → V46 align BIGINT → V73 đổi UUID. Lịch sử ki�
 
 → Không thống nhất casing enum giữa các bảng cùng cụm.
 
+### J. RLS coverage gap — bảng tạo sau V58/V59 chưa enable RLS DB-level
+
+V58 (enable RLS) + V59 (hardening) dùng danh sách bảng tĩnh chạy 1 lần. Bảng tạo SAU V58/V59 hoặc trong cụm nhưng không nằm trong list:
+
+| Bảng | Migration tạo | `instance_id`? | RLS V58/V59 enabled? | Cô lập tenant |
+|---|---|:---:|:---:|---|
+| `attendance_period` | V50 | ✅ Có | ⚠️ Cần verify (V50 sau V58?) | Code-level `tenantFilter` |
+| `subject_grades` | V29 | ✅ Có | ✅ Trong list V58 | RLS DB-level + code |
+| `assignments` | V1 | ✅ Có | ✅ V58 | RLS DB-level + code |
+| `submissions` | V1 | ✅ Có | ✅ V58 | RLS DB-level + code |
+
+→ `attendance_period` cần verify — nếu V50 chạy sau V58 thì RLS chưa enable DB-level. Pattern giống baseline 04-finance.md A9 (`payment_records` V69 + `payment_idempotency_keys` V61 RLS coverage gap). Risk: dependent on Hibernate `@Filter("tenantFilter")` only — nếu service code dùng raw SQL bypass filter → leak cross-tenant.
+
+→ Fix: V60+ migration re-run RLS enable cho bảng tạo sau V58 (idempotent — `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` skip nếu đã enabled).
+
+### K. `version` thiếu DEFAULT 0 trên bảng V1 cũ (batched V62/V63 backfill)
+
+V26 thêm cột `version BIGINT` cho 14 bảng V1 (không default). V62/V63 set DEFAULT 0 cho 19 bảng (gom batch). Bảng cụm điểm danh/điểm số:
+
+- **Trong V62/V63 batch:** `attendance` (V63), `grades` (V62), `grading_scales` (V62), `assignments` (V62), `submissions` (V62).
+- **Tạo sau với DEFAULT 0 ngay:** `subject_grades` (V29 với DEFAULT 0), `attendance_period` (V50 với DEFAULT 0).
+
+→ Production safe (V62/V63 đã chạy). Risk chỉ ở dev local restart từ V26-state (giữa V26 → V62) — raw INSERT vào snapshot test sẽ NPE tại flush vì `version IS NULL` + entity `@Version` annotation expect NOT NULL. Cùng class baseline 04-finance.md A7.
+
 ---
 
 ## Liên kết

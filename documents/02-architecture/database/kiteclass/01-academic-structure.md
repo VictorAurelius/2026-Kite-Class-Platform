@@ -508,6 +508,100 @@ erDiagram
 
 ---
 
+## Ghi chú schema (anomalies)
+
+> Đây là danh sách lệch chuẩn giữa migration (chân lý DB), entity Java (`*.java`), và policy RLS (V58/V59) cho cụm Cấu trúc học vụ. Dev PHẢI nắm để tránh viết query sai, tạo migration mâu thuẫn, hoặc giả định RLS che mọi bảng. Hầu hết anomaly phát sinh từ (a) bảng tạo SAU V58/V59 không được sweep RLS, (b) entity refactor mà migration không follow, (c) V73 actor-sweep BỎ SÓT các cột tên không chuẩn `created_by`/`updated_by`.
+
+### A1 — 3 bảng thiếu `instance_id` → ngoài scope RLS V58/V59
+
+V58 enable RLS + V59 hardening dùng danh sách bảng tĩnh chạy một lần. **3 bảng tạo trước V58 nhưng KHÔNG có `instance_id`** nên không nằm trong danh sách RLS → chỉ cô lập tenant qua FK gián tiếp (parent có `instance_id`):
+
+| Bảng | Migration | RLS V58? | Cô lập tenant qua |
+|---|---|:---:|---|
+| `class_schedules` | V44 | ❌ KHÔNG | FK → `subject_sections.instance_id` |
+| `class_sessions` | V44 | ❌ KHÔNG | FK → `classes.instance_id` (suy luận) |
+| `course_prerequisites` | V1/V26 | ❌ KHÔNG | FK → `courses.instance_id` |
+
+→ Rủi ro: nếu service code không JOIN parent table có `instance_id`, query có thể leak cross-tenant. Cần verify mọi repository method dùng 3 bảng này có `@Query` JOIN parent + filter `instance_id`. Đây là cùng class với A9 baseline `04-finance.md` (`payment_records` V69 + `payment_idempotency_keys` V61 RLS coverage gap) nhưng nguyên nhân khác (3 bảng cluster 01 thiếu HẲN cột `instance_id` chứ không phải tạo-sau-V58).
+
+### A2 — Entity `ClassSession` ↔ bảng `class_sessions` drift NẶNG
+
+`ClassSession.java extends BaseEntity` ⇒ khai báo `instance_id`, `deleted`, `location`, `attendance_taken` NHƯNG **KHÔNG có migration nào thêm các cột này vào bảng `class_sessions`**. Migration V44 tạo bảng với chỉ các cột `class_id`, `session_date`, `start_time`, `end_time`, `topic`, `notes`, `created_at`, `updated_at`.
+
+→ Runtime: chạy entity trên DB thật sẽ throw `column instance_id does not exist` khi Hibernate apply `@Filter("tenantFilter")` (filter dùng `instance_id`). Đây là drift cùng class với baseline 04-finance.md A3 (`Invoice` ↔ `invoices` thiếu `deleted`/`enrollment_id`). Cần migration backfill HOẶC xác nhận `class_sessions` không còn dùng entity (RST walk luồng K-12 lịch học).
+
+### A3 — Entity `Course` ↔ bảng `courses` drift cột legacy + cột tên khác
+
+| Khía cạnh | Entity `Course.java` | Bảng `courses` |
+|---|---|---|
+| Cột ảnh thumbnail | `cover_image_url` | (không có cột này) |
+| Cột giá học phí gợi ý | (không map) | `suggested_tuition` (V1, deprecated) |
+| Cột số buổi mặc định | (không map) | `default_sessions` (V1, deprecated) |
+| Cột giá học phí | (không map) | `price` (deprecated, không dùng) |
+| `teacher_id` kiểu | (UUID expected — actor) | `BIGINT` (V27, chưa đổi UUID) |
+
+→ Pattern giống baseline 04-finance.md A2 (`Payment` entity drift). Cần (a) migration ADD `cover_image_url` HOẶC sửa entity → `thumbnail_url`, (b) decision cleanup cột legacy V1 sau khi xác nhận zero usage.
+
+### A4 — Entity `Classes` ↔ bảng `classes` drift (cột legacy V1)
+
+`Classes.java` không map các cột legacy `code`, `tuition_amount`, `tuition_type` (V1 cũ). Migration V73 đã chuyển `teacher_id` BIGINT → UUID + DROP FK `classes.teacher_id → teachers(id)` (xem A5). Pattern lặp lại A3 — cluster có 3 entity (Course, Classes, ClassSession) cùng drift.
+
+→ **Cluster summary fix:** 1 migration "Phase 1 align academic-entity-drift" backfill thiếu cột + DROP cột legacy (cẩn thận với `tuition_amount` có thể đang được service Beta dùng — verify trước drop).
+
+### A5 — Actor BIGINT bị V73 sweep BỎ SÓT
+
+V73 (GAP-795) chỉ chuyển `created_by`/`updated_by` + 3 cột actor "section riêng" (`classes.teacher_id`, `classes.rescheduled_by_user_id`, `parent_invitations.invited_by_user_id`) sang UUID. Các cột actor khác trong cluster vẫn BIGINT:
+
+| Bảng | Cột actor BIGINT bỏ sót | Migration gốc | Risk |
+|---|---|---|---|
+| `courses` | `teacher_id` | V27 | Service ghi từ `X-User-Id` JWT (UUID) → parse fail |
+| `subject_sections` | `teacher_id` | V29 | Same — entity expect UUID nhưng DB BIGINT |
+| `homeroom_classes` | `homeroom_teacher_id` | V29 (soft ref) | Same |
+
+→ Đây là class identical với baseline 04-finance.md A6 (`payments.received_by`, `payment_records.recorded_by` BIGINT V73 miss). Risk: NPE / NumberFormatException khi cast UUID → BIGINT. Cần migration follow-up sweep V73 cho 3 cột này.
+
+### A6 — `class_schedule_slots.deleted_at` không khai báo trong BaseEntity
+
+`BaseEntity` định nghĩa `deleted BOOLEAN` (flag) nhưng KHÔNG có field `deletedAt TIMESTAMP`. Bảng `class_schedule_slots` (V44) lại CÓ cột `deleted_at` trong DB — entity không map → cột "câm" không bao giờ được ghi. Pattern giống A3 — cột tồn tại nhưng không có code path.
+
+→ Cluster summary fix gom chung với A2/A3/A4 trong "academic-entity-drift align migration".
+
+### A7 — `R67__undo_pricing_model.sql` là rollback script THỦ CÔNG
+
+R67 (Repeatable migration prefix `R__`) trong Flyway convention là rollback / reversible. **Flyway KHÔNG tự apply R-migration trong production startup** — chỉ chạy nếu có flag `flyway.outOfOrder=true` HOẶC manual trigger. Đây là operational anomaly cần flag rõ cho ops/dev đọc — nếu cần undo `pricing_model` cluster 02 (P2 center decision Course-level), MUST manual apply R67 + verify DB state.
+
+→ Document trong `documents/05-guides/operations/runbook-flyway-r-migration.md` (chưa tồn tại — file gap mới P2).
+
+### A8 — `version` thiếu DEFAULT 0 trên bảng V1 cũ (batched V62/V63 backfill)
+
+V26 thêm cột `version BIGINT` cho 14 bảng V1 (không default). V62/V63 set DEFAULT 0 cho 19 bảng (gom batch). Các bảng `classes`, `courses`, `enrollments`, `class_sessions`, ... trong cluster nằm trong V62/V63 batch — verify từng bảng có nằm trong list hay không.
+
+→ Risk: raw INSERT vào snapshot test giữa V26 → V62/V63 sẽ NPE tại flush vì `version IS NULL` + entity `@Version` annotation expect NOT NULL. Production safe (V62/V63 đã chạy) nhưng dev local restart từ V26-state có thể vướng. Cùng class baseline 04-finance.md A7.
+
+### A9 — TIMESTAMP vs TIMESTAMPTZ không nhất quán
+
+12 bảng cluster chia 2 nửa:
+
+- **TIMESTAMP WITH TIME ZONE (timestamptz):** `courses`, `classes`, `class_sessions`, `class_schedules` — phù hợp lưu múi giờ Việt Nam UTC+7.
+- **TIMESTAMP (naive, không TZ):** `academic_years`, `semesters`, `holidays`, `curricula`, `homeroom_classes`, `subject_sections`, `class_schedule_slots` — không có timezone awareness.
+
+→ Risk: query so sánh `class_sessions.session_date` (TZ) với `semesters.start_date` (naive) có thể lệch ngày khi server không UTC. Cluster baseline 04-finance.md A8 cùng class. Cần document policy timezone (mặc định UTC+7 lưu naive HAY UTC lưu timestamptz?) trong `documents/02-architecture/database/README.md`.
+
+### A10 — Strangler Fig — 2 mô hình lớp song song
+
+Cluster có **2 mô hình lớp học song song** tồn tại cùng lúc (Strangler Fig pattern per ADR-001):
+
+| Mô hình | Bảng chính | Use case |
+|---|---|---|
+| **Center / Trung tâm** (V1) | `classes` | P2 trung tâm — 1 lớp = 1 môn = 1 giáo viên |
+| **K-12 trường công** (V29 GAP-099) | `homeroom_classes` + `subject_sections` | P5 trường công — lớp chủ nhiệm + lớp môn phụ |
+
+→ FK domain phân nhánh: `enrollments.class_id` trỏ `classes(id)`; nếu mở rộng cho K-12 cần thêm `enrollments.subject_section_id` (chưa có). Service code có thể nhầm 2 mô hình khi route role check. Match pattern baseline 04-finance.md A1 (`payments` V1 vs `payment_records` V69 song song).
+
+→ ADR-001 (`documents/02-architecture/adr/ADR-001-k12-data-model.md`) đã ghi quyết định Strangler Fig. Dev đọc trước khi viết feature mới đụng `classes` / `subject_sections`.
+
+---
+
 ## Liên kết
 
 - [README cụm Database](../README.md)
