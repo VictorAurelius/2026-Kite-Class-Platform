@@ -21,7 +21,10 @@ require_cmd() {
 
 wait_for_postgres() {
   for _ in $(seq 1 60); do
-    if docker exec "$CONTAINER" pg_isready -U postgres >/dev/null 2>&1; then
+    # Probe with a real psql query (not just pg_isready) — pg_isready can report
+    # "accepting connections" before the unix socket inside the container is fully
+    # ready, causing socket errors under concurrent CI Docker contention.
+    if docker exec "$CONTAINER" psql -U postgres -d postgres -c 'SELECT 1' >/dev/null 2>&1; then
       return 0
     fi
     sleep 1
@@ -126,6 +129,8 @@ validate_kiteclass_core() {
 validate_kitehub_subscription() {
   local port="$1"
   local args
+  # Test-only HS256 secret for ephemeral Testcontainer boot — NOT a real credential.
+  local jwt_secret="0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" # gitleaks:allow
   args="$(common_boot_args)
 --spring.flyway.enabled=true
 --spring.datasource.url=jdbc:postgresql://127.0.0.1:${port}/kitehub
@@ -134,7 +139,7 @@ validate_kitehub_subscription() {
 --spring.rabbitmq.host=127.0.0.1
 --spring.rabbitmq.port=1
 --outbox.dispatcher.enabled=false
---jwt.secret=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+--jwt.secret=${jwt_secret}"
 
   (
     cd "$ROOT_DIR/kitehub"

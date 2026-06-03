@@ -187,6 +187,6 @@ public class Payment extends BaseEntity {
     private String generateReceiptNumber() {
         // Pattern: RCP-2026-000001
         // Note: ID is available after save, this will be called in complete() method
-        return "RCP-" + Year.now().getValue() + "-" + String.format("%06d", this.id);
+        return "RCP-" + Year.now().getValue() + "-" + String.format("%06d", this.getId());
     }
 }

@@ -22,7 +22,10 @@ require_cmd() {
 
 wait_for_postgres() {
   for _ in $(seq 1 60); do
-    if docker exec "$CONTAINER" pg_isready -U postgres >/dev/null 2>&1; then
+    # Probe with a real psql query (not just pg_isready) — pg_isready can report
+    # "accepting connections" before the unix socket inside the container is fully
+    # ready, causing psql_exec socket errors under concurrent CI Docker contention.
+    if docker exec "$CONTAINER" psql -U postgres -d postgres -c 'SELECT 1' >/dev/null 2>&1; then
       return 0
     fi
     sleep 1
