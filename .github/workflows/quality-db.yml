@@ -52,6 +52,12 @@ jobs:
     name: DB schema drift
     runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 25
+    # WARN-mode initial grace period (per release-fix-retry-budget.md §4 pivot —
+    # gate's blast radius = repo-wide accumulated entity↔migration drift, NOT just
+    # this PR; Wave 13 audit filed 37 drift gaps). HARD STOP target after drift
+    # baseline cleanup. Same WARN-mode-initial pattern as context-budget /
+    # gap-folder / docs-archival detectors.
+    continue-on-error: true
 
     steps:
       - name: Checkout code
@@ -60,5 +66,5 @@ jobs:
       - name: Verify Docker
         run: docker version
 
-      - name: Run schema drift gate
+      - name: Run schema drift gate (WARN-mode)
         run: bash scripts/check-schema-drift.sh
