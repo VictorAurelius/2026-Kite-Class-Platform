@@ -1,6 +1,6 @@
 # GAP-890: `leads` + `contact_messages` entity nhưng không có migration
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (80%)
 **Priority:** 🔴 P0
 **Domain:** Backend / DB
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KC branding/marketing)

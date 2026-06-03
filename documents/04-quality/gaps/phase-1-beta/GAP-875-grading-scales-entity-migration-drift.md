@@ -1,6 +1,6 @@
 # GAP-875: `grading_scales` entity ↔ migration drift — không cột nào trùng tên
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (75%)
 **Priority:** 🔴 P0
 **Domain:** Backend / DB
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KiteClass attendance-grading)

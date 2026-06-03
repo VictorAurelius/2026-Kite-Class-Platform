@@ -1,6 +1,6 @@
 # GAP-881: Entity `Invoice` cần `deleted` + `enrollment_id` columns trong DB
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (85%)
 **Priority:** 🔴 P0
 **Domain:** Backend / DB
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KC finance)

@@ -1,6 +1,6 @@
 # GAP-876: `assignments` + `submissions` entity ↔ DB drift (missing `deleted`)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (80%)
 **Priority:** 🟠 P1
 **Domain:** Backend / DB
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KiteClass attendance-grading)

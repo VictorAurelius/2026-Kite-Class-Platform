@@ -1,6 +1,6 @@
 # GAP-874: `attendance` entity ↔ migration drift — runtime column errors
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (65%)
 **Priority:** 🔴 P0
 **Domain:** Backend / DB
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KiteClass attendance-grading)

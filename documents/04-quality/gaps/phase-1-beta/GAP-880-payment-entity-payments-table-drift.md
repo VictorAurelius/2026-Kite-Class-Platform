@@ -1,6 +1,6 @@
 # GAP-880: Entity `Payment` ↔ bảng `payments` drift NẶNG — 12+ cột entity không có DB
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (70%)
 **Priority:** 🔴 P0
 **Domain:** Backend / DB
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KC finance)
