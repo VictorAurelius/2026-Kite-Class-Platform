@@ -9,11 +9,11 @@ paths:
 # Docs-Only PR No-Block-Wait — continue work, re-check CI later
 
 **Priority:** 🟠 MANDATORY — workflow efficiency governance
-**Version:** 1.0.1
+**Version:** 1.1.0
 **Created:** 2026-05-28
-**Last-Reviewed:** 2026-05-31
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule sharpens `docs-only-pr-auto-merge.md` v1.0.2 — auto-merge mandate still applies but agent should NOT block-wait on CI watch foreground; per §6.5 Enforcement Parity Mandate paired same-PR with worked self-test on 2026-05-28 session multi-PR sequencing where 3 separate `gh pr checks --watch` foreground commands blocked agent ~10-15 min total. No constraint loosening — extends `docs-only-pr-auto-merge.md` workflow efficiency dimension)
-**Applies to:** Mọi docs-only PR per `docs-only-pr-auto-merge.md` §2 scope (diff ⊂ `documents/**` + `.claude/rules/**` + `.claude/skills/**` + `*.md` repo root + `.env.*.template` placeholder-only). Trigger: pushing docs-only PR + CI starting.
+**Last-Reviewed:** 2026-06-03
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; generalizes scope from "docs-only PR CI watch only" to BOTH (a) CI watch on any PR + (b) local heavy verification script (Testcontainer / Maven build / docker build, est. >60s) — both MUST `run_in_background` thay vì block-wait foreground. Triggered by 2026-06-03 Wave 14 B+C+E verify session where 2 local DB scripts (`check-schema-drift.sh` + `check-audit-col-uniformity.sh`) run foreground → user manually backgrounded both. New §5.5 "Local heavy verification script" + worked self-test §7.5; no constraint loosening — adds previously-uncovered local-script dimension. Filename kept for continuity (rename = cross-ref churn deferred). v1.0.1 (kept): PATCH `paths:` frontmatter per `context-budget-mandate.md` §3.2. v1.0.0 (kept): new rule sharpens `docs-only-pr-auto-merge.md` v1.0.2 — agent should NOT block-wait on CI watch foreground; per §6.5 Enforcement Parity Mandate paired same-PR with worked self-test on 2026-05-28 session)
+**Applies to:** (a) Mọi docs-only PR per `docs-only-pr-auto-merge.md` §2 scope khi push + CI starting; (b) Mọi local verification script likely chạy >60s (Testcontainer DB gate, `mvnw verify`, docker build, full test suite) — agent MUST `run_in_background` thay vì block foreground.
 
 ---
 
@@ -102,6 +102,39 @@ Code PR → use foreground `gh pr checks --watch` OR background + careful re-che
 
 ---
 
+## 5.5 Local heavy verification script no-block-wait (added v1.1.0)
+
+> **Khi chạy local verification script likely >60s (Testcontainer DB gate, `mvnw verify`, docker build, full test suite), agent PHẢI dùng Bash `run_in_background=true` thay vì foreground.** Tiếp tục work tiếp theo (stage files / draft PR body / wire CI); re-check script result khi background notification arrives.
+
+Same principle as §1 (CI watch) extended to local script execution: foreground block-wait trên long script = agent idle + user phải manual background.
+
+### Heavy-script heuristic (run_in_background mandatory)
+
+| Script class | Est. duration | Background? |
+|---|---|---|
+| Testcontainer DB gate (`check-rls-coverage.sh` / `check-migration-replay.sh` / `check-schema-drift.sh` / `check-audit-col-uniformity.sh` / `check-type-consistency.sh`) | 60-300s (docker pull + Flyway + maybe Spring boot) | ✅ YES |
+| `./mvnw verify` / `./mvnw test` (any module) | 120-400s | ✅ YES |
+| `pnpm build` / `pnpm test --run` (frontend) | 60-180s | ✅ YES |
+| `docker build` / `docker-compose build` | 120-600s | ✅ YES |
+| Quick docs CI scripts (`check-gap-status-csv.sh` / `check-audits-index-csv.sh` / grep-based) | <10s | ❌ NO — foreground fine |
+| `git` / `gh` metadata ops / `ls` / `cat` | <5s | ❌ NO |
+
+### Required pattern
+
+```
+1. Bash run_in_background=true: bash scripts/check-<heavy>.sh
+2. Continue: stage files / wire CI workflow / draft PR body / read next file
+3. Background notification arrives → Read output tail → PASS/FAIL decision
+4. If FAIL → investigate; if PASS → proceed to push
+```
+
+### Exception
+
+- Script is the FINAL gate before an action that cannot proceed without its result AND no other work exists to parallelize → foreground acceptable (rare; document inline "no parallelizable work, foreground OK").
+- Script est. <60s → foreground fine (overhead of background notification not worth it).
+
+---
+
 ## 6. Override mechanism
 
 Genuine exception (need immediate merge gate verification before continue):
@@ -160,16 +193,40 @@ For code PR #1916 (out of scope of this rule):
 
 **Verdict**: Rule fires correctly trên PR #1921 origin incident. Code PRs still need careful merge gate per `admin-merge-discipline.md`. Self-test PASS ✅.
 
+### 7.5 Worked self-test — 2026-06-03 Wave 14 B+C+E verify session (v1.1.0 origin)
+
+**Scenario:** Reviewing Codex WIP, tôi chạy 3 local DB verify scripts để confirm trước push:
+1. `check-migration-replay.sh` — foreground, ~150s, PASS (OK nhưng blocked ~150s)
+2. `check-schema-drift.sh` — foreground → ~420s timeout kill (Maven build heavy) → **user manually backgrounded**
+3. `check-audit-col-uniformity.sh` — foreground → **user manually backgrounded** → PASS
+
+**Apply §5.5 retroactively:**
+
+| Script | Est duration | §5.5 verdict | Original behavior | With rule |
+|---|---|---|---|---|
+| check-migration-replay.sh | ~150s | ✅ background mandatory | foreground (~150s idle) | run_in_background + continue staging files |
+| check-schema-drift.sh | >420s (Maven) | ✅ background mandatory | foreground → timeout kill + user manual bg | run_in_background from start |
+| check-audit-col-uniformity.sh | ~120s | ✅ background mandatory | foreground → user manual bg | run_in_background + continue wire quality-db.yml |
+
+**Counterfactual:** ~3 scripts × foreground block = ~690s agent idle + 2 user manual-background interventions. With rule: 0 idle (parallelize với stage files + wire CI + draft PR body), 0 user intervention.
+
+**Verdict:** Rule v1.1.0 fires correctly trên originating session — 3/3 heavy DB scripts match §5.5 heuristic. Self-test PASS ✅.
+
 ---
 
 ## 8. Enforcement (per `rule-change-process.md` §6.5 Enforcement Parity Mandate)
 
 ### 8.1 Self-detection (in-turn)
 
-Before invoking `gh pr checks --watch` foreground (without `run_in_background=true`):
+**CI watch:** Before invoking `gh pr checks --watch` foreground (without `run_in_background=true`):
 - Check PR scope: docs-only per `docs-only-pr-auto-merge.md` §2?
 - If YES → switch to `run_in_background=true` + continue next work
 - If NO → foreground watch may be justified
+
+**Local heavy script (v1.1.0):** Before invoking `bash scripts/<x>.sh` foreground:
+- Est. duration >60s per §5.5 heuristic (Testcontainer / mvnw / docker / full suite)?
+- If YES → `run_in_background=true` + continue parallelizable work (stage / wire CI / draft PR body) → re-check on notification
+- If <60s (grep-based docs script / metadata op) → foreground fine
 
 ### 8.2 Reviewer manual
 
@@ -206,6 +263,7 @@ Per §6 inline note. Quarterly retro reviews >20% override frequency.
 
 ## 10. Log
 
+- **2026-06-03** (v1.1.0): MINOR — generalized scope từ "docs-only PR CI watch only" sang BOTH (a) CI watch any PR + (b) local heavy verification script (Testcontainer / `mvnw verify` / docker build / full test suite, est. >60s) → cả 2 PHẢI `run_in_background` thay vì block foreground. Added §5.5 "Local heavy verification script no-block-wait" (heavy-script heuristic table + required pattern + exception) + §7.5 worked self-test + Applies-to extended. Triggered by user-flagged 2026-06-03 mid-Wave-14 B+C+E verify session: "rule run background bao phủ cả các scripts chưa?" — sau khi 2 local DB scripts (`check-schema-drift.sh` + `check-audit-col-uniformity.sh`) chạy foreground → user manually backgrounded both (friction signal). Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged + session evidence 2 manual-bg) → Classify ✓ (v1.0.0 §1 covers CI watch only; `ci-queue-local-runner-threshold.md` covers WHEN-run-local not foreground-vs-background; harness `run_in_background` guidance exists but no project rule mandate) → Rule+Enforce ✓ (this §5.5 + §7.5 worked self-test + §8.1 self-detection extension paired same-PR per `rule-change-process.md` §6.5) → Self-Test ✓ (§7.5 — 3/3 heavy DB scripts match heuristic, ~690s idle + 2 manual interventions eliminated) → Retro Log ✓ (this entry). MINOR per §4 (widens scope + new section — could change agent behavior, no constraint loosening; existing foreground-on-quick-script grandfathered <60s). Filename kept `docs-only-pr-no-block-wait.md` for cross-ref continuity (rename deferred — ~5 cross-refs). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5). META P2 force-multiplier per `meta-gap-priority.md` §3 — mọi heavy local script subsequent auto-comply prospectively.
 - **2026-05-31** (v1.0.1): PATCH — added `paths:` frontmatter per `context-budget-mandate.md` §3.2 (rule was always-load, violating §3.2 size-gate ≥1k tokens requires path-scope/justification/hook). Scope matches rule's own **Applies to** — no behavior change (rule still fires when relevant files touched); removes ~11k chars from base session context. Part of Wave meta context-budget rule-scoping batch 2026-05-31. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — path-scope correction, no constraint loosening).
 
 - **2026-05-28 (v1.0.0):** Rule created in response to user direction 2026-05-28 mid-session: "thêm rules không đợi CI docs only nữa, tiếp tục làm việc và re-check sau khi CI done". Triggered by recurring pattern in current session — agent block-waited ~15 min total across 3 separate `gh pr checks --watch` foreground invocations cho PRs #1920/#1916/#1921. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged + concrete session evidence multi-PR sequencing) → Classify ✓ (no existing rule covers WHILE-CI-runs workflow; `docs-only-pr-auto-merge.md` covers WHEN-CI-green merge gate only) → Rule+Enforce ✓ (this file + reviewer-checklist + worked self-test §7 on session originating PRs + paired same-PR with output-review-mandate.md §3 row + rules-index.csv row per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§7 worked example trên session PRs — rule fires correctly + counterfactual ~5 min saved per docs-only PR) → Retro Log ✓ (this entry). META P2 force-multiplier per `meta-gap-priority.md` §3 — fix 1 chuẩn → mọi docs-only PR subsequent auto-comply prospectively. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — extends previously-uncovered WHILE-CI-runs workflow dimension; no constraint loosening; existing PR practices grandfathered until next refresh; rule applies prospectively từ this PR forward 2026-05-28). Atomic-unique-bar §5.1 check passed: ✅ atomic (single concept: no block-wait on docs-only CI) + ✅ unique (sister `docs-only-pr-auto-merge.md` covers merge-gate, this covers wait-behavior) + ✅ widely applicable (every docs-only PR creation) + ✅ body discipline §1 ≤2 "and" conjunctions. PR template + memory auto-load + CI detector all deferred per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions; reviewer-checklist + worked self-test §7 sufficient cho v1.0.0.
