@@ -75,7 +75,7 @@ flowchart TD
 
 | # | Flow | Priority | Status | Wave plan | Blocker đã biết |
 |---|---|---|---|---|---|
-| KH-2 | Auth + onboarding (register→verify→login→2FA→wizard) | 1 | ⬜ | — | — |
+| KH-2 | Auth + onboarding (register→verify→login→2FA→wizard) | 1 | 🔄 (G1 walk in progress) | [wave-2026-06-03-flow-kh2](../waves/wave-2026-06-03-flow-kh2-auth-onboarding.md) | — |
 | KH-1 | Beta funnel: request→admin approve→email invite→provision | 2 | ⬜ | — | — |
 | KH-3 | Subscription create + trial→paid migration | 3 | ⬜ | — | — |
 | KH-4 | **Subscription upgrade manual VietQR + admin confirm** | — | ✅ THÔNG (G1) | — | (GAP-914 fixed) |
@@ -116,3 +116,4 @@ Quay lại wave-based gap-fix cho backlog cosmetic còn lại (31 anomaly gap Wa
 ## 7. Log
 
 - **2026-06-04**: Campaign tạo. Dependency graph state-checked (auth=root, enrollment gate cho attendance/grade/invoice). 3-gate "thông" định nghĩa (agent walk + human local test + production-parity). KH-4 đã ✅ G1 (phiên billing verify, GAP-914 fixed). Order chuẩn hóa topo. Wave plan lazy per flow.
+- **2026-06-03**: Loop bắt đầu KH-2 (root). Wave plan ship: [wave-2026-06-03-flow-kh2-auth-onboarding.md](../waves/wave-2026-06-03-flow-kh2-auth-onboarding.md). Build images background → stack up → walk 5 sub-step (register/verify/login/2FA/wizard) catalog-then-batch per loop §2.
