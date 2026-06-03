@@ -8,10 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,7 +21,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.Year;
-import java.util.UUID;
 
 /**
  * Payment entity for tracking invoice and installment payments.
@@ -40,10 +37,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Payment extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     @Column(name = "payment_number", nullable = false, unique = true, length = 50)
     private String paymentNumber;
@@ -106,9 +99,8 @@ public class Payment extends BaseEntity {
     @Column(name = "failure_reason", columnDefinition = "TEXT")
     private String failureReason;
 
-    // Actor X-User-Id UUID (GAP-795) — type aligned to V73 created_by column migration.
-    @Column(name = "created_by")
-    private UUID createdBy;
+    @Transient
+    private java.util.UUID createdBy;
 
     /**
      * Marks payment as completed after gateway callback.

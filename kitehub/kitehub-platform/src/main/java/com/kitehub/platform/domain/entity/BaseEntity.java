@@ -38,12 +38,12 @@ public abstract class BaseEntity {
     private LocalDateTime updatedAt;
 
     @CreatedBy
-    @Column(name = "created_by", length = 100)
-    private String createdBy;
+    @Column(name = "created_by")
+    private UUID createdBy;
 
     @LastModifiedBy
-    @Column(name = "updated_by", length = 100)
-    private String updatedBy;
+    @Column(name = "updated_by")
+    private UUID updatedBy;
 
     @Column(name = "deleted", nullable = false)
     private Boolean deleted = false;
