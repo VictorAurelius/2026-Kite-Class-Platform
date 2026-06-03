@@ -1,0 +1,39 @@
+{
+  "pr": 2134,
+  "title": "feat(wave-14-bcde): entity sync + audit-UUID sweep + DB CI gates",
+  "branch": "wave-14-bcde-entity-audit-replay",
+  "created_at": null,
+  "merged_at": "2026-06-03T19:06:09Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": false,
+    "audits_required": [
+      "api-contract-audit",
+      "ai-branding-quality-gate"
+    ],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-06-03T19:06:14.360067",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 67,
+        "java_files": 14,
+        "test_files": 11,
+        "business_docs": false,
+        "missing_audits": [
+          "api-contract-audit",
+          "ai-branding-quality-gate"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "1/4",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-865758"
+  }
+}
