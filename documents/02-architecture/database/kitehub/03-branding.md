@@ -16,11 +16,11 @@ last-reviewed: 2026-06-03
 >
 > - **AI generation job queue**: `branding_jobs` (V4) — vòng đời `QUEUED → PROCESSING → COMPLETED/FAILED/CANCELLED`, dispatched qua `AIQueueDispatcher` (Exception D §3.5.1 design-patterns).
 > - **AI quota / rate-limit**: `ai_usage_log` (V14, daily counter per tenant) + `branding_regenerate_usage` (V29, per-user daily window with idempotency).
-> - **Lifecycle state machine + audit**: `branding_instance_state` (V30 — current state per tenant; 1 row / instance, optimistic lock qua `row_version`) + `branding_lifecycle_events` (V30 — append-only audit trail).
+> - **Lifecycle state machine + audit**: `branding_instance_state` (V30 — current state per tenant; 1 row / instance, optimistic lock qua `row_version`) + `branding_lifecycle_events` (V30 — append-only audit trail; ✅ **immutable RLS (V60)** — FORCE + UPDATE/DELETE blocked, GAP-900).
 > - **Template gallery**: `branding_templates` (V13, V15) — 5 template được seed sẵn, KHÔNG tenant-scoped (system-wide catalog).
 > - **Transactional outbox**: `branding_outbox` (V21 — per-module outbox cho branding events theo ADR-021) + `migration_outbox` → `subscription_outbox` (V19→V22, dùng chung cho trial-to-paid + purge + email; cluster overlap).
 > - **Backup audit**: `backup_records` (V16) — tracking backup-restore drill (GAP-094) cho S3 archive.
-> - **RLS V34 + V50** bật trên 7 / 9 bảng (xem [§ anomalies A6](#a6--rls-coverage-gap)). `branding_templates` system-wide (no `instance_id`) + `subscription_outbox` (renamed sau V34 list được dựng) bị BỎ SÓT.
+> - **RLS V34 + V50** bật trên 7 / 9 bảng (xem [§ anomalies A6](#a6--rls-coverage-gap)). `branding_templates` system-wide (no `instance_id`) + `subscription_outbox` (renamed sau V34 list được dựng) bị BỎ SÓT. ✅ V60 (GAP-900) nâng `branding_lifecycle_events` lên **FORCE RLS immutable** (UPDATE/DELETE blocked) + ✅ V60 (GAP-901) thêm FK CASCADE→`instances` cho 3 bảng counter/state.
 > - **Đơn vị key tenant**: UUID `instance_id` cho 7 bảng tenant-scoped; `branding_templates` không có; `subscription_outbox` (sau V22) cho phép `instance_id IS NULL` để chứa cross-instance events.
 
 ---
@@ -91,7 +91,7 @@ erDiagram
         varchar to_state
         varchar actor_kind
         text metadata_json
-        timestamp occurred_at
+        timestamp occurred_at "V60 immutable FORCE RLS"
     }
     branding_outbox {
         uuid id PK
@@ -227,7 +227,7 @@ erDiagram
 | `instance_id` | UUID | YES | — | (RLS dùng) | Tenant — **nullable** (cho phép pre-auth flow regenerate trong wizard chưa pick instance) |
 | `job_id` | UUID | YES | — | — | Branding job được regenerate (tham chiếu logic tới `branding_jobs.id`) |
 | `idempotency_key` | VARCHAR(100) | YES | — | `idx_brand_regen_idempotency (user_id, idempotency_key) WHERE idempotency_key IS NOT NULL` | Header `Idempotency-Key` client gửi; replay trong window trả lại cùng `job_id` |
-| `tier` | VARCHAR(20) | NO | — | — | `FREE, PRO, PREMIUM, ENTERPRISE` — snapshot tier lúc invocation, không CHECK constraint |
+| `tier` | VARCHAR(20) | NO | — | ✅ **CHECK** `chk_branding_regen_tier` (V59) | `FREE, PRO, PREMIUM, ENTERPRISE` — snapshot tier lúc invocation. ✅ Resolved (GAP-899, V59) — CHECK thêm; trước đây free-form. |
 | `used_count` | INTEGER | NO | `0` | — | Số lần regenerate đã dùng trong window |
 | `window_start` | TIMESTAMP | NO | — | UNIQUE thành phần; index ngầm | UTC midnight ngày áp counter |
 | `window_end` | TIMESTAMP | NO | — | `idx_brand_regen_window_end` | UTC midnight ngày sau (`window_start + 1 day`) |
@@ -235,10 +235,10 @@ erDiagram
 | `created_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit — tạo. ⚠️ `TIMESTAMP` không TZ |
 | `updated_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit — cập nhật. ⚠️ `TIMESTAMP` không TZ |
 
-**Constraints**: `uk_brand_regen_user_window UNIQUE (user_id, window_start)` — 1 counter row / user / ngày. Không có CHECK cho `tier`/`used_count`/`window_end > window_start` ⇒ defense-in-depth còn yếu (xem anomalies A3).
+**Constraints**: `uk_brand_regen_user_window UNIQUE (user_id, window_start)` — 1 counter row / user / ngày. ✅ Resolved (GAP-899, V59): `chk_branding_regen_tier CHECK (tier IN ('FREE','PRO','PREMIUM','ENTERPRISE'))` + `chk_branding_regen_window_order CHECK (window_end > window_start)`. Trước đây không CHECK cho `tier`/`window_end > window_start`. `used_count` vẫn không CHECK (minor). + ✅ `fk_branding_regen_instance FK(instance_id) → instances(id) ON DELETE CASCADE` (V60, GAP-901 — FK tolerate NULL instance_id pre-auth).
 
 **Quan hệ FK**
-- Out: `instance_id` + `user_id` + `job_id` đều tham chiếu logic — **KHÔNG có FK constraint** nào trong V29.
+- Out: ✅ Resolved (GAP-901, V60) — `instance_id → instances(id) ON DELETE CASCADE` (`fk_branding_regen_instance`; FK không enforce trên NULL → pre-auth row vẫn OK). `user_id` + `job_id` vẫn tham chiếu logic (no FK — `user_id` là VARCHAR JWT sub, `job_id` cross-table).
 - In: không.
 
 **RLS + ghi chú**
@@ -262,10 +262,10 @@ erDiagram
 | `created_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit (`@CreationTimestamp`). ⚠️ `TIMESTAMP` không TZ |
 | `updated_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit (`@UpdateTimestamp`). ⚠️ `TIMESTAMP` không TZ |
 
-**Constraints**: `chk_branding_instance_state_state CHECK (state IN (6 giá trị))`. PK là `instance_id` (đảm bảo 1 row / tenant — không cần UNIQUE riêng).
+**Constraints**: `chk_branding_instance_state_state CHECK (state IN (6 giá trị))`. PK là `instance_id` (đảm bảo 1 row / tenant — không cần UNIQUE riêng). + ✅ `fk_branding_instance_state_instance FK(instance_id) → instances(id) ON DELETE CASCADE` (V60, GAP-901).
 
 **Quan hệ FK**
-- Out: `instance_id` tham chiếu logic tới `instances(id)` — **KHÔNG có FK constraint** trong V30 (dù là 1:1 quan hệ tự nhiên).
+- Out: ✅ Resolved (GAP-901, V60) — `instance_id → instances(id) ON DELETE CASCADE` (`fk_branding_instance_state_instance`). Trước đây tham chiếu logic không FK (dù 1:1 tự nhiên); V60 thêm FK CASCADE.
 - In: `branding_lifecycle_events.instance_id` tham chiếu logic.
 
 **RLS + ghi chú**
@@ -299,7 +299,7 @@ erDiagram
 
 **RLS + ghi chú**
 - Tenant-scoped ✅. V34 bật RLS + V50 áp admin-bypass.
-- Append-only by convention (không có column `updated_at` / `deleted`) — nhưng KHÔNG có DB trigger/policy chặn UPDATE/DELETE. Application code phải đảm bảo immutability. Tham chiếu chéo: V56 `consent_record_immutable.sql` (cluster 01) thêm trigger immutable cho consent — mẫu mực mà bảng này CHƯA áp dụng (xem anomalies A4).
+- ✅ **immutable RLS (V60)** — Resolved (GAP-900, V60, Wave 14 C-KH). V60 thêm `ENABLE ROW LEVEL SECURITY` + `FORCE ROW LEVEL SECURITY` + 4 policies: SELECT `USING(true)`, INSERT `WITH CHECK(true)`, **UPDATE `USING(false) WITH CHECK(false)`** (chặn), **DELETE `USING(false)`** (chặn). Pattern khớp `admin_audit_logs` V50 + `consent_record_immutable` V56. Trước đây append-only chỉ convention app-layer; giờ enforce DB-level kể cả app role (FORCE). State change = INSERT event row mới; retention purge = superuser bypass.
 - `actor_kind` enum lowercase (3 giá trị) — bất nhất với convention UPPERCASE của `JobStatus`, `LifecycleState`, `BrandPersonality`.
 
 ---
@@ -342,22 +342,22 @@ erDiagram
 | `s3_key` | VARCHAR(500) | NO | — | — | S3 object key (vd `backups/tenant-abc/2026-06-03T00.dump`) |
 | `file_size_bytes` | BIGINT | YES | — | — | Kích thước file dump |
 | `checksum_sha256` | VARCHAR(64) | YES | — | — | SHA-256 hex để verify restore |
-| `status` | VARCHAR(20) | NO | `'IN_PROGRESS'` | `idx_backup_records_status` | Vd `IN_PROGRESS, COMPLETED, FAILED, RESTORED`. ⚠️ KHÔNG có CHECK constraint — drift risk |
+| `status` | VARCHAR(20) | NO | `'IN_PROGRESS'` | `idx_backup_records_status`; ✅ **CHECK** `chk_backup_records_status` (V59) | `IN_PROGRESS, COMPLETED, FAILED, RESTORED`. ✅ Resolved (GAP-899, V59) — CHECK constraint thêm; trước đây free-form. |
 | `started_at` | TIMESTAMP | NO | `NOW()` | — | Bắt đầu backup. ⚠️ `TIMESTAMP` không TZ |
 | `completed_at` | TIMESTAMP | YES | — | — | Hoàn tất |
 | `error_message` | TEXT | YES | — | — | Lỗi khi FAILED |
 | `created_at` | TIMESTAMP | NO | `NOW()` | — | Audit — tạo. ⚠️ `TIMESTAMP` không TZ |
 | `updated_at` | TIMESTAMP | NO | `NOW()` | — | Audit — cập nhật. ⚠️ `TIMESTAMP` không TZ |
 
-**Constraints**: chỉ PK. KHÔNG CHECK trên `status`, KHÔNG UNIQUE trên `s3_key` ⇒ cùng object có thể được persist 2 row (vd retry không idempotent).
+**Constraints**: PK + ✅ `chk_backup_records_status CHECK (status IN ('IN_PROGRESS','COMPLETED','FAILED','RESTORED'))` (V59, GAP-899) + ✅ `fk_backup_records_instance FK(instance_id) → instances(id) ON DELETE CASCADE` (V60, GAP-901). KHÔNG UNIQUE trên `s3_key` ⇒ cùng object có thể được persist 2 row (vd retry không idempotent).
 
 **Quan hệ FK**
-- Out: `instance_id` tham chiếu logic tới `instances(id)` — **KHÔNG FK constraint** (V16 thiết kế đứng độc lập với instances; cho phép backup record sống sót sau khi instance bị xóa cứng — forensic purpose).
+- Out: ✅ Resolved (GAP-901, V60) — `instance_id → instances(id) ON DELETE CASCADE` (`fk_backup_records_instance`). Trước đây tham chiếu logic không FK; V60 thêm FK CASCADE. (Lưu ý design intent cũ "survive instance delete forensic" được V60 đổi sang CASCADE — backup record giờ cascade-delete cùng instance.)
 - In: không.
 
 **RLS + ghi chú**
 - Tenant-scoped ✅. V34 bật RLS + V50 áp admin-bypass.
-- ⚠️ `RESTORED` status chưa có CHECK constraint enforce; restore drill (GAP-257) phụ thuộc service code đúng — nếu code ghi sai status (vd `restored` lowercase) DB chấp nhận → admin UI miss filter. Khuyến nghị thêm CHECK enum.
+- ✅ Resolved (GAP-899, V60): `status` giờ có CHECK enum `IN_PROGRESS/COMPLETED/FAILED/RESTORED` (V59) — `restored` lowercase sẽ bị DB reject. Restore drill (GAP-257) defense-in-depth tốt hơn.
 
 ---
 
@@ -388,16 +388,16 @@ erDiagram
 
 | Bảng | `instance_id` → `instances(id)`? | Ghi chú |
 |---|---|---|
-| `branding_jobs` | ✅ **FK thật** (ON DELETE CASCADE, V4) | Duy nhất trong cluster |
+| `branding_jobs` | ✅ **FK thật** (ON DELETE CASCADE, V4) | Có từ baseline |
 | `ai_usage_log` | ❌ logic | V14 — counter table, có thể được giữ lại cho audit |
-| `branding_regenerate_usage` | ❌ logic | V29 — `instance_id` nullable |
-| `branding_instance_state` | ❌ logic | V30 — PK là `instance_id` nhưng không FK ⇒ orphan possible |
-| `branding_lifecycle_events` | ❌ logic | V30 — audit, có thể survive instance delete (forensic) |
-| `backup_records` | ❌ logic | V16 — cố ý không FK để survive instance delete (forensic) |
+| `branding_regenerate_usage` | ✅ Resolved (GAP-901, V60) FK CASCADE | V60 thêm `fk_branding_regen_instance` (tolerate NULL pre-auth) |
+| `branding_instance_state` | ✅ Resolved (GAP-901, V60) FK CASCADE | V60 thêm `fk_branding_instance_state_instance` |
+| `branding_lifecycle_events` | ❌ logic | V30 — audit append-only; KHÔNG add FK (immutable RLS V60 thay thế guard; survive instance delete forensic) |
+| `backup_records` | ✅ Resolved (GAP-901, V60) FK CASCADE | V60 thêm `fk_backup_records_instance` |
 | `branding_outbox` | ❌ logic (qua `aggregate_id`) | V21 — không có cột `instance_id` nào |
 | `subscription_outbox` (sau V22) | ❌ FK **bị DROPPED** | V22 đã drop FK + cho NULL |
 
-⇒ Chỉ 1/9 bảng có FK thật. Lý do hợp lý cho audit/outbox (survive delete), nhưng `branding_instance_state` + `branding_regenerate_usage` + `ai_usage_log` có thể safely add FK CASCADE (như `branding_jobs`) mà không mất tính năng. Drift design intention.
+⇒ ✅ Resolved (GAP-901, V60): 3 bảng counter/state (`branding_instance_state`, `branding_regenerate_usage`, `backup_records`) giờ có FK CASCADE → `instances(id)` (cộng `branding_jobs` từ V4 = 4/9 bảng có FK thật). `branding_lifecycle_events` + 2 outbox giữ logic-only (audit/outbox survive delete + immutable RLS guard). Lưu ý: gap mô tả gốc liệt `ai_usage_log` nhưng V60 KHÔNG add FK cho `ai_usage_log` (giữ logic). Anomaly nhỏ: gap AC gốc nhắc `branding_jobs FK CASCADE` nhưng `branding_jobs` đã có FK từ V4 — V60 thực tế cover 3 bảng counter/state khác.
 
 ### A2 — Entity `BrandingJob` ↔ bảng `branding_jobs` drift cả 2 chiều
 
@@ -425,19 +425,20 @@ erDiagram
 | `branding_instance_state.state` | LifecycleState 6 giá trị | ✅ `chk_branding_instance_state_state` |
 | `branding_lifecycle_events.from_state/to_state` | nullable LifecycleState | ✅ 2 CHECK riêng |
 | `branding_lifecycle_events.actor_kind` | 3 giá trị | ✅ `chk_branding_lifecycle_events_actor_kind` |
-| `backup_records.status` | IN_PROGRESS/COMPLETED/FAILED/RESTORED | ❌ KHÔNG có CHECK |
-| `branding_regenerate_usage.tier` | FREE/PRO/PREMIUM/ENTERPRISE | ❌ KHÔNG có CHECK |
-| `branding_regenerate_usage.window_end > window_start` | semantic constraint | ❌ KHÔNG có CHECK |
+| `backup_records.status` | IN_PROGRESS/COMPLETED/FAILED/RESTORED | ✅ Resolved (GAP-899, V59) `chk_backup_records_status` |
+| `branding_regenerate_usage.tier` | FREE/PRO/PREMIUM/ENTERPRISE | ✅ Resolved (GAP-899, V59) `chk_branding_regen_tier` |
+| `branding_regenerate_usage.window_end > window_start` | semantic constraint | ✅ Resolved (GAP-899, V59) `chk_branding_regen_window_order` |
 
-⇒ 2-3 cột enum chưa có defense-in-depth CHECK. Drift với policy "DB CHECK enforce enum + app enum giữ trace" áp dụng cho phần đông cluster.
+⇒ ✅ Resolved (GAP-899, V59): 3 CHECK còn thiếu đã thêm (backup status enum + regen tier enum + regen window order). Defense-in-depth CHECK coverage giờ đầy đủ cho cluster. `used_count >= 0` vẫn không CHECK (minor, không trong gap scope).
 
-### A4 — Append-only/immutable enforcement chỉ ở app layer
+### A4 — Append-only/immutable enforcement ✅ Resolved (V60)
 
-`branding_lifecycle_events` được mô tả là **append-only audit trail** trong comment + entity javadoc, nhưng V30 KHÔNG có:
-- Trigger BEFORE UPDATE/DELETE chặn modification (kiểu `consent_record_immutable` V56 ở cluster 01).
-- Revoke UPDATE/DELETE GRANT cho role app.
+✅ **Resolved (GAP-900, V60 — Wave 14 C-KH).** Trước đây `branding_lifecycle_events` được mô tả append-only trong comment + entity javadoc nhưng V30 KHÔNG có DB-level enforcement (chỉ app convention). V60 thêm immutable RLS pattern khớp `admin_audit_logs` V50 + `consent_record_immutable` V56:
+- `ENABLE` + `FORCE ROW LEVEL SECURITY`.
+- Policy SELECT `USING(true)` + INSERT `WITH CHECK(true)` — cho phép đọc/ghi.
+- Policy **UPDATE `USING(false) WITH CHECK(false)`** + **DELETE `USING(false)`** — chặn ở DB.
 
-⇒ Application code phải tự discipline `INSERT only`. Một bug ngẫu nhiên ở repository (vd `eventRepository.saveAll(...)` sau khi modify entity in-place) sẽ ghi đè event mà không bị DB từ chối. Khuyến nghị áp pattern V56 (trigger + GRANT revoke) cho mọi audit-trail table.
+⇒ Một bug ngẫu nhiên ở repository (vd `eventRepository.saveAll(...)` sau khi modify entity in-place) giờ bị DB từ chối kể cả với app role (FORCE). State change = INSERT event row mới; retention purge cần superuser bypass. Bảng này giờ là 1 trong 3 immutable-RLS table của KiteHub (cùng `admin_audit_logs` V50 + `consent_record_immutable` V56).
 
 ### A5 — V-version coordination overhead với parallel buckets
 
@@ -457,8 +458,8 @@ V34 (Wave 56 `kh-subscription` slice của GAP-466) enable RLS bằng DO-block v
 | `ai_usage_log` | ✅ | ✅ | Có trong list |
 | `branding_regenerate_usage` | ✅ nullable | ✅ | Có trong list (nhưng row `instance_id IS NULL` bị NULL force-fail chặn) |
 | `branding_instance_state` | ✅ (PK) | ✅ | Có trong list |
-| `branding_lifecycle_events` | ✅ | ✅ | Có trong list |
-| `backup_records` | ✅ | ✅ | Có trong list |
+| `branding_lifecycle_events` | ✅ | ✅ + ✅ **FORCE** (V60, immutable) | Có trong list V34/V50; V60 nâng lên FORCE + UPDATE/DELETE blocked (GAP-900) |
+| `backup_records` | ✅ | ✅ | Có trong list (+ FK CASCADE V60 GAP-901) |
 | `branding_outbox` | ❌ không có | ❌ | V34 lookup `instance_id` → bỏ qua. Thiết kế quanh `aggregate_id` thuần |
 | `branding_templates` | ❌ không có | ❌ | Catalog dùng chung — tenant-agnostic là cố ý |
 | `subscription_outbox` | ✅ nullable (sau V22) | ❌ | V34 list chỉ có tên cũ `'migration_outbox'`; sau V22 rename, bảng cũ không còn → bỏ qua silently. RLS chưa apply |
@@ -472,6 +473,8 @@ Ghi chú **kh-subscription posture**: V34 cố tình **KHÔNG** issue `FORCE ROW
 Toàn bộ cột timestamp trong cluster này dùng **TIMESTAMP** (không TZ) — V4, V13, V14, V16, V19, V21, V22, V29, V30 đều `TIMESTAMP` thuần. Ngoại lệ duy nhất: `idempotency_keys` V41 (`TIMESTAMP WITH TIME ZONE`) — nhưng V41 thuộc cluster 01 không cluster 03.
 
 ⇒ Trộn rủi ro với client timezone: nếu app server / worker chạy UTC nhưng FE gửi local timezone (vd Asia/Ho_Chi_Minh +07:00), so sánh `window_start` của `branding_regenerate_usage` có thể bị lệch 7 giờ → counter reset sai mốc. Hibernate `LocalDateTime` mapping (entity dùng `LocalDateTime`) sẽ bind raw không TZ-convert. Khuyến nghị: tương lai convert toàn bộ sang `TIMESTAMPTZ` (cùng pattern V73 áp dụng cho audit columns) hoặc enforce UTC strict tại app.
+
+⏸️ **Deferred → GAP-912** (KH timestamp `timestamp without time zone` → TIMESTAMPTZ). Wave 14 D-KH defer — V59-V61 KHÔNG touch timestamp columns của cluster này. **Trạng thái hiện tại: VẪN TIMESTAMP (không TZ) — chưa đổi.** (Lưu ý: KH BaseEntity dùng `LocalDateTime`, khác KC dùng `Instant`.)
 
 ### A8 — Outbox bypass risk + per-module overhead (ADR-021)
 
@@ -503,6 +506,11 @@ Cluster 03 chạm gián tiếp 3 bảng idempotency:
 `branding_regenerate_usage` dùng pattern thứ 3 (window-scope thay vì TTL) vì nghiệp vụ regenerate quota reset daily, không phải lưu replay response. Drift với `idempotency_keys` (V41) — không có `request_hash` để detect "same key + different body" 422 conflict (Stripe semantics). Nếu future yêu cầu strict Stripe-style cho regenerate, cần migrate hoặc adapter sang `idempotency_keys`.
 
 ---
+
+## Nguồn migration (Wave 14 sync)
+
+- `V59__optimistic_lock_check_coverage.sql` — ✅ GAP-899: `chk_backup_records_status` + `chk_branding_regen_tier` + `chk_branding_regen_window_order`. (Cũng thêm `version` cho subscriptions/payments — cluster 02.)
+- `V60__branding_immutable_fk.sql` — ✅ GAP-900: `branding_lifecycle_events` ENABLE + FORCE RLS + UPDATE/DELETE blocked. ✅ GAP-901: FK CASCADE→`instances(id)` cho `branding_instance_state` + `backup_records` + `branding_regenerate_usage` (V60 comment ghi rõ `ai_usage_log` out-of-scope: không tồn tại CREATE TABLE trong folder).
 
 ## Liên kết
 

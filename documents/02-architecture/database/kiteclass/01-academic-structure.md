@@ -2,7 +2,7 @@
 title: "KiteClass DB Schema — Cụm Cấu trúc học vụ (Academic Structure)"
 audience: mixed
 created: 2026-06-02
-last-reviewed: 2026-06-02
+last-reviewed: 2026-06-03
 ---
 
 # KiteClass DB Schema — Cụm "Cấu trúc học vụ"
@@ -20,7 +20,9 @@ Cụm này gồm **12 bảng** mô tả khung tổ chức học vụ của một
 
 **Đa tenant:** 11/12 bảng có cột `instance_id UUID` và bật **RLS FORCED** (Row-Level Security) từ migration V58/V59 — DB tự lọc theo `app.current_tenant_id`. Hai bảng con `class_schedules` và `class_sessions` cùng bảng nối `course_prerequisites` KHÔNG có `instance_id` (scope gián tiếp qua FK tới `classes`/`courses`).
 
-**Soft-delete:** hầu hết bảng dùng cờ `deleted BOOLEAN` (filter `deleted = FALSE`). Ngoại lệ: `class_schedules`, `class_sessions`, `course_prerequisites` không có cờ này.
+**Soft-delete:** hầu hết bảng dùng cờ `deleted BOOLEAN` (filter `deleted = FALSE`). Wave 14 (V79) đã thêm `deleted` cho `class_sessions`. Ngoại lệ còn lại: `class_schedules`, `course_prerequisites` không có cờ này (bảng nối/legacy thuần).
+
+> ✅ **Cập nhật Wave 14 (post-fix):** `class_sessions` đã được V79 thêm `instance_id`/`location`/`attendance_taken`/`deleted` + RLS FORCED (GAP-908 — hết drift NẶNG entity↔DB). `class_schedules` được V84 thêm `instance_id` + RLS FORCED (GAP-908). `courses` được V85 drop 3 cột legacy zero-usage (`thumbnail_url`/`suggested_tuition`/`default_sessions` — GAP-909). Money columns (`courses.price`, `classes.tuition_amount`, `enrollments.tuition_amount`/`final_amount`) chuẩn hóa NUMERIC(19,2) + timestamp naive → TIMESTAMPTZ (V86 — GAP-883/878). Xem §"Ghi chú schema (anomalies)" để biết phần nào còn lệch (actor BIGINT `courses.teacher_id`/`subject_sections.teacher_id`/`homeroom_classes.homeroom_teacher_id` ⏸️ Deferred → GAP-877/886).
 
 **Audit columns:** cột `created_by` / `updated_by` của TẤT CẢ bảng đã được migration V73 (GAP-795) đổi sang kiểu **UUID** (lưu `X-User-Id` = JWT `sub` claim), KHÔNG còn là BIGINT/VARCHAR như khai báo ban đầu.
 
@@ -97,6 +99,7 @@ erDiagram
     }
     class_schedules {
         bigint id PK
+        uuid instance_id
         bigint class_id FK
         int day_of_week
         time start_time
@@ -104,10 +107,14 @@ erDiagram
     }
     class_sessions {
         bigint id PK
+        uuid instance_id
         bigint class_id FK
         int session_number
         date session_date
         varchar status
+        varchar location
+        boolean attendance_taken
+        boolean deleted
     }
     homeroom_classes {
         bigint id PK
@@ -241,9 +248,9 @@ erDiagram
 | `name` | VARCHAR(255) | NO | — | Index | Tên khóa học (entity giới hạn 200) |
 | `description` | TEXT | YES | — | — | Mô tả chi tiết |
 | `category` | VARCHAR(100) | YES | — | Index | Phân loại/lĩnh vực, vd "math", "english" |
-| `thumbnail_url` | TEXT | YES | — | — | Ảnh thumbnail (cột V1; entity dùng `cover_image_url`) |
-| `suggested_tuition` | DECIMAL(12,2) | YES | — | — | Học phí gợi ý (cột V1 legacy, entity không map) |
-| `default_sessions` | INTEGER | YES | — | — | Số buổi mặc định (cột V1 legacy, entity không map) |
+| ~~`thumbnail_url`~~ | — | — | — | — | **✅ DROPPED V85 (GAP-909)** — cột legacy V1 zero-usage; entity dùng `cover_image_url` |
+| ~~`suggested_tuition`~~ | — | — | — | — | **✅ DROPPED V85 (GAP-909)** — cột legacy V1 zero-usage |
+| ~~`default_sessions`~~ | — | — | — | — | **✅ DROPPED V85 (GAP-909)** — cột legacy V1 zero-usage |
 | `status` | VARCHAR(50) | YES | `'active'` (V1) | Index | Trạng thái. Entity ánh xạ `CourseStatus`: `DRAFT` (Bản nháp), `PUBLISHED` (Đã xuất bản), `ARCHIVED` (Đã lưu trữ) |
 | `created_at` | TIMESTAMP WITH TIME ZONE | NO | `CURRENT_TIMESTAMP` | — | Thời điểm tạo |
 | `updated_at` | TIMESTAMP WITH TIME ZONE | NO | `CURRENT_TIMESTAMP` | — | Thời điểm cập nhật cuối |
@@ -251,14 +258,14 @@ erDiagram
 | `updated_by` | UUID | YES | — | — | User UUID cập nhật cuối (V26 thêm BIGINT → V73 UUID) |
 | `version` | BIGINT | YES | `0` (V63) | — | Optimistic locking (V26 thêm, V63 set default) |
 | `deleted` | BOOLEAN | YES | `FALSE` | Index | Cờ xóa mềm |
-| `teacher_id` | BIGINT | YES | — | Index | ID giáo viên tạo course → `teachers.id` (V27). LƯU Ý: cột này VẪN là BIGINT (V73 chỉ đổi `classes.teacher_id` sang UUID, không đổi `courses.teacher_id`) |
+| `teacher_id` | BIGINT | YES | — | Index | ID giáo viên tạo course → `teachers.id` (V27). LƯU Ý: cột này VẪN là BIGINT (V73 chỉ đổi `classes.teacher_id`; Wave 14 KHÔNG sweep — ⏸️ Deferred → GAP-877/886) |
 | `syllabus` | TEXT | YES | — | — | Giáo trình theo tuần (V27) |
 | `objectives` | TEXT | YES | — | — | Mục tiêu học tập (V27) |
 | `prerequisites` | TEXT | YES | — | — | Điều kiện tiên quyết dạng text tự do (V27) — KHÁC với bảng nối `course_prerequisites` |
 | `target_audience` | TEXT | YES | — | — | Đối tượng mục tiêu (V27) |
 | `duration_weeks` | INTEGER | YES | — | — | Thời lượng (tuần) (V27) |
 | `total_sessions` | INTEGER | YES | — | — | Tổng số buổi (V27) |
-| `price` | DECIMAL(15,2) | YES | — | — | Giá khóa học (V27) — **legacy/đã deprecate** Wave br-4; code mới KHÔNG ghi, dùng `pricing_model`+`unit_price` |
+| `price` | NUMERIC(19,2) | YES | — | — | Giá khóa học (V27; V86 chuẩn hóa DECIMAL(15,2)→NUMERIC(19,2) — GAP-883). **@Deprecated** Wave br-4 nhưng GIỮ LẠI (V85 — còn ref bởi CourseMapper/IT fixtures); code mới KHÔNG ghi, dùng `pricing_model`+`unit_price` |
 | `cover_image_url` | VARCHAR(500) | YES | — | — | URL ảnh bìa (V27; entity dùng cột này thay `thumbnail_url`) |
 | `level` | VARCHAR(50) | YES | — | — | Cấp độ: "Beginner", "Intermediate", "Advanced" (V27) |
 | `pricing_model` | VARCHAR(30) | NO | `'PER_HOUR'` (V70) | CHECK ∈ (PER_HOUR, MONTHLY, COURSE_PACKAGE, FREE) | Mô hình giá (V67, ADR-035): `PER_HOUR` (theo giờ — chuẩn TT tiếng Anh VN), `MONTHLY` (theo tháng), `COURSE_PACKAGE` (theo khóa), `FREE` (miễn phí/demo). V67 backfill dòng cũ = `COURSE_PACKAGE` |
@@ -268,7 +275,7 @@ erDiagram
 - Outbound: `teacher_id` (BIGINT) → `teachers.id` (cross-cluster, giáo viên tạo course).
 - Inbound: `classes.course_id` → `courses(id)`; `course_prerequisites.course_id` + `.prerequisite_id` → `courses(id)` (self M:N); `subject_sections.course_id` → `courses(id)` (soft ref); `teacher_courses.course_id` → `courses(id)`.
 
-**RLS + ghi chú:** Tenant-scoped (RLS FORCED). Soft-delete. Có 3 CHECK quanh pricing. Có lịch sử migration dài (cột tích lũy V1/V27/V67/V70). **Drift entity↔DB cần biết:** entity dùng `cover_image_url` chứ không `thumbnail_url`; `suggested_tuition`/`default_sessions` là cột V1 không còn map; `R67__undo_pricing_model.sql` là script rollback THỦ CÔNG (KHÔNG tự áp dụng bởi Flyway).
+**RLS + ghi chú:** Tenant-scoped (RLS FORCED). Soft-delete. Có 3 CHECK quanh pricing. Có lịch sử migration dài (cột tích lũy V1/V27/V67/V70). **Cập nhật Wave 14:** V85 (GAP-909) đã DROP 3 cột legacy zero-usage `thumbnail_url`/`suggested_tuition`/`default_sessions` — entity giờ dùng `cover_image_url` (V27, còn lại); `price` GIỮ (@Deprecated, V86 chuẩn hóa NUMERIC(19,2)). `R67__undo_pricing_model.sql` là script rollback THỦ CÔNG (KHÔNG tự áp dụng bởi Flyway — xem A7).
 
 ---
 
@@ -331,7 +338,7 @@ erDiagram
 | `start_date` | DATE | YES (V1 NOT NULL → entity optional) | — | Index | Ngày bắt đầu |
 | `end_date` | DATE | YES | — | — | Ngày kết thúc (phải sau start_date nếu có) |
 | `max_students` | INTEGER | NO | `30` (V65) | CHECK `>= 1` (V65) | Sĩ số tối đa |
-| `tuition_amount` | DECIMAL(12,2) | YES (V27 drop NOT NULL) | — | — | Học phí (cột V1 legacy, entity không map; thay bằng pricing ở `courses`) |
+| `tuition_amount` | NUMERIC(19,2) | YES (V27 drop NOT NULL) | — | — | Học phí (cột V1 legacy, entity không map; thay bằng pricing ở `courses`). V86 chuẩn hóa DECIMAL(12,2)→NUMERIC(19,2) — GAP-883 |
 | `tuition_type` | VARCHAR(20) | YES | `'fixed'` | — | Loại học phí (cột V1 legacy, entity không map) |
 | `status` | VARCHAR(50→20) | YES | `'upcoming'` (V1) → entity `SCHEDULED` | Index; CHECK ∈ (DRAFT, SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED) (V27) | Vòng đời lớp. Entity `ClassStatus`: `DRAFT` (Nháp), `SCHEDULED` (Đã lên lịch), `IN_PROGRESS` (Đang diễn ra), `COMPLETED` (Đã hoàn thành), `CANCELLED` (Đã hủy) |
 | `created_at` | TIMESTAMP WITH TIME ZONE | NO | `CURRENT_TIMESTAMP` | — | Thời điểm tạo |
@@ -373,6 +380,7 @@ erDiagram
 | Cột | Kiểu | Null | Default | Khóa/Index | Ý nghĩa |
 |-----|------|:----:|---------|-----------|---------|
 | `id` | BIGSERIAL | NO | (sequence) | PK | Khóa chính |
+| `instance_id` | UUID | NO | — | `idx_class_schedules_instance_id`, RLS | Tenant ID (V84 — GAP-908; backfill từ `classes.instance_id` rồi NOT NULL) |
 | `class_id` | BIGINT | NO | — | FK → `classes(id)` ON DELETE CASCADE; Index | Lớp cha |
 | `day_of_week` | INTEGER | NO | — | CHECK 0..6; Index | Thứ trong tuần (0=Chủ nhật, 1=Thứ 2, …) |
 | `start_time` | TIME | NO | — | — | Giờ bắt đầu |
@@ -386,7 +394,7 @@ erDiagram
 - Outbound: `class_id` → `classes(id)` (ON DELETE CASCADE).
 - Inbound: không.
 
-**RLS + ghi chú:** **KHÔNG tenant-scoped** (không có `instance_id` → ngoài RLS V58). Cô lập gián tiếp qua FK `class_id`. **KHÔNG có `deleted`/`updated_at`** (chỉ `created_at`) — không phải BaseEntity. Bảng legacy; cân nhắc migrate sang `class_schedule_slots` ở Phase 2 (GAP-099).
+**RLS + ghi chú:** ✅ **Tenant-scoped từ Wave 14** — V84 (GAP-908) thêm `instance_id` (denormalize backfill từ `classes`) + ENABLE/FORCE RLS với policy `tenant_isolation` (NULL force-fail + admin-bypass). Trước Wave 14 chỉ cô lập gián tiếp qua FK `class_id`. **KHÔNG có `deleted`/`updated_at`** (chỉ `created_at`) — không phải BaseEntity. Bảng legacy; cân nhắc migrate sang `class_schedule_slots` ở Phase 2 (GAP-099).
 
 ---
 
@@ -397,6 +405,7 @@ erDiagram
 | Cột | Kiểu | Null | Default | Khóa/Index | Ý nghĩa |
 |-----|------|:----:|---------|-----------|---------|
 | `id` | BIGSERIAL | NO | (sequence) | PK | Khóa chính |
+| `instance_id` | UUID | NO | — | `idx_class_sessions_instance_id`, RLS | Tenant ID (V79 — GAP-908; backfill từ `classes.instance_id` rồi NOT NULL) |
 | `class_id` | BIGINT | NO | — | FK → `classes(id)`; Index; UNIQUE (class_id, session_date) | Lớp cha |
 | `session_number` | INTEGER | NO | — | — | Số thứ tự buổi trong lớp (bắt đầu từ 1) |
 | `session_date` | DATE | NO | — | Index | Ngày diễn ra buổi học |
@@ -410,12 +419,15 @@ erDiagram
 | `created_by` | UUID | YES | — | — | User UUID tạo (V26 thêm BIGINT → V73 UUID) |
 | `updated_by` | UUID | YES | — | — | User UUID cập nhật cuối (V26 → V73) |
 | `version` | BIGINT | YES | `0` (V63) | — | Optimistic locking |
+| `location` | VARCHAR(200) | YES | — | — | Địa điểm buổi học (cột entity, V79 — GAP-908) |
+| `attendance_taken` | BOOLEAN | NO | `FALSE` | — | Cờ đã điểm danh buổi (cột entity, V79 — GAP-908) |
+| `deleted` | BOOLEAN | NO | `FALSE` | — | Cờ soft-delete (cột entity, V79 — GAP-908; trước Wave 14 KHÔNG có) |
 
 **Quan hệ:**
 - Outbound: `class_id` → `classes(id)`.
 - Inbound: cross-cluster `attendance.session_id` → `class_sessions(id)` (cụm Điểm danh).
 
-**RLS + ghi chú:** **KHÔNG tenant-scoped** (không có `instance_id` → ngoài RLS V58). Cô lập gián tiếp qua FK `class_id`. KHÔNG có cột `deleted`. **Drift entity↔DB quan trọng:** entity `ClassSession` extends `BaseEntity` nên KHAI BÁO `instance_id`, `deleted`, và thêm `location` + `attendance_taken`, NHƯNG KHÔNG có migration nào thêm các cột này vào bảng `class_sessions` (gồm cả `instance_id`). Cần lưu ý khi triển khai/kiểm thử trên Postgres thật — runtime có thể lệch schema. Unique `(class_id, session_date)` — 1 buổi/ngày/lớp.
+**RLS + ghi chú:** ✅ **Tenant-scoped từ Wave 14** — V79 (GAP-908) thêm `instance_id` (denormalize backfill từ `classes`, NOT NULL sau backfill) + `location`/`attendance_taken`/`deleted` + ENABLE/FORCE RLS với policy `tenant_isolation` (NULL force-fail + admin-bypass). **Drift entity↔DB đã Resolved:** entity `ClassSession extends BaseEntity` khai báo `instance_id`/`deleted`/`location`/`attendance_taken` — Wave 14 V79 đã backfill đầy đủ vào DB → hết lỗi `column ... does not exist` runtime. Unique `(class_id, session_date)` — 1 buổi/ngày/lớp.
 
 ---
 
@@ -430,7 +442,7 @@ erDiagram
 | `academic_year_id` | BIGINT | NO | — | FK → `academic_years(id)`; Index | Niên khóa cha |
 | `grade` | VARCHAR(10) | NO | — | UNIQUE (academic_year_id, grade, section) khi `deleted=false`; Index | Khối lớp ("1".."12", "ĐH") |
 | `section` | VARCHAR(20) | NO | — | (cùng unique) | Mã lớp trong khối ("A1", "B2", …) |
-| `homeroom_teacher_id` | BIGINT | YES | — | Index | ID GVCN → `teachers.id` (soft reference, không FK DB) |
+| `homeroom_teacher_id` | BIGINT | YES | — | Index | ID GVCN → `teachers.id` (soft reference, không FK DB). Vẫn BIGINT (⏸️ deferred actor sweep → GAP-877/886) |
 | `capacity` | INT | NO | `40` | CHECK `capacity > 0` | Sĩ số tối đa |
 | `current_enrolled` | INT | NO | `0` | CHECK `0 <= current_enrolled <= capacity` | Số HS đang học |
 | `description` | VARCHAR(500) | YES | — | — | Mô tả |
@@ -459,7 +471,7 @@ erDiagram
 | `instance_id` | UUID | NO | — | Index, RLS | Tenant ID |
 | `homeroom_class_id` | BIGINT | NO | — | FK → `homeroom_classes(id)`; UNIQUE (homeroom_class_id, course_id) khi `deleted=false` | Lớp chính cha |
 | `course_id` | BIGINT | NO | — | (cùng unique) | Môn học → `courses(id)` (soft reference) |
-| `teacher_id` | BIGINT | YES | — | Index | Giáo viên bộ môn → `teachers.id` (soft ref). LƯU Ý: BIGINT (V73 KHÔNG đổi cột này) |
+| `teacher_id` | BIGINT | YES | — | Index | Giáo viên bộ môn → `teachers.id` (soft ref). LƯU Ý: BIGINT (V73 + Wave 14 KHÔNG đổi — ⏸️ deferred actor sweep → GAP-877/886) |
 | `schedule` | VARCHAR(200) | YES | — | — | Lịch dạng text tự do, vd "T2,T4,T6 07:00-07:45" (thay dần bằng `class_schedule_slots`) |
 | `weekly_hours` | INT | YES | — | CHECK (`NULL` hoặc `> 0`) | Số tiết/tuần (dùng tính tổng chương trình) |
 | `created_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Thời điểm tạo |
@@ -512,45 +524,45 @@ erDiagram
 
 > Đây là danh sách lệch chuẩn giữa migration (chân lý DB), entity Java (`*.java`), và policy RLS (V58/V59) cho cụm Cấu trúc học vụ. Dev PHẢI nắm để tránh viết query sai, tạo migration mâu thuẫn, hoặc giả định RLS che mọi bảng. Hầu hết anomaly phát sinh từ (a) bảng tạo SAU V58/V59 không được sweep RLS, (b) entity refactor mà migration không follow, (c) V73 actor-sweep BỎ SÓT các cột tên không chuẩn `created_by`/`updated_by`.
 
-### A1 — 3 bảng thiếu `instance_id` → ngoài scope RLS V58/V59
+### A1 — ✅ Resolved phần lớn (GAP-908, V79/V84); còn `course_prerequisites`
 
-V58 enable RLS + V59 hardening dùng danh sách bảng tĩnh chạy một lần. **3 bảng tạo trước V58 nhưng KHÔNG có `instance_id`** nên không nằm trong danh sách RLS → chỉ cô lập tenant qua FK gián tiếp (parent có `instance_id`):
+**Trước Wave 14:** 3 bảng thiếu `instance_id` → ngoài scope RLS V58/V59, chỉ cô lập gián tiếp qua FK.
 
-| Bảng | Migration | RLS V58? | Cô lập tenant qua |
-|---|---|:---:|---|
-| `class_schedules` | V44 | ❌ KHÔNG | FK → `subject_sections.instance_id` |
-| `class_sessions` | V44 | ❌ KHÔNG | FK → `classes.instance_id` (suy luận) |
-| `course_prerequisites` | V1/V26 | ❌ KHÔNG | FK → `courses.instance_id` |
+| Bảng | Trạng thái sau Wave 14 | RLS DB-level |
+|---|---|:---:|
+| `class_sessions` | **✅ Resolved (V79 — GAP-908):** thêm `instance_id` (backfill từ `classes`) + ENABLE/FORCE RLS policy `tenant_isolation` | ✅ |
+| `class_schedules` | **✅ Resolved (V84 — GAP-908):** thêm `instance_id` (backfill từ `classes`) + ENABLE/FORCE RLS policy `tenant_isolation` | ✅ |
+| `course_prerequisites` | ⚠️ Vẫn KHÔNG có `instance_id` (bảng nối M:N thuần 2 cột PK — không thuộc Wave 14 scope) | ❌ FK→`courses.instance_id` |
 
-→ Rủi ro: nếu service code không JOIN parent table có `instance_id`, query có thể leak cross-tenant. Cần verify mọi repository method dùng 3 bảng này có `@Query` JOIN parent + filter `instance_id`. Đây là cùng class với A9 baseline `04-finance.md` (`payment_records` V69 + `payment_idempotency_keys` V61 RLS coverage gap) nhưng nguyên nhân khác (3 bảng cluster 01 thiếu HẲN cột `instance_id` chứ không phải tạo-sau-V58).
+→ Sau Wave 14, chỉ còn `course_prerequisites` cô lập gián tiếp qua FK (rủi ro thấp — bảng nối thuần, repository luôn JOIN `courses`). 2 bảng còn lại đã RLS DB-level FORCED (NULL force-fail + admin-bypass). Verify repository method dùng `course_prerequisites` JOIN parent + filter `instance_id`.
 
-### A2 — Entity `ClassSession` ↔ bảng `class_sessions` drift NẶNG
+### A2 — ✅ Resolved (GAP-908, V79) — Entity `ClassSession` ↔ bảng `class_sessions`
 
-`ClassSession.java extends BaseEntity` ⇒ khai báo `instance_id`, `deleted`, `location`, `attendance_taken` NHƯNG **KHÔNG có migration nào thêm các cột này vào bảng `class_sessions`**. Migration V44 tạo bảng với chỉ các cột `class_id`, `session_date`, `start_time`, `end_time`, `topic`, `notes`, `created_at`, `updated_at`.
+**Trước Wave 14:** `ClassSession.java extends BaseEntity` khai báo `instance_id`/`deleted`/`location`/`attendance_taken` nhưng migration KHÔNG có các cột này → runtime throw `column instance_id does not exist` khi Hibernate apply `@Filter("tenantFilter")`.
 
-→ Runtime: chạy entity trên DB thật sẽ throw `column instance_id does not exist` khi Hibernate apply `@Filter("tenantFilter")` (filter dùng `instance_id`). Đây là drift cùng class với baseline 04-finance.md A3 (`Invoice` ↔ `invoices` thiếu `deleted`/`enrollment_id`). Cần migration backfill HOẶC xác nhận `class_sessions` không còn dùng entity (RST walk luồng K-12 lịch học).
+**✅ Resolved (V79 — GAP-908):** V79 `ALTER TABLE class_sessions ADD COLUMN` cho `instance_id UUID` (backfill từ `classes` rồi NOT NULL — có guard RAISE EXCEPTION nếu không backfill được), `location VARCHAR(200)`, `attendance_taken BOOLEAN NOT NULL DEFAULT FALSE`, `deleted BOOLEAN NOT NULL DEFAULT FALSE` + ENABLE/FORCE RLS. Entity hết lỗi runtime — schema khớp BaseEntity.
 
-### A3 — Entity `Course` ↔ bảng `courses` drift cột legacy + cột tên khác
+### A3 — ✅ Resolved phần lớn (GAP-909, V85); `teacher_id` ⏸️ Deferred
 
-| Khía cạnh | Entity `Course.java` | Bảng `courses` |
-|---|---|---|
-| Cột ảnh thumbnail | `cover_image_url` | (không có cột này) |
-| Cột giá học phí gợi ý | (không map) | `suggested_tuition` (V1, deprecated) |
-| Cột số buổi mặc định | (không map) | `default_sessions` (V1, deprecated) |
-| Cột giá học phí | (không map) | `price` (deprecated, không dùng) |
-| `teacher_id` kiểu | (UUID expected — actor) | `BIGINT` (V27, chưa đổi UUID) |
+| Khía cạnh | Trạng thái sau Wave 14 |
+|---|---|
+| Cột ảnh thumbnail | **✅ Resolved (V85):** `thumbnail_url` (V1 zero-usage) DROPPED; entity dùng `cover_image_url` (V27, còn lại) |
+| `suggested_tuition` | **✅ DROPPED V85 (GAP-909)** — V1 zero-usage |
+| `default_sessions` | **✅ DROPPED V85 (GAP-909)** — V1 zero-usage |
+| `price` | GIỮ LẠI (@Deprecated; còn ref CourseMapper/IT fixtures). V86 chuẩn hóa NUMERIC(19,2) |
+| `teacher_id` kiểu | ⏸️ **Deferred → GAP-877/886** — vẫn BIGINT (Wave 14 KHÔNG sweep actor) |
 
-→ Pattern giống baseline 04-finance.md A2 (`Payment` entity drift). Cần (a) migration ADD `cover_image_url` HOẶC sửa entity → `thumbnail_url`, (b) decision cleanup cột legacy V1 sau khi xác nhận zero usage.
+→ V85 (GAP-909) verify zero-usage qua grep kiteclass-core src trước khi drop. Drift cột legacy đã giải quyết phần lớn; chỉ còn `teacher_id` BIGINT (actor sweep deferred).
 
-### A4 — Entity `Classes` ↔ bảng `classes` drift (cột legacy V1)
+### A4 — Entity `Classes` ↔ bảng `classes` drift (cột legacy V1) — phần lớn đã align
 
-`Classes.java` không map các cột legacy `code`, `tuition_amount`, `tuition_type` (V1 cũ). Migration V73 đã chuyển `teacher_id` BIGINT → UUID + DROP FK `classes.teacher_id → teachers(id)` (xem A5). Pattern lặp lại A3 — cluster có 3 entity (Course, Classes, ClassSession) cùng drift.
+`Classes.java` không map các cột legacy `code`, `tuition_amount`, `tuition_type` (V1 cũ). Migration V73 đã chuyển `teacher_id` BIGINT → UUID + DROP FK `classes.teacher_id → teachers(id)` (xem A5). **Cập nhật Wave 14:** V86 chuẩn hóa `tuition_amount` DECIMAL(12,2)→NUMERIC(19,2) (GAP-883) nhưng KHÔNG drop (boundary call — cột legacy có thể còn service Beta dùng). 3 cột legacy `code`/`tuition_amount`/`tuition_type` GIỮ LẠI — drift schema-existence của cluster đã giải quyết qua V79 (class_sessions) + V85 (courses); riêng `classes` legacy cols để lại cleanup sau (verify zero-usage trước drop).
 
-→ **Cluster summary fix:** 1 migration "Phase 1 align academic-entity-drift" backfill thiếu cột + DROP cột legacy (cẩn thận với `tuition_amount` có thể đang được service Beta dùng — verify trước drop).
+→ Lưu ý: khác với `class_sessions`/`courses` (đã align V79/V85), `classes` legacy cols chưa drop — đọc kỹ trước khi viết query đụng `tuition_amount`/`code`/`tuition_type`.
 
-### A5 — Actor BIGINT bị V73 sweep BỎ SÓT
+### A5 — ⏸️ Deferred → GAP-877/886 — Actor BIGINT bị V73 sweep BỎ SÓT
 
-V73 (GAP-795) chỉ chuyển `created_by`/`updated_by` + 3 cột actor "section riêng" (`classes.teacher_id`, `classes.rescheduled_by_user_id`, `parent_invitations.invited_by_user_id`) sang UUID. Các cột actor khác trong cluster vẫn BIGINT:
+V73 (GAP-795) chỉ chuyển `created_by`/`updated_by` + 3 cột actor "section riêng" (`classes.teacher_id`, `classes.rescheduled_by_user_id`, `parent_invitations.invited_by_user_id`) sang UUID. Wave 14 (V79-V86) **KHÔNG** sweep các cột actor nghiệp vụ còn lại — vẫn BIGINT:
 
 | Bảng | Cột actor BIGINT bỏ sót | Migration gốc | Risk |
 |---|---|---|---|
@@ -558,7 +570,7 @@ V73 (GAP-795) chỉ chuyển `created_by`/`updated_by` + 3 cột actor "section 
 | `subject_sections` | `teacher_id` | V29 | Same — entity expect UUID nhưng DB BIGINT |
 | `homeroom_classes` | `homeroom_teacher_id` | V29 (soft ref) | Same |
 
-→ Đây là class identical với baseline 04-finance.md A6 (`payments.received_by`, `payment_records.recorded_by` BIGINT V73 miss). Risk: NPE / NumberFormatException khi cast UUID → BIGINT. Cần migration follow-up sweep V73 cho 3 cột này.
+→ Class identical với baseline 04-finance.md A6 + cluster 03 anomaly E. Risk: NPE / NumberFormatException khi cast UUID → BIGINT. **⏸️ Deferred → GAP-877/886** (actor UUID sweep phase 2 — chưa land trong Wave 14).
 
 ### A6 — `class_schedule_slots.deleted_at` không khai báo trong BaseEntity
 
@@ -578,14 +590,11 @@ V26 thêm cột `version BIGINT` cho 14 bảng V1 (không default). V62/V63 set 
 
 → Risk: raw INSERT vào snapshot test giữa V26 → V62/V63 sẽ NPE tại flush vì `version IS NULL` + entity `@Version` annotation expect NOT NULL. Production safe (V62/V63 đã chạy) nhưng dev local restart từ V26-state có thể vướng. Cùng class baseline 04-finance.md A7.
 
-### A9 — TIMESTAMP vs TIMESTAMPTZ không nhất quán
+### A9 — ✅ Resolved (GAP-878, V86) — TIMESTAMP đồng nhất TIMESTAMPTZ
 
-12 bảng cluster chia 2 nửa:
+**Trước Wave 14:** 12 bảng cluster chia 2 nửa — `courses`/`classes`/`class_sessions`/`class_schedules` dùng TIMESTAMPTZ; `academic_years`/`semesters`/`holidays`/`curricula`/`homeroom_classes`/`subject_sections`/`class_schedule_slots` dùng TIMESTAMP naive.
 
-- **TIMESTAMP WITH TIME ZONE (timestamptz):** `courses`, `classes`, `class_sessions`, `class_schedules` — phù hợp lưu múi giờ Việt Nam UTC+7.
-- **TIMESTAMP (naive, không TZ):** `academic_years`, `semesters`, `holidays`, `curricula`, `homeroom_classes`, `subject_sections`, `class_schedule_slots` — không có timezone awareness.
-
-→ Risk: query so sánh `class_sessions.session_date` (TZ) với `semesters.start_date` (naive) có thể lệch ngày khi server không UTC. Cluster baseline 04-finance.md A8 cùng class. Cần document policy timezone (mặc định UTC+7 lưu naive HAY UTC lưu timestamptz?) trong `documents/02-architecture/database/README.md`.
+**✅ Resolved (V86 — GAP-878):** V86 quét mọi cột `timestamp without time zone` tên kết thúc `_at`/`_time` trong schema `public`, convert sang `TIMESTAMPTZ USING <col> AT TIME ZONE 'UTC'`. Sau V86, các cột `created_at`/`updated_at`/`*_at`/`*_time` của 7 bảng naive trên đều thành TIMESTAMPTZ — đồng nhất toàn cluster. **Lưu ý:** cột business calendar date `LocalDate` (vd `start_date`/`end_date`/`session_date`/`effective_from`) GIỮ kiểu DATE (cố ý — V86 boundary call, không convert `_date`).
 
 ### A10 — Strangler Fig — 2 mô hình lớp song song
 
