@@ -269,7 +269,37 @@ gaps: []
 
 ---
 
-## 4. Workflow per Bucket
+## 4. State-Check Evidence
+
+Per `audit-to-gap-pipeline.md` §2.6 — empirical state-check trước khi lock scope. Anomaly inventory nguồn từ Wave 13 cluster docs (KH 4 + KC 8) đã backfill thành gap files GAP-874..910 (37 gaps, PR #2128).
+
+| Artifact | Loại | Lệnh state-check | Verdict |
+|---|---|---|---|
+| `documents/04-quality/gaps/gap-status.csv` | Gap inventory canonical | `bash scripts/query-gaps.sh "" "" phase-1-beta \| grep -iE "rls\|entity\|migration\|audit"` | ✅ 37 anomaly gaps GAP-874..910 filed (9 P0 + 9 P1 + 14 P2 + 4 P3) |
+| KH cluster docs (4) | DB schema source | `ls documents/02-architecture/database/kitehub/{03,04,08,13}-*.md` | ✅ exist — anomaly "Ghi chú" sections inventoried |
+| KC cluster docs (8) | DB schema source | `ls documents/02-architecture/database/kiteclass/0{1..8}-*-cluster.md` | ✅ exist |
+| Existing migration patterns | Reference | V58/V59 RLS sweep + V73 audit-UUID sweep | ✅ reusable patterns confirmed |
+| `.github/workflows/quality-db.yml` | CI target | check job target file | 🆕 to-be-created/extended (5 CI scripts Bucket A-E) |
+
+---
+
+## 5. Verification Gates
+
+Per bucket, gate trước khi merge (CI script + local pre-flight):
+
+| Bucket | CI gate script (NEW) | Local pre-flight | Acceptance |
+|---|---|---|---|
+| A — RLS sweep | `scripts/check-rls-coverage.sh` | migration replay + `./mvnw verify -P strict-warnings` (kiteclass-core) | §3 Bucket A AC checklist |
+| B — entity sync | `scripts/check-schema-drift.sh` | entity↔migration mapper consistency + mvnw verify | §3 Bucket B AC checklist |
+| C — audit-UUID V74 | `scripts/check-audit-col-uniformity.sh` | mvnw verify (affected service) | §3 Bucket C AC checklist |
+| D — type harmonize | `scripts/check-type-consistency.sh` | mvnw verify + freeze-window note | §3 Bucket D AC checklist |
+| E — migration replay | `scripts/check-migration-replay.sh` | replay V1→V_latest on ephemeral PG | §3 Bucket E AC checklist |
+
+Gate chung mọi bucket: NO `--admin` merge (per `admin-merge-discipline.md`); CI thực sự green; post-merge sync `gap-status.csv` + wave Log per `post-merge-sync-completeness.md`.
+
+---
+
+## 6. Agent Spawn Pattern
 
 ### Standard sequence per bucket
 
@@ -373,7 +403,7 @@ git pull --ff-only origin main
 
 ---
 
-## 5. Closure Checklist
+## 7. Closure Protocol
 
 Khi 5 bucket A-E đã ship + CI green + merge:
 
@@ -396,7 +426,7 @@ Khi 5 bucket A-E đã ship + CI green + merge:
 
 ---
 
-## 6. References
+## References
 
 - **Governance source:** `CLAUDE.md` + `.claude/rules/**` (canonical — AGENTS.md/.codex bridge removed 2026-06-03 sau khi 9router route gpt-5.5 chạy TRONG Claude Code harness, đọc `.claude/` natively)
 - **Source Wave 13 anomaly:**
@@ -424,6 +454,7 @@ Khi 5 bucket A-E đã ship + CI green + merge:
 
 ---
 
-## 7. Log
+## 8. Log
 
+- **2026-06-04**: Restructured §4-§8 to canonical wave-plan template headings (State-Check Evidence / Verification Gates / Agent Spawn Pattern / Closure Protocol / Log) per `check-wave-plan-completeness.sh`. Original §4 Workflow per Bucket → §6 Agent Spawn Pattern; §5 Closure Checklist → §7 Closure Protocol; References de-numbered; content preserved. Fix unblocks docs CI gate (was FAIL:1 repo-wide).
 - **2026-06-03** (planned): Plan created — extracted Wave 14 specific scope từ AGENTS.md v1.1.0 (which over-loaded stable + volatile content). Paired same PR với AGENTS.md slim v1.2.0 (stable-only) + cSpell allowlist additions. Outside-in audit skipped per `outside-in-coverage-trigger.md` §4 row "Wave 100% internal scope".
