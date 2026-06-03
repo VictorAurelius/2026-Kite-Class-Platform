@@ -1,6 +1,6 @@
 # GAP-890: `leads` + `contact_messages` entity nhưng không có migration
 
-**Status:** 🟡 PARTIAL (80%)
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend / DB
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KC branding/marketing)
@@ -28,3 +28,7 @@ Migration V## CREATE TABLE leads + contact_messages theo template V75 + entity d
 ## Discovered in
 
 `documents/02-architecture/database/kiteclass/08-branding-marketing.md` §A1
+
+## Log
+
+- **2026-06-03** DONE — entity-drift fixed (V79) + verified `Wave14EntityDriftMigrationsIT` (Flyway V1..V86 real Postgres, 19 tests PASS) + schema-drift PASS. Wave 14 DB completion.

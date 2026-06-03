@@ -1,6 +1,6 @@
 # GAP-876: `assignments` + `submissions` entity ↔ DB drift (missing `deleted`)
 
-**Status:** 🟡 PARTIAL (80%)
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend / DB
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KiteClass attendance-grading)
@@ -27,3 +27,7 @@ Migration add `deleted BOOLEAN NOT NULL DEFAULT FALSE` cho cả 2 bảng + decid
 ## Discovered in
 
 `documents/02-architecture/database/kiteclass/03-attendance-grading.md` §D
+
+## Log
+
+- **2026-06-03** DONE — entity-drift fixed (V79) + verified `Wave14EntityDriftMigrationsIT` (Flyway V1..V86 real Postgres, 19 tests PASS) + schema-drift PASS. Wave 14 DB completion.

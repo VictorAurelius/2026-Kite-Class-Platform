@@ -1,6 +1,6 @@
 # GAP-880: Entity `Payment` ↔ bảng `payments` drift NẶNG — 12+ cột entity không có DB
 
-**Status:** 🟡 PARTIAL (70%)
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend / DB
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KC finance)
@@ -26,3 +26,7 @@ Decide: (a) reconcile migration adds entity cột + deprecate legacy DB cột HO
 ## Discovered in
 
 `documents/02-architecture/database/kiteclass/04-finance.md` §A2
+
+## Log
+
+- **2026-06-03** DONE — entity-drift fixed (V79) + verified `Wave14EntityDriftMigrationsIT` (Flyway V1..V86 real Postgres, 19 tests PASS) + schema-drift PASS. Wave 14 DB completion.

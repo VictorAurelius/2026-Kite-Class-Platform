@@ -1,6 +1,6 @@
 # GAP-881: Entity `Invoice` cần `deleted` + `enrollment_id` columns trong DB
 
-**Status:** 🟡 PARTIAL (85%)
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend / DB
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KC finance)
@@ -26,3 +26,7 @@ Migration backfill `ALTER TABLE invoices ADD COLUMN deleted BOOLEAN NOT NULL DEF
 ## Discovered in
 
 `documents/02-architecture/database/kiteclass/04-finance.md` §A3
+
+## Log
+
+- **2026-06-03** DONE — entity-drift fixed (V79) + verified `Wave14EntityDriftMigrationsIT` (Flyway V1..V86 real Postgres, 19 tests PASS) + schema-drift PASS. Wave 14 DB completion.
