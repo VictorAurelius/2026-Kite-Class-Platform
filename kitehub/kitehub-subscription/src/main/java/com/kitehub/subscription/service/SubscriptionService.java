@@ -365,6 +365,7 @@ public class SubscriptionService {
     private Payment createProratedPayment(Subscription subscription, long amount) {
         Payment payment = new Payment();
         payment.setSubscriptionId(subscription.getId());
+        payment.setInstanceId(subscription.getInstanceId()); // V58 RLS: instance_id NOT NULL
         payment.setAmountVnd(amount);
         payment.setCurrency("VND");
         payment.setPaymentMethod(PaymentMethod.VIETQR);

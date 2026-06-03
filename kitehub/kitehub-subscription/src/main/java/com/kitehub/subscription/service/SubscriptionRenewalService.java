@@ -213,6 +213,7 @@ public class SubscriptionRenewalService {
     private Payment createRenewalPayment(Subscription subscription) {
         Payment payment = new Payment();
         payment.setSubscriptionId(subscription.getId());
+        payment.setInstanceId(subscription.getInstanceId()); // V58 RLS: instance_id NOT NULL
         payment.setAmountVnd(subscription.getPriceVnd());
         payment.setCurrency("VND");
         payment.setPaymentMethod(PaymentMethod.VIETQR); // Default to VietQR for subscription payments

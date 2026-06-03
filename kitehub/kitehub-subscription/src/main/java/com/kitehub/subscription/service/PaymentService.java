@@ -48,13 +48,14 @@ public class PaymentService {
             request.getSubscriptionId(), request.getAmountVnd());
 
         // Verify subscription exists
-        subscriptionRepository.findById(request.getSubscriptionId())
+        var subscription = subscriptionRepository.findById(request.getSubscriptionId())
             .orElseThrow(() -> new IllegalArgumentException(
                 "Subscription not found: " + request.getSubscriptionId()));
 
         // Create payment entity
         Payment payment = new Payment();
         payment.setSubscriptionId(request.getSubscriptionId());
+        payment.setInstanceId(subscription.getInstanceId()); // V58 RLS: instance_id NOT NULL
         payment.setAmountVnd(request.getAmountVnd());
         payment.setPaymentMethod(request.getPaymentMethod());
         payment.setStatus(PaymentStatus.PENDING);

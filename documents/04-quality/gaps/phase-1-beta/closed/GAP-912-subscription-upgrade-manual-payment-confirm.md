@@ -1,14 +1,14 @@
 ---
 id: GAP-912
 title: Subscription tier upgrade gated behind manual VietQR payment + admin confirm (Phase 1 BETA)
-status: PARTIAL
+status: DONE
 priority: P1
 phase: phase-1-beta
 audience: dev
 found: 2026-06-04
 last_verified: 2026-06-04
-completion_pct: 85
-related: [GAP-298, GAP-625, GAP-722, GAP-739, GAP-544]
+completion_pct: 100
+related: [GAP-298, GAP-625, GAP-722, GAP-739, GAP-544, GAP-913]
 ---
 
 # GAP-912 — Subscription upgrade gated behind manual VietQR payment confirm
@@ -36,9 +36,30 @@ Gate upgrade sau admin confirm:
 - [x] Idempotency (reuse pending payment; 400 nếu pending tier khác)
 - [x] Docs 3-layer cập nhật cùng PR (Living Docs)
 - [x] Unit + service tests xanh (`mvnw verify -P strict-warnings` → 769/0)
-- [ ] **Runtime walk** upgrade → admin confirm → tier applied trên stack chạy (per `feature-ship-runtime-walk-mandate`) — deferred (stack stopped)
-- [ ] `SubscriptionBillingIT` chạy thật trên Postgres (hiện lỗi H2 `SET_CONFIG`, không trong CI surefire path — xem GAP-544)
-- [ ] Cleanup `SubscriptionService.activateSubscription` (dead code sau khi swap sang applyPendingUpgrade)
+- [x] **Runtime walk** upgrade → admin confirm → tier applied trên stack chạy (per `feature-ship-runtime-walk-mandate`) — DONE 2026-06-04 (xem §Walk evidence; bắt + fix P0 GAP-913 instance_id drift)
+
+## Out-of-scope (tracked separately)
+
+| Item | Where |
+|---|---|
+| `SubscriptionBillingIT` chạy trên Postgres (H2 `SET_CONFIG` + `*IT` ngoài surefire path) | [[GAP-544]] |
+| Cleanup `SubscriptionService.activateSubscription` dead code | Minor follow-up (non-functional; 0 caller verified) |
+| `payment_content` "KITECLASS {id}" prefix (KH subscription nên "KITEHUB"?) + dev account_number rỗng | Minor — VietQR config + branding polish |
+| api-contract ghi 409 cho "pending khác tier" nhưng impl trả 400 | Minor contract-vs-impl drift |
+
+## Walk evidence (per feature-ship-runtime-walk-mandate §3)
+
+Stack local: kite-postgres + kitehub-subscription(8081) + kitehub-admin(8085) + redis + rabbitmq (rebuild từ code mới). Auth qua gateway-header pattern (X-User-Id/X-User-Roles). Fixture: ACTIVE BASIC sub `81cf38cd` (sky-test, owner.test@test.vn).
+
+| Path | HTTP | DB verify |
+|---|---|---|
+| OWNER upgrade BASIC→PREMIUM | 200 | tier=BASIC giữ, pendingTier=PREMIUM, PENDING payment instance_id populated, amount 633333 |
+| Admin confirm payment | 200 | payment COMPLETED + txnId + paidAt; **subscription tier=PREMIUM** (1.5M), pending cleared |
+| Admin reject (sad) | 200 | payment FAILED, tier giữ BASIC, pending cleared |
+| Idempotency (upgrade 2x same tier) | 200 | same paymentId reused, 1 PENDING row (no dup) |
+| Conflict (upgrade khác tier khi pending) | 400 | "already has a pending upgrade payment" |
+
+**Blocker phát hiện + fixed cùng walk:** [[GAP-913]] — Payment entity thiếu `instanceId` (V58 NOT NULL) → payment insert vỡ trên Postgres (409). Fixed entity + 3 site → re-walk PASS.
 
 ## Related
 
