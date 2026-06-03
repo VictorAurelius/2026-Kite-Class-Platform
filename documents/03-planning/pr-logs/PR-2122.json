@@ -1,0 +1,33 @@
+{
+  "pr": 2122,
+  "title": "docs(db): KiteClass compliance/audit cluster schema reference (11 tables)",
+  "branch": "wave-local-doable-13-kc-compliance-audit",
+  "created_at": null,
+  "merged_at": "2026-06-03T02:51:13Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-06-03T02:51:16.283305",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 1,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1728220"
+  }
+}
