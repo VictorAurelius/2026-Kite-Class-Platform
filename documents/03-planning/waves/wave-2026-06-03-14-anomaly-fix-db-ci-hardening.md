@@ -398,7 +398,7 @@ Khi 5 bucket A-E đã ship + CI green + merge:
 
 ## 6. References
 
-- **Source AGENTS.md (slimmed v1.2.0):** `AGENTS.md` — stable governance digest cho Codex CLI handoff
+- **Governance source:** `CLAUDE.md` + `.claude/rules/**` (canonical — AGENTS.md/.codex bridge removed 2026-06-03 sau khi 9router route gpt-5.5 chạy TRONG Claude Code harness, đọc `.claude/` natively)
 - **Source Wave 13 anomaly:**
   - KiteHub cluster docs (4): `documents/02-architecture/database/kitehub/03-auth-cluster.md`, `04-subscription-cluster.md`, `08-branding-cluster.md`, `13-email-compliance-cluster.md`
   - KiteClass cluster docs (8): `documents/02-architecture/database/kiteclass/01-academic-structure-cluster.md` qua `08-system-admin-cluster.md`
