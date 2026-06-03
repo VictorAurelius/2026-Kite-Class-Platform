@@ -35,7 +35,65 @@ campaign: flow-verification-campaign
 
 ---
 
-## 2. Loop protocol (per `feature-ship-runtime-walk-mandate` §3.4)
+## 2. Task Breakdown
+
+| Bucket | Scope | Owner | Effort | Disjoint? |
+|--------|-------|-------|--------|-----------|
+| A | Loop walk + catalog (5 sub-step) | claude (this session) | 30-60min | n/a — single agent, no parallel disjoint (walk needs live state continuity) |
+| B | Batch-fix blocker (nếu lòi) | claude (this session) | 10-30min/cycle | n/a |
+| C | Re-walk + G1 verdict | claude (this session) | 15min/cycle | n/a |
+
+Single-agent campaign-loop, không spawn parallel agents vì walk yêu cầu live state continuity (cookie/JWT/email link/2FA secret) — không disjoint qua sub-step.
+
+---
+
+## 3. Scope
+
+**Stake tier:** MEDIUM — root flow ảnh hưởng mọi flow downstream nhưng KH-2 chỉ verify-and-walk, không refactor production code (fix-then-walk OK nhưng major refactor cần wave riêng)
+**Cross-layer?:** YES (FE wizard + BE auth + email service + Postgres + Redis) — nhưng walk-only nên không cần Bucket 0 Foundation; production contract đã ship Wave 72b
+
+| # | Bucket | Files (glob) | Spawn order |
+|:-:|--------|--------------|:-----------:|
+| A | Loop walk 5 sub-step | (read-only walk evidence) | serial |
+| B | Batch-fix blocker discovered | (varies — likely `kitehub/kitehub-subscription/src/main/java/**/auth/**` hoặc FE auth flow) | after A catalog complete |
+| C | Re-walk verdict | (campaign-table + wave plan §7 status) | after B |
+
+---
+
+## 4. State-Check Evidence
+
+Pre-walk state verified 2026-06-03 trước khi bắt đầu:
+
+- ✅ Branch `wave/2026-06-03-flow-kh2-auth-onboarding` tạo từ main HEAD `8ebf11c6` (clean)
+- ✅ Campaign `flow-verification-campaign.md` §3 topological order — KH-2 = root (no upstream dep)
+- ✅ Auth use-cases verified: `documents/01-business/kitehub/auth/use-cases.md` UC-AUTH-001 + onboarding UC-ONBOARD-001/002 + auth-2fa UC-AUTH-002/003
+- ✅ Register endpoint actual shape: `kitehub/scripts/seed-data.sh:32` register_user() + `AuthController.java:39` — body `{organizationName, subdomain, ownerEmail, ownerPassword}`, returns 201 + accessToken
+- ✅ Verify-email endpoint: `AuthController.java:78` POST /api/auth/verify-email?token=<uuid>
+- ✅ Captcha bypass mặc định local: `CaptchaService.java:29` `@Value("${captcha.enabled:false}")` — local không cần captcha token
+- ✅ Seed admin: `admin@kitehub.com / Admin@KiteHub123` per `kitehub/scripts/seed-data.sh:217` (V46 PLATFORM_ADMIN aka OWNER backward-compat)
+- ✅ Stack scripts: `kitehub/scripts/build-all.sh` + `up.sh` + `wait-for-healthy.sh` confirmed existing
+- ⏳ Build images: in progress background (PID 979498) — kitehub-base Maven build pull deps (long-running first time)
+- ⏳ Stack-up: chờ build complete
+
+Per `pre-mutation-state-check.md` — pre-walk state-check artifact pháp tách rời trước khi mutate stack/code; assumptions verified empirically.
+
+---
+
+## 5. Verification Gates
+
+Per `flow-verification-campaign.md` §1 3-gate:
+
+| Gate | Ai | Tiêu chí | Status |
+|---|---|---|---|
+| **G1 — Agent runtime walk** | Claude (this session) | Walk end-to-end 5 sub-step PASS, happy + ≥1 sad path, evidence (HTTP + DB + side effect) cited inline §7 | ⬜ |
+| **G2 — Human real local test** | User | User tự test 5 sub-step trên local stack → confirm trải nghiệm thật đúng | ⬜ |
+| **G3 — Production-parity guarantee** | Claude + User | Walk trên production-equivalent (Postgres+Flyway thật không H2, prod-profile config, JWT→header gateway, env-var đủ) per `local-fix-production-parity-check.md` | ⬜ — chú ý S2 verify email link production-key SES vs local MailHog |
+
+Flow chỉ `✅ THÔNG` khi G1 + G2 + G3 đều PASS. G1 đạt → flip campaign row `🔄 walk-pass-pending-human` chờ G2.
+
+---
+
+## 6. Loop protocol (per `feature-ship-runtime-walk-mandate` §3.4)
 
 ```
 1. ⏳ Build images mới nhất (background — đang chạy `bash kitehub/scripts/build-all.sh`)
@@ -51,31 +109,43 @@ Gap chặn flow lòi ra → fix tại chỗ + file gap inline per `discovery-to-
 
 ---
 
-## 3. Walk scope — 5 sub-step
+## 7. Walk scope — 5 sub-step
 
 ### S1 — Register (POST /api/auth/register)
 
 **Actor:** Anonymous → Owner (tenant creator)
-**Endpoint:** `POST /api/auth/register` (per `documents/01-business/roles/api-contract.md:55`)
+**Endpoint:** `POST /api/auth/register` (per `kitehub/scripts/seed-data.sh:32` register_user())
+**Body shape (verified từ seed-data.sh):**
+```json
+{
+  "organizationName": "KH-2 Walk Test",
+  "subdomain": "kh2-walk-test",
+  "ownerEmail": "owner+kh2walk@example.com",
+  "ownerPassword": "Walk@KH2Test123"
+}
+```
+**Happy path:** HTTP 201 + body `{accessToken, instance.id (hoặc instances[0].id), user}` + DB row `users` + DB row `tenants/instances` + (possible) email-verify message vào MailHog
+
+**Sad path candidates:** email/subdomain đã tồn tại → 409; password yếu → 400
+
+**Evidence cần catalog:** HTTP code + JSON keys actual returned + `psql SELECT email, email_verified_at, role FROM users WHERE email='owner+kh2walk@example.com'` + MailHog `curl http://localhost:8025/api/v2/messages` (nếu verify email branch wired)
+
+**Open question:** Register returns accessToken immediately — verify whether (a) email-verify is bypassed OR (b) async (token issued với "verified=false" claim) — walk sẽ làm rõ
+
+### S2 — Email verify (POST /api/auth/verify-email)
+
+**Actor:** Owner (email_verified=false từ S1)
+**Endpoint:** `POST /api/auth/verify-email?token=<uuid>` (per `AuthController.java:78`)
+**Body:** none — token là query param
 **Happy path:**
-- Submit `{email, password, full_name, tenant_name (or invite_token)}` → BE create user + tenant + assign OWNER role + send verify email
-- Expect: HTTP 201 + DB row `users` (status=PENDING_VERIFY) + DB row `tenants` + side effect: email-verify message vào MailHog
+- Token UUID (từ verification email body) → BE validate token → set `users.email_verified=true` → return `LoginResponse {accessToken, refreshToken, user}`
+- Expect: HTTP 200 + DB row `email_verified=true`
 
-**Sad path:** email đã tồn tại → HTTP 409 `EMAIL_EXISTS`
+**Sad path:** token invalid/expired → 400/404
 
-**Evidence cần catalog:** HTTP code + `psql SELECT email, email_verified_at, role FROM users WHERE email=...` + MailHog `curl http://localhost:8025/api/v2/messages | jq '.items[0].Content.Headers.Subject'`
+**Evidence:** HTTP code + body keys + `psql SELECT email, email_verified FROM users WHERE email='owner+kh2walk@example.com'`
 
-### S2 — Email verify (click link)
-
-**Actor:** Owner (PENDING_VERIFY)
-**Endpoint:** `GET /api/auth/verify-email?token=<jwt>` (token từ email body)
-**Happy path:**
-- Click link → BE validate token → set `users.email_verified_at=now()` → redirect FE `/login` với banner success
-- Expect: HTTP 302 → `/login?verified=1` + DB row updated
-
-**Sad path:** token expired (link-expiry-policy.md TTL) → HTTP 400 `TOKEN_EXPIRED`
-
-**Evidence:** HTTP code + DB row `email_verified_at NOT NULL` + FE banner render
+**Note:** Captcha bypass — `CaptchaService.java` mặc định `captcha.enabled=false`; local dev không cần captcha token cho S1 register. Production verify trong G3.
 
 ### S3 — Login (POST /api/auth/login)
 
@@ -113,18 +183,18 @@ Gap chặn flow lòi ra → fix tại chỗ + file gap inline per `discovery-to-
 
 ---
 
-## 4. Persona credentials cần chuẩn bị
+## 8. Persona credentials cần chuẩn bị
 
 | Persona | Email | Password | Role | Tạo thế nào |
 |---|---|---|---|---|
 | Owner (S1-S3, S5) | `owner+kh2walk@example.com` | (S1 sets) | OWNER | Tạo qua S1 register |
-| PlatformAdmin (S4) | `admin@kitehub.me` | (seed) | PLATFORM_ADMIN | Per seed-data.sh hoặc manual SQL |
+| PlatformAdmin (S4) | `admin@kitehub.com` | (seed V9 — bcrypt hash) | OWNER (canonical) / PLATFORM_ADMIN (backward-compat alias per V46) | V9 Flyway seed; password = look up via `kitehub/seed/ADMIN-CREDENTIALS.md` hoặc reset qua SQL |
 
 Per `pre-handoff-self-test-completeness` §2.1 (a): credential PHẢI cite trong walk evidence + handoff message.
 
 ---
 
-## 5. Catalog blocker (live — fill khi walk)
+## 9. Catalog blocker (live — fill khi walk)
 
 | # | Sub-step | Blocker | Severity | Root cause | Fix idea | Workaround |
 |---|---|---|---|---|---|---|
@@ -132,7 +202,7 @@ Per `pre-handoff-self-test-completeness` §2.1 (a): credential PHẢI cite trong
 
 ---
 
-## 6. Evidence ghi sau khi G1 PASS
+## 10. Evidence ghi sau khi G1 PASS
 
 Per `feature-ship-runtime-walk-mandate` §3:
 
@@ -153,7 +223,7 @@ S5 wizard: HTTP 200 + 5 step lazy-init + PUT step1 + completionPercent: 20
 
 ---
 
-## 7. Status
+## 11. Status
 
 ⬜ S1 register — chưa walk
 ⬜ S2 verify — chưa walk
@@ -165,6 +235,6 @@ S5 wizard: HTTP 200 + 5 step lazy-init + PUT step1 + completionPercent: 20
 
 ---
 
-## 8. Log
+## 12. Log
 
 - **2026-06-03**: Wave plan tạo. Build images background (`bash kitehub/scripts/build-all.sh` in background). Stack-up + walk sẽ trigger sau khi build complete. Loop protocol per `feature-ship-runtime-walk-mandate` §3.4 catalog-then-batch.
