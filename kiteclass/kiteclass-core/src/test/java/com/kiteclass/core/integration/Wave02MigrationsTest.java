@@ -114,7 +114,7 @@ class Wave02MigrationsTest {
 
         assertThatThrownBy(() -> exec(
                 "INSERT INTO frontend_instances"
-                        + "(instance_id, tenant_id, slug, status, retry_count, branding_version, "
+                        + "(instance_id, tenant_slug, slug, status, retry_count, branding_version, "
                         + "version, deleted) "
                         + "VALUES (gen_random_uuid(), 't1', 'bad-status', 'INVALID_STATUS', 0, 0, 0, false)"
         )).hasMessageContaining("chk_frontend_instance_status");

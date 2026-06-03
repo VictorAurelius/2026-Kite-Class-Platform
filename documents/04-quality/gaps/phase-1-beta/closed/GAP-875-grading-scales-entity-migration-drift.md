@@ -1,6 +1,6 @@
 # GAP-875: `grading_scales` entity ↔ migration drift — không cột nào trùng tên
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend / DB
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KiteClass attendance-grading)
@@ -27,3 +27,7 @@ Migration mới align entity column names + add missing entity fields. Document 
 ## Discovered in
 
 `documents/02-architecture/database/kiteclass/03-attendance-grading.md` §C
+
+## Log
+
+- **2026-06-03** DONE — entity-drift fixed (V79) + verified `Wave14EntityDriftMigrationsIT` (Flyway V1..V86 real Postgres, 19 tests PASS) + schema-drift PASS. Wave 14 DB completion.

@@ -87,6 +87,15 @@ public class Subscription extends BaseEntity {
     private UUID pendingPaymentId;
 
     /**
+     * Optimistic-lock version (GAP-895). Guards auto-renew cron vs admin manual extend race.
+     * Field-level @Version (not BaseEntity) so the column set matches V59 exactly — instances
+     * table is out of Bucket C-KH scope and has no version column.
+     */
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
+    /**
      * Check if subscription is active.
      *
      * @return true if active and not expired

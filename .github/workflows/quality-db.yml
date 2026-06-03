@@ -7,8 +7,12 @@ on:
     paths:
       - '.github/workflows/quality-db.yml'
       - 'scripts/check-rls-coverage.sh'
+      - 'scripts/check-migration-replay.sh'
+      - 'scripts/check-schema-drift.sh'
       - 'kiteclass/kiteclass-core/src/main/resources/db/migration/V*.sql'
       - 'kitehub/kitehub-subscription/src/main/resources/db/migration/V*.sql'
+      - 'kiteclass/kiteclass-core/src/main/java/**/entity/**'
+      - 'kitehub/kitehub-platform/src/main/java/**/entity/**'
 
 permissions:
   contents: read
@@ -28,3 +32,39 @@ jobs:
 
       - name: Run RLS coverage gate
         run: bash scripts/check-rls-coverage.sh
+
+  db-migration-replay:
+    name: DB migration replay
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Verify Docker
+        run: docker version
+
+      - name: Run migration replay gate
+        run: bash scripts/check-migration-replay.sh
+
+  db-schema-drift:
+    name: DB schema drift
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 25
+    # WARN-mode initial grace period (per release-fix-retry-budget.md §4 pivot —
+    # gate's blast radius = repo-wide accumulated entity↔migration drift, NOT just
+    # this PR; Wave 13 audit filed 37 drift gaps). HARD STOP target after drift
+    # baseline cleanup. Same WARN-mode-initial pattern as context-budget /
+    # gap-folder / docs-archival detectors.
+    continue-on-error: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Verify Docker
+        run: docker version
+
+      - name: Run schema drift gate (WARN-mode)
+        run: bash scripts/check-schema-drift.sh

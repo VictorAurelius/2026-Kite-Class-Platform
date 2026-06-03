@@ -79,7 +79,7 @@ class InstanceControllerTest {
 
     private FrontendInstance fakeInstance(long id, FrontendInstanceStatus status) {
         FrontendInstance i = FrontendInstance.builder()
-                .tenantId("t-1").slug("acme").status(status).retryCount(0).brandingVersion(1)
+                .tenantSlug("t-1").slug("acme").status(status).retryCount(0).brandingVersion(1)
                 .build();
         i.setId(id);
         return i;

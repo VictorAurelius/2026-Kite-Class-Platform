@@ -38,7 +38,7 @@ class RebrandApprovalServiceTest {
 
     private FrontendInstance deployedInstance(long id, long version) {
         FrontendInstance i = FrontendInstance.builder()
-                .tenantId("t-1").slug("acme")
+                .tenantSlug("t-1").slug("acme")
                 .status(FrontendInstanceStatus.DEPLOYED)
                 .retryCount(0).brandingVersion(1).build();
         i.setId(id);

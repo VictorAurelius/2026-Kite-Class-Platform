@@ -63,12 +63,12 @@ public class PublicBrandingController {
             // Otherwise look up by slug via FrontendInstance mapping.
             Optional<FrontendInstance> slugMatch =
                     frontendInstanceRepository.findBySlugAndDeletedFalse(raw);
-            if (slugMatch.isPresent() && slugMatch.get().getTenantId() != null) {
+            if (slugMatch.isPresent() && slugMatch.get().getTenantSlug() != null) {
                 try {
-                    return UUID.fromString(slugMatch.get().getTenantId());
+                    return UUID.fromString(slugMatch.get().getTenantSlug());
                 } catch (IllegalArgumentException ex) {
-                    log.debug("FrontendInstance {} has non-UUID tenantId: {}",
-                            raw, slugMatch.get().getTenantId());
+                    log.debug("FrontendInstance {} has non-UUID tenantSlug: {}",
+                            raw, slugMatch.get().getTenantSlug());
                 }
             }
             return null;

@@ -92,7 +92,7 @@ public class TenantProvisioningSaga {
                 .build();
         AnalysisResult analysis = analyzer.analyze(request);
 
-        StepContext context = new StepContext(instance.getId(), instance.getTenantId());
+        StepContext context = new StepContext(instance.getId(), instance.getTenantSlug());
         context.setAnalysis(analysis);
 
         Plan plan = planner.plan(analysis);

@@ -1,6 +1,6 @@
 # GAP-874: `attendance` entity ↔ migration drift — runtime column errors
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend / DB
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KiteClass attendance-grading)
@@ -34,3 +34,7 @@ Ship migration mới tương tự V64 cho grades: add cột entity-side, depreca
 ## Discovered in
 
 `documents/02-architecture/database/kiteclass/03-attendance-grading.md` §A
+
+## Log
+
+- **2026-06-03** DONE — entity-drift fixed (V79) + verified `Wave14EntityDriftMigrationsIT` (Flyway V1..V86 real Postgres, 19 tests PASS) + schema-drift PASS. Wave 14 DB completion.

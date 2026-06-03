@@ -16,7 +16,7 @@ public interface FrontendInstanceRepository extends JpaRepository<FrontendInstan
 
     Optional<FrontendInstance> findBySlugAndDeletedFalse(String slug);
 
-    Optional<FrontendInstance> findByTenantIdAndDeletedFalse(String tenantId);
+    Optional<FrontendInstance> findByTenantSlugAndDeletedFalse(String tenantSlug);
 
     List<FrontendInstance> findByStatusAndDeletedFalse(FrontendInstanceStatus status);
 

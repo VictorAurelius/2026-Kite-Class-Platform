@@ -56,7 +56,7 @@ class TenantProvisioningSagaTest {
 
     private FrontendInstance initialized(long id) {
         FrontendInstance i = FrontendInstance.builder()
-                .tenantId("t-1").slug("acme")
+                .tenantSlug("t-1").slug("acme")
                 .status(FrontendInstanceStatus.INITIALIZING)
                 .retryCount(0).brandingVersion(0).build();
         i.setId(id);

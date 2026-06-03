@@ -1,5 +1,5 @@
 ---
-id: GAP-912
+id: GAP-913
 title: Subscription tier upgrade gated behind manual VietQR payment + admin confirm (Phase 1 BETA)
 status: DONE
 priority: P1
@@ -8,10 +8,10 @@ audience: dev
 found: 2026-06-04
 last_verified: 2026-06-04
 completion_pct: 100
-related: [GAP-298, GAP-625, GAP-722, GAP-739, GAP-544, GAP-913]
+related: [GAP-298, GAP-625, GAP-722, GAP-739, GAP-544, GAP-914]
 ---
 
-# GAP-912 — Subscription upgrade gated behind manual VietQR payment confirm
+# GAP-913 — Subscription upgrade gated behind manual VietQR payment confirm
 
 ## Problem
 
@@ -36,7 +36,7 @@ Gate upgrade sau admin confirm:
 - [x] Idempotency (reuse pending payment; 400 nếu pending tier khác)
 - [x] Docs 3-layer cập nhật cùng PR (Living Docs)
 - [x] Unit + service tests xanh (`mvnw verify -P strict-warnings` → 769/0)
-- [x] **Runtime walk** upgrade → admin confirm → tier applied trên stack chạy (per `feature-ship-runtime-walk-mandate`) — DONE 2026-06-04 (xem §Walk evidence; bắt + fix P0 GAP-913 instance_id drift)
+- [x] **Runtime walk** upgrade → admin confirm → tier applied trên stack chạy (per `feature-ship-runtime-walk-mandate`) — DONE 2026-06-04 (xem §Walk evidence; bắt + fix P0 GAP-914 instance_id drift)
 
 ## Out-of-scope (tracked separately)
 
@@ -59,7 +59,7 @@ Stack local: kite-postgres + kitehub-subscription(8081) + kitehub-admin(8085) + 
 | Idempotency (upgrade 2x same tier) | 200 | same paymentId reused, 1 PENDING row (no dup) |
 | Conflict (upgrade khác tier khi pending) | 400 | "already has a pending upgrade payment" |
 
-**Blocker phát hiện + fixed cùng walk:** [[GAP-913]] — Payment entity thiếu `instanceId` (V58 NOT NULL) → payment insert vỡ trên Postgres (409). Fixed entity + 3 site → re-walk PASS.
+**Blocker phát hiện + fixed cùng walk:** [[GAP-914]] — Payment entity thiếu `instanceId` (V58 NOT NULL) → payment insert vỡ trên Postgres (409). Fixed entity + 3 site → re-walk PASS.
 
 ## Related
 

@@ -1,6 +1,6 @@
 # GAP-908: KC academic structure `class_schedules` + `class_sessions` thiếu `instance_id` direct
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (35%)
 **Priority:** 🟡 P2
 **Domain:** Backend / DB / Security
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KC academic structure)

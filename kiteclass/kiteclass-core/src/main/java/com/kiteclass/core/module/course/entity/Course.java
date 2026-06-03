@@ -66,7 +66,7 @@ public class Course extends BaseEntity {
      * Required field, max 200 characters.
      * Example: "English for Business Communication"
      */
-    @Column(name = "name", nullable = false, length = 200)
+    @Column(name = "name", nullable = false, length = 255)
     private String name;
 
     /**

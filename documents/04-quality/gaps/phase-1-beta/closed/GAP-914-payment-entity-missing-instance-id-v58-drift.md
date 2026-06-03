@@ -1,5 +1,5 @@
 ---
-id: GAP-913
+id: GAP-914
 title: Payment entity thiếu instanceId field (V58 thêm NOT NULL) → mọi payment insert vỡ trên Postgres
 status: DONE
 priority: P0
@@ -8,10 +8,10 @@ audience: dev
 found: 2026-06-04
 last_verified: 2026-06-04
 completion_pct: 100
-related: [GAP-896, GAP-880, GAP-912, GAP-885]
+related: [GAP-896, GAP-880, GAP-913, GAP-885]
 ---
 
-# GAP-913 — Payment entity thiếu instanceId (V58 RLS drift) → payment insert vỡ trên Postgres
+# GAP-914 — Payment entity thiếu instanceId (V58 RLS drift) → payment insert vỡ trên Postgres
 
 ## Problem
 
@@ -27,7 +27,7 @@ NHƯNG JPA entity `kitehub-platform/.../entity/Payment.java` **chưa bao giờ m
 
 **Toàn bộ payment subsystem vỡ trên Postgres thật post-V58.** H2 (test) giấu lỗi vì V58 RLS (`set_config`) không apply trên H2 → 769 unit/IT test xanh nhưng feature vỡ runtime (đúng lớp `postgres-specific-type-testcontainers.md`).
 
-**Phát hiện qua runtime walk** billing upgrade flow (per `feature-ship-runtime-walk-mandate`): GAP-912 verify → upgrade endpoint 409, log lộ `null value in column instance_id`.
+**Phát hiện qua runtime walk** billing upgrade flow (per `feature-ship-runtime-walk-mandate`): GAP-913 verify → upgrade endpoint 409, log lộ `null value in column instance_id`.
 
 Khác các gap hiện có:
 - **GAP-896** (P1 OPEN) premise "payments KHÔNG có instance_id (V34 skip)" — **lỗi thời**: V58 (sau V34) đã ADD cột NOT NULL. Entity chưa update mới là bug live.
@@ -68,5 +68,5 @@ Stack: kite-postgres + kitehub-subscription (8081) + kitehub-admin (8085) + redi
 - Fixed in: **PR #2140** (cùng billing manual-payment feature)
 - [[GAP-896]] — premise superseded by V58 (cần update/close); RLS tenant isolation cho payments giờ DIRECT qua instance_id
 - [[GAP-880]] — Payment entity drift chiều ngược (cột thừa)
-- [[GAP-912]] — billing upgrade manual-payment (runtime walk này unblock)
+- [[GAP-913]] — billing upgrade manual-payment (runtime walk này unblock)
 - [[GAP-885]] — RLS coverage Wave 13 anomaly cluster

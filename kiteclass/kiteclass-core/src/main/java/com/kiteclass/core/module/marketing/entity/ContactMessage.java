@@ -12,7 +12,6 @@ import lombok.Setter;
 import org.hibernate.annotations.Filter;
 
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * Contact form message from website visitors.
@@ -26,9 +25,6 @@ import java.util.UUID;
 @Setter
 @Filter(name = "tenantFilter", condition = "instance_id = :tenantId AND deleted = false")
 public class ContactMessage extends BaseEntity {
-
-    @Column(name = "instance_id", nullable = false)
-    private UUID instanceId;
 
     // Sender Information
     @Column(name = "name", nullable = false, length = 200)
