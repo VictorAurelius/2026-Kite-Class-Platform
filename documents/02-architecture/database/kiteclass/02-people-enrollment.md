@@ -362,6 +362,76 @@ erDiagram
 
 ---
 
+## Ghi chú schema (anomalies)
+
+> Đây là danh sách lệch chuẩn giữa migration (chân lý DB), entity Java (`*.java`), và policy RLS (V58/V59) cho cụm Con người + Tuyển sinh. Dev PHẢI nắm trước khi viết query hoặc tạo migration mới. Hầu hết anomaly phát sinh từ (a) bảng nối M2M không kế thừa `BaseEntity` nên không có audit / soft-delete / RLS, (b) cột legacy V1 song song với cột entity V27, (c) entity declare UNIQUE 4-cột mà DB chỉ có 2-cột.
+
+### A1 — `teacher_courses` thiếu `instance_id` + KHÔNG kế thừa BaseEntity → ngoài scope RLS V58
+
+`teacher_courses` là bảng nối M2M thuần (teacher ↔ course). V46 chủ động loại trừ không thêm `instance_id` / audit / soft-delete. Cô lập tenant qua FK gián tiếp (`teacher_id → teachers.instance_id` HOẶC `course_id → courses.instance_id`).
+
+→ Pattern giống `role_permissions` cluster 05 A3. Tương tự `student_badges` cluster 06 anomaly A (RLS skip). Risk class identical với baseline 04-finance.md A9 (RLS coverage gap). Nếu service code không JOIN parent table có `instance_id`, query có thể leak cross-tenant. Verify mọi repository method dùng `teacher_courses` có JOIN parent + filter `instance_id` trong WHERE.
+
+### A2 — Entity `Teacher` ↔ bảng `teachers` drift legacy V1 vs V27
+
+Migration V1 tạo bảng `teachers` với cột `phone`, `department`, `qualifications` (text). V27 ADD cột mới `phone_number`, `qualification` (nullable, single-value). Entity `Teacher.java` chỉ map SUBSET — tuỳ commit, đôi khi cả 2 bộ cùng tồn tại trong DB nhưng entity chỉ ghi vào 1 bộ.
+
+| Cột V1 (legacy) | Cột V27 (mới) | Entity hiện map |
+|---|---|---|
+| `phone` (text) | `phone_number` (VARCHAR(20)) | `phone_number` (V27) |
+| `qualifications` (text) | `qualification` (VARCHAR(255)) | `qualification` (V27) |
+| `department` (text) | — | (không map) |
+
+→ Risk: dữ liệu legacy V1 trong `phone`/`qualifications` không bao giờ được entity đọc / ghi → mất context. Cần migration cleanup DROP cột legacy sau verify migrate sang V27 100%. Pattern giống baseline 04-finance.md A3 (`Invoice` entity drift).
+
+### A3 — `enrollments` UNIQUE constraint mismatch (DB 2-cột vs entity 4-cột)
+
+| Source | UNIQUE constraint |
+|---|---|
+| DB thực tế (V1) | `uk_enrollments (class_id, student_id)` — 2 cột |
+| Entity `Enrollment.java` `@Table(uniqueConstraints=...)` | `(student_id, class_id, instance_id, deleted)` — 4 cột |
+
+→ Entity annotation chỉ là **hint cho Hibernate khi `ddl-auto=create`** — production dùng Flyway migration nên DB là chân lý. Risk: dev đọc entity giả định 4-cột (soft-delete-aware unique) nhưng DB chỉ 2-cột → khi 1 enrollment soft-delete + tạo lại → UNIQUE violation cũ trên `(class_id, student_id)`. Cần migration ADD UNIQUE 4-cột (sau khi cleanup duplicate rows soft-delete).
+
+Pattern unique drift này là sub-class A4 baseline 04-finance.md (Enum ↔ CHECK), expanded thành "Index/UNIQUE drift entity ↔ DB".
+
+### A4 — `enrollments` có 2 cột thời gian song song (`enrolled_at` V1 vs `enrollment_date` V27)
+
+Migration V1 tạo cột `enrolled_at TIMESTAMPTZ` (thời điểm tự động khi tạo row). V27 ADD `enrollment_date DATE` (ngày học sinh chính thức nhập học — có thể khác ngày tạo row).
+
+→ Hai ngữ nghĩa khác nhau (created vs official enrollment) nhưng tên cột confusing — dev có thể nhầm 2 cột. Entity `Enrollment.java` map cả 2 (`enrolledAt` + `enrollmentDate`). Cùng class baseline 04-finance.md A2 (legacy + new column tồn tại đồng thời).
+
+→ Document rõ trong Javadoc entity field + business rule trong `documents/01-business/kiteclass/enrollment/rules.md` về sự khác biệt 2 cột.
+
+### A5 — `classes.teacher_id` V73 chuyển UUID + DROP FK tới `teachers(id)`
+
+V73 (GAP-795) chuyển `classes.teacher_id` BIGINT → UUID đồng thời DROP FK `classes.teacher_id → teachers(id)`. Lý do: `teacher_id` giờ trỏ tới `users.id` (UUID — gateway forward `X-User-Id`) chứ không phải `teachers(id)` BIGINT (legacy auto-increment).
+
+→ Risk: code legacy giả định FK domain `classes → teachers` còn tồn tại. Soft ref (chỉ UUID, không FK constraint) buộc service phải validate `teacher_id` trỏ valid user trước INSERT. Cross-cluster với cluster 01 A5 + cluster 06 baseline B (actor UUID/BIGINT inconsistency).
+
+### A6 — Actor BIGINT bị V73 sweep BỎ SÓT (`teacher_courses.assigned_by`)
+
+V73 sweep chỉ chuyển `created_by`/`updated_by` của mọi bảng. **`teacher_courses.assigned_by`** (V30) là cột actor nghiệp vụ riêng (tên không match `created_by`) → V73 không động.
+
+| Bảng | Cột actor BIGINT bỏ sót | Migration gốc | Risk |
+|---|---|---|---|
+| `teacher_courses` | `assigned_by` | V30 | Service ghi UUID `X-User-Id` → parse fail / NumberFormatException |
+
+→ Identical pattern với baseline 04-finance.md A6 + cluster 01 A5 + cluster 05 A1 (cross-cluster recurrent pattern V73 sweep narrow scope). Cần migration follow-up sweep V73 phase 2 cho mọi cột actor không-tên-chuẩn.
+
+### A7 — TIMESTAMP vs TIMESTAMPTZ không nhất quán
+
+| Nhóm | Bảng | Kiểu timestamp |
+|---|---|---|
+| TIMESTAMPTZ (timezone-aware) | `students`, `teachers`, `enrollments` | TIMESTAMP WITH TIME ZONE |
+| TIMESTAMP (naive) | `parents`, `parent_student_links`, `parent_invitations`, `student_bulk_import_jobs` | TIMESTAMP (V41/V42) |
+
+→ 3 bảng "core" (V1) dùng TZ; 4 bảng "extension" (V41/V42 P2/P3 expand) dùng naive. Risk khi compare `enrollments.enrollment_date` (DATE) với `parent_invitations.created_at` (TIMESTAMP naive) trên server không UTC. Identical pattern baseline 04-finance.md A8 + cluster 01 A9.
+
+→ Document policy timezone trong `documents/02-architecture/database/README.md` (cluster overview).
+
+---
+
 ## Liên kết
 
 - [README cluster database KiteClass](../README.md)
