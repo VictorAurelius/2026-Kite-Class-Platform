@@ -30,10 +30,18 @@ Script output: active branch, open PRs count, failing CI runs, top 3 blocker gap
 
 **Fix 2026-05-21 context bloat:** mỗi file read vào `documents/04-quality/gaps/**` HOẶC `documents/03-planning/**` HOẶC `documents/**` generic kích auto-load 10+ path-scoped rules (~150-240k bytes per session). Default = CSV/script queries thay vì narrative reads.
 
-Default flow (skip file reads):
-1. **Wave / blockers / Phase 1 BETA P0:** đã có trong collect-state.sh output. Không cần read thêm.
-2. **Detail gap inspection:** `bash scripts/query-gaps.sh <GAP-prefix>` thay vì Read gap file
-3. **Recent waves:** `tail -3 .claude/skills/quality/wave-pack-planner/data/wave-history.jsonl | jq -r '.wave + " — " + .outcome'`
+Default flow:
+1. **Canonical session handoff (BẮT BUỘC):** tìm handoff mới nhất trên `main`, KHÔNG chỉ working branch:
+   ```bash
+   LATEST_HANDOFF=$(git ls-tree -r --name-only main -- documents/03-planning/session-handoffs \
+     | grep -E '/[0-9]{4}-[0-9]{2}-[0-9]{2}.*\.md$' \
+     | sort | tail -1)
+   git show "main:$LATEST_HANDOFF"
+   ```
+   Handoff trên `main` là source of truth sau `/clear`; working branch có thể thiếu file mới nhất hoặc stale. Nếu handoff chứa explicit watch list / model test / next actions, summary PHẢI surface các điểm đó.
+2. **Wave / blockers / Phase 1 BETA P0:** đã có trong collect-state.sh output. Không cần read thêm.
+3. **Detail gap inspection:** `bash scripts/query-gaps.sh <GAP-prefix>` thay vì Read gap file
+4. **Recent waves:** `tail -3 .claude/skills/quality/wave-pack-planner/data/wave-history.jsonl | jq -r '.wave + " — " + .outcome'`
 
 Chỉ Read files khi user explicit ask OR script output không đủ cho current task:
 1. `CLAUDE.md` — auto-load mọi session, KHÔNG cần Read lại
@@ -41,7 +49,7 @@ Chỉ Read files khi user explicit ask OR script output không đủ cho current
 3. `documents/04-quality/gaps/ROADMAP.md` — **AVOID** (triggers ~10 gap-* rules); query CSV instead
 4. `documents/03-planning/MASTER-GAPS-FIX-PLAN.md` — chỉ khi cần multi-quarter horizon
 
-KHÔNG đọc toàn bộ ROADMAP/plan — chỉ header + current section khi unavoidable.
+KHÔNG đọc toàn bộ ROADMAP/plan — chỉ header + current section khi unavoidable. Riêng canonical handoff trên `main` là ngoại lệ bắt buộc vì nó là pickup source sau session reset.
 
 ### Step 3 — Session-lock check (optional, `--no-lock` skips)
 
@@ -175,6 +183,7 @@ Lock lifecycle:
 
 - **TUYỆT ĐỐI giao tiếp bằng tiếng Việt** per `CLAUDE.md` §CRITICAL Communication Language. Field labels, prose, recommendations trong output — tất cả tiếng Việt. Chỉ giữ English cho: technical terms (CI, CVE, PR, gap, wave, branch, main, merge — đã là loanwords trong project context), file paths, command output, code.
 - LUÔN chạy `collect-state.sh` trước — không tự suy diễn status
+- LUÔN đọc latest session handoff từ canonical `main` trước khi summarize. KHÔNG dùng `ls -t`/Read trên working branch làm source chính; branch hiện tại có thể stale hoặc thiếu handoff mới nhất sau `/clear`.
 - Nếu script fail (gh unauthed, hook missing) → báo rõ, không đoán
 - Wave + blockers LUÔN parse từ `ROADMAP.md`, không dùng `ls -t` mtime hoặc alphabetical grep (pre-GAP-206 bugs)
 - Output format tuân `reference/context-template.md` (có ví dụ VN trong Step 4)

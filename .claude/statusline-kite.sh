@@ -13,10 +13,22 @@ cost=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
 five_hour_perc=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty')
 seven_day_perc=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
 
-# 1M-context detection
-case "${model_id}${model}" in
-  *"[1m]"*|*"1M"*|*"1m"*) total_tokens=1000000 ;;
-  *) total_tokens=200000 ;;
+# Context-window detection.
+# 9router can present a generic cb1[1m] marker for multiple upstream models;
+# allow an env override while keeping explicit model-name mappings when exposed.
+model_key=$(printf '%s %s' "$model_id" "$model" | tr '[:upper:]' '[:lower:]')
+if [ -n "${KITE_STATUSLINE_CONTEXT_TOKENS:-}" ]; then
+  total_tokens="$KITE_STATUSLINE_CONTEXT_TOKENS"
+elif printf '%s' "$model_key" | grep -Eq 'gpt[- ]?5\.5|gpt5\.5'; then
+  total_tokens=1000000
+else
+  case "$model_key" in
+    *"[1m]"*|*"1m"*) total_tokens=1000000 ;;
+    *) total_tokens=200000 ;;
+  esac
+fi
+case "$total_tokens" in
+  ''|*[!0-9]*) total_tokens=200000 ;;
 esac
 
 # Derive used_tokens from last assistant usage record in transcript
