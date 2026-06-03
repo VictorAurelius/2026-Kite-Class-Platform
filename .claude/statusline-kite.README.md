@@ -15,7 +15,7 @@ Segments:
 - **Cost** — `.cost.total_cost_usd`
 - **5h / 7d** — `.rate_limits.{five_hour,seven_day}.used_percentage` (color-coded same threshold). Segment skipped if both absent — backward-compat with older Claude Code releases that don't populate the field.
 
-## Install on a new environment
+## Install for Claude Code
 
 Two options:
 
