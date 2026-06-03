@@ -11,6 +11,8 @@
 
 🟢 **ACTIVE** — Phase 1 of 3-phase rollout per [`documents/03-planning/roadmap/release-1-plan-2026.md`](documents/03-planning/roadmap/release-1-plan-2026.md).
 
+**🔄 Sub-mode (2026-06-04→): Flow Verification Campaign** — thông 22 user-facing flow KH+KC TRƯỚC (loop walk + human local test + production-parity), tạm dừng pick-gap-to-fix. Chi tiết + status: [`documents/03-planning/roadmap/flow-verification-campaign.md`](documents/03-planning/roadmap/flow-verification-campaign.md).
+
 **Mỗi session mới PHẢI:**
 1. Đọc Release Lần 1 plan §3 Phase 1 detailed scope + §9 Wave 25-30 outline
 2. Pick wave candidates ƯU TIÊN từ Phase 1 wave-pack list

@@ -16,6 +16,18 @@ Prepare fresh session bằng cách load đúng context + detect conflicts với 
 - Trước critical work (wave merge, audit, release)
 - Khi unsure "làm gì tiếp?" → chạy skill này thay vì đọc mò
 
+## ⚠️ CURRENT MODE — Flow Verification Campaign (2026-06-04→)
+
+**Active:** `documents/03-planning/roadmap/flow-verification-campaign.md` — thông toàn bộ ~22 user-facing flow KH+KC cho Phase 1 BETA TRƯỚC, rồi mới quay lại fix-gap-theo-wave.
+
+**Override default "Recommended next":** khi mode active, KHÔNG recommend "pick P0/blocker gap để fix". Thay vào đó:
+1. Đọc campaign §4 table → flow chưa thông (⬜) kế tiếp theo §3 dependency order (KH-2→KH-1→KH-3→KC-1→KC-2→KC-3→KC-4→{KC-5/6/7}→{KC-8/9}).
+2. Point tới wave plan flow đó (tạo lazy nếu chưa, campaign §5).
+3. Loop per `feature-ship-runtime-walk-mandate` §3.4 — chỉ fix **blocker do walk lòi ra**; gap non-flow-blocking defer.
+4. Flow THÔNG = 3 gate: G1 agent walk + G2 human local test + G3 production-parity (campaign §1).
+
+Gỡ mode khi campaign §4 all ✅ → quay lại wave-based gap-fix.
+
 ## Process
 
 ### Step 1 — Run state collector
