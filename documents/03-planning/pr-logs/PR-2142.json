@@ -1,0 +1,37 @@
+{
+  "pr": 2142,
+  "title": "docs(wave-14-post-merge): sync ROADMAP + 2 post-merge audits (PR #2134)",
+  "branch": "post-merge-sync-pr-2134",
+  "created_at": null,
+  "merged_at": "2026-06-03T19:19:07Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "api-contract-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-06-03T19:19:11.396393",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 5,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": [
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-909709"
+  }
+}
