@@ -38,6 +38,7 @@ public class SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final InstanceRepository instanceRepository;
     private final PaymentRepository paymentRepository;
+    private final VietQRService vietQRService;
     private final com.kitehub.subscription.client.EmailServiceClient emailServiceClient;
 
     /**
@@ -149,7 +150,10 @@ public class SubscriptionService {
 
     /**
      * Upgrade subscription to higher tier.
-     * Upgrade is immediate with prorated charge.
+     *
+     * <p>Phase 1 BETA uses manual bank transfer/VietQR. The new tier is NOT
+     * applied immediately; it is stored as pending state and applied only after
+     * the pending payment is confirmed by a platform admin.</p>
      *
      * @param subscriptionId Subscription UUID
      * @param newTier New pricing tier
@@ -157,7 +161,7 @@ public class SubscriptionService {
      */
     @Transactional
     public SubscriptionResponse upgradeSubscription(UUID subscriptionId, PricingTier newTier) {
-        log.info("Upgrading subscription {} to tier {}", subscriptionId, newTier);
+        log.info("Creating pending upgrade for subscription {} to tier {}", subscriptionId, newTier);
 
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
             .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + subscriptionId));
@@ -171,26 +175,29 @@ public class SubscriptionService {
             throw new IllegalArgumentException("Can only upgrade active subscriptions");
         }
 
+        if (subscription.getPendingPaymentId() != null && subscription.getPendingTier() != null) {
+            if (subscription.getPendingTier() == newTier) {
+                return SubscriptionResponse.fromEntity(subscription);
+            }
+            throw new IllegalArgumentException("Subscription already has a pending upgrade payment");
+        }
+
         // Calculate prorated charge
-        long daysLeft = ChronoUnit.DAYS.between(LocalDateTime.now(), subscription.getExpiresAt());
+        long daysLeft = Math.max(0, ChronoUnit.DAYS.between(LocalDateTime.now(), subscription.getExpiresAt()));
         long proratedCharge = calculateProratedCharge(subscription.getTier(), newTier, daysLeft, subscription.getBillingCycle());
 
         log.info("Prorated charge for upgrade: {} VNĐ ({} days left)", proratedCharge, daysLeft);
 
-        // Update subscription
-        subscription.setTier(newTier);
-        subscription.setPriceVnd(newTier.getPrice(subscription.getBillingCycle()));
+        Payment savedPayment = paymentRepository.findLatestPendingBySubscriptionId(subscriptionId)
+            .orElseGet(() -> paymentRepository.save(createProratedPayment(subscription, proratedCharge)));
 
-        // Create payment record for prorated charge
-        Payment proratedPayment = createProratedPayment(subscription, proratedCharge);
-        Payment savedPayment = paymentRepository.save(proratedPayment);
-
-        // Link payment to subscription
+        subscription.setPendingTier(newTier);
         subscription.setPendingPaymentId(savedPayment.getId());
 
         Subscription updated = subscriptionRepository.save(subscription);
 
-        log.info("Upgraded subscription: {} to tier {}", subscriptionId, newTier);
+        log.info("Pending upgrade created: subscription={} targetTier={} payment={}",
+            subscriptionId, newTier, savedPayment.getId());
 
         return SubscriptionResponse.fromEntity(updated);
     }
@@ -360,18 +367,77 @@ public class SubscriptionService {
         payment.setSubscriptionId(subscription.getId());
         payment.setAmountVnd(amount);
         payment.setCurrency("VND");
-        payment.setPaymentMethod(PaymentMethod.VIETQR); // Default to VietQR for subscription payments
+        payment.setPaymentMethod(PaymentMethod.VIETQR);
         payment.setStatus(PaymentStatus.PENDING);
-        payment.setPaymentContent(String.format(
-            "Prorated charge for tier upgrade to %s (Instance: %s)",
-            subscription.getTier(),
-            subscription.getInstanceId()
-        ));
 
-        log.info("Created prorated payment record: {} VNĐ for subscription {}",
+        String paymentContent = vietQRService.generatePaymentContent(subscription.getId());
+        payment.setPaymentContent(paymentContent);
+        payment.setQrCodeUrl(vietQRService.generateQRCode(UUID.randomUUID(), amount, subscription.getId()));
+        payment.setBankCode(vietQRService.getBankCode());
+        payment.setAccountNumber(vietQRService.getAccountNumber());
+        payment.setAccountName(vietQRService.getAccountName());
+
+        log.info("Created pending upgrade payment record: {} VNĐ for subscription {}",
             amount, subscription.getId());
 
         return payment;
+    }
+
+    /**
+     * Apply a pending upgrade after its payment is confirmed.
+     *
+     * @param subscriptionId subscription UUID from the confirmed payment
+     * @param paymentId confirmed payment UUID
+     */
+    @Transactional
+    public void applyPendingUpgrade(UUID subscriptionId, UUID paymentId) {
+        Subscription subscription = subscriptionRepository.findById(subscriptionId)
+            .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + subscriptionId));
+
+        if (subscription.getPendingPaymentId() == null || !subscription.getPendingPaymentId().equals(paymentId)) {
+            log.info("Payment {} is not the pending upgrade payment for subscription {}; skipping tier apply",
+                paymentId, subscriptionId);
+            return;
+        }
+
+        if (subscription.getPendingTier() == null) {
+            log.warn("Subscription {} has pending payment {} but no pending tier", subscriptionId, paymentId);
+            subscription.setPendingPaymentId(null);
+            subscriptionRepository.save(subscription);
+            return;
+        }
+
+        PricingTier targetTier = subscription.getPendingTier();
+        subscription.setTier(targetTier);
+        subscription.setPriceVnd(targetTier.getPrice(subscription.getBillingCycle()));
+        subscription.setPendingTier(null);
+        subscription.setPendingPaymentId(null);
+        subscriptionRepository.save(subscription);
+
+        log.info("Applied pending upgrade for subscription {} to tier {}", subscriptionId, targetTier);
+    }
+
+    /**
+     * Clear pending upgrade state after payment rejection.
+     *
+     * @param subscriptionId subscription UUID from the rejected payment
+     * @param paymentId rejected payment UUID
+     */
+    @Transactional
+    public void clearPendingUpgrade(UUID subscriptionId, UUID paymentId) {
+        Subscription subscription = subscriptionRepository.findById(subscriptionId)
+            .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + subscriptionId));
+
+        if (subscription.getPendingPaymentId() == null || !subscription.getPendingPaymentId().equals(paymentId)) {
+            log.info("Payment {} is not the pending upgrade payment for subscription {}; skipping pending clear",
+                paymentId, subscriptionId);
+            return;
+        }
+
+        subscription.setPendingTier(null);
+        subscription.setPendingPaymentId(null);
+        subscriptionRepository.save(subscription);
+        log.info("Cleared pending upgrade state for subscription {} after payment {}", subscriptionId, paymentId);
     }
 
     /**

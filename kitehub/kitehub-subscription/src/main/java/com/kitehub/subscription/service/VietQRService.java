@@ -205,4 +205,16 @@ public class VietQRService {
             accountName
         );
     }
+
+    public String getBankCode() {
+        return bankCode;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public String getAccountName() {
+        return accountName;
+    }
 }

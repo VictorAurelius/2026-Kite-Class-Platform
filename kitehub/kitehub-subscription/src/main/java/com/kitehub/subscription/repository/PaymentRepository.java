@@ -28,6 +28,9 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     @Query("SELECT p FROM Payment p WHERE p.subscriptionId = :subscriptionId AND p.deleted = false ORDER BY p.createdAt DESC")
     List<Payment> findBySubscriptionId(@Param("subscriptionId") UUID subscriptionId);
 
+    @Query("SELECT p FROM Payment p WHERE p.subscriptionId = :subscriptionId AND p.status = 'PENDING' AND p.deleted = false ORDER BY p.createdAt DESC")
+    Optional<Payment> findLatestPendingBySubscriptionId(@Param("subscriptionId") UUID subscriptionId);
+
     @Query("SELECT p FROM Payment p WHERE p.transactionId = :transactionId AND p.deleted = false")
     Optional<Payment> findByTransactionId(@Param("transactionId") String transactionId);
 
