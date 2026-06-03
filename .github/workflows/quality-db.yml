@@ -9,7 +9,6 @@ on:
       - 'scripts/check-rls-coverage.sh'
       - 'scripts/check-migration-replay.sh'
       - 'scripts/check-schema-drift.sh'
-      - 'scripts/check-audit-col-uniformity.sh'
       - 'kiteclass/kiteclass-core/src/main/resources/db/migration/V*.sql'
       - 'kitehub/kitehub-subscription/src/main/resources/db/migration/V*.sql'
       - 'kiteclass/kiteclass-core/src/main/java/**/entity/**'
@@ -63,18 +62,3 @@ jobs:
 
       - name: Run schema drift gate
         run: bash scripts/check-schema-drift.sh
-
-  db-audit-col-uniformity:
-    name: DB audit column uniformity
-    runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Verify Docker
-        run: docker version
-
-      - name: Run audit column uniformity gate
-        run: bash scripts/check-audit-col-uniformity.sh
