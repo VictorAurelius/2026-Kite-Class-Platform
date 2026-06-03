@@ -10,7 +10,8 @@ last-reviewed: 2026-06-03
 > **TL;DR** — Cluster này gồm **3 bảng**: `subscriptions`, `payments`, `system_config`.
 >
 > - **Subscription/billing per-tenant** dạng MVP đơn giản: `subscriptions` (1 dòng / instance × billing period) ↔ `payments` (1..N giao dịch / subscription).
-> - **Đơn vị tiền**: tất cả VND **đơn vị đồng** lưu `BIGINT` (`price_vnd`, `amount_vnd`) — KHÔNG dùng minor-unit / DECIMAL. Khác hệ KiteClass `04-finance.md` (dùng `DECIMAL(12,2)` / `NUMERIC(19,2)`).
+> - **Đơn vị tiền**: tất cả VND **đơn vị đồng** lưu `BIGINT` (`price_vnd`, `amount_vnd`) — KHÔNG dùng minor-unit / DECIMAL. Khác hệ KiteClass `04-finance.md` (dùng `DECIMAL(12,2)` / `NUMERIC(19,2)`). ⏸️ Deferred → GAP-912 (KH money BIGINT→NUMERIC + Long→BigDecimal — Wave 14 D-KH defer; chưa đổi, V59 confirm "no money-field changes").
+> - **Optimistic lock**: `subscriptions.version` + `payments.version` ✅ Resolved (GAP-895, V59) — `@Version` field-level, KHÔNG ở `BaseEntity`. Xem [§ A9](#a9--optimistic-lock-version--resolved-cho-subscriptionspayments-v59).
 > - **PK**: cả hai bảng dùng `UUID` (entity `@GeneratedValue(strategy = UUID)` qua `BaseEntity` — không seq).
 > - **Vòng đời**:
 >   - `subscriptions.status`: `ACTIVE → SUSPENDED → CANCELLED → EXPIRED` (CHECK constraint).
@@ -41,6 +42,7 @@ erDiagram
         boolean auto_renew
         varchar pending_tier
         uuid pending_payment_id FK
+        bigint version "V59 optimistic lock"
         boolean deleted
     }
     payments {
@@ -58,6 +60,7 @@ erDiagram
         varchar payment_content
         timestamp paid_at
         timestamp refunded_at
+        bigint version "V59 optimistic lock"
         boolean deleted
     }
     system_config {
@@ -94,13 +97,14 @@ erDiagram
 | `auto_renew` | BOOLEAN | NO | `TRUE` | — | Bật tự gia hạn cuối chu kỳ. |
 | `pending_tier` | VARCHAR(20) | YES | — | CHECK `chk_subscription_pending_tier` | Tier sẽ áp dụng cuối chu kỳ (cho luồng downgrade — thường giảm tier sau khi billing period kết thúc). Thêm bởi `V6`. |
 | `pending_payment_id` | UUID | YES | — | FK → `payments(id)` **ON DELETE SET NULL** (`fk_subscription_pending_payment`) | Payment đang treo cho luồng upgrade prorated (charge phần chênh tier ngay giữa chu kỳ). Thêm bởi `V6`. |
-| `created_at` | TIMESTAMP | NO | — | — | Audit — tạo. `BaseEntity` `@CreatedDate` (Spring Data Auditing). ⚠️ `TIMESTAMP` không TZ. |
+| `version` | BIGINT | NO | `0` | — | ✅ Resolved (GAP-895, V59) — `@Version` optimistic lock (entity field-level, KHÔNG ở `BaseEntity`). Guard race auto-renew cron vs admin manual extend trên `pending_payment_id` / `status`. Thêm bởi `V59` (Wave 14 C-KH). Xem [§ A9](#a9--optimistic-lock-version--resolved-cho-subscriptionspayments-v59). |
+| `created_at` | TIMESTAMP | NO | — | — | Audit — tạo. `BaseEntity` `@CreatedDate` (Spring Data Auditing). ⚠️ `TIMESTAMP` không TZ — ⏸️ Deferred → GAP-912 (D-KH). |
 | `updated_at` | TIMESTAMP | NO | — | — | Audit — cập nhật. `BaseEntity` `@LastModifiedDate`. ⚠️ `TIMESTAMP` không TZ. |
 | `created_by` | VARCHAR(100) | YES | — | — | Actor tạo. `BaseEntity` `@CreatedBy` lưu **String** (KHÔNG phải BIGINT/UUID) — xem anomalies. |
 | `updated_by` | VARCHAR(100) | YES | — | — | Actor cập nhật. `BaseEntity` `@LastModifiedBy`. |
 | `deleted` | BOOLEAN | NO | `FALSE` | `idx_subscriptions_deleted` partial WHERE `deleted = false` | Soft-delete. |
 
-**Constraints**: `fk_subscription_instance FK(instance_id) → instances(id) CASCADE`; `fk_subscription_pending_payment FK(pending_payment_id) → payments(id) SET NULL`; `chk_subscription_tier CHECK(tier IN ('FREE','BASIC','PREMIUM','ENTERPRISE'))`; `chk_subscription_billing_cycle CHECK(billing_cycle IN ('MONTHLY','ANNUALLY'))`; `chk_subscription_status CHECK(status IN ('ACTIVE','SUSPENDED','CANCELLED','EXPIRED'))`; `chk_subscription_price CHECK(price_vnd >= 0)`; `chk_subscription_pending_tier CHECK(pending_tier IN ('FREE','BASIC','PREMIUM','ENTERPRISE'))`.
+**Constraints**: `fk_subscription_instance FK(instance_id) → instances(id) CASCADE`; `fk_subscription_pending_payment FK(pending_payment_id) → payments(id) SET NULL`; `chk_subscription_tier CHECK(tier IN ('FREE','BASIC','PREMIUM','ENTERPRISE'))`; `chk_subscription_billing_cycle CHECK(billing_cycle IN ('MONTHLY','ANNUALLY'))`; `chk_subscription_status CHECK(status IN ('ACTIVE','SUSPENDED','CANCELLED','EXPIRED'))`; `chk_subscription_price CHECK(price_vnd >= 0)`; `chk_subscription_pending_tier CHECK(pending_tier IN ('FREE','BASIC','PREMIUM','ENTERPRISE'))`. `version BIGINT NOT NULL DEFAULT 0` (V59 — optimistic lock, không phải constraint nhưng schema-level).
 
 **Index**: `idx_subscriptions_instance(instance_id)`, `idx_subscriptions_status(status)`, `idx_subscriptions_expires(expires_at)`, `idx_subscriptions_deleted(deleted) WHERE deleted = false` (partial — query mặc định filter `deleted=false`).
 
@@ -137,13 +141,14 @@ erDiagram
 | `paid_at` | TIMESTAMP | YES | — | — | Thời điểm trả tiền thực tế (set khi `complete()`). ⚠️ `TIMESTAMP` không TZ. |
 | `refunded_at` | TIMESTAMP | YES | — | — | Thời điểm hoàn tiền (set khi `refund()`). ⚠️ `TIMESTAMP` không TZ. |
 | `refund_reason` | VARCHAR(500) | YES | — | — | Lý do hoàn tiền (customer request / lỗi / khác). |
-| `created_at` | TIMESTAMP | NO | — | `idx_payments_created` DESC | Audit — tạo. `BaseEntity` `@CreatedDate`. Sort DESC cho dashboard recent payments. |
+| `version` | BIGINT | NO | `0` | — | ✅ Resolved (GAP-895, V59) — `@Version` optimistic lock (entity field-level). Guard concurrent payment status transition (PENDING → COMPLETED vs admin REFUNDED). Thêm bởi `V59` (Wave 14 C-KH). Xem [§ A9](#a9--optimistic-lock-version--resolved-cho-subscriptionspayments-v59). |
+| `created_at` | TIMESTAMP | NO | — | `idx_payments_created` DESC | Audit — tạo. `BaseEntity` `@CreatedDate`. Sort DESC cho dashboard recent payments. ⏸️ Deferred → GAP-912 (TIMESTAMP không TZ, D-KH). |
 | `updated_at` | TIMESTAMP | NO | — | — | Audit — cập nhật. `BaseEntity` `@LastModifiedDate`. |
 | `created_by` | VARCHAR(100) | YES | — | — | Actor tạo. `BaseEntity` `@CreatedBy` lưu **String**. |
 | `updated_by` | VARCHAR(100) | YES | — | — | Actor cập nhật. `BaseEntity` `@LastModifiedBy`. |
 | `deleted` | BOOLEAN | NO | `FALSE` | `idx_payments_deleted` partial WHERE `deleted = false` | Soft-delete. |
 
-**Constraints**: `fk_payment_subscription FK(subscription_id) → subscriptions(id) CASCADE`; `chk_payment_method CHECK(payment_method IN ('VIETQR','MOMO','VNPAY','BANK_TRANSFER','MANUAL'))`; `chk_payment_status CHECK(status IN ('PENDING','COMPLETED','FAILED','REFUNDED','CANCELLED'))`; `chk_payment_currency CHECK(currency IN ('VND','USD'))`; `chk_payment_amount CHECK(amount_vnd > 0)`.
+**Constraints**: `fk_payment_subscription FK(subscription_id) → subscriptions(id) CASCADE`; `chk_payment_method CHECK(payment_method IN ('VIETQR','MOMO','VNPAY','BANK_TRANSFER','MANUAL'))`; `chk_payment_status CHECK(status IN ('PENDING','COMPLETED','FAILED','REFUNDED','CANCELLED'))`; `chk_payment_currency CHECK(currency IN ('VND','USD'))`; `chk_payment_amount CHECK(amount_vnd > 0)`. `version BIGINT NOT NULL DEFAULT 0` (V59 — optimistic lock).
 
 **Index**: `idx_payments_subscription(subscription_id)`, `idx_payments_status(status)`, `idx_payments_transaction(transaction_id)`, `idx_payments_created(created_at DESC)`, `idx_payments_deleted(deleted) WHERE deleted = false`.
 
@@ -205,6 +210,8 @@ Cluster này dùng `BIGINT` cho `subscriptions.price_vnd` + `payments.amount_vnd
 
 Drift này là **có chủ ý theo domain** nhưng cần biết khi viết report cross-DB (so sánh MRR control-plane vs revenue per-tenant). KHÔNG có cột tiền minor-unit (xu) — đơn vị nhỏ nhất là đồng.
 
+⏸️ **Deferred → GAP-912** (KH money `price_vnd`/`amount_vnd` BIGINT→NUMERIC + Long→BigDecimal). Wave 14 D-KH explicit defer — V59 comment line 19 ghi rõ "No money-field changes (Long amount_vnd / price_vnd untouched — that is Bucket D-KH)". GAP-878/883 KH money portion đã re-route vào GAP-912. **Trạng thái hiện tại: VẪN BIGINT — chưa đổi.**
+
 ### A2 — `pending_tier` lưu cùng VARCHAR(20) nhưng có CHECK riêng vs cột `tier`
 
 `pending_tier` (V6) thêm CHECK constraint `chk_subscription_pending_tier` LIÊN QUAN ĐẾN cột `pending_tier`, có cùng tập giá trị với `chk_subscription_tier` ('FREE','BASIC','PREMIUM','ENTERPRISE'). Nếu mai mốc thêm tier mới (vd `EDU`), PHẢI update đồng thời 2 CHECK — drift risk. Nên consolidate qua 1 DOMAIN type Postgres (vd `CREATE DOMAIN pricing_tier AS VARCHAR(20) CHECK (...)`) hoặc giữ luôn lệ hiện tại + checklist migration. Hiện tại 2 CHECK độc lập.
@@ -249,9 +256,16 @@ Rủi ro **cross-tenant leak** mức medium — cần audit code path bằng tay
 
 100% cột thời gian của cluster là `TIMESTAMP` (không TIMEZONE). So với cluster KiteClass `04-finance.md` mix TIMESTAMPTZ (V1 bảng cũ) + TIMESTAMP (V48/V61 bảng mới). Toàn KiteHub control-plane đã đồng nhất TIMESTAMP — nhưng trộn với TIMESTAMPTZ của KiteClass khi cross-DB query → rủi ro lệch giờ ở boundary múi giờ (DST không quan trọng cho VN nhưng tổng vẫn drift). Cần tài liệu hóa: tất cả TIMESTAMP của KiteHub **giả định UTC** (Spring `spring.jpa.properties.hibernate.jdbc.time_zone=UTC` — verify trong application.yml).
 
-### A9 — Không có cột `version` (optimistic lock) toàn cluster
+⏸️ **Deferred → GAP-912** (KH timestamp `timestamp without time zone` → TIMESTAMPTZ). Wave 14 D-KH defer — V59-V61 KHÔNG touch timestamp columns. GAP-878 KH timestamp portion re-route vào GAP-912. **Trạng thái hiện tại: VẪN TIMESTAMP (không TZ) — chưa đổi.**
 
-`BaseEntity` không khai báo `@Version`. So với KiteClass `BaseEntity` (kiteclass-core) có `@Version Long version` + V62/V63 set DEFAULT 0. Hệ quả: 2 caller race condition trên cùng subscription (vd auto-renew cron + admin manual extend) sẽ ghi đè không có optimistic lock — race window ngắn nhưng tồn tại. Đặc biệt rủi ro cho `pending_payment_id` (admin upgrade flow vs cron expire). Có thể thêm `version BIGINT` (DEFAULT 0) cho subscriptions + payments trong future migration.
+### A9 — Optimistic lock `version` ✅ Resolved cho subscriptions/payments (V59)
+
+✅ **Resolved (GAP-895, V59 — Wave 14 C-KH).** Trước đây `BaseEntity` không khai báo `@Version` → 2 caller race condition trên cùng subscription (vd auto-renew cron vs admin manual extend) ghi đè không có optimistic lock. V59 thêm `version BIGINT NOT NULL DEFAULT 0` vào **cả `subscriptions` lẫn `payments`** (entity field-level `@Version Long version` trên `Subscription` + `Payment`, KHÔNG ở `BaseEntity` — vì `instances` table out-of-scope D-KH bucket; thêm `@Version` vào `BaseEntity` sẽ buộc thêm cột vào `instances` → schema-drift FAIL). Hệ quả:
+
+- Race auto-renew cron vs admin manual extend trên `pending_payment_id` / `status` giờ bị `OptimisticLockingFailureException` catch → retry/reject.
+- Race concurrent payment status transition (PENDING → COMPLETED từ webhook vs admin REFUNDED) cũng được guard.
+
+**Còn lại (chưa đồng bộ):** `instances` (cluster 01) + `system_config` vẫn KHÔNG có `version` — `instances` out-of-scope D-KH; `system_config` là flat key/value seed không cần optimistic lock. So sánh KiteClass `BaseEntity` (kiteclass-core) có `@Version` trên toàn cluster — KiteHub control-plane chỉ subscriptions+payments có (minimal-change scope V59).
 
 ### A10 — `currency` CHECK chấp nhận USD nhưng entity default VND, không có locale-switching code
 
@@ -291,6 +305,7 @@ Khi cross-DB query / report / docs, dùng full path `kitehub.public.payments` vs
 - `V6__add_pending_tier_fields.sql` — thêm `pending_tier` + `pending_payment_id` + FK SET NULL + CHECK pending_tier.
 - `V27__seed_admin_system_config.sql` — tạo `system_config` + seed 4 dòng baseline + index redundant.
 - `V34__enable_rls_tenant_scoped_tables.sql` — `ENABLE RLS` non-forced trên `subscriptions` (`payments` skip vì no instance_id, `system_config` skip vì không tenant-scoped).
+- `V59__optimistic_lock_check_coverage.sql` — ✅ Resolved GAP-895: thêm `version BIGINT NOT NULL DEFAULT 0` vào `subscriptions` + `payments`. (Cũng thêm CHECK `backup_records.status` + `branding_regenerate_usage.tier`/`window_order` — thuộc cluster 03.) Comment line 19 confirm "no money-field changes" (D-KH defer).
 
 **Entities** (`kitehub-platform`):
 - `domain/entity/BaseEntity.java` — superclass UUID PK + audit String (createdBy/updatedBy) + soft-delete.

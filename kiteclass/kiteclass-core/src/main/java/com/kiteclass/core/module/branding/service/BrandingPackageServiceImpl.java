@@ -42,7 +42,7 @@ public class BrandingPackageServiceImpl implements BrandingPackageService {
 
         return new BrandingPackage(
                 instance.getId(),
-                instance.getTenantId(),
+                instance.getTenantSlug(),
                 instance.getSlug(),
                 instance.getFrontendUrl(),
                 instance.getBrandingVersion(),

@@ -167,7 +167,7 @@ public class BrandingDataSeeder {
     private FrontendInstance buildInstance(String slug) {
         boolean isSky = SKY_TENANT_SLUG.equals(slug);
         FrontendInstance instance = FrontendInstance.builder()
-                .tenantId(isSky ? SKY_TENANT_REF : DEV_TENANT_REF)
+                .tenantSlug(isSky ? SKY_TENANT_REF : DEV_TENANT_REF)
                 .slug(slug)
                 .frontendUrl(isSky ? SKY_FRONTEND_URL : DEV_FRONTEND_URL)
                 .build();

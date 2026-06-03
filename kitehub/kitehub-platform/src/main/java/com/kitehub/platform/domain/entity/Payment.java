@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -70,6 +71,15 @@ public class Payment extends BaseEntity {
 
     @Column(name = "refund_reason", length = 500)
     private String refundReason;
+
+    /**
+     * Optimistic-lock version (GAP-895). Guards concurrent payment status transitions
+     * (PENDING -> COMPLETED vs admin REFUNDED). Field-level @Version (not BaseEntity) so the
+     * column set matches V59 exactly.
+     */
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 
     /**
      * Mark payment as completed.

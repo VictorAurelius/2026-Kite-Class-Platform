@@ -28,7 +28,7 @@ public record InstanceResponse(
     public static InstanceResponse from(FrontendInstance instance) {
         return new InstanceResponse(
                 instance.getId(),
-                instance.getTenantId(),
+                instance.getTenantSlug(),
                 instance.getSlug(),
                 instance.getFrontendUrl(),
                 instance.getStatus(),

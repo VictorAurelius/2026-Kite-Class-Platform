@@ -2,7 +2,7 @@
 title: "KiteClass DB Schema — Cluster Con người / Ghi danh (People & Enrollment)"
 audience: mixed
 created: 2026-06-02
-last-reviewed: 2026-06-02
+last-reviewed: 2026-06-03
 ---
 
 # KiteClass DB Schema — Cluster "Con người / Ghi danh"
@@ -19,8 +19,10 @@ Cluster này gồm **8 bảng** quản lý các thực thể con người và qu
 | `parent_student_links` | M2M phụ huynh ↔ học sinh (kèm consent PDPL) | ✅ | ✅ |
 | `parent_invitations` | Lời mời onboarding phụ huynh (token, TTL 24h) | ✅ | ✅ |
 | `enrollments` | Ghi danh học sinh vào lớp (kèm học phí + giảm giá) | ✅ | ✅ |
-| `teacher_courses` | M2M giáo viên ↔ khóa học (phân quyền cấp khóa) | ❌ (không có `instance_id`) | ❌ |
+| `teacher_courses` | M2M giáo viên ↔ khóa học (phân quyền cấp khóa) | ✅ RLS join-based (V84) | ❌ |
 | `student_bulk_import_jobs` | Job import học sinh hàng loạt (xlsx) | ✅ | ✅ |
+
+> ✅ **Cập nhật Wave 14 (post-fix):** `teacher_courses` đã được V84 (GAP-910) áp **RLS join-based** (policy `tenant_isolation` JOIN `teachers` + filter `instance_id`, FORCED) — không thêm `instance_id` cột (bảng nối M2M thuần) nhưng RLS DB-level giờ cô lập tenant qua JOIN. Money columns `enrollments.tuition_amount`/`final_amount` chuẩn hóa NUMERIC(19,2) + timestamp naive (`parents`/`parent_*`/`student_bulk_import_jobs`) → TIMESTAMPTZ (V86 — GAP-883/878). Còn deferred: `teacher_courses.assigned_by` BIGINT (anomaly A6 ⏸️ Deferred → GAP-877/886).
 
 Điểm cần nhớ:
 - **`students`** là tâm điểm: được tham chiếu bởi `enrollments`, `attendance`, `grades`, `submissions`, `invoices`, `student_points`, `reward_redemptions`, `student_badges`, `parent_student_links`, `parent_invitations`, `parent_complaint_queue` — tổng **11 inbound FK** trong DB.
@@ -184,14 +186,14 @@ erDiagram
 | `full_name` | `VARCHAR(100)` | NOT NULL | — | — | Họ tên đầy đủ |
 | `relationship` | `VARCHAR(20)` | NOT NULL | `'GUARDIAN'` | CHECK `chk_parents_relationship` | Quan hệ — enum `ParentRelationship`: `FATHER` (cha), `MOTHER` (mẹ), `GUARDIAN` (người giám hộ) |
 | `status` | `VARCHAR(20)` | NOT NULL | `'PENDING'` | `idx_parents_status`; CHECK `chk_parents_status` | Trạng thái — enum `ParentStatus`: `PENDING` (chờ redeem invite), `ACTIVE` (đã có user Gateway), `INACTIVE` |
-| `created_at` | `TIMESTAMP` | NOT NULL | `NOW()` | — | Thời điểm tạo |
-| `updated_at` | `TIMESTAMP` | NULL | — | — | Thời điểm cập nhật |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL | `NOW()` | — | Thời điểm tạo (V86 convert TIMESTAMP→TIMESTAMPTZ — GAP-878) |
+| `updated_at` | `TIMESTAMPTZ` | NULL | — | — | Thời điểm cập nhật (V86 convert TIMESTAMP→TIMESTAMPTZ — GAP-878) |
 | `created_by` | `UUID` | NULL | — | — | Người tạo (UUID, V73) |
 | `updated_by` | `UUID` | NULL | — | — | Người cập nhật cuối (UUID, V73) |
 | `deleted` | `BOOLEAN` | NOT NULL | `FALSE` | — | Cờ soft-delete |
 | `version` | `BIGINT` | NOT NULL | `0` | — | Optimistic lock |
 
-> Nguồn cột: V42 (tạo bảng) + V73 (audit → UUID). `created_at`/`updated_at` ở đây là `TIMESTAMP` (không timezone) — khác `students`/`teachers` (`TIMESTAMPTZ`).
+> Nguồn cột: V42 (tạo bảng) + V73 (audit → UUID) + V86 (`created_at`/`updated_at` TIMESTAMP→TIMESTAMPTZ — GAP-878, giờ đồng nhất với `students`/`teachers`).
 
 **Quan hệ:**
 - Outbound: không có FK ra (entity gốc).
@@ -214,8 +216,8 @@ erDiagram
 | `student_id` | `BIGINT` | NOT NULL | — | FK `→ students(id)`; `idx_psl_student`; UNIQUE (cùng `uk_parent_student`) | Học sinh |
 | `link_type` | `VARCHAR(20)` | NOT NULL | `'PRIMARY'` | CHECK `chk_psl_link_type` | Loại liên kết — enum `ParentLinkType`: `PRIMARY` (liên hệ chính), `SECONDARY` (liên hệ phụ) |
 | `parental_consent` | `JSONB` | NOT NULL | `'{"fields":{},"version":1,"updatedAt":null}'` | — | Consent PDPL Decree 13/2023 Art 16 (V56) — bag cờ hiển thị per-field + version + updatedAt; `ConsentService` gate facet API theo cờ |
-| `created_at` | `TIMESTAMP` | NOT NULL | `NOW()` | — | Thời điểm tạo |
-| `updated_at` | `TIMESTAMP` | NULL | — | — | Thời điểm cập nhật |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL | `NOW()` | — | Thời điểm tạo (V86 convert TIMESTAMP→TIMESTAMPTZ — GAP-878) |
+| `updated_at` | `TIMESTAMPTZ` | NULL | — | — | Thời điểm cập nhật (V86 convert TIMESTAMP→TIMESTAMPTZ — GAP-878) |
 | `created_by` | `UUID` | NULL | — | — | Người tạo (UUID, V73) |
 | `updated_by` | `UUID` | NULL | — | — | Người cập nhật cuối (UUID, V73) |
 | `deleted` | `BOOLEAN` | NOT NULL | `FALSE` | — | Cờ soft-delete |
@@ -244,12 +246,12 @@ erDiagram
 | `student_id` | `BIGINT` | NOT NULL | — | FK `→ students(id)` | Học sinh được liên kết khi redeem |
 | `token` | `VARCHAR(64)` | NOT NULL | — | UNIQUE; `idx_inv_token` (unique) | Token 128-bit (UUID) — khóa redeem công khai |
 | `status` | `VARCHAR(20)` | NOT NULL | `'PENDING'` | `idx_inv_status`; CHECK `chk_parent_invitation_status` | Trạng thái — enum `ParentInvitationStatus`: `PENDING`, `REDEEMED`, `EXPIRED`, `REVOKED` |
-| `expires_at` | `TIMESTAMP` | NOT NULL | — | partial idx `idx_inv_expires_pending` (`WHERE status='PENDING'`) | Hết hạn (TTL mặc định 24h) |
+| `expires_at` | `TIMESTAMPTZ` | NOT NULL | — | partial idx `idx_inv_expires_pending` (`WHERE status='PENDING'`) | Hết hạn (TTL mặc định 24h; V86 convert TIMESTAMP→TIMESTAMPTZ — GAP-878) |
 | `invited_by_user_id` | `UUID` | NULL | — | — | Gateway user (UUID, X-User-Id) của người gửi lời mời (V73) |
-| `redeemed_at` | `TIMESTAMP` | NULL | — | — | Thời điểm hoàn tất redeem |
+| `redeemed_at` | `TIMESTAMPTZ` | NULL | — | — | Thời điểm hoàn tất redeem (V86 convert TIMESTAMP→TIMESTAMPTZ — GAP-878) |
 | `redeemed_parent_id` | `BIGINT` | NULL | — | FK `→ parents(id)` | Parent được tạo khi redeem |
-| `created_at` | `TIMESTAMP` | NOT NULL | `NOW()` | — | Thời điểm tạo |
-| `updated_at` | `TIMESTAMP` | NULL | — | — | Thời điểm cập nhật |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL | `NOW()` | — | Thời điểm tạo (V86 convert TIMESTAMP→TIMESTAMPTZ — GAP-878) |
+| `updated_at` | `TIMESTAMPTZ` | NULL | — | — | Thời điểm cập nhật (V86 convert TIMESTAMP→TIMESTAMPTZ — GAP-878) |
 | `created_by` | `UUID` | NULL | — | — | Người tạo (UUID, V73) |
 | `updated_by` | `UUID` | NULL | — | — | Người cập nhật cuối (UUID, V73) |
 | `deleted` | `BOOLEAN` | NOT NULL | `FALSE` | — | Cờ soft-delete |
@@ -286,9 +288,9 @@ erDiagram
 | `version` | `BIGINT` | NULL | `0` (V63) | — | Optimistic lock (thêm V26) |
 | `deleted` | `BOOLEAN` | NOT NULL | `FALSE` | — | Cờ soft-delete (thêm V27) |
 | `enrollment_date` | `TIMESTAMPTZ` | NOT NULL | `NOW()` | `idx_enrollments_enrollment_date` (entity) | Ngày ghi danh (cột entity hiện hành, V27) |
-| `tuition_amount` | `DECIMAL(10,2)` | NOT NULL | `0` | — | Học phí gốc tại thời điểm ghi danh (V27) |
-| `discount_percent` | `DECIMAL(5,2)` | NOT NULL | `0` | — | % giảm giá (0–100) (V27) |
-| `final_amount` | `DECIMAL(10,2)` | NOT NULL | `0` | — | Số tiền cuối = `tuition_amount * (1 - discount_percent/100)`, tính ở `@PrePersist/@PreUpdate` (V27) |
+| `tuition_amount` | `NUMERIC(19,2)` | NOT NULL | `0` | — | Học phí gốc tại thời điểm ghi danh (V27; V86 chuẩn hóa DECIMAL(10,2)→NUMERIC(19,2) — GAP-883) |
+| `discount_percent` | `DECIMAL(5,2)` | NOT NULL | `0` | — | % giảm giá (0–100) (V27) — KHÔNG phải cột money, giữ DECIMAL(5,2) |
+| `final_amount` | `NUMERIC(19,2)` | NOT NULL | `0` | — | Số tiền cuối = `tuition_amount * (1 - discount_percent/100)`, tính ở `@PrePersist/@PreUpdate` (V27; V86 chuẩn hóa DECIMAL(10,2)→NUMERIC(19,2) — GAP-883) |
 
 > Nguồn cột: V1 (`class_id`/`student_id`/`enrolled_at`/`status`/`notes`/audit + UNIQUE `uk_enrollments`) + V26 (`updated_by`/`version`) + V27 (`deleted`/`enrollment_date`/`tuition_amount`/`discount_percent`/`final_amount`) + V63 (`version` default 0) + V73 (audit → UUID).
 >
@@ -316,16 +318,16 @@ erDiagram
 | `course_id` | `BIGINT` | NOT NULL | — | FK `→ courses(id)`; `idx_teacher_courses_course_id`; UNIQUE (cùng) | Khóa học (cross-cluster) |
 | `role` | `VARCHAR(20)` | NOT NULL | — | `idx_teacher_courses_role` | Vai trò — enum `TeacherCourseRole`: `CREATOR` (người tạo, toàn quyền), `INSTRUCTOR` (giảng viên, quản lý lớp được giao), `ASSISTANT` (trợ giảng, view-only) |
 | `assigned_at` | `TIMESTAMPTZ` | NOT NULL | `NOW()` | — | Thời điểm phân công |
-| `assigned_by` | `BIGINT` | NULL | — | — | User phân công (NULL nếu CREATOR tự tạo) |
+| `assigned_by` | `BIGINT` | NULL | — | — | User phân công (NULL nếu CREATOR tự tạo). Vẫn BIGINT (⏸️ deferred actor sweep → GAP-877/886) |
 
-> Nguồn cột: V27 (tạo bảng). **Bảng này KHÔNG kế thừa `BaseEntity`** — không có `instance_id`, không `deleted`, không `version`, không `created_at/updated_at` chuẩn. Entity `TeacherCourse` là POJO `@Id` riêng.
+> Nguồn cột: V27 (tạo bảng). **Bảng này KHÔNG kế thừa `BaseEntity`** — không có `instance_id`, không `deleted`, không `version`, không `created_at/updated_at` chuẩn. Entity `TeacherCourse` là POJO `@Id` riêng. **Cập nhật Wave 14:** V84 (GAP-910) áp RLS join-based (JOIN `teachers` + filter `instance_id`, FORCED) dù không có cột `instance_id`.
 
 **Quan hệ (M2M — giải thích 2 phía):**
 - Phía `teachers`: `teacher_id → teachers(id)`. 1 giáo viên có thể được phân nhiều khóa.
 - Phía `courses`: `course_id → courses(id)` (cross-cluster). 1 khóa có thể có nhiều giáo viên với vai trò khác nhau.
 - UNIQUE `(teacher_id, course_id)` đảm bảo 1 giáo viên chỉ 1 vai trò trong 1 khóa (BR-TEACHER-007).
 
-**RLS + ghi chú:** **KHÔNG tenant-scoped** (không có `instance_id` → không nằm trong danh sách RLS V58). Không soft-delete (xóa cứng). `assigned_by` vẫn là `BIGINT` (không nằm trong sweep V73 vì không tên `created_by`/`updated_by`).
+**RLS + ghi chú:** ✅ **RLS join-based từ Wave 14** — V84 (GAP-910) ENABLE/FORCE RLS với policy `tenant_isolation` cô lập tenant qua `EXISTS (SELECT 1 FROM teachers WHERE teachers.id = teacher_courses.teacher_id AND teachers.instance_id = <current_tenant>)` + admin-bypass. Không có cột `instance_id` (bảng nối M2M thuần — cố ý) nhưng RLS DB-level giờ chặn cross-tenant leak qua JOIN (`check-rls-coverage.sh` special-case bảng này). Không soft-delete (xóa cứng). `assigned_by` vẫn `BIGINT` (⏸️ Deferred → GAP-877/886).
 
 ---
 
@@ -343,15 +345,15 @@ erDiagram
 | `success_count` | `INT` | NOT NULL | `0` | — | Số dòng tạo học sinh thành công |
 | `error_count` | `INT` | NOT NULL | `0` | — | Số dòng lỗi (validation/trùng) |
 | `error_report_url` | `VARCHAR(500)` | NULL | — | — | URL/path báo cáo lỗi xlsx (có thể NULL — MVP gen on-demand) |
-| `completed_at` | `TIMESTAMP` | NULL | — | — | Thời điểm hoàn tất job |
-| `created_at` | `TIMESTAMP` | NOT NULL | `NOW()` | — | Thời điểm tạo |
-| `updated_at` | `TIMESTAMP` | NULL | — | — | Thời điểm cập nhật |
+| `completed_at` | `TIMESTAMPTZ` | NULL | — | — | Thời điểm hoàn tất job (V86 convert TIMESTAMP→TIMESTAMPTZ — GAP-878) |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL | `NOW()` | — | Thời điểm tạo (V86 convert TIMESTAMP→TIMESTAMPTZ — GAP-878) |
+| `updated_at` | `TIMESTAMPTZ` | NULL | — | — | Thời điểm cập nhật (V86 convert TIMESTAMP→TIMESTAMPTZ — GAP-878) |
 | `created_by` | `UUID` | NULL | — | — | Người tạo (UUID, V73; gốc V41 BIGINT) |
 | `updated_by` | `UUID` | NULL | — | — | Người cập nhật cuối (UUID, V73) |
 | `deleted` | `BOOLEAN` | NOT NULL | `FALSE` | — | Cờ soft-delete |
 | `version` | `BIGINT` | NOT NULL | `0` | — | Optimistic lock |
 
-> Nguồn cột: V41 (tạo bảng) + V73 (audit → UUID). Transition: `PENDING → IN_PROGRESS → COMPLETED` (hoặc `→ FAILED`).
+> Nguồn cột: V41 (tạo bảng) + V73 (audit → UUID) + V86 (timestamp → TIMESTAMPTZ — GAP-878). Transition: `PENDING → IN_PROGRESS → COMPLETED` (hoặc `→ FAILED`).
 
 **Quan hệ:**
 - Outbound: không có FK (chỉ liên quan logic tới `students` được tạo, không ràng buộc FK).
@@ -366,11 +368,11 @@ erDiagram
 
 > Đây là danh sách lệch chuẩn giữa migration (chân lý DB), entity Java (`*.java`), và policy RLS (V58/V59) cho cụm Con người + Tuyển sinh. Dev PHẢI nắm trước khi viết query hoặc tạo migration mới. Hầu hết anomaly phát sinh từ (a) bảng nối M2M không kế thừa `BaseEntity` nên không có audit / soft-delete / RLS, (b) cột legacy V1 song song với cột entity V27, (c) entity declare UNIQUE 4-cột mà DB chỉ có 2-cột.
 
-### A1 — `teacher_courses` thiếu `instance_id` + KHÔNG kế thừa BaseEntity → ngoài scope RLS V58
+### A1 — ✅ Resolved (GAP-910, V84) — `teacher_courses` RLS join-based
 
-`teacher_courses` là bảng nối M2M thuần (teacher ↔ course). V46 chủ động loại trừ không thêm `instance_id` / audit / soft-delete. Cô lập tenant qua FK gián tiếp (`teacher_id → teachers.instance_id` HOẶC `course_id → courses.instance_id`).
+**Trước Wave 14:** `teacher_courses` là bảng nối M2M thuần (teacher ↔ course) KHÔNG có `instance_id` → ngoài scope RLS V58. Chỉ cô lập gián tiếp qua FK → leak risk nếu service không JOIN parent.
 
-→ Pattern giống `role_permissions` cluster 05 A3. Tương tự `student_badges` cluster 06 anomaly A (RLS skip). Risk class identical với baseline 04-finance.md A9 (RLS coverage gap). Nếu service code không JOIN parent table có `instance_id`, query có thể leak cross-tenant. Verify mọi repository method dùng `teacher_courses` có JOIN parent + filter `instance_id` trong WHERE.
+**✅ Resolved (V84 — GAP-910):** V84 ENABLE/FORCE RLS với policy `tenant_isolation` JOIN-based: `EXISTS (SELECT 1 FROM teachers WHERE teachers.id = teacher_courses.teacher_id AND teachers.instance_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid)` + admin-bypass `app.is_platform_admin`. Không thêm cột `instance_id` (bảng nối thuần — cố ý) nhưng DB-level RLS giờ chặn cross-tenant leak ngay cả với raw SQL bypass Hibernate filter. `check-rls-coverage.sh` special-case bảng này (qual LIKE `%teachers%` + forced). Lần đầu áp V78, V84 re-assert idempotent để own GAP-910 closure. **Lưu ý:** GAP-910 PARTIAL 90 — RLS join-based ship, còn `assigned_by` BIGINT chưa sweep (A6).
 
 ### A2 — Entity `Teacher` ↔ bảng `teachers` drift legacy V1 vs V27
 
@@ -409,26 +411,21 @@ V73 (GAP-795) chuyển `classes.teacher_id` BIGINT → UUID đồng thời DROP 
 
 → Risk: code legacy giả định FK domain `classes → teachers` còn tồn tại. Soft ref (chỉ UUID, không FK constraint) buộc service phải validate `teacher_id` trỏ valid user trước INSERT. Cross-cluster với cluster 01 A5 + cluster 06 baseline B (actor UUID/BIGINT inconsistency).
 
-### A6 — Actor BIGINT bị V73 sweep BỎ SÓT (`teacher_courses.assigned_by`)
+### A6 — ⏸️ Deferred → GAP-877/886 — Actor BIGINT bị V73 sweep BỎ SÓT (`teacher_courses.assigned_by`)
 
-V73 sweep chỉ chuyển `created_by`/`updated_by` của mọi bảng. **`teacher_courses.assigned_by`** (V30) là cột actor nghiệp vụ riêng (tên không match `created_by`) → V73 không động.
+V73 sweep chỉ chuyển `created_by`/`updated_by` của mọi bảng. **`teacher_courses.assigned_by`** (V30) là cột actor nghiệp vụ riêng (tên không match `created_by`) → V73 không động. Wave 14 (V79-V86) cũng KHÔNG sweep.
 
 | Bảng | Cột actor BIGINT bỏ sót | Migration gốc | Risk |
 |---|---|---|---|
 | `teacher_courses` | `assigned_by` | V30 | Service ghi UUID `X-User-Id` → parse fail / NumberFormatException |
 
-→ Identical pattern với baseline 04-finance.md A6 + cluster 01 A5 + cluster 05 A1 (cross-cluster recurrent pattern V73 sweep narrow scope). Cần migration follow-up sweep V73 phase 2 cho mọi cột actor không-tên-chuẩn.
+→ Identical pattern với baseline 04-finance.md A6 + cluster 01 A5 + cluster 03 anomaly E (cross-cluster recurrent pattern V73 sweep narrow scope). **⏸️ Deferred → GAP-877/886** (actor UUID sweep phase 2 — chưa land trong Wave 14).
 
-### A7 — TIMESTAMP vs TIMESTAMPTZ không nhất quán
+### A7 — ✅ Resolved (GAP-878, V86) — TIMESTAMP đồng nhất TIMESTAMPTZ
 
-| Nhóm | Bảng | Kiểu timestamp |
-|---|---|---|
-| TIMESTAMPTZ (timezone-aware) | `students`, `teachers`, `enrollments` | TIMESTAMP WITH TIME ZONE |
-| TIMESTAMP (naive) | `parents`, `parent_student_links`, `parent_invitations`, `student_bulk_import_jobs` | TIMESTAMP (V41/V42) |
+**Trước Wave 14:** 3 bảng "core" (V1: `students`/`teachers`/`enrollments`) dùng TIMESTAMPTZ; 4 bảng "extension" (V41/V42: `parents`/`parent_student_links`/`parent_invitations`/`student_bulk_import_jobs`) dùng TIMESTAMP naive.
 
-→ 3 bảng "core" (V1) dùng TZ; 4 bảng "extension" (V41/V42 P2/P3 expand) dùng naive. Risk khi compare `enrollments.enrollment_date` (DATE) với `parent_invitations.created_at` (TIMESTAMP naive) trên server không UTC. Identical pattern baseline 04-finance.md A8 + cluster 01 A9.
-
-→ Document policy timezone trong `documents/02-architecture/database/README.md` (cluster overview).
+**✅ Resolved (V86 — GAP-878):** V86 quét mọi cột `timestamp without time zone` tên kết thúc `_at`/`_time` trong schema `public`, convert sang `TIMESTAMPTZ USING <col> AT TIME ZONE 'UTC'`. Sau V86, các cột timestamp của 4 bảng extension (`created_at`/`updated_at`/`expires_at`/`redeemed_at`/`completed_at`) đều thành TIMESTAMPTZ — đồng nhất toàn cluster. **Lưu ý:** `enrollments.enrollment_date` (cột entity) là TIMESTAMPTZ; chỉ cột business calendar `LocalDate` thuần (vd `installments.due_date` cluster khác) giữ DATE.
 
 ---
 

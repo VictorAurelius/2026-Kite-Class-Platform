@@ -62,7 +62,7 @@ class Wave03IntegrationTest {
         PlanExecutor executor = new PlanExecutor(outbox);
 
         FrontendInstance instance = FrontendInstance.builder()
-                .tenantId("t-1").slug("acme")
+                .tenantSlug("t-1").slug("acme")
                 .status(FrontendInstanceStatus.NOT_STARTED)
                 .retryCount(0).brandingVersion(0).build();
         instance.setId(42L);
@@ -81,7 +81,7 @@ class Wave03IntegrationTest {
         assertThat(plan.size()).isEqualTo(4);
 
         // 3) Executor drains the plan
-        StepContext ctx = new StepContext(instance.getId(), instance.getTenantId());
+        StepContext ctx = new StepContext(instance.getId(), instance.getTenantSlug());
         ctx.setAnalysis(analysis);
         executor.execute(plan, ctx);
 

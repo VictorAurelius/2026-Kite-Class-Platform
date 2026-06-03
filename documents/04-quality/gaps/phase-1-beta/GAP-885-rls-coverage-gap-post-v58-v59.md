@@ -1,6 +1,6 @@
 # GAP-885: RLS coverage gap — bảng tạo sau V58/V59 không có policy
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (45%)
 **Priority:** 🔴 P0
 **Domain:** Backend / DB / Security
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KC finance/branding + KH auth/email)

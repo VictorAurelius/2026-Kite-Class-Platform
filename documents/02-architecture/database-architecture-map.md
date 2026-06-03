@@ -4,8 +4,8 @@ audience: mixed
 status: active
 version: 2
 created: 2026-05-19
-updated: 2026-05-19
-last-reviewed: 2026-05-19
+updated: 2026-06-03
+last-reviewed: 2026-06-03
 waves: [99b, 100]
 gaps: [GAP-672, GAP-681]
 scope: Báo cáo tổng hợp kiến trúc database cho KiteHub + KiteClass — catalog 91 thực thể, FK graph, lịch sử Flyway migration, tenant_id propagation, sizing baseline, inventory type Postgres-specific, mapping per-service, data flow Mermaid sequenceDiagram, nguyên tắc thiết kế, đánh giá độ chín và lộ trình Wave 101+
@@ -138,6 +138,8 @@ Service `kiteclass-core` chứa business logic giáo dục per-tenant: học sin
 
 ### 1.3 Tổng kết RLS Coverage
 
+> **Cập nhật Wave 14 (2026-06-03) — DB completion safe-max.** Migrations mới: KC V80-V86 (version default, student_badges RLS, frontend_instances→tenant_slug, audit_log append-only RLS, denormalize class_schedules/class_sessions/teacher_courses RLS, payment_records RLS, money→NUMERIC(19,2) + enum + timestamp→TIMESTAMPTZ) + KH V59-V61 (@Version optimistic-lock, CHECK coverage, branding_lifecycle_events immutable RLS, branding_jobs FK, users.role CHECK). RLS coverage KC mở rộng (student_badges + audit_log + class_schedules/class_sessions/teacher_courses + payment_records + leads/contact_messages) — verified `check-rls-coverage.sh` PASS + `Wave14EntityDriftMigrationsIT` 19 tests. Bảng mới từ V79: `leads`, `contact_messages`, `grade_components`. **Deferred (GAP-912):** KH money `price_vnd`/`amount_vnd` vẫn BIGINT (Long→BigDecimal cần dedicated wave). Đếm chính xác RLS%/table-count post-Wave-14 = follow-up (con số dưới đây là pre-Wave-14 baseline).
+
 - **Tổng bảng:** 91 (32 kh-sub + 59 kc-core)
 - **RLS bật:** 51 (12 kh-sub non-forced + 39 kc-core forced — theo V58 + V34)
   - kh-sub: 12 (`subscriptions`, `branding_jobs`, v.v. — non-forced vì service control-plane không propagate `TenantContext`)
@@ -220,12 +222,12 @@ Bảng `students` là thực thể trung tâm của domain KiteClass — hầu h
 
 ## Mục 3 — Migration History Index
 
-Tổng cộng **114 V-file Flyway** active (54 kh-sub + 60 kc-core), 0 V-file trong các service non-DB (kitehub-platform, branding, email, admin, base, gateway — tất cả dùng DB kh-subscription hoặc stateless).
+Tổng cộng **147 V-file Flyway** active (61 kh-sub + 86 kc-core, post-Wave-14), 0 V-file trong các service non-DB (kitehub-platform, branding, email, admin, base, gateway — tất cả dùng DB kh-subscription hoặc stateless).
 
 | Service | Số V-file | V mới nhất | Breaking changes |
 |---|:---:|:---:|:---:|
-| `kitehub-subscription` | 54 | V54 (admin_audit_log enrichment) | 4 |
-| `kiteclass-core` | 60 | V60 (admin_audit_logs RLS NULL force-fail) | 1 |
+| `kitehub-subscription` | 61 | V61 (users.role CHECK + ADMIN→PLATFORM_ADMIN — Wave 14 C-KH) | 4 |
+| `kiteclass-core` | 86 | V86 (type harmonize money/timestamp/enum — Wave 14 D-KC) | 1 |
 | `kitehub-platform` | 0 | — | 0 |
 | `kitehub-branding` | 0 | — | 0 |
 | `kitehub-email` | 0 | — | 0 |

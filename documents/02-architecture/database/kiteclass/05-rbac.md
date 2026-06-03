@@ -2,10 +2,12 @@
 title: "KiteClass DB Schema — Cluster Phân quyền (RBAC)"
 audience: mixed
 created: 2026-06-02
-last-reviewed: 2026-06-02
+last-reviewed: 2026-06-03
 ---
 
 # KiteClass DB Schema — Cluster "Phân quyền (RBAC)"
+
+> **Cập nhật Wave 14 (KC V78-V86)** — `vettings` đã được bật RLS DB-level ở **V78** (rls_sweep, đóng A5 verify); timestamp `_at`/`_time` của `vettings` chuyển `TIMESTAMPTZ` ở **V86** (DO-block quét toàn DB, đóng A6 cho vettings). Anomaly actor BIGINT (`user_roles.assigned_by`, `vettings.decided_by_user_id`) vẫn ⏸️ DEFERRED → GAP-877/886. Lưu ý: GAP-893 (`users.role` CHECK + seed ADMIN→PLATFORM_ADMIN, V61) thuộc bảng `users` cluster định danh — **KHÔNG nằm trong 5 bảng cluster RBAC này** nên không phản ánh ở đây.
 
 ## TL;DR
 
@@ -25,7 +27,7 @@ Cluster này gồm **5 bảng** cài đặt mô hình phân quyền phân cấp 
 - 4/5 bảng kế thừa `BaseEntity` (cột `id`, `instance_id`, `created_at`, `updated_at`, `created_by`, `updated_by`, `deleted`, `version`). Ngoại lệ: `role_permissions` (bảng nối thuần, chỉ 2 cột FK, không multi-tenant, không audit).
 - Cột `created_by` / `updated_by` đã đổi từ `BIGINT` sang `UUID` ở **V73** (GAP-795) — lưu `X-User-Id` (JWT `sub` claim), không phải số.
 - Mọi bảng có `instance_id` đều bật **RLS FORCED** từ V58, siết NULL force-fail + admin-bypass ở V59 (xem §Ghi chú schema).
-- ⚠️ **Anomaly**: V73 chỉ quét `created_by`/`updated_by`; cột actor riêng `user_roles.assigned_by` (VARCHAR) và `vettings.decided_by_user_id` (BIGINT) **không được quét** → còn lệch với mô hình actor UUID (xem §Ghi chú schema (anomalies)).
+- ⏸️ **Anomaly (Deferred → GAP-877/886)**: V73 chỉ quét `created_by`/`updated_by`; cột actor riêng `user_roles.assigned_by` (VARCHAR) và `vettings.decided_by_user_id` (BIGINT) **không được quét** → còn lệch với mô hình actor UUID (không trong scope V79-V86; xem §Ghi chú schema (anomalies)).
 
 ## ERD
 
@@ -226,7 +228,7 @@ Bảng nối **many-to-many** giữa user và role: gán role cho user (1 user c
 | `user_id` | `BIGINT` | NO | — | unique `idx_ur_user_role` (cùng `role_id`) | User được gán role (tham chiếu logic `users.id`) ⚠️ |
 | `role_id` | `BIGINT` | NO | — | FK → `roles(id)`, idx `idx_ur_role`, unique cùng `user_id` | Role được gán |
 | `assigned_at` | `TIMESTAMP` | NO | `CURRENT_TIMESTAMP` | — | Thời điểm gán (BR-UR-002 audit) |
-| `assigned_by` | `VARCHAR(100)` | YES | — | — | Actor gán role (⚠️ còn VARCHAR, xem anomalies) |
+| `assigned_by` | `VARCHAR(100)` | YES | — | — | Actor gán role (⏸️ còn VARCHAR, DEFERRED → GAP-877/886) |
 | `notes` | `VARCHAR(500)` | YES | — | — | Ghi chú gán quyền |
 | `created_at` | `TIMESTAMP` | NO | `CURRENT_TIMESTAMP` | — | Thời điểm tạo (BaseEntity) |
 | `updated_at` | `TIMESTAMP` | NO | `CURRENT_TIMESTAMP` | — | Thời điểm cập nhật |
@@ -268,13 +270,13 @@ Hồ sơ **thẩm tra nhân sự** (vetting) cho người lớn làm việc vớ
 | `status` | `VARCHAR(20)` | NO | `'PENDING'` | idx `idx_vettings_status`, CHECK enum | Trạng thái vòng đời (enum bên dưới) |
 | `lltp_number` | `BYTEA` | YES | — | — | Số LLTP số 2 (lý lịch tư pháp) — **mã hóa AES-256-GCM** tại nghỉ (AesGcmAttributeConverter); layout `[IV(12) \| ciphertext \| auth_tag(16)]` |
 | `police_check_details` | `BYTEA` | YES | — | — | Kết quả kiểm tra/phỏng vấn (tự do) — **mã hóa AES-256-GCM**; giải mã giới hạn cho `SAFEGUARDING_OFFICER` |
-| `submitted_at` | `TIMESTAMP` | YES | — | — | Thời điểm nộp tài liệu (PENDING → SUBMITTED) |
-| `interviewed_at` | `TIMESTAMP` | YES | — | — | Thời điểm hoàn thành phỏng vấn (SUBMITTED → INTERVIEW_DONE) |
-| `decided_at` | `TIMESTAMP` | YES | — | — | Thời điểm ra quyết định APPROVE/REJECT |
-| `expires_at` | `TIMESTAMP` | YES | — | idx `idx_vettings_expires_at` | Ngày hết hạn của hồ sơ APPROVED (LLTP ≤2 năm cadence) |
-| `decided_by_user_id` | `BIGINT` | YES | — | — | Actor ra quyết định (⚠️ còn BIGINT, xem anomalies) |
-| `created_at` | `TIMESTAMP` | NO | `CURRENT_TIMESTAMP` | — | Thời điểm tạo (BaseEntity) |
-| `updated_at` | `TIMESTAMP` | YES | — | — | Thời điểm cập nhật |
+| `submitted_at` | `TIMESTAMPTZ` | YES | — | — | Thời điểm nộp tài liệu (PENDING → SUBMITTED). ✅ **V86** TIMESTAMP → TIMESTAMPTZ |
+| `interviewed_at` | `TIMESTAMPTZ` | YES | — | — | Thời điểm hoàn thành phỏng vấn (SUBMITTED → INTERVIEW_DONE). ✅ **V86** TIMESTAMPTZ |
+| `decided_at` | `TIMESTAMPTZ` | YES | — | — | Thời điểm ra quyết định APPROVE/REJECT. ✅ **V86** TIMESTAMPTZ |
+| `expires_at` | `TIMESTAMPTZ` | YES | — | idx `idx_vettings_expires_at` | Ngày hết hạn của hồ sơ APPROVED (LLTP ≤2 năm cadence). ✅ **V86** TIMESTAMPTZ |
+| `decided_by_user_id` | `BIGINT` | YES | — | — | Actor ra quyết định (⏸️ còn BIGINT, DEFERRED → GAP-877/886) |
+| `created_at` | `TIMESTAMPTZ` | NO | `CURRENT_TIMESTAMP` | — | Thời điểm tạo (BaseEntity). ✅ **V86** TIMESTAMPTZ |
+| `updated_at` | `TIMESTAMPTZ` | YES | — | — | Thời điểm cập nhật. ✅ **V86** TIMESTAMPTZ |
 | `created_by` | `UUID` | YES | — | — | Actor tạo (BIGINT ở V52 → UUID ở V73) |
 | `updated_by` | `UUID` | YES | — | — | Actor cập nhật (BIGINT ở V52 → UUID ở V73) |
 | `deleted` | `BOOLEAN` | NO | `FALSE` | idx `idx_vettings_deleted` | Soft-delete flag (BR-VETTING-005) |
@@ -300,7 +302,7 @@ State machine (BR-VETTING-001, thực thi ở tầng service `VettingServiceImpl
 
 ### 4. RLS + ghi chú
 
-- **Tenant-scoped**: có `instance_id` → RLS FORCED V58 + siết V59.
+- **Tenant-scoped**: có `instance_id` → RLS FORCED. ✅ **(V78)** — `vettings` (V52, tạo sau V58/V59) đã được sweep ENABLE + FORCE + policy `tenant_isolation` (admin-bypass + NULL force-fail) ở V78 rls_sweep. Đóng anomaly A5 "cần verify".
 - **Soft-delete**: `deleted`; index `idx_vettings_deleted`. Anti-delete trên REJECTED + retention 7 năm hoãn sang GAP-322c Phase 1C.
 - **Mã hóa tại nghỉ**: `lltp_number` + `police_check_details` lưu `BYTEA`, mã hóa AES-256-GCM qua `AesGcmAttributeConverter` (cùng converter với `incidents`). Truy vấn SQL thô chỉ trả ciphertext — không được query trực tiếp 2 cột này.
 - **Tuân thủ**: Nghị định 56/2017/NĐ-CP, Luật Trẻ em 2016 Đ.25, PDPL Nghị định 13/2023/NĐ-CP Art 16.
@@ -309,9 +311,9 @@ State machine (BR-VETTING-001, thực thi ở tầng service `VettingServiceImpl
 
 ## Ghi chú schema (anomalies)
 
-### A1. Lệch kiểu cột actor — V73 (GAP-795) chỉ quét `created_by`/`updated_by`
+### A1. Lệch kiểu cột actor — V73 (GAP-795) chỉ quét `created_by`/`updated_by` — ⏸️ Deferred → GAP-877/886
 
-V73 chuyển `created_by`/`updated_by` của **mọi bảng** sang `UUID` (vì `X-User-Id` = JWT `sub` claim là UUID, không còn id số). Nhưng đợt quét V73 **chỉ nhắm 2 cột audit chuẩn**, bỏ sót các cột actor riêng:
+V73 chuyển `created_by`/`updated_by` của **mọi bảng** sang `UUID` (vì `X-User-Id` = JWT `sub` claim là UUID, không còn id số). Nhưng đợt quét V73 **chỉ nhắm 2 cột audit chuẩn**, bỏ sót các cột actor riêng. ⏸️ **Deferred → GAP-877/886** (actor UUID sweep — không trong scope V79-V86):
 
 | Bảng | Cột actor sót | Kiểu hiện tại | Đáng lẽ | Trạng thái |
 |---|---|---|---|---|
@@ -343,7 +345,7 @@ Lý do khác biệt: `user_roles` cần audit "ai gán role cho ai, khi nào, gh
 
 Cột `created_by`/`updated_by` của `roles`/`permissions`/`user_roles` trải qua: `VARCHAR(100)` (V30) → `BIGINT` (V46 GAP-244, căn về BaseEntity Long) → `UUID` (V73 GAP-795, vì X-User-Id là UUID). Riêng `vettings` tạo ở V52 với audit là `BIGINT` ngay từ đầu (sau V46) → `UUID` (V73). `role_permissions` không bao giờ có cột audit (loại trừ ở V46).
 
-### A5. RLS coverage gap — `role_permissions` ngoài scope V58/V59
+### A5. RLS coverage — `role_permissions` ngoài scope (intentional) + `vettings` ✅ Resolved (V78)
 
 V58 (enable RLS) + V59 (hardening) áp policy `tenant_isolation` cho mọi bảng có `instance_id`. **`role_permissions` không có `instance_id` → không nằm trong scope V58**: bảng nối thuần (role↔permission) là cấu hình tĩnh global cho mọi tenant, không cần multi-tenant scoping.
 
@@ -353,22 +355,18 @@ V58 (enable RLS) + V59 (hardening) áp policy `tenant_isolation` cho mọi bản
 | `permissions` | V1+V46 | ✅ Có | ✅ Trong list | Tenant scoped |
 | `user_roles` | V30+V46 | ✅ Có | ✅ Trong list | Tenant scoped |
 | `role_permissions` | V1+V46 | ❌ Không | ❌ Không trong list | M2M thuần global, intentional |
-| `vettings` | V52 | ✅ Có | ⚠️ Cần verify (V52 sau V58?) | Tenant scoped |
+| `vettings` | V52 | ✅ Có | ✅ **V78** (rls_sweep) | Tenant scoped — đã verify + sweep |
 
-→ **`vettings`** (V52) cần verify — nếu V52 chạy sau V58 thì RLS chưa enable DB-level. Pattern cùng class baseline 04-finance.md A9 (`payment_records` V69 + `payment_idempotency_keys` V61 RLS coverage gap). `role_permissions` không phải gap — là intentional exclusion vì nature M2M global config.
+→ ✅ **`vettings`** (V52, tạo sau V58/V59) đã được **V78 rls_sweep** ENABLE + FORCE + policy `tenant_isolation` (admin-bypass + NULL force-fail). Anomaly "cần verify" đóng. Pattern cùng class baseline 04-finance.md A9 (`payment_records` cũng được V85 sweep). `role_permissions` không phải gap — là intentional exclusion vì nature M2M global config.
 
-→ Fix: V60+ migration re-run RLS enable cho `vettings` (idempotent — `ALTER TABLE vettings ENABLE ROW LEVEL SECURITY` + tạo policy `tenant_isolation USING (instance_id = current_setting('app.tenant_id')::uuid)`).
-
-### A6. TIMESTAMP vs TIMESTAMPTZ không nhất quán
+### A6. TIMESTAMP vs TIMESTAMPTZ — ✅ Resolved (GAP-883, V86)
 
 | Nhóm | Bảng | Kiểu timestamp |
 |---|---|---|
 | TIMESTAMPTZ (timezone-aware) | `roles`, `permissions`, `user_roles`, `role_permissions` | TIMESTAMP WITH TIME ZONE (V1+V46 align) |
-| TIMESTAMP (naive) | `vettings` | TIMESTAMP (V52) cho `created_at`/`updated_at`/`decided_at` |
+| TIMESTAMPTZ ✅ **V86** | `vettings` | `created_at`/`updated_at`/`submitted_at`/`interviewed_at`/`decided_at`/`expires_at` — V86 DO-block quét cột `_at`/`_time` toàn DB convert TIMESTAMP → TIMESTAMPTZ |
 
-→ 4 bảng RBAC core (V1) dùng TZ; `vettings` (V52) extension dùng naive. Risk khi compare `user_roles.assigned_at` (TZ) với `vettings.decided_at` (naive) trên server không UTC. Identical pattern baseline 04-finance.md A8 + cluster 01 A9 + cluster 02 A7 + cluster 03 F (cross-cluster recurrent pattern V52+ extension thiếu TZ).
-
-→ Document policy timezone trong `documents/02-architecture/database/README.md` (cluster overview).
+→ Trước Wave 14, `vettings` (V52) extension dùng naive TIMESTAMP (risk compare cross-cluster). **V86 đã đồng nhất** cả cluster sang timezone-aware. Pattern cùng class baseline 04-finance.md A8 (cũng resolved V86).
 
 ### A7. `version` thiếu DEFAULT 0 batched V62/V63
 

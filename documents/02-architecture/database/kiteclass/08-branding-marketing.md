@@ -7,7 +7,9 @@ last-reviewed: 2026-06-03
 
 # Cluster Branding / Marketing / Infra (KiteClass)
 
-> **TL;DR** — Cluster này gồm **8 bảng** tạo bởi migration V31..V77 cộng với 1 bảng shared cross-domain:
+> **Cập nhật Wave 14 (KC V78-V86)** — `leads` + `contact_messages` đã được tạo + bật RLS ở **V79** (GAP-890, đóng A1 drift nặng); `frontend_instances.tenant_id` rename → `tenant_slug` ở **V82** (GAP-891, đóng A6); `landing_pages` + `idempotency_keys` bật RLS DB-level ở **V78** rls_sweep (đóng A2); `landing_pages.version` set DEFAULT 0 ở **V80** (GAP-884, đóng A3); timestamp `_at`/`_time` chuyển `TIMESTAMPTZ` ở **V86** (đóng A5). `courses` legacy cleanup ở **V85** (GAP-909). Anomaly actor BIGINT (`rebrand_approvals.*_user_id`) vẫn ⏸️ DEFERRED → GAP-877/886.
+
+> **TL;DR** — Cluster này gồm **8 bảng** tạo bởi migration V31..V79 cộng với 1 bảng shared cross-domain:
 > - **Branding identity**: `branding` (V40 — display name / color / theme JSON), `branding_resources` (V32 — pipeline asset 3 category STATIC/TEMPLATE/FULL_AI), `branding_versions` (V43 — version snapshot + manual rollback).
 > - **Tenant provisioning**: `frontend_instances` (V31 — vòng đời provision FE per tenant: NOT_STARTED→INITIALIZING→GENERATING→DEPLOYED→REGENERATING→FAILED), `rebrand_approvals` (V34 — gate enterprise rebrand approval).
 > - **Marketing landing**: `landing_pages` (V75/V76/V77 — per-tenant landing page với hero/about/teachers/programs/pricing/testimonials/faqs/stats + template_type personal|organization).
@@ -380,31 +382,27 @@ erDiagram
 
 ## Ghi chú schema (anomalies)
 
-### A1 — Entity `Lead` + `ContactMessage` không có migration (drift NẶNG)
+### A1 — Entity `Lead` + `ContactMessage` không có migration (drift NẶNG) — ✅ Resolved (GAP-890, V79)
 
-Entity JPA `Lead` (`@Table("leads")`) và `ContactMessage` (`@Table("contact_messages")`) ở `kiteclass-core/module/marketing/entity/` khai báo đầy đủ cột (`instance_id`, `email`, `name`, `phone`, `source`, `status`, `course_interest_id`, `message`, `registration_date`, `last_contacted_at`, `converted_at`, plus `BaseEntity` audit) + `tenantFilter`. **Không có migration nào trong V1..V77 tạo `leads` hay `contact_messages` table** (verified bằng `grep -E "CREATE TABLE (leads|contact_messages)"` trả về rỗng).
+**✅ Resolved (GAP-890, V79):** `leads` + `contact_messages` đã được tạo + bật RLS `tenant_isolation` ở V79 (khớp bộ cột entity `Lead`/`ContactMessage` + `BaseEntity` audit). Lead capture form POST `/api/v1/.../leads` không còn 500.
 
-Hệ quả:
-- Chạy module marketing trên DB chỉ migration (không `ddl-auto=update`) → query qua `LeadRepository` / `ContactMessageRepository` sẽ lỗi `relation "leads" does not exist` / `relation "contact_messages" does not exist`.
-- Pattern tương tự GAP-809 đã sửa cho `landing_pages` (V75 walk fix) — `leads` + `contact_messages` chưa được sửa.
-- Tiềm năng impact: lead capture form ở `landing_pages` (FE submit POST `/api/v1/.../leads`) sẽ 500. Cần migration backfill (theo template V75).
+Bối cảnh gốc (đã đóng): Entity JPA `Lead` (`@Table("leads")`) và `ContactMessage` (`@Table("contact_messages")`) ở `kiteclass-core/module/marketing/entity/` khai báo đầy đủ cột (`instance_id`, `email`, `name`, `phone`, `source`, `status`, `course_interest_id`, `message`, `registration_date`, `last_contacted_at`, `converted_at`, plus `BaseEntity` audit) + `tenantFilter` — trước V79 KHÔNG có migration tạo bảng → query lỗi `relation does not exist`. V79 đóng drift theo pattern GAP-809 (V75 cho `landing_pages`).
 
-### A2 — RLS coverage gap (bảng tạo sau V58/V59)
+### A2 — RLS coverage gap (bảng tạo sau V58/V59) — ✅ Resolved (V78, GAP-885 KC-portion)
 
-V58 (enable RLS) + V59 (hardening admin-bypass + NULL force-fail) chạy 1 lần với danh sách bảng tĩnh. 6/8 bảng cluster này có RLS DB-level:
+**✅ Resolved (V78 rls_sweep):** `landing_pages` + `idempotency_keys` đã bật RLS DB-level (`landing_pages` dùng admin-bypass tương đương V59 cho public homepage render cross-tenant). KC RLS coverage cho cluster này hoàn tất.
 
-- ✅ Có RLS: `branding`, `branding_resources`, `branding_versions`, `frontend_instances`, `outbox_events`, `rebrand_approvals` (V58 + V59 enumerate).
-- ❌ **CHƯA** có RLS DB-level:
-  - `landing_pages` (V75, post-V58/V59) — có `instance_id` NOT NULL nhưng KHÔNG có policy `tenant_isolation`. Note đặc biệt: endpoint `GET /api/v1/tenants/{id}/landing` cố tình bypass tenant filter để render public homepage cross-tenant, nên enable RLS cần thiết kế admin-bypass tương đương V59 hoặc rewrite endpoint dùng connection admin-context.
-  - `idempotency_keys` (V66, post-V58/V59) — có `tenant_id` NOT NULL nhưng KHÔNG có policy. Cô lập tenant chỉ qua PK composite `(tenant_id, key, scope)` + code-level.
+Bối cảnh gốc (đã đóng): V58/V59 chạy 1 lần với danh sách bảng tĩnh → 6/8 bảng có RLS, `landing_pages` (V75) + `idempotency_keys` (V66) tạo sau nên thiếu policy. V78 DO-block re-run mở rộng danh sách đóng gap. (GAP-885 KH-side RLS extension vẫn ⏸️ Deferred — xem `kitehub/*` docs.)
 
-Cần migration RLS bổ sung (DO-block re-run với danh sách mở rộng) — giống pattern hồi cluster Finance (cũng có 2 bảng V61/V69 không RLS).
+### A3 — `version` thiếu DEFAULT 0 trên `landing_pages` — ✅ Resolved (GAP-884, V80)
 
-### A3 — `version` thiếu DEFAULT 0 trên `landing_pages`
+**✅ Resolved (GAP-884, V80):** `landing_pages.version` đã `SET DEFAULT 0` + backfill NULL→0. Raw INSERT không còn rủi ro `@Version` NPE.
 
-V75 tạo `landing_pages.version BIGINT` (nullable, không SET DEFAULT). Khác với 7 bảng còn lại trong cluster đều có `version BIGINT NOT NULL DEFAULT 0` ngay từ migration tạo (V31/V32/V33/V34/V40/V43/V66). V62/V63 (chuẩn hoá DEFAULT 0 cho 19 bảng cũ) KHÔNG chạy bảng V75. Raw INSERT vào `landing_pages` không bind `version` → NULL → JPA `@Version` NPE ở flush. Service hiện dùng `getOrCreateDefault` qua JPA (bind version=0 mặc định entity) nên rủi ro thực tế thấp; nhưng seed fixture / test raw SQL có thể vỡ. Cần migration `ALTER TABLE landing_pages ALTER COLUMN version SET DEFAULT 0` + backfill NULL→0.
+Bối cảnh gốc (đã đóng): V75 tạo `landing_pages.version BIGINT` nullable không DEFAULT (khác 7 bảng còn lại có `DEFAULT 0` từ migration tạo). V80 chuẩn hoá.
 
-### A4 — Actor column kiểu BIGINT bị V73 sweep BỎ SÓT
+### A4 — Actor column kiểu BIGINT bị V73 sweep BỎ SÓT — ⏸️ Deferred → GAP-877/886
+
+**⏸️ Deferred → GAP-877/886:** actor UUID full sweep là data-migration rủi ro cao (44 migration × 25 entity field × DTO lockstep) → defer sang dedicated wave incremental (compliance cluster trước). Wave 14 KHÔNG đụng.
 
 V73 (GAP-795) dynamic loop chỉ convert `created_by`/`updated_by` (+ vài cột actor cụ thể `classes.teacher_id`, `classes.rescheduled_by_user_id`, `parent_invitations.invited_by_user_id`). Các cột actor user-id còn lại trong cluster vẫn BIGINT (V73 KHÔNG sweep):
 
@@ -414,21 +412,22 @@ V73 (GAP-795) dynamic loop chỉ convert `created_by`/`updated_by` (+ vài cột
 
 Vì X-User-Id JWT bây giờ là UUID (per V73 RCA), 2 cột `*_user_id` này KHÔNG nhận được user-id thật (parse fail / cast lỗi). Cùng lớp drift với bug V73 đã fix nhưng chưa quét hết.
 
-### A5 — TIMESTAMP vs TIMESTAMPTZ không nhất quán
+### A5 — TIMESTAMP vs TIMESTAMPTZ không nhất quán — ✅ Resolved (GAP-878, V86)
 
-- **TIMESTAMPTZ** (timezone-aware): `landing_pages` (created_at/updated_at — V75 mới), `idempotency_keys` (created_at — V66).
-- **TIMESTAMP** (timezone-naive): `branding` (V40), `branding_resources` (V32), `branding_versions` (V43), `rebrand_approvals` (V34), `frontend_instances` (V31), `outbox_events` (V33). Tất cả bảng cũ pre-V69 era.
+**✅ Resolved (GAP-878, V86):** V86 convert mọi `timestamp without time zone` → TIMESTAMPTZ (`USING ... AT TIME ZONE 'UTC'`) cho cluster này (`branding`, `branding_resources`, `branding_versions`, `rebrand_approvals`, `frontend_instances`, `outbox_events`). KC entity dùng `Instant` → khớp TIMESTAMPTZ. Cluster giờ nhất quán timezone-aware.
 
-⇒ Trộn 2 kiểu timestamp trong cùng cluster — risky khi compare audit trail qua múi giờ (BE chạy UTC, DB store local without TZ). Cluster Finance cũng có pattern này (đã ghi nhận ở `04-finance.md` §A8).
+Bối cảnh gốc (đã đóng): trộn TIMESTAMPTZ (V75/V66 mới) với TIMESTAMP naive (bảng pre-V69) → risky compare audit trail qua múi giờ. V86 harmonize.
 
-### A6 — `frontend_instances` có cả `instance_id UUID` lẫn `tenant_id VARCHAR(100)`
+### A6 — `frontend_instances` có cả `instance_id UUID` lẫn `tenant_id VARCHAR(100)` — ✅ Resolved (GAP-891, V82)
+
+**✅ Resolved (GAP-891, V82):** `tenant_id` → rename `tenant_slug` (entity `FrontendInstance.tenantSlug` + repository `findByTenantSlugAndDeletedFalse` + callers swept). Hết confusion 2 cột cùng "tenant" prefix.
 
 V31 tạo 2 cột định danh tenant khác kiểu:
 
 - `instance_id UUID NOT NULL` — primary tenant identifier (khớp BaseEntity convention + RLS policy).
-- `tenant_id VARCHAR(100) NOT NULL` — string slug/human-readable ID (cross-service ref tới KiteHub `instances.slug` hoặc deploy alias).
+- `tenant_slug VARCHAR(100) NOT NULL` (V82, trước là `tenant_id`) — string slug/human-readable ID (cross-service ref tới KiteHub `instances.slug` hoặc deploy alias).
 
-Confusion: 2 cột cùng "tenant" prefix nhưng đại diện 2 thứ khác (UUID vs slug). Code dùng cẩn thận: RLS filter `instance_id`; FE deploy lookup `tenant_id`. Document hoá cần thiết — comment migration không nói rõ. Đề xuất rename `tenant_id` → `tenant_slug` ở migration tương lai để giảm nhầm lẫn.
+Code: RLS filter `instance_id`; FE deploy lookup `tenant_slug`.
 
 ### A7 — `branding` table provision cross-service (KiteHub vs kiteclass-core)
 

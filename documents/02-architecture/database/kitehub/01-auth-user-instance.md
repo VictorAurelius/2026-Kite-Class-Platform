@@ -128,7 +128,7 @@ erDiagram
 
 ## `users`
 
-**Mục đích.** Account chính của KiteHub control-plane: OWNER (chủ trung tâm KiteClass — tạo instance riêng) và PLATFORM_ADMIN (admin KiteHub, vận hành). Bảng nằm trong DB `kitehub` (KHÔNG phải DB của từng tenant KiteClass — nhân viên/giáo viên/học sinh nằm trong DB KiteClass). Tạo `V9`, bổ sung dần qua `V10` (email verification), `V35` (account lockout), `V37` (TOTP 2FA), `V47` (password reset). Map từ entity `User` (`kitehub-platform`).
+**Mục đích.** Account chính của KiteHub control-plane: OWNER (chủ trung tâm KiteClass — tạo instance riêng) và PLATFORM_ADMIN (admin KiteHub, vận hành). Bảng nằm trong DB `kitehub` (KHÔNG phải DB của từng tenant KiteClass — nhân viên/giáo viên/học sinh nằm trong DB KiteClass). Tạo `V9`, bổ sung dần qua `V10` (email verification), `V35` (account lockout), `V37` (TOTP 2FA), `V46` (CHECK role + RBAC STAFF), `V47` (password reset), `V61` (✅ GAP-893: seed admin `ADMIN`→`PLATFORM_ADMIN` data migration + TOTP sync + CHECK reaffirm). Map từ entity `User` (`kitehub-platform`).
 
 | Cột | Kiểu | Null | Default | Khóa/Index | Ý nghĩa |
 |---|---|---|---|---|---|
@@ -137,7 +137,7 @@ erDiagram
 | `name` | VARCHAR(100) | NO | — | — | Họ tên hiển thị |
 | `phone` | VARCHAR(20) | YES | — | — | SĐT (VN format) |
 | `password_hash` | VARCHAR(255) | NO | — | — | BCrypt hash (cost 12); seed admin V9 dùng `Admin@KiteHub123` |
-| `role` | VARCHAR(20) | NO | `'OWNER'` | `idx_users_role` | Vai trò. **KHÔNG có CHECK constraint** trong DB. Giá trị thực dùng: `OWNER`, `PLATFORM_ADMIN`, `STAFF`, `ADMIN` (seed cũ — xem [§ A2](#a2--role-không-có-check--enum-mismatch)) |
+| `role` | VARCHAR(20) | NO | `'OWNER'` | `idx_users_role`; ✅ **CHECK** `ck_users_role_v46` | Vai trò. ✅ Resolved (GAP-893, V61) — CHECK `IN ('OWNER','STAFF','PLATFORM_ADMIN','ADMIN')` thực ra đã tồn tại từ V46 (GAP-893 "no CHECK" claim STALE); V61 confirm + làm DATA migration seed `ADMIN`→`PLATFORM_ADMIN` + TOTP sync. Giá trị thực dùng: `OWNER`, `PLATFORM_ADMIN`, `STAFF`, `ADMIN` — xem [§ A2](#a2--role--resolved-check-tồn-tại-từ-v46--data-migration-v61) |
 | `email_verified` | BOOLEAN | NO | `FALSE` | — | Đã verify email chưa (V10). DB chỉ provision instance khi `TRUE` |
 | `verification_token` | VARCHAR(255) | YES | — | partial `idx_users_verification_token WHERE token IS NOT NULL` | Token email verify; single-use, clear sau confirm |
 | `token_expires_at` | TIMESTAMP | YES | — | — | TTL verification_token. ⚠️ `TIMESTAMP` không TZ |
@@ -149,12 +149,12 @@ erDiagram
 | `lockout_count` | INTEGER | NO | `0` | — | Đếm số lần đạt lockout threshold — exponential backoff: 1st 15min / 2nd 1h / 3rd+ 24h |
 | `totp_secret_encrypted` | VARCHAR(256) | YES | — | — | Base32 TOTP secret AES-encrypted (V37, GAP-516). Key: `kitehub.auth.totp.encryption-key` config (Phase 1.5+ KMS) |
 | `totp_enrolled_at` | TIMESTAMPTZ | YES | — | — | Thời điểm hoàn thành enroll-confirm |
-| `totp_required` | BOOLEAN | NO | `FALSE` | partial `idx_users_totp_pending WHERE totp_required=TRUE AND totp_enrolled_at IS NULL` | Bắt buộc enroll 2FA trước khi cấp access token. V37 seed `TRUE` cho mọi `PLATFORM_ADMIN` |
+| `totp_required` | BOOLEAN | NO | `FALSE` | partial `idx_users_totp_pending WHERE totp_required=TRUE AND totp_enrolled_at IS NULL` | Bắt buộc enroll 2FA trước khi cấp access token. V37 seed `TRUE` cho `WHERE role='PLATFORM_ADMIN'` → MISS seed admin (role cũ `'ADMIN'`). ✅ Resolved (GAP-893, V61) — V61 migrate seed `ADMIN`→`PLATFORM_ADMIN` rồi `UPDATE totp_required=TRUE WHERE role='PLATFORM_ADMIN' AND totp_required=FALSE` (idempotent) → seed admin giờ buộc enroll 2FA. |
 | `recovery_codes_hashes` | TEXT | YES | — | — | ⚠️ Cột reserved deprecated; recovery codes thực sự lưu ở bảng `recovery_codes` riêng. V37 ghi rõ "kept nullable; not consumed" |
 | `created_at` | TIMESTAMP | NO | `NOW()` | — | Audit — tạo. ⚠️ `TIMESTAMP` không TZ |
 | `updated_at` | TIMESTAMP | NO | `NOW()` | — | Audit — cập nhật. ⚠️ `TIMESTAMP` không TZ |
 
-**Constraints**: `users_pkey (id)`, `users_email_key UNIQUE(email)`. **KHÔNG có CHECK** trên `role` (xem [§ A2](#a2--role-không-có-check--enum-mismatch)).
+**Constraints**: `users_pkey (id)`, `users_email_key UNIQUE(email)`, ✅ `ck_users_role_v46 CHECK(role IN ('OWNER','STAFF','PLATFORM_ADMIN','ADMIN'))` (V46; V61 reaffirm + idempotent guard). Xem [§ A2](#a2--role--resolved-check-tồn-tại-từ-v46--data-migration-v61).
 
 **Quan hệ FK**
 - Out: không (root entity)
@@ -163,7 +163,7 @@ erDiagram
 **RLS + ghi chú**
 - KHÔNG tenant-scoped (đây là control-plane account table — global). V34 + V50 KHÔNG enable RLS trên `users` (không có `instance_id`).
 - Entity `User` KHÔNG extends `BaseEntity` (do `kitehub-platform` `BaseEntity` định nghĩa cho instance/JPA layer khác — User tự khai `@PrePersist` thiết lập `id`/`createdAt`/`updatedAt`).
-- Seed V9: `admin@kitehub.com / Admin@KiteHub123` UUID `00000000-0000-0000-0000-000000000099`, role `ADMIN` (giá trị cũ — code hiện dùng `PLATFORM_ADMIN`, gây drift role tab).
+- Seed V9: `admin@kitehub.com / Admin@KiteHub123` UUID `00000000-0000-0000-0000-000000000099`, role `ADMIN` (giá trị cũ). ✅ Resolved (GAP-893, V61, PARTIAL) — V61 migrate row seed này `ADMIN`→`PLATFORM_ADMIN` (scope strict tới UUID `...0099` để tránh đụng V46/Wave-81 OWNER-canonicalization cho tenant-owner rows) + sync `totp_required=TRUE`. ⏸️ **PARTIAL — tenant-owner rows DEFERRED Wave-81**: V61 KHÔNG touch các row `'ADMIN'`/`'PLATFORM_ADMIN'` khác (giữ nguyên cho quyết định V46/Wave-81 canonicalize sang `OWNER`).
 
 ---
 
@@ -259,7 +259,7 @@ erDiagram
 | `custom_domain` | VARCHAR(255) | YES | — | partial `idx_instances_custom_domain WHERE custom_domain IS NOT NULL AND deleted=false` | Custom domain (PREMIUM/ENTERPRISE only) |
 | `organization_name` | VARCHAR(200) | NO | — | — | Tên hiển thị (giữ diacritic + smart quotes nguyên gốc) |
 | `owner_id` | UUID | NO | — | `idx_instances_owner` | CENTER_OWNER user UUID. ⚠️ **NO FK** tới `users(id)` (loose coupling cross-product) |
-| `tier` | VARCHAR(20) | NO | — | `idx_instances_tier`; **NO CHECK** | Enum `PricingTier`: `FREE / BASIC / PREMIUM / ENTERPRISE` (xem [§ A2](#a2--role-không-có-check--enum-mismatch) cho enum-vs-CHECK pattern) |
+| `tier` | VARCHAR(20) | NO | — | `idx_instances_tier`; **NO CHECK** | Enum `PricingTier`: `FREE / BASIC / PREMIUM / ENTERPRISE` (xem [§ A2](#a2--role--resolved-check-tồn-tại-từ-v46--data-migration-v61) cho enum-vs-CHECK pattern) |
 | `status` | VARCHAR(20) | NO | — | `idx_instances_status`, `idx_instances_status_updated_at WHERE status='DELETED'` | Enum `InstanceStatus`: `PENDING / TRIAL / ACTIVE / SUSPENDED / DELETED / PURGED`. **NO CHECK** |
 | `database_url` | VARCHAR(500) | NO | — | — | DB connection URL của tenant (mỗi tenant 1 DB riêng) |
 | `database_username` | VARCHAR(100) | NO | — | — | DB user của tenant |
@@ -448,9 +448,15 @@ erDiagram
 
 V40 ship column `slug` + class `TenantSlugNormalizer` ở Wave 77 Bucket D NHƯNG entity `Instance.slug` field + `InstanceRepository.existsBySlugStartingWith()` + `InstanceService.createInstance()` wiring **không có** cho tới Wave local-doable-9 Bucket B (~2 tuần sau). Audit suite + Mockito tests PASS dù wiring thiếu. Surface qua Wave onboarding-polish-2 pre-flight state-check 2026-06-01 → mở GAP-823 META P0 → đẻ rule `instances-table-triad-discipline.md v1.0.0`. Now slug field đã có trong `Instance.java` (line 62-64) + Javadoc tham chiếu GAP-823 + `since Wave local-doable-9 Bucket B`. Hậu quả lâu dài: **rule áp dụng prospectively** — mọi `ALTER TABLE instances` từ Wave local-doable-8 trở đi PHẢI ship triad atomic (entity field + repository method + service wiring + helper-caller-existence) hoặc trailer `INSTANCES_TRIAD_PARTIAL` với follow-up gap.
 
-### A2 — `role` không có CHECK + enum mismatch
+### A2 — `role` ✅ Resolved (CHECK tồn tại từ V46 + data migration V61)
 
-`users.role VARCHAR(20) NOT NULL DEFAULT 'OWNER'` không có CHECK constraint trong DB. Code thực dùng đồng thời nhiều giá trị: `OWNER` (default V9, KiteHub center owner), `PLATFORM_ADMIN` (admin KiteHub, set TOTP required ở V37), `STAFF` (V46 RBAC), `ADMIN` (seed cũ V9 — hard-code `'ADMIN'` cho admin@kitehub.com). Drift: seed admin V9 dùng `ADMIN` legacy, V37 update set `WHERE role = 'PLATFORM_ADMIN'` (giá trị mới) → seed admin gốc **không** được V37 set `totp_required=TRUE` nếu chưa được app code migrate. Cùng pattern với:
+✅ **Resolved (GAP-893, V61 — Wave 14 C-KH).** `users.role VARCHAR(20) NOT NULL DEFAULT 'OWNER'`. **GAP-893 claim "no CHECK constraint" là STALE** — V46 đã tạo `ck_users_role_v46 CHECK(role IN ('OWNER','STAFF','PLATFORM_ADMIN','ADMIN'))` (backward-compat window). V61 làm phần GAP-893 thực sự còn thiếu: (a) **data migration** seed admin `ADMIN`→`PLATFORM_ADMIN` (scope strict UUID `...0099`); (b) **TOTP sync** `UPDATE totp_required=TRUE WHERE role='PLATFORM_ADMIN' AND totp_required=FALSE` (fix V37 miss); (c) idempotent guard reaffirm CHECK.
+
+**Drift cũ (đã fix):** seed admin V9 dùng `ADMIN` legacy, V37 backfill TOTP `WHERE role='PLATFORM_ADMIN'` → seed admin gốc bị MISS `totp_required=TRUE`. V61 đóng gap này.
+
+⏸️ **PARTIAL — tenant-owner rows DEFERRED Wave-81:** V61 chỉ migrate seed platform-admin row (`...0099`), KHÔNG touch row `'ADMIN'`/`'PLATFORM_ADMIN'` cho tenant-owner — quyết định canonicalize sang `OWNER` thuộc V46/Wave-81 cleanup. ANOMALY/CONFLICT: V46 roadmap muốn legacy alias → `OWNER`; GAP-893 muốn `ADMIN`→`PLATFORM_ADMIN`. V61 resolve bằng cách scope chỉ seed admin (genuinely platform-admin), để nguyên tenant-owner rows.
+
+Pattern enum-vs-CHECK còn lại (chưa fix — ngoài GAP-893 scope):
 - `instances.tier / status / domain_status` — entity dùng `@Enumerated(EnumType.STRING)` nhưng DDL không có CHECK. Persist giá trị enum mới (vd thêm `CERT_PROVISIONING` v1.1) không bị reject ở DB, nhưng nếu rollback code mà row đã có giá trị mới → query enum parse fail.
 - `oauth_attempts.provider / status` cùng pattern.
 - `migration_outbox.event_type` cùng pattern.
@@ -580,6 +586,7 @@ Entity comment (line ~23-25): "Persisted via JPA against table `staff_invitation
 - `V50__rls_admin_bypass_null_force_fail_audit_logs.sql`
 - `V51__create_oauth_attempts.sql`
 - `V52__login_audit_ip_varchar.sql`
+- `V61__users_role_check.sql` (✅ GAP-893: seed admin `ADMIN`→`PLATFORM_ADMIN` data migration + TOTP sync fix V37 miss + `ck_users_role_v46` idempotent reaffirm. PARTIAL — tenant-owner rows deferred Wave-81. KHÔNG touch money/timestamp.)
 
 **Entities:**
 - `kitehub-platform/.../domain/entity/Instance.java`

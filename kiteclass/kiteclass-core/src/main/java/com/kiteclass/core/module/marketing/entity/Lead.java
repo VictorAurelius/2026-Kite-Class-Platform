@@ -20,7 +20,6 @@ import lombok.Setter;
 import org.hibernate.annotations.Filter;
 
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * Lead entity representing potential students.
@@ -34,9 +33,6 @@ import java.util.UUID;
 @Setter
 @Filter(name = "tenantFilter", condition = "instance_id = :tenantId AND deleted = false")
 public class Lead extends BaseEntity {
-
-    @Column(name = "instance_id", nullable = false)
-    private UUID instanceId;
 
     // Lead Information
     @Column(name = "email", nullable = false)

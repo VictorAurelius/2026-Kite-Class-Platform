@@ -7,6 +7,8 @@ last-reviewed: 2026-06-03
 
 # Cluster Compliance / Audit / Moderation (KiteClass)
 
+> **Cập nhật Wave 14 (KC V83 + V86)** — `audit_log` đã được DB-level append-only enforcement ở **V83** (RESTRICTIVE RLS block UPDATE/DELETE + REVOKE UPDATE/DELETE/TRUNCATE trên app role, GAP-889 resolved — đóng A2). Mọi cột TIMESTAMP `_at`/`_time` toàn cluster chuyển `TIMESTAMPTZ` ở **V86** (đóng A5). Anomaly còn lại ⏸️ DEFERRED: actor BIGINT sweep (A4 → GAP-877/886), incidents KMS (→ GAP-905), audit-trail/FK architecture (→ GAP-906/907).
+
 > **TL;DR** — Cluster này gồm **11 bảng** chia thành 4 nhóm:
 >
 > 1. **Audit trails** (5 bảng) — `audit_log` (V35, generic security-action trail), `parent_read_audit_log` (V53, mỗi facet read của portal phụ huynh), `child_protection_audit_log` (V54, hash-chain append-only PDPL Art 16 + Luật Trẻ em 2016 Đ.51), `admin_audit_logs` (V60, immutable platform-admin RLS-bypass audit per PDPL Art 11), và `quality_reports` (V39, AI Branding quality-gate snapshot).
@@ -15,11 +17,11 @@ last-reviewed: 2026-06-03
 > 4. **Child-protection ticketing + complaint** (3 bảng) — `incidents` (V49, BR-CHILD-PROTECT, AES-256-GCM mã hóa description/evidence), `parent_complaint_queue` (V56 v1 write surface, Đ.83 K2 Luật Giáo dục 2019), bổ sung `child_protection_audit_log` (kép vai trò với nhóm 1).
 >
 > - **Compliance backbone**: PDPL Art 11 (admin trail) + Art 16 (children PII) + Luật Trẻ em 2016 Đ.21/Đ.51 (privacy + mandatory reporting ≤24h) + DMCA §512 (safe harbor) + GDPR Art 17 (erasure).
-> - **Immutability cấp DB**: `admin_audit_logs` dùng RLS UPDATE/DELETE block (V60); `child_protection_audit_log` dùng REVOKE DELETE qua DO block (V54).
+> - **Immutability cấp DB**: `admin_audit_logs` dùng RLS UPDATE/DELETE block (V60); `child_protection_audit_log` dùng REVOKE DELETE qua DO block (V54); ✅ **`audit_log` nay cũng append-only DB-level ở V83** (RESTRICTIVE RLS block UPDATE/DELETE + REVOKE) — parity 3 thế hệ audit.
 > - **Crypto**: `incidents.description` / `evidence_paths` BYTEA + AES-256-GCM (per-field random IV 12B, auth tag 16B) qua `AesGcmAttributeConverter`.
 > - **Hash-chain**: `child_protection_audit_log.content_hash = SHA-256(prev_hash || canonical_payload)` — tamper-evident.
 > - **RLS** (V58/V59 hardened): bật trên **9/11 bảng** trong cluster (`audit_log`, `moderation_queue`, `dmca_takedown_requests`, `deletion_requests`, `quality_reports`, `incidents`, `parent_read_audit_log`, `child_protection_audit_log`, `parent_complaint_queue`). `admin_audit_logs` (V60) tự khai RLS riêng với UPDATE/DELETE block. `parent_complaint_queue` tạo ở V56 (sau V58/V59) → policy chỉ apply nếu V58/V59 re-runnable; verify per cluster anomalies.
-> - **V73 UUID sweep gap**: actor user-id columns (`audit_log.actor_user_id`, `moderation_queue.assigned_reviewer_id`, `dmca_takedown_requests.reviewer_user_id`, `incidents.reporter_user_id` / `assigned_officer_user_id`, `child_protection_audit_log.actor_id`, `deletion_requests.user_id`) đều **vẫn BIGINT** — V73 chỉ sweep `created_by`/`updated_by`. JWT `sub` UUID → BIGINT parse fail (xem A6 anomalies).
+> - **V73 UUID sweep gap (⏸️ Deferred → GAP-877/886)**: actor user-id columns (`audit_log.actor_user_id`, `moderation_queue.assigned_reviewer_id`, `dmca_takedown_requests.reviewer_user_id`, `incidents.reporter_user_id` / `assigned_officer_user_id`, `child_protection_audit_log.actor_id`, `deletion_requests.user_id`) đều **vẫn BIGINT** — V73 chỉ sweep `created_by`/`updated_by`. Không trong scope V79-V86 (xem A4 anomalies).
 
 ---
 
@@ -146,16 +148,16 @@ erDiagram
 | `action_type` | VARCHAR(100) | NO | — | `idx_audit_log_action_type` | Loại hành động (vd `MODERATION_DECIDED`, `DMCA_VALID`, `DELETION_REQUESTED`) |
 | `aggregate_type` | VARCHAR(100) | NO | — | `idx_audit_log_aggregate (aggregate_type, aggregate_id)` | Loại entity bị tác động (string discriminator, vd `ModerationQueue`, `DmcaTakedownRequest`) |
 | `aggregate_id` | VARCHAR(100) | NO | — | `idx_audit_log_aggregate` | ID entity (string vì cross-type — có thể BIGINT serialized) |
-| `actor_user_id` | BIGINT | YES | — | `idx_audit_log_actor` | Actor user-id. ⚠️ **V73 KHÔNG convert** — vẫn BIGINT (xem A6 anomalies). Entity `@Retention(pseudonymizeFields = {"actor_user_id"})` markup cho retention sweeper |
+| `actor_user_id` | BIGINT | YES | — | `idx_audit_log_actor` | Actor user-id. ⏸️ **V73 KHÔNG convert** — vẫn BIGINT (DEFERRED → GAP-877/886; xem A4). Entity `@Retention(pseudonymizeFields = {"actor_user_id"})` markup cho retention sweeper |
 | `actor_role` | VARCHAR(50) | YES | — | — | Role tại thời điểm action (vd `PLATFORM_ADMIN`, `TEACHER`) |
 | `payload` | JSONB | YES | — | — | Request context (input + output diff + reason). Entity dùng `@JdbcTypeCode(SqlTypes.JSON)` (GAP-220 fix) để bind String → JSONB thay vì VARCHAR |
 | `reason` | VARCHAR(500) | YES | — | — | Free-text reason (vd "auto-approved score > threshold") |
-| `created_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit — tạo. ⚠️ `TIMESTAMP` không TZ |
-| `updated_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit — cập nhật. ⚠️ `TIMESTAMP` không TZ. Trong thực tế **không bao giờ flip** (append-only semantic — xem A2) |
+| `created_at` | TIMESTAMPTZ | NO | `CURRENT_TIMESTAMP` | — | Audit — tạo. ✅ **V86** TIMESTAMP → TIMESTAMPTZ |
+| `updated_at` | TIMESTAMPTZ | NO | `CURRENT_TIMESTAMP` | — | Audit — cập nhật. ✅ **V86** TIMESTAMPTZ. ✅ **V83** — DB-level chặn UPDATE (RESTRICTIVE policy) nên cột này không thể flip |
 | `created_by` | VARCHAR(100) → **UUID** | YES | — | — | Actor tạo. V35 = VARCHAR(100); **V73 convert → UUID** qua DO block dynamic sweep |
 | `updated_by` | VARCHAR(100) → **UUID** | YES | — | — | Actor cập nhật. V35 = VARCHAR(100); **V73 convert → UUID** |
 | `version` | BIGINT | NO | `0` | — | Optimistic lock. V35 đã set DEFAULT 0 ngay từ đầu — không cần V62/V63 |
-| `deleted` | BOOLEAN | NO | `FALSE` | — | Soft-delete (BaseEntity inheritance). Trong thực tế **không bao giờ flip TRUE** (append-only) |
+| `deleted` | BOOLEAN | NO | `FALSE` | — | Soft-delete (BaseEntity inheritance). ✅ **V83** — DB-level chặn UPDATE/DELETE (RESTRICTIVE RLS + REVOKE) nên không thể flip TRUE / xóa row (append-only DB-enforced) |
 
 **Constraints**: chỉ PK + indexes (action_type, aggregate composite, actor, instance, created_at DESC). Không CHECK constraint trên `action_type`/`aggregate_type` — caller tự kỷ luật string vocabulary.
 
@@ -165,7 +167,7 @@ erDiagram
 
 **RLS + ghi chú**
 - Tenant-scoped ✅. RLS bật ở `V58` + hardened `V59` (admin-bypass `app.is_platform_admin` + NULL force-fail).
-- Append-only semantic enforced **chỉ ở code-level** (`AuditLogWriter` không expose update/delete); cột `deleted`/`updated_at` tồn tại do BaseEntity inheritance nhưng không dùng (xem A2).
+- Append-only nay enforced **cả ở DB-level** ✅ **(V83, GAP-889)**: RESTRICTIVE policy `audit_log_no_update` (FOR UPDATE USING/WITH CHECK false) + `audit_log_no_delete` (FOR DELETE USING false) AND'd với policy tenant_isolation permissive → không row nào updatable/deletable; thêm REVOKE UPDATE/DELETE/TRUNCATE trên app role (DO block, V54 pattern). Trước Wave 14 chỉ enforce code-level (`AuditLogWriter`) — nay parity với `admin_audit_logs` (V60) + `child_protection_audit_log` (V54). Đóng A2.
 - Map từ entity `AuditLog extends BaseEntity`, repository `AuditLogRepository`. Có annotation `@Retention(value = RetentionBucket.RETAIN_WITH_PSEUDO, pseudonymizeFields = {"actor_user_id"})` — retention sweeper sẽ pseudonymize actor sau retention window (ADR-013).
 
 ---
@@ -184,10 +186,10 @@ erDiagram
 | `score` | DOUBLE PRECISION | NO | `0.0` | — | Stage 1 auto-classifier confidence score (0.0-1.0 thường lệ) |
 | `flagged_keywords` | JSONB | YES | — | — | Keywords/categories Stage 1 phát hiện (vd `{"profanity": ["..."], "violence": [...]}`) |
 | `reason` | VARCHAR(500) | YES | — | — | Reason chi tiết (auto: keyword list; human: free-form note) |
-| `assigned_reviewer_id` | BIGINT | YES | — | — | User-id reviewer được assign (Stage X). ⚠️ **V73 KHÔNG convert** — BIGINT (xem A6) |
-| `decided_at` | TIMESTAMP | YES | — | — | Thời điểm chốt decision (PENDING → APPROVED/REJECTED). ⚠️ TIMESTAMP không TZ |
-| `created_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit — tạo. ⚠️ TIMESTAMP không TZ |
-| `updated_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit — cập nhật |
+| `assigned_reviewer_id` | BIGINT | YES | — | — | User-id reviewer được assign (Stage X). ⏸️ **V73 KHÔNG convert** — BIGINT (DEFERRED → GAP-877/886; xem A4) |
+| `decided_at` | TIMESTAMPTZ | YES | — | — | Thời điểm chốt decision (PENDING → APPROVED/REJECTED). ✅ V86 → TIMESTAMPTZ |
+| `created_at` | TIMESTAMPTZ | NO | `CURRENT_TIMESTAMP` | — | Audit — tạo. ✅ V86 → TIMESTAMPTZ |
+| `updated_at` | TIMESTAMPTZ | NO | `CURRENT_TIMESTAMP` | — | Audit — cập nhật |
 | `created_by` | VARCHAR(100) → **UUID** | YES | — | — | V36 = VARCHAR(100); **V73 convert → UUID** |
 | `updated_by` | VARCHAR(100) → **UUID** | YES | — | — | V36 = VARCHAR(100); **V73 convert → UUID** |
 | `version` | BIGINT | NO | `0` | — | Optimistic lock. V36 set DEFAULT 0 ngay từ đầu |
@@ -219,13 +221,13 @@ erDiagram
 | `copyrighted_work_description` | VARCHAR(4000) | NO | — | — | Mô tả tác phẩm gốc bị xâm phạm (§512(c)(3)(A)(ii)) |
 | `status` | VARCHAR(16) | NO | `'PENDING'` | `idx_dmca_takedown_status`; CHECK | Enum `DmcaStatus`: `PENDING, REVIEWING, VALID, INVALID, EXECUTED, CONTESTED` |
 | `counter_notice_email` | VARCHAR(255) | YES | — | — | Email kẻ phản đối (counter-notice §512(g)) |
-| `reviewer_user_id` | BIGINT | YES | — | — | User-id staff review notice. ⚠️ **V73 KHÔNG convert** — BIGINT (xem A6) |
-| `reviewed_at` | TIMESTAMP | YES | — | — | Thời điểm staff close review. ⚠️ TIMESTAMP không TZ |
-| `executed_at` | TIMESTAMP | YES | — | — | Thời điểm thực hiện takedown (chuyển content offline) |
-| `contested_at` | TIMESTAMP | YES | — | — | Thời điểm nhận counter-notice |
+| `reviewer_user_id` | BIGINT | YES | — | — | User-id staff review notice. ⏸️ **V73 KHÔNG convert** — BIGINT (DEFERRED → GAP-877/886; xem A4) |
+| `reviewed_at` | TIMESTAMPTZ | YES | — | — | Thời điểm staff close review. ✅ V86 → TIMESTAMPTZ |
+| `executed_at` | TIMESTAMPTZ | YES | — | — | Thời điểm thực hiện takedown (chuyển content offline) |
+| `contested_at` | TIMESTAMPTZ | YES | — | — | Thời điểm nhận counter-notice |
 | `rejection_reason` | VARCHAR(500) | YES | — | — | Lý do reject (vd "không đủ statutory elements") |
-| `created_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit — tạo. ⚠️ TIMESTAMP không TZ |
-| `updated_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit — cập nhật |
+| `created_at` | TIMESTAMPTZ | NO | `CURRENT_TIMESTAMP` | — | Audit — tạo. ✅ V86 → TIMESTAMPTZ |
+| `updated_at` | TIMESTAMPTZ | NO | `CURRENT_TIMESTAMP` | — | Audit — cập nhật |
 | `created_by` | VARCHAR(100) → **UUID** | YES | — | — | V37 = VARCHAR(100); **V73 convert → UUID** |
 | `updated_by` | VARCHAR(100) → **UUID** | YES | — | — | V37 = VARCHAR(100); **V73 convert → UUID** |
 | `version` | BIGINT | NO | `0` | — | Optimistic lock. V37 set DEFAULT 0 ngay từ đầu |
@@ -251,19 +253,19 @@ erDiagram
 |---|---|---|---|---|---|
 | `id` | BIGSERIAL | NO | seq | PK | Khóa chính |
 | `instance_id` | UUID | NO | — | — | Tenant ID (tenant đang xử lý request) |
-| `user_id` | BIGINT | NO | — | `idx_deletion_request_user` | User data-subject xin xóa. ⚠️ **V73 KHÔNG convert** — BIGINT (xem A6). Là **data-subject identity**, không phải actor — đặc biệt nhạy cảm |
+| `user_id` | BIGINT | NO | — | `idx_deletion_request_user` | User data-subject xin xóa. ⏸️ **V73 KHÔNG convert** — BIGINT (DEFERRED → GAP-877/886; xem A4). Là **data-subject identity**, không phải actor — đặc biệt nhạy cảm |
 | `tenant_id` | UUID | NO | — | `idx_deletion_request_tenant` | Tenant của data-subject (có thể khác `instance_id` của tenant đang xử lý — vd cross-tenant deletion) |
 | `status` | VARCHAR(16) | NO | — *(không default)* | `idx_deletion_request_status`; CHECK | Enum: `PENDING, GRACE_PERIOD, PROCESSING, COMPLETED, CANCELLED` |
-| `requested_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Thời điểm user submit request. ⚠️ TIMESTAMP không TZ |
-| `grace_starts_at` | TIMESTAMP | YES | — | — | Khi PENDING → GRACE_PERIOD |
-| `grace_ends_at` | TIMESTAMP | YES | — | `idx_deletion_request_grace_ends` | Hết grace window — sweeper sẽ flip → PROCESSING. Index riêng vì cron job query theo cột này |
-| `processing_started_at` | TIMESTAMP | YES | — | — | Khi purge job bắt đầu |
-| `completed_at` | TIMESTAMP | YES | — | — | Khi purge job xong |
-| `cancelled_at` | TIMESTAMP | YES | — | — | Khi user cancel (chỉ PENDING/GRACE_PERIOD) |
+| `requested_at` | TIMESTAMPTZ | NO | `CURRENT_TIMESTAMP` | — | Thời điểm user submit request. ✅ V86 → TIMESTAMPTZ |
+| `grace_starts_at` | TIMESTAMPTZ | YES | — | — | Khi PENDING → GRACE_PERIOD |
+| `grace_ends_at` | TIMESTAMPTZ | YES | — | `idx_deletion_request_grace_ends` | Hết grace window — sweeper sẽ flip → PROCESSING. Index riêng vì cron job query theo cột này |
+| `processing_started_at` | TIMESTAMPTZ | YES | — | — | Khi purge job bắt đầu |
+| `completed_at` | TIMESTAMPTZ | YES | — | — | Khi purge job xong |
+| `cancelled_at` | TIMESTAMPTZ | YES | — | — | Khi user cancel (chỉ PENDING/GRACE_PERIOD) |
 | `cancellation_reason` | VARCHAR(500) | YES | — | — | Lý do cancel (free-text) |
 | `data_export_url` | VARCHAR(1024) | YES | — | — | URL data export ZIP (GDPR Art 20 portability) — issued trước khi purge |
-| `created_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit — tạo. ⚠️ TIMESTAMP không TZ |
-| `updated_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit — cập nhật |
+| `created_at` | TIMESTAMPTZ | NO | `CURRENT_TIMESTAMP` | — | Audit — tạo. ✅ V86 → TIMESTAMPTZ |
+| `updated_at` | TIMESTAMPTZ | NO | `CURRENT_TIMESTAMP` | — | Audit — cập nhật |
 | `created_by` | BIGINT → **UUID** | YES | — | — | V38 = BIGINT; **V73 convert → UUID** |
 | `updated_by` | BIGINT → **UUID** | YES | — | — | V38 = BIGINT; **V73 convert → UUID** |
 | `version` | BIGINT | NO | `0` | — | Optimistic lock. V38 set DEFAULT 0 ngay từ đầu |
@@ -299,8 +301,8 @@ erDiagram
 | `asset_urls_score` | INT | YES | — | — | Sub-score asset URL reachability |
 | `visual_regression_score` | INT | YES | — | — | Sub-score visual regression vs baseline |
 | `logo_placement_score` | INT | YES | — | — | Sub-score logo placement (size, position) |
-| `created_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | `idx_quality_report_created_at DESC` | Audit — tạo. ⚠️ TIMESTAMP không TZ |
-| `updated_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit — cập nhật |
+| `created_at` | TIMESTAMPTZ | NO | `CURRENT_TIMESTAMP` | `idx_quality_report_created_at DESC` | Audit — tạo. ✅ V86 → TIMESTAMPTZ |
+| `updated_at` | TIMESTAMPTZ | NO | `CURRENT_TIMESTAMP` | — | Audit — cập nhật |
 | `created_by` | VARCHAR(100) → **UUID** | YES | — | — | V39 = VARCHAR(100); **V73 convert → UUID** |
 | `updated_by` | VARCHAR(100) → **UUID** | YES | — | — | V39 = VARCHAR(100); **V73 convert → UUID** |
 | `version` | BIGINT | NO | `0` | — | Optimistic lock. V39 set DEFAULT 0 ngay từ đầu |
@@ -333,11 +335,11 @@ erDiagram
 | `category` | VARCHAR(30) | NO | — | `idx_incidents_category`; CHECK | Enum `IncidentCategory`: `BULLYING, ABUSE, GROOMING, CSAM, OTHER`. CSAM = strictest (Tổng đài 111 + công an mandatory ≤24h per Đ.51 + BLHS Đ.147) |
 | `status` | VARCHAR(20) | NO | `'REPORTED'` | `idx_incidents_status`; CHECK | Enum `IncidentStatus`: `REPORTED, INVESTIGATING, ESCALATED, RESOLVED, CLOSED`. Phase 1A cho phép transition tự do; Phase 1B lock state machine |
 | `visibility_scope` | VARCHAR(32) | NO | `'STAFF_ONLY'` | `idx_incidents_visibility_scope`; CHECK (V54) | Phase 1C v1 (BR-CHILD-PROTECT-005): `PARENT_VISIBLE, PUBLIC, STAFF_ONLY, RESTRICTED`. Default STAFF_ONLY để legacy data **không leak** sang parent portal conduct facet |
-| `reporter_user_id` | BIGINT | NO | — | `idx_incidents_reporter` | User-id reporter (PH/HS/GV). ⚠️ **V73 KHÔNG convert** — BIGINT (xem A6) |
+| `reporter_user_id` | BIGINT | NO | — | `idx_incidents_reporter` | User-id reporter (PH/HS/GV). ⏸️ **V73 KHÔNG convert** — BIGINT (DEFERRED → GAP-877/886; xem A4) |
 | `subject_student_id` | BIGINT | YES | — | `idx_incidents_subject_student` | Học sinh là đối tượng (nullable cho case không identify; logical ref tới `students` không FK) |
-| `assigned_officer_user_id` | BIGINT | YES | — | — | Safeguarding officer xử lý. ⚠️ **V73 KHÔNG convert** — BIGINT (xem A6) |
-| `created_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit — tạo. ⚠️ TIMESTAMP không TZ |
-| `updated_at` | TIMESTAMP | YES | — | — | Audit — cập nhật |
+| `assigned_officer_user_id` | BIGINT | YES | — | — | Safeguarding officer xử lý. ⏸️ **V73 KHÔNG convert** — BIGINT (DEFERRED → GAP-877/886; xem A4) |
+| `created_at` | TIMESTAMPTZ | NO | `CURRENT_TIMESTAMP` | — | Audit — tạo. ✅ V86 → TIMESTAMPTZ |
+| `updated_at` | TIMESTAMPTZ | YES | — | — | Audit — cập nhật |
 | `created_by` | BIGINT → **UUID** | YES | — | — | V49 = BIGINT; **V73 convert → UUID** |
 | `updated_by` | BIGINT → **UUID** | YES | — | — | V49 = BIGINT; **V73 convert → UUID** |
 | `deleted` | BOOLEAN | NO | `FALSE` | `idx_incidents_deleted` | Soft-delete (chú ý: child-protection data thường KHÔNG được hard-delete trừ khi có court order; retention sweeper enforce 7y per GAP-322c) |
@@ -371,9 +373,9 @@ erDiagram
 | `parent_id` | BIGINT | NO | — | `idx_parent_read_audit_parent_child_time (parent_id, child_id, read_at)` | Phụ huynh đọc. Logical ref tới `parents` (cluster 02), không FK |
 | `child_id` | BIGINT | NO | — | `idx_parent_read_audit_parent_child_time` | Học sinh được đọc. Logical ref tới `students`, không FK |
 | `facet` | VARCHAR(20) | NO | — | `idx_parent_read_audit_instance_facet (instance_id, facet)`; CHECK | Enum facet: `TRANSCRIPT` (Phase 1A), `ATTENDANCE, FEES, CONDUCT, NOTIFICATIONS` (Phase 1B). DISCIPLINE deferred GAP-321c |
-| `read_at` | TIMESTAMP | NO | — | — | Server-side timestamp tại moment facet endpoint return 200. Distinct từ `created_at` để chừa room cho backfill loads (vd theo subpoena yêu cầu reconstitute từ access logs) |
-| `created_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit — tạo. ⚠️ TIMESTAMP không TZ |
-| `updated_at` | TIMESTAMP | YES | — | — | Audit — cập nhật (trong thực tế không flip — semantic append-only) |
+| `read_at` | TIMESTAMPTZ | NO | — | — | Server-side timestamp tại moment facet endpoint return 200. Distinct từ `created_at` để chừa room cho backfill loads (vd theo subpoena yêu cầu reconstitute từ access logs) |
+| `created_at` | TIMESTAMPTZ | NO | `CURRENT_TIMESTAMP` | — | Audit — tạo. ✅ V86 → TIMESTAMPTZ |
+| `updated_at` | TIMESTAMPTZ | YES | — | — | Audit — cập nhật (trong thực tế không flip — semantic append-only) |
 | `created_by` | BIGINT → **UUID** | YES | — | — | V53 = BIGINT; **V73 convert → UUID** |
 | `updated_by` | BIGINT → **UUID** | YES | — | — | V53 = BIGINT; **V73 convert → UUID** |
 | `deleted` | BOOLEAN | NO | `FALSE` | `idx_parent_read_audit_deleted` | Soft-delete |
@@ -403,8 +405,8 @@ erDiagram
 | `entity_type` | VARCHAR(64) | NO | — | `idx_cp_audit_entity (entity_type, entity_id)` | Loại entity (vd `"Incident"`) |
 | `entity_id` | BIGINT | NO | — | `idx_cp_audit_entity` | ID entity row (vd `incidents.id`) |
 | `action` | VARCHAR(128) | NO | — | — | High-level action (vd `"INCIDENT_TRANSITION_CRITICAL"`, `"MANDATORY_REPORT_ACK"`). Free-form string, kept short cho grep-ability |
-| `actor_id` | BIGINT | YES | — | `idx_cp_audit_actor` | User-id actor (safeguarding officer, system listener). Nullable cho system-initiated transitions — `action` token nên make system actor explicit. ⚠️ **V73 KHÔNG convert** — BIGINT (xem A6) |
-| `occurred_at` | TIMESTAMP | NO | — | `idx_cp_audit_occurred_at` | Wall-clock instant action happened. Populated bởi service tại write time (KHÔNG JPA auditing — auditing chỉ dùng cho mutable entities). ⚠️ TIMESTAMP không TZ |
+| `actor_id` | BIGINT | YES | — | `idx_cp_audit_actor` | User-id actor (safeguarding officer, system listener). Nullable cho system-initiated transitions — `action` token nên make system actor explicit. ⏸️ **V73 KHÔNG convert** — BIGINT (DEFERRED → GAP-877/886; xem A4) |
+| `occurred_at` | TIMESTAMPTZ | NO | — | `idx_cp_audit_occurred_at` | Wall-clock instant action happened. Populated bởi service tại write time (KHÔNG JPA auditing — auditing chỉ dùng cho mutable entities). ✅ V86 → TIMESTAMPTZ |
 | `prev_hash` | VARCHAR(64) | NO | — | CHECK `length=64` | Hex SHA-256 của entry trước trong chain. Genesis (entry đầu mỗi chain `(instance_id, entity_type)`) = `"0".repeat(64)` |
 | `content_hash` | VARCHAR(64) | NO | — | CHECK `length=64` | Hex SHA-256 của `prev_hash || canonical_payload_json`. Recompute on read để detect tamper |
 | `payload_json` | TEXT | NO | — | — | Canonical JSON payload (entity snapshot fragment + actor + timestamps). Serialized at append-time. Bound length generous (TEXT, không VARCHAR) |
@@ -437,9 +439,9 @@ erDiagram
 | `student_id` | BIGINT | NO | — | FK → `students(id)`; `idx_parent_complaint_queue_student` | Học sinh liên quan. **FK thật** (`REFERENCES students (id)`) |
 | `complaint_text` | TEXT | NO | — | — | Nội dung khiếu nại free-text (Phase 1C v1 chưa attach files) |
 | `status` | VARCHAR(20) | NO | `'PENDING'` | `idx_parent_complaint_queue_status`; CHECK | Enum: `PENDING, IN_REVIEW, RESOLVED, REJECTED` |
-| `resolved_at` | TIMESTAMP | YES | — | — | Thời điểm close complaint. ⚠️ TIMESTAMP không TZ |
-| `created_at` | TIMESTAMP | NO | `NOW()` | — | Audit — tạo. ⚠️ TIMESTAMP không TZ |
-| `updated_at` | TIMESTAMP | YES | — | — | Audit — cập nhật |
+| `resolved_at` | TIMESTAMPTZ | YES | — | — | Thời điểm close complaint. ✅ V86 → TIMESTAMPTZ |
+| `created_at` | TIMESTAMPTZ | NO | `NOW()` | — | Audit — tạo. ✅ V86 → TIMESTAMPTZ |
+| `updated_at` | TIMESTAMPTZ | YES | — | — | Audit — cập nhật |
 | `created_by` | BIGINT → **UUID** | YES | — | — | V56 = BIGINT; **V73 convert → UUID** |
 | `updated_by` | BIGINT → **UUID** | YES | — | — | V56 = BIGINT; **V73 convert → UUID** |
 | `deleted` | BOOLEAN | NO | `FALSE` | — | Soft-delete |
@@ -472,7 +474,7 @@ erDiagram
 | `payload_jsonb` | JSONB | YES | — | — | Request context (query params, body summary). **KHÔNG** chứa raw response data (PII leak risk) |
 | `client_ip` | VARCHAR(64) | YES | — | — | Admin source IP (forensic). VARCHAR not INET — tránh Postgres-specific binding bug (per `postgres-specific-type-testcontainers.md` lesson 2026-05-16) |
 | `user_agent` | TEXT | YES | — | — | Admin source UA string |
-| `created_at` | TIMESTAMP | NO | `NOW()` | `idx_admin_audit_logs_created_at DESC` | Server time, immutable. ⚠️ TIMESTAMP không TZ |
+| `created_at` | TIMESTAMPTZ | NO | `NOW()` | `idx_admin_audit_logs_created_at DESC` | Server time, immutable. ✅ V86 → TIMESTAMPTZ |
 
 **Constraints**: chỉ PK + 4 indexes. KHÔNG có `version`/`deleted`/`updated_by`/`updated_at` — chủ ý (append-only, không soft-delete, immutable).
 
@@ -505,11 +507,14 @@ Cluster có **5 audit trails** với mục đích chồng chéo, schema khác nh
 
 ⇒ Compliance reviewer phải biết bảng nào dùng integrity model nào. `audit_log` + `parent_read_audit_log` có cột `deleted`/`updated_at` (BaseEntity inheritance) nhưng KHÔNG bao giờ flip — semantic append-only chỉ ở code-level. `child_protection_audit_log` thẳng tay bỏ BaseEntity + REVOKE DELETE. `admin_audit_logs` đi xa nhất: RLS UPDATE/DELETE policy = false defense-in-depth. Bất nhất này phản ánh compliance bar tăng dần theo thời gian (V35 < V53 < V54 < V60).
 
-### A2 — `audit_log` không có DB-level append-only enforcement
+### A2 — `audit_log` không có DB-level append-only enforcement — ✅ Resolved (GAP-889, V83)
 
-`audit_log` (V35) extends BaseEntity → có cột `deleted BOOLEAN` + `updated_at TIMESTAMP` + `version BIGINT` + `updated_by`. Caller bắt buộc đi qua `AuditLogWriter` (javadoc: "Direct repository.save is discouraged") nhưng KHÔNG có cơ chế DB-level chặn UPDATE/DELETE. Nếu code path khác (vd test fixture, migration script, raw SQL) UPDATE → row bị mutate; nếu DELETE → row bị xóa. Compared to `admin_audit_logs` (V60 RLS policy block) hoặc `child_protection_audit_log` (V54 REVOKE DELETE), `audit_log` v1 lỏng nhất. Đây là **drift compliance giữa các generation** của audit schema (Wave 4 vs Wave 85).
+Trước Wave 14, `audit_log` (V35) extends BaseEntity (`deleted`/`updated_at`/`version`/`updated_by`) + chỉ enforce append-only ở code-level (`AuditLogWriter`) — code path khác (test fixture, migration, raw SQL) vẫn UPDATE/DELETE được. ✅ **V83 đã đóng**: RESTRICTIVE policy `audit_log_no_update` (FOR UPDATE USING/WITH CHECK false) + `audit_log_no_delete` (FOR DELETE USING false) — AND'd với policy permissive tenant_isolation → false luôn thắng → không row nào updatable/deletable; thêm REVOKE UPDATE/DELETE/TRUNCATE trên app role. INSERT/SELECT vẫn tenant-scoped qua V58/V59. Nay parity compliance với `admin_audit_logs` (V60) + `child_protection_audit_log` (V54).
 
-### A3 — `incidents` BYTEA encryption không reversible bằng raw SQL
+### A3 — `incidents` BYTEA encryption không reversible bằng raw SQL — ⏸️ KMS Deferred → GAP-905
+
+> Lưu ý: mã hóa AES-256-GCM at-rest đã hoạt động (app-level converter). Việc nâng quản lý khóa lên **KMS** (key rotation, envelope encryption) ⏸️ **Deferred → GAP-905** — không trong scope V79-V86.
+
 
 `incidents.description` và `incidents.evidence_paths` BYTEA mã hóa AES-256-GCM. Layout `[IV(12) | ciphertext | auth_tag(16)]`. Decrypt CHỈ qua `AesGcmAttributeConverter` khi đọc entity. Raw `SELECT description FROM incidents` trả về ciphertext bytea — KHÔNG đọc được nội dung. Hệ quả:
 
@@ -520,9 +525,9 @@ Cluster có **5 audit trails** với mục đích chồng chéo, schema khác nh
 
 Phase 1B (GAP-322b) mã hóa bucket MinIO chính nó (bucket-level encryption) — defense in depth 2 lớp (column AES-GCM + bucket SSE).
 
-### A4 — V73 UUID sweep bỏ sót actor user-id columns NHIỀU bảng cluster
+### A4 — V73 UUID sweep bỏ sót actor user-id columns NHIỀU bảng cluster — ⏸️ Deferred → GAP-877/886
 
-V73 (GAP-795) dynamic DO block sweep CHỈ `created_by`/`updated_by` (+ hardcoded `classes.teacher_id`, `classes.rescheduled_by_user_id`, `parent_invitations.invited_by_user_id`). **6 actor user-id columns trong cluster 07 vẫn BIGINT**:
+V73 (GAP-795) dynamic DO block sweep CHỈ `created_by`/`updated_by` (+ hardcoded `classes.teacher_id`, `classes.rescheduled_by_user_id`, `parent_invitations.invited_by_user_id`). **6 actor user-id columns trong cluster 07 vẫn BIGINT** — ⏸️ **Deferred → GAP-877/886** (actor UUID sweep, không trong scope V79-V86):
 
 - `audit_log.actor_user_id` BIGINT — actor mọi audit row.
 - `moderation_queue.assigned_reviewer_id` BIGINT — staff reviewer Stage X.
@@ -533,18 +538,20 @@ V73 (GAP-795) dynamic DO block sweep CHỈ `created_by`/`updated_by` (+ hardcode
 
 Vì X-User-Id JWT là UUID, các cột BIGINT này KHÔNG nhận được user-id thật (parse fail như RCA V73 mô tả) → trong thực tế hoặc null hoặc legacy data. **Compliance risk**: child-protection actor null = không trace được ai escalate incident; deletion_requests.user_id null = không biết data subject là ai sau khi purge → cản trở audit GDPR Art 17. Cần follow-up sweep tương tự V73 nhưng cho actor columns.
 
-### A5 — TIMESTAMP vs TIMESTAMPTZ không nhất quán toàn cluster
+### A5 — TIMESTAMP vs TIMESTAMPTZ không nhất quán toàn cluster — ✅ Resolved (GAP-883, V86)
 
-**TIMESTAMP (no TZ)**: tất cả 11 bảng trong cluster — `created_at`, `updated_at`, `decided_at`, `reviewed_at`, `executed_at`, `contested_at`, `grace_starts_at`, `grace_ends_at`, `processing_started_at`, `completed_at`, `cancelled_at`, `read_at`, `occurred_at`, `resolved_at`, `requested_at`. Tất cả naive.
+Trước Wave 14, tất cả 11 bảng cluster dùng TIMESTAMP naive (`created_at`, `updated_at`, `decided_at`, `reviewed_at`, `executed_at`, `contested_at`, `grace_starts_at`, `grace_ends_at`, `processing_started_at`, `completed_at`, `cancelled_at`, `read_at`, `occurred_at`, `resolved_at`, `requested_at`).
 
-So sánh cluster 04 (Tài chính): `invoices`, `payments`, `payment_records` dùng TIMESTAMPTZ; chỉ `payroll_*` + `payment_idempotency_keys` dùng TIMESTAMP. Cluster 07 đồng nhất chọn TIMESTAMP nhưng đó là điểm yếu khi cross-cluster query (vd `audit_log.created_at` so với `payments.paid_at`) — implicit cast/timezone confusion. Đặc biệt:
+✅ **V86 đã đóng**: DO-block quét toàn DB convert mọi cột `timestamp without time zone` kết thúc `_at`/`_time` → `TIMESTAMPTZ` (USING `... AT TIME ZONE 'UTC'`). Tất cả cột timestamp cluster (đều kết thúc `_at`) nay timezone-aware. Đặc biệt các cột compliance-critical:
 
-- `deletion_requests.grace_ends_at` (TIMESTAMP) cần precise: sweeper poll `WHERE grace_ends_at < NOW()` — nếu server và DB khác TZ → race condition lúc cutover.
-- `child_protection_audit_log.occurred_at` (TIMESTAMP) dùng cho mandatory-reporting ≤24h evidence — TZ mismatch có thể gây dispute với MOLISA/công an.
+- `deletion_requests.grace_ends_at` ✅ TIMESTAMPTZ — sweeper poll `WHERE grace_ends_at < NOW()` không còn race TZ.
+- `child_protection_audit_log.occurred_at` ✅ TIMESTAMPTZ — mandatory-reporting ≤24h evidence không còn TZ dispute risk.
 
-Recommend: future migration upgrade entire cluster sang TIMESTAMPTZ.
+Đồng nhất với cluster 04 (cũng resolved V86).
 
-### A6 — Cột tham chiếu logic vs FK thật không nhất quán
+### A6 — Cột tham chiếu logic vs FK thật không nhất quán — ⏸️ Deferred → GAP-906/907
+
+> Audit-trail / FK architecture (chuẩn hóa logical-ref vs FK thật cho audit tables) ⏸️ **Deferred → GAP-906/907** — không trong scope V79-V86.
 
 Chỉ duy nhất `parent_complaint_queue` (V56) có FK thật (`parent_id → parents`, `student_id → students`). Toàn bộ các bảng còn lại dùng **logical references** (string discriminator + ID không-FK):
 

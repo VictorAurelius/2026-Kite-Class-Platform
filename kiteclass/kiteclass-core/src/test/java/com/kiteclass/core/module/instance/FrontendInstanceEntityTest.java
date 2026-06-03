@@ -11,7 +11,7 @@ class FrontendInstanceEntityTest {
 
     private FrontendInstance newInstance() {
         return FrontendInstance.builder()
-                .tenantId("t-1")
+                .tenantSlug("t-1")
                 .slug("acme")
                 .status(FrontendInstanceStatus.NOT_STARTED)
                 .retryCount(0)

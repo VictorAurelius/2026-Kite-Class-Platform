@@ -36,7 +36,7 @@ class InstanceLifecycleServiceTest {
 
     private FrontendInstance deployedInstance() {
         FrontendInstance i = FrontendInstance.builder()
-                .tenantId("t-1")
+                .tenantSlug("t-1")
                 .slug("acme")
                 .status(FrontendInstanceStatus.NOT_STARTED)
                 .retryCount(0)
@@ -66,13 +66,13 @@ class InstanceLifecycleServiceTest {
         FrontendInstance result = service.initiate("t-1", "acme");
 
         assertThat(result.getStatus()).isEqualTo(FrontendInstanceStatus.INITIALIZING);
-        assertThat(result.getTenantId()).isEqualTo("t-1");
+        assertThat(result.getTenantSlug()).isEqualTo("t-1");
     }
 
     @Test
     void markInfrastructureReady_moves_to_generating() {
         FrontendInstance i = FrontendInstance.builder()
-                .tenantId("t-1").slug("acme")
+                .tenantSlug("t-1").slug("acme")
                 .status(FrontendInstanceStatus.NOT_STARTED)
                 .retryCount(0).brandingVersion(0).build();
         i.transitionTo(FrontendInstanceStatus.INITIALIZING);
@@ -88,7 +88,7 @@ class InstanceLifecycleServiceTest {
     @Test
     void markBrandingCompleted_sets_url_and_deployed() {
         FrontendInstance i = FrontendInstance.builder()
-                .tenantId("t-1").slug("acme")
+                .tenantSlug("t-1").slug("acme")
                 .status(FrontendInstanceStatus.NOT_STARTED)
                 .retryCount(0).brandingVersion(0).build();
         i.transitionTo(FrontendInstanceStatus.INITIALIZING);
@@ -118,7 +118,7 @@ class InstanceLifecycleServiceTest {
     @Test
     void markFailed_from_generating_records_reason() {
         FrontendInstance i = FrontendInstance.builder()
-                .tenantId("t-1").slug("acme")
+                .tenantSlug("t-1").slug("acme")
                 .status(FrontendInstanceStatus.NOT_STARTED)
                 .retryCount(0).brandingVersion(0).build();
         i.transitionTo(FrontendInstanceStatus.INITIALIZING);
@@ -137,7 +137,7 @@ class InstanceLifecycleServiceTest {
     @Test
     void retry_from_failed_moves_to_initializing() {
         FrontendInstance i = FrontendInstance.builder()
-                .tenantId("t-1").slug("acme")
+                .tenantSlug("t-1").slug("acme")
                 .status(FrontendInstanceStatus.NOT_STARTED)
                 .retryCount(0).brandingVersion(0).build();
         i.transitionTo(FrontendInstanceStatus.INITIALIZING);
@@ -154,7 +154,7 @@ class InstanceLifecycleServiceTest {
     @Test
     void retry_blocks_after_max_retries() {
         FrontendInstance i = FrontendInstance.builder()
-                .tenantId("t-1").slug("acme")
+                .tenantSlug("t-1").slug("acme")
                 .status(FrontendInstanceStatus.FAILED)
                 .retryCount(InstanceLifecycleService.MAX_RETRIES)
                 .brandingVersion(0).build();
@@ -178,7 +178,7 @@ class InstanceLifecycleServiceTest {
     @Test
     void markBrandingCompleted_without_url_keeps_existing() {
         FrontendInstance i = FrontendInstance.builder()
-                .tenantId("t-1").slug("acme")
+                .tenantSlug("t-1").slug("acme")
                 .frontendUrl("https://existing.kiteclass.com")
                 .status(FrontendInstanceStatus.NOT_STARTED)
                 .retryCount(0).brandingVersion(0).build();
@@ -211,7 +211,7 @@ class InstanceLifecycleServiceTest {
     @Test
     void markBrandingCompleted_emits_deployed_event_with_escaped_payload() {
         FrontendInstance i = FrontendInstance.builder()
-                .tenantId("t-\"quoted\"").slug("ac\\me")
+                .tenantSlug("t-\"quoted\"").slug("ac\\me")
                 .status(FrontendInstanceStatus.NOT_STARTED)
                 .retryCount(0).brandingVersion(0).build();
         i.transitionTo(FrontendInstanceStatus.INITIALIZING);
@@ -235,7 +235,7 @@ class InstanceLifecycleServiceTest {
     @Test
     void markFailed_emits_failed_event_with_reason_ready_payload() {
         FrontendInstance i = FrontendInstance.builder()
-                .tenantId("t-1").slug("acme")
+                .tenantSlug("t-1").slug("acme")
                 .status(FrontendInstanceStatus.NOT_STARTED)
                 .retryCount(0).brandingVersion(0).build();
         i.transitionTo(FrontendInstanceStatus.INITIALIZING);

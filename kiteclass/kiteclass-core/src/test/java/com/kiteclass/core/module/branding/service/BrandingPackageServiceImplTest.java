@@ -55,7 +55,7 @@ class BrandingPackageServiceImplTest {
     void setUp() {
         tenantAInstanceId = UUID.randomUUID();
         tenantA = FrontendInstance.builder()
-                .tenantId("tenant-a")
+                .tenantSlug("tenant-a")
                 .slug("tenant-a")
                 .frontendUrl("https://tenant-a.kiteclass.com")
                 .brandingVersion(2)

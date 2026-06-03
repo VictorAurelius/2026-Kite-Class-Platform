@@ -2,10 +2,12 @@
 title: "KiteClass DB Schema — Cluster Trò chơi hóa / Khen thưởng (Gamification)"
 audience: mixed
 created: 2026-06-02
-last-reviewed: 2026-06-02
+last-reviewed: 2026-06-03
 ---
 
 # KiteClass DB Schema — Cluster "Trò chơi hóa / Khen thưởng"
+
+> **Cập nhật Wave 14 (KC V81)** — `student_badges` đã thêm `instance_id UUID NOT NULL` (backfill từ `students.instance_id` qua FK `student_id`) + bật RLS DB-level (ENABLE + FORCE + policy `tenant_isolation`) ở **V81** (GAP-887 resolved) — đóng anomaly A. Anomaly B (`reward_redemptions.approved_by` BIGINT) vẫn ⏸️ DEFERRED → GAP-877/886.
 
 ## TL;DR
 
@@ -16,14 +18,14 @@ Cluster này gồm **6 bảng** cài đặt hệ thống gamification (tích đi
 | `point_rules` | Quy tắc tính điểm theo sự kiện (config cấp tenant) | ✅ | ❌ (chỉ `is_active`) |
 | `student_points` | Sổ giao dịch điểm — mỗi dòng = 1 lần cộng/trừ (event-driven) | ✅ | ❌ |
 | `badges` | Định nghĩa huy hiệu + ngưỡng đạt được | ✅ | ❌ (chỉ `is_active`) |
-| `student_badges` | M2M học sinh ↔ huy hiệu (huy hiệu đã trao) | ❌ (**không có `instance_id`**) | ❌ |
+| `student_badges` | M2M học sinh ↔ huy hiệu (huy hiệu đã trao) | ✅ **(V81)** — thêm `instance_id` + RLS | ❌ |
 | `rewards` | Catalog phần thưởng đổi bằng điểm + tồn kho | ✅ | ❌ (chỉ `is_active`) |
 | `reward_redemptions` | Yêu cầu đổi quà + workflow duyệt/giao | ✅ | ❌ |
 
 Điểm cần nhớ:
 - **Sổ điểm là cộng dồn (cumulative ledger)**, KHÔNG snapshot: tổng điểm học sinh = `SUM(student_points.points)` qua mọi giao dịch (`PointServiceImpl.getTotalPoints` → `COALESCE(SUM(sp.points), 0)`). KHÔNG có cột `total_points` cached ở bảng `students`.
 - `student_points.points` có thể **âm** (trừ điểm — vd `LATE: -5`, `ABSENT: -10` per javadoc `StudentPoint`).
-- 5/6 bảng có `instance_id` → bật **RLS FORCED** từ V58, siết NULL force-fail + admin-bypass ở V59. Riêng **`student_badges` KHÔNG có `instance_id`** → RLS bỏ qua (V58 sanity-check skip table không có cột `instance_id`); cô lập tenant dựa gián tiếp qua FK `student_id` + `badge_id` (cả hai trỏ bảng tenant-scoped).
+- Cả **6/6 bảng** nay có `instance_id` + RLS FORCED. 5 bảng bật từ V58/V59; `student_badges` ✅ **thêm `instance_id` + RLS ở V81** (GAP-887) — trước Wave 14 bảng này thiếu `instance_id` nên RLS bỏ qua + cô lập tenant chỉ gián tiếp qua FK `student_id`/`badge_id`.
 - **`reward_redemptions` là state machine**: `status` workflow `pending → approved → delivered` (hoặc `cancelled`) — hiện cài đặt dạng cột `VARCHAR` + `status` string, KHÔNG enum DB.
 - Cột audit `created_by` / `updated_by` đổi từ `BIGINT` (thêm ở V26) sang `UUID` ở **V73** (GAP-795 — lưu `X-User-Id` từ JWT, không phải số). Cột `version` (optimistic lock) thêm ở V26, đặt default `0` ở V62 (`point_rules`/`student_points`/`rewards`/`reward_redemptions`/`student_badges`) và V63 (`badges`).
 - Chỉ entity `StudentPoint` được map JPA trong code (`module/gamification/entity/`); 5 bảng còn lại tồn tại ở DB nhưng chưa có entity JPA tương ứng (xem §Ghi chú schema).
@@ -61,6 +63,7 @@ erDiagram
     }
     student_badges {
         bigint id PK
+        uuid instance_id "V81"
         bigint student_id FK
         bigint badge_id FK
         timestamptz earned_at
@@ -219,11 +222,12 @@ Sổ giao dịch điểm (point ledger) — mỗi dòng là 1 lần cộng/trừ
 
 Bảng M2M ghi nhận huy hiệu đã trao cho học sinh (achievement tracking). Mỗi dòng = 1 lần học sinh đạt 1 huy hiệu. Ràng buộc unique đảm bảo không trao trùng cùng 1 huy hiệu cho cùng 1 học sinh.
 
-### 2. Cột (V1 + V26)
+### 2. Cột (V1 + V26 + V81)
 
 | Cột | Kiểu | Null | Default | Khóa/Index | Ý nghĩa |
 |---|---|:---:|---|---|---|
 | `id` | BIGSERIAL | NO | tự tăng | PK | Khóa chính |
+| `instance_id` | UUID | NO | — | `idx_student_badges_instance_id` | ✅ **V81** — Tenant ID (backfill từ `students.instance_id` qua FK `student_id`, sau đó SET NOT NULL). Đóng GAP-887 |
 | `student_id` | BIGINT | NO | — | FK → `students(id)`; `idx_student_badges_student`; UNIQUE `(student_id, badge_id)` | Học sinh đạt huy hiệu |
 | `badge_id` | BIGINT | NO | — | FK → `badges(id)`; `idx_student_badges_badge`; UNIQUE `(student_id, badge_id)` | Huy hiệu được trao |
 | `earned_at` | TIMESTAMPTZ | NO | `CURRENT_TIMESTAMP` | — | Thời điểm đạt huy hiệu |
@@ -240,8 +244,7 @@ Bảng M2M ghi nhận huy hiệu đã trao cho học sinh (achievement tracking)
 
 ### 4. RLS + ghi chú
 
-- **KHÔNG có `instance_id`** → V58/V59 **bỏ qua** bảng này (sanity-check "no instance_id column" → CONTINUE). Đây là 1 trong số ít bảng cluster không bật RLS trực tiếp.
-- Cô lập tenant **gián tiếp** qua FK: `student_id` + `badge_id` đều trỏ bảng tenant-scoped (`students`, `badges`) đã bật RLS — truy vấn join chỉ trả dòng thuộc tenant hiện tại. Tuy nhiên truy vấn trực tiếp `SELECT * FROM student_badges` (không join) sẽ KHÔNG được RLS lọc → đây là điểm khác biệt anomaly so với 5 bảng còn lại (xem §Ghi chú schema).
+- ✅ **(V81)** — đã có `instance_id` + RLS DB-level (ENABLE + FORCE + policy `tenant_isolation` admin-bypass + NULL force-fail, mirror V59 pattern). Truy vấn trực tiếp `SELECT * FROM student_badges` nay được RLS lọc theo `app.current_tenant_id`. Trước Wave 14 bảng thiếu `instance_id` nên V58/V59 bỏ qua + cô lập chỉ gián tiếp qua FK `student_id`/`badge_id` — anomaly A đã đóng.
 - KHÔNG soft-delete.
 
 ---
@@ -305,7 +308,7 @@ Yêu cầu đổi quà của học sinh + workflow xử lý (duyệt → giao). 
 | `reward_id` | BIGINT | NO | — | FK → `rewards(id)`; `idx_redemptions_reward` | Phần thưởng được đổi |
 | `points_spent` | INTEGER | NO | — | — | Số điểm trừ cho lần đổi này |
 | `status` | VARCHAR(50) | YES | `'pending'` | `idx_redemptions_status` | Trạng thái workflow: `pending`, `approved`, `delivered`, `cancelled` |
-| `approved_by` | BIGINT | YES | — | — | User ID người duyệt (từ Gateway — **KHÔNG có FK**, lưu ý anomaly) |
+| `approved_by` | BIGINT | YES | — | — | User ID người duyệt (từ Gateway — **KHÔNG có FK**). ⏸️ Actor BIGINT, V73 không convert (DEFERRED → GAP-877/886) |
 | `approved_at` | TIMESTAMPTZ | YES | — | — | Thời điểm duyệt |
 | `delivered_at` | TIMESTAMPTZ | YES | — | — | Thời điểm giao |
 | `notes` | TEXT | YES | — | — | Ghi chú |
@@ -326,19 +329,19 @@ Yêu cầu đổi quà của học sinh + workflow xử lý (duyệt → giao). 
 - Tenant-scoped → **RLS FORCED** V58/V59.
 - KHÔNG soft-delete — hủy bằng `status = 'cancelled'`.
 - **State machine:** `status` cài đặt dạng `VARCHAR` (không enum DB), workflow `pending → approved → delivered` (hoặc `cancelled`). Việc enforce transition là trách nhiệm tầng service — KHÔNG có constraint DB.
-- `approved_by` là kiểu **BIGINT** (V1 nguyên gốc) và KHÔNG nằm trong scope V73 (V73 chỉ chuyển `created_by`/`updated_by` sang UUID) — đây là điểm bất nhất kiểu actor (xem §Ghi chú schema).
+- `approved_by` là kiểu **BIGINT** (V1 nguyên gốc) và KHÔNG nằm trong scope V73 (V73 chỉ chuyển `created_by`/`updated_by` sang UUID) — ⏸️ điểm bất nhất kiểu actor (DEFERRED → GAP-877/886, xem §Ghi chú schema).
 
 ---
 
 ## Ghi chú schema (anomalies)
 
-### A. `student_badges` thiếu `instance_id` → không bật RLS trực tiếp
+### A. `student_badges` thiếu `instance_id` → không bật RLS trực tiếp — ✅ Resolved (GAP-887, V81)
 
-Đây là anomaly đáng chú ý nhất của cluster. 5/6 bảng có `instance_id` + RLS FORCED; riêng `student_badges` KHÔNG có `instance_id` (V1 CREATE không khai báo, V26 cũng không thêm). Hệ quả:
-- V58/V59 dùng sanity-check `IF NOT EXISTS (... column_name = 'instance_id') THEN CONTINUE` → bảng này bị bỏ qua hoàn toàn, không có policy `tenant_isolation`.
-- Cô lập tenant phụ thuộc gián tiếp vào FK (`student_id`/`badge_id` trỏ bảng RLS). Truy vấn trực tiếp `SELECT * FROM student_badges` không qua join sẽ trả mọi dòng (không lọc tenant). Rủi ro lý thuyết nếu có truy vấn raw/projection bỏ qua join — tuy nhiên trong code hiện tại không có entity JPA cho bảng này nên truy cập rất hạn chế.
+Trước Wave 14 đây là anomaly đáng chú ý nhất: 5/6 bảng có `instance_id` + RLS FORCED, riêng `student_badges` thiếu `instance_id` (V1 CREATE không khai báo, V26 cũng không thêm) → V58/V59 sanity-check skip → không policy `tenant_isolation` → `SELECT * FROM student_badges` raw không lọc tenant.
 
-### B. Kiểu actor bất nhất: `created_by/updated_by` (UUID) vs `approved_by` (BIGINT)
+✅ **V81 đã đóng**: ADD COLUMN `instance_id UUID` (nullable) → backfill từ `students.instance_id` qua FK `student_id` (1:1 tenant scope) → SET NOT NULL → `idx_student_badges_instance_id` → ENABLE + FORCE RLS + policy `tenant_isolation` (admin-bypass + NULL force-fail, mirror V59). Truy vấn raw nay được RLS lọc. Cả 6/6 bảng cluster đã RLS DB-level.
+
+### B. Kiểu actor bất nhất: `created_by/updated_by` (UUID) vs `approved_by` (BIGINT) — ⏸️ Deferred → GAP-877/886
 
 - V26 thêm `created_by`/`updated_by` dạng BIGINT cho cả 6 bảng; V73 chuyển TẤT CẢ `created_by`/`updated_by` sang UUID (quét `information_schema`, không hardcode danh sách bảng → mọi bảng đều được chuyển).
 - Tuy nhiên `reward_redemptions.approved_by` (cột actor riêng, có từ V1) là **BIGINT** và KHÔNG nằm trong scope V73 (V73 chỉ nhắm `created_by`/`updated_by` + vài cột `*_by_user_id` cụ thể của `classes`/`parent_invitations`). Kết quả: trong cùng bảng `reward_redemptions`, `created_by`/`updated_by` là UUID nhưng `approved_by` vẫn BIGINT — bất nhất kiểu actor. Nếu code ghi `approved_by` từ `X-User-Id` (UUID) thì sẽ gặp lỗi parse tương tự pattern V73 đã sửa cho `teacher_id`. Cần kiểm tra tầng service trước khi dùng.

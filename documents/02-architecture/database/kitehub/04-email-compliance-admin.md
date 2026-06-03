@@ -2,7 +2,7 @@
 title: "KiteHub DB Schema — Cluster Email / Compliance / Admin / Staff"
 audience: mixed
 created: 2026-06-02
-last-reviewed: 2026-06-02
+last-reviewed: 2026-06-03
 ---
 
 # Cluster Email / Compliance / Admin / Staff (KiteHub)
@@ -580,6 +580,8 @@ erDiagram
 
 ### A1 — `admin_audit_log` (V36, BIGSERIAL) vs `admin_audit_logs` (V50, UUID) — 2 bảng tên gần giống
 
+⏸️ **Deferred → GAP-902** (consolidate/rename `admin_audit_log` vs `admin_audit_logs` V36/V50 ambiguity). Wave 14 KHÔNG đụng — V59-V61 không touch cluster 04. Trạng thái hiện tại: 2 bảng song song giữ nguyên.
+
 Đây là điểm dễ nhầm nhất của cluster.
 
 | Khía cạnh | `admin_audit_log` (V36) | `admin_audit_logs` (V50) |
@@ -601,6 +603,8 @@ erDiagram
 App layer phải nhận thức cả hai. Khi query "tất cả admin actions" phải union cả 2 bảng (+ kc-core admin_audit_logs).
 
 ### A2 — `email_logs` (V5) drift — không có JPA entity, full schema chỉ có raw SQL
+
+⏸️ **Deferred → GAP-903** (`email_logs` no JPA entity — verify owner trong `kitehub-email` hoặc dead-code). Wave 14 KHÔNG đụng — V59-V61 không touch cluster 04. Trạng thái hiện tại: drift giữ nguyên, chờ verify wave sau.
 
 V5 tạo bảng `email_logs` với 23 cột đầy đủ (tracking AWS SES vòng đời, retry, bounce). Migration tồn tại, RLS V34+V50 cover. Tuy nhiên **không có file `EmailLog.java`** trong codebase (grep `email_logs` ở module java prod = 0 hit). Chỉ `email_sent_log` (V11, 5 cột idempotency) có entity `EmailSentLog` ở module **`kitehub-platform`** (không phải `kitehub-subscription` — drift cross-module ownership).
 
@@ -634,6 +638,8 @@ V34 + V50 chỉ cover các bảng có `instance_id`/`tenant_id` **tại thời �
 
 ⇒ 3 bảng có `tenant_id`/`instance_id` nhưng RLS chưa enable (`staff_invitations`, `staff_invitation_audit_log`, `impersonation_audit_log`) — cần follow-up migration extend V34/V50 DO-block hoặc dedicated migration.
 
+⏸️ **Deferred → GAP-885** (KH RLS extension cho tables post V34/V50). Wave 14 KHÔNG đụng — V59-V61 không extend RLS cluster 04. Trạng thái hiện tại: RLS gap giữ nguyên.
+
 ### A4 — Hai cách enforce immutability (RLS chặn UPDATE/DELETE vs app convention)
 
 Cluster có 2 audit log có thiết kế append-only nhưng enforce khác:
@@ -666,6 +672,8 @@ V73 (kc-core) đã sweep BaseEntity `created_by`/`updated_by` BIGINT → UUID, n
 | `created_by`/`updated_by` (V5) | `email_logs` | **VARCHAR(100)** | ❌ — VARCHAR |
 
 ⇒ Cluster có **4 kiểu khác nhau** cho actor user-id (UUID / BIGINT / VARCHAR(100) / không có cột). 3 bảng PDPL/feedback dùng BIGINT/VARCHAR không match `users.id` UUID — cần migration normalize hoặc accept "user_id ở 3 bảng này là soft reference khác semantic".
+
+⏸️ **Deferred → GAP-886** (RBAC `user_id` BIGINT→UUID normalize). Wave 14 KHÔNG đụng — V59-V61 không touch user-id types cluster 04. Trạng thái hiện tại: 4 kiểu actor user-id giữ nguyên.
 
 ### A6 — TIMESTAMP vs TIMESTAMPTZ trộn lẫn
 

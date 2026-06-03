@@ -1,6 +1,6 @@
 # GAP-910: `teacher_courses` M2M không có `instance_id` + RLS
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (60%)
 **Priority:** 🟡 P2
 **Domain:** Backend / DB / Security
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KC people-enrollment)
