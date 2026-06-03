@@ -48,8 +48,15 @@ import java.time.Instant;
 @Builder
 public class FrontendInstance extends BaseEntity {
 
-    @Column(name = "tenant_id", nullable = false, length = 100)
-    private String tenantId;
+    /**
+     * Human-readable tenant slug (cross-service ref to KiteHub {@code instances.slug}),
+     * used for FE deploy lookup. Distinct from {@code instanceId} (UUID, the RLS
+     * tenant-isolation filter inherited from {@link BaseEntity}). Renamed from
+     * {@code tenantId} → {@code tenantSlug} per GAP-891 to remove naming confusion
+     * between the two tenant-prefixed identifiers (DB column {@code tenant_slug}, V82).
+     */
+    @Column(name = "tenant_slug", nullable = false, length = 100)
+    private String tenantSlug;
 
     @Column(name = "slug", nullable = false, length = 80)
     private String slug;

@@ -74,7 +74,7 @@ class Wave02DataModelIntegrationTest {
         // Tenant signup happy path
         // 4) Instance lifecycle (Sub-PR 2.5)
         FrontendInstance instance = FrontendInstance.builder()
-                .tenantId("t-abc")
+                .tenantSlug("t-abc")
                 .slug("acme-school")
                 .status(FrontendInstanceStatus.NOT_STARTED)
                 .retryCount(0)
@@ -129,7 +129,7 @@ class Wave02DataModelIntegrationTest {
         Role gvcn = Role.builder().name("HOMEROOM_TEACHER").level(5).parent(principal).build();
 
         FrontendInstance instance = FrontendInstance.builder()
-                .tenantId("t-abc").slug("acme")
+                .tenantSlug("t-abc").slug("acme")
                 .status(FrontendInstanceStatus.NOT_STARTED)
                 .retryCount(0).brandingVersion(0).build();
         instance.transitionTo(FrontendInstanceStatus.INITIALIZING);

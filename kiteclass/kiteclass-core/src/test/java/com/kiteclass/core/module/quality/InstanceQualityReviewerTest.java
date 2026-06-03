@@ -24,7 +24,7 @@ class InstanceQualityReviewerTest {
 
     private FrontendInstance instance(long id) {
         FrontendInstance i = FrontendInstance.builder()
-                .tenantId("t-1").slug("acme")
+                .tenantSlug("t-1").slug("acme")
                 .status(FrontendInstanceStatus.GENERATING)
                 .retryCount(0).brandingVersion(3).build();
         i.setId(id);

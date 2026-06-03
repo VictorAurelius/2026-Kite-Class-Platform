@@ -46,7 +46,7 @@ public class InstanceLifecycleService {
             throw new IllegalArgumentException("Slug already in use: " + slug);
         }
         FrontendInstance instance = FrontendInstance.builder()
-                .tenantId(tenantId)
+                .tenantSlug(tenantId)
                 .slug(slug)
                 .status(FrontendInstanceStatus.NOT_STARTED)
                 .retryCount(0)
@@ -145,7 +145,7 @@ public class InstanceLifecycleService {
                 "{\"instanceId\":%d,\"tenantId\":\"%s\",\"slug\":\"%s\",\"status\":\"%s\","
                         + "\"brandingVersion\":%d,\"retryCount\":%d}",
                 instance.getId(),
-                escape(instance.getTenantId()),
+                escape(instance.getTenantSlug()),
                 escape(instance.getSlug()),
                 instance.getStatus().name(),
                 instance.getBrandingVersion(),
