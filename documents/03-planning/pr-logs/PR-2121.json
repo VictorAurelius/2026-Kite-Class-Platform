@@ -1,0 +1,33 @@
+{
+  "pr": 2121,
+  "title": "docs(db): KiteClass branding/marketing/infra cluster schema reference (8 tables)",
+  "branch": "wave-local-doable-13-kc-branding-marketing",
+  "created_at": null,
+  "merged_at": "2026-06-03T02:48:35Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-06-03T02:48:41.641456",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 1,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1708140"
+  }
+}
