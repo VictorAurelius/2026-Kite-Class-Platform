@@ -13,16 +13,19 @@
 | SUB-04 | Grace period sau hết hạn | 3 ngày | `kitehub.subscription.grace-period-days` |
 | SUB-05 | Warning days | 7, 3, 1 ngày trước hết hạn | `kitehub.subscription.warning-days` |
 | SUB-06 | Upgrade: chỉ lên tier cao hơn | ordinal comparison | hardcoded |
-| SUB-07 | Upgrade timing | Immediate + prorated charge | hardcoded |
+| SUB-07 | Upgrade timing Phase 1 BETA | **Không nâng tier ngay**; set `pendingTier` + tạo/reuse `Payment PENDING`; tier chỉ apply sau admin confirm payment | `kitehub.subscription.upgrade.apply-after-payment: true` |
 | SUB-08 | Downgrade: chỉ xuống tier thấp hơn | ordinal comparison | hardcoded |
 | SUB-09 | Downgrade timing | Cuối chu kỳ hiện tại | pendingTier field |
-| SUB-10 | Prorated formula | (newPrice - oldPrice) / cycleDays * daysLeft | hardcoded |
-| SUB-11 | Default payment method | VietQR | PaymentMethod.VIETQR |
+| SUB-10 | Prorated formula | `(newPrice - oldPrice) / cycleDays * max(daysLeft, 0)`; minimum payable amount = 0 means no payment required | hardcoded |
+| SUB-11 | Default payment method Phase 1 BETA | `VIETQR`/manual bank transfer; admin đối soát rồi confirm; MoMo/VNPay gateway deferred Phase 2+ | PaymentMethod.VIETQR |
 | SUB-12 | Cancel immediate | expiresAt = now, autoRenew=false | hardcoded |
 | SUB-13 | Cancel end-of-cycle | giữ expiresAt, autoRenew=false | hardcoded |
 | SUB-14 | 1 subscription active per instance | validate on create | hardcoded |
-| SUB-15 | Currency | VND | payment.setCurrency("VND") |
+| SUB-15 | Currency | VND minor unit (integer đồng, không decimal) | payment.setCurrency("VND") |
 | SUB-16 | Expiring query window | 30 ngày tới | hardcoded |
+| SUB-17 | Upgrade payment idempotency | Nếu subscription đã có `pendingPaymentId` trỏ tới `Payment PENDING`, retry upgrade cùng pending tier trả lại payment đó; không tạo payment thứ hai | `payments.status=PENDING` + `subscriptions.pending_payment_id` |
+| SUB-18 | Payment content uniqueness | Nội dung chuyển khoản phải chứa short subscription id/payment marker đủ để admin đối soát trong bảng pending payments | VietQRService.generatePaymentContent |
+| SUB-19 | Admin confirm is payment capture source | `POST /admin/payments/{id}/confirm` là nguồn capture chính Phase 1 BETA; automated webhook/bank API chỉ future enhancement | PaymentService.confirmPayment |
 
 ## Config
 
@@ -42,6 +45,24 @@ payment:
     account-name: ${VIETQR_ACCOUNT_NAME:}
     template: ${VIETQR_TEMPLATE:compact}
 ```
+
+## Phase 1 BETA payment policy
+
+KiteHub subscription billing dùng **chuyển khoản ngân hàng thủ công/VietQR** trong Phase 1 BETA:
+
+1. Owner chọn upgrade → backend tính prorated charge và tạo `Payment PENDING`.
+2. FE hiển thị QR/thông tin chuyển khoản cho user, kèm nội dung chuyển khoản bắt buộc.
+3. User chuyển khoản ngoài hệ thống.
+4. Platform admin đối soát statement ngân hàng, nhập `transactionId`, rồi confirm payment.
+5. Chỉ sau confirm, backend mới apply `pendingTier` vào subscription.
+
+Không tích hợp MoMo/VNPay/Stripe tự động trong Phase 1 BETA. Các enum `MOMO`/`VNPAY` được giữ để tương thích domain tương lai nhưng không là default path cho soft launch. Quyết định này giảm scope giấy phép/merchant/KYC, phù hợp beta cohort nhỏ và solo-dev operation.
+
+**Source:** User decision 2026-06-03 + outside-in payment scope lessons Wave 93 (partnership/PSP licensing complexity) + existing KiteClass manual-transfer pattern.
+**Rationale:** Manual transfer đủ dùng cho beta volume nhỏ; admin confirm giúp kiểm soát fraud/nhầm nội dung chuyển khoản; PSP auto-capture deferred đến Phase 2 khi có legal/counsel và merchant readiness.
+**Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-06-04). Formal legal/tax review remains queued via GAP-156.
+**Compliance check:** **Considered** — Consumer Protection Law (clear price/payment instruction), Luật Giao dịch điện tử 2023, tax/e-invoice obligations. No auto-renew card capture in Phase 1 BETA.
+**Review cadence:** Quarterly. **Next review:** 2026-09-04 or when PSP integration/paid cohort scale >5 beta tenants.
 
 ## Five-attribute review per `business-logic-review.md`
 

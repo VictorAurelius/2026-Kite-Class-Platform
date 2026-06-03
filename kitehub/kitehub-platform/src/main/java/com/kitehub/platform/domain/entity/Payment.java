@@ -31,6 +31,15 @@ public class Payment extends BaseEntity {
     @Column(name = "subscription_id", nullable = false)
     private UUID subscriptionId;
 
+    /**
+     * Owning tenant/instance. Added NOT NULL by migration V58 (RLS sweep) for
+     * row-level tenant isolation; every Payment MUST set this from its
+     * subscription's instanceId before persist, else the V58 NOT NULL constraint
+     * rejects the insert (SQLState 23502).
+     */
+    @Column(name = "instance_id", nullable = false)
+    private UUID instanceId;
+
     @Column(name = "amount_vnd", nullable = false)
     private Long amountVnd;
 

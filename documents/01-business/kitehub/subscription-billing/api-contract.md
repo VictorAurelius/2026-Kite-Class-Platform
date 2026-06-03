@@ -81,8 +81,30 @@ giữ tách bạch (subscription tier-payment ≠ school invoice/installment pay
 ```json
 { "newTier": "PREMIUM" }
 ```
-**Response 200:** Updated SubscriptionResponse
-**Errors:** 400 invalid tier direction, 404 not found
+**Response 200:** Updated SubscriptionResponse with `pendingTier` + `pendingPaymentId`
+```json
+{
+  "id": "subscription-uuid",
+  "instanceId": "instance-uuid",
+  "tier": "BASIC",
+  "billingCycle": "MONTHLY",
+  "priceVnd": 299000,
+  "status": "ACTIVE",
+  "startedAt": "2026-06-01T00:00:00",
+  "expiresAt": "2026-07-01T00:00:00",
+  "autoRenew": true,
+  "pendingTier": "PREMIUM",
+  "pendingPaymentId": "payment-uuid",
+  "isActive": true,
+  "isExpired": false
+}
+```
+**Contract:** Phase 1 BETA upgrade does **not** apply the new tier before payment confirmation. FE must redirect to `/billing/payment/{pendingPaymentId}` when present. If `pendingPaymentId` is null (zero-amount/no-payment case), FE may return to `/billing` with success copy.
+
+**Errors:**
+- 400 invalid tier direction / invalid amount
+- 404 subscription not found
+- 409 existing pending payment for a different target tier (`error.code: "UPGRADE_PAYMENT_PENDING"`)
 
 ---
 
@@ -180,10 +202,73 @@ Monitor via `GET /api/platform/subscriptions/expiring` and instance status.
 ## GET /api/platform/payments/{id}
 **Auth:** Bearer token (Owner | Staff)
 **Response 200:** PaymentResponse
+```json
+{
+  "id": "payment-uuid",
+  "subscriptionId": "subscription-uuid",
+  "amountVnd": 120000,
+  "currency": "VND",
+  "paymentMethod": "VIETQR",
+  "status": "PENDING",
+  "qrCodeUrl": "https://img.vietqr.io/image/...",
+  "transactionId": null,
+  "bankCode": "VCB",
+  "accountNumber": "1234567890",
+  "accountName": "CONG TY KITECLASS",
+  "paymentContent": "KITEHUB ABCD1234",
+  "paidAt": null,
+  "createdAt": "2026-06-04T09:30:00",
+  "updatedAt": "2026-06-04T09:30:00"
+}
+```
 **Errors:** 404 not found
+
+---
+
+## GET /api/platform/payments/{id}/qr-code
+**Use case:** UC-SUB-02
+**Auth:** Bearer token (Owner | Staff)
+**Response 200:**
+```json
+{ "qrCodeUrl": "https://img.vietqr.io/image/..." }
+```
+**Fallback:** Nếu VietQR API fail, backend có thể trả public VietQR image URL từ bank/account/paymentContent đã cấu hình. FE vẫn hiển thị manual bank info từ PaymentResponse.
 
 ---
 
 ## GET /api/platform/payments/subscription/{subscriptionId}
 **Auth:** Bearer token
 **Response 200:** `[PaymentResponse]` (lịch sử payment của subscription cụ thể — bounded by FK)
+
+---
+
+## GET /api/platform/admin/payments/pending
+**Use case:** UC-SUB-07
+**Auth:** Bearer token (Platform Admin)
+**Response 200:** `[PaymentResponse]` pending payments cần đối soát thủ công.
+
+---
+
+## POST /api/platform/admin/payments/{id}/confirm
+**Use case:** UC-SUB-07
+**Auth:** Bearer token (Platform Admin)
+**Request:**
+```json
+{ "transactionId": "VCB-20260604-000123" }
+```
+**Response 200:** PaymentResponse with `status=COMPLETED`, `transactionId`, `paidAt` set.
+**Side effect:** Nếu payment thuộc upgrade flow, subscription áp dụng `pendingTier`, cập nhật `priceVnd`, clear `pendingTier` + `pendingPaymentId`.
+**Errors:** 400 missing transactionId; 404 payment not found; 409 payment not PENDING.
+
+---
+
+## POST /api/platform/admin/payments/{id}/reject
+**Use case:** UC-SUB-07
+**Auth:** Bearer token (Platform Admin)
+**Request:**
+```json
+{ "reason": "Không khớp statement ngân hàng hoặc sai nội dung chuyển khoản" }
+```
+**Response 200:** PaymentResponse with `status=FAILED`.
+**Side effect:** Subscription giữ tier hiện tại; pending state được clear để owner tạo yêu cầu thanh toán mới sạch.
+**Errors:** 400 missing reason; 404 payment not found; 409 payment not PENDING.

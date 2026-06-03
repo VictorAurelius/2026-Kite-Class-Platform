@@ -48,13 +48,14 @@ public class PaymentService {
             request.getSubscriptionId(), request.getAmountVnd());
 
         // Verify subscription exists
-        subscriptionRepository.findById(request.getSubscriptionId())
+        var subscription = subscriptionRepository.findById(request.getSubscriptionId())
             .orElseThrow(() -> new IllegalArgumentException(
                 "Subscription not found: " + request.getSubscriptionId()));
 
         // Create payment entity
         Payment payment = new Payment();
         payment.setSubscriptionId(request.getSubscriptionId());
+        payment.setInstanceId(subscription.getInstanceId()); // V58 RLS: instance_id NOT NULL
         payment.setAmountVnd(request.getAmountVnd());
         payment.setPaymentMethod(request.getPaymentMethod());
         payment.setStatus(PaymentStatus.PENDING);
@@ -206,14 +207,14 @@ public class PaymentService {
 
         log.info("Payment completed: {} for subscription: {}", payment.getId(), payment.getSubscriptionId());
 
-        // Trigger subscription activation
+        // Apply pending subscription upgrade after payment capture.
         try {
-            subscriptionService.activateSubscription(payment.getSubscriptionId());
-            log.info("Subscription activated: {}", payment.getSubscriptionId());
+            subscriptionService.applyPendingUpgrade(payment.getSubscriptionId(), payment.getId());
+            log.info("Pending upgrade applied for subscription: {}", payment.getSubscriptionId());
         } catch (Exception e) {
-            log.error("Failed to activate subscription: {}", payment.getSubscriptionId(), e);
-            // Payment is still completed, but subscription activation failed
-            // This should be handled by admin/retry mechanism
+            log.error("Failed to apply pending upgrade for subscription: {}", payment.getSubscriptionId(), e);
+            // Payment is still completed, but subscription update failed.
+            // This should be handled by admin/retry mechanism.
         }
     }
 
@@ -304,12 +305,12 @@ public class PaymentService {
 
         log.info("Payment confirmed: {} for subscription: {}", payment.getId(), payment.getSubscriptionId());
 
-        // Trigger subscription activation
+        // Apply pending subscription upgrade after manual admin confirmation.
         try {
-            subscriptionService.activateSubscription(payment.getSubscriptionId());
-            log.info("Subscription activated: {}", payment.getSubscriptionId());
+            subscriptionService.applyPendingUpgrade(payment.getSubscriptionId(), payment.getId());
+            log.info("Pending upgrade applied for subscription: {}", payment.getSubscriptionId());
         } catch (Exception e) {
-            log.error("Failed to activate subscription: {}", payment.getSubscriptionId(), e);
+            log.error("Failed to apply pending upgrade for subscription: {}", payment.getSubscriptionId(), e);
         }
 
         return PaymentResponse.fromEntity(payment);
@@ -337,6 +338,12 @@ public class PaymentService {
         // Mark payment as failed
         payment.fail();
         payment = paymentRepository.save(payment);
+
+        try {
+            subscriptionService.clearPendingUpgrade(payment.getSubscriptionId(), payment.getId());
+        } catch (Exception e) {
+            log.error("Failed to clear pending upgrade for subscription: {}", payment.getSubscriptionId(), e);
+        }
 
         log.info("Payment rejected: {} (reason: {})", payment.getId(), reason);
 

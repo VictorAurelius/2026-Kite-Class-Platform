@@ -5,6 +5,7 @@ import com.kitehub.platform.domain.entity.Payment;
 import com.kitehub.platform.domain.entity.Subscription;
 import com.kitehub.platform.domain.enums.BillingCycle;
 import com.kitehub.platform.domain.enums.InstanceStatus;
+import com.kitehub.platform.domain.enums.PaymentMethod;
 import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
@@ -48,6 +49,9 @@ class SubscriptionServiceTest {
 
     @Mock
     private PaymentRepository paymentRepository;
+
+    @Mock
+    private VietQRService vietQRService;
 
     @Mock
     private com.kitehub.subscription.client.EmailServiceClient emailServiceClient;
@@ -122,23 +126,32 @@ class SubscriptionServiceTest {
     }
 
     @Test
-    @DisplayName("Should upgrade subscription with prorated charge")
-    void shouldUpgradeSubscription() {
+    @DisplayName("Upgrade should keep current tier until pending payment is confirmed")
+    void shouldUpgradeSubscriptionByCreatingPendingPaymentOnly() {
         // Given
         UUID subscriptionId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
         Subscription subscription = new Subscription();
         subscription.setId(subscriptionId);
+        subscription.setInstanceId(instanceId);
         subscription.setTier(PricingTier.BASIC);
         subscription.setBillingCycle(BillingCycle.MONTHLY);
         subscription.setStatus(SubscriptionStatus.ACTIVE);
+        subscription.setPriceVnd(PricingTier.BASIC.getPrice(BillingCycle.MONTHLY));
         subscription.setExpiresAt(java.time.LocalDateTime.now().plusDays(15));
 
         Payment savedPayment = new Payment();
-        savedPayment.setId(UUID.randomUUID());
+        savedPayment.setId(paymentId);
+        savedPayment.setSubscriptionId(subscriptionId);
         savedPayment.setAmountVnd(500_000L);
         savedPayment.setStatus(PaymentStatus.PENDING);
 
         when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(vietQRService.generatePaymentContent(subscriptionId)).thenReturn("KITEHUB ABCD1234");
+        when(vietQRService.generateQRCode(any(UUID.class), any(Long.class), eq(subscriptionId))).thenReturn("https://qr.example/payment.png");
+        when(vietQRService.getBankCode()).thenReturn("VCB");
+        when(vietQRService.getAccountNumber()).thenReturn("1234567890");
+        when(vietQRService.getAccountName()).thenReturn("CONG TY KITECLASS");
         when(paymentRepository.save(any(Payment.class))).thenReturn(savedPayment);
         when(subscriptionRepository.save(any(Subscription.class))).thenReturn(subscription);
 
@@ -146,14 +159,16 @@ class SubscriptionServiceTest {
         SubscriptionResponse response = subscriptionService.upgradeSubscription(subscriptionId, PricingTier.PREMIUM);
 
         // Then
-        assertThat(response.getTier()).isEqualTo(PricingTier.PREMIUM);
+        assertThat(response.getTier()).isEqualTo(PricingTier.BASIC);
+        assertThat(response.getPendingTier()).isEqualTo(PricingTier.PREMIUM);
+        assertThat(response.getPendingPaymentId()).isEqualTo(paymentId);
         verify(paymentRepository).save(any(Payment.class));
         verify(subscriptionRepository).save(any(Subscription.class));
     }
 
     @Test
-    @DisplayName("Should create payment record for tier upgrade")
-    void shouldCreatePaymentForUpgrade() {
+    @DisplayName("Upgrade payment should contain VietQR manual-transfer details")
+    void shouldCreateVietQrPaymentForUpgrade() {
         // Given
         UUID subscriptionId = UUID.randomUUID();
         Subscription subscription = new Subscription();
@@ -166,10 +181,16 @@ class SubscriptionServiceTest {
 
         Payment savedPayment = new Payment();
         savedPayment.setId(UUID.randomUUID());
+        savedPayment.setSubscriptionId(subscriptionId);
         savedPayment.setAmountVnd(500_000L);
         savedPayment.setStatus(PaymentStatus.PENDING);
 
         when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(vietQRService.generatePaymentContent(subscriptionId)).thenReturn("KITEHUB ABCD1234");
+        when(vietQRService.generateQRCode(any(UUID.class), any(Long.class), eq(subscriptionId))).thenReturn("https://qr.example/payment.png");
+        when(vietQRService.getBankCode()).thenReturn("VCB");
+        when(vietQRService.getAccountNumber()).thenReturn("1234567890");
+        when(vietQRService.getAccountName()).thenReturn("CONG TY KITECLASS");
         when(paymentRepository.save(any(Payment.class))).thenReturn(savedPayment);
         when(subscriptionRepository.save(any(Subscription.class))).thenReturn(subscription);
 
@@ -182,10 +203,63 @@ class SubscriptionServiceTest {
 
         Payment capturedPayment = paymentCaptor.getValue();
         assertThat(capturedPayment.getSubscriptionId()).isEqualTo(subscriptionId);
-        // Prorated charge for 14 days: (1.5M - 500k) / 30 * 14 = 466,667 VNĐ
+        // Prorated charge for 14 days left: (1.5M - 500k) / 30 * 14 = 466,667 VNĐ.
+        // savedPayment mock returns 500k, but the captured argument carries the real prorated amount.
         assertThat(capturedPayment.getAmountVnd()).isCloseTo(466_667L, org.assertj.core.data.Offset.offset(100L));
+        assertThat(capturedPayment.getPaymentMethod()).isEqualTo(PaymentMethod.VIETQR);
         assertThat(capturedPayment.getStatus()).isEqualTo(PaymentStatus.PENDING);
-        assertThat(capturedPayment.getPaymentContent()).contains("Prorated charge");
+        assertThat(capturedPayment.getPaymentContent()).isEqualTo("KITEHUB ABCD1234");
+        assertThat(capturedPayment.getQrCodeUrl()).isEqualTo("https://qr.example/payment.png");
+        assertThat(capturedPayment.getBankCode()).isEqualTo("VCB");
+        assertThat(capturedPayment.getAccountNumber()).isEqualTo("1234567890");
+        assertThat(capturedPayment.getAccountName()).isEqualTo("CONG TY KITECLASS");
+    }
+
+
+    @Test
+    @DisplayName("Should apply pending upgrade after matching payment is confirmed")
+    void shouldApplyPendingUpgrade() {
+        UUID subscriptionId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setTier(PricingTier.BASIC);
+        subscription.setBillingCycle(BillingCycle.MONTHLY);
+        subscription.setPendingTier(PricingTier.PREMIUM);
+        subscription.setPendingPaymentId(paymentId);
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        subscriptionService.applyPendingUpgrade(subscriptionId, paymentId);
+
+        assertThat(subscription.getTier()).isEqualTo(PricingTier.PREMIUM);
+        assertThat(subscription.getPriceVnd()).isEqualTo(PricingTier.PREMIUM.getPrice(BillingCycle.MONTHLY));
+        assertThat(subscription.getPendingTier()).isNull();
+        assertThat(subscription.getPendingPaymentId()).isNull();
+        verify(subscriptionRepository).save(subscription);
+    }
+
+    @Test
+    @DisplayName("Should clear pending upgrade after payment rejection without changing current tier")
+    void shouldClearPendingUpgrade() {
+        UUID subscriptionId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setTier(PricingTier.BASIC);
+        subscription.setPendingTier(PricingTier.PREMIUM);
+        subscription.setPendingPaymentId(paymentId);
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        subscriptionService.clearPendingUpgrade(subscriptionId, paymentId);
+
+        assertThat(subscription.getTier()).isEqualTo(PricingTier.BASIC);
+        assertThat(subscription.getPendingTier()).isNull();
+        assertThat(subscription.getPendingPaymentId()).isNull();
+        verify(subscriptionRepository).save(subscription);
     }
 
     @Test

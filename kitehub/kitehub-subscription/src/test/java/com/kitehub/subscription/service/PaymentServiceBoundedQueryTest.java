@@ -103,4 +103,43 @@ class PaymentServiceBoundedQueryTest {
         assertThat(result.getTotalElements()).isEqualTo(0L);
         assertThat(result.getContent()).isEmpty();
     }
+
+    @Test
+    @DisplayName("confirmPayment applies pending tier and clears pending payment state")
+    void confirmPayment_appliesPendingTier() {
+        UUID paymentId = UUID.randomUUID();
+        UUID subscriptionId = UUID.randomUUID();
+        Payment payment = samplePayment();
+        payment.setId(paymentId);
+        payment.setSubscriptionId(subscriptionId);
+        payment.setStatus(PaymentStatus.PENDING);
+
+        when(paymentRepository.findById(paymentId)).thenReturn(java.util.Optional.of(payment));
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        PaymentResponse response = paymentService.confirmPayment(paymentId, "VCB-123");
+
+        assertThat(response.getStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        assertThat(response.getTransactionId()).isEqualTo("VCB-123");
+        verify(subscriptionService).applyPendingUpgrade(subscriptionId, paymentId);
+    }
+
+    @Test
+    @DisplayName("rejectPayment clears pending upgrade state without changing current tier")
+    void rejectPayment_clearsPendingUpgradeState() {
+        UUID paymentId = UUID.randomUUID();
+        UUID subscriptionId = UUID.randomUUID();
+        Payment payment = samplePayment();
+        payment.setId(paymentId);
+        payment.setSubscriptionId(subscriptionId);
+        payment.setStatus(PaymentStatus.PENDING);
+
+        when(paymentRepository.findById(paymentId)).thenReturn(java.util.Optional.of(payment));
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        PaymentResponse response = paymentService.rejectPayment(paymentId, "Sai nội dung chuyển khoản");
+
+        assertThat(response.getStatus()).isEqualTo(PaymentStatus.FAILED);
+        verify(subscriptionService).clearPendingUpgrade(subscriptionId, paymentId);
+    }
 }

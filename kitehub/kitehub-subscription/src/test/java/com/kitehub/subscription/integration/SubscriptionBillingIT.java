@@ -116,7 +116,7 @@ class SubscriptionBillingIT {
     }
 
     @Test
-    @DisplayName("Upgrade subscription tier")
+    @DisplayName("Upgrade creates pending payment; tier stays current until admin confirms")
     void upgradeSubscriptionTier() throws Exception {
         InstanceResponse instance = createInstance("upgrade-test");
 
@@ -140,11 +140,15 @@ class SubscriptionBillingIT {
         TierChangeRequest upgradeRequest = new TierChangeRequest();
         upgradeRequest.setNewTier(PricingTier.PREMIUM);
 
+        // Phase 1 BETA manual-payment: upgrade does NOT apply the new tier immediately.
+        // It records pendingTier + a PENDING payment; tier flips only after admin confirms (UC-SUB-07).
         mockMvc.perform(patch("/api/platform/subscriptions/{id}/upgrade", created.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(upgradeRequest)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.tier").value("PREMIUM"));
+            .andExpect(jsonPath("$.tier").value("BASIC"))
+            .andExpect(jsonPath("$.pendingTier").value("PREMIUM"))
+            .andExpect(jsonPath("$.pendingPaymentId").isNotEmpty());
     }
 
     @Test
