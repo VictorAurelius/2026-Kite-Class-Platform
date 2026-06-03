@@ -599,6 +599,32 @@ Sau merge: chạy Section 9 closure checklist.
 
 ---
 
-**File version:** v1.0.0 — created 2026-06-03 cho Wave 14 handoff.
+## Appendix B — `.codex/` Mirror + Skill Bridge
+
+Repo có symlink `.codex → .claude` (full mirror). Codex CLI tự đọc `AGENTS.md` này. Để truy cập deeper context khi cần:
+
+| Khi user nói... | Codex action |
+|---|---|
+| "start session" / "session status" / "tình trạng" | Run `bash .codex/skills/workflow/start-session/scripts/collect-state.sh` + Read `.codex/skills/workflow/start-session/SKILL.md` |
+| "audit" / "quality check" / "kiểm tra chất lượng" | Read `.codex/skills/quality-audit/SKILL.md` + follow 4-step process |
+| "check pr" / "review pr N" | Read `.codex/skills/workflow/check-pr/SKILL.md` |
+| "fix pr N" | Read `.codex/skills/workflow/fix-pr/SKILL.md` |
+| "wave plan" / "tạo wave" | Read `.codex/skills/quality/wave-pack-planner/SKILL.md` |
+| "repo status" / "repo health" | Run `bash scripts/repo-status.sh --json` |
+| "security audit" | Read `.codex/skills/quality/security-audit/SKILL.md` |
+| Cần rule cụ thể (vd "admin merge", "docs auto merge") | Read `.codex/rules/<rule-name>.md` |
+| Cần CLAUDE.md full content | Read `CLAUDE.md` (root) — broad project context, KHÔNG auto-load cho Codex |
+
+**Note về limitation:**
+- `.codex/hooks/**/*.py` — Python hooks tied to Claude harness (PreToolUse/PostToolUse events) → KHÔNG chạy được với Codex CLI. Ignore.
+- `.codex/settings.json` — Claude permission schema → KHÔNG dùng được. Codex có config riêng.
+- `.codex/rules/**` có `paths:` YAML frontmatter — Claude auto-load via path-scope, Codex KHÔNG. Codex chỉ Read khi user invoke hoặc khi AGENTS.md instruct.
+- Skill `description` field cho slash command — Claude-specific. Codex dùng AGENTS.md table trên thay thế.
+
+**Single source of truth:** Mọi update vào `.claude/rules/` hoặc `.claude/skills/` đều auto-propagate sang `.codex/` qua symlink. KHÔNG duplicate maintenance.
+
+---
+
+**File version:** v1.1.0 — 2026-06-03 — added Appendix B `.codex` mirror + Skill Bridge per user direction.
 **Maintainer:** Wave coordinator (Claude / Codex hybrid handoff).
 **Re-read trigger:** Start of every Wave 14 bucket session.
