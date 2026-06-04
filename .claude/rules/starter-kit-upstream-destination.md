@@ -1,7 +1,12 @@
+---
+paths:
+  - ".claude/starter-kit/**"
+---
+
 # Starter-Kit Upstream Destination — bundle PR goes to upstream repo, not downstream
 
 **Priority:** 🟠 MANDATORY — cross-repo destination governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-06-04
 **Last-Reviewed:** 2026-06-04
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (reviewer-checklist + worked self-test on 2026-06-04 PR #2154 originating incident) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies Wave 2026-04-29 lesson (`wave-history.jsonl` entry `wave-2026-04-29-ui-kits-round-2-add-ons`) that was tribal knowledge until now)
@@ -242,4 +247,5 @@ Per §6 trailer `STARTER_KIT_UPSTREAM_DEFER:` — logged quarterly retro. Patter
 
 ## 11. Log
 
+- **2026-06-04 (v1.0.1):** PATCH — added `paths: [".claude/starter-kit/**"]` frontmatter per `context-budget-mandate.md` §3.2. Surfaced by CI `context-budget` job FAIL on v1.0.0 PR #2156 (rule ~25k chars, no `paths:`, always-load, would push base session size over §6.3 ceiling). Path-scope matches rule's own **Applies to** field — no behavior change; rule still fires when relevant files touched. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive frontmatter, no constraint loosening).
 - **2026-06-04 (v1.0.0):** Rule created in response to user direction 2026-06-04 mid-session: "update meta để tránh lần sau sai" sau PR #2154 wrong-destination incident (17-file v2.7.0 starter-kit bundle dumped vào project repo thay vì upstream `claude-starter-kit`). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged PR #2154 wrong destination) → Classify ✓ (no existing rule codifies upstream-vs-downstream destination cho starter-kit bundle; Wave 04-29 wave-history.jsonl had lessons but not enforced; closest `agent-action-bias.md` covers general do-it-yourself không specific cho cross-repo destination) → Rule+Enforce ✓ (this file + reviewer-checklist §8.1 + agent prompt template §8.2 + memory `feedback_starter_kit_upstream_destination.md` + rules-index.csv row + worked self-test §7 paired same PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§7 worked example on 2026-06-04 PR #2154 originating incident — rule fires correctly + counterfactual ~30 min agent wall-clock + 1 user round-trip eliminated) → Retro Log ✓ (this entry). META P0 force-multiplier per `meta-gap-priority.md` §3 — fix 1 chuẩn destination → mọi starter-kit edit subsequent auto-comply prospectively. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying previously-tribal Wave 04-29 lesson; no constraint loosening; existing downstream-only starter-kit PRs grandfathered until next refresh; rule applies prospectively từ this PR forward 2026-06-04). Atomic-unique-bar §5.1 check passed: ✅ atomic (single concept: bundle → upstream destination) + ✅ unique (no overlap với existing cross-repo rules) + ✅ widely applicable (every starter-kit bundle edit) + ✅ body discipline §1 has 0 "and" conjunctions. CI detector (§8.4) deferred per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions (recurrence count 1 + reviewer-checklist + memory + self-test sufficient cho v1.0.0).
