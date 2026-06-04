@@ -1,5 +1,9 @@
 # Wave Plan Template
 
+> **⚠️ CANONICAL SOURCE = [`documents/03-planning/waves/_TEMPLATE.md`](../../../../documents/03-planning/waves/_TEMPLATE.md)** — đó là file mà `scripts/check-wave-plan-completeness.sh` validator đọc required sections từ. Drift giữa 2 file → canonical thắng. Reference này là mirror + thêm File-overlap matrix + Lessons-learned scaffolding cho rich plans.
+>
+> **Recurrence note 2026-06-04** (Wave flow-kh3 stub + Wave 14 PR #2141): cả 2 lần stub/plan ship thiếu canonical `## N. Heading` numbered structure → CI fail + revision-PR cost. **Stubs cũng phải có đủ 8 sections + 4 frontmatter fields** (`title`/`status`/`created`/`waves`) ngay cả khi `## 3. Scope` để TBD. Pre-commit hook `scripts/hooks/pre-commit` (opt-in via `git config core.hooksPath scripts/hooks`) chạy validator local trước commit.
+
 Markdown template cho `documents/03-planning/waves/wave-{date}-{theme}.md`. Source: structure of `wave-2026-04-29-observability.md` (canonical example).
 
 Copy block dưới, fill `{placeholders}`. Ship qua PR per [feedback_wave_plan_through_pr.md](../../../../projects/-home-nguyenvankiet-projects-2026-Kite-Class-Platform/memory/feedback_wave_plan_through_pr.md) BEFORE spawning agents.
