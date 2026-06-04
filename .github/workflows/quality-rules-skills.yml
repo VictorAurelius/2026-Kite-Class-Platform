@@ -45,6 +45,14 @@ on:
       - 'scripts/fixtures/rule-frontmatter/**'
       - '.claude/skills/quality/skill-conventions-check/data/fixtures/**'
       - '.claude/rules/_examples/env-reference-self-test*.md'
+      - 'scripts/check-fe-bare-catch.sh'
+      - 'scripts/check-be-rollback-side-effects.sh'
+      - 'scripts/check-gateway-shared-breaker.sh'
+      - 'kitehub/kitehub-frontend/src/components/auth/**'
+      - 'kitehub/kitehub-frontend/src/app/(auth)/**'
+      - 'kitehub/*/src/main/java/**'
+      - 'kiteclass/*/src/main/java/**'
+      - 'kitehub/kitehub-gateway/src/main/resources/application.yml'
 
 permissions:
   contents: read
@@ -345,5 +353,52 @@ jobs:
           RC=$?
           if [ $RC -ne 0 ]; then
             echo "::warning::audit-vn-sample-fixtures WARN — see script output. Wave br-4 Bucket E initial WARN-mode; HARD STOP target ~2026-06-23 (30-day grace)."
+          fi
+          exit 0
+
+  pre-walk-static-audit:
+    name: Pre-walk static audit bundle (WARN initially — pre-walk-static-audit-bundle.md v1.0.0)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: FE bare-catch sweep (auth components)
+        run: |
+          # Per .claude/rules/pre-walk-static-audit-bundle.md §3 row 2.
+          # Origin: Wave flow-kh1 G2 walk session 2026-06-04 — GAP-924/GAP-926
+          # bare `} catch {` blocks masking error semantics. WARN-only v1.0.0.
+          bash scripts/check-fe-bare-catch.sh --warn
+          RC=$?
+          if [ $RC -ne 0 ]; then
+            echo "::warning::check-fe-bare-catch surfaced site(s) — per cross-flow-bug-class-sweep.md §3 replace bare catch with \`} catch (err) {\`."
+          fi
+          exit 0
+
+      - name: BE rollback side-effects sweep
+        run: |
+          # Per .claude/rules/pre-walk-static-audit-bundle.md §3 row 3.
+          # Origin: GAP-927 — rollbackSignup rotated a token without resurfacing
+          # to caller; retry path then used the stale value. WARN-only v1.0.0.
+          bash scripts/check-be-rollback-side-effects.sh --warn
+          RC=$?
+          if [ $RC -ne 0 ]; then
+            echo "::warning::check-be-rollback-side-effects surfaced method(s) — surface rotated value via return type OR remove rotation from rollback path."
+          fi
+          exit 0
+
+      - name: Gateway shared-breaker sweep
+        run: |
+          # Per .claude/rules/pre-walk-static-audit-bundle.md §3 row 4.
+          # Origin: GAP-928 — single auth breaker gated both read + write paths;
+          # slow 2FA tripping breaker for unrelated register attempts.
+          bash scripts/check-gateway-shared-breaker.sh --warn
+          RC=$?
+          if [ $RC -ne 0 ]; then
+            echo "::warning::check-gateway-shared-breaker surfaced shared read+write breaker — carve write breaker (e.g. authWriteCircuitBreaker)."
           fi
           exit 0
