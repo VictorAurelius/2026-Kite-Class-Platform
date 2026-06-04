@@ -4,6 +4,7 @@ status: in-progress
 created: 2026-06-04
 updated: 2026-06-04
 wave: 2
+waves: [flow-kh3-2]
 tag_primary: flow-kh3
 tags_secondary: [payment, beta-prep, sepay]
 counter: 2
