@@ -1,0 +1,37 @@
+{
+  "pr": 2162,
+  "title": "fix(ci): remove duplicate payment endpoints from legacy AdminController",
+  "branch": "fix/admin-controller-duplicate-mapping",
+  "created_at": null,
+  "merged_at": "2026-06-04T12:54:52Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": false,
+    "audits_required": [
+      "api-contract-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-06-04T12:55:06.127642",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 1,
+        "java_files": 1,
+        "test_files": 0,
+        "business_docs": false,
+        "missing_audits": [
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/4",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-2720007"
+  }
+}
