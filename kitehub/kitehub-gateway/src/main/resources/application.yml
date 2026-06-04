@@ -887,6 +887,34 @@ resilience4j:
         baseConfig: default
         failureRateThreshold: 60
 
+  # GAP-932 (2026-06-04 Wave flow-kh1 G2 re-walk): Spring Cloud Circuit Breaker
+  # auto-wraps each call with a TimeLimiter. Default timeoutDuration=1s causes
+  # the gateway to time out on tenant-provisioning POSTs that legitimately take
+  # 2-5s (DatabaseProvisioningService creates a physical kiteclass DB + Flyway
+  # migrate) — the upstream eventually returns 201 but gateway has already
+  # fired /fallback/auth → user sees false 503. GAP-928 Phase 1/2 tuned the
+  # CircuitBreaker's slowCallRateThreshold but TimeLimiter is a SEPARATE
+  # component. Configure a per-instance TimeLimiter for the auth-write +
+  # instance routes so slow but successful provisioning completes.
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 5s
+        cancelRunningFuture: true
+      authWriteRoute:
+        # Tenant provisioning on a cold local stack runs ~2-5s; production
+        # remote Postgres + Flyway can be slower. Use a generous ceiling.
+        timeoutDuration: 60s
+        cancelRunningFuture: false
+      instanceRoute:
+        timeoutDuration: 30s
+        cancelRunningFuture: false
+    instances:
+      authWriteCircuitBreaker:
+        baseConfig: authWriteRoute
+      instanceCircuitBreaker:
+        baseConfig: instanceRoute
+
 # GAP-604 (Wave 89 Bucket A): JWT signing secret cho JwtAuthenticationGatewayFilter.
 # Phải match JWT_SECRET trong kitehub-subscription (issuer side) để gateway verify
 # được tokens subscription issue. Khi không set → filter throws IllegalStateException
