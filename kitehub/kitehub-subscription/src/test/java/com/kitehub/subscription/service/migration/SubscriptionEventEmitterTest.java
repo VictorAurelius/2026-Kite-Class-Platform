@@ -12,8 +12,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -91,17 +93,27 @@ class SubscriptionEventEmitterTest {
         emitter.emit(instance, "beta.invite.sent", "email.beta.invite", "{\"to\":\"x@y.com\"}");
 
         verify(outboxRepository).save(any(SubscriptionOutboxEvent.class));
-        verify(rabbitTemplate).convertAndSend(
+        // GAP-937 (2026-06-04): production code uses rabbitTemplate.send(exchange, routingKey, Message)
+        // with raw UTF-8 bytes + Content-Type=application/json — NOT convertAndSend.
+        // See SubscriptionEventEmitter line 105 + GAP-925 fix rationale.
+        ArgumentCaptor<Message> msgCaptor = ArgumentCaptor.forClass(Message.class);
+        verify(rabbitTemplate).send(
             eq(EmailQueueConfig.EMAIL_EXCHANGE),
             eq("email.beta.invite"),
-            (Object) eq("{\"to\":\"x@y.com\"}")
+            msgCaptor.capture()
         );
+        Message msg = msgCaptor.getValue();
+        assertThat(new String(msg.getBody(), StandardCharsets.UTF_8))
+            .isEqualTo("{\"to\":\"x@y.com\"}");
+        assertThat(msg.getMessageProperties().getContentType())
+            .isEqualTo("application/json");
     }
 
     @Test
     void emit_fast_path_failure_does_not_throw_outbox_still_saved() {
+        // GAP-937: stub send(...) not convertAndSend — matches production path
         doThrow(new AmqpException("broker down"))
-            .when(rabbitTemplate).convertAndSend(anyString(), anyString(), (Object) any());
+            .when(rabbitTemplate).send(anyString(), anyString(), any(Message.class));
 
         // Should not throw — fast-path failure is best-effort
         emitter.emit(instance, "beta.invite.sent", "email.beta.invite", "{\"k\":\"v\"}");

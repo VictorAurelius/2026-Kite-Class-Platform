@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -34,12 +35,18 @@ import java.util.UUID;
  * - Toggling email types on/off
  * - Manually triggering email sends
  *
+ * <p><strong>Auth</strong>: all routes require a JWT with role {@code PLATFORM_ADMIN}.
+ * The gateway forwards the role as {@code X-User-Roles} header; Spring Security maps it
+ * to {@code ROLE_PLATFORM_ADMIN} and the class-level {@link PreAuthorize} enforces access
+ * (GAP-938, Wave flow-kh3 — supersedes the legacy {@code X-Admin-Key} interceptor).</p>
+ *
  * @since 1.0.0
  */
 @Slf4j
 @RestController
 @RequestMapping("/api/platform/admin/emails")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 @Tag(name = "Admin Email", description = "Email monitoring and control for platform admins")
 public class AdminEmailController {
 

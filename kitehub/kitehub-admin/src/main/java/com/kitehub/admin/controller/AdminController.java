@@ -1,9 +1,7 @@
 package com.kitehub.admin.controller;
 
-import com.kitehub.admin.dto.ConfirmPaymentRequest;
 import com.kitehub.admin.dto.DashboardStats;
 import com.kitehub.admin.dto.InstanceSummary;
-import com.kitehub.admin.dto.RejectPaymentRequest;
 import com.kitehub.admin.dto.RevenueReport;
 import com.kitehub.admin.event.SubscriptionDataChangedEvent;
 import com.kitehub.admin.service.AnalyticsService;
@@ -11,12 +9,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.entity.Subscription;
 import com.kitehub.platform.domain.enums.InstanceStatus;
-import com.kitehub.subscription.dto.PaymentResponse;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
-import com.kitehub.subscription.service.PaymentService;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -30,14 +25,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -74,7 +66,6 @@ public class AdminController {
     private final AnalyticsService analyticsService;
     private final InstanceRepository instanceRepository;
     private final SubscriptionRepository subscriptionRepository;
-    private final PaymentService paymentService;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -228,64 +219,6 @@ public class AdminController {
         log.info("Admin requested subscriptions page={} size={}", safe.getPageNumber(), safe.getPageSize());
 
         return ResponseEntity.ok(subscriptionRepository.findAll(safe));
-    }
-
-    // ==================== PAYMENT ADMIN APIs ====================
-
-    /**
-     * Get all pending payments (Admin).
-     *
-     * @return list of pending payments
-     */
-    @GetMapping("/payments/pending")
-    public ResponseEntity<List<PaymentResponse>> getPendingPayments() {
-        log.info("Admin requested pending payments");
-        List<PaymentResponse> payments = paymentService.getPendingPayments();
-        return ResponseEntity.ok(payments);
-    }
-
-    /**
-     * Confirm a payment manually (Admin).
-     *
-     * @param id payment ID
-     * @param request confirm request with transaction ID
-     * @return updated payment
-     */
-    @PostMapping("/payments/{id}/confirm")
-    public ResponseEntity<PaymentResponse> confirmPayment(
-            @PathVariable UUID id,
-            @Valid @RequestBody ConfirmPaymentRequest request
-    ) {
-        log.info("Admin confirming payment: {} with transactionId: {}", id, request.getTransactionId());
-        PaymentResponse payment = paymentService.confirmPayment(id, request.getTransactionId());
-
-        // GAP-126 — payment confirmation drives subscription state; refresh dashboard
-        eventPublisher.publishEvent(
-                new SubscriptionDataChangedEvent(this, "payment.confirmed", id));
-
-        return ResponseEntity.ok(payment);
-    }
-
-    /**
-     * Reject a payment manually (Admin).
-     *
-     * @param id payment ID
-     * @param request reject request with reason
-     * @return updated payment
-     */
-    @PostMapping("/payments/{id}/reject")
-    public ResponseEntity<PaymentResponse> rejectPayment(
-            @PathVariable UUID id,
-            @Valid @RequestBody RejectPaymentRequest request
-    ) {
-        log.info("Admin rejecting payment: {} with reason: {}", id, request.getReason());
-        PaymentResponse payment = paymentService.rejectPayment(id, request.getReason());
-
-        // GAP-126 — rejected payment may flip subscription state
-        eventPublisher.publishEvent(
-                new SubscriptionDataChangedEvent(this, "payment.rejected", id));
-
-        return ResponseEntity.ok(payment);
     }
 
     // ==================== HELPER METHODS ====================

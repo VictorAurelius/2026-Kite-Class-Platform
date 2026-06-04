@@ -17,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.kitehub.platform.domain.entity.EmailSentLog;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.UUID;
@@ -74,7 +76,12 @@ class EmailServiceClientTest {
 
     @BeforeEach
     void setUp() {
-        eventEmitter = new SubscriptionEventEmitter(outboxRepository);
+        // GAP-937 (2026-06-04): construct emitter WITH rabbitTemplate so the production
+        // fast-path (`rabbitTemplate.send(exchange, routingKey, Message)` in
+        // SubscriptionEventEmitter line 105) actually fires. Previously this test built
+        // emitter via single-arg constructor → fast-path never ran → mock verifications
+        // of rabbitTemplate.convertAndSend(...) were dead stubs / always failed.
+        eventEmitter = new SubscriptionEventEmitter(outboxRepository, rabbitTemplate);
         // Spring Boot's auto-configured ObjectMapper has JSR-310 module registered;
         // findAndRegisterModules() picks the same set up for unit tests
         // (per memory: bare new ObjectMapper() drops Java 8 time types).
@@ -84,6 +91,22 @@ class EmailServiceClientTest {
             rabbitTemplate, emailConfigProperties, eventEmitter, objectMapper);
         instanceId = UUID.randomUUID();
         lenient().when(emailConfigProperties.getTypeToggles()).thenReturn(new HashMap<>());
+    }
+
+    /**
+     * Decode the JSON body of an AMQP {@link Message} into an {@link EmailEvent}.
+     * Production path: EmailServiceClient.publishToQueue serializes EmailEvent →
+     * SubscriptionEventEmitter.emit wraps raw UTF-8 bytes in Message body
+     * with Content-Type=application/json (per GAP-925 fix).
+     */
+    private EmailEvent decodeEmailEvent(Message msg) {
+        try {
+            return objectMapper.readValue(
+                new String(msg.getBody(), StandardCharsets.UTF_8),
+                EmailEvent.class);
+        } catch (Exception e) {
+            throw new AssertionError("Failed to decode EmailEvent from Message body", e);
+        }
     }
 
     @Nested
@@ -106,14 +129,15 @@ class EmailServiceClientTest {
             emailServiceClient.sendTrialExpirationWarning(
                 instanceId, "test@example.com", "Test Org", 3);
 
-            // Should publish to RabbitMQ
-            ArgumentCaptor<EmailEvent> eventCaptor = ArgumentCaptor.forClass(EmailEvent.class);
-            verify(rabbitTemplate).convertAndSend(
+            // GAP-937: production uses rabbitTemplate.send(exchange, routingKey, Message)
+            // with raw UTF-8 JSON body — NOT convertAndSend.
+            ArgumentCaptor<Message> msgCaptor = ArgumentCaptor.forClass(Message.class);
+            verify(rabbitTemplate).send(
                 eq(EmailQueueConfig.EMAIL_EXCHANGE),
                 eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
-                eventCaptor.capture());
+                msgCaptor.capture());
 
-            EmailEvent event = eventCaptor.getValue();
+            EmailEvent event = decodeEmailEvent(msgCaptor.getValue());
             assertThat(event.getInstanceId()).isEqualTo(instanceId);
             assertThat(event.getTo()).isEqualTo("test@example.com");
             assertThat(event.getEmailType()).isEqualTo("trial-warning");
@@ -139,13 +163,14 @@ class EmailServiceClientTest {
             emailServiceClient.sendWelcomeEmail(
                 instanceId, "test@example.com", "Test Org", 14, "2026-04-30");
 
-            ArgumentCaptor<EmailEvent> eventCaptor = ArgumentCaptor.forClass(EmailEvent.class);
-            verify(rabbitTemplate).convertAndSend(
+            // GAP-937: send(...) not convertAndSend
+            ArgumentCaptor<Message> msgCaptor = ArgumentCaptor.forClass(Message.class);
+            verify(rabbitTemplate).send(
                 eq(EmailQueueConfig.EMAIL_EXCHANGE),
                 eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
-                eventCaptor.capture());
+                msgCaptor.capture());
 
-            EmailEvent event = eventCaptor.getValue();
+            EmailEvent event = decodeEmailEvent(msgCaptor.getValue());
             assertThat(event.getEmailType()).isEqualTo("welcome");
             assertThat(event.getTemplateName()).isEqualTo("welcome");
         }
@@ -161,10 +186,11 @@ class EmailServiceClientTest {
             emailServiceClient.sendSubscriptionCreatedEmail(
                 instanceId, "test@example.com", "Test Org", "PREMIUM", "MONTHLY");
 
-            verify(rabbitTemplate).convertAndSend(
+            // GAP-937: send(...) not convertAndSend
+            verify(rabbitTemplate).send(
                 eq(EmailQueueConfig.EMAIL_EXCHANGE),
                 eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
-                any(EmailEvent.class));
+                any(Message.class));
         }
     }
 
@@ -197,7 +223,8 @@ class EmailServiceClientTest {
             verify(restTemplate).postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class));
 
             // Should NOT publish to RabbitMQ
-            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
+            // GAP-937: send(...) not convertAndSend
+            verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
 
             // Should still record in sent log
             verify(emailSentLogRepository).save(any(EmailSentLog.class));
@@ -221,7 +248,8 @@ class EmailServiceClientTest {
 
             // Should not call RestTemplate or RabbitTemplate
             verify(restTemplate, never()).postForEntity(anyString(), any(), any());
-            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
+            // GAP-937: send(...) not convertAndSend
+            verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
             // Should not save new log
             verify(emailSentLogRepository, never()).save(any());
         }
@@ -238,7 +266,8 @@ class EmailServiceClientTest {
                 instanceId, "admin@org.com", "My Org", 5);
 
             verify(restTemplate, never()).postForEntity(anyString(), any(), any());
-            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
+            // GAP-937: send(...) not convertAndSend
+            verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
         }
 
         @Test
@@ -253,7 +282,8 @@ class EmailServiceClientTest {
                 instanceId, "admin@org.com", "My Org");
 
             verify(restTemplate, never()).postForEntity(anyString(), any(), any());
-            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
+            // GAP-937: send(...) not convertAndSend
+            verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
         }
 
         @Test
@@ -267,7 +297,8 @@ class EmailServiceClientTest {
             emailServiceClient.sendTrialExpired(instanceId, "test@example.com", "Test Org");
 
             verify(restTemplate, never()).postForEntity(anyString(), any(), any());
-            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
+            // GAP-937: send(...) not convertAndSend
+            verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
         }
 
         @Test
@@ -282,7 +313,8 @@ class EmailServiceClientTest {
                 instanceId, "test@example.com", "Test Org");
 
             verify(restTemplate, never()).postForEntity(anyString(), any(), any());
-            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
+            // GAP-937: send(...) not convertAndSend
+            verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
         }
 
         @Test
@@ -297,7 +329,8 @@ class EmailServiceClientTest {
                 instanceId, "test@example.com", "Test Org", 7, "BASIC", 500000);
 
             verify(restTemplate, never()).postForEntity(anyString(), any(), any());
-            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
+            // GAP-937: send(...) not convertAndSend
+            verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
         }
     }
 
@@ -355,14 +388,14 @@ class EmailServiceClientTest {
             emailServiceClient.sendTrialExpirationWarning(
                 "test@example.com", "Test Org", 3);
 
-            // Should publish to queue (default mode)
-            ArgumentCaptor<EmailEvent> eventCaptor = ArgumentCaptor.forClass(EmailEvent.class);
-            verify(rabbitTemplate).convertAndSend(
+            // GAP-937: send(...) not convertAndSend
+            ArgumentCaptor<Message> msgCaptor = ArgumentCaptor.forClass(Message.class);
+            verify(rabbitTemplate).send(
                 eq(EmailQueueConfig.EMAIL_EXCHANGE),
                 eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
-                eventCaptor.capture());
+                msgCaptor.capture());
 
-            assertThat(eventCaptor.getValue().getInstanceId()).isNull();
+            assertThat(decodeEmailEvent(msgCaptor.getValue()).getInstanceId()).isNull();
         }
     }
 
@@ -386,7 +419,8 @@ class EmailServiceClientTest {
             emailServiceClient.sendTrialMidpointEmail(
                 instanceId, "test@example.com", "test");
 
-            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
+            // GAP-937: send(...) not convertAndSend
+            verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
         }
 
         @Test
@@ -400,10 +434,11 @@ class EmailServiceClientTest {
             emailServiceClient.sendTrialMidpointEmail(
                 instanceId, "test@example.com", "test");
 
-            verify(rabbitTemplate).convertAndSend(
+            // GAP-937: send(...) not convertAndSend
+            verify(rabbitTemplate).send(
                 eq(EmailQueueConfig.EMAIL_EXCHANGE),
                 eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
-                any(EmailEvent.class));
+                any(Message.class));
 
             ArgumentCaptor<EmailSentLog> captor = ArgumentCaptor.forClass(EmailSentLog.class);
             verify(emailSentLogRepository).save(captor.capture());
@@ -421,7 +456,8 @@ class EmailServiceClientTest {
             emailServiceClient.sendOnboardingTipsEmail(
                 instanceId, "test@example.com", "test");
 
-            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
+            // GAP-937: send(...) not convertAndSend
+            verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
         }
 
         @Test
@@ -435,10 +471,11 @@ class EmailServiceClientTest {
             emailServiceClient.sendOnboardingTipsEmail(
                 instanceId, "test@example.com", "test");
 
-            verify(rabbitTemplate).convertAndSend(
+            // GAP-937: send(...) not convertAndSend
+            verify(rabbitTemplate).send(
                 eq(EmailQueueConfig.EMAIL_EXCHANGE),
                 eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
-                any(EmailEvent.class));
+                any(Message.class));
 
             ArgumentCaptor<EmailSentLog> captor = ArgumentCaptor.forClass(EmailSentLog.class);
             verify(emailSentLogRepository).save(captor.capture());
@@ -456,7 +493,8 @@ class EmailServiceClientTest {
             emailServiceClient.sendSubscriptionExpiredEmail(
                 instanceId, "test@example.com", "test");
 
-            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
+            // GAP-937: send(...) not convertAndSend
+            verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
         }
 
         @Test
@@ -470,10 +508,11 @@ class EmailServiceClientTest {
             emailServiceClient.sendSubscriptionExpiredEmail(
                 instanceId, "test@example.com", "test");
 
-            verify(rabbitTemplate).convertAndSend(
+            // GAP-937: send(...) not convertAndSend
+            verify(rabbitTemplate).send(
                 eq(EmailQueueConfig.EMAIL_EXCHANGE),
                 eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
-                any(EmailEvent.class));
+                any(Message.class));
 
             ArgumentCaptor<EmailSentLog> captor = ArgumentCaptor.forClass(EmailSentLog.class);
             verify(emailSentLogRepository).save(captor.capture());
@@ -491,7 +530,8 @@ class EmailServiceClientTest {
             emailServiceClient.sendDataRetentionFinalWarning(
                 instanceId, "test@example.com", "test");
 
-            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
+            // GAP-937: send(...) not convertAndSend
+            verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
         }
 
         @Test
@@ -505,10 +545,11 @@ class EmailServiceClientTest {
             emailServiceClient.sendDataRetentionFinalWarning(
                 instanceId, "test@example.com", "test");
 
-            verify(rabbitTemplate).convertAndSend(
+            // GAP-937: send(...) not convertAndSend
+            verify(rabbitTemplate).send(
                 eq(EmailQueueConfig.EMAIL_EXCHANGE),
                 eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
-                any(EmailEvent.class));
+                any(Message.class));
 
             ArgumentCaptor<EmailSentLog> captor = ArgumentCaptor.forClass(EmailSentLog.class);
             verify(emailSentLogRepository).save(captor.capture());
@@ -570,8 +611,9 @@ class EmailServiceClientTest {
                 eq(instanceId), anyString(), anyString(),
                 any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(false);
+            // GAP-937: stub send(...) not convertAndSend — matches production path
             doThrow(new AmqpException("broker offline"))
-                .when(rabbitTemplate).convertAndSend(anyString(), anyString(), any(EmailEvent.class));
+                .when(rabbitTemplate).send(anyString(), anyString(), any(Message.class));
 
             // Caller's outer try/catch in sendTrialExpirationWarning swallows generic
             // exceptions — but the outbox row must be written first regardless.

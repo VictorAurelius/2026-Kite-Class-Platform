@@ -74,8 +74,8 @@ class InstanceApiContractTest {
     @MockitoBean
     private InstancePurgeService instancePurgeService;
 
-    @MockitoBean
-    private com.kitehub.subscription.config.AdminApiKeyInterceptor adminApiKeyInterceptor;
+    // GAP-938 (this PR): AdminApiKeyInterceptor đã xóa (dead code post Wave 79 default-deny).
+    // Trước đây MockitoBean để @WebMvcTest tải đủ WebMvcConfig; nay không còn lớp đó nên field cũng remove.
 
     private static final UUID INSTANCE_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
     private static final UUID OWNER_ID = UUID.fromString("00000000-0000-0000-0000-000000000002");

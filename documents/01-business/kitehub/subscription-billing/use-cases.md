@@ -1,22 +1,28 @@
 # Subscription & Billing — Use Cases
 
 ### UC-SUB-01: Tạo Subscription mới
-- **Actor:** Owner (sau khi trial expired hoặc upgrade)
+- **Actor:** Owner (sau khi trial expired hoặc lần đầu chọn gói)
 - **Precondition:** Instance tồn tại, không có active subscription, tier != FREE
 - **Steps:**
   1. FE: hiển thị pricing page với các tier (BASIC/PREMIUM/ENTERPRISE)
   2. User: chọn tier và billing cycle (MONTHLY/ANNUALLY)
-  3. System: validate không có active subscription trùng (SUB-14)
-  4. System: reject nếu tier = FREE (SUB-01)
-  5. System: tính price từ tier + billing cycle
-  6. System: tạo subscription (status=ACTIVE, autoRenew=true)
-  7. System: update instance status = ACTIVE
-  8. System: gửi subscription-created email
-- **Postcondition:** Subscription ACTIVE, instance ACTIVE
+  3. FE: POST `/api/platform/subscriptions` với payload `{instanceId, tier, billingCycle, autoRenew}`
+  4. System: validate không có active subscription trùng (SUB-14)
+  5. System: reject nếu tier = FREE (SUB-01)
+  6. System: tính price từ tier + billing cycle
+  7. System: tạo subscription với `status=PENDING, tier=FREE, pendingTier=<requested>, billingCycle=<requested>, priceVnd=<calculated>, autoRenew=<requested>` (SUB-20 — KHÔNG tự ý mark ACTIVE)
+  8. System: gọi VietQRService tạo `Payment PENDING` cho `priceVnd` đầy đủ với method `VIETQR`, nội dung chuyển khoản unique (SUB-11, SUB-18); gán `pendingPaymentId`
+  9. API: trả `SubscriptionResponse` với `status=PENDING, tier=FREE, pendingTier, pendingPaymentId`
+  10. FE: redirect tới `/billing/payment/{pendingPaymentId}` hiển thị QR/thông tin chuyển khoản
+  11. User: chuyển khoản ngoài hệ thống theo QR/thông tin ngân hàng
+  12. Admin: đối soát statement ngân hàng rồi confirm payment (UC-SUB-07)
+  13. System (sau admin confirm): `PaymentService.confirmPayment` → `applyPendingUpgrade(subscriptionId, paymentId)` → flip `tier=<requested>`, `status=ACTIVE`, clear `pendingTier`+`pendingPaymentId`, update instance status = ACTIVE, gửi subscription-created email
+- **Postcondition (sau Bước 9):** Subscription `PENDING` với `pendingTier` + `pendingPaymentId` set; Payment `PENDING` chờ admin xử lý. Instance KHÔNG được activate trước admin confirm.
+- **Postcondition (sau Bước 13):** Subscription `ACTIVE` tier `<requested>`, instance `ACTIVE`, email đã gửi.
 - **Errors:**
   - 409: already has active subscription
   - 400: FREE tier cannot have subscription
-- **FE Behavior:** Redirect về dashboard sau thanh toán thành công
+- **FE Behavior:** Toast "Đã tạo đơn đăng ký gói, vui lòng thanh toán" + redirect sang payment page. Không hiển thị gói đã active cho đến khi admin confirm payment (polling thấy payment `COMPLETED` → reload subscription thấy `status=ACTIVE`).
 
 ### UC-SUB-02: Upgrade Subscription bằng chuyển khoản thủ công/VietQR
 - **Actor:** Owner

@@ -28,9 +28,14 @@ import static org.mockito.Mockito.when;
 /**
  * Unit tests for {@link AdminPaymentController} (Wave flow-kh3, UC-SUB-07).
  *
- * <p>Admin-key enforcement is covered by {@code AdminApiKeyInterceptor} + {@code WebMvcConfig};
- * these tests focus on the controller-level contract (payload mapping, service calls,
- * exception propagation through {@code GlobalExceptionHandler}).</p>
+ * <p>Admin authentication is enforced by Spring Security {@code @PreAuthorize("hasRole('PLATFORM_ADMIN')")}
+ * on each handler (GAP-938, Wave flow-kh3). Authorization is verified at the Spring Security filter
+ * chain level — these pure Mockito tests instantiate the controller directly and therefore bypass
+ * the security chain, focusing instead on the controller-level contract (payload mapping, service
+ * calls, exception propagation through {@code GlobalExceptionHandler}).</p>
+ *
+ * <p>Authorization round-trip (gateway → X-User-Roles → ROLE_PLATFORM_ADMIN → @PreAuthorize)
+ * is covered by integration / MockMvc tests in the broader suite.</p>
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AdminPaymentController")

@@ -39,17 +39,24 @@ giữ tách bạch (subscription tier-payment ≠ school invoice/installment pay
 **Response 201:**
 ```json
 {
-  "id": "uuid",
-  "instanceId": "uuid",
-  "tier": "BASIC",
+  "id": "subscription-uuid",
+  "instanceId": "instance-uuid",
+  "tier": "FREE",
+  "pendingTier": "BASIC",
   "billingCycle": "MONTHLY",
-  "status": "ACTIVE",
+  "priceVnd": 500000,
+  "status": "PENDING",
+  "pendingPaymentId": "payment-uuid",
   "autoRenew": true,
-  "startsAt": "2026-03-24T00:00:00Z",
-  "expiresAt": "2026-04-24T00:00:00Z"
+  "startedAt": null,
+  "expiresAt": null,
+  "isActive": false,
+  "isExpired": false
 }
 ```
-**Errors:** 400 FREE tier, 409 duplicate active subscription
+**Contract (SUB-20, Phase 1 BETA):** Create-first-paid áp dụng cùng pattern manual VietQR như PATCH /upgrade — subscription được tạo với `status=PENDING, tier=FREE, pendingTier=<requested>`, kèm Payment PENDING. Backend KHÔNG mark `status=ACTIVE` hoặc activate instance trước khi admin confirm payment. FE PHẢI redirect sang `/billing/payment/{pendingPaymentId}` hiển thị QR/thông tin chuyển khoản. Sau admin confirm payment (UC-SUB-07), backend gọi `applyPendingUpgrade` → tier flip sang `requested`, status flip ACTIVE, instance activate, subscription-created email gửi.
+
+**Errors:** 400 FREE tier (`Cannot create subscription for FREE tier`), 409 duplicate active subscription
 
 ---
 
@@ -242,33 +249,41 @@ Monitor via `GET /api/platform/subscriptions/expiring` and instance status.
 
 ---
 
+## Admin endpoints — authentication note (GAP-938, Wave flow-kh3)
+
+> Tất cả admin endpoint dưới đây (`/api/platform/admin/**`) yêu cầu **JWT với role `PLATFORM_ADMIN`** forward qua gateway. Gateway extract role từ JWT và set header `X-User-Id` + `X-User-Roles` cho downstream services. Spring Security trong `kitehub-subscription` đọc header, map sang `ROLE_PLATFORM_ADMIN` và enforce qua `@PreAuthorize("hasRole('PLATFORM_ADMIN')")` ở mỗi handler.
+>
+> Cơ chế `X-Admin-Key` cũ (qua `AdminApiKeyInterceptor`) đã bị xóa trong PR GAP-938. Wave 79 default-deny migration khiến interceptor đó trở thành dead code (Spring Security block request trước khi interceptor chạy), và việc giữ lại tạo ra surface attack thừa cộng với drift giữa doc và code.
+
+---
+
 ## GET /api/platform/admin/payments/pending
 **Use case:** UC-SUB-07
-**Auth:** Bearer token (Platform Admin)
+**Auth:** JWT với role `PLATFORM_ADMIN` (gateway forward `X-User-Roles`)
 **Response 200:** `[PaymentResponse]` pending payments cần đối soát thủ công.
 
 ---
 
 ## POST /api/platform/admin/payments/{id}/confirm
 **Use case:** UC-SUB-07
-**Auth:** Bearer token (Platform Admin)
+**Auth:** JWT với role `PLATFORM_ADMIN` (gateway forward `X-User-Roles`)
 **Request:**
 ```json
 { "transactionId": "VCB-20260604-000123" }
 ```
 **Response 200:** PaymentResponse with `status=COMPLETED`, `transactionId`, `paidAt` set.
 **Side effect:** Nếu payment thuộc upgrade flow, subscription áp dụng `pendingTier`, cập nhật `priceVnd`, clear `pendingTier` + `pendingPaymentId`.
-**Errors:** 400 missing transactionId; 404 payment not found; 409 payment not PENDING.
+**Errors:** 400 missing transactionId; 401 thiếu/invalid JWT; 403 user không có role `PLATFORM_ADMIN`; 404 payment not found; 409 payment not PENDING.
 
 ---
 
 ## POST /api/platform/admin/payments/{id}/reject
 **Use case:** UC-SUB-07
-**Auth:** Bearer token (Platform Admin)
+**Auth:** JWT với role `PLATFORM_ADMIN` (gateway forward `X-User-Roles`)
 **Request:**
 ```json
 { "reason": "Không khớp statement ngân hàng hoặc sai nội dung chuyển khoản" }
 ```
 **Response 200:** PaymentResponse with `status=FAILED`.
 **Side effect:** Subscription giữ tier hiện tại; pending state được clear để owner tạo yêu cầu thanh toán mới sạch.
-**Errors:** 400 missing reason; 404 payment not found; 409 payment not PENDING.
+**Errors:** 400 missing reason; 401 thiếu/invalid JWT; 403 user không có role `PLATFORM_ADMIN`; 404 payment not found; 409 payment not PENDING.

@@ -116,8 +116,10 @@ jwt:
 
 # Email verification
 kitehub:
-  admin:
-    api-key: ${ADMIN_API_KEY:}
+  # GAP-938 (Wave flow-kh3) — kitehub.admin.api-key removed. Admin auth now via
+  # Spring Security @PreAuthorize("hasRole('PLATFORM_ADMIN')") + gateway-forwarded
+  # X-User-Id + X-User-Roles JWT claims. The legacy X-Admin-Key mechanism was dead
+  # code after Wave 79 GAP-552 default-deny migration.
   auth:
     # GAP-516 Wave 72b — AES-256 key for encrypting TOTP secrets at rest. 32
     # bytes required in production; the default placeholder padding keeps dev
@@ -258,8 +260,8 @@ payment:
     api-key: ${VIETQR_API_KEY:}
     mock-mode: ${PAYMENT_MOCK_MODE:true}
     bank-code: ${VIETQR_BANK_CODE:VCB}
-    account-number: ${VIETQR_ACCOUNT_NUMBER:}
-    account-name: ${VIETQR_ACCOUNT_NAME:}
+    account-number: ${VIETQR_ACCOUNT_NUMBER:1234567890}
+    account-name: ${VIETQR_ACCOUNT_NAME:CONG TY KITECLASS}
     template: ${VIETQR_TEMPLATE:compact}
 
 # S3/MinIO storage for backups

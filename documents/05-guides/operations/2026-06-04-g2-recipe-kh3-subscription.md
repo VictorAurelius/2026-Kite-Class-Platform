@@ -12,9 +12,7 @@ references:
 
 # Công thức G2 — KH-3 Đăng ký gói trả phí (trial → paid)
 
-> **Trạng thái:** ✅ **G1 PASS 2026-06-04** (coordinator-walked trên local Docker stack). G2 walk eligible khi 3 PR fix sau merge: **#2157** (V62 migration schema fix GAP-942) + **#2158** (VietQR YAML default GAP-943) + **#2161** (kitehub-admin endpoint collision GAP-941). Pre-walk PRs **#2151** (UC-SUB-01 SUB-20) + **#2152** (admin @PreAuthorize) + **#2153** (Payment account snapshot) đã merged main commit `1ce04fc0`.
->
-> **G1 walk evidence:** Owner FREE/TRIAL → POST /api/platform/subscriptions BASIC → HTTP 201 `status=PENDING + pendingPaymentId` → admin confirm (X-User-Roles=PLATFORM_ADMIN) → subscription FREE→BASIC + PENDING→ACTIVE + email "Subscription đã kích hoạt - G2 Test Center" tới MailHog ✅. **3 catalog findings cataloged:** GAP-942 (P0 V62 schema), GAP-943 (P1 YAML default), GAP-941 (P1 admin endpoint collision) — all 3 fix PRs landed cùng wave.
+> **Trạng thái:** Bản nháp soạn cùng PR vá tiền-walk. Sẽ chốt sau khi tôi walk G1 PASS + cập nhật các bước theo phản hồi thực tế. Bạn cứ tham khảo cấu trúc; nếu cần test trước khi G1 xong, bỏ qua bước nào báo "chờ G1 xác minh".
 
 ## Mục tiêu G2
 
@@ -41,7 +39,7 @@ Thời lượng ước tính: ~15-20 phút (gồm cả bước giả lập admin
 | Kiểm tra cổng gateway | `curl -sS http://localhost:9000/actuator/health` → phải trả `{"status":"UP",...}` (Gateway thật ở port **9000**, KHÔNG phải 8080 — đây là điểm khác KH-1 / KH-2c handoff cũ ghi 8080) |
 | Mở hộp thư test | Trình duyệt → `http://localhost:8025/` (MailHog UI) — xóa hết thư cũ để dễ nhận biết thư mới |
 | Xác nhận trạng thái Owner ban đầu | `docker exec kite-postgres psql -U kitehub -d kitehub -c "SELECT i.subdomain, i.tier, i.status, i.subscription_id FROM instances i WHERE i.subdomain = 'g2test-an-8';"` → kết quả mong đợi: `tier=FREE, status=TRIAL, subscription_id=null` |
-| Admin auth setup (UPDATED per PR #2152 + G1 verify) | `X-Admin-Api-Key` đã DEPRECATED. Thay bằng JWT `PLATFORM_ADMIN` role qua gateway. **Phase 1 BETA workaround (G1 walk pattern):** curl direct vào subscription:8081 với header `X-User-Roles: PLATFORM_ADMIN` + `X-User-Id: <any UUID>` — simulate gateway-forward post-JWT-decode. Production-equivalent flow (Phase 1.5+): login admin user → JWT → gateway forwards `X-User-Roles` header per `pre-launch-auth-hardening-checklist.md`. |
+| Lấy admin API key | (chờ G1 xác minh — sau khi PR #2150 merge tôi sẽ cập nhật cách lấy đúng key. Dự kiến nằm trong env `KITEHUB_ADMIN_API_KEY` của `kitehub-subscription` hoặc reuse từ KH-2a handoff cũ) |
 
 ## Các bước test
 
@@ -137,16 +135,15 @@ Trong G2 không có hệ thống ngân hàng thật. Bạn coi như đã chuyể
 **Hành động (qua curl thay vì admin UI cho gọn):**
 
 1. Lấy lại `pendingPaymentId` từ DB (lệnh ở Bước 3 §Verify)
-2. Chạy lệnh xác nhận (verified G1 walk pattern — direct service call với forged auth header):
+2. Lấy admin API key: (chờ G1 xác minh cách lấy — sẽ điền sau)
+3. Chạy lệnh xác nhận (thay `<PAYMENT_ID>` + `<ADMIN_KEY>`):
    ```bash
-   curl -sS -X POST http://localhost:8081/api/platform/admin/payments/<PAYMENT_ID>/confirm \
-     -H "X-User-Id: 00000000-0000-0000-0000-000000000099" \
-     -H "X-User-Roles: PLATFORM_ADMIN" \
+   curl -sS -X POST http://localhost:9000/api/platform/admin/payments/<PAYMENT_ID>/confirm \
+     -H "X-Admin-Api-Key: <ADMIN_KEY>" \
      -H "Content-Type: application/json" \
      -d '{"transactionId":"WALK-KH3-G2-TEST-001"}' \
      -w "\nHTTP=%{http_code}\n"
    ```
-   **Lưu ý:** port 8081 = subscription service direct (bypass gateway:9000 cho test scope; gateway path POST cũng work nhưng cần real JWT forwarding). `X-User-Roles` header simulate gateway-decoded JWT role per PR #2152 @PreAuthorize wiring. G1 walk verified: missing header → HTTP 401; with PLATFORM_ADMIN role → HTTP 200.
 
 **✅ Kỳ vọng (PASS):**
 - HTTP 200, payload trả về Payment với `status=COMPLETED` + `transactionId=WALK-KH3-G2-TEST-001`
@@ -159,12 +156,9 @@ Trong G2 không có hệ thống ngân hàng thật. Bạn coi như đã chuyể
   → phải thấy `tier=BASIC` (đã chuyển), `status=ACTIVE`, `pending_tier=null`, `pending_payment_id=null`, `expires_at` ~ 1 tháng sau (vì MONTHLY).
 
 **⚠️ Sad path:**
-- HTTP 404 → `AdminPaymentController` chưa lên (PR #2150/#2152 chưa merge / chưa rebuild). Báo lại.
-- HTTP 401 → header `X-User-Roles` thiếu / spelling sai (PR #2152 @PreAuthorize enforce). Verify: thử lại không header → expect 401 (smoke test confirm endpoint up).
-- HTTP 403 → header có nhưng role không phải `PLATFORM_ADMIN` (vd `OWNER`). Verify: PR #2152 reject non-admin.
-- HTTP 409 SQLState 42P10 / chk_subscription_status → PR #2157 V62 chưa merge / chưa apply (Flyway). Manual fallback: `docker exec kite-postgres psql -U kitehub -d kitehub -c "ALTER TABLE subscriptions ALTER COLUMN started_at DROP NOT NULL, ALTER COLUMN expires_at DROP NOT NULL; ALTER TABLE subscriptions DROP CONSTRAINT chk_subscription_status; ALTER TABLE subscriptions ADD CONSTRAINT chk_subscription_status CHECK (status IN ('PENDING','ACTIVE','SUSPENDED','CANCELLED','EXPIRED'));"`. G1 walk surfaced this — GAP-942 fix PR #2157.
+- HTTP 404 → `AdminPaymentController` chưa lên (PR #2150 chưa merge / chưa rebuild). Báo lại.
+- HTTP 403 → admin key sai, lấy lại key.
 - DB thấy `tier` vẫn FREE sau khi confirm 200 → finding #2 quay lại (admin confirm Payment khác với `pendingPaymentId`).
-- DB Payment account_number/account_name empty → PR #2158 (GAP-943 YAML default) chưa merge. Manual fallback: `UPDATE payments SET account_number='1234567890', account_name='CONG TY KITECLASS' WHERE id='<PAYMENT_ID>';`.
 
 **🔍 Verify thêm — admin từ chối (test sad path khác):** *(tùy chọn)*
 Trước khi confirm, có thể test reject path:
@@ -252,35 +246,11 @@ Khi nhận báo cáo, tôi sẽ flip campaign §4 dòng KH-3: `🔄 walk-pass-pe
 
 ## Lưu ý cho G3 (production parity, vòng sau)
 
-G2 chạy trên stack local Docker. G3 sẽ chạy trên môi trường production-equivalent (AWS EC2 stack đang stopped per GAP-612, cần khởi động lại). G3 verify checklist:
+G2 chạy trên stack local Docker. G3 sẽ chạy trên môi trường production-equivalent (AWS EC2 stack đang stopped, cần khởi động lại). G3 cần verify thêm:
+- VietQR provider thật (không mock-mode) trả QR đúng nội dung
+- Email SES gửi tới hộp thư thật (không MailHog)
+- DKIM signature pass
+- Trial countdown component (Finding #4) đã có
+- Trial expiry scheduler (Finding #9) hoạt động
 
-### G3 prerequisites (blocker GAP-612 — AWS account suspended)
-- AWS EC2 instances `kitehub-kh-backend` + `kitehub-kc-app` restarted post-suspension-restore
-- RDS `kitehub-postgres` available + V62 migration applied (Flyway auto on container restart)
-- ECR images: latest commit từ main pushed via `.github/workflows/docker-build-push.yml`
-
-### G3 verify items (post-restore)
-- **VietQR provider thật** (không mock-mode):
-  - AWS Secrets Manager `kitehub/production/vietqr-api-key` populated với real API key (Phase 1.5 paid)
-  - Override `PAYMENT_MOCK_MODE=false` via systemd env / fetch-secrets.sh
-  - Real QR generated chứa account info đúng
-- **VietQR account info real** (post PR #2158 + Secrets Manager):
-  - AWS Secret `kitehub/production/vietqr-account-number` + `vietqr-account-name` populated (KiteHub thật, không phải dev default `1234567890` / `CONG TY KITECLASS`)
-  - Production Payment row chứa real account info — Owner thấy QR scan-able với app banking thật
-- **Email SES gửi tới hộp thư thật** (không MailHog):
-  - SES domain `kitehub.me` verified + production-approved (out of sandbox)
-  - DKIM signature pass (Gmail Inbox không Spam)
-  - Subject "Subscription đã kích hoạt - <tenant>" render đúng diacritics
-- **Admin auth real flow** (gateway → JWT → header forward):
-  - Real PLATFORM_ADMIN user created (KHÔNG dev test admin)
-  - Gateway forwards JWT role correctly to subscription:8080 (production port, không 8081 local)
-  - End-to-end: admin login UI → confirm payment UI → state flip → email send
-- **Trial countdown component** (Finding #4 pre-walk audit) shipped + visible Owner UI
-- **Trial expiry scheduler** (Finding #9 pre-walk audit) hoạt động — cron trigger DB UPDATE + email send
-
-### G3 blocker chain
-- **GAP-612** — AWS account suspended; restore unblocks all G3 verify items above
-- **GAP-820** — Phase 1.5+ paid VietQR API provisioning (out of scope Phase 1 BETA — sister gap defer)
-- **GAP-943** PR #2158 — YAML default fix needs deploy + restart subscription service in production
-
-**Status:** G3 deferred post-GAP-612 unblock + Phase 1.5 paid setup. KH-3 campaign §4 row sẽ flip `🔄 walk-pass-pending-human` → `✅ THÔNG (G1+G2)` sau khi user G2 PASS; `+ G3` chỉ flip khi production verify done. Per `feature-ship-runtime-walk-mandate.md` v1.1.0 §1 walk evidence model.
+Hiện ngoài phạm vi G2; ghi nhận để chuẩn bị wave sau.

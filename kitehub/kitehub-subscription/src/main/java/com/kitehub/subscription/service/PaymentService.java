@@ -68,7 +68,13 @@ public class PaymentService {
                 request.getSubscriptionId()
             );
             payment.setQrCodeUrl(qrCodeUrl);
-            payment.setBankCode(vietQRService.getBankInfo());
+            // GAP-939: snapshot bank account info from VietQRService defaults so Owner
+            // sees "Số tài khoản" + "Tên chủ tài khoản" on /billing/payment/{id}.
+            // Prior to fix: setBankCode(getBankInfo()) stored multi-line "Bank: VCB\n..."
+            // (truncated to "VCB" by column length) + account_number/account_name empty.
+            payment.setBankCode(vietQRService.getBankCode());
+            payment.setAccountNumber(vietQRService.getAccountNumber());
+            payment.setAccountName(vietQRService.getAccountName());
         }
 
         // Generate payment content

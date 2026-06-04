@@ -26,6 +26,7 @@
 | SUB-17 | Upgrade payment idempotency | Nếu subscription đã có `pendingPaymentId` trỏ tới `Payment PENDING`, retry upgrade cùng pending tier trả lại payment đó; không tạo payment thứ hai | `payments.status=PENDING` + `subscriptions.pending_payment_id` |
 | SUB-18 | Payment content uniqueness | Nội dung chuyển khoản phải chứa short subscription id/payment marker đủ để admin đối soát trong bảng pending payments | VietQRService.generatePaymentContent |
 | SUB-19 | Admin confirm is payment capture source | `POST /admin/payments/{id}/confirm` là nguồn capture chính Phase 1 BETA; automated webhook/bank API chỉ future enhancement | PaymentService.confirmPayment |
+| SUB-20 | Create-first-paid phải qua cổng VietQR thủ công | `POST /api/platform/subscriptions` với tier != FREE tạo subscription với `status=PENDING, tier=FREE, pendingTier=<requested>, pendingPaymentId=<new>` + Payment PENDING. Tier chỉ flip sang `requested` + status flip `ACTIVE` khi `PaymentService.confirmPayment` gọi `applyPendingUpgrade`. Mirror UC-SUB-02 manual VietQR pattern. Phát hiện qua Wave flow-kh3 G1 walk 2026-06-04 — pre-rule create flow tự ý mark `status=ACTIVE` mà không có payment gate. | hardcoded SubscriptionService.createSubscription |
 
 ## Config
 
@@ -76,4 +77,5 @@ Per-rule attributes (Source / Rationale / Reviewer / Compliance check / Review c
 
 ## Log
 
+- **2026-06-04** Wave flow-kh3 G1 walk discovery — added SUB-20 (Create-first-paid manual VietQR gate). UC-SUB-01 pre-rule code mark `status=ACTIVE` immediately on POST `/api/platform/subscriptions` without payment, allowing Owner self-grant BASIC/PREMIUM/ENTERPRISE for free. Rule mirrors SUB-07/SUB-11/SUB-17 upgrade pattern: tạo PENDING subscription + PENDING Payment, tier+status flip chỉ sau admin confirm. Same-PR: code fix `SubscriptionService.createSubscription` + `applyPendingUpgrade` extended to handle create-case, `SubscriptionStatus.PENDING` enum value added, tests updated.
 - **2026-05-08** Backfill 5-attribute review section per GAP-433 Phase 1 (`business-logic-review.md` §2 standard). Placeholder Reviewer + Quarterly cadence + domain-specific Compliance check. GAP-156 Phase 2 will replace placeholders with stakeholder sign-offs.
