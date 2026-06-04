@@ -28,6 +28,10 @@ spring:
         # credential-stuffing + Resend-quota-burn vectors. Rates per
         # `pre-launch-auth-hardening-checklist.md` §2.1.
         # Specific paths MUST precede the `auth` catch-all so they win on path match.
+        # GAP-928 Phase 2: tenant-creating write endpoint -- uses
+        # authWriteCircuitBreaker (slow-call detection disabled) so a slow
+        # 2FA verify on /api/auth/** cannot trip the breaker that gates
+        # user registration.
         - id: auth-register
           uri: http://kitehub-subscription:8080
           predicates:
@@ -42,7 +46,7 @@ spring:
                 key-resolver: "#{@ipKeyResolver}"
             - name: CircuitBreaker
               args:
-                name: authCircuitBreaker
+                name: authWriteCircuitBreaker
                 fallbackUri: forward:/fallback/auth
 
         - id: auth-login
@@ -454,6 +458,33 @@ spring:
                 name: subscriptionCircuitBreaker
                 fallbackUri: forward:/fallback/subscription
 
+        # GAP-928 Phase 2 — tenant-creating write endpoint carved out from
+        # the kitehub-auth-v1 catch-all below. POST /api/v1/auth/beta-signup
+        # creates a brand-new tenant + OWNER user; runtime on a cold local
+        # stack is legitimately 1-5s. Phase 1 loosened the shared authRoute
+        # config but the breaker is still shared with read paths under
+        # /api/auth/** (2FA verify, login, refresh, etc.), so a slow read
+        # call can still trip the breaker and lock out an in-flight write.
+        # Wave flow-kh1 re-walk 2026-06-04 06:18-06:19 UTC reproduced that
+        # exact lockout (slow 2FA at 06:18:53 -> OPEN breaker -> beta-signup
+        # at 06:19:29 returns false 503 even though subscription committed
+        # the tenant + OWNER row at 06:19:29). This route uses the dedicated
+        # authWriteCircuitBreaker whose authWriteRoute config disables
+        # slow-call detection.
+        #
+        # Route declared BEFORE kitehub-auth-v1 so Spring Cloud Gateway
+        # matches it first (route order = declaration order).
+        - id: kitehub-auth-v1-beta-signup
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/auth/beta-signup
+            - Method=POST
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: authWriteCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+
         # GAP-509 — kitehub auth v1 (beta signup + verification) routes
         # to subscription service. Must precede instance-apis catch-all so
         # /api/v1/auth/** is captured before falling through to kiteclass-core.
@@ -790,6 +821,43 @@ resilience4j:
         slowCallDurationThreshold: 10s
         slowCallRateThreshold: 80
         eventConsumerBufferSize: 10
+      # GAP-928 Phase 2 — Wave flow-kh1 re-walk 2026-06-04 06:18-06:19 UTC
+      # reproduced the false 503 even with Phase 1 thresholds applied. The
+      # shared authCircuitBreaker tripped at 06:18:53 on a slow 2FA verify
+      # call, then the invitee's beta-signup POST at 06:19:29 hit the OPEN
+      # breaker. The subscription module had already committed the new
+      # tenant + OWNER user row at 06:19:29 (DB-confirmed); the gateway
+      # fallback fired at 06:19:30 returning false 503; the invitee retried
+      # 5x and got 404 INVALID_TOKEN because completeBetaSignup nulled the
+      # invite_token on the successful first call.
+      #
+      # The shared circuit breaker across /api/auth/** is the real defect:
+      # read paths (2FA verify, login) cohabit with write paths (beta-signup,
+      # register) on one breaker. A slow read tripping locks out subsequent
+      # writes that would otherwise succeed.
+      #
+      # authWriteRoute disables slow-call detection entirely
+      # (slowCallRateThreshold=100% so even all-slow does not trip) and
+      # keeps only hard failure-rate detection at 50%. Tenant provisioning
+      # (validate token -> flip status -> register user -> provision
+      # instance -> publish outbox event) on a cold local stack can
+      # legitimately run 1-5s; under the shared authRoute config every such
+      # call counted as a slow-fail. Write-endpoint users will now fall back
+      # only on genuine upstream failures, not on slow successes.
+      authWriteRoute:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 20
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        # Slow-call detection EFFECTIVELY DISABLED for write endpoints —
+        # rate=100 means breaker never trips on slow-only, threshold left
+        # at 60s safety ceiling for genuine hangs.
+        slowCallDurationThreshold: 60s
+        slowCallRateThreshold: 100
+        eventConsumerBufferSize: 10
     instances:
       # GAP-928 Phase 1: authCircuitBreaker uses dedicated authRoute config
       # (slowCallDurationThreshold 10s, minimumNumberOfCalls 20,
@@ -797,6 +865,12 @@ resilience4j:
       # provisioning on /api/v1/auth/** does not trip a false 503.
       authCircuitBreaker:
         baseConfig: authRoute
+      # GAP-928 Phase 2: dedicated breaker for tenant-creating write
+      # endpoints (POST /api/v1/auth/beta-signup + POST /api/v1/auth/register)
+      # so a slow read on /api/auth/** (2FA verify, login) cannot trip the
+      # breaker that gates the write path.
+      authWriteCircuitBreaker:
+        baseConfig: authWriteRoute
       instancesCircuitBreaker:
         baseConfig: default
       subscriptionCircuitBreaker:
