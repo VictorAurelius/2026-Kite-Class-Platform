@@ -87,6 +87,37 @@ Per `.claude/rules/contract-first-for-cross-layer.md` v1.0.0 — wave plan có F
 
 Memory: `feedback_fe_first_endpoint_proliferation.md` (auto-loaded).
 
+### Step 4.55 — Pre-walk persona simulation (per `pre-walk-persona-simulation-mandate.md` v1.0.0) — BẮT BUỘC khi wave ship user-facing flow
+
+**Trigger:** wave §3 Scope có ≥1 bucket touching user-facing flow class per `pre-walk-persona-simulation-mandate.md` §2 (signup / auth / invite / payment / tenant-switch / file-upload / email-driven / async / persona-attributed AC / multi-service workflow ≥3 services).
+
+**Decision flow:**
+
+1. Check rule §2 trigger pattern:
+   - Bucket scope mentions signup / login / invite / claim / payment / 2FA / tenant-switch / upload / email-token-click? → CROSS-LAYER user-facing flow ✅ → MANDATORY pre-walk
+   - Bucket scope pure refactor / infra / docs-only? → SKIP pre-walk
+2. Nếu MANDATORY:
+   - Add Bucket 0 (Pre-walk) row to §3 Scope per `pre-walk-persona-simulation-mandate.md` §6.2:
+     ```markdown
+     | Bucket | Scope | Owner | Walk class |
+     |---|---|---|---|
+     | 0 (Pre-walk) | Spawn Opus background agent simulate <persona> walk <flow>, return ≥5 failure modes per pre-walk-persona-simulation-mandate.md §3 | Coordinator | n/a |
+     | A | ... | <agent> | user-facing flow ✅ pre-walk required |
+     ```
+   - Spawn agent BEFORE merging Bucket A+B... (pre-walk findings inform batch fix scope)
+   - Agent prompt: persona-based-business-review Pre-Walk Mode (per skill `persona-based-business-review.md` v1.3+ "Pre-Walk Mode" section)
+   - Agent output saved artifact `documents/04-quality/audits/persona-review/YYYY-MM-DD-pre-walk-<flow>.md`
+   - HIGH-confidence findings batch-fixed PRE walk (per rule §3.1 recommendation)
+3. Skip exception cases:
+   - Recent pre-walk simulation ≤30 ngày cho same flow scope → SKIP với note "Pre-walk reuse <prior artifact>"
+   - Hotfix urgency P0 production incident → use override trailer `PRE_WALK_PERSONA_DEFER:` per rule §6.4
+
+**Anti-pattern signal:** wave plan có user-facing flow bucket nhưng KHÔNG có Bucket 0 (Pre-walk) row → STOP, add Bucket 0 hoặc justify exception qua commit trailer `PRE_WALK_PERSONA_DEFER: <reason>` + `PRE_WALK_PERSONA_FOLLOWUP: <gap link>`.
+
+**Worked example:** Wave flow-kh1 G2 walk session 2026-06-04 surfaced 6 unexpected bugs trong ~3h. Per rule §5 retroactive analysis, 5 of 6 (83%) would have surfaced trong 5-min pre-walk persona simulation asking "Tôi là invitee — gặp lỗi gì? retry sao? token expired sao?". Cost-save: ~1.5h wall-clock per walk session + restored audit trust. Flow Verification Campaign §4 22-flow queue subsequent walks auto-comply prospectively.
+
+Memory: `feedback_pre_walk_persona_simulation.md` (auto-loaded).
+
 ### Step 4.6 — Quality calibration (model tier per stake)
 
 Per `feedback_sonnet_parallel_agent_crash.md` + `feedback_opus_rework_validation.md` — classify wave stake → pick model tier cho parallel agents. Document choice trong wave plan §1 Brainstorm.
