@@ -764,9 +764,39 @@ resilience4j:
         waitDurationInOpenState: 10s
         failureRateThreshold: 50
         eventConsumerBufferSize: 10
+      # GAP-928 Phase 1 — Wave flow-kh1 G2 walk 2026-06-04 04:47:33-34 UTC:
+      # invitee g2test-an-4 saw 503 on POST /api/v1/auth/beta-signup at
+      # 04:47:34 while subscription DB had already committed status
+      # SIGNED_UP + provisioned tenant g2test-an-4 + inserted OWNER user
+      # row at 04:47:33 (DB-confirmed). The default 5-call sliding window
+      # + tight slowCallDurationThreshold trips the breaker on a single
+      # slow-but-successful tenant provisioning request after the kitehub-
+      # subscription / kiteclass-core restarts earlier in the same session
+      # (GAP-925 + GAP-866 rebuilds). Tenant provisioning on a cold local
+      # stack realistically takes 2-5s. Loosen thresholds for the auth
+      # route only so the breaker tolerates write-heavy first calls.
+      # Phase 2 (carve dedicated route for /api/v1/auth/beta-signup with
+      # no slow-call counting) + Phase 3 (fallback controller logs
+      # upstream status + body fingerprint) tracked in GAP-928 §Open
+      # Items.
+      authRoute:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 20
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        slowCallDurationThreshold: 10s
+        slowCallRateThreshold: 80
+        eventConsumerBufferSize: 10
     instances:
+      # GAP-928 Phase 1: authCircuitBreaker uses dedicated authRoute config
+      # (slowCallDurationThreshold 10s, minimumNumberOfCalls 20,
+      # slowCallRateThreshold 80%) so slow-but-successful tenant
+      # provisioning on /api/v1/auth/** does not trip a false 503.
       authCircuitBreaker:
-        baseConfig: default
+        baseConfig: authRoute
       instancesCircuitBreaker:
         baseConfig: default
       subscriptionCircuitBreaker:
