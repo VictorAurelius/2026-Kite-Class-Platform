@@ -260,8 +260,8 @@ payment:
     api-key: ${VIETQR_API_KEY:}
     mock-mode: ${PAYMENT_MOCK_MODE:true}
     bank-code: ${VIETQR_BANK_CODE:VCB}
-    account-number: ${VIETQR_ACCOUNT_NUMBER:}
-    account-name: ${VIETQR_ACCOUNT_NAME:}
+    account-number: ${VIETQR_ACCOUNT_NUMBER:1234567890}
+    account-name: ${VIETQR_ACCOUNT_NAME:CONG TY KITECLASS}
     template: ${VIETQR_TEMPLATE:compact}
 
 # S3/MinIO storage for backups
