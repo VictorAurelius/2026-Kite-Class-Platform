@@ -216,21 +216,21 @@ Catalog complete (5 blocker). Per `feature-ship-runtime-walk-mandate` §3.4 cata
 - GAP-917 (login 400 vs 401) + GAP-918 (gateway 503 startup) P2 không block G2 nhưng nên fix Phase 1 BETA
 - Sau GAP-916 fix → re-walk via gateway only → flip G1 ✅ → hand off G2 user → G3 production verify
 
-### 7.2 Status (live 2026-06-03)
+### 7.2 Status (live 2026-06-03 post-GAP-916 fix)
 
-✅ S1 register · ⚠️ S2 verify (config skip, G3 verify) · ✅ S3 login (sad path P2 drift) · ✅ S4 2FA enroll · ✅ S5 wizard (forged headers OK; gateway P0)
+✅ S1 register · ⚠️ S2 verify (config skip, G3 verify) · ✅ S3 login (sad path P2 drift) · ✅ S4 2FA enroll · ✅ S5 wizard (via gateway HTTP 200 after fix)
 
-**Gate:** G1 ⚠️ PARTIAL (production-path GAP-916 blocker) · G2 ⬜ blocked-by-GAP-916 · G3 ⬜ blocked-by-GAP-916
+**Gate:** G1 ✅ PASS · G2 ⬜ pending-user · G3 ⬜ pending-post-G2 + production EMAIL_VERIFICATION_ENABLED verify
 
 ### 7.3 Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` §3)
 
 | # | Plan §3 Scope item | Verdict | Follow-up |
 |---|---|---|---|
 | 1 | Bucket A — Walk 5 sub-step | ✅ DONE | Walk reached terminal step S5 với evidence cited §7.1 |
-| 2 | Bucket B — Batch-fix blocker | 🟡 PARTIAL | 5 blocker catalogued, real fixes deferred per §6.1 verdict; 3 gaps filed [GAP-916 P0](../../04-quality/gaps/phase-1-beta/GAP-916-gateway-onboarding-progress-401-jwt-not-recognized.md) / [GAP-917 P2](../../04-quality/gaps/phase-1-beta/GAP-917-login-sad-path-returns-400-spec-401.md) / [GAP-918 P2](../../04-quality/gaps/phase-1-beta/GAP-918-gateway-circuit-breaker-startup-transient-503.md) |
-| 3 | Bucket C — Re-walk + G1 verdict | 🟡 PARTIAL | Re-walk via gateway exposed GAP-916; G1 verdict = PARTIAL (production-path blocked) |
-| 4 | G2 human local test | ❌ NOT-IMPLEMENTED | BLOCKED-BY GAP-916 fix (user qua FE → gateway → 401 onboarding) |
-| 5 | G3 production parity confirm | ❌ NOT-IMPLEMENTED | BLOCKED-BY G2 PASS + EMAIL_VERIFICATION_ENABLED production-flag verify |
+| 2 | Bucket B — Batch-fix blocker | ✅ DONE (P0) + 🟡 PARTIAL (P2 residual) | [GAP-916 P0 DONE](../../04-quality/gaps/phase-1-beta/closed/GAP-916-gateway-onboarding-progress-401-jwt-not-recognized.md) (filter Order fix); residual [GAP-917 P2](../../04-quality/gaps/phase-1-beta/GAP-917-login-sad-path-returns-400-spec-401.md) + [GAP-918 P2](../../04-quality/gaps/phase-1-beta/GAP-918-gateway-circuit-breaker-startup-transient-503.md) defer Phase 1 BETA cosmetic |
+| 3 | Bucket C — Re-walk + G1 verdict | ✅ DONE | Re-walk via gateway PASS — S5 GET+PUT HTTP 200; G1 ✅ |
+| 4 | G2 human local test | 🟡 PENDING-USER | Hand off user — stack vẫn UP (`kitehub/scripts/status.sh` confirm); FE qua gateway 9000 |
+| 5 | G3 production parity confirm | 🟡 PENDING-POST-G2 | Sau G2 PASS → verify production `EMAIL_VERIFICATION_ENABLED=true` + SES email signing + Cloudflare DNS verify-link reachability |
 
 ### 7.4 Post-wave cleanup
 
@@ -244,4 +244,4 @@ KH-2 single-agent — no worktree spawn → cleanup N/A. Campaign row update tro
 
 ## 8. Log
 
-- **2026-06-03**: Wave plan tạo. Build images latest (`bash kitehub/scripts/build-all.sh` exit 0). Stack-up (`bash kitehub/scripts/up.sh` exit 0). Walk 5 sub-step complete với catalog-then-batch protocol per `feature-ship-runtime-walk-mandate` §3.4. **G1 ⚠️ PARTIAL** — 5/5 sub-step exercise PASS via path mix (direct port 8081 + forged headers cho S5 onboarding workaround), nhưng [GAP-916 P0 gateway onboarding 401](../../04-quality/gaps/phase-1-beta/GAP-916-gateway-onboarding-progress-401-jwt-not-recognized.md) chặn production-equivalent path qua gateway → G2/G3 blocked. 3 gaps filed: GAP-916 P0 + GAP-917 P2 (login sad path 400 vs 401 spec) + GAP-918 P2 (gateway authCircuitBreaker startup transient 503). Campaign row KH-2 stays 🔄 (in-progress) cho đến khi GAP-916 fix + re-walk via gateway → G1 ✅ → hand off G2/G3.
+- **2026-06-03**: Wave plan tạo. Build images latest (`bash kitehub/scripts/build-all.sh` exit 0). Stack-up (`bash kitehub/scripts/up.sh` exit 0). Walk 5 sub-step catalog-then-batch protocol per `feature-ship-runtime-walk-mandate` §3.4. 3 gaps filed (916/917/918). **GAP-916 fix shipped same wave** (Bucket B): `JwtAuthenticationGatewayFilter.ORDER = Ordered.LOWEST_PRECEDENCE - 2` + `TenantHeaderGuardFilter.ORDER = Ordered.LOWEST_PRECEDENCE - 1` để header inject sau default-filter `RemoveRequestHeader` strip + trước NettyRoutingFilter forward. Re-walk via gateway PASS — S5 GET HTTP 200 (5 step lazy-init) + PUT HTTP 200 (completionPercent 0→20). **G1 ✅** — production-equivalent path hoạt động. Campaign row KH-2 → 🔄 walk-pass-pending-human. Hand off user G2 (human FE test via gateway port 9000) + G3 (production parity post-G2). Residual GAP-917 + GAP-918 P2 defer Phase 1 BETA cleanup batch.

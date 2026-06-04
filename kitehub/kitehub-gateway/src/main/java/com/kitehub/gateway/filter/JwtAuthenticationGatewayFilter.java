@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import javax.crypto.SecretKey;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -33,18 +34,31 @@ import reactor.core.publisher.Mono;
  * short-circuit. Missing Authorization header → pass-through (downstream sẽ
  * reject nếu endpoint cần auth).</p>
  *
- * <p>Order {@code -100} — chạy SỚM, trước CircuitBreaker + RequestRateLimiter
- * filters configured trong {@code application.yml} routes (those have default
- * order ~10000+). Sau filter này, downstream nhận JWT-derived headers thay vì
- * raw Authorization header.</p>
+ * <p>Order {@code LOWEST_PRECEDENCE-2} — chạy SAU default-filter
+ * {@code RemoveRequestHeader=X-User-Id} (Order ~0) để header inject không bị strip
+ * downstream. NettyRoutingFilter ở LOWEST_PRECEDENCE chạy SAU filter này, forward
+ * request đã mutate xong tới subscription. TenantHeaderGuardFilter ở
+ * LOWEST_PRECEDENCE-1 chạy ngay sau, inject X-Tenant-Id cùng nguyên lý.</p>
  *
  * @since 1.3.0 (GAP-604 — Wave 89 Bucket A)
+ * @since 1.4.0 (GAP-916 — Wave flow-kh2 Bucket B: Order LOWEST_PRECEDENCE-2 fix để
+ *               header inject không bị default-filter RemoveRequestHeader strip)
  */
+@Slf4j
 @Component
 public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
 
-    /** Filter order — chạy trước CircuitBreaker + RateLimiter route filters. */
-    static final int ORDER = -100;
+    /**
+     * Filter order — chạy SAU default-filter {@code RemoveRequestHeader=X-User-Id}
+     * (Order ~0) để header inject KHÔNG bị strip downstream.
+     *
+     * <p>GAP-916 fix (Wave flow-kh2 walk 2026-06-03): trước đây Order=-100 chạy SỚM
+     * → default-filter sau strip X-User-Id vừa inject → subscription nhận empty headers
+     * → 401. Bump Order=Ordered.LOWEST_PRECEDENCE-2 để chạy ngay trước NettyRoutingFilter
+     * (LOWEST_PRECEDENCE) sau khi mọi strip + route filter xong. TenantHeaderGuardFilter
+     * cũng cần bump (Order=LOWEST_PRECEDENCE-1).</p>
+     */
+    static final int ORDER = Ordered.LOWEST_PRECEDENCE - 2;
 
     static final String HEADER_USER_ID = "X-User-Id";
     static final String HEADER_USER_ROLES = "X-User-Roles";
@@ -128,6 +142,8 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
                     .getPayload();
             isChallenge = false;
         } catch (Exception accessEx) {
+            log.debug("Access JWT parse failed path={} exClass={} msg={}",
+                    path, accessEx.getClass().getSimpleName(), accessEx.getMessage());
             if (!challenge2faPath || challengeSigningKey == null) {
                 // Access-key parse failed on a NON-2FA path (or challenge key not
                 // configured) → 401. KHÔNG pass-through vì client sent a Bearer token
@@ -174,6 +190,8 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
             mutated.header(HEADER_USER_EMAIL, email);
         }
 
+        log.debug("Injected X-User-Id={} X-User-Roles={} isChallenge={} path={}",
+                userId, isChallenge ? CHALLENGE_ROLE : role, isChallenge, path);
         return chain.filter(exchange.mutate().request(mutated.build()).build());
     }
 

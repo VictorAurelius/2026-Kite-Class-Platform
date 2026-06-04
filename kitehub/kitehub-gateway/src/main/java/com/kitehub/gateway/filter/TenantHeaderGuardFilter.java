@@ -58,11 +58,15 @@ import reactor.core.publisher.Mono;
 public class TenantHeaderGuardFilter implements GlobalFilter, Ordered {
 
     /**
-     * Filter order — runs AFTER {@link JwtAuthenticationGatewayFilter} (-100)
-     * which sets X-User-* headers, BEFORE route-level filters (CircuitBreaker,
-     * RateLimiter, TenantResolver default order ≥10000).
+     * Filter order — runs AFTER {@link JwtAuthenticationGatewayFilter}
+     * (Ordered.LOWEST_PRECEDENCE-2) which sets X-User-* headers, ngay trước
+     * NettyRoutingFilter (LOWEST_PRECEDENCE).
+     *
+     * <p>GAP-916 fix: trước đây Order=-99 (sớm) → default-filter
+     * {@code RemoveRequestHeader=X-Tenant-Id} (Order ~0) strip header vừa inject.
+     * Bump Order=LOWEST_PRECEDENCE-1 để chạy sau strip + sau JWT filter (-2).</p>
      */
-    static final int ORDER = -99;
+    static final int ORDER = Ordered.LOWEST_PRECEDENCE - 1;
 
     static final String HEADER_TENANT_ID = "X-Tenant-Id";
     static final String BEARER_PREFIX = "Bearer ";
