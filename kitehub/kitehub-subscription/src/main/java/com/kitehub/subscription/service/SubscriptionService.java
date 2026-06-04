@@ -67,9 +67,11 @@ public class SubscriptionService {
         log.info("Creating PENDING subscription (SUB-20 manual VietQR gate) for instance: {}",
             request.getInstanceId());
 
-        // Validate instance exists
-        Instance instance = instanceRepository.findById(request.getInstanceId())
-            .orElseThrow(() -> new IllegalArgumentException("Instance not found: " + request.getInstanceId()));
+        // Validate instance exists — body not used in createSubscription per SUB-20
+        // (instance activation deferred to applyPendingUpgrade). Existence check only.
+        if (!instanceRepository.existsById(request.getInstanceId())) {
+            throw new IllegalArgumentException("Instance not found: " + request.getInstanceId());
+        }
 
         // Check if instance already has active subscription
         subscriptionRepository.findActiveByInstanceId(request.getInstanceId())
