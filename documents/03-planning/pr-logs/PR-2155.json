@@ -1,0 +1,33 @@
+{
+  "pr": 2155,
+  "title": "fix(gap-937): cleanup kitehub-subscription Mockito unnecessary stubs",
+  "branch": "fix/gap-937-mockito-flaky-cleanup",
+  "created_at": null,
+  "merged_at": "2026-06-04T11:02:22Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-06-04T11:02:25.721198",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 12,
+        "java_files": 0,
+        "test_files": 3,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-2441782"
+  }
+}
