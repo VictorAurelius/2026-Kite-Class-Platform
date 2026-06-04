@@ -7,6 +7,30 @@ Quản lý theo Semantic Versioning: `MAJOR.MINOR.PATCH`
 
 ---
 
+## [2.7.0] — 2026-06-04 — Thesis tooling skills + rule v2.0.0 sync
+
+### Added (2 new skills)
+
+- `skills/quality/thesis-citation-extract/` (v1.0.0) — Parse `[N]` cite keys từ thesis chapters + verify chéo với `references/bibliography.md` → báo 3 bucket (matched / orphan-body / orphan-bib). Scripts: extract-citations.sh + verify-citations.sh + self-test.sh. References: ieee-citation-rules.md + orphan-detection.md.
+- `skills/quality/thesis-figure-curation/` (v1.0.0) — Codifies selection criteria (figure vs table vs prose), per-chapter numbering N.M, Vietnamese caption format, per-chapter INDEX generation. Scripts: audit-figures.sh. References: numbering-scheme.md + caption-format-vietnamese.md + figure-selection-criteria.md.
+
+### Changed (1 rule MAJOR bump)
+
+- `rules/thesis-content-standard.md` v1.0.0 → **v2.0.0** — MAJOR constraint REMOVALs per project Wave thesis-2 Bucket A re-grounding khung chuẩn UTC source-of-truth nguyên bản: (1) LỜI CAM ĐOAN không bắt buộc, (2) TÓM TẮT (VN abstract) không bắt buộc, (3) ABSTRACT (EN page) không bắt buộc, (4) NHẬN XÉT GVHD không bắt buộc. Khung UTC nguyên bản chỉ list các mục: bìa + lời mở đầu + mục lục + danh mục viết tắt/hình/bảng + nội dung chương + kết luận + tài liệu tham khảo + phụ lục. Existing thesis V1+ artifacts grandfathered.
+
+### Why this batch
+
+Companion skill bundle defer từ v2.6.0 (CHANGELOG note: "deferred to v2.6.0+") nay ship. Source project completed thesis V2 sprint 2026-05-25..06-04 with 2 audit skills mature qua 5+ Wave thesis cycles → battle-tested theo retro-sync triage 4-question checklist.
+
+### Notes
+
+- Skills are opinionated cho VN-university bachelor thesis convention (chapter-1.md, bibliography.md IEEE format, Hình N.M caption). Adapt cho universities khác per `reference/` docs.
+- Scripts use bash 4+ (associative arrays). Test với `self-test.sh` fixture-based smoke trước khi prod use.
+- Runtime cache (`data/last-run*.json`) excluded — generated at runtime, không là kit content.
+- Reviewer maintainer line standardized: `@<starter-kit-upstream-maintainer> (starter-kit upstream maintainer)`.
+
+---
+
 ## [2.6.0] — 2026-05-23 — Thesis tooling bundle (rule + skill + memory)
 
 ### Added (1 new rule)

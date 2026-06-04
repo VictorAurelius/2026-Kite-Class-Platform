@@ -8,10 +8,10 @@ paths:
 # Thesis Content Standard — academic-quality review rubric cho khóa luận tốt nghiệp
 
 **Priority:** 🟠 MANDATORY — academic deliverable governance
-**Version:** 1.0.0
+**Version:** 2.0.0
 **Created:** 2026-05-23
-**Last-Reviewed:** 2026-05-23
-**Reviewer-Approver:** @nguyenvankiet (starter-kit upstream maintainer — distilled từ Vietnamese-university bachelor thesis sprint upstream; original v1.0.0..v1.1.0 of source rule ship 2026-05-19..05-20 — see CHANGELOG v2.6.0)
+**Last-Reviewed:** 2026-06-04
+**Reviewer-Approver:** @<starter-kit-upstream-maintainer> (starter-kit upstream maintainer — distilled từ Vietnamese-university bachelor thesis sprint upstream; original v1.0.0..v2.0.0 ship 2026-05-19..05-26)
 **Applies to:** Mọi file dưới `documents/<thesis-dir>/**` (vd `documents/08-thesis/`) được render thành DOCX/PDF deliverable cho academic submission. Scope = chapter MDs + final DOCX + bibliography + audit reports thesis-related. Out-of-scope: source code, internal runbooks, non-academic project docs.
 
 **Opinionated scope:** Rule này **opinionated cho convention khóa luận đại học Việt Nam** (UTC, HUST, UET, HCMUT, BKHN — convention tương tự). Universities ngoài VN cần adapt: page-size + heading numbering + bibliography style + page-count target.
@@ -24,12 +24,30 @@ paths:
 
 Force-multiplier rationale: 1 chuẩn rubric → mọi thesis V1+ V2+ subsequent auto-comply → eliminate retroactive content-quality rework cost.
 
-**Grounding sources (consulted at rule design — these are the canonical sources YOUR project should ground in):**
+**Grounding sources (in priority order — your project must source-of-truth match):**
 
-1. **Your school's thesis format spec PDF** (e.g., "Quy định trình bày đồ án tốt nghiệp" cho UTC) — de jure standard (font / margin / numbering / IEEE format)
-2. **A known-good DOCX sample** từ your school's archive (production-quality báo cáo thực tập hoặc đồ án từ sinh viên trước) — de facto convention
-3. **Persona simulation audit** — outside-in audit với 3-agent roleplay (GVHD + GVPB + Defense committee) trên thesis draft
-4. **User-flagged inspection issues** — direct review by author / advisor pre-ship
+1. **🔴 PRIMARY — khung chuẩn nguyên bản của trường** (ảnh / PDF chính thức từ khoa hoặc phòng đào tạo). Khung này list các mục bắt buộc của khóa luận. UTC convention sample mandate sections:
+   - Bìa (theo mẫu trên hệ thống website của trường)
+   - Bìa phụ (KHÔNG có logo)
+   - Lời cảm ơn (bắt buộc)
+   - Mục lục (i, ii, iii, iv, ...)
+   - **Danh mục các từ viết tắt, thuật ngữ** (GỘP 2 trong 1 heading)
+   - Danh mục bảng
+   - Danh mục hình
+   - Mở Đầu (2-3 trang): tại sao chọn đề tài / tóm tắt nội dung sẽ giải quyết (Mục tiêu / Đối tượng / Phạm vi) / các nội dung và phương pháp giải quyết
+   - Chương 1: Tổng quan về bài toán và các công nghệ, công cụ (Hiện trạng / Bài toán / Công nghệ, công cụ sử dụng)
+   - Chương 2: Phân tích và thiết kế hệ thống (FR/NFR / Sơ đồ tổng thể, các bên liên quan, các tính năng / Phân tích các vai trò và sử dụng — use case / Quy trình nghiệp vụ chính / Mô hình hóa hệ thống)
+   - Chương 3: Phân tích, thiết kế và triển khai hệ thống (chương chính — BRD, BPM, Use case, DataBase, Class, ERD, AWS diagram)
+   - Chương 4: Đánh giá kết quả và Kết luận (Kết quả triển khai và tài liệu / Kết quả triển khai / So sánh đánh giá kết quả thử nghiệm / Kết luận, kiến nghị + Phương hướng phát triển)
+   - Tài liệu tham khảo
+   - Phụ lục (nếu có)
+
+   **❌ KHÔNG có trong khung UTC nguyên bản (per user direction "ngoài lời cam đoan thì cái gì không theo khung chuẩn cũng bỏ"):** LỜI CAM ĐOAN / TÓM TẮT VN abstract page riêng / ABSTRACT EN page riêng / NHẬN XÉT GVHD page / Phụ lục audit chất lượng AI. Các trường khác có thể có khung khác — adapt theo source-of-truth của trường bạn.
+
+2. **🟠 SECONDARY — your school's thesis format spec PDF** (e.g., "Quy định trình bày đồ án tốt nghiệp" cho UTC) — de jure standard cho format details (font / margin / numbering / IEEE format). Spec PDF thường list cùng required sections như khung primary + thêm format details (A4 / TNR 13pt body / margins T=2.5 B=2.5 L=3.0 R=2.0cm / SEQ Bảng X.Y + Hình X.Y).
+3. **🟡 TERTIARY — known-good DOCX sample** từ archive của trường (production-quality báo cáo thực tập hoặc đồ án từ sinh viên trước). Samples cung cấp visual reference cho format details (TOC layout, IEEE bibliography rendering, danh mục sub-section structure) NHƯNG KHÔNG override khung nguyên bản về required vs optional sections. Báo cáo thực tập sample là BCTT, KHÔNG phải DATN; scope khác — sample cho reference visual, không phải mandate sections.
+4. **🟡 TERTIARY — Persona simulation audit** — outside-in audit với 3-agent roleplay (GVHD + GVPB + Defense committee) trên thesis draft
+5. **🟡 TERTIARY — User-flagged inspection issues** — direct review by author / advisor pre-ship
 
 ---
 
@@ -37,7 +55,7 @@ Force-multiplier rationale: 1 chuẩn rubric → mọi thesis V1+ V2+ subsequent
 
 ### C1 — Format compliance (15 points)
 
-Tuân thủ your school's spec + match known-good DOCX sample conventions:
+Tuân thủ khung chuẩn nguyên bản (§1 PRIMARY) + your school's spec PDF (§1 SECONDARY) cho format details:
 
 | Sub-criterion | Pts | Verify |
 |---|:---:|---|
@@ -45,29 +63,32 @@ Tuân thủ your school's spec + match known-good DOCX sample conventions:
 | Times New Roman 13pt body / 14pt H3 / 16pt H2 / 18pt H1 per spec | 3 | python-docx introspection on Heading styles. H4 + H5 sub-sub-headings nếu used must be 13pt bold (typical VN spec define 3 levels — over-deep sectioning anti-pattern). |
 | Margins top 2.5 / bottom 2.5 / left 3.0 / right 2.0 cm | 2 | `section.top_margin == Cm(2.5)` etc. Standard VN convention. |
 | Binding gutter (offset for binding edge) + bìa cứng instructions | 1 | `section.gutter > 0` OR explicit printer instructions trong handover doc cho gáy in "HỌ TÊN - LỚP - NĂM" |
-| **Cover page với school logo embedded (NOT placeholder text)** | 2 | docx inline_shape inspection — actual PNG present, NOT `[LOGO ...]` fallback string. **Hard FAIL if fallback string visible** |
-| Bìa phụ — bìa phụ PHẢI có khung info 6-field chuẩn (Sinh viên / MSSV / Lớp / Khóa / GVHD / GVPB) NOT trùng lặp bìa chính | 2 | Bìa phụ phải DIFFERENT từ bìa chính. Bìa chính = title-focused; bìa phụ = info-focused. |
-| Section numbering strict per spec: chapter `CHƯƠNG N.` + section `N.M` + subsection `N.M.P` | 1 | `A.2.4`, `B.5` (alpha prefix) BANNED trong thesis numbering. Strict numeric only. |
+| **Bìa chính theo mẫu trên hệ thống website trường** (school logo + format chuẩn) | 2 | docx inline_shape inspection — actual PNG logo present, NOT `[LOGO ...]` fallback string. Format match `Mau-Decuong DATN-Cử nhân.pdf` reference template (or equivalent). **Hard FAIL if fallback string visible** |
+| **Bìa phụ KHÔNG có logo per khung nguyên bản §1** + info table khác bìa chính | 2 | Per khung primary source: bìa phụ explicit "không có logo". Bìa phụ chỉ có info-table (Sinh viên / MSSV / Lớp / Khóa / GVHD / GVPB) NOT trùng lặp bìa chính content. |
+| Section numbering per spec: chapter "Chương N." + section "N.M" + subsection "N.M.P" | 1 | Per khung primary: "Chương 1", "Chương 2", "Chương 3", "Chương 4" (NOT all-caps "CHƯƠNG"). `A.2.4`, `B.5` (alpha prefix) BANNED. Strict numeric only. |
 | Table caption `Bảng X.Y. ...` + figure caption `Hình X.Y. ...` numbering gắn chương | 1 | SEQ field `add_table_caption` integration required (python-docx). |
-| TOC + Danh mục hình + Danh mục bảng + Danh mục thuật ngữ + Danh mục từ viết tắt populated (NOT placeholder text) | 1 | Placeholder "(Bấm Ctrl+A rồi F9...)" trong file in nộp = draft signal. Auto-populate via python-docx XML settings hoặc post-process F9 trước nộp. |
+| TOC + Danh mục bảng + Danh mục hình + **Danh mục các từ viết tắt, thuật ngữ (gộp 1 heading per khung)** populated (NOT placeholder text) | 1 | Placeholder "(Bấm Ctrl+A rồi F9...)" trong file in nộp = draft signal. Auto-populate via python-docx XML settings hoặc post-process F9 trước nộp. Per khung primary: "Danh mục các từ viết tắt, thuật ngữ" GỘP 1 heading (NOT tách 2 danh mục riêng). |
 
 **Verdict thresholds:** ≥13 PASS / 10-12 PARTIAL / <10 FAIL.
 
 ### C2 — Content completeness + page count target (15 points)
 
-Per VN university bachelor thesis convention + advisor expectation:
+Tuân thủ khung chuẩn nguyên bản (§1 PRIMARY) — **4 chương** với cấu trúc cụ thể (NOT generic 4-6):
 
 | Sub-criterion | Pts | Verify |
 |---|:---:|---|
-| Đầy đủ Mở đầu + 4-6 chương nội dung + Kết luận + Phụ lục | 4 | Heading 1 count + section names. VN convention cử nhân CNTT thường 5-6 chương (Tổng quan / Cơ sở lý thuyết / Phân tích yêu cầu / Thiết kế / Triển khai / Kết luận). Ghép Phân tích + Thiết kế + Kiến trúc vào 1 chương = anti-pattern. |
-| Page count target per §4 (cử nhân 60-80 / kỹ sư 80-110 / thạc sĩ 120-180). **Cap auto-FAIL:** cử nhân >90 trang | 4 | LibreOffice page-count read-back. Soft deduct 1 pt per 10 trang vượt upper bound. |
-| Nội dung chính balance chương (no chương quá dài/quá ngắn 2-3x lệch) | 3 | Variance check across chapter paragraph counts. Soft deduct nếu chương lớn nhất > 2× chương nhỏ nhất. |
-| KẾT LUẬN VÀ KIẾN NGHỊ độ dài 2-3 trang minimum + 4 sub-sections (Tổng kết / Hạn chế / Hướng phát triển / **Đóng góp khoa học** explicit) | 2 | VN convention requires "đóng góp khoa học" explicit, NOT chỉ tổng kết + hạn chế + hướng phát triển. List 1-2 contributions methodological hoặc empirical novel. |
-| Trim repo-internal retrospective content khỏi chapter body (vd "Lessons learned" + "Feature scope cut" + production incident timelines) | 2 | Chuyển retrospective insights vào KẾT LUẬN gói gọn, đỡ duplicate. Body academic prose-only. |
+| **Đầy đủ structure khớp khung primary §1**: Bìa + Bìa phụ + Lời cảm ơn + Mục lục + Danh mục viết tắt+thuật ngữ + Danh mục bảng + Danh mục hình + Mở đầu + Chương 1-4 + Kết luận và Kiến nghị (gộp) + Tài liệu tham khảo + Phụ lục (nếu có) | 4 | Heading 1 count + section names khớp khung primary §1 EXACTLY. |
+| **Chương 1 = "Tổng quan về bài toán và các công nghệ, công cụ"** với 3 sub: 1.1 Hiện trạng / 1.2 Bài toán / 1.3 Công nghệ, công cụ sử dụng | 1 | Per khung primary §1 Ch.1 detail. |
+| **Chương 2 = "Phân tích và thiết kế hệ thống"** với 5 sub (FR/NFR / Sơ đồ tổng thể, các bên liên quan, tính năng / Use case + vai trò / Quy trình nghiệp vụ chính / Mô hình hóa hệ thống) | 1 | Per khung primary §1 Ch.2 detail. |
+| **Chương 3 = "Phân tích, thiết kế và triển khai hệ thống" (chương chính)** gồm: BRD / BPM / Use case / DataBase design / Class diagram / ERD / AWS diagram | 1 | Per khung primary §1 Ch.3 detail — chương chính (largest). |
+| **Chương 4 = "Đánh giá kết quả và Kết luận"** với 4 sub: Kết quả triển khai và tài liệu / Kết quả triển khai / So sánh đánh giá kết quả thử nghiệm / Kết luận, kiến nghị + Phương hướng phát triển | 1 | Per khung primary §1 Ch.4 detail. |
+| Page count target: cử nhân 60-80 trang / kỹ sư 80-110 / thạc sĩ 120-180. **Cap auto-FAIL:** cử nhân >90 trang | 4 | `len(doc.paragraphs)` × avg-words-per-paragraph estimate; OR LibreOffice page-count read-back. Soft deduct 1 pt per 10 trang vượt upper bound. |
+| KẾT LUẬN VÀ KIẾN NGHỊ (GỘP 1 section per khung) độ dài 2-3 trang minimum + sub: Tổng kết / Hạn chế / **Phương hướng phát triển** | 2 | Per khung primary §1 — "Kết luận" và "Kiến nghị" GỘP 1 heading (KHÔNG tách 2 sections riêng). "Đóng góp" có thể là sub-bullet trong "Tổng kết" mà không phải separate sub-section. |
+| Trim repo-internal retrospective content khỏi chapter body (vd "Lessons learned" + "Feature scope cut" + production incident timelines) | 1 | Chuyển retrospective insights vào KẾT LUẬN gói gọn, đỡ duplicate. Body academic prose-only. |
 
 **Verdict thresholds:** ≥13 PASS / 10-12 PARTIAL / <10 FAIL. **Page count cap:** >90 trang cử nhân auto-FAIL category regardless other sub-criteria.
 
-**Re Abstract VN/EN + Lời cam đoan:** OPTIONAL cho cử nhân scope (many VN samples không có); recommended cho thạc sĩ+ scope. Adapt to your school's convention.
+**v2.0.0 MAJOR: KHÔNG còn scoring rows cho Abstract VN + Abstract EN + Lời cam đoan** — per khung primary §1, các pages này KHÔNG có trong khung chuẩn nguyên bản UTC. Pipeline tạo DOCX nên skip 4 functions (`add_oath_page` + `add_abstract_vi` + `add_abstract_en` + `add_advisor_review_page`) nếu đang implement theo project upstream pattern. Các trường khác có thể có yêu cầu khác — adapt theo source-of-truth của trường bạn.
 
 ### C3 — Bibliography IEEE format (15 points)
 
@@ -112,9 +133,9 @@ Project jargon, internal artifact names, AI assistant references BANNED in acade
 |---|:---:|---|
 | KHÔNG mention "Claude" / "Cursor" / "Copilot" / AI assistant tools by name in body narrative | 2 | grep "Claude" returns 0 matches in body (exception: bibliography ref [N] vendor citation OK; technical mention "LLM API providers" acceptable) |
 | KHÔNG repo wave/release names ("Wave N", "Phase X BETA", "Phase X.5") | 2 | Replace với generic phrasing: "giai đoạn phát triển", "phiên bản thử nghiệm", "giai đoạn beta" |
-| KHÔNG gap IDs ("GAP-XXX", project tracking IDs) | 1 | Strip hoàn toàn — không phải reference cho academic |
+| KHÔNG gap IDs (project tracking IDs) | 1 | Strip hoàn toàn — không phải reference cho academic |
 | KHÔNG rule/skill internal file paths (`.claude/rules/*.md`, `.claude/skills/*/SKILL.md`) | 1 | grep `\.claude/` returns 0 |
-| KHÔNG repo internal status markers ("DONE", "PARTIAL", "OPEN", "DEFER Wave X+", "audit X/100") | 1 | grep banned status patterns 0 in body |
+| KHÔNG repo internal status markers ("DONE", "PARTIAL", "OPEN", "DEFER", "audit X/100") | 1 | grep banned status patterns 0 in body |
 | **KHÔNG rebrand existing methodology** as "original methodology" without literature citation | 2 | "audit-driven methodology" appears original nhưng tương đương TDD/CI/Lean Six Sigma. Either (a) cite Deming PDCA / Beck TDD / Poppendieck Lean / IEEE 730 SQA literature support OR (b) re-frame as "Quality-Driven Development approach" acknowledging precedent. |
 | **Persona / role-play skill content moved khỏi Ch.1** — internal feature implementation không phải research methodology | 1 | Move to Ch.3 Implementation hoặc Ch.4 Lessons. |
 
@@ -188,7 +209,7 @@ Concrete grep-able patterns:
 | C4 Academic tone | "bạn" / "chúng ta" trong narrative formal sections | "em" / "tôi" (sinh viên perspective) |
 | C5 Project-internal | "Claude" / "Cursor" / "Copilot" (trừ bibliography vendor ref [N]) | Strip hoặc generic "trợ lý AI" / "công cụ AI assistant" |
 | C5 Project-internal | "Wave N", "Phase X BETA" | "giai đoạn phát triển N" / "phiên bản 1" / strip nếu không cần |
-| C5 Project-internal | "GAP-XXX" hoặc project tracking IDs | strip hoàn toàn |
+| C5 Project-internal | Project tracking IDs (gap IDs, issue numbers) | strip hoàn toàn |
 | C5 Project-internal | `.claude/rules/*.md`, `.claude/skills/**` paths | strip hoàn toàn |
 | C5 Standalone | Internal `documents/**` path references | Restate content inline OR cite published source |
 | C5 Standalone | Bibliography refs từ internal repo (audit reports / chapter MD cross-refs / plans) | Replace với public source OR strip claim |
@@ -198,10 +219,15 @@ Concrete grep-able patterns:
 | **C1 Character set allowed** | non-typeable special chars | Vietnamese alphabet (a-z, đ, dấu thanh) + Latin alphabet + chữ số + standard punctuation |
 | **C4 No-font-swap principle** — KHÔNG đổi font inline | Courier New cho `inline code` markdown / Cambria cho equations | Spec mandates TNR 13pt mọi đoạn văn body. Emphasis dùng *italic* / **bold** / UPPERCASE / "ngoặc kép" |
 | **C4 Inline code rendering** | `instance_id` rendered with Courier New | `instance_id` rendered TNR italic OR UPPERCASE `INSTANCE_ID` per VN academic convention |
-| C6 Draft-marker | `## TL;DR` | Strip — academic abstract goes in TÓM TẮT page riêng |
+| C6 Draft-marker | `## TL;DR` | Strip — academic content flows directly từ Mở đầu vào chương |
 | C6 Draft-marker | `TODO`, `FIXME`, `XXX`, `[placeholder]`, `[stub]` | "[Đang thu thập số liệu — sẽ cập nhật trước defense]" honest form OR strip |
 | C6 Draft-marker | `**Cập nhật lần cuối:** YYYY-MM-DD` | Strip from heading (move to frontmatter) |
 | C6 Draft-marker | `v0.X-beta`, `v1.0.0-rc` version markers | Strip |
+| **C2 Non-khung section** (added v2.0.0) — anything NOT in khung primary §1 = banned per source-of-truth | **LỜI CAM ĐOAN page** (nếu khung UTC nguyên bản không list) | REMOVE page. Khung chuẩn nguyên bản UTC KHÔNG list LỜI CAM ĐOAN. Adapt theo source-of-truth của trường bạn. |
+| **C2 Non-khung section** | **TÓM TẮT (VN abstract page riêng)** (nếu khung không list) | REMOVE page. Khung UTC KHÔNG list. Adapt theo trường. |
+| **C2 Non-khung section** | **ABSTRACT (EN page riêng)** (nếu khung không list) | REMOVE page. Khung UTC KHÔNG list. Adapt theo trường. |
+| **C2 Non-khung section** | **NHẬN XÉT CỦA GVHD page** (nếu khung không list) | REMOVE page. Khung UTC KHÔNG list — NHẬN XÉT GVHD là giấy tờ riêng kèm DATN, không phải page trong docx body. Adapt theo trường. |
+| **C2 Khung order strict** (added v2.0.0) — frontmatter sau Bìa+Bìa phụ PHẢI là Lời cảm ơn → Mục lục → Danh mục viết tắt+thuật ngữ → Danh mục bảng → Danh mục hình → Mở đầu (per khung UTC) | Mọi sequence khác (vd insert NHẬN XÉT/LỜI CAM ĐOAN/TÓM TẮT/ABSTRACT giữa Bìa phụ và Lời cảm ơn) | REMOVE inserted sections; preserve khung primary §1 exact order. |
 
 ---
 
@@ -277,13 +303,13 @@ Danh mục từ viết tắt riêng tốt nhưng KHÔNG thay được first-use 
 
 ### S8 — Figure source attribution mandatory
 
-Mọi figure (markdown image, Mermaid block, embedded PNG) PHẢI có dòng italic source attribution NGAY SAU caption:
+Mọi figure (markdown image, Mermaid block, embedded PNG) PHẢI có dòng italic source attribution NGAY SAU caption — TRỪ author-original figures (plain attribution optional):
 
 | Figure type | Required attribution |
 |---|---|
-| **Derived from external source** | `*Nguồn: [N, tr.NNN]*` HOẶC `*Nguồn: <URL>, truy cập DD/MM/YYYY*` |
-| **Author-original** | `*Nguồn: tác giả tự xây dựng*` HOẶC `*Nguồn: tác giả tự xây dựng dựa trên [N, tr.NNN]*` |
-| **Screenshot of own product** | `*Nguồn: ảnh chụp giao diện <product>, truy cập DD/MM/YYYY*` |
+| **Derived from external source** | `*Nguồn: [N, tr.NNN]*` HOẶC `*Nguồn: <URL>, truy cập DD/MM/YYYY*` — **MANDATORY** |
+| **Author-original** (drawn by author) | **OPTIONAL** — plain `*Nguồn: tác giả tự xây dựng*` treated as redundant fluff (sinh viên = author of thesis = default attribution implicit). **Composite reference** `*Nguồn: tác giả tự xây dựng dựa trên [N, tr.NNN]*` vẫn **MANDATORY** khi figure derived from external mô hình/framework. |
+| **Screenshot of own product** | `*Nguồn: ảnh chụp giao diện <product>, truy cập DD/MM/YYYY*` — **MANDATORY** (timestamp evidence cho reproducibility) |
 
 ---
 
@@ -294,7 +320,7 @@ Apply rubric to your thesis V1 retroactively. Compare estimated score against �
 | Category | Pts max | Your score | Notes |
 |---|:---:|:---:|---|
 | C1 Format | 15 | | logo present? margins? sub-section numbering strict? |
-| C2 Content + page count | 15 | | within target cap? KẾT LUẬN 2-3 trang? đóng góp khoa học explicit? |
+| C2 Content + page count | 15 | | within target cap? khớp khung primary 4 chương? KẾT LUẬN 2-3 trang gộp? |
 | C3 Bibliography | 15 | | ≥30 refs? IEEE format? department giáo trình cited? |
 | C4 Academic tone | 15 | | pronoun discipline? no "đối thủ"? no emoji? |
 | C5 Project-internal scrub | 10 | | no "Claude"? no project gap IDs? no rule paths? |
@@ -309,6 +335,7 @@ Apply rubric to your thesis V1 retroactively. Compare estimated score against �
 - C7 +5-7 (Mermaid → PNG render pipeline + captions + cross-refs)
 - C6 +3-5 (strip TL;DR + TODO + date heading)
 - C4 +3-6 (strip emoji + "đối thủ" + pronoun lock)
+- C2 +3-5 (remove non-khung sections per v2.0.0 if pipeline ships them; trim page count to target)
 
 ---
 
@@ -320,7 +347,8 @@ Pre-merge review cho PR touching `documents/<thesis-dir>/**`:
 
 - [ ] Apply 9-category rubric §2 → estimated score documented in PR body
 - [ ] Score ≥75/100 C+ for thesis V1+ release OR explicit "draft milestone" disclaimer
-- [ ] C5 Project-internal scrub: grep `Claude\|Wave [0-9]\|Phase [0-9]\|GAP-[0-9]\|\.claude/` returns 0 matches in chapter MDs body
+- [ ] C2 Khung compliance: structure khớp khung primary §1 (4 chương UTC pattern OR your school's equivalent); NON-khung sections removed (LỜI CAM ĐOAN/TÓM TẮT/ABSTRACT/NHẬN XÉT GVHD per UTC sample)
+- [ ] C5 Project-internal scrub: grep `Claude\|Wave [0-9]\|Phase [0-9]\|\.claude/` returns 0 matches in chapter MDs body
 - [ ] C6 Draft-marker scrub: grep `## TL;DR\|TODO\|FIXME\|placeholder\|\[stub\]` returns 0 matches
 - [ ] C7 Diagram rendering: zero ```mermaid blocks in rendered docx (means rendered as image)
 - [ ] Page count within target cap per §4 (cử nhân ≤80, kỹ sư ≤110, thạc sĩ ≤170)
@@ -340,7 +368,7 @@ Future `scripts/check-thesis-content-standard.sh` — heuristic grep for banned 
 
 ```bash
 # Detect C5 project-internal references
-grep -rnE "Claude|Wave [0-9]|Phase [0-9]+ BETA|GAP-[0-9]|\.claude/" \
+grep -rnE "Claude|Wave [0-9]|Phase [0-9]+ BETA|\.claude/" \
   documents/<thesis-dir>/chapter-*.md 2>/dev/null \
   && { echo "WARN: project-internal references — strip per thesis-content-standard.md §3"; exit 0; }
 
@@ -368,13 +396,16 @@ Trailer logged. Pattern frequency >10%/quarter triggers meta-review.
 | ❌ Don't | ✅ Do |
 |---|---|
 | Re-use 6-category rubric cho thesis audit (misses 4 critical dimensions) | Apply 9-category rubric §2 |
-| Ship thesis với "Claude" / "Wave N" / "GAP-XXX" trong body narrative | Strip prior ship; bibliography vendor ref OK |
-| Treat `## TL;DR` section as legitimate academic convention | Strip — academic TÓM TẮT is a separate page format |
+| Ship thesis với "Claude" / "Wave N" / project gap IDs trong body narrative | Strip prior ship; bibliography vendor ref OK |
+| Treat `## TL;DR` section as legitimate academic convention | Strip — content flows directly từ Mở đầu vào chương |
 | Mermaid code rendering as text trong DOCX | Render to PNG via headless browser pipeline; embed image |
 | 110-page bachelor thesis "vì nhiều content tốt" | Trim to ≤70 trang — committee bias against verbose theses regardless content quality |
 | Use "đối thủ" (business jargon) trong khóa luận | "đối tượng tham khảo" / "công trình nghiên cứu liên quan" academic phrasing |
-| Skip TÓM TẮT page (claim "có trong Mở đầu") | TÓM TẮT separate page per VN convention |
-| Single "DANH MỤC THUẬT NGỮ VÀ TỪ VIẾT TẮT" gộp | 2 danh mục TÁCH BIỆT |
+| **Add TÓM TẮT page riêng** khi khung trường KHÔNG list (vd UTC sample) | ❌ v2.0.0 — khung chuẩn nguyên bản trường mandate sections. Mở đầu §1 đã cover lý do + tóm tắt nội dung. Adapt theo source-of-truth của trường bạn. |
+| **Add LỜI CAM ĐOAN page** khi khung trường KHÔNG list | ❌ v2.0.0 — adapt theo source-of-truth của trường bạn. UTC sample không list. |
+| **Add ABSTRACT EN page riêng** khi khung trường KHÔNG list | ❌ v2.0.0 — adapt theo trường. UTC sample không list. |
+| **Add NHẬN XÉT GVHD page trong docx body** khi khung trường KHÔNG list | ❌ v2.0.0 — NHẬN XÉT GVHD thường là giấy tờ riêng kèm DATN, không phải page trong thesis docx. Adapt theo trường. |
+| **Tách Danh mục từ viết tắt riêng + Danh mục thuật ngữ riêng** | ❌ v2.0.0 — khung UTC nguyên bản GỘP "Danh mục các từ viết tắt, thuật ngữ" 1 heading. Adapt theo trường. |
 | Use `[LOGO ...]` placeholder fallback in production thesis | Embed actual PNG; verify visible via LibreOffice/Word render check |
 
 ---
@@ -391,12 +422,19 @@ Trailer logged. Pattern frequency >10%/quarter triggers meta-review.
 
 ---
 
-## 10. Companion skill
+## 10. Companion skills
 
-Skill `document-generation/thesis/SKILL.md` (paired same kit version) provides workflow: planning → draft → 3-agent outside-in audit → fix → ship. Use this rule as the rubric; use the skill as the process.
+Two paired skills ship same kit version provide tooling cho thesis V1+ workflow:
+
+- **`skills/quality/thesis-citation-extract/SKILL.md`** — Parse `[N]` cite keys từ chapter markdown + verify chéo với `documents/<thesis-dir>/references/bibliography.md` → báo 3 bucket (matched / orphan-body / orphan-bib). Closes C3 Bibliography category audit gap.
+- **`skills/quality/thesis-figure-curation/SKILL.md`** — Codifies selection criteria (figure vs table vs prose), per-chapter numbering `N.M`, Vietnamese caption format, per-chapter INDEX generation. Closes C7 Diagram + figure rendering category audit gap.
+
+Use this rule as the rubric; use the skills as the audit tooling.
 
 ---
 
 ## 11. Log
 
-- **2026-05-23 (v1.0.0):** Rule promoted to upstream starter-kit v2.6.0 từ downstream project source (original v1.0.0..v1.1.0 ship 2026-05-19..05-20 trên Vietnamese-university bachelor thesis sprint). Light-scrub applied: UTC-specific → generic "your school's spec PDF"; project paths (`documents/08-thesis/` / `documents/04-quality/audits/`) → placeholder `<thesis-dir>` / `<your-audits-dir>`; project gap IDs / wave names → generic phrasing; project-specific personas + sample data → generic VN edu placeholders. Rubric structure (9 categories /100), 8 extension rules (S1-S8), banned patterns matrix preserved unchanged — those represent generalizable academic-writing constraints. Reviewer: @nguyenvankiet (starter-kit upstream maintainer — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement per §6.5 Enforcement Parity Mandate; no constraint loosening). Companion skill `document-generation/thesis/SKILL.md` ships same kit version per §10.
+- **2026-06-04 (v2.0.0):** MAJOR — re-ground khung chuẩn nguyên bản UTC theo source-of-truth chính thức (`khung-bao-cao-do-an.png` from school) thay BCTT sample. §1 grounding sources reorder: PRIMARY khung-bao-cao-do-an (mọi required section list mandate from this image) + SECONDARY UTC PDF spec (format details A4/TNR/margins/SEQ) + TERTIARY samples (visual reference only, NOT source for required-sections list). MAJOR constraint removals (per `rule-change-process.md` §4 semver — removing constraints = MAJOR bump): (1) **LỜI CAM ĐOAN** dropped from required — khung UTC nguyên bản KHÔNG list. (2) **TÓM TẮT VN abstract page riêng** dropped — không trong khung. (3) **ABSTRACT EN page riêng** dropped — không trong khung. (4) **NHẬN XÉT GVHD page** dropped — không trong khung (giấy tờ riêng kèm DATN, không phải docx page). C2 chapter structure updated khớp khung 4 chương UTC exact (Ch.1 Tổng quan / Ch.2 Phân tích thiết kế / Ch.3 chương chính / Ch.4 Đánh giá). §3 Banned patterns extended với 6 NEW rows codifying non-khung sections + khung order strict. §7 Anti-patterns updated: REMOVED "Skip TÓM TẮT" + "Skip LỜI CAM ĐOAN" rows; ADDED 5 NEW anti-patterns banning addition of these non-khung sections (with adapt note cho universities ngoài UTC). §10 Companion skills extended với 2 new paired skills `thesis-citation-extract` + `thesis-figure-curation` (closes C3 + C7 audit gaps). Universities ngoài UTC adapt theo source-of-truth của trường — khung primary §1 PRIMARY là điểm bám điều chỉnh. Existing thesis V1 grandfathered cho tới next refresh; rule applies prospectively. Reviewer: @<starter-kit-upstream-maintainer> (starter-kit upstream maintainer — MAJOR self-approve allowed per `rule-change-process.md` §5 in upstream solo-maintainer mode; constraint loosening explicitly intended to align với khung chuẩn nguyên bản source-of-truth thay BCTT sample mismatch).
+
+- **2026-05-23 (v1.0.0):** Rule promoted to upstream starter-kit từ downstream project source (original v1.0.0..v1.1.0 ship 2026-05-19..05-20 trên Vietnamese-university bachelor thesis sprint). Light-scrub applied: UTC-specific → generic "your school's spec PDF"; project paths (`documents/<thesis-dir>/` / `documents/**/audits/`) → placeholder; project tracking IDs / wave names → generic phrasing; project-specific personas + sample data → generic VN edu placeholders. Rubric structure (9 categories /100), 8 extension rules (S1-S8), banned patterns matrix preserved unchanged — those represent generalizable academic-writing constraints. Reviewer: @<starter-kit-upstream-maintainer> (starter-kit upstream maintainer — MINOR self-approve per `rule-change-process.md` §5; new rule with built-in enforcement per §6.5 Enforcement Parity Mandate; no constraint loosening). Companion skill workflow shipped same kit version per §10.
