@@ -39,17 +39,24 @@ giữ tách bạch (subscription tier-payment ≠ school invoice/installment pay
 **Response 201:**
 ```json
 {
-  "id": "uuid",
-  "instanceId": "uuid",
-  "tier": "BASIC",
+  "id": "subscription-uuid",
+  "instanceId": "instance-uuid",
+  "tier": "FREE",
+  "pendingTier": "BASIC",
   "billingCycle": "MONTHLY",
-  "status": "ACTIVE",
+  "priceVnd": 500000,
+  "status": "PENDING",
+  "pendingPaymentId": "payment-uuid",
   "autoRenew": true,
-  "startsAt": "2026-03-24T00:00:00Z",
-  "expiresAt": "2026-04-24T00:00:00Z"
+  "startedAt": null,
+  "expiresAt": null,
+  "isActive": false,
+  "isExpired": false
 }
 ```
-**Errors:** 400 FREE tier, 409 duplicate active subscription
+**Contract (SUB-20, Phase 1 BETA):** Create-first-paid áp dụng cùng pattern manual VietQR như PATCH /upgrade — subscription được tạo với `status=PENDING, tier=FREE, pendingTier=<requested>`, kèm Payment PENDING. Backend KHÔNG mark `status=ACTIVE` hoặc activate instance trước khi admin confirm payment. FE PHẢI redirect sang `/billing/payment/{pendingPaymentId}` hiển thị QR/thông tin chuyển khoản. Sau admin confirm payment (UC-SUB-07), backend gọi `applyPendingUpgrade` → tier flip sang `requested`, status flip ACTIVE, instance activate, subscription-created email gửi.
+
+**Errors:** 400 FREE tier (`Cannot create subscription for FREE tier`), 409 duplicate active subscription
 
 ---
 

@@ -42,14 +42,30 @@ public class SubscriptionService {
     private final com.kitehub.subscription.client.EmailServiceClient emailServiceClient;
 
     /**
-     * Create a new subscription for instance.
+     * Create a new subscription for instance — Phase 1 BETA manual VietQR gate (SUB-20).
+     *
+     * <p>Pre-rule code marked {@code status=ACTIVE} immediately, allowing Owner
+     * to self-grant any paid tier without payment. This was caught at Wave
+     * flow-kh3 G1 walk 2026-06-04 (UC-SUB-01 walkthrough).</p>
+     *
+     * <p>New behavior mirrors {@link #upgradeSubscription} manual VietQR pattern:
+     * subscription is persisted with {@code status=PENDING, tier=FREE,
+     * pendingTier=<requested>, billingCycle=<requested>, priceVnd=<calculated>},
+     * a {@code Payment PENDING} for the full tier price is created via
+     * {@code VietQRService}, and the response carries {@code pendingPaymentId}
+     * for the FE to redirect to {@code /billing/payment/{pendingPaymentId}}.</p>
+     *
+     * <p>Instance activation + subscription-created email are deferred to
+     * {@link #applyPendingUpgrade} which runs after the admin confirms payment
+     * via {@code PaymentService.confirmPayment} (UC-SUB-07).</p>
      *
      * @param request Create subscription request
-     * @return Created subscription response
+     * @return Created subscription response carrying {@code pendingPaymentId}
      */
     @Transactional
     public SubscriptionResponse createSubscription(CreateSubscriptionRequest request) {
-        log.info("Creating subscription for instance: {}", request.getInstanceId());
+        log.info("Creating PENDING subscription (SUB-20 manual VietQR gate) for instance: {}",
+            request.getInstanceId());
 
         // Validate instance exists
         Instance instance = instanceRepository.findById(request.getInstanceId())
@@ -66,42 +82,34 @@ public class SubscriptionService {
             throw new IllegalArgumentException("Cannot create subscription for FREE tier");
         }
 
-        // Calculate price based on tier and billing cycle
+        // Calculate price based on requested tier and billing cycle
         long price = request.getTier().getPrice(request.getBillingCycle());
 
-        // Create subscription
+        // SUB-20: persist subscription with PENDING/FREE state, requested tier in pendingTier.
+        // tier flips to requested + status flips to ACTIVE only after applyPendingUpgrade runs
+        // (driven by PaymentService.confirmPayment per UC-SUB-07).
         Subscription subscription = new Subscription();
         subscription.setInstanceId(request.getInstanceId());
-        subscription.setTier(request.getTier());
+        subscription.setTier(PricingTier.FREE);
+        subscription.setPendingTier(request.getTier());
         subscription.setBillingCycle(request.getBillingCycle());
         subscription.setPriceVnd(price);
-        subscription.setStatus(SubscriptionStatus.ACTIVE);
-        subscription.setStartedAt(LocalDateTime.now());
-        subscription.setExpiresAt(calculateExpiryDate(LocalDateTime.now(), request.getBillingCycle()));
+        subscription.setStatus(SubscriptionStatus.PENDING);
+        // startedAt + expiresAt remain null until activation; computed in applyPendingUpgrade.
         subscription.setAutoRenew(request.getAutoRenew() != null ? request.getAutoRenew() : true);
 
         Subscription saved = subscriptionRepository.save(subscription);
 
-        // Update instance status to ACTIVE
-        instance.setStatus(InstanceStatus.ACTIVE);
-        instance.setSubscriptionId(saved.getId());
-        instance.setSubscriptionExpiresAt(saved.getExpiresAt());
-        instanceRepository.save(instance);
+        // Spawn Payment PENDING for the full tier price (reuses upgrade-path helper for VietQR setup).
+        Payment savedPayment = paymentRepository.save(createPendingPayment(saved, price));
+        saved.setPendingPaymentId(savedPayment.getId());
+        saved = subscriptionRepository.save(saved);
 
-        log.info("Created subscription: {} for instance: {}", saved.getId(), request.getInstanceId());
+        log.info("Created PENDING subscription: {} (pendingTier={}, pendingPaymentId={}) for instance: {}",
+            saved.getId(), request.getTier(), savedPayment.getId(), request.getInstanceId());
 
-        // Send subscription created email
-        try {
-            emailServiceClient.sendSubscriptionCreatedEmail(
-                instance.getId(),
-                instance.getContactEmail(),
-                instance.getOrganizationName(),
-                request.getTier().name(),
-                request.getBillingCycle().name()
-            );
-        } catch (Exception e) {
-            log.error("Failed to send subscription created email for instance: {}", instance.getId(), e);
-        }
+        // NOTE: instance activation + subscription-created email deferred to applyPendingUpgrade
+        // after admin confirms payment (SUB-20).
 
         return SubscriptionResponse.fromEntity(saved);
     }
@@ -189,7 +197,7 @@ public class SubscriptionService {
         log.info("Prorated charge for upgrade: {} VNĐ ({} days left)", proratedCharge, daysLeft);
 
         Payment savedPayment = paymentRepository.findLatestPendingBySubscriptionId(subscriptionId)
-            .orElseGet(() -> paymentRepository.save(createProratedPayment(subscription, proratedCharge)));
+            .orElseGet(() -> paymentRepository.save(createPendingPayment(subscription, proratedCharge)));
 
         subscription.setPendingTier(newTier);
         subscription.setPendingPaymentId(savedPayment.getId());
@@ -356,13 +364,21 @@ public class SubscriptionService {
     }
 
     /**
-     * Create payment record for prorated tier upgrade charge.
+     * Create a PENDING Payment record for a manual VietQR transfer.
      *
-     * @param subscription Subscription being upgraded
-     * @param amount Prorated amount to charge
+     * <p>Used by both:</p>
+     * <ul>
+     *   <li>{@link #createSubscription} — first-time paid creation (SUB-20),
+     *       amount = full requested-tier price.</li>
+     *   <li>{@link #upgradeSubscription} — upgrade to higher tier (UC-SUB-02),
+     *       amount = prorated charge.</li>
+     * </ul>
+     *
+     * @param subscription Subscription owning the payment
+     * @param amount Amount in VND (full price for create, prorated for upgrade)
      * @return Created payment record (not saved)
      */
-    private Payment createProratedPayment(Subscription subscription, long amount) {
+    private Payment createPendingPayment(Subscription subscription, long amount) {
         Payment payment = new Payment();
         payment.setSubscriptionId(subscription.getId());
         payment.setInstanceId(subscription.getInstanceId()); // V58 RLS: instance_id NOT NULL
@@ -378,14 +394,26 @@ public class SubscriptionService {
         payment.setAccountNumber(vietQRService.getAccountNumber());
         payment.setAccountName(vietQRService.getAccountName());
 
-        log.info("Created pending upgrade payment record: {} VNĐ for subscription {}",
+        log.info("Created pending payment record: {} VNĐ for subscription {}",
             amount, subscription.getId());
 
         return payment;
     }
 
     /**
-     * Apply a pending upgrade after its payment is confirmed.
+     * Apply a pending tier change after its payment is confirmed.
+     *
+     * <p>Handles two flow variants — both gated by the same admin-confirm step:</p>
+     * <ul>
+     *   <li><strong>Create-flow (SUB-20):</strong> subscription was created with
+     *       {@code status=PENDING, tier=FREE, pendingTier=<requested>} by
+     *       {@link #createSubscription}. On confirm: flip to ACTIVE, set
+     *       {@code startedAt}/{@code expiresAt}, activate instance, send
+     *       subscription-created email.</li>
+     *   <li><strong>Upgrade-flow (UC-SUB-02):</strong> subscription was already
+     *       ACTIVE at a lower tier; only {@code pendingTier} + {@code priceVnd}
+     *       need to flip. Instance is already ACTIVE; no email.</li>
+     * </ul>
      *
      * @param subscriptionId subscription UUID from the confirmed payment
      * @param paymentId confirmed payment UUID
@@ -396,7 +424,7 @@ public class SubscriptionService {
             .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + subscriptionId));
 
         if (subscription.getPendingPaymentId() == null || !subscription.getPendingPaymentId().equals(paymentId)) {
-            log.info("Payment {} is not the pending upgrade payment for subscription {}; skipping tier apply",
+            log.info("Payment {} is not the pending payment for subscription {}; skipping tier apply",
                 paymentId, subscriptionId);
             return;
         }
@@ -409,17 +437,64 @@ public class SubscriptionService {
         }
 
         PricingTier targetTier = subscription.getPendingTier();
+        boolean isCreateFlow = subscription.getStatus() == SubscriptionStatus.PENDING;
+
         subscription.setTier(targetTier);
         subscription.setPriceVnd(targetTier.getPrice(subscription.getBillingCycle()));
         subscription.setPendingTier(null);
         subscription.setPendingPaymentId(null);
-        subscriptionRepository.save(subscription);
 
-        log.info("Applied pending upgrade for subscription {} to tier {}", subscriptionId, targetTier);
+        if (isCreateFlow) {
+            // SUB-20 create-flow: flip to ACTIVE + initialize lifecycle dates.
+            LocalDateTime now = LocalDateTime.now();
+            subscription.setStatus(SubscriptionStatus.ACTIVE);
+            subscription.setStartedAt(now);
+            subscription.setExpiresAt(calculateExpiryDate(now, subscription.getBillingCycle()));
+        }
+
+        Subscription saved = subscriptionRepository.save(subscription);
+
+        if (isCreateFlow) {
+            // Activate instance + send subscription-created email (deferred from createSubscription).
+            Instance instance = instanceRepository.findById(saved.getInstanceId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "Instance not found: " + saved.getInstanceId()));
+            instance.setStatus(InstanceStatus.ACTIVE);
+            instance.setSubscriptionId(saved.getId());
+            instance.setSubscriptionExpiresAt(saved.getExpiresAt());
+            instanceRepository.save(instance);
+
+            try {
+                emailServiceClient.sendSubscriptionCreatedEmail(
+                    instance.getId(),
+                    instance.getContactEmail(),
+                    instance.getOrganizationName(),
+                    targetTier.name(),
+                    saved.getBillingCycle().name()
+                );
+            } catch (Exception e) {
+                log.error("Failed to send subscription created email for instance: {}",
+                    instance.getId(), e);
+            }
+
+            log.info("Activated PENDING subscription {} to tier {} (create-flow SUB-20)",
+                subscriptionId, targetTier);
+        } else {
+            log.info("Applied pending upgrade for subscription {} to tier {}", subscriptionId, targetTier);
+        }
     }
 
     /**
-     * Clear pending upgrade state after payment rejection.
+     * Clear pending state after payment rejection.
+     *
+     * <p>For upgrade-flow (subscription was ACTIVE), this only clears
+     * {@code pendingTier}/{@code pendingPaymentId} so the owner can submit a
+     * new upgrade request; current tier stays ACTIVE.</p>
+     *
+     * <p>For create-flow (SUB-20, subscription was PENDING with no prior
+     * ACTIVE state), there is no tier to fall back to — the subscription is
+     * marked CANCELLED so the owner can create a fresh paid subscription
+     * cleanly per Phase 1 BETA reject policy (UC-SUB-07).</p>
      *
      * @param subscriptionId subscription UUID from the rejected payment
      * @param paymentId rejected payment UUID
@@ -430,15 +505,26 @@ public class SubscriptionService {
             .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + subscriptionId));
 
         if (subscription.getPendingPaymentId() == null || !subscription.getPendingPaymentId().equals(paymentId)) {
-            log.info("Payment {} is not the pending upgrade payment for subscription {}; skipping pending clear",
+            log.info("Payment {} is not the pending payment for subscription {}; skipping pending clear",
                 paymentId, subscriptionId);
             return;
         }
 
+        boolean isCreateFlow = subscription.getStatus() == SubscriptionStatus.PENDING;
+
         subscription.setPendingTier(null);
         subscription.setPendingPaymentId(null);
+
+        if (isCreateFlow) {
+            // SUB-20 create-flow reject: no prior ACTIVE state to fall back to → cancel
+            // so owner can submit a fresh paid subscription cleanly (Phase 1 BETA policy).
+            subscription.setStatus(SubscriptionStatus.CANCELLED);
+            subscription.setAutoRenew(false);
+        }
+
         subscriptionRepository.save(subscription);
-        log.info("Cleared pending upgrade state for subscription {} after payment {}", subscriptionId, paymentId);
+        log.info("Cleared pending state for subscription {} after payment {} (create-flow={})",
+            subscriptionId, paymentId, isCreateFlow);
     }
 
     /**
