@@ -36,6 +36,7 @@ public class SubscriptionRenewalService {
     private final PaymentRepository paymentRepository;
     private final EmailServiceClient emailServiceClient;
     private final SubscriptionConfig subscriptionConfig;
+    private final VietQRService vietQRService;
 
     /**
      * Process subscription renewal.
@@ -224,6 +225,14 @@ public class SubscriptionRenewalService {
             subscription.getBillingCycle(),
             subscription.getInstanceId()
         ));
+        // GAP-939: snapshot bank account info from VietQRService defaults so Owner
+        // sees full transfer details on renewal payment page (parity with prorated
+        // upgrade flow already fixed in SubscriptionService.createProratedPayment).
+        payment.setQrCodeUrl(vietQRService.generateQRCode(
+            UUID.randomUUID(), subscription.getPriceVnd(), subscription.getId()));
+        payment.setBankCode(vietQRService.getBankCode());
+        payment.setAccountNumber(vietQRService.getAccountNumber());
+        payment.setAccountName(vietQRService.getAccountName());
 
         log.info("Created renewal payment invoice: {} VNĐ for subscription {}",
             subscription.getPriceVnd(), subscription.getId());
