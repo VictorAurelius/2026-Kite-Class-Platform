@@ -11,9 +11,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -68,11 +70,16 @@ class SubscriptionOutboxDispatcherTest {
 
         dispatcher.dispatch();
 
-        verify(rabbitTemplate).convertAndSend(
+        // GAP-937 (2026-06-04): production code uses rabbitTemplate.send(exchange, routingKey, Message)
+        // not convertAndSend — see SubscriptionOutboxDispatcher line 143 + GAP-925 raw UTF-8 bytes path.
+        ArgumentCaptor<Message> msgCaptor = ArgumentCaptor.forClass(Message.class);
+        verify(rabbitTemplate).send(
             eq(EmailQueueConfig.EMAIL_EXCHANGE),
             eq("email.beta.invite"),
-            (Object) eq("{\"k\":\"v\"}")
+            msgCaptor.capture()
         );
+        assertThat(new String(msgCaptor.getValue().getBody(), StandardCharsets.UTF_8))
+            .isEqualTo("{\"k\":\"v\"}");
     }
 
     @Test
@@ -93,8 +100,9 @@ class SubscriptionOutboxDispatcherTest {
         SubscriptionOutboxEvent event = pendingEvent("email.test", "TEST");
         when(outboxRepository.findByDispatchedAtIsNullOrderByCreatedAtAsc())
             .thenReturn(List.of(event));
+        // GAP-937: stub send(...) not convertAndSend — matches production path
         doThrow(new AmqpException("broker down"))
-            .when(rabbitTemplate).convertAndSend(anyString(), anyString(), (Object) any());
+            .when(rabbitTemplate).send(anyString(), anyString(), any(Message.class));
 
         dispatcher.dispatch();
 
@@ -109,7 +117,7 @@ class SubscriptionOutboxDispatcherTest {
 
         dispatcher.dispatch();
 
-        verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), (Object) any());
+        verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
         verify(outboxRepository, never()).save(any());
     }
 
@@ -134,14 +142,15 @@ class SubscriptionOutboxDispatcherTest {
         // First failure populates backoff map
         when(outboxRepository.findByDispatchedAtIsNullOrderByCreatedAtAsc())
             .thenReturn(List.of(event));
+        // GAP-937: stub send(...) not convertAndSend — matches production path
         doThrow(new AmqpException("down"))
-            .when(rabbitTemplate).convertAndSend(anyString(), anyString(), (Object) any());
+            .when(rabbitTemplate).send(anyString(), anyString(), any(Message.class));
 
         dispatcher.dispatch(); // first attempt fails
         dispatcher.dispatch(); // second attempt should skip due to backoff
 
-        // RMQ convertAndSend called only once (second skipped by backoff)
+        // RMQ send called only once (second skipped by backoff)
         verify(rabbitTemplate, org.mockito.Mockito.times(1))
-            .convertAndSend(anyString(), anyString(), (Object) any());
+            .send(anyString(), anyString(), any(Message.class));
     }
 }
