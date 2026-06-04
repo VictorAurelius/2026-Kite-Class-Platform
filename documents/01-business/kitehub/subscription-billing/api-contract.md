@@ -219,6 +219,7 @@ Monitor via `GET /api/platform/subscriptions/expiring` and instance status.
   "status": "PENDING",
   "qrCodeUrl": "https://img.vietqr.io/image/...",
   "transactionId": null,
+  "txnRef": "KH3SUB1A2B3C4D",
   "bankCode": "VCB",
   "accountNumber": "1234567890",
   "accountName": "CONG TY KITECLASS",
@@ -287,3 +288,62 @@ Monitor via `GET /api/platform/subscriptions/expiring` and instance status.
 **Response 200:** PaymentResponse with `status=FAILED`.
 **Side effect:** Subscription giữ tier hiện tại; pending state được clear để owner tạo yêu cầu thanh toán mới sạch.
 **Errors:** 400 missing reason; 401 thiếu/invalid JWT; 403 user không có role `PLATFORM_ADMIN`; 404 payment not found; 409 payment not PENDING.
+
+---
+
+## POST /api/platform/webhooks/payment
+
+**Use case:** UC-SUB-08 — SePay payment notification webhook (Wave flow-kh3-2)
+**Auth:** `Authorization: Apikey <kitehub.payment.sepay.api-key>` header (NOT JWT, NOT HMAC body-signature)
+**Source:** SePay merchant gateway (https://sepay.vn) — Free 50tx/tháng tier covers Phase 1 BETA.
+**Idempotency:** webhook PHẢI idempotent on `id` (SePay transaction ID) — replay same `id` → HTTP 200 + early-return no double-process. Backed by UNIQUE constraint on `payments.transaction_id`.
+
+**Request (SePay payload shape — strict):**
+```json
+{
+  "id": 92704902,
+  "gateway": "Vietcombank",
+  "transactionDate": "2026-06-04 09:30:01",
+  "accountNumber": "1234567890",
+  "subAccount": null,
+  "code": null,
+  "content": "KH3SUB1A2B3C4D Thanh toan goi BASIC",
+  "transferType": "in",
+  "description": "BankAPINotify KH3SUB1A2B3C4D Thanh toan goi BASIC",
+  "transferAmount": 10000,
+  "referenceCode": "FT26152709876543",
+  "accumulated": 0
+}
+```
+
+**Matching logic:**
+1. Verify `transferType == "in"` (else 200 + ignore — outbound transaction)
+2. Extract `txnRef` from `description` (regex `KH3SUB[A-F0-9]{8}`)
+3. `findPaymentByTxnRef(txnRef)` — exact-match query, NOT `LIKE %?%` substring (cross-tenant collision guard per `pre-handoff-self-test-completeness.md` §2.6 row d)
+4. Verify `transferAmount == payment.amountVnd` (else 400 amount mismatch)
+5. Check idempotency: if `payment.transaction_id == sepay.id` → HTTP 200 early-return
+6. `payment.complete(sepay.id)` + `subscriptionService.applyPendingUpgrade(subscriptionId, paymentId)` (existing state machine)
+
+**Response 200:** `{"status":"success"}` (always 200 for valid Apikey; logic errors logged not surfaced — SePay retries on non-200 → idempotency mandatory)
+
+**Errors:**
+- 401: missing/invalid `Authorization: Apikey` header
+- 400: malformed JSON, missing `transferAmount`, missing `description`
+- 400: `txnRef` extracted but `findPaymentByTxnRef` returns empty (orphan payment notify)
+- 400: amount mismatch (payment exists but `transferAmount != payment.amountVnd`)
+
+**Config keys (kitehub-subscription `application.yml`):**
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `kitehub.payment.sepay.api-key` | string | (empty — REQUIRED for prod) | SePay API key configured in SePay dashboard → KH webhook URL |
+| `kitehub.payment.sepay.webhook-path` | string | `/api/platform/webhooks/payment` | Endpoint path (informational, not used at runtime) |
+| `kitehub.payment.beta-mode.enabled` | boolean | `false` | When `true`, override payment.amountVnd to `override-amount-vnd` at createPayment time (Phase 1 BETA symbolic transfer) |
+| `kitehub.payment.beta-mode.override-amount-vnd` | long | `10000` | Symbolic amount in VND (bank minimum is 1k; 10k chosen per failure-mode audit 2026-06-04 — VCB/MBB/TCB accept) |
+
+**FE consumption note (Bucket D):** FE subscribes WebSocket `/topic/payments/{paymentId}` and receives `paymentCompleted` event after webhook flips Payment.status → COMPLETED. Display BetaModeBanner when `NEXT_PUBLIC_BETA_PAYMENT_OVERRIDE=true` (FE env flag mirrors BE `beta-mode.enabled`).
+
+**Cross-references:**
+- Bucket A (GAP-975): adds `Payment.txnRef` field + V64 migration (`payments.txn_ref VARCHAR(32) UNIQUE`) + extends `createPayment` with beta-amount override
+- Bucket B (GAP-976): rewrites existing `PaymentWebhookController` from generic HMAC body-signature → SePay `Authorization: Apikey` header + payload field adapter
+- Bucket C (GAP-974): `applyPendingUpgrade` emits `SUBSCRIPTION_ACTIVATED` outbox event → `subscription-activated.html` email arrives MailHog/Resend
+- Bucket D (GAP-977): FE WS subscribe + BetaModeBanner conditional render
