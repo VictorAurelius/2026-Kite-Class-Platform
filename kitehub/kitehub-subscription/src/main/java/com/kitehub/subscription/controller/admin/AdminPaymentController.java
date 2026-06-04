@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,10 +31,11 @@ import java.util.UUID;
  * here so admins can drive the manual VietQR reconciliation flow without falling back to
  * direct DB writes.</p>
  *
- * <p><strong>Auth</strong>: all routes live under {@code /api/platform/admin/**} so the
- * existing {@link com.kitehub.subscription.config.AdminApiKeyInterceptor} enforces
- * {@code X-Admin-Key} automatically — no per-method {@code @PreAuthorize} needed (same
- * pattern as {@link AdminMigrationController}).</p>
+ * <p><strong>Auth</strong>: all routes require a JWT with role {@code PLATFORM_ADMIN}.
+ * The gateway forwards the role as {@code X-User-Roles} header; Spring Security maps it
+ * to {@code ROLE_PLATFORM_ADMIN} and {@link PreAuthorize} on each method enforces access
+ * (GAP-938, Wave flow-kh3 — supersedes the legacy {@code X-Admin-Key} interceptor that
+ * was deleted because Wave 79 default-deny made it dead code).</p>
  *
  * <p><strong>Error handling</strong>: {@code IllegalArgumentException} thrown by the
  * service (payment not found, payment not pending, amount mismatch) is mapped to
@@ -59,6 +61,7 @@ public class AdminPaymentController {
      */
     @Operation(summary = "Admin: list pending payments (UC-SUB-07)",
         description = "Returns payments that admin needs to reconcile against the bank statement.")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     @GetMapping("/pending")
     public ResponseEntity<List<PaymentResponse>> listPending() {
         List<PaymentResponse> pending = paymentService.getPendingPayments();
@@ -78,6 +81,7 @@ public class AdminPaymentController {
      */
     @Operation(summary = "Admin: confirm pending payment (UC-SUB-07)",
         description = "Marks payment COMPLETED + applies pending subscription upgrade.")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     @PostMapping("/{id}/confirm")
     public ResponseEntity<PaymentResponse> confirm(
         @PathVariable UUID id,
@@ -100,6 +104,7 @@ public class AdminPaymentController {
      */
     @Operation(summary = "Admin: reject pending payment (UC-SUB-07)",
         description = "Marks payment FAILED + clears pending tier upgrade slot.")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     @PostMapping("/{id}/reject")
     public ResponseEntity<PaymentResponse> reject(
         @PathVariable UUID id,

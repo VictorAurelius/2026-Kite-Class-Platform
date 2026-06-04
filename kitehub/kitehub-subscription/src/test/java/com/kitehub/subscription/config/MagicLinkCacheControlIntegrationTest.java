@@ -30,13 +30,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * (Wave 86) — origin defense-in-depth.
  *
  * <p>Uses {@code @WebMvcTest} + {@code @Import({SecurityConfig.class, WebMvcConfig.class,
- * MagicLinkCacheControlInterceptor.class, AdminApiKeyInterceptor.class})} so the
- * interceptor registry built by {@link WebMvcConfig#addInterceptors} engages and
- * the interceptor actually fires on the validate endpoint.</p>
+ * MagicLinkCacheControlInterceptor.class})} so the interceptor registry built by
+ * {@link WebMvcConfig#addInterceptors} engages and the interceptor actually fires
+ * on the validate endpoint.</p>
+ *
+ * <p>GAP-938 (this PR): {@code AdminApiKeyInterceptor} đã xóa (dead code post Wave 79
+ * default-deny). Bỏ khỏi {@code @Import} array — phần admin auth giờ enforce ở Spring
+ * Security level qua {@code @PreAuthorize("hasRole('PLATFORM_ADMIN')")} method-level,
+ * không còn interceptor riêng.</p>
  */
 @WebMvcTest(controllers = BetaAccessController.class)
-@Import({SecurityConfig.class, WebMvcConfig.class,
-        MagicLinkCacheControlInterceptor.class, AdminApiKeyInterceptor.class})
+@Import({SecurityConfig.class, WebMvcConfig.class, MagicLinkCacheControlInterceptor.class})
 @DisplayName("MagicLink Cache-Control wiring — Wave 86 GAP-584 AC#2")
 class MagicLinkCacheControlIntegrationTest {
 

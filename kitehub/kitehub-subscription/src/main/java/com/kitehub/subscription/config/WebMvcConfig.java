@@ -7,7 +7,14 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Web MVC configuration — registers interceptors for admin endpoint protection.
+ * Web MVC configuration — registers interceptors for cache-control + idempotency.
+ *
+ * <p>Admin endpoint authentication moved to Spring Security {@code @PreAuthorize}
+ * per GAP-938 (Wave flow-kh3, 2026-06-04). The legacy {@code AdminApiKeyInterceptor}
+ * (X-Admin-Key header) was deleted because Wave 79 GAP-552 default-deny migration
+ * made Spring Security block requests before the interceptor ran — the X-Admin-Key
+ * mechanism became dead code. JWT with {@code role=PLATFORM_ADMIN} forwarded by
+ * gateway as {@code X-User-Id} + {@code X-User-Roles} is now the canonical auth path.</p>
  *
  * @since 1.0.0
  */
@@ -15,15 +22,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 public class WebMvcConfig implements WebMvcConfigurer {
 
-    private final AdminApiKeyInterceptor adminApiKeyInterceptor;
     private final MagicLinkCacheControlInterceptor magicLinkCacheControlInterceptor;
     private final IdempotencyHandlerInterceptor idempotencyHandlerInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(adminApiKeyInterceptor)
-                .addPathPatterns("/api/platform/admin/**");
-
         // Wave 86 GAP-584 AC#2 — origin defense-in-depth for magic-link / invite
         // single-use token endpoints. Pairs with edge layer Cloudflare Page Rule
         // (AC#1) so any intermediate cache between origin + client is forbidden
