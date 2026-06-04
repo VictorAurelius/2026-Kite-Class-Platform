@@ -15,3 +15,9 @@
 ALTER TABLE subscriptions
   ALTER COLUMN started_at DROP NOT NULL,
   ALTER COLUMN expires_at DROP NOT NULL;
+
+-- Extend CHECK constraint to include PENDING (SUB-20 manual VietQR gate state).
+-- Pre-existing chk_subscription_status only allowed ACTIVE/SUSPENDED/CANCELLED/EXPIRED.
+ALTER TABLE subscriptions DROP CONSTRAINT chk_subscription_status;
+ALTER TABLE subscriptions ADD CONSTRAINT chk_subscription_status
+  CHECK (status IN ('PENDING', 'ACTIVE', 'SUSPENDED', 'CANCELLED', 'EXPIRED'));
