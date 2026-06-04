@@ -81,10 +81,11 @@ class PaymentServiceTest {
 
         when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        CreatePaymentRequest request = new CreatePaymentRequest();
-        request.setSubscriptionId(subscriptionId);
-        request.setAmountVnd(150_000L);
-        request.setPaymentMethod(PaymentMethod.VIETQR);
+        CreatePaymentRequest request = CreatePaymentRequest.builder()
+            .subscriptionId(subscriptionId)
+            .amountVnd(150_000L)
+            .paymentMethod(PaymentMethod.VIETQR)
+            .build();
 
         // Act
         PaymentResponse response = paymentService.createPayment(request);
@@ -117,10 +118,11 @@ class PaymentServiceTest {
         when(vietQRService.generatePaymentContent(subscriptionId)).thenReturn("KITECLASS X");
         when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        CreatePaymentRequest request = new CreatePaymentRequest();
-        request.setSubscriptionId(subscriptionId);
-        request.setAmountVnd(100_000L);
-        request.setPaymentMethod(PaymentMethod.BANK_TRANSFER);
+        CreatePaymentRequest request = CreatePaymentRequest.builder()
+            .subscriptionId(subscriptionId)
+            .amountVnd(100_000L)
+            .paymentMethod(PaymentMethod.BANK_TRANSFER)
+            .build();
 
         // Act
         paymentService.createPayment(request);
