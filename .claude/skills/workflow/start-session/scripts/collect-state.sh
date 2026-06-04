@@ -503,6 +503,7 @@ Gaps blocker:      ${BLOCKERS:-<none>}
 Phase 1 BETA P0:   ${PHASE1_BETA_P0_COUNT} active (${PHASE1_BETA_P0_PARTIAL_COUNT} PARTIAL) — query: bash scripts/query-gaps.sh P0 "" phase-1-beta
 Session locks:     $ACTIVE_LOCKS  [$LOCK_LIST]
 Worktree husks:    $WT_HUSK_COUNT (.claude/worktrees/agent-*)$([ "$WT_HUSK_COUNT" -ge 3 ] && echo "  ⚠️  ≥3 → run: bash scripts/prune-merged-worktrees.sh --dry-run")
+Stale images:      $(STALE_CNT=$(bash "$REPO_ROOT/scripts/check-stale-images.sh" 2>/dev/null | grep -cE '[[:space:]]STALE$' || echo 0); echo "${STALE_CNT:-0}$([ "${STALE_CNT:-0}" -gt 0 ] && echo "  ⚠️  rebuild: bash scripts/check-stale-images.sh để xem danh sách + bash kitehub/scripts/rebuild.sh <service>")")
 
 AWS Phase 1 BETA (Tier 1 read-only per .claude/rules/agent-aws-access.md):
 $(aws_render_lines)

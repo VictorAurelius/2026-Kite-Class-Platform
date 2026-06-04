@@ -1,14 +1,33 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { AlertCircle, Loader2, ShieldCheck, KeyRound } from 'lucide-react';
+import { AlertCircle, Loader2, ShieldCheck, KeyRound, Clock } from 'lucide-react';
 import apiClient from '@/lib/api/client';
 import { useAuthStore } from '@/stores/auth-store';
 import { isPlatformAdmin } from '@/lib/auth-helpers';
 import { KiteLogo } from '@/components/brand/KiteLogo';
 import { TotpInput } from '@/components/auth/TotpInput';
 import { setTokens } from '@/lib/auth/jwt-storage';
+
+/**
+ * Decode `exp` (epoch seconds) from a JWT without signature verification.
+ * BE verifies; client read-only convenience for countdown display.
+ */
+function readJwtExp(token: string | null): number | null {
+  if (!token) return null;
+  const parts = token.split('.');
+  const payloadPart = parts[1];
+  if (parts.length !== 3 || !payloadPart) return null;
+  try {
+    const payload = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4);
+    const decoded = JSON.parse(atob(padded));
+    return typeof decoded.exp === 'number' ? decoded.exp : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * 2FA Challenge page (subsequent-login TOTP gate).
@@ -45,6 +64,31 @@ function TwoFactorChallengePageContent() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
+  // GAP-924 Issue 2: 5-min TTL countdown + auto-redirect on expiry.
+  const expSec = useMemo(() => readJwtExp(challengeToken), [challengeToken]);
+  const [remainingSec, setRemainingSec] = useState<number | null>(() => {
+    if (expSec == null) return null;
+    return Math.max(0, expSec - Math.floor(Date.now() / 1000));
+  });
+
+  useEffect(() => {
+    if (expSec == null) return;
+    const tick = () => {
+      const left = Math.max(0, expSec - Math.floor(Date.now() / 1000));
+      setRemainingSec(left);
+      if (left === 0) {
+        sessionStorage.setItem(
+          'login_expired_message',
+          'Phiên xác thực 2FA đã hết hạn. Vui lòng đăng nhập lại.'
+        );
+        router.replace('/login');
+      }
+    };
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [expSec, router]);
+
   if (!challengeToken) {
     return (
       <div>
@@ -80,7 +124,13 @@ function TwoFactorChallengePageContent() {
 
     setSubmitting(true);
     try {
-      const response = await apiClient.post('/api/auth/2fa/verify', payload);
+      // GAP-924 Issue 1: BE `ChallengeTokenAuthenticationFilter` reads the
+      // challenge token from the Authorization header (not the body) — passing
+      // it explicitly per-request because the user has no access token yet at
+      // this stage so the default apiClient interceptor won't attach one.
+      const response = await apiClient.post('/api/auth/2fa/verify', payload, {
+        headers: { Authorization: `Bearer ${challengeToken}` },
+      });
       const { access_token, refresh_token, user, regenerate_recommended, codes_remaining } = response.data;
 
       setAuth(user, access_token, refresh_token);
@@ -110,7 +160,12 @@ function TwoFactorChallengePageContent() {
       } else if (status === 401 && errCode === 'INVALID_CHALLENGE') {
         setError('Phiên xác thực không hợp lệ. Vui lòng đăng nhập lại.');
       } else if (status === 410) {
-        setError('Phiên xác thực 2FA đã hết hạn (>5 phút). Vui lòng đăng nhập lại.');
+        sessionStorage.setItem(
+          'login_expired_message',
+          'Phiên xác thực 2FA đã hết hạn (>5 phút). Vui lòng đăng nhập lại.'
+        );
+        router.replace('/login');
+        return;
       } else if (status === 423) {
         const data = (err as { response?: { data?: { lockedUntil?: string } } })?.response?.data;
         setError(
@@ -118,6 +173,8 @@ function TwoFactorChallengePageContent() {
             ? `Tài khoản đã bị khóa tạm thời (đến ${new Date(data.lockedUntil).toLocaleString('vi-VN')}). Vui lòng thử lại sau.`
             : 'Tài khoản đã bị khóa do nhập sai nhiều lần. Vui lòng thử lại sau.'
         );
+      } else if (status == null) {
+        setError('Không thể kết nối tới máy chủ. Vui lòng kiểm tra mạng và thử lại.');
       } else {
         setError('Không thể xác thực 2FA. Vui lòng thử lại.');
       }
@@ -140,6 +197,28 @@ function TwoFactorChallengePageContent() {
             : 'Nhập 1 mã khôi phục đã lưu khi thiết lập 2FA.'}
         </p>
       </div>
+
+      {remainingSec != null && remainingSec > 0 && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={
+            'mb-4 flex items-center gap-2 rounded-xl px-3 py-2 text-sm ' +
+            (remainingSec <= 30
+              ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-300'
+              : 'bg-muted text-muted-foreground')
+          }
+        >
+          <Clock className="h-4 w-4 shrink-0" />
+          <span>
+            Phiên xác thực còn{' '}
+            <strong>
+              {Math.floor(remainingSec / 60)}:{String(remainingSec % 60).padStart(2, '0')}
+            </strong>
+            . Hết thời gian sẽ tự động về trang đăng nhập.
+          </span>
+        </div>
+      )}
 
       {error && (
         <div role="alert" className="mb-6 flex items-start gap-2 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">

@@ -1,15 +1,86 @@
 ---
-description: "Dùng khi review business logic correctness, user nói 'persona review', 'end-user review', 'test từng đối tượng', 'nghiệp vụ đủ chưa', 'feature gap', 'role-play review'. Nhập vai từng persona → walk through nghiệp vụ → phát hiện missing features."
+description: "Dùng khi review business logic correctness, user nói 'persona review', 'end-user review', 'test từng đối tượng', 'nghiệp vụ đủ chưa', 'feature gap', 'role-play review', HOẶC 'pre-walk persona simulation' / 'pre-walk failure modes' / 'simulate walk' (Pre-Walk Mode, added v1.3). Nhập vai từng persona → walk through nghiệp vụ → phát hiện missing features."
 ---
 
 # Skill: Persona-Based Business Review
 
-**Version:** 1.2
+**Version:** 1.3
 **Created:** 2026-04-14
-**Last Updated:** 2026-04-30
-**Purpose:** Review business coverage bằng cách nhập vai (role-play) từng persona sử dụng platform → phát hiện gaps về core features thiếu. Reviewer dùng formal AC docs per persona (`documents/00-brd/persona-criteria/P<N>-*.md`) để mark PASS/PARTIAL/FAIL với evidence — replaces ad-hoc "Key needs" walkthrough trước GAP-151.
+**Last Updated:** 2026-06-04
+**Purpose:** Review business coverage bằng cách nhập vai (role-play) từng persona sử dụng platform → phát hiện gaps về core features thiếu. Reviewer dùng formal AC docs per persona (`documents/00-brd/persona-criteria/P<N>-*.md`) để mark PASS/PARTIAL/FAIL với evidence — replaces ad-hoc "Key needs" walkthrough trước GAP-151. **v1.3 (2026-06-04):** thêm Pre-Walk Mode per `pre-walk-persona-simulation-mandate.md` v1.0.0 — invoke skill BEFORE flow walk to surface ≥5 failure modes prospectively.
 
 **Project principle:** "SAAS này phải tạo sân chơi chung cho TẤT CẢ đối tượng thỏa mãn nhu cầu core của quản lý và học trực tuyến."
+
+---
+
+## Pre-Walk Mode (added v1.3, per `pre-walk-persona-simulation-mandate.md` v1.0.0)
+
+**When to invoke Pre-Walk Mode** — trước khi user / coordinator chạy manual walk end-to-end trên local Docker stack cho user-facing flow (signup / auth / invite / payment / tenant-switch / upload / email-driven / async). Per the mandate, this is REQUIRED, not optional.
+
+**Difference vs full persona audit:**
+
+| Aspect | Full persona audit (default) | Pre-Walk Mode (this section) |
+|---|---|---|
+| Scope | Mọi persona × tất cả features (broad) | 1 persona × 1 flow (narrow + deep) |
+| Output | Coverage Analysis table /128 PASS/PARTIAL/FAIL | Numbered list 5-10 failure modes per pre-walk-persona-simulation-mandate.md §3 |
+| Timing | Quarterly / pre-launch / milestone | Per Wave / PR ship user-facing flow, BEFORE walk |
+| Duration | 1-3h | 5-10 min Opus agent spawn |
+| Artifact location | `documents/04-quality/audits/persona-review/YYYY-MM-DD-<scope>.md` | `documents/04-quality/audits/persona-review/YYYY-MM-DD-pre-walk-<flow>.md` |
+
+### Pre-Walk invocation pattern (agent prompt)
+
+Spawn Opus 4.7 background agent per `agent-model-opus-default.md` + `agent-background-spawn-default.md`:
+
+```
+Wave <X> sắp ship flow <Y> (vd "Owner mời staff", "Invitee accept beta invite",
+"Parent claim student"). User sẽ walk end-to-end local Docker stack persona <Z>.
+
+Trước walk, simulate persona psychology + return ≥5 failure modes per
+.claude/rules/pre-walk-persona-simulation-mandate.md §3 format:
+
+1. Đọc persona doc `documents/00-brd/persona-criteria/<P-N>-*.md` (nếu có)
+2. Step into persona mindset:
+   - Tôi là <persona>. Tôi vừa mới <trigger action — click email link / submit form>.
+   - Kỳ vọng tôi: <list 3-5 expectations>.
+   - Lỗi tôi sợ gặp: <subdomain trùng / email format sai / token expired / network slow / 2FA wrong / payment declined / file format unsupported>.
+   - Retry behavior: F5 refresh / click lại / mở tab mới / contact support — what does each path expose?
+3. Cross-reference simulation-gap-finder.md failure-mode matrix (3 axis):
+   - Auth state (logged-in / logged-out / token-expired / role-mismatch)
+   - Sad path (input invalid / network drop / server 5xx / vendor down)
+   - Locale (vi labels / VN sample data / Zalo notifications / Mon-Sat week)
+4. Optional external benchmark — vendor sister product (vd Notion invite, Linear
+   onboarding, Stripe checkout, Slack signup) — surface industry pattern.
+
+Return 5-10 failure modes per §3.1 format:
+
+  N. <1-line title>
+     - (a) Where: <FE file:line / BE endpoint / gateway route / consumer queue / side-effect>
+     - (b) Symptom: <browser behavior / email observed-or-not / DB state>
+     - (c) Pre-walk check: <grep / Read / curl / psql command — concrete + executable>
+
+Append "Recommended pre-walk batch fix" section sorting by confidence × impact:
+- HIGH: fix trước walk
+- MEDIUM: spot-check Read + grep trước walk
+- LOW: defer to walk catch
+
+Save artifact `documents/04-quality/audits/persona-review/YYYY-MM-DD-pre-walk-<flow>.md`.
+```
+
+### Pre-Walk Mode quality criteria
+
+Output PASS khi:
+- ≥5 failure modes returned (≤10 cap to avoid noise)
+- Mỗi failure mode có 3 fields (a) where + (b) symptom + (c) pre-walk check
+- Mỗi (c) check is concrete + executable (grep command / file:line / curl probe / DB query)
+- Cross-reference 3+ axes (auth state / sad path / locale OR network / retry / device)
+- Recommended batch fix section sorts findings by confidence × impact
+- Artifact saved (not chat-only)
+
+Output FAIL khi:
+- <5 failure modes (insufficient persona sweep)
+- Failure modes generic / non-actionable ("user might be confused")
+- No file:line / endpoint citations
+- Skipped artifact save
 
 ---
 

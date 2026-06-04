@@ -5,10 +5,13 @@ import com.kitehub.subscription.config.EmailQueueConfig;
 import com.kitehub.subscription.outbox.SubscriptionOutboxEvent;
 import com.kitehub.subscription.outbox.SubscriptionOutboxRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -85,13 +88,21 @@ public class SubscriptionEventEmitter {
 
         // Best-effort fast-path — outbox is the reliability net.
         // Pattern lifted từ EmailServiceClient.publishToQueue — see design-patterns.md §3.5.1.
+        //
+        // GAP-925 (2026-06-04): `payload` arrives here as a pre-serialized JSON string
+        // (`objectMapper.writeValueAsString(event)`). `convertAndSend(..., String)` runs
+        // Jackson2JsonMessageConverter on the String → wraps it inside another JSON string,
+        // so the consumer reads `"{...}"` (a quoted JSON-of-JSON) and Jackson rejects it
+        // with `MismatchedInputException: Cannot construct EmailEvent ... from String`.
+        // Build the AMQP Message manually with the raw UTF-8 bytes + Content-Type so the
+        // converter passes through and consumers see the JSON object directly.
         if (rabbitTemplate != null) {
             try {
-                rabbitTemplate.convertAndSend(
-                    EmailQueueConfig.EMAIL_EXCHANGE,
-                    topic,
-                    payload
-                );
+                MessageProperties props = new MessageProperties();
+                props.setContentType(MessageProperties.CONTENT_TYPE_JSON);
+                props.setContentEncoding(StandardCharsets.UTF_8.name());
+                Message msg = new Message(payload.getBytes(StandardCharsets.UTF_8), props);
+                rabbitTemplate.send(EmailQueueConfig.EMAIL_EXCHANGE, topic, msg);
                 log.debug("Fast-path publish OK: eventType={} topic={}", eventType, topic);
             } catch (Exception ex) {
                 log.warn("Fast-path publish failed (eventType={} topic={}) — dispatcher will retry: {}",

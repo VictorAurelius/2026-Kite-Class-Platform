@@ -5,6 +5,8 @@ import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -12,6 +14,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -129,11 +132,15 @@ public class SubscriptionOutboxDispatcher {
             }
 
             try {
-                rabbitTemplate.convertAndSend(
-                    EmailQueueConfig.EMAIL_EXCHANGE,
-                    event.getTopic(),
-                    event.getPayload()
-                );
+                // GAP-925 (2026-06-04): mirror SubscriptionEventEmitter fast-path — payload
+                // is a pre-serialized JSON string, so build the AMQP Message manually with
+                // Content-Type=application/json to bypass the Jackson String-double-encode
+                // path that would otherwise reach the consumer as a quoted JSON-of-JSON.
+                MessageProperties props = new MessageProperties();
+                props.setContentType(MessageProperties.CONTENT_TYPE_JSON);
+                props.setContentEncoding(StandardCharsets.UTF_8.name());
+                Message msg = new Message(event.getPayload().getBytes(StandardCharsets.UTF_8), props);
+                rabbitTemplate.send(EmailQueueConfig.EMAIL_EXCHANGE, event.getTopic(), msg);
                 event.setDispatchedAt(LocalDateTime.now());
                 outboxRepository.save(event);
                 lastAttemptAt.remove(event.getId());

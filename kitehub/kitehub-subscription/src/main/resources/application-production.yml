@@ -61,3 +61,15 @@ database:
 # Production: Enable captcha to prevent spam
 captcha:
   enabled: true
+
+# GAP-934 Wave flow-kh1 G3 parity audit 2026-06-04: email verification
+# defaults to false in application.yml so local dev can skip the SES
+# round-trip. Production MUST enable it so each new account gets a
+# verification token, the email is sent via SES (per kitehub-email
+# production config), and the invitee proves control of the address
+# before login is allowed. Without this override, a stolen invite token
+# would let an attacker complete signup using any email — even one they
+# do not control.
+email:
+  verification:
+    enabled: ${EMAIL_VERIFICATION_ENABLED:true}
