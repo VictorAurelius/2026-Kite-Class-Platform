@@ -38,7 +38,13 @@ public class VietQRService {
     @Value("${payment.vietqr.api-url:https://api.vietqr.io/v2/generate}")
     private String apiUrl;
 
-    @Value("${payment.vietqr.mock-mode:false}")
+    /**
+     * Wave flow-kh3 Finding #4: default flipped to {@code true} to match the
+     * {@code application.yml} top-level binding ({@code payment.vietqr.mock-mode}) and to
+     * make the safe-by-default behaviour explicit in the source. Production overrides via
+     * compose env ({@code PAYMENT_MOCK_MODE=false}) once a real VietQR API key is provisioned.
+     */
+    @Value("${payment.vietqr.mock-mode:true}")
     private boolean mockMode;
 
     @Value("${payment.vietqr.api-key:#{null}}")
