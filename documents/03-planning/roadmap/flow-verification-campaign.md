@@ -44,16 +44,26 @@ Gap chặn flow lòi ra → fix tại chỗ + file gap inline (per `discovery-to
 
 ---
 
-## 3. Dependency graph (state-checked 2026-06-04) — quyết định priority
+## 3. Dependency graph (re-state-checked 2026-06-04, user-facing FE production-path) — quyết định priority
 
-Edges xác minh từ use-cases `Precondition` + entity FK (12→students, 7→classes, 4→courses):
+**Topology revision 2026-06-04 (Wave flow-kh2 G2 handoff discovery, [GAP-919](../../04-quality/gaps/phase-1-beta/GAP-919-kh2-register-fe-gated-by-beta-funnel.md)):** Initial graph 2026-06-04 (`KH-2 → KH-1`) reflected CODE dependency (KH-1 admin approve gọi KH-2 admin auth). USER-FACING FE flow ngược lại — KH-1 anonymous request KHỞI ĐẦU user journey, KH-2 register-via-invite là CONSEQUENCE của KH-1.S5 (invite consume). Empirical verified: `/register` 307 → `/request-beta-access`; `POST /api/auth/register` BE direct CHỈ Phase 2 self-service.
+
+**Split KH-2 vai trò:**
+- **KH-2a** Admin auth (admin login + 2FA enroll) — prerequisite cho KH-1.S2 admin approve
+- **KH-2b** Register-via-invite (`AuthService.registerFromBetaInvite`, `/beta-signup/code/<token>`) — actually KH-1.S5 sub-step
+- **KH-2c** Owner login (post-register) + onboarding wizard — persistent user flow
 
 ```mermaid
 flowchart TD
-    KH2[KH-2 Auth login/2FA] --> KH1[KH-1 Beta funnel → provision instance]
-    KH2 --> ALL[mọi flow authenticated]
-    KH1 --> KH3[KH-3 Subscription create/trial→paid]
-    KH1 --> KC1[KC-1 Tenant provisioning/settings]
+    KH2a[KH-2a Admin auth login/2FA enroll] -->|admin can approve| KH1S2[KH-1.S2 admin approve]
+    KH1S1[KH-1.S1 anonymous request beta access] --> KH1S2
+    KH1S2 --> KH1S3[KH-1.S3 invite email send]
+    KH1S3 --> KH1S4[KH-1.S4 user clicks invite link]
+    KH1S4 --> KH2b[KH-2b register-via-invite → tenant provisioned]
+    KH2b --> KH2c[KH-2c Owner login + onboarding wizard]
+    KH2c --> ALL[mọi flow authenticated downstream]
+    KH2c --> KH3[KH-3 Subscription create/trial→paid]
+    KH2c --> KC1[KC-1 Tenant provisioning/settings — auto from KH-2b]
     KC1 --> KC2[KC-2 Staff invite + RBAC]
     KC2 --> KC3[KC-3 Course/class/schedule]
     KC3 --> KC4[KC-4 Student enrollment]
@@ -64,10 +74,15 @@ flowchart TD
     KC6 --> KC8
     KC7 --> KC8
     KC4 --> KC9[KC-9 Student portal]
-    KH4[KH-4 Subscription upgrade ✅ VERIFIED] -.-> KH1
+    KH4[KH-4 Subscription upgrade ✅ VERIFIED] -.-> KH3
 ```
 
-**Thứ tự loop chuẩn hóa (topological):** KH-2 → KH-1 → KH-3 → KC-1 → KC-2 → KC-3 → KC-4 → {KC-5, KC-6, KC-7 song song} → {KC-8, KC-9}. Secondary (độc lập, sau core): KH-5/6/7/8/9/10, KC-10/11/12.
+**Thứ tự loop chuẩn hóa (topological — revised 2026-06-04):**
+1. **KH-2a** Admin auth (prerequisite cho KH-1.S2) ✅ G1 evidence in [wave-flow-kh2](../waves/wave-2026-06-03-flow-kh2-auth-onboarding.md) S4
+2. **KH-1** Beta funnel full chain (S1 anonymous → S2 admin approve → S3 email → S4 invite click → S5 register-via-invite = KH-2b)
+3. **KH-2c** Owner login + onboarding wizard ✅ G1 evidence in wave-flow-kh2 S3+S5 (BE+gateway PASS)
+4. KH-3 → KC-1 (auto from KH-2b) → KC-2 → KC-3 → KC-4 → {KC-5, KC-6, KC-7 song song} → {KC-8, KC-9}
+5. Secondary (độc lập, sau core): KH-5/6/7/8/9/10, KC-10/11/12
 
 ---
 
@@ -75,8 +90,9 @@ flowchart TD
 
 | # | Flow | Priority | Status | Wave plan | Blocker đã biết |
 |---|---|---|---|---|---|
-| KH-2 | Auth + onboarding (register→verify→login→2FA→wizard) | 1 | 🔄 walk-pass-pending-human (G1 ✅) | [wave-2026-06-03-flow-kh2](../waves/wave-2026-06-03-flow-kh2-auth-onboarding.md) | ✅ [GAP-916 P0 DONE](../../04-quality/gaps/phase-1-beta/closed/GAP-916-gateway-onboarding-progress-401-jwt-not-recognized.md); residual: GAP-917 P2 + GAP-918 P2 |
-| KH-1 | Beta funnel: request→admin approve→email invite→provision | 2 | ⬜ | — | — |
+| KH-2a | Admin auth (login + 2FA enroll) — prerequisite cho KH-1.S2 | 1 | ✅ G1 PASS (BE direct verified wave-flow-kh2 S4) | [wave-2026-06-03-flow-kh2](../waves/wave-2026-06-03-flow-kh2-auth-onboarding.md) | — |
+| KH-1 | Beta funnel: anonymous request → admin approve → invite email → register-via-invite (= KH-2b) → tenant provisioned | 2 | ⬜ (next loop) | — | GAP-919 (re-topology); KH-2b fold vào đây |
+| KH-2c | Owner login (post-register) + onboarding wizard | 3 | 🔄 walk-pass-pending-human (G1 ✅ BE+gateway, chờ G2 sau KH-1) | wave-flow-kh2 (S3+S5 evidence) | ✅ GAP-916 DONE; residual GAP-917 P2 + GAP-918 P2 |
 | KH-3 | Subscription create + trial→paid migration | 3 | ⬜ | — | — |
 | KH-4 | **Subscription upgrade manual VietQR + admin confirm** | — | ✅ THÔNG (G1) | — | (GAP-914 fixed) |
 | KC-1 | Tenant provisioning + lifecycle + settings | 4 | ⬜ | — | — |
@@ -116,4 +132,5 @@ Quay lại wave-based gap-fix cho backlog cosmetic còn lại (31 anomaly gap Wa
 ## 7. Log
 
 - **2026-06-04**: Campaign tạo. Dependency graph state-checked (auth=root, enrollment gate cho attendance/grade/invoice). 3-gate "thông" định nghĩa (agent walk + human local test + production-parity). KH-4 đã ✅ G1 (phiên billing verify, GAP-914 fixed). Order chuẩn hóa topo. Wave plan lazy per flow.
-- **2026-06-03**: Loop bắt đầu KH-2 (root). Wave plan ship: [wave-2026-06-03-flow-kh2-auth-onboarding.md](../waves/wave-2026-06-03-flow-kh2-auth-onboarding.md). Build images + stack up + walk 5 sub-step catalog-then-batch per loop §2. 3 gaps filed (916 P0 + 917 P2 + 918 P2). **GAP-916 fix shipped** (filter Order=LOWEST_PRECEDENCE-2 để header inject sau default-filter strip). Re-walk via gateway PASS: GET+PUT `/api/v1/onboarding-progress` HTTP 200 + body OK + state update. **G1 ✅** — production-equivalent path qua gateway hoạt động. KH-2 → 🔄 walk-pass-pending-human, chờ user G2 (human local test FE) + G3 (production parity confirm — production-set `EMAIL_VERIFICATION_ENABLED=true` + verify SES email).
+- **2026-06-03**: Loop bắt đầu KH-2 (root — initial assumption). Wave plan ship: [wave-2026-06-03-flow-kh2-auth-onboarding.md](../waves/wave-2026-06-03-flow-kh2-auth-onboarding.md). Build images + stack up + walk 5 sub-step catalog-then-batch per loop §2. 3 gaps filed (916 P0 + 917 P2 + 918 P2). **GAP-916 fix shipped** (filter Order=LOWEST_PRECEDENCE-2 để header inject sau default-filter strip). Re-walk via gateway PASS: GET+PUT `/api/v1/onboarding-progress` HTTP 200 + body OK + state update.
+- **2026-06-04 (G2 handoff)**: User-flagged "Đăng ký" CTA không tồn tại trên landing. Empirical state-check: KiteHub CTA "Dùng thử miễn phí 14 ngày" → `/register` HTTP 307 → `/request-beta-access` (KH-1 beta funnel). Phase 1 BETA gate self-service register; user PHẢI qua KH-1 invite chain. **Topology revision §3** (Mermaid graph + thứ tự loop): KH-1 root user-facing, KH-2 split thành KH-2a (admin auth — prerequisite cho KH-1.S2) + KH-2b (register-via-invite — actually KH-1.S5 sub-step) + KH-2c (owner login + wizard — post-register persistent). Wave flow-kh2 G1 evidence valid cho KH-2a + KH-2c (BE+gateway PASS). KH-2b register-via-invite defer KH-1 wave next loop. GAP-919 filed for re-topology trace. KH-2 row trong §4 split thành 3 rows. Next loop = **KH-1 full funnel** (sẽ cover KH-2b register-via-invite).

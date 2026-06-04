@@ -14,7 +14,7 @@ campaign: flow-verification-campaign
 # Wave flow-kh2 — Auth + Onboarding walk
 
 **Goal:** Walk end-to-end flow KH-2 (register → email verify → login → 2FA → onboarding wizard) trên production-equivalent stack, đạt **G1 PASS** (per `flow-verification-campaign.md` §1 3-gate); hand off G2 (human local test) + G3 (production parity).
-**Trigger:** Flow đầu tiên (root) trong campaign topological order — mọi flow authenticated sau đó depend KH-2. Per CLAUDE.md §🔄 Flow Verification Campaign sub-mode.
+**Trigger:** Flow đầu tiên (root — initial assumption per campaign §3 v1) trong campaign topological order. **Topology revision 2026-06-04 (GAP-919):** KH-2 split thành KH-2a (admin auth — prerequisite cho KH-1.S2) + KH-2b (register-via-invite — actually KH-1.S5 sub-step) + KH-2c (owner login + wizard — post-register). Wave này G1 evidence valid cho **KH-2a + KH-2c**; KH-2b register-via-invite defer KH-1 wave next loop. Per CLAUDE.md §🔄 Flow Verification Campaign sub-mode.
 **Estimated wall-clock:** Loop đầu ~45-90 min (build + stack-up + walk + batch-fix 1 cycle); subsequent ~15-30 min/cycle.
 
 ---
@@ -216,11 +216,13 @@ Catalog complete (5 blocker). Per `feature-ship-runtime-walk-mandate` §3.4 cata
 - GAP-917 (login 400 vs 401) + GAP-918 (gateway 503 startup) P2 không block G2 nhưng nên fix Phase 1 BETA
 - Sau GAP-916 fix → re-walk via gateway only → flip G1 ✅ → hand off G2 user → G3 production verify
 
-### 7.2 Status (live 2026-06-03 post-GAP-916 fix)
+### 7.2 Status (live 2026-06-03 post-GAP-916 fix + 2026-06-04 topology revision)
 
-✅ S1 register · ⚠️ S2 verify (config skip, G3 verify) · ✅ S3 login (sad path P2 drift) · ✅ S4 2FA enroll · ✅ S5 wizard (via gateway HTTP 200 after fix)
+**Per topology revision GAP-919:** wave scope splits — S1 register defers FE path to KH-1; S3/S4/S5 valid in-scope.
 
-**Gate:** G1 ✅ PASS · G2 ⬜ pending-user · G3 ⬜ pending-post-G2 + production EMAIL_VERIFICATION_ENABLED verify
+✅ S1 register (BE direct only — FE path defer KH-1, per GAP-919) · ⚠️ S2 verify (config skip, G3 verify) · ✅ S3 login (sad path P2 drift) · ✅ S4 2FA enroll = **KH-2a evidence** · ✅ S5 wizard (via gateway HTTP 200) = **KH-2c evidence**
+
+**Gate:** G1 ✅ PASS cho KH-2a + KH-2c · G2 ⬜ pending sau KH-1 walk (KH-2b register-via-invite chain với KH-2c login chain) · G3 ⬜ pending-post-G2 + production EMAIL_VERIFICATION_ENABLED verify
 
 ### 7.3 Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` §3)
 
@@ -229,8 +231,9 @@ Catalog complete (5 blocker). Per `feature-ship-runtime-walk-mandate` §3.4 cata
 | 1 | Bucket A — Walk 5 sub-step | ✅ DONE | Walk reached terminal step S5 với evidence cited §7.1 |
 | 2 | Bucket B — Batch-fix blocker | ✅ DONE (P0) + 🟡 PARTIAL (P2 residual) | [GAP-916 P0 DONE](../../04-quality/gaps/phase-1-beta/closed/GAP-916-gateway-onboarding-progress-401-jwt-not-recognized.md) (filter Order fix); residual [GAP-917 P2](../../04-quality/gaps/phase-1-beta/GAP-917-login-sad-path-returns-400-spec-401.md) + [GAP-918 P2](../../04-quality/gaps/phase-1-beta/GAP-918-gateway-circuit-breaker-startup-transient-503.md) defer Phase 1 BETA cosmetic |
 | 3 | Bucket C — Re-walk + G1 verdict | ✅ DONE | Re-walk via gateway PASS — S5 GET+PUT HTTP 200; G1 ✅ |
-| 4 | G2 human local test | 🟡 PENDING-USER | Hand off user — stack vẫn UP (`kitehub/scripts/status.sh` confirm); FE qua gateway 9000 |
-| 5 | G3 production parity confirm | 🟡 PENDING-POST-G2 | Sau G2 PASS → verify production `EMAIL_VERIFICATION_ENABLED=true` + SES email signing + Cloudflare DNS verify-link reachability |
+| 4 | G2 human local test | 🟡 PENDING-CHAIN-WITH-KH-1 | G2 KH-2 chỉ test được sau khi KH-1 walk (Phase 1 BETA gate FE register — GAP-919). User test full chain KH-1 → KH-2c qua FE trong KH-1 wave G2. KH-2a admin auth + KH-2c BE/gateway evidence wave này valid cho G1 evidence-level. |
+| 5 | G3 production parity confirm | 🟡 PENDING-POST-G2 | Sau KH-1 G2 PASS → verify production `EMAIL_VERIFICATION_ENABLED=true` + SES email signing + Cloudflare DNS verify-link reachability |
+| 6 (new — topology revision) | KH-2 scope split + campaign §3 graph update | ✅ DONE | GAP-919 filed; campaign §3 dependency graph re-state-checked + Mermaid update; thứ tự loop revised (KH-2a → KH-1 → KH-2c → KH-3 → KC-*); wave KH-2 row split thành 3 rows trong campaign §4 |
 
 ### 7.4 Post-wave cleanup
 
@@ -244,4 +247,11 @@ KH-2 single-agent — no worktree spawn → cleanup N/A. Campaign row update tro
 
 ## 8. Log
 
-- **2026-06-03**: Wave plan tạo. Build images latest (`bash kitehub/scripts/build-all.sh` exit 0). Stack-up (`bash kitehub/scripts/up.sh` exit 0). Walk 5 sub-step catalog-then-batch protocol per `feature-ship-runtime-walk-mandate` §3.4. 3 gaps filed (916/917/918). **GAP-916 fix shipped same wave** (Bucket B): `JwtAuthenticationGatewayFilter.ORDER = Ordered.LOWEST_PRECEDENCE - 2` + `TenantHeaderGuardFilter.ORDER = Ordered.LOWEST_PRECEDENCE - 1` để header inject sau default-filter `RemoveRequestHeader` strip + trước NettyRoutingFilter forward. Re-walk via gateway PASS — S5 GET HTTP 200 (5 step lazy-init) + PUT HTTP 200 (completionPercent 0→20). **G1 ✅** — production-equivalent path hoạt động. Campaign row KH-2 → 🔄 walk-pass-pending-human. Hand off user G2 (human FE test via gateway port 9000) + G3 (production parity post-G2). Residual GAP-917 + GAP-918 P2 defer Phase 1 BETA cleanup batch.
+- **2026-06-03**: Wave plan tạo. Build images latest (`bash kitehub/scripts/build-all.sh` exit 0). Stack-up (`bash kitehub/scripts/up.sh` exit 0). Walk 5 sub-step catalog-then-batch protocol per `feature-ship-runtime-walk-mandate` §3.4. 3 gaps filed (916/917/918). **GAP-916 fix shipped same wave** (Bucket B): `JwtAuthenticationGatewayFilter.ORDER = Ordered.LOWEST_PRECEDENCE - 2` + `TenantHeaderGuardFilter.ORDER = Ordered.LOWEST_PRECEDENCE - 1` để header inject sau default-filter `RemoveRequestHeader` strip + trước NettyRoutingFilter forward. Re-walk via gateway PASS — S5 GET HTTP 200 (5 step lazy-init) + PUT HTTP 200 (completionPercent 0→20). **G1 BE+gateway ✅** — business logic + production-equivalent infra path hoạt động.
+
+- **2026-06-04**: G2 handoff revealed topology drift — user-flagged KiteHub CTA "Dùng thử miễn phí 14 ngày" (không phải "Đăng ký"), `/register` 307 → `/request-beta-access` (Phase 1 BETA gate self-service). **Topology revision (GAP-919):** KH-2 split — KH-2a (admin auth) prerequisite cho KH-1.S2, KH-2b (register-via-invite) actually KH-1.S5, KH-2c (owner login + wizard) post-register. Wave này G1 evidence:
+  - **KH-2a ✅** (S4 admin login + 2FA enroll PASS)
+  - **KH-2c ✅** (S3 owner login + S5 wizard PASS, gateway fix shipped)
+  - **KH-2b ⏸️** defer KH-1 wave (FE production-path là `/beta-signup/code/<token>`, BE `registerFromBetaInvite`)
+  - **S1 BE direct** kept as Phase 2-only evidence
+  Campaign §3 dependency graph re-state-checked, Mermaid updated, thứ tự loop revised: KH-2a → KH-1 → KH-2c → KH-3 → KC-*. Campaign §4 KH-2 row split thành 3 rows. Next loop = **KH-1 full funnel** (sẽ exercise KH-2b register-via-invite + chain với KH-2c). Residual GAP-917 + GAP-918 P2 defer Phase 1 BETA cleanup.
