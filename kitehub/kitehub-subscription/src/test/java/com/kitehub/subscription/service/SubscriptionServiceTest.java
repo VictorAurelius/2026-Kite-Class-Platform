@@ -71,9 +71,9 @@ class SubscriptionServiceTest {
     }
 
     @Test
-    @DisplayName("Should create subscription successfully")
-    void shouldCreateSubscriptionSuccessfully() {
-        // Given
+    @DisplayName("Should create PENDING subscription with payment gate (SUB-20)")
+    void shouldCreatePendingSubscriptionForPaidTier() {
+        // Given — Owner submits create request for paid tier (per SUB-20)
         CreateSubscriptionRequest request = CreateSubscriptionRequest.builder()
             .instanceId(instanceId)
             .tier(PricingTier.BASIC)
@@ -83,28 +83,124 @@ class SubscriptionServiceTest {
 
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
         when(subscriptionRepository.findActiveByInstanceId(instanceId)).thenReturn(Optional.empty());
+        // Use any() (matches null) — first save() happens before ID is generated.
+        when(vietQRService.generatePaymentContent(any())).thenReturn("KITEHUB ABCD1234");
+        when(vietQRService.generateQRCode(any(), any(), any()))
+            .thenReturn("https://qr.example/payment.png");
+        when(vietQRService.getBankCode()).thenReturn("VCB");
+        when(vietQRService.getAccountNumber()).thenReturn("1234567890");
+        when(vietQRService.getAccountName()).thenReturn("CONG TY KITECLASS");
 
-        Subscription savedSubscription = new Subscription();
-        savedSubscription.setId(UUID.randomUUID());
-        savedSubscription.setInstanceId(instanceId);
-        savedSubscription.setTier(PricingTier.BASIC);
-        savedSubscription.setBillingCycle(BillingCycle.MONTHLY);
-        savedSubscription.setPriceVnd(500_000L);
-        savedSubscription.setStatus(SubscriptionStatus.ACTIVE);
-        savedSubscription.setStartedAt(java.time.LocalDateTime.now());
-        savedSubscription.setExpiresAt(java.time.LocalDateTime.now().plusMonths(1));
-        
-        when(subscriptionRepository.save(any(Subscription.class))).thenReturn(savedSubscription);
-        when(instanceRepository.save(any(Instance.class))).thenReturn(instance);
+        // Save subscription returns the same entity passed in (so subsequent mutations stick).
+        when(subscriptionRepository.save(any(Subscription.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+        UUID paymentId = UUID.randomUUID();
+        Payment savedPayment = new Payment();
+        savedPayment.setId(paymentId);
+        savedPayment.setAmountVnd(500_000L);
+        savedPayment.setStatus(PaymentStatus.PENDING);
+        when(paymentRepository.save(any(Payment.class))).thenReturn(savedPayment);
 
         // When
         SubscriptionResponse response = subscriptionService.createSubscription(request);
 
-        // Then
+        // Then — response carries PENDING shape per SUB-20 + api-contract.md
         assertThat(response).isNotNull();
-        assertThat(response.getTier()).isEqualTo(PricingTier.BASIC);
+        assertThat(response.getStatus()).isEqualTo(SubscriptionStatus.PENDING);
+        assertThat(response.getTier()).isEqualTo(PricingTier.FREE);
+        assertThat(response.getPendingTier()).isEqualTo(PricingTier.BASIC);
+        assertThat(response.getPendingPaymentId()).isEqualTo(paymentId);
         assertThat(response.getPriceVnd()).isEqualTo(500_000L);
+        assertThat(response.getStartedAt()).isNull();
+        assertThat(response.getExpiresAt()).isNull();
+
+        // Instance must NOT be activated, no email yet (deferred to applyPendingUpgrade).
+        verify(instanceRepository, never()).save(any(Instance.class));
+        verify(emailServiceClient, never()).sendSubscriptionCreatedEmail(
+            any(UUID.class), any(String.class), any(String.class), any(String.class), any(String.class));
+
+        // Payment PENDING was spawned via VietQR helper.
+        ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
+        verify(paymentRepository).save(paymentCaptor.capture());
+        Payment capturedPayment = paymentCaptor.getValue();
+        assertThat(capturedPayment.getAmountVnd()).isEqualTo(500_000L);
+        assertThat(capturedPayment.getPaymentMethod()).isEqualTo(PaymentMethod.VIETQR);
+        assertThat(capturedPayment.getStatus()).isEqualTo(PaymentStatus.PENDING);
+        assertThat(capturedPayment.getPaymentContent()).isEqualTo("KITEHUB ABCD1234");
+    }
+
+    @Test
+    @DisplayName("applyPendingUpgrade on PENDING create-flow flips ACTIVE + activates instance + sends email")
+    void shouldActivatePendingCreateOnPaymentConfirm() {
+        // Given — subscription persisted via createSubscription (PENDING/FREE/pendingTier=BASIC)
+        UUID subscriptionId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setInstanceId(instanceId);
+        subscription.setTier(PricingTier.FREE);
+        subscription.setPendingTier(PricingTier.BASIC);
+        subscription.setPendingPaymentId(paymentId);
+        subscription.setBillingCycle(BillingCycle.MONTHLY);
+        subscription.setStatus(SubscriptionStatus.PENDING);
+        subscription.setPriceVnd(500_000L);
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.save(any(Subscription.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+        when(instanceRepository.save(any(Instance.class))).thenReturn(instance);
+
+        // When
+        subscriptionService.applyPendingUpgrade(subscriptionId, paymentId);
+
+        // Then — flip to ACTIVE/BASIC + instance ACTIVE + email sent
+        assertThat(subscription.getStatus()).isEqualTo(SubscriptionStatus.ACTIVE);
+        assertThat(subscription.getTier()).isEqualTo(PricingTier.BASIC);
+        assertThat(subscription.getPendingTier()).isNull();
+        assertThat(subscription.getPendingPaymentId()).isNull();
+        assertThat(subscription.getStartedAt()).isNotNull();
+        assertThat(subscription.getExpiresAt()).isNotNull();
+
         verify(instanceRepository).save(any(Instance.class));
+        assertThat(instance.getStatus()).isEqualTo(InstanceStatus.ACTIVE);
+
+        verify(emailServiceClient).sendSubscriptionCreatedEmail(
+            eq(instanceId),
+            any(),
+            any(),
+            eq(PricingTier.BASIC.name()),
+            eq(BillingCycle.MONTHLY.name())
+        );
+    }
+
+    @Test
+    @DisplayName("clearPendingUpgrade on PENDING create-flow cancels subscription")
+    void shouldCancelPendingCreateOnPaymentReject() {
+        // Given — subscription PENDING/FREE awaiting payment, admin rejects
+        UUID subscriptionId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setTier(PricingTier.FREE);
+        subscription.setPendingTier(PricingTier.BASIC);
+        subscription.setPendingPaymentId(paymentId);
+        subscription.setStatus(SubscriptionStatus.PENDING);
+        subscription.setAutoRenew(true);
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.save(any(Subscription.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        subscriptionService.clearPendingUpgrade(subscriptionId, paymentId);
+
+        // Then — cancelled cleanly so owner can submit fresh request
+        assertThat(subscription.getStatus()).isEqualTo(SubscriptionStatus.CANCELLED);
+        assertThat(subscription.getPendingTier()).isNull();
+        assertThat(subscription.getPendingPaymentId()).isNull();
+        assertThat(subscription.getAutoRenew()).isFalse();
     }
 
     @Test
