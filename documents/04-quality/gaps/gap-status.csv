@@ -724,3 +724,4 @@ GAP-915,phase-1-beta/GAP-915-check-schema-drift-am-stale-platform.md,check-schem
 GAP-916,P0,DONE,phase-1-beta,Backend,100%,"Gateway → 401 cho /api/v1/onboarding-progress dù JWT hợp lệ (Wave flow-kh2 walk Blocker #5)"
 GAP-917,P2,OPEN,phase-1-beta,Backend,0%,"Login sad path trả HTTP 400 thay vì 401 INVALID_CREDENTIALS (Wave flow-kh2 walk Blocker #3)"
 GAP-918,P2,OPEN,phase-1-beta,Backend,0%,"Gateway authCircuitBreaker mở state lúc startup → register 503 fallback HTML (Wave flow-kh2 walk Blocker #1)"
+GAP-919,P2,OPEN,phase-1-beta,Frontend,0%,"KH-2 register via FE gated by KH-1 beta funnel; wave plan S1 không reflect FE production path (Wave flow-kh2 G2 handoff discovery)"
