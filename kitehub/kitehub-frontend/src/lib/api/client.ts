@@ -39,12 +39,34 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// GAP-924 (2026-06-04): Auth-flow endpoints return 401 as part of normal flow
+// validation (wrong password, invalid TOTP, expired challenge token) — NOT
+// session expiry. The refresh-then-redirect path masks the error from the
+// component catch block and leaves the user with a silent UI failure. Skip
+// the auto-refresh path for these URLs and let the caller handle the 401.
+const AUTH_FLOW_401_PASSTHROUGH = [
+  '/api/auth/login',
+  '/api/auth/2fa/verify',
+  '/api/auth/2fa/enroll-init',
+  '/api/auth/2fa/enroll-confirm',
+  '/api/auth/2fa/setup',
+];
+
+function isAuthFlowPassthrough(url: string | undefined): boolean {
+  if (!url) return false;
+  return AUTH_FLOW_401_PASSTHROUGH.some((p) => url === p || url.endsWith(p));
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isAuthFlowPassthrough(originalRequest.url)
+    ) {
       originalRequest._retry = true;
 
       try {

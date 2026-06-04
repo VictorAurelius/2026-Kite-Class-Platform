@@ -73,6 +73,17 @@ export default function LoginPage() {
     clearLegacyLocalStorageTokens();
   }, []);
 
+  // GAP-924 (2026-06-04): surface expired-2FA-session redirect message that
+  // the 2fa-challenge page stashed before kicking back here.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const stashed = sessionStorage.getItem('login_expired_message');
+    if (stashed) {
+      setError(stashed);
+      sessionStorage.removeItem('login_expired_message');
+    }
+  }, []);
+
   const {
     register,
     handleSubmit,

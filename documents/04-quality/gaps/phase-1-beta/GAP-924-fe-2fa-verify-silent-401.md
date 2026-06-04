@@ -1,6 +1,6 @@
 # GAP-924: FE 2FA verify form không show error khi 401 + Authorization header có thể missing
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (3/3 code fixes shipped Wave flow-kh1 2026-06-04 — pending user G2 walk re-verify)
 **Priority:** 🟠 P1 (user-facing — silent fail blocks admin login flow)
 **Domain:** Frontend
 **Found:** 2026-06-04 (Wave flow-kh1 G2 handoff — user-flagged "ko login được admin bằng mã" + "UI ko trả ra thông báo lỗi")
@@ -67,11 +67,11 @@ Issue 3 violates (c) — UI silent on failure = user blind.
 
 ## Acceptance Criteria
 
-- [ ] Phase 1: FE 2FA verify form renders Vietnamese error message on 401 (challenge expired / invalid code / generic)
-- [ ] Phase 2: FE always sends `Authorization: Bearer <challenge_token>` header along with body
-- [ ] Phase 3: Countdown timer + auto-redirect on expiry
-- [ ] Re-walk G2 admin login → user can complete TOTP entry + see error UI on fail
-- [ ] Cross-flow sweep: check `/api/auth/2fa/enroll-init` + `/api/auth/2fa/enroll-confirm` for same FE silent-401 pattern
+- [x] Phase 1: FE 2FA verify form renders Vietnamese error message on 401 (challenge expired / invalid code / generic) — `client.ts` interceptor skip-list lets `2fa-challenge/page.tsx` catch fire + render existing error block; added explicit network-error case
+- [x] Phase 2: FE always sends `Authorization: Bearer <challenge_token>` header along with body — `2fa-challenge/page.tsx:92` adds explicit `headers: { Authorization: Bearer ${challengeToken} }` config per request
+- [x] Phase 3: Countdown timer + auto-redirect on expiry — decode JWT `exp` claim, `useEffect` ticks every 1s, displays `mm:ss` with amber warning at <=30s, auto-redirect `/login` with stashed message at 0; matching 410 handler also redirects with stash
+- [ ] Re-walk G2 admin login → user can complete TOTP entry + see error UI on fail — **PENDING USER G2 WALK** per `feature-ship-runtime-walk-mandate.md` §3.4 (Wave flow-kh1 already in walk-pass-pending-human state; G2 walk will cover this verify)
+- [x] Cross-flow sweep: check `/api/auth/2fa/enroll-init` + `/api/auth/2fa/enroll-confirm` for same FE silent-401 pattern — single interceptor skip-list covers 4 sites (2fa/verify, 2fa/enroll-init, 2fa/enroll-confirm, 2fa/setup, auth/login); raw-axios sites (`verify-email`, `auth/refresh`) EXEMPT; beta endpoints (`/api/v1/auth/*`) EXEMPT (no 401 expected)
 
 ## Related
 
@@ -80,3 +80,12 @@ Issue 3 violates (c) — UI silent on failure = user blind.
 - Sister: GAP-917 (login sad path 400 vs 401 spec drift — different endpoint similar UI pattern)
 - Per `pre-handoff-self-test-completeness.md` §2.4 admin-flow checklist (c) FAIL
 - Memory implication: 2FA testing in subsequent G2 sessions should include UI error-rendering verification
+
+## Log
+
+- **2026-06-04 (PARTIAL):** Wave flow-kh1 bundled fix. 3 code edits shipped same PR #2147:
+  - `kitehub-frontend/src/lib/api/client.ts` — interceptor 401 skip-list `AUTH_FLOW_401_PASSTHROUGH` covering 5 auth-flow endpoints (login, 2fa/verify, 2fa/enroll-init, 2fa/enroll-confirm, 2fa/setup). Fixes Issue 3 silent-UI for 4 caller sites (gap target + 3 sister flows per `cross-flow-bug-class-sweep.md` §3 sweep evidence inline in PR body).
+  - `kitehub-frontend/src/app/(auth)/2fa-challenge/page.tsx` — adds `readJwtExp` decode helper, `Authorization: Bearer ${challengeToken}` header on verify request (Issue 1), countdown timer state + UI block (mm:ss display, amber <=30s, auto-redirect to `/login` with stashed message on expiry — Issue 2), 410 handler updated to also redirect with stash, generic network-error case added.
+  - `kitehub-frontend/src/app/(auth)/login/page.tsx` — surface stashed `login_expired_message` from sessionStorage on mount.
+  - `pnpm --filter kitehub-frontend build` PASS local pre-push per `fe-build-local-verify.md` §3 (exit 0, all routes rendered, no Suspense bailout).
+  - PARTIAL (not DONE) per `gap-done-discipline.md` §3 — AC 4 (G2 walk re-verify by human) deferred to existing Wave flow-kh1 G2 walk loop (PR #2147 already in walk-pass-pending-human state per `g2-handoff-md-mandate.md`); flip DONE after user G2 confirms admin login flow works end-to-end.
