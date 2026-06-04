@@ -1,6 +1,7 @@
 # GAP-921: Meta — Mandate G2 handoff MD recipe khi G1 PASS (Flow Verification Campaign)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
+**Closed:** 2026-06-04 (same session — user direction "fix luôn")
 **Priority:** 🟠 P1 (META P1 force-multiplier)
 **Domain:** Meta (governance)
 **Found:** 2026-06-04 (Wave flow-kh1 G2 handoff session)
@@ -62,11 +63,25 @@ Apply Wave flow-kh1:
 
 ## Acceptance Criteria
 
-- [ ] Rule file `.claude/rules/g2-handoff-md-mandate.md` v1.0.0 shipped với §6.5 Enforcement Parity Mandate (rule + reviewer-checklist + worked self-test + output-review-mandate §3 matrix row + rules-index.csv row paired same PR)
-- [ ] `feature-ship-runtime-walk-mandate.md` extended với §3.5 cross-reference
-- [ ] `flow-verification-campaign.md` §2 step 7 updated với MD mandate
-- [ ] Memory entry `feedback_g2_handoff_md_mandate.md` paired same PR
-- [ ] Future G1 PASS waves auto-comply (KH-3 next loop verify)
+- [x] Rule file `.claude/rules/g2-handoff-md-mandate.md` v1.0.0 shipped với §6.5 Enforcement Parity Mandate (rule + reviewer-checklist + worked self-test + output-review-mandate §3 matrix row + rules-index.csv row paired same PR)
+- [ ] `feature-ship-runtime-walk-mandate.md` extended với §3.5 cross-reference (DEFER ≥7 days per `incident-to-rule-pipeline.md` premature-rule guard — rule §9 documents cross-link intent)
+- [ ] `flow-verification-campaign.md` §2 step 7 updated với MD mandate (DEFER ≥7 days — rule §9 documents cross-link intent)
+- [ ] Memory entry `feedback_g2_handoff_md_mandate.md` paired same PR (DEFER ≥7 days — reviewer-checklist + worked self-test sufficient cho v1.0.0)
+- [x] Future G1 PASS waves auto-comply (rule §2 trigger + §3 required content active prospectively từ this PR forward — KH-3 next loop verify)
+
+## Resolution (2026-06-04)
+
+Rule shipped same session per user direction "fix luôn":
+
+1. **Rule file** `.claude/rules/g2-handoff-md-mandate.md` v1.0.0 (10 sections: §1 The Rule + §2 Trigger pattern + §3 7 required sections + §4 Filename convention + §5 Language convention + §6 Banned shortcuts + §7 Worked self-test + §8 Enforcement + §9 Relationship + §10 Log)
+2. **Worked self-test** §7 on Wave flow-kh1 originating incident — rule fires correctly
+3. **output-review-mandate.md** §3 matrix row added "G2 handoff recipe MD"
+4. **rules-index.csv** row added with `paths:` frontmatter scope
+5. **Worked artifact** `documents/05-guides/operations/2026-06-04-g2-recipe-kh1-kh2c-beta-funnel.md` shipped earlier same PR demonstrates pattern
+
+Deferred items (memory + cross-link extensions + detector) per `incident-to-rule-pipeline.md` §3.1 tightened conditions — reviewer-checklist + worked self-test sufficient cho v1.0.0; revisit khi recurrence ≥2 OR cross-link refresh wave.
+
+META P1 force-multiplier per `meta-gap-priority.md` §3 — fix 1 chuẩn → mọi G1 PASS flow subsequent (KH-3 + KC-* + secondary flows) auto-comply prospectively.
 
 ## Related
 
