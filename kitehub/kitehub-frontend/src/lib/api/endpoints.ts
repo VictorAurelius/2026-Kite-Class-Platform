@@ -21,6 +21,7 @@ export const endpoints = {
   subscriptions: {
     active: (instanceId: string) => `${API_BASE}/subscriptions/instance/${instanceId}/active`,
     byInstance: (instanceId: string) => `${API_BASE}/subscriptions/instance/${instanceId}`,
+    create: `${API_BASE}/subscriptions`,
     upgrade: (id: string) => `${API_BASE}/subscriptions/${id}/upgrade`,
     downgrade: (id: string) => `${API_BASE}/subscriptions/${id}/downgrade`,
     cancel: (id: string) => `${API_BASE}/subscriptions/${id}`,

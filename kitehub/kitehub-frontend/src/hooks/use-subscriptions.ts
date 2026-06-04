@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
-import type { Subscription, PricingTier } from '@/types/subscription';
+import type { Subscription, PricingTier, BillingCycle } from '@/types/subscription';
 import type { ApiResponse } from '@/types/api';
 
 /**
@@ -87,6 +87,42 @@ export function useDowngradeSubscription() {
       return data.data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+    },
+  });
+}
+
+/**
+ * Create a new subscription (UC-SUB-01)
+ *
+ * Use case: Owner trên TRIAL/FREE chưa có subscription row → tạo subscription mới
+ * cùng pending payment để chuyển sang gói trả phí (BASIC/PREMIUM/ENTERPRISE).
+ *
+ * BE endpoint: POST /api/platform/subscriptions
+ * Response shape: SubscriptionResponse với pendingPaymentId (UUID dùng để
+ * redirect sang `/billing/payment/{pendingPaymentId}` cho VietQR chuyển khoản).
+ */
+export function useCreateSubscription() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      instanceId,
+      tier,
+      billingCycle,
+    }: {
+      instanceId: string;
+      tier: PricingTier;
+      billingCycle: BillingCycle;
+    }) => {
+      const { data } = await apiClient.post<ApiResponse<Subscription>>(
+        endpoints.subscriptions.create,
+        { instanceId, tier, billingCycle, autoRenew: true }
+      );
+      return data.data;
+    },
+    onSuccess: () => {
+      // Invalidate active subscription query so dashboard cập nhật ngay
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
     },
   });
