@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# scripts/hooks/pre-commit — opt-in git hook for fast local CI parity
+#
+# Install (one-time, per clone):
+#   git config core.hooksPath scripts/hooks
+#
+# Uninstall:
+#   git config --unset core.hooksPath
+#
+# Behavior:
+#   Runs targeted validators on STAGED files only (fast — no full repo scan).
+#   Currently enforced:
+#     - Wave plan completeness — scripts/check-wave-plan-completeness.sh
+#       Triggered when any documents/03-planning/waves/*.md staged
+#       (excluding _TEMPLATE.md). Catches missing canonical sections or
+#       frontmatter BEFORE commit, prevents CI round-trip cost.
+#
+# Bypass (use with care): git commit --no-verify
+#
+# Created 2026-06-04 in response to recurrence #2 of wave-plan-completeness
+# CI fail class (PR #2141 Wave 14 + PR #2148 Wave flow-kh3 stub).
+# Sister rule: .claude/skills/quality/wave-pack-planner/SKILL.md §Step 4
+# Per .claude/rules/incident-to-rule-pipeline.md §3.1 SHIP-NOW eligibility
+# (trivial bash detector + recurrence ≥2 confirmed).
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# Collect staged wave plan files (Added/Modified/Renamed; not Deleted).
+mapfile -t STAGED_WAVE_PLANS < <(
+  git diff --cached --name-only --diff-filter=AMR -- \
+    'documents/03-planning/waves/*.md' \
+    | grep -vE '/_TEMPLATE\.md$' \
+    || true
+)
+
+if [ "${#STAGED_WAVE_PLANS[@]}" -eq 0 ]; then
+  exit 0
+fi
+
+VALIDATOR="${REPO_ROOT}/scripts/check-wave-plan-completeness.sh"
+
+if [ ! -f "$VALIDATOR" ]; then
+  echo "pre-commit: validator $VALIDATOR not found — skipping (run from repo root)" >&2
+  exit 0
+fi
+
+echo "pre-commit: validating ${#STAGED_WAVE_PLANS[@]} staged wave plan file(s) via check-wave-plan-completeness.sh"
+
+if ! bash "$VALIDATOR" --paths "${STAGED_WAVE_PLANS[*]}"; then
+  echo "" >&2
+  echo "pre-commit: ❌ wave-plan-completeness FAIL" >&2
+  echo "" >&2
+  echo "Fix the missing sections/frontmatter listed above before committing." >&2
+  echo "Reference: documents/03-planning/waves/_TEMPLATE.md (canonical structure)" >&2
+  echo "" >&2
+  echo "Bypass (only if truly needed): git commit --no-verify" >&2
+  exit 1
+fi
+
+exit 0

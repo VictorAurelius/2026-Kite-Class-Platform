@@ -59,7 +59,19 @@ Wave plan tự viết bằng `wave-coordinator-agent.md` template.
 
 ### Step 4 — Foundation PR (10 min)
 
-Tạo `documents/03-planning/waves/wave-{date}-{theme}.md` theo template `reference/wave-plan-template.md`. Ship qua PR (PR-first per `feedback_wave_plan_through_pr.md`).
+Tạo `documents/03-planning/waves/wave-{date}-{theme}.md` theo **CANONICAL template `documents/03-planning/waves/_TEMPLATE.md`** (validator source of truth — `scripts/check-wave-plan-completeness.sh` reads required sections from chính file đó).
+
+`reference/wave-plan-template.md` là mirror tham khảo + thêm File-overlap + Lessons-learned sections; nếu drift giữa 2 file → canonical `_TEMPLATE.md` thắng.
+
+**MANDATORY — stubs cũng phải đầy đủ structure:** Mọi wave plan PR (gồm cả minimal stub cho next-session scope) PHẢI có 8 sections `## 1. Brainstorm` … `## 8. Log` + 4 frontmatter fields (`title`, `status`, `created`, `waves`) để pass CI job `wave-plan-completeness`. Stub được phép leave `## 3. Scope` / `## 4. State-Check Evidence` TBD-at-session-start nhưng KHÔNG được skip heading. Recurrence ≥2 đã thấy (Wave 14 PR #2141 + Wave flow-kh3 stub 2026-06-04) — chạy validator local trước commit:
+
+```bash
+bash scripts/check-wave-plan-completeness.sh --paths documents/03-planning/waves/<file>.md
+```
+
+Pre-commit hook `scripts/hooks/pre-commit` tự động chạy validator này khi enable (`git config core.hooksPath scripts/hooks`).
+
+Ship qua PR (PR-first per `feedback_wave_plan_through_pr.md`).
 
 ROADMAP entry: thêm cluster vào §"Active wave queue", mark IN_PROGRESS.
 
