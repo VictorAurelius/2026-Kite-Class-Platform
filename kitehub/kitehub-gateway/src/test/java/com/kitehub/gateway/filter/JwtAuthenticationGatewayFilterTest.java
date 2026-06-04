@@ -385,10 +385,13 @@ class JwtAuthenticationGatewayFilterTest {
     }
 
     @Test
-    @DisplayName("Filter order = -100 (chạy sớm, trước CircuitBreaker route filters)")
-    void filterOrderIsMinusHundred() {
+    @DisplayName("Filter order = LOWEST_PRECEDENCE-2 (chạy sau default-filter strip + trước NettyRoutingFilter, per GAP-916)")
+    void filterOrderIsLowestPrecedenceMinus2() {
         assertThat(filter.getOrder()).isEqualTo(JwtAuthenticationGatewayFilter.ORDER);
-        assertThat(filter.getOrder()).isEqualTo(-100);
+        // GAP-916 fix: bump từ -100 → LOWEST_PRECEDENCE-2 để header inject chạy
+        // sau default-filter RemoveRequestHeader (Order ~0) + trước NettyRoutingFilter
+        // (LOWEST_PRECEDENCE). Pre-fix Order=-100 chạy SỚM → default-filter strip cancel inject.
+        assertThat(filter.getOrder()).isEqualTo(org.springframework.core.Ordered.LOWEST_PRECEDENCE - 2);
     }
 
     /** Test helper — captures the exchange when chain.filter() được invoke. */

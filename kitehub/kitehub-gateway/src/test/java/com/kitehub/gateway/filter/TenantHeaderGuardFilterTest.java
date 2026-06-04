@@ -313,11 +313,14 @@ class TenantHeaderGuardFilterTest {
     }
 
     @Test
-    @DisplayName("Filter order = -99 (after JwtAuthenticationGatewayFilter -100, before route filters)")
-    void filterOrderIsMinus99() {
+    @DisplayName("Filter order = LOWEST_PRECEDENCE-1 (after JwtAuthenticationGatewayFilter LOWEST_PRECEDENCE-2, per GAP-916)")
+    void filterOrderIsLowestPrecedenceMinus1() {
         assertThat(filter.getOrder()).isEqualTo(TenantHeaderGuardFilter.ORDER);
-        assertThat(filter.getOrder()).isEqualTo(-99);
-        // Must run AFTER JwtAuthenticationGatewayFilter (-100)
+        // GAP-916 fix: bump từ -99 → LOWEST_PRECEDENCE-1 để header inject chạy
+        // sau JwtAuthenticationGatewayFilter (LOWEST_PRECEDENCE-2) + trước NettyRoutingFilter
+        // (LOWEST_PRECEDENCE). Pre-fix Order=-99 chạy SỚM → default-filter strip cancel inject.
+        assertThat(filter.getOrder()).isEqualTo(org.springframework.core.Ordered.LOWEST_PRECEDENCE - 1);
+        // Must run AFTER JwtAuthenticationGatewayFilter (LOWEST_PRECEDENCE-2)
         assertThat(filter.getOrder()).isGreaterThan(JwtAuthenticationGatewayFilter.ORDER);
     }
 
