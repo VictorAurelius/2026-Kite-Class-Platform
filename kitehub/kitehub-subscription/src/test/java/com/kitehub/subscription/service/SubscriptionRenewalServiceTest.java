@@ -52,6 +52,9 @@ class SubscriptionRenewalServiceTest {
     @Mock
     private SubscriptionConfig subscriptionConfig;
 
+    @Mock
+    private VietQRService vietQRService;
+
     @InjectMocks
     private SubscriptionRenewalService renewalService;
 
@@ -80,6 +83,15 @@ class SubscriptionRenewalServiceTest {
         instance.setStatus(InstanceStatus.ACTIVE);
 
         lenient().when(subscriptionConfig.getGracePeriodDays()).thenReturn(3);
+
+        // VietQR mocks — GAP-939: SubscriptionRenewalService now snapshots bank/account info
+        lenient().when(vietQRService.generateQRCode(any(UUID.class), any(Long.class), any(UUID.class)))
+            .thenReturn("https://img.vietqr.io/image/VCB-1234567890-compact.png");
+        lenient().when(vietQRService.generatePaymentContent(any(UUID.class)))
+            .thenReturn("KITECLASS RENEWAL");
+        lenient().when(vietQRService.getBankCode()).thenReturn("VCB");
+        lenient().when(vietQRService.getAccountNumber()).thenReturn("1234567890");
+        lenient().when(vietQRService.getAccountName()).thenReturn("CONG TY KITECLASS");
     }
 
     @Test
