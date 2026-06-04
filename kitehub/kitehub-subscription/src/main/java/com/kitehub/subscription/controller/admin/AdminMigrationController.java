@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,9 +25,11 @@ import java.util.UUID;
 /**
  * Admin-only endpoints for ops-driven migration operations (GAP-192 Phase 4b-i).
  *
- * <p>All routes live under {@code /api/platform/admin/**} so the existing
- * {@code AdminApiKeyInterceptor} (which enforces {@code X-Admin-Key}) applies
- * automatically — no per-method {@code @PreAuthorize} needed.</p>
+ * <p>All routes require a JWT with role {@code PLATFORM_ADMIN}. The gateway forwards the
+ * role as {@code X-User-Roles} header; Spring Security maps it to {@code ROLE_PLATFORM_ADMIN}
+ * and {@link PreAuthorize} on each method enforces access (GAP-938, Wave flow-kh3 —
+ * supersedes the legacy {@code X-Admin-Key} interceptor that was deleted because Wave 79
+ * default-deny made it dead code).</p>
  *
  * <h3>Endpoints</h3>
  * <ul>
@@ -55,6 +58,7 @@ public class AdminMigrationController {
      */
     @Operation(summary = "Admin: force-convert a trial to paid (UC-T2P-05)",
         description = "Skips gateway capture — used for verified bank transfers / enterprise invoices.")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     @PostMapping("/instances/{id}/force-convert")
     public ResponseEntity<UpgradeResponse> forceConvert(
         @PathVariable UUID id,
@@ -81,6 +85,7 @@ public class AdminMigrationController {
      */
     @Operation(summary = "Admin: rollback a completed migration (UC-T2P-02)",
         description = "Only works within the 24h reversal window — else returns 410.")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     @PostMapping("/instances/{id}/rollback-migration")
     public ResponseEntity<RollbackResponse> rollback(
         @PathVariable UUID id,
