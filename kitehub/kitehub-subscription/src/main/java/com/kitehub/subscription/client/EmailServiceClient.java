@@ -45,6 +45,12 @@ public class EmailServiceClient {
 
     private final RestTemplate restTemplate;
     private final EmailSentLogRepository emailSentLogRepository;
+    /**
+     * GAP-922 fix (2026-06-04): rabbitTemplate retained for backward-compat injection
+     * (callers may pass it from older tests + Spring DI); no longer used post-fix removed
+     * double-publish in publishToQueue (eventEmitter.emit() already does fast-path).
+     */
+    @SuppressWarnings("unused")
     private final RabbitTemplate rabbitTemplate;
     private final EmailConfigProperties emailConfigProperties;
     private final SubscriptionEventEmitter eventEmitter;
@@ -855,21 +861,18 @@ public class EmailServiceClient {
             throw new IllegalStateException("Failed to serialize EmailEvent for outbox", ex);
         }
 
+        // GAP-922 fix: eventEmitter.emit() ALREADY writes outbox row + does best-effort
+        // fast-path convertAndSend internally (see SubscriptionEventEmitter line 88-100).
+        // Previously, this method ALSO did rabbitTemplate.convertAndSend AGAIN immediately
+        // after → 2 publishes per call → consumer fires 2x → 2 emails sent.
+        //
+        // Single emit() call is sufficient: outbox row + fast-path publish in one atomic
+        // step. Dispatcher catches up if fast-path fails (rabbit down at dispatch moment).
+        //
+        // Per design-patterns.md §3.5.1 Exception A — "outbox is the reliability net".
         eventEmitter.emit(instanceId, EVENT_TYPE_EMAIL_QUEUED,
             EmailQueueConfig.EMAIL_ROUTING_KEY, payload);
-
-        try {
-            // Best-effort fast-path — outbox is the reliability net.
-            rabbitTemplate.convertAndSend(
-                    EmailQueueConfig.EMAIL_EXCHANGE,
-                    EmailQueueConfig.EMAIL_ROUTING_KEY,
-                    event
-            );
-            log.debug("Email event published to queue: type={}, to={}", emailType, request.getTo());
-        } catch (Exception ex) {
-            log.warn("Direct email publish failed (type={}, to={}) — outbox will retry: {}",
-                emailType, request.getTo(), ex.getMessage());
-        }
+        log.debug("Email event queued: type={}, to={}", emailType, request.getTo());
     }
 
     /**
