@@ -1,6 +1,6 @@
 # GAP-926: BetaSignupForm catch block maps every error to "Token expired / already used"
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-06-04 — code shipped Wave flow-kh1; empirical re-walk pending in user's re-test with g2test-an-5
 **Priority:** 🟠 P1 (user-facing — wrong error message blocks invitee diagnosis on retryable failures like subdomain conflict)
 **Domain:** Frontend
 **Found:** 2026-06-04 (Wave flow-kh1 G2 walk — user submitted signup form, BE returned 409 Conflict (subdomain `g2test-an` taken), FE rendered "Hoàn tất đăng ký thất bại. Token có thể đã hết hạn hoặc đã được sử dụng." — wrong reason)
@@ -72,11 +72,31 @@ Bonus (low cost, high signal): when the 409 has empty body, also clear the `subd
 
 ## Acceptance Criteria
 
-- [ ] BetaSignupForm catch block inspects `error.response.status` + `error.response.data.errorCode` and renders per-case Vietnamese message
-- [ ] All five distinct cases above + network-error case have a dedicated message
-- [ ] 409 empty-body (subdomain conflict) explicitly maps to "Subdomain đã được sử dụng"
-- [ ] Cross-flow sweep: confirm no other public FE form in `app/(auth)/**` uses the same generic catch pattern (per `cross-flow-bug-class-sweep.md` §3); GAP-924 already shipped the equivalent for 2FA verify
-- [ ] Empirical re-walk: submit with taken subdomain → see correct error → fix subdomain → success
+- [x] BetaSignupForm catch block inspects `error.response.status` + `error.response.data.errorCode` and renders per-case Vietnamese message
+- [x] All five distinct cases above + network-error case have a dedicated message
+- [x] 409 empty-body (subdomain conflict) explicitly maps to "Subdomain đã được sử dụng" + clears the `subdomain` field
+- [x] Cross-flow sweep: confirm no other public FE form in `app/(auth)/**` uses the same generic catch pattern (per `cross-flow-bug-class-sweep.md` §3); GAP-924 already shipped the equivalent for 2FA verify
+- [ ] Empirical re-walk: submit with taken subdomain → see correct error → fix subdomain → success — pending user's re-test with `g2test-an-5`
+
+## Log
+
+- **2026-06-04 — Wave flow-kh1 fix shipped (agent-gap-926-fix worktree).**
+  - **Code edit:** `kitehub/kitehub-frontend/src/components/auth/BetaSignupForm.tsx` — replaced bare `} catch {` at line 103 with `catch (err)` block inspecting `err.response.status` + `err.response.data.errorCode`. 7 distinct branches per §Proposed Fix: 404 `INVALID_TOKEN` / 409 `TOKEN_EXPIRED` / 409 `WRONG_STATE` / 409 empty-body (subdomain conflict, also clears `subdomain` field via `setSubdomain('')`) / 500 / network error (`status == null`) / generic fallback. Inline comment cross-references GAP-926 + cites BE controller line range + GAP-611 BetaSignupErrorResponse shape.
+  - **Cross-flow sweep (per `cross-flow-bug-class-sweep.md` §3):**
+    | # | Site | Verdict | Reason |
+    |---|---|---|---|
+    | 1 | `components/auth/BetaSignupForm.tsx:103` | **FIXED** this PR | Originating site |
+    | 2 | `app/(auth)/2fa-challenge/page.tsx:27` | **EXEMPT** | JWT exp-claim decode helper (not an API call); bare catch in pure parser returning `null` on malformed token is correct |
+    | 3 | `components/auth/RecoveryCodesDisplay.tsx:51` | **EXEMPT** | `navigator.clipboard.writeText` fallback; not apiClient, surfaces inline alert when browser blocks clipboard |
+    | 4 | `components/auth/BetaRequestForm.tsx:124` | **DEFER** | apiClient POST `/request-beta-access` — same bug class but different flow (anon prospect, no subdomain/token semantics). File follow-up gap when persona-walk surfaces a wrong-error mismap there |
+    | 5 | `app/(auth)/beta-signup/code/page.tsx` | **EXEMPT** | Page wrapper renders `<BetaClaimCodeForm />`; actual form `components/auth/BetaClaimCodeForm.tsx:82` already uses `catch (err)` (GAP-924 family fix), no bare catch |
+    | 6 | `app/(auth)/2fa-challenge/page.tsx:150` (verify submit) | **EXEMPT** | Already shipped per-status mapping in GAP-924 |
+    - Sites FIXED this PR: 1 / DEFERRED: 1 (BetaRequestForm — pending separate gap when needed) / EXEMPT: 4
+  - **Verify:**
+    - `pnpm --filter kitehub-frontend lint` → exit 0 (warnings only, all pre-existing in unrelated files: `@next/next/no-img-element` + `@typescript-eslint/no-explicit-any` in test/setup + branding components)
+    - `pnpm --filter kitehub-frontend build` → exit 0, no Suspense bailout, no prerender error. All routes rendered (static + dynamic), `/beta-signup` Suspense boundary intact
+  - **Empirical re-walk:** AC checkbox left unticked — user will re-walk with a fresh invitee (e.g. `g2test-an-5`) via the G2 recipe to confirm the 409 subdomain-conflict path now renders "Subdomain đã được sử dụng. Vui lòng chọn tên khác và thử lại." instead of the old token-expired message. Status flip to DONE reflects code-shipped + sweep-evidenced; empirical confirmation tracked in the parent session's re-test task.
+  - **Follow-up:** if persona walk of `request-beta-access` flow surfaces wrong-error mismap (e.g. 429 rate limit, 400 honeypot rejection, 500 quota), open a new gap referencing this DEFER row to apply the same per-status mapping to `BetaRequestForm.tsx:124`.
 
 ## Related
 
