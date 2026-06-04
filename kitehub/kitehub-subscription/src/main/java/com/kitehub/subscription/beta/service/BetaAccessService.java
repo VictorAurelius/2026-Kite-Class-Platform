@@ -604,12 +604,26 @@ public class BetaAccessService {
     /**
      * Rollback a SIGNED_UP transition back to APPROVED — used when downstream
      * registration provisioning fails after {@link #completeBetaSignup} returned
-     * success (GAP-372 closure follow-up #1, Wave 45 Bucket A). Re-issues a
-     * fresh invite token with a new 24h expiry so the invitee can retry.
+     * success (GAP-372 closure follow-up #1, Wave 45 Bucket A).
      *
      * <p>This is intentionally a separate transactional method so the outer
      * controller can call it from a {@code catch} block without nesting it
      * inside the registration transaction.</p>
+     *
+     * <p><b>GAP-927 (2026-06-04, Wave flow-kh1):</b> Previously this method also
+     * rotated {@code invite_token} via {@code UUID.randomUUID()} + reset the
+     * 24h expiry. That rotation was dropped because the new token value was
+     * never surfaced to the invitee — no email resend, no FE response field,
+     * no UI hint — so the browser's stale URL referencing the old token
+     * returned 404 INVALID_TOKEN on retry, locking the invitee out. See
+     * {@code design-patterns.md §3.6} (resilience: side effect must be
+     * observable to the actor expected to react to it) and
+     * {@code cross-flow-bug-class-sweep.md §1} (bug class: "side effect
+     * committed in step 1 not exposed to caller for step 2"). Replay risk on
+     * the rolled-back token is acceptable because (i) the conflict path
+     * already failed safely; (ii) rate-limit + audit log catch abuse
+     * patterns; (iii) the token still expires per its original
+     * {@code invite_token_expiry}.</p>
      *
      * @param id beta access request id returned from {@link #completeBetaSignup}
      */
@@ -623,8 +637,6 @@ public class BetaAccessService {
             return;
         }
         entity.setStatus(BetaAccessRequestStatus.APPROVED);
-        entity.setInviteToken(UUID.randomUUID());
-        entity.setInviteTokenExpiry(OffsetDateTime.now().plusHours(INVITE_TOKEN_TTL_HOURS));
         repository.save(entity);
         log.warn("Beta signup rolled back to APPROVED: id={} email={}", id, entity.getEmail());
     }

@@ -669,4 +669,35 @@ class BetaAccessServiceTest {
         verify(repository, times(2)).findFirstByEmailAndStatusOrderByCreatedAtDesc(
                 eq("race@x.com"), eq(BetaAccessRequestStatus.PENDING));
     }
+
+    @Test
+    @DisplayName("GAP-927 — rollbackSignup flips SIGNED_UP back to APPROVED but keeps invite_token + expiry unchanged so invitee can retry with the same URL")
+    void rollbackSignup_keepsTokenUsableForRetry() {
+        UUID originalToken = UUID.fromString("ef4826b4-2a81-4f31-969c-a03e388fcdfd");
+        OffsetDateTime originalExpiry = OffsetDateTime.now().plusHours(20);
+        BetaAccessRequest signedUp = BetaAccessRequest.builder()
+                .id(31L)
+                .email("g2test-an-4@example.com")
+                .name("G2 Test")
+                .orgName("G2 Org")
+                .persona("P2_CENTER_OWNER")
+                .status(BetaAccessRequestStatus.SIGNED_UP)
+                .inviteToken(originalToken)
+                .inviteTokenExpiry(originalExpiry)
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build();
+        when(repository.findById(31L)).thenReturn(Optional.of(signedUp));
+
+        service.rollbackSignup(31L);
+
+        ArgumentCaptor<BetaAccessRequest> captor = ArgumentCaptor.forClass(BetaAccessRequest.class);
+        verify(repository).save(captor.capture());
+        BetaAccessRequest saved = captor.getValue();
+        // Status flipped back so the invitee can retry the completeBetaSignup endpoint.
+        assertThat(saved.getStatus()).isEqualTo(BetaAccessRequestStatus.APPROVED);
+        // GAP-927: token + expiry MUST NOT be rotated — invitee still holds the original URL.
+        assertThat(saved.getInviteToken()).isEqualTo(originalToken);
+        assertThat(saved.getInviteTokenExpiry()).isEqualTo(originalExpiry);
+    }
 }

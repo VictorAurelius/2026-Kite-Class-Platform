@@ -1,6 +1,6 @@
 # GAP-927: BetaAccessService.rollbackSignup rotates invite_token without resending email → invitee retry broken
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-06-04 — Option A shipped Wave flow-kh1; empirical re-walk pending
 **Priority:** 🔴 P0 (production-blocker — invitee permanently locked out after any post-completeBetaSignup provisioning failure; recovery requires admin DB inspection or full re-approve cycle)
 **Domain:** Backend
 **Found:** 2026-06-04 (Wave flow-kh1 G2 walk — invitee g2test-an-4 hit 409 subdomain conflict on first submit, retried with new subdomain, got 404 INVALID_TOKEN because BE silently rotated the token and never told them)
@@ -60,11 +60,11 @@ Recommend **Option A** for Phase 1 BETA — minimal scope, eliminates the lock-o
 
 ## Acceptance Criteria
 
-- [ ] Pick one of Options A/B/C above; document rationale in PR description
-- [ ] Implementation: invitee whose first submit hit 409 (subdomain conflict) OR 500 (generic provisioning) can successfully retry with the same URL or with a clearly-communicated new URL/email
-- [ ] `BetaAccessServiceTest` adds a unit case `rollbackSignup_keepsTokenUsableForRetry()` (or `rollbackSignup_resendsInviteEmail()` for Option B / `rollbackSignup_returnsNewTokenInResponse()` for Option C)
+- [x] Pick one of Options A/B/C above; document rationale in PR description — **Option A picked** (Phase 1 BETA minimal scope; eliminates lock-out; replay risk acceptable per gap §Proposed Fix rationale)
+- [x] Implementation: invitee whose first submit hit 409 (subdomain conflict) OR 500 (generic provisioning) can successfully retry with the same URL or with a clearly-communicated new URL/email — invitee URL stays valid; same token works for retry
+- [x] `BetaAccessServiceTest` adds a unit case `rollbackSignup_keepsTokenUsableForRetry()` — added; verifies status flips APPROVED + invite_token UNCHANGED + invite_token_expiry UNCHANGED
 - [ ] Integration test: simulate full G2 walk — approve → submit with conflict → retry with new subdomain → success
-- [ ] Cross-flow sweep per `cross-flow-bug-class-sweep.md` §3: confirm no other rollback path in the beta-signup chain has the same "rotate-and-forget" pattern (Wave A bug class signature: "side effect committed in step 1 not visible to retry-er in step 2")
+- [x] Cross-flow sweep per `cross-flow-bug-class-sweep.md` §3: confirm no other rollback path in the beta-signup chain has the same "rotate-and-forget" pattern (Wave A bug class signature: "side effect committed in step 1 not visible to retry-er in step 2") — sweep performed; see Log
 - [ ] Empirical re-walk on local Docker stack: full chain start-to-finish without manual DB intervention
 
 ## Related
@@ -76,3 +76,21 @@ Recommend **Option A** for Phase 1 BETA — minimal scope, eliminates the lock-o
 - Origin controller catches: `BetaAccessController.java:145-156`
 - Per `pre-handoff-self-test-completeness.md` §2.2 — public-flow validation: confirmation surface visible (here, both the FE message AND the next-step token must be visible to the invitee)
 - Per `cross-flow-bug-class-sweep.md` §1 — bug class "side effect commits in step 1 not exposed to caller for step 2" — sweep candidate
+
+## Log
+
+- **2026-06-04 (Wave flow-kh1) — Option A shipped:**
+  - **Code change:** `BetaAccessService.rollbackSignup` (lines 617-631) — dropped `entity.setInviteToken(UUID.randomUUID())` + `entity.setInviteTokenExpiry(OffsetDateTime.now().plusHours(INVITE_TOKEN_TTL_HOURS))`. KEPT: status flip APPROVED + `repository.save(entity)` + log warn line. Javadoc updated to cite GAP-927 + `design-patterns.md §3.6` (resilience: side effect must be observable to actor expected to react to it) + `cross-flow-bug-class-sweep.md §1` (bug class "side effect committed in step 1 not exposed to caller for step 2"). Imports `UUID`, `OffsetDateTime`, `INVITE_TOKEN_TTL_HOURS` retained — still used elsewhere in the file (line 424 `approveRequest` legitimate initial issuance; line 269/420/496/523 timestamps; line 311/449/540 UUID).
+  - **Unit test added:** `BetaAccessServiceTest#rollbackSignup_keepsTokenUsableForRetry` — Given SIGNED_UP row with known UUID + expiry; When `rollbackSignup(31L)`; Then status flips APPROVED + `inviteToken` UNCHANGED + `inviteTokenExpiry` UNCHANGED.
+  - **Cross-flow sweep (per `cross-flow-bug-class-sweep.md` §3):**
+    | # | Site | Verdict | Reason |
+    |---|---|---|---|
+    | 1 | `BetaAccessService.approveRequest` line 424 — `entity.setInviteToken(UUID.randomUUID())` | **EXEMPT** | Initial issuance path on admin approval; the new token IS surfaced to invitee via email + claim-code emission (line 449 `eventEmitter.emit(... EVENT_TYPE_INVITE_SENT ...)`). Bug class N/A. |
+    | 2 | `BetaAccessService.completeBetaSignup` lines 591-592 — `entity.setInviteToken(null)` + `entity.setInviteTokenExpiry(null)` | **EXEMPT** | Token cleared on successful signup completion; this is correct lifecycle behavior (one-time-use semantics). |
+    | 3 | `AuthService.java:141` + `:380` — `UUID.randomUUID().toString()` for verification tokens | **EXEMPT** | Outside beta-signup chain; auth service handles its own token surfacing through its own flow. |
+    | 4 | `ChallengeTokenService` + `StaffInvitation` + `DsarTicket` + others using `UUID.randomUUID()` | **EXEMPT** | Each has its own surfacing mechanism (returned in response body OR included in email). No "rotate-and-forget" pattern. |
+    - **Decision:** Sites FIXED this PR: 1 (`rollbackSignup`); Sites DEFERRED: 0; Sites EXEMPT: ≥4 (initial issuance + token clearing on signup + unrelated subsystems all correctly surface their tokens).
+  - **Verify:**
+    - `./mvnw -pl kitehub-subscription -am compile` → BUILD SUCCESS (34s)
+    - `./mvnw -pl kitehub-subscription test -Dtest=BetaAccessServiceTest` → Tests run: 31, Failures: 0, Errors: 0, Skipped: 0 (includes new `rollbackSignup_keepsTokenUsableForRetry` PASS).
+  - **Remaining AC (deferred):** Integration test simulating full G2 walk + empirical re-walk on local Docker stack — both require live stack-up; tracked for next session (Wave flow-kh1 G2 re-walk after Docker startup) per `pre-handoff-self-test-completeness.md` §3 post-fix re-walk mandate.
