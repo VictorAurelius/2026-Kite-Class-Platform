@@ -155,10 +155,19 @@ export default function BetaSignupForm({ token }: BetaSignupFormProps) {
   }
 
   if (submitted) {
+    // GAP-933 (2026-06-04): success state previously dead-ended without a CTA —
+    // user had to know to navigate to /login. Add an explicit Đăng nhập button
+    // so the post-signup flow continues onto the next step (login → 2FA).
     return (
-      <div role="status" className="rounded-xl bg-green-50 p-6 text-sm text-green-900">
+      <div role="status" className="rounded-xl bg-green-50 p-6 text-sm text-green-900 dark:bg-green-950/30 dark:text-green-100">
         <h2 className="text-lg font-semibold">Tạo tài khoản thành công</h2>
         <p className="mt-2">Bạn có thể đăng nhập với email <strong>{tokenStatus.email}</strong>.</p>
+        <a
+          href="/login"
+          className="mt-4 inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          Đăng nhập
+        </a>
       </div>
     );
   }

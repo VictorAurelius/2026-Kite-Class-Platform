@@ -1,6 +1,6 @@
 # GAP-932: Gateway Spring Cloud TimeLimiter (default 1s) trips fallback on slow-but-successful tenant provisioning — separate from CircuitBreaker
 
-**Status:** 🟡 PARTIAL (config ship Wave flow-kh1 2026-06-04 — empirical re-walk verify pending g2test-an-8+)
+**Status:** 🟢 DONE 2026-06-04 — empirical re-walk PASS on g2test-an-8 (user reported "Tạo tài khoản thành công" — no false 503)
 **Priority:** 🟠 P1 (user-facing — same false 503 pattern as GAP-928 but rooted in a different resilience4j component; Phase 2 carve was insufficient because TimeLimiter sits ahead of CircuitBreaker)
 **Domain:** DevOps
 **Found:** 2026-06-04 (Wave flow-kh1 G2 re-walk session, third repro of false 503 on g2test-an-7 at 07:17:54 — BE confirmed status=SIGNED_UP + instance g2test-an-7 TRIAL + DB physically provisioned at 07:17:56.866; gateway WARN "Circuit breaker triggered for auth service" at 07:17:55.879 — 1 second after upstream began, matching Spring Cloud Circuit Breaker's default 1s TimeLimiter timeout)
