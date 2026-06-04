@@ -1,6 +1,6 @@
 # GAP-924: FE 2FA verify form không show error khi 401 + Authorization header có thể missing
 
-**Status:** 🟡 PARTIAL (3/3 code fixes shipped Wave flow-kh1 2026-06-04 — pending user G2 walk re-verify)
+**Status:** 🟢 DONE 2026-06-04 — empirical user G2 walk PASS (admin login → 2FA challenge → countdown + Bearer header + error rendering all working)
 **Priority:** 🟠 P1 (user-facing — silent fail blocks admin login flow)
 **Domain:** Frontend
 **Found:** 2026-06-04 (Wave flow-kh1 G2 handoff — user-flagged "ko login được admin bằng mã" + "UI ko trả ra thông báo lỗi")
@@ -70,7 +70,7 @@ Issue 3 violates (c) — UI silent on failure = user blind.
 - [x] Phase 1: FE 2FA verify form renders Vietnamese error message on 401 (challenge expired / invalid code / generic) — `client.ts` interceptor skip-list lets `2fa-challenge/page.tsx` catch fire + render existing error block; added explicit network-error case
 - [x] Phase 2: FE always sends `Authorization: Bearer <challenge_token>` header along with body — `2fa-challenge/page.tsx:92` adds explicit `headers: { Authorization: Bearer ${challengeToken} }` config per request
 - [x] Phase 3: Countdown timer + auto-redirect on expiry — decode JWT `exp` claim, `useEffect` ticks every 1s, displays `mm:ss` with amber warning at <=30s, auto-redirect `/login` with stashed message at 0; matching 410 handler also redirects with stash
-- [ ] Re-walk G2 admin login → user can complete TOTP entry + see error UI on fail — **PENDING USER G2 WALK** per `feature-ship-runtime-walk-mandate.md` §3.4 (Wave flow-kh1 already in walk-pass-pending-human state; G2 walk will cover this verify)
+- [x] Re-walk G2 admin login → user can complete TOTP entry + see error UI on fail — **USER G2 WALK PASS** 2026-06-04 (user confirmed "gap 924 ok rồi" after empirical admin login + 2FA verify on rebuilt kitehub-frontend container)
 - [x] Cross-flow sweep: check `/api/auth/2fa/enroll-init` + `/api/auth/2fa/enroll-confirm` for same FE silent-401 pattern — single interceptor skip-list covers 4 sites (2fa/verify, 2fa/enroll-init, 2fa/enroll-confirm, 2fa/setup, auth/login); raw-axios sites (`verify-email`, `auth/refresh`) EXEMPT; beta endpoints (`/api/v1/auth/*`) EXEMPT (no 401 expected)
 
 ## Related
