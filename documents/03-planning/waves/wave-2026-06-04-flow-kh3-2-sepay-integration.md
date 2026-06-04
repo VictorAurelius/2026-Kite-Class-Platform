@@ -1,6 +1,6 @@
 ---
 title: Wave flow-kh3-2 — SePay Free integration + 10.000đ beta override
-status: draft
+status: in-progress
 created: 2026-06-04
 updated: 2026-06-04
 wave: 2
@@ -15,7 +15,9 @@ gaps: [GAP-944, GAP-974, GAP-975, GAP-976, GAP-977]
 
 **Goal:** Wire SePay Free webhook + dynamic VietQR + 10.000đ symbolic amount → KH-3 G2 walk-ready với real bank flow.
 **Trigger:** KH-3 G1 ✅ PASS production-equivalent (mock mode) + 3-agent payment audit consensus (Pattern A SePay 120k/tháng winner) + user direction "G2 phải có SePay + symbolic amount". Cost 0đ (SePay Free 50tx/tháng covers Phase 1 BETA 5-15 tenants).
-**Estimated wall-clock:** ~4-5 ngày dev, longest bucket ~1.5 ngày.
+**Estimated wall-clock:** ~2-3 ngày dev (REVISED post §4 state-check 2026-06-04 — generic webhook + VietQR scaffold đã ship trước, scope = adapter rewrite + new email template + FE banner, không phải foundation from scratch). Longest bucket ~1 ngày.
+
+**⚠️ State-check drift discovered 2026-06-04 (coordinator pre-flight):** §4 rows initially marked "🆕 to-be-created" actually EXIST. Cross-module mapping: `Payment` entity in `kitehub-platform` (not `kitehub-subscription`). Existing `PaymentWebhookController` ships generic HMAC-SHA256 body-signature scheme; SePay uses `Authorization: Apikey <key>` header — protocol-level rewrite needed for Bucket B (extend, not create). Subscription-activated email + Beta mode banner + WS push remain truly missing. Refer §3 PATCH annotations per bucket.
 
 ---
 
@@ -75,43 +77,56 @@ Disjoint check: Bucket A=PaymentService.java, B=PaymentWebhookController.java (N
   - Add config keys: `kitehub.payment.beta-mode.enabled` + `kitehub.payment.beta-mode.override-amount-vnd` + `kitehub.payment.sepay.webhook-secret` + `kitehub.payment.sepay.api-key`
 - Acceptance: api-contract.md đầy đủ endpoint + schema + config; FE/BE bucket reference contract
 
-### Bucket A — Dynamic VietQR + txn_ref (GAP-975)
+### Bucket A — Dynamic VietQR + txn_ref + Beta-amount override (GAP-975)
 
-- Files: `PaymentService.createPendingPayment` + `VietQRService` (txn_ref gen + URL build)
-- Tests: `PaymentServiceTest.createPendingPayment_generatesUniqueTxnRef` + `_buildsDynamicVietQRUrl`
-- Acceptance: `txn_ref = "KH3SUB" + paymentId[0:8].upper()` (≥8-char unique) + VietQR URL embed amount + memo per benchmark §3.2 pattern
-- Cross-layer FE consumption: `Payment.qrCodeUrl` returned in POST response — FE renders QR + amount + memo display
+**PATCH 2026-06-04 (post §4 state-check):** Existing `PaymentService.createPayment` + `VietQRService` already generate VietQR QR + paymentContent (KH3SUB-like format already in VietQRService.generatePaymentContent). Real scope = (i) decide field naming (extend `paymentContent` OR add new `txn_ref` column via V64 migration — recommend `txn_ref` for unambiguous matching + keep paymentContent for human-readable VietQR memo), (ii) ensure unique-8-char suffix collision-safe, (iii) wire `kitehub.payment.beta-mode.enabled` + `override-amount-vnd` config to override `amountVnd` when creating Payment.
 
-### Bucket B — Webhook + HMAC + idempotency (GAP-976)
+- Files: `Payment` entity (kitehub-platform — add `txnRef` field) + V64 migration (kitehub-subscription Flyway adds `txn_ref VARCHAR(32) UNIQUE` to payments) + `PaymentService.createPayment` (kitehub-subscription — extend) + `VietQRService` (kitehub-subscription — verify `generatePaymentContent` format alignment) + per `postgres-specific-type-testcontainers.md` v1.0.1 verify entity round-trip Testcontainers IT
+- Tests: `PaymentServiceTest.createPayment_generatesUniqueTxnRef` + `_appliesBetaModeOverride_whenFlagEnabled` + `_keepsRealAmount_whenFlagDisabled`
+- Acceptance: `txn_ref = "KH3SUB" + paymentId[0:8].upper()` (≥8-char unique, UNIQUE constraint) + when `beta-mode.enabled=true`, payment.amountVnd = override-amount-vnd (default 10000) + Mockito + Testcontainers IT pass
+- Cross-module note: Payment entity in kitehub-platform → Bucket A touches BOTH kitehub-platform (entity) + kitehub-subscription (service + migration)
+- Per `api-contract-change-caller-sweep.md` v1.0.0: if `createPayment` signature changes → grep callers prod+test, `./mvnw test` PaymentServiceTest before push
 
-- Files: `PaymentWebhookController` NEW + `PaymentService.processWebhook` NEW
-- Tests: `PaymentWebhookControllerTest` (HMAC valid/invalid/replay/amount-mismatch/memo-collision) + IT với mock SePay payload
+### Bucket B — Webhook protocol rewrite (HMAC→Apikey) + SePay payload adapter + idempotency (GAP-976)
+
+**PATCH 2026-06-04 (post §4 state-check):** `PaymentWebhookController` (171 LOC) EXISTS with generic HMAC-SHA256 body-signature scheme + sorted-key=value& payload format + path `/api/platform/webhooks/payment`. SePay uses `Authorization: Apikey <key>` header authentication + SePay-specific payload fields (`id`, `gateway`, `transactionDate`, `accountNumber`, `transferType`, `transferAmount`, `description`, `referenceCode`). Real scope = **protocol-level rewrite** (replace HMAC body verify với header API-key verify; adapt payload extraction; preserve constant-time compare guard) + idempotency add + collision guard.
+
+- Files: `PaymentWebhookController` (rewrite verify + extraction logic; KEEP class + path), `PaymentService.processPaymentWebhook` (add idempotency check via `transaction_id` UNIQUE OR `IdempotencyKey` table query; verify `findPaymentByContent` is exact-match via `payment_content = ?` clause, NOT `LIKE %?%`), V65 migration (add UNIQUE constraint on `payments.transaction_id` if not present) + per `cross-flow-bug-class-sweep.md` v1.0.1 sweep similar webhook handlers
+- Tests: `PaymentWebhookControllerTest` rewrite cho SePay payload format — (Apikey valid/missing/wrong, payload amount-mismatch, payload memo-collision, duplicate transaction_id idempotent), `PaymentServiceTest.processPaymentWebhook_idempotentOnReplay`, IT với mock SePay payload `{"id":"X","gateway":"VCB","transferType":"in","transferAmount":10000,"description":"KH3SUB12345678","referenceCode":"FT2406..."}`
 - Acceptance:
-  - HMAC SHA-256 verify against `kitehub.payment.sepay.webhook-secret`
-  - Idempotency: `transaction_id` UNIQUE constraint + early-return if seen
-  - Cross-tenant memo collision guard: `findByTxnRef` exact-match (NOT substring greedy per failure-mode audit)
-  - On match: flip Payment COMPLETED + call SubscriptionService.applyPendingUpgrade (per existing state machine)
-- BE controller signature match api-contract.md (Bucket 0)
+  - `Authorization: Apikey <key>` header verify against `kitehub.payment.sepay.api-key` config (NOT HMAC body)
+  - Idempotency: replay same `transaction_id` → HTTP 200 + early-return, no double-process
+  - Cross-tenant memo collision: `findPaymentByContent` exact-match (verify code reading, no `LIKE`)
+  - On match: flip Payment COMPLETED + call applyPendingUpgrade (preserve existing state machine)
+  - BE endpoint signature match api-contract.md (Bucket 0)
+- Per `api-contract-change-caller-sweep.md` v1.0.0: webhook contract change → grep all webhook test fixtures + smoke-email-links + update
 
 ### Bucket C — Subscription-activated email (GAP-974)
 
-- Files: `subscription-activated.hbs` (kitehub-email templates) + `SubscriptionService.applyPendingUpgrade` outbox enqueue
-- Tests: `SubscriptionServiceTest.applyPendingUpgrade_emitsActivationEmail` + integration via subscription_outbox
+**PATCH 2026-06-04 (post §4 state-check):** Template file convention is `.html` not `.hbs` (existing sibling `subscription-created.html` + `subscription-expired.html` exist). `SubscriptionOutboxEvent/Repository/Dispatcher` + `EmailServiceClient` infrastructure all exist. Scope = (i) create `subscription-activated.html` (model on `subscription-created.html` structure), (ii) extend `applyPendingUpgrade(subscriptionId, paymentId)` line ~423 với outbox enqueue `SUBSCRIPTION_ACTIVATED` event.
+
+- Files: `kitehub-email/src/main/resources/templates/emails/subscription-activated.html` (NEW) + `SubscriptionService.applyPendingUpgrade` (extend với `subscriptionOutboxRepository.enqueue("SUBSCRIPTION_ACTIVATED", subscriptionId, payload)` after instance flip)
+- Tests: `SubscriptionServiceTest.applyPendingUpgrade_emitsActivationEvent` (verify outbox row inserted in same txn) + IT verifying email arrives MailHog post-flush
 - Acceptance:
-  - Template Vietnamese narrative + English identifiers per `dev-readable-doc-language.md` §4
+  - Template Vietnamese narrative + English identifiers per `dev-readable-doc-language.md` §2 (Architecture & dev-readable docs)
   - Variables: tenantName, tier, expiresAt, supportUrl
   - Subject pattern `[KiteHub] Gói {tier} đã kích hoạt`
   - Email arrives MailHog post `applyPendingUpgrade`
+  - Per `design-patterns.md` §3.5 Outbox: enqueue trong SAME @Transactional as instance flip (already @Transactional)
 
 ### Bucket D — FE WebSocket + beta banner (GAP-977)
 
-- Files: `(auth)/billing/page.tsx` + `lib/api/payments.ts` (WS hook) + `components/billing/BetaModeBanner.tsx`
-- Tests: Vitest unit tests + MSW handler for WS mock
+**PATCH 2026-06-04 (post §4 state-check):** FE billing folder path = `(customer)/billing/` (NOT `(auth)/billing/`). Pages `billing/page.tsx`, `upgrade/page.tsx`, `history/page.tsx`, `payment/[id]/page.tsx` already exist. Real scope = (i) extend `payment/[id]/page.tsx` với WS subscribe + render BetaModeBanner conditional; (ii) verify FE WebSocket lib config existence (Stomp client OR SockJS) — TBD verify in spawn.
+
+- Files: `kitehub/kitehub-frontend/src/app/(customer)/billing/payment/[id]/page.tsx` (EXTEND), `kitehub/kitehub-frontend/src/components/billing/BetaModeBanner.tsx` (NEW), `kitehub/kitehub-frontend/src/lib/api/payments.ts` (EXTEND với WS hook OR `lib/ws/payments-ws.ts` NEW)
+- Tests: Vitest unit tests cho BetaModeBanner conditional render + WS mock hook test
 - Acceptance:
-  - Billing page POST subscription → render QR (from `Payment.qrCodeUrl`) + amount display + memo highlight + WS subscribe `/topic/payments/{paymentId}`
-  - On `paymentCompleted` event → toast "✅ Đã nhận thanh toán" + redirect /dashboard
+  - Existing payment/[id] page renders QR (from `Payment.qrCodeUrl`) + amount display + memo highlight; EXTEND với WS subscribe `/topic/payments/{paymentId}`
+  - On `paymentCompleted` event → toast "✅ Đã nhận thanh toán" + redirect `/dashboard`
   - Timeout 30s no event → fallback "Chờ xác nhận thanh toán... bạn sẽ nhận email khi xong" + email link
-  - Beta banner (when `BETA_PAYMENT_OVERRIDE=true` flag env): "🧪 Bạn đang ở chế độ Beta — số tiền chuyển là 10.000đ tượng trưng. Khi vào production sẽ là 599.000đ/tháng."
+  - Beta banner (when `NEXT_PUBLIC_BETA_PAYMENT_OVERRIDE=true` env): "🧪 Bạn đang ở chế độ Beta — số tiền chuyển là 10.000đ tượng trưng. Khi vào production sẽ là 599.000đ/tháng."
+  - Per `dev-readable-doc-language.md` §4 — Vietnamese narrative UI labels + English code identifiers
+  - Per `fe-build-local-verify.md` v1.0.0 — `pnpm -F kitehub-frontend build` local pre-push (not just lint/tsc)
 - FE consumption matches api-contract.md (Bucket 0)
 
 ### Bucket E — Walk verify (G1 production-equivalent với real 10k)
@@ -129,20 +144,27 @@ Disjoint check: Bucket A=PaymentService.java, B=PaymentWebhookController.java (N
 
 ---
 
-## 4. State-Check Evidence
+## 4. State-Check Evidence (REFRESHED 2026-06-04 post-discovery)
 
 | Symbol | Type | Verification | Evidence | Verdict |
 |---|---|---|---|---|
-| `PaymentService.createPendingPayment` | Java method | `grep -n "createPendingPayment" kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/service/PaymentService.java` | exists line ~144 | ✅ exists |
-| `VietQRService` | Java service | `find kitehub/kitehub-subscription -name "VietQRService.java"` | exists | ✅ exists |
-| `SubscriptionService.applyPendingUpgrade` | Java method | `grep -n "applyPendingUpgrade" .../SubscriptionService.java` | exists | ✅ exists |
-| `subscription_outbox` | DB table | `docker exec kite-postgres psql -U kitehub -d kitehub -c '\d subscription_outbox'` | exists (verified this session) | ✅ exists |
-| `PaymentWebhookController` | Java controller | `find kitehub -name "PaymentWebhookController*"` | 0 hits | 🆕 to-be-created (Bucket B) |
-| `subscription-activated.hbs` | Email template | `find kitehub/kitehub-email -name "subscription-activated*"` | 0 hits | 🆕 to-be-created (Bucket C) |
-| `BetaModeBanner.tsx` | FE component | `find kitehub/kitehub-frontend -name "BetaModeBanner*"` | 0 hits | 🆕 to-be-created (Bucket D) |
-| `documents/01-business/kitehub/subscription-billing/api-contract.md` | API contract | `ls documents/01-business/kitehub/subscription-billing/api-contract.md` | exists | ✅ exists (UPDATE in Bucket 0) |
-| `kitehub.payment.sepay.*` config keys | Config | `grep -rn "sepay" kitehub/kitehub-subscription/src/main/resources` | 0 hits | 🆕 to-be-created (Bucket 0 + B) |
-| `Payment.txnRef` field | Java entity | `grep -n "txnRef\|txn_ref" kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/entity/Payment.java` | TBD — verify before Bucket A spawn | TBD |
+| `Payment` entity | Java entity | `find kitehub -path '*entity/Payment.java'` | `kitehub-platform/src/main/java/com/kitehub/platform/domain/entity/Payment.java` (CROSS-MODULE — NOT kitehub-subscription) | ✅ exists |
+| `Payment.txnRef` field | Java field | `grep -n "txnRef\|txn_ref" .../Payment.java` | 0 hits — `paymentContent` String column used for matching instead | ❌ NOT EXISTS — Bucket A decision: extend `paymentContent` format OR add new `txn_ref` column |
+| `PaymentService.createPayment` | Java method | `grep -n "createPayment" .../PaymentService.java` | exists, line ~47, generates VietQR QR + bank info snapshot (GAP-939) + paymentContent | ✅ exists — Bucket A: extend với beta-amount override branch |
+| `PaymentService.processPaymentWebhook(txnId, amount, content)` | Java method | line ~188 | exists, full flow: findPaymentByContent → verify amount → vietQRService.verifyPayment → payment.complete → applyPendingUpgrade | ✅ exists — Bucket B: extend với SePay payload adapter + idempotency |
+| `VietQRService` | Java service | `find -name "VietQRService.java"` | exists at `kitehub-subscription/.../service/VietQRService.java` — `generateQRCode`, `generatePaymentContent`, `verifyPayment`, `getBankCode/AccountNumber/AccountName` | ✅ exists |
+| `SubscriptionService.applyPendingUpgrade(subscriptionId, paymentId)` | Java method | line ~423 `@Transactional` | exists — Bucket C: extend với outbox enqueue `subscription.activated` event | ✅ exists |
+| `SubscriptionOutboxEvent` + `SubscriptionOutboxRepository` + `SubscriptionOutboxDispatcher` | Outbox infra | `find -path '*outbox/Subscription*'` | all exist | ✅ exists |
+| `PaymentWebhookController` | Java controller | `find -name "PaymentWebhookController*"` | EXISTS at `kitehub-subscription/.../controller/PaymentWebhookController.java` (171 LOC) — generic HMAC-SHA256 body-signature scheme + sorted-key=value& format + `/api/platform/webhooks/payment` path | ✅ exists — Bucket B SCOPE REWRITE: replace HMAC scheme với SePay `Authorization: Apikey <key>` header + adapt payload format (SePay fields: `gateway`, `transferType`, `transferAmount`, `description`, `referenceCode`, `id`) |
+| `PaymentWebhookControllerTest` | Java IT | `find -name "PaymentWebhookControllerTest.java"` | exists | ✅ exists — Bucket B: rewrite test fixtures cho SePay payload |
+| `EmailServiceClient` | Java client | `kitehub-subscription/.../client/EmailServiceClient.java` | exists | ✅ exists — Bucket C uses for email send |
+| `subscription-activated.hbs` (or `.html`) | Email template | `find kitehub/kitehub-email -name "subscription-activated*"` | 0 hits (`subscription-created.html` + `subscription-expired.html` exist nhưng activated MISSING) | ❌ NOT EXISTS — Bucket C creates `subscription-activated.html` |
+| `subscription-created.html` | Email template (sibling reference) | exists `kitehub-email/.../templates/emails/subscription-created.html` | ✅ exists — Bucket C uses as template scaffolding pattern |
+| `BetaModeBanner.tsx` | FE component | `find kitehub/kitehub-frontend -name "BetaMode*"` | 0 hits | ❌ NOT EXISTS — Bucket D creates |
+| FE billing pages | FE pages | `find -path '*billing*' -name '*.tsx'` | `billing/page.tsx`, `upgrade/page.tsx`, `history/page.tsx`, `payment/[id]/page.tsx` all exist | ✅ exists — Bucket D extends `payment/[id]/page.tsx` với WS subscribe + render banner |
+| WS subscribe `/topic/payments/{paymentId}` | FE WebSocket hook | TBD — verify in Bucket D spawn | TBD (likely missing per scope claim) | ⚠️ TBD |
+| `documents/01-business/kitehub/subscription-billing/api-contract.md` | API contract | `ls` | exists | ✅ exists — Bucket 0 PATCH |
+| `kitehub.payment.sepay.*` config keys | Config | `grep -rn "sepay" kitehub/kitehub-subscription/src/main/resources` | 0 hits | ❌ NOT EXISTS — Bucket 0 declares + Bucket B implements |
 
 ---
 
@@ -190,4 +212,12 @@ Update existing `documents/05-guides/operations/2026-06-04-g2-recipe-kh3-subscri
 
 ## 8. Log
 
+- **2026-06-04 (PATCH post-state-check):** Coordinator pre-flight investigation per `pre-mutation-state-check.md` + `audit-to-gap-pipeline.md` §2.6 + `release-fix-retry-budget.md` §3.5 investigation mandate revealed §4 State-Check Evidence drift — 70% of "🆕 to-be-created" rows already exist:
+  - `PaymentWebhookController` (171 LOC) EXISTS với generic HMAC-SHA256 scheme; Bucket B SCOPE REWRITE: protocol-level rewrite to SePay `Authorization: Apikey` header + payload field adapter (NOT new file creation)
+  - `VietQRService` + `PaymentService.createPayment` + `PaymentService.processPaymentWebhook` + `SubscriptionService.applyPendingUpgrade` ALL EXIST; Buckets A/C scope = EXTEND not create
+  - `Payment` entity in `kitehub-platform` (NOT `kitehub-subscription`); Bucket A is cross-module (kitehub-platform + kitehub-subscription)
+  - Outbox infra + EmailServiceClient EXIST; Bucket C scope = new template + extend `applyPendingUpgrade` outbox enqueue
+  - FE billing pages under `(customer)/` NOT `(auth)/`; Bucket D scope = extend existing `payment/[id]/page.tsx`
+  - Truly missing: `subscription-activated.html` template, `BetaModeBanner.tsx`, SePay config keys
+  Wall-clock revised ~4-5 ngày → ~2-3 ngày given existing foundation. Plan PATCH inline (no separate discovery gap) per `discovery-to-gap-inline-filing.md` §1 — silent decay eliminated when plan reflects reality + ships in coordinator's next PR. Status: draft → in-progress.
 - **2026-06-04 (draft):** Plan created post-KH-3 G1 ✅ re-walk + 3-agent payment audit consensus + user direction "SePay Free + 10.000đ symbolic". Outside-in audit eligibility: SKIP per `outside-in-coverage-trigger.md` §4 row 4 (audit ≤30 ngày, 3-agent done this session). Per `inside-out-completeness-trigger.md`: ROADMAP §🚀 + audit findings + AskUserQuestion explicit (user chose Recommended option 1). Cost estimate: 0đ SePay Free + 4-5 ngày dev. Wave naming per `wave-tag-numbering-convention.md` v1.0.0 — tag_primary=flow-kh3, counter=2.
