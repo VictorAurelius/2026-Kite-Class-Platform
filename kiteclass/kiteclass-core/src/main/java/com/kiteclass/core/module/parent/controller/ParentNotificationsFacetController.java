@@ -15,6 +15,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -45,6 +46,7 @@ public class ParentNotificationsFacetController {
 
     private final ParentNotificationsFacetService service;
 
+    @PreAuthorize("@authz.hasAccessToChild(#childId)")
     @GetMapping("/children/{childId}/notifications")
     @Operation(summary = "List notifications for one of the parent's linked children",
             description = "BR-PARENT-FACET-NOTIFY-001: 403 PARENT_FACET_FORBIDDEN if parent is not linked.")

@@ -16,6 +16,7 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
@@ -233,6 +234,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             HttpMessageNotReadableException.class,
             MethodArgumentTypeMismatchException.class,
+            MissingServletRequestParameterException.class,
             HandlerMethodValidationException.class
     })
     public ResponseEntity<ErrorResponse> handleClientInputException(
@@ -250,6 +252,9 @@ public class GlobalExceptionHandler {
         } else if (ex instanceof MethodArgumentTypeMismatchException matm) {
             message = String.format("Parameter '%s' has invalid type", matm.getName());
             code = "PARAM_TYPE_MISMATCH";
+        } else if (ex instanceof MissingServletRequestParameterException msrp) {
+            message = String.format("Required parameter '%s' is missing", msrp.getParameterName());
+            code = "PARAM_MISSING";
         } else if (ex instanceof HandlerMethodValidationException) {
             message = "Request parameter validation failed";
             code = "PARAM_VALIDATION_FAILED";

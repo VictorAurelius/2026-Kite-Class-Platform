@@ -194,10 +194,14 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
      * @param to inclusive upper bound on {@code dueDate}
      * @param pageable pagination parameters; service-layer caller defaults
      *                 to {@code dueDate DESC}
-     * @return page of invoices with items + adjustments prefetched
+     * @return page of invoices; items + adjustments batch-loaded lazily via
+     *         {@code @BatchSize(20)} on the collections (GAP-1006 — cannot
+     *         {@code @EntityGraph} both List bags simultaneously without
+     *         {@code MultipleBagFetchException}; batch-load also avoids
+     *         the in-memory pagination Hibernate applies when a {@code Page}
+     *         query JOIN-FETCHes a collection).
      * @since 2.18.2 (Wave 18b3 Bucket C — GAP-321b Phase 1B remainder)
      */
-    @EntityGraph(attributePaths = {"items", "adjustments"})
     @Query("SELECT i FROM Invoice i WHERE i.deleted = false " +
            "AND i.studentId = :studentId " +
            "AND i.dueDate BETWEEN :from AND :to")
