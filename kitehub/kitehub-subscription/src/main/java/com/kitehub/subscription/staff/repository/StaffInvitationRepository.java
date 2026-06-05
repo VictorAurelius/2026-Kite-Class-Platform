@@ -26,6 +26,14 @@ public interface StaffInvitationRepository extends JpaRepository<StaffInvitation
 
     Optional<StaffInvitation> findByTokenHash(String tokenHash);
 
+    /**
+     * Resolve a STAFF user's tenant binding for JWT enrichment (GAP-531 follow-up,
+     * Wave flow-kc2). After a recipient accepts an invitation, their tenant is the
+     * invitation's {@code tenantId}; {@code accepted_user_id} is the JWT subject.
+     */
+    Optional<StaffInvitation> findFirstByAcceptedUserIdAndStatus(
+            UUID acceptedUserId, StaffInvitationStatus status);
+
     /** Pending invitation for the same tenant+email (idempotency guard for re-invite). */
     @Query("SELECT s FROM StaffInvitation s WHERE s.tenantId = :tenantId AND s.email = :email AND s.status = 'PENDING'")
     Optional<StaffInvitation> findPendingByTenantAndEmail(

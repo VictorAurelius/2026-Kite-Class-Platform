@@ -10,6 +10,8 @@ import com.kitehub.subscription.dto.*;
 import com.kitehub.subscription.exception.AccountLockedException;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.UserRepository;
+import com.kitehub.subscription.staff.entity.StaffInvitationStatus;
+import com.kitehub.subscription.staff.repository.StaffInvitationRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
@@ -58,6 +60,15 @@ public class AuthService {
      */
     private final ChallengeTokenService challengeTokenService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    /**
+     * STAFF tenant binding source (GAP-531 follow-up, Wave flow-kc2). Field-injected
+     * (not in {@link RequiredArgsConstructor}) so legacy unit tests constructing
+     * {@link AuthService} directly stay unaffected; null in those tests, guarded in
+     * {@link #resolveTenantIdForRole(UUID, String)}.
+     */
+    @Autowired(required = false)
+    private StaffInvitationRepository staffInvitationRepository;
 
     /**
      * Legacy 6-arg constructor for unit tests written before Wave 72b Bucket C / Bucket A.
@@ -652,10 +663,17 @@ public class AuthService {
                 .map(Instance::getId)
                 .orElse(null);
         }
-        // STAFF / TEACHER / PARENT / STUDENT — wire when those auth paths land
-        // (currently not issuing tokens via this service). Returning null keeps
-        // the JWT shape stable; downstream APIs requiring tenantId will surface
-        // the gap explicitly rather than silently issue an unscoped token.
+        if ("STAFF".equals(role) && staffInvitationRepository != null) {
+            // GAP-531 follow-up (Wave flow-kc2): a STAFF user's tenant is the tenant of
+            // the invitation they accepted. accepted_user_id == JWT subject (userId).
+            return staffInvitationRepository
+                .findFirstByAcceptedUserIdAndStatus(userId, StaffInvitationStatus.ACCEPTED)
+                .map(inv -> inv.getTenantId())
+                .orElse(null);
+        }
+        // TEACHER / PARENT / STUDENT — wire when those auth paths land (later waves).
+        // Returning null keeps the JWT shape stable; downstream APIs requiring tenantId
+        // will surface the gap explicitly rather than silently issue an unscoped token.
         return null;
     }
 

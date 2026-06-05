@@ -71,9 +71,31 @@ Verified present 2026-06-05 (coordinator state-check):
 
 | Gate | Owner | Criteria | Status |
 |---|---|---|---|
-| G1 — agent runtime walk | Claude | (a) Owner login → `POST /api/v1/staff-invitations` (email + role STAFF) trả 201 + DB row + token; (b) email "mời nhân viên" arrive MailHog với token link; (c) `GET /by-token/{token}` → 200 + invitation detail; (d) `POST /{token}/accept` (set password) → 201 + STAFF user tạo với role STAFF (không phải ADMIN/OWNER); (e) STAFF login → RBAC enforced (STAFF không truy cập Owner-only endpoint) | ⬜ |
+| G1 — agent runtime walk | Claude | (a) Owner login → `POST /api/v1/staff-invitations` (email + role STAFF) trả 201 + DB row + token; (b) email "mời nhân viên" arrive MailHog với token link; (c) `GET /by-token/{token}` → 200 + invitation detail; (d) `POST /{token}/accept` (set password) → 201 + STAFF user tạo với role STAFF (không phải ADMIN/OWNER); (e) STAFF login → RBAC enforced (STAFF không truy cập Owner-only endpoint) | ✅ **PASS** — xem §5.1 |
 | G2 — human local test | User | Login Owner → admin/staff/invite UI → mời staff → check email → click accept → set password → login STAFF → verify quyền | ⬜ |
 | G3 — production parity | Claude + User | Production: staff-invitation schema migrate sạch (RDS) + email gửi thật (SES) + gateway JWT→header + RBAC role enforce đúng tenant scope | ⬜ |
+
+### 5.1 G1 verdict (2026-06-05, coordinator walk)
+
+**Walk target:** tenant `sky-education` (Owner `owner@skyedu.vn`). Stack production-equivalent (kitehub-subscription rebuilt 2026-06-05).
+
+| Gate criteria | Walk result |
+|---|---|
+| (a) Owner invite | ✅ HTTP 201, `invitedBy` populated (gateway X-User-Id forward OK — FM-3 không manifest) |
+| (b) Email sent | ✅ MailHog "Bạn được mời..." (FM-5 không manifest) |
+| (c) GET by-token | ✅ 200 + invitation detail |
+| (d) Accept | ✅ 200 + STAFF user tạo, role STAFF |
+| (e) STAFF login + RBAC | ✅ JWT `tenantId=0edaee10` (FM-1 fixed) + STAFF→owner-only **403** Access denied |
+
+**Verdict: G1 ✅ PASS** (sau fix FM-1).
+
+**Catalog:** pre-walk dự đoán 3 P0; walk thực tế chỉ **FM-1 manifest** (STAFF JWT tenantId null → cross-tenant hole). FM-2 (role vocab) = tech-debt không block (Owner OWNER khớp OWNER_AUTHZ; STAFF→403 đúng). FM-3 (invited_by null) không manifest (gateway forward X-User-Id). FM-5 (email silent) không manifest.
+
+**Fix shipped (GAP-981 DONE):** `resolveTenantIdForRole` thêm STAFF branch (tenant từ `staff_invitations.tenant_id WHERE accepted_user_id=userId ACCEPTED`) + repo method + field-inject (zero ctor ripple). Re-walk verified + 3 AuthService test pass.
+
+**Byproduct:** GAP-784 → DONE (FE read-only STAFF + live 201 walk confirmed).
+
+**2 minor finding (defer P3):** email link dùng prod domain `kitehub.me` (local test friction) + subject "Trung tâm KiteHub" thay tên tenant org.
 
 G2 handoff MD recipe per `g2-handoff-md-mandate.md` §3 — ship same PR as G1 PASS flip.
 
