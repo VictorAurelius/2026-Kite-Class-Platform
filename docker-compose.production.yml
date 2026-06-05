@@ -98,6 +98,18 @@ services:
       KITEHUB_BETA_SIGNUP_BASE_URL: "https://kitehub.me"
       # GAP-508 P0 — subscription → email service inter-service RPC (gateway routes via internal docker network)
       EMAIL_SERVICE_URL: "http://kitehub-email:8080"
+      # Wave flow-kh3-3 — SePay payment webhook Apikey auth + beta-mode symbolic amount.
+      # SEPAY_API_KEY flows in via env_file (/etc/kite/.env, written by fetch-secrets.sh
+      # from AWS Secrets Manager kitehub/production/sepay-api-key). Explicit passthrough
+      # below documents the binding + lets the secret reach the container even if env_file
+      # ordering changes. Binds to kitehub.payment.sepay.api-key.
+      SEPAY_API_KEY: "${SEPAY_API_KEY}"
+      # Beta-mode payment override (kitehub.payment.beta-mode.*). Production keeps OFF by
+      # default — flip BETA_PAYMENT_OVERRIDE=true only to force the symbolic
+      # BETA_PAYMENT_AMOUNT_VND (10000 = 10k VND, bank minimum per failure-mode audit
+      # 2026-06-04) at createPayment time. Public config, no secret.
+      BETA_PAYMENT_OVERRIDE: "${BETA_PAYMENT_OVERRIDE:-false}"
+      BETA_PAYMENT_AMOUNT_VND: "${BETA_PAYMENT_AMOUNT_VND:-10000}"
     depends_on:
       redis:
         condition: service_healthy

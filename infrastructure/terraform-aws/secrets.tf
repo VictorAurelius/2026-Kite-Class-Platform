@@ -166,6 +166,54 @@ import {
   id = "kitehub/production/resend-api-key"
 }
 
+# --- SePay API key (Wave flow-kh3-3 — payment webhook Apikey auth) ---
+# Wave flow-kh3-2 added the SePay payment webhook (POST /api/platform/webhooks/payment)
+# authenticated via `Authorization: Apikey <key>` where <key> = kitehub.payment.sepay.api-key.
+# The key is VENDOR-PROVIDED (configured in the SePay dashboard at https://sepay.vn,
+# Free 50tx/month tier covers Phase 1 BETA) — NOT random-generated. Pattern mirrors the
+# resend-api-key precedent: IaC ships a placeholder version first; the real key is set
+# manually via AWS console post-apply once the SePay merchant account is provisioned.
+#
+# Post AWS account 906286017800 restore (GAP-612 unblock) workflow:
+#   1. Run `terraform apply` — creates placeholder secret (random_password version)
+#   2. SePay dashboard → configure webhook URL https://kitehub.me/api/platform/webhooks/payment
+#      + copy the generated API key
+#   3. Manual override via AWS console: Secrets Manager → kitehub/production/sepay-api-key
+#      → Retrieve secret value → Set new value → plain string "<sepay-api-key>"
+#   4. lifecycle ignore_changes = [secret_string] preserves the manual real value across
+#      subsequent terraform apply
+#
+# IAM grant via wildcard `${var.project_name}/${var.environment}/*` pattern in iam.tf
+# (ec2_app + deploy roles already covered, no edit needed — same as jwt-challenge/resend).
+#
+# scripts/fetch-secrets.sh pulls this secret on EC2 boot into /etc/kite/.env as SEPAY_API_KEY.
+#
+# GAP-450 Option B: lifecycle ignore_changes prevents recurring drift on `result` attribute
+# — same rationale as jwt-challenge / resend.
+resource "random_password" "sepay_api_key_placeholder" {
+  length  = 32
+  special = false
+  lifecycle {
+    ignore_changes = [result, length, special, lower, upper, numeric, min_lower, min_upper, min_numeric, min_special, override_special, keepers]
+  }
+}
+
+resource "aws_secretsmanager_secret" "sepay_api_key" {
+  name                    = "${var.project_name}/${var.environment}/sepay-api-key"
+  description             = "SePay merchant gateway API key for payment webhook Apikey auth (Phase 1 BETA); plain string; vendor-set manually via AWS console post-apply; Wave flow-kh3-3"
+  recovery_window_in_days = 7
+  tags                    = { Name = "${var.project_name}-sepay-api-key" }
+}
+
+resource "aws_secretsmanager_secret_version" "sepay_api_key" {
+  secret_id     = aws_secretsmanager_secret.sepay_api_key.id
+  secret_string = random_password.sepay_api_key_placeholder.result
+
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
+}
+
 # --- Encryption master key (32 bytes base64) ---
 # GAP-450 Option B: lifecycle ignore_changes — same rationale as random_password.jwt above.
 resource "random_password" "encryption_raw" {
