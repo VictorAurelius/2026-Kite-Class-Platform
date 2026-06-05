@@ -60,9 +60,11 @@ public class AttendanceController {
      * @param request attendance marking request
      * @return created attendance record
      */
+    @PreAuthorize("@authz.hasAccessToEnrollment(#request.enrollmentId)")
     @PostMapping
     @Operation(summary = "Mark attendance for a student",
-               description = "Creates a new attendance record. Validates enrollment and prevents duplicates.")
+               description = "Creates a new attendance record. Validates enrollment and prevents duplicates. "
+                       + "Per-resource authz via @authz.hasAccessToEnrollment (OWASP A01) — GAP-991 cross-flow sweep of GAP-729.")
     public ResponseEntity<AttendanceResponse> markAttendance(
             @Valid @RequestBody CreateAttendanceRequest request) {
         log.info("POST /api/v1/attendance - Marking attendance for enrollment {} in session {}",

@@ -237,6 +237,100 @@ public class AuthorizationBean {
     }
 
     /**
+     * Check if the current authenticated user owns the class to which the given
+     * grade belongs, OR is a platform admin.
+     *
+     * <p>Resolves the grade row → its {@code classId} → delegates to
+     * {@link #hasAccessToClass(Long)} (which checks {@code classes.teacher_id} ==
+     * actor UUID). Wave flow-kc6 (GAP-996c, cross-flow sweep of GAP-729/991)
+     * introduces this helper to close the OWASP A01 gap on id-scoped grade
+     * endpoints (GET by id / calculate / finalize / unfinalize) without
+     * duplicating ownership logic.
+     *
+     * <p>Returns {@code false} when grade row not found (soft-deleted /
+     * cross-tenant) — TenantFilterInterceptor already enforces tenant scope on
+     * the lookup native query.
+     *
+     * @param gradeId target grade ID
+     * @return true if user owns the class the grade belongs to OR is admin
+     */
+    public boolean hasAccessToGrade(Long gradeId) {
+        if (gradeId == null) {
+            return false;
+        }
+        if (isAdmin()) {
+            return true;
+        }
+        // Resolve grade → classId. grades table has tenant_id; native
+        // query is read-only and uses parameterized binding (no injection).
+        Object classIdObj;
+        try {
+            classIdObj = entityManager.createNativeQuery(
+                    "SELECT class_id FROM grades WHERE id = :gradeId AND deleted = false")
+                    .setParameter("gradeId", gradeId)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException ex) {
+            log.warn("authz.hasAccessToGrade: deny — grade {} not found (or soft-deleted)",
+                    gradeId);
+            return false;
+        }
+        if (classIdObj == null) {
+            return false;
+        }
+        Long classId = ((Number) classIdObj).longValue();
+        return hasAccessToClass(classId);
+    }
+
+    /**
+     * Check if the current authenticated user owns the class to which the grade
+     * of the given grade component belongs, OR is a platform admin.
+     *
+     * <p>Resolves the grade component row → its parent {@code grade} →
+     * {@code classId} → delegates to {@link #hasAccessToClass(Long)} (which
+     * checks {@code classes.teacher_id} == actor UUID). Wave flow-kc6
+     * (GAP-996c, cross-flow sweep of GAP-729/991) introduces this helper to
+     * close the OWASP A01 gap on id-scoped grade-component endpoints (PUT /
+     * DELETE component) without duplicating ownership logic.
+     *
+     * <p>Returns {@code false} when component or its grade row not found
+     * (soft-deleted / cross-tenant) — TenantFilterInterceptor already enforces
+     * tenant scope on the lookup native query.
+     *
+     * @param componentId target grade component ID
+     * @return true if user owns the class the component's grade belongs to OR is admin
+     */
+    public boolean hasAccessToGradeComponent(Long componentId) {
+        if (componentId == null) {
+            return false;
+        }
+        if (isAdmin()) {
+            return true;
+        }
+        // Resolve component → grade → classId via JOIN. Both tables carry
+        // tenant_id + soft-delete flags; native query is read-only and uses
+        // parameterized binding (no injection).
+        Object classIdObj;
+        try {
+            classIdObj = entityManager.createNativeQuery(
+                    "SELECT g.class_id FROM grade_components gc " +
+                            "JOIN grades g ON gc.grade_id = g.id " +
+                            "WHERE gc.id = :componentId " +
+                            "AND gc.deleted = false AND g.deleted = false")
+                    .setParameter("componentId", componentId)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException ex) {
+            log.warn("authz.hasAccessToGradeComponent: deny — component {} not found (or soft-deleted)",
+                    componentId);
+            return false;
+        }
+        if (classIdObj == null) {
+            return false;
+        }
+        Long classId = ((Number) classIdObj).longValue();
+        return hasAccessToClass(classId);
+    }
+
+    /**
      * Check Spring Security context for admin role (bypass).
      *
      * @return true if current authentication holds {@code ROLE_PLATFORM_ADMIN}

@@ -32,6 +32,14 @@ import java.util.Map;
 /**
  * REST controller for Grade operations.
  *
+ * <p>Per-resource authorization via {@code @authz} ({@code AuthorizationBean})
+ * closes the OWASP A01 (Broken Access Control) gap on grade write/calculate/read
+ * endpoints — GAP-996c Wave flow-kc6 (cross-flow sweep of GAP-729/991). Each
+ * id-scoped endpoint resolves the target grade/component → its class → verifies
+ * {@code classes.teacher_id} == actor UUID (or admin bypass), mirroring the
+ * attendance (KC-5) precedent so any authenticated tenant user can no longer
+ * edit/calculate/finalize/unlock grades they do not own.
+ *
  * @author KiteClass Team
  * @since 2.7.2
  */
@@ -65,6 +73,7 @@ public class GradeController {
      * Get grade by ID.
      */
     @GetMapping("/{id}")
+    @PreAuthorize("@authz.hasAccessToGrade(#id)")
     public ResponseEntity<ApiResponse<GradeResponse>> getGradeById(@PathVariable Long id) {
         GradeResponse response = gradeService.getGradeById(id);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -87,6 +96,7 @@ public class GradeController {
      * Get all grades by student ID.
      */
     @GetMapping("/student/{studentId}")
+    @PreAuthorize("@authz.hasAccessToStudent(#studentId)")
     public ResponseEntity<ApiResponse<List<GradeResponse>>> getGradesByStudent(
             @PathVariable Long studentId) {
 
@@ -113,6 +123,7 @@ public class GradeController {
      * Add or update a grade component.
      */
     @PostMapping("/components")
+    @PreAuthorize("@authz.hasAccessToGrade(#request.gradeId)")
     public ResponseEntity<ApiResponse<GradeComponentResponse>> addOrUpdateComponent(
             @Valid @RequestBody CreateGradeComponentRequest request) {
 
@@ -125,6 +136,7 @@ public class GradeController {
      * Update existing grade component.
      */
     @PutMapping("/components/{id}")
+    @PreAuthorize("@authz.hasAccessToGradeComponent(#id)")
     public ResponseEntity<ApiResponse<GradeComponentResponse>> updateComponent(
             @PathVariable Long id,
             @Valid @RequestBody UpdateGradeComponentRequest request) {
@@ -137,6 +149,7 @@ public class GradeController {
      * Delete a grade component.
      */
     @DeleteMapping("/components/{id}")
+    @PreAuthorize("@authz.hasAccessToGradeComponent(#id)")
     public ResponseEntity<ApiResponse<Void>> deleteComponent(
             @PathVariable Long id,
             @RequestHeader("X-Teacher-Id") Long teacherId) {
@@ -150,6 +163,7 @@ public class GradeController {
      * Calculate final score from all components.
      */
     @PostMapping("/{id}/calculate")
+    @PreAuthorize("@authz.hasAccessToGrade(#id)")
     public ResponseEntity<ApiResponse<GradeResponse>> calculateFinalScore(@PathVariable Long id) {
         GradeResponse response = gradeService.calculateFinalScore(id);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -159,6 +173,7 @@ public class GradeController {
      * Finalize grade (lock for editing).
      */
     @PostMapping("/{id}/finalize")
+    @PreAuthorize("@authz.hasAccessToGrade(#id)")
     public ResponseEntity<ApiResponse<GradeResponse>> finalizeGrade(
             @PathVariable Long id,
             @Valid @RequestBody FinalizeGradeRequest request) {
@@ -171,6 +186,7 @@ public class GradeController {
      * Unfinalize grade (unlock for editing).
      */
     @PostMapping("/{id}/unfinalize")
+    @PreAuthorize("@authz.hasAccessToGrade(#id)")
     public ResponseEntity<ApiResponse<GradeResponse>> unfinalizeGrade(@PathVariable Long id) {
         GradeResponse response = gradeService.unfinalizeGrade(id);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -180,6 +196,7 @@ public class GradeController {
      * Generate transcript for student in a semester.
      */
     @PostMapping("/transcripts/generate")
+    @PreAuthorize("@authz.hasAccessToStudent(#studentId)")
     public ResponseEntity<ApiResponse<TranscriptResponse>> generateTranscript(
             @RequestParam Long studentId,
             @RequestParam String semester) {
@@ -193,6 +210,7 @@ public class GradeController {
      * Get transcript by student ID and semester.
      */
     @GetMapping("/transcripts/student/{studentId}/semester/{semester}")
+    @PreAuthorize("@authz.hasAccessToStudent(#studentId)")
     public ResponseEntity<ApiResponse<TranscriptResponse>> getTranscript(
             @PathVariable Long studentId,
             @PathVariable String semester) {
@@ -205,6 +223,7 @@ public class GradeController {
      * Get all transcripts by student ID.
      */
     @GetMapping("/transcripts/student/{studentId}")
+    @PreAuthorize("@authz.hasAccessToStudent(#studentId)")
     public ResponseEntity<ApiResponse<List<TranscriptResponse>>> getTranscriptsByStudent(
             @PathVariable Long studentId) {
 

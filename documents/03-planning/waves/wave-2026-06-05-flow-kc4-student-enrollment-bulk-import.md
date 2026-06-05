@@ -68,7 +68,11 @@ Detailed request DTO + service logic = read at walk-time (Bucket A/B) to avoid d
 | G2 — human walk | User | Per G2 recipe MD (Bucket D) — enroll via UI + bulk-import CSV via UI | ⬜ |
 | G3 — production parity | User | Post AWS restore — multi-tenant enroll isolation + file storage (MinIO/S3) | ⬜ |
 
-## 6. Closure Protocol
+## 6. Agent Spawn Pattern
+
+_(n/a — flow-walk wave: Bucket 0 = 1 Opus pre-walk persona-sim agent (background); G1 = coordinator manual walk on local stack. No parallel bucket-agent fan-out. Fix-agents spawned ad-hoc per finding per `agent-model-opus-default.md`.)_
+
+## 7. Closure Protocol
 
 1. Catalog walk findings → file gaps inline per `discovery-to-gap-inline-filing.md` §3.
 2. Batch-fix high-confidence (pre-walk + walk) per `feature-ship-runtime-walk-mandate.md` §3.4.
@@ -78,7 +82,7 @@ Detailed request DTO + service logic = read at walk-time (Bucket A/B) to avoid d
 6. wave-history.jsonl append; frontmatter draft → active.
 7. CSV + ROADMAP sync per `post-merge-sync-completeness.md`.
 
-## 8. Pre-walk findings (2026-06-05) — `audits/persona-review/2026-06-05-pre-walk-kc4-enrollment-bulk-import.md`
+## 9. Pre-walk findings (2026-06-05) — `audits/persona-review/2026-06-05-pre-walk-kc4-enrollment-bulk-import.md`
 
 12 failure modes (3 HIGH / 5 MEDIUM / 4 LOW). **Contract surprises (quan trọng cho walk):**
 - ⚠️ **Bulk-import là XLSX-only, KHÔNG phải CSV** (Apache POI `XSSFWorkbook`). Walk PHẢI upload `.xlsx` thật. Schema: required `name`,`email`; optional `phone`,`date_of_birth` (dd/MM/yyyy),`gender` (MALE/FEMALE only),`address`,`note`. Multipart field `file` + header `X-Tenant-Id`.
@@ -91,11 +95,11 @@ Detailed request DTO + service logic = read at walk-time (Bucket A/B) to avoid d
 
 MEDIUM (spot-check at walk): VN-name UTF-8 round-trip / oversized multipart 500 / soft-deleted enroll 404 / cross-tenant @Filter dependency. LOW (defer): duplicate guards OK / re-enroll-after-withdraw / preview-vs-commit drift by-design / partial-fail skip-and-report by-design.
 
-## 7. Log
+## 8. Log
 
 - **2026-06-05 (plan ship):** Filed sau KC-3 G1 PASS (GAP-983 unblock). State-check confirmed enrollment + bulk-import endpoints exist (no partial-impl risk). Pre-walk persona sim agent (Opus) returned 12 failure modes — **2 surprises: bulk-import XLSX-only (not CSV) + enroll requires tuitionAmount.** 3 HIGH bugs → GAP-988 (bulk 500) + GAP-989 (class-status guard) filed + fix agent spawned (batch-fix before walk per `pre-walk-persona-simulation-mandate.md`). NEW isolation surface post GAP-983: enroll = 2 by-id lookups → cross-tenant enroll re-walk. Walk (Bucket A/B) after fixes land + rebuild.
 
-## 9. G1 Outcome (2026-06-05)
+## 10. G1 Outcome (2026-06-05)
 
 **G1 ✅ PASS** (production-equivalent walk):
 - Enroll happy (student 4 → class 14 + tuitionAmount) → 201, `currentEnrolled` 0→1.
