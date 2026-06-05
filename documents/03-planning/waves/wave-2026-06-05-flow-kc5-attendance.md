@@ -72,7 +72,11 @@ Detailed request DTO + BR-ATT-* service logic + permission matrix = read at walk
 | G2 — human walk | User | Per G2 recipe MD (Bucket D) — mark attendance via UI grid + xem stats | ⬜ |
 | G3 — production parity | User | Post AWS restore — multi-tenant attendance isolation + period rollup K12 | ⬜ |
 
-## 6. Closure Protocol
+## 6. Agent Spawn Pattern
+
+_(n/a — flow-walk wave: Bucket 0 = 1 Opus pre-walk persona-sim agent (background); G1 = coordinator manual walk on local stack. No parallel bucket-agent fan-out. Fix-agents spawned ad-hoc per finding per `agent-model-opus-default.md`.)_
+
+## 7. Closure Protocol
 
 1. Catalog walk findings → file gaps inline per `discovery-to-gap-inline-filing.md` §3.
 2. Batch-fix high-confidence (pre-walk + walk) per `feature-ship-runtime-walk-mandate.md` §3.4.
@@ -82,7 +86,7 @@ Detailed request DTO + BR-ATT-* service logic + permission matrix = read at walk
 6. wave-history.jsonl append; frontmatter draft → active.
 7. CSV + ROADMAP sync per `post-merge-sync-completeness.md`.
 
-## 8. Pre-walk findings (2026-06-05) — `audits/persona-review/2026-06-05-pre-walk-kc5-attendance.md`
+## 9. Pre-walk findings (2026-06-05) — `audits/persona-review/2026-06-05-pre-walk-kc5-attendance.md`
 
 12 failure modes (5 HIGH / 5 MEDIUM / 2 LOW). **Contract surprises (quan trọng cho walk):**
 - ⚠️ **Mark dùng `enrollmentId` + `sessionId`, KHÔNG phải `studentId` + `classId`.** Body POST `/api/v1/attendance` = `{enrollmentId, sessionId, status, notes?}`. Walker phải resolve enrollment_id trước (sky: enrollment 32 = student 4 → class 14; sessions class 14 = id 1-27).
@@ -100,12 +104,12 @@ MEDIUM (spot-check walk): bulk findAllById misleading error soft-delete (#6) / b
 
 Unit `AttendanceServiceTest` PASS (11+2 mới). Integration tests (3 file) update qua agent (mock authz + session fixtures + rate recompute).
 
-## 7. Log
+## 8. Log
 
 - **2026-06-05 (plan ship):** Filed sau KC-4 G1 PASS (enrollment unblock). State-check confirmed attendance endpoints exist (3 controllers — class-session mark + class-batch + period K12). Pre-walk persona sim agent (Opus) spawned. NEW isolation surface post GAP-983: attendance by-id + by-session + by-enrollment + by-student lookups → cross-tenant re-walk verify. Walk (Bucket A/B) after pre-walk findings land + batch-fix HIGH bugs.
 - **2026-06-05 (batch-fix + walk batch 1):** 5 HIGH pre-walk bugs fixed (GAP-991..995). Unit `AttendanceServiceTest` PASS; 3 IT files green (agent). G1 walk batch 1: guards verified ✅ GAP-992 (session 99999 → 404) + GAP-993 (EXCUSED no notes → 400) + GAP-995 (EXCUSED_ABSENCE → 400). **Walk discovered W-1 (GAP-996 P0):** happy-path 500 — attendance schema↔entity drift (student_id NOT NULL + lowercase status CHECK + stale unique) chặn mọi write trên Flyway schema; IT mù vì `ddl-auto=create-drop` thay Flyway (0 rows ever). V87 migration created (student_id nullable + uppercase status CHECK + enrollment-session unique). Rebuild #2 → re-walk per `feature-ship-runtime-walk-mandate.md` §3.4.
 
-## 9. G1 Outcome (2026-06-05)
+## 10. G1 Outcome (2026-06-05)
 
 **G1 ✅ PASS** (production-equivalent walk, post V87 + rebuild #2):
 

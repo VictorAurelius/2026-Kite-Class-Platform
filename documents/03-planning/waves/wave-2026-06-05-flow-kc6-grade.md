@@ -74,7 +74,11 @@ Detailed DTO + service logic + entity↔schema = read at walk-time + pre-walk ag
 | G2 — human walk | User | Per G2 recipe MD (Bucket D) — grade entry + report card via UI | ⬜ |
 | G3 — production parity | User | Post AWS restore — multi-tenant grade isolation + K12 multi-subject | ⬜ |
 
-## 6. Closure Protocol
+## 6. Agent Spawn Pattern
+
+_(n/a — flow-walk wave: Bucket 0 = 1 Opus pre-walk persona-sim agent (background); G1 = coordinator manual walk on local stack. No parallel bucket-agent fan-out. Fix-agents spawned ad-hoc per finding per `agent-model-opus-default.md`.)_
+
+## 7. Closure Protocol
 
 1. Catalog walk findings → file gaps inline per `discovery-to-gap-inline-filing.md` §3.
 2. Batch-fix high-confidence per `feature-ship-runtime-walk-mandate.md` §3.4.
@@ -83,7 +87,7 @@ Detailed DTO + service logic + entity↔schema = read at walk-time + pre-walk ag
 5. Flip campaign §4 KC-6 row → 🔄 walk-pass-pending-human.
 6. wave-history.jsonl append; CSV + ROADMAP sync per `post-merge-sync-completeness.md`.
 
-## 8. Pre-walk findings (2026-06-05) — `audits/persona-review/2026-06-05-pre-walk-kc6-grade.md`
+## 9. Pre-walk findings (2026-06-05) — `audits/persona-review/2026-06-05-pre-walk-kc6-grade.md`
 
 12 failure modes (4 HIGH / 6 MEDIUM / 2 LOW). **Schema-drift check (KC-5 lesson): YES — `grading_scales`.**
 
@@ -102,12 +106,12 @@ Detailed DTO + service logic + entity↔schema = read at walk-time + pre-walk ag
 
 MEDIUM spot-check walk: weights chưa validate ở calculate (#5) / addComponent instance_id (#6, verify BaseEntity @PrePersist) / component_ref_id NULL dup (#7) / cross-tenant grade GAP-983 re-walk (#8). LOW: transcript studentName null (#11) / K12 SubjectGradeController secondary (#12).
 
-## 7. Log
+## 8. Log
 
 - **2026-06-05 (plan ship):** Filed sau KC-5 G1 PASS. State-check confirmed grade endpoints exist. Pre-walk persona sim (Opus) với schema-drift check mandate (KC-5 lesson). 12 FMs (4 HIGH), schema-drift YES (grading_scales).
 - **2026-06-05 (batch-fix + walk):** GAP-998 (V88 seed+drift) + GAP-999 (authz, fix-agent 11 endpoints + 2 helpers, 76 tests green). **V88 W-1:** seed instance_id NULL → FAIL (NOT NULL + tenantFilter/RLS kill NULL-default by design) → revised per-tenant seed (GAP-1002 P1 design follow-up). G1 walk PASS.
 
-## 9. G1 Outcome (2026-06-05)
+## 10. G1 Outcome (2026-06-05)
 
 **G1 ✅ PASS** (production-equivalent walk, post V88 + grade authz):
 
