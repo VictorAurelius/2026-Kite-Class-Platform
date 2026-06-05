@@ -31,6 +31,7 @@ public class PaymentResponse {
     private String accountNumber;
     private String accountName;
     private String paymentContent;
+    private String txnRef;
     private LocalDateTime paidAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -55,6 +56,7 @@ public class PaymentResponse {
             .accountNumber(payment.getAccountNumber())
             .accountName(payment.getAccountName())
             .paymentContent(payment.getPaymentContent())
+            .txnRef(payment.getTxnRef())
             .paidAt(payment.getPaidAt())
             .createdAt(payment.getCreatedAt())
             .updatedAt(payment.getUpdatedAt())

@@ -1,6 +1,6 @@
 # GAP-974: Subscription activation email "Subscription đã kích hoạt" not emitted on state machine PENDING → ACTIVE
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** P1
 **Domain:** Backend
 **Found:** 2026-06-04 (Wave flow-kh3 KH-3 G1 re-walk production-equivalent — coordinator walk)

@@ -34,6 +34,14 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     @Query("SELECT p FROM Payment p WHERE p.transactionId = :transactionId AND p.deleted = false")
     Optional<Payment> findByTransactionId(@Param("transactionId") String transactionId);
 
+    /**
+     * Exact-match lookup of a payment by its SePay reference (Wave flow-kh3-2,
+     * GAP-975/GAP-976). Exact equality — NOT a {@code LIKE} substring scan — so a
+     * memo collision across tenants can never resolve to the wrong payment.
+     */
+    @Query("SELECT p FROM Payment p WHERE p.txnRef = :txnRef AND p.deleted = false")
+    Optional<Payment> findByTxnRef(@Param("txnRef") String txnRef);
+
     @Query("SELECT p FROM Payment p WHERE p.status = :status AND p.deleted = false ORDER BY p.createdAt DESC")
     List<Payment> findByStatus(@Param("status") PaymentStatus status);
 

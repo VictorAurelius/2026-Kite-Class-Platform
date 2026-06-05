@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gói Đăng Ký Đã Được Kích Hoạt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .info-box {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #11998e;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✅ Gói <span th:text="${tier}">PREMIUM</span> Đã Được Kích Hoạt</h1>
+    </div>
+
+    <div class="content">
+        <p>Xin chào <strong th:text="${organizationName}">Organization</strong>,</p>
+
+        <div class="success">
+            <p><strong>Thanh toán thành công!</strong> Gói <strong th:text="${tier}">PREMIUM</strong>
+                của bạn đã được kích hoạt và sẵn sàng sử dụng.</p>
+        </div>
+
+        <div class="info-box">
+            <h3>Thông Tin Gói Đăng Ký:</h3>
+            <ul>
+                <li><strong>Gói hiện tại:</strong> <span th:text="${tier}">PREMIUM</span></li>
+                <li><strong>Hiệu lực đến:</strong> <span th:text="${expiresAt}">2026-07-04</span></li>
+            </ul>
+        </div>
+
+        <p>Toàn bộ tính năng của gói <strong th:text="${tier}">PREMIUM</strong> đã được mở khóa cho
+            trung tâm của bạn.</p>
+
+        <a th:href="${supportUrl}" class="button">Truy Cập Dashboard</a>
+
+        <p style="margin-top: 30px;">Cảm ơn bạn đã tin tưởng và sử dụng KiteClass Platform!</p>
+
+        <p><strong>Đội ngũ KiteClass</strong></p>
+    </div>
+
+    <div class="footer">
+        <p>© 2026 KiteClass Platform. All rights reserved.</p>
+        <p>Nếu cần hỗ trợ, vui lòng liên hệ: support@kiteclass.com</p>
+    </div>
+</body>
+</html>
