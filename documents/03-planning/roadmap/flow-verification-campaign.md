@@ -64,7 +64,7 @@ flowchart TD
     KH2c --> ALL[mọi flow authenticated downstream]
     KH2c --> KH3[KH-3 Subscription create/trial→paid]
     KH2c --> KC1[KC-1 Tenant provisioning/settings — auto from KH-2b]
-    KC1 --> KC2[KC-2 Staff invite + RBAC]
+    KH2c --> KC2[KC-2 Staff invite + RBAC — platform-side kitehub-subscription, decoupled từ KC-1]
     KC2 --> KC3[KC-3 Course/class/schedule]
     KC3 --> KC4[KC-4 Student enrollment]
     KC4 --> KC5[KC-5 Attendance]
@@ -81,7 +81,7 @@ flowchart TD
 1. **KH-2a** Admin auth (prerequisite cho KH-1.S2) ✅ G1 evidence in [wave-flow-kh2](../waves/wave-2026-06-03-flow-kh2-auth-onboarding.md) S4
 2. **KH-1** Beta funnel full chain (S1 anonymous → S2 admin approve → S3 email → S4 invite click → S5 register-via-invite = KH-2b)
 3. **KH-2c** Owner login + onboarding wizard ✅ G1 evidence in wave-flow-kh2 S3+S5 (BE+gateway PASS)
-4. KH-3 → KC-1 (auto from KH-2b) → KC-2 → KC-3 → KC-4 → {KC-5, KC-6, KC-7 song song} → {KC-8, KC-9}
+4. Từ KH-2c (Owner exists) song song: KH-3 + KC-1 (auto from KH-2b) + **KC-2** (staff invite — platform-side, độc lập KC-1 settings). KC-3 → KC-4 → {KC-5, KC-6, KC-7 song song} → {KC-8, KC-9}. (KC-2 không block trên KC-1 G2/G3.)
 5. Secondary (độc lập, sau core): KH-5/6/7/8/9/10, KC-10/11/12
 
 ---

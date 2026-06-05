@@ -15,7 +15,7 @@ campaign: flow-verification-campaign
 
 **Goal:** Walk end-to-end flow KC-2 (Owner mời nhân viên → email token → invitee accept + set password → tài khoản STAFF tạo → STAFF login → RBAC enforced) trên stack production-equivalent, đạt **G1 PASS**. Xác minh chuỗi mời-nhận-vai trò hoạt động thật cho mô hình 2-role MVP (OWNER + STAFF).
 
-**Trigger:** KC-2 đứng sau KC-1 (tenant configured) trong campaign §3 dependency chain. Owner cần mời được staff để vận hành tenant trước khi setup khóa học (KC-3). Flow này từng walk ở Wave meta-6 Bucket A (2026-05-28) — surface **17 bug** → một số đã fix, cần re-walk đầy đủ verify state hiện tại.
+**Trigger:** KC-2 là **platform-side** (kitehub-subscription) + **decoupled khỏi KC-1** (campaign §3 revised 2026-06-05) — staff invite chỉ cần Owner tồn tại (KH-2c), KHÔNG cần tenant settings configured. → KC-2 KHÔNG block trên KC-1 G2/G3; có thể prep + walk song song. Owner cần mời được staff để vận hành tenant trước khi setup khóa học (KC-3). Flow này từng walk ở Wave meta-6 Bucket A (2026-05-28) — surface **17 bug** → một số đã fix, cần re-walk đầy đủ verify state hiện tại.
 
 ## 1. Brainstorm
 
