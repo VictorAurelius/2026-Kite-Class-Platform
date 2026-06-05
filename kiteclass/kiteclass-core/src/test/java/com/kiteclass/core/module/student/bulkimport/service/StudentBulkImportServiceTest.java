@@ -198,6 +198,52 @@ class StudentBulkImportServiceTest {
     }
 
     @Test
+    @DisplayName("commit() rejects non-xlsx extension with HTTP 415 (GAP-988)")
+    void rejectsNonXlsxExtension() {
+        // CSV content + .csv extension + text/csv content-type → 415, not 500.
+        MockMultipartFile file = new MockMultipartFile("file", "students.csv",
+                "text/csv", "name,email\nAlice,alice@test.com\n".getBytes());
+
+        assertThatThrownBy(() -> service.commit(file, tenantId))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("BULK_IMPORT_INVALID_FILE_TYPE")
+                .extracting("status")
+                .isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+        verify(jobRepository, times(0)).save(any());
+    }
+
+    @Test
+    @DisplayName("commit() rejects image renamed to .xlsx with HTTP 400, not 500 (GAP-988)")
+    void rejectsRenamedImageAsXlsx() {
+        // PNG magic bytes but a .xlsx extension → passes the type pre-check (extension OK)
+        // then Apache POI throws a RuntimeException, which must map to 400 (not 500).
+        byte[] pngBytes = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 1, 2, 3, 4};
+        MockMultipartFile file = new MockMultipartFile("file", "logo.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", pngBytes);
+
+        assertThatThrownBy(() -> service.commit(file, tenantId))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("BULK_IMPORT_PARSE_ERROR")
+                .extracting("status")
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(jobRepository, times(0)).save(any());
+    }
+
+    @Test
+    @DisplayName("preview() rejects corrupt-bytes .xlsx with HTTP 400, not 500 (GAP-988)")
+    void rejectsCorruptXlsxOnPreview() {
+        // Random non-zip bytes with a valid extension → POI RuntimeException → 400.
+        MockMultipartFile file = new MockMultipartFile("file", "garbage.xlsx",
+                "application/octet-stream", "this is not a real spreadsheet".getBytes());
+
+        assertThatThrownBy(() -> service.preview(file, tenantId))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("BULK_IMPORT_PARSE_ERROR")
+                .extracting("status")
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
     @DisplayName("commit() rejects files exceeding MAX_ROWS with HTTP 413 PAYLOAD_TOO_LARGE")
     void rejectsOverMaxRows() throws IOException {
         // Wave 86 E-AC5: MAX_ROWS=1_000 cap with PAYLOAD_TOO_LARGE (413) status

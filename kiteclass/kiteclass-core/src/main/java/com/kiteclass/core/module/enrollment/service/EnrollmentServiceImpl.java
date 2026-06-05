@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.enrollment.service;
 
+import com.kiteclass.core.common.constant.ClassStatus;
 import com.kiteclass.core.common.constant.EnrollmentStatus;
 import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
@@ -60,6 +61,17 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         // CLASS_FULL. No optimistic retry needed — first maxStudents requests succeed.
         Class clazz = classRepository.findByIdForEnrollmentWithLock(request.getClassId())
                 .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", (Object) request.getClassId()));
+
+        // GAP-989: Class-status guard. A class can only accept enrollments while it is in
+        // an active lifecycle state (SCHEDULED / IN_PROGRESS). Enrolling into a terminal
+        // state (COMPLETED / CANCELLED) is rejected with HTTP 400 instead of silently
+        // returning 201. Mirrors Class#canEnroll() lifecycle rule (BR-CLASS-006 family).
+        if (clazz.getStatus() == ClassStatus.COMPLETED || clazz.getStatus() == ClassStatus.CANCELLED) {
+            log.warn("Cannot enroll student {} into class {} with non-enrollable status {}",
+                    request.getStudentId(), request.getClassId(), clazz.getStatus());
+            throw new ValidationException("CLASS_NOT_ENROLLABLE",
+                    request.getClassId(), clazz.getStatus().getDisplayNameVi());
+        }
 
         // BR-ENROLL-002: Check for duplicate enrollment (regardless of status)
         if (enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(
