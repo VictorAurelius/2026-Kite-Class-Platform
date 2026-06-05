@@ -1,6 +1,6 @@
 ---
 title: Wave flow-kc4 — Student enrollment + bulk import
-status: draft
+status: active
 created: 2026-06-05
 updated: 2026-06-05
 waves: [flow-kc4]
@@ -94,3 +94,14 @@ MEDIUM (spot-check at walk): VN-name UTF-8 round-trip / oversized multipart 500 
 ## 7. Log
 
 - **2026-06-05 (plan ship):** Filed sau KC-3 G1 PASS (GAP-983 unblock). State-check confirmed enrollment + bulk-import endpoints exist (no partial-impl risk). Pre-walk persona sim agent (Opus) returned 12 failure modes — **2 surprises: bulk-import XLSX-only (not CSV) + enroll requires tuitionAmount.** 3 HIGH bugs → GAP-988 (bulk 500) + GAP-989 (class-status guard) filed + fix agent spawned (batch-fix before walk per `pre-walk-persona-simulation-mandate.md`). NEW isolation surface post GAP-983: enroll = 2 by-id lookups → cross-tenant enroll re-walk. Walk (Bucket A/B) after fixes land + rebuild.
+
+## 9. G1 Outcome (2026-06-05)
+
+**G1 ✅ PASS** (production-equivalent walk):
+- Enroll happy (student 4 → class 14 + tuitionAmount) → 201, `currentEnrolled` 0→1.
+- Duplicate enroll → 409. Cross-tenant enroll (khanh → sky) → 404 (isolation post-GAP-983).
+- **GAP-989** enroll vào lớp COMPLETED → 400 `CLASS_NOT_ENROLLABLE` (was 201). **GAP-988** csv/fake.xlsx → 415/400 (was 500). IT 21/21.
+
+GAP-988 + GAP-989 → DONE. GAP-990 (K12 homeroom guard) defer Phase 3. G2 handoff: [`2026-06-05-g2-recipe-kc4-enrollment-bulk-import.md`](../../05-guides/operations/2026-06-05-g2-recipe-kc4-enrollment-bulk-import.md). Campaign §4: KC-4 → 🔄 walk-pass-pending-human.
+
+**Note:** bulk-import XLSX happy-path (preview→commit real .xlsx) deferred to G2 human UI test; G1 verified error-handling (4xx) + IT covers XLSX parse.
