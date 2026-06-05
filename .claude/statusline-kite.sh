@@ -92,3 +92,29 @@ if [ -n "$five_hour_perc" ] || [ -n "$seven_day_perc" ]; then
   printf " ${dim}5h:${reset}${five_color}%s${reset} ${dim}7d:${reset}${seven_color}%s${reset}" \
     "$five_disp" "$seven_disp"
 fi
+
+# Open-PR segment — cached (statusline renders every prompt; never block on network).
+# Cache TTL 60s; refresh runs in background, render uses last-known value.
+pr_cache="${TMPDIR:-/tmp}/claude-kite-pr-open.cache"
+pr_lock="${pr_cache}.lock"
+pr_ttl=60
+cache_age=999999
+[ -f "$pr_cache" ] && cache_age=$(( $(date +%s) - $(stat -c %Y "$pr_cache" 2>/dev/null || echo 0) ))
+if [ "$cache_age" -ge "$pr_ttl" ]; then
+  # Refresh in background unless one is already in-flight (lock < 30s old).
+  lock_age=999999
+  [ -f "$pr_lock" ] && lock_age=$(( $(date +%s) - $(stat -c %Y "$pr_lock" 2>/dev/null || echo 0) ))
+  if [ "$lock_age" -ge 30 ]; then
+    ( : > "$pr_lock"
+      n=$(gh pr list --state open --json number --jq 'length' 2>/dev/null)
+      [ -n "$n" ] && printf '%s' "$n" > "$pr_cache"
+      rm -f "$pr_lock" ) >/dev/null 2>&1 &
+  fi
+fi
+pr_open=$(cat "$pr_cache" 2>/dev/null)
+if [ -n "$pr_open" ]; then
+  if [ "$pr_open" -gt 0 ] 2>/dev/null; then pr_color="$cyan"; else pr_color="$dim"; fi
+  printf " ${dim}PR open:${reset}${pr_color}${bold}%s${reset}" "$pr_open"
+else
+  printf " %sPR open:?%s" "$dim" "$reset"
+fi
