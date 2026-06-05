@@ -100,3 +100,27 @@ Walk thực hiện trên stack Docker healthy (kiteclass-core @ :8088, gateway h
 **KC-7 G1 verdict: PASS** cho core flow invoice→payment→reconcile (sau fix GAP-1003 P0). Findings filed: GAP-1003 (DONE — auth bridge fix), GAP-1004 (P1 over-payment+idempotency), GAP-1005 (P1 InvoiceController authz). Schema-drift (giả thuyết #1 KC-5/KC-6) confirmed RESOLVED cho KC-7 (V79+V86+V88).
 
 **Walk fixtures consumed (sky tenant dev DB):** invoice 28 PAID; invoice 15 over-paid (-500k); invoice 14 có 2 payment_records. G2 human re-walk dùng invoice khác (9-13) hoặc tạo enrollment mới.
+
+---
+
+## G3 Production-parity verification (2026-06-05)
+
+Per `local-fix-production-parity-check.md` + campaign §1 G3 definition. G1 walk dùng core-direct (port 8088) với hand-crafted `X-User-Roles` header. G3 verify **chuỗi auth thật qua gateway** (port 9000) chỉ bằng minted JWT — KHÔNG header thủ công.
+
+**Walk:** mint HS256 JWT (`sub` + `role=OWNER` + `email` + `tenantId=<sky>` + `exp`) ký bằng gateway `JWT_SECRET` → request qua gateway :9000 chỉ với `Authorization: Bearer <JWT>`:
+- `GET /api/v1/invoices/13` → **200**
+- `POST /api/v1/invoices/13/record-payment` `{"method":"CASH","amount":500000}` → **201** (payment_records id=6)
+
+→ Chứng minh chuỗi end-to-end: gateway validate JWT → forward `X-User-Roles=OWNER` + `X-User-Id` + `X-Tenant-Id` (resolve từ `tenantId` claim, TenantResolver fallback localhost) → core `GatewayHeaderAuthenticationFilter` dựng `ROLE_OWNER` → `@PreAuthorize hasAnyRole` PASS. Gateway thật sản xuất đúng header mà filter tiêu thụ.
+
+**Parity matrix:**
+
+| Dimension | Verdict |
+|---|---|
+| Same image tag (`kiteclass-core:latest` có fix, trên main) | ✅ |
+| Real Postgres + Flyway V88 + RLS (không H2) | ✅ (cross-tenant 404) |
+| Gateway JWT→header auth | ✅ verified end-to-end (this walk) |
+| prod-profile config (`SecurityConfig @Profile("!test")` + filter active prod, no profile dep) | ✅ |
+| env-vars (filter zero env dep; `JWT_SECRET` đã có ở prod) | ✅ |
+
+**G3 verdict: PASS.** Lưu ý deploy-time: fix ở `main` — production cần rebuild kiteclass-core image từ main (ECR) khi deploy AWS stack (deploy step, không phải code gap). Walk fixture consumed: invoice 13 có 1 payment 500k.
