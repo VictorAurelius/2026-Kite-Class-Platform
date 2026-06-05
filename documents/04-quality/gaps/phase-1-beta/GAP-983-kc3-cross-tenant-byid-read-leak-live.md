@@ -35,12 +35,35 @@ KC-3 G1 walk (course → class → schedule → sessions) trên stack production
 - **GAP-362** (OPEN P1): `TenantIsolationIT.shouldIsolateCourseDataBetweenTenants` flake — test đáng lẽ catch bug này đang disabled/flaky → giải thích vì sao leak lọt audit+test. Có thể test KHÔNG flaky mà đang **legit-fail**.
 - **GAP-729** (DONE): A01 per-resource authz guard 11 controllers — guard `hasAccessTo*` cho owned mutating ops; KHÁC với tenant-scope trên read-by-id.
 
-## Proposed Fix
+## Root-cause investigation (2026-06-05 — fix attempt + revert per release-fix-retry-budget §3.5)
 
-Áp dụng systemic fix per GAP-746 Path A trên toàn bug class (course/class/session/teacher + sweep GAP-749):
-- Đổi repository method → `findByIdAndInstanceIdAndDeletedFalse(id, tenantId)` HOẶC thêm `@Filter` applier (với `condition="instance_id = :tenantId"`) trên các entity + đảm bảo Hibernate filter hiệu lực trên findById path, HOẶC bật RLS FORCE trên các bảng như lớp phòng thủ thứ 2.
-- Throw `EntityNotFoundException` (404) khi không thuộc tenant — KHÔNG 500/200.
-- Re-enable + de-flake GAP-362 `TenantIsolationIT` → regression guard.
+Thử fix v1: thêm `@Filter(name="tenantFilter", condition="instance_id = :tenantId")` re-declared trên 4 entity (Course/Class/ClassSession/Teacher) matching pattern Lead/LandingPage. Rebuild + live re-test → **PARTIAL, reverted:**
+
+| Endpoint | Service method | @Transactional? | Post-@Filter kết quả |
+|---|---|---|---|
+| `GET /teachers/{id}` | `getTeacherById` | ❌ none | 200 leak → **blocked** (nhưng 500 not 404) |
+| `GET /courses/{id}` | `getCourseById` | ❌ none | filter applied (500 pre-existing user-U confound) |
+| `GET /classes/{id}` | `getClass` | ✅ `@Transactional(readOnly=true)` | **STILL 200 leak** |
+| List `/courses`, own-access | (Specification / non-txn) | — | ✅ no regression |
+
+**ROOT CAUSE xác định:** `spring.jpa.open-in-view: false` (OSIV OFF) trong `application.yml:70`. `TenantFilterInterceptor.preHandle` enable filter qua `entityManagerProvider.getIfAvailable()` (OSIV/default session) + `filter.setParameter("tenantId", ...)`. Nhưng method `@Transactional` (vd `getClass`) mở **session riêng** mà filter chưa enable → leak. Method KHÔNG `@Transactional` (course/teacher/student) chạy trên session interceptor đã enable → filter áp dụng.
+
+→ **`@Filter` trên entity là CẦN nhưng KHÔNG ĐỦ.** Phải đảm bảo filter enable trên transaction-bound session (mọi `@Transactional` read method platform-wide).
+
+**Secondary bug:** khi filter trả empty, `.orElseThrow(EntityNotFoundException)` map ra **500 không phải 404** (leak existence + sai status) — cần verify exception→HTTP mapping + filter param-not-set trên non-interceptor session.
+
+**Blast radius (sweep GAP-749):** 58 entity extends BaseEntity thiếu `@Filter` (chỉ 3 marketing entity Lead/LandingPage/ContactMessage có). Leak platform-wide: student/grade/payment/invoice/enrollment/attendance/... (Student by-id isolate được CHỈ vì `getStudentById` không `@Transactional`).
+
+## Proposed Fix (dedicated security wave — không in-session, cần full IT validation)
+
+3 layer, cần làm cùng + IT proof:
+1. **Filter enablement reliable trên txn session** — chuyển enable từ MVC interceptor sang cơ chế bind vào actual Hibernate session của `@Transactional` (vd `TransactionSynchronization` / Hibernate `Integrator` / AOP `@Around` set filter trên `EntityManager` hiện hành). Đây là core fix cho `@Transactional` leak.
+2. **`@Filter` applier trên 58 entity** thiếu (sweep GAP-749) — re-declare matching Lead pattern.
+3. **Exception→404 mapping** — khi filter trả empty, `EntityNotFoundException` → 404 (verify handler), KHÔNG 500.
+4. **Defense-in-depth:** cân nhắc RLS FORCE trên bảng nhạy cảm (hiện OFF trong kiteclass_shared).
+- Re-enable + de-flake GAP-362 `TenantIsolationIT` + **mở rộng test coverage: thêm by-id isolation case** (hiện `shouldIsolateCourseDataBetweenTenants` CHỈ test LIST, không test findById — đó là coverage gap để lọt bug này). Regression guard cho cả `@Transactional` + non-txn read methods.
+
+**Lý do defer (không fix in-session):** layer 1 (filter enablement) là infra change platform-wide, blast 58 entity + mọi `@Transactional` read, cần full kiteclass-core IT suite PASS (self-hosted runner OFFLINE) trước merge. Fix v1 attempt reverted để tránh ship half-fix (regress teacher→500 + getClass vẫn leak) per `release-fix-retry-budget.md` §3.
 
 ## Acceptance Criteria
 
