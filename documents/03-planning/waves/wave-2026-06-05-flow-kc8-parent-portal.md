@@ -146,4 +146,14 @@ Opus agent → 10 failure mode (3 HIGH / 5 MEDIUM / 2 LOW). **Batch-fixed TRƯ�
 | 7 | Role-collision IDOR defense-in-depth | ❌ NOT-IMPL (defer) | GAP-1007 P2 |
 | 8 | Payment consent gate | ❌ NOT-IMPL (defer) | GAP-1008 P3 |
 | 9 | FE wiring attendance/fees/billing | ❌ NOT-IMPL (defer) | Phase 1.5 (FE mock current) |
-| 10 | G3 production parity | ⬜ pending | post AWS restore |
+| 10 | G3 production parity (gateway chain) | ⛔ **DEFERRED Phase 2** | GAP-725 + GAP-798b — parent LOGIN is Phase 2 (see §11) |
+
+## 11. G3 production-parity finding (2026-06-05) — Phase-2-gated
+
+**G3 attempt (mint JWT → gateway :9000, no manual headers):** empirically blocked at tenant resolution (`TokenService.resolveTenantIdForRole` only issues `tenantId` claim for OWNER — PARENT/TEACHER/STUDENT return null per line 86 "until their auth paths land"). **Code-level definitive:** gateway injects NO `X-User-Reference-Id` (grep all gateway filters = 0); `TokenService` issues NO `referenceId` claim.
+
+**Verdict: NOT a new bug — tracked + deliberately deferred Phase 2.**
+- **GAP-725** (P1, Phase 2): parent/teacher/student auth path architectural gap — those roles can't login in Phase 1 (KH PlatformRole = OWNER/STAFF/PLATFORM_ADMIN only). Decision: Hướng B (teacher email+pass) + Hướng C (parent/student invite+OTP).
+- **GAP-798b** (P1, OPEN): reference_id producer side + gateway X-User-Reference-Id forward — BLOCKED on parent login-wiring; deliberately NOT built (unverifiable security = trust-pass anti-pattern). Consumer-side authz bridge (G1 tested) shipped GAP-798.
+
+**KC-8 Phase-1 scope is correct:** parent portal BE facets are production-ready (consumer-side authz + consent + IDOR + audit verified G1 direct-core); the production ACCESS path (parent login → JWT reference_id → gateway inject) is Phase 2 by deliberate architecture. G3 gateway-parity unblocks when GAP-725/GAP-798b land Phase 2. Same Phase-2 gate applies to KC-9 student portal.
