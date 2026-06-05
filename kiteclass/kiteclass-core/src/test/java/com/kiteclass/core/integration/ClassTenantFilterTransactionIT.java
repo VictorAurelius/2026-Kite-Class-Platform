@@ -130,6 +130,31 @@ class ClassTenantFilterTransactionIT {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    @DisplayName("GAP-983: tenant B reading tenant A's course by id returns 404 (not leaked)")
+    void shouldNotLeakCourseByIdAcrossTenants() throws Exception {
+        UUID tenantA = UUID.randomUUID();
+        UUID tenantB = UUID.randomUUID();
+
+        Long teacherIdA = testDataBuilder.createTestTeacher(mockMvc, objectMapper, tenantA);
+        Long courseIdA = testDataBuilder.createTestCourse(
+                mockMvc, objectMapper, tenantA, "GAP-983 Course " + System.nanoTime(), teacherIdA);
+
+        // getCourseById is non-@Transactional + @Cacheable(key includes tenant). The cache-miss
+        // read still routes through the repository's own @Transactional, so the aspect-enabled
+        // tenant filter must scope it: tenant B reading tenant A's course by id -> 404.
+        mockMvc.perform(get("/api/v1/courses/" + courseIdA)
+                        .header("X-Tenant-Id", tenantB.toString()))
+                .andExpect(status().isNotFound());
+
+        // Tenant A own access succeeds (and primes the tenant-scoped cache for tenant A only).
+        mockMvc.perform(get("/api/v1/courses/" + courseIdA)
+                        .header("X-Tenant-Id", tenantA.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(courseIdA));
+    }
+
     /**
      * Creates a teacher + course + class for the given tenant and returns the class id.
      * Uses the public HTTP API exactly like a real caller so the full request-per-tenant
