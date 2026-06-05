@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { BrandingSettings } from '@/components/settings/branding-settings';
 import { PreferencesSettings } from '@/components/settings/preferences-settings';
 import { OnboardingReplayCard } from '@/components/onboarding/OnboardingReplayCard';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/stores/auth-store';
 
 /**
  * Sensible default palette for the theme-preview tab.
@@ -41,12 +41,14 @@ const DEFAULT_BRAND_COLORS: BrandColors = {
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('branding');
-  const { user } = useAuth();
+  const user = useAuthStore((state) => state.user);
   // GAP-979: per-user "Tùy chọn" preferences require a numeric domain reference id
   // (parents.id / teachers.id / students.id). An OWNER has a KiteHub-level UUID identity
   // with no KiteClass domain ref-id, so GET /api/v1/users/{id}/preferences returns 403.
   // Hide the tab for OWNER to avoid surfacing a broken settings section.
-  const showPreferences = user?.userType !== 'OWNER';
+  // NB: backend role 'OWNER' is not in the FE UserType enum (ADMIN/STAFF/TEACHER/PARENT/
+  // STUDENT) — useAuth casts role as UserType, so compare as string at runtime.
+  const showPreferences = (user?.userType as string | undefined) !== 'OWNER';
 
   return (
     <div className="space-y-6">
