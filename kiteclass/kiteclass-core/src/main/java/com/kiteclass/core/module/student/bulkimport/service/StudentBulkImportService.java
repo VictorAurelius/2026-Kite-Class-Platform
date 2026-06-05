@@ -199,11 +199,52 @@ public class StudentBulkImportService {
         }
     }
 
+    /**
+     * Canonical content-type for .xlsx (OOXML spreadsheet).
+     */
+    private static final String XLSX_CONTENT_TYPE =
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+    /**
+     * Rejects uploads that are not .xlsx BEFORE handing the stream to Apache
+     * POI. GAP-988: non-xlsx content (CSV, renamed image, corrupt bytes) makes
+     * {@link XSSFWorkbook} throw a {@link RuntimeException} that previously
+     * escaped to the catch-all handler as HTTP 500. The pre-check turns the
+     * common cases into a clean HTTP 415; the POI wrap below catches the rest.
+     *
+     * <p>Accepts a file when EITHER the extension is {@code .xlsx} OR the
+     * content-type is the OOXML spreadsheet type — browsers occasionally send
+     * {@code application/octet-stream}, so a correct extension alone is enough.
+     */
+    private static void assertXlsxType(MultipartFile file) {
+        String name = file.getOriginalFilename();
+        boolean hasXlsxExtension = name != null
+                && name.toLowerCase(Locale.ROOT).endsWith(".xlsx");
+        String contentType = file.getContentType();
+        boolean hasXlsxContentType = XLSX_CONTENT_TYPE.equalsIgnoreCase(contentType);
+
+        if (!hasXlsxExtension && !hasXlsxContentType) {
+            throw new BusinessException(
+                    "BULK_IMPORT_INVALID_FILE_TYPE", HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                    name == null ? "<unknown>" : name);
+        }
+    }
+
     private List<BulkImportRow> parseSafely(MultipartFile file) {
+        assertXlsxType(file);
         try (InputStream in = file.getInputStream()) {
             return xlsxParser.parse(in);
         } catch (IOException e) {
             throw new BulkImportParseException("Không đọc được file upload: " + e.getMessage(), e);
+        } catch (BulkImportParseException e) {
+            // Already a domain 400 (missing headers, empty workbook) — propagate as-is.
+            throw e;
+        } catch (RuntimeException e) {
+            // GAP-988: Apache POI throws RuntimeExceptions (NotOLE2FileException,
+            // POIXMLException, generic) when the bytes are not a valid xlsx — e.g.
+            // a CSV or image renamed to .xlsx. Map to HTTP 400 instead of 500.
+            throw new BulkImportParseException(
+                    "File không phải xlsx hợp lệ hoặc đã hỏng: " + e.getMessage(), e);
         }
     }
 

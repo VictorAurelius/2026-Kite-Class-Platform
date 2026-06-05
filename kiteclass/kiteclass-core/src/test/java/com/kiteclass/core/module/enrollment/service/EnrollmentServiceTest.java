@@ -219,6 +219,71 @@ class EnrollmentServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when enrolling into a COMPLETED class (GAP-989)")
+    void shouldThrowExceptionWhenClassCompleted() {
+        // Arrange — class in a terminal lifecycle state must reject enrollment.
+        testClass.setStatus(com.kiteclass.core.common.constant.ClassStatus.COMPLETED);
+
+        when(studentRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(testStudent));
+        when(classRepository.findByIdForEnrollmentWithLock(1L))
+                .thenReturn(Optional.of(testClass));
+
+        // Act & Assert — 400 CLASS_NOT_ENROLLABLE; no enrollment persisted.
+        assertThatThrownBy(() -> enrollmentService.enrollStudent(createRequest))
+                .isInstanceOf(ValidationException.class)
+                .satisfies(e -> assertThat(e.getMessage())
+                        .containsIgnoringCase("CLASS_NOT_ENROLLABLE"));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when enrolling into a CANCELLED class (GAP-989)")
+    void shouldThrowExceptionWhenClassCancelled() {
+        // Arrange
+        testClass.setStatus(com.kiteclass.core.common.constant.ClassStatus.CANCELLED);
+
+        when(studentRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(testStudent));
+        when(classRepository.findByIdForEnrollmentWithLock(1L))
+                .thenReturn(Optional.of(testClass));
+
+        // Act & Assert
+        assertThatThrownBy(() -> enrollmentService.enrollStudent(createRequest))
+                .isInstanceOf(ValidationException.class)
+                .satisfies(e -> assertThat(e.getMessage())
+                        .containsIgnoringCase("CLASS_NOT_ENROLLABLE"));
+    }
+
+    @Test
+    @DisplayName("Should enroll into an IN_PROGRESS class (GAP-989 — active state allowed)")
+    void shouldEnrollIntoInProgressClass() {
+        // Arrange — IN_PROGRESS is an enrollable (active) lifecycle state.
+        testClass.setStatus(com.kiteclass.core.common.constant.ClassStatus.IN_PROGRESS);
+
+        when(studentRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(testStudent));
+        when(classRepository.findByIdForEnrollmentWithLock(1L))
+                .thenReturn(Optional.of(testClass));
+        when(enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(1L, 1L))
+                .thenReturn(Optional.empty());
+        when(enrollmentMapper.toEntity(createRequest))
+                .thenReturn(testEnrollment);
+        when(enrollmentRepository.save(any(Enrollment.class)))
+                .thenReturn(testEnrollment);
+        when(classRepository.save(any(Class.class)))
+                .thenReturn(testClass);
+        when(enrollmentMapper.toResponse(testEnrollment))
+                .thenReturn(testResponse);
+
+        // Act
+        EnrollmentResponse result = enrollmentService.enrollStudent(createRequest);
+
+        // Assert — succeeds; enrollment persisted.
+        assertThat(result).isNotNull();
+        verify(enrollmentRepository).save(any(Enrollment.class));
+    }
+
+    @Test
     @DisplayName("Should update enrollment status successfully")
     void shouldUpdateEnrollmentStatusSuccessfully() {
         // Arrange

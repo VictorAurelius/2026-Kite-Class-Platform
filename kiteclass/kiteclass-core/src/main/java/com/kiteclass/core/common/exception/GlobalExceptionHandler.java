@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.ArrayList;
@@ -299,6 +300,26 @@ public class GlobalExceptionHandler {
                 path);
 
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(response);
+    }
+
+    /**
+     * Xu ly upload vuot qua gioi han kich thuoc (spring.servlet.multipart.max-file-size)
+     * - tra HTTP 413 PAYLOAD_TOO_LARGE thay vi 500 (GAP-988). Phai dat TRUOC catch-all.
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceeded(
+            MaxUploadSizeExceededException ex,
+            HttpServletRequest request) {
+
+        log.warn("Upload size exceeded at {}: {}", request.getRequestURI(), ex.getMessage());
+
+        String path = request.getRequestURI();
+        ErrorResponse response = ErrorResponse.of(
+                "UPLOAD_SIZE_EXCEEDED",
+                "The uploaded file exceeds the maximum allowed size.",
+                path);
+
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(response);
     }
 
     @ExceptionHandler(Exception.class)
