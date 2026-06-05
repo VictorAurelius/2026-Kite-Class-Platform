@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * Security configuration for Core service.
@@ -44,10 +45,18 @@ public class SecurityConfig {
                 // Disable CSRF - not needed since Core is behind Gateway
                 // Gateway handles authentication, Core trusts X-User-Id/X-User-Roles headers
                 .csrf(csrf -> csrf.disable())
-                // All requests permitted - authentication handled by Gateway
+                // All requests permitted at URL layer - authorization happens at the
+                // method layer via @PreAuthorize. Gateway validates the JWT and forwards
+                // identity headers; GatewayHeaderAuthenticationFilter bridges X-User-Roles
+                // into Spring authorities so hasRole/hasAnyRole guards can be satisfied.
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
-                );
+                )
+                // Establishes the authority context before the authorization decision —
+                // see KC-7 G1 walk finding 2026-06-05. Mirrors kitehub-subscription's
+                // XUserRolesHeaderFilter (GAP-706/GAP-783).
+                .addFilterBefore(new GatewayHeaderAuthenticationFilter(),
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
