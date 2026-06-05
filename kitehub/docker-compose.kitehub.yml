@@ -664,6 +664,10 @@ services:
       STORAGE_S3_ACCESS_KEY: ${MINIO_ROOT_USER:-kitehub}
       STORAGE_S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?required}
       INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:?INTERNAL_API_SECRET is required}
+      # Wave auth-1 (Option B): KC mints HS512 JWT for PARENT/TEACHER/STUDENT login.
+      # Same shared secret the gateway validates with (GAP-705). Production parity:
+      # kiteclass-core prod env must fetch JWT_SECRET via fetch-secrets.sh (Bucket C follow-up).
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required - run ./scripts/setup.sh}
     ports:
       - "8088:8080"
     depends_on:

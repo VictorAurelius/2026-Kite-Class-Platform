@@ -719,6 +719,20 @@ spring:
                 name: subscriptionCircuitBreaker
                 fallbackUri: forward:/fallback/subscription
 
+        # Wave auth-1 (Option B): KC-native login for PARENT/TEACHER/STUDENT.
+        # Public (no JWT, no tenant context yet) — MUST precede the /api/v1/**
+        # instance-apis catch-all so TenantResolver does NOT reject the pre-auth
+        # login. The credential row itself is the source of tenant + reference id.
+        - id: kc-tenant-auth
+          uri: ${KITECLASS_CORE_URL:http://kiteclass-core:8080}
+          predicates:
+            - Path=/api/v1/tenant-auth/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: instanceCircuitBreaker
+                fallbackUri: forward:/fallback/instance
+
         # Instance APIs - Route to KiteClass Core (via TenantResolver)
         - id: instance-apis
           uri: ${KITECLASS_CORE_URL:http://kiteclass-core:8080}
@@ -748,6 +762,9 @@ spring:
       default-filters:
         - RemoveRequestHeader=X-Tenant-Id
         - RemoveRequestHeader=X-User-Id
+        # Wave auth-1: strip client-supplied reference id; JwtAuthenticationGatewayFilter
+        # re-injects the verified referenceId claim (KC-native tokens) — anti-spoof.
+        - RemoveRequestHeader=X-User-Reference-Id
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
         - AddResponseHeader=X-Gateway-Version, 1.0
 

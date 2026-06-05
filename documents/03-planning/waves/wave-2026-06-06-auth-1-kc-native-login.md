@@ -1,6 +1,6 @@
 ---
 title: Wave auth-1 — KC-native login (Option B) for PARENT/TEACHER/STUDENT
-status: draft
+status: active
 created: 2026-06-06
 updated: 2026-06-06
 waves: [auth-1]
@@ -87,4 +87,7 @@ _(cross-service wave: Bucket 0 contract merge FIRST per `contract-first-for-cros
 
 ## 8. Log
 
+- **2026-06-06 (Bucket A+C shipped + G3 PASS):** Built KC-native login (Option B) serial + walk-verify (security-sensitive, no parallel). **Bucket A** (kiteclass-core): V89 `auth_credentials` (standalone, no tenant-RLS — pre-auth lookup) + entity/repo + `AuthTokenService` (HS512 mint, shared JWT_SECRET) + `AuthService` (BCrypt) + `AuthController` `POST /api/v1/tenant-auth/login`. **Bucket C** (gateway): `JwtAuthenticationGatewayFilter` inject `X-User-Reference-Id` from referenceId claim + `RemoveRequestHeader=X-User-Reference-Id` anti-spoof + public route `kc-tenant-auth` (no TenantResolver, precedes catch-all). compose: kiteclass-core `JWT_SECRET` env.
+  **Walk evidence:** Bucket A direct-core: login 200 (HS512 JWT, claims role/tenantId/referenceId), sad-path wrong-pwd + unknown-email → 401 INVALID_CREDENTIALS (no enumeration). **G3 full-chain (gateway :9000, real JWT only, seeded credential parent1@test.com):** login→200, `/parent/me/children`→200 [child 1], fees facet→200 (2 invoices), IDOR child2→403 ACCESS_DENIED, **anti-spoof forged X-User-Reference-Id:2 stripped→still child 1 + child2 403**. Tenant resolution needed kitehub `instances` seed (id=aaaabbbb-…0001 ACTIVE FREE) — instances table was empty (fixture gap).
+  **KC-8 G3 UNBLOCKED + verified.** Remaining (GAP-725/798b PARTIAL): Bucket B provisioning (parent redeem→set-password; credential currently migration-seeded for walk), teacher/student credentials, Bucket E KC-9 build. Production parity: kiteclass-core prod env needs JWT_SECRET via fetch-secrets.sh + IaC (per `local-fix-production-parity-check.md`) — follow-up.
 - **2026-06-06 (plan draft):** User chọn pull-forward parent/student auth (Phase 1, không đổi phase formally) + Option B (KC-native login email+password) sau KC-8 G3 phát hiện Phase-2 gate. Option B đơn giản hóa GAP-798b (KC mint token → referenceId trực tiếp, no cross-service population). Gateway reuse GAP-711 tenantId fallback + GAP-705 HS512 validate; chỉ thêm X-User-Reference-Id injection. Plan draft — **build trong session sạch riêng per GAP-798b "do not rush" mandate.** Defer OTP Hướng C Phase 2 thật.
