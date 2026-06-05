@@ -41,7 +41,11 @@ gaps: [GAP-725, GAP-798b, GAP-269b]
 | **D (Walk G3)** | Parent login → JWT → gateway :9000 → parent facet 200 (KC-8 G3 thật). Sweep 4 deferred controllers (Storage/Assignment/LessonProgress/Lms) header X-User-Id→X-User-Reference-Id + test sweep (GAP-798b item 5-6) | walk + core |
 | **E (KC-9 build)** | Sau auth land: build KC-9 student portal BE joins (StudentPortalServiceImpl) + FE wiring (GAP-269b) + G1 walk. Có thể tách wave riêng | kiteclass-core + FE |
 
-## 3. Open questions (chốt ở Bucket 0)
+## 3. Scope
+
+BE kiteclass-core: new `auth/` module (`AuthController` + `AuthService` + `auth_credentials` entity + Flyway migration) + JWT mint HS512. kitehub-gateway: `X-User-Reference-Id` injection filter (`JwtAuthenticationGatewayFilter`). Provisioning hooks (parent redeem / teacher create set credential). FE: login form các role (Bucket E+). Consumer authz (GAP-798 `@authz.hasAccessToChild` / student `requireStudentId`) đã ship — reuse. Gateway tenant resolution (GAP-711 JWT tenantId fallback) + HS512 validate (GAP-705) — reuse.
+
+### 3.1 Open questions (chốt ở Bucket 0)
 
 1. **Student account model:** own login (email+password) HAY inherited-via-parent (student data xem qua parent account)? GAP-725 ghi "tùy mô hình K-12 vs trung tâm". → Đề xuất: own login email+password cho consistency; parent-inherited là Phase 2 polish.
 2. **Teacher credential provisioning:** TeacherController create có set password không, hay teacher invite flow? (GAP-725 Teacher=Hướng B email+pass).
@@ -69,7 +73,11 @@ gaps: [GAP-725, GAP-798b, GAP-269b]
 | Bucket D (KC-8 G3) | parent login → gateway → `/api/v1/parent/me/children` 200 + facet 200 (NO manual headers) — đóng KC-8 G3 |
 | Bucket E (KC-9) | student portal G1 walk (sau build) |
 
-## 6. Closure Protocol
+## 6. Agent Spawn Pattern
+
+_(cross-service wave: Bucket 0 contract merge FIRST per `contract-first-for-cross-layer.md` → A/B/C parallel agents (worktree-isolated, Opus per `agent-model-opus-default.md`, background per `agent-background-spawn-default.md`) → D walk coordinator → E KC-9 tách wave riêng nếu lớn. Security-sensitive: mỗi bucket walk-verify trước DONE per `feature-ship-runtime-walk-mandate.md` §3.4 + `pre-handoff-self-test-completeness.md` §3 — no unverifiable security code.)_
+
+## 7. Closure Protocol
 
 1. Bucket 0 contract merge first → A/B/C parallel → D walk → E (KC-9 tách wave nếu lớn).
 2. Per-bucket walk-verify trước DONE (security code).
@@ -77,6 +85,6 @@ gaps: [GAP-725, GAP-798b, GAP-269b]
 4. KC-8 campaign §4 G3 ⛔→✅; KC-9 ⛔→ build.
 5. CSV + ROADMAP + wave-history sync.
 
-## 7. Log
+## 8. Log
 
 - **2026-06-06 (plan draft):** User chọn pull-forward parent/student auth (Phase 1, không đổi phase formally) + Option B (KC-native login email+password) sau KC-8 G3 phát hiện Phase-2 gate. Option B đơn giản hóa GAP-798b (KC mint token → referenceId trực tiếp, no cross-service population). Gateway reuse GAP-711 tenantId fallback + GAP-705 HS512 validate; chỉ thêm X-User-Reference-Id injection. Plan draft — **build trong session sạch riêng per GAP-798b "do not rush" mandate.** Defer OTP Hướng C Phase 2 thật.
