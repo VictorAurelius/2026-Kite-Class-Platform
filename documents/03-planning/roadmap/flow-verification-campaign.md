@@ -96,7 +96,7 @@ flowchart TD
 | KH-3 | Subscription create + trial→paid migration | 3 | 🔄 walk-pass-pending-human | 2026-06-04 | GAP-974 (email P1 polish) |
 | KH-4 | **Subscription upgrade manual VietQR + admin confirm** | — | ✅ THÔNG (G1) | — | (GAP-914 fixed) |
 | KC-1 | Tenant provisioning + lifecycle + settings | 4 | 🔄 walk-pass-pending-human (G1 re-scoped branding+prefs) — 2026-06-05 | [wave-2026-06-04-flow-kc1](../waves/wave-2026-06-04-flow-kc1-tenant-provisioning-settings.md) | GAP-979 (prefs tab fix shipped) + GAP-980 (tenant-config defer P3) + GAP-978 (build-all devops P1) |
-| KC-2 | Staff invitation → accept → RBAC role | 5 | ⬜ | — | GAP-886/893 (role) |
+| KC-2 | Staff invitation → accept → RBAC role | 5 | ⬜ (plan stub ready) | [wave-2026-06-05-flow-kc2](../waves/wave-2026-06-05-flow-kc2-staff-invitation-rbac.md) | GAP-886 (id-model UUID-vs-Long) + GAP-893 (role CHECK) + GAP-784 (FE role affordance) |
 | KC-3 | Academic: year→course→class→schedule | 6 | ⬜ | — | GAP-909 (course drift) |
 | KC-4 | Student enrollment + bulk import | 7 | ⬜ | — | — |
 | KC-5 | Attendance: mark → period | 8 | ⬜ | — | GAP-874 (attendance drift) |
