@@ -24,15 +24,7 @@ CREATE TABLE IF NOT EXISTS auth_credentials (
 
 CREATE INDEX IF NOT EXISTS ix_auth_credentials_entity ON auth_credentials (entity_type, entity_id);
 
--- Dev seed: test parent (parent1@test.com / Test@1234) → parents.id=1, instance aaaabbbb-…0001.
--- Mirrors KC-8 G1 walk fixture (parent 1 → child 1). BCrypt cost 10.
-INSERT INTO auth_credentials (user_uuid, entity_type, entity_id, email, password_hash, instance_id)
-VALUES (
-    '11111111-1111-1111-1111-111111111111',
-    'PARENT',
-    1,
-    'parent1@test.com',
-    '$2b$10$ODyD.log0U.SKxS0elDbs.WRSYWFX1tw5/XkvBvfunfAAecTMn14i',
-    'aaaabbbb-0000-0000-0000-000000000001'
-)
-ON CONFLICT (email) DO NOTHING;
+-- Schema only — NO seed. Credentials are provisioned at runtime by
+-- AuthCredentialProvisioningService (parent-invitation redeem, etc.). Test
+-- fixtures belong in kiteclass/scripts/seed-data.sh, never a production migration
+-- (a known-password row must not ship to prod).

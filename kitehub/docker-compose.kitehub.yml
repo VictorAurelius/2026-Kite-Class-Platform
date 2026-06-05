@@ -668,6 +668,9 @@ services:
       # Same shared secret the gateway validates with (GAP-705). Production parity:
       # kiteclass-core prod env must fetch JWT_SECRET via fetch-secrets.sh (Bucket C follow-up).
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required - run ./scripts/setup.sh}
+      # Wave auth-1 Bucket B: enable parent invitation/redeem (was Wave 2 default-off
+      # gate). Redeem now provisions the login credential — required for parent login.
+      PARENT_PORTAL_ENABLED: ${PARENT_PORTAL_ENABLED:-true}
     ports:
       - "8088:8080"
     depends_on:

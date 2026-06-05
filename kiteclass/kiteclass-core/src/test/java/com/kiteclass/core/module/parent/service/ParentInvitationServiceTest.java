@@ -8,6 +8,7 @@ import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.outbox.OutboxEventWriter;
+import com.kiteclass.core.module.auth.service.AuthCredentialProvisioningService;
 import com.kiteclass.core.module.parent.config.ParentPortalProperties;
 import com.kiteclass.core.module.parent.dto.ParentInvitationResponse;
 import com.kiteclass.core.module.parent.dto.RedeemInvitationRequest;
@@ -73,6 +74,7 @@ class ParentInvitationServiceTest {
     @Mock private StudentRepository studentRepository;
     @Mock private RabbitTemplate rabbitTemplate;
     @Mock private OutboxEventWriter outbox;
+    @Mock private AuthCredentialProvisioningService credentialProvisioning;
 
     // Match Spring Boot default — registers JavaTimeModule so Instant serializes
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
@@ -96,7 +98,8 @@ class ParentInvitationServiceTest {
                 rabbitTemplate,
                 outbox,
                 objectMapper,
-                props
+                props,
+                credentialProvisioning
         );
 
         student = Student.builder().name("Nguyễn Văn A").build();
@@ -207,7 +210,7 @@ class ParentInvitationServiceTest {
                     false, 24, "http://t/");
             ParentInvitationServiceImpl disabled = new ParentInvitationServiceImpl(
                     parentRepository, invitationRepository, linkRepository,
-                    studentRepository, rabbitTemplate, outbox, objectMapper, off);
+                    studentRepository, rabbitTemplate, outbox, objectMapper, off, credentialProvisioning);
 
             assertThatThrownBy(() -> disabled.invite(TENANT, STUDENT_ID, PARENT_EMAIL, INVITER_ID))
                     .isInstanceOf(BusinessException.class)
