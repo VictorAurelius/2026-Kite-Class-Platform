@@ -6,6 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { usePayment } from '@/hooks/use-payments';
 import { PaymentInfo } from '@/components/billing/PaymentInfo';
 import { PaymentStatusCard } from '@/components/billing/PaymentStatusCard';
+import { BetaModeBanner } from '@/components/billing/BetaModeBanner';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 // GAP-236 Sub-PR B — QRCodeDisplay only renders when payment.status ===
@@ -85,6 +86,9 @@ export default function PaymentPage() {
           </div>
         </div>
       </div>
+
+      {/* Beta payment-mode notice (GAP-977) — only when the override flag is on */}
+      <BetaModeBanner />
 
       {/* Payment Status */}
       <PaymentStatusCard status={payment.status} createdAt={payment.createdAt} />

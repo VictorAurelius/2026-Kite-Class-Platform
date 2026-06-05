@@ -10,6 +10,7 @@ import com.kitehub.subscription.repository.PaymentRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Service for payment processing.
@@ -36,6 +39,24 @@ public class PaymentService {
     private final VietQRService vietQRService;
 
     /**
+     * Phase 1 BETA symbolic-amount override (Wave flow-kh3-2, GAP-975). When
+     * enabled, every created payment charges {@link #betaOverrideAmountVnd}
+     * instead of the real tier price so beta testers move a token 10.000đ via a
+     * real bank transfer. Disabled by default → real amount preserved.
+     */
+    @Value("${kitehub.payment.beta-mode.enabled:false}")
+    private boolean betaModeEnabled;
+
+    @Value("${kitehub.payment.beta-mode.override-amount-vnd:10000}")
+    private long betaOverrideAmountVnd;
+
+    /**
+     * SePay transfer-memo reference pattern (Wave flow-kh3-2). Matches the
+     * {@code KH3SUB<8 uppercase hex>} token embedded by {@link #generateTxnRef}.
+     */
+    private static final Pattern TXN_REF_PATTERN = Pattern.compile("KH3SUB[A-F0-9]{8}");
+
+    /**
      * Create a new payment.
      *
      * @param request Create payment request
@@ -52,11 +73,19 @@ public class PaymentService {
             .orElseThrow(() -> new IllegalArgumentException(
                 "Subscription not found: " + request.getSubscriptionId()));
 
+        // Phase 1 BETA symbolic-amount override (GAP-975): charge a token amount
+        // (default 10.000đ) via a real bank transfer when beta-mode is enabled.
+        long effectiveAmountVnd = betaModeEnabled ? betaOverrideAmountVnd : request.getAmountVnd();
+        if (betaModeEnabled) {
+            log.info("Beta payment override active: charging {} VND instead of {} VND",
+                effectiveAmountVnd, request.getAmountVnd());
+        }
+
         // Create payment entity
         Payment payment = new Payment();
         payment.setSubscriptionId(request.getSubscriptionId());
         payment.setInstanceId(subscription.getInstanceId()); // V58 RLS: instance_id NOT NULL
-        payment.setAmountVnd(request.getAmountVnd());
+        payment.setAmountVnd(effectiveAmountVnd);
         payment.setPaymentMethod(request.getPaymentMethod());
         payment.setStatus(PaymentStatus.PENDING);
 
@@ -64,7 +93,7 @@ public class PaymentService {
         if (request.getPaymentMethod() == PaymentMethod.VIETQR) {
             String qrCodeUrl = vietQRService.generateQRCode(
                 UUID.randomUUID(), // Will be replaced after save
-                request.getAmountVnd(),
+                effectiveAmountVnd,
                 request.getSubscriptionId()
             );
             payment.setQrCodeUrl(qrCodeUrl);
@@ -83,8 +112,25 @@ public class PaymentService {
 
         Payment saved = paymentRepository.save(payment);
 
-        log.info("Created payment: {} for subscription: {}", saved.getId(), request.getSubscriptionId());
+        // GAP-975: derive the SePay matching reference from the generated id
+        // (KH3SUB + first 8 hex of the UUID, uppercased → matches the api-contract
+        // regex KH3SUB[A-F0-9]{8}). UNIQUE index guards the rare collision space.
+        saved.setTxnRef(generateTxnRef(saved.getId()));
+        saved = paymentRepository.save(saved);
+
+        log.info("Created payment: {} (txnRef: {}) for subscription: {}",
+            saved.getId(), saved.getTxnRef(), request.getSubscriptionId());
         return PaymentResponse.fromEntity(saved);
+    }
+
+    /**
+     * Build the SePay matching reference for a payment.
+     *
+     * @param paymentId generated payment UUID
+     * @return reference of the form {@code KH3SUB<8 uppercase hex>}
+     */
+    static String generateTxnRef(UUID paymentId) {
+        return "KH3SUB" + paymentId.toString().substring(0, 8).toUpperCase();
     }
 
     /**
@@ -222,6 +268,83 @@ public class PaymentService {
             // Payment is still completed, but subscription update failed.
             // This should be handled by admin/retry mechanism.
         }
+    }
+
+    /**
+     * Process a SePay merchant-gateway webhook notification (Wave flow-kh3-2,
+     * GAP-976). Locates the exact payment via its {@code txnRef} extracted from
+     * the bank transfer description, verifies the amount, completes it, and
+     * applies the pending subscription upgrade.
+     *
+     * <p>Idempotent: a replayed SePay {@code id} (already stamped on a completed
+     * payment) returns early without re-processing. A genuine orphan reference
+     * (no matching payment) throws {@link IllegalArgumentException} so the caller
+     * surfaces HTTP 400. An amount mismatch is logged and skipped (not surfaced)
+     * to avoid an endless SePay retry loop.</p>
+     *
+     * @param sepayId          SePay transaction id (idempotency key)
+     * @param transferAmountVnd amount credited by the bank, in VND
+     * @param description      bank transfer memo containing the {@code txnRef}
+     * @throws IllegalArgumentException if no payment matches the extracted txnRef
+     */
+    @Transactional
+    public void processSepayWebhook(String sepayId, long transferAmountVnd, String description) {
+        log.info("Processing SePay webhook: id={}, amount={}, description={}",
+            sepayId, transferAmountVnd, description);
+
+        // Idempotency — this SePay transaction already completed a payment.
+        if (sepayId != null && paymentRepository.findByTransactionId(sepayId).isPresent()) {
+            log.info("SePay webhook replay ignored — transaction {} already processed", sepayId);
+            return;
+        }
+
+        String txnRef = extractTxnRef(description);
+        if (txnRef == null) {
+            throw new IllegalArgumentException("No txnRef found in SePay description: " + description);
+        }
+
+        // Exact-match lookup — never a LIKE scan (cross-tenant collision guard).
+        Payment payment = paymentRepository.findByTxnRef(txnRef)
+            .orElseThrow(() -> new IllegalArgumentException("No payment found for txnRef: " + txnRef));
+
+        if (payment.isCompleted()) {
+            log.info("Payment {} already completed — SePay webhook idempotent", payment.getId());
+            return;
+        }
+
+        if (!payment.getAmountVnd().equals(transferAmountVnd)) {
+            log.error("SePay amount mismatch for payment {} (txnRef {}): expected {}, got {}",
+                payment.getId(), txnRef, payment.getAmountVnd(), transferAmountVnd);
+            return; // logic error logged, not surfaced — no double-process
+        }
+
+        payment.complete(sepayId);
+        paymentRepository.save(payment);
+        log.info("Payment {} completed via SePay transaction {} for subscription {}",
+            payment.getId(), sepayId, payment.getSubscriptionId());
+
+        try {
+            subscriptionService.applyPendingUpgrade(payment.getSubscriptionId(), payment.getId());
+            log.info("Pending upgrade applied for subscription: {}", payment.getSubscriptionId());
+        } catch (Exception e) {
+            log.error("Failed to apply pending upgrade for subscription: {}",
+                payment.getSubscriptionId(), e);
+            // Payment captured; subscription update retried by admin/job mechanism.
+        }
+    }
+
+    /**
+     * Extract the SePay matching reference from a bank transfer description.
+     *
+     * @param description bank transfer memo (may be {@code null})
+     * @return the {@code KH3SUB<8 hex>} reference, or {@code null} if absent
+     */
+    static String extractTxnRef(String description) {
+        if (description == null) {
+            return null;
+        }
+        Matcher matcher = TXN_REF_PATTERN.matcher(description);
+        return matcher.find() ? matcher.group() : null;
     }
 
     /**

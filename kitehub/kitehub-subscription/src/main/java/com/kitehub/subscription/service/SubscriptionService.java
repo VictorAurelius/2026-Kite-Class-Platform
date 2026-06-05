@@ -482,6 +482,24 @@ public class SubscriptionService {
             log.info("Activated PENDING subscription {} to tier {} (create-flow SUB-20)",
                 subscriptionId, targetTier);
         } else {
+            // GAP-974: notify the owner that the paid tier upgrade is now active.
+            // The create flow above already sends subscription-created; this closes
+            // the previously-silent upgrade-flow activation.
+            try {
+                Instance instance = instanceRepository.findById(saved.getInstanceId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                        "Instance not found: " + saved.getInstanceId()));
+                emailServiceClient.sendSubscriptionActivatedEmail(
+                    instance.getId(),
+                    instance.getContactEmail(),
+                    instance.getOrganizationName(),
+                    targetTier.name(),
+                    saved.getExpiresAt() == null ? null : saved.getExpiresAt().toString()
+                );
+            } catch (Exception e) {
+                log.error("Failed to send subscription activated email for subscription: {}",
+                    subscriptionId, e);
+            }
             log.info("Applied pending upgrade for subscription {} to tier {}", subscriptionId, targetTier);
         }
     }

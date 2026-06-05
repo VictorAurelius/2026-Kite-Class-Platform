@@ -23,6 +23,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -81,7 +82,9 @@ class SubscriptionServiceTest {
             .autoRenew(true)
             .build();
 
-        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+        // createSubscription does an existence check only (existsById), not findById,
+        // since #2160 removed the unused instance local var.
+        when(instanceRepository.existsById(instanceId)).thenReturn(true);
         when(subscriptionRepository.findActiveByInstanceId(instanceId)).thenReturn(Optional.empty());
         // Use any() (matches null) — first save() happens before ID is generated.
         when(vietQRService.generatePaymentContent(any())).thenReturn("KITEHUB ABCD1234");
@@ -172,6 +175,44 @@ class SubscriptionServiceTest {
             any(),
             eq(PricingTier.BASIC.name()),
             eq(BillingCycle.MONTHLY.name())
+        );
+    }
+
+    @Test
+    @DisplayName("GAP-974: applyPendingUpgrade on ACTIVE upgrade-flow sends subscription-activated email")
+    void shouldSendActivatedEmailOnUpgradeFlow() {
+        // Given — an already-ACTIVE subscription upgrading BASIC -> PREMIUM after payment
+        UUID subscriptionId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setInstanceId(instanceId);
+        subscription.setTier(PricingTier.BASIC);
+        subscription.setPendingTier(PricingTier.PREMIUM);
+        subscription.setPendingPaymentId(paymentId);
+        subscription.setBillingCycle(BillingCycle.MONTHLY);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        subscription.setExpiresAt(LocalDateTime.now().plusMonths(1));
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.save(any(Subscription.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+
+        // When
+        subscriptionService.applyPendingUpgrade(subscriptionId, paymentId);
+
+        // Then — tier upgraded, no create-flow re-activation, activated email sent
+        assertThat(subscription.getTier()).isEqualTo(PricingTier.PREMIUM);
+        verify(instanceRepository, never()).save(any(Instance.class));
+        verify(emailServiceClient, never()).sendSubscriptionCreatedEmail(
+            any(), any(), any(), any(), any());
+        verify(emailServiceClient).sendSubscriptionActivatedEmail(
+            eq(instanceId),
+            any(),
+            any(),
+            eq(PricingTier.PREMIUM.name()),
+            any()
         );
     }
 

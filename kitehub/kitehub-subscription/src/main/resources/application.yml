@@ -211,6 +211,18 @@ kitehub:
       onboarding-tips: ${EMAIL_TOGGLE_ONBOARDING:true}
       subscription-expired: ${EMAIL_TOGGLE_SUB_EXPIRED:true}
       subscription-created: ${EMAIL_TOGGLE_SUB_CREATED:true}
+  # Payment beta-override + SePay webhook (Wave flow-kh3-2)
+  payment:
+    beta-mode:
+      # When true, createPayment charges override-amount-vnd instead of the real
+      # tier price so beta testers move a token amount via a real bank transfer.
+      enabled: ${BETA_PAYMENT_OVERRIDE:false}
+      override-amount-vnd: ${BETA_PAYMENT_AMOUNT_VND:10000}
+    sepay:
+      # SePay merchant webhook authenticates via "Authorization: Apikey <key>".
+      # Empty default keeps dev boots green; REQUIRED in production.
+      api-key: ${SEPAY_API_KEY:}
+      webhook-path: ${SEPAY_WEBHOOK_PATH:/api/platform/webhooks/payment}
   domain:
     verification:
       timeout-hours: 48

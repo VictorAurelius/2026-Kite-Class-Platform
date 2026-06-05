@@ -72,6 +72,16 @@ public class Payment extends BaseEntity {
     @Column(name = "payment_content", length = 500)
     private String paymentContent;
 
+    /**
+     * SePay matching reference (Wave flow-kh3-2, GAP-975). Format
+     * {@code KH3SUB<8 hex>} derived from the payment id, embedded in the VietQR
+     * transfer memo so the SePay webhook can locate the exact payment via an
+     * exact-match lookup (no substring scan → cross-tenant collision guard).
+     * Nullable for legacy rows + non-VietQR methods; UNIQUE among non-null values.
+     */
+    @Column(name = "txn_ref", length = 32, unique = true)
+    private String txnRef;
+
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 

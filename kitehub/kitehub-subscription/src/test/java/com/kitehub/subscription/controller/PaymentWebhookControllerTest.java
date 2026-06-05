@@ -2,6 +2,7 @@ package com.kitehub.subscription.controller;
 
 import com.kitehub.subscription.service.PaymentService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -11,25 +12,30 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.util.HexFormat;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 /**
- * Tests for PaymentWebhookController.
+ * Tests for {@link PaymentWebhookController} — SePay Apikey authentication +
+ * payload adapter (Wave flow-kh3-2, GAP-976).
  *
  * @author KiteHub Team
  * @since 1.0.0
  */
 @ExtendWith(MockitoExtension.class)
+@DisplayName("PaymentWebhookController — SePay webhook")
 class PaymentWebhookControllerTest {
+
+    private static final String SEPAY_API_KEY = "test-sepay-api-key";
+    private static final String VALID_AUTH = "Apikey " + SEPAY_API_KEY;
 
     @Mock
     private PaymentService paymentService;
@@ -37,222 +43,101 @@ class PaymentWebhookControllerTest {
     @InjectMocks
     private PaymentWebhookController controller;
 
-    private static final String WEBHOOK_SECRET = "test-webhook-secret-key";
-
     @BeforeEach
     void setUp() {
-        // Set webhook secret using reflection (since it's @Value injected)
-        ReflectionTestUtils.setField(controller, "webhookSecret", WEBHOOK_SECRET);
+        ReflectionTestUtils.setField(controller, "sepayApiKey", SEPAY_API_KEY);
+    }
+
+    private Map<String, Object> sepayPayload() {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("id", "92704");
+        payload.put("gateway", "Vietcombank");
+        payload.put("transferType", "in");
+        payload.put("transferAmount", 10000);
+        payload.put("description", "KH3SUB1A2B3C4D");
+        payload.put("referenceCode", "FT2406001");
+        return payload;
     }
 
     @Test
-    void shouldAcceptValidWebhookSignature() {
-        // Given
-        Map<String, Object> payload = createTestPayload();
-        String validSignature = computeSignature(payload, WEBHOOK_SECRET);
-        payload.put("signature", validSignature);
+    @DisplayName("Valid Apikey + incoming transfer → 200 and forwards to service")
+    void validApikey_processesPayment() {
+        ResponseEntity<Map<String, String>> response =
+            controller.handlePaymentWebhook(VALID_AUTH, sepayPayload());
 
-        // When
-        ResponseEntity<Map<String, String>> response = controller.handlePaymentWebhook(payload);
-
-        // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).containsEntry("status", "success");
-
-        verify(paymentService).processPaymentWebhook(
-            eq("VCB123456789"),
-            eq(500000L),
-            eq("KITECLASS ABC123DE")
-        );
+        verify(paymentService).processSepayWebhook(eq("92704"), eq(10000L), eq("KH3SUB1A2B3C4D"));
     }
 
     @Test
-    void shouldRejectInvalidSignature() {
-        // Given
-        Map<String, Object> payload = createTestPayload();
-        payload.put("signature", "invalid-signature");
+    @DisplayName("Missing Authorization header → 401, never reaches service")
+    void missingApikey_rejected() {
+        ResponseEntity<Map<String, String>> response =
+            controller.handlePaymentWebhook(null, sepayPayload());
 
-        // When
-        ResponseEntity<Map<String, String>> response = controller.handlePaymentWebhook(payload);
-
-        // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody()).containsEntry("error", "Invalid signature");
-
-        verify(paymentService, never()).processPaymentWebhook(anyString(), anyLong(), anyString());
+        verify(paymentService, never()).processSepayWebhook(anyString(), anyLong(), anyString());
     }
 
     @Test
-    void shouldRejectMissingSignature() {
-        // Given
-        Map<String, Object> payload = createTestPayload();
-        // No signature field
+    @DisplayName("Wrong Apikey → 401, never reaches service")
+    void wrongApikey_rejected() {
+        ResponseEntity<Map<String, String>> response =
+            controller.handlePaymentWebhook("Apikey wrong-key", sepayPayload());
 
-        // When
-        ResponseEntity<Map<String, String>> response = controller.handlePaymentWebhook(payload);
-
-        // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody()).containsEntry("error", "Missing signature");
-
-        verify(paymentService, never()).processPaymentWebhook(anyString(), anyLong(), anyString());
+        verify(paymentService, never()).processSepayWebhook(anyString(), anyLong(), anyString());
     }
 
     @Test
-    void shouldRejectEmptySignature() {
-        // Given
-        Map<String, Object> payload = createTestPayload();
-        payload.put("signature", "");
+    @DisplayName("Api-key not configured → 401")
+    void apiKeyNotConfigured_rejected() {
+        ReflectionTestUtils.setField(controller, "sepayApiKey", "");
 
-        // When
-        ResponseEntity<Map<String, String>> response = controller.handlePaymentWebhook(payload);
+        ResponseEntity<Map<String, String>> response =
+            controller.handlePaymentWebhook(VALID_AUTH, sepayPayload());
 
-        // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody()).containsEntry("error", "Missing signature");
-
-        verify(paymentService, never()).processPaymentWebhook(anyString(), anyLong(), anyString());
+        verify(paymentService, never()).processSepayWebhook(anyString(), anyLong(), anyString());
     }
 
     @Test
-    void shouldRejectWebhookWhenSecretNotConfigured() {
-        // Given
-        ReflectionTestUtils.setField(controller, "webhookSecret", "");
-        Map<String, Object> payload = createTestPayload();
-        payload.put("signature", "any-signature");
+    @DisplayName("Non-incoming transfer (out) → 200 ignored, not processed")
+    void outgoingTransfer_ignored() {
+        Map<String, Object> payload = sepayPayload();
+        payload.put("transferType", "out");
 
-        // When
-        ResponseEntity<Map<String, String>> response = controller.handlePaymentWebhook(payload);
+        ResponseEntity<Map<String, String>> response =
+            controller.handlePaymentWebhook(VALID_AUTH, payload);
 
-        // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody()).containsEntry("error", "Invalid signature");
-
-        verify(paymentService, never()).processPaymentWebhook(anyString(), anyLong(), anyString());
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).containsEntry("status", "ignored");
+        verify(paymentService, never()).processSepayWebhook(anyString(), anyLong(), anyString());
     }
 
     @Test
-    void shouldHandlePaymentServiceException() {
-        // Given
-        Map<String, Object> payload = createTestPayload();
-        String validSignature = computeSignature(payload, WEBHOOK_SECRET);
-        payload.put("signature", validSignature);
+    @DisplayName("Orphan txnRef (service throws IllegalArgumentException) → 400")
+    void orphanTxnRef_returns400() {
+        doThrow(new IllegalArgumentException("No payment found for txnRef: KH3SUB1A2B3C4D"))
+            .when(paymentService).processSepayWebhook(anyString(), anyLong(), anyString());
 
-        doThrow(new RuntimeException("Payment processing failed"))
-            .when(paymentService).processPaymentWebhook(anyString(), anyLong(), anyString());
+        ResponseEntity<Map<String, String>> response =
+            controller.handlePaymentWebhook(VALID_AUTH, sepayPayload());
 
-        // When
-        ResponseEntity<Map<String, String>> response = controller.handlePaymentWebhook(payload);
-
-        // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).containsKey("error");
     }
 
     @Test
-    void shouldRejectTamperedPayload() {
-        // Given
-        Map<String, Object> payload = createTestPayload();
-        String validSignature = computeSignature(payload, WEBHOOK_SECRET);
+    @DisplayName("Unexpected service exception → 400")
+    void serviceException_returns400() {
+        doThrow(new RuntimeException("boom"))
+            .when(paymentService).processSepayWebhook(anyString(), anyLong(), anyString());
 
-        // Tamper with payload after signature computation
-        payload.put("amount", 1000000); // Changed from 500000
-        payload.put("signature", validSignature);
+        ResponseEntity<Map<String, String>> response =
+            controller.handlePaymentWebhook(VALID_AUTH, sepayPayload());
 
-        // When
-        ResponseEntity<Map<String, String>> response = controller.handlePaymentWebhook(payload);
-
-        // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody()).containsEntry("error", "Invalid signature");
-
-        verify(paymentService, never()).processPaymentWebhook(anyString(), anyLong(), anyString());
-    }
-
-    @Test
-    void shouldComputeConsistentSignature() {
-        // Given
-        Map<String, Object> payload = createTestPayload();
-
-        // When - compute signature twice
-        String signature1 = computeSignature(payload, WEBHOOK_SECRET);
-        String signature2 = computeSignature(payload, WEBHOOK_SECRET);
-
-        // Then - signatures should be identical
-        assertThat(signature1).isEqualTo(signature2);
-    }
-
-    @Test
-    void shouldHandlePayloadWithDifferentFieldOrder() {
-        // Given - same data in different order
-        Map<String, Object> payload1 = Map.of(
-            "transactionId", "VCB123456789",
-            "amount", 500000,
-            "content", "KITECLASS ABC123DE",
-            "bankCode", "VCB"
-        );
-
-        Map<String, Object> payload2 = Map.of(
-            "bankCode", "VCB",
-            "content", "KITECLASS ABC123DE",
-            "amount", 500000,
-            "transactionId", "VCB123456789"
-        );
-
-        // When
-        String signature1 = computeSignature(payload1, WEBHOOK_SECRET);
-        String signature2 = computeSignature(payload2, WEBHOOK_SECRET);
-
-        // Then - signatures should be identical (sorted internally)
-        assertThat(signature1).isEqualTo(signature2);
-    }
-
-    /**
-     * Helper method to create test payload.
-     */
-    private Map<String, Object> createTestPayload() {
-        return new TreeMap<>(Map.of(
-            "transactionId", "VCB123456789",
-            "amount", 500000,
-            "content", "KITECLASS ABC123DE",
-            "bankCode", "VCB"
-        ));
-    }
-
-    /**
-     * Helper method to compute HMAC-SHA256 signature.
-     * Mirrors the implementation in PaymentWebhookController.
-     */
-    private String computeSignature(Map<String, Object> payload, String secret) {
-        try {
-            // Sort payload and exclude signature field
-            TreeMap<String, Object> sortedPayload = new TreeMap<>();
-            payload.entrySet().stream()
-                .filter(entry -> !"signature".equals(entry.getKey()))
-                .forEach(entry -> sortedPayload.put(entry.getKey(), entry.getValue()));
-
-            // Build payload string
-            StringBuilder payloadString = new StringBuilder();
-            sortedPayload.forEach((key, value) -> {
-                if (payloadString.length() > 0) {
-                    payloadString.append("&");
-                }
-                payloadString.append(key).append("=").append(value);
-            });
-
-            // Compute HMAC-SHA256
-            Mac hmac = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secretKey = new SecretKeySpec(
-                secret.getBytes(StandardCharsets.UTF_8),
-                "HmacSHA256"
-            );
-            hmac.init(secretKey);
-            byte[] hash = hmac.doFinal(payloadString.toString().getBytes(StandardCharsets.UTF_8));
-
-            return HexFormat.of().formatHex(hash);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to compute signature", e);
-        }
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 }

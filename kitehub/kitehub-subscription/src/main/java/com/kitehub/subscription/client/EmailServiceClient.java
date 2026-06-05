@@ -548,6 +548,47 @@ public class EmailServiceClient {
     }
 
     /**
+     * Send subscription activation confirmation email (Wave flow-kh3-2, GAP-974).
+     *
+     * <p>Sent after a paid tier is activated on an already-existing subscription
+     * (the upgrade flow of {@code applyPendingUpgrade}) — the create flow uses
+     * {@link #sendSubscriptionCreatedEmail}. Best-effort: a send failure is logged
+     * and never blocks the caller's transaction.</p>
+     *
+     * @param instanceId Instance ID
+     * @param to Recipient email
+     * @param organizationName Organization name
+     * @param tier Activated subscription tier
+     * @param expiresAt Subscription expiry date (display string)
+     */
+    public void sendSubscriptionActivatedEmail(UUID instanceId, String to, String organizationName,
+                                               String tier, String expiresAt) {
+        if (alreadySentToday(instanceId, "subscription-activated", to)) {
+            log.debug("Subscription-activated email already sent today to {}, skipping", to);
+            return;
+        }
+        log.info("Sending subscription activated email to {}", to);
+
+        try {
+            EmailRequest request = EmailRequest.builder()
+                .to(to)
+                .subject("[KiteHub] Gói " + tier + " đã kích hoạt")
+                .templateName("subscription-activated")
+                .variables(Map.of(
+                    "organizationName", organizationName,
+                    "tier", tier,
+                    "expiresAt", expiresAt == null ? "" : expiresAt,
+                    "supportUrl", "https://kitehub.vn/dashboard"
+                ))
+                .build();
+
+            dispatchEmail(instanceId, "subscription-activated", request);
+        } catch (Exception e) {
+            log.error("Failed to send subscription activated email to {}", to, e);
+        }
+    }
+
+    /**
      * Send DSAR new-ticket alert to DPO inbox (PDPL Art 14 push notification).
      *
      * <p>Per `business-logic-review.md` BR-PDPL-DSAR-006 (config key
