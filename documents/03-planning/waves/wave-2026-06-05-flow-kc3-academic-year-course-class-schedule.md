@@ -1,6 +1,6 @@
 ---
 title: Wave flow-kc3 — Academic: year → course → class → schedule
-status: draft
+status: active
 created: 2026-06-05
 updated: 2026-06-05
 waves: [flow-kc3]
@@ -105,3 +105,16 @@ G2 handoff MD recipe per `g2-handoff-md-mandate.md` §3 — ship same PR as G1 P
 - **2026-06-05 (G1 walk — functional PASS + P0 blocker found):** Pre-walk Opus persona sim returned 10 failure modes (artifact `2026-06-05-pre-walk-kc3-course-class-schedule.md`). Walk course→class→schedule→sessions trên kiteclass-core (direct core:8088, owner headers, gateway-equivalent per SecurityConfig permitAll + header-trust): teacher 201 → course 201 → class 201 (1 catalog: locationType OFFLINE→IN_PERSON enum fix) → schedule 201 + 27 sessions đúng MON+WED. **Functional chain PASS.** BUT walk Step 5 isolation test surfaced 🔴 **P0 cross-tenant by-id read leak** (GAP-983): tenant khanh-phapluat đọc sky-education classes/14 + 27 sessions + teachers/10 qua GET-by-id (200). Root cause: Hibernate @Filter ineffective trên findById (LIST safe via Specification) + RLS OFF. Also found GAP-984 (per-tenant DB unused). Architecture: core dùng kiteclass_shared single-DB + instance_id, NOT per-tenant DB. **KC-3 G1 functional PASS nhưng NOT campaign-THÔNG — blocked GAP-983.** Pre-walk failure mode #3 (RLS @PreAuthorize) KHÔNG fire (RLS off + owner=teacher_id); #1/#6 (DTO daysOfWeek/dates) verified correct; #8/#9 (overlap/idempotency) chưa test (defer).
 - **2026-06-05 (hardened state-check + re-scope):** Session-start hardened state-check (no `| head` per `audit-to-gap-pipeline.md` §2.5) **đảo ngược** giả định stub: course → class → schedule → sessions **FULLY IMPL + walkable** (stub false-negative: module `clazz` Java-reserved-word + schedule sub-resource). Phát hiện academic-year orphan (service no controller/caller) → filed **GAP-982** P1, defer. Re-scope (user-approved): walk chuỗi cốt lõi DROP academic-year; Bucket B feature-build KHÔNG cần. Pre-walk Opus persona sim agent spawned per `pre-walk-persona-simulation-mandate.md`. §4 evidence + §3 scope cập nhật.
 - **2026-06-05 (plan stub ship):** Filed sau KC-2 G1 PASS (PR #2172). KC-3 = next-in-chain per campaign §3 (KC-2 → KC-3 → KC-4..9). State-check: academicyear + course module ✅; **class/schedule controller NOT found quick grep → verify-at-session-start (partial-impl risk)**. GAP-909 P2 blocker (courses entity drift, không block walk). Stub thỏa `check-wave-plan-completeness.sh` (8 sections + 4 frontmatter). Full §3 scope + pre-walk persona sim + class/schedule impl verification happens tại session start. KC-3 có thể là partial feature-build nếu class/schedule chưa impl.
+
+## G1 Outcome (2026-06-05)
+
+**G1 ✅ PASS** cho chain implemented (course → class → schedule → sessions): functional walk PASS (prior session PR #2175, 27 sessions auto-gen MON+WED) + isolation re-walk PASS sau khi fix GAP-983 (Wave security-1 G2: tenant khanh-phapluat GET sky course/class/teacher/session by-id → 404; sky own → 200).
+
+**Known gaps:**
+- GAP-982 P1 — academic-year module orphan (service logic, no controller/REST). "Year" entry của KC-3 chưa walk được qua API; course tạo độc lập không bắt buộc year. Cần controller → wave riêng (gộp GAP-960).
+- GAP-984 P2 — per-tenant DB provisioned nhưng core dùng shared DB + instance_id.
+- GAP-909 P2 — course entity/migration drift.
+
+**G2 handoff:** [`documents/05-guides/operations/2026-06-05-g2-recipe-kc3-academic-course-class-schedule.md`](../../05-guides/operations/2026-06-05-g2-recipe-kc3-academic-course-class-schedule.md) (per `g2-handoff-md-mandate.md`).
+
+**Campaign §4:** KC-3 → 🔄 walk-pass-pending-human.
