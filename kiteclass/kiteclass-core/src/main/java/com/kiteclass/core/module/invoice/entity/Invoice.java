@@ -19,6 +19,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import org.hibernate.annotations.BatchSize;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -198,6 +200,7 @@ public class Invoice extends BaseEntity {
      * Cascade ALL - items are part of invoice lifecycle.
      */
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 20)
     @Builder.Default
     private List<InvoiceItem> items = new ArrayList<>();
 
@@ -206,6 +209,7 @@ public class Invoice extends BaseEntity {
      * Cascade ALL - adjustments are part of invoice lifecycle.
      */
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 20)
     @Builder.Default
     private List<InvoiceAdjustment> adjustments = new ArrayList<>();
 
