@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { BrandingSettings } from '@/components/settings/branding-settings';
 import { PreferencesSettings } from '@/components/settings/preferences-settings';
 import { OnboardingReplayCard } from '@/components/onboarding/OnboardingReplayCard';
+import { useAuth } from '@/hooks/useAuth';
 
 /**
  * Sensible default palette for the theme-preview tab.
@@ -40,6 +41,12 @@ const DEFAULT_BRAND_COLORS: BrandColors = {
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('branding');
+  const { user } = useAuth();
+  // GAP-979: per-user "Tùy chọn" preferences require a numeric domain reference id
+  // (parents.id / teachers.id / students.id). An OWNER has a KiteHub-level UUID identity
+  // with no KiteClass domain ref-id, so GET /api/v1/users/{id}/preferences returns 403.
+  // Hide the tab for OWNER to avoid surfacing a broken settings section.
+  const showPreferences = user?.userType !== 'OWNER';
 
   return (
     <div className="space-y-6">
@@ -54,7 +61,7 @@ export default function SettingsPage() {
         <TabsList>
           <TabsTrigger value="branding">Branding</TabsTrigger>
           <TabsTrigger value="theme">Theme preview</TabsTrigger>
-          <TabsTrigger value="preferences">Tùy chọn</TabsTrigger>
+          {showPreferences && <TabsTrigger value="preferences">Tùy chọn</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="branding" className="mt-6">
@@ -86,10 +93,12 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="preferences" className="mt-6 space-y-6">
-          <OnboardingReplayCard />
-          <PreferencesSettings />
-        </TabsContent>
+        {showPreferences && (
+          <TabsContent value="preferences" className="mt-6 space-y-6">
+            <OnboardingReplayCard />
+            <PreferencesSettings />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

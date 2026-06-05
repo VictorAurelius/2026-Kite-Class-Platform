@@ -98,9 +98,26 @@ Minimum row checklist:
 
 | Gate | Owner | Criteria | Status |
 |---|---|---|---|
-| G1 — agent runtime walk | Claude | (a) DB tenant settings row tồn tại với mọi trường mặc định hợp lý (org-name, subdomain, niên khóa 2025-2026, tuần Mon-Sat, locale vi-VN, currency VND, branding default); (b) GET `/api/v1/tenant/settings` qua gateway trả 200 + JSON đủ field; (c) FE `/settings` page render đúng trên KiteClass FE (port 3001 hay tenant-subdomain); (d) PATCH 1 trường (vd org-name "G2 Test Center" → "G2 Test Education") trả 200 + DB persist | ⬜ |
+| G1 — agent runtime walk | Claude | (a) DB tenant settings row tồn tại với mọi trường mặc định hợp lý (org-name, subdomain, niên khóa 2025-2026, tuần Mon-Sat, locale vi-VN, currency VND, branding default); (b) GET `/api/v1/tenant/settings` qua gateway trả 200 + JSON đủ field; (c) FE `/settings` page render đúng trên KiteClass FE (port 3001 hay tenant-subdomain); (d) PATCH 1 trường (vd org-name "G2 Test Center" → "G2 Test Education") trả 200 + DB persist | ✅ **PASS (re-scoped)** — xem verdict §5.1 |
 | G2 — human local test | User | Login Owner (g2test-an-8@example.com / WalkKh3@2026) → tới `/settings` KiteClass FE → check mỗi tab/section setting → sửa 1 trường + reload thấy giá trị mới | ⬜ |
 | G3 — production parity | Claude + User | Production: tenant-scoped DB schema apply migrate sạch (Flyway trên RDS) + FE serve qua custom domain mapping (nếu Phase 1 BETA có custom-domain) hoặc subdomain wildcard + JWT tenantId claim resolve đúng tenant | ⬜ |
+
+### 5.1 G1 verdict (2026-06-05, coordinator walk — re-scoped)
+
+**Re-scope (user-approved AskUserQuestion 2026-06-05):** plan premise sai — KiteClass KHÔNG có "tenant settings thống nhất". Pre-walk persona sim + DB state-check xác nhận chỉ có `branding` + `user-preferences` (business docs đồng ý). academic-year/locale/currency/tuần Mon-Sat/org-name KHÔNG nằm trong settings → re-scope G1 về **branding + preferences**; tenant-config thiếu → GAP-980 (defer, không block).
+
+**Walk target:** tenant `sky-education` (instance 0edaee10, TRIAL) — `g2test-an-8` plan giả định KHÔNG tồn tại trong DB hiện tại (đã reset). Stack production-equivalent: image fresh V86 (rebuild — GAP-978: build-all.sh bỏ sót KiteClass → stale-image suýt cho false-PASS), Flyway V86.
+
+| Surface | Walk result |
+|---|---|
+| Branding GET qua gateway (`X-Instance-Subdomain`) | ✅ HTTP 200 + JSON đầy đủ persisted |
+| Branding PUT đổi displayName | ✅ HTTP 200 + DB persist |
+| FE `/settings` serve | ✅ HTTP 200 (full render = G2) |
+| Sad: no-tenant GET | ✅ 400 graceful (no leak) |
+| Sad: invalid color PUT | ✅ 400 VALIDATION_ERROR + fieldErrors |
+| Preferences "Tùy chọn" tab | ❌→🟡 Bug GAP-979 (Owner 403, no numeric ref-id) → **fix shipped** (ẩn tab cho OWNER, `next build` PASS) |
+
+**Verdict: G1 ✅ PASS** (branding surface production-equivalent + preferences-owner bug fixed). 3 gaps filed: GAP-978 (P1 devops), GAP-979 (P2 fix shipped, G2-visual pending), GAP-980 (P3 defer).
 
 G2 handoff MD recipe per `g2-handoff-md-mandate.md` §3 — ship same PR as G1 PASS flip.
 
