@@ -217,6 +217,11 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
      *   <li>{@code /api/v1/auth/**} — beta signup + 2FA endpoints (GAP-509/547)</li>
      *   <li>{@code /api/v1/staff-invitations/by-token/**} — recipient preview invite (no JWT yet)</li>
      *   <li>{@code /api/v1/staff-invitations/*&#47;accept} — recipient accepts + sets password (no JWT yet)</li>
+     *   <li>{@code /api/platform/webhooks/**} — vendor payment webhooks (SePay) authenticate
+     *       via {@code Authorization: Apikey <key>}, NOT a JWT. Without whitelisting, this
+     *       filter would 401 the Apikey-only request before it reaches the subscription
+     *       service. Apikey verification happens server-side in PaymentWebhookController
+     *       (Wave flow-kh3-2/3 — GAP-976). See api-contract.md UC-SUB-08.</li>
      *   <li>{@code /actuator/health} — Spring Boot health probe</li>
      *   <li>{@code /docs/**} — OpenAPI/Swagger docs nếu serve</li>
      *   <li>{@code /fallback/**} — CircuitBreaker fallback routes</li>
@@ -235,6 +240,7 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
                 || path.startsWith("/api/v1/auth/")
                 || path.startsWith("/api/v1/staff-invitations/by-token/")
                 || (path.startsWith("/api/v1/staff-invitations/") && path.endsWith("/accept"))
+                || path.startsWith("/api/platform/webhooks/")
                 || path.equals("/actuator/health")
                 || path.startsWith("/actuator/health/")
                 || path.startsWith("/docs/")

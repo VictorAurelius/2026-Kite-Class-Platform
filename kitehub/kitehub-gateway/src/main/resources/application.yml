@@ -206,6 +206,27 @@ spring:
                 name: paymentCircuitBreaker
                 fallbackUri: forward:/fallback/payment
 
+        # Platform APIs - Payment Webhooks (SePay — Wave flow-kh3-2/3)
+        # POST /api/platform/webhooks/payment carries `Authorization: Apikey <key>`
+        # (NOT a JWT) — SePay merchant gateway calls this on payment notification.
+        # NO RequestRateLimiter: SePay retries on non-200 + has its own delivery
+        # cadence; rate-limiting webhook delivery like user traffic would drop
+        # legitimate retries → missed payment confirmations. CircuitBreaker still
+        # guards against downstream subscription-service outage. Idempotency is
+        # enforced server-side via UNIQUE on payments.transaction_id (per
+        # documents/01-business/kitehub/subscription-billing/api-contract.md UC-SUB-08).
+        # Gateway JwtAuthenticationGatewayFilter whitelists /api/platform/webhooks/**
+        # as a public path (Apikey-only request must not be rejected as missing JWT).
+        - id: platform-webhooks
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/platform/webhooks/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: paymentCircuitBreaker
+                fallbackUri: forward:/fallback/payment
+
         # Platform APIs - Branding Service
         # GAP-259 — tenant-keyed rate limit on the AI cost surface so that one tenant
         # behind a NAT cannot starve co-tenants. Burst tuned for wizard usage; per-tier
