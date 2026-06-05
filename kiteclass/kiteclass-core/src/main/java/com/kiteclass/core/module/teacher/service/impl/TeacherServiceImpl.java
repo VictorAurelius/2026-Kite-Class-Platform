@@ -5,6 +5,7 @@ import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
+import com.kiteclass.core.module.auth.service.AuthCredentialProvisioningService;
 import com.kiteclass.core.module.teacher.dto.CreateTeacherRequest;
 import com.kiteclass.core.module.teacher.dto.TeacherResponse;
 import com.kiteclass.core.module.teacher.dto.UpdateTeacherRequest;
@@ -47,6 +48,7 @@ public class TeacherServiceImpl implements TeacherService {
 
     private final TeacherRepository teacherRepository;
     private final TeacherMapper teacherMapper;
+    private final AuthCredentialProvisioningService credentialProvisioning;
 
     /**
      * Tạo giáo viên mới.
@@ -76,6 +78,32 @@ public class TeacherServiceImpl implements TeacherService {
 
         log.info("Created teacher with ID: {}, instanceId: {}", saved.getId(), saved.getInstanceId());
         return teacherMapper.toResponse(saved);
+    }
+
+    /**
+     * Set/reset a teacher's KC-native login password (Wave auth-1, Hướng B — GAP-725).
+     *
+     * <p>Provisions an {@code auth_credentials} row (entityType=TEACHER,
+     * entityId=teacher.id, email=teacher.email) so the teacher can log in via
+     * {@code POST /api/v1/tenant-auth/login}. Upsert — re-invoking rotates the password.
+     *
+     * @param teacherId   target teacher (tenant-scoped)
+     * @param rawPassword the new password (validated at the controller)
+     * @throws EntityNotFoundException if the teacher does not exist in this tenant
+     */
+    @Override
+    @Transactional
+    public void provisionCredential(Long teacherId, String rawPassword) {
+        UUID tenantId = TenantContext.getCurrentTenant();
+        Teacher teacher = teacherRepository.findByIdAndDeletedFalse(teacherId)
+                .orElseThrow(() -> {
+                    log.warn("Teacher not found for credential provisioning, ID: {}", teacherId);
+                    return new EntityNotFoundException("TEACHER_NOT_FOUND", (Object) teacherId);
+                });
+        credentialProvisioning.setPassword(
+                AuthCredentialProvisioningService.ROLE_TEACHER,
+                teacher.getId(), teacher.getEmail(), tenantId, rawPassword);
+        log.info("Provisioned login credential for teacher id={}, tenant={}", teacherId, tenantId);
     }
 
     /**

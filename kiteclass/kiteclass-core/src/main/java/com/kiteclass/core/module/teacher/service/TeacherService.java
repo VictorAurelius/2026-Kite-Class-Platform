@@ -36,6 +36,14 @@ public interface TeacherService {
     TeacherResponse createTeacher(@Valid CreateTeacherRequest request);
 
     /**
+     * Set/reset a teacher's KC-native login password (Wave auth-1, Hướng B).
+     *
+     * @param teacherId   target teacher (tenant-scoped)
+     * @param rawPassword the new password
+     */
+    void provisionCredential(Long teacherId, String rawPassword);
+
+    /**
      * Retrieves a teacher by ID.
      *
      * @param id the teacher ID

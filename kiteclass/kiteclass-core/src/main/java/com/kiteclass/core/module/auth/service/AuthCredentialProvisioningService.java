@@ -74,4 +74,32 @@ public class AuthCredentialProvisioningService {
     public AuthCredential provisionParent(Long parentId, String email, UUID instanceId, String rawPassword) {
         return provision(ROLE_PARENT, parentId, email, instanceId, rawPassword);
     }
+
+    /**
+     * Set or reset the login password for a domain entity (admin action).
+     *
+     * <p>Unlike {@link #provision} (idempotent first-time, used by self-redeem),
+     * this UPSERTS — an existing credential has its password rotated. Used for
+     * admin-driven teacher/student credential management (Hướng B).
+     */
+    public AuthCredential setPassword(String entityType, Long entityId, String email,
+                                      UUID instanceId, String rawPassword) {
+        String normalisedEmail = email.trim();
+        AuthCredential credential = credentialRepository.findByEmailIgnoreCase(normalisedEmail)
+                .orElseGet(() -> AuthCredential.builder()
+                        .userUuid(UUID.randomUUID())
+                        .entityType(entityType)
+                        .entityId(entityId)
+                        .email(normalisedEmail)
+                        .instanceId(instanceId)
+                        .enabled(true)
+                        .createdAt(Instant.now())
+                        .build());
+        credential.setPasswordHash(passwordEncoder.encode(rawPassword));
+        credential.setUpdatedAt(Instant.now());
+        AuthCredential saved = credentialRepository.save(credential);
+        log.info("Set password for {} entityId={} tenant={} (credId={})",
+                entityType, entityId, instanceId, saved.getId());
+        return saved;
+    }
 }

@@ -2,6 +2,7 @@ package com.kiteclass.core.module.teacher.controller;
 
 import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.common.dto.PageResponse;
+import com.kiteclass.core.module.auth.dto.SetPasswordRequest;
 import com.kiteclass.core.module.teacher.dto.CreateTeacherRequest;
 import com.kiteclass.core.module.teacher.dto.TeacherResponse;
 import com.kiteclass.core.module.teacher.dto.UpdateTeacherRequest;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import org.springframework.web.bind.annotation.*;
 
@@ -56,6 +58,26 @@ public class TeacherController {
         log.info("REST request to create teacher: {}", request.name());
         TeacherResponse response = teacherService.createTeacher(request);
         return ApiResponse.success(response, "Teacher created successfully");
+    }
+
+    /**
+     * Set/reset a teacher's KC-native login password (Wave auth-1, Hướng B — GAP-725).
+     * Admin/owner only — provisions the teacher's login credential.
+     *
+     * @param id      teacher id (tenant-scoped)
+     * @param request the new password
+     * @return ApiResponse with success message
+     */
+    @PostMapping("/{id}/credentials")
+    @PreAuthorize("hasAnyRole('OWNER','ADMIN','PRINCIPAL')")
+    @Operation(summary = "Set/reset a teacher's login password",
+            description = "Provisions KC-native login for the teacher (Wave auth-1). Admin/owner only.")
+    public ApiResponse<Void> setTeacherCredential(
+            @PathVariable Long id,
+            @Valid @RequestBody SetPasswordRequest request) {
+        log.info("REST request to set login credential for teacher id={}", id);
+        teacherService.provisionCredential(id, request.password());
+        return ApiResponse.success(null, "Đặt mật khẩu giáo viên thành công");
     }
 
     /**
