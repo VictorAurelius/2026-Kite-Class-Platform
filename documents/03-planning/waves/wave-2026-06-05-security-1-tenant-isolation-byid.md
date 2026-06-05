@@ -1,6 +1,6 @@
 ---
 title: Wave security-1 — Cross-tenant by-id read leak fix (GAP-983)
-status: draft
+status: complete
 created: 2026-06-05
 updated: 2026-06-05
 waves: [security-1]

@@ -55,3 +55,32 @@ scope: GAP-983 cross-tenant by-id leak — spike investigation findings trước
 - Nếu cần explicit per-entity `@Filter` → Bucket B apply cho 58 tenant-scoped entity (exclusion moot vì @Filter inert without enablement); chỉ cần đảm bảo `condition="instance_id = :tenantId"` đúng + platform-admin paths clear TenantContext.
 
 **Lưu ý cho Bucket A mechanism:** PHẢI guard `tenant != null` trước khi enable filter (nếu không, background dispatcher + pre-tenant auth path sẽ bị filter với null param → vỡ).
+
+## Wave outcome (2026-06-05)
+
+**Bucket A (core fix) — DONE.** Mechanism: extend `TenantAwareDataSourceInterceptor` (existing RLS-GUC aspect, đã chứng minh chạy inside tx) để enable `tenantFilter` trên transaction-bound session + guard `tenant != null` + idempotent. KHÔNG cần ordering tuning. Finding: MappedSuperclass `@Filter` **suffices** — `@Filter`-inheritance hoạt động khi enablement đúng session → **Bucket B 58-entity sweep KHÔNG cần**.
+
+**Bucket B — NOT NEEDED.** MappedSuperclass @Filter inherit OK. Exclusion list rỗng (mechanism guard `tenant != null` + `@Filter` inert khi chưa enable). Marketing entities re-declare @Filter `AND deleted=false` — không bị đụng (A không sweep entity).
+
+**Bucket C — ALREADY CORRECT.** `GlobalExceptionHandler:60-73` map `EntityNotFoundException → 404`; `EntityNotFoundException` mang sẵn `HttpStatus.NOT_FOUND`. A's IT assert 404 GREEN. "500 confound" trong GAP = Redis cache poisoning (→ GAP-986), không phải exception mapping.
+
+**Bucket D — DONE.** `ClassTenantFilterTransactionIT` (non-@Transactional, reproduce prod model) 4/4 (class/sessions/teacher/course by-id). `TenantIsolationIT.shouldIsolateCourseDataBetweenTenants` extended với by-id 404 (đóng coverage gap GAP-362) 3/3.
+
+**Bucket E (RLS FORCE) — DEFER** Phase 1.5 → escalated thành GAP-985 (RLS layer KHÔNG chặn by-id live dù V58 — defense-in-depth hở).
+
+### G1 IT proof
+- `ClassTenantFilterTransactionIT`: RED before fix 3 fail (200 leak) → GREEN 4/4 sau fix + course case.
+- `TenantIsolationIT`: 3/3.
+
+### G2 live re-walk (production-equivalent, rebuilt kiteclass-core)
+| Resource | khanh (attacker) | sky (owner) |
+|---|---|---|
+| classes/14 | 404 ✅ (was 200) | 200 ✅ |
+| classes/14/sessions | 404 ✅ | 200 ✅ |
+| courses/10 | 404 ✅ | 200 ✅ |
+| teachers/10 | 404 ✅ | 200 ✅ |
+
+### Follow-ups filed
+- GAP-985 P1 — RLS layer not protecting by-id (defense-in-depth).
+- GAP-986 P2 — Redis cache @class deserialization 500 + cross-tenant cache leak residue (`courses::khanh:10`).
+- GAP-987 P2 — RLS untestable trong test profile (Flyway off).

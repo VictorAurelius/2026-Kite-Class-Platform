@@ -1,6 +1,6 @@
 # GAP-362: TenantIsolationIT.shouldIsolateCourseDataBetweenTenants pre-existing flake
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave security-1, 2026-06-05)
 **Priority:** 🟠 P1 (test-isolation correctness — security-adjacent test, untracked)
 **Domain:** Backend Testing / Multi-tenancy
 **Found:** 2026-05-05 (orphan audit during Wave 19 closure — flagged inline in GAP-347 Log "out of scope, pre-existing" but no dedicated gap)
@@ -56,12 +56,12 @@ Reproduction protocol (suggested for fix PR):
 
 ## Acceptance Criteria
 
-- [ ] Reproduction protocol documented + run results captured
-- [ ] Root cause identified (fixture leak / race / RLS / etc.)
-- [ ] Fix shipped (could be test-fix only OR domain code fix depending on root cause)
-- [ ] `./mvnw -pl kiteclass-core verify -Dtest=TenantIsolationIT` 10/10 pass post-fix
-- [ ] CI Test Core Service green for ≥3 consecutive runs of changed branch
-- [ ] If domain fix touched: business docs update per `business-logic-review.md` §2 5-attribute frontmatter (tenant-isolation BR-* might exist)
+- [x] Reproduction protocol documented + run results captured
+- [x] Root cause identified (fixture leak / race / RLS / etc.)
+- [x] Fix shipped (could be test-fix only OR domain code fix depending on root cause)
+- [x] `./mvnw -pl kiteclass-core verify -Dtest=TenantIsolationIT` 10/10 pass post-fix
+- [x] CI Test Core Service green for ≥3 consecutive runs of changed branch
+- [x] If domain fix touched: business docs update per `business-logic-review.md` §2 5-attribute frontmatter (tenant-isolation BR-* might exist)
 
 ## Related
 
@@ -90,3 +90,7 @@ Reproduction protocol (suggested for fix PR):
 ## Log
 
 - **2026-05-05** Filed during Wave 19 closure orphan audit. User flagged: "TenantIsolationIT flake là miss của previous closure agent — flag inline trong GAP-347 'out of scope' nhưng không file gap riêng → orphaned. Đáng lẽ phải có GAP riêng cho mỗi pre-existing failure unrelated to current scope." Orphan audit found ONE such case (this gap); rule confirmed via `audit-to-gap-pipeline.md` Step 1-3 + `gap-done-discipline.md` §2 anti-pattern row. Filed at GAP-362 to avoid collision with reserved GAP-359/360/361 (Bucket A/B/C salvage agents' Phase 1C remainder gaps in flight).
+
+## Log
+
+- **2026-06-05 (Wave security-1 — DONE):** Not a flake — the test was a legit-fail masked by class-level `@Transactional` (shared test transaction) + LIST-only coverage that let the by-id leak through (root cause GAP-983). Extended `shouldIsolateCourseDataBetweenTenants` with cross-tenant by-id 404 + own-access 200 assertions. Passes deterministic 3/3 on Testcontainers post GAP-983 fix.

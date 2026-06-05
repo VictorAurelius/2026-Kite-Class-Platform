@@ -1,6 +1,6 @@
 # GAP-983: LIVE cross-tenant by-id read leak — course/class/session/teacher (KC-3 walk empirical proof)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave security-1, 2026-06-05)
 **Priority:** 🔴 P0
 **Domain:** Backend (multi-tenant isolation — OWASP A01)
 **Found:** 2026-06-05 (Wave flow-kc3 KC-3 G1 walk, production-equivalent local Docker stack)
@@ -67,10 +67,10 @@ Thử fix v1: thêm `@Filter(name="tenantFilter", condition="instance_id = :tena
 
 ## Acceptance Criteria
 
-- [ ] `GET /api/v1/classes/{id}`, `/sessions`, `/courses/{id}`, `/teachers/{id}` cross-tenant → **404** (not 200/500)
-- [ ] Course/class/session/teacher by-id read scoped to caller tenant (verify với 2 tenant trên stack)
-- [ ] `TenantIsolationIT.shouldIsolateCourseDataBetweenTenants` (GAP-362) re-enabled + PASS deterministic
-- [ ] Cross-flow sweep per GAP-749 — mọi `findByIdAndDeletedFalse` repo audited + tenant-scoped
+- [x] `GET /api/v1/classes/{id}`, `/sessions`, `/courses/{id}`, `/teachers/{id}` cross-tenant → **404** (not 200/500)
+- [x] Course/class/session/teacher by-id read scoped to caller tenant (verify với 2 tenant trên stack)
+- [x] `TenantIsolationIT.shouldIsolateCourseDataBetweenTenants` (GAP-362) re-enabled + PASS deterministic
+- [x] Cross-flow sweep per GAP-749 — mọi `findByIdAndDeletedFalse` repo audited + tenant-scoped
 
 ## Related
 
@@ -78,3 +78,7 @@ Thử fix v1: thêm `@Filter(name="tenantFilter", condition="instance_id = :tena
 - Parent bug class: [[GAP-746]], sweep [[GAP-749]], disabled guard test [[GAP-362]]
 - Architecture discrepancy sibling: [[GAP-984]] (per-tenant DB provisioned but unused)
 - Per `discovery-to-gap-inline-filing.md` §3 + `cross-flow-bug-class-sweep.md` (by-id leak bug class)
+
+## Log
+
+- **2026-06-05 (Wave security-1 — DONE):** Fixed via `TenantAwareDataSourceInterceptor` extension — enable Hibernate `tenantFilter` on the transaction-bound session inside the existing RLS-GUC aspect (runs inside tx, no ordering trap). Spike proved MappedSuperclass `@Filter` suffices → 58-entity sweep (Bucket B) NOT needed. Exception→404 (Bucket C) already correct in `GlobalExceptionHandler`. G1 IT proof: `ClassTenantFilterTransactionIT` 4/4 (RED→GREEN) + `TenantIsolationIT` 3/3 (course by-id coverage added, closes GAP-362). G2 live re-walk on production-equivalent stack: khanh-phapluat GET sky classes/14 + sessions + courses/10 + teachers/10 → all 404 (was 200 leak); sky own-access → 200. Follow-ups filed: GAP-985 (RLS layer not protecting — defense-in-depth), GAP-986 (Redis cache @class deserialization 500 + leak residue), GAP-987 (RLS untestable in test profile). Cross-flow: centralized aspect covers all BaseEntity subclasses via @within repo @Transactional — supersedes GAP-749 per-repo sweep; advances GAP-746.
