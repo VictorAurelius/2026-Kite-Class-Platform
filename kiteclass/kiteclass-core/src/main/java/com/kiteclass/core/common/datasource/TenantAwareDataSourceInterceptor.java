@@ -7,16 +7,37 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.hibernate.Filter;
+import org.hibernate.Session;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.UUID;
 
 /**
- * Sets the Postgres session-local GUC {@code app.current_tenant_id} at the start of every
- * Spring-managed {@link org.springframework.transaction.annotation.Transactional @Transactional}
- * boundary so that Row-Level Security (RLS) policies defined in
- * {@code V58__enable_rls_tenant_scoped_tables.sql} can filter rows at the database layer.
+ * Sets the Postgres session-local GUC {@code app.current_tenant_id} AND enables the Hibernate
+ * {@code tenantFilter} at the start of every Spring-managed
+ * {@link org.springframework.transaction.annotation.Transactional @Transactional} boundary so
+ * that tenant isolation is enforced at BOTH layers:
+ * <ul>
+ *   <li><b>DB layer (RLS):</b> Row-Level Security policies defined in
+ *       {@code V58__enable_rls_tenant_scoped_tables.sql} read the GUC.</li>
+ *   <li><b>ORM layer (@Filter):</b> the Hibernate {@code tenantFilter} declared on
+ *       {@link com.kiteclass.core.common.entity.BaseEntity} adds an {@code instance_id = :tenantId}
+ *       predicate to entity queries.</li>
+ * </ul>
+ *
+ * <h2>Why enable the filter HERE and not only in {@code TenantFilterInterceptor}? (GAP-983)</h2>
+ * {@code spring.jpa.open-in-view: false} means the request interceptor
+ * ({@link com.kiteclass.core.config.TenantFilterInterceptor}) runs BEFORE any
+ * {@code @Transactional} service method opens its own transaction-bound Hibernate session. The
+ * filter enabled on the interceptor-time session never reaches the new session, so
+ * {@code @Transactional(readOnly = true)} read methods (e.g. {@code ClassServiceImpl.getClass})
+ * queried WITHOUT the tenant predicate and leaked other tenants' rows (HTTP 200 instead of 404).
+ * Enabling the filter on the transaction-bound session here — inside the same active transaction
+ * where the GUC is set — guarantees EVERY read path (transactional and non-transactional) is
+ * tenant-scoped. The request interceptor's enablement is retained as a defense-in-depth net for
+ * any non-transactional persistence access.
  *
  * <h2>Why session-local GUC?</h2>
  * The RLS policy reads {@code current_setting('app.current_tenant_id', true)} and rejects rows
@@ -89,6 +110,8 @@ public class TenantAwareDataSourceInterceptor {
     private void applyTenantGucIfPossible() {
         if (!TenantContext.isSet()) {
             // Default-deny path: leave GUC unset; RLS policy NULL-compares and returns zero rows.
+            // The Hibernate filter is likewise left disabled — without a tenant the @Filter has no
+            // parameter to bind; RLS provides the default-deny backstop at the DB layer.
             return;
         }
 
@@ -99,12 +122,21 @@ public class TenantAwareDataSourceInterceptor {
             return;
         }
 
+        UUID tenantId = TenantContext.getCurrentTenant();
+
+        // GAP-983: enable the Hibernate tenant filter on the transaction-bound session. This MUST
+        // run on every transactional entry (including nested @Transactional propagation) because
+        // each new physical transaction opens a new Hibernate session, and enableFilter() is
+        // session-scoped. It is idempotent — re-enabling on a session that already has it simply
+        // returns the existing filter. The interceptor-time session enablement does NOT carry over
+        // to the transaction-bound session under open-in-view=false (the original leak).
+        enableTenantFilter(tenantId);
+
         if (Boolean.TRUE.equals(TransactionSynchronizationManager.getResource(TENANT_GUC_SET_MARKER))) {
             // Already set for the current physical transaction (nested @Transactional propagation).
             return;
         }
 
-        UUID tenantId = TenantContext.getCurrentTenant();
         // Use parameter binding via set_config() to avoid string concatenation. The third arg
         // `is_local := true` is equivalent to `SET LOCAL ...` — the setting is wiped at the
         // end of the current transaction.
@@ -126,5 +158,20 @@ public class TenantAwareDataSourceInterceptor {
         );
 
         log.debug("Set app.current_tenant_id = {} (SET LOCAL via set_config)", tenantId);
+    }
+
+    /**
+     * Enables the Hibernate {@code tenantFilter} on the current transaction-bound session and
+     * binds the {@code tenantId} parameter. Idempotent: if the filter is already enabled on this
+     * session, {@link Session#enableFilter(String)} returns the existing {@link Filter} and the
+     * parameter is re-bound to the same value.
+     *
+     * @param tenantId the current tenant id from {@link TenantContext}
+     */
+    private void enableTenantFilter(UUID tenantId) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter("tenantFilter");
+        filter.setParameter("tenantId", tenantId);
+        log.debug("Enabled Hibernate tenantFilter for tenant {} on transaction-bound session", tenantId);
     }
 }

@@ -167,5 +167,18 @@ class TenantIsolationIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content[?(@.id == " + courseIdA + ")]").exists());
+
+        // GAP-983 / GAP-362 coverage gap close: the original test only checked LIST isolation,
+        // which let the by-id read leak through. Assert by-id isolation too.
+        // Cross-access: Tenant B cannot read Tenant A's course by id.
+        mockMvc.perform(get("/api/v1/courses/" + courseIdA)
+                        .header("X-Tenant-Id", tenantB.toString()))
+                .andExpect(status().isNotFound());
+
+        // Own access: Tenant A can read its own course by id.
+        mockMvc.perform(get("/api/v1/courses/" + courseIdA)
+                        .header("X-Tenant-Id", tenantA.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(courseIdA));
     }
 }
