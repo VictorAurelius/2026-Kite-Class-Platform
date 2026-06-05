@@ -82,7 +82,9 @@ class SubscriptionServiceTest {
             .autoRenew(true)
             .build();
 
-        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+        // createSubscription does an existence check only (existsById), not findById,
+        // since #2160 removed the unused instance local var.
+        when(instanceRepository.existsById(instanceId)).thenReturn(true);
         when(subscriptionRepository.findActiveByInstanceId(instanceId)).thenReturn(Optional.empty());
         // Use any() (matches null) — first save() happens before ID is generated.
         when(vietQRService.generatePaymentContent(any())).thenReturn("KITEHUB ABCD1234");
