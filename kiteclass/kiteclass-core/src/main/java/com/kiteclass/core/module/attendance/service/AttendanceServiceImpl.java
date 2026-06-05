@@ -14,6 +14,7 @@ import com.kiteclass.core.module.attendance.entity.Attendance;
 import com.kiteclass.core.module.attendance.event.AttendanceMarkedEvent;
 import com.kiteclass.core.module.attendance.mapper.AttendanceMapper;
 import com.kiteclass.core.module.attendance.repository.AttendanceRepository;
+import com.kiteclass.core.common.constant.SessionStatus;
 import com.kiteclass.core.module.clazz.entity.ClassSession;
 import com.kiteclass.core.module.clazz.repository.ClassSessionRepository;
 import com.kiteclass.core.module.enrollment.entity.Enrollment;
@@ -82,6 +83,24 @@ public class AttendanceServiceImpl implements AttendanceService {
                     request.getEnrollmentId(), request.getSessionId());
         }
 
+        // BR-ATTEND-002 (GAP-992): Session must exist and not be COMPLETED/CANCELLED
+        ClassSession session = classSessionRepository.findByIdAndDeletedFalse(request.getSessionId())
+                .orElseThrow(() -> new EntityNotFoundException("SESSION_NOT_FOUND",
+                        (Object) request.getSessionId()));
+        if (session.getStatus() == SessionStatus.COMPLETED
+                || session.getStatus() == SessionStatus.CANCELLED) {
+            log.warn("Cannot mark attendance for session {} with status {}",
+                    request.getSessionId(), session.getStatus());
+            throw new ValidationException("SESSION_NOT_MARKABLE",
+                    request.getSessionId(), session.getStatus());
+        }
+
+        // BR-ATT-005 (GAP-993): EXCUSED status requires an excuse note
+        if (request.getStatus() == AttendanceStatus.EXCUSED
+                && (request.getNotes() == null || request.getNotes().isBlank())) {
+            throw new ValidationException("EXCUSED_REQUIRES_NOTE", request.getEnrollmentId());
+        }
+
         // Create attendance entity
         Attendance attendance = attendanceMapper.toEntity(request);
         attendance.setInstanceId(enrollment.getInstanceId()); // Multi-tenant
@@ -136,6 +155,14 @@ public class AttendanceServiceImpl implements AttendanceService {
         if (!session.getClassId().equals(classId)) {
             log.warn("Session {} does not belong to class {}", sessionId, classId);
             throw new ValidationException("SESSION_NOT_IN_CLASS", new Object[0]);
+        }
+
+        // BR-ATTEND-002 (GAP-992): Session must not be COMPLETED/CANCELLED — fail fast for whole batch
+        if (session.getStatus() == SessionStatus.COMPLETED
+                || session.getStatus() == SessionStatus.CANCELLED) {
+            log.warn("Cannot bulk-mark attendance for session {} with status {}",
+                    sessionId, session.getStatus());
+            throw new ValidationException("SESSION_NOT_MARKABLE", sessionId, session.getStatus());
         }
 
         // 3. Validate all enrollments belong to this class
@@ -348,7 +375,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         }
 
         Double attendanceRate = totalSessions > 0
-                ? (presentCount * 100.0 / totalSessions)
+                ? ((presentCount + lateCount) * 100.0 / totalSessions)  // BR-ATT-008 (GAP-994): rate = (PRESENT + LATE) / total
                 : null;
 
         return AttendanceStatsResponse.builder()
@@ -398,7 +425,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         }
 
         Double attendanceRate = totalSessions > 0
-                ? (presentCount * 100.0 / totalSessions)
+                ? ((presentCount + lateCount) * 100.0 / totalSessions)  // BR-ATT-008 (GAP-994): rate = (PRESENT + LATE) / total
                 : null;
 
         return AttendanceStatsResponse.builder()

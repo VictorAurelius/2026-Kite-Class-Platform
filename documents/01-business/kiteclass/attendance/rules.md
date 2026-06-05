@@ -14,13 +14,13 @@
 | BR-ATT-002 | Status by check-in time | PRESENT (within grace), LATE (within threshold), ABSENT (beyond or no check-in) |
 | BR-ATT-003 | Grace period | 5 minutes after session start (configurable) |
 | BR-ATT-004 | Late threshold | 15 minutes after session start (configurable) |
-| BR-ATT-005 | EXCUSED_ABSENCE requires note | Must have excuse note to set this status |
+| BR-ATT-005 | EXCUSED requires note | Must have excuse note to set this status |
 | BR-ATT-006 | Teacher can override | MAIN_TEACHER or ASSISTANT can manually set any status |
 | BR-ATT-007 | Admin full access | ADMIN can mark attendance for any class |
 | BR-ATT-008 | Rate calculation | `attendance_rate = (PRESENT + LATE) / total_sessions * 100%` |
 | BR-ATT-009 | Multi-tenant isolation | All queries filtered by `instance_id` |
 
-**Attendance statuses:** PRESENT, LATE, ABSENT, EXCUSED_ABSENCE
+**Attendance statuses:** PRESENT, LATE, ABSENT, EXCUSED
 
 ### Permission Matrix
 
@@ -56,7 +56,7 @@
 
 ### Check-in Flow (Manual)
 1. Teacher opens class session
-2. Teacher marks each student: PRESENT, LATE, ABSENT, EXCUSED_ABSENCE
+2. Teacher marks each student: PRESENT, LATE, ABSENT, EXCUSED
 3. System saves attendance records
 4. Attendance rate auto-recalculated
 

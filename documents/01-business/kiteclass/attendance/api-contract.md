@@ -104,7 +104,7 @@ Source: `com.kiteclass.core.common.constant.AttendanceStatus`.
 | `EXCUSED` | Có phép | CP | blue |
 | `MAKEUP` | Học bù | HB | purple |
 
-> **Note (drift cần fix riêng):** `use-cases.md` và `rules.md` BR-ATT-005 đề cập `EXCUSED_ABSENCE` — enum thực tế là `EXCUSED`. Out-of-scope GAP-232 (chỉ touch api-contract); follow-up gap nên rename trong use-cases.md + rules.md để khớp source-of-truth.
+> **Note (drift RESOLVED — GAP-995, Wave flow-kc5 2026-06-05):** `use-cases.md` + `rules.md` BR-ATT-005 trước ghi `EXCUSED_ABSENCE` — enum thực tế là `EXCUSED`. Đã rename về `EXCUSED` trong cả 2 file để khớp source-of-truth (`AttendanceStatus` enum).
 
 ---
 

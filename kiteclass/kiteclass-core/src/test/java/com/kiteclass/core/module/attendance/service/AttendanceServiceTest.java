@@ -13,6 +13,7 @@ import com.kiteclass.core.module.attendance.dto.UpdateAttendanceStatusRequest;
 import com.kiteclass.core.module.attendance.entity.Attendance;
 import com.kiteclass.core.module.attendance.mapper.AttendanceMapper;
 import com.kiteclass.core.module.attendance.repository.AttendanceRepository;
+import com.kiteclass.core.common.constant.SessionStatus;
 import com.kiteclass.core.module.clazz.entity.ClassSession;
 import com.kiteclass.core.module.clazz.repository.ClassSessionRepository;
 import com.kiteclass.core.module.enrollment.entity.Enrollment;
@@ -44,6 +45,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -130,6 +132,11 @@ class AttendanceServiceTest {
                 .role(TeacherClassRole.MAIN_TEACHER)
                 .build();
         testTeacherClass.setId(1L);
+
+        // GAP-992: single-mark now loads session to enforce BR-ATTEND-002 (status guard).
+        // lenient — error-path tests throw before reaching the session lookup.
+        lenient().when(classSessionRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(testSession));
     }
 
     @Test
@@ -207,6 +214,56 @@ class AttendanceServiceTest {
                 .isInstanceOf(ValidationException.class)
                 .satisfies(e -> assertThat(e.getMessage())
                         .containsIgnoringCase("ATTENDANCE_ALREADY_MARKED"));
+
+        verify(attendanceRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("GAP-992: Should reject mark for CANCELLED/COMPLETED session")
+    void shouldRejectMarkWhenSessionNotMarkable() {
+        // Arrange — session is CANCELLED (BR-ATTEND-002)
+        ClassSession cancelled = ClassSession.builder()
+                .classId(1L)
+                .sessionNumber(1)
+                .status(SessionStatus.CANCELLED)
+                .build();
+        cancelled.setId(1L);
+        when(enrollmentRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(testEnrollment));
+        when(attendanceRepository.existsByEnrollmentIdAndSessionIdAndDeletedFalse(1L, 1L))
+                .thenReturn(false);
+        when(classSessionRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(cancelled));
+
+        // Act & Assert
+        assertThatThrownBy(() -> attendanceService.markAttendance(createRequest))
+                .isInstanceOf(ValidationException.class)
+                .satisfies(e -> assertThat(e.getMessage())
+                        .containsIgnoringCase("SESSION_NOT_MARKABLE"));
+
+        verify(attendanceRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("GAP-993: Should reject EXCUSED status without a note")
+    void shouldRejectExcusedWithoutNote() {
+        // Arrange — EXCUSED requires a note (BR-ATT-005)
+        CreateAttendanceRequest excusedNoNote = CreateAttendanceRequest.builder()
+                .enrollmentId(1L)
+                .sessionId(1L)
+                .status(AttendanceStatus.EXCUSED)
+                .notes(null)
+                .build();
+        when(enrollmentRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(testEnrollment));
+        when(attendanceRepository.existsByEnrollmentIdAndSessionIdAndDeletedFalse(1L, 1L))
+                .thenReturn(false);
+
+        // Act & Assert
+        assertThatThrownBy(() -> attendanceService.markAttendance(excusedNoNote))
+                .isInstanceOf(ValidationException.class)
+                .satisfies(e -> assertThat(e.getMessage())
+                        .containsIgnoringCase("EXCUSED_REQUIRES_NOTE"));
 
         verify(attendanceRepository, never()).save(any());
     }
@@ -373,7 +430,8 @@ class AttendanceServiceTest {
         assertThat(result.getTargetType()).isEqualTo("STUDENT");
         assertThat(result.getTotalSessions()).isEqualTo(10L);
         assertThat(result.getPresentCount()).isEqualTo(8L);
-        assertThat(result.getAttendanceRate()).isEqualTo(80.0);
+        // BR-ATT-008 (GAP-994): rate = (PRESENT 8 + LATE 1) / total 10 = 90%
+        assertThat(result.getAttendanceRate()).isEqualTo(90.0);
     }
 
     @Test

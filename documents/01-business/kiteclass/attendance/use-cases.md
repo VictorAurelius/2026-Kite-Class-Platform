@@ -15,9 +15,9 @@
 
 **Steps:**
 1. FE: Display session attendance form with enrolled students list
-2. Teacher: Select student, choose status (PRESENT/LATE/ABSENT/EXCUSED_ABSENCE), add optional notes
+2. Teacher: Select student, choose status (PRESENT/LATE/ABSENT/EXCUSED), add optional notes
 3. System: Validate no duplicate record per BR-ATT-001
-4. System: If EXCUSED_ABSENCE, require notes per BR-ATT-005
+4. System: If EXCUSED, require notes per BR-ATT-005
 5. System: Check permission matrix per BR-ATT-006, BR-ATT-007
 6. System: Save attendance record, recalculate attendance_rate per BR-ATT-008
 7. FE: Toast success, update attendance list
@@ -27,7 +27,7 @@
 **Errors:**
 | Code | Condition | Message |
 |------|-----------|---------|
-| 400 | EXCUSED_ABSENCE without notes | "Excused absence requires a note" |
+| 400 | EXCUSED without notes | "Excused absence requires a note" |
 | 404 | Enrollment not found | "Enrollment not found" |
 | 409 | Duplicate student+session | "Attendance already recorded for this session" |
 
@@ -176,7 +176,7 @@
    - Green — PRESENT
    - Yellow — LATE
    - Red — ABSENT
-   - Blue — EXCUSED_ABSENCE
+   - Blue — EXCUSED
    - Grey — no session / weekend / holiday
 6. User: Click cell → `AttendanceDetailDialog` with session details + note + override action
 

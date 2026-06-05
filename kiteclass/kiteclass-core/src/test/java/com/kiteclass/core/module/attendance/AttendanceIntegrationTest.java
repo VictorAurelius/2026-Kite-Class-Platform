@@ -100,7 +100,11 @@ class AttendanceIntegrationTest {
     private Enrollment savedEnrollment;
     private Teacher savedTeacher;
     private final UUID tenantId = AttendanceTestDataBuilder.DEFAULT_TENANT;
-    private final Long sessionId = 1L; // Mock session ID
+    // GAP-992: single-mark now loads the session via classSessionRepository — the
+    // session row MUST exist and be SCHEDULED. Capture the real generated ids of
+    // two SCHEDULED sessions created in @BeforeEach (no longer a hardcoded 1L/2L).
+    private Long sessionId;  // first SCHEDULED session id
+    private Long sessionId2; // second SCHEDULED session id (for multi-session stats)
 
     @BeforeEach
     void setUp() {
@@ -152,8 +156,10 @@ class AttendanceIntegrationTest {
                     .build();
             teacherClassRepository.save(teacherClass);
 
-            // Create class session (not used in tests, but required for data consistency)
-            ClassSession session = ClassSession.builder()
+            // GAP-992: single-mark attendance now requires the ClassSession row to
+            // EXIST and be SCHEDULED. Create two SCHEDULED sessions and capture their
+            // real generated ids (sequence-assigned, not necessarily 1L/2L).
+            ClassSession session1 = ClassSession.builder()
                     .classId(savedClass.getId())
                     .sessionNumber(1)
                     .sessionDate(LocalDate.now())
@@ -162,7 +168,18 @@ class AttendanceIntegrationTest {
                     .status(SessionStatus.SCHEDULED)
                     .attendanceTaken(false)
                     .build();
-            classSessionRepository.save(session);
+            sessionId = classSessionRepository.save(session1).getId();
+
+            ClassSession session2 = ClassSession.builder()
+                    .classId(savedClass.getId())
+                    .sessionNumber(2)
+                    .sessionDate(LocalDate.now().plusDays(1))
+                    .startTime(LocalTime.of(9, 0))
+                    .endTime(LocalTime.of(11, 0))
+                    .status(SessionStatus.SCHEDULED)
+                    .attendanceTaken(false)
+                    .build();
+            sessionId2 = classSessionRepository.save(session2).getId();
 
             // Create enrollment
             Enrollment enrollment = Enrollment.builder()
@@ -363,10 +380,10 @@ class AttendanceIntegrationTest {
     void getStudentStats_shouldCalculateCorrectly() throws Exception {
         // Create multiple attendance records
         CreateAttendanceRequest present = AttendanceTestDataBuilder.createRequestWithStatus(
-                savedEnrollment.getId(), 1L, AttendanceStatus.PRESENT
+                savedEnrollment.getId(), sessionId, AttendanceStatus.PRESENT
         );
         CreateAttendanceRequest absent = AttendanceTestDataBuilder.createRequestWithStatus(
-                savedEnrollment.getId(), 2L, AttendanceStatus.ABSENT
+                savedEnrollment.getId(), sessionId2, AttendanceStatus.ABSENT
         );
 
         mockMvc.perform(post("/api/v1/attendance")
