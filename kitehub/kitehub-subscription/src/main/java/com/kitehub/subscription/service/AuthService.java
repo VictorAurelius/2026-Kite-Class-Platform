@@ -25,6 +25,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
@@ -353,6 +355,20 @@ public class AuthService {
      * own {@code REQUIRES_NEW} transaction + swallows failures, so this call never blocks
      * registration (mirrors the {@code loginAuditService.recordLogin} call in
      * {@link #login(LoginRequest, HttpServletRequest)}).</p>
+     *
+     * <p><b>GAP-949 timing fix:</b> the audit write is deferred to {@code afterCommit} of
+     * the parent registration transaction. The owner {@link User} row is saved earlier in
+     * {@link #registerFromBetaInvite} but the parent txn is still open at this point, so a
+     * synchronous call into the audit service's {@code REQUIRES_NEW} transaction would not
+     * see the owner row under {@code READ COMMITTED}. The {@code admin_user_id} column is
+     * {@code NOT NULL} + FK → {@code users(id)}, so the FK check would fail and
+     * {@link TenantAuditService} would silently swallow it — the audit row never gets
+     * written (PDPL Art 11 / OWASP A09 trail lost). Registering an {@code afterCommit}
+     * synchronization runs the audit write once the owner row is committed and visible.
+     * {@code afterCommit} runs synchronously on the same thread, still within request scope,
+     * so {@code populateRequest()} IP / user-agent capture still works. When no transaction
+     * synchronization is active (e.g. direct unit-test invocation) the call falls back to
+     * the original inline behavior.</p>
      */
     private void recordTenantProvisionedAudit(UUID ownerId, InstanceResponse instance,
                                               String ownerEmail, String subdomain) {
@@ -361,7 +377,19 @@ public class AuthService {
                 instance.getId());
             return;
         }
-        tenantAuditService.recordTenantProvisioned(instance.getId(), ownerId, ownerEmail, subdomain);
+        final UUID tenantId = instance.getId();
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    tenantAuditService.recordTenantProvisioned(tenantId, ownerId, ownerEmail, subdomain);
+                }
+            });
+        } else {
+            // No active transaction synchronization (direct invocation, e.g. unit test) —
+            // run inline; the owner row is already visible in this context.
+            tenantAuditService.recordTenantProvisioned(tenantId, ownerId, ownerEmail, subdomain);
+        }
     }
 
     /**
