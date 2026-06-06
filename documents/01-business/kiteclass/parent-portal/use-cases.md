@@ -68,8 +68,8 @@
 11. Core: Tạo `ParentStudentLink` nếu chưa có cho `(parent, student)` với linkType=PRIMARY (idempotent, BR-PARENT-LINK-002)
 12. Core: Set invitation status REDEEMED, redeemedAt, redeemedParentId
 13. Core → Gateway: Trả `RedeemInvitationResult { parentId, email, fullName, phoneNumber, relationship, linkedStudentIds }`
-14. Gateway (Wave 5): Tạo `users` row với `userType=PARENT, referenceId=parentId`, hash password, mint JWT với claim `linked_student_ids`
-15. FE: Auto-login, redirect dashboard `/parent`
+14. Core (Wave auth-1, Option B): `AuthCredentialProvisioningService.provisionParent` tạo `auth_credentials` row (entity_type=PARENT, entity_id=parentId, email=invitation.email, password BCrypt) idempotent-on-email, atomic trong redeem txn. **Superseded Option A:** Gateway tạo `users` row + mint JWT. Giờ parent login qua `POST /api/v1/tenant-auth/login` (xem `tenant-auth/use-cases.md` UC-AUTH-01/03).
+15. FE: Redirect trang login portal phụ huynh; parent đăng nhập bằng email + password vừa đặt
 
 **Postcondition:**
 - Parent ACTIVE trong tenant
@@ -98,11 +98,11 @@
 ### UC-PARENT-03: Parent Xem Profile Của Mình
 
 **Actor:** Parent đã ACTIVE và đăng nhập
-**Precondition:** JWT hợp lệ với `userType=PARENT`, Gateway populate `X-User-Reference-Id`
+**Precondition:** KC-native JWT hợp lệ (role=PARENT, claim `referenceId`), Gateway re-inject `X-User-Reference-Id` từ verified claim (Option B)
 
 **Steps:**
 1. FE (parent dashboard): Sau login, fetch `GET /api/v1/parent/me`
-2. Gateway: Forward request kèm `X-User-Reference-Id = users.reference_id`
+2. Gateway: Strip client `X-User-Reference-Id` → re-inject `= referenceId claim` (= `auth_credentials.entity_id`)
 3. Core: `parentService.getParentById(parentId)` (read-only txn)
 4. Core: Load Parent bằng `findByIdAndDeletedFalse` — thiếu → `404 PARENT_NOT_FOUND`
 5. Core: Map sang `ParentResponse` (id, fullName, email, phoneNumber, relationship, status)
@@ -214,7 +214,7 @@ Phase 1A use cases extend the Wave 2 GAP-052a flows (above) with the **transcrip
 **Actor:** Phụ huynh (PARENT user, đã được mời + redeem qua ParentInvitation)
 **Pre-condition:**
 - Parent có `ParentStudentLink` với child (`linkType = PRIMARY` hoặc `SECONDARY`, `deleted = false`)
-- Gateway đã issue JWT, populate `users.reference_id = parents.id`
+- Core đã mint KC-native JWT (Option B) với claim `referenceId = auth_credentials.entity_id = parents.id`; Gateway re-inject `X-User-Reference-Id` từ claim
 - Frontend nhận access token + lưu vào localStorage
 
 **Trigger:** Phụ huynh click "Học bạ" trên dashboard `/parent` cho 1 con.

@@ -1,0 +1,103 @@
+# Tenant Auth (KC-native login) — API Contract
+
+**Domain:** KiteClass Core / Tenant Auth
+**Version:** 1.0 (Wave auth-1 — Option B, GAP-725/798)
+**Updated:** 2026-06-06
+**Source code:** `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/auth/`
+
+---
+
+## 1. AuthController — `/api/v1/tenant-auth`
+
+KC-native login cho role tenant-scoped (PARENT/TEACHER/STUDENT). Route `/api/v1/tenant-auth/**` là **public** (gateway forward không qua JWT auth filter, không TenantResolver). Tách hoàn toàn khỏi `/api/v1/auth/**` (KiteHub subscription, OWNER/STAFF) — không collision.
+
+### POST /api/v1/tenant-auth/login
+**Use Case:** UC-AUTH-01  |  **Auth:** Public (no token)  |  **Role:** —  |  **Rate-limit:** 3/5 IP-keyed (GAP-1012)
+
+```json
+// Request — LoginRequest
+{ "email": "string (required, @Email)", "password": "string (required)" }
+// Response 200 — ApiResponse<LoginResponse>
+{
+  "success": true,
+  "data": {
+    "accessToken": "string (HS512 JWT)",
+    "tokenType": "Bearer",
+    "expiresInSeconds": 43200,
+    "role": "PARENT | TEACHER | STUDENT",
+    "referenceId": "long (= auth_credentials.entity_id)",
+    "tenantId": "string (UUID = instance_id)"
+  }
+}
+```
+
+**JWT claims (trong `accessToken`):** `sub` = user_uuid, `role` = entity_type, `email`, `tenantId` = instance_id, `referenceId` = entity_id, `type` = "access", `iat`, `exp` (+12h). Ký HS512 bằng shared `JWT_SECRET` (BR-AUTH-JWT-001/002/003).
+
+| Status | Code | Message | Nguyên nhân |
+|--------|------|---------|-------------|
+| 401 | INVALID_CREDENTIALS | "INVALID_CREDENTIALS" | Email không tồn tại / credential disabled / sai password — **uniform, no user-enumeration** (BR-AUTH-LOGIN-001) |
+| 400 | VALIDATION_ERROR | "Email is required" / "Email format invalid" / "Password is required" | Bean-validation `LoginRequest` |
+| 429 | — | Too Many Requests | Vượt rate-limit gateway (BR-AUTH-LOGIN-004) |
+
+**Ghi chú HTTP status:** trả `200` (không `201`) — login không tạo resource. Error envelope dùng `ErrorResponse{code, message, path}` qua `GlobalExceptionHandler` (chuẩn nội bộ kiteclass-core, KHÔNG phải RFC7807).
+
+---
+
+## 2. TeacherController — credential provisioning
+
+Bổ sung Wave auth-1 (Hướng B). Endpoint đầy đủ teacher xem `teacher/api-contract.md`; phần này chỉ ghi endpoint credential mới.
+
+### POST /api/v1/teachers/{id}/credentials
+**Use Case:** UC-AUTH-02  |  **Auth:** Bearer token  |  **Role:** OWNER, ADMIN, PRINCIPAL
+
+```json
+// Request — SetPasswordRequest
+{ "password": "string (required, 8-100 chars, regex: letter + digit + special)" }
+// Response 200 — ApiResponse<Void>
+{ "success": true, "data": null, "message": "Đặt mật khẩu giáo viên thành công" }
+```
+
+Provision/UPSERT credential `auth_credentials` (entity_type=TEACHER, entity_id=teacher.id, email=teacher.email, instance_id=tenant). Idempotent set-password → rotate nếu đã tồn tại (BR-AUTH-PROV-003). Email + role lấy từ teacher entity (request chỉ mang password).
+
+| Status | Code | Message | Nguyên nhân |
+|--------|------|---------|-------------|
+| 200 | — | "Đặt mật khẩu giáo viên thành công" | Thành công (set hoặc reset) |
+| 403 | — | Forbidden | Caller không phải OWNER/ADMIN/PRINCIPAL (`@PreAuthorize`) |
+| 400 | VALIDATION_ERROR | "Mật khẩu phải từ 8-100 ký tự" / "Mật khẩu phải có chữ, số và ký tự đặc biệt" | Bean-validation `SetPasswordRequest` (BR-AUTH-PROV-005) |
+| 404 | TEACHER_NOT_FOUND | "Teacher not found" | Teacher id không tồn tại trong tenant |
+
+**Ghi chú HTTP status:** trả `200` (không `201`) — UPSERT idempotent, không trả resource URI.
+
+---
+
+## 3. Anti-Spoof Header Contract (Gateway)
+
+`X-User-Reference-Id` là header **gateway-only-trusted** (giống `X-User-Id`):
+
+| Bước | Hành vi | Code |
+|------|---------|------|
+| 1 | Gateway **strip** mọi `X-User-Reference-Id` client gửi lên | `application.yml` `default-filters: RemoveRequestHeader=X-User-Reference-Id` (BR-AUTH-HDR-001) |
+| 2 | Gateway **re-inject** `X-User-Reference-Id` từ claim `referenceId` của JWT đã verify (chỉ khi `!isChallenge` + claim non-null) | `JwtAuthenticationGatewayFilter.java` (BR-AUTH-HDR-002) |
+| 3 | Core đọc header như identity verified — client KHÔNG set được trực tiếp | reference-id authz `@authz.hasAccessToChild` (GAP-798) |
+
+**Note cho consumer:** Token OWNER/STAFF không mang `referenceId` → header vắng. Token KC-native (PARENT/TEACHER/STUDENT) luôn mang → header có. Client-supplied value LUÔN bị bỏ.
+
+---
+
+## 4. Endpoint Index
+
+| Method | Path | Use Case | Auth | Rate-limit | Visibility |
+|--------|------|----------|------|-----------|------------|
+| POST | `/api/v1/tenant-auth/login` | UC-AUTH-01 | Public | 3/5 IP-keyed | Public (Tag: Tenant Auth) |
+| POST | `/api/v1/teachers/{id}/credentials` | UC-AUTH-02 | OWNER/ADMIN/PRINCIPAL | (teacher route) | Public Swagger (Tag: Teacher) |
+
+---
+
+## 5. Related
+
+- `tenant-auth/rules.md` — BR-AUTH-* (credential / JWT / login / provisioning / anti-spoof).
+- `tenant-auth/use-cases.md` — UC-AUTH-01/02/03.
+- `teacher/api-contract.md` — full teacher endpoints.
+- `parent-portal/api-contract.md` + `student-portal/api-contract.md` — reference-id source (Option B).
+- GAP-725, GAP-798/798b, GAP-705, GAP-711, GAP-1012, GAP-1009.
+- Audit: `documents/04-quality/audits/api-contract/2026-06-06-wave-auth-1-api-contract.md`.

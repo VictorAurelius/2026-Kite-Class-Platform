@@ -30,7 +30,8 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
     ├── lms/
     ├── marketing/
     ├── storage/
-    └── parent-portal/          ← Wave 2 MVP (GAP-052a + GAP-105)
+    ├── parent-portal/          ← Wave 2 MVP (GAP-052a + GAP-105)
+    └── tenant-auth/            ← Wave auth-1 KC-native login (PARENT/TEACHER/STUDENT, GAP-1009)
 ```
 
 **KHÔNG lưu trong:**
@@ -107,4 +108,5 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
 | marketing | ✅ | ✅ | ✅ | 2026-03-24 |
 | storage | ✅ | ✅ | ✅ | 2026-03-24 |
 | parent-portal | ✅ | ✅ | ✅ | 2026-04-19 |
+| tenant-auth | ✅ | ✅ | ✅ | 2026-06-06 (Wave auth-2 GAP-1009 — KC-native login Option B) |
 | multi-subject-gradebook | ✅ | ✅ | ✅ | 2026-05-05 (Wave 19 Bucket B GAP-323c Phase 1C v1) |

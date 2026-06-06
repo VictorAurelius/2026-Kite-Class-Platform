@@ -27,10 +27,10 @@ Wave 5 sẽ thêm: messaging, fee payment widgets, attendance/grade/invoice proj
 | BR-PARENT-001 | Email duy nhất per tenant | Unique constraint `uk_parents_email_tenant` trên `(instance_id, email)`. Cùng email có thể là parent ở nhiều tenant khác nhau (rare but legal). |
 | BR-PARENT-002 | Default status = PENDING | Parent rows mặc định `PENDING` cho đến khi redemption hoàn tất → `ACTIVE`. PENDING parents không login được. |
 | BR-PARENT-003 | Invitation token TTL mặc định 24 giờ | Cấu hình qua `kiteclass.parent-portal.invitation-ttl-hours` (default 24). Sau TTL, sweeper chuyển `PENDING → EXPIRED`. **Code reference:** `ParentPortalProperties.java:15` javadoc + `ParentInvitationServiceImpl.java:115`. |
-| BR-PARENT-004 | Feature flag `enabled` mặc định false | `kiteclass.parent-portal.enabled` (env: `PARENT_PORTAL_ENABLED`). Khi false, các invite + self-service endpoint trả `503 PARENT_PORTAL_DISABLED`. Wave 5 sẽ flip true cho instances đã ký PDPL. |
+| BR-PARENT-004 | Feature flag `enabled` mặc định **true** (Wave auth-1) | `kiteclass.parent-portal.enabled` (env: `PARENT_PORTAL_ENABLED`). **Default flip false→true tại Wave auth-1** (Bucket B redeem provisioning) để parent login được sau redeem. Khi false, các invite + self-service endpoint trả `503 PARENT_PORTAL_DISABLED`. **Lưu ý PDPL gate:** default true bỏ qua gate "instance đã ký PDPL" của thiết kế Wave 2 cũ — nếu PDPL consent vẫn là điều kiện bắt buộc cho 1 instance, set `PARENT_PORTAL_ENABLED=false` per-instance cho tới khi consent ký. Theo dõi quyết định PDPL trong follow-up gap. |
 | BR-PARENT-005 | Tenant isolation | Mọi truy vấn lọc theo `instance_id` qua Hibernate `tenantFilter`. Parent chỉ thấy children trong cùng tenant; cross-tenant redemption bị từ chối với `404 PARENT_INVITATION_NOT_FOUND` (defense in depth). |
 | BR-PARENT-006 | Soft delete only | Tất cả entities kế thừa `BaseEntity` với cờ `deleted`. Repository methods chỉ trả rows có `deletedFalse`. |
-| BR-PARENT-007 | Identity tách 2 service | Profile (`parents` table) ở Core. Credential + JWT (`users` table) ở Gateway. Liên kết qua `users.reference_id = parents.id` AND `users.user_type = PARENT`. |
+| BR-PARENT-007 | Identity — KC-native (Option B, Wave auth-1) | **Option A (superseded):** Credential + JWT ở Gateway `users` table, liên kết qua `users.reference_id = parents.id`. **Option B (hiện tại):** Profile (`parents` table) + credential (`auth_credentials` table, entity_type=PARENT, entity_id=parents.id) đều ở Core; Core tự mint JWT (HS512) với claim `referenceId = auth_credentials.entity_id`. Không còn cross-service `users.reference_id` population. Xem `tenant-auth/rules.md` BR-AUTH-001/003. |
 | BR-PARENT-008 | Phone optional, format VN 10 số | Pattern `^0\d{9}$` validate ở entity + DTO. |
 | BR-PARENT-009 | Full name 2–100 ký tự | `@Size(min=2, max=100)` áp dụng cho `Parent.fullName` + `RedeemInvitationRequest.fullName`. |
 
@@ -87,7 +87,7 @@ Khi parent submit `RedeemInvitationRequest.password`:
 
 | ID | Rule | Detail |
 |----|------|--------|
-| BR-PARENT-AUTH-001 | Self-service header `X-User-Reference-Id` | Gateway populate từ `users.reference_id` cho user có `userType = PARENT`. Core không có `users` table. |
+| BR-PARENT-AUTH-001 | Self-service header `X-User-Reference-Id` (Option B) | Gateway re-inject từ claim `referenceId` của KC-native token (= `auth_credentials.entity_id`), sau khi strip giá trị client gửi (anti-spoof). **Option A (superseded):** populate từ `users.reference_id`. Core không có `users` table. Xem `tenant-auth/rules.md` BR-AUTH-HDR-001/002. |
 | BR-PARENT-AUTH-002 | Header missing → 401 | `ParentController.requireParentId(...)` ném `AUTH_REQUIRED` nếu header rỗng. |
 | BR-PARENT-AUTH-003 | Internal endpoint dùng HMAC | `/internal/parents/{id}` qua `InternalRequestFilter` (HMAC signature). Hidden khỏi public Swagger. |
 | BR-PARENT-AUTH-004 | "Parent enumeration" trong cùng tenant chấp nhận được | `getChildrenOfParent(...)` load Parent trước khi list children → nếu parent thuộc tenant khác → 404. Chấp nhận leak "id thuộc tenant này hay không" vì id 64-bit. |
@@ -98,7 +98,7 @@ Khi parent submit `RedeemInvitationRequest.password`:
 
 | Key | Default | Env Override | Description |
 |-----|---------|--------------|-------------|
-| `kiteclass.parent-portal.enabled` | `false` | `PARENT_PORTAL_ENABLED` | Master feature flag (BR-PARENT-004). |
+| `kiteclass.parent-portal.enabled` | `true` (Wave auth-1; was `false`) | `PARENT_PORTAL_ENABLED` | Master feature flag (BR-PARENT-004). Set false per-instance nếu PDPL consent chưa ký. |
 | `kiteclass.parent-portal.invitation-ttl-hours` | `24` | — | Token lifetime giờ (BR-PARENT-003). |
 | `kiteclass.parent-portal.redeem-base-url` | `https://app.kiteclass.vn/parent-invite/` | `PARENT_PORTAL_REDEEM_BASE_URL` | URL prefix gắn vào email (token append at send time). |
 | `kiteclass.parent-portal.expire-sweep-ms` | `3600000` (1h) | — | Sweeper interval (BR-PARENT-INV-007). |
@@ -178,7 +178,7 @@ Phase 1A proves the **end-to-end scope-guard pattern** that all subsequent facet
 | ID | Rule | Detail | Phase |
 |----|------|--------|-------|
 | BR-PARENT-PORTAL-001 | Scope guard via ParentStudentLink | Every parent-side read endpoint MUST call `ParentStudentLinkRepository.existsByParentIdAndStudentIdAndDeletedFalse(parentId, childId)` BEFORE any data fetch. Returns 403 `PARENT_NOT_LINKED` if false. The boolean form (not the join-fetch) MUST be used so a non-linked caller never reaches the data table. | 1A |
-| BR-PARENT-PORTAL-002 | Identity from Gateway header | Authenticated parent id is read from the `X-User-Reference-Id` header populated by the Gateway from `users.reference_id` when `userType = PARENT`. Missing header → 401 `AUTH_REQUIRED`. Core never touches Gateway identity tables. | 1A |
+| BR-PARENT-PORTAL-002 | Identity from Gateway header (Option B) | Authenticated parent id is read from the `X-User-Reference-Id` header. **Option B (hiện tại):** Gateway re-inject header từ verified JWT claim `referenceId` (= `auth_credentials.entity_id`), sau khi strip client-supplied value (anti-spoof). **Option A (superseded):** populate từ `users.reference_id` when `userType = PARENT`. Missing header → 401 `AUTH_REQUIRED`. Core never touches Gateway identity tables. See `tenant-auth/rules.md` BR-AUTH-HDR. | 1A |
 | BR-PARENT-PORTAL-003 | Multi-tenant isolation | Hibernate `tenantFilter` applied via `@Transactional(readOnly = true)` ensures the parent + child + transcript rows all belong to the active `instance_id`. Cross-tenant snooping blocked at the filter layer in addition to the scope guard. | 1A |
 | BR-PARENT-PORTAL-004 | Soft-deleted edge revokes access | A `ParentStudentLink` with `deleted = true` is treated as if it never existed for read access. Removing a parent from a child's record (e.g., divorce, custody change) MUST soft-delete the edge — never hard-delete (audit retention). | 1A |
 | BR-PARENT-PORTAL-005 | Read-only Phase 1A API | Only `GET /api/v1/parent/children/{childId}/transcript`. POST/PUT/DELETE for write actions deferred to GAP-321c. | 1A |

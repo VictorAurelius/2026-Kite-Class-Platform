@@ -11,7 +11,7 @@
 
 ### BR-STUDENT-PORTAL-001: Authorization scope = own data only
 
-- **Value:** Mọi endpoint trong `/api/v1/students/me/**` PHẢI scope reads xuống đúng `studentReferenceId` từ `X-User-Reference-Id` header (Gateway-injected từ `users.reference_id` khi `userType = STUDENT`).
+- **Value:** Mọi endpoint trong `/api/v1/students/me/**` PHẢI scope reads xuống đúng `studentReferenceId` từ `X-User-Reference-Id` header. **Option B (Wave auth-1):** Gateway re-inject header từ `referenceId` claim của KC-native token (= `auth_credentials.entity_id` với entity_type=STUDENT), sau khi strip client value (anti-spoof). **Option A (superseded):** populate từ `users.reference_id` khi `userType = STUDENT`. Xem `tenant-auth/rules.md` BR-AUTH-HDR-001/002.
 - **Rationale:** Student persona không có quyền xem data của student khác. Kế thừa pattern từ `ParentTranscriptController` (Wave 18b1 GAP-321 Phase 1A) — header-based identity + service-side scope guard.
 - **Source:** `informed gut` + Parent Portal precedent (Wave 18b1).
 - **Reviewer:** @nguyenvankiet (acting Product Owner + Compliance, solo-dev, 2026-05-10). Legal counsel review queued via GAP-156.
