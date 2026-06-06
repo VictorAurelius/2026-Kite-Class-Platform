@@ -270,6 +270,14 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- GAP-945 Wave provisioning-1 Bucket A: RabbitMQ container for the
+             tenant.created publish→consume round-trip IT (TenantCreatedSagaWiringIT). -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>rabbitmq</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- AWS SDK for S3 (MinIO compatible) -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
