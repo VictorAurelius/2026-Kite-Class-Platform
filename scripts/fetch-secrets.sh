@@ -182,6 +182,23 @@ AWS_SES_FROM_NAME=${AWS_SES_FROM_NAME}
 # Payment — SePay webhook Apikey auth (Wave flow-kh3-3)
 SEPAY_API_KEY=${SEPAY_API_KEY}
 
+# Feature flags — kiteclass-core parent portal (Wave auth-2 Bucket C / GAP-1014)
+# Public (non-secret) feature flag, override mechanism #1 per production-env-config-registry.md §4.
+# Binds kiteclass-core application.yml:318 parent-portal.enabled (default ${PARENT_PORTAL_ENABLED:false}).
+# Production MUST set true so parent (and pulled-forward teacher) KC-native login surface is reachable
+# (per Wave auth-1 ops-readiness audit P1-3). Default true here; deploy-prod.sh / SSM env can override.
+#
+# PDPL NOTE: parent portal exposes child/student data to a parent account, which assumes a working
+# consent gate (parent-child link verified + consent recorded) is active. Enabling this flag in
+# production = asserting that gate is live. If consent enforcement is not yet wired for a tenant,
+# set PARENT_PORTAL_ENABLED=false for that deploy until consent gate ships.
+#
+# NOTE (GAP-444 / Phase 7): kiteclass-core is NOT yet declared in docker-compose.production.yml, so
+# this var has no production consumer until the KC stack prod deploy lands. It is written here ahead
+# of that deploy so the chain is ready; see env-vars-registry.md "kc-core production deploy deferred"
+# note for the deferred production-parity item.
+PARENT_PORTAL_ENABLED=${PARENT_PORTAL_ENABLED:-true}
+
 # Region pinning
 AWS_REGION=ap-southeast-1
 ENVEOF
