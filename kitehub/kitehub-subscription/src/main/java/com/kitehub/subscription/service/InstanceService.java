@@ -267,6 +267,50 @@ public class InstanceService {
     }
 
     /**
+     * Mark a PENDING instance as provisioned (PENDING → TRIAL) once kiteclass-core has
+     * deployed the tenant (GAP-945 follow-up — Wave provisioning-1 / KC-1 walk fix).
+     *
+     * <p><strong>Why this exists:</strong> the beta-invite flow creates the instance
+     * {@code PENDING} (pre-verified, so it skips {@link #activatePendingInstance} which is
+     * driven by email verification). After kiteclass-core finishes provisioning it publishes
+     * {@code tenant.deployed}; the subscription-side consumer calls this method to flip the
+     * lifecycle status to its live value. Without it the {@code Instance} is stuck PENDING
+     * forever — owner login + admin tenant list both show "đang chờ" despite KC being DEPLOYED.
+     *
+     * <p><strong>Idempotent + best-effort:</strong> only PENDING → TRIAL transitions; any other
+     * status (already TRIAL/ACTIVE/SUSPENDED/...) is a no-op. Unknown instanceId logs a warning
+     * and returns (the deploy event is best-effort and must not requeue-loop).
+     *
+     * <p>The TRIAL transition mirrors {@link #activatePendingInstance} exactly via
+     * {@link Instance#startTrial(int)} (status=TRIAL + {@code trialStartedAt}=now +
+     * {@code trialExpiresAt}=now+duration) so both activation paths (email-verify vs
+     * beta-deploy) converge on the same state. The database is NOT (re)provisioned here —
+     * kiteclass-core already owns provisioning for the beta path.
+     *
+     * @param instanceId Instance ID (from the {@code tenant.deployed} event)
+     */
+    @Transactional
+    public void markProvisioned(UUID instanceId) {
+        Instance instance = instanceRepository.findById(instanceId).orElse(null);
+        if (instance == null) {
+            log.warn("[provisioning] markProvisioned: instance {} not found — no-op", instanceId);
+            return;
+        }
+
+        if (instance.getStatus() != InstanceStatus.PENDING) {
+            log.debug("[provisioning] markProvisioned: instance {} status is {} (not PENDING) — no-op",
+                    instanceId, instance.getStatus());
+            return;
+        }
+
+        // Mirror activatePendingInstance PENDING → TRIAL transition (sets status + trial timestamps).
+        instance.startTrial(trialConfig.getDurationDays());
+        instanceRepository.save(instance);
+        log.info("[provisioning] markProvisioned: instance {} PENDING → TRIAL (expires {})",
+                instanceId, instance.getTrialExpiresAt());
+    }
+
+    /**
      * Register a new trial instance with owner (self-service registration).
      *
      * @param request registration request

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.subscription.client.EmailServiceClient;
 import com.kitehub.subscription.repository.InstanceRepository;
+import com.kitehub.subscription.service.InstanceService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -15,6 +16,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -41,10 +43,14 @@ class TenantDeployedEventConsumerTest {
     @Mock
     private EmailServiceClient emailServiceClient;
 
+    @Mock
+    private InstanceService instanceService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private TenantDeployedEventConsumer consumer() {
-        return new TenantDeployedEventConsumer(objectMapper, instanceRepository, emailServiceClient);
+        return new TenantDeployedEventConsumer(
+                objectMapper, instanceRepository, emailServiceClient, instanceService);
     }
 
     private static String payload(String tenantId) {
@@ -69,6 +75,33 @@ class TenantDeployedEventConsumerTest {
 
         consumer().handle(payload(id.toString()));
 
+        verify(instanceService).markProvisioned(id);
+        verify(emailServiceClient).sendTenantReadyEmail(
+                eq(id), eq("owner@acme.edu.vn"), eq("Acme School"), eq("acme"));
+    }
+
+    @Test
+    void handle_resolvableInstance_flipsStatusBeforeEmail() {
+        // GAP-945: tenant.deployed must flip Instance PENDING → TRIAL via InstanceService.
+        UUID id = UUID.randomUUID();
+        when(instanceRepository.findById(id))
+                .thenReturn(Optional.of(instance(id, "owner@acme.edu.vn", "Acme School", "acme")));
+
+        consumer().handle(payload(id.toString()));
+
+        verify(instanceService).markProvisioned(id);
+    }
+
+    @Test
+    void handle_markProvisionedThrows_stillSendsEmail() {
+        // GAP-945: status-flip failure is best-effort — must not abort the email send.
+        UUID id = UUID.randomUUID();
+        when(instanceRepository.findById(id))
+                .thenReturn(Optional.of(instance(id, "owner@acme.edu.vn", "Acme School", "acme")));
+        doThrow(new RuntimeException("db down")).when(instanceService).markProvisioned(id);
+
+        assertThatCode(() -> consumer().handle(payload(id.toString()))).doesNotThrowAnyException();
+
         verify(emailServiceClient).sendTenantReadyEmail(
                 eq(id), eq("owner@acme.edu.vn"), eq("Acme School"), eq("acme"));
     }
@@ -91,6 +124,8 @@ class TenantDeployedEventConsumerTest {
 
         consumer().handle(payload(id.toString()));
 
+        // GAP-945: status MUST still flip even when contactEmail is missing.
+        verify(instanceService).markProvisioned(id);
         verify(emailServiceClient, never()).sendTenantReadyEmail(any(), any(), any(), any());
     }
 

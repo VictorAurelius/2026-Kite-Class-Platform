@@ -423,4 +423,50 @@ class InstanceServiceTest {
             verify(instanceRepository).save(any(Instance.class));
         }
     }
+
+    @Nested
+    @DisplayName("markProvisioned (GAP-945 — tenant.deployed PENDING → TRIAL)")
+    class MarkProvisioned {
+
+        @Test
+        void markProvisioned_pendingInstance_transitionsToTrial() {
+            UUID id = UUID.randomUUID();
+            Instance pending = new Instance();
+            pending.setId(id);
+            pending.setStatus(InstanceStatus.PENDING);
+            when(instanceRepository.findById(id)).thenReturn(java.util.Optional.of(pending));
+
+            instanceService.markProvisioned(id);
+
+            assertThat(pending.getStatus()).isEqualTo(InstanceStatus.TRIAL);
+            assertThat(pending.getTrialStartedAt()).isNotNull();
+            assertThat(pending.getTrialExpiresAt()).isNotNull();
+            verify(instanceRepository).save(pending);
+        }
+
+        @Test
+        void markProvisioned_alreadyTrial_isNoOp() {
+            UUID id = UUID.randomUUID();
+            Instance trial = new Instance();
+            trial.setId(id);
+            trial.setStatus(InstanceStatus.TRIAL);
+            when(instanceRepository.findById(id)).thenReturn(java.util.Optional.of(trial));
+
+            instanceService.markProvisioned(id);
+
+            assertThat(trial.getStatus()).isEqualTo(InstanceStatus.TRIAL);
+            verify(instanceRepository, never()).save(any(Instance.class));
+        }
+
+        @Test
+        void markProvisioned_unknownInstance_doesNotThrow() {
+            UUID id = UUID.randomUUID();
+            when(instanceRepository.findById(id)).thenReturn(java.util.Optional.empty());
+
+            org.assertj.core.api.Assertions.assertThatCode(() -> instanceService.markProvisioned(id))
+                .doesNotThrowAnyException();
+
+            verify(instanceRepository, never()).save(any(Instance.class));
+        }
+    }
 }
