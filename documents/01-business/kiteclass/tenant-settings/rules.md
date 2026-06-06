@@ -119,3 +119,57 @@ Per-rule attributes (Source / Rationale / Reviewer / Compliance check / Review c
 ## Log
 
 - **2026-05-08** Backfill 5-attribute review section per GAP-433 Phase 1 (`business-logic-review.md` §2 standard). Placeholder Reviewer + Quarterly cadence + domain-specific Compliance check. GAP-156 Phase 2 will replace placeholders with stakeholder sign-offs.
+- **2026-06-06** Bổ sung §5 Per-tenant configuration (TenantSettings entity — timezone/locale/Năm học) per GAP-947 (Wave provisioning-1 Bucket F). Concern mới, tách khỏi Branding (BR-SET-*) ở trên.
+
+---
+
+## 5. Per-tenant configuration — TenantSettings (GAP-947)
+
+> Last verified: 2026-06-06 | Source: GAP-947, Wave provisioning-1 Bucket F | Code: `kiteclass-core/module/tenantsettings/`
+
+Cấu hình cấp tenant (trường học) — TÁCH BIỆT với Branding (BR-SET-* ở trên). Một bản ghi `TenantSettings` cho mỗi instance (1:1). Trước đây các giá trị này nằm rải rác (`Instance.organizationName/contactEmail`) hoặc hard-code global (`system_config.locale`).
+
+| ID | Rule | Value | Config Key |
+|----|------|-------|-----------|
+| BR-TSET-001 | Mỗi tenant có đúng 1 bản ghi TenantSettings (1:1 instance) | 1 | unique index `uk_tenant_settings_instance_id` |
+| BR-TSET-002 | Timezone mặc định | `Asia/Ho_Chi_Minh` | `TenantSettings.DEFAULT_TIMEZONE` |
+| BR-TSET-003 | Locale mặc định | `vi` | `TenantSettings.DEFAULT_LOCALE` |
+| BR-TSET-004 | Năm học auto-fill tại provision (VN K-12 Sep→May) | Sep→May | `AcademicYearCalculator.currentAcademicYear()` |
+| BR-TSET-005 | Năm học format `YYYY-YYYY` | vd `2026-2027` | regex `^\d{4}-\d{4}$` |
+| BR-TSET-006 | School type mặc định | `CENTER` | enum `SchoolType` (CENTER/K12/UNIVERSITY/OTHER) |
+| BR-TSET-007 | Tenant isolation — caller chỉ đọc/ghi settings tenant mình | enforced | controller guard (path id == X-Tenant-Id) + RLS `tenant_isolation` (V90) |
+| BR-TSET-008 | First read auto-create default (không 404) | auto | `TenantSettingsService.getSettings()` |
+| BR-TSET-009 | PUT update = provided-field-wins merge (null giữ giá trị cũ) | merge | mapper `NullValuePropertyMappingStrategy.IGNORE` |
+
+### Năm học auto-compute (VN K-12)
+
+Năm học chạy tháng 9 → tháng 5/6, label là khoảng 2 năm dương lịch:
+
+| Tháng hiện tại | Công thức | Ví dụ |
+|---|---|---|
+| ≥ 9 (Sep-Dec) | `<year>-<year+1>` | Oct 2026 → `2026-2027` |
+| < 9 (Jan-Aug) | `<year-1>-<year>` | May 2026 → `2025-2026` |
+
+Tính theo timezone `Asia/Ho_Chi_Minh`. Implementation: `AcademicYearCalculator`.
+
+### Fields (TenantSettings)
+
+| Field | Type | Nullable | Default |
+|---|---|---|---|
+| `timezone` | String(50) | no | `Asia/Ho_Chi_Minh` |
+| `locale` | String(10) | no | `vi` |
+| `academicYear` | String(20) | no | auto-fill (Năm học) |
+| `fiscalYear` | String(20) | yes | — |
+| `schoolType` | enum | no | `CENTER` |
+| `address` | String(500) | yes | — |
+| `phone` | String(30) | yes | — |
+| `logoUrl` | String(1000) | yes | — |
+| `themeConfig` | jsonb | yes | — |
+
+### 5-attribute review (per `business-logic-review.md` §2)
+
+- **Source:** Benchmark B1 (MISA QLTH — Năm học required field tại provision) + recommendation C2 (KC-1 pre-walk audit 2026-06-04) + informed gut cho defaults (timezone/locale VN).
+- **Rationale:** VN K-12 mọi nghiệp vụ (lịch học, học kỳ, điểm) neo theo Năm học → phải có sẵn ngay khi provision. Default `CENTER` vì Phase 1 BETA target P2 trung tâm.
+- **Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-06-06). Formal review queued GAP-156.
+- **Compliance check:** N/A — cấu hình nội bộ tenant; không PII vượt phạm vi `tenant-provisioning` đã cover.
+- **Review cadence:** Quarterly. **Next review:** 2026-09-06. Triggers: thêm field settings mới, đổi quy ước Năm học.

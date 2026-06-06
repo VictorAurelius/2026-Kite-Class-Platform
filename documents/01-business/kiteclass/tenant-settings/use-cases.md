@@ -143,3 +143,54 @@
 | Code | Condition | Message |
 |------|-----------|---------|
 | 400 | Invalid landing page data | Validation error |
+
+---
+
+## Per-tenant configuration use cases — TenantSettings (GAP-947)
+
+> Last verified: 2026-06-06 | Source: GAP-947, Wave provisioning-1 Bucket F | Code: `kiteclass-core/module/tenantsettings/`
+
+### UC-TSET-01: Xem settings của tenant
+
+**Actor:** Owner / Admin của tenant (trường học)
+**Precondition:** Đã đăng nhập, có `X-Tenant-Id` header.
+
+**Steps:**
+1. FE gọi `GET /api/v1/tenants/{id}/settings` (`{id}` = tenant id).
+2. BE verify `{id}` == tenant hiện tại (X-Tenant-Id).
+3. Nếu chưa có bản ghi → auto-create default (timezone `Asia/Ho_Chi_Minh`, locale `vi`, Năm học auto-fill, schoolType `CENTER`).
+4. Trả về settings.
+
+**Postcondition:** Settings tồn tại + trả về; Năm học luôn có sẵn (vd `2026-2027`).
+
+**Errors:**
+| Code | Condition | Message |
+|------|-----------|---------|
+| 403 | `{id}` ≠ tenant đăng nhập | TENANT_ACCESS_DENIED (cross-tenant IDOR) |
+
+### UC-TSET-02: Cập nhật settings
+
+**Actor:** Owner / Admin của tenant
+
+**Steps:**
+1. FE gọi `PUT /api/v1/tenants/{id}/settings` với các field cần đổi.
+2. BE verify `{id}` == tenant hiện tại.
+3. Nếu chưa có bản ghi → tạo default trước, rồi merge.
+4. Merge provided-field-wins (field null giữ giá trị cũ).
+5. Trả về settings đã cập nhật.
+
+**Errors:**
+| Code | Condition | Message |
+|------|-----------|---------|
+| 403 | `{id}` ≠ tenant đăng nhập | TENANT_ACCESS_DENIED |
+| 400 | academicYear sai format / schoolType ngoài enum / field vượt độ dài | Validation error |
+
+### UC-TSET-03: Default settings khi provision tenant mới
+
+**Actor:** Hệ thống (tenant provisioning flow)
+
+**Steps:**
+1. Lần đầu truy cập settings (UC-TSET-01) → default tự sinh.
+2. Năm học auto-compute theo thời điểm provision (VN Sep→May).
+
+**Postcondition:** Mọi tenant luôn có settings hợp lệ ngay từ lần truy cập đầu (lazy-create, không cần seed riêng).
