@@ -18,10 +18,13 @@ public class DomainSetupRequest {
      * Custom domain to set up (e.g., "school.example.com").
      * Must be a valid fully-qualified domain name.
      */
+    // KH-7 FM-2: the old regex matched ONLY 2-label domains (label.tld), rejecting
+    // multi-label FQDNs like school.example.com and — critically for the VN market —
+    // every `*.edu.vn` school domain. Allow one or more sub-labels before the TLD.
     @NotBlank(message = "Custom domain is required")
     @Pattern(
-        regexp = "^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\\.[a-zA-Z]{2,}$",
-        message = "Invalid domain format. Use format: subdomain.domain.tld (e.g., school.example.com)"
+        regexp = "^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}$",
+        message = "Invalid domain format. Use a fully-qualified domain (e.g., school.example.com or truong.edu.vn)"
     )
     private String customDomain;
 }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -36,6 +37,18 @@ public class DomainService {
     private final DomainVerificationConfig domainVerificationConfig;
     private final DnsTxtLookupService dnsTxtLookupService;
 
+    // KH-7 FM-5: a tenant must not be able to claim the platform's own domains as their
+    // custom domain (no denylist previously — `kitehub.me` was accepted). Block the
+    // platform apex domains and any subdomain of them.
+    private static final Set<String> RESERVED_DOMAINS = Set.of(
+        "kitehub.me", "kitehub.vn", "kitehub.com", "kiteclass.com", "kiteclass.me", "kiteclass.vn"
+    );
+
+    private boolean isReservedDomain(String domain) {
+        String d = domain.toLowerCase();
+        return RESERVED_DOMAINS.stream().anyMatch(r -> d.equals(r) || d.endsWith("." + r));
+    }
+
     /**
      * Initiate custom domain setup for an instance.
      * Generates a DNS TXT verification token and saves PENDING_VERIFY status.
@@ -56,6 +69,13 @@ public class DomainService {
             throw new IllegalArgumentException(
                 "Custom domain is only available for PREMIUM and ENTERPRISE tiers. " +
                 "Current tier: " + instance.getTier()
+            );
+        }
+
+        // KH-7 FM-5: reject platform-reserved domains (a tenant can't claim kitehub.me etc.)
+        if (isReservedDomain(customDomain)) {
+            throw new IllegalArgumentException(
+                "Domain '" + customDomain + "' is reserved by the platform and cannot be used as a custom domain"
             );
         }
 

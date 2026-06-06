@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -39,6 +40,13 @@ import java.util.UUID;
        extraTags = {"slo", "tier-c", "controller", "domain"})
 public class DomainController {
 
+    // KH-7 FM-1: DomainController had ZERO authz — any authenticated user (any role)
+    // could read/set/delete any instance's domain. Mirror the OWNER_AUTHZ role gate used
+    // by sibling controllers. NOTE: this is role-level defense-in-depth only; cross-tenant
+    // ownership binding (Owner A acting on Owner B's instance) still needs the gateway
+    // tenant-identity propagation tracked in GAP-1023 (sister of GAP-1015/GAP-1019).
+    static final String OWNER_AUTHZ = "hasAnyRole('OWNER','PLATFORM_ADMIN','ADMIN')";
+
     private final DomainService domainService;
 
     /**
@@ -52,6 +60,7 @@ public class DomainController {
      */
     @Operation(summary = "Initiate custom domain setup",
                description = "Generates a DNS TXT verification token. Premium/Enterprise only.")
+    @PreAuthorize(OWNER_AUTHZ)
     @PostMapping
     public ResponseEntity<DomainVerifyResponse> initiateCustomDomain(
         @PathVariable UUID id,
@@ -70,6 +79,7 @@ public class DomainController {
      */
     @Operation(summary = "Verify custom domain DNS",
                description = "Checks DNS TXT record. Returns VERIFIED if correct, PENDING if not found yet.")
+    @PreAuthorize(OWNER_AUTHZ)
     @PostMapping("/verify")
     public ResponseEntity<DomainVerifyResponse> verifyCustomDomain(@PathVariable UUID id) {
         DomainVerifyResponse response = domainService.verifyCustomDomain(id);
@@ -85,6 +95,7 @@ public class DomainController {
      */
     @Operation(summary = "Remove custom domain",
                description = "Removes custom domain and clears all verification data.")
+    @PreAuthorize(OWNER_AUTHZ)
     @DeleteMapping
     public ResponseEntity<Void> removeCustomDomain(@PathVariable UUID id) {
         domainService.removeCustomDomain(id);
@@ -99,6 +110,7 @@ public class DomainController {
      */
     @Operation(summary = "Get custom domain status",
                description = "Returns current domain verification status and info.")
+    @PreAuthorize(OWNER_AUTHZ)
     @GetMapping
     public ResponseEntity<DomainVerifyResponse> getDomainStatus(@PathVariable UUID id) {
         DomainVerifyResponse response = domainService.getDomainStatus(id);
