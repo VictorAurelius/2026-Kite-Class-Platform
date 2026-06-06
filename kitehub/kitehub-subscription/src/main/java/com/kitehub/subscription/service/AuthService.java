@@ -4,6 +4,7 @@ import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.entity.User;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
+import com.kitehub.subscription.audit.TenantAuditService;
 import com.kitehub.subscription.audit.login.LoginAuditService;
 import com.kitehub.subscription.auth.twofactor.ChallengeTokenService;
 import com.kitehub.subscription.dto.*;
@@ -79,6 +80,15 @@ public class AuthService {
      */
     @Autowired(required = false)
     private SubscriptionEventEmitter tenantEventEmitter;
+
+    /**
+     * Tenant-provisioning audit writer (GAP-949, Wave provisioning-1 Bucket B).
+     * Field-injected (not in {@link RequiredArgsConstructor}) so legacy unit tests
+     * constructing {@link AuthService} directly stay unaffected; null in those tests,
+     * guarded in {@link #recordTenantProvisionedAudit(UUID, InstanceResponse, String, String)}.
+     */
+    @Autowired(required = false)
+    private TenantAuditService tenantAuditService;
 
     /** Routing key / outbox topic for the {@code tenant.created} cross-service event (GAP-945). */
     static final String TENANT_CREATED_TOPIC = "tenant.created";
@@ -282,6 +292,12 @@ public class AuthService {
         // created and the Instance stays INITIALIZING.
         publishTenantCreated(instance);
 
+        // GAP-949 (Wave provisioning-1 Bucket B): write a TENANT_PROVISIONED audit row
+        // (PDPL Art 11 + OWASP A09 trail) for "tenant X provisioned when/from-which-IP".
+        // Isolated via REQUIRES_NEW + try/catch inside the service so an audit failure
+        // never fails registration (per audit-service-isolation.md §1).
+        recordTenantProvisionedAudit(user.getId(), instance, ownerEmail, subdomain);
+
         String accessToken = generateAccessToken(user.getId(), user.getEmail(), user.getRole());
         String refreshToken = generateRefreshToken(user.getId());
 
@@ -327,6 +343,25 @@ public class AuthService {
                 + "\"tone\":\"" + SubscriptionEventEmitter.escape(DEFAULT_TONE) + "\"}";
         tenantEventEmitter.emit(instance.getId(), "TENANT_CREATED", TENANT_CREATED_TOPIC, payloadJson);
         log.info("Published tenant.created for instance {} slug {}", instance.getId(), slug);
+    }
+
+    /**
+     * Write a {@code TENANT_PROVISIONED} audit row (GAP-949, Wave provisioning-1 Bucket B).
+     *
+     * <p>Null-guarded: {@code tenantAuditService} is field-injected and may be null in
+     * legacy unit tests. {@link TenantAuditService#recordTenantProvisioned} runs in its
+     * own {@code REQUIRES_NEW} transaction + swallows failures, so this call never blocks
+     * registration (mirrors the {@code loginAuditService.recordLogin} call in
+     * {@link #login(LoginRequest, HttpServletRequest)}).</p>
+     */
+    private void recordTenantProvisionedAudit(UUID ownerId, InstanceResponse instance,
+                                              String ownerEmail, String subdomain) {
+        if (tenantAuditService == null) {
+            log.debug("tenantAuditService not wired — skipping TENANT_PROVISIONED audit (instance {})",
+                instance.getId());
+            return;
+        }
+        tenantAuditService.recordTenantProvisioned(instance.getId(), ownerId, ownerEmail, subdomain);
     }
 
     /**
