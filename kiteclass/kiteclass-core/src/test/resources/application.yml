@@ -19,6 +19,12 @@ internal:
   api:
     secret: test-internal-secret-for-all-tests
 
+# JWT signing secret for tests (KC-native login, Wave auth-1).
+# AuthTokenService fail-fast requires >= 64 bytes for HS512; this is a
+# test-only value (NOT a production credential — prod fetches from Secrets Manager).
+jwt:
+  secret: test-kiteclass-core-jwt-secret-hs512-unit-tests-only-not-a-production-value-0123456789
+
 # CSRF secret for tests (≥32 chars to satisfy DoubleSubmitCsrfTokenProvider
 # fail-loud guard; not a production value).
 security:

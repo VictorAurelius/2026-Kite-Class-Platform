@@ -10,6 +10,7 @@ import com.kiteclass.core.common.exception.BusinessException;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.outbox.OutboxEventWriter;
+import com.kiteclass.core.module.auth.service.AuthCredentialProvisioningService;
 import com.kiteclass.core.module.parent.config.ParentPortalProperties;
 import com.kiteclass.core.module.parent.dto.ParentInvitationResponse;
 import com.kiteclass.core.module.parent.dto.RedeemInvitationRequest;
@@ -24,6 +25,7 @@ import com.kiteclass.core.module.parent.repository.ParentStudentLinkRepository;
 import com.kiteclass.core.module.parent.service.ParentInvitationService;
 import com.kiteclass.core.module.student.entity.Student;
 import com.kiteclass.core.module.student.repository.StudentRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
@@ -56,6 +58,7 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ParentInvitationServiceImpl implements ParentInvitationService {
 
     static final String EMAIL_EXCHANGE = "email.exchange";
@@ -71,25 +74,7 @@ public class ParentInvitationServiceImpl implements ParentInvitationService {
     private final OutboxEventWriter outbox;
     private final ObjectMapper objectMapper;
     private final ParentPortalProperties properties;
-
-    public ParentInvitationServiceImpl(
-            ParentRepository parentRepository,
-            ParentInvitationRepository invitationRepository,
-            ParentStudentLinkRepository linkRepository,
-            StudentRepository studentRepository,
-            RabbitTemplate rabbitTemplate,
-            OutboxEventWriter outbox,
-            ObjectMapper objectMapper,
-            ParentPortalProperties properties) {
-        this.parentRepository = parentRepository;
-        this.invitationRepository = invitationRepository;
-        this.linkRepository = linkRepository;
-        this.studentRepository = studentRepository;
-        this.rabbitTemplate = rabbitTemplate;
-        this.outbox = outbox;
-        this.objectMapper = objectMapper;
-        this.properties = properties;
-    }
+    private final AuthCredentialProvisioningService credentialProvisioning;
 
     @Override
     @Transactional
@@ -186,6 +171,12 @@ public class ParentInvitationServiceImpl implements ParentInvitationService {
             parent.setRelationship(parseRelationship(request.relationship()));
             parent = parentRepository.save(parent);
         }
+
+        // Provision the parent's login credential (Wave auth-1, Option B — GAP-725).
+        // Atomic with the parent/link in this @Transactional flow. Idempotent on email:
+        // a returning parent (second-child redeem) keeps their existing password.
+        credentialProvisioning.provisionParent(
+                parent.getId(), invitation.getEmail(), tenantId, request.password());
 
         // Create the link if one doesn't exist for (parent, student).
         Student student = invitation.getStudent();

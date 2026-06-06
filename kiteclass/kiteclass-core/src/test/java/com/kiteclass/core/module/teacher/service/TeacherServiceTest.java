@@ -51,6 +51,9 @@ class TeacherServiceTest {
     @Mock
     private TeacherMapper teacherMapper;
 
+    @Mock
+    private com.kiteclass.core.module.auth.service.AuthCredentialProvisioningService credentialProvisioning;
+
     @InjectMocks
     private TeacherServiceImpl teacherService;
 

@@ -63,6 +63,14 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
     static final String HEADER_USER_ID = "X-User-Id";
     static final String HEADER_USER_ROLES = "X-User-Roles";
     static final String HEADER_USER_EMAIL = "X-User-Email";
+    /**
+     * Numeric domain reference id (parents.id / teachers.id / students.id) for
+     * kiteclass-core reference-id authz (GAP-798). Present only on KC-native tokens
+     * (Wave auth-1). Client-supplied value is stripped by {@code default-filters}
+     * {@code RemoveRequestHeader=X-User-Reference-Id} before this re-injects the
+     * verified claim — same anti-spoof pattern as X-User-Id.
+     */
+    static final String HEADER_USER_REFERENCE_ID = "X-User-Reference-Id";
     static final String BEARER_PREFIX = "Bearer ";
 
     /** Reserved role propagated for verified HS256 challenge tokens on 2FA paths. */
@@ -188,6 +196,14 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
         }
         if (email != null) {
             mutated.header(HEADER_USER_EMAIL, email);
+        }
+        if (!isChallenge) {
+            // KC-native tokens (Wave auth-1) carry referenceId = parents/teachers/students.id
+            // for kiteclass-core reference-id authz (GAP-798). Absent on OWNER/STAFF tokens.
+            Object referenceId = claims.get("referenceId");
+            if (referenceId != null) {
+                mutated.header(HEADER_USER_REFERENCE_ID, String.valueOf(referenceId));
+            }
         }
 
         log.debug("Injected X-User-Id={} X-User-Roles={} isChallenge={} path={}",

@@ -70,7 +70,13 @@ WITH tenant_columns AS (
       AND NOT a.attisdropped
       AND a.attname IN ('instance_id', 'tenant_id')
       AND format_type(a.atttypid, a.atttypmod) = 'uuid'
-      AND c.relname NOT IN ('instances')
+      -- 'instances': the tenant-registry table itself (not tenant-scoped data).
+      -- 'auth_credentials': KC-native login lookup happens PRE-auth — no
+      -- app.current_tenant_id GUC is set yet, so RLS would block the very lookup
+      -- that establishes tenant binding. The credential row IS the source of
+      -- instance_id; global-email-unique lookup is intentional (see
+      -- V89__create_auth_credentials.sql header). Wave auth-1 / GAP-725.
+      AND c.relname NOT IN ('instances', 'auth_credentials')
 ),
 policy_summary AS (
     SELECT
