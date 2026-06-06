@@ -20,6 +20,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -75,8 +76,34 @@ class TenantProvisioningSagaTest {
         return i;
     }
 
+    private FrontendInstance withStatus(long id, FrontendInstanceStatus... transitions) {
+        FrontendInstance i = FrontendInstance.builder()
+                .tenantSlug("t-1").slug("acme")
+                .status(FrontendInstanceStatus.NOT_STARTED)
+                .retryCount(0).brandingVersion(0).build();
+        for (FrontendInstanceStatus s : transitions) {
+            i.transitionTo(s);
+        }
+        i.setId(id);
+        return i;
+    }
+
+    private FrontendInstance failed(long id) {
+        return withStatus(id, FrontendInstanceStatus.INITIALIZING, FrontendInstanceStatus.FAILED);
+    }
+
+    private FrontendInstance deployed(long id) {
+        return withStatus(id, FrontendInstanceStatus.INITIALIZING,
+                FrontendInstanceStatus.GENERATING, FrontendInstanceStatus.DEPLOYED);
+    }
+
+    private FrontendInstance generating(long id) {
+        return withStatus(id, FrontendInstanceStatus.INITIALIZING, FrontendInstanceStatus.GENERATING);
+    }
+
     @Test
     void happy_path_runs_initiate_infra_analyzer_planner_executor() {
+        when(lifecycle.findActiveBySlug("acme")).thenReturn(Optional.empty());
         when(lifecycle.initiate(anyString(), anyString())).thenReturn(initialized(42L));
         when(analyzer.analyze(any())).thenReturn(AnalysisResult.builder()
                 .palette(List.of("#1F2937")).build());
@@ -86,11 +113,72 @@ class TenantProvisioningSagaTest {
 
         assertThat(id).isEqualTo(42L);
         verify(lifecycle).initiate("t-1", "acme");
+        verify(lifecycle, never()).retry(anyLong());
         verify(lifecycle).markInfrastructureReady(42L);
         verify(analyzer).analyze(any());
         verify(planner).plan(any());
         verify(executor).execute(any(Plan.class), any(StepContext.class));
         verify(lifecycle, never()).markFailed(anyLong(), anyString());
+    }
+
+    // ---- GAP-953 admin force-retry: idempotent + retry-aware provision ----
+
+    @Test
+    void no_existing_instance_initiates_and_does_not_retry() {
+        when(lifecycle.findActiveBySlug("acme")).thenReturn(Optional.empty());
+        when(lifecycle.initiate(anyString(), anyString())).thenReturn(initialized(42L));
+        when(analyzer.analyze(any())).thenReturn(AnalysisResult.templateOnly());
+        when(planner.plan(any())).thenReturn(new Plan("desc", List.of()));
+
+        Long id = saga.provision(event());
+
+        assertThat(id).isEqualTo(42L);
+        verify(lifecycle).initiate("t-1", "acme");
+        verify(lifecycle, never()).retry(anyLong());
+        verify(lifecycle).markInfrastructureReady(42L);
+        verify(executor).execute(any(Plan.class), any(StepContext.class));
+    }
+
+    @Test
+    void existing_failed_instance_routes_through_retry_not_initiate() {
+        when(lifecycle.findActiveBySlug("acme")).thenReturn(Optional.of(failed(42L)));
+        when(lifecycle.retry(42L)).thenReturn(initialized(42L));
+        when(analyzer.analyze(any())).thenReturn(AnalysisResult.templateOnly());
+        when(planner.plan(any())).thenReturn(new Plan("desc", List.of()));
+
+        Long id = saga.provision(event());
+
+        assertThat(id).isEqualTo(42L);
+        verify(lifecycle).retry(42L);
+        verify(lifecycle, never()).initiate(anyString(), anyString());
+        verify(lifecycle).markInfrastructureReady(42L);
+        verify(executor).execute(any(Plan.class), any(StepContext.class));
+    }
+
+    @Test
+    void existing_deployed_instance_is_idempotent_no_op() {
+        when(lifecycle.findActiveBySlug("acme")).thenReturn(Optional.of(deployed(77L)));
+
+        Long id = saga.provision(event());
+
+        assertThat(id).isEqualTo(77L);
+        verify(lifecycle, never()).initiate(anyString(), anyString());
+        verify(lifecycle, never()).retry(anyLong());
+        verify(lifecycle, never()).markInfrastructureReady(anyLong());
+        verify(executor, never()).execute(any(), any());
+    }
+
+    @Test
+    void existing_in_flight_instance_is_idempotent_no_op() {
+        when(lifecycle.findActiveBySlug("acme")).thenReturn(Optional.of(generating(88L)));
+
+        Long id = saga.provision(event());
+
+        assertThat(id).isEqualTo(88L);
+        verify(lifecycle, never()).initiate(anyString(), anyString());
+        verify(lifecycle, never()).retry(anyLong());
+        verify(lifecycle, never()).markInfrastructureReady(anyLong());
+        verify(executor, never()).execute(any(), any());
     }
 
     @Test

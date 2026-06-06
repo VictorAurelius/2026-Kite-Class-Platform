@@ -9,12 +9,15 @@ import com.kiteclass.core.module.ai.workflow.PlannerService;
 import com.kiteclass.core.module.ai.workflow.StepContext;
 import com.kiteclass.core.module.ai.workflow.StepException;
 import com.kiteclass.core.module.instance.entity.FrontendInstance;
+import com.kiteclass.core.module.instance.entity.FrontendInstanceStatus;
 import com.kiteclass.core.module.instance.service.InstanceLifecycleService;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 /**
  * Saga orchestrating the full tenant onboarding → branded-instance lifecycle.
@@ -71,11 +74,39 @@ public class TenantProvisioningSaga {
     public Long provision(TenantCreatedEvent event) {
         FrontendInstance instance;
         try {
-            instance = lifecycle.initiate(event.getTenantId(), event.getSlug());
-            log.info("[saga] initiated tenant={} slug={} id={}",
-                    event.getTenantId(), event.getSlug(), instance.getId());
+            // Idempotent + retry-aware entry. Admin force-retry (GAP-953) re-publishes
+            // tenant.created → re-drives this saga; the FAILED FrontendInstance still exists
+            // (deleted=false), so a blind initiate() would slug-collision throw. Route by the
+            // existing instance's state instead.
+            Optional<FrontendInstance> existing = lifecycle.findActiveBySlug(event.getSlug());
+            if (existing.isEmpty()) {
+                // Fresh provisioning — no instance for this slug yet.
+                instance = lifecycle.initiate(event.getTenantId(), event.getSlug());
+                log.info("[saga] initiated tenant={} slug={} id={}",
+                        event.getTenantId(), event.getSlug(), instance.getId());
+            } else {
+                FrontendInstance current = existing.get();
+                FrontendInstanceStatus status = current.getStatus();
+                if (status == FrontendInstanceStatus.FAILED) {
+                    // Admin force-retry path: FAILED -> INITIALIZING (retryCount++). retry() throws
+                    // IllegalStateException when retryCount >= MAX_RETRIES — that propagates like an
+                    // initiate failure below (consumer ACKs; tenant stays FAILED for manual triage).
+                    instance = lifecycle.retry(current.getId());
+                    log.info("[saga] retrying FAILED instance tenant={} slug={} id={}",
+                            event.getTenantId(), event.getSlug(), instance.getId());
+                } else {
+                    // DEPLOYED (already provisioned) / INITIALIZING|GENERATING|REGENERATING (provision
+                    // in flight — duplicate publish) / SUSPENDED|DELETED (deliberately off-boarded):
+                    // idempotent no-op. Re-provisioning any of these would corrupt a live or in-flight
+                    // tenant, so skip and return the existing id.
+                    log.info("[saga] instance exists in status {} — idempotent skip (no re-provision) "
+                                    + "tenant={} slug={} id={}",
+                            status, event.getTenantId(), event.getSlug(), current.getId());
+                    return current.getId();
+                }
+            }
         } catch (RuntimeException startupFailure) {
-            log.error("[saga] initiate failed tenant={} slug={}: {}",
+            log.error("[saga] initiate/retry failed tenant={} slug={}: {}",
                     event.getTenantId(), event.getSlug(), startupFailure.getMessage());
             throw startupFailure;
         }
