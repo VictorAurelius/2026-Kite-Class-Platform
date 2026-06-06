@@ -49,8 +49,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("TenantHeaderGuardFilter (kitehub-gateway / GAP-814)")
 class TenantHeaderGuardFilterTest {
 
-    /** 32-byte test secret — đủ ≥256 bits cho HS512. */
-    private static final String TEST_SECRET = "test-secret-32-bytes-minimum-1234";
+    /** 66-byte test secret — ≥512 bits, exercises real HS512 like prod (GAP-1012). */
+    private static final String TEST_SECRET = "test-secret-64-bytes-minimum-for-hs512-access-token-key-abcdefghij";
 
     private TenantHeaderGuardFilter filter;
     private SecretKey signingKey;

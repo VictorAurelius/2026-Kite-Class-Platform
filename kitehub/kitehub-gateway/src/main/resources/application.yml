@@ -728,6 +728,15 @@ spring:
           predicates:
             - Path=/api/v1/tenant-auth/**
           filters:
+            # GAP-1012 — public token-minting login MUST be rate-limited (brute-force /
+            # credential-stuffing). Mirrors GAP-514 auth-register rate (replenishRate 3 /
+            # burst 5, IP-keyed — login is pre-auth so no user key available).
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 3
+                redis-rate-limiter.burstCapacity: 5
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@ipKeyResolver}"
             - name: CircuitBreaker
               args:
                 name: instanceCircuitBreaker
