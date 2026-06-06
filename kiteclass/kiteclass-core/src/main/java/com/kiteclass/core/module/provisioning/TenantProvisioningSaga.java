@@ -10,6 +10,8 @@ import com.kiteclass.core.module.ai.workflow.StepContext;
 import com.kiteclass.core.module.ai.workflow.StepException;
 import com.kiteclass.core.module.instance.entity.FrontendInstance;
 import com.kiteclass.core.module.instance.service.InstanceLifecycleService;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,10 +43,30 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class TenantProvisioningSaga {
 
+    /**
+     * Micrometer counter — tenant provisioning compensation outcomes.
+     * Tagged {@code result=success|failed}. The {@code result=failed} series is the
+     * P0 alert signal (compensation itself threw → instance stuck pre-FAILED).
+     *
+     * <p>NOTE: this stack has no CloudWatch meter registry; the CloudWatch alarm
+     * (GAP-952) is driven by the structured log token {@code TENANT_PROVISIONING_COMPENSATION_FAILED}
+     * via a CloudWatch Logs metric filter — see
+     * {@code infrastructure/terraform-aws/cloudwatch-provisioning-alarms.tf}.
+     * The Micrometer counter here serves in-app / Prometheus (/actuator) observability.
+     */
+    public static final String METRIC_COMPENSATION = "tenant_provisioning.compensation";
+
+    /**
+     * Structured log token matched by the CloudWatch Logs metric filter that backs the
+     * SNS alarm. Keep verbatim — changing it silently breaks the alarm (GAP-952).
+     */
+    public static final String ALERT_COMPENSATION_FAILED = "TENANT_PROVISIONING_COMPENSATION_FAILED";
+
     private final InstanceLifecycleService lifecycle;
     private final AnalyzerService analyzer;
     private final PlannerService planner;
     private final PlanExecutor executor;
+    private final MeterRegistry meterRegistry;
 
     public Long provision(TenantCreatedEvent event) {
         FrontendInstance instance;
@@ -99,12 +121,35 @@ public class TenantProvisioningSaga {
         executor.execute(plan, context);
     }
 
+    /**
+     * Compensating action for a failed provisioning saga: transition the instance to FAILED so an
+     * admin can retry (Bucket E). When the compensation ITSELF fails (e.g. DB connection lost),
+     * the instance stays stuck pre-FAILED forever — BR-PROV-005 previously only logged this, so
+     * admins never learned to clean up the orphan. GAP-952: emit a metric + a structured alert
+     * token so a CloudWatch alarm fires SNS, plus a {@code @Scheduled} sweep catches any instance
+     * still stuck (see {@link ProvisioningStuckSweep}).
+     */
     private void compensate(Long instanceId, String reason) {
+        String safeReason = reason == null ? "unknown" : reason;
         try {
-            lifecycle.markFailed(instanceId, reason == null ? "unknown" : reason);
+            lifecycle.markFailed(instanceId, safeReason);
+            Counter.builder(METRIC_COMPENSATION)
+                    .description("Tenant provisioning saga compensation outcomes")
+                    .tag("result", "success")
+                    .register(meterRegistry)
+                    .increment();
+            log.info("[saga] compensation succeeded id={} reason={}", instanceId, safeReason);
         } catch (RuntimeException secondary) {
-            log.error("[saga] compensation markFailed itself threw id={}: {}",
-                    instanceId, secondary.getMessage(), secondary);
+            Counter.builder(METRIC_COMPENSATION)
+                    .description("Tenant provisioning saga compensation outcomes")
+                    .tag("result", "failed")
+                    .register(meterRegistry)
+                    .increment();
+            // Structured alert token → CloudWatch Logs metric filter → SNS alarm (GAP-952).
+            // The instance is now stuck in a pre-FAILED state and needs admin attention.
+            log.error("[saga] {} id={} reason={} markFailed error={} — instance stuck pre-FAILED; "
+                            + "admin retry required (provisioning-stuck-sweep will re-attempt)",
+                    ALERT_COMPENSATION_FAILED, instanceId, safeReason, secondary.getMessage(), secondary);
         }
     }
 }
