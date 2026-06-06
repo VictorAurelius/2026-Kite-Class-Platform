@@ -1,6 +1,6 @@
 # GAP-1042: META — Gateway route-predicate audit (broad predicates shadow/expose wrong service, 3 recurrences)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1 (META — force-multiplier per `meta-gap-priority.md` §3)
 **Domain:** Backend (gateway) — meta/systemic
 **Found:** 2026-06-06 (KC-12 G1 walk — 3rd recurrence triggered meta filing)
@@ -44,3 +44,9 @@ Gateway route table thiếu **predicate discipline**: route nên match đúng pa
 - Children: GAP-1031 (KH-10) + GAP-1034 (KC-10) + GAP-1041 (KC-12) — concrete instances
 - `meta-gap-priority.md` §3 — META P1 force-multiplier (fix gateway route discipline 1 lần → eliminate routing-collision class)
 - `cross-flow-bug-class-sweep.md` — recurring class warrants systemic fix
+
+## Progress (Wave security-1, 2026-06-06)
+
+**Concrete 3 collisions FIXED + verified** (the actionable findings): GAP-1031 (email expose — route removed), GAP-1034 (branding shadow — 3 explicit routes added), GAP-1041 (payroll shadow — explicit route added). All re-walk-verified live; `audit-gateway-routes.sh` back to 4-finding main baseline + extended with `INTERNAL_ONLY_PATTERNS` exemption (email). Predicate-discipline pattern applied (specific routes before catch-all, single-predicate to avoid audit parser confusion).
+
+**REMAINING (keeps PARTIAL):** (1) full systematic audit of ALL catch-all `/**` gateway routes vs service-ownership (4 pre-existing findings remain: preferences→kiteclass + 3 admin-payments→admin — heuristic, verify real-vs-FP); (2) wire `audit-gateway-routes.sh` as HARD CI gate (currently deferred per production-env-config-registry.md §11); (3) route-ordering invariant doc. Defer to dedicated gateway-audit follow-up wave.
