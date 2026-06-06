@@ -429,6 +429,29 @@ class SubscriptionServiceTest {
     }
 
     @Test
+    @DisplayName("KH-5 FM-5: should reject downgrade while a pending tier-change payment is in flight")
+    void shouldRejectDowngradeWhenPendingPaymentExists() {
+        // Given — an upgrade left a pending payment; downgrading now would corrupt the pair
+        UUID subscriptionId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setTier(PricingTier.BASIC);
+        subscription.setBillingCycle(BillingCycle.MONTHLY);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        subscription.setExpiresAt(java.time.LocalDateTime.now().plusDays(15));
+        subscription.setPendingTier(PricingTier.PREMIUM);
+        subscription.setPendingPaymentId(UUID.randomUUID());
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+
+        // When & Then
+        assertThatThrownBy(() -> subscriptionService.downgradeSubscription(subscriptionId, PricingTier.FREE))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("pending tier change payment");
+        verify(subscriptionRepository, never()).save(any(Subscription.class));
+    }
+
+    @Test
     @DisplayName("Should throw exception when upgrading to lower tier")
     void shouldThrowExceptionWhenUpgradingToLowerTier() {
         // Given

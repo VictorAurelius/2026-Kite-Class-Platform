@@ -112,6 +112,14 @@ public class SubscriptionRenewalService {
             throw new IllegalArgumentException("Cannot renew cancelled subscription: " + subscriptionId);
         }
 
+        // KH-5 FM-2: a PENDING subscription was never activated (expiresAt is null until
+        // applyPendingUpgrade runs). Renewing it would NPE on getExpiresAt().plusMonths().
+        // Surface a 400 instead of a 500 — renewal only makes sense for an activated cycle.
+        if (subscription.getStatus() == SubscriptionStatus.PENDING || subscription.getExpiresAt() == null) {
+            throw new IllegalArgumentException(
+                "Cannot renew a subscription that has not been activated: " + subscriptionId);
+        }
+
         // Extend subscription by billing cycle
         LocalDateTime newExpiresAt = subscription.getExpiresAt().plusMonths(1);
         subscription.setExpiresAt(newExpiresAt);
