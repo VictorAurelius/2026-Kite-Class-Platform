@@ -17,8 +17,11 @@ import java.util.UUID;
  * can manually re-run provisioning instead of SSH-ing into RDS to flip the status by hand.
  * Mechanism mirrors the keystone {@code tenant.created} publish in
  * {@link AuthService#registerWithBetaInvite} (GAP-945 Bucket A): re-publishing the
- * {@code tenant.created} event re-drives kiteclass-core's {@code TenantProvisioningSaga}
- * (→ {@code InstanceLifecycleService.retry()} path) for the affected instance.</p>
+ * {@code tenant.created} event re-drives kiteclass-core's {@code TenantProvisioningSaga} for the
+ * affected instance. The saga detects the existing FAILED {@code FrontendInstance} (still present,
+ * {@code deleted=false}) by slug and routes it through {@code InstanceLifecycleService.retry()}
+ * (FAILED → INITIALIZING) rather than {@code initiate()} — which would otherwise slug-collision
+ * throw. An already-DEPLOYED or in-flight instance is an idempotent no-op (no re-provision).</p>
  *
  * <p>The re-publish payload reuses the same field shape (tenantId/slug/audience/tone) the saga's
  * {@code TenantCreatedEvent} expects, composed via {@link SubscriptionEventEmitter#escape(String)}.

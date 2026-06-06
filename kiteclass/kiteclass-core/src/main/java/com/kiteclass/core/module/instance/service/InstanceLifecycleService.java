@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 /**
  * InstanceLifecycleService — single authority for {@link FrontendInstance} state transitions.
  *
@@ -35,6 +37,21 @@ public class InstanceLifecycleService {
 
     private final FrontendInstanceRepository repository;
     private final OutboxEventWriter outbox;
+
+    /**
+     * Read-only lookup of the active (non soft-deleted) instance for a slug, if any.
+     *
+     * <p>Centralizes {@link FrontendInstance} read access through the lifecycle service so callers
+     * (e.g. {@code TenantProvisioningSaga}) stay decoupled from the repository — this service is the
+     * single authority for instance access, mirroring its authority over state transitions.
+     * Returns empty when no non-deleted instance exists for the slug (fresh provisioning),
+     * or the existing row (e.g. a FAILED instance an admin force-retry must route through
+     * {@link #retry(Long)} rather than {@link #initiate(String, String)}).
+     */
+    @Transactional(readOnly = true)
+    public Optional<FrontendInstance> findActiveBySlug(String slug) {
+        return repository.findBySlugAndDeletedFalse(slug);
+    }
 
     /**
      * Create a new instance and begin provisioning.

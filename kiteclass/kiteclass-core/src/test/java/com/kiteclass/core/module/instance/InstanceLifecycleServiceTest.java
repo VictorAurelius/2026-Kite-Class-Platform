@@ -50,6 +50,23 @@ class InstanceLifecycleServiceTest {
     }
 
     @Test
+    void findActiveBySlug_delegates_to_repository() {
+        FrontendInstance i = deployedInstance();
+        when(repository.findBySlugAndDeletedFalse("acme")).thenReturn(Optional.of(i));
+
+        Optional<FrontendInstance> result = service.findActiveBySlug("acme");
+
+        assertThat(result).containsSame(i);
+    }
+
+    @Test
+    void findActiveBySlug_returns_empty_when_none() {
+        when(repository.findBySlugAndDeletedFalse("ghost")).thenReturn(Optional.empty());
+
+        assertThat(service.findActiveBySlug("ghost")).isEmpty();
+    }
+
+    @Test
     void initiate_rejects_duplicate_slug() {
         when(repository.existsBySlugAndDeletedFalse("acme")).thenReturn(true);
 
