@@ -9,6 +9,8 @@ import static com.kiteclass.core.module.instance.entity.FrontendInstanceStatus.G
 import static com.kiteclass.core.module.instance.entity.FrontendInstanceStatus.INITIALIZING;
 import static com.kiteclass.core.module.instance.entity.FrontendInstanceStatus.NOT_STARTED;
 import static com.kiteclass.core.module.instance.entity.FrontendInstanceStatus.REGENERATING;
+import static com.kiteclass.core.module.instance.entity.FrontendInstanceStatus.SUSPENDED;
+import static com.kiteclass.core.module.instance.entity.FrontendInstanceStatus.DELETED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class FrontendInstanceStatusTest {
@@ -37,10 +39,12 @@ class FrontendInstanceStatusTest {
     }
 
     @Test
-    void deployed_allows_regenerating_only() {
+    void deployed_allows_regenerating_or_suspended() {
         assertThat(DEPLOYED.canTransitionTo(REGENERATING)).isTrue();
+        assertThat(DEPLOYED.canTransitionTo(SUSPENDED)).isTrue();
         assertThat(DEPLOYED.canTransitionTo(FAILED)).isFalse();
         assertThat(DEPLOYED.canTransitionTo(GENERATING)).isFalse();
+        assertThat(DEPLOYED.canTransitionTo(DELETED)).isFalse();
     }
 
     @Test
@@ -58,11 +62,36 @@ class FrontendInstanceStatusTest {
     }
 
     @Test
-    void no_status_is_terminal_in_current_machine() {
+    void suspended_allows_reactivate_or_delete() {
+        // GAP-954 off-boarding: SUSPENDED ⇄ DEPLOYED (reactivate) or → DELETED (soft-delete).
+        assertThat(SUSPENDED.canTransitionTo(DEPLOYED)).isTrue();
+        assertThat(SUSPENDED.canTransitionTo(DELETED)).isTrue();
+        assertThat(SUSPENDED.canTransitionTo(REGENERATING)).isFalse();
+        assertThat(SUSPENDED.canTransitionTo(FAILED)).isFalse();
+    }
+
+    @Test
+    void deleted_is_terminal() {
+        // GAP-954: DELETED is one-way terminal — 30d PDPL Art 23 grace then cross-service purge.
+        assertThat(DELETED.isTerminal()).isTrue();
+        assertThat(DELETED.canTransitionTo(DEPLOYED)).isFalse();
+        assertThat(DELETED.canTransitionTo(SUSPENDED)).isFalse();
+        assertThat(DELETED.canTransitionTo(NOT_STARTED)).isFalse();
+    }
+
+    @Test
+    void only_deleted_is_terminal_in_current_machine() {
+        // GAP-954: DELETED is the only terminal state; all provisioning + suspend states transition.
         for (FrontendInstanceStatus s : FrontendInstanceStatus.values()) {
-            assertThat(s.isTerminal())
-                    .as("status %s should not be terminal", s)
-                    .isFalse();
+            if (s == DELETED) {
+                assertThat(s.isTerminal())
+                        .as("DELETED must be terminal")
+                        .isTrue();
+            } else {
+                assertThat(s.isTerminal())
+                        .as("status %s should not be terminal", s)
+                        .isFalse();
+            }
         }
     }
 }

@@ -18,28 +18,25 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Tenant-lifecycle audit writer (GAP-949, Wave provisioning-1 Bucket B).
+ * Tenant-lifecycle audit writer (Wave provisioning-1 — GAP-949 Bucket B + GAP-954 Bucket G).
  *
- * <p>Persists an {@link AdminAuditLog} row for tenant-provisioning lifecycle
- * events (PDPL Art 11 + OWASP A09 audit trail). Before this, beta-invite tenant
- * creation only emitted {@code log.info(...)} — no answerable "tenant X
- * provisioned when / via which beta-invite / from which IP / which user-agent"
- * forensic trail.</p>
+ * <p>Persists an {@link AdminAuditLog} row for tenant-lifecycle events (PDPL Art 11 + Art 23 +
+ * OWASP A09 audit trail). Hosts the full tenant-lifecycle audit surface under one helper with
+ * consistent {@code recordTenant*} naming:
+ * <ul>
+ *   <li>{@code recordTenantProvisioned(...)} — successful beta-invite provisioning (GAP-949)</li>
+ *   <li>{@code recordTenantDeleted(...)} — PDPL Art 23 hard-purge cascade (GAP-954)</li>
+ * </ul>
  *
- * <p>Each method runs in {@link Propagation#REQUIRES_NEW REQUIRES_NEW} +
- * try/catch per {@code .claude/rules/audit-service-isolation.md} §1 — an audit
- * write failure (SQL error, constraint violation, lock timeout) MUST NOT poison
- * the caller's registration/deletion transaction. Both layers are required:
- * REQUIRES_NEW isolates the physical transaction so the failure can never set
- * rollback-only on the parent; the catch keeps the caller from seeing a checked
- * failure (cf. 2026-05-16 admin-login 500 incident — default propagation +
- * try/catch still threw {@code UnexpectedRollbackException}).</p>
+ * <p>Each method runs in {@link Propagation#REQUIRES_NEW REQUIRES_NEW} + try/catch per
+ * {@code .claude/rules/audit-service-isolation.md} §1 — an audit write failure (SQL error,
+ * constraint violation, lock timeout) MUST NOT poison the caller's registration/purge
+ * transaction. Both layers are required: REQUIRES_NEW isolates the physical transaction so the
+ * failure can never set rollback-only on the parent; the catch keeps the caller from seeing a
+ * checked failure (cf. 2026-05-16 admin-login 500 incident — default propagation + try/catch
+ * still threw {@code UnexpectedRollbackException}).</p>
  *
- * <p>Designed to host the full tenant-lifecycle audit surface. Bucket G adds
- * {@code recordTenantDeleted(...)} to this same class so the two compose cleanly
- * under one tenant-audit helper (consistent {@code recordTenant*} naming).</p>
- *
- * @since 1.0.0 (Wave provisioning-1 Bucket B GAP-949)
+ * @since 1.0.0 (Wave provisioning-1 — Bucket B GAP-949 + Bucket G GAP-954)
  */
 @Service
 @RequiredArgsConstructor
@@ -48,10 +45,14 @@ public class TenantAuditService {
 
     /** Audit action for a successful tenant provisioning (beta-invite registration). */
     public static final String ACTION_TENANT_PROVISIONED = "TENANT_PROVISIONED";
+    /** Audit {@code action} value for a tenant hard-delete (PDPL Art 23 data destruction). */
+    public static final String ACTION_TENANT_DELETED = "TENANT_DELETED";
     /** Semantic resource type for tenant-scoped audit rows ({@code target_resource_type}). */
     static final String RESOURCE_TYPE_TENANT = "tenant";
     /** JPA entity type backing a tenant (the platform {@code Instance}). */
     static final String ENTITY_TYPE_INSTANCE = "Instance";
+    /** Sentinel actor id when the purge runs from the scheduled sweep (no admin principal). */
+    private static final UUID SYSTEM_ACTOR = new UUID(0L, 0L);
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -98,6 +99,38 @@ public class TenantAuditService {
             // Audit write must NEVER fail tenant provisioning. Log + continue.
             log.warn("TenantAuditService.recordTenantProvisioned failed "
                 + "(provisioning proceeds anyway): {}", ex.getMessage());
+        }
+    }
+
+    /**
+     * Record a {@code TENANT_DELETED} audit row for the PDPL Art 23 cascade (GAP-954).
+     *
+     * @param instanceId  the purged instance UUID
+     * @param subdomain   the tenant subdomain (human-readable target id)
+     * @param actorId     admin who triggered the purge, or {@code null} for the scheduled sweep
+     * @param detailJson  well-formed JSON snapshot of what was cascaded (DB / S3 / DNS / backups)
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void recordTenantDeleted(UUID instanceId, String subdomain, UUID actorId, String detailJson) {
+        try {
+            AdminAuditLog entry = AdminAuditLog.builder()
+                .adminUserId(actorId != null ? actorId : SYSTEM_ACTOR)
+                .action(ACTION_TENANT_DELETED)
+                .targetEntityType(ENTITY_TYPE_INSTANCE)
+                .targetEntityId(instanceId != null ? instanceId.toString() : null)
+                .targetResourceType(RESOURCE_TYPE_TENANT)
+                .targetResourceId(subdomain != null ? "tenant/" + subdomain : null)
+                .payloadJson(detailJson)
+                .success(true)
+                .createdAt(LocalDateTime.now())
+                .build();
+            repository.save(entry);
+            log.info("Wrote TENANT_DELETED audit row for instance {} (subdomain: {})",
+                instanceId, subdomain);
+        } catch (Exception ex) {
+            // Audit write must NEVER fail the purge it audits (REQUIRES_NEW already isolates txn).
+            log.warn("Failed to write TENANT_DELETED audit row for instance {} ({}): {}",
+                instanceId, subdomain, ex.getMessage());
         }
     }
 

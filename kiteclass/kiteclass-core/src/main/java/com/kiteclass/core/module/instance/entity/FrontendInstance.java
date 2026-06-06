@@ -84,6 +84,19 @@ public class FrontendInstance extends BaseEntity {
     @Column(name = "failed_at")
     private Instant failedAt;
 
+    /**
+     * Timestamp tenant was SUSPENDED (subscription expired / payment failed). GAP-954.
+     */
+    @Column(name = "suspended_at")
+    private Instant suspendedAt;
+
+    /**
+     * Timestamp tenant was soft-DELETED. Starts the 30-day PDPL Art 23 retention grace before the
+     * cross-service hard purge runs in kitehub-subscription. GAP-954.
+     */
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
     @Column(name = "retry_count", nullable = false)
     @Builder.Default
     private Integer retryCount = 0;
@@ -107,6 +120,7 @@ public class FrontendInstance extends BaseEntity {
                             + " (allowed from " + status + ": " + status.allowedTransitions() + ")"
             );
         }
+        FrontendInstanceStatus previous = this.status;
         this.status = target;
         Instant now = Instant.now();
         if (target == FrontendInstanceStatus.INITIALIZING) {
@@ -116,12 +130,21 @@ public class FrontendInstance extends BaseEntity {
             this.generatingAt = now;
         } else if (target == FrontendInstanceStatus.DEPLOYED) {
             this.deployedAt = now;
-            this.brandingVersion = this.brandingVersion + 1;
+            // Bump branding version only on a genuine (re)generation deploy — NOT on a
+            // SUSPENDED → DEPLOYED reactivation, which restores the same branding (GAP-954).
+            if (previous == FrontendInstanceStatus.GENERATING
+                    || previous == FrontendInstanceStatus.REGENERATING) {
+                this.brandingVersion = this.brandingVersion + 1;
+            }
         } else if (target == FrontendInstanceStatus.REGENERATING) {
             this.lastRegenerateAt = now;
         } else if (target == FrontendInstanceStatus.FAILED) {
             this.failedAt = now;
             this.retryCount = this.retryCount + 1;
+        } else if (target == FrontendInstanceStatus.SUSPENDED) {
+            this.suspendedAt = now;
+        } else if (target == FrontendInstanceStatus.DELETED) {
+            this.deletedAt = now;
         }
     }
 }

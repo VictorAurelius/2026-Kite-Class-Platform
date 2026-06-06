@@ -249,4 +249,67 @@ class InstanceLifecycleServiceTest {
         verify(outbox).enqueue(eq("instance.failed"), eq("FrontendInstance"),
                 eq("11"), anyString());
     }
+
+    // ---- GAP-954 off-boarding lifecycle ----
+
+    @Test
+    void suspend_from_deployed_records_timestamp_and_emits() {
+        FrontendInstance i = deployedInstance();
+        when(repository.findById(42L)).thenReturn(Optional.of(i));
+        when(repository.save(any(FrontendInstance.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        FrontendInstance result = service.suspend(42L);
+
+        assertThat(result.getStatus()).isEqualTo(FrontendInstanceStatus.SUSPENDED);
+        assertThat(result.getSuspendedAt()).isNotNull();
+        verify(outbox).enqueue(eq("instance.suspended"), eq("FrontendInstance"),
+                eq("42"), anyString());
+    }
+
+    @Test
+    void reactivate_from_suspended_restores_deployed_without_branding_bump() {
+        FrontendInstance i = deployedInstance(); // brandingVersion = 1 after deploy
+        i.transitionTo(FrontendInstanceStatus.SUSPENDED);
+        when(repository.findById(42L)).thenReturn(Optional.of(i));
+        when(repository.save(any(FrontendInstance.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        FrontendInstance result = service.reactivate(42L);
+
+        assertThat(result.getStatus()).isEqualTo(FrontendInstanceStatus.DEPLOYED);
+        // Reactivation must NOT bump brandingVersion — same branding restored (GAP-954).
+        assertThat(result.getBrandingVersion()).isEqualTo(1);
+        verify(outbox).enqueue(eq("instance.deployed"), eq("FrontendInstance"),
+                eq("42"), anyString());
+    }
+
+    @Test
+    void softDelete_from_suspended_records_timestamp_and_is_terminal() {
+        FrontendInstance i = deployedInstance();
+        i.transitionTo(FrontendInstanceStatus.SUSPENDED);
+        when(repository.findById(42L)).thenReturn(Optional.of(i));
+        when(repository.save(any(FrontendInstance.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        FrontendInstance result = service.softDelete(42L);
+
+        assertThat(result.getStatus()).isEqualTo(FrontendInstanceStatus.DELETED);
+        assertThat(result.getDeletedAt()).isNotNull();
+        assertThat(result.getStatus().isTerminal()).isTrue();
+        verify(outbox).enqueue(eq("instance.deleted"), eq("FrontendInstance"),
+                eq("42"), anyString());
+    }
+
+    @Test
+    void suspend_from_deployed_only_invalid_from_initializing() {
+        FrontendInstance i = FrontendInstance.builder()
+                .tenantSlug("t-1").slug("acme")
+                .status(FrontendInstanceStatus.NOT_STARTED)
+                .retryCount(0).brandingVersion(0).build();
+        i.transitionTo(FrontendInstanceStatus.INITIALIZING);
+        i.setId(21L);
+        when(repository.findById(21L)).thenReturn(Optional.of(i));
+
+        assertThatThrownBy(() -> service.suspend(21L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Invalid transition");
+    }
 }

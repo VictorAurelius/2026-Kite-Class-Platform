@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -72,6 +73,12 @@ class InstancePurgeServiceTest {
     @Mock
     private SubscriptionOutboxRepository outboxRepository;
 
+    @Mock
+    private DomainService domainService;
+
+    @Mock
+    private com.kitehub.subscription.audit.TenantAuditService tenantAuditService;
+
     private SubscriptionEventEmitter eventEmitter;
 
     private InstancePurgeService instancePurgeService;
@@ -84,7 +91,8 @@ class InstancePurgeServiceTest {
         eventEmitter = new SubscriptionEventEmitter(outboxRepository);
         instancePurgeService = new InstancePurgeService(
             instanceRepository, databaseProvisioningService, backupStorageService,
-            backupRecordRepository, emailSentLogRepository, rabbitTemplate, eventEmitter);
+            backupRecordRepository, emailSentLogRepository, rabbitTemplate, eventEmitter,
+            domainService, tenantAuditService);
         instanceId = UUID.randomUUID();
         deletedInstance = new Instance();
         deletedInstance.setId(instanceId);
@@ -314,6 +322,54 @@ class InstancePurgeServiceTest {
             assertThat(result.isBrandingCleanupPublished()).isFalse();
             // Outbox row must still be written so the dispatcher can retry later.
             verify(outboxRepository).save(any(SubscriptionOutboxEvent.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("GAP-954 — PDPL Art 23 DELETE cascade (MinIO/DNS/logo + audit)")
+    class Pdpl23Cascade {
+
+        @Test
+        @DisplayName("purges S3 prefix, clears DNS, writes TENANT_DELETED audit on success")
+        void cascadesMinioDnsAndAudit() {
+            when(instanceRepository.findById(instanceId))
+                .thenReturn(Optional.of(deletedInstance));
+            when(backupRecordRepository.existsByInstanceIdAndStatus(instanceId, BackupStatus.COMPLETED))
+                .thenReturn(true);
+            when(backupRecordRepository.findByInstanceId(instanceId))
+                .thenReturn(Collections.emptyList());
+            when(backupStorageService.deleteByPrefix(anyString())).thenReturn(3);
+
+            PurgeResult result = instancePurgeService.purgeInstance(instanceId);
+
+            assertThat(result.getStatus()).isEqualTo(PurgeStatus.SUCCESS);
+            // 1. MinIO/S3 tenant objects purged by prefix instances/{id}/
+            verify(backupStorageService).deleteByPrefix("instances/" + instanceId + "/");
+            assertThat(result.getS3ObjectsDeleted()).isEqualTo(3);
+            // 2. DNS / custom-domain record cleared
+            verify(domainService).removeCustomDomain(instanceId);
+            assertThat(result.isDnsRecordCleared()).isTrue();
+            // 3. TENANT_DELETED audit row written (system actor = null) — PDPL Art 23
+            verify(tenantAuditService).recordTenantDeleted(
+                eq(instanceId), eq("deleted-school"), isNull(), anyString());
+            assertThat(result.isTenantDeletedAuditWritten()).isTrue();
+        }
+
+        @Test
+        @DisplayName("cascade is skipped entirely when no backup exists (safety gate holds)")
+        void cascadeSkippedWhenNoBackup() {
+            when(instanceRepository.findById(instanceId))
+                .thenReturn(Optional.of(deletedInstance));
+            when(backupRecordRepository.existsByInstanceIdAndStatus(instanceId, BackupStatus.COMPLETED))
+                .thenReturn(false);
+
+            PurgeResult result = instancePurgeService.purgeInstance(instanceId);
+
+            assertThat(result.getStatus()).isEqualTo(PurgeStatus.SKIPPED_NO_BACKUP);
+            verify(backupStorageService, never()).deleteByPrefix(anyString());
+            verify(domainService, never()).removeCustomDomain(any());
+            verify(tenantAuditService, never())
+                .recordTenantDeleted(any(), anyString(), any(), anyString());
         }
     }
 }
