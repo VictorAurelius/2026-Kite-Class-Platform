@@ -107,6 +107,9 @@ ARGS
 validate_kiteclass_core() {
   local port="$1"
   local args
+  # Test-only HS512 secret for ephemeral Testcontainer boot — NOT a real credential.
+  # AuthTokenService fail-fast requires >= 64 bytes (KC-native login, Wave auth-1).
+  local jwt_secret="0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" # gitleaks:allow
   args="$(common_boot_args)
 --spring.flyway.enabled=true
 --spring.datasource.url=jdbc:postgresql://127.0.0.1:${port}/kiteclass
@@ -115,7 +118,8 @@ validate_kiteclass_core() {
 --spring.data.redis.host=127.0.0.1
 --spring.data.redis.port=1
 --spring.rabbitmq.host=127.0.0.1
---spring.rabbitmq.port=1"
+--spring.rabbitmq.port=1
+--jwt.secret=${jwt_secret}"
 
   (
     cd "$ROOT_DIR/kiteclass/kiteclass-core"
