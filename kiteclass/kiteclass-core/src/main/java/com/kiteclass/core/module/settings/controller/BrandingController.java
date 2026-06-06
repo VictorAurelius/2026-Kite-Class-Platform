@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -52,6 +53,7 @@ public class BrandingController {
      * @return updated branding
      */
     @PutMapping
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     public ResponseEntity<ApiResponse<BrandingResponse>> updateBranding(
             @Valid @RequestBody UpdateBrandingRequest request) {
         BrandingResponse branding = brandingService.updateBranding(request);
@@ -72,6 +74,7 @@ public class BrandingController {
      * @return updated branding
      */
     @PostMapping(value = "/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     public ResponseEntity<ApiResponse<BrandingResponse>> uploadLogo(
             @RequestPart("logo") MultipartFile logo) {
         BrandingResponse branding = brandingService.uploadLogo(logo);
@@ -90,6 +93,7 @@ public class BrandingController {
      * @return updated branding
      */
     @PostMapping(value = "/favicon", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     public ResponseEntity<ApiResponse<BrandingResponse>> uploadFavicon(
             @RequestPart("favicon") MultipartFile favicon) {
         BrandingResponse branding = brandingService.uploadFavicon(favicon);

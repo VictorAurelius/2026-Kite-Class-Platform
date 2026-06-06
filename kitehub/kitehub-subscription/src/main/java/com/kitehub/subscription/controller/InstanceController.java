@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -73,6 +74,7 @@ public class InstanceController {
      * @return page of instance responses
      */
     @GetMapping
+    @PreAuthorize("hasAnyRole('PLATFORM_ADMIN','ADMIN')")
     public ResponseEntity<Page<InstanceResponse>> listInstances(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "" + DEFAULT_PAGE_SIZE) int size
@@ -98,6 +100,7 @@ public class InstanceController {
      * @return CursorPage envelope of {@link InstanceResponse}
      */
     @GetMapping(params = "cursor")
+    @PreAuthorize("hasAnyRole('PLATFORM_ADMIN','ADMIN')")
     public ResponseEntity<CursorPage<InstanceResponse>> listInstancesByCursor(
         @RequestParam(required = false) String cursor,
         @RequestParam(defaultValue = "" + DEFAULT_PAGE_SIZE) int size
@@ -195,6 +198,7 @@ public class InstanceController {
      * @return no content
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('PLATFORM_ADMIN','ADMIN')")
     public ResponseEntity<Void> deleteInstance(@PathVariable UUID id) {
         instanceService.deleteInstance(id);
         return ResponseEntity.noContent().build();
@@ -220,6 +224,7 @@ public class InstanceController {
      * @return no content
      */
     @PostMapping("/{id}/extend-trial")
+    @PreAuthorize("hasAnyRole('PLATFORM_ADMIN','ADMIN')")
     public ResponseEntity<Void> extendTrial(
         @PathVariable UUID id,
         @RequestParam int days
@@ -237,6 +242,7 @@ public class InstanceController {
      * @return purge result with details
      */
     @DeleteMapping("/{id}/purge")
+    @PreAuthorize("hasAnyRole('PLATFORM_ADMIN','ADMIN')")
     @Operation(summary = "Permanently purge a deleted instance (admin only)")
     public ResponseEntity<PurgeResult> purgeInstance(@PathVariable UUID id) {
         PurgeResult result = instancePurgeService.adminPurge(id);
