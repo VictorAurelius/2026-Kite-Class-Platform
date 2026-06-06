@@ -12,6 +12,7 @@ import javax.crypto.SecretKey;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * Mints KC-native access tokens (Wave auth-1, Option B).
@@ -63,6 +64,8 @@ public class AuthTokenService {
     public String mintAccessToken(AuthCredential credential) {
         Instant now = Instant.now();
         return Jwts.builder()
+                // GAP-1013e: jti = unique token id, enables future revocation/blacklist.
+                .id(UUID.randomUUID().toString())
                 .subject(credential.getUserUuid().toString())
                 .claim("role", credential.getEntityType())
                 .claim("email", credential.getEmail())
