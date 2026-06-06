@@ -13,6 +13,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -195,6 +196,7 @@ class InstanceControllerIntegrationTest {
 
     @Test
     @DisplayName("Should delete instance successfully")
+    @WithMockUser(roles = "PLATFORM_ADMIN")  // GAP-1025: deleteInstance now @PreAuthorize PLATFORM_ADMIN/ADMIN
     void shouldDeleteInstanceSuccessfully() throws Exception {
         // Given
         CreateInstanceRequest createRequest = CreateInstanceRequest.builder()

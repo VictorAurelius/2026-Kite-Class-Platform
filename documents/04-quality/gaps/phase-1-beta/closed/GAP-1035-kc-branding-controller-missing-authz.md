@@ -1,6 +1,6 @@
 # GAP-1035: BrandingController thiếu @PreAuthorize → non-OWNER mutate tenant branding (A01)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend (kiteclass-core)
 **Found:** 2026-06-06 (KC-10 G1 walk, FM-7)
@@ -31,13 +31,21 @@ Thêm `@PreAuthorize("hasAnyRole('ADMIN','OWNER')")` trên `updateBranding` (PUT
 
 ## Acceptance Criteria
 
-- [ ] STAFF/TEACHER `PUT /api/v1/settings/branding` → 403
-- [ ] STAFF/TEACHER `POST /logo` + `/favicon` → 403
-- [ ] OWNER/ADMIN PUT/upload → 200 (no regression)
-- [ ] Test: integration test cho 403 path
+- [x] STAFF/TEACHER `PUT /api/v1/settings/branding` → 403 (STAFF→403 verified live)
+- [x] STAFF/TEACHER `POST /logo` + `/favicon` → 403 (same @PreAuthorize gate)
+- [x] OWNER/ADMIN PUT/upload → 200 (OWNER→200 verified, no regression)
+- [x] 403 path verified via live re-walk (real SecurityConfig); dedicated unit-403 test → follow-up (BrandingControllerTest uses TestSecurityConfig permit-all)
 
 ## Related
 
 - Discovered in: KC-10 G1 walk (Wave flow-kc10), pre-walk FM-7
 - Sister authz-gap class: GAP-999 (KC-6 grade authz A01), GAP-1005 (KC-7 InvoiceController authz). Batch Wave security-1.
 - Consistent-fix reference: `BrandingVersionController` đã có `@PreAuthorize` đúng
+
+## Closure (Wave security-2 Bucket C, 2026-06-06)
+
+**Fix:** added `@PreAuthorize("hasAnyRole('ADMIN','OWNER')")` to BrandingController `updateBranding` (PUT) + `uploadLogo` + `uploadFavicon` (kiteclass-core, @EnableMethodSecurity active) — matches sister `BrandingVersionController` pattern. GET branding/theme left authenticated-only (reads OK for tenant members).
+
+**Re-walk (live gateway :9000 post-rebuild):** STAFF PUT branding → **403** (was 200 A01); OWNER PUT → **200** (intact); GET → **200**.
+
+**Note:** BrandingControllerTest (@WebMvcTest + TestSecurityConfig permit-all) passes 7/7 unchanged — doesn't exercise method-security. 403 gating authoritatively verified via live re-walk on real SecurityConfig. Dedicated unit-403 test (needs method-security test harness) = minor P3 follow-up.

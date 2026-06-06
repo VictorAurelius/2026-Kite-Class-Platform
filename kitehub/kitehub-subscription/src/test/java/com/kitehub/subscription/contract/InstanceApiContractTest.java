@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -53,6 +54,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(InstanceController.class)
 @Import(com.kitehub.subscription.config.SecurityConfig.class)
 @ActiveProfiles("test")
+// GAP-1025 (Wave security-2 Bucket C): InstanceController admin endpoints
+// (list/delete/purge/extend-trial) now @PreAuthorize PLATFORM_ADMIN/ADMIN.
+// Contract tests run as PLATFORM_ADMIN so they exercise the documented schema.
+@WithMockUser(roles = "PLATFORM_ADMIN")
 @DisplayName("Instance API Contract Tests")
 class InstanceApiContractTest {
 

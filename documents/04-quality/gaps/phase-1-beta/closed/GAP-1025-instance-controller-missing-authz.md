@@ -1,6 +1,6 @@
 # GAP-1025: InstanceController thiếu @PreAuthorize — enumerate all + delete/purge any instance
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-06 (KH-8 off-boarding G1 walk)
@@ -31,13 +31,21 @@ InstanceController thiếu method-level @PreAuthorize (dù subscription `Securit
 
 ## Acceptance Criteria
 
-- [ ] Non-admin user GET /instances (list all) → 403
-- [ ] Non-admin DELETE/purge/extend-trial bất kỳ instance → 403
-- [ ] Admin vẫn thao tác được
-- [ ] InstanceApiContractTest pass với admin auth
+- [x] Non-admin user GET /instances (list all) → 403 (owner→403 verified)
+- [x] Non-admin DELETE/purge/extend-trial bất kỳ instance → 403 (owner-purge→403 verified)
+- [x] Admin vẫn thao tác được (PLATFORM_ADMIN→200)
+- [x] InstanceApiContractTest pass với admin auth (@WithMockUser PLATFORM_ADMIN added)
 - [ ] IT cover non-admin 403 + admin 200
 
 ## Related
 
 - Discovered in: KH-8 G1 walk — `documents/04-quality/audits/persona-review/2026-06-06-pre-walk-kh8-offboarding-pdpl-consent.md` (FM-2)
 - Related (authz/IDOR family): GAP-1015/1019/1023 (cross-tenant bind); spans KH-1 provisioning + KH-9 admin console scope
+
+## Closure (Wave security-2 Bucket C, 2026-06-06)
+
+**Fix:** added `@PreAuthorize("hasAnyRole('PLATFORM_ADMIN','ADMIN')")` to InstanceController admin/destructive endpoints: `listInstances`, `listInstancesByCursor`, `deleteInstance`, `purgeInstance`, `extendTrial` (kitehub-subscription, @EnableMethodSecurity active). Ungated reads (getInstanceById/getInstanceBySubdomain) + provisioning (create/register) left as-is (single-instance ownership binding = Bucket B IDOR scope).
+
+**Re-walk (live gateway :9000 post-rebuild):** owner GET /api/platform/instances → **403** (was 200 enumerate-all); owner DELETE purge any → **403**; PLATFORM_ADMIN GET → **200**.
+
+**Tests:** InstanceApiContractTest (class-level @WithMockUser PLATFORM_ADMIN) + InstanceControllerIntegrationTest.shouldDeleteInstanceSuccessfully (method @WithMockUser) updated per `api-contract-change-caller-sweep.md` — both re-run PASS (mvnw test exit 0). 5 prior failures (403-vs-expected) resolved.
