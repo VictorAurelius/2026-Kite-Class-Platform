@@ -67,6 +67,15 @@ public class RabbitConfig {
     public static final String TENANT_CREATED_ROUTING_KEY = "tenant.created";
 
     /**
+     * Routing key for the {@code tenant.deployed} event this service PUBLISHES back to
+     * kitehub-subscription after {@code TenantProvisioningSaga} reaches DEPLOYED
+     * (Wave provisioning-1 Bucket C — GAP-948). Published to {@link #EMAIL_EXCHANGE};
+     * the queue + binding live on the kitehub-subscription side (it owns the consumer +
+     * owner-email resolution). This service only publishes — no queue/binding declared here.
+     */
+    public static final String TENANT_DEPLOYED_ROUTING_KEY = "tenant.deployed";
+
+    /**
      * Configures JSON message converter for serializing/deserializing message payloads.
      *
      * @return Jackson2JsonMessageConverter

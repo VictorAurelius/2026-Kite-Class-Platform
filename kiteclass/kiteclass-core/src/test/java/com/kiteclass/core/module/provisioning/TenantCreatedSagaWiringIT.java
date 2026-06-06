@@ -80,7 +80,10 @@ class TenantCreatedSagaWiringIT {
         });
 
         ObjectMapper mapper = JsonMapper.builder().findAndAddModules().build();
-        TenantCreatedEventConsumer consumer = new TenantCreatedEventConsumer(mapper, saga);
+        // GAP-948: notifier is mocked — this IT verifies tenant.created round-trip only;
+        // the tenant.deployed publish path is covered by TenantReadyNotifierTest.
+        TenantReadyNotifier notifier = mock(TenantReadyNotifier.class);
+        TenantCreatedEventConsumer consumer = new TenantCreatedEventConsumer(mapper, saga, notifier);
 
         SimpleMessageListenerContainer listener = new SimpleMessageListenerContainer(cf);
         listener.setQueueNames(RabbitConfig.TENANT_CREATED_QUEUE);

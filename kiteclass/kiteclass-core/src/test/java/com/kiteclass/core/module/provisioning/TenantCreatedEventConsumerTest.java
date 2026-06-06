@@ -10,6 +10,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -34,12 +38,15 @@ class TenantCreatedEventConsumerTest {
     @Mock
     private TenantProvisioningSaga saga;
 
+    @Mock
+    private TenantReadyNotifier tenantReadyNotifier;
+
     private final ObjectMapper objectMapper = JsonMapper.builder()
             .findAndAddModules()
             .build();
 
     private TenantCreatedEventConsumer consumer() {
-        return new TenantCreatedEventConsumer(objectMapper, saga);
+        return new TenantCreatedEventConsumer(objectMapper, saga, tenantReadyNotifier);
     }
 
     @Test
@@ -57,6 +64,10 @@ class TenantCreatedEventConsumerTest {
         assertThat(event.getSlug()).isEqualTo("acme-school");
         assertThat(event.getAudience()).isEqualTo("education");
         assertThat(event.getTone()).isEqualTo("professional");
+
+        // GAP-948: provision success → publish tenant.deployed (carries saga-returned
+        // frontendInstanceId) so kitehub-subscription sends the tenant-ready email.
+        verify(tenantReadyNotifier).notifyDeployed("7", "acme-school", 42L);
     }
 
     @Test
@@ -66,6 +77,7 @@ class TenantCreatedEventConsumerTest {
         assertThatCode(() -> consumer().handle(broken)).doesNotThrowAnyException();
 
         verifyNoInteractions(saga);
+        verifyNoInteractions(tenantReadyNotifier);
     }
 
     @Test
@@ -80,5 +92,25 @@ class TenantCreatedEventConsumerTest {
         assertThatCode(() -> consumer().handle(json)).doesNotThrowAnyException();
 
         verify(saga).provision(org.mockito.ArgumentMatchers.any());
+        // GAP-948: saga failed (compensated/markFailed) → NO tenant-ready email; the tenant
+        // is FAILED, not DEPLOYED.
+        verify(tenantReadyNotifier, never()).notifyDeployed(any(), any(), any());
+    }
+
+    @Test
+    void handle_notifierThrows_isStillAckedNotPropagated() {
+        // GAP-948 defensive: even if the notifier somehow throws (it shouldn't — designed
+        // best-effort), the consumer must NOT propagate (broker requeue would poison-loop a
+        // tenant the saga already DEPLOYED).
+        when(saga.provision(org.mockito.ArgumentMatchers.any())).thenReturn(99L);
+        doThrow(new IllegalStateException("broker down"))
+                .when(tenantReadyNotifier).notifyDeployed(eq("11"), eq("gamma-school"), eq(99L));
+        String json = "{\"tenantId\":\"11\",\"slug\":\"gamma-school\","
+                + "\"audience\":\"education\",\"tone\":\"professional\"}";
+
+        assertThatCode(() -> consumer().handle(json)).doesNotThrowAnyException();
+
+        verify(saga).provision(org.mockito.ArgumentMatchers.any());
+        verify(tenantReadyNotifier).notifyDeployed("11", "gamma-school", 99L);
     }
 }

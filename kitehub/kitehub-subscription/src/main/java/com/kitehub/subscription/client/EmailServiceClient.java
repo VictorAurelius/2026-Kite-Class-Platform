@@ -512,6 +512,57 @@ public class EmailServiceClient {
     }
 
     /**
+     * Send "tenant ready" email after KiteClass provisioning reaches DEPLOYED
+     * (Wave provisioning-1 Bucket C — GAP-948).
+     *
+     * <p>Dispatched by {@link com.kitehub.subscription.consumer.TenantDeployedEventConsumer}
+     * when kiteclass-core's {@code TenantProvisioningSaga} finishes (FrontendInstance
+     * DEPLOYED) and the consumer-level orchestration publishes a {@code tenant.deployed}
+     * event back. This is the recovery / trust-signal email the KC-1 pre-walk audit
+     * flagged as missing (benchmark §A row 11: Stripe/Slack/Google Classroom ship a
+     * welcome + setup-checklist email post-provision).</p>
+     *
+     * <p>Reuses {@link #dispatchEmail} — so it inherits the existing 3-retry +
+     * {@code email.dlq} reliability path (per {@code EmailQueueConfig}) for free.
+     * Best-effort: a send failure is logged and never blocks the caller.</p>
+     *
+     * @param instanceId Instance ID (idempotency tracking — at-most-once per day)
+     * @param to Owner email (recipient — resolved from Instance.contactEmail)
+     * @param organizationName Organization name (greeting + body)
+     * @param subdomain Provisioned subdomain (drives dashboard URL)
+     */
+    public void sendTenantReadyEmail(UUID instanceId, String to, String organizationName,
+                                     String subdomain) {
+        if (alreadySentToday(instanceId, "tenant-ready", to)) {
+            log.debug("Tenant-ready email already sent today to {}, skipping", to);
+            return;
+        }
+        log.info("Sending tenant-ready email to {} (subdomain: {})", to, subdomain);
+
+        try {
+            String safeSubdomain = subdomain == null ? "" : subdomain;
+            EmailRequest request = EmailRequest.builder()
+                .to(to)
+                .subject("Trường học của bạn đã sẵn sàng trên KiteClass!")
+                .templateName("tenant-ready")
+                .variables(Map.of(
+                    "recipientName", organizationName == null ? "bạn" : organizationName,
+                    "organizationName", organizationName == null ? "" : organizationName,
+                    "subdomain", safeSubdomain,
+                    "dashboardUrl", String.format("https://%s.kiteclass.vn/dashboard", safeSubdomain),
+                    "onboardingChecklistUrl", "https://kitehub.me/help/onboarding",
+                    "supportUrl", "https://kitehub.me/support",
+                    "unsubscribeUrl", "https://kitehub.me/unsubscribe"
+                ))
+                .build();
+
+            dispatchEmail(instanceId, "tenant-ready", request);
+        } catch (Exception e) {
+            log.error("Failed to send tenant-ready email to {}", to, e);
+        }
+    }
+
+    /**
      * Send subscription created confirmation email.
      *
      * @param instanceId Instance ID

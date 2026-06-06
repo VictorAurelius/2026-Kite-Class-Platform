@@ -43,6 +43,21 @@ public class EmailQueueConfig {
     public static final String EMAIL_DLQ_ROUTING_KEY = "email.dlq";
 
     /**
+     * Cross-service {@code tenant.deployed} queue (Wave provisioning-1 Bucket C — GAP-948).
+     *
+     * <p>kiteclass-core publishes a {@code tenant.deployed} event (raw-UTF8 JSON, GAP-925
+     * wire-format) to {@link #EMAIL_EXCHANGE} after its {@code TenantProvisioningSaga}
+     * reaches DEPLOYED; {@link com.kitehub.subscription.consumer.TenantDeployedEventConsumer}
+     * resolves the owner email from {@code Instance} and dispatches the tenant-ready email.
+     * DLQ-on-failure mirrors {@link #EMAIL_QUEUE} so a poison payload routes to
+     * {@code tenant.deployed.dlq} instead of requeue-looping.</p>
+     */
+    public static final String TENANT_DEPLOYED_QUEUE = "tenant.deployed.queue";
+    public static final String TENANT_DEPLOYED_ROUTING_KEY = "tenant.deployed";
+    public static final String TENANT_DEPLOYED_DLQ = "tenant.deployed.dlq";
+    public static final String TENANT_DEPLOYED_DLQ_ROUTING_KEY = "tenant.deployed.dlq";
+
+    /**
      * JSON message converter for RabbitMQ messages.
      */
     @Bean
@@ -168,5 +183,49 @@ public class EmailQueueConfig {
         return BindingBuilder.bind(emailDLQ)
                 .to(emailDLQExchange)
                 .with(EMAIL_DLQ_ROUTING_KEY);
+    }
+
+    // ─── tenant.deployed topology (Wave provisioning-1 Bucket C — GAP-948) ──────────
+
+    /**
+     * Queue carrying {@code tenant.deployed} events from kiteclass-core. DLQ-on-rejection
+     * so a poison payload (e.g. unresolvable tenant) routes to {@link #TENANT_DEPLOYED_DLQ}
+     * after retry exhaustion instead of requeue-looping (same semantics as {@link #emailQueue()}).
+     */
+    @Bean
+    public Queue tenantDeployedQueue() {
+        return QueueBuilder.durable(TENANT_DEPLOYED_QUEUE)
+                .withArgument("x-dead-letter-exchange", EMAIL_DLQ_EXCHANGE)
+                .withArgument("x-dead-letter-routing-key", TENANT_DEPLOYED_DLQ_ROUTING_KEY)
+                .build();
+    }
+
+    /**
+     * Dead letter queue for tenant.deployed events that failed after all retries.
+     */
+    @Bean
+    public Queue tenantDeployedDLQ() {
+        return QueueBuilder.durable(TENANT_DEPLOYED_DLQ).build();
+    }
+
+    /**
+     * Bind tenant.deployed queue to the shared {@link #EMAIL_EXCHANGE} with routing key
+     * {@code tenant.deployed} — the exact key kiteclass-core publishes.
+     */
+    @Bean
+    public Binding tenantDeployedBinding(Queue tenantDeployedQueue, DirectExchange emailExchange) {
+        return BindingBuilder.bind(tenantDeployedQueue)
+                .to(emailExchange)
+                .with(TENANT_DEPLOYED_ROUTING_KEY);
+    }
+
+    /**
+     * Bind tenant.deployed DLQ to the shared DLQ exchange.
+     */
+    @Bean
+    public Binding tenantDeployedDLQBinding(Queue tenantDeployedDLQ, DirectExchange emailDLQExchange) {
+        return BindingBuilder.bind(tenantDeployedDLQ)
+                .to(emailDLQExchange)
+                .with(TENANT_DEPLOYED_DLQ_ROUTING_KEY);
     }
 }
