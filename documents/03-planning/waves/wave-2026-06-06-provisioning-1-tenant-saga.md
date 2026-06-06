@@ -94,6 +94,24 @@ Per bucket: TDD + `./mvnw test` (run not compile per `api-contract-change-caller
 
 Per `wave-closure-scope-completeness.md` §3 — reconciliation table at closure mapping all 8 gaps ✅/🟡/❌. Sync gap-status.csv + wave-history + ROADMAP. This is a multi-phase wave; each phase's PR is a checkpoint, full closure when all 8 buckets reconcile.
 
+### 7.1 Scope-Completeness Reconciliation (2026-06-06 — ALL 8 BUCKETS CODE-MERGED)
+
+| # | Bucket — Plan §3 Scope item | Verdict | PR | Follow-up |
+|---|---|---|---|---|
+| 1 | A keystone — `tenant.created` publisher + `TenantCreatedEventConsumer` wiring orphan saga + RabbitConfig binding + `@Jacksonized` + Testcontainers round-trip IT | 🟡 PARTIAL 70% | #2214 | KC-1 live walk + `Instance.status`→DEPLOYED callback |
+| 2 | A Phase 1a — GAP-946 fail-fast DB provisioning (3 silent-swallow sites) | 🟡 PARTIAL 40% | #2211 | real `provisionInfrastructure` impl |
+| 3 | B — GAP-949 `TENANT_PROVISIONED` audit (`TenantAuditService` REQUIRES_NEW) | 🟡 PARTIAL 75% | #2216 | AFTER_COMMIT FK fix if walk confirms; live walk |
+| 4 | C — GAP-948 tenant-ready email on DEPLOYED (cross-service `tenant.deployed` → owner resolve → send + DLQ) | 🟡 PARTIAL 60% | #2219 | Resend template + MailHog live walk |
+| 5 | D — GAP-952 compensation alert + `ProvisioningStuckSweep` @Scheduled + CloudWatch metric-filter alarm→SNS (IaC) | 🟡 PARTIAL 60% | #2217 | CloudWatch live-apply + fault-injection (GAP-612 AWS) |
+| 6 | E — GAP-953 admin force-retry endpoint + PLATFORM_ADMIN guard + audit + gateway route + FE button | 🟡 PARTIAL 80% | #2218 | retry idempotency on re-publish; live walk |
+| 7 | F — GAP-947 `TenantSettings` entity + V90 + GET/PUT + Năm học auto-fill + 3-layer docs | 🟡 PARTIAL 90% | #2213 | live runtime walk + jsonb Testcontainers IT |
+| 8 | G — GAP-954 PDPL Art 23 DELETE cascade: FSM SUSPENDED/DELETED + V91 + MinIO/DNS/logo cascade + `TENANT_DELETED` audit | 🟡 PARTIAL 90% | #2215 | live cascade walk (Postgres+MinIO+DNS) |
+
+**Verdict:** 8/8 buckets code-shipped + merged + unit/IT-tested + CI-gated (0 ❌). All 8 gaps 🟡 PARTIAL — **NOT DONE** because each defers live full-stack verification per `feature-ship-runtime-walk-mandate.md` §1.
+
+**Single cross-cutting remaining gate (flips all 8 → DONE):** KC-1 live full-stack walk on local Docker stack (subscription + kiteclass-core + RabbitMQ + Postgres + MinIO) with pre-walk persona simulation per `pre-walk-persona-simulation-mandate.md`. Migrations F=V90 / G=V91 collision avoided.
+
 ## 8. Log
 
+- **2026-06-06 (closure — ALL 8 MERGED):** Executed via dependency-ordered DAG with parallel Opus worktree agents. Foundation A (GAP-945 saga keystone) coordinator-authored solo + merged first to freeze contract — #2214. F+G spawned parallel with A (Phase 3 independent); B (audit, shared dep) merged before fan-out; C/D/E spawned parallel after B. Merge order A→F→B→G→D→C→E. Manual conflict resolutions at merge: F/G V90↔V91 migration collision (G renamed V91); `TenantAuditService` 3-method consolidation (B `recordTenantProvisioned` + G `recordTenantDeleted` + E `recordTenantRetryRequested` combined across G + E rebases); gap-status.csv 3-way. Rebased candidates (G, E) local-verified (audit + caller tests) before force-push per `admin-merge-discipline.md` §2; each merge CI-gated CLEAN. 8/8 gaps 🟡 PARTIAL → KC-1 live walk is the single flip-to-DONE gate. ~6.5x parallel speedup vs serial.
 - **2026-06-06:** Wave plan created (PR-first). Explore agent mapped 8-gap cluster + state-check corrected 4 over-claiming gaps (948/949/953/954 → PARTIAL; infra exists). Dependency: Foundation A (GAP-945 saga contract + 946 fail-fast) keystone → Phase 2 parallel (B/C/D/E) → Phase 3 independent (F/G). Foundation impl starts this session.
