@@ -25,6 +25,8 @@ gaps: [GAP-914]
 
 Flow chỉ `✅ THÔNG` khi G1 + G2 + G3 đều PASS. G1 đạt → `🔄 walk-pass-pending-human` chờ G2.
 
+> **Sequencing (chốt 2026-06-06):** hoàn thành **G1 cho TẤT CẢ flow trước** (gồm ~9 secondary KH-5..10 / KC-10..12 chưa G1), **rồi dev mới mở 1 đợt G2 tập trung** (human local walk). KHÔNG interleave G2 per-flow giữa chừng — gom G1 xong toàn bộ tránh dev context-switch + tránh G2 vấp bug G1 đáng lẽ bắt được. Memory: `project_flow_campaign_g1_first_then_g2`.
+
 ---
 
 ## 2. Loop protocol mỗi flow (per `feature-ship-runtime-walk-mandate` §3.4)

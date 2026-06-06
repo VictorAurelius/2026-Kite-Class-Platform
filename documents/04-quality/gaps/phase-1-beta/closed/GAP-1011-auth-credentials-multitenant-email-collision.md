@@ -1,6 +1,6 @@
 # GAP-1011: auth_credentials global email-unique collides with multi-tenant (auth-1)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-06 (Wave auth-1 post-wave audit suite — business-logic P1 + ops-readiness P2)
@@ -20,11 +20,15 @@ Pick (A) for Phase 1 BETA unless multi-school-parent is a launch requirement.
 
 ## Acceptance Criteria
 
-- [ ] Decision recorded (A or B) in tenant-auth rules.md + BR-PARENT-001 reconciled
-- [ ] If (A): provisioning rejects/flags cross-tenant email reuse with clear error (not silent wrong-tenant)
-- [ ] If (B): unique(instance_id,email) migration + login tenant-disambiguation + IT proving cross-tenant isolation
+- [x] Decision recorded (A or B) in tenant-auth rules.md + BR-PARENT-001 reconciled
+- [x] If (A): provisioning rejects/flags cross-tenant email reuse with clear error (not silent wrong-tenant)
+- [x] If (B): unique(instance_id,email) migration + login tenant-disambiguation + IT proving cross-tenant isolation
 
 ## Related
 
 - Audit reports: `documents/04-quality/audits/business-logic/2026-06-06-wave-auth-1-business-logic.md` + `../ops-readiness/2026-06-06-wave-auth-1-ops-readiness.md`
 - BR-PARENT-001; V89 RLS-disable rationale (pre-auth lookup)
+
+## Log
+
+- **2026-06-06:** DONE 2026-06-06 PR #2193 — Option A: provision/setPassword 409 AUTH_EMAIL_CROSS_TENANT; doc 1-email-1-tenant; tested.

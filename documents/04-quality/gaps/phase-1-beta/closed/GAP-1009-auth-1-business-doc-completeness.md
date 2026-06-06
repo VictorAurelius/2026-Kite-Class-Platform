@@ -1,6 +1,6 @@
 # GAP-1009: Auth-1 business-doc completeness — tenant-auth 3-layer + portal Option B sync
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Mixed
 **Found:** 2026-06-06 (Wave auth-1 post-wave audit suite — business-logic 64/100 + api-contract 85/100)
@@ -22,12 +22,16 @@ KC-native login (Wave auth-1 PR #2186) shipped code without same-PR business doc
 
 ## Acceptance Criteria
 
-- [ ] `kiteclass/tenant-auth/` 3-layer docs exist (CI `three-layer-completeness` PASS)
-- [ ] Both new endpoints documented in api-contract.md with error tables
-- [ ] parent/student-portal docs reflect Option B (no Option A `users` table refs)
-- [ ] BR-PARENT-004 reflects PARENT_PORTAL_ENABLED=true + PDPL decision noted
+- [x] `kiteclass/tenant-auth/` 3-layer docs exist (CI `three-layer-completeness` PASS)
+- [x] Both new endpoints documented in api-contract.md with error tables
+- [x] parent/student-portal docs reflect Option B (no Option A `users` table refs)
+- [x] BR-PARENT-004 reflects PARENT_PORTAL_ENABLED=true + PDPL decision noted
 
 ## Related
 
 - Audit reports: `documents/04-quality/audits/business-logic/2026-06-06-wave-auth-1-business-logic.md` + `../api-contract/2026-06-06-wave-auth-1-api-contract.md`
 - Wave auth-1 PR #2186 (2b01ac93); GAP-725 + GAP-798b (auth-1 partials)
+
+## Log
+
+- **2026-06-06:** DONE 2026-06-06 PR #2192 — tenant-auth 3-layer docs + portal Option B sync + BR-PARENT-004; check-3-layer PASS.
