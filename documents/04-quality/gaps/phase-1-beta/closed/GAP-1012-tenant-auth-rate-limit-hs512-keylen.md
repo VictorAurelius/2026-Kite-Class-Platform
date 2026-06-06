@@ -1,6 +1,6 @@
 # GAP-1012: kc-tenant-auth login route no rate-limit + gateway HS512 key-check ≥32 not ≥64 (auth-1)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** DevOps
 **Found:** 2026-06-06 (Wave auth-1 post-wave audit suite — ops-readiness P1 + business-logic P2)
@@ -17,9 +17,13 @@
 
 ## Acceptance Criteria
 
-- [ ] `kc-tenant-auth` route has RequestRateLimiter (verify 429 after burst)
-- [ ] Gateway HS512 key-check ≥64 bytes; comment cites HS512 requirement
-- [ ] Both verified against running gateway
+- [x] `kc-tenant-auth` route has RequestRateLimiter (3/5 IP-keyed) — live-verified 429: req 1-5 → 401, req 6-8 → 429
+- [x] Gateway HS512 key-check ≥64 bytes; comment cites HS512 (512 bits) — `<32`→`<64` in JwtAuthenticationGatewayFilter + TenantHeaderGuardFilter (cross-flow sweep); challenge HS256 block left at `<32`
+- [x] Both verified against running gateway — rebuilt kite-gateway:9000 (healthy with real 82-byte secret) + live 429 burst PASS
+
+## Log
+
+- **2026-06-06** DONE — PR #2189. Cross-flow sweep (`cross-flow-bug-class-sweep.md`): HS512 `<32` guard found in BOTH `JwtAuthenticationGatewayFilter` + `TenantHeaderGuardFilter` (audit flagged only former). Caller sweep (`api-contract-change-caller-sweep.md`): TEST_SECRET 33→66 bytes in 2 filter tests + KiteHubGatewayApplicationTest jwt.secret — now exercise real HS512. `./mvnw -pl kitehub-gateway test` PASS. Live-verified against rebuilt local gateway: 429 fires on req 6+ (burst 5); gateway boots healthy (≥64 guard safe — local 82B / prod 64B). Challenge-secret block correctly left at `<32` (HS256).
 
 ## Related
 
