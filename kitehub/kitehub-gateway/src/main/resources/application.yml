@@ -280,6 +280,19 @@ spring:
                 name: instancesCircuitBreaker
                 fallbackUri: forward:/fallback/instances
 
+        # GAP-953 (Wave provisioning-1 Bucket E) — admin retry-provisioning owned by
+        # kitehub-subscription (AdminTenantProvisioningController). Must precede the
+        # platform-admin catch-all (→ kitehub-admin) so it routes to subscription.
+        - id: platform-admin-instances-retry-provisioning-subscription
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/platform/admin/instances/{id}/retry-provisioning
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: instancesCircuitBreaker
+                fallbackUri: forward:/fallback/instances
+
         # Platform APIs - Admin Service
         - id: platform-admin
           uri: http://kitehub-admin:8080

@@ -83,6 +83,8 @@ export const endpoints = {
     instanceById: (id: string) => `${API_BASE}/admin/instances/${id}`,
     suspend: (id: string) => `${API_BASE}/admin/instances/${id}/suspend`,
     activate: (id: string) => `${API_BASE}/admin/instances/${id}/activate`,
+    // GAP-953 (Wave provisioning-1 Bucket E) — admin retry provisioning for a failed/stuck instance.
+    retryProvisioning: (id: string) => `${API_BASE}/admin/instances/${id}/retry-provisioning`,
     extendTrial: (id: string) => `${API_BASE}/instances/${id}/extend-trial`,
     subscriptions: `${API_BASE}/admin/subscriptions`,
     pendingPayments: `${API_BASE}/admin/payments/pending`,

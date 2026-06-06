@@ -38,15 +38,19 @@ export interface InstanceActionDialogsProps {
   showSuspendDialog: boolean;
   showActivateDialog: boolean;
   showExtendDialog: boolean;
+  showRetryDialog: boolean;
   onSuspendOpenChange: (open: boolean) => void;
   onActivateOpenChange: (open: boolean) => void;
   onExtendOpenChange: (open: boolean) => void;
+  onRetryOpenChange: (open: boolean) => void;
   onSuspendConfirm: () => void;
   onActivateConfirm: () => void;
   onExtendConfirm: () => void;
+  onRetryConfirm: () => void;
   suspendPending: boolean;
   activatePending: boolean;
   extendPending: boolean;
+  retryPending: boolean;
   extendDays: string;
   onExtendDaysChange: (value: string) => void;
 }
@@ -58,15 +62,19 @@ export default function InstanceActionDialogs(props: InstanceActionDialogsProps)
     showSuspendDialog,
     showActivateDialog,
     showExtendDialog,
+    showRetryDialog,
     onSuspendOpenChange,
     onActivateOpenChange,
     onExtendOpenChange,
+    onRetryOpenChange,
     onSuspendConfirm,
     onActivateConfirm,
     onExtendConfirm,
+    onRetryConfirm,
     suspendPending,
     activatePending,
     extendPending,
+    retryPending,
     extendDays,
     onExtendDaysChange,
   } = props;
@@ -164,6 +172,30 @@ export default function InstanceActionDialogs(props: InstanceActionDialogsProps)
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Retry Provisioning Dialog (GAP-953, UC-PROV-05) */}
+      <AlertDialog open={showRetryDialog} onOpenChange={onRetryOpenChange}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Thử lại Provisioning?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc muốn kích hoạt lại quá trình provisioning cho instance{' '}
+              <strong>{organizationName}</strong>? Hệ thống sẽ phát lại sự kiện{' '}
+              <code>tenant.created</code> để chạy lại saga tạo tenant KiteClass cho
+              instance đang ở trạng thái lỗi/treo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={onRetryConfirm} disabled={retryPending}>
+              {retryPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Thử lại
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

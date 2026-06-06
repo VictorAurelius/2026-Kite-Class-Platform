@@ -125,6 +125,29 @@ export function useActivateInstance() {
 }
 
 /**
+ * Retry provisioning for a failed/stuck instance (Admin) — GAP-953, UC-PROV-05.
+ *
+ * Re-publishes tenant.created to re-drive the KiteClass provisioning saga.
+ */
+export function useRetryProvisioning() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ instanceId, reason }: { instanceId: string; reason?: string }) => {
+      const { data } = await apiClient.post<AdminInstanceSummary>(
+        endpoints.admin.retryProvisioning(instanceId),
+        { reason }
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'instances'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+    },
+  });
+}
+
+/**
  * Extend trial for an instance.
  */
 export function useExtendTrial() {
