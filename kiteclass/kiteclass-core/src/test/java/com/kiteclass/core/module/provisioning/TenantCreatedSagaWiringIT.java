@@ -87,14 +87,17 @@ class TenantCreatedSagaWiringIT {
 
         SimpleMessageListenerContainer listener = new SimpleMessageListenerContainer(cf);
         listener.setQueueNames(RabbitConfig.TENANT_CREATED_QUEUE);
-        listener.setMessageListener((MessageListener) message ->
-                consumer.handle(new String(message.getBody(), StandardCharsets.UTF_8)));
+        // GAP-1045: deliver the raw Message straight to handle(Message) — exactly the production
+        // @RabbitListener entry. The consumer decodes UTF-8 itself, so this IT now exercises the real
+        // converter-bypass path (previously it decoded to String + called handle(String), structurally
+        // unable to catch the Jackson-vs-String conversion bug).
+        listener.setMessageListener((MessageListener) consumer::handle);
         listener.start();
 
         try {
             // Publish EXACTLY as SubscriptionEventEmitter does: raw UTF-8 bytes + Content-Type JSON.
             RabbitTemplate template = new RabbitTemplate(cf);
-            String payload = "{\"tenantId\":\"55\",\"slug\":\"round-trip-school\","
+            String payload = "{\"tenantId\":\"00000000-0000-0000-0000-000000000055\",\"slug\":\"round-trip-school\","
                     + "\"audience\":\"education\",\"tone\":\"professional\"}";
             MessageProperties props = new MessageProperties();
             props.setContentType(MessageProperties.CONTENT_TYPE_JSON);
@@ -106,7 +109,7 @@ class TenantCreatedSagaWiringIT {
                     .as("saga.provision invoked via broker round-trip within 15s")
                     .isTrue();
             assertThat(received.get()).isNotNull();
-            assertThat(received.get().getTenantId()).isEqualTo("55");
+            assertThat(received.get().getTenantId()).isEqualTo("00000000-0000-0000-0000-000000000055");
             assertThat(received.get().getSlug()).isEqualTo("round-trip-school");
             assertThat(received.get().getAudience()).isEqualTo("education");
             assertThat(received.get().getTone()).isEqualTo("professional");

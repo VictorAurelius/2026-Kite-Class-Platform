@@ -9,7 +9,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -73,7 +76,7 @@ class TenantDeployedEventConsumerTest {
         when(instanceRepository.findById(id))
                 .thenReturn(Optional.of(instance(id, "owner@acme.edu.vn", "Acme School", "acme")));
 
-        consumer().handle(payload(id.toString()));
+        consumer().handlePayload(payload(id.toString()));
 
         verify(instanceService).markProvisioned(id);
         verify(emailServiceClient).sendTenantReadyEmail(
@@ -87,7 +90,7 @@ class TenantDeployedEventConsumerTest {
         when(instanceRepository.findById(id))
                 .thenReturn(Optional.of(instance(id, "owner@acme.edu.vn", "Acme School", "acme")));
 
-        consumer().handle(payload(id.toString()));
+        consumer().handlePayload(payload(id.toString()));
 
         verify(instanceService).markProvisioned(id);
     }
@@ -100,7 +103,7 @@ class TenantDeployedEventConsumerTest {
                 .thenReturn(Optional.of(instance(id, "owner@acme.edu.vn", "Acme School", "acme")));
         doThrow(new RuntimeException("db down")).when(instanceService).markProvisioned(id);
 
-        assertThatCode(() -> consumer().handle(payload(id.toString()))).doesNotThrowAnyException();
+        assertThatCode(() -> consumer().handlePayload(payload(id.toString()))).doesNotThrowAnyException();
 
         verify(emailServiceClient).sendTenantReadyEmail(
                 eq(id), eq("owner@acme.edu.vn"), eq("Acme School"), eq("acme"));
@@ -111,7 +114,7 @@ class TenantDeployedEventConsumerTest {
         UUID id = UUID.randomUUID();
         when(instanceRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatCode(() -> consumer().handle(payload(id.toString()))).doesNotThrowAnyException();
+        assertThatCode(() -> consumer().handlePayload(payload(id.toString()))).doesNotThrowAnyException();
 
         verify(emailServiceClient, never()).sendTenantReadyEmail(any(), any(), any(), any());
     }
@@ -122,7 +125,7 @@ class TenantDeployedEventConsumerTest {
         when(instanceRepository.findById(id))
                 .thenReturn(Optional.of(instance(id, "  ", "Acme School", "acme")));
 
-        consumer().handle(payload(id.toString()));
+        consumer().handlePayload(payload(id.toString()));
 
         // GAP-945: status MUST still flip even when contactEmail is missing.
         verify(instanceService).markProvisioned(id);
@@ -131,7 +134,7 @@ class TenantDeployedEventConsumerTest {
 
     @Test
     void handle_unparseableTenantId_doesNotSend() {
-        assertThatCode(() -> consumer().handle(payload("not-a-uuid"))).doesNotThrowAnyException();
+        assertThatCode(() -> consumer().handlePayload(payload("not-a-uuid"))).doesNotThrowAnyException();
 
         verifyNoInteractions(instanceRepository);
         verify(emailServiceClient, never()).sendTenantReadyEmail(any(), any(), any(), any());
@@ -139,9 +142,28 @@ class TenantDeployedEventConsumerTest {
 
     @Test
     void handle_malformedPayload_swallows() {
-        assertThatCode(() -> consumer().handle("{not-json")).doesNotThrowAnyException();
+        assertThatCode(() -> consumer().handlePayload("{not-json")).doesNotThrowAnyException();
 
         verifyNoInteractions(instanceRepository);
         verifyNoInteractions(emailServiceClient);
+    }
+
+    @Test
+    void handle_rawMessage_decodesUtf8BodyAndDelegates() {
+        // GAP-1045 regression: the @RabbitListener entry takes a raw Message (NOT String) because
+        // the shared Jackson2JsonMessageConverter rejects an application/json body bound to a String
+        // param ("Fatal message conversion error" → message dropped). Decode UTF-8 + delegate.
+        UUID id = UUID.randomUUID();
+        when(instanceRepository.findById(id))
+                .thenReturn(Optional.of(instance(id, "owner@acme.edu.vn", "Acme School", "acme")));
+        MessageProperties props = new MessageProperties();
+        props.setContentType(MessageProperties.CONTENT_TYPE_JSON);
+        Message message = new Message(payload(id.toString()).getBytes(StandardCharsets.UTF_8), props);
+
+        consumer().handle(message);
+
+        verify(instanceService).markProvisioned(id);
+        verify(emailServiceClient).sendTenantReadyEmail(eq(id), eq("owner@acme.edu.vn"),
+                eq("Acme School"), eq("acme"));
     }
 }

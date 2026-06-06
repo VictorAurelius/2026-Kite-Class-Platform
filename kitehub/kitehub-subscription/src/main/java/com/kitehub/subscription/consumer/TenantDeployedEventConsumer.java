@@ -10,11 +10,13 @@ import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.service.InstanceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,9 +31,12 @@ import java.util.UUID;
  * publishing {@code tenant.deployed}; the actual resolve-owner-and-send happens here,
  * co-located with {@link EmailServiceClient} + {@link InstanceRepository}.
  *
- * <p><strong>Wire-format (GAP-925):</strong> kiteclass-core publishes a raw-UTF8 JSON
- * String (content-type {@code application/json}); this {@code @RabbitListener(String)}
- * deserializes it directly — mirroring the proven {@code tenant.created} contract.
+ * <p><strong>Wire-format (GAP-925 + GAP-1045 fix):</strong> kiteclass-core publishes raw-UTF8
+ * JSON bytes (content-type {@code application/json}). The shared listener container factory uses a
+ * {@code Jackson2JsonMessageConverter}, which would throw a fatal {@code MessageConversionException}
+ * if this listener took a {@code String} param (Jackson cannot map a JSON object onto {@code String}).
+ * So we take the raw {@link Message} (bypassing the converter) and decode + parse it ourselves in
+ * {@link #handlePayload(String)}.
  *
  * <p><strong>Failure handling:</strong> malformed payload OR unresolvable tenant are
  * swallowed + ACKed (broken/orphan messages must not requeue-loop; DLQ wiring on
@@ -53,7 +58,15 @@ public class TenantDeployedEventConsumer {
     private final InstanceService instanceService;
 
     @RabbitListener(queues = EmailQueueConfig.TENANT_DEPLOYED_QUEUE)
-    public void handle(String payloadJson) {
+    public void handle(Message message) {
+        handlePayload(new String(message.getBody(), StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Parse + dispatch the decoded JSON payload. Package-visible so unit tests can exercise the
+     * resolve-owner-and-send logic directly without constructing an AMQP {@link Message}.
+     */
+    void handlePayload(String payloadJson) {
         TenantDeployedEvent event;
         try {
             event = objectMapper.readValue(payloadJson, TenantDeployedEvent.class);
