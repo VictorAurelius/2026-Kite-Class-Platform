@@ -1,0 +1,33 @@
+{
+  "pr": 2195,
+  "title": "docs(handoff): session 2026-06-06 PM \u2014 auth wave-2 + campaign pivot",
+  "branch": "chore/session-handoff-2026-06-06-pm",
+  "created_at": null,
+  "merged_at": "2026-06-06T06:09:49Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-06-06T13:10:00.811986",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 1,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-82988"
+  }
+}

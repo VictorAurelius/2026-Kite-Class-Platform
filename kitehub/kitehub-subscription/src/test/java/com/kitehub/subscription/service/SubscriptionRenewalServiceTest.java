@@ -209,6 +209,21 @@ class SubscriptionRenewalServiceTest {
     }
 
     @Test
+    @DisplayName("KH-5 FM-2: should reject manual renew of a PENDING subscription (null expiry) with 400 not 500")
+    void shouldRejectManualRenewOfPendingSubscription() {
+        // Given — a freshly created subscription is PENDING with null expiresAt until activation
+        subscription.setStatus(SubscriptionStatus.PENDING);
+        subscription.setExpiresAt(null);
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+
+        // When & Then — must surface IllegalArgumentException (→ 400), not NPE (→ 500)
+        assertThatThrownBy(() -> renewalService.manualRenewal(subscriptionId))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("has not been activated");
+        verify(subscriptionRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("Should check if subscription is in grace period")
     void shouldCheckIfInGracePeriod() {
         // Given

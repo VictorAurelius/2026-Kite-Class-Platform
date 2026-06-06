@@ -236,6 +236,15 @@ public class SubscriptionService {
             throw new IllegalArgumentException("Can only downgrade active subscriptions");
         }
 
+        // KH-5 FM-5: refuse to schedule a downgrade while a paid tier change (upgrade) is
+        // pending. Overwriting pendingTier here would leave pendingPaymentId pointing at the
+        // upgrade's payment — admin confirms it and the owner pays an upgrade price for a
+        // recorded downgrade. Mirror the guard in upgradeSubscription().
+        if (subscription.getPendingPaymentId() != null) {
+            throw new IllegalArgumentException(
+                "Subscription has a pending tier change payment; resolve or cancel it before downgrading");
+        }
+
         // Downgrade happens at end of cycle - store as pending change
         subscription.setPendingTier(newTier);
 
