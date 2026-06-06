@@ -71,7 +71,7 @@ class InstanceLifecycleServiceTest {
         assertThat(result.getState()).isEqualTo(LifecycleState.INITIALIZING);
         verify(eventRepo).save(any(BrandingLifecycleEvent.class));
         verify(outboxEmitter).emit(
-            eq(instanceId), eq("branding.lifecycle.transition"),
+            eq(instanceId), eq(instanceId), eq("branding.lifecycle.transition"),
             anyString(), anyString(), any());
     }
 
@@ -89,7 +89,7 @@ class InstanceLifecycleServiceTest {
             .hasMessageContaining("INVALID_TRANSITION");
 
         verify(eventRepo, never()).save(any());
-        verify(outboxEmitter, never()).emit(any(), anyString(), anyString(), anyString(), any());
+        verify(outboxEmitter, never()).emit(any(), any(), anyString(), anyString(), anyString(), any());
     }
 
     @Test
@@ -167,7 +167,7 @@ class InstanceLifecycleServiceTest {
         assertThat(ev.getFromState()).isEqualTo(LifecycleState.GENERATING);
         assertThat(ev.getToState()).isEqualTo(LifecycleState.GENERATING);
         verify(stateRepo, never()).save(any());
-        verify(outboxEmitter, never()).emit(any(), anyString(), anyString(), anyString(), any());
+        verify(outboxEmitter, never()).emit(any(), any(), anyString(), anyString(), anyString(), any());
     }
 
     @Test

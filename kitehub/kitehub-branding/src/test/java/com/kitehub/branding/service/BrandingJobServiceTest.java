@@ -88,6 +88,7 @@ class BrandingJobServiceTest {
         ArgumentCaptor<BrandingJobMessage> messageCaptor = ArgumentCaptor.forClass(BrandingJobMessage.class);
         verify(outboxEmitter).emit(
                 eq(savedJob.getId()),
+                eq(instanceId),
                 eq("branding.job.queued"),
                 eq(RabbitMQConfig.BRANDING_EXCHANGE),
                 eq(RabbitMQConfig.BRANDING_ROUTING_KEY),
