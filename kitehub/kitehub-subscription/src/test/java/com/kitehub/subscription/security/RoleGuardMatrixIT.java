@@ -101,6 +101,9 @@ class RoleGuardMatrixIT {
     @MockitoBean
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
+    /** Fixed instance id used as the gateway-trusted X-Tenant-Id in OWNER/STAFF happy paths. */
+    private static final UUID INSTANCE_ID = UUID.fromString("22003e3c-0000-0000-0000-000000000002");
+
     @BeforeEach
     void resetMocks() {
         Mockito.reset(subscriptionService, renewalService);
@@ -108,7 +111,7 @@ class RoleGuardMatrixIT {
 
     private CreateSubscriptionRequest sampleMutationPayload() {
         return CreateSubscriptionRequest.builder()
-                .instanceId(UUID.randomUUID())
+                .instanceId(INSTANCE_ID)
                 .tier(PricingTier.BASIC)
                 .billingCycle(BillingCycle.MONTHLY)
                 .build();
@@ -128,6 +131,8 @@ class RoleGuardMatrixIT {
                     .thenReturn(new SubscriptionResponse());
             mockMvc.perform(post("/api/platform/subscriptions")
                             .with(csrf())
+                            // GAP-1015: trusted tenant must match create-request instanceId.
+                            .header("X-Tenant-Id", INSTANCE_ID.toString())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(mapper.writeValueAsString(sampleMutationPayload())))
                     .andExpect(status().isCreated());
@@ -180,8 +185,10 @@ class RoleGuardMatrixIT {
         @DisplayName("OWNER → 200")
         void ownerRead_200() throws Exception {
             when(subscriptionService.getSubscription(any()))
-                    .thenReturn(new SubscriptionResponse());
-            mockMvc.perform(get("/api/platform/subscriptions/{id}", UUID.randomUUID()))
+                    .thenReturn(SubscriptionResponse.builder().instanceId(INSTANCE_ID).build());
+            mockMvc.perform(get("/api/platform/subscriptions/{id}", UUID.randomUUID())
+                            // GAP-1015: trusted tenant matches the subscription's instance.
+                            .header("X-Tenant-Id", INSTANCE_ID.toString()))
                     .andExpect(status().isOk());
         }
 
@@ -190,8 +197,9 @@ class RoleGuardMatrixIT {
         @DisplayName("STAFF (P3 Center Manager) → 200 (read allowed)")
         void staffRead_200() throws Exception {
             when(subscriptionService.getSubscription(any()))
-                    .thenReturn(new SubscriptionResponse());
-            mockMvc.perform(get("/api/platform/subscriptions/{id}", UUID.randomUUID()))
+                    .thenReturn(SubscriptionResponse.builder().instanceId(INSTANCE_ID).build());
+            mockMvc.perform(get("/api/platform/subscriptions/{id}", UUID.randomUUID())
+                            .header("X-Tenant-Id", INSTANCE_ID.toString()))
                     .andExpect(status().isOk());
         }
 

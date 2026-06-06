@@ -1,9 +1,10 @@
 # GAP-1019: Branding X-Instance-Id client-controlled → cross-tenant IDOR
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-06 (KH-6 AI Branding wizard G1 walk)
+**Closed:** 2026-06-06 (Wave security-2 Bucket B — controller-layer X-Instance-Id binding)
 **Affects:** `BrandingJobController` + `AIBrandingController` + gateway (kitehub-branding, kitehub-gateway)
 
 ## Problem
@@ -26,10 +27,14 @@ Gateway `JwtAuthenticationGatewayFilter` forward `X-User-Id/Roles/Email` nhưng 
 
 ## Acceptance Criteria
 
-- [ ] Owner A gửi X-Instance-Id của Owner B → 403 (không tạo/đọc được)
-- [ ] PLATFORM_ADMIN/ADMIN vẫn thao tác mọi instance
-- [ ] Gateway strip client-sent X-Instance-Id, derive từ JWT
-- [ ] IT cover cross-tenant 403 trên branding job create/get/assets
+- [x] Owner A gửi X-Instance-Id của Owner B → 403 (không tạo/đọc được) — `TenantOwnershipGuard.requireInstanceOwnership` bind client X-Instance-Id vs trusted X-Tenant-Id trên BrandingJobController (5 endpoint, required header) + AIBrandingController (4 endpoint, `IfPresent` variant vì header optional)
+- [x] PLATFORM_ADMIN/ADMIN vẫn thao tác mọi instance — admin bypass via SecurityContext authority
+- [x] ~~Gateway strip client-sent X-Instance-Id~~ → controller-layer binding chosen instead: verify `X-Instance-Id == trusted X-Tenant-Id` (gateway đã strip + inject X-Tenant-Id). Forged X-Instance-Id ≠ trusted X-Tenant-Id → 403. Closes IDOR without gateway change.
+- [x] Cross-tenant 403 tested — `BrandingTenantOwnershipTest` @WebMvcTest (create/get cross-tenant → 403, own → 201, admin bypass) + `TenantOwnershipGuardTest` unit (String + UUID + IfPresent variants)
+
+## Resolution (Wave security-2 Bucket B, 2026-06-06)
+
+Branding guard binds client `X-Instance-Id` to gateway-trusted `X-Tenant-Id`. BrandingJobController (X-Instance-Id required) uses strict bind; AIBrandingController (X-Instance-Id `required=false` — optional internal-call path) uses `requireInstanceOwnershipIfPresent` (binds only when header present → still blocks cross-tenant, preserves optional-instance semantics, scope-limited to GAP-1019 IDOR not rate-limit-accuracy). Stale `BrandingControllerInputCapIT`/`BrandingFlowIT` (`*IT`, broken by Wave 101 @PreAuthorize, not CI-run) tracked separately → GAP-1044.
 
 ## Related
 

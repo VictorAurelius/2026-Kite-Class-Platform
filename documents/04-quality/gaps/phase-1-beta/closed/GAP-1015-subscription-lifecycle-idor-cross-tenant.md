@@ -1,9 +1,10 @@
 # GAP-1015: Subscription lifecycle endpoints thiếu ownership binding — IDOR cross-tenant
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-06 (KH-5 subscription downgrade/cancel/renew G1 walk)
+**Closed:** 2026-06-06 (Wave security-2 Bucket B — `TenantOwnershipGuard` ownership binding)
 **Affects:** `SubscriptionController` + `SubscriptionService` + `SubscriptionRenewalService` (kitehub-subscription)
 
 ## Problem
@@ -32,10 +33,16 @@ Endpoints under `/api/platform/subscriptions/**` chỉ được gateway inject `
 
 ## Acceptance Criteria
 
-- [ ] Owner A GET/downgrade/cancel/renew subscription của Owner B → 403 (không phải 200/204)
-- [ ] PLATFORM_ADMIN/ADMIN vẫn thao tác được mọi subscription
-- [ ] create subscription cho instance không thuộc caller → 403
-- [ ] IT cover cross-tenant 403 + same-tenant 200 + admin-bypass trên Testcontainers Postgres + gateway header
+- [x] Owner A GET/downgrade/cancel/renew subscription của Owner B → 403 (không phải 200/204) — `TenantOwnershipGuard.requireOwnership` bind subscription.instanceId vs trusted X-Tenant-Id (controller pre-loads via getSubscription để guard TRƯỚC mutation)
+- [x] PLATFORM_ADMIN/ADMIN vẫn thao tác được mọi subscription — admin bypass via SecurityContext authority
+- [x] create subscription cho instance không thuộc caller → 403 — bind request.getInstanceId() vs X-Tenant-Id
+- [x] Cross-tenant 403 + same-tenant 200 + admin-bypass tested — `SubscriptionTenantOwnershipTest` @WebMvcTest (real SecurityConfig method-security chain) + `TenantOwnershipGuardTest` unit. NOTE: guard là controller-layer (so sánh header, không query DB) → @WebMvcTest với real security chain là test layer đúng; Testcontainers Postgres không thêm coverage cho header-compare logic.
+
+## Resolution (Wave security-2 Bucket B, 2026-06-06)
+
+**Fix-time state-check (per `audit-to-gap-pipeline.md` §2.8):** Root Cause "gateway không forward tenantId" outdated — gateway `TenantHeaderGuardFilter` ĐÃ inject trusted `X-Tenant-Id` từ JWT `tenantId` claim trên mọi non-public route + strip client-sent value. **KHÔNG cần gateway change.** Fix = service-layer ownership binding (`TenantOwnershipGuard`) dùng header sẵn có, theo precedent StaffInvitationController.
+
+Also restricted global `GET /expiring` (returned ALL tenants' expiring subs to any OWNER — list-all leak, sister of this IDOR class per `cross-flow-bug-class-sweep.md`) → `@PreAuthorize` admin-only. FE không dùng endpoint này (verified grep).
 
 ## Related
 

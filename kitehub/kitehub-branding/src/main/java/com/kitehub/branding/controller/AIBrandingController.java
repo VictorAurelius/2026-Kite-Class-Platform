@@ -2,6 +2,7 @@ package com.kitehub.branding.controller;
 
 import com.kitehub.branding.dto.LogoAnalysis;
 import com.kitehub.branding.dto.ThemeConfig;
+import com.kitehub.branding.security.TenantOwnershipGuard;
 import com.kitehub.branding.service.AIBrandingService;
 import com.kitehub.branding.service.AIInputCapService;
 import com.kitehub.branding.service.AIRateLimitService;
@@ -74,8 +75,11 @@ public class AIBrandingController {
     public Mono<ResponseEntity<Object>> analyzeLogo(
             @Valid @RequestBody AnalyzeLogoRequest request,
             @RequestHeader(value = "X-Instance-Id", required = false) String instanceId,
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
             @RequestHeader(value = "X-Subscription-Tier", required = false, defaultValue = "FREE") String tier
     ) {
+        // GAP-1019: non-admin caller's X-Instance-Id must match the gateway-trusted X-Tenant-Id.
+        TenantOwnershipGuard.requireInstanceOwnershipIfPresent(instanceId, tenantHeader);
         ResponseEntity<Object> rateLimitResponse = checkRateLimit(instanceId, tier);
         if (rateLimitResponse != null) {
             return Mono.just(rateLimitResponse);
@@ -106,8 +110,10 @@ public class AIBrandingController {
     public Mono<ResponseEntity<Object>> generateImage(
             @Valid @RequestBody GenerateImageRequest request,
             @RequestHeader(value = "X-Instance-Id", required = false) String instanceId,
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
             @RequestHeader(value = "X-Subscription-Tier", required = false, defaultValue = "FREE") String tier
     ) {
+        TenantOwnershipGuard.requireInstanceOwnershipIfPresent(instanceId, tenantHeader);
         ResponseEntity<Object> rateLimitResponse = checkRateLimit(instanceId, tier);
         if (rateLimitResponse != null) {
             return Mono.just(rateLimitResponse);
@@ -142,8 +148,10 @@ public class AIBrandingController {
     public Mono<ResponseEntity<Object>> generateText(
             @Valid @RequestBody GenerateTextRequest request,
             @RequestHeader(value = "X-Instance-Id", required = false) String instanceId,
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
             @RequestHeader(value = "X-Subscription-Tier", required = false, defaultValue = "FREE") String tier
     ) {
+        TenantOwnershipGuard.requireInstanceOwnershipIfPresent(instanceId, tenantHeader);
         ResponseEntity<Object> rateLimitResponse = checkRateLimit(instanceId, tier);
         if (rateLimitResponse != null) {
             return Mono.just(rateLimitResponse);
@@ -179,8 +187,10 @@ public class AIBrandingController {
     public ResponseEntity<Object> generateTheme(
             @Valid @RequestBody LogoAnalysis analysis,
             @RequestHeader(value = "X-Instance-Id", required = false) String instanceId,
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
             @RequestHeader(value = "X-Subscription-Tier", required = false, defaultValue = "FREE") String tier
     ) {
+        TenantOwnershipGuard.requireInstanceOwnershipIfPresent(instanceId, tenantHeader);
         ResponseEntity<Object> rateLimitResponse = checkRateLimit(instanceId, tier);
         if (rateLimitResponse != null) {
             return rateLimitResponse;

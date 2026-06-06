@@ -1,6 +1,7 @@
 package com.kitehub.branding.controller;
 
 import com.kitehub.branding.domain.entity.BrandingJob;
+import com.kitehub.branding.security.TenantOwnershipGuard;
 import com.kitehub.branding.service.BrandingJobService;
 import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,14 +27,14 @@ import java.util.UUID;
  * <p>SLO Tier B (job CRUD; AI execution is async per Tier E queue SLOs).
  * See {@code documents/05-guides/api-performance-slo.md}.
  *
- * <p><strong>GAP-562b (Wave 80 Bucket C):</strong> Branding endpoints SHOULD be
- * OWNER-only per business rule (STAFF has no branding access).
- * {@code kitehub-branding} module does NOT yet have {@code spring-boot-starter-security}
- * on classpath, so {@code @PreAuthorize} is not enforceable here in Wave 80. Defense
- * comes from (a) FE {@code RoleGuard} at {@code /branding/*} route layout, (b) gateway
- * path-level auth filter. Adding spring-security dependency + {@code @EnableMethodSecurity}
- * to this module is tracked as Wave 81 follow-up under GAP-562b §"BE @PreAuthorize coverage"
- * deferred portion.</p>
+ * <p><strong>Authorization:</strong> {@code @PreAuthorize} is enforced — the module now has
+ * spring-security + {@code @EnableMethodSecurity} (GAP-562 Wave 101 Bucket B). OWNER-only
+ * writes; OWNER + STAFF subroles read.</p>
+ *
+ * <p><strong>GAP-1019 (Wave security-2 Bucket B):</strong> the role gate alone did not bind the
+ * client-supplied {@code X-Instance-Id} to the caller's tenant — an OWNER could scope to another
+ * tenant's instance. Each endpoint now verifies {@code X-Instance-Id} matches the gateway-trusted
+ * {@code X-Tenant-Id} via {@link TenantOwnershipGuard} (platform admins bypass).</p>
  *
  * @since 1.0
  */
@@ -75,10 +76,13 @@ public class BrandingJobController {
     @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<BrandingJob> createJob(
             @RequestHeader("X-Instance-Id") UUID instanceId,
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
             @RequestParam String organizationName,
             @RequestParam(defaultValue = "vi") String language,
             @RequestParam String logoUrl) {
 
+        // GAP-1019: bind client X-Instance-Id to the gateway-trusted tenant.
+        TenantOwnershipGuard.requireInstanceOwnership(instanceId, tenantHeader);
         log.info("Creating branding job for instance: {}", instanceId);
 
         BrandingJob job = jobService.createJob(instanceId, organizationName, language, logoUrl);
@@ -97,8 +101,10 @@ public class BrandingJobController {
     @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
     public ResponseEntity<BrandingJob> getJob(
             @RequestHeader("X-Instance-Id") UUID instanceId,
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
             @PathVariable UUID id) {
 
+        TenantOwnershipGuard.requireInstanceOwnership(instanceId, tenantHeader);
         BrandingJob job = jobService.getJob(id, instanceId);
 
         if (job == null) {
@@ -117,8 +123,10 @@ public class BrandingJobController {
     @GetMapping
     @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
     public ResponseEntity<List<BrandingJob>> listJobs(
-            @RequestHeader("X-Instance-Id") UUID instanceId) {
+            @RequestHeader("X-Instance-Id") UUID instanceId,
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader) {
 
+        TenantOwnershipGuard.requireInstanceOwnership(instanceId, tenantHeader);
         List<BrandingJob> jobs = jobService.getJobsByInstance(instanceId);
 
         return ResponseEntity.ok(jobs);
@@ -142,8 +150,10 @@ public class BrandingJobController {
     @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
     public ResponseEntity<?> getJobAssets(
             @RequestHeader("X-Instance-Id") UUID instanceId,
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
             @PathVariable UUID id) {
 
+        TenantOwnershipGuard.requireInstanceOwnership(instanceId, tenantHeader);
         BrandingJob job = jobService.getJob(id, instanceId);
         if (job == null) {
             return ResponseEntity.notFound().build();
@@ -156,8 +166,10 @@ public class BrandingJobController {
     @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<Void> cancelJob(
             @RequestHeader("X-Instance-Id") UUID instanceId,
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
             @PathVariable UUID id) {
 
+        TenantOwnershipGuard.requireInstanceOwnership(instanceId, tenantHeader);
         boolean cancelled = jobService.cancelJob(id, instanceId);
 
         if (cancelled) {
