@@ -140,6 +140,22 @@ class DomainServiceTest {
     }
 
     @Test
+    @DisplayName("KH-7 FM-5: initiateCustomDomain should reject platform-reserved domains")
+    void initiateCustomDomain_reservedDomain_throws() {
+        // Given — a PREMIUM instance (passes the tier gate) tries to claim platform domains
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(premiumInstance));
+
+        // When & Then — reserved apex + a subdomain of a reserved apex both rejected
+        assertThatThrownBy(() -> domainService.initiateCustomDomain(instanceId, "kitehub.me"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("reserved");
+        assertThatThrownBy(() -> domainService.initiateCustomDomain(instanceId, "app.kiteclass.com"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("reserved");
+        verify(instanceRepository, never()).save(any(Instance.class));
+    }
+
+    @Test
     @DisplayName("initiateCustomDomain: ENTERPRISE instance should return verify token")
     void initiateCustomDomain_enterpriseInstance_returnsToken() {
         // Given
