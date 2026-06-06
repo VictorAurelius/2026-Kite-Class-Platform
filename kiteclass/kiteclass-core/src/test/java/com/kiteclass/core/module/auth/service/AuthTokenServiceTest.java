@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class AuthTokenServiceTest {
 
     /** 64-byte secret — minimum required for HS512. */
-    private static final String SECRET = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+    private static final String SECRET = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"; // gitleaks:allow
 
     private AuthTokenService tokenService;
     private final UUID userUuid = UUID.fromString("33333333-3333-3333-3333-333333333333");
