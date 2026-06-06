@@ -2,6 +2,7 @@ package com.kitehub.subscription.controller;
 
 import com.kitehub.subscription.dto.DomainSetupRequest;
 import com.kitehub.subscription.dto.DomainVerifyResponse;
+import com.kitehub.subscription.security.TenantOwnershipGuard;
 import com.kitehub.subscription.service.DomainService;
 import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,10 +42,11 @@ import java.util.UUID;
 public class DomainController {
 
     // KH-7 FM-1: DomainController had ZERO authz — any authenticated user (any role)
-    // could read/set/delete any instance's domain. Mirror the OWNER_AUTHZ role gate used
-    // by sibling controllers. NOTE: this is role-level defense-in-depth only; cross-tenant
-    // ownership binding (Owner A acting on Owner B's instance) still needs the gateway
-    // tenant-identity propagation tracked in GAP-1023 (sister of GAP-1015/GAP-1019).
+    // could read/set/delete any instance's domain. OWNER_AUTHZ is the role-level gate.
+    // GAP-1023 (Wave security-2 Bucket B): cross-tenant ownership binding now enforced via
+    // TenantOwnershipGuard — the path {id} (instanceId) is compared against the gateway-trusted
+    // X-Tenant-Id (caller's instance). Owner A acting on Owner B's instance → 403.
+    // Platform admins bypass (manage every instance).
     static final String OWNER_AUTHZ = "hasAnyRole('OWNER','PLATFORM_ADMIN','ADMIN')";
 
     private final DomainService domainService;
@@ -63,9 +65,11 @@ public class DomainController {
     @PreAuthorize(OWNER_AUTHZ)
     @PostMapping
     public ResponseEntity<DomainVerifyResponse> initiateCustomDomain(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
         @PathVariable UUID id,
         @Valid @RequestBody DomainSetupRequest request
     ) {
+        TenantOwnershipGuard.requireOwnership(id, tenantHeader);
         DomainVerifyResponse response = domainService.initiateCustomDomain(id, request.getCustomDomain());
         return ResponseEntity.ok(response);
     }
@@ -81,7 +85,11 @@ public class DomainController {
                description = "Checks DNS TXT record. Returns VERIFIED if correct, PENDING if not found yet.")
     @PreAuthorize(OWNER_AUTHZ)
     @PostMapping("/verify")
-    public ResponseEntity<DomainVerifyResponse> verifyCustomDomain(@PathVariable UUID id) {
+    public ResponseEntity<DomainVerifyResponse> verifyCustomDomain(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
+        @PathVariable UUID id
+    ) {
+        TenantOwnershipGuard.requireOwnership(id, tenantHeader);
         DomainVerifyResponse response = domainService.verifyCustomDomain(id);
         return ResponseEntity.ok(response);
     }
@@ -97,7 +105,11 @@ public class DomainController {
                description = "Removes custom domain and clears all verification data.")
     @PreAuthorize(OWNER_AUTHZ)
     @DeleteMapping
-    public ResponseEntity<Void> removeCustomDomain(@PathVariable UUID id) {
+    public ResponseEntity<Void> removeCustomDomain(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
+        @PathVariable UUID id
+    ) {
+        TenantOwnershipGuard.requireOwnership(id, tenantHeader);
         domainService.removeCustomDomain(id);
         return ResponseEntity.noContent().build();
     }
@@ -112,7 +124,11 @@ public class DomainController {
                description = "Returns current domain verification status and info.")
     @PreAuthorize(OWNER_AUTHZ)
     @GetMapping
-    public ResponseEntity<DomainVerifyResponse> getDomainStatus(@PathVariable UUID id) {
+    public ResponseEntity<DomainVerifyResponse> getDomainStatus(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
+        @PathVariable UUID id
+    ) {
+        TenantOwnershipGuard.requireOwnership(id, tenantHeader);
         DomainVerifyResponse response = domainService.getDomainStatus(id);
         return ResponseEntity.ok(response);
     }

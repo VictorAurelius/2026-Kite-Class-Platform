@@ -3,6 +3,7 @@ package com.kitehub.subscription.controller;
 import com.kitehub.subscription.dto.CreateSubscriptionRequest;
 import com.kitehub.subscription.dto.SubscriptionResponse;
 import com.kitehub.subscription.dto.TierChangeRequest;
+import com.kitehub.subscription.security.TenantOwnershipGuard;
 import com.kitehub.subscription.service.SubscriptionRenewalService;
 import com.kitehub.subscription.service.SubscriptionService;
 import io.micrometer.core.annotation.Timed;
@@ -46,8 +47,27 @@ public class SubscriptionController {
     static final String OWNER_OR_STAFF_AUTHZ =
             "hasAnyRole('OWNER','STAFF','PLATFORM_ADMIN','ADMIN')";
 
+    /**
+     * GAP-1015 (Wave security-2 Bucket B): {@code GET /expiring} returns expiring
+     * subscriptions across ALL tenants — a cross-tenant data leak when exposed to an
+     * OWNER/STAFF. It is an operational/renewal-reminder view with no owner-facing FE
+     * caller, so it is restricted to platform admins.
+     */
+    static final String ADMIN_ONLY_AUTHZ =
+            "hasAnyRole('PLATFORM_ADMIN','ADMIN')";
+
     private final SubscriptionService subscriptionService;
     private final SubscriptionRenewalService renewalService;
+
+    /**
+     * GAP-1015: resolve the subscription's owning instance and verify it belongs to the
+     * caller's tenant (gateway-trusted {@code X-Tenant-Id}). Platform admins bypass.
+     * Used by the {@code /{id}} lifecycle endpoints which only receive the subscription id.
+     */
+    private void requireOwnedSubscription(UUID subscriptionId, String tenantHeader) {
+        SubscriptionResponse existing = subscriptionService.getSubscription(subscriptionId);
+        TenantOwnershipGuard.requireOwnership(existing.getInstanceId(), tenantHeader);
+    }
 
     /**
      * Create a new subscription.
@@ -58,8 +78,12 @@ public class SubscriptionController {
     @PostMapping
     @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<SubscriptionResponse> createSubscription(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
         @Valid @RequestBody CreateSubscriptionRequest request
     ) {
+        // GAP-1015: bind the create-request instanceId to the caller's tenant — an OWNER
+        // must not create a subscription for an instance they do not own.
+        TenantOwnershipGuard.requireOwnership(request.getInstanceId(), tenantHeader);
         SubscriptionResponse response = subscriptionService.createSubscription(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -72,8 +96,13 @@ public class SubscriptionController {
      */
     @GetMapping("/{id}")
     @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
-    public ResponseEntity<SubscriptionResponse> getSubscription(@PathVariable UUID id) {
+    public ResponseEntity<SubscriptionResponse> getSubscription(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
+        @PathVariable UUID id
+    ) {
         SubscriptionResponse response = subscriptionService.getSubscription(id);
+        // GAP-1015: deny before returning when the subscription belongs to another tenant.
+        TenantOwnershipGuard.requireOwnership(response.getInstanceId(), tenantHeader);
         return ResponseEntity.ok(response);
     }
 
@@ -85,7 +114,12 @@ public class SubscriptionController {
      */
     @GetMapping("/instance/{instanceId}/active")
     @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
-    public ResponseEntity<SubscriptionResponse> getActiveSubscription(@PathVariable UUID instanceId) {
+    public ResponseEntity<SubscriptionResponse> getActiveSubscription(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
+        @PathVariable UUID instanceId
+    ) {
+        // GAP-1015: the instance path id IS the tenant scope — bind it to the caller.
+        TenantOwnershipGuard.requireOwnership(instanceId, tenantHeader);
         SubscriptionResponse response = subscriptionService.getActiveSubscription(instanceId);
         return ResponseEntity.ok(response);
     }
@@ -98,7 +132,12 @@ public class SubscriptionController {
      */
     @GetMapping("/instance/{instanceId}")
     @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
-    public ResponseEntity<List<SubscriptionResponse>> getSubscriptionsByInstance(@PathVariable UUID instanceId) {
+    public ResponseEntity<List<SubscriptionResponse>> getSubscriptionsByInstance(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
+        @PathVariable UUID instanceId
+    ) {
+        // GAP-1015: the instance path id IS the tenant scope — bind it to the caller.
+        TenantOwnershipGuard.requireOwnership(instanceId, tenantHeader);
         List<SubscriptionResponse> responses = subscriptionService.getSubscriptionsByInstance(instanceId);
         return ResponseEntity.ok(responses);
     }
@@ -113,9 +152,11 @@ public class SubscriptionController {
     @PatchMapping("/{id}/upgrade")
     @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<SubscriptionResponse> upgradeSubscription(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
         @PathVariable UUID id,
         @Valid @RequestBody TierChangeRequest request
     ) {
+        requireOwnedSubscription(id, tenantHeader);
         SubscriptionResponse response = subscriptionService.upgradeSubscription(id, request.getNewTier());
         return ResponseEntity.ok(response);
     }
@@ -130,9 +171,11 @@ public class SubscriptionController {
     @PatchMapping("/{id}/downgrade")
     @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<SubscriptionResponse> downgradeSubscription(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
         @PathVariable UUID id,
         @Valid @RequestBody TierChangeRequest request
     ) {
+        requireOwnedSubscription(id, tenantHeader);
         SubscriptionResponse response = subscriptionService.downgradeSubscription(id, request.getNewTier());
         return ResponseEntity.ok(response);
     }
@@ -147,9 +190,11 @@ public class SubscriptionController {
     @DeleteMapping("/{id}")
     @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<Void> cancelSubscription(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
         @PathVariable UUID id,
         @RequestParam(defaultValue = "false") boolean immediate
     ) {
+        requireOwnedSubscription(id, tenantHeader);
         subscriptionService.cancelSubscription(id, immediate);
         return ResponseEntity.noContent().build();
     }
@@ -163,7 +208,11 @@ public class SubscriptionController {
      */
     @PostMapping("/{id}/renew")
     @PreAuthorize(OWNER_AUTHZ)
-    public ResponseEntity<Void> renewSubscription(@PathVariable UUID id) {
+    public ResponseEntity<Void> renewSubscription(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
+        @PathVariable UUID id
+    ) {
+        requireOwnedSubscription(id, tenantHeader);
         renewalService.manualRenewal(id);
         return ResponseEntity.noContent().build();
     }
@@ -175,7 +224,7 @@ public class SubscriptionController {
      * @return List of expiring subscription responses
      */
     @GetMapping("/expiring")
-    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
+    @PreAuthorize(ADMIN_ONLY_AUTHZ)
     public ResponseEntity<List<SubscriptionResponse>> getExpiringSubscriptions() {
         List<SubscriptionResponse> responses = subscriptionService.getExpiringSubscriptions();
         return ResponseEntity.ok(responses);

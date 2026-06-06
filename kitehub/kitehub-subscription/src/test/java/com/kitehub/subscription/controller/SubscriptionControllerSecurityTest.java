@@ -61,6 +61,9 @@ class SubscriptionControllerSecurityTest {
     @MockitoBean
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
+    /** Fixed instance id used as the gateway-trusted X-Tenant-Id in OWNER/STAFF happy paths. */
+    private static final UUID INSTANCE_ID = UUID.fromString("22003e3c-0000-0000-0000-000000000001");
+
     @BeforeEach
     void beforeEach() {
         Mockito.reset(subscriptionService, renewalService);
@@ -68,7 +71,7 @@ class SubscriptionControllerSecurityTest {
 
     private CreateSubscriptionRequest sampleCreateRequest() {
         return CreateSubscriptionRequest.builder()
-                .instanceId(UUID.randomUUID())
+                .instanceId(INSTANCE_ID)
                 .tier(PricingTier.BASIC)
                 .billingCycle(BillingCycle.MONTHLY)
                 .build();
@@ -95,6 +98,8 @@ class SubscriptionControllerSecurityTest {
                 .thenReturn(new SubscriptionResponse());
         mockMvc.perform(post("/api/platform/subscriptions")
                         .with(csrf())
+                        // GAP-1015: gateway-trusted tenant must match the create-request instanceId.
+                        .header("X-Tenant-Id", INSTANCE_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(sampleCreateRequest())))
                 .andExpect(status().isCreated());
@@ -135,18 +140,28 @@ class SubscriptionControllerSecurityTest {
 
     @Test
     @WithMockUser(roles = "STAFF")
-    @DisplayName("STAFF read /{id} → 200")
+    @DisplayName("STAFF read /{id} (own tenant) → 200")
     void staffGet_returns200() throws Exception {
         when(subscriptionService.getSubscription(any()))
-                .thenReturn(new SubscriptionResponse());
-        mockMvc.perform(get("/api/platform/subscriptions/{id}", UUID.randomUUID()))
+                .thenReturn(SubscriptionResponse.builder().instanceId(INSTANCE_ID).build());
+        mockMvc.perform(get("/api/platform/subscriptions/{id}", UUID.randomUUID())
+                        // GAP-1015: trusted tenant matches the subscription's instance → allowed.
+                        .header("X-Tenant-Id", INSTANCE_ID.toString()))
                 .andExpect(status().isOk());
     }
 
     @Test
     @WithMockUser(roles = "STAFF")
-    @DisplayName("STAFF read /expiring → 200")
-    void staffExpiring_returns200() throws Exception {
+    @DisplayName("STAFF read /expiring → 403 (GAP-1015: now admin-only)")
+    void staffExpiring_returns403() throws Exception {
+        mockMvc.perform(get("/api/platform/subscriptions/expiring"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "PLATFORM_ADMIN")
+    @DisplayName("PLATFORM_ADMIN read /expiring → 200")
+    void adminExpiring_returns200() throws Exception {
         when(subscriptionService.getExpiringSubscriptions()).thenReturn(List.of());
         mockMvc.perform(get("/api/platform/subscriptions/expiring"))
                 .andExpect(status().isOk());

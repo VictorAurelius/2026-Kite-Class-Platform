@@ -72,6 +72,8 @@ class BrandingRoleAuthorizationTest {
         mockMvc.perform(post("/api/platform/branding/jobs")
                         .with(csrf())
                         .header("X-Instance-Id", INSTANCE_ID.toString())
+                        // GAP-1019: gateway-trusted tenant must match X-Instance-Id for non-admin.
+                        .header("X-Tenant-Id", INSTANCE_ID.toString())
                         .param("organizationName", "Trung tâm Sky Education")
                         .param("language", "vi")
                         .param("logoUrl", "https://example.com/logo.png"))
@@ -106,7 +108,8 @@ class BrandingRoleAuthorizationTest {
     @DisplayName("OWNER GET /jobs/{id} → 200 (read allowed)")
     void owner_canReadJob() throws Exception {
         mockMvc.perform(get("/api/platform/branding/jobs/" + JOB_ID)
-                        .header("X-Instance-Id", INSTANCE_ID.toString()))
+                        .header("X-Instance-Id", INSTANCE_ID.toString())
+                        .header("X-Tenant-Id", INSTANCE_ID.toString()))
                 .andExpect(status().isOk());
     }
 
@@ -115,7 +118,8 @@ class BrandingRoleAuthorizationTest {
     @DisplayName("STAFF (MANAGER) GET /jobs/{id} → 200 (read allowed for staff)")
     void staff_canReadJob() throws Exception {
         mockMvc.perform(get("/api/platform/branding/jobs/" + JOB_ID)
-                        .header("X-Instance-Id", INSTANCE_ID.toString()))
+                        .header("X-Instance-Id", INSTANCE_ID.toString())
+                        .header("X-Tenant-Id", INSTANCE_ID.toString()))
                 .andExpect(status().isOk());
     }
 
