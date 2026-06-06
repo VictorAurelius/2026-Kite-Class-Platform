@@ -142,6 +142,7 @@ public class InstanceLifecycleService {
 
         outboxEmitter.emit(
             instanceId,
+            instanceId,
             "branding.lifecycle.transition",
             RabbitMQConfig.BRANDING_EXCHANGE,
             "branding.lifecycle.transition",

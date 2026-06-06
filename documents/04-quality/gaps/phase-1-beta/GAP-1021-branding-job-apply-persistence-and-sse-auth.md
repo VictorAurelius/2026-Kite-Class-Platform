@@ -1,0 +1,35 @@
+# GAP-1021: Branding job assets không persist thành active theme + SSE preview/deploy auth qua EventSource
+
+**Status:** 🔵 OPEN
+**Priority:** 🟠 P1
+**Domain:** Mixed
+**Found:** 2026-06-06 (KH-6 AI Branding wizard G1 walk)
+**Affects:** kitehub-branding (job apply persistence + SSE controllers) + FE wizard
+
+## Problem
+
+KH-6 G1 walk surface 2 "apply/approval" gap:
+
+1. **Job assets không persist thành active theme (FM-7):** Branding job (`POST /jobs`) generate đầy đủ assets (`GET /jobs/{id}/assets` trả marketingCopy + logos + hero + og + profile variants) NHƯNG không có endpoint approve/apply để persist assets job thành theme active của instance. Chỉ `POST /templates/{id}/apply` persist (template-based, không phải AI-generated job output). Wizard flow "generate (job) → preview → approve per resource" (per `ai-branding-guidelines.md` §4.2) dead-end ở bước approve — job COMPLETED nhưng không có đường activate kết quả. `generate-theme` cũng chỉ trả JSON, không persist.
+
+2. **SSE preview/deploy auth (FM-4):** `PreviewController` + `DeployStreamController` dưới `/api/v1/branding/jobs/**` require auth, nhưng browser `EventSource`/iframe KHÔNG gửi được `Authorization`/`X-User-*` header → gateway 401, stream không kết nối. (Walk chưa test SSE trực tiếp — predicted; cần token-in-query hoặc cookie auth cho SSE.)
+
+## Root Cause
+
+(1) Thiếu job-approval endpoint persist `BrandingJob` assets → instance active theme + lifecycle DEPLOYED. (2) SSE endpoint dùng header-auth không tương thích EventSource (không set custom header).
+
+## Proposed Fix
+
+1. Thêm `POST /jobs/{id}/approve` (hoặc per-resource approve per §4.2) persist assets → instance theme + transition lifecycle GENERATING→DEPLOYED qua `InstanceLifecycleService` + quality gate §5.
+2. SSE auth: token-in-query-param (short-lived) hoặc cookie-based cho `/jobs/{id}/preview` + `deploy-stream`; gateway whitelist SSE path với query-token verify.
+
+## Acceptance Criteria
+
+- [ ] Job COMPLETED → approve → instance active theme = job assets + lifecycle DEPLOYED
+- [ ] SSE preview/deploy stream kết nối được từ browser EventSource (auth qua query-token/cookie)
+- [ ] Quality gate §5 chạy trước DEPLOYED (score ≥70)
+
+## Related
+
+- Discovered in: KH-6 G1 walk — `documents/04-quality/audits/persona-review/2026-06-06-pre-walk-kh6-ai-branding-wizard.md` (FM-7 + FM-4)
+- Related: `ai-branding-guidelines.md` §4.2 preview+approve + §5 quality gate + §6 lifecycle

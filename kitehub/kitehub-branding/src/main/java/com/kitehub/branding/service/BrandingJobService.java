@@ -87,6 +87,7 @@ public class BrandingJobService {
         // then best-effort fast-path publish handled inside the emitter.
         outboxEmitter.emit(
                 job.getId(),
+                instanceId,
                 "branding.job.queued",
                 RabbitMQConfig.BRANDING_EXCHANGE,
                 RabbitMQConfig.BRANDING_ROUTING_KEY,

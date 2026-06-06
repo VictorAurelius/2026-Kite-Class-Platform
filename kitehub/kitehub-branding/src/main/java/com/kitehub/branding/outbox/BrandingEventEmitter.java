@@ -48,6 +48,8 @@ public class BrandingEventEmitter {
      * outbox row commits atomically with the domain change.</p>
      *
      * @param aggregateId the entity the event refers to (e.g. branding-job id)
+     * @param instanceId  the tenant/instance the event belongs to (RLS scope —
+     *                    branding_outbox.instance_id NOT NULL per V58)
      * @param eventType   short event name (e.g. {@code branding.job.queued})
      * @param exchange    RabbitMQ exchange for the fast-path publish
      * @param routingKey  RabbitMQ routing key
@@ -55,6 +57,7 @@ public class BrandingEventEmitter {
      *                    same object handed to {@code rabbitTemplate}
      */
     public void emit(UUID aggregateId,
+                     UUID instanceId,
                      String eventType,
                      String exchange,
                      String routingKey,
@@ -70,6 +73,7 @@ public class BrandingEventEmitter {
         BrandingOutboxEvent event = BrandingOutboxEvent.builder()
             .id(UUID.randomUUID())
             .aggregateId(aggregateId)
+            .instanceId(instanceId)
             .eventType(eventType)
             .topic(routingKey)
             .payload(payloadJson)

@@ -119,5 +119,19 @@ public class SecurityConfig {
 
             chain.doFilter(request, response);
         }
+
+        // Reactive endpoints (Mono/Flux return) trigger a servlet ASYNC dispatch, and
+        // any error triggers an ERROR dispatch. OncePerRequestFilter skips both by default,
+        // so the header-derived auth was lost on re-dispatch → 401 (masking the real result).
+        // Re-run on async + error dispatch so auth is re-established from the headers.
+        @Override
+        protected boolean shouldNotFilterAsyncDispatch() {
+            return false;
+        }
+
+        @Override
+        protected boolean shouldNotFilterErrorDispatch() {
+            return false;
+        }
     }
 }

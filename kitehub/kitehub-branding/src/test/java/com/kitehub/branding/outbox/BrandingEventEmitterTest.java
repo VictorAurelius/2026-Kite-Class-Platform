@@ -41,9 +41,10 @@ class BrandingEventEmitterTest {
     @Test
     void emit_persistsOutboxRowWithCorrectFields() {
         UUID aggregateId = UUID.randomUUID();
+        UUID instanceId = UUID.randomUUID();
         var payload = new TestPayload("hello");
 
-        emitter.emit(aggregateId, "branding.test.fired", "branding.exchange", "branding.test", payload);
+        emitter.emit(aggregateId, instanceId, "branding.test.fired", "branding.exchange", "branding.test", payload);
 
         ArgumentCaptor<BrandingOutboxEvent> captor = ArgumentCaptor.forClass(BrandingOutboxEvent.class);
         verify(outboxRepository).save(captor.capture());
@@ -51,6 +52,7 @@ class BrandingEventEmitterTest {
 
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getAggregateId()).isEqualTo(aggregateId);
+        assertThat(saved.getInstanceId()).isEqualTo(instanceId);
         assertThat(saved.getEventType()).isEqualTo("branding.test.fired");
         assertThat(saved.getTopic()).isEqualTo("branding.test");
         assertThat(saved.getPayload()).contains("\"value\":\"hello\"");
@@ -61,9 +63,10 @@ class BrandingEventEmitterTest {
     @Test
     void emit_alsoFiresFastPathPublishWhenRabbitTemplatePresent() {
         UUID aggregateId = UUID.randomUUID();
+        UUID instanceId = UUID.randomUUID();
         var payload = new TestPayload("hello");
 
-        emitter.emit(aggregateId, "branding.test.fired", "branding.exchange", "branding.test", payload);
+        emitter.emit(aggregateId, instanceId, "branding.test.fired", "branding.exchange", "branding.test", payload);
 
         verify(rabbitTemplate).convertAndSend(eq("branding.exchange"), eq("branding.test"), eq(payload));
     }
@@ -71,12 +74,13 @@ class BrandingEventEmitterTest {
     @Test
     void emit_swallowsBrokerErrorSoOutboxStaysSourceOfTruth() {
         UUID aggregateId = UUID.randomUUID();
+        UUID instanceId = UUID.randomUUID();
         var payload = new TestPayload("hello");
         doThrow(new AmqpException("broker down")).when(rabbitTemplate)
             .convertAndSend(any(String.class), any(String.class), any(Object.class));
 
         // Must NOT propagate — outbox row already saved acts as the reliability net
-        emitter.emit(aggregateId, "branding.test.fired", "branding.exchange", "branding.test", payload);
+        emitter.emit(aggregateId, instanceId, "branding.test.fired", "branding.exchange", "branding.test", payload);
 
         verify(outboxRepository).save(any(BrandingOutboxEvent.class));
     }
@@ -84,10 +88,11 @@ class BrandingEventEmitterTest {
     @Test
     void emit_skipsFastPathWhenRabbitTemplateNotWired() {
         UUID aggregateId = UUID.randomUUID();
+        UUID instanceId = UUID.randomUUID();
         var payload = new TestPayload("hello");
         ReflectionTestUtils.setField(emitter, "rabbitTemplate", null);
 
-        emitter.emit(aggregateId, "branding.test.fired", "branding.exchange", "branding.test", payload);
+        emitter.emit(aggregateId, instanceId, "branding.test.fired", "branding.exchange", "branding.test", payload);
 
         verify(outboxRepository).save(any(BrandingOutboxEvent.class));
         verify(rabbitTemplate, never()).convertAndSend(any(String.class), any(String.class), any(Object.class));

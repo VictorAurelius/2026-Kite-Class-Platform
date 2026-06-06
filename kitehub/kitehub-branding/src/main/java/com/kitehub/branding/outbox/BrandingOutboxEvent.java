@@ -50,6 +50,12 @@ public class BrandingOutboxEvent {
     @Column(name = "aggregate_id", nullable = false)
     private UUID aggregateId;
 
+    // V58 RLS sweep added branding_outbox.instance_id NOT NULL for tenant isolation;
+    // entity/emitter were not updated → every insert failed the NOT NULL constraint.
+    @NotNull
+    @Column(name = "instance_id", nullable = false)
+    private UUID instanceId;
+
     @NotBlank
     @Size(max = 64)
     @Column(name = "event_type", length = 64, nullable = false)
