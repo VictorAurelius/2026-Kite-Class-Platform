@@ -9,7 +9,7 @@ status: living
 # Production Env Vars Registry
 
 **Owner:** DevOps + Tech Lead
-**Last-Updated:** 2026-05-14
+**Last-Updated:** 2026-06-06
 **Rule:** [`.claude/rules/production-env-config-registry.md`](../../.claude/rules/production-env-config-registry.md)
 **Audit:** `bash scripts/audit-env-coverage.sh`
 
@@ -47,6 +47,7 @@ Nguồn dữ liệu chính thức duy nhất liệt kê mọi reference env-var 
 | 18 | kitehub-subscription | `SEPAY_API_KEY` (`kitehub.payment.sepay.api-key`) | `application.yml` payment.sepay block (sibling Bucket B) | empty | fetch-secrets.sh → /etc/kite/.env + docker-compose env passthrough | 🟡 **PARTIAL — IaC parity DONE, live verify pending** | **Wave flow-kh3-3:** SePay payment webhook Apikey auth (POST /api/platform/webhooks/payment per api-contract.md UC-SUB-08). Declared trong `infrastructure/terraform-aws/secrets.tf` (`random_password.sepay_api_key_placeholder` + `aws_secretsmanager_secret.sepay_api_key` + `aws_secretsmanager_secret_version.sepay_api_key` với `lifecycle ignore_changes = [secret_string]` cho post-apply manual override) — mirrors resend-api-key precedent. IAM grant via wildcard `${var.project_name}/${var.environment}/*` pattern trong iam.tf (no edit needed). `scripts/fetch-secrets.sh` pulls `kitehub/production/sepay-api-key` on EC2 boot (plain string). Key vendor-provided — configured trong SePay dashboard (https://sepay.vn Free 50tx/month tier). Post AWS account 906286017800 restore (GAP-612 unblock): `terraform apply` → placeholder secret → manual override via AWS console với real SePay key. Live verify deferred post-restore per `local-fix-production-parity-check.md` §3.2 follow-up. Empty → webhook fails closed (401). |
 | 19 | kitehub-subscription | `BETA_PAYMENT_OVERRIDE` (`kitehub.payment.beta-mode.enabled`) | `application.yml` payment.beta-mode block (sibling Bucket B) | `false` | docker-compose env | ✅ Added (Wave flow-kh3-3) | Public config — production giữ OFF mặc định. Flip `true` chỉ để force symbolic `BETA_PAYMENT_AMOUNT_VND` tại createPayment time (Phase 1 BETA symbolic transfer). FE mirror flag `NEXT_PUBLIC_BETA_PAYMENT_OVERRIDE` hiển thị BetaModeBanner. |
 | 20 | kitehub-subscription | `BETA_PAYMENT_AMOUNT_VND` (`kitehub.payment.beta-mode.override-amount-vnd`) | `application.yml` payment.beta-mode block (sibling Bucket B) | `10000` | docker-compose env | ✅ Added (Wave flow-kh3-3) | Public config — symbolic amount VND (10k = bank minimum; VCB/MBB/TCB accept per failure-mode audit 2026-06-04). Chỉ áp dụng khi `BETA_PAYMENT_OVERRIDE=true`. |
+| 21 | kiteclass-core | `PARENT_PORTAL_ENABLED` (`parent-portal.enabled`) | `kiteclass-core/application.yml:318` | `false` | `fetch-secrets.sh` → `/etc/kite/.env` (default `:-true`; Wave auth-2 Bucket C) | 🟡 **PARTIAL — write path DONE, no prod consumer yet (GAP-1014)** | **Wave auth-2 Bucket C (GAP-1014):** public feature flag gating bề mặt KC-native login của parent (+ teacher pulled-forward) — Wave auth-1. Local compose override `:-true` (`kitehub/docker-compose.kitehub.yml:673`). Production: `fetch-secrets.sh` ghi `PARENT_PORTAL_ENABLED=${PARENT_PORTAL_ENABLED:-true}` vào `/etc/kite/.env` để value sẵn sàng trước khi KC stack deploy production. **Chưa có prod consumer** — `kiteclass-core` KHÔNG nằm trong `docker-compose.production.yml` (deferred GAP-444 Phase 7 per ops-readiness audit auth-1 P1-2), nên var này chỉ có hiệu lực khi KC stack prod deploy land. **PDPL:** bật parent portal trên prod = giả định parent-child consent gate đang active; set `PARENT_PORTAL_ENABLED=false` per deploy cho tới khi consent gate wired cho tenant đó. |
 
 ## Wave 78 Bucket 0 — 4 NEW endpoints (added 2026-05-14, GAP-508)
 
@@ -142,6 +143,18 @@ When repository state stabilizes:
 2. Audit FAIL → CI blocks PR
 3. Reviewer-checklist line in PR template (`.github/PULL_REQUEST_TEMPLATE.md`)
 4. Track follow-up gap GAP-NEW-env-coverage-hard-stop-escalation (Wave br-5+ post-stabilization)
+
+## Deferred production-parity items
+
+### kc-core production deploy deferred (GAP-444 Phase 7) — blocks auth-1 surface prod-readiness
+
+Per `local-fix-production-parity-check.md` §3.2, recording the deferred parity item surfaced by Wave auth-1 ops-readiness audit (`documents/04-quality/audits/ops-readiness/2026-06-06-wave-auth-1-ops-readiness.md` P1-2):
+
+- **Surface:** Toàn bộ code đăng nhập KC-native (`kiteclass-core/.../auth/**` — `AuthController` / `AuthTokenService` / `AuthService` / migration `V89`) nằm trong service `kiteclass-core`.
+- **Gap:** `kiteclass-core` KHÔNG được khai báo trong `docker-compose.production.yml` (deferred to Phase 7 KC stack polish wave per GAP-444). Nghĩa là bề mặt auth-1 **chưa có đường deploy production** — chỉ walk-verified ở local stack.
+- **Provisioning đã sẵn sàng (ahead-of-deploy):** `JWT_SECRET` (Secrets Manager IaC + `fetch-secrets.sh` → `/etc/kite/.env`) + `PARENT_PORTAL_ENABLED` (registry row 21, `fetch-secrets.sh` default `:-true`) đều đã wire. Khi KC stack prod deploy land (GAP-444), service mới chỉ cần `env_file: /etc/kite/.env` passthrough là nhận cả 2.
+- **Decision (Wave auth-2 Bucket C):** KHÔNG thêm `kiteclass-core` vào `docker-compose.production.yml` lúc này (user-deferred, stays GAP-444 / Phase 7). GAP-1014 = PARTIAL — secrets.tf description fix + `PARENT_PORTAL_ENABLED` prod override + this note shipped; compose service declaration deferred.
+- **Follow-up:** khi GAP-444 (KC stack prod deploy) land → thêm `kiteclass-core` + `kiteclass-gateway` + `kiteclass-frontend` services vào `docker-compose.production.yml`, verify auth-1 login flow live end-to-end (per `pre-handoff-self-test-completeness.md` §2.1 auth-gated flow checklist).
 
 ## Update workflow
 

@@ -26,6 +26,15 @@ resource "aws_secretsmanager_secret_version" "db_password" {
 }
 
 # --- JWT signing secret ---
+# Consumed by HS512 JWT mint (kiteclass-core AuthTokenService + kitehub gateway JWT
+# verify). length=64 bytes = 512 bits = HS512 minimum key size (ZERO margin: the
+# AuthTokenService boot guard fail-fasts if JWT_SECRET < 64 bytes, so 64 exactly passes
+# but has no buffer). DO NOT change `length` here — it is in the lifecycle ignore_changes
+# list below, so a length bump would NOT regenerate the live secret anyway; a real rotation
+# to a longer key must go through the manual secrets-rotation-runbook (terraform state rm +
+# re-create) to avoid silently desyncing state vs Secrets Manager. If margin is desired,
+# rotate to length 88 via that runbook, not by editing this attribute.
+#
 # GAP-450 Option B: lifecycle ignore_changes prevents recurring drift on `result`
 # attribute (state shows id="none" while Secrets Manager has live value from Phase 2.3
 # apply 2026-05-07). Rotation is manual per documents/05-guides/operations/secrets-rotation-runbook.md;
@@ -44,7 +53,7 @@ resource "random_password" "jwt" {
 
 resource "aws_secretsmanager_secret" "jwt" {
   name                    = "${var.project_name}/${var.environment}/jwt-secret"
-  description             = "JWT signing secret (HS256)"
+  description             = "JWT signing secret (HS512, 64-byte/512-bit minimum, zero margin)"
   recovery_window_in_days = 7
   tags                    = { Name = "${var.project_name}-jwt-secret" }
 }
