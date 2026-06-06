@@ -77,7 +77,8 @@ public class InstancePurgeService {
                 .build();
         }
 
-        return executePurge(instance);
+        // Scheduled / system-initiated purge — no human actor (null → audit best-effort).
+        return executePurge(instance, null);
     }
 
     /**
@@ -95,10 +96,12 @@ public class InstancePurgeService {
      * Still requires the instance to be in DELETED status and backup verification.
      *
      * @param instanceId instance UUID
+     * @param actorId    acting PLATFORM_ADMIN user id (gateway {@code X-User-Id}); recorded
+     *                   on the {@code TENANT_DELETED} audit row. May be {@code null}.
      * @return PurgeResult with details
      */
     @Transactional
-    public PurgeResult adminPurge(UUID instanceId) {
+    public PurgeResult adminPurge(UUID instanceId, UUID actorId) {
         Instance instance = instanceRepository.findById(instanceId)
             .orElseThrow(() -> new EntityNotFoundException("Instance not found: " + instanceId));
 
@@ -111,7 +114,7 @@ public class InstancePurgeService {
                 .build();
         }
 
-        return executePurge(instance);
+        return executePurge(instance, actorId);
     }
 
     /**
@@ -129,9 +132,10 @@ public class InstancePurgeService {
      * 8. Write TENANT_DELETED audit row — PDPL Art 23 (GAP-954)
      *
      * @param instance the instance to purge
+     * @param actorId  acting admin id for the TENANT_DELETED audit row (nullable for sweep)
      * @return PurgeResult with details
      */
-    private PurgeResult executePurge(Instance instance) {
+    private PurgeResult executePurge(Instance instance, UUID actorId) {
         UUID instanceId = instance.getId();
         String subdomain = instance.getSubdomain();
 
@@ -248,13 +252,23 @@ public class InstancePurgeService {
             instanceRepository.save(instance);
 
             // 8. GAP-954: write TENANT_DELETED audit row (PDPL Art 23). REQUIRES_NEW isolated +
-            //    best-effort per audit-service-isolation.md — never fails the purge.
+            //    best-effort per audit-service-isolation.md — never fails the purge. The actor is
+            //    the gateway-forwarded admin (X-User-Id); a null actor falls back to SYSTEM_ACTOR
+            //    inside the audit service. The audit call is additionally wrapped here so that even
+            //    an UnexpectedRollbackException thrown at the REQUIRES_NEW commit boundary (e.g. a
+            //    failed insert marks that inner txn rollback-only — see audit-service-isolation.md
+            //    §2) cannot flip the already-committed purge result to FAILED.
             String auditDetail = String.format(
                 "{\"databaseDropped\":%b,\"backupFilesDeleted\":%d,\"s3ObjectsDeleted\":%d,"
                     + "\"dnsRecordCleared\":%b,\"purgedAt\":\"%s\"}",
                 databaseDropped, backupFilesDeleted, s3ObjectsDeleted, dnsRecordCleared, purgedAt);
-            tenantAuditService.recordTenantDeleted(instanceId, subdomain, null, auditDetail);
-            tenantDeletedAuditWritten = true;
+            try {
+                tenantAuditService.recordTenantDeleted(instanceId, subdomain, actorId, auditDetail);
+                tenantDeletedAuditWritten = true;
+            } catch (Exception auditEx) {
+                log.warn("TENANT_DELETED audit write failed for instance {} (purge already "
+                    + "succeeded — result stays SUCCESS): {}", instanceId, auditEx.getMessage());
+            }
 
             log.info("Purge completed for instance {} (subdomain: {}). DB dropped: {}, backups deleted: {}, "
                     + "S3 objects: {}, DNS cleared: {}, event published: {}",

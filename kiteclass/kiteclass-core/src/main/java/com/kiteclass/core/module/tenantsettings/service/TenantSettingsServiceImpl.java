@@ -8,7 +8,6 @@ import com.kiteclass.core.module.tenantsettings.entity.TenantSettings;
 import com.kiteclass.core.module.tenantsettings.mapper.TenantSettingsMapper;
 import com.kiteclass.core.module.tenantsettings.repository.TenantSettingsRepository;
 import com.kiteclass.core.module.tenantsettings.util.AcademicYearCalculator;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,7 +44,7 @@ public class TenantSettingsServiceImpl implements TenantSettingsService {
 
     @Override
     @Transactional
-    public TenantSettingsResponse updateSettings(@Valid UpdateTenantSettingsRequest request) {
+    public TenantSettingsResponse updateSettings(UpdateTenantSettingsRequest request) {
         UUID instanceId = TenantContext.getCurrentTenant();
 
         TenantSettings settings = tenantSettingsRepository

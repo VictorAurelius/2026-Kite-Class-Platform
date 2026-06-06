@@ -2,6 +2,7 @@ package com.kiteclass.core.module.tenantsettings.service;
 
 import com.kiteclass.core.module.tenantsettings.dto.request.UpdateTenantSettingsRequest;
 import com.kiteclass.core.module.tenantsettings.dto.response.TenantSettingsResponse;
+import jakarta.validation.Valid;
 
 /**
  * Service for per-tenant settings (timezone / locale / Năm học / ...).
@@ -27,5 +28,5 @@ public interface TenantSettingsService {
      * @param request fields to apply (null fields keep existing)
      * @return updated tenant settings
      */
-    TenantSettingsResponse updateSettings(UpdateTenantSettingsRequest request);
+    TenantSettingsResponse updateSettings(@Valid UpdateTenantSettingsRequest request);
 }
