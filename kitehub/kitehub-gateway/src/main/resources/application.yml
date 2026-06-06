@@ -293,6 +293,20 @@ spring:
                 name: instancesCircuitBreaker
                 fallbackUri: forward:/fallback/instances
 
+        # GAP-1049 (Wave g3-p2a) C1 — admin payment confirm/reject lives in
+        # kitehub-subscription (AdminPaymentController @RequestMapping("/api/platform/admin/payments")).
+        # The platform-admin catch-all (/api/platform/admin/** → kitehub-admin) shadows it → 404.
+        # MUST precede platform-admin catch-all. Mirrors platform-admin-emails-subscription pattern.
+        - id: platform-admin-payments-subscription
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/platform/admin/payments/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
+
         # Platform APIs - Admin Service
         - id: platform-admin
           uri: http://kitehub-admin:8080
@@ -573,6 +587,22 @@ spring:
                 name: instanceCircuitBreaker
                 fallbackUri: forward:/fallback/instance
 
+        # GAP-1049 (Wave g3-p2a) C3 — parent-consent admin endpoints live in
+        # kiteclass-core (ParentConsentAdminController @RequestMapping("/api/v1/admin/parent/consent")).
+        # Auth + tenant-scoped. kitehub-admin-v1 catch-all (/api/v1/admin/** → kitehub-admin)
+        # shadows it → 404. MUST precede kitehub-admin-v1. Same pattern as kiteclass-payroll
+        # (TenantResolver resolves tenant from X-Tenant-Id OR JWT tenantId claim per GAP-711).
+        - id: kiteclass-parent-consent-admin
+          uri: ${KITECLASS_CORE_URL:http://kiteclass-core:8080}
+          predicates:
+            - Path=/api/v1/admin/parent/consent/**
+          filters:
+            - TenantResolver
+            - name: CircuitBreaker
+              args:
+                name: instanceCircuitBreaker
+                fallbackUri: forward:/fallback/instance
+
         # GAP-509 — kitehub admin v1 (beta-requests approve/reject) routes
         # to admin service. Must precede instance-apis catch-all.
         - id: kitehub-admin-v1
@@ -611,6 +641,21 @@ spring:
           uri: http://kitehub-subscription:8080
           predicates:
             - Path=/api/v1/notification-preferences/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
+
+        # GAP-1049 (Wave g3-p2a) C2 — UI preferences (dismiss-banner-state) live in
+        # kitehub-subscription (PreferencesController POST /api/v1/preferences/dismiss-banner-state).
+        # User-scoped (X-User-Id from JWT), NOT tenant-scoped — mirror notification-preferences
+        # (no TenantResolver). The /api/v1/** instance-apis catch-all shadows it → kiteclass-core
+        # 404. MUST precede instance-apis catch-all.
+        - id: kitehub-preferences-v1
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/v1/preferences/**
           filters:
             - name: CircuitBreaker
               args:
@@ -747,6 +792,41 @@ spring:
               args:
                 name: subscriptionCircuitBreaker
                 fallbackUri: forward:/fallback/subscription
+
+        # GAP-1049 (Wave g3-p2a) C4 — PUBLIC payment webhooks (vnpay/momo/zalopay) live in
+        # kiteclass-core (PaymentWebhookController @RequestMapping("/api/v1/payments/webhook")).
+        # Called by payment providers — NO JWT, NO subdomain → TenantResolver would 400.
+        # Tenant resolved server-side from the payment transaction reference. MUST precede
+        # /api/v1/** catch-all + SKIP TenantResolver (mirror public-tenant-landing). Provider
+        # carries no Bearer token so JwtAuthenticationGatewayFilter passes through; webhook
+        # auth (signature/Apikey) enforced server-side in the controller.
+        - id: kiteclass-payments-webhook
+          uri: ${KITECLASS_CORE_URL:http://kiteclass-core:8080}
+          predicates:
+            - Path=/api/v1/payments/webhook/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: instanceCircuitBreaker
+                fallbackUri: forward:/fallback/instance
+
+        # GAP-1049 (Wave g3-p2a) C5 — PUBLIC parent-invitation redeem (recipient clicks
+        # email link, no JWT / no subdomain) in kiteclass-core
+        # (ParentInvitationController POST /api/v1/parent-invitations/redeem/{token}).
+        # MUST precede /api/v1/** catch-all + SKIP TenantResolver (would 400 — recipient
+        # carries no tenant context). Tenant derived server-side from the token row.
+        # Mirrors staff-invitations-public-token. The Owner-scoped create endpoint
+        # (POST /api/v1/parent-invitations) stays on the instance-apis catch-all WITH
+        # TenantResolver — only the public redeem sub-path is carved out here.
+        - id: kiteclass-parent-invitation-redeem
+          uri: ${KITECLASS_CORE_URL:http://kiteclass-core:8080}
+          predicates:
+            - Path=/api/v1/parent-invitations/redeem/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: instanceCircuitBreaker
+                fallbackUri: forward:/fallback/instance
 
         # GAP-809 — PUBLIC tenant landing page (anonymous visitors, no JWT / no subdomain).
         # tenantId is in the PATH (/api/v1/tenants/{id}/landing) so the route is already
