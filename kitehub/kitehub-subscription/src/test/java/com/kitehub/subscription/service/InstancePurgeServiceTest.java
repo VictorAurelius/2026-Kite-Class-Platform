@@ -245,9 +245,14 @@ class InstancePurgeServiceTest {
             when(backupRecordRepository.findByInstanceId(instanceId))
                 .thenReturn(Collections.emptyList());
 
-            PurgeResult result = instancePurgeService.adminPurge(instanceId);
+            UUID adminActor = UUID.randomUUID();
+            PurgeResult result = instancePurgeService.adminPurge(instanceId, adminActor);
 
             assertThat(result.getStatus()).isEqualTo(PurgeStatus.SUCCESS);
+            // GAP-954 closure-walk regression: the acting admin (X-User-Id) is propagated to
+            // the TENANT_DELETED audit row — a null/zero actor FK-violates admin_audit_log.
+            verify(tenantAuditService).recordTenantDeleted(
+                eq(instanceId), anyString(), eq(adminActor), anyString());
         }
 
         @Test
@@ -261,7 +266,7 @@ class InstancePurgeServiceTest {
             when(instanceRepository.findById(instanceId))
                 .thenReturn(Optional.of(activeInstance));
 
-            PurgeResult result = instancePurgeService.adminPurge(instanceId);
+            PurgeResult result = instancePurgeService.adminPurge(instanceId, UUID.randomUUID());
 
             assertThat(result.getStatus()).isEqualTo(PurgeStatus.FAILED);
             assertThat(result.getErrorMessage()).contains("DELETED status");
@@ -274,7 +279,7 @@ class InstancePurgeServiceTest {
             when(instanceRepository.findById(unknownId))
                 .thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> instancePurgeService.adminPurge(unknownId))
+            assertThatThrownBy(() -> instancePurgeService.adminPurge(unknownId, UUID.randomUUID()))
                 .isInstanceOf(EntityNotFoundException.class);
         }
     }

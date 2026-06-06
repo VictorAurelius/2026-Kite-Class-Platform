@@ -269,14 +269,37 @@ public class InstanceController {
      * Removes database, backups, email logs, and publishes cross-service cleanup event.
      * Instance must be in DELETED status. Requires at least one COMPLETED backup.
      *
-     * @param id instance UUID
+     * <p>The acting admin's id is forwarded from the gateway-trusted {@code X-User-Id}
+     * header to {@link InstancePurgeService#adminPurge(UUID, UUID)} so the
+     * {@code TENANT_DELETED} audit row (PDPL Art 23, GAP-954) records a real actor —
+     * the {@code admin_audit_log.admin_user_id} column is NOT NULL + FK to {@code users},
+     * so a missing actor would FK-violate the audit insert (GAP-954 closure-walk bug).</p>
+     *
+     * @param id              instance UUID
+     * @param adminUserIdHeader acting PLATFORM_ADMIN user id (gateway {@code X-User-Id}; nullable)
      * @return purge result with details
      */
     @DeleteMapping("/{id}/purge")
     @PreAuthorize("hasAnyRole('PLATFORM_ADMIN','ADMIN')")
     @Operation(summary = "Permanently purge a deleted instance (admin only)")
-    public ResponseEntity<PurgeResult> purgeInstance(@PathVariable UUID id) {
-        PurgeResult result = instancePurgeService.adminPurge(id);
+    public ResponseEntity<PurgeResult> purgeInstance(
+        @PathVariable UUID id,
+        @RequestHeader(value = "X-User-Id", required = false) String adminUserIdHeader
+    ) {
+        UUID adminUserId = parseUuidOrNull(adminUserIdHeader);
+        PurgeResult result = instancePurgeService.adminPurge(id, adminUserId);
         return ResponseEntity.ok(result);
+    }
+
+    /** Parse a gateway-forwarded {@code X-User-Id} header to UUID, or {@code null} if absent/malformed. */
+    private static UUID parseUuidOrNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return UUID.fromString(value.trim());
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 }

@@ -22,6 +22,12 @@
 - 🔴 **AC #3 status transition** — subscription `Instance.status` INITIALIZING → DEPLOYED cần core→subscription callback (saga tạo core `FrontendInstance`; chưa có event flow ngược flip subscription `Instance.status`). Confirm/file trong live walk.
 - 🔴 Real `provisionInfrastructure` (vẫn log-only stub) = coupled GAP-946 remaining.
 
+## Live-walk re-confirmation (KC-1 closure walk — 2026-06-07)
+
+KC-1 closure walk (GAP-953 retry path) re-confirmed the saga end-to-end on the shared stack: re-publish `tenant.created` → kiteclass-core `TenantCreatedEventConsumer` → `TenantProvisioningSaga.provision()` → FAILED→INITIALIZING→GENERATING→**DEPLOYED** (kiteclass-core `frontend_instances.status`), no slug collision. AC #1 (publisher) + AC #2 (`@RabbitListener` consumer) grep-verified present.
+
+**AC #3 still PARTIAL (kept):** the *subscription-side* `Instance.status` did NOT transition — it stayed `TRIAL` throughout the walk (no kiteclass-core→subscription callback flips `instances.status`). The provisioning "DEPLOYED" state lives on the kiteclass-core `FrontendInstance`, not the kitehub `Instance`. Plus real `provisionInfrastructure` is still a stub (coupled GAP-946). So GAP-945 stays 🟡 PARTIAL pending the status-callback decision + real infra (GAP-946).
+
 ## Problem
 
 `AuthService.registerFromBetaInvite:218` (kitehub-subscription) gọi `instanceService.createTrialInstance(...)` synchronously và KHÔNG enqueue `tenant.created` event (no outbox enqueue / no `rabbitTemplate.convertAndSend`). `TenantProvisioningSaga` trong kiteclass-core tồn tại như orphan code — không có `@RabbitListener(queues = "tenant.created.queue")` consumer. Hệ quả: KC tenant DB không được tạo, `Instance.status` stuck `INITIALIZING` mãi mãi, Owner login vào `kc-<slug>.kitehub.me/admin` → 404 hoặc spinner forever. Surfaced cross-audit: persona simulation Finding 1.2 + failure-mode matrix A1×E5×EC2 + A1×E8×EC2.
