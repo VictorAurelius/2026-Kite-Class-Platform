@@ -140,6 +140,49 @@ public class InstanceLifecycleService {
         return saved;
     }
 
+    /**
+     * Suspend a live tenant (subscription expired / payment failed). GAP-954.
+     * Transition: DEPLOYED -> SUSPENDED. Reversible via {@link #reactivate(Long)}.
+     */
+    @Transactional
+    public FrontendInstance suspend(Long instanceId) {
+        FrontendInstance instance = load(instanceId);
+        instance.transitionTo(FrontendInstanceStatus.SUSPENDED);
+        FrontendInstance saved = repository.save(instance);
+        emit("instance.suspended", saved);
+        log.info("Instance id={} suspended", instanceId);
+        return saved;
+    }
+
+    /**
+     * Reactivate a suspended tenant back to live. GAP-954.
+     * Transition: SUSPENDED -> DEPLOYED (does NOT bump brandingVersion — same branding restored).
+     */
+    @Transactional
+    public FrontendInstance reactivate(Long instanceId) {
+        FrontendInstance instance = load(instanceId);
+        instance.transitionTo(FrontendInstanceStatus.DEPLOYED);
+        FrontendInstance saved = repository.save(instance);
+        emit("instance.deployed", saved);
+        log.info("Instance id={} reactivated from suspension", instanceId);
+        return saved;
+    }
+
+    /**
+     * Soft-delete a suspended tenant — starts the 30-day PDPL Art 23 retention grace before the
+     * cross-service hard purge runs in kitehub-subscription InstancePurgeService. GAP-954.
+     * Transition: SUSPENDED -> DELETED (terminal). One-way — file a new instance for re-onboarding.
+     */
+    @Transactional
+    public FrontendInstance softDelete(Long instanceId) {
+        FrontendInstance instance = load(instanceId);
+        instance.transitionTo(FrontendInstanceStatus.DELETED);
+        FrontendInstance saved = repository.save(instance);
+        emit("instance.deleted", saved);
+        log.info("Instance id={} soft-deleted (30d PDPL Art 23 retention grace started)", instanceId);
+        return saved;
+    }
+
     private void emit(String eventType, FrontendInstance instance) {
         String payload = String.format(
                 "{\"instanceId\":%d,\"tenantId\":\"%s\",\"slug\":\"%s\",\"status\":\"%s\","

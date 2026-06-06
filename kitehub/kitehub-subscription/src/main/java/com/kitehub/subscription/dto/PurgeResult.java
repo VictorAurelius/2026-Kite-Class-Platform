@@ -28,4 +28,13 @@ public class PurgeResult {
     private boolean brandingCleanupPublished;
     private String errorMessage;
     private LocalDateTime purgedAt;
+
+    /** GAP-954: count of tenant MinIO/S3 objects (logos + branding assets) purged by prefix. */
+    private int s3ObjectsDeleted;
+
+    /** GAP-954: whether the tenant DNS / custom-domain record was cleared. */
+    private boolean dnsRecordCleared;
+
+    /** GAP-954: whether the TENANT_DELETED audit row was written (PDPL Art 23). */
+    private boolean tenantDeletedAuditWritten;
 }

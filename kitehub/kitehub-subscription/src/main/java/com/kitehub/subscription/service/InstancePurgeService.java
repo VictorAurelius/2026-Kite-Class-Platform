@@ -2,6 +2,7 @@ package com.kitehub.subscription.service;
 
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
+import com.kitehub.subscription.audit.TenantAuditService;
 import com.kitehub.subscription.config.PurgeQueueConfig;
 import com.kitehub.subscription.domain.BackupRecord;
 import com.kitehub.subscription.domain.BackupStatus;
@@ -45,8 +46,15 @@ public class InstancePurgeService {
     private final EmailSentLogRepository emailSentLogRepository;
     private final RabbitTemplate rabbitTemplate;
     private final SubscriptionEventEmitter eventEmitter;
+    // GAP-954 — PDPL Art 23 tenant DELETE cascade: clear DNS/custom-domain + write audit row.
+    private final DomainService domainService;
+    private final TenantAuditService tenantAuditService;
 
     private static final int PURGE_RETENTION_DAYS = 30;
+
+    /** GAP-954: S3/MinIO key prefix for a tenant's branding assets + logos
+     *  (mirrors {@code kitehub-branding S3StorageService.generateAssetPath}). */
+    private static final String TENANT_S3_PREFIX = "instances/%s/";
 
     /**
      * Purge a single instance — verify backup exists, then delete all resources.
@@ -114,8 +122,11 @@ public class InstancePurgeService {
      * 3. Delete all backup files from S3
      * 4. Mark all BackupRecords as DELETED
      * 5. Delete email logs
+     * 5b. Purge tenant MinIO/S3 objects by prefix — logos + branding assets (GAP-954)
+     * 5c. Clear tenant DNS / custom-domain record (GAP-954)
      * 6. Publish RabbitMQ event for cross-service cleanup
      * 7. Set instance status to PURGED
+     * 8. Write TENANT_DELETED audit row — PDPL Art 23 (GAP-954)
      *
      * @param instance the instance to purge
      * @return PurgeResult with details
@@ -143,6 +154,9 @@ public class InstancePurgeService {
         int backupFilesDeleted = 0;
         int emailLogsDeleted = 0;
         boolean brandingCleanupPublished = false;
+        int s3ObjectsDeleted = 0;
+        boolean dnsRecordCleared = false;
+        boolean tenantDeletedAuditWritten = false;
 
         try {
             // 2. Drop PostgreSQL database
@@ -180,6 +194,29 @@ public class InstancePurgeService {
                 log.error("Failed to delete email logs for instance {}: {}", instanceId, e.getMessage());
             }
 
+            // 5b. GAP-954: purge tenant MinIO/S3 objects by prefix — logos + branding assets live
+            //     under instances/{instanceId}/ (kitehub-branding S3StorageService.generateAssetPath).
+            try {
+                s3ObjectsDeleted = backupStorageService.deleteByPrefix(
+                    String.format(TENANT_S3_PREFIX, instanceId));
+                log.info("Purged {} MinIO/S3 objects for instance {}", s3ObjectsDeleted, instanceId);
+            } catch (Exception e) {
+                log.error("Failed to purge MinIO/S3 objects for instance {}: {}",
+                    instanceId, e.getMessage());
+            }
+
+            // 5c. GAP-954: clear tenant DNS / custom-domain record (control-plane state). The
+            //     primary subdomain is served by a wildcard DNS record (nothing per-tenant to
+            //     delete); clearing the custom-domain fields removes the tenant's DNS footprint.
+            try {
+                domainService.removeCustomDomain(instanceId);
+                dnsRecordCleared = true;
+                log.info("Cleared DNS / custom-domain record for instance {}", instanceId);
+            } catch (Exception e) {
+                log.error("Failed to clear DNS / custom-domain for instance {}: {}",
+                    instanceId, e.getMessage());
+            }
+
             // 5. Outbox + best-effort fast-path publish (per design-patterns.md §3.5.1
             //    Exception A — outbox is the reliability net, direct send is latency optimization).
             //    The outbox row guarantees the cleanup event reaches consumers even if the broker is
@@ -210,8 +247,19 @@ public class InstancePurgeService {
             instance.setStatus(InstanceStatus.PURGED);
             instanceRepository.save(instance);
 
-            log.info("Purge completed for instance {} (subdomain: {}). DB dropped: {}, backups deleted: {}, event published: {}",
-                instanceId, subdomain, databaseDropped, backupFilesDeleted, brandingCleanupPublished);
+            // 8. GAP-954: write TENANT_DELETED audit row (PDPL Art 23). REQUIRES_NEW isolated +
+            //    best-effort per audit-service-isolation.md — never fails the purge.
+            String auditDetail = String.format(
+                "{\"databaseDropped\":%b,\"backupFilesDeleted\":%d,\"s3ObjectsDeleted\":%d,"
+                    + "\"dnsRecordCleared\":%b,\"purgedAt\":\"%s\"}",
+                databaseDropped, backupFilesDeleted, s3ObjectsDeleted, dnsRecordCleared, purgedAt);
+            tenantAuditService.recordTenantDeleted(instanceId, subdomain, null, auditDetail);
+            tenantDeletedAuditWritten = true;
+
+            log.info("Purge completed for instance {} (subdomain: {}). DB dropped: {}, backups deleted: {}, "
+                    + "S3 objects: {}, DNS cleared: {}, event published: {}",
+                instanceId, subdomain, databaseDropped, backupFilesDeleted, s3ObjectsDeleted,
+                dnsRecordCleared, brandingCleanupPublished);
 
             return PurgeResult.builder()
                 .instanceId(instanceId)
@@ -221,6 +269,9 @@ public class InstancePurgeService {
                 .backupFilesDeleted(backupFilesDeleted)
                 .emailLogsDeleted(emailLogsDeleted)
                 .brandingCleanupPublished(brandingCleanupPublished)
+                .s3ObjectsDeleted(s3ObjectsDeleted)
+                .dnsRecordCleared(dnsRecordCleared)
+                .tenantDeletedAuditWritten(tenantDeletedAuditWritten)
                 .purgedAt(purgedAt)
                 .build();
 
@@ -234,6 +285,9 @@ public class InstancePurgeService {
                 .backupFilesDeleted(backupFilesDeleted)
                 .emailLogsDeleted(emailLogsDeleted)
                 .brandingCleanupPublished(brandingCleanupPublished)
+                .s3ObjectsDeleted(s3ObjectsDeleted)
+                .dnsRecordCleared(dnsRecordCleared)
+                .tenantDeletedAuditWritten(tenantDeletedAuditWritten)
                 .errorMessage(e.getMessage())
                 .build();
         }

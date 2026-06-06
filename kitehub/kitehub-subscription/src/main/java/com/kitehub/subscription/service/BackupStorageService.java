@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.List;
 
 /**
  * Service for storing and retrieving database backups in S3/MinIO.
@@ -115,6 +116,58 @@ public class BackupStorageService {
 
         s3Client.deleteObject(request);
         log.info("Deleted backup s3://{}/{}", s3Config.getBucket(), key);
+    }
+
+    /**
+     * Delete ALL objects under a key prefix in S3/MinIO (paginated).
+     * <p>Used by the tenant DELETE cascade (GAP-954, PDPL Art 23) to purge a tenant's
+     * MinIO/S3 footprint — branding assets + logos live under {@code instances/{instanceId}/}
+     * (per {@code kitehub-branding S3StorageService.generateAssetPath}). Reuses the existing
+     * {@link S3Client}; no new infra.
+     *
+     * @param prefix S3 key prefix to purge (e.g., {@code "instances/<uuid>/"})
+     * @return number of objects deleted (0 in mock mode)
+     */
+    public int deleteByPrefix(String prefix) {
+        if (s3Config.isMockMode()) {
+            log.info("[MOCK] Would delete all objects under s3://{}/{}", s3Config.getBucket(), prefix);
+            return 0;
+        }
+
+        if (s3Client == null) {
+            throw new IllegalStateException("S3Client is not configured");
+        }
+
+        int deleted = 0;
+        String continuationToken = null;
+        do {
+            ListObjectsV2Request.Builder listBuilder = ListObjectsV2Request.builder()
+                .bucket(s3Config.getBucket())
+                .prefix(prefix);
+            if (continuationToken != null) {
+                listBuilder.continuationToken(continuationToken);
+            }
+            ListObjectsV2Response listResp = s3Client.listObjectsV2(listBuilder.build());
+
+            List<S3Object> contents = listResp.contents();
+            if (!contents.isEmpty()) {
+                List<ObjectIdentifier> ids = contents.stream()
+                    .map(o -> ObjectIdentifier.builder().key(o.key()).build())
+                    .toList();
+                DeleteObjectsRequest delReq = DeleteObjectsRequest.builder()
+                    .bucket(s3Config.getBucket())
+                    .delete(Delete.builder().objects(ids).build())
+                    .build();
+                DeleteObjectsResponse delResp = s3Client.deleteObjects(delReq);
+                deleted += delResp.deleted().size();
+            }
+
+            continuationToken = Boolean.TRUE.equals(listResp.isTruncated())
+                ? listResp.nextContinuationToken() : null;
+        } while (continuationToken != null);
+
+        log.info("Deleted {} objects under s3://{}/{}", deleted, s3Config.getBucket(), prefix);
+        return deleted;
     }
 
     /**
