@@ -85,4 +85,7 @@ regexes = [
     '''<YOUR_.*_HERE>''',
     # Sample JWT prefix used in api-contract docs (signature stripped → ...)
     '''eyJhbGciOi[A-Za-z0-9_-]+\.\.\.''',
+    # Canonical 64-byte test HS512 secret placeholder (sequential hex, NOT a real
+    # credential) — used in check-schema-drift.sh + AuthTokenServiceTest (GAP-1010).
+    '''(0123456789abcdef){4}''',
 ]
