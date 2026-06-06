@@ -223,6 +223,11 @@ public class TeacherServiceImpl implements TeacherService {
         teacher.markAsDeleted();
         teacherRepository.save(teacher);
 
+        // Wave auth-2 (GAP-1013b): revoke the teacher's KC-native login when the
+        // entity is soft-deleted so a deactivated teacher cannot still log in.
+        credentialProvisioning.disableCredential(
+                AuthCredentialProvisioningService.ROLE_TEACHER, teacher.getId());
+
         log.info("Deleted teacher with ID: {}", id);
     }
 
