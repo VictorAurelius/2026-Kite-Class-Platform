@@ -87,9 +87,9 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
                     "JWT_SECRET (or jwt.secret) is required for kitehub-gateway. "
                             + "Must match the JWT_SECRET configured in kitehub-subscription so issued tokens can be validated.");
         }
-        if (jwtSecret.getBytes().length < 32) {
+        if (jwtSecret.getBytes().length < 64) {
             throw new IllegalStateException(
-                    "JWT_SECRET must be ≥32 bytes (256 bits) for HS512. Current length: "
+                    "JWT_SECRET must be ≥64 bytes (512 bits) for HS512. Current length: "
                             + jwtSecret.getBytes().length + " bytes.");
         }
         this.accessSigningKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());

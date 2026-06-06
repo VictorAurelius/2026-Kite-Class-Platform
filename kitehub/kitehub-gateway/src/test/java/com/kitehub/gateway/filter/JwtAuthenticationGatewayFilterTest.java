@@ -40,8 +40,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("JwtAuthenticationGatewayFilter (kitehub-gateway / GAP-604)")
 class JwtAuthenticationGatewayFilterTest {
 
-    /** 32-byte test secret — đủ ≥256 bits cho HS512. */
-    private static final String TEST_SECRET = "test-secret-32-bytes-minimum-1234";
+    /** 66-byte test secret — ≥512 bits, exercises real HS512 like prod (GAP-1012). */
+    private static final String TEST_SECRET = "test-secret-64-bytes-minimum-for-hs512-access-token-key-abcdefghij";
 
     /** Separate 32-byte challenge secret — HS256, distinct from access-token key. */
     private static final String TEST_CHALLENGE_SECRET = "challenge-secret-32-bytes-min-pad";

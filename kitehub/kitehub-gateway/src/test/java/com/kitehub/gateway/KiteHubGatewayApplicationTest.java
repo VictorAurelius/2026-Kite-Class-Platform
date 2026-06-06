@@ -19,8 +19,9 @@ import org.springframework.test.context.TestPropertySource;
         "spring.cloud.gateway.enabled=false",
         "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration",
         // GAP-604 (Wave 89 Bucket A): JwtAuthenticationGatewayFilter fail-fast tại
-        // startup nếu JWT_SECRET không set hoặc <32 bytes. Test secret đủ length cho HS256.
-        "jwt.secret=test-secret-32-bytes-minimum-1234"
+        // startup nếu JWT_SECRET không set hoặc <64 bytes (HS512 — GAP-1012). Test secret
+        // ≥512 bits để khớp HS512 access-token verification.
+        "jwt.secret=test-secret-64-bytes-minimum-for-hs512-access-token-key-abcdefghij"
 })
 class KiteHubGatewayApplicationTest {
 
