@@ -1,6 +1,6 @@
 # GAP-947: TenantSettings entity missing — không có per-tenant timezone/fiscalYear/schoolType/locale/Năm học
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (90%)
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-04 (Wave flow-kh3 KC-1 pre-walk audit — 3-agent outside-in consensus)
@@ -17,13 +17,22 @@ Tạo entity `TenantSettings` + table `tenant_settings` (1:1 với `instances`) 
 
 ## Acceptance Criteria
 
-- [ ] Flyway migration `V<N>__create_tenant_settings.sql` exists
-- [ ] `TenantSettings` entity + repository + service shipped
-- [ ] `GET/PUT /api/v1/tenants/{id}/settings` endpoint returns/updates settings
-- [ ] Default Năm học auto-fill at provision (Sep-May VN K-12 semantic)
+- [x] Flyway migration `V90__create_tenant_settings.sql` exists (table + unique 1:1 index + RLS tenant_isolation policy)
+- [x] `TenantSettings` entity + repository + service shipped (`kiteclass-core/module/tenantsettings/`)
+- [x] `GET/PUT /api/v1/tenants/{id}/settings` endpoint returns/updates settings (controller + DTOs + mapper)
+- [x] Default Năm học auto-fill at provision (Sep-May VN K-12 semantic — `AcademicYearCalculator`)
+
+## Remaining (10% — why PARTIAL not DONE)
+
+- [ ] Live runtime walk on production-equivalent Docker stack per `feature-ship-runtime-walk-mandate.md` §1 (user-facing feature). Deferred — agent worktree không có Docker stack; wave plan §5 lên lịch live walk khi stack up + pre-walk persona simulation. Code path covered by 15 unit tests (service 4 + controller 4 authz incl cross-tenant IDOR negative + util 7). Coordinator flip DONE sau live walk.
 
 ## Related
 
 - Discovered in: 3-agent outside-in audit 2026-06-04 (matrix + benchmark)
 - Audit artifact: persona-review/2026-06-04-pre-walk-kc1-{failure-mode-matrix,external-benchmark}.md
 - Flow Verification Campaign §4 row KC-1
+- 3-layer docs: `documents/01-business/kiteclass/tenant-settings/{rules,use-cases,api-contract}.md` (§ TenantSettings GAP-947 appended)
+
+## Log
+
+- **2026-06-06** Wave provisioning-1 Bucket F: shipped `TenantSettings` entity + `SchoolType` enum + `AcademicYearCalculator` (Năm học VN Sep→May) + repository + service + mapper + controller (`GET/PUT /api/v1/tenants/{id}/settings`) + DTOs + Flyway `V90__create_tenant_settings.sql` (1:1 unique index + RLS) + 3-layer business docs appended. Tenant isolation: controller guard (path id == X-Tenant-Id) + RLS policy + service uses TenantContext scope. 15 unit tests PASS (`./mvnw test` AcademicYearCalculatorTest 7 + TenantSettingsServiceTest 4 + TenantSettingsControllerTest 4 incl cross-tenant IDOR negative). PARTIAL 90% — live runtime walk deferred to stack-up session per `feature-ship-runtime-walk-mandate.md` (FEATURE_SHIP_WALK_DEFER).

@@ -102,3 +102,39 @@
 | 404 | LANDING_PAGE_NOT_FOUND | "Landing page not found" |
 | 400 | INVALID_COLOR_FORMAT | "Color must be hex format" |
 | 403 | ACCESS_DENIED | "Not authorized for this tenant" |
+
+---
+
+## Endpoints — TenantSettingsController (GAP-947)
+
+> Per-tenant config (timezone / locale / Năm học / ...). `{id}` = tenant (instance) UUID, PHẢI khớp `X-Tenant-Id` (tenant isolation).
+> Code: `kiteclass-core/module/tenantsettings/`
+
+### GET /api/v1/tenants/{id}/settings
+
+**Use Case:** UC-TSET-01 | **Auth:** Bearer token + `X-Tenant-Id` | **Behavior:** auto-create default (Năm học auto-fill) nếu chưa có.
+
+**Response 200:**
+```json
+{ "success": true, "data": { "id": 1, "timezone": "Asia/Ho_Chi_Minh", "locale": "vi", "academicYear": "2026-2027", "fiscalYear": null, "schoolType": "CENTER", "address": null, "phone": null, "logoUrl": null, "themeConfig": null } }
+```
+
+### PUT /api/v1/tenants/{id}/settings
+
+**Use Case:** UC-TSET-02 | **Auth:** Bearer token + `X-Tenant-Id` | **Behavior:** upsert — provided-field-wins (null giữ giá trị cũ).
+
+**Request:** (tất cả field optional)
+```json
+{ "timezone": "Asia/Ho_Chi_Minh", "locale": "vi", "academicYear": "2026-2027", "fiscalYear": "2026", "schoolType": "K12", "address": "123 Đường Láng, Hà Nội", "phone": "0241234567", "logoUrl": "https://cdn.example.com/logo.png", "themeConfig": { "primaryColor": "#2563eb" } }
+```
+
+**Response 200:** TenantSettingsResponse (same shape as GET `data`).
+
+**Field constraints:** `academicYear` regex `^\d{4}-\d{4}$`; `schoolType` ∈ `CENTER|K12|UNIVERSITY|OTHER`; `timezone`≤50, `locale`≤10, `fiscalYear`≤20, `address`≤500, `phone`≤30, `logoUrl`≤1000.
+
+### Errors (TenantSettings)
+
+| Status | Code | Message |
+|--------|------|---------|
+| 403 | TENANT_ACCESS_DENIED | "{id} ≠ tenant đăng nhập (cross-tenant IDOR)" |
+| 400 | (validation) | "academicYear/schoolType/length validation" |
