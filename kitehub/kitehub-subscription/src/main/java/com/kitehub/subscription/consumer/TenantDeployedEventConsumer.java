@@ -7,6 +7,7 @@ import com.kitehub.subscription.client.EmailServiceClient;
 import com.kitehub.subscription.config.EmailQueueConfig;
 import com.kitehub.subscription.dto.TenantDeployedEvent;
 import com.kitehub.subscription.repository.InstanceRepository;
+import com.kitehub.subscription.service.InstanceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -49,6 +50,7 @@ public class TenantDeployedEventConsumer {
     private final ObjectMapper objectMapper;
     private final InstanceRepository instanceRepository;
     private final EmailServiceClient emailServiceClient;
+    private final InstanceService instanceService;
 
     @RabbitListener(queues = EmailQueueConfig.TENANT_DEPLOYED_QUEUE)
     public void handle(String payloadJson) {
@@ -76,6 +78,17 @@ public class TenantDeployedEventConsumer {
         }
 
         Instance instance = instanceOpt.get();
+
+        // GAP-945 follow-up: flip lifecycle status PENDING → TRIAL now that kiteclass-core has
+        // deployed the tenant. Best-effort — a status-flip failure must not abort the email send
+        // (and runs BEFORE the contactEmail guard so a missing email never leaves status stuck).
+        try {
+            instanceService.markProvisioned(instanceId);
+        } catch (Exception ex) {
+            log.warn("[provisioning] markProvisioned failed for instance={} slug={} — {}",
+                    instanceId, event.slug(), ex.getMessage());
+        }
+
         if (!StringUtils.hasText(instance.getContactEmail())) {
             log.warn("[provisioning] instance={} slug={} has no contactEmail — cannot send tenant-ready email",
                     instanceId, event.slug());
