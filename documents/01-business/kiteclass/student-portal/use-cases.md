@@ -12,7 +12,7 @@
 
 **Steps:**
 1. Student mở route `(dashboard)/student/today`
-2. FE gọi `GET /api/v1/students/me/today` (header `X-User-Reference-Id` injected by Gateway)
+2. FE gọi `GET /api/v1/students/me/today` (header `X-User-Reference-Id` Gateway re-inject từ KC-native token `referenceId` claim = `auth_credentials.entity_id`, Option B Wave auth-1; client value bị strip)
 3. BE `StudentPortalService.getToday(studentReferenceId)`:
    - Phase 1 v1: returns `{date: today, schedulePeriods: [], assignmentsDueToday: []}`
    - Future: joins ClassSchedule (by enrollment + day-of-week) + Assignment (due-date filter)

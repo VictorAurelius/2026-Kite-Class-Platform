@@ -13,7 +13,7 @@
 |--------|--------|--------------|
 | `X-User-Id` | Gateway (admin/teacher JWT) | `POST /api/v1/parent-invitations` (UC-PARENT-01) |
 | `X-Tenant-Id` | Gateway (sub-domain → instanceId) | `POST /api/v1/parent-invitations/redeem/{token}` (UC-PARENT-02) |
-| `X-User-Reference-Id` | Gateway (`users.reference_id` cho `userType=PARENT`) | `GET /api/v1/parent/me`, `GET /api/v1/parent/me/children` |
+| `X-User-Reference-Id` | Gateway re-inject từ `referenceId` claim của KC-native token (= `auth_credentials.entity_id`); client-supplied value bị strip (anti-spoof) — Option B Wave auth-1, xem `tenant-auth/api-contract.md` §3 | `GET /api/v1/parent/me`, `GET /api/v1/parent/me/children` |
 | HMAC signature | `InternalRequestFilter` | `GET /internal/parents/{id}` |
 
 ---
@@ -263,7 +263,7 @@ List transcripts for one of the authenticated parent's linked children, newest s
 
 | Name | Required | Source |
 |------|----------|--------|
-| `X-User-Reference-Id` | yes | Gateway-injected; missing → 401 |
+| `X-User-Reference-Id` | yes | Gateway-injected từ verified JWT `referenceId` claim (Option B); client-supplied bị strip (anti-spoof); missing → 401 |
 | `Authorization` | yes | Bearer JWT (validated at Gateway, not Core) |
 | `X-Tenant-Id` | yes | Multi-tenant isolation; resolved at Gateway |
 

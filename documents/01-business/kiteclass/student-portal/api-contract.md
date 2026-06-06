@@ -4,7 +4,7 @@
 **Status:** Phase 1 v1 — endpoint contracts published; full data joins follow when FE consumer PR lands
 **Created:** 2026-05-10 (Wave 51 Bucket B — GAP-269b)
 
-All endpoints below are **read-only** (per BR-STUDENT-PORTAL-005). All require Gateway-injected `X-User-Reference-Id` header (Long, mapped from `users.reference_id` when `userType = STUDENT`); missing header → `401 AUTH_REQUIRED`.
+All endpoints below are **read-only** (per BR-STUDENT-PORTAL-005). All require Gateway-injected `X-User-Reference-Id` header (Long). **Option B (Wave auth-1):** Gateway re-inject từ `referenceId` claim của KC-native token (= `auth_credentials.entity_id`, entity_type=STUDENT) sau khi strip client value (anti-spoof); xem `tenant-auth/api-contract.md` §3. **Option A (superseded):** mapped from `users.reference_id` when `userType = STUDENT`. Missing header → `401 AUTH_REQUIRED`.
 
 Response envelope: `ApiResponse<T>` with `{success, data, message, code, path, timestamp}` (project standard).
 

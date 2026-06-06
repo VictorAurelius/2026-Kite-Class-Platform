@@ -15,6 +15,23 @@
 | 400 | VALIDATION_ERROR | "Name is required" |
 | 409 | DUPLICATE_EMAIL | "Email already exists" |
 
+### POST /api/v1/teachers/{id}/credentials
+**Use Case:** UC-AUTH-02 (xem `tenant-auth/`)  |  **Auth:** Bearer token  |  **Role:** OWNER, ADMIN, PRINCIPAL
+Set/reset teacher KC-native login password (Wave auth-1, Hướng B). Provision/UPSERT `auth_credentials` (entity_type=TEACHER, entity_id=teacher.id, email=teacher.email). Email + role lấy từ teacher entity; request chỉ mang password.
+```json
+// Request — SetPasswordRequest
+{ "password": "string (8-100 chars, regex: letter + digit + special)" }
+// Response 200
+{ "success": true, "data": null, "message": "Đặt mật khẩu giáo viên thành công" }
+```
+| Status | Code | Message |
+|--------|------|---------|
+| 403 | — | Forbidden (caller không phải OWNER/ADMIN/PRINCIPAL) |
+| 400 | VALIDATION_ERROR | "Mật khẩu phải từ 8-100 ký tự" / "Mật khẩu phải có chữ, số và ký tự đặc biệt" |
+| 404 | TEACHER_NOT_FOUND | "Teacher not found" |
+
+Chi tiết đầy đủ: `tenant-auth/api-contract.md` §2.
+
 ### GET /api/v1/teachers/{id}
 **Use Case:** UC-TCH-02  |  **Auth:** Bearer token  |  **Role:** ADMIN, TEACHER
 - **Response 200:** `ApiResponse<TeacherResponse>` (same fields as above)
