@@ -64,7 +64,7 @@ The kitehub auth user (UUID, kitehub-subscription) and KiteClass domain entities
 
 - [ ] `users.reference_id BIGINT` column (migration) + populated at parent/teacher link points
 - [ ] AuthService + TwoFactorController add `referenceId` JWT claim
-- [ ] Gateway forwards `X-User-Reference-Id` header
+- [x] Gateway forwards `X-User-Reference-Id` header — shipped Wave auth-1 PR #2186 Bucket C (inject + anti-spoof)
 - [ ] 4 controllers read `X-User-Reference-Id` + their integration tests updated (cross-flow sweep)
 - [ ] RST re-walk: parent login → child grade/attendance NOT fail-closed-denied
 - [ ] Decision documented: do students get reference_id / login?

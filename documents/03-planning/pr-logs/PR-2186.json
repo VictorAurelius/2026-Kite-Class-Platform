@@ -1,0 +1,41 @@
+{
+  "pr": 2186,
+  "title": "feat(wave-auth-1): KC-native login (Option B) + gateway X-User-Reference-Id \u2014 KC-8 G3 chain verified",
+  "branch": "wave/auth-1-kc-native-login-plan",
+  "created_at": null,
+  "merged_at": "2026-06-06T01:46:59Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": false,
+    "audits_required": [
+      "business-logic-audit",
+      "api-contract-audit",
+      "ops-readiness-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-06-06T08:47:07.670812",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 25,
+        "java_files": 14,
+        "test_files": 2,
+        "business_docs": false,
+        "missing_audits": [
+          "business-logic-audit",
+          "api-contract-audit",
+          "ops-readiness-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "1/5",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-98371"
+  }
+}
