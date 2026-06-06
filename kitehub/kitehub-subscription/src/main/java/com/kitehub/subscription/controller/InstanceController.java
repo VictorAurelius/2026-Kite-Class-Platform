@@ -8,6 +8,7 @@ import com.kitehub.subscription.dto.RegisterInstanceRequest;
 import com.kitehub.subscription.dto.RegisterInstanceResponse;
 import com.kitehub.subscription.dto.TrialStatusResponse;
 import com.kitehub.subscription.dto.UpdateInstanceRequest;
+import com.kitehub.subscription.security.TenantOwnershipGuard;
 import com.kitehub.subscription.service.InstancePurgeService;
 import com.kitehub.subscription.service.InstanceService;
 import com.kitehub.subscription.service.TrialService;
@@ -49,6 +50,14 @@ public class InstanceController {
     private final InstanceService instanceService;
     private final TrialService trialService;
     private final InstancePurgeService instancePurgeService;
+
+    // GAP-1050 (Wave security-3, residual of GAP-1025): the mutation + owner-enumeration
+    // endpoints below previously had ZERO authz — any authenticated caller could update
+    // another tenant's instance (cross-tenant write) or enumerate another user's instances.
+    // OWNER_AUTHZ is the role-level gate; cross-tenant/cross-user binding is enforced via
+    // TenantOwnershipGuard against the gateway-trusted X-Tenant-Id / X-User-Id headers
+    // (GAP-814 TenantHeaderGuardFilter). Platform admins bypass (manage every instance).
+    static final String OWNER_AUTHZ = "hasAnyRole('OWNER','PLATFORM_ADMIN','ADMIN')";
 
     /**
      * Create a new trial instance.
@@ -157,36 +166,58 @@ public class InstanceController {
     /**
      * Get all instances for owner.
      *
-     * @param ownerId owner UUID
+     * <p><strong>GAP-1050:</strong> a caller may only enumerate their OWN instances — the
+     * {@code ownerId} path variable is bound to the gateway-trusted {@code X-User-Id} header
+     * via {@link TenantOwnershipGuard#requireSelfOrAdmin}. Platform admins bypass.</p>
+     *
+     * @param userHeader gateway-injected {@code X-User-Id} (caller's own user id)
+     * @param ownerId    owner UUID
      * @return list of instance responses
      */
     @GetMapping("/owner/{ownerId}")
-    public ResponseEntity<List<InstanceResponse>> getInstancesByOwner(@PathVariable UUID ownerId) {
+    @PreAuthorize(OWNER_AUTHZ)
+    public ResponseEntity<List<InstanceResponse>> getInstancesByOwner(
+        @RequestHeader(value = "X-User-Id", required = false) String userHeader,
+        @PathVariable UUID ownerId
+    ) {
+        TenantOwnershipGuard.requireSelfOrAdmin(ownerId, userHeader);
         List<InstanceResponse> responses = instanceService.getInstancesByOwner(ownerId);
         return ResponseEntity.ok(responses);
     }
 
     /**
-     * Update instance.
+     * Update instance (owner self-service or platform admin).
      *
-     * @param id instance UUID
-     * @param request update request
+     * <p><strong>GAP-1050:</strong> the path {@code {id}} (instance id) is bound to the
+     * gateway-trusted {@code X-Tenant-Id} header (caller's own instance id) via
+     * {@link TenantOwnershipGuard#requireOwnership} — an OWNER acting on another tenant's
+     * instance → 403. Platform admins bypass (manage every instance).</p>
+     *
+     * @param tenantHeader gateway-injected {@code X-Tenant-Id} (caller's own instance id)
+     * @param id           instance UUID
+     * @param request      update request
      * @return updated instance response
      */
     @PutMapping("/{id}")
+    @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<InstanceResponse> updateInstancePut(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
         @PathVariable UUID id,
         @Valid @RequestBody UpdateInstanceRequest request
     ) {
+        TenantOwnershipGuard.requireOwnership(id, tenantHeader);
         InstanceResponse response = instanceService.updateInstance(id, request);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}")
+    @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<InstanceResponse> updateInstance(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
         @PathVariable UUID id,
         @Valid @RequestBody UpdateInstanceRequest request
     ) {
+        TenantOwnershipGuard.requireOwnership(id, tenantHeader);
         InstanceResponse response = instanceService.updateInstance(id, request);
         return ResponseEntity.ok(response);
     }

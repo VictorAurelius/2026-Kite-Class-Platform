@@ -22,6 +22,8 @@ class TenantOwnershipGuardTest {
 
     private static final UUID INSTANCE_A = UUID.fromString("aaaaaaaa-0000-0000-0000-000000000001");
     private static final UUID INSTANCE_B = UUID.fromString("bbbbbbbb-0000-0000-0000-000000000002");
+    private static final UUID USER_A = UUID.fromString("cccccccc-0000-0000-0000-000000000001");
+    private static final UUID USER_B = UUID.fromString("dddddddd-0000-0000-0000-000000000002");
 
     @AfterEach
     void clearContext() {
@@ -81,6 +83,44 @@ class TenantOwnershipGuardTest {
     void admin_bypass() {
         authenticateAs("ADMIN");
         assertThatCode(() -> TenantOwnershipGuard.requireOwnership(INSTANCE_B, INSTANCE_A.toString()))
+                .doesNotThrowAnyException();
+    }
+
+    // ── GAP-1050: requireSelfOrAdmin (owner-enumeration, X-User-Id axis) ──
+
+    @Test
+    @DisplayName("OWNER enumerating own ownerId → allowed")
+    void owner_selfEnumeration_allowed() {
+        authenticateAs("OWNER");
+        assertThatCode(() -> TenantOwnershipGuard.requireSelfOrAdmin(USER_A, USER_A.toString()))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("OWNER enumerating another user's ownerId → 403")
+    void owner_crossUserEnumeration_denied() {
+        authenticateAs("OWNER");
+        assertThatThrownBy(() -> TenantOwnershipGuard.requireSelfOrAdmin(USER_B, USER_A.toString()))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @DisplayName("OWNER with missing/malformed X-User-Id → 403")
+    void owner_missingOrMalformedUser_denied() {
+        authenticateAs("OWNER");
+        assertThatThrownBy(() -> TenantOwnershipGuard.requireSelfOrAdmin(USER_A, null))
+                .isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(() -> TenantOwnershipGuard.requireSelfOrAdmin(USER_A, "  "))
+                .isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(() -> TenantOwnershipGuard.requireSelfOrAdmin(USER_A, "not-a-uuid"))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @DisplayName("PLATFORM_ADMIN bypasses cross-user enumeration check")
+    void platformAdmin_bypassEnumeration() {
+        authenticateAs("PLATFORM_ADMIN");
+        assertThatCode(() -> TenantOwnershipGuard.requireSelfOrAdmin(USER_B, null))
                 .doesNotThrowAnyException();
     }
 

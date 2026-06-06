@@ -70,6 +70,33 @@ public final class TenantOwnershipGuard {
         }
     }
 
+    /**
+     * Verify the caller is the owner-user {@code resourceOwnerId} themselves. Platform admins bypass.
+     *
+     * <p><strong>GAP-1050 (Wave security-3, residual of GAP-1025):</strong> owner-enumeration routes
+     * such as {@code GET /api/platform/instances/owner/{ownerId}} took an arbitrary {@code ownerId}
+     * path variable and listed every instance for that user — any authenticated caller could
+     * enumerate another user's instances by guessing their id (OWASP A01 cross-user IDOR). This
+     * binds the path {@code ownerId} to the gateway-trusted {@code X-User-Id} header (caller's own
+     * user id, injected from the verified JWT {@code sub}/user claim by the gateway
+     * {@code TenantHeaderGuardFilter}). The axis differs from {@link #requireOwnership}: this compares
+     * the caller's USER id (X-User-Id), not the caller's instance/tenant id (X-Tenant-Id).</p>
+     *
+     * @param resourceOwnerId the owner-user id the resource is scoped to (path {@code {ownerId}})
+     * @param userHeader      the gateway-trusted {@code X-User-Id} header (caller's own user id)
+     * @throws AccessDeniedException (→ HTTP 403) when not admin and the user header is
+     *                               missing, malformed, or does not match {@code resourceOwnerId}
+     */
+    public static void requireSelfOrAdmin(UUID resourceOwnerId, String userHeader) {
+        if (isPlatformAdmin()) {
+            return;
+        }
+        UUID callerUser = parseUser(userHeader);
+        if (!callerUser.equals(resourceOwnerId)) {
+            throw new AccessDeniedException("Cross-user access denied");
+        }
+    }
+
     private static UUID parseTenant(String tenantHeader) {
         if (tenantHeader == null || tenantHeader.isBlank()) {
             throw new AccessDeniedException("Tenant context missing");
@@ -78,6 +105,17 @@ public final class TenantOwnershipGuard {
             return UUID.fromString(tenantHeader);
         } catch (IllegalArgumentException ex) {
             throw new AccessDeniedException("Tenant context malformed");
+        }
+    }
+
+    private static UUID parseUser(String userHeader) {
+        if (userHeader == null || userHeader.isBlank()) {
+            throw new AccessDeniedException("User context missing");
+        }
+        try {
+            return UUID.fromString(userHeader);
+        } catch (IllegalArgumentException ex) {
+            throw new AccessDeniedException("User context malformed");
         }
     }
 }

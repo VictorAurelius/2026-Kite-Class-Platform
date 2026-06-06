@@ -5,6 +5,7 @@ import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.subscription.dto.CreateInstanceRequest;
 import com.kitehub.subscription.dto.InstanceResponse;
+import com.kitehub.subscription.dto.UpdateInstanceRequest;
 import com.kitehub.subscription.repository.InstanceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -248,5 +249,110 @@ class InstanceControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest());
+    }
+
+    // ── GAP-1050: residual cross-tenant IDOR — update (PUT/PATCH) + owner enumeration ──
+
+    /** Helper: create an instance with a chosen ownerId, return the persisted response. */
+    private InstanceResponse createInstance(String subdomain, UUID ownerId) throws Exception {
+        CreateInstanceRequest req = CreateInstanceRequest.builder()
+            .subdomain(subdomain)
+            .organizationName("Org " + subdomain)
+            .ownerId(ownerId)
+            .tier(PricingTier.BASIC)
+            .build();
+        MvcResult res = mockMvc.perform(post("/api/platform/instances")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+            .andExpect(status().isCreated())
+            .andReturn();
+        return objectMapper.readValue(res.getResponse().getContentAsString(), InstanceResponse.class);
+    }
+
+    @Test
+    @DisplayName("PUT update own instance (X-Tenant-Id == instance id) → 200")
+    @WithMockUser(roles = "OWNER")
+    void shouldUpdateOwnInstance() throws Exception {
+        InstanceResponse created = createInstance("idor-update-own", UUID.randomUUID());
+        UpdateInstanceRequest update = UpdateInstanceRequest.builder()
+            .organizationName("Renamed Org").build();
+
+        mockMvc.perform(put("/api/platform/instances/{id}", created.getId())
+                .header("X-Tenant-Id", created.getId().toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(update)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.organizationName").value("Renamed Org"));
+    }
+
+    @Test
+    @DisplayName("PUT update ANOTHER tenant's instance (X-Tenant-Id != instance id) → 403 IDOR blocked")
+    @WithMockUser(roles = "OWNER")
+    void shouldRejectCrossTenantUpdate() throws Exception {
+        InstanceResponse victim = createInstance("idor-update-victim", UUID.randomUUID());
+        UpdateInstanceRequest update = UpdateInstanceRequest.builder()
+            .organizationName("Hijacked Name").build();
+
+        mockMvc.perform(put("/api/platform/instances/{id}", victim.getId())
+                .header("X-Tenant-Id", UUID.randomUUID().toString()) // attacker's own instance id
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(update)))
+            .andExpect(status().isForbidden());
+
+        // Verify victim untouched
+        mockMvc.perform(get("/api/platform/instances/{id}", victim.getId()))
+            .andExpect(jsonPath("$.organizationName").value("Org idor-update-victim"));
+    }
+
+    @Test
+    @DisplayName("PATCH update any instance as PLATFORM_ADMIN (no tenant header) → 200 bypass")
+    @WithMockUser(roles = "PLATFORM_ADMIN")
+    void shouldAllowAdminPatchAnyInstance() throws Exception {
+        InstanceResponse created = createInstance("idor-update-admin", UUID.randomUUID());
+        UpdateInstanceRequest update = UpdateInstanceRequest.builder()
+            .organizationName("Admin Renamed").build();
+
+        mockMvc.perform(patch("/api/platform/instances/{id}", created.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(update)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.organizationName").value("Admin Renamed"));
+    }
+
+    @Test
+    @DisplayName("GET /owner/{self} (X-User-Id == ownerId) → 200")
+    @WithMockUser(roles = "OWNER")
+    void shouldListOwnInstancesByOwner() throws Exception {
+        UUID ownerId = UUID.randomUUID();
+        createInstance("idor-owner-self", ownerId);
+
+        mockMvc.perform(get("/api/platform/instances/owner/{ownerId}", ownerId)
+                .header("X-User-Id", ownerId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    @DisplayName("GET /owner/{otherUser} (X-User-Id != ownerId) → 403 enumeration blocked")
+    @WithMockUser(roles = "OWNER")
+    void shouldRejectCrossUserEnumeration() throws Exception {
+        UUID victimOwner = UUID.randomUUID();
+        createInstance("idor-owner-victim", victimOwner);
+
+        mockMvc.perform(get("/api/platform/instances/owner/{ownerId}", victimOwner)
+                .header("X-User-Id", UUID.randomUUID().toString())) // attacker's own user id
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("GET /owner/{anyUser} as PLATFORM_ADMIN → 200 bypass")
+    @WithMockUser(roles = "PLATFORM_ADMIN")
+    void shouldAllowAdminEnumerateAnyOwner() throws Exception {
+        UUID ownerId = UUID.randomUUID();
+        createInstance("idor-owner-admin", ownerId);
+
+        mockMvc.perform(get("/api/platform/instances/owner/{ownerId}", ownerId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(1));
     }
 }
