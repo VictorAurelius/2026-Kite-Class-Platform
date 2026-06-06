@@ -10,10 +10,13 @@ import com.kiteclass.core.module.ai.workflow.StepException;
 import com.kiteclass.core.module.instance.entity.FrontendInstance;
 import com.kiteclass.core.module.instance.entity.FrontendInstanceStatus;
 import com.kiteclass.core.module.instance.service.InstanceLifecycleService;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -44,8 +47,17 @@ class TenantProvisioningSagaTest {
     @Mock
     private PlanExecutor executor;
 
+    @Spy
+    private MeterRegistry meterRegistry = new SimpleMeterRegistry();
+
     @InjectMocks
     private TenantProvisioningSaga saga;
+
+    private double counter(String result) {
+        var c = meterRegistry.find(TenantProvisioningSaga.METRIC_COMPENSATION)
+                .tag("result", result).counter();
+        return c == null ? 0d : c.count();
+    }
 
     private TenantCreatedEvent event() {
         return TenantCreatedEvent.builder()
@@ -119,6 +131,39 @@ class TenantProvisioningSagaTest {
                 .hasMessageContaining("analyzer exploded");
 
         verify(lifecycle).markFailed(42L, "analyzer exploded");
+    }
+
+    @Test
+    void compensation_success_increments_success_counter() {
+        when(lifecycle.initiate(anyString(), anyString())).thenReturn(initialized(42L));
+        when(analyzer.analyze(any())).thenReturn(AnalysisResult.templateOnly());
+        when(planner.plan(any())).thenReturn(new Plan("desc", List.of()));
+        doThrow(new StepException("plan blew up")).when(executor).execute(any(), any());
+
+        assertThatThrownBy(() -> saga.provision(event()))
+                .isInstanceOf(StepException.class);
+
+        verify(lifecycle).markFailed(eq(42L), eq("plan blew up"));
+        assertThat(counter("success")).isEqualTo(1d);
+        assertThat(counter("failed")).isEqualTo(0d);
+    }
+
+    @Test
+    void compensation_markFailed_failure_increments_failed_counter_and_does_not_mask_original() {
+        when(lifecycle.initiate(anyString(), anyString())).thenReturn(initialized(42L));
+        when(analyzer.analyze(any())).thenReturn(AnalysisResult.templateOnly());
+        when(planner.plan(any())).thenReturn(new Plan("desc", List.of()));
+        doThrow(new StepException("plan blew up")).when(executor).execute(any(), any());
+        doThrow(new RuntimeException("db connection lost"))
+                .when(lifecycle).markFailed(anyLong(), anyString());
+
+        // The original saga failure (StepException) must surface — NOT the secondary markFailed error.
+        assertThatThrownBy(() -> saga.provision(event()))
+                .isInstanceOf(StepException.class)
+                .hasMessageContaining("plan blew up");
+
+        assertThat(counter("failed")).isEqualTo(1d);
+        assertThat(counter("success")).isEqualTo(0d);
     }
 
     @Test
