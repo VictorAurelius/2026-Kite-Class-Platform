@@ -129,12 +129,23 @@ matches_predicate() {
 # We don't audit /fallback/** or /docs/**
 SKIP_PATH_PATTERNS='^(/fallback|/docs/)'
 
+# GAP-1031 (Wave security-1) — intentionally internal-only controllers that MUST
+# NOT have a gateway route (service-to-service only on the docker network). Exposing
+# them via the gateway is a security hole. kitehub-email/EmailController is reached
+# directly (http://kitehub-email:8080) by EmailConsumer/EmailServiceClient/EmailSenderService.
+INTERNAL_ONLY_PATTERNS='^/api/platform/emails'
+
 for i in "${!CTRL_PATHS[@]}"; do
   ctrl_path="${CTRL_PATHS[$i]}"
   ctrl_module="${CTRL_MODULES[$i]}"
 
   # Skip fallback/docs gateway-internal
   if [[ "$ctrl_path" =~ $SKIP_PATH_PATTERNS ]]; then
+    continue
+  fi
+
+  # Skip intentionally-internal controllers (no gateway route by design — GAP-1031)
+  if [[ "$ctrl_path" =~ $INTERNAL_ONLY_PATTERNS ]]; then
     continue
   fi
 

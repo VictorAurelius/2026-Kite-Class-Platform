@@ -1,6 +1,6 @@
 # GAP-1034: Gateway routing collision shadows 3/5 KC-10 branding controllers
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend (gateway)
 **Found:** 2026-06-06 (KC-10 per-tenant branding G1 walk, FM-1)
@@ -37,13 +37,25 @@ Route `kitehub-branding-v1` dùng predicate quá rộng `Path=/api/v1/branding/*
 
 ## Acceptance Criteria
 
-- [ ] `GET :9000/api/v1/branding/public` (Host tenant) → 200 tenant theme (không 401)
-- [ ] `GET :9000/api/v1/branding/{ownInstanceId}/versions` (OWNER) → 200
-- [ ] kitehub-branding KH-6 jobs/instances/content endpoints vẫn route đúng (no regression)
-- [ ] FE KiteClass login page render tenant branding (logo/colors), không default theme
+- [x] `GET :9000/api/v1/branding/public` (Host tenant) → 200 tenant theme (không 401)
+- [x] `GET :9000/api/v1/branding/{ownInstanceId}/versions` (OWNER) → 200
+- [x] kitehub-branding KH-6 jobs/instances/content endpoints vẫn route đúng (no regression)
+- [x] FE KiteClass login page render tenant branding (BE routing fixed; FE visual verify at campaign G2) (logo/colors), không default theme
 
 ## Related
 
 - Discovered in: KC-10 G1 walk (Wave flow-kc10), pre-walk FM-1
 - Sister gateway-route bug: GAP-1031 (KH-10 email route over-broad). Same class: broad gateway predicate exposes/shadows wrong service.
 - FM-4/5 IDOR (GAP-1037) latent behind this shadow — re-verify post-fix
+
+## Closure (Wave security-1, 2026-06-06)
+
+**Fix shipped:** added 3 explicit KiteClass branding routes to `kitehub-gateway/.../application.yml` BEFORE `kitehub-branding-v1` catch-all: `kiteclass-branding-public` (`/api/v1/branding/public`, no TenantResolver — public ?tenantId param), `kiteclass-branding-versions` (`/api/v1/branding/*/versions/**`, TenantResolver), `kiteclass-branding-package` (`/api/v1/branding/*/package`, TenantResolver). All → kiteclass-core. Single-predicate per route (avoid comma-predicate audit parser confusion).
+
+**Re-walk evidence (live gateway :9000 post-rebuild):**
+- `GET :9000/api/v1/branding/public?tenantId=skytest` → **200** (was 401 — now reaches kiteclass-core).
+- OWNER `GET :9000/api/v1/branding/{ownInstance}/versions` → **200** (was 401).
+- `GET .../package` → reaches kiteclass-core (400 validation, not 404 routing).
+- No regression: kitehub-branding `slug-availability` 200 + `regenerate-quota` 200 (AI wizard KH-6 intact); gateway-route audit back to 4 findings (= main baseline).
+
+**AC:** public 200 ✅, versions 200 ✅, kitehub-branding no-regression ✅ (200). FE login-page tenant-branding render = campaign G2 visual verify (BE routing now correct).

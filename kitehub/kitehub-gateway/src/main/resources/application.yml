@@ -291,16 +291,14 @@ spring:
                 name: adminCircuitBreaker
                 fallbackUri: forward:/fallback/admin
 
-        # Platform APIs - Email Service
-        - id: platform-email
-          uri: http://kitehub-email:8080
-          predicates:
-            - Path=/api/platform/emails/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: emailCircuitBreaker
-                fallbackUri: forward:/fallback/email
+        # GAP-1031 (Wave security-1) — platform-email route REMOVED.
+        # /api/platform/emails/** is an INTERNAL service-to-service API (kitehub-email
+        # has NO Spring Security). Exposing it via the gateway allowed anonymous
+        # arbitrary email send (gateway pass-through-on-missing-token × email zero-auth).
+        # Internal callers (EmailConsumer / EmailServiceClient / EmailSenderService)
+        # reach kitehub-email directly on the docker network (http://kitehub-email:8080),
+        # NOT via the gateway — so removing this route closes the hole with zero
+        # functional impact. The only FE reference (endpoints.ts:69) is dead (no caller).
 
         # Swagger UI routes - per-service API documentation
         - id: subscription-docs
@@ -546,6 +544,22 @@ spring:
                 name: subscriptionCircuitBreaker
                 fallbackUri: forward:/fallback/subscription
 
+        # GAP-1041 (Wave security-1) — payroll lives in kiteclass-core
+        # (PayrollController @RequestMapping("/api/v1/admin/payroll")). Auth + tenant-scoped.
+        # MUST precede kitehub-admin-v1 catch-all (which forwards /api/v1/admin/** to
+        # kitehub-admin → 404 for payroll). Mirrors instance-apis catch-all (TenantResolver
+        # resolves tenant from X-Tenant-Id OR JWT tenantId claim per GAP-711).
+        - id: kiteclass-payroll
+          uri: ${KITECLASS_CORE_URL:http://kiteclass-core:8080}
+          predicates:
+            - Path=/api/v1/admin/payroll/**
+          filters:
+            - TenantResolver
+            - name: CircuitBreaker
+              args:
+                name: instanceCircuitBreaker
+                fallbackUri: forward:/fallback/instance
+
         # GAP-509 — kitehub admin v1 (beta-requests approve/reject) routes
         # to admin service. Must precede instance-apis catch-all.
         - id: kitehub-admin-v1
@@ -589,6 +603,46 @@ spring:
               args:
                 name: subscriptionCircuitBreaker
                 fallbackUri: forward:/fallback/subscription
+
+        # GAP-1034 (Wave security-1) — KiteClass per-tenant branding lives in
+        # kiteclass-core (PublicBrandingController /api/v1/branding/public,
+        # BrandingVersionController /api/v1/branding/{id}/versions,
+        # BrandingPackageController /api/v1/branding/{id}/package). kitehub-branding-v1
+        # predicate /api/v1/branding/** would shadow these → route the specific KiteClass
+        # sub-paths to kiteclass-core BEFORE kitehub-branding-v1. kitehub-branding owns
+        # /api/v1/branding/{jobs,instances,regenerate-quota,slug-availability} — none
+        # match */versions or */package or /public, so no kitehub regression.
+        - id: kiteclass-branding-public
+          uri: ${KITECLASS_CORE_URL:http://kiteclass-core:8080}
+          predicates:
+            - Path=/api/v1/branding/public
+          filters:
+            # Public path — tenant resolved from ?tenantId query param by the controller.
+            # SKIP TenantResolver (would 400 on localhost/SSR with no subdomain).
+            - name: CircuitBreaker
+              args:
+                name: instanceCircuitBreaker
+                fallbackUri: forward:/fallback/instance
+        - id: kiteclass-branding-versions
+          uri: ${KITECLASS_CORE_URL:http://kiteclass-core:8080}
+          predicates:
+            - Path=/api/v1/branding/*/versions/**
+          filters:
+            - TenantResolver
+            - name: CircuitBreaker
+              args:
+                name: instanceCircuitBreaker
+                fallbackUri: forward:/fallback/instance
+        - id: kiteclass-branding-package
+          uri: ${KITECLASS_CORE_URL:http://kiteclass-core:8080}
+          predicates:
+            - Path=/api/v1/branding/*/package
+          filters:
+            - TenantResolver
+            - name: CircuitBreaker
+              args:
+                name: instanceCircuitBreaker
+                fallbackUri: forward:/fallback/instance
 
         - id: kitehub-branding-v1
           uri: http://kitehub-branding:8080

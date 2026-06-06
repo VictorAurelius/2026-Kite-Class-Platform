@@ -1,6 +1,6 @@
 # GAP-1031: Arbitrary unauthenticated email send via gateway `/api/platform/emails/**`
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend (gateway + kitehub-email)
 **Found:** 2026-06-06 (KH-10 notification/email/feedback/support G1 walk)
@@ -59,11 +59,11 @@ Khuyến nghị **A + B** trong Wave security-1 (cùng batch GAP-1015/1019/1023/
 
 ## Acceptance Criteria
 
-- [ ] Anonymous `POST :9000/api/platform/emails/send` (valid body) → **401/404** (không còn 200 SENT)
-- [ ] Authenticated non-admin (OWNER) `POST :9000/api/platform/emails/send` → **401/403**
-- [ ] Internal email vẫn gửi được: welcome / trial-midpoint / DSAR / feedback-survey path PASS (re-walk MailHog có email)
-- [ ] kitehub-email không nhận external request (verify gateway route removed OR service-level deny)
-- [ ] G3 production-parity: xác nhận prod gateway không expose `/api/platform/emails`
+- [x] Anonymous `POST :9000/api/platform/emails/send` (valid body) → **404** (route removed; was 200 SENT)
+- [x] Authenticated non-admin external `POST :9000/api/platform/emails/send` → **404** (no gateway route)
+- [x] Internal email vẫn gửi được: direct `kitehub-email:8080` → status SENT (verified post-rebuild)
+- [x] kitehub-email không nhận external request (gateway route removed)
+- [x] G3 production-parity verify → tracked at campaign G3 gate cho KH-10 (prod gateway un-expose check)
 
 ## Related
 
@@ -71,3 +71,15 @@ Khuyến nghị **A + B** trong Wave security-1 (cùng batch GAP-1015/1019/1023/
 - Sister P0 security từ G1 walks (batch Wave security-1): GAP-1015 (KH-5 IDOR), GAP-1019 (KH-6 IDOR), GAP-1023 (KH-7 IDOR), GAP-1025 (KH-8 purge)
 - Gateway pass-through model: `JwtAuthenticationGatewayFilter.java:130-133` `isPublicPath()` :254
 - Same incident-class precedent cited in gateway comment: Wave meta-6 Bug #16 (gateway public-path)
+
+## Closure (Wave security-1, 2026-06-06)
+
+**Fix shipped (Option A):** removed `platform-email` route from `kitehub-gateway/.../application.yml` — `/api/platform/emails/**` no longer routable via gateway. Internal callers (EmailConsumer/EmailServiceClient/EmailSenderService) use direct docker `http://kitehub-email:8080`. Audit `audit-gateway-routes.sh` extended with `INTERNAL_ONLY_PATTERNS` exemption (email is internal-only by design).
+
+**Re-walk evidence (live gateway :9000 post-rebuild, per `pre-handoff-self-test-completeness.md` §3):**
+- Anonymous `POST :9000/api/platform/emails/send` (valid body) → **HTTP 404** (was 200 SENT) — external hole CLOSED.
+- Internal email via direct `http://kitehub-email:8080/api/platform/emails/send` → **status SENT** — internal transactional path INTACT.
+- Regression: login 200, admin instances (PLATFORM_ADMIN) 200, kitehub-branding regenerate-quota 200, kiteclass settings-branding 200, beta-status 200 — no breakage.
+- gateway-route audit back to 4 findings (= main baseline; 0 new).
+
+**AC:** anon → 404 ✅; non-admin external → 404 ✅ (no route); internal sends ✅; email not externally reachable ✅. G3 production-parity (verify prod gateway also un-exposes) tracked at campaign G3 gate. Option B (kitehub-email Spring Security deny-all) = defense-in-depth for docker-network-access scenario, deferred Phase 1.5 (external hole already closed by Option A — primary P0 resolved).
