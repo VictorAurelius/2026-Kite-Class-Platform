@@ -176,6 +176,51 @@ class EmailServiceClientTest {
         }
 
         @Test
+        @DisplayName("Should publish tenant-ready email to queue (GAP-948)")
+        void shouldPublishTenantReadyEmailToQueue() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("tenant-ready"), eq("owner@acme.edu.vn"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(false);
+
+            emailServiceClient.sendTenantReadyEmail(
+                instanceId, "owner@acme.edu.vn", "Acme School", "acme");
+
+            ArgumentCaptor<Message> msgCaptor = ArgumentCaptor.forClass(Message.class);
+            verify(rabbitTemplate).send(
+                eq(EmailQueueConfig.EMAIL_EXCHANGE),
+                eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
+                msgCaptor.capture());
+
+            EmailEvent event = decodeEmailEvent(msgCaptor.getValue());
+            assertThat(event.getEmailType()).isEqualTo("tenant-ready");
+            assertThat(event.getTemplateName()).isEqualTo("tenant-ready");
+            assertThat(event.getTo()).isEqualTo("owner@acme.edu.vn");
+            assertThat(event.getSubject()).contains("sẵn sàng");
+            assertThat(event.getVariables()).containsEntry("organizationName", "Acme School");
+            assertThat(event.getVariables())
+                .containsEntry("dashboardUrl", "https://acme.kiteclass.vn/dashboard");
+
+            // Should still record in sent log (dedup tracking)
+            verify(emailSentLogRepository).save(any(EmailSentLog.class));
+        }
+
+        @Test
+        @DisplayName("Should skip tenant-ready email when already sent today (GAP-948)")
+        void shouldSkipTenantReadyEmailWhenAlreadySentToday() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("tenant-ready"), eq("owner@acme.edu.vn"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(true);
+
+            emailServiceClient.sendTenantReadyEmail(
+                instanceId, "owner@acme.edu.vn", "Acme School", "acme");
+
+            verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
+            verify(emailSentLogRepository, never()).save(any(EmailSentLog.class));
+        }
+
+        @Test
         @DisplayName("Should publish subscription created email to queue")
         void shouldPublishSubscriptionCreatedEmailToQueue() {
             when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(

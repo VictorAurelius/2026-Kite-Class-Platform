@@ -44,6 +44,7 @@ public class TenantCreatedEventConsumer {
 
     private final ObjectMapper objectMapper;
     private final TenantProvisioningSaga saga;
+    private final TenantReadyNotifier tenantReadyNotifier;
 
     @RabbitListener(queues = RabbitConfig.TENANT_CREATED_QUEUE)
     public void handle(String payloadJson) {
@@ -63,6 +64,13 @@ public class TenantCreatedEventConsumer {
             Long instanceId = saga.provision(event);
             log.info("[provisioning] saga completed tenant={} frontendInstanceId={}",
                     event.getTenantId(), instanceId);
+
+            // Tenant DEPLOYED → trigger the tenant-ready email (Wave provisioning-1 Bucket C,
+            // GAP-948). The consumer is the clean "provision succeeded → notify" orchestration
+            // boundary. The owner email lives in kitehub-subscription (not in this event), so we
+            // only PUBLISH tenant.deployed here; kitehub-subscription resolves the owner + sends.
+            // Best-effort: notifier never throws (a publish miss only delays a recoverable email).
+            tenantReadyNotifier.notifyDeployed(event.getTenantId(), event.getSlug(), instanceId);
         } catch (RuntimeException sagaFailure) {
             // Saga already compensated (markFailed) + rethrew. ACK to avoid poison-message
             // requeue loop; FAILED tenant is recovered via admin force-retry (GAP-953).
