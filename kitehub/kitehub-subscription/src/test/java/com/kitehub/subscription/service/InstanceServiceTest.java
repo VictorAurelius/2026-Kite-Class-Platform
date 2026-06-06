@@ -147,6 +147,25 @@ class InstanceServiceTest {
     }
 
     @Test
+    @DisplayName("GAP-946: DB provisioning failure propagates (no silent pending-cred swallow)")
+    void shouldPropagateWhenDatabaseProvisioningFails() {
+        // Given — subdomain free, instance saves, but provisionDatabase throws (prod
+        // lifecycleEnabled real failure). Pre-GAP-946 this was swallowed leaving a row
+        // with databaseUrl='pending'; now it must propagate so @Transactional rolls back.
+        when(instanceRepository.existsBySubdomainAndDeletedFalse(validRequest.getSubdomain())).thenReturn(false);
+        Instance savedInstance = new Instance();
+        savedInstance.setId(UUID.randomUUID());
+        when(instanceRepository.save(any(Instance.class))).thenReturn(savedInstance);
+        when(databaseProvisioningService.provisionDatabase(any(UUID.class)))
+                .thenThrow(new IllegalStateException("RDS CREATE DATABASE failed"));
+
+        // When / Then — exception propagates (not swallowed)
+        assertThatThrownBy(() -> instanceService.createTrialInstance(validRequest))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("RDS CREATE DATABASE failed");
+    }
+
+    @Test
     @DisplayName("Should throw exception when subdomain already exists")
     void shouldThrowExceptionWhenSubdomainExists() {
         // Given

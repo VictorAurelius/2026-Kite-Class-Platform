@@ -166,14 +166,13 @@ public class InstanceService {
         // Save instance first (generates ID)
         Instance saved = instanceRepository.save(instance);
 
-        // Provision database for the instance
-        try {
-            databaseProvisioningService.provisionDatabase(saved.getId());
-            log.info("Database provisioned for instance: {}", saved.getId());
-        } catch (Exception e) {
-            log.error("Failed to provision database for instance: {}", saved.getId(), e);
-            // Continue - database credentials will be set to pending
-        }
+        // Provision database for the instance.
+        // GAP-946: do NOT swallow failures — propagate so the @Transactional creation
+        // rolls back instead of silently persisting a row with databaseUrl='pending'.
+        // provisionDatabase only throws in lifecycleEnabled (prod) mode; stub/local
+        // mode simulates success, so this fail-fast never triggers in tests.
+        databaseProvisioningService.provisionDatabase(saved.getId());
+        log.info("Database provisioned for instance: {}", saved.getId());
 
         log.info("Created trial instance: {} (expires: {})", saved.getId(), saved.getTrialExpiresAt());
 
@@ -245,13 +244,11 @@ public class InstanceService {
         instance.startTrial(trialConfig.getDurationDays());
         instanceRepository.save(instance);
 
-        // Provision database
-        try {
-            databaseProvisioningService.provisionDatabase(instanceId);
-            log.info("Database provisioned for activated instance: {}", instanceId);
-        } catch (Exception e) {
-            log.error("Failed to provision database for instance: {}", instanceId, e);
-        }
+        // Provision database.
+        // GAP-946: do NOT swallow — propagate so a failed provision aborts activation
+        // (instance stays PENDING rather than left with databaseUrl='pending').
+        databaseProvisioningService.provisionDatabase(instanceId);
+        log.info("Database provisioned for activated instance: {}", instanceId);
 
         log.info("Activated PENDING instance: {} → TRIAL", instanceId);
 
@@ -324,14 +321,13 @@ public class InstanceService {
         // Save instance first (generates ID)
         Instance saved = instanceRepository.save(instance);
 
-        // Provision database for the instance
-        try {
-            databaseProvisioningService.provisionDatabase(saved.getId());
-            log.info("Database provisioned for instance: {}", saved.getId());
-        } catch (Exception e) {
-            log.error("Failed to provision database for instance: {}", saved.getId(), e);
-            // Continue - database credentials will be set to pending
-        }
+        // Provision database for the instance.
+        // GAP-946: do NOT swallow failures — propagate so the @Transactional creation
+        // rolls back instead of silently persisting a row with databaseUrl='pending'.
+        // provisionDatabase only throws in lifecycleEnabled (prod) mode; stub/local
+        // mode simulates success, so this fail-fast never triggers in tests.
+        databaseProvisioningService.provisionDatabase(saved.getId());
+        log.info("Database provisioned for instance: {}", saved.getId());
 
         // Generate tokens
         String accessToken = tokenService.generateAccessToken(ownerId, request.getOwnerEmail(), "OWNER");
