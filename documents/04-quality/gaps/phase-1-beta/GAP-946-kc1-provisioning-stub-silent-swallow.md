@@ -11,7 +11,8 @@
 
 - ✅ **Silent-swallow FIXED** (data-corruption part): 3 `catch(Exception){log;/*Continue*/}` sites in `InstanceService` (createTrialInstance:170 / activatePendingInstance:249 / registerInstance:328) removed → `provisionDatabase` failure now propagates so the `@Transactional` creation rolls back instead of persisting a row with `databaseUrl='pending'`. `provisionDatabase` only throws in `lifecycleEnabled` (prod) mode; stub/local simulates success → fail-fast never triggers in tests. Regression test `InstanceServiceTest.shouldPropagateWhenDatabaseProvisioningFails`. (subscription `InstanceStatus` has no FAILED value → fix is rollback-propagate, not status-flip.)
 - ✅ `database.lifecycle.enabled=true` already set `application-production.yml:57` (AC #1 satisfied pre-gap).
-- 🔴 **STILL OPEN** (coupled to GAP-945 saga): `TenantProvisioningSaga.provisionInfrastructure` (kiteclass-core:83-86) still log-only stub — real infra provisioning + async FAILED/retry lands with GAP-945 saga wiring.
+- ✅ **Saga now reachable** (GAP-945 Bucket A wiring 2026-06-06): `TenantProvisioningSaga.provision()` is wired to `tenant.created.queue` via `TenantCreatedEventConsumer` — saga executes on beta signup (was orphan). So when `provisionInfrastructure` becomes real, it will actually run.
+- 🔴 **STILL OPEN** (the GAP-946 core remaining): `TenantProvisioningSaga.provisionInfrastructure` (kiteclass-core:83-86) still log-only stub — real infra provisioning (DB schema / MinIO bucket / DNS) + async FAILED state-machine/retry not yet implemented. Saga wiring done (GAP-945); this is the infra-execution delta.
 
 ## Problem
 

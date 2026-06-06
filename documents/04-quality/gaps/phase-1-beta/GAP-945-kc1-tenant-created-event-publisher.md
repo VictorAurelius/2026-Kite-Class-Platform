@@ -1,11 +1,26 @@
 # GAP-945: KC saga not wired — kitehub-subscription thiếu `tenant.created` publisher
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-04 (Wave flow-kh3 KC-1 pre-walk audit — 3-agent outside-in consensus)
 **Affects:** KC-1 (Tenant provisioning) — KH-2b → KC-1 chain critical path
 **Defer-to:** After Wave flow-kh3 finish (per user direction 2026-06-04)
+
+## Resolution (Wave provisioning-1 Bucket A — 2026-06-06)
+
+**Saga wiring SHIPPED + verified** (keystone unblock cho buckets B–G — saga contract frozen + reachable):
+
+- ✅ **Publisher:** `AuthService.registerFromBetaInvite` → `publishTenantCreated(instance)` → `SubscriptionEventEmitter.emit(instanceId, "TENANT_CREATED", "tenant.created", json)` (outbox-backed + fast-path). Payload `{tenantId, slug, audience, tone}` build qua `SubscriptionEventEmitter.escape(...)`.
+- ✅ **Consumer:** NEW `TenantCreatedEventConsumer` (`@RabbitListener(queues="tenant.created.queue")`) → deserialize → `TenantProvisioningSaga.provision(event)`. Ack-on-failure (saga compensate nội bộ; retry admin-driven GAP-953, không poison-loop broker).
+- ✅ **Topology:** `RabbitConfig` declare DirectExchange `email.exchange` + queue `tenant.created.queue` + binding (routing key `tenant.created`). `TenantCreatedEvent` thêm `@Jacksonized` để Jackson deserialize immutable `@Value` payload.
+- ✅ **Verified:** `TenantCreatedEventConsumerTest` 3/3 + `AuthServiceTenantCreatedPublishTest` 1/1 (CI guards) + `TenantCreatedSagaWiringIT` 1/1 (Testcontainers RabbitMQ round-trip — publish→broker→consumer→saga.provision, raw-UTF8 GAP-925 shape confirmed). `TenantProvisioningSagaTest` 5/5 (@Jacksonized non-breaking).
+
+**STILL OPEN (PARTIAL — KC-1 flow completion, KHÔNG phải B–G blocker):**
+
+- 🔴 **Live KC-1 full-stack walk** per `feature-ship-runtime-walk-mandate.md` §2 — beta signup → KC tenant provisioned end-to-end trên local Docker stack (subscription + core + rabbit + postgres). Round-trip IT mock saga → real saga execute-to-completion chưa walk-verified. Pre-walk persona simulation per `pre-walk-persona-simulation-mandate.md` required trước.
+- 🔴 **AC #3 status transition** — subscription `Instance.status` INITIALIZING → DEPLOYED cần core→subscription callback (saga tạo core `FrontendInstance`; chưa có event flow ngược flip subscription `Instance.status`). Confirm/file trong live walk.
+- 🔴 Real `provisionInfrastructure` (vẫn log-only stub) = coupled GAP-946 remaining.
 
 ## Problem
 

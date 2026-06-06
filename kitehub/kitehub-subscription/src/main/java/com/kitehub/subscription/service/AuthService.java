@@ -10,6 +10,7 @@ import com.kitehub.subscription.dto.*;
 import com.kitehub.subscription.exception.AccountLockedException;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.UserRepository;
+import com.kitehub.subscription.service.migration.SubscriptionEventEmitter;
 import com.kitehub.subscription.staff.entity.StaffInvitationStatus;
 import com.kitehub.subscription.staff.repository.StaffInvitationRepository;
 import io.jsonwebtoken.Claims;
@@ -69,6 +70,21 @@ public class AuthService {
      */
     @Autowired(required = false)
     private StaffInvitationRepository staffInvitationRepository;
+
+    /**
+     * Cross-service tenant-provisioning event publisher (GAP-945, Wave provisioning-1 Bucket A).
+     * Field-injected (not in {@link RequiredArgsConstructor}) so legacy unit tests constructing
+     * {@link AuthService} directly stay unaffected; null in those tests, guarded in
+     * {@link #publishTenantCreated(InstanceResponse)}.
+     */
+    @Autowired(required = false)
+    private SubscriptionEventEmitter tenantEventEmitter;
+
+    /** Routing key / outbox topic for the {@code tenant.created} cross-service event (GAP-945). */
+    static final String TENANT_CREATED_TOPIC = "tenant.created";
+    /** Default branding audience/tone seeded into the saga's branding plan (GAP-945). */
+    private static final String DEFAULT_AUDIENCE = "education";
+    private static final String DEFAULT_TONE = "professional";
 
     /**
      * Legacy 6-arg constructor for unit tests written before Wave 72b Bucket C / Bucket A.
@@ -260,6 +276,12 @@ public class AuthService {
         instanceRequest.setTier(PricingTier.FREE);
         InstanceResponse instance = instanceService.createTrialInstance(instanceRequest);
 
+        // GAP-945 keystone: publish tenant.created so kiteclass-core's TenantProvisioningSaga
+        // provisions the KiteClass FrontendInstance. Outbox-backed (reliability) + fast-path
+        // (low latency) per SubscriptionEventEmitter. Without this, the KC tenant never gets
+        // created and the Instance stays INITIALIZING.
+        publishTenantCreated(instance);
+
         String accessToken = generateAccessToken(user.getId(), user.getEmail(), user.getRole());
         String refreshToken = generateRefreshToken(user.getId());
 
@@ -276,6 +298,35 @@ public class AuthService {
                 .refreshToken(refreshToken)
                 .instance(instance)
                 .build();
+    }
+
+    /**
+     * Publish the {@code tenant.created} cross-service event (GAP-945, Wave provisioning-1 Bucket A).
+     *
+     * <p>kiteclass-core's {@code TenantCreatedEventConsumer} → {@code TenantProvisioningSaga}
+     * deserializes this payload to provision the branded KiteClass {@code FrontendInstance}.
+     * Payload is hand-built JSON (matching the saga's {@code TenantCreatedEvent} field names
+     * {@code tenantId/slug/audience/tone}) using {@link SubscriptionEventEmitter#escape(String)}
+     * — the same inline-composition pattern the emitter exposes for cross-service payloads.
+     *
+     * <p>Best-effort + null-guarded: {@code tenantEventEmitter} is field-injected and may be null
+     * in legacy unit tests; the outbox row written by {@code emit(...)} is the reliability net so
+     * a fast-path RMQ hiccup never fails registration (the txn still commits the outbox row).
+     */
+    private void publishTenantCreated(InstanceResponse instance) {
+        if (tenantEventEmitter == null) {
+            log.debug("tenantEventEmitter not wired — skipping tenant.created publish (instance {})",
+                    instance.getId());
+            return;
+        }
+        String slug = instance.getSlug() != null ? instance.getSlug() : instance.getSubdomain();
+        String payloadJson = "{"
+                + "\"tenantId\":\"" + SubscriptionEventEmitter.escape(String.valueOf(instance.getId())) + "\","
+                + "\"slug\":\"" + SubscriptionEventEmitter.escape(slug) + "\","
+                + "\"audience\":\"" + SubscriptionEventEmitter.escape(DEFAULT_AUDIENCE) + "\","
+                + "\"tone\":\"" + SubscriptionEventEmitter.escape(DEFAULT_TONE) + "\"}";
+        tenantEventEmitter.emit(instance.getId(), "TENANT_CREATED", TENANT_CREATED_TOPIC, payloadJson);
+        log.info("Published tenant.created for instance {} slug {}", instance.getId(), slug);
     }
 
     /**

@@ -1,5 +1,9 @@
 package com.kiteclass.core.common.config;
 
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.ExchangeBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
@@ -46,6 +50,21 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class RabbitConfig {
+
+    /**
+     * Cross-service exchange owned by kitehub-subscription
+     * ({@code EmailQueueConfig.EMAIL_EXCHANGE}). Declared here too so kiteclass-core can
+     * bind {@link #tenantCreatedQueue()} to it. MUST stay a {@link DirectExchange} (exact
+     * routing-key match) to match the producer-side declaration — a type mismatch would make
+     * RabbitMQ reject the declaration at startup.
+     */
+    public static final String EMAIL_EXCHANGE = "email.exchange";
+
+    /** Queue carrying {@code TenantCreatedEvent} from kitehub-subscription (GAP-945). */
+    public static final String TENANT_CREATED_QUEUE = "tenant.created.queue";
+
+    /** Routing key the producer emits as the event {@code topic} (GAP-945). */
+    public static final String TENANT_CREATED_ROUTING_KEY = "tenant.created";
 
     /**
      * Configures JSON message converter for serializing/deserializing message payloads.
@@ -148,6 +167,43 @@ public class RabbitConfig {
     @Bean
     public Queue classRescheduledEmailQueue() {
         return QueueBuilder.durable("class.rescheduled.email.queue").build();
+    }
+
+    /**
+     * Cross-service {@code email.exchange} DirectExchange (GAP-945).
+     *
+     * <p>Owned by kitehub-subscription; re-declared here (idempotent — same name, type, durable)
+     * so this service can bind {@link #tenantCreatedQueue()}. The subscription
+     * {@code SubscriptionEventEmitter} / {@code SubscriptionOutboxDispatcher} publish every
+     * cross-service event to this exchange routed by the event {@code topic}.
+     *
+     * @return durable DirectExchange {@code email.exchange}
+     */
+    @Bean
+    public DirectExchange emailExchange() {
+        return ExchangeBuilder.directExchange(EMAIL_EXCHANGE).durable(true).build();
+    }
+
+    /**
+     * Queue receiving {@code TenantCreatedEvent} payloads — consumed by
+     * {@code TenantCreatedEventConsumer} → {@code TenantProvisioningSaga.provision(...)} (GAP-945).
+     *
+     * @return durable queue {@code tenant.created.queue}
+     */
+    @Bean
+    public Queue tenantCreatedQueue() {
+        return QueueBuilder.durable(TENANT_CREATED_QUEUE).build();
+    }
+
+    /**
+     * Binds {@link #tenantCreatedQueue()} to {@link #emailExchange()} with routing key
+     * {@code tenant.created} — the exact key the producer emits as the event topic (GAP-945).
+     *
+     * @return binding tenant.created.queue → email.exchange (tenant.created)
+     */
+    @Bean
+    public Binding tenantCreatedBinding(Queue tenantCreatedQueue, DirectExchange emailExchange) {
+        return BindingBuilder.bind(tenantCreatedQueue).to(emailExchange).with(TENANT_CREATED_ROUTING_KEY);
     }
 
     // Other exchanges, queues, and bindings are defined per-module as event-driven
