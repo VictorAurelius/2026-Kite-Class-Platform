@@ -191,12 +191,12 @@ Prefix S3 logo/branding `instances/{instanceId}/` mirror `kitehub-branding S3Sto
 
 ### 7b.4 Code + test references
 
-- `kiteclass-core`: `FrontendInstanceStatus` (SUSPENDED/DELETED) + `FrontendInstance` (suspendedAt/deletedAt) + `InstanceLifecycleService` (suspend/reactivate/softDelete) + Flyway `V90__frontend_instance_offboarding_states.sql`. Tests: `FrontendInstanceStatusTest`, `InstanceLifecycleServiceTest`.
+- `kiteclass-core`: `FrontendInstanceStatus` (SUSPENDED/DELETED) + `FrontendInstance` (suspendedAt/deletedAt) + `InstanceLifecycleService` (suspend/reactivate/softDelete) + Flyway `V91__frontend_instance_offboarding_states.sql`. Tests: `FrontendInstanceStatusTest`, `InstanceLifecycleServiceTest`.
 - `kitehub-subscription`: cascade trong `InstancePurgeService` + `BackupStorageService.deleteByPrefix` + `TenantAuditService` (REQUIRES_NEW per `audit-service-isolation.md`). Tests: `InstancePurgeServiceTest` (nested `Pdpl23Cascade` verify MinIO purge + DNS clear + audit write + safety-gate skip).
 
 ## 8. Log
 
-- 2026-06-06 — GAP-954 (Wave provisioning-1 Bucket G): thêm §7b cascade hard-purge đã triển khai. Ship MinIO/S3 logo prefix purge + DNS/custom-domain clear + `TENANT_DELETED` audit trên `InstancePurgeService` có sẵn; thêm SUSPENDED/DELETED vào kiteclass-core `FrontendInstanceStatus` FSM + V90 migration. PDPL Art 23 retention 30 ngày documented + tested.
+- 2026-06-06 — GAP-954 (Wave provisioning-1 Bucket G): thêm §7b cascade hard-purge đã triển khai. Ship MinIO/S3 logo prefix purge + DNS/custom-domain clear + `TENANT_DELETED` audit trên `InstancePurgeService` có sẵn; thêm SUSPENDED/DELETED vào kiteclass-core `FrontendInstanceStatus` FSM + V91 migration. PDPL Art 23 retention 30 ngày documented + tested.
 - 2026-04-20 — Drafted under GAP-201 Phase 1. State-check: no existing off-boarding service exists; `StorageCleanupScheduler.SOFT_DELETE_GRACE_PERIOD_DAYS = 30` is the only churn-adjacent constant. Phase 2 (implementation) will add `OffBoardingService`, `OffBoardingController`, `PurgeScheduler`, `offboarding_request` table migration.
 
 ## Five-attribute review per `business-logic-review.md`

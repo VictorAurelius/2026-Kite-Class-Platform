@@ -1,4 +1,4 @@
--- V90: frontend_instances off-boarding states (GAP-954 — PDPL Art 23 tenant DELETE cascade)
+-- V91: frontend_instances off-boarding states (GAP-954 — PDPL Art 23 tenant DELETE cascade)
 --
 -- Adds SUSPENDED + DELETED to the status CHECK constraint defined in V31, and two timestamp
 -- columns tracking the off-boarding lifecycle:
