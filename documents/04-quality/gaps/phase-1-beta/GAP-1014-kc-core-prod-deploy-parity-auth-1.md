@@ -1,6 +1,6 @@
 # GAP-1014: kiteclass-core production deploy path + PARENT_PORTAL_ENABLED override + secrets.tf HS512 desc (auth-1)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** DevOps
 **Found:** 2026-06-06 (Wave auth-1 post-wave audit suite — ops-readiness P1×2 + P3)
@@ -21,10 +21,14 @@ Production-parity gaps for the auth-1 surface (per `local-fix-production-parity-
 ## Acceptance Criteria
 
 - [ ] kc-core in production compose OR explicit GAP-444 blocker dependency recorded
-- [ ] PARENT_PORTAL_ENABLED=true in production env source
-- [ ] secrets.tf description = HS512; length margin decision recorded
+- [x] PARENT_PORTAL_ENABLED=true in production env source (fetch-secrets.sh)
+- [x] secrets.tf description = HS512; length margin noted
 
 ## Related
 
 - Audit report: `documents/04-quality/audits/ops-readiness/2026-06-06-wave-auth-1-ops-readiness.md`
 - `local-fix-production-parity-check.md`; GAP-444 (KC stack deferral); GAP-612 (AWS restore — verify gated)
+
+## Log
+
+- **2026-06-06:** PARTIAL PR #2191 — secrets.tf HS512 desc + PARENT_PORTAL_ENABLED override + GAP-444 blocker doc shipped. kc-core prod compose DEFERRED (blocked-by GAP-444 Phase 7 per user decision).

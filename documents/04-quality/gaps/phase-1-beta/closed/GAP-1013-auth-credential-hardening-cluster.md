@@ -1,6 +1,6 @@
 # GAP-1013: Auth credential hardening cluster (auth-1)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Backend
 **Found:** 2026-06-06 (Wave auth-1 post-wave audit suite — business-logic P2×4 + P3×3 + ops-readiness P2)
@@ -23,12 +23,16 @@ Cluster of non-blocking auth hardening items surfaced by the post-wave audit sui
 
 ## Acceptance Criteria
 
-- [ ] setPassword rejects cross-entity mismatch (test)
-- [ ] Credential disabled when owning entity deactivated (test)
-- [ ] Single password policy enforced both endpoints
-- [ ] Login-fail log masks email; JWT has jti; timing flattened
+- [x] setPassword rejects cross-entity mismatch (test)
+- [x] Credential disabled when owning entity deactivated (test)
+- [x] Single password policy enforced both endpoints
+- [x] Login-fail log masks email; JWT has jti; timing flattened
 
 ## Related
 
 - Audit reports: `documents/04-quality/audits/business-logic/2026-06-06-wave-auth-1-business-logic.md` + `../ops-readiness/2026-06-06-wave-auth-1-ops-readiness.md`
 - GAP-116 (PII scrubber, deferred Wave 7); logs-format-standard.md §3
+
+## Log
+
+- **2026-06-06:** DONE 2026-06-06 PR #2193 — setPassword cross-entity reject + disableCredential + AuthPasswordPolicy + PII mask + jti + timing.

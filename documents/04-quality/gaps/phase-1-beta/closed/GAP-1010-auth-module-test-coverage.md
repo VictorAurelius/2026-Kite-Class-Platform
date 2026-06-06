@@ -1,6 +1,6 @@
 # GAP-1010: Auth module zero automated test coverage (auth-1)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-06 (Wave auth-1 post-wave audit suite — business-logic P1 + api-contract P1)
@@ -16,12 +16,16 @@ Add: `AuthServiceTest` (happy login + 3× uniform-401 paths: email-not-found / b
 
 ## Acceptance Criteria
 
-- [ ] AuthService + AuthTokenService + Provisioning unit tests green
-- [ ] AuthCredentialPostgresIT on Testcontainers (Flyway schema) green
-- [ ] MVC contract test: 200 / uniform-401 / 400 validation
-- [ ] Tests run in `./mvnw test` (Core Service gate)
+- [x] AuthService + AuthTokenService + Provisioning unit tests green
+- [x] AuthCredentialPostgresIT on Testcontainers (Flyway schema) green
+- [x] MVC contract test: 200 / uniform-401 / 400 validation
+- [x] Tests run in `./mvnw test` (Core Service gate)
 
 ## Related
 
 - Audit reports: `documents/04-quality/audits/business-logic/2026-06-06-wave-auth-1-business-logic.md` + `../api-contract/2026-06-06-wave-auth-1-api-contract.md`
 - `kiteclass-core IT ddl-auto masks migration drift` (memory) — IT must use Flyway schema not ddl-auto
+
+## Log
+
+- **2026-06-06:** DONE 2026-06-06 PR #2193 — 5 test classes/49 tests incl AuthCredentialPostgresIT (Testcontainers Flyway V89).
