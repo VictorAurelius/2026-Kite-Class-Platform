@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useParams, useRouter } from 'next/navigation';
-import { useAdminInstance, useSuspendInstance, useActivateInstance, useExtendTrial } from '@/hooks/use-admin';
+import { useAdminInstance, useSuspendInstance, useActivateInstance, useExtendTrial, useRetryProvisioning } from '@/hooks/use-admin';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorAlert } from '@/components/common/ErrorAlert';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Pause, Play, Calendar, Building, Mail, Phone, Database, Users, GraduationCap, BookOpen } from 'lucide-react';
+import { ArrowLeft, Pause, Play, Calendar, Building, Mail, Phone, Database, Users, GraduationCap, BookOpen, RefreshCw } from 'lucide-react';
 import type { InstanceStatus, SubscriptionTier } from '@/types/instance';
 import { toast } from 'sonner';
 import { getTenantDisplayUrl } from '@/lib/tenant-url';
@@ -46,11 +46,13 @@ export default function AdminInstanceDetailPage() {
   const [showSuspendDialog, setShowSuspendDialog] = useState(false);
   const [showActivateDialog, setShowActivateDialog] = useState(false);
   const [showExtendDialog, setShowExtendDialog] = useState(false);
+  const [showRetryDialog, setShowRetryDialog] = useState(false);
   const [extendDays, setExtendDays] = useState('7');
 
   const suspendMutation = useSuspendInstance();
   const activateMutation = useActivateInstance();
   const extendMutation = useExtendTrial();
+  const retryMutation = useRetryProvisioning();
 
   const formatDate = (date: string | null) => {
     if (!date) return '-';
@@ -96,6 +98,17 @@ export default function AdminInstanceDetailPage() {
       await extendMutation.mutateAsync({ instanceId, days });
       toast.success(`Đã gia hạn thêm ${days} ngày`);
       setShowExtendDialog(false);
+      refetch();
+    } catch {
+      toast.error('Có lỗi xảy ra');
+    }
+  };
+
+  const handleRetryProvisioning = async () => {
+    try {
+      await retryMutation.mutateAsync({ instanceId });
+      toast.success('Đã kích hoạt lại provisioning cho instance');
+      setShowRetryDialog(false);
       refetch();
     } catch {
       toast.error('Có lỗi xảy ra');
@@ -340,27 +353,41 @@ export default function AdminInstanceDetailPage() {
                 Gia hạn Trial
               </Button>
             )}
+
+            {/* GAP-953 — retry provisioning for a failed/stuck instance (UC-PROV-05). */}
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setShowRetryDialog(true)}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Thử lại Provisioning
+            </Button>
           </CardContent>
         </Card>
       </div>
 
       {/* Action dialogs lazy-loaded only when an action button is clicked. */}
-      {(showSuspendDialog || showActivateDialog || showExtendDialog) && (
+      {(showSuspendDialog || showActivateDialog || showExtendDialog || showRetryDialog) && (
         <InstanceActionDialogs
           organizationName={instance.organizationName}
           trialEndDateLabel={formatDate(instance.trialEndDate)}
           showSuspendDialog={showSuspendDialog}
           showActivateDialog={showActivateDialog}
           showExtendDialog={showExtendDialog}
+          showRetryDialog={showRetryDialog}
           onSuspendOpenChange={setShowSuspendDialog}
           onActivateOpenChange={setShowActivateDialog}
           onExtendOpenChange={setShowExtendDialog}
+          onRetryOpenChange={setShowRetryDialog}
           onSuspendConfirm={handleSuspend}
           onActivateConfirm={handleActivate}
           onExtendConfirm={handleExtendTrial}
+          onRetryConfirm={handleRetryProvisioning}
           suspendPending={suspendMutation.isPending}
           activatePending={activateMutation.isPending}
           extendPending={extendMutation.isPending}
+          retryPending={retryMutation.isPending}
           extendDays={extendDays}
           onExtendDaysChange={setExtendDays}
         />

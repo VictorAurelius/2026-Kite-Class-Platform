@@ -18,25 +18,26 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Tenant-lifecycle audit writer (Wave provisioning-1 — GAP-949 Bucket B + GAP-954 Bucket G).
+ * Tenant-lifecycle audit writer (Wave provisioning-1 — GAP-949 + GAP-954 + GAP-953).
  *
  * <p>Persists an {@link AdminAuditLog} row for tenant-lifecycle events (PDPL Art 11 + Art 23 +
  * OWASP A09 audit trail). Hosts the full tenant-lifecycle audit surface under one helper with
  * consistent {@code recordTenant*} naming:
  * <ul>
- *   <li>{@code recordTenantProvisioned(...)} — successful beta-invite provisioning (GAP-949)</li>
- *   <li>{@code recordTenantDeleted(...)} — PDPL Art 23 hard-purge cascade (GAP-954)</li>
+ *   <li>{@code recordTenantProvisioned(...)} — successful beta-invite provisioning (GAP-949 Bucket B)</li>
+ *   <li>{@code recordTenantDeleted(...)} — PDPL Art 23 hard-purge cascade (GAP-954 Bucket G)</li>
+ *   <li>{@code recordTenantRetryRequested(...)} — admin force-retry provisioning (GAP-953 Bucket E)</li>
  * </ul>
  *
  * <p>Each method runs in {@link Propagation#REQUIRES_NEW REQUIRES_NEW} + try/catch per
  * {@code .claude/rules/audit-service-isolation.md} §1 — an audit write failure (SQL error,
- * constraint violation, lock timeout) MUST NOT poison the caller's registration/purge
+ * constraint violation, lock timeout) MUST NOT poison the caller's registration/purge/retry
  * transaction. Both layers are required: REQUIRES_NEW isolates the physical transaction so the
  * failure can never set rollback-only on the parent; the catch keeps the caller from seeing a
  * checked failure (cf. 2026-05-16 admin-login 500 incident — default propagation + try/catch
  * still threw {@code UnexpectedRollbackException}).</p>
  *
- * @since 1.0.0 (Wave provisioning-1 — Bucket B GAP-949 + Bucket G GAP-954)
+ * @since 1.0.0 (Wave provisioning-1 — Bucket B GAP-949 + Bucket G GAP-954 + Bucket E GAP-953)
  */
 @Service
 @RequiredArgsConstructor
@@ -47,6 +48,8 @@ public class TenantAuditService {
     public static final String ACTION_TENANT_PROVISIONED = "TENANT_PROVISIONED";
     /** Audit {@code action} value for a tenant hard-delete (PDPL Art 23 data destruction). */
     public static final String ACTION_TENANT_DELETED = "TENANT_DELETED";
+    /** Audit action for an admin-triggered provisioning retry (GAP-953, UC-PROV-05). */
+    public static final String ACTION_TENANT_PROVISIONING_RETRY = "TENANT_PROVISIONING_RETRY_TRIGGERED";
     /** Semantic resource type for tenant-scoped audit rows ({@code target_resource_type}). */
     static final String RESOURCE_TYPE_TENANT = "tenant";
     /** JPA entity type backing a tenant (the platform {@code Instance}). */
@@ -135,6 +138,44 @@ public class TenantAuditService {
     }
 
     /**
+     * Record a {@code TENANT_PROVISIONING_RETRY_TRIGGERED} audit row after a
+     * PLATFORM_ADMIN manually re-triggers provisioning for a failed/stuck tenant
+     * (GAP-953, UC-PROV-05).
+     *
+     * <p>Best-effort + isolated per {@code audit-service-isolation.md} §1 — never
+     * throws; an audit failure leaves the caller's retry intact (REQUIRES_NEW +
+     * try/catch). Mirrors {@link #recordTenantProvisioned}.</p>
+     *
+     * @param tenantId    provisioned tenant/instance id (target of the retry)
+     * @param adminUserId acting PLATFORM_ADMIN user id (gateway {@code X-User-Id})
+     * @param reason      optional admin-supplied reason (payload)
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void recordTenantRetryRequested(UUID tenantId, UUID adminUserId, String reason) {
+        try {
+            AdminAuditLog.AdminAuditLogBuilder builder = AdminAuditLog.builder()
+                .adminUserId(adminUserId)
+                .action(ACTION_TENANT_PROVISIONING_RETRY)
+                .targetEntityType(ENTITY_TYPE_INSTANCE)
+                .targetEntityId(tenantId != null ? truncate(tenantId.toString(), 128) : null)
+                .targetResourceType(RESOURCE_TYPE_TENANT)
+                .targetResourceId(tenantId != null ? truncate("tenant/" + tenantId, 256) : null)
+                .payloadJson(buildRetryPayloadJson(tenantId, reason))
+                .success(true)
+                .createdAt(LocalDateTime.now());
+
+            populateRequest(builder);
+            repository.save(builder.build());
+            log.info("Audit row written: action={} tenantId={} adminUserId={}",
+                ACTION_TENANT_PROVISIONING_RETRY, tenantId, adminUserId);
+        } catch (Exception ex) {
+            // Audit write must NEVER fail the admin retry. Log + continue.
+            log.warn("TenantAuditService.recordTenantRetryRequested failed "
+                + "(retry proceeds anyway): {}", ex.getMessage());
+        }
+    }
+
+    /**
      * Best-effort capture of request provenance (IP + user-agent + correlation id)
      * from the current servlet request, mirroring {@link AdminAuditAspect}. No-op
      * when invoked outside a request scope (e.g. async / scheduled callers).
@@ -166,6 +207,18 @@ public class TenantAuditService {
             }
         }
         return truncate(req.getRemoteAddr(), 64);
+    }
+
+    private String buildRetryPayloadJson(UUID tenantId, String reason) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("tenantId", tenantId != null ? tenantId.toString() : null);
+        payload.put("reason", reason);
+        try {
+            return MAPPER.writeValueAsString(payload);
+        } catch (JsonProcessingException ex) {
+            log.warn("Could not serialize retry audit payload — falling back: {}", ex.getMessage());
+            return "{\"_serialization_error\":\"" + ex.getClass().getSimpleName() + "\"}";
+        }
     }
 
     private String buildPayloadJson(UUID tenantId, String ownerEmail, String subdomain) {
