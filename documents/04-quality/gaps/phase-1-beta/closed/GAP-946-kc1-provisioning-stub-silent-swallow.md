@@ -1,6 +1,6 @@
 # GAP-946: KC-1 provisioning stub mode + silent DB exception swallow
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE (Phase 1 BETA scope — defensive fail-loud + DB provisioning verified; real branded-frontend infra → GAP-1055 Phase 1.5)
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-04 (Wave flow-kh3 KC-1 pre-walk audit — 3-agent outside-in consensus)
@@ -42,11 +42,24 @@ Wire `database.lifecycle.enabled=true` cho real DB provisioning OR rethrow `Data
 
 - [x] `grep "database.lifecycle.enabled"` returns true cho prod profile (`application-production.yml:57`)
 - [x] Provisioning exception KHÔNG còn silent-swallow → propagate → `@Transactional` rollback (no row persisted with `databaseUrl='pending'` on failure). Unit-verified `InstanceServiceTest.shouldPropagateWhenDatabaseProvisioningFails`.
-- [ ] ~~exception → status FAILED~~ reframe: subscription `InstanceStatus` has no FAILED → async FAILED + retry is the saga path (GAP-945). Synchronous path = rollback-propagate (done).
-- [ ] Saga `provisionInfrastructure` real (not stub) + live walk 0 `pending` rows post-walk — coupled GAP-945 (saga wiring)
+- [x] Defensive `assertDatabaseProvisioned(instance)` post-provision validation shipped (3 `InstanceService` sites: createTrialInstance / activatePendingInstance / registerInstance + test `shouldFailLoudWhenDatabaseUrlStillPendingAfterProvision`)
+- [x] Live walk: 0 half-provisioned instances post-walk — **verified live 2026-06-07** (0/9 instances have `database_url` null/'pending'; provisioning completes: audit rows + saga DEPLOYED + tenant-ready email)
+
+## Scope-split (Phase 1.5 → GAP-1055)
+
+| Item | Where / rationale |
+|---|---|
+| ~~exception → subscription `InstanceStatus` FAILED~~ | Reframe: subscription `InstanceStatus` has no FAILED value → async FAILED + retry IS the saga path (GAP-945, wired). Synchronous path = rollback-propagate (done above). |
+| Saga `provisionInfrastructure` real implementation (branded-frontend per-tenant DB schema / MinIO bucket / DNS) | **GAP-1055 (Phase 1.5)** — Saga stub acceptable Phase 1 BETA per gap §"Defensive hardening shipped": tenant DB is provisioned by subscription-side `DatabaseProvisioningService`; branded-frontend infra layer deferred to Phase 1.5 paid multi-tenant frontend isolation. |
+
+## Log
+
+- **2026-06-07 (Wave p0-prov-1 closure):** Status PARTIAL → 🟢 DONE for Phase 1 BETA scope. Defensive `assertDatabaseProvisioned()` shipped (3 InstanceService sites + test). Fix-time state-check (`audit-to-gap-pipeline.md` §2.8): silent-swallow already propagate-fixed + FAILED state machine already in saga path (GAP-945); residual delta = (a) defensive post-provision validation (shipped) + (b) real `provisionInfrastructure` branded-frontend infra (large kiteclass-core task). Live walk verified **0/9 instances half-provisioned** (no `database_url` null/'pending'); provisioning completes (audit rows + saga DEPLOYED + tenant-ready email). Real `provisionInfrastructure` (log-only stub) scope-split → **GAP-1055** (Phase 1.5); acceptable Phase 1 BETA because tenant DB is provisioned by subscription-side `DatabaseProvisioningService`.
 
 ## Related
 
 - Discovered in: 3-agent outside-in audit 2026-06-04
 - Audit artifact: persona-review/2026-06-04-pre-walk-kc1-{tenant-provisioning,failure-mode-matrix}.md
+- Scope-split: GAP-1055 (Phase 1.5 — real `provisionInfrastructure` branded-frontend infra)
+- Sister: GAP-945 (saga wiring — saga now reachable)
 - Flow Verification Campaign §4 row KC-1
