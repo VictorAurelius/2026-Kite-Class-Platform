@@ -1,6 +1,6 @@
 # GAP-1054: SubscriptionPendingNullableColumnsIT — FK-parent-instance seed fix
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Backend
 **Found:** 2026-06-07 (Wave p0-2 GAP-942 verify — agent-drafted IT had FK seed bug)
@@ -21,12 +21,16 @@ Seed a minimal parent `instances` row before the subscription INSERT (fixed `INS
 
 ## Acceptance Criteria
 
-- [ ] IT seeds parent `instances` row → `pendingSubscription_persistsWithNullStartedAtAndExpiresAt` PASS
-- [ ] `activatedSubscription_persistsWithNonNullDates` PASS (no V62 regression)
-- [ ] `./mvnw -pl kitehub-subscription test -Dtest=SubscriptionPendingNullableColumnsIT` green
-- [ ] Closes GAP-942 AC (regression guard for PENDING nullable persist)
+- [x] IT seeds parent `instances` row → `pendingSubscription_persistsWithNullStartedAtAndExpiresAt` PASS — **verified 2026-06-07**
+- [x] `activatedSubscription_persistsWithNonNullDates` PASS (no V62 regression) — **verified 2026-06-07**
+- [x] `./mvnw -pl kitehub-subscription test -Dtest=SubscriptionPendingNullableColumnsIT` green — 2/2 tests pass; full kitehub-subscription module BUILD SUCCESS 879 tests
+- [x] Closes GAP-942 AC (regression guard for PENDING nullable persist) — GAP-942 flipped DONE same wave
+
+## Log
+
+- **2026-06-07 (Wave p0-prov-1 closure):** Status OPEN → 🟢 DONE. IT now seeds a parent `instances` row before the subscription INSERT (fixed FK `fk_subscription_instance` violation). 2/2 tests pass: `pendingSubscription_persistsWithNullStartedAtAndExpiresAt` + `activatedSubscription_persistsWithNonNullDates`. Full kitehub-subscription module BUILD SUCCESS 879 tests. Regression guard for GAP-942 V62 nullable fix in place; GAP-942 closed same wave.
 
 ## Related
 
-- Parent: GAP-942 (V62 nullable — production fix verified live; this is the automated regression guard)
+- Parent: GAP-942 (V62 nullable — production fix verified live; this is the automated regression guard, closed same wave)
 - Discovered in: Wave p0-2 2026-06-07 (agent-drafted IT FK seed bug)
