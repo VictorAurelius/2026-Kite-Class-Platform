@@ -8,7 +8,7 @@ date_launch: 2026-06-07
 created: 2026-06-07
 updated: 2026-06-07
 waves: [p0-ux-1]
-status: draft
+status: complete
 gaps: [GAP-297, GAP-950, GAP-951]
 ---
 
@@ -84,6 +84,28 @@ Per bucket (Phase 3 walks):
 - flow-verification-campaign §4 KC-1 row (GAP-950/951) sync.
 - Defer note: GAP-063/286 Phase 1.5 vendor-gated; GAP-297 Zalo/SMS dispatch Phase 1.5.
 
+## 9. Scope-Completeness Reconciliation
+
+Per `wave-closure-scope-completeness.md` §3 — mọi item trong §3 Scope categorize tại closure.
+
+| # | Plan §3 Scope item | Verdict | Follow-up |
+|---|---|---|---|
+| 1 | Bucket A — GAP-297 BE batch-generate/confirm + idempotency + pro-rata + outbox InvoiceCreated + IT | ✅ DONE | — (V93 migration + BatchInvoiceGenerationIT 4/4; live walk gateway prorated 1.3M + idempotency) |
+| 2 | Bucket B — GAP-951 responsive collapsible sidebar <768px + responsive pages + Playwright mobile spec | ✅ DONE | — (44px targets + 7 page headers + mobile-admin.spec.ts 5/5; breakpoint grep 67) |
+| 3 | Bucket C — GAP-950 sample-data import + wizard scope-revise verify | ✅ DONE | — (POST /api/v1/onboarding/sample-data + OnboardingSampleDataIT 2/2; live walk HTTP 201 dashboard populated; wizard pre-existing) |
+| 4 | Bucket D — GAP-297 FE batch button + preview drawer + email dispatch | ✅ DONE | — (batch-invoice-drawer.tsx preview→confirm + email channel live Wave 18a) |
+
+**Deferred (existing gaps — not new follow-ups):**
+
+| Deferred item | Verdict | Tracked |
+|---|---|---|
+| GAP-297 Zalo/SMS notification dispatch | ❌ NOT-IMPLEMENTED (out-of-scope Phase 1.5) | Existing [GAP-063](../../04-quality/gaps/phase-1-beta/GAP-063-sms-zalo-notification-integration.md) — vendor-gated (Zalo OA Business account + SMS provider contract = real-user action). Email is the live channel Phase 1 BETA. |
+| Vendor-gated Zalo/SMS live integration | ❌ NOT-IMPLEMENTED (out-of-scope Phase 1.5) | Existing GAP-063 / GAP-286 — vendor-gated, no new gap needed |
+| GAP-950 AC#2 DB `onboarding_progress` table | ❌ NOT-IMPLEMENTED (out-of-scope — judged unnecessary) | localStorage acceptable Phase 1 BETA (one-time single-device onboarding); documented in GAP-950 closure, not pending |
+
+All 4 §3 Scope buckets ✅ DONE. Deferred items map to existing gaps (GAP-063/286) or documented out-of-scope decisions (GAP-950 AC#2) — zero orphan items.
+
 ## 8. Log
 
 - **2026-06-07:** Wave tạo. Scope "Local-verifiable trọn vẹn" per AskUserQuestion. GAP-950 scope-revise (wizard pre-existing). Vendor-gated 063/286 defer Phase 1.5. Walk-convergent FE → Phase 1 disjoint (BE + responsive) → Phase 2 FE features → Phase 3 walks.
+- **2026-06-07 (closure):** Wave SHIPPED — status draft → complete. 3 gap (GAP-297/950/951) flipped DONE + git-mv `phase-1-beta/closed/` after coordinator live walks (gateway :9000, tenant sky-education). GAP-297 live: batch-generate prorated 1.3M + batch-confirm idempotency (createdCount 1 then 0). GAP-950 live: sample-data HTTP 201 dashboard populated. GAP-951: mobile-admin.spec.ts 5/5 PASS. GAP-950 + GAP-951 scope-revised (wizard + sidebar pre-existing; real deliverables = sample-data import + 44px touch targets/responsive headers). Phase 1 BETA P0 23 → 20. Deferred GAP-063/286 (existing gaps, vendor-gated Phase 1.5) + GAP-297 Zalo/SMS dispatch + GAP-950 AC#2 DB-progress (localStorage acceptable) — §9 reconciliation, zero orphan.
