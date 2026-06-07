@@ -25,13 +25,13 @@ export default function AttendanceOverviewPage() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold">Điểm danh</h1>
             <p className="text-muted-foreground">Quản lý điểm danh học viên</p>
           </div>
           <Link href="/attendance/reports">
-            <Button variant="outline">
+            <Button variant="outline" className="w-full sm:w-auto">
               <TrendingUp className="mr-2 h-4 w-4" />
               Báo cáo
             </Button>

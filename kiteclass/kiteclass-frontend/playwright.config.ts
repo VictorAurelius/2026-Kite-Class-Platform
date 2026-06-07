@@ -50,6 +50,18 @@ export default defineConfig({
       name: 'Mobile Safari',
       use: { ...devices['iPhone 12'] },
     },
+
+    /* GAP-951 mobile-first admin: small-phone viewport (iPhone SE / Galaxy A05
+       class = 375×667). Chromium-based so isMobile/hasTouch are supported. */
+    {
+      name: 'Mobile SE',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 375, height: 667 },
+        isMobile: true,
+        hasTouch: true,
+      },
+    },
   ],
 
   /* Run your local dev server before starting the tests */

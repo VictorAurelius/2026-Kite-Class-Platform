@@ -47,7 +47,8 @@ export function Header({
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden"
+          // h-11 w-11 (44px): WCAG 2.5.5 touch target on mobile; md:hidden keeps desktop untouched
+          className="h-11 w-11 md:hidden"
           onClick={onMobileSidebarToggle}
           aria-label="Mở menu điều hướng"
         >

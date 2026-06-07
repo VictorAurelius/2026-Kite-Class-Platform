@@ -73,7 +73,7 @@ export default function ClassesPage() {
       {/* Wave 30 Bucket B — kiteclass-pro-v2 token application: refined header
           spacing + tracking-tight title per design system tokens. */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4 border-b pb-4">
+        <div className="flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <h1 className="text-3xl font-semibold tracking-tight">Lớp học</h1>
             <p className="text-sm text-muted-foreground">
@@ -82,7 +82,7 @@ export default function ClassesPage() {
           </div>
           {selectedCourseId && (
             <Link href={`/courses/${selectedCourseId}/classes/new`}>
-              <Button>
+              <Button className="w-full sm:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
                 Thêm lớp học
               </Button>
@@ -91,8 +91,8 @@ export default function ClassesPage() {
         </div>
 
         {/* Course Selector */}
-        <div className="flex items-center gap-4">
-          <div className="w-80">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="w-full sm:w-80">
             <Select onValueChange={handleCourseChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Chọn khóa học..." />
