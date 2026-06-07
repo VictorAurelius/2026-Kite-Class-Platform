@@ -1,9 +1,10 @@
 # GAP-1039: Reports revenue/attendance cross-tenant aggregate leak khi thiếu X-Tenant-Id
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend (kiteclass-core) — security (multi-tenant isolation)
 **Found:** 2026-06-06 (KC-11 G1 walk, FM-1)
+**Closed:** 2026-06-07 (P3 G3 batch 2 fix — explicit instance_id predicate + fail-closed `/reports/**`; walk-verified revenue scoped 2M not 3.5M + no-tenant 400 via :9000)
 **Affects:** `RevenueReportRepository:41-46` + `AttendanceReportRepository:36-43` + `TenantFilterInterceptor:77-100` (kiteclass-core)
 
 ## Problem
@@ -35,10 +36,10 @@ GET /api/v1/reports/revenue  X-User-Roles:ROLE_ADMIN, X-Tenant-Id:aaaabbbb-…-0
 
 ## Acceptance Criteria
 
-- [ ] `GET /reports/revenue` thiếu X-Tenant-Id → 400 (fail-closed) HOẶC scoped-empty, KHÔNG aggregate all-tenant
-- [ ] Repos có explicit instance_id WHERE clause
-- [ ] Tenant A ADMIN report → chỉ tenant A data (verify 2 tenant khác nhau)
-- [ ] Integration test cross-tenant isolation cho reports
+- [x] `GET /reports/revenue` thiếu X-Tenant-Id → 400 (fail-closed) — walk via :9000 (no tenantId claim) → 400; TenantContext → TenantNotSetException → GlobalExceptionHandler 400
+- [x] Repos có explicit instance_id WHERE clause — `RevenueReportRepository` `WHERE p.instanceId = :tenantId` + `AttendanceReportRepository` `WHERE a.instanceId = :tenantId`
+- [x] Tenant A ADMIN report → chỉ tenant A data — walk: ADMIN tenantId=aaaabbbb → totalRevenue 2,000,000 (NOT 3,500,000 all-tenant)
+- [x] Integration test cross-tenant isolation cho reports — `ReportTenantIsolationIT` (Testcontainers Postgres, filter-off slice reproduces bug, 4/4 PASS)
 
 ## Related
 

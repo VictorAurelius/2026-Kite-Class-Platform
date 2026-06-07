@@ -1,11 +1,14 @@
 package com.kiteclass.core.module.report.service;
 
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.module.report.dto.AttendanceReportResponse;
 import com.kiteclass.core.module.report.dto.MonthlyAttendancePoint;
 import com.kiteclass.core.module.report.dto.MonthlyRevenuePoint;
 import com.kiteclass.core.module.report.dto.RevenueReportResponse;
 import com.kiteclass.core.module.report.repository.AttendanceReportRepository;
 import com.kiteclass.core.module.report.repository.RevenueReportRepository;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,6 +44,21 @@ class ReportServiceImplTest {
     @InjectMocks
     private ReportServiceImpl reportService;
 
+    /**
+     * GAP-1039: the service now resolves the caller's tenant via
+     * {@link TenantContext#getCurrentTenant()}, which throws when unset. Seed a tenant
+     * before each test (and clear it after) so the aggregation logic under test can run.
+     */
+    @BeforeEach
+    void setTenant() {
+        TenantContext.setCurrentTenant(UUID.randomUUID());
+    }
+
+    @AfterEach
+    void clearTenant() {
+        TenantContext.clear();
+    }
+
     private static String currentMonthKey() {
         YearMonth now = YearMonth.now();
         return String.format("%04d-%02d", now.getYear(), now.getMonthValue());
@@ -55,7 +74,7 @@ class ReportServiceImplTest {
     void revenue_zeroFillsAndSums() {
         YearMonth now = YearMonth.now();
         // DB has revenue only in the current month (1.500.000) — other 11 months empty.
-        when(revenueReportRepository.sumCompletedRevenueByMonth(any(), any()))
+        when(revenueReportRepository.sumCompletedRevenueByMonth(any(), any(), any()))
                 .thenReturn(List.<Object[]>of(
                         new Object[]{now.getYear(), now.getMonthValue(), new BigDecimal("1500000")}
                 ));
@@ -79,7 +98,7 @@ class ReportServiceImplTest {
     @Test
     @DisplayName("revenue — empty DB yields all-zero series + zero total")
     void revenue_emptyDb() {
-        when(revenueReportRepository.sumCompletedRevenueByMonth(any(), any()))
+        when(revenueReportRepository.sumCompletedRevenueByMonth(any(), any(), any()))
                 .thenReturn(Collections.emptyList());
 
         RevenueReportResponse resp = reportService.getRevenueReport(6);
@@ -93,7 +112,7 @@ class ReportServiceImplTest {
     @Test
     @DisplayName("revenue — clamps months <1 to 1 and >36 to 36")
     void revenue_clampsWindow() {
-        when(revenueReportRepository.sumCompletedRevenueByMonth(any(), any()))
+        when(revenueReportRepository.sumCompletedRevenueByMonth(any(), any(), any()))
                 .thenReturn(Collections.emptyList());
 
         assertThat(reportService.getRevenueReport(0).getMonths()).isEqualTo(1);
@@ -106,7 +125,7 @@ class ReportServiceImplTest {
     void attendance_computesRates() {
         YearMonth now = YearMonth.now();
         // current month: 46 present / 50 total = 92.0%
-        when(attendanceReportRepository.countAttendanceByMonth(any(), any()))
+        when(attendanceReportRepository.countAttendanceByMonth(any(), any(), any()))
                 .thenReturn(List.<Object[]>of(
                         new Object[]{now.getYear(), now.getMonthValue(), 46L, 50L}
                 ));
@@ -130,7 +149,7 @@ class ReportServiceImplTest {
     @DisplayName("attendance — rounds 1/3 to 33.3 (HALF_UP) and empty month → rate 0")
     void attendance_roundingAndEmpty() {
         YearMonth now = YearMonth.now();
-        when(attendanceReportRepository.countAttendanceByMonth(any(), any()))
+        when(attendanceReportRepository.countAttendanceByMonth(any(), any(), any()))
                 .thenReturn(List.<Object[]>of(
                         new Object[]{now.getYear(), now.getMonthValue(), 1L, 3L}
                 ));
@@ -150,7 +169,7 @@ class ReportServiceImplTest {
     @Test
     @DisplayName("attendance — empty DB yields overall rate 0 (no divide-by-zero)")
     void attendance_emptyDbNoDivideByZero() {
-        when(attendanceReportRepository.countAttendanceByMonth(any(), any()))
+        when(attendanceReportRepository.countAttendanceByMonth(any(), any(), any()))
                 .thenReturn(Collections.emptyList());
 
         AttendanceReportResponse resp = reportService.getAttendanceReport(12);

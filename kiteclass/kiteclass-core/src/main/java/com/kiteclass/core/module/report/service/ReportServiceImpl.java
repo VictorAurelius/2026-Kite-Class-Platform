@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.report.service;
 
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.module.report.dto.AttendanceReportResponse;
 import com.kiteclass.core.module.report.dto.MonthlyAttendancePoint;
 import com.kiteclass.core.module.report.dto.MonthlyRevenuePoint;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Default {@link ReportService} implementation.
@@ -49,13 +51,17 @@ public class ReportServiceImpl implements ReportService {
     @Override
     @Transactional(readOnly = true)
     public RevenueReportResponse getRevenueReport(int months) {
+        // GAP-1039: resolve the caller's tenant explicitly. Throws TenantNotSetException
+        // (→ HTTP 400) when no tenant context is present, so a header-less request can
+        // never aggregate revenue across all tenants.
+        UUID tenantId = TenantContext.getCurrentTenant();
         int window = clampMonths(months);
         YearMonth oldest = YearMonth.now().minusMonths(window - 1L);
         LocalDateTime from = oldest.atDay(1).atStartOfDay();
         LocalDateTime to = YearMonth.now().plusMonths(1).atDay(1).atStartOfDay();
 
         Map<String, BigDecimal> byMonth = new HashMap<>();
-        for (Object[] row : revenueReportRepository.sumCompletedRevenueByMonth(from, to)) {
+        for (Object[] row : revenueReportRepository.sumCompletedRevenueByMonth(tenantId, from, to)) {
             String key = monthKey(((Number) row[0]).intValue(), ((Number) row[1]).intValue());
             byMonth.put(key, toBigDecimal(row[2]));
         }
@@ -82,13 +88,17 @@ public class ReportServiceImpl implements ReportService {
     @Override
     @Transactional(readOnly = true)
     public AttendanceReportResponse getAttendanceReport(int months) {
+        // GAP-1039: resolve the caller's tenant explicitly. Throws TenantNotSetException
+        // (→ HTTP 400) when no tenant context is present, so a header-less request can
+        // never aggregate attendance across all tenants.
+        UUID tenantId = TenantContext.getCurrentTenant();
         int window = clampMonths(months);
         YearMonth oldest = YearMonth.now().minusMonths(window - 1L);
         LocalDateTime from = oldest.atDay(1).atStartOfDay();
         LocalDateTime to = YearMonth.now().plusMonths(1).atDay(1).atStartOfDay();
 
         Map<String, long[]> byMonth = new HashMap<>();
-        for (Object[] row : attendanceReportRepository.countAttendanceByMonth(from, to)) {
+        for (Object[] row : attendanceReportRepository.countAttendanceByMonth(tenantId, from, to)) {
             String key = monthKey(((Number) row[0]).intValue(), ((Number) row[1]).intValue());
             long present = ((Number) row[2]).longValue();
             long count = ((Number) row[3]).longValue();

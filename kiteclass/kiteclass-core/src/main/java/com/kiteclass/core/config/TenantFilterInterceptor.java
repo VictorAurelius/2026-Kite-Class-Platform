@@ -14,6 +14,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import java.io.IOException;
 import java.util.UUID;
 
 /**
@@ -47,6 +48,20 @@ public class TenantFilterInterceptor implements HandlerInterceptor {
     private final ObjectProvider<EntityManager> entityManagerProvider;
 
     /**
+     * Path prefixes whose handlers aggregate or expose tenant-scoped data and therefore
+     * MUST receive a resolvable {@code X-Tenant-Id} (GAP-1039 fail-closed). A header-less
+     * request to one of these paths is rejected with HTTP 400 instead of being allowed to
+     * run unfiltered (which would leak cross-tenant aggregates).
+     *
+     * <p>Scoped deliberately narrow — a blanket fail-closed would break legitimately public
+     * endpoints (auth, signup, marketing landing, DSAR). New tenant-scoped aggregate
+     * endpoints should be added here.
+     */
+    private static final String[] TENANT_REQUIRED_PATH_PREFIXES = {
+        "/api/v1/reports/"
+    };
+
+    /**
      * Initialization callback to log EntityManager availability status.
      * Called after bean construction to verify optional EntityManager dependency.
      */
@@ -73,13 +88,15 @@ public class TenantFilterInterceptor implements HandlerInterceptor {
         @NonNull HttpServletRequest request,
         @NonNull HttpServletResponse response,
         @NonNull Object handler
-    ) {
+    ) throws IOException {
         String tenantHeader = request.getHeader("X-Tenant-Id");
+        boolean tenantResolved = false;
 
         if (tenantHeader != null && !tenantHeader.isBlank()) {
             try {
                 UUID tenantId = UUID.fromString(tenantHeader);
                 TenantContext.setCurrentTenant(tenantId);
+                tenantResolved = true;
 
                 // Enable Hibernate filter for this session (if EntityManager available)
                 EntityManager entityManager = entityManagerProvider.getIfAvailable();
@@ -97,6 +114,16 @@ public class TenantFilterInterceptor implements HandlerInterceptor {
             }
         } else {
             log.debug("No X-Tenant-Id header found, tenant filter not enabled");
+        }
+
+        // GAP-1039 fail-closed: tenant-scoped aggregate endpoints MUST have a resolvable
+        // tenant. Reject early with 400 instead of running unfiltered (cross-tenant leak).
+        // Scoped to TENANT_REQUIRED_PATH_PREFIXES so public endpoints are unaffected.
+        if (!tenantResolved && requiresTenant(request)) {
+            log.warn("Rejecting tenant-scoped request without resolvable X-Tenant-Id: {}",
+                    request.getRequestURI());
+            writeTenantRequiredError(request, response);
+            return false;
         }
 
         // Set user context from X-User-Id header (for JPA auditing).
@@ -128,6 +155,49 @@ public class TenantFilterInterceptor implements HandlerInterceptor {
         }
 
         return true;
+    }
+
+    /**
+     * Returns true when the request targets a tenant-scoped path that must not run
+     * without a resolved tenant (GAP-1039).
+     *
+     * @param request current HTTP request
+     * @return true if the request URI matches a tenant-required prefix
+     */
+    private boolean requiresTenant(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        if (uri == null) {
+            return false;
+        }
+        for (String prefix : TENANT_REQUIRED_PATH_PREFIXES) {
+            if (uri.startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Writes a 400 JSON error mirroring the {@code ErrorResponse} shape used by
+     * {@code GlobalExceptionHandler.handleTenantNotSet} so clients get a consistent
+     * {@code TENANT_NOT_SET} contract whether the request is rejected here or at the
+     * service layer.
+     *
+     * @param request current HTTP request (for the path field)
+     * @param response current HTTP response to write the error into
+     * @throws IOException if the response writer cannot be obtained
+     */
+    private void writeTenantRequiredError(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        String path = request.getRequestURI() == null ? "" : request.getRequestURI();
+        String body = "{\"errorCode\":\"TENANT_NOT_SET\","
+                + "\"message\":\"Tenant context not set for current thread. "
+                + "Ensure X-Tenant-Id header is provided in request.\","
+                + "\"path\":\"" + path + "\"}";
+        response.getWriter().write(body);
     }
 
     /**

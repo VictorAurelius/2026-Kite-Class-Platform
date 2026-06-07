@@ -40,7 +40,8 @@ class DocumentBrandingIntegrationTest {
     private static final String PRIMARY_HEX = "#2563EB";
     private static final String DISPLAY_NAME = "Trung tâm Kite Education";
 
-    private final DocumentBrandingAssembler assembler = new DocumentBrandingAssembler();
+    private final DocumentBrandingAssembler assembler = new DocumentBrandingAssembler(
+            new com.kiteclass.core.module.marketing.config.LandingPageSafetyProperties());
     private final DocumentGenerationService service = new DocumentGenerationService(
             List.of(new PdfGenerator(), new XlsxGenerator(), new DocxGenerator()));
 
@@ -49,7 +50,7 @@ class DocumentBrandingIntegrationTest {
                 .primaryColor(PRIMARY_HEX)
                 .secondaryColor("#8B5CF6")
                 .accentColor("#10B981")
-                .logoUrl("https://cdn.example.com/logo.png")
+                .logoUrl("https://cdn.kitehub.me/logo.png")
                 .displayName(DISPLAY_NAME)
                 .build();
     }
