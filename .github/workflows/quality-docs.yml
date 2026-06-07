@@ -2,6 +2,13 @@ name: Quality — Docs (READMEs + Gaps + Audits + Waves + 3-layer + Docs scaling
 
 # Split from script-quality.yml 21-job bloated workflow (2026-05-22)
 # Domain: documentation-touching jobs (README freshness + gap files + audits + wave plans + business docs + docs scaling)
+#
+# Per-job path scoping (2026-06-08): a `changes` filter job (dorny/paths-filter)
+# detects which doc AREA a PR touches; each downstream job gates on its area via
+# `if: needs.changes.outputs.<area>`. A gap-only PR no longer re-runs wave / audit /
+# 3-layer / readme jobs, etc. The `workflow` filter forces ALL jobs to run when this
+# workflow file itself changes (so a workflow edit is fully tested).
+#
 # Sister workflows:
 #   - quality-code.yml          — Bash / Python / Java + cross-layer + Mermaid
 #   - quality-rules-skills.yml  — Rules / skills / Env vars / Meta CSV indexes
@@ -13,37 +20,91 @@ on:
       - main
     paths:
       - '.github/workflows/quality-docs.yml'
+      - 'documents/**'
       - '**/README.md'
       - '**/_README*.md'
+      - '.claude/skills/quality/wave-pack-planner/data/wave-history.jsonl'
       - 'scripts/check-readme-freshness.sh'
-      - 'scripts/fixtures/readme-freshness/**'
-      - 'documents/04-quality/gaps/**'
       - 'scripts/check-gap-status-csv.sh'
       - 'scripts/check-gap-folder-location.sh'
       - 'scripts/migrate-gaps-to-csv.py'
-      - 'documents/04-quality/audits/**'
       - 'scripts/check-audits-index-csv.sh'
-      - 'documents/03-planning/waves/**'
       - 'scripts/check-wave-plan-completeness.sh'
       - 'scripts/check-wave-closure-completeness.sh'
       - 'scripts/check-post-wave-audit-cadence.sh'
       - 'scripts/sync-gap-csv-from-ac.sh'
-      - '.claude/skills/quality/wave-pack-planner/data/wave-history.jsonl'
-      - 'scripts/tests/fixtures/wave-plan/**'
-      - 'documents/01-business/**'
       - 'scripts/check-3-layer-completeness.sh'
       - 'scripts/check-docs-archival-stale.sh'
       - 'scripts/check-docs-folder-volume.sh'
       - 'scripts/check-docs-subfolder-maturity.sh'
+      - 'scripts/fixtures/readme-freshness/**'
+      - 'scripts/tests/fixtures/wave-plan/**'
 
 permissions:
   contents: read
   checks: write
-  pull-requests: write
+  pull-requests: read
 
 jobs:
+  # --- Path-filter gate: detect which doc AREA changed (per-job scoping) ---
+  changes:
+    name: Detect changed doc areas
+    runs-on: ubuntu-latest
+    outputs:
+      readme: ${{ steps.filter.outputs.readme }}
+      gaps: ${{ steps.filter.outputs.gaps }}
+      audits: ${{ steps.filter.outputs.audits }}
+      waves: ${{ steps.filter.outputs.waves }}
+      business: ${{ steps.filter.outputs.business }}
+      docs_scaling: ${{ steps.filter.outputs.docs_scaling }}
+      workflow: ${{ steps.filter.outputs.workflow }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Filter changed paths per area
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            readme:
+              - '**/README.md'
+              - '**/_README*.md'
+              - 'scripts/check-readme-freshness.sh'
+              - 'scripts/fixtures/readme-freshness/**'
+            gaps:
+              - 'documents/04-quality/gaps/**'
+              - 'scripts/check-gap-status-csv.sh'
+              - 'scripts/check-gap-folder-location.sh'
+              - 'scripts/migrate-gaps-to-csv.py'
+              - 'scripts/sync-gap-csv-from-ac.sh'
+            audits:
+              - 'documents/04-quality/audits/**'
+              - 'scripts/check-audits-index-csv.sh'
+            waves:
+              - 'documents/03-planning/waves/**'
+              - 'scripts/check-wave-plan-completeness.sh'
+              - 'scripts/check-wave-closure-completeness.sh'
+              - 'scripts/check-post-wave-audit-cadence.sh'
+              - '.claude/skills/quality/wave-pack-planner/data/wave-history.jsonl'
+              - 'scripts/tests/fixtures/wave-plan/**'
+            business:
+              - 'documents/01-business/**'
+              - 'scripts/check-3-layer-completeness.sh'
+            docs_scaling:
+              - 'documents/**'
+              - 'scripts/check-docs-archival-stale.sh'
+              - 'scripts/check-docs-folder-volume.sh'
+              - 'scripts/check-docs-subfolder-maturity.sh'
+            workflow:
+              - '.github/workflows/quality-docs.yml'
+
   readme-freshness:
     name: README freshness (`**/README.md`)
+    needs: changes
+    if: needs.changes.outputs.readme == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -61,13 +122,13 @@ jobs:
       - name: Validate README freshness (blocking on FAIL >90d, WARN-only at 31-90d)
         run: |
           # Default mode: silent PASS ≤30d, WARN 31-90d, FAIL >90d.
-          # Workflow paths filter already restricts this job to PRs touching
-          # README.md or the validator script — no need to re-filter changed files.
           bash scripts/check-readme-freshness.sh
 
 
   gap-status-csv:
     name: Gap status CSV (`documents/04-quality/gaps/gap-status.csv`)
+    needs: changes
+    if: needs.changes.outputs.gaps == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -87,6 +148,8 @@ jobs:
 
   gap-folder-location:
     name: Gap folder location (mirrors CSV status+phase)
+    needs: changes
+    if: needs.changes.outputs.gaps == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -106,6 +169,8 @@ jobs:
 
   audits-index-csv:
     name: Audits index CSV (`documents/04-quality/audits/audits-index.csv`)
+    needs: changes
+    if: needs.changes.outputs.audits == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -127,6 +192,8 @@ jobs:
 
   wave-plan-completeness:
     name: Wave plan completeness (documents/03-planning/waves/**)
+    needs: changes
+    if: needs.changes.outputs.waves == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -153,6 +220,8 @@ jobs:
 
   wave-closure-completeness:
     name: Wave closure completeness (documents/03-planning/waves/** status:complete)
+    needs: changes
+    if: needs.changes.outputs.waves == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -182,6 +251,8 @@ jobs:
 
   post-wave-audit-cadence:
     name: Post-wave audit cadence (wave-history vs audits-index)
+    needs: changes
+    if: needs.changes.outputs.waves == 'true' || needs.changes.outputs.audits == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -206,6 +277,8 @@ jobs:
 
   csv-ac-sync:
     name: Gap CSV ↔ AC drift (gap-status.csv vs gap-file AC checkbox state)
+    needs: changes
+    if: needs.changes.outputs.gaps == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -230,6 +303,8 @@ jobs:
 
   three-layer-completeness:
     name: 3-layer doc completeness (`documents/01-business/**`)
+    needs: changes
+    if: needs.changes.outputs.business == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -253,6 +328,8 @@ jobs:
 
   docs-scaling-detectors:
     name: Docs scaling detectors (archival cadence + folder volume + subfolder maturity)
+    needs: changes
+    if: needs.changes.outputs.docs_scaling == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -289,5 +366,3 @@ jobs:
           # Existing 177 grandfathered subdirs surface as WARN — rule applies
           # prospectively per `rule-change-process.md` convention.
           bash scripts/check-docs-subfolder-maturity.sh --warn
-
-
