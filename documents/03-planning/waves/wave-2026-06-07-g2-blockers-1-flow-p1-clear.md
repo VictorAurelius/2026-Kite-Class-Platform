@@ -5,6 +5,9 @@ tag_primary: g2-blockers
 tags_secondary: [flow-campaign, p1, beta-prep]
 counter: 1
 date_launch: 2026-06-07
+created: 2026-06-07
+updated: 2026-06-07
+waves: [g2-blockers-1]
 status: draft
 gaps: [GAP-1028, GAP-1029, GAP-1020, GAP-1021, GAP-1016, GAP-1017, GAP-1004, GAP-1005, GAP-1000, GAP-1002]
 ---
