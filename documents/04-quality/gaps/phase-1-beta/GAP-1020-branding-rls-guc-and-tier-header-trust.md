@@ -33,3 +33,10 @@ KH-6 G1 walk catalog 2 "trust-client-header" issue:
 
 - Discovered in: KH-6 G1 walk — `documents/04-quality/audits/persona-review/2026-06-06-pre-walk-kh6-ai-branding-wizard.md` (FM-3 + FM-6)
 - Depends: GAP-1019 (trusted tenant header); Related: `ai-branding-guidelines.md` §2.5 + §4.3 quota
+
+## Log
+
+- **2026-06-07** (Wave g2-blockers-1 Bucket B — investigation, NOT fixed): Để OPEN — 2 phần đều cần infrastructure mới, KHÔNG phải quick edit (không rush security vào high-context). Findings cho next session:
+  - **Part 1 (RLS GUC `app.current_tenant_id`):** `grep -rln "current_tenant_id\|set_config\|app.current_tenant"` trên `kitehub-subscription` + `kitehub-branding` Java = **0 hit** → KHÔNG có pattern kitehub nào để mirror (kiteclass-core có RLS+GUC pattern nhưng kitehub-branding chưa). Cần thiết lập cơ chế set GUC per-connection/per-tx TRƯỚC query. Sai cơ chế = silent cross-tenant leak → design cẩn thận + IT Testcontainers verify isolation thực.
+  - **Part 2 (tier server-side resolve):** `X-Subscription-Tier` đọc ở 6 site: `BrandingWizardController:89,104` + `AIBrandingController:79,114,152,191` (đều `@RequestHeader defaultValue="FREE"`). KHÔNG có subscription-tier lookup client trong branding (`grep SubscriptionClient` = 0) → cần build cross-service call branding→subscription (Feign/REST) resolve tier từ tenant thay vì trust header. Infra mới, không phải edit.
+  - **Status 🔵 OPEN** — deferred Bucket B; cả 2 phần = infra-design tasks security-sensitive.

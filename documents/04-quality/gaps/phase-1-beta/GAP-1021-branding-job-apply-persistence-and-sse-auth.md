@@ -33,3 +33,10 @@ KH-6 G1 walk surface 2 "apply/approval" gap:
 
 - Discovered in: KH-6 G1 walk — `documents/04-quality/audits/persona-review/2026-06-06-pre-walk-kh6-ai-branding-wizard.md` (FM-7 + FM-4)
 - Related: `ai-branding-guidelines.md` §4.2 preview+approve + §5 quality gate + §6 lifecycle
+
+## Log
+
+- **2026-06-07** (Wave g2-blockers-1 Bucket B — investigation, NOT fixed): Để OPEN — security-config surgery + new endpoint, không rush vào high-context. Findings cho next session:
+  - **Part 1 (job approve/apply persist theme):** `BrandingJobV1Controller` (`wizard/BrandingJobV1Controller.java`) hiện chỉ có `getJob` (GET /{jobId}) — KHÔNG có approve/apply endpoint → wizard approve dead-end. Cần thêm POST approve/apply persist generated theme thành instance active branding (study `BrandingJobService` + cách template-apply persist hiện tại để mirror persistence path).
+  - **Part 2 (SSE token-in-query):** SSE endpoint `DeployStreamController:81` `GET /{jobId}/deploy-stream` produces `text/event-stream`, dùng `@RequestHeader Last-Event-ID`. Auth qua gateway JWT→header (SecurityConfig); EventSource KHÔNG gửi được Authorization header → 401. Fix = permit SSE path trong `SecurityConfig` (line 71+ chain) + validate JWT từ query param `?token=` trong 1 filter. **RISK:** sửa SecurityConfig sai = mở endpoint không auth → cần cẩn thận + IT.
+  - **Status 🔵 OPEN** — deferred Bucket B; SecurityConfig surgery + new endpoint design.
