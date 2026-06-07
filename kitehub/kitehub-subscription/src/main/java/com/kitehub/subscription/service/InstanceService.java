@@ -120,6 +120,30 @@ public class InstanceService {
         }
     }
 
+    /**
+     * GAP-946 fail-loud hardening: assert the tenant database was actually provisioned —
+     * i.e. {@code databaseUrl} moved off the {@code "pending"} placeholder after
+     * {@link DatabaseProvisioningService#provisionDatabase(UUID)} returned.
+     *
+     * <p>{@code provisionDatabase} joins the caller's transaction (REQUIRED) and operates on
+     * the same managed {@link Instance} (identity map), so post-call {@code instance.getDatabaseUrl()}
+     * reflects the update. Throwing here triggers the caller's {@code @Transactional} rollback so we
+     * never persist a half-provisioned tenant row (databaseUrl='pending') that downstream KC-2+
+     * flows would hit with confusing errors. Defense-in-depth against a silent no-op in the
+     * provisioning service (e.g. an early-return path that fails to update the row).
+     *
+     * @param instance the managed instance after provisioning
+     * @throws IllegalStateException if the database URL is still null/empty/"pending"
+     */
+    private void assertDatabaseProvisioned(Instance instance) {
+        String url = instance.getDatabaseUrl();
+        if (url == null || url.isEmpty() || "pending".equals(url)) {
+            throw new IllegalStateException(
+                "Database provisioning did not complete for instance " + instance.getId()
+                    + " (databaseUrl still '" + url + "') — aborting to avoid a half-provisioned tenant");
+        }
+    }
+
     public InstanceResponse createTrialInstance(CreateInstanceRequest request) {
         log.info("Creating trial instance for subdomain: {}", request.getSubdomain());
 
@@ -172,6 +196,8 @@ public class InstanceService {
         // provisionDatabase only throws in lifecycleEnabled (prod) mode; stub/local
         // mode simulates success, so this fail-fast never triggers in tests.
         databaseProvisioningService.provisionDatabase(saved.getId());
+        // GAP-946 fail-loud: verify provisioning actually moved databaseUrl off "pending".
+        assertDatabaseProvisioned(saved);
         log.info("Database provisioned for instance: {}", saved.getId());
 
         log.info("Created trial instance: {} (expires: {})", saved.getId(), saved.getTrialExpiresAt());
@@ -248,6 +274,8 @@ public class InstanceService {
         // GAP-946: do NOT swallow — propagate so a failed provision aborts activation
         // (instance stays PENDING rather than left with databaseUrl='pending').
         databaseProvisioningService.provisionDatabase(instanceId);
+        // GAP-946 fail-loud: verify provisioning actually moved databaseUrl off "pending".
+        assertDatabaseProvisioned(instance);
         log.info("Database provisioned for activated instance: {}", instanceId);
 
         log.info("Activated PENDING instance: {} → TRIAL", instanceId);
@@ -371,6 +399,8 @@ public class InstanceService {
         // provisionDatabase only throws in lifecycleEnabled (prod) mode; stub/local
         // mode simulates success, so this fail-fast never triggers in tests.
         databaseProvisioningService.provisionDatabase(saved.getId());
+        // GAP-946 fail-loud: verify provisioning actually moved databaseUrl off "pending".
+        assertDatabaseProvisioned(saved);
         log.info("Database provisioned for instance: {}", saved.getId());
 
         // Generate tokens

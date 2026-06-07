@@ -12,7 +12,23 @@
 - ✅ **Silent-swallow FIXED** (data-corruption part): 3 `catch(Exception){log;/*Continue*/}` sites in `InstanceService` (createTrialInstance:170 / activatePendingInstance:249 / registerInstance:328) removed → `provisionDatabase` failure now propagates so the `@Transactional` creation rolls back instead of persisting a row with `databaseUrl='pending'`. `provisionDatabase` only throws in `lifecycleEnabled` (prod) mode; stub/local simulates success → fail-fast never triggers in tests. Regression test `InstanceServiceTest.shouldPropagateWhenDatabaseProvisioningFails`. (subscription `InstanceStatus` has no FAILED value → fix is rollback-propagate, not status-flip.)
 - ✅ `database.lifecycle.enabled=true` already set `application-production.yml:57` (AC #1 satisfied pre-gap).
 - ✅ **Saga now reachable** (GAP-945 Bucket A wiring 2026-06-06): `TenantProvisioningSaga.provision()` is wired to `tenant.created.queue` via `TenantCreatedEventConsumer` — saga executes on beta signup (was orphan). So when `provisionInfrastructure` becomes real, it will actually run.
-- 🔴 **STILL OPEN** (the GAP-946 core remaining): `TenantProvisioningSaga.provisionInfrastructure` (kiteclass-core:83-86) still log-only stub — real infra provisioning (DB schema / MinIO bucket / DNS) + async FAILED state-machine/retry not yet implemented. Saga wiring done (GAP-945); this is the infra-execution delta.
+- 🔴 **STILL OPEN** (the GAP-946 core remaining): `TenantProvisioningSaga.provisionInfrastructure` (kiteclass-core:136-139) still log-only stub — real infra provisioning (DB schema / MinIO bucket / DNS) + async FAILED state-machine/retry not yet implemented. Saga wiring done (GAP-945); this is the infra-execution delta.
+
+## Fix-time state-check (per audit-to-gap-pipeline.md §2.8, Wave p0-1 Bucket B 2026-06-07)
+
+Gap age: 3 days; drift-class. Empirical verification trước khi fix:
+
+- **Tenant DB provisioning thật ĐÃ hoạt động** qua subscription-side: `DatabaseProvisioningService.provisionDatabase()` (lifecycleEnabled prod, `application-production.yml:57`) tạo physical DB + chạy migration + cập nhật `databaseUrl` "pending"→real + save (`DatabaseProvisioningService.java:80-93`). Saga stub `provisionInfrastructure` là layer branded-frontend-instance riêng (javadoc: "responsibility of a separate ops service"), KHÔNG phải tenant DB.
+- **Silent-swallow + propagate**: ✅ đã done (3 call site `InstanceService` gọi `provisionDatabase` trực tiếp, `@Transactional` class-level rollback).
+- **FAILED state machine + compensation + retry**: ✅ đã có (`TenantProvisioningSaga.compensate`→`markFailed`, `retry()`, `FrontendInstanceStatus.FAILED`, GAP-952 alarm, `ProvisioningStuckSweep`).
+
+**Verdict (§2.8 matrix): Symptom partially present → scope-revise.** Plan Bucket B "fail-loud fix" gần như đã done; delta thật còn lại = (a) defensive post-provision validation (small, shipped này) + (b) `provisionInfrastructure` real DB-schema/MinIO/DNS (large kiteclass-core task, tách wave riêng). Gap giữ **PARTIAL** per `gap-done-discipline.md` §3.
+
+## Defensive hardening shipped (Wave p0-1 Bucket B, 2026-06-07)
+
+`InstanceService.assertDatabaseProvisioned(instance)` — sau mỗi `provisionDatabase` call (3 site: createTrialInstance / activatePendingInstance / registerInstance), assert `databaseUrl != null/empty/"pending"`, else throw `IllegalStateException` → `@Transactional` rollback. Defense-in-depth chống provisionDatabase silent no-op để lại row half-provisioned (`databaseUrl='pending'`) mà KC-2+ flow gặp lỗi khó hiểu. Test: `InstanceServiceTest.shouldFailLoudWhenDatabaseUrlStillPendingAfterProvision`.
+
+**Remaining (tách wave riêng):** `provisionInfrastructure` real implementation. Saga stub acceptable Phase 1 BETA (tenant DB do subscription provision; DNS/MinIO defer).
 
 ## Problem
 
