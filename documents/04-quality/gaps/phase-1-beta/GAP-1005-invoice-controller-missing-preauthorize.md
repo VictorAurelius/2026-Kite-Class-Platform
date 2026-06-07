@@ -1,6 +1,6 @@
 # GAP-1005: InvoiceController thiếu @PreAuthorize toàn bộ endpoint (OWASP A01)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-05 (KC-7 invoice→payment G1 walk)
@@ -33,3 +33,7 @@ Thêm `@PreAuthorize("hasAnyRole('TEACHER','ADMIN','OWNER','PLATFORM_ADMIN')")` 
 - Discovered in: KC-7 G1 walk artifact `documents/04-quality/audits/persona-review/2026-06-05-pre-walk-kc7-invoice-payment.md` §G1 (#8)
 - Depends on: GAP-1003 (auth bridge — DONE, hasRole nay enforce được)
 - Pattern: GAP-637 (admin v1 controllers @PreAuthorize missing — same class, kitehub side)
+
+## Log
+
+- **2026-06-07** (Wave g2-blockers-1 Bucket D, inline): Thêm `@PreAuthorize` lên toàn bộ 10 method `InvoiceController`. Read tier (`getInvoiceById/items/byStudent/overdue/unpaid/...`) = `hasAnyRole('TEACHER','ADMIN','OWNER','PLATFORM_ADMIN')`; financial-mutation tier (`applyAdjustment`, `calculateLateFees`, `markInvoiceAsPaid`, `cancelInvoice`) = `hasAnyRole('ADMIN','OWNER','PLATFORM_ADMIN')`. Match convention `PaymentRecordController`. GAP-1003 auth bridge đã land → hasRole enforce được. **Status 🟡 PARTIAL ~85%** — code fix + compile PASS; **residual:** (a) 403 IT (STUDENT/PARENT → mark-paid → 403; OWNER → 200); (b) api-contract.md authz per endpoint; (c) G3 gateway :9000 re-walk pending coordinator trước DONE flip.

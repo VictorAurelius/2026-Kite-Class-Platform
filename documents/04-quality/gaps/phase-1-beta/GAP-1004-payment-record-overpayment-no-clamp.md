@@ -1,6 +1,6 @@
 # GAP-1004: record-payment thiếu over-payment clamp + idempotency không enforce DB-side
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-05 (KC-7 invoice→payment G1 walk)
@@ -31,3 +31,7 @@ KC-7 G1 walk (live, kiteclass_shared) bắt 2 hardening gaps trên record-paymen
 
 - Discovered in: KC-7 G1 walk artifact `documents/04-quality/audits/persona-review/2026-06-05-pre-walk-kc7-invoice-payment.md` §G1 (#4, #5)
 - Related: GAP-627 (payment-amount mismatch PENDING_BALANCE, Phase 1.5), GAP-632 (idempotency Redis + UNIQUE constraint, Phase 1.5)
+
+## Log
+
+- **2026-06-07** (Wave g2-blockers-1 Bucket D, inline): `PaymentRecordServiceImpl.recordPayment` thêm 2 guard. (1) **Over-payment:** `request.amount > invoice.getBalanceDue()` → `BusinessException("PAYMENT_EXCEEDS_BALANCE", 400)` — `balance_due` không còn âm. (2) **Idempotency DB-side:** dùng `IdempotencyService` (V66 shared `idempotency_keys`) với scope mới `PAYMENT_RECORD` — `findExisting` trước khi tạo (replay → 409 `PAYMENT_RECORD_DUPLICATE`) + `recordRequest` sau save (race-loss → 409). Thay thế code cũ chỉ `log.debug` key. **Status 🟡 PARTIAL ~85%** — code fix + compile PASS; **residual:** (a) IT Testcontainers (over-payment 400 + double-key 1 row); (b) G3 gateway :9000 re-walk pending coordinator trước DONE flip.
