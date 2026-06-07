@@ -39,7 +39,7 @@
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
         <!-- GAP-468: CVE overrides for transitive deps surfaced via GitHub code-scanning 2026-05-11 -->
         <!-- GAP-470: netty 4.2.13.Final fixes CVE-2026-42577 (advisory revised — no 4.1.x patch; 4.2.13 closes 5 HIGH CVEs incl epoll DoS) -->
-        <netty.version>4.2.14.Final</netty.version>
+        <netty.version>4.2.15.Final</netty.version>
         <!-- postgresql 42.7.11 fixes CVE-2026-42198 (Spring Boot 3.5.14 ships 42.7.10) -->
         <postgresql.version>42.7.11</postgresql.version>
         <!-- bcprov-jdk18on 1.84 fixes CVE-2026-5598 (not managed by Spring Boot BOM; transitive) -->
