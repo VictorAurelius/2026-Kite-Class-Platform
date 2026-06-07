@@ -88,3 +88,41 @@ export interface InvoiceSearchParams {
   size?: number;
   sort?: string;
 }
+
+/**
+ * Batch monthly invoice (GAP-297).
+ * Per api-contract.md §3.11/§3.12 — preview + confirm cho học phí hàng tháng.
+ */
+
+/** Một dòng line item trong preview batch hóa đơn tháng (per enrollment). */
+export interface BatchInvoiceLineItem {
+  enrollmentId: number;
+  studentId: number;
+  classId: number;
+  classNameVi: string;
+  tuitionAmount: number;
+  discountPercent: number;
+  proratedTuition: number;
+  discountAmount: number;
+  total: number;
+  prorated: boolean;
+  billableDays: number;
+  daysInMonth: number;
+}
+
+/** Response của POST /api/v1/invoices/batch-generate (preview, KHÔNG persist). */
+export interface BatchInvoicePreviewResponse {
+  month: string; // yyyy-MM
+  invoiceCount: number;
+  totalRevenue: number;
+  invoices: BatchInvoiceLineItem[];
+}
+
+/** Response của POST /api/v1/invoices/batch-confirm (persist + emit events). */
+export interface BatchInvoiceConfirmResponse {
+  month: string; // yyyy-MM
+  createdCount: number;
+  skippedCount: number;
+  totalRevenue: number;
+  createdInvoiceIds: number[];
+}

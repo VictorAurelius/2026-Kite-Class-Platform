@@ -14,7 +14,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Plus, AlertCircle, FileText, Receipt, Wallet, AlertTriangle } from 'lucide-react';
+import { Plus, AlertCircle, FileText, Receipt, Wallet, AlertTriangle, CalendarPlus } from 'lucide-react';
 import { formatVNCurrency } from '@kite/shared-ui';
 import { DashboardLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { InvoiceStatusBadge } from '@/components/billing/invoice-status-badge';
+import { BatchInvoiceDrawer } from '@/components/billing/batch-invoice-drawer';
 import { useInvoices } from '@/hooks/use-invoices';
 import { InvoiceStatus } from '@/types/invoice';
 import { DataTable } from '@/components/common/dynamic-data-table';
@@ -42,6 +43,8 @@ export default function BillingPage() {
     status: undefined as InvoiceStatus | undefined,
     studentId: undefined as number | undefined,
   });
+
+  const [batchOpen, setBatchOpen] = useState(false);
 
   const { data, isLoading, error } = useInvoices(searchParams);
 
@@ -109,13 +112,25 @@ export default function BillingPage() {
             <h1 className="text-3xl font-bold tracking-tight">Hóa đơn</h1>
             <p className="text-muted-foreground">Quản lý hóa đơn và thanh toán</p>
           </div>
-          <Link href="/billing/new">
-            <Button className="w-full sm:w-auto">
-              <Plus className="mr-2 h-4 w-4" />
-              Tạo hóa đơn
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => setBatchOpen(true)}
+            >
+              <CalendarPlus className="mr-2 h-4 w-4" />
+              Tạo hóa đơn tháng
             </Button>
-          </Link>
+            <Link href="/billing/new">
+              <Button className="w-full sm:w-auto">
+                <Plus className="mr-2 h-4 w-4" />
+                Tạo hóa đơn
+              </Button>
+            </Link>
+          </div>
         </div>
+
+        <BatchInvoiceDrawer open={batchOpen} onOpenChange={setBatchOpen} />
 
         {/* Summary KPIs — pro v2 token-style cards */}
         <div className="grid gap-4 sm:grid-cols-3" data-testid="billing-summary">
