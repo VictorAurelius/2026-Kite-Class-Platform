@@ -28,8 +28,26 @@ Migration sweep tương tự V73 nhưng cho actor user-id columns. Apply per clu
 
 - [ ] Migration V## sweep actor columns → UUID per cluster (có thể batch multi-cluster)
 - [ ] Verify code path không lỗi parse khi ghi UUID vào cột đã convert
-- [ ] Document KH BaseEntity (VARCHAR(100)) — keep vs sweep decision (cross-DB normalization)
+- [x] Document KH BaseEntity (VARCHAR(100)) — keep vs sweep decision (cross-DB normalization) → **KEEP** (xem §Decision)
 - [ ] Reference cluster docs 03/04/05/06/07/08 + KH 02
+
+## Decision — KH BaseEntity `created_by`/`updated_by` → KEEP VARCHAR(100) (Wave p0-local-1 Bucket B, 2026-06-07)
+
+Quyết định: **(a) Giữ VARCHAR(100), KHÔNG sweep sang UUID.** Lý do (không có parse-fail thật → không justify sweep cost):
+
+1. **KH là control-plane (SaaS platform admin), actor heterogeneous.** Actor của KH-side audit fields là platform admin / system job / scheduler / service-account — thường định danh bằng email / username / "system" STRING, KHÔNG luôn là UUID. VARCHAR(100) flexible hơn; ép UUID sẽ **gây parse-fail ở chiều ngược lại** (cột UUID không chứa được "system"). KC-side khác: actor luôn là tenant user với `X-User-Id` UUID (GAP-795) → UUID đúng cho KC.
+
+2. **Không có AuditorAware<UUID> trong KH.** `created_by`/`updated_by` được populate qua Spring `@CreatedBy`/`@LastModifiedBy` + `AuditingEntityListener` (`BaseEntity.java`); KH platform/subscription không có `AuditorAware` bean → fields hiện ghi null/string, KHÔNG có code nào parse chúng thành UUID. → 0 parse-fail risk hiện tại.
+
+3. **Drift cross-DB chỉ là cosmetic.** KH DB và KC DB là 2 database tách biệt; cột `created_by` không bao giờ JOIN cross-DB. "Drift" BIGINT/VARCHAR-vs-UUID giữa 2 bounded context là intentional per-context modeling, KHÔNG phải bug.
+
+4. **Sweep cost cao, benefit nil.** `BaseEntity` shared bởi 5 KH module (platform + subscription/branding/email/admin) → sweep = thêm `AuditorAware<UUID>` mỗi service + migration mọi bảng KH dùng created_by/updated_by. Cost lớn, không đổi behavior.
+
+→ KH BaseEntity sub-item của GAP-877 = **CLOSED (keep+document)**. Gap vẫn OPEN cho các KC actor columns (cluster 03-08) — đó mới là phần có parse-fail risk thật (X-User-Id UUID ghi vào cột BIGINT/VARCHAR).
+
+## Related discovery — oauth_attempts.tenant_id BIGINT (Wave p0-local-1 Bucket B)
+
+Cùng lớp BIGINT/UUID drift: `kitehub-subscription` bảng `oauth_attempts.tenant_id` là `BIGINT NULL` (V51 GAP-582) trong khi mọi bảng tenant-scoped KH khác key trên `instance_id UUID`. V66 (GAP-885) đã enable RLS bằng cách so sánh `tenant_id::text` để né `::uuid` cast mismatch + document anomaly inline. Re-key sang `instance_id UUID` defer tới khi OAuth signup flow được implement (oauth_attempts hiện chưa có caller — defensive scaffolding). Cân nhắc gộp vào batch sweep này hoặc tách gap riêng.
 
 ## Discovered in
 
