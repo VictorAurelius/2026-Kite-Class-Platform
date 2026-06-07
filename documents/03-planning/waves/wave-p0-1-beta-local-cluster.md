@@ -1,6 +1,6 @@
 ---
 title: Wave p0-1 — Phase 1 BETA P0 local-verifiable cluster (3 disjoint buckets)
-status: draft
+status: complete
 tag_primary: p0
 tags_secondary: [provisioning-1, beta-readiness]
 counter: 1
@@ -90,3 +90,15 @@ Drift caught + excluded: GAP-975/976 `V63/V64` already exist (V63/V64/V65 presen
 ## 8. Log
 
 - **2026-06-07:** Plan created (wave-pack optimized, 3 disjoint buckets). State-check (§4) caught GAP-975/976 code-complete + GAP-948 method-exists (wire-only) + GAP-885 migration-collision → excluded/tracked. First 3-parallel agent spawn attempt hit server rate-limit → §6 fallback serial documented. v2: section names aligned to `_TEMPLATE.md` §1-§8 (wave-plan-completeness CI).
+- **2026-06-07 (CLOSURE — status: complete):** Bucket A via Opus worktree agent (serial), B+C inline. **Fix-time state-check (`audit-to-gap-pipeline.md` §2.8) revised ALL 3 buckets** — plan scoped against stale gap understanding → drove META fix PR #2240 (`audit-to-gap-pipeline.md` §2.6.1 Bucket-Completion Check v1.5.0).
+
+  ## Scope-Completeness Reconciliation (per `wave-closure-scope-completeness.md` §3)
+
+  | # | Plan §3 Scope item | Verdict | Follow-up |
+  |---|---|---|---|
+  | A | GAP-882 invoice enum↔CHECK | ✅ DONE | V92 `invoice_items.item_type` CHECK (V86 pre-fixed status); IT 1635 0-fail + G3 live DB walk |
+  | B | GAP-946 saga fail-loud | 🟡 PARTIAL 55% | defensive `assertDatabaseProvisioned()` shipped; `provisionInfrastructure` real-impl → separate wave |
+  | C | GAP-948 tenant-ready email | 🟡 PARTIAL 70% | wiring G3-verified live; template render residual → GAP-1053 (P1) |
+  | Closure | octopus-merge + rebuild + CI + G3 walk + flip | ✅ DONE | PR #2241; GAP-882 DONE+git mv closed/; ROADMAP+wave-history+CSV synced |
+
+  **Expected vs actual:** plan expected P0 29→26 (3 DONE); actual **29→28** (only GAP-882 flips — 946 PARTIAL by design, 948 template residual). Honest per `gap-done-discipline.md`. META §2.6.1 prevents this scope-vs-reality drift class at plan-time prospectively.

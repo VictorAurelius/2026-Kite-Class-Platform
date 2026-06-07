@@ -166,6 +166,27 @@ class InstanceServiceTest {
     }
 
     @Test
+    @DisplayName("GAP-946 fail-loud: provisioning silent no-op (databaseUrl still 'pending') aborts creation")
+    void shouldFailLoudWhenDatabaseUrlStillPendingAfterProvision() {
+        // Given — subdomain free, instance saves, provisionDatabase returns WITHOUT throwing
+        // but leaves databaseUrl on the 'pending' placeholder (a silent no-op / early-return
+        // bug in the provisioning service). Defense-in-depth assertDatabaseProvisioned() must
+        // catch this and throw so @Transactional rolls back — no half-provisioned tenant row.
+        when(instanceRepository.existsBySubdomainAndDeletedFalse(validRequest.getSubdomain())).thenReturn(false);
+        Instance savedInstance = new Instance();
+        savedInstance.setId(UUID.randomUUID());
+        savedInstance.setDatabaseUrl("pending"); // provisionDatabase (mocked) did NOT update it
+        when(instanceRepository.save(any(Instance.class))).thenReturn(savedInstance);
+        // databaseProvisioningService.provisionDatabase stubbed lenient in setUp() — returns
+        // credentials without throwing and without mutating savedInstance (the no-op scenario).
+
+        // When / Then — fail-loud assertion fires
+        assertThatThrownBy(() -> instanceService.createTrialInstance(validRequest))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Database provisioning did not complete");
+    }
+
+    @Test
     @DisplayName("Should throw exception when subdomain already exists")
     void shouldThrowExceptionWhenSubdomainExists() {
         // Given
@@ -399,9 +420,11 @@ class InstanceServiceTest {
             savedInstance.setStatus(InstanceStatus.TRIAL);
             savedInstance.setTrialStartedAt(LocalDateTime.now());
             savedInstance.setTrialExpiresAt(LocalDateTime.now().plusDays(14));
-            savedInstance.setDatabaseUrl("pending");
-            savedInstance.setDatabaseUsername("pending");
-            savedInstance.setDatabasePassword("pending");
+            // GAP-946: reflect post-provision reality — provisionDatabase moves databaseUrl
+            // off the "pending" placeholder; assertDatabaseProvisioned() now enforces this.
+            savedInstance.setDatabaseUrl("jdbc:postgresql://localhost:5433/kiteclass_new_school");
+            savedInstance.setDatabaseUsername("kiteclass_new_school_user");
+            savedInstance.setDatabasePassword("encrypted_pass");
             savedInstance.setCreatedAt(LocalDateTime.now());
             savedInstance.setUpdatedAt(LocalDateTime.now());
 
