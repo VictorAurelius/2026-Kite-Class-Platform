@@ -62,6 +62,12 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
            "AND s.expiresAt < :now AND s.deleted = false")
     List<Subscription> findExpiredSubscriptions(@Param("now") LocalDateTime now);
 
+    // GAP-1017: end-of-cycle cancellations — CANCELLED subs whose expiresAt has passed
+    // are skipped by findExpiredSubscriptions, so their instances never get suspended.
+    @Query("SELECT s FROM Subscription s WHERE s.status = 'CANCELLED' " +
+           "AND s.expiresAt < :now AND s.deleted = false")
+    List<Subscription> findCancelledExpiredSubscriptions(@Param("now") LocalDateTime now);
+
     // =========================================================
     // GAP-432 Wave 41 Bucket C: bounded analytics aggregations
     // (replace prior unbounded findAll() callsites in AnalyticsService).

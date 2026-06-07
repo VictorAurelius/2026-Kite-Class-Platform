@@ -1,6 +1,6 @@
 # GAP-1017: Cancel subscription không suspend/deprovision instance
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-06 (KH-5 subscription cancel G1 walk)
@@ -34,3 +34,7 @@ Hệ quả: Owner huỷ gói (kể cả immediate) → vẫn tiếp tục dùng 
 
 - Discovered in: KH-5 G1 walk — `documents/04-quality/audits/persona-review/2026-06-06-pre-walk-kh5-subscription-lifecycle.md` (FM-4)
 - Related: KH-8 off-boarding + data retention (PDPL) — deprovision scope
+
+## Log
+
+- **2026-06-07** (Wave g2-blockers-1 Bucket C, inline): `cancelSubscription()` giờ propagate xuống Instance. (1) `immediate=true` → suspend Instance ngay (set `InstanceStatus.SUSPENDED`). (2) `immediate=false` → thêm `SubscriptionRepository.findCancelledExpiredSubscriptions()` + `SubscriptionRenewalService.suspendCancelledExpired()` + loop trong `SubscriptionExpirationChecker.processExpiredSubscriptions()` → scheduler suspend instance khi CANCELLED-sub tới `expiresAt` (trước đây `findExpiredSubscriptions` loại trừ CANCELLED). AC#1 + AC#2 met. **Status 🟡 PARTIAL ~85%** — code fix + compile PASS; **residual:** (a) IT verify (immediate→SUSPENDED + end-of-cycle scheduler→SUSPENDED); (b) deprovision/PDPL data-retention = scope KH-8 (GAP-1026), không trong gap này; (c) G3 gateway :9000 re-walk pending coordinator trước DONE flip.
