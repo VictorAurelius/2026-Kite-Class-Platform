@@ -1,0 +1,32 @@
+Kính gửi [(${recipientName != null && !recipientName.isBlank() ? recipientName : 'Quý khách'})],
+
+Chúng tôi vui mừng thông báo trung tâm [(${organizationName != null && !organizationName.isBlank() ? organizationName : 'của bạn'})] đã được khởi tạo thành công và sẵn sàng để sử dụng trên nền tảng [(${branding?.displayName ?: 'KiteClass'})].
+
+Địa chỉ truy cập trường học của bạn:
+[(${dashboardUrl ?: 'https://kitehub.me/dashboard'})]
+
+Các bước thiết lập tiếp theo:
+  1. Cập nhật thông tin trung tâm (tên, địa chỉ, logo thương hiệu).
+  2. Mời quản lý, giáo viên và nhân sự tham gia hệ thống.
+  3. Tạo danh sách lớp học và quản lý học sinh đầu tiên.
+  4. Khám phá tính năng điểm danh, quản lý điểm và học phí tự động.
+
+Hướng dẫn thiết lập chi tiết:
+[(${onboardingChecklistUrl ?: 'https://kitehub.me/help/onboarding'})]
+
+Đội ngũ hỗ trợ luôn sẵn sàng đồng hành cùng bạn trong giai đoạn đầu.
+Nếu cần giải đáp, vui lòng truy cập trung tâm hỗ trợ:
+[(${supportUrl ?: 'https://kitehub.me/support'})]
+— phản hồi trong giờ hành chính (Thứ Hai–Thứ Sáu, 08:00–18:00).
+
+Chúc trung tâm của bạn gặt hái nhiều thành công!
+
+Trân trọng,
+Đội ngũ [(${branding?.displayName ?: 'KiteClass'})]
+
+---
+© 2026 [(${branding?.displayName ?: 'KiteClass'})]. Bảo lưu mọi quyền.
+Email này được gửi tự động, vui lòng không trả lời trực tiếp.
+
+Để hủy nhận email thông báo, truy cập:
+[(${unsubscribeUrl ?: 'https://kitehub.me/unsubscribe'})]

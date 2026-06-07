@@ -102,20 +102,61 @@ public class EmailTemplateRenderer {
      * Render HTML body, falling back to the base (no-suffix) template when the
      * per-tone variant path does not exist. This implements the progressive opt-in
      * model: variant templates are optional; absence silently falls back to base.
+     *
+     * <p>If the BASE template itself is missing (GAP-1053), this method degrades
+     * gracefully — it logs at WARN and returns a minimal inline fallback body
+     * rather than letting {@link TemplateInputException} escape. An unhandled
+     * exception here would crash the RabbitMQ consumer ({@code EmailEventListener})
+     * and poison the queue: a missing template is a deploy-time bug that retrying
+     * cannot fix, so DLQ-looping is pointless. The WARN log keeps the missing-template
+     * bug visible (NOT silently swallowed) so it can still be detected + fixed.</p>
      */
     private String renderHtmlWithFallback(String templateName, String htmlPath, Context ctx) {
         String basePath = "emails/" + templateName;
         if (htmlPath.equals(basePath)) {
             // No variant → render base directly (common path)
-            return templateEngine.process(htmlPath, ctx);
+            return processBaseOrMinimalFallback(templateName, basePath, ctx);
         }
         try {
             return templateEngine.process(htmlPath, ctx);
         } catch (TemplateInputException ex) {
             log.debug("Per-tone variant '{}' not found; falling back to base template '{}'",
                     htmlPath, basePath);
-            return templateEngine.process(basePath, ctx);
+            return processBaseOrMinimalFallback(templateName, basePath, ctx);
         }
+    }
+
+    /**
+     * Render the base template, degrading to a minimal inline fallback body when
+     * the base template resource is genuinely missing (GAP-1053). A missing base
+     * template MUST NOT escape as an unhandled exception that crashes the email
+     * consumer — instead WARN-log (so the bug stays visible) + emit a minimal,
+     * clearly-marked HTML body so the message can still be delivered.
+     */
+    private String processBaseOrMinimalFallback(String templateName, String basePath, Context ctx) {
+        try {
+            return templateEngine.process(basePath, ctx);
+        } catch (TemplateInputException ex) {
+            log.warn("Email base template '{}' is missing — emitting minimal fallback body. "
+                    + "Fix: add src/main/resources/templates/{}.html", basePath, basePath);
+            return minimalFallbackHtml(templateName);
+        }
+    }
+
+    /**
+     * Minimal, generic HTML body used when an email template is missing entirely.
+     * Intentionally generic (no template-specific copy) — its only job is to keep
+     * the send path alive instead of crashing the consumer. The HTML comment marks
+     * the degradation so it is identifiable in delivered mail / test assertions.
+     */
+    private String minimalFallbackHtml(String templateName) {
+        return "<!DOCTYPE html><html lang=\"vi\"><head><meta charset=\"UTF-8\"></head><body>"
+                + "<!-- minimal fallback: template '" + templateName + "' missing (GAP-1053) -->"
+                + "<p>Xin chào,</p>"
+                + "<p>Bạn vừa nhận được một thông báo từ KiteClass. "
+                + "Vui lòng đăng nhập vào hệ thống để xem chi tiết.</p>"
+                + "<p>Trân trọng,<br/>Đội ngũ KiteClass</p>"
+                + "</body></html>";
     }
 
     /**

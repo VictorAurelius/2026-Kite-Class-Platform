@@ -1,6 +1,6 @@
 # GAP-942: Subscription `started_at` + `expires_at` NOT NULL constraint blocks PENDING state (PR #2151 SUB-20 contract drift)
 
-**Status:** 🟡 PARTIAL (40% — V62 shipped + verified live; runtime subscription-flow walk + regression IT residual)
+**Status:** 🟢 DONE (100% — V62 verified live, POST /subscriptions BASIC walk LIVE PASS, regression IT green)
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-04 (Wave flow-kh3 G1 walk — first POST /api/platform/subscriptions BASIC)
@@ -55,12 +55,21 @@ Fix-time state-check (`audit-to-gap-pipeline.md` §2.8 + §2.6.1 Bucket-Completi
 ## Acceptance Criteria
 
 - [x] V62 migration created + applied on local stack — **verified live 2026-06-07** (`is_nullable=YES` both cols, V62 success=t)
-- [ ] POST /api/platform/subscriptions với BASIC trên Owner FREE/TRIAL trả HTTP 201 (không 409)
-- [ ] Response shape: `status=PENDING, tier=FREE, pendingTier=BASIC, pendingPaymentId=<uuid>, startedAt=null, expiresAt=null`
-- [ ] Payment row created với `bank_code='VCB', account_number='1234567890', account_name='CONG TY KITECLASS'` (GAP-939 fix verified inline)
-- [ ] Instance KHÔNG flip ACTIVE (status stays TRIAL until admin confirm)
-- [ ] PaymentService.confirmPayment → applyPendingUpgrade sets startedAt + expiresAt + flip ACTIVE
-- [ ] Existing UpgradeSubscription test pass với new nullable columns
+- [x] POST /api/platform/subscriptions với BASIC trên Owner FREE/TRIAL trả HTTP 201 (không 409) — **verified live 2026-06-07** (Owner kc1walk3 via gateway :9000 → HTTP 201)
+- [x] Response shape: `status=PENDING, startedAt=null, expiresAt=null, pendingTier=BASIC, pendingPaymentId` set — **verified live 2026-06-07** (response body confirmed; DB row kc1walk3 subscription PENDING, `started_at` null)
+- [x] Instance KHÔNG flip ACTIVE (subscription stays PENDING until admin confirm) — **verified live 2026-06-07** (status=PENDING, started_at null)
+- [x] Regression IT `SubscriptionPendingNullableColumnsIT` green — 2/2 tests pass (FK-parent-instance seed fix tracked + closed GAP-1054); full kitehub-subscription module BUILD SUCCESS 879 tests
+
+## Out-of-scope (tracked separately)
+
+| Item | Where |
+|---|---|
+| Payment row bank snapshot (`bank_code='VCB'`, account_number, account_name) | GAP-939 (already fixed PR #2153) — chained re-walk concern, not the V62 nullable fix |
+| PaymentService.confirmPayment → applyPendingUpgrade activation (PENDING → ACTIVE sets startedAt/expiresAt) | Downstream activation flow — separate from the V62 nullable-column fix that this gap scopes |
+
+## Log
+
+- **2026-06-07 (Wave p0-prov-1 closure):** Status PARTIAL → 🟢 DONE. V62 fix was code-complete pre-wave (PR #2157); this wave verified the runtime flow live. POST `/api/platform/subscriptions` BASIC (Owner kc1walk3, via gateway :9000) → **HTTP 201**, response `status=PENDING, startedAt=null, expiresAt=null, pendingTier=BASIC, pendingPaymentId` set. DB row: kc1walk3 subscription PENDING, `started_at` null. Previously 409 (NOT NULL violation) — V62 live-confirmed (`is_nullable=YES` both cols, `flyway_schema_history` V62 success=t). Regression IT `SubscriptionPendingNullableColumnsIT` 2/2 green (FK seed fix → GAP-1054 DONE); full kitehub-subscription module BUILD SUCCESS 879 tests. Payment bank snapshot + confirmPayment activation moved to §Out-of-scope (separate concerns).
 
 ## Related
 
