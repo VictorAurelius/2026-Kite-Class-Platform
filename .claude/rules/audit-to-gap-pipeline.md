@@ -7,10 +7,10 @@ paths:
 # Audit → Gap → Fix Pipeline
 
 **Priority:** 🟠 MANDATORY — audit findings governance
-**Version:** 1.4.3
+**Version:** 1.5.0
 **Created:** 2026-04-16
-**Last-Reviewed:** 2026-05-19
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.4.1 PATCH self-approve per `rule-change-process.md` §5; §2.8 step 0 added — "Canonical-status lookup first" recommends querying `gap-status.csv` via `query-gaps.sh` before heavier state-check, per `gap-architecture-v2.md` Phase 4 integration. No constraint change; additive efficiency note. v1.4.0 (kept): adds §2.8 Fix-Time State-Check extending state-check family from gap-filing (§2.5) + wave-planning (§2.6) + decision-doc (§2.7) to **fix pick-up time**; paired same-PR with memory `feedback_gap_state_check_required.md` extension + worked self-test on 2026-05-11 GAP-450 session per §6.5 Enforcement Parity Mandate; no constraint loosening. v1.3.0 (kept): paired same-PR with PR-template Output Review Checklist row + memory `feedback_decision_doc_code_sync.md` + worked self-test on 2026-05-09 GAP-458 → GAP-459 cascade per §6.5 Enforcement Parity Mandate)
+**Last-Reviewed:** 2026-06-07
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.5.0 MINOR self-approve per `rule-change-process.md` §5; adds §2.6.1 Bucket-Completion Check extending wave-plan state-check (§2.6) from symbol-existence to bucket-deliverable-completion — closes Wave p0-1 META gap where all 3 buckets scoped against stale gap understanding (GAP-882/946/948 each had work already shipped; plan §1 cited "GAP-948 60%" yet scoped full bucket). Symbol-exists ≠ work-remaining. Paired same-PR with `_TEMPLATE.md` §4 Completion-verdict column + worked self-test on Wave p0-1 per §6.5 Enforcement Parity Mandate; no constraint loosening — adds previously-uncovered completion axis at wave-plan-time (§2.5 has it at filing-time, §2.8 at fix-time). v1.4.1 (kept): PATCH self-approve per `rule-change-process.md` §5; §2.8 step 0 added — "Canonical-status lookup first" recommends querying `gap-status.csv` via `query-gaps.sh` before heavier state-check, per `gap-architecture-v2.md` Phase 4 integration. No constraint change; additive efficiency note. v1.4.0 (kept): adds §2.8 Fix-Time State-Check extending state-check family from gap-filing (§2.5) + wave-planning (§2.6) + decision-doc (§2.7) to **fix pick-up time**; paired same-PR with memory `feedback_gap_state_check_required.md` extension + worked self-test on 2026-05-11 GAP-450 session per §6.5 Enforcement Parity Mandate; no constraint loosening. v1.3.0 (kept): paired same-PR with PR-template Output Review Checklist row + memory `feedback_decision_doc_code_sync.md` + worked self-test on 2026-05-09 GAP-458 → GAP-459 cascade per §6.5 Enforcement Parity Mandate)
 **Applies to:** Every audit run (UI /128, Quality /100, Security /100, Performance /100, API Contract /100, Ops Readiness /100, Business Logic /100), every wave plan drafting, every decision-doc PR (gap closure with config-shaped value, ADR, runbook with new domain/email/brand/env-var/region), and the gap files / fix PRs they produce
 
 ---
@@ -144,6 +144,40 @@ If 6th recurrence detected, escalate to meta-rule audit (this rule's enforcement
 **Reference template:** `documents/03-planning/waves/_TEMPLATE.md` §State-Check Evidence.
 
 **Detector:** `session-docs-check` Rule 16 (`scripts/check-docs.sh`) — fires on new wave plan files in diff; FAIL when symbol-shaped references in `## Scope` / `### Bucket` sections lack a corresponding `## State-Check Evidence` row OR the row's grep evidence is absent.
+
+#### Step 2.6.1: Bucket-Completion Check (BẮT BUỘC — symbol-exists ≠ work-remaining)
+
+**Why this exists:** §2.6 above verifies referenced symbols are PRESENT. But "present" is ambiguous — it can mean two opposite things:
+
+1. Symbol present as a **dependency the bucket builds on** (good — bucket adds NEW work using it)
+2. Symbol present as **the bucket's own deliverable already shipped** (bad — bucket has NO work remaining)
+
+§2.6 as written does NOT disambiguate, so a wave plan can pass symbol-existence verification yet scope buckets whose work is already done. Wave p0-1 (2026-06-07) is the worked example — ALL 3 buckets had scope-vs-reality drift: GAP-882 plan assumed `invoices.status` CHECK drift (already fixed by V86; only `invoice_items.item_type` remained), GAP-946 plan assumed fail-loud needed (already done; only defensive hardening remained), GAP-948 plan assumed outbox-wiring needed (100% shipped Wave provisioning-1). §4 State-Check Evidence verified the symbols EXIST → marked ✅ exists → but "exists" meant the deliverable was already there. §1 Brainstorm even cited "GAP-948 (P0, 60%)" — the planner SAW the completion % but did not act on it.
+
+§2.5 has the "fully implemented → SKIP" outcome at **gap-filing time**; §2.8 has it at **fix-pickup time**; §2.6.1 closes the same axis at **wave-plan time**.
+
+**Trigger:** any bucket in §3 Scope that targets an EXISTING gap (gap already filed, has a CSV row). Greenfield buckets (no pre-existing gap) — §2.6 symbol-existence sufficient, skip §2.6.1.
+
+**Required per bucket targeting an existing gap:**
+
+1. **Query CSV completion_pct first** (per `gap-architecture-v2.md` + §2.8 step 0): `bash scripts/query-gaps.sh <gap-id>`. ~50× cheaper than reading the gap file.
+2. **If `completion_pct > 0` (PARTIAL / IN_PROGRESS)** — gap is partly shipped. MUST read the gap's `## Current State` section + grep the deliverable to identify the EXACT residual delta before scoping the bucket. Do NOT scope the bucket to the gap's original full Proposed Fix.
+3. **Classify the bucket** with a completion verdict (new §4 State-Check Evidence column — see `_TEMPLATE.md`):
+
+| Verdict | Condition | Action |
+|---|---|---|
+| 🆕 **Greenfield** | Deliverable symbol absent; bucket creates it | Valid — scope as-is |
+| 🔨 **Delta** | Symbol present as dependency; gap PARTIAL with documented residual | Valid — scope bucket to the EXACT residual only; cite `completion_pct` + residual in §3 |
+| ⚠️ **Already-shipped** | Symbol present AND already implements the bucket's AC (gap residual = "live walk only" / "verify only" / nothing) | INVALID as a code bucket — reframe to verify-only (fold into G3 walk), OR drop the bucket, OR narrow to the true residual. Correct the wave's expected P0-count delta accordingly. |
+
+**Banned shortcuts (mirror §2.5/§2.6):**
+- Citing `completion_pct` in §1 Brainstorm but scoping the bucket to the full gap anyway (the Wave p0-1 miss)
+- Treating ✅ exists in §4 as "dependency present, safe to build" without checking whether the symbol IS the deliverable
+- Assuming "PARTIAL gap → there is bucket-sized work" — PARTIAL can mean 95% done with only a live-walk residual
+
+**If completion-check fails (bucket ⚠️ Already-shipped):** revise §3 Scope per the verdict action — reframe to verify-only / drop / narrow — and correct the wave's expected outcome (e.g., P0-count delta) so the plan doesn't over-promise DONE flips. Plan PR does not merge until every bucket targeting an existing gap shows a 🆕/🔨/⚠️-resolved verdict.
+
+**Reference template:** `documents/03-planning/waves/_TEMPLATE.md` §State-Check Evidence (Completion verdict column).
 
 ### Step 2.7: Decision-Doc Code-Sync (BẮT BUỘC trong cùng PR khi decision-doc thay đổi config-shaped value)
 
@@ -424,6 +458,7 @@ Sau khi meta-boost áp dụng, fix gaps theo thứ tự:
 
 ## 6. Log
 
+- **2026-06-07** (v1.5.0): MINOR — added §2.6.1 Bucket-Completion Check. Triggered by Wave p0-1 (2026-06-07) fix-time state-check surfacing that ALL 3 buckets scoped against stale gap understanding: GAP-882 (plan assumed `invoices.status` CHECK drift; V86 already fixed it, only `invoice_items.item_type` remained), GAP-946 (plan assumed fail-loud needed; already done, only defensive hardening remained → PARTIAL), GAP-948 (plan assumed outbox-wiring needed; 100% shipped Wave provisioning-1, only live walk remained). Root cause: §2.6 wave-plan state-check verifies symbol-EXISTENCE but not whether "exists" means dependency-present vs deliverable-already-shipped; plan §1 even cited "GAP-948 (P0, 60%)" yet scoped full bucket. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged "state check issue when creating the wave; META needs updating") → Classify ✓ (§2.5 covers completion at filing-time, §2.8 at fix-pickup-time; §2.6 wave-plan-time had symbol-existence only, NOT bucket-completion — uncovered axis) → Rule+Enforce ✓ (this §2.6.1 + `_TEMPLATE.md` §4 Completion-verdict column + worked self-test on Wave p0-1 3-bucket drift per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (Wave p0-1 itself — rule fires on all 3 buckets: GAP-882 🔨 Delta, GAP-946 🔨 Delta, GAP-948 ⚠️ Already-shipped → reframe verify-only) → Retro Log ✓ (this entry). META P1 force-multiplier per `meta-gap-priority.md` §3 — every future wave plan auto-classifies bucket completion → eliminate scope-vs-reality drift class at plan-time. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint covering previously-uncovered wave-plan-time completion axis; no constraint loosening; existing wave plans grandfathered; rule applies prospectively). Detector (extend `check-docs.sh` Rule 16 to flag bucket targeting PARTIAL gap without completion verdict) deferred per `incident-to-rule-pipeline.md` §3.1 — reviewer-checklist + worked self-test sufficient for v1.5.0; revisit when recurrence ≥2 post-rule.
 - **2026-05-19** (v1.4.3): PATCH — Wave 99C added §2.5 "Domain-specific CI detectors" subsection referencing 2 new CI scripts shipped same PR: `check-3-layer-completeness.sh` (closes Wave 92+98 GAP-664 recurrence #2 — business 3-layer completeness) + `check-cross-layer-contract-drift.sh` (closes Wave 98 GAP-662 — Java @RequestMapping vs api-contract.md URL match). Closes deferred-detector debt per GAP-675 META-META audit. No constraint loosening — additive enforcement layer. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-05-14** (v1.4.2): PATCH — added `paths:` frontmatter per Wave 73 Bucket A1 path-scope. No constraint change; rule auto-loads only when matching files in context.
 - **2026-05-11** (v1.4.1): PATCH — added §2.8 step 0 "Canonical-status lookup first" recommending `bash scripts/query-gaps.sh <prefix>` against `gap-status.csv` before heavier state-check. Reduces token cost ~50× per session per `gap-architecture-v2.md` token analysis. Closes the last remaining Phase 4 follow-up from `gap-architecture-v2.md` §10 for this rule. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — additive efficiency note, no constraint change).
