@@ -40,7 +40,7 @@
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
         <!-- GAP-468 + GAP-470: CVE overrides for transitive deps surfaced via GitHub code-scanning 2026-05-11 -->
         <!-- netty 4.2.13.Final: GAP-470 line bump for revised CVE-2026-42577 (advisory has no 4.1.x patch) -->
-        <netty.version>4.2.14.Final</netty.version>
+        <netty.version>4.2.15.Final</netty.version>
         <postgresql.version>42.7.11</postgresql.version>
         <bouncycastle.version>1.84</bouncycastle.version>
         <!-- commons-lang3 3.18.0 fixes CVE-2025-48924 (Spring Boot 3.5.14 ships 3.17.0) -->
@@ -455,7 +455,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.14</version>
+                <version>0.8.15</version>
                 <executions>
                     <!-- Surefire agent: writes target/jacoco.exec (default) -->
                     <execution>
