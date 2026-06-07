@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * Persistent row for content items flagged by {@link ContentModerationService}.
@@ -76,9 +77,12 @@ public class ModerationQueue extends BaseEntity {
     @Column(name = "reason", length = 500)
     private String reason;
 
-    /** Admin user assigned to adjudicate when status = NEEDS_HUMAN_REVIEW. */
+    /**
+     * Admin user (X-User-Id UUID, GAP-795) assigned to adjudicate when
+     * status = NEEDS_HUMAN_REVIEW. GAP-877: column retyped BIGINT -> uuid in V94.
+     */
     @Column(name = "assigned_reviewer_id")
-    private Long assignedReviewerId;
+    private UUID assignedReviewerId;
 
     @Column(name = "decided_at")
     private Instant decidedAt;

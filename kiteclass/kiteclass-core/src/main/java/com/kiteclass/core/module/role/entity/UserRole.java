@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * UserRole — assignment of Role to User.
@@ -51,8 +52,9 @@ public class UserRole extends BaseEntity {
     @Builder.Default
     private Instant assignedAt = Instant.now();
 
-    @Column(name = "assigned_by", length = 100)
-    private String assignedBy;
+    // GAP-877: actor X-User-Id is a UUID (GAP-795); column retyped VARCHAR -> uuid in V94.
+    @Column(name = "assigned_by")
+    private UUID assignedBy;
 
     @Column(name = "notes", length = 500)
     private String notes;
