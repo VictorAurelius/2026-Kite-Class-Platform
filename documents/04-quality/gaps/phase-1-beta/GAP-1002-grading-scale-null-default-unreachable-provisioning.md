@@ -1,6 +1,6 @@
 # GAP-1002: grading_scales NULL-default fallback unreachable (tenantFilter+RLS) + new-tenant provisioning seed thiếu
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** Backend (architecture — KC-6)
 **Found:** 2026-06-05 (Wave flow-kc6 G1 walk — V88 design discovery)
@@ -29,3 +29,4 @@
 ## Log
 
 - **2026-06-05 (Wave flow-kc6):** Filed — V88 per-tenant backfill unblocks existing tenants; provisioning hook + reference-data refactor = follow-up (Phase 1.5+ architecture).
+- **2026-06-07 (Wave g2-blockers-1 Bucket E, inline):** Chọn Option (a) low-risk provisioning hook. Thêm `DefaultGradingScaleProvisioner.seedDefaults()` (grade module) seed 8 default bands (mirror V88: A+/A/B+/B/C+/C/D/F, BR-GRD-005/006) per-tenant, idempotent (skip nếu tenant đã có scale). Wired vào `TenantProvisioningSaga.provisionInfrastructure()` — best-effort (failure không fail saga; relies on TenantContext set per GAP-1047 cho RLS). New tenant giờ tự có default scales → calculate/finalize không 404. AC#1+#2 met (Option a). **Status 🟡 PARTIAL ~85%** — code fix + compile PASS; **residual:** (a) IT (new-tenant provision → 8 scales seeded + calculate works); (b) Option (b) reference-data refactor (system-default shared) vẫn defer Phase 1.5+ architecture; (c) dead-code `findDefaultGradingScales() WHERE IS NULL` chưa remove (Phase 1.5 cleanup); (d) G3 re-walk pending coordinator.

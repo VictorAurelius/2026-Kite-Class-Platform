@@ -70,6 +70,8 @@ public class TenantProvisioningSaga {
     private final PlannerService planner;
     private final PlanExecutor executor;
     private final MeterRegistry meterRegistry;
+    private final com.kiteclass.core.module.grade.service.DefaultGradingScaleProvisioner
+            gradingScaleProvisioner;
 
     public Long provision(TenantCreatedEvent event) {
         FrontendInstance instance;
@@ -136,6 +138,20 @@ public class TenantProvisioningSaga {
     protected void provisionInfrastructure(TenantCreatedEvent event, FrontendInstance instance) {
         log.info("[saga] infrastructure provisioning stub tenant={} slug={} id={}",
                 event.getTenantId(), event.getSlug(), instance.getId());
+
+        // GAP-1002: seed per-tenant default grading scales so a brand-new tenant can
+        // calculate/finalize grades without a manual seed (the instance_id IS NULL
+        // "system default" fallback is unreachable under tenantFilter + RLS).
+        try {
+            // Pass null → provisioner uses TenantContext.getCurrentTenant() (UUID),
+            // which the saga consumer sets per GAP-1047. event.getTenantId() is a String.
+            gradingScaleProvisioner.seedDefaults(null);
+        } catch (Exception ex) {
+            // Reference-data seeding is best-effort — a failure must not fail the saga;
+            // ProvisioningStuckSweep + manual re-seed cover the rare miss.
+            log.error("[saga] default grading-scale seed failed tenant={} — continuing",
+                    event.getTenantId(), ex);
+        }
     }
 
     private void runBrandingPlan(TenantCreatedEvent event, FrontendInstance instance) {

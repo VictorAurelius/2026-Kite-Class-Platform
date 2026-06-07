@@ -3,6 +3,7 @@ package com.kiteclass.core.module.grade.service;
 import com.kiteclass.core.common.constant.GradeStatus;
 import com.kiteclass.core.common.constant.TeacherClassRole;
 import com.kiteclass.core.common.context.TenantContext;
+import com.kiteclass.core.common.context.UserContext;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.PermissionDeniedException;
 import com.kiteclass.core.common.exception.ValidationException;
@@ -30,6 +31,8 @@ import com.kiteclass.core.module.teacher.entity.TeacherClass;
 import com.kiteclass.core.module.teacher.repository.TeacherClassRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -261,8 +264,13 @@ public class GradeServiceImpl implements GradeService {
         // 1. Find grade
         Grade grade = findGradeById(gradeId);
 
-        // 2. Permission check: Only MAIN_TEACHER can finalize
-        validateTeacherPermission(grade, request.getTeacherId());
+        // GAP-1000: derive the acting teacher from the authenticated principal
+        // (X-User-Reference-Id via UserContext), NOT request.getTeacherId() which is
+        // client-supplied and spoofable. ADMIN bypasses the MAIN_TEACHER check (BR-GRD-007).
+        Long actingTeacherId = UserContext.getCurrentReferenceId();
+
+        // 2. Permission check: Only MAIN_TEACHER (or ADMIN) can finalize
+        validateTeacherPermission(grade, actingTeacherId);
 
         // 3. Validate: Already finalized
         if (grade.isFinalized()) {
@@ -285,13 +293,13 @@ public class GradeServiceImpl implements GradeService {
             grade.setComments(request.getComments());
         }
 
-        // 7. Finalize
-        grade.finalize(request.getTeacherId());
+        // 7. Finalize — record the authenticated actor, not the request body value
+        grade.finalize(actingTeacherId);
 
         // 8. Save
         Grade savedGrade = gradeRepository.save(grade);
 
-        log.info("Finalized grade {} by teacher {}", gradeId, request.getTeacherId());
+        log.info("Finalized grade {} by teacher {}", gradeId, actingTeacherId);
 
         return gradeMapper.toResponse(savedGrade);
     }
@@ -561,6 +569,12 @@ public class GradeServiceImpl implements GradeService {
      * @throws PermissionDeniedException if teacher is not MAIN_TEACHER
      */
     private void validateTeacherPermission(Grade grade, Long teacherId) {
+        // GAP-1000: ADMIN / PLATFORM_ADMIN has full access (BR-GRD-007) and has no
+        // TeacherClass row, so it must bypass the MAIN_TEACHER check.
+        if (isAdmin()) {
+            return;
+        }
+
         TeacherClass teacherClass = teacherClassRepository
                 .findByTeacherIdAndClassId(teacherId, grade.getClassId())
                 .orElseThrow(() -> new PermissionDeniedException("TEACHER_NOT_IN_CLASS"));
@@ -568,6 +582,22 @@ public class GradeServiceImpl implements GradeService {
         if (teacherClass.getRole() != TeacherClassRole.MAIN_TEACHER) {
             throw new PermissionDeniedException("ONLY_MAIN_TEACHER_CAN_MODIFY_GRADE");
         }
+    }
+
+    /**
+     * GAP-1000: whether the authenticated principal holds an ADMIN-class role.
+     * Mirrors {@code AuthorizationBean.isAdmin()} (PLATFORM_ADMIN / ADMIN full access).
+     *
+     * @return true if the current request carries ROLE_ADMIN or ROLE_PLATFORM_ADMIN
+     */
+    private boolean isAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+        return auth.getAuthorities().stream()
+                .map(a -> a.getAuthority())
+                .anyMatch(r -> "ROLE_PLATFORM_ADMIN".equals(r) || "ROLE_ADMIN".equals(r));
     }
 
     /**
