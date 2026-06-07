@@ -1,8 +1,11 @@
 package com.kiteclass.core.module.payment.record.service.impl;
 
 import com.kiteclass.core.common.context.TenantContext;
+import com.kiteclass.core.common.exception.BusinessException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.PermissionDeniedException;
+import com.kiteclass.core.common.idempotency.IdempotencyScope;
+import com.kiteclass.core.common.idempotency.IdempotencyService;
 import com.kiteclass.core.module.invoice.entity.Invoice;
 import com.kiteclass.core.module.invoice.repository.InvoiceRepository;
 import com.kiteclass.core.module.payment.record.dto.PaymentRecordResponse;
@@ -12,6 +15,7 @@ import com.kiteclass.core.module.payment.record.repository.PaymentRecordReposito
 import com.kiteclass.core.module.payment.record.service.PaymentRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +42,7 @@ public class PaymentRecordServiceImpl implements PaymentRecordService {
 
     private final InvoiceRepository invoiceRepository;
     private final PaymentRecordRepository paymentRecordRepository;
+    private final IdempotencyService idempotencyService;
 
     @Override
     @Transactional
@@ -59,12 +64,31 @@ public class PaymentRecordServiceImpl implements PaymentRecordService {
             throw new PermissionDeniedException("PAYMENT_RECORD_CROSS_TENANT_DENIED");
         }
 
-        // Idempotency note (BR-PAYMENT-METHOD-004):
-        // If idempotencyKey provided, check for existing record with same (invoice, key) tuple.
-        // Phase 1 BETA simplification: rely on FE deduplication + controller-level idempotency-key header logging.
-        // Full DB-backed dedup deferred until duplicate-record incident class surfaces in production.
-        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
-            log.debug("Idempotency-Key received for payment record: invoiceId={} key={}", invoiceId, idempotencyKey);
+        // GAP-1004: over-payment guard (BR-INV-004 balanceDue = total - amountPaid).
+        // Recording more than the outstanding balance drove balance_due negative
+        // + flipped the invoice to PAID for an over-charge. Reject with 400.
+        BigDecimal balanceDue = invoice.getBalanceDue();
+        if (request.getAmount().compareTo(balanceDue) > 0) {
+            log.warn("Over-payment rejected: invoiceId={} amount={} exceeds balanceDue={}",
+                    invoiceId, request.getAmount(), balanceDue);
+            throw new BusinessException("PAYMENT_EXCEEDS_BALANCE", HttpStatus.BAD_REQUEST);
+        }
+
+        // GAP-1004: DB-side idempotency (BR-PAYMENT-METHOD-004). A replayed
+        // Idempotency-Key previously created a 2nd payment_records row + double-counted
+        // amount_paid. Persist the (tenant, key, PAYMENT_RECORD) marker; a replay short-
+        // circuits with 409 instead of writing a duplicate.
+        boolean idempotent = idempotencyKey != null && !idempotencyKey.isBlank();
+        String requestHash = null;
+        if (idempotent) {
+            requestHash = IdempotencyService.hashRequest(
+                    invoiceId + "|" + request.getAmount() + "|" + request.getMethod());
+            if (idempotencyService.findExisting(currentTenant, idempotencyKey, IdempotencyScope.PAYMENT_RECORD)
+                    .isPresent()) {
+                log.info("Duplicate payment record suppressed (idempotency replay): invoiceId={} key={}",
+                        invoiceId, idempotencyKey);
+                throw new BusinessException("PAYMENT_RECORD_DUPLICATE", HttpStatus.CONFLICT);
+            }
         }
 
         Instant paidAt = request.getPaidAt() != null ? request.getPaidAt() : Instant.now();
@@ -85,6 +109,15 @@ public class PaymentRecordServiceImpl implements PaymentRecordService {
         BigDecimal currentPaid = invoice.getAmountPaid() != null ? invoice.getAmountPaid() : BigDecimal.ZERO;
         invoice.setAmountPaid(currentPaid.add(request.getAmount()));
         invoiceRepository.save(invoice);
+
+        // GAP-1004: persist the idempotency marker so a replay of the same key
+        // short-circuits above. recordRequest returns false on a concurrent-race
+        // loss → treat as duplicate (409).
+        if (idempotent && !idempotencyService.recordRequest(
+                currentTenant, idempotencyKey, IdempotencyScope.PAYMENT_RECORD,
+                null, requestHash, HttpStatus.CREATED.value(), String.valueOf(saved.getId()))) {
+            throw new BusinessException("PAYMENT_RECORD_DUPLICATE", HttpStatus.CONFLICT);
+        }
 
         log.info("Payment recorded: invoiceId={} method={} amount={} recordedBy={} tenant={}",
                 invoiceId, request.getMethod(), request.getAmount(), recordedByUserId, currentTenant);

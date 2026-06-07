@@ -40,5 +40,14 @@ public enum IdempotencyScope {
      * this enum value is reserved so future migration can converge the
      * two tables into one.
      */
-    PAYMENT
+    PAYMENT,
+
+    /**
+     * Staff/admin manual payment recording against an invoice. Maps to
+     * {@code POST /api/v1/invoices/{invoiceId}/record-payment}
+     * (kiteclass-core PaymentRecordController). GAP-1004 — DB-side dedup so a
+     * replayed {@code Idempotency-Key} does not create a duplicate
+     * {@code payment_records} row + double-count {@code invoice.amount_paid}.
+     */
+    PAYMENT_RECORD
 }

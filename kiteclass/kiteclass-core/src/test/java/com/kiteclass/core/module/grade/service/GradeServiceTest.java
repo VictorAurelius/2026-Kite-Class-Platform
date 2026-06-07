@@ -3,6 +3,7 @@ package com.kiteclass.core.module.grade.service;
 import com.kiteclass.core.common.constant.GradeStatus;
 import com.kiteclass.core.common.constant.TeacherClassRole;
 import com.kiteclass.core.common.context.TenantContext;
+import com.kiteclass.core.common.context.UserContext;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.PermissionDeniedException;
 import com.kiteclass.core.common.exception.ValidationException;
@@ -103,6 +104,12 @@ class GradeServiceTest {
         // Set tenant context
         TenantContext.setCurrentTenant(tenantId);
 
+        // GAP-1000: finalizeGrade now derives the acting teacher from the authenticated
+        // principal (UserContext.getCurrentReferenceId()), NOT request.getTeacherId().
+        // Seed the reference id as the MAIN_TEACHER so the MAIN_TEACHER permission check
+        // resolves against mainTeacherClass in the finalize tests.
+        UserContext.setCurrentReferenceId(teacherId);
+
         // Setup test student
         testStudent = Student.builder()
                 .email("student@test.com")
@@ -162,6 +169,7 @@ class GradeServiceTest {
     @AfterEach
     void tearDown() {
         TenantContext.clear();
+        UserContext.clear();
     }
 
     // ==================== Initialize Grade Tests ====================

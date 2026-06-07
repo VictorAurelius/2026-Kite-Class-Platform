@@ -3,6 +3,8 @@ package com.kiteclass.core.module.payment.record.service;
 import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.PermissionDeniedException;
+import com.kiteclass.core.common.idempotency.IdempotencyScope;
+import com.kiteclass.core.common.idempotency.IdempotencyService;
 import com.kiteclass.core.module.invoice.entity.Invoice;
 import com.kiteclass.core.module.invoice.repository.InvoiceRepository;
 import com.kiteclass.core.module.payment.record.dto.PaymentRecordResponse;
@@ -28,6 +30,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -58,6 +61,9 @@ class PaymentRecordServiceImplTest {
     @Mock
     private PaymentRecordRepository paymentRecordRepository;
 
+    @Mock
+    private IdempotencyService idempotencyService;
+
     @InjectMocks
     private PaymentRecordServiceImpl service;
 
@@ -82,6 +88,8 @@ class PaymentRecordServiceImplTest {
         invoice.setId(invoiceId);
         invoice.setInstanceId(TENANT_A);
         invoice.setAmountPaid(BigDecimal.ZERO);
+        // GAP-1004 over-payment guard: balanceDue = total - amountPaid must cover the payment.
+        invoice.setTotal(new BigDecimal("1500000"));
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(paymentRecordRepository.save(any(PaymentRecord.class)))
@@ -90,6 +98,11 @@ class PaymentRecordServiceImplTest {
                     pr.setId(17L);
                     return pr;
                 });
+        // GAP-1004 idempotency: this request supplies an Idempotency-Key, so the
+        // service performs a lookup (no prior record) + records the marker.
+        when(idempotencyService.findExisting(any(), any(), any())).thenReturn(Optional.empty());
+        when(idempotencyService.recordRequest(any(), any(), any(), any(), any(), anyInt(), any()))
+                .thenReturn(true);
 
         RecordPaymentRequest req = RecordPaymentRequest.builder()
                 .method(PaymentRecordMethod.CASH)
@@ -159,6 +172,8 @@ class PaymentRecordServiceImplTest {
         invoice.setId(invoiceId);
         invoice.setInstanceId(TENANT_A);
         invoice.setAmountPaid(new BigDecimal("500000"));  // already 500k paid
+        // total 1.2M → balanceDue = 1.2M - 500k = 700k, exactly covers the 700k payment.
+        invoice.setTotal(new BigDecimal("1200000"));
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(paymentRecordRepository.save(any(PaymentRecord.class)))
@@ -187,6 +202,8 @@ class PaymentRecordServiceImplTest {
         invoice.setId(invoiceId);
         invoice.setInstanceId(TENANT_A);
         invoice.setAmountPaid(BigDecimal.ZERO);
+        // balanceDue = 300k covers the 300k payment.
+        invoice.setTotal(new BigDecimal("300000"));
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(paymentRecordRepository.save(any(PaymentRecord.class)))
