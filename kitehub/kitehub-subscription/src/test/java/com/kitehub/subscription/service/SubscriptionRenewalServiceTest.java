@@ -194,18 +194,28 @@ class SubscriptionRenewalServiceTest {
     }
 
     @Test
-    @DisplayName("Should manually renew subscription")
+    @DisplayName("Should manually renew subscription via pending payment gate (GAP-1016)")
     void shouldManuallyRenewSubscription() {
-        // Given
+        // Given — GAP-1016: manual renewal now creates a PENDING renewal payment and
+        // records it as the pending payment; cycle extension is deferred to payment confirm.
+        UUID renewalPaymentId = UUID.randomUUID();
+        Payment renewalPayment = new Payment();
+        renewalPayment.setId(renewalPaymentId);
+        renewalPayment.setAmountVnd(500_000L);
+        renewalPayment.setStatus(PaymentStatus.PENDING);
+
         when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
-        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+        when(paymentRepository.save(any(Payment.class))).thenReturn(renewalPayment);
         when(subscriptionRepository.save(any(Subscription.class))).thenReturn(subscription);
 
         // When
         renewalService.manualRenewal(subscriptionId);
 
-        // Then
+        // Then — a PENDING renewal payment is created and recorded as the pending payment;
+        // no instance reactivation / cycle extension happens here (deferred to confirm).
+        verify(paymentRepository).save(any(Payment.class));
         verify(subscriptionRepository).save(any(Subscription.class));
+        assertThat(subscription.getPendingPaymentId()).isEqualTo(renewalPaymentId);
     }
 
     @Test
