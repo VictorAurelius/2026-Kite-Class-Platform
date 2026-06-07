@@ -1,9 +1,10 @@
 # GAP-1049: 5 gateway route collision (shadowed/public paths route to wrong service or 400)
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend (gateway)
 **Found:** 2026-06-07 (G3 production-parity P2 cluster A — gateway route predicate audit, child of GAP-1042 META)
+**Closed:** 2026-06-07 (P3 G3 carve-out runtime walk — all 5 routes reach correct service via :9000)
 **Affects:** `kitehub-gateway` route table (`application.yml`) — 5 collisions across 3 backend services
 
 ## Problem
@@ -46,7 +47,7 @@ Same systemic root as GAP-1042: gateway route table lacks predicate discipline �
 - [x] `audit-gateway-routes.sh` scans kiteclass-core (BS#1) + models TenantResolver collision (BS#2)
 - [x] detector PASS (exit 0) with carve-outs present; catches all 5 collisions when carve-outs absent (before/after evidence in PR)
 - [x] YAML valid + shellcheck clean
-- [ ] Runtime gateway rebuild + route smoke (C1-C5 reach correct service, public paths no 400) — P3 G3 re-walk, coordinator
+- [x] Runtime gateway rebuild + route smoke (C1-C5 reach correct service, public paths no 400) — P3 G3 re-walk 2026-06-07: C1→200 subscription, C2→400-validation subscription, C3→400-validation kiteclass-core, C4→reached kiteclass-core (TenantResolver-skip OK; 500 webhook bug → GAP-1051), C5→400-validation kiteclass-core redeem. Evidence: `documents/04-quality/audits/architecture/2026-06-07-gateway-carveout-runtime-walk.md`
 
 ## Related
 
