@@ -26,6 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -79,6 +80,9 @@ class ReportControllerIT {
     @Autowired
     private ReportService reportService;
 
+    /** GAP-1039: every legitimate report request carries the gateway-forwarded tenant header. */
+    private static final String TENANT_HEADER = UUID.randomUUID().toString();
+
     @BeforeEach
     void resetMocks() {
         Mockito.reset(reportService);
@@ -110,7 +114,7 @@ class ReportControllerIT {
     void revenue_admin_returns200() throws Exception {
         when(reportService.getRevenueReport(12)).thenReturn(sampleRevenue());
 
-        mockMvc.perform(get("/api/v1/reports/revenue"))
+        mockMvc.perform(get("/api/v1/reports/revenue").header("X-Tenant-Id", TENANT_HEADER))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.period").value("month"))
@@ -126,7 +130,9 @@ class ReportControllerIT {
     void revenue_admin_forwardsMonthsParam() throws Exception {
         when(reportService.getRevenueReport(6)).thenReturn(sampleRevenue());
 
-        mockMvc.perform(get("/api/v1/reports/revenue").param("months", "6"))
+        mockMvc.perform(get("/api/v1/reports/revenue")
+                        .param("months", "6")
+                        .header("X-Tenant-Id", TENANT_HEADER))
                 .andExpect(status().isOk());
 
         verify(reportService).getRevenueReport(6);
@@ -138,7 +144,7 @@ class ReportControllerIT {
     void attendance_admin_returns200() throws Exception {
         when(reportService.getAttendanceReport(12)).thenReturn(sampleAttendance());
 
-        mockMvc.perform(get("/api/v1/reports/attendance"))
+        mockMvc.perform(get("/api/v1/reports/attendance").header("X-Tenant-Id", TENANT_HEADER))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.overallPresentRate").value(92.5))
@@ -173,6 +179,29 @@ class ReportControllerIT {
                         throw new AssertionError("Non-admin should NOT access reports, got " + sc);
                     }
                 });
+
+        verifyNoInteractions(reportService);
+    }
+
+    @Test
+    @DisplayName("GAP-1039 fail-closed — ADMIN without X-Tenant-Id is rejected (400, service NOT invoked)")
+    @WithMockUser(roles = "ADMIN")
+    void revenue_admin_noTenantHeader_failsClosed() throws Exception {
+        mockMvc.perform(get("/api/v1/reports/revenue"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value("TENANT_NOT_SET"));
+
+        // Cross-tenant aggregate leak guard: the report query must never run unfiltered.
+        verifyNoInteractions(reportService);
+    }
+
+    @Test
+    @DisplayName("GAP-1039 fail-closed — ADMIN without X-Tenant-Id denied attendance (400, service NOT invoked)")
+    @WithMockUser(roles = "ADMIN")
+    void attendance_admin_noTenantHeader_failsClosed() throws Exception {
+        mockMvc.perform(get("/api/v1/reports/attendance"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value("TENANT_NOT_SET"));
 
         verifyNoInteractions(reportService);
     }
