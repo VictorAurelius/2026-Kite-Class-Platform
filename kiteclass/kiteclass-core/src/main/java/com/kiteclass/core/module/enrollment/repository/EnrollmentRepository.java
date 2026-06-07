@@ -154,4 +154,27 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
            "AND e.deleted = false " +
            "ORDER BY e.enrollmentDate ASC")
     List<Enrollment> findActiveEnrollmentsByClassId(@Param("classId") Long classId);
+
+    /**
+     * Find all enrollments for a tenant with a given status (excluding deleted).
+     *
+     * <p>Used by the batch monthly invoice generation flow (GAP-297) to enumerate
+     * every active enrollment for a tenant. Filters by {@code instanceId} explicitly
+     * rather than relying on the Hibernate {@code tenantFilter}, since the batch flow
+     * may run outside an HTTP request (scheduled / system context) where the filter
+     * is not enabled.
+     *
+     * @param instanceId tenant ID from {@code TenantContext.getCurrentTenant()}
+     * @param status enrollment status to match (typically {@code ACTIVE})
+     * @return list of matching enrollments ordered by id
+     */
+    @Query("SELECT e FROM Enrollment e " +
+           "WHERE e.instanceId = :instanceId " +
+           "AND e.status = :status " +
+           "AND e.deleted = false " +
+           "ORDER BY e.id ASC")
+    List<Enrollment> findByInstanceIdAndStatusAndDeletedFalse(
+            @Param("instanceId") UUID instanceId,
+            @Param("status") EnrollmentStatus status
+    );
 }

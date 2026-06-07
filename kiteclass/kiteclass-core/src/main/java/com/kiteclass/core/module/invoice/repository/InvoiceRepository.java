@@ -80,6 +80,19 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     boolean existsByEnrollmentIdAndDeletedFalse(Long enrollmentId);
 
     /**
+     * Checks if a recurring monthly invoice already exists for the given
+     * (tenant, enrollment, billing month) — the idempotency guard for batch
+     * monthly invoice generation (GAP-297). Excludes soft-deleted rows.
+     *
+     * @param instanceId the tenant ID
+     * @param enrollmentId the enrollment ID
+     * @param billingMonth first day of the billed month
+     * @return true if a monthly invoice already exists for that key
+     */
+    boolean existsByInstanceIdAndEnrollmentIdAndBillingMonthAndDeletedFalse(
+            UUID instanceId, Long enrollmentId, LocalDate billingMonth);
+
+    /**
      * Finds all invoices for a student (excluding soft-deleted), paginated.
      *
      * @param studentId the student ID
