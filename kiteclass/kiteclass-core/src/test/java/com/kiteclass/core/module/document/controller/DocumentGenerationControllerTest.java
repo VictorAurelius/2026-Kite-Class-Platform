@@ -9,6 +9,7 @@ import com.kiteclass.core.module.document.DocumentRequest;
 import com.kiteclass.core.module.document.DocumentResponse;
 import com.kiteclass.core.module.document.branding.DocumentBrandingAssembler;
 import com.kiteclass.core.module.document.dto.DocumentGenerationRequestDto;
+import com.kiteclass.core.module.marketing.config.LandingPageSafetyProperties;
 import com.kiteclass.core.module.settings.dto.response.BrandingResponse;
 import com.kiteclass.core.module.settings.service.BrandingService;
 import java.util.Map;
@@ -74,6 +75,14 @@ class DocumentGenerationControllerTest {
         DocumentGenerationService documentGenerationService() {
             return mock(DocumentGenerationService.class);
         }
+
+        // GAP-1040: the @Import'd real DocumentBrandingAssembler now requires
+        // LandingPageSafetyProperties (logoUrl host allowlist). @WebMvcTest does not
+        // auto-bind @ConfigurationProperties, so provide the default-allowlist instance.
+        @Bean
+        LandingPageSafetyProperties landingPageSafetyProperties() {
+            return new LandingPageSafetyProperties();
+        }
     }
 
     @BeforeEach
@@ -85,7 +94,7 @@ class DocumentGenerationControllerTest {
                 .primaryColor("#2563EB")
                 .secondaryColor("#8B5CF6")
                 .accentColor("#10B981")
-                .logoUrl("https://cdn.example.com/logo.png")
+                .logoUrl("https://cdn.kitehub.me/logo.png")
                 .displayName("Kite Education Center")
                 .build());
     }
@@ -221,7 +230,7 @@ class DocumentGenerationControllerTest {
         org.assertj.core.api.Assertions.assertThat(sent.tenantId()).isEqualTo(TENANT_UUID.toString());
         org.assertj.core.api.Assertions.assertThat(sent.data())
                 .containsEntry("branding.primaryColor", "#2563EB")
-                .containsEntry("branding.logoUrl", "https://cdn.example.com/logo.png")
+                .containsEntry("branding.logoUrl", "https://cdn.kitehub.me/logo.png")
                 .containsEntry("branding.displayName", "Kite Education Center")
                 .containsEntry("invoice.number", "INV-001");
     }
