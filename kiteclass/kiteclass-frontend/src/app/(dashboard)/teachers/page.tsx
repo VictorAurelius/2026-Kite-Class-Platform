@@ -131,7 +131,7 @@ export default function TeachersPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold">Giáo viên</h1>
             <p className="text-muted-foreground">
@@ -139,7 +139,7 @@ export default function TeachersPage() {
             </p>
           </div>
           <Link href="/teachers/new">
-            <Button>
+            <Button className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Thêm giáo viên
             </Button>
@@ -147,7 +147,7 @@ export default function TeachersPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="max-w-md">
+          <div className="w-full max-w-md">
             <SearchInput
               placeholder="Tìm kiếm theo tên, email, chuyên môn..."
               onSearch={handleSearch}

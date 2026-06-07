@@ -112,7 +112,7 @@ export default function DashboardHomePage() {
 
   return (
     <div className="space-y-6 p-6">
-      <header className="flex items-end justify-between gap-4">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Tổng quan</h1>
           <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
@@ -121,7 +121,7 @@ export default function DashboardHomePage() {
 
       <section
         aria-label="Chỉ số trung tâm"
-        className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
+        className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6"
       >
         {kpiRow.map((kpi) => (
           <KPICard key={kpi.label} {...kpi} />

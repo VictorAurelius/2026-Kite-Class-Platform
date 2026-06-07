@@ -2,8 +2,11 @@ package com.kiteclass.core.module.invoice.controller;
 
 import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.module.invoice.dto.ApplyAdjustmentRequest;
+import com.kiteclass.core.module.invoice.dto.BatchInvoiceConfirmResponse;
+import com.kiteclass.core.module.invoice.dto.BatchInvoicePreviewResponse;
 import com.kiteclass.core.module.invoice.dto.InvoiceItemResponse;
 import com.kiteclass.core.module.invoice.dto.InvoiceResponse;
+import com.kiteclass.core.module.invoice.service.InvoiceBatchService;
 import com.kiteclass.core.module.invoice.service.InvoiceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -36,6 +40,46 @@ import java.util.List;
 public class InvoiceController {
 
     private final InvoiceService invoiceService;
+    private final InvoiceBatchService invoiceBatchService;
+
+    /**
+     * Previews batch monthly invoices for a month (GAP-297) — NO persistence.
+     *
+     * <p>Enumerates active enrollments for the current tenant × class tuition,
+     * applies mid-month pro-rata, and returns the projected invoice count, total
+     * revenue (VND) and per-enrollment line items so the Owner can review before
+     * confirming.
+     *
+     * @param month billed month in {@code yyyy-MM} form (e.g. {@code 2026-05})
+     * @return preview of the invoices that would be generated
+     */
+    @PostMapping("/batch-generate")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    public ResponseEntity<ApiResponse<BatchInvoicePreviewResponse>> batchGenerate(
+            @RequestParam("month") String month) {
+        log.info("POST /api/v1/invoices/batch-generate?month={}", month);
+        BatchInvoicePreviewResponse preview = invoiceBatchService.generatePreview(month);
+        return ResponseEntity.ok(ApiResponse.success(preview));
+    }
+
+    /**
+     * Confirms (persists) batch monthly invoices for a month (GAP-297).
+     *
+     * <p>Persists one invoice per active enrollment and emits an
+     * {@code InvoiceCreatedEvent} per created invoice. Idempotent — re-running for
+     * the same month skips enrollments already invoiced (no duplicates).
+     *
+     * @param month billed month in {@code yyyy-MM} form
+     * @return created/skipped counts + created invoice ids
+     */
+    @PostMapping("/batch-confirm")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    public ResponseEntity<ApiResponse<BatchInvoiceConfirmResponse>> batchConfirm(
+            @RequestParam("month") String month) {
+        log.info("POST /api/v1/invoices/batch-confirm?month={}", month);
+        BatchInvoiceConfirmResponse result = invoiceBatchService.confirm(month);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
 
     /**
      * Gets invoice by ID.

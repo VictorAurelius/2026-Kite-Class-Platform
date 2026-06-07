@@ -69,7 +69,8 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
               <Button
                 variant={isActive ? 'secondary' : 'ghost'}
                 className={cn(
-                  'w-full justify-start gap-3',
+                  // min-h-[44px]: WCAG 2.5.5 touch target ≥44px for mobile drawer nav
+                  'min-h-[44px] w-full justify-start gap-3',
                   isActive && 'bg-secondary font-medium'
                 )}
               >
