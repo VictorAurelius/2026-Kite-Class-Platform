@@ -1,6 +1,6 @@
 # GAP-223: AI Branding Migration Verification Governance
 
-**Status:** 🟡 PARTIAL — Sub-PR 223.1 SHIPPED 2026-04-26 (governance scaffolding); Sub-PR 223.2 (GAP-006 Gemma 4 9B migration) ⏸ **DEFERRED 2026-04-28** until local Ollama + Docker stack ready (see GAP-006 Blocked-on)
+**Status:** 🟢 DONE 2026-06-08 — governance scope hoàn tất (Sub-PR 223.1 + state-check 2026-06-08 xác nhận 6 governance AC shipped + intact). GAP-006 Gemma migration + real WCAG/vrg/ML impl DECOUPLED sang phase-2 (GAP-006/226/227/228) — KHÔNG còn là AC của gap governance này. Xem §Out-of-scope.
 **Priority:** 🔴 P0 Meta — **BLOCKS GAP-006** (Gemma 4 9B migration) per `meta-gap-priority.md` (meta > feature)
 **Domain:** Governance / Quality / AI / Audit
 **Found:** 2026-04-26 (session audit prompted by user question "đã đảm bảo rules + output review + test đầy đủ cho AI branding chưa?")
@@ -86,16 +86,26 @@ Ship GAP-006 với manual AC checklist mở rộng trong PR description. File fo
 
 Trade-off: 2 PR thay 1, +1 day delay. Nhưng đúng `meta-gap-priority.md` + `output-review-mandate.md` mandate.
 
-## Acceptance Criteria
+## Acceptance Criteria (governance scope)
 
-- [ ] Decision: A vs B vs C recorded in this gap's Log
-- [ ] Sub-PR 223.1 (audit-gate + matrix + skill + checklist) shipped
-- [ ] `output-review-mandate.md` matrix line 75 reflects reality (GAP-012/018 status accurate)
-- [ ] `audit-gate.py` triggers `ai-branding-quality-gate` on `kitehub-branding/**/*.java` changes
-- [ ] `quality/ai-branding-quality-gate/SKILL.md` exists with checklist mode + scoring rubric
-- [ ] `ai-branding-guidelines.md` §11 has "Migration test checklist" subsection
-- [ ] Follow-up gaps filed cho real implementation (WCAG/vrg/ML classifier — separate work)
-- [ ] **THEN** GAP-006 unblocked
+- [x] Decision: A vs B vs C recorded in this gap's Log — Option C (hybrid) chốt 2026-04-26
+- [x] Sub-PR 223.1 (audit-gate + matrix + skill + checklist) shipped — 2026-04-26
+- [x] `output-review-mandate.md` matrix line 75 reflects reality (GAP-012/018 status accurate) — synced Sub-PR 223.1
+- [x] `audit-gate.py` triggers `ai-branding-quality-gate` on branding `**/*.java` changes — state-check 2026-06-08: 3 pattern matches present
+- [x] `quality/ai-branding-quality-gate/SKILL.md` exists with checklist mode + scoring rubric — state-check 2026-06-08: file present
+- [x] `ai-branding-guidelines.md` §11 has "Migration test checklist" subsection — state-check 2026-06-08: §11.4 present (9 refs)
+- [x] Follow-up gaps filed cho real implementation (WCAG/vrg/ML classifier — separate work) — GAP-226/227/228 filed (OPEN, phase-2)
+
+## Out-of-scope (decoupled to phase-2 — per gap-done-discipline.md §4)
+
+| Item | Tracked by | Phase |
+|---|---|---|
+| GAP-006 Gemma 4 9B migration (needs Ollama + GPU infra — `feedback_gap006_infra_blocker.md`) | GAP-006 | phase-2 |
+| Real WCAG contrast measurement | GAP-226 | phase-2 |
+| Real visual-regression diff | GAP-227 | phase-2 |
+| Real ML content classifier | GAP-228 | phase-2 |
+
+Lý do decouple: gap này = **governance** (đảm bảo AI changes được verify) → scope đó DONE. GAP-006 (consumer migration) + real-impl là **feature/implementation** ở phase-2, tracked riêng. Coupling "THEN GAP-006 unblocked" vào AC governance là mis-scope (phát hiện state-check 2026-06-08): GAP-006 đã chuyển phase-2, không còn phase-1-beta. Governance scaffolding (audit-gate trigger + skill + §11.4 checklist) đã active → mọi AI change từ giờ auto-fire verification, đúng mục tiêu gap.
 
 ## Dependencies
 
@@ -125,6 +135,7 @@ Trade-off: 2 PR thay 1, +1 day delay. Nhưng đúng `meta-gap-priority.md` + `ou
 
 ## Log
 
+- **2026-06-08 (DONE — governance scope closed via state-check + GAP-006 decouple):** Fix-time state-check (per `audit-to-gap-pipeline.md` §2.8, user directive "state-check tránh fix thừa") verified ALL 6 governance AC shipped + intact: `ai-branding-quality-gate/SKILL.md` present, `audit-gate.py` 3 pattern matches, `ai-branding-guidelines.md` §11.4 (9 refs), `output-review-mandate.md` matrix synced, follow-up GAP-226/227/228 filed (OPEN phase-2). The 2 remaining unchecked AC ("THEN GAP-006 unblocked" + "Sub-PR 223.2 shipped") were GAP-006-coupling — mis-scope: GAP-006 is now phase-2 (Ollama/GPU infra blocker per `feedback_gap006_infra_blocker.md`), no longer phase-1-beta. Per `gap-done-discipline.md` §4, dropped those 2 AC → §Out-of-scope tracked by GAP-006/226/227/228 (phase-2). Governance gap (its actual scope) DONE; no fix needed (avoid redundant work). Status PARTIAL→DONE, 50→100, file → closed/.
 - **2026-04-28 (Sub-PR 223.2 DEFERRED)** — Pickup attempted at session start; Docker stack down + Ollama not reachable. Sub-PR 223.2 = GAP-006 Gemma 4 9B migration is infeasible on WSL2 CPU-only per `feedback_gap006_infra_blocker.md` (9B A/B test against MixSura long-pole AC). GAP-006 marked DEFERRED with explicit Blocked-on header; this gap stays 🟡 PARTIAL (governance scaffold from Sub-PR 223.1 remains valid + active — only the consumer migration is deferred). Resume conditions identical to GAP-006: Ollama running + Docker stack up. ROADMAP "Next recommended wave" updated to skip the cluster.
 - **2026-04-26 (later, Sub-PR 223.1 CORRECTION shipped)** — GAP-016 verification sweep surfaced module path bug in just-shipped PR #553. audit-gate.py rule patterns + skill SKILL.md trigger description + baseline audit references all targeted `kitehub-branding/` (architecture doc location) but v2 implementation actually landed in `kiteclass/kiteclass-core/module/{ai,branding,instance,quality,moderation,provisioning}/` Waves 2-4. Correction PR fixes patterns/paths to real kiteclass-core locations + real class names (AnalyzerService/PlannerService/PlanExecutor instead of architecture-doc names BrandingAnalyzer/Planner/Executor). Score 62/100 baseline stays (calibration was correct, only references wrong). Filed GAP-229 cho business docs v2 sync + 3 missing user guides. Architecture-doc → reality drift noted in skill (deferred follow-up, low-priority).
 - **2026-04-26 (later, Sub-PR 223.1 SHIPPED)** — Governance scaffolding landed in single PR per Option C plan. Files: (1) `.claude/skills/quality/ai-branding-quality-gate/SKILL.md` — manual checklist mode 5 sections × 20 = /100 scoring rubric, (2) `documents/04-quality/audits/ai-branding/2026-04-26-baseline.md` — first-ever baseline 62/100 ⚠️ BASELINE, (3) `.claude/hooks/audit-gate.py` AUDIT_RULES + AUDIT_DIRS extended với `ai-branding-quality-gate` rule + audit dir mapping; patterns: `kitehub-branding/src/main/java/`, `AIClient.java`, `OllamaClient.java`, `OpenAIClient.java`, `AIProviderConfig.java`, `AIProvider.java`, `BrandingPlanner.java`, `BrandingExecutor.java`, `BrandingAnalyzer.java`, `InstanceQualityReviewer.java`, `ContentModerationService.java`, (4) `.claude/rules/ai-branding-guidelines.md` — added §11.4 Migration test checklist subsection (5 sub-sections × 20 points; mandatory `/ai-branding-quality-gate` skill run; baseline 62/100 reference); MINOR bump v1.0 → v1.1.0 with frontmatter backfill per `rule-change-process.md` §3, (5) `output-review-mandate.md` matrix line 75 re-sync post-223.1, (6) 3 follow-up gaps filed: GAP-226 (real WCAG contrast), GAP-227 (real visual regression diff), GAP-228 (real ML content classifier) — Wave 8+ scope. Status updated 🔵 OPEN → 🟡 PARTIAL. Sub-PR 223.2 = GAP-006 migration BLOCKED-by-this-gap until next session schedule. AC checklist progress: 6/8 boxes done — only "GAP-006 unblocked" + "Sub-PR 223.2 shipped" remaining.

@@ -1,6 +1,6 @@
 # GAP-952: Saga compensation failure chỉ log warn — admin không biết để clean orphan
 
-**Status:** 🟡 PARTIAL (60% — app-level metric + alert + sweep + tests shipped; CloudWatch live-apply + fault-injection verify deferred to AWS restore)
+**Status:** 🟡 PARTIAL (60% — app-level metric + alert + sweep + tests shipped + tested local; CloudWatch live-apply + fault-injection→SNS verify deferred — needs running production stack, KHÔNG local-walkable. Note 2026-06-08: AWS account ĐÃ restore (GAP-612 DONE 2026-05-26); blocker thật giờ = stack idle + cần `start-stack.sh` + deploy + `terraform apply` cho CloudWatch alarms — defer per "không start stack" directive.)
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-04 (Wave flow-kh3 KC-1 pre-walk audit — 3-agent outside-in consensus)
@@ -43,4 +43,5 @@ App-level-vs-IaC split: no CloudWatch meter registry in this stack → alarm dri
 
 ## Log
 
+- **2026-06-08 (note correction — stale GAP-612 blocker):** Fix-time state-check: AC#1 (CloudWatch alarm live-apply) + AC#3 (fault-injection→SNS within 5min) genuinely require running production stack (terraform apply + CloudWatch agent + SNS) → NOT local-walkable, confirmed stays PARTIAL. App-level work (compensation counter + log token + `ProvisioningStuckSweep` cron) DONE + tested local (`TenantProvisioningSagaTest` +2 + `ProvisioningStuckSweepTest` 6/6). Correcting stale reference: prior note said "deferred to AWS restore GAP-612" — GAP-612 is DONE (account restored 2026-05-26); real residual blocker = stack idle (per user "không start stack" directive) + deploy + terraform apply. No local fix possible without stack; gap correctly PARTIAL.
 - **2026-06-06** Wave provisioning-1 Bucket D — app-level compensation alert (metric + log token) + `ProvisioningStuckSweep` @Scheduled cron + 2 CloudWatch metric-filter alarms → SNS shipped. NO Flyway migration (uses existing `initializing_at`/`generating_at`/`status` columns). Status OPEN → PARTIAL 60%: AC #2 DONE (cron + tests); AC #1 + #3 deferred (CloudWatch live-apply + fault-injection require AWS restore per GAP-612). Only `TenantProvisioningSaga.compensate()` edited (NOT the consumer — Bucket C owns the consumer hook).
