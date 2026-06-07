@@ -138,22 +138,22 @@ export default function StudentsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold">Học viên</h1>
             <p className="text-muted-foreground">
               Quản lý danh sách học viên của trung tâm
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <Link href="/admin/bulk-import">
-              <Button variant="outline">
+              <Button variant="outline" className="w-full sm:w-auto">
                 <Upload className="mr-2 h-4 w-4" />
                 Nhập hàng loạt
               </Button>
             </Link>
             <Link href="/students/new">
-              <Button>
+              <Button className="w-full sm:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
                 Thêm học viên
               </Button>
@@ -162,7 +162,7 @@ export default function StudentsPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="max-w-md">
+          <div className="w-full max-w-md">
             <SearchInput
               placeholder="Tìm kiếm theo tên, email..."
               onSearch={handleSearch}

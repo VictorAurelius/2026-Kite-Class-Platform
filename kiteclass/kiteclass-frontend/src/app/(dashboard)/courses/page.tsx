@@ -46,7 +46,7 @@ export default function CoursesPage() {
       {/* Wave 30 Bucket B — kiteclass-pro-v2 token application: refined header
           spacing + tracking-tight title per design system tokens. */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4 border-b pb-4">
+        <div className="flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <h1 className="text-3xl font-semibold tracking-tight">Khóa học</h1>
             <p className="text-sm text-muted-foreground">
@@ -54,7 +54,7 @@ export default function CoursesPage() {
             </p>
           </div>
           <Link href="/courses/new">
-            <Button>
+            <Button className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Thêm khóa học
             </Button>
@@ -62,7 +62,7 @@ export default function CoursesPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="max-w-md">
+          <div className="w-full max-w-md">
             <SearchInput
               placeholder="Tìm kiếm theo tên, mã khóa học..."
               onSearch={handleSearch}
