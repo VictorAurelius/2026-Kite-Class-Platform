@@ -59,9 +59,17 @@ import java.util.List;
                         name = "uk_invoices_instance_number",
                         columnNames = {"instance_id", "invoice_number"}
                 ),
+                // One invoice per (tenant, enrollment, billing month). Supersedes the
+                // V79 single-column uk_invoices_enrollment so an enrollment can carry one
+                // recurring invoice per month (GAP-297). The production migration V93
+                // declares this index with NULLS NOT DISTINCT + a partial WHERE clause to
+                // preserve the legacy "one auto-invoice per enrollment" guarantee for the
+                // enrollment-time auto-invoice path (billing_month = NULL); Hibernate DDL
+                // (test-only ddl-auto) cannot express those qualifiers, but batch invoices
+                // always carry a non-null billing_month so uniqueness holds in tests too.
                 @UniqueConstraint(
-                        name = "uk_invoices_enrollment",
-                        columnNames = {"enrollment_id"}
+                        name = "uk_invoices_enrollment_month",
+                        columnNames = {"instance_id", "enrollment_id", "billing_month"}
                 )
         },
         indexes = {
@@ -71,6 +79,7 @@ import java.util.List;
                 @Index(name = "idx_invoices_status", columnList = "status"),
                 @Index(name = "idx_invoices_due_date", columnList = "due_date"),
                 @Index(name = "idx_invoices_enrollment", columnList = "enrollment_id"),
+                @Index(name = "idx_invoices_billing_month", columnList = "billing_month"),
                 @Index(name = "idx_invoices_deleted", columnList = "deleted")
         }
 )
@@ -109,6 +118,20 @@ public class Invoice extends BaseEntity {
      */
     @Column(name = "enrollment_id")
     private Long enrollmentId;
+
+    /**
+     * Billing month for recurring monthly invoices (GAP-297).
+     *
+     * <p>Set to the first day of the billed month (e.g. {@code 2026-05-01} for
+     * "May 2026") by the batch monthly invoice generation flow. Combined with
+     * {@code enrollment_id} + {@code instance_id} it enforces idempotency — one
+     * invoice per enrollment per month (unique constraint
+     * {@code uk_invoices_enrollment_month}).
+     *
+     * <p>NULL for one-off auto-invoices created at enrollment time.
+     */
+    @Column(name = "billing_month")
+    private LocalDate billingMonth;
 
     /**
      * Invoice status.

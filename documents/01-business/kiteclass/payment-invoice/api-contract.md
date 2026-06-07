@@ -2,15 +2,16 @@
 domain: payment-invoice
 project: kiteclass
 audience: mixed
-last-updated: 2026-05-26
-version: 1.1.0
+last-updated: 2026-06-07
+version: 1.2.0
 ---
 
 # Payment & Invoice — API Contract
 
 > Source-of-truth: 5 controllers tại `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/{payment,invoice}/controller/`
-> Tổng số endpoint: **31** (8 PaymentController + 3 PaymentWebhookController + 10 InvoiceController + 5 RefundRequestController + 5 InstallmentPlanController)
+> Tổng số endpoint: **33** (8 PaymentController + 3 PaymentWebhookController + 12 InvoiceController + 5 RefundRequestController + 5 InstallmentPlanController)
 > Wave br-6 Bucket A (2026-05-26) — sync với 5 controllers verified empirical; closes GAP-231.
+> Wave p0-ux-1 Bucket A (2026-06-07) — thêm 2 batch monthly invoice endpoints (GAP-297).
 
 ---
 
@@ -30,6 +31,8 @@ Bảng này phục vụ `scripts/check-cross-layer-contract-drift.sh` heuristic 
 | GET /api/v1/invoices/student/{studentId}/overdue |
 | POST /api/v1/invoices/{id}/mark-paid |
 | PUT /api/v1/invoices/{id}/cancel |
+| POST /api/v1/invoices/batch-generate |
+| POST /api/v1/invoices/batch-confirm |
 | POST /api/v1/payments |
 | POST /api/v1/payments/installments |
 | GET /api/v1/payments/{id} |
@@ -173,7 +176,7 @@ Single source of truth: `com.kiteclass.core.module.payment.enums.PaymentMethod` 
 
 ---
 
-## 3. Invoice endpoints (10)
+## 3. Invoice endpoints (12)
 
 ### 3.1 `GET /api/v1/invoices/{id}`
 
@@ -270,6 +273,62 @@ Hủy hoá đơn.
 - **Path params:** `id` (Long, required)
 - **Response:** `200 ApiResponse<InvoiceResponse>` — invoice status flip → CANCELLED
 - **Errors:** `401 UNAUTHENTICATED`, `403 FORBIDDEN`, `404 NOT_FOUND`, `409 INVOICE_NOT_CANCELLABLE` (vd đã PAID)
+
+### 3.11 `POST /api/v1/invoices/batch-generate` (GAP-297)
+
+Xem trước (preview) batch hoá đơn học phí hàng tháng cho toàn bộ enrollment đang ACTIVE của tenant — **KHÔNG persist**. Owner dùng để review trước khi confirm.
+
+- **Auth:** Bearer JWT — chỉ role `ADMIN` / `OWNER` / `PLATFORM_ADMIN` (`@PreAuthorize`)
+- **Query params:** `month` (String, required) — tháng tính phí dạng `yyyy-MM` (vd `2026-05`)
+- **Request body:** none
+- **Logic:** liệt kê mọi enrollment ACTIVE của tenant (đã ghi danh on/before cuối tháng) × học phí (`enrollment.tuitionAmount`), áp pro-rata cho enrollment giữa tháng (`proratedTuition = tuition × billableDays / daysInMonth`, `billableDays = daysInMonth − ngày ghi danh + 1`), trừ `enrollment.discountPercent`.
+- **Response:** `200 ApiResponse<BatchInvoicePreviewResponse>`
+
+```json
+{
+  "success": true,
+  "data": {
+    "month": "2026-05",
+    "invoiceCount": 60,
+    "totalRevenue": 60000000.00,
+    "invoices": [
+      {
+        "enrollmentId": 12, "studentId": 34, "classId": 5, "classNameVi": "Toán 6A",
+        "tuitionAmount": 1000000.00, "discountPercent": 0.00,
+        "proratedTuition": 1000000.00, "discountAmount": 0.00, "total": 1000000.00,
+        "prorated": false, "billableDays": 31, "daysInMonth": 31
+      }
+    ]
+  }
+}
+```
+
+- **Errors:** `400 INVALID_MONTH_FORMAT` (month không phải `yyyy-MM`), `401 UNAUTHENTICATED`, `403 FORBIDDEN`
+
+### 3.12 `POST /api/v1/invoices/batch-confirm` (GAP-297)
+
+Tạo (persist) batch hoá đơn học phí hàng tháng + phát `InvoiceCreated` event cho mỗi invoice. **Idempotent** — chạy lại cho cùng (tenant, month) sẽ bỏ qua enrollment đã có hoá đơn tháng đó (không tạo trùng; enforced bởi unique constraint `uk_invoices_enrollment_month` trên `(instance_id, enrollment_id, billing_month)`).
+
+- **Auth:** Bearer JWT — chỉ role `ADMIN` / `OWNER` / `PLATFORM_ADMIN` (`@PreAuthorize`)
+- **Query params:** `month` (String, required) — dạng `yyyy-MM`
+- **Request body:** none
+- **Side-effects:** mỗi invoice mới = status `SENT`, `billing_month` = ngày đầu tháng, item `TUITION` (đã pro-rata) + adjustment `DISCOUNT` nếu có; phát `InvoiceCreatedEvent`.
+- **Response:** `200 ApiResponse<BatchInvoiceConfirmResponse>`
+
+```json
+{
+  "success": true,
+  "data": {
+    "month": "2026-05",
+    "createdCount": 60,
+    "skippedCount": 0,
+    "totalRevenue": 60000000.00,
+    "createdInvoiceIds": [101, 102, "…"]
+  }
+}
+```
+
+- **Errors:** `400 INVALID_MONTH_FORMAT`, `401 UNAUTHENTICATED`, `403 FORBIDDEN`
 
 ---
 
