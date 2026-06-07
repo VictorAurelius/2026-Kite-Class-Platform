@@ -1,6 +1,6 @@
 # GAP-1028: Admin audit-log list 500 — could not determine data type of parameter (nullable filter)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-06 (KH-9 admin console G1 walk)
@@ -45,3 +45,7 @@ Likely: convert `search` sang `JpaSpecificationExecutor` + dynamic Specification
 
 - Discovered in: KH-9 G1 walk — `documents/04-quality/audits/persona-review/2026-06-06-pre-walk-kh9-admin-console.md` (FM-1 area)
 - Related: GAP-1029 (audit completeness + table drift)
+
+## Log
+
+- **2026-06-07** (Wave g2-blockers-1 Bucket A, inline): Fix robust-by-construction thay vì chẩn đoán chính xác trigger. `AdminAuditLogRepository.search` chuyển từ single JPQL `(:param IS NULL OR ...)` sang `JpaSpecificationExecutor` + dynamic `Specification` — chỉ add predicate cho filter non-null → **KHÔNG BAO GIỜ bind null param** → lỗi "could not determine data type of parameter $5" không thể xảy ra bất kể Postgres version / sort / count-query restructuring (giải quyết discrepancy IT-pass-vs-live-500 mà không cần reproduce live: nguyên nhân đều là null-param typing, Specification loại bỏ hoàn toàn). Sort forced created_at DESC qua PageRequest. Signature `search(...)` giữ nguyên → consumer `AdminAuditLogController` không đổi. **Status 🟡 PARTIAL ~80%** — code fix + compile PASS; **residual:** (a) IT all-null + filtered (Postgres version khớp live); (b) G3 gateway :9000 re-walk GET /api/v1/admin/audit-logs → 200 pending coordinator.
