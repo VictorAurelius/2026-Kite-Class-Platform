@@ -34,3 +34,10 @@ KH-9 G1 walk catalog 2 audit-integrity issue (OWASP A09 logging):
 
 - Discovered in: KH-9 G1 walk — `documents/04-quality/audits/persona-review/2026-06-06-pre-walk-kh9-admin-console.md` (FM-1 + FM-2)
 - Related: GAP-1028 (audit-log read 500); pre-launch-owasp-rest-hardening-checklist §2.8 A09
+
+## Log
+
+- **2026-06-07** (Wave g2-blockers-1 Bucket A, inline — investigation, NOT yet fixed): Để OPEN sau khi GAP-1028 (sister) shipped. Investigation findings cho next session (tránh re-discover):
+  - **Part 1 (@Auditable suspend/activate):** suspend/activate ở `kitehub-admin/.../controller/AdminController.java` (suspendInstance line 140, activateInstance line 163). `@Auditable` annotation + `AdminAuditAspect` ở `kitehub-subscription/.../audit/`. kitehub-admin CÓ depend kitehub-subscription (pom.xml line 27) → annotation importable. **RISK chưa verify:** `AdminAuditAspect` (@Aspect) có được component-scan + active trong Spring context của kitehub-admin app không — nếu admin `@SpringBootApplication` chỉ scan `com.kitehub.admin`, aspect ở `com.kitehub.subscription.audit` KHÔNG fire → `@Auditable` thành no-op silent. PHẢI verify aspect active (hoặc add scan / re-declare aspect bean) TRƯỚC khi tin @Auditable ghi row. IT cross-module bắt buộc.
+  - **Part 2 (table drift):** V36 `admin_audit_log` (singular, entity `@Table(name="admin_audit_log")` dùng) + V54 enrichment singular. V50 `admin_audit_logs` (plural) = RLS/immutability target. Cần: xác nhận table nào code thực dùng (singular per entity) → apply immutability (no-UPDATE/no-DELETE trigger + RLS FORCE) lên ĐÚNG singular table qua migration mới; drop/migrate plural thừa. Security-sensitive (PDPL Art 11) — fresh-context care.
+  - **Status: 🔵 OPEN** — deferred từ Bucket A vì cross-module aspect risk + PDPL-immutability migration cần verify cẩn thận (không rush vào high-context). GAP-1028 sister đã ship riêng.
