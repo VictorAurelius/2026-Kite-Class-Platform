@@ -320,8 +320,11 @@ class GradeIntegrationTest {
                 .build();
 
         // Act & Assert
+        // GAP-1000: finalize derives the acting teacher from the authenticated principal
+        // (X-User-Reference-Id), not request.teacherId. Send AS the seeded MAIN_TEACHER.
         mockMvc.perform(post("/api/v1/grades/{id}/finalize", testGrade.getId())
                         .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Reference-Id", mainTeacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(finalizeRequest)))
                 .andExpect(status().isOk())
@@ -356,8 +359,11 @@ class GradeIntegrationTest {
                 .build();
 
         // Act & Assert
+        // GAP-1000: send AS the seeded MAIN_TEACHER so the request reaches weight validation
+        // (400) instead of failing the permission check (403) first.
         mockMvc.perform(post("/api/v1/grades/{id}/finalize", testGrade.getId())
                         .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Reference-Id", mainTeacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(finalizeRequest)))
                 .andExpect(status().isBadRequest())
