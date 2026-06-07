@@ -1,6 +1,5 @@
 package com.kiteclass.core.integration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
@@ -48,9 +47,6 @@ class OnboardingSampleDataIT {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Test
     @DisplayName("Import sample data seeds demo set, is tenant-scoped, and is idempotent")

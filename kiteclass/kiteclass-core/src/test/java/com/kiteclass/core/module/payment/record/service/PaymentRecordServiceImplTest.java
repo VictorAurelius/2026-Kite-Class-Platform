@@ -3,7 +3,6 @@ package com.kiteclass.core.module.payment.record.service;
 import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.PermissionDeniedException;
-import com.kiteclass.core.common.idempotency.IdempotencyScope;
 import com.kiteclass.core.common.idempotency.IdempotencyService;
 import com.kiteclass.core.module.invoice.entity.Invoice;
 import com.kiteclass.core.module.invoice.repository.InvoiceRepository;
