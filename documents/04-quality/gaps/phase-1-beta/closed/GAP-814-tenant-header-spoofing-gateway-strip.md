@@ -1,13 +1,16 @@
 ---
 id: GAP-814
 title: Host-spoofing X-Tenant-Id — gateway chưa strip client-sent tenant header (cross-tenant IDOR)
-status: PARTIAL
+status: DONE
 priority: P0
 phase: phase-1-beta
 domain: Mixed
 created: 2026-05-29
-last_updated: 2026-06-02
+last_updated: 2026-06-07
+closed: 2026-06-07
 ---
+
+> **CLOSED 2026-06-07 (P3 G3 runtime walk):** Bucket A in-scope work complete + runtime-verified via gateway :9000. Direct X-Tenant-Id spoof test: ownerB (JWT tenantId=B) sends client header `X-Tenant-Id: <tenantA>` → GET tenant-A course → **404** (gateway strips spoofed header, injects B from verified JWT; B cannot see A's data). X-User-Id spoof likewise stripped → 404. All cross-tenant IDOR walks this session (KH-5/6/7/8, KC-3/4/5/6) depend on + confirm this anti-spoof. The 3 unchecked ACs below are explicitly out-of-Bucket-A scope (network isolation, OWASP audit-suite regression, TenantResolver claim-fallback signature verify) → tracked GAP-825 (OPEN P1, AWS-gated). Evidence: `documents/04-quality/audits/persona-review/2026-06-07-g3-security-cluster-idor-walk.md`.
 
 # GAP-814 — Host-spoofing X-Tenant-Id (cross-tenant IDOR risk)
 

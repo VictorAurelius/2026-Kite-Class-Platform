@@ -1,9 +1,10 @@
 # GAP-1050: InstanceController residual cross-tenant IDOR — update + owner-enumeration endpoints
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-07 (G3 P2 review — residual của GAP-1025)
+**Closed:** 2026-06-07 (G3 runtime walk via :9000 — cross-tenant PUT 403, cross-user GET /owner 403, self/admin 200)
 **Affects:** `InstanceController` (kitehub-subscription) — `PUT/PATCH /{id}`, `GET /owner/{ownerId}`
 
 ## Problem
@@ -35,9 +36,9 @@ GAP-1025 scope chỉ cover enumeration-list + destructive (delete/purge/extend-t
 - [x] PLATFORM_ADMIN GET /owner/{any} → 200 (IT `shouldAllowAdminEnumerateAnyOwner`)
 - [x] `TenantOwnershipGuard.requireSelfOrAdmin` unit tests (self/cross-user/missing/malformed/admin-bypass) — 4 cases PASS
 - [x] `InstanceControllerIntegrationTest` 12/12 + `TenantOwnershipGuardTest` 11/11 + `InstanceApiContractTest` 10/10 PASS local (Testcontainers Postgres, strict-warnings)
-- [ ] G3 runtime walk on live stack (P3 — pending Flow Verification Campaign G3 step)
+- [x] G3 runtime walk on live stack — 2026-06-07 via gateway :9000 (minted HS512 JWT): ownerB PUT instance A cross-tenant → **403**; ownerB GET /owner/{userA} cross-user → **403**; ownerB GET /owner/{self} → **200**; PLATFORM_ADMIN GET /owner/{any} → **200**. Evidence: `documents/04-quality/audits/persona-review/2026-06-07-g3-security-cluster-idor-walk.md` + this closure.
 
-PARTIAL: code-layer fix + tests shipped + verified local; G3 runtime walk (production-equivalent live verify per `pre-handoff-self-test-completeness.md` §3) pending — flip DONE after walk.
+DONE: code-layer fix + tests shipped + verified local; G3 runtime walk (production-equivalent live verify per `pre-handoff-self-test-completeness.md` §3) PASS 2026-06-07.
 
 ## Related
 
