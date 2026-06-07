@@ -10,11 +10,14 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
 import { trackOnboarding } from '@/lib/onboarding-telemetry';
+import { onboardingApi } from '@/lib/api/onboarding';
+import { toast } from '@/hooks/use-toast';
 
 export const STORAGE_KEY = 'kiteclass-onboarding-progress';
 const TOTAL_STEPS = 5;
@@ -114,6 +117,41 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [completed, setCompleted] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [importingSample, setImportingSample] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Seed a believable demo set (1 teacher + 1 class + 3 students) so a first-time
+  // Owner can explore the system instead of staring at an empty dashboard. Idempotent
+  // on the backend — re-clicking never duplicates data.
+  const handleImportSampleData = useCallback(async () => {
+    setImportingSample(true);
+    try {
+      const result = await onboardingApi.importSampleData();
+      if (result.alreadyImported) {
+        toast({
+          title: 'Dữ liệu mẫu đã tồn tại',
+          description: 'Bạn đã tạo dữ liệu mẫu trước đó rồi.',
+        });
+      } else {
+        toast({
+          title: 'Đã tạo dữ liệu mẫu',
+          description: 'Đã tạo: 1 lớp, 3 học sinh, 1 giáo viên.',
+        });
+      }
+      // Refresh dashboard stats + recent activities so the new data shows immediately.
+      await queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+      await queryClient.invalidateQueries({ queryKey: ['recentActivities'] });
+      trackOnboarding('onboarding_sample_data_import');
+    } catch {
+      toast({
+        title: 'Không thể tạo dữ liệu mẫu',
+        description: 'Đã xảy ra lỗi, vui lòng thử lại sau.',
+        variant: 'destructive',
+      });
+    } finally {
+      setImportingSample(false);
+    }
+  }, [queryClient]);
 
   // Load progress from localStorage on mount
   useEffect(() => {
@@ -181,8 +219,8 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   return (
     <Card className="mb-6 border-primary/20 bg-primary/5">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-2">
-          <CardTitle className="text-lg">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <CardTitle className="text-base sm:text-lg">
             Bước {currentStep}/{TOTAL_STEPS}: {step.title}
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -207,12 +245,31 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
           {step.hint}
         </p>
 
-        <div className="mb-4">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
           <Link href={step.actionHref}>
-            <Button variant="outline" size="sm" aria-label={step.actionLabel}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full sm:w-auto"
+              aria-label={step.actionLabel}
+            >
               {step.actionLabel}
             </Button>
           </Link>
+
+          {/* On the final step, offer a one-click sample-data import so a non-technical
+              Owner can explore the system instead of an empty dashboard. */}
+          {isLastStep && (
+            <Button
+              size="sm"
+              className="w-full sm:w-auto"
+              onClick={handleImportSampleData}
+              disabled={importingSample}
+              aria-label="Tạo dữ liệu mẫu"
+            >
+              {importingSample ? 'Đang tạo dữ liệu mẫu…' : '✨ Tạo dữ liệu mẫu'}
+            </Button>
+          )}
         </div>
 
         <div className="flex items-center justify-between">

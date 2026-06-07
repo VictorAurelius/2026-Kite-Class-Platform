@@ -19,7 +19,8 @@ export type OnboardingEventType =
   | 'onboarding_step_view'
   | 'onboarding_step_skip'
   | 'onboarding_complete'
-  | 'onboarding_replay';
+  | 'onboarding_replay'
+  | 'onboarding_sample_data_import';
 
 export interface OnboardingEvent {
   type: OnboardingEventType;

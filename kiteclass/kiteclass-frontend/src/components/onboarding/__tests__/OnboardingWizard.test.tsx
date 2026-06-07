@@ -5,10 +5,23 @@
  * @since 3.16.0
  */
 
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { render } from '@/test/utils';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { OnboardingWizard, resetOnboardingProgress, STORAGE_KEY } from '../OnboardingWizard';
 import { getOnboardingEvents } from '@/lib/onboarding-telemetry';
+import { onboardingApi } from '@/lib/api/onboarding';
+import { toast } from '@/hooks/use-toast';
+
+// Mock the sample-data API + toast so the "Tạo dữ liệu mẫu" button can be tested
+// without hitting a real backend.
+vi.mock('@/lib/api/onboarding', () => ({
+  onboardingApi: { importSampleData: vi.fn() },
+}));
+vi.mock('@/hooks/use-toast', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/hooks/use-toast')>();
+  return { ...actual, toast: vi.fn() };
+});
 
 // Shared store for localStorage mock
 let store: Record<string, string> = {};
@@ -337,6 +350,88 @@ describe('OnboardingWizard', () => {
       resetOnboardingProgress();
       expect(localStorageMock.removeItem).toHaveBeenCalledWith(STORAGE_KEY);
       expect(store[STORAGE_KEY]).toBeUndefined();
+    });
+  });
+
+  describe('Sample-data import (GAP-950 AC#3)', () => {
+    it('shows the "Tạo dữ liệu mẫu" button only on the last step', () => {
+      render(<OnboardingWizard />);
+      // Step 1: button absent.
+      expect(
+        screen.queryByRole('button', { name: 'Tạo dữ liệu mẫu' })
+      ).not.toBeInTheDocument();
+
+      // Navigate to the final step.
+      navigateToStep(5);
+      expect(
+        screen.getByRole('button', { name: 'Tạo dữ liệu mẫu' })
+      ).toBeInTheDocument();
+    });
+
+    it('imports sample data and shows a success toast on fresh import', async () => {
+      vi.mocked(onboardingApi.importSampleData).mockResolvedValue({
+        alreadyImported: false,
+        teachersCreated: 1,
+        coursesCreated: 1,
+        classesCreated: 1,
+        studentsCreated: 3,
+        enrollmentsCreated: 3,
+      });
+
+      render(<OnboardingWizard />);
+      navigateToStep(5);
+      fireEvent.click(screen.getByRole('button', { name: 'Tạo dữ liệu mẫu' }));
+
+      await waitFor(() =>
+        expect(onboardingApi.importSampleData).toHaveBeenCalledTimes(1)
+      );
+      await waitFor(() =>
+        expect(toast).toHaveBeenCalledWith(
+          expect.objectContaining({ title: 'Đã tạo dữ liệu mẫu' })
+        )
+      );
+      expect(
+        getOnboardingEvents().some(
+          (e) => e.type === 'onboarding_sample_data_import'
+        )
+      ).toBe(true);
+    });
+
+    it('shows an "already exists" toast when sample data is already present', async () => {
+      vi.mocked(onboardingApi.importSampleData).mockResolvedValue({
+        alreadyImported: true,
+        teachersCreated: 0,
+        coursesCreated: 0,
+        classesCreated: 0,
+        studentsCreated: 0,
+        enrollmentsCreated: 0,
+      });
+
+      render(<OnboardingWizard />);
+      navigateToStep(5);
+      fireEvent.click(screen.getByRole('button', { name: 'Tạo dữ liệu mẫu' }));
+
+      await waitFor(() =>
+        expect(toast).toHaveBeenCalledWith(
+          expect.objectContaining({ title: 'Dữ liệu mẫu đã tồn tại' })
+        )
+      );
+    });
+
+    it('shows an error toast when the import fails', async () => {
+      vi.mocked(onboardingApi.importSampleData).mockRejectedValue(
+        new Error('boom')
+      );
+
+      render(<OnboardingWizard />);
+      navigateToStep(5);
+      fireEvent.click(screen.getByRole('button', { name: 'Tạo dữ liệu mẫu' }));
+
+      await waitFor(() =>
+        expect(toast).toHaveBeenCalledWith(
+          expect.objectContaining({ variant: 'destructive' })
+        )
+      );
     });
   });
 });
