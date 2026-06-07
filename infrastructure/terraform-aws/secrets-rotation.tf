@@ -216,6 +216,8 @@ output "rotation_managed_secrets" {
       "ses-smtp-credentials",
       "cloudflare-api-token",
       "resend-api-key",
+      "sepay-api-key",
+      "zalo-oa-credentials",
       "ai-openai-api-key",
       "ai-anthropic-api-key",
       "rabbitmq-default-creds",
