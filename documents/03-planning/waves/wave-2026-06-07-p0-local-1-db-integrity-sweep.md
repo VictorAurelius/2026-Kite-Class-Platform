@@ -3,7 +3,7 @@ wave: p0-local-1
 tag_primary: p0-local
 tags_secondary: [db-integrity, uuid-sweep, rls]
 date: 2026-06-07
-status: draft
+status: complete
 audience: dev
 ---
 
