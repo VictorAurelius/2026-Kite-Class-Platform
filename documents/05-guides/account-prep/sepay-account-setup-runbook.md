@@ -1,6 +1,6 @@
 # SePay Account Setup Runbook — Phase 1 BETA Payment Reconciliation
 
-**Audience:** Solo dev đăng ký SePay merchant lần đầu cho Phase 1 BETA — đối soát chuyển khoản VietQR tự động.
+**Audience:** Solo dev đăng ký SePay merchant lần đầu — đối soát chuyển khoản tự động cho **KiteHub subscription billing** (trung tâm trả phí gói cho KiteHub).
 **Standards:** `release-deploy-standard.md` §3.4 · `dev-readable-doc-language.md` §2 · `deployment-naming-convention.md` §2 (`account-prep/` — one-time per merchant account).
 **Cross-link upstream:** Domain `kitehub.me` đã verify + HTTPS active (production deploy) để webhook URL reachable.
 **Cross-link downstream:** Unblocks `PaymentWebhookController` (`POST /api/platform/webhooks/payment`) + `PaymentService.processSepayWebhook` + GAP-975 (dynamic VietQR txnRef) + GAP-976 (SePay webhook auth + idempotency).
@@ -9,16 +9,29 @@
 
 ---
 
+## 0. SCOPE — runbook này dành cho luồng nào?
+
+> 🔴 **Runbook này = KiteHub subscription billing**, KHÔNG phải KiteClass tuition. Hai luồng thanh toán độc lập:
+
+| Luồng | Module / webhook | txnRef / gateway | Ai trả → ai nhận | Runbook này? |
+|---|---|---|---|---|
+| **KiteHub subscription** | `kitehub-subscription`, `POST /api/platform/webhooks/payment` | `KH3SUB<8 hex>` + SePay | Trung tâm trả phí gói → **KiteHub (platform/bạn)** — `applyPendingUpgrade` nâng gói trial→paid | ✅ ĐÚNG |
+| **KiteClass tuition** | `kiteclass-core/module/payment`, `ParentPaymentController` | MoMo gateway (+ VietQR/Casso Phase 1.5) | Phụ huynh trả học phí → **trung tâm** (per-tenant) | ❌ flow riêng — xem `kiteclass-core` payment module |
+
+→ Tài khoản ngân hàng nhận trong runbook này = **tài khoản business của KiteHub/bạn** (1 tài khoản chung mọi trung tâm chuyển phí gói vào), KHÔNG phải tài khoản riêng của từng trung tâm.
+
+---
+
 ## TL;DR
 
-SePay (https://sepay.vn) đọc **biến động số dư** tài khoản ngân hàng của bạn rồi **POST webhook** về KiteHub mỗi khi có **chuyển khoản đến** (mọi giao dịch tiền vào, KHÔNG chỉ qua mã QR của SePay). KiteHub khớp `txnRef` (`KH3SUB<8 hex>`) nhúng trong nội dung chuyển khoản → đánh dấu invoice PAID. Free tier 50 giao dịch/tháng (đếm theo **tổng giao dịch tiền vào**) đủ cho Phase 1 BETA.
+SePay (https://sepay.vn) đọc **biến động số dư** tài khoản ngân hàng của bạn rồi **POST webhook** về KiteHub mỗi khi có **chuyển khoản đến** (mọi giao dịch tiền vào, KHÔNG chỉ qua mã QR của SePay). KiteHub khớp `txnRef` (`KH3SUB<8 hex>`) nhúng trong nội dung chuyển khoản → đánh dấu payment PAID + `applyPendingUpgrade` nâng gói subscription. Free tier 50 giao dịch/tháng (đếm theo **tổng giao dịch tiền vào**) đủ cho Phase 1 BETA.
 
-> 🔴 **BẮT BUỘC dùng TÀI KHOẢN NGÂN HÀNG RIÊNG để nhận thanh toán** — KHÔNG dùng chung tài khoản cá nhân. Lý do: SePay đếm hạn mức 50 giao dịch/tháng theo *mọi* tiền vào tài khoản. Giao dịch cá nhân lặt vặt (người nhà chuyển tiền, hoàn tiền, v.v.) sẽ đốt quota miễn phí dù chẳng liên quan thanh toán học phí, và mỗi giao dịch lạ còn tạo webhook orphan (HTTP 400) gây nhiễu log. Xem §2.2.
+> 🔴 **BẮT BUỘC dùng TÀI KHOẢN NGÂN HÀNG RIÊNG (của KiteHub/bạn) để nhận phí subscription** — KHÔNG dùng chung tài khoản cá nhân. Lý do: SePay đếm hạn mức 50 giao dịch/tháng theo *mọi* tiền vào tài khoản. Giao dịch cá nhân lặt vặt (người nhà chuyển tiền, hoàn tiền, v.v.) sẽ đốt quota miễn phí dù chẳng liên quan thanh toán, và mỗi giao dịch lạ còn tạo webhook orphan (HTTP 400) gây nhiễu log. Xem §2.2.
 
 3 việc cần làm:
-1. Đăng ký SePay + liên kết **tài khoản ngân hàng riêng** (real-user action — KYC).
+1. Đăng ký SePay + liên kết **tài khoản ngân hàng riêng** của KiteHub/bạn (real-user action — KYC).
 2. Cấu hình webhook URL `https://kitehub.me/api/platform/webhooks/payment` + copy API key.
-3. Set API key vào AWS Secrets Manager `kitehub/production/sepay-api-key` (sau khi AWS restore — GAP-612).
+3. Set API key vào AWS Secrets Manager `kitehub/production/sepay-api-key` (AWS account đã restore — GAP-612 DONE 2026-05-26; stack hiện idle/stopped → `bash scripts/aws/start-stack.sh` khi cần set + deploy).
 
 **Code đã sẵn sàng** (Wave flow-kh3 + p0-local): terraform secret + `fetch-secrets.sh` pull + `application.yml` wiring đều xong. Runbook này chỉ là phần đăng ký + cấu hình dashboard.
 
@@ -30,12 +43,12 @@ SePay (https://sepay.vn) đọc **biến động số dư** tài khoản ngân h
 
 | Cần có | Ghi chú |
 |---|---|
-| Tài khoản ngân hàng VN | SePay hỗ trợ đa số bank VN (VCB / TCB / MB / ACB / BIDV / VPBank...). Dùng tài khoản nhận thanh toán của trung tâm. |
+| Tài khoản ngân hàng VN | SePay hỗ trợ đa số bank VN (VCB / TCB / MB / ACB / BIDV / VPBank...). Dùng **tài khoản business riêng của KiteHub/bạn** để nhận phí subscription (per §0 scope — KHÔNG phải tài khoản trung tâm). |
 | Số điện thoại + email | Để đăng ký + xác thực SePay account. |
 | Domain `kitehub.me` HTTPS live | Webhook URL phải reachable từ internet (SePay gọi POST). Production deploy phải xong + HTTPS active. |
-| AWS Secrets Manager access | Để set API key (deferred tới khi AWS restore — GAP-612). |
+| AWS Secrets Manager access | Để set API key. AWS account đã restore (GAP-612 DONE); stack có thể đang idle → start khi cần. |
 
-⚠️ **AWS đang suspended (GAP-612)** → bước 4 (set secret) defer tới khi restore. Bước 1-3 (đăng ký + dashboard) làm trước được.
+✅ **AWS account đã restore** (GAP-612 DONE 2026-05-26 — Wave aws-restore-1). Stack hiện thường **idle/stopped** để tiết kiệm Free Tier; bước 4 (set secret + deploy) cần `bash scripts/aws/start-stack.sh` trước. Bước 1-3 (đăng ký + dashboard) làm trước được, không cần stack.
 
 ---
 
@@ -49,7 +62,7 @@ SePay (https://sepay.vn) đọc **biến động số dư** tài khoản ngân h
 
 ### 2.2 Liên kết tài khoản ngân hàng — DÙNG TÀI KHOẢN RIÊNG
 
-> 🔴 **BẮT BUỘC:** liên kết một **tài khoản ngân hàng dành riêng cho việc nhận thanh toán của trung tâm** — KHÔNG dùng tài khoản cá nhân / tài khoản chi tiêu hàng ngày.
+> 🔴 **BẮT BUỘC:** liên kết một **tài khoản ngân hàng business riêng của KiteHub/bạn để nhận phí subscription** (per §0 scope) — KHÔNG dùng tài khoản cá nhân / tài khoản chi tiêu hàng ngày.
 
 **Vì sao bắt buộc tài khoản riêng:**
 
@@ -59,7 +72,7 @@ SePay (https://sepay.vn) đọc **biến động số dư** tài khoản ngân h
 | Mỗi tiền vào → 1 webhook POST về KiteHub | Giao dịch lạ không có `txnRef` khớp → KiteHub trả `400` orphan → nhiễu log + tốn xử lý |
 | Lẫn dòng tiền cá nhân + kinh doanh | Khó đối soát kế toán + rủi ro lộ thông tin tài chính cá nhân qua webhook payload |
 
-**Khuyến nghị:** mở 1 tài khoản ngân hàng mới (hoặc tài khoản doanh nghiệp/hộ kinh doanh) chỉ dùng để nhận học phí. SePay hỗ trợ không giới hạn số tài khoản liên kết — có thể thêm sau khi mở rộng.
+**Khuyến nghị:** mở 1 tài khoản ngân hàng mới (hoặc tài khoản doanh nghiệp/hộ kinh doanh) chỉ dùng để nhận phí subscription KiteHub. SePay hỗ trợ không giới hạn số tài khoản liên kết — có thể thêm sau khi mở rộng.
 
 **Các bước:**
 
@@ -111,9 +124,9 @@ KiteHub nhúng `txnRef` dạng `KH3SUB<8 hex>` (regex `KH3SUB[A-F0-9]{8}`) vào 
 
 ---
 
-## 4. Set API key vào AWS Secrets Manager (defer — GAP-612)
+## 4. Set API key vào AWS Secrets Manager
 
-Sau khi AWS account 906286017800 restore:
+AWS account 906286017800 đã restore (GAP-612 DONE). Khi stack đang idle → `bash scripts/aws/start-stack.sh` trước, rồi:
 
 ```bash
 # 1. terraform apply tạo placeholder secret (đã declare ở infrastructure/terraform-aws/secrets.tf)
@@ -144,10 +157,10 @@ SePay có **Chế độ thử nghiệm** (Test Mode): tài khoản ngân hàng g
 |---|---|
 | Cần tài khoản thật + liên kết KYC xong | Tài khoản giả lập tạo ngay |
 | Cần chuyển khoản thật (tốn tiền, dù 10k) | Mô phỏng giao dịch 1 click, miễn phí |
-| Cần production HTTPS domain live (chờ AWS restore — GAP-612) | Có thể trỏ webhook về tunnel → local stack |
+| Cần production HTTPS domain live (cần start stack + deploy) | Có thể trỏ webhook về tunnel → local stack |
 | Mỗi lần test đốt 1 quota | Không tính quota |
 
-→ Test Mode **tách rời việc verify logic (txnRef matching + idempotency + orphan handling + PAID flip) khỏi việc chờ AWS restore + tiền thật.** Đây là cách đóng phần "live verify 15% còn lại" của GAP-975 + GAP-976 mà không phụ thuộc GAP-612.
+→ Test Mode **tách rời việc verify logic (txnRef matching + idempotency + orphan handling + PAID flip) khỏi việc phải start stack + deploy + tiền thật.** Đây là cách đóng phần "live verify 15% còn lại" của GAP-975 + GAP-976 mà không cần production stack (GAP-1058).
 
 ### 4.5.2 8 bước thiết lập Test Mode (theo dashboard SePay)
 
