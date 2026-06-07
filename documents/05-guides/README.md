@@ -28,6 +28,25 @@ Operator-facing documentation — "how to run, deploy, recover, and troubleshoot
 
 ---
 
+## Khái niệm: Runbook (+ template)
+
+**Runbook = tài liệu hướng dẫn vận hành từng-bước** cho quy trình lặp lại được mà con người thực thi tay — biến kiến thức "trong đầu" thành các bước tái lập. Khác **plan** (sẽ làm gì, ở `03-planning/`) và **ADR** (quyết định tại sao, ở `02-architecture/adr/`).
+
+**Phân loại theo WHEN + tần suất** (per [`deployment-naming-convention.md`](../../.claude/rules/deployment-naming-convention.md) §2 — quyết định folder bằng cách hỏi "chạy khi nào? bao lâu một lần?"):
+
+| Folder | Vòng đời | Tần suất | Ví dụ |
+|---|---|---|---|
+| `account-prep/` | Trước-môi-trường | 1 lần / vendor | đăng ký AWS / SePay / Zalo / Resend |
+| `deploy/` | Trước + trong deploy | 1 lần / release | DNS setup, secrets seeding, cutover |
+| `operations/` | Sau deploy | Lặp (cron / sự cố / định kỳ) | incident response, secret rotation |
+| `operations/runbooks/` | Sau deploy | Mỗi alert cụ thể | 1 runbook / 1 CloudWatch alert |
+
+**Naming** (per §3): `<topic>-<action>-runbook.md` (có nhánh quyết định) HOẶC `<topic>-<action>-procedure.md` (tuyến tính 1 mạch).
+
+**Viết runbook mới:** copy [`_RUNBOOK-TEMPLATE.md`](_RUNBOOK-TEMPLATE.md) (Header → TL;DR → Prerequisites → Steps → Verify + Sad path → Liên quan). Ngôn ngữ narrative tiếng Việt + identifier English per [`dev-readable-doc-language.md`](../../.claude/rules/dev-readable-doc-language.md).
+
+---
+
 ## File Placement Rules
 
 - ✅ **Belongs here:**
