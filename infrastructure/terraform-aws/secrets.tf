@@ -223,6 +223,54 @@ resource "aws_secretsmanager_secret_version" "sepay_api_key" {
   }
 }
 
+# --- Zalo OA credentials (config/vendor-prep — GAP-063 Phase 1 live wiring) ---
+# kitehub-email Zalo notification channel boots in mock mode (ZALO_PROVIDER=mock) until the
+# Zalo OA business account is verified. application.yml (kitehub-email) reads ZALO_OA_ID +
+# ZALO_ACCESS_TOKEN; that file's comment mandated the matching Secrets Manager declaration
+# land same PR -- this block closes that gap. Both values are VENDOR-PROVIDED from the Zalo OA
+# dashboard (https://oa.zalo.me): oa_id = numeric Official Account id, access_token = OAuth
+# token minted per app. NOT random-generated. Pattern mirrors the resend/sepay precedent --
+# IaC ships a placeholder version first; real credentials set manually via AWS console
+# post-apply once the OA account + ZNS templates are approved (account-prep/zalo-oa-setup-runbook.md).
+#
+# Secret payload schema (JSON wrapper -- fetch-secrets.sh splits oa_id + access_token):
+#   {"oa_id":"<numeric-oa-id>","access_token":"<oa-access-token>"}
+#
+# Post AWS account 906286017800 restore (GAP-612 unblock) workflow:
+#   1. Run terraform apply -- creates placeholder secret (random_password version)
+#   2. Zalo OA dashboard -> verify business account + submit ZNS templates + mint access token
+#   3. Manual override via AWS console: Secrets Manager -> kitehub/production/zalo-oa-credentials
+#      -> Set value -> JSON {"oa_id":"<id>","access_token":"<token>"}
+#   4. Set ZALO_PROVIDER=live in EC2 .env to switch off mock client
+#   5. lifecycle ignore_changes = [secret_string] preserves manual real value across apply
+#
+# IAM grant via wildcard ${var.project_name}/${var.environment}/* (ec2_app role) -- no edit.
+# Zalo access token expires vendor-side; rotation is manual per secrets-rotation.tf manual_only.
+# GAP-450 Option B: lifecycle ignore_changes prevents recurring drift -- same as resend/sepay.
+resource "random_password" "zalo_oa_credentials_placeholder" {
+  length  = 32
+  special = false
+  lifecycle {
+    ignore_changes = [result, length, special, lower, upper, numeric, min_lower, min_upper, min_numeric, min_special, override_special, keepers]
+  }
+}
+
+resource "aws_secretsmanager_secret" "zalo_oa_credentials" {
+  name                    = "${var.project_name}/${var.environment}/zalo-oa-credentials"
+  description             = "Zalo OA credentials for notification channel (Phase 1 BETA GAP-063); JSON {oa_id, access_token}; vendor-set manually via AWS console post-apply; mock until ZALO_PROVIDER=live"
+  recovery_window_in_days = 7
+  tags                    = { Name = "${var.project_name}-zalo-oa-credentials" }
+}
+
+resource "aws_secretsmanager_secret_version" "zalo_oa_credentials" {
+  secret_id     = aws_secretsmanager_secret.zalo_oa_credentials.id
+  secret_string = random_password.zalo_oa_credentials_placeholder.result
+
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
+}
+
 # --- Encryption master key (32 bytes base64) ---
 # GAP-450 Option B: lifecycle ignore_changes — same rationale as random_password.jwt above.
 resource "random_password" "encryption_raw" {

@@ -65,6 +65,17 @@ T-0 deploy   04-kitehub-superadmin-first-login.md      (2h, runs AFTER seed + em
 
 **Total:** ~9h docs work + DNS propagation wait (parallelizable).
 
+### 3.1 Vendor integration runbooks (Phase 1+ — không thuộc deploy critical-path)
+
+Các vendor tích hợp tính năng (không chặn deploy gốc); đăng ký khi cần feature tương ứng. Code đã wire sẵn (terraform secret + `fetch-secrets.sh` + `application.yml`); runbook chỉ là phần đăng ký + cấu hình dashboard + set secret.
+
+| File | Estimated time | Unblocks | Secret (AWS Secrets Manager) |
+|------|----------------|----------|------------------------------|
+| [`sepay-account-setup-runbook.md`](sepay-account-setup-runbook.md) | ~30-45 min | Payment webhook đối soát VietQR (`PaymentWebhookController`, GAP-975/976) | `kitehub/production/sepay-api-key` |
+| [`zalo-oa-setup-runbook.md`](zalo-oa-setup-runbook.md) | ~30-45 min (Option A) | Zalo OA notification channel + support CTA (GAP-063) | `kitehub/production/zalo-oa-credentials` |
+
+⚠️ Set secret defer tới khi AWS account restore (GAP-612). Đăng ký + dashboard config làm trước được.
+
 ---
 
 ## 4. File Placement Rules
