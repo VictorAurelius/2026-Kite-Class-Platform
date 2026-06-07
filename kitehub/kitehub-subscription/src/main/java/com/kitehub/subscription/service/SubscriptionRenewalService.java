@@ -120,23 +120,25 @@ public class SubscriptionRenewalService {
                 "Cannot renew a subscription that has not been activated: " + subscriptionId);
         }
 
-        // Extend subscription by billing cycle
-        LocalDateTime newExpiresAt = subscription.getExpiresAt().plusMonths(1);
-        subscription.setExpiresAt(newExpiresAt);
-        subscription.setStatus(SubscriptionStatus.ACTIVE);
-        subscriptionRepository.save(subscription);
-
-        // Update instance status if it was suspended
-        Instance instance = instanceRepository.findById(subscription.getInstanceId())
-            .orElseThrow(() -> new IllegalArgumentException("Instance not found: " + subscription.getInstanceId()));
-
-        if (instance.getStatus() == InstanceStatus.SUSPENDED) {
-            instance.setStatus(InstanceStatus.ACTIVE);
-            instanceRepository.save(instance);
-            log.info("Instance reactivated: {}", instance.getId());
+        // GAP-1016: manual renewal must go through the payment gate. Previously this
+        // method extended expiresAt + reactivated a suspended instance for free,
+        // bypassing VietQR — a revenue leak. Now it creates a PENDING renewal payment
+        // and records it as the pending payment; the actual cycle extension + instance
+        // reactivation happen on payment confirm (PaymentService.confirmPayment →
+        // SubscriptionService.applyPendingUpgrade renewal branch).
+        if (subscription.getPendingPaymentId() != null) {
+            log.info("Subscription {} already has a pending renewal payment {}; skipping duplicate",
+                subscriptionId, subscription.getPendingPaymentId());
+            return;
         }
 
-        log.info("Subscription renewed manually: {} (new expiry: {})", subscriptionId, newExpiresAt);
+        Payment renewalPayment = paymentRepository.save(createRenewalPayment(subscription));
+        subscription.setPendingPaymentId(renewalPayment.getId());
+        subscriptionRepository.save(subscription);
+
+        log.info("Manual renewal payment invoice created: {} ({} VNĐ) for subscription {} — "
+                + "cycle extension deferred until payment confirmed",
+            renewalPayment.getId(), renewalPayment.getAmountVnd(), subscriptionId);
     }
 
     /**
@@ -197,6 +199,34 @@ public class SubscriptionRenewalService {
             );
             log.info("Suspension notification sent to instance: {}", instance.getId());
         }
+    }
+
+    /**
+     * GAP-1017: suspend the instance of an end-of-cycle cancellation past its expiry.
+     *
+     * <p>{@code immediate=true} cancellations suspend synchronously in
+     * {@code SubscriptionService.cancelSubscription}; {@code immediate=false}
+     * cancellations keep service until {@code expiresAt}, then this scheduler pass
+     * suspends the instance.</p>
+     *
+     * @param subscriptionId UUID of the cancelled subscription
+     */
+    @Transactional
+    public void suspendCancelledExpired(UUID subscriptionId) {
+        Subscription subscription = subscriptionRepository.findById(subscriptionId)
+            .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + subscriptionId));
+
+        if (subscription.getStatus() != SubscriptionStatus.CANCELLED) {
+            return;
+        }
+
+        instanceRepository.findById(subscription.getInstanceId()).ifPresent(instance -> {
+            if (instance.getStatus() != InstanceStatus.SUSPENDED) {
+                instance.setStatus(InstanceStatus.SUSPENDED);
+                instanceRepository.save(instance);
+                log.info("Instance suspended for end-of-cycle cancelled subscription: {}", instance.getId());
+            }
+        });
     }
 
     /**

@@ -1,6 +1,6 @@
 # GAP-1016: Manual renewal miễn phí — không tạo payment + reactivate instance bị suspend miễn phí
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-06 (KH-5 subscription renew G1 walk)
@@ -36,3 +36,7 @@ Revenue leak + bypass payment gate (SUB-20 manual VietQR). P1.
 
 - Discovered in: KH-5 G1 walk — `documents/04-quality/audits/persona-review/2026-06-06-pre-walk-kh5-subscription-lifecycle.md` (FM-3)
 - Related: KH-4 manual VietQR + admin confirm flow (cùng payment gate SUB-20)
+
+## Log
+
+- **2026-06-07** (Wave g2-blockers-1 Bucket C, inline): `manualRenewal()` không còn extend miễn phí. Giờ tạo PENDING renewal payment (reuse `createRenewalPayment` — VietQR) + set `pendingPaymentId`, KHÔNG extend `expiresAt`/reactivate ngay (guard duplicate pending payment). Cycle extension + instance reactivation chuyển sang payment-confirm: `SubscriptionService.applyPendingUpgrade` thêm nhánh renewal (`pendingTier == null` + `pendingPaymentId` match) → `applyConfirmedRenewal()` extend cycle qua `calculateExpiryDate` + reactivate SUSPENDED instance. AC#1 + AC#2 met. **Status 🟡 PARTIAL ~85%** — code fix + compile PASS; **residual:** (a) IT verify (payment-created + extend-only-after-confirm); (b) FE redirect tới `/billing/payment/{pendingPaymentId}` (manualRenewal vẫn `void` 204 — controller return shape follow-up); (c) G3 gateway :9000 re-walk pending coordinator trước DONE flip.

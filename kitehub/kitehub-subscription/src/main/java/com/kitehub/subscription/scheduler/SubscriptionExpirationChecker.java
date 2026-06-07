@@ -119,8 +119,22 @@ public class SubscriptionExpirationChecker {
             }
         }
 
-        log.info("Expired subscription processing complete. Marked expired: {}, Suspended: {}",
-            markedExpired, suspended);
+        // GAP-1017: suspend instances of end-of-cycle (immediate=false) cancellations
+        // once their expiry has passed — findExpiredSubscriptions skips CANCELLED.
+        List<Subscription> cancelledExpired = subscriptionRepository.findCancelledExpiredSubscriptions(now);
+        int cancelledSuspended = 0;
+        for (Subscription subscription : cancelledExpired) {
+            try {
+                renewalService.suspendCancelledExpired(subscription.getId());
+                cancelledSuspended++;
+            } catch (Exception e) {
+                log.error("Failed to suspend cancelled-expired subscription: {}", subscription.getId(), e);
+            }
+        }
+
+        log.info("Expired subscription processing complete. Marked expired: {}, Suspended: {}, "
+                + "Cancelled-expired suspended: {}",
+            markedExpired, suspended, cancelledSuspended);
     }
 
     /**

@@ -288,6 +288,21 @@ public class SubscriptionService {
 
         subscriptionRepository.save(subscription);
 
+        // GAP-1017: cancellation must propagate to the instance, otherwise the owner
+        // keeps using the service indefinitely after cancelling.
+        // - immediate=true  → suspend the instance now.
+        // - immediate=false → the expiry scheduler suspends it when expiresAt passes
+        //   (see SubscriptionRenewalService.suspendCancelledExpired).
+        if (immediate) {
+            instanceRepository.findById(subscription.getInstanceId()).ifPresent(instance -> {
+                if (instance.getStatus() != InstanceStatus.SUSPENDED) {
+                    instance.setStatus(InstanceStatus.SUSPENDED);
+                    instanceRepository.save(instance);
+                    log.info("Instance suspended on immediate cancellation: {}", instance.getId());
+                }
+            });
+        }
+
         log.info("Cancelled subscription: {}", subscriptionId);
     }
 
@@ -441,9 +456,10 @@ public class SubscriptionService {
         }
 
         if (subscription.getPendingTier() == null) {
-            log.warn("Subscription {} has pending payment {} but no pending tier", subscriptionId, paymentId);
-            subscription.setPendingPaymentId(null);
-            subscriptionRepository.save(subscription);
+            // GAP-1016: a confirmed pending payment with no tier change = manual renewal.
+            // Extend the cycle + reactivate a suspended instance now that payment cleared,
+            // instead of manualRenewal having extended for free at request time.
+            applyConfirmedRenewal(subscription, paymentId);
             return;
         }
 
@@ -511,6 +527,42 @@ public class SubscriptionService {
             }
             log.info("Applied pending upgrade for subscription {} to tier {}", subscriptionId, targetTier);
         }
+    }
+
+    /**
+     * GAP-1016: apply a confirmed manual-renewal payment.
+     *
+     * <p>Manual renewal ({@code SubscriptionRenewalService.manualRenewal}) no longer
+     * extends for free — it creates a PENDING VietQR payment and sets
+     * {@code pendingPaymentId} with no tier change. When the admin confirms that
+     * payment, {@link #applyPendingUpgrade} routes here to extend the cycle and
+     * reactivate a suspended instance.</p>
+     *
+     * @param subscription subscription whose renewal payment was confirmed
+     * @param paymentId confirmed payment UUID (for logging)
+     */
+    private void applyConfirmedRenewal(Subscription subscription, UUID paymentId) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime base = subscription.getExpiresAt() != null
+            && subscription.getExpiresAt().isAfter(now)
+            ? subscription.getExpiresAt() : now;
+        subscription.setExpiresAt(calculateExpiryDate(base, subscription.getBillingCycle()));
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        subscription.setPendingPaymentId(null);
+        Subscription saved = subscriptionRepository.save(subscription);
+
+        Instance instance = instanceRepository.findById(saved.getInstanceId())
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Instance not found: " + saved.getInstanceId()));
+        instance.setSubscriptionExpiresAt(saved.getExpiresAt());
+        if (instance.getStatus() == InstanceStatus.SUSPENDED) {
+            instance.setStatus(InstanceStatus.ACTIVE);
+            log.info("Instance reactivated on renewal-payment confirm: {}", instance.getId());
+        }
+        instanceRepository.save(instance);
+
+        log.info("Confirmed manual renewal for subscription {} (payment {}); new expiry {}",
+            saved.getId(), paymentId, saved.getExpiresAt());
     }
 
     /**
