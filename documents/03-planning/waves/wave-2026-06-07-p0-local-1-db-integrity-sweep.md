@@ -1,9 +1,15 @@
 ---
-wave: p0-local-1
+title: Wave p0-local-1 — DB integrity sweep (actor UUID GAP-877 + oauth_attempts RLS GAP-885)
+wave: 1
 tag_primary: p0-local
 tags_secondary: [db-integrity, uuid-sweep, rls]
-date: 2026-06-07
+counter: 1
+date_launch: 2026-06-07
+created: 2026-06-07
+updated: 2026-06-07
+waves: [p0-local-1]
 status: complete
+gaps: [GAP-877, GAP-885, GAP-1056]
 audience: dev
 ---
 
