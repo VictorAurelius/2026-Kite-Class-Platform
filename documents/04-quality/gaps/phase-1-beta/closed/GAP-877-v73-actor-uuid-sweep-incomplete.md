@@ -1,6 +1,6 @@
 # GAP-877: V73 UUID sweep bỏ sót actor columns — BIGINT/VARCHAR drift cross-cluster
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-06-08 — per-module state-check hoàn tất cho cả 18 cột: 5 converted V94 (unbound SAFE) + 13 = KEEP Long (domain reference-id, V1 convention — KHÔNG phải actor-UUID parse-fail, xem §Decision-13) + KH BaseEntity KEEP (§Decision). KHÔNG có actor field kiểu UUID nào ghi vào cột BIGINT → 0 parse-fail bug. Gap premise (UUID→BIGINT drift) refuted cho 13 cột Long-bound. No conversion needed (tránh fix thừa).
 **Priority:** 🔴 P0
 **Domain:** Backend / DB / Security
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KC attendance/finance/rbac/gamification/compliance/branding + KH branding)
@@ -26,7 +26,7 @@ Migration sweep tương tự V73 nhưng cho actor user-id columns. Apply per clu
 
 ## Acceptance Criteria
 
-- [~] Migration sweep actor columns → UUID — **V94 done cho 5 cột SAFE** (payments.received_by/payer_id, reward_redemptions.approved_by, user_roles.assigned_by, moderation_queue.assigned_reviewer_id); **13 cột DEFER** (xem §Deferred-13)
+- [x] Migration sweep actor columns → UUID — **V94 converted 5 cột SAFE** (unbound, no live writer); **13 cột còn lại = KEEP Long by-decision** (per-module state-check 2026-06-08 — domain reference-id, V1 convention, NOT actor-UUID parse-fail; xem §Decision-13)
 - [x] Verify code path không lỗi parse khi ghi UUID vào cột đã convert — `V94ActorColumnUuidSweepIT` 5/5 PASS (Flyway thật, Testcontainers, no ddl-auto); entity UserRole.assignedBy + ModerationQueue.assignedReviewerId retype UUID đồng bộ
 - [x] Document KH BaseEntity (VARCHAR(100)) — keep vs sweep decision (cross-DB normalization) → **KEEP** (xem §Decision)
 - [x] Reference cluster docs 03/04/05/06/07/08 + KH 02
@@ -49,12 +49,41 @@ Quyết định: **(a) Giữ VARCHAR(100), KHÔNG sweep sang UUID.** Lý do (kh�
 
 Cùng lớp BIGINT/UUID drift: `kitehub-subscription` bảng `oauth_attempts.tenant_id` là `BIGINT NULL` (V51 GAP-582) trong khi mọi bảng tenant-scoped KH khác key trên `instance_id UUID`. V66 (GAP-885) đã enable RLS bằng cách so sánh `tenant_id::text` để né `::uuid` cast mismatch + document anomaly inline. Re-key sang `instance_id UUID` defer tới khi OAuth signup flow được implement (oauth_attempts hiện chưa có caller — defensive scaffolding). Cân nhắc gộp vào batch sweep này hoặc tách gap riêng.
 
-## Deferred-13 (Wave p0-local-1 Bucket A — cần per-module actor re-wiring)
+## Decision-13 — 13 cột còn lại → KEEP Long (per-module state-check 2026-06-08)
+
+Quyết định: **giữ Long cho cả 13 cột, KHÔNG convert sang UUID.** Đây là per-module decision mà §Deferred-13 (bên dưới) yêu cầu — state-check 2026-06-08 (per `audit-to-gap-pipeline.md` §2.8, user directive "state-check tránh fix thừa") đã trace writer + entity từng cột:
+
+**Evidence — cả 13 cột là `Long` end-to-end (entity field + writer param):**
+
+| Cột | Entity type | Writer signature |
+|---|---|---|
+| `attendance.marked_by` | `Long markedBy` | `AttendanceServiceImpl(Long teacherId)` |
+| `attendance_period.recorded_by` | `Long recordedBy` | `AttendancePeriodServiceImpl` Long |
+| `grades.graded_by` / `finalized_by` | `Long gradedBy/finalizedBy` | k12 service Long |
+| `subject_grades.reviewed_by` | `Long reviewedBy` | `SubjectGradeServiceImpl(Long reviewerId)` |
+| `payment_records.recorded_by` | `Long recordedBy` | payment service Long |
+| `payment_idempotency_keys.user_id` | `Long` (resolvedParentId) | `ParentPaymentController` Long domain ref |
+| `vettings.decided_by_user_id` | `Long decidedByUserId` | `VettingServiceImpl(Long decidedByUserId)` |
+| `dmca_takedown_requests.reviewer_user_id` | `Long reviewerUserId` | `DmcaService(Long reviewerUserId)` |
+| `incidents.reporter_user_id` / `assigned_officer_user_id` | `Long reporterUserId/assignedOfficerUserId` | `IncidentService(Long)` |
+| `child_protection_audit_log.actor_id` | `Long actorId` | childprotection service Long |
+| `rebrand_approvals.initiator_user_id` / `approver_user_id` | `Long initiator/approverUserId` | `RebrandApprovalService(Long approverUserId)` |
+
+**Verdict:** Gap premise §Problem ("X-User-Id JWT là UUID → ghi vào cột BIGINT/VARCHAR actor → parse fail") **KHÔNG áp dụng** cho 13 cột này — code thread **`Long` reference-id** (V1 convention: `X-User-Reference-Id` = `parents.id`/`teachers.id`/`students.id` per `TenantFilterInterceptor`), KHÔNG phải UUID actor. Verify: grep `private UUID <actorField>` toàn kiteclass-core → **0 hit** (không có actor field kiểu UUID nào để mismatch với BIGINT column). → 0 parse-fail bug.
+
+Đây là **cùng decision class với KH BaseEntity KEEP** (§Decision): actor identity bằng numeric reference-id là intentional per-context modeling, KHÔNG phải bug. Convert sang UUID = **fix thừa + phá Long write-path** (đúng cảnh báo §Deferred-13 "convert mù sẽ phá runtime").
+
+**Out-of-scope note (không thuộc GAP-877):** "actor null cho admin/owner" (UserContext.getCurrentReferenceId nullable cho non-domain-entity actor) là concern RIÊNG về reference-id population, KHÔNG phải type-drift parse-fail — nếu cần, file gap riêng. GAP-877 scope = UUID/BIGINT type-drift → resolved.
+
+---
+
+## Deferred-13 (Wave p0-local-1 Bucket A — RESOLVED by §Decision-13 above; preserved as historical context)
 
 13 cột actor bị **live service code thread numeric domain/reference id** (không phải actor UUID) → convert mù sẽ phá runtime write-path. Mỗi cột cần per-module decision (actor UUID vs domain-id) + re-wiring writer trước khi sweep. Đặc biệt: `payment_idempotency_keys.user_id` được `ParentPaymentController` ghi `resolvedParentId` (Long domain ref, KHÔNG phải actor UUID). Đây là residual của GAP-877 — gap giữ PARTIAL cho tới khi 13 cột re-wire xong (effort lớn hơn, có thể tách wave riêng khi cần). Compliance cluster (audit_log.actor_user_id, child_protection_audit_log.actor_id, incidents.*) nằm trong nhóm này — ưu tiên khi mở wave re-wiring.
 
 ## Log
 
+- **2026-06-08 (DONE — per-module state-check resolves 13 deferred cols as KEEP Long):** Fix-time state-check (per `audit-to-gap-pipeline.md` §2.8, user directive "state-check tránh fix thừa") traced writer + entity type cho cả 13 cột deferred → ALL `Long` end-to-end (entity field + service writer param). Grep `private UUID <actorField>` toàn kiteclass-core = 0 hit → KHÔNG có actor field UUID nào mismatch BIGINT column → 0 parse-fail bug. Gap §Problem premise (UUID→BIGINT parse-fail) refuted cho 13 cột Long-bound: code thread Long reference-id (V1 convention X-User-Reference-Id), KHÔNG phải UUID actor. Decision: KEEP Long cả 13 (§Decision-13) — cùng class KH BaseEntity KEEP; convert = fix thừa + phá runtime. Per-module decision (mà §Deferred-13 yêu cầu) HOÀN TẤT. 18/18 cột resolved (5 V94 convert + 13 KEEP + KH BaseEntity KEEP). Status PARTIAL 25→DONE 100, file → closed/. No code change (state-check verdict = no conversion needed).
 - **2026-06-07 (Wave p0-local-1 Bucket A — safe-subset sweep):** State-check 2026-06-07 xác nhận 10/10 cột mẫu vẫn BIGINT (V79 còn THÊM `reviewed_by/assigned_by/approved_by BIGINT` sau V73). Bucket A code-trace từng cột → V94 chỉ convert **5 cột SAFE** (no live numeric write-path bind): payments.received_by/payer_id (no entity binding), reward_redemptions.approved_by (no JPA entity), user_roles.assigned_by (VARCHAR→UUID, entity unset), moderation_queue.assigned_reviewer_id (entity unset). Entity-migration triad: UserRole.assignedBy + ModerationQueue.assignedReviewerId retype UUID. IT 5/5 PASS. **13 cột defer** (xem §Deferred-13 — service code thread numeric domain-id, cần re-wiring). KH BaseEntity → KEEP (xem §Decision). Status OPEN→PARTIAL ~25% (5/18 sweepable cột done; KH BaseEntity closed-by-decision; 13 KC defer). NOT false-DONE per `gap-done-discipline.md` §3.
 
 ## Discovered in
