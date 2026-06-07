@@ -21,7 +21,7 @@ audit-skill-rubric-ops-readiness-audit,MANDATORY,1.0.1,2026-05-14,2026-05-14,aud
 audit-skill-rubric-performance-audit,MANDATORY,1.0.1,2026-05-14,2026-05-14,audit-skill-rubric-performance-audit.md,documents/04-quality/audits/performance/**,active,,
 audit-skill-rubric-quality-audit,MANDATORY,1.0.1,2026-05-14,2026-05-14,audit-skill-rubric-quality-audit.md,documents/04-quality/audits/quality/**,active,,
 audit-skill-rubric-ui-review,MANDATORY,1.0.1,2026-05-14,2026-05-14,audit-skill-rubric-ui-review.md,documents/04-quality/audits/ui/**,active,,
-audit-to-gap-pipeline,MANDATORY,1.4.3,2026-04-16,2026-05-19,audit-to-gap-pipeline.md,"documents/04-quality/gaps/**/*.md,documents/04-quality/audits/**",active,,
+audit-to-gap-pipeline,MANDATORY,1.5.0,2026-04-16,2026-06-07,audit-to-gap-pipeline.md,"documents/04-quality/gaps/**/*.md,documents/04-quality/audits/**",active,,
 aws-observability-first,CRITICAL,1.0.1,2026-05-07,2026-05-31,aws-observability-first.md,infrastructure/terraform-aws/**,active,,
 aws-sg-description-ascii,MANDATORY,1.0.1,2026-05-07,2026-05-14,aws-sg-description-ascii.md,infrastructure/**/*.tf,active,,
 business-logic-review,CRITICAL,1.0.1,2026-04-29,2026-05-14,business-logic-review.md,documents/01-business/**/rules.md,active,,

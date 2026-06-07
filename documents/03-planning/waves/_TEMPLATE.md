@@ -84,6 +84,22 @@ Banned shortcuts (mirror §2.5):
 - Skipping verification "because agents will check at execution"
 - Aspirational references without 🆕 flag
 
+### 4.1 Bucket-Completion Check (per `audit-to-gap-pipeline.md` §2.6.1)
+
+For EACH bucket targeting an EXISTING gap (has a CSV row), query `bash scripts/query-gaps.sh <gap-id>` and classify — symbol-exists ≠ work-remaining. Greenfield buckets (no pre-existing gap) skip this table.
+
+| Bucket | Gap | completion_pct (CSV) | Residual (from §Current State) | Verdict |
+|--------|-----|:--------------------:|--------------------------------|---------|
+| A | GAP-XXX | 0 | full greenfield build | 🆕 Greenfield |
+| B | GAP-YYY | 60 | only `<exact residual>` — dependency `<symbol>` already shipped | 🔨 Delta (scope to residual) |
+| C | GAP-ZZZ | 90 | live walk only — code 100% shipped | ⚠️ Already-shipped → reframe verify-only / drop |
+
+- 🆕 **Greenfield** — deliverable absent, bucket creates it → scope as-is
+- 🔨 **Delta** — symbol present as dependency; scope bucket to the EXACT residual only (cite completion_pct + residual in §3)
+- ⚠️ **Already-shipped** — symbol present AND implements the bucket AC → reframe to verify-only (fold into G3 walk), drop, or narrow; correct expected P0-count delta
+
+If any bucket is ⚠️ Already-shipped, revise §3 Scope + correct the wave's expected outcome before merging the plan PR.
+
 ---
 
 ## 5. Verification Gates (per bucket)
