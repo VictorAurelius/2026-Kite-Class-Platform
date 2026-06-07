@@ -1,6 +1,6 @@
 # GAP-942: Subscription `started_at` + `expires_at` NOT NULL constraint blocks PENDING state (PR #2151 SUB-20 contract drift)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (40% — V62 shipped + verified live; runtime subscription-flow walk + regression IT residual)
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-04 (Wave flow-kh3 G1 walk — first POST /api/platform/subscriptions BASIC)
@@ -48,9 +48,13 @@ ALTER TABLE subscriptions
 
 Activation path (`applyPendingUpgrade`) still sets both to non-null when flipping PENDING → ACTIVE — no read-side code change needed (Java field LocalDateTime nullable; existing nullsafe checks adequate).
 
+## Resolution status (Wave p0-2, 2026-06-07)
+
+Fix-time state-check (`audit-to-gap-pipeline.md` §2.8 + §2.6.1 Bucket-Completion Check): V62 migration (`V62__subscription_nullable_started_at_expires_at.sql`) + SubscriptionService PENDING semantics were **already shipped** (PR #2157) — the gap's proposed fix was code-complete before this wave. **AC#1 verified live**: `started_at` + `expires_at` both `is_nullable=YES` on `kitehub` DB + `flyway_schema_history` V62 `success=t` (rebuilt kitehub-subscription this session). Stays PARTIAL: runtime subscription-flow ACs (#2 POST 201 / #3 response shape / #5-#6 confirmPayment activation) need a live POST `/api/platform/subscriptions` walk (not done this session); regression IT drafted (`SubscriptionPendingNullableColumnsIT`, Flyway-replay Testcontainers) but had an FK-parent-instance seed bug → **GAP-1054** tracks the fixed IT.
+
 ## Acceptance Criteria
 
-- [ ] V62 migration created + applied on local stack
+- [x] V62 migration created + applied on local stack — **verified live 2026-06-07** (`is_nullable=YES` both cols, V62 success=t)
 - [ ] POST /api/platform/subscriptions với BASIC trên Owner FREE/TRIAL trả HTTP 201 (không 409)
 - [ ] Response shape: `status=PENDING, tier=FREE, pendingTier=BASIC, pendingPaymentId=<uuid>, startedAt=null, expiresAt=null`
 - [ ] Payment row created với `bank_code='VCB', account_number='1234567890', account_name='CONG TY KITECLASS'` (GAP-939 fix verified inline)
