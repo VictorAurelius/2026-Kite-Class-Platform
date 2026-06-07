@@ -283,14 +283,62 @@ class EmailTemplateRendererTest {
     }
 
     @Test
-    void render_unknownTemplate_withVariantTone_fallsBackGracefully() {
-        // Template "nonexistent.formal.html" doesn't exist AND base "nonexistent.html" missing
-        // → TemplateInputException propagates from base (no silent swallow for base missing)
+    void render_unknownTemplate_withVariantTone_degradesGracefully() {
+        // GAP-1053: Template "nonexistent.formal.html" doesn't exist AND base
+        // "nonexistent.html" is missing. The renderer MUST NOT let a
+        // TemplateInputException escape (that would crash the RabbitMQ consumer +
+        // poison the queue). Instead it degrades to a minimal inline fallback body.
         Map<String, Object> vars = new HashMap<>();
-        org.junit.jupiter.api.Assertions.assertThrows(
-                org.thymeleaf.exceptions.TemplateInputException.class,
-                () -> renderer.render("nonexistent-template", vars, Tone.FORMAL_AUTHORITY)
-        );
+
+        EmailTemplateRenderer.RenderedBodies bodies =
+                renderer.render("nonexistent-template", vars, Tone.FORMAL_AUTHORITY);
+
+        // No exception escaped + a usable (minimal) HTML body is returned.
+        assertThat(bodies.getHtml()).isNotBlank();
+        assertThat(bodies.getHtml()).contains("minimal fallback");
+        assertThat(bodies.getHtml()).contains("nonexistent-template");
+    }
+
+    @Test
+    void render_missingBaseTemplate_noVariant_degradesGracefully() {
+        // GAP-1053: FORMAL_SAFE_DEFAULT → base path directly. Missing base template
+        // must also degrade gracefully (the common no-variant path).
+        Map<String, Object> vars = new HashMap<>();
+
+        EmailTemplateRenderer.RenderedBodies bodies =
+                renderer.render("definitely-missing-template", vars, Tone.FORMAL_SAFE_DEFAULT);
+
+        assertThat(bodies.getHtml()).isNotBlank();
+        assertThat(bodies.getHtml()).contains("minimal fallback");
+        // Missing .txt sibling → empty plain-text (acceptable per renderer contract).
+        assertThat(bodies.hasText()).isFalse();
+    }
+
+    @Test
+    void rendersHtmlAndText_forTenantReady() {
+        // GAP-1053: tenant-ready template (HTML + txt) must render without throwing.
+        // Variables mirror EmailServiceClient.sendTenantReadyEmail exactly.
+        Map<String, Object> vars = new HashMap<>();
+        vars.put("recipientName", "Trung tâm Anh ngữ Sky Education");
+        vars.put("organizationName", "Trung tâm Anh ngữ Sky Education");
+        vars.put("subdomain", "sky-education");
+        vars.put("dashboardUrl", "https://sky-education.kiteclass.vn/dashboard");
+        vars.put("onboardingChecklistUrl", "https://kitehub.me/help/onboarding");
+        vars.put("supportUrl", "https://kitehub.me/support");
+        vars.put("unsubscribeUrl", "https://kitehub.me/unsubscribe");
+
+        EmailTemplateRenderer.RenderedBodies bodies = renderer.render("tenant-ready", vars, null);
+
+        // ---- HTML body (tenant-ready.html) ----
+        assertThat(bodies.getHtml()).isNotBlank();
+        assertThat(bodies.getHtml()).contains("Trung tâm Anh ngữ Sky Education");
+        assertThat(bodies.getHtml()).contains("https://sky-education.kiteclass.vn/dashboard");
+
+        // ---- Plain-text body (tenant-ready.txt) ----
+        assertThat(bodies.hasText()).isTrue();
+        assertThat(bodies.getText()).contains("Trung tâm Anh ngữ Sky Education");
+        assertThat(bodies.getText()).contains("https://sky-education.kiteclass.vn/dashboard");
+        assertThat(bodies.getText()).contains("Trân trọng");
     }
 
     @Test
