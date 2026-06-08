@@ -26,6 +26,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URI;
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
@@ -97,7 +98,82 @@ public class BrandingServiceImpl implements BrandingService {
         Branding branding = brandingRepository.findByInstanceIdAndDeletedFalse(instanceId)
                 .orElseGet(() -> createDefaultBranding(instanceId));
 
-        return brandingMapper.toResponse(branding);
+        BrandingResponse response = brandingMapper.toResponse(branding);
+        // GAP-1072: the persisted logo/favicon URLs are presigned and expire after
+        // the storage TTL (7 days). Re-derive a fresh presigned URL on every read so
+        // the FE never renders a broken (403) asset. Transient only — not written back.
+        response.setLogoUrl(regenerateAssetUrl(response.getLogoUrl()));
+        response.setFaviconUrl(regenerateAssetUrl(response.getFaviconUrl()));
+        return response;
+    }
+
+    /**
+     * Regenerate a fresh presigned GET URL for a stored branding-asset URL.
+     *
+     * <p>GAP-1072: {@link #uploadLogo} / {@link #uploadFavicon} persist a presigned
+     * URL whose signature expires after the storage TTL (7 days). On read we
+     * re-derive the stable object key and presign anew via
+     * {@link BrandingAssetStorage#renderableUrl} so the FE always renders a live URL.
+     *
+     * <p>Graceful fallback — returns the stored URL unchanged (never throws) when:
+     * storage is unavailable, the value is blank, it is not one of our presigned
+     * URLs (external / non-presigned), or regeneration fails.
+     *
+     * @param storedUrl the persisted (possibly expired) asset URL
+     * @return a freshly presigned URL, or {@code storedUrl} unchanged
+     */
+    private String regenerateAssetUrl(String storedUrl) {
+        if (storedUrl == null || storedUrl.isBlank() || brandingAssetStorage == null) {
+            return storedUrl;
+        }
+        String objectKey = extractObjectKey(storedUrl);
+        if (objectKey == null) {
+            return storedUrl; // non-presigned / external / unparseable → keep as-is
+        }
+        try {
+            return brandingAssetStorage.renderableUrl(objectKey);
+        } catch (Exception ex) {
+            log.warn("Failed to regenerate presigned branding asset URL; keeping stored URL. reason={}",
+                    ex.getMessage());
+            return storedUrl;
+        }
+    }
+
+    /**
+     * Extract the MinIO object key from a stored presigned branding-asset URL.
+     *
+     * <p>Stored shape:
+     * {@code http://host:9100/<bucket>/static/<tenantId>/<type>/<file>?X-Amz-...}.
+     * The key always begins with the {@code static/} prefix (per
+     * {@link com.kiteclass.core.module.branding.storage.BrandingStoragePaths#staticPath}),
+     * so we anchor on {@code /static/} — robust to bucket name, host, port and
+     * path-style access. {@link java.net.URI#getPath()} returns the percent-decoded
+     * path (query stripped), which equals the original object key.
+     *
+     * @return the object key, or {@code null} when the URL is not one of our
+     *         presigned assets ({@code X-Amz} absent) or cannot be parsed
+     */
+    private String extractObjectKey(String storedUrl) {
+        // Defensive: only regenerate URLs we issued (presigned). Non-presigned column
+        // values or external URLs are left untouched.
+        if (!storedUrl.contains("X-Amz-")) {
+            return null;
+        }
+        try {
+            String path = URI.create(storedUrl).getPath();
+            if (path == null) {
+                return null;
+            }
+            int idx = path.indexOf("/static/");
+            if (idx < 0) {
+                return null;
+            }
+            return path.substring(idx + 1); // drop leading '/', keep "static/..."
+        } catch (IllegalArgumentException ex) {
+            log.warn("Stored branding asset URL not parseable as URI; keeping stored. reason={}",
+                    ex.getMessage());
+            return null;
+        }
     }
 
     /**

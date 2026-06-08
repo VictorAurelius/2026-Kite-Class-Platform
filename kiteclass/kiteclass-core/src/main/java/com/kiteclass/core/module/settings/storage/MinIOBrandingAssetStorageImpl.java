@@ -32,8 +32,10 @@ import java.util.UUID;
  * <p><b>Renderable URL strategy:</b> returns a presigned GET URL so the asset
  * can be rendered without making the bucket public. TTL is capped at 7 days
  * (S3 SigV4 presigned-URL maximum). The FE persists the returned URL in
- * {@code branding.logoUrl} / {@code branding.faviconUrl}; on expiry the OWNER
- * re-uploads (rare event). A future enhancement may serve assets through a
+ * {@code branding.logoUrl} / {@code branding.faviconUrl}. Because that signature
+ * expires after the TTL, {@code BrandingServiceImpl.getBranding()} re-derives the
+ * object key from the stored URL and calls {@link #renderableUrl} on every READ
+ * (GAP-1072) so the FE always receives a live URL. A future enhancement may serve assets through a
  * public CDN path; this strategy keeps Phase 1 BETA simple + private-bucket
  * safe.
  *
@@ -90,6 +92,28 @@ public class MinIOBrandingAssetStorageImpl implements BrandingAssetStorage {
         }
         s3Client.putObject(putBuilder.build(), RequestBody.fromBytes(content));
 
+        String url = presignGet(objectKey);
+
+        log.info("Stored branding asset tenant={} type={} key={} size={}B",
+                tenantId, type, objectKey, content.length);
+        return url;
+    }
+
+    @Override
+    public String renderableUrl(String objectKey) {
+        if (objectKey == null || objectKey.isBlank()) {
+            throw new ValidationException("BRANDING_ASSET_KEY_REQUIRED", new Object[0]);
+        }
+        return presignGet(objectKey);
+    }
+
+    /**
+     * Presign a GET request for {@code objectKey} with the standard
+     * {@link #RENDER_URL_TTL}. Shared by {@link #store} (post-upload) and
+     * {@link #renderableUrl} (on-read regeneration) so both produce identical
+     * URL shape from the same bucket + presigner.
+     */
+    private String presignGet(String objectKey) {
         GetObjectRequest get = GetObjectRequest.builder()
                 .bucket(bucket)
                 .key(objectKey)
@@ -99,9 +123,6 @@ public class MinIOBrandingAssetStorageImpl implements BrandingAssetStorage {
                 .getObjectRequest(get)
                 .build();
         PresignedGetObjectRequest presigned = s3Presigner.presignGetObject(presignReq);
-
-        log.info("Stored branding asset tenant={} type={} key={} size={}B",
-                tenantId, type, objectKey, content.length);
         return presigned.url().toString();
     }
 

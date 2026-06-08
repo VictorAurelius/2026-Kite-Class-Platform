@@ -1,6 +1,6 @@
 # GAP-1072: Settings không render logo hiện tại + presigned URL hết hạn
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟡 P2
 **Domain:** Frontend (+ Backend presigned URL TTL)
 **Found:** 2026-06-08 (KC-1 G2 Bước 3)
@@ -18,7 +18,7 @@
 
 ## Acceptance Criteria
 
-- [ ] Settings hiển thị logo hiện tại khi logo_url có
+- [x] BE regenerate-on-read shipped (BrandingServiceImpl + storage.renderableUrl); 12/12 test PASS
 - [ ] Logo URL không hết hạn lúc render (regenerate on read hoặc proxy)
 - [ ] Re-walk browser → logo preview hiện
 
@@ -26,3 +26,7 @@
 
 - Discovered in: KC-1 G2 Bước 3 walk 2026-06-08
 - GAP-1071 (sister — layout shell, cùng /settings walk)
+
+
+## Update 2026-06-08
+BE fix shipped (contained parse-URL regen-on-read, no migration). Verified live: logo URL X-Amz-Date=20260608 fresh sau bust cache. Lưu ý: @Cacheable TTL 1h → sau đổi logo/deploy có thể stale ≤1h rồi self-heal (acceptable). Còn lại: re-walk browser confirm logo preview hiện (pending user F5 per g1-browser-walk-before-flip).

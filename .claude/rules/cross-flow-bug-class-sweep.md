@@ -1,9 +1,9 @@
 # Cross-Flow Bug-Class Sweep Mandate — fix once → grep all sister sites
 
 **Priority:** 🟠 MANDATORY — bug-fix completeness governance
-**Version:** 1.0.1
+**Version:** 1.1.0
 **Created:** 2026-05-28
-**Last-Reviewed:** 2026-05-31
+**Last-Reviewed:** 2026-06-08
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (reviewer-checklist + worked self-test on Wave A Bucket B walk Bug #21 sweep 2026-05-28) per §6.5 Enforcement Parity Mandate; META P0 force-multiplier per `meta-gap-priority.md` §3 — sister cho `audit-to-gap-pipeline.md` §2.7 Decision-Doc Code-Sync at different boundary (bug-fix → similar-flow-sweep direction))
 **Applies to:** Mọi PR fix bug — sau khi identify bug class + fix code site #1, PHẢI grep similar bug class signature trong codebase TRƯỚC khi flip issue closed
 
@@ -91,6 +91,19 @@ grep -rnE "fetch\(['\"]\\s*/api/|axios\\.(get|post|put|delete|patch)\\(" \
 - ❌ "Trust that other flow doesn't have it" — empirical verify required
 - ❌ Single-keyword grep — use multi-pattern OR construct (vd file name + class name + import)
 - ❌ Skip sweep "vì fix ở interceptor level cover all" — verify by grep, document evidence
+
+### 4.1 Statically-detectable class → persistent detector mandate (added v1.1.0)
+
+> **Nếu bug class detect được TĨNH (grep/AST trên source — vd "FE gọi endpoint BE không expose", "(dashboard) page không wrap shell", "missing header on apiClient call"), manual grep 1 lần KHÔNG đủ — MUST ship persistent CI detector (script + WARN-mode job) để check MỌI flow trên MỌI PR, không chỉ flow đang walk.**
+
+Manual sweep chỉ check tại thời điểm walk + dựa vào người nhớ chạy → flow chưa walk vẫn ẩn instance của class. CI detector chạy mọi PR → catch class across all flows tự động (kể cả flow chưa G2-walk). Đây là khác biệt "process bắt 1 lần" vs "meta tự check mọi flow".
+
+| Class detect được tĩnh? | Sweep đủ chưa? |
+|---|---|
+| ✅ Có (source grep/AST) — vd FE↔BE contract, missing-shell-wrapper, missing-header | Manual grep = tạm; **MUST file + build CI detector** (per `incident-to-rule-pipeline.md` §3.1 — nếu detector non-trivial, HONEST-defer với gap + ETA, KHÔNG bỏ) |
+| ❌ Không (runtime-only — vd race condition, env-specific) | Manual sweep + runtime walk (browser/RST); detector defer |
+
+Detector ship per `rule-change-process.md` §6.5 Enforcement Parity (WARN-mode đầu, HARD-STOP sau grace). Self-test: detector PHẢI flag được pre-fix state của incident gốc.
 
 ---
 
@@ -209,5 +222,6 @@ Re-evaluate nếu: (a) Anthropic publishes post-edit hook detect "bug-fix just l
 
 ## 10. Log
 
+- **2026-06-08 (v1.1.0):** MINOR — added §4.1 "Statically-detectable class → persistent detector mandate": bug class detect được tĩnh (source grep/AST) → manual grep 1 lần KHÔNG đủ, MUST ship persistent CI detector check mọi flow trên mọi PR (không chỉ flow đang walk). Triggered by user-flagged 2026-06-08 KC-1 G2: "nhỡ các flow khác cũng bug tương tự thì meta có check không?" — sweep manual cho GAP-1069 (FE↔BE drift) + GAP-1071 (missing-shell-wrapper) chỉ check flow KC-1, flow khác vẫn ẩn. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged meta-coverage gap) → Classify ✓ (rule v1.0.x mandate sweep nhưng không phân biệt manual-grep vs persistent-detector cho statically-detectable class) → Rule+Enforce ✓ (§4.1 + paired same-PR 2 detector `check-fe-be-api-contract.sh` (GAP-1070) + `check-dashboard-shell-wrapper.sh` (GAP-1071) + 10-page triage per `rule-change-process.md` §6.5) → Self-Test ✓ (2 detector flag pre-fix state của GAP-1069/1071) → Retro Log ✓ (this entry). META P1 force-multiplier per `meta-gap-priority.md` §3 — statically-detectable cross-flow class giờ auto-checked mọi PR. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds previously-uncovered detector-mandate for statically-detectable classes; no constraint loosening; existing sweeps grandfathered; applies prospectively).
 - **2026-05-31 (v1.0.1):** PATCH — added §9.5 Auto-load justification per `context-budget-mandate.md` §3.2 (rule was MANDATORY always-load ≥1k tokens without `paths:` NOR justification — surfaced by new `scripts/check-context-budget.sh` per-rule gate). Rule fires at bug-fix decision-time (not file-read-time) → genuinely cross-cutting, justification is correct mechanism (path-scope too broad). No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — additive justification section, no constraint loosening).
 - **2026-05-28 (v1.0.0):** Rule created in response to user direction 2026-05-28 mid-Wave-A-Bucket-B walk: "thêm rule, sau khi fix 1 bug ở 1 flow, check flow khác có bug này không?". Triggered by Bug #21 fix (FE missing X-Tenant-Id header): apiClient interceptor fix covers ~95% callers nhưng raw `fetch()` calls bypass interceptor — sweep needed empirically. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged mid-walk) → Classify ✓ (no existing rule mandates cross-flow same-bug-class sweep; sister rule `audit-to-gap-pipeline.md` §2.7 covers inverse direction decision-doc → code-sweep) → Rule+Enforce ✓ (this file + reviewer-checklist + worked self-test §6 on Bug #21 originating incident + paired same-PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§6 worked example — apiClient interceptor fix verified sufficient via 4-site sweep) → Retro Log ✓ (this entry). META P0 force-multiplier per `meta-gap-priority.md` §3 — fix discipline 1 lần → mọi future bug fix subsequent auto-comply prospectively → eliminate silent recurrence class. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying previously-uncovered cross-flow sweep discipline; no constraint loosening; existing bug fixes grandfathered; rule applies prospectively từ this PR forward 2026-05-28). Atomic-unique-bar §5.1 check passed: ✅ atomic (single concept: sweep similar after fix) + ✅ unique (sister rule covers inverse direction) + ✅ widely applicable (every bug fix) + ✅ body discipline §1 ≤2 "and" conjunctions. Detector wiring (§8.4 CI grep) + memory auto-load (§8.3) deferred per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions.

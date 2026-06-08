@@ -40,4 +40,22 @@ public interface BrandingAssetStorage {
      * @return renderable URL pointing at the stored asset
      */
     String store(UUID tenantId, ResourceType type, String filename, String contentType, byte[] content);
+
+    /**
+     * Regenerate a fresh renderable (presigned GET) URL for an already-stored
+     * asset, identified by its object key.
+     *
+     * <p><b>GAP-1072:</b> {@link #store} returns a presigned URL whose signature
+     * expires after a fixed TTL (7 days — the S3 SigV4 maximum). Callers persist
+     * that URL; once it expires the asset renders broken (HTTP 403). This method
+     * re-derives a fresh presigned URL from the stable object key on every READ,
+     * so the FE always receives a live URL without re-uploading.
+     *
+     * <p>Mirrors exactly the presign half of {@link #store} (same bucket, same
+     * TTL, same presigner) — only the upload step is skipped.
+     *
+     * @param objectKey the MinIO object key (e.g. {@code static/{tenantId}/{type}/{file}})
+     * @return a freshly presigned GET URL pointing at the stored asset
+     */
+    String renderableUrl(String objectKey);
 }
