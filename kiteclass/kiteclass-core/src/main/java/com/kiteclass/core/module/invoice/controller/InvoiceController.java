@@ -1,6 +1,7 @@
 package com.kiteclass.core.module.invoice.controller;
 
 import com.kiteclass.core.common.dto.ApiResponse;
+import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.module.invoice.dto.ApplyAdjustmentRequest;
 import com.kiteclass.core.module.invoice.dto.BatchInvoiceConfirmResponse;
 import com.kiteclass.core.module.invoice.dto.BatchInvoicePreviewResponse;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -79,6 +81,25 @@ public class InvoiceController {
         log.info("POST /api/v1/invoices/batch-confirm?month={}", month);
         BatchInvoiceConfirmResponse result = invoiceBatchService.confirm(month);
         return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    /**
+     * Lists all invoices for the current tenant, paginated (flat list).
+     *
+     * <p>Backs the Owner dashboard. Tenant-scoped via the Hibernate
+     * {@code tenantFilter} — no cross-tenant leak. Supports {@code sort=createdAt,desc}.
+     * Authorization mirrors the sibling invoice read endpoints.
+     *
+     * @param pageable pagination + sort params (default sort {@code createdAt,desc})
+     * @return page of invoice response DTOs scoped to the current tenant
+     */
+    @GetMapping
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    public ResponseEntity<ApiResponse<PageResponse<InvoiceResponse>>> getInvoices(
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        log.info("GET /api/v1/invoices");
+        PageResponse<InvoiceResponse> invoices = invoiceService.getInvoices(pageable);
+        return ResponseEntity.ok(ApiResponse.success(invoices));
     }
 
     /**

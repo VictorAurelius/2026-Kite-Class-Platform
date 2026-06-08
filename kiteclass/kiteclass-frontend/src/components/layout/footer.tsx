@@ -37,13 +37,13 @@ export function Footer() {
           {/* Links */}
           <div className="flex gap-4 text-sm">
             <Link href="/help" className="text-muted-foreground hover:text-foreground">
-              Help
+              Trợ giúp
             </Link>
-            <Link href="/privacy" className="text-muted-foreground hover:text-foreground">
-              Privacy
+            <Link href="/legal/privacy" className="text-muted-foreground hover:text-foreground">
+              Quyền riêng tư
             </Link>
-            <Link href="/terms" className="text-muted-foreground hover:text-foreground">
-              Terms
+            <Link href="/legal/terms" className="text-muted-foreground hover:text-foreground">
+              Điều khoản
             </Link>
           </div>
         </div>

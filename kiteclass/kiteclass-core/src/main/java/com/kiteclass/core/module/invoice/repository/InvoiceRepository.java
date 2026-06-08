@@ -111,6 +111,20 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     Page<Invoice> findByClassIdAndDeletedFalse(Long classId, Pageable pageable);
 
     /**
+     * Finds all invoices for the current tenant (excluding soft-deleted), paginated.
+     *
+     * <p>Backs the Owner dashboard flat list {@code GET /api/v1/invoices}. Tenant
+     * isolation is enforced automatically by the Hibernate {@code tenantFilter}
+     * (from {@link com.kiteclass.core.common.entity.BaseEntity}) — this derived
+     * query compiles to HQL, so the filter condition {@code instance_id = :tenantId}
+     * is appended transparently and no cross-tenant leak is possible.
+     *
+     * @param pageable pagination + sort params
+     * @return Page of invoices scoped to the current tenant
+     */
+    Page<Invoice> findAllByDeletedFalse(Pageable pageable);
+
+    /**
      * Finds all overdue invoices (past due date and not paid), paginated.
      *
      * @param currentDate the current date for comparison

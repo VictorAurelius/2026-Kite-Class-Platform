@@ -52,19 +52,42 @@ const nextConfig = {
   // Wave 49 Bucket 0 — PWA infra + Wave 86 Bucket E Fix 3 CSP per OWASP A05.
   // Service worker scope header; manifest cache; CSP Report-Only Phase 1 BETA.
   async headers() {
+    // Derive the configured API origin (+ ws variant) so connect-src allows the
+    // actual gateway per environment: http://localhost:9000 in local dev,
+    // the production API origin in prod. Avoids hardcoding + CSP connect-src
+    // violations when the FE talks to NEXT_PUBLIC_API_URL.
+    let apiOrigin = '';
+    let apiWsOrigin = '';
+    try {
+      const u = new URL(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000');
+      apiOrigin = u.origin;
+      apiWsOrigin = u.origin.replace(/^http/, 'ws');
+    } catch (_) {
+      /* leave empty if NEXT_PUBLIC_API_URL unset/invalid */
+    }
+    const connectSrc = [
+      "'self'",
+      apiOrigin,
+      apiWsOrigin,
+      'https://kiteclass.com',
+      'https://*.kiteclass.com',
+      'wss://*.kiteclass.com',
+    ].filter(Boolean).join(' ');
     const cspDirectives = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: https: blob: https://cdn.kiteclass.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "connect-src 'self' https://kiteclass.com https://*.kiteclass.com wss://*.kiteclass.com",
+      `connect-src ${connectSrc}`,
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
       "object-src 'none'",
       "worker-src 'self' blob:",
-      "upgrade-insecure-requests",
+      // NOTE: 'upgrade-insecure-requests' intentionally omitted — it is ignored
+      // when delivered via Content-Security-Policy-Report-Only (browser warning).
+      // Re-add under enforcing CSP (not report-only) per Wave 86 Bucket E flip plan.
     ].join('; ');
     return [
       {

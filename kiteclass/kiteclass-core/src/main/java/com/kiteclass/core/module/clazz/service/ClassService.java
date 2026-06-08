@@ -71,6 +71,18 @@ public interface ClassService {
     PageResponse<ClassResponse> listClasses(Long courseId, int page, int size);
 
     /**
+     * Lists all classes for the current tenant, paginated.
+     *
+     * <p>Flat list (not scoped to a course) backing the Owner dashboard
+     * {@code GET /api/v1/classes}. Tenant-scoped via the Hibernate
+     * {@code tenantFilter} — no cross-tenant leak.
+     *
+     * @param pageable pagination + sort params
+     * @return paginated class list for the current tenant
+     */
+    PageResponse<ClassResponse> listAllClasses(org.springframework.data.domain.Pageable pageable);
+
+    /**
      * Starts a class (SCHEDULED → IN_PROGRESS).
      *
      * @param classId class ID

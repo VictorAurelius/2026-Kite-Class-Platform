@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.invoice.service;
 
+import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.module.invoice.dto.ApplyAdjustmentRequest;
 import com.kiteclass.core.module.invoice.dto.InvoiceItemResponse;
 import com.kiteclass.core.module.invoice.dto.InvoiceResponse;
@@ -57,6 +58,18 @@ public interface InvoiceService {
      * @return page of invoice response DTOs
      */
     Page<InvoiceResponse> getInvoicesByStudent(Long studentId, Pageable pageable);
+
+    /**
+     * Lists all invoices for the current tenant, paginated (flat list).
+     *
+     * <p>Backs the Owner dashboard {@code GET /api/v1/invoices}. Tenant-scoped via
+     * the Hibernate {@code tenantFilter} — no cross-tenant leak. Supports sorting
+     * (e.g. {@code createdAt,desc}) through the {@link Pageable}.
+     *
+     * @param pageable pagination + sort params
+     * @return paginated invoice list for the current tenant
+     */
+    PageResponse<InvoiceResponse> getInvoices(Pageable pageable);
 
     /**
      * Applies adjustment to invoice (discount, late fee, etc.).
