@@ -4,22 +4,36 @@
 **Standards:** `release-deploy-standard.md` §3.4 · `dev-readable-doc-language.md` §2 · `deployment-naming-convention.md` §2 (`account-prep/` — one-time per OA account).
 **Cross-link upstream:** Wave 73+ user manual landed (`/help/anonymous`); domain `kitehub.me` đã verify (`02-domain-registrar.md` hoặc `02b-github-student-pack-free-domain.md`).
 **Cross-link downstream:** Blocks `SupportMenu.tsx` (`kitehub/kitehub-frontend/src/components/support/SupportMenu.tsx`) Zalo OA item active + `Footer.tsx` Zalo OA link + email template footer Zalo OA CTA.
-**Estimated time:** ~30-45 phút cho Option A fast-path (founder personal OA); ~2-3 tuần cho Option B (business verification).
-**Last-Updated:** 2026-05-18
+**Estimated time:** ~30-45 phút cho Option A fast-path (OA Doanh nghiệp, skip verification → chưa-verified); ~2-3 tuần cho Option B (hoàn tất verification lấy badge).
+**Last-Updated:** 2026-06-08
 
 ---
 
 ## TL;DR
 
-> Phase 1 BETA cần Zalo OA = first-class support channel theo VN edu cohort norm (KiteViet/Haravan/Misa pattern). Option A: dùng founder personal Zalo OA trong tuần này (no business verification). Option B: register business OA + verify (≥2 tuần). Code path đã có sẵn env-var `NEXT_PUBLIC_KITEHUB_ZALO_OA_ID` — placeholder default `kitehub`; chỉ cần update khi OA ID thực sự active.
+> Phase 1 BETA cần Zalo OA = first-class support channel theo VN edu cohort norm (KiteViet/Haravan/Misa pattern). **⚠️ Cập nhật 2026-06-08:** Zalo KHÔNG còn loại "Cá nhân" — chỉ 3 loại: **Doanh nghiệp** / **Nội dung** / **Cơ quan nhà nước** (xem §0). Solo dev dùng **Doanh nghiệp** (chính sách Zalo: "phù hợp doanh nghiệp, tổ chức, **và cá nhân muốn xây thương hiệu**"). Option A = tạo Doanh nghiệp + **skip verification** ("Thoát xác thực OA") → OA chưa-verified, đủ cho passive CTA. Option B = hoàn tất verification (cần giấy phép KD) lấy badge. Code path đã có env-var `NEXT_PUBLIC_KITEHUB_ZALO_OA_ID` — placeholder default `kitehub`; update khi OA ID active.
 
 Quick path 5 bước cho Phase 1 BETA (Option A fast-path):
 
-1. Mở app Zalo trên điện thoại → vào "Khám phá" → "Tạo Official Account" (hoặc truy cập [oa.zalo.me](https://oa.zalo.me/) trên desktop)
-2. Chọn loại OA: **Cá nhân** (personal) cho fast-path; **Doanh nghiệp** cho long-term (xem §3 Option B)
+1. Truy cập [oa.zalo.me](https://oa.zalo.me/) → "Tạo Official Account" (desktop khuyến nghị)
+2. Chọn loại OA: **Doanh nghiệp** (KHÔNG có "Cá nhân"; Doanh nghiệp bao gồm cá nhân xây thương hiệu). Khi gặp màn "Xác thực OA" → bấm **"Thoát xác thực OA"** để skip (OA chưa-verified, vẫn dùng được passive CTA)
 3. Điền tên hiển thị: `KiteHub - Quản lý trung tâm giáo dục`
-4. Upload avatar + cover image (paired GAP-225 AI branding scope) + về chúng tôi text (1-2 đoạn tiếng Việt)
-5. Copy OA ID từ profile → update env var `NEXT_PUBLIC_KITEHUB_ZALO_OA_ID` trong Vercel/EC2 deployment
+4. Upload avatar + cover image (dùng `assets/zalo-oa/*.png` §1) + về chúng tôi text (1-2 đoạn tiếng Việt)
+5. Copy OA ID từ profile → update env var `NEXT_PUBLIC_KITEHUB_ZALO_OA_ID` trong EC2/Helm deployment
+
+---
+
+## 0. Loại OA Zalo 2026 (KHÔNG còn "Cá nhân")
+
+Zalo 2026 chỉ có **3 loại** OA khi đăng ký (loại "Cá nhân/Personal" cũ đã bỏ):
+
+| Loại | Cho ai | Giấy phép KD lúc tạo? | Broadcast |
+|---|---|---|---|
+| **Doanh nghiệp** ⭐ | Doanh nghiệp, tổ chức, **và cá nhân muốn xây thương hiệu** | Không bắt buộc (verify để sau lấy badge) | 4 tin/tháng/follower |
+| **Nội dung** | Creator / cộng đồng / báo chí | Không cần | 1 tin/ngày/follower |
+| **Cơ quan nhà nước** | Cơ quan hành chính | N/A (xác thực cơ quan) | 4 tin/tháng |
+
+→ **Solo dev KiteHub chọn "Doanh nghiệp"** (chính sách Zalo bao gồm cá nhân xây thương hiệu). Đây KHÔNG phải bắt buộc có pháp nhân — chỉ là loại OA; verification (badge) mới cần giấy phép, và có thể **skip** lúc tạo. Fallback nếu Doanh nghiệp kẹt duyệt: loại **Nội dung** (creator, không cần giấy phép).
 
 ---
 
@@ -36,45 +50,48 @@ Quick path 5 bước cho Phase 1 BETA (Option A fast-path):
 
 ---
 
-## 2. Option A — Fast-path (founder personal OA, Phase 1 BETA Wave 98+)
+## 2. Option A — Fast-path (OA Doanh nghiệp, skip verification → chưa-verified)
 
-**Khi nào dùng:** Cần Zalo OA active TRONG WAVE 98 cohort polish (không thể chờ business verification 2+ tuần). KiteHub chưa incorporate hoặc đang chờ MST.
+**Khi nào dùng:** Cần Zalo OA active nhanh cho passive CTA support channel. Solo dev chưa có pháp nhân / chưa muốn verify ngay.
 
 **Trade-offs:**
-- ✅ Active ngay (15-30 phút setup)
-- ✅ Không yêu cầu business license
+- ✅ Active nhanh (skip verification → Zalo chỉ review nội dung cơ bản, thường vài phút–vài giờ)
+- ✅ Không yêu cầu giấy phép KD (skip verification)
 - ❌ Không có badge "Đã xác minh" → tenant có thể nghi ngờ trust signal
-- ❌ Cap follower ~5,000 (personal OA limit)
-- ❌ Không dùng ZNS programmatic API (Wave 99+ scope)
+- ❌ Chưa dùng ZNS programmatic API (cần OA verified — Option B, cho GAP-819 push phụ huynh)
+- ⚠️ Loại Doanh nghiệp đôi khi review lâu hơn; nếu kẹt >24-48h → fallback loại "Nội dung" (§0)
 
 ### 2.1 Bước setup
 
 1. Mở [oa.zalo.me](https://oa.zalo.me/) trên desktop browser
-2. Click "Đăng ký Zalo Official Account" → đăng nhập bằng số điện thoại VN (Zalo personal account)
-3. Chọn loại OA: **Cá nhân** (Personal)
+2. Click "Tạo Official Account" → đăng nhập bằng số điện thoại VN
+3. Chọn loại OA: **Doanh nghiệp** (KHÔNG có "Cá nhân" — xem §0; Doanh nghiệp bao gồm cá nhân xây thương hiệu)
 4. Điền form:
    - **Tên OA:** `KiteHub - Quản lý trung tâm giáo dục`
    - **Danh mục:** Giáo dục → Công nghệ giáo dục
    - **Mô tả:** "KiteHub là nền tảng SaaS giúp trung tâm giáo dục VN quản lý học viên, lớp học, điểm danh, học phí. Hỗ trợ T2-T6 8h-18h."
-5. Upload avatar + cover (xem §1 specs)
-6. Click "Tạo OA" → wait Zalo review (~5-15 phút cho personal OA)
-7. Sau khi approved → vào OA dashboard → copy OA ID (dạng số 13-16 chữ số, vd `1234567890123456`)
+5. Upload avatar + cover (dùng `assets/zalo-oa/*.png` — xem §1)
+6. **Khi gặp màn "Xác thực OA"** → bấm **"Thoát xác thực OA"** để skip (OA chưa-verified vẫn hoạt động cho passive CTA; verify để sau = Option B)
+7. Click "Tạo OA" → Zalo review nội dung cơ bản (~vài phút–vài giờ; KHÔNG cần giấy phép vì đã skip verification). Status hiện "Đang chờ duyệt" cho tới khi xong
+8. Sau khi approved → vào OA dashboard → copy **OA ID** (dạng số, vd `1851148412966286224`)
 
 ### 2.2 Update env var Phase 1 BETA
 
 Sau khi có OA ID:
 
-```bash
-# Vercel (Phase 1 BETA pre-Wave-82 path)
-vercel env add NEXT_PUBLIC_KITEHUB_ZALO_OA_ID production
-# Paste OA ID khi prompt
+`NEXT_PUBLIC_*` được Next.js inline lúc **build** → set ở build-time:
 
-# AWS EC2 self-host (Wave 82+ pattern per no-vercel-references.md)
-# Update kitehub/kitehub-frontend/.env.production hoặc Helm values
-echo "NEXT_PUBLIC_KITEHUB_ZALO_OA_ID=<OA_ID>" >> .env.production
+```bash
+# Local dev: kitehub/kitehub-frontend/.env.local (gitignored)
+echo "NEXT_PUBLIC_KITEHUB_ZALO_OA_ID=<OA_ID>" >> kitehub/kitehub-frontend/.env.local
+
+# Production (AWS EC2 self-host, Wave 82+): cần wiring 3 chỗ vì NEXT_PUBLIC = build-arg
+#   1. kitehub/kitehub-frontend/Dockerfile: ARG + ENV NEXT_PUBLIC_KITEHUB_ZALO_OA_ID
+#   2. kitehub/docker-compose.kitehub.yml build.args: NEXT_PUBLIC_KITEHUB_ZALO_OA_ID
+#   3. .github/workflows/docker-build-push.yml: pass --build-arg
 ```
 
-Nếu env var chưa set → SupportMenu fallback dùng placeholder `kitehub` (matches Zalo URL `https://zalo.me/kitehub` — sẽ 404 cho tới khi OA active).
+Nếu env var chưa set → SupportMenu/Footer fallback placeholder `kitehub` (`https://zalo.me/kitehub` — 404 cho tới khi OA active + env set).
 
 ### 2.3 Verify
 
@@ -84,39 +101,36 @@ Nếu env var chưa set → SupportMenu fallback dùng placeholder `kitehub` (ma
 
 ---
 
-## 3. Option B — Business OA + verification (long-term, Wave 99+)
+## 3. Option B — Hoàn tất verification cho OA Doanh nghiệp (lấy badge + ZNS)
 
-**Khi nào dùng:** KiteHub đã incorporate, có MST, business license; muốn badge "Đã xác minh" trust signal + ZNS programmatic API future scope.
+**Khi nào dùng:** KiteHub đã có pháp nhân (hộ KD / công ty), MST; muốn badge "Đã xác minh" + ZNS programmatic API (bắt buộc cho GAP-819 push phụ huynh).
+
+> **Lưu ý:** KHÔNG tạo OA mới — đây là **cùng OA Doanh nghiệp** ở Option A, chỉ hoàn tất bước verification đã skip (Cách 1: xác thực theo tên doanh nghiệp). OA ID giữ nguyên → env var không đổi.
 
 **Trade-offs:**
 - ✅ Badge "Đã xác minh" trên OA profile (trust signal cho Tier 1 tenant)
-- ✅ Cap follower unlimited
-- ✅ ZNS programmatic API (Zalo Notification Service) cho transactional notification Wave 99+
-- ❌ Yêu cầu business license + 2-3 tuần Zalo review
-- ❌ Phí Zalo OA Business plan (~5tr/năm cho mid-tier)
+- ✅ ZNS programmatic API (Zalo Notification Service) — unblock GAP-819 active push
+- ❌ Yêu cầu giấy phép KD + 2-3 tuần Zalo review
+- ❌ Phí Zalo OA Business plan tùy gói
 
 ### 3.1 Prerequisites
 
-- Giấy đăng ký kinh doanh (Business License) PDF
+- Giấy đăng ký kinh doanh (hộ KD đủ — không bắt buộc công ty) PDF
 - MST (Tax code)
 - Email theo domain `@kitehub.me` (vd `support@kitehub.me`)
 - Số điện thoại business
 
-### 3.2 Bước setup
+### 3.2 Bước verification (trên OA đã tạo)
 
-1. Vào [oa.zalo.me](https://oa.zalo.me/) → Đăng ký → chọn **Doanh nghiệp** (Business)
-2. Submit form business info + upload business license PDF
-3. Wait Zalo review (2-3 tuần — Zalo verify business license + MST)
-4. Sau khi approved → setup OA profile (avatar/cover/về chúng tôi) per §2.1 bước 4
-5. Apply ZNS template (Wave 99+ scope — không cần Phase 1 BETA)
+1. Vào OA dashboard → Cài đặt → **Xác thực OA** → Cách 1 (tên doanh nghiệp)
+2. Submit form business info + upload giấy phép KD PDF
+3. Wait Zalo review (2-3 tuần — verify giấy phép + MST)
+4. Sau khi verified → badge xuất hiện; OA ID + profile giữ nguyên (không đổi env var)
+5. Apply ZNS template (cho GAP-819 push phụ huynh)
 
-### 3.3 Migration từ Option A → Option B
+### 3.3 Không cần migration
 
-Khi business OA approved, migrate followers từ personal OA:
-1. Announce trên personal OA: "Chúng tôi đã chuyển sang OA chính thức — click [link] để follow"
-2. Update env var `NEXT_PUBLIC_KITEHUB_ZALO_OA_ID` → business OA ID mới
-3. Keep personal OA active trong 30 ngày cho follower migration
-4. Sau 30 ngày → archive personal OA (KHÔNG xóa — keep cho audit trail)
+Vì Option A → Option B là **cùng một OA** (chỉ thêm verification), KHÔNG có migration followers / đổi OA ID / đổi env var. Followers tích lũy từ Option A giữ nguyên.
 
 ---
 
@@ -148,11 +162,11 @@ Khi business OA approved, migrate followers từ personal OA:
 | ❌ Don't | ✅ Do |
 |---|---|
 | Hardcode OA ID trực tiếp trong source code | Dùng env var `NEXT_PUBLIC_KITEHUB_ZALO_OA_ID` |
-| Skip Option A "vì chờ business verification" | Ship Option A trong Wave 98 — migrate sang Option B sau (§3.3) |
+| Skip Option A "vì chờ business verification" | Ship Option A (skip verification) ngay — hoàn tất verification sau = Option B (§3, cùng OA) |
 | Đặt OA ID vào commit message hoặc public docs ngoài runbook này | OA ID là semi-public (zalo.me URL anyway) — OK trong docs nhưng KHÔNG đặt vào secrets manager |
 | Dùng số điện thoại cá nhân chính cho OA | Dùng số dành riêng cho business (separate scope) |
 | Hỗ trợ qua Zalo OA ngoài giờ hành chính mà không thông báo | Cập nhật "về chúng tôi" với support hours T2-T6 8h-18h |
-| Migrate personal OA → business OA mà không announce | Bước §3.3 announce + keep personal OA 30 ngày |
+| Tạo OA mới khi muốn verify (tưởng phải đổi sang "business OA") | Verify ngay trên OA Doanh nghiệp đã có (§3) — cùng OA, giữ OA ID + followers |
 
 ---
 
