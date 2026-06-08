@@ -115,6 +115,14 @@
             <artifactId>caffeine</artifactId>
         </dependency>
 
+        <!-- Redis (GAP-1075 — refresh-token blacklist; design-canonical per
+             service-catalog-and-auth-flow.md). Lettuce connects lazily so a Redis
+             outage at startup does not block boot; the blacklist fails open. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
         <!-- AWS S3 SDK (for backup storage) -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

@@ -20,19 +20,19 @@ export const authApi = {
   },
 
   /**
-   * Logout user. Client-side only for now: the kitehub-subscription AuthController
-   * exposes register/login/refresh but NO `/api/auth/logout` endpoint, so the prior
-   * `POST /api/auth/logout` returned 404 and broke logout (the token-clear was gated
-   * behind the mutation's onSuccess). Server-side refresh-token revocation (blacklist)
-   * is deferred to GAP-1075. Until then logout = local token clear (handled by the
-   * caller's onSettled), which is the de-facto behaviour for stateless JWT anyway.
+   * Logout user. Calls the server-side revocation endpoint (GAP-1075) to blacklist the
+   * refresh token, then the caller's `onSettled` clears local tokens. The endpoint is
+   * idempotent + fail-open, so any network/server error is swallowed here — local logout
+   * MUST always complete (the access token is stateless and expires on its own).
    *
-   * @param _refreshToken accepted for signature stability; unused until GAP-1075 ships
-   *                      a server-side revocation endpoint.
+   * @param refreshToken the refresh token to revoke server-side
    */
-  logout: async (_refreshToken: string): Promise<void> => {
-    // No-op network call — server revocation endpoint not implemented (GAP-1075).
-    return Promise.resolve();
+  logout: async (refreshToken: string): Promise<void> => {
+    try {
+      await apiClient.post('/api/auth/logout', { refreshToken });
+    } catch {
+      // Best-effort revocation — never block local logout on a server/network error.
+    }
   },
 
   /**
