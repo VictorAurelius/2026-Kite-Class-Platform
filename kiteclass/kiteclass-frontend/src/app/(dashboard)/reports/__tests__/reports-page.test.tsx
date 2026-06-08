@@ -30,8 +30,12 @@ vi.mock('@/hooks/use-reports', () => ({
 }));
 
 vi.mock('@/stores/auth-store', () => ({
-  useAuthStore: (selector: (s: unknown) => unknown) =>
-    selector(mockUseAuthStore()),
+  // Mirror real zustand: support both `useAuthStore(selector)` (page role-guard)
+  // and bare `useAuthStore()` (Header → useAuth destructures whole state).
+  useAuthStore: (selector?: (s: unknown) => unknown) => {
+    const state = mockUseAuthStore();
+    return selector ? selector(state) : state;
+  },
 }));
 
 import ReportsPage from '../page';
