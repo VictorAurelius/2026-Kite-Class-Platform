@@ -196,6 +196,42 @@ Code dùng 1 biến `SEPAY_API_KEY` (`application.yml:224` `${SEPAY_API_KEY:}`),
 
 → Dùng **Test Mode** cho verify logic không tốn kém; bật **beta-mode** khi cần 1 lần sanity-check tiền thật trước go-live.
 
+### 4.5.5 Field-level dashboard config + tunnel (verified end-to-end 2026-06-08)
+
+Đã chạy thật qua SePay Test Mode simulator → cloudflared tunnel → gateway → subscription → PAID flip. Chi tiết khớp UI thật:
+
+**Bước 0 — tài khoản giả lập trước:** Test Mode → tạo **tài khoản ngân hàng giả lập** TRƯỚC khi tạo webhook (tab "Tài khoản" của webhook cần account để chọn + để mô phỏng giao dịch).
+
+**Tunnel (để SePay gọi vào local):**
+```bash
+# Gateway local chạy port 9000 (KHÔNG phải subscription 8081 — SePay phải vào qua gateway để đúng whitelist + route)
+cloudflared tunnel --url http://localhost:9000   # → https://<random>.trycloudflare.com (ephemeral)
+```
+
+**Form "Thêm Webhook" — 3 tab:**
+
+| Tab | Field | Giá trị |
+|---|---|---|
+| **Cơ bản** | URL nhận webhook | `https://<tunnel>/api/platform/webhooks/payment` (phải đủ path) |
+| | Loại giao dịch | **Tiền vào** |
+| | Định dạng dữ liệu | **JSON** (handler `@RequestBody Map`, KHÔNG chọn Form) |
+| | Tự động gửi lại khi lỗi | Bật OK (idempotency by `id` handle — GAP-976) |
+| **Tài khoản** | chọn tài khoản | tài khoản giả lập (bước 0) |
+| **Bảo mật** | Phương thức xác thực | **API Key** (KHÔNG HMAC — handler chỉ verify Apikey; HMAC = GAP-1057 Phase 1.5) |
+| | giá trị key | = `SEPAY_API_KEY` (local: `dev-sepay-test-key-local`; prod: AWS Secrets Manager) → SePay gửi header `Authorization: Apikey <key>` |
+
+**Nhận diện mã thanh toán:** optional cho test — handler tự tách `KH3SUB[A-F0-9]{8}` từ field `description`. Nếu để Tắt, SePay vẫn forward raw `description`. (Prod: cấu hình prefix `KH3SUB` + 8 hex để giống thật.)
+
+**Mô phỏng giao dịch:** nội dung chuyển khoản PHẢI chứa `txnRef` (vd `KH3SUBCAFE0001`) + amount khớp payment + tiền vào.
+
+**🔴 ACK contract (GAP-1063) — bắt buộc:** handler trả HTTP 200 body **PHẢI chứa `{"success": true}`**, nếu không SePay báo *"Response không đúng quy cách — Body thiếu {"success": true}"* + retry 7× dù payment đã xử lý. Đã fix trong `PaymentWebhookController` (success/ignored → `success:true`; 401/400 → `success:false`).
+
+**Real SePay payload shape (verified):**
+```json
+{"gateway":"MBBank","transactionDate":"...","accountNumber":"00******01","code":"","content":"...","transferType":"in","description":"...KH3SUB...","transferAmount":100000,"referenceCode":"SB...","id":7066}
+```
+Handler đọc: `id` (idempotency), `transferType` (filter), `transferAmount` (amount check), `description` (txnRef extract). Lưu ý SePay gửi cả `content` + `description` cùng giá trị; handler dùng `description`.
+
 ---
 
 ## 5. Verify (sau khi live)
