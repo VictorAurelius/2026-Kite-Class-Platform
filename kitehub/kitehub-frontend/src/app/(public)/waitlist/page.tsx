@@ -14,6 +14,10 @@
 
 import Link from 'next/link';
 
+// Zalo OA ID via NEXT_PUBLIC_KITEHUB_ZALO_OA_ID env var (fallback placeholder 'kitehub').
+// Same pattern as Footer.tsx + SupportMenu.tsx — avoids hardcode drift (GAP-1065).
+const ZALO_OA_URL = `https://zalo.me/${process.env.NEXT_PUBLIC_KITEHUB_ZALO_OA_ID ?? 'kitehub'}`;
+
 export const metadata = {
   title: 'Waitlist Phase 1.5 — KiteHub',
   description:
@@ -108,7 +112,7 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
               Đăng ký waitlist qua email
             </a>
             <a
-              href="https://zalo.me/kitehub"
+              href={ZALO_OA_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-xl border-2 px-6 py-3 text-center text-sm font-semibold hover:border-primary hover:text-primary"
