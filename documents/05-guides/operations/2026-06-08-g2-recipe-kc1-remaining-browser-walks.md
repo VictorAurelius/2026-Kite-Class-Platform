@@ -18,7 +18,7 @@ supersedes: 2026-06-08-g2-recipe-kc1-session-isolation.md (mở rộng, credenti
 |---|---|---|---|---|
 | A | **GAP-1074** | Cross-tab session-isolation (login tab 1 → tab 2 không bắt login lại) | kiteclass `:3000` | ~5 phút |
 | B | **GAP-1072 + GAP-1073** | Upload logo từ Settings → success + logo preview render | kiteclass `:3000` | ~5 phút |
-| C | **GAP-811** | Host→tenant landing (subdomain → branding đúng tenant) | kitehub `:3001` | ~3 phút (cách `?tenant=` no sudo; /etc/hosts optional) |
+| C | **GAP-811** | Host→tenant landing (subdomain → branding đúng tenant) | kitehub `:3001` | ~3 phút (nip.io — production-accurate, no sudo) |
 
 ---
 
@@ -95,32 +95,37 @@ Kỳ vọng: **tất cả `healthy`** (postgres/redis/rabbitmq/minio/mailhog + g
 
 ## 4. Mảng C — GAP-811 Host→tenant landing (kitehub :3001)
 
-**Cơ chế:** middleware `kitehub-frontend/src/middleware.ts` đọc `Host` → extract subdomain slug (cần host ≥3 phần, vd `sky-education.kitehub.local`) → gọi BE `by-subdomain` → inject `x-tenant-id` → landing render branding đúng tenant. `localhost`/IP → pass-through fallback.
+**Cơ chế production:** `https://sky-education.kitehub.me/` → middleware `kitehub-frontend/src/middleware.ts` đọc `Host` → `extractSlugFromHost()` lấy `parts[0]` (cần host ≥3 phần) → gọi BE `/by-subdomain/<slug>` → inject `x-tenant-id` → landing render branding đúng tenant.
 
-> **2 cách test — KHÔNG bắt buộc sửa /etc/hosts.** Cách 1 (`?tenant=`) đủ để xác nhận branding render bằng mắt, **không cần sudo**. Cách 2 (subdomain + /etc/hosts) chỉ cần khi muốn verify đúng AC nghiêm ngặt "Host→subdomain extraction".
+> **⚠️ Quan trọng — mô phỏng ĐÚNG production:** middleware ưu tiên `?tenant=` query **TRƯỚC** Host (line 99) → dùng `?tenant=` sẽ **BYPASS toàn bộ Host extraction**, KHÔNG test đúng cơ chế production. Để mô phỏng đúng, phải dùng **subdomain thật trong Host header**. Cách production-accurate + không cần sudo = **nip.io wildcard DNS**.
 
-### Bước C1 — Cách 1 (KHUYÊN DÙNG, no sudo): `?tenant=` dev override
-- **Action:** Mở browser → http://localhost:3001/?tenant=sky-education
-- **Kỳ vọng:** ✅ Landing render **branding Sky Education** (tên "Trung tâm Anh ngữ Sky Education" ở nav/footer, KHÔNG phải fallback tenant `11111111-...`).
-- **Verify:** DevTools → Network → request landing resolve đúng tenant; BE (đã verify live): `curl -s http://localhost:9000/api/v1/public/tenants/by-subdomain/sky-education` → `{"id":"0edaee10...","name":"Trung tâm Anh ngữ Sky Education"}`.
-- **Sad-path:** Landing hiện fallback generic / tenant `11111111` → resolution FAIL → báo FAIL.
-- **Lưu ý:** đường này đi qua **dev-override branch** của middleware (bypass Host extraction); đủ xác nhận render branding nhưng KHÔNG test full host-resolution. Muốn full → Bước C2.
+### Bước C1 — Cách CHÍNH (production-accurate, no sudo): nip.io
+**nip.io** là DNS công cộng: `<bất-kỳ>.127.0.0.1.nip.io` → resolve `127.0.0.1`. Browser gửi Host header thật có subdomain → middleware extract đúng như production (`sky-education.kitehub.me`), chỉ khác domain suffix.
 
-### Bước C2 — Cách 2 (TÙY CHỌN, full AC host→tenant): subdomain + /etc/hosts
-> Chỉ làm nếu muốn verify đúng AC "Browse subdomain → resolve qua Host". Cần sudo — coordinator KHÔNG tự chạy được (no NOPASSWD), **dev chạy bằng `!` prefix trong prompt**:
-- **Action 1 (thêm host map — chạy 1 lần):**
-  ```
-  ! echo "127.0.0.1 sky-education.kitehub.local" | sudo tee -a /etc/hosts
-  ```
-  Verify: `ping -c1 sky-education.kitehub.local` → `127.0.0.1`.
-- **Action 2:** Mở browser → http://sky-education.kitehub.local:3001/
-- **Kỳ vọng:** ✅ Landing render branding Sky Education (qua **full middleware Host→subdomain** path, không phải override).
-- **Verify:** `docker logs kitehub-frontend 2>&1 | grep -iE "x-tenant|sky"` → slug `sky-education` → UUID `0edaee10...`.
-- **Gỡ sau test:** `! sudo sed -i '/sky-education.kitehub.local/d' /etc/hosts`
+- **Action:** Mở browser → **http://sky-education.127.0.0.1.nip.io:3001/**
+- **Kỳ vọng:** ✅ Landing render **branding Sky Education** (tên "Trung tâm Anh ngữ Sky Education" ở nav/footer, KHÔNG phải fallback tenant `11111111-...`) — qua **full Host→subdomain→BE path** giống production.
+- **Verify:**
+  - DevTools → Network → request landing → Request Header `Host: sky-education.127.0.0.1.nip.io` (subdomain thật, KHÔNG `?tenant=`).
+  - `docker logs kitehub-frontend 2>&1 | grep -iE "x-tenant|sky"` → middleware resolve slug `sky-education` → UUID `0edaee10...`.
+  - BE (verified live): `curl -s http://localhost:9000/api/v1/public/tenants/by-subdomain/sky-education` → `{"id":"0edaee10...","name":"Trung tâm Anh ngữ Sky Education"}`.
+- **Sad-path:** Landing fallback generic / tenant `11111111` → middleware không resolve được Host → báo FAIL. (Nếu trang không load: nip.io cần internet DNS — xem Bước C1-alt.)
+- **Khoảng cách với production:** chỉ khác ở tầng infra (port `:3001` vs `:443`, không TLS, không qua LB/reverse-proxy) — đó là **G3 production-parity**, không phải G2 functional. Resolution logic đã đúng 100%.
+
+### Bước C1-alt — Fallback offline (nếu nip.io không resolve): /etc/hosts
+Nếu máy không có internet DNS (nip.io fail), dùng /etc/hosts (cần sudo — **dev chạy bằng `!` prefix**):
+```
+! echo "127.0.0.1 sky-education.kitehub.local" | sudo tee -a /etc/hosts
+```
+Rồi browse **http://sky-education.kitehub.local:3001/** (kỳ vọng/verify như C1). Gỡ sau test: `! sudo sed -i '/sky-education.kitehub.local/d' /etc/hosts`.
+
+### Bước C2 — Smoke nhanh (KHÔNG production-accurate): `?tenant=`
+> Chỉ để smoke "FE có render branding không" khi không tiện nip.io. **KHÔNG tính là verify GAP-811** vì bypass Host extraction.
+- **Action:** http://localhost:3001/?tenant=sky-education → kỳ vọng render branding Sky.
+- **Lưu ý:** đi qua dev-override branch (line 99), KHÔNG test Host→subdomain. Pass ở đây KHÔNG đủ flip GAP-811 DONE.
 
 ### Bước C3 — Regression dev path (no subdomain)
-- **Action:** Mở http://localhost:3001/ (không subdomain, không `?tenant=`).
-- **Kỳ vọng:** ✅ Pass-through (landing default/fallback, KHÔNG crash).
+- **Action:** Mở http://localhost:3001/ (localhost thuần, không subdomain/`?tenant=`).
+- **Kỳ vọng:** ✅ Pass-through graceful (landing default/fallback, KHÔNG crash).
 - **Sad-path:** Crash / 500 → middleware fallback không graceful → báo FAIL.
 
 ---
@@ -133,8 +138,8 @@ Kỳ vọng: **tất cả `healthy`** (postgres/redis/rabbitmq/minio/mailhog + g
 | Tab 2 đá `/login` | localStorage cross-tab persist fail | DevTools → check key `kc:<tenant>:accessToken` tồn tại |
 | Upload 415/400 "part not present" | multipart boundary thiếu | Network → check `Content-Type: multipart/form-data; boundary=` |
 | Logo 403 "expired" | presigned URL hết hạn (GAP-1072) | F5 reload (regen-on-read); nếu vẫn 403 → FAIL |
-| `?tenant=` → fallback branding | resolution fail / BE down | `curl :9000/api/v1/public/tenants/by-subdomain/sky-education`; nếu 200 mà FE vẫn fallback → FE bug |
-| Subdomain (Cách 2) → fallback | `/etc/hosts` thiếu / middleware không resolve | `ping sky-education.kitehub.local`; `docker logs kitehub-frontend` |
+| nip.io trang không load | máy không có internet DNS | Dùng /etc/hosts fallback (Bước C1-alt) |
+| Subdomain → fallback branding | middleware không resolve / BE down | `docker logs kitehub-frontend \| grep x-tenant`; `curl :9000/api/v1/public/tenants/by-subdomain/sky-education` (200?) |
 | Service unhealthy | infra/stack chưa up đủ | `cd kitehub && bash scripts/up.sh --force-recreate` |
 
 ---
