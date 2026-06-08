@@ -30,7 +30,7 @@ Quick path 5 bước cho Phase 1 BETA (Option A fast-path):
 | Tài khoản Zalo cá nhân | Đã active + verified với số điện thoại VN; recommend dùng số dành riêng cho business (KHÔNG dùng số cá nhân chính nếu muốn separate scope) |
 | Số điện thoại VN | Để OTP verify khi tạo OA (Zalo yêu cầu) |
 | Avatar 500×500 px PNG | **Sẵn có:** `assets/zalo-oa/kitehub-oa-avatar.png` (kite mark + chữ KiteHub, nền trắng). Lưu ý Zalo crop tròn → chữ đáy có thể cắt nhẹ; mark giữa luôn đầy đủ. |
-| Cover image 1080×400 px | **Sẵn có:** `assets/zalo-oa/kitehub-oa-cover.png` (gradient brand + mark + tagline VN). Nguồn SVG cùng thư mục để chỉnh sau (GAP-225 AI branding có thể refine). |
+| Cover image 16:9 (≥1280×720 px) | **Sẵn có:** `assets/zalo-oa/kitehub-oa-cover.png` (1280×720 full-bleed gradient + mark + tagline VN). Zalo cover crop tỉ lệ 16:9 (min 320×180) — full-bleed lấp kín khung crop. Nguồn SVG cùng thư mục để chỉnh sau (GAP-225 AI branding có thể refine). |
 | Mô tả ngắn (về chúng tôi) | 1-2 đoạn tiếng Việt giới thiệu KiteHub + support hours |
 | Business license (Option B only) | Giấy đăng ký kinh doanh (cho business OA verification — không cần cho fast-path Option A) |
 
