@@ -73,6 +73,25 @@ Khi cả 2 ship → thesis claims "đã kết nối/đã tích hợp Zalo OA" + 
 
 ## 3. Phase 1.5 design — Zalo OA active push (ZNS adapter)
 
+### 3.0 Hiện trạng scaffold + Quyết định kiến trúc (2026-06-08, GAP-819 flow-check)
+
+Flow-check 2026-06-08 phát hiện **3 scaffold Zalo cùng tồn tại** — design §3.3 (bản gốc) đặt adapter sai chỗ + bỏ qua 2 scaffold đã có:
+
+| # | Vị trí | Nguồn | Mô hình | Trạng thái |
+|---|---|---|---|---|
+| 1 | `kitehub-email/src/main/java/com/kitehub/email/zalo/ZaloOAClient` | GAP-063 Phase 1 | Generic OA **send-message** API + mock + `ZaloOAConfig` (`zalo.*` application.yml) | Scaffold mock, CHƯA wire NotificationChannel |
+| 2 | `kiteclass-core/.../parent/notification/` + outbox `zalo_oa_notification_outbox` (V61) | Wave 105 Bucket D | Outbox-write, log-only, per-tenant (instance_id), event-typed | Stub — ghi outbox, **KHÔNG có worker drain** |
+| 3 | Design §3.3 (bản gốc) | GAP-819 đề xuất | `ZaloZnsAdapter implements NotificationChannel` ở kitehub-email | Chỉ design, chưa code |
+
+**🔒 QUYẾT ĐỊNH KIẾN TRÚC (2026-06-08): Build ở `kiteclass-core`, drain outbox riêng** (KHÔNG dùng kitehub-email NotificationChannel). Lý do:
+- Outbox V61 + caller (`ParentPaymentController`) + RLS (V78) đã có ở kiteclass-core; data điểm/điểm danh/payment phát sinh tại đây.
+- Đi qua kitehub-email NotificationChannel = thêm cross-service hop + `NotificationChannel.send()` synchronous → không hợp pattern outbox fire-and-forget đã chọn.
+- `kitehub-email/zalo/ZaloOAClient` (#1) là generic send-message, KHÔNG phải ZNS template API → chỉ tham khảo DTO/config pattern, không reuse trực tiếp.
+
+→ §3.3 dưới đây đã **rewrite** theo quyết định này (bản gốc kitehub-email-adapter giữ trong git history).
+
+**🔒 QUYẾT ĐỊNH SCHEMA (2026-06-08): Phase 1.5 MVP = platform-level single OA** (KiteHub OA push thay mặt mọi tenant), reuse config `zalo.*` đã có ở kitehub-email application.yml. **Per-tenant OA** (mỗi trung tâm OA riêng, parent thấy brand trung tâm) = **defer Phase 2** (tránh per-tenant OAuth + template-approval explosion). → Phase 1.5 KHÔNG thêm columns `tenants.zalo_oa_id`; dùng outbox `instance_id` để scope nội dung, OA sender = platform. Reconcile gap §4 (liệt kê per-tenant columns) → đánh dấu Phase 2.
+
 ### 3.1 Trigger conditions
 
 Phase 1.5 paid tier unlock khi:
@@ -88,38 +107,30 @@ Zalo ZNS yêu cầu **template approval** trước khi gửi:
 - Rate limit: ~500-1000 messages/day/OA cho tier free, paid tier theo gói VNG
 - Cost: ~250-500đ per message (variable theo template type)
 
-### 3.3 Adapter design
+### 3.3 Adapter design (REWRITTEN 2026-06-08 — kiteclass-core outbox-drain per §3.0)
 
-```
-┌─────────────────────────────────┐
-│  NotificationProducer           │
-│  (Grade / Attendance / Fee)     │
-└──────────┬──────────────────────┘
-           │ NotificationChannel.send(recipient, msg, ctx)
-           ▼
-┌─────────────────────────────────┐
-│  NotificationDispatcher         │
-│  - read user preference         │
-│  - resolve channel order        │
-│  - dispatch to adapter          │
-└──────────┬──────────────────────┘
-           │ ZALO channel selected
-           ▼
-┌─────────────────────────────────┐
-│  ZaloZnsAdapter (NEW)           │
-│  - template_id lookup           │
-│  - param mapping                │
-│  - HTTP POST → openapi.zalo.me  │
-│  - retry + DLQ + audit log      │
-└─────────────────────────────────┘
+Outbox-drain fire-and-forget (KHÔNG synchronous NotificationChannel). Producer ghi outbox (đã có); worker mới drain → ZNS client → openapi.zalo.me.
+
+```mermaid
+flowchart TD
+    Producer["Producer (kiteclass-core)<br/>Grade / Attendance / Fee / Invite"] -->|"ZaloOaNotificationService.record*()<br/>(đã có, Wave 105 stub)"| Outbox[("zalo_oa_notification_outbox V61<br/>status=PENDING, instance_id, event_type, payload")]
+    Worker["ZaloOutboxDispatcher (NEW)<br/>@Scheduled drain PENDING"] -->|read PENDING| Outbox
+    Worker -->|"template_id lookup + param map"| Client["ZaloZnsClient (NEW)<br/>mock | live (provider flag)"]
+    Client -->|"HTTP POST (live)"| Zalo["openapi.zalo.me ZNS<br/>(cần access_token + template approved)"]
+    Client -.->|mock mode| MockOK["log + flip DISPATCHED"]
+    Worker -->|"success → DISPATCHED / fail → attempt_count++ / max → FAILED"| Outbox
+    Worker -->|"fallback ZALO fail → EMAIL"| Email["SESEmailService (đã có)"]
 ```
 
-**Implementation files (Phase 1.5):**
-- `kitehub/kitehub-email/src/main/java/com/kitehub/email/adapter/ZaloZnsAdapter.java` (NEW — implements `NotificationChannel`)
-- `kitehub/kitehub-email/src/main/java/com/kitehub/email/zalo/ZaloZnsClient.java` (NEW — HTTP client)
-- `kitehub/kitehub-email/src/main/resources/zalo-templates.yml` (NEW — local template_id ↔ NotificationType mapping)
-- DB migration: add `zalo_oa_id`, `zalo_zns_template_id` columns to `tenants` table
-- Config: `kitehub.notification.channels.enabled=EMAIL,ZALO` (paid tenants only via guard)
+**Implementation files (Phase 1.5) — REVISED to kiteclass-core:**
+- `kiteclass-core/.../parent/notification/ZaloZnsClient.java` (NEW — HTTP client, `provider=mock|live` conditional như `ZaloOAMockClient` pattern)
+- `kiteclass-core/.../parent/notification/ZaloOutboxDispatcher.java` (NEW — `@Scheduled` drain `zalo_oa_notification_outbox` WHERE status=PENDING → client → flip DISPATCHED/FAILED + retry via `attempt_count`)
+- `kiteclass-core/.../resources/zalo-zns-templates.yml` (NEW — event_type ↔ template_id mapping; template_id thật = blocked Zalo approval)
+- Fix `ZaloOaNotificationServiceImpl.resolveTenantId()` (đang hardcode nil-UUID → dùng `TenantContext`)
+- ALTER `chk_zalo_oa_event_type` (V61) thêm `GRADE_PUBLISHED` + thêm method `recordGradePublished` + caller ở grade module
+- Wire 0-caller methods: `recordParentInviteSent` (invite flow) + `recordAttendanceAlert` (attendance flow)
+- Config: reuse `zalo.*` (platform-level, kitehub-email application.yml pattern → mirror sang kiteclass-core OR shared); `provider=mock` default, `live` cần `ZALO_ACCESS_TOKEN` (blocked Zalo App)
+- **NOT building** ở kitehub-email NotificationChannel (per §3.0 decision); `kitehub-email/zalo/ZaloOAClient` để nguyên (generic send, scope khác)
 
 ### 3.4 Fallback chain
 
