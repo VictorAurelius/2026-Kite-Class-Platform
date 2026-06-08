@@ -37,6 +37,7 @@ import {
   Users,
 } from 'lucide-react';
 import { KPICard, type KPIData } from '@/_shared/dashboard-foundation';
+import { DashboardLayout } from '@/components/layout';
 import { useStudents } from '@/hooks/use-students';
 import { useCourses } from '@/hooks/use-courses';
 
@@ -111,6 +112,7 @@ export default function DashboardHomePage() {
       : 'Đang tải số liệu trung tâm…';
 
   return (
+    <DashboardLayout>
     <div className="space-y-6 p-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -140,5 +142,6 @@ export default function DashboardHomePage() {
         </p>
       </section>
     </div>
+    </DashboardLayout>
   );
 }

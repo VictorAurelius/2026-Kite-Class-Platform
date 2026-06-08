@@ -19,6 +19,7 @@ import Link from 'next/link';
 import { Sparkles, Wand2, Eye, Palette, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DashboardLayout } from '@/components/layout';
 
 const FEATURES = [
   {
@@ -43,6 +44,7 @@ const FEATURES = [
 
 export default function BrandingGatewayPage() {
   return (
+    <DashboardLayout>
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
@@ -112,5 +114,6 @@ export default function BrandingGatewayPage() {
         </CardContent>
       </Card>
     </div>
+    </DashboardLayout>
   );
 }

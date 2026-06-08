@@ -33,6 +33,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ErrorAlert } from '@/components/common/error-alert';
+import { DashboardLayout } from '@/components/layout';
 import { vettingApi, type VettingDocumentResponse } from '@/lib/api/vetting';
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10MB — matches server cap
@@ -52,6 +53,7 @@ export default function VettingDocumentUploadPage() {
 
   if (vettingId === undefined) {
     return (
+      <DashboardLayout>
       <div className="mx-auto max-w-2xl p-6">
         <ErrorAlert
           title="ID hồ sơ không hợp lệ"
@@ -60,6 +62,7 @@ export default function VettingDocumentUploadPage() {
           backLabel="Về trang quản trị"
         />
       </div>
+      </DashboardLayout>
     );
   }
 
@@ -102,6 +105,7 @@ export default function VettingDocumentUploadPage() {
   };
 
   return (
+    <DashboardLayout>
     <div className="mx-auto max-w-2xl space-y-6 p-6">
       <header>
         <Button asChild variant="ghost" size="sm">
@@ -190,5 +194,6 @@ export default function VettingDocumentUploadPage() {
         </CardContent>
       </Card>
     </div>
+    </DashboardLayout>
   );
 }

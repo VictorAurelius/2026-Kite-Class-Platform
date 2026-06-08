@@ -25,6 +25,7 @@ import { EnhancedAttendanceCalendar } from '@/components/student/dynamic-attenda
 import { AttendanceHistoryTable } from '@/components/attendance/attendance-history-table';
 import { AttendanceDetailDialog } from '@/components/student/dynamic-attendance-detail-dialog';
 import { useStudent } from '@/hooks/use-students';
+import { DashboardLayout } from '@/components/layout';
 import {
   useStudentAttendanceStats,
   useAttendanceByEnrollment,
@@ -98,6 +99,7 @@ export default function StudentAttendancePage({ params }: PageProps) {
 
   if (isLoadingStudent) {
     return (
+      <DashboardLayout>
       <div className="container mx-auto py-8">
         <div className="mb-6 flex items-center gap-4">
           <div className="h-8 w-32 animate-pulse rounded bg-muted" />
@@ -107,11 +109,13 @@ export default function StudentAttendancePage({ params }: PageProps) {
           <div className="h-96 animate-pulse rounded-lg bg-muted" />
         </div>
       </div>
+      </DashboardLayout>
     );
   }
 
   if (!student) {
     return (
+      <DashboardLayout>
       <div className="container mx-auto py-8">
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
@@ -125,10 +129,12 @@ export default function StudentAttendancePage({ params }: PageProps) {
           </CardContent>
         </Card>
       </div>
+      </DashboardLayout>
     );
   }
 
   return (
+    <DashboardLayout>
     <div className="container mx-auto space-y-6 py-8">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -245,5 +251,6 @@ export default function StudentAttendancePage({ params }: PageProps) {
         records={selectedRecords}
       />
     </div>
+    </DashboardLayout>
   );
 }

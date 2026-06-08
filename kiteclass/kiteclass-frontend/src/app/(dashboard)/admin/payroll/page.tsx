@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { usePayrollConfigs, usePayrollPeriods } from '@/hooks/use-payroll';
+import { DashboardLayout } from '@/components/layout';
 import type { PayrollStatus, PayrollType } from '@/types/payroll';
 
 const VND_FORMATTER = new Intl.NumberFormat('vi-VN', {
@@ -85,6 +86,7 @@ export default function AdminPayrollPage() {
   });
 
   return (
+    <DashboardLayout>
     <div className="container mx-auto space-y-6 py-8">
       {/* Header */}
       <div>
@@ -269,5 +271,6 @@ export default function AdminPayrollPage() {
         </CardContent>
       </Card>
     </div>
+    </DashboardLayout>
   );
 }

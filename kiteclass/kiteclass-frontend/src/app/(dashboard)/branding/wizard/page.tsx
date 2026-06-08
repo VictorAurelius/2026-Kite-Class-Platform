@@ -1,3 +1,4 @@
+// shell-exempt: full-screen multi-step branding wizard, focused flow by design (no dashboard chrome)
 'use client';
 
 import { Suspense } from 'react';

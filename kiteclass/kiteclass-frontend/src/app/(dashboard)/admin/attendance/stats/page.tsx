@@ -23,6 +23,7 @@ import {
   useClassAttendanceStats,
 } from '@/hooks/use-attendance';
 import { useAllActiveClasses } from '@/hooks/use-classes';
+import { DashboardLayout } from '@/components/layout';
 import { exportToCSV } from '@/lib/csv-export';
 import { getDefaultDateRange } from '@/lib/chart-utils';
 import type { ClassAttendanceBreakdown } from '@/types/attendance';
@@ -114,6 +115,7 @@ export default function AdminAttendanceStatsPage() {
   const isLoading = isLoadingClasses || isLoadingStats;
 
   return (
+    <DashboardLayout>
     <div className="container mx-auto space-y-6 py-8">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -271,5 +273,6 @@ export default function AdminAttendanceStatsPage() {
         sortOrder="desc"
       />
     </div>
+    </DashboardLayout>
   );
 }
