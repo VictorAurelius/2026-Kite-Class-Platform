@@ -1,11 +1,11 @@
 /**
- * MSW handlers for Public Tenant Resolve endpoint (Wave tenant-domain-1 Bucket 0 Foundation).
+ * MSW handlers for Public Tenant Resolve endpoint (GAP-811 / GAP-813).
  *
  * Schema: `documents/01-business/kitehub/marketing/api-contract.md` §9
  *
- * Cross-layer foundation per `.claude/rules/contract-first-for-cross-layer.md`:
- * Wave tenant-domain-1 Bucket C (GAP-811) FE middleware `resolveTenant.ts` will consume
- * these handlers in unit tests trước BE Bucket B (GAP-813 `PublicTenantController`) lands.
+ * Consumed by FE middleware `resolveTenant.ts` unit tests. Backing controller
+ * (`PublicTenantController` in kitehub-subscription, GAP-813) is live; these
+ * handlers stub it for hermetic FE tests.
  *
  * Endpoints covered:
  *   - GET /api/v1/public/tenants/by-subdomain/{slug}  (anonymous tenant lookup)
@@ -17,8 +17,9 @@
  *
  * Per-test overrides via `server.use(http.get(...))` trong individual specs.
  *
- * @author KiteHub Team
- * @since Wave tenant-domain-1 Bucket 0
+ * Ported per GAP-1077 từ kitehub-frontend.
+ *
+ * @author KiteClass Team
  */
 
 import { http, HttpResponse } from 'msw';

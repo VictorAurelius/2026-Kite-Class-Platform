@@ -18,7 +18,6 @@ import { feedbackHandlers } from './feedback';
 import { onboardingHandlers } from './onboarding';
 import { staffInvitationsHandlers } from './staff-invitations';
 import { supportHandlers } from './support';
-import { tenantHandlers } from './tenant';
 
 export const handlers: HttpHandler[] = [
   ...brandingHandlers,
@@ -30,7 +29,6 @@ export const handlers: HttpHandler[] = [
   ...supportHandlers,
   ...staffInvitationsHandlers,
   ...cookieConsentHandlers,
-  ...tenantHandlers,
 ];
 
 export {
@@ -43,5 +41,4 @@ export {
   onboardingHandlers,
   staffInvitationsHandlers,
   supportHandlers,
-  tenantHandlers,
 };

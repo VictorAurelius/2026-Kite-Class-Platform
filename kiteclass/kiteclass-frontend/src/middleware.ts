@@ -1,33 +1,35 @@
 /**
- * Next.js edge middleware — host → tenant resolver (Wave tenant-domain-1 Bucket C, GAP-811).
+ * Next.js edge middleware — host → tenant resolver (GAP-811).
  *
  * Intercepts every public-page request, extracts the subdomain slug from the
  * `Host` header (or `?tenant=` preview query param), resolves to a tenant UUID
- * via the Public Tenant Resolve endpoint (Bucket B GAP-813), and injects
- * `x-tenant-id` into the downstream request so server components can read it
- * via `next/headers#headers()`.
+ * via the Public Tenant Resolve endpoint (GAP-813), and injects `x-tenant-id`
+ * into the downstream request so server components can read it via
+ * `next/headers#headers()`.
  *
- * Behaviour map (per GAP-811 §AC + outside-in findings 2026-05-29):
+ * Behaviour map (per GAP-811 §AC + outside-in findings):
  *
  * | Host shape                       | Action                                                      |
  * |----------------------------------|-------------------------------------------------------------|
- * | `sky.kitehub.me`                 | Resolve `sky` → inject `x-tenant-id`                        |
- * | `kitehub.me` (apex)              | Pass through — marketing site, no tenant context            |
- * | `www.kitehub.me`                 | Pass through — reserved subdomain                            |
+ * | `sky.kiteclass.com`              | Resolve `sky` → inject `x-tenant-id`                        |
+ * | `kiteclass.com` (apex)           | Pass through — marketing site, no tenant context            |
+ * | `www.kiteclass.com`              | Pass through — reserved subdomain                            |
  * | `localhost` / `127.0.0.1` / IP   | Pass through (dev). `?tenant=sky` query param overrides.    |
- * | `unknown.kitehub.me`             | Pass through (let app render generic 404 / fallback)        |
- * | `suspended.kitehub.me`           | 307 redirect → `/suspended?slug=suspended`                  |
+ * | `unknown.kiteclass.com`          | Pass through (let app render generic 404 / fallback)        |
+ * | `suspended.kiteclass.com`        | 307 redirect → `/suspended?slug=suspended`                  |
  * | BE down / 5xx                    | Pass through with `x-tenant-resolve-error` warning header   |
  *
  * Per `documents/04-quality/gaps/phase-1-beta/GAP-811-*.md` Proposed Fix
  * Approach A (middleware → BE resolve endpoint, NOT direct DB query — keeps FE
  * decoupled from schema).
  *
- * Reserved subdomains list mirrors `kiteclass-frontend/src/hooks/useTenantFromUrl.ts`
- * for consistency (www / api / admin / staging) plus apex-marketing additions.
+ * Reserved subdomains list mirrors `src/hooks/useTenantFromUrl.ts`
+ * (www / api / admin / staging) plus apex-marketing additions (beta / preview).
  *
- * @author KiteHub Team
- * @since Wave tenant-domain-1 Bucket C
+ * Ported per GAP-1077 từ kitehub-frontend — host→tenant middleware thuộc về
+ * kiteclass-frontend (mỗi tenant = 1 trang học, resolve theo Host).
+ *
+ * @author KiteClass Team
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -48,7 +50,8 @@ export const config = {
 
 /**
  * Reserved subdomains that map to platform-level concerns, not tenants.
- * Mirrors `kiteclass-frontend/src/hooks/useTenantFromUrl.ts` reserved list.
+ * Mirrors `src/hooks/useTenantFromUrl.ts` reserved list (www/api/admin/staging)
+ * plus apex-marketing additions (beta/preview).
  */
 const RESERVED_SUBDOMAINS = new Set([
   'www',
@@ -63,11 +66,11 @@ const RESERVED_SUBDOMAINS = new Set([
  * Extract a subdomain slug from a `Host` header value.
  *
  * Examples:
- * - `sky.kitehub.me`          → `'sky'`
- * - `sky.kitehub.me:3000`     → `'sky'`
- * - `www.kitehub.me`          → `null` (reserved)
- * - `kitehub.me`              → `null` (apex, only 2 parts)
- * - `localhost:4701`          → `null`
+ * - `sky.kiteclass.com`       → `'sky'`
+ * - `sky.kiteclass.com:3000`  → `'sky'`
+ * - `www.kiteclass.com`       → `null` (reserved)
+ * - `kiteclass.com`           → `null` (apex, only 2 parts)
+ * - `localhost:4700`          → `null`
  * - `127.0.0.1`               → `null`
  *
  * Apex domains (2 parts) and IP addresses both yield `null` — there is no
@@ -92,7 +95,7 @@ export function extractSlugFromHost(host: string | null | undefined): string | n
  *
  * Priority order:
  * 1. `?tenant=<slug>` query param — dev / preview override (chủ trung tâm xem
- *    landing trước go-live; per outside-in finding 2026-05-29 persona P1)
+ *    landing trước go-live; per outside-in finding persona P1)
  * 2. `Host` header subdomain
  */
 function extractSlug(req: NextRequest): string | null {

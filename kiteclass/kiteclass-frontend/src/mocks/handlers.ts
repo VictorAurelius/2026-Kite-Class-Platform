@@ -8,6 +8,7 @@
 import { http, HttpResponse } from 'msw';
 
 import { aiBrandingHandlers } from './ai-branding-handlers';
+import { tenantHandlers } from './tenant-handlers';
 
 // Mock base URL
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -619,4 +620,4 @@ const kiteClassCoreHandlers = [
   }),
 ];
 
-export const handlers = [...kiteClassCoreHandlers, ...aiBrandingHandlers];
+export const handlers = [...kiteClassCoreHandlers, ...aiBrandingHandlers, ...tenantHandlers];

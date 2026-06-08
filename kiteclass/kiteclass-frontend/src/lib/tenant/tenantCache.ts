@@ -1,5 +1,5 @@
 /**
- * In-memory cache for tenant resolution results (Wave tenant-domain-1 Bucket C, GAP-811).
+ * In-memory cache for tenant resolution results (GAP-811).
  *
  * 5-minute TTL per `documents/01-business/kitehub/marketing/api-contract.md` §9.2.
  *
@@ -12,8 +12,10 @@
  * are NOT cached — middleware re-checks each request so a tenant transitioning
  * back to ACTIVE recovers within one request rather than TTL window.
  *
- * @author KiteHub Team
- * @since Wave tenant-domain-1 Bucket C
+ * Ported per GAP-1077 từ kitehub-frontend — host→tenant middleware thuộc về
+ * kiteclass-frontend (mỗi tenant = 1 trang học, resolve theo Host).
+ *
+ * @author KiteClass Team
  */
 
 import type { TenantResolveResult } from './resolveTenant';

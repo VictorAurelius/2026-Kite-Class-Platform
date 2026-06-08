@@ -12,6 +12,7 @@
  */
 
 import { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { publicApi } from '@/lib/api/public';
 import { ThemeSync } from '@/components/theme/ThemeSync';
 import { TemplateRenderer, type SectionSlotMap } from '@/components/sections/TemplateRenderer';
@@ -33,7 +34,14 @@ export const metadata: Metadata = {
 
 const getLandingPageData = async (tenantOverride?: string) => {
   try {
+    // Resolve tenant in priority order:
+    // 1. ?tenant= dev/preview override (page-scoped searchParams)
+    // 2. x-tenant-id header injected by host→tenant middleware (GAP-811/GAP-1077)
+    // 3. NEXT_PUBLIC_TENANT_ID (1-tenant-per-deploy fallback)
+    // 4. hardcoded default tenant
+    const headerTenantId = (await headers()).get('x-tenant-id') ?? undefined;
     const tenantId: string = tenantOverride
+      ?? headerTenantId
       ?? process.env.NEXT_PUBLIC_TENANT_ID
       ?? '11111111-1111-1111-1111-111111111111';
 

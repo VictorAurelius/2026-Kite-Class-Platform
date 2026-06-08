@@ -1,13 +1,12 @@
 /**
- * Tenant resolution client — calls Public Tenant Resolve BE endpoint
- * (Wave tenant-domain-1 Bucket C, GAP-811).
+ * Tenant resolution client — calls Public Tenant Resolve BE endpoint (GAP-811).
  *
  * Contract: `documents/01-business/kitehub/marketing/api-contract.md` §9.1
  * Endpoint: `GET /api/v1/public/tenants/by-subdomain/{slug}`
  *
- * Bucket B (GAP-813) ships the backing controller. Until then, FE tests
- * consume MSW handlers in `src/test/msw/handlers/tenant.ts` per
- * `.claude/rules/contract-first-for-cross-layer.md`.
+ * Backing controller shipped by GAP-813 (`PublicTenantController` in
+ * kitehub-subscription). FE tests consume MSW handlers in
+ * `src/mocks/tenant-handlers.ts`.
  *
  * Semantics:
  * - 200 OK + ACTIVE → returns `TenantResolveResult`
@@ -17,8 +16,12 @@
  *
  * 5-min cache layered via `tenantCache.ts` per api-contract.md §9.2.
  *
- * @author KiteHub Team
- * @since Wave tenant-domain-1 Bucket C
+ * Ported per GAP-1077 từ kitehub-frontend — host→tenant middleware thuộc về
+ * kiteclass-frontend. Base URL theo convention SSR của kiteclass (GAP-809):
+ * server-side ưu tiên `INTERNAL_API_URL` (docker-network DNS kite-gateway:9000),
+ * fallback `NEXT_PUBLIC_API_URL`.
+ *
+ * @author KiteClass Team
  */
 
 import { getCached, setCached } from './tenantCache';
@@ -103,10 +106,11 @@ export async function resolveTenant(
   const baseUrl =
     options?.baseUrl ??
     // Middleware runs server-side inside the Next container; prefer the
-    // internal cluster URL over the public one to avoid an unnecessary hop.
+    // internal cluster URL over the public one to avoid an unnecessary hop
+    // (per kiteclass SSR convention GAP-809 — see src/lib/api/public.ts).
     process.env.INTERNAL_API_URL ??
     process.env.NEXT_PUBLIC_API_URL ??
-    'http://localhost:9000';
+    'http://kite-gateway:9000';
 
   const url = `${baseUrl.replace(/\/$/, '')}/api/v1/public/tenants/by-subdomain/${encodeURIComponent(slug)}`;
 

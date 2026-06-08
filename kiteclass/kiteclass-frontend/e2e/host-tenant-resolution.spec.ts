@@ -1,16 +1,15 @@
 /**
- * E2E tests for the host→tenant resolution middleware
- * (Wave tenant-domain-1 Bucket C, GAP-811).
+ * E2E tests for the host→tenant resolution middleware (GAP-811).
  *
  * Simulates 5 scenarios per GAP-811 §AC by route-mocking the Public Tenant
  * Resolve endpoint so the spec is hermetic and does NOT require the BE
- * (Bucket B GAP-813) to be live.
+ * (GAP-813) to be live.
  *
  * Scenarios:
- *   (a) Valid host `sky.kitehub.me`      → 200 OK → middleware injects `x-tenant-id`
- *   (b) Unknown host                     → 404      → pass through, app handles
- *   (c) Suspended host                   → 410      → 307 redirect /suspended
- *   (d) Preview mode `?tenant=sky`       → 200 OK → resolves via query param
+ *   (a) Valid preview `?tenant=sky`      → 200 OK → middleware injects `x-tenant-id`
+ *   (b) Unknown slug                     → 404      → pass through, app handles
+ *   (c) Suspended slug                   → 410      → 307 redirect /suspended
+ *   (d) Preview mode `?tenant=pioneer`   → 200 OK → resolves via query param
  *   (e) BE-down (mock 500)               → 5xx      → graceful pass-through
  *
  * Note on host simulation: Playwright respects the URL's host when running
@@ -18,7 +17,8 @@
  * or a wildcard DNS — here we use the `?tenant=` preview signal as the primary
  * mechanism + assert via the proxy that the middleware path runs end-to-end.
  *
- * @since Wave tenant-domain-1 Bucket C
+ * Ported per GAP-1077 từ kitehub-frontend — host→tenant middleware thuộc về
+ * kiteclass-frontend.
  */
 
 import { test, expect, type Route } from '@playwright/test';
@@ -47,7 +47,7 @@ async function mockTenantEndpoint(
   });
 }
 
-test.describe('Wave tenant-domain-1 Bucket C — host→tenant resolution', () => {
+test.describe('GAP-811 — host→tenant resolution', () => {
   test('(a) preview ?tenant=sky → page renders without redirect', async ({ page }) => {
     await mockTenantEndpoint(page, (slug) => {
       if (slug === 'sky') {

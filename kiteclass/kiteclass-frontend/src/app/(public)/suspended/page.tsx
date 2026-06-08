@@ -1,6 +1,6 @@
 /**
  * Friendly status page for tenants currently SUSPENDED / ARCHIVED / DELETED
- * (Wave tenant-domain-1 Bucket C, GAP-811).
+ * (GAP-811).
  *
  * Reached via middleware 307 redirect when `resolveTenant` raises
  * `TenantSuspendedError` (BE 410 GONE). Query params:
@@ -9,17 +9,18 @@
  * - `status=<lowercase>` — one of `suspended` / `archived` / `deleted`
  *
  * Phase 1 BETA scope: static informational page. Designed content per
- * `documents/01-business/kitehub/marketing/` will replace this in a follow-up
- * (out of Bucket C scope).
+ * `documents/01-business/kitehub/marketing/` will replace this in a follow-up.
  *
- * @author KiteHub Team
- * @since Wave tenant-domain-1 Bucket C
+ * Ported per GAP-1077 từ kitehub-frontend — host→tenant middleware thuộc về
+ * kiteclass-frontend.
+ *
+ * @author KiteClass Team
  */
 
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Trang tạm ngưng — KiteHub',
+  title: 'Trang tạm ngưng — KiteClass',
   description: 'Trang của trung tâm này đang tạm ngưng phục vụ.',
 };
 
@@ -30,15 +31,15 @@ interface SuspendedPageProps {
 const STATUS_COPY: Record<string, { title: string; body: string }> = {
   suspended: {
     title: 'Trang tạm ngưng phục vụ',
-    body: 'Trung tâm này đang tạm ngưng hoạt động trên KiteHub. Vui lòng liên hệ trung tâm để biết thêm chi tiết.',
+    body: 'Trung tâm này đang tạm ngưng hoạt động trên KiteClass. Vui lòng liên hệ trung tâm để biết thêm chi tiết.',
   },
   archived: {
     title: 'Trang đã lưu trữ',
-    body: 'Trung tâm này đã ngừng sử dụng KiteHub. Vui lòng liên hệ trung tâm để được hỗ trợ.',
+    body: 'Trung tâm này đã ngừng sử dụng KiteClass. Vui lòng liên hệ trung tâm để được hỗ trợ.',
   },
   deleted: {
     title: 'Trang không còn tồn tại',
-    body: 'Trang của trung tâm này đã được gỡ bỏ khỏi KiteHub.',
+    body: 'Trang của trung tâm này đã được gỡ bỏ khỏi KiteClass.',
   },
 };
 
@@ -60,10 +61,10 @@ export default async function SuspendedPage({ searchParams }: SuspendedPageProps
         </p>
       ) : null}
       <a
-        href="https://kitehub.me"
+        href="https://kiteclass.com"
         className="rounded-lg bg-primary px-6 py-3 text-primary-foreground hover:bg-primary/90"
       >
-        Về trang chủ KiteHub
+        Về trang chủ KiteClass
       </a>
     </main>
   );

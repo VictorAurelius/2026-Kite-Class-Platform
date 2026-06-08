@@ -1,9 +1,9 @@
 /**
- * Unit tests for {@link resolveTenant} (Wave tenant-domain-1 Bucket C, GAP-811).
+ * Unit tests for {@link resolveTenant} (GAP-811).
  *
- * MSW handlers under `src/test/msw/handlers/tenant.ts` (Bucket 0 Foundation)
- * stub the BE endpoint with fixtures `sky` / `pioneer` (ACTIVE), `suspended`
- * (410 GONE), and any other slug → 404.
+ * MSW handlers under `src/mocks/tenant-handlers.ts` stub the BE endpoint with
+ * fixtures `sky` / `pioneer` (ACTIVE), `suspended` (410 GONE), and any other
+ * slug → 404.
  *
  * Tests assert:
  *   - 200 OK → returns TenantResolveResult
@@ -13,12 +13,14 @@
  *   - cache  → second call within TTL skips the network
  *   - cache  → entry expires after TTL
  *   - invalid slug → returns null without hitting the network
+ *
+ * Ported per GAP-1077 từ kitehub-frontend.
  */
 
 import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { server } from '@/test/msw/server';
+import { server } from '@/mocks/server';
 
 import { CACHE_TTL_MS, clearCache } from '../tenantCache';
 import {

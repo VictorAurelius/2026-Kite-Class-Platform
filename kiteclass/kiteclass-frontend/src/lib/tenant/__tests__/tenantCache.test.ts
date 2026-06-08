@@ -1,8 +1,10 @@
 /**
- * Unit tests for {@link tenantCache} (Wave tenant-domain-1 Bucket C, GAP-811).
+ * Unit tests for {@link tenantCache} (GAP-811).
  *
  * Covers: set/get, TTL expiry, cached-null distinction (vs cache miss),
  * clearCache helper.
+ *
+ * Ported per GAP-1077 từ kitehub-frontend.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

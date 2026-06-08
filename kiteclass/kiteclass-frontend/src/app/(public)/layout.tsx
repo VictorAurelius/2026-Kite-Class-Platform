@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import { Button } from '@/components/ui/button';
 import { GraduationCap } from 'lucide-react';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -7,13 +8,19 @@ import { ConsentBanner } from '@kite/shared-ui';
 import { publicApi } from '@/lib/api/public';
 
 // Resolve the tenant's display name + logo for the public nav/footer.
-// Production: each tenant's FE deploy sets NEXT_PUBLIC_TENANT_ID to its own tenant
-// (the layout cannot read ?tenant= searchParams — those are page-scoped). Falls back
-// to a generic platform identity when no tenant resolves. GAP-808 follow-up: nav was
-// hardcoded "KiteClass" regardless of tenant.
+// Tenant resolution priority:
+// 1. x-tenant-id header injected by host→tenant middleware (GAP-811/GAP-1077) —
+//    enables 1-FE-many-tenant by Host (the layout cannot read ?tenant= searchParams).
+// 2. NEXT_PUBLIC_TENANT_ID (1-tenant-per-deploy fallback).
+// 3. hardcoded default tenant.
+// Falls back to a generic platform identity when no tenant resolves. GAP-808
+// follow-up: nav was hardcoded "KiteClass" regardless of tenant.
 async function getTenantIdentity(): Promise<{ name: string; logoUrl: string | null; tagline: string | null }> {
+  const headerTenantId = (await headers()).get('x-tenant-id') ?? undefined;
   const tenantId =
-    process.env.NEXT_PUBLIC_TENANT_ID ?? '11111111-1111-1111-1111-111111111111';
+    headerTenantId ??
+    process.env.NEXT_PUBLIC_TENANT_ID ??
+    '11111111-1111-1111-1111-111111111111';
   try {
     const landing = await publicApi.getLandingPage(tenantId);
     return {

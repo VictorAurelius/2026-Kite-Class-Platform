@@ -1,17 +1,18 @@
 /**
- * Unit tests for the Next.js middleware host→tenant resolver
- * (Wave tenant-domain-1 Bucket C, GAP-811).
+ * Unit tests for the Next.js middleware host→tenant resolver (GAP-811).
  *
  * Covers extractSlugFromHost helper (table-driven) plus the middleware itself
  * exercised against MSW BE fixtures. Direct Playwright host-header simulation
  * lives in `e2e/host-tenant-resolution.spec.ts`.
+ *
+ * Ported per GAP-1077 từ kitehub-frontend.
  */
 
 import { http, HttpResponse } from 'msw';
 import { NextRequest } from 'next/server';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { server } from '@/test/msw/server';
+import { server } from '@/mocks/server';
 import { clearCache } from '@/lib/tenant/tenantCache';
 
 import { extractSlugFromHost, middleware } from '../middleware';
@@ -26,19 +27,19 @@ function makeReq(url: string, headers: Record<string, string> = {}): NextRequest
 
 describe('extractSlugFromHost', () => {
   it.each<[string | null | undefined, string | null]>([
-    ['sky.kitehub.me', 'sky'],
-    ['SKY.kitehub.me', 'sky'],
-    ['sky.kitehub.me:3000', 'sky'],
-    ['pioneer.kitehub.me', 'pioneer'],
-    ['kitehub.me', null],
-    ['www.kitehub.me', null],
-    ['api.kitehub.me', null],
-    ['admin.kitehub.me', null],
-    ['staging.kitehub.me', null],
+    ['sky.kiteclass.com', 'sky'],
+    ['SKY.kiteclass.com', 'sky'],
+    ['sky.kiteclass.com:3000', 'sky'],
+    ['pioneer.kiteclass.com', 'pioneer'],
+    ['kiteclass.com', null],
+    ['www.kiteclass.com', null],
+    ['api.kiteclass.com', null],
+    ['admin.kiteclass.com', null],
+    ['staging.kiteclass.com', null],
     ['localhost', null],
-    ['localhost:4701', null],
+    ['localhost:4700', null],
     ['127.0.0.1', null],
-    ['192.168.1.1:4701', null],
+    ['192.168.1.1:4700', null],
     ['', null],
     [null, null],
     [undefined, null],
@@ -59,8 +60,8 @@ describe('middleware', () => {
   });
 
   it('injects x-tenant-id header when subdomain resolves to ACTIVE tenant', async () => {
-    const req = makeReq('https://sky.kitehub.me/', {
-      host: 'sky.kitehub.me',
+    const req = makeReq('https://sky.kiteclass.com/', {
+      host: 'sky.kiteclass.com',
     });
 
     const res = await middleware(req);
@@ -74,20 +75,20 @@ describe('middleware', () => {
   });
 
   it('passes through when host is apex / no subdomain', async () => {
-    const req = makeReq('https://kitehub.me/', { host: 'kitehub.me' });
+    const req = makeReq('https://kiteclass.com/', { host: 'kiteclass.com' });
     const res = await middleware(req);
     expect(res.headers.get('x-middleware-request-x-tenant-id')).toBeNull();
   });
 
   it('passes through when subdomain is unknown (BE 404)', async () => {
-    const req = makeReq('https://ghost.kitehub.me/', { host: 'ghost.kitehub.me' });
+    const req = makeReq('https://ghost.kiteclass.com/', { host: 'ghost.kiteclass.com' });
     const res = await middleware(req);
     expect(res.headers.get('x-middleware-request-x-tenant-id')).toBeNull();
   });
 
   it('redirects to /suspended when tenant is SUSPENDED (410)', async () => {
-    const req = makeReq('https://suspended.kitehub.me/dashboard', {
-      host: 'suspended.kitehub.me',
+    const req = makeReq('https://suspended.kiteclass.com/dashboard', {
+      host: 'suspended.kiteclass.com',
     });
     const res = await middleware(req);
 
@@ -99,8 +100,8 @@ describe('middleware', () => {
   });
 
   it('honours ?tenant= preview query param when host has no subdomain', async () => {
-    const req = makeReq('https://localhost:4701/?tenant=sky', {
-      host: 'localhost:4701',
+    const req = makeReq('https://localhost:4700/?tenant=sky', {
+      host: 'localhost:4700',
     });
     const res = await middleware(req);
     expect(res.headers.get('x-middleware-request-x-tenant-id')).toBe(
@@ -109,8 +110,8 @@ describe('middleware', () => {
   });
 
   it('preview query param overrides host subdomain', async () => {
-    const req = makeReq('https://sky.kitehub.me/?tenant=pioneer', {
-      host: 'sky.kitehub.me',
+    const req = makeReq('https://sky.kiteclass.com/?tenant=pioneer', {
+      host: 'sky.kiteclass.com',
     });
     const res = await middleware(req);
     expect(res.headers.get('x-middleware-request-x-tenant-id')).toBe(
@@ -125,7 +126,7 @@ describe('middleware', () => {
       ),
     );
 
-    const req = makeReq('https://sky.kitehub.me/', { host: 'sky.kitehub.me' });
+    const req = makeReq('https://sky.kiteclass.com/', { host: 'sky.kiteclass.com' });
     const res = await middleware(req);
 
     // No tenant id injected (couldn't resolve)
@@ -137,7 +138,7 @@ describe('middleware', () => {
   });
 
   it('passes through cleanly for localhost without preview param', async () => {
-    const req = makeReq('http://localhost:4701/', { host: 'localhost:4701' });
+    const req = makeReq('http://localhost:4700/', { host: 'localhost:4700' });
     const res = await middleware(req);
     expect(res.headers.get('x-middleware-request-x-tenant-id')).toBeNull();
   });
