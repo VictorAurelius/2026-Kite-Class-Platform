@@ -19,6 +19,8 @@ import { isThemeMessage } from '@/lib/theme/types';
  * SECURITY: This is critical for preventing XSS attacks.
  * Only add trusted origins.
  */
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
 export const ALLOWED_ORIGINS = [
   // Local development
   'http://localhost:4701', // KiteHub local
@@ -28,11 +30,45 @@ export const ALLOWED_ORIGINS = [
   'https://kitehub.kiteclass.com', // KiteHub production
   'https://kiteclass.com', // Main site
 
+  // Dev-only origins — the actual `next dev` server runs on :3000, so theme
+  // preview / iframe embedding from a sibling dev server was being rejected
+  // with "untrusted origin" console spam. Strict allowlist still applies in
+  // production (these entries are dropped when NODE_ENV === 'production').
+  ...(IS_PRODUCTION
+    ? []
+    : [
+        'http://localhost:3000', // KiteClass dev server (next dev)
+        'http://127.0.0.1:3000', // loopback IP variant
+        'http://localhost:3001', // KiteHub dev server (next dev, sibling port)
+        'http://127.0.0.1:3001',
+      ]),
+
   // Add custom origin from env if provided
   ...(process.env.NEXT_PUBLIC_PARENT_ORIGIN
     ? [process.env.NEXT_PUBLIC_PARENT_ORIGIN]
     : []),
 ];
+
+/**
+ * Dev-only loopback / nip.io matcher. nip.io hosts are dynamic
+ * (`<tenant>.127.0.0.1.nip.io:3000`) so they can't be enumerated in a static
+ * allowlist; accept them on any localhost/loopback/nip.io origin ONLY in dev.
+ * Production stays strict (returns false → falls back to the static allowlist).
+ */
+function isDevOrigin(origin: string): boolean {
+  if (IS_PRODUCTION) return false;
+  try {
+    const { hostname } = new URL(origin);
+    return (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.endsWith('.nip.io') ||
+      hostname.endsWith('.localhost')
+    );
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Callback function type for theme updates.
@@ -46,7 +82,7 @@ export type ThemeUpdateCallback = (theme: ThemeConfig) => void;
  * @returns True if origin is in allowed list
  */
 function isAllowedOrigin(origin: string): boolean {
-  return ALLOWED_ORIGINS.includes(origin);
+  return ALLOWED_ORIGINS.includes(origin) || isDevOrigin(origin);
 }
 
 /**

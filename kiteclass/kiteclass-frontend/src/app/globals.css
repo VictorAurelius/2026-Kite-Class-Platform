@@ -33,9 +33,16 @@
     --theme-secondary: 139 92 246;
     --theme-accent: 245 158 11;
     /* CTA accent — bold orange (#F97316) for high-contrast call-to-action
-       buttons that must stand out against the navy/blue theme-primary hero. */
+       buttons that must stand out against the navy/blue theme-primary hero.
+       Derived per-tenant + WCAG-AA clamped at runtime (lib/theme/contrast.ts);
+       these are the default fallbacks. */
     --theme-cta: 249 115 22;
+    --theme-cta-foreground: 255 255 255; /* label colour on the CTA fill */
     --theme-background: 255 255 255;
+    /* Contrast-guarded text + on-primary label colours (WCAG AA >= 4.5:1).
+       Derived from the tenant palette at runtime; defaults below. */
+    --theme-text: 17 24 39; /* slate-900-ish, readable on white */
+    --theme-on-primary: 255 255 255; /* label colour on a primary fill */
     --theme-font-heading: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
     --theme-font-body: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
     --theme-border-radius: 8px;
