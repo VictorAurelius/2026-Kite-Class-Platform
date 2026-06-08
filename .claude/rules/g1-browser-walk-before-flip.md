@@ -9,10 +9,10 @@ paths:
 # G1 Browser-Walk Before Flip — browser thật trước khi flip G1 PASS cho FE flow
 
 **Priority:** 🟠 MANDATORY — flow verification campaign G1 gate discipline
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Created:** 2026-06-08
 **Last-Reviewed:** 2026-06-08
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (reviewer-checklist + memory auto-load + worked self-test on Flow Verification Campaign KC-1 G2 session 2026-06-08 — 3/3 bugs GAP-1067/1068/1069 would have surfaced ở G1 nếu có browser-walk) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies previously-implicit "G1 walk cho FE flow phải qua FE :3000 thật, không chỉ curl gắn header tay"; META P1 force-multiplier per `meta-gap-priority.md` §3)
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; adds §3.1 production-accurate domain simulation cho host/subdomain flow (nip.io/etc-hosts mandatory, `?tenant=`/query-override banned as G1/G2 evidence) + §4 banned rows + §7.1 checklist row, paired same-PR worked self-test on GAP-811 recipe `?tenant=` slip 2026-06-08 per §6.5 Enforcement Parity Mandate; no constraint loosening — tightens browser-walk fidelity for host-based flows. v1.0.0 (kept): MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (reviewer-checklist + memory auto-load + worked self-test on Flow Verification Campaign KC-1 G2 session 2026-06-08 — 3/3 bugs GAP-1067/1068/1069 would have surfaced ở G1 nếu có browser-walk) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies previously-implicit "G1 walk cho FE flow phải qua FE :3000 thật, không chỉ curl gắn header tay"; META P1 force-multiplier per `meta-gap-priority.md` §3)
 **Applies to:** Mọi flip status flow user-facing CÓ FE trong `flow-verification-campaign.md` §4 từ chưa-G1 → `🔄 walk-pass-pending-human` (G1 PASS). Out-of-scope: flow API-only không FE surface (vd internal cron / webhook consumer / BE-only side-effect), pure refactor, docs-only PR.
 
 ---
@@ -68,6 +68,25 @@ Browser-walk evidence dán vào wave plan G1 section HOẶC campaign §4 row dư
 
 Nếu BẤT KỲ evidence (a)-(e) FAIL → flow KHÔNG đạt G1 PASS, ở lại trạng thái G1 walk-in-progress; catalog blocker + fix per campaign loop §2.
 
+### 3.1 Production-accurate domain simulation cho host/subdomain-based flow (added v1.1.0)
+
+> **Khi flow resolve tenant/context qua Host header (subdomain → tenant landing, custom domain, host-based routing), browser-walk PHẢI dùng subdomain Host THẬT (production-accurate), CẤM dùng query-override (`?tenant=`/`?preview=`) hoặc localhost thuần làm bằng chứng G1/G2.** Query-override đi qua nhánh dev-preview, **BYPASS** chính Host-resolution path mà flow cần verify → pass ở đó KHÔNG chứng minh production hoạt động.
+
+Lý do (incident 2026-06-08): recipe GAP-811 ban đầu chọn `?tenant=sky-education` làm primary vì tiện/no-sudo — nhưng `extractSlug()` ưu tiên `?tenant=` TRƯỚC Host (middleware line 99) → bypass `extractSlugFromHost()`. Pass `?tenant=` không test cơ chế production. Phải push 2 lần mới ra đúng.
+
+**Cách local production-accurate (xếp ưu tiên):**
+
+| Cách | Test Host→resolve thật? | Cần sudo? | Khuyến nghị |
+|---|:---:|:---:|---|
+| **nip.io / sslip.io wildcard** (`<sub>.127.0.0.1.nip.io:<port>`) | ✅ | ❌ | **DEFAULT** — DNS công cộng resolve 127.0.0.1, Host header thật có subdomain, no sudo |
+| `/etc/hosts` + `<sub>.<domain>.local` | ✅ | ✅ | Fallback offline (nip.io cần internet DNS); dev chạy `!`+sudo |
+| `curl -H "Host: <sub>..."` | ✅ (BE/middleware) | ❌ | Bổ trợ per-AC, KHÔNG đủ cho browser visual |
+| `?tenant=`/query-override | ❌ bypass | ❌ | CHỈ smoke "FE render branding", KHÔNG tính G1/G2 evidence |
+
+Khoảng cách nip.io ↔ production thật (port/TLS/LB/wildcard-cert) = **infra parity (G3 territory)**, không phải G1/G2 functional. nip.io exercise đúng 100% resolution logic.
+
+Evidence (d) "FE-injected header observed" cho flow host-based PHẢI cho thấy Host header chứa subdomain thật (không phải `?tenant=` query param).
+
 ---
 
 ## 4. Banned shortcuts
@@ -82,6 +101,8 @@ Nếu BẤT KỲ evidence (a)-(e) FAIL → flow KHÔNG đạt G1 PASS, ở lại
 | Browser-walk happy path rồi flip ngay | Walk thêm ≥1 sad path qua browser (error message hiển thị, không silent) |
 | Ghi browser-walk trong chat | Evidence vào wave plan / campaign row artifact per §3 |
 | Curl từ WSL coi như tương đương browser (cũng có quirk riêng) | Real browser path là canonical cho FE flow G1 |
+| Dùng `?tenant=`/query-override làm bằng chứng G1/G2 cho host/subdomain flow | Dùng subdomain Host thật (nip.io / etc-hosts) — query-override bypass resolution path (§3.1) |
+| Mở `localhost:<port>` thuần rồi coi tenant resolution PASS | Host-based flow cần subdomain trong Host header; localhost thuần → pass-through fallback, không test resolution |
 
 ---
 
@@ -140,6 +161,7 @@ Pre-merge review cho wave plan closure PR / campaign update flipping §4 row →
 - [ ] Wave plan / campaign row có section `## G1 browser-walk evidence` per §3?
 - [ ] Evidence cover (a) FE `:3000` thật + (b) console clean + (c) Network 2xx + (d) FE-injected header observed + (e) route resolves + (f) ≥1 sad path?
 - [ ] Evidence là browser path (Chrome DevTools / Playwright headless), KHÔNG phải curl gắn header tay?
+- [ ] **(host/subdomain flow) Evidence dùng subdomain Host thật (nip.io / etc-hosts) per §3.1, KHÔNG phải `?tenant=`/query-override (bypass resolution path)?**
 - [ ] Nếu override trailer present, reason + follow-up valid per §5?
 
 ### 7.2 Campaign §1 gate definition cross-reference
@@ -183,4 +205,5 @@ Per §5 trailer `G1_BROWSER_WALK_DEFER:` — logged quarterly retro. Pattern fre
 
 ## 9. Log
 
+- **2026-06-08 (v1.1.0):** MINOR — added §3.1 "Production-accurate domain simulation cho host/subdomain-based flow" + §4 2 banned rows (`?tenant=`/query-override + localhost-thuần as G1/G2 evidence) + §7.1 reviewer-checklist row. Triggered by 2026-06-08 user-flagged miss: recipe GAP-811 (host→tenant landing) ban đầu tôi chọn `?tenant=sky-education` làm primary test path vì tiện/no-sudo — nhưng `extractSlug()` ưu tiên `?tenant=` TRƯỚC Host (middleware line 99) → BYPASS `extractSlugFromHost()` = bypass chính resolution path cần verify. User push 2 lần ("dev phải tự làm à?" → "discuss lại mô phỏng đúng production") mới ra đúng = nip.io wildcard (`sky-education.127.0.0.1.nip.io:3001` — Host header thật, no sudo, verified resolve 127.0.0.1 + middleware parse parts[0]). Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged "session trước miss à") → Classify ✓ (rule v1.0.0 §3 evidence (d) "FE-injected header observed" không phân biệt subdomain-Host-thật vs query-override; gap: HOW to make browser send production-accurate Host locally chưa codify → mỗi recipe author re-derive ad-hoc + dễ rơi convenient-wrong path `?tenant=`) → Rule+Enforce ✓ (this §3.1 + §4 rows + §7.1 row + worked self-test trên GAP-811 `?tenant=` slip + memory `feedback_production_accurate_local_domain_sim.md` paired same-PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (rule fires đúng trên chính incident: `?tenant=` = banned evidence per §3.1, nip.io = production-accurate; counterfactual rule v1.1.0 active từ đầu → recipe chọn nip.io ngay, 0 user push-back) → Retro Log ✓ (this entry). META P1 force-multiplier per `meta-gap-priority.md` §3 — 22-flow campaign có nhiều host/subdomain flow (tenant-by-domain landing, custom domain); 1 chuẩn nip.io-vs-`?tenant=` → mọi host-based flow G1/G2 subsequent auto-comply, eliminate "test bypass resolution path" class. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — tightens browser-walk fidelity cho host-based flows; no constraint loosening; existing host-flow walks grandfathered re-verify per campaign loop; applies prospectively từ this PR forward 2026-06-08). Atomic-unique-bar §5.1: ✅ atomic (single concept: production-accurate Host simulation cho host-based flow) + ✅ unique (extends own §3 evidence với domain-fidelity dimension, no overlap sister rules) + ✅ widely applicable (mọi host/subdomain flow × campaign) + ✅ body §3.1 ≤2 conjunction. Detector deferred per §3.1 conditions (reviewer-checklist + worked self-test + memory sufficient).
 - **2026-06-08 (v1.0.0):** Rule created in response to Flow Verification Campaign KC-1 G2 session 2026-06-08: G1/G3 walk dùng `curl` qua gateway `:9000` gắn header tay (`X-Instance-Subdomain: sky-education`) → đều PASS → flip G1; nhưng human browser test (G2) lộ 3 lỗi mà curl-walk che mất — GAP-1067 (stale docker-proxy `:3000` ERR_EMPTY_RESPONSE) / GAP-1068 (tenant resolution browser gửi `X-Tenant-Id` gateway strip → 400) / GAP-1069 (FE↔BE contract drift dashboard `GET /api/v1/classes` + `/api/v1/invoices` 404). User chốt (AskUserQuestion 2026-06-08) "Thêm meta-rule browser-walk trước khi flip G1". Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged + 3 G2 bugs) → Classify ✓ (no existing rule mandates browser-real walk là điều kiện cần của G1 PASS cho FE flow; `feature-ship-runtime-walk-mandate.md` §3.4 covers catalog DURING walk không phân biệt curl-vs-browser; `pre-walk-persona-simulation-mandate.md` covers PRE-walk simulation; `g2-handoff-md-mandate.md` covers AFTER G1 PASS; `pre-handoff-self-test-completeness.md` §1 covers triết lý "endpoint ≠ flow" nhưng không bind vào G1-gate-cho-FE-flow boundary) → Rule+Enforce ✓ (this file + reviewer-checklist §7.1 + memory `feedback_g1_browser_walk_before_flip.md` paired same-PR + campaign §1 cross-ref + rules-index.csv row + output-review-mandate.md §3 row per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§6 worked example trên KC-1 G2 originating incident — rule fires correctly, 3/3 bugs surface ở G1 với browser-walk + counterfactual ~1 G2 round-trip saved per FE flow) → Retro Log ✓ (this entry). META P1 force-multiplier per `meta-gap-priority.md` §3 — 1 chuẩn browser-walk-before-G1-flip → Flow Verification Campaign §4 các FE flow subsequent auto-comply prospectively → eliminate "curl PASS nhưng G2 lòi" class permanently. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying previously-implicit "G1 walk cho FE flow phải qua FE :3000 thật"; no constraint loosening; existing flows flipped trước rule grandfathered (re-verify khi G2 lòi bug per campaign loop); rule applies prospectively từ next FE flow G1 flip forward 2026-06-08). Atomic-unique-bar §5.1 check passed: ✅ atomic (single concept: browser-real walk là điều kiện cần của G1 PASS cho FE flow) + ✅ unique (sister rules cover PRE-walk sim / DURING-walk catalog / POST-fix re-walk / G2-handoff — khác boundary) + ✅ widely applicable (mọi FE flow G1 flip × 22-flow campaign) + ✅ body discipline §1 ≤2 conjunction "và". Path-scoped per `context-budget-mandate.md` §3.2 (`wave-*-flow-*.md` + `flow-verification-campaign.md` + `*-g2-recipe-*.md`) — không tăng always-load band (README rule-count ceiling: 13 always-load OK <18; rule này thêm 1 path-scoped → 78/100 OK). Detector (§7.5) HONEST-deferred per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions; reviewer-checklist + memory auto-load + campaign cross-ref + worked self-test §6 sufficient cho v1.0.0.
