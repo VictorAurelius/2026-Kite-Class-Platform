@@ -21,6 +21,11 @@
 
 import Link from 'next/link';
 
+// Zalo OA ID via NEXT_PUBLIC_KITEHUB_ZALO_OA_ID env var (fallback placeholder 'kitehub').
+// Same pattern as Footer.tsx + SupportMenu.tsx — avoids hardcode drift (GAP-1065).
+const ZALO_OA_ID = process.env.NEXT_PUBLIC_KITEHUB_ZALO_OA_ID ?? 'kitehub';
+const ZALO_OA_URL = `https://zalo.me/${ZALO_OA_ID}`;
+
 export default function LandingShellSSR() {
   return (
     <div className="min-h-screen bg-background">
@@ -189,13 +194,15 @@ export default function LandingShellSSR() {
                 </li>
                 <li>
                   <a
-                    href="https://zalo.me/kitehub"
+                    href={ZALO_OA_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-primary hover:underline"
                   >
-                    Zalo OA: zalo.me/kitehub
-                    <span className="ml-1 text-xs italic opacity-70">(chờ kích hoạt)</span>
+                    Zalo OA: zalo.me/{ZALO_OA_ID}
+                    {ZALO_OA_ID === 'kitehub' && (
+                      <span className="ml-1 text-xs italic opacity-70">(chờ kích hoạt)</span>
+                    )}
                   </a>
                 </li>
                 <li>
