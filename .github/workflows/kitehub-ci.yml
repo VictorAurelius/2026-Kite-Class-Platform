@@ -325,7 +325,7 @@ jobs:
         run: ./mvnw verify -pl kitehub-subscription -am -DskipTests
 
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         continue-on-error: true
         with:
           files: kitehub/kitehub-subscription/target/site/jacoco/jacoco.xml
