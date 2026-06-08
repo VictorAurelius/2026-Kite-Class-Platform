@@ -1,6 +1,6 @@
 # GAP-1075: FE logout gọi BE endpoint không tồn tại (404) + thiếu server-side refresh-token revocation
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟡 PARTIAL (90% — BE endpoint + Redis blacklist shipped code+test; live curl walk pending stack rebuild)
 **Priority:** 🟠 P1
 **Domain:** Mixed (Frontend + Backend)
 **Found:** 2026-06-08 (KC-1 G2 browser walk — bước 5 logout-isolation)
@@ -23,15 +23,20 @@ Cross-flow sweep (per `cross-flow-bug-class-sweep.md`) phát hiện 2 endpoint c
 - `auth.ts` logout → client-side only (no BE call), comment ref gap này (BE endpoint chưa có).
 - `useAuth.ts` logout mutation `onSuccess` → `onSettled` → local clear luôn chạy bất kể success/error.
 
-**DEFER (server-side, P1):**
-- Implement `POST /api/auth/logout` trong AuthController + AuthService → blacklist refresh token (cần Redis blacklist store + tests). Stateless JWT hiện tại không revoke refresh token → token bị lộ vẫn valid tới hết hạn. Security hardening.
+**BE SERVER-SIDE (shipped 2026-06-08, commit `fa1f5faa`):**
+- `POST /api/auth/logout` (kitehub-subscription `AuthController`) → `AuthService.logout()` blacklist refresh token.
+- `RefreshTokenBlacklistService` — Redis-backed (design-canonical per `service-catalog-and-auth-flow.md`); key = `refresh-blacklist:<sha256(token)>`, TTL = remaining token life (self-expires). **Fail-open**: Redis outage không break logout/refresh (availability > absolute revocation, khớp stateless-JWT model).
+- `AuthService.refresh()` reject token đã blacklist.
+- `spring-boot-starter-data-redis` + `spring.data.redis` config (env fallback chain đọc `SPRING_REDIS_HOST=kite-redis` compose đã set). Lettuce connect lazy → Redis down lúc boot không chặn startup.
+- FE `auth.ts` logout giờ gọi endpoint thật (best-effort, swallow error).
+- 14 unit test PASS (8 blacklist + 6 logout/refresh): `RefreshTokenBlacklistServiceTest` + `AuthServiceLogoutTest`.
 
 ## Acceptance Criteria
 
 - [x] FE logout clear session client-side bất kể BE endpoint (browser walk bước 5 PASS — logout A, tab B vẫn login)
-- [x] Không còn 404 noise mỗi lần logout (bỏ BE call)
-- [ ] BE `POST /api/auth/logout` + refresh-token revocation (Redis blacklist) — DEFER
-- [ ] Reuse token đã logout bị reject server-side — DEFER (sau khi blacklist ship)
+- [x] Không còn 404 noise mỗi lần logout (bỏ BE call → gọi endpoint thật)
+- [x] BE `POST /api/auth/logout` + refresh-token revocation (Redis blacklist) — SHIPPED code+test (commit `fa1f5faa`)
+- [ ] Reuse token đã logout bị reject server-side — code+unit-test DONE; **live curl walk pending stack rebuild** (login → logout → reuse old refresh token → kỳ vọng 401 trên Redis thật)
 
 ## Related
 
@@ -39,3 +44,7 @@ Cross-flow sweep (per `cross-flow-bug-class-sweep.md`) phát hiện 2 endpoint c
 - Bug class: GAP-1070 (FE↔BE contract drift detector) — detector nên cover auth endpoints kitehub-subscription, không chỉ kiteclass-core
 - Sister drift DEFER: GAP-803 (`/reset-password` + `/forgot-password` route mismatch)
 - Walk-blocking fix per `small-gap-inline-fix.md` SPLIT (FE inline + BE defer)
+
+## Log
+
+- **2026-06-08:** BE server-side logout shipped (commit `fa1f5faa`) — `POST /api/auth/logout` + Redis-backed `RefreshTokenBlacklistService` (fail-open) + `refresh()` blacklist check + 14 unit tests green. Design-first investigation confirmed logout belongs in kitehub-subscription (KC-1 owner login routes there via gateway), không phải kiteclass-core. kitehub-subscription chưa wire Redis (dùng Caffeine) → thêm `spring-boot-starter-data-redis` + config. User chose Full Redis blacklist (design-canonical) per AskUserQuestion. Status PARTIAL→90%; còn live curl walk (reuse-token-reject trên Redis thật) pending stack rebuild per `pre-handoff-self-test-completeness.md` §2.1.
