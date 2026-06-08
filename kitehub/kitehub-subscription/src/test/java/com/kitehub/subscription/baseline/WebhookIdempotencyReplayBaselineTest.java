@@ -79,11 +79,11 @@ class WebhookIdempotencyReplayBaselineTest {
         Map<String, Object> payload1 = sepayPayload("SEPAY-KH3-001", 10_000L, "KH3SUB1A2B3C4D");
         Map<String, Object> payload2 = sepayPayload("SEPAY-KH3-001", 10_000L, "KH3SUB1A2B3C4D");
 
-        ResponseEntity<Map<String, String>> resp1 =
+        ResponseEntity<Map<String, Object>> resp1 =
             controller.handlePaymentWebhook(VALID_AUTH, payload1);
         assertThat(resp1.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-        ResponseEntity<Map<String, String>> resp2 =
+        ResponseEntity<Map<String, Object>> resp2 =
             controller.handlePaymentWebhook(VALID_AUTH, payload2);
         assertThat(resp2.getStatusCode()).isEqualTo(HttpStatus.OK);
 
@@ -98,12 +98,12 @@ class WebhookIdempotencyReplayBaselineTest {
         Map<String, Object> payload = sepayPayload("SEPAY-KH3-002", 10_000L, "KH3SUB0A1B2C3D");
 
         // Valid original
-        ResponseEntity<Map<String, String>> resp1 =
+        ResponseEntity<Map<String, Object>> resp1 =
             controller.handlePaymentWebhook(VALID_AUTH, payload);
         assertThat(resp1.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         // Replay with a tampered Apikey
-        ResponseEntity<Map<String, String>> resp2 =
+        ResponseEntity<Map<String, Object>> resp2 =
             controller.handlePaymentWebhook("Apikey tampered-key", payload);
         assertThat(resp2.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 

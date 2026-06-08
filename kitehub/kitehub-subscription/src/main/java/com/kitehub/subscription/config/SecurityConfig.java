@@ -139,6 +139,15 @@ public class SecurityConfig {
                         // Payment webhook (Stripe-style signature validation in controller).
                         .requestMatchers("/api/v1/payments/webhook").permitAll()
                         .requestMatchers("/api/v1/payments/webhook/**").permitAll()
+                        // SePay merchant payment webhook (Wave flow-kh3-2 — GAP-975/976).
+                        // PaymentWebhookController authenticates via "Authorization: Apikey <key>"
+                        // (NOT a JWT). The gateway already whitelists /api/platform/webhooks/**
+                        // (JwtAuthenticationGatewayFilter.isPublicPath); the subscription MUST
+                        // mirror it so the request reaches the controller's Apikey check instead
+                        // of the anyRequest().authenticated() default-deny 401. (GAP-1061 —
+                        // surfaced by SePay Test-Mode logic verify 2026-06-08; IT tests missed
+                        // it because the `test` profile chain is anyRequest().permitAll().)
+                        .requestMatchers("/api/platform/webhooks/**").permitAll()
                         // Staff invitation public recipient endpoints (Bug #19 — Wave A
                         // Bucket B walk 2026-05-28): controller marks "Recipient accepts
                         // invitation + sets password (public)" but anyRequest()
