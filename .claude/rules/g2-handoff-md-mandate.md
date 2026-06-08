@@ -8,9 +8,9 @@ paths:
 # G2 Handoff MD Mandate — stepped recipe file khi G1 PASS
 
 **Priority:** 🟠 MANDATORY — flow verification campaign G2 handoff discipline
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-06-04
-**Last-Reviewed:** 2026-06-04
+**Last-Reviewed:** 2026-06-08
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (reviewer-checklist + worked self-test on Wave flow-kh1 G2 handoff 2026-06-04) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies G2 handoff format mandate previously implicit/missing; META P1 force-multiplier per `meta-gap-priority.md` §3)
 **Applies to:** Mọi G1 PASS flow transition `🔄 walk-pass-pending-human` trong `flow-verification-campaign.md` §4 → G1-passer (Claude) MUST create dedicated stepped MD recipe cho user G2 test cùng PR
 
@@ -174,6 +174,7 @@ Pre-merge review cho wave plan closure PR flipping campaign §4 row → `🔄 wa
 - [ ] Filename match Tier 2 time-bound convention §4?
 - [ ] Language Vietnamese narrative + English identifiers per §5?
 - [ ] Báo kết quả 4-outcome matrix present §3.6?
+- [ ] FE port khớp flow per `kitehub-kiteclass-boundary.md` §2 (KH-* = `:3001` kitehub-frontend, KC-* = `:3000` kiteclass-frontend; platform-side KC exception §4.1 state-check)?
 
 ### 8.2 Cross-link wave plan §7 Closure Protocol
 
@@ -222,4 +223,5 @@ Trailer logged. Pattern frequency >10%/quarter → meta-review.
 
 ## 10. Log
 
+- **2026-06-09 (v1.0.1):** PATCH — added §8.1 reviewer-checklist row "FE port khớp flow per `kitehub-kiteclass-boundary.md` §2 (KH-* `:3001`, KC-* `:3000`)". Cross-ref paired same-PR với new rule `kitehub-kiteclass-boundary.md` v1.0.0 (per its §6.2 Enforcement Parity) sau 2026-06-09 KH-3/KC-8 recipe FE port drift incident. Additive checklist row, no constraint loosening. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-06-04 (v1.0.0):** Rule created in response to user-flagged 2026-06-04 Wave flow-kh1 G2 handoff: "Hướng dẫn G2 luôn, bằng file md các bước rõ ràng => có meta chưa" → "fix luôn" (after state-check confirmed coverage gap). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged) → Classify ✓ (no existing rule mandates G2 handoff MD format — `feature-ship-runtime-walk-mandate` covers G1 only; `pre-handoff-self-test-completeness` covers agent self-test before handoff; `flow-verification-campaign` §2 step 7 mentions handoff but no format spec) → Rule+Enforce ✓ (this file + reviewer-checklist §8.1 + worked self-test §7 + paired same-PR `documents/05-guides/operations/2026-06-04-g2-recipe-kh1-kh2c-beta-funnel.md` + GAP-921 update DONE + output-review-mandate.md §3 row + rules-index.csv row per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§7 worked example — rule fires correctly on Wave flow-kh1 G1 PASS handoff) → Retro Log ✓ (this entry). META P1 force-multiplier per `meta-gap-priority.md` §3 — fix 1 chuẩn → mọi G1 PASS flow subsequent (KH-3, KC-1..12, KH-5..10) auto-comply prospectively, eliminate user push-back round-trip class. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying previously-uncovered G2 handoff format; no constraint loosening; existing waves (KH-4 ✅ pre-rule) grandfathered; rule applies prospectively từ KH-3 wave forward). Atomic-unique-bar §5.1 check: ✅ atomic (single concept: G2 handoff MD recipe) + ✅ unique (sister rules cover G1 / pre-handoff, not post-G1 handoff format) + ✅ widely applicable (every G1 PASS flow × 22 campaign flows) + ✅ body discipline §1 ≤2 "and" conjunctions. Detector (§8.4) deferred per `incident-to-rule-pipeline.md` §3.1 tightened conditions (recurrence 1, reviewer-checklist + worked self-test sufficient cho v1.0.0); memory auto-load + cross-link extensions (`feature-ship-runtime-walk-mandate` §3.5 + `flow-verification-campaign` §2 step 7) deferred ≥7 days per premature-rule guard.
