@@ -94,6 +94,14 @@ apiClient.interceptors.request.use(
       config.headers['X-Tenant-Id'] = tenantId;
     }
 
+    // Multipart file uploads (logo/favicon/CSV import): drop the instance-default
+    // 'Content-Type: application/json' so the browser sets multipart/form-data
+    // with the correct boundary — otherwise the JSON content-type breaks BE
+    // @RequestPart parsing (GAP-1073: logo upload failed from browser, worked via curl).
+    if (config.data instanceof FormData && config.headers) {
+      delete config.headers['Content-Type'];
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
