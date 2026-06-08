@@ -16,6 +16,7 @@ import com.kitehub.subscription.repository.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -444,7 +445,16 @@ public class SubscriptionService {
      * @param subscriptionId subscription UUID from the confirmed payment
      * @param paymentId confirmed payment UUID
      */
-    @Transactional
+    // GAP-1062: REQUIRES_NEW isolates this best-effort downstream step from the
+    // caller's payment-capture transaction. All 3 callers (PaymentService verify /
+    // SePay webhook / manual confirm) do `payment.complete()` then call this in a
+    // try/catch with the documented intent "payment captured; upgrade retried by
+    // admin/job". With default REQUIRED this method joined the caller's txn, so any
+    // throw here (soft-deleted subscription, optimistic lock, instance missing) set
+    // the shared txn rollback-only → the caller's commit threw UnexpectedRollbackException
+    // → the payment.complete() write was rolled back despite the try/catch. Same class
+    // as the 2026-05-16 admin-login 500 (audit-service-isolation.md / design-patterns §3.11).
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void applyPendingUpgrade(UUID subscriptionId, UUID paymentId) {
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
             .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + subscriptionId));

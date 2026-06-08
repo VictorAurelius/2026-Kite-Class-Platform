@@ -62,7 +62,7 @@ class PaymentWebhookControllerTest {
     @Test
     @DisplayName("Valid Apikey + incoming transfer → 200 and forwards to service")
     void validApikey_processesPayment() {
-        ResponseEntity<Map<String, String>> response =
+        ResponseEntity<Map<String, Object>> response =
             controller.handlePaymentWebhook(VALID_AUTH, sepayPayload());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -73,7 +73,7 @@ class PaymentWebhookControllerTest {
     @Test
     @DisplayName("Missing Authorization header → 401, never reaches service")
     void missingApikey_rejected() {
-        ResponseEntity<Map<String, String>> response =
+        ResponseEntity<Map<String, Object>> response =
             controller.handlePaymentWebhook(null, sepayPayload());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -83,7 +83,7 @@ class PaymentWebhookControllerTest {
     @Test
     @DisplayName("Wrong Apikey → 401, never reaches service")
     void wrongApikey_rejected() {
-        ResponseEntity<Map<String, String>> response =
+        ResponseEntity<Map<String, Object>> response =
             controller.handlePaymentWebhook("Apikey wrong-key", sepayPayload());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -95,7 +95,7 @@ class PaymentWebhookControllerTest {
     void apiKeyNotConfigured_rejected() {
         ReflectionTestUtils.setField(controller, "sepayApiKey", "");
 
-        ResponseEntity<Map<String, String>> response =
+        ResponseEntity<Map<String, Object>> response =
             controller.handlePaymentWebhook(VALID_AUTH, sepayPayload());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -108,7 +108,7 @@ class PaymentWebhookControllerTest {
         Map<String, Object> payload = sepayPayload();
         payload.put("transferType", "out");
 
-        ResponseEntity<Map<String, String>> response =
+        ResponseEntity<Map<String, Object>> response =
             controller.handlePaymentWebhook(VALID_AUTH, payload);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -122,7 +122,7 @@ class PaymentWebhookControllerTest {
         doThrow(new IllegalArgumentException("No payment found for txnRef: KH3SUB1A2B3C4D"))
             .when(paymentService).processSepayWebhook(anyString(), anyLong(), anyString());
 
-        ResponseEntity<Map<String, String>> response =
+        ResponseEntity<Map<String, Object>> response =
             controller.handlePaymentWebhook(VALID_AUTH, sepayPayload());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -135,7 +135,7 @@ class PaymentWebhookControllerTest {
         doThrow(new RuntimeException("boom"))
             .when(paymentService).processSepayWebhook(anyString(), anyLong(), anyString());
 
-        ResponseEntity<Map<String, String>> response =
+        ResponseEntity<Map<String, Object>> response =
             controller.handlePaymentWebhook(VALID_AUTH, sepayPayload());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);

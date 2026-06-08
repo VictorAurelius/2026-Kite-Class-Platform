@@ -65,21 +65,24 @@ public class PaymentWebhookController {
      *         missing/wrong Apikey, 400 for an unmatched txnRef (orphan notify)
      */
     @PostMapping
-    public ResponseEntity<Map<String, String>> handlePaymentWebhook(
+    public ResponseEntity<Map<String, Object>> handlePaymentWebhook(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody Map<String, Object> payload) {
         log.info("Received SePay webhook: {}", payload);
 
         if (!verifyApiKey(authHeader)) {
             log.warn("SePay webhook rejected — missing or invalid Apikey");
-            return ResponseEntity.status(401).body(Map.of("error", "Invalid API key"));
+            return ResponseEntity.status(401).body(Map.of("success", false, "error", "Invalid API key"));
         }
 
         try {
             String transferType = (String) payload.get("transferType");
             if (!"in".equalsIgnoreCase(transferType)) {
                 log.info("Ignoring non-incoming SePay transfer (type={})", transferType);
-                return ResponseEntity.ok(Map.of("status", "ignored"));
+                // SePay ACK contract: body MUST contain {"success": true} or SePay
+                // marks the delivery failed + retries (up to 7×). Ignored = received
+                // OK, nothing to do → acknowledge so SePay stops retrying.
+                return ResponseEntity.ok(Map.of("success", true, "status", "ignored"));
             }
 
             String sepayId = payload.get("id") == null ? null : String.valueOf(payload.get("id"));
@@ -87,15 +90,19 @@ public class PaymentWebhookController {
             String description = (String) payload.get("description");
 
             paymentService.processSepayWebhook(sepayId, transferAmount, description);
-            return ResponseEntity.ok(Map.of("status", "success"));
+            // SePay ACK contract (verified 2026-06-08 Test Mode): the 200 body MUST
+            // contain {"success": true}, otherwise SePay marks the webhook delivery
+            // failed ("Response không đúng quy cách") + retries up to 7× even though
+            // the payment was processed. GAP-1063.
+            return ResponseEntity.ok(Map.of("success", true, "status", "success"));
 
         } catch (IllegalArgumentException e) {
             // Orphan notify — txnRef present but no matching payment.
             log.warn("SePay webhook unprocessable: {}", e.getMessage());
-            return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(400).body(Map.of("success", false, "error", e.getMessage()));
         } catch (Exception e) {
             log.error("Failed to process SePay webhook", e);
-            return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(400).body(Map.of("success", false, "error", e.getMessage()));
         }
     }
 
