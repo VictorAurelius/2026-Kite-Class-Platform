@@ -8,6 +8,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { User } from '@/types/auth';
+import { tenantScopedStateStorage } from '@/lib/auth/jwt-storage';
 
 interface AuthState {
   user: User | null;
@@ -56,10 +57,12 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      // GAP-830: sessionStorage for per-tab isolation. Default localStorage was a
-      // second tab-collision vector (two tabs shared `auth-storage` key) alongside
-      // the direct token writes in useAuth/api-client/student-register.
-      storage: createJSONStorage(() => sessionStorage),
+      // GAP-1074 (Option B, supersedes GAP-830): tenant-scoped localStorage. Persists
+      // cross-tab (no re-login when opening a URL in a new tab) while namespacing the
+      // blob per tenant (`kc:<tenantId>:auth-store`) so two tabs on different tenants
+      // never clobber each other — the exact GAP-830 collision concern, solved without
+      // losing cross-tab UX. See `tenantScopedStateStorage` in lib/auth/jwt-storage.
+      storage: createJSONStorage(() => tenantScopedStateStorage),
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,

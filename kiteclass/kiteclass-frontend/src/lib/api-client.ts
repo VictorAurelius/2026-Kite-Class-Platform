@@ -82,7 +82,8 @@ export const apiClient: AxiosInstance = axios.create({
 // Request interceptor (add auth token + tenant ID)
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Add access token (sessionStorage-backed per-tab isolation, GAP-830)
+    // Add access token (tenant-scoped localStorage, GAP-1074 — cross-tab persist +
+    // per-tenant isolation; resolves THIS tab's bound tenant namespace)
     const accessToken = getAccessToken();
     if (accessToken && config.headers) {
       config.headers.Authorization = `Bearer ${accessToken}`;
