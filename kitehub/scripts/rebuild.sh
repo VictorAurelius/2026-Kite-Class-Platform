@@ -45,7 +45,10 @@ if [ "$SERVICE" = "all" ]; then
     ./scripts/build-all.sh $NO_CACHE
     echo ""
     echo "Restarting all services..."
-    docker-compose -f docker-compose.kitehub.yml up -d
+    # NOTE: every service in docker-compose.kitehub.yml carries a `profiles:` tag,
+    # so a bare `up -d` selects nothing ("no service selected"). Must pass the
+    # full profile to bring the whole stack up. (Fixed 2026-06-08 — see GAP filed.)
+    docker-compose -f docker-compose.kitehub.yml --profile full up -d
     exit 0
 fi
 
