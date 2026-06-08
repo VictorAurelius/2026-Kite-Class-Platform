@@ -33,14 +33,8 @@ export function HeroSection({ slots, title, subtitle, tagline }: HeroSectionProp
   const heroImage = slots?.image as string | undefined;
   const urgency = (slots?.urgency as string) || undefined;
 
-  // CTA copy is data-driven (slots) with generic, non-fabricated fallbacks.
-  const ctaPrimaryLabel = (slots?.ctaPrimaryLabel as string) || 'Học thử miễn phí';
-  const ctaPrimaryHref = (slots?.ctaPrimaryHref as string) || '/register';
-  const ctaSecondaryLabel = (slots?.ctaSecondaryLabel as string) || 'Xem khóa học';
-  const ctaSecondaryHref = (slots?.ctaSecondaryHref as string) || '/catalog';
-
-  // Hero CTA slots (Đợt-1 slot C). Tenant may override label/href; fall back to the
-  // real built-in routes (/register, /catalog) — never fabricated destinations.
+  // CTA copy is data-driven (slots, Đợt-1 slot C) with generic, non-fabricated
+  // fallbacks to the real built-in routes (/register, /catalog).
   const ctaPrimaryLabel = (slots?.ctaPrimaryLabel as string) || 'Học thử miễn phí';
   const ctaPrimaryHref = (slots?.ctaPrimaryHref as string) || '/register';
   const ctaSecondaryLabel = (slots?.ctaSecondaryLabel as string) || 'Xem khóa học';
