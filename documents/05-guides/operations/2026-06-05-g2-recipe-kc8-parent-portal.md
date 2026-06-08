@@ -34,7 +34,7 @@ P1=(-H "X-Tenant-Id: $TENANT" -H "X-User-Id: 11111111-1111-1111-1111-11111111111
     -H "X-User-Reference-Id: 1" -H "X-User-Roles: PARENT")
 ```
 
-Tools: terminal + curl. (Optional: browser `http://localhost:3001/parent` cho FE transcript.)
+Tools: terminal + curl. (Optional: browser `http://localhost:3000/parent` cho FE transcript — parent portal là **KiteClass** tenant app `kiteclass-frontend` `:3000` `(dashboard)/parent`, KHÔNG phải KiteHub `:3001`.)
 
 ## 3. Các bước
 
