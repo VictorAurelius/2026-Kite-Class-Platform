@@ -1,8 +1,12 @@
 /**
- * Tests for landing page sections — teachers, certificates, enrollment, pricing.
- * Verifies sections render meaningful content, not just a heading.
+ * Tests for landing page sections — anti-fabrication contract (GAP-958).
  *
- * @since 2026-04-04
+ * Data-driven sections (Teachers / Certificates / Pricing) render ONLY real
+ * tenant-provided content and HIDE entirely when no slot data is configured —
+ * never invent fictitious teachers, prices, or programs. EnrollmentSection keeps
+ * generic process steps (no fabricated social proof) and still renders defaults.
+ *
+ * @since 2026-04-04 (anti-fabrication rewrite 2026-06-09)
  */
 
 import { describe, it, expect } from 'vitest';
@@ -15,30 +19,39 @@ import { ProblemSolutionSection } from '../ProblemSolutionSection';
 import { HowItWorksSection } from '../HowItWorksSection';
 import { TrustStripSection } from '../TrustStripSection';
 import { FloatingCTA } from '../FloatingCTA';
+import type { SlotItem } from '@/lib/template/slots';
 
 describe('TeachersSection', () => {
-  it('renders section heading', () => {
+  it('hides when no teacher data is configured (anti-fabrication)', () => {
     render(<TeachersSection />);
-    expect(screen.getByText(/đội ngũ giáo viên/i)).toBeInTheDocument();
+    expect(screen.queryByText(/đội ngũ giáo viên/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('article')).not.toBeInTheDocument();
   });
 
-  it('renders at least 2 teacher cards with name and subject', () => {
-    render(<TeachersSection />);
-    const cards = screen.getAllByRole('article');
-    expect(cards.length).toBeGreaterThanOrEqual(2);
+  it('renders real teacher cards when slot data is provided', () => {
+    const teachers: SlotItem[] = [
+      { title: 'Trần Thị Hồng', description: 'Tiếng Anh giao tiếp', items: ['IELTS 8.0'] },
+      { title: 'Nguyễn Văn An', description: 'Toán tư duy', items: ['Thạc sĩ Sư phạm'] },
+    ];
+    render(<TeachersSection slots={{ teachers }} />);
+    expect(screen.getByText(/đội ngũ giáo viên/i)).toBeInTheDocument();
+    expect(screen.getAllByRole('article').length).toBe(2);
   });
 });
 
 describe('CertificatesSection', () => {
-  it('renders section heading', () => {
+  it('hides when no programs configured (anti-fabrication)', () => {
     render(<CertificatesSection />);
-    expect(screen.getByRole('heading', { level: 2, name: /chứng chỉ/i })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /chương trình giảng dạy/i })).not.toBeInTheDocument();
   });
 
-  it('renders IELTS and TOEIC certificates', () => {
-    render(<CertificatesSection />);
-    expect(screen.getByText(/IELTS/i)).toBeInTheDocument();
-    expect(screen.getByText(/TOEIC/i)).toBeInTheDocument();
+  it('renders real programs when slot data is provided', () => {
+    const certificates: SlotItem[] = [
+      { title: 'Luyện thi IELTS', description: 'Lộ trình 3-12 tháng', items: ['Band 5.0–7.5'] },
+    ];
+    render(<CertificatesSection slots={{ certificates }} />);
+    expect(screen.getByRole('heading', { level: 2, name: /chương trình giảng dạy/i })).toBeInTheDocument();
+    expect(screen.getByText(/Luyện thi IELTS/i)).toBeInTheDocument();
   });
 });
 
@@ -50,28 +63,27 @@ describe('EnrollmentSection', () => {
 
   it('renders enrollment steps', () => {
     render(<EnrollmentSection />);
-    // At least 3 steps
     const steps = screen.getAllByRole('listitem');
     expect(steps.length).toBeGreaterThanOrEqual(3);
   });
 });
 
 describe('PricingSection', () => {
-  it('renders section heading', () => {
+  it('hides when no pricing configured (anti-fabrication)', () => {
     render(<PricingSection />);
+    expect(screen.queryByText(/bảng giá/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('article')).not.toBeInTheDocument();
+  });
+
+  it('renders real pricing tiers + contact CTA when slot data is provided', () => {
+    const plans: SlotItem[] = [
+      { title: 'Cơ bản', description: '1.500.000đ / tháng', items: ['2 buổi/tuần'] },
+      { title: 'Nâng cao', description: '4.500.000đ / tháng', items: ['Kèm 1-1'] },
+    ];
+    render(<PricingSection slots={{ plans }} />);
     expect(screen.getByText(/bảng giá/i)).toBeInTheDocument();
-  });
-
-  it('renders at least 2 pricing tiers', () => {
-    render(<PricingSection />);
-    const cards = screen.getAllByRole('article');
-    expect(cards.length).toBeGreaterThanOrEqual(2);
-  });
-
-  it('renders contact CTA for pricing inquiry', () => {
-    render(<PricingSection />);
-    const links = screen.getAllByRole('link', { name: /liên hệ/i });
-    expect(links.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByRole('article').length).toBe(2);
+    expect(screen.getAllByRole('link', { name: /liên hệ/i }).length).toBeGreaterThanOrEqual(1);
   });
 });
 

@@ -2,36 +2,18 @@ import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import type { SlotData, SlotItem } from '@/lib/template/slots';
 
-// Testimonials from parents + students (the audience of an independent teacher /
-// small center landing page), including class + result for credibility.
-const DEFAULT_TESTIMONIALS: SlotItem[] = [
-  {
-    title: 'Chị Phạm Thị Mai',
-    description: 'Phụ huynh em Trần Thị Hồng · Lớp Anh ngữ 5A1',
-    icon: 'PM',
-    image: undefined,
-    items: ['Sau 6 tháng, con tôi tự tin giao tiếp hẳn và đạt 8.5 môn Tiếng Anh cuối kỳ. Cô giáo còn cập nhật tiến độ qua Zalo mỗi tuần.'],
-  },
-  {
-    title: 'Em Nguyễn Văn An',
-    description: 'Học viên · Lớp IELTS 7.0 Buổi tối · đạt IELTS 7.5',
-    icon: 'NA',
-    items: ['Lộ trình rõ ràng, luyện đề sát thực tế. Em từ 6.0 lên 7.5 chỉ sau một khóa, vượt mục tiêu ban đầu.'],
-  },
-  {
-    title: 'Chị Lê Thị Quỳnh',
-    description: 'Phụ huynh em Lê Văn Quang · Lớp Toán tư duy 9B',
-    icon: 'LQ',
-    items: ['Lớp nhỏ nên con được kèm sát. Điểm tổng kết của con tăng từ 7 lên 9.2, gia đình rất yên tâm.'],
-  },
-];
+// Anti-fabrication (GAP-958): testimonials are real social proof — NEVER invent
+// parent/student quotes or results. Render ONLY tenant-provided reviews; hide the
+// whole section when none configured. page.tsx only emits slots.testimonials when
+// the backend returns a non-empty array.
 
 interface TestimonialsSectionProps {
   slots?: SlotData;
 }
 
 export function TestimonialsSection({ slots }: TestimonialsSectionProps) {
-  const testimonials = (slots?.testimonials as SlotItem[] | undefined) || DEFAULT_TESTIMONIALS;
+  const testimonials = slots?.testimonials as SlotItem[] | undefined;
+  if (!testimonials || testimonials.length === 0) return null;
 
   return (
     <section className="py-16">

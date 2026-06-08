@@ -39,6 +39,13 @@ export function HeroSection({ slots, title, subtitle, tagline }: HeroSectionProp
   const ctaSecondaryLabel = (slots?.ctaSecondaryLabel as string) || 'Xem khóa học';
   const ctaSecondaryHref = (slots?.ctaSecondaryHref as string) || '/catalog';
 
+  // Hero CTA slots (Đợt-1 slot C). Tenant may override label/href; fall back to the
+  // real built-in routes (/register, /catalog) — never fabricated destinations.
+  const ctaPrimaryLabel = (slots?.ctaPrimaryLabel as string) || 'Học thử miễn phí';
+  const ctaPrimaryHref = (slots?.ctaPrimaryHref as string) || '/register';
+  const ctaSecondaryLabel = (slots?.ctaSecondaryLabel as string) || 'Xem khóa học';
+  const ctaSecondaryHref = (slots?.ctaSecondaryHref as string) || '/catalog';
+
   // Full-width tenant-coloured gradient (navy → lighter) reads as a promo block.
   const bgStyle = {
     background:

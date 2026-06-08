@@ -7,29 +7,51 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { ConsentBanner } from '@kite/shared-ui';
 import { publicApi } from '@/lib/api/public';
 
-// Resolve the tenant's display name + logo for the public nav/footer.
+// Resolve the tenant's display name + logo + contact for the public nav/footer.
 // Tenant resolution priority:
 // 1. x-tenant-id header injected by host→tenant middleware (GAP-811/GAP-1077) —
 //    enables 1-FE-many-tenant by Host (the layout cannot read ?tenant= searchParams).
 // 2. NEXT_PUBLIC_TENANT_ID (1-tenant-per-deploy fallback).
 // 3. hardcoded default tenant.
-// Falls back to a generic platform identity when no tenant resolves. GAP-808
-// follow-up: nav was hardcoded "KiteClass" regardless of tenant.
-async function getTenantIdentity(): Promise<{ name: string; logoUrl: string | null; tagline: string | null }> {
+// Falls back to a generic platform identity when no tenant resolves. GAP-808.
+//
+// Bucket B (GAP-958): nav/footer use the dedicated `centerName` field (the center's
+// own name) in preference to the marketing `heroTitle` slogan. Contact is surfaced
+// only when the tenant actually configured it — anti-fabrication: never show a
+// `1900 xxxx` / `support@kiteclass.com` placeholder.
+interface TenantIdentity {
+  name: string;
+  logoUrl: string | null;
+  tagline: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+}
+
+async function getTenantIdentity(): Promise<TenantIdentity> {
   const headerTenantId = (await headers()).get('x-tenant-id') ?? undefined;
   const tenantId =
     headerTenantId ??
     process.env.NEXT_PUBLIC_TENANT_ID ??
     '11111111-1111-1111-1111-111111111111';
   try {
-    const landing = await publicApi.getLandingPage(tenantId);
+    const landing = (await publicApi.getLandingPage(tenantId)) as {
+      centerName?: string;
+      heroTitle?: string;
+      logoUrl?: string;
+      tagline?: string;
+      contactEmail?: string;
+      contactPhone?: string;
+    };
+    const name = landing.centerName?.trim() || landing.heroTitle?.trim() || 'Trung tâm giáo dục';
     return {
-      name: landing.heroTitle || 'KiteClass',
+      name,
       logoUrl: landing.logoUrl ?? null,
-      tagline: (landing as { tagline?: string }).tagline ?? null,
+      tagline: landing.tagline?.trim() || null,
+      contactEmail: landing.contactEmail?.trim() || null,
+      contactPhone: landing.contactPhone?.trim() || null,
     };
   } catch {
-    return { name: 'KiteClass', logoUrl: null, tagline: null };
+    return { name: 'Trung tâm giáo dục', logoUrl: null, tagline: null, contactEmail: null, contactPhone: null };
   }
 }
 
@@ -65,7 +87,13 @@ export default async function PublicLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { name: tenantName, logoUrl: tenantLogo, tagline: tenantTagline } = await getTenantIdentity();
+  const {
+    name: tenantName,
+    logoUrl: tenantLogo,
+    tagline: tenantTagline,
+    contactEmail,
+    contactPhone,
+  } = await getTenantIdentity();
   return (
     <div className="min-h-screen flex flex-col">
       {/* Skip to main content (accessibility) */}
@@ -213,13 +241,37 @@ export default async function PublicLayout({
               </ul>
             </div>
 
-            {/* Contact */}
+            {/* Contact — surfaced only when the tenant configured it (no placeholder). */}
             <div>
               <h3 className="font-semibold mb-4">Liên hệ</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>Email: {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'support@kiteclass.com'}</li>
-                <li>Hotline: {process.env.NEXT_PUBLIC_CONTACT_PHONE || '1900 xxxx'}</li>
-              </ul>
+              {contactEmail || contactPhone ? (
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  {contactEmail && (
+                    <li>
+                      Email:{' '}
+                      <a href={`mailto:${contactEmail}`} className="hover:text-theme-primary">
+                        {contactEmail}
+                      </a>
+                    </li>
+                  )}
+                  {contactPhone && (
+                    <li>
+                      Hotline:{' '}
+                      <a href={`tel:${contactPhone}`} className="hover:text-theme-primary">
+                        {contactPhone}
+                      </a>
+                    </li>
+                  )}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Liên hệ qua{' '}
+                  <Link href="/contact" className="hover:text-theme-primary">
+                    trang liên hệ
+                  </Link>
+                  .
+                </p>
+              )}
             </div>
           </div>
 

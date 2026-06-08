@@ -45,6 +45,10 @@ export const SECTION_SLOTS: Record<SectionId, SlotDefinition[]> = {
     { id: 'tagline', type: 'text', label: 'Slogan', required: false, maxLength: 50 },
     { id: 'image', type: 'image', label: 'Ảnh hero', required: false },
     { id: 'urgency', type: 'text', label: 'Thông điệp khẩn (khai giảng/ưu đãi)', required: false, maxLength: 120 },
+    { id: 'ctaPrimaryLabel', type: 'text', label: 'Nút CTA chính (nhãn)', required: false, maxLength: 40 },
+    { id: 'ctaPrimaryHref', type: 'text', label: 'Nút CTA chính (liên kết)', required: false, maxLength: 200 },
+    { id: 'ctaSecondaryLabel', type: 'text', label: 'Nút CTA phụ (nhãn)', required: false, maxLength: 40 },
+    { id: 'ctaSecondaryHref', type: 'text', label: 'Nút CTA phụ (liên kết)', required: false, maxLength: 200 },
   ],
   stats: [
     { id: 'stats', type: 'items', label: 'Chỉ số nổi bật', required: false, maxItems: 4 },

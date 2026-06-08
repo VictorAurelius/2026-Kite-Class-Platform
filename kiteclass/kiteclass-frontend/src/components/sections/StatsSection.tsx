@@ -2,10 +2,14 @@
 
 /**
  * Stats counters section — social proof for independent teachers / centers.
- * Shows headline numbers (years of experience, students taught, pass rate)
- * with a count-up animation triggered when the section scrolls into view
- * (IntersectionObserver, runs once). Falls back to demo data when no slot
- * data is configured. Honours prefers-reduced-motion (jumps straight to value).
+ * Shows headline numbers with a count-up animation triggered when the section
+ * scrolls into view (IntersectionObserver, runs once). Honours
+ * prefers-reduced-motion (jumps straight to value).
+ *
+ * Anti-fabrication (GAP-958): renders ONLY real tenant-provided stats — never
+ * invents "500+ học viên" / "95% đạt mục tiêu" headline numbers. When no stats
+ * are configured the section hides entirely. page.tsx emits slots.stats from the
+ * backend `stats` array when non-empty.
  *
  * Slot shape: slots.stats = SlotItem[] where
  *   title       = the number (e.g. "8" / "4.9")
@@ -15,13 +19,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { SlotData, SlotItem } from '@/lib/template/slots';
-
-const DEFAULT_STATS: SlotItem[] = [
-  { title: '8', icon: '+', description: 'Năm kinh nghiệm giảng dạy' },
-  { title: '500', icon: '+', description: 'Học viên đã đồng hành' },
-  { title: '95', icon: '%', description: 'Học viên đạt mục tiêu đầu ra' },
-  { title: '4.9', icon: '/5', description: 'Đánh giá từ phụ huynh' },
-];
 
 interface StatsSectionProps {
   slots?: SlotData;
@@ -64,13 +61,13 @@ function CountUp({ value, active }: { value: string; active: boolean }) {
 }
 
 export function StatsSection({ slots }: StatsSectionProps) {
-  const stats = (slots?.stats as SlotItem[] | undefined) || DEFAULT_STATS;
+  const stats = (slots?.stats as SlotItem[] | undefined) ?? [];
   const sectionRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState(false);
 
   useEffect(() => {
     const el = sectionRef.current;
-    if (!el || active) return;
+    if (!el || active || stats.length === 0) return;
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
@@ -82,7 +79,11 @@ export function StatsSection({ slots }: StatsSectionProps) {
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [active]);
+  }, [active, stats.length]);
+
+  // Anti-fabrication: hide when no real stats configured (guard AFTER hooks to
+  // preserve hook order per rules-of-hooks).
+  if (stats.length === 0) return null;
 
   return (
     <section ref={sectionRef} className="bg-theme-primary/5 py-16">
