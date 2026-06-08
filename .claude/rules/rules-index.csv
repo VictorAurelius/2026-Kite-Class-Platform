@@ -109,3 +109,4 @@ pre-walk-persona-simulation-mandate,MANDATORY,1.0.0,2026-06-04,2026-06-04,pre-wa
 starter-kit-upstream-destination,MANDATORY,1.0.1,2026-06-04,2026-06-04,starter-kit-upstream-destination.md,".claude/starter-kit/**",active,,
 g1-browser-walk-before-flip,MANDATORY,1.0.0,2026-06-08,2026-06-08,g1-browser-walk-before-flip.md,"documents/03-planning/waves/wave-*-flow-*.md,documents/03-planning/roadmap/flow-verification-campaign.md,documents/05-guides/operations/*-g2-recipe-*.md,.claude/rules/g1-browser-walk-before-flip.md",active,,
 small-gap-inline-fix,MANDATORY,1.0.0,2026-06-08,2026-06-08,small-gap-inline-fix.md,"documents/03-planning/waves/wave-*-flow-*.md,documents/03-planning/roadmap/flow-verification-campaign.md,documents/04-quality/gaps/**,documents/05-guides/operations/*-g2-recipe-*.md,.claude/rules/small-gap-inline-fix.md",active,,
+design-first-investigation-order,MANDATORY,1.0.0,2026-06-08,2026-06-08,design-first-investigation-order.md,,active,,
