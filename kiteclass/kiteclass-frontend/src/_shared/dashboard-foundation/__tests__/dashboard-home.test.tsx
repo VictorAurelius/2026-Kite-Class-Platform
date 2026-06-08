@@ -18,6 +18,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/',
 }));
 
 // Mock the data hooks so the page renders deterministic counts.

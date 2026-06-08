@@ -40,6 +40,7 @@ vi.mock('next/navigation', () => ({
     back: vi.fn(),
     prefetch: vi.fn(),
   }),
+  usePathname: () => '/settings',
 }));
 
 describe('OnboardingReplayCard', () => {

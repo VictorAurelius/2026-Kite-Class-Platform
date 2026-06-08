@@ -20,6 +20,9 @@ import VettingDocumentUploadPage from '../page';
 const mockUseParams = vi.fn();
 vi.mock('next/navigation', () => ({
   useParams: () => mockUseParams(),
+  usePathname: () => '/admin/vetting',
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn(), prefetch: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 const mockUpload = vi.fn();
