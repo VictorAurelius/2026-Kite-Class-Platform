@@ -39,7 +39,10 @@ references:
 
 ### Bước 1 — Đăng nhập Owner
 
-- **Hành động:** Mở `http://localhost:3000` → đăng nhập **`owner.sky@test.vn`** / **`SkyEdu@2026`** (Owner "Trần Thị Hồng" của tenant sky-education; password reset 2026-06-08 cho G2).
+- **Hành động:** Mở **`http://localhost:3000/login`** → đăng nhập **`owner@skyedu.vn`** / **`SkyEdu@2026`** (Owner thật của tenant sky-education = `instances.owner_id` user `3c659096`; password reset 2026-06-08 cho G2). **LƯU Ý:** PHẢI dùng `owner@skyedu.vn`, KHÔNG phải `owner.sky@test.vn` — chỉ owner khớp `instances.owner_id` mới được nhúng `tenantId` claim vào JWT (Wave 104 GAP-704) → tenant resolve được; nếu sai owner thì mọi call KiteClass 400 (xem GAP-1068).
+- **✅ Verify (2026-06-08):** login owner@skyedu.vn → JWT chứa `"tenantId":"e8ff87e1..."`; dashboard `/teachers` `/students` `/courses` → 200 không cần gắn header tay.
+- **⚠️ Dashboard có 2 widget 404** (`/api/v1/classes` + `/api/v1/invoices` — BE chưa expose list endpoint root, GAP-1069) → cosmetic, KHÔNG chặn KC-1 settings.
+- **⚠️ Nếu `ERR_EMPTY_RESPONSE` (bất kỳ route :3000):** port-forward host→container stale sau rebuild service (compose-up). Fix: `docker restart kiteclass-frontend`, chờ ~12s, F5 (GAP-1067). Verify: `curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/login` → 200.
 - **✅ Kỳ vọng:** Login thành công → redirect vào dashboard KiteClass; Network tab `POST /api/auth/login` → HTTP 200 + JWT (role `OWNER`). Đã verify BE/gateway 2026-06-08: login 200 qua `:9000`.
 - **⚠️ Sad path:** Sai password → báo lỗi rõ ("Email hoặc mật khẩu không đúng"), KHÔNG redirect. Nếu gặp trang "Dịch vụ tạm ngưng" → gateway `authCircuitBreaker` vừa mở (do request lỗi trước đó), chờ ~30s rồi thử lại.
 
