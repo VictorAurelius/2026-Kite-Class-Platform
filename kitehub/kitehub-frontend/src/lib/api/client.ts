@@ -34,6 +34,16 @@ apiClient.interceptors.request.use(
         }
       }
     }
+
+    // Multipart file uploads (branding logo/asset upload via useUploadAsset):
+    // drop the instance-default 'Content-Type: application/json' (and any caller-set
+    // boundary-less 'multipart/form-data') so the browser sets multipart/form-data
+    // WITH the correct boundary — otherwise BE @RequestPart parsing fails.
+    // Cross-flow sweep of GAP-1073 (kiteclass-frontend had the same bug class).
+    if (config.data instanceof FormData && config.headers) {
+      delete config.headers['Content-Type'];
+    }
+
     return config;
   },
   (error) => Promise.reject(error)

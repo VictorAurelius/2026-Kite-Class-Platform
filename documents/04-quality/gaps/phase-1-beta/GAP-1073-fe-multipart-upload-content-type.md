@@ -20,7 +20,21 @@ Request interceptor: nếu `config.data instanceof FormData` → `delete config.
 
 - [x] Interceptor drop Content-Type cho FormData (api-client.ts)
 - [ ] Re-walk browser: upload logo từ Settings → success + logo preview cập nhật (pending user F5 per g1-browser-walk)
-- [ ] Sweep: kitehub-frontend api-client có cùng bug không (cross-flow)?
+- [x] Sweep: kitehub-frontend api-client có cùng bug không (cross-flow) — **CÓ + FIXED** (xem §Cross-flow sweep evidence)
+
+## Cross-flow sweep evidence (per cross-flow-bug-class-sweep.md §3)
+
+**Bug class signature:** axios instance set default `Content-Type: application/json` (hoặc per-call `multipart/form-data` thiếu boundary) → khi gửi `FormData`, browser KHÔNG auto-set boundary → BE `@RequestPart` fail.
+
+**Grep:** `grep -rnE "new FormData|axios.create|Content-Type" kitehub/kitehub-frontend/src` + check interceptor handle FormData.
+
+| # | File:line | Verdict | Reason |
+|---|---|---|---|
+| 1 | `kitehub-frontend/src/lib/api/client.ts:15` default json + interceptor `:20` không handle FormData | **FIX** | apiClient dùng cho `useUploadAsset` (branding logo upload) → cùng bug |
+| 2 | `kitehub-frontend/src/hooks/use-branding.ts:29` per-call `Content-Type: multipart/form-data` thiếu boundary | **FIX** | header thủ công thiếu boundary = cùng class; interceptor giờ strip + xóa per-call header misleading |
+| 3 | `kiteclass-frontend/src/lib/api-client.ts` | EXEMPT | đã fix trước (origin GAP-1073) |
+
+**Decision:** FIXED this PR: 2 (kitehub-frontend client.ts interceptor + use-branding.ts cleanup). DEFER: 0. EXEMPT: 1.
 
 ## Related
 

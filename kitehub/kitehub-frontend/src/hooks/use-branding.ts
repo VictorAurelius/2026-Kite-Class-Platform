@@ -23,10 +23,13 @@ export function useUploadAsset() {
       const formData = new FormData();
       formData.append('file', file);
 
+      // No manual Content-Type: a boundary-less 'multipart/form-data' breaks BE
+      // @RequestPart parsing. The apiClient request interceptor drops Content-Type
+      // for FormData so the browser sets multipart/form-data WITH the boundary
+      // (GAP-1073 cross-flow sweep).
       const { data } = await apiClient.post<ApiResponse<BrandingAsset>>(
         endpoints.branding.uploadAsset(instanceId, type),
-        formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
+        formData
       );
       return data.data;
     },
