@@ -11,7 +11,7 @@ gaps: [GAP-914]
 
 **Mục tiêu:** Thông (verify chạy end-to-end) toàn bộ ~22 user-facing flow của KiteHub + KiteClass cho Phase 1 BETA. Sau khi 22 flow ✅ mới quay lại quy trình fix-gap-theo-wave cho backlog cosmetic.
 
-**MODE hiện tại (override default session priority):** KHÔNG pick P0 gap từ triage để fix. Thay vào đó: chọn flow chưa thông kế tiếp (theo §3 dependency order) → loop qua wave plan của flow đó → chỉ fix **blocker do walk lòi ra**. Gap KHÔNG chặn flow (cosmetic P2/P3) defer sang wave-fix phase sau campaign.
+**MODE hiện tại (override default session priority):** KHÔNG pick P0 gap từ triage để fix. Thay vào đó: chọn flow chưa thông kế tiếp (theo §3 dependency order) → loop qua wave plan của flow đó → chỉ fix **blocker do walk lòi ra**. Gap KHÔNG chặn flow nhưng **NHỎ** (≤30 phút, in-scope, low-risk, verify-now-able per `small-gap-inline-fix.md` §1) → **fix inline + flip DONE cùng session** (tránh backlog tồn đọng khi bắt bug G2); chỉ defer sang wave-fix phase sau campaign các gap **LỚN / architecture / cross-cutting cần sweep+design**.
 
 ---
 
@@ -132,8 +132,10 @@ Quy trình chuẩn khi 1 walk (G2 human, hoặc G1 re-walk) lòi bug. Mục tiê
 3. FIX theo class (global fix vs per-flow fix)
 4. Quyết định RE-RUN SCOPE (bảng dưới)
 5. SWEEP sister flow (per cross-flow-bug-class-sweep) — bug class có ở flow khác không?
-6. RE-WALK scope bị ảnh hưởng (per pre-handoff-self-test-completeness §3) TRƯỚC khi coi bug đóng
+6. RE-WALK CONFIRM scope bị ảnh hưởng (per pre-handoff-self-test-completeness §3) TRƯỚC khi đánh FIXED/DONE
 ```
+
+> **⚠️ Bước 6 — re-walk confirm cho bug visual/layout/UX PHẢI là browser thật** (user F5 HOẶC headless), **KHÔNG `curl`** (per `g1-browser-walk-before-flip`). `curl 200` không nhìn thấy header/sidebar/footer/console/layout — đánh "FIXED" bằng curl = anti-pattern (chính miss KC-1 GAP-1071 2026-06-08: deploy fix layout rồi claim FIXED bằng `curl 200`, chưa có browser evidence). **Chưa có browser re-walk evidence → giữ trạng thái "deployed, pending confirm", KHÔNG flip DONE** (per `gap-done-discipline` §1).
 
 ### Blast-radius → re-run matrix
 
