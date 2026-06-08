@@ -1,6 +1,6 @@
 # GAP-819: Zalo OA active push — ZNS adapter (Phase 1.5 paid tier)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-01 (Zalo audit + thesis-as-future-state-mandate rule landing)
@@ -25,18 +25,41 @@ Per `thesis-as-future-state-mandate.md` v1.0.0 §3.1 — thesis Ch1 §1.1.2 + Ch
 
 `NotificationChannelType.ZALO` enum value tồn tại từ Phase 1 forward-compat per BR-NOTIF-002 + BR-NOTIF-010 — nhưng `kitehub.notification.channels.enabled=EMAIL` only; ZALO adapter defer to GAP-063b Phase 2. Phase 1.5 trigger là paid tier monetization → cần richer feature set bao gồm active push.
 
-## Proposed fix
+## Current State (verified 2026-06-08 — GAP-819 flow-check, Explore agent)
 
-Per design doc `documents/02-architecture/zalo-integration-design.md` §3:
+⚠️ **Proposed fix bản gốc (dưới) đặt adapter SAI CHỖ** (kitehub-email NotificationChannel) + bỏ qua scaffold đã có. Flow-check phát hiện **3 scaffold Zalo cùng tồn tại** → kiến trúc đã reconcile trong `zalo-integration-design.md` §3.0 + §3.3 (2026-06-08). Bản gốc giữ dưới để tham chiếu; **build theo §3.3 reconciled (kiteclass-core)**.
 
-1. `ZaloZnsAdapter` (NEW) implements `NotificationChannel` — HTTP POST → `openapi.zalo.me/v2.0/oa/message`
-2. `ZaloZnsClient` (NEW) — HTTP client wrapping ZNS API + retry + DLQ
-3. `zalo-templates.yml` — local mapping `NotificationType` ↔ `template_id` (Zalo approves templates)
-4. DB migration: add `zalo_oa_id`, `zalo_zns_access_token`, `zns_template_id_*` columns to `tenants`
-5. Tenant onboarding step "Zalo OA verification" — verify ownership, store credentials encrypted
-6. Config: `kitehub.notification.channels.enabled=EMAIL,ZALO` cho paid tenants only via subscription guard
+| Thành phần | Trạng thái | Build code-now? |
+|---|---|---|
+| Outbox `zalo_oa_notification_outbox` (V61) + RLS (V78) | ✅ đã có | — |
+| `ZaloOaNotificationService` stub (3 method: invite/payment/attendance, log-only) | ✅ đã có (Wave 105) | — |
+| `kitehub-email/zalo/ZaloOAClient` + `zalo.*` config | ✅ đã có (GAP-063, generic send, mock) | scope khác, không reuse |
+| `ZaloZnsClient` (HTTP, mock\|live) | ❌ chưa | 🟢 code-now (mock) |
+| `ZaloOutboxDispatcher` (@Scheduled drain outbox) | ❌ chưa (outbox ghi mà không ai drain) | 🟢 code-now |
+| Fix `resolveTenantId()` nil-UUID bug | ❌ bug (hardcode zero-UUID) | 🟢 code-now (prerequisite) |
+| Grade hook (`recordGradePublished` + ALTER `chk_zalo_oa_event_type` + caller) | ❌ chưa (GRADE không trong CHECK) | 🟢 code-now |
+| Wire invite + attendance callers (hiện 0 caller) | ❌ chưa | 🟢 code-now |
+| `zalo-zns-templates.yml` scaffold | ❌ chưa | 🟢 scaffold-now / 🔴 template_id thật blocked Zalo approval |
+| IT mock (dispatcher → client mock, fallback ZALO→EMAIL) | ❌ chưa | 🟢 code-now |
+| Live OAuth token + refresh | ❌ | 🔴 blocked — cần Zalo App credentials (user tạo) |
+| End-to-end live ZNS push verify | ❌ | 🔴 blocked — cần OA Test + App + template approved |
+
+**Architecture + schema decisions chốt 2026-06-08** (xem `zalo-integration-design.md` §3.0): build ở **kiteclass-core outbox-drain** (KHÔNG kitehub-email); **platform-level single OA** Phase 1.5 (per-tenant OA columns defer Phase 2 → AC §4 below revised).
+
+**Session 2026-06-08 progress:** flow-check + architecture reconcile + design doc §3.0/§3.3 rewrite shipped (this PR, docs-only). Code build (client + dispatcher + migration + grade hook + IT) → next session với context sạch + user's Zalo App credentials.
+
+## Proposed fix (ORIGINAL — superseded by §3.3 reconciled; kept for reference)
+
+Per design doc `documents/02-architecture/zalo-integration-design.md` §3 (reconciled version):
+
+1. `ZaloZnsClient` (NEW, **kiteclass-core**) — HTTP client `provider=mock|live` → `openapi.zalo.me` ZNS
+2. `ZaloOutboxDispatcher` (NEW, **kiteclass-core**) — `@Scheduled` drain `zalo_oa_notification_outbox` PENDING → client → DISPATCHED/FAILED + retry
+3. `zalo-zns-templates.yml` — event_type ↔ template_id mapping
+4. ~~DB migration add columns to `tenants`~~ → **DEFER Phase 2** (platform-level single OA Phase 1.5 per §3.0 schema decision)
+5. Fix `resolveTenantId()` + ALTER `chk_zalo_oa_event_type` (+GRADE_PUBLISHED) + wire 0-caller methods
+6. Config reuse `zalo.*` platform-level; `provider=mock` default
 7. Fallback chain: ZALO → EMAIL on rate-limit/template-not-approved
-8. Cost monitoring CloudWatch metric per tenant
+8. Cost monitoring CloudWatch metric
 9. Audit log dispatch outcome per BR-NOTIF-001
 
 ## Acceptance criteria
