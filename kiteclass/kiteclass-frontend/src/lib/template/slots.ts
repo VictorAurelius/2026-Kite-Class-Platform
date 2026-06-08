@@ -49,6 +49,15 @@ export const SECTION_SLOTS: Record<SectionId, SlotDefinition[]> = {
   stats: [
     { id: 'stats', type: 'items', label: 'Chỉ số nổi bật', required: false, maxItems: 4 },
   ],
+  problemSolution: [
+    { id: 'items', type: 'items', label: 'Vấn đề & Giải pháp', required: false, maxItems: 6 },
+  ],
+  howItWorks: [
+    { id: 'steps', type: 'items', label: 'Cách hoạt động (3 bước)', required: false, maxItems: 5 },
+  ],
+  trustStrip: [
+    { id: 'signals', type: 'items', label: 'Tín hiệu tin cậy', required: false, maxItems: 6 },
+  ],
   timeline: [
     { id: 'steps', type: 'items', label: 'Lộ trình học tập', required: false, maxItems: 6 },
   ],
