@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
 import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import type { Subscription, PricingTier, BillingCycle } from '@/types/subscription';
@@ -11,10 +12,18 @@ export function useActiveSubscription(instanceId: string | undefined) {
   return useQuery({
     queryKey: ['subscriptions', 'active', instanceId],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<Subscription>>(
-        endpoints.subscriptions.active(instanceId!)
-      );
-      return data.data;
+      // BE trả bare SubscriptionResponse (per api-contract.md) — KHÔNG wrap ApiResponse.
+      // 404 = no active subscription (TRIAL tenant chưa nâng cấp) → null, KHÔNG phải error
+      // (billing/upgrade page treat null = tier FREE → show plan comparison). GAP-1079.
+      try {
+        const { data } = await apiClient.get<Subscription>(
+          endpoints.subscriptions.active(instanceId!)
+        );
+        return data;
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response?.status === 404) return null;
+        throw err;
+      }
     },
     enabled: !!instanceId,
     staleTime: 30000, // 30s - subscription thay đổi không thường xuyên
@@ -28,10 +37,10 @@ export function useSubscriptionHistory(instanceId: string | undefined) {
   return useQuery({
     queryKey: ['subscriptions', 'history', instanceId],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<Subscription[]>>(
+      const { data } = await apiClient.get<Subscription[]>(
         endpoints.subscriptions.byInstance(instanceId!)
       );
-      return data.data;
+      return data;
     },
     enabled: !!instanceId,
   });
@@ -52,11 +61,11 @@ export function useUpgradeSubscription() {
       subscriptionId: string;
       newTier: PricingTier;
     }) => {
-      const { data } = await apiClient.patch<ApiResponse<Subscription>>(
+      const { data } = await apiClient.patch<Subscription>(
         endpoints.subscriptions.upgrade(subscriptionId),
         { newTier }
       );
-      return data.data;
+      return data;
     },
     onSuccess: () => {
       // Invalidate all subscription queries
@@ -80,11 +89,11 @@ export function useDowngradeSubscription() {
       subscriptionId: string;
       newTier: PricingTier;
     }) => {
-      const { data } = await apiClient.patch<ApiResponse<Subscription>>(
+      const { data } = await apiClient.patch<Subscription>(
         endpoints.subscriptions.downgrade(subscriptionId),
         { newTier }
       );
-      return data.data;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
@@ -115,11 +124,12 @@ export function useCreateSubscription() {
       tier: PricingTier;
       billingCycle: BillingCycle;
     }) => {
-      const { data } = await apiClient.post<ApiResponse<Subscription>>(
+      // BE trả bare SubscriptionResponse với pendingPaymentId top-level (per api-contract.md)
+      const { data } = await apiClient.post<Subscription>(
         endpoints.subscriptions.create,
         { instanceId, tier, billingCycle, autoRenew: true }
       );
-      return data.data;
+      return data;
     },
     onSuccess: () => {
       // Invalidate active subscription query so dashboard cập nhật ngay

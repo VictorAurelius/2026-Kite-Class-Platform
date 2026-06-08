@@ -278,7 +278,7 @@ export default function BillingPage() {
     );
   }
 
-  // subError (400) = no subscription yet (trial user) → show plan comparison.
+  // subscription === null (404 no active sub) hoặc subError = trial user chưa nâng cấp → show plan comparison.
   if (!subscription || subError) {
     return (
       <div className="space-y-6">

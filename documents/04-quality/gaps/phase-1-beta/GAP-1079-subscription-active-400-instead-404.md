@@ -20,6 +20,19 @@ GET :9000/api/platform/subscriptions/instance/7862ab7e.../active
 
 Hệ quả browser (KH-3 G2 2026-06-09): billing page `/billing` gọi `/active` → 400 lặp lại → FE không có state "no subscription / trial" → khi click "Nâng cấp" FE retry create → POST tạo PENDING (201) nhưng GET /active vẫn 400 (PENDING ≠ ACTIVE) → FE crash `TypeError: Cannot read properties of undefined (reading 'pendingPaymentId')`.
 
+## Root cause chính xác (sau debug 2026-06-09)
+
+2 bug riêng, fix cùng:
+1. **GET /active 400→404** (BE): `SubscriptionService:143` throw `IllegalArgumentException` → `GlobalExceptionHandler` map 400. Fix: `EntityNotFoundException` → 404 (handler có sẵn).
+2. **FE crash `pendingPaymentId of undefined`** (FE — bug chính): 5 subscription hooks `use-subscriptions.ts` đọc `data.data` (expect `ApiResponse<T>` wrapper) nhưng BE trả **bare** `SubscriptionResponse` (per api-contract.md + IT:181 assert `$.tier` bare). `data.data` = undefined → create/upgrade crash. Crash là FE shape, KHÔNG phải hệ quả của 400 (billing page §282 đã handle no-sub via subError → plan comparison).
+
+## Fix applied (2026-06-09)
+
+- BE: `getActiveSubscription` → `EntityNotFoundException` → 404 + import. **curl-verified: GET /active → 404** (was 400).
+- FE: 5 hooks `data.data`→`data` (bare) + `useActiveSubscription` catch 404→null + billing comment.
+- Verify: BE compile PASS + SubscriptionServiceTest 13/0/0 PASS + FE prod build PASS + curl 404 ✅.
+- **Browser G2 re-walk pending** (user) → flip DONE sau khi confirm không crash (per `pre-handoff-self-test-completeness` §3 + `g1-browser-walk`).
+
 ## Proposed Fix
 
 `/active` "no active subscription" = not-found semantic → trả **404** (không phải 400), HOẶC **200 với body null/empty** để FE render "trial, chọn gói nâng cấp". Options:
