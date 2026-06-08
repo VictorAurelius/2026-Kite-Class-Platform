@@ -1,6 +1,6 @@
 # GAP-1071: (dashboard) page thiếu wrap DashboardLayout shell → mất header/sidebar/footer
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Frontend
 **Found:** 2026-06-08 (KC-1 G2 Bước 2 — user báo /settings "vỡ layout hoàn toàn, không header footer")
@@ -59,3 +59,7 @@ Route `(dashboard)/layout.tsx` **KHÔNG render shell nav** (chỉ `<BrandingThem
 - GAP-1072 (logo hiện tại không render — sister observation)
 - `cross-flow-bug-class-sweep` + `flow-verification-campaign §4.5` (cross-flow class → sweep)
 - `g1-browser-walk-before-flip` (browser-walk bắt class này — curl không thấy layout)
+
+## Log (cập nhật)
+
+- **2026-06-09:** 🟢 DONE — KC-1 G2 human browser-walk PASS (W1 — dashboard render đủ shell (header/sidebar/footer)). Code fix đã ship (PARTIAL trước đó), G2 verify trên browser thật :3000 hoàn tất per `pre-handoff-self-test-completeness.md` §3 + `g1-browser-walk-before-flip.md`. CSV canonical -> DONE; moved closed/. 

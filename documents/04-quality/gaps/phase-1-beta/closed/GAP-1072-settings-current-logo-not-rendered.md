@@ -1,6 +1,6 @@
 # GAP-1072: Settings không render logo hiện tại + presigned URL hết hạn
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Frontend (+ Backend presigned URL TTL)
 **Found:** 2026-06-08 (KC-1 G2 Bước 3)
@@ -30,3 +30,7 @@
 
 ## Update 2026-06-08
 BE fix shipped (contained parse-URL regen-on-read, no migration). Verified live: logo URL X-Amz-Date=20260608 fresh sau bust cache. Lưu ý: @Cacheable TTL 1h → sau đổi logo/deploy có thể stale ≤1h rồi self-heal (acceptable). Còn lại: re-walk browser confirm logo preview hiện (pending user F5 per g1-browser-walk-before-flip).
+
+## Log (cập nhật)
+
+- **2026-06-09:** 🟢 DONE — KC-1 G2 human browser-walk PASS (W3 — logo render được sau reload (presigned regen)). Code fix đã ship (PARTIAL trước đó), G2 verify trên browser thật :3000 hoàn tất per `pre-handoff-self-test-completeness.md` §3 + `g1-browser-walk-before-flip.md`. CSV canonical -> DONE; moved closed/. Lưu ý: upload/render cần bucket MinIO `kite-branding-assets` (tạo thủ công G2) — ensure-bucket systemic là GAP-1036 OPEN riêng.

@@ -1,6 +1,6 @@
 # GAP-1074: Session per-tab — mở URL ở tab mới bắt login lại (Option B tenant-scoped localStorage)
 
-**Status:** 🟡 PARTIAL — code + 24 unit tests + build PASS; browser re-walk pending (2026-06-08)
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Frontend (auth/security UX)
 **Found:** 2026-06-08 (KC-1 G2 — user login 1 tab, mở URL tab khác → bắt login lại)
@@ -59,3 +59,7 @@ Security-sensitive → KHÔNG fix inline; scope proper sau khi user chốt optio
 - Discovered in: KC-1 G2 walk 2026-06-08
 - GAP-830 (sessionStorage per-tab decision — superseded by Option B này)
 - Implemented in: Wave KC-1 G2 fix (Option B per user direction 2026-06-08)
+
+## Log (cập nhật)
+
+- **2026-06-09:** 🟢 DONE — KC-1 G2 human browser-walk PASS (W2 — cross-tab không bắt login lại, đúng tenant). Code fix đã ship (PARTIAL trước đó), G2 verify trên browser thật :3000 hoàn tất per `pre-handoff-self-test-completeness.md` §3 + `g1-browser-walk-before-flip.md`. CSV canonical -> DONE; moved closed/. 

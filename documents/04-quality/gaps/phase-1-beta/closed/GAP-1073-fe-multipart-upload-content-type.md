@@ -1,6 +1,6 @@
 # GAP-1073: FE file upload (logo/favicon) fail — apiClient default Content-Type json phá multipart
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Frontend
 **Found:** 2026-06-08 (KC-1 G2 Bước 4+ — user upload avatar/logo "không được" trên browser)
@@ -42,3 +42,7 @@ Request interceptor: nếu `config.data instanceof FormData` → `delete config.
 - GAP-1072 (logo render — sister; giờ upload xong logo mới sẽ render fresh per GAP-1072 regen)
 - `g1-browser-walk-before-flip` (curl≠browser — incident thứ N reinforces rule)
 - `cross-flow-bug-class-sweep` (sweep kitehub-frontend api-client)
+
+## Log (cập nhật)
+
+- **2026-06-09:** 🟢 DONE — KC-1 G2 human browser-walk PASS (W3 — upload logo multipart 200 (boundary giữ)). Code fix đã ship (PARTIAL trước đó), G2 verify trên browser thật :3000 hoàn tất per `pre-handoff-self-test-completeness.md` §3 + `g1-browser-walk-before-flip.md`. CSV canonical -> DONE; moved closed/. Lưu ý: upload/render cần bucket MinIO `kite-branding-assets` (tạo thủ công G2) — ensure-bucket systemic là GAP-1036 OPEN riêng.

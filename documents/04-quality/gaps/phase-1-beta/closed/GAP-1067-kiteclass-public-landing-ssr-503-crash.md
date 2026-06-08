@@ -1,6 +1,6 @@
 # GAP-1067: ERR_EMPTY_RESPONSE trên :3000 — stale docker-proxy sau compose-up (KHÔNG phải landing SSR crash)
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** DevOps
 **Found:** 2026-06-08 (KC-1 G2 Bước 1 — user mở `http://localhost:3000/` rồi `/login` đều báo ERR_EMPTY_RESPONSE)
@@ -32,3 +32,7 @@
 - Discovered in: KC-1 G2 Bước 1 walk 2026-06-08 (Flow Verification Campaign)
 - Trigger: rebuild kiteclass-core (GAP-1066 fix) → compose-up disrupt frontend port-forward
 - Recurrence risk: cao — mọi service rebuild trong G2 fix-loop sẽ lặp lại; cần ops fix
+
+## Log (cập nhật)
+
+- **2026-06-09:** 🟢 DONE — KC-1 G2 human browser-walk PASS (W1 — trang :3000 load 200 (không ERR_EMPTY_RESPONSE)). Code fix đã ship (PARTIAL trước đó), G2 verify trên browser thật :3000 hoàn tất per `pre-handoff-self-test-completeness.md` §3 + `g1-browser-walk-before-flip.md`. CSV canonical -> DONE; moved closed/. 
