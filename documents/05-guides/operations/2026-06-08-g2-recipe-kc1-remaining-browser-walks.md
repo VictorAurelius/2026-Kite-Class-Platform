@@ -1,16 +1,18 @@
 ---
-title: G2 Recipe — KC-1 G2 browser-walk còn lại (session-isolation + logo + host→tenant landing)
+title: G2 Recipe — KC-1 (KiteClass :3000) browser-walk còn lại (session-isolation + logo)
 audience: dev
 date: 2026-06-08
-flow: KC-1 G2 remaining
-gaps: [GAP-1074, GAP-1072, GAP-1073, GAP-811]
+flow: KC-1 G2 remaining (KiteClass :3000 only)
+gaps: [GAP-1074, GAP-1072, GAP-1073]
 stack_state_required: full (local Docker, all healthy)
 supersedes: 2026-06-08-g2-recipe-kc1-session-isolation.md (mở rộng, credentials cập nhật sau re-seed)
 ---
 
-# G2 Recipe — KC-1 browser-walk còn lại (2026-06-08)
+# G2 Recipe — KC-1 (KiteClass :3000) browser-walk còn lại (2026-06-08)
 
-> **Mục đích:** Hướng dẫn bạn (human) test trực tiếp trên **browser thật** 4 hạng mục còn lại của KC-1 G2 mà coordinator KHÔNG tự verify được (curl ≠ browser — đúng lỗ hổng `g1-browser-walk-before-flip`). Mỗi bước có **action → kỳ vọng → sad-path → cách verify**.
+> **Mục đích:** Hướng dẫn bạn (human) test trực tiếp trên **browser thật** các hạng mục còn lại của KC-1 (KiteClass dashboard `:3000`) mà coordinator KHÔNG tự verify được (curl ≠ browser — đúng lỗ hổng `g1-browser-walk-before-flip`). Mỗi bước có **action → kỳ vọng → sad-path → cách verify**.
+>
+> **⚠️ Scope correction 2026-06-08:** GAP-811 (host→tenant landing) **ĐÃ BỎ khỏi recipe này** — nó thuộc **KiteClass landing** (per design `tenant-domain-landing-architecture.md`, FE = kiteclass-frontend), KHÔNG phải KC-1 dashboard, và middleware đang bị build sai ở kitehub-frontend `:3001` (drift → **GAP-1077** reconcile). KC-1 dashboard (`:3000`) lấy tenant từ **JWT claim sau login** (Mảng A test đúng cơ chế này), KHÔNG có host→tenant middleware (Phase 2). GAP-811 sẽ có walk riêng sau khi GAP-1077 reconcile xong.
 
 ## 0. Tóm tắt — test gì
 
@@ -18,7 +20,6 @@ supersedes: 2026-06-08-g2-recipe-kc1-session-isolation.md (mở rộng, credenti
 |---|---|---|---|---|
 | A | **GAP-1074** | Cross-tab session-isolation (login tab 1 → tab 2 không bắt login lại) | kiteclass `:3000` | ~5 phút |
 | B | **GAP-1072 + GAP-1073** | Upload logo từ Settings → success + logo preview render | kiteclass `:3000` | ~5 phút |
-| C | **GAP-811** | Host→tenant landing (subdomain → branding đúng tenant) | kitehub `:3001` | ~3 phút (nip.io — production-accurate, no sudo) |
 
 ---
 
@@ -44,7 +45,6 @@ Kỳ vọng: **tất cả `healthy`** (postgres/redis/rabbitmq/minio/mailhog + g
 ### 1.3 URL
 
 - **kiteclass-frontend (dashboard KC):** http://localhost:3000
-- **kitehub-frontend (landing KH, cho mục C):** http://localhost:3001
 - MailHog (xem email): http://localhost:8025
 
 ---
@@ -93,43 +93,6 @@ Kỳ vọng: **tất cả `healthy`** (postgres/redis/rabbitmq/minio/mailhog + g
 
 ---
 
-## 4. Mảng C — GAP-811 Host→tenant landing (kitehub :3001)
-
-**Cơ chế production:** `https://sky-education.kitehub.me/` → middleware `kitehub-frontend/src/middleware.ts` đọc `Host` → `extractSlugFromHost()` lấy `parts[0]` (cần host ≥3 phần) → gọi BE `/by-subdomain/<slug>` → inject `x-tenant-id` → landing render branding đúng tenant.
-
-> **⚠️ Quan trọng — mô phỏng ĐÚNG production:** middleware ưu tiên `?tenant=` query **TRƯỚC** Host (line 99) → dùng `?tenant=` sẽ **BYPASS toàn bộ Host extraction**, KHÔNG test đúng cơ chế production. Để mô phỏng đúng, phải dùng **subdomain thật trong Host header**. Cách production-accurate + không cần sudo = **nip.io wildcard DNS**.
-
-### Bước C1 — Cách CHÍNH (production-accurate, no sudo): nip.io
-**nip.io** là DNS công cộng: `<bất-kỳ>.127.0.0.1.nip.io` → resolve `127.0.0.1`. Browser gửi Host header thật có subdomain → middleware extract đúng như production (`sky-education.kitehub.me`), chỉ khác domain suffix.
-
-- **Action:** Mở browser → **http://sky-education.127.0.0.1.nip.io:3001/**
-- **Kỳ vọng:** ✅ Landing render **branding Sky Education** (tên "Trung tâm Anh ngữ Sky Education" ở nav/footer, KHÔNG phải fallback tenant `11111111-...`) — qua **full Host→subdomain→BE path** giống production.
-- **Verify:**
-  - DevTools → Network → request landing → Request Header `Host: sky-education.127.0.0.1.nip.io` (subdomain thật, KHÔNG `?tenant=`).
-  - `docker logs kitehub-frontend 2>&1 | grep -iE "x-tenant|sky"` → middleware resolve slug `sky-education` → UUID `0edaee10...`.
-  - BE (verified live): `curl -s http://localhost:9000/api/v1/public/tenants/by-subdomain/sky-education` → `{"id":"0edaee10...","name":"Trung tâm Anh ngữ Sky Education"}`.
-- **Sad-path:** Landing fallback generic / tenant `11111111` → middleware không resolve được Host → báo FAIL. (Nếu trang không load: nip.io cần internet DNS — xem Bước C1-alt.)
-- **Khoảng cách với production:** chỉ khác ở tầng infra (port `:3001` vs `:443`, không TLS, không qua LB/reverse-proxy) — đó là **G3 production-parity**, không phải G2 functional. Resolution logic đã đúng 100%.
-
-### Bước C1-alt — Fallback offline (nếu nip.io không resolve): /etc/hosts
-Nếu máy không có internet DNS (nip.io fail), dùng /etc/hosts (cần sudo — **dev chạy bằng `!` prefix**):
-```
-! echo "127.0.0.1 sky-education.kitehub.local" | sudo tee -a /etc/hosts
-```
-Rồi browse **http://sky-education.kitehub.local:3001/** (kỳ vọng/verify như C1). Gỡ sau test: `! sudo sed -i '/sky-education.kitehub.local/d' /etc/hosts`.
-
-### Bước C2 — Smoke nhanh (KHÔNG production-accurate): `?tenant=`
-> Chỉ để smoke "FE có render branding không" khi không tiện nip.io. **KHÔNG tính là verify GAP-811** vì bypass Host extraction.
-- **Action:** http://localhost:3001/?tenant=sky-education → kỳ vọng render branding Sky.
-- **Lưu ý:** đi qua dev-override branch (line 99), KHÔNG test Host→subdomain. Pass ở đây KHÔNG đủ flip GAP-811 DONE.
-
-### Bước C3 — Regression dev path (no subdomain)
-- **Action:** Mở http://localhost:3001/ (localhost thuần, không subdomain/`?tenant=`).
-- **Kỳ vọng:** ✅ Pass-through graceful (landing default/fallback, KHÔNG crash).
-- **Sad-path:** Crash / 500 → middleware fallback không graceful → báo FAIL.
-
----
-
 ## 5. Sad-path tổng hợp (gặp lỗi → check trước khi báo)
 
 | Triệu chứng | Nguyên nhân khả dĩ | Cách xử |
@@ -138,8 +101,6 @@ Rồi browse **http://sky-education.kitehub.local:3001/** (kỳ vọng/verify nh
 | Tab 2 đá `/login` | localStorage cross-tab persist fail | DevTools → check key `kc:<tenant>:accessToken` tồn tại |
 | Upload 415/400 "part not present" | multipart boundary thiếu | Network → check `Content-Type: multipart/form-data; boundary=` |
 | Logo 403 "expired" | presigned URL hết hạn (GAP-1072) | F5 reload (regen-on-read); nếu vẫn 403 → FAIL |
-| nip.io trang không load | máy không có internet DNS | Dùng /etc/hosts fallback (Bước C1-alt) |
-| Subdomain → fallback branding | middleware không resolve / BE down | `docker logs kitehub-frontend \| grep x-tenant`; `curl :9000/api/v1/public/tenants/by-subdomain/sky-education` (200?) |
 | Service unhealthy | infra/stack chưa up đủ | `cd kitehub && bash scripts/up.sh --force-recreate` |
 
 ---
@@ -150,10 +111,10 @@ Sau khi walk, báo coordinator theo 1 trong 4:
 
 1. **✅ ALL PASS** — cả A/B/C pass → coordinator flip GAP-1074/1072/1073/811 → DONE (sau khi đối chiếu AC).
 2. **⚠️ PARTIAL** — nêu rõ Mảng nào pass, Mảng nào fail (vd "A pass, B fail bước B2 upload 415"). Coordinator giữ gap PARTIAL + fix.
-3. **❌ BLOCKED** — không walk được vì stack/setup (vd service unhealthy, /etc/hosts không sửa được). Nêu blocker.
+3. **❌ BLOCKED** — không walk được vì stack/setup (vd service unhealthy, không login được). Nêu blocker.
 4. **🔄 BUG MỚI** — phát hiện bug ngoài scope 4 gap → coordinator file gap mới (per `discovery-to-gap-inline-filing`).
 
-Format gọn: `Mảng A: ✅ | Mảng B: ⚠️ (B2 fail HTTP 415) | Mảng C: ✅` + screenshot/Network nếu fail.
+Format gọn: `Mảng A: ✅ | Mảng B: ⚠️ (B2 fail HTTP 415)` + screenshot/Network nếu fail.
 
 ---
 
@@ -163,10 +124,11 @@ Format gọn: `Mảng A: ✅ | Mảng B: ⚠️ (B2 fail HTTP 415) | Mảng C: �
 - **Reset stack sạch:** `cd kitehub && bash scripts/down.sh && bash scripts/up.sh --force-recreate`
 - **Xem log 1 service:** `docker logs <kitehub-subscription|kiteclass-core|kitehub-frontend> --tail 50`
 - **Redis blacklist (GAP-1075 đã DONE, tham khảo):** `docker exec kite-redis redis-cli --scan --pattern 'refresh-blacklist:*'`
-- **Gỡ /etc/hosts sau test:** `sudo sed -i '/sky-education.kitehub.local/d' /etc/hosts`
 
 ### G3 preview (production-parity — coordinator làm sau G2)
-Sau khi G2 pass, G3 verify qua **gateway :9000 với JWT mint** (per memory `project_g3_walk_recipe`): cross-tenant IDOR (token tenant A → resource tenant B → 403), production env-var parity. Mảng C (host→tenant) trên production = subdomain thật `sky-education.kitehub.me` (không cần /etc/hosts).
+Sau khi G2 pass, G3 verify qua **gateway :9000 với JWT mint** (per memory `project_g3_walk_recipe`): cross-tenant IDOR (token tenant A → resource tenant B → 403), production env-var parity.
+
+> **GAP-811 (host→tenant landing) — walk riêng, KHÔNG ở recipe này.** Thuộc KiteClass landing (kiteclass-frontend per design); đang chờ **GAP-1077** reconcile (middleware build sai ở kitehub-frontend → move/re-implement sang kiteclass-frontend). Khi reconcile xong → walk production-accurate bằng nip.io subdomain Host (per `g1-browser-walk-before-flip` §3.1), trên ĐÚNG FE theo design.
 
 ---
 
