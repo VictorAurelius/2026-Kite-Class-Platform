@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500" fill="none">
+  <!-- KiteHub Zalo OA avatar 500x500 — derived from assets/kitehub-logo.svg brand mark.
+       Zalo circle-crops avatars; mark centered with safe padding. White bg = safe across Zalo themes. -->
+  <rect width="500" height="500" fill="#FFFFFF"/>
+  <g transform="translate(250,205) scale(7)">
+    <path d="M0 -20L16 0L0 20L-16 0Z" fill="#0EA5E9"/>
+    <path d="M0 -20V20M-16 0H16" stroke="white" stroke-width="2" stroke-opacity="0.3"/>
+    <circle cx="0" cy="0" r="4" fill="#F97316"/>
+  </g>
+  <text x="250" y="430" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="64" letter-spacing="-1">
+    <tspan fill="#0EA5E9">Kite</tspan><tspan fill="#0F172A">Hub</tspan>
+  </text>
+</svg>

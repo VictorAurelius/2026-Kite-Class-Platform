@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" fill="none">
+  <!-- KiteHub Zalo OA cover banner 16:9 (1280x720) — full-bleed gradient fills Zalo cover crop frame
+       (min 320x180 = 16:9). Content vertically centered, right margin safe. Derived from assets/kitehub-logo.svg. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0EA5E9"/>
+      <stop offset="1" stop-color="#0369A1"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <g transform="translate(310,330) scale(5.5)">
+    <path d="M0 -20L16 0L0 20L-16 0Z" fill="#FFFFFF"/>
+    <path d="M0 -20V20M-16 0H16" stroke="#0EA5E9" stroke-width="2" stroke-opacity="0.4"/>
+    <circle cx="0" cy="0" r="4" fill="#F97316"/>
+  </g>
+  <text x="430" y="318" font-family="Inter, system-ui, sans-serif" font-weight="800" font-size="96" fill="#FFFFFF" letter-spacing="-2">KiteHub</text>
+  <text x="432" y="384" font-family="Inter, system-ui, sans-serif" font-weight="500" font-size="36" fill="#E0F2FE">Quản lý trung tâm giáo dục thông minh hơn</text>
+  <text x="432" y="446" font-family="Inter, system-ui, sans-serif" font-weight="400" font-size="29" fill="#BAE6FD">Học viên · Lớp học · Điểm danh · Học phí</text>
+  <text x="432" y="492" font-family="Inter, system-ui, sans-serif" font-weight="400" font-size="29" fill="#BAE6FD">Tất cả trong một nền tảng</text>
+  <text x="432" y="552" font-family="Inter, system-ui, sans-serif" font-weight="400" font-size="26" fill="#7DD3FC">Hỗ trợ qua Zalo OA · T2–T6 8h–18h</text>
+</svg>
