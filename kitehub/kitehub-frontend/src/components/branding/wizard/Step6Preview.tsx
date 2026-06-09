@@ -6,8 +6,11 @@
 // Spec: `documents/02-architecture/design-system/ui_kits/ai-branding-wizard-v2/screens/step6-preview-default.html`
 //
 // What this component owns:
-//   - Live iframe preview of the generated tenant site (mock URL until
-//     backend `/branding/jobs/:id/preview` lands — TODO(GAP-272j)).
+//   - Live iframe preview of the generated tenant site, rendered CLIENT-SIDE
+//     via `<iframe srcDoc>` from brand colours + org name + uploaded logo
+//     (see `buildPreviewHtml`). Replaces the previous `<iframe src={previewUrl}>`
+//     which produced a blank frame (backend `/preview` not wired + iframe
+//     cannot attach the auth header) — AC2 fix / TODO(GAP-272j)/(GAP-1021).
 //   - 4 per-resource approve toggles (logo / colors / banner / hero) wired
 //     to the WizardState reducer per `ai-branding-guidelines.md` §4.2.
 //   - G11 ThemePreview integration with LIVE brand colours from the wizard
@@ -62,6 +65,185 @@ const FALLBACK_BRAND: BrandColours = {
   background: '#FFFFFF',
   foreground: '#0F172A',
 };
+
+// ---------------------------------------------------------------------------
+// Client-side preview HTML composer (AC2 "AI branding preview được" fix).
+//
+// Why `srcDoc` instead of `<iframe src={previewUrl}>`:
+//   The backend `/api/v1/branding/jobs/{id}/preview` endpoint is NOT wired yet
+//   (TODO GAP-272j + GAP-1021 Part 1). Even once it lands, an `<iframe src>`
+//   issues the request WITHOUT the `Authorization: Bearer` header (apiClient's
+//   interceptor only covers fetch/XHR, not iframe navigations) → gateway
+//   returns 401/404 → blank iframe (matches the "Blocked script execution in
+//   about:blank ... sandboxed" console symptom).
+//
+//   So we render the preview CLIENT-SIDE from data the FE already holds with
+//   authenticated access:
+//     - brand colours  → usePreviewBrandColors (GET /api/v1/branding/jobs/{id})
+//     - org name + slug → WizardState (Step 1)
+//     - logo           → WizardState.logoUrl (uploaded Step 2 — the real asset)
+//   The document is fully static (no <script>) so `sandbox="allow-same-origin"`
+//   is sufficient. `usePreview` is kept (not removed) as a documented fallback
+//   for when the backend HTML render endpoint eventually ships.
+//
+//   Note: we deliberately do NOT fetch GET /jobs/{id}/assets here — that
+//   endpoint exists only at the legacy `/api/platform/branding/jobs/{id}/assets`
+//   path keyed on the legacy job space, NOT the v1 wizard jobId, so it would
+//   404. The uploaded logo (WizardState.logoUrl) already covers the asset need.
+// ---------------------------------------------------------------------------
+
+const HEX_RE = /^#[0-9A-Fa-f]{3,8}$/;
+
+/** Return `value` only if it is a safe hex colour, else `fallback` (CSS-injection guard). */
+function safeColor(value: string | undefined, fallback: string): string {
+  return value && HEX_RE.test(value) ? value : fallback;
+}
+
+/** Minimal HTML-text escaper for user-supplied strings injected into srcDoc. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/** 1-2 letter monogram from an org name (logo fallback when no logoUrl). */
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const letters = parts.slice(0, 2).map((p) => p[0] ?? '');
+  return letters.join('').toUpperCase() || 'KC';
+}
+
+interface BuildPreviewHtmlOptions {
+  brand: BrandColours;
+  accent: string;
+  orgName: string;
+  slug: string;
+  logoUrl: string | null;
+  templateName: string | null;
+  loading: boolean;
+}
+
+/**
+ * Compose a standalone, script-free HTML landing preview reflecting the
+ * generated branding (brand colours + org name + logo). Rendered via
+ * `<iframe srcDoc>` so it needs no authenticated network request.
+ */
+function buildPreviewHtml({
+  brand,
+  accent,
+  orgName,
+  slug,
+  logoUrl,
+  templateName,
+  loading,
+}: BuildPreviewHtmlOptions): string {
+  const primary = safeColor(brand.primary, FALLBACK_BRAND.primary);
+  const secondary = safeColor(brand.secondary, FALLBACK_BRAND.secondary);
+  const bg = safeColor(brand.background, FALLBACK_BRAND.background);
+  const fg = safeColor(brand.foreground, FALLBACK_BRAND.foreground);
+  const acc = safeColor(accent, secondary);
+
+  const safeOrg = escapeHtml(orgName.trim() || 'Trường của bạn');
+  const safeSlug = escapeHtml(slug.trim() || 'tenant-slug');
+  const safeTemplate = templateName ? escapeHtml(templateName) : '';
+
+  const logoBlock = logoUrl
+    ? `<img class="logo-img" src="${escapeHtml(logoUrl)}" alt="Logo ${safeOrg}" />`
+    : `<div class="logo-monogram">${escapeHtml(initialsOf(orgName))}</div>`;
+
+  const loadingNote = loading
+    ? '<p class="loading-note">Đang tạo bản xem trước…</p>'
+    : '';
+
+  const swatches = (
+    [
+      ['Chính', primary],
+      ['Phụ', secondary],
+      ['Nhấn', acc],
+      ['Nền', bg],
+      ['Chữ', fg],
+    ] as ReadonlyArray<readonly [string, string]>
+  )
+    .map(
+      ([label, hex]) => `
+        <div class="swatch">
+          <span class="chip" style="background:${hex}"></span>
+          <span class="chip-label">${label}</span>
+          <span class="chip-hex">${hex}</span>
+        </div>`,
+    )
+    .join('');
+
+  return `<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root { --primary:${primary}; --secondary:${secondary}; --accent:${acc}; --bg:${bg}; --fg:${fg}; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: var(--fg); background: var(--bg); }
+  .nav { display:flex; align-items:center; gap:10px; padding:14px 24px; border-bottom:1px solid rgba(0,0,0,.08); }
+  .nav .brand-name { font-weight:700; font-size:15px; }
+  .nav .spacer { flex:1; }
+  .nav .nav-link { font-size:13px; opacity:.7; margin-left:16px; }
+  .logo-img { height:32px; width:auto; border-radius:6px; object-fit:contain; }
+  .logo-monogram { height:32px; width:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; color:#fff; background:linear-gradient(135deg,var(--primary),var(--secondary)); }
+  .hero { padding:56px 24px; text-align:center; color:#fff; background:linear-gradient(135deg,var(--primary),var(--secondary)); }
+  .hero .hero-logo { display:flex; justify-content:center; margin-bottom:18px; }
+  .hero .hero-logo .logo-img, .hero .hero-logo .logo-monogram { height:56px; }
+  .hero .hero-logo .logo-monogram { width:56px; font-size:22px; background:rgba(255,255,255,.2); }
+  .hero h1 { font-size:30px; line-height:1.2; margin-bottom:10px; }
+  .hero .tagline { font-size:15px; opacity:.92; max-width:520px; margin:0 auto 22px; }
+  .hero .cta { display:inline-block; padding:11px 26px; border-radius:9999px; background:var(--accent); color:#fff; font-weight:700; font-size:14px; }
+  .hero .loading-note { margin-top:16px; font-size:12px; opacity:.85; }
+  .features { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; padding:34px 24px; }
+  .feature { flex:1 1 160px; max-width:220px; padding:18px; border-radius:12px; background:rgba(0,0,0,.03); text-align:center; }
+  .feature .dot { width:34px; height:34px; border-radius:10px; margin:0 auto 10px; background:var(--primary); opacity:.85; }
+  .feature h3 { font-size:14px; margin-bottom:6px; }
+  .feature p { font-size:12px; opacity:.7; }
+  .palette { padding:28px 24px; border-top:1px solid rgba(0,0,0,.06); }
+  .palette h2 { font-size:13px; text-transform:uppercase; letter-spacing:.05em; opacity:.6; margin-bottom:14px; text-align:center; }
+  .swatches { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+  .swatch { display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .chip { width:48px; height:48px; border-radius:10px; border:1px solid rgba(0,0,0,.08); }
+  .chip-label { font-size:11px; font-weight:600; }
+  .chip-hex { font-size:10px; opacity:.6; font-family:ui-monospace,monospace; }
+  footer { padding:18px 24px; text-align:center; font-size:11px; opacity:.5; border-top:1px solid rgba(0,0,0,.06); }
+</style>
+</head>
+<body>
+  <nav class="nav">
+    ${logoBlock}
+    <span class="brand-name">${safeOrg}</span>
+    <span class="spacer"></span>
+    <span class="nav-link">Khóa học</span>
+    <span class="nav-link">Lịch học</span>
+    <span class="nav-link">Liên hệ</span>
+  </nav>
+  <section class="hero">
+    <div class="hero-logo">${logoBlock}</div>
+    <h1>${safeOrg}</h1>
+    <p class="tagline">Nền tảng học tập trực tuyến hiện đại — quản lý lớp học, theo dõi tiến độ và kết nối phụ huynh.</p>
+    <span class="cta">Đăng ký học thử</span>
+    ${loadingNote}
+  </section>
+  <section class="features">
+    <div class="feature"><div class="dot"></div><h3>Lớp học linh hoạt</h3><p>Lịch học, điểm danh và bài tập trong một nơi.</p></div>
+    <div class="feature"><div class="dot"></div><h3>Theo dõi tiến độ</h3><p>Bảng điểm và báo cáo học tập theo thời gian thực.</p></div>
+    <div class="feature"><div class="dot"></div><h3>Kết nối phụ huynh</h3><p>Thông báo và trao đổi với giáo viên dễ dàng.</p></div>
+  </section>
+  <section class="palette">
+    <h2>Bảng màu thương hiệu${safeTemplate ? ` · ${safeTemplate}` : ''}</h2>
+    <div class="swatches">${swatches}</div>
+  </section>
+  <footer>${safeOrg} · ${safeSlug}.kiteclass.vn · Bản xem trước tạo bởi KiteHub AI Branding</footer>
+</body>
+</html>`;
+}
 
 // ---------------------------------------------------------------------------
 // Wave 41 Bucket D (GAP-272o) — orchestrator wiring helpers.
@@ -194,9 +376,8 @@ export function Step6Preview({
   // Wave 34 (GAP-272k): brand colours sourced from real backend job via
   // `usePreviewBrandColors`. Falls back to FALLBACK_BRAND while the v1
   // job is still loading or returns no colors.
-  const { brandColors: jobBrandColors } = usePreviewBrandColors(
-    wizardState.jobId ?? undefined,
-  );
+  const { brandColors: jobBrandColors, isLoading: brandColorsLoading } =
+    usePreviewBrandColors(wizardState.jobId ?? undefined);
 
   const brandColors = useMemo<BrandColours>(() => {
     if (brandColorsOverride) return brandColorsOverride;
@@ -211,17 +392,45 @@ export function Step6Preview({
     return FALLBACK_BRAND;
   }, [brandColorsOverride, jobBrandColors]);
 
+  // Accent colour for the preview CTA — only the wizard-level wire shape
+  // carries `accent`; fall back to the secondary brand colour otherwise.
+  const accentColor = jobBrandColors?.accent ?? brandColors.secondary;
+
   const selectedTemplate = useMemo(
     () => TEMPLATES.find((t) => t.id === wizardState.templateId) ?? null,
     [wizardState.templateId],
   );
 
-  // Wave 34 (GAP-272j): real preview iframe URL sourced from
-  // `usePreview(jobId)` → backend HTML render endpoint. Tests can pass
-  // `previewUrl` override; absence yields undefined while jobId is null
-  // so the iframe renders nothing rather than a stale data: URI.
+  // Wave 34 (GAP-272j): backend HTML render endpoint URL via `usePreview`.
+  // Kept as a documented FALLBACK only — the iframe renders client-side
+  // `srcDoc` (see `buildPreviewHtml`) because the backend `/preview` endpoint
+  // is not wired yet AND an `<iframe src>` cannot attach the auth header.
   const hookedPreviewUrl = usePreview(wizardState.jobId ?? undefined);
   const previewUrl = previewUrlOverride ?? hookedPreviewUrl ?? '';
+
+  // AC2 "AI branding preview được": compose the live preview client-side from
+  // the brand colours + org name + uploaded logo the FE already holds.
+  const previewHtml = useMemo<string>(
+    () =>
+      buildPreviewHtml({
+        brand: brandColors,
+        accent: accentColor,
+        orgName: wizardState.tenantName,
+        slug: wizardState.slug,
+        logoUrl: wizardState.logoUrl,
+        templateName: selectedTemplate?.name ?? null,
+        loading: brandColorsLoading,
+      }),
+    [
+      brandColors,
+      accentColor,
+      wizardState.tenantName,
+      wizardState.slug,
+      wizardState.logoUrl,
+      selectedTemplate,
+      brandColorsLoading,
+    ],
+  );
 
   const approvedCount = wizardState.approvedResources.length;
   const totalResources = RESOURCES.length;
@@ -360,9 +569,13 @@ export function Step6Preview({
               </div>
             </div>
 
-            {/* Iframe live preview — mock URL until GAP-272j wires real endpoint. */}
+            {/* Live preview rendered CLIENT-SIDE via srcDoc (brand colours +
+                org name + uploaded logo). `src` is only used as a fallback if
+                previewHtml is ever empty (it never is) — see buildPreviewHtml
+                + usePreview comments above (AC2 fix / GAP-272j / GAP-1021). */}
             <iframe
-              src={previewUrl}
+              srcDoc={previewHtml}
+              src={previewHtml ? undefined : previewUrl || undefined}
               title="Xem trước trang web"
               data-testid="step6-preview-iframe"
               className="w-full border-0 bg-white"

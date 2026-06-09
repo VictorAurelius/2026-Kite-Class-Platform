@@ -785,11 +785,41 @@ public class AuthService {
             builder.claim("tenantId", tenantId.toString());
         }
 
+        // GAP-1020 (tier-entitlement enforcement) — carry the instance's current-effective
+        // tier so the gateway can inject a trusted X-Subscription-Tier header. AI branding
+        // (and any future tier-gated feature) reads that header; a client-supplied value is
+        // stripped + re-injected from this verified claim so it cannot be spoofed.
+        builder.claim("tier", resolveTierForRole(userId, role));
+
         return builder
             .issuedAt(Date.from(now))
             .expiration(Date.from(now.plus(24, ChronoUnit.HOURS)))
             .signWith(key)
             .compact();
+    }
+
+    /**
+     * Resolve the subscription tier for the {@code tier} JWT claim (GAP-1020).
+     *
+     * <p>{@code instances.tier} is the current-effective tier (SUB-21 invariant,
+     * V68 backfill). OWNER resolves via {@code instances.owner_id}; non-OWNER roles
+     * (and OWNERs with no resolvable instance) default to {@code FREE} — the safe
+     * least-privilege fallback for tier-gated features. STAFF tier inheritance is a
+     * follow-up if branding is ever opened to staff (branding is owner-scoped today).</p>
+     *
+     * @param userId user UUID (JWT subject)
+     * @param role uppercase role string
+     * @return tier name (e.g. {@code FREE} / {@code PREMIUM}), never null
+     */
+    private String resolveTierForRole(UUID userId, String role) {
+        if ("OWNER".equals(role)) {
+            return instanceRepository.findByOwnerIdAndDeletedFalse(userId).stream()
+                .findFirst()
+                .map(Instance::getTier)
+                .map(Enum::name)
+                .orElse("FREE");
+        }
+        return "FREE";
     }
 
     /**

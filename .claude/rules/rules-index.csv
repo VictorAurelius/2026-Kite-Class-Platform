@@ -14,7 +14,7 @@ agent-action-bias,MANDATORY,1.0.1,2026-05-07,2026-05-14,agent-action-bias.md,,ac
 agent-aws-access,MANDATORY,1.0.3,2026-05-07,2026-05-14,agent-aws-access.md,"infrastructure/**/*.tf,scripts/aws/**,documents/04-quality/audits/aws-verification/**,.github/workflows/*aws*.yml",active,,
 agent-background-spawn-default,MANDATORY,1.0.1,2026-04-29,2026-05-14,agent-background-spawn-default.md,".claude/skills/quality/wave-pack-planner/**,.claude/skills/**/SKILL.md,documents/03-planning/waves/**",active,,
 agent-model-opus-default,MANDATORY,1.0.0,2026-05-25,2026-05-25,agent-model-opus-default.md,,active,,
-ai-branding-guidelines,MANDATORY,1.2.1,2026-04-14,2026-05-14,ai-branding-guidelines.md,kitehub/kitehub-branding/**,active,,
+ai-branding-guidelines,MANDATORY,1.2.2,2026-04-14,2026-06-09,ai-branding-guidelines.md,kitehub/kitehub-branding/**,active,,
 audit-skill-rubric-api-contract-audit,MANDATORY,1.0.1,2026-05-14,2026-05-14,audit-skill-rubric-api-contract-audit.md,documents/04-quality/audits/api-contract/**,active,,
 audit-skill-rubric-business-logic-audit,MANDATORY,1.0.1,2026-05-14,2026-05-14,audit-skill-rubric-business-logic-audit.md,documents/04-quality/audits/business-logic/**,active,,
 audit-skill-rubric-ops-readiness-audit,MANDATORY,1.0.1,2026-05-14,2026-05-14,audit-skill-rubric-ops-readiness-audit.md,documents/04-quality/audits/ops-readiness/**,active,,

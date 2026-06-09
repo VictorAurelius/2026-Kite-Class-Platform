@@ -20,7 +20,8 @@ import reactor.core.publisher.Mono;
  * Gateway-edge JWT filter — parses the {@code Authorization: Bearer <token>}
  * header, validates signature via the shared {@code JWT_SECRET}, and propagates
  * the resolved identity to downstream services through {@code X-User-Id},
- * {@code X-User-Roles}, và {@code X-User-Email} request headers.
+ * {@code X-User-Roles}, {@code X-User-Email}, và {@code X-Subscription-Tier}
+ * (GAP-1020 — trusted tier for AI branding entitlement) request headers.
  *
  * <p>Downstream services (kitehub-subscription, kitehub-admin) tin tưởng các
  * header này thông qua {@code XUserRolesHeaderFilter} (xem
@@ -71,6 +72,18 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
      * verified claim — same anti-spoof pattern as X-User-Id.
      */
     static final String HEADER_USER_REFERENCE_ID = "X-User-Reference-Id";
+    /**
+     * Trusted subscription tier (GAP-1020). Re-injected from the verified {@code tier}
+     * JWT claim issued by kitehub-subscription so tier-gated features (AI branding) cannot
+     * be spoofed via a client-supplied header. Client-supplied value is stripped by
+     * {@code default-filters} {@code RemoveRequestHeader=X-Subscription-Tier} before this
+     * re-injects the verified claim — same anti-spoof pattern as X-User-Id / X-Tenant-Id.
+     * Defaults to {@code FREE} (least privilege) for backward-compat tokens issued before
+     * the tier claim landed, and for challenge tokens (2FA paths do not read tier).
+     */
+    static final String HEADER_SUBSCRIPTION_TIER = "X-Subscription-Tier";
+    /** Least-privilege tier fallback when the verified token carries no {@code tier} claim. */
+    static final String DEFAULT_TIER = "FREE";
     static final String BEARER_PREFIX = "Bearer ";
 
     /** Reserved role propagated for verified HS256 challenge tokens on 2FA paths. */
@@ -197,6 +210,12 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
         if (email != null) {
             mutated.header(HEADER_USER_EMAIL, email);
         }
+        // GAP-1020 — inject trusted X-Subscription-Tier from the verified `tier` claim.
+        // Always set (even for challenge / claim-absent tokens) so the stripped client value
+        // is unconditionally replaced by a trusted one on every authed request; downstream
+        // tier-gated features (AI branding) read this header. Default FREE = least privilege.
+        String tier = claims.get("tier", String.class);
+        mutated.header(HEADER_SUBSCRIPTION_TIER, tier != null ? tier : DEFAULT_TIER);
         if (!isChallenge) {
             // KC-native tokens (Wave auth-1) carry referenceId = parents/teachers/students.id
             // for kiteclass-core reference-id authz (GAP-798). Absent on OWNER/STAFF tokens.
@@ -206,8 +225,8 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
             }
         }
 
-        log.debug("Injected X-User-Id={} X-User-Roles={} isChallenge={} path={}",
-                userId, isChallenge ? CHALLENGE_ROLE : role, isChallenge, path);
+        log.debug("Injected X-User-Id={} X-User-Roles={} X-Subscription-Tier={} isChallenge={} path={}",
+                userId, isChallenge ? CHALLENGE_ROLE : role, tier != null ? tier : DEFAULT_TIER, isChallenge, path);
         return chain.filter(exchange.mutate().request(mutated.build()).build());
     }
 

@@ -921,6 +921,9 @@ spring:
         # Wave auth-1: strip client-supplied reference id; JwtAuthenticationGatewayFilter
         # re-injects the verified referenceId claim (KC-native tokens) — anti-spoof.
         - RemoveRequestHeader=X-User-Reference-Id
+        # GAP-1020: strip client-supplied subscription tier; JwtAuthenticationGatewayFilter
+        # re-injects the verified `tier` claim — anti-spoof for tier-gated AI branding.
+        - RemoveRequestHeader=X-Subscription-Tier
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
         - AddResponseHeader=X-Gateway-Version, 1.0
 
