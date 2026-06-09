@@ -124,6 +124,13 @@ jobs:
           # Also validates GAP-122 + GAP-135 + GAP-144 + GAP-466 alert groups stay syntactically clean.
           set -euo pipefail
 
+          # helm repo add required — Chart.yaml deps reference these repos by URL;
+          # `helm dependency build` can't resolve them without registering the repos first
+          # (self-hosted runner has no persistent repo cache → must add every run).
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo update
+
           # Build chart dependencies first (kube-prometheus-stack, loki-stack declared in Chart.yaml)
           helm dependency build infrastructure/helm/kitehub
 
