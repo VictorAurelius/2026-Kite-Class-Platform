@@ -140,7 +140,7 @@ describe('BrandingDashboardPage (Wave 31 Bucket C)', () => {
   it('shows the deploy-success card + landing link when instance is DEPLOYED', () => {
     (useBrandingDeployStatus as ReturnType<typeof vi.fn>).mockReturnValue({
       data: {
-        instanceId: mockInstances[0].id,
+        instanceId: mockInstances[0]!.id,
         state: 'DEPLOYED',
         deployed: true,
         frontendUrl: 'https://toan-master.kiteclass.vn',
