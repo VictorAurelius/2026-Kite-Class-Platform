@@ -26,3 +26,8 @@ Per `invite-flow-redesign-discussion-2026-06-09.md` Q2/Q3 (**chờ user quyết*
 - Design discussion (user decision pending): `documents/03-planning/plans/invite-flow-redesign-discussion-2026-06-09.md` §2 vấn đề #2, §3 Q2/Q3, §1.4 bulk-import pattern
 - Reuse pattern: `kiteclass-core/module/student/bulkimport/` + `module/enrollment/bulkimport/`
 - Sister: GAP-1123 (doc reconcile), GAP-1124 (teacher-invite), GAP-597 (resend/revoke/reminder)
+
+
+## Decision locked (2026-06-10, user — Q-B)
+
+**Cả hai** input mode: textarea quick (paste ≤10 email/dòng) + CSV/XLSX upload (>10, reuse `BulkImportController` preview/validate/commit/template/error-download). Áp cho **cả** KH-staff-invite + KC-teacher-invite (GAP-1124). Single-invite giữ làm quick-path 1 người.

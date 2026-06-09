@@ -27,3 +27,8 @@ Per `invite-flow-redesign-discussion-2026-06-09.md` Option 1 (RECOMMEND, **chờ
 - Discovered in: Wave RBAC-Shell 1 Bucket E (session 2026-06-10)
 - Design discussion (user decision pending): `documents/03-planning/plans/invite-flow-redesign-discussion-2026-06-09.md` §2 vấn đề #1, §5 Option 1
 - Doc reconcile: GAP-1123; sister: GAP-1125 (bulk-invite); GAP-597 (invite resend/revoke/reminder); GAP-784 (DONE — FE role-param drift)
+
+
+## Decision locked (2026-06-10, user — Q-A/Q-C/Q-D)
+
+Option 1 split: build **KC-native TEACHER email-invite** (token + email + accept + set-password → `auth_credentials` entity_type=TEACHER), mirror KH staff-invite pattern. MANAGER **defer Phase 2** (BR-ROLE-005). Bulk path → GAP-1125. Run sau RBAC-Shell (owner-shell surface qua SSO Bucket C).
