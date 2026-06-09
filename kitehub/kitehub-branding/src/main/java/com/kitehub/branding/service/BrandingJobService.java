@@ -49,7 +49,19 @@ public class BrandingJobService {
      */
     @Transactional
     public BrandingJob createJob(UUID instanceId, String organizationName, String language, String logoUrl) {
-        log.info("Creating branding job for instance: {}", instanceId);
+        // Tier-less overload (draft auto-create / legacy callers) → FREE/TEMPLATE path.
+        return createJob(instanceId, organizationName, language, logoUrl, null);
+    }
+
+    /**
+     * Create + enqueue a branding job carrying the subscription {@code tier}
+     * (GAP-1117 / GAP-1119) so the processor routes TEMPLATE vs FULL_AI. Tier is
+     * sourced from the gateway {@code X-Subscription-Tier} header (ADR-039);
+     * {@code null} → FREE/TEMPLATE (FULL_AI only PREMIUM + ENTERPRISE).
+     */
+    public BrandingJob createJob(UUID instanceId, String organizationName, String language,
+                                 String logoUrl, String tier) {
+        log.info("Creating branding job for instance: {} (tier={})", instanceId, tier);
 
         // Create job entity
         BrandingJob job = new BrandingJob();
@@ -82,7 +94,7 @@ public class BrandingJobService {
                 language,
                 logoUrl,
                 job.getOrgType(), // GAP-1115 orgType (nullable)
-                null              // GAP-1117 tier — heavy path defaults FREE (TEMPLATE)
+                tier              // GAP-1117/1119 tier — drives TEMPLATE vs FULL_AI (null → FREE)
         );
 
         // Per design-patterns.md §3.5.1: outbox-row first (reliability net),

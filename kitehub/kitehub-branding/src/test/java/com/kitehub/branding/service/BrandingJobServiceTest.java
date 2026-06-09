@@ -101,6 +101,37 @@ class BrandingJobServiceTest {
     }
 
     @Test
+    void createJob_propagatesTierToMessage_GAP1119() {
+        // GAP-1117/1119: 5-arg createJob carries subscription tier so the processor
+        // can route FULL_AI (PREMIUM/ENTERPRISE) vs TEMPLATE.
+        BrandingJob savedJob = new BrandingJob();
+        savedJob.setId(UUID.randomUUID());
+        savedJob.setInstanceId(instanceId);
+        when(jobRepository.save(any(BrandingJob.class))).thenReturn(savedJob);
+
+        jobService.createJob(instanceId, organizationName, language, logoUrl, "PREMIUM");
+
+        ArgumentCaptor<BrandingJobMessage> captor = ArgumentCaptor.forClass(BrandingJobMessage.class);
+        verify(outboxEmitter).emit(any(), any(), any(), any(), any(), captor.capture());
+        assertThat(captor.getValue().getTier()).isEqualTo("PREMIUM");
+    }
+
+    @Test
+    void createJob_tierlessOverload_emitsNullTier_GAP1119() {
+        // Legacy 4-arg overload (draft auto-create) → null tier → FREE/TEMPLATE.
+        BrandingJob savedJob = new BrandingJob();
+        savedJob.setId(UUID.randomUUID());
+        savedJob.setInstanceId(instanceId);
+        when(jobRepository.save(any(BrandingJob.class))).thenReturn(savedJob);
+
+        jobService.createJob(instanceId, organizationName, language, logoUrl);
+
+        ArgumentCaptor<BrandingJobMessage> captor = ArgumentCaptor.forClass(BrandingJobMessage.class);
+        verify(outboxEmitter).emit(any(), any(), any(), any(), any(), captor.capture());
+        assertThat(captor.getValue().getTier()).isNull();
+    }
+
+    @Test
     void testUpdateJobProgress() {
         // Given
         UUID jobId = UUID.randomUUID();
