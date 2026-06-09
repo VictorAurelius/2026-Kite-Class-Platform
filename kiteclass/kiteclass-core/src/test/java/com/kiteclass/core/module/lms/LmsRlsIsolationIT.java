@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * ({@code course_modules}, {@code lessons}, {@code learning_resources},
  * {@code lesson_progress}) created by {@code V79__entity_schema_sync.sql}.
  *
- * <p>Context (GAP-1112): the four LMS tables carry {@code instance_id UUID NOT NULL} and are
+ * <p>Context (GAP-1121): the four LMS tables carry {@code instance_id UUID NOT NULL} and are
  * protected by the Hibernate {@code tenantFilter} (BaseEntity) at the ORM layer. V79 ALSO
  * ships DB-level RLS for them — its trailing {@code DO $$} block (V79 lines 577-613) iterates
  * {@code course_modules / lessons / learning_resources / lesson_progress} and applies
@@ -50,7 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   <li>Default-deny — with no tenant context (GUC unset) every row is invisible (NULL force-fail).</li>
  * </ul>
  *
- * @since GAP-1112
+ * @since GAP-1121
  */
 @SpringBootTest
 @ActiveProfiles("test")

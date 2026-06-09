@@ -1,4 +1,4 @@
-# GAP-1112: RLS-parity defense-in-depth cho 4 bảng LMS (course_modules / lessons / learning_resources / lesson_progress)
+# GAP-1121: RLS-parity defense-in-depth cho 4 bảng LMS (course_modules / lessons / learning_resources / lesson_progress)
 
 **Status:** 🟢 DONE
 **Priority:** 🟠 P1
