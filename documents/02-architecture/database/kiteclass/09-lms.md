@@ -9,7 +9,7 @@ last-reviewed: 2026-06-10
 
 > **TL;DR** — Cụm 4 bảng LMS (Learning Management System) của `kiteclass-core` — nội dung học tập có cấu trúc phân cấp **Course > Module > Lesson**, kèm tài nguyên đính kèm và theo dõi tiến độ học sinh. `course_modules` nhóm bài học trong 1 khóa; `lessons` là đơn vị nội dung (text/video) có cờ `is_trial` cho guest preview (BR-LMS-001); `learning_resources` lưu file đính kèm theo bài học; `lesson_progress` theo dõi tiến độ per-(user, lesson). Toàn bộ 4 bảng tạo ở migration **V79** (`V79__entity_schema_sync.sql` dòng ~445-527) — born sau V73 nên `created_by`/`updated_by` đã là UUID ngay từ đầu (không qua sweep BIGINT→UUID như các cụm cũ).
 >
-> ⚠️ **Cảnh báo RLS (anomaly A):** cả 4 bảng có `instance_id NOT NULL` + được Hibernate `@Filter("tenantFilter")` (kế thừa `BaseEntity`) phủ ở tầng ORM, **NHƯNG RLS DB-level CHƯA bật** (không `ENABLE`/`FORCE ROW LEVEL SECURITY` + không policy). 4 bảng này tạo ở V79 — SAU danh sách tĩnh V58/V59 và KHÔNG nằm trong V79/V84 re-assert list. Nếu service code dùng raw SQL bypass Hibernate filter → leak cross-tenant. Đây là gap đang được fix — xem **GAP-1112** (RLS enable cho cụm LMS) + anomaly A bên dưới + cùng class với cluster 03 anomaly J. Đọc §anomalies trước khi viết query/migration mới.
+> ✅ **RLS (anomaly A):** cả 4 bảng có `instance_id NOT NULL` + **phòng thủ 2 lớp đầy đủ**: (1) Hibernate `@Filter("tenantFilter")` (kế thừa `BaseEntity`) ở tầng ORM + (2) **RLS DB-level ĐÃ bật** — `ENABLE`+`FORCE ROW LEVEL SECURITY` + policy `tenant_isolation` áp qua khối `DO $$` cuối **V79** (dòng 577-613, loop mảng bảng gồm cả 4 bảng cụm này). Policy theo pattern hardened V59 (admin-bypass `app.is_platform_admin` + NULL force-fail `NULLIF(...)`). Xem anomaly A bên dưới. **GAP-1112** = regression-guard IT (test profile dùng `ddl-auto=create-drop` nên RLS của V79 không chạy trong test → bổ sung Testcontainers IT verify isolation).
 >
 > Backend LMS đầy đủ: 4 entity (`module/lms/entity/*`), 2 controller (`LmsController` + `LessonProgressController`, 15 endpoint), service layer. **Frontend chưa có consumer** (FE LMS headless) — xem **GAP-1113**.
 
@@ -82,7 +82,7 @@ Tier 2 trong phân cấp **Course > Module > Lesson** — nhóm logic các bài 
 | Cột | Kiểu | Null | Default | Khóa/Index | Ý nghĩa |
 |---|---|---|---|---|---|
 | `id` | BIGSERIAL | NO | auto | PK | Khóa chính tự tăng |
-| `instance_id` | UUID | NO | — | `idx_course_modules_instance_id`, RLS (code-level) | Tenant ID (multi-tenant isolation) |
+| `instance_id` | UUID | NO | — | `idx_course_modules_instance_id`, RLS (DB+ORM) | Tenant ID (multi-tenant isolation) |
 | `course_id` | BIGINT | NO | — | FK→`courses(id)`, `idx_course_modules_course_id`, UK | Khóa học chứa module này |
 | `title` | VARCHAR(200) | NO | — | — | Tiêu đề module (BR-LMS-005 — required, ≤200 ký tự) |
 | `description` | TEXT | YES | — | — | Mô tả module (markdown, BR-LMS-005 — optional, ≤5000 ký tự) |
@@ -100,7 +100,7 @@ Tier 2 trong phân cấp **Course > Module > Lesson** — nhóm logic các bài 
 - **Cardinality:** 1 course → N modules; 1 module → N lessons.
 
 ### RLS + ghi chú
-- **Tenant-scoped:** ⚠️ `instance_id` UUID NOT NULL + Hibernate `@Filter("tenantFilter")` (code-level) — **RLS DB-level CHƯA bật** (V79 tạo sau V58/V59 enable list; không trong V79/V84 re-assert). Xem anomaly A + **GAP-1112**.
+- **Tenant-scoped:** ✅ `instance_id` UUID NOT NULL + 2 lớp: Hibernate `@Filter("tenantFilter")` (ORM) + **RLS DB-level đã bật** (V79 DO-block 577-613 áp `ENABLE`+`FORCE`+policy `tenant_isolation` hardened V59). Xem anomaly A.
 - **Soft-delete:** ✅ `deleted` (kế thừa `BaseEntity`, default FALSE).
 - **JSONB:** không.
 - **Unique:** `uk_course_modules_course_order UNIQUE (course_id, order_number, instance_id)` — 1 thứ tự duy nhất/khóa/tenant (BR-LMS-004).
@@ -120,7 +120,7 @@ Tier 3 (đáy) trong phân cấp Course > Module > Lesson — đơn vị nội d
 | Cột | Kiểu | Null | Default | Khóa/Index | Ý nghĩa |
 |---|---|---|---|---|---|
 | `id` | BIGSERIAL | NO | auto | PK | Khóa chính |
-| `instance_id` | UUID | NO | — | `idx_lessons_instance_id`, RLS (code-level) | Tenant ID |
+| `instance_id` | UUID | NO | — | `idx_lessons_instance_id`, RLS (DB+ORM) | Tenant ID |
 | `module_id` | BIGINT | NO | — | FK→`course_modules(id)`, `idx_lessons_module_id`, UK | Module chứa bài học |
 | `title` | VARCHAR(200) | NO | — | — | Tiêu đề bài học (BR-LMS-009 — required, ≤200) |
 | `content` | TEXT | YES | — | — | Nội dung text (markdown, BR-LMS-009 — optional, ≤10000) |
@@ -141,7 +141,7 @@ Tier 3 (đáy) trong phân cấp Course > Module > Lesson — đơn vị nội d
 - **Cardinality:** 1 module → N lessons; 1 lesson → N learning_resources; 1 lesson → N lesson_progress (per user).
 
 ### RLS + ghi chú
-- **Tenant-scoped:** ⚠️ `instance_id` + Hibernate filter — **RLS DB-level CHƯA bật** (anomaly A, GAP-1112).
+- **Tenant-scoped:** ✅ `instance_id` + 2 lớp: Hibernate `@Filter` (ORM) + **RLS DB-level đã bật** (V79 DO-block 577-613, policy hardened V59). Xem anomaly A.
 - **Soft-delete:** ✅ `deleted`.
 - **JSONB:** không.
 - **Unique:** `uk_lessons_module_order UNIQUE (module_id, order_number, instance_id)` (BR-LMS-008).
@@ -161,7 +161,7 @@ Tài nguyên bổ trợ (PDF, slide, code sample, link...) đính kèm theo **b�
 | Cột | Kiểu | Null | Default | Khóa/Index | Ý nghĩa |
 |---|---|---|---|---|---|
 | `id` | BIGSERIAL | NO | auto | PK | Khóa chính |
-| `instance_id` | UUID | NO | — | `idx_learning_resources_instance_id`, RLS (code-level) | Tenant ID |
+| `instance_id` | UUID | NO | — | `idx_learning_resources_instance_id`, RLS (DB+ORM) | Tenant ID |
 | `lesson_id` | BIGINT | NO | — | FK→`lessons(id)`, `idx_learning_resources_lesson_id` | Bài học chứa tài nguyên |
 | `type` | VARCHAR(20) | NO | — | `idx_learning_resources_type` | Loại: `VIDEO`/`PDF`/`SLIDE`/`AUDIO`/`LINK`/`CODE`/`OTHER` (enum `ResourceType`, BR-LMS-012). **KHÔNG có CHECK constraint** — enum enforce ở entity `@Enumerated(STRING)`, DB nhận mọi chuỗi ≤20 ký tự (anomaly F) |
 | `url` | VARCHAR(500) | NO | — | — | URL tài nguyên (BR-LMS-013/014 — required, ≤500) |
@@ -180,7 +180,7 @@ Tài nguyên bổ trợ (PDF, slide, code sample, link...) đính kèm theo **b�
 - **Cardinality:** 1 lesson → N learning_resources.
 
 ### RLS + ghi chú
-- **Tenant-scoped:** ⚠️ `instance_id` + Hibernate filter — **RLS DB-level CHƯA bật** (anomaly A, GAP-1112).
+- **Tenant-scoped:** ✅ `instance_id` + 2 lớp: Hibernate `@Filter` (ORM) + **RLS DB-level đã bật** (V79 DO-block 577-613, policy hardened V59). Xem anomaly A.
 - **Soft-delete:** ✅ `deleted`.
 - **JSONB:** không.
 - **Unique:** **KHÔNG có UK** (khác 3 bảng còn lại của cụm) — cho phép nhiều tài nguyên/bài học (chủ ý), nhưng cũng không có dedup guard trên `(lesson_id, url)` → có thể trùng dòng tài nguyên (anomaly D).
@@ -200,7 +200,7 @@ Theo dõi tiến độ học sinh qua từng bài học. 1 dòng = tiến độ 
 | Cột | Kiểu | Null | Default | Khóa/Index | Ý nghĩa |
 |---|---|---|---|---|---|
 | `id` | BIGSERIAL | NO | auto | PK | Khóa chính |
-| `instance_id` | UUID | NO | — | `idx_lesson_progress_instance_id`, RLS (code-level) | Tenant ID |
+| `instance_id` | UUID | NO | — | `idx_lesson_progress_instance_id`, RLS (DB+ORM) | Tenant ID |
 | `user_id` | BIGINT | NO | — | `idx_lesson_progress_user_id`, UK | User học sinh — **BIGINT, KHÔNG FK** (cross-service tới user ở gateway). Design note entity: "tracks userId not enrollmentId for future TRIAL_USER support". Lệch kiểu vs `created_by` UUID (anomaly C) |
 | `lesson_id` | BIGINT | NO | — | FK→`lessons(id)`, `idx_lesson_progress_lesson_id`, UK | Bài học đang theo dõi |
 | `completed` | BOOLEAN | NO | `FALSE` | `idx_lesson_progress_completed` | Cờ hoàn thành |
@@ -219,7 +219,7 @@ Theo dõi tiến độ học sinh qua từng bài học. 1 dòng = tiến độ 
 - **Cardinality:** 1 lesson → N lesson_progress; 1 user × 1 lesson → 1 dòng (UK).
 
 ### RLS + ghi chú
-- **Tenant-scoped:** ⚠️ `instance_id` + Hibernate filter — **RLS DB-level CHƯA bật** (anomaly A, GAP-1112).
+- **Tenant-scoped:** ✅ `instance_id` + 2 lớp: Hibernate `@Filter` (ORM) + **RLS DB-level đã bật** (V79 DO-block 577-613, policy hardened V59). Xem anomaly A.
 - **Soft-delete:** ✅ `deleted`.
 - **JSONB:** không.
 - **Unique:** `uk_lesson_progress_user_lesson UNIQUE (user_id, lesson_id, instance_id)` — 1 dòng tiến độ/user/lesson (BR-LMS-009).
@@ -231,22 +231,22 @@ Theo dõi tiến độ học sinh qua từng bài học. 1 dòng = tiến độ 
 
 ## Ghi chú schema (anomalies)
 
-> Đây là **danh sách lệch chuẩn** giữa migration V79 (chân lý DB) và entity Java (`module/lms/entity/*.java`). Dev PHẢI nắm để tránh viết query sai hoặc tạo migration mâu thuẫn. Cụm LMS born tại V79 (sau V73 audit-column sweep) nên ít drift hơn các cụm cũ — nhưng có 1 lỗ RLS NGHIÊM TRỌNG (anomaly A) đang được fix qua GAP-1112.
+> Đây là **danh sách lệch chuẩn** giữa migration V79 (chân lý DB) và entity Java (`module/lms/entity/*.java`). Dev PHẢI nắm để tránh viết query sai hoặc tạo migration mâu thuẫn. Cụm LMS born tại V79 (sau V73 audit-column sweep) nên ít drift hơn các cụm cũ — RLS đầy đủ 2 lớp (anomaly A ✅); chỉ còn vài drift nhỏ về type/UK (anomaly B-E).
 
-### A. 🔴 RLS coverage gap — cả 4 bảng cụm LMS chưa bật RLS DB-level (→ GAP-1112)
+### A. ✅ RLS coverage — cả 4 bảng cụm LMS ĐÃ bật RLS DB-level (V79 DO-block 577-613)
 
-V58 (enable RLS) + V59 (hardening) dùng danh sách bảng tĩnh chạy 1 lần. Cả 4 bảng LMS tạo ở **V79** (SAU V58/V59) và **KHÔNG** nằm trong V79/V84 re-assert list:
+V58/V59 dùng danh sách bảng tĩnh; 4 bảng LMS tạo SAU ở V79 nên không trong list đó — NHƯNG V79 **tự áp RLS** qua khối `DO $$` cuối file (dòng 577-613) loop mảng bảng gồm cả `course_modules`/`lessons`/`learning_resources`/`lesson_progress`:
 
-| Bảng | Migration tạo | `instance_id`? | RLS DB-level? | Cô lập tenant hiện tại |
+| Bảng | Migration tạo | `instance_id`? | RLS DB-level? | Cô lập tenant |
 |---|---|:---:|:---:|---|
-| `course_modules` | V79 | ✅ Có | ❌ CHƯA enable | Chỉ code-level Hibernate `@Filter("tenantFilter")` |
-| `lessons` | V79 | ✅ Có | ❌ CHƯA enable | Chỉ code-level filter |
-| `learning_resources` | V79 | ✅ Có | ❌ CHƯA enable | Chỉ code-level filter |
-| `lesson_progress` | V79 | ✅ Có | ❌ CHƯA enable | Chỉ code-level filter |
+| `course_modules` | V79 (RLS @577-613) | ✅ Có | ✅ ENABLE+FORCE+policy | 2 lớp: DB RLS + Hibernate `@Filter` |
+| `lessons` | V79 (RLS @577-613) | ✅ Có | ✅ ENABLE+FORCE+policy | 2 lớp DB+ORM |
+| `learning_resources` | V79 (RLS @577-613) | ✅ Có | ✅ ENABLE+FORCE+policy | 2 lớp DB+ORM |
+| `lesson_progress` | V79 (RLS @577-613) | ✅ Có | ✅ ENABLE+FORCE+policy | 2 lớp DB+ORM |
 
-→ **Risk:** Hibernate `@Filter` tự động enable bởi `TenantFilterInterceptor` cho mọi request qua JPA. Nhưng nếu service code dùng **raw SQL / native query bypass Hibernate filter**, hoặc admin-bypass path không set tenant context → leak cross-tenant. RLS DB-level là defense-in-depth thứ 2 mà các bảng cụm khác (cluster 02/03/...) đã có qua V58/V59 nhưng cụm LMS thiếu.
+Policy `tenant_isolation` theo **pattern hardened V59**: `USING/WITH CHECK (COALESCE(current_setting('app.is_platform_admin',true)::boolean,false) OR instance_id = NULLIF(current_setting('app.current_tenant_id',true),'')::uuid)` — admin-bypass + NULL force-fail (NULL tenant → 0 rows). Sweep toàn migration: chỉ V79 chạm 4 bảng, không migration sau gỡ RLS.
 
-→ **Fix:** migration idempotent `ALTER TABLE <bảng> ENABLE ROW LEVEL SECURITY` + `FORCE ROW LEVEL SECURITY` + policy `instance_id = current_setting('app.current_instance')::uuid` (NULL force-fail + admin-bypass `app.is_platform_admin`) cho cả 4 bảng — **đang fix tại GAP-1112**. Cùng class với cluster 03 anomaly J (`attendance_period` RLS verify) + V60 RLS pattern.
+→ **Residual gap (GAP-1112):** test profile dùng `ddl-auto=create-drop` (Flyway OFF) nên RLS của V79 KHÔNG chạy trong test → backstop DB chưa được verify. GAP-1112 bổ sung Testcontainers IT (`LmsRlsIsolationIT`) áp policy + assert cross-tenant isolation + NULL force-fail. Mức P2 test-hygiene (không phải security gap — RLS đã hiện diện ở production).
 
 ### B. `lesson_progress.completed_at` — entity `LocalDateTime` vs cột `TIMESTAMPTZ`
 
@@ -284,5 +284,5 @@ Khác các cụm cũ (cluster 01/02/03 phải sweep `created_by`/`updated_by` BI
 - [Bản đồ kiến trúc database toàn dự án](../../database-architecture-map.md)
 - Business rules LMS: [`documents/01-business/kiteclass/lms/rules.md`](../../../01-business/kiteclass/lms/rules.md) (BR-LMS-001..020)
 - Cụm liên quan: [`01-academic-structure.md`](01-academic-structure.md) (`courses` — FK target), [`03-attendance-grading.md`](03-attendance-grading.md) (anomaly J RLS class + anomaly E/F actor/timestamp class)
-- RLS fix đang tiến hành: **GAP-1112** (enable RLS DB-level cho cụm LMS)
+- RLS regression-guard test: **GAP-1112** (Testcontainers IT — RLS đã có sẵn từ V79)
 - FE LMS headless (defer): **GAP-1113**
