@@ -43,6 +43,16 @@ public class SubscriptionService {
     private final VietQRService vietQRService;
     private final com.kitehub.subscription.client.EmailServiceClient emailServiceClient;
 
+    // Phase 1 BETA (SUB-20 create + upgrade): when enabled, the PENDING payment + VietQR charge the
+    // symbolic override (default 10.000đ) via a real bank transfer instead of the full tier price.
+    // subscription.priceVnd keeps the real contractual amount. Mirrors PaymentService beta gate so the
+    // create-subscription path no longer bypasses the override (KH-3 G2 walk fix — QR was charging 1.5M).
+    @org.springframework.beans.factory.annotation.Value("${kitehub.payment.beta-mode.enabled:false}")
+    private boolean betaModeEnabled;
+
+    @org.springframework.beans.factory.annotation.Value("${kitehub.payment.beta-mode.override-amount-vnd:10000}")
+    private long betaOverrideAmountVnd;
+
     /**
      * Create a new subscription for instance — Phase 1 BETA manual VietQR gate (SUB-20).
      *
@@ -410,23 +420,27 @@ public class SubscriptionService {
      * @return Created payment record (not saved)
      */
     private Payment createPendingPayment(Subscription subscription, long amount) {
+        // Phase 1 BETA: charge the symbolic override (10.000đ) via a real transfer when beta-mode is
+        // enabled, instead of the full tier price. subscription.priceVnd keeps the real amount (set by
+        // the caller); only the PENDING Payment + VietQR QR use the beta amount.
+        long effectiveAmount = betaModeEnabled ? betaOverrideAmountVnd : amount;
         Payment payment = new Payment();
         payment.setSubscriptionId(subscription.getId());
         payment.setInstanceId(subscription.getInstanceId()); // V58 RLS: instance_id NOT NULL
-        payment.setAmountVnd(amount);
+        payment.setAmountVnd(effectiveAmount);
         payment.setCurrency("VND");
         payment.setPaymentMethod(PaymentMethod.VIETQR);
         payment.setStatus(PaymentStatus.PENDING);
 
         String paymentContent = vietQRService.generatePaymentContent(subscription.getId());
         payment.setPaymentContent(paymentContent);
-        payment.setQrCodeUrl(vietQRService.generateQRCode(UUID.randomUUID(), amount, subscription.getId()));
+        payment.setQrCodeUrl(vietQRService.generateQRCode(UUID.randomUUID(), effectiveAmount, subscription.getId()));
         payment.setBankCode(vietQRService.getBankCode());
         payment.setAccountNumber(vietQRService.getAccountNumber());
         payment.setAccountName(vietQRService.getAccountName());
 
-        log.info("Created pending payment record: {} VNĐ for subscription {}",
-            amount, subscription.getId());
+        log.info("Created pending payment record: {} VNĐ (beta-mode={}) for subscription {}",
+            effectiveAmount, betaModeEnabled, subscription.getId());
 
         return payment;
     }

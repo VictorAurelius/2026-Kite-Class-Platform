@@ -386,6 +386,13 @@ services:
       # "Authorization: Apikey <key>"). Prod overrides via fetch-secrets.sh →
       # AWS Secrets Manager kitehub/production/sepay-api-key (parity already shipped).
       SEPAY_API_KEY: ${SEPAY_API_KEY:-dev-sepay-test-key-local}
+      # VietQR merchant bank account the SePay-path QR points to (acqId = BIN 6-digit,
+      # NOT short code like "VCB"). Generic placeholders by default; the KH-3 G2 walker
+      # overrides VIETQR_* in their shell at rebuild so their real account stays local
+      # (never committed — repo is public). application.yml reads these property keys.
+      VIETQR_BANK_CODE: ${VIETQR_BANK_CODE:-VCB}
+      VIETQR_ACCOUNT_NUMBER: ${VIETQR_ACCOUNT_NUMBER:-1234567890}
+      VIETQR_ACCOUNT_NAME: ${VIETQR_ACCOUNT_NAME:-CONG TY KITECLASS}
     ports:
       - "8081:8080"
     depends_on:
