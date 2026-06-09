@@ -453,6 +453,7 @@ services:
       OLLAMA_TEXT_MODEL: ${OLLAMA_TEXT_MODEL:-llama3.1:8b}
       OLLAMA_VISION_MODEL: ${OLLAMA_VISION_MODEL:-llava:13b}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-mock-key}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-kitehub}
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:?required}
       S3_ENDPOINT: http://kite-minio:9000

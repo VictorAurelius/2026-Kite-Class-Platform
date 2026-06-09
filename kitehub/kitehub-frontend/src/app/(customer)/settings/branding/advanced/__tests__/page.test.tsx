@@ -19,6 +19,13 @@ vi.mock('@/hooks/use-branding-tier', () => ({
   useBrandingTier: (id: string | undefined) => mockUseBrandingTier(id),
 }));
 
+// Mock owner-instances lookup (React Query hook) — GAP-1091b resolves instanceId
+// for useBrandingTier from owner's instances. Without this the page's useOwnerInstances
+// calls useQuery with no QueryClientProvider → "No QueryClient set".
+vi.mock('@/hooks/use-instances', () => ({
+  useOwnerInstances: () => ({ data: [{ id: 'instance-test-001' }] }),
+}));
+
 import BrandingAdvancedModePage from '../page';
 
 function tierResult(tier: PricingTier) {
