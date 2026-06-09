@@ -83,6 +83,13 @@ export function useDeployStream(
 
     for (const name of EVENT_NAMES) {
       const fn = (e: MessageEvent) => {
+        // GAP-1105: the browser delivers its NATIVE EventSource connection error
+        // to the listener registered for the server-sent `error` event too — but
+        // with no `data`. That null-data event rendered as "Lỗi triển khai
+        // (UNKNOWN)" even when the deploy actually succeeded. Ignore it here:
+        // `onError` handles genuine disconnects, and a real server `error` event
+        // (JOB_FAILED / JOB_NOT_FOUND / ...) always carries a JSON payload.
+        if (name === 'error' && !e.data) return;
         let data: unknown = null;
         try {
           data = e.data ? JSON.parse(e.data) : null;
