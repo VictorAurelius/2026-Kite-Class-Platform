@@ -14,6 +14,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { setTokens, clearTokens } from '@/lib/auth/jwt-storage';
 import type { LoginRequest } from '@/types/auth';
 import { UserType } from '@/types/auth';
+import { normalizeRole, roleHome } from '@/lib/auth/roles';
 import { toast } from '@/hooks/use-toast';
 
 export function useAuth() {
@@ -27,14 +28,18 @@ export function useAuth() {
       // KH /api/auth/login returns flat shape: { user: {id,email,name,role (singular)}, accessToken, refreshToken, instances[] }
       // Wave 105 RST UI 2026-05-23 GAP-724: adapt to actual server contract (was assuming roles[]/profile{}).
       const u = data.user as unknown as { id: string | number; email: string; name: string; role?: string; roles?: string[] };
-      const role = (u.role ?? u.roles?.[0] ?? 'STUDENT') as string;
+      // Wave RBAC-Shell 1 Bucket A (GAP-1122): normalize the BE role token (any of
+      // the tenant-auth / hierarchical / @PreAuthorize vocabularies) into the FE
+      // canonical role so guards + redirect agree. `null` = unrecognized role.
+      const rawRole = (u.role ?? u.roles?.[0]) as string | undefined;
+      const role = normalizeRole(rawRole);
       // KH returns UUID string for user.id; KC User type historically expected number.
       // Cast keeps store happy until User.id is broadened (tracked GAP-724 follow-up).
       const user = {
         id: u.id as unknown as number,
         email: u.email,
         name: u.name,
-        userType: role as UserType,
+        userType: (role ?? (rawRole as UserType) ?? UserType.STUDENT),
         referenceId: undefined,
       };
 
@@ -56,7 +61,9 @@ export function useAuth() {
         description: `Welcome back, ${user.name}!`,
       });
 
-      router.push('/dashboard');
+      // Role-based redirect (GAP-1122): land each role on its own home. Unknown
+      // roles fall back to the shared dashboard shell (never guess a persona route).
+      router.push(role ? roleHome(role) : '/dashboard');
     },
     onError: (error: Error) => {
       toast({

@@ -6,16 +6,16 @@
  * mobile shell via {@link StudentMobileShell} so the desktop sidebar from
  * the surrounding `(dashboard)/layout.tsx` is bypassed for student routes.
  *
- * Persona guard: only `STUDENT` users land here; `PARENT`/`TEACHER`/`ADMIN`
- * bounce back to `/dashboard` (mirrors the parent-portal guard pattern in
- * `(dashboard)/parent/page.tsx`). Non-authenticated users are already
- * redirected to `/login` by the outer dashboard layout.
+ * Wave RBAC-Shell 1 Bucket A (GAP-1122): the inline STUDENT-only check is
+ * replaced by the shared {@link RoleGuard} (non-student bounces to its own
+ * role-home). Student login itself is still gated by KC-9 — the route group
+ * shell is scaffolded but the KC-native student auth path is not yet functional.
+ *
+ * @since Wave 49 Bucket C (GAP-269); Wave RBAC-Shell 1 RoleGuard
  */
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/auth-store';
+import { RoleGuard } from '@/components/auth/role-guard';
 import { UserType } from '@/types/auth';
 
 export default function StudentLayout({
@@ -23,21 +23,5 @@ export default function StudentLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-  const userType = useAuthStore((state) => state.user?.userType);
-
-  useEffect(() => {
-    // GAP-758: explicit STUDENT-only REQUIRE (not !== bypass). Bounces
-    // undefined-userType (KH JWT shape mismatch per GAP-725) + non-Student
-    // userType back to /dashboard.
-    if (userType !== UserType.STUDENT) {
-      router.replace('/dashboard');
-    }
-  }, [userType, router]);
-
-  if (userType !== UserType.STUDENT) {
-    return null;
-  }
-
-  return <>{children}</>;
+  return <RoleGuard allow={[UserType.STUDENT]}>{children}</RoleGuard>;
 }
