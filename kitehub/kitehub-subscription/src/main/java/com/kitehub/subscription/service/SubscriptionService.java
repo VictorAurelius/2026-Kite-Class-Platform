@@ -432,15 +432,20 @@ public class SubscriptionService {
         payment.setPaymentMethod(PaymentMethod.VIETQR);
         payment.setStatus(PaymentStatus.PENDING);
 
-        String paymentContent = vietQRService.generatePaymentContent(subscription.getId());
-        payment.setPaymentContent(paymentContent);
-        payment.setQrCodeUrl(vietQRService.generateQRCode(UUID.randomUUID(), effectiveAmount, subscription.getId()));
+        // Bug D fix (KH-3 G2 SePay walk): the QR memo (addInfo) MUST equal payment.txnRef
+        // (KH3SUB<8hex>) so the bank-transfer description SePay forwards carries the token
+        // PaymentService.processSepayWebhook matches on. The create path previously used a
+        // "KITECLASS <subId>" memo + never set txnRef → SePay could never confirm the payment.
+        String txnRef = PaymentService.generateTxnRef(UUID.randomUUID());
+        payment.setTxnRef(txnRef);
+        payment.setPaymentContent(txnRef);
+        payment.setQrCodeUrl(vietQRService.generateQRCode(UUID.randomUUID(), effectiveAmount, txnRef));
         payment.setBankCode(vietQRService.getBankCode());
         payment.setAccountNumber(vietQRService.getAccountNumber());
         payment.setAccountName(vietQRService.getAccountName());
 
-        log.info("Created pending payment record: {} VNĐ (beta-mode={}) for subscription {}",
-            effectiveAmount, betaModeEnabled, subscription.getId());
+        log.info("Created pending payment record: {} VNĐ (beta-mode={}, txnRef={}) for subscription {}",
+            effectiveAmount, betaModeEnabled, txnRef, subscription.getId());
 
         return payment;
     }
