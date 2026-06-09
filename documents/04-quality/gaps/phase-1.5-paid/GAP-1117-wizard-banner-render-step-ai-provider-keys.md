@@ -1,57 +1,56 @@
-# GAP-1117: Wire bước render banner thật (template-compose 3 lớp) + cấu hình AI provider API KEY (free template + full-AI ChatGPT-5.5)
+# GAP-1117: Wire render banner thật — TEMPLATE (HTML+Gemini→Playwright) + FULL_AI (GPT-5.5 image) + cấu hình provider key (per ADR-037 amendment 2026-06-10)
 
 **Status:** 🔵 OPEN
 **Priority:** 🟠 P1
 **Domain:** Mixed
-**Found:** 2026-06-10 (discuss wizard 6-bước với user — design critique câu 3 + user-flagged dev config API KEY)
-**Affects:** `kitehub-branding` generation pipeline (`ResourceRoutingService` / `AIClient` strategy / `BrandingJobService` / banner-compose) + `kitehub-frontend` wizard Step5/Step6 + dev env config (provider API keys)
+**Found:** 2026-06-10 (discuss wizard 6-bước — design critique câu 3 + user-flagged provider + ADR-037 amendment)
+**Affects:** `kitehub-branding` generation pipeline (`AIBrandingProcessor` mock / `AIClient` strategy / `ResourceRoutingService` / banner-compose runtime) + `kitehub-frontend` wizard Step5/Step6 + dev env config (provider keys)
 
 ## Problem
 
-Bước 5 (`TemplateStep`) cho chọn template, NHƯNG **bước render banner thật** (compose 3 lớp: text + chân dung + icon theo template đã chọn) **chưa wire vào generation** của wizard:
+Bước 5 (`TemplateStep`) cho chọn template, NHƯNG **bước render banner thật chưa wire vào generation**:
 
-- Phase 1 generation hiện **mock** (per memory `project_ai_branding_generation_model`: "code hiện=mock, no real DNS/AI").
-- Banner compose deterministic (HTML→WebP qua `compose-sky-demo-banner.mjs` / Playwright) hiện chỉ dùng cho demo/thesis, **chưa nối** vào flow wizard runtime.
-- Thiếu cả 2 chế độ render mà `ResourceCategory` định nghĩa: **TEMPLATE** (free, template-compose / local Ollama) và **FULL_AI** (`ResourceCategory.FULL_AI`).
+- `AIBrandingProcessor.processJob()` hiện = **MOCK 100%**: mọi asset (hero/profile/facebookCover/youtubeBanner/ogImage) đều `= message.getLogoUrl()` + `simulateProcessing()`. **Không gọi `aiClient` nào.**
+- `AIClient` interface CÓ `generateText()`/`generateImage()`/`analyzeLogo()` nhưng chỉ có `OllamaClient` + `OpenAIClient` (**không có GeminiClient**).
+- Banner compose deterministic (`kiteclass-frontend/scripts/compose-sky-demo-banner.mjs`, HTML→Playwright→WebP, GAP-810) hiện chỉ là demo-seed script, **chưa wire vào kitehub-branding runtime**.
 
-User mental model đúng hơn: audience → user-type → chân dung → **render banner (template hoặc full-AI)** → preview.
+## Quyết định provider (ADR-037 amendment 2026-06-10 — user-pinned)
 
-## Dev config prerequisite (user-flagged 2026-06-10)
+| Output | Mode | Route | Dev key |
+|---|---|---|---|
+| **Text/HTML copy** (heroTitle/about/programs) | free | **Gemini free-tier** | `GEMINI_API_KEY` |
+| **Banner — TEMPLATE** (default, FREE) | free | **HTML template (không cố định) + Gemini render nội dung → Playwright chụp WebP** — chữ Việt nét, $0 | `GEMINI_API_KEY` |
+| **Banner — FULL_AI** (ENTERPRISE) | paid | **GPT-5.5 image-gen** render cả ảnh, prompt chuẩn mẫu thesis | `OPENAI_API_KEY` |
 
-Để render THẬT (bỏ mock), dev PHẢI cấu hình **API KEY cho 2 provider** (per `AIClient` Strategy + ADR-037-ai-branding-generation-stack):
-
-| Chế độ | Provider | Cấu hình |
-|---|---|---|
-| **AI template (free)** | Local Ollama / template-compose (deterministic) | Local Ollama endpoint (no external key) HOẶC template-only path (no key) |
-| **Full AI** | **OpenAI ChatGPT-5.5** (user-specified) | `OPENAI_API_KEY` env / Secrets Manager (`kitehub/<env>/openai-api-key`); model id = ChatGPT-5.5 |
-
-Tier-gate: full-AI chỉ mở cho **ENTERPRISE Advanced Mode** (per `ai-branding-guidelines.md` §2.4); FREE/BASIC/PREMIUM = template-first (§1 ResourceCategory). Per `ai-branding-guidelines.md` §2.5 input cap vẫn áp dụng mọi callsite.
+Tier-gate: FULL_AI (GPT-5.5) chỉ cho **ENTERPRISE Advanced Mode** (`ai-branding-guidelines.md` §2.4); FREE/BASIC/PREMIUM = TEMPLATE (HTML+Gemini→Playwright). Input-cap §2.5 mọi callsite. **Dev lưu ý: chưa set key thì fallback copy template tĩnh / banner template không-Gemini.**
 
 ## Proposed Fix
 
-1. **Wire render thật:** `ResourceRoutingService.classify()` → TEMPLATE path gọi banner-compose thật (logo + portrait [[GAP-1116]] + icon theo template) thay vì mock; surface kết quả vào Step6 preview ([[GAP-1118]]).
-2. **AIClient strategy switch:** template (free) vs full-AI (ChatGPT-5.5) theo tier (`X-Subscription-Tier` per ADR-039); full-AI gated ENTERPRISE.
-3. **Provider config:** cấu hình `OPENAI_API_KEY` (full-AI) + local Ollama/template (free); document trong deploy runbook + Secrets Manager. **Lưu ý dev: đây là prerequisite — không có key thì full-AI fallback template.**
-4. Quality gate (per §5) chạy trước DEPLOY.
+1. **Thêm `GeminiClient`** implement `AIClient` (text gen cho copy + drive HTML template content) — strategy switch theo `ai.provider` + tier.
+2. **Wire HTML-template-compose runtime:** port `compose-sky-demo-banner.mjs` → BE render path (Playwright headless trong service OR sidecar), nhận logo + chân dung ([[GAP-1116]]) + icon chủ đề + màu brand + copy (Gemini) → WebP. Thay mock trong `AIBrandingProcessor`.
+3. **FULL_AI path:** `OpenAIClient.generateImage` (GPT-5.5) cho ENTERPRISE — prompt builder chuẩn mẫu thesis; CircuitBreaker fallback → TEMPLATE khi fail/hết quota.
+4. **Provider config:** `GEMINI_API_KEY` + `OPENAI_API_KEY` → env/Secrets Manager; document deploy runbook.
+5. Render result surface vào Step6 preview ([[GAP-1118]]); quality gate §5 trước DEPLOY.
 
 ## Acceptance Criteria
 
-- [ ] Render banner THẬT cho TEMPLATE path (không mock) — compose logo+portrait+icon theo template
-- [ ] AI provider keys configured: template-free (Ollama/local) + full-AI ChatGPT-5.5 (`OPENAI_API_KEY`); documented trong deploy runbook
-- [ ] Full-AI gated ENTERPRISE Advanced Mode; FREE/BASIC/PREMIUM = template-first; input-cap §2.5 enforced
-- [ ] Render result surface vào Step6 preview ([[GAP-1118]])
-- [ ] Quality gate (§5) trước DEPLOY; CircuitBreaker fallback template khi provider fail
+- [ ] `GeminiClient` (AIClient strategy) — text/copy gen Gemini free-tier; `GEMINI_API_KEY` config
+- [ ] TEMPLATE banner render THẬT: HTML template + Gemini copy → Playwright→WebP (thay mock `AIBrandingProcessor`); chữ Việt nét; logo+chân dung+icon
+- [ ] FULL_AI banner: GPT-5.5 image-gen gated ENTERPRISE; prompt chuẩn thesis; CircuitBreaker fallback TEMPLATE
+- [ ] Provider keys configured + documented (`GEMINI_API_KEY` + `OPENAI_API_KEY`); chưa có key → fallback graceful
+- [ ] Render result surface Step6 preview ([[GAP-1118]]); quality gate §5; input-cap §2.5
 - [ ] IT / migration test checklist §11.4 (AI behavior change)
 
 ## Related
 
-- Discovered in: discuss wizard 6-bước 2026-06-10 (user critique câu 3 + dev API KEY config flag)
-- Depends: [[GAP-1116]] (portrait asset đầu vào)
-- Feeds: [[GAP-1118]] (preview render result)
+- Discovered in: discuss wizard 6-bước 2026-06-10 (câu 3 + provider decision)
+- **Design pinned:** `ADR-037-ai-branding-generation-stack.md` §Amendment 2026-06-10
+- Depends: [[GAP-1116]] (portrait asset đầu vào) ; Feeds: [[GAP-1118]] (preview)
 - Cluster: [[GAP-1115]] user-type axis
-- Design: `ADR-037-ai-branding-generation-stack.md`, `ai-branding-guidelines.md` §1 (ResourceCategory) / §2.4 (Enterprise full-prompt) / §2.5 (input cap) / §5 (quality gate) / §11.4 (migration test)
-- Generation model: memory `project_ai_branding_generation_model` (Phase 1 = TEMPLATE-first by design, code=mock)
+- Banner reference: `kiteclass-frontend/scripts/compose-sky-demo-banner.mjs` (GAP-810), thesis banner 3-lớp
+- Guidelines: `ai-branding-guidelines.md` §1 ResourceCategory / §2.4 Enterprise / §2.5 input-cap / §5 quality gate / §11.4 migration test
+- Generation model: memory `project_ai_branding_generation_model` (Phase 1 mock)
 
 ## Log
 
-- **2026-06-10:** Filed từ discuss wizard với user — bước render banner (template/full-AI) chưa wire vào flow, generation hiện mock. User-flagged: dev phải cấu hình API KEY (AI template free + full-AI ChatGPT-5.5). Per `discovery-to-gap-inline-filing.md`. GAP-ID từ block reserve 1115-1118.
+- **2026-06-10:** Filed + refined per ADR-037 amendment: TEMPLATE = HTML+Gemini→Playwright (free default), FULL_AI = GPT-5.5 image (Enterprise), text-LLM = Gemini free-tier. Cần thêm GeminiClient + wire compose runtime. Per `discovery-to-gap-inline-filing.md`. GAP-ID block reserve 1115-1118.

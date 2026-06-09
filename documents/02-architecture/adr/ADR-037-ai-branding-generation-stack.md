@@ -48,3 +48,19 @@ Decision này supersede image-gen-stack exploration. Stale refs cần reconcile 
 - Wave plans cũ liệt kê image-gen stack → grandfathered (historical); rule applies prospectively
 
 Sweep stale image-gen-stack refs = opportunistic (khi chạm doc) per `no-vercel-references.md` precedent (prospective sweep, historical grandfathered). Không block.
+
+---
+
+## Amendment 2026-06-10 — pin provider + 2-mode banner (user decision)
+
+Quyết định user 2026-06-10 (discuss wizard 6-bước) **refine** Context/Decision table — pin provider cụ thể + tách rõ 2 mode banner:
+
+| Output | Mode | Route (PINNED) |
+|---|---|---|
+| **Text/HTML copy** (heroTitle/about/programs) | free | **Gemini free-tier** (pin provider — trước để mở "free-tier LLM"). Dev config: `GEMINI_API_KEY` |
+| **Banner — TEMPLATE** (default, FREE) | free | **HTML template (không cố định) + Gemini render nội dung vào HTML → Playwright chụp WebP**. Deterministic, **chữ Việt nét**, $0. Đây là **primary free path** (không còn chỉ là fallback). |
+| **Banner — FULL_AI** (ENTERPRISE) | paid | **GPT-5.5 image-gen** render CẢ ảnh banner, prompt chuẩn như mẫu thesis (`kiteclass-frontend/scripts/compose-sky-demo-banner.mjs` làm reference layout). Dev config: `OPENAI_API_KEY` |
+
+**Thay đổi so với Decision gốc:** banner TEMPLATE (HTML+Gemini→Playwright) là **default free**, KHÔNG còn là "fallback của GPT-5.5". GPT-5.5 image-gen lên thành **FULL_AI Enterprise upgrade** (per `ai-branding-guidelines.md` §2.4 tier-gate). Text-LLM pin = **Gemini** (cần thêm `GeminiClient` — hiện code chỉ có Ollama+OpenAI). Generation hiện **mock** (`AIBrandingProcessor` trả logoUrl); wiring thật tracked **GAP-1117**.
+
+Cần thêm `GeminiClient` (AIClient strategy) + wire HTML-template-compose runtime vào BE (port từ `compose-sky-demo-banner.mjs`). PDPL note (Consequences) vẫn áp dụng: text + banner prompt gửi Gemini/OpenAI cloud → data rời VN, ghi privacy policy.
