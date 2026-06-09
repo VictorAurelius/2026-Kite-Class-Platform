@@ -61,6 +61,17 @@ User re-walked wizard Step 6 (Phê duyệt) repeatedly; backend deploy SUCCEEDED
 - CSV `gap-status.csv` 894 rows validated. Working tree clean.
 - Worktrees still present (not cleaned): `agent-aba375fdc5ab41490` (A), `agent-a4be2dd216ca42b1d` (B), `agent-a51f0c2ea1f734125` (DOC-2), `agent-a34070804e118d335` (DOC-1 stale) — cherry-picks done from A/B/DOC-2; can `git worktree remove` to clean.
 
+## 5b. Fix-agents spawned at session-end (check worktrees first next session)
+
+2 Opus worktree fix-agents dispatched at session close — commit to worktrees (NOT pushed, NOT cherry-picked yet). **Next session: read their output + cherry-pick if complete, else check partial worktree state.**
+
+| Agent worktree | Scope | Gaps |
+|---|---|---|
+| `worktree-agent-a67b45d443a631eb5` | kitehub-branding + kitehub-frontend: assets parse shape fix + FE deploy-status card ("Xem landing" link + frontendUrl + success toast) + rollback-only REQUIRES_NEW best-effort | GAP-1108 + GAP-1107 |
+| `worktree-agent-a19548b9d192f91cc` | kitehub-subscription: split 3 `(:cursorId IS NULL OR ...)` cursor queries (InstanceRepo + PaymentRepo×2) per GAP-1028 precedent + Testcontainers IT + CI detector `check-jpql-untyped-null-param.sh` | GAP-1106 |
+
+Integration: `git cherry-pick <sha>` per worktree onto feature branch, resolve gap-status.csv conflicts (edit-in-place rows), rebuild affected services, runtime-walk, flip gaps DONE.
+
 ## 6. Pickup order (next session)
 
 1. User re-walk branding Step 6 → confirm SSE clean → flip GAP-1105 DONE (+ CORS fix if surfaces).
