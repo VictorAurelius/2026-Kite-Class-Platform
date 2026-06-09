@@ -53,3 +53,6 @@ Landing public của tenant (vd Sky Education) render **không có ảnh**: hero
 ## Log
 
 - **2026-05-29:** Gap created + Phase A FE wiring shipped (banner-style hero + slots fix + gitignore, commit 44209856; build-verified). BE seed + walk remaining → PARTIAL. AI-Branding template-composer insight captured cho Phase 2 (GAP-003 re-scope).
+
+## Log
+- **2026-06-09 DONE:** Wave landing-100 shipped (bucket 810) — G1-headless verified (FE build green + curl render 200 + ?tenant= data-binding proven). Full browser-G2 + subdomain resolution gated GAP-811/1077; BE per-tenant fields GAP-1083.

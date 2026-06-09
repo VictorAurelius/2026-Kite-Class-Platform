@@ -45,3 +45,6 @@ Persona blind spots: cô Hà (ít tech) bị field kỹ thuật (hex/JSONB) làm
 - GAP-827 (input safety) — lead-form input cũng phải sanitize/validate
 - GAP-826 (multi-banner) — defer Ph1.5
 - GAP-660 (Zalo CTA) + `thesis-as-future-state-mandate.md` — Zalo contact minimum interpretation
+
+## Log
+- **2026-06-09 DONE:** Wave landing-100 shipped (bucket 828) — G1-headless verified (FE build green + curl render 200 + ?tenant= data-binding proven). Full browser-G2 + subdomain resolution gated GAP-811/1077; BE per-tenant fields GAP-1083.

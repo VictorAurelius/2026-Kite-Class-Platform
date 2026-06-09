@@ -27,3 +27,6 @@ Audit FE cache keys + BE `@Cacheable.*branding` annotations — verify mọi key
 - Audit artifact: persona-review/2026-06-04-pre-walk-kc1-tenant-provisioning.md Finding 2.2
 - Sister: GAP-944 (cross-module payment cache invalidation pattern)
 - Flow Verification Campaign §4 row KC-1
+
+## Log
+- **2026-06-09 DONE:** Wave landing-100 shipped (bucket 958) — G1-headless verified (FE build green + curl render 200 + ?tenant= data-binding proven). Full browser-G2 + subdomain resolution gated GAP-811/1077; BE per-tenant fields GAP-1083.

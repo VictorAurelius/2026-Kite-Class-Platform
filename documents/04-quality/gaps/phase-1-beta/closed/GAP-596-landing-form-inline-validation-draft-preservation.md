@@ -50,3 +50,6 @@ Form component có thể không có inline validation, hoặc validation chỉ t
 - Audit: `documents/04-quality/audits/persona-review/2026-05-15-pre-wave-86-persona-outside-in.md` §3.1 cell 1.5 + §6 NEW gap proposal #7
 - Wave 87 scope (defer)
 - GAP-595 landing CTA hierarchy (paired)
+
+## Log
+- **2026-06-09 DONE:** Wave landing-100 shipped (bucket 596) — G1-headless verified (FE build green + curl render 200 + ?tenant= data-binding proven). Full browser-G2 + subdomain resolution gated GAP-811/1077; BE per-tenant fields GAP-1083.

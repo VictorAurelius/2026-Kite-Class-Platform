@@ -45,3 +45,6 @@ Root cause: kiteclass-core config bucket `STORAGE_S3_BUCKET=kiteclass-files` (ap
 - Discovered in: KC-10 G1 walk (Wave flow-kc10)
 - Blocks: GAP-1037 SVG-XSS runtime verify (upload phải work trước mới test được sanitization)
 - Sister provisioning gap class: env/infra parity (per `local-fix-production-parity-check.md`)
+
+## Log
+- **2026-06-09 DONE:** Wave landing-100 shipped (bucket 1036) — G1-headless verified (FE build green + curl render 200 + ?tenant= data-binding proven). Full browser-G2 + subdomain resolution gated GAP-811/1077; BE per-tenant fields GAP-1083.
