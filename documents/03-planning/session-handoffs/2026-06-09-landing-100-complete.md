@@ -43,6 +43,13 @@ User chạy KH-3 G2 song song → surfaced + fixed:
 - Seeder `template_type` NOT NULL: `BrandingDataSeeder` setTemplateType("personal") default
 - `BrandingDataSeederTest` 8-arg constructor (api-contract-change-caller-sweep miss bởi G agent — compile-only, không test-compile)
 
+## 3b. Post-closure CI fix (commit 56ac52ef)
+
+Sau closure, CI `Test — KiteHub Frontend` fail 8 tests (4 `use-payments` + 4 `use-subscriptions`):
+- **Nguyên nhân:** KH-3 fix đổi hooks `data.data`→`data` (bare). Verified BE thật trả bare (`ResponseEntity<PaymentResponse>`, `List<PaymentResponse>`) — test mocks dùng wrapped `{ data: { data: X } }` (giả định cũ sai). Hook cũ + mock cũ = 2 sai triệt tiêu → test pass nhưng production vỡ (G2 walk).
+- **Fix:** 9 mocks → bare `{ data: X }`; QR mock giữ `{ qrCodeUrl }`. Local `pnpm vitest run` 2 file = **21/21 PASS**. Cross-flow sweep `data: { data:` toàn FE = 0 sister sites.
+- **⚠️ CI confirm pending:** lúc end session, `Test — KiteHub Frontend` trên `56ac52ef` còn `in_progress`. **Next session: verify CI job này GREEN** (`gh run list --branch fix/v87-attendance-status-normalize-kc5`). Nếu fail → đọc log, có thể còn test khác cùng pattern.
+
 ## 4. Pickup state cho next session
 
 **Out-of-scope landing-100 (next candidates):**
