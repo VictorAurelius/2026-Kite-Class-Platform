@@ -85,10 +85,10 @@ class SubscriptionRenewalServiceTest {
         lenient().when(subscriptionConfig.getGracePeriodDays()).thenReturn(3);
 
         // VietQR mocks — GAP-939: SubscriptionRenewalService now snapshots bank/account info
-        lenient().when(vietQRService.generateQRCode(any(UUID.class), any(Long.class), any(UUID.class)))
+        // GAP-1087 / Bug D sweep: renewal now passes the String txnRef as the QR memo;
+        // createRenewalPayment no longer calls generatePaymentContent.
+        lenient().when(vietQRService.generateQRCode(any(UUID.class), any(Long.class), anyString()))
             .thenReturn("https://img.vietqr.io/image/VCB-1234567890-compact.png");
-        lenient().when(vietQRService.generatePaymentContent(any(UUID.class)))
-            .thenReturn("KITECLASS RENEWAL");
         lenient().when(vietQRService.getBankCode()).thenReturn("VCB");
         lenient().when(vietQRService.getAccountNumber()).thenReturn("1234567890");
         lenient().when(vietQRService.getAccountName()).thenReturn("CONG TY KITECLASS");
@@ -138,7 +138,10 @@ class SubscriptionRenewalServiceTest {
         assertThat(capturedPayment.getSubscriptionId()).isEqualTo(subscriptionId);
         assertThat(capturedPayment.getAmountVnd()).isEqualTo(500_000L);
         assertThat(capturedPayment.getStatus()).isEqualTo(PaymentStatus.PENDING);
-        assertThat(capturedPayment.getPaymentContent()).contains("renewal");
+        // GAP-1087 / Bug D sweep: paymentContent == txnRef (KH3SUB token SePay matches on).
+        assertThat(capturedPayment.getPaymentContent())
+            .isEqualTo(capturedPayment.getTxnRef())
+            .matches("KH3SUB[A-F0-9]{8}");
     }
 
     @Test

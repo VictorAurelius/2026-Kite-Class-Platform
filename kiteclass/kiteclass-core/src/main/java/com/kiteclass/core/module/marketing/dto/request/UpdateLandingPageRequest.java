@@ -21,6 +21,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UpdateLandingPageRequest {
 
+    @Size(max = 200, message = "{landing.centerName.size}")
+    private String centerName;
+
     @Size(max = 200, message = "{landing.hero.title.size}")
     private String heroTitle;
 
@@ -64,6 +67,9 @@ public class UpdateLandingPageRequest {
     @Size(max = 255, message = "{landing.social.size}")
     private String instagramUrl;
 
+    @Size(max = 255, message = "{landing.social.size}")
+    private String zaloUrl;
+
     // Data-driven landing sections (wave-thesis-4) — completes Entity-Migration-Mapper
     // triad per design-patterns.md §3.12. FE reads per-tenant content from DB; admin
     // PATCH endpoint updates these via this DTO. JsonNode fields = JSONB columns; client
@@ -80,4 +86,10 @@ public class UpdateLandingPageRequest {
     private JsonNode testimonials;
     private JsonNode faqs;
     private JsonNode stats;
+
+    // landing-100 F-sections (GAP-1083). JsonNode → JSONB columns. Shape contracts
+    // documented on the LandingPage entity fields.
+    private JsonNode problemSolution;
+    private JsonNode howItWorks;
+    private JsonNode trustStrip;
 }

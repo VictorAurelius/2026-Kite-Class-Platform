@@ -61,8 +61,17 @@ public class VietQRService {
      * @param subscriptionId Subscription ID for payment content
      * @return QR code URL
      */
+    /**
+     * Back-compat overload — derives the QR memo (addInfo) from the subscription id
+     * ("KITECLASS &lt;subId&gt;"). Prefer the {@code String memo} overload so the memo can
+     * equal the SePay {@code txnRef} (KH3SUB&lt;8hex&gt;) the webhook matches on.
+     */
     public String generateQRCode(UUID paymentId, Long amountVnd, UUID subscriptionId) {
-        log.info("Generating VietQR code for payment: {} (amount: {} VND)", paymentId, amountVnd);
+        return generateQRCode(paymentId, amountVnd, generatePaymentContent(subscriptionId));
+    }
+
+    public String generateQRCode(UUID paymentId, Long amountVnd, String memo) {
+        log.info("Generating VietQR code for payment: {} (amount: {} VND, memo: {})", paymentId, amountVnd, memo);
 
         if (mockMode) {
             log.info("[MOCK] Returning mock QR code URL for payment: {}", paymentId);
@@ -70,7 +79,7 @@ public class VietQRService {
                 paymentId.toString().substring(0, 8), amountVnd);
         }
 
-        String paymentContent = generatePaymentContent(subscriptionId);
+        String paymentContent = memo;
 
         try {
             // Build VietQR API request

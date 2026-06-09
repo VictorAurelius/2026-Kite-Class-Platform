@@ -126,9 +126,16 @@ public class LandingPageServiceImpl implements LandingPageService {
                         }
                         if (branding.getDisplayName() != null) {
                             newLandingPage.setHeroTitle(branding.getDisplayName());
+                            // GAP-1083: centerName = the center's own name (nav/footer/JsonLd
+                            // prefer this over the heroTitle slogan).
+                            newLandingPage.setCenterName(branding.getDisplayName());
                         }
                         if (branding.getTagline() != null) {
                             newLandingPage.setTagline(branding.getTagline());
+                        }
+                        if (branding.getZaloUrl() != null) {
+                            // GAP-1083: surface the tenant's Zalo OA in the FloatingCTA.
+                            newLandingPage.setZaloUrl(branding.getZaloUrl());
                         }
                     });
 

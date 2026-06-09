@@ -89,14 +89,22 @@ public class PaymentService {
         payment.setPaymentMethod(request.getPaymentMethod());
         payment.setStatus(PaymentStatus.PENDING);
 
+        // GAP-1087 / Bug D (KH-3 G2 SePay walk): the QR memo (addInfo) + paymentContent
+        // MUST equal payment.txnRef (KH3SUB<8hex>) so the bank-transfer description SePay
+        // forwards carries the token processSepayWebhook matches on (findByTxnRef).
+        // Previously this path used a "KITECLASS <subId>" QR memo + paymentContent and
+        // derived txnRef from the payment id AFTER save (memo != txnRef) → SePay could
+        // never confirm. Mirror SubscriptionService.createPendingPayment: generate the
+        // standalone txnRef token FIRST, use it as QR memo + paymentContent + txnRef
+        // (all three equal), single save.
+        String txnRef = generateTxnRef(UUID.randomUUID());
+        payment.setTxnRef(txnRef);
+        payment.setPaymentContent(txnRef);
+
         // Generate QR code if payment method is VietQR
         if (request.getPaymentMethod() == PaymentMethod.VIETQR) {
-            String qrCodeUrl = vietQRService.generateQRCode(
-                UUID.randomUUID(), // Will be replaced after save
-                effectiveAmountVnd,
-                request.getSubscriptionId()
-            );
-            payment.setQrCodeUrl(qrCodeUrl);
+            payment.setQrCodeUrl(vietQRService.generateQRCode(
+                UUID.randomUUID(), effectiveAmountVnd, txnRef));
             // GAP-939: snapshot bank account info from VietQRService defaults so Owner
             // sees "Số tài khoản" + "Tên chủ tài khoản" on /billing/payment/{id}.
             // Prior to fix: setBankCode(getBankInfo()) stored multi-line "Bank: VCB\n..."
@@ -106,17 +114,7 @@ public class PaymentService {
             payment.setAccountName(vietQRService.getAccountName());
         }
 
-        // Generate payment content
-        String paymentContent = vietQRService.generatePaymentContent(request.getSubscriptionId());
-        payment.setPaymentContent(paymentContent);
-
         Payment saved = paymentRepository.save(payment);
-
-        // GAP-975: derive the SePay matching reference from the generated id
-        // (KH3SUB + first 8 hex of the UUID, uppercased → matches the api-contract
-        // regex KH3SUB[A-F0-9]{8}). UNIQUE index guards the rare collision space.
-        saved.setTxnRef(generateTxnRef(saved.getId()));
-        saved = paymentRepository.save(saved);
 
         log.info("Created payment: {} (txnRef: {}) for subscription: {}",
             saved.getId(), saved.getTxnRef(), request.getSubscriptionId());

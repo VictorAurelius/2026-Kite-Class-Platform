@@ -87,8 +87,8 @@ class SubscriptionServiceTest {
         when(instanceRepository.existsById(instanceId)).thenReturn(true);
         when(subscriptionRepository.findActiveByInstanceId(instanceId)).thenReturn(Optional.empty());
         // Use any() (matches null) — first save() happens before ID is generated.
-        when(vietQRService.generatePaymentContent(any())).thenReturn("KITEHUB ABCD1234");
-        when(vietQRService.generateQRCode(any(), any(), any()))
+        // GAP-1087 / Bug D: createPendingPayment passes the String txnRef as the QR memo.
+        when(vietQRService.generateQRCode(any(UUID.class), any(Long.class), anyString()))
             .thenReturn("https://qr.example/payment.png");
         when(vietQRService.getBankCode()).thenReturn("VCB");
         when(vietQRService.getAccountNumber()).thenReturn("1234567890");
@@ -130,7 +130,10 @@ class SubscriptionServiceTest {
         assertThat(capturedPayment.getAmountVnd()).isEqualTo(500_000L);
         assertThat(capturedPayment.getPaymentMethod()).isEqualTo(PaymentMethod.VIETQR);
         assertThat(capturedPayment.getStatus()).isEqualTo(PaymentStatus.PENDING);
-        assertThat(capturedPayment.getPaymentContent()).isEqualTo("KITEHUB ABCD1234");
+        // GAP-1087 / Bug D: paymentContent == txnRef (KH3SUB token SePay matches on).
+        assertThat(capturedPayment.getPaymentContent())
+            .isEqualTo(capturedPayment.getTxnRef())
+            .matches("KH3SUB[A-F0-9]{8}");
     }
 
     @Test
@@ -284,8 +287,8 @@ class SubscriptionServiceTest {
         savedPayment.setStatus(PaymentStatus.PENDING);
 
         when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
-        when(vietQRService.generatePaymentContent(subscriptionId)).thenReturn("KITEHUB ABCD1234");
-        when(vietQRService.generateQRCode(any(UUID.class), any(Long.class), eq(subscriptionId))).thenReturn("https://qr.example/payment.png");
+        // GAP-1087 / Bug D: createPendingPayment passes the String txnRef as the QR memo.
+        when(vietQRService.generateQRCode(any(UUID.class), any(Long.class), anyString())).thenReturn("https://qr.example/payment.png");
         when(vietQRService.getBankCode()).thenReturn("VCB");
         when(vietQRService.getAccountNumber()).thenReturn("1234567890");
         when(vietQRService.getAccountName()).thenReturn("CONG TY KITECLASS");
@@ -323,8 +326,8 @@ class SubscriptionServiceTest {
         savedPayment.setStatus(PaymentStatus.PENDING);
 
         when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
-        when(vietQRService.generatePaymentContent(subscriptionId)).thenReturn("KITEHUB ABCD1234");
-        when(vietQRService.generateQRCode(any(UUID.class), any(Long.class), eq(subscriptionId))).thenReturn("https://qr.example/payment.png");
+        // GAP-1087 / Bug D: createPendingPayment passes the String txnRef as the QR memo.
+        when(vietQRService.generateQRCode(any(UUID.class), any(Long.class), anyString())).thenReturn("https://qr.example/payment.png");
         when(vietQRService.getBankCode()).thenReturn("VCB");
         when(vietQRService.getAccountNumber()).thenReturn("1234567890");
         when(vietQRService.getAccountName()).thenReturn("CONG TY KITECLASS");
@@ -345,7 +348,10 @@ class SubscriptionServiceTest {
         assertThat(capturedPayment.getAmountVnd()).isCloseTo(466_667L, org.assertj.core.data.Offset.offset(100L));
         assertThat(capturedPayment.getPaymentMethod()).isEqualTo(PaymentMethod.VIETQR);
         assertThat(capturedPayment.getStatus()).isEqualTo(PaymentStatus.PENDING);
-        assertThat(capturedPayment.getPaymentContent()).isEqualTo("KITEHUB ABCD1234");
+        // GAP-1087 / Bug D: paymentContent == txnRef (KH3SUB token SePay matches on).
+        assertThat(capturedPayment.getPaymentContent())
+            .isEqualTo(capturedPayment.getTxnRef())
+            .matches("KH3SUB[A-F0-9]{8}");
         assertThat(capturedPayment.getQrCodeUrl()).isEqualTo("https://qr.example/payment.png");
         assertThat(capturedPayment.getBankCode()).isEqualTo("VCB");
         assertThat(capturedPayment.getAccountNumber()).isEqualTo("1234567890");

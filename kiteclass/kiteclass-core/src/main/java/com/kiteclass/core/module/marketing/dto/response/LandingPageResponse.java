@@ -20,6 +20,9 @@ public class LandingPageResponse {
 
     private Long id;
 
+    // Center identity (GAP-1083) — nav/footer/JsonLd prefer this over heroTitle slogan.
+    private String centerName;
+
     private String heroTitle;
     private String heroSubtitle;
     private String heroImageUrl;
@@ -39,6 +42,9 @@ public class LandingPageResponse {
     private String youtubeUrl;
     private String instagramUrl;
 
+    // Zalo OA deep-link for FloatingCTA (GAP-1083). Hidden by FE when null.
+    private String zaloUrl;
+
     // Data-driven landing sections (wave-thesis-4) — all nullable; FE falls back
     // to defaults when null. Shapes documented on the LandingPage entity fields.
     private String aboutText;
@@ -49,4 +55,10 @@ public class LandingPageResponse {
     private JsonNode testimonials;
     private JsonNode faqs;
     private JsonNode stats;
+
+    // landing-100 F-sections (GAP-1083) — all nullable; FE sections fall back to VN
+    // defaults when null. Shapes documented on the LandingPage entity fields.
+    private JsonNode problemSolution;
+    private JsonNode howItWorks;
+    private JsonNode trustStrip;
 }

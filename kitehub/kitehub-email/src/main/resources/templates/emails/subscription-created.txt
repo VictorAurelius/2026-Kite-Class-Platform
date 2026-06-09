@@ -1,0 +1,22 @@
+Xin chào [(${organizationName != null && !organizationName.isBlank() ? organizationName : 'Quý khách'})],
+
+Chúc mừng! Gói đăng ký của bạn đã được kích hoạt thành công.
+
+Thông tin gói đăng ký:
+  - Gói: [(${tier ?: 'PREMIUM'})]
+  - Chu kỳ thanh toán: [(${billingCycle ?: 'MONTHLY'})]
+
+Bạn có thể bắt đầu sử dụng đầy đủ các tính năng của gói [(${tier ?: 'PREMIUM'})].
+
+Truy cập Dashboard:
+[(${dashboardUrl ?: 'https://kitehub.me/dashboard'})]
+
+Cảm ơn bạn đã tin tưởng và sử dụng KiteClass Platform!
+
+Trân trọng,
+Đội ngũ KiteClass
+
+---
+© 2026 KiteClass Platform. Bảo lưu mọi quyền.
+Email này được gửi tự động, vui lòng không trả lời trực tiếp.
+Nếu cần hỗ trợ, vui lòng liên hệ: support@kitehub.me

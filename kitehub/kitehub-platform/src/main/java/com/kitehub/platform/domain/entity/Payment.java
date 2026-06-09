@@ -54,7 +54,9 @@ public class Payment extends BaseEntity {
     @Column(name = "status", nullable = false, length = 20)
     private PaymentStatus status = PaymentStatus.PENDING;
 
-    @Column(name = "qr_code_url", length = 500)
+    // TEXT (not VARCHAR(500)): VietQR returns the QR as a base64 PNG data-URL (several KB).
+    // See V67__payments_qr_code_url_to_text.sql (KH-3 G2 SePay walk fix).
+    @Column(name = "qr_code_url", columnDefinition = "TEXT")
     private String qrCodeUrl;
 
     @Column(name = "transaction_id", length = 100)

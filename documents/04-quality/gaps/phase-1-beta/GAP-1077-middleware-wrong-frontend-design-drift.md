@@ -44,10 +44,14 @@ Implement GAP-811 đặt middleware nhầm vào `kitehub-frontend` thay vì `kit
 
 ## Acceptance Criteria
 
-- [ ] `kiteclass-frontend/src/middleware.ts` tồn tại + resolve Host→tenantId UUID + inject `x-tenant-id` cho SSR
-- [ ] Quyết định + thực thi số phận `kitehub-frontend/src/middleware.ts` (remove/repurpose)
-- [ ] Design doc `tenant-domain-landing-architecture.md` + GAP-811 + recipe G2 nhất quán (cùng FE + cùng domain story)
-- [ ] Walk production-accurate qua kiteclass-frontend (nip.io subdomain) → landing render đúng tenant branding
+- [x] `kiteclass-frontend/src/middleware.ts` tồn tại + resolve Host→tenantId UUID + inject `x-tenant-id` cho SSR — shipped (commit c1b09c88); SSR consumers `(public)/{page,layout}.tsx` đọc header.
+- [x] Quyết định + thực thi số phận `kitehub-frontend/src/middleware.ts` (remove/repurpose) — REMOVED; `find kitehub/kitehub-frontend/src -name middleware.ts` → 0 file (verify 2026-06-09). Move clean.
+- [x] Design doc `tenant-domain-landing-architecture.md` + GAP-811 + recipe G2 nhất quán (cùng FE + cùng domain story) — design doc + middleware code + tests đều `kiteclass-frontend` + `*.kiteclass.com`. (G2 recipe sync = coordinator handoff.)
+- [ ] Walk production-accurate qua kiteclass-frontend (nip.io subdomain) → landing render đúng tenant branding — **live walk deferred to coordinator G2**.
+
+## Log
+
+- 2026-06-09 — **Move verified CLEAN.** `kiteclass-frontend/src/middleware.ts` exists (host→tenant, GAP-1077/811 tag in comments); `kitehub-frontend/src/middleware.ts` REMOVED (`find kitehub/kitehub-frontend/src -name middleware.ts` → 0 file). Design (`tenant-domain-landing-architecture.md`) + middleware code + tests all consistent on `kiteclass-frontend` + `*.kiteclass.com`. 41/41 FE unit tests PASS + `pnpm --filter kiteclass-frontend build` exit 0. 3/4 AC met; remaining = live production-accurate walk (coordinator G2) + DONE flip.
 
 ## Related
 

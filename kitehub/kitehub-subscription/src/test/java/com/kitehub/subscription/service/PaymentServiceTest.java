@@ -22,6 +22,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 /**
@@ -75,10 +76,8 @@ class PaymentServiceTest {
         when(vietQRService.getBankCode()).thenReturn(BANK_CODE);
         when(vietQRService.getAccountNumber()).thenReturn(ACCOUNT_NUMBER);
         when(vietQRService.getAccountName()).thenReturn(ACCOUNT_NAME);
-        when(vietQRService.generateQRCode(any(UUID.class), any(Long.class), any(UUID.class)))
+        when(vietQRService.generateQRCode(any(UUID.class), any(Long.class), anyString()))
             .thenReturn("https://img.vietqr.io/image/VCB-1234567890-compact.png");
-        when(vietQRService.generatePaymentContent(subscriptionId))
-            .thenReturn("KITECLASS " + subscriptionId.toString().substring(0, 8).toUpperCase());
 
         when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> {
             Payment p = inv.getArgument(0);
@@ -98,10 +97,10 @@ class PaymentServiceTest {
         PaymentResponse response = paymentService.createPayment(request);
 
         // Capture Payment entity passed to save() — assert bank info snapshot.
-        // save() is called twice (once to obtain the generated id, once to persist
-        // the derived txnRef); captor.getValue() returns the latest mutated entity.
+        // GAP-1087 / Bug D: a single save() now — the KH3SUB txnRef is generated BEFORE
+        // the save (was previously derived from the id with a second save).
         ArgumentCaptor<Payment> captor = ArgumentCaptor.forClass(Payment.class);
-        org.mockito.Mockito.verify(paymentRepository, org.mockito.Mockito.times(2)).save(captor.capture());
+        org.mockito.Mockito.verify(paymentRepository, org.mockito.Mockito.times(1)).save(captor.capture());
         Payment saved = captor.getValue();
 
         assertThat(saved.getBankCode())
@@ -124,7 +123,6 @@ class PaymentServiceTest {
         Subscription subscription = new Subscription();
         subscription.setInstanceId(instanceId);
         when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
-        when(vietQRService.generatePaymentContent(subscriptionId)).thenReturn("KITECLASS X");
         when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> {
             Payment p = inv.getArgument(0);
             if (p.getId() == null) {
@@ -164,7 +162,6 @@ class PaymentServiceTest {
         Subscription subscription = new Subscription();
         subscription.setInstanceId(instanceId);
         when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
-        when(vietQRService.generatePaymentContent(subscriptionId)).thenReturn("KITECLASS X");
         when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> {
             Payment p = inv.getArgument(0);
             if (p.getId() == null) {
@@ -193,7 +190,6 @@ class PaymentServiceTest {
         Subscription subscription = new Subscription();
         subscription.setInstanceId(instanceId);
         when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
-        when(vietQRService.generatePaymentContent(subscriptionId)).thenReturn("KITECLASS X");
         when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> {
             Payment p = inv.getArgument(0);
             if (p.getId() == null) {
@@ -224,7 +220,6 @@ class PaymentServiceTest {
         Subscription subscription = new Subscription();
         subscription.setInstanceId(instanceId);
         when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
-        when(vietQRService.generatePaymentContent(subscriptionId)).thenReturn("KITECLASS X");
         when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> {
             Payment p = inv.getArgument(0);
             if (p.getId() == null) {

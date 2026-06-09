@@ -150,14 +150,14 @@ async function getTenantIdentity() {
 
 ## Acceptance Criteria
 
-- [ ] `kiteclass-frontend/src/middleware.ts` tồn tại, đọc `Host`, set request header `x-tenant-id`, có in-memory cache TTL + fallback graceful khi BE down/404.
-- [ ] `page.tsx` `getLandingPageData` ưu tiên `headers().get('x-tenant-id')` trước `NEXT_PUBLIC_TENANT_ID`; vẫn giữ `?tenant=` dev override + fallback hardcode.
-- [ ] `layout.tsx` `getTenantIdentity` đọc cùng header host-resolved.
-- [ ] Browse `sky.<domain>` (subdomain) → landing render branding Sky Education (KHÔNG fallback `11111111-...`), verify qua RST walk: middleware log resolved UUID + Network tab landing fetch dùng đúng UUID + nav/footer hiển thị tên Sky.
-- [ ] `localhost` / IP / `?tenant=` dev path vẫn hoạt động (regression).
-- [ ] BE down / slug không tồn tại → landing degrade về fallback branding KHÔNG crash (graceful).
-- [ ] `pnpm --filter kiteclass-frontend build` PASS (per `fe-build-local-verify.md` §3 — middleware + `headers()` dynamic API có thể trigger prerender boundary; build local trước push).
-- [ ] Blocked on GAP-813 endpoint; nếu GAP-813 chưa ship → GAP-811 stays OPEN/PARTIAL, KHÔNG flip DONE (per `gap-done-discipline.md` §3).
+- [x] `kiteclass-frontend/src/middleware.ts` tồn tại, đọc `Host`, set request header `x-tenant-id`, có in-memory cache TTL + fallback graceful khi BE down/404. — `middleware.ts` + `lib/tenant/{resolveTenant,tenantCache}.ts` shipped (Wave tenant-domain-1 Bucket C move GAP-1077, commit c1b09c88).
+- [x] `page.tsx` `getLandingPageData` ưu tiên `headers().get('x-tenant-id')` trước `NEXT_PUBLIC_TENANT_ID`; vẫn giữ `?tenant=` dev override + fallback hardcode. — `(public)/page.tsx:29-33` (`tenantOverride ?? headerTenantId ?? NEXT_PUBLIC_TENANT_ID ?? hardcode`).
+- [x] `layout.tsx` `getTenantIdentity` đọc cùng header host-resolved. — `(public)/layout.tsx:31-35`.
+- [ ] Browse `sky.<domain>` (subdomain) → landing render branding Sky Education (KHÔNG fallback `11111111-...`), verify qua RST walk: middleware log resolved UUID + Network tab landing fetch dùng đúng UUID + nav/footer hiển thị tên Sky. — **live RST walk (deferred to coordinator G2 per `pre-handoff-self-test-completeness.md` §2.7)**.
+- [x] `localhost` / IP / `?tenant=` dev path vẫn hoạt động (regression). — covered by `middleware.test.ts` ('honours ?tenant= preview', 'passes through cleanly for localhost', 'preview overrides host'); 41/41 unit tests PASS.
+- [x] BE down / slug không tồn tại → landing degrade về fallback branding KHÔNG crash (graceful). — `middleware.test.ts` ('degrades gracefully when BE unreachable 5xx', 'passes through when 404') + `resolveTenant.test.ts` (404→null / 5xx→TenantResolveNetworkError) PASS.
+- [x] `pnpm --filter kiteclass-frontend build` PASS (per `fe-build-local-verify.md` §3 — middleware + `headers()` dynamic API có thể trigger prerender boundary; build local trước push). — build exit 0; `ƒ Middleware 34.9 kB` bundled + `/suspended` route built (2026-06-09 verify).
+- [x] Blocked on GAP-813 endpoint; GAP-813 `PublicTenantController` (`/api/v1/public/tenants/by-subdomain/{slug}`) + gateway `public-tenant-resolve` route + kitehub-subscription SecurityConfig permitAll all SHIPPED → blocker cleared. (Status flip → DONE = coordinator after G2 live walk per `gap-done-discipline.md` §3.)
 
 ## Related
 
@@ -169,6 +169,8 @@ async function getTenantIdentity() {
 - `kiteclass-core` `PublicBrandingController.resolveTenantUuid` — slug→UUID logic đã có, GAP-813 expose lại.
 
 ## Log
+
+- 2026-06-09 — **State-check + verify (tenant-resolution cluster completion pass):** Confirmed full implementation shipped + verified. `kiteclass-frontend/src/middleware.ts` (host→tenant, `?tenant=` preview, reserved-subdomain skip, 404 pass-through, 410→`/suspended` 307 redirect, 5xx graceful pass-through with `x-tenant-resolve-error` header) + `lib/tenant/{resolveTenant,tenantCache}.ts` (5-min TTL + negative cache) all present. SSR consumers `(public)/{page,layout}.tsx` read `x-tenant-id` header before `NEXT_PUBLIC_TENANT_ID`. Tests use REAL Host header parsing (not just `?tenant=`). Verify: `pnpm --filter kiteclass-frontend test --run src/lib/tenant src/__tests__/middleware.test.ts` → 41/41 PASS (3 files); `pnpm --filter kiteclass-frontend build` → exit 0 (`ƒ Middleware 34.9 kB` bundled + `/suspended` route built). Dependency GAP-813 BE endpoint confirmed shipped (kitehub-subscription). 6/8 AC ticked; remaining = live RST walk (coordinator G2) + DONE flip (coordinator).
 
 - 2026-06-01 — **Wave meta-8 Bucket B SCOPE-REVISE:** SCOPE-REVISE — Status empty + AC all unchecked but Wave tenant-domain-1 Bucket C shipped 853/853 tests + build PASS; 5/8 AC implicit if synced (middleware + cache + suspended + dev override + build); live RST walk + landing SSR defer GAP-813 unblock CSV completion_pct adjusted to 60%; gap body Status/AC reflect documented scope BEFORE Wave meta-7 audit — re-read audit artifact for current empirical reality. Source: `documents/04-quality/audits/meta/2026-06-01-wave-meta-7-bucket-d-p1-partial.md`.
 

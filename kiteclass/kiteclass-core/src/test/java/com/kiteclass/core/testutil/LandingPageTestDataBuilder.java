@@ -21,6 +21,8 @@ public class LandingPageTestDataBuilder {
         LandingPage landingPage = new LandingPage();
         landingPage.setId(1L);
         landingPage.setInstanceId(UUID.randomUUID());
+        landingPage.setCenterName("Trung tâm Anh ngữ Sky Education");
+        landingPage.setZaloUrl("https://zalo.me/0901234567");
         landingPage.setHeroTitle("Welcome to Test Learning Center");
         landingPage.setHeroSubtitle("Quality education for everyone");
         landingPage.setHeroImageUrl("https://example.com/hero.jpg");
