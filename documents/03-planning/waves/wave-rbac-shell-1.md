@@ -3,6 +3,7 @@ title: Wave RBAC-Shell 1 — KiteClass role-based login routing + per-role dashb
 status: draft
 created: 2026-06-10
 updated: 2026-06-09
+waves: [rbac-shell-1]
 tag_primary: rbac-shell
 tags_secondary: [kiteclass, auth, role-shell, beta-prep]
 counter: 1
@@ -18,26 +19,13 @@ audience: dev
 ## TL;DR
 Tầng **nền FE role-shell** cho KiteClass — foundation cho mọi KC user-facing surface (LMS, course/class, grade, attendance, billing học phí, parent/student portal). Đóng **GAP-1119**. 4 role-shell buildable ngay (owner/staff/teacher/parent); student-shell scaffold + gated **KC-9** (student-auth pending).
 
-## Bối cảnh điều tra (đã làm session 2026-06-10, design-first)
-
-### BE — RBAC + auth-by-role đã thiết kế tách KH/KC (đã verify code)
-- **RBAC dynamic-capable:** `kiteclass-core/module/role` có `Role` + `Permission` + `RoleService` + role-hierarchy (BR-ROLE Level 1-10, role bundle permissions, custom role per-tenant, seeded `RoleSeederService`). Design ADR-003-role-hierarchy.
-- **Auth split KH/KC** (per `tenant-auth/rules.md` BR-AUTH-002 + `kitehub-kiteclass-boundary.md` §2):
-  - **OWNER/STAFF login KiteHub** (`kitehub-subscription` `/api/v1/auth/**`, FE `:3001`, KHÔNG nằm trong `auth_credentials` KC).
-  - **TEACHER/PARENT/STUDENT login KiteClass** (tenant-auth Option B, `/api/v1/tenant-auth/login`, FE `:3000`, `entity_type CHECK ∈ {PARENT,TEACHER,STUDENT}` V89:22). Teacher chỉ KC.
-- Parent + Teacher auth ĐÃ PULLED FORWARD Phase 1 (Option B KC-native, working end-to-end PR #2186 per memory `project_parent_student_portal_phase2_gated`). Student + KC-9 vẫn pending.
-
-### FE — role-shell YẾU/thiếu (đã verify code)
-- Có route group `(dashboard)`/`(teacher)`/`(public)`/`(auth)` nhưng **KHÔNG có** login→role-based-redirect, **KHÔNG có** role-guard component (grep `RoleGuard`/`useRole`/`hasRole` → 0 hit), **KHÔNG có** cross-product handoff KH `:3001` → KC `:3000` cho owner/staff.
-- → mọi role login gần như thấy cùng 1 shell; route KHÔNG bị chặn theo role (rủi ro: bất kỳ user login nào với tới route bất kỳ — IDOR-by-navigation risk).
-
 ## Quyết định đã chốt (2026-06-10, user — GAP-1119)
 1. **RBAC depth = fixed-curated cho beta** — ship 5 role template seeded (OWNER/STAFF/TEACHER/PARENT/STUDENT); owner CHỈ gán user→role; KHÔNG dựng UI owner-sửa-permission-per-role; BE giữ dynamic-capable; defer permission-edit UI Phase 3.
 2. **Owner/Staff auth = cross-product SSO KH→KC** — giữ split: OWNER/STAFF login KH `:3001`; token KH-minted handoff sang KC `:3000` qua shared gateway cho school-mgmt. TEACHER/PARENT/STUDENT login thẳng KC.
 3. **Route quản-quyền (assign user→role) ở KC owner-shell** — role-hierarchy là KC domain (per-tenant school roles); KHÔNG ở KH.
 4. **Invite split STAFF(KH)/TEACHER(KC) giữ nguyên + document rõ** → xem `documents/03-planning/plans/invite-flow-redesign-discussion-2026-06-09.md` (deliverable thảo luận riêng — user quyết định scope multi-role + bulk).
 
-## §1. Brainstorm
+## 1. Brainstorm
 
 ### Outside-in
 ĐÃ audit (persona lens trong `2026-06-10-pre-wave-lms-fe-outside-in.md` flagged owner/parent/admin scope). Decisions chốt GAP-1119: RBAC fixed-curated + cross-product SSO KH→KC + route quản-quyền KC.
@@ -51,7 +39,9 @@ Login→role-redirect = auth flow → §2 trigger fires. Spawn Opus pre-walk age
 - **Risk #2 — KC-9 student-auth blocker:** student-shell chỉ scaffold được, KHÔNG functional cho tới khi KC-9 ship.
 - **Risk #3 — role-name parity BE seed vs FE guard** (per `pre-handoff-self-test-completeness.md` §2.4): grep BE `RoleSeederService` literal vs FE RoleGuard literal, reconcile (đã từng có `PLATFORM_ADMIN` vs `ADMIN` drift Wave 78 GAP-518).
 
-## §2. Buckets (disjoint, worktree-parallel, Opus)
+## 2. Task Breakdown
+
+Buckets (disjoint, worktree-parallel, Opus):
 
 | Bucket | Scope | Dep | Walk class |
 |---|---|---|---|
@@ -71,22 +61,30 @@ Login→role-redirect = auth flow → §2 trigger fires. Spawn Opus pre-walk age
 | STUDENT | chỉ học tập: my classes + lesson player + assignments + grades + progress + attendance + payments (own) — **chờ KC-9** | KC `:3000` (gated) |
 | PARENT | child read-only: progress/grades/attendance/fees + notify (Zalo) | KC `:3000` native |
 
-## §3. Scope-completeness (per `wave-closure-scope-completeness.md` — fill at closure)
+## 3. Scope
+
+### Scope-completeness reconciliation (per `wave-closure-scope-completeness.md` — fill at closure)
 | # | Plan §2 item | Verdict | Follow-up |
 |---|---|---|---|
 | _(điền tại closure)_ | | | |
 
-## §4. Sequencing
-```
-Bucket 0 (pre-walk simulation)
-   ↓
-Bucket A (login role-redirect + role-guard, foundation)
-   ↓
-Bucket B (4 shell) ∥ Bucket C (cross-product SSO, risk-isolated) ∥ Bucket D (RBAC-assign UI) ∥ Bucket E (invite split doc)
-```
-Student-shell = scaffold only (Increment B chờ KC-9). Bucket E độc lập (docs), ship parallel bất kỳ lúc nào.
+## 4. State-Check Evidence
 
-## §5. Acceptance
+Bối cảnh điều tra (đã làm session 2026-06-10, design-first):
+
+### BE — RBAC + auth-by-role đã thiết kế tách KH/KC (đã verify code)
+- **RBAC dynamic-capable:** `kiteclass-core/module/role` có `Role` + `Permission` + `RoleService` + role-hierarchy (BR-ROLE Level 1-10, role bundle permissions, custom role per-tenant, seeded `RoleSeederService`). Design ADR-003-role-hierarchy.
+- **Auth split KH/KC** (per `tenant-auth/rules.md` BR-AUTH-002 + `kitehub-kiteclass-boundary.md` §2):
+  - **OWNER/STAFF login KiteHub** (`kitehub-subscription` `/api/v1/auth/**`, FE `:3001`, KHÔNG nằm trong `auth_credentials` KC).
+  - **TEACHER/PARENT/STUDENT login KiteClass** (tenant-auth Option B, `/api/v1/tenant-auth/login`, FE `:3000`, `entity_type CHECK ∈ {PARENT,TEACHER,STUDENT}` V89:22). Teacher chỉ KC.
+- Parent + Teacher auth ĐÃ PULLED FORWARD Phase 1 (Option B KC-native, working end-to-end PR #2186 per memory `project_parent_student_portal_phase2_gated`). Student + KC-9 vẫn pending.
+
+### FE — role-shell YẾU/thiếu (đã verify code)
+- Có route group `(dashboard)`/`(teacher)`/`(public)`/`(auth)` nhưng **KHÔNG có** login→role-based-redirect, **KHÔNG có** role-guard component (grep `RoleGuard`/`useRole`/`hasRole` → 0 hit), **KHÔNG có** cross-product handoff KH `:3001` → KC `:3000` cho owner/staff.
+- → mọi role login gần như thấy cùng 1 shell; route KHÔNG bị chặn theo role (rủi ro: bất kỳ user login nào với tới route bất kỳ — IDOR-by-navigation risk).
+
+## 5. Verification Gates
+
 Theo GAP-1119 AC:
 - [ ] KC login mint token → redirect đúng role-home; role-guard chặn route ngoài quyền
 - [ ] 4 role-shell (owner/staff/teacher/parent) có nav + dashboard home riêng; student-shell scaffold + gated KC-9
@@ -97,10 +95,27 @@ Theo GAP-1119 AC:
 
 Mỗi shell + SSO: pre-walk persona simulation → G1 browser-walk per `g1-browser-walk-before-flip.md` → feature-ship runtime walk trước DONE.
 
-## §6. Risk
+## 6. Agent Spawn Pattern
+
+Worktree-parallel + Opus per `agent-background-spawn-default.md` + `agent-model-opus-default.md`. Spawn order:
+
+```
+Bucket 0 (pre-walk simulation)
+   ↓
+Bucket A (login role-redirect + role-guard, foundation)
+   ↓
+Bucket B (4 shell) ∥ Bucket C (cross-product SSO, risk-isolated) ∥ Bucket D (RBAC-assign UI) ∥ Bucket E (invite split doc)
+```
+Student-shell = scaffold only (Increment B chờ KC-9). Bucket E độc lập (docs), ship parallel bất kỳ lúc nào.
+
+## 7. Closure Protocol
+
+Draft — fill tại closure. Per `wave-closure-scope-completeness.md` (reconciliation table §3) + `post-wave-cleanup.md` (prune worktrees + merged branches) + `post-merge-sync-completeness.md` (CSV / ROADMAP / wave-history / memory sync).
+
+### Risk
 - **Cross-product SSO (Risk #1 HIGH):** Bucket C cần design token handoff trước impl. Nếu SSO complexity > 1 bucket → split sang dedicated wave; Bucket B owner/staff shell tạm dùng KC-native fallback login (nếu khả thi) cho beta.
 - **role-name parity drift:** verify BE seed vs FE guard literal (Risk #3) — reconcile trong Bucket A.
 - **IDOR-by-navigation:** hiện route không chặn role → Bucket A role-guard = security fix, không chỉ UX (P1).
 
-## §7. Log
-- **2026-06-09:** Draft enrich từ session 2026-06-10 investigation (GAP-1119 + auth-split verify) — thêm BE/FE state verify, 3 Risk (cross-product SSO / KC-9 / role-name parity), Bucket 0 pre-walk, per-role login-location table, pointer tới invite redesign discussion doc, scope-completeness placeholder. EXTEND draft gốc (PR #2283 branch `feature/gap-1119-kc-role-shell`).
+## 8. Log
+- **2026-06-09:** Draft enrich từ session 2026-06-10 investigation (GAP-1119 + auth-split verify) — thêm BE/FE state verify, 3 Risk (cross-product SSO / KC-9 / role-name parity), Bucket 0 pre-walk, per-role login-location table, pointer tới invite redesign discussion doc, scope-completeness placeholder. EXTEND draft gốc (PR #2283 branch `feature/gap-1119-kc-role-shell`). Restructure sang 8 canonical section (per `_TEMPLATE.md`) khi ship qua PR #2287.

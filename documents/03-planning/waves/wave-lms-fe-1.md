@@ -3,6 +3,7 @@ title: Wave LMS-FE 1 — KiteClass LMS content-delivery FE (lean MVP)
 status: draft
 created: 2026-06-10
 updated: 2026-06-09
+waves: [lms-fe-1]
 tag_primary: lms-fe
 tags_secondary: [kiteclass, content-delivery, beta-prep]
 counter: 1
@@ -18,7 +19,48 @@ audience: dev
 ## TL;DR
 FE LMS surfaces cắm lên role-shell (Wave RBAC-Shell 1). MVP **LEAN** theo benchmark (trung tâm dạy thêm VN = operations-first, không content-LMS-first). Đóng **GAP-1113** (FE LMS headless). BE LMS đã có 4 bảng + RLS + service nhưng cần Phase0-BE gap-fill (course list/publish/upload) + F1 security fix.
 
-## Bối cảnh điều tra (đã làm session 2026-06-10, design-first)
+## 1. Brainstorm
+
+### Outside-in (ĐÃ audit 3-lens)
+`documents/04-quality/audits/persona-review/2026-06-10-pre-wave-lms-fe-outside-in.md` (persona + benchmark + failure-matrix). Benchmark verdict: **trung tâm dạy thêm VN = operations-first** (điểm danh + học phí + báo phụ huynh quan trọng hơn content-LMS đầy đủ). → MVP LEAN, defer/cut nhiều content-LMS feature.
+
+### Pre-walk persona simulation (BẮT BUỘC trước G2 walk per `pre-walk-persona-simulation-mandate.md`)
+LMS = user-facing flow (teacher authoring / student player / guest paywall) → §2 trigger fires. PHẢI spawn Opus pre-walk agent return ≥5 failure modes TRƯỚC mỗi bucket walk. Bucket 0 (pre-walk) thêm vào §2 Task Breakdown.
+
+### Deps CỨNG (phải xong trước)
+1. **Wave RBAC-Shell 1** (teacher-shell + student-shell) — surfaces cắm vào shell đúng role.
+2. **F1 BE-fix GAP-1115..1118** merged (PR #2284) — paywall/enrollment/header/tenant-context.
+3. **Phase0-BE gap-fill** (bucket §2) — course list/publish/reorder/upload/roster.
+4. Student surfaces chờ thêm **KC-9** student-auth (memory `project_parent_student_portal_phase2_gated`).
+
+## 2. Task Breakdown
+
+Buckets (disjoint, worktree-parallel, Opus per `agent-model-opus-default.md`):
+
+| Bucket | Scope | Layer | Dep | Walk class |
+|---|---|---|---|---|
+| **Phase0-BE** — gap-fill | course **list/search** endpoint + **publish/unpublish** state + **reorder** atomic (batch orderNumber) + resource **upload** (MinIO/S3 pipeline) + completion-roster aggregate (teacher) + 3-layer doc `lms/api-contract.md` update | BE (kc-core) | F1 merged | n/a (API contract per `contract-first-for-cross-layer.md`) |
+| **A** — Teacher authoring UI | tab "Nội dung" trong course-detail: CRUD module/lesson/resource (drag-drop reorder, auto orderNumber ẩn); cắm **teacher-shell** | FE | Phase0-BE + RBAC-Shell teacher | user-facing flow ✅ pre-walk required |
+| **B** — Guest catalog + paywall UI | public catalog (list endpoint) + trial preview + paywall lock bài paid + CTA đăng ký (KHÔNG raw 403) | FE | Phase0-BE | user-facing flow ✅ pre-walk required |
+| **C** — Student lesson player + progress | lesson view (markdown + **video embed** YouTube/Vimeo, không tự host) + mark-complete + progress% + gamification toast; cắm **student-shell** | FE | RBAC-Shell student (**KC-9 gated**) | user-facing flow ✅ pre-walk required |
+| **D** — Surface `assignment` (BE đã có) | giao/nộp/chấm/trả theo class — ROI cao vì BE xong, chỉ thiếu FE | FE | RBAC-Shell teacher+student | user-facing flow ✅ pre-walk required |
+
+**Quy ước cross-layer (per `contract-first-for-cross-layer.md`):** Phase0-BE = Bucket 0 Foundation, ship api-contract + endpoint FIRST → FE bucket reference contract, KHÔNG tự design endpoint shape.
+
+## 3. Scope
+
+### Scope-completeness reconciliation (per `wave-closure-scope-completeness.md` — fill at closure)
+| # | Plan §2 item | Verdict | Follow-up |
+|---|---|---|---|
+| _(điền tại closure)_ | | | |
+
+### Defer / Cut (per benchmark — operations-first)
+- **Defer (Wave LMS-FE 2+):** quiz auto-grade có-giờ (kéo lên **P0 nếu beta cohort = trung tâm luyện thi THPT**), học bạ/analytics LMS, **Zalo-notify** (tách track operations Wave Zalo).
+- **Cut khỏi MVP:** SCORM / certificate / DRM-video / discussion forum / self-checkout marketplace / live-class video conferencing.
+
+## 4. State-Check Evidence
+
+Bối cảnh điều tra (đã làm session 2026-06-10, design-first):
 
 ### Trạng thái BE LMS hiện tại (đã verify code)
 - **4 bảng LMS shipped:** `course_modules` / `lessons` / `learning_resources` / `lesson_progress` (V14 migration KC-core, V79 entity sync). Doc cluster: `documents/02-architecture/database/kiteclass/09-lms.md` (PR #2280).
@@ -43,42 +85,17 @@ Audit report 3-lens: `documents/04-quality/audits/persona-review/2026-06-10-pre-
 - Resource **upload** (MinIO/S3) — hiện chỉ có metadata CRUD, chưa có upload pipeline.
 - Completion-roster (teacher xem ai hoàn thành) — aggregate query.
 
-## §1. Brainstorm
+## 5. Verification Gates
 
-### Outside-in (ĐÃ audit 3-lens)
-`documents/04-quality/audits/persona-review/2026-06-10-pre-wave-lms-fe-outside-in.md` (persona + benchmark + failure-matrix). Benchmark verdict: **trung tâm dạy thêm VN = operations-first** (điểm danh + học phí + báo phụ huynh quan trọng hơn content-LMS đầy đủ). → MVP LEAN, defer/cut nhiều content-LMS feature.
+Theo GAP-1113 AC: teacher tạo nội dung + guest xem trial/paywall (KHÔNG rò content bài paid) + student học+progress (Increment B) + assignment surfaced. Mỗi feature:
+- Pre-walk persona simulation (§1) TRƯỚC walk.
+- Runtime-walk per `feature-ship-runtime-walk-mandate.md` §3 (Walk evidence section) trước DONE.
+- G1 browser-walk per `g1-browser-walk-before-flip.md` cho FE flow.
 
-### Pre-walk persona simulation (BẮT BUỘC trước G2 walk per `pre-walk-persona-simulation-mandate.md`)
-LMS = user-facing flow (teacher authoring / student player / guest paywall) → §2 trigger fires. PHẢI spawn Opus pre-walk agent return ≥5 failure modes TRƯỚC mỗi bucket walk. Bucket 0 (pre-walk) thêm vào §3.
+## 6. Agent Spawn Pattern
 
-### Deps CỨNG (phải xong trước)
-1. **Wave RBAC-Shell 1** (teacher-shell + student-shell) — surfaces cắm vào shell đúng role.
-2. **F1 BE-fix GAP-1115..1118** merged (PR #2284) — paywall/enrollment/header/tenant-context.
-3. **Phase0-BE gap-fill** (bucket dưới) — course list/publish/reorder/upload/roster.
-4. Student surfaces chờ thêm **KC-9** student-auth (memory `project_parent_student_portal_phase2_gated`).
+Worktree-parallel + Opus per `agent-background-spawn-default.md` + `agent-model-opus-default.md`. Spawn order (2 Increment):
 
-## §2. Buckets (disjoint, worktree-parallel, Opus per `agent-model-opus-default.md`)
-
-| Bucket | Scope | Layer | Dep | Walk class |
-|---|---|---|---|---|
-| **Phase0-BE** — gap-fill | course **list/search** endpoint + **publish/unpublish** state + **reorder** atomic (batch orderNumber) + resource **upload** (MinIO/S3 pipeline) + completion-roster aggregate (teacher) + 3-layer doc `lms/api-contract.md` update | BE (kc-core) | F1 merged | n/a (API contract per `contract-first-for-cross-layer.md`) |
-| **A** — Teacher authoring UI | tab "Nội dung" trong course-detail: CRUD module/lesson/resource (drag-drop reorder, auto orderNumber ẩn); cắm **teacher-shell** | FE | Phase0-BE + RBAC-Shell teacher | user-facing flow ✅ pre-walk required |
-| **B** — Guest catalog + paywall UI | public catalog (list endpoint) + trial preview + paywall lock bài paid + CTA đăng ký (KHÔNG raw 403) | FE | Phase0-BE | user-facing flow ✅ pre-walk required |
-| **C** — Student lesson player + progress | lesson view (markdown + **video embed** YouTube/Vimeo, không tự host) + mark-complete + progress% + gamification toast; cắm **student-shell** | FE | RBAC-Shell student (**KC-9 gated**) | user-facing flow ✅ pre-walk required |
-| **D** — Surface `assignment` (BE đã có) | giao/nộp/chấm/trả theo class — ROI cao vì BE xong, chỉ thiếu FE | FE | RBAC-Shell teacher+student | user-facing flow ✅ pre-walk required |
-
-**Quy ước cross-layer (per `contract-first-for-cross-layer.md`):** Phase0-BE = Bucket 0 Foundation, ship api-contract + endpoint FIRST → FE bucket reference contract, KHÔNG tự design endpoint shape.
-
-## §3. Scope-completeness (per `wave-closure-scope-completeness.md` — fill at closure)
-| # | Plan §2 item | Verdict | Follow-up |
-|---|---|---|---|
-| _(điền tại closure)_ | | | |
-
-## §4. Defer / Cut (per benchmark — operations-first)
-- **Defer (Wave LMS-FE 2+):** quiz auto-grade có-giờ (kéo lên **P0 nếu beta cohort = trung tâm luyện thi THPT**), học bạ/analytics LMS, **Zalo-notify** (tách track operations Wave Zalo).
-- **Cut khỏi MVP:** SCORM / certificate / DRM-video / discussion forum / self-checkout marketplace / live-class video conferencing.
-
-## §5. Sequencing (2 Increment)
 ```
 Phase0-BE (Bucket 0 Foundation, merge first)
    ↓
@@ -90,16 +107,14 @@ Increment B (student — chờ KC-9 student-auth unblock):
 ```
 Increment A shippable ngay sau RBAC-Shell teacher-shell + Phase0-BE. Increment B gated KC-9.
 
-## §6. Acceptance
-Theo GAP-1113 AC: teacher tạo nội dung + guest xem trial/paywall (KHÔNG rò content bài paid) + student học+progress (Increment B) + assignment surfaced. Mỗi feature:
-- Pre-walk persona simulation (§1) TRƯỚC walk.
-- Runtime-walk per `feature-ship-runtime-walk-mandate.md` §3 (Walk evidence section) trước DONE.
-- G1 browser-walk per `g1-browser-walk-before-flip.md` cho FE flow.
+## 7. Closure Protocol
 
-## §7. Risk
+Draft — fill tại closure. Per `wave-closure-scope-completeness.md` (reconciliation table §3) + `post-wave-cleanup.md` (prune worktree husks + merged branches) + `post-merge-sync-completeness.md` (CSV / ROADMAP / wave-history / memory sync).
+
+### Risk
 - **Paywall correctness (P0):** F1 GAP-1115 fix PARTIAL chờ walk — KHÔNG flip LMS-FE DONE trước khi paywall walk live-verify (non-enrolled student → content=null; enrolled → full).
 - **KC-9 student-auth blocker:** Increment B treo cho tới khi student login shipped. Scaffold student-shell only (per RBAC-Shell Bucket B).
 - **Upload pipeline (Phase0-BE):** MinIO/S3 resource upload = file-upload flow → verify per `pre-handoff-self-test-completeness.md` §2.5 (MIME/size/scan/storage/retrieval).
 
-## §8. Log
-- **2026-06-09:** Draft enrich từ session 2026-06-10 investigation (5 PR open #2280/#2281/#2284 + GAP-1119) — thêm F1 BE-fix context, Phase0-BE endpoint gap-fill, cross-layer contract-first, pre-walk mandate, 2-Increment sequencing, risk. EXTEND draft gốc (PR #2283 branch `feature/gap-1119-kc-role-shell`).
+## 8. Log
+- **2026-06-09:** Draft enrich từ session 2026-06-10 investigation (5 PR open #2280/#2281/#2284 + GAP-1119) — thêm F1 BE-fix context, Phase0-BE endpoint gap-fill, cross-layer contract-first, pre-walk mandate, 2-Increment sequencing, risk. EXTEND draft gốc (PR #2283 branch `feature/gap-1119-kc-role-shell`). Restructure sang 8 canonical section (per `_TEMPLATE.md`) khi ship qua PR #2287.
