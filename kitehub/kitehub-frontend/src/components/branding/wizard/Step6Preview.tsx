@@ -122,14 +122,135 @@ interface BuildPreviewHtmlOptions {
   orgName: string;
   slug: string;
   logoUrl: string | null;
+  templateId: string | null;
   templateName: string | null;
   loading: boolean;
 }
 
+// ---------------------------------------------------------------------------
+// Per-template body composer (GAP-272 §3a fix — "preview phải theo template").
+//
+// The previous version rendered ONE hard-coded hero+features layout for every
+// template, so the only thing that changed when the user picked a different
+// template was a text label in the palette section. The chosen template was
+// effectively invisible in the preview. Each of the 6 wizard templates
+// (TemplateGrid.TEMPLATES) is a distinct landing-page archetype (see the spec
+// SVGs in `ui_kits/ai-branding-wizard-v2/screens/step5-template-grid.html`):
+//   T1 Navy Focus     → centered exam-focus hero + single CTA
+//   T2 Score Board    → data-first heading + horizontal score bars
+//   T3 Coach Card     → teacher card (left) + benefit list (right)
+//   T4 Result Stripes → 3 big-number stat columns
+//   T5 Schedule Grid  → "Lịch khai giảng" rows + seats-left badges
+//   T6 Roadmap        → vertical 12-month milestone timeline
+// Each body is themed via the document's --primary/--secondary/--accent CSS
+// vars (so brand colours flow through) — picking a different template now
+// produces a visibly different preview. `null` template → generic fallback.
+// ---------------------------------------------------------------------------
+
+interface TemplateBodyCtx {
+  /** Already HTML-escaped org name. */
+  safeOrg: string;
+  /** Pre-rendered <img>/<div> logo block (escaped). */
+  logoBlock: string;
+}
+
+function renderTemplateBody(
+  templateId: string | null,
+  { safeOrg, logoBlock }: TemplateBodyCtx,
+): string {
+  switch (templateId) {
+    case 'template-t1-navy-focus':
+      return `
+  <section class="hero t-centered">
+    <div class="hero-logo">${logoBlock}</div>
+    <h1>${safeOrg}</h1>
+    <p class="tagline">98% học viên đạt điểm 9+ · luyện thi vào trường chuyên</p>
+    <span class="cta">Đăng ký test miễn phí</span>
+  </section>`;
+
+    case 'template-t2-score-board':
+      return `
+  <section class="t-board">
+    <div class="t-board-head"><span class="brand-name">${safeOrg}</span><span class="t-pill">Tham gia</span></div>
+    <h2 class="t-h2">Bảng điểm 2025</h2>
+    <div class="t-bars">
+      <div class="t-bar"><span style="width:75%;background:var(--primary)"></span></div>
+      <div class="t-bar"><span style="width:92%;background:var(--accent)"></span></div>
+      <div class="t-bar"><span style="width:58%;background:var(--secondary)"></span></div>
+    </div>
+    <p class="t-link">Xem chi tiết →</p>
+  </section>`;
+
+    case 'template-t3-coach-card':
+      return `
+  <section class="t-coach">
+    <div class="t-coach-card">
+      <div class="t-avatar">${logoBlock}</div>
+      <p class="t-coach-name">Th.S Nguyễn An</p>
+      <p class="t-coach-sub">15 năm luyện thi</p>
+      <span class="cta">Đặt buổi tư vấn</span>
+    </div>
+    <div class="t-coach-list">
+      <div class="t-coach-item">Lộ trình cá nhân hóa</div>
+      <div class="t-coach-item">Lớp ≤ 12 học viên</div>
+      <div class="t-coach-item">Cam kết đầu ra</div>
+    </div>
+  </section>`;
+
+    case 'template-t4-result-stripes':
+      return `
+  <section class="t-stats">
+    <div class="t-stats-banner">98% đỗ chuyên năm 2025</div>
+    <div class="t-stats-grid">
+      <div class="t-stat" style="background:var(--primary)"><b>240</b><span>học viên đỗ</span></div>
+      <div class="t-stat" style="background:var(--secondary)"><b>9.2</b><span>điểm trung bình</span></div>
+      <div class="t-stat" style="background:var(--accent)"><b>15</b><span>năm kinh nghiệm</span></div>
+    </div>
+  </section>`;
+
+    case 'template-t5-schedule-grid':
+      return `
+  <section class="t-schedule">
+    <h2 class="t-h2">Lịch khai giảng</h2>
+    <div class="t-sched-row"><span>15/08 · Lớp 12 · Khai giảng</span><span class="t-badge t-badge-ok">Còn 8 chỗ</span></div>
+    <div class="t-sched-row"><span>22/08 · Lớp 9 · Vào chuyên</span><span class="t-badge t-badge-warn">Còn 3 chỗ</span></div>
+    <div class="t-sched-row"><span>29/08 · Lớp 11 · Cơ bản</span><span class="t-badge t-badge-full">Hết chỗ</span></div>
+  </section>`;
+
+    case 'template-t6-roadmap-vertical':
+      return `
+  <section class="t-roadmap">
+    <h2 class="t-h2 t-h2-light">Lộ trình 12 tháng</h2>
+    <div class="t-timeline">
+      <div class="t-milestone"><span class="t-dot"></span>Tháng 1-3 · Cơ bản</div>
+      <div class="t-milestone"><span class="t-dot"></span>Tháng 4-6 · Nâng cao</div>
+      <div class="t-milestone"><span class="t-dot"></span>Tháng 7-9 · Đề thi thật</div>
+      <div class="t-milestone"><span class="t-dot"></span>Tháng 10-12 · Tổng ôn</div>
+    </div>
+  </section>`;
+
+    default:
+      // No template selected yet → generic hero + 3 features (legacy default).
+      return `
+  <section class="hero">
+    <div class="hero-logo">${logoBlock}</div>
+    <h1>${safeOrg}</h1>
+    <p class="tagline">Nền tảng học tập trực tuyến hiện đại — quản lý lớp học, theo dõi tiến độ và kết nối phụ huynh.</p>
+    <span class="cta">Đăng ký học thử</span>
+  </section>
+  <section class="features">
+    <div class="feature"><div class="dot"></div><h3>Lớp học linh hoạt</h3><p>Lịch học, điểm danh và bài tập trong một nơi.</p></div>
+    <div class="feature"><div class="dot"></div><h3>Theo dõi tiến độ</h3><p>Bảng điểm và báo cáo học tập theo thời gian thực.</p></div>
+    <div class="feature"><div class="dot"></div><h3>Kết nối phụ huynh</h3><p>Thông báo và trao đổi với giáo viên dễ dàng.</p></div>
+  </section>`;
+  }
+}
+
 /**
  * Compose a standalone, script-free HTML landing preview reflecting the
- * generated branding (brand colours + org name + logo). Rendered via
- * `<iframe srcDoc>` so it needs no authenticated network request.
+ * generated branding (brand colours + org name + logo) AND the chosen template
+ * layout (see `renderTemplateBody`). Rendered via `<iframe srcDoc>` so it needs
+ * no authenticated network request.
  */
 function buildPreviewHtml({
   brand,
@@ -137,6 +258,7 @@ function buildPreviewHtml({
   orgName,
   slug,
   logoUrl,
+  templateId,
   templateName,
   loading,
 }: BuildPreviewHtmlOptions): string {
@@ -149,14 +271,17 @@ function buildPreviewHtml({
   const safeOrg = escapeHtml(orgName.trim() || 'Trường của bạn');
   const safeSlug = escapeHtml(slug.trim() || 'tenant-slug');
   const safeTemplate = templateName ? escapeHtml(templateName) : '';
+  const safeTemplateId = escapeHtml(templateId || 'default');
 
   const logoBlock = logoUrl
     ? `<img class="logo-img" src="${escapeHtml(logoUrl)}" alt="Logo ${safeOrg}" />`
     : `<div class="logo-monogram">${escapeHtml(initialsOf(orgName))}</div>`;
 
   const loadingNote = loading
-    ? '<p class="loading-note">Đang tạo bản xem trước…</p>'
+    ? '<p class="loading-note-block">Đang tạo bản xem trước…</p>'
     : '';
+
+  const templateBody = renderTemplateBody(templateId, { safeOrg, logoBlock });
 
   const swatches = (
     [
@@ -199,12 +324,48 @@ function buildPreviewHtml({
   .hero h1 { font-size:30px; line-height:1.2; margin-bottom:10px; }
   .hero .tagline { font-size:15px; opacity:.92; max-width:520px; margin:0 auto 22px; }
   .hero .cta { display:inline-block; padding:11px 26px; border-radius:9999px; background:var(--accent); color:#fff; font-weight:700; font-size:14px; }
-  .hero .loading-note { margin-top:16px; font-size:12px; opacity:.85; }
   .features { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; padding:34px 24px; }
   .feature { flex:1 1 160px; max-width:220px; padding:18px; border-radius:12px; background:rgba(0,0,0,.03); text-align:center; }
   .feature .dot { width:34px; height:34px; border-radius:10px; margin:0 auto 10px; background:var(--primary); opacity:.85; }
   .feature h3 { font-size:14px; margin-bottom:6px; }
   .feature p { font-size:12px; opacity:.7; }
+  /* per-template bodies (GAP-272 §3a) */
+  .t-h2 { font-size:18px; font-weight:800; margin-bottom:14px; }
+  .t-h2-light { color:#fff; text-align:center; }
+  .t-board { padding:24px; }
+  .t-board-head { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border-radius:8px; background:var(--primary); color:#fff; margin-bottom:16px; }
+  .t-board-head .brand-name { color:#fff; font-weight:700; }
+  .t-pill { background:#fff; color:var(--primary); font-size:11px; font-weight:700; padding:3px 12px; border-radius:9999px; }
+  .t-bars { display:flex; flex-direction:column; gap:12px; background:rgba(0,0,0,.03); padding:18px; border-radius:10px; }
+  .t-bar { height:10px; border-radius:5px; background:rgba(0,0,0,.06); overflow:hidden; }
+  .t-bar span { display:block; height:100%; border-radius:5px; }
+  .t-link { margin-top:14px; color:var(--primary); font-weight:700; font-size:13px; }
+  .t-coach { display:flex; gap:16px; padding:24px; }
+  .t-coach-card { flex:0 0 42%; background:var(--primary); color:#fff; border-radius:12px; padding:20px; text-align:center; }
+  .t-coach-card .cta { display:inline-block; margin-top:6px; padding:9px 18px; border-radius:9999px; background:var(--accent); color:#fff; font-weight:700; font-size:13px; }
+  .t-avatar { width:56px; height:56px; border-radius:50%; margin:0 auto 12px; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .t-avatar .logo-img, .t-avatar .logo-monogram { height:56px; width:56px; }
+  .t-coach-name { font-weight:800; font-size:15px; }
+  .t-coach-sub { font-size:12px; opacity:.85; margin-bottom:14px; }
+  .t-coach-list { flex:1; display:flex; flex-direction:column; gap:10px; justify-content:center; }
+  .t-coach-item { border:1px solid rgba(0,0,0,.1); border-radius:8px; padding:14px; font-size:13px; font-weight:600; }
+  .t-stats { padding:24px; }
+  .t-stats-banner { background:var(--primary); color:#fff; text-align:center; font-weight:800; font-size:16px; padding:14px; border-radius:10px; margin-bottom:16px; }
+  .t-stats-grid { display:flex; gap:12px; }
+  .t-stat { flex:1; border-radius:12px; padding:20px 10px; text-align:center; color:#fff; }
+  .t-stat b { display:block; font-size:28px; font-weight:800; }
+  .t-stat span { font-size:11px; opacity:.9; }
+  .t-schedule { padding:24px; }
+  .t-sched-row { display:flex; align-items:center; justify-content:space-between; padding:14px; border-radius:8px; background:rgba(0,0,0,.03); margin-bottom:10px; font-size:13px; font-weight:600; }
+  .t-badge { font-size:11px; font-weight:700; color:#fff; padding:4px 12px; border-radius:9999px; white-space:nowrap; }
+  .t-badge-ok { background:#10B981; }
+  .t-badge-warn { background:var(--accent); }
+  .t-badge-full { background:#EF4444; }
+  .t-roadmap { background:linear-gradient(135deg,var(--primary),var(--secondary)); padding:28px 24px; }
+  .t-timeline { display:flex; flex-direction:column; gap:6px; max-width:420px; margin:0 auto; }
+  .t-milestone { display:flex; align-items:center; gap:12px; color:#fff; font-size:13px; font-weight:600; padding:8px 0; }
+  .t-dot { width:14px; height:14px; border-radius:50%; background:var(--accent); flex:0 0 14px; }
+  .loading-note-block { text-align:center; font-size:12px; opacity:.7; padding:10px; }
   .palette { padding:28px 24px; border-top:1px solid rgba(0,0,0,.06); }
   .palette h2 { font-size:13px; text-transform:uppercase; letter-spacing:.05em; opacity:.6; margin-bottom:14px; text-align:center; }
   .swatches { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
@@ -224,18 +385,9 @@ function buildPreviewHtml({
     <span class="nav-link">Lịch học</span>
     <span class="nav-link">Liên hệ</span>
   </nav>
-  <section class="hero">
-    <div class="hero-logo">${logoBlock}</div>
-    <h1>${safeOrg}</h1>
-    <p class="tagline">Nền tảng học tập trực tuyến hiện đại — quản lý lớp học, theo dõi tiến độ và kết nối phụ huynh.</p>
-    <span class="cta">Đăng ký học thử</span>
-    ${loadingNote}
-  </section>
-  <section class="features">
-    <div class="feature"><div class="dot"></div><h3>Lớp học linh hoạt</h3><p>Lịch học, điểm danh và bài tập trong một nơi.</p></div>
-    <div class="feature"><div class="dot"></div><h3>Theo dõi tiến độ</h3><p>Bảng điểm và báo cáo học tập theo thời gian thực.</p></div>
-    <div class="feature"><div class="dot"></div><h3>Kết nối phụ huynh</h3><p>Thông báo và trao đổi với giáo viên dễ dàng.</p></div>
-  </section>
+  <div class="t-body" data-preview-template="${safeTemplateId}">${templateBody}
+  </div>
+  ${loadingNote}
   <section class="palette">
     <h2>Bảng màu thương hiệu${safeTemplate ? ` · ${safeTemplate}` : ''}</h2>
     <div class="swatches">${swatches}</div>
@@ -418,6 +570,7 @@ export function Step6Preview({
         orgName: wizardState.tenantName,
         slug: wizardState.slug,
         logoUrl: wizardState.logoUrl,
+        templateId: wizardState.templateId ?? null,
         templateName: selectedTemplate?.name ?? null,
         loading: brandColorsLoading,
       }),
