@@ -1,6 +1,7 @@
 ---
 title: G2 Human Test Recipe — KC-12 Reschedule / payroll / gamification / analytics
 audience: dev
+product: KiteClass (KC) — FE kiteclass-frontend :3000, backend kiteclass-core qua gateway :9000 (per kitehub-kiteclass-boundary.md §2)
 created: 2026-06-06
 scope: Flow Verification Campaign G2 handoff cho KC-12 (class reschedule + payroll read-only + gamification/analytics no-surface)
 references:

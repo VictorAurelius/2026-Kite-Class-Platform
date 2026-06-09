@@ -69,7 +69,9 @@ function buildHealthSnapshot(instances: Instance[] | undefined): SubscriptionHea
 
   return {
     tier: primary?.tier ?? 'FREE',
-    trialDaysLeft: primary?.trialDaysLeft ?? null,
+    // Chỉ coi là trial khi instance thực sự đang trial — API trả trialDaysLeft=0 (không null)
+    // cho tenant PREMIUM/ACTIVE → tránh render "gói thử nghiệm" sai (GAP-1090 residual).
+    trialDaysLeft: primary?.isOnTrial ? (primary.trialDaysLeft ?? null) : null,
     subscriptionExpiresAt: primary?.subscriptionExpiresAt ?? null,
     activeInstances,
     totalInstances: list.length,

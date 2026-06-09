@@ -20,7 +20,7 @@ gaps: [GAP-914]
 | Gate | Ai | Tiêu chí |
 |---|---|---|
 | **G1 — Agent runtime walk** | Claude | Walk end-to-end trên stack thật (Postgres + services), happy + ≥1 sad path PASS; fix mọi blocker lòi ra; evidence (HTTP + DB row + side effect). **Flow CÓ FE PHẢI gồm ≥1 browser-real walk qua FE `:3000`** (để FE tự inject auth token + tenant header + route), không chỉ curl `:9000` gắn header tay — per `g1-browser-walk-before-flip.md` §1 (bắt FE↔gateway contract / tenant-resolution / routing drift mà curl-with-manual-header che mất, vd KC-1 G2 GAP-1067/1068/1069) |
-| **G2 — Human real local test** | Dev (user) | Con người tự test flow trên local stack thành công (UI/API), xác nhận trải nghiệm thật đúng — KHÔNG chỉ tin agent walk |
+| **G2 — Human real local test** | Dev (user) | Con người tự test flow **qua UI thật trên browser** (đúng FE port per `kitehub-kiteclass-boundary` §2: KH=`:3001`, KC=`:3000`) cho **MỌI affordance FE-wired**; curl/API CHỈ cho phần BE-only (không có FE surface — recipe phải ghi rõ "BE-only" + lý do). Xác nhận trải nghiệm thật đúng — KHÔNG chỉ tin agent walk, KHÔNG dùng curl thay browser cho affordance có FE (per `g2-handoff-md-mandate` §3.4 browser-walk requirement + `g1-browser-walk-before-flip` §1) |
 | **G3 — Production-parity guarantee** | Claude + Dev | Local PASS phải **đảm bảo 100% chạy production**: walk trên production-equivalent (cùng Docker image tag, Postgres+Flyway+RLS thật KHÔNG H2, gateway JWT→header auth, prod-profile config, env-var đủ). Per `local-fix-production-parity-check.md` + bài học H2-giấu-bug (GAP-914). Nếu local≠prod ở điểm nào → note + đảm bảo trước khi flip thông |
 
 Flow chỉ `✅ THÔNG` khi G1 + G2 + G3 đều PASS. G1 đạt → `🔄 walk-pass-pending-human` chờ G2.

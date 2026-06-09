@@ -520,6 +520,11 @@ public class SubscriptionService {
                 .orElseThrow(() -> new IllegalArgumentException(
                     "Instance not found: " + saved.getInstanceId()));
             instance.setStatus(InstanceStatus.ACTIVE);
+            // GAP-1090 (SUB-21): sync instances.tier to the activated paid tier. instance.tier is
+            // load-bearing (connection-pool size MultiTenantDataSourceConfig, custom-domain
+            // eligibility DomainService, data-retention window DataRetentionService); the create
+            // flow previously only flipped subscriptions.tier, leaving instances.tier stuck at FREE.
+            instance.setTier(targetTier);
             instance.setSubscriptionId(saved.getId());
             instance.setSubscriptionExpiresAt(saved.getExpiresAt());
             instanceRepository.save(instance);
@@ -540,13 +545,21 @@ public class SubscriptionService {
             log.info("Activated PENDING subscription {} to tier {} (create-flow SUB-20)",
                 subscriptionId, targetTier);
         } else {
+            // GAP-1090 (SUB-21): upgrade-flow must sync instances.tier to the new active tier.
+            // instance.tier is load-bearing (connection-pool size, custom-domain eligibility,
+            // data-retention window); previously only subscriptions.tier flipped on upgrade,
+            // leaving instances.tier stuck at the pre-upgrade tier. Load + set + save runs OUTSIDE
+            // the best-effort email try/catch so a tier-sync failure is never silently swallowed.
+            Instance instance = instanceRepository.findById(saved.getInstanceId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "Instance not found: " + saved.getInstanceId()));
+            instance.setTier(targetTier);
+            instanceRepository.save(instance);
+
             // GAP-974: notify the owner that the paid tier upgrade is now active.
             // The create flow above already sends subscription-created; this closes
             // the previously-silent upgrade-flow activation.
             try {
-                Instance instance = instanceRepository.findById(saved.getInstanceId())
-                    .orElseThrow(() -> new IllegalArgumentException(
-                        "Instance not found: " + saved.getInstanceId()));
                 emailServiceClient.sendSubscriptionActivatedEmail(
                     instance.getId(),
                     instance.getContactEmail(),

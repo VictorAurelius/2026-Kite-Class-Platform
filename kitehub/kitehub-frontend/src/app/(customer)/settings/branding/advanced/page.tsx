@@ -26,6 +26,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ChevronRight, Lock, Shield, AlertTriangle } from 'lucide-react';
 import { useBrandingTier } from '@/hooks/use-branding-tier';
 import { useAuthStore } from '@/stores/auth-store';
+import { useOwnerInstances } from '@/hooks/use-instances';
 import { AdvancedModeDisclaimer } from '@/components/branding/wizard/AdvancedModeDisclaimer';
 
 const STORAGE_KEY = 'kitehub.branding.advanced-mode';
@@ -33,7 +34,11 @@ const STORAGE_KEY = 'kitehub.branding.advanced-mode';
 export default function BrandingAdvancedModePage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
-  const tier = useBrandingTier(user?.id);
+  // GAP-1091b: useBrandingTier cần instanceId (→ /subscriptions/instance/{id}/active),
+  // KHÔNG phải owner id. Resolve instance từ owner's instances (như billing page).
+  const { data: instances } = useOwnerInstances(user?.id);
+  const instanceId = instances?.[0]?.id;
+  const tier = useBrandingTier(instanceId);
   const [enabled, setEnabled] = useState(false);
   const [disclaimerOpen, setDisclaimerOpen] = useState(false);
 
