@@ -16,6 +16,7 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -153,6 +154,33 @@ public class GlobalExceptionHandler {
 
         String path = request.getRequestURI();
         ErrorResponse response = ErrorResponse.of(ex.getErrorCode(), message, path);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    /**
+     * Xu ly thieu required request header (vi du X-User-Id, X-Teacher-Id, X-Tenant-Id) -
+     * tra HTTP 400 thay vi roi vao catch-all handleUnexpectedException (500). GAP-1117.
+     *
+     * <p>Spring nem {@link MissingRequestHeaderException} (subclass cua
+     * ServletRequestBindingException, KHONG phai MissingServletRequestParameterException)
+     * khi mot endpoint co {@code @RequestHeader} bat buoc nhung client/gateway khong gui.
+     * Day la client error (400), khong phai server error (500). FE nhan duoc error code
+     * MISSING_HEADER + ten header bi thieu de hien thi thay vi "Loi khong xac dinh".
+     */
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ErrorResponse> handleMissingRequestHeader(
+            MissingRequestHeaderException ex,
+            HttpServletRequest request) {
+
+        log.warn("Missing required header at {}: {}",
+                request.getRequestURI(), ex.getHeaderName());
+
+        String path = request.getRequestURI();
+        ErrorResponse response = ErrorResponse.of(
+                "MISSING_HEADER",
+                String.format("Required header '%s' is missing", ex.getHeaderName()),
+                path);
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }

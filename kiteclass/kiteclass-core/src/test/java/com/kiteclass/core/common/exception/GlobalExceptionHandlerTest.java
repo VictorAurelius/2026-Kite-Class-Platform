@@ -150,6 +150,23 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void handleMissingRequestHeader_shouldReturn400() {
+        // GAP-1117: thieu required @RequestHeader (vi du X-User-Id) phai tra 400,
+        // khong phai roi vao catch-all 500.
+        MethodParameter parameter = mock(MethodParameter.class);
+        org.springframework.web.bind.MissingRequestHeaderException ex =
+                new org.springframework.web.bind.MissingRequestHeaderException("X-User-Id", parameter);
+
+        ResponseEntity<ErrorResponse> response = handler.handleMissingRequestHeader(ex, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo("MISSING_HEADER");
+        assertThat(response.getBody().getMessage()).contains("X-User-Id");
+        assertThat(response.getBody().getPath()).isEqualTo("/api/v1/test");
+    }
+
+    @Test
     void handleIllegalArgumentException_shouldReturn400() {
         // Given
         IllegalArgumentException ex = new IllegalArgumentException("Invalid argument");
