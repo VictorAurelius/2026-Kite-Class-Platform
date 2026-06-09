@@ -124,6 +124,13 @@ jobs:
           # Also validates GAP-122 + GAP-135 + GAP-144 + GAP-466 alert groups stay syntactically clean.
           set -euo pipefail
 
+          # Self-hosted runner HOME (/home/kitedev) isn't writable by the action;
+          # point helm config/cache/data at RUNNER_TEMP so `helm repo add` can write.
+          export HELM_CONFIG_HOME="$RUNNER_TEMP/.helm/config"
+          export HELM_CACHE_HOME="$RUNNER_TEMP/.helm/cache"
+          export HELM_DATA_HOME="$RUNNER_TEMP/.helm/data"
+          mkdir -p "$HELM_CONFIG_HOME" "$HELM_CACHE_HOME" "$HELM_DATA_HOME"
+
           # helm repo add required — Chart.yaml deps reference these repos by URL;
           # `helm dependency build` can't resolve them without registering the repos first
           # (self-hosted runner has no persistent repo cache → must add every run).
