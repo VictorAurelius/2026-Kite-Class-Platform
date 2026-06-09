@@ -50,7 +50,7 @@ describe('useSubscriptions hooks', () => {
   describe('useActiveSubscription', () => {
     it('fetches active subscription successfully', async () => {
       (apiClient.get as ReturnType<typeof vi.fn>).mockResolvedValue({
-        data: { data: mockSubscription },
+        data: mockSubscription,
       });
 
       const { result } = renderHook(() => useActiveSubscription('instance-1'), {
@@ -92,7 +92,7 @@ describe('useSubscriptions hooks', () => {
       const mockHistory = [mockSubscription, { ...mockSubscription, id: 'sub-456' }];
 
       (apiClient.get as ReturnType<typeof vi.fn>).mockResolvedValue({
-        data: { data: mockHistory },
+        data: mockHistory,
       });
 
       const { result } = renderHook(() => useSubscriptionHistory('instance-1'), {
@@ -120,7 +120,7 @@ describe('useSubscriptions hooks', () => {
       const upgradedSub = { ...mockSubscription, tier: 'PREMIUM' };
 
       (apiClient.patch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        data: { data: upgradedSub },
+        data: upgradedSub,
       });
 
       const { result } = renderHook(() => useUpgradeSubscription(), {
@@ -166,7 +166,7 @@ describe('useSubscriptions hooks', () => {
       const downgradedSub = { ...mockSubscription, tier: 'BASIC' };
 
       (apiClient.patch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        data: { data: downgradedSub },
+        data: downgradedSub,
       });
 
       const { result } = renderHook(() => useDowngradeSubscription(), {
