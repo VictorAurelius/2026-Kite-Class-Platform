@@ -51,6 +51,7 @@ User re-walked wizard Step 6 (Phê duyệt) repeatedly; backend deploy SUCCEEDED
 
 - **GAP-1106** P1 — subscription cursor queries Postgres 42P18 `(:cursorId IS NULL OR ...)` sweep (`InstanceRepository:143`, `PaymentRepository:84,90`). Verify Testcontainers + split-query fix per GAP-1028 precedent + ship CI detector `:param IS NULL OR`.
 - **GAP-1107** P1 — branding mock-provision (1) rollback-only INTERMITTENT (`Transaction silently rolled back` during REGENERATE; audit-service-isolation class; needs repro + REQUIRES_NEW/txn-boundary fix) + (2) `AssetStorageController.parseAssetsJson` Object-vs-Array → 0 assets (mock provision writes metadata object, parser expects `List<BrandingAsset>`).
+- **GAP-1108** P1 — post-deploy `/branding` empty: deploy 100% → redirect `/branding` shows no deploy-success summary, no landing-link (`frontendUrl` e.g. `toan-master.kiteclass.vn`), no success toast, assets 0 (= GAP-1107 #2 parse bug). Fix: BE asset shape + FE deploy-status card (DEPLOYED state + "Xem landing" link) + wizard success toast. **Found post EventSource-fix: deploy-stream now reaches 100% ✓ — this is the next-layer post-deploy UX gap.**
 - **GAP-1021** (Agent D deploy pipeline) — flag needs-rework (curl-walk PASS but browser-walk found 5 bugs; per `g1-browser-walk-before-flip`).
 
 ## 5. State
