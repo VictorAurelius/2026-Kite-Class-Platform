@@ -31,12 +31,18 @@ Regen/rate-limit/input-cap hiện **generic per tier**, không phân biệt AI t
 3. **#3** Chốt PREMIUM regen = 30 (canonical SUB-22) → sync `application.yml` `premium-per-day` 50→30 (HOẶC user chốt 50 → update matrix); thống nhất nhãn session-vs-day.
 4. **#4** Verify GAP-1117 generation route mọi AI call qua input-cap + rate-limit guards; add IT chứng minh FREE hết 3 regen → reject; FULL_AI non-ENTERPRISE → reject.
 
+## Decision (user 2026-06-10)
+
+- **PREMIUM regen = 30** (chốt canonical SUB-22) → sync code `application.yml branding.rate-limit.premium-per-day` 50→30.
+- **FULL_AI (GPT-5.5) = PREMIUM + ENTERPRISE** (nới §2.4 từ ENTERPRISE-only): PREMIUM được FULL_AI nhưng **quota riêng nhỏ** (vd 3-5 banner GPT-5.5/tháng, cap cost chặt); ENTERPRISE unlimited. FREE/BASIC = TEMPLATE (Gemini) only.
+- → Cập nhật prospectively: `ai-branding-guidelines.md` §2.4 + ADR-037 amendment + SUB-22 matrix AI-mode column khi implement.
+
 ## Acceptance Criteria
 
-- [ ] SUB-22 matrix có cột AI-mode (TEMPLATE all / FULL_AI ENTERPRISE-only) + enforce gate
-- [ ] FULL_AI (GPT-5.5) cap riêng + cost metric; CircuitBreaker fallback TEMPLATE
-- [ ] PREMIUM regen drift reconciled (30 vs 50 chốt 1 giá trị, code+matrix sync); session/day label thống nhất
-- [ ] Mọi AI call mới ([[GAP-1117]]) qua AIInputCapService + AIRateLimitService; IT verify reject khi hết quota / sai tier
+- [ ] SUB-22 matrix có cột AI-mode: TEMPLATE = mọi tier; FULL_AI(GPT-5.5) = **PREMIUM (quota nhỏ) + ENTERPRISE** + enforce gate; update §2.4 + ADR-037
+- [ ] FULL_AI (GPT-5.5) cost cap: PREMIUM quota riêng (vd 3-5/tháng) + ENTERPRISE unlimited + cost metric `ai.fullai.call{tier}`; CircuitBreaker fallback TEMPLATE
+- [ ] PREMIUM regen = 30 (code `premium-per-day` 50→30 sync matrix); session/day label thống nhất
+- [ ] Mọi AI call mới ([[GAP-1117]]) qua AIInputCapService + AIRateLimitService; IT verify reject khi FREE hết 3 regen + FULL_AI sai tier (BASIC/FREE → reject)
 
 ## Related
 
