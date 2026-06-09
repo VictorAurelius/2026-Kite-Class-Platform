@@ -55,7 +55,20 @@ Full-stack KH-side sales-lead:
 - [x] 2 CTA fix: PricingContent `/contact?plan=enterprise` + TierSelector navigate (no alert / no kiteclass.com)
 - [x] Cross-flow sweep: PlanComparison sister `mailto:sales@kiteclass.com` fixed
 - [x] Static verify: BE compile + tests 7/7, gateway YAML+compile, FE build exit 0, vitest 16/16
-- [ ] Runtime walk (coordinator gate): anonymous /pricing → Enterprise "Liên hệ" → /contact → submit → 201 + DB row
+- [x] Runtime walk (coordinator gate): re-walk PASS 2026-06-10 — POST 201 + DB row + sad-paths 400 (xem §Runtime-walk evidence)
+
+## Runtime-walk evidence (per feature-ship-runtime-walk-mandate.md §3)
+
+**Walk bug caught (runtime-only — static verify miss):** subscription crash on boot `Not a managed type: class ...saleslead.entity.SalesLead`. `SalesLead` entity package thiếu trong `KitehubSubscriptionApplication` `@EntityScan` explicit basePackages list → `UnsatisfiedDependencyException` → app `Application run failed` → gateway 503 fallback. Flyway V69 chạy TRƯỚC khi context fail nên `sales_leads` table vẫn tạo (đánh lừa static check). Fix: add `com.kitehub.subscription.saleslead.entity` vào `@EntityScan`. Sweep mọi `@Entity` package vs `@EntityScan` list → 0 package khác bị sót.
+
+| Bước | Kết quả |
+|---|---|
+| subscription rebuild + boot | ✅ healthy 9×3s, "Started KitehubSubscriptionApplication" (no UnsatisfiedDependency) |
+| `POST /api/platform/sales-leads` (PUBLIC, no JWT) | ✅ HTTP 201 `{id, ENTERPRISE, status:NEW}` |
+| DB `SELECT * FROM sales_leads` | ✅ row `1 / Trần Thị Hồng / Trung tâm Anh ngữ Sky Education / ENTERPRISE / NEW` |
+| sad: honeypot filled | ✅ 400 |
+| sad: bad email | ✅ 400 |
+| FE `GET :3001/contact` | ✅ 200 |
 
 ## Related
 
