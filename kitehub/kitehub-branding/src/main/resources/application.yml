@@ -172,6 +172,15 @@ openai:
   timeout:
     seconds: 60
 
+# Banner rasterise sidecar (GAP-1135). When renderer-url is set, the TEMPLATE
+# banner HTML is POSTed to the kitehub-banner-renderer Playwright sidecar and
+# rasterised to WebP; PlaywrightBannerRenderer (@Primary) activates. Blank (prod
+# default until sidecar deployed there) → StubBannerRenderer placeholder fallback.
+branding:
+  banner:
+    renderer-url: ${BANNER_RENDERER_URL:}
+    renderer-timeout-seconds: ${BANNER_RENDERER_TIMEOUT:30}
+
 # Storage Configuration
 storage:
   s3:

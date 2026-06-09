@@ -461,6 +461,10 @@ services:
       AWS_REGION: ap-southeast-1
       S3_MOCK_MODE: "false"
       CDN_DOMAIN: localhost:9100
+      # GAP-1135 — banner rasterise sidecar. Set => PlaywrightBannerRenderer (@Primary)
+      # renders real WebP via the Node/Playwright sidecar; unset => StubBannerRenderer
+      # placeholder. Local dev points at the sidecar service by name.
+      BANNER_RENDERER_URL: ${BANNER_RENDERER_URL:-http://kitehub-banner-renderer:3000/render}
     ports:
       - "8083:8080"
     depends_on:
@@ -488,6 +492,32 @@ services:
           cpus: '${BRANDING_CPU_LIMIT:-2.0}'
         reservations:
           memory: ${BRANDING_MEM_RESERVE:-512m}
+
+  # GAP-1135 — HTML→WebP banner rasterise sidecar (Node + Playwright + sharp).
+  # Keeps the JVM branding image light; branding POSTs composed HTML, gets WebP.
+  kitehub-banner-renderer:
+    build:
+      context: ./kitehub-banner-renderer
+      dockerfile: Dockerfile
+    image: kitehub-banner-renderer:latest
+    container_name: kitehub-banner-renderer
+    profiles: ["branding-only", "branding-only-no-ai", "full"]
+    environment:
+      PORT: 3000
+    networks:
+      - kite-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${BANNER_RENDERER_MEM_LIMIT:-1g}
+          cpus: '${BANNER_RENDERER_CPU_LIMIT:-1.0}'
 
   kitehub-email:
     build:
