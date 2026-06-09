@@ -2,6 +2,7 @@ package com.kitehub.branding.service.banner;
 
 import com.kitehub.branding.service.S3StorageService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
@@ -43,6 +44,7 @@ public class PlaywrightBannerRenderer implements BannerRenderer {
     private final int timeoutSeconds;
     private final boolean enabled;
 
+    @Autowired
     public PlaywrightBannerRenderer(
             @Value("${branding.banner.renderer-url:}") String rendererUrl,
             @Value("${branding.banner.renderer-timeout-seconds:30}") int timeoutSeconds,
