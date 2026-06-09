@@ -1,6 +1,7 @@
 ---
 title: G2 Human Test Recipe — KC-3 Academic (course → class → schedule)
 audience: dev
+product: KiteClass (KC) — FE kiteclass-frontend :3000, backend kiteclass-core qua gateway :9000 (per kitehub-kiteclass-boundary.md §2)
 created: 2026-06-05
 flow: KC-3
 scope: Flow Verification Campaign G2 handoff cho luồng KC-3 (Owner setup học thuật — tạo khóa học → lớp → xếp lịch tuần → verify sessions auto-gen + cross-tenant isolation)

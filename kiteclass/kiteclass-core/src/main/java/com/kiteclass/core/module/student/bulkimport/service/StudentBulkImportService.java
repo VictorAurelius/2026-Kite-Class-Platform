@@ -65,6 +65,7 @@ public class StudentBulkImportService {
     private final RowValidator rowValidator;
     private final BulkImportChunkExecutor chunkExecutor;
     private final ErrorReportGenerator errorReportGenerator;
+    private final XlsxTemplateGenerator xlsxTemplateGenerator;
 
     /**
      * Dry-run: parse + validate only. Does not write to the database.
@@ -177,6 +178,17 @@ public class StudentBulkImportService {
         }
         errors.addAll(detectInFileDuplicates(rows));
         return errorReportGenerator.generate(rows, errors);
+    }
+
+    /**
+     * Generates the blank import template xlsx (GAP-1102). Tenant-agnostic /
+     * static — same bytes for every caller, so no {@code tenantId} parameter.
+     *
+     * @return xlsx bytes for the downloadable template (canonical headers + 2
+     *         example rows + a HuongDan instructions sheet)
+     */
+    public byte[] generateTemplate() {
+        return xlsxTemplateGenerator.generateTemplate();
     }
 
     // ------------------------------------------------------------------ helpers

@@ -26,6 +26,23 @@ export interface BrandingAsset {
   createdAt: string;
 }
 
+// GAP-1108 — post-deploy status summary for the /branding page.
+// Wire shape from GET /api/v1/branding/instances/{id}/deploy-status.
+export interface BrandingDeployStatus {
+  instanceId: string;
+  /** LifecycleState name, e.g. "DEPLOYED" / "GENERATING" (null when no state row). */
+  state: string | null;
+  /** True when state === "DEPLOYED". */
+  deployed: boolean;
+  /** Placeholder landing URL from the latest deploy marker (null when never deployed). */
+  frontendUrl: string | null;
+  templateId: string | null;
+  slug: string | null;
+  brandingVersion: number | null;
+  /** ISO timestamp of the latest deploy-completed marker (null when never deployed). */
+  deployedAt: string | null;
+}
+
 export interface MarketingContent {
   title: string;
   subtitle: string;

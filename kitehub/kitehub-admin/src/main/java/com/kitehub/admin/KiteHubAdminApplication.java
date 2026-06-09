@@ -56,7 +56,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         // Wave br-4 Bucket B (GAP-353b): ConsentRecordImmutableRepository — admin context @ComponentScan
         // pulls ConsentService → ConsentRecordImmutableRepository (separate from Wave 25 consent.repository
         // do new immutable v2 schema với hash chain + RLS NO UPDATE NO DELETE).
-        "com.kitehub.subscription.consent.immutable"
+        "com.kitehub.subscription.consent.immutable",
+        // PR #2279 (sales-lead/enrollment): SalesLeadRepository — admin context @ComponentScan
+        // pulls SalesLeadService → SalesLeadRepository (drift detector GAP-382).
+        "com.kitehub.subscription.saleslead.repository"
 })
 @EntityScan(basePackages = {
         // GAP-240: include all subscription entity packages — must mirror subscription's
@@ -88,7 +91,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         // Wave 79 Bucket F-bis (GAP-040): ImpersonationAuditEntry entity.
         "com.kitehub.subscription.impersonation",
         // Wave br-4 Bucket B (GAP-353b): ConsentRecordImmutable entity (immutable schema + hash chain).
-        "com.kitehub.subscription.consent.immutable"
+        "com.kitehub.subscription.consent.immutable",
+        // PR #2279 (sales-lead/enrollment): SalesLead entity.
+        "com.kitehub.subscription.saleslead.entity"
 })
 public class KiteHubAdminApplication {
 

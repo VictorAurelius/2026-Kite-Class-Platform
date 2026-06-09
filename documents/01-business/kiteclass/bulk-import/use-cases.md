@@ -55,7 +55,21 @@
 - **Errors:** same 400s as UC-BI-01 (empty / oversized file)
 - **Postcondition:** no state change
 
-## UC-BI-04 — System rejects oversized upload
+## UC-BI-04 — Admin tải template mẫu để nhập
+
+- **Actor:** Tenant admin
+- **Precondition:** Admin authenticated, đang ở trang `/admin/bulk-import` (chưa biết đúng cột cần điền)
+- **Trigger:** Click nút "Tải template mẫu (.xlsx)" → `GET /api/v1/students/bulk-import/template`
+- **Happy path:**
+  1. Admin click "Tải template mẫu (.xlsx)" (đặt TRƯỚC khu vực chọn tệp để grab template trước)
+  2. `BulkImportController.downloadTemplate` → `StudentBulkImportService.generateTemplate` → `XlsxTemplateGenerator` (BR-BI-007)
+  3. Browser tải về `mau-import-hoc-vien.xlsx` (sheet HocVien = 7 cột canonical + 2 dòng ví dụ; sheet HuongDan = hướng dẫn từng cột)
+  4. Admin điền dữ liệu theo template → upload lại qua preview/commit (UC-BI-01/02)
+- **FE behavior:** anchor download trigger tên file `mau-import-hoc-vien.xlsx`; helper line "Chưa biết định dạng? Tải template mẫu rồi điền theo."
+- **Errors:** N/A — static/tenant-agnostic, không cần `X-Tenant-Id`; lỗi tạo file (hiếm) → toast "Không thể tải template mẫu"
+- **Postcondition:** không thay đổi state; template là static (cùng bytes mọi lần)
+
+## UC-BI-05 — System rejects oversized upload
 
 - **Actor:** Tenant admin (anyone posting to bulk-import)
 - **Trigger:** File larger than `spring.servlet.multipart.max-file-size` (5 MB)
@@ -65,7 +79,7 @@
 - **FE behavior:** inline error "File quá lớn (tối đa 5MB)"
 - **Postcondition:** no side effects
 
-## UC-BI-05 — System rejects row-count overflow
+## UC-BI-06 — System rejects row-count overflow
 
 - **Actor:** Any admin
 - **Trigger:** xlsx with >1 000 data rows (Wave 86 E-AC5 — giảm từ 10 000)
@@ -81,5 +95,6 @@
 - Rate-limit per admin is NOT enforced at the application layer today — relies on gateway throttling. Track as future enhancement if admins abuse.
 
 ## Log
+- 2026-06-10 — GAP-1102: thêm UC-BI-04 (Admin tải template mẫu). Renumber UC cũ: oversized upload UC-BI-04 → UC-BI-05, row-count overflow UC-BI-05 → UC-BI-06. Cross-ref range cập nhật UC-BI-01..06.
 - 2026-05-16 — Wave 86 Bucket E E-AC5: row cap lowered 10_000 → 1_000; HTTP 400 → HTTP 413 PAYLOAD_TOO_LARGE per spec; FE chunk client-side mandate. Same-PR test extended `StudentBulkImportServiceTest#rejectsOverMaxRows` to assert `HttpStatus.PAYLOAD_TOO_LARGE`. Cross-ref api-contract.md row + rules.md BR-BI-003/BR-BI-005.
 - 2026-04-21 — GAP-109: UC-BI-01..05 captured from shipped code.

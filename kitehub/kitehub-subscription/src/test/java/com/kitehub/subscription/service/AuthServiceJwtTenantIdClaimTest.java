@@ -2,6 +2,7 @@ package com.kitehub.subscription.service;
 
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.entity.User;
+import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.subscription.auth.twofactor.ChallengeTokenService;
 import com.kitehub.subscription.dto.LoginRequest;
 import com.kitehub.subscription.dto.LoginResponse;
@@ -172,6 +173,61 @@ class AuthServiceJwtTenantIdClaimTest {
         assertThat(claims.get("tenantId"))
             .as("STAFF role not yet wired here — omit claim until per-role tenant lookup lands")
             .isNull();
+    }
+
+    @Test
+    @DisplayName("GAP-1020: OWNER login JWT carries tier claim = instances.tier (PREMIUM)")
+    void ownerJwtIncludesTierClaim() {
+        UUID ownerId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+        User owner = builderUser(ownerId, OWNER_EMAIL, "OWNER");
+        Instance instance = instanceWithIds(tenantId, ownerId);
+        instance.setTier(PricingTier.PREMIUM);
+
+        when(userRepository.findByEmail(OWNER_EMAIL)).thenReturn(Optional.of(owner));
+        when(instanceRepository.findByOwnerIdAndDeletedFalse(ownerId))
+            .thenReturn(List.of(instance));
+
+        LoginResponse resp = service.login(loginRequest(OWNER_EMAIL, CORRECT_PASSWORD));
+
+        Claims claims = parseClaims(resp.getAccessToken());
+        assertThat(claims.get("tier", String.class))
+            .as("Owner JWT MUST carry tier claim = instances.tier per GAP-1020")
+            .isEqualTo("PREMIUM");
+    }
+
+    @Test
+    @DisplayName("GAP-1020: PLATFORM_ADMIN login JWT carries tier=FREE (least-privilege default)")
+    void platformAdminJwtTierDefaultsFree() {
+        UUID adminId = UUID.randomUUID();
+        User admin = builderUser(adminId, ADMIN_EMAIL, "PLATFORM_ADMIN");
+
+        when(userRepository.findByEmail(ADMIN_EMAIL)).thenReturn(Optional.of(admin));
+
+        LoginResponse resp = service.login(loginRequest(ADMIN_EMAIL, CORRECT_PASSWORD));
+
+        Claims claims = parseClaims(resp.getAccessToken());
+        assertThat(claims.get("tier", String.class))
+            .as("Non-owner role → least-privilege FREE tier claim")
+            .isEqualTo("FREE");
+    }
+
+    @Test
+    @DisplayName("GAP-1020: OWNER with no bound instance → tier=FREE (defensive default)")
+    void ownerWithoutInstanceTierDefaultsFree() {
+        UUID ownerId = UUID.randomUUID();
+        User owner = builderUser(ownerId, OWNER_EMAIL, "OWNER");
+
+        when(userRepository.findByEmail(OWNER_EMAIL)).thenReturn(Optional.of(owner));
+        when(instanceRepository.findByOwnerIdAndDeletedFalse(ownerId))
+            .thenReturn(Collections.emptyList());
+
+        LoginResponse resp = service.login(loginRequest(OWNER_EMAIL, CORRECT_PASSWORD));
+
+        Claims claims = parseClaims(resp.getAccessToken());
+        assertThat(claims.get("tier", String.class))
+            .as("Owner with no instance binding → FREE fallback rather than crash")
+            .isEqualTo("FREE");
     }
 
     /* helpers */

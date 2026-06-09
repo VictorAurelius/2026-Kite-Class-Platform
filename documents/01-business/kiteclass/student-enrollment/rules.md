@@ -31,6 +31,10 @@
 | BR-ENROLL-004 | Discount range 0-100 | `discount_percent` must be between 0.00 and 100.00 |
 | BR-ENROLL-005 | Cannot enroll in ARCHIVED courses | Class's course must not be ARCHIVED |
 | BR-ENROLL-006 | Default status PENDING_PAYMENT | New enrollments require payment confirmation |
+| BR-ENROLL-007 | Single-enroll UI dialog | Admin/Teacher thêm 1 học sinh vào lớp qua dialog FE (GAP-1103); FE gọi `POST /api/v1/enrollments` — không thêm endpoint mới, tái dùng single-enroll. Lỗi 409 (đã ghi danh) / 400 (lớp đầy, discount) hiển thị qua toast |
+| BR-ENROLL-008 | Bulk-enroll xlsx-only + giới hạn dòng | Ghi danh hàng loạt (GAP-1104) chỉ nhận file `.xlsx`; tối đa **1000 dòng/lần** (HTTP 413 nếu vượt) — mirror BR-BI-003 của student bulk-import |
+| BR-ENROLL-009 | Bulk-enroll resolve học sinh + lớp theo human key | Mỗi dòng resolve học sinh theo `student_email` (ưu tiên) rồi `student_phone`, resolve lớp theo `class_code` — đều **tenant-scoped** (theo `X-Tenant-Id`); không tìm thấy → báo lỗi dòng |
+| BR-ENROLL-010 | Bulk-enroll tái dùng validation single-enroll + skip-and-report | Mỗi dòng hợp lệ gọi lại `EnrollmentService.enrollStudent` (BR-ENROLL-001..005 áp dụng nguyên); dòng lỗi bị bỏ qua + báo cáo, dòng hợp lệ vẫn được ghi danh (transaction riêng từng dòng). Phát hiện trùng trong file (cùng học sinh + lớp) |
 
 **Enrollment statuses:** PENDING_PAYMENT, ACTIVE, COMPLETED, WITHDRAWN
 

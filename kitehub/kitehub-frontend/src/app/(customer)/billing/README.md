@@ -116,8 +116,8 @@ Comprehensive subscription and billing management system for KiteHub Frontend.
 ### Endpoints Used
 - `GET /api/subscriptions/instance/{instanceId}/active` - Active subscription
 - `GET /api/subscriptions/instance/{instanceId}` - Subscription history
-- `PUT /api/subscriptions/{id}/upgrade` - Upgrade tier
-- `PUT /api/subscriptions/{id}/downgrade` - Downgrade tier
+- `PATCH /api/platform/subscriptions/{id}/upgrade` - Upgrade tier
+- `PATCH /api/platform/subscriptions/{id}/downgrade` - Downgrade tier
 - `POST /api/payments` - Create payment
 - `GET /api/payments/{id}` - Payment details
 - `GET /api/payments/subscription/{subscriptionId}` - Payment history

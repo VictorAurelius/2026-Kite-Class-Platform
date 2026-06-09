@@ -10,6 +10,7 @@ import com.kitehub.branding.lifecycle.repository.BrandingLifecycleEventRepositor
 import com.kitehub.branding.outbox.BrandingEventEmitter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
@@ -156,9 +157,17 @@ public class InstanceLifecycleService {
 
     /**
      * Append a non-state-changing audit-relevant marker (e.g.
-     * {@code regenerate-requested}, {@code quality-score-computed}).
+     * {@code regenerate-requested}, {@code quality-score-computed},
+     * {@code deploy-completed}).
+     *
+     * <p>Runs in its OWN physical transaction ({@code REQUIRES_NEW}) per
+     * {@code audit-service-isolation.md} §3.11 — a marker is a best-effort audit
+     * side-effect, so a failed marker INSERT must NOT mark a calling transaction
+     * rollback-only and poison its commit ({@code UnexpectedRollbackException}).
+     * Callers additionally wrap the call in try/catch (GAP-1107 #1 hardening —
+     * best-effort isolation of the deploy-completed marker write).</p>
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public BrandingLifecycleEvent recordMarker(UUID instanceId,
                                                String eventType,
                                                Actor actor,

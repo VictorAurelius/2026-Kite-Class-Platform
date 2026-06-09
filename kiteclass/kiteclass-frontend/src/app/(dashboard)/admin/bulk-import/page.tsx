@@ -115,6 +115,26 @@ export default function BulkImportPage() {
     [],
   );
 
+  const handleDownloadTemplate = useCallback(async () => {
+    try {
+      const blob = await bulkImportApi.downloadTemplate();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'mau-import-hoc-vien.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      toast({
+        title: 'Lỗi tải template',
+        description: extractErrorMessage(err, 'Không thể tải template mẫu'),
+        variant: 'destructive',
+      });
+    }
+  }, []);
+
   const handlePreview = useCallback(async () => {
     if (!file) return;
     setPhase('previewing');
@@ -208,6 +228,17 @@ export default function BulkImportPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Template download — grab BEFORE filling in data */}
+            <div className="space-y-1">
+              <Button variant="outline" onClick={handleDownloadTemplate}>
+                <Download className="mr-2 h-4 w-4" />
+                Tải template mẫu (.xlsx)
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                Chưa biết định dạng? Tải template mẫu rồi điền theo.
+              </p>
+            </div>
+
             <div className="flex flex-wrap items-center gap-3">
               <label
                 htmlFor="bulk-import-file-input"
