@@ -32,9 +32,9 @@ import { Card } from '@/components/ui/card';
 export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 /**
- * Organisation type (GAP-1115) — the SECOND orthogonal axis alongside
+ * Organisation type (GAP-1133) — the SECOND orthogonal axis alongside
  * `audience`. `audience` drives THEME (colours/imagery/voice); `orgType`
- * drives ASSET STRATEGY (how many portraits — GAP-1116) + tier hinting.
+ * drives ASSET STRATEGY (how many portraits — GAP-1134) + tier hinting.
  *
  * A solo English teacher and a large English centre share the same theme
  * ("english-center" audience) but differ on org structure → portrait count.
@@ -54,7 +54,7 @@ export interface OrgTypeOption {
   portraitHint: number;
 }
 
-/** Constrained preset cards for the user-type axis (GAP-1115). */
+/** Constrained preset cards for the user-type axis (GAP-1133). */
 export const ORG_TYPE_OPTIONS: readonly OrgTypeOption[] = [
   {
     id: 'SOLO_TEACHER',
@@ -81,7 +81,7 @@ export const ORG_TYPE_OPTIONS: readonly OrgTypeOption[] = [
 
 /**
  * Suggested max number of portraits to upload for a given org type
- * (GAP-1116 count hint). Returns a sensible default when orgType is unset.
+ * (GAP-1134 count hint). Returns a sensible default when orgType is unset.
  */
 export function portraitCountHint(orgType: OrgType | null): number {
   const opt = ORG_TYPE_OPTIONS.find((o) => o.id === orgType);
@@ -113,8 +113,8 @@ export interface WizardState {
   /** Server-suggested alternative slugs when `slugStatus === 'conflict'`. */
   conflictSuggestions: string[];
   /**
-   * Organisation type chosen in Step 1 (GAP-1115). Orthogonal to `audience` —
-   * drives portrait-count strategy (GAP-1116) + tier hinting, NOT theme.
+   * Organisation type chosen in Step 1 (GAP-1133). Orthogonal to `audience` —
+   * drives portrait-count strategy (GAP-1134) + tier hinting, NOT theme.
    * `null` until the user picks a card.
    */
   orgType: OrgType | null;
@@ -384,7 +384,7 @@ export interface Step6PreviewProps {
   onDeploy: () => void;
 }
 
-/** Props for the Portrait upload step (GAP-1116). */
+/** Props for the Portrait upload step (GAP-1134). */
 export interface PortraitStepProps {
   wizardState: WizardState;
   dispatch: React.Dispatch<WizardAction>;

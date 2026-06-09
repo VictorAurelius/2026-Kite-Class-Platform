@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * AI branding processor — the real generation flow (GAP-1117, ADR-037 Amendment).
+ * AI branding processor — the real generation flow (GAP-1135, ADR-037 Amendment).
  *
  * <p>Replaces the prior MVP mock ({@code asset = logoUrl + simulateProcessing})
  * with a real pipeline:</p>
@@ -41,7 +41,7 @@ import java.util.UUID;
  *       HTML ({@link BannerHtmlComposer}) → rasterise via {@link BannerRenderer}
  *       seam → falls back to logo/placeholder when no Playwright runtime is wired.</li>
  *   <li><b>Banner — FULL_AI</b> (PREMIUM limited + ENTERPRISE unlimited, §2.4 +
- *       SUB-22, GAP-1119): {@link OpenAIClient#generateImage}, gated by the
+ *       SUB-22, GAP-1137): {@link OpenAIClient#generateImage}, gated by the
  *       per-tier {@link FullAiQuotaService} monthly cost quota; on quota-exceeded
  *       / failure / no key → fall back to TEMPLATE. Each attempt emits the
  *       {@code ai.fullai.call} counter tagged by tier + outcome.</li>
@@ -72,7 +72,7 @@ public class AIBrandingProcessor {
     private final BannerHtmlComposer bannerComposer;
     private final BannerRenderer bannerRenderer;
     private final BrandColoursDeriver coloursDeriver;
-    /** GAP-1119 — FULL_AI monthly cost quota gate (PREMIUM limited / ENTERPRISE unlimited). */
+    /** GAP-1137 — FULL_AI monthly cost quota gate (PREMIUM limited / ENTERPRISE unlimited). */
     private final FullAiQuotaService fullAiQuotaService;
     private final MeterRegistry meterRegistry;
 
@@ -191,7 +191,7 @@ public class AIBrandingProcessor {
                                         String copy, String logoUrl, List<String> portraits,
                                         String themeIcon, BrandColours colours, UUID instanceId) {
         if (mode == GenerationMode.FULL_AI) {
-            // GAP-1119 — PREMIUM monthly cost quota gate (ENTERPRISE unlimited).
+            // GAP-1137 — PREMIUM monthly cost quota gate (ENTERPRISE unlimited).
             if (!fullAiQuotaService.canUseFullAi(instanceId, tier)) {
                 recordFullAiCall(tier, "quota_exceeded");
                 log.info("FULL_AI monthly quota exhausted for instance {} (tier={}) → TEMPLATE fallback",
@@ -237,7 +237,7 @@ public class AIBrandingProcessor {
 
     // ---- helpers -------------------------------------------------------------
 
-    /** Emit the GAP-1119 FULL_AI cost counter for one attempt, tagged by tier + outcome. */
+    /** Emit the GAP-1137 FULL_AI cost counter for one attempt, tagged by tier + outcome. */
     private void recordFullAiCall(String tier, String outcome) {
         meterRegistry.counter("ai.fullai.call",
                 "tier", tier == null ? "unknown" : tier,
@@ -256,7 +256,7 @@ public class AIBrandingProcessor {
     }
 
     /**
-     * Extract uploaded PORTRAIT asset URLs (GAP-1116) from the job's persisted
+     * Extract uploaded PORTRAIT asset URLs (GAP-1134) from the job's persisted
      * BrandingAsset[] (if present). A non-array shape (legacy theme-metadata or a
      * prior generation Map) yields no portraits.
      */

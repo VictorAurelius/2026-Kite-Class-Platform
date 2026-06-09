@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 /**
- * Default {@link BannerRenderer} — the <b>render seam stub</b> (GAP-1117).
+ * Default {@link BannerRenderer} — the <b>render seam stub</b> (GAP-1135).
  *
  * <p>This implementation deliberately does NOT rasterise the composed HTML. It
  * logs that a real banner HTML was composed and returns {@code null}, signalling
@@ -20,7 +20,7 @@ import java.util.UUID;
  * Node renderer impl with higher {@code @Order}/{@code @Primary} to activate the
  * real WebP path — no pipeline change required.</p>
  *
- * @since GAP-1117
+ * @since GAP-1135
  */
 @Slf4j
 @Component

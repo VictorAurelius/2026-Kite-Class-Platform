@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 /**
- * FULL_AI (paid GPT image-gen) monthly cost quota gate (GAP-1119).
+ * FULL_AI (paid GPT image-gen) monthly cost quota gate (GAP-1137).
  *
  * <p>FULL_AI is the cost-bearing generation path (the Gemini TEMPLATE path is
  * $0), so it carries a tighter, AI-type-specific quota than the per-day regen
@@ -30,7 +30,7 @@ import java.util.UUID;
  * path has its own no-API-key TEMPLATE fallback, so a missing counter cannot by
  * itself cause real spend.</p>
  *
- * @since GAP-1119
+ * @since GAP-1137
  */
 @Slf4j
 @Service

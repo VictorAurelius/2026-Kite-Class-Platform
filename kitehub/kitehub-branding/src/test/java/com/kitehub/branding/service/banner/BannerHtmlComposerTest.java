@@ -9,7 +9,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for {@link BannerHtmlComposer} (GAP-1117) — the real (deterministic)
+ * Tests for {@link BannerHtmlComposer} (GAP-1135) — the real (deterministic)
  * TEMPLATE banner HTML.
  */
 class BannerHtmlComposerTest {

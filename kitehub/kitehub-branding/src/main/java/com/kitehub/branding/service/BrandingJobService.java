@@ -55,7 +55,7 @@ public class BrandingJobService {
 
     /**
      * Create + enqueue a branding job carrying the subscription {@code tier}
-     * (GAP-1117 / GAP-1119) so the processor routes TEMPLATE vs FULL_AI. Tier is
+     * (GAP-1135 / GAP-1137) so the processor routes TEMPLATE vs FULL_AI. Tier is
      * sourced from the gateway {@code X-Subscription-Tier} header (ADR-039);
      * {@code null} → FREE/TEMPLATE (FULL_AI only PREMIUM + ENTERPRISE).
      */
@@ -93,8 +93,8 @@ public class BrandingJobService {
                 organizationName,
                 language,
                 logoUrl,
-                job.getOrgType(), // GAP-1115 orgType (nullable)
-                tier              // GAP-1117/1119 tier — drives TEMPLATE vs FULL_AI (null → FREE)
+                job.getOrgType(), // GAP-1133 orgType (nullable)
+                tier              // GAP-1135/1137 tier — drives TEMPLATE vs FULL_AI (null → FREE)
         );
 
         // Per design-patterns.md §3.5.1: outbox-row first (reliability net),
@@ -136,7 +136,7 @@ public class BrandingJobService {
      * @param organizationName tenant/center display name (drives preview palette)
      * @param language language code (defaults to {@code vi})
      * @param logoUrl optional uploaded logo URL
-     * @param orgType wizard user-type axis (GAP-1115): SOLO_TEACHER / SMALL_CENTER /
+     * @param orgType wizard user-type axis (GAP-1133): SOLO_TEACHER / SMALL_CENTER /
      *                LARGE_CENTER — nullable for backward-compat
      * @return created job (status {@code QUEUED})
      */
@@ -150,7 +150,7 @@ public class BrandingJobService {
         job.setOrganizationName(organizationName);
         job.setLanguage(language == null || language.isBlank() ? "vi" : language);
         job.setLogoUrl(logoUrl);
-        job.setOrgType(orgType); // GAP-1115 — nullable user-type axis
+        job.setOrgType(orgType); // GAP-1133 — nullable user-type axis
         job.setStatus(JobStatus.QUEUED);
         job.setProgress(0);
         job.setCurrentStep("Queued");

@@ -6,8 +6,8 @@
  * Spec source: documents/02-architecture/design-system/ui_kits/ai-branding-wizard-v2/screens/step1-welcome-default.html
  * (`.wiz-stepper` markup joined by `.wiz-step-bar` connectors).
  *
- * Step 3 "Chân dung" (portrait upload) added GAP-1116 — bumps the flow from 6
- * to 7 steps. Org-type select (GAP-1115) lives inside Step 1, not a new step.
+ * Step 3 "Chân dung" (portrait upload) added GAP-1134 — bumps the flow from 6
+ * to 7 steps. Org-type select (GAP-1133) lives inside Step 1, not a new step.
  *
  * States per step:
  *   - completed (number < currentStep) — Check icon + filled primary background

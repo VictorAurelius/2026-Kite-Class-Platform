@@ -35,8 +35,8 @@ public class BrandingJob {
     private String language;
 
     /**
-     * Wizard user-type axis (GAP-1115): SOLO_TEACHER / SMALL_CENTER / LARGE_CENTER.
-     * Stored as the enum string; nullable for backward-compat (pre-GAP-1115 jobs).
+     * Wizard user-type axis (GAP-1133): SOLO_TEACHER / SMALL_CENTER / LARGE_CENTER.
+     * Stored as the enum string; nullable for backward-compat (pre-GAP-1133 jobs).
      * Migration: kitehub-subscription {@code V70__add_org_type_to_branding_jobs.sql}.
      */
     @Column(name = "org_type", length = 20)

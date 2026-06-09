@@ -4,7 +4,7 @@ import java.util.UUID;
 
 /**
  * Render seam (Strategy) for turning a composed {@link BannerComposition} HTML
- * into a rasterised image URL — the TEMPLATE-mode banner (GAP-1117).
+ * into a rasterised image URL — the TEMPLATE-mode banner (GAP-1135).
  *
  * <p>The reference rasteriser is {@code compose-sky-demo-banner.mjs}
  * (HTML → headless Chromium/Playwright → WebP). Running Playwright inside the
@@ -17,7 +17,7 @@ import java.util.UUID;
  * uploaded logo / template placeholder. The composed HTML is still persisted so
  * the work is real + inspectable.</p>
  *
- * @since GAP-1117
+ * @since GAP-1135
  */
 public interface BannerRenderer {
 

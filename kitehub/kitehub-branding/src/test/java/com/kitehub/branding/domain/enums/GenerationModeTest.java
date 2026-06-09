@@ -8,9 +8,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * GAP-1119 — FULL_AI tier gate: PREMIUM + ENTERPRISE → FULL_AI; everything else → TEMPLATE.
+ * GAP-1137 — FULL_AI tier gate: PREMIUM + ENTERPRISE → FULL_AI; everything else → TEMPLATE.
  */
-@DisplayName("GenerationMode.forTier (GAP-1119 tier gate)")
+@DisplayName("GenerationMode.forTier (GAP-1137 tier gate)")
 class GenerationModeTest {
 
     @ParameterizedTest

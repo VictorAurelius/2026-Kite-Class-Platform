@@ -44,7 +44,7 @@ public class AIProviderConfig {
     }
 
     /**
-     * Google Gemini free-tier provider config (GAP-1117 / ADR-037 Amendment).
+     * Google Gemini free-tier provider config (GAP-1135 / ADR-037 Amendment).
      * {@code apiKey} blank/absent → {@code GeminiClient} MOCK mode (graceful no-key).
      */
     @Data
@@ -82,7 +82,7 @@ public class AIProviderConfig {
         }
 
         if ("gemini".equalsIgnoreCase(provider)) {
-            // GAP-1117 / ADR-037: Gemini free-tier text/HTML copy provider.
+            // GAP-1135 / ADR-037: Gemini free-tier text/HTML copy provider.
             com.kitehub.branding.client.GeminiClient geminiClient =
                     new com.kitehub.branding.client.GeminiClient(
                             gemini.getBaseUrl(),

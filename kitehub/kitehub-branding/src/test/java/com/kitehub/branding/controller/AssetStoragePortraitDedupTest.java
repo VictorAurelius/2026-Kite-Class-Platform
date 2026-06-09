@@ -33,14 +33,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * GAP-1116 — PORTRAIT accumulation vs LOGO replace-by-assetType dedup.
+ * GAP-1134 — PORTRAIT accumulation vs LOGO replace-by-assetType dedup.
  *
  * <p>Uses a REAL {@link ObjectMapper} + a stateful job (each persisted JSON feeds
  * back into the next upload) so the dedup behaviour is exercised end-to-end.</p>
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-@DisplayName("AssetStorageController PORTRAIT dedup (GAP-1116)")
+@DisplayName("AssetStorageController PORTRAIT dedup (GAP-1134)")
 class AssetStoragePortraitDedupTest {
 
     @Mock private S3StorageService s3StorageService;

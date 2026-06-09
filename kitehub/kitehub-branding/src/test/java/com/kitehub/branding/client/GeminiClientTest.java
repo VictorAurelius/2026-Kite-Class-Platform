@@ -13,10 +13,10 @@ import reactor.core.publisher.Mono;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for {@link GeminiClient} (GAP-1117). HTTP is mocked via a stubbed
+ * Tests for {@link GeminiClient} (GAP-1135). HTTP is mocked via a stubbed
  * {@link ExchangeFunction} — no live Gemini network.
  *
- * @since GAP-1117
+ * @since GAP-1135
  */
 class GeminiClientTest {
 

@@ -227,11 +227,11 @@ public class AssetStorageController {
     /**
      * Persist asset to BrandingJob.
      *
-     * <p><b>Dedup policy (GAP-1112 #2 LOGO + GAP-1116 PORTRAIT):</b></p>
+     * <p><b>Dedup policy (GAP-1112 #2 LOGO + GAP-1134 PORTRAIT):</b></p>
      * <ul>
      *   <li><b>PORTRAIT</b> — accumulates 1..N per instance: NEVER deduped. A centre
      *       uploads many teacher portraits; a solo teacher uploads one. The portrait
-     *       count is driven by the wizard user-type axis (GAP-1115).</li>
+     *       count is driven by the wizard user-type axis (GAP-1133).</li>
      *   <li><b>Every other type (LOGO, HERO, ...)</b> — replace-by-assetType: exactly 1
      *       asset per {@code (instanceId, assetType)}. Re-uploading removes + S3-deletes
      *       the prior one (no duplicate rows / orphan objects).</li>
@@ -259,9 +259,9 @@ public class AssetStorageController {
         // immutable empty list).
         List<BrandingAsset> assets = new ArrayList<>(parseAssetsJson(job.getAssetsGenerated()));
 
-        // GAP-1112 #2 + GAP-1116: replace-by-assetType for EVERY type EXCEPT PORTRAIT.
+        // GAP-1112 #2 + GAP-1134: replace-by-assetType for EVERY type EXCEPT PORTRAIT.
         // PORTRAIT accumulates 1..N per instance (centre = many teacher portraits, solo
-        // = one), driven by the wizard user-type axis (GAP-1115). All other types keep
+        // = one), driven by the wizard user-type axis (GAP-1133). All other types keep
         // exactly 1 per (instanceId, assetType): remove + S3-delete the prior same-type
         // asset (case-insensitive match).
         boolean isPortrait = "PORTRAIT".equalsIgnoreCase(assetType);

@@ -5,13 +5,13 @@
  *
  * Replaces the legacy 4-step wizard (Upload → Analyze → Generate → Review) with
  * the Direction C 7-step flow per `ai-branding-guidelines.md` §4.1:
- *   1. Welcome   — tenant name + slug + org-type select (GAP-1115)
+ *   1. Welcome   — tenant name + slug + org-type select (GAP-1133)
  *   2. Logo      — upload OR AI-generate fork
- *   3. Portrait  — 1..N teacher headshots (GAP-1116; count hint by org-type)
+ *   3. Portrait  — 1..N teacher headshots (GAP-1134; count hint by org-type)
  *   4. Audience  — 4 VN audience cards   (Bucket B)
  *   5. Tone      — 4 tone cards          (Bucket B)
  *   6. Template  — grid + Enterprise custom-prompt (Bucket C)
- *   7. Preview   — per-resource approve + full-screen preview + deploy (Bucket C+D / GAP-1118)
+ *   7. Preview   — per-resource approve + full-screen preview + deploy (Bucket C+D / GAP-1136)
  *
  * Bucket A shipped Steps 1-2 (#883). Buckets B (#889 audience+tone), C (#888
  * template), and C+D (#890 preview / quality gate / deploy) shipped the
@@ -58,7 +58,7 @@ const LogoStep = dynamic(
   { ssr: false, loading: stepLoading }
 );
 
-// GAP-1116 — Portrait upload step (Step 3). Reuses the asset upload + library
+// GAP-1134 — Portrait upload step (Step 3). Reuses the asset upload + library
 // pattern; count hint driven by the org-type chosen in Step 1.
 const PortraitStep = dynamic(
   () =>

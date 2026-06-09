@@ -39,7 +39,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link AIBrandingProcessor} real generation flow (GAP-1117):
+ * Tests for {@link AIBrandingProcessor} real generation flow (GAP-1135):
  * TEMPLATE/FULL_AI routing, FULL_AI→TEMPLATE fallback, input-cap guard, portraits.
  */
 @ExtendWith(MockitoExtension.class)
@@ -72,7 +72,7 @@ class AIBrandingProcessorTest {
         processor = new AIBrandingProcessor(jobService, objectMapper, aiClient, openAIClient,
                 inputCapService, bannerComposer, bannerRenderer, coloursDeriver,
                 fullAiQuotaService, meterRegistry);
-        // GAP-1119 — FULL_AI-eligible tiers pass the quota gate by default; the
+        // GAP-1137 — FULL_AI-eligible tiers pass the quota gate by default; the
         // quota-exhausted path is exercised explicitly below.
         when(fullAiQuotaService.canUseFullAi(any(), any())).thenReturn(true);
 
@@ -166,7 +166,7 @@ class AIBrandingProcessorTest {
     }
 
     @Test
-    @DisplayName("GAP-1119: PREMIUM tier → FULL_AI when monthly quota available")
+    @DisplayName("GAP-1137: PREMIUM tier → FULL_AI when monthly quota available")
     void premiumTierUsesFullAiWhenQuotaAvailable() throws Exception {
         when(openAIClient.generateImage(anyString(), anyString()))
                 .thenReturn(Mono.just("https://openai/premium-banner.png"));
@@ -181,7 +181,7 @@ class AIBrandingProcessorTest {
     }
 
     @Test
-    @DisplayName("GAP-1119: PREMIUM quota exhausted → TEMPLATE fallback, no image call")
+    @DisplayName("GAP-1137: PREMIUM quota exhausted → TEMPLATE fallback, no image call")
     void premiumQuotaExhaustedFallsBackToTemplate() throws Exception {
         when(fullAiQuotaService.canUseFullAi(instanceId, "PREMIUM")).thenReturn(false);
 
@@ -195,7 +195,7 @@ class AIBrandingProcessorTest {
     }
 
     @Test
-    @DisplayName("GAP-1119: BASIC tier not FULL_AI-eligible → TEMPLATE (quota gate not consulted)")
+    @DisplayName("GAP-1137: BASIC tier not FULL_AI-eligible → TEMPLATE (quota gate not consulted)")
     void basicTierNotEligibleUsesTemplate() throws Exception {
         processor.processJob(message("BASIC"));
 
@@ -219,7 +219,7 @@ class AIBrandingProcessorTest {
     }
 
     @Test
-    @DisplayName("uploaded PORTRAIT assets feed the banner composer (GAP-1116 → GAP-1117)")
+    @DisplayName("uploaded PORTRAIT assets feed the banner composer (GAP-1134 → GAP-1135)")
     void portraitsFeedBannerComposer() throws Exception {
         job.setAssetsGenerated("[{\"type\":\"PORTRAIT\",\"url\":\"https://cdn/p1.png\"},"
                 + "{\"type\":\"PORTRAIT\",\"url\":\"https://cdn/p2.png\"},"

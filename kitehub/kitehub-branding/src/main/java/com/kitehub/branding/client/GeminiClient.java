@@ -33,7 +33,7 @@ import java.util.Map;
  * of crashing. Combined with {@link ResilientAIClient}'s circuit breaker, an
  * unreachable Gemini never cascades a 5xx into the generation pipeline.</p>
  *
- * @since GAP-1117 (Gemini free-tier provider)
+ * @since GAP-1135 (Gemini free-tier provider)
  */
 @Slf4j
 public class GeminiClient implements AIClient {

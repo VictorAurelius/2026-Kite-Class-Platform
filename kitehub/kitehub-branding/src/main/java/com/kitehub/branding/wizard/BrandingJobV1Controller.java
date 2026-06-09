@@ -101,7 +101,7 @@ public class BrandingJobV1Controller {
                     "message", "Không xác định được trung tâm từ phiên đăng nhập"));
         }
         String orgName = firstNonBlank(body.organizationName(), body.slug(), "Trung tâm mới");
-        // GAP-1115: carry the wizard user-type axis (orgType) onto the job. Parsed
+        // GAP-1133: carry the wizard user-type axis (orgType) onto the job. Parsed
         // tolerantly so a stray value never 500s; persisted as the canonical enum name.
         com.kitehub.branding.domain.enums.OrgType orgType =
                 com.kitehub.branding.domain.enums.OrgType.fromNullable(body.orgType());

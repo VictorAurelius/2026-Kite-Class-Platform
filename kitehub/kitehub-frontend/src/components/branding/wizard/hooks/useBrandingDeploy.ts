@@ -29,7 +29,7 @@ export interface CreateBrandingJobInput {
   logoUrl?: string | null;
   aiLogo?: boolean;
   /**
-   * Organisation type (GAP-1115) — SOLO_TEACHER | SMALL_CENTER | LARGE_CENTER.
+   * Organisation type (GAP-1133) — SOLO_TEACHER | SMALL_CENTER | LARGE_CENTER.
    * Sent on the generate request; BE persists for asset-strategy + tier hinting.
    */
   orgType?: string | null;

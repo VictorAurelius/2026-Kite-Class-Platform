@@ -1,4 +1,4 @@
-# GAP-1118: Step6 preview full-screen + access các quyết định trước (audience/tone/template/logo)
+# GAP-1136: Step6 preview full-screen + access các quyết định trước (audience/tone/template/logo)
 
 **Status:** 🔵 OPEN
 **Priority:** 🟡 P2
@@ -16,7 +16,7 @@ Khả thi + đúng intent:
 
 ## Proposed Fix
 
-1. `Step6Preview` thêm **full-screen mode** (reuse `TemplateFullscreen` pattern) — iframe render landing thật với theme + assets đã generate ([[GAP-1117]]).
+1. `Step6Preview` thêm **full-screen mode** (reuse `TemplateFullscreen` pattern) — iframe render landing thật với theme + assets đã generate ([[GAP-1135]]).
 2. **Side panel** trong full-screen: summary các bước đã quyết (audience/tone/template/logo/portrait) + cho phép quick-edit (jump về step tương ứng) — vẫn giữ per-resource approve (§4.2).
 3. Responsive (desktop full-screen; mobile collapse panel).
 
@@ -32,8 +32,8 @@ Khả thi + đúng intent:
 
 - Discovered in: discuss wizard 6-bước 2026-06-10 (user critique câu 4)
 - Reuse pattern: `TemplateFullscreen.tsx` (fullscreen template step)
-- Depends: [[GAP-1117]] (render result để preview)
-- Cluster: [[GAP-1115]] / [[GAP-1116]]
+- Depends: [[GAP-1135]] (render result để preview)
+- Cluster: [[GAP-1133]] / [[GAP-1134]]
 - Design: `ai-branding-guidelines.md` §4.2 (preview-before-commit, live iframe), screenshot `design-system/screenshots/ai-branding-wizard-step6.png`
 
 ## Log

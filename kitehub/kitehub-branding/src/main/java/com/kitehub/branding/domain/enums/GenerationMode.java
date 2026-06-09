@@ -8,11 +8,11 @@ package com.kitehub.branding.domain.enums;
  *       copy → (Playwright) WebP. Deterministic, crisp Vietnamese, $0.</li>
  *   <li>{@link #FULL_AI} — paid upgrade for PREMIUM (limited monthly quota) +
  *       ENTERPRISE (unlimited): GPT image-gen renders the full banner. Tier-gated
- *       per {@code ai-branding-guidelines.md} §2.4 + SUB-22 matrix (GAP-1119);
+ *       per {@code ai-branding-guidelines.md} §2.4 + SUB-22 matrix (GAP-1137);
  *       CircuitBreaker / failure / quota-exceeded fallback → {@link #TEMPLATE}.</li>
  * </ul>
  *
- * @since GAP-1117 (real generation wiring); GAP-1119 (PREMIUM+ENTERPRISE gate)
+ * @since GAP-1135 (real generation wiring); GAP-1137 (PREMIUM+ENTERPRISE gate)
  */
 public enum GenerationMode {
     TEMPLATE,
@@ -21,7 +21,7 @@ public enum GenerationMode {
     /**
      * Resolve the generation mode for a subscription tier. FULL_AI is gated to
      * PREMIUM + ENTERPRISE per {@code ai-branding-guidelines.md} §2.4 + SUB-22
-     * matrix (GAP-1119 — user decision 2026-06-10: PREMIUM limited quota,
+     * matrix (GAP-1137 — user decision 2026-06-10: PREMIUM limited quota,
      * ENTERPRISE unlimited); FREE / BASIC / unknown use the TEMPLATE path.
      *
      * <p>NOTE: tier eligibility (this method) is distinct from the PREMIUM

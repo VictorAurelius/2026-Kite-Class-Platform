@@ -101,8 +101,8 @@ class BrandingJobServiceTest {
     }
 
     @Test
-    void createJob_propagatesTierToMessage_GAP1119() {
-        // GAP-1117/1119: 5-arg createJob carries subscription tier so the processor
+    void createJob_propagatesTierToMessage_GAP1137() {
+        // GAP-1135/1137: 5-arg createJob carries subscription tier so the processor
         // can route FULL_AI (PREMIUM/ENTERPRISE) vs TEMPLATE.
         BrandingJob savedJob = new BrandingJob();
         savedJob.setId(UUID.randomUUID());
@@ -117,7 +117,7 @@ class BrandingJobServiceTest {
     }
 
     @Test
-    void createJob_tierlessOverload_emitsNullTier_GAP1119() {
+    void createJob_tierlessOverload_emitsNullTier_GAP1137() {
         // Legacy 4-arg overload (draft auto-create) → null tier → FREE/TEMPLATE.
         BrandingJob savedJob = new BrandingJob();
         savedJob.setId(UUID.randomUUID());
@@ -306,7 +306,7 @@ class BrandingJobServiceTest {
 
     @Test
     void testCreateWizardJob_persistsOrgType() {
-        // Given — GAP-1115: createWizardJob carries + persists the user-type axis.
+        // Given — GAP-1133: createWizardJob carries + persists the user-type axis.
         when(jobRepository.save(any(BrandingJob.class))).thenAnswer(inv -> inv.getArgument(0));
         when(instanceStateRepository.findById(instanceId)).thenReturn(Optional.empty());
 
@@ -321,7 +321,7 @@ class BrandingJobServiceTest {
 
     @Test
     void testCreateWizardJob_nullOrgTypeOk() {
-        // Given — orgType nullable for backward-compat (pre-GAP-1115).
+        // Given — orgType nullable for backward-compat (pre-GAP-1133).
         when(jobRepository.save(any(BrandingJob.class))).thenAnswer(inv -> inv.getArgument(0));
         when(instanceStateRepository.findById(instanceId)).thenReturn(Optional.empty());
 

@@ -1,4 +1,4 @@
-# GAP-1117: Wire render banner thật — TEMPLATE (HTML+Gemini→Playwright) + FULL_AI (GPT-5.5 image) + cấu hình provider key (per ADR-037 amendment 2026-06-10)
+# GAP-1135: Wire render banner thật — TEMPLATE (HTML+Gemini→Playwright) + FULL_AI (GPT-5.5 image) + cấu hình provider key (per ADR-037 amendment 2026-06-10)
 
 **Status:** 🔵 OPEN
 **Priority:** 🟠 P1
@@ -27,10 +27,10 @@ Tier-gate: FULL_AI (GPT-5.5) chỉ cho **ENTERPRISE Advanced Mode** (`ai-brandin
 ## Proposed Fix
 
 1. **Thêm `GeminiClient`** implement `AIClient` (text gen cho copy + drive HTML template content) — strategy switch theo `ai.provider` + tier.
-2. **Wire HTML-template-compose runtime:** port `compose-sky-demo-banner.mjs` → BE render path (Playwright headless trong service OR sidecar), nhận logo + chân dung ([[GAP-1116]]) + icon chủ đề + màu brand + copy (Gemini) → WebP. Thay mock trong `AIBrandingProcessor`.
+2. **Wire HTML-template-compose runtime:** port `compose-sky-demo-banner.mjs` → BE render path (Playwright headless trong service OR sidecar), nhận logo + chân dung ([[GAP-1134]]) + icon chủ đề + màu brand + copy (Gemini) → WebP. Thay mock trong `AIBrandingProcessor`.
 3. **FULL_AI path:** `OpenAIClient.generateImage` (GPT-5.5) cho ENTERPRISE — prompt builder chuẩn mẫu thesis; CircuitBreaker fallback → TEMPLATE khi fail/hết quota.
 4. **Provider config:** `GEMINI_API_KEY` + `OPENAI_API_KEY` → env/Secrets Manager; document deploy runbook.
-5. Render result surface vào Step6 preview ([[GAP-1118]]); quality gate §5 trước DEPLOY.
+5. Render result surface vào Step6 preview ([[GAP-1136]]); quality gate §5 trước DEPLOY.
 
 ## Acceptance Criteria
 
@@ -38,15 +38,15 @@ Tier-gate: FULL_AI (GPT-5.5) chỉ cho **ENTERPRISE Advanced Mode** (`ai-brandin
 - [ ] TEMPLATE banner render THẬT: HTML template + Gemini copy → Playwright→WebP (thay mock `AIBrandingProcessor`); chữ Việt nét; logo+chân dung+icon
 - [ ] FULL_AI banner: GPT-5.5 image-gen gated ENTERPRISE; prompt chuẩn thesis; CircuitBreaker fallback TEMPLATE
 - [ ] Provider keys configured + documented (`GEMINI_API_KEY` + `OPENAI_API_KEY`); chưa có key → fallback graceful
-- [ ] Render result surface Step6 preview ([[GAP-1118]]); quality gate §5; input-cap §2.5
+- [ ] Render result surface Step6 preview ([[GAP-1136]]); quality gate §5; input-cap §2.5
 - [ ] IT / migration test checklist §11.4 (AI behavior change)
 
 ## Related
 
 - Discovered in: discuss wizard 6-bước 2026-06-10 (câu 3 + provider decision)
 - **Design pinned:** `ADR-037-ai-branding-generation-stack.md` §Amendment 2026-06-10
-- Depends: [[GAP-1116]] (portrait asset đầu vào) ; Feeds: [[GAP-1118]] (preview)
-- Cluster: [[GAP-1115]] user-type axis
+- Depends: [[GAP-1134]] (portrait asset đầu vào) ; Feeds: [[GAP-1136]] (preview)
+- Cluster: [[GAP-1133]] user-type axis
 - Banner reference: `kiteclass-frontend/scripts/compose-sky-demo-banner.mjs` (GAP-810), thesis banner 3-lớp
 - Guidelines: `ai-branding-guidelines.md` §1 ResourceCategory / §2.4 Enterprise / §2.5 input-cap / §5 quality gate / §11.4 migration test
 - Generation model: memory `project_ai_branding_generation_model` (Phase 1 mock)

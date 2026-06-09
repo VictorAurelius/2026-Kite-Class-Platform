@@ -20,7 +20,7 @@ export interface BrandingJob {
 export interface BrandingAsset {
   id: string;
   instanceId: string;
-  // GAP-1116 — PORTRAIT: teacher/staff headshots uploaded in the wizard
+  // GAP-1134 — PORTRAIT: teacher/staff headshots uploaded in the wizard
   // portrait step; feed the banner-compose layer (1..N per instance).
   type: 'PROFILE' | 'HERO' | 'LOGO' | 'BANNER' | 'OG_IMAGE' | 'PORTRAIT';
   url: string;

@@ -515,7 +515,7 @@ const RESOURCES: ReadonlyArray<ResourceItem> = [
 ] as const;
 
 // ---------------------------------------------------------------------------
-// Decision summary (GAP-1118) — recap of the prior wizard steps + jump-to-edit.
+// Decision summary (GAP-1136) — recap of the prior wizard steps + jump-to-edit.
 //
 // Label maps are inlined (not imported from the Audience/Tone step modules) to
 // keep this dynamically-loaded chunk free of those components' deps. Keep in
@@ -550,7 +550,7 @@ interface DecisionSummaryProps {
   onJump: (step: WizardStep) => void;
 }
 
-/** Side-panel summary of prior decisions with quick "edit → jump to step" (GAP-1118 §2). */
+/** Side-panel summary of prior decisions with quick "edit → jump to step" (GAP-1136 §2). */
 function DecisionSummary({ rows, onJump }: DecisionSummaryProps) {
   return (
     <div data-testid="step6-decision-summary" className="rounded-lg border bg-card p-3">
@@ -601,7 +601,7 @@ export type Step6PreviewLocalProps = Omit<Step6PreviewProps, 'onBack' | 'onDeplo
   previewUrl?: string;
   /**
    * Instance id used to count PORTRAIT assets for the decision summary
-   * (GAP-1118). Distinct from `wizardState.instanceId` (the deploy tenant claim,
+   * (GAP-1136). Distinct from `wizardState.instanceId` (the deploy tenant claim,
    * null until job creation) — this is the asset-owning instance from Step 1-3.
    */
   assetInstanceId?: string;
@@ -638,7 +638,7 @@ export function Step6Preview({
         templateId: wizardState.templateId,
         logoUrl: wizardState.logoUrl,
         aiLogo: wizardState.aiLogo,
-        // GAP-1115 — org-type axis flows into the generate request.
+        // GAP-1133 — org-type axis flows into the generate request.
         orgType: wizardState.orgType,
       },
       {
@@ -740,12 +740,12 @@ export function Step6Preview({
   const allApproved = approvedCount === totalResources;
 
   // -------------------------------------------------------------------------
-  // GAP-1118 — full-screen preview mode + prior-decisions summary panel
+  // GAP-1136 — full-screen preview mode + prior-decisions summary panel
   // -------------------------------------------------------------------------
 
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
 
-  // Count PORTRAIT assets for the summary (GAP-1116 step feeds this).
+  // Count PORTRAIT assets for the summary (GAP-1134 step feeds this).
   const { data: instanceAssets } = useAssets(assetInstanceId);
   const portraitCount = (instanceAssets ?? []).filter((a) => a.type === 'PORTRAIT').length;
 
@@ -1000,7 +1000,7 @@ export function Step6Preview({
 
         {/* Right column — summary + approve stack + qgate scaffold + regen scaffold */}
         <div className="space-y-4">
-          {/* GAP-1118 — prior-decisions summary with jump-to-edit links. */}
+          {/* GAP-1136 — prior-decisions summary with jump-to-edit links. */}
           <DecisionSummary rows={decisionRows} onJump={handleJumpToStep} />
 
           {/* Quality gate scaffold — Bucket D fills in via state branch. */}
@@ -1080,7 +1080,7 @@ export function Step6Preview({
         </Button>
       </div>
 
-      {/* GAP-1118 — full-screen live preview + side panel (summary + approve). */}
+      {/* GAP-1136 — full-screen live preview + side panel (summary + approve). */}
       <Dialog
         open={fullscreenOpen}
         onOpenChange={(next) => {

@@ -1,12 +1,12 @@
 package com.kitehub.branding.domain.enums;
 
 /**
- * Organization / user-type axis for the AI Branding wizard (GAP-1115).
+ * Organization / user-type axis for the AI Branding wizard (GAP-1133).
  *
  * <p>Orthogonal to the <em>audience</em> axis (which drives theme/colour/tone).
  * This axis describes the tenant's organizational structure and drives the
  * asset strategy + tier hint — notably the number of portraits the wizard
- * collects (per GAP-1116):</p>
+ * collects (per GAP-1134):</p>
  *
  * <ul>
  *   <li>{@link #SOLO_TEACHER} — a single teacher → typically 1 portrait</li>
@@ -15,10 +15,10 @@ package com.kitehub.branding.domain.enums;
  * </ul>
  *
  * <p>Stored on {@link com.kitehub.branding.domain.entity.BrandingJob} as a
- * nullable {@code VARCHAR(20)} column (optional for backward-compat — pre-GAP-1115
+ * nullable {@code VARCHAR(20)} column (optional for backward-compat — pre-GAP-1133
  * jobs carry {@code null}).</p>
  *
- * @since GAP-1115 (wizard user-type axis)
+ * @since GAP-1133 (wizard user-type axis)
  */
 public enum OrgType {
 
@@ -47,7 +47,7 @@ public enum OrgType {
 
     /**
      * Suggested maximum number of portrait uploads for this org-type
-     * (GAP-1116 — drives the wizard portrait step cap). Solo teacher = 1,
+     * (GAP-1134 — drives the wizard portrait step cap). Solo teacher = 1,
      * small centre = 5, large centre = 20.
      *
      * @return suggested portrait cap

@@ -84,7 +84,7 @@ public class BrandingJobController {
 
         // GAP-1019: bind client X-Instance-Id to the gateway-trusted tenant.
         TenantOwnershipGuard.requireInstanceOwnership(instanceId, tenantHeader);
-        // GAP-1117/1119: propagate subscription tier (ADR-039 X-Subscription-Tier) so the
+        // GAP-1135/1137: propagate subscription tier (ADR-039 X-Subscription-Tier) so the
         // processor routes FULL_AI (PREMIUM/ENTERPRISE) vs TEMPLATE generation.
         log.info("Creating branding job for instance: {} (tier={})", instanceId, tier);
 

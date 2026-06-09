@@ -16,11 +16,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * GAP-1119 — FULL_AI monthly cost quota gate:
+ * GAP-1137 — FULL_AI monthly cost quota gate:
  * ENTERPRISE unlimited / PREMIUM limited / FREE+BASIC ineligible.
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("FullAiQuotaService (GAP-1119 FULL_AI cost quota)")
+@DisplayName("FullAiQuotaService (GAP-1137 FULL_AI cost quota)")
 class FullAiQuotaServiceTest {
 
     @Mock private DistributedRateLimiter distributedRateLimiter;

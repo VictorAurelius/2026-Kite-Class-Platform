@@ -241,7 +241,7 @@ export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps)
             )}
           </div>
 
-          {/* Org type — GAP-1115 user-type axis (constrained preset). Orthogonal
+          {/* Org type — GAP-1133 user-type axis (constrained preset). Orthogonal
               to Audience (Step 4); drives portrait count (Step 3) + tier hint. */}
           <div>
             <p className="block text-sm font-semibold mb-1">
@@ -301,7 +301,7 @@ export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps)
 }
 
 // ---------------------------------------------------------------------------
-// OrgTypeCard — single radio-style card for the user-type axis (GAP-1115)
+// OrgTypeCard — single radio-style card for the user-type axis (GAP-1133)
 // ---------------------------------------------------------------------------
 
 interface OrgTypeCardProps {

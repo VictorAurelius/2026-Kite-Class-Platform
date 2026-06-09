@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * Composes the deterministic TEMPLATE-mode banner HTML (GAP-1117).
+ * Composes the deterministic TEMPLATE-mode banner HTML (GAP-1135).
  *
  * <p>This is the REAL artifact of the free TEMPLATE path (ADR-037 Amendment) —
  * a 3-layer banner (background gradient + brand text/copy + portrait + theme
@@ -19,7 +19,7 @@ import java.util.List;
  * (sanitize-on-write; AI-generated copy must not bypass safety per ADR-037 §4 /
  * GAP-827).</p>
  *
- * @since GAP-1117
+ * @since GAP-1135
  */
 @Component
 public class BannerHtmlComposer {
@@ -34,7 +34,7 @@ public class BannerHtmlComposer {
      * @param organizationName tenant / centre display name (headline)
      * @param copy             Gemini-generated marketing copy (subtitle source)
      * @param logoUrl          uploaded logo URL (brand mark; nullable)
-     * @param portraitUrls     uploaded portrait URLs (GAP-1116 — first is featured; nullable)
+     * @param portraitUrls     uploaded portrait URLs (GAP-1134 — first is featured; nullable)
      * @param themeIcon        theme/subject icon (emoji or short text; nullable)
      * @param colours          validated brand palette
      * @return composed HTML + dimensions

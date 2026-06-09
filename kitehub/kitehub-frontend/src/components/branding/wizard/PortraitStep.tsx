@@ -1,11 +1,11 @@
 'use client';
 
 /**
- * GAP-1116 — Step 3 Portrait upload: collect 1..N teacher/staff headshots.
+ * GAP-1134 — Step 3 Portrait upload: collect 1..N teacher/staff headshots.
  *
  * The banner-compose layer (thesis 3-layer design: text + portrait + icon) uses
  * portraits as the central asset. The number of portraits depends on the
- * `orgType` axis chosen in Step 1 (GAP-1115): a solo teacher uploads ~1, a
+ * `orgType` axis chosen in Step 1 (GAP-1133): a solo teacher uploads ~1, a
  * centre uploads several. The count is a HINT only — the step accepts any
  * number (including zero, since AI can still compose a banner without portraits).
  *
@@ -125,7 +125,7 @@ export function PortraitStep({
           subtitle="Ảnh chân dung giáo viên là lớp trung tâm của banner. Bạn có thể bỏ qua — AI vẫn tạo được banner không cần ảnh."
         />
 
-        {/* Count hint driven by orgType (GAP-1115 → GAP-1116) */}
+        {/* Count hint driven by orgType (GAP-1133 → GAP-1134) */}
         <div
           data-testid="wizard-portrait-hint"
           className="mb-5 flex items-start gap-3 rounded-md border border-sky-200 bg-sky-50 p-3 dark:border-sky-900 dark:bg-sky-950/30"
@@ -151,7 +151,7 @@ export function PortraitStep({
           </div>
         </div>
 
-        {/* Uploaded portraits gallery (GAP-1116 — additive 1..N) */}
+        {/* Uploaded portraits gallery (GAP-1134 — additive 1..N) */}
         {portraitAssets.length > 0 && (
           <div className="mb-5" data-testid="wizard-portrait-gallery">
             <div className="mb-3 flex items-center gap-2">

@@ -40,7 +40,7 @@ public class DistributedRateLimiter {
 
     static final String DAILY_KEY_PREFIX = "ai:ratelimit:";
     static final String CONCURRENCY_KEY_PREFIX = "ai:concurrency:";
-    // GAP-1119: FULL_AI (paid GPT image-gen) monthly cost counter.
+    // GAP-1137: FULL_AI (paid GPT image-gen) monthly cost counter.
     static final String FULLAI_MONTHLY_KEY_PREFIX = "ai:fullai:";
     static final Duration DAILY_TTL = Duration.ofDays(1);
     static final Duration FULLAI_MONTHLY_TTL = Duration.ofDays(32);
@@ -186,7 +186,7 @@ public class DistributedRateLimiter {
     }
 
     /**
-     * Read this month's FULL_AI usage counter without incrementing (GAP-1119).
+     * Read this month's FULL_AI usage counter without incrementing (GAP-1137).
      *
      * @param instanceId tenant id
      * @return current month's FULL_AI count, or -1 if Redis unavailable
@@ -206,7 +206,7 @@ public class DistributedRateLimiter {
     }
 
     /**
-     * Atomically increment this month's FULL_AI usage counter (GAP-1119).
+     * Atomically increment this month's FULL_AI usage counter (GAP-1137).
      *
      * <p>On the first hit of the month, sets a ~32-day TTL so the key expires.
      * Returns -1 on any error (Redis unavailable / INCR failure).</p>

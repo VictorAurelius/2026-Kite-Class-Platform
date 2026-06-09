@@ -1,16 +1,16 @@
 ---
-title: AI Branding Provider Setup Runbook — bật generation thật (GAP-1117)
+title: AI Branding Provider Setup Runbook — bật generation thật (GAP-1135)
 audience: dev
 created: 2026-06-10
-scope: Hoàn thiện GAP-1117 — provider keys (Gemini + GPT-5.5) + Playwright rasterise + tier propagation
+scope: Hoàn thiện GAP-1135 — provider keys (Gemini + GPT-5.5) + Playwright rasterise + tier propagation
 references:
   - documents/02-architecture/adr/ADR-037-ai-branding-generation-stack.md
   - .claude/rules/ai-branding-guidelines.md
   - documents/01-business/kitehub/subscription-billing/rules.md
-  - documents/04-quality/gaps/phase-1.5-paid/GAP-1117-wizard-banner-render-step-ai-provider-keys.md
+  - documents/04-quality/gaps/phase-1.5-paid/GAP-1135-wizard-banner-render-step-ai-provider-keys.md
 ---
 
-# AI Branding Provider Setup Runbook (GAP-1117)
+# AI Branding Provider Setup Runbook (GAP-1135)
 
 ## 1. Mục tiêu + trạng thái hiện tại
 
@@ -139,7 +139,7 @@ PASS khi: `provider=gemini` (không phải MOCK), `FULL_AI banner generated` cho
 
 ---
 
-## 7. Checklist hoàn thiện GAP-1117
+## 7. Checklist hoàn thiện GAP-1135
 
 - [ ] §2.2 / §2.3 — set `GEMINI_API_KEY` (local export hoặc AWS secret) → TEMPLATE copy thật
 - [ ] §2.3 — set `OPENAI_API_KEY` (PREMIUM/ENTERPRISE FULL_AI banner)

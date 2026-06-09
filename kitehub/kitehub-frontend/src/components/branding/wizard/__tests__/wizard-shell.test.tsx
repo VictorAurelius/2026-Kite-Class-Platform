@@ -26,7 +26,7 @@ import { LogoStep } from '../LogoStep';
 import { PortraitStep } from '../PortraitStep';
 
 // Shared mutable mock returns: `assetsReturn` lets LogoStep (GAP-1112 #3 picker)
-// + PortraitStep (GAP-1116) tests inject an asset gallery; `uploadMock` asserts
+// + PortraitStep (GAP-1134) tests inject an asset gallery; `uploadMock` asserts
 // PortraitStep upload call args. vi.hoisted lets the factory below reference them
 // despite vi.mock hoisting.
 const hoisted = vi.hoisted(() => ({
@@ -70,7 +70,7 @@ describe('wizardReducer — step transitions', () => {
     expect(s.currentStep).toBe(3);
   });
 
-  it('SET_ORG_TYPE persists the user-type axis (GAP-1115)', () => {
+  it('SET_ORG_TYPE persists the user-type axis (GAP-1133)', () => {
     expect(INITIAL_WIZARD_STATE.orgType).toBeNull();
     const next = wizardReducer(INITIAL_WIZARD_STATE, {
       type: 'SET_ORG_TYPE',
@@ -174,7 +174,7 @@ describe('WelcomeStep — slug validation', () => {
       ...INITIAL_WIZARD_STATE,
       tenantName: 'Trung tâm Toán Master',
       slug: 'unique-slug',
-      // GAP-1115 — org-type is now a required Step 1 field; seed it so the
+      // GAP-1133 — org-type is now a required Step 1 field; seed it so the
       // Continue gating depends solely on the slug-availability path here.
       orgType: 'SOLO_TEACHER',
     };
@@ -203,7 +203,7 @@ describe('WelcomeStep — slug validation', () => {
     expect(onNext).toHaveBeenCalledTimes(1);
   });
 
-  it('org-type select dispatches SET_ORG_TYPE + gates Continue until chosen (GAP-1115)', async () => {
+  it('org-type select dispatches SET_ORG_TYPE + gates Continue until chosen (GAP-1133)', async () => {
     let state: WizardState = {
       ...INITIAL_WIZARD_STATE,
       tenantName: 'Trung tâm Toán Master',
@@ -390,7 +390,7 @@ describe('LogoStep — fork + validation', () => {
   });
 });
 
-describe('PortraitStep — count hint + upload (GAP-1116)', () => {
+describe('PortraitStep — count hint + upload (GAP-1134)', () => {
   beforeEach(() => {
     hoisted.assetsReturn = { data: [] };
     hoisted.uploadMock.mockClear();
