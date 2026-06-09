@@ -551,7 +551,15 @@ export function Step6Preview({
       {
         onSuccess: (job) => {
           if (job?.jobId) {
-            dispatch({ type: 'SET_JOB_ID', jobId: String(job.jobId) });
+            // GAP-1105: capture the REAL instanceId (tenant claim) so the
+            // lifecycle/events "Tiến trình" panel polls the right key — NOT jobId.
+            dispatch({
+              type: 'SET_JOB_ID',
+              jobId: String(job.jobId),
+              instanceId:
+                job.tenantId ??
+                (job.instanceId != null ? String(job.instanceId) : undefined),
+            });
           }
         },
         onError: () => {
@@ -717,7 +725,9 @@ export function Step6Preview({
       <DeployingStep
         logs={deployLogs}
         instanceId={
-          typeof wizardState.jobId === 'string' ? wizardState.jobId : undefined
+          typeof wizardState.instanceId === 'string'
+            ? wizardState.instanceId
+            : undefined
         }
       />
     );

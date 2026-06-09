@@ -75,6 +75,13 @@ export interface WizardState {
   /** Branding job ID returned from the backend — set when generate starts (Step 5→6). */
   jobId: string | null;
   /**
+   * Real instance ID (= tenant claim) returned alongside the branding job.
+   * Used for `/instances/{instanceId}/lifecycle/events` polling — MUST NOT be
+   * the jobId (GAP-1105: deploy "Tiến trình" panel stayed stuck because the FE
+   * polled lifecycle/events with jobId → 0 events).
+   */
+  instanceId: string | null;
+  /**
    * Per-resource approval flags (Step 6) — implements `ai-branding-guidelines.md`
    * §4.2 "User approve từng resource (logo, colors, banner, hero) riêng lẻ".
    *
@@ -97,6 +104,7 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   tone: null,
   templateId: null,
   jobId: null,
+  instanceId: null,
   approvedResources: [],
 };
 
@@ -116,7 +124,7 @@ export type WizardAction =
   | { type: 'SET_AUDIENCE'; audience: string }
   | { type: 'SET_TONE'; tone: string }
   | { type: 'SET_TEMPLATE'; templateId: string; jobId: string }
-  | { type: 'SET_JOB_ID'; jobId: string }
+  | { type: 'SET_JOB_ID'; jobId: string; instanceId?: string }
   | { type: 'APPROVE_RESOURCE'; resource: string }
   | { type: 'UNAPPROVE_RESOURCE'; resource: string }
   | { type: 'RESET_APPROVALS' }
@@ -188,7 +196,11 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
       };
 
     case 'SET_JOB_ID':
-      return { ...state, jobId: action.jobId };
+      return {
+        ...state,
+        jobId: action.jobId,
+        instanceId: action.instanceId ?? state.instanceId,
+      };
 
     case 'APPROVE_RESOURCE': {
       if (state.approvedResources.includes(action.resource)) return state;

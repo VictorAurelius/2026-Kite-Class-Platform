@@ -15,7 +15,7 @@
  * the consumer (kept as a no-op).
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { endpoints } from '@/lib/api/endpoints';
 import { getAccessToken } from '@/lib/auth/jwt-storage';
 import type {
@@ -52,9 +52,16 @@ export function useDeployStream(
   const { enabled = true } = options;
   const [events, setEvents] = useState<DeployStreamEvent[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  // GAP-1105: a terminal event (server `complete`/`error`) closes the stream
+  // intentionally. EventSource then fires its native `error` on the underlying
+  // socket close — that is NOT a real failure, so suppress the spurious
+  // STREAM_DISCONNECTED once we've already seen a terminal event. The mock
+  // provision completes in ~4s, so this completion-race is the common path.
+  const completedRef = useRef(false);
 
   useEffect(() => {
     if (!enabled || !jobId) return;
+    completedRef.current = false;
     if (typeof window === 'undefined' || typeof window.EventSource === 'undefined') {
       // SSR or jsdom without EventSource polyfill — bail silently.
       return;
@@ -88,6 +95,7 @@ export function useDeployStream(
         const event: DeployStreamEvent = { name, data };
         setEvents((prev) => [...prev, event]);
         if (name === 'complete' || name === 'error') {
+          completedRef.current = true;
           setIsStreaming(false);
           source.close();
         }
@@ -97,7 +105,14 @@ export function useDeployStream(
     }
 
     const onError = () => {
-      // Network drop — close and surface as an `error` event to the consumer.
+      // GAP-1105: a native EventSource error right after a terminal event is the
+      // post-complete socket close, not a real disconnect — swallow it silently.
+      if (completedRef.current) {
+        setIsStreaming(false);
+        source.close();
+        return;
+      }
+      // Genuine network drop — close and surface as an `error` event.
       setIsStreaming(false);
       setEvents((prev) => [
         ...prev,
