@@ -19,6 +19,9 @@ on:
       - '**/prometheusrule.yaml'
       - 'scripts/check-alert-runbook-url.py'
       - 'scripts/fixtures/alert-runbook-url/**'
+      - 'infrastructure/terraform-aws/ecr.tf'
+      - '.github/workflows/docker-build-push.yml'
+      - 'scripts/check-ecr-lifecycle-coverage.sh'
 
 permissions:
   contents: read
@@ -142,5 +145,29 @@ jobs:
 
           # Run promtool — fails non-zero on syntax error / missing field
           promtool check rules /tmp/rendered/prometheus-rules.yaml
+
+
+  ecr-lifecycle-coverage:
+    name: ECR lifecycle coverage (cosign sig/att capped)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (2 fixtures — cosign+rule PASS / cosign-no-rule FAIL)
+        run: |
+          # Asserts detector fires: a workflow that signs images but an ecr.tf
+          # without a sha256- expire rule must FAIL (the 2026-06-10 incident class).
+          bash scripts/check-ecr-lifecycle-coverage.sh --self-test
+
+      - name: Validate ECR lifecycle covers every CI-produced tag family (blocking on FAIL)
+        run: |
+          # If docker-build-push.yml signs/attests images (cosign sha256-*.sig/.att),
+          # ecr.tf lifecycle policy MUST cap them. Closes the gap where GAP-402 cosign
+          # signing added unbounded image growth. See retention-policy-completeness.md.
+          bash scripts/check-ecr-lifecycle-coverage.sh
 
 
