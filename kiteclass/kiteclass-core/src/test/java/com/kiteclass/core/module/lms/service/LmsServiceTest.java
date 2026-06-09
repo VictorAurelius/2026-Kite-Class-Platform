@@ -17,6 +17,8 @@ import com.kiteclass.core.module.lms.mapper.LmsMapper;
 import com.kiteclass.core.module.lms.repository.CourseModuleRepository;
 import com.kiteclass.core.module.lms.repository.LearningResourceRepository;
 import com.kiteclass.core.module.lms.repository.LessonRepository;
+import com.kiteclass.core.common.context.TenantContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -118,6 +120,12 @@ class LmsServiceTest {
         testLesson.setInstanceId(tenantId);
     }
 
+    @AfterEach
+    void tearDown() {
+        // GAP-1118: ensure the thread-local tenant never leaks across tests.
+        TenantContext.clear();
+    }
+
     // ==================== Guest Access Tests ====================
 
     @Test
@@ -184,25 +192,116 @@ class LmsServiceTest {
                 .hasMessageContaining("TRIAL_LESSON_REQUIRED");
     }
 
+    @Test
+    @DisplayName("getLessonPublic - should NOT leak tenant context onto the pooled thread (GAP-1118)")
+    void getLessonPublic_shouldRestoreTenantContext_forGuest() {
+        // Given - guest request: no tenant set on the thread before the call
+        assertThat(TenantContext.isSet()).isFalse();
+        when(lessonRepository.findById(1L)).thenReturn(Optional.of(trialLesson));
+        when(lessonRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(trialLesson));
+        when(learningResourceRepository.findByLessonIdAndDeletedFalse(1L)).thenReturn(List.of());
+        when(lmsMapper.toResourceResponseList(anyList())).thenReturn(List.of());
+
+        // When
+        lmsService.getLessonPublic(1L);
+
+        // Then - the guest's resolved instanceId must be cleared, not leaked to the next request
+        assertThat(TenantContext.isSet()).isFalse();
+    }
+
+    @Test
+    @DisplayName("getLessonPublic - should restore a pre-existing tenant after the call (GAP-1118)")
+    void getLessonPublic_shouldRestorePreExistingTenant() {
+        // Given - a tenant was already active before the call (authenticated context)
+        UUID preExisting = UUID.randomUUID();
+        TenantContext.setCurrentTenant(preExisting);
+        when(lessonRepository.findById(1L)).thenReturn(Optional.of(trialLesson));
+        when(lessonRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(trialLesson));
+        when(learningResourceRepository.findByLessonIdAndDeletedFalse(1L)).thenReturn(List.of());
+        when(lmsMapper.toResourceResponseList(anyList())).thenReturn(List.of());
+
+        // When
+        lmsService.getLessonPublic(1L);
+
+        // Then - original tenant preserved
+        assertThat(TenantContext.isSet()).isTrue();
+        assertThat(TenantContext.getCurrentTenant()).isEqualTo(preExisting);
+    }
+
     // ==================== Student Access Tests ====================
 
     @Test
-    @DisplayName("getCourseStructureForStudent - should return all lessons")
-    void getCourseStructureForStudent_shouldReturnAllLessons() {
-        // Given - Phase 1: Enrollment check disabled (maps to Class, not Course)
+    @DisplayName("getCourseStructureForStudent - enrolled student gets full content for paid lessons (GAP-1115)")
+    void getCourseStructureForStudent_enrolled_shouldReturnFullContent() {
+        // Given - student IS enrolled in a class of the course
+        Long userId = 200L;
+        Long classId = 1000L;
+        com.kiteclass.core.module.clazz.entity.Class testClass =
+                com.kiteclass.core.module.clazz.entity.Class.builder().courseId(1L).name("Class").build();
+        testClass.setId(classId);
+
+        when(courseModuleRepository.findByCourseIdAndDeletedFalseOrderByOrderNumber(1L))
+                .thenReturn(List.of(testModule));
+        when(lessonRepository.findByModuleIdAndDeletedFalseOrderByOrderNumber(1L))
+                .thenReturn(List.of(trialLesson, testLesson));
+        when(classRepository.findByCourseIdAndDeletedFalse(eq(1L), any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(testClass)));
+        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
+                userId, classId, com.kiteclass.core.common.constant.EnrollmentStatus.ACTIVE))
+                .thenReturn(true);
+        when(lmsMapper.toLessonResponse(trialLesson)).thenReturn(
+                LessonResponse.builder().id(1L).title("Trial").isTrial(true).content("Trial body").build());
+        when(lmsMapper.toLessonResponse(testLesson)).thenReturn(
+                LessonResponse.builder().id(2L).title("Paid").isTrial(false)
+                        .content("Paid body").videoUrl("http://video").build());
+
+        // When
+        List<CourseModuleDetailResponse> result = lmsService.getCourseStructureForStudent(1L, userId);
+
+        // Then - outline contains both lessons; enrolled student keeps full paid body
+        assertThat(result).hasSize(1);
+        List<LessonResponse> lessons = result.get(0).lessons();
+        assertThat(lessons).hasSize(2);
+        LessonResponse paid = lessons.stream().filter(l -> l.id().equals(2L)).findFirst().orElseThrow();
+        assertThat(paid.content()).isEqualTo("Paid body");
+        assertThat(paid.videoUrl()).isEqualTo("http://video");
+    }
+
+    @Test
+    @DisplayName("getCourseStructureForStudent - non-enrolled student gets paid content stripped, trial intact (GAP-1115)")
+    void getCourseStructureForStudent_notEnrolled_shouldStripPaidContent() {
+        // Given - course has NO classes → student is not enrolled
         Long userId = 200L;
         when(courseModuleRepository.findByCourseIdAndDeletedFalseOrderByOrderNumber(1L))
                 .thenReturn(List.of(testModule));
         when(lessonRepository.findByModuleIdAndDeletedFalseOrderByOrderNumber(1L))
                 .thenReturn(List.of(trialLesson, testLesson));
-        when(lmsMapper.toLessonResponseList(anyList())).thenReturn(List.of());
+        when(classRepository.findByCourseIdAndDeletedFalse(eq(1L), any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of()));
+        when(lmsMapper.toLessonResponse(trialLesson)).thenReturn(
+                LessonResponse.builder().id(1L).title("Trial").isTrial(true).content("Trial body").build());
+        when(lmsMapper.toLessonResponse(testLesson)).thenReturn(
+                LessonResponse.builder().id(2L).title("Paid").isTrial(false)
+                        .content("Paid body").videoUrl("http://video").estimatedDuration(30).build());
 
         // When
         List<CourseModuleDetailResponse> result = lmsService.getCourseStructureForStudent(1L, userId);
 
-        // Then
-        assertThat(result).isNotNull();
-        verify(lessonRepository).findByModuleIdAndDeletedFalseOrderByOrderNumber(1L);
+        // Then - full outline still returned (UX), but paid BODY paywalled
+        assertThat(result).hasSize(1);
+        List<LessonResponse> lessons = result.get(0).lessons();
+        assertThat(lessons).hasSize(2);
+
+        LessonResponse trial = lessons.stream().filter(l -> l.id().equals(1L)).findFirst().orElseThrow();
+        assertThat(trial.content()).isEqualTo("Trial body");  // trial preview kept
+
+        LessonResponse paid = lessons.stream().filter(l -> l.id().equals(2L)).findFirst().orElseThrow();
+        assertThat(paid.content()).isNull();   // paywalled
+        assertThat(paid.videoUrl()).isNull();  // paywalled
+        // metadata retained so FE can render the locked outline
+        assertThat(paid.title()).isEqualTo("Paid");
+        assertThat(paid.isTrial()).isFalse();
+        assertThat(paid.estimatedDuration()).isEqualTo(30);
     }
 
     @Test

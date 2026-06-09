@@ -103,16 +103,29 @@ public class LmsServiceImpl implements LmsService {
     public LessonDetailResponse getLessonPublic(Long lessonId) {
         log.info("Fetching public lesson detail for lessonId: {}", lessonId);
 
-        // Find lesson - manual tenant context handling
-        Lesson lesson = findLessonWithTenantContext(lessonId);
+        // GAP-1118: capture the prior tenant so the manual context set inside
+        // findLessonWithTenantContext is always restored — otherwise the guest's
+        // resolved instanceId leaks onto the pooled thread for the next request.
+        UUID previousTenant = TenantContext.isSet() ? TenantContext.getCurrentTenant() : null;
+        try {
+            // Find lesson - manual tenant context handling
+            Lesson lesson = findLessonWithTenantContext(lessonId);
 
-        // BR-LMS-001: Only trial lessons accessible to guests
-        if (!lesson.isTrialLesson()) {
-            log.warn("Lesson {} is not a trial lesson, denying guest access", lessonId);
-            throw new PermissionDeniedException("TRIAL_LESSON_REQUIRED", lessonId);
+            // BR-LMS-001: Only trial lessons accessible to guests
+            if (!lesson.isTrialLesson()) {
+                log.warn("Lesson {} is not a trial lesson, denying guest access", lessonId);
+                throw new PermissionDeniedException("TRIAL_LESSON_REQUIRED", lessonId);
+            }
+
+            return buildLessonDetailResponse(lesson);
+        } finally {
+            // Restore previous context (or clear for guests) to prevent cross-tenant leak.
+            if (previousTenant != null) {
+                TenantContext.setCurrentTenant(previousTenant);
+            } else {
+                TenantContext.clear();
+            }
         }
-
-        return buildLessonDetailResponse(lesson);
     }
 
     // ==================== Student Endpoints (Authenticated) ====================
@@ -122,10 +135,15 @@ public class LmsServiceImpl implements LmsService {
     public List<CourseModuleDetailResponse> getCourseStructureForStudent(Long courseId, Long userId) {
         log.info("Fetching course structure for student userId: {} courseId: {}", userId, courseId);
 
-        // Note: We do NOT verify enrollment here to allow students to see course structure
-        // before enrolling (better UX for marketing/preview purposes)
+        // Students can see the full course OUTLINE before enrolling (better UX for
+        // marketing/preview). BR-LMS-002: but paid lesson BODY (content + videoUrl)
+        // is paywalled — only enrolled students receive it. Non-enrolled students get
+        // metadata only for paid lessons; trial lessons always include full body.
+        // GAP-1115: previously ALL lessons were returned with full content, leaking
+        // paid material to non-enrolled students.
+        boolean enrolled = isStudentEnrolledInCourse(userId, courseId);
 
-        // Fetch modules + ALL lessons
+        // Fetch modules + ALL lessons (outline visible regardless of enrollment)
         List<CourseModule> modules = courseModuleRepository
                 .findByCourseIdAndDeletedFalseOrderByOrderNumber(courseId);
 
@@ -133,7 +151,7 @@ public class LmsServiceImpl implements LmsService {
                 .map(module -> {
                     List<Lesson> allLessons = lessonRepository
                             .findByModuleIdAndDeletedFalseOrderByOrderNumber(module.getId());
-                    return buildModuleDetailResponse(module, allLessons);
+                    return buildStudentModuleDetailResponse(module, allLessons, enrolled);
                 })
                 .toList();
     }
@@ -440,28 +458,7 @@ public class LmsServiceImpl implements LmsService {
     private void verifyStudentEnrollment(Long studentId, Long courseId) {
         log.debug("Verifying enrollment for student {} in course {}", studentId, courseId);
 
-        // Find all classes for this course
-        List<com.kiteclass.core.module.clazz.entity.Class> courseClasses = classRepository
-                .findByCourseIdAndDeletedFalse(courseId, org.springframework.data.domain.Pageable.unpaged())
-                .getContent();
-
-        if (courseClasses.isEmpty()) {
-            log.warn("Course {} has no classes", courseId);
-            throw new PermissionDeniedException("STUDENT_NOT_ENROLLED_IN_COURSE");
-        }
-
-        // Extract class IDs
-        List<Long> classIds = courseClasses.stream()
-                .map(com.kiteclass.core.module.clazz.entity.Class::getId)
-                .toList();
-
-        // Check if student has ACTIVE enrollment in ANY class
-        boolean hasActiveEnrollment = classIds.stream()
-                .anyMatch(classId -> enrollmentRepository
-                    .existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
-                        studentId, classId, com.kiteclass.core.common.constant.EnrollmentStatus.ACTIVE));
-
-        if (!hasActiveEnrollment) {
+        if (!isStudentEnrolledInCourse(studentId, courseId)) {
             log.warn("Student {} not enrolled in course {}", studentId, courseId);
             throw new PermissionDeniedException("STUDENT_NOT_ENROLLED_IN_COURSE");
         }
@@ -470,7 +467,44 @@ public class LmsServiceImpl implements LmsService {
     }
 
     /**
-     * Finds a lesson and handles tenant context for guest access.
+     * Checks (without throwing) whether a student has an ACTIVE enrollment in ANY class
+     * of the course. BR-LMS-002. Used both by {@link #verifyStudentEnrollment} (which
+     * throws on false) and by paywall content-stripping in
+     * {@link #getCourseStructureForStudent}.
+     *
+     * @param studentId the student user ID
+     * @param courseId the course ID
+     * @return true if student has an ACTIVE enrollment in at least one class of the course
+     */
+    private boolean isStudentEnrolledInCourse(Long studentId, Long courseId) {
+        // Find all classes for this course
+        List<com.kiteclass.core.module.clazz.entity.Class> courseClasses = classRepository
+                .findByCourseIdAndDeletedFalse(courseId, org.springframework.data.domain.Pageable.unpaged())
+                .getContent();
+
+        if (courseClasses.isEmpty()) {
+            return false;
+        }
+
+        // Extract class IDs
+        List<Long> classIds = courseClasses.stream()
+                .map(com.kiteclass.core.module.clazz.entity.Class::getId)
+                .toList();
+
+        // Check if student has ACTIVE enrollment in ANY class
+        return classIds.stream()
+                .anyMatch(classId -> enrollmentRepository
+                    .existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
+                        studentId, classId, com.kiteclass.core.common.constant.EnrollmentStatus.ACTIVE));
+    }
+
+    /**
+     * Finds a lesson and sets the tenant context (when absent) for guest access.
+     *
+     * <p>GAP-1118: this method only SETS the context; the caller MUST restore/clear it
+     * in a finally block (see {@link #getLessonPublic}). The context cannot be restored
+     * here because the subsequent resource lookup in {@code buildLessonDetailResponse}
+     * still needs the tenant active.
      *
      * @param lessonId the lesson ID
      * @return the lesson entity
@@ -508,6 +542,67 @@ public class LmsServiceImpl implements LmsService {
                 .lessonCount(lessons.size())
                 .createdAt(convertToLocalDateTime(module.getCreatedAt()))
                 .updatedAt(convertToLocalDateTime(module.getUpdatedAt()))
+                .build();
+    }
+
+    /**
+     * Builds CourseModuleDetailResponse for a student, applying the BR-LMS-002 paywall
+     * (GAP-1115). Enrolled students receive full lesson bodies. Non-enrolled students
+     * receive full bodies ONLY for trial lessons; paid lessons are returned as metadata
+     * only (content + videoUrl stripped to null).
+     *
+     * @param module the course module
+     * @param lessons the lessons in the module
+     * @param enrolled whether the requesting student has an active enrollment in the course
+     * @return CourseModuleDetailResponse with paid content gated by enrollment
+     */
+    private CourseModuleDetailResponse buildStudentModuleDetailResponse(
+            CourseModule module, List<Lesson> lessons, boolean enrolled) {
+        List<LessonResponse> lessonResponses = lessons.stream()
+                .map(lesson -> {
+                    LessonResponse full = lmsMapper.toLessonResponse(lesson);
+                    // Full body when enrolled OR when the lesson is a free trial preview.
+                    if (enrolled || lesson.isTrialLesson()) {
+                        return full;
+                    }
+                    // Paid lesson + not enrolled: strip the paid body, keep metadata only.
+                    return stripPaidLessonBody(full);
+                })
+                .toList();
+
+        return CourseModuleDetailResponse.builder()
+                .id(module.getId())
+                .courseId(module.getCourseId())
+                .title(module.getTitle())
+                .description(module.getDescription())
+                .orderNumber(module.getOrderNumber())
+                .lessons(lessonResponses)
+                .lessonCount(lessonResponses.size())
+                .createdAt(convertToLocalDateTime(module.getCreatedAt()))
+                .updatedAt(convertToLocalDateTime(module.getUpdatedAt()))
+                .build();
+    }
+
+    /**
+     * Returns a copy of the given lesson response with the paid body (content + videoUrl)
+     * removed. All metadata (title, order, isTrial, estimatedDuration, timestamps) is kept
+     * so the FE can still render the locked outline. BR-LMS-002 / GAP-1115.
+     *
+     * @param full the fully-mapped lesson response
+     * @return a metadata-only LessonResponse (content + videoUrl null)
+     */
+    private LessonResponse stripPaidLessonBody(LessonResponse full) {
+        return LessonResponse.builder()
+                .id(full.id())
+                .moduleId(full.moduleId())
+                .title(full.title())
+                .content(null)   // paywalled — non-enrolled student
+                .videoUrl(null)  // paywalled — non-enrolled student
+                .isTrial(full.isTrial())
+                .orderNumber(full.orderNumber())
+                .estimatedDuration(full.estimatedDuration())
+                .createdAt(full.createdAt())
+                .updatedAt(full.updatedAt())
                 .build();
     }
 

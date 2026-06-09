@@ -1,7 +1,11 @@
 package com.kiteclass.core.module.lms.service;
 
+import com.kiteclass.core.common.constant.EnrollmentStatus;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
+import com.kiteclass.core.common.exception.PermissionDeniedException;
+import com.kiteclass.core.module.clazz.repository.ClassRepository;
 import com.kiteclass.core.module.course.repository.CourseRepository;
+import com.kiteclass.core.module.enrollment.repository.EnrollmentRepository;
 import com.kiteclass.core.module.lms.dto.response.CourseProgressResponse;
 import com.kiteclass.core.module.lms.dto.response.LessonProgressResponse;
 import com.kiteclass.core.module.lms.entity.CourseModule;
@@ -36,6 +40,8 @@ public class LessonProgressServiceImpl implements LessonProgressService {
     private final LessonRepository lessonRepository;
     private final CourseModuleRepository courseModuleRepository;
     private final CourseRepository courseRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final ClassRepository classRepository;
     private final LmsMapper lmsMapper;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -48,15 +54,13 @@ public class LessonProgressServiceImpl implements LessonProgressService {
         Lesson lesson = lessonRepository.findByIdAndDeletedFalse(lessonId)
                 .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", (Object) lessonId));
 
-        // For paid lessons, verify enrollment (trial lessons don't require enrollment)
+        // BR-LMS-019 (GAP-1116): paid lessons require an active enrollment to complete;
+        // trial lessons can be completed without enrollment (free preview). Previously this
+        // check was a no-op log line, letting non-enrolled students mark paid lessons done.
         if (!lesson.isTrialLesson()) {
             CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(lesson.getModuleId())
                     .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", (Object) lesson.getModuleId()));
-            log.debug("Lesson belongs to module: {}", module.getTitle());
-
-            // Note: Enrollment check is simplified here. In production, consider adding enrollment service dependency.
-            // For now, we'll allow progress tracking without strict enrollment check (can be added later).
-            log.debug("Lesson {} is paid content, ideally should verify enrollment", lessonId);
+            verifyStudentEnrollment(userId, module.getCourseId());
         }
 
         // Find or create progress record (BR-LMS-009: one record per user per lesson)
@@ -147,5 +151,35 @@ public class LessonProgressServiceImpl implements LessonProgressService {
                 .findByUserIdAndLessonIdAndDeletedFalse(userId, lessonId);
 
         return progressOpt.map(lmsMapper::toProgressResponse).orElse(null);
+    }
+
+    /**
+     * Verifies the student has an ACTIVE enrollment in ANY class of the course
+     * (BR-LMS-002 / BR-LMS-019). Mirrors the enrollment check in
+     * {@code LmsServiceImpl#getLessonForStudent} so paid-lesson progress tracking
+     * stays consistent with paid-lesson content access.
+     *
+     * @param studentId the student user ID
+     * @param courseId the course ID
+     * @throws PermissionDeniedException if the student has no active enrollment in any class
+     */
+    private void verifyStudentEnrollment(Long studentId, Long courseId) {
+        log.debug("Verifying enrollment for student {} in course {}", studentId, courseId);
+
+        java.util.List<com.kiteclass.core.module.clazz.entity.Class> courseClasses = classRepository
+                .findByCourseIdAndDeletedFalse(courseId, org.springframework.data.domain.Pageable.unpaged())
+                .getContent();
+
+        boolean hasActiveEnrollment = !courseClasses.isEmpty() && courseClasses.stream()
+                .map(com.kiteclass.core.module.clazz.entity.Class::getId)
+                .anyMatch(classId -> enrollmentRepository
+                        .existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
+                                studentId, classId, EnrollmentStatus.ACTIVE));
+
+        if (!hasActiveEnrollment) {
+            log.warn("Student {} not enrolled in course {} - cannot complete paid lesson",
+                    studentId, courseId);
+            throw new PermissionDeniedException("STUDENT_NOT_ENROLLED_IN_COURSE");
+        }
     }
 }
