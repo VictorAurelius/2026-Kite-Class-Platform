@@ -7,6 +7,12 @@ spring:
     resources:
       add-mappings: false
 
+  # Wizard walk (GAP-1135) — logo/portrait uploads exceed the 1MB servlet default → 413.
+  servlet:
+    multipart:
+      max-file-size: ${MULTIPART_MAX_FILE_SIZE:10MB}
+      max-request-size: ${MULTIPART_MAX_REQUEST_SIZE:12MB}
+
   # Database Configuration
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/kitehub}
@@ -188,7 +194,8 @@ storage:
     secret-key: ${AWS_SECRET_ACCESS_KEY:mock-secret-key}
     region: ${AWS_REGION:ap-southeast-1}
     bucket: ${S3_BUCKET:kitehub-assets}
-    endpoint: ${S3_ENDPOINT:} # For MinIO/LocalStack
+    endpoint: ${S3_ENDPOINT:} # For MinIO/LocalStack (internal, used for upload PutObject)
+    public-endpoint: ${S3_PUBLIC_ENDPOINT:} # Browser-reachable host for presigned GET URLs (MinIO host port); blank → falls back to endpoint
     cdn-domain: ${CDN_DOMAIN:localhost:9100} # Safe default for local dev
     mock-mode: ${S3_MOCK_MODE:true} # true for local dev, false for production
 

@@ -457,6 +457,9 @@ services:
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-kitehub}
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:?required}
       S3_ENDPOINT: http://kite-minio:9000
+      # GAP-1135 walk — presigned GET URLs must target the host-mapped MinIO port
+      # (kite-minio:9000 is unreachable from the browser → ERR_NAME_NOT_RESOLVED).
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9100}
       S3_BUCKET: kitehub-assets
       AWS_REGION: ap-southeast-1
       S3_MOCK_MODE: "false"
