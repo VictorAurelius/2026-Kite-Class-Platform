@@ -71,7 +71,12 @@ export function useDeployStream(
     // the JWT is passed as a short-lived `?token=` query param. The gateway
     // (JwtAuthenticationGatewayFilter) accepts token-in-query when no Bearer
     // header is present and injects the X-User-* headers downstream.
-    const baseUrl = endpoints.brandingV1.jobDeployStream(jobId);
+    // GAP-1105: EventSource resolves a relative URL against window.location.origin
+    // (the frontend :3001), NOT the axios baseURL — so a relative path 404'd at
+    // Next.js → STREAM_DISCONNECTED. Prepend the SAME gateway base apiClient uses
+    // so the SSE actually reaches the gateway (:9000) + branding deploy-stream.
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000';
+    const baseUrl = `${apiBase}${endpoints.brandingV1.jobDeployStream(jobId)}`;
     const token = getAccessToken();
     const url = token
       ? `${baseUrl}?token=${encodeURIComponent(token)}`
