@@ -285,7 +285,7 @@ class InternalStudentIntegrationTest {
     }
 
     @Test
-    void createStudent_withoutTenantId_shouldFailWithConstraintViolation() throws Exception {
+    void createStudent_withoutTenantId_shouldFailWith400MissingHeader() throws Exception {
         // Given
         long timestamp = System.currentTimeMillis() / 1000;
         String signature = generateHmacSignature(timestamp);
@@ -300,15 +300,15 @@ class InternalStudentIntegrationTest {
                 null
         );
 
-        // When - Create without X-Tenant-Id header
-        // Then - Should fail with database constraint violation (instance_id cannot be null)
+        // When - Create without X-Tenant-Id header (required @RequestHeader)
+        // Then - 400 MISSING_HEADER per GAP-1117 (missing required @RequestHeader → 400, not 500)
         mockMvc.perform(post("/internal/students")
                         .header("X-Internal-Timestamp", String.valueOf(timestamp))
                         .header("X-Internal-Signature", signature)
                         // No X-Tenant-Id header
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().is5xxServerError());  // Database constraint violation
+                .andExpect(status().isBadRequest());  // GAP-1117: MissingRequestHeaderException -> 400
 
         // Verify student was not created
         assertThat(studentRepository.findByEmailAndDeletedFalse("notenant@test.com"))
