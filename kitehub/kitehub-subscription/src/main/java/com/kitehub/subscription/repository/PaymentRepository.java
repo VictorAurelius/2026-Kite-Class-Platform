@@ -74,22 +74,57 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     // Wave 85 Bucket D D-AC1: cursor-based (keyset) pagination
     // for datasets >1M rows. Avoids OFFSET cliff cost.
     // Order is fixed id ASC for stable keyset traversal.
+    //
+    // GAP-1106: split each prior `(:cursorId IS NULL OR p.id > :cursorId)` JPQL
+    // into a first-page query (no cursor param) + an after-cursor query (typed
+    // cursor param), branched by the default methods below. Postgres rejected the
+    // untyped null `:cursorId` in the `IS NULL` position with 42P18 ("could not
+    // determine data type of parameter"); H2 (test) hid it. Same class as
+    // GAP-1028 (AdminAuditLogRepository) + GAP-1105 (branding lifecycle-events).
     // =========================================================
+
+    /** First keyset page of non-deleted payments (no cursor). Order id ASC. */
+    @Query("SELECT p FROM Payment p WHERE p.deleted = false ORDER BY p.id ASC")
+    List<Payment> findFirstPage(Pageable pageable);
+
+    /** Keyset page of non-deleted payments strictly AFTER {@code cursorId}. Order id ASC. */
+    @Query("SELECT p FROM Payment p WHERE p.deleted = false "
+        + "AND p.id > :cursorId ORDER BY p.id ASC")
+    List<Payment> findAfterCursorId(@Param("cursorId") UUID cursorId, Pageable pageable);
 
     /**
      * Keyset-paginate non-deleted payments starting AFTER the given cursor id.
-     * First page should pass {@code cursorId = null} to start from beginning.
+     * Pass {@code cursorId = null} for the first page; branches to a cursor-free
+     * query so no untyped null param is bound (GAP-1106).
      */
-    @Query("SELECT p FROM Payment p WHERE p.deleted = false "
-        + "AND (:cursorId IS NULL OR p.id > :cursorId) "
-        + "ORDER BY p.id ASC")
-    List<Payment> findAfterCursor(@Param("cursorId") UUID cursorId, Pageable pageable);
+    default List<Payment> findAfterCursor(UUID cursorId, Pageable pageable) {
+        return cursorId == null
+            ? findFirstPage(pageable)
+            : findAfterCursorId(cursorId, pageable);
+    }
 
-    /** Keyset variant with status filter. */
+    /** First keyset page filtered by status (no cursor). Order id ASC. */
     @Query("SELECT p FROM Payment p WHERE p.deleted = false AND p.status = :status "
-        + "AND (:cursorId IS NULL OR p.id > :cursorId) "
         + "ORDER BY p.id ASC")
-    List<Payment> findByStatusAfterCursor(@Param("status") PaymentStatus status,
-                                          @Param("cursorId") UUID cursorId,
-                                          Pageable pageable);
+    List<Payment> findByStatusFirstPage(@Param("status") PaymentStatus status, Pageable pageable);
+
+    /** Keyset page filtered by status, strictly AFTER {@code cursorId}. Order id ASC. */
+    @Query("SELECT p FROM Payment p WHERE p.deleted = false AND p.status = :status "
+        + "AND p.id > :cursorId ORDER BY p.id ASC")
+    List<Payment> findByStatusAfterCursorId(@Param("status") PaymentStatus status,
+                                            @Param("cursorId") UUID cursorId,
+                                            Pageable pageable);
+
+    /**
+     * Keyset variant with status filter. Pass {@code cursorId = null} for the
+     * first page; branches to a cursor-free query so no untyped null param is
+     * bound (GAP-1106).
+     */
+    default List<Payment> findByStatusAfterCursor(PaymentStatus status,
+                                                  UUID cursorId,
+                                                  Pageable pageable) {
+        return cursorId == null
+            ? findByStatusFirstPage(status, pageable)
+            : findByStatusAfterCursorId(status, cursorId, pageable);
+    }
 }

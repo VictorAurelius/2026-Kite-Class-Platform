@@ -15,8 +15,9 @@
  * the consumer (kept as a no-op).
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { endpoints } from '@/lib/api/endpoints';
+import { getAccessToken } from '@/lib/auth/jwt-storage';
 import type {
   DeployStreamEvent,
   DeployStreamEventName,
@@ -51,15 +52,35 @@ export function useDeployStream(
   const { enabled = true } = options;
   const [events, setEvents] = useState<DeployStreamEvent[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  // GAP-1105: a terminal event (server `complete`/`error`) closes the stream
+  // intentionally. EventSource then fires its native `error` on the underlying
+  // socket close — that is NOT a real failure, so suppress the spurious
+  // STREAM_DISCONNECTED once we've already seen a terminal event. The mock
+  // provision completes in ~4s, so this completion-race is the common path.
+  const completedRef = useRef(false);
 
   useEffect(() => {
     if (!enabled || !jobId) return;
+    completedRef.current = false;
     if (typeof window === 'undefined' || typeof window.EventSource === 'undefined') {
       // SSR or jsdom without EventSource polyfill — bail silently.
       return;
     }
 
-    const url = endpoints.brandingV1.jobDeployStream(jobId);
+    // GAP-1021 pt2: browser EventSource cannot set the Authorization header, so
+    // the JWT is passed as a short-lived `?token=` query param. The gateway
+    // (JwtAuthenticationGatewayFilter) accepts token-in-query when no Bearer
+    // header is present and injects the X-User-* headers downstream.
+    // GAP-1105: EventSource resolves a relative URL against window.location.origin
+    // (the frontend :3001), NOT the axios baseURL — so a relative path 404'd at
+    // Next.js → STREAM_DISCONNECTED. Prepend the SAME gateway base apiClient uses
+    // so the SSE actually reaches the gateway (:9000) + branding deploy-stream.
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000';
+    const baseUrl = `${apiBase}${endpoints.brandingV1.jobDeployStream(jobId)}`;
+    const token = getAccessToken();
+    const url = token
+      ? `${baseUrl}?token=${encodeURIComponent(token)}`
+      : baseUrl;
     const source = new window.EventSource(url, { withCredentials: true });
     setIsStreaming(true);
 
@@ -67,6 +88,13 @@ export function useDeployStream(
 
     for (const name of EVENT_NAMES) {
       const fn = (e: MessageEvent) => {
+        // GAP-1105: the browser delivers its NATIVE EventSource connection error
+        // to the listener registered for the server-sent `error` event too — but
+        // with no `data`. That null-data event rendered as "Lỗi triển khai
+        // (UNKNOWN)" even when the deploy actually succeeded. Ignore it here:
+        // `onError` handles genuine disconnects, and a real server `error` event
+        // (JOB_FAILED / JOB_NOT_FOUND / ...) always carries a JSON payload.
+        if (name === 'error' && !e.data) return;
         let data: unknown = null;
         try {
           data = e.data ? JSON.parse(e.data) : null;
@@ -79,6 +107,7 @@ export function useDeployStream(
         const event: DeployStreamEvent = { name, data };
         setEvents((prev) => [...prev, event]);
         if (name === 'complete' || name === 'error') {
+          completedRef.current = true;
           setIsStreaming(false);
           source.close();
         }
@@ -88,7 +117,14 @@ export function useDeployStream(
     }
 
     const onError = () => {
-      // Network drop — close and surface as an `error` event to the consumer.
+      // GAP-1105: a native EventSource error right after a terminal event is the
+      // post-complete socket close, not a real disconnect — swallow it silently.
+      if (completedRef.current) {
+        setIsStreaming(false);
+        source.close();
+        return;
+      }
+      // Genuine network drop — close and surface as an `error` event.
       setIsStreaming(false);
       setEvents((prev) => [
         ...prev,

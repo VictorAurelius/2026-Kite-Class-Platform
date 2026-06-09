@@ -171,6 +171,8 @@ class SubscriptionServiceTest {
 
         verify(instanceRepository).save(any(Instance.class));
         assertThat(instance.getStatus()).isEqualTo(InstanceStatus.ACTIVE);
+        // GAP-1090 (SUB-21): create-flow must sync instances.tier to the activated paid tier.
+        assertThat(instance.getTier()).isEqualTo(PricingTier.BASIC);
 
         verify(emailServiceClient).sendSubscriptionCreatedEmail(
             eq(instanceId),
@@ -207,7 +209,10 @@ class SubscriptionServiceTest {
 
         // Then — tier upgraded, no create-flow re-activation, activated email sent
         assertThat(subscription.getTier()).isEqualTo(PricingTier.PREMIUM);
-        verify(instanceRepository, never()).save(any(Instance.class));
+        // GAP-1090 (SUB-21): upgrade-flow now syncs instances.tier to the new tier + saves it
+        // (previously the upgrade branch only loaded the instance to send the email).
+        verify(instanceRepository).save(any(Instance.class));
+        assertThat(instance.getTier()).isEqualTo(PricingTier.PREMIUM);
         verify(emailServiceClient, never()).sendSubscriptionCreatedEmail(
             any(), any(), any(), any(), any());
         verify(emailServiceClient).sendSubscriptionActivatedEmail(
@@ -366,6 +371,7 @@ class SubscriptionServiceTest {
         UUID paymentId = UUID.randomUUID();
         Subscription subscription = new Subscription();
         subscription.setId(subscriptionId);
+        subscription.setInstanceId(instanceId);
         subscription.setTier(PricingTier.BASIC);
         subscription.setBillingCycle(BillingCycle.MONTHLY);
         subscription.setPendingTier(PricingTier.PREMIUM);
@@ -373,6 +379,8 @@ class SubscriptionServiceTest {
 
         when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
         when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        // GAP-1090 (SUB-21): upgrade-flow now loads + tier-syncs + saves the instance.
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
 
         subscriptionService.applyPendingUpgrade(subscriptionId, paymentId);
 
@@ -381,6 +389,9 @@ class SubscriptionServiceTest {
         assertThat(subscription.getPendingTier()).isNull();
         assertThat(subscription.getPendingPaymentId()).isNull();
         verify(subscriptionRepository).save(subscription);
+        // GAP-1090 (SUB-21): instances.tier synced to the upgraded tier + persisted.
+        assertThat(instance.getTier()).isEqualTo(PricingTier.PREMIUM);
+        verify(instanceRepository).save(any(Instance.class));
     }
 
     @Test

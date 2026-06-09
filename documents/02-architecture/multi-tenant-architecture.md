@@ -309,7 +309,7 @@ Tenant có thể customize những gì? Mỗi feature dưới đây có per-tena
 | **Branding** (logo, color, hero image) | `tenant_branding` table + MinIO assets | `kitehub-branding` | [AI Branding v2 redesign](ai-branding-v2-redesign.md) |
 | **Custom subdomain** (`trung-tam-sky.kitehub.me`) | `tenant_domains` table + Cloudflare DNS | `kitehub-subscription` | [domain-management.md](domain-management.md) |
 | **Email sender domain** (DKIM-verified per tenant) | `tenant_email_config` table | `kitehub-email` | [email-architecture.md](email-architecture.md) |
-| **Per-tenant feature flags** (PRO tier features) | `tenant_features` table + Spring profile | `kitehub-subscription` | Tied to tier (FREE/STARTER/PRO/PRO_PLUS) |
+| **Per-tenant feature flags** (paid-tier features) | `tenant_features` table + Spring profile | `kitehub-subscription` | Tied to tier (FREE/BASIC/PREMIUM/ENTERPRISE) |
 | **Tier-based quota** (storage, AI generations, user count) | `tenant_quota` table + Redis counter | Multiple services consume | Per SUB-* rules trong subscription-billing |
 
 Tất cả tables trên đều có `tenant_id` column + RLS policy theo §4.2 pattern.

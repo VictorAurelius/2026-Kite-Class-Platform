@@ -1,6 +1,7 @@
 ---
 title: G2 Human Test Recipe — KH-8 Off-boarding + data retention (PDPL) + consent
 audience: dev
+product: KiteHub (KH) — FE kitehub-frontend :3001, backend kitehub-* qua gateway :9000 (per kitehub-kiteclass-boundary.md §2)
 created: 2026-06-06
 scope: Flow Verification Campaign G2 handoff cho KH-8 (consent v1/v2 + DSAR + off-boarding/purge)
 references:

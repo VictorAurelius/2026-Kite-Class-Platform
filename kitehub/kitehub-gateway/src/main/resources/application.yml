@@ -227,6 +227,30 @@ spring:
                 name: paymentCircuitBreaker
                 fallbackUri: forward:/fallback/payment
 
+        # GAP-1101 — KiteHub PLATFORM sales lead capture (Enterprise "Liên hệ" CTA).
+        # POST /api/platform/sales-leads is PUBLIC (prospective center owner contacting
+        # sales — no JWT, not logged in). Gateway JwtAuthenticationGatewayFilter
+        # whitelists /api/platform/sales-leads as a public path so the anonymous request
+        # is not rejected as missing JWT. Rate-limit per IP (mirror request-beta-access
+        # 2/5) so the public form cannot be abused as a spam vector. Exact-path predicate
+        # so it does not shadow other /api/platform/** routes.
+        - id: platform-sales-leads
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/platform/sales-leads
+            - Method=POST
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 2
+                redis-rate-limiter.burstCapacity: 5
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@ipKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
+
         # Platform APIs - Branding Service
         # GAP-259 — tenant-keyed rate limit on the AI cost surface so that one tenant
         # behind a NAT cannot starve co-tenants. Burst tuned for wizard usage; per-tier
@@ -702,6 +726,19 @@ spring:
                 name: instanceCircuitBreaker
                 fallbackUri: forward:/fallback/instance
 
+        # GAP-1021/272e — AI Branding wizard SSE deploy-stream. MUST precede the
+        # kitehub-branding-v1 catch-all so it wins the more-specific match. NO
+        # CircuitBreaker filter: Spring Cloud CircuitBreaker auto-wraps each call
+        # with a Resilience4j TimeLimiter; brandingCircuitBreaker inherits the
+        # `default` timelimiter (5s, cancelRunningFuture=true) which would kill the
+        # long-lived SSE stream mid-deploy. Streaming responses do not fit the
+        # request/response circuit-breaker model. Auth via token-in-query handled by
+        # the global JwtAuthenticationGatewayFilter (EventSource can't set headers).
+        - id: kitehub-branding-deploy-stream
+          uri: http://kitehub-branding:8080
+          predicates:
+            - Path=/api/v1/branding/jobs/*/deploy-stream
+
         - id: kitehub-branding-v1
           uri: http://kitehub-branding:8080
           predicates:
@@ -921,6 +958,9 @@ spring:
         # Wave auth-1: strip client-supplied reference id; JwtAuthenticationGatewayFilter
         # re-injects the verified referenceId claim (KC-native tokens) — anti-spoof.
         - RemoveRequestHeader=X-User-Reference-Id
+        # GAP-1020: strip client-supplied subscription tier; JwtAuthenticationGatewayFilter
+        # re-injects the verified `tier` claim — anti-spoof for tier-gated AI branding.
+        - RemoveRequestHeader=X-Subscription-Tier
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
         - AddResponseHeader=X-Gateway-Version, 1.0
 

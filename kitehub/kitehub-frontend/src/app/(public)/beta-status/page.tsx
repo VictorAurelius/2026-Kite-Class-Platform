@@ -85,7 +85,7 @@ export default async function BetaStatusPage() {
 
   if (!state.ok) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-12">
+      <div className="mx-auto max-w-3xl px-4 py-12">
         <h1 className="text-3xl font-bold tracking-tight">Trạng thái Beta KiteHub</h1>
         <p
           data-testid="beta-status-last-refreshed"
@@ -109,14 +109,14 @@ export default async function BetaStatusPage() {
           ))}
         </section>
         <BetaStatusContactSection />
-      </main>
+      </div>
     );
   }
 
   const statusInfo = state.currentStatus ? STATUS_VI[state.currentStatus] : undefined;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12">
+    <div className="mx-auto max-w-3xl px-4 py-12">
       <header className="mb-8 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Trạng thái Beta KiteHub</h1>
@@ -191,7 +191,7 @@ export default async function BetaStatusPage() {
       </section>
 
       <BetaStatusContactSection />
-    </main>
+    </div>
   );
 }
 

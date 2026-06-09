@@ -83,6 +83,10 @@ export function useCreatePayment() {
 
       // Also invalidate subscriptions since payment affects subscription
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+
+      // GAP-1090: payment confirm = lúc tier thực sự flip → refresh ['instances']
+      // (dashboard tier + trial bar đọc owner-list + detail + trial-status).
+      queryClient.invalidateQueries({ queryKey: ['instances'] });
     },
   });
 }

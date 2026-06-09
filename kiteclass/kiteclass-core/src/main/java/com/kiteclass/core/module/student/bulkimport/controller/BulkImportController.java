@@ -106,6 +106,41 @@ public class BulkImportController {
     }
 
     /**
+     * Download the blank import template xlsx (GAP-1102). Tenant-agnostic /
+     * static — no {@code X-Tenant-Id} header required; same bytes for every
+     * caller. Users grab this BEFORE uploading so they fill in the exact
+     * canonical columns ({@code name}, {@code email}, ...) in the right format.
+     *
+     * @return xlsx bytes as attachment {@code mau-import-hoc-vien.xlsx}
+     */
+    @GetMapping(
+            value = "/template",
+            produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    @Operation(
+            summary = "Download blank import template xlsx",
+            description = "Static blank template with canonical headers + 2 example rows + a HuongDan sheet. No auth tenant header needed."
+    )
+    public ResponseEntity<Resource> downloadTemplate() {
+        log.info("REST request bulk-import template download");
+        byte[] bytes = service.generateTemplate();
+        Resource body = new ByteArrayResource(bytes);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDisposition(
+                org.springframework.http.ContentDisposition.attachment()
+                        .filename("mau-import-hoc-vien.xlsx")
+                        .build());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentLength(bytes.length)
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(body);
+    }
+
+    /**
      * Download the error-report xlsx for a given job. Stateless MVP: the
      * client re-uploads the original xlsx and we regenerate the report from
      * a fresh validation pass.

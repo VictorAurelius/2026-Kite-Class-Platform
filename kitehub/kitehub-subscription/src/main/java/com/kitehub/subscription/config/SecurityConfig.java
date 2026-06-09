@@ -127,6 +127,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/beta-status/**").permitAll()
                         .requestMatchers("/api/v1/feedback").permitAll()
                         .requestMatchers("/api/v1/feedback/**").permitAll()
+                        // GAP-1101 — KiteHub PLATFORM sales lead capture (Enterprise CTA).
+                        // Public POST: prospective center owner contacting sales (no JWT,
+                        // not logged in). Gateway whitelists /api/platform/sales-leads as
+                        // public path; mirror here so request reaches controller instead of
+                        // anyRequest().authenticated() default-deny 401. POST only.
+                        .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                "/api/platform/sales-leads").permitAll()
                         // Wave tenant-domain-1 Bucket B (GAP-813) — anonymous tenant
                         // resolve by subdomain. FE middleware consumes this to route
                         // Host header → tenant UUID before requesting tenant-scoped

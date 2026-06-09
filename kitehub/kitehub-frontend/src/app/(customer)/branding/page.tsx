@@ -29,7 +29,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ThemePreview } from '@kite/shared-ui';
 import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
-import { useAssets } from '@/hooks/use-branding';
+import { useBrandingTier } from '@/hooks/use-branding-tier';
+import { useAssets, useBrandingDeployStatus } from '@/hooks/use-branding';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
@@ -42,6 +43,8 @@ import {
   Palette,
   LayoutGrid,
   TrendingUp,
+  CheckCircle2,
+  ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -49,10 +52,6 @@ import { toast } from 'sonner';
 const RecentAssetsGrid = dynamic(() => import('./RecentAssetsGrid'), {
   ssr: false,
 });
-
-// Mock quota data — wave 31 scope is FE port; real wiring tracked as
-// follow-up. PRO tier defaults per `ai-branding-guidelines.md` §4.3.
-const MOCK_QUOTA = { used: 3, limit: 10, tier: 'PRO' } as const;
 
 // Mock theme palette — wave 31 scope. Live theme will come from the
 // branding job preview state once wizard internals land (Wave 32).
@@ -115,7 +114,11 @@ export default function BrandingDashboardPage() {
   const user = useAuthStore((state) => state.user);
   const { data: instances, isLoading: instancesLoading } = useOwnerInstances(user?.id);
   const instanceId = instances?.[0]?.id;
+  // GAP-1091a: tier thật + regenerate quota từ subscription — KHÔNG hardcode 'PRO'/10.
+  const { tier, regenerateQuota, isLoading: tierLoading } = useBrandingTier(instanceId);
   const { data: assets, isLoading: assetsLoading } = useAssets(instanceId);
+  // GAP-1108: post-deploy summary (DEPLOYED state + landing frontendUrl).
+  const { data: deployStatus } = useBrandingDeployStatus(instanceId);
 
   useEffect(() => {
     if (searchParams.get('success') === 'true') {
@@ -123,7 +126,7 @@ export default function BrandingDashboardPage() {
     }
   }, [searchParams]);
 
-  if (instancesLoading || assetsLoading) {
+  if (instancesLoading || assetsLoading || tierLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <LoadingSpinner />
@@ -134,12 +137,76 @@ export default function BrandingDashboardPage() {
   const hasAssets = assets && assets.length > 0;
   const recentAssets = assets?.slice(0, 6) || [];
 
-  const quotaPct = Math.min(100, Math.round((MOCK_QUOTA.used / MOCK_QUOTA.limit) * 100));
-  const quotaRemaining = Math.max(0, MOCK_QUOTA.limit - MOCK_QUOTA.used);
-  const quotaEmpty = quotaRemaining === 0;
+  // Regenerate-usage (số lượt ĐÃ dùng) chưa có endpoint riêng — tracked follow-up.
+  // Tier + monthly limit lấy từ subscription thật (useBrandingTier); used = 0 cho tới
+  // khi /branding/quota ship. regenerateQuota === -1 = ENTERPRISE không giới hạn.
+  const regenerateUsed = 0;
+  const isUnlimitedQuota = regenerateQuota === -1;
+  const quotaLimit = regenerateQuota;
+  const quotaRemaining = isUnlimitedQuota
+    ? Infinity
+    : Math.max(0, quotaLimit - regenerateUsed);
+  const quotaPct = isUnlimitedQuota
+    ? 0
+    : Math.min(100, Math.round((regenerateUsed / quotaLimit) * 100));
+  const quotaEmpty = !isUnlimitedQuota && quotaRemaining === 0;
+  // CTA "Nâng cấp PREMIUM" chỉ hiện cho FREE/BASIC — PREMIUM/ENTERPRISE đã ≥ PREMIUM.
+  const canUpgradeTier = tier === 'FREE' || tier === 'BASIC';
+
+  // GAP-1108: surface the deploy-success card only after a successful deploy.
+  const showDeployCard = Boolean(deployStatus?.deployed);
+  const deployedDateLabel = deployStatus?.deployedAt
+    ? new Date(deployStatus.deployedAt).toLocaleDateString('vi-VN')
+    : null;
 
   return (
     <div className="space-y-6">
+      {/* Deploy-success card (GAP-1108) — shown only after instance is DEPLOYED */}
+      {showDeployCard && (
+        <Card className="shadow-soft border-emerald-200 bg-emerald-50/60">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex items-start gap-3">
+                <div className="rounded-xl bg-emerald-500/15 p-3 text-emerald-600">
+                  <CheckCircle2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-emerald-900">
+                    Trang web của bạn đã sẵn sàng 🎉
+                  </h2>
+                  <p className="text-sm text-emerald-800/80 mt-0.5">
+                    Bộ nhận diện thương hiệu đã được triển khai
+                    {deployStatus?.templateId
+                      ? ` · template ${deployStatus.templateId}`
+                      : ''}
+                    {deployedDateLabel ? ` · ${deployedDateLabel}` : ''}
+                    .
+                  </p>
+                  {deployStatus?.frontendUrl && (
+                    <p className="text-xs font-mono text-emerald-700/80 mt-1 break-all">
+                      {deployStatus.frontendUrl}
+                    </p>
+                  )}
+                </div>
+              </div>
+              {deployStatus?.frontendUrl && (
+                <a
+                  href={deployStatus.frontendUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Xem trang landing vừa triển khai"
+                >
+                  <Button className="bg-emerald-600 hover:bg-emerald-700">
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Xem landing
+                  </Button>
+                </a>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Hero header — matches kit-pro-v2 page-header */}
       <div className="rounded-2xl bg-gradient-to-r from-purple-500/10 via-primary/5 to-accent/10 border p-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -176,10 +243,12 @@ export default function BrandingDashboardPage() {
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
               <div className="text-xs text-muted-foreground uppercase tracking-wide">
-                Quota làm lại brand · gói {MOCK_QUOTA.tier}
+                Quota làm lại brand · gói {tier}
               </div>
               <div className="text-xl font-bold mt-1">
-                {quotaRemaining} / {MOCK_QUOTA.limit} lượt còn lại trong tháng này
+                {isUnlimitedQuota
+                  ? 'Không giới hạn lượt trong tháng này'
+                  : `${quotaRemaining} / ${quotaLimit} lượt còn lại trong tháng này`}
               </div>
             </div>
             <div className="flex-1 max-w-md min-w-[200px]">
@@ -197,17 +266,20 @@ export default function BrandingDashboardPage() {
                 />
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                Reset 28/04/2026 · nâng cấp PREMIUM để có 30 lượt
+                Reset đầu tháng
+                {canUpgradeTier && ' · nâng cấp PREMIUM để có 30 lượt'}
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push('/billing')}
-            >
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Nâng cấp PREMIUM
-            </Button>
+            {canUpgradeTier && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push('/billing')}
+              >
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Nâng cấp PREMIUM
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

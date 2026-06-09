@@ -27,6 +27,8 @@
 | SUB-18 | Payment content uniqueness | Nội dung chuyển khoản phải chứa short subscription id/payment marker đủ để admin đối soát trong bảng pending payments | VietQRService.generatePaymentContent |
 | SUB-19 | Admin confirm is payment capture source | `POST /admin/payments/{id}/confirm` là nguồn capture chính Phase 1 BETA; automated webhook/bank API chỉ future enhancement | PaymentService.confirmPayment |
 | SUB-20 | Create-first-paid phải qua cổng VietQR thủ công | `POST /api/platform/subscriptions` với tier != FREE tạo subscription với `status=PENDING, tier=FREE, pendingTier=<requested>, pendingPaymentId=<new>` + Payment PENDING. Tier chỉ flip sang `requested` + status flip `ACTIVE` khi `PaymentService.confirmPayment` gọi `applyPendingUpgrade`. Mirror UC-SUB-02 manual VietQR pattern. Phát hiện qua Wave flow-kh3 G1 walk 2026-06-04 — pre-rule create flow tự ý mark `status=ACTIVE` mà không có payment gate. | hardcoded SubscriptionService.createSubscription |
+| SUB-21 | `instances.tier` phải mirror tier của subscription ACTIVE | `subscriptions.tier` = source-of-truth; `instances.tier` = denormalized synced current-effective-tier. Sync khi tier thực sự apply: `applyPendingUpgrade` (create-flow activation + upgrade-flow apply) và `processRenewal` (end-of-cycle downgrade apply). `instances.tier` là load-bearing — connection-pool size (`MultiTenantDataSourceConfig`), custom-domain eligibility (`DomainService`), data-retention window (`DataRetentionService`). Phát hiện qua GAP-1090 — pre-rule chỉ flip `subscriptions.tier`, để `instances.tier` kẹt FREE/pre-change tier. | hardcoded SubscriptionService.applyPendingUpgrade + SubscriptionRenewalService.processRenewal; backfill V68__sync_instance_tier_to_active_subscription.sql |
+| SUB-22 | Entitlement matrix per tier (canonical) | Bảng caps/quota/giá theo 4 tier `FREE/BASIC/PREMIUM/ENTERPRISE` — xem section `## Entitlement matrix` bên dưới. TRIAL = entitlement FREE + time-box 14 ngày (subscription STATE, KHÔNG phải tier riêng). | `PricingTier` enum + `ai.input.*` + `RateLimitConfig.tierMultiplier`; propagation per ADR-039 |
 
 ## Config
 
@@ -65,6 +67,34 @@ Không tích hợp MoMo/VNPay/Stripe tự động trong Phase 1 BETA. Các enum 
 **Compliance check:** **Considered** — Consumer Protection Law (clear price/payment instruction), Luật Giao dịch điện tử 2023, tax/e-invoice obligations. No auto-renew card capture in Phase 1 BETA.
 **Review cadence:** Quarterly. **Next review:** 2026-09-04 or when PSP integration/paid cohort scale >5 beta tenants.
 
+## Entitlement matrix
+
+**SUB-22** — canonical entitlement per tier. `PricingTier` enum (`PricingTier.java`) là source-of-truth cho caps/price/custom-domain; AI input cap + branding regenerate + rate-limit multiplier cite source riêng (cột dưới). Propagation cross-service per [ADR-039](../../../02-architecture/adr/ADR-039-cross-service-subscription-tier-propagation.md).
+
+| Tier | maxStudents | maxTeachers | storageMB | priceVND/mo | branding regen/ngày | AI input cap (tokens) | custom domain | rate-limit multiplier |
+|------|------------:|------------:|----------:|------------:|--------------------:|----------------------:|:-------------:|:---------------------:|
+| FREE | 10 | 1 | 500 | 0 | 3 | 2000 | ❌ | 1× |
+| BASIC | 50 | 5 | 2048 | 500.000 | 10 | 4000 | ❌ | 1× |
+| PREMIUM | 200 | 20 | 10240 | 1.500.000 | 30 | 8000 | ✅ | 3× |
+| ENTERPRISE | ∞ | ∞ | ∞ | custom | ∞ (-1) | 16000 | ✅ | 10× |
+
+**TRIAL clarification:** TRIAL KHÔNG phải tier riêng — là **subscription STATE** (time-box 14 ngày) với entitlement = FREE. Khi trial hết hạn không upgrade → tenant ở lại entitlement FREE. AI input cap §2.5 (`ai-branding-guidelines.md`) ghi rõ `FREE / TRIAL = 2000`.
+
+**Sources (verified):**
+- `maxStudents` / `maxTeachers` / `storageMB` / `priceVND`: `kitehub/kitehub-platform/src/main/java/com/kitehub/platform/domain/enums/PricingTier.java:16-31` (enum constructor args) + `:36` (`priceVND` field; ENTERPRISE `0L` = custom pricing).
+- `custom domain`: `PricingTier.java:50-52` (`allowsCustomDomain()` → `this == PREMIUM || this == ENTERPRISE`).
+- `AI input cap (tokens)`: `.claude/rules/ai-branding-guidelines.md` §2.5 (GAP-258 `AIInputCapService`; `ai.input.*` keys; chars/4 heuristic; `-1` = unlimited).
+- `branding regen/ngày`: `.claude/rules/ai-branding-guidelines.md` §4.3 (counter visible + decremented; hết quota → disabled button + upgrade CTA).
+- `rate-limit multiplier`: GAP-260 (`gateway-tier-multiplier-enforcement` — `RateLimitConfig.tierMultiplier` FREE 1× / BASIC 1× / PREMIUM 3× / ENTERPRISE 10×).
+
+### Five-attribute review per `business-logic-review.md` §2 (SUB-22)
+
+- **Source:** Code-derived canonical (`PricingTier.java` caps/price/domain) + rule-derived (`ai-branding-guidelines.md` §2.5/§4.3) + GAP-260 (multiplier). Đây là entitlement *aggregation* từ các source đã review, không phải giá trị mới. Per-value pricing rationale (vì sao 500k/1.5M) inherit GAP-156 Phase 2 stakeholder review.
+- **Rationale:** Bảng tập trung mọi entitlement vào MỘT canonical reference để cross-service enforcement (per ADR-039) đọc nhất quán — tránh drift giữa code enum, AI cap rule, regen rule, multiplier gap (mỗi nơi định nghĩa rời rạc → silent divergence). Tier-laddering (FREE eval → BASIC small → PREMIUM mid → ENTERPRISE custom) phản ánh quy mô trung tâm + willingness-to-pay.
+- **Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-06-09). Self-approval cho business-value bị BANNED per `business-logic-review.md` §2.3 — formal PO + Business Stakeholder sign-off cho pricing/tier-quota queued via GAP-156 Phase 2. Solo-dev exemption documented (hat = acting PO).
+- **Compliance check:** **Considered** — Consumer Protection Law 2023 (hiển thị giá rõ ràng per tier); giá VND minor-unit integer per SUB-15. Không trigger PDPL (entitlement không phải PII). Tax/e-invoice obligation áp dụng tại payment confirm (SUB-19), không tại matrix.
+- **Review cadence:** Quarterly. **Next review:** 2026-09-09. Event triggers: thêm/bớt tier, đổi giá, đổi cap/quota, competitor pricing change, GAP-156 Phase 2 stakeholder review lands.
+
 ## Five-attribute review per `business-logic-review.md`
 
 Per-rule attributes (Source / Rationale / Reviewer / Compliance check / Review cadence) backfilled at file-level placeholder per Phase 1 of GAP-433. Per-rule granularity tracked via GAP-156 Phase 2 stakeholder sign-offs.
@@ -77,5 +107,7 @@ Per-rule attributes (Source / Rationale / Reviewer / Compliance check / Review c
 
 ## Log
 
+- **2026-06-09** Tier-enforcement wave — added SUB-22 (Entitlement matrix canonical) + new `## Entitlement matrix` section. Tập trung caps/quota/giá 4 tier `FREE/BASIC/PREMIUM/ENTERPRISE` vào MỘT canonical reference cho cross-service enforcement per ADR-039. Verified sources: `PricingTier.java:16-31,50-52` (caps/price/custom-domain) + `ai-branding-guidelines.md` §2.5 (AI input cap 2000/4000/8000/16000) + §4.3 (regen 3/10/30/∞) + GAP-260 (rate-limit multiplier 1×/1×/3×/10×). TRIAL clarified = entitlement FREE + time-box 14 ngày (subscription STATE, không phải tier riêng). **Five-attribute review per `business-logic-review.md` §2:** **Source:** code-derived (`PricingTier.java`) + rule-derived (`ai-branding-guidelines.md`) + GAP-260; aggregation từ source đã review. **Rationale:** single canonical reference tránh drift giữa enum/AI-cap/regen/multiplier rời rạc → cross-service đọc nhất quán. **Reviewer:** @nguyenvankiet (acting PO, solo-dev) — pricing/tier-quota formal sign-off BANNED self-approve per §2.3, queued GAP-156 Phase 2. **Compliance check:** Considered — Consumer Protection Law (hiển thị giá rõ); không trigger PDPL (entitlement ≠ PII). **Review cadence:** Quarterly. **Next review:** 2026-09-09 hoặc khi thêm/đổi tier/giá. Same-wave: ADR-039 (propagation) + tier-name drift sweep (multi-tenant §6 + ai-branding-guidelines §4.3).
+- **2026-06-09** GAP-1090 discovery — added SUB-21 (`instances.tier` mirror active `subscriptions.tier`). `SubscriptionService.applyPendingUpgrade` (create-flow activation + upgrade-flow apply) và `SubscriptionRenewalService.processRenewal` (end-of-cycle downgrade apply) flip `subscriptions.tier` nhưng không bao giờ gọi `instance.setTier(...)` → `instances.tier` kẹt FREE (hoặc pre-change tier) dù subscription ACTIVE ở tier cao/thấp hơn. `instances.tier` là load-bearing (pool size + custom-domain eligibility + retention window). Same-PR: code fix 3 path (create-flow + upgrade-else + downgrade-apply) + Flyway backfill `V68__sync_instance_tier_to_active_subscription.sql` (idempotent UPDATE rows drifted) + tests updated. **Five-attribute review per `business-logic-review.md` §2:** **Source:** GAP-1090 cross-service tier-propagation analysis (denormalization invariant — không phải pricing/market value). **Rationale:** `subscriptions.tier` đã là source-of-truth; `instances.tier` denormalized để các consumer (pool sizing, domain, retention) đọc trực tiếp khỏi join subscription mỗi request → sync-on-apply giữ invariant rẻ + đúng. **Reviewer:** @nguyenvankiet (acting architect, solo-dev, 2026-06-09) — đây là data-consistency invariant không phải business-value nên không cần PO/legal sign-off; formal review queued GAP-156. **Compliance check:** N/A — không chạm vùng regulated (không đổi giá, retention window, hay PII; chỉ đồng bộ tier giữa 2 bảng). **Review cadence:** Quarterly cùng phần còn lại file. **Next review:** 2026-09-09 hoặc khi thêm tier mới / đổi denormalization strategy.
 - **2026-06-04** Wave flow-kh3 G1 walk discovery — added SUB-20 (Create-first-paid manual VietQR gate). UC-SUB-01 pre-rule code mark `status=ACTIVE` immediately on POST `/api/platform/subscriptions` without payment, allowing Owner self-grant BASIC/PREMIUM/ENTERPRISE for free. Rule mirrors SUB-07/SUB-11/SUB-17 upgrade pattern: tạo PENDING subscription + PENDING Payment, tier+status flip chỉ sau admin confirm. Same-PR: code fix `SubscriptionService.createSubscription` + `applyPendingUpgrade` extended to handle create-case, `SubscriptionStatus.PENDING` enum value added, tests updated.
 - **2026-05-08** Backfill 5-attribute review section per GAP-433 Phase 1 (`business-logic-review.md` §2 standard). Placeholder Reviewer + Quarterly cadence + domain-specific Compliance check. GAP-156 Phase 2 will replace placeholders with stakeholder sign-offs.

@@ -1,6 +1,7 @@
 ---
 title: G2 Human Test Recipe — KC-4 Student enrollment + bulk import
 audience: dev
+product: KiteClass (KC) — FE kiteclass-frontend :3000, backend kiteclass-core qua gateway :9000 (per kitehub-kiteclass-boundary.md §2)
 created: 2026-06-05
 flow: KC-4
 scope: Flow Verification Campaign G2 handoff cho luồng KC-4 (Owner ghi danh học sinh vào lớp + import hàng loạt qua XLSX)
