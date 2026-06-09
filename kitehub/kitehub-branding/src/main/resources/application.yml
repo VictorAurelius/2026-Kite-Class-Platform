@@ -89,8 +89,14 @@ ai:
   rate-limit:
     free-per-day: 3
     basic-per-day: 10
-    premium-per-day: 50
+    # GAP-1119: canonical SUB-22 PREMIUM regen = 30 (was 50 — drift fixed).
+    premium-per-day: 30
     enterprise-per-day: -1
+    # GAP-1119: FULL_AI (paid GPT image-gen) monthly cost quota per instance.
+    # PREMIUM = limited (then TEMPLATE fallback); ENTERPRISE = unlimited (-1).
+    # FREE/BASIC are not FULL_AI-eligible (GenerationMode.forTier → TEMPLATE).
+    fullai-premium-per-month: ${AI_FULLAI_PREMIUM_PER_MONTH:5}
+    fullai-enterprise-per-month: -1
   # GAP-258 — Per-tier input prompt size cap (estimated tokens, char/4 heuristic).
   # Defends against cost-attack: small request count, very large prompts.
   # Set to -1 for unlimited.

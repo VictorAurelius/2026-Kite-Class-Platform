@@ -11,6 +11,8 @@ import com.kitehub.branding.service.banner.BannerHtmlComposer;
 import com.kitehub.branding.service.banner.BannerRenderer;
 import com.kitehub.branding.wizard.dto.BrandColours;
 import com.kitehub.branding.wizard.quality.BrandColoursDeriver;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,8 +53,10 @@ class AIBrandingProcessorTest {
     @Mock private BannerHtmlComposer bannerComposer;
     @Mock private BannerRenderer bannerRenderer;
     @Mock private BrandColoursDeriver coloursDeriver;
+    @Mock private FullAiQuotaService fullAiQuotaService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final MeterRegistry meterRegistry = new SimpleMeterRegistry();
     private AIBrandingProcessor processor;
 
     private UUID jobId;
@@ -66,7 +70,11 @@ class AIBrandingProcessorTest {
     @BeforeEach
     void setUp() {
         processor = new AIBrandingProcessor(jobService, objectMapper, aiClient, openAIClient,
-                inputCapService, bannerComposer, bannerRenderer, coloursDeriver);
+                inputCapService, bannerComposer, bannerRenderer, coloursDeriver,
+                fullAiQuotaService, meterRegistry);
+        // GAP-1119 — FULL_AI-eligible tiers pass the quota gate by default; the
+        // quota-exhausted path is exercised explicitly below.
+        when(fullAiQuotaService.canUseFullAi(any(), any())).thenReturn(true);
 
         jobId = UUID.randomUUID();
         instanceId = UUID.randomUUID();
@@ -96,7 +104,6 @@ class AIBrandingProcessorTest {
         return m;
     }
 
-    @SuppressWarnings("unchecked")
     private Map<String, String> captureAssets() throws Exception {
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         verify(jobService).updateGeneratedAssets(eq(jobId), captor.capture());
@@ -154,6 +161,45 @@ class AIBrandingProcessorTest {
 
         verify(openAIClient).generateImage(anyString(), anyString());
         verify(bannerComposer).compose(any(), any(), any(), any(), any(), any());
+        Map<String, String> assets = captureAssets();
+        assertThat(assets.get("generationMode")).isEqualTo("TEMPLATE");
+    }
+
+    @Test
+    @DisplayName("GAP-1119: PREMIUM tier → FULL_AI when monthly quota available")
+    void premiumTierUsesFullAiWhenQuotaAvailable() throws Exception {
+        when(openAIClient.generateImage(anyString(), anyString()))
+                .thenReturn(Mono.just("https://openai/premium-banner.png"));
+
+        processor.processJob(message("PREMIUM"));
+
+        verify(openAIClient).generateImage(anyString(), anyString());
+        verify(fullAiQuotaService).recordFullAiUsage(instanceId, "PREMIUM");
+        Map<String, String> assets = captureAssets();
+        assertThat(assets.get("generationMode")).isEqualTo("FULL_AI");
+        assertThat(assets.get("hero")).isEqualTo("https://openai/premium-banner.png");
+    }
+
+    @Test
+    @DisplayName("GAP-1119: PREMIUM quota exhausted → TEMPLATE fallback, no image call")
+    void premiumQuotaExhaustedFallsBackToTemplate() throws Exception {
+        when(fullAiQuotaService.canUseFullAi(instanceId, "PREMIUM")).thenReturn(false);
+
+        processor.processJob(message("PREMIUM"));
+
+        verify(openAIClient, never()).generateImage(any(), any());
+        verify(fullAiQuotaService, never()).recordFullAiUsage(any(), any());
+        verify(bannerComposer).compose(any(), any(), any(), any(), any(), any());
+        Map<String, String> assets = captureAssets();
+        assertThat(assets.get("generationMode")).isEqualTo("TEMPLATE");
+    }
+
+    @Test
+    @DisplayName("GAP-1119: BASIC tier not FULL_AI-eligible → TEMPLATE (quota gate not consulted)")
+    void basicTierNotEligibleUsesTemplate() throws Exception {
+        processor.processJob(message("BASIC"));
+
+        verify(openAIClient, never()).generateImage(any(), any());
         Map<String, String> assets = captureAssets();
         assertThat(assets.get("generationMode")).isEqualTo("TEMPLATE");
     }

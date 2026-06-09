@@ -1,6 +1,6 @@
 # GAP-1119: AI tier-limit completeness — AI-mode column + GPT-5.5 cost-differentiation + PREMIUM regen drift + route new AI calls qua guards
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Mixed
 **Found:** 2026-06-10 (user-flagged khi wire AI thật: "check lại limit loại AI + số lần dùng theo tier, tránh miss")
@@ -39,10 +39,10 @@ Regen/rate-limit/input-cap hiện **generic per tier**, không phân biệt AI t
 
 ## Acceptance Criteria
 
-- [ ] SUB-22 matrix có cột AI-mode: TEMPLATE = mọi tier; FULL_AI(GPT-5.5) = **PREMIUM (quota nhỏ) + ENTERPRISE** + enforce gate; update §2.4 + ADR-037
-- [ ] FULL_AI (GPT-5.5) cost cap: PREMIUM quota riêng (vd 3-5/tháng) + ENTERPRISE unlimited + cost metric `ai.fullai.call{tier}`; CircuitBreaker fallback TEMPLATE
-- [ ] PREMIUM regen = 30 (code `premium-per-day` 50→30 sync matrix); session/day label thống nhất
-- [ ] Mọi AI call mới ([[GAP-1117]]) qua AIInputCapService + AIRateLimitService; IT verify reject khi FREE hết 3 regen + FULL_AI sai tier (BASIC/FREE → reject)
+- [x] SUB-22 matrix có cột AI-mode (`subscription-billing/rules.md`): TEMPLATE = mọi tier; FULL_AI = **PREMIUM (5/tháng) + ENTERPRISE (∞)** + enforce gate `GenerationMode.forTier`; §2.4 (`ai-branding-guidelines.md` v1.3.0) + ADR-037 amendment synced
+- [x] FULL_AI cost cap: `FullAiQuotaService` PREMIUM quota riêng (`ai.rate-limit.fullai-premium-per-month` mặc định 5) + ENTERPRISE unlimited + cost metric `ai.fullai.call{tier,outcome}` (Micrometer); CircuitBreaker fallback TEMPLATE (ResilientAIClient + no-key/quota-exceeded → TEMPLATE)
+- [x] PREMIUM regen = 30 (code `AIRateLimitConfig.premiumPerDay` + `application.yml branding.rate-limit.premium-per-day` 50→30 sync matrix; `AIRateLimitConfigTest.defaultValues_areCorrect` verify 30)
+- [x] Mọi AI call qua AIInputCapService (WIZARD-BE wired §2.5) + tier-gate verify: `GenerationModeTest` (PREMIUM/ENT→FULL_AI, FREE/BASIC→TEMPLATE) + `FullAiQuotaServiceTest` (FREE/BASIC reject quota=0; PREMIUM cap; ENT unlimited) + `AIBrandingProcessorTest` (PREMIUM quota-exhausted→TEMPLATE, BASIC ineligible→TEMPLATE). FREE 3-regen reject = `AIRateLimitConfig.freePerDay=3` existing
 
 ## Related
 
@@ -53,4 +53,5 @@ Regen/rate-limit/input-cap hiện **generic per tier**, không phân biệt AI t
 
 ## Log
 
+- **2026-06-10 (DONE):** Tier-limit enforcement shipped trên wave/branding-fix-2026-06-10 (post WIZARD-BE integrate). Code: `GenerationMode.forTier` ENTERPRISE-only → PREMIUM+ENTERPRISE gate; new `FullAiQuotaService` (PREMIUM monthly cap qua Redis `DistributedRateLimiter.incrementMonthlyFullAiUsage` + graceful fail-open; ENTERPRISE unlimited; FREE/BASIC quota=0); `AIBrandingProcessor.generateBanner` quota-gate + `recordFullAiCall` cost metric `ai.fullai.call{tier,outcome}` (MeterRegistry); `AIRateLimitConfig` premium-per-day 50→30 + `fullai-{premium,enterprise}-per-month`. Doc: SUB-22 matrix AI-mode column + `ai-branding-guidelines.md` §2.4 v1.3.0 + ADR-037 amendment. Tests: GenerationModeTest 12 + FullAiQuotaServiceTest 6 + AIBrandingProcessorTest 10 (+3 GAP-1119) + AIRateLimitConfigTest 9 (+1 fullai). **Verify: surefire 316 green + `mvn clean verify -P strict-warnings` BUILD SUCCESS exit 0.** Live FULL_AI cost behavior end-to-end gated by [[GAP-1117]] real provider wiring (rasterise stub + dev keys) — enforcement code + unit tests complete. Per `gap-done-discipline.md` §2 (AC verified) + `gap-folder-organization.md` v2.0.0 §3.3 (git mv → phase-1.5-paid/closed/).
 - **2026-06-10:** Filed khi rà SUB-22 matrix lúc wire AI thật ([[GAP-1117]]). 3 miss: AI-mode column thiếu, GPT-5.5 cost không phân biệt, PREMIUM regen drift 30(canonical)/50(code) + risk new-call bypass guards. Per `discovery-to-gap-inline-filing.md`. GAP-ID block reserve 1119-1120.

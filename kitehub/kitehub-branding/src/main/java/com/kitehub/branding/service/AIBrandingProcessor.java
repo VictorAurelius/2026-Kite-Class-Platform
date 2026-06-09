@@ -15,6 +15,7 @@ import com.kitehub.branding.service.banner.BannerHtmlComposer;
 import com.kitehub.branding.service.banner.BannerRenderer;
 import com.kitehub.branding.wizard.dto.BrandColours;
 import com.kitehub.branding.wizard.quality.BrandColoursDeriver;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -39,8 +40,11 @@ import java.util.UUID;
  *   <li><b>Banner — TEMPLATE</b> (default FREE/BASIC/PREMIUM): compose deterministic
  *       HTML ({@link BannerHtmlComposer}) → rasterise via {@link BannerRenderer}
  *       seam → falls back to logo/placeholder when no Playwright runtime is wired.</li>
- *   <li><b>Banner — FULL_AI</b> (ENTERPRISE only, §2.4): {@link OpenAIClient#generateImage};
- *       on failure / no key → fall back to TEMPLATE.</li>
+ *   <li><b>Banner — FULL_AI</b> (PREMIUM limited + ENTERPRISE unlimited, §2.4 +
+ *       SUB-22, GAP-1119): {@link OpenAIClient#generateImage}, gated by the
+ *       per-tier {@link FullAiQuotaService} monthly cost quota; on quota-exceeded
+ *       / failure / no key → fall back to TEMPLATE. Each attempt emits the
+ *       {@code ai.fullai.call} counter tagged by tier + outcome.</li>
  * </ol>
  *
  * <p>Graceful degradation: with no provider key, Gemini/OpenAI clients run in MOCK
@@ -68,6 +72,9 @@ public class AIBrandingProcessor {
     private final BannerHtmlComposer bannerComposer;
     private final BannerRenderer bannerRenderer;
     private final BrandColoursDeriver coloursDeriver;
+    /** GAP-1119 — FULL_AI monthly cost quota gate (PREMIUM limited / ENTERPRISE unlimited). */
+    private final FullAiQuotaService fullAiQuotaService;
+    private final MeterRegistry meterRegistry;
 
     /**
      * Process a branding job through the real generation pipeline.
@@ -184,22 +191,34 @@ public class AIBrandingProcessor {
                                         String copy, String logoUrl, List<String> portraits,
                                         String themeIcon, BrandColours colours, UUID instanceId) {
         if (mode == GenerationMode.FULL_AI) {
-            String imagePrompt = buildImagePrompt(orgName, copy, colours);
-            // §2.5 — cap the image prompt too (Enterprise cap may be -1 = unlimited).
-            ResponseEntity<Object> capRejection = inputCapService.checkInputSize(tier, imagePrompt);
-            if (capRejection == null) {
-                try {
-                    String url = openAIClient.generateImage(imagePrompt, DEFAULT_BANNER_SIZE)
-                            .block(AI_CALL_TIMEOUT);
-                    if (url != null && !url.isBlank()) {
-                        log.info("FULL_AI banner generated for instance {}", instanceId);
-                        return new BannerResult(GenerationMode.FULL_AI, url, null);
-                    }
-                } catch (Exception e) {
-                    log.warn("FULL_AI banner failed → TEMPLATE fallback: {}", e.getMessage());
-                }
+            // GAP-1119 — PREMIUM monthly cost quota gate (ENTERPRISE unlimited).
+            if (!fullAiQuotaService.canUseFullAi(instanceId, tier)) {
+                recordFullAiCall(tier, "quota_exceeded");
+                log.info("FULL_AI monthly quota exhausted for instance {} (tier={}) → TEMPLATE fallback",
+                        instanceId, tier);
             } else {
-                log.warn("FULL_AI image prompt exceeded input cap → TEMPLATE fallback");
+                String imagePrompt = buildImagePrompt(orgName, copy, colours);
+                // §2.5 — cap the image prompt too (Enterprise cap may be -1 = unlimited).
+                ResponseEntity<Object> capRejection = inputCapService.checkInputSize(tier, imagePrompt);
+                if (capRejection == null) {
+                    try {
+                        String url = openAIClient.generateImage(imagePrompt, DEFAULT_BANNER_SIZE)
+                                .block(AI_CALL_TIMEOUT);
+                        if (url != null && !url.isBlank()) {
+                            fullAiQuotaService.recordFullAiUsage(instanceId, tier);
+                            recordFullAiCall(tier, "success");
+                            log.info("FULL_AI banner generated for instance {}", instanceId);
+                            return new BannerResult(GenerationMode.FULL_AI, url, null);
+                        }
+                        recordFullAiCall(tier, "empty_result");
+                    } catch (Exception e) {
+                        recordFullAiCall(tier, "error");
+                        log.warn("FULL_AI banner failed → TEMPLATE fallback: {}", e.getMessage());
+                    }
+                } else {
+                    recordFullAiCall(tier, "input_cap");
+                    log.warn("FULL_AI image prompt exceeded input cap → TEMPLATE fallback");
+                }
             }
         }
 
@@ -217,6 +236,13 @@ public class AIBrandingProcessor {
     }
 
     // ---- helpers -------------------------------------------------------------
+
+    /** Emit the GAP-1119 FULL_AI cost counter for one attempt, tagged by tier + outcome. */
+    private void recordFullAiCall(String tier, String outcome) {
+        meterRegistry.counter("ai.fullai.call",
+                "tier", tier == null ? "unknown" : tier,
+                "outcome", outcome).increment();
+    }
 
     private BrandColours deriveColours(BrandingJob job, UUID jobId, String orgName) {
         BrandingJob source = job;
