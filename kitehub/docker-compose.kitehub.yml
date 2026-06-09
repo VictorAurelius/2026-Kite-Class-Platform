@@ -375,6 +375,12 @@ services:
       # but we set the env explicitly so it survives any future @Value-vs-yml drift + makes the
       # intent obvious in compose. Prod overrides via docker-compose.production.yml + fetch-secrets.
       PAYMENT_MOCK_MODE: ${PAYMENT_MOCK_MODE:-true}
+      # Beta-mode payment override (kitehub.payment.beta-mode.* — application.yml:232-233).
+      # KH-3 G2 SePay walk needs BETA_PAYMENT_OVERRIDE=true to charge the symbolic 10.000đ.
+      # Default false → prod-safe (production never charges the beta symbolic amount). Wired here
+      # so the KH-3 G2 recipe env is reproducible (previously ad-hoc-injected, not in compose).
+      BETA_PAYMENT_OVERRIDE: ${BETA_PAYMENT_OVERRIDE:-false}
+      BETA_PAYMENT_AMOUNT_VND: ${BETA_PAYMENT_AMOUNT_VND:-10000}
       # SePay webhook Apikey (GAP-975/976). Dev default enables local Test-Mode
       # webhook verification (PaymentWebhookController authenticates via
       # "Authorization: Apikey <key>"). Prod overrides via fetch-secrets.sh →
@@ -718,6 +724,9 @@ services:
       args:
         NEXT_PUBLIC_API_URL: http://localhost:9000
         NEXT_PUBLIC_KITECLASS_URL_PATTERN: http://localhost:3000?tenant={subdomain}
+        # Beta payment banner (GAP-977) — KH-3 G2 SePay walk shows the 10.000đ beta notice.
+        # Build-time inlined by Next.js; default false → banner hidden in prod build.
+        NEXT_PUBLIC_BETA_PAYMENT_OVERRIDE: ${NEXT_PUBLIC_BETA_PAYMENT_OVERRIDE:-false}
     image: kitehub-frontend:latest
     container_name: kitehub-frontend
     profiles: ["branding-only", "branding-only-no-ai", "beta-funnel", "full"]
