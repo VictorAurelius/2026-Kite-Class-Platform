@@ -1,6 +1,6 @@
 # GAP-1082: use-branding.ts 7 hooks shape mismatch (data.data trên bare BE) + path drift /api/platform vs /api/v1
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** Frontend
 **Found:** 2026-06-09 (KH-3 G2 walk — cross-flow sweep của GAP-1079 shape bug)
@@ -35,3 +35,7 @@ KH-6 (AI Branding) là flow KHÁC, không walk tại KH-3 G2 session. Path drift
 - Same shape class: GAP-1079 (subscription/payment data.data→bare, fixed)
 - Path drift class: GAP-1069 (FE↔BE contract), GAP-1070 (detector)
 - Flow: KH-6 (campaign §4 🔄 walk-pass-pending-human) — fix tại KH-6 G2 re-walk
+
+## Log
+
+- **2026-06-10 (PARTIAL 80%):** Investigation design-first (agent abc8207d): (a) path drift = FALSE ALARM — 7 hook `endpoints.branding.*` gọi đúng `/api/platform/branding/*` controllers (AssetStorage/AIBranding/BrandingJob/ContentGeneration/TemplateGallery — gateway passthrough, không rewrite); `/api/v1/branding` là bộ wizard-v1 gọi qua `endpoints.brandingV1.*`. Premise gap sai do grep thiếu. (b) shape `data.data` đã fix ở #2279 — mọi hook đọc bare `data`, zero `data.data`/`ApiResponse<T>` còn lại; BE trả bare DTO. → KHÔNG cần đổi code. AC cuối = KH-6 G2 browser walk (campaign flow gate, không phải code). Wave branding-fix-2026-06-10.
