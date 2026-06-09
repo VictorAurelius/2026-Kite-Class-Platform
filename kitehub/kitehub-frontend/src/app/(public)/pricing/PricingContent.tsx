@@ -170,7 +170,7 @@ export function PricingContent() {
               </ul>
 
               <Link
-                href={tier.name === 'ENTERPRISE' ? '/contact' : '/register'}
+                href={tier.name === 'ENTERPRISE' ? '/contact?plan=enterprise' : '/register'}
                 className={cn(
                   'mt-6 block rounded-md px-4 py-2.5 text-center text-sm font-semibold',
                   tier.highlighted

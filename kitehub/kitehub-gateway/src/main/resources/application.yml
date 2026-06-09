@@ -227,6 +227,30 @@ spring:
                 name: paymentCircuitBreaker
                 fallbackUri: forward:/fallback/payment
 
+        # GAP-1101 — KiteHub PLATFORM sales lead capture (Enterprise "Liên hệ" CTA).
+        # POST /api/platform/sales-leads is PUBLIC (prospective center owner contacting
+        # sales — no JWT, not logged in). Gateway JwtAuthenticationGatewayFilter
+        # whitelists /api/platform/sales-leads as a public path so the anonymous request
+        # is not rejected as missing JWT. Rate-limit per IP (mirror request-beta-access
+        # 2/5) so the public form cannot be abused as a spam vector. Exact-path predicate
+        # so it does not shadow other /api/platform/** routes.
+        - id: platform-sales-leads
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/platform/sales-leads
+            - Method=POST
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 2
+                redis-rate-limiter.burstCapacity: 5
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@ipKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
+
         # Platform APIs - Branding Service
         # GAP-259 — tenant-keyed rate limit on the AI cost surface so that one tenant
         # behind a NAT cannot starve co-tenants. Burst tuned for wizard usage; per-tier

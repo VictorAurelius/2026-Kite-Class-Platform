@@ -120,6 +120,13 @@ export const endpoints = {
     reject: (id: number) => `/api/v1/admin/beta-requests/${id}/reject`,
   },
 
+  // KiteHub PLATFORM sales lead (GAP-1101 — Enterprise "Liên hệ" CTA).
+  // Public POST — prospective center owner contacting KiteHub sales about the
+  // Enterprise SaaS plan. Distinct from kiteclass-core tenant-marketing leads.
+  salesLeads: {
+    create: `${API_BASE}/sales-leads`,
+  },
+
   // Staff invitations (GAP-561b Wave 80 — Owner→Staff invite flow)
   staffInvitations: {
     list: '/api/v1/staff-invitations',

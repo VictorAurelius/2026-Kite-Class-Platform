@@ -289,6 +289,11 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
                 || path.startsWith("/api/v1/staff-invitations/by-token/")
                 || (path.startsWith("/api/v1/staff-invitations/") && path.endsWith("/accept"))
                 || path.startsWith("/api/platform/webhooks/")
+                // GAP-1101 — KiteHub PLATFORM sales lead capture (Enterprise CTA).
+                // Public POST: prospective center owner contacting sales has no JWT
+                // (not logged in). Mirror webhooks pattern — anonymous request must
+                // not be rejected as missing JWT before reaching the controller.
+                || path.equals("/api/platform/sales-leads")
                 || path.equals("/actuator/health")
                 || path.startsWith("/actuator/health/")
                 || path.startsWith("/docs/")

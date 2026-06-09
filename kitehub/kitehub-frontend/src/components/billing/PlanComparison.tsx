@@ -27,7 +27,10 @@ export function PlanComparison({ currentTier }: PlanComparisonProps) {
   const handleSelectPlan = (tier: PricingTier) => {
     if (tier === currentTier) return;
     if (tier === 'ENTERPRISE') {
-      window.location.href = 'mailto:sales@kiteclass.com';
+      // GAP-1101 cross-flow sweep: Enterprise = sales-assisted. Navigate to the
+      // lead-capture form instead of mailto:sales@kiteclass.com (wrong domain —
+      // canonical is support@kitehub.me / /contact).
+      router.push('/contact?plan=enterprise');
       return;
     }
     router.push(`/billing/upgrade?tier=${tier}`);
