@@ -70,6 +70,9 @@ export function useUpgradeSubscription() {
     onSuccess: () => {
       // Invalidate all subscription queries
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+      // GAP-1090: dashboard tier + trial bar đọc ['instances'] (owner-list +
+      // detail + trial-status) — invalidate prefix để chúng refresh sau khi tier flip.
+      queryClient.invalidateQueries({ queryKey: ['instances'] });
     },
   });
 }
@@ -97,6 +100,8 @@ export function useDowngradeSubscription() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+      // GAP-1090: refresh ['instances'] (dashboard tier + trial bar) sau khi tier đổi.
+      queryClient.invalidateQueries({ queryKey: ['instances'] });
     },
   });
 }
@@ -134,6 +139,8 @@ export function useCreateSubscription() {
     onSuccess: () => {
       // Invalidate active subscription query so dashboard cập nhật ngay
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+      // GAP-1090: refresh ['instances'] (dashboard tier + trial bar) sau khi tạo subscription.
+      queryClient.invalidateQueries({ queryKey: ['instances'] });
     },
   });
 }
@@ -154,6 +161,8 @@ export function useCancelSubscription() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+      // GAP-1090: refresh ['instances'] (dashboard tier + trial bar) sau khi hủy gói.
+      queryClient.invalidateQueries({ queryKey: ['instances'] });
     },
   });
 }

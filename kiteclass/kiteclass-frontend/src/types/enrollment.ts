@@ -44,3 +44,19 @@ export interface EnrollmentSearchParams {
   size?: number;
   sort?: string;
 }
+
+/**
+ * Request body for creating a single enrollment.
+ *
+ * Mirrors BE {@code CreateEnrollmentRequest}
+ * (com.kiteclass.core.module.enrollment.dto). Used by the "Thêm học sinh vào lớp"
+ * dialog (GAP-1103). {@code discountPercent} defaults to 0 on the server when
+ * omitted; {@code notes} is optional.
+ */
+export interface CreateEnrollmentRequest {
+  studentId: number;
+  classId: number;
+  tuitionAmount: number;
+  discountPercent?: number;
+  notes?: string;
+}

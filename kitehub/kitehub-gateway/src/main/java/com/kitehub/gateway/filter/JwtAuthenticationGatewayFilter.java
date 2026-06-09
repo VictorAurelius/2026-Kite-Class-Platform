@@ -20,7 +20,8 @@ import reactor.core.publisher.Mono;
  * Gateway-edge JWT filter — parses the {@code Authorization: Bearer <token>}
  * header, validates signature via the shared {@code JWT_SECRET}, and propagates
  * the resolved identity to downstream services through {@code X-User-Id},
- * {@code X-User-Roles}, và {@code X-User-Email} request headers.
+ * {@code X-User-Roles}, {@code X-User-Email}, và {@code X-Subscription-Tier}
+ * (GAP-1020 — trusted tier for AI branding entitlement) request headers.
  *
  * <p>Downstream services (kitehub-subscription, kitehub-admin) tin tưởng các
  * header này thông qua {@code XUserRolesHeaderFilter} (xem
@@ -71,6 +72,18 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
      * verified claim — same anti-spoof pattern as X-User-Id.
      */
     static final String HEADER_USER_REFERENCE_ID = "X-User-Reference-Id";
+    /**
+     * Trusted subscription tier (GAP-1020). Re-injected from the verified {@code tier}
+     * JWT claim issued by kitehub-subscription so tier-gated features (AI branding) cannot
+     * be spoofed via a client-supplied header. Client-supplied value is stripped by
+     * {@code default-filters} {@code RemoveRequestHeader=X-Subscription-Tier} before this
+     * re-injects the verified claim — same anti-spoof pattern as X-User-Id / X-Tenant-Id.
+     * Defaults to {@code FREE} (least privilege) for backward-compat tokens issued before
+     * the tier claim landed, and for challenge tokens (2FA paths do not read tier).
+     */
+    static final String HEADER_SUBSCRIPTION_TIER = "X-Subscription-Tier";
+    /** Least-privilege tier fallback when the verified token carries no {@code tier} claim. */
+    static final String DEFAULT_TIER = "FREE";
     static final String BEARER_PREFIX = "Bearer ";
 
     /** Reserved role propagated for verified HS256 challenge tokens on 2FA paths. */
@@ -125,14 +138,27 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
 
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-        // No Authorization header → pass-through. Downstream Spring Security sẽ reject
-        // nếu endpoint cần auth; cho phép pass-through để các endpoint optionally-authed
-        // vẫn hoạt động.
-        if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
-            return chain.filter(exchange);
+        // Resolve the bearer token from EITHER the Authorization header (default for
+        // XHR/fetch) OR a `?token=` query param. GAP-1021: browser EventSource cannot
+        // set request headers, so SSE endpoints (e.g. AI Branding deploy-stream)
+        // authenticate via short-lived token-in-query. Header takes precedence; the
+        // query token is a fallback only when no Bearer header is present.
+        String token = null;
+        if (authHeader != null && authHeader.startsWith(BEARER_PREFIX)) {
+            token = authHeader.substring(BEARER_PREFIX.length()).trim();
+        } else {
+            String queryToken = request.getQueryParams().getFirst("token");
+            if (queryToken != null && !queryToken.isBlank()) {
+                token = queryToken.trim();
+            }
         }
 
-        String token = authHeader.substring(BEARER_PREFIX.length()).trim();
+        // No usable token → pass-through. Downstream Spring Security sẽ reject nếu
+        // endpoint cần auth; cho phép pass-through để các endpoint optionally-authed
+        // vẫn hoạt động.
+        if (token == null) {
+            return chain.filter(exchange);
+        }
 
         // GAP-705: dual-secret parse. Try the HS512 access-token key first (covers >99%
         // of traffic). If verification fails AND we're on a 2FA challenge path, retry
@@ -197,6 +223,12 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
         if (email != null) {
             mutated.header(HEADER_USER_EMAIL, email);
         }
+        // GAP-1020 — inject trusted X-Subscription-Tier from the verified `tier` claim.
+        // Always set (even for challenge / claim-absent tokens) so the stripped client value
+        // is unconditionally replaced by a trusted one on every authed request; downstream
+        // tier-gated features (AI branding) read this header. Default FREE = least privilege.
+        String tier = claims.get("tier", String.class);
+        mutated.header(HEADER_SUBSCRIPTION_TIER, tier != null ? tier : DEFAULT_TIER);
         if (!isChallenge) {
             // KC-native tokens (Wave auth-1) carry referenceId = parents/teachers/students.id
             // for kiteclass-core reference-id authz (GAP-798). Absent on OWNER/STAFF tokens.
@@ -206,8 +238,8 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
             }
         }
 
-        log.debug("Injected X-User-Id={} X-User-Roles={} isChallenge={} path={}",
-                userId, isChallenge ? CHALLENGE_ROLE : role, isChallenge, path);
+        log.debug("Injected X-User-Id={} X-User-Roles={} X-Subscription-Tier={} isChallenge={} path={}",
+                userId, isChallenge ? CHALLENGE_ROLE : role, tier != null ? tier : DEFAULT_TIER, isChallenge, path);
         return chain.filter(exchange.mutate().request(mutated.build()).build());
     }
 
@@ -257,6 +289,11 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
                 || path.startsWith("/api/v1/staff-invitations/by-token/")
                 || (path.startsWith("/api/v1/staff-invitations/") && path.endsWith("/accept"))
                 || path.startsWith("/api/platform/webhooks/")
+                // GAP-1101 — KiteHub PLATFORM sales lead capture (Enterprise CTA).
+                // Public POST: prospective center owner contacting sales has no JWT
+                // (not logged in). Mirror webhooks pattern — anonymous request must
+                // not be rejected as missing JWT before reaching the controller.
+                || path.equals("/api/platform/sales-leads")
                 || path.equals("/actuator/health")
                 || path.startsWith("/actuator/health/")
                 || path.startsWith("/docs/")

@@ -40,13 +40,20 @@ const nextConfig = {
   // Report-Only mode so we collect violations without breaking BETA users; flip
   // to enforce after 1 week zero P0 violations.
   async headers() {
+    // Dev stack serves MinIO logo/branding assets over http://localhost:9100 and
+    // the API gateway + SSE deploy-stream over http://localhost:9000. Allow those
+    // hosts in non-prod so logo previews + EventSource don't trip CSP once it
+    // flips to enforce. Production stays https-only (GAP-1112 tracks real preview).
+    const isDev = process.env.NODE_ENV !== 'production';
+    const devImg = isDev ? ' http://localhost:9100' : '';
+    const devConnect = isDev ? ' http://localhost:9000 ws://localhost:9000' : '';
     const cspDirectives = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "img-src 'self' data: https: blob:",
+      `img-src 'self' data: https: blob:${devImg}`,
       "font-src 'self' https://fonts.gstatic.com data:",
-      "connect-src 'self' https://kitehub.me https://*.kitehub.me wss://*.kitehub.me",
+      `connect-src 'self' https://kitehub.me https://*.kitehub.me wss://*.kitehub.me${devConnect}`,
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",

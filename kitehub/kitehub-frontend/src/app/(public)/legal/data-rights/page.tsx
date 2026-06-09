@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function DataRightsPage() {
   return (
-    <main className="container max-w-3xl py-12">
+    <div className="container max-w-3xl py-12">
       <article className="space-y-6 text-sm leading-relaxed">
         <header className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">Yêu cầu quyền dữ liệu cá nhân</h1>
@@ -60,6 +60,6 @@ export default function DataRightsPage() {
           <p>Cập nhật lần cuối: 2026-05-06 · Phiên bản: 1.0</p>
         </footer>
       </article>
-    </main>
+    </div>
   );
 }

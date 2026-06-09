@@ -34,6 +34,22 @@ Same parsing + validation as preview, then persists valid rows and creates a `Bu
 | Body | `file=<xlsx>` |
 | Success | `201 Created` + `Location: /api/v1/students/bulk-import/jobs/{jobId}` → `ApiResponse<BulkImportResult>` |
 
+### GET /template — download blank import template
+
+Trả về template xlsx trắng (canonical headers + 2 example rows + sheet HuongDan) để user điền theo. Static + tenant-agnostic — KHÔNG cần `X-Tenant-Id` header; cùng bytes cho mọi caller.
+
+| Field | Value |
+|-------|-------|
+| HTTP | `GET /api/v1/students/bulk-import/template` |
+| Produces | `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` |
+| Headers | `Authorization: Bearer <token>` (no `X-Tenant-Id` required — static template) |
+| Body | none |
+| Success | `200 OK` + `Content-Disposition: attachment; filename="mau-import-hoc-vien.xlsx"` |
+
+File trả về có 2 sheet:
+- **HocVien** (sheet 0): header row = 7 cột canonical (`name | email | phone | date_of_birth | gender | address | note`, bold + frozen) + 2 dòng ví dụ hợp lệ.
+- **HuongDan** (sheet 1): hướng dẫn từng cột (bắt buộc/tùy chọn + định dạng) theo BR-BI-010..015.
+
 ### POST /jobs/{id}/errors — download error report
 
 Re-validate and stream xlsx report. MVP is stateless — client re-uploads the file.
@@ -183,9 +199,10 @@ Location: /api/v1/students/bulk-import/jobs/42
 ## Related
 
 - BR-BI-* rules → [rules.md](./rules.md)
-- Use cases UC-BI-01..05 → [use-cases.md](./use-cases.md)
+- Use cases UC-BI-01..06 → [use-cases.md](./use-cases.md)
 - Reuses BR-STU-001..006 from [student-enrollment/rules.md](../student-enrollment/rules.md)
 - OpenAPI group: `Student Bulk Import` (tag on `BulkImportController`)
 
 ## Log
+- 2026-06-10 — GAP-1102: thêm `GET /template` (download blank import template). Tenant-agnostic/static, no `X-Tenant-Id`; trả 200 + xlsx attachment `mau-import-hoc-vien.xlsx`. Code: `BulkImportController.downloadTemplate` → `StudentBulkImportService.generateTemplate` → `XlsxTemplateGenerator`.
 - 2026-04-21 — GAP-109: contract documented from `BulkImportController` source. No new endpoints.

@@ -126,6 +126,23 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     boolean existsByPhoneAndInstanceIdAndDeletedFalse(String phone, UUID instanceId);
 
     /**
+     * Finds a student by phone and tenant instance (excluding deleted).
+     *
+     * <p>Tenant-scoped resolver used by enrollment bulk-import (GAP-1104) when a
+     * row supplies a phone number but no email. Phone is tenant-unique per
+     * GAP-799 (global uniqueness relaxed), so this returns at most one student
+     * within the tenant. The {@code instance_id} predicate is explicit because
+     * the Hibernate {@code tenantFilter} is not applied to derived {@code findBy}
+     * queries.
+     *
+     * @param phone the phone number to find
+     * @param instanceId the tenant instance ID
+     * @return Optional containing the student if found within this tenant
+     * @since 2.7.0
+     */
+    Optional<Student> findByPhoneAndInstanceIdAndDeletedFalse(String phone, UUID instanceId);
+
+    /**
      * Searches students by name/email and status with pagination.
      *
      * <p>Search criteria:

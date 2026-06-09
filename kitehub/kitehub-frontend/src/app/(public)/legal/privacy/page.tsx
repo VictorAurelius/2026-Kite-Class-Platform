@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <main className="container max-w-4xl py-12">
+    <div className="container max-w-4xl py-12">
       <article className="space-y-6 text-sm leading-relaxed">
         <aside
           role="note"
@@ -363,6 +363,6 @@ export default function PrivacyPolicyPage() {
           </ul>
         </nav>
       </article>
-    </main>
+    </div>
   );
 }

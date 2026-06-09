@@ -17,6 +17,7 @@ Admin-facing bulk create of students via xlsx upload. Two phases: dry-run `previ
 | BR-BI-004 | Header row required | Row 1 = header, data starts row 2 | `XlsxParser` |
 | BR-BI-005 | Error code on row limit exceeded | `BULK_IMPORT_ROW_LIMIT_EXCEEDED` + **HTTP 413 PAYLOAD_TOO_LARGE** (Wave 86 E-AC5 — từ HTTP 400) | `StudentBulkImportService.assertRowLimit` |
 | BR-BI-006 | Error code on empty upload | `BULK_IMPORT_EMPTY_FILE` + HTTP 400 | `StudentBulkImportService.assertFilePresent` |
+| BR-BI-007 | Template download | GET endpoint returns blank xlsx với canonical headers + 2 example rows + HuongDan sheet (tenant-agnostic/static, no `X-Tenant-Id`) | `XlsxTemplateGenerator` |
 
 ### Per-row validation (mirrors `CreateStudentRequest`)
 | ID | Rule | Value | Code reference |
@@ -95,5 +96,6 @@ Per-rule attributes (Source / Rationale / Reviewer / Compliance check / Review c
 - **Review cadence:** Quarterly (default per `business-logic-review.md` §2.5). **Next review:** 2026-08-08. Event triggers: PDPL implementing-decree, MoET data-import regulation update.
 
 ## Log
+- 2026-06-10 — GAP-1102: thêm BR-BI-007 (template download). Endpoint mới `GET /api/v1/students/bulk-import/template` trả về template xlsx trắng (canonical headers + 2 example rows + sheet HuongDan) để user biết đúng cột trước khi upload. Code: `XlsxTemplateGenerator`. Cùng PR cập nhật api-contract.md (GET /template) + use-cases.md (UC-BI-04).
 - 2026-04-21 — GAP-109: 3-layer docs created capturing shipped Wave 1 behavior. No code change.
 - 2026-04-14 — Feature delivered via GAP-051 (PR #332) + in-file duplicate fix (PR #338); docs never backfilled until today.

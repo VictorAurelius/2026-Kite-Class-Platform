@@ -99,6 +99,63 @@ public class BrandingJobService {
     }
 
     /**
+     * Create a wizard branding job for the Phase 1 MOCK provisioning flow
+     * (GAP-1021 + GAP-272e). Distinct from {@link #createJob} which enqueues the
+     * heavy async AI pipeline via the outbox/RabbitMQ {@code branding.job.queued}
+     * topic — this method deliberately SKIPS that enqueue.
+     *
+     * <p><b>Instance binding (GAP-1021 runtime fix):</b> the job binds to the
+     * caller's REAL instance ({@code instanceId} resolved from the JWT tenant
+     * claim) — the wizard rebrands the owner's existing instance. The earlier
+     * mock used a synthetic random UUID which violated the
+     * {@code fk_branding_job_instance} FK → HTTP 500 in production Postgres.
+     * Real per-tenant isolated infrastructure (per-tenant DB / MinIO bucket /
+     * DNS subdomain) is still deferred to GAP-1055, and subdomain Host-render to
+     * GAP-811/1077; deploy is driven by
+     * {@link com.kitehub.branding.wizard.service.MockProvisioningService}.</p>
+     *
+     * <p>Drives the §6 instance lifecycle to {@code INITIALIZING} (NOT_STARTED →
+     * INITIALIZING) so the deploy step (PROCESSING → GENERATING, COMPLETED →
+     * DEPLOYED via {@link #updateJobProgress}) has a legal starting state.</p>
+     *
+     * @param instanceId caller's real instance (from JWT tenant claim) — FK target
+     * @param organizationName tenant/center display name (drives preview palette)
+     * @param language language code (defaults to {@code vi})
+     * @param logoUrl optional uploaded logo URL
+     * @return created job (status {@code QUEUED})
+     */
+    @Transactional
+    public BrandingJob createWizardJob(UUID instanceId, String organizationName, String language, String logoUrl) {
+        log.info("Creating wizard branding job for instance: {}", instanceId);
+
+        BrandingJob job = new BrandingJob();
+        job.setInstanceId(instanceId);
+        job.setOrganizationName(organizationName);
+        job.setLanguage(language == null || language.isBlank() ? "vi" : language);
+        job.setLogoUrl(logoUrl);
+        job.setStatus(JobStatus.QUEUED);
+        job.setProgress(0);
+        job.setCurrentStep("Queued");
+        job.setRetryCount(0);
+        job.setQueuedAt(LocalDateTime.now());
+
+        job = jobRepository.save(job);
+
+        // §6 lifecycle — state-aware target (GAP-1021 runtime fix): fresh/NOT_STARTED
+        // instance → INITIALIZING; existing DEPLOYED instance (rebrand) → REGENERATING.
+        // Via transitionInstance (tolerant wrapper) so an in-flight duplicate is a no-op
+        // instead of an INVALID_TRANSITION 500. No AI pipeline enqueue (mock).
+        Map<String, Object> meta = new HashMap<>();
+        meta.put("jobId", job.getId());
+        meta.put("organizationName", organizationName);
+        meta.put("mock", true);
+        transitionInstance(instanceId, resolveCreateTarget(instanceId), meta);
+
+        log.info("Wizard job created: {} (instance {})", job.getId(), instanceId);
+        return job;
+    }
+
+    /**
      * Get job by ID and instance ID.
      *
      * @param jobId job ID
@@ -210,21 +267,29 @@ public class BrandingJobService {
      */
     private void transitionInstance(UUID instanceId, LifecycleState target,
                                     Map<String, Object> metadata) {
-        try {
-            BrandingInstanceState current = instanceStateRepository.findById(instanceId).orElse(null);
-            if (current != null && current.getState() == target) {
-                return;
-            }
-            lifecycleService.transition(
-                instanceId, target,
-                InstanceLifecycleService.Actor.system("branding-job-service"),
-                metadata);
-        } catch (IllegalStateException ex) {
-            // Log + swallow — invalid transition typically means a duplicate consumer
-            // delivery or out-of-order event; do not break the job-row write.
-            log.warn("Skipping lifecycle transition instance={} target={}: {}",
-                instanceId, target, ex.getMessage());
+        BrandingInstanceState current = instanceStateRepository.findById(instanceId).orElse(null);
+        LifecycleState from = current == null ? null : current.getState();
+        if (from == target) {
+            return; // same-state no-op
         }
+        // GAP-1021 runtime fix: pre-validate reachability BEFORE calling transition.
+        // Calling lifecycleService.transition (a nested @Transactional) with an
+        // unreachable target throws IllegalStateException which marks the SHARED
+        // parent transaction rollback-only; a catch here swallows the exception but
+        // CANNOT clear the flag, so the parent commit then throws
+        // UnexpectedRollbackException (audit-service-isolation.md §3.11 class). Skipping
+        // the invalid call entirely avoids contaminating the parent txn — e.g. the
+        // rebrand deploy path stays REGENERATING through PROCESSING (REGENERATING→
+        // GENERATING is skipped) then REGENERATING→DEPLOYED at COMPLETED.
+        if (!target.isReachableFrom(from)) {
+            log.warn("Skipping lifecycle transition instance={} target={} from={}: not reachable",
+                instanceId, target, from);
+            return;
+        }
+        lifecycleService.transition(
+            instanceId, target,
+            InstanceLifecycleService.Actor.system("branding-job-service"),
+            metadata);
     }
 
     /**

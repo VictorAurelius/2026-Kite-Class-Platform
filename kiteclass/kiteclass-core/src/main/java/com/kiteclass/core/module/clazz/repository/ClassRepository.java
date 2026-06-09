@@ -106,6 +106,22 @@ public interface ClassRepository extends JpaRepository<Class, Long> {
     Optional<Class> findByClassCodeAndDeletedFalse(String classCode);
 
     /**
+     * Finds a class by code within a tenant instance (not deleted).
+     *
+     * <p>Tenant-scoped resolver used by enrollment bulk-import (GAP-1104) to map
+     * a human-entered {@code class_code} to a class ID within the uploading
+     * tenant only. The {@code instance_id} predicate is explicit because the
+     * Hibernate {@code tenantFilter} is not applied to derived {@code findBy}
+     * queries; this prevents resolving a class code belonging to another tenant.
+     *
+     * @param classCode the class code
+     * @param instanceId the tenant instance ID
+     * @return Optional containing class if found within this tenant
+     * @since 2.7.0
+     */
+    Optional<Class> findByClassCodeAndInstanceIdAndDeletedFalse(String classCode, UUID instanceId);
+
+    /**
      * Counts classes for a given course (not deleted).
      *
      * @param courseId course ID

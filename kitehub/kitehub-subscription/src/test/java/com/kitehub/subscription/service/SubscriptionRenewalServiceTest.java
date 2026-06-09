@@ -156,6 +156,8 @@ class SubscriptionRenewalServiceTest {
         when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
         when(paymentRepository.save(any(Payment.class))).thenReturn(savedPayment);
         when(subscriptionRepository.save(any(Subscription.class))).thenReturn(subscription);
+        // GAP-1090 (SUB-21): end-of-cycle tier apply now syncs instances.tier too.
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
 
         // When
         renewalService.processRenewal(subscriptionId);
@@ -167,6 +169,9 @@ class SubscriptionRenewalServiceTest {
         Subscription saved = captor.getValue();
         assertThat(saved.getTier()).isEqualTo(PricingTier.PREMIUM);
         assertThat(saved.getPendingTier()).isNull();
+        // GAP-1090 (SUB-21): instances.tier synced to the newly-applied tier + persisted.
+        assertThat(instance.getTier()).isEqualTo(PricingTier.PREMIUM);
+        verify(instanceRepository).save(any(Instance.class));
     }
 
     @Test

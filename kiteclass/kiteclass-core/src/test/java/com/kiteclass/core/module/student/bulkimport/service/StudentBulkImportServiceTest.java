@@ -59,9 +59,10 @@ class StudentBulkImportServiceTest {
         XlsxParser parser = new XlsxParser();
         RowValidator validator = new RowValidator();
         ErrorReportGenerator generator = new ErrorReportGenerator();
+        XlsxTemplateGenerator templateGenerator = new XlsxTemplateGenerator();
         // Manually build service — @InjectMocks is already used for the chunk executor.
         chunkExecutor = new BulkImportChunkExecutor(validator, studentService, jobRepository);
-        service = new StudentBulkImportService(parser, validator, chunkExecutor, generator);
+        service = new StudentBulkImportService(parser, validator, chunkExecutor, generator, templateGenerator);
     }
 
     @Test
