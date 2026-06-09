@@ -272,4 +272,34 @@ class BrandingJobServiceTest {
         assertThat(result).isFalse();
         verify(jobRepository, never()).save(any());
     }
+
+    @Test
+    void testCreateWizardJob_persistsOrgType() {
+        // Given — GAP-1115: createWizardJob carries + persists the user-type axis.
+        when(jobRepository.save(any(BrandingJob.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(instanceStateRepository.findById(instanceId)).thenReturn(Optional.empty());
+
+        // When
+        BrandingJob result = jobService.createWizardJob(
+                instanceId, organizationName, language, logoUrl, "LARGE_CENTER");
+
+        // Then — orgType set on the entity + persisted via save
+        assertThat(result.getOrgType()).isEqualTo("LARGE_CENTER");
+        verify(jobRepository).save(argThat(saved -> "LARGE_CENTER".equals(saved.getOrgType())));
+    }
+
+    @Test
+    void testCreateWizardJob_nullOrgTypeOk() {
+        // Given — orgType nullable for backward-compat (pre-GAP-1115).
+        when(jobRepository.save(any(BrandingJob.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(instanceStateRepository.findById(instanceId)).thenReturn(Optional.empty());
+
+        // When
+        BrandingJob result = jobService.createWizardJob(
+                instanceId, organizationName, language, logoUrl, null);
+
+        // Then
+        assertThat(result.getOrgType()).isNull();
+        assertThat(result.getStatus()).isEqualTo(JobStatus.QUEUED);
+    }
 }

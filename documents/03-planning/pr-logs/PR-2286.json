@@ -1,0 +1,33 @@
+{
+  "pr": 2286,
+  "title": "feat(meta): worktree-only-branch-work rule \u2014 no checkout main tree, use git worktree",
+  "branch": "wave/meta-worktree-only-rule-2026-06-10",
+  "created_at": null,
+  "merged_at": "2026-06-09T21:41:29Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-06-10T04:41:38.477397",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 3,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-1526"
+  }
+}

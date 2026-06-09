@@ -23,6 +23,12 @@ public record CreateWizardJobRequest(
         String templateId,
         String logoUrl,
         Boolean aiLogo,
-        List<String> approvedResources
+        List<String> approvedResources,
+        /**
+         * Wizard user-type axis (GAP-1115): {@code SOLO_TEACHER} / {@code SMALL_CENTER}
+         * / {@code LARGE_CENTER}. Optional (nullable) for backward-compat — orthogonal
+         * to {@code audience} (theme axis); drives portrait-count strategy (GAP-1116).
+         */
+        String orgType
 ) {
 }

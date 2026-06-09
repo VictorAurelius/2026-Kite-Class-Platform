@@ -80,7 +80,9 @@ public class BrandingJobService {
                 instanceId,
                 organizationName,
                 language,
-                logoUrl
+                logoUrl,
+                job.getOrgType(), // GAP-1115 orgType (nullable)
+                null              // GAP-1117 tier — heavy path defaults FREE (TEMPLATE)
         );
 
         // Per design-patterns.md §3.5.1: outbox-row first (reliability net),
@@ -122,17 +124,21 @@ public class BrandingJobService {
      * @param organizationName tenant/center display name (drives preview palette)
      * @param language language code (defaults to {@code vi})
      * @param logoUrl optional uploaded logo URL
+     * @param orgType wizard user-type axis (GAP-1115): SOLO_TEACHER / SMALL_CENTER /
+     *                LARGE_CENTER — nullable for backward-compat
      * @return created job (status {@code QUEUED})
      */
     @Transactional
-    public BrandingJob createWizardJob(UUID instanceId, String organizationName, String language, String logoUrl) {
-        log.info("Creating wizard branding job for instance: {}", instanceId);
+    public BrandingJob createWizardJob(UUID instanceId, String organizationName, String language,
+                                       String logoUrl, String orgType) {
+        log.info("Creating wizard branding job for instance: {} (orgType={})", instanceId, orgType);
 
         BrandingJob job = new BrandingJob();
         job.setInstanceId(instanceId);
         job.setOrganizationName(organizationName);
         job.setLanguage(language == null || language.isBlank() ? "vi" : language);
         job.setLogoUrl(logoUrl);
+        job.setOrgType(orgType); // GAP-1115 — nullable user-type axis
         job.setStatus(JobStatus.QUEUED);
         job.setProgress(0);
         job.setCurrentStep("Queued");

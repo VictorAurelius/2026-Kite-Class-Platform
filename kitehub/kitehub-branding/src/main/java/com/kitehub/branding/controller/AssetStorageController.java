@@ -225,13 +225,20 @@ public class AssetStorageController {
     }
 
     /**
-     * Persist asset to BrandingJob, replacing any existing asset of the SAME
-     * {@code assetType} (GAP-1112 #2). Result: exactly 1 asset per
-     * {@code (instanceId, assetType)} on the target job — re-uploading a logo
-     * no longer accumulates duplicate rows + S3 objects.
+     * Persist asset to BrandingJob.
+     *
+     * <p><b>Dedup policy (GAP-1112 #2 LOGO + GAP-1116 PORTRAIT):</b></p>
+     * <ul>
+     *   <li><b>PORTRAIT</b> — accumulates 1..N per instance: NEVER deduped. A centre
+     *       uploads many teacher portraits; a solo teacher uploads one. The portrait
+     *       count is driven by the wizard user-type axis (GAP-1115).</li>
+     *   <li><b>Every other type (LOGO, HERO, ...)</b> — replace-by-assetType: exactly 1
+     *       asset per {@code (instanceId, assetType)}. Re-uploading removes + S3-deletes
+     *       the prior one (no duplicate rows / orphan objects).</li>
+     * </ul>
      *
      * @param instanceId Instance UUID
-     * @param assetType Asset type whose previous version(s) get replaced
+     * @param assetType Asset type whose previous version(s) get replaced (except PORTRAIT)
      * @param asset Asset to persist (carries the stable storage URL)
      */
     private void persistAssetToJob(UUID instanceId, String assetType, BrandingAsset asset) throws IOException {
@@ -252,20 +259,26 @@ public class AssetStorageController {
         // immutable empty list).
         List<BrandingAsset> assets = new ArrayList<>(parseAssetsJson(job.getAssetsGenerated()));
 
-        // GAP-1112 #2: replace-by-assetType. Remove + S3-delete any prior asset of
-        // the same type before adding the new one (case-insensitive type match).
-        assets.removeIf(existing -> {
-            boolean sameType = existing.getType() != null
-                && existing.getType().equalsIgnoreCase(assetType);
-            if (sameType) {
-                try {
-                    s3StorageService.deleteAsset(extractPathFromUrl(existing.getUrl()));
-                } catch (Exception e) {
-                    log.warn("Failed to delete replaced {} asset: {}", assetType, existing.getUrl(), e);
+        // GAP-1112 #2 + GAP-1116: replace-by-assetType for EVERY type EXCEPT PORTRAIT.
+        // PORTRAIT accumulates 1..N per instance (centre = many teacher portraits, solo
+        // = one), driven by the wizard user-type axis (GAP-1115). All other types keep
+        // exactly 1 per (instanceId, assetType): remove + S3-delete the prior same-type
+        // asset (case-insensitive match).
+        boolean isPortrait = "PORTRAIT".equalsIgnoreCase(assetType);
+        if (!isPortrait) {
+            assets.removeIf(existing -> {
+                boolean sameType = existing.getType() != null
+                    && existing.getType().equalsIgnoreCase(assetType);
+                if (sameType) {
+                    try {
+                        s3StorageService.deleteAsset(extractPathFromUrl(existing.getUrl()));
+                    } catch (Exception e) {
+                        log.warn("Failed to delete replaced {} asset: {}", assetType, existing.getUrl(), e);
+                    }
                 }
-            }
-            return sameType;
-        });
+                return sameType;
+            });
+        }
 
         // Add new asset
         assets.add(asset);
@@ -274,8 +287,8 @@ public class AssetStorageController {
         String assetsJson = objectMapper.writeValueAsString(assets);
         brandingJobService.updateGeneratedAssets(job.getId(), assetsJson);
 
-        log.debug("Persisted {} asset to BrandingJob: {} for instance: {} ({} total assets)",
-            assetType, job.getId(), instanceId, assets.size());
+        log.debug("Persisted {} asset to BrandingJob: {} for instance: {} ({} total, dedup={})",
+            assetType, job.getId(), instanceId, assets.size(), !isPortrait);
     }
 
     /**

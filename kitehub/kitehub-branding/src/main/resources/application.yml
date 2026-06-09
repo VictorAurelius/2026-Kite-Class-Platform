@@ -105,6 +105,16 @@ ai:
     vision-model: ${OLLAMA_VISION_MODEL:llava:13b}
     timeout-seconds: ${OLLAMA_TIMEOUT:120}
 
+  # Gemini free-tier provider (GAP-1117 / ADR-037 Amendment). Pinned text/HTML copy
+  # provider. Empty GEMINI_API_KEY → GeminiClient MOCK mode (graceful no-key fallback;
+  # production secret provisioned via fetch-secrets.sh → /etc/kite/.env at deploy).
+  gemini:
+    base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
+    api-key: ${GEMINI_API_KEY:}
+    text-model: ${GEMINI_TEXT_MODEL:gemini-1.5-flash}
+    vision-model: ${GEMINI_VISION_MODEL:gemini-1.5-flash}
+    timeout-seconds: ${GEMINI_TIMEOUT:60}
+
   # Fair-queue scheduler (GAP-005a Wave 3 Phase 1)
   queue:
     # Feature flag — disable to revert to the legacy single queue (backward compat).

@@ -33,12 +33,27 @@ public class AIProviderConfig {
 
     private Ollama ollama = new Ollama();
 
+    private Gemini gemini = new Gemini();
+
     @Data
     public static class Ollama {
         private String baseUrl = "http://kitehub-ollama:11434";
         private String textModel = "llama3.1:8b";
         private String visionModel = "llava:13b";
         private int timeoutSeconds = 120;
+    }
+
+    /**
+     * Google Gemini free-tier provider config (GAP-1117 / ADR-037 Amendment).
+     * {@code apiKey} blank/absent → {@code GeminiClient} MOCK mode (graceful no-key).
+     */
+    @Data
+    public static class Gemini {
+        private String baseUrl = "https://generativelanguage.googleapis.com/v1beta";
+        private String apiKey = "";
+        private String textModel = "gemini-1.5-flash";
+        private String visionModel = "gemini-1.5-flash";
+        private int timeoutSeconds = 60;
     }
 
     /**
@@ -64,6 +79,20 @@ public class AIProviderConfig {
                     ollama.getTimeoutSeconds(),
                     objectMapper
             );
+        }
+
+        if ("gemini".equalsIgnoreCase(provider)) {
+            // GAP-1117 / ADR-037: Gemini free-tier text/HTML copy provider.
+            com.kitehub.branding.client.GeminiClient geminiClient =
+                    new com.kitehub.branding.client.GeminiClient(
+                            gemini.getBaseUrl(),
+                            gemini.getApiKey(),
+                            gemini.getTextModel(),
+                            gemini.getVisionModel(),
+                            gemini.getTimeoutSeconds(),
+                            objectMapper);
+            log.info("AI Provider: Gemini (free-tier) [provider={}]", geminiClient.getProviderName());
+            return geminiClient;
         }
 
         log.info("AI Provider: OpenAI (cloud) [provider={}]", openAIClient.getProviderName());

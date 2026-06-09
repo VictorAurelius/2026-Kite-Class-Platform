@@ -43,4 +43,17 @@ public class BrandingJobMessage implements Serializable {
      * Logo file URL (S3).
      */
     private String logoUrl;
+
+    /**
+     * Wizard user-type axis (GAP-1115): SOLO_TEACHER / SMALL_CENTER / LARGE_CENTER.
+     * Optional — null for pre-GAP-1115 messages (Jackson JSON converter tolerates
+     * the new field on old payloads).
+     */
+    private String orgType;
+
+    /**
+     * Subscription tier driving generation mode (GAP-1117): TEMPLATE for
+     * FREE/BASIC/PREMIUM, FULL_AI for ENTERPRISE. Optional — null/blank → FREE.
+     */
+    private String tier;
 }

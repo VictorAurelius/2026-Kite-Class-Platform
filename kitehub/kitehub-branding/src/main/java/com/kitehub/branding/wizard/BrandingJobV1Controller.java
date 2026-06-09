@@ -81,7 +81,7 @@ public class BrandingJobV1Controller {
     @PreAuthorize(WRITE_AUTHZ)
     public ResponseEntity<?> createJob(@RequestBody(required = false) CreateWizardJobRequest req) {
         CreateWizardJobRequest body = req == null
-                ? new CreateWizardJobRequest(null, null, null, null, null, null, null, null, null)
+                ? new CreateWizardJobRequest(null, null, null, null, null, null, null, null, null, null)
                 : req;
         // GAP-1021 runtime fix: bind the job to the caller's REAL instance (JWT tenant
         // claim = instance id). A synthetic random UUID violated fk_branding_job_instance → 500.
@@ -101,7 +101,13 @@ public class BrandingJobV1Controller {
                     "message", "Không xác định được trung tâm từ phiên đăng nhập"));
         }
         String orgName = firstNonBlank(body.organizationName(), body.slug(), "Trung tâm mới");
-        BrandingJob job = brandingJobService.createWizardJob(instanceId, orgName, body.language(), body.logoUrl());
+        // GAP-1115: carry the wizard user-type axis (orgType) onto the job. Parsed
+        // tolerantly so a stray value never 500s; persisted as the canonical enum name.
+        com.kitehub.branding.domain.enums.OrgType orgType =
+                com.kitehub.branding.domain.enums.OrgType.fromNullable(body.orgType());
+        BrandingJob job = brandingJobService.createWizardJob(
+                instanceId, orgName, body.language(), body.logoUrl(),
+                orgType == null ? null : orgType.name());
         BrandColours colours = coloursDeriver.derive(job);
         log.info("Wizard job created: {} status={}", job.getId(), job.getStatus());
         return ResponseEntity.status(HttpStatus.CREATED)
