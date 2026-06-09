@@ -32,6 +32,13 @@ public class LandingPage extends BaseEntity {
     @Column(name = "instance_id", nullable = false)
     private UUID instanceId;
 
+    // Center identity (GAP-1083) — tenant/center display name. Nav/footer/JsonLd prefer this
+    // over heroTitle (the marketing slogan). Nullable; inherited from settings.Branding
+    // displayName on first create, FE falls back to heroTitle → generic when null.
+    @Column(name = "center_name", length = 200)
+    @Size(max = 200, message = "{landing.centerName.size}")
+    private String centerName;
+
     // Hero Section
     @Column(name = "hero_title", nullable = false, length = 200)
     @Size(max = 200, message = "{landing.hero.title.size}")
@@ -94,6 +101,13 @@ public class LandingPage extends BaseEntity {
     @Size(max = 255, message = "{landing.social.size}")
     private String instagramUrl;
 
+    // Zalo OA deep-link for the FloatingCTA (GAP-1083). Bare Zalo ID or full zalo.me URL;
+    // FE normalises to https://zalo.me/<id>. Nullable; inherited from settings.Branding
+    // zaloUrl on first create. FloatingCTA hides the Zalo button when null.
+    @Column(name = "landing_zalo_url", length = 255)
+    @Size(max = 255, message = "{landing.social.size}")
+    private String zaloUrl;
+
     // Data-driven landing sections (wave-thesis-4) — all nullable; FE reads per-tenant
     // content from DB instead of hardcoded copy. JSONB-backed via Hibernate JdbcTypeCode
     // (GAP-220 pattern: bind structured Java type → jsonb, not VARCHAR).
@@ -136,4 +150,23 @@ public class LandingPage extends BaseEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "stats", columnDefinition = "jsonb")
     private JsonNode stats;
+
+    // landing-100 F-sections (GAP-1083) — all nullable; FE ProblemSolution/HowItWorks/
+    // TrustStrip sections fall back to generic VN platform copy when null (per-section
+    // DEFAULT, NOT fabricated partner data — see component docs / GAP-958 spirit).
+
+    /** Problem→Solution cards: [{"title" (pain),"description" (problem),"items":["fix"]}]. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "problem_solution", columnDefinition = "jsonb")
+    private JsonNode problemSolution;
+
+    /** How-it-works steps: [{"title" (step name),"description"}]. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "how_it_works", columnDefinition = "jsonb")
+    private JsonNode howItWorks;
+
+    /** Trust signals: [{"icon" ("shield"|"lock"|"support"|"vn"|"spark"),"title","description"}]. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "trust_strip", columnDefinition = "jsonb")
+    private JsonNode trustStrip;
 }

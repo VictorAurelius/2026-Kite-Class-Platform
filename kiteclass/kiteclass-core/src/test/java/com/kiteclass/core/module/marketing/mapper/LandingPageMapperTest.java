@@ -39,6 +39,8 @@ class LandingPageMapperTest {
         // Then
         assertThat(response).isNotNull();
         assertThat(response.getId()).isEqualTo(landingPage.getId());
+        assertThat(response.getCenterName()).isEqualTo(landingPage.getCenterName());
+        assertThat(response.getZaloUrl()).isEqualTo(landingPage.getZaloUrl());
         assertThat(response.getHeroTitle()).isEqualTo(landingPage.getHeroTitle());
         assertThat(response.getHeroSubtitle()).isEqualTo(landingPage.getHeroSubtitle());
         assertThat(response.getHeroImageUrl()).isEqualTo(landingPage.getHeroImageUrl());

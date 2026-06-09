@@ -178,6 +178,32 @@ export default async function LandingPage({
     description: s.label as string,
   }));
 
+  // landing-100 F-sections (GAP-1083). Backend stores each as a JSONB array already
+  // shaped for the matching section component (ProblemSolution items / HowItWorks steps /
+  // TrustStrip signals). Only emit a slot when the backend returned non-empty data, so a
+  // null/empty field preserves the section's hardcoded VN default (generic platform copy,
+  // not fabricated partner data — cf. GAP-958 empty-state spirit).
+
+  // problemSolution: [{ title (pain), description (problem), items[0] (fix) }] → SlotItem[]
+  const problemSolution = nonEmptyArray(ld.problemSolution)?.map((p) => ({
+    title: p.title as string,
+    description: p.description as string | undefined,
+    items: (p.items as string[] | undefined) ?? [],
+  }));
+
+  // howItWorks: [{ title (step), description }] → SlotItem[]
+  const howItWorks = nonEmptyArray(ld.howItWorks)?.map((s) => ({
+    title: s.title as string,
+    description: s.description as string | undefined,
+  }));
+
+  // trustStrip: [{ icon, title, description }] → SlotItem[]
+  const trustStrip = nonEmptyArray(ld.trustStrip)?.map((sig) => ({
+    icon: sig.icon as string | undefined,
+    title: sig.title as string,
+    description: sig.description as string | undefined,
+  }));
+
   const aboutText = (typeof ld.aboutText === 'string' && ld.aboutText.trim())
     ? (ld.aboutText as string)
     : undefined;
@@ -197,6 +223,9 @@ export default async function LandingPage({
 
   const slots: SectionSlotMap = {
     hero: heroSlot,
+    ...(problemSolution ? { problemSolution: { items: problemSolution } } : {}),
+    ...(howItWorks ? { howItWorks: { steps: howItWorks } } : {}),
+    ...(trustStrip ? { trustStrip: { signals: trustStrip } } : {}),
     ...(aboutText ? { about: { content: aboutText } } : {}),
     ...(teachers ? { teachers: { teachers } } : {}),
     ...(programs ? { certificates: { certificates: programs } } : {}),

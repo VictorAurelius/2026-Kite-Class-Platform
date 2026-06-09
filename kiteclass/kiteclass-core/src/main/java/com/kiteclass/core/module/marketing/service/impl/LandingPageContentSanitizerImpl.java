@@ -58,6 +58,7 @@ public class LandingPageContentSanitizerImpl implements LandingPageContentSaniti
             return;
         }
         // Plain-text fields
+        entity.setCenterName(sanitizeText(entity.getCenterName()));
         entity.setHeroTitle(sanitizeText(entity.getHeroTitle()));
         entity.setHeroSubtitle(sanitizeText(entity.getHeroSubtitle()));
         entity.setTeacherBio(sanitizeText(entity.getTeacherBio()));
@@ -78,8 +79,13 @@ public class LandingPageContentSanitizerImpl implements LandingPageContentSaniti
         entity.setFaqs(sanitizeJson(entity.getFaqs()));
         entity.setStats(sanitizeJson(entity.getStats()));
 
-        // Note: contactEmail / contactPhone / *Url social fields already constrained by
-        // @Email/@Pattern/@Size on the DTO+entity; they carry no free-text XSS surface.
+        // landing-100 F-sections (GAP-1083) — same recursive string-value sanitize.
+        entity.setProblemSolution(sanitizeJson(entity.getProblemSolution()));
+        entity.setHowItWorks(sanitizeJson(entity.getHowItWorks()));
+        entity.setTrustStrip(sanitizeJson(entity.getTrustStrip()));
+
+        // Note: contactEmail / contactPhone / *Url social + zaloUrl fields already constrained
+        // by @Email/@Pattern/@Size on the DTO+entity; they carry no free-text XSS surface.
     }
 
     @Override
