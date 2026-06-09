@@ -28,6 +28,11 @@ export interface CreateBrandingJobInput {
   templateId?: string | null;
   logoUrl?: string | null;
   aiLogo?: boolean;
+  /**
+   * Organisation type (GAP-1115) — SOLO_TEACHER | SMALL_CENTER | LARGE_CENTER.
+   * Sent on the generate request; BE persists for asset-strategy + tier hinting.
+   */
+  orgType?: string | null;
 }
 
 /** Create a wizard branding job; returns the persisted job (incl. jobId). */

@@ -29,7 +29,64 @@ import { Card } from '@/components/ui/card';
 // Step / slug types
 // ---------------------------------------------------------------------------
 
-export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6;
+export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+/**
+ * Organisation type (GAP-1115) — the SECOND orthogonal axis alongside
+ * `audience`. `audience` drives THEME (colours/imagery/voice); `orgType`
+ * drives ASSET STRATEGY (how many portraits — GAP-1116) + tier hinting.
+ *
+ * A solo English teacher and a large English centre share the same theme
+ * ("english-center" audience) but differ on org structure → portrait count.
+ * Constrained preset (no free text) per `ai-branding-guidelines.md` §2.1.
+ */
+export type OrgType = 'SOLO_TEACHER' | 'SMALL_CENTER' | 'LARGE_CENTER';
+
+export interface OrgTypeOption {
+  id: OrgType;
+  emoji: string;
+  label: string;
+  description: string;
+  /**
+   * Suggested portrait count (UI hint only — the portrait step still accepts
+   * 1..N regardless). Solo → 1 person; centres → multiple teachers/staff.
+   */
+  portraitHint: number;
+}
+
+/** Constrained preset cards for the user-type axis (GAP-1115). */
+export const ORG_TYPE_OPTIONS: readonly OrgTypeOption[] = [
+  {
+    id: 'SOLO_TEACHER',
+    emoji: '👩‍🏫',
+    label: 'Giáo viên đơn lẻ',
+    description: 'Bạn tự dạy, tự quản lý lớp. Trang web xoay quanh cá nhân bạn.',
+    portraitHint: 1,
+  },
+  {
+    id: 'SMALL_CENTER',
+    emoji: '🏠',
+    label: 'Trung tâm nhỏ',
+    description: 'Vài giáo viên, một cơ sở. Trang web giới thiệu đội ngũ nhỏ gọn.',
+    portraitHint: 3,
+  },
+  {
+    id: 'LARGE_CENTER',
+    emoji: '🏢',
+    label: 'Trung tâm lớn',
+    description: 'Nhiều giáo viên, nhiều cơ sở. Cần giới thiệu đội ngũ đầy đủ.',
+    portraitHint: 6,
+  },
+] as const;
+
+/**
+ * Suggested max number of portraits to upload for a given org type
+ * (GAP-1116 count hint). Returns a sensible default when orgType is unset.
+ */
+export function portraitCountHint(orgType: OrgType | null): number {
+  const opt = ORG_TYPE_OPTIONS.find((o) => o.id === orgType);
+  return opt?.portraitHint ?? 1;
+}
 
 /**
  * Slug validation status (Step 1):
@@ -55,6 +112,12 @@ export interface WizardState {
   slugStatus: SlugStatus;
   /** Server-suggested alternative slugs when `slugStatus === 'conflict'`. */
   conflictSuggestions: string[];
+  /**
+   * Organisation type chosen in Step 1 (GAP-1115). Orthogonal to `audience` —
+   * drives portrait-count strategy (GAP-1116) + tier hinting, NOT theme.
+   * `null` until the user picks a card.
+   */
+  orgType: OrgType | null;
   /**
    * Logo URL after a successful upload (Step 2).
    * `null` means the user skipped or hasn't uploaded yet.
@@ -98,6 +161,7 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   slug: '',
   slugStatus: 'default',
   conflictSuggestions: [],
+  orgType: null,
   logoUrl: null,
   aiLogo: false,
   audience: null,
@@ -119,6 +183,7 @@ export type WizardAction =
   | { type: 'SET_TENANT_NAME'; tenantName: string }
   | { type: 'SET_SLUG'; slug: string }
   | { type: 'SET_SLUG_STATUS'; status: SlugStatus; suggestions?: string[] }
+  | { type: 'SET_ORG_TYPE'; orgType: OrgType }
   | { type: 'SET_LOGO'; url: string; aiLogo: boolean }
   | { type: 'CLEAR_LOGO' }
   | { type: 'SET_AUDIENCE'; audience: string }
@@ -137,7 +202,7 @@ export type WizardAction =
 export function wizardReducer(state: WizardState, action: WizardAction): WizardState {
   switch (action.type) {
     case 'NEXT_STEP':
-      if (state.currentStep >= 6) return state;
+      if (state.currentStep >= 7) return state;
       return { ...state, currentStep: (state.currentStep + 1) as WizardStep };
 
     case 'PREV_STEP':
@@ -165,6 +230,9 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
         slugStatus: action.status,
         conflictSuggestions: action.suggestions ?? [],
       };
+
+    case 'SET_ORG_TYPE':
+      return { ...state, orgType: action.orgType };
 
     case 'SET_LOGO':
       return {
@@ -314,4 +382,14 @@ export interface Step6PreviewProps {
   onBack: () => void;
   /** Called when the user clicks "Triển khai" with all required resources approved. */
   onDeploy: () => void;
+}
+
+/** Props for the Portrait upload step (GAP-1116). */
+export interface PortraitStepProps {
+  wizardState: WizardState;
+  dispatch: React.Dispatch<WizardAction>;
+  /** Tenant instance — required for the asset upload/list endpoint path. */
+  instanceId: string;
+  onNext: () => void;
+  onBack: () => void;
 }

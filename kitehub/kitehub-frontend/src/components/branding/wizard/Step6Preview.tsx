@@ -30,15 +30,30 @@
 // ---------------------------------------------------------------------------
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Rocket, Smartphone, Tablet, Monitor, Info } from 'lucide-react';
+import {
+  ArrowLeft,
+  Rocket,
+  Smartphone,
+  Tablet,
+  Monitor,
+  Info,
+  Maximize2,
+  Pencil,
+} from 'lucide-react';
 import { ThemePreview } from '@kite/shared-ui';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ResourceToggle, type ApprovableResource } from './ResourceToggle';
 import { TEMPLATES } from './TemplateGrid';
 import { DeployingStep, type DeployingLogEntry } from './DeployingStep';
 import { RegenerateCounter } from './RegenerateCounter';
 import { toast } from 'sonner';
-import type { Step6PreviewProps } from './wizard-shared';
+import {
+  ORG_TYPE_OPTIONS,
+  type Step6PreviewProps,
+  type WizardStep,
+} from './wizard-shared';
+import { useAssets } from '@/hooks/use-branding';
 import type { PricingTier } from '@/types/subscription';
 import {
   usePreview,
@@ -500,6 +515,74 @@ const RESOURCES: ReadonlyArray<ResourceItem> = [
 ] as const;
 
 // ---------------------------------------------------------------------------
+// Decision summary (GAP-1118) — recap of the prior wizard steps + jump-to-edit.
+//
+// Label maps are inlined (not imported from the Audience/Tone step modules) to
+// keep this dynamically-loaded chunk free of those components' deps. Keep in
+// sync with `AudienceStep.AUDIENCE_OPTIONS` / `ToneStep.TONE_OPTIONS` ids.
+// ---------------------------------------------------------------------------
+
+const AUDIENCE_LABELS: Record<string, string> = {
+  preschool: 'Trường mầm non',
+  secondary: 'Trường THCS / THPT',
+  'english-center': 'Trung tâm tiếng Anh',
+  'exam-prep': 'Lớp luyện thi',
+};
+
+const TONE_LABELS: Record<string, string> = {
+  professional: 'Chuyên nghiệp',
+  friendly: 'Thân thiện',
+  energetic: 'Năng động',
+  luxury: 'Sang trọng',
+};
+
+interface DecisionRow {
+  key: string;
+  label: string;
+  value: string;
+  /** Wizard step the user jumps to when clicking "Sửa". */
+  step: WizardStep;
+}
+
+interface DecisionSummaryProps {
+  rows: ReadonlyArray<DecisionRow>;
+  /** Jump to a prior step (orchestrator dispatches GO_TO_STEP). */
+  onJump: (step: WizardStep) => void;
+}
+
+/** Side-panel summary of prior decisions with quick "edit → jump to step" (GAP-1118 §2). */
+function DecisionSummary({ rows, onJump }: DecisionSummaryProps) {
+  return (
+    <div data-testid="step6-decision-summary" className="rounded-lg border bg-card p-3">
+      <h3 className="mb-2 text-sm font-bold">Các bước đã chọn</h3>
+      <ul className="space-y-1.5">
+        {rows.map((row) => (
+          <li
+            key={row.key}
+            data-testid={`step6-summary-${row.key}`}
+            className="flex items-center justify-between gap-2 text-sm"
+          >
+            <span className="min-w-0">
+              <span className="text-muted-foreground">{row.label}: </span>
+              <span className="font-medium">{row.value}</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => onJump(row.step)}
+              data-testid={`step6-summary-edit-${row.key}`}
+              className="inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-xs text-primary hover:bg-primary/10"
+            >
+              <Pencil className="h-3 w-3" aria-hidden="true" />
+              Sửa
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Step6Preview
 // ---------------------------------------------------------------------------
 
@@ -516,6 +599,12 @@ const RESOURCES: ReadonlyArray<ResourceItem> = [
 export type Step6PreviewLocalProps = Omit<Step6PreviewProps, 'onBack' | 'onDeploy'> & {
   brandColors?: BrandColours;
   previewUrl?: string;
+  /**
+   * Instance id used to count PORTRAIT assets for the decision summary
+   * (GAP-1118). Distinct from `wizardState.instanceId` (the deploy tenant claim,
+   * null until job creation) — this is the asset-owning instance from Step 1-3.
+   */
+  assetInstanceId?: string;
   onBack?: () => void;
   onDeploy?: () => void;
 };
@@ -525,6 +614,7 @@ export function Step6Preview({
   dispatch,
   brandColors: brandColorsOverride,
   previewUrl: previewUrlOverride,
+  assetInstanceId,
   onDeploy = () => {},
   onBack = () => {},
 }: Step6PreviewLocalProps) {
@@ -548,6 +638,8 @@ export function Step6Preview({
         templateId: wizardState.templateId,
         logoUrl: wizardState.logoUrl,
         aiLogo: wizardState.aiLogo,
+        // GAP-1115 — org-type axis flows into the generate request.
+        orgType: wizardState.orgType,
       },
       {
         onSuccess: (job) => {
@@ -578,6 +670,7 @@ export function Step6Preview({
     wizardState.templateId,
     wizardState.logoUrl,
     wizardState.aiLogo,
+    wizardState.orgType,
     createJobMutate,
     dispatch,
   ]);
@@ -645,6 +738,73 @@ export function Step6Preview({
   const approvedCount = wizardState.approvedResources.length;
   const totalResources = RESOURCES.length;
   const allApproved = approvedCount === totalResources;
+
+  // -------------------------------------------------------------------------
+  // GAP-1118 — full-screen preview mode + prior-decisions summary panel
+  // -------------------------------------------------------------------------
+
+  const [fullscreenOpen, setFullscreenOpen] = useState(false);
+
+  // Count PORTRAIT assets for the summary (GAP-1116 step feeds this).
+  const { data: instanceAssets } = useAssets(assetInstanceId);
+  const portraitCount = (instanceAssets ?? []).filter((a) => a.type === 'PORTRAIT').length;
+
+  const logoValue = wizardState.logoUrl
+    ? 'Đã tải lên'
+    : wizardState.aiLogo
+      ? 'AI tự tạo'
+      : 'Chưa chọn';
+
+  const decisionRows = useMemo<ReadonlyArray<DecisionRow>>(
+    () => [
+      {
+        key: 'org-type',
+        label: 'Loại tổ chức',
+        value: ORG_TYPE_OPTIONS.find((o) => o.id === wizardState.orgType)?.label ?? 'Chưa chọn',
+        step: 1,
+      },
+      { key: 'logo', label: 'Logo', value: logoValue, step: 2 },
+      {
+        key: 'portrait',
+        label: 'Chân dung',
+        value: portraitCount > 0 ? `${portraitCount} ảnh` : 'Chưa có',
+        step: 3,
+      },
+      {
+        key: 'audience',
+        label: 'Đối tượng',
+        value: wizardState.audience
+          ? AUDIENCE_LABELS[wizardState.audience] ?? wizardState.audience
+          : 'Chưa chọn',
+        step: 4,
+      },
+      {
+        key: 'tone',
+        label: 'Phong cách',
+        value: wizardState.tone ? TONE_LABELS[wizardState.tone] ?? wizardState.tone : 'Chưa chọn',
+        step: 5,
+      },
+      {
+        key: 'template',
+        label: 'Mẫu thiết kế',
+        value: selectedTemplate?.name ?? 'Chưa chọn',
+        step: 6,
+      },
+    ],
+    [
+      wizardState.orgType,
+      logoValue,
+      portraitCount,
+      wizardState.audience,
+      wizardState.tone,
+      selectedTemplate,
+    ],
+  );
+
+  const handleJumpToStep = (step: WizardStep) => {
+    setFullscreenOpen(false);
+    dispatch({ type: 'GO_TO_STEP', step });
+  };
 
   // -------------------------------------------------------------------------
   // Wave 41 Bucket D (GAP-272o) — orchestrator wiring
@@ -741,17 +901,30 @@ export function Step6Preview({
 
   return (
     <div className="space-y-6" data-testid="step6-preview">
-      <div>
-        <p className="text-sm font-semibold text-primary uppercase tracking-wide mb-1">
-          Bước 6 / 6 — Cuối cùng!
-        </p>
-        <h1 className="text-2xl font-bold text-foreground mb-2">
-          Xem trước trang web của bạn
-        </h1>
-        <p className="text-muted-foreground">
-          Bật/tắt từng tài nguyên (logo, màu, banner, hero) để chọn cái bạn muốn
-          deploy. AI đã chấm điểm chất lượng ở phải.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-primary uppercase tracking-wide mb-1">
+            Bước 7 / 7 — Cuối cùng!
+          </p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            Xem trước trang web của bạn
+          </h1>
+          <p className="text-muted-foreground">
+            Bật/tắt từng tài nguyên (logo, màu, banner, hero) để chọn cái bạn muốn
+            deploy. AI đã chấm điểm chất lượng ở phải.
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setFullscreenOpen(true)}
+          data-testid="step6-fullscreen-open"
+          className="shrink-0"
+        >
+          <Maximize2 className="mr-2 h-4 w-4" aria-hidden="true" />
+          Toàn màn hình
+        </Button>
       </div>
 
       <div className="grid lg:grid-cols-[1.4fr_1fr] gap-6">
@@ -825,8 +998,11 @@ export function Step6Preview({
           </div>
         </div>
 
-        {/* Right column — approve stack + qgate scaffold + regen scaffold */}
+        {/* Right column — summary + approve stack + qgate scaffold + regen scaffold */}
         <div className="space-y-4">
+          {/* GAP-1118 — prior-decisions summary with jump-to-edit links. */}
+          <DecisionSummary rows={decisionRows} onJump={handleJumpToStep} />
+
           {/* Quality gate scaffold — Bucket D fills in via state branch. */}
           <div
             className="rounded-lg border bg-emerald-50/40 p-3"
@@ -903,6 +1079,91 @@ export function Step6Preview({
           Triển khai trang web
         </Button>
       </div>
+
+      {/* GAP-1118 — full-screen live preview + side panel (summary + approve). */}
+      <Dialog
+        open={fullscreenOpen}
+        onOpenChange={(next) => {
+          if (!next) setFullscreenOpen(false);
+        }}
+      >
+        <DialogContent
+          className="max-w-6xl w-[96vw] p-4 md:p-6"
+          data-testid="step6-fullscreen-dialog"
+        >
+          <DialogTitle className="sr-only">Xem trước toàn màn hình</DialogTitle>
+          <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
+            {/* Left — large live iframe preview */}
+            <div className="space-y-2">
+              <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
+                <div className="flex items-center gap-3 border-b bg-slate-50 px-3 py-2">
+                  <div className="flex gap-1" aria-hidden="true">
+                    <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                  </div>
+                  <span className="flex-1 truncate font-mono text-xs text-muted-foreground">
+                    https://{wizardState.slug || 'tenant-slug'}.kiteclass.vn
+                  </span>
+                </div>
+                <iframe
+                  srcDoc={previewHtml}
+                  title="Xem trước toàn màn hình"
+                  data-testid="step6-fullscreen-iframe"
+                  className="w-full border-0 bg-white"
+                  style={{ height: '70vh', minHeight: 360 }}
+                  sandbox="allow-same-origin"
+                />
+              </div>
+            </div>
+
+            {/* Right — summary (jump-to-edit) + per-resource approve + deploy */}
+            <div className="max-h-[78vh] space-y-4 overflow-y-auto">
+              <DecisionSummary rows={decisionRows} onJump={handleJumpToStep} />
+
+              <div>
+                <h3 className="mb-2 text-sm font-bold">
+                  Phê duyệt từng tài nguyên ({approvedCount}/{totalResources})
+                </h3>
+                <div className="space-y-2">
+                  {RESOURCES.map((r) => {
+                    const approved = wizardState.approvedResources.includes(r.id);
+                    return (
+                      <ResourceToggle
+                        key={r.id}
+                        resource={r.id}
+                        title={r.title}
+                        description={r.description({
+                          templateCode: selectedTemplate?.code ?? null,
+                          templateName: selectedTemplate?.name ?? null,
+                          primary: brandColors?.primary ?? FALLBACK_BRAND.primary,
+                          secondary: brandColors?.secondary ?? FALLBACK_BRAND.secondary,
+                        })}
+                        approved={approved}
+                        dispatch={dispatch}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                className="w-full"
+                onClick={() => {
+                  setFullscreenOpen(false);
+                  handleDeployClick();
+                }}
+                disabled={!allApproved}
+                data-testid="step6-fullscreen-deploy"
+              >
+                <Rocket className="mr-2 h-4 w-4" aria-hidden="true" />
+                Triển khai trang web
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
