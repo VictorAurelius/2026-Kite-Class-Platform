@@ -19,6 +19,9 @@ on:
       - '**/prometheusrule.yaml'
       - 'scripts/check-alert-runbook-url.py'
       - 'scripts/fixtures/alert-runbook-url/**'
+      - 'infrastructure/terraform-aws/ecr.tf'
+      - '.github/workflows/docker-build-push.yml'
+      - 'scripts/check-ecr-lifecycle-coverage.sh'
 
 permissions:
   contents: read
@@ -121,6 +124,20 @@ jobs:
           # Also validates GAP-122 + GAP-135 + GAP-144 + GAP-466 alert groups stay syntactically clean.
           set -euo pipefail
 
+          # Self-hosted runner HOME (/home/kitedev) isn't writable by the action;
+          # point helm config/cache/data at RUNNER_TEMP so `helm repo add` can write.
+          export HELM_CONFIG_HOME="$RUNNER_TEMP/.helm/config"
+          export HELM_CACHE_HOME="$RUNNER_TEMP/.helm/cache"
+          export HELM_DATA_HOME="$RUNNER_TEMP/.helm/data"
+          mkdir -p "$HELM_CONFIG_HOME" "$HELM_CACHE_HOME" "$HELM_DATA_HOME"
+
+          # helm repo add required — Chart.yaml deps reference these repos by URL;
+          # `helm dependency build` can't resolve them without registering the repos first
+          # (self-hosted runner has no persistent repo cache → must add every run).
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo update
+
           # Build chart dependencies first (kube-prometheus-stack, loki-stack declared in Chart.yaml)
           helm dependency build infrastructure/helm/kitehub
 
@@ -142,5 +159,29 @@ jobs:
 
           # Run promtool — fails non-zero on syntax error / missing field
           promtool check rules /tmp/rendered/prometheus-rules.yaml
+
+
+  ecr-lifecycle-coverage:
+    name: ECR lifecycle coverage (cosign sig/att capped)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (2 fixtures — cosign+rule PASS / cosign-no-rule FAIL)
+        run: |
+          # Asserts detector fires: a workflow that signs images but an ecr.tf
+          # without a sha256- expire rule must FAIL (the 2026-06-10 incident class).
+          bash scripts/check-ecr-lifecycle-coverage.sh --self-test
+
+      - name: Validate ECR lifecycle covers every CI-produced tag family (blocking on FAIL)
+        run: |
+          # If docker-build-push.yml signs/attests images (cosign sha256-*.sig/.att),
+          # ecr.tf lifecycle policy MUST cap them. Closes the gap where GAP-402 cosign
+          # signing added unbounded image growth. See retention-policy-completeness.md.
+          bash scripts/check-ecr-lifecycle-coverage.sh
 
 

@@ -44,7 +44,7 @@ logs-format-standard,MANDATORY,1.0.1,2026-04-20,2026-05-14,logs-format-standard.
 mcp-first-with-fallback,MANDATORY,1.1.1,2026-04-18,2026-05-14,mcp-first-with-fallback.md,,active,,
 meta-csv-index-pattern,MANDATORY,1.0.3,2026-05-12,2026-05-31,meta-csv-index-pattern.md,"**/*-index.csv,**/*-status.csv,scripts/query-*.sh,scripts/check-*-csv.sh",active,,
 meta-gap-priority,CRITICAL,1.0.0,2026-04-18,2026-04-28,meta-gap-priority.md,,active,,
-output-review-mandate,CRITICAL,1.20.1,2026-04-14,2026-05-31,output-review-mandate.md,,active,,
+output-review-mandate,CRITICAL,1.23.0,2026-04-14,2026-06-09,output-review-mandate.md,,active,,
 outside-in-coverage-trigger,CRITICAL,1.1.0,2026-05-14,2026-05-18,outside-in-coverage-trigger.md,,active,,
 inside-out-completeness-trigger,CRITICAL,1.0.0,2026-05-14,2026-05-14,inside-out-completeness-trigger.md,"documents/03-planning/waves/**,documents/03-planning/inside-out-queue.md",active,,
 planning-docs-structure,MANDATORY,1.0.1,2026-04-18,2026-05-14,planning-docs-structure.md,documents/03-planning/**/*.md,active,,
@@ -113,3 +113,4 @@ design-first-investigation-order,MANDATORY,1.0.0,2026-06-08,2026-06-08,design-fi
 kitehub-kiteclass-boundary,MANDATORY,1.0.0,2026-06-08,2026-06-08,kitehub-kiteclass-boundary.md,"kitehub/kitehub-frontend/**,kiteclass/kiteclass-frontend/**,documents/03-planning/waves/wave-*-flow-*.md,documents/03-planning/roadmap/flow-verification-campaign.md,documents/05-guides/operations/*g2-recipe*.md,documents/02-architecture/**,.claude/rules/kitehub-kiteclass-boundary.md",active,,
 worktree-only-branch-work,MANDATORY,1.0.0,2026-06-09,2026-06-09,worktree-only-branch-work.md,,active,,
 multi-session-concurrency-coordination,MANDATORY,1.0.0,2026-06-10,2026-06-10,multi-session-concurrency-coordination.md,".claude/session-locks/**,documents/04-quality/gaps/**,kiteclass/kiteclass-core/src/main/resources/db/migration/**,kitehub/kitehub-subscription/src/main/resources/db/migration/**,.claude/rules/multi-session-concurrency-coordination.md",active,,
+retention-policy-completeness,MANDATORY,1.0.0,2026-06-09,2026-06-09,retention-policy-completeness.md,"infrastructure/terraform-aws/ecr.tf,.github/workflows/docker-build-push.yml,scripts/check-ecr-lifecycle-coverage.sh",active,,
