@@ -69,31 +69,46 @@ public class AssetStorageController {
 
         String originalFilename = file.getOriginalFilename();
         String path = s3StorageService.generateAssetPath(instanceId, assetType, originalFilename);
-        String url = s3StorageService.uploadAsset(
+        // Stable storage URL (path-based) — persisted to the job so delete/dedup can
+        // always recover the object key (does NOT expire, unlike a presigned URL).
+        String storageUrl = s3StorageService.uploadAsset(
             file.getInputStream(),
             path,
             file.getContentType(),
             file.getSize()
         );
 
-        BrandingAsset asset = BrandingAsset.builder()
+        long uploadedAt = Instant.now().getEpochSecond();
+        BrandingAsset stored = BrandingAsset.builder()
             .type(assetType)
             .variant(extractVariant(originalFilename))
-            .url(url)
+            .url(storageUrl)
             .sizeBytes(file.getSize())
             .contentType(file.getContentType())
-            .uploadedAt(Instant.now().getEpochSecond())
+            .uploadedAt(uploadedAt)
             .build();
 
-        // Persist asset to BrandingJob
+        // Persist asset to BrandingJob (GAP-1112 #2: replace-by-assetType dedup —
+        // exactly 1 asset per (instanceId, assetType)).
         try {
-            persistAssetToJob(instanceId, asset);
+            persistAssetToJob(instanceId, assetType, stored);
         } catch (Exception e) {
             log.error("Failed to persist asset to BrandingJob for instance: {}", instanceId, e);
             // Continue - upload succeeded even if persistence failed
         }
 
-        return ResponseEntity.ok(asset);
+        // GAP-1112 #1: return a browser-loadable presigned GET URL for immediate
+        // preview. The raw storage/MinIO URL cannot be loaded from a private bucket.
+        BrandingAsset response = BrandingAsset.builder()
+            .type(assetType)
+            .variant(stored.getVariant())
+            .url(s3StorageService.getPresignedAssetUrl(path))
+            .sizeBytes(file.getSize())
+            .contentType(file.getContentType())
+            .uploadedAt(uploadedAt)
+            .build();
+
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -128,9 +143,12 @@ public class AssetStorageController {
 
             // Parse assetsGenerated JSON
             List<BrandingAsset> assets = parseAssetsJson(latestJob.getAssetsGenerated());
-            log.info("Retrieved {} assets for instance: {}", assets.size(), instanceId);
+            // GAP-1112 #1: re-presign each stored (stable) URL so the browser can load
+            // the preview for existing/post-deploy assets too.
+            List<BrandingAsset> presigned = presignAssets(assets);
+            log.info("Retrieved {} assets for instance: {}", presigned.size(), instanceId);
 
-            return ResponseEntity.ok(assets);
+            return ResponseEntity.ok(presigned);
 
         } catch (Exception e) {
             log.error("Failed to retrieve assets for instance: {}", instanceId, e);
@@ -207,12 +225,16 @@ public class AssetStorageController {
     }
 
     /**
-     * Persist asset to BrandingJob.
+     * Persist asset to BrandingJob, replacing any existing asset of the SAME
+     * {@code assetType} (GAP-1112 #2). Result: exactly 1 asset per
+     * {@code (instanceId, assetType)} on the target job — re-uploading a logo
+     * no longer accumulates duplicate rows + S3 objects.
      *
      * @param instanceId Instance UUID
-     * @param asset Asset to persist
+     * @param assetType Asset type whose previous version(s) get replaced
+     * @param asset Asset to persist (carries the stable storage URL)
      */
-    private void persistAssetToJob(UUID instanceId, BrandingAsset asset) throws IOException {
+    private void persistAssetToJob(UUID instanceId, String assetType, BrandingAsset asset) throws IOException {
         List<BrandingJob> jobs = brandingJobService.getJobsByInstance(instanceId);
 
         BrandingJob job;
@@ -226,11 +248,24 @@ public class AssetStorageController {
             job = jobs.get(0);
         }
 
-        // Parse existing assets
-        List<BrandingAsset> assets = new ArrayList<>();
-        if (job.getAssetsGenerated() != null && !job.getAssetsGenerated().isEmpty()) {
-            assets = parseAssetsJson(job.getAssetsGenerated());
-        }
+        // Parse existing assets (mutable copy — parseAssetsJson may return an
+        // immutable empty list).
+        List<BrandingAsset> assets = new ArrayList<>(parseAssetsJson(job.getAssetsGenerated()));
+
+        // GAP-1112 #2: replace-by-assetType. Remove + S3-delete any prior asset of
+        // the same type before adding the new one (case-insensitive type match).
+        assets.removeIf(existing -> {
+            boolean sameType = existing.getType() != null
+                && existing.getType().equalsIgnoreCase(assetType);
+            if (sameType) {
+                try {
+                    s3StorageService.deleteAsset(extractPathFromUrl(existing.getUrl()));
+                } catch (Exception e) {
+                    log.warn("Failed to delete replaced {} asset: {}", assetType, existing.getUrl(), e);
+                }
+            }
+            return sameType;
+        });
 
         // Add new asset
         assets.add(asset);
@@ -239,7 +274,32 @@ public class AssetStorageController {
         String assetsJson = objectMapper.writeValueAsString(assets);
         brandingJobService.updateGeneratedAssets(job.getId(), assetsJson);
 
-        log.debug("Persisted asset to BrandingJob: {} for instance: {}", job.getId(), instanceId);
+        log.debug("Persisted {} asset to BrandingJob: {} for instance: {} ({} total assets)",
+            assetType, job.getId(), instanceId, assets.size());
+    }
+
+    /**
+     * Re-presign stored asset URLs for browser preview (GAP-1112 #1). Storage keeps
+     * a stable, non-expiring path-based URL; this swaps it for a short-lived
+     * presigned GET URL only on the response. URLs whose object key cannot be
+     * extracted (e.g. external/legacy URLs) are returned unchanged.
+     */
+    private List<BrandingAsset> presignAssets(List<BrandingAsset> assets) {
+        List<BrandingAsset> result = new ArrayList<>(assets.size());
+        for (BrandingAsset asset : assets) {
+            String url = asset.getUrl();
+            // Only re-presign URLs that carry a recoverable object key.
+            if (url != null && url.contains("/instances/")) {
+                try {
+                    String presignedUrl = s3StorageService.getPresignedAssetUrl(extractPathFromUrl(url));
+                    asset.setUrl(presignedUrl);
+                } catch (Exception e) {
+                    log.warn("Failed to presign asset URL {} — keeping stored URL", url, e);
+                }
+            }
+            result.add(asset);
+        }
+        return result;
     }
 
     /**

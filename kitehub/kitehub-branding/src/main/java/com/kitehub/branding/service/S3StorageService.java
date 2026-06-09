@@ -119,6 +119,49 @@ public class S3StorageService {
     }
 
     /**
+     * Generate a short-lived presigned GET URL for an uploaded asset (GAP-1112 #1).
+     *
+     * <p>The raw object URL returned by {@link #getAssetUrl(String)} points at the
+     * (private) bucket/CDN host — a browser cannot load it because the MinIO/S3
+     * bucket is not public-read. For browser preview (wizard logo upload), return a
+     * time-limited presigned GET URL instead, which the storage backend honours
+     * without making the bucket public.</p>
+     *
+     * <p>Mock mode (tests / no real S3) returns the deterministic mock URL so callers
+     * stay testable. If presigning fails (e.g. presigner not wired), falls back to
+     * {@link #getAssetUrl(String)} so the caller still receives a usable reference.</p>
+     *
+     * @param path S3 object key (path)
+     * @return presigned GET URL (valid ~1 hour) or a best-effort fallback URL
+     */
+    public String getPresignedAssetUrl(String path) {
+        if (s3Config.isMockMode()) {
+            return mockUrl(path);
+        }
+        if (s3Presigner == null) {
+            log.warn("S3Presigner not available — falling back to raw asset URL for {}", path);
+            return getAssetUrl(path);
+        }
+        try {
+            GetObjectRequest getRequest = GetObjectRequest.builder()
+                .bucket(s3Config.getBucket())
+                .key(path)
+                .build();
+
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofHours(1))
+                .getObjectRequest(getRequest)
+                .build();
+
+            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
+            return presignedRequest.url().toString();
+        } catch (Exception e) {
+            log.error("Failed to generate presigned GET URL for {} — falling back to raw URL", path, e);
+            return getAssetUrl(path);
+        }
+    }
+
+    /**
      * Delete asset from S3.
      *
      * @param path S3 object key
