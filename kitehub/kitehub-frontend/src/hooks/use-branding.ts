@@ -1,7 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
-import type { BrandingAsset, BrandingJob, LogoAnalysis, MarketingContent } from '@/types/branding';
+import type {
+  BrandingAsset,
+  BrandingDeployStatus,
+  BrandingJob,
+  LogoAnalysis,
+  MarketingContent,
+} from '@/types/branding';
 
 /**
  * Upload asset (logo, etc.)
@@ -118,6 +124,26 @@ export function useJobAssets(jobId: string | undefined) {
       return data;
     },
     enabled: !!jobId,
+  });
+}
+
+/**
+ * Post-deploy status summary for an instance (GAP-1108).
+ *
+ * Drives the deploy-success card on `/branding`: state (DEPLOYED) +
+ * `frontendUrl` landing link + last-deploy summary. Bare `<T>` body
+ * (LifecycleEventsController returns ResponseEntity.ok(dto)) — read `data`.
+ */
+export function useBrandingDeployStatus(instanceId: string | undefined) {
+  return useQuery({
+    queryKey: ['branding', 'deploy-status', instanceId],
+    queryFn: async () => {
+      const { data } = await apiClient.get<BrandingDeployStatus>(
+        endpoints.brandingV1.instanceDeployStatus(instanceId!)
+      );
+      return data;
+    },
+    enabled: !!instanceId,
   });
 }
 

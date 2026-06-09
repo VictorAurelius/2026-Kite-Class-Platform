@@ -37,6 +37,7 @@ import { ResourceToggle, type ApprovableResource } from './ResourceToggle';
 import { TEMPLATES } from './TemplateGrid';
 import { DeployingStep, type DeployingLogEntry } from './DeployingStep';
 import { RegenerateCounter } from './RegenerateCounter';
+import { toast } from 'sonner';
 import type { Step6PreviewProps } from './wizard-shared';
 import type { PricingTier } from '@/types/subscription';
 import {
@@ -679,11 +680,16 @@ export function Step6Preview({
     }
   }, [quotaExceeded, quotaTier, upsellModalOpen]);
 
-  // Forward SSE `complete` to parent — propagates wizard exit.
+  // Forward SSE `complete` to parent — propagates wizard exit (GAP-1108: surface
+  // a success toast before redirect). Guarded so the toast + onDeploy fire once
+  // even if the `complete` event lingers across renders before navigation.
+  const deployCompletedRef = useRef(false);
   useEffect(() => {
     if (!isDeploying) return;
     const latest = deployStream.latestEvent;
-    if (latest?.name === 'complete') {
+    if (latest?.name === 'complete' && !deployCompletedRef.current) {
+      deployCompletedRef.current = true;
+      toast.success('Triển khai thành công — đang chuyển tới trang Thương hiệu');
       onDeploy();
     }
   }, [isDeploying, deployStream.latestEvent, onDeploy]);

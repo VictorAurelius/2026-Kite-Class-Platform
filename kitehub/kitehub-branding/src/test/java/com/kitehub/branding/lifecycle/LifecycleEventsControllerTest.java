@@ -1,6 +1,8 @@
 package com.kitehub.branding.lifecycle;
 
+import com.kitehub.branding.lifecycle.entity.BrandingInstanceState;
 import com.kitehub.branding.lifecycle.entity.BrandingLifecycleEvent;
+import com.kitehub.branding.lifecycle.repository.BrandingInstanceStateRepository;
 import com.kitehub.branding.lifecycle.repository.BrandingLifecycleEventRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -33,11 +36,14 @@ class LifecycleEventsControllerTest {
     @MockitoBean
     private BrandingLifecycleEventRepository eventRepo;
 
+    @MockitoBean
+    private BrandingInstanceStateRepository stateRepo;
+
     private UUID instanceId;
 
     @BeforeEach
     void setUp() {
-        Mockito.reset(eventRepo);
+        Mockito.reset(eventRepo, stateRepo);
         instanceId = UUID.randomUUID();
     }
 
@@ -85,5 +91,53 @@ class LifecycleEventsControllerTest {
         // limit=999 should be clamped to 200; assert no error.
         mockMvc.perform(get("/api/v1/branding/instances/{id}/lifecycle/events?limit=999", instanceId))
             .andExpect(status().isOk());
+    }
+
+    // ---- GAP-1108: deploy-status summary -----------------------------------
+
+    @Test
+    void getDeployStatusReturnsDeployedWithFrontendUrl() throws Exception {
+        BrandingInstanceState state = BrandingInstanceState.builder()
+            .instanceId(instanceId)
+            .state(LifecycleState.DEPLOYED)
+            .brandingVersion(1)
+            .regenerateCount(0)
+            .build();
+        when(stateRepo.findById(instanceId)).thenReturn(Optional.of(state));
+
+        BrandingLifecycleEvent marker = BrandingLifecycleEvent.builder()
+            .id(UUID.randomUUID())
+            .instanceId(instanceId)
+            .eventType("deploy-completed")
+            .actorKind("system")
+            .actorId("mock-provisioning")
+            .metadataJson("{\"frontendUrl\":\"https://toan-master.kiteclass.vn\","
+                + "\"templateId\":\"sky-wave\",\"slug\":\"toan-master\",\"mock\":true}")
+            .occurredAt(LocalDateTime.now())
+            .build();
+        when(eventRepo.findByInstanceIdSince(eq(instanceId), any(LocalDateTime.class), any(Pageable.class)))
+            .thenReturn(List.of(marker));
+
+        mockMvc.perform(get("/api/v1/branding/instances/{id}/deploy-status", instanceId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.instanceId").value(instanceId.toString()))
+            .andExpect(jsonPath("$.state").value("DEPLOYED"))
+            .andExpect(jsonPath("$.deployed").value(true))
+            .andExpect(jsonPath("$.frontendUrl").value("https://toan-master.kiteclass.vn"))
+            .andExpect(jsonPath("$.templateId").value("sky-wave"))
+            .andExpect(jsonPath("$.slug").value("toan-master"))
+            .andExpect(jsonPath("$.brandingVersion").value(1));
+    }
+
+    @Test
+    void getDeployStatusReturnsNotDeployedWhenNoStateRow() throws Exception {
+        when(stateRepo.findById(instanceId)).thenReturn(Optional.empty());
+        when(eventRepo.findByInstanceIdSince(any(), any(), any())).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/v1/branding/instances/{id}/deploy-status", instanceId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.deployed").value(false))
+            .andExpect(jsonPath("$.state").doesNotExist())
+            .andExpect(jsonPath("$.frontendUrl").doesNotExist());
     }
 }

@@ -66,6 +66,9 @@ export const endpoints = {
     jobPreview: (jobId: string) => `/api/v1/branding/jobs/${jobId}/preview`,
     instanceLifecycleEvents: (instanceId: string) =>
       `/api/v1/branding/instances/${instanceId}/lifecycle/events`,
+    // GAP-1108 — post-deploy status summary (state + landing frontendUrl)
+    instanceDeployStatus: (instanceId: string) =>
+      `/api/v1/branding/instances/${instanceId}/deploy-status`,
   },
 
   // Email

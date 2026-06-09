@@ -3,6 +3,7 @@ package com.kitehub.branding.wizard.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.domain.enums.JobStatus;
+import com.kitehub.branding.dto.BrandingAsset;
 import com.kitehub.branding.lifecycle.InstanceLifecycleService;
 import com.kitehub.branding.repository.BrandingJobRepository;
 import com.kitehub.branding.service.BrandingJobService;
@@ -13,8 +14,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -110,15 +114,19 @@ public class MockProvisioningService {
             brandingJobService.updateJobProgress(jobId, JobStatus.PROCESSING, 70, "Đang tạo giao diện thương hiệu");
             sleep();
 
-            // Step 3 — persist approved theme (mock "instance active branding").
+            // Step 3 — persist approved resources as a BrandingAsset[] (mock
+            // "instance active branding"). MUST be a JSON array so
+            // AssetStorageController.getAssets (TypeReference<List<BrandingAsset>>)
+            // can parse it — a metadata OBJECT threw MismatchedInputException and
+            // surfaced "0 assets" post-deploy (GAP-1107 #2).
             String frontendUrl = buildFrontendUrl(slug);
-            persistTheme(jobId, slug, templateId, approvedResources, frontendUrl);
+            persistAssets(jobId, slug, templateId, approvedResources);
 
             // Step 4 — GENERATING → DEPLOYED (PROCESSING → COMPLETED). Lifecycle
             // hinge in updateJobProgress drives instance state to DEPLOYED.
             brandingJobService.updateJobProgress(jobId, JobStatus.COMPLETED, 100, "Đã triển khai");
 
-            recordDeployMarker(jobId, frontendUrl);
+            recordDeployMarker(jobId, frontendUrl, templateId, slug);
             log.info("MOCK provision complete: job={} frontendUrl={}", jobId, frontendUrl);
         } catch (Exception ex) {
             log.error("MOCK provision failed: job={} err={}", jobId, ex.getMessage(), ex);
@@ -132,38 +140,104 @@ public class MockProvisioningService {
         return "https://" + safe + ".kiteclass.vn"; // MOCK placeholder (GAP-1055/811/1077)
     }
 
+    /** Default resource set when the approve request carries no explicit list. */
+    static final List<String> DEFAULT_RESOURCES = List.of("logo", "colors", "banner", "hero");
+
     /**
-     * Persist the approved theme onto the job as the mock "active branding".
-     * Real theme-table persistence is deferred (see
-     * {@link BrandColoursDeriver} TODO + GAP-1055).
+     * Persist the approved resources onto the job as a {@code BrandingAsset[]}
+     * (the mock "active branding"). Persisted shape MUST be a JSON array so
+     * {@link com.kitehub.branding.controller.AssetStorageController} can parse it
+     * with {@code TypeReference<List<BrandingAsset>>}. The earlier mock wrote a
+     * theme-metadata OBJECT which threw {@code MismatchedInputException} →
+     * "0 assets" post-deploy (GAP-1107 #2). The {@code frontendUrl} + brand colours
+     * live on the {@code deploy-completed} lifecycle marker, not here.
+     * Real theme-table persistence is deferred (see {@link BrandColoursDeriver}
+     * TODO + GAP-1055).
      */
-    private void persistTheme(UUID jobId, String slug, String templateId,
-                              List<String> approvedResources, String frontendUrl) {
+    private void persistAssets(UUID jobId, String slug, String templateId,
+                               List<String> approvedResources) {
         Optional<BrandingJob> jobOpt = jobRepository.findById(jobId);
         if (jobOpt.isEmpty()) {
             return;
         }
         BrandColours colours = coloursDeriver.derive(jobOpt.get());
-        Map<String, Object> theme = new LinkedHashMap<>();
-        theme.put("slug", slug);
-        theme.put("templateId", templateId);
-        theme.put("approvedResources", approvedResources == null ? List.of() : approvedResources);
-        theme.put("frontendUrl", frontendUrl);
-        theme.put("brandColors", colours);
-        theme.put("mock", true);
+        List<BrandingAsset> assets = buildDeployedAssets(slug, templateId, approvedResources, colours);
         try {
-            brandingJobService.updateGeneratedAssets(jobId, objectMapper.writeValueAsString(theme));
+            brandingJobService.updateGeneratedAssets(jobId, objectMapper.writeValueAsString(assets));
         } catch (Exception ex) {
-            log.warn("Failed to serialize mock theme for job {}: {}", jobId, ex.getMessage());
+            log.warn("Failed to serialize mock assets for job {}: {}", jobId, ex.getMessage());
         }
     }
 
-    /** Append a {@code deploy-completed} lifecycle marker carrying the frontendUrl. */
-    private void recordDeployMarker(UUID jobId, String frontendUrl) {
+    /**
+     * Build one mock {@link BrandingAsset} per approved resource (falling back to
+     * {@link #DEFAULT_RESOURCES} when none were approved) so the post-deploy
+     * {@code /branding} page renders a non-empty asset set (GAP-1107 #2 /
+     * GAP-1108). URLs are mock-CDN placeholders (real per-tenant asset storage =
+     * GAP-1055). Package-private + static for unit-test round-trip verification.
+     */
+    static List<BrandingAsset> buildDeployedAssets(String slug, String templateId,
+                                                   List<String> approvedResources,
+                                                   BrandColours colours) {
+        List<String> resources = (approvedResources == null || approvedResources.isEmpty())
+                ? DEFAULT_RESOURCES
+                : approvedResources;
+        String safeSlug = (slug == null || slug.isBlank()) ? "tenant" : slug.trim();
+        String tpl = (templateId == null || templateId.isBlank()) ? "default" : templateId;
+        long now = Instant.now().getEpochSecond();
+        List<BrandingAsset> assets = new ArrayList<>();
+        for (String resource : resources) {
+            if (resource == null || resource.isBlank()) {
+                continue;
+            }
+            String type = canonicalAssetType(resource);
+            boolean isColours = "COLORS".equals(type);
+            String variant = isColours && colours != null ? colours.primary() : tpl;
+            assets.add(BrandingAsset.builder()
+                    .type(type)
+                    .variant(variant)
+                    .url(mockAssetUrl(safeSlug, resource, isColours))
+                    .sizeBytes(0L)
+                    .contentType(isColours ? "application/json" : "image/svg+xml")
+                    .uploadedAt(now)
+                    .build());
+        }
+        return assets;
+    }
+
+    /** Normalise a wizard resource key to the canonical uppercase asset type. */
+    private static String canonicalAssetType(String resource) {
+        String r = resource.trim().toLowerCase(Locale.ROOT);
+        return switch (r) {
+            case "logo" -> "LOGO";
+            case "colors", "color", "colours", "palette" -> "COLORS";
+            case "banner" -> "BANNER";
+            case "hero" -> "HERO";
+            case "profile" -> "PROFILE";
+            case "og", "og_image", "ogimage" -> "OG_IMAGE";
+            default -> r.toUpperCase(Locale.ROOT);
+        };
+    }
+
+    /** Mock CDN URL — keeps the {@code /instances/} segment so delete-path extraction works. */
+    private static String mockAssetUrl(String slug, String resource, boolean isColours) {
+        String ext = isColours ? "json" : "svg";
+        return "https://mock-cdn.kiteclass.com/instances/" + slug
+                + "/branding/" + resource.trim().toLowerCase(Locale.ROOT) + "." + ext;
+    }
+
+    /**
+     * Append a {@code deploy-completed} lifecycle marker carrying the
+     * {@code frontendUrl} + templateId + slug so the post-deploy {@code /branding}
+     * deploy-status card (GAP-1108) can surface the live landing link + summary.
+     */
+    private void recordDeployMarker(UUID jobId, String frontendUrl, String templateId, String slug) {
         jobRepository.findById(jobId).ifPresent(job -> {
             Map<String, Object> meta = new LinkedHashMap<>();
             meta.put("jobId", jobId);
             meta.put("frontendUrl", frontendUrl);
+            meta.put("templateId", templateId);
+            meta.put("slug", slug);
             meta.put("mock", true);
             try {
                 lifecycleService.recordMarker(

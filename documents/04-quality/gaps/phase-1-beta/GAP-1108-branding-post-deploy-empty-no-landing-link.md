@@ -1,10 +1,10 @@
 # GAP-1108: Post-deploy /branding trống — thiếu deploy-success summary + link landing + assets 0
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (80%)
 **Priority:** 🟠 P1
 **Domain:** Mixed (Frontend + Backend)
 **Found:** 2026-06-09 (G2 browser-walk — deploy 100% → redirect /branding rỗng)
-**Affects:** kitehub-frontend `(customer)/branding/page.tsx`, wizard complete handler `Step6Preview.tsx:686 onDeploy`, kitehub-branding `AssetStorageController.getAssets`
+**Affects:** kitehub-frontend `(customer)/branding/page.tsx`, wizard complete handler `Step6Preview.tsx:686 onDeploy`, kitehub-branding `AssetStorageController.getAssets` + `LifecycleEventsController`
 
 ## Problem
 
@@ -23,10 +23,24 @@ Sau khi AI Branding wizard deploy THÀNH CÔNG (deploy-stream 100% + instance DE
 
 ## Acceptance Criteria
 
-- [ ] Deploy xong → /branding hiển thị trạng thái DEPLOYED + link landing (`frontendUrl`) clickable
-- [ ] Assets hiển thị (≥1 sau deploy, không 0) — GAP-1107 #2 fix
-- [ ] Success toast/notification sau deploy
-- [ ] Browser re-walk: deploy 100% → /branding có data + link + thông báo (không rỗng)
+- [x] Deploy xong → /branding hiển thị trạng thái DEPLOYED + link landing (`frontendUrl`) clickable — **DONE in code** (deploy-status endpoint + card; vitest render-verified; runtime-walk pending)
+- [x] Assets hiển thị (≥1 sau deploy, không 0) — GAP-1107 #2 fix — **DONE**
+- [x] Success toast/notification sau deploy — **DONE in code** (`Step6Preview` complete handler; runtime-walk pending)
+- [ ] Browser re-walk: deploy 100% → /branding có data + link + thông báo (không rỗng) — **pending coordinator runtime-walk**
+
+## Fix (PR `agent/gap-1107-1108-branding-postdeploy`)
+
+**BE — deploy-status endpoint:**
+- `MockProvisioningService.recordDeployMarker` extend marker metadata với `templateId` + `slug` (cạnh `frontendUrl`).
+- New `GET /api/v1/branding/instances/{id}/deploy-status` (`LifecycleEventsController`) → `DeployStatusResponse {instanceId, state, deployed, frontendUrl, templateId, slug, brandingVersion, deployedAt}` — đọc `BrandingInstanceState` (state/version) + latest `deploy-completed` marker (frontendUrl/templateId/slug/deployedAt).
+- Assets-0 fix: cross-ref GAP-1107 #2 (mock ghi `BrandingAsset[]` + parser array-guard).
+- Test: `LifecycleEventsControllerTest` (2 mới) — deployed + frontendUrl; not-deployed empty.
+
+**FE:**
+- `useBrandingDeployStatus(instanceId)` hook + endpoint `brandingV1.instanceDeployStatus`.
+- `(customer)/branding/page.tsx` — deploy-success card trên cùng (chỉ hiện khi `deployStatus.deployed`): "Trang web của bạn đã sẵn sàng 🎉" + nút "Xem landing" (`<a target=_blank href={frontendUrl}>`) + summary (template + ngày).
+- `Step6Preview.tsx` — `toast.success('Triển khai thành công — ...')` trên SSE `complete` trước `onDeploy()` (ref-guarded fire-once).
+- Test: `(customer)/branding/__tests__/page.test.tsx` (2 mới) — card hidden khi !deployed; card + landing link khi DEPLOYED.
 
 ## Related
 
