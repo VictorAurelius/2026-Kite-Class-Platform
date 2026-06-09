@@ -43,7 +43,10 @@ class LifecycleEventsControllerTest {
 
     @BeforeEach
     void setUp() {
-        Mockito.reset(eventRepo, stateRepo);
+        // Reset each mock separately — a single heterogeneous reset(T...) varargs
+        // call infers a generic JpaRepository<?,UUID>[] array (unchecked warning).
+        Mockito.reset(eventRepo);
+        Mockito.reset(stateRepo);
         instanceId = UUID.randomUUID();
     }
 
