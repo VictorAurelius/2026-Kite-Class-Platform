@@ -51,8 +51,8 @@ public class AIProviderConfig {
     public static class Gemini {
         private String baseUrl = "https://generativelanguage.googleapis.com/v1beta";
         private String apiKey = "";
-        private String textModel = "gemini-1.5-flash";
-        private String visionModel = "gemini-1.5-flash";
+        private String textModel = "gemini-flash-latest";
+        private String visionModel = "gemini-flash-latest";
         private int timeoutSeconds = 60;
     }
 

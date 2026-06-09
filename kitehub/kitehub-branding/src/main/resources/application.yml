@@ -117,8 +117,12 @@ ai:
   gemini:
     base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
     api-key: ${GEMINI_API_KEY:}
-    text-model: ${GEMINI_TEXT_MODEL:gemini-1.5-flash}
-    vision-model: ${GEMINI_VISION_MODEL:gemini-1.5-flash}
+    # gemini-1.5-flash retired from v1beta generateContent (404). Pinned gemini-2.0-flash
+    # returns 429 RESOURCE_EXHAUSTED on free tier (version-pinned models need billing);
+    # gemini-flash-latest rolling alias has free-tier quota AND never deprecates. Override
+    # via GEMINI_TEXT_MODEL/GEMINI_VISION_MODEL. Discovered 2026-06-10 local AI walk.
+    text-model: ${GEMINI_TEXT_MODEL:gemini-flash-latest}
+    vision-model: ${GEMINI_VISION_MODEL:gemini-flash-latest}
     timeout-seconds: ${GEMINI_TIMEOUT:60}
 
   # Fair-queue scheduler (GAP-005a Wave 3 Phase 1)
