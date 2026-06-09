@@ -138,14 +138,27 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
 
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-        // No Authorization header → pass-through. Downstream Spring Security sẽ reject
-        // nếu endpoint cần auth; cho phép pass-through để các endpoint optionally-authed
-        // vẫn hoạt động.
-        if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
-            return chain.filter(exchange);
+        // Resolve the bearer token from EITHER the Authorization header (default for
+        // XHR/fetch) OR a `?token=` query param. GAP-1021: browser EventSource cannot
+        // set request headers, so SSE endpoints (e.g. AI Branding deploy-stream)
+        // authenticate via short-lived token-in-query. Header takes precedence; the
+        // query token is a fallback only when no Bearer header is present.
+        String token = null;
+        if (authHeader != null && authHeader.startsWith(BEARER_PREFIX)) {
+            token = authHeader.substring(BEARER_PREFIX.length()).trim();
+        } else {
+            String queryToken = request.getQueryParams().getFirst("token");
+            if (queryToken != null && !queryToken.isBlank()) {
+                token = queryToken.trim();
+            }
         }
 
-        String token = authHeader.substring(BEARER_PREFIX.length()).trim();
+        // No usable token → pass-through. Downstream Spring Security sẽ reject nếu
+        // endpoint cần auth; cho phép pass-through để các endpoint optionally-authed
+        // vẫn hoạt động.
+        if (token == null) {
+            return chain.filter(exchange);
+        }
 
         // GAP-705: dual-secret parse. Try the HS512 access-token key first (covers >99%
         // of traffic). If verification fails AND we're on a 2FA challenge path, retry

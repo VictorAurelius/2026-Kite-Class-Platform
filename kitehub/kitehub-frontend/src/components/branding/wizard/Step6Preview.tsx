@@ -29,7 +29,7 @@
 //     TODO(GAP-272o) so the layout remains correct).
 // ---------------------------------------------------------------------------
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Rocket, Smartphone, Tablet, Monitor, Info } from 'lucide-react';
 import { ThemePreview } from '@kite/shared-ui';
 import { Button } from '@/components/ui/button';
@@ -44,6 +44,8 @@ import {
   usePreviewBrandColors,
   useDeployStream,
   useRegenerateQuota,
+  useCreateBrandingJobV1,
+  useApproveBrandingJob,
   type DeployStreamEvent,
   type RegenerateQuotaResponse,
 } from './hooks';
@@ -525,6 +527,52 @@ export function Step6Preview({
   onDeploy = () => {},
   onBack = () => {},
 }: Step6PreviewLocalProps) {
+  // GAP-1021: create a REAL BrandingJob on entering Step 6 so `wizardState.jobId`
+  // becomes non-empty. Without this the deploy-stream stayed disabled (jobId='')
+  // → "Đang chờ log…" forever. Guarded by a ref + the jobId check so it fires at
+  // most once per wizard session.
+  const { mutate: createJobMutate } = useCreateBrandingJobV1();
+  const createStartedRef = useRef(false);
+
+  useEffect(() => {
+    if (wizardState.jobId || createStartedRef.current) return;
+    createStartedRef.current = true;
+    createJobMutate(
+      {
+        slug: wizardState.slug || undefined,
+        organizationName: wizardState.tenantName || undefined,
+        language: 'vi',
+        audience: wizardState.audience,
+        tone: wizardState.tone,
+        templateId: wizardState.templateId,
+        logoUrl: wizardState.logoUrl,
+        aiLogo: wizardState.aiLogo,
+      },
+      {
+        onSuccess: (job) => {
+          if (job?.jobId) {
+            dispatch({ type: 'SET_JOB_ID', jobId: String(job.jobId) });
+          }
+        },
+        onError: () => {
+          // Allow a retry on the next render if creation failed.
+          createStartedRef.current = false;
+        },
+      },
+    );
+  }, [
+    wizardState.jobId,
+    wizardState.slug,
+    wizardState.tenantName,
+    wizardState.audience,
+    wizardState.tone,
+    wizardState.templateId,
+    wizardState.logoUrl,
+    wizardState.aiLogo,
+    createJobMutate,
+    dispatch,
+  ]);
+
   // Wave 34 (GAP-272k): brand colours sourced from real backend job via
   // `usePreviewBrandColors`. Falls back to FALLBACK_BRAND while the v1
   // job is still loading or returns no colors.
@@ -596,6 +644,7 @@ export function Step6Preview({
   const [isDeploying, setIsDeploying] = useState(false);
   const [upsellModalOpen, setUpsellModalOpen] = useState(false);
 
+  const { mutate: approveMutate } = useApproveBrandingJob();
   const { quota, regenerate } = useRegenerateQuota();
   const quotaTier = mapHookTier(quota.data?.tier);
   const quotaLimit = quota.data?.limit ?? 3;
@@ -632,7 +681,16 @@ export function Step6Preview({
   }, [isDeploying, deployStream.latestEvent, onDeploy]);
 
   const handleDeployClick = () => {
-    if (!allApproved) return;
+    if (!allApproved || !wizardState.jobId) return;
+    // GAP-1021: persist approved theme + trigger backend MOCK provisioning
+    // (returns 202; async lifecycle drives the job to DEPLOYED). Fire-and-forget —
+    // the SSE deploy-stream surfaces progress + the terminal `complete` event.
+    approveMutate({
+      jobId: wizardState.jobId,
+      slug: wizardState.slug || undefined,
+      templateId: wizardState.templateId,
+      approvedResources: wizardState.approvedResources,
+    });
     setIsDeploying(true);
   };
 

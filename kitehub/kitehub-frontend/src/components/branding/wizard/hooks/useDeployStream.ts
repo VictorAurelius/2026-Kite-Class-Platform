@@ -17,6 +17,7 @@
 
 import { useEffect, useState } from 'react';
 import { endpoints } from '@/lib/api/endpoints';
+import { getAccessToken } from '@/lib/auth/jwt-storage';
 import type {
   DeployStreamEvent,
   DeployStreamEventName,
@@ -59,7 +60,15 @@ export function useDeployStream(
       return;
     }
 
-    const url = endpoints.brandingV1.jobDeployStream(jobId);
+    // GAP-1021 pt2: browser EventSource cannot set the Authorization header, so
+    // the JWT is passed as a short-lived `?token=` query param. The gateway
+    // (JwtAuthenticationGatewayFilter) accepts token-in-query when no Bearer
+    // header is present and injects the X-User-* headers downstream.
+    const baseUrl = endpoints.brandingV1.jobDeployStream(jobId);
+    const token = getAccessToken();
+    const url = token
+      ? `${baseUrl}?token=${encodeURIComponent(token)}`
+      : baseUrl;
     const source = new window.EventSource(url, { withCredentials: true });
     setIsStreaming(true);
 

@@ -99,6 +99,59 @@ public class BrandingJobService {
     }
 
     /**
+     * Create a wizard branding job for the Phase 1 MOCK provisioning flow
+     * (GAP-1021 + GAP-272e). Distinct from {@link #createJob} which enqueues the
+     * heavy async AI pipeline via the outbox/RabbitMQ {@code branding.job.queued}
+     * topic — this method deliberately SKIPS that enqueue.
+     *
+     * <p><b>Mock boundary:</b> a synthetic {@code instanceId} (random UUID) is
+     * generated per job — the wizard provisions a NEW tenant whose real isolated
+     * infrastructure (per-tenant DB / MinIO bucket / DNS subdomain) is deferred to
+     * GAP-1055, and subdomain Host-render to GAP-811/1077. The job + lifecycle row
+     * are the only persisted state; deploy is driven by
+     * {@link com.kitehub.branding.wizard.service.MockProvisioningService}.</p>
+     *
+     * <p>Drives the §6 instance lifecycle to {@code INITIALIZING} (NOT_STARTED →
+     * INITIALIZING) so the deploy step (PROCESSING → GENERATING, COMPLETED →
+     * DEPLOYED via {@link #updateJobProgress}) has a legal starting state.</p>
+     *
+     * @param organizationName tenant/center display name (drives preview palette)
+     * @param language language code (defaults to {@code vi})
+     * @param logoUrl optional uploaded logo URL
+     * @return created job (status {@code QUEUED})
+     */
+    @Transactional
+    public BrandingJob createWizardJob(String organizationName, String language, String logoUrl) {
+        UUID instanceId = UUID.randomUUID(); // MOCK — real per-tenant instance deferred (GAP-1055)
+        log.info("Creating MOCK wizard branding job for synthetic instance: {}", instanceId);
+
+        BrandingJob job = new BrandingJob();
+        job.setInstanceId(instanceId);
+        job.setOrganizationName(organizationName);
+        job.setLanguage(language == null || language.isBlank() ? "vi" : language);
+        job.setLogoUrl(logoUrl);
+        job.setStatus(JobStatus.QUEUED);
+        job.setProgress(0);
+        job.setCurrentStep("Queued");
+        job.setRetryCount(0);
+        job.setQueuedAt(LocalDateTime.now());
+
+        job = jobRepository.save(job);
+
+        // §6 lifecycle: NOT_STARTED → INITIALIZING. No AI pipeline enqueue (mock).
+        Map<String, Object> meta = new HashMap<>();
+        meta.put("jobId", job.getId());
+        meta.put("organizationName", organizationName);
+        meta.put("mock", true);
+        lifecycleService.transition(
+                instanceId, LifecycleState.INITIALIZING,
+                InstanceLifecycleService.Actor.user("wizard"), meta);
+
+        log.info("MOCK wizard job created: {} (instance {})", job.getId(), instanceId);
+        return job;
+    }
+
+    /**
      * Get job by ID and instance ID.
      *
      * @param jobId job ID

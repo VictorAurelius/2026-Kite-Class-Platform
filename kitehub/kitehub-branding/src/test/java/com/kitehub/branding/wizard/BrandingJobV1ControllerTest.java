@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.domain.enums.JobStatus;
 import com.kitehub.branding.repository.BrandingJobRepository;
+import com.kitehub.branding.service.BrandingJobService;
 import com.kitehub.branding.wizard.dto.BrandingJobResponse;
 import com.kitehub.branding.wizard.quality.BrandColoursDeriver;
+import com.kitehub.branding.wizard.service.MockProvisioningService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,6 +34,12 @@ class BrandingJobV1ControllerTest {
     @Mock
     private BrandingJobRepository jobRepository;
 
+    @Mock
+    private BrandingJobService brandingJobService;
+
+    @Mock
+    private MockProvisioningService mockProvisioningService;
+
     private final BrandColoursDeriver coloursDeriver = new BrandColoursDeriver();
 
     private BrandingJobV1Controller controller;
@@ -41,7 +49,8 @@ class BrandingJobV1ControllerTest {
 
     @BeforeEach
     void setUp() {
-        controller = new BrandingJobV1Controller(jobRepository, coloursDeriver);
+        controller = new BrandingJobV1Controller(
+                jobRepository, coloursDeriver, brandingJobService, mockProvisioningService);
         jobId = UUID.randomUUID();
         job = new BrandingJob();
         job.setId(jobId);

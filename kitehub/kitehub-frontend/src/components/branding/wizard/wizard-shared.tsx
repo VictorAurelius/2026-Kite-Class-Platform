@@ -116,6 +116,7 @@ export type WizardAction =
   | { type: 'SET_AUDIENCE'; audience: string }
   | { type: 'SET_TONE'; tone: string }
   | { type: 'SET_TEMPLATE'; templateId: string; jobId: string }
+  | { type: 'SET_JOB_ID'; jobId: string }
   | { type: 'APPROVE_RESOURCE'; resource: string }
   | { type: 'UNAPPROVE_RESOURCE'; resource: string }
   | { type: 'RESET_APPROVALS' }
@@ -177,10 +178,17 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
       return {
         ...state,
         templateId: action.templateId,
-        jobId: action.jobId,
+        // Preserve an existing jobId when the caller passes the legacy empty
+        // sentinel ('' from TemplateStep). A real jobId is set via SET_JOB_ID
+        // once Step 6 creates the branding job (GAP-1021). Only overwrite when a
+        // non-empty jobId is explicitly provided.
+        jobId: action.jobId && action.jobId !== '' ? action.jobId : state.jobId,
         // New template selection invalidates previous approvals
         approvedResources: [],
       };
+
+    case 'SET_JOB_ID':
+      return { ...state, jobId: action.jobId };
 
     case 'APPROVE_RESOURCE': {
       if (state.approvedResources.includes(action.resource)) return state;

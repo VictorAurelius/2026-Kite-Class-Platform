@@ -702,6 +702,19 @@ spring:
                 name: instanceCircuitBreaker
                 fallbackUri: forward:/fallback/instance
 
+        # GAP-1021/272e — AI Branding wizard SSE deploy-stream. MUST precede the
+        # kitehub-branding-v1 catch-all so it wins the more-specific match. NO
+        # CircuitBreaker filter: Spring Cloud CircuitBreaker auto-wraps each call
+        # with a Resilience4j TimeLimiter; brandingCircuitBreaker inherits the
+        # `default` timelimiter (5s, cancelRunningFuture=true) which would kill the
+        # long-lived SSE stream mid-deploy. Streaming responses do not fit the
+        # request/response circuit-breaker model. Auth via token-in-query handled by
+        # the global JwtAuthenticationGatewayFilter (EventSource can't set headers).
+        - id: kitehub-branding-deploy-stream
+          uri: http://kitehub-branding:8080
+          predicates:
+            - Path=/api/v1/branding/jobs/*/deploy-stream
+
         - id: kitehub-branding-v1
           uri: http://kitehub-branding:8080
           predicates:

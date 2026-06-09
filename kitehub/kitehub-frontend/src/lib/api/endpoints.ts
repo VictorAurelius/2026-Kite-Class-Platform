@@ -55,8 +55,12 @@ export const endpoints = {
   brandingV1: {
     slugAvailability: '/api/v1/branding/slug-availability',
     regenerateQuota: '/api/v1/branding/regenerate-quota',
+    // GAP-1021 — create wizard branding job (Phase 1 mock provisioning)
+    jobs: '/api/v1/branding/jobs',
     jobById: (jobId: string) => `/api/v1/branding/jobs/${jobId}`,
     jobRegenerate: (jobId: string) => `/api/v1/branding/jobs/${jobId}/regenerate`,
+    // GAP-1021 — approve theme + trigger mock deploy provisioning
+    jobApprove: (jobId: string) => `/api/v1/branding/jobs/${jobId}/approve`,
     jobDeployStream: (jobId: string) => `/api/v1/branding/jobs/${jobId}/deploy-stream`,
     jobQualityScore: (jobId: string) => `/api/v1/branding/jobs/${jobId}/quality-score`,
     jobPreview: (jobId: string) => `/api/v1/branding/jobs/${jobId}/preview`,
