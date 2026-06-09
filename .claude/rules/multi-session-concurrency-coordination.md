@@ -12,7 +12,7 @@ paths:
 **Priority:** 🟠 MANDATORY — concurrent-session governance preventing shared-resource collision
 **Version:** 1.0.0
 **Created:** 2026-06-10
-**Last-Reviewed:** 2026-06-10
+**Last-Reviewed:** 2026-06-09
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (reviewer-checklist + memory auto-load + worked self-test trên 2026-06-10 incident — 2 session độc lập cùng branch → GAP-1111 collision + V96 collision + gap-status.csv 3-way conflict) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies previously-uncovered class "≥2 independent coordinator sessions tranh shared monotonic resources". Sister to `feedback_parallel_agent_strategy` (parallel AGENTS trong 1 session, 1 coordinator sở hữu ID-space) tại boundary khác — multi-SESSION không share state in-memory; nâng session-lock từ HINT → authoritative resource-reservation. META P1 force-multiplier per `meta-gap-priority.md` §3)
 **Applies to:** Mọi session khi có ≥2 session-lock active (của session khác) — tại session-start lock-check, tại allocate gap-ID / migration-version, tại chọn branch. Out-of-scope: single-session (1 lock active = chỉ mình); parallel AGENTS spawned trong cùng 1 coordinator session (covered by `feedback_parallel_agent_strategy` — 1 coordinator sở hữu ID-space).
 
