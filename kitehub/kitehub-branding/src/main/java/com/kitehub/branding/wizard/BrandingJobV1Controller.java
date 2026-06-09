@@ -71,8 +71,8 @@ public class BrandingJobV1Controller {
      * Create a wizard branding job (Phase 1 MOCK — GAP-1021). Called by the FE
      * when it enters Step 6 so {@code wizardState.jobId} becomes non-empty and the
      * preview + deploy-stream hooks enable. Persists a real {@link BrandingJob}
-     * (status {@code QUEUED}) tied to a synthetic instance — NO heavy AI pipeline
-     * enqueue (see {@link BrandingJobService#createWizardJob}).
+     * (status {@code QUEUED}) tied to the caller's REAL instance (JWT tenant claim)
+     * — NO heavy AI pipeline enqueue (see {@link BrandingJobService#createWizardJob}).
      *
      * @param req wizard selections (organizationName/slug drives preview palette)
      * @return {@code 201} with {@link BrandingJobResponse} (jobId + brandColors)
@@ -83,10 +83,26 @@ public class BrandingJobV1Controller {
         CreateWizardJobRequest body = req == null
                 ? new CreateWizardJobRequest(null, null, null, null, null, null, null, null, null)
                 : req;
-        String orgName = firstNonBlank(body.organizationName(), body.slug(), "Trung tâm mới");
-        BrandingJob job = brandingJobService.createWizardJob(orgName, body.language(), body.logoUrl());
-        BrandColours colours = coloursDeriver.derive(job);
+        // GAP-1021 runtime fix: bind the job to the caller's REAL instance (JWT tenant
+        // claim = instance id). A synthetic random UUID violated fk_branding_job_instance → 500.
         String tenantId = MDC.get("tenantId");
+        UUID instanceId = null;
+        if (tenantId != null && !tenantId.isBlank()) {
+            try {
+                instanceId = UUID.fromString(tenantId.trim());
+            } catch (IllegalArgumentException ignored) {
+                // invalid tenant claim → 400 below
+            }
+        }
+        if (instanceId == null) {
+            log.warn("Wizard job create rejected — missing/invalid tenant context: {}", tenantId);
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "TENANT_CONTEXT_REQUIRED",
+                    "message", "Không xác định được trung tâm từ phiên đăng nhập"));
+        }
+        String orgName = firstNonBlank(body.organizationName(), body.slug(), "Trung tâm mới");
+        BrandingJob job = brandingJobService.createWizardJob(instanceId, orgName, body.language(), body.logoUrl());
+        BrandColours colours = coloursDeriver.derive(job);
         log.info("Wizard job created: {} status={}", job.getId(), job.getStatus());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(BrandingJobResponse.from(job, colours, tenantId));
