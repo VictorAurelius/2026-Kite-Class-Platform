@@ -173,7 +173,7 @@ export function LogoStep({
     <div className="space-y-6">
       <WizardCard>
         <WizardStepHeader
-          eyebrow="Bước 2 / 6 · Tuỳ chọn"
+          eyebrow="Bước 2 / 7 · Tuỳ chọn"
           title="Bạn đã có logo chưa?"
           subtitle="Bạn có thể upload logo có sẵn, hoặc để AI tự tạo logo từ tên trung tâm. Đổi sau lúc nào cũng được."
         />
@@ -361,7 +361,7 @@ export function LogoStep({
           Quay lại
         </Button>
         <p className="text-xs text-muted-foreground">
-          Bước 2 / 6 · Tuỳ chọn — bỏ qua nếu chưa có
+          Bước 2 / 7 · Tuỳ chọn — bỏ qua nếu chưa có
         </p>
         <Button
           onClick={onNext}
