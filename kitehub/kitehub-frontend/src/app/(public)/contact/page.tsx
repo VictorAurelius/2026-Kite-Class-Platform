@@ -35,42 +35,40 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
   const planParam = (params.plan ?? '').toUpperCase();
   const planInterest = VALID_PLANS.includes(planParam) ? planParam : 'ENTERPRISE';
 
+  // Header + nav are provided by (public)/layout.tsx → PublicLayout (logo + Bảng
+  // giá / Đăng nhập / Dùng thử miễn phí). Don't render another <header> here — it
+  // duplicates the site header and nests a second <main>. Keep only a lightweight
+  // contextual back-link to /pricing.
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <nav className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-          <Link href="/" className="text-lg font-bold">
-            KiteHub
-          </Link>
-          <Link href="/pricing" className="text-sm hover:underline">
-            ← Xem bảng giá
-          </Link>
-        </nav>
-      </header>
+    <div className="mx-auto max-w-2xl px-6 py-16">
+      <Link
+        href="/pricing"
+        className="text-sm text-muted-foreground hover:underline"
+      >
+        ← Xem bảng giá
+      </Link>
 
-      <main className="mx-auto max-w-2xl px-6 py-16">
-        <div className="rounded-2xl border bg-card p-8 shadow-sm">
-          <p className="text-sm font-medium text-primary">
-            {planInterest === 'ENTERPRISE' ? 'Gói Enterprise' : 'Tư vấn gói dịch vụ'}
-          </p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-            Liên hệ tư vấn
-          </h1>
-          <p className="mt-3 text-sm text-muted-foreground">
-            Để lại thông tin, đội ngũ KiteHub sẽ liên hệ tư vấn gói phù hợp với quy
-            mô trung tâm của bạn trong vòng 24 giờ. Bạn cũng có thể email trực tiếp
-            tới{' '}
-            <a href="mailto:support@kitehub.me" className="underline">
-              support@kitehub.me
-            </a>
-            .
-          </p>
+      <div className="mt-6 rounded-2xl border bg-card p-8 shadow-sm">
+        <p className="text-sm font-medium text-primary">
+          {planInterest === 'ENTERPRISE' ? 'Gói Enterprise' : 'Tư vấn gói dịch vụ'}
+        </p>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+          Liên hệ tư vấn
+        </h1>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Để lại thông tin, đội ngũ KiteHub sẽ liên hệ tư vấn gói phù hợp với quy
+          mô trung tâm của bạn trong vòng 24 giờ. Bạn cũng có thể email trực tiếp
+          tới{' '}
+          <a href="mailto:support@kitehub.me" className="underline">
+            support@kitehub.me
+          </a>
+          .
+        </p>
 
-          <div className="mt-8">
-            <ContactForm planInterest={planInterest} />
-          </div>
+        <div className="mt-8">
+          <ContactForm planInterest={planInterest} />
         </div>
-      </main>
+      </div>
     </div>
   );
 }
