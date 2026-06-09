@@ -73,6 +73,14 @@
 ### GET /api/v1/courses/{courseId}/classes
 **Use Case:** UC-CRS-09  |  **Query:** `?page=0&size=20`
 
+### GET /api/v1/classes
+**Use Case:** UC-CRS-09 (Owner dashboard flat list)  |  **Auth:** Bearer token  |  **Role:** SHARED READ — bất kỳ tenant member nào (đã đăng nhập); tenant-scoped qua Hibernate `tenantFilter` (không leak cross-tenant).  |  **Query:** `?page=0&size=20&sort=createdAt,desc`
+```json
+// Response 200 — PageResponse<ClassResponse>
+{ "success": true, "data": { "content": [ /* ClassResponse[] */ ], "page": 0, "size": 20, "totalElements": 0, "totalPages": 0, "first": true, "last": true } }
+```
+Liệt kê toàn bộ lớp học của tenant hiện tại (flat, không scope theo course). GAP-1069 — fix dashboard OWNER gọi flat list bị 404.
+
 ### GET /api/v1/classes/{classId}
 **Use Case:** UC-CRS-09  |  **Auth:** Bearer token  |  **Role:** ADMIN, TEACHER
 

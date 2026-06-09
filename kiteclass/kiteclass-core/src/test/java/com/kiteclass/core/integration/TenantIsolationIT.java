@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
+import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.testutil.TestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,14 +12,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -180,5 +184,45 @@ class TenantIsolationIT {
                         .header("X-Tenant-Id", tenantA.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(courseIdA));
+    }
+
+    @Test
+    @DisplayName("GAP-1069: flat class list GET /api/v1/classes is tenant-scoped (no cross-tenant leak)")
+    void shouldIsolateClassDataOnFlatList() throws Exception {
+        UUID tenantA = UUID.randomUUID();
+        UUID tenantB = UUID.randomUUID();
+
+        // Tenant A creates teacher -> course -> class
+        Long teacherA = testDataBuilder.createTestTeacher(mockMvc, objectMapper, tenantA);
+        Long courseIdA = testDataBuilder.createTestCourse(
+                mockMvc, objectMapper, tenantA, "Tenant A Course", teacherA);
+
+        CreateClassRequest classRequest = new CreateClassRequest(
+                "Tenant A Flat-List Class", null, null, null, null, null, null, 20);
+        MvcResult created = mockMvc.perform(post("/api/v1/courses/" + courseIdA + "/classes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Tenant-Id", tenantA.toString())
+                        .content(objectMapper.writeValueAsString(classRequest)))
+                .andExpect(status().isCreated())
+                .andReturn();
+        long classIdA = objectMapper.readTree(created.getResponse().getContentAsString())
+                .get("data").get("id").asLong();
+
+        // Tenant B lists classes (flat) -> must NOT see Tenant A's class
+        mockMvc.perform(get("/api/v1/classes")
+                        .header("X-Tenant-Id", tenantB.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.content[?(@.id == " + classIdA + ")]").doesNotExist())
+                .andExpect(jsonPath("$.data.content[?(@.name == 'Tenant A Flat-List Class')]").doesNotExist());
+
+        // Tenant A lists classes (flat) -> sees their class + correct paging shape
+        mockMvc.perform(get("/api/v1/classes?page=0&size=20")
+                        .header("X-Tenant-Id", tenantA.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.content[?(@.id == " + classIdA + ")]").exists())
+                .andExpect(jsonPath("$.data.page").value(0))
+                .andExpect(jsonPath("$.data.totalElements").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)));
     }
 }

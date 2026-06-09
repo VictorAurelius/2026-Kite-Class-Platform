@@ -11,7 +11,7 @@ gaps: [GAP-914]
 
 **Mục tiêu:** Thông (verify chạy end-to-end) toàn bộ ~22 user-facing flow của KiteHub + KiteClass cho Phase 1 BETA. Sau khi 22 flow ✅ mới quay lại quy trình fix-gap-theo-wave cho backlog cosmetic.
 
-**MODE hiện tại (override default session priority):** KHÔNG pick P0 gap từ triage để fix. Thay vào đó: chọn flow chưa thông kế tiếp (theo §3 dependency order) → loop qua wave plan của flow đó → chỉ fix **blocker do walk lòi ra**. Gap KHÔNG chặn flow (cosmetic P2/P3) defer sang wave-fix phase sau campaign.
+**MODE hiện tại (override default session priority):** KHÔNG pick P0 gap từ triage để fix. Thay vào đó: chọn flow chưa thông kế tiếp (theo §3 dependency order) → loop qua wave plan của flow đó → chỉ fix **blocker do walk lòi ra**. Gap KHÔNG chặn flow nhưng **NHỎ** (≤30 phút, in-scope, low-risk, verify-now-able per `small-gap-inline-fix.md` §1) → **fix inline + flip DONE cùng session** (tránh backlog tồn đọng khi bắt bug G2); chỉ defer sang wave-fix phase sau campaign các gap **LỚN / architecture / cross-cutting cần sweep+design**.
 
 ---
 
@@ -19,7 +19,7 @@ gaps: [GAP-914]
 
 | Gate | Ai | Tiêu chí |
 |---|---|---|
-| **G1 — Agent runtime walk** | Claude | Walk end-to-end trên stack thật (Postgres + services), happy + ≥1 sad path PASS; fix mọi blocker lòi ra; evidence (HTTP + DB row + side effect) |
+| **G1 — Agent runtime walk** | Claude | Walk end-to-end trên stack thật (Postgres + services), happy + ≥1 sad path PASS; fix mọi blocker lòi ra; evidence (HTTP + DB row + side effect). **Flow CÓ FE PHẢI gồm ≥1 browser-real walk qua FE `:3000`** (để FE tự inject auth token + tenant header + route), không chỉ curl `:9000` gắn header tay — per `g1-browser-walk-before-flip.md` §1 (bắt FE↔gateway contract / tenant-resolution / routing drift mà curl-with-manual-header che mất, vd KC-1 G2 GAP-1067/1068/1069) |
 | **G2 — Human real local test** | Dev (user) | Con người tự test flow trên local stack thành công (UI/API), xác nhận trải nghiệm thật đúng — KHÔNG chỉ tin agent walk |
 | **G3 — Production-parity guarantee** | Claude + Dev | Local PASS phải **đảm bảo 100% chạy production**: walk trên production-equivalent (cùng Docker image tag, Postgres+Flyway+RLS thật KHÔNG H2, gateway JWT→header auth, prod-profile config, env-var đủ). Per `local-fix-production-parity-check.md` + bài học H2-giấu-bug (GAP-914). Nếu local≠prod ở điểm nào → note + đảm bảo trước khi flip thông |
 
@@ -95,7 +95,7 @@ flowchart TD
 | KH-2a | Admin auth (login + 2FA enroll) — prerequisite cho KH-1.S2 | 1 | ✅ G1 PASS (BE direct verified wave-flow-kh2 S4) | [wave-2026-06-03-flow-kh2](../waves/wave-2026-06-03-flow-kh2-auth-onboarding.md) | — |
 | KH-1 | Beta funnel: anonymous request → admin approve → invite email → register-via-invite (= KH-2b) → tenant provisioned | 2 | ✅ THÔNG (G1+G2+G3) — 2026-06-04 | [wave-2026-06-04-flow-kh1](../waves/wave-2026-06-04-flow-kh1-beta-funnel.md) | residual GAP-918 P2 + new GAP-920 P2 (api-contract drift) |
 | KH-2c | Owner login (post-register) + onboarding wizard | 3 | ✅ THÔNG (G1+G2+G3) — 2026-06-04 | wave-flow-kh2 (S3+S5) + wave-flow-kh1 (chain) | ✅ GAP-916 DONE; residual GAP-917 P2 + GAP-918 P2 |
-| KH-3 | Subscription create + trial→paid migration | 3 | 🔄 walk-pass-pending-human | 2026-06-04 | ✅ GAP-942 DONE (2026-06-07, Wave p0-prov-1 — POST /subscriptions BASIC LIVE PASS 201); GAP-974 (email P1 polish) |
+| KH-3 | Subscription create + trial→paid migration | 3 | 🔄 walk-pass-pending-human | [wave-2026-06-04-flow-kh3](../waves/wave-2026-06-04-flow-kh3-subscription-trial-paid.md) + [G2 recipe](../../05-guides/operations/2026-06-04-g2-recipe-kh3-subscription.md) | ✅ GAP-942 DONE (2026-06-07, Wave p0-prov-1 — POST /subscriptions BASIC LIVE PASS 201); GAP-974 (email P1 polish) |
 | KH-4 | **Subscription upgrade manual VietQR + admin confirm** | — | ✅ THÔNG (G1) | — | (GAP-914 fixed) |
 | KC-1 | Tenant provisioning + lifecycle + settings | 4 | 🔄 walk-pass-pending-human (provisioning-1 closure walk 2026-06-07: saga LIVE + 3/7 sub-gaps DONE — GAP-947 settings + GAP-953 admin-retry + GAP-954 PDPL purge; 3 bugs fixed live; remaining PARTIAL GAP-945/946/948/952) — 2026-06-07 | [wave-2026-06-04-flow-kc1](../waves/wave-2026-06-04-flow-kc1-tenant-provisioning-settings.md) | GAP-947/953/954 DONE; ✅ GAP-945/946/948/949 DONE (2026-06-07, Wave p0-prov-1; GAP-946 real-impl → GAP-1055 Phase 1.5); GAP-952 (CloudWatch AWS-deferred) PARTIAL |
 | KC-2 | Staff invitation → accept → RBAC role | 5 | 🔄 walk-pass-pending-human (G1 PASS + FM-1 fix) + **G3 ✅ 2026-06-07** (staff-invite tenant-scoped 200 via :9000) — 2026-06-05 | [wave-2026-06-05-flow-kc2](../waves/wave-2026-06-05-flow-kc2-staff-invitation-rbac.md) | ✅ GAP-784 DONE + GAP-981 DONE (STAFF tenant fix); GAP-886 fold GAP-877; GAP-893 self-corrected |
@@ -117,6 +117,48 @@ flowchart TD
 | KC-12 | Reschedule / payroll / gamification / analytics | sec | 🔄 walk-pass-pending-human (G1 PASS — reschedule happy 200 + outbox + IDOR DEFENDED + state-machine guard; payroll backend OK; gamification/analytics no walkable surface) + **G3 ✅ 2026-06-07** (payroll GAP-1041 routing → kiteclass-core /configs 200 via :9000) — 2026-06-06 | [wave-2026-06-06-flow-kc12](../waves/wave-2026-06-06-flow-kc12-reschedule-payroll-gamification.md) + [G2 recipe](../../05-guides/operations/2026-06-06-g2-recipe-kc12-reschedule-payroll.md) | 🔴 GAP-1041 P0 payroll routing collision (recurrence #3) + GAP-1042 P1 META gateway route-predicate audit + GAP-1043 P2 reschedule past-date validation |
 
 Status: ⬜ chưa walk · 🔄 G1 pass chờ human (G2) · ✅ THÔNG (G1+G2+G3).
+
+---
+
+## 4.5 Khi G2 (hoặc bất kỳ walk) bắt bug — feedback loop
+
+Quy trình chuẩn khi 1 walk (G2 human, hoặc G1 re-walk) lòi bug. Mục tiêu: fix đúng + **quyết định re-run scope theo blast radius** (không re-run thừa) + **front-load** để giảm bug walk sau bắt.
+
+### Bước xử lý (6 bước)
+
+```
+1. File gap INLINE ngay (per discovery-to-gap-inline-filing) — gap file + CSV row cùng session
+2. CLASSIFY blast radius (bảng dưới): cross-cutting-infra / cross-flow-class / single-flow
+3. FIX theo class (global fix vs per-flow fix)
+4. Quyết định RE-RUN SCOPE (bảng dưới)
+5. SWEEP sister flow (per cross-flow-bug-class-sweep) — bug class có ở flow khác không?
+6. RE-WALK CONFIRM scope bị ảnh hưởng (per pre-handoff-self-test-completeness §3) TRƯỚC khi đánh FIXED/DONE
+```
+
+> **⚠️ Bước 6 — re-walk confirm cho bug visual/layout/UX PHẢI là browser thật** (user F5 HOẶC headless), **KHÔNG `curl`** (per `g1-browser-walk-before-flip`). `curl 200` không nhìn thấy header/sidebar/footer/console/layout — đánh "FIXED" bằng curl = anti-pattern (chính miss KC-1 GAP-1071 2026-06-08: deploy fix layout rồi claim FIXED bằng `curl 200`, chưa có browser evidence). **Chưa có browser re-walk evidence → giữ trạng thái "deployed, pending confirm", KHÔNG flip DONE** (per `gap-done-discipline` §1).
+
+### Blast-radius → re-run matrix
+
+| Blast radius | Định nghĩa | Fix | Re-run G1/G3 scope |
+|---|---|---|---|
+| **Cross-cutting infra/env** | Chặn mọi flow: core không boot, docker-proxy stale, FE config (CSP/manifest/icon), cơ chế auth/tenant đồng nhất | Global 1 lần | ❌ KHÔNG re-run per-flow. Chỉ re-verify flow đang walk. Global fix benefit mọi walk sau |
+| **Cross-flow class** | Cùng 1 bug-class lặp ở N flow: FE↔BE contract drift, header-injection sai, authz literal, schema drift pattern | Fix site #1 + sweep sister | ✅ Re-verify CÁC flow share class (qua sweep), không phải toàn bộ 22 |
+| **Single-flow** | Chỉ flow này: 1 endpoint sai, 1 page render lỗi, 1 validation thiếu | Fix tại chỗ | ✅ Re-walk CHỈ flow đó |
+
+### Giảm thiểu bug walk sau bắt (front-load)
+
+- **Trước G1 flip:** `g1-browser-walk-before-flip` — browser-real walk bắt FE↔gateway/tenant/contract class TRƯỚC G2 human.
+- **Trước mỗi walk:** `pre-walk-persona-simulation-mandate` — spawn Opus agent return ≥5 failure mode → batch-fix trước.
+- **Static pre-CI:** detector FE→BE contract method-level (GAP-1070, đang thiếu) sẽ bắt contract-drift class trước cả walk.
+
+### Worked example — KC-1 G2 2026-06-08
+
+| Bug | Blast radius | Re-run |
+|---|---|---|
+| GAP-1066 V87 crash / GAP-1067 docker-proxy / FE console (CSP/icon/footer) / GAP-1068 tenant-mechanism | Cross-cutting | Global fix; 0 per-flow re-run; benefit mọi G2 sau |
+| GAP-1069 classes/invoices 404 (FE↔BE drift) | Cross-flow class | Sweep tất cả flow (GAP-1070 detector); KC-3 + KC-7 trực tiếp |
+
+→ Kết luận: 18 FE flow G1/G3 curl-only KHÔNG cần re-run G1 riêng — **G2 campaign chính LÀ lớp browser-verify**, đi flow-by-flow. Global fix hôm nay làm G2 sau không vấp lại.
 
 ---
 

@@ -19,6 +19,7 @@ vi.mock('next/navigation', () => ({
     periodNo: '2',
     date: '2026-09-05',
   }),
+  usePathname: () => '/attendance/period/202/2/2026-09-05',
 }));
 
 vi.mock('@/lib/api/attendance-period', () => ({

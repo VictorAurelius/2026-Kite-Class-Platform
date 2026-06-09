@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.ClassStatus;
 import com.kiteclass.core.common.exception.BusinessException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
+import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
 import com.kiteclass.core.module.clazz.dto.CancelClassRequest;
@@ -124,6 +125,40 @@ class ClassControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(badRequest)))
                                 .andExpect(status().isBadRequest());
+        }
+
+        // =========================================================================
+        // GET /api/v1/classes (flat tenant-scoped list)
+        // =========================================================================
+
+        @Test
+        @DisplayName("listAllClasses should return 200 with paginated tenant-scoped list")
+        void listAllClasses_shouldReturn200_withPagingShape() throws Exception {
+                PageResponse<ClassResponse> page = PageResponse.of(List.of(defaultResponse), 0, 1, 1);
+                when(classService.listAllClasses(any())).thenReturn(page);
+
+                mockMvc.perform(get("/api/v1/classes?page=0&size=1"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.success").value(true))
+                                .andExpect(jsonPath("$.data.content[0].id").value(1))
+                                .andExpect(jsonPath("$.data.page").value(0))
+                                .andExpect(jsonPath("$.data.size").value(1))
+                                .andExpect(jsonPath("$.data.totalElements").value(1))
+                                .andExpect(jsonPath("$.data.totalPages").value(1))
+                                .andExpect(jsonPath("$.data.first").value(true))
+                                .andExpect(jsonPath("$.data.last").value(true));
+        }
+
+        @Test
+        @DisplayName("listAllClasses should default to empty list when tenant has no classes")
+        void listAllClasses_shouldReturnEmpty_whenNoClasses() throws Exception {
+                PageResponse<ClassResponse> empty = PageResponse.of(List.of(), 0, 20, 0);
+                when(classService.listAllClasses(any())).thenReturn(empty);
+
+                mockMvc.perform(get("/api/v1/classes"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.data.content").isArray())
+                                .andExpect(jsonPath("$.data.totalElements").value(0));
         }
 
         // =========================================================================

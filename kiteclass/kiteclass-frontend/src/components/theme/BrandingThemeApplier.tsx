@@ -28,13 +28,27 @@
 import { useEffect } from 'react';
 import { useBranding } from '@/hooks/use-branding';
 import { applyBrandColorVars } from '@/providers/BrandingProvider';
+import { deriveThemeVars } from '@/lib/theme/contrast';
 
 export function BrandingThemeApplier(): null {
   const { data: branding } = useBranding();
 
   useEffect(() => {
     if (!branding) return;
+    // Shadcn HSL `--primary/--accent` + raw `--brand-*` (shared public path).
     applyBrandColorVars(branding);
+
+    // Contrast-guarded `--theme-*` RGB vars (text/CTA clamped to WCAG AA),
+    // matching the SSR-inline landing path (ThemeSync). The dashboard is
+    // auth-gated (no server-fetched branding), so these apply post-hydration;
+    // SSR-inline for the dashboard is a follow-up (see Đợt 2 note).
+    const themeVars = deriveThemeVars({
+      primary: branding.primaryColor,
+      secondary: branding.secondaryColor,
+      accent: branding.accentColor,
+    });
+    const root = document.documentElement;
+    Object.entries(themeVars).forEach(([k, v]) => root.style.setProperty(k, v));
   }, [
     branding?.primaryColor,
     branding?.secondaryColor,

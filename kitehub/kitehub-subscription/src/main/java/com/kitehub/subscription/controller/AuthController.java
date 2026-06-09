@@ -70,6 +70,23 @@ public class AuthController {
     }
 
     /**
+     * Logout — revoke the supplied refresh token (GAP-1075).
+     *
+     * <p>Adds the refresh token to the Redis blacklist for its remaining lifetime so it
+     * can no longer mint new access tokens. Idempotent + fail-open: an invalid/expired
+     * token or a Redis outage still returns 200, since the client clears its local tokens
+     * regardless (the access token is stateless and expires on its own).</p>
+     *
+     * @param request contains the refresh token to revoke
+     * @return 200 with an acknowledgement message
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<java.util.Map<String, Object>> logout(@Valid @RequestBody LogoutRequest request) {
+        authService.logout(request.getRefreshToken());
+        return ResponseEntity.ok(java.util.Map.of("message", "Đăng xuất thành công"));
+    }
+
+    /**
      * Verify email address using token from verification email.
      *
      * @param token Verification token

@@ -124,10 +124,11 @@ export function StudentRegisterForm() {
         throw new Error(data.message || 'Đăng ký thất bại');
       }
 
-      // Store JWT tokens via sessionStorage facade (per-tab isolation, GAP-830).
-      // Reconciles prior key-name drift: this flow wrote snake_case
-      // `access_token`/`refresh_token` which api-client (camelCase reader) never
-      // picked up. Facade standardizes on `accessToken`/`refreshToken`.
+      // Store JWT tokens via the tenant-scoped localStorage facade (GAP-1074:
+      // cross-tab persist + per-tenant isolation; setTokens resolves the tenant from
+      // the JWT claim / default). Reconciles prior key-name drift: this flow wrote
+      // snake_case `access_token`/`refresh_token` which api-client (camelCase reader)
+      // never picked up. Facade standardizes on `accessToken`/`refreshToken`.
       if (data.data?.accessToken) {
         setTokens(data.data.accessToken, data.data.refreshToken);
         sessionStorage.setItem(

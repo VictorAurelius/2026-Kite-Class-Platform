@@ -132,7 +132,7 @@ curl -sS -X POST "<TUNNEL>/api/platform/webhooks/payment" \
 ### Bước 1 — Đăng nhập Owner
 
 **Hành động:**
-1. Mở `http://localhost:3000/login` (FE Next.js của KiteHub)
+1. Mở `http://localhost:3001/login` (FE KiteHub — `kitehub-frontend`, port **3001**). ⚠️ Subscription/billing là chức năng **KiteHub** (`:3001` `(customer)/billing`), KHÔNG phải KiteClass tenant app (`:3000` — đó là invoice học phí KC-7).
 2. Nhập email `g2test-an-8@example.com` + mật khẩu `WalkKh3@2026` → submit
 
 **✅ Kỳ vọng (PASS):**

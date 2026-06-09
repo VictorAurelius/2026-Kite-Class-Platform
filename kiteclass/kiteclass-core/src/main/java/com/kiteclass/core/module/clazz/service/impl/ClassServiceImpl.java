@@ -35,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -210,6 +211,25 @@ public class ClassServiceImpl implements ClassService {
         Page<Class> classPage = classRepository.findByCourseIdAndDeletedFalse(
                 courseId,
                 PageRequest.of(page, size, Sort.by("createdAt").descending()));
+
+        List<ClassResponse> content = classPage.getContent()
+                .stream()
+                .map(classMapper::toResponse)
+                .toList();
+
+        return PageResponse.of(
+                content,
+                classPage.getNumber(),
+                classPage.getSize(),
+                classPage.getTotalElements());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<ClassResponse> listAllClasses(Pageable pageable) {
+        log.debug("Listing all classes (tenant-scoped): pageable={}", pageable);
+
+        Page<Class> classPage = classRepository.findAllByDeletedFalse(pageable);
 
         List<ClassResponse> content = classPage.getContent()
                 .stream()

@@ -9,6 +9,7 @@ import type { DashboardCommand } from '../types';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/',
 }));
 
 const COMMANDS: DashboardCommand[] = [

@@ -74,12 +74,15 @@ describe('authApi', () => {
       expect(apiClient.post).toHaveBeenCalledWith('/api/auth/logout', { refreshToken });
     });
 
-    it('should handle logout error', async () => {
+    it('should swallow server error (fail-open per GAP-1075) so local logout always completes', async () => {
       const refreshToken = 'refresh-token-123';
 
       vi.mocked(apiClient.post).mockRejectedValueOnce(new Error('Logout failed'));
 
-      await expect(authApi.logout(refreshToken)).rejects.toThrow('Logout failed');
+      // Revocation is best-effort: any server/network error is swallowed so the
+      // caller's onSettled can clear local tokens unconditionally. logout resolves.
+      await expect(authApi.logout(refreshToken)).resolves.toBeUndefined();
+      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/logout', { refreshToken });
     });
   });
 

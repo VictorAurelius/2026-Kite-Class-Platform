@@ -282,6 +282,106 @@ class BrandingServiceTest {
     }
 
     @Test
+    @DisplayName("GAP-1072: should regenerate fresh presigned logo URL on read")
+    void shouldRegenerateLogoUrlOnRead() {
+        // Given — stored logo URL is a presigned URL whose key is static/<tenant>/logo/logo.png
+        String storedUrl = "http://localhost:9100/kite-branding-assets/"
+                + "static/11111111-1111-1111-1111-111111111111/logo/logo.png"
+                + "?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260101T000000Z"
+                + "&X-Amz-Expires=604800&X-Amz-Signature=stale";
+        String expectedKey = "static/11111111-1111-1111-1111-111111111111/logo/logo.png";
+        String freshUrl = "http://localhost:9100/kite-branding-assets/"
+                + expectedKey + "?X-Amz-Date=20260601T000000Z&X-Amz-Signature=fresh";
+
+        Branding branding = BrandingTestDataBuilder.createDefaultBranding(testInstanceId);
+        BrandingResponse mapped = BrandingResponse.builder().id(1L).logoUrl(storedUrl).build();
+
+        when(brandingRepository.findByInstanceIdAndDeletedFalse(testInstanceId))
+                .thenReturn(Optional.of(branding));
+        when(brandingMapper.toResponse(branding)).thenReturn(mapped);
+        when(brandingAssetStorage.renderableUrl(expectedKey)).thenReturn(freshUrl);
+
+        // When
+        BrandingResponse result = brandingService.getBranding();
+
+        // Then — response carries the freshly regenerated URL (not the stale stored one)
+        assertThat(result.getLogoUrl()).isEqualTo(freshUrl);
+        verify(brandingAssetStorage).renderableUrl(expectedKey);
+    }
+
+    @Test
+    @DisplayName("GAP-1072: should regenerate fresh presigned favicon URL on read")
+    void shouldRegenerateFaviconUrlOnRead() {
+        // Given
+        String storedUrl = "http://localhost:9100/kite-branding-assets/"
+                + "static/22222222-2222-2222-2222-222222222222/favicon/favicon.ico"
+                + "?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=stale";
+        String expectedKey = "static/22222222-2222-2222-2222-222222222222/favicon/favicon.ico";
+        String freshUrl = "http://localhost:9100/kite-branding-assets/" + expectedKey
+                + "?X-Amz-Signature=fresh";
+
+        Branding branding = BrandingTestDataBuilder.createDefaultBranding(testInstanceId);
+        BrandingResponse mapped = BrandingResponse.builder().id(1L).faviconUrl(storedUrl).build();
+
+        when(brandingRepository.findByInstanceIdAndDeletedFalse(testInstanceId))
+                .thenReturn(Optional.of(branding));
+        when(brandingMapper.toResponse(branding)).thenReturn(mapped);
+        when(brandingAssetStorage.renderableUrl(expectedKey)).thenReturn(freshUrl);
+
+        // When
+        BrandingResponse result = brandingService.getBranding();
+
+        // Then
+        assertThat(result.getFaviconUrl()).isEqualTo(freshUrl);
+        verify(brandingAssetStorage).renderableUrl(expectedKey);
+    }
+
+    @Test
+    @DisplayName("GAP-1072: should keep stored URL when it is not one of our presigned URLs")
+    void shouldKeepStoredUrlWhenNotPresigned() {
+        // Given — external / non-presigned URL (no X-Amz query) must be left untouched
+        String externalUrl = "https://cdn.example.com/logos/brand-logo.png";
+        Branding branding = BrandingTestDataBuilder.createDefaultBranding(testInstanceId);
+        BrandingResponse mapped = BrandingResponse.builder().id(1L).logoUrl(externalUrl).build();
+
+        when(brandingRepository.findByInstanceIdAndDeletedFalse(testInstanceId))
+                .thenReturn(Optional.of(branding));
+        when(brandingMapper.toResponse(branding)).thenReturn(mapped);
+
+        // When
+        BrandingResponse result = brandingService.getBranding();
+
+        // Then — unchanged; storage never consulted for non-presigned values
+        assertThat(result.getLogoUrl()).isEqualTo(externalUrl);
+        verify(brandingAssetStorage, times(0)).renderableUrl(any());
+    }
+
+    @Test
+    @DisplayName("GAP-1072: should keep stored URL when regeneration fails (graceful fallback)")
+    void shouldKeepStoredUrlWhenRegenerationFails() {
+        // Given — presigned URL, but storage throws when regenerating
+        String storedUrl = "http://localhost:9100/kite-branding-assets/"
+                + "static/33333333-3333-3333-3333-333333333333/logo/logo.png"
+                + "?X-Amz-Signature=stale";
+        String expectedKey = "static/33333333-3333-3333-3333-333333333333/logo/logo.png";
+
+        Branding branding = BrandingTestDataBuilder.createDefaultBranding(testInstanceId);
+        BrandingResponse mapped = BrandingResponse.builder().id(1L).logoUrl(storedUrl).build();
+
+        when(brandingRepository.findByInstanceIdAndDeletedFalse(testInstanceId))
+                .thenReturn(Optional.of(branding));
+        when(brandingMapper.toResponse(branding)).thenReturn(mapped);
+        when(brandingAssetStorage.renderableUrl(expectedKey))
+                .thenThrow(new RuntimeException("presigner down"));
+
+        // When
+        BrandingResponse result = brandingService.getBranding();
+
+        // Then — falls back to the stored URL instead of propagating the failure
+        assertThat(result.getLogoUrl()).isEqualTo(storedUrl);
+    }
+
+    @Test
     @DisplayName("Should reject upload with unsupported content type")
     void shouldRejectUnsupportedContentType() {
         // Given

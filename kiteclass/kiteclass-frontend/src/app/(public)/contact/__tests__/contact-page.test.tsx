@@ -15,6 +15,7 @@ import ContactPage from '../page';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/contact',
 }));
 
 vi.mock('@/lib/api/public', () => ({

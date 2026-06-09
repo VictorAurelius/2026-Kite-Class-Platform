@@ -18,6 +18,7 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => ({
     get: mockGet,
   }),
+  usePathname: () => '/',
 }));
 
 describe('ThemePreviewPanel', () => {

@@ -124,19 +124,23 @@ export async function login(
     timeout: 15000,
   });
 
-  // Wait for auth store to be set in sessionStorage (Zustand persist — GAP-830 per-tab isolation)
+  // Wait for the auth store to be persisted (GAP-1074: tenant-scoped localStorage
+  // `kc:<tenantId>:auth-store`, resolved via the `kc:activeTenant` pointer set by
+  // setTokens()/bindTenant() — supersedes the GAP-830 `sessionStorage['auth-storage']` blob).
   await page.waitForFunction(
     () => {
-      const authStorage = sessionStorage.getItem('auth-storage');
-      if (!authStorage) return false;
+      const tenantId = localStorage.getItem('kc:activeTenant');
+      if (!tenantId) return false;
+      const blob = localStorage.getItem(`kc:${tenantId}:auth-store`);
+      if (!blob) return false;
       try {
-        const parsed = JSON.parse(authStorage);
+        const parsed = JSON.parse(blob);
         return parsed.state?.isAuthenticated === true;
       } catch {
         return false;
       }
     },
-    { timeout: 5000 }
+    { timeout: 10000 }
   );
 
   // Verify we're authenticated by checking for navigation links
@@ -177,18 +181,25 @@ export async function logout(page: Page) {
  * @returns true if authenticated, false otherwise
  */
 export async function isAuthenticated(page: Page): Promise<boolean> {
-  // Check if accessToken exists in sessionStorage (GAP-830 per-tab isolation)
-  const accessToken = await page.evaluate(() => sessionStorage.getItem('accessToken'));
-  return accessToken !== null;
+  // GAP-1074: token lives at `localStorage['kc:<tenantId>:accessToken']` (tenant-scoped),
+  // resolved via the `kc:activeTenant` pointer. Supersedes `sessionStorage['accessToken']`.
+  const hasToken = await page.evaluate(() => {
+    const tenantId = localStorage.getItem('kc:activeTenant');
+    if (!tenantId) return false;
+    return localStorage.getItem(`kc:${tenantId}:accessToken`) !== null;
+  });
+  return hasToken;
 }
 
 /**
- * Inject authentication tokens directly into sessionStorage.
+ * Inject authentication state directly into storage (bypass the login UI).
  *
- * Useful for bypassing login UI when you just need authenticated state.
- * Sets both individual tokens and Zustand auth store.
- *
- * GAP-830: tokens + auth-storage moved to sessionStorage for per-tab isolation.
+ * GAP-1074 (supersedes GAP-830): tokens + the zustand persist blob are tenant-scoped
+ * in localStorage (`kc:<tenantId>:accessToken` / `:refreshToken` / `:auth-store`),
+ * resolved per-tab via `sessionStorage['kc:currentTenant']` + the cross-tab
+ * `localStorage['kc:activeTenant']` pointer. Mirror exactly what
+ * useAuth.onSuccess → setTokens()/setAuth() writes so the dashboard auth guard
+ * (reads zustand `isAuthenticated`) sees an authenticated state.
  *
  * @param page - Playwright page object
  */
@@ -196,12 +207,19 @@ export async function injectAuthTokens(page: Page) {
   await page.goto('/');
 
   await page.evaluate(() => {
-    // Set individual tokens (used by API client) — sessionStorage per GAP-830
-    sessionStorage.setItem('accessToken', 'eyJhbGciOiJIUzI1NiJ9.eyJ0ZW5hbnRJZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSJ9.mock');
-    sessionStorage.setItem('refreshToken', 'mock-refresh-token');
-    sessionStorage.setItem('tenantId', '11111111-1111-1111-1111-111111111111');
+    const TENANT_ID = '11111111-1111-1111-1111-111111111111';
+    const TOKEN =
+      'eyJhbGciOiJIUzI1NiJ9.eyJ0ZW5hbnRJZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSJ9.mock';
 
-    // Set Zustand auth store (used by dashboard layout auth guard)
+    // Bind this tab + the cross-tab last-login pointer (GAP-1074 bindTenant()).
+    sessionStorage.setItem('kc:currentTenant', TENANT_ID);
+    localStorage.setItem('kc:activeTenant', TENANT_ID);
+
+    // Tenant-scoped tokens (used by the API client via jwt-storage getAccessToken()).
+    localStorage.setItem(`kc:${TENANT_ID}:accessToken`, TOKEN);
+    localStorage.setItem(`kc:${TENANT_ID}:refreshToken`, 'mock-refresh-token');
+
+    // Zustand auth-store persist blob (dashboard layout auth guard reads this).
     const authStore = {
       state: {
         user: {
@@ -211,14 +229,14 @@ export async function injectAuthTokens(page: Page) {
           userType: 'OWNER',
           referenceId: '1',
         },
-        accessToken: 'eyJhbGciOiJIUzI1NiJ9.eyJ0ZW5hbnRJZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSJ9.mock',
+        accessToken: TOKEN,
         refreshToken: 'mock-refresh-token',
-        tenantId: '11111111-1111-1111-1111-111111111111',
+        tenantId: TENANT_ID,
         isAuthenticated: true,
       },
       version: 0,
     };
-    sessionStorage.setItem('auth-storage', JSON.stringify(authStore));
+    localStorage.setItem(`kc:${TENANT_ID}:auth-store`, JSON.stringify(authStore));
   });
 
   // Reload to apply auth state

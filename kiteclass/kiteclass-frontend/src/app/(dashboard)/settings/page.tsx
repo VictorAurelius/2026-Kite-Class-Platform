@@ -23,6 +23,7 @@ import { BrandingSettings } from '@/components/settings/branding-settings';
 import { PreferencesSettings } from '@/components/settings/preferences-settings';
 import { OnboardingReplayCard } from '@/components/onboarding/OnboardingReplayCard';
 import { useAuthStore } from '@/stores/auth-store';
+import { DashboardLayout } from '@/components/layout';
 
 /**
  * Sensible default palette for the theme-preview tab.
@@ -51,7 +52,8 @@ export default function SettingsPage() {
   const showPreferences = (user?.userType as string | undefined) !== 'OWNER';
 
   return (
-    <div className="space-y-6">
+    <DashboardLayout>
+      <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Cài đặt</h1>
         <p className="text-muted-foreground">
@@ -102,6 +104,7 @@ export default function SettingsPage() {
           </TabsContent>
         )}
       </Tabs>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

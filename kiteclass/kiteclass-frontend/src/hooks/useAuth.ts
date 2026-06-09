@@ -44,10 +44,12 @@ export function useAuth() {
         ? (JSON.parse(atob(data.accessToken.split('.')[1] || '{}'))?.tenantId ?? '11111111-1111-1111-1111-111111111111')
         : '11111111-1111-1111-1111-111111111111';
 
-      setAuth(user, data.accessToken, data.refreshToken, tenantId);
-
-      // Store tokens in sessionStorage (per-tab isolation, GAP-830) for API client interceptor
+      // Bind the tab + persist tokens FIRST (GAP-1074: tenant-scoped localStorage).
+      // Must precede setAuth so the zustand persist blob lands in this tenant's
+      // namespace (`kc:<tenantId>:auth-store`) rather than the anon fallback.
       setTokens(data.accessToken, data.refreshToken, tenantId);
+
+      setAuth(user, data.accessToken, data.refreshToken, tenantId);
 
       toast({
         title: 'Login successful',
@@ -70,7 +72,9 @@ export function useAuth() {
       const refreshToken = useAuthStore.getState().refreshToken;
       return refreshToken ? authApi.logout(refreshToken) : Promise.resolve();
     },
-    onSuccess: () => {
+    // onSettled (not onSuccess): local logout MUST always complete even if a future
+    // server-side revocation call (GAP-1075) fails — never strand the user logged in.
+    onSettled: () => {
       clearAuth();
       clearTokens();
       queryClient.clear();

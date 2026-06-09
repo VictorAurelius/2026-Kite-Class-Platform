@@ -126,4 +126,18 @@ public interface ClassRepository extends JpaRepository<Class, Long> {
             @Param("status") ClassStatus status,
             @Param("instanceId") UUID instanceId,
             Pageable pageable);
+
+    /**
+     * Finds all classes for the current tenant (not deleted), paginated.
+     *
+     * <p>Tenant isolation is enforced automatically by the Hibernate
+     * {@code tenantFilter} (from {@link com.kiteclass.core.common.entity.BaseEntity})
+     * — this derived query compiles to HQL, so the filter condition
+     * {@code instance_id = :tenantId} is appended transparently. No explicit
+     * {@code instanceId} parameter is required, and no cross-tenant leak is possible.
+     *
+     * @param pageable pagination + sort params
+     * @return page of classes scoped to the current tenant
+     */
+    Page<Class> findAllByDeletedFalse(Pageable pageable);
 }

@@ -1,3 +1,4 @@
+// shell-exempt: full-screen multi-step branding wizard, focused flow by design (no dashboard chrome)
 'use client';
 
 import { Suspense } from 'react';
@@ -48,12 +49,13 @@ function BrandingWizardResolved() {
   // subscription tier is surfaced on the session (tracked separately).
   const tier: Tier = 'PRO';
 
-  // Resolve slug from URL (query param / subdomain) with localStorage fallbacks.
-  // tenantSubdomain is written by useTenantFromUrl; tenantId is written at login.
+  // Resolve slug from URL (query param / subdomain) with a localStorage fallback.
+  // tenantSubdomain is written by useTenantFromUrl. (The tenantId UUID — stored
+  // tenant-scoped per GAP-1074 — is not a slug, so it is not a slug fallback.)
   const slug =
     tenantSlug ||
     (typeof window !== 'undefined'
-      ? localStorage.getItem('tenantSubdomain') ?? localStorage.getItem('tenantId')
+      ? localStorage.getItem('tenantSubdomain')
       : null);
 
   // tenantId comes from the JWT claim stored at login. If the session has not

@@ -10,7 +10,9 @@ export type TemplateType = 'personal' | 'organization';
 export type SectionId =
   | 'hero'
   | 'stats'
+  | 'problemSolution'
   | 'about'
+  | 'howItWorks'
   | 'courses'
   | 'teachers'
   | 'certificates'
@@ -18,6 +20,7 @@ export type SectionId =
   | 'news'
   | 'timeline'
   | 'enrollment'
+  | 'trustStrip'
   | 'pricing'
   | 'testimonials'
   | 'faq'

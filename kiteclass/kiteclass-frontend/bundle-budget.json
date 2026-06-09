@@ -2,7 +2,8 @@
   "default": 250,
   "routes": {
     "/(dashboard)/students/page": 270,
-    "/(dashboard)/teachers/page": 270
+    "/(dashboard)/teachers/page": 270,
+    "/(dashboard)/settings/page": 270
   },
-  "_comment": "students/teachers list = heaviest data-table dashboard routes. all-deps patch bump 2026-06-08 (PR #2260: @radix-ui/* patches + react 19.2.6->19.2.7) added ~8KB First Load JS, pushing both from <250 to ~257.7KB. Per-route budget raised to 270 (headroom) — diffuse patch-level growth, no single droppable culprit. Revisit via code-splitting (GAP-236 pattern) if they exceed 270."
+  "_comment": "students/teachers list = heaviest data-table dashboard routes; settings = branding/theme/logo feature-rich. all-deps patch bump 2026-06-08 (PR #2260: @radix-ui/* patches + react 19.2.6->19.2.7) added ~8KB First Load JS — pushed students/teachers <250->~257.7KB and settings <250->267.7KB (same diffuse patch-level growth, no single droppable culprit). Per-route budget raised to 270. Revisit via code-splitting (GAP-236 pattern) if any exceed 270 — settings is a code-split candidate in wave landing-100 Bucket D (theme/branding)."
 }

@@ -22,6 +22,10 @@ import { PricingSection } from './PricingSection';
 import { StatsSection } from './StatsSection';
 import { TimelineSection } from './TimelineSection';
 import { FaqSection } from './FaqSection';
+import { ProblemSolutionSection } from './ProblemSolutionSection';
+import { HowItWorksSection } from './HowItWorksSection';
+import { TrustStripSection } from './TrustStripSection';
+import { FloatingCTA } from './FloatingCTA';
 
 interface LandingData {
   heroTitle?: string;
@@ -29,6 +33,7 @@ interface LandingData {
   tagline?: string;
   contactEmail?: string;
   contactPhone?: string;
+  zaloUrl?: string;
   address?: string;
   [key: string]: unknown;
 }
@@ -47,7 +52,9 @@ interface TemplateRendererProps {
 const SECTION_LABELS: Record<SectionId, string> = {
   hero: 'Giới thiệu chính',
   stats: 'Chỉ số nổi bật',
+  problemSolution: 'Vấn đề & Giải pháp',
   about: 'Giới thiệu',
+  howItWorks: 'Cách hoạt động',
   courses: 'Khóa học',
   teachers: 'Đội ngũ giáo viên',
   certificates: 'Chứng chỉ',
@@ -55,6 +62,7 @@ const SECTION_LABELS: Record<SectionId, string> = {
   news: 'Tin tức',
   timeline: 'Lộ trình học tập',
   enrollment: 'Tuyển sinh',
+  trustStrip: 'Tin cậy & minh bạch',
   pricing: 'Bảng giá',
   testimonials: 'Đánh giá',
   faq: 'Câu hỏi thường gặp',
@@ -68,6 +76,12 @@ function renderSection(sectionId: SectionId, data: LandingData, sectionSlots?: S
       return <HeroSection slots={sectionSlots} title={data.heroTitle as string} subtitle={data.heroSubtitle as string} tagline={data.tagline as string} />;
     case 'stats':
       return <StatsSection slots={sectionSlots} />;
+    case 'problemSolution':
+      return <ProblemSolutionSection slots={sectionSlots} />;
+    case 'howItWorks':
+      return <HowItWorksSection slots={sectionSlots} />;
+    case 'trustStrip':
+      return <TrustStripSection slots={sectionSlots} />;
     case 'timeline':
       return <TimelineSection slots={sectionSlots} />;
     case 'about':
@@ -118,6 +132,10 @@ export function TemplateRenderer({ template, data, slots = {} }: TemplateRendere
           </div>
         );
       })}
+
+      {/* Sticky floating CTA overlay — rendered once outside the section flow.
+          Self-hides Zalo/call buttons when not configured (per Bucket F). */}
+      <FloatingCTA phone={data.contactPhone} zaloUrl={data.zaloUrl} />
     </div>
   );
 }

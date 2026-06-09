@@ -1,6 +1,10 @@
 /**
- * Pricing section — displays course pricing tiers.
- * Uses default demo data until CMS slot data is available.
+ * Pricing section — displays course pricing tiers from tenant CMS data.
+ *
+ * Anti-fabrication (GAP-958): renders ONLY real tenant-configured pricing tiers.
+ * When no pricing is configured the section hides entirely — never shows invented
+ * prices. page.tsx only emits slots.plans when the backend returns non-empty
+ * pricingTiers.
  *
  * @since 2026-04-04
  */
@@ -11,52 +15,15 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import type { SlotData, SlotItem } from '@/lib/template/slots';
 
-const DEFAULT_PLANS: SlotItem[] = [
-  {
-    title: 'Cơ bản',
-    description: '1.500.000 đ / tháng',
-    icon: '📘',
-    items: [
-      '2 buổi / tuần (50 phút)',
-      'Học liệu cơ bản',
-      'Bài tập online',
-      'Hỗ trợ qua email',
-    ],
-  },
-  {
-    title: 'Tiêu chuẩn',
-    description: '2.800.000 đ / tháng',
-    icon: '📗',
-    items: [
-      '3 buổi / tuần (60 phút)',
-      'Học liệu nâng cao',
-      'Bài tập + Mock test',
-      'Hỗ trợ Zalo 24/7',
-      'Truy cập LMS đầy đủ',
-    ],
-  },
-  {
-    title: 'Nâng cao',
-    description: '4.500.000 đ / tháng',
-    icon: '📕',
-    items: [
-      '5 buổi / tuần (60 phút)',
-      'Học liệu chuyên sâu',
-      'Luyện đề + Mock test',
-      'Kèm 1-1 với giáo viên',
-      'Cam kết đầu ra',
-      'Gia hạn miễn phí nếu chưa đạt',
-    ],
-  },
-];
-
 interface PricingSectionProps {
   slots?: SlotData;
 }
 
 export function PricingSection({ slots }: PricingSectionProps) {
-  const plans = (slots?.plans as SlotItem[] | undefined) || DEFAULT_PLANS;
-  const featuredIndex = 1; // Tiêu chuẩn is highlighted
+  const plans = slots?.plans as SlotItem[] | undefined;
+  if (!plans || plans.length === 0) return null;
+  // Highlight the middle tier when ≥3 tiers exist; otherwise no forced highlight.
+  const featuredIndex = plans.length >= 3 ? 1 : -1;
 
   return (
     <section className="py-16">

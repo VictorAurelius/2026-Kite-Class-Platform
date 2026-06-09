@@ -45,9 +45,22 @@ export const SECTION_SLOTS: Record<SectionId, SlotDefinition[]> = {
     { id: 'tagline', type: 'text', label: 'Slogan', required: false, maxLength: 50 },
     { id: 'image', type: 'image', label: 'Ảnh hero', required: false },
     { id: 'urgency', type: 'text', label: 'Thông điệp khẩn (khai giảng/ưu đãi)', required: false, maxLength: 120 },
+    { id: 'ctaPrimaryLabel', type: 'text', label: 'Nút CTA chính (nhãn)', required: false, maxLength: 40 },
+    { id: 'ctaPrimaryHref', type: 'text', label: 'Nút CTA chính (liên kết)', required: false, maxLength: 200 },
+    { id: 'ctaSecondaryLabel', type: 'text', label: 'Nút CTA phụ (nhãn)', required: false, maxLength: 40 },
+    { id: 'ctaSecondaryHref', type: 'text', label: 'Nút CTA phụ (liên kết)', required: false, maxLength: 200 },
   ],
   stats: [
     { id: 'stats', type: 'items', label: 'Chỉ số nổi bật', required: false, maxItems: 4 },
+  ],
+  problemSolution: [
+    { id: 'items', type: 'items', label: 'Vấn đề & Giải pháp', required: false, maxItems: 6 },
+  ],
+  howItWorks: [
+    { id: 'steps', type: 'items', label: 'Cách hoạt động (3 bước)', required: false, maxItems: 5 },
+  ],
+  trustStrip: [
+    { id: 'signals', type: 'items', label: 'Tín hiệu tin cậy', required: false, maxItems: 6 },
   ],
   timeline: [
     { id: 'steps', type: 'items', label: 'Lộ trình học tập', required: false, maxItems: 6 },

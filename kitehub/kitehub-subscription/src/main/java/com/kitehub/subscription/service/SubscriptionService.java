@@ -13,6 +13,7 @@ import com.kitehub.subscription.dto.SubscriptionResponse;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.PaymentRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -139,8 +140,11 @@ public class SubscriptionService {
      */
     @Transactional(readOnly = true)
     public SubscriptionResponse getActiveSubscription(UUID instanceId) {
+        // No active subscription = not-found (bình thường cho TRIAL tenant chưa nâng cấp) → 404,
+        // KHÔNG phải 400. EntityNotFoundException map 404 qua GlobalExceptionHandler; FE treat
+        // 404 = "no active sub → tier FREE" (GAP-1079).
         Subscription subscription = subscriptionRepository.findActiveByInstanceId(instanceId)
-            .orElseThrow(() -> new IllegalArgumentException("No active subscription found for instance: " + instanceId));
+            .orElseThrow(() -> new EntityNotFoundException("No active subscription found for instance: " + instanceId));
 
         return SubscriptionResponse.fromEntity(subscription);
     }

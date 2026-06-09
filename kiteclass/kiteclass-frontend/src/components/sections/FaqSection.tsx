@@ -2,7 +2,11 @@
  * Real FAQ section (replaces the empty PlaceholderSection for `faq`).
  * Uses native <details>/<summary> so it stays a Server Component (no JS hydration
  * needed for accordion toggle) — accessible + crisp Vietnamese.
- * Falls back to demo questions when no slot data is configured.
+ *
+ * Anti-fabrication (GAP-958): renders ONLY real tenant-provided Q&A. When none
+ * are configured the section hides entirely — never asserts generic policies
+ * (free trial, class size, refund guarantee) the center may not actually offer.
+ * page.tsx emits slots.questions from the backend `faqs` array when non-empty.
  *
  * Slot shape: slots.questions = SlotItem[] where
  *   title       = question
@@ -11,45 +15,13 @@
 
 import type { SlotData, SlotItem } from '@/lib/template/slots';
 
-const DEFAULT_QUESTIONS: SlotItem[] = [
-  {
-    title: 'Học phí một khóa là bao nhiêu?',
-    description:
-      'Học phí từ 1.500.000đ/tháng tùy gói và lịch học. Có thể thanh toán theo tháng hoặc theo khóa, hỗ trợ chuyển khoản và VietQR.',
-  },
-  {
-    title: 'Có học thử miễn phí không?',
-    description:
-      'Có. Bạn được học thử 1 buổi miễn phí và làm bài kiểm tra trình độ đầu vào trước khi quyết định đăng ký.',
-  },
-  {
-    title: 'Lớp học có bao nhiêu học viên?',
-    description:
-      'Lớp nhỏ 6-8 học viên để đảm bảo mỗi bạn đều được giáo viên quan tâm sát sao. Cũng có lớp kèm 1-1 theo yêu cầu.',
-  },
-  {
-    title: 'Phụ huynh theo dõi tiến độ con như thế nào?',
-    description:
-      'Phụ huynh nhận báo cáo tiến độ định kỳ và thông báo điểm danh qua Zalo. Mọi điểm số, nhận xét đều được cập nhật minh bạch.',
-  },
-  {
-    title: 'Lịch học có linh hoạt không?',
-    description:
-      'Trung tâm mở lớp các buổi tối trong tuần và cuối tuần (Thứ Hai đến Thứ Bảy), phù hợp với học sinh đi học chính khóa ban ngày.',
-  },
-  {
-    title: 'Nếu chưa đạt mục tiêu đầu ra thì sao?',
-    description:
-      'Với các gói có cam kết đầu ra, nếu chưa đạt bạn được học lại miễn phí cho đến khi đạt mục tiêu đã cam kết.',
-  },
-];
-
 interface FaqSectionProps {
   slots?: SlotData;
 }
 
 export function FaqSection({ slots }: FaqSectionProps) {
-  const questions = (slots?.questions as SlotItem[] | undefined) || DEFAULT_QUESTIONS;
+  const questions = slots?.questions as SlotItem[] | undefined;
+  if (!questions || questions.length === 0) return null;
 
   return (
     <section className="py-16">

@@ -20,10 +20,19 @@ export const authApi = {
   },
 
   /**
-   * Logout user and invalidate refresh token.
+   * Logout user. Calls the server-side revocation endpoint (GAP-1075) to blacklist the
+   * refresh token, then the caller's `onSettled` clears local tokens. The endpoint is
+   * idempotent + fail-open, so any network/server error is swallowed here — local logout
+   * MUST always complete (the access token is stateless and expires on its own).
+   *
+   * @param refreshToken the refresh token to revoke server-side
    */
   logout: async (refreshToken: string): Promise<void> => {
-    await apiClient.post('/api/auth/logout', { refreshToken });
+    try {
+      await apiClient.post('/api/auth/logout', { refreshToken });
+    } catch {
+      // Best-effort revocation — never block local logout on a server/network error.
+    }
   },
 
   /**

@@ -21,6 +21,7 @@ Bảng này phục vụ `scripts/check-cross-layer-contract-drift.sh` heuristic 
 
 | Endpoint declaration |
 |---|
+| GET /api/v1/invoices |
 | GET /api/v1/invoices/{id} |
 | GET /api/v1/invoices/{id}/items |
 | GET /api/v1/invoices/student/{studentId} |
@@ -176,7 +177,17 @@ Single source of truth: `com.kiteclass.core.module.payment.enums.PaymentMethod` 
 
 ---
 
-## 3. Invoice endpoints (12)
+## 3. Invoice endpoints (13)
+
+### 3.0 `GET /api/v1/invoices`
+
+Liệt kê toàn bộ hoá đơn của tenant hiện tại (flat list — Owner dashboard). GAP-1069 — fix dashboard OWNER gọi flat list bị 404.
+
+- **Auth:** Bearer JWT  |  **Role:** `hasAnyRole('TEACHER','ADMIN','OWNER','PLATFORM_ADMIN')` (mirror các invoice read endpoint khác)
+- **Query params:** `?page=0&size=20&sort=createdAt,desc` (default sort `createdAt,desc`)
+- **Tenant scope:** Hibernate `tenantFilter` (`instance_id = :tenantId`) auto-apply → không leak cross-tenant
+- **Response:** `200 ApiResponse<PageResponse<InvoiceResponse>>` — paging shape `{content,page,size,totalElements,totalPages,first,last}` (xem §5.1 cho InvoiceResponse)
+- **Errors:** `401 UNAUTHENTICATED`, `403 FORBIDDEN` (role không khớp)
 
 ### 3.1 `GET /api/v1/invoices/{id}`
 

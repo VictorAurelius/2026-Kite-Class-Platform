@@ -47,7 +47,7 @@ describe('usePayments hooks', () => {
   describe('usePayment', () => {
     it('fetches payment successfully', async () => {
       (apiClient.get as ReturnType<typeof vi.fn>).mockResolvedValue({
-        data: { data: mockPayment },
+        data: mockPayment,
       });
 
       const { result } = renderHook(() => usePayment('payment-123'), {
@@ -73,7 +73,7 @@ describe('usePayments hooks', () => {
       const pendingPayment = { ...mockPayment, status: 'PENDING' };
 
       (apiClient.get as ReturnType<typeof vi.fn>).mockResolvedValue({
-        data: { data: pendingPayment },
+        data: pendingPayment,
       });
 
       const { result } = renderHook(() => usePayment('payment-123'), {
@@ -133,7 +133,7 @@ describe('usePayments hooks', () => {
       const mockHistory = [mockPayment, { ...mockPayment, id: 'payment-456' }];
 
       (apiClient.get as ReturnType<typeof vi.fn>).mockResolvedValue({
-        data: { data: mockHistory },
+        data: mockHistory,
       });
 
       const { result } = renderHook(() => usePaymentHistory('sub-123'), {
@@ -161,7 +161,7 @@ describe('usePayments hooks', () => {
       const newPayment = { ...mockPayment, id: 'new-payment' };
 
       (apiClient.post as ReturnType<typeof vi.fn>).mockResolvedValue({
-        data: { data: newPayment },
+        data: newPayment,
       });
 
       const { result } = renderHook(() => useCreatePayment(), {
@@ -210,7 +210,7 @@ describe('usePayments hooks', () => {
       const newPayment = { ...mockPayment, id: 'new-payment' };
 
       (apiClient.post as ReturnType<typeof vi.fn>).mockResolvedValue({
-        data: { data: newPayment },
+        data: newPayment,
       });
 
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');

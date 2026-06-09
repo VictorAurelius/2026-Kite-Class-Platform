@@ -7,6 +7,7 @@ import com.kiteclass.core.module.branding.entity.BrandingResource;
 import com.kiteclass.core.module.branding.entity.ResourceCategory;
 import com.kiteclass.core.module.branding.entity.ResourceType;
 import com.kiteclass.core.module.branding.repository.BrandingResourceRepository;
+import com.kiteclass.core.module.settings.repository.BrandingRepository;
 import com.kiteclass.core.module.instance.entity.FrontendInstance;
 import com.kiteclass.core.module.instance.entity.FrontendInstanceStatus;
 import com.kiteclass.core.module.instance.repository.FrontendInstanceRepository;
@@ -41,6 +42,7 @@ class BrandingDataSeederTest {
     @Mock private BrandingResourceRepository resourceRepo;
     @Mock private QualityReportRepository qualityRepo;
     @Mock private LandingPageRepository landingPageRepository;
+    @Mock private BrandingRepository brandingRepository;
     @Mock private OutboxEventWriter outbox;
     @Mock private TransactionTemplate transactionTemplate;
 
@@ -55,6 +57,7 @@ class BrandingDataSeederTest {
                 resourceRepo,
                 qualityRepo,
                 landingPageRepository,
+                brandingRepository,
                 outbox,
                 objectMapper,
                 transactionTemplate);

@@ -11,6 +11,8 @@ last_verified: 2026-06-01
 
 # GAP-811 — FE middleware host→tenant resolution
 
+> **⚠️ Implementation-location drift (2026-06-08):** Một middleware tag "GAP-811" đã được build ở **`kitehub-frontend`** (`:3001`, Wave tenant-domain-1 Bucket C) — NHƯNG deliverable đúng của gap này là **`kiteclass-frontend`** (per design `tenant-domain-landing-architecture.md` + Root Cause #1 dưới: kiteclass middleware = 0 file). User chốt 2026-06-08 (AskUserQuestion): middleware THUỘC kiteclass-frontend. → Middleware kitehub-frontend KHÔNG thỏa GAP-811; gap này **vẫn chưa done** (kiteclass middleware chưa tồn tại). Reconcile (move/re-implement + xử lý middleware kitehub-frontend + align domain) tracked: **[[GAP-1077]]**. KHÔNG flip DONE tới khi middleware đúng ở kiteclass-frontend + walk production-accurate (nip.io per `g1-browser-walk-before-flip` §3.1).
+
 ## Problem
 
 Landing public của `kiteclass-frontend` KHÔNG resolve tenant theo Host (domain/subdomain) — đang dùng mô hình **1-tenant-per-deploy** (`NEXT_PUBLIC_TENANT_ID` build-time env). Hậu quả:

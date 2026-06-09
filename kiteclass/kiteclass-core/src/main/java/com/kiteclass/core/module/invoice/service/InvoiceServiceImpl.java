@@ -3,6 +3,7 @@ package com.kiteclass.core.module.invoice.service;
 import com.kiteclass.core.common.constant.InvoiceAdjustmentType;
 import com.kiteclass.core.common.constant.InvoiceItemType;
 import com.kiteclass.core.common.constant.InvoiceStatus;
+import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.clazz.entity.Class;
@@ -172,6 +173,25 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         Page<Invoice> invoices = invoiceRepository.findByStudentIdAndDeletedFalse(studentId, pageable);
         return invoices.map(invoiceMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<InvoiceResponse> getInvoices(Pageable pageable) {
+        log.debug("Listing all invoices (tenant-scoped): pageable={}", pageable);
+
+        Page<Invoice> invoices = invoiceRepository.findAllByDeletedFalse(pageable);
+
+        List<InvoiceResponse> content = invoices.getContent()
+                .stream()
+                .map(invoiceMapper::toResponse)
+                .toList();
+
+        return PageResponse.of(
+                content,
+                invoices.getNumber(),
+                invoices.getSize(),
+                invoices.getTotalElements());
     }
 
     @Override

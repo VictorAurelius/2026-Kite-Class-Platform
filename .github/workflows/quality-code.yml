@@ -227,6 +227,48 @@ jobs:
           bash scripts/check-be-fe-url-contract.sh
 
 
+  fe-be-api-contract:
+    name: FE→BE API contract (GAP-802 #3 — FE axios/fetch method+path vs BE @Mapping)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (case A flags pre-GAP-1069 drift, case B passes post-fix)
+        run: bash scripts/tests/test-check-fe-be-api-contract.sh
+
+      - name: Detect FE→BE API drift (WARN-mode — GAP-1070)
+        run: |
+          # GAP-1070 + GAP-1069: FE calls GET /api/v1/classes (collection) but BE only
+          # exposes /api/v1/classes/{id} → 404 from browser dashboard, invisible to curl.
+          # WARN-mode (exit 0); 6 known false-positives (gateway-routed /api/auth/*,
+          # cross-service /api/platform/*, singular /api/v1/instance/config). HARD-STOP
+          # promotion deferred until FP allowlist lands.
+          bash scripts/check-fe-be-api-contract.sh
+
+
+  dashboard-shell-wrapper:
+    name: Dashboard shell-wrapper (GAP-1071 — (dashboard) page wraps shell or marked exempt)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect dashboard pages missing shell wrapper (WARN-mode — GAP-1071)
+        run: |
+          # GAP-1071: (dashboard)/**/page.tsx must wrap DashboardLayout / ParentShell /
+          # StudentMobileShell / TeacherShell / MobileShell OR carry `// shell-exempt:`
+          # marker. Missing both → bare layout (no header/sidebar/footer), invisible to
+          # curl, surfaced at G2 browser. WARN-mode (exit 0); HARD-STOP deferred.
+          bash scripts/check-dashboard-shell-wrapper.sh
+
+
   entity-mapper-consistency:
     name: Entity ↔ Migration ↔ Mapper triad drift (GAP-743)
     runs-on: [self-hosted, Linux, X64]

@@ -18,6 +18,15 @@ ALTER TABLE attendance ALTER COLUMN student_id DROP NOT NULL;
 -- 2. Replace lowercase-only status CHECK with one matching AttendanceStatus enum
 --    (UPPERCASE values + MAKEUP). App layer validates enum too (defense in depth).
 ALTER TABLE attendance DROP CONSTRAINT IF EXISTS chk_attendance_status;
+
+-- 2a. Normalize legacy lowercase status values BEFORE tightening the CHECK.
+--     V1's lowercase constraint allowed 'present|absent|late|excused'; restored/seed
+--     data may still hold lowercase rows. Without this UPPER() pass the new CHECK
+--     fails to validate on existing rows (SQLSTATE 23514) → boot crash-loop.
+--     Surfaced 2026-06-08 on kiteclass_shared (450 lowercase rows, V87 never applied).
+UPDATE attendance SET status = UPPER(status)
+    WHERE status IS NOT NULL AND status <> UPPER(status);
+
 ALTER TABLE attendance ADD CONSTRAINT chk_attendance_status
     CHECK (status IN ('PRESENT', 'ABSENT', 'LATE', 'EXCUSED', 'MAKEUP'));
 

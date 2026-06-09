@@ -82,7 +82,8 @@ export const apiClient: AxiosInstance = axios.create({
 // Request interceptor (add auth token + tenant ID)
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Add access token (sessionStorage-backed per-tab isolation, GAP-830)
+    // Add access token (tenant-scoped localStorage, GAP-1074 — cross-tab persist +
+    // per-tenant isolation; resolves THIS tab's bound tenant namespace)
     const accessToken = getAccessToken();
     if (accessToken && config.headers) {
       config.headers.Authorization = `Bearer ${accessToken}`;
@@ -92,6 +93,14 @@ apiClient.interceptors.request.use(
     const tenantId = getTenantId();
     if (tenantId && config.headers) {
       config.headers['X-Tenant-Id'] = tenantId;
+    }
+
+    // Multipart file uploads (logo/favicon/CSV import): drop the instance-default
+    // 'Content-Type: application/json' so the browser sets multipart/form-data
+    // with the correct boundary — otherwise the JSON content-type breaks BE
+    // @RequestPart parsing (GAP-1073: logo upload failed from browser, worked via curl).
+    if (config.data instanceof FormData && config.headers) {
+      delete config.headers['Content-Type'];
     }
 
     return config;

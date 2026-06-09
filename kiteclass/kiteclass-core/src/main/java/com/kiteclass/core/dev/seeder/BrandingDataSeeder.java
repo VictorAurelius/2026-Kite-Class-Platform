@@ -15,6 +15,8 @@ import com.kiteclass.core.module.marketing.entity.LandingPage;
 import com.kiteclass.core.module.marketing.repository.LandingPageRepository;
 import com.kiteclass.core.module.quality.entity.QualityReport;
 import com.kiteclass.core.module.quality.entity.QualityReportRepository;
+import com.kiteclass.core.module.settings.entity.Branding;
+import com.kiteclass.core.module.settings.repository.BrandingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -71,10 +73,47 @@ public class BrandingDataSeeder {
     static final String SKY_SECONDARY_COLOR = "#1B4965";  // xanh navy — headers/footer
     static final String SKY_ACCENT_COLOR = "#FFB703";    // vàng hổ phách — highlights
 
+    // ── Wave landing-100 Bucket G — demo-trio Branding settings seed (GAP-805) ──
+    // Three independent instructors proving plan-tier + branding variety per thesis §4.1-4.2
+    // (Hình 4.3 / 4.4). Each seeds a `Branding` settings entity (color + tagline + theme JSON)
+    // + FrontendInstance + LandingPage hero — directly, NOT via the AI wizard (FULL_AI landing
+    // persist breaks per GAP-1021). Banner assets are HTML-composed AI scenes (GAP-810) living in
+    // kiteclass-frontend/public/demo-banners/; the seed stores only the URL string.
+    // Khánh (§4.1 walkthrough tenant) reuses the existing Sky instance; Hà + Nhì are fresh tenants.
+
+    // Cô Nguyễn Thị Hà — gói Miễn phí, Toán tiểu học, tông xanh dương (template, no AI).
+    static final UUID HA_TENANT_ID = UUID.fromString("a1100000-0000-4000-a000-000000000001");
+    static final String HA_TENANT_SLUG = "co-ha-toan";
+    static final String HA_TENANT_REF = "dev-tenant-co-ha-toan";
+    static final String HA_FRONTEND_URL = "https://co-ha-toan.kite.local";
+    static final String HA_DISPLAY_NAME = "Lớp Toán cô Nguyễn Thị Hà";
+    static final String HA_TAGLINE = "Toán tiểu học vững nền tảng";
+    static final String HA_PRIMARY_COLOR = "#2563EB";    // xanh dương
+    static final String HA_SECONDARY_COLOR = "#1E40AF";
+    static final String HA_ACCENT_COLOR = "#60A5FA";
+    static final String HA_BANNER_URL = "/demo-banners/co-ha-toan.png";
+
+    // Thầy Nguyễn Đình Nhì — gói Trả phí, Hóa THCS, tông xanh lá (AI Branding).
+    static final UUID NHI_TENANT_ID = UUID.fromString("b1100000-0000-4000-a000-000000000002");
+    static final String NHI_TENANT_SLUG = "thay-nhi-hoa";
+    static final String NHI_TENANT_REF = "dev-tenant-thay-nhi-hoa";
+    static final String NHI_FRONTEND_URL = "https://thay-nhi-hoa.kite.local";
+    static final String NHI_DISPLAY_NAME = "Hóa học THCS thầy Nguyễn Đình Nhì";
+    static final String NHI_TAGLINE = "Hóa học THCS — học là hiểu";
+    static final String NHI_PRIMARY_COLOR = "#16A34A";   // xanh lá
+    static final String NHI_SECONDARY_COLOR = "#14532D";
+    static final String NHI_ACCENT_COLOR = "#4ADE80";
+    static final String NHI_BANNER_URL = "/demo-banners/thay-nhi-hoa.png";
+
+    // Cô Đỗ Lan Khánh — §4.1 walkthrough tenant; reuses the Sky instance, adds a Branding row.
+    static final String KHANH_DISPLAY_NAME = "Trung tâm cô Đỗ Lan Khánh";
+    static final String KHANH_BANNER_URL = "/demo-banners/co-khanh-phapluat.png";
+
     private final FrontendInstanceRepository instanceRepo;
     private final BrandingResourceRepository resourceRepo;
     private final QualityReportRepository qualityRepo;
     private final LandingPageRepository landingPageRepository;
+    private final BrandingRepository brandingRepository;
     private final OutboxEventWriter outbox;
     private final ObjectMapper objectMapper;
     private final TransactionTemplate transactionTemplate;
@@ -86,6 +125,159 @@ public class BrandingDataSeeder {
         // EntityPersistenceListener stamps the correct instance_id per resource.
         seedTenant(DEV_TENANT_ID, DEV_TENANT_SLUG);
         seedTenant(SKY_TENANT_ID, SKY_TENANT_SLUG);
+        // Wave landing-100 Bucket G — demo-trio Branding settings (GAP-805).
+        seedDemoTrio();
+    }
+
+    /**
+     * Seeds the demo-trio (Khánh / Hà / Nhì) so each tenant's public homepage renders
+     * a distinct branded theme + banner per thesis §4.1-4.2. Idempotent.
+     */
+    private void seedDemoTrio() {
+        seedTrioTenant(new TrioSpec(HA_TENANT_ID, HA_TENANT_SLUG, HA_TENANT_REF, HA_FRONTEND_URL,
+                HA_DISPLAY_NAME, HA_TAGLINE, HA_PRIMARY_COLOR, HA_SECONDARY_COLOR, HA_ACCENT_COLOR,
+                HA_BANNER_URL,
+                "Lấy lại căn bản môn Toán cùng cô Hà",
+                "Lộ trình Toán tiểu học bài bản, lớp nhỏ, kèm sát từng học viên.",
+                "https://zalo.me/co-ha-toan", "https://facebook.com/cohatoan"));
+        seedTrioTenant(new TrioSpec(NHI_TENANT_ID, NHI_TENANT_SLUG, NHI_TENANT_REF, NHI_FRONTEND_URL,
+                NHI_DISPLAY_NAME, NHI_TAGLINE, NHI_PRIMARY_COLOR, NHI_SECONDARY_COLOR, NHI_ACCENT_COLOR,
+                NHI_BANNER_URL,
+                "Hóa học THCS — học là hiểu cùng thầy Nhì",
+                "Khóa Hóa học THCS đầy đủ, bộ nhận diện sinh tự động bằng AI Branding.",
+                "https://zalo.me/thay-nhi-hoa", "https://facebook.com/thaynhihoa"));
+        seedKhanhBranding();
+    }
+
+    /** Immutable spec for one demo-trio tenant seed (keeps {@link #seedTrioTenant} param count sane). */
+    private record TrioSpec(UUID tenantId, String slug, String tenantRef, String frontendUrl,
+                            String displayName, String tagline,
+                            String primary, String secondary, String accent, String bannerUrl,
+                            String heroTitle, String heroSubtitle, String zaloUrl, String facebookUrl) {
+    }
+
+    /**
+     * Seeds one demo-trio tenant: DEPLOYED FrontendInstance + Branding settings row
+     * + LandingPage hero. Each step is independently idempotent (skip when present /
+     * upsert the landing) so re-running on every boot does not duplicate rows.
+     *
+     * <p>The Branding {@code instanceId} is stamped by {@code EntityPersistenceListener}
+     * from the {@link TenantContext} set by the caller — consistent with how the
+     * {@link BrandingResource} rows are seeded.
+     */
+    private void seedTrioTenant(TrioSpec spec) {
+        try {
+            TenantContext.setCurrentTenant(spec.tenantId());
+            transactionTemplate.executeWithoutResult(status -> {
+                // 1. FrontendInstance (DEPLOYED) — idempotent by slug.
+                if (!instanceRepo.existsBySlugAndDeletedFalse(spec.slug())) {
+                    FrontendInstance instance = FrontendInstance.builder()
+                            .tenantSlug(spec.tenantRef())
+                            .slug(spec.slug())
+                            .frontendUrl(spec.frontendUrl())
+                            .build();
+                    instance.transitionTo(FrontendInstanceStatus.INITIALIZING);
+                    instance.transitionTo(FrontendInstanceStatus.GENERATING);
+                    instance.transitionTo(FrontendInstanceStatus.DEPLOYED);
+                    instanceRepo.save(instance);
+                }
+                // 2. Branding settings row — idempotent by instance.
+                if (!brandingRepository.existsByInstanceIdAndDeletedFalse(spec.tenantId())) {
+                    Branding branding = new Branding();
+                    branding.setDisplayName(spec.displayName());
+                    branding.setTagline(spec.tagline());
+                    branding.setPrimaryColor(spec.primary());
+                    branding.setSecondaryColor(spec.secondary());
+                    branding.setAccentColor(spec.accent());
+                    branding.setThemeConfigJson(
+                            buildTrioThemeConfigJson(spec.displayName(), spec.tagline(),
+                                    spec.primary(), spec.secondary(), spec.accent(),
+                                    spec.zaloUrl(), spec.facebookUrl(), spec.frontendUrl()));
+                    branding.setLogoUrl(spec.bannerUrl());
+                    branding.setZaloUrl(spec.zaloUrl());
+                    branding.setFacebookUrl(spec.facebookUrl());
+                    branding.setWebsiteUrl(spec.frontendUrl());
+                    brandingRepository.save(branding);
+                }
+                // 3. LandingPage hero — upsert (lazily created on first GET otherwise, BR-MKT-001).
+                LandingPage lp = landingPageRepository.findByInstanceIdAndDeletedFalse(spec.tenantId())
+                        .orElseGet(() -> {
+                            LandingPage created = new LandingPage();
+                            created.setInstanceId(spec.tenantId());
+                            return created;
+                        });
+                lp.setHeroTitle(spec.heroTitle());
+                lp.setHeroSubtitle(spec.heroSubtitle());
+                lp.setHeroImageUrl(spec.bannerUrl());
+                lp.setTagline(spec.tagline());
+                lp.setPrimaryColor(spec.primary());
+                lp.setSecondaryColor(spec.secondary());
+                // template_type NOT NULL (DB constraint) — trio đều là GV cá nhân → "personal"
+                // ("personal" GV độc lập | "organization" trung tâm, per LandingPage entity §106).
+                if (lp.getTemplateType() == null) {
+                    lp.setTemplateType("personal");
+                }
+                landingPageRepository.save(lp);
+            });
+            log.info("Seeded demo-trio tenant (slug={}, primary={})", spec.slug(), spec.primary());
+        } finally {
+            TenantContext.clear();
+        }
+    }
+
+    /**
+     * Seeds cô Đỗ Lan Khánh's Branding settings row on the existing Sky instance
+     * (§4.1 walkthrough tenant). The Sky FrontendInstance + LandingPage are seeded
+     * elsewhere; here we only add the missing {@link Branding} settings row.
+     */
+    private void seedKhanhBranding() {
+        try {
+            TenantContext.setCurrentTenant(SKY_TENANT_ID);
+            transactionTemplate.executeWithoutResult(status -> {
+                if (brandingRepository.existsByInstanceIdAndDeletedFalse(SKY_TENANT_ID)) {
+                    return;
+                }
+                Branding branding = new Branding();
+                branding.setDisplayName(KHANH_DISPLAY_NAME);
+                branding.setTagline(SKY_TAGLINE);
+                branding.setPrimaryColor(SKY_PRIMARY_COLOR);
+                branding.setSecondaryColor(SKY_SECONDARY_COLOR);
+                branding.setAccentColor(SKY_ACCENT_COLOR);
+                branding.setThemeConfigJson(buildSkyThemeConfigJson());
+                branding.setLogoUrl(KHANH_BANNER_URL);
+                brandingRepository.save(branding);
+            });
+            log.info("Seeded Khánh (Sky) Branding settings row (instance={})", SKY_TENANT_ID);
+        } finally {
+            TenantContext.clear();
+        }
+    }
+
+    /** Builds the theme-config JSON stored in {@link Branding#getThemeConfigJson()} for a trio tenant. */
+    private String buildTrioThemeConfigJson(String displayName, String tagline,
+                                            String primary, String secondary, String accent,
+                                            String zaloUrl, String facebookUrl, String website) {
+        Map<String, Object> theme = new LinkedHashMap<>();
+        theme.put("displayName", displayName);
+        theme.put("tagline", tagline);
+
+        Map<String, String> cssVars = new LinkedHashMap<>();
+        cssVars.put("--brand-primary", primary);
+        cssVars.put("--brand-secondary", secondary);
+        cssVars.put("--brand-accent", accent);
+        theme.put("cssVars", cssVars);
+
+        Map<String, String> contact = new LinkedHashMap<>();
+        contact.put("zalo", zaloUrl);
+        contact.put("facebook", facebookUrl);
+        contact.put("website", website);
+        theme.put("contact", contact);
+
+        try {
+            return objectMapper.writeValueAsString(theme);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize demo-trio theme config", e);
+        }
     }
 
     private void seedTenant(UUID tenantId, String slug) {

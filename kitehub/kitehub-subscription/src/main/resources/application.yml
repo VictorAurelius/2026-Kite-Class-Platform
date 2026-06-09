@@ -68,6 +68,19 @@ spring:
   cache:
     type: caffeine
 
+  # GAP-1075 — Redis for refresh-token blacklist (design-canonical per
+  # service-catalog-and-auth-flow.md). The env-var fallback chain reads the
+  # Spring-Boot-3 name first, then the legacy SPRING_REDIS_HOST/PORT already set
+  # for this service in docker-compose.kitehub.yml (host kite-redis:6379), then
+  # localhost:6380 (host-mapped port) for local-outside-docker dev. Lettuce
+  # connects lazily so a Redis outage at startup does not block boot.
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:${SPRING_REDIS_HOST:localhost}}
+      port: ${SPRING_DATA_REDIS_PORT:${SPRING_REDIS_PORT:6380}}
+      timeout: 1000ms
+      connect-timeout: 1000ms
+
 # GAP-605 — outbox dispatcher poll + backoff config (Wave 91 Bucket A)
 outbox:
   dispatcher:

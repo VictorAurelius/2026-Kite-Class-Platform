@@ -18,6 +18,7 @@
 import { TrendingUp, ClipboardCheck, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MonthlyBarChart } from '@/components/reports/monthly-bar-chart';
+import { DashboardLayout } from '@/components/layout';
 import { useRevenueReport, useAttendanceReport } from '@/hooks/use-reports';
 import { useAuthStore } from '@/stores/auth-store';
 import { UserType } from '@/types/auth';
@@ -60,6 +61,7 @@ export default function ReportsPage() {
   // rely on BE 403 + error state below.
   if (user && !isAdmin) {
     return (
+      <DashboardLayout>
       <div className="container mx-auto space-y-6 py-8">
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
@@ -72,10 +74,12 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
       </div>
+      </DashboardLayout>
     );
   }
 
   return (
+    <DashboardLayout>
     <div className="container mx-auto space-y-6 py-8">
       {/* Header */}
       <div>
@@ -189,5 +193,6 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
     </div>
+    </DashboardLayout>
   );
 }

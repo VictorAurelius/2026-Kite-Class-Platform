@@ -12,28 +12,23 @@
  */
 
 import { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { publicApi } from '@/lib/api/public';
 import { ThemeSync } from '@/components/theme/ThemeSync';
 import { TemplateRenderer, type SectionSlotMap } from '@/components/sections/TemplateRenderer';
 import { getTemplate } from '@/lib/template/configs';
 import { OrganizationJsonLd } from '@/components/seo/JsonLd';
 
-export const metadata: Metadata = {
-  title: 'Trang chủ',
-  description:
-    'Hệ thống quản lý trung tâm tiếng Anh toàn diện với LMS, quản lý học viên, điểm danh tự động.',
-  openGraph: {
-    title: 'KiteClass - Quản lý Trung tâm Tiếng Anh Chuyên nghiệp',
-    description:
-      'Nền tảng quản lý toàn diện giúp tối ưu hóa vận hành trung tâm tiếng Anh.',
-    type: 'website',
-    locale: 'vi_VN',
-  },
-};
-
 const getLandingPageData = async (tenantOverride?: string) => {
   try {
+    // Resolve tenant in priority order:
+    // 1. ?tenant= dev/preview override (page-scoped searchParams)
+    // 2. x-tenant-id header injected by host→tenant middleware (GAP-811/GAP-1077)
+    // 3. NEXT_PUBLIC_TENANT_ID (1-tenant-per-deploy fallback)
+    // 4. hardcoded default tenant
+    const headerTenantId = (await headers()).get('x-tenant-id') ?? undefined;
     const tenantId: string = tenantOverride
+      ?? headerTenantId
       ?? process.env.NEXT_PUBLIC_TENANT_ID
       ?? '11111111-1111-1111-1111-111111111111';
 
@@ -41,20 +36,73 @@ const getLandingPageData = async (tenantOverride?: string) => {
     return response;
   } catch (error) {
     console.error('Failed to fetch landing page data:', error);
+    // Degraded fallback (backend unreachable). Anti-fabrication (GAP-958): NO fake
+    // contact placeholders (`1900 xxxx` / `support@kiteclass.com`). Contact is left
+    // null so contact surfaces hide rather than show a placeholder that misleads.
     return {
-      heroTitle: 'Quản lý Trung tâm Tiếng Anh Chuyên nghiệp & Hiệu quả',
-      heroSubtitle:
-        'Nền tảng quản lý toàn diện giúp tối ưu hóa vận hành trung tâm tiếng Anh với LMS, quản lý học viên, điểm danh tự động và thanh toán online.',
+      heroTitle: 'Trung tâm giáo dục',
+      heroSubtitle: undefined,
       heroImageUrl: null,
-      tagline: 'Nâng tầm giáo dục, tối ưu quản lý',
+      tagline: undefined,
       primaryColor: '#3B82F6',
       secondaryColor: '#8B5CF6',
-      contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'support@kiteclass.com',
-      contactPhone: process.env.NEXT_PUBLIC_CONTACT_PHONE || '1900 xxxx',
-      address: 'Hà Nội, Việt Nam',
+      contactEmail: undefined,
+      contactPhone: undefined,
+      address: undefined,
     };
   }
 };
+
+/**
+ * Tenant display name for the landing page. Anti-fabrication (GAP-958) + Bucket B:
+ * prefer the dedicated `centerName` field (when the backend supplies it) over the
+ * marketing `heroTitle` slogan. Falls back to heroTitle, then a neutral generic.
+ */
+function resolveCenterName(ld: Record<string, unknown>): string {
+  const centerName = typeof ld.centerName === 'string' ? ld.centerName.trim() : '';
+  const heroTitle = typeof ld.heroTitle === 'string' ? ld.heroTitle.trim() : '';
+  return centerName || heroTitle || 'Trung tâm giáo dục';
+}
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://kiteclass.com';
+
+/**
+ * Per-tenant SEO metadata (Bucket E / GAP-958). Title + description + OpenGraph
+ * derive from the tenant's own name + tagline + logo — not a hardcoded KiteClass
+ * brand. Canonical points at the tenant's own deploy URL (NEXT_PUBLIC_APP_URL).
+ */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ tenant?: string }>;
+}): Promise<Metadata> {
+  const { tenant } = await searchParams;
+  const ld = (await getLandingPageData(tenant)) as Record<string, unknown>;
+  const name = resolveCenterName(ld);
+  const tagline = typeof ld.tagline === 'string' ? ld.tagline.trim() : '';
+  const heroSubtitle = typeof ld.heroSubtitle === 'string' ? ld.heroSubtitle.trim() : '';
+  const description =
+    heroSubtitle || tagline || `${name} — đăng ký học, xem khóa học và lịch khai giảng.`;
+  const logoUrl = typeof ld.logoUrl === 'string' ? ld.logoUrl : undefined;
+
+  return {
+    title: { default: name, template: `%s | ${name}` },
+    description,
+    alternates: { canonical: APP_URL },
+    openGraph: {
+      title: name,
+      description,
+      type: 'website',
+      locale: 'vi_VN',
+      siteName: name,
+      url: APP_URL,
+      // next/og opengraph-image (per-tenant) is the primary social card; an explicit
+      // logo is added only when the tenant configured one.
+      ...(logoUrl ? { images: [{ url: logoUrl, alt: name }] } : {}),
+    },
+    twitter: { card: 'summary_large_image', title: name, description },
+  };
+}
 
 export default async function LandingPage({
   searchParams,
@@ -134,8 +182,21 @@ export default async function LandingPage({
     ? (ld.aboutText as string)
     : undefined;
 
+  // Hero CTA slots (Đợt-1 Hero slot C, wired here). Optional tenant-configured CTA
+  // labels/hrefs; when the backend doesn't supply them HeroSection falls back to its
+  // built-in real routes (/register, /catalog) — no fabricated content emitted.
+  const str = (v: unknown): string | undefined =>
+    typeof v === 'string' && v.trim() ? (v as string) : undefined;
+  const heroSlot: Record<string, string | undefined> = {
+    image: ld.heroImageUrl as string | undefined,
+    ...(str(ld.ctaPrimaryLabel) ? { ctaPrimaryLabel: str(ld.ctaPrimaryLabel) } : {}),
+    ...(str(ld.ctaPrimaryHref) ? { ctaPrimaryHref: str(ld.ctaPrimaryHref) } : {}),
+    ...(str(ld.ctaSecondaryLabel) ? { ctaSecondaryLabel: str(ld.ctaSecondaryLabel) } : {}),
+    ...(str(ld.ctaSecondaryHref) ? { ctaSecondaryHref: str(ld.ctaSecondaryHref) } : {}),
+  };
+
   const slots: SectionSlotMap = {
-    hero: { image: ld.heroImageUrl as string | undefined },
+    hero: heroSlot,
     ...(aboutText ? { about: { content: aboutText } } : {}),
     ...(teachers ? { teachers: { teachers } } : {}),
     ...(programs ? { certificates: { certificates: programs } } : {}),
@@ -148,12 +209,12 @@ export default async function LandingPage({
   return (
     <>
       <OrganizationJsonLd
-        name="KiteClass"
-        description={landingData.heroSubtitle}
-        url={process.env.NEXT_PUBLIC_APP_URL || 'https://kiteclass.com'}
+        name={resolveCenterName(ld)}
+        description={landingData.heroSubtitle || landingData.tagline || ''}
+        url={APP_URL}
         email={landingData.contactEmail}
         telephone={landingData.contactPhone}
-        address={landingData.address || 'Hà Nội'}
+        address={landingData.address}
       />
 
       <ThemeSync

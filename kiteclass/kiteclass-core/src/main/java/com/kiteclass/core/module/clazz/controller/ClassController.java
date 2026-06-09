@@ -16,6 +16,9 @@ import com.kiteclass.core.module.clazz.service.ClassService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,6 +69,42 @@ import java.util.List;
 public class ClassController {
 
     private final ClassService classService;
+
+    // =========================================================================
+    // Flat tenant-scoped list under /classes
+    // =========================================================================
+
+    /**
+     * Lists all classes for the current tenant with pagination (flat list).
+     *
+     * <p>Backs the Owner dashboard. Classified <strong>SHARED READ</strong> per the
+     * controller-level OWASP A01 note — readable by any authenticated tenant member;
+     * tenant isolation is enforced by the Hibernate {@code tenantFilter} so no
+     * cross-tenant leak is possible. Mirrors the course-scoped {@link #listClasses}.
+     *
+     * @param page page number (default 0)
+     * @param size page size (default 20)
+     * @param sort sort criteria "field,direction" (default "createdAt,desc")
+     * @return 200 OK with paginated class list scoped to the current tenant
+     */
+    @GetMapping("/api/v1/classes")
+    public ResponseEntity<ApiResponse<PageResponse<ClassResponse>>> listAllClasses(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt,desc") String sort) {
+        log.debug("GET /api/v1/classes?page={}&size={}&sort={}", page, size, sort);
+
+        // Parse "field,direction" — derived JPQL query sorts on entity property names
+        // (camelCase), so do NOT convert to snake_case.
+        String[] sortParts = sort.split(",");
+        String sortField = sortParts[0];
+        Sort.Direction direction = sortParts.length > 1 && "desc".equalsIgnoreCase(sortParts[1])
+                ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+        PageResponse<ClassResponse> response = classService.listAllClasses(pageable);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 
     // =========================================================================
     // CRUD under /courses/{courseId}/classes

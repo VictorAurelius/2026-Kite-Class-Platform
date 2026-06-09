@@ -50,10 +50,14 @@ const PERSONA_PROFILES: Record<Persona, PersonaProfile> = {
 };
 
 /**
- * Inject auth tokens for the given persona by seeding sessionStorage at an
- * about:blank document, then navigate to the persona's landing route.
+ * Inject auth tokens for the given persona by seeding storage at the app origin,
+ * then navigate to the persona's landing route.
  *
- * GAP-830: tokens + auth-storage moved to sessionStorage for per-tab isolation.
+ * GAP-1074 (supersedes GAP-830): tenant-scoped localStorage
+ * (`kc:<tenantId>:accessToken` / `:refreshToken` / `:auth-store`) resolved per-tab
+ * via `sessionStorage['kc:currentTenant']` + the `localStorage['kc:activeTenant']`
+ * pointer. Mirror what setTokens()/setAuth() persists so the zustand `persist`
+ * middleware hydrates an authenticated state on first SPA load.
  */
 export async function loginAs(page: Page, persona: Persona): Promise<void> {
   const profile = PERSONA_PROFILES[persona];
@@ -62,9 +66,11 @@ export async function loginAs(page: Page, persona: Persona): Promise<void> {
   await page.goto('/login');
   await page.evaluate(
     ({ profile, token, tenant }) => {
-      sessionStorage.setItem('accessToken', token);
-      sessionStorage.setItem('refreshToken', 'mock-refresh-token');
-      sessionStorage.setItem('tenantId', tenant);
+      // Bind this tab + the cross-tab last-login pointer (GAP-1074 bindTenant()).
+      sessionStorage.setItem('kc:currentTenant', tenant);
+      localStorage.setItem('kc:activeTenant', tenant);
+      localStorage.setItem(`kc:${tenant}:accessToken`, token);
+      localStorage.setItem(`kc:${tenant}:refreshToken`, 'mock-refresh-token');
       const authStore = {
         state: {
           user: {
@@ -81,7 +87,7 @@ export async function loginAs(page: Page, persona: Persona): Promise<void> {
         },
         version: 0,
       };
-      sessionStorage.setItem('auth-storage', JSON.stringify(authStore));
+      localStorage.setItem(`kc:${tenant}:auth-store`, JSON.stringify(authStore));
     },
     { profile, token: MOCK_TOKEN, tenant: MOCK_TENANT },
   );

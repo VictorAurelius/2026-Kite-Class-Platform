@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import type { Payment, CreatePaymentRequest, QRCodeResponse } from '@/types/payment';
-import type { ApiResponse } from '@/types/api';
 
 /**
  * Get payment by ID with auto-polling for PENDING status
@@ -12,10 +11,11 @@ export function usePayment(paymentId: string | undefined) {
   return useQuery({
     queryKey: ['payments', paymentId],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<Payment>>(
+      // BE trả bare Payment (per api-contract.md) — KHÔNG wrap ApiResponse (GAP-1079 sweep)
+      const { data } = await apiClient.get<Payment>(
         endpoints.payments.byId(paymentId!)
       );
-      return data.data;
+      return data;
     },
     enabled: !!paymentId,
     // Auto-refetch every 5s if payment is PENDING
@@ -53,10 +53,10 @@ export function usePaymentHistory(subscriptionId: string | undefined) {
   return useQuery({
     queryKey: ['payments', 'subscription', subscriptionId],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<Payment[]>>(
+      const { data } = await apiClient.get<Payment[]>(
         endpoints.payments.bySubscription(subscriptionId!)
       );
-      return data.data;
+      return data;
     },
     enabled: !!subscriptionId,
   });
@@ -71,11 +71,11 @@ export function useCreatePayment() {
 
   return useMutation({
     mutationFn: async (request: CreatePaymentRequest) => {
-      const { data } = await apiClient.post<ApiResponse<Payment>>(
+      const { data } = await apiClient.post<Payment>(
         endpoints.payments.create,
         request
       );
-      return data.data;
+      return data;
     },
     onSuccess: () => {
       // Invalidate payment queries

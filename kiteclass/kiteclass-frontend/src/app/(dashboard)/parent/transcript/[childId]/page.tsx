@@ -10,6 +10,7 @@
  * @since 2.18.0 (Wave 18b1 — GAP-321 Phase 1A)
  */
 
+// shell-exempt: full-width học bạ document/print view (max-w-5xl) with self-contained header + back-nav; ParentShell mobile 480px shell incompatible by design
 'use client';
 
 export const dynamic = 'force-dynamic';

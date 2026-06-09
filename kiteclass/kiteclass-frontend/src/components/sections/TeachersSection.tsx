@@ -1,6 +1,10 @@
 /**
- * Teachers section — displays teaching staff cards.
- * Uses default demo data until CMS slot data is available.
+ * Teachers section — displays teaching staff cards from tenant CMS data.
+ *
+ * Anti-fabrication (GAP-958): renders ONLY real tenant-provided teachers. When
+ * no teacher data is configured the section hides entirely — never invents
+ * fictitious instructors / credentials. page.tsx only emits slots.teachers when
+ * the backend returns a non-empty array.
  *
  * @since 2026-04-04
  */
@@ -9,33 +13,13 @@ import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import type { SlotData, SlotItem } from '@/lib/template/slots';
 
-const DEFAULT_TEACHERS: SlotItem[] = [
-  {
-    title: 'Nguyễn Thị Lan',
-    description: 'Tiếng Anh Giao Tiếp & IELTS',
-    icon: 'NL',
-    items: ['10 năm kinh nghiệm', 'IELTS 8.0', 'Cử nhân ĐH Ngoại ngữ HN'],
-  },
-  {
-    title: 'Trần Minh Đức',
-    description: 'TOEIC & Tiếng Anh Thương Mại',
-    icon: 'TD',
-    items: ['8 năm kinh nghiệm', 'TOEIC 990', 'Thạc sĩ ĐH Hà Nội'],
-  },
-  {
-    title: 'Phạm Thu Hà',
-    description: 'Tiếng Anh Trẻ Em & Cambridge',
-    icon: 'PH',
-    items: ['6 năm kinh nghiệm', 'Cambridge C2', 'Chứng chỉ TESOL'],
-  },
-];
-
 interface TeachersSectionProps {
   slots?: SlotData;
 }
 
 export function TeachersSection({ slots }: TeachersSectionProps) {
-  const teachers = (slots?.teachers as SlotItem[] | undefined) || DEFAULT_TEACHERS;
+  const teachers = slots?.teachers as SlotItem[] | undefined;
+  if (!teachers || teachers.length === 0) return null;
 
   return (
     <section className="py-16 bg-muted/30">

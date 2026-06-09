@@ -97,10 +97,15 @@ test.describe('GAP-759 — KC login flat auth shape contract', () => {
       timeout: 15000,
     });
 
-    // Verify sessionStorage has accessToken (set by useAuth.ts via jwt-storage facade — GAP-830)
-    const accessToken = await page.evaluate(() =>
-      sessionStorage.getItem('accessToken'),
-    );
+    // Verify the access token is persisted post-login (set by useAuth.ts via the
+    // jwt-storage facade). GAP-1074: token is tenant-scoped at
+    // `localStorage['kc:<tenantId>:accessToken']`, resolved via the `kc:activeTenant`
+    // pointer (supersedes the GAP-830 `sessionStorage['accessToken']` location).
+    const accessToken = await page.evaluate(() => {
+      const tenantId = localStorage.getItem('kc:activeTenant');
+      if (!tenantId) return null;
+      return localStorage.getItem(`kc:${tenantId}:accessToken`);
+    });
     expect(accessToken).toBeTruthy();
     expect(accessToken).toMatch(/^eyJ/); // JWT prefix
   });

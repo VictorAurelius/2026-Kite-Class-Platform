@@ -34,6 +34,20 @@ spring:
   cache:
     type: caffeine
 
+  # Redis connection for the actuator RedisHealthIndicator (spring-data-redis is on
+  # the classpath transitively). Spring Boot 3 reads spring.data.redis.* — the compose
+  # only sets the legacy SPRING_REDIS_HOST/PORT, so without this block the health check
+  # defaults to localhost:6379 and reports DOWN inside the container. Env fallback chain:
+  # SB3 name first, then the legacy SPRING_REDIS_HOST already set in compose (kite-redis),
+  # then localhost:6380 for local-outside-docker dev. (Admin caches via Caffeine; this is
+  # health-check connectivity only.)
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:${SPRING_REDIS_HOST:localhost}}
+      port: ${SPRING_DATA_REDIS_PORT:${SPRING_REDIS_PORT:6380}}
+      timeout: 1000ms
+      connect-timeout: 1000ms
+
   # GAP-237 — cross-service cache invalidation. Admin subscribes to
   # kitehub.events.exchange (TopicExchange) for instance.* / subscription.*
   # routing keys; payload arrives as JSON, gets republished as in-process

@@ -29,6 +29,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.crypto.SecretKey;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -91,6 +92,15 @@ public class AuthService {
      */
     @Autowired(required = false)
     private TenantAuditService tenantAuditService;
+
+    /**
+     * Refresh-token revocation blacklist (GAP-1075). Field-injected (not in any
+     * constructor) so legacy unit tests constructing {@link AuthService} directly stay
+     * unaffected; null in those tests, guarded in {@link #logout(String)} and
+     * {@link #refresh(String)}.
+     */
+    @Autowired(required = false)
+    private RefreshTokenBlacklistService refreshTokenBlacklistService;
 
     /** Routing key / outbox topic for the {@code tenant.created} cross-service event (GAP-945). */
     static final String TENANT_CREATED_TOPIC = "tenant.created";
@@ -670,6 +680,13 @@ public class AuthService {
                 throw new IllegalArgumentException("Invalid token type");
             }
 
+            // GAP-1075 — reject refresh tokens revoked via logout. Fail-open inside
+            // the blacklist service: a Redis outage returns false (token honored).
+            if (refreshTokenBlacklistService != null
+                    && refreshTokenBlacklistService.isBlacklisted(refreshToken)) {
+                throw new IllegalArgumentException("Refresh token has been revoked");
+            }
+
             UUID userId = UUID.fromString(claims.getSubject());
 
             User user = userRepository.findById(userId)
@@ -684,6 +701,36 @@ public class AuthService {
                 .build();
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid or expired refresh token");
+        }
+    }
+
+    /**
+     * Server-side logout (GAP-1075): revoke the supplied refresh token by adding it to the
+     * Redis blacklist for its remaining lifetime. Idempotent + fail-open — an invalid or
+     * expired token, a non-refresh token, or a Redis outage all return normally (the caller
+     * clears local tokens regardless; the access token is stateless and expires on its own).
+     *
+     * @param refreshToken the refresh token to revoke (no-op when null/blank or blacklist
+     *                     service unavailable, e.g. in legacy unit tests)
+     */
+    public void logout(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank() || refreshTokenBlacklistService == null) {
+            return;
+        }
+        try {
+            Claims claims = jwtKeyService.parse(refreshToken).getPayload();
+            if (!"refresh".equals(claims.get("type", String.class))) {
+                return; // only refresh tokens are revocable here
+            }
+            Instant expiry = (claims.getExpiration() != null)
+                ? claims.getExpiration().toInstant()
+                : Instant.now().plus(7, ChronoUnit.DAYS);
+            refreshTokenBlacklistService.blacklist(
+                refreshToken, Duration.between(Instant.now(), expiry));
+            log.info("Refresh token revoked for userId={}", claims.getSubject());
+        } catch (Exception ex) {
+            // Invalid/expired token — nothing to revoke; logout stays idempotent.
+            log.debug("Logout with non-parseable refresh token (ignored): {}", ex.getMessage());
         }
     }
 

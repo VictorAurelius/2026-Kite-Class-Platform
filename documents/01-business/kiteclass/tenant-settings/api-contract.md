@@ -11,6 +11,8 @@
 { "success": true, "data": { "id": 1, "logoUrl": "/uploads/logo.png", "faviconUrl": "/uploads/favicon.ico", "displayName": "Trung tâm ABC", "tagline": "Học mà vui", "primaryColor": "#1976D2", "secondaryColor": "#424242", "accentColor": "#FF5722", "themeConfigJson": "{...}", "contactEmail": "info@abc.edu.vn", "contactPhone": "0901234567", "address": "123 Nguyen Hue, HCM", "facebookUrl": "https://fb.com/abc", "zaloUrl": "https://zalo.me/abc", "websiteUrl": "https://abc.edu.vn" } }
 ```
 
+> **Note (GAP-1072):** `logoUrl` / `faviconUrl` được lưu dạng presigned MinIO URL (hết hạn sau 7 ngày). Mỗi lần đọc, BE tự regenerate presigned URL mới từ object key nên FE luôn nhận URL còn hạn — KHÔNG cần re-upload. Giá trị non-presigned / external giữ nguyên.
+
 ### PUT /api/v1/settings/branding
 
 **Use Case:** UC-TNT-02 | **Auth:** Bearer token | **Role:** ADMIN
