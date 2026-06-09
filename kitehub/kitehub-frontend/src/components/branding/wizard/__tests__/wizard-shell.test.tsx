@@ -24,12 +24,20 @@ import { StepIndicator } from '../StepIndicator';
 import { WelcomeStep } from '../WelcomeStep';
 import { LogoStep } from '../LogoStep';
 
-// Mock the upload hook so LogoStep tests don't hit the network
+// Shared mutable mock return for useAssets so individual LogoStep tests can
+// inject an asset library (GAP-1112 #3 picker). vi.hoisted lets the factory
+// below reference it despite vi.mock hoisting.
+const hoisted = vi.hoisted(() => ({
+  assetsReturn: { data: [] as Array<Record<string, unknown>> },
+}));
+
+// Mock the branding hooks so LogoStep tests don't hit the network
 vi.mock('@/hooks/use-branding', () => ({
   useUploadAsset: () => ({
     mutateAsync: vi.fn().mockResolvedValue({ url: 'https://cdn.test/logo.png' }),
     isPending: false,
   }),
+  useAssets: () => hoisted.assetsReturn,
 }));
 
 // Stub sonner toast so LogoStep tests don't depend on the real provider
@@ -208,6 +216,11 @@ describe('WelcomeStep — slug validation', () => {
 });
 
 describe('LogoStep — fork + validation', () => {
+  beforeEach(() => {
+    // Default: no previously-uploaded assets ⇒ picker section stays hidden.
+    hoisted.assetsReturn = { data: [] };
+  });
+
   it('switching to AI-generate fork dispatches SET_LOGO with aiLogo=true', () => {
     let state: WizardState = INITIAL_WIZARD_STATE;
     const dispatch = vi.fn((action) => {
@@ -262,5 +275,54 @@ describe('LogoStep — fork + validation', () => {
     expect(dispatch).not.toHaveBeenCalledWith(
       expect.objectContaining({ type: 'SET_LOGO' })
     );
+  });
+
+  it('asset library lists only LOGO assets; picking one dispatches SET_LOGO (GAP-1112 #3)', () => {
+    hoisted.assetsReturn = {
+      data: [
+        {
+          id: 'a1',
+          instanceId: 'inst-1',
+          type: 'LOGO',
+          url: 'https://cdn.test/prev-logo.png',
+          s3Key: 'k1',
+          createdAt: '2026-06-10T00:00:00Z',
+        },
+        {
+          id: 'a2',
+          instanceId: 'inst-1',
+          type: 'HERO',
+          url: 'https://cdn.test/hero.png',
+          s3Key: 'k2',
+          createdAt: '2026-06-10T00:00:00Z',
+        },
+      ],
+    };
+
+    let state: WizardState = INITIAL_WIZARD_STATE;
+    const dispatch = vi.fn((action) => {
+      state = wizardReducer(state, action);
+    });
+
+    render(
+      <LogoStep
+        wizardState={state}
+        dispatch={dispatch}
+        instanceId="inst-1"
+        onNext={vi.fn()}
+        onBack={vi.fn()}
+      />
+    );
+
+    // Only the LOGO asset renders a picker tile; the HERO asset is filtered out.
+    const logoTile = screen.getByTestId('wizard-logo-library-a1');
+    expect(screen.queryByTestId('wizard-logo-library-a2')).toBeNull();
+
+    fireEvent.click(logoTile);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: 'SET_LOGO',
+      url: 'https://cdn.test/prev-logo.png',
+      aiLogo: false,
+    });
   });
 });
