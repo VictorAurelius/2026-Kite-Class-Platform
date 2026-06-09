@@ -2,6 +2,7 @@ package com.kitehub.branding.wizard.service;
 
 import com.kitehub.branding.repository.BrandingJobRepository;
 import com.kitehub.branding.wizard.dto.SlugAvailabilityResponse;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,12 +26,17 @@ import static org.mockito.Mockito.when;
 class SlugAvailabilityServiceTest {
 
     private BrandingJobRepository jobRepo;
+    private JdbcTemplate jdbcTemplate;
     private SlugAvailabilityService service;
 
     @BeforeEach
     void setUp() {
         jobRepo = mock(BrandingJobRepository.class);
-        service = new SlugAvailabilityService(jobRepo);
+        // GAP-1111: default mock queryForObject(...) returns null -> instances.subdomain
+        // check evaluates "not taken", so existing org-name/reserved/format tests are
+        // unaffected. Full instances-taken coverage is a Testcontainers IT (gap AC).
+        jdbcTemplate = mock(JdbcTemplate.class);
+        service = new SlugAvailabilityService(jobRepo, jdbcTemplate);
     }
 
     @Test

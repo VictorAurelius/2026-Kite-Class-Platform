@@ -430,6 +430,11 @@ services:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
       JAVA_TOOL_OPTIONS: ${BRANDING_JAVA_OPTS:--Xmx768m -Xms384m -XX:MaxMetaspaceSize=192m -XX:MaxRAMPercentage=60}
+      # GAP-1108 #4 — env-aware deploy landing URL. Local shows a localhost preview
+      # path (?tenant= fallback on kiteclass-frontend :3000 per tenant-domain-landing
+      # §7) instead of production domain. Prod default (MockProvisioningService) =
+      # https://{slug}.kiteclass.vn (mock placeholder; real DNS/render GAP-811/1077).
+      KITEHUB_BRANDING_FRONTEND_BASE_URL_TEMPLATE: "http://localhost:3000/?tenant={slug}"
       DATABASE_URL: jdbc:postgresql://kite-postgres:5432/${POSTGRES_DB:-kitehub}
       DATABASE_USERNAME: ${POSTGRES_USER:-kitehub}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?required}

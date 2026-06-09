@@ -133,14 +133,33 @@ public interface InstanceRepository extends JpaRepository<Instance, UUID> {
     // =========================================================
     // Wave 85 Bucket D D-AC1: cursor-based (keyset) pagination
     // for instance lists >1M rows. Order fixed id ASC.
+    //
+    // GAP-1106: split the prior single `(:cursorId IS NULL OR i.id > :cursorId)`
+    // JPQL into a first-page query (no cursor param) + an after-cursor query
+    // (typed cursor param), branched by the default method below. Postgres could
+    // not infer the bind type of the untyped null `:cursorId` in the `IS NULL`
+    // position and rejected the prepared statement with 42P18 ("could not
+    // determine data type of parameter"); H2 (test) hid it. Same class as
+    // GAP-1028 (AdminAuditLogRepository) + GAP-1105 (branding lifecycle-events).
     // =========================================================
+
+    /** First keyset page of non-deleted instances (no cursor). Order id ASC. */
+    @Query("SELECT i FROM Instance i WHERE i.deleted = false ORDER BY i.id ASC")
+    List<Instance> findFirstPage(Pageable pageable);
+
+    /** Keyset page of non-deleted instances strictly AFTER {@code cursorId}. Order id ASC. */
+    @Query("SELECT i FROM Instance i WHERE i.deleted = false "
+        + "AND i.id > :cursorId ORDER BY i.id ASC")
+    List<Instance> findAfterCursorId(@Param("cursorId") UUID cursorId, Pageable pageable);
 
     /**
      * Keyset-paginate non-deleted instances starting AFTER the given cursor id.
-     * Pass {@code cursorId = null} for the first page.
+     * Pass {@code cursorId = null} for the first page. Branches to a cursor-free
+     * query when null so no untyped null param is ever bound (GAP-1106).
      */
-    @Query("SELECT i FROM Instance i WHERE i.deleted = false "
-        + "AND (:cursorId IS NULL OR i.id > :cursorId) "
-        + "ORDER BY i.id ASC")
-    List<Instance> findAfterCursor(@Param("cursorId") UUID cursorId, Pageable pageable);
+    default List<Instance> findAfterCursor(UUID cursorId, Pageable pageable) {
+        return cursorId == null
+            ? findFirstPage(pageable)
+            : findAfterCursorId(cursorId, pageable);
+    }
 }

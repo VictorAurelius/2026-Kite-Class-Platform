@@ -35,8 +35,11 @@ Bảng tổng hợp endpoint để drift detector dễ verify (`scripts/check-cr
 | /api/v1/enrollments/class/{classId} | GET | EnrollmentController |
 | /api/v1/enrollments/{id}/status | PUT | EnrollmentController |
 | /api/v1/enrollments/{id}/withdraw | PUT | EnrollmentController |
+| /api/v1/enrollments/bulk-import/template | GET | EnrollmentBulkImportController |
+| /api/v1/enrollments/bulk-import/preview | POST | EnrollmentBulkImportController |
+| /api/v1/enrollments/bulk-import/commit | POST | EnrollmentBulkImportController |
 
-Total: 22 public + 3 internal = 25 endpoints across 5 controllers.
+Total: 25 public + 3 internal = 28 endpoints across 6 controllers.
 
 ---
 
@@ -677,6 +680,84 @@ Lifecycle-critical — enroll/withdraw triggers invoice generation (event-driven
 1. Set `status = WITHDRAWN`
 2. Class capacity refund: `class.currentEnrolled -= 1` (free slot cho student khác)
 3. **Refund flow (Phase 1.5+):** Sẽ publish `EnrollmentWithdrawnEvent` → refund-request workflow (per `payment-invoice/api-contract.md` GAP-231). Wave beta-readiness-6 KHÔNG ship refund cascade — manual refund qua admin SOP.
+
+---
+
+## EnrollmentBulkImportController — `/api/v1/enrollments/bulk-import` (GAP-1104)
+
+Ghi danh nhiều học sinh vào lớp qua xlsx. Mỗi dòng resolve học sinh + lớp theo human key rồi delegate sang single-enroll flow (`EnrollmentService.enrollStudent`) — skip-and-report từng dòng. SLO tier-d.
+
+**xlsx schema (header dòng 1, lowercase):** `student_email | student_phone | class_code | tuition_amount | discount_percent | note`. Bắt buộc: `class_code` + (`student_email` HOẶC `student_phone`). Header resolve case-insensitive; cột thừa bị bỏ qua.
+
+### GET /api/v1/enrollments/bulk-import/template
+
+**Use Case:** UC-STU-10 — Tải template mẫu
+**Auth:** `Bearer JWT` (KHÔNG cần `X-Tenant-Id` — template giống nhau mọi tenant)
+**Role:** `ADMIN` / `TEACHER`
+**Produces:** `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+**Response status:** `HTTP 200 OK`
+
+Trả file xlsx attachment `mau-import-ghi-danh.xlsx` gồm sheet `GhiDanh` (header + 2 dòng ví dụ: 1 resolve theo email, 1 resolve theo phone) + sheet `HuongDan` (hướng dẫn tiếng Việt).
+
+### POST /api/v1/enrollments/bulk-import/preview
+
+**Use Case:** UC-STU-11 — Xem trước ghi danh hàng loạt (dry-run)
+**Auth:** `Bearer JWT` + `X-Tenant-Id: <uuid>`
+**Role:** `ADMIN` / `TEACHER`
+**Content-Type:** `multipart/form-data` (field `file`)
+**Response status:** `HTTP 200 OK`
+
+Parse + resolve học sinh/lớp + validate field (tuition/discount) + phát hiện trùng trong file. KHÔNG ghi DB. Lỗi nghiệp vụ (lớp đầy, đã ghi danh) chỉ kiểm tra ở commit.
+
+**Response 200:** `ApiResponse<EnrollmentBulkResult>`
+
+```json
+{
+  "success": true,
+  "message": "Xem trước xong",
+  "data": {
+    "totalRows": 50,
+    "successCount": 47,
+    "errorCount": 3,
+    "errors": [
+      { "rowNumber": 12, "field": "class_code", "message": "Không tìm thấy lớp với mã 'TOAN9X'" },
+      { "rowNumber": 18, "field": "student_email", "message": "Không tìm thấy học sinh với email 'x@y.vn'" },
+      { "rowNumber": 33, "field": "tuition_amount", "message": "Học phí (tuition_amount) là bắt buộc" }
+    ]
+  }
+}
+```
+
+**Errors inline:** truncate 10 đầu (`EnrollmentBulkResult.MAX_RETURNED_ERRORS = 10`).
+
+**Errors:**
+
+| Status | Code | Condition |
+|---|---|---|
+| 400 | `ENROLLMENT_BULK_IMPORT_PARSE_ERROR` | File thiếu header bắt buộc / corrupt |
+| 400 | `ENROLLMENT_BULK_IMPORT_EMPTY_FILE` | File rỗng |
+| 413 | `ENROLLMENT_BULK_IMPORT_ROW_LIMIT_EXCEEDED` | > 1000 dòng (BR-ENROLL-008) |
+| 415 | `ENROLLMENT_BULK_IMPORT_INVALID_FILE_TYPE` | Không phải `.xlsx` |
+
+### POST /api/v1/enrollments/bulk-import/commit
+
+**Use Case:** UC-STU-11 — Ghi danh hàng loạt
+**Auth:** `Bearer JWT` + `X-Tenant-Id: <uuid>`
+**Role:** `ADMIN` / `TEACHER`
+**Content-Type:** `multipart/form-data` (field `file`)
+**Response status:** `HTTP 201 CREATED`
+
+Mỗi dòng hợp lệ gọi `enrollStudent` (transaction riêng — BR-ENROLL-001..006 áp dụng). Dòng lỗi (resolution / field / business rule / trùng trong file) bị bỏ qua + báo cáo; dòng hợp lệ vẫn ghi danh.
+
+**Response 201:** `ApiResponse<EnrollmentBulkResult>` (cùng shape preview). Lỗi nghiệp vụ map sang message dòng:
+
+| BE code (enrollStudent) | Message dòng |
+|---|---|
+| `ENROLLMENT_DUPLICATE` | Học sinh đã được ghi danh trong lớp này |
+| `CLASS_FULL` | Lớp đã đầy (đạt sĩ số tối đa) |
+| `CLASS_NOT_ENROLLABLE` | Lớp không thể ghi danh (đã hoàn thành hoặc đã hủy) |
+
+**Note:** Không có `jobId` (khác student bulk-import) — không persist job row; mỗi dòng là 1 single-enroll transaction.
 
 ---
 

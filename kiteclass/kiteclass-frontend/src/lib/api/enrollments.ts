@@ -6,10 +6,30 @@
  */
 
 import { apiClient } from '@/lib/api-client';
-import type { Enrollment, EnrollmentSearchParams, EnrollmentStatus } from '@/types/enrollment';
+import type {
+  CreateEnrollmentRequest,
+  Enrollment,
+  EnrollmentSearchParams,
+  EnrollmentStatus,
+} from '@/types/enrollment';
 import type { ApiResponse, PaginatedResponse } from '@/types/api';
 
 export const enrollmentsApi = {
+  /**
+   * Enroll a single student into a class.
+   *
+   * POST /api/v1/enrollments
+   */
+  createEnrollment: async (
+    req: CreateEnrollmentRequest
+  ): Promise<Enrollment> => {
+    const response = await apiClient.post<ApiResponse<Enrollment>>(
+      '/api/v1/enrollments',
+      req
+    );
+    return response.data.data!;
+  },
+
   /**
    * Get enrollments by class ID.
    *

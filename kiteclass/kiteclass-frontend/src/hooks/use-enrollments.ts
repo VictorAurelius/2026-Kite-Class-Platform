@@ -7,9 +7,13 @@
 
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { enrollmentsApi } from '@/lib/api/enrollments';
-import type { EnrollmentSearchParams, EnrollmentStatus } from '@/types/enrollment';
+import type {
+  CreateEnrollmentRequest,
+  EnrollmentSearchParams,
+  EnrollmentStatus,
+} from '@/types/enrollment';
 
 const ENROLLMENTS_QUERY_KEY = 'enrollments';
 
@@ -38,5 +42,23 @@ export function useActiveEnrollmentsByClass(
     queryKey: [ENROLLMENTS_QUERY_KEY, 'class', classId, 'ACTIVE', params],
     queryFn: () => enrollmentsApi.getEnrollmentsByClassAndStatus(classId, 'ACTIVE' as EnrollmentStatus, params),
     enabled: !!classId,
+  });
+}
+
+/**
+ * Enroll a single student into a class (GAP-1103).
+ *
+ * On success, invalidates the enrollment queries so the class roster + attendance
+ * views refresh. Callers should surface success/error toasts (the dialog does).
+ */
+export function useCreateEnrollment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (req: CreateEnrollmentRequest) => enrollmentsApi.createEnrollment(req),
+    onSuccess: () => {
+      // Refresh roster + active-enrollment lists for the class.
+      queryClient.invalidateQueries({ queryKey: [ENROLLMENTS_QUERY_KEY] });
+    },
   });
 }
