@@ -54,7 +54,7 @@ Walk wizard AI Branding Step 6 (Phê duyệt) → deploy → xác nhận:
 ### Bước 2 — Step 6 Phê duyệt → bấm Deploy
 - **Hành động**: ở Step 6, bấm nút **Phê duyệt / Triển khai**.
 - **✅ Kỳ vọng**:
-  - Network: `GET /api/v1/branding/instances/{id}/deploy-stream?token=...` mở **EventSource 200** (tới gateway `:9000`, KHÔNG 404 trên `:3001`) — đây là fix GAP-1105 (absolute URL).
+  - Network: `GET /api/v1/branding/jobs/{jobId}/deploy-stream?token=...` mở **EventSource 200** (tới gateway `:9000`, KHÔNG 404 trên `:3001`) — đây là fix GAP-1105 (absolute URL). Lưu ý: SSE stream keyed bằng **jobId** (KHÔNG phải instanceId); chỉ `deploy-status` endpoint mới keyed bằng instanceId.
   - UI "Tiến trình triển khai" hiển thị progress + history các bước (KHÔNG kẹt, KHÔNG hiện jobId thay instanceId).
 - **⚠️ Sad path (canh kỹ — đây là bug cũ)**:
   - `STREAM_DISCONNECTED` ngay khi connect → fix GAP-1105 chưa ăn (kiểm tra Network: URL deploy-stream phải là `:9000` không phải `:3001`).
