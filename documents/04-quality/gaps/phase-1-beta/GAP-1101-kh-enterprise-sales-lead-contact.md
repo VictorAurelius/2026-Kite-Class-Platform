@@ -33,7 +33,7 @@ sales (chủ trung tâm → KiteHub sales về gói Enterprise SaaS). KHÔNG tá
 Full-stack KH-side sales-lead:
 
 - **BE (kitehub-subscription)** — theo precedent BetaAccessRequest + FeedbackSubmission
-  (public unauthenticated POST-and-persist): entity `SalesLead` + Flyway V68 +
+  (public unauthenticated POST-and-persist): entity `SalesLead` + Flyway V69 +
   `CreateSalesLeadRequest`/`SalesLeadResponse` DTO + `SalesLeadService` +
   `SalesLeadRepository` + `SalesLeadController` (`POST /api/platform/sales-leads`,
   PUBLIC, bean-validation + honeypot spam guard + XSS regex `[^<>&]` giữ dấu tiếng Việt).
@@ -49,7 +49,7 @@ Full-stack KH-side sales-lead:
 ## Acceptance Criteria
 
 - [x] `POST /api/platform/sales-leads` PUBLIC (no JWT) — gateway route + filter whitelist + SecurityConfig permitAll
-- [x] Entity-Migration-Mapper triad atomic: `SalesLead` + V68 migration + DTO (per design-patterns.md §3.12)
+- [x] Entity-Migration-Mapper triad atomic: `SalesLead` + V69 migration + DTO (per design-patterns.md §3.12)
 - [x] BE validation: @NotBlank/@Email/phone pattern + honeypot @Size(max=0) + XSS `[^<>&]` (giữ dấu tiếng Việt per vn-localization §5)
 - [x] FE `/contact` route render (server-side searchParams → no Suspense bailout)
 - [x] 2 CTA fix: PricingContent `/contact?plan=enterprise` + TierSelector navigate (no alert / no kiteclass.com)
