@@ -1,4 +1,4 @@
-# GAP-1111: DB schema-reference KiteClass thiếu cluster LMS (course_modules / lessons / learning_resources / lesson_progress)
+# GAP-1120: DB schema-reference KiteClass thiếu cluster LMS (course_modules / lessons / learning_resources / lesson_progress)
 
 **Status:** 🟢 DONE
 **Priority:** 🟠 P1
@@ -21,14 +21,14 @@ Tạo cluster doc thứ 9 `09-lms.md` theo đúng cấu trúc các cluster hiệ
 ## Acceptance Criteria
 
 - [x] Tạo `documents/02-architecture/database/kiteclass/09-lms.md` đầy đủ 4 bảng theo cấu trúc cluster chuẩn (ERD Mermaid erDiagram + bảng cột từ V79 + anomalies + liên kết)
-- [x] Document trung thực trạng thái RLS: `instance_id NOT NULL` + Hibernate `@Filter("tenantFilter")` code-level CÓ, nhưng RLS DB-level THIẾU (cross-ref GAP-1112 + anomaly A)
+- [x] Document trung thực trạng thái RLS: `instance_id NOT NULL` + Hibernate `@Filter("tenantFilter")` code-level CÓ, nhưng RLS DB-level THIẾU (cross-ref GAP-1121 + anomaly A)
 - [x] README cluster index synced: thêm dòng `[09-lms.md] | LMS / Nội dung học tập`; sửa "~65 bảng, 8 cluster" → "~67 bảng, 9 cluster" (đếm thực tế)
 
 ## Related
 
 - Discovered in: PR `feature/gap-1111-lms-db-doc-cluster` (cluster DB docs audit 2026-06-10)
 - Cluster doc tạo: `documents/02-architecture/database/kiteclass/09-lms.md`
-- RLS fix đang tiến hành (anomaly A): **GAP-1112** (enable RLS DB-level cho cụm LMS V79)
+- RLS fix đang tiến hành (anomaly A): **GAP-1121** (enable RLS DB-level cho cụm LMS V79)
 - FE LMS headless (defer): **GAP-1113**
 - Schema source: `kiteclass/kiteclass-core/src/main/resources/db/migration/V79__entity_schema_sync.sql` (dòng ~445-527) + `module/lms/entity/*.java`
 - Business rules: `documents/01-business/kiteclass/lms/rules.md` (BR-LMS-001..020)

@@ -8,7 +8,7 @@ last-reviewed: 2026-06-02
 
 # KiteClass Database — Schema Reference
 
-Database `kiteclass` (multi-tenant domain) — sở hữu migration bởi `kiteclass-core`. ~67 bảng tenant-scoped (`instance_id` + RLS FORCED per V58 — **trừ cụm LMS tạo ở V79 chưa enable RLS DB-level**, xem [`09-lms.md`](09-lms.md) anomaly A + GAP-1112), 9 cluster. Xem [README gốc](../README.md) cho quy ước chung + multi-tenant overview.
+Database `kiteclass` (multi-tenant domain) — sở hữu migration bởi `kiteclass-core`. ~67 bảng tenant-scoped (`instance_id` + RLS FORCED per V58 — **trừ cụm LMS tạo ở V79 chưa enable RLS DB-level**, xem [`09-lms.md`](09-lms.md) anomaly A + GAP-1121), 9 cluster. Xem [README gốc](../README.md) cho quy ước chung + multi-tenant overview.
 
 ## Cluster index
 

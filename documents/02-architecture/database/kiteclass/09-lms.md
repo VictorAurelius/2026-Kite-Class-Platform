@@ -9,7 +9,7 @@ last-reviewed: 2026-06-10
 
 > **TL;DR** — Cụm 4 bảng LMS (Learning Management System) của `kiteclass-core` — nội dung học tập có cấu trúc phân cấp **Course > Module > Lesson**, kèm tài nguyên đính kèm và theo dõi tiến độ học sinh. `course_modules` nhóm bài học trong 1 khóa; `lessons` là đơn vị nội dung (text/video) có cờ `is_trial` cho guest preview (BR-LMS-001); `learning_resources` lưu file đính kèm theo bài học; `lesson_progress` theo dõi tiến độ per-(user, lesson). Toàn bộ 4 bảng tạo ở migration **V79** (`V79__entity_schema_sync.sql` dòng ~445-527) — born sau V73 nên `created_by`/`updated_by` đã là UUID ngay từ đầu (không qua sweep BIGINT→UUID như các cụm cũ).
 >
-> ✅ **RLS (anomaly A):** cả 4 bảng có `instance_id NOT NULL` + **phòng thủ 2 lớp đầy đủ**: (1) Hibernate `@Filter("tenantFilter")` (kế thừa `BaseEntity`) ở tầng ORM + (2) **RLS DB-level ĐÃ bật** — `ENABLE`+`FORCE ROW LEVEL SECURITY` + policy `tenant_isolation` áp qua khối `DO $$` cuối **V79** (dòng 577-613, loop mảng bảng gồm cả 4 bảng cụm này). Policy theo pattern hardened V59 (admin-bypass `app.is_platform_admin` + NULL force-fail `NULLIF(...)`). Xem anomaly A bên dưới. **GAP-1112** = regression-guard IT (test profile dùng `ddl-auto=create-drop` nên RLS của V79 không chạy trong test → bổ sung Testcontainers IT verify isolation).
+> ✅ **RLS (anomaly A):** cả 4 bảng có `instance_id NOT NULL` + **phòng thủ 2 lớp đầy đủ**: (1) Hibernate `@Filter("tenantFilter")` (kế thừa `BaseEntity`) ở tầng ORM + (2) **RLS DB-level ĐÃ bật** — `ENABLE`+`FORCE ROW LEVEL SECURITY` + policy `tenant_isolation` áp qua khối `DO $$` cuối **V79** (dòng 577-613, loop mảng bảng gồm cả 4 bảng cụm này). Policy theo pattern hardened V59 (admin-bypass `app.is_platform_admin` + NULL force-fail `NULLIF(...)`). Xem anomaly A bên dưới. **GAP-1121** = regression-guard IT (test profile dùng `ddl-auto=create-drop` nên RLS của V79 không chạy trong test → bổ sung Testcontainers IT verify isolation).
 >
 > Backend LMS đầy đủ: 4 entity (`module/lms/entity/*`), 2 controller (`LmsController` + `LessonProgressController`, 15 endpoint), service layer. **Frontend chưa có consumer** (FE LMS headless) — xem **GAP-1113**.
 
@@ -246,7 +246,7 @@ V58/V59 dùng danh sách bảng tĩnh; 4 bảng LMS tạo SAU ở V79 nên khôn
 
 Policy `tenant_isolation` theo **pattern hardened V59**: `USING/WITH CHECK (COALESCE(current_setting('app.is_platform_admin',true)::boolean,false) OR instance_id = NULLIF(current_setting('app.current_tenant_id',true),'')::uuid)` — admin-bypass + NULL force-fail (NULL tenant → 0 rows). Sweep toàn migration: chỉ V79 chạm 4 bảng, không migration sau gỡ RLS.
 
-→ **Residual gap (GAP-1112):** test profile dùng `ddl-auto=create-drop` (Flyway OFF) nên RLS của V79 KHÔNG chạy trong test → backstop DB chưa được verify. GAP-1112 bổ sung Testcontainers IT (`LmsRlsIsolationIT`) áp policy + assert cross-tenant isolation + NULL force-fail. Mức P2 test-hygiene (không phải security gap — RLS đã hiện diện ở production).
+→ **Residual gap (GAP-1121):** test profile dùng `ddl-auto=create-drop` (Flyway OFF) nên RLS của V79 KHÔNG chạy trong test → backstop DB chưa được verify. GAP-1121 bổ sung Testcontainers IT (`LmsRlsIsolationIT`) áp policy + assert cross-tenant isolation + NULL force-fail. Mức P2 test-hygiene (không phải security gap — RLS đã hiện diện ở production).
 
 ### B. `lesson_progress.completed_at` — entity `LocalDateTime` vs cột `TIMESTAMPTZ`
 
@@ -284,5 +284,5 @@ Khác các cụm cũ (cluster 01/02/03 phải sweep `created_by`/`updated_by` BI
 - [Bản đồ kiến trúc database toàn dự án](../../database-architecture-map.md)
 - Business rules LMS: [`documents/01-business/kiteclass/lms/rules.md`](../../../01-business/kiteclass/lms/rules.md) (BR-LMS-001..020)
 - Cụm liên quan: [`01-academic-structure.md`](01-academic-structure.md) (`courses` — FK target), [`03-attendance-grading.md`](03-attendance-grading.md) (anomaly J RLS class + anomaly E/F actor/timestamp class)
-- RLS regression-guard test: **GAP-1112** (Testcontainers IT — RLS đã có sẵn từ V79)
+- RLS regression-guard test: **GAP-1121** (Testcontainers IT — RLS đã có sẵn từ V79)
 - FE LMS headless (defer): **GAP-1113**

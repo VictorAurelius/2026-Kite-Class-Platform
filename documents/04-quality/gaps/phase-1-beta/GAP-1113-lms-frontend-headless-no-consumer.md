@@ -25,7 +25,7 @@ Build FE LMS theo 2 increment (tách theo dependency auth):
 
 ### Prerequisites BẮT BUỘC (trước khi scope/build)
 
-1. **GAP-1112 (RLS) merge trước khi đưa LMS lên production** — cụm LMS V79 chưa bật RLS DB-level; build FE consumer mà chưa fix RLS → tăng surface cross-tenant leak khi có traffic thật.
+1. **GAP-1121 (RLS) merge trước khi đưa LMS lên production** — cụm LMS V79 chưa bật RLS DB-level; build FE consumer mà chưa fix RLS → tăng surface cross-tenant leak khi có traffic thật.
 2. **Student-auth KC-9** cho Increment B — student consumption không build được cho tới khi student-auth flow hoàn chỉnh.
 3. **Outside-in persona audit (student / teacher) TRƯỚC khi scope FE** — per `.claude/rules/outside-in-coverage-trigger.md`: chạy persona simulation (giáo viên authoring + học sinh học) để bắt gap UX/kỳ vọng trước khi lock scope FE, không build inside-out thuần.
 
@@ -35,14 +35,14 @@ Build FE LMS theo 2 increment (tách theo dependency auth):
 - [ ] Increment A (teacher-authoring + guest preview/trial): UI tiêu thụ teacher CRUD + course-structure + trial lesson endpoints
 - [ ] Increment B (student consumption): UI complete lesson + progress — sau khi KC-9 student-auth unblock
 - [ ] Outside-in persona audit (student/teacher) chạy TRƯỚC khi lock scope FE
-- [ ] GAP-1112 RLS merged trước khi LMS FE lên production
+- [ ] GAP-1121 RLS merged trước khi LMS FE lên production
 
 ## Related
 
 - Discovered in: PR `feature/gap-1111-lms-db-doc-cluster` (cluster DB docs audit 2026-06-10)
 - BE endpoints: `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/lms/controller/LmsController.java` (12) + `LessonProgressController.java` (3)
 - Business rules: `documents/01-business/kiteclass/lms/rules.md` (BR-LMS-001..020)
-- Schema cluster: `documents/02-architecture/database/kiteclass/09-lms.md` (GAP-1111)
-- Prereq RLS: **GAP-1112** (enable RLS DB-level cụm LMS) — merge trước production
+- Schema cluster: `documents/02-architecture/database/kiteclass/09-lms.md` (GAP-1120)
+- Prereq RLS: **GAP-1121** (enable RLS DB-level cụm LMS) — merge trước production
 - Prereq student-auth: **KC-9** (student-auth flow) — chặn Increment B
 - Outside-in rule: `.claude/rules/outside-in-coverage-trigger.md` (persona audit trước scope)
