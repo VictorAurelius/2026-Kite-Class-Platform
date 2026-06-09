@@ -212,6 +212,11 @@ public class BrandingDataSeeder {
                 lp.setTagline(spec.tagline());
                 lp.setPrimaryColor(spec.primary());
                 lp.setSecondaryColor(spec.secondary());
+                // template_type NOT NULL (DB constraint) — trio đều là GV cá nhân → "personal"
+                // ("personal" GV độc lập | "organization" trung tâm, per LandingPage entity §106).
+                if (lp.getTemplateType() == null) {
+                    lp.setTemplateType("personal");
+                }
                 landingPageRepository.save(lp);
             });
             log.info("Seeded demo-trio tenant (slug={}, primary={})", spec.slug(), spec.primary());
