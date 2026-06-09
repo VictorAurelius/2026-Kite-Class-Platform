@@ -16,6 +16,34 @@ version: 1.0 (Wave meta-6 Bucket A MVP — GAP-772 + GAP-782 retroactive 3-layer
 
 ---
 
+## 0. ⚠️ Implementation Status & Provisioning Split (GAP-1123, 2026-06-10)
+
+> **Cảnh báo doc-vs-code:** Document v1.0 này mô tả luồng staff-invitation **KC-native 3-role** (STAFF/TEACHER/MANAGER). Verify `origin/main` 2026-06-10 (design-first):
+> - V71 `staff_invitations` table **CÓ** seeded (`kiteclass-core/.../db/migration/V71__create_staff_invitations.sql`).
+> - KC `module/staff/` Java (entity/service/controller) **CHƯA tồn tại** → luồng KC 3-role ở doc này là **PLANNED/aspirational**, chưa ship.
+> - **Production invite hiện tại = KiteHub-side, 2-role MVP (OWNER + STAFF):** `kitehub-subscription/staff/` — `CreateStaffInvitationRequest` chỉ `email`+`fullName` (KHÔNG có `role`); `StaffInvitationResponse.role` = `"STAFF"` cứng. Canonical doc = **`documents/01-business/roles/`** (KHÔNG phải doc này). GAP-784 (DONE) confirm FE read-only STAFF, BE không nhận `role` param — multi-role là Phase 2+ scope **có chủ đích**.
+> - BR-STAFF-INVITE-003 (role 3-value) + các "Source code: `module/staff/`" reference bên dưới mô tả **planned KC design**, đọc với lưu ý này tới khi KC invite được build.
+
+### Provisioning split canonical (per `kitehub-kiteclass-boundary.md` §2 + tenant-auth split)
+
+```mermaid
+flowchart TD
+    Owner([Owner mời người mới]) --> Q{Role?}
+    Q -->|STAFF| KH["KiteHub :3001 — kitehub-subscription/staff<br/>StaffInvitation → KH user, auth /api/v1/auth/**<br/>✅ SHIPPED 2-role MVP"]
+    Q -->|TEACHER| KCT["KiteClass :3000 — auth_credentials entity_type=TEACHER<br/>hiện = admin-set-password thủ công<br/>⚠️ email-invite self-serve CHƯA có → GAP-1124"]
+    Q -->|PARENT| KCP["KiteClass :3000 — ParentInvitationServiceImpl<br/>single invite + student linkage ✅"]
+    Q -->|MANAGER| Defer["⏸ defer Phase 2 — BR-ROLE-005 cohort P3"]
+    Q -->|OWNER| NA["❌ không invite-able — single-owner-per-tenant"]
+    KH -.cross-product SSO RBAC-Shell Bucket C.-> Shell["KC owner-shell surface cả 2 entry-point<br/>owner không cảm nhận split"]
+    KCT -.-> Shell
+```
+
+**Ranh giới then chốt:** STAFF/OWNER auth ở **KiteHub** (`auth_credentials` KC có `CHECK ∈ {PARENT,TEACHER,STUDENT}` → KHÔNG chứa STAFF/OWNER). TEACHER/PARENT/STUDENT auth ở **KiteClass** (tenant-auth Option B). Mọi redesign invite phải tôn trọng ranh giới này.
+
+**Redesign invite (teacher email-invite self-serve + bulk) = wave riêng, CHỜ user quyết** Q-A..Q-D trong `documents/03-planning/plans/invite-flow-redesign-discussion-2026-06-09.md` (RECOMMEND Option 1). Feature gaps: GAP-1124 (teacher-invite), GAP-1125 (bulk-invite).
+
+---
+
 ## 1. Scope
 
 Wave meta-6 Bucket A MVP ship token-based staff onboarding flow:

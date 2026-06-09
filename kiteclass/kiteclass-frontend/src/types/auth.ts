@@ -14,6 +14,10 @@ export interface User {
 }
 
 export enum UserType {
+  // OWNER = tenant top role (KiteHub subscription / @PreAuthorize 'OWNER'). Added
+  // Wave RBAC-Shell 1 Bucket A (GAP-1122) to close the role-name parity gap — the
+  // FE enum previously omitted OWNER even though BE uses it as the top role.
+  OWNER = 'OWNER',
   ADMIN = 'ADMIN',
   STAFF = 'STAFF',
   TEACHER = 'TEACHER',

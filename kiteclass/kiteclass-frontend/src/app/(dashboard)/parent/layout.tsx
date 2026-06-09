@@ -1,27 +1,20 @@
 /**
  * Parent portal route-group layout — persona guard cho /parent/* tree.
  *
- * Wave 758 — GAP-758: previously parent guard chỉ ở page.tsx root level
- * (`(dashboard)/parent/page.tsx`). Sibling routes `/parent/billing`,
- * `/parent/attendance`, `/parent/grades`, `/parent/settings` không có
- * persona guard → Owner JWT (per GAP-725 architectural — KH issues
- * `user.role` không có `user.userType` field) bypass guard via undefined
- * userType → page renders broken state.
+ * Wave 758 — GAP-758: parent guard moved to layout level so sibling routes
+ * (`/parent/billing`, `/parent/attendance`, `/parent/grades`, `/parent/settings`)
+ * are all guarded, not just `/parent` root.
  *
- * Fix: layout-level explicit PARENT-only REQUIRE bounces non-Parent
- * (including undefined-userType Owner JWT) back to /dashboard. Mirrors
- * sibling pattern in `(dashboard)/student/layout.tsx`.
+ * Wave RBAC-Shell 1 Bucket A (GAP-1122): the inline PARENT-only check is replaced
+ * by the shared {@link RoleGuard}. A non-parent (incl. undefined-userType Owner
+ * JWT per GAP-725) now bounces to its OWN role-home instead of a hardcoded
+ * `/dashboard`. Long-term auth fix: GAP-725 Phase 2.
  *
- * Long-term architectural fix: GAP-725 Phase 2 (KC Parent auth path
- * issuing JWT với `userType: PARENT` field).
- *
- * @since Wave 758 (GAP-758)
+ * @since Wave 758 (GAP-758); Wave RBAC-Shell 1 RoleGuard
  */
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/auth-store';
+import { RoleGuard } from '@/components/auth/role-guard';
 import { UserType } from '@/types/auth';
 
 export default function ParentLayout({
@@ -29,19 +22,5 @@ export default function ParentLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-  const userType = useAuthStore((state) => state.user?.userType);
-
-  useEffect(() => {
-    // Explicit PARENT REQUIRE — undefined userType (Owner JWT) bounces too.
-    if (userType !== UserType.PARENT) {
-      router.replace('/dashboard');
-    }
-  }, [userType, router]);
-
-  if (userType !== UserType.PARENT) {
-    return null;
-  }
-
-  return <>{children}</>;
+  return <RoleGuard allow={[UserType.PARENT]}>{children}</RoleGuard>;
 }
