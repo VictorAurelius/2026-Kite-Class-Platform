@@ -83,8 +83,6 @@ public class SubscriptionEventEmitter {
             .payload(payload)
             .createdAt(LocalDateTime.now())
             .build();
-        outboxRepository.save(event);
-        log.debug("Outbox event queued: {} for instance {}", eventType, instanceId);
 
         // Best-effort fast-path — outbox is the reliability net.
         // Pattern lifted từ EmailServiceClient.publishToQueue — see design-patterns.md §3.5.1.
@@ -96,6 +94,7 @@ public class SubscriptionEventEmitter {
         // with `MismatchedInputException: Cannot construct EmailEvent ... from String`.
         // Build the AMQP Message manually with the raw UTF-8 bytes + Content-Type so the
         // converter passes through and consumers see the JSON object directly.
+        boolean fastPathDelivered = false;
         if (rabbitTemplate != null) {
             try {
                 MessageProperties props = new MessageProperties();
@@ -103,12 +102,28 @@ public class SubscriptionEventEmitter {
                 props.setContentEncoding(StandardCharsets.UTF_8.name());
                 Message msg = new Message(payload.getBytes(StandardCharsets.UTF_8), props);
                 rabbitTemplate.send(EmailQueueConfig.EMAIL_EXCHANGE, topic, msg);
+                fastPathDelivered = true;
                 log.debug("Fast-path publish OK: eventType={} topic={}", eventType, topic);
             } catch (Exception ex) {
                 log.warn("Fast-path publish failed (eventType={} topic={}) — dispatcher will retry: {}",
                     eventType, topic, ex.getMessage());
             }
         }
+
+        // GAP-1085 (2026-06-09): when the fast-path delivered, stamp dispatchedAt so the
+        // SubscriptionOutboxDispatcher reliability-net poll (`dispatched_at IS NULL`) does
+        // NOT republish the SAME event — otherwise every email reaches the consumer twice
+        // (fast-path now + dispatcher ~10s later). The consumer-side EmailIdempotencyGuard
+        // is a safety net, not the primary barrier; this stamp eliminates the structural
+        // double-publish on the happy path. When the fast-path failed (RMQ down), dispatchedAt
+        // stays null so the dispatcher retries when the broker recovers. Single save() carries
+        // the final state (avoids a second managed-entity save under assigned-ID merge semantics).
+        if (fastPathDelivered) {
+            event.setDispatchedAt(LocalDateTime.now());
+        }
+        outboxRepository.save(event);
+        log.debug("Outbox event queued: {} for instance {} (fastPathDelivered={})",
+            eventType, instanceId, fastPathDelivered);
     }
 
     /** JSON-escape helper for inline payload composition. */

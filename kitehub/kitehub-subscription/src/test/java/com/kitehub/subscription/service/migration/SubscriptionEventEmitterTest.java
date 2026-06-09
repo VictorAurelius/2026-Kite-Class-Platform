@@ -131,6 +131,34 @@ class SubscriptionEventEmitterTest {
     }
 
     @Test
+    @DisplayName("emit fast-path success marks dispatchedAt so dispatcher does NOT republish (GAP-1085)")
+    void emit_fast_path_success_marks_dispatched_to_prevent_double_publish() {
+        // rabbitTemplate.send is a no-op mock → fast-path "succeeds".
+        emitter.emit(instance, "EMAIL_QUEUED", "email.send", "{\"to\":\"x@y.com\"}");
+
+        ArgumentCaptor<SubscriptionOutboxEvent> captor = ArgumentCaptor.forClass(SubscriptionOutboxEvent.class);
+        verify(outboxRepository).save(captor.capture());
+        // dispatchedAt set → SubscriptionOutboxDispatcher.findByDispatchedAtIsNull skips the row,
+        // so the consumer receives the email exactly once (no double-publish).
+        assertThat(captor.getValue().getDispatchedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("emit fast-path failure leaves dispatchedAt null so dispatcher retries (GAP-1085)")
+    void emit_fast_path_failure_leaves_dispatched_null_for_retry() {
+        doThrow(new AmqpException("broker down"))
+            .when(rabbitTemplate).send(anyString(), anyString(), any(Message.class));
+
+        emitter.emit(instance, "EMAIL_QUEUED", "email.send", "{\"to\":\"x@y.com\"}");
+
+        ArgumentCaptor<SubscriptionOutboxEvent> captor = ArgumentCaptor.forClass(SubscriptionOutboxEvent.class);
+        verify(outboxRepository).save(captor.capture());
+        // Fast-path failed → row stays NULL so the dispatcher reliability-net republishes
+        // when the broker recovers.
+        assertThat(captor.getValue().getDispatchedAt()).isNull();
+    }
+
+    @Test
     void escape_null_returns_empty_string() {
         assertThat(SubscriptionEventEmitter.escape(null)).isEmpty();
     }

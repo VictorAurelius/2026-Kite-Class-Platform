@@ -582,13 +582,16 @@ public class EmailServiceClient {
         try {
             EmailRequest request = EmailRequest.builder()
                 .to(to)
-                .subject("Subscription đã kích hoạt - " + organizationName)
+                // GAP-1086 (2026-06-09): subject was English "Subscription đã kích hoạt"
+                // (VN-localization violation) + dashboardUrl pointed at the wrong domain
+                // kitehub.vn. Canonical Phase 1 BETA domain is kitehub.me.
+                .subject("Gói đăng ký đã kích hoạt - " + organizationName)
                 .templateName("subscription-created")
                 .variables(Map.of(
                     "organizationName", organizationName,
                     "tier", tier,
                     "billingCycle", billingCycle,
-                    "dashboardUrl", "https://kitehub.vn/dashboard"
+                    "dashboardUrl", "https://kitehub.me/dashboard"
                 ))
                 .build();
 
@@ -629,7 +632,8 @@ public class EmailServiceClient {
                     "organizationName", organizationName,
                     "tier", tier,
                     "expiresAt", expiresAt == null ? "" : expiresAt,
-                    "supportUrl", "https://kitehub.vn/dashboard"
+                    // GAP-1086 sweep: sister of subscription-created — kitehub.vn → kitehub.me.
+                    "supportUrl", "https://kitehub.me/dashboard"
                 ))
                 .build();
 
