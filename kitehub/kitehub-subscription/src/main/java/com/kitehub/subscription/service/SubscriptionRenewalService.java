@@ -257,17 +257,19 @@ public class SubscriptionRenewalService {
         payment.setCurrency("VND");
         payment.setPaymentMethod(PaymentMethod.VIETQR); // Default to VietQR for subscription payments
         payment.setStatus(PaymentStatus.PENDING);
-        payment.setPaymentContent(String.format(
-            "Subscription renewal for %s tier - %s (Instance: %s)",
-            subscription.getTier(),
-            subscription.getBillingCycle(),
-            subscription.getInstanceId()
-        ));
+        // GAP-1087 / Bug D sweep (KH-3 G2 SePay walk): renewal payments previously set a
+        // free-text paymentContent + a "KITECLASS <subId>" QR memo and NEVER set txnRef →
+        // SePay (findByTxnRef) could never reconcile an auto-renewal transfer. Mirror
+        // SubscriptionService.createPendingPayment: the QR memo + paymentContent + txnRef
+        // all equal the standalone KH3SUB<8hex> token the webhook matches on.
+        String txnRef = PaymentService.generateTxnRef(UUID.randomUUID());
+        payment.setTxnRef(txnRef);
+        payment.setPaymentContent(txnRef);
         // GAP-939: snapshot bank account info from VietQRService defaults so Owner
         // sees full transfer details on renewal payment page (parity with prorated
         // upgrade flow already fixed in SubscriptionService.createProratedPayment).
         payment.setQrCodeUrl(vietQRService.generateQRCode(
-            UUID.randomUUID(), subscription.getPriceVnd(), subscription.getId()));
+            UUID.randomUUID(), subscription.getPriceVnd(), txnRef));
         payment.setBankCode(vietQRService.getBankCode());
         payment.setAccountNumber(vietQRService.getAccountNumber());
         payment.setAccountName(vietQRService.getAccountName());

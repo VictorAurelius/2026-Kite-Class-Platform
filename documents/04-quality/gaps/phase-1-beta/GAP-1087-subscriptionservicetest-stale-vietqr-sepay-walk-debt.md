@@ -1,6 +1,6 @@
 # GAP-1087: SubscriptionServiceTest stale sau SePay walk — generateQRCode overload + memo assertion drift (Bug D adjacent)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-09 (Wave landing-tenant-1 — phát hiện khi verify fix Bug E/F; debt do SePay walk commit 4991da67/075de5e1 để lại)
@@ -41,12 +41,25 @@ Gộp với Bug D fix:
 
 PR `wave/landing-tenant-1` sẽ đỏ CI ở `SubscriptionServiceTest` cho tới khi Bug D fix HOẶC dùng `ADMIN_MERGE_OVERRIDE: GAP-1087` per `admin-merge-discipline.md` §4 (pre-existing branch debt, separable concern).
 
+## Fix shipped (session 2026-06-09)
+
+Chốt contract: **QR memo (addInfo) == paymentContent == txnRef == `KH3SUB<8hex>`** (token standalone từ `PaymentService.generateTxnRef(UUID.randomUUID())`) — mirror reference impl `SubscriptionService.createPendingPayment`. Áp dụng 3 prod payment-creation path (cross-flow sweep per `cross-flow-bug-class-sweep.md`):
+
+| Site | Trước | Sau |
+|---|---|---|
+| `SubscriptionService.createPendingPayment` (create + upgrade) | đã đúng (reference) | unchanged |
+| `PaymentService.createPayment` | UUID overload memo="KITECLASS" + txnRef từ paymentId sau save (2 save) | String overload memo=txnRef + paymentContent=txnRef + 1 save |
+| `SubscriptionRenewalService.createRenewalPayment` | UUID overload memo="KITECLASS" + paymentContent free-text + **txnRef NULL** | String overload memo=txnRef + paymentContent=txnRef + setTxnRef |
+
+Test sweep (3 file, all green): PaymentServiceTest 11/11 (remove 5 `generatePaymentContent` stub + String overload + `times(2)`→`times(1)`), SubscriptionServiceTest 13/13 (remove 3 stub + overload + paymentContent assertion → `KH3SUB[A-F0-9]{8}`==txnRef), SubscriptionRenewalServiceTest 10/10 (overload + assertion). `./mvnw -pl kitehub-subscription test` BUILD SUCCESS (668 unit tests; 3 IT fail report là STALE 2026-05-24/03:16, chạy verify-phase không phải test-phase).
+
 ## Acceptance Criteria
 
-- [ ] memo/txnRef contract chốt (Bug D), áp dụng create + upgrade path
-- [ ] `generateQRCode` overload ambiguity loại bỏ (line 91 + 288 + 327)
-- [ ] 3 test PASS với assertion theo contract đã chốt
-- [ ] `./mvnw -pl kitehub-subscription test` xanh toàn module
+- [x] memo/txnRef contract chốt (Bug D), áp dụng create + upgrade + renewal path (3 prod sites)
+- [x] `generateQRCode` overload ambiguity loại bỏ (SubscriptionServiceTest L91 + L288 + L327)
+- [x] 3 SubscriptionServiceTest PASS với assertion theo contract (paymentContent==txnRef matches KH3SUB)
+- [x] `./mvnw -pl kitehub-subscription test` xanh toàn module (affected: Payment 11/11 + Subscription 13/13 + Renewal 10/10 + Emitter 11/11)
+- [ ] **Runtime SePay reconcile re-walk (pending — gộp G2 re-walk):** chuyển khoản thật cho upgrade-flow + renewal-flow → SePay webhook `findByTxnRef` match → payment COMPLETED (per `pre-handoff-self-test-completeness.md` §3; chỉ create-flow đã walk thật KH-3 G2)
 
 ## Related
 
