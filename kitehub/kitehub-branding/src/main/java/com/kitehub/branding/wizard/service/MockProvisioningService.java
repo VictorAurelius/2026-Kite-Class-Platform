@@ -79,6 +79,15 @@ public class MockProvisioningService {
      */
     private final long stepDelayMs;
 
+    /**
+     * GAP-1108 #4 — env-aware frontend landing URL template ({slug} substituted).
+     * Default = production MOCK placeholder (no real DNS; per-tenant landing
+     * render gated GAP-811/1077). Dev compose can override so local deploy shows
+     * a local-resolvable URL instead of the production domain.
+     */
+    @Value("${kitehub.branding.frontend-base-url-template:https://{slug}.kiteclass.vn}")
+    private String frontendBaseUrlTemplate;
+
     public MockProvisioningService(
             BrandingJobService brandingJobService,
             BrandingJobRepository jobRepository,
@@ -137,7 +146,12 @@ public class MockProvisioningService {
 
     private String buildFrontendUrl(String slug) {
         String safe = (slug == null || slug.isBlank()) ? "tenant" : slug.trim();
-        return "https://" + safe + ".kiteclass.vn"; // MOCK placeholder (GAP-1055/811/1077)
+        // GAP-1108 #4: env-aware (was hardcoded https://{slug}.kiteclass.vn). Default
+        // stays the production MOCK placeholder; dev overrides via config. Null-safe
+        // for unit tests that don't inject the @Value field.
+        String template = (frontendBaseUrlTemplate == null || frontendBaseUrlTemplate.isBlank())
+                ? "https://{slug}.kiteclass.vn" : frontendBaseUrlTemplate;
+        return template.replace("{slug}", safe);
     }
 
     /** Default resource set when the approve request carries no explicit list. */
