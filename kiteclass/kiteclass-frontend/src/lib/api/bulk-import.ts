@@ -5,6 +5,7 @@
  * - POST /api/v1/students/bulk-import/preview  (parse + validate, no DB writes)
  * - POST /api/v1/students/bulk-import/commit   (parse + validate + create)
  * - POST /api/v1/students/bulk-import/jobs/{id}/errors  (xlsx error report)
+ * - GET  /api/v1/students/bulk-import/template (blank import template, GAP-1102)
  *
  * @author KiteClass Team
  * @since 3.60.0
@@ -69,6 +70,21 @@ export const bulkImportApi = {
       throw new Error('Phản hồi commit rỗng');
     }
     return response.data.data;
+  },
+
+  /**
+   * Download the blank import template (GAP-1102). Static + tenant-agnostic —
+   * no file/jobId/tenant needed. Returns a Blob the caller saves via object URL
+   * so users grab the exact columns BEFORE filling in their data.
+   */
+  downloadTemplate: async (): Promise<Blob> => {
+    const response = await apiClient.get<Blob>(
+      '/api/v1/students/bulk-import/template',
+      {
+        responseType: 'blob',
+      },
+    );
+    return response.data;
   },
 
   /**

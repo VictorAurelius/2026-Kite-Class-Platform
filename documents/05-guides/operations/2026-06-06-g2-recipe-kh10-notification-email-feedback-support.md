@@ -1,6 +1,7 @@
 ---
 title: G2 Human Test Recipe — KH-10 Notification / email / feedback / support
 audience: dev
+product: KiteHub (KH) — FE kitehub-frontend :3001, backend kitehub-* qua gateway :9000 (per kitehub-kiteclass-boundary.md §2)
 created: 2026-06-06
 scope: Flow Verification Campaign G2 handoff cho KH-10 (feedback + notification-preferences + admin-email console + support menu)
 references:

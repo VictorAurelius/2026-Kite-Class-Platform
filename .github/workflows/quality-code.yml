@@ -25,6 +25,8 @@ on:
       - 'scripts/check-mermaid-sequence-state-br.sh'
       - 'scripts/check-entity-mapper-consistency.sh'
       - 'scripts/check-test-skip-ratio.sh'
+      - 'scripts/check-public-page-duplicate-chrome.sh'
+      - 'kitehub/kitehub-frontend/src/app/(public)/**'
       - 'kiteclass/kiteclass-frontend/src/**/*.test.tsx'
       - 'kiteclass/kiteclass-frontend/src/**/*.spec.tsx'
       - 'kitehub/kitehub-frontend/src/**/*.test.tsx'
@@ -267,6 +269,29 @@ jobs:
           # marker. Missing both → bare layout (no header/sidebar/footer), invisible to
           # curl, surfaced at G2 browser. WARN-mode (exit 0); HARD-STOP deferred.
           bash scripts/check-dashboard-shell-wrapper.sh
+
+
+  public-page-duplicate-chrome:
+    name: (public) page duplicate chrome (GAP-1110 — header/main/footer dup vs PublicLayout)
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect duplicate chrome in (public) pages (WARN mode — GAP-1110)
+        run: |
+          # GAP-1110: pages under kitehub-frontend src/app/(public)/** are wrapped by
+          # PublicLayout (header + <main> + Footer). A page rendering its own top-level
+          # <header>/<main>/<footer> duplicates the site chrome + nests a 2nd <main>
+          # (invalid HTML, visible on SSR/no-JS/bots). Surfaced 2026-06-10 G2 walk on
+          # /contact; sweep found /waitlist + homepage (LandingShellSSR) + 5 nested-main
+          # pages. Fixed commit 7e6cc613. Per cross-flow-bug-class-sweep.md §4.1
+          # (statically-detectable class → persistent detector). WARN-mode (exit 0);
+          # HARD STOP (--strict) deferred until 2nd recurrence.
+          bash scripts/check-public-page-duplicate-chrome.sh --warn
 
 
   entity-mapper-consistency:

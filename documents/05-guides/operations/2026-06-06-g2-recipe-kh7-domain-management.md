@@ -1,6 +1,7 @@
 ---
 title: Công thức G2 — KH-7 Quản lý custom domain (add → verify → status → delete)
 audience: dev
+product: KiteHub (KH) — FE kitehub-frontend :3001, backend kitehub-* qua gateway :9000 (per kitehub-kiteclass-boundary.md §2)
 created: 2026-06-06
 scope: Bàn giao G2 thủ công cho luồng KH-7 (custom domain management) thuộc Chiến dịch Xác minh Luồng
 references:

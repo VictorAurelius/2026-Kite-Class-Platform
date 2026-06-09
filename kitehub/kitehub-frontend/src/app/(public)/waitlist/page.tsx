@@ -35,21 +35,15 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
 
   const isMultiBranch = reason === 'multi-branch';
 
+  // Header/nav provided by (public)/layout.tsx → PublicLayout. Don't render another
+  // <header> here — it duplicates the site header and nests a second <main>.
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <nav className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-          <Link href="/" className="text-lg font-bold">
-            KiteHub
-          </Link>
-          <Link href="/" className="text-sm hover:underline">
-            ← Về trang chủ
-          </Link>
-        </nav>
-      </header>
+    <div className="mx-auto max-w-3xl px-6 py-16">
+      <Link href="/" className="text-sm text-muted-foreground hover:underline">
+        ← Về trang chủ
+      </Link>
 
-      <main className="mx-auto max-w-3xl px-6 py-16">
-        <div className="rounded-2xl border bg-card p-8 shadow-sm">
+      <div className="mt-6 rounded-2xl border bg-card p-8 shadow-sm">
           <p className="text-sm font-medium text-primary">Phase 1.5 Waitlist</p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
             Cảm ơn chị/anh đã quan tâm KiteHub!
@@ -126,8 +120,7 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
             BETA cohort. Em sẽ cập nhật sớm nhất qua email + Zalo OA. Cảm ơn chị/anh
             đã thông cảm.]
           </p>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }

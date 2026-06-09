@@ -55,13 +55,20 @@ export const endpoints = {
   brandingV1: {
     slugAvailability: '/api/v1/branding/slug-availability',
     regenerateQuota: '/api/v1/branding/regenerate-quota',
+    // GAP-1021 — create wizard branding job (Phase 1 mock provisioning)
+    jobs: '/api/v1/branding/jobs',
     jobById: (jobId: string) => `/api/v1/branding/jobs/${jobId}`,
     jobRegenerate: (jobId: string) => `/api/v1/branding/jobs/${jobId}/regenerate`,
+    // GAP-1021 — approve theme + trigger mock deploy provisioning
+    jobApprove: (jobId: string) => `/api/v1/branding/jobs/${jobId}/approve`,
     jobDeployStream: (jobId: string) => `/api/v1/branding/jobs/${jobId}/deploy-stream`,
     jobQualityScore: (jobId: string) => `/api/v1/branding/jobs/${jobId}/quality-score`,
     jobPreview: (jobId: string) => `/api/v1/branding/jobs/${jobId}/preview`,
     instanceLifecycleEvents: (instanceId: string) =>
       `/api/v1/branding/instances/${instanceId}/lifecycle/events`,
+    // GAP-1108 — post-deploy status summary (state + landing frontendUrl)
+    instanceDeployStatus: (instanceId: string) =>
+      `/api/v1/branding/instances/${instanceId}/deploy-status`,
   },
 
   // Email
@@ -114,6 +121,13 @@ export const endpoints = {
     list: '/api/v1/admin/beta-requests',
     approve: (id: number) => `/api/v1/admin/beta-requests/${id}/approve`,
     reject: (id: number) => `/api/v1/admin/beta-requests/${id}/reject`,
+  },
+
+  // KiteHub PLATFORM sales lead (GAP-1101 — Enterprise "Liên hệ" CTA).
+  // Public POST — prospective center owner contacting KiteHub sales about the
+  // Enterprise SaaS plan. Distinct from kiteclass-core tenant-marketing leads.
+  salesLeads: {
+    create: `${API_BASE}/sales-leads`,
   },
 
   // Staff invitations (GAP-561b Wave 80 — Owner→Staff invite flow)

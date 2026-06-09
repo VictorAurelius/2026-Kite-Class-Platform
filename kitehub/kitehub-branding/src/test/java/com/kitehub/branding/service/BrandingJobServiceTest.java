@@ -216,7 +216,13 @@ class BrandingJobServiceTest {
 
         when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
         when(jobRepository.save(any(BrandingJob.class))).thenReturn(job);
-        when(instanceStateRepository.findById(instanceId)).thenReturn(Optional.empty());
+        // GAP-1021 state-aware lifecycle: GENERATING is reachable only from
+        // INITIALIZING, so the instance must already be INITIALIZING when the job
+        // reaches PROCESSING (empty/null state would be skipped as not-reachable).
+        BrandingInstanceState initializing = BrandingInstanceState.builder()
+            .instanceId(instanceId).state(LifecycleState.INITIALIZING)
+            .brandingVersion(0).regenerateCount(0).build();
+        when(instanceStateRepository.findById(instanceId)).thenReturn(Optional.of(initializing));
 
         jobService.updateJobProgress(jobId, JobStatus.PROCESSING, 50, "Generating");
 
@@ -235,7 +241,12 @@ class BrandingJobServiceTest {
 
         when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
         when(jobRepository.save(any(BrandingJob.class))).thenReturn(job);
-        when(instanceStateRepository.findById(instanceId)).thenReturn(Optional.empty());
+        // GAP-1021 state-aware lifecycle: FAILED is reachable from GENERATING (the job
+        // is PROCESSING ⇒ instance is GENERATING); a null state would be skipped.
+        BrandingInstanceState generating = BrandingInstanceState.builder()
+            .instanceId(instanceId).state(LifecycleState.GENERATING)
+            .brandingVersion(0).regenerateCount(0).build();
+        when(instanceStateRepository.findById(instanceId)).thenReturn(Optional.of(generating));
 
         jobService.markJobFailed(jobId, "OpenAI API error");
 

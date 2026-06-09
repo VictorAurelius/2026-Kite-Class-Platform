@@ -1,8 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
-import type { BrandingAsset, BrandingJob, LogoAnalysis, MarketingContent } from '@/types/branding';
-import type { ApiResponse } from '@/types/api';
+import type {
+  BrandingAsset,
+  BrandingDeployStatus,
+  BrandingJob,
+  LogoAnalysis,
+  MarketingContent,
+} from '@/types/branding';
 
 /**
  * Upload asset (logo, etc.)
@@ -27,11 +32,13 @@ export function useUploadAsset() {
       // @RequestPart parsing. The apiClient request interceptor drops Content-Type
       // for FormData so the browser sets multipart/form-data WITH the boundary
       // (GAP-1073 cross-flow sweep).
-      const { data } = await apiClient.post<ApiResponse<BrandingAsset>>(
+      // GAP-1082: kitehub-branding returns a BARE <T> body (no ApiResponse
+      // wrapper anywhere in the service), so read `data` directly — NOT data.data.
+      const { data } = await apiClient.post<BrandingAsset>(
         endpoints.branding.uploadAsset(instanceId, type),
         formData
       );
-      return data.data;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['branding', 'assets'] });
@@ -45,11 +52,12 @@ export function useUploadAsset() {
 export function useAnalyzeLogo() {
   return useMutation({
     mutationFn: async (logoUrl: string) => {
-      const { data } = await apiClient.post<ApiResponse<LogoAnalysis>>(
+      // GAP-1082: bare <T> body (AIBrandingController returns ResponseEntity.ok(result)).
+      const { data } = await apiClient.post<LogoAnalysis>(
         endpoints.branding.analyzeLogo,
         { logoUrl }
       );
-      return data.data;
+      return data;
     },
   });
 }
@@ -64,11 +72,12 @@ export function useCreateBrandingJob() {
       logoUrl: string;
       analysis: LogoAnalysis;
     }) => {
-      const { data } = await apiClient.post<ApiResponse<BrandingJob>>(
+      // GAP-1082: bare <T> body (BrandingJobController returns ResponseEntity.status(201).body(job)).
+      const { data } = await apiClient.post<BrandingJob>(
         endpoints.branding.jobs,
         request
       );
-      return data.data;
+      return data;
     },
   });
 }
@@ -81,10 +90,11 @@ export function useBrandingJob(jobId: string | undefined) {
   return useQuery({
     queryKey: ['branding', 'jobs', jobId],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<BrandingJob>>(
+      // GAP-1082: bare <T> body (BrandingJobController @GetMapping returns ResponseEntity.ok(job)).
+      const { data } = await apiClient.get<BrandingJob>(
         endpoints.branding.jobById(jobId!)
       );
-      return data.data;
+      return data;
     },
     enabled: !!jobId,
     // Auto-refetch every 2s if job is PROCESSING
@@ -104,12 +114,36 @@ export function useJobAssets(jobId: string | undefined) {
   return useQuery({
     queryKey: ['branding', 'jobs', jobId, 'assets'],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<BrandingAsset[]>>(
+      // GAP-1082: bare body (BrandingJobController.getJobAssets returns
+      // ResponseEntity.ok(job.getAssetsGenerated())). NOTE: BE serves the raw
+      // assetsGenerated JSON string, not a parsed array — separate BE-side quirk
+      // flagged in GAP-1082 report (out of FE scope). Shape read is `data`, not data.data.
+      const { data } = await apiClient.get<BrandingAsset[]>(
         endpoints.branding.jobAssets(jobId!)
       );
-      return data.data;
+      return data;
     },
     enabled: !!jobId,
+  });
+}
+
+/**
+ * Post-deploy status summary for an instance (GAP-1108).
+ *
+ * Drives the deploy-success card on `/branding`: state (DEPLOYED) +
+ * `frontendUrl` landing link + last-deploy summary. Bare `<T>` body
+ * (LifecycleEventsController returns ResponseEntity.ok(dto)) — read `data`.
+ */
+export function useBrandingDeployStatus(instanceId: string | undefined) {
+  return useQuery({
+    queryKey: ['branding', 'deploy-status', instanceId],
+    queryFn: async () => {
+      const { data } = await apiClient.get<BrandingDeployStatus>(
+        endpoints.brandingV1.instanceDeployStatus(instanceId!)
+      );
+      return data;
+    },
+    enabled: !!instanceId,
   });
 }
 
@@ -120,10 +154,12 @@ export function useAssets(instanceId: string | undefined) {
   return useQuery({
     queryKey: ['branding', 'assets', instanceId],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<BrandingAsset[]>>(
+      // GAP-1082: bare List<BrandingAsset> body (AssetStorageController.getAssets
+      // returns ResponseEntity.ok(assets)).
+      const { data } = await apiClient.get<BrandingAsset[]>(
         endpoints.branding.listAssets(instanceId!)
       );
-      return data.data;
+      return data;
     },
     enabled: !!instanceId,
   });
@@ -138,11 +174,12 @@ export function useGenerateContent() {
       instanceId: string;
       analysis: LogoAnalysis;
     }) => {
-      const { data } = await apiClient.post<ApiResponse<MarketingContent>>(
+      // GAP-1082: bare body (ContentGenerationController returns ResponseEntity.ok(content)).
+      const { data } = await apiClient.post<MarketingContent>(
         endpoints.branding.generateContent,
         request
       );
-      return data.data;
+      return data;
     },
   });
 }

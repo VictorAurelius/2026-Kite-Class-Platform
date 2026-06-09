@@ -493,6 +493,33 @@ Stream closes after `complete` or `error`. FE reconnect via `Last-Event-ID` head
 
 ---
 
+## GET /api/v1/branding/instances/{instanceId}/deploy-status
+**Use case:** Post-deploy `/branding` page (GAP-1108) — deploy-success card hiển thị trạng thái `DEPLOYED` + link landing (`frontendUrl`) + summary lần deploy gần nhất, KHÔNG cần parse full lifecycle-events feed.
+**Auth:** Bearer token (tenant scope cho own instance; admin scope cross-tenant)
+**Response 200:** `DeployStatusResponse` — instance lifecycle state + latest `deploy-completed` marker metadata:
+```json
+{
+  "instanceId": "550e8400-e29b-41d4-a716-446655440000",
+  "state": "DEPLOYED",
+  "deployed": true,
+  "frontendUrl": "https://toan-master.kiteclass.vn",
+  "templateId": "sky-wave",
+  "slug": "toan-master",
+  "brandingVersion": 1,
+  "deployedAt": "2026-06-09T09:57:59"
+}
+```
+- `state` ∈ `NOT_STARTED | INITIALIZING | GENERATING | DEPLOYED | REGENERATING | FAILED` — `null` khi chưa có state row
+- `deployed` = `state == DEPLOYED`
+- `frontendUrl` / `templateId` / `slug` / `deployedAt` — lấy từ marker `deploy-completed` mới nhất; `null` khi instance chưa từng deploy
+- `brandingVersion` — counter từ `branding_instance_state`; `null` khi chưa có state row
+- MOCK boundary (Phase 1, GAP-1055): `frontendUrl` là placeholder `https://{slug}.kiteclass.vn`, chưa serve subdomain thật (GAP-811/1077)
+**Errors:**
+- 401: unauthenticated
+- 403: tenant scope mismatch
+
+---
+
 ## GET /api/v1/branding/jobs/{jobId}
 **Use case:** FE polls khi không dùng SSE; also returned by POST `/regenerate`. New endpoint Wave 34 — replaces Wave 32 v1 inline `STUB_JOB_ID` patterns and adds `brandColors` field (sub-GAP-272k).
 **Auth:** Bearer token

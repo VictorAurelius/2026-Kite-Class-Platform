@@ -10,6 +10,16 @@ export type { UseSlugAvailability } from './useSlugAvailability';
 
 export { useBrandingJobV1 } from './useBrandingJobV1';
 
+export {
+  useCreateBrandingJobV1,
+  useApproveBrandingJob,
+} from './useBrandingDeploy';
+export type {
+  CreateBrandingJobInput,
+  ApproveBrandingJobInput,
+  ApproveBrandingJobResponse,
+} from './useBrandingDeploy';
+
 export { usePreviewBrandColors } from './usePreviewBrandColors';
 export type { UsePreviewBrandColorsResult } from './usePreviewBrandColors';
 

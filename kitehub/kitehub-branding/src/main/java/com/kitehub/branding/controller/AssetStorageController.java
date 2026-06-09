@@ -253,6 +253,16 @@ public class AssetStorageController {
             return Collections.emptyList();
         }
 
+        // GAP-1107 #2: legacy/old-mock rows persisted assetsGenerated as a theme
+        // metadata OBJECT ({slug,templateId,frontendUrl,...}) rather than a
+        // BrandingAsset[] array. Detect the shape up front so a non-array legacy
+        // row degrades to "no assets" (debug log) instead of an error-level
+        // MismatchedInputException stack trace on every getAssets call.
+        if (!assetsJson.trim().startsWith("[")) {
+            log.debug("assetsGenerated is not a JSON array (legacy theme-metadata shape) — returning no assets");
+            return Collections.emptyList();
+        }
+
         try {
             return objectMapper.readValue(assetsJson, new TypeReference<List<BrandingAsset>>() {});
         } catch (Exception e) {

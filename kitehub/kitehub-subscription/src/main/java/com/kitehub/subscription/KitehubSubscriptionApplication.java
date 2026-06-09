@@ -39,7 +39,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     // Wave 79 Bucket B — GAP-561/562 staff invitation + RBAC (OWNER/STAFF)
     "com.kitehub.subscription.staff.entity",
     // Wave 79 Bucket F-bis — GAP-040 admin "View as tenant" impersonation
-    "com.kitehub.subscription.impersonation"
+    "com.kitehub.subscription.impersonation",
+    // Wave flow KH Enterprise sales-lead — GAP-1101 public /contact persist
+    "com.kitehub.subscription.saleslead.entity"
 })
 @EnableJpaAuditing
 @EnableScheduling

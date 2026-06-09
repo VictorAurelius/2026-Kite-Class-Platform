@@ -115,6 +115,66 @@
 
 ---
 
+### UC-STU-09: Thêm học sinh vào lớp qua dialog (single enroll UI) — GAP-1103
+
+**Actor:** Admin / Teacher
+**Precondition:** Lớp tồn tại + đang ở trạng thái cho phép ghi danh (SCHEDULED / IN_PROGRESS); học sinh đã tồn tại
+
+**Steps:**
+1. FE: Tại trang chi tiết lớp (`/classes/[id]`), bấm nút "Thêm học sinh vào lớp" → mở dialog
+2. User: Tìm + chọn học sinh (search theo tên/email), nhập học phí, % giảm giá (0-100), ghi chú
+3. System (FE): Validate học phí ≥ 0 + discount 0-100 trước khi gửi
+4. FE: Gọi `POST /api/v1/enrollments` (tái dùng single-enroll — KHÔNG endpoint mới)
+5. System (BE): Áp dụng BR-ENROLL-001..006 (capacity, duplicate, discount, status, finalAmount)
+6. FE: Thành công → toast "Đã thêm học sinh vào lớp" + đóng dialog + invalidate query roster (refresh danh sách/điểm danh)
+
+**Postcondition:** Enrollment tạo (PENDING_PAYMENT), roster lớp refresh
+
+**Errors:**
+| Code | Condition | FE behavior |
+|------|-----------|-------------|
+| 409 | Đã ghi danh (BR-ENROLL-002) | Toast lỗi với message BE (không bare-catch) |
+| 409 | Lớp đầy (BR-ENROLL-001) / CLASS_FULL | Toast lỗi |
+| 400 | Discount ngoài 0-100 | Toast lỗi |
+| 404 | Học sinh / lớp không tồn tại | Toast lỗi |
+
+---
+
+### UC-STU-10: Tải template ghi danh hàng loạt — GAP-1104
+
+**Actor:** Admin / Teacher
+**Precondition:** User authenticated
+
+**Steps:**
+1. FE: Tại trang `/classes/[id]/bulk-enroll`, bấm "Tải template mẫu (.xlsx)"
+2. FE: Gọi `GET /api/v1/enrollments/bulk-import/template` (blob)
+3. System: Trả xlsx `mau-import-ghi-danh.xlsx` (sheet GhiDanh + HuongDan)
+4. FE: Lưu file qua object URL
+
+**Postcondition:** User có file mẫu để điền dữ liệu
+
+---
+
+### UC-STU-11: Ghi danh hàng loạt qua xlsx — GAP-1104
+
+**Actor:** Admin / Teacher
+**Precondition:** Có file xlsx đúng schema (`class_code` + email/phone + tuition); học sinh + lớp đã tồn tại trong tenant
+
+**Steps:**
+1. FE: Chọn file `.xlsx` (≤10MB, ≤1000 dòng) → bấm "Xem trước"
+2. FE: Gọi `POST /api/v1/enrollments/bulk-import/preview` (multipart + `X-Tenant-Id`)
+3. System (BE): Parse + resolve học sinh (email→phone) + lớp (class_code), tenant-scoped; validate field; phát hiện trùng trong file. KHÔNG ghi DB
+4. FE: Hiển thị tổng/hợp lệ/lỗi + bảng lỗi 10 dòng đầu
+5. User: Bấm "Xác nhận ghi danh" → `POST .../commit`
+6. System (BE): Mỗi dòng hợp lệ gọi `enrollStudent` (BR-ENROLL-001..006, transaction riêng); skip-and-report dòng lỗi
+7. FE: Toast kết quả `Đã ghi danh X/Y lượt (Z lỗi)` + bảng lỗi nếu có
+
+**Postcondition:** Các dòng hợp lệ được ghi danh (PENDING_PAYMENT); dòng lỗi không ghi danh + được báo cáo
+
+**Errors:** xem `api-contract.md` (400 parse/empty, 413 quá 1000 dòng, 415 sai định dạng) + lỗi từng dòng (không tìm thấy lớp/học sinh, đã ghi danh, lớp đầy)
+
+---
+
 ### UC-STU-06: Update Enrollment Status
 
 **Actor:** Admin / Teacher

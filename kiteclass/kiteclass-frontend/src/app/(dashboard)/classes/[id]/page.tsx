@@ -23,6 +23,8 @@ import {
   CalendarClock,
   MapPin,
   Users,
+  UserPlus,
+  FileUp,
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout';
 import { StatusBadge, LoadingSpinner, ErrorAlert } from '@/components/common';
@@ -45,6 +47,7 @@ import {
   type RescheduleReasonCategory,
 } from '@/types/class';
 import { toast } from '@/hooks/use-toast';
+import { AddStudentToClassDialog } from '@/components/enrollment/add-student-to-class-dialog';
 
 const statusVariants: Record<
   ClassStatus,
@@ -82,6 +85,7 @@ export default function ClassDetailPage({
     RescheduleReasonCategory | ''
   >('');
   const [rescheduleReasonNotes, setRescheduleReasonNotes] = useState('');
+  const [showAddStudentDialog, setShowAddStudentDialog] = useState(false);
 
   const { data: classData, isLoading, error } = useClass(classId);
   const { data: sessions } = useClassSessions(classId);
@@ -239,6 +243,22 @@ export default function ClassDetailPage({
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-2">
+            {/* Enrollment actions (GAP-1103 / GAP-1104) — allowed while the class
+                can still accept enrollments (SCHEDULED or IN_PROGRESS). */}
+            {(isScheduled || isInProgress) && (
+              <>
+                <Button onClick={() => setShowAddStudentDialog(true)}>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Thêm học sinh vào lớp
+                </Button>
+                <Link href={`/classes/${id}/bulk-enroll`}>
+                  <Button variant="outline">
+                    <FileUp className="mr-2 h-4 w-4" />
+                    Import hàng loạt
+                  </Button>
+                </Link>
+              </>
+            )}
             {isScheduled && (
               <Button onClick={handleStart} disabled={startMutation.isPending}>
                 <Play className="mr-2 h-4 w-4" />
@@ -425,6 +445,13 @@ export default function ClassDetailPage({
             </CardContent>
           </Card>
         )}
+
+        {/* Add-student-to-class dialog (GAP-1103) */}
+        <AddStudentToClassDialog
+          classId={classId}
+          open={showAddStudentDialog}
+          onOpenChange={setShowAddStudentDialog}
+        />
 
         {/* Info Card */}
         <Card>

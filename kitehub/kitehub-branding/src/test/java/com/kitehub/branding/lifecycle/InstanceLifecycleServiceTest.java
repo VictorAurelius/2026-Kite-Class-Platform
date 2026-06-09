@@ -171,6 +171,22 @@ class InstanceLifecycleServiceTest {
     }
 
     @Test
+    void recordMarkerIsolatedInRequiresNewTransaction() throws Exception {
+        // GAP-1107 #1 / audit-service-isolation.md §3.11: a marker is a best-effort
+        // audit side-effect — it MUST run in its own physical transaction so a failed
+        // marker INSERT cannot poison a calling transaction (UnexpectedRollbackException).
+        java.lang.reflect.Method method = InstanceLifecycleService.class
+            .getMethod("recordMarker", UUID.class, String.class,
+                InstanceLifecycleService.Actor.class, Map.class);
+        org.springframework.transaction.annotation.Transactional tx =
+            method.getAnnotation(org.springframework.transaction.annotation.Transactional.class);
+
+        assertThat(tx).isNotNull();
+        assertThat(tx.propagation())
+            .isEqualTo(org.springframework.transaction.annotation.Propagation.REQUIRES_NEW);
+    }
+
+    @Test
     void transitionRecordsFromAndToStatesInEvent() {
         BrandingInstanceState current = BrandingInstanceState.builder()
             .instanceId(instanceId).state(LifecycleState.INITIALIZING)

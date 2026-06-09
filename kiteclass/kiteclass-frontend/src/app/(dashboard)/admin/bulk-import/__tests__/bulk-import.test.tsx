@@ -24,6 +24,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, within } from '@/test/utils';
 import userEvent from '@testing-library/user-event';
 import BulkImportPage from '../page';
+import { bulkImportApi } from '@/lib/api/bulk-import';
 
 function makeXlsxFile(name: string, size = 1024): File {
   const content = new Uint8Array(size);
@@ -158,6 +159,34 @@ describe('Wave 60 Bucket B — Bulk Import admin page', () => {
 
     const alert = await screen.findByTestId('bulk-import-error');
     expect(within(alert).getByText(/lỗi máy chủ nội bộ/i)).toBeInTheDocument();
+  });
+
+  it('renders "Tải template mẫu" button and clicking it calls downloadTemplate (GAP-1102)', async () => {
+    const user = userEvent.setup();
+    const blob = new Blob(['xlsx-bytes'], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const spy = vi
+      .spyOn(bulkImportApi, 'downloadTemplate')
+      .mockResolvedValue(blob);
+    // jsdom lacks object-URL APIs — stub for the download handler.
+    window.URL.createObjectURL = vi.fn(() => 'blob:mock-template');
+    window.URL.revokeObjectURL = vi.fn();
+
+    render(<BulkImportPage />);
+
+    const templateBtn = screen.getByRole('button', {
+      name: /tải template mẫu/i,
+    });
+    expect(templateBtn).toBeInTheDocument();
+
+    await user.click(templateBtn);
+
+    await waitFor(() => {
+      expect(spy).toHaveBeenCalledTimes(1);
+    });
+
+    spy.mockRestore();
   });
 
   it('reset clears selected file and returns to idle', async () => {
