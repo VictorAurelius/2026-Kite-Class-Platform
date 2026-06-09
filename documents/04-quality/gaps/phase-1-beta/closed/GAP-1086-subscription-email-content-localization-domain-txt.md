@@ -1,6 +1,6 @@
 # GAP-1086: Subscription email content sai — subject tiếng Anh + thiếu .txt + sai domain (Bug F)
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Backend
 **Found:** 2026-06-09 (Wave landing-tenant-1 — KH-3 G2 SePay walk, bug F)
@@ -40,7 +40,14 @@ Phát hiện thêm khi sửa:
 - [x] `subscription-created.txt` + `subscription-activated.txt` tạo, vars khớp sender
 - [x] `dashboardUrl`/`supportUrl` → `kitehub.me`
 - [x] info-box html khớp biến truyền (không render rỗng)
-- [ ] **Runtime re-walk (pending — gộp G2 re-walk):** MailHog hiển thị subject VN + có text part + link `kitehub.me` (per `pre-handoff-self-test-completeness.md` §3 / §2.3 email-flow)
+- [x] **Runtime re-walk DONE 2026-06-09:** MailHog hiển thị subject VN + có text part + link `kitehub.me` — xem §Runtime re-walk evidence
+
+## Runtime re-walk evidence (2026-06-09, webhook-simulated)
+
+Activation email trong MailHog (subscription create-flow, tenant test-8):
+- **Subject (UTF-8 decoded):** `Gói đăng ký đã kích hoạt - Kite Edu` (tiếng Việt — was "Subscription đã kích hoạt") ✅
+- **Content-Type:** `multipart/mixed` — có text part (từ `subscription-created.txt` mới) ✅
+- **Body:** `has kitehub.me: True` / `has kitehub.vn: False` (dashboardUrl đúng domain) ✅
 
 ## Related
 

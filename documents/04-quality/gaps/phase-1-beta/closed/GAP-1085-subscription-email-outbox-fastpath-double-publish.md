@@ -1,6 +1,6 @@
 # GAP-1085: Subscription email gửi 2 lần — outbox fast-path + dispatcher cùng publish (Bug E)
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-09 (Wave landing-tenant-1 — KH-3 G2 SePay walk, bug E)
@@ -48,8 +48,12 @@ Pattern fast-path + outbox (per `design-patterns.md` §3.5.1 Exception A) thiế
 
 - [x] `emit()` stamp `dispatched_at` khi fast-path thành công; giữ NULL khi fail
 - [x] Unit test: `emit_fast_path_success_marks_dispatched...` + `emit_fast_path_failure_leaves_dispatched_null...` PASS (SubscriptionEventEmitterTest 11/11)
-- [ ] **Runtime re-walk (pending — gộp G2 re-walk):** rebuild kitehub-subscription + email, trigger subscription activation, MailHog hiển thị đúng **1** email (per `pre-handoff-self-test-completeness.md` §3)
-- [ ] Sweep sister emitters (GAP-1088) verify branding flows không double-publish
+- [x] **Runtime re-walk DONE 2026-06-09:** rebuild kitehub-subscription + email, reset test-8 → create PREMIUM → webhook confirm → activation → MailHog hiển thị đúng **1** email (per `pre-handoff-self-test-completeness.md` §3) — xem §Runtime re-walk evidence
+- [→] Sweep sister emitters branding flows → tracked GAP-1088 (separate scope, không block GAP-1085 core)
+
+## Runtime re-walk evidence (2026-06-09, webhook-simulated)
+
+Stack rebuilt (kitehub-subscription + kitehub-email với fix). test-8 reset FREE/TRIAL + email_sent_log cleared + MailHog cleared → create PREMIUM subscription (txnRef `KH3SUB1CC3ACA6`) → SePay webhook confirm (HTTP 200) → subscription ACTIVE/PREMIUM → **MailHog `total = 1`** (đúng 1 email, không phải 2). Bug E fix (`emit()` stamp dispatched_at → dispatcher skip) verified at runtime.
 
 ## Related
 

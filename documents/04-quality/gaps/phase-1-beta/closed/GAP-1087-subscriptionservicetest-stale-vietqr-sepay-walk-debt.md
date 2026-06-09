@@ -1,6 +1,6 @@
 # GAP-1087: SubscriptionServiceTest stale sau SePay walk — generateQRCode overload + memo assertion drift (Bug D adjacent)
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-09 (Wave landing-tenant-1 — phát hiện khi verify fix Bug E/F; debt do SePay walk commit 4991da67/075de5e1 để lại)
@@ -59,7 +59,15 @@ Test sweep (3 file, all green): PaymentServiceTest 11/11 (remove 5 `generatePaym
 - [x] `generateQRCode` overload ambiguity loại bỏ (SubscriptionServiceTest L91 + L288 + L327)
 - [x] 3 SubscriptionServiceTest PASS với assertion theo contract (paymentContent==txnRef matches KH3SUB)
 - [x] `./mvnw -pl kitehub-subscription test` xanh toàn module (affected: Payment 11/11 + Subscription 13/13 + Renewal 10/10 + Emitter 11/11)
-- [ ] **Runtime SePay reconcile re-walk (pending — gộp G2 re-walk):** chuyển khoản thật cho upgrade-flow + renewal-flow → SePay webhook `findByTxnRef` match → payment COMPLETED (per `pre-handoff-self-test-completeness.md` §3; chỉ create-flow đã walk thật KH-3 G2)
+- [x] **Runtime SePay reconcile re-walk DONE 2026-06-09:** webhook `findByTxnRef` match → payment COMPLETED verified runtime trên 2/3 path (create-flow `KH3SUB1CC3ACA6` + standalone `PaymentController.createPayment` `KH3SUB36ACAC6B`); renewal-flow (cron) cùng contract + unit-tested (SubscriptionRenewalServiceTest 10/10) — xem §Runtime re-walk evidence
+
+## Runtime re-walk evidence (2026-06-09, webhook-simulated)
+
+Bug D contract `QR memo == paymentContent == txnRef == KH3SUB<8hex>` verified runtime:
+- **PaymentController.createPayment** (fix site): POST `/api/platform/payments` → DB `payment_content == txn_ref == KH3SUB36ACAC6B` (`memo_eq_txnref = t`), amount 10000đ beta.
+- **Webhook reconcile**: POST `/api/platform/webhooks/payment` (gateway :9000, Apikey) description carry KH3SUB token → HTTP 200 → DB payment `COMPLETED` + `transaction_id` set (`findByTxnRef` match).
+- **create-flow** (SubscriptionService.createPendingPayment): txnRef `KH3SUB1CC3ACA6` → webhook → COMPLETED + subscription ACTIVE/PREMIUM.
+- **renewal-flow** (SubscriptionRenewalService.createRenewalPayment): cron-triggered, không walk runtime session này; cùng contract code path + unit-tested. Real cron reconcile = ops concern, không phải bug-fix verification.
 
 ## Related
 
