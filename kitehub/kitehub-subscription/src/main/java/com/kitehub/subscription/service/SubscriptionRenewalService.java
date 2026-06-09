@@ -6,6 +6,7 @@ import com.kitehub.platform.domain.entity.Subscription;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PaymentMethod;
 import com.kitehub.platform.domain.enums.PaymentStatus;
+import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
 import com.kitehub.subscription.client.EmailServiceClient;
 import com.kitehub.subscription.config.SubscriptionConfig;
@@ -67,11 +68,22 @@ public class SubscriptionRenewalService {
 
         // Apply pending tier change if exists (downgrade scheduled at end of cycle)
         if (subscription.getPendingTier() != null) {
+            PricingTier appliedTier = subscription.getPendingTier();
             log.info("Applying pending tier change from {} to {} for subscription {}",
-                subscription.getTier(), subscription.getPendingTier(), subscriptionId);
-            subscription.setTier(subscription.getPendingTier());
-            subscription.setPriceVnd(subscription.getPendingTier().getPrice(subscription.getBillingCycle()));
+                subscription.getTier(), appliedTier, subscriptionId);
+            subscription.setTier(appliedTier);
+            subscription.setPriceVnd(appliedTier.getPrice(subscription.getBillingCycle()));
             subscription.setPendingTier(null);  // Clear pending tier
+
+            // GAP-1090 (SUB-21): sync instances.tier to the newly-applied subscription tier.
+            // instance.tier is load-bearing (connection-pool size, custom-domain eligibility,
+            // data-retention window); the end-of-cycle downgrade apply previously changed only
+            // subscriptions.tier, leaving instances.tier stuck at the pre-downgrade tier.
+            Instance tierSyncInstance = instanceRepository.findById(subscription.getInstanceId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "Instance not found: " + subscription.getInstanceId()));
+            tierSyncInstance.setTier(appliedTier);
+            instanceRepository.save(tierSyncInstance);
         }
 
         // Create payment invoice for renewal

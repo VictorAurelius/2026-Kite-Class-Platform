@@ -27,6 +27,11 @@ vi.mock('@/hooks/use-instances', () => ({
 
 vi.mock('@/hooks/use-branding', () => ({
   useAssets: vi.fn(),
+  useBrandingDeployStatus: vi.fn(),
+}));
+
+vi.mock('@/hooks/use-branding-tier', () => ({
+  useBrandingTier: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -57,7 +62,8 @@ vi.mock('next/dynamic', () => ({
 
 import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
-import { useAssets } from '@/hooks/use-branding';
+import { useAssets, useBrandingDeployStatus } from '@/hooks/use-branding';
+import { useBrandingTier } from '@/hooks/use-branding-tier';
 
 describe('BrandingDashboardPage (Wave 31 Bucket C)', () => {
   beforeEach(() => {
@@ -76,6 +82,20 @@ describe('BrandingDashboardPage (Wave 31 Bucket C)', () => {
 
     (useAssets as ReturnType<typeof vi.fn>).mockReturnValue({
       data: [],
+      isLoading: false,
+      error: null,
+    });
+
+    // GAP-1091a: real tier hook — mock so the page renders past LoadingSpinner.
+    (useBrandingTier as ReturnType<typeof vi.fn>).mockReturnValue({
+      tier: 'FREE',
+      regenerateQuota: 3,
+      isLoading: false,
+    });
+
+    // GAP-1108: default = not deployed → deploy-success card hidden.
+    (useBrandingDeployStatus as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: undefined,
       isLoading: false,
       error: null,
     });
@@ -108,5 +128,36 @@ describe('BrandingDashboardPage (Wave 31 Bucket C)', () => {
     // At least one CTA must point at /branding/wizard placeholder
     const wizardCta = ctas.find((el) => el.getAttribute('href') === '/branding/wizard');
     expect(wizardCta).toBeDefined();
+  });
+
+  // ---- GAP-1108: post-deploy success card -------------------------------
+
+  it('hides the deploy-success card when instance is not deployed', () => {
+    render(<BrandingDashboardPage />);
+    expect(screen.queryByText(/Trang web của bạn đã sẵn sàng/i)).not.toBeInTheDocument();
+  });
+
+  it('shows the deploy-success card + landing link when instance is DEPLOYED', () => {
+    (useBrandingDeployStatus as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: {
+        instanceId: mockInstances[0]!.id,
+        state: 'DEPLOYED',
+        deployed: true,
+        frontendUrl: 'https://toan-master.kiteclass.vn',
+        templateId: 'sky-wave',
+        slug: 'toan-master',
+        brandingVersion: 1,
+        deployedAt: '2026-06-09T09:57:59',
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<BrandingDashboardPage />);
+
+    expect(screen.getByText(/Trang web của bạn đã sẵn sàng/i)).toBeInTheDocument();
+    const landingLink = screen.getByRole('link', { name: /Xem.*landing|landing.*triển khai/i });
+    expect(landingLink.getAttribute('href')).toBe('https://toan-master.kiteclass.vn');
+    expect(landingLink.getAttribute('target')).toBe('_blank');
   });
 });

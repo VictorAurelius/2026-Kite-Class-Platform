@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Check, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { PLAN_DETAILS, formatPrice, getTierRank, type PricingTier } from '@/lib/pricing';
 
 interface TierSelectorProps {
@@ -12,12 +13,16 @@ interface TierSelectorProps {
 }
 
 export function TierSelector({ currentTier, selectedTier, onSelect }: TierSelectorProps) {
+  const router = useRouter();
   const tiers: PricingTier[] = ['FREE', 'BASIC', 'PREMIUM', 'ENTERPRISE'];
 
   const handleSelect = (tier: PricingTier) => {
     if (tier === currentTier) return; // Can't select current tier
     if (tier === 'ENTERPRISE') {
-      alert('Vui lòng liên hệ sales@kiteclass.com để biết thêm chi tiết về gói Enterprise');
+      // GAP-1101: Enterprise = sales-assisted. Navigate to the lead-capture form
+      // instead of the old alert() (which referenced the wrong domain
+      // sales@kiteclass.com — canonical is support@kitehub.me / /contact).
+      router.push('/contact?plan=enterprise');
       return;
     }
     onSelect(tier);

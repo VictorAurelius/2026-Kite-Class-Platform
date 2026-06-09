@@ -43,6 +43,51 @@ const RFC4122_V4 =
 
 export const brandingHandlers: HttpHandler[] = [
   // ---------------------------------------------------------------
+  // POST /api/v1/branding/jobs  (GAP-1021 — create wizard job)
+  // ---------------------------------------------------------------
+  http.post('*/api/v1/branding/jobs', () => {
+    return HttpResponse.json(
+      {
+        jobId: '11111111-1111-4111-8111-111111111111',
+        instanceId: '22222222-2222-4222-8222-222222222222',
+        status: 'INITIALIZING',
+        regenerateCount: 0,
+        brandingVersion: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        brandColors: {
+          primary: '#2563eb',
+          secondary: '#f59e0b',
+          accent: '#22c55e',
+          neutral: '#0f172a',
+          background: '#ffffff',
+          source: 'TEMPLATE',
+        },
+        previewUrl: '/api/v1/branding/jobs/11111111-1111-4111-8111-111111111111/preview',
+      },
+      { status: 201 }
+    );
+  }),
+
+  // ---------------------------------------------------------------
+  // POST /api/v1/branding/jobs/:jobId/approve  (GAP-1021 — deploy trigger)
+  // ---------------------------------------------------------------
+  http.post('*/api/v1/branding/jobs/:jobId/approve', async ({ request, params }) => {
+    const { jobId } = params as { jobId: string };
+    const body = (await request.json().catch(() => ({}))) as { slug?: string };
+    const slug = body.slug || 'tenant';
+    return HttpResponse.json(
+      {
+        jobId,
+        status: 'INITIALIZING',
+        frontendUrl: `https://${slug}.kiteclass.vn`,
+        message: 'Đang triển khai (mock provisioning)',
+      },
+      { status: 202 }
+    );
+  }),
+
+  // ---------------------------------------------------------------
   // GET /api/v1/branding/slug-availability
   // ---------------------------------------------------------------
   http.get('*/api/v1/branding/slug-availability', ({ request }) => {

@@ -8,10 +8,10 @@ paths:
 # G2 Handoff MD Mandate — stepped recipe file khi G1 PASS
 
 **Priority:** 🟠 MANDATORY — flow verification campaign G2 handoff discipline
-**Version:** 1.0.1
+**Version:** 1.0.2
 **Created:** 2026-06-04
-**Last-Reviewed:** 2026-06-08
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (reviewer-checklist + worked self-test on Wave flow-kh1 G2 handoff 2026-06-04) per §6.5 Enforcement Parity Mandate; no constraint loosening — codifies G2 handoff format mandate previously implicit/missing; META P1 force-multiplier per `meta-gap-priority.md` §3)
+**Last-Reviewed:** 2026-06-09
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.2 MINOR self-approve per `rule-change-process.md` §5; adds §3.4 hard-requirement "G2 recipe cho FE flow PHẢI có bước browser-walk (`:3001`/`:3000` đúng port) cho TỪNG affordance FE-wired; curl chỉ supplement cho BE-only affordance — label rõ" mirror `g1-browser-walk-before-flip.md` §2 API-only carve-out + §8.1 reviewer-checklist row + §7.5 worked self-test KH-5/KH-6/KC-8 curl-only miss, paired same-PR per §6.5 Enforcement Parity Mandate; no constraint loosening — closes "curl-G2 bỏ lọt affordance FE-wired" loophole (campaign §1 "(UI/API)"). v1.0.1 (kept): PATCH adds §8.1 FE-port reviewer-checklist row cross-ref `kitehub-kiteclass-boundary.md`. v1.0.0 (kept): new rule với built-in enforcement (reviewer-checklist + worked self-test on Wave flow-kh1 G2 handoff 2026-06-04) per §6.5 Enforcement Parity Mandate; META P1 force-multiplier per `meta-gap-priority.md` §3)
 **Applies to:** Mọi G1 PASS flow transition `🔄 walk-pass-pending-human` trong `flow-verification-campaign.md` §4 → G1-passer (Claude) MUST create dedicated stepped MD recipe cho user G2 test cùng PR
 
 ---
@@ -80,6 +80,10 @@ Mỗi step PHẢI có 4 sub-sections:
 4. **🔍 Verify** (optional) — DB query / log check để confirm side effects
 
 Steps sequenced theo user journey (anonymous → register → login → action → state).
+
+**🔴 Hard requirement (v1.0.2) — browser-walk cho MỌI affordance FE-wired:** Mỗi affordance có FE surface (nút / form / toggle / link / selector mà FE render + wire) PHẢI có bước test **qua browser thật** (FE `:3001` cho KH-* / `:3000` cho KC-* per `kitehub-kiteclass-boundary.md` §2 — KHÔNG curl gắn header tay). Bước **Hành động** ghi rõ "mở browser `http://localhost:<port>/<route>` → click `<affordance>`". `curl`/API CHỈ được phép cho affordance **BE-only** (không có owner-facing FE surface — vd KH-5 `renew` endpoint operational/renewal-reminder view) VÀ PHẢI label rõ **"BE-only — `<lý do không có FE>`"** trong step. Mirror `g1-browser-walk-before-flip.md` §2 carve-out (affordance API-only → curl hợp lệ; affordance có FE → browser bắt buộc).
+
+Lý do (incident 2026-06-09, GAP-1092): recipe KH-5/KH-6/KC-8 dùng curl-only qua gateway `:9000` gắn header tay → bỏ lọt affordance FE-wired (KH-5 downgrade có FE `use-subscriptions.ts:81` `useDowngradeSubscription` + `(customer)/billing/upgrade/page.tsx`; cancel có FE `(customer)/settings/components/DangerZone.tsx:14`). G2 = human walk UI thật — curl-recipe khiến user không test đúng surface FE. Phân biệt: `renew` BE-only (no owner-facing FE per `SubscriptionController.java:53` comment) → curl hợp lệ; downgrade/cancel FE-wired → browser bắt buộc.
 
 ### 3.5 Sad path quick checks (separate section)
 Tổng hợp common edge cases not covered in main steps:
@@ -161,6 +165,20 @@ Example acceptable mix:
 
 **Verdict:** Self-test PASS ✅. File `2026-06-04-g2-recipe-kh1-kh2c-beta-funnel.md` đã ship same PR → demonstrates pattern + future flows auto-comply.
 
+### 7.5 Worked self-test v1.0.2 — KH-5/KH-6/KC-8 curl-only miss (2026-06-09)
+
+**Scenario:** G2 recipe KH-5 (subscription downgrade/cancel/renew) + KH-6 (AI branding) + KC-8 (parent portal) viết curl-only qua gateway `:9000` gắn header tay. G2 = human walk UI thật → curl-recipe bỏ lọt affordance FE-wired.
+
+**Apply §3.4 hard requirement retroactively:**
+
+| Affordance | FE-wired? | Bằng chứng | §3.4 verdict |
+|---|---|---|---|
+| KH-5 **downgrade** | ✅ CÓ FE | `use-subscriptions.ts:81` `useDowngradeSubscription` + `(customer)/billing/upgrade/page.tsx:72,98` | ❌ recipe curl-only FAIL — phải browser-walk `:3001` |
+| KH-5 **cancel** | ✅ CÓ FE | `(customer)/settings/components/DangerZone.tsx:14` | ❌ recipe curl-only FAIL — phải browser-walk `:3001` |
+| KH-5 **renew** | ❌ BE-only | `SubscriptionController.java:53` comment "no owner-facing FE" (operational/renewal-reminder view) | ✅ curl hợp lệ — label "BE-only" |
+
+→ Rule v1.0.2 fires correctly: downgrade + cancel có FE → browser bắt buộc; renew BE-only → curl OK với label. Counterfactual với rule active từ đầu: KH-5/KH-6 recipe ship browser-walk steps cho FE affordance + curl chỉ cho BE-only → 0 user round-trip "G2 walk UI thật mà sao recipe toàn curl". Self-test PASS ✅. (GAP-1092 META coverage + GAP-1093 renew-no-FE filed same session.)
+
 ---
 
 ## 8. Enforcement (per `rule-change-process.md` §6.5 Enforcement Parity Mandate)
@@ -175,6 +193,7 @@ Pre-merge review cho wave plan closure PR flipping campaign §4 row → `🔄 wa
 - [ ] Language Vietnamese narrative + English identifiers per §5?
 - [ ] Báo kết quả 4-outcome matrix present §3.6?
 - [ ] FE port khớp flow per `kitehub-kiteclass-boundary.md` §2 (KH-* = `:3001` kitehub-frontend, KC-* = `:3000` kiteclass-frontend; platform-side KC exception §4.1 state-check)?
+- [ ] **(v1.0.2)** Mỗi affordance FE-wired có bước browser-walk (`:3001`/`:3000` đúng port) cho TỪNG affordance? Affordance BE-only (no FE surface) có label "BE-only — `<lý do>`" thay vì curl-thay-browser ngầm? (per §3.4 hard requirement)
 
 ### 8.2 Cross-link wave plan §7 Closure Protocol
 
@@ -211,6 +230,9 @@ Trailer logged. Pattern frequency >10%/quarter → meta-review.
 - **`feature-ship-runtime-walk-mandate.md`** v1.1.0 §3.4 — covers G1 agent walk catalog-then-batch + walk evidence. This rule extends to G2 handoff format mandate
 - **`pre-handoff-self-test-completeness.md`** v1.2.0 — covers agent pre-handoff self-test completeness. This rule covers AFTER G1 PASS — handoff content format
 - **`flow-verification-campaign.md`** §2 step 7 — "Hand cho human (G2)" mandate this rule fills format requirement
+- **`g1-browser-walk-before-flip.md`** v1.1.x §1-§2 — sister rule: browser-real walk là điều kiện cần của G1 PASS cho FE flow; v1.0.2 mirror its API-only carve-out xuống G2 recipe affordance level (FE-wired → browser; BE-only → curl)
+- **`kitehub-kiteclass-boundary.md`** §2 — canonical FE port mapping (KH `:3001`, KC `:3000`) cho browser-walk steps
+- **`flow-verification-campaign.md`** §1 — G2 gate (paired same-PR) mandate browser-UI cho MỌI affordance FE-wired; rule này fills recipe format requirement
 - **`docs-filename-prefix-convention.md`** Tier 2 time-bound — `YYYY-MM-DD-g2-recipe-<flow>.md` follow Tier 2 convention
 - **`dev-readable-doc-language.md`** §2 — Vietnamese narrative + English identifiers; this rule mandates same convention
 - **`output-review-mandate.md`** §3 — paired same-PR matrix row "G2 handoff recipe MD"
@@ -223,5 +245,6 @@ Trailer logged. Pattern frequency >10%/quarter → meta-review.
 
 ## 10. Log
 
+- **2026-06-09 (v1.0.2):** MINOR — added §3.4 hard-requirement "G2 recipe cho FE flow PHẢI có bước browser-walk (`:3001`/`:3000` đúng port) cho TỪNG affordance FE-wired; curl chỉ supplement cho BE-only affordance — label rõ" + §8.1 reviewer-checklist row + §7.5 worked self-test (KH-5/KH-6/KC-8 curl-only miss) + §9 cross-ref `g1-browser-walk-before-flip` + `kitehub-kiteclass-boundary` + `flow-verification-campaign` §1. Triggered by user-flagged 2026-06-09 miss: KH-5 + KH-6 + KC-8 G2 recipe viết curl-only → bỏ lọt affordance FE-wired (KH-5 downgrade `use-subscriptions.ts:81` + `(customer)/billing/upgrade/page.tsx`, cancel `DangerZone.tsx:14`) trong khi G2 = human walk UI thật. Root: campaign §1 G2 gate "(UI/API)" loophole; `g1-browser-walk-before-flip` chỉ cover G1 (flip→walk-pass-pending-human), KHÔNG cover G2 recipe format; rule này v1.0.0/v1.0.1 mandate FORMAT (7 sections) không mandate browser-vs-curl per affordance. Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged) → Classify ✓ (no existing rule binds browser-UI vào G2 recipe affordance level; sister `g1-browser-walk-before-flip` covers G1 gate only) → Rule+Enforce ✓ (this §3.4 + §8.1 row + §7.5 self-test + `flow-verification-campaign.md` §1 G2 gate edit + `output-review-mandate.md` §3 row extend + `rules-index.csv` version bump paired same PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§7.5 — downgrade/cancel FE-wired browser bắt buộc, renew BE-only curl OK; rule fires correctly) → Retro Log ✓ (this entry). META P1 force-multiplier per `meta-gap-priority.md` §3 — 1 chuẩn browser-for-FE-wired → mọi G2 recipe subsequent (22-flow campaign) auto-comply prospectively → eliminate "curl-G2 bỏ lọt affordance" class. Filed GAP-1092 (META coverage, DONE same session) + GAP-1093 (renew-no-FE, OPEN P3) per `discovery-to-gap-inline-filing.md`. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — adds previously-uncovered browser-vs-curl-per-affordance constraint; no constraint loosening; existing recipes KH-5/KH-6/KC-8 grandfathered (re-verify qua G2 walk loop); KH-5 G1 flip 2026-06-06 trước `g1-browser-walk-before-flip` 2026-06-08 grandfathered; rule applies prospectively từ this PR forward 2026-06-09).
 - **2026-06-09 (v1.0.1):** PATCH — added §8.1 reviewer-checklist row "FE port khớp flow per `kitehub-kiteclass-boundary.md` §2 (KH-* `:3001`, KC-* `:3000`)". Cross-ref paired same-PR với new rule `kitehub-kiteclass-boundary.md` v1.0.0 (per its §6.2 Enforcement Parity) sau 2026-06-09 KH-3/KC-8 recipe FE port drift incident. Additive checklist row, no constraint loosening. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-06-04 (v1.0.0):** Rule created in response to user-flagged 2026-06-04 Wave flow-kh1 G2 handoff: "Hướng dẫn G2 luôn, bằng file md các bước rõ ràng => có meta chưa" → "fix luôn" (after state-check confirmed coverage gap). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged) → Classify ✓ (no existing rule mandates G2 handoff MD format — `feature-ship-runtime-walk-mandate` covers G1 only; `pre-handoff-self-test-completeness` covers agent self-test before handoff; `flow-verification-campaign` §2 step 7 mentions handoff but no format spec) → Rule+Enforce ✓ (this file + reviewer-checklist §8.1 + worked self-test §7 + paired same-PR `documents/05-guides/operations/2026-06-04-g2-recipe-kh1-kh2c-beta-funnel.md` + GAP-921 update DONE + output-review-mandate.md §3 row + rules-index.csv row per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§7 worked example — rule fires correctly on Wave flow-kh1 G1 PASS handoff) → Retro Log ✓ (this entry). META P1 force-multiplier per `meta-gap-priority.md` §3 — fix 1 chuẩn → mọi G1 PASS flow subsequent (KH-3, KC-1..12, KH-5..10) auto-comply prospectively, eliminate user push-back round-trip class. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying previously-uncovered G2 handoff format; no constraint loosening; existing waves (KH-4 ✅ pre-rule) grandfathered; rule applies prospectively từ KH-3 wave forward). Atomic-unique-bar §5.1 check: ✅ atomic (single concept: G2 handoff MD recipe) + ✅ unique (sister rules cover G1 / pre-handoff, not post-G1 handoff format) + ✅ widely applicable (every G1 PASS flow × 22 campaign flows) + ✅ body discipline §1 ≤2 "and" conjunctions. Detector (§8.4) deferred per `incident-to-rule-pipeline.md` §3.1 tightened conditions (recurrence 1, reviewer-checklist + worked self-test sufficient cho v1.0.0); memory auto-load + cross-link extensions (`feature-ship-runtime-walk-mandate` §3.5 + `flow-verification-campaign` §2 step 7) deferred ≥7 days per premature-rule guard.

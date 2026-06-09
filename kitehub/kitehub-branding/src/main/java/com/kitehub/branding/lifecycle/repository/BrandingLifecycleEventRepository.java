@@ -15,12 +15,21 @@ public interface BrandingLifecycleEventRepository
     extends JpaRepository<BrandingLifecycleEvent, UUID> {
 
     /**
-     * Events for an instance, newest-first, optionally bounded by ts and limit.
+     * Events for an instance, newest-first, bounded by ts and limit.
      * Pagination uses offset because event volume per-instance is low (≤200 typical).
+     *
+     * <p>{@code since} MUST be non-null — the controller's {@code parseSince}
+     * defaults to {@code now - 30d} when the query param is absent. The earlier
+     * {@code (:since IS NULL OR ...)} form failed on PostgreSQL with
+     * {@code 42P18 "could not determine data type of parameter"} because a bare
+     * parameter used only in {@code ? IS NULL} gives Postgres no type to infer
+     * at PREPARE time (H2 tolerated it, masking the bug). Per
+     * {@code postgres-specific-type-testcontainers.md}, the null branch is
+     * removed entirely rather than CAST-hinted.
      */
     @Query("SELECT e FROM BrandingLifecycleEvent e "
         + "WHERE e.instanceId = :instanceId "
-        + "  AND (:since IS NULL OR e.occurredAt >= :since) "
+        + "  AND e.occurredAt >= :since "
         + "ORDER BY e.occurredAt DESC, e.id DESC")
     List<BrandingLifecycleEvent> findByInstanceIdSince(
         @Param("instanceId") UUID instanceId,

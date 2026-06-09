@@ -6,10 +6,10 @@ paths:
 # AI Branding — Developer Guidelines
 
 **Priority:** 🟠 MANDATORY
-**Version:** 1.2.1
+**Version:** 1.2.2
 **Created:** 2026-04-14
-**Last-Reviewed:** 2026-05-14
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.2.1 PATCH self-approve per `rule-change-process.md` §5; thêm `paths:` frontmatter cho path-scoped auto-load qua Wave 73 Bucket A5 — không thay đổi scope rule, chỉ defer-load khi không có file trong `kitehub/kitehub-branding/**` ở context. v1.2.0 (kept): MINOR self-approve per §5; new §2.5 input cap rule paired với `AIInputCapService` + tests + business rules.md BR-INPUT-CAP-001..007 in same PR per §6.5 Enforcement Parity Mandate)
+**Last-Reviewed:** 2026-06-09
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.2.2 PATCH self-approve per `rule-change-process.md` §5; tier-name drift sweep §4.3 + §11.4 stale `PRO` → canonical `BASIC` (PricingTier enum không có tier PRO), align với SUB-22 entitlement matrix — value-preserving, no constraint change. v1.2.1 (kept): PATCH self-approve per §5; thêm `paths:` frontmatter cho path-scoped auto-load qua Wave 73 Bucket A5 — không thay đổi scope rule, chỉ defer-load khi không có file trong `kitehub/kitehub-branding/**` ở context. v1.2.0 (kept): MINOR self-approve per §5; new §2.5 input cap rule paired với `AIInputCapService` + tests + business rules.md BR-INPUT-CAP-001..007 in same PR per §6.5 Enforcement Parity Mandate)
 **Applies to:** Every PR touching `kitehub-branding/**` (Java + frontend) or AI provider config
 
 How to implement AI Branding features correctly. **Key feature của dự án** — phải tuân thủ nghiêm.
@@ -162,7 +162,7 @@ Provisioning wizard 6 steps:
 | Tier | Regenerate/session |
 |------|-------------------|
 | FREE | 3 |
-| PRO | 10 |
+| BASIC | 10 |
 | PREMIUM | 30 |
 | ENTERPRISE | Unlimited |
 
@@ -350,14 +350,14 @@ Reference: `documents/02-architecture/ai-branding-design-patterns.md`
 - Bulkhead isolation: concurrent 4-worker test (Oracle 24GB constraint) → no thread starvation
 - Retry policy unchanged or migration test added
 - Timeout >2 min triggers timeout + queues for retry
-- Tier rate-limit FREE 3 / PRO 10 / PREMIUM 30 still enforced
+- Tier rate-limit FREE 3 / BASIC 10 / PREMIUM 30 still enforced
 
 #### 11.4.5 Tier-specific governance
 - FREE tier template-first routing intact (≥80% requests STATIC/TEMPLATE)
-- PRO tier regenerate counter visible + decremented
+- BASIC tier regenerate counter visible + decremented
 - PREMIUM tier additional template variants accessible
 - ENTERPRISE Advanced Mode toggle + free-prompt opt-in still gated by `ai.enterprise.advancedModeEnabled` flag
-- Free-form prompt BANNED for FREE/PRO/PREMIUM (per §2.1)
+- Free-form prompt BANNED for FREE/BASIC/PREMIUM (per §2.1)
 
 #### Acceptance criteria for migration PR
 
@@ -398,6 +398,7 @@ Khi review PR liên quan AI branding, check:
 
 ## Log
 
+- **2026-06-09** (v1.2.2): PATCH — tier-name drift sweep (tier-enforcement wave). Đổi 4 instance stale `PRO` → `BASIC` cho đúng canonical `PricingTier` enum (`FREE/BASIC/PREMIUM/ENTERPRISE` — không có tier `PRO`): §4.3 regen table `PRO 10` → `BASIC 10`; §11.4.4 `FREE 3 / PRO 10 / PREMIUM 30` → `FREE 3 / BASIC 10 / PREMIUM 30`; §11.4.5 `PRO tier regenerate counter` → `BASIC tier regenerate counter`; §11.4.5 `BANNED for FREE/PRO/PREMIUM` → `FREE/BASIC/PREMIUM`. Value-preserving (tier có regen=10 = BASIC per SUB-22 matrix; PREMIUM giữ 30). Align với `subscription-billing/rules.md` SUB-22 entitlement matrix (canonical) + §2.5 input cap (đã đúng FREE/BASIC/PREMIUM/ENTERPRISE). Per `cross-flow-bug-class-sweep.md` — sweep evidence trong PR body. PATCH per `rule-change-process.md` §4 (correction of stale label → clarification, no constraint change; enforcement reality unchanged — BASIC tier vẫn = 10 regen). Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — stale-name correction, no constraint loosening).
 - **2026-05-14** (v1.2.1): PATCH — thêm `paths: ["kitehub/kitehub-branding/**"]` frontmatter qua Wave 73 Bucket A5 (path-scope 6 design/wave/AI rules). Per Anthropic native `paths:` mechanism (https://code.claude.com/docs/en/memory), rule giờ chỉ auto-load khi Claude đọc file trong `kitehub/kitehub-branding/**`. Không thay đổi rule content/scope; reduces base context auto-load per Wave 73 Meta Context Optimization plan. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive frontmatter, no constraint change).
 - **2026-04-28** (v1.2.0): MINOR — added §2.5 Input prompt token cap (GAP-258). Tier-aware caps (FREE 2000 / BASIC 4000 / PREMIUM 8000 / ENTERPRISE 16000 tokens; configurable via `ai.input.*`; `-1` = unlimited). Defends against cost-attack DDoS where small request count carries oversized prompts. Paired same-PR with `AIInputCapService` + `PromptTokenEstimator` + tier-aware `AIInputCapConfig` + Micrometer counter `ai.input.token.rejection{tier}` + 13 unit tests + 3 IT + business rules `BR-INPUT-CAP-001..007` per `rule-change-process.md` §6.5 Enforcement Parity Mandate. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — new constraint, no constraint loosening). Motivation: 2026-04-28 article state-check ("Những lỗi 'chết người' khi build AI backend (Phần 2) — Không rate limit") surfaced that `OpenAIClient` capped output tokens only; per-day request-count cap alone does not bound input cost.
 - **2026-04-26** (v1.1.0): MINOR — added §11.4 Migration test checklist subsection (5 sub-sections × 20 points; mandatory `/ai-branding-quality-gate` skill run; baseline 62/100 captured 2026-04-26). Backfilled mandatory frontmatter (Version, Created, Last-Reviewed, Reviewer-Approver, Applies-to) per `rule-change-process.md` §3 backfill-on-next-edit policy. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — paired with skill creation + audit-gate rule + baseline audit in same Sub-PR 223.1). Closes part of GAP-223 Sub-PR 223.1 (Option C). Motivation: AI behavior changes (model upgrade, prompt rewrite) shipped Wave 4 với scaffold-only verification; GAP-006 Gemma 4 9B migration cannot ship without migration checklist (§11.4) + skill + audit-gate trigger. Real WCAG/vrg/ML automation deferred to GAP-226/227/228.

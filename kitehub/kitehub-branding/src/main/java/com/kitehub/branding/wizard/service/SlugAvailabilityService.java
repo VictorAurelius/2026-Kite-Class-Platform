@@ -4,6 +4,7 @@ import com.kitehub.branding.repository.BrandingJobRepository;
 import com.kitehub.branding.wizard.dto.SlugAvailabilityResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -46,6 +47,7 @@ public class SlugAvailabilityService {
     private static final int MAX_SUGGESTIONS = 5;
 
     private final BrandingJobRepository brandingJobRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     /**
      * Validate the slug format. Returns null when valid; otherwise a short
@@ -77,6 +79,19 @@ public class SlugAvailabilityService {
     private boolean isTaken(String slug) {
         String normalized = slug.toLowerCase(Locale.ROOT);
         if (RESERVED.contains(normalized)) {
+            return true;
+        }
+        // GAP-1111: instances.subdomain is the CANONICAL signup subdomain — DB
+        // UNIQUE, claimed by kitehub-subscription on tenant create. branding
+        // shares the same /kitehub datasource, so read it directly as the
+        // authoritative "taken" signal. (The branding_jobs.organization_name
+        // check below stays as a secondary best-effort proxy. A cross-DB check
+        // against kiteclass-core frontend_instances is a further follow-up.)
+        Boolean subdomainTaken = jdbcTemplate.queryForObject(
+                "SELECT EXISTS(SELECT 1 FROM instances "
+                        + "WHERE LOWER(subdomain) = ? AND deleted = false)",
+                Boolean.class, normalized);
+        if (Boolean.TRUE.equals(subdomainTaken)) {
             return true;
         }
         // GAP-392: replaced previous {@code findAll().stream().anyMatch(...)}

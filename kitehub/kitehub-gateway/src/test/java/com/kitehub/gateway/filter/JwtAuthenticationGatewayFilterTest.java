@@ -94,6 +94,68 @@ class JwtAuthenticationGatewayFilterTest {
     }
 
     @Test
+    @DisplayName("GAP-1020: valid JWT with tier claim → inject trusted X-Subscription-Tier header")
+    void validJwtInjectsTrustedSubscriptionTier() {
+        String validJwt = Jwts.builder()
+                .subject("owner-xyz-789")
+                .claim("role", "OWNER")
+                .claim("email", "owner@skyedu.vn")
+                .claim("tier", "PREMIUM")
+                .issuedAt(Date.from(Instant.now()))
+                .expiration(Date.from(Instant.now().plusSeconds(3600)))
+                .signWith(signingKey)
+                .compact();
+
+        // Client tries to spoof a higher tier — gateway must overwrite with the verified claim.
+        MockServerHttpRequest req = MockServerHttpRequest
+                .post("http://localhost/api/platform/branding/ai/generate-theme")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + validJwt)
+                .header(JwtAuthenticationGatewayFilter.HEADER_SUBSCRIPTION_TIER, "ENTERPRISE")
+                .build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(req);
+        CapturingChain chain = new CapturingChain();
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        assertThat(chain.captured).isNotNull();
+        ServerHttpRequest mutated = chain.captured.getRequest();
+        assertThat(mutated.getHeaders().getFirst(JwtAuthenticationGatewayFilter.HEADER_SUBSCRIPTION_TIER))
+                .as("Gateway MUST inject the verified tier claim, overriding any client-supplied value")
+                .isEqualTo("PREMIUM");
+        assertThat(exchange.getResponse().getStatusCode()).isNull();
+    }
+
+    @Test
+    @DisplayName("GAP-1020: valid JWT WITHOUT tier claim (legacy token) → default X-Subscription-Tier=FREE")
+    void legacyJwtWithoutTierClaimDefaultsToFree() {
+        // Backward-compat: token issued before the tier claim landed (e.g. test-8 pre-V68).
+        String legacyJwt = Jwts.builder()
+                .subject("owner-legacy-456")
+                .claim("role", "OWNER")
+                .claim("email", "legacy@skyedu.vn")
+                .issuedAt(Date.from(Instant.now()))
+                .expiration(Date.from(Instant.now().plusSeconds(3600)))
+                .signWith(signingKey)
+                .compact();
+
+        MockServerHttpRequest req = MockServerHttpRequest
+                .post("http://localhost/api/platform/branding/ai/generate-theme")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + legacyJwt)
+                .build();
+        MockServerWebExchange exchange = MockServerWebExchange.from(req);
+        CapturingChain chain = new CapturingChain();
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        assertThat(chain.captured).isNotNull();
+        ServerHttpRequest mutated = chain.captured.getRequest();
+        assertThat(mutated.getHeaders().getFirst(JwtAuthenticationGatewayFilter.HEADER_SUBSCRIPTION_TIER))
+                .as("Token with no tier claim → least-privilege FREE default")
+                .isEqualTo(JwtAuthenticationGatewayFilter.DEFAULT_TIER);
+        assertThat(exchange.getResponse().getStatusCode()).isNull();
+    }
+
+    @Test
     @DisplayName("Case 2: expired JWT → 401 short-circuit, không pass downstream")
     void expiredJwtReturns401() {
         String expiredJwt = Jwts.builder()
