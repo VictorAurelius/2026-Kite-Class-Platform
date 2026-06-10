@@ -10,7 +10,14 @@ import { authApi } from '../auth';
 import { apiClient } from '@/lib/api-client';
 import type { LoginRequest, AuthResponse } from '@/types/auth';
 
-// Mock apiClient
+// Bare login client (axios.create, no interceptor) used by authApi.login — see
+// auth.ts. Hoisted so the module-load `axios.create(...)` returns this mock.
+const { loginPost } = vi.hoisted(() => ({ loginPost: vi.fn() }));
+vi.mock('axios', () => ({
+  default: { create: () => ({ post: loginPost }) },
+}));
+
+// Mock apiClient (logout / refresh / forgot / reset / verify still route through it)
 vi.mock('@/lib/api-client', () => ({
   apiClient: {
     post: vi.fn(),
@@ -20,46 +27,69 @@ vi.mock('@/lib/api-client', () => ({
 describe('authApi', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    loginPost.mockReset();
   });
 
   describe('login', () => {
-    it('should login successfully and return auth response', async () => {
-      const mockCredentials: LoginRequest = {
-        email: 'test@example.com',
-        password: 'password123',
-      };
+    // Wave RBAC-Shell 1 (GAP-1122): KC :3000 probes KC-native tenant-auth first
+    // (TEACHER/PARENT/STUDENT) then falls back to KH owner/staff login.
+    it('authenticates a tenant role via KC tenant-auth and adapts the shape', async () => {
+      const credentials: LoginRequest = { email: 'teacher_a@test.com', password: 'Walk@1234' };
 
-      const mockAuthResponse: AuthResponse = {
-        accessToken: 'access-token-123',
-        refreshToken: 'refresh-token-456',
-        tokenType: 'Bearer',
-        expiresIn: 3600,
-        user: {
-          id: 1,
-          email: 'test@example.com',
-          name: 'Test User',
-          roles: ['STUDENT'],
+      // ApiResponse-wrapped tenant-auth payload (role + referenceId + tenantId).
+      loginPost.mockResolvedValueOnce({
+        data: {
+          success: true,
+          data: {
+            accessToken: 'kc-access',
+            tokenType: 'Bearer',
+            expiresInSeconds: 43200,
+            role: 'TEACHER',
+            referenceId: 1,
+            tenantId: 'aaaabbbb-0000-0000-0000-000000000001',
+          },
         },
-      };
+      });
 
-      // Wave 105 GAP-724 fix: KH /api/auth/login returns flat AuthResponse (no ApiResponse wrapper).
-      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: mockAuthResponse });
+      const result = await authApi.login(credentials);
 
-      const result = await authApi.login(mockCredentials);
-
-      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/login', mockCredentials);
-      expect(result).toEqual(mockAuthResponse);
+      expect(loginPost).toHaveBeenCalledWith('/api/v1/tenant-auth/login', credentials);
+      expect(result.accessToken).toBe('kc-access');
+      expect(result.refreshToken).toBe(''); // tenant-auth issues no refresh token
+      expect(result.user.roles).toEqual(['TEACHER']);
+      expect(result.user.email).toBe('teacher_a@test.com');
     });
 
-    it('should throw error when login fails', async () => {
-      const mockCredentials: LoginRequest = {
-        email: 'test@example.com',
-        password: 'wrong-password',
-      };
+    it('falls back to KH owner login when tenant-auth rejects (owner email not a tenant credential)', async () => {
+      const credentials: LoginRequest = { email: 'owner.test@test.vn', password: 'Test@1234' };
 
-      vi.mocked(apiClient.post).mockRejectedValueOnce(new Error('Invalid credentials'));
+      loginPost
+        .mockRejectedValueOnce({ response: { status: 401 } }) // tenant-auth probe → 401
+        .mockResolvedValueOnce({
+          // KH flat AuthResponse (role singular, has refreshToken)
+          data: {
+            accessToken: 'kh-access',
+            refreshToken: 'kh-refresh',
+            tokenType: 'Bearer',
+            expiresIn: 3600,
+            user: { id: 'owner-uuid', email: 'owner.test@test.vn', name: 'Test Owner', role: 'OWNER' },
+          },
+        });
 
-      await expect(authApi.login(mockCredentials)).rejects.toThrow('Invalid credentials');
+      const result = await authApi.login(credentials);
+
+      expect(loginPost).toHaveBeenNthCalledWith(1, '/api/v1/tenant-auth/login', credentials);
+      expect(loginPost).toHaveBeenNthCalledWith(2, '/api/auth/login', credentials);
+      expect(result.accessToken).toBe('kh-access');
+      expect((result.user as unknown as { role: string }).role).toBe('OWNER');
+    });
+
+    it('throws a uniform VN error when both endpoints reject', async () => {
+      loginPost.mockRejectedValue({ response: { status: 401 } });
+
+      await expect(
+        authApi.login({ email: 'nobody@test.com', password: 'bad' }),
+      ).rejects.toThrow('Email hoặc mật khẩu không đúng');
     });
   });
 

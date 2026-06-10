@@ -1,6 +1,6 @@
 # GAP-1122: KiteClass FE role-shell foundation — login role-redirect + RoleGuard + role-name parity
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Frontend (kiteclass-frontend `:3000`)
 **Found:** 2026-06-10 (Wave RBAC-Shell 1 Bucket A — foundation cho mọi KC user-facing shell)
@@ -46,8 +46,32 @@ FE KiteClass thiếu **tầng nền role-shell** (state-check verify code 2026-0
 - [x] Role-name parity: `normalizeRole` map BE hierarchical + @PreAuthorize literals → FE canonical (unit-tested 17 BE vocab tokens)
 - [x] `(dashboard)/admin` có role-guard (đóng IDOR-by-navigation security gap)
 - [x] FE tests Red→Green: roles (13) + RoleGuard (4) + login-redirect (3) — `pnpm test` PASS
-- [ ] G1 browser-walk + feature-ship runtime walk trên local Docker stack (coordinator — pre DONE flip per `feature-ship-runtime-walk-mandate.md` §1)
-- [ ] Owner/staff per-role nav restriction trên `(dashboard)` shared routes (`/classes`, `/students`...) — **Bucket B scope**, không Bucket A
+- [x] G1 browser-walk + feature-ship runtime walk trên local Docker stack (coordinator — Playwright walk 2026-06-10, xem §Walk evidence)
+
+## Out-of-scope (track riêng)
+
+| Item | Where |
+|---|---|
+| Owner/staff per-role nav restriction trên `(dashboard)` shared routes (`/classes`, `/students`...) | Bucket B (per-role nav) — chưa scope GAP-1122 Bucket A |
+
+## Walk evidence (per feature-ship-runtime-walk-mandate.md §3 + g1-browser-walk-before-flip.md)
+
+**Stack:** kiteclass-frontend `:3000` + kite-gateway `:9000` + kiteclass-core + kite-postgres (all healthy). **Tool:** Playwright (`@playwright/test`) headless Chromium qua FE `:3000` thật.
+
+**Login fix (GAP-1127, cùng PR):** FE login form trước đó gọi `/api/auth/login` (KH subscription) → tenant roles 400. Sửa `authApi.login` probe `/api/v1/tenant-auth/login` (KC) trước, fallback KH cho owner. Test creds: `teacher_a@test.com`, `parent-walk@test.com`, `owner.test@test.vn` (mật khẩu walk `Walk@1234` / `Test@1234`).
+
+| Bước (browser-real) | Kết quả | Verdict |
+|---|---|---|
+| TEACHER login qua form `:3000/login` | redirect `/teacher` (shell teacher) | ✅ roleHome(TEACHER) |
+| PARENT login qua form | redirect `/parent` | ✅ roleHome(PARENT) |
+| OWNER login (KH fallback) | redirect `/dashboard` | ✅ roleHome(OWNER) |
+| TEACHER → `/admin/payroll` | bounce `/teacher/dashboard` (heading "Chào buổi sáng, Cô Hà") | ✅ IDOR-by-nav closed |
+| PARENT → `/admin/payroll` | bounce `/parent` | ✅ IDOR closed |
+| OWNER → `/admin/payroll` | renders (heading "Bảng lương giáo viên") | ✅ allow[OWNER,ADMIN] |
+| OWNER → `/teacher`, `/parent` | bounce `/dashboard` | ✅ RoleGuard allow-list |
+| UNAUTH → `/teacher` / `/admin/payroll` | redirect `/login` | ✅ RoleGuard unauth |
+
+Console: 0 crash; chỉ 1 `400 /api/auth/login` khi cố tình test bad-creds (đúng kỳ vọng) + 404 asset lẻ (favicon). Discovery: `/admin` index thiếu `page.tsx` → 404 (GAP-1128, P3, OPEN).
 
 ## Related
 
@@ -56,3 +80,9 @@ FE KiteClass thiếu **tầng nền role-shell** (state-check verify code 2026-0
 - Wave 78 GAP-518 (role-name parity precedent `PLATFORM_ADMIN` vs `ADMIN`)
 - Dep: Bucket C cross-product SSO KH→KC (owner/staff login functional); KC-9 student auth (student login functional)
 - Follow-up đề xuất: BE `@PreAuthorize` role-literal vocabulary alignment (OWNER/ADMIN/PRINCIPAL inconsistency) — coordinator lấy ID tiếp từ block 1121-1132
+- Enabler: GAP-1127 (FE login form → KC tenant-auth wiring) — unblock TEACHER/PARENT login qua FE để walk full
+- Discovery: GAP-1128 (`/admin` index route thiếu page.tsx → 404)
+
+## Log
+
+- **2026-06-10 (DONE):** G1 browser-walk PASS qua Playwright trên FE `:3000` thật (xem §Walk evidence) — roleHome redirect TEACHER→/teacher + PARENT→/parent + OWNER→/dashboard, RoleGuard bounce + IDOR-by-nav closed trên `/admin/payroll` (teacher/parent bounce, owner allowed), unauth→/login. Headline AC verified end-to-end. TEACHER/PARENT login qua FE form được unblock bởi GAP-1127 (FE login wiring fix, cùng PR — `authApi.login` probe `/api/v1/tenant-auth/login` trước, fallback KH owner). Owner/staff per-role nav (line cũ) chuyển §Out-of-scope = Bucket B. Flip PARTIAL 70% → DONE 100%; git mv → phase-1-beta/closed/.
