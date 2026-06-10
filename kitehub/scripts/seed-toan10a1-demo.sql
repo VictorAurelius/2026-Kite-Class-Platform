@@ -128,3 +128,22 @@ WHERE c.instance_id = 'aaaabbbb-0000-0000-0000-000000000001'
 UPDATE auth_credentials
 SET password_hash = '$2b$10$lDf1LjHMLRImbleevPXhye70vXD7XNpnG8P6PdyHE9YyC457FpbZ2', updated_at = now()
 WHERE email = 'teacher_a@test.com';
+
+-- ============================================================
+-- 5. Tài khoản ADMIN local để test trang /attendance/reports.
+--    LƯU Ý: trang Báo cáo điểm danh (`GET /api/v1/reports/attendance`,
+--    `@PreAuthorize hasRole('ADMIN')`) + shell (dashboard) là tính năng OWNER/ADMIN.
+--    TEACHER (login KC member) route về /teacher shell — KHÔNG có /attendance/reports.
+--    Production: OWNER vào qua SSO từ KiteHub. LOCAL DEV: nới CHECK constraint +
+--    tạo credential ADMIN trực tiếp để test FE flow (CHỈ DB local — không phải migration).
+-- ============================================================
+ALTER TABLE auth_credentials DROP CONSTRAINT IF EXISTS ck_auth_credentials_entity_type;
+ALTER TABLE auth_credentials ADD CONSTRAINT ck_auth_credentials_entity_type
+    CHECK (entity_type IN ('PARENT','TEACHER','STUDENT','ADMIN','OWNER'));
+
+INSERT INTO auth_credentials (user_uuid, entity_type, entity_id, email, password_hash, instance_id, enabled, created_at, updated_at)
+SELECT gen_random_uuid(), 'ADMIN', 1, 'admin@test.com',
+       '$2b$10$lDf1LjHMLRImbleevPXhye70vXD7XNpnG8P6PdyHE9YyC457FpbZ2',
+       'aaaabbbb-0000-0000-0000-000000000001', true, now(), now()
+WHERE NOT EXISTS (SELECT 1 FROM auth_credentials
+                  WHERE email='admin@test.com' AND instance_id='aaaabbbb-0000-0000-0000-000000000001');
