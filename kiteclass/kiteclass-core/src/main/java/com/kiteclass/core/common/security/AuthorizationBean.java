@@ -331,10 +331,16 @@ public class AuthorizationBean {
     }
 
     /**
-     * Check Spring Security context for admin role (bypass).
+     * Check Spring Security context for an admin-equivalent role (bypass).
      *
-     * @return true if current authentication holds {@code ROLE_PLATFORM_ADMIN}
-     *         or {@code ROLE_ADMIN}
+     * <p>{@code ROLE_OWNER} is the school owner — the highest tenant-scoped role
+     * in KiteClass — and is treated as a tenant-admin here: requests reaching
+     * kiteclass-core are already tenant-scoped (gateway {@code X-Tenant-Id} +
+     * tenant filter), so an owner gets full access within their own tenant.
+     * {@code ROLE_PLATFORM_ADMIN} / {@code ROLE_ADMIN} are platform-level.</p>
+     *
+     * @return true if current authentication holds {@code ROLE_PLATFORM_ADMIN},
+     *         {@code ROLE_ADMIN}, or {@code ROLE_OWNER}
      */
     private boolean isAdmin() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -344,6 +350,8 @@ public class AuthorizationBean {
         List<String> roles = auth.getAuthorities().stream()
                 .map(grantedAuthority -> grantedAuthority.getAuthority())
                 .toList();
-        return roles.contains("ROLE_PLATFORM_ADMIN") || roles.contains("ROLE_ADMIN");
+        return roles.contains("ROLE_PLATFORM_ADMIN")
+                || roles.contains("ROLE_ADMIN")
+                || roles.contains("ROLE_OWNER");
     }
 }

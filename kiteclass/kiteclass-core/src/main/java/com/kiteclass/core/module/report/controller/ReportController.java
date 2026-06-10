@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * <p><strong>OWASP A01 authorization (per {@code pre-launch-owasp-rest-hardening-checklist.md}
  * §2.1):</strong> reports expose tenant-WIDE aggregated financials + operations, so they are
- * Owner/admin-only. Guarded with {@code @PreAuthorize("hasRole('ADMIN')")} — a role gate, not a
+ * Owner/admin-only. Guarded with {@code @PreAuthorize("hasAnyRole('ADMIN','OWNER')")} — a role gate, not a
  * per-resource gate, because the resource IS the whole tenant (no per-class/per-student scope to
  * narrow). Tenant isolation itself is enforced by the Hibernate {@code tenantFilter} on the
  * underlying {@code payments} / {@code attendance} tables, so an ADMIN of tenant A never sees
@@ -52,7 +52,7 @@ public class ReportController {
      * @return revenue report (zero-filled month series + total)
      */
     @GetMapping("/revenue")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     @Operation(summary = "Monthly revenue report",
             description = "Tenant-wide SUM of COMPLETED payment amounts grouped by month. "
                     + "Owner/admin only (OWASP A01 role gate).")
@@ -71,7 +71,7 @@ public class ReportController {
      * @return attendance report (zero-filled month series + overall rate)
      */
     @GetMapping("/attendance")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     @Operation(summary = "Monthly attendance present-rate report",
             description = "Tenant-wide PRESENT/total attendance ratio grouped by month. "
                     + "Owner/admin only (OWASP A01 role gate).")
