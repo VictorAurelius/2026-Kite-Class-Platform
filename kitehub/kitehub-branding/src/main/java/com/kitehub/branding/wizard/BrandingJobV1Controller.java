@@ -3,10 +3,14 @@ package com.kitehub.branding.wizard;
 import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.repository.BrandingJobRepository;
 import com.kitehub.branding.service.BrandingJobService;
+import com.kitehub.branding.service.banner.BannerComposition;
+import com.kitehub.branding.service.banner.BannerHtmlComposer;
+import com.kitehub.branding.service.banner.BannerRenderer;
 import com.kitehub.branding.wizard.dto.ApproveDeployRequest;
 import com.kitehub.branding.wizard.dto.BrandColours;
 import com.kitehub.branding.wizard.dto.BrandingJobResponse;
 import com.kitehub.branding.wizard.dto.CreateWizardJobRequest;
+import com.kitehub.branding.wizard.dto.PreviewBannerRequest;
 import com.kitehub.branding.wizard.quality.BrandColoursDeriver;
 import com.kitehub.branding.wizard.service.MockProvisioningService;
 import io.micrometer.core.annotation.Timed;
@@ -58,6 +62,13 @@ public class BrandingJobV1Controller {
     private final BrandColoursDeriver coloursDeriver;
     private final BrandingJobService brandingJobService;
     private final MockProvisioningService mockProvisioningService;
+    /** GAP-1141 — Step 7 live banner preview (compose → sidecar render, no Gemini/DB/quota). */
+    private final BannerHtmlComposer bannerHtmlComposer;
+    private final BannerRenderer bannerRenderer;
+
+    /** Safe fallback palette when the preview request carries no (or invalid) colours. */
+    private static final BrandColours DEFAULT_PREVIEW_COLOURS = new BrandColours(
+            "#1E40AF", "#F59E0B", "#F59E0B", "#0F172A", "#FFFFFF", BrandColours.Source.TEMPLATE);
 
     /** Read access — owner + staff personas (mirrors getJob). */
     private static final String READ_AUTHZ =
@@ -112,6 +123,56 @@ public class BrandingJobV1Controller {
         log.info("Wizard job created: {} status={}", job.getId(), job.getStatus());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(BrandingJobResponse.from(job, colours, tenantId));
+    }
+
+    /**
+     * Compose + rasterise a live TEMPLATE-mode banner preview (GAP-1141). Called
+     * by Step 7 to show the owner the real banner WebP before deploy. Stateless:
+     * NO Gemini call, NO DB write, NO FULL_AI quota consumed — the FE passes its
+     * already-computed palette + copy and the backend just composes + renders.
+     *
+     * <p>Preview is always {@code TEMPLATE} (FULL_AI commits only on Deploy per
+     * {@code ai-branding-guidelines.md} §2.4) so exploring never burns quota.
+     * {@code bannerUrl} may be {@code null} when no rasteriser is wired
+     * ({@link com.kitehub.branding.service.banner.StubBannerRenderer}); the FE
+     * then falls back to the logo / placeholder.</p>
+     *
+     * @param req preview inputs (orgName + copy + logo + portraits + icon + palette)
+     * @return {@code 200} with {@code {bannerUrl, mode:"TEMPLATE"}}
+     */
+    @PostMapping("/preview-banner")
+    @PreAuthorize(WRITE_AUTHZ)
+    public ResponseEntity<?> previewBanner(@RequestBody(required = false) PreviewBannerRequest req) {
+        PreviewBannerRequest body = req == null
+                ? new PreviewBannerRequest(null, null, null, null, null, null)
+                : req;
+        BrandColours colours = body.colours() != null ? body.colours() : DEFAULT_PREVIEW_COLOURS;
+        // Ephemeral object-key namespace — preview artifacts are throwaway, not tied
+        // to a persisted job. Prefer the real tenant claim when present.
+        UUID instanceId = resolveTenantOrEphemeral();
+        BannerComposition composition = bannerHtmlComposer.compose(
+                body.organizationName(), body.copy(), body.logoUrl(),
+                body.portraitUrls(), body.themeIcon(), colours);
+        String bannerUrl = bannerRenderer.render(composition, instanceId);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("bannerUrl", bannerUrl); // nullable — FE falls back to logo/placeholder
+        out.put("mode", "TEMPLATE");
+        log.debug("Preview banner composed for '{}' (rendered={})",
+                body.organizationName(), bannerUrl != null);
+        return ResponseEntity.ok(out);
+    }
+
+    /** Resolve the JWT tenant claim to a UUID, or a throwaway id for ephemeral previews. */
+    private static UUID resolveTenantOrEphemeral() {
+        String tenantId = MDC.get("tenantId");
+        if (tenantId != null && !tenantId.isBlank()) {
+            try {
+                return UUID.fromString(tenantId.trim());
+            } catch (IllegalArgumentException ignored) {
+                // fall through to ephemeral key
+            }
+        }
+        return UUID.randomUUID();
     }
 
     /**

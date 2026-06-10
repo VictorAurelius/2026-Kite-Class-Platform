@@ -5,7 +5,12 @@ import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.domain.enums.JobStatus;
 import com.kitehub.branding.repository.BrandingJobRepository;
 import com.kitehub.branding.service.BrandingJobService;
+import com.kitehub.branding.service.banner.BannerComposition;
+import com.kitehub.branding.service.banner.BannerHtmlComposer;
+import com.kitehub.branding.service.banner.BannerRenderer;
+import com.kitehub.branding.wizard.dto.BrandColours;
 import com.kitehub.branding.wizard.dto.BrandingJobResponse;
+import com.kitehub.branding.wizard.dto.PreviewBannerRequest;
 import com.kitehub.branding.wizard.quality.BrandColoursDeriver;
 import com.kitehub.branding.wizard.service.MockProvisioningService;
 import org.junit.jupiter.api.AfterEach;
@@ -20,11 +25,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,6 +48,12 @@ class BrandingJobV1ControllerTest {
     @Mock
     private MockProvisioningService mockProvisioningService;
 
+    @Mock
+    private BannerHtmlComposer bannerHtmlComposer;
+
+    @Mock
+    private BannerRenderer bannerRenderer;
+
     private final BrandColoursDeriver coloursDeriver = new BrandColoursDeriver();
 
     private BrandingJobV1Controller controller;
@@ -50,7 +64,8 @@ class BrandingJobV1ControllerTest {
     @BeforeEach
     void setUp() {
         controller = new BrandingJobV1Controller(
-                jobRepository, coloursDeriver, brandingJobService, mockProvisioningService);
+                jobRepository, coloursDeriver, brandingJobService, mockProvisioningService,
+                bannerHtmlComposer, bannerRenderer);
         jobId = UUID.randomUUID();
         job = new BrandingJob();
         job.setId(jobId);
@@ -69,6 +84,52 @@ class BrandingJobV1ControllerTest {
     @AfterEach
     void clearMdc() {
         MDC.clear();
+    }
+
+    @Test
+    @DisplayName("GAP-1141: preview-banner composes via renderer + returns TEMPLATE mode (no quota)")
+    void previewBanner_returnsBannerUrlAndTemplateMode() {
+        BannerComposition composition = new BannerComposition("<html></html>", 1200, 630);
+        when(bannerHtmlComposer.compose(any(), any(), any(), any(), any(), any()))
+                .thenReturn(composition);
+        when(bannerRenderer.render(eq(composition), any()))
+                .thenReturn("https://cdn.example.com/banner.webp");
+
+        PreviewBannerRequest req = new PreviewBannerRequest(
+                "Trung tâm Sky", "Học giỏi", "https://cdn.example.com/logo.png",
+                List.of(), "📚",
+                new BrandColours("#1E40AF", "#F59E0B", "#F59E0B", "#0F172A", "#FFFFFF",
+                        BrandColours.Source.TEMPLATE));
+
+        ResponseEntity<?> response = controller.previewBanner(req);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body).containsEntry("mode", "TEMPLATE");
+        assertThat(body).containsEntry("bannerUrl", "https://cdn.example.com/banner.webp");
+    }
+
+    @Test
+    @DisplayName("GAP-1141: preview-banner falls back to default palette when colours absent")
+    void previewBanner_nullColours_usesDefaultPalette() {
+        BannerComposition composition = new BannerComposition("<html></html>", 1200, 630);
+        when(bannerHtmlComposer.compose(any(), any(), any(), any(), any(), any()))
+                .thenReturn(composition);
+        when(bannerRenderer.render(eq(composition), any())).thenReturn(null);
+
+        PreviewBannerRequest req = new PreviewBannerRequest(
+                "Trung tâm Sky", null, null, null, null, null);
+
+        ResponseEntity<?> response = controller.previewBanner(req);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        // null bannerUrl is allowed (StubBannerRenderer) — FE falls back to logo/placeholder.
+        assertThat(body).containsEntry("mode", "TEMPLATE");
+        assertThat(body).containsKey("bannerUrl");
     }
 
     @Test
