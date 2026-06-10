@@ -1,0 +1,43 @@
+{
+  "pr": 2279,
+  "title": "feat: tier enforcement + AI branding deploy + sales-lead/enroll/import + (public) chrome fix",
+  "branch": "feature/tier-ui-fix-g2-browser-2026-06-09",
+  "created_at": null,
+  "merged_at": "2026-06-09T20:24:54Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": true,
+    "audits_required": [
+      "ui-review",
+      "business-logic-audit",
+      "api-contract-audit",
+      "ops-readiness-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-06-10T03:25:04.131908",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 100,
+        "java_files": 17,
+        "test_files": 6,
+        "business_docs": true,
+        "missing_audits": [
+          "ui-review",
+          "business-logic-audit",
+          "api-contract-audit",
+          "ops-readiness-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "2/4",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-8988"
+  }
+}

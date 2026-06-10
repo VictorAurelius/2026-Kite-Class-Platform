@@ -1,0 +1,15 @@
+{
+  "name": "kitehub-banner-renderer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "HTML→WebP banner rasterise sidecar (Playwright + sharp) for kitehub-branding TEMPLATE-mode banner (GAP-1135 BannerRenderer seam). Keeps the JVM branding image light — branding POSTs composed HTML, gets back a WebP.",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.49.1",
+    "sharp": "^0.33.5"
+  }
+}

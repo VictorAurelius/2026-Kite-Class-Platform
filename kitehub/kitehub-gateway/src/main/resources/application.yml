@@ -2,6 +2,10 @@ spring:
   application:
     name: kite-gateway
 
+  # Allow large multipart bodies (branding portrait/logo upload) through the gateway.
+  codec:
+    max-in-memory-size: ${GATEWAY_MAX_IN_MEMORY_SIZE:12MB}
+
   cloud:
     gateway:
       # CORS Configuration for frontend

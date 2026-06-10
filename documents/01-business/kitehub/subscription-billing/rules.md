@@ -71,12 +71,12 @@ Không tích hợp MoMo/VNPay/Stripe tự động trong Phase 1 BETA. Các enum 
 
 **SUB-22** — canonical entitlement per tier. `PricingTier` enum (`PricingTier.java`) là source-of-truth cho caps/price/custom-domain; AI input cap + branding regenerate + rate-limit multiplier cite source riêng (cột dưới). Propagation cross-service per [ADR-039](../../../02-architecture/adr/ADR-039-cross-service-subscription-tier-propagation.md).
 
-| Tier | maxStudents | maxTeachers | storageMB | priceVND/mo | branding regen/ngày | AI input cap (tokens) | custom domain | rate-limit multiplier |
-|------|------------:|------------:|----------:|------------:|--------------------:|----------------------:|:-------------:|:---------------------:|
-| FREE | 10 | 1 | 500 | 0 | 3 | 2000 | ❌ | 1× |
-| BASIC | 50 | 5 | 2048 | 500.000 | 10 | 4000 | ❌ | 1× |
-| PREMIUM | 200 | 20 | 10240 | 1.500.000 | 30 | 8000 | ✅ | 3× |
-| ENTERPRISE | ∞ | ∞ | ∞ | custom | ∞ (-1) | 16000 | ✅ | 10× |
+| Tier | maxStudents | maxTeachers | storageMB | priceVND/mo | branding regen/ngày | AI banner mode (FULL_AI/tháng) | AI input cap (tokens) | custom domain | rate-limit multiplier |
+|------|------------:|------------:|----------:|------------:|--------------------:|:------------------------------:|----------------------:|:-------------:|:---------------------:|
+| FREE | 10 | 1 | 500 | 0 | 3 | TEMPLATE | 2000 | ❌ | 1× |
+| BASIC | 50 | 5 | 2048 | 500.000 | 10 | TEMPLATE | 4000 | ❌ | 1× |
+| PREMIUM | 200 | 20 | 10240 | 1.500.000 | 30 | FULL_AI (5/tháng) | 8000 | ✅ | 3× |
+| ENTERPRISE | ∞ | ∞ | ∞ | custom | ∞ (-1) | FULL_AI (∞) | 16000 | ✅ | 10× |
 
 **TRIAL clarification:** TRIAL KHÔNG phải tier riêng — là **subscription STATE** (time-box 14 ngày) với entitlement = FREE. Khi trial hết hạn không upgrade → tenant ở lại entitlement FREE. AI input cap §2.5 (`ai-branding-guidelines.md`) ghi rõ `FREE / TRIAL = 2000`.
 
@@ -84,7 +84,8 @@ Không tích hợp MoMo/VNPay/Stripe tự động trong Phase 1 BETA. Các enum 
 - `maxStudents` / `maxTeachers` / `storageMB` / `priceVND`: `kitehub/kitehub-platform/src/main/java/com/kitehub/platform/domain/enums/PricingTier.java:16-31` (enum constructor args) + `:36` (`priceVND` field; ENTERPRISE `0L` = custom pricing).
 - `custom domain`: `PricingTier.java:50-52` (`allowsCustomDomain()` → `this == PREMIUM || this == ENTERPRISE`).
 - `AI input cap (tokens)`: `.claude/rules/ai-branding-guidelines.md` §2.5 (GAP-258 `AIInputCapService`; `ai.input.*` keys; chars/4 heuristic; `-1` = unlimited).
-- `branding regen/ngày`: `.claude/rules/ai-branding-guidelines.md` §4.3 (counter visible + decremented; hết quota → disabled button + upgrade CTA).
+- `branding regen/ngày`: `.claude/rules/ai-branding-guidelines.md` §4.3 (counter visible + decremented; hết quota → disabled button + upgrade CTA). PREMIUM = **30** (canonical; GAP-1137 đồng bộ code `application.yml branding.rate-limit.premium-per-day` 50→30).
+- `AI banner mode (FULL_AI/tháng)`: GAP-1137 — banner TEMPLATE (HTML+Gemini→Playwright, $0) mặc định mọi tier; **FULL_AI (GPT-5.5 image-gen, có phí) chỉ PREMIUM + ENTERPRISE** (per `ai-branding-guidelines.md` §2.4 + ADR-037 Amendment 2026-06-10). PREMIUM giới hạn cost quota riêng (`ai.rate-limit.fullai-premium-per-month`, mặc định 5/tháng → hết thì fallback TEMPLATE); ENTERPRISE unlimited. Enforce: `GenerationMode.forTier` (eligibility) + `FullAiQuotaService` (PREMIUM monthly cap) + cost metric `ai.fullai.call{tier,outcome}`. FREE/BASIC không eligible.
 - `rate-limit multiplier`: GAP-260 (`gateway-tier-multiplier-enforcement` — `RateLimitConfig.tierMultiplier` FREE 1× / BASIC 1× / PREMIUM 3× / ENTERPRISE 10×).
 
 ### Five-attribute review per `business-logic-review.md` §2 (SUB-22)

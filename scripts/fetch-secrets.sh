@@ -126,6 +126,32 @@ if [[ -z "$SEPAY_API_KEY" ]]; then
   log "WARN: kitehub/production/sepay-api-key not found or empty — payment webhook will reject all SePay calls (401). Configure via SePay dashboard + AWS console post-apply."
 fi
 
+# AI Branding generation providers (GAP-1117 / ADR-037 Amendment). Both optional —
+# when empty, kitehub-branding runs MOCK mode (Vietnamese sample copy + logo/placeholder
+# banner; pipeline never crashes). Provisioning: documents/05-guides/deploy/ai-branding-provider-setup-runbook.md
+#   - gemini-api-key  → TEMPLATE copy/HTML (Gemini free-tier; AI_PROVIDER=gemini)
+#   - openai-api-key  → FULL_AI GPT-5.5 image (PREMIUM/ENTERPRISE only)
+GEMINI_API_KEY=""
+if GEMINI_PAYLOAD=$(fetch_secret gemini-api-key 2>/dev/null); then
+  GEMINI_API_KEY="$GEMINI_PAYLOAD"
+fi
+GEMINI_API_KEY="${GEMINI_API_KEY:-${GEMINI_API_KEY_FALLBACK:-}}"
+if [[ -z "$GEMINI_API_KEY" ]]; then
+  log "INFO: kitehub/production/gemini-api-key not set — AI Branding TEMPLATE copy runs MOCK (Vietnamese sample). Set to enable real Gemini generation."
+fi
+
+OPENAI_API_KEY=""
+if OPENAI_PAYLOAD=$(fetch_secret openai-api-key 2>/dev/null); then
+  OPENAI_API_KEY="$OPENAI_PAYLOAD"
+fi
+OPENAI_API_KEY="${OPENAI_API_KEY:-${OPENAI_API_KEY_FALLBACK:-}}"
+if [[ -z "$OPENAI_API_KEY" ]]; then
+  log "INFO: kitehub/production/openai-api-key not set — FULL_AI banner (GPT-5.5) disabled; PREMIUM/ENTERPRISE fall back to TEMPLATE. Set to enable."
+fi
+
+# Provider selection: prefer Gemini when its key is present, else keep configured default.
+AI_PROVIDER="${AI_PROVIDER:-$([[ -n "$GEMINI_API_KEY" ]] && echo gemini || echo openai)}"
+
 # Zalo OA credentials (GAP-063 — notification channel; mock until ZALO_PROVIDER=live)
 # Pulled from AWS Secrets Manager kitehub/production/zalo-oa-credentials.
 # Secret payload schema: JSON {"oa_id":"<numeric>","access_token":"<token>"}.
@@ -202,6 +228,11 @@ AWS_SES_FROM_NAME=${AWS_SES_FROM_NAME}
 
 # Payment — SePay webhook Apikey auth (Wave flow-kh3-3)
 SEPAY_API_KEY=${SEPAY_API_KEY}
+
+# AI Branding generation (GAP-1117 / ADR-037). Empty → MOCK mode (no crash).
+AI_PROVIDER=${AI_PROVIDER}
+GEMINI_API_KEY=${GEMINI_API_KEY}
+OPENAI_API_KEY=${OPENAI_API_KEY}
 
 # Notification — Zalo OA channel (GAP-063); ZALO_PROVIDER stays mock until access_token present
 ZALO_PROVIDER=${ZALO_PROVIDER:-mock}
