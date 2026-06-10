@@ -241,7 +241,7 @@ ZALO_ACCESS_TOKEN=${ZALO_ACCESS_TOKEN}
 
 # Feature flags — kiteclass-core parent portal (Wave auth-2 Bucket C / GAP-1014)
 # Public (non-secret) feature flag, override mechanism #1 per production-env-config-registry.md §4.
-# Binds kiteclass-core application.yml:318 parent-portal.enabled (default ${PARENT_PORTAL_ENABLED:false}).
+# Binds kiteclass-core application.yml:318 parent-portal.enabled (default \${PARENT_PORTAL_ENABLED:-false}).
 # Production MUST set true so parent (and pulled-forward teacher) KC-native login surface is reachable
 # (per Wave auth-1 ops-readiness audit P1-3). Default true here; deploy-prod.sh / SSM env can override.
 #
