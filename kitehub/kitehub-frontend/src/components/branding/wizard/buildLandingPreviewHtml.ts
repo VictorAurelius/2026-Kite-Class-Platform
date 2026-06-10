@@ -95,15 +95,14 @@ export function buildLandingPreviewHtml(opts: LandingPreviewOptions): string {
     : '';
 
   // Hero: banner image when available, else themed gradient (landing-100 HeroSection).
+  // The composed banner already bakes in the headline + subtitle, so the banner
+  // hero shows the image cleanly (no overlaid h1/tagline — that doubled the text)
+  // with just a CTA bar below it.
   const hero = opts.bannerUrl
     ? `
   <section class="hero hero--banner">
     <img class="hero-banner-img" src="${escapeHtml(opts.bannerUrl)}" alt="Banner ${safeOrg}" />
-    <div class="hero-overlay">
-      <h1>${safeOrg}</h1>
-      <p class="tagline">Nền tảng học tập trực tuyến — quản lý lớp, theo dõi tiến độ, kết nối phụ huynh.</p>
-      <span class="cta cta--primary">Đăng ký học thử</span>
-    </div>
+    <div class="hero-cta-bar"><span class="cta cta--primary">Đăng ký học thử</span></div>
   </section>`
     : `
   <section class="hero hero--gradient">
@@ -138,9 +137,9 @@ export function buildLandingPreviewHtml(opts: LandingPreviewOptions): string {
   .hero--gradient .hero-logo { display:flex; justify-content:center; margin-bottom:18px; }
   .hero--gradient .hero-logo .logo-img, .hero--gradient .hero-logo .logo-monogram { height:56px; width:auto; }
   .hero--gradient .hero-logo .logo-monogram { width:56px; font-size:22px; background:rgba(255,255,255,.2); }
-  .hero--banner { position:relative; }
-  .hero-banner-img { display:block; width:100%; height:auto; max-height:360px; object-fit:cover; }
-  .hero--banner .hero-overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:24px; background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.45)); }
+  .hero--banner { text-align:center; }
+  .hero-banner-img { display:block; width:100%; height:auto; max-height:380px; object-fit:contain; background:#0b1220; }
+  .hero-cta-bar { padding:16px 24px; }
   .hero h1 { font-size:32px; line-height:1.2; margin-bottom:6px; text-shadow:0 1px 12px rgba(0,0,0,.25); }
   .hero .tagline { font-size:15px; opacity:.95; max-width:540px; margin:0 auto; }
   .cta { display:inline-block; padding:12px 28px; border-radius:9999px; font-weight:700; font-size:14px; }

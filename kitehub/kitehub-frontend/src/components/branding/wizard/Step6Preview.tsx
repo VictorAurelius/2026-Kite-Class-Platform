@@ -44,7 +44,6 @@ import {
   GenerationModeSelector,
   type GenerationMode,
 } from './GenerationModeSelector';
-import { BannerLivePreview } from './BannerLivePreview';
 import { AssetReusePicker } from './AssetReusePicker';
 import { buildLandingPreviewHtml } from './buildLandingPreviewHtml';
 import { toast } from 'sonner';
@@ -365,12 +364,21 @@ export function Step6Preview({
   // -------------------------------------------------------------------------
   const bannerPreview = useBannerPreview();
 
+  // Portraits uploaded in Step 3 (GAP-1134) feed the banner compose layer so the
+  // featured teacher headshot appears in the generated banner (fixes "banner
+  // thiếu ảnh chân dung").
+  const { data: instanceAssets } = useAssets(assetInstanceId);
+  const portraitUrls = useMemo(
+    () => (instanceAssets ?? []).filter((a) => a.type === 'PORTRAIT').map((a) => a.url),
+    [instanceAssets],
+  );
+
   const previewBannerReq = useMemo<PreviewBannerRequest>(
     () => ({
       organizationName: wizardState.tenantName || 'Trung tâm giáo dục',
       copy: undefined,
       logoUrl: wizardState.logoUrl,
-      portraitUrls: [],
+      portraitUrls,
       themeIcon: undefined,
       colours: {
         primary: brandColors.primary,
@@ -380,7 +388,7 @@ export function Step6Preview({
         background: brandColors.background,
       },
     }),
-    [wizardState.tenantName, wizardState.logoUrl, brandColors, accentColor],
+    [wizardState.tenantName, wizardState.logoUrl, portraitUrls, brandColors, accentColor],
   );
 
   const { generate: generateBannerPreview } = bannerPreview;
@@ -431,8 +439,7 @@ export function Step6Preview({
 
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
 
-  const { data: instanceAssets } = useAssets(assetInstanceId);
-  const portraitCount = (instanceAssets ?? []).filter((a) => a.type === 'PORTRAIT').length;
+  const portraitCount = portraitUrls.length;
 
   // GAP-1142: tier drives FULL_AI eligibility in the mode selector.
   const { tier } = useBrandingTier(
@@ -679,15 +686,13 @@ export function Step6Preview({
             />
           </div>
 
-          {/* GAP-1143 — live banner preview + reuse from library */}
-          <div data-testid="step6-banner-block" className="rounded-lg border bg-card p-3 space-y-3">
+          {/* GAP-1143 — reuse banner from library. The banner itself is the hero
+              of the landing preview on the left (not duplicated here). */}
+          <div data-testid="step6-banner-block" className="rounded-lg border bg-card p-3 space-y-2">
             <h3 className="text-sm font-bold">Banner</h3>
-            <BannerLivePreview
-              bannerUrl={effectiveBannerUrl}
-              isLoading={bannerPreview.isLoading}
-              error={bannerPreview.error}
-              logoFallbackUrl={wizardState.logoUrl}
-            />
+            <p className="text-xs text-muted-foreground">
+              Banner hiển thị ở đầu trang xem trước bên trái. Chọn để dùng lại từ thư viện:
+            </p>
             <AssetReusePicker
               instanceId={assetInstanceId}
               type="BANNER"
