@@ -41,6 +41,25 @@ Level 7: STUDENT
 Level 8: PARENT
 ```
 
+## Phase 1 BETA — 5-role fixed-curated subset (GAP-1119, 2026-06-10)
+
+BE role-hierarchy ở trên là **dynamic-capable** (Level 1-10, per-tenant custom role + permission bundle). Quyết định **GAP-1119** chốt cho **Phase 1 BETA**: ship **5 role template fixed-curated** (KHÔNG dựng UI owner-sửa-permission-per-role; BE giữ dynamic-capable; permission-edit UI defer Phase 3). 5 role này là beta-subset map sang dynamic design Level:
+
+| Role (beta) | Map dynamic Level | Login ở | Thấy gì (per-role shell) |
+|---|---|---|---|
+| **OWNER** | Level 1 `TENANT_OWNER` | KH `:3001` → SSO KC `:3000` | toàn quyền: course/class + gán GV + students + billing học phí + payroll + branding + settings + analytics + role-assign |
+| **STAFF** | Level 4-6 subset (permission bundle) | KH `:3001` → SSO KC `:3000` | subset owner theo bundle: enrollment + attendance + invoice + staff |
+| **TEACHER** | Level 5 `SUBJECT_TEACHER`/`HOMEROOM_TEACHER` | KC `:3000` native | my courses/classes + LMS authoring + attendance + grade entry + completion roster |
+| **STUDENT** | Level 7 | KC `:3000` (gated **KC-9** student-auth) | my classes + lesson player + assignments + grades + progress + payments (own) |
+| **PARENT** | Level 8 | KC `:3000` native | child read-only: progress/grades/attendance/fees + notify (Zalo) |
+
+**Decisions chốt GAP-1119:**
+1. RBAC depth = fixed-curated cho beta (owner CHỈ gán user→role; KHÔNG UI sửa permission-per-role).
+2. Auth split: OWNER/STAFF login KiteHub `:3001` (cross-product SSO sang KC); TEACHER/PARENT/STUDENT login KiteClass `:3000` native (per `kitehub-kiteclass-boundary.md` §2 + tenant-auth Option B, `auth_credentials.entity_type CHECK ∈ {PARENT,TEACHER,STUDENT}`).
+3. Route quản-quyền (assign user→role) ở **KC owner-shell** (role-hierarchy = KC domain, per-tenant school roles).
+
+Implementation: Wave RBAC-Shell 1 (`documents/03-planning/waves/wave-rbac-shell-1.md`) — login→role-redirect + RoleGuard (Bucket A) + per-role shell (Bucket B) + cross-product SSO (Bucket C) + RBAC-assign UI (Bucket D).
+
 ## Permission Categories (seeded)
 
 - STUDENT: VIEW_ALL, VIEW_OWN, CREATE, EDIT, DELETE

@@ -293,6 +293,22 @@ aws_collect() {
   alarms="$(timeout 8 aws cloudwatch describe-alarms $profile_arg --state-value ALARM \
     --query 'MetricAlarms[].AlarmName' --output json 2>/dev/null || echo '[]')"
 
+  # ECR image-count early-warning (per retention-policy-completeness.md — surface
+  # unbounded growth before it hits the bill). Bounded; only runs on cache refresh.
+  local ecr_json="{}" ecr_repos ecr_total=0 ecr_max=0 ecr_maxname="" n
+  ecr_repos="$(timeout 8 aws ecr describe-repositories $profile_arg --query 'repositories[].repositoryName' --output text 2>/dev/null || echo '')"
+  if [ -n "$ecr_repos" ]; then
+    for r in $ecr_repos; do
+      n="$(timeout 6 aws ecr describe-images --repository-name "$r" $profile_arg --query 'length(imageDetails)' --output text 2>/dev/null || echo 0)"
+      case "$n" in (*[!0-9]*|'') n=0 ;; esac
+      ecr_total=$(( ecr_total + n ))
+      if [ "$n" -gt "$ecr_max" ]; then ecr_max="$n"; ecr_maxname="$r"; fi
+    done
+    ecr_json="$(jq -n --argjson total "$ecr_total" --argjson max "$ecr_max" \
+      --arg maxname "$ecr_maxname" --argjson repos "$(printf '%s\n' $ecr_repos | grep -c .)" \
+      '{repos:$repos, images:$total, max_repo_images:$max, max_repo:$maxname}' 2>/dev/null || echo '{}')"
+  fi
+
   mkdir -p "$AWS_CACHE_DIR"
   jq -n \
     --arg ts "$(date -Iseconds)" \
@@ -304,8 +320,9 @@ aws_collect() {
     --argjson alb "$alb" \
     --argjson trails "$trail_status" \
     --argjson alarms "$alarms" \
+    --argjson ecr "$ecr_json" \
     '{timestamp:$ts, timestamp_epoch:$tsep, region:$region, identity:$identity,
-      ec2:$ec2, rds:$rds, alb:$alb, trails:$trails, alarms_in_alarm:$alarms}' \
+      ec2:$ec2, rds:$rds, alb:$alb, trails:$trails, alarms_in_alarm:$alarms, ecr:$ecr}' \
     > "$AWS_CACHE_FILE"
   AWS_STATUS="fresh"
 }
@@ -344,11 +361,19 @@ aws_render_lines() {
   now="$(date +%s)"
   cache_age_min=$(( (now - cache_ts) / 60 ))
 
+  local ecr_images ecr_repos ecr_max ecr_maxname ecr_warn=""
+  ecr_images="$(jq -r '.ecr.images // "?"' "$AWS_CACHE_FILE")"
+  ecr_repos="$(jq -r '.ecr.repos // "?"' "$AWS_CACHE_FILE")"
+  ecr_max="$(jq -r '.ecr.max_repo_images // 0' "$AWS_CACHE_FILE")"
+  ecr_maxname="$(jq -r '.ecr.max_repo // ""' "$AWS_CACHE_FILE")"
+  [ "$ecr_max" -gt 200 ] 2>/dev/null && ecr_warn=" ⚠️  max ${ecr_max} @ ${ecr_maxname} (>200 → check lifecycle per retention-policy-completeness.md)"
+
   cat <<EOS
   · Account/Region: $account / $AWS_REGION_OUT
   · EC2:           $ec2_running running, $ec2_stopped stopped, $ec2_total total${ec2_summary:+ — $ec2_summary}
   · RDS:           $rds_count instance(s)${rds_summary:+ — $rds_summary}
   · ALB:           $alb_count load balancer(s)${alb_summary:+ — $alb_summary}
+  · ECR:           ${ecr_images} images / ${ecr_repos} repos${ecr_warn}
   · CloudTrail:    ${trail_summary:-<none — audit baseline missing per aws-observability-first.md>}
   · Alarms ALARM:  $alarm_count$([ "$alarm_count" -gt 0 ] && echo " ⚠️  $alarm_list")
   · Cache:         ${AWS_STATUS} (age ${cache_age_min}m, TTL 30m)

@@ -5,18 +5,82 @@
  * @since 1.0.0
  */
 
+import axios from 'axios';
 import { apiClient } from '@/lib/api-client';
 import type { LoginRequest, AuthResponse } from '@/types/auth';
+
+/**
+ * Bare HTTP client for the login probe — intentionally WITHOUT the shared
+ * `apiClient` response interceptor.
+ *
+ * KiteClass `:3000` authenticates tenant-scoped roles (TEACHER/PARENT/STUDENT)
+ * via KC-native tenant-auth (Wave auth-1, GAP-725/GAP-1122) and owner/staff via
+ * KH subscription login (cross-product SSO). The flow PROBES tenant-auth first;
+ * an owner's email is not a tenant credential, so that probe returns 401. The
+ * `apiClient` interceptor reacts to ANY 401 by clearing tokens + force-redirecting
+ * to `/login` (its token-refresh path) — which would abort the owner's KH fallback.
+ * A bare client keeps the probe side-effect-free.
+ */
+const loginClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
+  timeout: 10000,
+  headers: { 'Content-Type': 'application/json', 'Accept-Language': 'vi' },
+});
+
+/** KC-native tenant-auth login payload (carried inside the ApiResponse wrapper). */
+interface TenantAuthLogin {
+  accessToken: string;
+  tokenType?: string;
+  expiresInSeconds?: number;
+  role: string;
+  referenceId: number;
+  tenantId: string;
+}
 
 export const authApi = {
   /**
    * Login user with email and password.
+   *
+   * KiteClass `:3000` authenticates tenant roles (TEACHER/PARENT/STUDENT) via
+   * KC-native `/api/v1/tenant-auth/login` (Wave auth-1, GAP-1122/GAP-725);
+   * owner/staff fall back to KH subscription `/api/auth/login` (cross-product SSO).
+   * Both server shapes are adapted to the unified {@link AuthResponse} the store
+   * consumes (`useAuth.onSuccess` normalizes the role + routes to its role-home).
    */
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
-    // KH subscription /api/auth/login returns FLAT shape (not ApiResponse wrapper).
-    // Wave 105 RST UI 2026-05-23 GAP-724 fix: use response.data directly.
-    const response = await apiClient.post<AuthResponse>('/api/auth/login', credentials);
-    return response.data;
+    // 1) KC-native tenant-auth (TEACHER/PARENT/STUDENT). ApiResponse-wrapped.
+    try {
+      const res = await loginClient.post('/api/v1/tenant-auth/login', credentials);
+      const data = (res.data?.data ?? res.data) as TenantAuthLogin;
+      if (data?.accessToken && data?.role) {
+        return {
+          accessToken: data.accessToken,
+          refreshToken: '', // tenant-auth issues an access token only (no refresh)
+          tokenType: data.tokenType ?? 'Bearer',
+          expiresIn: data.expiresInSeconds ?? 0,
+          user: {
+            // referenceId = the domain entity id (teacher/parent/student row).
+            id: data.referenceId as unknown as number,
+            email: credentials.email,
+            name: credentials.email,
+            // useAuth reads roles[0] then normalizes the BE token (GAP-1122).
+            roles: [data.role],
+          },
+        };
+      }
+    } catch {
+      // Not a tenant credential (401) or KC core unavailable — fall through to KH.
+    }
+
+    // 2) KH subscription owner/staff login. FLAT shape (no ApiResponse wrapper).
+    // Wave 105 RST UI 2026-05-23 GAP-724: KH returns response.data directly.
+    try {
+      const response = await loginClient.post<AuthResponse>('/api/auth/login', credentials);
+      return response.data;
+    } catch {
+      // Uniform failure (anti-enumeration); useAuth.onError renders the VN toast.
+      throw new Error('Email hoặc mật khẩu không đúng');
+    }
   },
 
   /**
