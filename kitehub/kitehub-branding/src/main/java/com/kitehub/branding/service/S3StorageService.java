@@ -4,10 +4,12 @@ import com.kitehub.branding.config.S3Config;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
@@ -16,6 +18,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.UUID;
 
 /**
@@ -159,6 +162,71 @@ public class S3StorageService {
             log.error("Failed to generate presigned GET URL for {} — falling back to raw URL", path, e);
             return getAssetUrl(path);
         }
+    }
+
+    /**
+     * Inline a MinIO/S3 image as a {@code data:} URI (GAP-1146b — banner portrait fix).
+     *
+     * <p>The banner is rasterised by Playwright running INSIDE the kitehub-branding
+     * container. A browser-presigned URL points at {@code S3_PUBLIC_ENDPOINT}
+     * (e.g. {@code http://localhost:9100}) which is the HOST port mapping — NOT
+     * reachable from inside the container, so the portrait/logo {@code <img>} silently
+     * fails to load and the banner renders without the teacher photo.</p>
+     *
+     * <p>Instead of re-presigning against the internal host (fragile — Host header binds
+     * the signature), fetch the object bytes via the internal {@link S3Client}
+     * ({@code S3_ENDPOINT=kite-minio:9000}, reachable in-container AND in prod) and
+     * embed them as {@code data:<contentType>;base64,...}. Playwright then needs no
+     * network fetch — works in every environment.</p>
+     *
+     * <p>Best-effort: any failure (mock mode, external URL, missing object) returns the
+     * original {@code url} unchanged so the caller degrades to the prior behaviour.</p>
+     *
+     * @param url a presigned/stored asset URL (or null/blank/external)
+     * @return a {@code data:} URI for the image, or the original url on any failure
+     */
+    public String inlineImageDataUri(String url) {
+        if (url == null || url.isBlank() || s3Config.isMockMode() || s3Client == null) {
+            return url;
+        }
+        String key = extractObjectKey(url);
+        if (key == null) {
+            return url; // external/unknown URL — leave as-is
+        }
+        try {
+            GetObjectRequest req = GetObjectRequest.builder()
+                .bucket(s3Config.getBucket())
+                .key(key)
+                .build();
+            ResponseBytes<GetObjectResponse> obj = s3Client.getObjectAsBytes(req);
+            String contentType = obj.response().contentType();
+            if (contentType == null || contentType.isBlank()) {
+                contentType = "image/png";
+            }
+            String base64 = Base64.getEncoder().encodeToString(obj.asByteArray());
+            return "data:" + contentType + ";base64," + base64;
+        } catch (Exception e) {
+            log.warn("inlineImageDataUri failed for key {} — keeping original URL", key, e);
+            return url;
+        }
+    }
+
+    /**
+     * Recover the S3 object key from a stored/presigned/CDN URL. Objects live under
+     * the {@code instances/} prefix, so return everything from there (query stripped).
+     * Returns {@code null} when no recoverable key is found (external URLs).
+     */
+    private String extractObjectKey(String url) {
+        String path = url;
+        int q = path.indexOf('?');
+        if (q > 0) {
+            path = path.substring(0, q);
+        }
+        int idx = path.indexOf("/instances/");
+        if (idx >= 0) {
+            return path.substring(idx + 1); // drop leading slash → instances/...
+        }
+        return null;
     }
 
     /**

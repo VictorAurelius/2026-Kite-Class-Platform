@@ -5,6 +5,7 @@ import com.kitehub.branding.domain.enums.GenerationMode;
 import com.kitehub.branding.repository.BrandingJobRepository;
 import com.kitehub.branding.service.BrandingJobService;
 import com.kitehub.branding.service.FullAiQuotaService;
+import com.kitehub.branding.service.S3StorageService;
 import com.kitehub.branding.service.banner.BannerComposition;
 import com.kitehub.branding.service.banner.BannerHtmlComposer;
 import com.kitehub.branding.service.banner.BannerRenderer;
@@ -70,6 +71,8 @@ public class BrandingJobV1Controller {
     private final BannerRenderer bannerRenderer;
     /** GAP-1147 — FULL_AI preview tier-gate + monthly quota meter (PREMIUM cap / ENTERPRISE ∞). */
     private final FullAiQuotaService fullAiQuotaService;
+    /** GAP-1146b — inline portrait/logo as data: URIs so the in-container Playwright can render them. */
+    private final S3StorageService s3StorageService;
 
     /** Safe fallback palette when the preview request carries no (or invalid) colours. */
     private static final BrandColours DEFAULT_PREVIEW_COLOURS = new BrandColours(
@@ -180,9 +183,17 @@ public class BrandingJobV1Controller {
             }
         }
 
+        // GAP-1146b: inline portrait + logo as data: URIs. The browser-presigned URLs
+        // point at the host port (localhost:9100), unreachable from the in-container
+        // Playwright renderer → the portrait silently dropped out of the banner. Inlining
+        // the bytes (fetched via the internal S3 client) makes the render host-agnostic.
+        String inlinedLogo = s3StorageService.inlineImageDataUri(body.logoUrl());
+        List<String> inlinedPortraits = body.portraitUrls() == null
+                ? null
+                : body.portraitUrls().stream().map(s3StorageService::inlineImageDataUri).toList();
         BannerComposition composition = bannerHtmlComposer.compose(
-                body.organizationName(), body.copy(), body.logoUrl(),
-                body.portraitUrls(), body.themeIcon(), colours);
+                body.organizationName(), body.copy(), inlinedLogo,
+                inlinedPortraits, body.themeIcon(), colours);
         String bannerUrl = bannerRenderer.render(composition, instanceId);
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("bannerUrl", bannerUrl); // nullable — FE falls back to logo/placeholder

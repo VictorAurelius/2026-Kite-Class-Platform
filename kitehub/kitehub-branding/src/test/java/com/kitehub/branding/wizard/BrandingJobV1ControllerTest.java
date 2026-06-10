@@ -6,6 +6,7 @@ import com.kitehub.branding.domain.enums.JobStatus;
 import com.kitehub.branding.repository.BrandingJobRepository;
 import com.kitehub.branding.service.BrandingJobService;
 import com.kitehub.branding.service.FullAiQuotaService;
+import com.kitehub.branding.service.S3StorageService;
 import com.kitehub.branding.service.banner.BannerComposition;
 import com.kitehub.branding.service.banner.BannerHtmlComposer;
 import com.kitehub.branding.service.banner.BannerRenderer;
@@ -58,6 +59,9 @@ class BrandingJobV1ControllerTest {
     @Mock
     private FullAiQuotaService fullAiQuotaService;
 
+    @Mock
+    private S3StorageService s3StorageService;
+
     private final BrandColoursDeriver coloursDeriver = new BrandColoursDeriver();
 
     private BrandingJobV1Controller controller;
@@ -69,7 +73,7 @@ class BrandingJobV1ControllerTest {
     void setUp() {
         controller = new BrandingJobV1Controller(
                 jobRepository, coloursDeriver, brandingJobService, mockProvisioningService,
-                bannerHtmlComposer, bannerRenderer, fullAiQuotaService);
+                bannerHtmlComposer, bannerRenderer, fullAiQuotaService, s3StorageService);
         jobId = UUID.randomUUID();
         job = new BrandingJob();
         job.setId(jobId);
