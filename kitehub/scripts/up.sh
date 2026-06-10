@@ -120,3 +120,12 @@ echo ""
 echo "Waiting for services to be ready..."
 sleep 3
 docker-compose -f docker-compose.kitehub.yml --profile "$PROFILE" ps
+
+# Local tenant hosts (env=local): map each active tenant subdomain to 127.0.0.1
+# so landing is reachable by real subdomain (http://<slug>.kiteclass.local:3000/),
+# giống production — thay cho ?tenant=<slug> preview. Best-effort + non-fatal.
+TENANT_HOSTS_JOB="$SCRIPT_DIR/../../scripts/local/setup-tenant-hosts.sh"
+if [ -z "${CI:-}" ] && [ "${KITE_SKIP_TENANT_HOSTS:-0}" != "1" ] && [ -f "$TENANT_HOSTS_JOB" ]; then
+    echo ""
+    bash "$TENANT_HOSTS_JOB" --auto || true
+fi
