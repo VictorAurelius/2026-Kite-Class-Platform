@@ -66,14 +66,23 @@ export function useRegenerateQuota() {
     },
   });
 
-  const regenerateMutation = useMutation<BrandingJobResponse, Error, { jobId: string }>({
-    mutationFn: async ({ jobId }) => {
+  const regenerateMutation = useMutation<
+    BrandingJobResponse,
+    Error,
+    { jobId: string; instanceId: string }
+  >({
+    mutationFn: async ({ jobId, instanceId }) => {
+      // GAP-1145: BrandingWizardController.regenerate returns 400 MISSING_INSTANCE_ID
+      // when X-Instance-Id is absent — the gateway maps tenantId→X-Tenant-Id but
+      // never sets X-Instance-Id, so the FE MUST send it explicitly (the deploy
+      // tenant claim from wizardState.instanceId).
       const { data } = await apiClient.post<BrandingJobResponse>(
         endpoints.brandingV1.jobRegenerate(jobId),
         undefined,
         {
           headers: {
             'Idempotency-Key': newIdempotencyKey(),
+            'X-Instance-Id': instanceId,
           },
         }
       );

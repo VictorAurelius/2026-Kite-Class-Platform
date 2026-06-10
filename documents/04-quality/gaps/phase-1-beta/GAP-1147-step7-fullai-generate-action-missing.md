@@ -1,6 +1,6 @@
 # GAP-1147: Step 7 thiếu action tạo banner FULL_AI — mode selector chỉ set state
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — action+gate shipped PR #2289; real AI render Phase 2 (GAP-1135)
 **Priority:** 🟡 P2
 **Domain:** Frontend + Backend
 **Found:** 2026-06-10 (Wizard Step 7 G2 browser-walk — PR #2289)
@@ -31,7 +31,15 @@ Khuyến nghị: Option A cho Phase 1 (chỉ preview, chưa cần real deploy).
 - [ ] FREE/BASIC: action FULL_AI khoá (đã có ở selector) — verify không bypass.
 - [ ] Hết quota PREMIUM → fallback TEMPLATE + thông báo.
 
+## Fix (PR #2289, 2026-06-10) — Option A (preview on-demand)
+
+- BE `previewBanner` endpoint nhận `mode` (DTO) + header `X-Subscription-Tier`. Khi `mode=FULL_AI`: gate **server-side** = `GenerationMode.forTier(tier)==FULL_AI` (eligibility) + `FullAiQuotaService.canUseFullAi` (PREMIUM cap) → `recordFullAiUsage` (trừ quota) + trả `mode:FULL_AI`; ngược lại fallback `TEMPLATE` + `fallbackReason` (`TIER_NOT_ELIGIBLE` / `QUOTA_EXHAUSTED`). Gate enforce ở BE → FE giả mạo không bypass được.
+- FE `useBannerPreview` gửi `mode` + tier header; `Step6Preview` thêm nút "Tạo bằng AI cao cấp (tốn 1 lượt)" (chỉ tier eligible khi FULL_AI selected) + toast theo mode/fallbackReason.
+- BE 3 gate tests: PREMIUM+quota→FULL_AI+record; FREE→fallback TIER_NOT_ELIGIBLE (no record); PREMIUM exhausted→fallback QUOTA_EXHAUSTED.
+- **AC2** (FREE/BASIC khoá) + **AC3** (hết quota → fallback + thông báo) ✅. **AC1** action+quota ✅ nhưng **render = TEMPLATE mock** vì AI image-gen thật là Phase 2 → còn PARTIAL.
+- **Pending:** real GPT image-gen wiring = **GAP-1135** (Phase 2). G2 walk verify quota giảm + fallback.
+
 ## Related
 
 - Discovered in: PR #2289 (wave-wizard-step7 G2 walk 2026-06-10)
-- GAP-1142 (mode selector) · GAP-1143 (live preview) · GAP-1145 (regenerate 400) · GAP-1137 (FULL_AI tier-gate)
+- GAP-1142 (mode selector) · GAP-1143 (live preview) · GAP-1145 (regenerate 400) · GAP-1137 (FULL_AI tier-gate) · GAP-1135 (real AI image-gen, Phase 2)

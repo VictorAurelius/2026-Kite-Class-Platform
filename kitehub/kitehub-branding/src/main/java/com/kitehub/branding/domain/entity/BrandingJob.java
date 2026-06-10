@@ -42,6 +42,25 @@ public class BrandingJob {
     @Column(name = "org_type", length = 20)
     private String orgType;
 
+    /**
+     * Wizard tone selection (GAP-1146): {@code professional} / {@code friendly} /
+     * {@code energetic} / {@code luxury}. Drives the deterministic preview palette
+     * in {@link com.kitehub.branding.wizard.quality.BrandColoursDeriver} so the
+     * brand colours reflect the chosen style (not just a hash of the org name).
+     * Nullable for backward-compat (pre-GAP-1146 jobs).
+     * Migration: kitehub-subscription {@code V71__add_tone_template_to_branding_jobs.sql}.
+     */
+    @Column(name = "tone", length = 20)
+    private String tone;
+
+    /**
+     * Wizard template selection (GAP-1146): the {@code templateId} chosen at step 5.
+     * Carried onto the job as a palette variant seed + future template-aware deploy.
+     * Nullable for backward-compat.
+     */
+    @Column(name = "template_id", length = 50)
+    private String templateId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private JobStatus status;

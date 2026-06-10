@@ -5,6 +5,7 @@ import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.domain.enums.JobStatus;
 import com.kitehub.branding.repository.BrandingJobRepository;
 import com.kitehub.branding.service.BrandingJobService;
+import com.kitehub.branding.service.FullAiQuotaService;
 import com.kitehub.branding.service.banner.BannerComposition;
 import com.kitehub.branding.service.banner.BannerHtmlComposer;
 import com.kitehub.branding.service.banner.BannerRenderer;
@@ -54,6 +55,9 @@ class BrandingJobV1ControllerTest {
     @Mock
     private BannerRenderer bannerRenderer;
 
+    @Mock
+    private FullAiQuotaService fullAiQuotaService;
+
     private final BrandColoursDeriver coloursDeriver = new BrandColoursDeriver();
 
     private BrandingJobV1Controller controller;
@@ -65,7 +69,7 @@ class BrandingJobV1ControllerTest {
     void setUp() {
         controller = new BrandingJobV1Controller(
                 jobRepository, coloursDeriver, brandingJobService, mockProvisioningService,
-                bannerHtmlComposer, bannerRenderer);
+                bannerHtmlComposer, bannerRenderer, fullAiQuotaService);
         jobId = UUID.randomUUID();
         job = new BrandingJob();
         job.setId(jobId);
@@ -99,9 +103,10 @@ class BrandingJobV1ControllerTest {
                 "Trung tâm Sky", "Học giỏi", "https://cdn.example.com/logo.png",
                 List.of(), "📚",
                 new BrandColours("#1E40AF", "#F59E0B", "#F59E0B", "#0F172A", "#FFFFFF",
-                        BrandColours.Source.TEMPLATE));
+                        BrandColours.Source.TEMPLATE),
+                null);
 
-        ResponseEntity<?> response = controller.previewBanner(req);
+        ResponseEntity<?> response = controller.previewBanner(req, "FREE");
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         @SuppressWarnings("unchecked")
@@ -120,9 +125,9 @@ class BrandingJobV1ControllerTest {
         when(bannerRenderer.render(eq(composition), any())).thenReturn(null);
 
         PreviewBannerRequest req = new PreviewBannerRequest(
-                "Trung tâm Sky", null, null, null, null, null);
+                "Trung tâm Sky", null, null, null, null, null, null);
 
-        ResponseEntity<?> response = controller.previewBanner(req);
+        ResponseEntity<?> response = controller.previewBanner(req, "FREE");
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         @SuppressWarnings("unchecked")
@@ -130,6 +135,72 @@ class BrandingJobV1ControllerTest {
         // null bannerUrl is allowed (StubBannerRenderer) — FE falls back to logo/placeholder.
         assertThat(body).containsEntry("mode", "TEMPLATE");
         assertThat(body).containsKey("bannerUrl");
+    }
+
+    @Test
+    @DisplayName("GAP-1147: FULL_AI from PREMIUM with quota → mode FULL_AI + quota recorded")
+    void previewBanner_fullAiPremiumWithQuota_grantsFullAi() {
+        BannerComposition composition = new BannerComposition("<html></html>", 1200, 630);
+        when(bannerHtmlComposer.compose(any(), any(), any(), any(), any(), any()))
+                .thenReturn(composition);
+        when(bannerRenderer.render(eq(composition), any()))
+                .thenReturn("https://cdn.example.com/banner.webp");
+        when(fullAiQuotaService.canUseFullAi(any(), eq("PREMIUM"))).thenReturn(true);
+
+        PreviewBannerRequest req = new PreviewBannerRequest(
+                "Trung tâm Sky", "Học giỏi", null, null, null, null, "FULL_AI");
+
+        ResponseEntity<?> response = controller.previewBanner(req, "PREMIUM");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertThat(body).containsEntry("mode", "FULL_AI");
+        assertThat(body).doesNotContainKey("fallbackReason");
+        org.mockito.Mockito.verify(fullAiQuotaService).recordFullAiUsage(any(), eq("PREMIUM"));
+    }
+
+    @Test
+    @DisplayName("GAP-1147: FULL_AI from FREE → falls back to TEMPLATE (tier not eligible, no bypass)")
+    void previewBanner_fullAiFreeTier_fallsBackTemplate() {
+        BannerComposition composition = new BannerComposition("<html></html>", 1200, 630);
+        when(bannerHtmlComposer.compose(any(), any(), any(), any(), any(), any()))
+                .thenReturn(composition);
+        when(bannerRenderer.render(eq(composition), any())).thenReturn("https://cdn.example.com/b.webp");
+
+        PreviewBannerRequest req = new PreviewBannerRequest(
+                "Trung tâm Sky", null, null, null, null, null, "FULL_AI");
+
+        ResponseEntity<?> response = controller.previewBanner(req, "FREE");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertThat(body).containsEntry("mode", "TEMPLATE");
+        assertThat(body).containsEntry("fallbackReason", "TIER_NOT_ELIGIBLE");
+        // Gate enforced server-side: the FREE caller never touches the quota meter.
+        org.mockito.Mockito.verify(fullAiQuotaService, org.mockito.Mockito.never())
+                .recordFullAiUsage(any(), any());
+    }
+
+    @Test
+    @DisplayName("GAP-1147: FULL_AI from PREMIUM with exhausted quota → fallback TEMPLATE")
+    void previewBanner_fullAiPremiumExhausted_fallsBackTemplate() {
+        BannerComposition composition = new BannerComposition("<html></html>", 1200, 630);
+        when(bannerHtmlComposer.compose(any(), any(), any(), any(), any(), any()))
+                .thenReturn(composition);
+        when(bannerRenderer.render(eq(composition), any())).thenReturn("https://cdn.example.com/b.webp");
+        when(fullAiQuotaService.canUseFullAi(any(), eq("PREMIUM"))).thenReturn(false);
+
+        PreviewBannerRequest req = new PreviewBannerRequest(
+                "Trung tâm Sky", null, null, null, null, null, "FULL_AI");
+
+        ResponseEntity<?> response = controller.previewBanner(req, "PREMIUM");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertThat(body).containsEntry("mode", "TEMPLATE");
+        assertThat(body).containsEntry("fallbackReason", "QUOTA_EXHAUSTED");
+        org.mockito.Mockito.verify(fullAiQuotaService, org.mockito.Mockito.never())
+                .recordFullAiUsage(any(), any());
     }
 
     @Test

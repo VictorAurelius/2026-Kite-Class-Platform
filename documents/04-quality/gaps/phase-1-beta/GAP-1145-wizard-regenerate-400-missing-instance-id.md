@@ -1,6 +1,6 @@
 # GAP-1145: Wizard "Tạo lại" (regenerate) → 400 do FE thiếu header `X-Instance-Id`
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — fix shipped PR #2289, pending G2 browser re-walk
 **Priority:** 🟡 P2
 **Domain:** Frontend (+ gateway header contract)
 **Found:** 2026-06-10 (Wizard Step 7 G2 browser-walk — enhancement wave-wizard-step7, PR #2289)
@@ -29,6 +29,13 @@ Lỗi PRE-EXISTING (Wave 34 GAP-272d), không phát sinh từ enhancement wave-w
 - [ ] Regenerate không còn 400 MISSING_INSTANCE_ID (header gửi đúng HOẶC gateway inject).
 - [ ] Quyết định + xử lý 409 state mismatch trong wizard mock-flow (ẩn nút / re-scope).
 - [ ] Runtime-walk Bước 7 regenerate không lỗi.
+
+## Fix (PR #2289, 2026-06-10)
+
+- **Tầng 1 (header):** `useRegenerateQuota` mutation signature đổi `{ jobId, instanceId }`, gửi header `X-Instance-Id` (+ test `sends the X-Instance-Id header on regenerate`). `Step6Preview.handleRegenerateClick` truyền `wizardState.instanceId`; nếu chưa có → toast hướng dẫn (live preview đã thay).
+- **Tầng 2 (409 state):** mock job mid-wizard luôn QUEUED → 409. `handleRegenerateClick` thêm `onError` toast friendly thay vì lỗi thô ("Bản xem trước trực tiếp tự cập nhật… Tạo lại áp dụng sau khi triển khai"). RegenerateCounter giữ lại để hiển thị quota tier.
+- FE tests 10/10 pass (`useRegenerateQuota.test.tsx` + `Step6Preview-orchestrator-wiring.test.tsx`).
+- **Pending:** G2 browser re-walk Bước 7 xác nhận không còn 400/409 lỗi thô.
 
 ## Related
 

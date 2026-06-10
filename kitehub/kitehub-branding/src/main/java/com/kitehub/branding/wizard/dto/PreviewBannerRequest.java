@@ -22,7 +22,12 @@ import java.util.List;
  * @param portraitUrls     uploaded portrait URLs (GAP-1134 — first is featured); nullable
  * @param themeIcon        theme/subject icon (emoji or short text); nullable
  * @param colours          validated brand palette (5 hex); nullable → default
- * @since GAP-1141
+ * @param mode             requested generation mode: {@code "TEMPLATE"} (default,
+ *                         free, never burns quota) or {@code "FULL_AI"} (GAP-1147 —
+ *                         PREMIUM/ENTERPRISE on-demand AI banner; tier-gated +
+ *                         quota-metered server-side, falls back to TEMPLATE when
+ *                         ineligible/exhausted). Nullable → TEMPLATE.
+ * @since GAP-1141 (GAP-1147 adds {@code mode})
  */
 public record PreviewBannerRequest(
         String organizationName,
@@ -30,6 +35,7 @@ public record PreviewBannerRequest(
         String logoUrl,
         List<String> portraitUrls,
         String themeIcon,
-        BrandColours colours
+        BrandColours colours,
+        String mode
 ) {
 }

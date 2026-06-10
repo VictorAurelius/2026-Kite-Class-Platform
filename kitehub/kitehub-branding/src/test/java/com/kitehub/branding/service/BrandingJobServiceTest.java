@@ -312,11 +312,15 @@ class BrandingJobServiceTest {
 
         // When
         BrandingJob result = jobService.createWizardJob(
-                instanceId, organizationName, language, logoUrl, "LARGE_CENTER");
+                instanceId, organizationName, language, logoUrl, "LARGE_CENTER",
+                "professional", "T1");
 
-        // Then — orgType set on the entity + persisted via save
+        // Then — orgType + tone + templateId set on the entity + persisted via save
         assertThat(result.getOrgType()).isEqualTo("LARGE_CENTER");
-        verify(jobRepository).save(argThat(saved -> "LARGE_CENTER".equals(saved.getOrgType())));
+        assertThat(result.getTone()).isEqualTo("professional");
+        assertThat(result.getTemplateId()).isEqualTo("T1");
+        verify(jobRepository).save(argThat(saved -> "LARGE_CENTER".equals(saved.getOrgType())
+                && "professional".equals(saved.getTone())));
     }
 
     @Test
@@ -327,10 +331,11 @@ class BrandingJobServiceTest {
 
         // When
         BrandingJob result = jobService.createWizardJob(
-                instanceId, organizationName, language, logoUrl, null);
+                instanceId, organizationName, language, logoUrl, null, null, null);
 
         // Then
         assertThat(result.getOrgType()).isNull();
+        assertThat(result.getTone()).isNull();
         assertThat(result.getStatus()).isEqualTo(JobStatus.QUEUED);
     }
 }

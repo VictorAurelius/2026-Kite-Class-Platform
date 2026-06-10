@@ -1,8 +1,10 @@
 package com.kitehub.branding.wizard;
 
 import com.kitehub.branding.domain.entity.BrandingJob;
+import com.kitehub.branding.domain.enums.GenerationMode;
 import com.kitehub.branding.repository.BrandingJobRepository;
 import com.kitehub.branding.service.BrandingJobService;
+import com.kitehub.branding.service.FullAiQuotaService;
 import com.kitehub.branding.service.banner.BannerComposition;
 import com.kitehub.branding.service.banner.BannerHtmlComposer;
 import com.kitehub.branding.service.banner.BannerRenderer;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -65,6 +68,8 @@ public class BrandingJobV1Controller {
     /** GAP-1141 — Step 7 live banner preview (compose → sidecar render, no Gemini/DB/quota). */
     private final BannerHtmlComposer bannerHtmlComposer;
     private final BannerRenderer bannerRenderer;
+    /** GAP-1147 — FULL_AI preview tier-gate + monthly quota meter (PREMIUM cap / ENTERPRISE ∞). */
+    private final FullAiQuotaService fullAiQuotaService;
 
     /** Safe fallback palette when the preview request carries no (or invalid) colours. */
     private static final BrandColours DEFAULT_PREVIEW_COLOURS = new BrandColours(
@@ -118,7 +123,8 @@ public class BrandingJobV1Controller {
                 com.kitehub.branding.domain.enums.OrgType.fromNullable(body.orgType());
         BrandingJob job = brandingJobService.createWizardJob(
                 instanceId, orgName, body.language(), body.logoUrl(),
-                orgType == null ? null : orgType.name());
+                orgType == null ? null : orgType.name(),
+                body.tone(), body.templateId()); // GAP-1146 — tone/template drive palette
         BrandColours colours = coloursDeriver.derive(job);
         log.info("Wizard job created: {} status={}", job.getId(), job.getStatus());
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -131,34 +137,61 @@ public class BrandingJobV1Controller {
      * NO Gemini call, NO DB write, NO FULL_AI quota consumed — the FE passes its
      * already-computed palette + copy and the backend just composes + renders.
      *
-     * <p>Preview is always {@code TEMPLATE} (FULL_AI commits only on Deploy per
-     * {@code ai-branding-guidelines.md} §2.4) so exploring never burns quota.
-     * {@code bannerUrl} may be {@code null} when no rasteriser is wired
-     * ({@link com.kitehub.branding.service.banner.StubBannerRenderer}); the FE
-     * then falls back to the logo / placeholder.</p>
+     * <p>By default preview is {@code TEMPLATE} (free, never burns quota). GAP-1147
+     * adds an opt-in {@code mode:"FULL_AI"} path for PREMIUM/ENTERPRISE: it is
+     * tier-gated ({@link GenerationMode#forTier}) + metered by
+     * {@link FullAiQuotaService}. When the caller is ineligible (FREE/BASIC) or the
+     * PREMIUM monthly quota is exhausted, the response falls back to {@code TEMPLATE}
+     * with a {@code fallbackReason} — the gate is enforced SERVER-SIDE so a tampered
+     * FE can never bypass it. Phase 1 generation is the mock TEMPLATE composer, so a
+     * FULL_AI banner renders the same pixels today; the quota + mode contract is real
+     * and ready for GAP-1135 real image-gen.</p>
      *
-     * @param req preview inputs (orgName + copy + logo + portraits + icon + palette)
-     * @return {@code 200} with {@code {bannerUrl, mode:"TEMPLATE"}}
+     * @param req  preview inputs (orgName + copy + logo + portraits + icon + palette + mode)
+     * @param tier subscription tier (gateway-injected {@code X-Subscription-Tier}; FREE default)
+     * @return {@code 200} with {@code {bannerUrl, mode, fallbackReason?}}
      */
     @PostMapping("/preview-banner")
     @PreAuthorize(WRITE_AUTHZ)
-    public ResponseEntity<?> previewBanner(@RequestBody(required = false) PreviewBannerRequest req) {
+    public ResponseEntity<?> previewBanner(
+            @RequestBody(required = false) PreviewBannerRequest req,
+            @RequestHeader(value = "X-Subscription-Tier", required = false, defaultValue = "FREE")
+            String tier) {
         PreviewBannerRequest body = req == null
-                ? new PreviewBannerRequest(null, null, null, null, null, null)
+                ? new PreviewBannerRequest(null, null, null, null, null, null, null)
                 : req;
         BrandColours colours = body.colours() != null ? body.colours() : DEFAULT_PREVIEW_COLOURS;
         // Ephemeral object-key namespace — preview artifacts are throwaway, not tied
         // to a persisted job. Prefer the real tenant claim when present.
         UUID instanceId = resolveTenantOrEphemeral();
+
+        // GAP-1147: resolve the effective mode SERVER-SIDE before rendering so the
+        // quota is only consumed when FULL_AI is genuinely granted.
+        String resolvedMode = "TEMPLATE";
+        String fallbackReason = null;
+        if ("FULL_AI".equalsIgnoreCase(body.mode())) {
+            if (GenerationMode.forTier(tier) != GenerationMode.FULL_AI) {
+                fallbackReason = "TIER_NOT_ELIGIBLE"; // FREE/BASIC → TEMPLATE
+            } else if (!fullAiQuotaService.canUseFullAi(instanceId, tier)) {
+                fallbackReason = "QUOTA_EXHAUSTED"; // PREMIUM monthly cap spent → TEMPLATE
+            } else {
+                fullAiQuotaService.recordFullAiUsage(instanceId, tier);
+                resolvedMode = "FULL_AI";
+            }
+        }
+
         BannerComposition composition = bannerHtmlComposer.compose(
                 body.organizationName(), body.copy(), body.logoUrl(),
                 body.portraitUrls(), body.themeIcon(), colours);
         String bannerUrl = bannerRenderer.render(composition, instanceId);
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("bannerUrl", bannerUrl); // nullable — FE falls back to logo/placeholder
-        out.put("mode", "TEMPLATE");
-        log.debug("Preview banner composed for '{}' (rendered={})",
-                body.organizationName(), bannerUrl != null);
+        out.put("mode", resolvedMode);
+        if (fallbackReason != null) {
+            out.put("fallbackReason", fallbackReason);
+        }
+        log.debug("Preview banner composed for '{}' (mode={}, fallback={}, rendered={})",
+                body.organizationName(), resolvedMode, fallbackReason, bannerUrl != null);
         return ResponseEntity.ok(out);
     }
 

@@ -1,6 +1,6 @@
 # GAP-1149: /branding/assets không preview được ảnh
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — state-check + UX degrade shipped PR #2289; runtime root-cause pending G2
 **Priority:** 🟡 P2
 **Domain:** Frontend (+ presigned URL / CSP)
 **Found:** 2026-06-10 (G2 browser-walk — PR #2289)
@@ -25,6 +25,20 @@ Phân tích:
 
 - [ ] `/branding/assets` hiển thị thumbnail ảnh (browser verify).
 - [ ] Presigned URL không hết hạn lúc render (presign-on-read).
+
+## Fix (PR #2289, 2026-06-10) — state-check ⇒ gap diagnosis sai một phần
+
+State-check (per `design-first-investigation-order` + `audit-to-gap-pipeline` §2.8) cho thấy **nghi vấn chính của gap sai**:
+- `AssetStorageController.getAssets` **ĐÃ presign-on-read** (`presignAssets`, GAP-1112 #1) — re-presign mọi URL chứa `/instances/` mỗi lần load. Không phải "build URL sai/không presign".
+- Presigned TTL = **1 giờ** (`S3StorageService` `Duration.ofHours(1)`) — không phải hết hạn lúc render.
+- Dev CSP (`next.config.js:48`) **đã allow** `http://localhost:9100`; CSP là `Content-Security-Policy-Report-Only` → log nhưng **không chặn** ảnh. Console log CSP user thấy là red-herring (hoặc do chạy prod-build local → `isDev=false`).
+- MinIO host `localhost:9100` reachable (compose `9100:9000`).
+
+→ Root local thật **nghi** là mock-asset 404 (mock provisioning tạo URL `/instances/...` không có object thật trong MinIO → presign 1 URL trỏ object không tồn tại → 404). Cần G2 runtime để xác nhận (network tab status của ảnh).
+
+**Fix UX (chắc chắn, an toàn):** `AssetsGrid` thêm `<img onError>` → fallback placeholder "Không tải được ảnh xem trước" (icon `ImageOff`) thay vì broken-image glyph; Download/"Xem" vẫn expose URL thô. Gallery đọc được bất kể root cause.
+
+FE build PASS (Compiled successfully 90/90). **Pending:** G2 runtime xác nhận root cause (mock-asset vs upload thật) — nếu mock-asset thì là Phase-1 mock limitation, asset upload thật vẫn preview đúng.
 
 ## Related
 

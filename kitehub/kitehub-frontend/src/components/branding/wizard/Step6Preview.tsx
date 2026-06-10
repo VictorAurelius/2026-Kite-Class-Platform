@@ -564,12 +564,55 @@ export function Step6Preview({
       setUpsellModalOpen(true);
       return;
     }
-    regenerate.mutate({ jobId: wizardState.jobId });
+    // GAP-1145: regenerate REQUIRES X-Instance-Id (the job's tenant/instance claim).
+    // The gateway maps tenantId→X-Tenant-Id but never sets X-Instance-Id, so the FE
+    // must pass it. wizardState.instanceId is the deploy tenant claim set on job
+    // creation. Without it the server returns 400 MISSING_INSTANCE_ID.
+    const instanceId =
+      typeof wizardState.instanceId === 'string' ? wizardState.instanceId : undefined;
+    if (!instanceId) {
+      toast.info(
+        'Bản xem trước trực tiếp đã tự cập nhật khi bạn đổi lựa chọn — "Tạo lại" khả dụng sau khi triển khai.',
+      );
+      return;
+    }
+    regenerate.mutate(
+      { jobId: wizardState.jobId, instanceId },
+      {
+        // Mid-wizard the job is a mock (QUEUED/INITIALIZING, never DEPLOYED) so the
+        // server returns 409 INVALID_JOB_STATE. Surface a friendly note instead of a
+        // raw error — the live banner preview already re-generates on every input change.
+        onError: () =>
+          toast.info(
+            'Bản xem trước trực tiếp tự cập nhật khi bạn đổi lựa chọn. "Tạo lại" áp dụng sau khi triển khai.',
+          ),
+      },
+    );
   };
 
   const handleUpgradeClick = () => {
     // TODO(GAP-272r): route to /billing/upgrade when subscription page lands.
     setUpsellModalOpen(false);
+  };
+
+  // GAP-1147: on-demand FULL_AI banner. The backend tier-gates + meters the
+  // PREMIUM/ENTERPRISE quota and downgrades to TEMPLATE when ineligible/exhausted,
+  // so the FE just reflects the resolved mode + fallbackReason in a toast.
+  const fullAiEligible = tier === 'PREMIUM' || tier === 'ENTERPRISE';
+  const handleGenerateFullAi = () => {
+    generateBannerPreview({ ...previewBannerReq, mode: 'FULL_AI' }, tier)
+      .then((res) => {
+        if (res.mode === 'FULL_AI') {
+          toast.success('Đã tạo banner bằng AI cao cấp — đã trừ 1 lượt.');
+        } else if (res.fallbackReason === 'QUOTA_EXHAUSTED') {
+          toast.info(
+            'Đã hết lượt AI cao cấp tháng này — đang dùng bản Mẫu. Nâng cấp để có thêm lượt.',
+          );
+        } else {
+          toast.info('Gói hiện tại chưa hỗ trợ AI cao cấp — đang dùng bản Mẫu.');
+        }
+      })
+      .catch(() => toast.error('Không tạo được banner AI cao cấp, vui lòng thử lại.'));
   };
 
   // -------------------------------------------------------------------------
@@ -684,6 +727,22 @@ export function Step6Preview({
               onChange={setGenerationMode}
               onUpgradeClick={handleUpgradeClick}
             />
+            {/* GAP-1147: explicit FULL_AI generate action — only for eligible tiers
+                when FULL_AI is selected. Each click consumes one PREMIUM quota slot. */}
+            {generationMode === 'FULL_AI' && fullAiEligible && (
+              <Button
+                type="button"
+                size="sm"
+                className="mt-3 w-full"
+                disabled={bannerPreview.isLoading}
+                onClick={handleGenerateFullAi}
+                data-testid="generate-full-ai-banner"
+              >
+                {bannerPreview.isLoading
+                  ? 'Đang tạo banner AI…'
+                  : 'Tạo bằng AI cao cấp (tốn 1 lượt)'}
+              </Button>
+            )}
           </div>
 
           {/* GAP-1143 — reuse banner from library. The banner itself is the hero

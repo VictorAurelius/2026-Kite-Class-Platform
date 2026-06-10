@@ -1,6 +1,6 @@
 # GAP-1146: Branding palette KHÔNG phản ánh tone/style/template — deriver hash org-name
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — fix shipped PR #2289, pending V71 apply + G2 re-walk
 **Priority:** 🟠 P1
 **Domain:** Backend (deriver) + Frontend (preview)
 **Found:** 2026-06-10 (Wizard Step 7 G2 browser-walk — PR #2289)
@@ -26,6 +26,15 @@ Root cause (state-check):
 - [ ] Đổi tone → palette preview đổi rõ rệt (4 tone = 4 hướng màu khác nhau).
 - [ ] Palette deterministic + WCAG AA contrast (per `ai-branding-guidelines.md` §5).
 - [ ] Preview ↔ deploy dùng cùng palette (không lệch).
+
+## Fix (PR #2289, 2026-06-10)
+
+- `BrandingJob` entity: thêm `tone` + `templateId` (nullable, backward-compat). Migration `V71__add_tone_template_to_branding_jobs.sql` (kitehub-subscription, theo V70 orgType precedent).
+- `createWizardJob` service + `BrandingJobV1Controller.createJob`: persist `body.tone()` + `body.templateId()` (FE đã gửi sẵn từ Step6Preview).
+- `BrandColoursDeriver.derive`: map **tone → palette family** (professional=blue/slate, friendly=warm amber, energetic=red/orange, luxury=purple) — 4 tone = 4 hướng màu khác nhau; org-name + templateId = variant seed (deterministic). Tone null → legacy 6-palette hash (jobs cũ render y nguyên). Mọi palette neutral-on-white ≥ 4.5:1 WCAG AA (test verify công thức WCAG 2.1 thật).
+- Preview (`usePreviewBrandColors` → `job.brandColors`) tự phản ánh — không cần đổi FE.
+- BE tests 27/27 (`BrandColoursDeriverTest` 5/5 gồm tone-differentiation + WCAG + deterministic).
+- **Pending:** apply V71 lên DB local + G2 re-walk (đổi tone → palette đổi rõ).
 
 ## Related
 

@@ -35,13 +35,25 @@ export interface PreviewBannerRequest {
   portraitUrls?: string[];
   themeIcon?: string;
   colours: PreviewBannerColours;
+  /**
+   * GAP-1147 — requested generation mode. Omitted / `'TEMPLATE'` = free preview
+   * (never burns quota). `'FULL_AI'` = PREMIUM/ENTERPRISE on-demand AI banner;
+   * the BACKEND tier-gates + meters it and falls back to TEMPLATE when the caller
+   * is ineligible or out of quota (see {@link PreviewBannerResponse.fallbackReason}).
+   */
+  mode?: 'TEMPLATE' | 'FULL_AI';
 }
 
 export interface PreviewBannerResponse {
   /** Composed banner URL, or null when nothing renderable yet. */
   bannerUrl: string | null;
-  /** Phase 1 BETA generation mode — TEMPLATE only. */
-  mode: 'TEMPLATE';
+  /** Effective generation mode the backend resolved (after tier/quota gating). */
+  mode: 'TEMPLATE' | 'FULL_AI';
+  /**
+   * GAP-1147 — present only when a FULL_AI request was downgraded to TEMPLATE:
+   * `'TIER_NOT_ELIGIBLE'` (FREE/BASIC) or `'QUOTA_EXHAUSTED'` (PREMIUM cap spent).
+   */
+  fallbackReason?: 'TIER_NOT_ELIGIBLE' | 'QUOTA_EXHAUSTED';
 }
 
 // Relative path (matches the brandingV1 endpoint convention); baseURL is
@@ -52,17 +64,29 @@ export interface UseBannerPreviewResult {
   /** Latest composed banner URL (null until a successful generate). */
   bannerUrl: string | null;
   /** Generation mode of the latest response (null before first generate). */
-  mode: 'TEMPLATE' | null;
+  mode: 'TEMPLATE' | 'FULL_AI' | null;
   /** True while a preview request is in flight (React Query v5 mutation). */
   isPending: boolean;
   /** Alias of {@link isPending} for call-site ergonomics. */
   isLoading: boolean;
   /** Mutation error (unknown shape — surfaced to BannerLivePreview). */
   error: unknown;
-  /** Trigger a preview; resolves with the response so callers can await. */
-  generate: (req: PreviewBannerRequest) => Promise<PreviewBannerResponse>;
+  /**
+   * Trigger a preview; resolves with the response so callers can await. Pass
+   * `tier` (subscription tier) for FULL_AI requests so the backend can gate +
+   * meter — it is sent as the `X-Subscription-Tier` header (GAP-1147).
+   */
+  generate: (
+    req: PreviewBannerRequest,
+    tier?: string
+  ) => Promise<PreviewBannerResponse>;
   /** Reset back to the idle state (clears bannerUrl + error). */
   reset: () => void;
+}
+
+interface GenerateVars {
+  req: PreviewBannerRequest;
+  tier?: string;
 }
 
 /**
@@ -70,12 +94,15 @@ export interface UseBannerPreviewResult {
  * `generate(request)` and read `bannerUrl` / `isLoading` / `error`.
  */
 export function useBannerPreview(): UseBannerPreviewResult {
-  const mutation = useMutation<PreviewBannerResponse, unknown, PreviewBannerRequest>({
+  const mutation = useMutation<PreviewBannerResponse, unknown, GenerateVars>({
     mutationKey: ['branding', 'preview-banner'],
-    mutationFn: async (req: PreviewBannerRequest) => {
+    mutationFn: async ({ req, tier }: GenerateVars) => {
       const { data } = await apiClient.post<PreviewBannerResponse>(
         PREVIEW_BANNER_ENDPOINT,
-        req
+        req,
+        // GAP-1147: FULL_AI requests carry the tier so the BE can enforce the
+        // PREMIUM/ENTERPRISE gate + quota; TEMPLATE previews omit it.
+        tier ? { headers: { 'X-Subscription-Tier': tier } } : undefined
       );
       return data;
     },
@@ -87,7 +114,8 @@ export function useBannerPreview(): UseBannerPreviewResult {
     isPending: mutation.isPending,
     isLoading: mutation.isPending,
     error: mutation.error,
-    generate: mutation.mutateAsync,
+    generate: (req: PreviewBannerRequest, tier?: string) =>
+      mutation.mutateAsync({ req, tier }),
     reset: mutation.reset,
   };
 }

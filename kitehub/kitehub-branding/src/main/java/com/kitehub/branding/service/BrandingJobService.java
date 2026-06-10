@@ -142,15 +142,18 @@ public class BrandingJobService {
      */
     @Transactional
     public BrandingJob createWizardJob(UUID instanceId, String organizationName, String language,
-                                       String logoUrl, String orgType) {
-        log.info("Creating wizard branding job for instance: {} (orgType={})", instanceId, orgType);
+                                       String logoUrl, String orgType, String tone, String templateId) {
+        log.info("Creating wizard branding job for instance: {} (orgType={}, tone={})",
+                instanceId, orgType, tone);
 
         BrandingJob job = new BrandingJob();
         job.setInstanceId(instanceId);
         job.setOrganizationName(organizationName);
         job.setLanguage(language == null || language.isBlank() ? "vi" : language);
         job.setLogoUrl(logoUrl);
-        job.setOrgType(orgType); // GAP-1133 — nullable user-type axis
+        job.setOrgType(orgType);       // GAP-1133 — nullable user-type axis
+        job.setTone(tone);             // GAP-1146 — tone drives the preview palette
+        job.setTemplateId(templateId); // GAP-1146 — template variant seed
         job.setStatus(JobStatus.QUEUED);
         job.setProgress(0);
         job.setCurrentStep("Queued");
