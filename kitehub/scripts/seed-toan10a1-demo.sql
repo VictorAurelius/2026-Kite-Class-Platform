@@ -120,3 +120,11 @@ SELECT c.id, c.name, c.status,
 FROM classes c
 WHERE c.instance_id = 'aaaabbbb-0000-0000-0000-000000000001'
   AND c.name = 'Lớp Toán 10A1' AND c.deleted = false;
+
+-- ============================================================
+-- 4. Reset password teacher_a@test.com -> Test@12345 (bcrypt) để test đăng nhập.
+--    Hash bcrypt self-contained (verify trên mọi DB). Chỉ tài khoản test.
+-- ============================================================
+UPDATE auth_credentials
+SET password_hash = '$2b$10$lDf1LjHMLRImbleevPXhye70vXD7XNpnG8P6PdyHE9YyC457FpbZ2', updated_at = now()
+WHERE email = 'teacher_a@test.com';
