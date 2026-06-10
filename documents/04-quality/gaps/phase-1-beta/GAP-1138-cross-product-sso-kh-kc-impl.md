@@ -1,4 +1,4 @@
-# GAP-1133: Cross-product SSO KiteHub→KiteClass implementation (dedicated wave)
+# GAP-1138: Cross-product SSO KiteHub→KiteClass implementation (dedicated wave)
 
 **Status:** 🔵 OPEN
 **Priority:** 🟠 P1

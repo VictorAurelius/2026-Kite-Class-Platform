@@ -3,7 +3,7 @@ title: Cross-Product SSO KiteHub→KiteClass — gateway shared-JWT validation +
 status: PROPOSED
 date: 2026-06-10
 deciders: ["@nguyenvankiet"]
-gaps: [GAP-1119, GAP-1133]
+gaps: [GAP-1119, GAP-1138]
 audience: mixed
 ---
 
@@ -80,7 +80,7 @@ Bucket C **không** implement trong wave này vì chạm **4 surface + security-
 3. `kiteclass-frontend` :3000 — route `/sso/callback` + exchange call.
 4. `kiteclass-core` / gateway — nhận KH-JWT qua gateway header inject → establish KC session.
 
-Cộng security review (one-time-code TTL/single-use/replay, token-in-URL avoidance, CSRF). → **> 1 bucket** → tách wave riêng `wave-rbac-sso-1` (theo dõi qua **GAP-1133**).
+Cộng security review (one-time-code TTL/single-use/replay, token-in-URL avoidance, CSRF). → **> 1 bucket** → tách wave riêng `wave-rbac-sso-1` (theo dõi qua **GAP-1138**).
 
 **Beta unblock:** Bucket B (4-role shell) cho owner/staff dùng **KC-native fallback login** (`/api/v1/tenant-auth` đã có) — chấp nhận được cho beta; SSO KH→KC ship sau ở wave riêng, KHÔNG chặn LMS-FE (LMS dùng teacher/student login KC-native).
 
@@ -97,4 +97,4 @@ Cộng security review (one-time-code TTL/single-use/replay, token-in-URL avoida
 - ADR-039 — Cross-Service Subscription Tier Propagation (precedent: JWT claim + gateway inject)
 - GAP-604 — gateway JWT to headers propagation (DONE)
 - `kitehub/kitehub-gateway/.../filter/TenantHeaderGuardFilter.java` (HS512 shared-secret validation)
-- GAP-1133 — SSO KH→KC implementation (dedicated wave, OPEN)
+- GAP-1138 — SSO KH→KC implementation (dedicated wave, OPEN)
