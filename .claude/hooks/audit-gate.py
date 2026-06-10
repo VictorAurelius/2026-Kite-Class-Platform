@@ -504,7 +504,11 @@ def check_gap_doc_drift(pr: str, info: dict, files: list[str]) -> list[str]:
     title = info.get("title", "")
     body = info.get("body", "") or ""
     combined = f"{title} {body}"
-    gap_ids = sorted(set(re.findall(r"GAP-\d{3}", combined)))
+    # GAP IDs are 3+ digits; \d{3,} (not \d{3}) so "GAP-1122" matches as one
+    # token, not substring "GAP-112". Bug fixed 2026-06-10 (GAP-1129): unanchored
+    # \d{3} collapsed every 4-digit gap to its 3-digit prefix → false drift on the
+    # prefix gap (e.g. GAP-1122/1127/1128 all reported as GAP-112).
+    gap_ids = sorted(set(re.findall(r"GAP-\d{3,}", combined)))
     if not gap_ids:
         return []
     repo_root = Path(__file__).resolve().parents[2]
@@ -512,10 +516,17 @@ def check_gap_doc_drift(pr: str, info: dict, files: list[str]) -> list[str]:
     warnings = []
     for gap_id in gap_ids:
         # Check 1: did the PR touch the gap file at all?
-        touched = any(f.startswith("documents/04-quality/gaps/") and gap_id in f for f in files)
+        touched = any(
+            f.startswith("documents/04-quality/gaps/")
+            and Path(f).name.startswith(f"{gap_id}-")
+            for f in files
+        )
         # Check 2: even if touched, does the gap Log reference this PR? (catches
         # touch-without-log mistakes — e.g. status bump but no log entry).
-        gap_files = list(gaps_dir.glob(f"{gap_id}-*.md"))
+        # Recursive glob: gap files live in phase subdirs + closed/ archives per
+        # gap-folder-organization.md v2.0.0 (not flat in gaps_dir). Non-recursive
+        # glob missed them → log_has_pr never set → false "Log doesn't mention" warns.
+        gap_files = list(gaps_dir.glob(f"**/{gap_id}-*.md"))
         log_has_pr = False
         if gap_files:
             content = gap_files[0].read_text(encoding="utf-8", errors="replace")
