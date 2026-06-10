@@ -15,6 +15,7 @@
  * wrapper) — read `data` directly, NOT `data.data`.
  */
 
+import { useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 
 import apiClient from '@/lib/api/client';
@@ -108,14 +109,23 @@ export function useBannerPreview(): UseBannerPreviewResult {
     },
   });
 
+  // `generate` MUST keep a stable identity — Step6Preview drives the live preview
+  // from a useEffect keyed on it, so a fresh closure per render would re-fire the
+  // effect every render → an infinite preview-banner loop (tripped the gateway
+  // circuit breaker → 503). `mutateAsync` is already stable, so memoise around it.
+  const { mutateAsync } = mutation;
+  const generate = useCallback(
+    (req: PreviewBannerRequest, tier?: string) => mutateAsync({ req, tier }),
+    [mutateAsync]
+  );
+
   return {
     bannerUrl: mutation.data?.bannerUrl ?? null,
     mode: mutation.data?.mode ?? null,
     isPending: mutation.isPending,
     isLoading: mutation.isPending,
     error: mutation.error,
-    generate: (req: PreviewBannerRequest, tier?: string) =>
-      mutation.mutateAsync({ req, tier }),
+    generate,
     reset: mutation.reset,
   };
 }
