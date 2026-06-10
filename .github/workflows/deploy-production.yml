@@ -159,35 +159,26 @@ jobs:
           echo "SSM CommandId: ${COMMAND_ID}"
           echo "CloudWatch logs: /aws/ssm/kite-deploy stream prefix ${COMMAND_ID}/"
 
-      - name: Poll deploy via ALB target health + CloudWatch logs (GAP-498 redesign)
+      - name: Poll deploy via smoke test + CloudWatch logs (ALB removed — Cloudflare Tunnel ingress)
         id: poll
         env:
           INSTANCE_ID: ${{ steps.ec2_lookup.outputs.instance_id }}
           COMMAND_ID: ${{ steps.ssm.outputs.command_id }}
-          TG_NAME: kitehub-kh-backend-tg
         run: |
-          # GAP-498 redesign: replace SSM Status field polling (false-InProgress
-          # 8min false-failure pattern from 2026-05-13 run 25776387051) with
-          # independent ALB target health + smoke verification. Workflow IAM
-          # context divergence makes Status field unreliable; ALB is single
-          # source of truth — once target healthy + smoke 200, deploy IS done.
+          # ALB decommissioned 2026-06 — prod ingress is now Cloudflare Tunnel →
+          # kitehub-gateway. The prior ALB target-health check (describe-target-groups
+          # kitehub-kh-backend-tg) returns TargetGroupNotFound. Success criterion is
+          # now smoke 200 on the public HTTPS endpoint after containers restart.
           #
-          # Preserved from prior versions:
-          # - CloudWatch log interleave (GAP-491 Phase 2 — operator visibility)
-          # - FAIL marker early-exit (PR #1235 — fast-fail on docker errors)
+          # Preserved: CloudWatch log interleave (GAP-491) + FAIL marker early-exit
+          # (PR #1235) so a deploy-prod.sh failure fails fast instead of waiting 8min.
           #
           # Success criteria (ALL must hold):
-          # - ≥60s elapsed since SSM send (containers had time to restart)
-          # - ALB target i-${INSTANCE_ID} state = healthy
+          # - >=60s elapsed since SSM send (containers had time to restart)
           # - curl https://api.kitehub.me/actuator/health = 200
           # Failure criteria (ANY triggers exit 1):
-          # - FAIL log marker detected (manifest unknown / failed to run commands)
-          # - 8min step budget exhausted without success criteria
-          TG_ARN=$(aws elbv2 describe-target-groups \
-            --names "${TG_NAME}" \
-            --region "${AWS_REGION}" \
-            --query 'TargetGroups[0].TargetGroupArn' --output text)
-          echo "Target group: ${TG_NAME} ARN=${TG_ARN}"
+          # - FAIL log marker (manifest unknown / failed to run commands)
+          # - 8min step budget exhausted without smoke 200
           START_TS=$(date -u +%s)
           LAST_LOG_TS=$((START_TS * 1000))
           for attempt in $(seq 1 48); do
@@ -203,7 +194,7 @@ jobs:
               --start-time "${LAST_LOG_TS}" \
               --query 'events[*].message' --output text 2>/dev/null || true)
             if [ -n "${LOGS}" ]; then
-              echo "${LOGS}" | sed 's/^/  │ /'
+              echo "${LOGS}" | sed 's/^/  | /'
               # PR #1235 preserved — FAIL marker early-exit
               if echo "${LOGS}" | grep -qE 'failed to run commands: exit status [1-9]|manifest unknown'; then
                 echo "::error ::Deploy script reported failure (CloudWatch log marker)"
@@ -212,28 +203,16 @@ jobs:
             fi
             LAST_LOG_TS=${NOW_TS}
 
-            # GAP-498 new — ALB target health + smoke as success criteria
-            TARGET_HEALTH=$(aws elbv2 describe-target-health \
-              --target-group-arn "${TG_ARN}" \
-              --region "${AWS_REGION}" \
-              --query "TargetHealthDescriptions[?Target.Id=='${INSTANCE_ID}'].TargetHealth.State" \
-              --output text 2>/dev/null || echo "unknown")
-            echo "Attempt ${attempt}/48 (elapsed ${ELAPSED}s): ALB target=${TARGET_HEALTH}"
-            if [ "${ELAPSED}" -ge 60 ] && [ "${TARGET_HEALTH}" = "healthy" ]; then
-              # Smoke via HTTPS production endpoint (api.kitehub.me) — end-to-end
-              # what real users hit. ALB HTTP:80 listener redirects to HTTPS:443
-              # (configured per cutover); curl direct to :80 returns 301, not 200.
-              # api.kitehub.me proxied through Cloudflare → ALB:443 → kitehub-gateway.
-              SMOKE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -L \
-                "https://api.kitehub.me/actuator/health" 2>/dev/null || echo "000")
-              echo "Smoke https://api.kitehub.me/actuator/health → HTTP ${SMOKE}"
-              if [ "${SMOKE}" = "200" ]; then
-                echo "::notice ::Production deploy ${{ github.event.inputs.version }} healthy ✅ (target=healthy + smoke=200 at ${ELAPSED}s)"
-                exit 0
-              fi
+            # Smoke via HTTPS production endpoint (Cloudflare Tunnel → gateway)
+            SMOKE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -L \
+              "https://api.kitehub.me/actuator/health" 2>/dev/null || echo "000")
+            echo "Attempt ${attempt}/48 (elapsed ${ELAPSED}s): smoke api.kitehub.me/actuator/health -> HTTP ${SMOKE}"
+            if [ "${ELAPSED}" -ge 60 ] && [ "${SMOKE}" = "200" ]; then
+              echo "::notice ::Production deploy ${{ github.event.inputs.version }} healthy (smoke=200 at ${ELAPSED}s)"
+              exit 0
             fi
           done
-          echo "::error ::Deploy timed out after 8min — target never reached healthy + smoke 200"
+          echo "::error ::Deploy timed out after 8min — smoke never reached 200"
           # Surface SSM stderr for diagnosis (best-effort)
           aws ssm get-command-invocation \
             --region "${AWS_REGION}" \
