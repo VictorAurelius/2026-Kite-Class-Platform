@@ -91,7 +91,8 @@ public class BrandingDataSeeder {
     static final String HA_PRIMARY_COLOR = "#2563EB";    // xanh dương
     static final String HA_SECONDARY_COLOR = "#1E40AF";
     static final String HA_ACCENT_COLOR = "#60A5FA";
-    static final String HA_BANNER_URL = "/demo-banners/co-ha-toan.png";
+    static final String HA_BANNER_URL = "/demo-banners/co-ha-toan.webp";
+    static final String HA_LOGO_URL = "/demo-banners/co-ha-toan-logo.webp";
 
     // Thầy Nguyễn Đình Nhì — gói Trả phí, Hóa THCS, tông xanh lá (AI Branding).
     static final UUID NHI_TENANT_ID = UUID.fromString("b1100000-0000-4000-a000-000000000002");
@@ -103,11 +104,13 @@ public class BrandingDataSeeder {
     static final String NHI_PRIMARY_COLOR = "#16A34A";   // xanh lá
     static final String NHI_SECONDARY_COLOR = "#14532D";
     static final String NHI_ACCENT_COLOR = "#4ADE80";
-    static final String NHI_BANNER_URL = "/demo-banners/thay-nhi-hoa.png";
+    static final String NHI_BANNER_URL = "/demo-banners/thay-nhi-hoa.webp";
+    static final String NHI_LOGO_URL = "/demo-banners/thay-nhi-hoa-logo.webp";
 
     // Cô Đỗ Lan Khánh — §4.1 walkthrough tenant; reuses the Sky instance, adds a Branding row.
     static final String KHANH_DISPLAY_NAME = "Trung tâm cô Đỗ Lan Khánh";
-    static final String KHANH_BANNER_URL = "/demo-banners/co-khanh-phapluat.png";
+    static final String KHANH_BANNER_URL = "/demo-banners/co-khanh-phapluat.webp";
+    static final String KHANH_LOGO_URL = "/demo-banners/co-khanh-phapluat-logo.webp";
 
     private final FrontendInstanceRepository instanceRepo;
     private final BrandingResourceRepository resourceRepo;
@@ -136,13 +139,13 @@ public class BrandingDataSeeder {
     private void seedDemoTrio() {
         seedTrioTenant(new TrioSpec(HA_TENANT_ID, HA_TENANT_SLUG, HA_TENANT_REF, HA_FRONTEND_URL,
                 HA_DISPLAY_NAME, HA_TAGLINE, HA_PRIMARY_COLOR, HA_SECONDARY_COLOR, HA_ACCENT_COLOR,
-                HA_BANNER_URL,
+                HA_BANNER_URL, HA_LOGO_URL,
                 "Lấy lại căn bản môn Toán cùng cô Hà",
                 "Lộ trình Toán tiểu học bài bản, lớp nhỏ, kèm sát từng học viên.",
                 "https://zalo.me/co-ha-toan", "https://facebook.com/cohatoan"));
         seedTrioTenant(new TrioSpec(NHI_TENANT_ID, NHI_TENANT_SLUG, NHI_TENANT_REF, NHI_FRONTEND_URL,
                 NHI_DISPLAY_NAME, NHI_TAGLINE, NHI_PRIMARY_COLOR, NHI_SECONDARY_COLOR, NHI_ACCENT_COLOR,
-                NHI_BANNER_URL,
+                NHI_BANNER_URL, NHI_LOGO_URL,
                 "Hóa học THCS — học là hiểu cùng thầy Nhì",
                 "Khóa Hóa học THCS đầy đủ, bộ nhận diện sinh tự động bằng AI Branding.",
                 "https://zalo.me/thay-nhi-hoa", "https://facebook.com/thaynhihoa"));
@@ -152,7 +155,8 @@ public class BrandingDataSeeder {
     /** Immutable spec for one demo-trio tenant seed (keeps {@link #seedTrioTenant} param count sane). */
     private record TrioSpec(UUID tenantId, String slug, String tenantRef, String frontendUrl,
                             String displayName, String tagline,
-                            String primary, String secondary, String accent, String bannerUrl,
+                            String primary, String secondary, String accent,
+                            String bannerUrl, String logoUrl,
                             String heroTitle, String heroSubtitle, String zaloUrl, String facebookUrl) {
     }
 
@@ -193,7 +197,7 @@ public class BrandingDataSeeder {
                             buildTrioThemeConfigJson(spec.displayName(), spec.tagline(),
                                     spec.primary(), spec.secondary(), spec.accent(),
                                     spec.zaloUrl(), spec.facebookUrl(), spec.frontendUrl()));
-                    branding.setLogoUrl(spec.bannerUrl());
+                    branding.setLogoUrl(spec.logoUrl());
                     branding.setZaloUrl(spec.zaloUrl());
                     branding.setFacebookUrl(spec.facebookUrl());
                     branding.setWebsiteUrl(spec.frontendUrl());
@@ -244,7 +248,7 @@ public class BrandingDataSeeder {
                 branding.setSecondaryColor(SKY_SECONDARY_COLOR);
                 branding.setAccentColor(SKY_ACCENT_COLOR);
                 branding.setThemeConfigJson(buildSkyThemeConfigJson());
-                branding.setLogoUrl(KHANH_BANNER_URL);
+                branding.setLogoUrl(KHANH_LOGO_URL);
                 brandingRepository.save(branding);
             });
             log.info("Seeded Khánh (Sky) Branding settings row (instance={})", SKY_TENANT_ID);
@@ -311,7 +315,7 @@ public class BrandingDataSeeder {
                 });
         lp.setHeroTitle("Mất gốc tiếng Anh? Đã có cô Khánh");
         lp.setHeroSubtitle("Lộ trình lấy lại căn bản tiếng Anh, học cùng giáo viên tận tâm.");
-        lp.setHeroImageUrl("/demo/sky/teacher-do-lan-khanh.webp");
+        lp.setHeroImageUrl("/demo-banners/co-khanh-phapluat.webp");
         lp.setTagline(SKY_TAGLINE);
         lp.setPrimaryColor(SKY_PRIMARY_COLOR);
         lp.setSecondaryColor(SKY_SECONDARY_COLOR);

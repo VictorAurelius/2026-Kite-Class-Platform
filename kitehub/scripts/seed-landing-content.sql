@@ -10,7 +10,7 @@
 -- nếu không landing GET trả stale (sections null). Lệnh:
 --   docker exec kite-redis redis-cli --scan --pattern "landingPages*" | xargs -r -I{} docker exec kite-redis redis-cli DEL "{}"
 --
--- Banner: 3 PNG đã copy vào kiteclass-frontend/public/demo-banners/ (hero_image_url trỏ tới).
+-- Banner: 3 webp committed ở kiteclass-frontend/public/demo-banners/ (hero_image_url trỏ tới; PNG nguồn gitignored).
 -- Reproduce note: nội dung này lý tưởng nên set qua PUT /api/v1/tenants/{id}/landing
 -- (admin/teacher) sau khi BE expose request fields (GAP-815); SQL trực tiếp dùng cho demo local.
 
@@ -54,11 +54,11 @@ UPDATE landing_pages SET
 WHERE instance_id = 'b1100000-0000-4000-a000-000000000002';
 
 -- ============================================================
--- Hero banner (demo) — PNG ở kiteclass-frontend/public/demo-banners/
+-- Hero banner (demo) — webp committed ở kiteclass-frontend/public/demo-banners/
 -- ============================================================
-UPDATE landing_pages SET hero_image_url='/demo-banners/co-khanh-phapluat.png' WHERE instance_id='126eaa8c-1f63-4c30-81b5-a5921b384b3b';
-UPDATE landing_pages SET hero_image_url='/demo-banners/co-ha-toan.png'        WHERE instance_id='a1100000-0000-4000-a000-000000000001';
-UPDATE landing_pages SET hero_image_url='/demo-banners/thay-nhi-hoa.png'      WHERE instance_id='b1100000-0000-4000-a000-000000000002';
+UPDATE landing_pages SET hero_image_url='/demo-banners/co-khanh-phapluat.webp' WHERE instance_id='126eaa8c-1f63-4c30-81b5-a5921b384b3b';
+UPDATE landing_pages SET hero_image_url='/demo-banners/co-ha-toan.webp'        WHERE instance_id='a1100000-0000-4000-a000-000000000001';
+UPDATE landing_pages SET hero_image_url='/demo-banners/thay-nhi-hoa.webp'      WHERE instance_id='b1100000-0000-4000-a000-000000000002';
 
 -- Template type: 3 GV độc lập → personal (7 section phù hợp cá nhân, không "đội ngũ GV"/gallery/tuyển sinh).
 UPDATE landing_pages SET template_type='personal' WHERE instance_id IN (
