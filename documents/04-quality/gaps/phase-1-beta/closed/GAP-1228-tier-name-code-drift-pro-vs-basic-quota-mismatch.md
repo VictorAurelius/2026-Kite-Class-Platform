@@ -1,6 +1,6 @@
 # GAP-1228: Tier-name drift ở CODE — "PRO" trong branding/FE-wizard vs canonical BASIC → BASIC tenant rơi nhầm quota FREE
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-06-11 — Wave ui-kits-100 Bucket H (coordinator inline)
 **Priority:** 🟠 P1
 **Domain:** Mixed (Backend kitehub-branding + Frontend kiteclass wizard + DB CHECK + docs contract)
 **Found:** 2026-06-11 (Wave ui-kits-100 Bucket E — sweep GAP-1098 cross-check code phát hiện drift KHÔNG chỉ docs)
@@ -26,14 +26,18 @@ Tier rename PRO→BASIC chỉ đổi `PricingTier` enum (platform) — chuỗi b
 
 ## Acceptance Criteria
 
-- [ ] BASIC tenant nhận đúng quota regenerate (10/ngày) — IT verify với header/claim tier=BASIC
-- [ ] V-migration mở rộng CHECK `chk_branding_regen_tier` chấp nhận 'BASIC'
-- [ ] FE wizard Tier type có 'BASIC'; build + tests PASS
-- [ ] 4 docs contract sync cùng PR (api-contract / 2 rules.md / 03-branding.md)
-- [ ] Cross-flow sweep: `grep -rn '"PRO"' kitehub/ kiteclass/ --include="*.java" --include="*.ts"` — mọi site còn lại có verdict FIX/EXEMPT
+- [x] BASIC tenant nhận đúng quota (limitFor BASIC=10 + canonicalTier PRO→BASIC; unit RegenerateQuotaServiceTest 22/22 PASS — IT full-stack header verify theo walk GAP-1020 chain sẵn có)
+- [x] V72__regen_tier_check_basic_canonical.sql — migrate rows PRO→BASIC + CHECK canonical 4 tier
+- [x] FE Tier type +BASIC (giữ 'PRO' alias); wizard tests 30/30 PASS + next build compiled
+- [x] 4 docs contract sync cùng PR (api-contract header+tier samples / branding-wizard rules / ai-agent-workflow queue-group annotate / 03-branding V72 rows)
+- [x] Cross-flow sweep: residual "PRO" = alias-compat tests (giữ chủ đích) + AIJobPriority queue-group nội bộ (EXEMPT, annotated)
 
 ## Related
 
 - GAP-1098 (docs-sweep sibling — DONE Wave ui-kits-100 Bucket E; code-contract docs EXEMPT chuyển sang gap này)
 - GAP-1020 (tier header trust — TokenService claim đã ship), GAP-1089 (tier entitlement core, phase-1.5), GAP-1078 (tier→provider routing)
 - Discovered in: Wave ui-kits-100 Bucket E PR (sweep cross-check `RegenerateQuotaService` vs `PricingTier`)
+
+## Log
+
+- **2026-06-11 (DONE — Wave ui-kits-100 Bucket H, coordinator inline):** RegenerateQuotaService case "BASIC","PRO"→proLimit + canonicalTier PRO/BASIC→"BASIC" (persist canonical); V72 migrate data + CHECK canonical; FE Tier type +BASIC; 4 docs contract sync. Verify: BE 22/22 (RegenerateQuotaServiceTest+AIJobConsumerTest+BrandingWizardControllerTest) + FE wizard 30/30 + `next build` compiled. AIJobPriority dual-accept giữ nguyên (queue-group nội bộ).

@@ -167,7 +167,7 @@ erDiagram
 
 ## `ai_usage_log`
 
-**Mục đích.** Đếm số AI request mỗi tenant mỗi ngày để áp rate limit theo tier (FREE/PRO/PREMIUM/ENTERPRISE). Tạo ở `V14` cho rate-limit governance (`ai-branding-guidelines.md` §4.3). Map từ entity `AIUsageLog`.
+**Mục đích.** Đếm số AI request mỗi tenant mỗi ngày để áp rate limit theo tier (FREE/BASIC/PREMIUM/ENTERPRISE). Tạo ở `V14` cho rate-limit governance (`ai-branding-guidelines.md` §4.3). Map từ entity `AIUsageLog`.
 
 | Cột | Kiểu | Null | Default | Khóa/Index | Ý nghĩa |
 |---|---|---|---|---|---|
@@ -184,7 +184,7 @@ erDiagram
 
 **RLS + ghi chú**
 - Tenant-scoped ✅. V34 bật RLS (table có `instance_id`). V50 áp admin-bypass.
-- Tier cap (FREE/PRO/PREMIUM/ENTERPRISE) chứa config-key `ai.input.cap.*` (`ai-branding-guidelines.md` §2.5), KHÔNG persist vào bảng này.
+- Tier cap (FREE/BASIC/PREMIUM/ENTERPRISE) chứa config-key `ai.input.cap.*` (`ai-branding-guidelines.md` §2.5), KHÔNG persist vào bảng này.
 - Schema cực gọn (4 cột). Không có audit set (created_at/updated_at) — quota counter là transient, không cần audit timeline.
 
 ---
@@ -218,7 +218,7 @@ erDiagram
 
 ## `branding_regenerate_usage`
 
-**Mục đích.** Đếm số lần regenerate logo / asset cho mỗi user trong window 1 ngày (UTC midnight reset), gắn idempotency-key 10-phút cho POST `/regenerate` (Wave 34 Bucket A, sub-GAP-272d). Tier cap (FREE=3 / PRO=10 / PREMIUM=30 / ENTERPRISE=-1) sống ở config key `kitehub.regenerate.*` — bảng chỉ lưu counter + window. Tạo ở `V29`, RLS ở `V34`. Map từ entity `BrandingRegenerateUsage`.
+**Mục đích.** Đếm số lần regenerate logo / asset cho mỗi user trong window 1 ngày (UTC midnight reset), gắn idempotency-key 10-phút cho POST `/regenerate` (Wave 34 Bucket A, sub-GAP-272d). Tier cap (FREE=3 / BASIC=10 / PREMIUM=30 / ENTERPRISE=-1) sống ở config key `kitehub.regenerate.*` — bảng chỉ lưu counter + window. Tạo ở `V29`, RLS ở `V34`. Map từ entity `BrandingRegenerateUsage`.
 
 | Cột | Kiểu | Null | Default | Khóa/Index | Ý nghĩa |
 |---|---|---|---|---|---|
@@ -227,7 +227,7 @@ erDiagram
 | `instance_id` | UUID | YES | — | (RLS dùng) | Tenant — **nullable** (cho phép pre-auth flow regenerate trong wizard chưa pick instance) |
 | `job_id` | UUID | YES | — | — | Branding job được regenerate (tham chiếu logic tới `branding_jobs.id`) |
 | `idempotency_key` | VARCHAR(100) | YES | — | `idx_brand_regen_idempotency (user_id, idempotency_key) WHERE idempotency_key IS NOT NULL` | Header `Idempotency-Key` client gửi; replay trong window trả lại cùng `job_id` |
-| `tier` | VARCHAR(20) | NO | — | ✅ **CHECK** `chk_branding_regen_tier` (V59) | `FREE, PRO, PREMIUM, ENTERPRISE` — snapshot tier lúc invocation. ✅ Resolved (GAP-899, V59) — CHECK thêm; trước đây free-form. |
+| `tier` | VARCHAR(20) | NO | — | ✅ **CHECK** `chk_branding_regen_tier` (V59) | `FREE, BASIC, PREMIUM, ENTERPRISE` — snapshot tier lúc invocation (canonical hoá BASIC per GAP-1228, V72; alias JWT cũ `PRO` được service map → BASIC). ✅ V59 CHECK + V72 canonical. |
 | `used_count` | INTEGER | NO | `0` | — | Số lần regenerate đã dùng trong window |
 | `window_start` | TIMESTAMP | NO | — | UNIQUE thành phần; index ngầm | UTC midnight ngày áp counter |
 | `window_end` | TIMESTAMP | NO | — | `idx_brand_regen_window_end` | UTC midnight ngày sau (`window_start + 1 day`) |
@@ -235,7 +235,7 @@ erDiagram
 | `created_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit — tạo. ⚠️ `TIMESTAMP` không TZ |
 | `updated_at` | TIMESTAMP | NO | `CURRENT_TIMESTAMP` | — | Audit — cập nhật. ⚠️ `TIMESTAMP` không TZ |
 
-**Constraints**: `uk_brand_regen_user_window UNIQUE (user_id, window_start)` — 1 counter row / user / ngày. ✅ Resolved (GAP-899, V59): `chk_branding_regen_tier CHECK (tier IN ('FREE','PRO','PREMIUM','ENTERPRISE'))` + `chk_branding_regen_window_order CHECK (window_end > window_start)`. Trước đây không CHECK cho `tier`/`window_end > window_start`. `used_count` vẫn không CHECK (minor). + ✅ `fk_branding_regen_instance FK(instance_id) → instances(id) ON DELETE CASCADE` (V60, GAP-901 — FK tolerate NULL instance_id pre-auth).
+**Constraints**: `uk_brand_regen_user_window UNIQUE (user_id, window_start)` — 1 counter row / user / ngày. ✅ Resolved (GAP-899, V59): `chk_branding_regen_tier CHECK (tier IN ('FREE','BASIC','PREMIUM','ENTERPRISE'))` (V72 — GAP-1228; V59 bản gốc dùng 'PRO') + `chk_branding_regen_window_order CHECK (window_end > window_start)`. Trước đây không CHECK cho `tier`/`window_end > window_start`. `used_count` vẫn không CHECK (minor). + ✅ `fk_branding_regen_instance FK(instance_id) → instances(id) ON DELETE CASCADE` (V60, GAP-901 — FK tolerate NULL instance_id pre-auth).
 
 **Quan hệ FK**
 - Out: ✅ Resolved (GAP-901, V60) — `instance_id → instances(id) ON DELETE CASCADE` (`fk_branding_regen_instance`; FK không enforce trên NULL → pre-auth row vẫn OK). `user_id` + `job_id` vẫn tham chiếu logic (no FK — `user_id` là VARCHAR JWT sub, `job_id` cross-table).
@@ -426,7 +426,7 @@ erDiagram
 | `branding_lifecycle_events.from_state/to_state` | nullable LifecycleState | ✅ 2 CHECK riêng |
 | `branding_lifecycle_events.actor_kind` | 3 giá trị | ✅ `chk_branding_lifecycle_events_actor_kind` |
 | `backup_records.status` | IN_PROGRESS/COMPLETED/FAILED/RESTORED | ✅ Resolved (GAP-899, V59) `chk_backup_records_status` |
-| `branding_regenerate_usage.tier` | FREE/PRO/PREMIUM/ENTERPRISE | ✅ Resolved (GAP-899, V59) `chk_branding_regen_tier` |
+| `branding_regenerate_usage.tier` | FREE/BASIC/PREMIUM/ENTERPRISE | ✅ V59 + V72 canonical BASIC (GAP-1228) `chk_branding_regen_tier` |
 | `branding_regenerate_usage.window_end > window_start` | semantic constraint | ✅ Resolved (GAP-899, V59) `chk_branding_regen_window_order` |
 
 ⇒ ✅ Resolved (GAP-899, V59): 3 CHECK còn thiếu đã thêm (backup status enum + regen tier enum + regen window order). Defense-in-depth CHECK coverage giờ đầy đủ cho cluster. `used_count >= 0` vẫn không CHECK (minor, không trong gap scope).

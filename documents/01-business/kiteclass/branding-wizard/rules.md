@@ -18,7 +18,7 @@
 | Tier | Visible fields |
 |------|----------------|
 | FREE | segment + audience + tone + templateId (4) |
-| PRO | + colorHint + typographyHint (6) |
+| BASIC | + colorHint + typographyHint (6) |
 | PREMIUM | + contentDensity + imageryStyle + ctaStyle (9) |
 | ENTERPRISE | + customPrompt + brandKeywords + bannedKeywords + preferredFonts + accessibilityLevel + supportedLanguages + brandValues (16) |
 
@@ -35,7 +35,7 @@
 | Tier | Limit per session |
 |------|:-----------------:|
 | FREE | 3 |
-| PRO | 10 |
+| BASIC | 10 |
 | PREMIUM | 30 |
 | ENTERPRISE | unlimited |
 
@@ -53,8 +53,8 @@ RegenerateCounter MUST be visible; quota-exhausted state surfaces disabled butto
 
 | Key | Default | Purpose |
 |-----|---------|---------|
-| `wizard.tier` | `PRO` (dev) / real from auth session | Tier-gated rendering |
-| `wizard.regenerate.limits.{tier}` | FREE=3, PRO=10, PREMIUM=30, ENTERPRISE=∞ | Quota |
+| `wizard.tier` | `BASIC` (dev) / real from auth session | Tier-gated rendering |
+| `wizard.regenerate.limits.{tier}` | FREE=3, BASIC=10, PREMIUM=30, ENTERPRISE=∞ | Quota |
 
 ## Five-attribute review per `business-logic-review.md`
 

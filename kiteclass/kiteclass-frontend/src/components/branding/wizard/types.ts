@@ -19,7 +19,8 @@ export type Tone =
   | 'luxurious'
   | 'academic';
 
-export type Tier = 'FREE' | 'PRO' | 'PREMIUM' | 'ENTERPRISE';
+// BASIC = canonical (PricingTier.java, GAP-1228); 'PRO' giữ alias backward-compat JWT cũ
+export type Tier = 'FREE' | 'BASIC' | 'PRO' | 'PREMIUM' | 'ENTERPRISE';
 
 export interface TemplateCandidate {
   id: string;
@@ -137,6 +138,7 @@ export const ORDERED_STEPS: StepName[] = [
 
 export const REGENERATE_LIMIT_BY_TIER: Record<Tier, number> = {
   FREE: 3,
+  BASIC: 10, // canonical (GAP-1228); PRO = alias cũ cùng cap
   PRO: 10,
   PREMIUM: 30,
   ENTERPRISE: Number.POSITIVE_INFINITY,
@@ -145,6 +147,15 @@ export const REGENERATE_LIMIT_BY_TIER: Record<Tier, number> = {
 /** Fields visible at each tier (for rendering; reducer accepts all regardless). */
 export const VISIBLE_FIELDS_BY_TIER: Record<Tier, (keyof BrandInputs)[]> = {
   FREE: ['segment', 'audiences', 'tone', 'templateId'],
+  // BASIC = canonical (GAP-1228) — cùng field set với alias PRO
+  BASIC: [
+    'segment',
+    'audiences',
+    'tone',
+    'templateId',
+    'colorHint',
+    'typographyHint',
+  ],
   PRO: [
     'segment',
     'audiences',
