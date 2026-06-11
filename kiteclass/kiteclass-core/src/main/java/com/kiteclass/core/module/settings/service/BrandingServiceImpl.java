@@ -8,6 +8,7 @@ import com.kiteclass.core.module.branding.events.BrandingEventPublisher;
 import com.kiteclass.core.module.branding.events.BrandingUpdatedEvent;
 import com.kiteclass.core.module.marketing.service.LandingPageContentSanitizer;
 import com.kiteclass.core.module.settings.dto.request.UpdateBrandingRequest;
+import com.kiteclass.core.module.settings.dto.response.BannerUploadResponse;
 import com.kiteclass.core.module.settings.dto.response.BrandingResponse;
 import com.kiteclass.core.module.settings.entity.Branding;
 import com.kiteclass.core.module.settings.mapper.BrandingMapper;
@@ -213,6 +214,92 @@ public class BrandingServiceImpl implements BrandingService {
         log.info("Uploaded favicon for instance {}", instanceId);
 
         return brandingMapper.toResponse(branding);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>GAP-1211 — stores each banner under a fresh {@code uuid}-named key (no
+     * overwrite) and returns the renderable URL. Does NOT touch the {@code Branding}
+     * row nor the {@code branding-by-tenant} cache (banners live on the landing
+     * {@code heroImages} list, persisted separately by the landing admin PUT).
+     */
+    @Override
+    public BannerUploadResponse uploadBanner(MultipartFile file) {
+        UUID instanceId = TenantContext.getCurrentTenant();
+        String url = storeBannerAsset(instanceId, file);
+        log.info("Uploaded banner for instance {}", instanceId);
+        return new BannerUploadResponse(url);
+    }
+
+    /**
+     * Validate a banner multipart upload and persist it under a unique key
+     * {@code static/{tenantId}/banner/{uuid}.{ext}} via {@link BrandingAssetStorage},
+     * returning the renderable URL.
+     *
+     * <p>Distinct status codes from {@link #storeAsset} (which returns 400 for all):
+     * banner upload returns HTTP 415 for an unsupported MIME and HTTP 413 when the
+     * size cap is exceeded, per {@code pre-handoff-self-test-completeness.md} §2.5.
+     *
+     * @param instanceId tenant instance id
+     * @param file       multipart banner upload
+     * @return renderable URL of the stored banner
+     */
+    private String storeBannerAsset(UUID instanceId, MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new ValidationException("BRANDING_ASSET_EMPTY", new Object[0]);
+        }
+        if (file.getSize() > MAX_ASSET_BYTES) {
+            throw new BusinessException("BRANDING_BANNER_TOO_LARGE", HttpStatus.PAYLOAD_TOO_LARGE);
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
+            throw new BusinessException("BRANDING_BANNER_TYPE_UNSUPPORTED",
+                    HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+        }
+        if (brandingAssetStorage == null) {
+            throw new BusinessException("BRANDING_ASSET_STORAGE_UNAVAILABLE",
+                    HttpStatus.SERVICE_UNAVAILABLE);
+        }
+
+        byte[] bytes;
+        try {
+            bytes = file.getBytes();
+        } catch (IOException ex) {
+            log.warn("Banner upload IOException instance={} filename={}",
+                    instanceId, file.getOriginalFilename(), ex);
+            throw new BusinessException("BRANDING_ASSET_UPLOAD_FAILED",
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // Unique object name per upload so banners accumulate (never overwrite a
+        // slot). Extension preserved for correct Content-Type / browser handling.
+        String uniqueName = UUID.randomUUID() + extensionFor(file.getOriginalFilename(), contentType);
+        return brandingAssetStorage.store(instanceId, ResourceType.BANNER, uniqueName, contentType, bytes);
+    }
+
+    /**
+     * Derive a lowercase file extension (including the leading dot) for a banner
+     * object name: from the original filename when present, else mapped from the
+     * MIME type. Empty string when neither yields one.
+     */
+    private static String extensionFor(String filename, String contentType) {
+        if (filename != null) {
+            int dot = filename.lastIndexOf('.');
+            if (dot >= 0 && dot < filename.length() - 1) {
+                // Strip path-traversal / separators defensively; storage also sanitizes.
+                return filename.substring(dot).toLowerCase()
+                        .replace("..", "").replace("/", "").replace("\\", "");
+            }
+        }
+        return switch (contentType == null ? "" : contentType.toLowerCase()) {
+            case "image/png" -> ".png";
+            case "image/jpeg" -> ".jpg";
+            case "image/webp" -> ".webp";
+            case "image/svg+xml" -> ".svg";
+            case "image/x-icon", "image/vnd.microsoft.icon" -> ".ico";
+            default -> "";
+        };
     }
 
     /**

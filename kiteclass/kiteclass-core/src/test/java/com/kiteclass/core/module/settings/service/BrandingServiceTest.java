@@ -387,6 +387,61 @@ class BrandingServiceTest {
     }
 
     @Test
+    @DisplayName("GAP-1211: should upload banner under a unique key and return its URL")
+    void shouldUploadBanner() {
+        // Given
+        String bannerUrl = "https://minio.local/kite-branding-assets/static/t/banner/abc.png?sig=x";
+        MultipartFile file = new MockMultipartFile(
+                "banner", "banner.png", "image/png", "fake-png-bytes".getBytes());
+
+        when(brandingAssetStorage.store(eq(testInstanceId), eq(ResourceType.BANNER),
+                any(String.class), eq("image/png"), any(byte[].class))).thenReturn(bannerUrl);
+
+        // When
+        com.kiteclass.core.module.settings.dto.response.BannerUploadResponse result =
+                brandingService.uploadBanner(file);
+
+        // Then — stored as BANNER (not LOGO/FAVICON → no slot clobber), URL returned,
+        // branding row never touched.
+        assertThat(result).isNotNull();
+        assertThat(result.url()).isEqualTo(bannerUrl);
+        verify(brandingAssetStorage).store(eq(testInstanceId), eq(ResourceType.BANNER),
+                any(String.class), eq("image/png"), any(byte[].class));
+        verify(brandingRepository, times(0)).save(any(Branding.class));
+    }
+
+    @Test
+    @DisplayName("GAP-1211: should reject banner with unsupported content type (415)")
+    void shouldRejectBannerUnsupportedType() {
+        // Given
+        MultipartFile file = new MockMultipartFile(
+                "banner", "banner.txt", "text/plain", "not-an-image".getBytes());
+
+        // When & Then — 415, before any storage call
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> brandingService.uploadBanner(file))
+                .isInstanceOf(com.kiteclass.core.common.exception.BusinessException.class)
+                .extracting("status")
+                .isEqualTo(org.springframework.http.HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+        verify(brandingAssetStorage, times(0)).store(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("GAP-1211: should reject banner exceeding the size cap (413)")
+    void shouldRejectBannerTooLarge() {
+        // Given — content one byte over the 5 MB cap
+        byte[] tooBig = new byte[(int) BrandingServiceImpl.MAX_ASSET_BYTES + 1];
+        MultipartFile file = new MockMultipartFile(
+                "banner", "banner.png", "image/png", tooBig);
+
+        // When & Then — 413, before any storage call
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> brandingService.uploadBanner(file))
+                .isInstanceOf(com.kiteclass.core.common.exception.BusinessException.class)
+                .extracting("status")
+                .isEqualTo(org.springframework.http.HttpStatus.PAYLOAD_TOO_LARGE);
+        verify(brandingAssetStorage, times(0)).store(any(), any(), any(), any(), any());
+    }
+
+    @Test
     @DisplayName("Should reject upload with unsupported content type")
     void shouldRejectUnsupportedContentType() {
         // Given

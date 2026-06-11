@@ -7,7 +7,12 @@
 
 import { apiClient } from '@/lib/api-client';
 import type { ApiResponse } from '@/types/api';
-import type { Branding, UpdateBrandingRequest, UploadLogoResponse } from '@/types/branding';
+import type {
+  Branding,
+  UpdateBrandingRequest,
+  UploadLogoResponse,
+  BannerUploadResponse,
+} from '@/types/branding';
 
 const BASE_URL = '/api/v1/settings/branding';
 
@@ -57,6 +62,24 @@ export const brandingApi = {
 
     const { data } = await apiClient.post<ApiResponse<UploadLogoResponse>>(
       `${BASE_URL}/favicon`,
+      formData
+    );
+    return data.data!; // Unwrap ApiResponse wrapper
+  },
+
+  /**
+   * Upload a landing banner (admin only) — GAP-1211.
+   *
+   * Multipart/form-data field `banner`. Unlike logo/favicon, each upload stores a
+   * new image (no overwrite) and returns its renderable URL. See uploadLogo for the
+   * Content-Type note (browser sets the multipart boundary — do not hardcode it).
+   */
+  uploadBanner: async (file: File): Promise<BannerUploadResponse> => {
+    const formData = new FormData();
+    formData.append('banner', file);
+
+    const { data } = await apiClient.post<ApiResponse<BannerUploadResponse>>(
+      `${BASE_URL}/banners`,
       formData
     );
     return data.data!; // Unwrap ApiResponse wrapper

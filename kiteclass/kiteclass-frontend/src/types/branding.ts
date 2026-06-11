@@ -43,3 +43,13 @@ export interface UploadLogoResponse {
   logoUrl: string;
   faviconUrl?: string;
 }
+
+/**
+ * Response of a single landing banner upload (GAP-1211).
+ *
+ * Each upload stores a new image (no slot overwrite) and returns its renderable
+ * URL, which the FE appends to the landing heroImages list.
+ */
+export interface BannerUploadResponse {
+  url: string;
+}

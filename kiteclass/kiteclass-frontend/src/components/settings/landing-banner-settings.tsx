@@ -17,12 +17,14 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { AxiosError } from 'axios';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanding, useUpdateLanding } from '@/hooks/use-landing';
-import { ArrowUp, ArrowDown, Trash2, Plus, Images } from 'lucide-react';
+import { brandingApi } from '@/lib/api/branding';
+import { ArrowUp, ArrowDown, Trash2, Plus, Upload, Images } from 'lucide-react';
 
 const MAX_BANNERS = 20;
 
@@ -35,6 +37,11 @@ export function LandingBannerSettings() {
   // Track whether the user has edited locally so we don't clobber edits when the query
   // refetches; seed from server data only on first successful load.
   const [seeded, setSeeded] = useState(false);
+
+  // GAP-1211: direct file upload to the banner endpoint.
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!seeded && landing) {
@@ -58,6 +65,28 @@ export function LandingBannerSettings() {
     const next = [...images];
     [next[idx], next[target]] = [next[target]!, next[idx]!];
     setImages(next);
+  };
+
+  const onFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    // Reset so selecting the same file again re-triggers change.
+    e.target.value = '';
+    if (!file || images.length >= MAX_BANNERS) return;
+    setUploadError(null);
+    setUploading(true);
+    try {
+      const { url } = await brandingApi.uploadBanner(file);
+      setImages((prev) => (prev.includes(url) ? prev : [...prev, url]));
+    } catch (err) {
+      const ax = err as AxiosError<{ message?: string }>;
+      setUploadError(
+        ax.response?.data?.message ||
+          (err as Error).message ||
+          'Không thể tải ảnh lên. Vui lòng thử lại.'
+      );
+    } finally {
+      setUploading(false);
+    }
   };
 
   const save = () => updateMutation.mutate({ heroImages: images });
@@ -162,9 +191,36 @@ export function LandingBannerSettings() {
               </Button>
             </div>
 
+            {/* GAP-1211: upload an image file directly (alongside add-by-URL). */}
+            <div className="flex items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                aria-label="Chọn ảnh banner để tải lên"
+                onChange={onFileSelected}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading || images.length >= MAX_BANNERS}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                {uploading ? 'Đang tải lên...' : 'Tải ảnh lên'}
+              </Button>
+            </div>
+
+            {uploadError && (
+              <p role="alert" className="text-sm text-destructive">
+                {uploadError}
+              </p>
+            )}
+
             <p className="text-xs text-muted-foreground">
-              Tải ảnh lên trực tiếp tại đây sẽ được bổ sung sau (hiện chưa có endpoint upload
-              banner riêng). Tạm thời dán URL ảnh https hợp lệ. Tối đa {MAX_BANNERS} ảnh.
+              Tải ảnh lên trực tiếp (PNG/JPG/WEBP, tối đa 5MB) hoặc dán URL ảnh https hợp lệ.
+              Tối đa {MAX_BANNERS} ảnh.
             </p>
 
             <div className="flex justify-end">

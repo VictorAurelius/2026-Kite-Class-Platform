@@ -1,6 +1,7 @@
 package com.kiteclass.core.module.settings.service;
 
 import com.kiteclass.core.module.settings.dto.request.UpdateBrandingRequest;
+import com.kiteclass.core.module.settings.dto.response.BannerUploadResponse;
 import com.kiteclass.core.module.settings.dto.response.BrandingResponse;
 import jakarta.validation.Valid;
 import org.springframework.web.multipart.MultipartFile;
@@ -55,6 +56,26 @@ public interface BrandingService {
      * @since GAP-804 — replaces the prior {@code uploadFavicon(String fileUrl)} contract
      */
     BrandingResponse uploadFavicon(MultipartFile file);
+
+    /**
+     * Upload a single landing banner image for the current tenant.
+     *
+     * <p>GAP-1211 — unlike {@link #uploadLogo}/{@link #uploadFavicon} (overwrite a
+     * single branding slot), each banner upload stores a NEW object under
+     * {@code static/{tenantId}/banner/{uuid}.{ext}} (no clobbering of prior banners
+     * or the logo) and returns its renderable URL. The FE appends the URL to the
+     * landing {@code heroImages} list; this method does not touch the
+     * {@code Branding} row.
+     *
+     * <p>Validates server-side: MIME must be an allowed image type (else HTTP 415)
+     * and size ≤ 5 MB (else HTTP 413), per {@code pre-handoff-self-test-completeness.md}
+     * §2.5.
+     *
+     * @param file multipart banner image (field {@code banner})
+     * @return response carrying the renderable (presigned) banner URL
+     * @since GAP-1211
+     */
+    BannerUploadResponse uploadBanner(MultipartFile file);
 
     /**
      * Get theme config JSON for current tenant.

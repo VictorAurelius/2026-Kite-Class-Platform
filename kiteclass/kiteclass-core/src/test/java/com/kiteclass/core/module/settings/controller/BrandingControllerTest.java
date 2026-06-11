@@ -202,6 +202,24 @@ class BrandingControllerTest {
     }
 
     @Test
+    @DisplayName("Should upload banner via multipart (GAP-1211)")
+    void shouldUploadBanner() throws Exception {
+        // Given
+        String bannerUrl = "https://minio.local/kite-branding-assets/static/t/banner/abc.png?sig=x";
+        when(brandingService.uploadBanner(any(MultipartFile.class)))
+                .thenReturn(new com.kiteclass.core.module.settings.dto.response.BannerUploadResponse(bannerUrl));
+
+        MockMultipartFile banner = new MockMultipartFile(
+                "banner", "banner.png", "image/png", "fake-png-bytes".getBytes());
+
+        // When & Then
+        mockMvc.perform(multipart("/api/v1/settings/branding/banners").file(banner))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.url").value(bannerUrl));
+    }
+
+    @Test
     @DisplayName("Should reject empty display name")
     void shouldRejectEmptyDisplayName() throws Exception {
         // Given
