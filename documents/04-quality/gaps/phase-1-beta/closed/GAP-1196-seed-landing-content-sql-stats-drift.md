@@ -1,7 +1,7 @@
 ---
 id: GAP-1196
 title: seed-landing-content.sql teachers/pricing/stats drift vs BrandingDataSeeder canonical (marketing stats ≠ academic-accurate)
-status: OPEN
+status: DONE
 priority: P3
 domain: Backend
 phase: phase-1-beta
@@ -26,9 +26,9 @@ Chốt 1 nguồn canonical (BrandingDataSeeder auto-path) cho landing sections d
 
 ## Acceptance Criteria
 
-- [ ] Chốt canonical source cho landing sections dev (seeder vs SQL); document.
-- [ ] seed-landing-content.sql không còn stats marketing mâu thuẫn academic-accurate.
-- [ ] Chạy SQL sau seeder không overwrite sections bằng giá trị bịa.
+- [x] Chốt canonical source cho landing sections dev (seeder vs SQL); document.
+- [x] seed-landing-content.sql không còn stats marketing mâu thuẫn academic-accurate.
+- [x] Chạy SQL sau seeder không overwrite sections bằng giá trị bịa.
 
 ## Related
 
@@ -36,3 +36,7 @@ Chốt 1 nguồn canonical (BrandingDataSeeder auto-path) cho landing sections d
 - [[GAP-1194]] landing sections seed (BrandingDataSeeder canonical)
 - [[GAP-958]] anti-fabrication (no fake marketing stats)
 - Code: `kitehub/scripts/seed-landing-content.sql` (teachers/pricing/stats UPDATE) vs `BrandingDataSeeder.java` (seedTrioTenant sections)
+
+## Log
+
+- **2026-06-11 (DONE):** Option (a) thực thi: `seed-landing-content.sql` → tombstone deprecation header trỏ `BrandingDataSeeder` canonical (academic-accurate, upsert per GAP-1203); mọi UPDATE gỡ. Chạy file giờ vô hại.

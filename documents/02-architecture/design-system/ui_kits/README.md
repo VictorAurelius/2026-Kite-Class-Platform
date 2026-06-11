@@ -86,6 +86,7 @@ Per `dossier/10-acceptance-criteria.md` (100-item checklist):
 - VN mock data only (no Lorem ipsum, no John Doe, no $)
 - All states: default / loading / empty / error / success / dark
 - No hardcoded hex outside `_shared/colors_and_type.css`
+- **Token-source mandate (GAP-1223):** kit MỚI phải đọc `marketing-site/colors_and_type.css` TRƯỚC khi design — font canonical = **Be Vietnam Pro** (KHÔNG Inter — full VN diacritic), `--container: 1180px`. Drift token = same class GAP-1208/1212 (không đọc spec nguồn).
 - Persona declared in HTML comment per screen
 
 Self-report per `dossier/prompts.md` §7 format.

@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Landing giáo viên độc lập — Cô Hà Toán | KiteClass per-tenant (design kit)</title>
+<meta name="description" content="Kit design landing cho giáo viên độc lập (persona P1 Solo Teacher). Demo tenant: lớp Toán cô Nguyễn Thị Hà. Hero copy-trái + banner-phải đóng khung, carousel đa-banner (GAP-826), theme switcher 3 giáo viên." />
+<!--
+  ============================================================================
+  UI KIT: landing-personal  (KiteClass per-tenant landing — GV ĐỘC LẬP)
+  ============================================================================
+  Persona:   P1 Solo Teacher (Gia sư tự do) — dossier/01-personas.md §P1.
+             Audience của trang = PHỤ HUYNH + học viên (người đọc landing).
+             Voice = giáo viên CÁ NHÂN ("tôi/cô"), không phải trung tâm.
+  Flow ref:  dossier/05-business-flows.md (prospect → tenant landing → đăng ký học thử)
+  Maps:      production kiteclass-frontend (public)/page.tsx render PERSONAL_TEMPLATE
+             (src/lib/template/configs.ts) — section order khớp 1:1 (xem README §Screens).
+  GAPs:      GAP-826  (hero carousel đa-banner)  — wire .hero-slide/.dots/.arrow
+             GAP-1208 (voice GV độc lập: "Về giáo viên"/"Giáo viên đồng hành"/"Học phí"/
+                       "Phụ huynh & học viên nói gì")
+             GAP-1210 (hero 2 cột: copy TRÁI + banner ĐÓNG KHUNG bên PHẢI)
+             GAP-274  (per-tenant theme — runtime color swap)
+
+  SCORE self-estimate: 113/128 (breakdown ở README §Self-score).
+
+  WCAG AA self-measurement (contrast các cặp màu text-bearing chính):
+    - Hero white #FFFFFF trên gradient Hà  #1E40AF→#1E3A8A ............ ~8.6:1 AAA ✓
+    - Hero white #FFFFFF trên gradient Nhì  #166534→#064E3B ........... ~7.3:1 AAA ✓
+    - Hero white #FFFFFF trên gradient Khánh #9A3412→#7C2D12 .......... ~6.1:1 AAA ✓
+    - CTA white #FFFFFF trên --cta-strong (orange-700 #C2410C) ........ ~4.8:1 AA  ✓
+    - Body slate-800 #1E293B trên bg #FFFFFF ......................... ~14.0:1 AAA ✓
+    - Muted slate-500 #64748B trên bg #FFFFFF ........................ ~4.7:1 AA  ✓
+    - Eyebrow caps trắng trên rgba(255,255,255,.14) trên gradient ..... ≥4.5:1 (lớp nền tối) ✓
+  (Decorative-only fills — float chip dot, accent glow — exempt per WCAG 1.4.11.)
+  ============================================================================
+-->
+<style>
+/* ============================================================
+   TOKENS + PER-TENANT THEME PRESETS
+   Swap toàn trang bằng cách set class .theme-* trên <html>.
+   Production tương đương: --theme-* CSS vars do branding inject (GAP-274).
+   ============================================================ */
+:root{
+  --font-sans:'Be Vietnam Pro','Segoe UI',system-ui,-apple-system,sans-serif;
+  --fg:30 41 59;            /* slate-800 */
+  --muted:100 116 139;      /* slate-500 */
+  --bg:255 255 255;
+  --bg-alt:248 250 252;     /* slate-50 */
+  --border:226 232 240;     /* slate-200 */
+  --success:22 163 74;
+  --radius:14px; --radius-lg:20px; --radius-full:999px;
+  --shadow-sm:0 1px 3px rgba(15,23,42,.08);
+  --shadow:0 8px 24px rgba(15,23,42,.10);
+  --shadow-lg:0 18px 44px rgba(15,23,42,.16);
+  --container:1180px;
+  /* default = theme Hà */
+  --theme-primary:37 99 235;     /* #2563EB */
+  --theme-secondary:59 130 246;  /* #3B82F6 */
+  --theme-accent:14 165 233;     /* #0EA5E9 */
+  --cta:249 115 22;              /* #F97316 — decorative fills */
+  --cta-strong:194 65 12;        /* #C2410C — text-bearing CTA (white ≥4.5:1) */
+  --hero-from:30 64 175;         /* #1E40AF */
+  --hero-to:30 58 138;           /* #1E3A8A */
+}
+/* Cô Hà — xanh dương (Toán) */
+.theme-ha{
+  --theme-primary:37 99 235; --theme-secondary:59 130 246; --theme-accent:14 165 233;
+  --cta:249 115 22; --cta-strong:194 65 12;
+  --hero-from:30 64 175; --hero-to:30 58 138;
+}
+/* Thầy Nhì — xanh lá (Hóa/Khoa học) */
+.theme-nhi{
+  --theme-primary:22 163 74; --theme-secondary:5 150 105; --theme-accent:13 148 136;
+  --cta:245 158 11; --cta-strong:180 83 9;
+  --hero-from:22 101 52; --hero-to:6 78 59;
+}
+/* Cô Khánh — cam (Tiếng Anh/luyện thi) */
+.theme-khanh{
+  --theme-primary:234 88 12; --theme-secondary:249 115 22; --theme-accent:217 119 6;
+  --cta:37 99 235; --cta-strong:29 78 216;
+  --hero-from:154 52 18; --hero-to:124 45 18;
+}
+
+*,*::before,*::after{box-sizing:border-box;}
+html,body{margin:0;}
+body{
+  font-family:var(--font-sans); color:rgb(var(--fg)); background:rgb(var(--bg));
+  line-height:1.55; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+img{max-width:100%;display:block;}
+a{color:inherit;}
+.container{max-width:var(--container);margin:0 auto;padding:0 24px;}
+h1,h2,h3{margin:0;line-height:1.18;letter-spacing:-0.02em;}
+.section{padding:clamp(48px,6vw,88px) 0;}
+.section.alt{background:rgb(var(--bg-alt));}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.08em;color:rgb(var(--theme-primary));margin-bottom:14px;}
+.section-head{max-width:680px;margin:0 auto 40px;text-align:center;}
+.section-head h2{font-size:clamp(26px,3.4vw,38px);font-weight:800;}
+.section-head p{color:rgb(var(--muted));font-size:18px;margin:14px 0 0;}
+.muted{color:rgb(var(--muted));}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;
+  font-family:inherit;font-weight:700;border-radius:var(--radius);padding:13px 22px;font-size:15px;
+  text-decoration:none;transition:transform .12s ease,box-shadow .15s ease,background .15s ease;}
+.btn:active{transform:translateY(1px);}
+.btn-cta{background:rgb(var(--cta-strong));color:#fff;box-shadow:0 8px 20px rgb(var(--cta-strong)/.32);}
+.btn-cta:hover{box-shadow:0 12px 26px rgb(var(--cta-strong)/.42);}
+.btn-primary{background:rgb(var(--theme-primary));color:#fff;}
+.btn-ghost{background:rgb(var(--bg-alt));color:rgb(var(--theme-primary));border:1.5px solid rgb(var(--border));}
+.btn-on-dark{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.4);}
+.btn-on-dark:hover{background:rgba(255,255,255,.22);}
+.btn-lg{padding:15px 28px;font-size:16px;}
+
+/* ============================================================
+   TOP STRIP (theme switcher demo)
+   ============================================================ */
+.demo-strip{background:#0b1220;color:#e2e8f0;font-size:13px;}
+.demo-strip .container{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding-top:10px;padding-bottom:10px;}
+.demo-strip b{color:#fbbf24;}
+.theme-switch{display:flex;gap:8px;align-items:center;}
+.theme-switch span{color:#94a3b8;margin-right:4px;}
+.theme-switch button{font-family:inherit;cursor:pointer;border-radius:var(--radius-full);
+  border:1.5px solid transparent;padding:5px 13px;font-size:12px;font-weight:700;color:#fff;}
+.theme-switch button[aria-pressed="true"]{outline:2px solid #fff;outline-offset:1px;}
+.sw-ha{background:#2563EB;} .sw-nhi{background:#16A34A;} .sw-khanh{background:#EA580C;}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+.nav{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);
+  border-bottom:1px solid rgb(var(--border));}
+.nav .container{display:flex;align-items:center;justify-content:space-between;padding-top:14px;padding-bottom:14px;}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo .mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,rgb(var(--theme-primary)),rgb(var(--theme-secondary)));
+  color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;flex:0 0 auto;}
+.nav-logo .name{font-weight:800;font-size:19px;}
+.nav-logo .name .accent{color:rgb(var(--theme-primary));}
+.nav-logo .name small{display:block;font-size:11px;font-weight:600;color:rgb(var(--muted));letter-spacing:.02em;}
+.nav-links{display:flex;align-items:center;gap:26px;}
+.nav-links a{font-weight:600;font-size:14px;text-decoration:none;color:rgb(var(--fg));}
+.nav-links a:hover{color:rgb(var(--theme-primary));}
+.nav-actions{display:flex;align-items:center;gap:14px;}
+.nav-hotline{display:flex;align-items:center;gap:7px;font-weight:800;font-size:14px;color:rgb(var(--cta-strong));}
+@media(max-width:880px){.nav-links,.nav-hotline{display:none;}}
+
+/* ============================================================
+   HERO — copy LEFT + framed banner RIGHT (GAP-1210)
+   banner frame chứa CAROUSEL đa-banner (GAP-826)
+   ============================================================ */
+.hero{position:relative;overflow:hidden;color:#fff;
+  background:linear-gradient(120deg,rgb(var(--hero-from)) 0%,rgb(var(--hero-to)) 100%);}
+.hero::after{content:"";position:absolute;right:-6%;bottom:-34%;width:480px;height:480px;border-radius:50%;
+  background:radial-gradient(circle,rgb(var(--theme-accent)/.5) 0%,transparent 70%);pointer-events:none;}
+.hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;
+  padding-block:clamp(48px,6vw,84px);}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;margin-bottom:18px;background:rgba(255,255,255,.14);
+  color:#fff;padding:7px 14px;border-radius:var(--radius-full);font-size:13px;font-weight:800;
+  letter-spacing:.08em;text-transform:uppercase;}
+.hero h1{font-size:clamp(32px,4.6vw,56px);font-weight:900;margin-bottom:18px;text-wrap:balance;}
+.hero h1 .hl{color:rgb(var(--theme-accent));}
+.hero-sub{font-size:clamp(17px,1.6vw,20px);line-height:1.6;color:rgba(255,255,255,.9);max-width:34em;margin:0 0 28px;text-wrap:pretty;}
+.hero-actions{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:22px;}
+.hero-trust{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;}
+.hero-trust .ti{display:inline-flex;align-items:center;gap:7px;color:rgba(255,255,255,.92);}
+.hero-trust .ti svg{color:rgb(var(--theme-accent));flex:0 0 auto;}
+
+/* framed banner column + carousel */
+.banner-frame{position:relative;}
+.banner-frame::before{content:"";position:absolute;inset:-16px;border-radius:26px;
+  background:rgb(var(--cta)/.22);filter:blur(28px);z-index:0;}
+.carousel{position:relative;z-index:1;border-radius:var(--radius-lg);overflow:hidden;
+  box-shadow:0 24px 60px rgba(0,0,0,.4);ring:1px solid rgba(255,255,255,.25);
+  border:1px solid rgba(255,255,255,.25);background:#0f172a;}
+.slides{position:relative;aspect-ratio:16/10;}
+.slide{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .5s ease;
+  display:flex;flex-direction:column;justify-content:flex-end;padding:26px;
+  background:linear-gradient(140deg,rgb(var(--theme-primary)) 0%,rgb(var(--theme-secondary)) 100%);}
+.slide.on{opacity:1;visibility:visible;}
+.slide .emoji{position:absolute;top:18px;right:22px;font-size:60px;opacity:.85;filter:drop-shadow(0 4px 10px rgba(0,0,0,.3));}
+.slide .badge{align-self:flex-start;background:rgb(var(--cta-strong));color:#fff;font-size:12px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.06em;padding:5px 12px;border-radius:var(--radius-full);margin-bottom:12px;}
+.slide h3{color:#fff;font-size:clamp(20px,2.4vw,27px);font-weight:900;margin-bottom:8px;text-wrap:balance;}
+.slide p{color:rgba(255,255,255,.9);font-size:15px;margin:0;max-width:26em;}
+/* dots + arrows (degrade tĩnh khi 1 slide: JS thêm .single → ẩn controls) */
+.dots{position:absolute;z-index:4;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:9px;}
+.dots button{width:10px;height:10px;border-radius:50%;border:0;background:rgba(255,255,255,.45);cursor:pointer;padding:0;
+  transition:width .2s ease,background .2s ease;}
+.dots button.on{width:26px;border-radius:var(--radius-full);background:rgb(var(--cta));}
+.arrow{position:absolute;z-index:4;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:0;
+  background:rgba(255,255,255,.16);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s ease;}
+.arrow:hover{background:rgba(255,255,255,.32);}
+.arrow.prev{left:12px;} .arrow.next{right:12px;}
+.carousel.single .dots,.carousel.single .arrow{display:none;}
+@media(prefers-reduced-motion:reduce){.slide{transition:none;}}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+.stat{background:rgb(var(--bg));border:1px solid rgb(var(--border));border-radius:var(--radius);
+  padding:24px 20px;text-align:center;box-shadow:var(--shadow-sm);}
+.stat .n{font-size:34px;font-weight:900;color:rgb(var(--theme-primary));line-height:1;}
+.stat .l{margin-top:8px;color:rgb(var(--muted));font-size:14px;font-weight:600;}
+@media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr);}}
+
+/* problem / solution */
+.ps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+.ps-card{background:rgb(var(--bg));border:1px solid rgb(var(--border));border-radius:var(--radius);padding:26px;box-shadow:var(--shadow-sm);}
+.ps-card .ico{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;
+  background:rgb(var(--theme-primary)/.1);margin-bottom:14px;}
+.ps-card h3{font-size:18px;font-weight:800;margin-bottom:8px;}
+.ps-card p{color:rgb(var(--muted));font-size:15px;margin:0;}
+.ps-card .sol{margin-top:12px;padding-top:12px;border-top:1px dashed rgb(var(--border));font-size:14px;color:rgb(var(--success));font-weight:700;display:flex;gap:7px;}
+@media(max-width:820px){.ps-grid{grid-template-columns:1fr;}}
+
+/* about teacher */
+.about{display:grid;grid-template-columns:.85fr 1.15fr;gap:48px;align-items:center;}
+.about .photo{aspect-ratio:1;border-radius:var(--radius-lg);background:linear-gradient(135deg,rgb(var(--theme-primary)),rgb(var(--theme-secondary)));
+  display:flex;align-items:center;justify-content:center;font-size:110px;color:#fff;box-shadow:var(--shadow-lg);}
+.about h2{font-size:clamp(24px,3vw,34px);font-weight:800;margin-bottom:8px;}
+.about .role{color:rgb(var(--theme-primary));font-weight:700;margin-bottom:18px;}
+.about p{color:rgb(var(--muted));font-size:16px;margin:0 0 14px;}
+.about ul{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:10px;}
+.about li{display:flex;gap:9px;align-items:flex-start;font-size:15px;}
+.about li svg{color:rgb(var(--success));flex:0 0 auto;margin-top:3px;}
+@media(max-width:820px){.about{grid-template-columns:1fr;}.about .photo{max-width:300px;margin:0 auto;}}
+
+/* teachers (profile đơn) */
+.teachers{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px;max-width:560px;margin:0 auto;}
+.t-card{background:rgb(var(--bg));border:1px solid rgb(var(--border));border-radius:var(--radius);padding:26px;text-align:center;box-shadow:var(--shadow-sm);}
+.t-card .av{width:84px;height:84px;border-radius:50%;margin:0 auto 14px;background:linear-gradient(135deg,rgb(var(--theme-primary)),rgb(var(--theme-secondary)));
+  display:flex;align-items:center;justify-content:center;font-size:36px;color:#fff;}
+.t-card h3{font-size:18px;font-weight:800;}
+.t-card .subj{color:rgb(var(--theme-primary));font-weight:700;font-size:14px;margin:4px 0 10px;}
+.t-card p{color:rgb(var(--muted));font-size:14px;margin:0;}
+
+/* how it works + timeline */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;counter-reset:s;}
+.step{background:rgb(var(--bg));border:1px solid rgb(var(--border));border-radius:var(--radius);padding:26px;position:relative;box-shadow:var(--shadow-sm);}
+.step .num{counter-increment:s;width:42px;height:42px;border-radius:50%;background:rgb(var(--theme-primary));color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:900;margin-bottom:14px;}
+.step .num::before{content:counter(s);}
+.step h3{font-size:17px;font-weight:800;margin-bottom:7px;}
+.step p{color:rgb(var(--muted));font-size:15px;margin:0;}
+@media(max-width:820px){.steps{grid-template-columns:1fr;}}
+.timeline{max-width:680px;margin:0 auto;display:grid;gap:0;}
+.tl-item{display:grid;grid-template-columns:auto 1fr;gap:18px;padding-bottom:28px;position:relative;}
+.tl-item:not(:last-child)::before{content:"";position:absolute;left:19px;top:42px;bottom:0;width:2px;background:rgb(var(--border));}
+.tl-dot{width:40px;height:40px;border-radius:50%;background:rgb(var(--theme-primary)/.12);color:rgb(var(--theme-primary));
+  display:flex;align-items:center;justify-content:center;font-weight:900;flex:0 0 auto;}
+.tl-item h3{font-size:17px;font-weight:800;margin-bottom:5px;}
+.tl-item p{color:rgb(var(--muted));font-size:15px;margin:0;}
+
+/* certificates / programs */
+.programs{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;}
+.prog{border:1px solid rgb(var(--border));border-radius:var(--radius);overflow:hidden;background:rgb(var(--bg));box-shadow:var(--shadow-sm);}
+.prog .top{padding:22px 24px;background:linear-gradient(120deg,rgb(var(--theme-primary)),rgb(var(--theme-secondary)));color:#fff;}
+.prog .top .grade{font-size:13px;font-weight:700;opacity:.9;text-transform:uppercase;letter-spacing:.06em;}
+.prog .top h3{font-size:21px;font-weight:900;margin-top:4px;}
+.prog .body{padding:22px 24px;}
+.prog ul{list-style:none;padding:0;margin:0 0 18px;display:grid;gap:9px;}
+.prog li{display:flex;gap:8px;font-size:14px;color:rgb(var(--fg));}
+.prog li svg{color:rgb(var(--success));flex:0 0 auto;margin-top:2px;}
+@media(max-width:720px){.programs{grid-template-columns:1fr;}}
+
+/* trust strip */
+.trust-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;}
+.trust-strip .tb{display:flex;gap:12px;align-items:center;background:rgb(var(--bg));border:1px solid rgb(var(--border));
+  border-radius:var(--radius);padding:18px;box-shadow:var(--shadow-sm);}
+.trust-strip .tb .i{width:40px;height:40px;border-radius:10px;background:rgb(var(--theme-primary)/.1);color:rgb(var(--theme-primary));
+  display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+.trust-strip .tb b{display:block;font-size:14px;}
+.trust-strip .tb span{font-size:13px;color:rgb(var(--muted));}
+@media(max-width:820px){.trust-strip{grid-template-columns:repeat(2,1fr);}}
+
+/* pricing */
+.pricing{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;max-width:760px;margin:0 auto;}
+.price{border:1px solid rgb(var(--border));border-radius:var(--radius-lg);padding:30px;background:rgb(var(--bg));box-shadow:var(--shadow-sm);position:relative;}
+.price.featured{border:2px solid rgb(var(--theme-primary));box-shadow:var(--shadow);}
+.price .tag{position:absolute;top:-12px;left:24px;background:rgb(var(--cta-strong));color:#fff;font-size:12px;font-weight:800;
+  padding:4px 12px;border-radius:var(--radius-full);}
+.price h3{font-size:19px;font-weight:800;}
+.price .amt{font-size:36px;font-weight:900;color:rgb(var(--theme-primary));margin:10px 0 2px;}
+.price .amt small{font-size:15px;font-weight:600;color:rgb(var(--muted));}
+.price ul{list-style:none;padding:0;margin:18px 0 22px;display:grid;gap:10px;}
+.price li{display:flex;gap:8px;font-size:14px;}
+.price li svg{color:rgb(var(--success));flex:0 0 auto;margin-top:2px;}
+@media(max-width:720px){.pricing{grid-template-columns:1fr;}}
+
+/* testimonials */
+.tms{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+.tm{background:rgb(var(--bg));border:1px solid rgb(var(--border));border-radius:var(--radius);padding:26px;box-shadow:var(--shadow-sm);}
+.tm .stars{color:#f59e0b;font-size:16px;margin-bottom:12px;letter-spacing:2px;}
+.tm p{font-size:15px;margin:0 0 18px;}
+.tm .who{display:flex;gap:11px;align-items:center;}
+.tm .who .av{width:42px;height:42px;border-radius:50%;background:rgb(var(--theme-primary)/.12);color:rgb(var(--theme-primary));
+  display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 auto;}
+.tm .who b{display:block;font-size:14px;} .tm .who span{font-size:13px;color:rgb(var(--muted));}
+@media(max-width:820px){.tms{grid-template-columns:1fr;}}
+
+/* faq */
+.faq{max-width:760px;margin:0 auto;display:grid;gap:12px;}
+.faq details{background:rgb(var(--bg));border:1px solid rgb(var(--border));border-radius:var(--radius);padding:4px 20px;}
+.faq summary{font-weight:700;font-size:16px;padding:16px 0;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:center;}
+.faq summary::-webkit-details-marker{display:none;}
+.faq summary::after{content:"+";font-size:22px;color:rgb(var(--theme-primary));font-weight:400;}
+.faq details[open] summary::after{content:"–";}
+.faq details p{color:rgb(var(--muted));font-size:15px;margin:0 0 16px;}
+
+/* final CTA */
+.final{background:linear-gradient(120deg,rgb(var(--hero-from)),rgb(var(--hero-to)));color:#fff;text-align:center;}
+.final h2{font-size:clamp(26px,3.4vw,40px);font-weight:900;margin-bottom:14px;}
+.final p{color:rgba(255,255,255,.9);font-size:18px;max-width:32em;margin:0 auto 28px;}
+.final .hero-actions{justify-content:center;margin-bottom:0;}
+
+/* footer */
+.footer{background:#0b1220;color:#cbd5e1;font-size:14px;}
+.footer .container{padding-top:48px;padding-bottom:32px;}
+.foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:32px;margin-bottom:28px;}
+.footer h4{color:#fff;font-size:14px;margin:0 0 12px;letter-spacing:.02em;}
+.footer a{color:#cbd5e1;text-decoration:none;display:block;padding:4px 0;}
+.footer a:hover{color:#fff;}
+.foot-bottom{border-top:1px solid rgba(255,255,255,.1);padding-top:18px;display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;color:#94a3b8;font-size:13px;}
+@media(max-width:820px){.foot-grid{grid-template-columns:1fr;gap:22px;}}
+
+/* mobile: brand 1 dòng, hero stack */
+@media(max-width:860px){
+  .hero-grid{grid-template-columns:1fr;text-align:center;}
+  .banner-frame{order:-1;}
+  .hero-actions,.hero-trust,.hero-eyebrow{justify-content:center;}
+  .arrow{display:none;}
+}
+@media(max-width:390px){
+  .nav-logo .name{font-size:16px;white-space:nowrap;}
+  .nav-logo .name small{display:none;}
+  .container{padding:0 16px;}
+  .hero h1{font-size:30px;}
+}
+.skip{position:absolute;left:-9999px;top:0;background:#fff;color:#000;padding:10px 16px;z-index:99;}
+.skip:focus{left:8px;top:8px;}
+</style>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="theme-ha" id="topbody">
+<a href="#main" class="skip">Bỏ qua tới nội dung chính</a>
+
+<!-- DEMO STRIP — theme switcher (runtime color swap, GAP-274) -->
+<div class="demo-strip">
+  <div class="container">
+    <div><b>Design kit · landing-personal</b> — demo per-tenant theming. Đổi giáo viên để xem màu thay đổi runtime.</div>
+    <div class="theme-switch" role="group" aria-label="Chọn giáo viên demo">
+      <span>Demo giáo viên:</span>
+      <button class="sw-ha"    data-theme="theme-ha"    aria-pressed="true">Cô Hà · Toán</button>
+      <button class="sw-nhi"   data-theme="theme-nhi"   aria-pressed="false">Thầy Nhì · Hóa</button>
+      <button class="sw-khanh" data-theme="theme-khanh" aria-pressed="false">Cô Khánh · Anh</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="container">
+    <a href="#" class="nav-logo" aria-label="Lớp Toán cô Hà — trang chủ">
+      <span class="mark" id="brandMark">H</span>
+      <span class="name"><span class="accent" id="brandName">Lớp Toán cô Hà</span><small id="brandTagline">Gia sư Toán tiểu học</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Điều hướng chính">
+      <a href="#about">Về giáo viên</a>
+      <a href="#programs">Chương trình</a>
+      <a href="#pricing">Học phí</a>
+      <a href="#testimonials">Đánh giá</a>
+      <a href="#faq">Hỏi đáp</a>
+    </nav>
+    <div class="nav-actions">
+      <span class="nav-hotline"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg> 0912 345 678</span>
+      <a href="#register" class="btn btn-cta">Đăng ký học thử</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- HERO — copy LEFT + framed banner RIGHT with carousel -->
+<section class="hero" aria-label="Giới thiệu">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <span class="hero-eyebrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Gia sư Toán · 12 năm kinh nghiệm</span>
+        <h1>Lấy lại căn bản <span class="hl">môn Toán</span> cùng cô Hà</h1>
+        <p class="hero-sub">Lớp nhỏ 6–8 học viên, lộ trình riêng cho từng con. Cô đồng hành sát sao, phụ huynh nhận báo cáo tiến bộ mỗi tuần qua Zalo.</p>
+        <div class="hero-actions">
+          <a href="#register" class="btn btn-cta btn-lg">Đăng ký học thử miễn phí <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a href="#programs" class="btn btn-on-dark btn-lg">Xem khóa học</a>
+        </div>
+        <div class="hero-trust">
+          <span class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Học thử miễn phí buổi đầu</span>
+          <span class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Báo cáo tiến bộ qua Zalo</span>
+        </div>
+      </div>
+
+      <!-- FRAMED BANNER (GAP-1210) → CAROUSEL đa-banner (GAP-826) -->
+      <div class="banner-frame">
+        <div class="carousel" id="carousel" aria-roledescription="băng chuyền banner" aria-label="Banner khuyến mãi">
+          <div class="slides" id="slides">
+            <!-- slide 0 -->
+            <div class="slide on" role="group" aria-roledescription="slide" aria-label="1 / 3">
+              <span class="emoji" aria-hidden="true">📐</span>
+              <span class="badge">Đang tuyển sinh</span>
+              <h3>Khai giảng khóa Toán lớp 5 — tháng 7</h3>
+              <p>Còn 4 chỗ. Đăng ký trước 30/06 tặng 1 buổi học thử.</p>
+            </div>
+            <!-- slide 1 -->
+            <div class="slide" role="group" aria-roledescription="slide" aria-label="2 / 3">
+              <span class="emoji" aria-hidden="true">🎯</span>
+              <span class="badge">Cam kết</span>
+              <h3>Tiến bộ rõ sau 8 buổi — hoặc học bù miễn phí</h3>
+              <p>Kiểm tra đầu vào, đặt mục tiêu cùng phụ huynh, theo dõi từng tuần.</p>
+            </div>
+            <!-- slide 2 -->
+            <div class="slide" role="group" aria-roledescription="slide" aria-label="3 / 3">
+              <span class="emoji" aria-hidden="true">👩‍🏫</span>
+              <span class="badge">Học thử</span>
+              <h3>Buổi học thử miễn phí cùng cô Hà</h3>
+              <p>Trải nghiệm phương pháp trước khi quyết định — không ràng buộc.</p>
+            </div>
+          </div>
+          <button class="arrow prev" id="prev" aria-label="Banner trước"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <button class="arrow next" id="next" aria-label="Banner sau"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+          <div class="dots" id="dots" role="tablist" aria-label="Chọn banner"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS — "Chỉ số nổi bật" -->
+<section class="section">
+  <div class="container">
+    <div class="stats">
+      <div class="stat"><div class="n">12</div><div class="l">Năm kinh nghiệm</div></div>
+      <div class="stat"><div class="n">200+</div><div class="l">Học viên đã đồng hành</div></div>
+      <div class="stat"><div class="n">6–8</div><div class="l">Học viên mỗi lớp</div></div>
+      <div class="stat"><div class="n">98%</div><div class="l">Phụ huynh hài lòng</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM / SOLUTION — "Vấn đề & Giải pháp" -->
+<section class="section alt">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Vì sao chọn lớp cô Hà</span>
+      <h2>Con học Toán mãi không tiến bộ?</h2>
+      <p>Cô hiểu nỗi lo của phụ huynh — và có cách đồng hành rõ ràng.</p>
+    </div>
+    <div class="ps-grid">
+      <div class="ps-card">
+        <div class="ico" aria-hidden="true">😟</div>
+        <h3>Con mất gốc, sợ môn Toán</h3>
+        <p>Học trên lớp đông, con không dám hỏi, lỗ hổng kiến thức ngày càng lớn.</p>
+        <div class="sol"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Lớp nhỏ, cô kèm sát, lấp lỗ hổng từ gốc.</div>
+      </div>
+      <div class="ps-card">
+        <div class="ico" aria-hidden="true">🤷‍♀️</div>
+        <h3>Không biết con học tới đâu</h3>
+        <p>Học thêm nhiều nơi nhưng phụ huynh không nắm được tiến độ thật sự.</p>
+        <div class="sol"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Báo cáo tiến bộ mỗi tuần qua Zalo.</div>
+      </div>
+      <div class="ps-card">
+        <div class="ico" aria-hidden="true">💸</div>
+        <h3>Học phí mập mờ, khó theo dõi</h3>
+        <p>Đóng tiền mặt, không biên nhận, cuối tháng không nhớ đã đóng buổi nào.</p>
+        <div class="sol"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Học phí rõ ràng, biên nhận tự động.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT — "Về giáo viên" -->
+<section class="section" id="about">
+  <div class="container">
+    <div class="about">
+      <div class="photo" aria-label="Ảnh cô Nguyễn Thị Hà">👩‍🏫</div>
+      <div>
+        <span class="eyebrow">Về giáo viên</span>
+        <h2>Cô Nguyễn Thị Hà</h2>
+        <div class="role">Giáo viên Toán tiểu học · 12 năm kinh nghiệm</div>
+        <p>Tôi tin mỗi con đều học được Toán nếu được kèm đúng cách và đủ kiên nhẫn. Suốt 12 năm, tôi đã đồng hành cùng hơn 200 học viên lấy lại căn bản và yêu thích môn Toán.</p>
+        <p>Lớp của tôi giữ sĩ số nhỏ để theo sát từng con — từ chỗ con đang đứng, không chạy theo chương trình.</p>
+        <ul>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Cử nhân Sư phạm Toán — ĐH Sư phạm Hà Nội</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Phương pháp lấp lỗ hổng cá nhân hóa từng con</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Đồng hành phụ huynh sát sao qua Zalo</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEACHERS — "Giáo viên đồng hành" (profile đơn cho GV độc lập) -->
+<section class="section alt">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Giáo viên đồng hành</span>
+      <h2>Người trực tiếp dạy con bạn</h2>
+    </div>
+    <div class="teachers">
+      <div class="t-card">
+        <div class="av" aria-hidden="true">👩‍🏫</div>
+        <h3>Cô Nguyễn Thị Hà</h3>
+        <div class="subj">Toán lớp 4 – 5</div>
+        <p>Chủ nhiệm tất cả các lớp. Trực tiếp soạn bài, chấm chữa và báo cáo tiến bộ cho từng phụ huynh.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS — "Cách hoạt động" -->
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Cách hoạt động</span>
+      <h2>Bắt đầu chỉ với 3 bước</h2>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="num"></div><h3>Đăng ký học thử</h3><p>Để lại thông tin, cô liên hệ qua Zalo trong ngày để xếp buổi học thử miễn phí.</p></div>
+      <div class="step"><div class="num"></div><h3>Kiểm tra & đặt mục tiêu</h3><p>Cô đánh giá đầu vào, cùng phụ huynh đặt mục tiêu và lên lộ trình riêng cho con.</p></div>
+      <div class="step"><div class="num"></div><h3>Học & theo dõi tiến bộ</h3><p>Con vào lớp nhỏ phù hợp, phụ huynh nhận báo cáo mỗi tuần qua Zalo.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE — "Lộ trình học tập" -->
+<section class="section alt">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Lộ trình học tập</span>
+      <h2>Con tiến bộ theo từng giai đoạn</h2>
+    </div>
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-dot">1</div><div><h3>Tuần 1–2 · Lấp lỗ hổng</h3><p>Củng cố kiến thức nền con còn thiếu, lấy lại sự tự tin với môn Toán.</p></div></div>
+      <div class="tl-item"><div class="tl-dot">2</div><div><h3>Tuần 3–6 · Bám sát chương trình</h3><p>Học song song chương trình trên lớp, làm chủ dạng bài cơ bản.</p></div></div>
+      <div class="tl-item"><div class="tl-dot">3</div><div><h3>Tuần 7–10 · Nâng cao & luyện đề</h3><p>Mở rộng dạng bài khó, rèn kỹ năng trình bày và làm bài kiểm tra.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CERTIFICATES → "Chương trình giảng dạy" (programs thật) -->
+<section class="section" id="programs">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Chương trình giảng dạy</span>
+      <h2>Các khóa Toán đang mở</h2>
+      <p>Lớp nhỏ 6–8 học viên · học 2 buổi/tuần · mỗi buổi 90 phút.</p>
+    </div>
+    <div class="programs">
+      <div class="prog">
+        <div class="top"><div class="grade">Tiểu học</div><h3>Toán lớp 4 — Vững nền tảng</h3></div>
+        <div class="body">
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 4 phép tính, phân số, hình học cơ bản</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Bài tập về nhà có chữa chi tiết</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Báo cáo tiến bộ hằng tuần</li>
+          </ul>
+          <a href="#register" class="btn btn-ghost">Đăng ký khóa lớp 4 · 800.000đ/tháng</a>
+        </div>
+      </div>
+      <div class="prog">
+        <div class="top"><div class="grade">Tiểu học</div><h3>Toán lớp 5 — Sẵn sàng lên cấp 2</h3></div>
+        <div class="body">
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Ôn tập tiểu học + làm quen kiến thức lớp 6</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Luyện đề kiểm tra cuối kỳ</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Báo cáo tiến bộ hằng tuần</li>
+          </ul>
+          <a href="#register" class="btn btn-ghost">Đăng ký khóa lớp 5 · 900.000đ/tháng</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST STRIP — "Tin cậy & minh bạch" -->
+<section class="section alt">
+  <div class="container">
+    <div class="trust-strip">
+      <div class="tb"><div class="i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><b>Học thử miễn phí</b><span>Không ràng buộc</span></div></div>
+      <div class="tb"><div class="i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div><b>Báo cáo qua Zalo</b><span>Mỗi tuần</span></div></div>
+      <div class="tb"><div class="i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div><div><b>Học phí minh bạch</b><span>Biên nhận tự động</span></div></div>
+      <div class="tb"><div class="i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></div><div><b>Cam kết tiến bộ</b><span>Sau 8 buổi</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING — "Học phí" -->
+<section class="section" id="pricing">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Học phí</span>
+      <h2>Học phí rõ ràng — chọn hình thức phù hợp</h2>
+      <p>Học phí rõ ràng, không phát sinh. Đóng theo tháng, biên nhận tự động.</p>
+    </div>
+    <div class="pricing">
+      <div class="price">
+        <h3>Toán lớp 4</h3>
+        <div class="amt">800.000đ<small> /tháng</small></div>
+        <p class="muted" style="font-size:14px;margin:0;">8 buổi/tháng · 90 phút/buổi</p>
+        <ul>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Lớp nhỏ 6–8 học viên</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Bài tập có chữa chi tiết</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Báo cáo tiến bộ hằng tuần</li>
+        </ul>
+        <a href="#register" class="btn btn-ghost" style="width:100%;">Chọn khóa lớp 4</a>
+      </div>
+      <div class="price featured">
+        <span class="tag">Được chọn nhiều</span>
+        <h3>Toán lớp 5</h3>
+        <div class="amt">900.000đ<small> /tháng</small></div>
+        <p class="muted" style="font-size:14px;margin:0;">8 buổi/tháng · 90 phút/buổi</p>
+        <ul>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Tất cả quyền lợi khóa lớp 4</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Luyện đề cuối kỳ + chuyển cấp</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Tư vấn lộ trình lên lớp 6</li>
+        </ul>
+        <a href="#register" class="btn btn-cta" style="width:100%;">Chọn khóa lớp 5</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS — "Phụ huynh & học viên nói gì" -->
+<section class="section alt" id="testimonials">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Phụ huynh & học viên nói gì</span>
+      <h2>Niềm tin từ phụ huynh</h2>
+    </div>
+    <div class="tms">
+      <div class="tm">
+        <div class="stars" aria-label="5 trên 5 sao">★★★★★</div>
+        <p>"Con mình từ sợ Toán giờ đã tự tin làm bài. Cô Hà kèm rất kỹ, tuần nào cũng nhắn báo tiến độ qua Zalo."</p>
+        <div class="who"><span class="av" aria-hidden="true">H</span><div><b>Chị Trần Thị Hồng</b><span>Phụ huynh bé Minh, lớp 5</span></div></div>
+      </div>
+      <div class="tm">
+        <div class="stars" aria-label="5 trên 5 sao">★★★★★</div>
+        <p>"Lớp ít bạn nên con được hỏi thoải mái. Học phí rõ ràng, có biên nhận hẳn hoi, mình rất yên tâm."</p>
+        <div class="who"><span class="av" aria-hidden="true">A</span><div><b>Anh Nguyễn Văn An</b><span>Phụ huynh bé Khôi, lớp 4</span></div></div>
+      </div>
+      <div class="tm">
+        <div class="stars" aria-label="5 trên 5 sao">★★★★★</div>
+        <p>"Con đi học về kể là thích cô Hà vì cô giảng dễ hiểu. Điểm Toán trên lớp đã cải thiện rõ sau 2 tháng."</p>
+        <div class="who"><span class="av" aria-hidden="true">L</span><div><b>Chị Phạm Thị Lan</b><span>Phụ huynh bé Ngọc, lớp 5</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ — "Câu hỏi thường gặp" -->
+<section class="section" id="faq">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Câu hỏi thường gặp</span>
+      <h2>Phụ huynh thường hỏi cô</h2>
+    </div>
+    <div class="faq">
+      <details open><summary>Con mất gốc nhiều có theo được không?</summary><p>Hoàn toàn được. Buổi đầu cô kiểm tra để biết con đang ở đâu, rồi xếp lớp và lộ trình phù hợp — bắt đầu từ chỗ con thiếu chứ không chạy theo chương trình.</p></details>
+      <details><summary>Lớp có bao nhiêu bạn?</summary><p>Mỗi lớp chỉ 6–8 học viên để cô kèm sát từng con. Khi đủ sĩ số cô sẽ mở lớp mới chứ không nhận thêm.</p></details>
+      <details><summary>Học phí đóng thế nào, có biên nhận không?</summary><p>Học phí đóng theo tháng (800.000đ lớp 4, 900.000đ lớp 5). Mỗi lần đóng phụ huynh nhận biên nhận tự động qua Zalo, minh bạch từng buổi.</p></details>
+      <details><summary>Buổi học thử có mất phí không?</summary><p>Buổi học thử đầu tiên hoàn toàn miễn phí và không ràng buộc. Phụ huynh và con trải nghiệm phương pháp rồi mới quyết định.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="section final" id="register">
+  <div class="container">
+    <h2>Đăng ký buổi học thử miễn phí cho con</h2>
+    <p>Để lại thông tin, cô Hà sẽ liên hệ qua Zalo trong ngày để xếp lịch học thử.</p>
+    <div class="hero-actions">
+      <a href="#" class="btn btn-cta btn-lg">Đăng ký học thử ngay <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a href="#" class="btn btn-on-dark btn-lg">Nhắn Zalo 0912 345 678</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <a href="#" class="nav-logo" style="margin-bottom:12px;"><span class="mark">H</span><span class="name" style="color:#fff;">Lớp Toán cô Hà</span></a>
+        <p style="color:#94a3b8;font-size:14px;margin:0;max-width:34em;">Gia sư Toán tiểu học, đồng hành cùng con lấy lại căn bản và yêu thích môn Toán. Lớp nhỏ, kèm sát, báo cáo tiến bộ qua Zalo.</p>
+      </div>
+      <div>
+        <h4>Liên hệ</h4>
+        <a href="tel:0912345678">Zalo / ĐT: 0912 345 678</a>
+        <a href="mailto:co.ha.toan@gmail.com">co.ha.toan@gmail.com</a>
+        <a href="#">Quận Cầu Giấy, Hà Nội</a>
+      </div>
+      <div>
+        <h4>Khóa học</h4>
+        <a href="#programs">Toán lớp 4</a>
+        <a href="#programs">Toán lớp 5</a>
+        <a href="#register">Đăng ký học thử</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Lớp Toán cô Hà · Trang web tạo bằng KiteClass</span>
+      <span>Bản demo thiết kế — dữ liệu minh họa</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   CAROUSEL — vanilla JS (GAP-826)
+   states: default(auto-rotate 5s) · paused(hover) · single(degrade tĩnh)
+   ============================================================ */
+(function(){
+  var root   = document.getElementById('carousel');
+  var slides = Array.prototype.slice.call(document.querySelectorAll('#slides .slide'));
+  var dotsEl = document.getElementById('dots');
+  var prev   = document.getElementById('prev');
+  var next   = document.getElementById('next');
+  var n = slides.length, active = 0, timer = null, paused = false;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Degrade tĩnh khi chỉ 1 slide → ẩn dots + arrows, không auto-rotate.
+  if (n <= 1){ root.classList.add('single'); return; }
+
+  // build dots
+  for (var i=0;i<n;i++){
+    var b = document.createElement('button');
+    b.setAttribute('role','tab');
+    b.setAttribute('aria-label','Banner ' + (i+1));
+    b.addEventListener('click', (function(idx){ return function(){ go(idx); }; })(i));
+    dotsEl.appendChild(b);
+  }
+  var dots = Array.prototype.slice.call(dotsEl.children);
+
+  function render(){
+    slides.forEach(function(s,i){ s.classList.toggle('on', i===active); });
+    dots.forEach(function(d,i){ d.classList.toggle('on', i===active); d.setAttribute('aria-selected', i===active); });
+  }
+  function go(i){ active = (i + n) % n; render(); restart(); }
+  function start(){ if (paused || reduce) return; timer = setInterval(function(){ go(active+1); }, 5000); }
+  function restart(){ clearInterval(timer); start(); }
+
+  prev.addEventListener('click', function(){ go(active-1); });
+  next.addEventListener('click', function(){ go(active+1); });
+  root.addEventListener('mouseenter', function(){ paused = true; clearInterval(timer); });
+  root.addEventListener('mouseleave', function(){ paused = false; start(); });
+  // keyboard: ← → khi focus trong carousel
+  root.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowLeft'){ go(active-1); }
+    if (e.key === 'ArrowRight'){ go(active+1); }
+  });
+
+  render(); start();
+})();
+
+/* ============================================================
+   THEME SWITCHER — runtime per-tenant color swap (GAP-274)
+   đổi class trên <body> + cập nhật brand identity demo
+   ============================================================ */
+(function(){
+  var body = document.getElementById('topbody');
+  var btns = Array.prototype.slice.call(document.querySelectorAll('.theme-switch button'));
+  var BRAND = {
+    'theme-ha':    { mark:'H', name:'Lớp Toán cô Hà',    tag:'Gia sư Toán tiểu học' },
+    'theme-nhi':   { mark:'N', name:'Lớp Hóa thầy Nhì',  tag:'Luyện Hóa THPT' },
+    'theme-khanh': { mark:'K', name:'Anh ngữ cô Khánh',  tag:'Luyện thi IELTS' }
+  };
+  function apply(theme){
+    body.className = theme;
+    var b = BRAND[theme];
+    if (b){
+      document.getElementById('brandMark').textContent = b.mark;
+      document.getElementById('brandName').textContent = b.name;
+      document.getElementById('brandTagline').textContent = b.tag;
+    }
+    btns.forEach(function(x){ x.setAttribute('aria-pressed', x.getAttribute('data-theme')===theme); });
+  }
+  btns.forEach(function(x){ x.addEventListener('click', function(){ apply(x.getAttribute('data-theme')); }); });
+})();
+</script>
+</body>
+</html>

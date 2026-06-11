@@ -8,11 +8,13 @@ import com.kiteclass.core.module.branding.events.BrandingEventPublisher;
 import com.kiteclass.core.module.branding.events.BrandingUpdatedEvent;
 import com.kiteclass.core.module.marketing.service.LandingPageContentSanitizer;
 import com.kiteclass.core.module.settings.dto.request.UpdateBrandingRequest;
+import com.kiteclass.core.module.settings.dto.response.BannerUploadResponse;
 import com.kiteclass.core.module.settings.dto.response.BrandingResponse;
 import com.kiteclass.core.module.settings.entity.Branding;
 import com.kiteclass.core.module.settings.mapper.BrandingMapper;
 import com.kiteclass.core.module.settings.repository.BrandingRepository;
 import com.kiteclass.core.module.settings.storage.BrandingAssetStorage;
+import com.kiteclass.core.module.settings.storage.BrandingAssetUrlResolver;
 import com.kiteclass.core.module.settings.versioning.BrandingVersionService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +28,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.net.URI;
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
@@ -55,6 +56,7 @@ public class BrandingServiceImpl implements BrandingService {
     private final BrandingVersionService brandingVersionService;
     private final BrandingAssetStorage brandingAssetStorage;
     private final LandingPageContentSanitizer contentSanitizer;
+    private final BrandingAssetUrlResolver assetUrlResolver;
 
     public BrandingServiceImpl(
             BrandingRepository brandingRepository,
@@ -62,13 +64,15 @@ public class BrandingServiceImpl implements BrandingService {
             @Autowired(required = false) BrandingEventPublisher brandingEventPublisher,
             @Autowired(required = false) BrandingVersionService brandingVersionService,
             @Autowired(required = false) BrandingAssetStorage brandingAssetStorage,
-            @Autowired(required = false) LandingPageContentSanitizer contentSanitizer) {
+            @Autowired(required = false) LandingPageContentSanitizer contentSanitizer,
+            @Autowired(required = false) BrandingAssetUrlResolver assetUrlResolver) {
         this.brandingRepository = brandingRepository;
         this.brandingMapper = brandingMapper;
         this.brandingEventPublisher = brandingEventPublisher;
         this.brandingVersionService = brandingVersionService;
         this.brandingAssetStorage = brandingAssetStorage;
         this.contentSanitizer = contentSanitizer;
+        this.assetUrlResolver = assetUrlResolver;
     }
 
     /**
@@ -102,78 +106,11 @@ public class BrandingServiceImpl implements BrandingService {
         // GAP-1072: the persisted logo/favicon URLs are presigned and expire after
         // the storage TTL (7 days). Re-derive a fresh presigned URL on every read so
         // the FE never renders a broken (403) asset. Transient only — not written back.
-        response.setLogoUrl(regenerateAssetUrl(response.getLogoUrl()));
-        response.setFaviconUrl(regenerateAssetUrl(response.getFaviconUrl()));
+        if (assetUrlResolver != null) {
+            response.setLogoUrl(assetUrlResolver.regenerate(response.getLogoUrl()));
+            response.setFaviconUrl(assetUrlResolver.regenerate(response.getFaviconUrl()));
+        }
         return response;
-    }
-
-    /**
-     * Regenerate a fresh presigned GET URL for a stored branding-asset URL.
-     *
-     * <p>GAP-1072: {@link #uploadLogo} / {@link #uploadFavicon} persist a presigned
-     * URL whose signature expires after the storage TTL (7 days). On read we
-     * re-derive the stable object key and presign anew via
-     * {@link BrandingAssetStorage#renderableUrl} so the FE always renders a live URL.
-     *
-     * <p>Graceful fallback — returns the stored URL unchanged (never throws) when:
-     * storage is unavailable, the value is blank, it is not one of our presigned
-     * URLs (external / non-presigned), or regeneration fails.
-     *
-     * @param storedUrl the persisted (possibly expired) asset URL
-     * @return a freshly presigned URL, or {@code storedUrl} unchanged
-     */
-    private String regenerateAssetUrl(String storedUrl) {
-        if (storedUrl == null || storedUrl.isBlank() || brandingAssetStorage == null) {
-            return storedUrl;
-        }
-        String objectKey = extractObjectKey(storedUrl);
-        if (objectKey == null) {
-            return storedUrl; // non-presigned / external / unparseable → keep as-is
-        }
-        try {
-            return brandingAssetStorage.renderableUrl(objectKey);
-        } catch (Exception ex) {
-            log.warn("Failed to regenerate presigned branding asset URL; keeping stored URL. reason={}",
-                    ex.getMessage());
-            return storedUrl;
-        }
-    }
-
-    /**
-     * Extract the MinIO object key from a stored presigned branding-asset URL.
-     *
-     * <p>Stored shape:
-     * {@code http://host:9100/<bucket>/static/<tenantId>/<type>/<file>?X-Amz-...}.
-     * The key always begins with the {@code static/} prefix (per
-     * {@link com.kiteclass.core.module.branding.storage.BrandingStoragePaths#staticPath}),
-     * so we anchor on {@code /static/} — robust to bucket name, host, port and
-     * path-style access. {@link java.net.URI#getPath()} returns the percent-decoded
-     * path (query stripped), which equals the original object key.
-     *
-     * @return the object key, or {@code null} when the URL is not one of our
-     *         presigned assets ({@code X-Amz} absent) or cannot be parsed
-     */
-    private String extractObjectKey(String storedUrl) {
-        // Defensive: only regenerate URLs we issued (presigned). Non-presigned column
-        // values or external URLs are left untouched.
-        if (!storedUrl.contains("X-Amz-")) {
-            return null;
-        }
-        try {
-            String path = URI.create(storedUrl).getPath();
-            if (path == null) {
-                return null;
-            }
-            int idx = path.indexOf("/static/");
-            if (idx < 0) {
-                return null;
-            }
-            return path.substring(idx + 1); // drop leading '/', keep "static/..."
-        } catch (IllegalArgumentException ex) {
-            log.warn("Stored branding asset URL not parseable as URI; keeping stored. reason={}",
-                    ex.getMessage());
-            return null;
-        }
     }
 
     /**
@@ -277,6 +214,92 @@ public class BrandingServiceImpl implements BrandingService {
         log.info("Uploaded favicon for instance {}", instanceId);
 
         return brandingMapper.toResponse(branding);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>GAP-1211 — stores each banner under a fresh {@code uuid}-named key (no
+     * overwrite) and returns the renderable URL. Does NOT touch the {@code Branding}
+     * row nor the {@code branding-by-tenant} cache (banners live on the landing
+     * {@code heroImages} list, persisted separately by the landing admin PUT).
+     */
+    @Override
+    public BannerUploadResponse uploadBanner(MultipartFile file) {
+        UUID instanceId = TenantContext.getCurrentTenant();
+        String url = storeBannerAsset(instanceId, file);
+        log.info("Uploaded banner for instance {}", instanceId);
+        return new BannerUploadResponse(url);
+    }
+
+    /**
+     * Validate a banner multipart upload and persist it under a unique key
+     * {@code static/{tenantId}/banner/{uuid}.{ext}} via {@link BrandingAssetStorage},
+     * returning the renderable URL.
+     *
+     * <p>Distinct status codes from {@link #storeAsset} (which returns 400 for all):
+     * banner upload returns HTTP 415 for an unsupported MIME and HTTP 413 when the
+     * size cap is exceeded, per {@code pre-handoff-self-test-completeness.md} §2.5.
+     *
+     * @param instanceId tenant instance id
+     * @param file       multipart banner upload
+     * @return renderable URL of the stored banner
+     */
+    private String storeBannerAsset(UUID instanceId, MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new ValidationException("BRANDING_ASSET_EMPTY", new Object[0]);
+        }
+        if (file.getSize() > MAX_ASSET_BYTES) {
+            throw new BusinessException("BRANDING_BANNER_TOO_LARGE", HttpStatus.PAYLOAD_TOO_LARGE);
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
+            throw new BusinessException("BRANDING_BANNER_TYPE_UNSUPPORTED",
+                    HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+        }
+        if (brandingAssetStorage == null) {
+            throw new BusinessException("BRANDING_ASSET_STORAGE_UNAVAILABLE",
+                    HttpStatus.SERVICE_UNAVAILABLE);
+        }
+
+        byte[] bytes;
+        try {
+            bytes = file.getBytes();
+        } catch (IOException ex) {
+            log.warn("Banner upload IOException instance={} filename={}",
+                    instanceId, file.getOriginalFilename(), ex);
+            throw new BusinessException("BRANDING_ASSET_UPLOAD_FAILED",
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // Unique object name per upload so banners accumulate (never overwrite a
+        // slot). Extension preserved for correct Content-Type / browser handling.
+        String uniqueName = UUID.randomUUID() + extensionFor(file.getOriginalFilename(), contentType);
+        return brandingAssetStorage.store(instanceId, ResourceType.BANNER, uniqueName, contentType, bytes);
+    }
+
+    /**
+     * Derive a lowercase file extension (including the leading dot) for a banner
+     * object name: from the original filename when present, else mapped from the
+     * MIME type. Empty string when neither yields one.
+     */
+    private static String extensionFor(String filename, String contentType) {
+        if (filename != null) {
+            int dot = filename.lastIndexOf('.');
+            if (dot >= 0 && dot < filename.length() - 1) {
+                // Strip path-traversal / separators defensively; storage also sanitizes.
+                return filename.substring(dot).toLowerCase()
+                        .replace("..", "").replace("/", "").replace("\\", "");
+            }
+        }
+        return switch (contentType == null ? "" : contentType.toLowerCase()) {
+            case "image/png" -> ".png";
+            case "image/jpeg" -> ".jpg";
+            case "image/webp" -> ".webp";
+            case "image/svg+xml" -> ".svg";
+            case "image/x-icon", "image/vnd.microsoft.icon" -> ".ico";
+            default -> "";
+        };
     }
 
     /**

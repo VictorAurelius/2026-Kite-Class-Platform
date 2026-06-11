@@ -9,16 +9,18 @@ import type { SlotData, SlotItem } from '@/lib/template/slots';
 
 interface TestimonialsSectionProps {
   slots?: SlotData;
+  /** Title override (GAP-1208); defaults to "Phụ huynh & học viên nói gì". */
+  heading?: string;
 }
 
-export function TestimonialsSection({ slots }: TestimonialsSectionProps) {
+export function TestimonialsSection({ slots, heading }: TestimonialsSectionProps) {
   const testimonials = slots?.testimonials as SlotItem[] | undefined;
   if (!testimonials || testimonials.length === 0) return null;
 
   return (
     <section className="py-16">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-12">Phụ huynh &amp; học viên nói gì</h2>
+        <h2 className="text-3xl font-bold text-center mb-12">{heading ?? 'Phụ huynh & học viên nói gì'}</h2>
         {/* Mobile: carousel scroll-snap ngang; Desktop: grid 3 cột */}
         <div className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4 md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {testimonials.map((t) => (

@@ -59,3 +59,7 @@ Execution **Phase 1.5+** (self-service UX enhancement, không phải P1 MVP bloc
 - wave-thesis-4 — data-driven landing refactor (V76 + 7 JSONB field) tạo nền cho gap này
 - `kitehub/scripts/seed-landing-content.sql` — seed thủ công hiện tại (sẽ được thay bằng UI)
 - `.claude/rules/vn-localization-audit-checklist.md` §3 — ranh giới sample data thật (testimonials/stats)
+
+## Log
+
+- **2026-06-11:** GAP-826 lớp 3 advance một phần: card "Banner landing" trong branding-settings — pattern editor section đầu tiên. Editor 6 section đầy đủ vẫn là scope gap này.

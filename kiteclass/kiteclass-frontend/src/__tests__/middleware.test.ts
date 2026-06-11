@@ -31,6 +31,9 @@ describe('extractSlugFromHost', () => {
     ['SKY.kiteclass.com', 'sky'],
     ['sky.kiteclass.com:3000', 'sky'],
     ['pioneer.kiteclass.com', 'pioneer'],
+    // nip.io wildcard DNS — production-accurate local walk access-mode
+    // (per g1-browser-walk-before-flip.md §3.1, landing-100 G2★)
+    ['co-ha-toan.127.0.0.1.nip.io:3000', 'co-ha-toan'],
     ['kiteclass.com', null],
     ['www.kiteclass.com', null],
     ['api.kiteclass.com', null],
@@ -80,9 +83,29 @@ describe('middleware', () => {
     expect(res.headers.get('x-middleware-request-x-tenant-id')).toBeNull();
   });
 
-  it('passes through when subdomain is unknown (BE 404)', async () => {
+  it('flags x-tenant-not-found (no x-tenant-id) when subdomain is unknown (BE 404)', async () => {
     const req = makeReq('https://ghost.kiteclass.com/', { host: 'ghost.kiteclass.com' });
     const res = await middleware(req);
+    // No tenant resolved → must NOT inject a tenant id (no silent fallback brand).
+    expect(res.headers.get('x-middleware-request-x-tenant-id')).toBeNull();
+    // But the not-found marker IS set so page/layout render the friendly
+    // "không tìm thấy trung tâm" page instead of the env/default tenant landing.
+    // GAP-1200.
+    expect(res.headers.get('x-middleware-request-x-tenant-not-found')).toBe('ghost');
+  });
+
+  it('does NOT flag x-tenant-not-found for apex / no subdomain (dev fallback preserved)', async () => {
+    const req = makeReq('https://kiteclass.com/', { host: 'kiteclass.com' });
+    const res = await middleware(req);
+    expect(res.headers.get('x-middleware-request-x-tenant-not-found')).toBeNull();
+  });
+
+  it('does NOT flag x-tenant-not-found for localhost without preview param', async () => {
+    const req = makeReq('http://localhost:4700/', { host: 'localhost:4700' });
+    const res = await middleware(req);
+    // localhost has no subdomain → slug null → early pass-through → env/default
+    // fallback stays intact (1-tenant-per-deploy / dev). GAP-1200.
+    expect(res.headers.get('x-middleware-request-x-tenant-not-found')).toBeNull();
     expect(res.headers.get('x-middleware-request-x-tenant-id')).toBeNull();
   });
 
@@ -97,6 +120,19 @@ describe('middleware', () => {
     expect(location).toContain('/suspended');
     expect(location).toContain('slug=suspended');
     expect(location).toContain('status=suspended');
+  });
+
+  it('passes through on /suspended itself — no redirect loop (GAP-1199)', async () => {
+    const req = makeReq(
+      'https://suspended.kiteclass.com/suspended?slug=suspended&status=suspended',
+      { host: 'suspended.kiteclass.com' },
+    );
+    const res = await middleware(req);
+
+    // Without the loop guard this returned 307 → /suspended again →
+    // ERR_TOO_MANY_REDIRECTS in the browser.
+    expect(res.status).not.toBe(307);
+    expect(res.headers.get('location')).toBeNull();
   });
 
   it('honours ?tenant= preview query param when host has no subdomain', async () => {

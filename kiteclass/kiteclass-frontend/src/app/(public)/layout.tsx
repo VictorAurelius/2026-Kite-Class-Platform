@@ -6,6 +6,7 @@ import { GraduationCap } from 'lucide-react';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { ConsentBanner } from '@kite/shared-ui';
 import { publicApi } from '@/lib/api/public';
+import { ThemeSync } from '@/components/theme/ThemeSync';
 
 // Resolve the tenant's display name + logo + contact for the public nav/footer.
 // Tenant resolution priority:
@@ -25,10 +26,28 @@ interface TenantIdentity {
   tagline: string | null;
   contactEmail: string | null;
   contactPhone: string | null;
+  // Per-tenant theme colors (GAP-274) — fed to ThemeSync so the catalog/about/
+  // contact/detail pages inherit the tenant brand, not just the landing page.
+  primaryColor: string | null;
+  secondaryColor: string | null;
+  accentColor: string | null;
 }
 
 async function getTenantIdentity(): Promise<TenantIdentity> {
-  const headerTenantId = (await headers()).get('x-tenant-id') ?? undefined;
+  const hdrs = await headers();
+
+  // Unknown subdomain (middleware tried to resolve, BE returned 404 — GAP-1200).
+  // Render generic KiteClass chrome rather than the env/default tenant's brand:
+  // showing a DIFFERENT center's name/logo on a mistyped subdomain is confusing
+  // and a mild content-leak. The page itself renders the friendly not-found body.
+  if (hdrs.get('x-tenant-not-found')) {
+    return {
+      name: 'KiteClass', logoUrl: null, tagline: null, contactEmail: null, contactPhone: null,
+      primaryColor: null, secondaryColor: null, accentColor: null,
+    };
+  }
+
+  const headerTenantId = hdrs.get('x-tenant-id') ?? undefined;
   const tenantId =
     headerTenantId ??
     process.env.NEXT_PUBLIC_TENANT_ID ??
@@ -41,6 +60,9 @@ async function getTenantIdentity(): Promise<TenantIdentity> {
       tagline?: string;
       contactEmail?: string;
       contactPhone?: string;
+      primaryColor?: string;
+      secondaryColor?: string;
+      accentColor?: string;
     };
     const name = landing.centerName?.trim() || landing.heroTitle?.trim() || 'Trung tâm giáo dục';
     return {
@@ -49,9 +71,15 @@ async function getTenantIdentity(): Promise<TenantIdentity> {
       tagline: landing.tagline?.trim() || null,
       contactEmail: landing.contactEmail?.trim() || null,
       contactPhone: landing.contactPhone?.trim() || null,
+      primaryColor: landing.primaryColor?.trim() || null,
+      secondaryColor: landing.secondaryColor?.trim() || null,
+      accentColor: landing.accentColor?.trim() || null,
     };
   } catch {
-    return { name: 'Trung tâm giáo dục', logoUrl: null, tagline: null, contactEmail: null, contactPhone: null };
+    return {
+      name: 'Trung tâm giáo dục', logoUrl: null, tagline: null, contactEmail: null, contactPhone: null,
+      primaryColor: null, secondaryColor: null, accentColor: null,
+    };
   }
 }
 
@@ -93,9 +121,26 @@ export default async function PublicLayout({
     tagline: tenantTagline,
     contactEmail,
     contactPhone,
+    primaryColor,
+    secondaryColor,
+    accentColor,
   } = await getTenantIdentity();
   return (
-    <div className="min-h-screen flex flex-col">
+    // `[&_.container]:max-w-[1180px]` — marketing container width per design
+    // system token `--container: 1180px` (colors_and_type.css). Scoped to the
+    // (public) tree only so dashboard layouts keep the Tailwind default.
+    // GAP-1223 (kit↔production layout parity).
+    <div className="min-h-screen flex flex-col [&_.container]:max-w-[1180px]">
+      {/* Per-tenant theme (GAP-274). SSR-inline `:root{--theme-*}` so the catalog /
+          about / contact / detail pages render the tenant brand on first paint. The
+          landing page emits its own ThemeSync inside children (identical values). */}
+      {(primaryColor || secondaryColor || accentColor) && (
+        <ThemeSync
+          primaryColor={primaryColor ?? undefined}
+          secondaryColor={secondaryColor ?? undefined}
+          accentColor={accentColor ?? undefined}
+        />
+      )}
       {/* Skip to main content (accessibility) */}
       <a
         href="#main-content"
@@ -107,15 +152,21 @@ export default async function PublicLayout({
       {/* Public Header */}
       <header className="border-b bg-white sticky top-0 z-50" role="banner">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
+          {/* Logo + brand. The brand can be a long slogan when the tenant has not
+              set a short `centerName` (GAP-1206) — clamp to a single line + cap
+              width so a long heroTitle never wraps to 3-4 lines on mobile and
+              shoves the header to ~150px tall. `min-w-0` lets the span truncate
+              inside the flex row; the logo stays fixed via `shrink-0`. */}
+          <Link href="/" className="flex min-w-0 items-center gap-2">
             {tenantLogo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={tenantLogo} alt={tenantName} className="h-8 w-8 object-contain" />
+              <img src={tenantLogo} alt={tenantName} className="h-8 w-8 shrink-0 object-contain" />
             ) : (
-              <GraduationCap className="h-8 w-8 text-theme-primary" />
+              <GraduationCap className="h-8 w-8 shrink-0 text-theme-primary" />
             )}
-            <span className="text-2xl font-bold">{tenantName}</span>
+            <span className="max-w-[60vw] truncate text-lg font-bold sm:max-w-none sm:text-2xl">
+              {tenantName}
+            </span>
           </Link>
 
           {/* Navigation */}
@@ -173,14 +224,15 @@ export default async function PublicLayout({
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* About */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-4 min-w-0">
                 {tenantLogo ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={tenantLogo} alt={tenantName} className="h-6 w-6 object-contain" />
+                  <img src={tenantLogo} alt={tenantName} className="h-6 w-6 shrink-0 object-contain" />
                 ) : (
-                  <GraduationCap className="h-6 w-6 text-theme-primary" />
+                  <GraduationCap className="h-6 w-6 shrink-0 text-theme-primary" />
                 )}
-                <span className="font-bold text-lg">{tenantName}</span>
+                {/* Clamp long brand (heroTitle fallback) to 2 lines — GAP-1206. */}
+                <span className="font-bold text-lg line-clamp-2">{tenantName}</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 {tenantTagline || 'Nền tảng giáo dục giúp tối ưu vận hành lớp học và nâng cao chất lượng giảng dạy.'}

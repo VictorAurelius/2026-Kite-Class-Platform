@@ -1,12 +1,11 @@
 /**
- * Tests for Contact page — form renders and contact info displayed.
+ * Tests for the per-tenant Contact page — async server component + landing-driven aside.
  *
- * The form body is loaded via `next/dynamic`, so the form-field test
- * uses async queries (`findByLabelText`) to wait for the lazy chunk
- * to resolve. Static info (email, hotline) lives in the page wrapper
- * and is still queryable synchronously.
+ * The page is an async server component that fetches the tenant landing payload; tests
+ * render its resolved output and mock the landing helper. The form body loads via
+ * next/dynamic (form-field validation is covered in contact-form.test.tsx).
  *
- * @since 2026-04-11
+ * @since 2026-04-11 (GAP-274 phase-2 kit port: async + landing-driven Zalo)
  */
 
 import { describe, it, expect, vi } from 'vitest';
@@ -19,25 +18,49 @@ vi.mock('next/navigation', () => ({
 }));
 
 vi.mock('@/lib/api/public', () => ({
-  publicApi: {
-    submitContactForm: vi.fn().mockResolvedValue({ success: true }),
-  },
+  publicApi: { submitContactForm: vi.fn().mockResolvedValue({ success: true }) },
+}));
+
+const landing: Record<string, unknown> = {};
+vi.mock('@/lib/api/tenant-landing', () => ({
+  getTenantLanding: () => Promise.resolve(landing),
+  landingStr: (ld: Record<string, unknown> | null, k: string) =>
+    ld && typeof ld[k] === 'string' && (ld[k] as string).trim() ? (ld[k] as string).trim() : null,
 }));
 
 describe('ContactPage', () => {
-  it('renders contact form with required fields', async () => {
-    render(<ContactPage />);
-    expect(screen.getByRole('heading', { name: /Liên hệ/i })).toBeInTheDocument();
-    expect(await screen.findByLabelText(/Họ và tên/i)).toBeInTheDocument();
+  it('renders the contact heading and form', async () => {
+    landing.centerName = 'Lớp Toán cô Hà';
+    landing.zaloUrl = undefined;
+    landing.contactPhone = undefined;
+    landing.contactEmail = undefined;
+    render(await ContactPage());
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/lớp toán cô hà/i);
+    expect(await screen.findByLabelText(/họ và tên/i)).toBeInTheDocument();
   });
 
-  it('displays email contact info', () => {
-    render(<ContactPage />);
-    expect(screen.getByText(/support@kiteclass\.com/i)).toBeInTheDocument();
+  it('renders the Zalo button only when the tenant configured zaloUrl', async () => {
+    landing.centerName = 'Lớp Toán cô Hà';
+    landing.zaloUrl = 'https://zalo.me/0912345678';
+    render(await ContactPage());
+    const zalo = screen.getByRole('link', { name: /nhắn zalo/i });
+    expect(zalo).toHaveAttribute('href', 'https://zalo.me/0912345678');
   });
 
-  it('displays hotline contact info', () => {
-    render(<ContactPage />);
-    expect(screen.getByText(/1900 xxxx/i)).toBeInTheDocument();
+  it('hides the Zalo button when zaloUrl is absent (anti-fabrication)', async () => {
+    landing.centerName = 'Lớp Toán cô Hà';
+    landing.zaloUrl = undefined;
+    render(await ContactPage());
+    expect(screen.queryByRole('link', { name: /nhắn zalo/i })).not.toBeInTheDocument();
+  });
+
+  it('does not render placeholder contact info', async () => {
+    landing.centerName = 'Lớp Toán cô Hà';
+    landing.zaloUrl = undefined;
+    landing.contactPhone = undefined;
+    landing.contactEmail = undefined;
+    render(await ContactPage());
+    expect(screen.queryByText(/support@kiteclass\.com/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/1900 xxxx/i)).not.toBeInTheDocument();
   });
 });

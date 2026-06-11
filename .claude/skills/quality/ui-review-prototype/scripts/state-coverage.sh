@@ -109,6 +109,8 @@ GRANDFATHERED_KITS=(
   "kiteclass-student"   # Round-3 app kit; 13 screens, no -default-named file
   "kitehub-admin"       # Round-3 app kit; 12 screens, no -default-named file
   "kitehub-story-v2"    # single-screen marketing/story kit — app-states N/A
+  "landing-personal"    # single-page per-tenant landing design source (GAP-274/1208/1210) —
+                        # same class as marketing-site; empty-state designed INLINE per GAP-958
 )
 is_grandfathered() {
   local s="$1"

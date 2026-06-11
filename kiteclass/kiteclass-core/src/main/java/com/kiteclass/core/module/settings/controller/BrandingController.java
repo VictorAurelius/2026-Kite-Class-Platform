@@ -2,6 +2,7 @@ package com.kiteclass.core.module.settings.controller;
 
 import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.module.settings.dto.request.UpdateBrandingRequest;
+import com.kiteclass.core.module.settings.dto.response.BannerUploadResponse;
 import com.kiteclass.core.module.settings.dto.response.BrandingResponse;
 import com.kiteclass.core.module.settings.service.BrandingService;
 import io.micrometer.core.annotation.Timed;
@@ -98,6 +99,27 @@ public class BrandingController {
             @RequestPart("favicon") MultipartFile favicon) {
         BrandingResponse branding = brandingService.uploadFavicon(favicon);
         return ResponseEntity.ok(ApiResponse.success(branding));
+    }
+
+    /**
+     * Upload a single landing banner image for the current tenant (multipart).
+     * Requires admin role.
+     *
+     * <p>GAP-1211: accepts the raw image as {@code multipart/form-data} field
+     * {@code banner}. Each upload stores a NEW object (no overwrite of prior banners
+     * or the logo/favicon slots) and returns its renderable URL; the FE appends that
+     * URL to the landing {@code heroImages} list. Validates MIME (415) + size (413)
+     * server-side per {@code pre-handoff-self-test-completeness.md} §2.5.
+     *
+     * @param banner multipart banner image (field name {@code banner})
+     * @return response carrying the renderable banner URL
+     */
+    @PostMapping(value = "/banners", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
+    public ResponseEntity<ApiResponse<BannerUploadResponse>> uploadBanner(
+            @RequestPart("banner") MultipartFile banner) {
+        BannerUploadResponse response = brandingService.uploadBanner(banner);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     /**

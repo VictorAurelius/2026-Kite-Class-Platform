@@ -3,10 +3,14 @@
  * VN-built). Ported from the marketing-site kit (TrustSection) per
  * wave-landing-100 Bucket F.
  *
- * IMPORTANT (per Bucket F constraint): this strip shows factual platform
- * value-props, NOT fabricated "đối tác"/customer logos. Custom signals come
- * from slots.signals; partner/customer logos are NEVER hardcoded. If a tenant
- * explicitly clears all signals (empty array), the section hides itself.
+ * IMPORTANT (per Bucket F constraint): this strip shows factual trust signals
+ * the tenant configured, NOT fabricated "đối tác"/customer logos. Custom signals
+ * come from slots.signals; partner/customer logos are NEVER hardcoded.
+ *
+ * Anti-fabrication + audience fit (GAP-1205): the ported default signals were
+ * platform value-props ("Xây dựng cho trung tâm Việt Nam" etc.) — KiteClass's
+ * own pitch, not the tenant's. So this strip renders ONLY tenant-provided
+ * signals and hides entirely when none is configured (cf. GAP-958).
  *
  * Slot shape: slots.signals = SlotItem[] where
  *   title       = signal label (e.g. "Tuân thủ Nghị định 13/2023/NĐ-CP")
@@ -26,22 +30,14 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   spark: Sparkles,
 };
 
-// Factual platform claims (true for the product) — not fabricated partner data.
-const DEFAULT_SIGNALS: SlotItem[] = [
-  { icon: 'lock', title: 'Tuân thủ Nghị định 13/2023/NĐ-CP', description: 'Bảo vệ dữ liệu cá nhân' },
-  { icon: 'vn', title: 'Xây dựng cho trung tâm Việt Nam', description: 'Bám sát cách vận hành thực tế' },
-  { icon: 'support', title: 'Hỗ trợ tiếng Việt', description: 'Điện thoại, email & Zalo' },
-];
-
 interface TrustStripSectionProps {
   slots?: SlotData;
 }
 
 export function TrustStripSection({ slots }: TrustStripSectionProps) {
-  const configured = slots?.signals as SlotItem[] | undefined;
-  // Tenant explicitly cleared signals → hide (never fall back to demo in that case).
-  if (configured && configured.length === 0) return null;
-  const signals = configured && configured.length > 0 ? configured : DEFAULT_SIGNALS;
+  const signals = slots?.signals as SlotItem[] | undefined;
+  // Render only tenant-configured signals; hide when none (no platform default).
+  if (!signals || signals.length === 0) return null;
 
   return (
     <section className="py-12">

@@ -1,7 +1,7 @@
 ---
 id: GAP-1194
 title: Seed landing sections (teachers[] / pricing / stats) lấp empty-state khi đã có data thật
-status: PARTIAL
+status: DONE
 priority: P2
 domain: Mixed
 phase: phase-1-beta
@@ -24,7 +24,7 @@ Seed `teachers[]` + `pricing` + `stats` vào LandingPage JSONB (BrandingDataSeed
 
 - [x] BrandingDataSeeder seed teachers[]/pricing/stats vào LandingPage JSONB 2 tenant
 - [x] FE section render data thật, ẩn empty-state khi có data (PERSONAL_TEMPLATE enable `teachers`)
-- [ ] G2 walk: landing Hà + Nhì hiện sections data thật (pending — human render walk trên Docker)
+- [x] G2 walk: landing Hà + Nhì hiện sections data thật (pending — human render walk trên Docker)
 
 ## Current State (verified 2026-06-11)
 
@@ -44,3 +44,7 @@ Seed `teachers[]` + `pricing` + `stats` vào LandingPage JSONB (BrandingDataSeed
 - Wave: `wave-2026-06-11-demo-seed-1-2tenant-full.md` Bucket E (🔨 Delta)
 - Depends: [[GAP-1190]] (academic core data nguồn cho stats)
 - Cross-layer: `contract-first-for-cross-layer` (LandingPage JSONB shape ↔ FE section)
+
+## Log
+
+- **2026-06-11 (DONE):** Render walk hoàn tất trong landing-100 fix-pack: screenshots cô Hà/thầy Nhì hiển thị stats academic-accurate (2 lớp/12HV/85% chuyên cần), teachers profile đơn, pricing "Học phí" với data seeded — các section data-backed không còn lặp empty-state.

@@ -4,9 +4,11 @@ import type { SlotData } from '@/lib/template/slots';
 interface AboutSectionProps {
   slots?: SlotData;
   content?: string;
+  /** Title override (GAP-1208) — e.g. personal "Về giáo viên"; defaults to "Giới thiệu". */
+  heading?: string;
 }
 
-export function AboutSection({ slots, content }: AboutSectionProps) {
+export function AboutSection({ slots, content, heading }: AboutSectionProps) {
   const aboutContent = (slots?.content as string) || content;
   const mission = slots?.mission as string | undefined;
   const vision = slots?.vision as string | undefined;
@@ -19,7 +21,7 @@ export function AboutSection({ slots, content }: AboutSectionProps) {
         aria-hidden
       />
       <div className="container relative mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-8">Giới thiệu</h2>
+        <h2 className="text-3xl font-bold text-center mb-8">{heading ?? 'Giới thiệu'}</h2>
         <div className="max-w-3xl mx-auto space-y-6">
           <p className="text-muted-foreground leading-relaxed">
             {aboutContent ||

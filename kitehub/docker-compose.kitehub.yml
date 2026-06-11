@@ -636,6 +636,10 @@ services:
       REDIS_HOST: kite-redis
       REDIS_PORT: 6379
       SERVER_PORT: 9000
+      # Local access-mode parity (GAP-1207): production resolves tenant via
+      # Host suffix-match on .kiteclass.com; local walks use nip.io wildcard
+      # (slug.127.0.0.1.nip.io) so the gateway must suffix-match that instead.
+      BASE_DOMAIN: ${BASE_DOMAIN:-.127.0.0.1.nip.io}
       SUBSCRIPTION_SERVICE_URL: http://kitehub-subscription:8080
       BRANDING_SERVICE_URL: http://kitehub-branding:8080
       EMAIL_SERVICE_URL: http://kitehub-email:8080

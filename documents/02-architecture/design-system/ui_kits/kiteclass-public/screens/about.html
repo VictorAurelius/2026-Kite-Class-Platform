@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Về giáo viên — Cô Nguyễn Thị Hà | Lớp Toán cô Hà (design kit)</title>
+<meta name="description" content="Kit design trang giới thiệu per-tenant KiteClass: câu chuyện GV, đội ngũ, số liệu thật (data-driven), chứng chỉ. Demo: cô Nguyễn Thị Hà." />
+<!--
+  ============================================================================
+  UI KIT: kiteclass-public · SCREEN about  (/about — về giáo viên / trung tâm)
+  ============================================================================
+  Persona:  P1 Solo Teacher · voice cá nhân GV ("tôi/cô"). audience = phụ huynh.
+  Anti-fabrication: stats KHÔNG bịa — dùng demo-trio THẬT (2 lớp đang mở · 12 HV · 85%
+    lên lớp giỏi) + chú thích "* Số liệu nội bộ tenant, cập nhật tự động từ KiteClass".
+    Production: stats fetch real từ tenant data, không hardcode (GAP-274 data-driven).
+  GAPs:     GAP-274 (theme runtime) · GAP-1208 (nhãn "Về giáo viên"/"Giáo viên đồng hành").
+  WCAG AA:  body 14:1 · muted 4.7:1 · hero white/gradient ~8.6:1 · CTA white/--cta-strong 4.8:1.
+  ============================================================================
+-->
+<style>
+:root{
+  --font-sans:'Be Vietnam Pro','Segoe UI',system-ui,-apple-system,sans-serif;
+  --fg:30 41 59;--muted:100 116 139;--bg:255 255 255;--bg-alt:248 250 252;--border:226 232 240;
+  --success:22 163 74;--radius:14px;--radius-lg:20px;--radius-full:999px;
+  --shadow-sm:0 1px 3px rgba(15,23,42,.08);--shadow:0 8px 24px rgba(15,23,42,.10);--shadow-lg:0 18px 44px rgba(15,23,42,.16);
+  --container:1080px;
+  --theme-primary:37 99 235;--theme-secondary:59 130 246;--theme-accent:14 165 233;
+  --cta:249 115 22;--cta-strong:194 65 12;--hero-from:30 64 175;--hero-to:30 58 138;
+}
+.theme-ha{--theme-primary:37 99 235;--theme-secondary:59 130 246;--theme-accent:14 165 233;--cta:249 115 22;--cta-strong:194 65 12;--hero-from:30 64 175;--hero-to:30 58 138;}
+.theme-nhi{--theme-primary:22 163 74;--theme-secondary:5 150 105;--theme-accent:13 148 136;--cta:245 158 11;--cta-strong:180 83 9;--hero-from:22 101 52;--hero-to:6 78 59;}
+.theme-khanh{--theme-primary:234 88 12;--theme-secondary:249 115 22;--theme-accent:217 119 6;--cta:37 99 235;--cta-strong:29 78 216;--hero-from:154 52 18;--hero-to:124 45 18;}
+
+*,*::before,*::after{box-sizing:border-box;}
+html,body{margin:0;}
+body{font-family:var(--font-sans);color:rgb(var(--fg));background:rgb(var(--bg));line-height:1.6;-webkit-font-smoothing:antialiased;}
+a{color:inherit;}
+.container{max-width:var(--container);margin:0 auto;padding:0 24px;}
+h1,h2,h3{margin:0;line-height:1.2;letter-spacing:-0.02em;}
+.muted{color:rgb(var(--muted));}
+.skip{position:absolute;left:-999px;top:0;background:#fff;padding:10px 16px;border-radius:8px;z-index:60;}
+.skip:focus{left:12px;top:12px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;font-family:inherit;font-weight:700;border-radius:var(--radius);padding:12px 20px;font-size:15px;text-decoration:none;transition:transform .12s ease,box-shadow .15s ease;}
+.btn:active{transform:translateY(1px);}
+.btn-cta{background:rgb(var(--cta-strong));color:#fff;box-shadow:0 8px 20px rgb(var(--cta-strong)/.32);}
+.btn-cta:hover{box-shadow:0 12px 26px rgb(var(--cta-strong)/.42);}
+.btn-primary{background:rgb(var(--theme-primary));color:#fff;}
+.btn-on-dark{background:rgba(255,255,255,.14);color:#fff;border:1.5px solid rgba(255,255,255,.45);}
+
+.demo-strip{background:#0b1220;color:#e2e8f0;font-size:13px;}
+.demo-strip .container{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:10px 24px;}
+.demo-strip b{color:#fbbf24;}
+.theme-switch{display:flex;gap:8px;align-items:center;}
+.theme-switch span{color:#94a3b8;margin-right:4px;}
+.theme-switch button{font-family:inherit;cursor:pointer;border-radius:var(--radius-full);border:1.5px solid transparent;padding:5px 13px;font-size:12px;font-weight:700;color:#fff;}
+.theme-switch button[aria-pressed="true"]{outline:2px solid #fff;outline-offset:1px;}
+.sw-ha{background:#2563EB;}.sw-nhi{background:#16A34A;}.sw-khanh{background:#EA580C;}
+.nav{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgb(var(--border));}
+.nav .container{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo .mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,rgb(var(--theme-primary)),rgb(var(--theme-secondary)));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;}
+.nav-logo .name{font-weight:800;font-size:18px;}
+.nav-logo .name small{display:block;font-size:11px;font-weight:600;color:rgb(var(--muted));}
+.nav-links{display:flex;gap:24px;}
+.nav-links a{font-weight:600;font-size:14px;text-decoration:none;}
+.nav-links a[aria-current]{color:rgb(var(--theme-primary));}
+.nav-links a:hover{color:rgb(var(--theme-primary));}
+@media(max-width:880px){.nav-links{display:none;}}
+
+.page-head{background:linear-gradient(120deg,rgb(var(--hero-from)),rgb(var(--hero-to)));color:#fff;padding:44px 0;}
+.page-head .eyebrow{display:inline-flex;background:rgba(255,255,255,.14);padding:6px 13px;border-radius:var(--radius-full);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px;}
+.page-head h1{font-size:clamp(28px,4vw,42px);font-weight:900;margin-bottom:10px;}
+.page-head p{color:rgba(255,255,255,.9);font-size:17px;max-width:44em;margin:0;}
+
+.section{padding:44px 0;}
+.section.alt{background:var(--bg-alt);}
+.section-head{max-width:680px;margin:0 auto 30px;text-align:center;}
+.section-head h2{font-size:clamp(24px,3vw,34px);font-weight:800;}
+.section-head p{color:rgb(var(--muted));font-size:17px;margin:12px 0 0;}
+
+/* story */
+.story{display:grid;grid-template-columns:.85fr 1.15fr;gap:40px;align-items:center;}
+.story-photo{aspect-ratio:4/5;border-radius:var(--radius-lg);background:linear-gradient(140deg,rgb(var(--theme-primary)),rgb(var(--theme-secondary)));display:flex;align-items:center;justify-content:center;font-size:88px;color:#fff;box-shadow:var(--shadow-lg);}
+.story h2{font-size:clamp(24px,3vw,32px);font-weight:800;margin-bottom:16px;}
+.story p{margin:0 0 14px;font-size:16px;}
+.story .sig{font-weight:800;color:rgb(var(--theme-primary));font-size:17px;margin-top:6px;}
+
+/* stats (anti-fabrication) */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.stat{background:#fff;border:1px solid rgb(var(--border));border-radius:var(--radius-lg);padding:26px 20px;text-align:center;box-shadow:var(--shadow-sm);}
+.stat .v{font-size:clamp(34px,5vw,46px);font-weight:900;color:rgb(var(--theme-primary));line-height:1;}
+.stat .l{font-weight:700;margin-top:8px;}
+.stat .s{font-size:13px;color:rgb(var(--muted));margin-top:4px;}
+.stats-note{text-align:center;font-size:13px;color:rgb(var(--muted));margin:18px auto 0;max-width:48em;}
+.stats-note svg{vertical-align:-2px;margin-right:4px;color:rgb(var(--theme-primary));}
+
+/* team */
+.team{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px;}
+.member{border:1px solid rgb(var(--border));border-radius:var(--radius-lg);padding:24px;text-align:center;background:#fff;box-shadow:var(--shadow-sm);}
+.member .ava{width:84px;height:84px;border-radius:50%;margin:0 auto 14px;background:linear-gradient(135deg,rgb(var(--theme-primary)),rgb(var(--theme-secondary)));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:30px;}
+.member b{font-size:18px;display:block;}
+.member .role{color:rgb(var(--theme-primary));font-weight:700;font-size:14px;margin:3px 0 10px;}
+.member p{font-size:14px;color:rgb(var(--muted));margin:0;}
+
+/* certificates */
+.certs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;}
+.cert{display:flex;gap:14px;align-items:center;background:#fff;border:1px solid rgb(var(--border));border-radius:var(--radius);padding:18px;}
+.cert .ic{width:46px;height:46px;border-radius:11px;background:rgb(var(--theme-primary)/.12);color:rgb(var(--theme-primary));display:flex;align-items:center;justify-content:center;font-size:24px;flex:0 0 auto;}
+.cert b{display:block;font-size:15px;}
+.cert small{color:rgb(var(--muted));font-size:13px;}
+
+.cta-band{background:linear-gradient(120deg,rgb(var(--theme-primary)),rgb(var(--theme-secondary)));color:#fff;border-radius:var(--radius-lg);padding:34px;text-align:center;}
+.cta-band h2{font-size:26px;font-weight:800;margin-bottom:8px;}
+.cta-band p{color:rgba(255,255,255,.9);margin:0 0 20px;}
+
+.footer{background:#0b1220;color:#94a3b8;padding:30px 0;font-size:14px;}
+.footer .container{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+.footer a{color:#cbd5e1;text-decoration:none;}
+
+@media(max-width:760px){.story{grid-template-columns:1fr;}.stats{grid-template-columns:1fr;}}
+</style>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="theme-ha" id="topbody">
+<a href="#main" class="skip">Bỏ qua tới nội dung chính</a>
+
+<div class="demo-strip">
+  <div class="container">
+    <div><b>Design kit · kiteclass-public / about</b> — đổi giáo viên để xem theme runtime.</div>
+    <div class="theme-switch" role="group" aria-label="Chọn giáo viên demo">
+      <span>Demo giáo viên:</span>
+      <button class="sw-ha" data-theme="theme-ha" aria-pressed="true">Cô Hà · Toán</button>
+      <button class="sw-nhi" data-theme="theme-nhi" aria-pressed="false">Thầy Nhì · Hóa</button>
+      <button class="sw-khanh" data-theme="theme-khanh" aria-pressed="false">Cô Khánh · Anh</button>
+    </div>
+  </div>
+</div>
+
+<header class="nav">
+  <div class="container">
+    <a href="../index.html" class="nav-logo" aria-label="Lớp Toán cô Hà — trang chủ">
+      <span class="mark" id="brandMark">H</span>
+      <span class="name"><span id="brandName">Lớp Toán cô Hà</span><small id="brandTagline">Gia sư Toán tiểu học</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Điều hướng chính">
+      <a href="catalog.html">Khóa học</a>
+      <a href="about.html" aria-current="page">Về giáo viên</a>
+      <a href="contact.html">Liên hệ</a>
+    </nav>
+    <a href="contact.html" class="btn btn-cta">Đăng ký học thử</a>
+  </div>
+</header>
+
+<div class="page-head">
+  <div class="container">
+    <span class="eyebrow">Về giáo viên</span>
+    <h1>Người trực tiếp đồng hành cùng con</h1>
+    <p>Tôi tin mỗi đứa trẻ học tốt Toán khi được kèm sát và hiểu đúng gốc vấn đề — không phải học thuộc mẹo.</p>
+  </div>
+</div>
+
+<main id="main">
+  <!-- STORY -->
+  <section class="section">
+    <div class="container story">
+      <div class="story-photo" id="storyAva" aria-hidden="true">👩‍🏫</div>
+      <div>
+        <h2 id="storyHead">Câu chuyện của cô Hà</h2>
+        <p id="storyP1">Tôi là Nguyễn Thị Hà, tốt nghiệp khoa Toán ĐH Sư phạm Hà Nội. Suốt 12 năm dạy học, tôi nhận ra điều khiến con sợ Toán thường không phải vì con kém — mà vì con bị hổng một mắt xích nền tảng và lớp đông nên cô không kịp phát hiện.</p>
+        <p id="storyP2">Vì thế tôi mở các lớp sĩ số nhỏ 6–8 học viên, tự mình đứng lớp từng buổi và báo cáo tiến độ cho phụ huynh qua Zalo mỗi tuần. Tôi muốn anh/chị luôn biết con đang ở đâu trên lộ trình.</p>
+        <p class="sig" id="storySig">— Cô Nguyễn Thị Hà</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS (anti-fabrication, data-driven) -->
+  <section class="section alt" aria-labelledby="stats-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="stats-title">Số liệu thật từ lớp học</h2>
+        <p>Không phải con số marketing — đây là dữ liệu lớp đang mở của tôi.</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="v">2</div><div class="l">lớp đang mở</div><div class="s">Toán lớp 4 &amp; lớp 5</div></div>
+        <div class="stat"><div class="v">12</div><div class="l">học viên hiện tại</div><div class="s">Sĩ số 6–8 mỗi lớp</div></div>
+        <div class="stat"><div class="v">85%</div><div class="l">học viên lên lớp giỏi</div><div class="s">Cuối năm học gần nhất</div></div>
+      </div>
+      <p class="stats-note">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        * Số liệu lấy trực tiếp từ dữ liệu tenant trên KiteClass, cập nhật tự động — không nhập tay, không phóng đại. Khi chưa có đủ dữ liệu, hệ thống ẩn chỉ số thay vì hiển thị số ước lượng.
+      </p>
+    </div>
+  </section>
+
+  <!-- TEAM -->
+  <section class="section" aria-labelledby="team-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="team-title">Giáo viên đồng hành</h2>
+        <p>Lớp do một mình tôi phụ trách chuyên môn, có cộng tác viên hỗ trợ phụ huynh.</p>
+      </div>
+      <div class="team">
+        <div class="member">
+          <div class="ava" id="m1Ava">H</div>
+          <b id="m1Name">Cô Nguyễn Thị Hà</b>
+          <div class="role" id="m1Role">Giáo viên chính · Toán</div>
+          <p id="m1Bio">ĐH Sư phạm Hà Nội · 12 năm kinh nghiệm · trực tiếp đứng lớp toàn bộ buổi học.</p>
+        </div>
+        <div class="member">
+          <div class="ava">M</div>
+          <b>Chị Trần Thị Mai</b>
+          <div class="role">Cộng tác viên · Hỗ trợ phụ huynh</div>
+          <p>Tiếp nhận đăng ký, sắp xếp lịch học thử và nhắc lịch học qua Zalo cho phụ huynh.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CERTIFICATES -->
+  <section class="section alt" aria-labelledby="cert-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="cert-title">Chứng chỉ &amp; chuyên môn</h2>
+      </div>
+      <div class="certs">
+        <div class="cert"><span class="ic" aria-hidden="true">🎓</span><div><b>Cử nhân Sư phạm Toán</b><small>ĐH Sư phạm Hà Nội (2012)</small></div></div>
+        <div class="cert"><span class="ic" aria-hidden="true">📜</span><div><b>Chứng chỉ nghiệp vụ sư phạm</b><small>Bộ GD&amp;ĐT cấp</small></div></div>
+        <div class="cert"><span class="ic" aria-hidden="true">🏅</span><div><b>GV dạy giỏi cấp quận</b><small>Năm học 2022–2023</small></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section">
+    <div class="container">
+      <div class="cta-band">
+        <h2>Cho con học thử một buổi miễn phí</h2>
+        <p>Đăng ký để cô kiểm tra trình độ và tư vấn lộ trình phù hợp với con.</p>
+        <a href="contact.html" class="btn btn-cta">Đăng ký học thử</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div>© 2026 <span id="footName">Lớp Toán cô Hà</span> · Vận hành trên nền tảng KiteClass</div>
+    <div><a href="catalog.html">Khóa học</a> · <a href="contact.html">Liên hệ &amp; Zalo</a></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var body=document.getElementById('topbody');
+  var btns=Array.prototype.slice.call(document.querySelectorAll('.theme-switch button'));
+  var BRAND={
+    'theme-ha':{mark:'H',name:'Lớp Toán cô Hà',tag:'Gia sư Toán tiểu học',ava:'👩‍🏫',
+      head:'Câu chuyện của cô Hà',
+      p1:'Tôi là Nguyễn Thị Hà, tốt nghiệp khoa Toán ĐH Sư phạm Hà Nội. Suốt 12 năm dạy học, tôi nhận ra điều khiến con sợ Toán thường không phải vì con kém — mà vì con bị hổng một mắt xích nền tảng và lớp đông nên cô không kịp phát hiện.',
+      sig:'— Cô Nguyễn Thị Hà',gv:'Cô Nguyễn Thị Hà',role:'Giáo viên chính · Toán',
+      bio:'ĐH Sư phạm Hà Nội · 12 năm kinh nghiệm · trực tiếp đứng lớp toàn bộ buổi học.'},
+    'theme-nhi':{mark:'N',name:'Lớp Hóa thầy Nhì',tag:'Luyện Hóa THPT',ava:'👨‍🏫',
+      head:'Câu chuyện của thầy Nhì',
+      p1:'Tôi là Lê Văn Nhì, thạc sĩ Hóa học. 10 năm luyện thi THPT cho tôi thấy học sinh sợ Hóa vì học thuộc thay vì hiểu bản chất phản ứng — tôi dạy theo hướng tư duy gốc.',
+      sig:'— Thầy Lê Văn Nhì',gv:'Thầy Lê Văn Nhì',role:'Giáo viên chính · Hóa',
+      bio:'Thạc sĩ Hóa học · 10 năm luyện thi THPT · phương pháp tư duy bản chất.'},
+    'theme-khanh':{mark:'K',name:'Anh ngữ cô Khánh',tag:'Luyện thi IELTS',ava:'👩‍🏫',
+      head:'Câu chuyện của cô Khánh',
+      p1:'Tôi là Phạm Gia Khánh, IELTS 8.5. 8 năm luyện thi giúp tôi tin rằng mỗi học viên cần một lộ trình riêng theo band mục tiêu — không có công thức chung cho tất cả.',
+      sig:'— Cô Phạm Gia Khánh',gv:'Cô Phạm Gia Khánh',role:'Giáo viên chính · Tiếng Anh',
+      bio:'IELTS 8.5 · 8 năm luyện thi · lộ trình cá nhân hóa theo band mục tiêu.'}
+  };
+  function apply(theme){
+    body.className=theme;var b=BRAND[theme];
+    document.getElementById('brandMark').textContent=b.mark;
+    document.getElementById('brandName').textContent=b.name;
+    document.getElementById('brandTagline').textContent=b.tag;
+    document.getElementById('footName').textContent=b.name;
+    document.getElementById('storyAva').textContent=b.ava;
+    document.getElementById('storyHead').textContent=b.head;
+    document.getElementById('storyP1').textContent=b.p1;
+    document.getElementById('storySig').textContent=b.sig;
+    document.getElementById('m1Ava').textContent=b.mark;
+    document.getElementById('m1Name').textContent=b.gv;
+    document.getElementById('m1Role').textContent=b.role;
+    document.getElementById('m1Bio').textContent=b.bio;
+    btns.forEach(function(x){x.setAttribute('aria-pressed',x.getAttribute('data-theme')===theme);});
+  }
+  btns.forEach(function(x){x.addEventListener('click',function(){apply(x.getAttribute('data-theme'));});});
+})();
+</script>
+</body>
+</html>

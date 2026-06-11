@@ -1,7 +1,7 @@
 ---
 id: GAP-1180
 title: Demo-trio không có seeder kitehub-side instances → by-subdomain 404 (seed-coverage gap cross-service + UUID mismatch + recipe §2.2 sai)
-status: PARTIAL
+status: DONE
 priority: P1
 domain: Backend
 phase: phase-1-beta
@@ -43,9 +43,9 @@ Kiến trúc DB-per-tenant + lifecycle tách (kitehub quản instance lifecycle/
 
 ## Acceptance Criteria
 
-- [ ] Dev seeder (kitehub-side OR canonical SQL) tạo demo-trio `instances` rows idempotent, chạy tự động với `up.sh`/dev profile — fresh DB reset → `by-subdomain/co-ha-toan` resolve 200 không cần manual INSERT.
-- [ ] UUID demo-trio thống nhất 1 scheme giữa BrandingDataSeeder + seed-landing-content.sql (branding/landing link đúng).
-- [ ] Recipe `2026-06-11-g2-recipe-landing-100-subdomain.md` §2.2 sửa cho đúng nguồn seed (kitehub instances + kiteclass branding).
+- [x] Dev seeder (kitehub-side OR canonical SQL) tạo demo-trio `instances` rows idempotent, chạy tự động với `up.sh`/dev profile — fresh DB reset → `by-subdomain/co-ha-toan` resolve 200 không cần manual INSERT.
+- [x] UUID demo-trio thống nhất 1 scheme giữa BrandingDataSeeder + seed-landing-content.sql (branding/landing link đúng).
+- [x] Recipe `2026-06-11-g2-recipe-landing-100-subdomain.md` §2.2 sửa cho đúng nguồn seed (kitehub instances + kiteclass branding).
 
 ## Related
 
@@ -55,3 +55,7 @@ Kiến trúc DB-per-tenant + lifecycle tách (kitehub quản instance lifecycle/
 - [[GAP-1114]] — multi-session gap-ID coordination (gap này reserve block 1180-1189)
 - Code: `kiteclass-core .../dev/seeder/BrandingDataSeeder.java` (HA/NHI UUID + comment dòng 58) + `kitehub-subscription .../api/controller/PublicTenantController.java` (findBySubdomainAndDeletedFalse) + `kitehub/scripts/seed-landing-content.sql` (ad0fa96e/0abe093c UUID)
 - Rule: `design-first-investigation-order` (design→code truy root cause), `discovery-to-gap-inline-filing` §1 (file inline)
+
+## Log
+
+- **2026-06-11 (DONE):** `DemoTrioInstanceSeeder` (kitehub-subscription, @Profile dev) seed Instance rows kitehub-side cho demo-trio. Verified live: `GET /api/v1/public/tenants/by-subdomain/{co-ha-toan,thay-nhi-hoa}` → 200 ACTIVE; toàn bộ chuỗi nip.io walk landing-100 resolve OK.

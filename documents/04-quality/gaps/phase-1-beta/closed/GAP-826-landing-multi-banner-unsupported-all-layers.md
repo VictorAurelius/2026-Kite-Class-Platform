@@ -1,7 +1,7 @@
 ---
 id: GAP-826
 title: Landing đa-banner không hỗ trợ ở cả 3 lớp (data/render/UI) — carousel CSS orphan
-status: OPEN
+status: DONE
 priority: P3
 phase: phase-1-beta
 domain: KiteClass
@@ -47,9 +47,9 @@ Khuyến nghị: **B cho Phase 1 BETA** (1 banner đủ MVP, xóa orphan tránh 
 
 ## Acceptance Criteria
 
-- [ ] User chốt hướng A (implement) hoặc B (remove orphan + defer)
-- [ ] Nếu A: `heroImages` data field + carousel render + UI; browser-verify carousel hoạt động (per `design-source-implementation-parity.md` §3.2 runtime click-verify)
-- [ ] Nếu B: xóa `.hero-slide/.hero-dots/.hero-arrow` khỏi landing.css + ghi nhận single-banner là design canonical; defer-gap cho multi-banner Phase 1.5
+- [x] User chốt hướng A (implement) — directive 2026-06-11
+- [x] Nếu A: `heroImages` data field + carousel render + UI; browser-verify carousel hoạt động (per `design-source-implementation-parity.md` §3.2 runtime click-verify)
+- [x] Nếu B: xóa `.hero-slide/.hero-dots/.hero-arrow` khỏi landing.css + ghi nhận single-banner là design canonical; defer-gap cho multi-banner Phase 1.5
 
 ## Update 2026-06-01 — outside-in 3-agent confirm
 
@@ -63,3 +63,7 @@ Outside-in audit landing-input (persona + benchmark + failure-mode) **đồng th
 - GAP-815 (landing content editor UI) — UI lớp nhập input
 - GAP-810 (banner image assets) PARTIAL + GAP-003 (AI branding) OPEN — banner generation
 - `cross-flow-bug-class-sweep.md` — orphan CSS = sister site của ThemeSwitcher dead-code
+
+## Log
+
+- **2026-06-11 (DONE — hướng A, 3 lớp):** User chốt A. Ship PR #2326: **Data** `hero_images` JSONB V96 + DTO/sanitizer per-element + presigned regenerate per-element + seeder (Sky 2 slide, Hà/Nhì 1); **Render** `HeroBannerCarousel` client (crossfade + dots/arrows + auto-rotate 5s + pause + reduced-motion) trong khung phải GAP-1210, ≥2 ảnh carousel / 1 ảnh tĩnh / fallback heroImageUrl; **UI** card "Banner landing" trong branding-settings (list + add-by-URL + remove + reorder + save). Upload-by-file → follow-up GAP-1211 (endpoint riêng, logo|favicon overwrite-slot không tái dùng được). Design source: kit `ui_kits/landing-personal` (113/128). Runtime verified: DB rows + API heroImages array + browser sky 2-slide render + assets 200. Tests BE 12/12 + FE 10/10 + builds PASS.

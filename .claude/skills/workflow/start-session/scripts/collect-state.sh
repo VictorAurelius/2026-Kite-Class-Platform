@@ -114,7 +114,10 @@ RS_CVE_CRIT="?"
 RS_STALE_BRANCHES="?"
 RS_AUDIT_P0="?"
 if [ -f scripts/repo-status.sh ]; then
-  RS_JSON="$(bash scripts/repo-status.sh --json 2>/dev/null || echo '{}')"
+  # GAP-1201: cold-cache/race can emit >1 JSON doc on the stream — keep only the
+# first so numeric fields never become two-line values ("0\n0" → [: integer
+# expression expected).
+RS_JSON="$(bash scripts/repo-status.sh --json 2>/dev/null | jq -cs '.[0] // {}' 2>/dev/null || echo '{}')"
   if command -v jq >/dev/null 2>&1; then
     RS_LEVEL="$(echo "$RS_JSON" | jq -r '.level // "unknown"' 2>/dev/null || echo unknown)"
     RS_CI="$(echo "$RS_JSON" | jq -r '.ci.status // "unknown"' 2>/dev/null || echo unknown)"

@@ -14,6 +14,7 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -51,6 +52,16 @@ public class LandingPage extends BaseEntity {
     @Column(name = "hero_image_url", length = 500)
     @Size(max = 500, message = "{landing.hero.image.size}")
     private String heroImageUrl;
+
+    // Hero banner carousel (GAP-826) — ordered list of banner image URLs; slide order =
+    // list order. JSONB-backed (GAP-220 pattern: bind List<String> → jsonb). Nullable/empty
+    // → FE falls back to the single {@link #heroImageUrl} (backward-compat: existing single
+    // banner unchanged). Each element is host/scheme-validated on the write path by
+    // LandingPageContentSanitizer.validateImageUrl (same allowlist as heroImageUrl) and
+    // presigned-regenerated on read by LandingPageServiceImpl.withFreshAssetUrls (GAP-1204).
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "hero_images", columnDefinition = "jsonb")
+    private List<String> heroImages;
 
     // Teacher/About Section
     @Column(name = "teacher_bio", columnDefinition = "TEXT")

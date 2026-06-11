@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * Request DTO for updating landing page content.
  * All fields optional for partial updates (PATCH semantics).
@@ -32,6 +34,12 @@ public class UpdateLandingPageRequest {
 
     @Size(max = 500, message = "{landing.hero.image.size}")
     private String heroImageUrl;
+
+    // Hero banner carousel (GAP-826) — ordered banner URLs (slide order = list order).
+    // Max 20 banners; each element ≤500 chars + host/scheme-validated by the content
+    // sanitizer on write. Null = no change (PATCH semantics); empty list = clear carousel.
+    @Size(max = 20, message = "{landing.heroImages.size}")
+    private List<@Size(max = 500, message = "{landing.hero.image.size}") String> heroImages;
 
     @Size(max = 2000, message = "{landing.teacherBio.size}")
     private String teacherBio;

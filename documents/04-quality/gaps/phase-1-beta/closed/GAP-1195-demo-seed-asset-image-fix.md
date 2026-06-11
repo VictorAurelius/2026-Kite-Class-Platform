@@ -1,7 +1,7 @@
 ---
 id: GAP-1195
 title: Fix asset ảnh demo — webp + next/image, gitignore demo-banners/, tách logo≠banner, Khánh hero durable
-status: PARTIAL
+status: DONE
 priority: P2
 domain: Frontend
 phase: phase-1-beta
@@ -29,9 +29,13 @@ Audit `2026-06-11-demo-trio-seed-coverage-audit.md` phát hiện 4 lỗi asset �
 - [x] `.gitignore` thêm `demo-banners/`, PNG gỡ khỏi git track
 - [x] logo file riêng ≠ hero banner
 - [x] Khánh hero asset committed, không 404 remote
-- [ ] G2 walk: landing 2 tenant ảnh render đúng, không 404
+- [x] G2 walk: landing 2 tenant ảnh render đúng, không 404
 
 ## Related
 
 - Wave: `wave-2026-06-11-demo-seed-1-2tenant-full.md` Bucket F (🔨 Delta)
 - Trigger audit: `documents/04-quality/audits/2026-06-11-demo-trio-seed-coverage-audit.md`
+
+## Log
+
+- **2026-06-11 (DONE — item 2 re-scoped):** State-check 4 lỗi: (1) hết PNG nặng — toàn bộ webp ✅; (3) logo đã tách `*-logo.webp` ≠ banner ✅ (GAP-1203 fix); (4) Khánh dùng `co-khanh-phapluat.webp` committed ✅ (GAP-826 seeder). Item (2) gitignore demo-banners RE-SCOPE: giữ webp nhẹ TRACKED có chủ đích — demo durable chính là yêu cầu của fix #4, mâu thuẫn gitignore; chỉ `/demo/sky/` (ảnh chân dung lớn) giữ gitignored.

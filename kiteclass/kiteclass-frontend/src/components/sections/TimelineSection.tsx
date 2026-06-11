@@ -36,17 +36,21 @@ const DEFAULT_STEPS: SlotItem[] = [
 
 interface TimelineSectionProps {
   slots?: SlotData;
+  /** Title override (GAP-1208); defaults to "Lộ trình học tập". */
+  heading?: string;
+  /** Sub-heading override; defaults to center voice. */
+  subheading?: string;
 }
 
-export function TimelineSection({ slots }: TimelineSectionProps) {
+export function TimelineSection({ slots, heading, subheading }: TimelineSectionProps) {
   const steps = (slots?.steps as SlotItem[] | undefined) || DEFAULT_STEPS;
 
   return (
     <section className="py-16">
       <div className="container mx-auto px-4">
-        <h2 className="mb-4 text-center text-3xl font-bold">Lộ trình học tập</h2>
+        <h2 className="mb-4 text-center text-3xl font-bold">{heading ?? 'Lộ trình học tập'}</h2>
         <p className="mx-auto mb-12 max-w-2xl text-center text-muted-foreground">
-          Bốn bước rõ ràng từ ngày đầu đến khi đạt mục tiêu — minh bạch, có cam kết đầu ra.
+          {subheading ?? 'Bốn bước rõ ràng từ ngày đầu đến khi đạt mục tiêu — minh bạch, có cam kết đầu ra.'}
         </p>
         <ol className="mx-auto grid max-w-5xl gap-6 md:grid-cols-4">
           {steps.map((step, index) => (

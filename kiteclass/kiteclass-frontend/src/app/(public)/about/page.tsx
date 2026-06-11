@@ -1,255 +1,175 @@
 /**
- * About page with company information, values, and statistics.
+ * Public per-tenant "Về giáo viên" page (GAP-274 phase-2 / GAP-1208 voice).
  *
- * Above-the-fold (Hero / Mission+Vision / Stats / Core Values) renders
- * synchronously in this server component. The "Why KiteClass / Timeline /
- * CTA" sections are lazy-loaded via `next/dynamic` (`ssr: true`) so SEO
- * crawlers still see the full content but the bundler emits those
- * sections as a separate chunk.
+ * Persona P1 Solo Teacher — voice xưng "tôi/cô", giọng cá nhân. Sections render
+ * from the tenant landing payload and HIDE when their source is null/empty:
+ *   - Câu chuyện (centerName + aboutText / teacherBio)
+ *   - Số liệu thật (landing.stats — anti-fabrication GAP-958, no hardcoded numbers)
+ *   - Giáo viên đồng hành (landing.teachers)
+ *   - Chứng chỉ & chuyên môn (teacher credentials)
  *
- * GAP-236 Sub-PR B Agent A — code-splitting for `/about`.
+ * Labels follow GAP-1208 (GV độc lập): "Về giáo viên", "Giáo viên đồng hành".
  *
  * @author KiteClass Team
- * @since 3.4.0
  */
 
 import { Metadata } from 'next';
-import nextDynamic from 'next/dynamic';
+import Link from 'next/link';
+import { Award, GraduationCap, Info } from 'lucide-react';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import {
-  Target,
-  Heart,
-  Users,
-  Shield,
-  Zap,
-  Globe,
-  BookOpen,
-  GraduationCap,
-  Building2,
-  CheckCircle2,
-} from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
-
-const AboutDetails = nextDynamic(
-  () =>
-    import('@/components/public/about-details').then((m) => ({
-      default: m.AboutDetails,
-    })),
-  {
-    ssr: true,
-    loading: () => (
-      <div className="mb-16 space-y-6">
-        <Skeleton className="h-9 w-1/3 mx-auto" />
-        <div className="grid md:grid-cols-2 gap-6">
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-64 w-full" />
-        </div>
-      </div>
-    ),
-  },
-);
+  getTenantLanding,
+  landingStr,
+  landingArray,
+} from '@/lib/api/tenant-landing';
 
 export const metadata: Metadata = {
-  title: 'Giới thiệu',
-  description:
-    'Giới thiệu về KiteClass - Nền tảng quản lý trung tâm tiếng Anh toàn diện, giúp tối ưu hóa vận hành và nâng cao chất lượng giảng dạy.',
-  keywords: [
-    'giới thiệu KiteClass',
-    'về chúng tôi',
-    'quản lý trung tâm',
-    'nền tảng giáo dục',
-  ],
+  title: 'Về giáo viên',
+  description: 'Câu chuyện, đội ngũ và số liệu thật của lớp học.',
 };
 
-export default function AboutPage() {
+interface TeacherEntry {
+  name?: string;
+  subject?: string;
+  photoUrl?: string;
+  credentials?: string[];
+}
+interface StatEntry {
+  value?: string;
+  label?: string;
+}
+
+export default async function AboutPage() {
+  const landing = await getTenantLanding();
+
+  const centerName = landingStr(landing, 'centerName') || landingStr(landing, 'heroTitle') || 'giáo viên';
+  const story = landingStr(landing, 'aboutText') || landingStr(landing, 'teacherBio');
+  const tagline = landingStr(landing, 'tagline');
+  const teachers = landingArray<TeacherEntry>(landing, 'teachers');
+  const stats = landingArray<StatEntry>(landing, 'stats').filter((s) => s.value && s.label);
+  const credentials = (teachers[0]?.credentials ?? []).filter((c) => typeof c === 'string' && c.trim());
+
   return (
-    <div className="container mx-auto px-4 py-12">
-      {/* Hero Section */}
-      <div className="mb-16 text-center">
-        <Badge className="mb-4" variant="outline">
-          Về chúng tôi
-        </Badge>
-        <h1 className="text-4xl font-bold mb-4 md:text-5xl">
-          Giới thiệu về KiteClass
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          Nền tảng quản lý trung tâm tiếng Anh toàn diện, được thiết kế để giúp
-          các trung tâm tối ưu hóa vận hành và nâng cao chất lượng giảng dạy.
-        </p>
-      </div>
-
-      {/* Mission & Vision */}
-      <div className="grid md:grid-cols-2 gap-8 mb-16">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <Target className="h-8 w-8 text-primary" />
-              <CardTitle className="text-2xl">Sứ mệnh</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground leading-relaxed">
-              Chúng tôi tin rằng công nghệ có thể giúp các trung tâm tiếng Anh
-              vận hành hiệu quả hơn, để giáo viên có thể tập trung vào việc
-              giảng dạy và học viên có trải nghiệm học tập tốt nhất. Sứ mệnh
-              của KiteClass là mang đến giải pháp quản lý toàn diện, dễ sử dụng
-              và phù hợp với mọi quy mô trung tâm.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <Heart className="h-8 w-8 text-primary" />
-              <CardTitle className="text-2xl">Tầm nhìn</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground leading-relaxed">
-              Trở thành nền tảng quản lý trung tâm tiếng Anh hàng đầu tại Việt
-              Nam, giúp hàng nghìn trung tâm nâng cao chất lượng giảng dạy và
-              trải nghiệm học viên. Chúng tôi hướng tới một hệ sinh thái giáo
-              dục số hóa, kết nối giáo viên, học viên và phụ huynh một cách
-              liền mạch.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Statistics */}
-      <div className="mb-16">
-        <h2 className="text-3xl font-bold text-center mb-8">
-          KiteClass trong con số
-        </h2>
-        <div className="grid md:grid-cols-4 gap-6">
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <Building2 className="h-12 w-12 text-primary mx-auto mb-3" />
-              <div className="text-4xl font-bold mb-2">100+</div>
-              <p className="text-sm text-muted-foreground">Trung tâm tin dùng</p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <Users className="h-12 w-12 text-primary mx-auto mb-3" />
-              <div className="text-4xl font-bold mb-2">10,000+</div>
-              <p className="text-sm text-muted-foreground">Học viên đang học</p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <GraduationCap className="h-12 w-12 text-primary mx-auto mb-3" />
-              <div className="text-4xl font-bold mb-2">500+</div>
-              <p className="text-sm text-muted-foreground">Giáo viên</p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <BookOpen className="h-12 w-12 text-primary mx-auto mb-3" />
-              <div className="text-4xl font-bold mb-2">1,000+</div>
-              <p className="text-sm text-muted-foreground">Khóa học</p>
-            </CardContent>
-          </Card>
+    <div>
+      {/* Hero */}
+      <div className="bg-gradient-to-br from-theme-primary to-theme-secondary text-white">
+        <div className="container mx-auto px-4 py-14 text-center">
+          <span className="mb-3 inline-flex rounded-full bg-white/15 px-3 py-1.5 text-xs font-extrabold uppercase tracking-wider">
+            Về giáo viên
+          </span>
+          <h1 className="text-3xl font-extrabold md:text-4xl">{centerName}</h1>
+          {tagline && <p className="mx-auto mt-3 max-w-2xl text-white/90">{tagline}</p>}
         </div>
       </div>
 
-      {/* Core Values */}
-      <div className="mb-16">
-        <h2 className="text-3xl font-bold text-center mb-8">Giá trị cốt lõi</h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader>
-              <Shield className="h-10 w-10 text-primary mb-3" />
-              <CardTitle>Đáng tin cậy</CardTitle>
-              <CardDescription>
-                Dữ liệu được mã hóa và bảo mật tuyệt đối
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Mã hóa SSL/TLS end-to-end</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Backup tự động hàng ngày</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Tuân thủ GDPR & quy định Việt Nam</span>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
+      <div className="container mx-auto px-4 py-12">
+        {/* Câu chuyện */}
+        {story && (
+          <section className="mb-14 grid items-start gap-8 md:grid-cols-[auto,1fr]">
+            <div
+              className="flex h-24 w-24 items-center justify-center rounded-2xl bg-theme-primary/10 text-5xl"
+              aria-hidden="true"
+            >
+              👩‍🏫
+            </div>
+            <div>
+              <h2 className="mb-3 text-2xl font-bold">Câu chuyện của {centerName}</h2>
+              <p className="whitespace-pre-line leading-relaxed text-muted-foreground">{story}</p>
+            </div>
+          </section>
+        )}
 
-          <Card>
-            <CardHeader>
-              <Zap className="h-10 w-10 text-primary mb-3" />
-              <CardTitle>Hiệu quả</CardTitle>
-              <CardDescription>
-                Tối ưu hóa quy trình vận hành trung tâm
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Tự động hóa điểm danh & báo cáo</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Giảm 70% thời gian quản lý</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Tích hợp thanh toán online</span>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
+        {/* Số liệu thật — anti-fabrication: only when tenant actually has stats */}
+        {stats.length > 0 && (
+          <section className="mb-14" aria-labelledby="stats-title">
+            <div className="mb-6 text-center">
+              <h2 id="stats-title" className="text-2xl font-bold">
+                Số liệu thật từ lớp học
+              </h2>
+              <p className="text-muted-foreground">Không phải con số marketing — đây là dữ liệu lớp thật.</p>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+              {stats.map((s, i) => (
+                <div key={i} className="rounded-2xl border bg-white p-6 text-center shadow-sm">
+                  <div className="text-4xl font-black text-theme-primary">{s.value}</div>
+                  <div className="mt-1 text-sm font-semibold text-muted-foreground">{s.label}</div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 flex items-start justify-center gap-2 text-center text-xs text-muted-foreground">
+              <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>
+                Số liệu lấy trực tiếp từ dữ liệu tenant trên KiteClass, cập nhật tự động — không nhập tay,
+                không phóng đại. Khi chưa đủ dữ liệu, hệ thống ẩn chỉ số thay vì hiển thị số ước lượng.
+              </span>
+            </p>
+          </section>
+        )}
 
-          <Card>
-            <CardHeader>
-              <Globe className="h-10 w-10 text-primary mb-3" />
-              <CardTitle>Dễ sử dụng</CardTitle>
-              <CardDescription>
-                Giao diện thân thiện, học 1 ngày là quen
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Giao diện tiếng Việt 100%</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Hỗ trợ 24/7 qua Zalo/Hotline</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Video hướng dẫn chi tiết</span>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Giáo viên đồng hành */}
+        {teachers.length > 0 && (
+          <section className="mb-14" aria-labelledby="team-title">
+            <div className="mb-6 text-center">
+              <h2 id="team-title" className="text-2xl font-bold">
+                Giáo viên đồng hành
+              </h2>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {teachers.map((t, i) => (
+                <div key={i} className="rounded-2xl border bg-white p-6 text-center shadow-sm">
+                  <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-theme-primary/10 text-xl font-black text-theme-primary">
+                    {(t.name ?? 'GV').charAt(0)}
+                  </div>
+                  {t.name && <b className="block">{t.name}</b>}
+                  {t.subject && <div className="text-sm text-muted-foreground">{t.subject}</div>}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Chứng chỉ & chuyên môn */}
+        {credentials.length > 0 && (
+          <section className="mb-14" aria-labelledby="cert-title">
+            <div className="mb-6 text-center">
+              <h2 id="cert-title" className="text-2xl font-bold">
+                Chứng chỉ &amp; chuyên môn
+              </h2>
+            </div>
+            <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-2">
+              {credentials.map((c, i) => (
+                <div key={i} className="flex items-center gap-3 rounded-xl border bg-white p-4 shadow-sm">
+                  <Award className="h-6 w-6 shrink-0 text-theme-primary" aria-hidden="true" />
+                  <span className="font-semibold">{c}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Empty fallback — when tenant supplied no about content at all */}
+        {!story && stats.length === 0 && teachers.length === 0 && (
+          <section className="mb-14 rounded-2xl border bg-muted/40 p-10 text-center">
+            <GraduationCap className="mx-auto mb-3 h-10 w-10 text-theme-primary" aria-hidden="true" />
+            <p className="mx-auto max-w-md text-muted-foreground">
+              Thông tin giới thiệu đang được cập nhật. Anh/chị có thể liên hệ trực tiếp để được tư vấn.
+            </p>
+          </section>
+        )}
+
+        {/* CTA */}
+        <section className="rounded-2xl bg-gradient-to-br from-theme-primary to-theme-secondary p-8 text-center text-white">
+          <h2 className="text-2xl font-extrabold">Cho con học thử một buổi miễn phí</h2>
+          <p className="mx-auto mt-2 max-w-xl text-white/90">
+            Đăng ký để được kiểm tra trình độ và tư vấn lộ trình phù hợp với con.
+          </p>
+          <Link
+            href="/contact"
+            className="mt-5 inline-block rounded-xl bg-white px-6 py-3 font-bold text-theme-primary"
+          >
+            Đăng ký học thử
+          </Link>
+        </section>
       </div>
-
-      {/* Below-the-fold sections — lazy loaded */}
-      <AboutDetails />
     </div>
   );
 }

@@ -18,6 +18,7 @@ import { ThemeSync } from '@/components/theme/ThemeSync';
 import { TemplateRenderer, type SectionSlotMap } from '@/components/sections/TemplateRenderer';
 import { getTemplate } from '@/lib/template/configs';
 import { OrganizationJsonLd } from '@/components/seo/JsonLd';
+import { NotFoundTenant } from '@/components/tenant/NotFoundTenant';
 
 const getLandingPageData = async (tenantOverride?: string) => {
   try {
@@ -77,6 +78,17 @@ export async function generateMetadata({
   searchParams: Promise<{ tenant?: string }>;
 }): Promise<Metadata> {
   const { tenant } = await searchParams;
+
+  // Unknown subdomain (middleware tried to resolve, BE 404 — GAP-1200): emit
+  // generic metadata, don't fetch the env/default tenant's landing.
+  if ((await headers()).get('x-tenant-not-found')) {
+    return {
+      title: 'Không tìm thấy trung tâm | KiteClass',
+      description: 'Địa chỉ này chưa gắn với trung tâm nào trên KiteClass.',
+      robots: { index: false, follow: false },
+    };
+  }
+
   const ld = (await getLandingPageData(tenant)) as Record<string, unknown>;
   const name = resolveCenterName(ld);
   const tagline = typeof ld.tagline === 'string' ? ld.tagline.trim() : '';
@@ -110,6 +122,17 @@ export default async function LandingPage({
   searchParams: Promise<{ tenant?: string; template?: string; primary?: string; secondary?: string; accent?: string }>;
 }) {
   const params = await searchParams;
+
+  // Unknown subdomain (middleware resolved a real slug but BE returned 404 —
+  // GAP-1200): render a friendly not-found page instead of silently falling
+  // back to the env/default tenant landing (which would show a different
+  // center's brand + content). Localhost/IP without a subdomain never set this
+  // header, so the dev/1-tenant-per-deploy fallback below is preserved.
+  const notFoundSlug = (await headers()).get('x-tenant-not-found');
+  if (notFoundSlug) {
+    return <NotFoundTenant slug={notFoundSlug} />;
+  }
+
   const landingData = await getLandingPageData(params.tenant);
   // Template type bound per-tenant (landing_pages.template_type): GV độc lập → 'personal'.
   // Query param ?template= override cho preview; cuối cùng fallback default (organization).
@@ -213,8 +236,17 @@ export default async function LandingPage({
   // built-in real routes (/register, /catalog) — no fabricated content emitted.
   const str = (v: unknown): string | undefined =>
     typeof v === 'string' && v.trim() ? (v as string) : undefined;
-  const heroSlot: Record<string, string | undefined> = {
+
+  // Hero banner carousel (GAP-826). Emit the `images` slot only when the backend returned
+  // a non-empty array of URL strings; otherwise HeroSection falls back to the single `image`
+  // slot (heroImageUrl) → single-banner behaviour unchanged (backward-compat).
+  const heroImages = Array.isArray(ld.heroImages)
+    ? (ld.heroImages.filter((u): u is string => typeof u === 'string' && u.trim().length > 0))
+    : undefined;
+
+  const heroSlot: Record<string, string | string[] | undefined> = {
     image: ld.heroImageUrl as string | undefined,
+    ...(heroImages && heroImages.length > 0 ? { images: heroImages } : {}),
     ...(str(ld.ctaPrimaryLabel) ? { ctaPrimaryLabel: str(ld.ctaPrimaryLabel) } : {}),
     ...(str(ld.ctaPrimaryHref) ? { ctaPrimaryHref: str(ld.ctaPrimaryHref) } : {}),
     ...(str(ld.ctaSecondaryLabel) ? { ctaSecondaryLabel: str(ld.ctaSecondaryLabel) } : {}),

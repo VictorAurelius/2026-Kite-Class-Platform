@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ShieldCheck, GraduationCap } from 'lucide-react';
 import type { SlotData } from '@/lib/template/slots';
+import { HeroBannerCarousel } from './HeroBannerCarousel';
 
 interface HeroSectionProps {
   slots?: SlotData;
@@ -12,14 +13,15 @@ interface HeroSectionProps {
 }
 
 /**
- * Full-width promo hero.
+ * Two-column promo hero: copy on the LEFT over the tenant gradient, banner
+ * asset FRAMED on the RIGHT (rounded card, no scrim over the image).
  *
- * Design (Wave landing-100 Bucket C): the AI scene/portrait is used as an
- * OPTIMIZED BACKGROUND IMAGE (next/image fill + object-cover) with the slogan,
- * subtitle and CTA rendered as REAL HTML OVERLAY on top — NOT baked into the PNG.
- * This keeps Vietnamese text crisp (no compression blur), lets it reflow on
- * mobile, and stays accessible/SEO-friendly. A gradient scrim layer sits between
- * the image and the text for legible contrast on any AI scene.
+ * Design parity (GAP-1210, reverts Bucket C full-bleed): the Claude Design
+ * source places the banner in a right-side frame — banner assets contain
+ * people (faces) and sometimes baked-in text, so a full-bleed background with
+ * a text scrim covered faces and dimmed in-image text. The frame keeps the
+ * asset fully visible; the HTML copy never overlaps it. Matches the original
+ * GAP-810 two-column hero and the marketing-site kit (visual framed right).
  *
  * Falls back to a centred tenant-coloured gradient text hero when no image.
  *
@@ -32,6 +34,19 @@ export function HeroSection({ slots, title, subtitle, tagline }: HeroSectionProp
   const heroTagline = (slots?.tagline as string) || tagline;
   const heroImage = slots?.image as string | undefined;
   const urgency = (slots?.urgency as string) || undefined;
+
+  // Hero banner carousel (GAP-826). `images` is the ordered banner list; fall back to the
+  // single `image` slot (legacy heroImageUrl) when the list is empty → backward-compat.
+  const rawImages = slots?.images;
+  const carouselImages = Array.isArray(rawImages)
+    ? (rawImages.filter((x) => typeof x === 'string' && x.length > 0) as string[])
+    : [];
+  // The frame shows: the carousel when ≥2 slides, else a single static banner (1 slide
+  // from the list, or the legacy single `image`). No image at all → text gradient fallback.
+  const frameImages = carouselImages.length > 0
+    ? carouselImages
+    : (heroImage ? [heroImage] : []);
+  const hasFrame = frameImages.length > 0;
 
   // CTA copy is data-driven (slots, Đợt-1 slot C) with generic, non-fabricated
   // fallbacks to the real built-in routes (/register, /catalog).
@@ -88,59 +103,64 @@ export function HeroSection({ slots, title, subtitle, tagline }: HeroSectionProp
     </ul>
   );
 
-  if (heroImage) {
-    // AI scene as optimized background; slogan + CTA as real HTML overlay.
+  if (hasFrame) {
+    // Copy left + framed banner right (GAP-1210). The image gets its own frame
+    // with NO text/scrim on top of it — faces + any in-image text stay visible.
     // `unoptimized` retained because hero images may be AI-generated data URLs
-    // or arbitrary remote URLs not in next.config remotePatterns; `fill` +
-    // object-cover still gives responsive cover behaviour.
+    // or arbitrary remote URLs not in next.config remotePatterns.
+    // GAP-826: ≥2 banners → rotating carousel; exactly 1 → static single banner.
+    const single = frameImages.length === 1;
     return (
-      <section className="relative w-full overflow-hidden text-white" aria-label={heroTitle}>
-        {/* Background AI scene */}
-        <div className="absolute inset-0">
-          <Image
-            src={heroImage}
-            alt=""
-            fill
-            unoptimized
-            priority
-            sizes="100vw"
-            aria-hidden
-            className="object-cover object-center"
-          />
-          {/* Gradient scrim for text contrast: darker on the left where copy sits,
-              fading right so the AI scene stays visible. */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'linear-gradient(100deg, color-mix(in srgb, rgb(var(--theme-secondary)) 70%, black) 0%, color-mix(in srgb, rgb(var(--theme-secondary)) 55%, black) 38%, rgba(0,0,0,0.45) 65%, rgba(0,0,0,0.15) 100%)',
-            }}
-          />
-          {/* Extra bottom-up scrim for mobile (text stacks over whole image) */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent md:hidden" />
-        </div>
-
-        {/* HTML overlay content */}
-        <div className="container relative mx-auto px-4 py-20 md:py-28">
-          <div className="flex max-w-2xl flex-col items-start">
-            <h1 className="sr-only">{heroTitle}</h1>
-            {urgencyBadge}
-            <p
-              aria-hidden
-              className="text-4xl font-extrabold leading-[1.1] tracking-tight drop-shadow-sm md:text-6xl"
-            >
-              {heroTitle}
-            </p>
-            {heroSubtitle && (
-              <p className="mt-6 max-w-xl text-lg text-white/90 drop-shadow-sm md:text-xl">
-                {heroSubtitle}
+      <section className="relative w-full overflow-hidden text-white" style={bgStyle} aria-label={heroTitle}>
+        <div
+          className="pointer-events-none absolute -right-24 -bottom-32 h-[420px] w-[420px] rounded-full opacity-30 blur-3xl"
+          style={{ background: 'radial-gradient(circle, rgb(var(--theme-cta)) 0%, transparent 70%)' }}
+        />
+        <div className="container relative mx-auto px-4 py-16 md:py-24">
+          <div className="grid items-center gap-10 md:grid-cols-2">
+            {/* Copy column */}
+            <div className="flex flex-col items-start">
+              <h1 className="sr-only">{heroTitle}</h1>
+              {urgencyBadge}
+              <p
+                aria-hidden
+                className="text-4xl font-extrabold leading-[1.1] tracking-tight md:text-5xl lg:text-6xl"
+              >
+                {heroTitle}
               </p>
-            )}
-            {heroTagline && (
-              <p className="mt-3 text-base font-medium text-white/75 md:text-lg">{heroTagline}</p>
-            )}
-            <div className="mt-8">{ctaButtons}</div>
-            {trustRibbons}
+              {heroSubtitle && (
+                <p className="mt-6 max-w-xl text-lg text-white/90 md:text-xl">{heroSubtitle}</p>
+              )}
+              {heroTagline && (
+                <p className="mt-3 text-base font-medium text-white/75 md:text-lg">{heroTagline}</p>
+              )}
+              <div className="mt-8">{ctaButtons}</div>
+              {trustRibbons}
+            </div>
+
+            {/* Framed banner column — asset shown whole, never under the copy */}
+            <div className="relative">
+              <div
+                className="pointer-events-none absolute -inset-4 -z-10 rounded-3xl bg-theme-cta/20 blur-2xl"
+                aria-hidden
+              />
+              {single ? (
+                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/25">
+                  <Image
+                    src={frameImages[0]!}
+                    alt=""
+                    fill
+                    unoptimized
+                    priority
+                    sizes="(min-width: 768px) 50vw, 100vw"
+                    aria-hidden
+                    className="object-cover object-center"
+                  />
+                </div>
+              ) : (
+                <HeroBannerCarousel images={frameImages} label={heroTitle} />
+              )}
+            </div>
           </div>
         </div>
       </section>

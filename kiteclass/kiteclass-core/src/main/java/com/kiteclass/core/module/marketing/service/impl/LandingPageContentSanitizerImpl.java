@@ -71,6 +71,14 @@ public class LandingPageContentSanitizerImpl implements LandingPageContentSaniti
         entity.setHeroImageUrl(validateImageUrl(entity.getHeroImageUrl()));
         entity.setLogoUrl(validateImageUrl(entity.getLogoUrl()));
 
+        // GAP-826: hero banner carousel — validate every element with the same scheme/host
+        // allowlist as heroImageUrl (one off-allowlist URL → HTTP 400, never persisted).
+        if (entity.getHeroImages() != null) {
+            entity.setHeroImages(entity.getHeroImages().stream()
+                    .map(this::validateImageUrl)
+                    .toList());
+        }
+
         // JSONB structured sections — recursive string-value sanitize
         entity.setTeachers(sanitizeJson(entity.getTeachers()));
         entity.setPrograms(sanitizeJson(entity.getPrograms()));

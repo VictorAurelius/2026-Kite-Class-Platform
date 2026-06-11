@@ -147,6 +147,12 @@ validate_kitehub_subscription() {
 
   (
     cd "$ROOT_DIR/kitehub"
+    # GAP-1220: install sibling modules first — `-f kitehub-subscription/pom.xml`
+    # alone resolves kitehub-platform from the local ~/.m2, which on self-hosted
+    # runners can be STALE (e.g. missing Payment.txnRef added 2026-06-08) →
+    # "cannot find symbol" compile errors unrelated to the PR under test.
+    run_with_timeout "kitehub reactor install (fresh sibling artifacts)" \
+      ./mvnw -q -DskipTests -pl kitehub-platform -am install
     run_with_timeout "kitehub-subscription Flyway replay + Hibernate validate" \
       ./mvnw -q -f kitehub-subscription/pom.xml -DskipTests spring-boot:run \
         -Dspring-boot.run.arguments="$args"

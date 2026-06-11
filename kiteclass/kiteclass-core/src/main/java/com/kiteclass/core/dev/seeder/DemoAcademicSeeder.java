@@ -17,6 +17,7 @@ import com.kiteclass.core.module.clazz.repository.ClassSessionRepository;
 import com.kiteclass.core.module.clazz.service.ClassService;
 import com.kiteclass.core.module.course.dto.CourseResponse;
 import com.kiteclass.core.module.course.dto.CreateCourseRequest;
+import com.kiteclass.core.module.course.entity.Course;
 import com.kiteclass.core.module.course.repository.CourseRepository;
 import com.kiteclass.core.module.course.service.CourseService;
 import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
@@ -118,6 +119,8 @@ public class DemoAcademicSeeder {
     /** A whole tenant's academic dataset. */
     private record TenantSpec(UUID tenantId, String teacherName, String specialization,
                               String qualification, String bio, String markerCourseCode,
+                              // GAP-1225 — per-tenant catalog course cover image (webp asset).
+                              String coverImageUrl,
                               int baseBirthYear, int presentPct, int latePct, int excusedPct,
                               int paidPct, PaymentRecordMethod[] paymentMethods,
                               LocalTime startTime, LocalTime endTime, List<ClassSpec> classes) {
@@ -139,6 +142,7 @@ public class DemoAcademicSeeder {
                 "Cử nhân Sư phạm Toán — Đại học Sư phạm Hà Nội",
                 "Cô Hà có hơn 6 năm kèm Toán tiểu học, lớp nhỏ, bám sát từng học viên.",
                 "TOAN-HA-L4",          // marker course code
+                BrandingDataSeeder.HA_BANNER_URL,  // GAP-1225 — catalog cover image
                 2016,                   // tiểu học ~ 9-11 tuổi
                 75, 10, 8,              // present / late / excused %  (absent = phần còn lại)
                 100,                    // paidPct — gói miễn phí, phụ huynh đã đóng đủ học phí
@@ -167,6 +171,7 @@ public class DemoAcademicSeeder {
                 "Thạc sĩ Hóa học — Đại học Khoa học Tự nhiên",
                 "Thầy Nhì luyện Hóa THCS theo lộ trình bài bản, chuyên cần cao, báo cáo chi tiết.",
                 "HOA-NHI-8A",          // marker course code
+                BrandingDataSeeder.NHI_BANNER_URL,  // GAP-1225 — catalog cover image
                 2011,                   // THCS ~ 12-15 tuổi
                 88, 6, 4,               // chuyên cần cao hơn cô Hà
                 80,                     // paidPct — lớp lớn, vài hóa đơn còn tồn để demo công nợ
@@ -210,6 +215,11 @@ public class DemoAcademicSeeder {
                     spec.markerCourseCode(), spec.tenantId())) {
                 log.info("Academic demo data already present for tenant {} (marker {}). Skipping.",
                         spec.tenantId(), spec.markerCourseCode());
+                // Reconcile pass (GAP-1209): rows seeded by older seeder versions
+                // stayed DRAFT → invisible on the public catalog (PUBLISHED filter).
+                // Mirror the GAP-1203 upsert spirit: bring demo courses to the
+                // state the current seeder would produce.
+                publishDemoCourses(spec);
                 return;
             }
 
@@ -243,22 +253,118 @@ public class DemoAcademicSeeder {
         }
     }
 
+    /**
+     * Publishes any still-DRAFT demo course of this tenant spec (GAP-1209).
+     * The public catalog filters status=PUBLISHED, so DRAFT demo courses made
+     * the per-tenant "Khóa học" page empty.
+     */
+    private void publishDemoCourses(TenantSpec spec) {
+        for (ClassSpec cs : spec.classes()) {
+            courseRepository.findByCodeAndDeletedFalse(cs.courseCode())
+                    .filter(c -> spec.tenantId().equals(c.getInstanceId()))
+                    .ifPresent(c -> reconcileDemoCourse(spec, cs, c));
+        }
+    }
+
+    /**
+     * Reconciles one already-seeded demo course (GAP-1209 + GAP-1225): backfills the
+     * catalog cover image when missing (PUBLISHED rows too — coverImageUrl is mutable
+     * post-publish) and publishes any still-DRAFT row left by an older seeder version.
+     */
+    private void reconcileDemoCourse(TenantSpec spec, ClassSpec cs, Course c) {
+        boolean changed = false;
+        // GAP-1225: backfill the catalog cover image when missing.
+        if (spec.coverImageUrl() != null
+                && (c.getCoverImageUrl() == null || c.getCoverImageUrl().isBlank())) {
+            c.setCoverImageUrl(spec.coverImageUrl());
+            changed = true;
+        }
+        if ("DRAFT".equalsIgnoreCase(String.valueOf(c.getStatus()))) {
+            try {
+                // Rows seeded by older seeder versions miss the publish-required
+                // fields — backfill before publish.
+                if (c.getSyllabus() == null || c.getSyllabus().isBlank()) {
+                    c.setSyllabus(demoSyllabus(cs));
+                }
+                if (c.getObjectives() == null || c.getObjectives().isBlank()) {
+                    c.setObjectives(demoObjectives(cs));
+                }
+                if (c.getDurationWeeks() == null || c.getDurationWeeks() <= 0) {
+                    c.setDurationWeeks(Math.max(8, cs.sessionCount() * 2));
+                }
+                courseRepository.save(c);
+                courseService.publishCourse(c.getId());
+                log.info("Published demo course {} for tenant {} (GAP-1209 reconcile).",
+                        cs.courseCode(), spec.tenantId());
+            } catch (Exception e) {
+                log.warn("Publish demo course {} failed: {}", cs.courseCode(), e.getMessage());
+            }
+        } else if (changed) {
+            // Already published — persist the cover backfill only.
+            courseRepository.save(c);
+        }
+    }
+
+    /**
+     * Sets the demo course's catalog cover image (GAP-1225). Loads the entity by id and
+     * persists when the cover differs; coverImageUrl is editable even after PUBLISHED.
+     */
+    private void applyCoverImage(Long courseId, String coverUrl) {
+        if (coverUrl == null || coverUrl.isBlank()) {
+            return;
+        }
+        try {
+            courseRepository.findByIdAndDeletedFalse(courseId).ifPresent(c -> {
+                if (!coverUrl.equals(c.getCoverImageUrl())) {
+                    c.setCoverImageUrl(coverUrl);
+                    courseRepository.save(c);
+                }
+            });
+        } catch (Exception e) {
+            log.warn("Set cover image for course {} failed: {}", courseId, e.getMessage());
+        }
+    }
+
+    private String demoSyllabus(ClassSpec cs) {
+        return "Lộ trình " + cs.courseName() + ": củng cố nền tảng theo chuyên đề, "
+                + "bài tập thực hành mỗi buổi, kiểm tra định kỳ và ôn tập tổng hợp cuối khóa.";
+    }
+
+    private String demoObjectives(ClassSpec cs) {
+        return "Học viên nắm vững kiến thức " + cs.category()
+                + ", tự tin làm bài, tiến bộ đo được qua bài kiểm tra định kỳ.";
+    }
+
     /** Seeds one class end-to-end. Returns the number of students enrolled. */
     private int seedClass(TenantSpec spec, TeacherResponse teacher, ClassSpec cs, String tenantSuffix) {
         LocalDate today = LocalDate.now();
 
         // Course (code is the per-tenant marker for the first class).
+        // Syllabus/objectives/durationWeeks are publish-required fields
+        // (CourseServiceImpl.validatePublishRequirements) — the public catalog
+        // only lists PUBLISHED courses, so demo courses must satisfy them (GAP-1209).
         CourseResponse course = courseService.createCourse(new CreateCourseRequest(
                 cs.courseName(),
                 cs.courseCode(),
                 "Khóa " + cs.courseName() + " — dữ liệu demo cho luận văn (thesis §4.3/4.4).",
-                null, null, null, null,
+                demoSyllabus(cs),
+                demoObjectives(cs),
+                null, null,
                 teacher.id(),
-                null,
+                Math.max(8, cs.sessionCount() * 2),
                 cs.sessionCount(),
                 cs.tuition(),
                 null,
                 cs.category()));
+
+        // Publish immediately (GAP-1209): the public per-tenant catalog filters
+        // status=PUBLISHED — a DRAFT demo course never shows up there.
+        courseService.publishCourse(course.id());
+
+        // GAP-1225 — set the catalog card cover image. coverImageUrl is editable even
+        // after PUBLISHED, so this runs post-publish; the public catalog card renders it
+        // instead of the placeholder icon.
+        applyCoverImage(course.id(), spec.coverImageUrl());
 
         // Class — SCHEDULED on create (enrollable).
         ClassResponse clazz = classService.createClass(course.id(), new CreateClassRequest(

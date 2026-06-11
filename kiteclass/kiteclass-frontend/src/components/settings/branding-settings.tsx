@@ -17,6 +17,18 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useBranding, useUpdateBranding, useUploadLogo } from '@/hooks/use-branding';
 import { applyBrandColorVars } from '@/providers/BrandingProvider';
+import dynamic from 'next/dynamic';
+
+// Lazy-loaded (below-fold card) so it stays out of the settings route's First
+// Load JS — adding it statically pushed /(dashboard)/settings over the 270 KB
+// bundle budget (GAP-826 follow-up).
+const LandingBannerSettings = dynamic(
+  () =>
+    import('@/components/settings/landing-banner-settings').then(
+      (m) => m.LandingBannerSettings,
+    ),
+  { ssr: false },
+);
 import { Upload, Palette } from 'lucide-react';
 import { useState } from 'react';
 
@@ -165,6 +177,9 @@ export function BrandingSettings() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Landing banner carousel (GAP-826) */}
+      <LandingBannerSettings />
 
       {/* Branding Info */}
       <form onSubmit={handleSubmit(onSubmit)}>

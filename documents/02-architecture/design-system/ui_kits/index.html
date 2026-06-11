@@ -70,11 +70,40 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
         </div>
         <h2 class="font-semibold text-lg">Marketing landing <span class="text-orange-600">★ review</span></h2>
-        <p class="text-sm text-slate-600 mt-1">Trang marketing / đăng ký Beta của chính KiteClass (P2 chủ trung tâm). Mock self-contained per <code class="bg-slate-100 px-1 rounded">landing-page-design-brief.md</code> → sẽ port sang <code class="bg-slate-100 px-1 rounded">(public)/page.tsx</code>.</p>
+        <p class="text-sm text-slate-600 mt-1">Trang marketing / đăng ký Beta của platform — <strong>surface KITEHUB</strong> (<code class="bg-slate-100 px-1 rounded">kitehub-frontend :3001</code>, apex kitehub.me, KH-1 funnel) per <code class="bg-slate-100 px-1 rounded">kitehub-kiteclass-boundary</code> §2 — KHÔNG phải kiteclass (public) per-tenant (GAP-1227, mislabel cũ gây GAP-1205).</p>
         <div class="mt-4 flex items-center gap-2 text-xs flex-wrap">
           <span class="px-2 py-0.5 bg-orange-50 text-orange-700 rounded">P2 Center Owner (marketing)</span>
           <span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded">/100 landing-rubric · ~88 self · pending review</span>
           <span class="text-slate-400">1 page · không phải /128 kit</span>
+        </div>
+      </a>
+
+      <!-- Per-tenant landing — GIÁO VIÊN ĐỘC LẬP (P1 Solo Teacher). Self-contained landing kit;
+           scored on /128 (8 dim) — design source cho production PERSONAL_TEMPLATE. -->
+      <a href="landing-personal/" class="card-hover bg-white rounded-2xl border-2 border-blue-300 p-6 block">
+        <div class="inline-flex p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        </div>
+        <h2 class="font-semibold text-lg">landing-personal <span class="text-blue-600">★ design source</span></h2>
+        <p class="text-sm text-slate-600 mt-1">Landing per-tenant của <strong>giáo viên độc lập</strong> (P1 Solo Teacher) — voice cá nhân GV cho phụ huynh. Hero copy-trái + banner-phải đóng khung (GAP-1210) chứa <strong>carousel đa-banner</strong> (GAP-826) + theme switcher 3 GV runtime (GAP-274). Demo: lớp Toán cô Hà.</p>
+        <div class="mt-4 flex items-center gap-2 text-xs flex-wrap">
+          <span class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded">P1 Solo Teacher</span>
+          <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded">113/128</span>
+          <span class="text-slate-400">1 screens · PERSONAL_TEMPLATE design source</span>
+        </div>
+      </a>
+
+      <!-- Public per-tenant — 4 trang còn lại (GAP-274) -->
+      <a href="kiteclass-public/" class="card-hover bg-white rounded-2xl border-2 border-blue-300 p-6 block">
+        <div class="inline-flex p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </div>
+        <h2 class="font-semibold text-lg">kiteclass-public <span class="text-blue-600">★ GAP-274</span></h2>
+        <p class="text-sm text-slate-600 mt-1"><strong>4 trang public per-tenant</strong> còn lại sau landing (P1 Solo Teacher, audience phụ huynh): <strong>catalog</strong> (search/filter/sort + gợi ý persona) · <strong>catalog-detail</strong> · <strong>about</strong> (số liệu thật anti-fabrication) · <strong>contact</strong> (form VN + Zalo). Theme switcher 3 GV runtime. Demo: lớp Toán cô Hà.</p>
+        <div class="mt-4 flex items-center gap-2 text-xs flex-wrap">
+          <span class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded">P1 Solo Teacher</span>
+          <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded">110–115/128</span>
+          <span class="text-slate-400">4 screens · siblings landing-personal</span>
         </div>
       </a>
 
