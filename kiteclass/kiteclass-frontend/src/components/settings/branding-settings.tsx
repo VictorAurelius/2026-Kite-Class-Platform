@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useBranding, useUpdateBranding, useUploadLogo } from '@/hooks/use-branding';
+import { useBranding, useUpdateBranding, useUploadFavicon, useUploadLogo } from '@/hooks/use-branding';
 import { applyBrandColorVars } from '@/providers/BrandingProvider';
 import dynamic from 'next/dynamic';
 
@@ -52,6 +52,8 @@ export function BrandingSettings() {
   const { data: branding, isLoading, isError } = useBranding();
   const updateMutation = useUpdateBranding();
   const uploadLogoMutation = useUploadLogo();
+  const uploadFaviconMutation = useUploadFavicon();
+  const [selectedFavicon, setSelectedFavicon] = useState<File | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const {
@@ -103,6 +105,21 @@ export function BrandingSettings() {
     if (selectedFile) {
       uploadLogoMutation.mutate(selectedFile);
       setSelectedFile(null);
+    }
+  };
+
+  // GAP-1229: favicon upload — endpoint BE sẵn (GAP-1035/1036), trước đây UI không có chỗ gọi
+  const handleFaviconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFavicon(file);
+    }
+  };
+
+  const handleUploadFavicon = () => {
+    if (selectedFavicon) {
+      uploadFaviconMutation.mutate(selectedFavicon);
+      setSelectedFavicon(null);
     }
   };
 
@@ -170,6 +187,52 @@ export function BrandingSettings() {
             <Button
               onClick={handleUploadLogo}
               disabled={!selectedFile || uploadLogoMutation.isPending}
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              Tải lên
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Favicon Upload (GAP-1229) */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Favicon</CardTitle>
+          <CardDescription>
+            Biểu tượng hiển thị trên tab trình duyệt của trang landing — chưa tải lên thì dùng
+            biểu tượng KiteClass mặc định
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {branding?.faviconUrl && (
+            <div className="flex items-center gap-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={branding.faviconUrl}
+                alt="Favicon"
+                className="h-8 w-8 rounded border object-contain"
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={branding.faviconUrl}
+                alt="Favicon 16px"
+                className="h-4 w-4 rounded-sm border object-contain"
+              />
+              <div className="text-sm text-muted-foreground">Favicon hiện tại (32px / 16px)</div>
+            </div>
+          )}
+
+          <div className="flex items-center gap-4">
+            <Input
+              type="file"
+              accept="image/png,image/svg+xml,image/x-icon,.ico"
+              onChange={handleFaviconChange}
+              className="flex-1"
+            />
+            <Button
+              onClick={handleUploadFavicon}
+              disabled={!selectedFavicon || uploadFaviconMutation.isPending}
             >
               <Upload className="mr-2 h-4 w-4" />
               Tải lên

@@ -78,7 +78,14 @@ public class LandingPageServiceImpl implements LandingPageService {
 
         LandingPage landingPage = getOrCreateDefault(tenantId);
 
-        return withFreshAssetUrls(landingPageMapper.toResponse(landingPage));
+        LandingPageResponse response = withFreshAssetUrls(landingPageMapper.toResponse(landingPage));
+        // GAP-1229: favicon đọc transient từ settings.Branding (không persist copy) —
+        // tab browser per-tenant; null → FE fallback /icon.svg default KiteClass.
+        brandingRepository.findByInstanceIdAndDeletedFalse(tenantId)
+                .map(Branding::getFaviconUrl)
+                .ifPresent(url -> response.setFaviconUrl(
+                        assetUrlResolver != null ? assetUrlResolver.regenerate(url) : url));
+        return response;
     }
 
     /**

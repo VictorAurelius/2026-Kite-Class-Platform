@@ -36,6 +36,12 @@ public class LandingPageResponse {
     private String teacherBio;
 
     private String logoUrl;
+
+    // GAP-1229: favicon per-tenant — resolved transient từ settings.Branding tại read time
+    // (không persist copy vào landing_pages — tránh inherit-staleness); presigned
+    // regenerate per GAP-1204. Null → FE fallback /icon.svg default KiteClass.
+    private String faviconUrl;
+
     private String tagline;
     private String primaryColor;
     private String secondaryColor;

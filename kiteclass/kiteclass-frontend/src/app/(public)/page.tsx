@@ -96,9 +96,13 @@ export async function generateMetadata({
   const description =
     heroSubtitle || tagline || `${name} — đăng ký học, xem khóa học và lịch khai giảng.`;
   const logoUrl = typeof ld.logoUrl === 'string' ? ld.logoUrl : undefined;
+  // GAP-1229: favicon per-tenant từ branding (BE resolve transient + durable URL);
+  // chưa cấu hình → fallback /icon.svg default KiteClass (src/app/icon.svg).
+  const faviconUrl = typeof ld.faviconUrl === 'string' && ld.faviconUrl ? ld.faviconUrl : '/icon.svg';
 
   return {
     title: { default: name, template: `%s | ${name}` },
+    icons: { icon: faviconUrl },
     description,
     alternates: { canonical: APP_URL },
     openGraph: {

@@ -1,6 +1,6 @@
 # GAP-1229: Favicon chain đứt 3 chỗ FE — không default, không upload UI, không render per-tenant (BE đã đủ)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 85% — code shipped Wave ui-kits-100 Bucket G (builds 3/3 PASS); residual = browser walk upload→tab-đổi (human G2, per feature-ship-runtime-walk-mandate §1)
 **Priority:** 🟡 P2
 **Domain:** Frontend (kiteclass-frontend + kitehub-frontend) / Design System
 **Found:** 2026-06-11 (user-flagged trong wave ui-kits-100: "favicon cũng cần fix nhỉ, tenant cũng phải upload được favicon nhỉ? hoặc mặc định của kiteclass")
@@ -31,13 +31,17 @@ Kit design TRƯỚC implementation — gắn vào wave ui-kits-100:
 
 ## Acceptance Criteria
 
-- [ ] Kit spec: landing-personal head spec + wizard v3 favicon affordance (Bucket C/D wave ui-kits-100)
-- [ ] 2 app có default favicon (tab hiển thị logo, không globe trắng) — cả localhost lẫn production build
+- [x] Kit spec: landing-personal head spec (#2336 Bucket C) + wizard v3 favicon affordance (#2338 Bucket D)
+- [x] 2 app có default favicon `src/app/icon.svg` (kite mark từ logo brand) — `next build` cả 2 app PASS
 - [ ] Tenant upload favicon qua Settings → tab landing đổi theo (browser walk per `g1-browser-walk-before-flip`)
-- [ ] Chưa upload → fallback default KiteClass trên landing tenant
-- [ ] Favicon URL không hết hạn sau 7d (durable, same cơ chế GAP-1204)
+- [x] Chưa upload → fallback `/icon.svg` trong `generateMetadata icons:` (faviconUrl null-safe)
+- [x] Favicon URL durable — BE đọc transient từ Branding + `assetUrlResolver.regenerate()` mỗi read (same GAP-1204 mechanism, không persist presigned)
 
 ## Related
 
 - ADR-009 (branding package), GAP-1035/1036 (BE upload DONE), GAP-1204 (presigned URL class), GAP-1212 (wizard kit v3 — design host), GAP-366 (kit-as-source-of-truth standard)
 - Discovered in: Wave ui-kits-100 session 2026-06-11 (user-flagged)
+
+## Log
+
+- **2026-06-11 (PARTIAL 85% — Wave ui-kits-100 Bucket G, coordinator inline):** Code shipped đủ chuỗi: (1) `icon.svg` default 2 app (kite mark); (2) BE `LandingPageResponse.faviconUrl` + enrich transient từ `Branding` per read + regenerate durable (GAP-1204 mechanism); (3) FE `generateMetadata icons:` fallback `/icon.svg`; (4) settings UI section Favicon + `useUploadFavicon` hook (nối `uploadFavicon()` 0-caller); (5) logotype 2 SVG asset Inter → Be Vietnam Pro (đóng DEFER E0). Verify: KC build + KH build + kiteclass-core compile 3/3 PASS + tsc clean. Residual AC "upload → tab đổi" = browser walk human G2 (stack local cần up) — blocker liệt kê trong wave reconciliation per gate §2.5 exception.

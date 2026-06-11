@@ -65,3 +65,28 @@ export function useUploadLogo() {
     },
   });
 }
+
+// GAP-1229: favicon upload — mirror useUploadLogo (endpoint POST /settings/branding/favicon
+// đã sẵn BE per GAP-1035/1036; brandingApi.uploadFavicon trước đây 0 caller).
+export function useUploadFavicon() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: (file: File) => brandingApi.uploadFavicon(file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [BRANDING_KEY] });
+      toast({
+        title: 'Thành công',
+        description: 'Đã tải lên favicon',
+      });
+    },
+    onError: (error: AxiosError<{ message?: string }>) => {
+      toast({
+        title: 'Lỗi',
+        description: error.response?.data?.message || 'Không thể tải lên favicon',
+        variant: 'destructive',
+      });
+    },
+  });
+}
