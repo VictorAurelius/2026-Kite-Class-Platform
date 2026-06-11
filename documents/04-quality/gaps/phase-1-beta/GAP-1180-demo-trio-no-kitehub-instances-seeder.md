@@ -1,7 +1,7 @@
 ---
 id: GAP-1180
 title: Demo-trio không có seeder kitehub-side instances → by-subdomain 404 (seed-coverage gap cross-service + UUID mismatch + recipe §2.2 sai)
-status: OPEN
+status: PARTIAL
 priority: P1
 domain: Backend
 phase: phase-1-beta
