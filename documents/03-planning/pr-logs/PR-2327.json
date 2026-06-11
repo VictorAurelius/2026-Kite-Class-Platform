@@ -1,0 +1,33 @@
+{
+  "pr": 2327,
+  "title": "plan(wave-ui-kits-100): t\u1ed5ng h\u1ee3p to\u00e0n b\u1ed9 gap UI kits v\u00e0o 1 wave quality-target 100",
+  "branch": "wave/ui-kits-100",
+  "created_at": null,
+  "merged_at": "2026-06-11T16:29:46Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-06-11T16:29:50.927295",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 3,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1916056"
+  }
+}
