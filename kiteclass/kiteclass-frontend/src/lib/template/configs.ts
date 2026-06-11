@@ -18,17 +18,21 @@ export const PERSONAL_TEMPLATE: TemplateConfig = {
     { id: 'stats', label: 'Chỉ số nổi bật', enabled: true, order: 1 },
     { id: 'problemSolution', label: 'Vấn đề & Giải pháp', enabled: true, order: 2 },
     { id: 'about', label: 'Về tôi', enabled: true, order: 3 },
-    { id: 'howItWorks', label: 'Cách hoạt động', enabled: true, order: 4 },
+    // 'teachers' (TeachersSection) enabled cho GV độc lập (GAP-1194): hiển thị thẻ giáo viên
+    // khi tenant có data teachers; tự ẩn khi rỗng (anti-fabrication GAP-958). Trước đây section
+    // này chỉ có ở organization template → teachers JSONB của tenant personal không render.
+    { id: 'teachers', label: 'Đội ngũ giáo viên', enabled: true, order: 4 },
+    { id: 'howItWorks', label: 'Cách hoạt động', enabled: true, order: 5 },
     // 'courses' (FeaturesSection generic platform-feature: LMS/thanh toán) ẩn cho GV độc lập —
     // chương trình/khóa học thật hiển thị qua section 'certificates' (programs data). wave-thesis-4.
-    { id: 'courses', label: 'Khóa học', enabled: false, order: 5 },
-    { id: 'timeline', label: 'Lộ trình học tập', enabled: true, order: 6 },
-    { id: 'certificates', label: 'Chương trình giảng dạy', enabled: true, order: 7 },
-    { id: 'trustStrip', label: 'Tin cậy & minh bạch', enabled: true, order: 8 },
-    { id: 'pricing', label: 'Bảng giá', enabled: true, order: 9 },
-    { id: 'testimonials', label: 'Đánh giá', enabled: true, order: 10 },
-    { id: 'faq', label: 'Câu hỏi thường gặp', enabled: true, order: 11 },
-    { id: 'contact', label: 'Liên hệ', enabled: true, order: 12 },
+    { id: 'courses', label: 'Khóa học', enabled: false, order: 6 },
+    { id: 'timeline', label: 'Lộ trình học tập', enabled: true, order: 7 },
+    { id: 'certificates', label: 'Chương trình giảng dạy', enabled: true, order: 8 },
+    { id: 'trustStrip', label: 'Tin cậy & minh bạch', enabled: true, order: 9 },
+    { id: 'pricing', label: 'Bảng giá', enabled: true, order: 10 },
+    { id: 'testimonials', label: 'Đánh giá', enabled: true, order: 11 },
+    { id: 'faq', label: 'Câu hỏi thường gặp', enabled: true, order: 12 },
+    { id: 'contact', label: 'Liên hệ', enabled: true, order: 13 },
   ],
 };
 

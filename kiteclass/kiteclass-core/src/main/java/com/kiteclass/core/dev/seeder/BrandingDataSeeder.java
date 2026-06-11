@@ -1,6 +1,7 @@
 package com.kiteclass.core.dev.seeder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.outbox.OutboxEventWriter;
@@ -107,6 +108,48 @@ public class BrandingDataSeeder {
     static final String NHI_BANNER_URL = "/demo-banners/thay-nhi-hoa.webp";
     static final String NHI_LOGO_URL = "/demo-banners/thay-nhi-hoa-logo.webp";
 
+    // ── GAP-1194 — data-driven landing sections (teachers / pricing / stats) ──
+    // JSONB seeded into LandingPage.{teachers,pricingTiers,stats}. Shapes match the FE
+    // consumer contract in kiteclass-frontend (public)/page.tsx (the canonical de-facto
+    // contract): teachers={name,subject,credentials[]}; pricingTiers={name,price,period,
+    // features[],highlighted}; stats={value,label}. stats values are derived from the real
+    // academic core seeded by DemoAcademicSeeder (Hà = 2 lớp / 12 HV; Nhì = 4 lớp / 35 HV;
+    // chuyên cần = present%+late% per TenantSpec). Teacher avatar omitted on purpose →
+    // TeachersSection falls back to name-initials (no remote 404 per GAP-958 anti-fabrication).
+
+    // Hà — FREE tenant: 1 teacher, 1 free pricing tier, stats from 2-class/12-student core.
+    static final String HA_TEACHERS_JSON = """
+            [{"name":"Nguyễn Thị Hà","subject":"Toán tiểu học",
+              "credentials":["Cử nhân Sư phạm Toán — ĐH Sư phạm Hà Nội",
+                             "Hơn 6 năm kèm Toán tiểu học","Lớp nhỏ, bám sát từng học viên"]}]""";
+    static final String HA_PRICING_JSON = """
+            [{"name":"Lớp Toán cô Hà","price":"Miễn phí","period":"học thử + lộ trình",
+              "features":["Lớp nhỏ 6 học viên","2 buổi/tuần (tối 18:00–19:30)",
+                          "Bám sát từng học viên","Báo cáo tiến độ qua Zalo"],"highlighted":true}]""";
+    static final String HA_STATS_JSON = """
+            [{"value":"2","label":"Lớp đang mở"},{"value":"12","label":"Học viên"},
+             {"value":"85%","label":"Tỷ lệ chuyên cần"}]""";
+
+    // Nhì — PAID tenant: 1 teacher, 3 paid pricing tiers (thesis §4.4 bảng giá nhiều mức),
+    // stats from 4-class/35-student core.
+    static final String NHI_TEACHERS_JSON = """
+            [{"name":"Nguyễn Đình Nhì","subject":"Hóa học THCS",
+              "credentials":["Thạc sĩ Hóa học — ĐH Khoa học Tự nhiên",
+                             "Luyện Hóa THCS lộ trình bài bản","Chuyên cần cao, báo cáo chi tiết"]}]""";
+    static final String NHI_PRICING_JSON = """
+            [{"name":"Lớp Hóa 8","price":"1.200.000đ","period":"/tháng",
+              "features":["3 buổi/tuần","Lớp 8A & 8B","Tài liệu chuyên đề","Báo cáo chuyên cần"],
+              "highlighted":false},
+             {"name":"Lớp Hóa 9","price":"1.500.000đ","period":"/tháng",
+              "features":["3 buổi/tuần","Luyện thi vào 10","Thi thử định kỳ","Chữa đề chi tiết"],
+              "highlighted":true},
+             {"name":"Luyện thi vào 10","price":"1.800.000đ","period":"/tháng",
+              "features":["Lộ trình chuyên sâu","Cường độ cao (lớp 9B)","Cam kết đầu ra","Ôn sát kỳ thi"],
+              "highlighted":false}]""";
+    static final String NHI_STATS_JSON = """
+            [{"value":"4","label":"Lớp đang mở"},{"value":"35","label":"Học viên"},
+             {"value":"94%","label":"Tỷ lệ chuyên cần"}]""";
+
     // Cô Đỗ Lan Khánh — §4.1 walkthrough tenant; reuses the Sky instance, adds a Branding row.
     static final String KHANH_DISPLAY_NAME = "Trung tâm cô Đỗ Lan Khánh";
     static final String KHANH_BANNER_URL = "/demo-banners/co-khanh-phapluat.webp";
@@ -142,13 +185,15 @@ public class BrandingDataSeeder {
                 HA_BANNER_URL, HA_LOGO_URL,
                 "Lấy lại căn bản môn Toán cùng cô Hà",
                 "Lộ trình Toán tiểu học bài bản, lớp nhỏ, kèm sát từng học viên.",
-                "https://zalo.me/co-ha-toan", "https://facebook.com/cohatoan"));
+                "https://zalo.me/co-ha-toan", "https://facebook.com/cohatoan",
+                HA_TEACHERS_JSON, HA_PRICING_JSON, HA_STATS_JSON));
         seedTrioTenant(new TrioSpec(NHI_TENANT_ID, NHI_TENANT_SLUG, NHI_TENANT_REF, NHI_FRONTEND_URL,
                 NHI_DISPLAY_NAME, NHI_TAGLINE, NHI_PRIMARY_COLOR, NHI_SECONDARY_COLOR, NHI_ACCENT_COLOR,
                 NHI_BANNER_URL, NHI_LOGO_URL,
                 "Hóa học THCS — học là hiểu cùng thầy Nhì",
                 "Khóa Hóa học THCS đầy đủ, bộ nhận diện sinh tự động bằng AI Branding.",
-                "https://zalo.me/thay-nhi-hoa", "https://facebook.com/thaynhihoa"));
+                "https://zalo.me/thay-nhi-hoa", "https://facebook.com/thaynhihoa",
+                NHI_TEACHERS_JSON, NHI_PRICING_JSON, NHI_STATS_JSON));
         seedKhanhBranding();
     }
 
@@ -157,7 +202,9 @@ public class BrandingDataSeeder {
                             String displayName, String tagline,
                             String primary, String secondary, String accent,
                             String bannerUrl, String logoUrl,
-                            String heroTitle, String heroSubtitle, String zaloUrl, String facebookUrl) {
+                            String heroTitle, String heroSubtitle, String zaloUrl, String facebookUrl,
+                            // GAP-1194 — JSONB landing sections (FE-contract shapes; see constants above).
+                            String teachersJson, String pricingJson, String statsJson) {
     }
 
     /**
@@ -221,6 +268,14 @@ public class BrandingDataSeeder {
                 if (lp.getTemplateType() == null) {
                     lp.setTemplateType("personal");
                 }
+                // GAP-1194 — data-driven sections (teachers / pricing / stats). Re-set each boot:
+                // idempotent (columns on the single landing row; overwrite, never duplicates).
+                // FE (public)/page.tsx maps these JSONB shapes → section slots; null/empty → section
+                // hides (anti-fabrication). teachers renders only on a template that lists the
+                // 'teachers' section (PERSONAL_TEMPLATE updated in this PR to enable it).
+                lp.setTeachers(landingJson(spec.teachersJson()));
+                lp.setPricingTiers(landingJson(spec.pricingJson()));
+                lp.setStats(landingJson(spec.statsJson()));
                 landingPageRepository.save(lp);
             });
             log.info("Seeded demo-trio tenant (slug={}, primary={})", spec.slug(), spec.primary());
@@ -254,6 +309,19 @@ public class BrandingDataSeeder {
             log.info("Seeded Khánh (Sky) Branding settings row (instance={})", SKY_TENANT_ID);
         } finally {
             TenantContext.clear();
+        }
+    }
+
+    /**
+     * Parses a JSON literal into a {@link JsonNode} for a JSONB landing-section column
+     * ({@code teachers} / {@code pricing_tiers} / {@code stats}). Fail-loud on malformed
+     * seed JSON — a broken literal is a dev-time author error, not a runtime condition.
+     */
+    private JsonNode landingJson(String raw) {
+        try {
+            return objectMapper.readTree(raw);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Malformed demo landing-section JSON (GAP-1194)", e);
         }
     }
 
