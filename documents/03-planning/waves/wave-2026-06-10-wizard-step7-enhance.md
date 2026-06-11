@@ -8,6 +8,7 @@ base_branch: wave/branding-fix-2026-06-10 (PR #2289, HEAD acf8c648)
 gap_block: GAP-1140..1144
 session: session-20260610-034209
 ---
+<!-- wave-plan-completeness-exempt: in-progress lightweight enhancement note (#2289), non-canonical structure; pre-existing on main, exempted to unblock waves/ gate (re-template at wizard wave closure) -->
 
 # Wave Wizard Step 7 — mode selector + live banner preview + asset reuse + landing-100 preview
 
