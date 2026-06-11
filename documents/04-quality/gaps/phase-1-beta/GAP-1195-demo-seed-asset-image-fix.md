@@ -1,13 +1,13 @@
 ---
 id: GAP-1195
 title: Fix asset ảnh demo — webp + next/image, gitignore demo-banners/, tách logo≠banner, Khánh hero durable
-status: OPEN
+status: PARTIAL
 priority: P2
 domain: Frontend
 phase: phase-1-beta
 created: 2026-06-11
 last_verified: 2026-06-11
-completion_pct: 0
+completion_pct: 70
 ---
 
 # GAP-1195 — Fix asset ảnh demo (webp + next/image + gitignore)
@@ -25,10 +25,10 @@ Audit `2026-06-11-demo-trio-seed-coverage-audit.md` phát hiện 4 lỗi asset �
 
 ## Acceptance Criteria
 
-- [ ] demo-banner convert webp + `next/image` render
-- [ ] `.gitignore` thêm `demo-banners/`, PNG gỡ khỏi git track
-- [ ] logo file riêng ≠ hero banner
-- [ ] Khánh hero asset committed, không 404 remote
+- [x] demo-banner convert webp + `next/image` render
+- [x] `.gitignore` thêm `demo-banners/`, PNG gỡ khỏi git track
+- [x] logo file riêng ≠ hero banner
+- [x] Khánh hero asset committed, không 404 remote
 - [ ] G2 walk: landing 2 tenant ảnh render đúng, không 404
 
 ## Related

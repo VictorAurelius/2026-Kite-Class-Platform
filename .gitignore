@@ -160,6 +160,9 @@ documents/08-thesis/evidence/*
 # Demo landing image assets — local-only, never commit binaries to remote (per user rule).
 # Seed sets URL strings (committed code); the binary asset bytes stay local.
 kiteclass/kiteclass-frontend/public/demo/
+# demo-banners: heavy PNG sources local-only; only the small optimized .webp
+# (hero + logo, ≤100KB) are committed + served. PNG gitignored, webp NOT (GAP-1195).
+kiteclass/kiteclass-frontend/public/demo-banners/*.png
 documents/asset.png
 documents/sky-banner-draft.png
 documents/sky-landing-walk-evidence.png
