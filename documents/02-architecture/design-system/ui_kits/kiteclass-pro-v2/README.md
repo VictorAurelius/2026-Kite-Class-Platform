@@ -2,8 +2,20 @@
 
 **Wave UI Kits Round 2 · Agent A · Direction B (HIGHEST priority)**
 **Persona:** P2 Center Owner — medium-density desktop primary
-**Status:** prototype (HTML for human vibe-check; production port tracked GAP-263..267)
-**Last Updated:** 2026-04-29
+**Status:** prototype (HTML for human vibe-check; production port tracked GAP-263..267)"
+".## Tenant-theme demo (GAP-1230)
+
+Switcher nổi góc phải-dưới **"Chủ đề theo giáo viên"** demo 3 GV demo-trio per-tenant — đổi màu toàn kit runtime THẬT (set class `kc-demo-{ha|nhi|khanh}` trên `<html>`+`<body>` → override token `--primary`/`--accent`/`--ring`):
+
+- **Cô Hà · Toán** — xanh dương `#2563EB`
+- **Thầy Nhì · Hóa** — xanh lá `#16A34A`
+- **Cô Khánh · Anh** — cam `#EA580C`
+
+Nguồn dùng chung: `_shared/scripts/tenant-theme-demo.{css,js}` (port pattern từ `kiteclass-public/about.html` + `landing-personal`). Wire vào mọi screen + `index.html`. Affordance click có hiệu ứng runtime thật, không inert (per `design-source-implementation-parity.md` §3.2).
+
+**Production:** theme thật đến từ `branding` package per ADR-009 (build-time per-tenant) — switcher này CHỈ là demo affordance trong design kit.."
+
+**Last Updated:**" 2026-04-29
 
 ---
 

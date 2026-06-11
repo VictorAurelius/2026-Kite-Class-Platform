@@ -439,5 +439,17 @@ Systemic lifts: font token Inter → **Be Vietnam Pro** (production-parity, Buck
 
 - Re-audit: [`audits/ui-review/2026-06-11-round-4-kiteclass-student-reaudit.md`](../../../../04-quality/audits/ui-review/2026-06-11-round-4-kiteclass-student-reaudit.md)
 - Gaps: GAP-363b (delta-to-105) + GAP-363 (parent) — `04-quality/gaps/phase-2/closed/`
+"
+".## Tenant-theme demo (GAP-1230)
 
-**Last Updated:** 2026-06-11
+Switcher nổi góc phải-dưới **"Chủ đề theo giáo viên"** demo 3 GV demo-trio per-tenant — đổi màu toàn kit runtime THẬT (set class `kc-demo-{ha|nhi|khanh}` trên `<html>`+`<body>` → override token `--primary`/`--accent`/`--ring`):
+
+- **Cô Hà · Toán** — xanh dương `#2563EB`
+- **Thầy Nhì · Hóa** — xanh lá `#16A34A`
+- **Cô Khánh · Anh** — cam `#EA580C`
+
+Nguồn dùng chung: `_shared/scripts/tenant-theme-demo.{css,js}` (port pattern từ `kiteclass-public/about.html` + `landing-personal`). Wire vào mọi screen + `index.html`. Affordance click có hiệu ứng runtime thật, không inert (per `design-source-implementation-parity.md` §3.2).
+
+**Production:** theme thật đến từ `branding` package per ADR-009 (build-time per-tenant) — switcher này CHỈ là demo affordance trong design kit.."
+
+**Last Updated:**" 2026-06-11
