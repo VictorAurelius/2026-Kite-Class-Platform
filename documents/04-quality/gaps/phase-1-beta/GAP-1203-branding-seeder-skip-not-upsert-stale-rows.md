@@ -28,7 +28,7 @@ Seeder demo-trio chuyển skip-if-exists → **upsert có chủ đích cho demo 
 
 - [ ] Seeder re-run trên DB có rows cũ → rows phản ánh constants hiện tại
 - [ ] Redis landingPages keys evicted sau upsert
-- [x] Local DB đã fix tay (workaround — walk unblocked)
+- [x] Local DB đã fix tay: hero_image_url .png→.webp + logo_url co-ha/nhi (rỗng → /demo-banners/*-logo.webp) + redis DEL (workaround — walk unblocked)
 
 ## Related
 
