@@ -31,6 +31,13 @@
   "java.compile.nullAnalysis.mode": "disabled",
   "maven.view": "hierarchical",
   "spring-boot.ls.problem.application-properties.PROP_UNKNOWN_PROPERTY": "WARNING",
+  // Silence "Unnecessary @Repository" hint — Spring Data repo interfaces register
+  // beans + get exception-translation automatically; codebase keeps @Repository for
+  // explicit consistency. (boot2 + boot3 keys both set; unknown keys are ignored.)
+  // NOTE: Spring Boot version-update hint (BOOT_VERSION_VALIDATION) is intentionally
+  // KEPT — it's a useful maintenance/security nudge.
+  "spring-boot.ls.problem.boot2.JAVA_REPOSITORY": "IGNORE",
+  "spring-boot.ls.problem.boot3.JAVA_REPOSITORY": "IGNORE",
   "java.configuration.updateBuildConfiguration": "automatic",
 
   // Java compiler settings - sync with Maven (Java 17)
