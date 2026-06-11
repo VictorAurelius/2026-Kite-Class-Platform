@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../styles.css" />
   <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body style="background: linear-gradient(135deg, hsl(var(--primary) / 0.06), hsl(var(--accent) / 0.05)); min-height: 100vh;">
+<body data-no-states style="background: linear-gradient(135deg, hsl(var(--primary) / 0.06), hsl(var(--accent) / 0.05)); min-height: 100vh;">
   <nav class="state-tabs"><a href="login.html" data-active="true">Default</a><a href="../index.html">Index</a></nav>
 
   <main style="display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; max-width: 1280px; margin: 0 auto;" class="max-md:grid-cols-1">
@@ -94,5 +94,6 @@
   </main>
 
   <script>if (window.lucide) lucide.createIcons();</script>
+  <script src="../../_shared/scripts/admin-states.js"></script>
 </body>
 </html>

@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../styles.css" />
   <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body data-skeleton="kpi-table" data-empty-icon="receipt" data-empty-title="Chưa thiết lập biểu phí năm học" data-empty-msg="Tạo biểu phí HK1/HK2 và chính sách miễn giảm (TT-09/2017/TTLT) để bắt đầu thu học phí." data-empty-cta="Tạo biểu phí">
   <nav class="state-tabs"><a href="fees.html" data-active="true">Default</a><a href="../index.html">Index</a></nav>
   <div class="shell">
     <aside class="shell__nav stack-3" aria-label="Điều hướng chính">
@@ -170,5 +170,6 @@
     </main>
   </div>
   <script>if (window.lucide) lucide.createIcons();</script>
+  <script src="../../_shared/scripts/admin-states.js"></script>
 </body>
 </html>

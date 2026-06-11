@@ -15,7 +15,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body data-skeleton="kpi-table" data-empty-icon="layout-dashboard" data-empty-title="Chưa có dữ liệu đầu năm học" data-empty-msg="Khi danh sách học sinh và lớp được nhập, các chỉ số toàn trường sẽ hiển thị tại đây." data-empty-cta="Nhập danh sách học sinh">
   <nav class="state-tabs" aria-label="Trạng thái màn hình">
     <a href="dashboard.html" data-active="true">Default</a>
     <a href="empty-states.html">Empty</a>
@@ -419,5 +419,6 @@
   <script>
     if (window.lucide) lucide.createIcons();
   </script>
+  <script src="../../_shared/scripts/admin-states.js"></script>
 </body>
 </html>

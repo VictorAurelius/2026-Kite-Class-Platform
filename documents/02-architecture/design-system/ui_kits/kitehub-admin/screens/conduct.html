@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../styles.css" />
   <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body data-skeleton="kpi-table" data-empty-icon="party-popper" data-empty-title="Tuyệt vời — không có sự việc nào tuần này 👏" data-empty-msg="Toàn trường không ghi nhận sự việc hạnh kiểm nào trong tuần. Hồ sơ vẫn được lưu để đối chiếu cuối kỳ.">
   <nav class="state-tabs"><a href="conduct.html" data-active="true">Default</a><a href="../index.html">Index</a></nav>
   <div class="shell">
     <aside class="shell__nav stack-3" aria-label="Điều hướng chính">
@@ -51,6 +51,19 @@
           </div>
         </div>
       </header>
+
+      <!-- Zalo OA notify card (shared component _shared/components/zalo-oa-card.html) -->
+      <div class="zalo-oa-card" data-zalo-state="ready" data-zalo-reach="3.241 PH">
+        <span class="zalo-oa-card__logo" aria-hidden="true">Zalo</span>
+        <div>
+          <div class="zalo-oa-card__caption">Thông báo phụ huynh về sự việc hạnh kiểm qua Zalo OA</div>
+          <div class="zalo-oa-card__meta"><i data-lucide="users" class="w-3 h-3 inline"></i> 3.241 PH theo dõi · kèm bước xử lý theo TT-32/2020 · ghi nhận đã gửi</div>
+        </div>
+        <div class="cluster">
+          <span class="pill pill--info"><i data-lucide="check-circle-2" class="w-3 h-3"></i>Sẵn sàng</span>
+          <button class="btn btn--primary btn--sm" type="button"><i data-lucide="send" class="w-3 h-3"></i><span class="zalo-oa-card__action">Soạn thông báo</span></button>
+        </div>
+      </div>
 
       <!-- KPIs -->
       <section class="grid grid-cols-2 md:grid-cols-4 gap-3" aria-label="Chỉ số hạnh kiểm">
@@ -187,5 +200,6 @@
     </main>
   </div>
   <script>if (window.lucide) lucide.createIcons();</script>
+  <script src="../../_shared/scripts/admin-states.js"></script>
 </body>
 </html>

@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../styles.css" />
   <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body data-skeleton="matrix" data-empty-icon="grid-3x3" data-empty-title="Chưa phân công lớp × môn × giáo viên" data-empty-msg="Dùng 'Tự động phân' để hệ thống gợi ý phân công 25 lớp × 9 môn theo thâm niên và tải tiết." data-empty-cta="Tự động phân công">
   <nav class="state-tabs"><a href="multi-class-roster.html" data-active="true">Default</a><a href="../index.html">Index</a></nav>
   <div class="shell">
     <aside class="shell__nav stack-3" aria-label="Điều hướng chính">
@@ -139,5 +139,6 @@
     </main>
   </div>
   <script>if (window.lucide) lucide.createIcons();</script>
+  <script src="../../_shared/scripts/admin-states.js"></script>
 </body>
 </html>

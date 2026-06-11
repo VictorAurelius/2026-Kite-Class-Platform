@@ -601,6 +601,56 @@ html, body { background: hsl(var(--background)); color: hsl(var(--foreground)); 
 .progress--warning .progress__fill { background: hsl(var(--warning)); }
 .progress--danger  .progress__fill { background: hsl(var(--destructive)); }
 
+/* =============================================================
+   Zalo OA notify card (shared component — _shared/components/zalo-oa-card.html)
+   Reused at parent-notify touch-points: parent-comms, conduct, report-cards
+   ============================================================= */
+.zalo-oa-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.875rem;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  border: 1px solid hsl(var(--info) / 0.30);
+  border-left: 4px solid hsl(var(--info));
+  border-radius: var(--radius-lg);
+  background: hsl(var(--info) / 0.05);
+}
+.zalo-oa-card__logo {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-md);
+  background: hsl(var(--info)); color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: var(--text-xs); flex: 0 0 auto;
+}
+.zalo-oa-card__caption { font-weight: 600; font-size: var(--text-sm); }
+.zalo-oa-card__meta { color: hsl(var(--muted-foreground)); font-size: var(--text-xs); margin-top: 0.125rem; }
+.zalo-oa-card[data-zalo-state="sent"]      { border-left-color: hsl(var(--success)); }
+.zalo-oa-card[data-zalo-state="scheduled"] { border-left-color: hsl(var(--warning)); }
+.zalo-oa-card[data-zalo-state="failed"]    { border-left-color: hsl(var(--destructive)); }
+
+/* =============================================================
+   Theme toggle (injected by admin-states.js into .state-tabs)
+   ============================================================= */
+.theme-toggle:hover { color: hsl(var(--foreground)); background: hsl(var(--muted)); }
+.theme-toggle:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+
+/* Staff vetting workflow (teacher-management — AC-ONBOARD-005) */
+.vet-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; }
+.vet-col {
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius-lg);
+  background: hsl(var(--muted) / 0.25); padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;
+}
+.vet-col__head { display: flex; align-items: center; justify-content: space-between; font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: hsl(var(--muted-foreground)); }
+.vet-card { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: var(--radius-md); padding: 0.625rem 0.75rem; }
+.vet-card--pending  { border-left: 3px solid hsl(var(--warning)); }
+.vet-card--review   { border-left: 3px solid hsl(var(--info)); }
+.vet-card--approved { border-left: 3px solid hsl(var(--success)); }
+.vet-card--rejected { border-left: 3px solid hsl(var(--destructive)); }
+.vet-doc { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 11px; padding: 0.0625rem 0.375rem; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
+.vet-doc--ok { background: hsl(var(--success) / 0.12); color: hsl(var(--success)); }
+.vet-doc--miss { background: hsl(var(--destructive) / 0.12); color: hsl(var(--destructive)); }
+
 /* Empty state illustration block */
 .empty-state {
   display: flex; flex-direction: column; align-items: center; gap: 0.75rem;

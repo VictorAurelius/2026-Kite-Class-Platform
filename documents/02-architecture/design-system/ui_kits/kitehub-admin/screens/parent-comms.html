@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../styles.css" />
   <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body data-skeleton="cards" data-empty-icon="check-check" data-empty-title="Không có yêu cầu nào đang chờ ✨" data-empty-msg="Toàn bộ yêu cầu phụ huynh đã được xử lý trong SLA. Tin mới qua Zalo OA sẽ xuất hiện tại đây.">
   <nav class="state-tabs"><a href="parent-comms.html" data-active="true">Default</a><a href="../index.html">Index</a></nav>
   <div class="shell">
     <aside class="shell__nav stack-3" aria-label="Điều hướng chính">
@@ -150,5 +150,6 @@
     </main>
   </div>
   <script>if (window.lucide) lucide.createIcons();</script>
+  <script src="../../_shared/scripts/admin-states.js"></script>
 </body>
 </html>

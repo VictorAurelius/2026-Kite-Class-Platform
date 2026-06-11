@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../styles.css" />
   <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body data-skeleton="kpi-table" data-empty-icon="users" data-empty-title="Chưa có giáo viên nào" data-empty-msg="Bắt đầu bằng nhập danh sách giáo viên hoặc thêm thủ công. Mỗi hồ sơ cần xác minh CCCD + bằng cấp + LLTP (AC-ONBOARD-005)." data-empty-cta="Thêm giáo viên">
   <nav class="state-tabs"><a href="teacher-management.html" data-active="true">Default</a><a href="../index.html">Index</a></nav>
   <div class="shell">
     <aside class="shell__nav stack-3" aria-label="Điều hướng chính">
@@ -195,8 +195,78 @@
           </div>
         </div>
       </div>
+      <!-- ============ Staff vetting workflow (AC-ONBOARD-005) ============ -->
+      <section aria-label="Thẩm định hồ sơ giáo viên mới" class="stack-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="h3">Thẩm định hồ sơ tuyển dụng</h2>
+            <div class="text-xs muted-strong">5 hồ sơ đang xử lý · mục tiêu hoàn tất ≤ 7 ngày làm việc · bắt buộc CCCD + bằng cấp + LLTP (Lý lịch tư pháp)</div>
+          </div>
+          <span class="moet-stamp"><i data-lucide="shield-check" class="w-3 h-3"></i>Tuân thủ bảo vệ trẻ em — Luật Trẻ em 2016</span>
+        </div>
+
+        <div class="vet-board">
+          <!-- Column: SUBMITTED -->
+          <div class="vet-col">
+            <div class="vet-col__head"><span><i data-lucide="inbox" class="w-3 h-3 inline"></i> Chờ nộp hồ sơ</span><span class="tag tag--warning">1</span></div>
+            <div class="vet-card vet-card--pending">
+              <div class="flex items-center gap-2"><span class="avatar">PT</span><div><div class="font-medium text-sm">Phan Thị Hồng</div><div class="text-xs muted-strong">Ứng tuyển: GV Tiếng Anh</div></div></div>
+              <div class="cluster mt-2" style="gap:0.25rem">
+                <span class="vet-doc vet-doc--ok"><i data-lucide="check" class="w-3 h-3"></i>CCCD</span>
+                <span class="vet-doc vet-doc--miss"><i data-lucide="x" class="w-3 h-3"></i>Bằng cấp</span>
+                <span class="vet-doc vet-doc--miss"><i data-lucide="x" class="w-3 h-3"></i>LLTP</span>
+              </div>
+              <div class="text-xs muted-strong mt-2">Đã nhắc qua Zalo OA · còn 6 ngày</div>
+            </div>
+          </div>
+
+          <!-- Column: IN_REVIEW -->
+          <div class="vet-col">
+            <div class="vet-col__head"><span><i data-lucide="search-check" class="w-3 h-3 inline"></i> Đang thẩm định</span><span class="tag tag--info">2</span></div>
+            <div class="vet-card vet-card--review">
+              <div class="flex items-center gap-2"><span class="avatar">NM</span><div><div class="font-medium text-sm">Nguyễn Minh Tuấn</div><div class="text-xs muted-strong">Ứng tuyển: GV Hóa học</div></div></div>
+              <div class="cluster mt-2" style="gap:0.25rem">
+                <span class="vet-doc vet-doc--ok"><i data-lucide="check" class="w-3 h-3"></i>CCCD</span>
+                <span class="vet-doc vet-doc--ok"><i data-lucide="check" class="w-3 h-3"></i>Bằng ĐH</span>
+                <span class="vet-doc vet-doc--ok"><i data-lucide="check" class="w-3 h-3"></i>LLTP số 2</span>
+              </div>
+              <div class="text-xs muted-strong mt-2">Phó HT đối chiếu bằng cấp với Sở GD&amp;ĐT</div>
+            </div>
+            <div class="vet-card vet-card--review">
+              <div class="flex items-center gap-2"><span class="avatar">LH</span><div><div class="font-medium text-sm">Lê Hoài An</div><div class="text-xs muted-strong">Ứng tuyển: GV Địa lí</div></div></div>
+              <div class="cluster mt-2" style="gap:0.25rem">
+                <span class="vet-doc vet-doc--ok"><i data-lucide="check" class="w-3 h-3"></i>CCCD</span>
+                <span class="vet-doc vet-doc--ok"><i data-lucide="check" class="w-3 h-3"></i>Bằng CĐ</span>
+                <span class="vet-doc vet-doc--ok"><i data-lucide="check" class="w-3 h-3"></i>LLTP</span>
+              </div>
+              <div class="text-xs muted-strong mt-2">Chờ duyệt 2 cấp: Phó HT → Hiệu trưởng</div>
+            </div>
+          </div>
+
+          <!-- Column: APPROVED -->
+          <div class="vet-col">
+            <div class="vet-col__head"><span><i data-lucide="user-check" class="w-3 h-3 inline"></i> Đã duyệt</span><span class="tag tag--success">1</span></div>
+            <div class="vet-card vet-card--approved">
+              <div class="flex items-center gap-2"><span class="avatar">VT</span><div><div class="font-medium text-sm">Vũ Thanh Hà</div><div class="text-xs muted-strong">GV Ngữ văn · vào lớp 7A2</div></div></div>
+              <div class="cluster mt-2"><span class="pill pill--success"><i data-lucide="check-circle-2" class="w-3 h-3"></i>Duyệt 26/04 · Hiệu trưởng</span></div>
+              <div class="text-xs muted-strong mt-2">Hoàn tất trong 4 ngày · hồ sơ lưu Việt Nam (ND-53/2022)</div>
+            </div>
+          </div>
+
+          <!-- Column: REJECTED -->
+          <div class="vet-col">
+            <div class="vet-col__head"><span><i data-lucide="user-x" class="w-3 h-3 inline"></i> Từ chối</span><span class="tag tag--danger">1</span></div>
+            <div class="vet-card vet-card--rejected">
+              <div class="flex items-center gap-2"><span class="avatar">DK</span><div><div class="font-medium text-sm">Đặng Khắc Vinh</div><div class="text-xs muted-strong">Ứng tuyển: GV Toán</div></div></div>
+              <div class="cluster mt-2"><span class="pill pill--danger"><i data-lucide="alert-octagon" class="w-3 h-3"></i>LLTP có tiền án</span></div>
+              <div class="text-xs muted-strong mt-2">Từ chối tự động theo chính sách bảo vệ trẻ em · đã lưu lý do</div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
   <script>if (window.lucide) lucide.createIcons();</script>
+  <script src="../../_shared/scripts/admin-states.js"></script>
 </body>
 </html>

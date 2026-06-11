@@ -14,7 +14,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body data-skeleton="wizard" data-empty-icon="upload-cloud" data-empty-title="Chưa có tệp nào được tải lên" data-empty-msg="Kéo thả tệp .xlsx danh sách học sinh (tối đa 10.000 dòng) để bắt đầu nhập liệu." data-empty-cta="Chọn tệp .xlsx">
   <nav class="state-tabs"><a href="bulk-import.html" data-active="true">Wizard</a><a href="../index.html">Index</a></nav>
 
   <div class="shell">
@@ -161,5 +161,6 @@
     </main>
   </div>
   <script>if (window.lucide) lucide.createIcons();</script>
+  <script src="../../_shared/scripts/admin-states.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 # GAP-364: kitehub-admin kit polish — `school-profile.html` rebuild + 5 medium-priority items
 
-**Status:** 🟡 PARTIAL — 2026-05-06 Wave 22 Bucket B shipped `school-profile.html` rebuild only; cross-screen polish items deferred to follow-up gap **GAP-364b** (filed in Wave 22 closure PR per `gap-done-discipline.md` §3 PARTIAL exit ramp)
+**Status:** 🟢 DONE — 2026-06-11 (Wave ui-kits-100 Bucket B) closed via **GAP-364b**: cross-screen polish 5 items shipped + re-audit avg **106.2/128** (≥105 ✓, floor 103 ≥95 ✓). school-profile rebuild (Wave 22) + cross-screen polish (GAP-364b) together clear the kit.
 **Priority:** 🟡 P2 (Track 2 port quality polish — NOT P1 because no persona/legal violation; school-profile below floor but not blocking)
 **Domain:** Frontend / Design System
 **Found:** 2026-05-05 (Wave 20 Bucket B external review)
@@ -68,15 +68,15 @@ External /128 review (Wave 20 Bucket B — `audits/ui-review/2026-05-05-round-3-
 
 ## Acceptance Criteria
 
-- [x] `school-profile.html` rebuilt to ≥105 score (self-score 107/128; external re-audit pending → tracked GAP-364b)
-- [ ] Loading skeletons added per-screen → GAP-364b
-- [ ] Empty states in-context per-screen → GAP-364b
-- [ ] Dark-mode parity verified on all 12 screens → GAP-364b
-- [ ] Staff vetting workflow visualized (AC-ONBOARD-005) → GAP-364b
-- [ ] Zalo OA pattern extracted to `_shared/components/` → GAP-364b
-- [ ] Re-score via `quality/ui-review-prototype` skill — kit avg ≥105 (was 101.1) → GAP-364b
-- [ ] GAP-271 unblocked for Track 2 production port → blocked on GAP-364b cross-screen items
-- [x] Cross-link added in `ui_kits/kitehub-admin/README.md` to this polish gap (Wave 22 — new "Wave 22 polish" section + GAP-364b deferral list)
+- [x] `school-profile.html` rebuilt to ≥105 score (self-score 107; Round 4 external re-audit 109/128)
+- [x] Loading skeletons added per-screen → GAP-364b DONE (shared `admin-states.js`)
+- [x] Empty states in-context per-screen → GAP-364b DONE
+- [x] Dark-mode parity verified on all 12 screens → GAP-364b DONE
+- [x] Staff vetting workflow visualized (AC-ONBOARD-005) → GAP-364b DONE (teacher-management board)
+- [x] Zalo OA pattern extracted to `_shared/components/` → GAP-364b DONE
+- [x] Re-score — kit avg **106.2/128** ≥105 (was 101.1) → GAP-364b DONE
+- [x] GAP-271 avg-floor precondition unblocked (avg 106.2 ≥105, floor 103 ≥95) → GAP-364b
+- [x] Cross-link added in `ui_kits/kitehub-admin/README.md` to this polish gap (Wave 22 section + Round 4 sync)
 
 ## Related
 
@@ -91,5 +91,6 @@ External /128 review (Wave 20 Bucket B — `audits/ui-review/2026-05-05-round-3-
 
 ## Log
 
+- **2026-06-11 (Wave ui-kits-100 Bucket B):** Closed via **GAP-364b** — all 5 cross-screen polish items shipped (loading skeletons + in-context empty states via shared `admin-states.js`, dark-mode parity 12/12, staff vetting AC-ONBOARD-005 in teacher-management, Zalo OA `_shared/components/zalo-oa-card.html` reused at conduct + report-cards). Round 4 re-audit `2026-06-11-round-4-kitehub-admin-reaudit.md` = **106.2/128 avg** (+5.1 vs baseline 101.1), floor 103, 11/12 ≥105. GAP-271 avg-floor precondition unblocked. **Status → DONE**, git mv → `phase-2/closed/`.
 - **2026-05-06 (Wave 22 Bucket B):** `school-profile.html` rebuilt — form-only layout (91/128) → dashboard-style with hero KPI block (1.247 HS / 62 GV / 25 lớp / NK 2026-2027) + 4-tab progressive disclosure (Thông tin cơ bản / Cơ sở vật chất / Đội ngũ / Pháp lý) + collapsible MoET licensing + organizational chart sparkline (vanilla SVG) + accreditation badge pills (chuẩn quốc gia mức 2 + kiểm định CL TT-17/2018 + PCCC + ATTP) + school logo placeholder with edit affordance. WCAG AA self-measured: hero contrast 7.2:1 AAA / body 14.8:1 AAA / muted-fg 4.7:1 AA / tab focus 2px / arrow-key tab navigation. Self-score 107/128 (T28/H30/A26/U23). README cross-link section added with explicit GAP-364b deferral list. **Status PARTIAL per `gap-done-discipline.md` §3 PARTIAL exit ramp** — cross-screen polish items (skeletons / empty states / dark-mode / staff-vetting / Zalo OA extract / kit avg ≥105) genuinely deferred to GAP-364b (filed in Wave 22 closure PR by coordinator).
 - **2026-05-05:** Filed by Wave 20 Bucket C closure (this PR) per `audit-to-gap-pipeline.md` + Bucket B external review findings. Lower priority than GAP-363 (no child-protection violation; school-profile is aesthetics-only deficiency). Recommended wave-pack pairing with GAP-363.
