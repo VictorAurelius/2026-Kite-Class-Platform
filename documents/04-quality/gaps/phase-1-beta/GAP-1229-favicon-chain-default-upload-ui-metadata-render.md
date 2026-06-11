@@ -45,3 +45,4 @@ Kit design TRƯỚC implementation — gắn vào wave ui-kits-100:
 ## Log
 
 - **2026-06-11 (PARTIAL 85% — Wave ui-kits-100 Bucket G, coordinator inline):** Code shipped đủ chuỗi: (1) `icon.svg` default 2 app (kite mark); (2) BE `LandingPageResponse.faviconUrl` + enrich transient từ `Branding` per read + regenerate durable (GAP-1204 mechanism); (3) FE `generateMetadata icons:` fallback `/icon.svg`; (4) settings UI section Favicon + `useUploadFavicon` hook (nối `uploadFavicon()` 0-caller); (5) logotype 2 SVG asset Inter → Be Vietnam Pro (đóng DEFER E0). Verify: KC build + KH build + kiteclass-core compile 3/3 PASS + tsc clean. Residual AC "upload → tab đổi" = browser walk human G2 (stack local cần up) — blocker liệt kê trong wave reconciliation per gate §2.5 exception.
+- **2026-06-11:** Merged PR #2339 (squash 8b76597c6) — Log ref bổ sung post-merge per audit-gate flag.
