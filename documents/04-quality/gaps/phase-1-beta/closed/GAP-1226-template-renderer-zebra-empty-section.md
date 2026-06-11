@@ -1,6 +1,6 @@
 # GAP-1226: TemplateRenderer zebra wrapper render cho section rỗng → dải nền lệch nhịp
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Frontend
 **Found:** 2026-06-11 (re-score — empty-section collapse)
@@ -16,5 +16,9 @@ TemplateRenderer skip hoàn toàn section data-required khi slot absent (helper 
 
 ## Acceptance Criteria
 
-- [ ] Tenant thiếu data: zebra xen kẽ đúng trên các section còn lại
-- [ ] Unit test zebra skip
+- [x] Tenant thiếu data: zebra xen kẽ đúng trên các section còn lại
+- [x] Unit test zebra skip
+
+## Log
+
+- **2026-06-11 (DONE):** `sectionHasContent` + CONTENT_REQUIRED set — bandIndex chỉ tăng khi render thật. vitest zebra strict-alternation PASS.

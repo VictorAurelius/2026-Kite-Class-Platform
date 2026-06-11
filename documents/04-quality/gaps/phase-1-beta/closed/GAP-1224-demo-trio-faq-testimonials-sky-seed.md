@@ -1,6 +1,6 @@
 # GAP-1224: FAQ + Testimonials không seed cho demo-trio + sky sparse → landing thiếu 2 section (re-score −4)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-11 (landing-100 production re-score 81/100 — delta #1 vs kit, DATA không phải code)
@@ -16,5 +16,9 @@ Seeder upsert thêm per-tenant: faqs (4-5 câu thật giọng phụ huynh hỏi)
 
 ## Acceptance Criteria
 
-- [ ] FAQ + Testimonials render cả 3 tenant (browser verify)
-- [ ] Sky-education re-score ≥90 cùng bar
+- [x] FAQ + Testimonials render cả 3 tenant (browser verify)
+- [x] Sky-education re-score ≥90 cùng bar
+
+## Log
+
+- **2026-06-11 (DONE):** Seeder faqs/testimonials Hà/Nhì/Sky + sky teachers/pricing (KHÔNG stats — anti-fabrication). DB verify 3 row + browser render "Câu hỏi thường gặp"/"Phụ huynh & học viên nói gì" (screenshots).

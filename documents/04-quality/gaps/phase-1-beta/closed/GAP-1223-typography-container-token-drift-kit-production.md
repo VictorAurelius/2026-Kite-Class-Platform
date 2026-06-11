@@ -1,6 +1,6 @@
 # GAP-1223: Token drift 2 chiều — kit dùng Inter (sai chuẩn Be Vietnam Pro) + production container lệch 1180px marketing convention
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Frontend / Design System
 **Found:** 2026-06-11 (user-flagged khi so kit localhost:8090 vs production — "chỉ riêng font chữ, layout đã không đạt")
@@ -22,10 +22,14 @@ Same class GAP-1208/1212 (thiếu/không-đọc spec nguồn) — lần này ở
 
 ## Acceptance Criteria
 
-- [ ] Kit render Be Vietnam Pro (cả heading weights)
-- [ ] Production (public) container 1180px — so screenshot side-by-side khớp nhịp
-- [ ] ui_kits/README note token-source mandate
+- [x] Kit render Be Vietnam Pro (cả heading weights)
+- [x] Production (public) container 1180px — so screenshot side-by-side khớp nhịp
+- [x] ui_kits/README note token-source mandate
 
 ## Related
 
 - User-flagged 2026-06-11; `colors_and_type.css` canonical; same-class GAP-1208/1212; re-score artifact 2026-06-11 (đang chấm — score hiện tại phản ánh drift này)
+
+## Log
+
+- **2026-06-11 (DONE):** Kit 6 file → Be Vietnam Pro + Google Fonts; production (public) `[&_.container]:max-w-[1180px]`; README token-source mandate. Side-by-side screenshots cùng viewport: font + nhịp trùng. Tests 9/9 + build PASS.

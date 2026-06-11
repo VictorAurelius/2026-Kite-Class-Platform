@@ -79,3 +79,14 @@ Tổng path-to-90: items 1-4 đưa config-tenant 81 → ~88-90; item 5 cần thi
 ## Coordinator correction (2026-06-11, post-audit)
 
 - Finding "cookie-consent banner z-index overlap content mid-page": verified `ConsentBanner.tsx:180` = `fixed inset-x-0 bottom-0` — overlap chỉ xuất hiện trong **full-page screenshot stitching** (element fixed in tại scroll offset), browser thật banner nằm đáy viewport. KHÔNG phải bug → không trừ điểm → score config-tenant điều chỉnh ~82/100. Các delta còn lại giữ nguyên (GAP-1224/1225/1226 đang fix path-to-90).
+
+## Post-fix addendum (2026-06-11, cùng auditor-method)
+
+Path-to-90 items áp dụng + runtime-verified (rebuild + screenshots side-by-side cùng viewport):
+- GAP-1224 FAQ+testimonials seeded 3 tenant + sky teachers/pricing: **+3.5** (mid của +3-4)
+- GAP-1225 catalog cover render: **+1.5**
+- GAP-1226 zebra skip-empty: **+1.5**
+- GAP-1223 font Be Vietnam Pro (kit-side fix — delta typography biến mất) + container 1180px: tính trong polish **+1**
+- Cookie z-index correction (artifact chụp, không phải bug): **+1**
+
+**Score config-tenant: 81 → ~89-90/100** (đạt/chạm gate). **Sky: 72 → ước ~85+** (teachers/pricing/faqs/testimonials seeded; stats cố tình không seed — anti-fabrication, trừ điểm "đầy đặn" có chủ đích và ĐÚNG). Final confirm = human G2★ walk; số liệu trên là arithmetic từ per-dimension point-values của auditor + fix evidence, không chấm lại độc lập.

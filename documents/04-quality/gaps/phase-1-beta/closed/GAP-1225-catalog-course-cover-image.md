@@ -1,6 +1,6 @@
 # GAP-1225: Course card catalog thiếu cover image — placeholder icon (re-score delta #2)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Backend
 **Found:** 2026-06-11 (re-score — visual polish CODE/DATA)
@@ -16,4 +16,8 @@ Seeder set coverImageUrl = asset webp thật per-tenant (demo-banners) lúc crea
 
 ## Acceptance Criteria
 
-- [ ] Catalog demo-trio render cover ảnh thật
+- [x] Catalog demo-trio render cover ảnh thật
+
+## Log
+
+- **2026-06-11 (DONE):** coverImageUrl per-tenant webp (create + reconcile backfill) + catalog card wire next/image. DB verify 6 course + catalog render cover.
