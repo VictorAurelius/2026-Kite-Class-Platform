@@ -3,8 +3,20 @@
 **Persona:** Pa. Parent (mobile-first 320–414px, evening usage 7pm–10pm, low-medium tech literacy)
 **Direction:** D — pivoted to **web responsive + PWA-grade**, NOT native app (per [`dossier/08-direction-decisions.md §2`](../../dossier/08-direction-decisions.md))
 **Wave:** Round 2 UI Kits, Agent B
-**Status:** Prototype — for human vibe-check review (Track 2 production port deferred to GAP-264..267)
-**Last Updated:** 2026-04-29
+**Status:** Prototype — for human vibe-check review (Track 2 production port deferred to GAP-264..267)"
+".## Tenant-theme demo (GAP-1230)
+
+Switcher nổi góc phải-dưới **"Chủ đề theo giáo viên"** demo 3 GV demo-trio per-tenant — đổi màu toàn kit runtime THẬT (set class `kc-demo-{ha|nhi|khanh}` trên `<html>`+`<body>` → override token `--primary`/`--accent`/`--ring`):
+
+- **Cô Hà · Toán** — xanh dương `#2563EB`
+- **Thầy Nhì · Hóa** — xanh lá `#16A34A`
+- **Cô Khánh · Anh** — cam `#EA580C`
+
+Nguồn dùng chung: `_shared/scripts/tenant-theme-demo.{css,js}` (port pattern từ `kiteclass-public/about.html` + `landing-personal`). Wire vào mọi screen + `index.html`. Affordance click có hiệu ứng runtime thật, không inert (per `design-source-implementation-parity.md` §3.2).
+
+**Production:** theme thật đến từ `branding` package per ADR-009 (build-time per-tenant) — switcher này CHỈ là demo affordance trong design kit.."
+
+**Last Updated:**" 2026-04-29
 
 ---
 

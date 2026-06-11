@@ -1,6 +1,6 @@
 # GAP-1230: GAP-1227 chưa triệt để — marketing-site (KH) còn affordance per-tenant (ThemeSwitcher) + 4 KC dashboard kits THIẾU tenant-theme demo
 
-**Status:** 🟡 PARTIAL — phần (a)+(c) fixed cùng PR file gap này; phần (b) 4 KC kits → Bucket I wave ui-kits-100
+**Status:** 🟢 DONE — phần (a)+(c) fixed cùng PR file gap; phần (b) 4 KC kits shipped Bucket I wave ui-kits-100 (2026-06-11)
 **Priority:** 🟠 P1 (in-wave per quality-target gate §2.5)
 **Domain:** Design System
 **Found:** 2026-06-11 (user-flagged lần 3 chuỗi GAP-1227: "giới thiệu kitehub nhưng nội dung bên trong vẫn là kiteclass; bộ Chủ đề theo giáo viên đang của kitehub => kitehub không cần => toàn bộ UI kiteclass cần")
@@ -24,11 +24,15 @@ GAP-1227 (DONE #2326) fix LABEL surface của marketing-site nhưng chưa sweep 
 
 - [x] (a) marketing-site không còn ThemeSwitcher render; brand KH cố định
 - [x] (c) README content-contract documented (boundary §2.1 cite)
-- [ ] (b) 4 KC dashboard kits có tenant-theme demo 3-GV hoạt động runtime (per `design-source-implementation-parity` §3.2 — không inert)
-- [ ] check-ui-kits-landing.sh PASS + screens render đúng theme khi switch
+- [x] (b) 4 KC dashboard kits có tenant-theme demo 3-GV hoạt động runtime (per `design-source-implementation-parity` §3.2 — không inert)
+- [x] check-ui-kits-landing.sh PASS + screens render đúng theme khi switch
 
 ## Related
 
 - GAP-1227 (DONE — label fix; gap này = content-level follow-up, DONE-never-reopens per gap-done-discipline §3)
 - GAP-1230 phần (b) host: wave ui-kits-100 Bucket I; `kitehub-kiteclass-boundary.md` §2/§2.1; ADR-009 branding package
 - Discovered in: user-flagged 2026-06-11 wave ui-kits-100 session
+
+## Log
+
+- **2026-06-11 (Bucket I wave ui-kits-100):** phần (b) shipped → Status PARTIAL → DONE. Tạo shared `_shared/scripts/tenant-theme-demo.{css,js}` (DRY 1 file cho 4 kit), port pattern 3-GV demo-trio từ `kiteclass-public/about.html` + `landing-personal` (Cô Hà `#2563EB` / Thầy Nhì `#16A34A` / Cô Khánh `#EA580C`). Floating switcher set class `kc-demo-{ha|nhi|khanh}` trên `<html>`+`<body>` (giữ class kit có sẵn) → override token `--primary`/`--accent`/`--ring` (HSL khớp `_shared/colors_and_type.css`) + cập nhật brand identity (mark+name+tag) trong widget runtime THẬT, không inert (per `design-source-implementation-parity.md` §3.2). Selector `html.kc-demo-*, body.kc-demo-*` thắng mọi kit dù token định nghĩa trên `:root` (teacher/pro-v2) hay `.theme-kiteclass-*` (student/parent). Wire 68 file (screens depth-2 `../../` + index depth-1 `../`) qua 4 kit: student 14 / teacher 25 / parent 18 / pro-v2 11. README mỗi kit thêm section "Tenant-theme demo (GAP-1230)" + production note ADR-009. Verify: `node --check` JS OK · `check-ui-kits-landing.sh` PASS parity 12/12 · `check-gap-status-csv.sh` PASS · `check-gap-folder-location.sh --warn` PASS · 0 double-insert. Production: theme thật từ `branding` package per ADR-009 — switcher chỉ là demo affordance.
