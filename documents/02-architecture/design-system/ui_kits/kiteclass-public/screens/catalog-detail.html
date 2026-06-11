@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Toán lớp 5 — Tỉ số &amp; phần trăm | Lớp Toán cô Hà (design kit)</title>
+<meta name="description" content="Kit design trang chi tiết khóa học per-tenant KiteClass: hero giá + CTA học thử, syllabus, thông tin GV, lịch lớp, FAQ, sticky CTA mobile." />
+<!--
+  ============================================================================
+  UI KIT: kiteclass-public · SCREEN catalog-detail  (/catalog/[id])
+  ============================================================================
+  Persona:  P1 Solo Teacher · audience = phụ huynh xem chi tiết 1 khóa.
+  Demo:     khóa MATH-L5-01 "Toán lớp 5 — Tỉ số & phần trăm" (900.000đ) — GV Nguyễn Thị Hà.
+  GAPs:     GAP-274 (theme runtime).
+  WCAG AA:  body 14:1 · muted 4.7:1 · CTA white/--cta-strong 4.8:1 · hero white/gradient ~8.6:1.
+  ============================================================================
+-->
+<style>
+:root{
+  --font-sans:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+  --fg:30 41 59;--muted:100 116 139;--bg:255 255 255;--bg-alt:248 250 252;--border:226 232 240;
+  --success:22 163 74;--radius:14px;--radius-lg:20px;--radius-full:999px;
+  --shadow-sm:0 1px 3px rgba(15,23,42,.08);--shadow:0 8px 24px rgba(15,23,42,.10);--shadow-lg:0 18px 44px rgba(15,23,42,.16);
+  --container:1080px;
+  --theme-primary:37 99 235;--theme-secondary:59 130 246;--theme-accent:14 165 233;
+  --cta:249 115 22;--cta-strong:194 65 12;--hero-from:30 64 175;--hero-to:30 58 138;
+}
+.theme-ha{--theme-primary:37 99 235;--theme-secondary:59 130 246;--theme-accent:14 165 233;--cta:249 115 22;--cta-strong:194 65 12;--hero-from:30 64 175;--hero-to:30 58 138;}
+.theme-nhi{--theme-primary:22 163 74;--theme-secondary:5 150 105;--theme-accent:13 148 136;--cta:245 158 11;--cta-strong:180 83 9;--hero-from:22 101 52;--hero-to:6 78 59;}
+.theme-khanh{--theme-primary:234 88 12;--theme-secondary:249 115 22;--theme-accent:217 119 6;--cta:37 99 235;--cta-strong:29 78 216;--hero-from:154 52 18;--hero-to:124 45 18;}
+
+*,*::before,*::after{box-sizing:border-box;}
+html,body{margin:0;}
+body{font-family:var(--font-sans);color:rgb(var(--fg));background:rgb(var(--bg));line-height:1.55;-webkit-font-smoothing:antialiased;}
+a{color:inherit;}
+.container{max-width:var(--container);margin:0 auto;padding:0 24px;}
+h1,h2,h3{margin:0;line-height:1.2;letter-spacing:-0.02em;}
+.muted{color:rgb(var(--muted));}
+.skip{position:absolute;left:-999px;top:0;background:#fff;padding:10px 16px;border-radius:8px;z-index:60;}
+.skip:focus{left:12px;top:12px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;font-family:inherit;font-weight:700;border-radius:var(--radius);padding:12px 20px;font-size:15px;text-decoration:none;transition:transform .12s ease,box-shadow .15s ease;}
+.btn:active{transform:translateY(1px);}
+.btn-cta{background:rgb(var(--cta-strong));color:#fff;box-shadow:0 8px 20px rgb(var(--cta-strong)/.32);}
+.btn-cta:hover{box-shadow:0 12px 26px rgb(var(--cta-strong)/.42);}
+.btn-primary{background:rgb(var(--theme-primary));color:#fff;}
+.btn-on-dark{background:rgba(255,255,255,.14);color:#fff;border:1.5px solid rgba(255,255,255,.45);}
+.btn-on-dark:hover{background:rgba(255,255,255,.24);}
+
+.demo-strip{background:#0b1220;color:#e2e8f0;font-size:13px;}
+.demo-strip .container{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:10px 24px;}
+.demo-strip b{color:#fbbf24;}
+.theme-switch{display:flex;gap:8px;align-items:center;}
+.theme-switch span{color:#94a3b8;margin-right:4px;}
+.theme-switch button{font-family:inherit;cursor:pointer;border-radius:var(--radius-full);border:1.5px solid transparent;padding:5px 13px;font-size:12px;font-weight:700;color:#fff;}
+.theme-switch button[aria-pressed="true"]{outline:2px solid #fff;outline-offset:1px;}
+.sw-ha{background:#2563EB;}.sw-nhi{background:#16A34A;}.sw-khanh{background:#EA580C;}
+.nav{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgb(var(--border));}
+.nav .container{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo .mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,rgb(var(--theme-primary)),rgb(var(--theme-secondary)));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;}
+.nav-logo .name{font-weight:800;font-size:18px;}
+.nav-logo .name small{display:block;font-size:11px;font-weight:600;color:rgb(var(--muted));}
+.nav-links{display:flex;gap:24px;}
+.nav-links a{font-weight:600;font-size:14px;text-decoration:none;}
+.nav-links a:hover{color:rgb(var(--theme-primary));}
+@media(max-width:880px){.nav-links{display:none;}}
+
+.breadcrumb{font-size:13px;color:rgb(var(--muted));padding:16px 0 0;}
+.breadcrumb a{text-decoration:none;font-weight:600;}
+.breadcrumb a:hover{color:rgb(var(--theme-primary));}
+
+/* hero nhỏ */
+.dhero{background:linear-gradient(120deg,rgb(var(--hero-from)),rgb(var(--hero-to)));color:#fff;border-radius:var(--radius-lg);padding:32px;margin-top:14px;display:grid;grid-template-columns:1.4fr .8fr;gap:30px;align-items:center;}
+.dhero .meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.dhero .meta span{background:rgba(255,255,255,.16);font-size:12px;font-weight:700;padding:5px 11px;border-radius:var(--radius-full);}
+.dhero h1{font-size:clamp(26px,3.6vw,38px);font-weight:900;margin-bottom:10px;}
+.dhero .lead{color:rgba(255,255,255,.9);font-size:16px;margin:0;}
+.price-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:var(--radius);padding:22px;text-align:center;}
+.price-card .pv{font-size:34px;font-weight:900;}
+.price-card .pu{color:rgba(255,255,255,.85);font-size:14px;margin-bottom:16px;}
+.price-card .btn{width:100%;margin-bottom:10px;}
+.price-card .note{font-size:12px;color:rgba(255,255,255,.8);margin:6px 0 0;}
+
+/* body layout */
+.detail-grid{display:grid;grid-template-columns:1fr 320px;gap:36px;padding:36px 0 60px;align-items:start;}
+.block{margin-bottom:34px;}
+.block h2{font-size:22px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.block h2 .ic{color:rgb(var(--theme-primary));}
+.syllabus{list-style:none;padding:0;margin:0;display:grid;gap:10px;counter-reset:s;}
+.syllabus li{display:flex;gap:14px;align-items:flex-start;background:var(--bg-alt);border:1px solid rgb(var(--border));border-radius:var(--radius);padding:14px 16px;}
+.syllabus li::before{counter-increment:s;content:counter(s);flex:0 0 auto;width:28px;height:28px;border-radius:50%;background:rgb(var(--theme-primary));color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.syllabus b{display:block;}
+.syllabus small{color:rgb(var(--muted));}
+.objectives{display:grid;gap:8px;padding:0;list-style:none;margin:0;}
+.objectives li{display:flex;gap:10px;align-items:flex-start;}
+.objectives li svg{color:rgb(var(--success));flex:0 0 auto;margin-top:3px;}
+
+/* teacher mini */
+.gv-card{display:flex;gap:16px;align-items:center;background:var(--bg-alt);border:1px solid rgb(var(--border));border-radius:var(--radius-lg);padding:18px;}
+.gv-card .ava{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgb(var(--theme-primary)),rgb(var(--theme-secondary)));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px;flex:0 0 auto;}
+.gv-card b{font-size:17px;}
+.gv-card p{margin:4px 0 0;font-size:14px;color:rgb(var(--muted));}
+
+/* schedule */
+.sched{display:grid;gap:10px;}
+.sched-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid rgb(var(--border));border-radius:var(--radius);padding:14px 16px;}
+.sched-row.full{opacity:.6;}
+.sched-row .when b{display:block;}
+.sched-row .when small{color:rgb(var(--muted));}
+.seats{font-size:13px;font-weight:800;color:rgb(var(--success));}
+.seats.low{color:rgb(var(--cta-strong));}
+.seats.none{color:rgb(var(--muted));}
+
+/* faq */
+.faq details{border:1px solid rgb(var(--border));border-radius:var(--radius);padding:0;margin-bottom:10px;background:#fff;}
+.faq summary{cursor:pointer;padding:15px 18px;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center;}
+.faq summary::-webkit-details-marker{display:none;}
+.faq summary::after{content:"+";font-size:22px;color:rgb(var(--theme-primary));font-weight:700;}
+.faq details[open] summary::after{content:"–";}
+.faq details p{padding:0 18px 16px;margin:0;color:rgb(var(--muted));font-size:15px;}
+
+/* sidebar sticky */
+.aside{position:sticky;top:86px;display:grid;gap:14px;}
+.aside-card{border:1px solid rgb(var(--border));border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-sm);}
+.aside-card h3{font-size:16px;font-weight:800;margin-bottom:12px;}
+.trust-list{list-style:none;padding:0;margin:0;display:grid;gap:10px;font-size:14px;}
+.trust-list li{display:flex;gap:10px;align-items:flex-start;}
+.trust-list svg{color:rgb(var(--theme-primary));flex:0 0 auto;}
+
+/* sticky mobile CTA */
+.mobile-cta{display:none;position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid rgb(var(--border));box-shadow:0 -6px 24px rgba(15,23,42,.12);padding:12px 16px;align-items:center;justify-content:space-between;gap:12px;}
+.mobile-cta .mp{font-weight:900;font-size:18px;color:rgb(var(--cta-strong));}
+.mobile-cta .btn{flex:0 0 auto;}
+
+.footer{background:#0b1220;color:#94a3b8;padding:30px 0;font-size:14px;}
+.footer .container{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+.footer a{color:#cbd5e1;text-decoration:none;}
+
+@media(max-width:860px){
+  .dhero{grid-template-columns:1fr;}
+  .detail-grid{grid-template-columns:1fr;}
+  .aside{position:static;}
+  .price-card{display:none;}     /* thay bằng sticky mobile CTA */
+  .mobile-cta{display:flex;}
+  body{padding-bottom:74px;}
+}
+</style>
+</head>
+<body class="theme-ha" id="topbody">
+<a href="#main" class="skip">Bỏ qua tới nội dung chính</a>
+
+<div class="demo-strip">
+  <div class="container">
+    <div><b>Design kit · kiteclass-public / catalog-detail</b> — đổi giáo viên để xem theme runtime.</div>
+    <div class="theme-switch" role="group" aria-label="Chọn giáo viên demo">
+      <span>Demo giáo viên:</span>
+      <button class="sw-ha" data-theme="theme-ha" aria-pressed="true">Cô Hà · Toán</button>
+      <button class="sw-nhi" data-theme="theme-nhi" aria-pressed="false">Thầy Nhì · Hóa</button>
+      <button class="sw-khanh" data-theme="theme-khanh" aria-pressed="false">Cô Khánh · Anh</button>
+    </div>
+  </div>
+</div>
+
+<header class="nav">
+  <div class="container">
+    <a href="../index.html" class="nav-logo" aria-label="Lớp Toán cô Hà — trang chủ">
+      <span class="mark" id="brandMark">H</span>
+      <span class="name"><span id="brandName">Lớp Toán cô Hà</span><small id="brandTagline">Gia sư Toán tiểu học</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Điều hướng chính">
+      <a href="catalog.html">Khóa học</a>
+      <a href="about.html">Về giáo viên</a>
+      <a href="contact.html">Liên hệ</a>
+    </nav>
+    <a href="contact.html" class="btn btn-cta">Đăng ký học thử</a>
+  </div>
+</header>
+
+<main id="main" class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="catalog.html">Khóa học</a> › <span>Toán lớp 5 — Tỉ số &amp; phần trăm</span>
+  </nav>
+
+  <!-- HERO NHỎ -->
+  <section class="dhero">
+    <div>
+      <div class="meta"><span>Mã: MATH-L5-01</span><span>Lớp 5</span><span>Cơ bản · 8 tuần</span><span>Sĩ số 8 HV</span></div>
+      <h1>Toán lớp 5 — Tỉ số &amp; phần trăm</h1>
+      <p class="lead">Trọng tâm phân số, tỉ số phần trăm, toán chuyển động — bám sát chương trình GDPT 2018. Cô Hà trực tiếp giảng, báo cáo tiến độ qua Zalo mỗi tuần.</p>
+    </div>
+    <div class="price-card">
+      <div class="pv">900.000 đ</div>
+      <div class="pu">/ khóa 8 tuần (16 buổi)</div>
+      <a href="contact.html" class="btn btn-cta">Đăng ký học thử miễn phí</a>
+      <a href="contact.html" class="btn btn-on-dark">Nhắn Zalo hỏi thêm</a>
+      <p class="note">Học thử 1 buổi không thu phí · hoàn phí nếu nghỉ trong 3 buổi đầu</p>
+    </div>
+  </section>
+
+  <div class="detail-grid">
+    <div>
+      <!-- OBJECTIVES -->
+      <div class="block">
+        <h2><span class="ic">🎯</span> Con sẽ đạt được gì</h2>
+        <ul class="objectives">
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Thành thạo phân số, quy đồng, so sánh và 4 phép tính với phân số.</li>
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Giải bài toán tỉ số phần trăm &amp; toán chuyển động theo dạng chuẩn.</li>
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Tự tin trình bày lời giải, hạn chế sai sót khi làm bài kiểm tra.</li>
+        </ul>
+      </div>
+
+      <!-- SYLLABUS -->
+      <div class="block">
+        <h2><span class="ic">📚</span> Nội dung theo tuần</h2>
+        <ol class="syllabus">
+          <li><div><b>Tuần 1–2 · Phân số nền tảng</b><small>Quy đồng, rút gọn, so sánh phân số.</small></div></li>
+          <li><div><b>Tuần 3–4 · Bốn phép tính phân số</b><small>Cộng trừ nhân chia + bài toán có lời văn.</small></div></li>
+          <li><div><b>Tuần 5–6 · Tỉ số &amp; phần trăm</b><small>Tìm tỉ số, bài toán phần trăm thực tế.</small></div></li>
+          <li><div><b>Tuần 7–8 · Toán chuyển động &amp; ôn tập</b><small>Vận tốc–quãng đường–thời gian + kiểm tra cuối khóa.</small></div></li>
+        </ol>
+      </div>
+
+      <!-- GV -->
+      <div class="block">
+        <h2><span class="ic">👩‍🏫</span> Giáo viên phụ trách</h2>
+        <div class="gv-card">
+          <span class="ava" id="gvAva">H</span>
+          <div>
+            <b id="gvName">Cô Nguyễn Thị Hà</b>
+            <p id="gvBio">Tốt nghiệp ĐH Sư phạm Hà Nội · 12 năm dạy Toán tiểu học · trực tiếp đứng lớp, không giao trợ giảng.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCHEDULE -->
+      <div class="block">
+        <h2><span class="ic">🗓️</span> Lịch lớp đang mở</h2>
+        <div class="sched">
+          <div class="sched-row">
+            <div class="when"><b>Lớp tối T3–T5</b><small>19:00–20:30 · Khai giảng 15/06</small></div>
+            <span class="seats low">Còn 2 chỗ</span>
+          </div>
+          <div class="sched-row">
+            <div class="when"><b>Lớp sáng T7–CN</b><small>08:30–10:00 · Khai giảng 20/06</small></div>
+            <span class="seats">Còn 5 chỗ</span>
+          </div>
+          <div class="sched-row full">
+            <div class="when"><b>Lớp chiều T2–T6</b><small>17:00–18:30 · đã khai giảng</small></div>
+            <span class="seats none">Đã đầy</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="block faq">
+        <h2><span class="ic">❓</span> Câu hỏi thường gặp</h2>
+        <details open><summary>Con học yếu có theo được không?</summary><p>Được. Trước khi vào lớp con làm bài kiểm tra đầu vào miễn phí để cô xếp đúng trình độ và tư vấn lộ trình phù hợp.</p></details>
+        <details><summary>Phụ huynh theo dõi tiến độ thế nào?</summary><p>Cô gửi báo cáo qua Zalo mỗi tuần: bài đã học, điểm kiểm tra, điểm cần lưu ý của con.</p></details>
+        <details><summary>Nếu con nghỉ buổi thì sao?</summary><p>Con được học bù vào buổi cùng nội dung của lớp khác, hoặc nhận video + bài tập buổi đó.</p></details>
+      </div>
+    </div>
+
+    <!-- ASIDE STICKY -->
+    <aside class="aside" aria-label="Thông tin nhanh">
+      <div class="aside-card">
+        <h3>Cam kết của cô Hà</h3>
+        <ul class="trust-list">
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Học thử 1 buổi miễn phí</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Sĩ số nhỏ, cô kèm sát từng con</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Báo cáo Zalo hàng tuần</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Hoàn phí trong 3 buổi đầu</li>
+        </ul>
+      </div>
+      <div class="aside-card">
+        <h3>Cần tư vấn?</h3>
+        <p class="muted" style="font-size:14px;margin:0 0 12px;">Nhắn Zalo, cô phản hồi trong ngày.</p>
+        <a href="contact.html" class="btn btn-primary" style="width:100%;">Liên hệ cô Hà</a>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<!-- STICKY MOBILE CTA -->
+<div class="mobile-cta">
+  <span class="mp">900.000 đ</span>
+  <a href="contact.html" class="btn btn-cta">Đăng ký học thử</a>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div>© 2026 <span id="footName">Lớp Toán cô Hà</span> · Vận hành trên nền tảng KiteClass</div>
+    <div><a href="catalog.html">Tất cả khóa học</a> · <a href="contact.html">Liên hệ &amp; Zalo</a></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var body=document.getElementById('topbody');
+  var btns=Array.prototype.slice.call(document.querySelectorAll('.theme-switch button'));
+  var BRAND={
+    'theme-ha':{mark:'H',name:'Lớp Toán cô Hà',tag:'Gia sư Toán tiểu học',gv:'Cô Nguyễn Thị Hà',bio:'Tốt nghiệp ĐH Sư phạm Hà Nội · 12 năm dạy Toán tiểu học · trực tiếp đứng lớp, không giao trợ giảng.'},
+    'theme-nhi':{mark:'N',name:'Lớp Hóa thầy Nhì',tag:'Luyện Hóa THPT',gv:'Thầy Lê Văn Nhì',bio:'Thạc sĩ Hóa học · 10 năm luyện thi THPT · phương pháp tư duy bản chất phản ứng.'},
+    'theme-khanh':{mark:'K',name:'Anh ngữ cô Khánh',tag:'Luyện thi IELTS',gv:'Cô Phạm Gia Khánh',bio:'IELTS 8.5 · 8 năm luyện thi · lộ trình cá nhân hóa theo band mục tiêu.'}
+  };
+  function apply(theme){
+    body.className=theme;var b=BRAND[theme];
+    document.getElementById('brandMark').textContent=b.mark;
+    document.getElementById('brandName').textContent=b.name;
+    document.getElementById('brandTagline').textContent=b.tag;
+    document.getElementById('footName').textContent=b.name;
+    document.getElementById('gvAva').textContent=b.mark;
+    document.getElementById('gvName').textContent=b.gv;
+    document.getElementById('gvBio').textContent=b.bio;
+    btns.forEach(function(x){x.setAttribute('aria-pressed',x.getAttribute('data-theme')===theme);});
+  }
+  btns.forEach(function(x){x.addEventListener('click',function(){apply(x.getAttribute('data-theme'));});});
+})();
+</script>
+</body>
+</html>

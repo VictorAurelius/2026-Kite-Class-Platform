@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Liên hệ &amp; đăng ký học thử — Lớp Toán cô Hà (design kit)</title>
+<meta name="description" content="Kit design trang liên hệ per-tenant KiteClass: form họ tên / SĐT 10 số / email / lời nhắn + nút Zalo + địa chỉ + giờ làm việc. Demo: lớp Toán cô Hà." />
+<!--
+  ============================================================================
+  UI KIT: kiteclass-public · SCREEN contact  (/contact — liên hệ + đăng ký học thử)
+  ============================================================================
+  Persona:  P1 Solo Teacher · audience = phụ huynh đăng ký / hỏi tư vấn.
+  Form spec (VN-realistic):
+    - Họ tên       : required · ≥2 ký tự, không rỗng/space.
+    - SĐT          : required · regex VN 10 số: /^0\d{9}$/ (bắt đầu 0, đúng 10 chữ số).
+    - Email        : OPTIONAL · nếu nhập phải hợp lệ /^[^@\s]+@[^@\s]+\.[^@\s]+$/.
+    - Lời nhắn     : required · ≥10 ký tự.
+    - Inline error dưới field + aria-invalid + aria-describedby + focus field lỗi đầu tiên.
+    - Submit hiển thị success panel (không reload). States demo: default / error-validation / success.
+  Zalo (GAP-274 tenant.zaloUrl): nút "Nhắn Zalo" CHỈ hiện khi tenant có zaloUrl (toggle demo).
+  WCAG AA:  body 14:1 · muted 4.7:1 · error red-600 #DC2626/bg ~4.8:1 · CTA white/--cta-strong 4.8:1.
+  ============================================================================
+-->
+<style>
+:root{
+  --font-sans:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+  --fg:30 41 59;--muted:100 116 139;--bg:255 255 255;--bg-alt:248 250 252;--border:226 232 240;
+  --success:22 163 74;--danger:220 38 38;--zalo:0 104 255;
+  --radius:14px;--radius-lg:20px;--radius-full:999px;
+  --shadow-sm:0 1px 3px rgba(15,23,42,.08);--shadow:0 8px 24px rgba(15,23,42,.10);--shadow-lg:0 18px 44px rgba(15,23,42,.16);
+  --container:1080px;
+  --theme-primary:37 99 235;--theme-secondary:59 130 246;--theme-accent:14 165 233;
+  --cta:249 115 22;--cta-strong:194 65 12;--hero-from:30 64 175;--hero-to:30 58 138;
+}
+.theme-ha{--theme-primary:37 99 235;--theme-secondary:59 130 246;--theme-accent:14 165 233;--cta:249 115 22;--cta-strong:194 65 12;--hero-from:30 64 175;--hero-to:30 58 138;}
+.theme-nhi{--theme-primary:22 163 74;--theme-secondary:5 150 105;--theme-accent:13 148 136;--cta:245 158 11;--cta-strong:180 83 9;--hero-from:22 101 52;--hero-to:6 78 59;}
+.theme-khanh{--theme-primary:234 88 12;--theme-secondary:249 115 22;--theme-accent:217 119 6;--cta:37 99 235;--cta-strong:29 78 216;--hero-from:154 52 18;--hero-to:124 45 18;}
+
+*,*::before,*::after{box-sizing:border-box;}
+html,body{margin:0;}
+body{font-family:var(--font-sans);color:rgb(var(--fg));background:rgb(var(--bg));line-height:1.55;-webkit-font-smoothing:antialiased;}
+a{color:inherit;}
+.container{max-width:var(--container);margin:0 auto;padding:0 24px;}
+h1,h2,h3{margin:0;line-height:1.2;letter-spacing:-0.02em;}
+.muted{color:rgb(var(--muted));}
+.skip{position:absolute;left:-999px;top:0;background:#fff;padding:10px 16px;border-radius:8px;z-index:60;}
+.skip:focus{left:12px;top:12px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;font-family:inherit;font-weight:700;border-radius:var(--radius);padding:13px 20px;font-size:15px;text-decoration:none;transition:transform .12s ease,box-shadow .15s ease;}
+.btn:active{transform:translateY(1px);}
+.btn-cta{background:rgb(var(--cta-strong));color:#fff;box-shadow:0 8px 20px rgb(var(--cta-strong)/.32);}
+.btn-cta:hover{box-shadow:0 12px 26px rgb(var(--cta-strong)/.42);}
+.btn-zalo{background:rgb(var(--zalo));color:#fff;}
+.btn-zalo:hover{box-shadow:0 10px 22px rgb(var(--zalo)/.34);}
+
+.demo-strip{background:#0b1220;color:#e2e8f0;font-size:13px;}
+.demo-strip .container{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:10px 24px;}
+.demo-strip b{color:#fbbf24;}
+.theme-switch{display:flex;gap:8px;align-items:center;}
+.theme-switch span{color:#94a3b8;margin-right:4px;}
+.theme-switch button{font-family:inherit;cursor:pointer;border-radius:var(--radius-full);border:1.5px solid transparent;padding:5px 13px;font-size:12px;font-weight:700;color:#fff;}
+.theme-switch button[aria-pressed="true"]{outline:2px solid #fff;outline-offset:1px;}
+.sw-ha{background:#2563EB;}.sw-nhi{background:#16A34A;}.sw-khanh{background:#EA580C;}
+.demo-toggle{font-family:inherit;cursor:pointer;border:1.5px solid #334155;background:#1e293b;color:#e2e8f0;border-radius:var(--radius-full);padding:5px 13px;font-size:12px;font-weight:700;}
+.demo-toggle[aria-pressed="true"]{background:#16A34A;border-color:#16A34A;color:#fff;}
+.nav{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgb(var(--border));}
+.nav .container{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo .mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,rgb(var(--theme-primary)),rgb(var(--theme-secondary)));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;}
+.nav-logo .name{font-weight:800;font-size:18px;}
+.nav-logo .name small{display:block;font-size:11px;font-weight:600;color:rgb(var(--muted));}
+.nav-links{display:flex;gap:24px;}
+.nav-links a{font-weight:600;font-size:14px;text-decoration:none;}
+.nav-links a[aria-current]{color:rgb(var(--theme-primary));}
+.nav-links a:hover{color:rgb(var(--theme-primary));}
+@media(max-width:880px){.nav-links{display:none;}}
+
+.page-head{background:linear-gradient(120deg,rgb(var(--hero-from)),rgb(var(--hero-to)));color:#fff;padding:42px 0;}
+.page-head .eyebrow{display:inline-flex;background:rgba(255,255,255,.14);padding:6px 13px;border-radius:var(--radius-full);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px;}
+.page-head h1{font-size:clamp(28px,4vw,40px);font-weight:900;margin-bottom:10px;}
+.page-head p{color:rgba(255,255,255,.9);font-size:17px;max-width:42em;margin:0;}
+
+.layout{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;padding:44px 0 60px;align-items:start;}
+
+/* form */
+.form-card{background:#fff;border:1px solid rgb(var(--border));border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:28px;}
+.form-card h2{font-size:22px;font-weight:800;margin-bottom:6px;}
+.form-card .sub{color:rgb(var(--muted));font-size:15px;margin:0 0 20px;}
+.field{margin-bottom:18px;}
+.field label{display:block;font-weight:700;font-size:14px;margin-bottom:7px;}
+.field label .req{color:rgb(var(--danger));}
+.field .opt{font-weight:600;color:rgb(var(--muted));font-size:12px;}
+.field input,.field textarea{width:100%;font-family:inherit;font-size:15px;padding:12px 14px;border:1.5px solid rgb(var(--border));border-radius:var(--radius);background:var(--bg-alt);color:rgb(var(--fg));transition:border-color .12s,background .12s;}
+.field input:focus,.field textarea:focus{outline:none;border-color:rgb(var(--theme-primary));background:#fff;box-shadow:0 0 0 3px rgb(var(--theme-primary)/.14);}
+.field textarea{resize:vertical;min-height:110px;}
+.field .hint{font-size:12px;color:rgb(var(--muted));margin-top:6px;}
+.field .err{display:none;font-size:13px;font-weight:600;color:rgb(var(--danger));margin-top:6px;align-items:center;gap:6px;}
+.field.invalid input,.field.invalid textarea{border-color:rgb(var(--danger));background:#FEF2F2;}
+.field.invalid .err{display:flex;}
+.field.invalid label{color:rgb(var(--danger));}
+.form-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:6px;}
+.form-actions .btn{flex:1;min-width:180px;}
+.consent{font-size:12px;color:rgb(var(--muted));margin-top:14px;line-height:1.5;}
+
+/* success */
+.success{display:none;text-align:center;padding:20px 10px;}
+.success.on{display:block;}
+.success .ok{width:64px;height:64px;border-radius:50%;background:rgb(var(--success)/.14);color:rgb(var(--success));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.success h2{font-size:24px;font-weight:800;margin-bottom:8px;}
+.success p{color:rgb(var(--muted));max-width:30em;margin:0 auto 18px;}
+
+/* aside info */
+.info-card{border:1px solid rgb(var(--border));border-radius:var(--radius-lg);padding:24px;background:#fff;box-shadow:var(--shadow-sm);margin-bottom:18px;}
+.info-card h3{font-size:17px;font-weight:800;margin-bottom:14px;}
+.info-list{list-style:none;padding:0;margin:0;display:grid;gap:14px;}
+.info-list li{display:flex;gap:12px;align-items:flex-start;font-size:15px;}
+.info-list .ic{width:38px;height:38px;border-radius:10px;background:rgb(var(--theme-primary)/.12);color:rgb(var(--theme-primary));display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+.info-list b{display:block;}
+.info-list small{color:rgb(var(--muted));}
+.zalo-block{display:none;}
+.zalo-block.on{display:block;}
+.zalo-block .btn{width:100%;margin-bottom:8px;}
+.zalo-note{font-size:12px;color:rgb(var(--muted));text-align:center;}
+.map{aspect-ratio:16/10;border-radius:var(--radius);overflow:hidden;background:linear-gradient(135deg,#e2e8f0,#cbd5e1);position:relative;display:flex;align-items:center;justify-content:center;}
+.map .pin{position:absolute;font-size:34px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25));}
+.map .mlabel{position:absolute;bottom:10px;left:10px;background:rgba(255,255,255,.92);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;}
+
+.hours{display:grid;gap:8px;}
+.hours-row{display:flex;justify-content:space-between;font-size:14px;padding:8px 0;border-bottom:1px dashed rgb(var(--border));}
+.hours-row:last-child{border-bottom:0;}
+.hours-row.off span:last-child{color:rgb(var(--muted));}
+.hours-row b{font-weight:700;}
+
+.footer{background:#0b1220;color:#94a3b8;padding:30px 0;font-size:14px;}
+.footer .container{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+.footer a{color:#cbd5e1;text-decoration:none;}
+
+@media(max-width:860px){.layout{grid-template-columns:1fr;}}
+</style>
+</head>
+<body class="theme-ha" id="topbody">
+<a href="#main" class="skip">Bỏ qua tới nội dung chính</a>
+
+<div class="demo-strip">
+  <div class="container">
+    <div><b>Design kit · kiteclass-public / contact</b> — đổi GV + bật/tắt Zalo của tenant.</div>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
+      <div class="theme-switch" role="group" aria-label="Chọn giáo viên demo">
+        <span>GV:</span>
+        <button class="sw-ha" data-theme="theme-ha" aria-pressed="true">Cô Hà</button>
+        <button class="sw-nhi" data-theme="theme-nhi" aria-pressed="false">Thầy Nhì</button>
+        <button class="sw-khanh" data-theme="theme-khanh" aria-pressed="false">Cô Khánh</button>
+      </div>
+      <button class="demo-toggle" id="zaloToggle" aria-pressed="true">Tenant có Zalo: BẬT</button>
+    </div>
+  </div>
+</div>
+
+<header class="nav">
+  <div class="container">
+    <a href="../index.html" class="nav-logo" aria-label="Lớp Toán cô Hà — trang chủ">
+      <span class="mark" id="brandMark">H</span>
+      <span class="name"><span id="brandName">Lớp Toán cô Hà</span><small id="brandTagline">Gia sư Toán tiểu học</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Điều hướng chính">
+      <a href="catalog.html">Khóa học</a>
+      <a href="about.html">Về giáo viên</a>
+      <a href="contact.html" aria-current="page">Liên hệ</a>
+    </nav>
+    <a href="#main" class="btn btn-cta">Đăng ký học thử</a>
+  </div>
+</header>
+
+<div class="page-head">
+  <div class="container">
+    <span class="eyebrow">Liên hệ &amp; đăng ký</span>
+    <h1>Để lại lời nhắn, cô Hà phản hồi trong ngày</h1>
+    <p>Đăng ký học thử miễn phí hoặc hỏi tư vấn lộ trình cho con. Cô liên hệ lại qua điện thoại hoặc Zalo.</p>
+  </div>
+</div>
+
+<main id="main" class="container">
+  <div class="layout">
+    <!-- FORM -->
+    <section class="form-card" aria-labelledby="form-title">
+      <form id="contactForm" novalidate>
+        <h2 id="form-title">Đăng ký / gửi lời nhắn</h2>
+        <p class="sub">Trường có dấu <span style="color:rgb(var(--danger));">*</span> là bắt buộc.</p>
+
+        <div class="field" id="f-name">
+          <label for="name">Họ và tên phụ huynh <span class="req">*</span></label>
+          <input id="name" name="name" type="text" autocomplete="name" placeholder="VD: Trần Thị Hồng" aria-required="true" aria-describedby="e-name" />
+          <p class="err" id="e-name" role="alert"><span aria-hidden="true">⚠</span> Vui lòng nhập họ tên (ít nhất 2 ký tự).</p>
+        </div>
+
+        <div class="field" id="f-phone">
+          <label for="phone">Số điện thoại <span class="req">*</span></label>
+          <input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="VD: 0912345678" aria-required="true" aria-describedby="h-phone e-phone" maxlength="10" />
+          <p class="hint" id="h-phone">Số di động 10 chữ số, bắt đầu bằng 0.</p>
+          <p class="err" id="e-phone" role="alert"><span aria-hidden="true">⚠</span> Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng 0.</p>
+        </div>
+
+        <div class="field" id="f-email">
+          <label for="email">Email <span class="opt">(không bắt buộc)</span></label>
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="VD: hong.tran@gmail.com" aria-describedby="e-email" />
+          <p class="err" id="e-email" role="alert"><span aria-hidden="true">⚠</span> Email không hợp lệ. Để trống nếu không có.</p>
+        </div>
+
+        <div class="field" id="f-msg">
+          <label for="msg">Lời nhắn <span class="req">*</span></label>
+          <textarea id="msg" name="msg" placeholder="VD: Cháu đang học lớp 5, hơi yếu phân số, cô tư vấn giúp lớp phù hợp ạ." aria-required="true" aria-describedby="e-msg"></textarea>
+          <p class="err" id="e-msg" role="alert"><span aria-hidden="true">⚠</span> Vui lòng nhập lời nhắn (ít nhất 10 ký tự).</p>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-cta">Gửi đăng ký</button>
+        </div>
+        <p class="consent">Bằng việc gửi, anh/chị đồng ý để cô Hà liên hệ tư vấn. Thông tin chỉ dùng cho mục đích liên hệ, không chia sẻ cho bên thứ ba (tuân thủ PDPL).</p>
+      </form>
+
+      <!-- SUCCESS STATE -->
+      <div class="success" id="success" role="status">
+        <div class="ok" aria-hidden="true"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <h2>Đã gửi thành công!</h2>
+        <p>Cảm ơn anh/chị. Cô Hà sẽ liên hệ lại trong hôm nay qua số điện thoại hoặc Zalo anh/chị để lại.</p>
+        <a href="catalog.html" class="btn btn-cta">Xem các khóa học</a>
+      </div>
+    </section>
+
+    <!-- ASIDE -->
+    <aside aria-label="Thông tin liên hệ">
+      <!-- Zalo (chỉ hiện khi tenant có zaloUrl) -->
+      <div class="info-card zalo-block on" id="zaloBlock">
+        <h3>Nhắn nhanh qua Zalo</h3>
+        <a href="https://zalo.me/0912345678" class="btn btn-zalo" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 5.94 2 10.8c0 2.7 1.4 5.1 3.6 6.7L5 22l4.2-2.1c.9.2 1.85.3 2.8.3 5.52 0 10-3.94 10-8.8S17.52 2 12 2z"/></svg>
+          Nhắn Zalo cho cô Hà
+        </a>
+        <p class="zalo-note">Phản hồi nhanh nhất — thường trong vài giờ.</p>
+      </div>
+
+      <div class="info-card">
+        <h3>Thông tin liên hệ</h3>
+        <ul class="info-list">
+          <li><span class="ic" aria-hidden="true">📞</span><div><b id="ciPhone">0912 345 678</b><small>Gọi / nhắn tin trong giờ làm việc</small></div></li>
+          <li><span class="ic" aria-hidden="true">📍</span><div><b>Số 12, ngõ 45 Tây Sơn</b><small>Đống Đa, Hà Nội</small></div></li>
+          <li><span class="ic" aria-hidden="true">✉️</span><div><b id="ciEmail">lophoccoha@gmail.com</b><small>Email tư vấn</small></div></li>
+        </ul>
+      </div>
+
+      <div class="info-card">
+        <h3>Vị trí lớp học</h3>
+        <div class="map" role="img" aria-label="Bản đồ vị trí lớp học tại Đống Đa, Hà Nội">
+          <span class="pin" aria-hidden="true">📍</span>
+          <span class="mlabel">Số 12, ngõ 45 Tây Sơn, Đống Đa, HN</span>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h3>Giờ làm việc</h3>
+        <div class="hours">
+          <div class="hours-row"><b>Thứ 2 – Thứ 6</b><span>17:00 – 21:00</span></div>
+          <div class="hours-row"><b>Thứ 7 – Chủ nhật</b><span>08:00 – 11:30 · 14:00 – 18:00</span></div>
+          <div class="hours-row off"><b>Ngày lễ, Tết</b><span>Nghỉ</span></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div>© 2026 <span id="footName">Lớp Toán cô Hà</span> · Vận hành trên nền tảng KiteClass</div>
+    <div><a href="catalog.html">Khóa học</a> · <a href="about.html">Về giáo viên</a></div>
+  </div>
+</footer>
+
+<script>
+/* ---- FORM VALIDATION (VN-realistic) ---- */
+(function(){
+  var form=document.getElementById('contactForm'),success=document.getElementById('success');
+  var RE_PHONE=/^0\d{9}$/, RE_EMAIL=/^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+  function setErr(id,bad){document.getElementById('f-'+id).classList.toggle('invalid',bad);
+    var inp=document.getElementById(id);inp.setAttribute('aria-invalid',bad?'true':'false');}
+  // SĐT: chỉ cho nhập số
+  var phone=document.getElementById('phone');
+  phone.addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').slice(0,10);});
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var name=document.getElementById('name').value.trim();
+    var ph=phone.value.trim();
+    var em=document.getElementById('email').value.trim();
+    var msg=document.getElementById('msg').value.trim();
+    var bad={name:name.length<2,phone:!RE_PHONE.test(ph),email:em!==''&&!RE_EMAIL.test(em),msg:msg.length<10};
+    setErr('name',bad.name);setErr('phone',bad.phone);setErr('email',bad.email);setErr('msg',bad.msg);
+    var firstBad=['name','phone','email','msg'].filter(function(k){return bad[k];})[0];
+    if(firstBad){document.getElementById(firstBad).focus();return;}
+    form.style.display='none';success.classList.add('on');success.scrollIntoView({behavior:'smooth',block:'center'});
+  });
+  // xóa lỗi khi user sửa
+  ['name','phone','email','msg'].forEach(function(k){
+    document.getElementById(k).addEventListener('input',function(){document.getElementById('f-'+k).classList.remove('invalid');});
+  });
+})();
+
+/* ---- ZALO toggle (tenant.zaloUrl present?) ---- */
+(function(){
+  var t=document.getElementById('zaloToggle'),block=document.getElementById('zaloBlock');
+  t.addEventListener('click',function(){
+    var on=t.getAttribute('aria-pressed')!=='true';
+    t.setAttribute('aria-pressed',on?'true':'false');
+    t.textContent='Tenant có Zalo: '+(on?'BẬT':'TẮT');
+    block.classList.toggle('on',on);
+  });
+})();
+
+/* ---- THEME SWITCHER (GAP-274) ---- */
+(function(){
+  var body=document.getElementById('topbody');
+  var btns=Array.prototype.slice.call(document.querySelectorAll('.theme-switch button'));
+  var BRAND={
+    'theme-ha':{mark:'H',name:'Lớp Toán cô Hà',tag:'Gia sư Toán tiểu học',email:'lophoccoha@gmail.com'},
+    'theme-nhi':{mark:'N',name:'Lớp Hóa thầy Nhì',tag:'Luyện Hóa THPT',email:'lophoathaynhi@gmail.com'},
+    'theme-khanh':{mark:'K',name:'Anh ngữ cô Khánh',tag:'Luyện thi IELTS',email:'anhngucokhanh@gmail.com'}
+  };
+  function apply(theme){
+    body.className=theme;var b=BRAND[theme];
+    document.getElementById('brandMark').textContent=b.mark;
+    document.getElementById('brandName').textContent=b.name;
+    document.getElementById('brandTagline').textContent=b.tag;
+    document.getElementById('footName').textContent=b.name;
+    document.getElementById('ciEmail').textContent=b.email;
+    btns.forEach(function(x){x.setAttribute('aria-pressed',x.getAttribute('data-theme')===theme);});
+  }
+  btns.forEach(function(x){x.addEventListener('click',function(){apply(x.getAttribute('data-theme'));});});
+})();
+</script>
+</body>
+</html>

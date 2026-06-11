@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>kiteclass-public — 4 trang public per-tenant KiteClass (design kit hub)</title>
+<meta name="description" content="Hub design kit kiteclass-public: catalog, catalog-detail, about, contact — 4 trang public per-tenant KiteClass còn lại sau landing. Demo: lớp Toán cô Hà." />
+<!--
+  UI KIT HUB: kiteclass-public — 4 public per-tenant screens (catalog / catalog-detail / about / contact).
+  Sibling: landing-personal/ (landing / — 113/128). Persona P1 Solo Teacher · audience phụ huynh.
+  GAP-274 per-tenant theme. Demo tenant: lớp Toán cô Nguyễn Thị Hà (#2563EB).
+-->
+<style>
+:root{
+  --font-sans:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+  --fg:30 41 59;--muted:100 116 139;--bg:255 255 255;--bg-alt:248 250 252;--border:226 232 240;
+  --primary:37 99 235;--radius:14px;--radius-lg:20px;--container:1080px;
+  --shadow-sm:0 1px 3px rgba(15,23,42,.08);--shadow:0 8px 24px rgba(15,23,42,.10);
+}
+*,*::before,*::after{box-sizing:border-box;}
+body{margin:0;font-family:var(--font-sans);color:rgb(var(--fg));background:rgb(var(--bg-alt));line-height:1.55;-webkit-font-smoothing:antialiased;}
+a{color:inherit;}
+.container{max-width:var(--container);margin:0 auto;padding:0 24px;}
+.head{background:linear-gradient(120deg,#1E40AF,#1E3A8A);color:#fff;padding:48px 0;}
+.head .eyebrow{display:inline-flex;background:rgba(255,255,255,.14);padding:6px 13px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin-bottom:14px;}
+.head h1{margin:0 0 12px;font-size:clamp(28px,4vw,40px);font-weight:900;letter-spacing:-.02em;}
+.head p{margin:0;color:rgba(255,255,255,.9);font-size:17px;max-width:48em;}
+.head .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;font-size:13px;}
+.head .tags span{background:rgba(255,255,255,.16);padding:5px 12px;border-radius:999px;font-weight:700;}
+.section{padding:40px 0;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;}
+.card{display:block;text-decoration:none;background:#fff;border:1px solid rgb(var(--border));border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm);transition:transform .15s,box-shadow .15s;}
+.card:hover{transform:translateY(-4px);box-shadow:var(--shadow);}
+.card .ic{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#2563EB,#3B82F6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px;}
+.card h2{margin:0;font-size:19px;font-weight:800;letter-spacing:-.01em;}
+.card .route{font-size:13px;font-weight:700;color:rgb(var(--primary));margin:4px 0 8px;font-family:ui-monospace,monospace;}
+.card p{margin:0;font-size:14px;color:rgb(var(--muted));}
+.card .badges{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;font-size:12px;}
+.card .badges span{padding:3px 9px;border-radius:6px;background:#EFF6FF;color:#1D4ED8;font-weight:700;}
+.note{background:#fff;border:1px solid rgb(var(--border));border-radius:var(--radius-lg);padding:22px;margin-top:24px;font-size:14px;color:rgb(var(--muted));}
+.note b{color:rgb(var(--fg));}
+.note a{color:rgb(var(--primary));font-weight:700;}
+.footer{padding:30px 0;text-align:center;font-size:13px;color:rgb(var(--muted));}
+</style>
+</head>
+<body>
+<header class="head">
+  <div class="container">
+    <span class="eyebrow">Design kit · GAP-274</span>
+    <h1>kiteclass-public</h1>
+    <p>4 trang public per-tenant của một giáo viên độc lập trên KiteClass — bổ sung cho landing <code>/</code> (kit <a href="../landing-personal/index.html" style="color:#fff;">landing-personal</a>). Demo tenant: lớp Toán cô Nguyễn Thị Hà.</p>
+    <div class="tags"><span>P1 Solo Teacher</span><span>Audience: phụ huynh</span><span>Theme switcher 3 GV runtime</span><span>VN-only data</span></div>
+  </div>
+</header>
+
+<main class="container section">
+  <div class="grid">
+    <a class="card" href="screens/catalog.html">
+      <div class="ic" aria-hidden="true">📋</div>
+      <h2>Catalog</h2>
+      <div class="route">/catalog</div>
+      <p>Danh sách khóa học: search + filter (cấp lớp/trình độ) + sort + course cards (badge tuyển sinh, giá VND, mã khóa) + gợi ý theo persona + empty-state.</p>
+      <div class="badges"><span>≥105/128</span><span>search · filter · sort</span><span>persona reco</span></div>
+    </a>
+    <a class="card" href="screens/catalog-detail.html">
+      <div class="ic" aria-hidden="true">📖</div>
+      <h2>Catalog detail</h2>
+      <div class="route">/catalog/[id]</div>
+      <p>Chi tiết khóa: hero giá + CTA học thử, mục tiêu, syllabus theo tuần, GV phụ trách, lịch lớp đang mở, FAQ, sticky CTA mobile.</p>
+      <div class="badges"><span>≥105/128</span><span>sticky mobile CTA</span></div>
+    </a>
+    <a class="card" href="screens/about.html">
+      <div class="ic" aria-hidden="true">👩‍🏫</div>
+      <h2>About</h2>
+      <div class="route">/about</div>
+      <p>Giới thiệu GV: câu chuyện, đội ngũ, số liệu thật (anti-fabrication, data-driven), chứng chỉ &amp; chuyên môn.</p>
+      <div class="badges"><span>≥105/128</span><span>anti-fabrication stats</span></div>
+    </a>
+    <a class="card" href="screens/contact.html">
+      <div class="ic" aria-hidden="true">✉️</div>
+      <h2>Contact</h2>
+      <div class="route">/contact</div>
+      <p>Form liên hệ VN-realistic (họ tên / SĐT 10 số validate / email optional / lời nhắn) + nút Zalo (khi tenant có zaloUrl) + bản đồ + giờ làm việc.</p>
+      <div class="badges"><span>≥105/128</span><span>form validation</span><span>Zalo</span></div>
+    </a>
+  </div>
+
+  <div class="note">
+    <p style="margin-top:0;"><b>Phạm vi kit:</b> trang landing <code>/</code> đã có ở kit <b>landing-personal</b> (113/128). Kit này cover 4 trang public còn lại. Mỗi screen self-contained (HTML+CSS+vanilla JS), tái dùng token block + theme switcher + nav/footer pattern từ landing-personal để đồng bộ ngôn ngữ thiết kế.</p>
+    <p style="margin-bottom:0;">Chi tiết persona, per-screen self-score, 4-layer pointers &amp; cross-link xem <a href="README.md">README.md</a>. Demo data nhất quán: cô Nguyễn Thị Hà · Toán · <code>#2563EB</code> · demo-trio thật.</p>
+  </div>
+</main>
+
+<footer class="footer">Design artifact — production port = Next.js per-tenant <code>(public)/</code> routes. Re-run Lighthouse/axe trước merge.</footer>
+</body>
+</html>

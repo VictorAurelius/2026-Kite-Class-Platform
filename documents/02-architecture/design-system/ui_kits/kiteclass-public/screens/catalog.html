@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Danh sách khóa học — Lớp Toán cô Hà | KiteClass per-tenant (design kit)</title>
+<meta name="description" content="Kit design trang catalog per-tenant KiteClass: search + filter + sort + course cards + gợi ý theo persona. Demo: lớp Toán cô Nguyễn Thị Hà." />
+<!--
+  ============================================================================
+  UI KIT: kiteclass-public · SCREEN catalog  (/catalog — danh sách khóa học)
+  ============================================================================
+  Persona:  P1 Solo Teacher (chủ tenant) — audience đọc = PHỤ HUYNH tìm lớp cho con.
+  Sibling:  landing-personal/ (landing / — đã ship 113/128). Kit này = 4 trang public còn lại.
+  GAPs:     GAP-274 (per-tenant theme runtime + persona recommendations)
+  Demo:     tenant lớp Toán cô Nguyễn Thị Hà (#2563EB) — demo-trio thật (2 khóa Toán lớp 4/5).
+
+  WCAG AA self-measurement (cặp text-bearing chính):
+    - Body slate-800 #1E293B / bg #FFFFFF ............................ ~14.0:1 AAA ✓
+    - Muted slate-500 #64748B / bg #FFFFFF .......................... ~4.7:1  AA  ✓
+    - CTA white #FFFFFF / --cta-strong (orange-700 #C2410C) .......... ~4.8:1  AA  ✓
+    - Badge "Đang tuyển sinh" emerald-800 #065F46 / emerald-50 #ECFDF5  ~7.6:1 AAA ✓
+    - Filter chip active white / --theme-primary (blue-600 #2563EB) ... ~4.6:1  AA  ✓
+    - Price text-bearing dùng --cta-strong (không --cta decorative).
+  ============================================================================
+-->
+<style>
+:root{
+  --font-sans:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+  --fg:30 41 59;--muted:100 116 139;--bg:255 255 255;--bg-alt:248 250 252;--border:226 232 240;
+  --success:22 163 74;--danger:220 38 38;
+  --radius:14px;--radius-lg:20px;--radius-full:999px;
+  --shadow-sm:0 1px 3px rgba(15,23,42,.08);--shadow:0 8px 24px rgba(15,23,42,.10);--shadow-lg:0 18px 44px rgba(15,23,42,.16);
+  --container:1180px;
+  --theme-primary:37 99 235;--theme-secondary:59 130 246;--theme-accent:14 165 233;
+  --cta:249 115 22;--cta-strong:194 65 12;--hero-from:30 64 175;--hero-to:30 58 138;
+}
+.theme-ha{--theme-primary:37 99 235;--theme-secondary:59 130 246;--theme-accent:14 165 233;--cta:249 115 22;--cta-strong:194 65 12;--hero-from:30 64 175;--hero-to:30 58 138;}
+.theme-nhi{--theme-primary:22 163 74;--theme-secondary:5 150 105;--theme-accent:13 148 136;--cta:245 158 11;--cta-strong:180 83 9;--hero-from:22 101 52;--hero-to:6 78 59;}
+.theme-khanh{--theme-primary:234 88 12;--theme-secondary:249 115 22;--theme-accent:217 119 6;--cta:37 99 235;--cta-strong:29 78 216;--hero-from:154 52 18;--hero-to:124 45 18;}
+
+*,*::before,*::after{box-sizing:border-box;}
+html,body{margin:0;}
+body{font-family:var(--font-sans);color:rgb(var(--fg));background:rgb(var(--bg));line-height:1.55;-webkit-font-smoothing:antialiased;}
+a{color:inherit;}
+.container{max-width:var(--container);margin:0 auto;padding:0 24px;}
+h1,h2,h3{margin:0;line-height:1.18;letter-spacing:-0.02em;}
+.muted{color:rgb(var(--muted));}
+.skip{position:absolute;left:-999px;top:0;background:#fff;padding:10px 16px;border-radius:8px;z-index:60;}
+.skip:focus{left:12px;top:12px;}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;font-family:inherit;font-weight:700;border-radius:var(--radius);padding:12px 20px;font-size:15px;text-decoration:none;transition:transform .12s ease,box-shadow .15s ease;}
+.btn:active{transform:translateY(1px);}
+.btn-cta{background:rgb(var(--cta-strong));color:#fff;box-shadow:0 8px 20px rgb(var(--cta-strong)/.32);}
+.btn-cta:hover{box-shadow:0 12px 26px rgb(var(--cta-strong)/.42);}
+.btn-primary{background:rgb(var(--theme-primary));color:#fff;}
+.btn-ghost{background:var(--bg);color:rgb(var(--theme-primary));border:1.5px solid rgb(var(--border));}
+
+/* demo strip + nav */
+.demo-strip{background:#0b1220;color:#e2e8f0;font-size:13px;}
+.demo-strip .container{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:10px 24px;}
+.demo-strip b{color:#fbbf24;}
+.theme-switch{display:flex;gap:8px;align-items:center;}
+.theme-switch span{color:#94a3b8;margin-right:4px;}
+.theme-switch button{font-family:inherit;cursor:pointer;border-radius:var(--radius-full);border:1.5px solid transparent;padding:5px 13px;font-size:12px;font-weight:700;color:#fff;}
+.theme-switch button[aria-pressed="true"]{outline:2px solid #fff;outline-offset:1px;}
+.sw-ha{background:#2563EB;}.sw-nhi{background:#16A34A;}.sw-khanh{background:#EA580C;}
+.nav{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgb(var(--border));}
+.nav .container{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo .mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,rgb(var(--theme-primary)),rgb(var(--theme-secondary)));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;flex:0 0 auto;}
+.nav-logo .name{font-weight:800;font-size:18px;}
+.nav-logo .name small{display:block;font-size:11px;font-weight:600;color:rgb(var(--muted));}
+.nav-links{display:flex;gap:24px;}
+.nav-links a{font-weight:600;font-size:14px;text-decoration:none;}
+.nav-links a[aria-current]{color:rgb(var(--theme-primary));}
+.nav-links a:hover{color:rgb(var(--theme-primary));}
+@media(max-width:880px){.nav-links{display:none;}}
+
+/* page head */
+.page-head{background:linear-gradient(120deg,rgb(var(--hero-from)),rgb(var(--hero-to)));color:#fff;padding:40px 0 36px;}
+.page-head .eyebrow{display:inline-flex;background:rgba(255,255,255,.14);padding:6px 13px;border-radius:var(--radius-full);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px;}
+.page-head h1{font-size:clamp(28px,4vw,42px);font-weight:900;margin-bottom:10px;}
+.page-head p{color:rgba(255,255,255,.9);font-size:17px;max-width:46em;margin:0;}
+
+/* toolbar */
+.toolbar{background:#fff;border:1px solid rgb(var(--border));border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:16px;margin:-28px auto 0;position:relative;z-index:5;display:grid;gap:14px;}
+.search-row{display:flex;gap:10px;flex-wrap:wrap;}
+.search{flex:1;min-width:220px;display:flex;align-items:center;gap:10px;border:1.5px solid rgb(var(--border));border-radius:var(--radius);padding:0 14px;background:var(--bg-alt);}
+.search:focus-within{border-color:rgb(var(--theme-primary));background:#fff;}
+.search input{flex:1;border:0;background:transparent;font-family:inherit;font-size:15px;padding:12px 0;outline:none;color:rgb(var(--fg));}
+.search svg{color:rgb(var(--muted));flex:0 0 auto;}
+.sort{display:flex;align-items:center;gap:8px;}
+.sort label{font-size:13px;font-weight:700;color:rgb(var(--muted));}
+.sort select{font-family:inherit;font-size:14px;font-weight:600;padding:11px 14px;border:1.5px solid rgb(var(--border));border-radius:var(--radius);background:#fff;cursor:pointer;color:rgb(var(--fg));}
+.filter-row{display:flex;gap:18px;flex-wrap:wrap;align-items:center;}
+.filter-group{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.filter-group > .lbl{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:rgb(var(--muted));}
+.chip{font-family:inherit;cursor:pointer;border:1.5px solid rgb(var(--border));background:#fff;color:rgb(var(--fg));border-radius:var(--radius-full);padding:7px 15px;font-size:13px;font-weight:700;transition:all .12s ease;}
+.chip:hover{border-color:rgb(var(--theme-primary));}
+.chip[aria-pressed="true"]{background:rgb(var(--theme-primary));color:#fff;border-color:rgb(var(--theme-primary));}
+.result-count{font-size:14px;font-weight:700;color:rgb(var(--muted));}
+.result-count b{color:rgb(var(--theme-primary));}
+
+/* course grid */
+.section{padding:36px 0;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px;}
+.course{display:flex;flex-direction:column;border:1px solid rgb(var(--border));border-radius:var(--radius-lg);overflow:hidden;background:#fff;box-shadow:var(--shadow-sm);transition:transform .15s ease,box-shadow .15s ease;}
+.course:hover{transform:translateY(-4px);box-shadow:var(--shadow);}
+.course-cover{aspect-ratio:16/9;background:linear-gradient(140deg,rgb(var(--theme-primary)),rgb(var(--theme-secondary)));position:relative;display:flex;align-items:center;justify-content:center;font-size:48px;}
+.course-badge{position:absolute;top:12px;left:12px;background:#ECFDF5;color:#065F46;font-size:12px;font-weight:800;padding:5px 11px;border-radius:var(--radius-full);}
+.course-badge.full{background:#FEF2F2;color:#991B1B;}
+.course-code{position:absolute;top:12px;right:12px;background:rgba(15,23,42,.55);color:#fff;font-size:11px;font-weight:700;padding:4px 9px;border-radius:6px;letter-spacing:.03em;}
+.course-body{padding:18px;display:flex;flex-direction:column;gap:10px;flex:1;}
+.course-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;}
+.tag{background:var(--bg-alt);color:rgb(var(--muted));font-weight:700;padding:3px 9px;border-radius:6px;}
+.course h3{font-size:18px;font-weight:800;}
+.course .desc{font-size:14px;color:rgb(var(--muted));flex:1;}
+.course-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;padding-top:14px;border-top:1px solid rgb(var(--border));}
+.price{font-weight:900;font-size:19px;color:rgb(var(--cta-strong));}
+.price small{display:block;font-size:12px;font-weight:600;color:rgb(var(--muted));}
+
+/* empty state */
+.empty{display:none;text-align:center;padding:54px 20px;border:2px dashed rgb(var(--border));border-radius:var(--radius-lg);background:var(--bg-alt);}
+.empty.on{display:block;}
+.empty .emoji{font-size:46px;}
+.empty h3{font-size:22px;font-weight:800;margin:12px 0 8px;}
+.empty p{color:rgb(var(--muted));max-width:30em;margin:0 auto 20px;}
+
+/* recommendations */
+.reco{background:var(--bg-alt);border:1px solid rgb(var(--border));border-radius:var(--radius-lg);padding:26px;margin-top:30px;}
+.reco-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.reco-head .ic{width:40px;height:40px;border-radius:11px;background:rgb(var(--theme-primary)/.12);color:rgb(var(--theme-primary));display:flex;align-items:center;justify-content:center;font-size:22px;flex:0 0 auto;}
+.reco h2{font-size:22px;font-weight:800;}
+.reco .lead{color:rgb(var(--muted));margin:0 0 16px;font-size:15px;}
+.reco-personas{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+.reco-persona{font-family:inherit;cursor:pointer;border:1.5px solid rgb(var(--border));background:#fff;border-radius:var(--radius);padding:10px 16px;font-size:14px;font-weight:700;text-align:left;line-height:1.3;transition:all .12s;}
+.reco-persona small{display:block;font-size:12px;font-weight:600;color:rgb(var(--muted));}
+.reco-persona[aria-pressed="true"]{border-color:rgb(var(--theme-primary));background:rgb(var(--theme-primary)/.06);box-shadow:0 0 0 1px rgb(var(--theme-primary));}
+.reco-result{background:#fff;border:1px solid rgb(var(--border));border-radius:var(--radius);padding:16px 18px;display:flex;gap:14px;align-items:center;}
+.reco-result .rico{font-size:32px;}
+.reco-result b{font-size:16px;}
+.reco-result p{margin:3px 0 0;font-size:14px;color:rgb(var(--muted));}
+.reco-result a{margin-left:auto;flex:0 0 auto;}
+
+/* not-found CTA */
+.nf-cta{margin-top:30px;background:linear-gradient(120deg,rgb(var(--theme-primary)),rgb(var(--theme-secondary)));color:#fff;border-radius:var(--radius-lg);padding:30px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+.nf-cta h2{font-size:22px;font-weight:800;}
+.nf-cta p{margin:6px 0 0;color:rgba(255,255,255,.9);}
+.btn-on-light{background:#fff;color:rgb(var(--theme-primary));}
+
+/* footer */
+.footer{background:#0b1220;color:#94a3b8;padding:30px 0;margin-top:50px;font-size:14px;}
+.footer .container{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+.footer a{color:#cbd5e1;text-decoration:none;}
+
+@media(max-width:680px){
+  .nf-cta,.reco-result{flex-direction:column;align-items:flex-start;}
+  .reco-result a{margin-left:0;}
+}
+</style>
+</head>
+<body class="theme-ha" id="topbody">
+<a href="#main" class="skip">Bỏ qua tới nội dung chính</a>
+
+<!-- DEMO STRIP — theme switcher runtime (GAP-274) -->
+<div class="demo-strip">
+  <div class="container">
+    <div><b>Design kit · kiteclass-public / catalog</b> — đổi giáo viên để xem theme runtime.</div>
+    <div class="theme-switch" role="group" aria-label="Chọn giáo viên demo">
+      <span>Demo giáo viên:</span>
+      <button class="sw-ha" data-theme="theme-ha" aria-pressed="true">Cô Hà · Toán</button>
+      <button class="sw-nhi" data-theme="theme-nhi" aria-pressed="false">Thầy Nhì · Hóa</button>
+      <button class="sw-khanh" data-theme="theme-khanh" aria-pressed="false">Cô Khánh · Anh</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="container">
+    <a href="../index.html" class="nav-logo" aria-label="Lớp Toán cô Hà — trang chủ">
+      <span class="mark" id="brandMark">H</span>
+      <span class="name"><span id="brandName">Lớp Toán cô Hà</span><small id="brandTagline">Gia sư Toán tiểu học</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Điều hướng chính">
+      <a href="catalog.html" aria-current="page">Khóa học</a>
+      <a href="about.html">Về giáo viên</a>
+      <a href="contact.html">Liên hệ</a>
+    </nav>
+    <a href="contact.html" class="btn btn-cta">Đăng ký học thử</a>
+  </div>
+</header>
+
+<!-- PAGE HEAD -->
+<div class="page-head">
+  <div class="container">
+    <span class="eyebrow">Khóa học đang mở</span>
+    <h1>Tìm lớp Toán phù hợp cho con</h1>
+    <p>Các khóa học tôi đang trực tiếp giảng dạy — sĩ số nhỏ 6–8 học viên, báo cáo tiến độ qua Zalo mỗi tuần.</p>
+  </div>
+</div>
+
+<main id="main" class="container">
+  <!-- TOOLBAR -->
+  <form class="toolbar" role="search" onsubmit="return false">
+    <div class="search-row">
+      <label class="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="q" type="search" placeholder="Tìm theo tên khóa, lớp, chủ đề…" aria-label="Tìm khóa học" autocomplete="off" />
+      </label>
+      <div class="sort">
+        <label for="sort">Sắp xếp</label>
+        <select id="sort" aria-label="Sắp xếp khóa học">
+          <option value="popular">Phổ biến nhất</option>
+          <option value="price-asc">Giá thấp → cao</option>
+          <option value="price-desc">Giá cao → thấp</option>
+          <option value="new">Mới khai giảng</option>
+        </select>
+      </div>
+    </div>
+    <div class="filter-row">
+      <div class="filter-group" id="fg-cat" role="group" aria-label="Lọc theo cấp lớp">
+        <span class="lbl">Cấp lớp</span>
+        <button type="button" class="chip" data-k="cat" data-v="all" aria-pressed="true">Tất cả</button>
+        <button type="button" class="chip" data-k="cat" data-v="lop4" aria-pressed="false">Lớp 4</button>
+        <button type="button" class="chip" data-k="cat" data-v="lop5" aria-pressed="false">Lớp 5</button>
+        <button type="button" class="chip" data-k="cat" data-v="onthi" aria-pressed="false">Ôn thi vào 6</button>
+      </div>
+      <div class="filter-group" id="fg-level" role="group" aria-label="Lọc theo trình độ">
+        <span class="lbl">Trình độ</span>
+        <button type="button" class="chip" data-k="level" data-v="all" aria-pressed="true">Tất cả</button>
+        <button type="button" class="chip" data-k="level" data-v="co-ban" aria-pressed="false">Cơ bản</button>
+        <button type="button" class="chip" data-k="level" data-v="nang-cao" aria-pressed="false">Nâng cao</button>
+      </div>
+      <span class="result-count" id="count" aria-live="polite"></span>
+    </div>
+  </form>
+
+  <!-- COURSE GRID -->
+  <section class="section" aria-label="Danh sách khóa học">
+    <div class="grid" id="grid">
+      <!-- card 1 -->
+      <article class="course" data-cat="lop4" data-level="co-ban" data-price="800000" data-pop="3" data-name="toán lớp 4 nền tảng cơ bản tiểu học">
+        <div class="course-cover">➗<span class="course-badge">Đang tuyển sinh</span><span class="course-code">MATH-L4-01</span></div>
+        <div class="course-body">
+          <div class="course-meta"><span class="tag">Lớp 4</span><span class="tag">Cơ bản</span><span class="tag">8 tuần</span></div>
+          <h3>Toán lớp 4 — Nền tảng vững</h3>
+          <p class="desc">Củng cố 4 phép tính, phân số, hình học cơ bản. Sĩ số 6 HV, học 2 buổi/tuần, kiểm tra đầu vào miễn phí.</p>
+          <div class="course-foot">
+            <span class="price">800.000 đ<small>/ khóa 8 tuần</small></span>
+            <a href="catalog-detail.html" class="btn btn-primary">Xem chi tiết</a>
+          </div>
+        </div>
+      </article>
+      <!-- card 2 -->
+      <article class="course" data-cat="lop5" data-level="co-ban" data-price="900000" data-pop="5" data-name="toán lớp 5 phân số tỉ số phần trăm">
+        <div class="course-cover">📐<span class="course-badge">Đang tuyển sinh</span><span class="course-code">MATH-L5-01</span></div>
+        <div class="course-body">
+          <div class="course-meta"><span class="tag">Lớp 5</span><span class="tag">Cơ bản</span><span class="tag">8 tuần</span></div>
+          <h3>Toán lớp 5 — Tỉ số &amp; phần trăm</h3>
+          <p class="desc">Trọng tâm phân số, tỉ số phần trăm, toán chuyển động. Bám sát chương trình GDPT 2018. Sĩ số 8 HV.</p>
+          <div class="course-foot">
+            <span class="price">900.000 đ<small>/ khóa 8 tuần</small></span>
+            <a href="catalog-detail.html" class="btn btn-primary">Xem chi tiết</a>
+          </div>
+        </div>
+      </article>
+      <!-- card 3 -->
+      <article class="course" data-cat="onthi" data-level="nang-cao" data-price="1500000" data-pop="4" data-name="ôn thi vào lớp 6 trường chất lượng cao nâng cao">
+        <div class="course-cover">🎯<span class="course-badge">Đang tuyển sinh</span><span class="course-code">MATH-O6-01</span></div>
+        <div class="course-body">
+          <div class="course-meta"><span class="tag">Ôn thi vào 6</span><span class="tag">Nâng cao</span><span class="tag">12 tuần</span></div>
+          <h3>Ôn thi vào lớp 6 — Nâng cao</h3>
+          <p class="desc">Luyện đề trường chất lượng cao, toán tư duy, đề thi thử hàng tuần. Dành cho HV đã nắm chắc cơ bản.</p>
+          <div class="course-foot">
+            <span class="price">1.500.000 đ<small>/ khóa 12 tuần</small></span>
+            <a href="catalog-detail.html" class="btn btn-primary">Xem chi tiết</a>
+          </div>
+        </div>
+      </article>
+      <!-- card 4 -->
+      <article class="course" data-cat="lop5" data-level="nang-cao" data-price="1100000" data-pop="2" data-name="toán lớp 5 nâng cao bồi dưỡng học sinh giỏi">
+        <div class="course-cover">🏆<span class="course-badge full">Đã đầy lớp</span><span class="course-code">MATH-L5-02</span></div>
+        <div class="course-body">
+          <div class="course-meta"><span class="tag">Lớp 5</span><span class="tag">Nâng cao</span><span class="tag">10 tuần</span></div>
+          <h3>Toán lớp 5 — Bồi dưỡng HSG</h3>
+          <p class="desc">Bồi dưỡng học sinh giỏi, toán nâng cao, chuyên đề khó. Lớp hiện đã đủ sĩ số — đăng ký danh sách chờ.</p>
+          <div class="course-foot">
+            <span class="price">1.100.000 đ<small>/ khóa 10 tuần</small></span>
+            <a href="contact.html" class="btn btn-ghost">Vào danh sách chờ</a>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="empty" id="empty" role="status">
+      <div class="emoji">🔍</div>
+      <h3>Chưa có khóa nào khớp bộ lọc</h3>
+      <p>Tôi vẫn có thể mở lớp riêng hoặc gợi ý lộ trình phù hợp cho con anh/chị. Hãy thử bỏ bớt bộ lọc, hoặc liên hệ trực tiếp.</p>
+      <a href="contact.html" class="btn btn-cta">Nhắn cô Hà tư vấn lộ trình</a>
+    </div>
+  </section>
+
+  <!-- PERSONA RECOMMENDATIONS (GAP-274 AC) -->
+  <section class="reco" aria-labelledby="reco-title">
+    <div class="reco-head">
+      <span class="ic" aria-hidden="true">💡</span>
+      <h2 id="reco-title">Gợi ý cho con anh/chị</h2>
+    </div>
+    <p class="lead">Chọn tình huống của con để tôi gợi ý khóa phù hợp nhất theo độ tuổi &amp; mục tiêu:</p>
+    <div class="reco-personas" role="group" aria-label="Chọn tình huống học viên">
+      <button type="button" class="reco-persona" data-reco="mat-goc" aria-pressed="true">Con đang mất gốc<small>Cần lấy lại nền tảng</small></button>
+      <button type="button" class="reco-persona" data-reco="theo-kip" aria-pressed="false">Học theo kịp lớp<small>Củng cố đều đặn</small></button>
+      <button type="button" class="reco-persona" data-reco="thi-vao-6" aria-pressed="false">Chuẩn bị thi vào 6<small>Mục tiêu trường tốt</small></button>
+    </div>
+    <div class="reco-result" id="reco-result" aria-live="polite"></div>
+  </section>
+
+  <!-- NOT FOUND CTA -->
+  <section class="nf-cta">
+    <div>
+      <h2>Không tìm thấy khóa phù hợp?</h2>
+      <p>Tôi nhận tư vấn lộ trình riêng &amp; mở lớp theo nhu cầu. Nhắn Zalo, tôi phản hồi trong ngày.</p>
+    </div>
+    <a href="contact.html" class="btn btn-on-light">Liên hệ tư vấn miễn phí</a>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div>© 2026 <span id="footName">Lớp Toán cô Hà</span> · Vận hành trên nền tảng KiteClass</div>
+    <div><a href="about.html">Về giáo viên</a> · <a href="contact.html">Liên hệ &amp; Zalo</a></div>
+  </div>
+</footer>
+
+<script>
+/* ---- FILTER + SEARCH + SORT ---- */
+(function(){
+  var grid=document.getElementById('grid'),empty=document.getElementById('empty'),count=document.getElementById('count');
+  var q=document.getElementById('q'),sortEl=document.getElementById('sort');
+  var cards=Array.prototype.slice.call(grid.querySelectorAll('.course'));
+  var state={cat:'all',level:'all'};
+  function chips(k){return Array.prototype.slice.call(document.querySelectorAll('.chip[data-k="'+k+'"]'));}
+  document.querySelectorAll('.chip').forEach(function(c){
+    c.addEventListener('click',function(){
+      var k=c.getAttribute('data-k');state[k]=c.getAttribute('data-v');
+      chips(k).forEach(function(x){x.setAttribute('aria-pressed',x===c);});
+      render();
+    });
+  });
+  q.addEventListener('input',render);sortEl.addEventListener('change',render);
+  function render(){
+    var term=q.value.trim().toLowerCase();
+    var visible=cards.filter(function(c){
+      var okCat=state.cat==='all'||c.dataset.cat===state.cat;
+      var okLvl=state.level==='all'||c.dataset.level===state.level;
+      var okQ=!term||c.dataset.name.indexOf(term)>-1;
+      return okCat&&okLvl&&okQ;
+    });
+    var s=sortEl.value;
+    visible.sort(function(a,b){
+      if(s==='price-asc')return a.dataset.price-b.dataset.price;
+      if(s==='price-desc')return b.dataset.price-a.dataset.price;
+      if(s==='new')return b.dataset.pop-a.dataset.pop;
+      return b.dataset.pop-a.dataset.pop;
+    });
+    cards.forEach(function(c){c.style.display='none';});
+    visible.forEach(function(c){c.style.display='';grid.appendChild(c);});
+    empty.classList.toggle('on',visible.length===0);
+    grid.style.display=visible.length===0?'none':'';
+    count.innerHTML='Hiển thị <b>'+visible.length+'</b> khóa học';
+  }
+  render();
+})();
+
+/* ---- PERSONA RECOMMENDATIONS ---- */
+(function(){
+  var RECO={
+    'mat-goc':{ico:'➗',name:'Toán lớp 4 — Nền tảng vững',desc:'Khóa cơ bản giúp con lấy lại gốc 4 phép tính, phân số. Sĩ số 6 HV để cô kèm sát.'},
+    'theo-kip':{ico:'📐',name:'Toán lớp 5 — Tỉ số & phần trăm',desc:'Bám sát chương trình trên lớp, củng cố đều đặn 2 buổi/tuần, báo cáo tiến độ Zalo.'},
+    'thi-vao-6':{ico:'🎯',name:'Ôn thi vào lớp 6 — Nâng cao',desc:'Luyện đề trường chất lượng cao + thi thử hàng tuần. Phù hợp con đã chắc cơ bản.'}
+  };
+  var btns=Array.prototype.slice.call(document.querySelectorAll('.reco-persona'));
+  var out=document.getElementById('reco-result');
+  function apply(key){
+    var r=RECO[key];
+    out.innerHTML='<span class="rico" aria-hidden="true">'+r.ico+'</span><div><b>'+r.name+'</b><p>'+r.desc+'</p></div><a class="btn btn-primary" href="catalog-detail.html">Xem khóa</a>';
+    btns.forEach(function(x){x.setAttribute('aria-pressed',x.getAttribute('data-reco')===key);});
+  }
+  btns.forEach(function(b){b.addEventListener('click',function(){apply(b.getAttribute('data-reco'));});});
+  apply('mat-goc');
+})();
+
+/* ---- THEME SWITCHER (GAP-274) ---- */
+(function(){
+  var body=document.getElementById('topbody');
+  var btns=Array.prototype.slice.call(document.querySelectorAll('.theme-switch button'));
+  var BRAND={
+    'theme-ha':{mark:'H',name:'Lớp Toán cô Hà',tag:'Gia sư Toán tiểu học'},
+    'theme-nhi':{mark:'N',name:'Lớp Hóa thầy Nhì',tag:'Luyện Hóa THPT'},
+    'theme-khanh':{mark:'K',name:'Anh ngữ cô Khánh',tag:'Luyện thi IELTS'}
+  };
+  function apply(theme){
+    body.className=theme;var b=BRAND[theme];
+    document.getElementById('brandMark').textContent=b.mark;
+    document.getElementById('brandName').textContent=b.name;
+    document.getElementById('brandTagline').textContent=b.tag;
+    document.getElementById('footName').textContent=b.name;
+    btns.forEach(function(x){x.setAttribute('aria-pressed',x.getAttribute('data-theme')===theme);});
+  }
+  btns.forEach(function(x){x.addEventListener('click',function(){apply(x.getAttribute('data-theme'));});});
+})();
+</script>
+</body>
+</html>
