@@ -12,7 +12,13 @@ spring:
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:3001,http://localhost:3000,http://kitehub-frontend:3001,http://kiteclass-frontend:3000}
+            # GAP-1171: allowedOriginPatterns (NOT allowedOrigins) — required for wildcard
+            # multi-tenant subdomain support. Per-tenant landing/login on {slug}.kitehub.me
+            # (production) / {slug}.127.0.0.1.nip.io:3000 (local) — dynamic subdomain set
+            # can't be enumerated as exact origins. allowedOrigins + allowCredentials:true
+            # forbids '*' per CORS spec; allowedOriginPatterns permits wildcard with credentials.
+            # Production override: CORS_ALLOWED_ORIGINS=https://kitehub.me,https://*.kitehub.me
+            allowedOriginPatterns: ${CORS_ALLOWED_ORIGINS:http://localhost:3001,http://localhost:3000,http://*.127.0.0.1.nip.io:3000,http://kitehub-frontend:3001,http://kiteclass-frontend:3000}
             allowedMethods:
               - GET
               - POST
